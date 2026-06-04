@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   'use strict';
 
   if (typeof window !== 'undefined' && window.__cdSoulOriginBookInitialized) {
@@ -517,7 +517,62 @@
     writeSessionValue(SESSION_ID_KEY, sessionId);
 
     if (typeof window._cdCoinGatePerUse !== 'function') {
-      return runServerCoinGate('soul-origin:' + Date.now().toString(36), requestId, sessionId);
+      if (typeof window._cdOpenPaidServiceGate === 'function') {
+        return new Promise(function(resolve, reject) {
+          var reportId = 'soul-origin:' + Date.now().toString(36);
+          var settled = false;
+          function finish(payload) {
+            if (settled) return;
+            settled = true;
+            var raw = payload && typeof payload === 'object' ? payload : {};
+            var data = raw && raw.data && typeof raw.data === 'object' ? raw.data : raw;
+            var token = clean((data && (data.premiumAccessToken || data.accessToken || data.token)) || (raw && (raw.premiumAccessToken || raw.accessToken || raw.token)));
+            if (token) storePremiumToken(token);
+            var grant = normalizeAccessGrant(data, reportId, requestId, sessionId);
+            if (!grant) {
+              reject(new Error('결제 접근 권한을 확인하지 못했습니다.'));
+              return;
+            }
+            resolve({
+              ok: true,
+              premiumAccessToken: token || readPremiumToken(),
+              accessGrant: grant,
+              requestId: grant.requestId,
+              sessionId: grant.sessionId,
+            });
+          }
+          function cancel(error) {
+            if (settled) return;
+            settled = true;
+            reject(error instanceof Error ? error : new Error(clean(error && error.message) || '결제가 취소되었습니다.'));
+          }
+          try {
+            var gate = window._cdOpenPaidServiceGate({
+              categoryKey: 'premium-report',
+              featureKey: FEATURE_KEY,
+              title: '영혼의 기원 리포트 생성',
+              reason: '영혼의 기원 리포트 생성',
+              coinPrice: COIN_COST,
+              cost: COIN_COST,
+              reportType: REPORT_TYPE,
+              reportId: reportId,
+              sessionId: sessionId,
+              reportSessionId: sessionId,
+              requestId: requestId,
+              onGranted: function(_transactionId, payload) { finish(payload); },
+              onPassApplied: function(access) { finish((access && (access.payload || access.rawPayload)) || access || {}); },
+              onCancel: cancel
+            });
+            if (gate && typeof gate.then === 'function') gate.then(function(payload) {
+              if (payload === null || payload === undefined) cancel();
+              else finish(payload);
+            }).catch(cancel);
+          } catch (error) {
+            cancel(error);
+          }
+        });
+      }
+      return Promise.reject(new Error('결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'));
     }
 
     return new Promise(function (resolve, reject) {
@@ -526,11 +581,7 @@
         if (settled) return;
         settled = true;
         if (payload && payload.ok === false) {
-          runServerCoinGate('soul-origin:' + Date.now().toString(36), requestId, sessionId)
-            .then(resolve)
-            .catch(function () {
-              reject(new Error(clean(payload.message) || '결제는 완료되었지만 생성 권한 연결이 지연되었습니다. 다시 시도해 주세요.'));
-            });
+          reject(new Error(clean(payload.message) || '결제 접근 권한을 확인하지 못했습니다. 다시 시도해 주세요.'));
           return;
         }
         var token = clean((payload && (payload.premiumAccessToken || payload.accessToken || payload.token)) || '');
@@ -840,3 +891,4 @@
     }
   }, true);
 })();
+

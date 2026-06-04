@@ -280,6 +280,59 @@
     var headers = { 'Content-Type': 'application/json' };
     if (premiumToken) headers['x-premium-access-token'] = premiumToken;
 
+    if (typeof window._cdOpenPaidServiceGate === 'function') {
+      return await new Promise(function(resolve) {
+        var settled = false;
+        function finish(payload) {
+          if (settled) return;
+          settled = true;
+          var raw = payload && typeof payload === 'object' ? payload : {};
+          var data = raw && raw.data && typeof raw.data === 'object' ? raw.data : raw;
+          var issuedToken = String(data.premiumAccessToken || raw.premiumAccessToken || '').trim();
+          if (issuedToken) _persistPremiumAccessToken(issuedToken);
+          var accessGrant = _normalizeLifeBookAccessGrant(data, reportId, requestId);
+          resolve({
+            ok: !!accessGrant,
+            status: accessGrant ? 200 : 500,
+            message: accessGrant ? '' : '결제 접근 권한을 확인하지 못했습니다.',
+            accessGrant: accessGrant,
+            premiumAccessToken: issuedToken,
+            requestId: requestId,
+          });
+        }
+        function cancel() {
+          if (settled) return;
+          settled = true;
+          resolve({ ok: false, status: 402, message: '결제가 취소되었습니다.', requestId: requestId });
+        }
+        try {
+          var gate = window._cdOpenPaidServiceGate({
+            categoryKey: 'premium-report',
+            featureKey: LIFE_BOOK_FEATURE_KEY,
+            title: LIFE_BOOK_REASON,
+            reason: LIFE_BOOK_REASON,
+            coinPrice: 500,
+            cost: 500,
+            reportId: String(reportId || '').trim() || undefined,
+            sessionId: String(reportId || '').trim() ? ('life-book:' + String(reportId).trim()) : undefined,
+            reportSessionId: String(reportId || '').trim() ? ('life-book:' + String(reportId).trim()) : undefined,
+            requestId: requestId,
+            onGranted: function(_transactionId, payload) { finish(payload); },
+            onPassApplied: function(access) { finish((access && (access.payload || access.rawPayload)) || access || {}); },
+            onCancel: cancel
+          });
+          if (gate && typeof gate.then === 'function') gate.then(function(payload) {
+            if (payload === null || payload === undefined) cancel();
+            else finish(payload);
+          }).catch(cancel);
+        } catch (_) {
+          cancel();
+        }
+      });
+    }
+
+    return { ok: false, status: 0, message: '결제 게이트를 불러오지 못했습니다.', requestId: requestId };
+
     var response = await fetch('/api/billing/coin-gate', {
       method: 'POST',
       credentials: 'include',

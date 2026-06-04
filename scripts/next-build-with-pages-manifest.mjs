@@ -59,7 +59,10 @@ function ensurePagesManifest() {
   }
 
   const entries = collectPagesManifestEntries();
-  if (Object.keys(entries).length === 0) return;
+  if (Object.keys(entries).length === 0) {
+    seedEmptyPagesManifest();
+    return;
+  }
 
   try {
     mkdirSync(dirname(manifestPath), { recursive: true });

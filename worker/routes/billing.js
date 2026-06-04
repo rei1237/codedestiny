@@ -26,6 +26,7 @@ import {
   CONTENT_ENTITLEMENT_SOURCES,
   CONTENT_ENTITLEMENT_STATUSES,
   ContentEntitlement,
+  MonthlyCreditLedger,
   PointHistory,
   SAJU_LOCKED_CONTENT_KEYS,
   ServiceExecutionTransaction,
@@ -41,6 +42,10 @@ import {
   normalizeHoneyPassEntitlement,
   normalizePassTier,
 } from "../lib/profile-limits.js";
+import {
+  getProfileCardMutationPolicy,
+  PROFILE_CARD_MUTATION_ACTIONS,
+} from "../lib/profile-card-mutation-policy.js";
 
 const ACCESS_DECISION_REASONS = Object.freeze({
   FREE: "free",
@@ -66,6 +71,7 @@ const SAJU_PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
 
 const ACCESS_METHOD_ORDER = Object.freeze(["pass", "one_time", "monthly"]);
 const LOTTO_RITUAL_REPORT_FEATURE_KEY = "fun.quantumLotto.ritualReport";
+const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
 const ADMIN_TEST_USER_ID = "flower-admin";
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const SAJU_PDF_GENERATION_FEATURE_KEYS = new Set([
@@ -261,6 +267,26 @@ function buildPaidContentAccessDecision({
   };
 }
 
+function resolveProfileCardActionType(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (text.includes("delete") || text.includes("remove")) return PROFILE_CARD_MUTATION_ACTIONS.DELETE;
+  return PROFILE_CARD_MUTATION_ACTIONS.EDIT;
+}
+
+async function assertProfileCardPassPolicyIfNeeded({ userId, profileId, pricing, body = {} }) {
+  const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
+  if (featureKey !== PROFILE_CARD_MANAGE_FEATURE_KEY) return { ok: true, policy: null };
+  const actionType = resolveProfileCardActionType(body?.actionType || body?.profileAction || body?.action);
+  const policy = await getProfileCardMutationPolicy(userId, profileId, actionType);
+  if (policy?.allowed === true && policy?.requiresPayment !== true) return { ok: true, policy };
+  const reason = String(policy?.reason || "").trim() || "PROFILE_LIMIT_EXCEEDED";
+  return {
+    ok: false,
+    policy,
+    reason: reason === "PRICE_EXCEEDS_PASS_LIMIT" ? "price_exceeds_pass_limit" : "profile_limit_exceeded",
+  };
+}
+
 async function resolvePaidContentAccess(env, {
   userId,
   profileId,
@@ -269,6 +295,7 @@ async function resolvePaidContentAccess(env, {
   requestedPaymentMode = "",
   allowPassAutoUnlock = true,
   subscriptionPass = null,
+  body = {},
 } = {}) {
   const priceCoin = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
   const featureKey = String(pricing?.featureKey || "").trim();
@@ -315,6 +342,17 @@ async function resolvePaidContentAccess(env, {
     }
 
     if (paymentOptions.canUseByPass && allowPassAutoUnlock) {
+      const profilePolicy = await assertProfileCardPassPolicyIfNeeded({ userId, profileId, pricing, body });
+      if (!profilePolicy.ok) {
+        return buildPaidContentAccessDecision({
+          reason: profilePolicy.reason,
+          priceCoin,
+          paymentOptions: {
+            ...paymentOptions,
+            profilePolicy: profilePolicy.policy || null,
+          },
+        });
+      }
       const unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
         userId,
         profileId,
@@ -403,8 +441,8 @@ async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
 }
 
 async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requestId, body = {}) {
-  const coinPrice = Number(pricing?.coinPrice || pricing?.cost || 0);
-  const requiredCredit = Number(pricing?.membershipCreditCost || calculateMembershipCreditCost(coinPrice));
+  const coinPrice = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
+  const requiredCredit = calculateMembershipCreditCost(coinPrice);
   if (!Number.isInteger(requiredCredit) || requiredCredit <= 0) return null;
 
   await connectDb(env);
@@ -412,20 +450,73 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
 
   const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
   const normalizedRequestId = String(requestId || "").trim();
-  if (normalizedRequestId && featureKey) {
+  const purchaseId = String(
+    body?.purchaseId
+    || body?.paymentId
+    || body?.orderId
+    || body?.idempotencyKey
+    || normalizedRequestId
+    || "",
+  ).trim().slice(0, 160);
+  if (purchaseId) {
+    const existingLedger = await MonthlyCreditLedger.findOne({
+      userId: authUserId,
+      type: "MONTHLY_CREDIT_SPEND",
+      sourceId: purchaseId,
+      "metadata.refundedForUnlockFailure": { $ne: true },
+    }).select("_id amount afterBalance metadata").lean();
+    if (existingLedger) {
+      const currentUser = await User.findById(authUserId)
+        .select("points profileSubscription")
+        .lean();
+      const currentCredit = Number(currentUser?.profileSubscription?.membershipCreditBalance ?? existingLedger?.afterBalance ?? 0);
+      return {
+        transactionId: String(existingLedger?.metadata?.pointHistoryId || existingLedger?._id || ""),
+        ledgerId: String(existingLedger?._id || ""),
+        requestId: normalizedRequestId,
+        purchaseId,
+        transactionType: "membership_credit",
+        accessType: "membership_credit",
+        accessMethod: "MONTHLY",
+        paymentMethod: "MONTHLY",
+        featureKey,
+        coinPrice,
+        membershipCreditCost: Math.max(0, Math.floor(Number(existingLedger?.amount || requiredCredit))),
+        requiredMonthlyCredits: Math.max(0, Math.floor(Number(existingLedger?.amount || requiredCredit))),
+        remainingMembershipCredit: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) : 0,
+        monthlyCredits: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) : 0,
+        monthlyCreditsAsCoins: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) / MEMBERSHIP_CREDIT_PER_COIN : 0,
+        idempotent: true,
+        user: {
+          id: String(authUserId || ""),
+          points: Number(currentUser?.points || 0),
+          profileSubscription: currentUser?.profileSubscription || null,
+        },
+      };
+    }
+  }
+  if (purchaseId && featureKey) {
     const existing = await PointHistory.findOne({
       userId: authUserId,
       featureKey,
-      "metadata.requestId": normalizedRequestId,
       "metadata.accessType": "membership_credit",
+      "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
+      $or: [
+        { "metadata.purchaseId": purchaseId },
+        { "metadata.idempotencyKey": purchaseId },
+        { "metadata.orderId": purchaseId },
+        ...(normalizedRequestId ? [{ "metadata.requestId": normalizedRequestId }] : []),
+      ],
     }).select("_id metadata").lean();
     if (existing) {
       const currentUser = await User.findById(authUserId)
         .select("points profileSubscription")
         .lean();
+      const currentCredit = Number(currentUser?.profileSubscription?.membershipCreditBalance ?? existing?.metadata?.remainingMembershipCredit ?? 0);
       return {
         transactionId: String(existing?._id || ""),
         requestId: normalizedRequestId,
+        purchaseId,
         transactionType: "membership_credit",
         accessType: "membership_credit",
         accessMethod: "MONTHLY",
@@ -433,7 +524,10 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
         featureKey,
         coinPrice,
         membershipCreditCost: requiredCredit,
-        remainingMembershipCredit: Number(existing?.metadata?.remainingMembershipCredit || 0),
+        requiredMonthlyCredits: requiredCredit,
+        remainingMembershipCredit: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) : 0,
+        monthlyCredits: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) : 0,
+        monthlyCreditsAsCoins: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) / MEMBERSHIP_CREDIT_PER_COIN : 0,
         idempotent: true,
         user: {
           id: String(authUserId || ""),
@@ -448,14 +542,14 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     {
       _id: authUserId,
       "profileSubscription.membershipCreditBalance": { $gte: requiredCredit },
-      ...(normalizedRequestId ? { recentConsumeRequestIds: { $ne: normalizedRequestId } } : {}),
+      ...(purchaseId ? { recentConsumeRequestIds: { $ne: purchaseId } } : {}),
     },
     {
       $inc: {
         "profileSubscription.membershipCreditBalance": -requiredCredit,
         "profileSubscription.membershipCreditUsed": requiredCredit,
       },
-      ...(normalizedRequestId ? { $addToSet: { recentConsumeRequestIds: normalizedRequestId } } : {}),
+      ...(purchaseId ? { $addToSet: { recentConsumeRequestIds: purchaseId } } : {}),
     },
     {
       returnDocument: "after",
@@ -465,6 +559,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
 
   if (!updatedUser) return null;
 
+  const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const sessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || "").trim();
   const profileId = cleanProfileId(body?.profileId || body?.selectedProfileId);
@@ -480,7 +575,9 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       accessMethod: "MONTHLY",
       paymentMethod: "MONTHLY",
       requestId: normalizedRequestId,
-      purchaseId: normalizedRequestId,
+      purchaseId,
+      idempotencyKey: String(body?.idempotencyKey || purchaseId || "").trim().slice(0, 160),
+      orderId: String(body?.orderId || purchaseId || "").trim().slice(0, 160),
       reportId,
       sessionId,
       reportSessionId: sessionId,
@@ -489,7 +586,10 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       featureKey,
       coinPrice,
       membershipCreditCost: requiredCredit,
-      remainingMembershipCredit: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
+      requiredMonthlyCredits: requiredCredit,
+      remainingMembershipCredit: monthlyCredits,
+      monthlyCredits,
+      monthlyCreditsAsCoins: monthlyCredits / MEMBERSHIP_CREDIT_PER_COIN,
       balanceAfter: Number(updatedUser?.points || 0),
     },
   }).catch(async (error) => {
@@ -498,14 +598,59 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
         "profileSubscription.membershipCreditBalance": requiredCredit,
         "profileSubscription.membershipCreditUsed": -requiredCredit,
       },
-      ...(normalizedRequestId ? { $pull: { recentConsumeRequestIds: normalizedRequestId } } : {}),
+      ...(purchaseId ? { $pull: { recentConsumeRequestIds: purchaseId } } : {}),
     }).catch(() => {});
+    throw error;
+  });
+
+  const ledger = await MonthlyCreditLedger.create({
+    userId: authUserId,
+    type: "MONTHLY_CREDIT_SPEND",
+    amount: requiredCredit,
+    beforeBalance: monthlyCredits + requiredCredit,
+    afterBalance: monthlyCredits,
+    reason: String(pricing?.reason || "membership_credit_access"),
+    sourceId: purchaseId || String(history?._id || ""),
+    serviceKey: featureKey,
+    profileId,
+    metadata: {
+      pointHistoryId: String(history?._id || ""),
+      requestId: normalizedRequestId,
+      purchaseId,
+      idempotencyKey: String(body?.idempotencyKey || purchaseId || "").trim().slice(0, 160),
+      orderId: String(body?.orderId || purchaseId || "").trim().slice(0, 160),
+      coinPrice,
+      requiredMonthlyCredits: requiredCredit,
+      accessType: "membership_credit",
+      accessMethod: "MONTHLY",
+    },
+  }).catch(async (error) => {
+    await User.findByIdAndUpdate(authUserId, {
+      $inc: {
+        "profileSubscription.membershipCreditBalance": requiredCredit,
+        "profileSubscription.membershipCreditUsed": -requiredCredit,
+      },
+      ...(purchaseId ? { $pull: { recentConsumeRequestIds: purchaseId } } : {}),
+    }).catch(() => {});
+    await PointHistory.updateOne(
+      { _id: history?._id, userId: authUserId },
+      {
+        $set: {
+          "metadata.monthlyCreditLedgerFailed": true,
+          "metadata.monthlyCreditLedgerFailedAt": new Date(),
+          "metadata.monthlyCreditLedgerFailureMessage": String(error?.message || "").slice(0, 500),
+          "metadata.monthlyCreditRefundedForLedgerFailure": true,
+        },
+      },
+    ).catch(() => {});
     throw error;
   });
 
   return {
     transactionId: String(history?._id || ""),
+    ledgerId: String(ledger?._id || ""),
     requestId: String(requestId || ""),
+    purchaseId,
     transactionType: "membership_credit",
     accessType: "membership_credit",
     accessMethod: "MONTHLY",
@@ -513,7 +658,10 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     featureKey,
     coinPrice,
     membershipCreditCost: requiredCredit,
-    remainingMembershipCredit: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
+    requiredMonthlyCredits: requiredCredit,
+    remainingMembershipCredit: monthlyCredits,
+    monthlyCredits,
+    monthlyCreditsAsCoins: monthlyCredits / MEMBERSHIP_CREDIT_PER_COIN,
     user: {
       id: String(authUserId || ""),
       points: Number(updatedUser?.points || 0),
@@ -613,7 +761,45 @@ function toCode(payload) {
 }
 
 function success(data, message = "요청이 성공했습니다.", init = {}) {
-  return json({ ok: true, data, message }, init);
+  const responseStatus = data && typeof data.status === "string" && data.status.trim() ? data.status.trim() : undefined;
+  return json({ ok: true, ...(responseStatus ? { status: responseStatus } : {}), data, message }, init);
+}
+
+function normalizeBillingErrorCode(code) {
+  const normalized = String(code || "").trim().toUpperCase();
+  if (!normalized) return "SERVER_ERROR";
+  if (normalized === "LOGIN_REQUIRED" || normalized === "UNAUTHORIZED") return "AUTH_REQUIRED";
+  if (normalized === "INSUFFICIENT_BALANCE" || normalized === "INSUFFICIENT_POINTS") return "INSUFFICIENT_COINS";
+  if (normalized === "INVALID_CONFIRM_PAYLOAD" || normalized === "VERIFY_FAILED" || normalized === "PAYMENT_VERIFY_FAILED") return "PAYMENT_VERIFICATION_FAILED";
+  if (normalized === "INVALID_PAYMENT_MODE" || normalized === "INVALID_PAYMENT_METHOD") return "UNKNOWN_PAYMENT_METHOD";
+  return normalized;
+}
+
+function resolveSuccessAccessStatus(data = {}, consume = {}, accessGrant = {}) {
+  const accessType = String(data.accessType || consume.accessType || accessGrant.accessType || "").trim().toLowerCase();
+  const transactionType = String(data.transactionType || consume.transactionType || accessGrant.transactionType || "").trim().toLowerCase();
+  const accessMethod = String(data.accessMethod || consume.accessMethod || accessGrant.accessMethod || "").trim().toLowerCase();
+  if (data.alreadyUnlocked === true || accessType === "already_unlocked" || transactionType === "unlock_entitlement") return "already_unlocked";
+  if (data.freeBySubscription === true || accessType === "membership_pass" || transactionType === "membership_pass" || accessMethod === "pass") return "pass_applied";
+  return "success";
+}
+
+function resolvePaymentRequiredReason(code, extras = {}) {
+  const normalizedCode = String(code || "").trim().toUpperCase();
+  const debug = extras?.membershipPassDebug && typeof extras.membershipPassDebug === "object" ? extras.membershipPassDebug : {};
+  const requestedCoinPrice = Number(debug.requestedCoinPrice || extras?.pricing?.coinPrice || extras?.pricing?.cost || 0);
+  const passLimit = Number(debug.passLimit || debug.freeLimit || extras?.paymentOptions?.passLimit || 0);
+  const statusText = String(debug.status || "").trim().toLowerCase();
+  if (normalizedCode === "PROFILE_LIMIT_EXCEEDED" || statusText.includes("profile_limit")) return "PROFILE_LIMIT_EXCEEDED";
+  if (normalizedCode === "AUTH_REQUIRED") return "AUTH_REQUIRED";
+  if (normalizedCode === "MEMBERSHIP_PASS_NOT_COVERED" || normalizedCode === "PAYMENT_REQUIRED") {
+    if (statusText === "expired" || statusText === "canceled" || statusText === "cancelled" || statusText === "inactive") return "PASS_EXPIRED";
+    if (Number.isFinite(requestedCoinPrice) && Number.isFinite(passLimit) && passLimit > 0 && requestedCoinPrice > passLimit) return "PRICE_EXCEEDS_PASS_LIMIT";
+    if (debug.hasActivePass === false || !passLimit) return "NO_ACTIVE_PASS";
+    return "PRICE_EXCEEDS_PASS_LIMIT";
+  }
+  if (normalizedCode === "PRICE_EXCEEDS_PASS_LIMIT") return "PRICE_EXCEEDS_PASS_LIMIT";
+  return normalizedCode || "PAYMENT_REQUIRED";
 }
 
 function cleanProfileId(value) {
@@ -720,8 +906,18 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
     unlockedFeatures = Array.isArray(updatedUser?.unlockedFeatures) ? updatedUser.unlockedFeatures : unlockedFeatures;
     unlockMap = { ...unlockMap, [featureKey]: true };
   }
+  const accessStatus = resolveSuccessAccessStatus(data, consume, data?.accessGrant || {});
+  const coinCharged = Number(consume?.chargedCoins || data?.charged || 0);
+  const monthlyStoneCharged = String(consume?.accessType || "").toLowerCase() === "membership_credit"
+    ? Number(consume?.membershipCreditCost || 0)
+    : 0;
   return success({
     ...data,
+    status: accessStatus,
+    contentId: String(data?.contentId || data?.accessGrant?.reportId || featureKey || "").trim(),
+    serviceType: String(data?.serviceType || pricing?.categoryKey || featureKey || "").trim(),
+    coinCharged,
+    monthlyStoneCharged,
     featureKey,
     chargedCoins: Number(consume?.chargedCoins || 0),
     transactionId,
@@ -864,11 +1060,22 @@ async function handlePdfArchiveDetail(request, env, reportIdRaw) {
 }
 
 function failure(status, code, message, debugMessage, extras = {}, errorDetails) {
+  const normalizedCode = normalizeBillingErrorCode(code);
+  const responseStatus = extras?.status || (Number(status) === 402 ? "payment_required" : "error");
+  const responseReason = extras?.reason || (responseStatus === "payment_required" ? resolvePaymentRequiredReason(normalizedCode, extras) : normalizedCode);
+  const requiredMonthlyCredits = Math.max(0, Math.floor(Number(extras?.requiredMonthlyCredits ?? extras?.membershipCreditCost ?? 0)));
+  const currentMonthlyCredits = Math.max(0, Math.floor(Number(extras?.currentMonthlyCredits ?? extras?.monthlyCredits ?? extras?.membershipCreditBalance ?? 0)));
   return json({
     ok: false,
+    code: normalizedCode,
+    message,
+    status: responseStatus,
+    reason: responseReason,
     ...extras,
+    ...(requiredMonthlyCredits > 0 ? { requiredMonthlyCredits } : {}),
+    ...(normalizedCode === "INSUFFICIENT_MONTHLY_CREDITS" ? { currentMonthlyCredits } : {}),
     error: {
-      code,
+      code: normalizedCode,
       message,
       ...(debugMessage ? { debugMessage: String(debugMessage).slice(0, 300) } : {}),
       ...(errorDetails && typeof errorDetails === "object" ? { details: errorDetails } : {}),
@@ -1342,6 +1549,24 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const monthlyBalanceRequested = requestedPaymentMode === "monthly_credit"
     || requestedPaymentMode === "monthly"
     || requestedPaymentMode === "membership_credit";
+  const directPaymentRequested = shouldCreateDirectPortOneOrder(body);
+  const coinPaymentRequested = requestedPaymentMode === "coin"
+    || requestedPaymentMode === "coins"
+    || requestedPaymentMode === "coin_credit"
+    || requestedPaymentMode === "coin_payment"
+    || requestedPaymentMode === "pig_coin"
+    || requestedPaymentMode === "pig-coin"
+    || (!requestedPaymentMode && forceDeductRequested && !directPaymentRequested);
+  const knownPaymentMode = !requestedPaymentMode
+    || membershipPassOnly
+    || monthlyBalanceRequested
+    || directPaymentRequested
+    || coinPaymentRequested;
+  if (!knownPaymentMode) {
+    return failure(400, "UNKNOWN_PAYMENT_METHOD", "알 수 없는 결제 수단입니다.", undefined, {
+      paymentMode: requestedPaymentMode,
+    });
+  }
   const singleOrMonthlyOnly = monthlyBalanceRequested;
 
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
@@ -1424,8 +1649,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       pricing,
       requestId,
       requestedPaymentMode,
-      allowPassAutoUnlock: !singleOrMonthlyOnly,
+      allowPassAutoUnlock: true,
       subscriptionPass: subscriptionPassForDecision,
+      body: scopedBody,
     });
   }
 
@@ -1491,6 +1717,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       accessDecision,
     });
   }
+  const passBlockedByAccessDecision = accessDecision.reason === "profile_limit_exceeded"
+    || accessDecision.reason === "price_exceeds_pass_limit";
 
   if (!isPdfGenerationService) {
     const existingProfileUnlock = await findActiveSajuProfileUnlock(env, {
@@ -1530,6 +1758,79 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }
   }
 
+  let usagePassChecked = false;
+  const tryUsagePassAccess = async () => {
+    usagePassChecked = true;
+    const usagePassConsume = await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
+    if (!usagePassConsume) return null;
+    let unlockEntitlement = null;
+    if (!isPdfGenerationService) {
+      try {
+        unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
+          userId: authCheck.auth.userId,
+          profileId,
+          featureKey: pricing.featureKey,
+          source: CONTENT_ENTITLEMENT_SOURCES.PASS,
+          passId: `${usagePassConsume.category}:${requestId}`,
+          coinAmount: 0,
+        });
+      } catch (error) {
+        return failure(
+          error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
+          "UNLOCK_ENTITLEMENT_SAVE_FAILED",
+          "Unlock entitlement could not be saved after usage pass consumption.",
+          String(error?.message || ""),
+          {
+            pricing,
+            pendingUnlock: true,
+            settlement: {
+              source: "USAGE_PASS",
+              category: usagePassConsume.category,
+              requestId,
+              profileId: profileId || undefined,
+            },
+          },
+        );
+      }
+    }
+    return await successWithPremiumAccess(env, authCheck.auth.userId, {
+      pricing,
+      ...paymentDecision,
+      paymentOptions: paymentDecision,
+      accessMethod: "PASS",
+      consume: {
+        ok: true,
+        transactionType: "usage_pass",
+        accessType: "usage_pass",
+        accessMethod: "PASS",
+        paymentMethod: "PASS",
+        requestId,
+        featureKey: String(pricing.featureKey || ""),
+        category: usagePassConsume.category,
+        remainingUses: usagePassConsume.remainingUses,
+        chargedCoins: 0,
+        membershipCreditCost: 0,
+      },
+      premiumAccessToken: null,
+      accessGrant: {
+        ok: true,
+        accessType: "usage_pass",
+        accessMethod: "PASS",
+        featureKey: String(pricing.featureKey || ""),
+        sessionId: reportSessionId || undefined,
+        requestId,
+        purchaseId: String(unlockEntitlement?._id || requestId),
+        evidenceId: String(unlockEntitlement?._id || ""),
+        reportId: reportId || undefined,
+        profileId: profileId || undefined,
+        paidAt: new Date().toISOString(),
+      },
+      balance: Number(usagePassConsume?.user?.points || 0),
+      user: usagePassConsume.user,
+      freeBySubscription: true,
+    }, "이용권으로 콘텐츠 이용 권한을 발급했습니다.");
+  };
+
   if (authCheck?.auth?.userId) {
     const subscriptionPass = await getActiveMembershipPassForUser(env, authCheck.auth.userId);
     const coinPrice = Number(pricing?.coinPrice || pricing?.cost || 0);
@@ -1538,7 +1839,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       pricing,
       subscriptionPass.profileSubscription,
     );
-    if (paymentDecision.canUseByPass) {
+    if (paymentDecision.canUseByPass && !passBlockedByAccessDecision) {
       if (!singleOrMonthlyOnly) {
       const passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
         ...scopedBody,
@@ -1624,7 +1925,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
       }
     if (membershipPassOnly) {
-      return failure(402, "MEMBERSHIP_PASS_NOT_COVERED", "현재 이용권 한도 밖 서비스입니다. 월정석 또는 단건 결제로 이용해 주세요.", undefined, {
+      const passFailureCode = accessDecision.reason === "profile_limit_exceeded"
+        ? "PROFILE_LIMIT_EXCEEDED"
+        : (accessDecision.reason === "price_exceeds_pass_limit" ? "PRICE_EXCEEDS_PASS_LIMIT" : "MEMBERSHIP_PASS_NOT_COVERED");
+      return failure(402, passFailureCode, "현재 이용권 한도 밖 서비스입니다. 월정석 또는 단건 결제로 이용해 주세요.", undefined, {
         pricing,
         ...paymentDecision,
         paymentOptions: paymentDecision,
@@ -1652,6 +1956,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       });
     }
 
+    const usagePassAccess = await tryUsagePassAccess();
+    if (usagePassAccess) return usagePassAccess;
+
     if (monthlyBalanceRequested) {
       try {
       const membershipConsume = await consumeMembershipCreditIfAvailable(env, authCheck.auth.userId, pricing, requestId, {
@@ -1669,11 +1976,46 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
               profileId,
               featureKey: pricing.featureKey,
               source: CONTENT_ENTITLEMENT_SOURCES.COIN,
-              orderId: requestId,
+              orderId: membershipConsume.purchaseId || requestId,
               paymentId: membershipConsume.transactionId || requestId,
               coinAmount: Number(membershipConsume.coinPrice || 0),
             });
           } catch (error) {
+            if (!membershipConsume.idempotent) {
+              const refundCredit = Math.max(0, Math.floor(Number(membershipConsume.requiredMonthlyCredits || membershipConsume.membershipCreditCost || 0)));
+              const refundPurchaseId = String(membershipConsume.purchaseId || requestId || "").trim();
+              if (refundCredit > 0) {
+                await User.findByIdAndUpdate(authCheck.auth.userId, {
+                  $inc: {
+                    "profileSubscription.membershipCreditBalance": refundCredit,
+                    "profileSubscription.membershipCreditUsed": -refundCredit,
+                  },
+                  ...(refundPurchaseId ? { $pull: { recentConsumeRequestIds: refundPurchaseId } } : {}),
+                }).catch(() => {});
+                await PointHistory.updateOne(
+                  { _id: membershipConsume.transactionId, userId: authCheck.auth.userId },
+                  {
+                    $set: {
+                      "metadata.monthlyCreditRefundedForUnlockFailure": true,
+                      "metadata.monthlyCreditRefundedAt": new Date(),
+                      "metadata.unlockFailureMessage": String(error?.message || "").slice(0, 500),
+                    },
+                  },
+                ).catch(() => {});
+                if (membershipConsume.ledgerId) {
+                  await MonthlyCreditLedger.updateOne(
+                    { _id: membershipConsume.ledgerId, userId: authCheck.auth.userId },
+                    {
+                      $set: {
+                        "metadata.refundedForUnlockFailure": true,
+                        "metadata.refundedAt": new Date(),
+                        "metadata.unlockFailureMessage": String(error?.message || "").slice(0, 500),
+                      },
+                    },
+                  ).catch(() => {});
+                }
+              }
+            }
             return failure(
               error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
               "UNLOCK_ENTITLEMENT_SAVE_FAILED",
@@ -1715,7 +2057,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             coinPrice: membershipConsume.coinPrice,
             chargedCoins: Number(membershipConsume.coinPrice || 0),
             membershipCreditCost: membershipConsume.membershipCreditCost,
+            requiredMonthlyCredits: membershipConsume.requiredMonthlyCredits,
             remainingMembershipCredit: membershipConsume.remainingMembershipCredit,
+            monthlyCredits: membershipConsume.monthlyCredits,
+            monthlyCreditsAsCoins: membershipConsume.monthlyCreditsAsCoins,
             idempotent: Boolean(membershipConsume.idempotent),
           },
           premiumAccessToken: null,
@@ -1725,7 +2070,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             featureKey: String(pricing.featureKey || ""),
             sessionId: reportSessionId || undefined,
             requestId,
-            purchaseId: requestId,
+            purchaseId: membershipConsume.purchaseId || requestId,
             evidenceId: String(unlockEntitlement?._id || membershipConsume.transactionId || ""),
             reportId: reportId || undefined,
             profileId: profileId || undefined,
@@ -1734,6 +2079,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           },
           balance: Number(membershipConsume?.user?.points || 0),
           membershipCreditBalance: membershipConsume.remainingMembershipCredit,
+          monthlyCredits: membershipConsume.monthlyCredits,
+          monthlyCreditsAsCoins: membershipConsume.monthlyCreditsAsCoins,
           user: membershipConsume.user,
         }, "월정석 크레딧으로 콘텐츠 이용 권한을 발급했습니다.");
       }
@@ -1751,7 +2098,32 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }
     }
 
-    const usagePassConsume = singleOrMonthlyOnly ? null : await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
+    if (monthlyBalanceRequested) {
+      const currentUser = await User.findById(authCheck.auth.userId)
+        .select("profileSubscription")
+        .lean();
+      const monthlyCredits = Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0)));
+      const requiredMonthlyCredits = calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0));
+      return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "월정석 잔량이 부족합니다.", undefined, {
+        pricing,
+        ...paymentDecision,
+        paymentOptions: {
+          ...paymentDecision,
+          monthlyBalance: monthlyCredits,
+          canUseByMonthly: false,
+        },
+        accessGrant: null,
+        requiredMonthlyCredits,
+        currentMonthlyCredits: monthlyCredits,
+        membershipCreditCost: requiredMonthlyCredits,
+        membershipCreditBalance: monthlyCredits,
+        monthlyCredits,
+        monthlyCreditsAsCoins: monthlyCredits / MEMBERSHIP_CREDIT_PER_COIN,
+        canUseByCard: true,
+      });
+    }
+
+    const usagePassConsume = usagePassChecked || singleOrMonthlyOnly ? null : await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
     if (usagePassConsume) {
       let unlockEntitlement = null;
       if (!isPdfGenerationService) {
@@ -1813,7 +2185,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }
   }
 
-  return failure(402, "PAYMENT_REQUIRED", "상품별 원화 단건 결제가 필요합니다.", undefined, {
+  if (!coinPaymentRequested) return failure(402, "PAYMENT_REQUIRED", "상품별 원화 단건 결제가 필요합니다.", undefined, {
     pricing,
     ...paymentDecision,
     paymentOptions: paymentDecision,
@@ -1840,6 +2212,261 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       },
     },
   });
+
+  if (coinPaymentRequested) {
+    await connectDb(env);
+    const requiredCoins = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
+    const coinPurchaseId = String(body?.purchaseId || body?.idempotencyKey || body?.orderId || requestId || "").trim();
+    const coinFeatureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
+
+    if (coinPurchaseId && coinFeatureKey) {
+      const existingCoinSpend = await PointHistory.findOne({
+        userId: authCheck.auth.userId,
+        kind: "deduct",
+        featureKey: coinFeatureKey,
+        "metadata.accessType": "coin",
+        $or: [
+          { "metadata.purchaseId": coinPurchaseId },
+          { "metadata.idempotencyKey": coinPurchaseId },
+          { "metadata.orderId": coinPurchaseId },
+          { "metadata.requestId": coinPurchaseId },
+        ],
+      }).select("_id balanceAfter metadata").lean();
+      if (existingCoinSpend) {
+        const currentUser = await User.findById(authCheck.auth.userId)
+          .select("points profileSubscription")
+          .lean();
+        const currentBalance = Math.max(0, Math.floor(Number(currentUser?.points || existingCoinSpend.balanceAfter || 0)));
+        return success({
+          pricing,
+          accessMethod: "COIN",
+          paymentMode: "COIN",
+          consume: {
+            ok: true,
+            transactionId: String(existingCoinSpend._id || ""),
+            purchaseId: coinPurchaseId,
+            requestId,
+            transactionType: "coin",
+            accessType: "coin",
+            accessMethod: "COIN",
+            paymentMethod: "COIN",
+            featureKey: coinFeatureKey,
+            chargedCoins: requiredCoins,
+            idempotent: true,
+          },
+          premiumAccessToken: null,
+          accessGrant: {
+            ok: true,
+            accessType: "coin",
+            accessMethod: "COIN",
+            paymentMethod: "COIN",
+            featureKey: coinFeatureKey,
+            sessionId: reportSessionId || undefined,
+            requestId,
+            purchaseId: coinPurchaseId,
+            evidenceId: String(existingCoinSpend._id || ""),
+            reportId: reportId || undefined,
+            profileId: profileId || undefined,
+            paidAt: existingCoinSpend?.metadata?.paidAt || new Date().toISOString(),
+          },
+          balance: currentBalance,
+          membershipCreditBalance: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
+          monthlyCredits: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
+          user: {
+            id: String(authCheck.auth.userId || ""),
+            points: currentBalance,
+            profileSubscription: currentUser?.profileSubscription || null,
+          },
+        }, "이미 처리된 코인 결제 요청입니다.");
+      }
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      {
+        _id: authCheck.auth.userId,
+        points: { $gte: requiredCoins },
+        ...(coinPurchaseId ? { recentConsumeRequestIds: { $ne: coinPurchaseId } } : {}),
+      },
+      {
+        $inc: { points: -requiredCoins },
+        ...(coinPurchaseId ? { $addToSet: { recentConsumeRequestIds: coinPurchaseId } } : {}),
+      },
+      { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
+    ).lean();
+
+    if (!updatedUser) {
+      const currentUser = await User.findById(authCheck.auth.userId)
+        .select("points profileSubscription recentConsumeRequestIds")
+        .lean();
+      if (coinPurchaseId && Array.isArray(currentUser?.recentConsumeRequestIds) && currentUser.recentConsumeRequestIds.includes(coinPurchaseId)) {
+        return success({
+          pricing,
+          accessMethod: "COIN",
+          paymentMode: "COIN",
+          consume: {
+            ok: true,
+            purchaseId: coinPurchaseId,
+            requestId,
+            transactionType: "coin",
+            accessType: "coin",
+            accessMethod: "COIN",
+            paymentMethod: "COIN",
+            featureKey: coinFeatureKey,
+            chargedCoins: requiredCoins,
+            idempotent: true,
+          },
+          accessGrant: null,
+          balance: Math.max(0, Math.floor(Number(currentUser?.points || 0))),
+          membershipCreditBalance: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
+          monthlyCredits: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
+          user: {
+            id: String(authCheck.auth.userId || ""),
+            points: Math.max(0, Math.floor(Number(currentUser?.points || 0))),
+            profileSubscription: currentUser?.profileSubscription || null,
+          },
+        }, "이미 처리된 코인 결제 요청입니다.");
+      }
+      return failure(402, "INSUFFICIENT_COINS", "코인 잔액이 부족합니다.", undefined, {
+        pricing,
+        requiredCoins,
+        currentCoins: Math.max(0, Math.floor(Number(currentUser?.points || 0))),
+        membershipCreditBalance: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
+        monthlyCredits: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
+        canUseByCard: true,
+      });
+    }
+
+    const coinBalance = Math.max(0, Math.floor(Number(updatedUser?.points || 0)));
+    const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
+    let coinHistory = null;
+    try {
+      coinHistory = await PointHistory.create({
+        userId: authCheck.auth.userId,
+        kind: "deduct",
+        delta: -requiredCoins,
+        balanceAfter: coinBalance,
+        reason: String(pricing?.reason || "coin_access"),
+        featureKey: coinFeatureKey,
+        metadata: {
+          accessType: "coin",
+          accessMethod: "COIN",
+          paymentMethod: "COIN",
+          transactionType: "coin",
+          requestId,
+          purchaseId: coinPurchaseId,
+          idempotencyKey: String(body?.idempotencyKey || coinPurchaseId || "").trim().slice(0, 160),
+          orderId: String(body?.orderId || coinPurchaseId || "").trim().slice(0, 160),
+          reportId,
+          sessionId: reportSessionId,
+          reportSessionId,
+          profileId,
+          selectedProfileId: profileId,
+          featureKey: coinFeatureKey,
+          coinPrice: requiredCoins,
+          chargedCoins: requiredCoins,
+          paidAt: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      await User.findByIdAndUpdate(authCheck.auth.userId, {
+        $inc: { points: requiredCoins },
+        ...(coinPurchaseId ? { $pull: { recentConsumeRequestIds: coinPurchaseId } } : {}),
+      }).catch(() => {});
+      throw error;
+    }
+
+    let accessGrant = null;
+    let unlockEntitlement = null;
+    if (!isPdfGenerationService) {
+      try {
+        unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
+          userId: authCheck.auth.userId,
+          profileId,
+          featureKey: coinFeatureKey,
+          source: CONTENT_ENTITLEMENT_SOURCES.COIN,
+          paymentId: String(coinHistory?._id || coinPurchaseId || requestId),
+          orderId: coinPurchaseId || requestId,
+          coinAmount: requiredCoins,
+        });
+      } catch (error) {
+        await User.findByIdAndUpdate(authCheck.auth.userId, {
+          $inc: { points: requiredCoins },
+          ...(coinPurchaseId ? { $pull: { recentConsumeRequestIds: coinPurchaseId } } : {}),
+        }).catch(() => {});
+        await PointHistory.updateOne(
+          { _id: coinHistory?._id, userId: authCheck.auth.userId },
+          {
+            $set: {
+              "metadata.coinRefundedForUnlockFailure": true,
+              "metadata.coinRefundedAt": new Date(),
+              "metadata.unlockFailureMessage": String(error?.message || "").slice(0, 500),
+            },
+          },
+        ).catch(() => {});
+        return failure(
+          error?.code === "MISSING_PROFILE_ID" ? 403 : 500,
+          "UNLOCK_ENTITLEMENT_SAVE_FAILED",
+          "Unlock entitlement could not be saved after coin consumption.",
+          String(error?.message || ""),
+          {
+            pricing,
+            pendingUnlock: true,
+            settlement: {
+              source: "COIN",
+              transactionId: String(coinHistory?._id || ""),
+              requestId,
+              profileId: profileId || undefined,
+            },
+          },
+        );
+      }
+    }
+
+    accessGrant = {
+      ok: true,
+      accessType: "coin",
+      accessMethod: "COIN",
+      paymentMethod: "COIN",
+      featureKey: coinFeatureKey,
+      sessionId: reportSessionId || undefined,
+      requestId,
+      purchaseId: coinPurchaseId || String(coinHistory?._id || ""),
+      evidenceId: String(unlockEntitlement?._id || coinHistory?._id || ""),
+      reportId: reportId || undefined,
+      profileId: profileId || undefined,
+      paidAt: new Date().toISOString(),
+    };
+
+    return success({
+      pricing,
+      accessMethod: "COIN",
+      paymentMode: "COIN",
+      consume: {
+        ok: true,
+        transactionId: String(coinHistory?._id || ""),
+        purchaseId: coinPurchaseId || String(coinHistory?._id || ""),
+        requestId,
+        transactionType: "coin",
+        accessType: "coin",
+        accessMethod: "COIN",
+        paymentMethod: "COIN",
+        featureKey: coinFeatureKey,
+        chargedCoins: requiredCoins,
+        idempotent: false,
+      },
+      premiumAccessToken: null,
+      accessGrant,
+      balance: coinBalance,
+      membershipCreditBalance: monthlyCredits,
+      monthlyCredits,
+      monthlyCreditsAsCoins: monthlyCredits / MEMBERSHIP_CREDIT_PER_COIN,
+      user: {
+        id: String(authCheck.auth.userId || ""),
+        points: coinBalance,
+        profileSubscription: updatedUser?.profileSubscription || null,
+      },
+    }, "코인으로 콘텐츠 이용 권한을 발급했습니다.");
+  }
 
   const delegatedBody = {
     cost: Number(pricing.cost),
@@ -1971,10 +2598,23 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   if (accessGrant && unlockEntitlement?._id) {
     accessGrant.evidenceId = String(unlockEntitlement._id || "");
   }
+  if (accessGrant) {
+    accessGrant.accessType = "coin";
+    accessGrant.accessMethod = "COIN";
+    accessGrant.paymentMethod = "COIN";
+  }
 
   return success({
     pricing,
-    consume: payload,
+    accessMethod: "COIN",
+    paymentMode: "COIN",
+    consume: {
+      ...(payload && typeof payload === "object" ? payload : {}),
+      accessType: "coin",
+      accessMethod: "COIN",
+      paymentMethod: "COIN",
+      transactionType: "coin",
+    },
     premiumAccessToken: premiumAccessToken || null,
     accessGrant,
     balance: Number.isFinite(balance) ? balance : null,
@@ -2015,6 +2655,9 @@ async function handleBalance(request, env) {
     return success({
       authenticated: false,
       balance: 0,
+      coins: 0,
+      monthlyCredits: 0,
+      monthlyCreditsAsCoins: 0,
       user: null,
       unlockedFeatures: [],
       unlockMap: {},
@@ -2101,7 +2744,10 @@ async function handleBalance(request, env) {
     authenticated: Boolean(payload?.authenticated),
     balance: Number.isFinite(balance) ? balance : 0,
     legacyCoinBalance: Number.isFinite(balance) ? balance : 0,
+    coins: Number.isFinite(balance) ? balance : 0,
     membershipCreditBalance,
+    monthlyCredits: Math.max(0, Math.floor(Number(membershipCreditBalance || 0))),
+    monthlyCreditsAsCoins: Math.max(0, Math.floor(Number(membershipCreditBalance || 0))) / MEMBERSHIP_CREDIT_PER_COIN,
     membership,
     currentProfileId: scopedProfileId || undefined,
     user: payload?.user || null,
@@ -2186,12 +2832,15 @@ async function handleUnlockStatus(request, env) {
   });
 
   const auth = await getOptionalUserFromRequest(request, env);
-  const accessDecision = await resolvePaidContentAccess(env, {
-    userId: auth?.userId || "",
-    profileId: cleanProfileId(url.searchParams.get("profileId") || data.currentProfileId || ""),
-    pricing,
-    requestId: String(url.searchParams.get("requestId") || "").trim(),
-  });
+    const accessDecision = await resolvePaidContentAccess(env, {
+      userId: auth?.userId || "",
+      profileId: cleanProfileId(url.searchParams.get("profileId") || data.currentProfileId || ""),
+      pricing,
+      requestId: String(url.searchParams.get("requestId") || "").trim(),
+      body: {
+        actionType: String(url.searchParams.get("actionType") || "").trim(),
+      },
+    });
   if (accessDecision.paymentOptions) paymentDecision = accessDecision.paymentOptions;
   if (accessDecision.accessGranted) {
     unlocked = true;
@@ -2307,11 +2956,16 @@ async function delegateToPayments(request, env, targetPath, body, options = {}) 
   }
 
   if (!delegatedResponse.ok) {
-    const code = delegatedResponse.status === 401 || delegatedResponse.status === 403 ? "AUTH_REQUIRED" : "SERVER_ERROR";
+    const rawCode = normalizeBillingErrorCode(toCode(payload));
+    const code = delegatedResponse.status === 401 || delegatedResponse.status === 403
+      ? "AUTH_REQUIRED"
+      : (rawCode !== "SERVER_ERROR" ? rawCode : (String(targetPath || "").includes("/confirm") ? "PAYMENT_VERIFICATION_FAILED" : "SERVER_ERROR"));
     return failure(
       delegatedResponse.status,
       code,
-      delegatedResponse.status >= 500 ? "서버 결제 처리 중 오류가 발생했습니다." : "결제 요청이 거부되었습니다.",
+      code === "PAYMENT_VERIFICATION_FAILED"
+        ? "결제 검증에 실패했습니다."
+        : (delegatedResponse.status >= 500 ? "서버 결제 처리 중 오류가 발생했습니다." : "결제 요청이 거부되었습니다."),
       toMessage(payload, "결제 요청 실패"),
     );
   }
@@ -2475,6 +3129,30 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
     subscriptionPass.profileSubscription,
   );
   if (!paymentDecision.canUseByPass) return null;
+  const profilePolicy = await assertProfileCardPassPolicyIfNeeded({
+    userId: authCheck.auth.userId,
+    profileId,
+    pricing,
+    body: scopedBody,
+  });
+  if (!profilePolicy.ok) {
+    return failure(
+      402,
+      profilePolicy.reason === "price_exceeds_pass_limit" ? "PRICE_EXCEEDS_PASS_LIMIT" : "PROFILE_LIMIT_EXCEEDED",
+      "현재 이용권 정책으로 처리할 수 없는 프로필 카드 요청입니다.",
+      undefined,
+      {
+        pricing,
+        ...paymentDecision,
+        paymentOptions: {
+          ...paymentDecision,
+          profilePolicy: profilePolicy.policy || null,
+        },
+        accessGrant: null,
+        balance: null,
+      },
+    );
+  }
 
   const passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
     ...scopedBody,

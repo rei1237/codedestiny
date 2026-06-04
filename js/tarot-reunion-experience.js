@@ -385,7 +385,8 @@
       });
     }
 
-    return consumeMonthlyCredit(cost, reason, featureKey, requestId);
+    window.alert("결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.");
+    return Promise.resolve(false);
   }
 
   function consumeMonthlyCredit(cost, reason, featureKey, requestId) {

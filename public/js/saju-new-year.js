@@ -399,6 +399,57 @@
     var headers = { 'Content-Type': 'application/json' };
     if (premiumToken) headers['x-premium-access-token'] = premiumToken;
     _log('PaymentVerificationStarted', { featureKey: BILLING_FEATURE_KEY, reportId: reportId });
+    if (typeof window._cdOpenPaidServiceGate === 'function') {
+      return await new Promise(function(resolve) {
+        var settled = false;
+        function finish(payload) {
+          if (settled) return;
+          settled = true;
+          var raw = payload && typeof payload === 'object' ? payload : {};
+          var data = raw && raw.data && typeof raw.data === 'object' ? raw.data : raw;
+          var token = _extractPremiumToken(raw);
+          if (token) _persistPremiumAccessToken(token);
+          var grant = _normalizeAccessGrant(data, reportId, requestId);
+          if (!grant) {
+            resolve({ ok: false, status: 500, message: '결제 접근 권한을 확인하지 못했습니다.', requestId: requestId });
+            return;
+          }
+          _log('PaymentVerificationPassed', { featureKey: BILLING_FEATURE_KEY, reportId: reportId, hasPurchaseId: !!grant.purchaseId });
+          resolve({ ok: true, accessGrant: grant, premiumAccessToken: token, requestId: requestId });
+        }
+        function cancel() {
+          if (settled) return;
+          settled = true;
+          resolve({ ok: false, status: 402, message: '결제가 취소되었습니다.', requestId: requestId });
+        }
+        try {
+          var gate = window._cdOpenPaidServiceGate({
+            categoryKey: 'premium-report',
+            featureKey: BILLING_FEATURE_KEY,
+            title: REASON,
+            reason: REASON,
+            coinPrice: COIN_COST,
+            cost: COIN_COST,
+            reportId: reportId,
+            sessionId: 'saju-new-year:' + reportId,
+            reportSessionId: 'saju-new-year:' + reportId,
+            requestId: requestId,
+            onGranted: function(_transactionId, payload) { finish(payload); },
+            onPassApplied: function(access) { finish((access && (access.payload || access.rawPayload)) || access || {}); },
+            onCancel: cancel
+          });
+          if (gate && typeof gate.then === 'function') gate.then(function(payload) {
+            if (payload === null || payload === undefined) cancel();
+            else finish(payload);
+          }).catch(cancel);
+        } catch (_) {
+          cancel();
+        }
+      });
+    }
+
+    return { ok: false, status: 0, message: '결제 게이트를 불러오지 못했습니다.', requestId: requestId };
+
     var response = await fetch('/api/billing/coin-gate', {
       method: 'POST',
       credentials: 'include',

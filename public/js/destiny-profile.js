@@ -1831,6 +1831,30 @@
     return String(data.transactionId || data.paymentId || data.purchaseId || data.requestId || consume.transactionId || consume.requestId || accessGrant.evidenceId || accessGrant.purchaseId || accessGrant.requestId || fallbackId || '');
   }
 
+  function _dpBuildPaidGatePayload(opts, title, coinPrice, requestId, paymentMode) {
+    opts = opts || {};
+    var actionType = opts.actionType || opts.profileAction || opts.action || undefined;
+    return {
+      cost: coinPrice,
+      coinPrice: coinPrice,
+      reason: String(opts.reason || title),
+      featureKey: _dpResolvePaidGateFeatureKey(opts, title) || undefined,
+      paymentMode: paymentMode,
+      forceDeduct: true,
+      requestId: requestId,
+      categoryKey: opts.categoryKey || undefined,
+      subFeatureKey: opts.subFeatureKey || undefined,
+      productId: opts.productId || undefined,
+      reportType: opts.reportType || undefined,
+      serviceKey: opts.serviceKey || undefined,
+      actionType: actionType,
+      profileAction: actionType,
+      action: actionType,
+      profileId: opts.profileId || undefined,
+      selectedProfileId: opts.selectedProfileId || opts.profileId || undefined
+    };
+  }
+
   async function _dpApplyMembershipPassBeforePayment(options) {
     var opts = options || {};
     var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
@@ -1841,7 +1865,7 @@
     var cacheKey = _dpPaidPassCacheKey(opts, title, coinPrice);
     var cached = _dpTakePaidPassGateResult(cacheKey);
     if (cached && (cached.status === 'pass_applied' || cached.status === 'already_unlocked')) return cached;
-    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify({ cost: coinPrice, coinPrice: coinPrice, reason: String(opts.reason || title), featureKey: featureKey || undefined, paymentMode: 'MEMBERSHIP_PASS', forceDeduct: true, requestId: requestId, categoryKey: opts.categoryKey || undefined, subFeatureKey: opts.subFeatureKey || undefined, productId: opts.productId || undefined, reportType: opts.reportType || undefined, serviceKey: opts.serviceKey || undefined, profileId: opts.profileId || undefined, selectedProfileId: opts.selectedProfileId || opts.profileId || undefined }) });
+    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MEMBERSHIP_PASS')) });
     var payload = res && res.payload ? res.payload : res;
     var statusCode = Number((res && res.status) || (payload && payload.status) || 0);
     var code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
@@ -1866,7 +1890,7 @@
     var title = String(opts.title || opts.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4').trim();
     var featureKey = _dpResolvePaidGateFeatureKey(opts, title);
     var requestId = String(opts.requestId || '').trim() || ('monthly-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
-    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify({ cost: coinPrice, coinPrice: coinPrice, reason: String(opts.reason || title), featureKey: featureKey || undefined, paymentMode: 'MONTHLY_CREDIT', forceDeduct: true, requestId: requestId, categoryKey: opts.categoryKey || undefined, subFeatureKey: opts.subFeatureKey || undefined, productId: opts.productId || undefined, reportType: opts.reportType || undefined, serviceKey: opts.serviceKey || undefined, profileId: opts.profileId || undefined, selectedProfileId: opts.selectedProfileId || opts.profileId || undefined }) });
+    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MONTHLY_CREDIT')) });
     if (!res || !res.ok) throw new Error(_dpReadBillingMessage(res && res.payload, '\uC6D4\uC815\uC11D \uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.'));
     return res.payload || res;
   }
@@ -2167,7 +2191,14 @@
           coinPrice: cost,
           cost: cost,
           featureKey: normalizedFeatureKey || undefined,
-          requestId: requestId
+          requestId: requestId,
+          reportType: optionBag.reportType,
+          serviceKey: optionBag.serviceKey,
+          actionType: optionBag.actionType,
+          profileAction: optionBag.profileAction,
+          action: optionBag.action,
+          profileId: optionBag.profileId,
+          selectedProfileId: optionBag.selectedProfileId
         }).then(function(access) {
           if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
             var passPayload = access.payload || access.rawPayload || {};
@@ -2189,6 +2220,13 @@
             amountKrw: Number(cost || 0) * 100,
             reason: reason,
             featureKey: normalizedFeatureKey || undefined,
+            reportType: optionBag.reportType,
+            serviceKey: optionBag.serviceKey,
+            actionType: optionBag.actionType,
+            profileAction: optionBag.profileAction,
+            action: optionBag.action,
+            profileId: optionBag.profileId,
+            selectedProfileId: optionBag.selectedProfileId
           }).then(function(choice) {
             if (choice !== 'direct') {
               if (typeof onCancel === 'function') onCancel();
@@ -2206,6 +2244,13 @@
               requestId: requestId,
               checkoutPayload: {
                 paymentMode: 'DIRECT_KRW',
+                reportType: optionBag.reportType,
+                serviceKey: optionBag.serviceKey,
+                actionType: optionBag.actionType,
+                profileAction: optionBag.profileAction,
+                action: optionBag.action,
+                profileId: optionBag.profileId,
+                selectedProfileId: optionBag.selectedProfileId
               },
             });
           });
@@ -2271,6 +2316,13 @@
         });
       }
     }
+
+    window._cdCoinGatePerUseInFlight = false;
+    window.__cdCoinGatePerUseLockAt = 0;
+    _dpSetPaymentPending(false);
+    window.alert('\uACB0\uC81C \uAC8C\uC774\uD2B8\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. \uC0C8\uB85C\uACE0\uCE68 \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.');
+    if (typeof onCancel === 'function') onCancel();
+    return;
 
     var consumeHeaders = { 'Content-Type': 'application/json' };
     if (token) consumeHeaders.Authorization = 'Bearer ' + token;
@@ -2494,7 +2546,9 @@
       return;
     }
 
-    runFeatureUnlock();
+    _dpSetPaymentPending(false);
+    window.alert('\uACB0\uC81C \uAC8C\uC774\uD2B8\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. \uC0C8\uB85C\uACE0\uCE68 \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.');
+    return;
 
     function runFeatureUnlock() {
       var inFlight = false;
@@ -3070,7 +3124,9 @@
         reject(new Error('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'));
         return;
       }
-      var reason = action === 'delete' ? '프로필 카드 삭제' : '프로필 카드 추가';
+      var normalizedAction = action === 'delete' ? 'delete' : (action === 'edit' ? 'edit' : 'create');
+      var serviceKey = normalizedAction === 'delete' ? 'profile_card_delete' : (normalizedAction === 'edit' ? 'profile_card_edit' : 'profile_card_create');
+      var reason = normalizedAction === 'delete' ? '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C' : (normalizedAction === 'edit' ? '\uD504\uB85C\uD544 \uCE74\uB4DC \uC218\uC815' : '\uD504\uB85C\uD544 \uCE74\uB4DC \uCD94\uAC00');
       window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST, reason, function(transactionId, payload) {
         var data = (payload && typeof payload === 'object') ? payload : {};
         var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
@@ -3085,7 +3141,9 @@
             requestId: requestId,
             transactionId: String(transactionId || data.transactionId || data.paymentId || data.purchaseId || requestId),
             featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
-            profileId: profileId || ''
+            profileId: profileId || '',
+            actionType: serviceKey,
+            profileAction: normalizedAction
           }
         });
       }, function(error) {
@@ -3096,8 +3154,11 @@
         requestId: requestId,
         profileId: profileId || '',
         selectedProfileId: profileId || '',
-        serviceKey: action === 'delete' ? 'profile_card_delete' : 'profile_card_create',
-        reportType: action === 'delete' ? 'profile_card_delete' : 'profile_card_create'
+        serviceKey: serviceKey,
+        reportType: serviceKey,
+        actionType: normalizedAction,
+        profileAction: normalizedAction,
+        action: normalizedAction
       });
     });
   }
@@ -5207,6 +5268,9 @@
         requestId: requestId,
         reportType: optionBag.reportType,
         serviceKey: optionBag.serviceKey,
+        actionType: optionBag.actionType,
+        profileAction: optionBag.profileAction,
+        action: optionBag.action,
         profileId: optionBag.profileId,
         selectedProfileId: optionBag.selectedProfileId,
         onGranted: function(transactionId, payload) {
@@ -5222,7 +5286,7 @@
     }
 
     if (typeof window._cdResolvePaidContentAccess === 'function') {
-      return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId }).then(function(access) {
+      return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, actionType: optionBag.actionType, profileAction: optionBag.profileAction, action: optionBag.action, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId }).then(function(access) {
         if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
           var passPayload = access.payload || access.rawPayload || {};
           var passTransactionId = String(passPayload.transactionId || passPayload.paymentId || passPayload.purchaseId || passPayload.requestId || access.requestId || requestId);
@@ -5252,6 +5316,13 @@
             cost: cost,
             reason: reason,
             featureKey: normalizedFeatureKey || undefined,
+            reportType: optionBag.reportType,
+            serviceKey: optionBag.serviceKey,
+            actionType: optionBag.actionType,
+            profileAction: optionBag.profileAction,
+            action: optionBag.action,
+            profileId: optionBag.profileId,
+            selectedProfileId: optionBag.selectedProfileId,
             paymentMode: 'MONTHLY_CREDIT',
             forceDeduct: true,
             requestId: requestId
@@ -5320,6 +5391,11 @@
         checkoutPayload: {
           reportType: optionBag.reportType,
           serviceKey: optionBag.serviceKey,
+          actionType: optionBag.actionType,
+          profileAction: optionBag.profileAction,
+          action: optionBag.action,
+          profileId: optionBag.profileId,
+          selectedProfileId: optionBag.selectedProfileId,
           paymentMode: 'DIRECT_KRW'
         }
       }).then(function(payload) {
@@ -5345,7 +5421,14 @@
         coinPrice: cost,
         cost: cost,
         reason: reason,
-        featureKey: normalizedFeatureKey || undefined
+        featureKey: normalizedFeatureKey || undefined,
+        reportType: optionBag.reportType,
+        serviceKey: optionBag.serviceKey,
+        actionType: optionBag.actionType,
+        profileAction: optionBag.profileAction,
+        action: optionBag.action,
+        profileId: optionBag.profileId,
+        selectedProfileId: optionBag.selectedProfileId
       }).then(function(choice) {
         if (choice === 'direct') return runDirectCheckout();
         if (choice === 'monthly') return runMonthlyCreditGate();

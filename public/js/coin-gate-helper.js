@@ -376,24 +376,15 @@
           };
         }
 
-        var response = await requestJson('/api/billing/coin-gate', {
-          method: 'POST',
-          body: JSON.stringify(requestBody),
-        });
-        var data = (response.payload && response.payload.data) || {};
-        var premiumAccessToken = String((data && data.premiumAccessToken) || (response.payload && response.payload.premiumAccessToken) || '').trim();
-        if (premiumAccessToken) persistPremiumAccessToken(premiumAccessToken);
-        var accessGrant = normalizeAccessGrant(data, requestBody);
-
         return {
-          ok: !!response.ok && !!accessGrant,
-          status: Number(response.status || 0),
-          message: String((response.payload && response.payload.message) || ''),
+          ok: false,
+          status: 503,
+          message: '결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.',
           featureKey: requestedFeatureKey,
-          accessGrant: accessGrant,
-          purchaseId: String((accessGrant && accessGrant.purchaseId) || '').trim(),
-          premiumAccessToken: premiumAccessToken || null,
-          raw: response.payload || {},
+          accessGrant: null,
+          purchaseId: '',
+          premiumAccessToken: null,
+          raw: {},
         };
       },
 

@@ -1,5 +1,5 @@
 import { ProfileCard, User } from "./models.js";
-import { normalizeHoneyPassEntitlement, PROFILE_LIMIT_BY_TIER } from "./profile-limits.js";
+import { canUseByPass, normalizeHoneyPassEntitlement, PROFILE_LIMIT_BY_TIER } from "./profile-limits.js";
 
 export const PROFILE_CARD_EDIT_DELETE_COST_COINS = 50;
 export const PROFILE_CARD_EDIT_DELETE_COST_KRW = 5000;
@@ -41,6 +41,13 @@ function resolveVvipProfileCardLimit(entitlement) {
   const entitlementLimit = Number(entitlement?.maxProfiles || 0);
   if (isActiveVvipEntitlement(entitlement) && Number.isInteger(entitlementLimit) && entitlementLimit > 0) return entitlementLimit;
   return Number(PROFILE_LIMIT_BY_TIER.vvip || 0);
+}
+
+function resolveProfileCardPassLimit(entitlement) {
+  const tier = String(entitlement?.tier || entitlement?.passTier || "").trim().toLowerCase();
+  const entitlementLimit = Number(entitlement?.maxProfiles || 0);
+  if (Number.isInteger(entitlementLimit) && entitlementLimit > 0) return entitlementLimit;
+  return Number(PROFILE_LIMIT_BY_TIER[tier] || 1);
 }
 
 function isStoredVvipToken(value) {
@@ -132,23 +139,26 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
   }
 
   const entitlement = normalizeHoneyPassEntitlement(user);
+  const passProfileLimit = resolveProfileCardPassLimit(entitlement);
   const vvipLimit = resolveVvipProfileCardLimit(entitlement);
+  const isActivePass = entitlement?.isActive === true;
   const isActiveVvip = isActiveVvipEntitlement(entitlement);
   const wasVvipTier = isActiveVvip || hasStoredVvipTier(user);
-  const isVvipFreeAllowed = isActiveVvip
-    && Number.isInteger(vvipLimit)
-    && vvipLimit > 0
-    && currentProfileCardCount <= vvipLimit;
+  const isPassFreeAllowed = isActivePass
+    && canUseByPass(entitlement, PROFILE_CARD_EDIT_DELETE_COST_COINS)
+    && Number.isInteger(passProfileLimit)
+    && passProfileLimit > 0
+    && currentProfileCardCount <= passProfileLimit;
 
-  if (isVvipFreeAllowed) {
+  if (isPassFreeAllowed) {
     return buildProfileCardMutationPolicyResult({
       allowed: true,
       requiresPayment: false,
       costCoins: 0,
       costKrw: 0,
-      reason: "VVIP_PROFILE_LIMIT_INCLUDED",
-      passType: String(entitlement.passTier || entitlement.tier || "vvip"),
-      limit: vvipLimit,
+      reason: "PASS_PROFILE_LIMIT_INCLUDED",
+      passType: String(entitlement.passTier || entitlement.tier || ""),
+      limit: passProfileLimit,
       currentProfileCardCount,
     });
   }
@@ -164,8 +174,12 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
     });
   }
 
-  const paymentRequiredReason = isActiveVvip && currentProfileCardCount > vvipLimit
-    ? "VVIP_PROFILE_LIMIT_EXCEEDED_PAYMENT_REQUIRED"
+  const paymentRequiredReason = isActivePass && currentProfileCardCount > passProfileLimit
+    ? "PROFILE_LIMIT_EXCEEDED"
+    : isActivePass && !canUseByPass(entitlement, PROFILE_CARD_EDIT_DELETE_COST_COINS)
+      ? "PRICE_EXCEEDS_PASS_LIMIT"
+    : isActiveVvip && currentProfileCardCount > vvipLimit
+      ? "VVIP_PROFILE_LIMIT_EXCEEDED_PAYMENT_REQUIRED"
     : wasVvipTier && !isActiveVvip
       ? "VVIP_EXPIRED_PAYMENT_REQUIRED"
       : normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE
@@ -177,7 +191,7 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
     requiresPayment: true,
     reason: paymentRequiredReason,
     passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : (wasVvipTier ? "vvip" : undefined),
-    limit: wasVvipTier ? vvipLimit : undefined,
+    limit: isActivePass ? passProfileLimit : (wasVvipTier ? vvipLimit : undefined),
     currentProfileCardCount,
   });
 }

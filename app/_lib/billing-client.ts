@@ -36,6 +36,7 @@ type BillingFeaturePricing = {
   currency?: string;
   cashPrice?: number | null;
   amountKRW?: number | null;
+  membershipCreditCost?: number;
   paymentMode?: string;
   coinDisplayOnly?: boolean;
 };
@@ -95,15 +96,47 @@ type PaidFeatureGateRuntimeDetail = {
   startedAt?: number;
 };
 
-const billingCoinGateInFlight = new Map<string, {
-  requestId: string;
-  promise: Promise<BillingResult<{
+type BillingCoinGateData = {
   pricing: BillingFeaturePricing;
   consume: Record<string, unknown>;
   balance: number | null;
   user: Record<string, unknown> | null;
-}>>;
+};
+
+type BillingBalanceData = {
+  authenticated: boolean;
+  balance: number;
+  legacyCoinBalance?: number;
+  membershipCreditBalance?: number;
+  membership?: Record<string, unknown> | null;
+  user: Record<string, unknown> | null;
+  unlockedFeatures: string[];
+  unlockMap: Record<string, boolean>;
+};
+
+type BillingCoinGatePromise = Promise<BillingResult<BillingCoinGateData>>;
+
+const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
+const BILLING_BALANCE_RECENT_TTL_MS = 650;
+
+const billingCoinGateInFlight = new Map<string, {
+  requestId: string;
+  promise: BillingCoinGatePromise;
 }>();
+const billingCoinGateRecent = new Map<string, {
+  requestId: string;
+  promise: BillingCoinGatePromise;
+  expiresAt: number;
+}>();
+let billingBalanceInFlight: Promise<BillingResult<BillingBalanceData>> | null = null;
+let billingBalanceRecent: { result: BillingResult<BillingBalanceData>; expiresAt: number } | null = null;
+let billingBalanceCacheVersion = 0;
+
+function invalidateBillingBalanceCache() {
+  billingBalanceCacheVersion += 1;
+  billingBalanceRecent = null;
+  billingBalanceInFlight = null;
+}
 
 export type ServiceExecutionStatus = "pending" | "success" | "failed" | "refunded" | "cancelled";
 
@@ -488,7 +521,8 @@ export async function fetchPaymentEligibility(input: {
     : {};
   const coinCost = Math.max(0, Math.floor(toNumber(options.coinCost ?? data.coinCost ?? pricing.coinPrice ?? pricing.cost ?? input.coinCost ?? input.coinPrice, 0)));
   const priceKRW = Math.max(0, Math.floor(toNumber(pricing.amountKRW ?? pricing.cashPrice ?? input.priceKRW ?? input.amountKRW ?? coinCost * 100, 0)));
-  const monthlyBalance = Math.max(0, Math.floor(toNumber(options.monthlyBalance ?? data.monthlyBalance, 0)));
+  const monthlyBalance = Math.max(0, Math.floor(toNumber(options.monthlyBalance ?? data.monthlyBalance ?? data.membershipCreditBalance, 0)));
+  const monthlyCost = Math.max(0, Math.floor(toNumber(options.membershipCreditCost ?? data.membershipCreditCost ?? pricing.membershipCreditCost, coinCost * 10)));
   const passTier = normalizePassTier(options.passTier ?? data.passTier ?? data.subscriptionTier);
   const passLimit = toNumber(options.passLimit ?? data.passLimit ?? data.freeLimit, NaN);
   const eligibility: PaymentEligibility = {
@@ -505,7 +539,7 @@ export async function fetchPaymentEligibility(input: {
     monthly: {
       balance: monthlyBalance,
       canUse: Boolean(options.canUseByMonthly ?? data.canUseByMonthly),
-      afterBalance: Math.max(0, monthlyBalance - (coinCost * 10)),
+      afterBalance: Math.max(0, monthlyBalance - monthlyCost),
     },
     card: {
       canUse: Boolean(options.canUseByCard ?? data.canUseByCard ?? true),
@@ -539,6 +573,7 @@ export async function runBillingCoinGate(input: {
 }>> {
   const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate");
   const inFlightKey = resolvePaidFeatureInFlightKey(input);
+  const now = Date.now();
   const existing = billingCoinGateInFlight.get(inFlightKey);
   if (existing) {
     emitPaidFeatureGate("open", {
@@ -550,6 +585,18 @@ export async function runBillingCoinGate(input: {
     });
     return existing.promise;
   }
+  const recent = billingCoinGateRecent.get(inFlightKey);
+  if (recent && recent.expiresAt > now) {
+    emitPaidFeatureGate("open", {
+      featureId,
+      featureKey: featureId,
+      requestId: recent.requestId,
+      status: "paymentProcessing",
+      message: "요청을 확인 중입니다.",
+    });
+    return recent.promise;
+  }
+  if (recent) billingCoinGateRecent.delete(inFlightKey);
 
   const activeAttempt = beginPaidAttempt({
     featureKey: featureId,
@@ -636,6 +683,7 @@ export async function runBillingCoinGate(input: {
       }
       const normalizedBalance = toNumber(parsed.data.balance, NaN);
       parsed.data.balance = Number.isFinite(normalizedBalance) ? normalizedBalance : null;
+      invalidateBillingBalanceCache();
       markPaidAttemptPaymentSucceeded();
       markPaidAttemptCallbackReturned();
       emitPaidFeatureGate("update", {
@@ -664,6 +712,15 @@ export async function runBillingCoinGate(input: {
     return parsed;
   })().finally(() => {
     billingCoinGateInFlight.delete(inFlightKey);
+    billingCoinGateRecent.set(inFlightKey, {
+      requestId: gateRequestId,
+      promise: requestPromise,
+      expiresAt: Date.now() + BILLING_COIN_GATE_RECENT_TTL_MS,
+    });
+    globalThis.setTimeout(() => {
+      const recent = billingCoinGateRecent.get(inFlightKey);
+      if (recent?.promise === requestPromise) billingCoinGateRecent.delete(inFlightKey);
+    }, BILLING_COIN_GATE_RECENT_TTL_MS + 100);
   });
 
   billingCoinGateInFlight.set(inFlightKey, { requestId: gateRequestId, promise: requestPromise });
@@ -694,24 +751,38 @@ export async function fetchBillingBalance(): Promise<BillingResult<{
   unlockedFeatures: string[];
   unlockMap: Record<string, boolean>;
 }>> {
-  const response = await authFetchBilling("/api/billing/balance", { method: "GET" });
-  const parsed = await parseBillingResponse<{
-    authenticated: boolean;
-    balance: number;
-    user: Record<string, unknown> | null;
-    unlockedFeatures: string[];
-    unlockMap: Record<string, boolean>;
-  }>(response);
-
-  if (parsed.ok && parsed.data) {
-    parsed.data.balance = toNumber(parsed.data.balance, 0);
-    if (!Array.isArray(parsed.data.unlockedFeatures)) parsed.data.unlockedFeatures = [];
-    if (!parsed.data.unlockMap || typeof parsed.data.unlockMap !== "object") {
-      parsed.data.unlockMap = {};
-    }
+  const now = Date.now();
+  if (billingBalanceRecent && billingBalanceRecent.expiresAt > now) {
+    return billingBalanceRecent.result;
   }
+  if (billingBalanceInFlight) return billingBalanceInFlight;
 
-  return parsed;
+  const cacheVersion = billingBalanceCacheVersion;
+  billingBalanceInFlight = (async () => {
+    const response = await authFetchBilling("/api/billing/balance", { method: "GET" });
+    const parsed = await parseBillingResponse<BillingBalanceData>(response);
+
+    if (parsed.ok && parsed.data) {
+      parsed.data.balance = toNumber(parsed.data.balance, 0);
+      if (!Array.isArray(parsed.data.unlockedFeatures)) parsed.data.unlockedFeatures = [];
+      if (!parsed.data.unlockMap || typeof parsed.data.unlockMap !== "object") {
+        parsed.data.unlockMap = {};
+      }
+      parsed.data.membershipCreditBalance = toNumber(parsed.data.membershipCreditBalance, 0);
+      if (cacheVersion === billingBalanceCacheVersion) {
+        billingBalanceRecent = {
+          result: parsed,
+          expiresAt: Date.now() + BILLING_BALANCE_RECENT_TTL_MS,
+        };
+      }
+    }
+
+    return parsed;
+  })().finally(() => {
+    if (cacheVersion === billingBalanceCacheVersion) billingBalanceInFlight = null;
+  });
+
+  return billingBalanceInFlight;
 }
 
 async function runServiceExecutionApi(

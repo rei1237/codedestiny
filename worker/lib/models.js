@@ -224,6 +224,30 @@ const pointHistorySchema = new mongoose.Schema({
 
 pointHistorySchema.index({ userId: 1, createdAt: -1 });
 
+const monthlyCreditLedgerSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+  type: {
+    type: String,
+    enum: ["MONTHLY_CREDIT_GRANT", "MONTHLY_CREDIT_SPEND"],
+    required: true,
+    index: true,
+  },
+  amount: { type: Number, required: true, min: 1 },
+  beforeBalance: { type: Number, min: 0 },
+  afterBalance: { type: Number, min: 0 },
+  reason: { type: String, trim: true, default: "" },
+  sourceId: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  serviceKey: { type: String, trim: true, default: "", maxlength: 120, index: true },
+  profileId: { type: String, trim: true, default: "", maxlength: 120, index: true },
+  metadata: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "monthly_credit_ledger" });
+
+monthlyCreditLedgerSchema.index(
+  { userId: 1, type: 1, sourceId: 1 },
+  { unique: true },
+);
+monthlyCreditLedgerSchema.index({ userId: 1, createdAt: -1 });
+
 export const SAJU_LOCKED_CONTENT_KEYS = Object.freeze({
   DAEUN_ANALYSIS: "saju.daeunAnalysis",
   FULL_READING: "saju.fullReading",
@@ -397,6 +421,8 @@ export const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const ProfileCard = mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema);
 export const Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
 export const PointHistory = mongoose.models.PointHistory || mongoose.model("PointHistory", pointHistorySchema);
+export const MonthlyCreditLedger = mongoose.models.MonthlyCreditLedger
+  || mongoose.model("MonthlyCreditLedger", monthlyCreditLedgerSchema);
 export const ContentEntitlement = mongoose.models.ContentEntitlement
   || mongoose.model("ContentEntitlement", contentEntitlementSchema);
 export const PaymentFailureLog = mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema);

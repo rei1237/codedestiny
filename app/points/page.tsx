@@ -100,6 +100,15 @@ type ConfirmSubscriptionResponse = {
   };
 };
 
+type BillingBalanceResponse = {
+  data?: {
+    membershipCreditBalance?: number;
+    monthlyCredits?: number;
+    membership?: { membershipCreditBalance?: number };
+  };
+  user?: { points?: number };
+};
+
 type PaymentHistoryItem = {
   id: string;
   impUid?: string;
@@ -255,6 +264,9 @@ declare global {
 ══════════════════════════════════════════════════════════════════ */
 
 const PORTONE_MOBILE_REDIRECT_PATH = process.env.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || "/points";
+const PAYMENT_ACTION_LOCK_TTL_MS = 15 * 60 * 1000;
+const PAYMENT_REDIRECT_LOCK_TTL_MS = 90 * 1000;
+const PAYMENT_REDIRECT_LOCK_PREFIX = "fortune_payment_redirect_confirm_lock:";
 
 const EMAIL_REGEX = /^[^@\s]+@[^\s@]+\.[^\s@]+$/;
 
@@ -644,6 +656,29 @@ function clearPendingSubscriptionOrder() {
   if (typeof window === "undefined") return;
   localStorage.removeItem("fortune_pending_subscription_order");
   localStorage.removeItem("fortune_pending_subscription_pass");
+}
+
+function acquirePaymentRedirectLock(key: string) {
+  if (typeof window === "undefined") return false;
+  const lockKey = `${PAYMENT_REDIRECT_LOCK_PREFIX}${key}`;
+  const now = Date.now();
+  try {
+    const expiresAt = Number(sessionStorage.getItem(lockKey) || 0);
+    if (Number.isFinite(expiresAt) && expiresAt > now) return false;
+    sessionStorage.setItem(lockKey, String(now + PAYMENT_REDIRECT_LOCK_TTL_MS));
+    return true;
+  } catch {
+    return true;
+  }
+}
+
+function releasePaymentRedirectLock(key: string) {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(`${PAYMENT_REDIRECT_LOCK_PREFIX}${key}`);
+  } catch {
+    /* noop */
+  }
 }
 
 type PendingSubscriptionPass = {
@@ -1183,8 +1218,8 @@ function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg" |
   코인은 콘텐츠 가치 단위로만 안내합니다.
 ══════════════════════════════════════════════════════════════════ */
 
-function WalletCard({ name, points }: { name: string; points: number }) {
-  const monthlyStoneBalance = Math.max(0, Math.floor(Number(points || 0)));
+function WalletCard({ name, monthlyCredits }: { name: string; monthlyCredits: number }) {
+  const monthlyStoneBalance = Math.max(0, Math.floor(Number(monthlyCredits || 0)));
 
   return (
     <section
@@ -1319,6 +1354,10 @@ export default function PointsPage() {
 
   /** 모바일 리디렉션 복귀를 한 번만 처리하기 위한 플래그 */
   const redirectHandledRef = useRef(false);
+  const paymentActionLockRef = useRef<{ key: string; startedAt: number } | null>(null);
+  const confirmPaymentInFlightRef = useRef(new Map<string, Promise<ConfirmResponse>>());
+  const confirmSubscriptionInFlightRef = useRef(new Map<string, Promise<ConfirmSubscriptionResponse>>());
+  const fetchMyPointStateInFlightRef = useRef<Promise<void> | null>(null);
   /** Toast ID 증가용 카운터 */
   const toastCounter = useRef(0);
 
@@ -1328,6 +1367,7 @@ export default function PointsPage() {
   /* ── 상태 ──────────────────────────────────────────────────────── */
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [currentPoints, setCurrentPoints] = useState(0);
+  const [currentMonthlyCredits, setCurrentMonthlyCredits] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<PointPackage>(POINT_PACKAGES[0]);
   const [selectedMethod, setSelectedMethod] = useState<string>("card_general");
 
@@ -1383,6 +1423,20 @@ export default function PointsPage() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const acquirePaymentActionLock = useCallback((key: string) => {
+    const now = Date.now();
+    const active = paymentActionLockRef.current;
+    if (active && now - active.startedAt < PAYMENT_ACTION_LOCK_TTL_MS) return false;
+    paymentActionLockRef.current = { key, startedAt: now };
+    return true;
+  }, []);
+
+  const releasePaymentActionLock = useCallback((key: string) => {
+    if (paymentActionLockRef.current?.key === key) {
+      paymentActionLockRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     if (isProcessing) {
       showProcessingOverlay(processingText);
@@ -1416,6 +1470,23 @@ export default function PointsPage() {
       }
     } catch { /* noop */ }
   }, []);
+
+  const refreshWalletFromServer = useCallback(async () => {
+    const response = await authFetch(`${apiBase}/api/billing/balance`, {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    }, {
+      retryOn401: true,
+      apiBase,
+    });
+    const payload = await safeParseJson<BillingBalanceResponse>(response);
+    const data = payload.data || {};
+    const monthlyCredits = Number(data.monthlyCredits ?? data.membershipCreditBalance ?? data.membership?.membershipCreditBalance ?? 0);
+    setCurrentMonthlyCredits(Number.isFinite(monthlyCredits) ? Math.max(0, Math.floor(monthlyCredits)) : 0);
+    const points = Number(payload.user?.points ?? NaN);
+    if (Number.isFinite(points)) persistUserPoints(Math.max(0, Math.floor(points)));
+  }, [apiBase, persistUserPoints]);
 
   /** 이용권 성공 후 legacy destiny-profile.js가 읽는 localStorage 캐시를 갱신합니다. */
   const persistSubscriptionCache = useCallback((sub: SubscriptionStatus) => {
@@ -1456,6 +1527,10 @@ export default function PointsPage() {
   /* ── 서버에서 포인트 상태 조회 ─────────────────────────────────── */
   const fetchMyPointState = useCallback(
     async () => {
+      if (fetchMyPointStateInFlightRef.current) {
+        return fetchMyPointStateInFlightRef.current;
+      }
+      const requestPromise = (async () => {
       const response = await authFetch(`${apiBase}/api/payments/me`, {
         method: "GET",
         credentials: "include",
@@ -1493,6 +1568,7 @@ export default function PointsPage() {
       const nextUser = normalized.user;
       const points = normalized.balance;
       persistUserPoints(points);
+      await refreshWalletFromServer().catch(() => {});
 
       const normalizedPayments = Array.isArray(normalized.payments)
         ? normalized.payments
@@ -1510,8 +1586,17 @@ export default function PointsPage() {
           points,
         }));
       }
+      })();
+      fetchMyPointStateInFlightRef.current = requestPromise;
+      try {
+        await requestPromise;
+      } finally {
+        if (fetchMyPointStateInFlightRef.current === requestPromise) {
+          fetchMyPointStateInFlightRef.current = null;
+        }
+      }
     },
-    [apiBase, persistUserPoints, router],
+    [apiBase, persistUserPoints, refreshWalletFromServer, router],
   );
 
   /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
@@ -1634,17 +1719,22 @@ export default function PointsPage() {
       if (params.featureKey) body.featureKey = params.featureKey;
       if (params.productName) body.productName = params.productName;
 
-      const response = await authFetch(`${apiBase}/api/payments/confirm`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(body),
-      }, {
-        retryOn401: true,
-        apiBase,
-      });
+      const confirmKey = `${params.impUid}:${params.merchantUid || ""}`;
+      const existing = confirmPaymentInFlightRef.current.get(confirmKey);
+      if (existing) return existing;
+
+      const requestPromise = (async () => {
+        const response = await authFetch(`${apiBase}/api/payments/confirm`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(body),
+        }, {
+          retryOn401: true,
+          apiBase,
+        });
 
       // Content-Type 검증 후 JSON 파싱
       const payload = await safeParseJson<ConfirmResponse & { message?: string }>(response);
@@ -1653,7 +1743,66 @@ export default function PointsPage() {
         throw new Error(payload.message || "서버 결제 검증에 실패했습니다.");
       }
 
-      return payload;
+        return payload;
+      })();
+
+      confirmPaymentInFlightRef.current.set(confirmKey, requestPromise);
+      try {
+        return await requestPromise;
+      } finally {
+        if (confirmPaymentInFlightRef.current.get(confirmKey) === requestPromise) {
+          confirmPaymentInFlightRef.current.delete(confirmKey);
+        }
+      }
+    },
+    [apiBase],
+  );
+
+  const confirmSubscriptionWithServer = useCallback(
+    async (body: {
+      impUid: string;
+      merchantUid: string;
+      tier: string;
+      planId?: string;
+      durationMonths: number;
+      amount?: number;
+      currency?: string;
+      productType: string;
+      customerUid?: string;
+      paymentMethod?: string;
+    }) => {
+      const confirmKey = `${body.impUid}:${body.merchantUid}`;
+      const existing = confirmSubscriptionInFlightRef.current.get(confirmKey);
+      if (existing) return existing;
+
+      const requestPromise = (async () => {
+        const response = await authFetch(`${apiBase}/api/payments/subscription/confirm`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(body),
+        }, {
+          retryOn401: true,
+          apiBase,
+        });
+
+        const data = await safeParseJson<ConfirmSubscriptionResponse>(response);
+        if (!response.ok) {
+          throw new Error(data.message || "Subscription payment confirm failed.");
+        }
+        return data;
+      })();
+
+      confirmSubscriptionInFlightRef.current.set(confirmKey, requestPromise);
+      try {
+        return await requestPromise;
+      } finally {
+        if (confirmSubscriptionInFlightRef.current.get(confirmKey) === requestPromise) {
+          confirmSubscriptionInFlightRef.current.delete(confirmKey);
+        }
+      }
     },
     [apiBase],
   );
@@ -1766,6 +1915,7 @@ export default function PointsPage() {
     const pending = readPendingOrder();
     const pendingSubscription = readPendingSubscriptionOrder();
     const isSubscriptionRedirect = !!subscriptionRedirectMarked;
+    const redirectConfirmKey = `${isSubscriptionRedirect ? "subscription" : "point"}:${impUid || "missing"}:${merchantUidFromQuery || (isSubscriptionRedirect ? pendingSubscription?.merchantUid : pending?.merchantUid) || ""}`;
 
     if (!impUid || impSuccess === "false") {
       clearPendingOrder();
@@ -1790,6 +1940,8 @@ export default function PointsPage() {
       return;
     }
 
+    if (!acquirePaymentRedirectLock(redirectConfirmKey)) return;
+
     setIsProcessing(true);
     setProcessingText(
       isSubscriptionRedirect
@@ -1807,17 +1959,12 @@ export default function PointsPage() {
         if (window.location.search) {
           window.history.replaceState({}, "", window.location.pathname);
         }
+        releasePaymentRedirectLock(redirectConfirmKey);
         setIsProcessing(false);
         return;
       }
 
-      authFetch(`${apiBase}/api/payments/subscription/confirm`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
+      confirmSubscriptionWithServer({
           impUid,
           merchantUid,
           tier: pendingSub.tier,
@@ -1826,17 +1973,8 @@ export default function PointsPage() {
           productType: "membership_pass",
           customerUid: pendingSub.customerUid,
           paymentMethod: pendingSub.paymentMethod,
-        }),
-      }, {
-        retryOn401: true,
-        apiBase,
       })
-        .then(async (response) => {
-          const data = await safeParseJson<ConfirmSubscriptionResponse>(response);
-          if (!response.ok) {
-            throw new Error(data.message || "모바일 이용권 결제 검증에 실패했습니다.");
-          }
-
+        .then((data) => {
           if (data.user?.points !== undefined) {
             persistUserPoints(Number(data.user.points));
           }
@@ -1880,7 +2018,10 @@ export default function PointsPage() {
             window.history.replaceState({}, "", window.location.pathname);
           }
         })
-        .finally(() => setIsProcessing(false));
+        .finally(() => {
+          releasePaymentRedirectLock(redirectConfirmKey);
+          setIsProcessing(false);
+        });
 
       return;
     }
@@ -1916,10 +2057,14 @@ export default function PointsPage() {
           window.history.replaceState({}, "", window.location.pathname);
         }
       })
-      .finally(() => setIsProcessing(false));
+      .finally(() => {
+        releasePaymentRedirectLock(redirectConfirmKey);
+        setIsProcessing(false);
+      });
   }, [
     apiBase,
     confirmPaymentWithServer,
+    confirmSubscriptionWithServer,
     handleConfirmSuccess,
     isBooting,
     persistUserPoints,
@@ -1934,6 +2079,9 @@ export default function PointsPage() {
       router.replace("/login?next=%2Fpoints");
       return;
     }
+
+    const actionLockKey = `point:${selectedPackage.id}:${selectedMethod}`;
+    if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
     setProcessingText("신비로운 기운으로 이용권 결제를 연결 중입니다...");
@@ -2070,6 +2218,8 @@ export default function PointsPage() {
       });
       setIsProcessing(false);
       pushToast("error", getErrorMessage(error, "결제를 시작하지 못했습니다."));
+    } finally {
+      releasePaymentActionLock(actionLockKey);
     }
   };
 
@@ -2089,6 +2239,9 @@ export default function PointsPage() {
       pushToast("info", "현재 상위 티어 이용권이 활성화되어 하위 플랜은 신청할 수 없습니다.");
       return;
     }
+
+    const actionLockKey = `subscription:${plan.planId}:${selectedMethod || "card_general"}`;
+    if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
     setProcessingText(`${plan.title} 결제를 준비하고 있습니다...`);
@@ -2195,35 +2348,18 @@ export default function PointsPage() {
 
       try {
         setProcessingText("이용권 결제 검증 및 활성화를 진행하고 있습니다...");
-        const confirmRes = await authFetch(`${apiBase}/api/payments/subscription/confirm`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            impUid: paymentId,
-            merchantUid: order.merchantUid,
-            tier: plan.tier,
-            planId: plan.planId,
-            durationMonths: plan.durationMonths,
-            amount: order.paymentAmount,
-            currency: "KRW",
-            productType: plan.productType,
-            customerUid: order.customerUid,
-            paymentMethod: selectedMethod || "card_general",
-          }),
-        }, {
-          retryOn401: true,
-          apiBase,
+        const confirmData = await confirmSubscriptionWithServer({
+          impUid: paymentId,
+          merchantUid: order.merchantUid,
+          tier: plan.tier,
+          planId: plan.planId,
+          durationMonths: plan.durationMonths,
+          amount: order.paymentAmount,
+          currency: "KRW",
+          productType: plan.productType,
+          customerUid: order.customerUid,
+          paymentMethod: selectedMethod || "card_general",
         });
-
-        const confirmData = await safeParseJson<ConfirmSubscriptionResponse>(confirmRes);
-        if (!confirmRes.ok) {
-          clearPendingSubscriptionOrder();
-          pushToast("error", confirmData.message || "이용권 결제 확인에 실패했습니다.");
-          return;
-        }
 
         if (confirmData.user?.points !== undefined) persistUserPoints(Number(confirmData.user.points));
 
@@ -2269,6 +2405,7 @@ export default function PointsPage() {
       }
       pushToast("error", message);
     } finally {
+      releasePaymentActionLock(actionLockKey);
       setIsProcessing(false);
     }
   };
@@ -2285,6 +2422,9 @@ export default function PointsPage() {
       ? "이용권 상태를 다시 확인할까요?"
       : "이용권 상태를 확인할까요? 만료일까지는 모든 혜택을 유지합니다.";
     if (!window.confirm(confirmText)) return;
+
+    const actionLockKey = `subscription-cancel:${resume ? "resume" : "cancel"}`;
+    if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
     setProcessingText("이용권 상태를 확인하는 중입니다...");
@@ -2326,6 +2466,7 @@ export default function PointsPage() {
     } catch (error: unknown) {
       pushToast("error", getErrorMessage(error, "이용권 상태 변경 중 오류가 발생했습니다."));
     } finally {
+      releasePaymentActionLock(actionLockKey);
       setIsProcessing(false);
     }
   };
@@ -2449,7 +2590,7 @@ export default function PointsPage() {
         </header>
 
         {/* ② 잔액 카드 */}
-        <WalletCard name={authUser?.name || "사용자"} points={currentPoints} />
+        <WalletCard name={authUser?.name || "사용자"} monthlyCredits={currentMonthlyCredits} />
 
         {/* ②-1 이용권 상태 카드 */}
         <SubscriptionStatusCard subscription={subscription} />

@@ -223,6 +223,8 @@
 
     var commonGateResult = await consumeAnimalTotemViaCommonGate(spec);
     if (commonGateResult !== null) return commonGateResult;
+    global.alert("결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.");
+    return false;
 
     var token = "";
     try { token = String(localStorage.getItem("fortune_auth_token") || ""); } catch (_) {}

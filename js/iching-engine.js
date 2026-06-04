@@ -264,6 +264,24 @@
         return;
       }
 
+      if (typeof window._cdCoinGatePerUse === 'function') {
+        window._cdCoinGatePerUse(
+          _TC_COIN_COST,
+          '주역 거북점 리딩',
+          function() { resolve(true); },
+          function() { resolve(false); },
+          {
+            featureKey: _TC_FEATURE_KEY,
+            requestId: 'juyuk:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+          }
+        );
+        return;
+      }
+
+      alert('결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.');
+      resolve(false);
+      return;
+
       var token = '';
       try { token = String(localStorage.getItem('fortune_auth_token') || ''); } catch (_e) {}
       var consumeHeaders = {
