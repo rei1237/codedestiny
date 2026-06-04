@@ -5978,7 +5978,7 @@ body.neo-mode #reportDashboardCard .rpt-v2-block.fortune-section{
 }
 #reportDashboardCard .rpt-v2-img-wrap{
   aspect-ratio: 16 / 9;
-  min-height: 160px;
+  min-height: 220px;
   max-height: none;
   overflow: hidden;
   background: transparent;
@@ -6084,8 +6084,10 @@ body.neo-mode #reportDashboardCard{
 body.neo-mode #reportDashboardCard .report-dashboard-title{color:#fff1f2}
 #reportDashboardCard .rpt-v2-grid{
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:18px;
+  grid-template-columns:minmax(0,1fr);
+  gap:22px;
+  max-width:min(100%,1040px);
+  margin:0 auto;
 }
 #reportDashboardCard .rpt-v2-block.fortune-section{
   display:flex;
