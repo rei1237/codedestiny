@@ -178,7 +178,7 @@ export function getPortOnePublicConfig(env) {
     channelKey,
     currency: "CURRENCY_KRW",
     payMethod: "CARD",
-    configured: Boolean(storeId && channelKey && serverVerificationConfigured),
+    configured: Boolean(storeId && channelKey),
     serverVerificationConfigured,
   };
 }
