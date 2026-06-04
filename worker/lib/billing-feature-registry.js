@@ -210,18 +210,6 @@ function resolveByReason(reason) {
   const normalizedReason = normalizeText(reason);
   if (!normalizedReason) return null;
 
-  const cost = Number(COIN_GATE_PER_USE_REASON_COSTS[normalizedReason]);
-  if (Number.isFinite(cost) && cost > 0) {
-    return toPricingShape({
-      categoryKey: "coin-gate-per-use",
-      categoryLabel: "회당 결제",
-      subFeatureKey: "reason-mapped",
-      featureKey: "coin-gate-per-use",
-      cost,
-      reason: normalizedReason,
-    });
-  }
-
   const featureReasonPricing = FEATURE_REASON_PRICING_MAP[normalizedReason] || null;
   if (featureReasonPricing) {
     return toPricingShape({
@@ -242,6 +230,18 @@ function resolveByReason(reason) {
       subFeatureKey: normalizeKey(unlockReasonPricing.featureKey) || "default",
       featureKey: String(unlockReasonPricing.featureKey),
       cost: Number(unlockReasonPricing.cost),
+      reason: normalizedReason,
+    });
+  }
+
+  const cost = Number(COIN_GATE_PER_USE_REASON_COSTS[normalizedReason]);
+  if (Number.isFinite(cost) && cost > 0) {
+    return toPricingShape({
+      categoryKey: "coin-gate-per-use",
+      categoryLabel: "회당 결제",
+      subFeatureKey: "reason-mapped",
+      featureKey: "coin-gate-per-use",
+      cost,
       reason: normalizedReason,
     });
   }
