@@ -3,11 +3,38 @@ import { INSIGHT_SEED_ARTICLES } from "./seed-articles";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-data";
 import { publishedCelebritySajuSeeds } from "../../lib/famous-saju/celebrity-saju-service";
-import { getPexelsSectionImage, resolvePexelsInsightImageRequest } from "../../lib/server/pexels";
 
 const pageTitle = "운세 인사이트 허브 | 사주·자미두수·숙요점·타로 가이드 | Code Destiny";
 const pageDescription =
   "사주, 자미두수, 숙요점, 타로, 점성술, 베다점성술을 처음 접하는 사람도 흐름을 읽을 수 있도록 정리한 운세 인사이트 아카이브입니다.";
+
+function toClientInsightItem(item) {
+  return {
+    id: String(item?.id || item?.slug || "").trim(),
+    slug: String(item?.slug || "").trim(),
+    title: String(item?.title || "").trim(),
+    subtitle: String(item?.subtitle || "").trim(),
+    excerpt: String(item?.excerpt || item?.description || item?.subtitle || "").trim(),
+    body: String(item?.body || item?.contentHtml || "").trim(),
+    category: String(item?.category || "").trim(),
+    categoryLabel: String(item?.categoryLabel || item?.category || "").trim(),
+    tags: Array.isArray(item?.tags)
+      ? item.tags.map((tag) => String(tag || "").trim()).filter(Boolean).slice(0, 12)
+      : [],
+    coverImage: String(item?.coverImage || item?.featuredImage?.url || item?.thumbnailUrl || "").trim(),
+    coverImageAlt: String(item?.coverImageAlt || item?.featuredImage?.alt || item?.title || "").trim(),
+    serviceLink: String(item?.serviceLink || item?.ctaServiceRoute || item?.targetRoute || "").trim(),
+    ctaLabel: String(item?.ctaLabel || item?.cta?.title || "").trim(),
+    seoTitle: String(item?.seoTitle || item?.metaTitle || item?.title || "").trim(),
+    seoDescription: String(item?.seoDescription || item?.metaDescription || item?.excerpt || item?.description || "").trim(),
+    isPublished: item?.isPublished === undefined ? true : Boolean(item.isPublished),
+    isFeatured: Boolean(item?.isFeatured),
+    publishedAt: String(item?.publishedAt || "").trim(),
+    updatedAt: String(item?.updatedAt || "").trim(),
+    viewCount: Math.max(0, Number(item?.viewCount || 0) || 0),
+    readingTime: Math.max(1, Number(item?.readingTime || 0) || 1),
+  };
+}
 
 export const metadata = buildSeoMetadata({
   path: "/insights",
@@ -53,6 +80,7 @@ function buildFamousSajuInsightItems() {
 }
 
 async function enrichInsightImageItems(items) {
+  return items;
   const imageByKey = new Map();
 
   for (const item of items) {
@@ -83,8 +111,8 @@ async function enrichInsightImageItems(items) {
 }
 
 export default async function InsightsPage() {
-  const initialFamousSajuItems = await enrichInsightImageItems(buildFamousSajuInsightItems());
-  const initialInsightItems = await enrichInsightImageItems(INSIGHT_SEED_ARTICLES);
+  const initialFamousSajuItems = (await enrichInsightImageItems(buildFamousSajuInsightItems())).map(toClientInsightItem);
+  const initialInsightItems = (await enrichInsightImageItems(INSIGHT_SEED_ARTICLES)).map(toClientInsightItem);
   const initialAllItems = [...initialFamousSajuItems, ...initialInsightItems];
   const initialItems = initialAllItems.slice(0, 12);
   const initialRecommended = initialInsightItems.filter((article) => article.isFeatured).slice(0, 6);

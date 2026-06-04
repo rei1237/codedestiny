@@ -3,9 +3,37 @@ import { notFound } from "next/navigation";
 import { INSIGHT_SEED_ARTICLES, getInsightSeedBySlug, getInsightSeedRelated } from "../seed-articles";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/structured-data";
-import { getPexelsInsightImage } from "../../../lib/server/pexels";
 
 export const dynamicParams = false;
+
+const INSIGHT_FALLBACK_IMAGES = {
+  saju: { src: "/fuctionassets/saju.webp", alt: "사주 인사이트 대표 이미지" },
+  tarot: { src: "/fuctionassets/tarolove.webp", alt: "타로 인사이트 대표 이미지" },
+  astrology: { src: "/fuctionassets/jumsung.webp", alt: "점성술 인사이트 대표 이미지" },
+  ziwei: { src: "/fuctionassets/jami.webp", alt: "자미두수 인사이트 대표 이미지" },
+  sukuyo: { src: "/fuctionassets/sukyo.webp", alt: "숙요점 인사이트 대표 이미지" },
+  vedic: { src: "/fuctionassets/veda.webp", alt: "베다 점성술 인사이트 대표 이미지" },
+  dream: { src: "/fuctionassets/heamong.webp", alt: "꿈해몽 인사이트 대표 이미지" },
+  default: { src: "/og/insights-og.png", alt: "운세 인사이트 대표 이미지" },
+};
+
+function getStaticInsightImage(article) {
+  const bag = [
+    article?.slug,
+    article?.title,
+    article?.category,
+    ...(Array.isArray(article?.tags) ? article.tags : []),
+    ...(Array.isArray(article?.keywords) ? article.keywords : []),
+  ].join(" ").toLowerCase();
+  if (/ziwei|자미/.test(bag)) return INSIGHT_FALLBACK_IMAGES.ziwei;
+  if (/sukuyo|숙요/.test(bag)) return INSIGHT_FALLBACK_IMAGES.sukuyo;
+  if (/tarot|타로/.test(bag)) return INSIGHT_FALLBACK_IMAGES.tarot;
+  if (/vedic|베다/.test(bag)) return INSIGHT_FALLBACK_IMAGES.vedic;
+  if (/astrology|점성|zodiac/.test(bag)) return INSIGHT_FALLBACK_IMAGES.astrology;
+  if (/dream|꿈/.test(bag)) return INSIGHT_FALLBACK_IMAGES.dream;
+  if (/saju|사주|만세력/.test(bag)) return INSIGHT_FALLBACK_IMAGES.saju;
+  return INSIGHT_FALLBACK_IMAGES.default;
+}
 
 function uniqueArticles() {
   const map = new Map();
@@ -43,7 +71,7 @@ export async function generateMetadata({ params }) {
     });
   }
 
-  const image = await getPexelsInsightImage(article);
+  const image = getStaticInsightImage(article);
   return buildSeoMetadata({
     path: `/insights/${article.slug}`,
     title: `${article.title} | 운세 인사이트`,
@@ -82,7 +110,7 @@ export default async function InsightArticlePage({ params }) {
   const contentHtml = String(article.contentHtml || "").trim();
   if (sections.length === 0 && !contentHtml) notFound();
 
-  const image = await getPexelsInsightImage(article);
+  const image = getStaticInsightImage(article);
   const description = articleDescription(article);
   const related = relatedArticles(article);
   const articleJsonLd = buildArticleJsonLd({
@@ -109,11 +137,6 @@ export default async function InsightArticlePage({ params }) {
         <header className="mt-6 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.045] shadow-2xl shadow-black/30">
           <figure>
             <img src={image.src} alt={image.alt || `${article.title} 대표 이미지`} className="h-64 w-full object-cover md:h-80" />
-            {image.source === "pexels" && image.credit ? (
-              <figcaption className="bg-black/20 px-4 py-2 text-xs text-slate-400">
-                Photo by <a className="underline" href={image.creditUrl} rel="noreferrer">{image.credit}</a> on Pexels
-              </figcaption>
-            ) : null}
           </figure>
           <div className="p-6 md:p-8">
             <p className="text-sm font-semibold text-amber-100/80">{article.category || "운세 인사이트"}</p>
