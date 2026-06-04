@@ -4127,6 +4127,8 @@ function handlePaymentConfig(env) {
 
   return json({
     ok: true,
+    configured: config.configured,
+    serverVerificationConfigured: Boolean(config.serverVerificationConfigured),
     provider: config.provider,
     pg: config.pg,
     storeId: config.storeId,
