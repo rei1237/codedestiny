@@ -38,6 +38,36 @@
     return String(scopeRaw || '').trim().toLowerCase();
   }
 
+  function _dpIsActiveMembershipStatusValue(value) {
+    var status = String(value || '').trim().toLowerCase();
+    return status === 'active'
+      || status === 'paid'
+      || status === 'current'
+      || status === 'subscribed'
+      || status === 'trialing'
+      || status === 'success'
+      || status === 'registered'
+      || status === 'registering'
+      || status === 'enrolled'
+      || status === 'enabled'
+      || status === 'valid'
+      || status === 'ok'
+      || status === 'complete'
+      || status === 'completed'
+      || status === 'confirmed'
+      || status === 'approved'
+      || status === '\uB4F1\uB85D\uC911'
+      || status === '\uC774\uC6A9\uC911'
+      || status === '\uC720\uD6A8'
+      || status === '\uC644\uB8CC';
+  }
+
+  function _dpHasFutureMembershipExpiry(value) {
+    if (!value) return false;
+    var expiresAt = new Date(value);
+    return isFinite(expiresAt.getTime()) && expiresAt.getTime() > Date.now();
+  }
+
   function _dpSanitizeAuthUser(user) {
     if (!user || typeof user !== 'object') return null;
     var safe = {};
@@ -56,9 +86,24 @@
     var points = Number(user.points);
     if (Number.isFinite(points) && points >= 0) safe.points = points;
     if (user.profileSubscription && typeof user.profileSubscription === 'object') {
+      var tierValue = String(user.profileSubscription.tier || user.profileSubscription.passTier || user.profileSubscription.plan || user.profileSubscription.planId || user.profileSubscription.productId || user.plan || 'free');
+      var activeValue = Boolean(
+        user.profileSubscription.isActive
+        || user.profileSubscription.isSubscribed
+        || user.profileSubscription.active
+        || user.profileSubscription.enabled
+        || user.profileSubscription.valid
+        || user.profileSubscription.registered
+        || _dpIsActiveMembershipStatusValue(user.profileSubscription.status)
+        || _dpIsActiveMembershipStatusValue(user.profileSubscription.subscriptionStatus)
+        || _dpIsActiveMembershipStatusValue(user.profileSubscription.membershipStatus)
+        || _dpIsActiveMembershipStatusValue(user.profileSubscription.lastBillingStatus)
+        || _dpHasFutureMembershipExpiry(user.profileSubscription.expiresAt)
+      );
       safe.profileSubscription = {
-        tier: String(user.profileSubscription.tier || 'free'),
-        isActive: !!user.profileSubscription.isActive,
+        tier: tierValue,
+        isActive: activeValue,
+        isSubscribed: activeValue,
         expiresAt: user.profileSubscription.expiresAt || null,
       };
       var passLimit = Number(user.profileSubscription.passLimit || user.profileSubscription.freeLimit || user.profileSubscription.maxFreeCoinLimit || user.profileSubscription.maxCoveredCoin);
@@ -1548,13 +1593,22 @@
       var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
       var sub = user && user.profileSubscription;
       if (!sub || typeof sub !== 'object') return null;
-      var tier = String(sub.tier || sub.plan || sub.planId || sub.productId || '').trim().toLowerCase();
+      var tier = String(sub.tier || sub.passTier || sub.plan || sub.planId || sub.productId || '').trim().toLowerCase();
       if (tier.indexOf('vvip') >= 0) tier = 'vvip';
       else if (tier.indexOf('premium') >= 0 || tier.indexOf('프리미엄') >= 0) tier = 'premium';
       else if (tier.indexOf('standard') >= 0 || tier.indexOf('스탠다드') >= 0) tier = 'standard';
       else return null;
-      var activeStatus = String(sub.status || sub.subscriptionStatus || '').trim().toLowerCase();
-      var active = sub.isActive === true || sub.isSubscribed === true || activeStatus === 'active' || activeStatus === 'paid' || activeStatus === 'current';
+      var active = sub.isActive === true
+        || sub.isSubscribed === true
+        || sub.active === true
+        || sub.enabled === true
+        || sub.valid === true
+        || sub.registered === true
+        || _dpIsActiveMembershipStatusValue(sub.status)
+        || _dpIsActiveMembershipStatusValue(sub.subscriptionStatus)
+        || _dpIsActiveMembershipStatusValue(sub.membershipStatus)
+        || _dpIsActiveMembershipStatusValue(sub.lastBillingStatus)
+        || _dpHasFutureMembershipExpiry(sub.expiresAt);
       if (!active) return null;
       if (sub.expiresAt) {
         var expiresAt = new Date(sub.expiresAt);
