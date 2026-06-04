@@ -75,8 +75,11 @@ function tierFromValue(value) {
   if (!text || text === "free" || text === "none") return "";
   if (PASS_TIER_TO_LEGACY_TIER[text]) return PASS_TIER_TO_LEGACY_TIER[text];
   if (text === "vvip" || text.includes("vvip") || text.includes("꿀단지")) return "vvip";
+  if (text.includes("\uBE0C\uC774\uBE0C\uC774\uC544\uC774\uD53C") || text.includes("\uACE8\uB4DC")) return "vvip";
   if (text === "premium" || text.includes("premium") || text.includes("프리미엄")) return "premium";
+  if (text.includes("\uD504\uB9AC\uBBF8\uC5C4") || text.includes("\uC2E4\uBC84")) return "premium";
   if (text === "standard" || text.includes("standard") || text.includes("스탠다드")) return "standard";
+  if (text.includes("\uC2A4\uD0E0\uB2E4\uB4DC") || text.includes("\uBE0C\uB860\uC988")) return "standard";
   return "";
 }
 
@@ -109,7 +112,21 @@ function isActiveStatus(value) {
     || status === "current"
     || status === "subscribed"
     || status === "trialing"
-    || status === "success";
+    || status === "success"
+    || status === "registered"
+    || status === "registering"
+    || status === "enrolled"
+    || status === "enabled"
+    || status === "valid"
+    || status === "ok"
+    || status === "complete"
+    || status === "completed"
+    || status === "confirmed"
+    || status === "approved"
+    || status === "\uB4F1\uB85D\uC911"
+    || status === "\uC774\uC6A9\uC911"
+    || status === "\uC720\uD6A8"
+    || status === "\uC644\uB8CC";
 }
 
 function readDate(value) {
@@ -169,7 +186,14 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
     const expiresAt = readDate(source.expiresAt || source.currentPeriodEnd || source.endsAt || source.endAt || source.validUntil);
     const status = source.status || source.subscriptionStatus || source.membershipStatus || source.lastBillingStatus;
     const explicitInactive = isInactiveStatus(status) || source.isActive === false || source.isSubscribed === false;
-    const explicitActive = source.isActive === true || source.isSubscribed === true || isActiveStatus(status);
+    const explicitActive = source.isActive === true
+      || source.isSubscribed === true
+      || source.active === true
+      || source.enabled === true
+      || source.valid === true
+      || source.isValid === true
+      || source.registered === true
+      || isActiveStatus(status);
     const dateActive = expiresAt ? expiresAt.getTime() > Date.now() : false;
     const isActive = !explicitInactive && (expiresAt ? dateActive : explicitActive);
     if (!isActive) continue;
