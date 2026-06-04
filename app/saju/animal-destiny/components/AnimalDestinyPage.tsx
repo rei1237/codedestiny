@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef } from "react";
+import { motion } from "framer-motion";
 import { useAnimalCardExport } from "../hooks/useAnimalCardExport";
 import type { AnimalDestinyInput } from "../lib/types";
 import { useAnimalDestinyStore } from "../store/useAnimalDestinyStore";
@@ -9,11 +10,14 @@ import AnimalResultScreen from "./AnimalResultScreen";
 import TwelveAnimalHero from "./TwelveAnimalHero";
 import TwelveAnimalInputCard from "./TwelveAnimalInputCard";
 import TwelveAnimalLoading from "./TwelveAnimalLoading";
+import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 
 export default function AnimalDestinyPage() {
+  const pathname = usePathname() || "/";
   const shareCardRef = useRef<HTMLDivElement>(null);
   const formSectionRef = useRef<HTMLDivElement>(null);
   const resultSectionRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const {
     status,
@@ -58,13 +62,39 @@ export default function AnimalDestinyPage() {
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [status]);
 
+  const handleAnalysisBack = useCallback(() => {
+    if (status !== "result") return false;
+    reset();
+    return true;
+  }, [reset, status]);
+
+  const handleHeaderBack = useCallback(() => {
+    if (handleAnalysisBack()) return;
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    const localeMatch = pathname.match(/^\/(en|ja|zh|en-us|ja-jp|zh-cn)(?=\/|$)/i);
+    const fallbackPath = localeMatch ? `/${localeMatch[1]}/saju` : "/saju";
+    router.replace(fallbackPath);
+  }, [handleAnalysisBack, pathname, router]);
+
+  useBackNavigation({
+    scope: "analysis",
+    priority: 40,
+    maxInternalBackSteps: 1,
+    canGoBack: () => status === "result",
+    onBack: handleAnalysisBack,
+  });
+
   return (
     <main className="relative min-h-[100dvh] w-full overflow-x-hidden bg-[radial-gradient(circle_at_10%_12%,rgba(250,224,177,0.45),transparent_34%),radial-gradient(circle_at_84%_8%,rgba(234,193,133,0.24),transparent_31%),radial-gradient(circle_at_48%_90%,rgba(215,165,102,0.2),transparent_33%),linear-gradient(180deg,#fff8ea_0%,#fdf1dc_52%,#fae7c5_100%)] text-[#4d311a]">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(128deg,transparent_0%,rgba(255,255,255,0.42)_38%,transparent_66%)]" />
 
       <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[#d7b792]/60 bg-[#fff7e7]/88 px-4 py-4 backdrop-blur-xl sm:px-6">
         <button 
-          onClick={() => window.history.back()}
+          onClick={handleHeaderBack}
           className="-ml-1 rounded-full border border-transparent p-2 text-[#6b3f1d] transition-all hover:border-[#8a5a2b]/35 hover:bg-[#f4e3c7]"
           aria-label="뒤로가기"
         >

@@ -43,6 +43,13 @@ function toPathKey(pathname: string) {
   return pathname || "/";
 }
 
+function getAnalysisFallbackPath(pathname: string) {
+  if (!pathname || pathname.startsWith("/saju")) return "/saju";
+  const localeMatch = pathname.match(/^\/(en|ja|zh|en-us|ja-jp|zh-cn)(?=\/|$)/i);
+  if (!localeMatch) return "/saju";
+  return `/${localeMatch[1]}/saju`;
+}
+
 function pickActiveAnalysisHandler(
   handlers: Map<string, BackHandlerRegistration>,
 ) {
@@ -102,6 +109,44 @@ export default function NavigationProvider({ children }: { children: React.React
     };
   }, []);
 
+  const fallbackHistoryBack = useCallback(
+    (pathKey: string, policy: BackPolicy) => {
+      if (typeof window === "undefined") {
+        router.replace(getAnalysisFallbackPath(pathKey));
+        return;
+      }
+
+      const startPath = window.location.pathname || pathKey;
+      const startLength = Number(window.history.length || 0);
+      const fallbackPath = getAnalysisFallbackPath(pathKey);
+
+      window.history.back();
+
+      window.setTimeout(() => {
+        if (window.location.pathname !== startPath) {
+          rearmGuardState(pathKey, policy.kind);
+          return;
+        }
+
+        if (startLength > 1) {
+          window.history.back();
+          window.setTimeout(() => {
+            if (window.location.pathname !== startPath) {
+              rearmGuardState(pathKey, policy.kind);
+              return;
+            }
+
+            router.replace(fallbackPath);
+          }, 120);
+          return;
+        }
+
+        router.replace(fallbackPath);
+      }, 120);
+    },
+    [router],
+  );
+
   useEffect(() => {
     pathRef.current = pathname;
     routeChangedAtRef.current = Date.now();
@@ -156,7 +201,7 @@ export default function NavigationProvider({ children }: { children: React.React
           rearmGuardState(pathKey, "analysis");
           return;
         }
-        router.replace("/");
+        fallbackHistoryBack(pathKey, policy);
         return;
       }
 
@@ -192,7 +237,7 @@ export default function NavigationProvider({ children }: { children: React.React
         rearmGuardState(pathKey, "analysis");
         return;
       }
-      router.replace("/");
+      fallbackHistoryBack(pathKey, policy);
     };
 
     const onPopState = () => {
