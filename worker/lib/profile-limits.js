@@ -36,19 +36,19 @@ export const HONEY_PASS_POLICY = Object.freeze({
   },
   standard: {
     passTier: PASS_TIERS.BRONZE,
-    label: "스탠다드 달빛 이용권",
+    label: "스탠다드",
     maxCoveredCoin: PASS_LIMITS.BRONZE,
     maxProfiles: 3,
   },
   premium: {
     passTier: PASS_TIERS.SILVER,
-    label: "프리미엄 달빛 이용권",
+    label: "프리미엄",
     maxCoveredCoin: PASS_LIMITS.SILVER,
     maxProfiles: 7,
   },
   vvip: {
     passTier: PASS_TIERS.GOLD,
-    label: "VVIP 달빛 이용권",
+    label: "VVIP",
     maxCoveredCoin: PASS_LIMITS.GOLD,
     maxProfiles: 15,
   },
