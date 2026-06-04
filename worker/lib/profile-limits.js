@@ -1,28 +1,31 @@
 export const PASS_TIERS = Object.freeze({
-  BRONZE: "BRONZE",
-  SILVER: "SILVER",
-  GOLD: "GOLD",
+  STANDARD: "standard",
+  PREMIUM: "premium",
+  VVIP: "vvip",
 });
 
 export const PASS_LIMITS = Object.freeze({
-  [PASS_TIERS.BRONZE]: 30,
-  [PASS_TIERS.SILVER]: 50,
-  [PASS_TIERS.GOLD]: 100,
+  [PASS_TIERS.STANDARD]: 30,
+  [PASS_TIERS.PREMIUM]: 50,
+  [PASS_TIERS.VVIP]: 100,
 });
 
 export const PASS_TIER_UI = Object.freeze({
-  [PASS_TIERS.BRONZE]: { tone: "bronze", color: "warm_copper" },
-  [PASS_TIERS.SILVER]: { tone: "silver", color: "cold_moonlight_silver" },
-  [PASS_TIERS.GOLD]: { tone: "gold", color: "golden_moonlight" },
+  [PASS_TIERS.STANDARD]: { tone: "standard", color: "warm_copper" },
+  [PASS_TIERS.PREMIUM]: { tone: "premium", color: "cold_moonlight_silver" },
+  [PASS_TIERS.VVIP]: { tone: "vvip", color: "golden_moonlight" },
 });
 
 const LEGACY_TIER_TO_PASS_TIER = Object.freeze({
-  standard: PASS_TIERS.BRONZE,
-  premium: PASS_TIERS.SILVER,
-  vvip: PASS_TIERS.GOLD,
+  standard: PASS_TIERS.STANDARD,
+  premium: PASS_TIERS.PREMIUM,
+  vvip: PASS_TIERS.VVIP,
 });
 
 const PASS_TIER_TO_LEGACY_TIER = Object.freeze({
+  standard: "standard",
+  premium: "premium",
+  vvip: "vvip",
   bronze: "standard",
   silver: "premium",
   gold: "vvip",
@@ -35,21 +38,21 @@ export const HONEY_PASS_POLICY = Object.freeze({
     maxProfiles: 1,
   },
   standard: {
-    passTier: PASS_TIERS.BRONZE,
+    passTier: PASS_TIERS.STANDARD,
     label: "스탠다드",
-    maxCoveredCoin: PASS_LIMITS.BRONZE,
+    maxCoveredCoin: PASS_LIMITS.standard,
     maxProfiles: 3,
   },
   premium: {
-    passTier: PASS_TIERS.SILVER,
+    passTier: PASS_TIERS.PREMIUM,
     label: "프리미엄",
-    maxCoveredCoin: PASS_LIMITS.SILVER,
+    maxCoveredCoin: PASS_LIMITS.premium,
     maxProfiles: 7,
   },
   vvip: {
-    passTier: PASS_TIERS.GOLD,
+    passTier: PASS_TIERS.VVIP,
     label: "VVIP",
-    maxCoveredCoin: PASS_LIMITS.GOLD,
+    maxCoveredCoin: PASS_LIMITS.vvip,
     maxProfiles: 15,
   },
 });
@@ -84,7 +87,7 @@ function tierFromValue(value) {
 }
 
 export function normalizePassTier(value) {
-  const text = toText(value).toUpperCase();
+  const text = toText(value).toLowerCase();
   if (PASS_LIMITS[text]) return text;
   const legacyTier = tierFromValue(value);
   return LEGACY_TIER_TO_PASS_TIER[legacyTier] || null;
