@@ -396,6 +396,116 @@ function parseKasiGanjiPair(raw) {
   return { g: g, j: j };
 }
 
+var REQUIRED_KASI_PILLAR_KEYS = ['year', 'month', 'day', 'hour'];
+
+function getKasiPillarFieldCandidates(pillarName) {
+  if (pillarName === 'year') return ['year', 'secha', 'lunSecha', 'yearGanji', 'ganjiYear'];
+  if (pillarName === 'month') return ['month', 'wolgeon', 'lunWolgeon', 'monthGanji', 'ganjiMonth'];
+  if (pillarName === 'day') return ['day', 'iljin', 'lunIljin', 'dayGanji', 'ganjiDay'];
+  if (pillarName === 'hour') return ['hour', 'sigan'];
+  return [pillarName];
+}
+
+function pickFirstDefinedField(raw, fieldNames) {
+  if (!raw || typeof raw !== 'object' || !Array.isArray(fieldNames)) return null;
+  for (var i = 0; i < fieldNames.length; i++) {
+    var key = fieldNames[i];
+    if (Object.prototype.hasOwnProperty.call(raw, key) && raw[key] != null && raw[key] !== '') {
+      return raw[key];
+    }
+  }
+  return null;
+}
+
+function extractRawKasiPillar(source, pillarName) {
+  if (!source || typeof source !== 'object') return null;
+
+  var direct = pickFirstDefinedField(source, [pillarName]);
+  if (direct != null) return direct;
+
+  if (source.ganji && typeof source.ganji === 'object') {
+    var nestedGanji = pickFirstDefinedField(source.ganji, [pillarName]);
+    if (nestedGanji != null) return nestedGanji;
+  }
+
+  var fieldCandidates = getKasiPillarFieldCandidates(pillarName);
+  var directField = pickFirstDefinedField(source, fieldCandidates);
+  if (directField != null) return directField;
+
+  if (source.raw && typeof source.raw === 'object') {
+    var rawField = pickFirstDefinedField(source.raw, fieldCandidates);
+    if (rawField != null) return rawField;
+  }
+
+  return null;
+}
+
+function normalizeKasiGanjiString(rawValue) {
+  if (rawValue == null) return '';
+  var pair = parseKasiGanjiPair(rawValue);
+  if (pair && pair.g && pair.j) return String(pair.g) + String(pair.j);
+  var text = String(rawValue || '').replace(/\s+/g, '').trim();
+  return text || '';
+}
+
+function normalizeGanjiPillar(raw, pillarName) {
+  if (raw == null) return null;
+
+  var base = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : { ganji: raw };
+  var ganjiValue = pickFirstDefinedField(base, ['ganji']) || base;
+  var parsedFromGanji = parseKasiGanjiPair(ganjiValue);
+  var gan = pickFirstDefinedField(base, ['gan', 'g', 'stem']);
+  var ji = pickFirstDefinedField(base, ['ji', 'j', 'branch', 'zhi', 'earthlyBranch']);
+
+  if ((!gan || !ji) && parsedFromGanji) {
+    gan = gan || parsedFromGanji.g;
+    ji = ji || parsedFromGanji.j;
+  }
+
+  var normalizedGan = gan ? String(gan).trim() : '';
+  var normalizedJi = ji ? String(ji).trim() : '';
+  var normalizedGanji = normalizeKasiGanjiString(ganjiValue);
+  if (!normalizedGanji && normalizedGan && normalizedJi) normalizedGanji = normalizedGan + normalizedJi;
+
+  if (!normalizedGanji) {
+    console.warn('[saju] missing normalized ganji', {
+      pillarName: pillarName,
+      availableKeys: base && typeof base === 'object' ? Object.keys(base) : [],
+      raw: base
+    });
+    return null;
+  }
+
+  return Object.assign({}, base, {
+    ganji: normalizedGanji,
+    gan: normalizedGan || (parsedFromGanji ? parsedFromGanji.g : ''),
+    ji: normalizedJi || (parsedFromGanji ? parsedFromGanji.j : ''),
+    stem: pickFirstDefinedField(base, ['stem']) || normalizedGan || (parsedFromGanji ? parsedFromGanji.g : ''),
+    branch: pickFirstDefinedField(base, ['branch', 'zhi', 'earthlyBranch']) || normalizedJi || (parsedFromGanji ? parsedFromGanji.j : '')
+  });
+}
+
+function normalizeKasiSajuPillars(source) {
+  var normalized = {};
+  for (var i = 0; i < REQUIRED_KASI_PILLAR_KEYS.length; i++) {
+    var pillarName = REQUIRED_KASI_PILLAR_KEYS[i];
+    normalized[pillarName] = normalizeGanjiPillar(extractRawKasiPillar(source, pillarName), pillarName);
+  }
+  return normalized;
+}
+
+function getUserFacingSajuErrorMessage(err) {
+  var userMessage = err && err.userMessage ? String(err.userMessage) : '';
+  if (userMessage) return userMessage;
+
+  var message = err && err.message ? String(err.message) : '';
+  if (!message) return '사주 원국 계산 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+  if (message.indexOf('KASI 기준 사주 원국 간지 계산값을 확인할 수 없습니다.') === 0) {
+    return 'KASI 기준 사주 원국 간지 계산값을 확인할 수 없습니다.';
+  }
+  return message;
+}
+
 function hasCompleteGanjiContext(ctx) {
   return !!(
     ctx &&
@@ -407,11 +517,83 @@ function hasCompleteGanjiContext(ctx) {
   );
 }
 
+function buildGanjiRepairCandidate(date, terms24) {
+  if (!(date instanceof Date) || isNaN(date.getTime())) return null;
+
+  var candidate = null;
+
+  try {
+    if (window.KasiCalendarService && typeof window.KasiCalendarService.computeGanjiFromDate === 'function') {
+      candidate = window.KasiCalendarService.computeGanjiFromDate(date, terms24) || null;
+    }
+  } catch (svcErr) {
+    console.warn('[KASI] service ganji repair failed:', svcErr && svcErr.message ? svcErr.message : svcErr);
+  }
+
+  /* 한글 주석:
+     validated terms가 부족한 케이스에서는 computeGanjiFromDate가 null을 돌려줄 수 있다.
+     이때 이미 로컬 엔진이 구한 간지(secha/weolgeon/iljin/sigan)가 있으면 그대로 보존해
+     사주 원국 4주가 한 개라도 비는 상황을 막는다. */
+  if (
+    (!candidate || !candidate.year || !candidate.month || !candidate.day || !candidate.hour) &&
+    typeof KasiEngine !== 'undefined' &&
+    KasiEngine &&
+    typeof KasiEngine.getGanji === 'function'
+  ) {
+    try {
+      var engineGanji = KasiEngine.getGanji(date);
+      if (engineGanji) {
+        candidate = Object.assign({}, candidate || {}, {
+          year: (candidate && candidate.year) || engineGanji.secha || null,
+          month: (candidate && candidate.month) || engineGanji.weolgeon || null,
+          day: (candidate && candidate.day) || engineGanji.iljin || null,
+          hour: (candidate && candidate.hour) || engineGanji.sigan || null
+        });
+      }
+    } catch (engineErr) {
+      console.warn('[KASI] engine ganji repair failed:', engineErr && engineErr.message ? engineErr.message : engineErr);
+    }
+  }
+
+  /* 한글 주석:
+     위 두 경로가 모두 비는 경우에만 lunisolar 라이브러리의 팔자를 마지막 안전망으로 사용한다.
+     기존 KASI 기준 우선순서는 유지하고, 누락된 필드만 최소 보충한다. */
+  if (
+    (!candidate || !candidate.year || !candidate.month || !candidate.day || !candidate.hour) &&
+    typeof Solar !== 'undefined' &&
+    typeof Solar.fromYmdHms === 'function'
+  ) {
+    try {
+      var solar = Solar.fromYmdHms(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        date.getDate(),
+        date.getHours(),
+        date.getMinutes(),
+        date.getSeconds()
+      );
+      var lunar = solar && solar.getLunar ? solar.getLunar() : null;
+      var baZi = lunar && lunar.getEightChar ? lunar.getEightChar() : null;
+      if (baZi) {
+        candidate = Object.assign({}, candidate || {}, {
+          year: (candidate && candidate.year) || (typeof baZi.getYear === 'function' ? baZi.getYear() : null),
+          month: (candidate && candidate.month) || (typeof baZi.getMonth === 'function' ? baZi.getMonth() : null),
+          day: (candidate && candidate.day) || (typeof baZi.getDay === 'function' ? baZi.getDay() : null),
+          hour: (candidate && candidate.hour) || (typeof baZi.getTime === 'function' ? baZi.getTime() : null)
+        });
+      }
+    } catch (solarErr) {
+      console.warn('[KASI] solar ganji repair failed:', solarErr && solarErr.message ? solarErr.message : solarErr);
+    }
+  }
+
+  return candidate;
+}
+
 function repairGanjiContextFromLocal(ctx, input) {
   if (!ctx || !ctx.solar) return ctx;
   if (hasCompleteGanjiContext(ctx)) return ctx;
   try {
-    if (!window.KasiCalendarService || typeof window.KasiCalendarService.computeGanjiFromDate !== 'function') return ctx;
     var solar = ctx.solar || {};
     var date = new Date(
       parseInt(solar.year, 10),
@@ -422,7 +604,7 @@ function repairGanjiContextFromLocal(ctx, input) {
       parseInt(solar.second != null ? solar.second : input.second, 10) || 0
     );
     if (isNaN(date.getTime())) return ctx;
-    var computed = window.KasiCalendarService.computeGanjiFromDate(date, ctx.terms24);
+    var computed = buildGanjiRepairCandidate(date, ctx.terms24);
     if (!computed) return ctx;
     ctx.ganji = Object.assign({}, ctx.ganji || {}, {
       year: ctx.ganji && ctx.ganji.year ? ctx.ganji.year : computed.year,
@@ -658,7 +840,8 @@ function buildFallbackDateContext(input, reason) {
       ganji: {
         year: gj && gj.secha,
         month: gj && gj.weolgeon,
-        day: gj && gj.iljin
+        day: gj && gj.iljin,
+        hour: gj && gj.sigan
       },
       meta: {
         fallbackUsed: true,
@@ -4038,10 +4221,18 @@ async function calculate(){
       minute: correctedMinute,
       second: 0
     });
-    var kasiYearPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.year) : null;
-    var kasiMonthPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.month) : null;
-    var kasiDayPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.day) : null;
-    var kasiHourPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.hour) : null;
+    var kasiResponseReceived = !!(
+      pillarDateCtx &&
+      (
+        (pillarDateCtx.ganji && typeof pillarDateCtx.ganji === 'object') ||
+        (pillarDateCtx.raw && typeof pillarDateCtx.raw === 'object')
+      )
+    );
+    var normalizedKasiPillars = normalizeKasiSajuPillars(pillarDateCtx || {});
+    var kasiYearPair = normalizedKasiPillars.year ? parseKasiGanjiPair(normalizedKasiPillars.year.ganji) : null;
+    var kasiMonthPair = normalizedKasiPillars.month ? parseKasiGanjiPair(normalizedKasiPillars.month.ganji) : null;
+    var kasiDayPair = normalizedKasiPillars.day ? parseKasiGanjiPair(normalizedKasiPillars.day.ganji) : null;
+    var kasiHourPair = normalizedKasiPillars.hour ? parseKasiGanjiPair(normalizedKasiPillars.hour.ganji) : null;
     if (!kasiYearPair || !kasiMonthPair || !kasiDayPair || !kasiHourPair) {
       try {
         var localPillarCtx = await resolvePrimaryCalendarContext({
@@ -4064,10 +4255,18 @@ async function calculate(){
           minute: correctedMinute,
           second: 0
         });
-        kasiYearPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.year) : null;
-        kasiMonthPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.month) : null;
-        kasiDayPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.day) : null;
-        kasiHourPair = pillarDateCtx && pillarDateCtx.ganji ? parseKasiGanjiPair(pillarDateCtx.ganji.hour) : null;
+        normalizedKasiPillars = normalizeKasiSajuPillars(pillarDateCtx || {});
+        kasiYearPair = normalizedKasiPillars.year ? parseKasiGanjiPair(normalizedKasiPillars.year.ganji) : null;
+        kasiMonthPair = normalizedKasiPillars.month ? parseKasiGanjiPair(normalizedKasiPillars.month.ganji) : null;
+        kasiDayPair = normalizedKasiPillars.day ? parseKasiGanjiPair(normalizedKasiPillars.day.ganji) : null;
+        kasiHourPair = normalizedKasiPillars.hour ? parseKasiGanjiPair(normalizedKasiPillars.hour.ganji) : null;
+        kasiResponseReceived = kasiResponseReceived || !!(
+          pillarDateCtx &&
+          (
+            (pillarDateCtx.ganji && typeof pillarDateCtx.ganji === 'object') ||
+            (pillarDateCtx.raw && typeof pillarDateCtx.raw === 'object')
+          )
+        );
       } catch (localPillarErr) {
         console.error('[saju] local pillar context failed', {
           input: {
@@ -4082,8 +4281,13 @@ async function calculate(){
         });
       }
     }
-    if (!kasiYearPair || !kasiMonthPair || !kasiDayPair || !kasiHourPair) {
-      console.error('[saju] missing pillar ganji', {
+    var missingPillars = REQUIRED_KASI_PILLAR_KEYS.filter(function(key) {
+      return !(normalizedKasiPillars && normalizedKasiPillars[key] && normalizedKasiPillars[key].ganji);
+    });
+    if (missingPillars.length > 0) {
+      console.warn('[saju] missing pillar ganji', {
+        missingPillars: missingPillars,
+        kasiResponseReceived: kasiResponseReceived,
         input: {
           year: correctedYear,
           month: correctedMonth,
@@ -4092,9 +4296,18 @@ async function calculate(){
           minute: correctedMinute,
           timezone: bTz || 'Asia/Seoul'
         },
-        ganji: pillarDateCtx && pillarDateCtx.ganji ? pillarDateCtx.ganji : null
+        pillars: normalizedKasiPillars,
+        kasiRaw: pillarDateCtx ? {
+          ganji: pillarDateCtx.ganji || null,
+          raw: pillarDateCtx.raw || null,
+          source: pillarDateCtx.source || null,
+          diagnostics: pillarDateCtx.meta && Array.isArray(pillarDateCtx.meta.diagnostics) ? pillarDateCtx.meta.diagnostics.slice() : []
+        } : null
       });
-      throw new Error('KASI 기준 사주 원국 간지 계산값을 확인할 수 없습니다.');
+      var pillarError = new Error('KASI 기준 사주 원국 간지 계산값을 확인할 수 없습니다. 누락: ' + missingPillars.join(', '));
+      pillarError.userMessage = 'KASI 기준 사주 원국 간지 계산값을 확인할 수 없습니다.';
+      pillarError.code = 'KASI_PILLAR_MISSING';
+      throw pillarError;
     }
     var bazi = {
       getYearGan: function() { return kasiYearPair.g; },
@@ -4131,6 +4344,7 @@ async function calculate(){
     var natal=calcNatalElement(p);
     var johu=analyzeJohu(p);
     G_PILLARS=p;
+    window.G_KASI_PILLARS = normalizedKasiPillars;
     window.G_KASI_CONTEXT = pillarDateCtx || primaryDateCtx || null;
     G_NATAL=natal;
     G_JOHU=johu; JOHU_TYPE=johu.type; JOHU_SCORE=johu.score;
@@ -4265,7 +4479,7 @@ async function calculate(){
 
   }catch(err){
     console.error(err);
-    alert('사주 계산 오류: '+err.message);
+    alert('사주 계산 오류: ' + getUserFacingSajuErrorMessage(err));
     // 계산 실패 시에도 결과 페이지 표시 (사용자가 에러 메시지 읽고 다시 시도할 수 있도록)
     try {
       var _rp = document.getElementById('resultPage');
