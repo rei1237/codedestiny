@@ -3488,12 +3488,15 @@
       alert('이름과 생년월일을 입력해주세요.');
       return;
     }
-    var hasProfiles = DPStorage.list().length > 0;
+    var profileCount = DPStorage.list().length;
+    var maxProfiles = Math.max(1, Math.floor(Number(_dpGetMaxProfiles() || 1)));
+    var hasProfiles = profileCount > 0;
+    var canUsePlanSlot = profileCount < maxProfiles;
     var createRequestId = _dpBuildProfileManageRequestId('create', data && data.name);
-    var createConfirm = hasProfiles
+    var createConfirm = hasProfiles && !canUsePlanSlot
       ? '프로필 카드를 추가 생성할까요?\n추가 생성은 서버에서 50코인 또는 5,000원 결제 확인 후 저장됩니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.'
       : '새 프로필 카드를 생성할까요?\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.';
-    if (!confirm(createConfirm)) return;
+    if ((!hasProfiles || !canUsePlanSlot) && !confirm(createConfirm)) return;
     var btn = document.getElementById('dpSaveBtn');
     var savingCardVisible = false;
     function restoreCardAfterSaveAttempt() {
