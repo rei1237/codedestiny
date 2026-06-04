@@ -966,6 +966,19 @@ function isTruthyFlag(value) {
   return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
 }
 
+function shouldCreateDirectPortOneOrder(body = {}) {
+  const paymentMode = String(body?.paymentMode || body?.accessMode || body?.mode || "").trim().toLowerCase();
+  const provider = String(body?.provider || body?.paymentProvider || "").trim().toLowerCase();
+  const pg = String(body?.pg || body?.pgProvider || "").trim().toLowerCase();
+  return paymentMode === "direct_krw"
+    || paymentMode === "single_payment"
+    || paymentMode === "single"
+    || isTruthyFlag(body?.forceDirectPayment)
+    || isTruthyFlag(body?.disableAdminTestPaymentBypass)
+    || isTruthyFlag(body?.skipAdminTestPaymentBypass)
+    || (provider === "portone_v2" && (pg === "kg_inicis" || pg === "kg-inicis" || pg === "inicis"));
+}
+
 function isAdminPaidServiceBypassEnabled() {
   return true;
 }
@@ -2549,7 +2562,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
 async function handleCheckout(request, env) {
   const body = await readJson(request);
   const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
-  if (!isSubscription) {
+  if (!isSubscription && !shouldCreateDirectPortOneOrder(body)) {
     const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
     if (passAccess) return passAccess;
   }
