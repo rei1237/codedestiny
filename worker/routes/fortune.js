@@ -91,7 +91,7 @@ function buildJsonWithPremiumAccessCookie(body, init = {}, premiumAccessToken = 
 }
 
 function isAdminPigCoinBypassEnabled(env) {
-  return true;
+  return !isProductionRuntime(env) && isTruthyFlag(env?.ALLOW_ADMIN_PIG_COIN_BYPASS);
 }
 
 function isDynamicCostFallbackEnabled(env) {
