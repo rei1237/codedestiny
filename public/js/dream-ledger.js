@@ -1,28 +1,28 @@
 (function () {
   var DREAM_ARCHIVE_KEY = 'dreamLedgerArchiveV1';
   var GOLDEN_TONE_LABELS = {
-    comfort: '?�로',
-    motivation: '?�기부??,
+    comfort: '위로',
+    motivation: '동기부여',
     coaching: '코칭'
   };
   var DREAM_LIBRARY_PAGE_SIZE = 18;
   var DREAM_LIBRARY_CATEGORY_LABELS = {
-    all: '?�체',
-    animal: '?�물 관??,
-    fruit: '과일 관??,
-    people: '?�람 관??,
+    all: '전체',
+    animal: '동물 관련',
+    fruit: '과일 관련',
+    people: '사람 관련',
     emotion_positive: '감정(긍정)',
     emotion_anger: '감정(분노)',
     emotion_anxiety: '감정(불안)',
-    emotion_loss: '감정(?�실)',
-    emotion_recovery: '감정(?�복)',
-    place: '?�소 ?�워??,
-    object: '?�물 ?�워??,
-    taemong: '?�몽',
-    wealth: '?�물??,
-    success: '?�격??,
-    love: '?�애??,
-    marriage: '결혼??
+    emotion_loss: '감정(상실)',
+    emotion_recovery: '감정(회복)',
+    place: '장소 키워드',
+    object: '사물 키워드',
+    taemong: '태몽',
+    wealth: '재물운',
+    success: '합격운',
+    love: '연애운',
+    marriage: '결혼운'
   };
   var state = {
     reading: null,
@@ -272,7 +272,7 @@
     var shell = document.querySelector('.dream-ledger-shell');
     if (shell) shell.classList.toggle('dream-ui-locked', state.uiLocked);
 
-    // ??�� 중에??배속 변경�? ?�용?�다.
+    // 낭독 중에도 배속 변경은 허용한다.
     var controls = document.querySelectorAll('[data-action="startDreamReading"], [data-action="dreamToggleAutoReveal"], .dream-tone-btn, .dream-library-chip, .dream-library-btn, .dream-library-suggest-item, #dreamLibraryQuery, #dreamLibraryMoreBtn, #dreamNextStageBtn, .dream-ritual-card[data-action="revealDreamStage"]');
     controls.forEach(function (el) {
       el.disabled = state.uiLocked;
@@ -296,26 +296,26 @@
     var guide = $('dreamDrawGuide');
     if (!guide) return;
     if (!state.reading) {
-      guide.textContent = '카드가 준비되�?1?�계부???�어 ?�사�??�작?�세??';
+      guide.textContent = '카드가 준비되면 1단계부터 열어 서사를 시작하세요.';
       return;
     }
     if (state.visibleStage === 4) {
-      guide.textContent = '?�금 카드 ?�담 ?�계?�니?? ?�늘 ?�행????가지�??�해보세??';
+      guide.textContent = '황금 카드 상담 단계입니다. 오늘 실행할 한 가지를 정해보세요.';
       return;
     }
     if (!state.stageDone[state.visibleStage]) {
       guide.textContent = state.autoReveal
-        ? state.visibleStage + '?�계 카드�??�동?�로 ?�는 중입?�다.'
-        : state.visibleStage + '?�계 카드�??�러 ?�음 문장???�인?�세??';
+        ? state.visibleStage + '단계 카드를 자동으로 여는 중입니다.'
+        : state.visibleStage + '단계 카드를 눌러 다음 문장을 확인하세요.';
       return;
     }
     if (state.visibleStage < 3) {
       guide.textContent = state.autoReveal
-        ? '?�동 모드�??�음 카드�??�어집니??'
-        : '?�음 카드 보기 버튼?�로 ?�음 ?�계�??�동?�세??';
+        ? '자동 모드로 다음 카드로 이어집니다.'
+        : '다음 카드 보기 버튼으로 다음 단계로 이동하세요.';
       return;
     }
-    guide.textContent = '???�이 모두 ?�렸?�니?? ?�금 카드가 �??��??�니??';
+    guide.textContent = '세 장이 모두 열렸습니다. 황금 카드가 곧 나타납니다.';
   }
 
   function setBodyLock(locked) {
@@ -363,7 +363,7 @@
   function updateStoryModeLabel() {
     var modeEl = $('dreamStoryMode');
     if (!modeEl) return;
-    modeEl.textContent = '꿈의 마법�???�� 모드 · ' + speedLabel(state.textSpeed) + 'x · ?�금 ??' + toneLabel(state.goldenTone);
+    modeEl.textContent = '꿈의 마법책 낭독 모드 · ' + speedLabel(state.textSpeed) + 'x · 황금 톤 ' + toneLabel(state.goldenTone);
   }
 
   function renderSpeedButtons() {
@@ -388,14 +388,14 @@
     var btn = $('dreamAutoRevealBtn');
     if (btn) {
       btn.classList.toggle('is-active', state.autoReveal);
-      btn.textContent = state.autoReveal ? '?�동 ?�치�?ON' : '?�동 ?�치�?OFF';
+      btn.textContent = state.autoReveal ? '자동 펼치기 ON' : '자동 펼치기 OFF';
       btn.setAttribute('aria-pressed', state.autoReveal ? 'true' : 'false');
     }
     var status = $('dreamAutoRevealState');
     if (status) {
       status.textContent = state.autoReveal
-        ? '?�동 모드: 카드가 ?�서?��??�어???�립?�다.'
-        : '?�동 모드: ?�하???�?�밍??카드�?직접 ?????�습?�다.';
+        ? '자동 모드: 카드가 순서대로 이어서 열립니다.'
+        : '수동 모드: 원하는 타이밍에 카드를 직접 열 수 있습니다.';
     }
     updateDrawGuide();
   }
@@ -1016,24 +1016,24 @@
     var categoryLabel = DREAM_LIBRARY_CATEGORY_LABELS[category] || DREAM_LIBRARY_CATEGORY_LABELS.all;
 
     if (!filtered.length) {
-      metaEl.textContent = '[' + categoryLabel + ']?�서 검??결과�?찾�? 못했?�니?? ?�른 ?�워?�로 ?�도?�보?�요.';
-      listEl.innerHTML = '<article class="dream-library-item dream-library-item--empty"><h5>검??결과 ?�음</h5><p>?? ?�랑?? ?�몽, ?�격, ?�물, ?�애, 결혼</p></article>';
+      metaEl.textContent = '[' + categoryLabel + ']에서 검색 결과를 찾지 못했습니다. 다른 키워드로 시도해보세요.';
+      listEl.innerHTML = '<article class="dream-library-item dream-library-item--empty"><h5>검색 결과 없음</h5><p>예: 호랑이, 태몽, 합격, 재물, 연애, 결혼</p></article>';
       if (moreBtn) moreBtn.style.display = 'none';
       return;
     }
 
-    metaEl.textContent = '�?' + filtered.length + '�?· 카테고리: ' + categoryLabel + (queryText ? ' · 검?�어: "' + queryText + '"' : '');
+    metaEl.textContent = '총 ' + filtered.length + '건 · 카테고리: ' + categoryLabel + (queryText ? ' · 검색어: "' + queryText + '"' : '');
 
     listEl.innerHTML = visible.map(function (item) {
       var itemCategory = DREAM_LIBRARY_CATEGORY_LABELS[item.category] || item.category;
       return '<article class="dream-library-item">'
         + '<div class="dream-library-item-head">'
         + '<span class="dream-library-badge">' + escapeHtml(itemCategory) + '</span>'
-        + '<h5>' + highlightQuery(item.title || (item.keyword + ' �?), queryText) + '</h5>'
+        + '<h5>' + highlightQuery(item.title || (item.keyword + ' 꿈'), queryText) + '</h5>'
         + '</div>'
         + '<p class="dream-library-meaning">' + highlightQuery(item.meaning, queryText) + '</p>'
-        + '<p class="dream-library-fortune"><strong>?�세 ?�인??/strong> ' + highlightQuery(item.fortune, queryText) + '</p>'
-        + '<p class="dream-library-tip"><strong>?�천 ??/strong> ' + highlightQuery(item.tip, queryText) + '</p>'
+        + '<p class="dream-library-fortune"><strong>운세 포인트</strong> ' + highlightQuery(item.fortune, queryText) + '</p>'
+        + '<p class="dream-library-tip"><strong>실천 팁</strong> ' + highlightQuery(item.tip, queryText) + '</p>'
       + '</article>';
     }).join('');
 
@@ -1084,17 +1084,17 @@
       var keyword = String(item.keyword || '').trim();
       var keywordLower = keyword.toLowerCase();
       if (keywordLower.indexOf(query) === 0) {
-        addSuggestion(keyword, 120, '?�심 ?�워??);
+        addSuggestion(keyword, 120, '핵심 키워드');
       } else if (keywordLower.indexOf(query) >= 0) {
-        addSuggestion(keyword, 92, '?��? ?�워??);
+        addSuggestion(keyword, 92, '연관 키워드');
       }
 
       var title = String(item.title || '').trim();
       var titleLower = title.toLowerCase();
       if (titleLower.indexOf(query) === 0) {
-        addSuggestion(title, 80, '?�목');
+        addSuggestion(title, 80, '제목');
       } else if (titleLower.indexOf(query) >= 0) {
-        addSuggestion(title, 62, '?�목');
+        addSuggestion(title, 62, '제목');
       }
 
       var tags = Array.isArray(item.tags) ? item.tags : [];
@@ -1103,9 +1103,9 @@
         var tagLower = tag.toLowerCase();
         if (!tag) continue;
         if (tagLower.indexOf(query) === 0) {
-          addSuggestion(tag, 68, '?�그');
+          addSuggestion(tag, 68, '태그');
         } else if (tagLower.indexOf(query) >= 0) {
-          addSuggestion(tag, 48, '?�그');
+          addSuggestion(tag, 48, '태그');
         }
       }
     }
@@ -1209,8 +1209,8 @@
       var nameEl = $('dreamCardName' + (i + 1));
       var symbolEl = $('dreamCardSymbol' + (i + 1));
       var artEl = $('dreamCardArt' + (i + 1));
-      if (nameEl) nameEl.textContent = '[' + (card.card_name || '미�????�징') + '] 카드';
-      if (symbolEl) symbolEl.textContent = card.symbol || '??;
+      if (nameEl) nameEl.textContent = '[' + (card.card_name || '미지의 상징') + '] 카드';
+      if (symbolEl) symbolEl.textContent = card.symbol || '✦';
       if (artEl) {
         if (card.tarot_image_url) {
           (function (el, url, keyword, sym) {
@@ -1222,9 +1222,9 @@
               el.style.backgroundImage = makeKeywordArt(keyword, sym);
             };
             probe.src = url;
-          })(artEl, card.tarot_image_url, card.card_name || '?�징', card.symbol || '??);
+          })(artEl, card.tarot_image_url, card.card_name || '상징', card.symbol || '✦');
         } else {
-          artEl.style.backgroundImage = makeKeywordArt(card.card_name || '?�징', card.symbol || '??);
+          artEl.style.backgroundImage = makeKeywordArt(card.card_name || '상징', card.symbol || '✦');
         }
       }
     }
@@ -1297,7 +1297,7 @@
     list.unshift({
       id: id,
       createdAt: Date.now(),
-      title: state.reading.title || '?�림 ?��?,
+      title: state.reading.title || '드림 타로',
       summary: state.reading.summary || '',
       reading: state.reading
     });
@@ -1312,19 +1312,19 @@
 
     var list = readArchive();
     if (!list.length) {
-      listEl.innerHTML = '<div class="dream-archive-item"><div class="dream-archive-meta">?�?�된 ?�몽???�습?�다. ?�몽 ??[�??�?�소]�??�러 보�??�보?�요.</div></div>';
+      listEl.innerHTML = '<div class="dream-archive-item"><div class="dream-archive-meta">저장된 해몽이 없습니다. 해몽 후 [꿈 저장소]를 눌러 보관해보세요.</div></div>';
       return;
     }
 
     listEl.innerHTML = list.map(function (item) {
-      var title = item.title || '?�림 ?��?;
+      var title = item.title || '드림 타로';
       var summary = (item.summary || '').slice(0, 72);
       return '<article class="dream-archive-item">'
         + '<div class="dream-archive-title">' + title + '</div>'
         + '<div class="dream-archive-meta">' + formatDate(item.createdAt) + ' · ' + summary + '</div>'
         + '<div class="dream-archive-actions">'
-          + '<button class="dream-ledger-btn dream-ledger-btn--mini" onclick="dreamLoadArchiveAt(\'' + item.id + '\')">?�시 보기</button>'
-          + '<button class="dream-ledger-btn dream-ledger-btn--mini" onclick="dreamDeleteArchiveAt(\'' + item.id + '\')">??��</button>'
+          + '<button class="dream-ledger-btn dream-ledger-btn--mini" onclick="dreamLoadArchiveAt(\'' + item.id + '\')">다시 보기</button>'
+          + '<button class="dream-ledger-btn dream-ledger-btn--mini" onclick="dreamDeleteArchiveAt(\'' + item.id + '\')">삭제</button>'
         + '</div>'
       + '</article>';
     }).join('');
@@ -1339,7 +1339,7 @@
     $('dreamCardSummary').textContent = state.reading.summary;
     renderKeywordChips(state.reading.keywords);
     renderCardFaces(state.reading);
-    $('dreamStageTitle').textContent = '????· �?번째 카드가 ?�려�??�사�??�어주세??';
+    $('dreamStageTitle').textContent = '제1장 · 첫 번째 카드가 들려줄 서사를 열어주세요.';
     $('dreamStageText').textContent = '';
     $('dreamFinalSpell').textContent = '';
     var goldenAdviceText = $('dreamGoldenAdvice');
@@ -1348,9 +1348,9 @@
     if (finalConsultText) finalConsultText.textContent = '';
 
     var cardName4 = $('dreamCardName4');
-    if (cardName4) cardName4.textContent = '[' + (reading.goldenCardName || '?�금 카드') + ']';
+    if (cardName4) cardName4.textContent = '[' + (reading.goldenCardName || '황금 카드') + ']';
     var cardSymbol4 = $('dreamCardSymbol4');
-    if (cardSymbol4) cardSymbol4.textContent = reading.goldenCardSymbol || '??;
+    if (cardSymbol4) cardSymbol4.textContent = reading.goldenCardSymbol || '✶';
 
     var spellWrap = $('dreamFinalSpellWrap');
     if (spellWrap) spellWrap.style.display = 'none';
@@ -1362,7 +1362,7 @@
     var nextBtn = $('dreamNextStageBtn');
     if (nextBtn) nextBtn.style.display = 'none';
     updateVisibleStage(1);
-    setWizardLine('카드가 ?�환?�었?�니?? 꿈의 마법책이 1?��???차�??��??�야기�? ?�려줍니??');
+    setWizardLine('카드가 소환되었습니다. 꿈의 마법책이 1장부터 차례대로 이야기를 들려줍니다.');
     updateAutoRevealUi();
     updateStoryModeLabel();
     renderToneButtons();
@@ -1376,8 +1376,8 @@
   }
 
   function makeKeywordArt(keyword, symbol) {
-    var k = String(keyword || '?�징').slice(0, 12);
-    var s = String(symbol || '??).slice(0, 2);
+    var k = String(keyword || '상징').slice(0, 12);
+    var s = String(symbol || '✦').slice(0, 2);
     var palette = [
       ['#ffd9a1', '#79c7ff', '#2a3b68'],
       ['#ffcf91', '#95b5ff', '#3b2f66'],
@@ -1411,105 +1411,81 @@
 
   function stagePayload(s) {
     if (!state.reading) return { title: '', text: '' };
-    if (s === 1) return { title: '1�ܰ� �� ���� ��Ȳ', text: state.reading.currentSituation || state.reading.scene };
-    if (s === 2) return { title: '2�ܰ� �� �� �̷� ���� ����°�', text: state.reading.whyThisHappens || state.reading.symbol };
-    return { title: '3�ܰ� �� ���� �ൿ ����', text: state.reading.actionAdvice || state.reading.echo };
+    if (s === 1) return { title: '1단계 · 기원', text: state.reading.scene };
+    if (s === 2) return { title: '2단계 · 전언', text: state.reading.symbol };
+    return { title: '3단계 · 지침', text: state.reading.echo };
   }
+
   function normalizedFinalSpell(reading) {
     var raw = reading && reading.finalSpell ? String(reading.finalSpell) : '';
     var cleaned = raw
-      .replace(/^\s*?�늘??s*?�운\s*주문\s*:\s*/i, '')
-      .replace(/^\s*?�늘??s*주문\s*:\s*/i, '')
-      .replace(/^\s*?�운\s*주문\s*:\s*/i, '')
+      .replace(/^\s*오늘의\s*행운\s*주문\s*:\s*/i, '')
+      .replace(/^\s*오늘의\s*주문\s*:\s*/i, '')
+      .replace(/^\s*행운\s*주문\s*:\s*/i, '')
       .trim();
-    return cleaned || '?�는 ?�늘???�기�??�일??길로 바꾼??';
+    return cleaned || '나는 오늘의 용기를 내일의 길로 바꾼다.';
   }
 
   function normalizedGoldenAdvice(reading) {
     var raw = reading && reading.goldenAdvice ? String(reading.goldenAdvice) : '';
     var text = raw.trim();
     if (!text) {
-      return '???�의 ?�면?� 지�??�신??버텨???�간???�정?�라�?말합?�다. ?�늘?� ?�벽?�보???�복??먼�? ?�택?�세?? ??가지 ?��? ?�만 ?�내??충분???�으�?가�??�습?�다. ?�신???�도�?지?�는 것이 가???�실?�인 ?�리?�니??';
+      return '세 장의 장면은 지금 당신이 버텨온 시간을 인정하라고 말합니다. 오늘은 완벽함보다 회복을 먼저 선택하세요. 한 가지 작은 일만 끝내도 충분히 앞으로 가고 있습니다. 당신의 속도를 지키는 것이 가장 현실적인 승리입니다.';
     }
     return text;
   }
 
   function buildFinalConsulting(reading) {
     if (!reading) return '';
-    var title = String(reading.title || '������ ���');
+    var title = String(reading.title || '오늘의 꿈');
     var summary = String(reading.summary || '').trim();
     var finalSpell = normalizedFinalSpell(reading);
-    var currentSituation = String(reading.currentSituation || reading.scene || summary || '').trim();
-    var whyThisHappens = String(reading.whyThisHappens || reading.symbol || '').trim();
-    var biggestRisk = String(reading.biggestRisk || '').trim();
-    var bestChoice = String(reading.bestChoice || '').trim();
-    var actionAdvice = String(reading.actionAdvice || reading.echo || finalSpell).trim();
-    var oneLineConclusion = String(reading.oneLineConclusion || finalSpell).trim();
     var aiConsult = String(reading.aiConsultMarkdown || '').trim();
     var keywords = Array.isArray(reading.keywords)
       ? reading.keywords.slice(0, 3).filter(Boolean)
       : [];
     var aiActions = Array.isArray(reading.aiActionPlan) ? reading.aiActionPlan.slice(0, 3) : [];
-    var keyLine = keywords.length ? '�ٽ� Ű���� �� ' + keywords.join(' �� ') : '�ٽ� Ű���� �� ����, ����, ����';
-
-    if (currentSituation || whyThisHappens || biggestRisk || bestChoice || actionAdvice || oneLineConclusion) {
-      return [
-        '����� ��� �� ' + title,
-        '',
-        '���� ��Ȳ',
-        currentSituation || summary || '������ �帧�� ���� �������� �ʾҽ��ϴ�.',
-        '',
-        '�� �̷� ���� ����°�',
-        whyThisHappens || summary || '������ ���̴� ī�庸��, ������ ���� ������ ���� �帧�� ����� �ֽ��ϴ�.',
-        '',
-        '���� ���� ������ ����',
-        biggestRisk || '������ �Ҿ��� �ٰŷ� ����� �ʹ� ���� ������ ��',
-        '',
-        '���� ���� ���� ����',
-        bestChoice || '�� ���� �ٲ��� ����, ���� ������ �� �ִ� ���� ���� �ൿ���� �����ϴ� ��',
-        '',
-        '���� �ൿ ����',
-        actionAdvice || finalSpell,
-        '',
-        '���� ���',
-        oneLineConclusion || finalSpell,
-        '',
-        keyLine
-      ].join('\n');
-    }
+    var keyLine = keywords.length ? '핵심 키워드: ' + keywords.join(' · ') : '핵심 키워드: 감정, 관계, 선택의 방향';
 
     if (aiConsult) {
       return [
-        'ī�� ��� Gemini ��� ����Ʈ �� ' + title,
+        '■ 카드 기반 Gemini 상담 리포트 — ' + title,
         '',
         aiConsult,
         '',
-        '���',
-        summary || '������ �帧�� �Ҿ��� �ƴ϶�, ������ �ٽ� ���߶�� ��ȣ�� �����ϴ�.',
+        '【이번 해몽 핵심】',
+        summary || '현재 꿈의 상징은 내면의 불안을 인식하고 삶의 방향을 재정비하라는 신호로 해석됩니다.',
         '',
-        '�ٽ� Ű����',
+        '【핵심 상징】',
         keyLine,
         aiActions.length ? '' : '',
-        aiActions.length ? '���� �ٷ� �� ��' : '',
+        aiActions.length ? '【지금 바로 할 3가지】' : '',
         aiActions.length ? ('- ' + aiActions.join('\n- ')) : '',
         '',
-        '������ ����',
+        '【마무리 확언】',
         finalSpell
       ].filter(Boolean).join('\n');
     }
 
     return [
-      '����� ��� �� ' + title,
+      '■ 꿈 해몽 종합 리포트 — ' + title,
       '',
-      '���� ��Ȳ',
-      summary || '������ �帧�� ���� �������� �ʾҽ��ϴ�.',
+      '【해몽 요약】',
+      summary || '현재 꿈의 상징은 내면의 불안을 인식하고 삶의 방향을 재정비하라는 신호로 해석됩니다.',
       '',
-      '���� �ൿ ����',
-      finalSpell,
+      '【핵심 상징】',
+      keyLine,
       '',
-      keyLine
+      '【실천 권고사항】',
+      '① 감정 정리: 오늘 가장 마음을 흔든 감정을 한 문장으로 기록하고, 이를 완화할 수 있는 구체적 행동 1가지를 실행하세요.',
+      '② 루틴 고정: 72시간 이내 관계·업무·건강 중 우선순위 1개를 정해 15분 일일 루틴으로 안정화하세요.',
+      '③ 점진적 회복: 완벽한 해결보다 이번 주 반복 가능한 작은 성취를 3회 이상 달성하며 자기효능감을 회복하세요.',
+      '',
+      '【마무리 확언】',
+      finalSpell
     ].join('\n');
   }
+
   function revealGoldenStage() {
     if (!state.reading) {
       setInteractionLocked(false);
@@ -1525,7 +1501,7 @@
 
     if (nextBtn) nextBtn.style.display = 'none';
     if (stageText) stageText.textContent = '';
-    if (title) title.textContent = '4?�계 · ?�금 카드???�링 조언';
+    if (title) title.textContent = '4단계 · 황금 카드의 힐링 조언';
 
     triggerGoldenImpactFeedback();
     setGoldenTabVisible(true);
@@ -1570,7 +1546,7 @@
         state.nextStage = 5;
         sendAutoTuneSignal('completed_golden', 0.95, state.reading, { oncePerReading: true });
         setInteractionLocked(false);
-        setWizardLine('?�금 카드가 ?�한 조언까�? ?�성?�었?�니?? ?�늘??리듬???�정?�게 지켜주?�요.');
+        setWizardLine('황금 카드가 전한 조언까지 완성되었습니다. 오늘의 리듬을 다정하게 지켜주세요.');
         return;
       }
 
@@ -1581,14 +1557,14 @@
         state.nextStage = 5;
         sendAutoTuneSignal('completed_golden', 0.95, state.reading, { oncePerReading: true });
         setInteractionLocked(false);
-        setWizardLine('?�금 카드 조언�?최종 컨설?�이 모두 ?�성?�었?�니?? 지�?바로 ?�행????가지�??�해보세??');
+        setWizardLine('황금 카드 조언과 최종 컨설팅이 모두 완성되었습니다. 지금 바로 실행할 한 가지를 정해보세요.');
       });
     });
   }
 
   function scheduleGoldenStageReveal() {
     clearGoldenTimer();
-    setWizardLine('???�의 ?�사가 ?�나�?결합?�는 중입?�다. 1.5�????�금 카드가 ?�립?�다.');
+    setWizardLine('세 장의 서사가 하나로 결합되는 중입니다. 1.5초 뒤 황금 카드가 열립니다.');
     state.goldenTimer = setTimeout(function () {
       state.goldenTimer = null;
       revealGoldenStage();
@@ -1612,7 +1588,7 @@
       overlay.classList.add('dream-ledger-overlay--show');
     });
     syncInputEnergy();
-    setWizardLine('반갑?�니?? 무의?�의 ?�행?�여. 마법책의 ?��?�??�고 ?�늘 밤의 ?�면???�어주세??');
+    setWizardLine('반갑습니다, 무의식의 여행자여. 마법책의 표지를 열고 오늘 밤의 장면을 적어주세요.');
     renderSpeedButtons();
     renderToneButtons();
     renderDreamLibraryCategoryButtons();
@@ -1660,10 +1636,10 @@
     $('dreamResultWrap').style.display = 'none';
     if ($('dreamArchivePanel')) $('dreamArchivePanel').style.display = 'none';
     $('dreamLoader').style.display = 'none';
-    setLoaderText('?�정구슬??꿈의 ?�장???�집 중입?�다...');
+    setLoaderText('수정구슬이 꿈의 파장을 수집 중입니다...');
     resetCards();
     renderKeywordChips([]);
-    $('dreamStageTitle').textContent = '카드�??�어 ?�겨�?문장???�인?�세??';
+    $('dreamStageTitle').textContent = '카드를 열어 숨겨진 문장을 확인하세요.';
     $('dreamStageText').textContent = '';
     $('dreamFinalSpell').textContent = '';
     var spellWrap = $('dreamFinalSpellWrap');
@@ -1676,7 +1652,7 @@
     if (finalConsultWrap) finalConsultWrap.style.display = 'none';
     var finalConsultText = $('dreamFinalConsult');
     if (finalConsultText) finalConsultText.textContent = '';
-    setWizardLine('?��?(무엇?? ?�떤 ?�동???�고, ?�신??감정???�떻�??�들?�는지 ?�어주세??');
+    setWizardLine('누가(무엇이) 어떤 행동을 했고, 당신의 감정이 어떻게 흔들렸는지 적어주세요.');
     updateAutoRevealUi();
     updateStoryModeLabel();
     renderToneButtons();
@@ -1692,13 +1668,13 @@
       ? apiReadingObj.cardNarratives
       : [];
 
-    // 뽑힌 ?�제 ?��?카드 ?�보�?카드 ?�름·?��?지·?�워???�데?�트
+    // 뽑힌 실제 타로 카드 정보로 카드 이름·이미지·키워드 업데이트
     if (Array.isArray(localReading.cards)) {
       for (var i = 0; i < Math.min(localReading.cards.length, apiCards.length); i++) {
         var ac = apiCards[i];
         var lc = localReading.cards[i];
         if (!ac || !lc) continue;
-        var orientLabel = ac.orientation === 'reversed' ? ' (??��??' : '';
+        var orientLabel = ac.orientation === 'reversed' ? ' (역방향)' : '';
         if (ac.nameKr || ac.name) {
           lc.card_name = (ac.nameKr || ac.name) + orientLabel;
         }
@@ -1710,10 +1686,10 @@
       }
     }
 
-    // ?��?카드 ?�석??�??�계 ?�사�??�연?�럽�??�친??
+    // 타로 카드 해석을 각 단계 서사로 자연스럽게 합친다.
     function cardOrientLabel(card) {
       if (!card) return '';
-      return card.orientation === 'reversed' ? '??��?? : '?�방??;
+      return card.orientation === 'reversed' ? '역방향' : '정방향';
     }
 
     function cardLabel(idx) {
@@ -1731,8 +1707,8 @@
       var cardName = cardLabel(idx);
       var orient = cardOrientLabel(ac);
       var keywords = Array.isArray(ac.keywords) ? ac.keywords.slice(0, 3).join(' · ') : '';
-      var header = '?��?' + cardName + (orient ? ' (' + orient + ')' : '')
-        + (keywords ? '???�심 ?�워?�는 ' + keywords + ' ?�니??' : '???�름???�명?�니??');
+      var header = '타로 ' + cardName + (orient ? ' (' + orient + ')' : '')
+        + (keywords ? '의 핵심 키워드는 ' + keywords + ' 입니다.' : '의 흐름이 선명합니다.');
       if (!base) return header + '\n' + narrative;
       return header + '\n' + narrative + '\n\n' + base;
     }
@@ -1747,10 +1723,10 @@
       localReading.echo = buildStageText(localReading.echo, 2);
     }
 
-    // ?��?종합 조언???�금 카드 조언???�합
+    // 타로 종합 조언을 황금 카드 조언에 통합
     if (apiReadingObj.advice) {
       localReading.goldenAdvice = (localReading.goldenAdvice || '')
-        + '\n\n?��?�?종합 조언??n' + apiReadingObj.advice;
+        + '\n\n【타로 종합 조언】\n' + apiReadingObj.advice;
     }
 
     return localReading;
@@ -1841,7 +1817,7 @@
     if (input && typeof input.blur === 'function') input.blur();
 
     if (!text) {
-      setLoaderText('?��?(무엇?? ?�떤 ?�동???�고 ?�떤 감정???�꼈?��? ?�께 ?�어주세??');
+      setLoaderText('누가(무엇이) 어떤 행동을 했고 어떤 감정을 느꼈는지 함께 적어주세요.');
       $('dreamLoader').style.display = 'block';
       setTimeout(function () {
         $('dreamLoader').style.display = 'none';
@@ -1851,14 +1827,14 @@
 
     var ai = window.DreamLedgerAI;
     if (!ai || typeof ai.interpretDream !== 'function') {
-      setLoaderText('?�림 ?��??�진??불러?�는 중입?�다...');
+      setLoaderText('드림 타로 엔진을 불러오는 중입니다...');
       $('dreamLoader').style.display = 'block';
       ensureDreamLedgerAiReady().then(function (loadedAi) {
         if (loadedAi && typeof loadedAi.interpretDream === 'function') {
           window.startDreamReading();
           return;
         }
-        setLoaderText('?�림 ?��??�진??초기?�하지 못했?�니?? ?�시 ???�시 ?�도??주세??');
+        setLoaderText('드림 타로 엔진을 초기화하지 못했습니다. 잠시 후 다시 시도해 주세요.');
         setTimeout(function () {
           $('dreamLoader').style.display = 'none';
         }, 1500);
@@ -1873,18 +1849,18 @@
     $('dreamLoader').style.display = 'block';
 
     syncInputEnergy();
-    setWizardLine('지?�이�??�어 꿈의 ?�면???�환?�니?? 카드가 차�??��??�사�??�려�?거예??');
-    setLoaderText('?�정구슬???�징??결을 ?�는 �?..');
-    setTimeout(function () { setLoaderText('?�제 ?��?카드??꿈의 ?�사�??�기??�?..'); }, 700);
+    setWizardLine('지팡이를 들어 꿈의 장면을 소환합니다. 카드가 차례대로 서사를 들려줄 거예요.');
+    setLoaderText('수정구슬이 상징의 결을 읽는 중...');
+    setTimeout(function () { setLoaderText('실제 타로 카드에 꿈의 서사를 새기는 중...'); }, 700);
 
     setTimeout(function () {
       var reading;
       try {
         reading = ai.interpretDream(text, { goldenTone: state.goldenTone });
       } catch (err) {
-        var msg = err && err.message ? err.message : '?��?(무엇?? ?�떤 ?�동???�고, ?�떤 감정???�꼈?��? ?�어주세??';
+        var msg = err && err.message ? err.message : '누가(무엇이) 어떤 행동을 했고, 어떤 감정을 느꼈는지 적어주세요.';
         setLoaderText(msg);
-        setWizardLine('?�징 공명???�려졌습?�다. ?�력???�시 ?�돈??주세??');
+        setWizardLine('상징 공명이 흐려졌습니다. 입력을 다시 정돈해 주세요.');
         setTimeout(function () {
           $('dreamLoader').style.display = 'none';
           setInteractionLocked(false);
@@ -1899,7 +1875,7 @@
             reasons: enhancedReading._pipelineFallbacks,
             fallbackReason: enhancedReading.fallbackReason
           });
-          setWizardLine('?��? 카드 ?�담??지?�되??로컬 ?�몽�?병합??마법책을 ?�성?�습?�다.');
+          setWizardLine('일부 카드 상담이 지연되어 로컬 해몽과 병합해 마법책을 완성했습니다.');
         }
         hydrateReading(enhancedReading);
         setInteractionLocked(false);
@@ -1911,10 +1887,11 @@
         }
       }
 
-      // ?��?API�??�제 카드 뽑기 ??리딩 강화 ??dream ?�담 병합 ??최종??      var pipelineFallbacks = [];
+      // 타로 API로 실제 카드 뽑기 → 리딩 강화 → dream 상담 병합 → 최종화
+      var pipelineFallbacks = [];
       var dreamLibraryContext = buildDreamLibraryContext(text);
 
-      setLoaderText('?��?카드가 꿈의 ?�어�??�는 중입?�다...');
+      setLoaderText('타로 카드가 꿈의 언어를 읽는 중입니다...');
       callDreamTarotApi('draw', { spreadType: 'three_card_past_present_future' })
         .then(function (drawData) {
           if (!drawData || !Array.isArray(drawData.cards) || drawData.cards.length < 3) {
@@ -1926,7 +1903,7 @@
             spreadType: 'three_card_past_present_future',
             cards: drawData.cards,
             dreamText: text,
-            userQuestion: '??꿈의 ?�심 ?�징???��?3?�으�?구체 ?�석?�줘: ' + text,
+            userQuestion: '이 꿈의 핵심 상징을 타로 3장으로 구체 해석해줘: ' + text,
             userContext: {
               dreamText: text,
               localSummary: String(reading.summary || '').trim(),
@@ -1959,7 +1936,7 @@
             pipelineFallbacks.push('draw:skipped');
           }
 
-          setLoaderText('카드 조합?�로 ?�담 메시지�??�리?�는 �?..');
+          setLoaderText('카드 조합으로 상담 메시지를 정리하는 중...');
           return callDreamApi('tarot-consult', {
             dreamText: text,
             spreadType: 'three_card_past_present_future',
@@ -2010,7 +1987,7 @@
     if (state.typingStage) return;
     if (s !== state.visibleStage) return;
     if (s !== state.nextStage) {
-      setWizardLine('?�서�?지켜주?�요. �?카드부???�면 ?�사가 ?�전???�어집니??');
+      setWizardLine('순서를 지켜주세요. 첫 카드부터 열면 서사가 온전히 이어집니다.');
       return;
     }
 
@@ -2056,15 +2033,15 @@
       if (s < 3) {
         setInteractionLocked(false);
         if (state.autoReveal) {
-          setWizardLine('??��???�료?�었?�니?? ?�동?�로 ?�음 ?�계�??�어집니??');
+          setWizardLine('낭독이 완료되었습니다. 자동으로 다음 단계로 이어집니다.');
           queueAutoReveal(420);
         } else {
-          setWizardLine('??��???�료?�었?�니?? 충분???�으????"?�음 카드 보기"�??�러 진행??주세??');
+          setWizardLine('낭독이 완료되었습니다. 충분히 읽으신 후 "다음 카드 보기"를 눌러 진행해 주세요.');
         }
       }
 
       if (s === 3) {
-        var spellText = '?�늘???�운 주문: ' + normalizedFinalSpell(state.reading);
+        var spellText = '오늘의 행운 주문: ' + normalizedFinalSpell(state.reading);
         var spellWrap = $('dreamFinalSpellWrap');
         if (spellWrap) spellWrap.style.display = 'block';
         typeText($('dreamFinalSpell'), spellText, 14, function () {
@@ -2073,33 +2050,33 @@
       }
     });
 
-    if (s === 1) setWizardLine('�??�이 ?�렸?�니?? ??번째 카드?�서 ?�재???�언??받아보세??');
-    if (s === 2) setWizardLine('?�사가 무르?�었?�니?? 마�?�?카드가 ?�일??방향??밝�?줍니??');
+    if (s === 1) setWizardLine('첫 장이 열렸습니다. 두 번째 카드에서 현재의 전언을 받아보세요.');
+    if (s === 2) setWizardLine('서사가 무르익었습니다. 마지막 카드가 내일의 방향을 밝혀줍니다.');
   };
 
   window.nextDreamStage = function nextDreamStage() {
     if (state.uiLocked) {
-      setWizardLine('?�출??진행 중입?�다. ?�시�?기다?�주?�요.');
+      setWizardLine('연출이 진행 중입니다. 잠시만 기다려주세요.');
       return;
     }
     if (state.typingStage) {
-      setWizardLine('??��???�난 ???�음 ?�으�??�어�????�어??');
+      setWizardLine('낭독이 끝난 뒤 다음 장으로 넘어갈 수 있어요.');
       return;
     }
     var current = state.visibleStage;
     if (!state.stageDone[current]) {
-      setWizardLine('?�재 카드??문장??먼�? ?�어주세??');
+      setWizardLine('현재 카드의 문장을 먼저 열어주세요.');
       return;
     }
     if (current >= 3) return;
 
     var next = current + 1;
     updateVisibleStage(next);
-    $('dreamStageTitle').textContent = next === 2 ? '2?�계 카드�??�러 ?�언???�세??' : '3?�계 카드�??�러 지침을 ?�세??';
+    $('dreamStageTitle').textContent = next === 2 ? '2단계 카드를 눌러 전언을 여세요.' : '3단계 카드를 눌러 지침을 여세요.';
     $('dreamStageText').textContent = '';
     var nextBtn = $('dreamNextStageBtn');
     if (nextBtn) nextBtn.style.display = 'none';
-    setWizardLine(next === 2 ? '???�이 ?�쳐졌습?�다. 카드??목소리�? ?�어보세??' : '???�이 ?�렸?�니?? 마�?�??�면??기다립니??');
+    setWizardLine(next === 2 ? '제2장이 펼쳐졌습니다. 카드의 목소리를 들어보세요.' : '제3장이 열렸습니다. 마지막 장면이 기다립니다.');
 
     if (state.autoReveal) {
       queueAutoReveal(320);
@@ -2113,14 +2090,14 @@
     state.textSpeed = value;
     renderSpeedButtons();
     if (state.typingTimer && state.typingContext) restartTypingTimer();
-    setWizardLine('??�� 배속??' + speedLabel(value) + 'x�?조정?�습?�다.');
+    setWizardLine('낭독 배속을 ' + speedLabel(value) + 'x로 조정했습니다.');
   };
 
   window.dreamSetGoldenTone = function dreamSetGoldenTone(tone) {
     if (state.uiLocked) return;
     state.goldenTone = normalizeGoldenTone(tone);
     renderToneButtons();
-    setWizardLine('?�금 카드 조언 ?�을 ' + toneLabel(state.goldenTone) + ' 모드�?맞췄?�니??');
+    setWizardLine('황금 카드 조언 톤을 ' + toneLabel(state.goldenTone) + ' 모드로 맞췄습니다.');
   };
 
   window.dreamToggleAutoReveal = function dreamToggleAutoReveal() {
@@ -2129,10 +2106,10 @@
     updateAutoRevealUi();
     if (!state.autoReveal) {
       clearAutoRevealTimer();
-      setWizardLine('?�동 모드�??�환?�습?�다. ?�하???�?�밍??카드�?직접 ?�세??');
+      setWizardLine('수동 모드로 전환했습니다. 원하는 타이밍에 카드를 직접 여세요.');
       return;
     }
-    setWizardLine('?�동 모드�??�환?�습?�다. 카드가 ?�서?��??�어집니??');
+    setWizardLine('자동 모드로 전환했습니다. 카드가 순서대로 이어집니다.');
     queueAutoReveal(260);
   };
 
@@ -2143,7 +2120,7 @@
     hideDreamLibrarySuggestions();
     renderDreamLibraryCategoryButtons();
     renderDreamLibraryList();
-    setWizardLine('�??�몽 ?�이브러리�? [' + (DREAM_LIBRARY_CATEGORY_LABELS[state.libraryCategory] || '?�체') + '] 카테고리�??�환?�습?�다.');
+    setWizardLine('꿈 해몽 라이브러리를 [' + (DREAM_LIBRARY_CATEGORY_LABELS[state.libraryCategory] || '전체') + '] 카테고리로 전환했습니다.');
   };
 
   window.dreamLibrarySearch = function dreamLibrarySearch() {
@@ -2153,7 +2130,7 @@
     state.libraryLimit = DREAM_LIBRARY_PAGE_SIZE;
     hideDreamLibrarySuggestions();
     renderDreamLibraryList();
-    setWizardLine(state.libraryQuery ? '?�워??[' + state.libraryQuery + ']�?�??�징???�색?�습?�다.' : '검?�어가 비어 ?�어 ?�체 �??�징???�시?�니??');
+    setWizardLine(state.libraryQuery ? '키워드 [' + state.libraryQuery + ']로 꿈 상징을 탐색했습니다.' : '검색어가 비어 있어 전체 꿈 상징을 표시합니다.');
   };
 
   window.dreamLibrarySearchByDream = function dreamLibrarySearchByDream() {
@@ -2161,7 +2138,7 @@
     var input = $('dreamLibraryQuery');
     var inferred = deriveLibraryQueryFromDream();
     if (!inferred) {
-      setWizardLine('�?문장?�서 검???�워?��? 찾�? 못했?�니?? �??�용??먼�? ?�력?�거??직접 검?�어�??�력??주세??');
+      setWizardLine('꿈 문장에서 검색 키워드를 찾지 못했습니다. 꿈 내용을 먼저 입력하거나 직접 검색어를 입력해 주세요.');
       return;
     }
     state.libraryQuery = inferred;
@@ -2169,7 +2146,7 @@
     if (input) input.value = inferred;
     hideDreamLibrarySuggestions();
     renderDreamLibraryList();
-    setWizardLine('?�재 �?문장??기반?�로 [' + inferred + '] 검?�을 ?�행?�습?�다.');
+    setWizardLine('현재 꿈 문장을 기반으로 [' + inferred + '] 검색을 실행했습니다.');
   };
 
   window.dreamLibraryPickSuggestion = function dreamLibraryPickSuggestion(actionEl) {
@@ -2187,7 +2164,7 @@
     state.libraryLimit = DREAM_LIBRARY_PAGE_SIZE;
     hideDreamLibrarySuggestions();
     renderDreamLibraryList();
-    setWizardLine('추천??[' + value + ']�??�용??�??�징??검?�했?�니??');
+    setWizardLine('추천어 [' + value + ']를 적용해 꿈 상징을 검색했습니다.');
   };
 
   window.dreamLibraryClearSearch = function dreamLibraryClearSearch() {
@@ -2198,7 +2175,7 @@
     state.libraryLimit = DREAM_LIBRARY_PAGE_SIZE;
     hideDreamLibrarySuggestions();
     renderDreamLibraryList();
-    setWizardLine('�??�몽 ?�이브러�?검?�어�?초기?�했?�니??');
+    setWizardLine('꿈 해몽 라이브러리 검색어를 초기화했습니다.');
   };
 
   window.dreamLibraryLoadMore = function dreamLibraryLoadMore() {
@@ -2214,7 +2191,7 @@
       var saved = saveCurrentReadingToArchive();
       if (saved) {
         sendAutoTuneSignal('saved_archive', 1.15, state.reading, { oncePerReading: true });
-        setWizardLine('?�재 ?�몽??�??�?�소??보�??�습?�다.');
+        setWizardLine('현재 해몽을 꿈 저장소에 보관했습니다.');
       }
     }
     renderArchiveList();
@@ -2237,7 +2214,7 @@
     resetCards();
     hydrateReading(found.reading);
     sendAutoTuneSignal('revisit_archive', 1.0, found.reading, { oncePerReading: true });
-    setWizardLine('?�?�된 ?�몽???�시 ?�쳤?�니?? 카드 ?�서?��??�시 ?�인?�보?�요.');
+    setWizardLine('저장된 해몽을 다시 펼쳤습니다. 카드 순서대로 다시 확인해보세요.');
   };
 
   window.dreamDeleteArchiveAt = function dreamDeleteArchiveAt(id) {
@@ -2247,15 +2224,15 @@
   };
 
   function buildShareText() {
-    if (!state.reading) return '?�림 ?��??�몽 결과�??�인?�보?�요.';
+    if (!state.reading) return '드림 타로 해몽 결과를 확인해보세요.';
     return [
       state.reading.title,
       state.reading.summary,
-      '[?�겨�?근원] ' + state.reading.scene,
-      '[?�재???�언] ' + state.reading.symbol,
-      '[?�일??지�? ' + state.reading.echo,
-      '[?�금 조언] ' + normalizedGoldenAdvice(state.reading),
-      '?�운 주문: ' + normalizedFinalSpell(state.reading)
+      '[숨겨진 근원] ' + state.reading.scene,
+      '[현재의 전언] ' + state.reading.symbol,
+      '[내일의 지침] ' + state.reading.echo,
+      '[황금 조언] ' + normalizedGoldenAdvice(state.reading),
+      '행운 주문: ' + normalizedFinalSpell(state.reading)
     ].join('\n\n');
   }
 
@@ -2264,7 +2241,7 @@
 
     if (navigator.share) {
       navigator.share({
-        title: '무의?�의 마법 ?�점: ?�림 ?��?,
+        title: '무의식의 마법 상점: 드림 타로',
         text: shareText
       }).then(function () {
         sendAutoTuneSignal('shared_result', 1.1, state.reading, { oncePerReading: true });
@@ -2275,14 +2252,14 @@
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(shareText).then(function () {
         sendAutoTuneSignal('shared_result', 1.1, state.reading, { oncePerReading: true });
-        alert('?�몽 ?�스?��? ?�립보드??복사?�습?�다.');
+        alert('해몽 텍스트를 클립보드에 복사했습니다.');
       }).catch(function () {
-        alert('공유�?지?�하지 ?�는 ?�경?�니??');
+        alert('공유를 지원하지 않는 환경입니다.');
       });
       return;
     }
 
-    alert('공유�?지?�하지 ?�는 ?�경?�니??');
+    alert('공유를 지원하지 않는 환경입니다.');
   };
 
   document.addEventListener('input', function (event) {
@@ -2329,7 +2306,7 @@
           state.libraryLimit = DREAM_LIBRARY_PAGE_SIZE;
           hideDreamLibrarySuggestions();
           renderDreamLibraryList();
-          setWizardLine('추천??[' + picked.text + ']�??�용??�??�징??검?�했?�니??');
+          setWizardLine('추천어 [' + picked.text + ']를 적용해 꿈 상징을 검색했습니다.');
           return;
         }
       }
