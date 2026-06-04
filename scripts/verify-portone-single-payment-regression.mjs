@@ -9,6 +9,7 @@ const portoneSource = readFileSync(resolve(root, "worker/lib/portone.js"), "utf8
 const modelsSource = readFileSync(resolve(root, "worker/lib/models.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
+const pagesHeadersSource = readFileSync(resolve(root, "public/_headers"), "utf8");
 const clientPaymentSource = `${indexSource}\n${destinyProfileSource}`;
 
 const paymentsMod = await import("../worker/routes/payments.js");
@@ -391,6 +392,9 @@ function runClientStaticTests() {
   assertBefore(indexSource, "_cdHasVerifiedServerAccess(confirmRes.payload", "return confirmRes.payload", "server complete failure must block unlock success");
   assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdLoadPortOneV2Sdk()", "already unlocked/pass branch should not open payment modal");
   assertContains(indexSource, "alreadyUnlocked", "already unlocked branch");
+  assertContains(pagesHeadersSource, "connect-src 'self'", "Cloudflare Pages CSP connect-src");
+  assertContains(pagesHeadersSource, "connect-src 'self' https://code-destiny.com https://www.code-destiny.com https://code-destiny-web.bulegyung.workers.dev https://cdn.portone.io https://checkout-service.prod.iamport.co", "PortOne checkout prepare API must be allowed by connect-src");
+  assertContains(pagesHeadersSource, "frame-src 'self' https://checkout-service.prod.iamport.co", "PortOne checkout frame must be allowed by frame-src");
 }
 
 function runE2EStaticTests() {
