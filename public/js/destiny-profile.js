@@ -4682,6 +4682,10 @@
 
     var optionBag = (options && typeof options === 'object') ? options : {};
     var normalizedFeatureKey = String(optionBag.featureKey || '').trim() || 'coin-gate-per-use';
+    var requestId = String(optionBag.requestId || '').trim().slice(0, 120);
+    if (!requestId) {
+      requestId = 'coin-gate-per-use-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    }
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
 
@@ -4715,7 +4719,29 @@
     }
     dedupeMap[dedupeKey] = now;
 
-
+    if (typeof window._cdOpenPaidServiceGate === 'function') {
+      return window._cdOpenPaidServiceGate({
+        title: reason,
+        reason: reason,
+        coinPrice: cost,
+        cost: cost,
+        featureKey: normalizedFeatureKey,
+        requestId: requestId,
+        reportType: optionBag.reportType,
+        serviceKey: optionBag.serviceKey,
+        profileId: optionBag.profileId,
+        selectedProfileId: optionBag.selectedProfileId,
+        onGranted: function(transactionId, payload) {
+          if (typeof cb === 'function') cb(String(transactionId || requestId), payload || {});
+        },
+        onCancel: onCancel
+      }).catch(function(error) {
+        console.error('[main-paid-service-gate]', error);
+        window.alert(String(error && error.message || '\uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.'));
+        if (typeof onCancel === 'function') onCancel(error);
+        return null;
+      });
+    }
 
     if (typeof window._cdResolvePaidContentAccess === 'function') {
       return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId }).then(function(access) {
