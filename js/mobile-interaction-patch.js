@@ -675,7 +675,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-d6908c04edfa').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-b011fa01dbd0').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -762,18 +762,18 @@
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings??`js/...` 경로??용?니?? 모바??patch???일 경로?맞춰
     // ???에??최신 ?크립트??확??로드?도??니??
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-d6908c04edfa'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-d6908c04edfa'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-d6908c04edfa'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-b011fa01dbd0'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-b011fa01dbd0'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-b011fa01dbd0'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-d6908c04edfa'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-b011fa01dbd0'],
     openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-d6908c04edfa']
+    openSibylModal: ['js/sibyl-system.js?v=build-b011fa01dbd0']
   };
 
   function normalizeScriptSrc(src) {
