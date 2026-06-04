@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { INSIGHT_ARTICLES, getArticleBySlug, getTopicKey } from "../articles";
+import { INSIGHT_SEED_ARTICLES, getInsightSeedBySlug, getInsightSeedRelated } from "../seed-articles";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/structured-data";
+import { getPexelsInsightImage } from "../../../lib/server/pexels";
 
 export const dynamicParams = false;
 
 function uniqueArticles() {
   const map = new Map();
-  for (const article of INSIGHT_ARTICLES) {
+  for (const article of INSIGHT_SEED_ARTICLES) {
     const slug = String(article?.slug || "").trim();
     if (!slug || map.has(slug)) continue;
     const sections = Array.isArray(article.sections) ? article.sections : [];
@@ -29,20 +30,9 @@ function articleDescription(article) {
     .slice(0, 160);
 }
 
-function articleImage(article) {
-  const category = String(article.category || "");
-  if (/자미두수/.test(category)) return "/fuctionassets/jami.webp";
-  if (/숙요/.test(category)) return "/fuctionassets/sukyo.webp";
-  if (/타로/.test(category)) return "/fuctionassets/tarolove.webp";
-  if (/점성술/.test(category)) return "/fuctionassets/jumsung.webp";
-  if (/베다/.test(category)) return "/fuctionassets/veda.webp";
-  if (/궁합|관계/.test(category)) return "/fuctionassets/lovebible.webp";
-  return "/fuctionassets/saju.webp";
-}
-
-export function generateMetadata({ params }) {
+export async function generateMetadata({ params }) {
   const slug = String(params?.slug || "");
-  const article = getArticleBySlug(slug);
+  const article = getInsightSeedBySlug(slug);
   if (!article) {
     return buildSeoMetadata({
       path: `/insights/${encodeURIComponent(slug)}`,
@@ -53,12 +43,13 @@ export function generateMetadata({ params }) {
     });
   }
 
+  const image = await getPexelsInsightImage(article);
   return buildSeoMetadata({
     path: `/insights/${article.slug}`,
     title: `${article.title} | 운세 인사이트`,
     description: articleDescription(article),
-    keywords: Array.from(new Set([article.category, ...(article.tags || []), ...(article.keywords || [])].filter(Boolean))).slice(0, 12),
-    ogImage: articleImage(article),
+    keywords: Array.from(new Set([article.category, ...(article.tags || []), ...(article.keywords || []), ...(article.relatedKeywords || [])].filter(Boolean))).slice(0, 12),
+    ogImage: image.src,
     ogType: "article",
   });
 }
@@ -79,28 +70,26 @@ function normalizeSections(article) {
 }
 
 function relatedArticles(article) {
-  const topic = getTopicKey(article);
-  return uniqueArticles()
-    .filter((item) => item.slug !== article.slug && getTopicKey(item) === topic)
-    .slice(0, 6);
+  return getInsightSeedRelated(article.slug, 6);
 }
 
-export default function InsightArticlePage({ params }) {
+export default async function InsightArticlePage({ params }) {
   const slug = String(params?.slug || "");
-  const article = getArticleBySlug(slug);
+  const article = getInsightSeedBySlug(slug);
   if (!article) notFound();
 
   const sections = normalizeSections(article);
-  if (sections.length === 0) notFound();
+  const contentHtml = String(article.contentHtml || "").trim();
+  if (sections.length === 0 && !contentHtml) notFound();
 
-  const image = articleImage(article);
+  const image = await getPexelsInsightImage(article);
   const description = articleDescription(article);
   const related = relatedArticles(article);
   const articleJsonLd = buildArticleJsonLd({
     title: article.title,
     description,
     path: `/insights/${article.slug}`,
-    image,
+    image: image.src,
     datePublished: article.publishedAt || article.updatedAt,
     dateModified: article.updatedAt || article.publishedAt,
   });
@@ -118,7 +107,14 @@ export default function InsightArticlePage({ params }) {
         </Link>
 
         <header className="mt-6 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.045] shadow-2xl shadow-black/30">
-          <img src={image} alt={`${article.title} 대표 이미지`} className="h-64 w-full object-cover md:h-80" />
+          <figure>
+            <img src={image.src} alt={image.alt || `${article.title} 대표 이미지`} className="h-64 w-full object-cover md:h-80" />
+            {image.source === "pexels" && image.credit ? (
+              <figcaption className="bg-black/20 px-4 py-2 text-xs text-slate-400">
+                Photo by <a className="underline" href={image.creditUrl} rel="noreferrer">{image.credit}</a> on Pexels
+              </figcaption>
+            ) : null}
+          </figure>
           <div className="p-6 md:p-8">
             <p className="text-sm font-semibold text-amber-100/80">{article.category || "운세 인사이트"}</p>
             <h1 className="mt-3 text-3xl font-bold leading-tight text-white md:text-5xl">{article.title}</h1>
@@ -133,14 +129,21 @@ export default function InsightArticlePage({ params }) {
           </div>
         </header>
 
-        <section className="mt-8 space-y-5">
-          {sections.map((section, index) => (
-            <section key={`${section.heading}-${index}`} className="rounded-2xl border border-white/10 bg-[#10172b]/85 p-5 md:p-7">
-              {section.heading ? <h2 className="text-2xl font-semibold text-amber-100">{section.heading}</h2> : null}
-              {section.body ? <p className="mt-4 whitespace-pre-line text-base leading-8 text-slate-300">{section.body}</p> : null}
-            </section>
-          ))}
-        </section>
+        {contentHtml ? (
+          <section
+            className="mt-8 rounded-2xl border border-white/10 bg-[#10172b]/85 p-5 text-base leading-8 text-slate-300 md:p-7 [&_a]:text-amber-100 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-amber-100 [&_h2:first-child]:mt-0 [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-slate-100 [&_li]:mt-2 [&_p]:mt-4 [&_strong]:text-slate-100 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-6"
+            dangerouslySetInnerHTML={{ __html: contentHtml }}
+          />
+        ) : (
+          <section className="mt-8 space-y-5">
+            {sections.map((section, index) => (
+              <section key={`${section.heading}-${index}`} className="rounded-2xl border border-white/10 bg-[#10172b]/85 p-5 md:p-7">
+                {section.heading ? <h2 className="text-2xl font-semibold text-amber-100">{section.heading}</h2> : null}
+                {section.body ? <p className="mt-4 whitespace-pre-line text-base leading-8 text-slate-300">{section.body}</p> : null}
+              </section>
+            ))}
+          </section>
+        )}
 
         {related.length > 0 ? (
           <section className="mt-10 rounded-3xl border border-white/10 bg-white/[0.04] p-5 md:p-7">

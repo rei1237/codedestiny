@@ -1,8 +1,9 @@
 import InsightsCosmicClient from "./InsightsCosmicClient";
-import { INSIGHT_ARTICLES } from "./articles";
+import { INSIGHT_SEED_ARTICLES } from "./seed-articles";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-data";
 import { publishedCelebritySajuSeeds } from "../../lib/famous-saju/celebrity-saju-service";
+import { getPexelsSectionImage, resolvePexelsInsightImageRequest } from "../../lib/server/pexels";
 
 const pageTitle = "운세 인사이트 허브 | 사주·자미두수·숙요점·타로 가이드 | Code Destiny";
 const pageDescription =
@@ -51,11 +52,42 @@ function buildFamousSajuInsightItems() {
   }));
 }
 
-export default function InsightsPage() {
-  const initialFamousSajuItems = buildFamousSajuInsightItems();
-  const initialAllItems = [...initialFamousSajuItems, ...INSIGHT_ARTICLES];
+async function enrichInsightImageItems(items) {
+  const imageByKey = new Map();
+
+  for (const item of items) {
+    const request = resolvePexelsInsightImageRequest(item);
+    const key = `${request.section}:${request.query}`;
+    if (!imageByKey.has(key)) {
+      imageByKey.set(key, await getPexelsSectionImage(request.query, request.section));
+    }
+  }
+
+  return items.map((item) => {
+    const request = resolvePexelsInsightImageRequest(item);
+    const image = imageByKey.get(`${request.section}:${request.query}`);
+    if (!image?.src) return item;
+    return {
+      ...item,
+      coverImage: image.src,
+      coverImageAlt: image.alt || item.coverImageAlt || `${item.title} 대표 이미지`,
+      featuredImage: {
+        ...(item.featuredImage || {}),
+        url: image.src,
+        alt: image.alt || item.featuredImage?.alt || item.coverImageAlt || `${item.title} 대표 이미지`,
+        width: item.featuredImage?.width || 1200,
+        height: item.featuredImage?.height || 630,
+      },
+    };
+  });
+}
+
+export default async function InsightsPage() {
+  const initialFamousSajuItems = await enrichInsightImageItems(buildFamousSajuInsightItems());
+  const initialInsightItems = await enrichInsightImageItems(INSIGHT_SEED_ARTICLES);
+  const initialAllItems = [...initialFamousSajuItems, ...initialInsightItems];
   const initialItems = initialAllItems.slice(0, 12);
-  const initialRecommended = INSIGHT_ARTICLES.filter((article) => article.isFeatured).slice(0, 6);
+  const initialRecommended = initialInsightItems.filter((article) => article.isFeatured).slice(0, 6);
   const { categories, tags } = getInsightFilters(initialAllItems);
   const webPage = buildWebPageJsonLd({
     title: pageTitle,

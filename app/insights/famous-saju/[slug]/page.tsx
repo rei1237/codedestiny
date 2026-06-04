@@ -201,7 +201,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
             <img src={heroImage.src} alt={heroImage.alt} width={1200} height={627} className="h-64 w-full object-cover" />
             {heroImage.source === "pexels" && heroImage.credit ? (
               <figcaption className="px-3 py-2 text-xs text-slate-400">
-                Photo by <a className="underline" href={heroImage.creditUrl} rel="noreferrer" target="_blank">{heroImage.credit}</a> on Pexels
+                Photo by <a className="underline" href={heroImage.creditUrl} rel="noreferrer">{heroImage.credit}</a> on Pexels
               </figcaption>
             ) : null}
           </figure>
@@ -298,7 +298,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
                   <p className="mt-3 text-base leading-8 text-slate-300">{section.body}</p>
                   {image.source === "pexels" && image.credit ? (
                     <p className="mt-4 text-xs text-slate-500">
-                      Photo by <a className="underline" href={image.creditUrl} rel="noreferrer" target="_blank">{image.credit}</a> on Pexels
+                      Photo by <a className="underline" href={image.creditUrl} rel="noreferrer">{image.credit}</a> on Pexels
                     </p>
                   ) : null}
                 </div>

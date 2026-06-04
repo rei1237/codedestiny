@@ -55,6 +55,8 @@
     "verify:locale-main-sync": "node scripts/verify-locale-main-sync.mjs",
     "verify:runtime-cache-sync": "node scripts/verify-runtime-cache-sync.mjs",
     "verify:rpg-phase9": "node scripts/verify-rpg-phase9.mjs",
+    "verify:insights-famous-coverage": "node scripts/verify-insight-famous-coverage.mjs",
+    "smoke:pexels": "node scripts/smoke-pexels-images.mjs",
     "qa:destiny-bias-touch": "node scripts/qa-destiny-bias-touch-check.mjs",
     "audit:files": "node scripts/audit-unused-files.mjs",
     "audit:duplicates": "node scripts/audit-unused-files.mjs --duplicates",
