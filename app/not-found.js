@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "404 | Code Destiny",
-  description: "The requested page could not be found.",
+  title: "페이지를 찾지 못했습니다 | Code Destiny",
+  description: "요청한 페이지를 찾지 못했습니다. 유명인 사주 분석과 운세 인사이트 허브에서 관련 글을 이어서 확인할 수 있습니다.",
   robots: {
     index: false,
     follow: true,
@@ -10,6 +10,12 @@ export const metadata = {
 };
 
 export default function NotFound() {
+  const quickLinks = [
+    { href: "/insights/famous-saju", label: "유명인 사주 분석" },
+    { href: "/insights/famous-saju/yi-sun-sin", label: "이순신 사주" },
+    { href: "/insights/famous-saju/iu", label: "아이유 사주" },
+  ];
+
   return (
     <main
       style={{
@@ -36,14 +42,33 @@ export default function NotFound() {
           ERROR 404
         </p>
         <h1 style={{ margin: "8px 0 10px", color: "#f8fafc", fontSize: "2.25rem", lineHeight: 1.2 }}>
-          Page Not Found
+          페이지를 찾지 못했습니다
         </h1>
         <p style={{ margin: "0 auto", maxWidth: "520px", lineHeight: 1.7, color: "#cbd5e1" }}>
-          This page is unavailable. Return home or open the payment page.
+          주소가 바뀌었거나 아직 공개되지 않은 글일 수 있습니다. 유명인 사주 분석과 운세 인사이트 허브에서 가까운 글을 이어서 확인해 보세요.
         </p>
+        <div style={{ margin: "22px auto 0", display: "grid", gap: "10px", maxWidth: "520px" }}>
+          {quickLinks.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                border: "1px solid rgba(251,191,36,0.32)",
+                borderRadius: "14px",
+                background: "rgba(251,191,36,0.08)",
+                color: "#fde68a",
+                fontWeight: 800,
+                padding: "12px 14px",
+                textDecoration: "none",
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
         <div style={{ marginTop: "20px", display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center" }}>
           <Link
-            href="/"
+            href="/insights"
             style={{
               borderRadius: "999px",
               background: "#f8fafc",
@@ -53,20 +78,20 @@ export default function NotFound() {
               textDecoration: "none",
             }}
           >
-            Home
+            운세 인사이트 허브
           </Link>
           <Link
-            href="/points"
+            href="/saju"
             style={{
               borderRadius: "999px",
-              background: "linear-gradient(135deg, #38bdf8, #0ea5e9)",
-              color: "#fff",
+              background: "linear-gradient(135deg, #f59e0b, #d97706)",
+              color: "#111827",
               fontWeight: 800,
               padding: "10px 18px",
               textDecoration: "none",
             }}
           >
-            Payments
+            내 사주 분석
           </Link>
         </div>
       </section>
