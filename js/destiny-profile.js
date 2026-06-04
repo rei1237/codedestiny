@@ -44,6 +44,10 @@
     if (user._id) safe._id = String(user._id);
     if (user.uid) safe.uid = String(user.uid);
     if (user.name) safe.name = String(user.name);
+    if (user.email) safe.email = String(user.email);
+    if (user.userEmail) safe.userEmail = String(user.userEmail);
+    if (user.phoneNumber) safe.phoneNumber = String(user.phoneNumber);
+    if (user.phone) safe.phone = String(user.phone);
     if (user.role) safe.role = String(user.role);
     if (user.plan) safe.plan = String(user.plan);
     if (typeof user.hasLocalAuth === 'boolean') safe.hasLocalAuth = user.hasLocalAuth;
@@ -784,6 +788,10 @@
       merged._id = user._id || merged._id;
       merged.uid = user.uid || merged.uid;
       merged.name = user.name || merged.name;
+      merged.email = user.email || user.emailAddress || merged.email;
+      merged.userEmail = user.userEmail || user.email || user.emailAddress || merged.userEmail;
+      merged.phoneNumber = user.phoneNumber || user.phone || merged.phoneNumber;
+      merged.phone = user.phone || user.phoneNumber || merged.phone;
       merged.role = user.role || merged.role || 'user';
       var points = Number(user.points);
       if (isFinite(points) && points >= 0) merged.points = points;
@@ -1591,6 +1599,26 @@
     return String(fallback || '결제 처리에 실패했습니다.');
   }
 
+  function _dpToText(value) {
+    return String(value === undefined || value === null ? '' : value).trim();
+  }
+
+  function _dpPickText(values) {
+    for (var i = 0; i < values.length; i += 1) {
+      var text = _dpToText(values[i]);
+      if (text) return text;
+    }
+    return '';
+  }
+
+  function _dpIsValidEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(_dpToText(value));
+  }
+
+  function _dpDigitsOnly(value) {
+    return _dpToText(value).replace(/\D+/g, '');
+  }
+
   function _dpLoadPortOneV2Sdk() {
     if (window.PortOne && typeof window.PortOne.requestPayment === 'function') return Promise.resolve();
     return new Promise(function(resolve, reject) {
@@ -1649,13 +1677,18 @@
       if (!checkoutRes.ok) throw new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 실패했습니다.'));
 
       var checkoutData = _dpExtractBillingData(checkoutRes.payload);
-      var order = checkoutData.order || {};
-      var merchantUid = String(order.merchantUid || order.paymentId || order.orderId || '').trim();
-      var orderAmount = Number(order.paymentAmount || order.amount || 0);
-      if (!merchantUid || !Number.isFinite(orderAmount) || orderAmount <= 0) {
-        throw new Error('결제 주문 정보를 확인할 수 없습니다.');
+      var order = checkoutData && typeof checkoutData.order === 'object' ? checkoutData.order : null;
+      if (!order) {
+        throw new Error('\uacb0\uc81c \uc8fc\ubb38 \uc815\ubcf4\ub97c \ud655\uc778\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4.');
       }
-
+      var merchantUid = String(order.merchantUid || order.paymentId || order.orderId || '').trim();
+      var orderAmount = Number(order.paymentAmount || order.amountKRW || order.amount || 0);
+      if (!merchantUid) {
+        throw new Error('\uacb0\uc81c \uc8fc\ubb38 \uc815\ubcf4\uc5d0 \uc8fc\ubb38 ID\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.');
+      }
+      if (!Number.isFinite(orderAmount) || orderAmount <= 0) {
+        throw new Error('\uacb0\uc81c \uc8fc\ubb38 \uc815\ubcf4\uc5d0 \uacb0\uc81c \uae08\uc561\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.');
+      }
       await _dpLoadPortOneV2Sdk();
       var configRes = await _dpPaymentFetchJson('/api/payments/config', { method: 'GET' });
       if (!configRes.ok) throw new Error(_dpReadBillingMessage(configRes.payload, '결제 환경 설정을 확인할 수 없습니다.'));
@@ -1664,16 +1697,81 @@
         throw new Error('포트원 V2 결제 설정이 없습니다.');
       }
 
+      var checkoutUser = _dpReadAuthUser() || {};
+      if ((!checkoutUser.email && !checkoutUser.userEmail) && typeof _dpVerifyLoginSession === 'function') {
+        try { await _dpVerifyLoginSession(true); } catch (_) {}
+        checkoutUser = _dpReadAuthUser() || checkoutUser;
+      }
+
+      var payloadCustomer = checkoutPayload.customer && typeof checkoutPayload.customer === 'object' ? checkoutPayload.customer : {};
+      var customerName = _dpPickText([
+        payloadCustomer.fullName,
+        payloadCustomer.name,
+        checkoutPayload.fullName,
+        checkoutPayload.customerName,
+        checkoutPayload.name,
+        checkoutPayload.userName,
+        checkoutUser.name,
+        checkoutUser.fullName,
+        checkoutUser.username,
+        checkoutUser.displayName,
+      ]) || '구매자';
+      var customerId = _dpPickText([
+        payloadCustomer.customerId,
+        payloadCustomer.userId,
+        checkoutPayload.customerId,
+        checkoutPayload.userId,
+        checkoutPayload.uid,
+        checkoutUser.id,
+        checkoutUser.userId,
+        checkoutUser.uid,
+      ]) || merchantUid;
+      var customerEmail = _dpPickText([
+        payloadCustomer.email,
+        payloadCustomer.customerEmail,
+        payloadCustomer.userEmail,
+        checkoutPayload.email,
+        checkoutPayload.customerEmail,
+        checkoutPayload.userEmail,
+        checkoutUser.email,
+        checkoutUser.userEmail,
+      ]);
+      var customerPhone = _dpDigitsOnly(_dpPickText([
+        payloadCustomer.phoneNumber,
+        payloadCustomer.phone,
+        checkoutPayload.phoneNumber,
+        checkoutPayload.phone,
+        checkoutUser.phoneNumber,
+        checkoutUser.phone,
+      ]));
+
+      if (!customerName) {
+        throw new Error('결제 요청에 사용할 구매자 이름을 확인할 수 없습니다. 로그인 정보 또는 입력 폼의 이름을 확인해 주세요.');
+      }
+      if (!customerEmail) {
+        throw new Error('이니시스 V2 일반 결제에는 구매자 이메일이 필요합니다. 로그인 정보 또는 입력 폼의 이메일을 확인해 주세요.');
+      }
+      if (!_dpIsValidEmail(customerEmail)) {
+        throw new Error('구매자 이메일 형식이 올바르지 않습니다.');
+      }
+
       var redirectUrl = new URL(window.location.href);
       redirectUrl.searchParams.set('portone_redirect', '1');
+      var customer = {
+        customerId: customerId,
+        fullName: customerName,
+        email: customerEmail
+      };
+      if (customerPhone) customer.phoneNumber = customerPhone;
       var requestData = {
         storeId: config.storeId,
         channelKey: config.channelKey,
         paymentId: merchantUid,
         orderName: String(order.productName || checkoutPayload.reason || '디지털 운세 콘텐츠').slice(0, 80),
-        totalAmount: orderAmount,
+        amount: orderAmount,
         currency: config.currency || 'CURRENCY_KRW',
         payMethod: config.payMethod || 'CARD',
+        customer: customer,
         redirectUrl: redirectUrl.toString(),
         customData: {
           paymentType: 'digital_content',
