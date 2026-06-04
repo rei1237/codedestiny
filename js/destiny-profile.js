@@ -1,11 +1,13 @@
-/* ?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═??   Destiny Profile Manager  ·  v1.0
-   Deep Space & Sacred Gold ???�년?�일 & ?�소 기반 ?�차 보정 ?�로??   Namespace: FORTUNE_APP_USER_PROFILES
-   CustomEvent: 'destinyProfileChanged' ???�주 ?�진 ?�동 ?�동
-?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═??*/
+/* ═══════════════════════════════════════════════════════════════
+   Destiny Profile Manager  ·  v1.0
+   Deep Space & Sacred Gold — 생년월일 & 장소 기반 시차 보정 프로필
+   Namespace: FORTUNE_APP_USER_PROFILES
+   CustomEvent: 'destinyProfileChanged' → 사주 엔진 자동 연동
+═══════════════════════════════════════════════════════════════ */
 (function() {
   'use strict';
 
-  /* ?�?� ?�토리�? ???�?� */
+  /* ── 스토리지 키 ── */
   var NS       = 'FORTUNE_APP_USER_PROFILES';
   var KEY_LIST = NS + '.list';
   var KEY_CURR = NS + '.current';
@@ -159,9 +161,9 @@
     return scope;
   }
 
-  /* ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
+  /* ──────────────────────────────────────────
      1. Storage Module
-  ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
+  ────────────────────────────────────────── */
   var DPStorage = {
     list: function() {
       var scope = _dpEnsureScopedStorageReady();
@@ -217,10 +219,10 @@
     }
   };
 
-  /* ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-     1-S. ?�버 ?�기??(로그???�태 ?�용)
-     ?�년?�일·출생?�간·?�별 ?�보???�세 ?�비???�공 목적???�해 ?�버???�?�됩?�다.
-  ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
+  /* ──────────────────────────────────────────
+     1-S. 서버 동기화 (로그인 상태 전용)
+     생년월일·출생시간·성별 정보는 운세 서비스 제공 목적에 한해 서버에 저장됩니다.
+  ────────────────────────────────────────── */
   function _dpReadStoredAuthToken() {
     try {
       var primary = String(localStorage.getItem('fortune_auth_token') || '').trim();
@@ -572,7 +574,7 @@
           status: 503,
           data: {
             code: 'SERVICE_UNAVAILABLE',
-            message: '?�버 ?�답??불안?�하???�시 ?��?중입?�다. ?�시 ???�시 ?�도??주세??'
+            message: '서버 응답이 불안정하여 잠시 대기 중입니다. 잠시 후 다시 시도해 주세요.'
           },
           response: null,
           base: '',
@@ -601,7 +603,7 @@
         return Promise.resolve(lastResult || {
           ok: false,
           status: 503,
-          data: { message: 'API ?�결???�패?�습?�다. ?�시 ???�시 ?�도??주세??' },
+          data: { message: 'API 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.' },
           response: null,
           base: '',
           url: _dpJoinApiUrl('', pathname),
@@ -625,7 +627,7 @@
 
             if (looksHtml) {
               payload.code = String(payload.code || 'INVALID_RESPONSE_FORMAT');
-              if (!payload.message) payload.message = '?�버 ?�답 ?�식???�바르�? ?�습?�다. ?�시 ???�시 ?�도??주세??';
+              if (!payload.message) payload.message = '서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요.';
             }
 
             var result = {
@@ -651,7 +653,7 @@
                       var retryPayload = (retryData && typeof retryData === 'object') ? retryData : {};
                       if (retryLooksHtml) {
                         retryPayload.code = String(retryPayload.code || 'INVALID_RESPONSE_FORMAT');
-                        if (!retryPayload.message) retryPayload.message = '?�버 ?�답 ?�식???�바르�? ?�습?�다. ?�시 ???�시 ?�도??주세??';
+                        if (!retryPayload.message) retryPayload.message = '서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요.';
                       }
 
                       var retryResult = {
@@ -700,7 +702,7 @@
             status: 0,
             data: {
               code: 'NETWORK_ERROR',
-              message: '?�트?�크 ?�류가 발생?�습?�다. ?�시 ???�시 ?�도??주세??',
+              message: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
               error: String((error && error.message) || error || 'network_error'),
             },
             response: null,
@@ -872,7 +874,7 @@
     }
     return _dpHasSessionHint();
   }
-  // ?�른 JS 모듈?�서???�용?????�도�??�역 ?�출
+  // 다른 JS 모듈에서도 사용할 수 있도록 전역 노출
   window.__dpHasLoginSession = _dpHasLoginSession;
 
   var _dpSetCurrentTimer = null;
@@ -892,7 +894,7 @@
         var data = res && res.data ? res.data : null;
         if (data && data.profileAccess) _dpApplyProfileAccess(data.profileAccess);
         if (res && res.status === 403 && data && data.code === 'PROFILE_SINGLE_LOCKED') {
-          alert(data.message || '?�정???�로??카드�??�용?????�습?�다.');
+          alert(data.message || '확정된 프로필 카드만 사용할 수 있습니다.');
           _dpLoadFromServer(function(loaded) {
             if (!loaded) return;
             renderMasterCard(DPStorage.current());
@@ -934,7 +936,7 @@
         _dpWriteProfilesToLocal(scope, data.profiles, data.currentId || '');
         _dpApplyProfileAccess(data.profileAccess);
         if (data.profileAccess && data.profileAccess.selectionRequired) {
-          _toast('?�용�??�택??종료?�어 ?�용???�로??카드 1개�? ?�택?�야 ?�니??', 'warn');
+          _toast('이용권 혜택이 종료되어 사용할 프로필 카드 1개를 선택해야 합니다.', 'warn');
         }
         if (data.subscription && typeof data.subscription === 'object') {
           var s = data.subscription;
@@ -1005,15 +1007,15 @@
     });
   }
 
-  /* lockBody ?�출 ?��? 추적 ??mobile ?�서 unlockBody 불필???�출 방�? */
+  /* lockBody 호출 여부 추적 — mobile 에서 unlockBody 불필요 호출 방지 */
   var _bodyLocked = false;
 
-  /* ?�?� ?�로??카드 ?�세 ?�택 모달: 코인 ?�금 ?�정 ?�?�
-     기본 차트(?��??�수·?�요?�·베?�점·?�성????무료 개방.
-     ?�명??�??��?리에??1??200코인 ?�구 ?�금. ?�?� */
+  /* ── 프로필 카드 운세 선택 모달: 코인 잠금 설정 ──
+     기본 차트(자미두수·숙요점·베다점·점성술)는 무료 개방.
+     운명의 꽃 아틀리에는 1회 200코인 영구 해금. ── */
   var _DP_FEATURE_LOCKS = {
-    olympus: { key: 'olympus-fc', cost: 100, name: '?�림?�스 ?�탁' },
-    flower:  { key: 'flower-fc',  cost: 200, name: '?�명??�??��?리에 ?�체', extraUnlockKeys: ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'] }
+    olympus: { key: 'olympus-fc', cost: 100, name: '올림푸스 신탁' },
+    flower:  { key: 'flower-fc',  cost: 200, name: '운명의 꽃 아틀리에 전체', extraUnlockKeys: ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'] }
   };
   var _DP_UNLOCK_PRODUCT_BY_FEATURE_KEY = {
     'olympus-fc': 'unlock.olympus_fc',
@@ -1083,9 +1085,9 @@
       }
     } catch (e) {}
 
-    // Legacy fallback: scoped ?�별?��? ?�거??scoped ?�이?��? 비어 ?�는 경우?�만
-    // ?�전 ?�????cd_tile_locks)???�금 ?�태�??�어 ?�금 ?�발??방�??�다.
-    // (scoped ?�이?��? ?�으�?legacy�?병합?��? ?�아 계정 �??�염??막는??
+    // Legacy fallback: scoped 식별자가 없거나 scoped 데이터가 비어 있는 경우에만
+    // 이전 저장 키(cd_tile_locks)의 해금 상태를 읽어 잠금 재발을 방지한다.
+    // (scoped 데이터가 있으면 legacy를 병합하지 않아 계정 간 오염을 막는다)
     try {
       if (!scopedKey || !hasScopedData) {
         var legacyRaw = localStorage.getItem('cd_tile_locks');
@@ -1184,7 +1186,7 @@
     try {
       var amount = Number(cost) || 0;
       var remain = Number(balance);
-      var detail = reason ? String(reason) : '?�료 ?�비??;
+      var detail = reason ? String(reason) : '유료 서비스';
       var root = document.getElementById('cd-coin-notice-root');
       if (!root) {
         root = document.createElement('div');
@@ -1216,8 +1218,8 @@
       item.style.transition = 'opacity 220ms ease, transform 220ms ease';
       item.style.pointerEvents = 'auto';
       item.innerHTML = '<strong style="display:block;font-size:12px;letter-spacing:.08em;color:#fde68a;">COIN NOTICE</strong>'
-        + '<span>?�� ' + detail + ' ?�용?�로 <strong>' + amount.toLocaleString('ko-KR') + '코인</strong>??차감?�었?�니??</span>'
-        + '<span style="display:block;color:rgba(255,255,255,0.86);margin-top:2px;">?��? 코인: ' + (isFinite(remain) ? remain.toLocaleString('ko-KR') : '-') + '</span>';
+        + '<span>🪙 ' + detail + ' 이용으로 <strong>' + amount.toLocaleString('ko-KR') + '코인</strong>이 차감되었습니다.</span>'
+        + '<span style="display:block;color:rgba(255,255,255,0.86);margin-top:2px;">남은 코인: ' + (isFinite(remain) ? remain.toLocaleString('ko-KR') : '-') + '</span>';
 
       root.appendChild(item);
       requestAnimationFrame(function() {
@@ -1239,10 +1241,10 @@
     try {
       var info = meta && typeof meta === 'object' ? meta : {};
       var tierRaw = String(info.subscriptionTier || info.tier || '').trim().toLowerCase();
-      var tierLabel = tierRaw === 'vvip' ? 'VVIP' : (tierRaw === 'premium' ? '?�리미엄' : (tierRaw === 'standard' ? '?�탠?�드' : '구독'));
+      var tierLabel = tierRaw === 'vvip' ? 'VVIP' : (tierRaw === 'premium' ? '프리미엄' : (tierRaw === 'standard' ? '스탠다드' : '구독'));
       var requiredCoins = Number(info.requiredCoins || 0);
       var freeLimit = Number(info.freeLimit || 0);
-      var message = String(info.message || '').trim() || (tierLabel + ' ?�택?�로 ?�번 리딩?� 코인??차감?��? ?�았?�요. ?�이가 별빛 방패�?지켜드?�어??');
+      var message = String(info.message || '').trim() || (tierLabel + ' 혜택으로 이번 리딩은 코인이 차감되지 않았어요. 연이가 별빛 방패로 지켜드렸어요.');
 
       var root = document.getElementById('cd-subscription-notice-root');
       if (!root) {
@@ -1313,12 +1315,12 @@
       policy.style.marginTop = '4px';
       policy.style.fontSize = '12px';
       policy.style.color = 'rgba(255,247,237,0.9)';
-      var policyLabel = '구독 ?�책 ?�용: ' + tierLabel + ' ?�랜';
+      var policyLabel = '구독 정책 적용: ' + tierLabel + ' 플랜';
       if (freeLimit > 0) {
-        policyLabel += ' · ' + freeLimit.toLocaleString('ko-KR') + '코인 ?�하 ?�비??비차�?;
+        policyLabel += ' · ' + freeLimit.toLocaleString('ko-KR') + '코인 이하 서비스 비차감';
       }
       if (requiredCoins > 0) {
-        policyLabel += ' · ?�번 ?�비??' + requiredCoins.toLocaleString('ko-KR') + '코인';
+        policyLabel += ' · 이번 서비스 ' + requiredCoins.toLocaleString('ko-KR') + '코인';
       }
       policy.textContent = policyLabel;
 
@@ -1368,7 +1370,7 @@
   }
 
   function _dpSetPaymentPending(show, message) {
-    var text = String(message || '').trim() || '결제가 진행 중입?�다.';
+    var text = String(message || '').trim() || '결제가 진행 중입니다.';
 
     try {
       if (typeof window._cdSetCoinGateOverlay === 'function') {
@@ -1485,9 +1487,9 @@
     overlay.innerHTML = [
       '<div class="cd-standalone-payment-card" role="alertdialog" aria-modal="true" aria-live="assertive">',
       '  <div class="cd-standalone-payment-spinner" aria-hidden="true"></div>',
-      '  <p class="cd-standalone-payment-title">?�??결제�??�기??�?..</p>',
-      '  <p class="cd-standalone-payment-desc">별빛 ?�로�?결제 ?�보�??�전?�게 ?�인?�고 ?�습?�다.</p>',
-      '  <p class="cd-standalone-payment-status" id="cdStandalonePaymentOverlayStatus">결제가 진행 중입?�다.</p>',
+      '  <p class="cd-standalone-payment-title">은하 결제망 동기화 중...</p>',
+      '  <p class="cd-standalone-payment-desc">별빛 회로로 결제 정보를 안전하게 확인하고 있습니다.</p>',
+      '  <p class="cd-standalone-payment-status" id="cdStandalonePaymentOverlayStatus">결제가 진행 중입니다.</p>',
       '</div>'
     ].join('');
     document.body.appendChild(overlay);
@@ -1500,7 +1502,7 @@
     if (!overlay) return;
     var statusEl = document.getElementById('cdStandalonePaymentOverlayStatus');
     if (statusEl) {
-      statusEl.textContent = String(message || '').trim() || '결제가 진행 중입?�다.';
+      statusEl.textContent = String(message || '').trim() || '결제가 진행 중입니다.';
     }
     overlay.style.display = show ? 'flex' : 'none';
   }
@@ -1533,8 +1535,8 @@
       if (!sub || typeof sub !== 'object') return null;
       var tier = String(sub.tier || sub.plan || sub.planId || sub.productId || '').trim().toLowerCase();
       if (tier.indexOf('vvip') >= 0) tier = 'vvip';
-      else if (tier.indexOf('premium') >= 0 || tier.indexOf('?�리미엄') >= 0) tier = 'premium';
-      else if (tier.indexOf('standard') >= 0 || tier.indexOf('?�탠?�드') >= 0) tier = 'standard';
+      else if (tier.indexOf('premium') >= 0 || tier.indexOf('프리미엄') >= 0) tier = 'premium';
+      else if (tier.indexOf('standard') >= 0 || tier.indexOf('스탠다드') >= 0) tier = 'standard';
       else return null;
       var activeStatus = String(sub.status || sub.subscriptionStatus || '').trim().toLowerCase();
       var active = sub.isActive === true || sub.isSubscribed === true || activeStatus === 'active' || activeStatus === 'paid' || activeStatus === 'current';
@@ -1553,9 +1555,10 @@
   }
 
   /**
-   * 1??코인 차감 게이?????�구 ?�금 ?�이 ?�용???�마??cost 코인 차감.
-   * @param {number} cost   차감 코인 ??   * @param {string} reason 기능�?(?�림 문구??
-   * @param {Function} cb   ?�공 ???�출??콜백
+   * 1회 코인 차감 게이트 — 영구 해금 없이 사용할 때마다 cost 코인 차감.
+   * @param {number} cost   차감 코인 수
+   * @param {string} reason 기능명 (알림 문구용)
+   * @param {Function} cb   성공 시 호출할 콜백
    */
   function _dpNormalizeBillingFetchResult(result) {
     var payload = {};
@@ -1593,7 +1596,7 @@
       if (payload.message) return String(payload.message);
       if (payload.error && payload.error.message) return String(payload.error.message);
     }
-    return String(fallback || '결제 처리???�패?�습?�다.');
+    return String(fallback || '결제 처리에 실패했습니다.');
   }
 
   function _dpToText(value) {
@@ -1624,7 +1627,7 @@
         if (settled) return;
         settled = true;
         if (ok && window.PortOne && typeof window.PortOne.requestPayment === 'function') resolve();
-        else reject(new Error('?�트??V2 결제 SDK가 초기?�되지 ?�았?�니??'));
+        else reject(new Error('포트원 V2 결제 SDK가 초기화되지 않았습니다.'));
       }
 
       var existing = document.getElementById('portone-v2-sdk');
@@ -1653,7 +1656,7 @@
         provider: 'PORTONE_V2',
         pg: 'KG_INICIS',
         featureKey: String(opts.featureKey || '').trim(),
-        reason: String(opts.reason || opts.title || '?�료 ?�비??).trim(),
+        reason: String(opts.reason || opts.title || '유료 서비스').trim(),
         paymentAmount: amountKrw,
         amountKrw: amountKrw,
         coinPriceBasis: coinPrice,
@@ -1671,7 +1674,7 @@
         headers: checkoutPayload.idempotencyKey ? { 'Idempotency-Key': checkoutPayload.idempotencyKey } : undefined,
         body: JSON.stringify(checkoutPayload),
       });
-      if (!checkoutRes.ok) throw new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 ?�패?�습?�다.'));
+      if (!checkoutRes.ok) throw new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 실패했습니다.'));
 
       var checkoutData = _dpExtractBillingData(checkoutRes.payload);
       var order = checkoutData && typeof checkoutData.order === 'object' ? checkoutData.order : null;
@@ -1688,10 +1691,10 @@
       }
       await _dpLoadPortOneV2Sdk();
       var configRes = await _dpPaymentFetchJson('/api/payments/config', { method: 'GET' });
-      if (!configRes.ok) throw new Error(_dpReadBillingMessage(configRes.payload, '결제 ?�경 ?�정???�인?????�습?�다.'));
+      if (!configRes.ok) throw new Error(_dpReadBillingMessage(configRes.payload, '결제 환경 설정을 확인할 수 없습니다.'));
       var config = _dpExtractBillingData(configRes.payload);
       if (!config.storeId || !config.channelKey) {
-        throw new Error('?�트??V2 결제 ?�정???�습?�다.');
+        throw new Error('포트원 V2 결제 설정이 없습니다.');
       }
 
       var checkoutUser = _dpReadAuthUser() || {};
@@ -1712,7 +1715,7 @@
         checkoutUser.fullName,
         checkoutUser.username,
         checkoutUser.displayName,
-      ]) || '구매??;
+      ]) || '구매자';
       var customerId = _dpPickText([
         payloadCustomer.customerId,
         payloadCustomer.userId,
@@ -1743,13 +1746,13 @@
       ]));
 
       if (!customerName) {
-        throw new Error('결제 ?�청???�용??구매???�름???�인?????�습?�다. 로그???�보 ?�는 ?�력 ?�의 ?�름???�인??주세??');
+        throw new Error('결제 요청에 사용할 구매자 이름을 확인할 수 없습니다. 로그인 정보 또는 입력 폼의 이름을 확인해 주세요.');
       }
       if (!customerEmail) {
-        throw new Error('?�니?�스 V2 ?�반 결제?�는 구매???�메?�이 ?�요?�니?? 로그???�보 ?�는 ?�력 ?�의 ?�메?�을 ?�인??주세??');
+        throw new Error('이니시스 V2 일반 결제에는 구매자 이메일이 필요합니다. 로그인 정보 또는 입력 폼의 이메일을 확인해 주세요.');
       }
       if (!_dpIsValidEmail(customerEmail)) {
-        throw new Error('구매???�메???�식???�바르�? ?�습?�다.');
+        throw new Error('구매자 이메일 형식이 올바르지 않습니다.');
       }
 
       var redirectUrl = new URL(window.location.href);
@@ -1764,7 +1767,7 @@
         storeId: config.storeId,
         channelKey: config.channelKey,
         paymentId: merchantUid,
-        orderName: String(order.productName || checkoutPayload.reason || '?��????�세 콘텐�?).slice(0, 80),
+        orderName: String(order.productName || checkoutPayload.reason || '디지털 운세 콘텐츠').slice(0, 80),
         totalAmount: orderAmount,
         currency: config.currency || 'CURRENCY_KRW',
         payMethod: config.payMethod || 'CARD',
@@ -1781,7 +1784,7 @@
       var rsp = await window.PortOne.requestPayment(requestData);
       var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
       if (!rsp || rsp.code || !paymentId) {
-        throw new Error(String((rsp && (rsp.message || rsp.code)) || '결제가 ?�료?��? ?�았?�니??'));
+        throw new Error(String((rsp && (rsp.message || rsp.code)) || '결제가 완료되지 않았습니다.'));
       }
 
       var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', {
@@ -1800,7 +1803,7 @@
           paymentMethod: 'card_general',
         })),
       });
-      if (!confirmRes.ok) throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 ?�패?�습?�다.'));
+      if (!confirmRes.ok) throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
       return confirmRes.payload;
     };
   }
@@ -1817,15 +1820,15 @@
     var lockAgeMs = lockAt > 0 ? (now - lockAt) : 0;
     var isStaleLock = !lockAt || lockAgeMs > 45000;
 
-    // 중복 ?�행 방�?: ?�전 fetch가 진행 중이�?차단
+    // 중복 실행 방지: 이전 fetch가 진행 중이면 차단
     if (window._cdCoinGatePerUseInFlight) {
       if (isStaleLock) {
         window._cdCoinGatePerUseInFlight = false;
         window.__cdCoinGatePerUseLockAt = 0;
         _dpSetPaymentPending(false);
-        window.alert('?�전 결제 ?�태�?복구?�습?�다. ?�시 ?�도??주세??');
+        window.alert('이전 결제 상태를 복구했습니다. 다시 시도해 주세요.');
       } else {
-      window.alert('?�전 결제 처리 중입?�다. ?�시 ???�시 ?�도??주세??');
+      window.alert('이전 결제 처리 중입니다. 잠시 후 다시 시도해 주세요.');
       }
       if (typeof onCancel === 'function') onCancel();
       return;
@@ -1833,7 +1836,7 @@
 
     var dedupeKey = normalizedFeatureKey + '|' + String(reason || '') + '|' + String(cost || 0);
     var dedupeMap = window.__cdCoinGatePromptDedup || (window.__cdCoinGatePromptDedup = {});
-    // ?�️ Dedup ?�?�아?�을 2.5초로 증�? (?�회 ?�간 ?�거)
+    // ⚠️ Dedup 타임아웃을 2.5초로 증가 (우회 시간 제거)
     if (dedupeMap[dedupeKey] && (now - dedupeMap[dedupeKey] < 2500)) {
       if (typeof onCancel === 'function') onCancel();
       return;
@@ -1856,46 +1859,46 @@
         hasBalanceSnapshot = true;
       }
     } catch(_) {}
-    var balanceLabel = hasBalanceSnapshot ? (Number(balance).toLocaleString('ko-KR') + '코인') : '?????�음';
+    var balanceLabel = hasBalanceSnapshot ? (Number(balance).toLocaleString('ko-KR') + '코인') : '알 수 없음';
     var membershipCoverage = _dpReadActiveMembershipCoverage(cost);
-    var pendingPass = _dpReadPendingSubscriptionPass();
-    if (!membershipCoverage && pendingPass) {
-      var prevTier = _dpSubTier;
-      var prevActive = _dpSubIsActive;
-      var prevLimit = _dpSubProfileLimit;
-      _dpSubTier = pendingPass.tier;
-      _dpSubIsActive = true;
-      _dpSubProfileLimit = pendingPass.profileLimit;
-      membershipCoverage = _dpReadActiveMembershipCoverage(cost);
-      _dpSubTier = prevTier;
-      _dpSubIsActive = prevActive;
-      _dpSubProfileLimit = prevLimit;
-    }
-    if (pendingPass && membershipCoverage) {
-      _cdShowSubscriptionShieldNotice({
-        message: '�̿�� ��� Ȯ�� ���Դϴ�. ������ �������� �ʾҽ��ϴ�.',
-        subscriptionTier: pendingPass.tier,
-        freeLimit: null,
-        requiredCoins: Number(cost || 0),
-      });
-      if (typeof cb === 'function') {
-        cb(String(pendingPass.merchantUid || 'pending-subscription'), {
-          ok: true,
-          freeBySubscription: true,
-          chargedCoins: 0,
-          pendingSubscription: true,
-          subscriptionTier: pendingPass.tier,
-          message: '�̿�� ��� Ȯ�� ���Դϴ�. ������ �������� �ʾҽ��ϴ�.'
-        });
-      }
-      return;
-    }
     if (!membershipCoverage) {
+      if (typeof window._cdChooseServicePaymentMode === 'function' && typeof window._cdRunDirectKrwCheckout === 'function') {
+        return window._cdChooseServicePaymentMode({
+          title: reason,
+          coinPrice: cost,
+          cost: cost,
+          amountKrw: Number(cost || 0) * 100,
+        }).then(function(choice) {
+          if (choice !== 'direct') {
+            if (typeof onCancel === 'function') onCancel();
+            return null;
+          }
+          window._cdCoinGatePerUseInFlight = true;
+          window.__cdCoinGatePerUseLockAt = Date.now();
+          _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 준비하는 중입니다...');
+          return window._cdRunDirectKrwCheckout({
+            coinPrice: cost,
+            cost: cost,
+            title: reason,
+            reason: reason,
+            featureKey: normalizedFeatureKey,
+            requestId: String(optionBag.requestId || '').trim().slice(0, 120) || undefined,
+            checkoutPayload: {
+              paymentMode: 'DIRECT_KRW',
+            },
+          }).then(function(payload) {
+            window._cdCoinGatePerUseInFlight = false;
+            window.__cdCoinGatePerUseLockAt = 0;
+            _dpSetPaymentPending(false);
+            var txId = String((payload && (payload.transactionId || payload.paymentId || payload.purchaseId || payload.requestId)) || '');
+            if (typeof cb === 'function') cb(txId, payload || {});
+            return payload;
+          });
         }).catch(function(error) {
           window._cdCoinGatePerUseInFlight = false;
           window.__cdCoinGatePerUseLockAt = 0;
           _dpSetPaymentPending(false);
-          window.alert(String(error && error.message || '?�건 결제�??�료?��? 못했?�니?? 결제 ?�단???�인?????�시 ?�도??주세??'));
+          window.alert(String(error && error.message || '단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요.'));
           if (typeof onCancel === 'function') onCancel(error);
         });
       }
@@ -1908,8 +1911,8 @@
     if (token) consumeHeaders.Authorization = 'Bearer ' + token;
     window._cdCoinGatePerUseInFlight = true;
     window.__cdCoinGatePerUseLockAt = Date.now();
-    var pendingLabel = String(reason || '').trim() || '?�료 ?�비??;
-    _dpSetPaymentPending(true, pendingLabel + (membershipCoverage ? ' ?�용�??�도�??�인?�는 중입?�다...' : ' ?�건 결제�??�인?�는 중입?�다...'));
+    var pendingLabel = String(reason || '').trim() || '유료 서비스';
+    _dpSetPaymentPending(true, pendingLabel + (membershipCoverage ? ' 이용권 한도를 확인하는 중입니다...' : ' 단건 결제를 확인하는 중입니다...'));
     _dpWaitForPaymentOverlayPaint().then(function() {
       return _dpFetchJsonWithFallback('/api/billing/coin-gate', {
         method: 'POST',
@@ -1929,7 +1932,7 @@
       if (res.status === 401 || res.status === 403) {
         if (typeof window.__cdOpenLoginRequiredModal === 'function') {
           window.__cdOpenLoginRequiredModal({
-            reason: '로그?????�용?????�는 기능?�니??',
+            reason: '로그인 후 이용할 수 있는 기능입니다.',
             redirectTo: window.location.pathname + window.location.search + window.location.hash,
           });
         }
@@ -1939,8 +1942,8 @@
       if (res.status === 402 || !res.ok) {
         var rawFailData = (res && res.data && typeof res.data === 'object') ? res.data : {};
         var failData = (rawFailData.data && typeof rawFailData.data === 'object') ? rawFailData.data : rawFailData;
-        var msg = rawFailData.message || failData.message || '?�건 결제가 ?�요?�니??';
-        if (res.status === 402) msg = msg + '\n\n?�건 결제 기�?: 50코인 = 5,000??n?�트??V2 KG?�니?�스 결제�?진행?�니??';
+        var msg = rawFailData.message || failData.message || '단건 결제가 필요합니다.';
+        if (res.status === 402) msg = msg + '\n\n단건 결제 기준: 50코인 = 5,000원\n포트원 V2 KG이니시스 결제로 진행됩니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
         else window.location.href = '/points';
         if (typeof onCancel === 'function') onCancel();
@@ -1960,7 +1963,7 @@
         && data.ok !== false
         && (requestedCost <= 0 || freeBySubscription || chargedCoins > 0 || transactionId);
       if (!coinGateConfirmed) {
-        var failMsg = String((data && data.message) || '코인 결제 ?�인값이 부족하???�성???�작?��? ?�았?�니?? ?�시 ?�도??주세??');
+        var failMsg = String((data && data.message) || '코인 결제 확인값이 부족하여 생성을 시작하지 않았습니다. 다시 시도해 주세요.');
         window.alert(failMsg);
         if (typeof onCancel === 'function') onCancel();
         return;
@@ -1986,7 +1989,7 @@
       }
       cb(transactionId, data);
     })
-    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; window.__cdCoinGatePerUseLockAt = 0; _dpSetPaymentPending(false); console.error('[coin-gate-per-use]', e); window.alert('?�류가 발생?�습?�다. ?�시 ???�시 ?�도??주세??'); if (typeof onCancel === 'function') onCancel(); });
+    .catch(function(e) { window._cdCoinGatePerUseInFlight = false; window.__cdCoinGatePerUseLockAt = 0; _dpSetPaymentPending(false); console.error('[coin-gate-per-use]', e); window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); if (typeof onCancel === 'function') onCancel(); });
   };
 
   function _dpGetAuthToken() {
@@ -2038,8 +2041,8 @@
 
   function _dpGetTierLabel(tierRaw) {
     var tier = _dpNormalizeTier(tierRaw);
-    if (tier === 'standard') return '?�탠?�드';
-    if (tier === 'premium') return '?�리미엄';
+    if (tier === 'standard') return '스탠다드';
+    if (tier === 'premium') return '프리미엄';
     if (tier === 'vvip') return 'VVIP';
     return '무료';
   }
@@ -2054,13 +2057,14 @@
 
   function _dpFormatLimitLabel(limit) {
     var n = Number(limit);
-    if (!isFinite(n) || n <= 0) return '무제??;
-    return String(Math.floor(n)) + '�?;
+    if (!isFinite(n) || n <= 0) return '무제한';
+    return String(Math.floor(n)) + '개';
   }
 
   /**
-   * ?�로??카드 모달 코인 ?�금 게이??   * ?��? ?�금?�거??관리자/?�리미엄?�면 cb() 즉시 ?�출,
-   * ?�닌 경우 코인 ?�인 ??차감 API ???�구 ?�금 ?�????cb()
+   * 프로필 카드 모달 코인 잠금 게이트
+   * 이미 해금됐거나 관리자/프리미엄이면 cb() 즉시 호출,
+   * 아닌 경우 코인 확인 → 차감 API → 영구 해금 저장 → cb()
    */
   function _dpGateLockFeature(type, cb) {
     var info = _DP_FEATURE_LOCKS[type];
@@ -2076,13 +2080,13 @@
       var _uLock = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
       hasBalanceSnapshot = !!(_uLock && typeof _uLock.points === 'number');
     } catch (_) {}
-    var balanceLabel = hasBalanceSnapshot ? Number(balance).toLocaleString('ko-KR') : '?????�음';
+    var balanceLabel = hasBalanceSnapshot ? Number(balance).toLocaleString('ko-KR') : '알 수 없음';
 
     var unlockProductId = _DP_UNLOCK_PRODUCT_BY_FEATURE_KEY[info.key] || '';
     var unlockRequestId = 'unlock-' + (unlockProductId || info.key) + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
     if (typeof window._cdChooseServicePaymentMode === 'function') {
       window._cdChooseServicePaymentMode({
-        title: info.name + ' ?�구 ?�금',
+        title: info.name + ' 영구 해금',
         coinPrice: info.cost,
         cost: info.cost,
         currentCoins: balance,
@@ -2093,12 +2097,12 @@
           return;
         }
         if (choice === 'direct' && typeof window._cdRunDirectKrwCheckout === 'function') {
-          _dpSetPaymentPending(true, info.name + ' ?�건 결제�?준비하??중입?�다...');
+          _dpSetPaymentPending(true, info.name + ' 단건 결제를 준비하는 중입니다...');
           window._cdRunDirectKrwCheckout({
             coinPrice: info.cost,
             cost: info.cost,
-            title: info.name + ' ?�구 ?�금',
-            reason: info.name + ' ?�구 ?�금',
+            title: info.name + ' 영구 해금',
+            reason: info.name + ' 영구 해금',
             featureKey: info.key,
             productId: unlockProductId,
             requestId: unlockRequestId,
@@ -2114,7 +2118,7 @@
           }).catch(function(error) {
             _dpSetPaymentPending(false);
             console.error('[dp-direct-unlock]', error);
-            window.alert(String(error && error.message || '?�건 결제�??�료?��? 못했?�니?? 결제 ?�단???�인?????�시 ?�도??주세??'));
+            window.alert(String(error && error.message || '단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요.'));
           });
         }
       });
@@ -2135,7 +2139,7 @@
         : {
           cost: info.cost,
           featureKey: info.key,
-          reason: info.name + ' ?�구 ?�금',
+          reason: info.name + ' 영구 해금',
           forceDeduct: true,
           requestId: requestId
         };
@@ -2143,7 +2147,7 @@
         'Content-Type': 'application/json'
       };
       if (token) unlockHeaders.Authorization = 'Bearer ' + token;
-      _dpSetPaymentPending(true, info.name + ' 결제�?처리?�는 중입?�다...');
+      _dpSetPaymentPending(true, info.name + ' 결제를 처리하는 중입니다...');
       _dpWaitForPaymentOverlayPaint().then(function () {
         return _dpFetchJsonWithFallback(endpoint, {
           method: 'POST',
@@ -2162,7 +2166,7 @@
         if (res.status === 401 || res.status === 403) {
           if (typeof window.__cdOpenLoginRequiredModal === 'function') {
             window.__cdOpenLoginRequiredModal({
-              reason: '로그?????�용?????�는 기능?�니??',
+              reason: '로그인 후 이용할 수 있는 기능입니다.',
               redirectTo: window.location.pathname + window.location.search + window.location.hash,
             });
           }
@@ -2170,7 +2174,7 @@
         }
         if (res.status === 402) {
           if (typeof window.__cdOpenChargeModal === 'function') {
-            window.alert('?�건 결제가 ?�요?�니?? 결제 ?�점???�겠?�니??');
+            window.alert('단건 결제가 필요합니다. 결제 상점을 열겠습니다.');
             window.__cdOpenChargeModal();
           } else {
             window.location.href = '/points';
@@ -2178,7 +2182,7 @@
           return;
         }
         if (!res.ok) {
-          window.alert((res.data && res.data.message) || '코인 차감???�패?�습?�다. ?�시 ?�도??주세??');
+          window.alert((res.data && res.data.message) || '코인 차감에 실패했습니다. 다시 시도해 주세요.');
           return;
         }
         var newBalance = (res.data && res.data.user && typeof res.data.user.points === 'number')
@@ -2195,27 +2199,26 @@
             requiredCoins: info.cost,
           });
         } else if (chargedCoins > 0) {
-          _cdShowCoinDeductNotice(chargedCoins, newBalance, info.name + ' ?�구 ?�금');
+          _cdShowCoinDeductNotice(chargedCoins, newBalance, info.name + ' 영구 해금');
         }
         _dpSaveFeatureUnlock(info.key);
         if (info.extraUnlockKeys) { for (var _ekI = 0; _ekI < info.extraUnlockKeys.length; _ekI++) _dpSaveFeatureUnlock(info.extraUnlockKeys[_ekI]); }
-        window.alert('?�� ' + info.name + '??가) ?�금?�었?�니??');
+        window.alert('🎉 ' + info.name + '이(가) 해금되었습니다!');
         cb();
       })
       .catch(function (e) {
         inFlight = false;
         _dpSetPaymentPending(false);
         console.error('[dp-coin-gate]', e);
-        window.alert('?�류가 발생?�습?�다. ?�시 ???�시 ?�도??주세??');
+        window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       });
     }
   }
 
-  /* ?�?� ?�로??구독 ?�태 (로드 ??갱신) ?�?� */
+  /* ── 프로필 구독 상태 (로드 후 갱신) ── */
   var _DP_SUB_CACHE_LEGACY_KEY = 'fortune_profile_subscription';
   var _DP_SUB_CACHE_OWNER_KEY = 'fortune_profile_subscription_owner';
   var _DP_SUB_CACHE_PREFIX = 'fortune_profile_subscription::';
-  var _DP_PENDING_SUB_PASS_KEY = 'fortune_pending_subscription_pass';
 
   var _dpSubTier         = 'free';   // 'free' | 'standard' | 'premium' | 'vvip'
   var _dpSubIsActive     = false;
@@ -2243,7 +2246,7 @@
     } catch (e) {}
   }
 
-  /** localStorage 캐시?�서 구독 ?�태�??�어 변??초기??*/
+  /** localStorage 캐시에서 구독 상태를 읽어 변수 초기화 */
   function _dpLoadSubCache() {
     var scope = _dpGetProfileScope();
     _dpSubScope = scope;
@@ -2272,26 +2275,9 @@
       _dpSubIsActive     = active;
       _dpSubProfileLimit = active ? resolvedLimit : 1;
     } catch(e) {}
-  function _dpReadPendingSubscriptionPass() {
-    try {
-      var raw = localStorage.getItem(_DP_PENDING_SUB_PASS_KEY) || '';
-      if (!raw) return null;
-      var pending = JSON.parse(raw);
-      var tier = _dpNormalizeTier(pending && pending.tier);
-      if (tier === 'free') return null;
-      return {
-        tier: tier,
-        merchantUid: String(pending && pending.merchantUid || '').trim(),
-        profileLimit: Math.max(1, Math.floor(Number(pending && pending.profileLimit) || _dpGetTierProfileLimit(tier)))
-      };
-    } catch (_) {
-      return null;
-    }
   }
 
-  }
-
-  /** ?�버?�서 구독 ?�태 조회 ??캐시·변??갱신 */
+  /** 서버에서 구독 상태 조회 후 캐시·변수 갱신 */
   function _fetchSubscription() {
     if (!_dpHasSessionHint()) {
       _dpSubScope = _dpGetProfileScope();
@@ -2346,7 +2332,7 @@
     });
   }
 
-  /** ?�재 ?�랜???�른 최�? ?�로????반환 */
+  /** 현재 플랜에 따른 최대 프로필 수 반환 */
   function _dpGetMaxProfiles() {
     var scope = _dpGetProfileScope();
     if (_dpSubScope !== scope || !_dpSubIsActive) _dpLoadSubCache();
@@ -2382,29 +2368,29 @@
       }).then(function(res) {
         var data = res && res.data ? res.data : null;
         if (!res || !res.ok || !data || data.ok === false) {
-          alert((data && data.message) || '?�로???�택???�정?????�습?�다. ?�시 ?�도??주세??');
+          alert((data && data.message) || '프로필 선택을 확정할 수 없습니다. 다시 시도해 주세요.');
           if (callback) callback(false);
           return;
         }
         _dpApplyProfileAccess(data.profileAccess);
         if (callback) callback(true);
       }).catch(function() {
-        alert('?�로???�택 ?�정 �??�류가 발생?�습?�다. ?�시 ???�시 ?�도??주세??');
+        alert('프로필 선택 확정 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
         if (callback) callback(false);
       });
     }).catch(function() { if (callback) callback(false); });
   }
 
-  /** ?�??버튼 ?�태�?구독 ?�랜??맞게 ?�데?�트 */
+  /** 저장 버튼 상태를 구독 플랜에 맞게 업데이트 */
   function _dpUpdateSaveBtn() {
     var btn = document.getElementById('dpSaveBtn');
     if (!btn) return;
 
     btn.disabled = false;
-    btn.textContent = '???�로???�??;
+    btn.textContent = '✦ 프로필 저장';
     btn.style.opacity = '';
     btn.style.cursor = '';
-    btn.title = '?�????로그??구독 ?�태�??�버?�서 최종 ?�인?�니??';
+    btn.title = '저장 시 로그인/구독 상태를 서버에서 최종 확인합니다.';
   }
 
   function _resolveEventElement(target) {
@@ -2491,15 +2477,16 @@
     document.addEventListener('scroll', markScroll, { passive: true, capture: true });
   }
 
-  /* ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-     2. 진태?�시(True Solar Time) 보정
-        KST 기�?: ?��? ?�오??135??        보정??�? = (135 - lng) × 4
-  ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
+  /* ──────────────────────────────────────────
+     2. 진태양시(True Solar Time) 보정
+        KST 기준: 표준 자오선 135도
+        보정량(분) = (135 - lng) × 4
+  ────────────────────────────────────────── */
   function calcTrueSolarOffset(lng, tzOffsetHours) {
-    /* ?��? ?�오??= UTC?�프??× 15??*/
+    /* 표준 자오선 = UTC오프셋 × 15도 */
     var stdMeridian = (tzOffsetHours !== undefined ? tzOffsetHours : 9) * 15;
     var offsetMin = Math.round((stdMeridian - lng) * 4);
-    return offsetMin;   /* ?�수: ?�로 ?��?, ?�수: ?�으�??��? */
+    return offsetMin;   /* 양수: 뒤로 당김, 음수: 앞으로 당김 */
   }
 
   function _parseTimeZoneNameOffset(tzName) {
@@ -2566,7 +2553,7 @@
 
   function applyTrueSolarOffset(hour, minute, offsetMin) {
     var total = hour * 60 + minute - offsetMin;
-    /* ?�정 ?�전/?�후 처리 */
+    /* 자정 이전/이후 처리 */
     total = ((total % 1440) + 1440) % 1440;
     return { h: Math.floor(total / 60), m: total % 60 };
   }
@@ -2578,13 +2565,13 @@
     var mm = String(t.m).padStart(2,'0');
     var dir = offsetMin > 0 ? '-' : '+';
     var abs = Math.abs(offsetMin);
-    return hh + ':' + mm + ' (' + dir + abs + '�?보정)';
+    return hh + ':' + mm + ' (' + dir + abs + '분 보정)';
   }
 
-  /* ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-     3. CustomEvent 브로?�캐?�트
-        ???�주 ?�진, ?��??�수, ?�요???�동 ?�동
-  ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
+  /* ──────────────────────────────────────────
+     3. CustomEvent 브로드캐스트
+        → 사주 엔진, 자미두수, 숙요점 자동 연동
+  ────────────────────────────────────────── */
   function broadcastProfileChange(profile) {
     try {
       document.dispatchEvent(new CustomEvent('destinyProfileChanged', {
@@ -2594,8 +2581,9 @@
     } catch(e) {}
   }
 
-  /* ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-     4. ?�력 ?????�로???�브?�트 변??  ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
+  /* ──────────────────────────────────────────
+     4. 입력 폼 → 프로필 오브젝트 변환
+  ────────────────────────────────────────── */
   function readFormData() {
     var name    = (document.getElementById('nameInput') || {}).value || '';
     var bdEl    = document.getElementById('birthDate');
@@ -2604,7 +2592,7 @@
     var minuteRaw = parseInt((document.getElementById('birthMinute') || {}).value, 10);
     var hour = (Number.isFinite(hourRaw) && hourRaw >= 0 && hourRaw <= 23) ? hourRaw : 12;
     var minute = (Number.isFinite(minuteRaw) && minuteRaw >= 0 && minuteRaw <= 59) ? minuteRaw : 0;
-    /* ?�별: ?�성 버튼 ?�선, ?�백 window._gender, 기본�?'F' */
+    /* 성별: 활성 버튼 우선, 폴백 window._gender, 기본값 'F' */
     var gender  = 'F';
     var btnM = document.getElementById('btnM');
     var btnF = document.getElementById('btnF');
@@ -2625,7 +2613,7 @@
       if (calBtns[i].checked) { calType = calBtns[i].value; break; }
     }
 
-    /* ?�소 */
+    /* 장소 */
     var countrySel = document.getElementById('birthCountry');
     var opt        = countrySel ? countrySel.options[countrySel.selectedIndex] : null;
     var tz   = opt ? countrySel.value   : 'Asia/Seoul';
@@ -2633,7 +2621,7 @@
     var lat  = opt ? parseFloat(opt.getAttribute('data-lat')  || '37.6'): 37.6;
     var tzOff= opt ? parseFloat(opt.getAttribute('data-tz')   || '9')   : 9;
     var baseTzOff = opt ? parseFloat(opt.getAttribute('data-base-tz') || String(tzOff)) : tzOff;
-    var locationLabel = opt ? opt.text : '?�?��?�?(?�울)';
+    var locationLabel = opt ? opt.text : '대한민국 (서울)';
 
     if (!name || !bd) return null;
 
@@ -2661,9 +2649,9 @@
     };
   }
 
-  /* ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-     5. UI ??Master Destiny Card (?�단 카드)
-  ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
+  /* ──────────────────────────────────────────
+     5. UI — Master Destiny Card (상단 카드)
+  ────────────────────────────────────────── */
   function renderMasterCard(profile) {
     var el = document.getElementById('dpMasterCard');
     if (!el) return;
@@ -2684,10 +2672,10 @@
     var tso = calcTrueSolarOffset(safeLng, tzResolved.tzOffsetHours);
     var corrected = applyTrueSolarOffset(b.hour, b.minute, tso);
     var trueSolarStr = String(corrected.h).padStart(2,'0') + ':' + String(corrected.m).padStart(2,'0');
-    var dir = tso > 0 ? '?? : '+';
+    var dir = tso > 0 ? '−' : '+';
     var absMin = Math.abs(tso);
     var zodiacEmoji = _zodiacEmoji(b.year);
-    var calLabel = b.calType === 'solar' ? '?�력' : (b.calType === 'lunar_leap' ? '?�력(??' : '?�력');
+    var calLabel = b.calType === 'solar' ? '양력' : (b.calType === 'lunar_leap' ? '음력(윤)' : '음력');
 
     el.className = 'dp-master-card dp-master-card--active';
     el.innerHTML =
@@ -2708,19 +2696,19 @@
         + '<div class="dp-mc-header">'
           + '<div class="dp-mc-avatar">' + zodiacEmoji + '</div>'
           + '<div class="dp-mc-identity">'
-            + '<div class="dp-mc-label">??MY DESTINY CARD</div>'
+            + '<div class="dp-mc-label">✦ MY DESTINY CARD</div>'
             + '<div class="dp-mc-name">' + _esc(profile.name) + '</div>'
             + '<div class="dp-mc-birth">' + calLabel + ' '
-              + b.year + '??' + b.month + '??' + b.day + '??'
+              + b.year + '년 ' + b.month + '월 ' + b.day + '일 '
               + String(b.hour).padStart(2,'0') + ':' + String(b.minute).padStart(2,'0')
             + '</div>'
             + '<div style="margin-top:4px;">'
               + (profile.gender === 'M'
-                ? '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(96,165,250,0.18);border:1px solid rgba(96,165,250,0.45);color:#93c5fd;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9794; ?�성</span>'
-                : '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(244,114,182,0.18);border:1px solid rgba(244,114,182,0.45);color:#f9a8d4;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9792; ?�성</span>')
+                ? '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(96,165,250,0.18);border:1px solid rgba(96,165,250,0.45);color:#93c5fd;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9794; 남성</span>'
+                : '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(244,114,182,0.18);border:1px solid rgba(244,114,182,0.45);color:#f9a8d4;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9792; 여성</span>')
             + '</div>'
           + '</div>'
-          + '<button class="dp-mc-list-btn" onclick="dpOpenList()" aria-label="?�로??목록" style="touch-action:manipulation">'
+          + '<button class="dp-mc-list-btn" onclick="dpOpenList()" aria-label="프로필 목록" style="touch-action:manipulation">'
             + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
           + '</button>'
         + '</div>'
@@ -2736,11 +2724,11 @@
           + '<div class="dp-mc-info-item">'
             + '<span class="dp-mc-info-label">'
               + '<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><circle cx="12" cy="12" r="4"/><path fill="none" stroke="currentColor" stroke-width="2" d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M17.66 6.34l1.41-1.41M4.93 19.07l1.41-1.41"/></svg>'
-              + '진태?�시'
+              + '진태양시'
             + '</span>'
             + '<span class="dp-mc-info-val dp-mc-solar">'
               + trueSolarStr
-              + '<span class="dp-mc-correction">' + dir + absMin + '�?/span>'
+              + '<span class="dp-mc-correction">' + dir + absMin + '분</span>'
             + '</span>'
           + '</div>'
           + '<div class="dp-mc-info-item">'
@@ -2751,7 +2739,7 @@
             + '<span class="dp-mc-info-val">' + l.lng.toFixed(1) + '°</span>'
           + '</div>'
         + '</div>'
-        + '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation">?????�로?�로 ?�세 보기</button>'
+        + '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
       + '</div>';
   }
 
@@ -2768,9 +2756,9 @@
         + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.8" opacity="0.7" transform="rotate(150 60 60)"/>'
         + '<circle cx="60" cy="60" r="5" fill="currentColor" opacity="0.5"/>'
       + '</svg>'
-      + '<div class="dp-mc-empty-title">?�의 ?�명 카드</div>'
-      + '<div class="dp-mc-empty-desc">?�래 ?�보�??�력?�고 ?�?�하�?br>?�곳???��??�니??/div>'
-      + '<div class="dp-mc-empty-hint">???�래?�서 ?�명???�기?�요</div>'
+      + '<div class="dp-mc-empty-title">나의 운명 카드</div>'
+      + '<div class="dp-mc-empty-desc">아래 정보를 입력하고 저장하면<br>이곳에 나타납니다</div>'
+      + '<div class="dp-mc-empty-hint">↓ 아래에서 운명을 새기세요</div>'
     + '</div>';
   }
 
@@ -2802,7 +2790,7 @@
     var el = document.getElementById('dpMasterCard');
     if (!el) return;
     _dpEnsureSavingCardStyles();
-    var safeName = profile && profile.name ? _esc(profile.name) : '???�로??;
+    var safeName = profile && profile.name ? _esc(profile.name) : '새 프로필';
     el.className = 'dp-master-card dp-master-card--saving';
     el.innerHTML =
       '<div class="dp-saving-sky" aria-hidden="true"></div>'
@@ -2813,25 +2801,25 @@
           + '<span class="dp-saving-star dp-saving-star--b"></span>'
           + '<span class="dp-saving-star dp-saving-star--c"></span>'
         + '</div>'
-        + '<div class="dp-saving-title">' + safeName + '?�의 ?�명 카드�??�기??�?/div>'
-        + '<div class="dp-saving-desc">?�빛 ?�래 별의 좌표�?맞추�??�습?�다.</div>'
+        + '<div class="dp-saving-title">' + safeName + '님의 운명 카드를 새기는 중</div>'
+        + '<div class="dp-saving-desc">달빛 아래 별의 좌표를 맞추고 있습니다.</div>'
         + '<div class="dp-saving-bar" aria-hidden="true"></div>'
       + '</div>';
   }
 
   function _zodiacEmoji(year) {
-    var animals = ['??','?��','?��','?��','?��','?��','?��','?��','?��','?��','?��','?��'];
+    var animals = ['🐀','🐂','🐅','🐇','🐉','🐍','🐎','🐑','🐒','🐓','🐕','🐖'];
     return animals[(year - 4 + 120) % 12];
   }
   function _esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  /* ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
+  /* ──────────────────────────────────────────
      3-A. Data Injection & Execution Pipeline
-          ?�로????????비동�?계산 ?�행
-  ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
-  /** 베다?????��?�??�길 ??location/birth null 보정 (?�울 기본�? */
+          프로필 → 폼 → 비동기 계산 실행
+  ────────────────────────────────────────── */
+  /** 베다점 등 외부로 넘길 때 location/birth null 보정 (서울 기본값) */
   function _normalizeProfileForVedic(profile) {
     if (!profile) return profile;
     var parsedBirth = null;
@@ -2892,7 +2880,7 @@
         calType: b.calType || 'solar'
       },
       location: {
-        label: l.label || '?�?��?�?(?�울)',
+        label: l.label || '대한민국 (서울)',
         tz: l.tz || 'Asia/Seoul',
         lat: lat,
         lng: lng,
@@ -2952,7 +2940,7 @@
         calType: b.calType || 'solar'
       },
       location: {
-        label: l.label || '?�?��?�?(?�울)',
+        label: l.label || '대한민국 (서울)',
         tz: l.tz || 'Asia/Seoul',
         lat: lat,
         lng: lng,
@@ -3007,14 +2995,14 @@
 
   function _fortuneStartMessage(profileName, type) {
     var safeName = _esc(profileName || '');
-    if (type === 'saju')   return '??' + safeName + ' · ?�주 ?�?��? ?�작?�니??;
-    if (type === 'sukuyo') return '??' + safeName + ' · ?�요??분석??준비합?�다';
-    if (type === 'ziwei')  return '??' + safeName + ' · ?��??�수 명반???�는 중입?�다';
-    if (type === 'astro')  return '??' + safeName + ' · ?�성??코즈�?차트�?준비합?�다';
-    if (type === 'vedic')  return '??' + safeName + ' · 베다 ?�성?�로 ?�동?�니??;
-    if (type === 'flower') return '??' + safeName + ' · ?�명??�???���??�동?�니??;
-    if (type === 'tarot')  return '??' + safeName + ' · ?��?컬렉?�으�??�동?�니??;
-    return '??' + safeName + ' · ?�세 분석???�작?�니??;
+    if (type === 'saju')   return '✦ ' + safeName + ' · 사주 풀이를 시작합니다';
+    if (type === 'sukuyo') return '✦ ' + safeName + ' · 숙요점 분석을 준비합니다';
+    if (type === 'ziwei')  return '✦ ' + safeName + ' · 자미두수 명반을 여는 중입니다';
+    if (type === 'astro')  return '✦ ' + safeName + ' · 점성술 코즈믹 차트를 준비합니다';
+    if (type === 'vedic')  return '✦ ' + safeName + ' · 베다 점성술로 이동합니다';
+    if (type === 'flower') return '✦ ' + safeName + ' · 운명의 꽃 탭으로 이동합니다';
+    if (type === 'tarot')  return '✦ ' + safeName + ' · 타로 컬렉션으로 이동합니다';
+    return '✦ ' + safeName + ' · 운세 분석을 시작합니다';
   }
 
   function _runSajuWhenReady(maxAttempts, delayMs) {
@@ -3029,13 +3017,13 @@
           var p = window.checkPrivacyAndCalculate();
           if (p && typeof p.catch === 'function') {
             p.catch(function(err) {
-              console.error('[DP] 계산 ?�료 콜백 ?�류:', err);
-              _toast('?�️ 계산 ?�료 ??콘텐�??�성??�??�류가 발생?�습?�다', 'warn');
+              console.error('[DP] 계산 완료 콜백 오류:', err);
+              _toast('⚠️ 계산 완료 후 콘텐츠 활성화 중 오류가 발생했습니다', 'warn');
             });
           }
         } catch (err) {
-          console.error('[DP] 계산 ?�행 ?�류:', err);
-          _toast('?�️ 계산 ?�행 �??�류가 발생?�습?�다', 'warn');
+          console.error('[DP] 계산 실행 오류:', err);
+          _toast('⚠️ 계산 실행 중 오류가 발생했습니다', 'warn');
         }
         return;
       }
@@ -3043,7 +3031,7 @@
       if (attempts < max) {
         setTimeout(tick, delay);
       } else {
-        _toast('?�️ 계산 모듈 로딩??지?�되�??�습?�다. ?�시 ???�동?�로 ?�시 ?�도?�니??', 'warn');
+        _toast('⚠️ 계산 모듈 로딩이 지연되고 있습니다. 잠시 후 자동으로 다시 시도됩니다.', 'warn');
       }
     }
 
@@ -3052,7 +3040,7 @@
 
   function _injectAndRun(profile, fortuneType) {
     if (!profile) {
-      _toast('?�️ ?�성?�된 ?�로?�이 ?�습?�다', 'warn');
+      _toast('⚠️ 활성화된 프로필이 없습니다', 'warn');
       return;
     }
     var b = profile.birth;
@@ -3061,9 +3049,9 @@
       ? Number(l.lng)
       : ((l.lon !== undefined && l.lon !== null && !isNaN(Number(l.lon))) ? Number(l.lon) : null);
 
-    /* ?�수�?검�?*/
+    /* 필수값 검증 */
     if (!b || !b.year || !b.month || !b.day) {
-      _toast('?�️ ?�년?�일 ?�이?��? ?�습?�다. ?�로?�을 ?�시 ?�?�하?�요.', 'warn');
+      _toast('⚠️ 생년월일 데이터가 없습니다. 프로필을 다시 저장하세요.', 'warn');
       var formEl = document.querySelector('.input-section');
       if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
@@ -3083,11 +3071,11 @@
       }
     }
 
-    /* ?�각 ?�드�?먼�? */
+    /* 시각 피드백 먼저 */
     spawnStardust(document.getElementById('dpMasterCard'));
     _toast(_fortuneStartMessage(profile.name, fortuneType || 'saju'), 'success');
 
-    /* ?????�이??주입 */
+    /* ① 폼 데이터 주입 */
     var nameEl = document.getElementById('nameInput');
     if (nameEl) nameEl.value = profile.name || '';
 
@@ -3102,7 +3090,7 @@
     if (hourEl) hourEl.value = (b.hour !== undefined && b.hour !== null) ? b.hour : 12;
     if (minEl)  minEl.value  = (b.minute !== undefined && b.minute !== null) ? b.minute : 0;
 
-    /* ???�소 ?�택 ??tz + 경도 ?��? 매칭, ?�백 tz-only */
+    /* ② 장소 선택 — tz + 경도 정밀 매칭, 폴백 tz-only */
     var countrySel = document.getElementById('birthCountry');
     if (countrySel && l.tz) {
       var matched = false;
@@ -3120,11 +3108,11 @@
       try { countrySel.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
     }
 
-    /* ???�별 ?�기??*/
+    /* ③ 성별 동기화 */
     if (window.setGender) window.setGender(profile.gender || 'F');
     window._gender = profile.gender || 'F';
     
-    /* ??2. ?�별 버튼 UI ?�기??*/
+    /* ③-2. 성별 버튼 UI 동기화 */
     var btnF = document.getElementById('btnF');
     var btnM = document.getElementById('btnM');
     if (btnF || btnM) {
@@ -3147,40 +3135,40 @@
       }
     }
 
-    /* ??미리보기 갱신 ???�외 처리 강화 */
+    /* ④ 미리보기 갱신 — 예외 처리 강화 */
     try {
       if (window.updateLunarPreview && typeof window.updateLunarPreview === 'function') {
         window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
       }
     } catch (err) {
-      console.error('[DP] ?�력 미리보기 갱신 ?�패:', err);
+      console.error('[DP] 음력 미리보기 갱신 실패:', err);
     }
     try {
       if (window.updateCorrectedTimePreview && typeof window.updateCorrectedTimePreview === 'function') {
         window.updateCorrectedTimePreview();
       }
     } catch (err) {
-      console.error('[DP] ?�간 보정 미리보기 갱신 ?�패:', err);
+      console.error('[DP] 시간 보정 미리보기 갱신 실패:', err);
     }
 
-    /* ??비동�??�행 ??RAF + 충분??지??+ ???�드 ?�비 ?�인 ??계산 */
+    /* ⑤ 비동기 실행 — RAF + 충분한 지연 + 폼 필드 완비 확인 후 계산 */
     requestAnimationFrame(function() {
       setTimeout(function() {
-        /* ???�드가 ?�전??준비되?�는지 ?�인 */
+        /* 폼 필드가 완전히 준비되었는지 확인 */
         try {
           var bdVal = document.getElementById('birthDate') ? document.getElementById('birthDate').value : '';
           var hVal = document.getElementById('birthHour') ? document.getElementById('birthHour').value : '';
           var mVal = document.getElementById('birthMinute') ? document.getElementById('birthMinute').value : '';
-          console.log('[DP] ???�드 검�?', { bd: bdVal, hour: hVal, minute: mVal });
+          console.log('[DP] 폼 필드 검증:', { bd: bdVal, hour: hVal, minute: mVal });
         } catch (e) {}
         _runSajuWhenReady(60, 250);
-      }, 200); /* 80ms ??200ms�?증�?: ???�전 ?�데?�트 �??�벤??처리 ?��?*/
+      }, 200); /* 80ms → 200ms로 증가: 폼 완전 업데이트 및 이벤트 처리 대기 */
     });
   }
 
-  /* ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-     6. UI ??Profile Constellation List (바�? ?�트)
-  ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
+  /* ──────────────────────────────────────────
+     6. UI — Profile Constellation List (바텀 시트)
+  ────────────────────────────────────────── */
   function renderProfileList() {
     var list = DPStorage.list();
     var currId = (DPStorage.current() || {}).id;
@@ -3188,12 +3176,12 @@
     if (!container) return;
 
     if (list.length === 0) {
-      container.innerHTML = '<div class="dp-list-empty">교체???�로?�이 ?�습?�다.<br><small>?�래 ?�을 ?�력 ??\'?�??' 버튼???�러주세??</small></div>';
+      container.innerHTML = '<div class="dp-list-empty">교체할 프로필이 없습니다.<br><small>아래 폼을 입력 후 \'저장\' 버튼을 눌러주세요.</small></div>';
       return;
     }
 
     // Render placeholder first to prevent blank modal during slower mobile paints.
-    container.innerHTML = '<div class="dp-list-empty">?�로??목록??불러?�는 �?..</div>';
+    container.innerHTML = '<div class="dp-list-empty">프로필 목록을 불러오는 중...</div>';
 
     requestAnimationFrame(function() {
       try {
@@ -3202,9 +3190,9 @@
         var selectionRequired = !!access.selectionRequired;
         var lockedProfileId = String(access.lockedProfileId || '').trim();
         var lockedNotice = selectionRequired
-          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">?�용�??�택??종료?�었?�니?? 계속 ?�용???�로??카드 1개�? ?�택?�면 ?�음 ?�용�?결제 ?�까지 ?�당 카드�??�용?????�습?�다.</div>'
+          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">이용권 혜택이 종료되었습니다. 계속 사용할 프로필 카드 1개를 선택하면 다음 이용권 결제 전까지 해당 카드만 사용할 수 있습니다.</div>'
           : (isFreeUser
-          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">?�� ?�로??카드????�??�성?�면 ?�정/??��가 불�??�합?�다. ?�성 ?�에 ?�보�?�??�인??주세??</div>'
+          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">🔒 프로필 카드는 한 번 생성하면 수정/삭제가 불가능합니다. 생성 전에 정보를 꼭 확인해 주세요.</div>'
           : '');
 
     container.innerHTML = list.map(function(p, idx) {
@@ -3228,10 +3216,10 @@
           var corrected = applyTrueSolarOffset(safeHour, safeMinute, tso);
           var tsStr = String(corrected.h).padStart(2,'0') + ':' + String(corrected.m).padStart(2,'0');
           var zodiac = _zodiacEmoji(safeYear);
-          var calLabel = b.calType === 'solar' ? '?? : (b.calType === 'lunar_leap' ? '?? : '??);
+          var calLabel = b.calType === 'solar' ? '양' : (b.calType === 'lunar_leap' ? '윤' : '음');
           var pid = safe.id || ('broken_' + idx);
-          var pname = safe.name || '?�름 ?�음';
-          var locLabel = l.label || '출생지 미�???;
+          var pname = safe.name || '이름 없음';
+          var locLabel = l.label || '출생지 미지정';
 
           var isLockedOut = !!lockedProfileId && pid !== lockedProfileId;
 
@@ -3244,34 +3232,34 @@
               + '<div class="dp-li-avatar">' + zodiac + '</div>'
               + '<div class="dp-li-body">'
                 + '<div class="dp-li-name">' + _esc(pname)
-                  + (isActive ? ' <span class="dp-li-current-badge">?�재</span>' : '')
+                  + (isActive ? ' <span class="dp-li-current-badge">현재</span>' : '')
                   + (isFreeUser && isLockedOut
-                    ? ' <span style="font-size:0.62rem;color:#f87171;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);padding:1px 6px;border-radius:10px;">?�용불�?</span>'
+                    ? ' <span style="font-size:0.62rem;color:#f87171;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);padding:1px 6px;border-radius:10px;">사용불가</span>'
                     : '')
                   + (lockedProfileId && pid === lockedProfileId
-                    ? ' <span style="font-size:0.62rem;color:#34d399;background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.3);padding:1px 6px;border-radius:10px;">?�정</span>'
+                    ? ' <span style="font-size:0.62rem;color:#34d399;background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.3);padding:1px 6px;border-radius:10px;">확정</span>'
                     : '')
                   + (safe.gender === 'M'
                     ? ' <span style="font-size:0.65rem;color:#93c5fd;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);padding:1px 6px;border-radius:10px;">&#9794;</span>'
                     : ' <span style="font-size:0.65rem;color:#f9a8d4;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);padding:1px 6px;border-radius:10px;">&#9792;</span>')
                 + '</div>'
                 + '<div class="dp-li-meta">[' + calLabel + '] ' + safeYear + '.' + safeMonth + '.' + safeDay
-                  + ' · 진태?�시 ' + tsStr + '</div>'
-                + '<div class="dp-li-loc">?�� ' + _esc(locLabel) + '</div>'
+                  + ' · 진태양시 ' + tsStr + '</div>'
+                + '<div class="dp-li-loc">📍 ' + _esc(locLabel) + '</div>'
               + '</div>'
             + '</div>'
             + '</div>';
         }).join('') + lockedNotice;
       } catch (err) {
         console.error('[DP] renderProfileList failed', err);
-        container.innerHTML = '<div class="dp-list-empty">?�로??목록???�시?????�습?�다.<br><small>?�로고침 ???�시 ?�도?�주?�요.</small></div>';
+        container.innerHTML = '<div class="dp-list-empty">프로필 목록을 표시할 수 없습니다.<br><small>새로고침 후 다시 시도해주세요.</small></div>';
       }
     });
   }
 
-  /* ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-     7. ?��??�스??Stardust) ?�티???�과
-  ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
+  /* ──────────────────────────────────────────
+     7. 스타더스트(Stardust) 파티클 효과
+  ────────────────────────────────────────── */
   function spawnStardust(el) {
     if (!el) return;
     var rect = el.getBoundingClientRect();
@@ -3291,16 +3279,16 @@
     }
   }
 
-  /* ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
+  /* ──────────────────────────────────────────
      8. 공개 API (window.dp*)
-  ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
+  ────────────────────────────────────────── */
   window.dpSaveProfile = function() {
     var data = readFormData();
     if (!data) {
-      alert('?�름�??�년?�일???�력?�주?�요.');
+      alert('이름과 생년월일을 입력해주세요.');
       return;
     }
-    if (!confirm('???�로??카드�??�성?�까??\n??�??�성???�로??카드???�정 �???��가 불�??�합?�다.\n?�력???�년?�일/?�간/?�별/출생지�??�시 ?�인??주세??')) return;
+    if (!confirm('새 프로필 카드를 생성할까요?\n한 번 생성된 프로필 카드는 수정 및 삭제가 불가능합니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.')) return;
     var btn = document.getElementById('dpSaveBtn');
     var savingCardVisible = false;
     function restoreCardAfterSaveAttempt() {
@@ -3340,13 +3328,13 @@
           var tierLabel = _dpGetTierLabel(tier);
           var nextTier = _dpGetNextTier(tier);
           var guide = nextTier
-            ? ('\n/points ?�이지?�서 ' + _dpGetTierLabel(nextTier) + '�??�그?�이?�하�???많�? ?�로?�을 추�??????�습?�다.')
+            ? ('\n/points 페이지에서 ' + _dpGetTierLabel(nextTier) + '로 업그레이드하면 더 많은 프로필을 추가할 수 있습니다.')
             : '';
-          window.alert(msg || (tierLabel + ' ?�랜 ?�도(' + limitLabel + ')???�달?�습?�다.' + guide));
+          window.alert(msg || (tierLabel + ' 플랜 한도(' + limitLabel + ')에 도달했습니다.' + guide));
           restoreCardAfterSaveAttempt();
           return null;
         }
-        throw new Error(msg || '?�로???�??�??�류가 발생?�습?�다.');
+        throw new Error(msg || '프로필 저장 중 오류가 발생했습니다.');
       }
 
       var payloadOk = result.data && typeof result.data === 'object' ? result.data : {};
@@ -3368,7 +3356,7 @@
         _dpWriteProfilesToLocal(scope, list, currentId);
       }
 
-      // ?�???�공 직후?�는 로컬 ?�태�?즉시 ?�더링해 체감 반응 ?�도�??�선?�다.
+      // 저장 성공 직후에는 로컬 상태를 즉시 렌더링해 체감 반응 속도를 우선한다.
       var curr = DPStorage.current();
       savingCardVisible = false;
       spawnStardust(document.getElementById('dpSaveBtn'));
@@ -3378,7 +3366,7 @@
       broadcastProfileChange(curr || created || null);
       _dpUpdateSaveBtn();
 
-      // ?�버 ?�조?�는 백그?�운?�로 ?�행??최종 ?�합?�만 보정?�다.
+      // 서버 재조회는 백그라운드로 수행해 최종 정합성만 보정한다.
       _dpLoadFromServer(function(loaded) {
         if (!loaded) return;
         var refreshedCurr = DPStorage.current();
@@ -3388,17 +3376,17 @@
         _dpUpdateSaveBtn();
       });
 
-      _toast('?�년?�일·출생?�간·?�별 ?�보???�세 ?�비???�공 목적???�해 ?�버???�전?�게 ?�?�됩?�다.', 'privacy');
+      _toast('생년월일·출생시간·성별 정보는 운세 서비스 제공 목적에 한해 서버에 안전하게 저장됩니다.', 'privacy');
       return null;
     }).catch(function(err) {
-      var msg = String((err && err.message) || '?�로???�??�??�류가 발생?�습?�다. ?�시 ???�시 ?�도??주세??');
+      var msg = String((err && err.message) || '프로필 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       restoreCardAfterSaveAttempt();
       if (msg === 'AUTH_REQUIRED') {
-        if (window.confirm('?�� ?�로??카드??로그???�에�??�성?????�습?�다.\n로그???�이지�??�동?�까??')) {
+        if (window.confirm('🔒 프로필 카드는 로그인 후에만 생성할 수 있습니다.\n로그인 페이지로 이동할까요?')) {
           window.location.href = '/login?next=%2F';
           return;
         }
-        msg = '로그???�태�??�인?????�시 ?�도??주세??';
+        msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
       }
       window.alert(msg);
     }).finally(function() {
@@ -3430,7 +3418,7 @@
       console.error('[DP] openList render failed', err);
       var container = document.getElementById('dpListInner');
       if (container) {
-        container.innerHTML = '<div class="dp-list-empty">?�로??로딩 �?문제가 발생?�습?�다.<br><small>?�시 ???�시 ?�도?�주?�요.</small></div>';
+        container.innerHTML = '<div class="dp-list-empty">프로필 로딩 중 문제가 발생했습니다.<br><small>잠시 후 다시 시도해주세요.</small></div>';
       }
     }
 
@@ -3456,7 +3444,7 @@
       else document.body.style.overflow = '';
     }
 
-    /* lockBody ?�여 ?��???강제 ?�리 (모바??fullscreen 고착 방�?) */
+    /* lockBody 잔여 스타일 강제 정리 (모바일 fullscreen 고착 방지) */
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
@@ -3474,18 +3462,18 @@
       broadcastProfileChange(p);
       dpCloseList();
       spawnStardust(document.getElementById('dpMasterCard'));
-      _toast('??' + (p ? _esc(p.name) : '') + ' · ?�로???�성??, 'success');
+      _toast('✨ ' + (p ? _esc(p.name) : '') + ' · 프로필 활성화', 'success');
     }
 
     if (maxProfiles <= 1 && lockedId && id !== lockedId) {
-      alert('?�용�??�택 종료 ???�정???�로??카드�??�용?????�습?�다.\n/points ?�이지?�서 ?�용권을 결제?�면 ?�시 ?�러 ?�로?�을 ?�용?????�습?�다.');
+      alert('이용권 혜택 종료 후 확정한 프로필 카드만 사용할 수 있습니다.\n/points 페이지에서 이용권을 결제하면 다시 여러 프로필을 이용할 수 있습니다.');
       return;
     }
 
     if (maxProfiles <= 1 && access.selectionRequired) {
       var selected = (DPStorage.list() || []).find(function(profile) { return profile && profile.id === id; });
-      var profileName = selected && selected.name ? selected.name : '?�택???�로??;
-      if (!confirm(profileName + ' ?�로??카드�??�정?�까??\n?�정 ??추�? ?�용�?결제 ?�까지 ??카드�??�용?????�습?�다.')) return;
+      var profileName = selected && selected.name ? selected.name : '선택한 프로필';
+      if (!confirm(profileName + ' 프로필 카드로 확정할까요?\n확정 후 추가 이용권 결제 전까지 이 카드만 사용할 수 있습니다.')) return;
       _dpCommitSingleProfileSelection(id, function(ok) {
         if (!ok) return;
         _dpProfileAccess.selectionRequired = false;
@@ -3497,16 +3485,16 @@
     }
 
     if (maxProfiles <= 1 && id !== currentIdForPolicy) {
-      alert('무료 ?�랜?� ?�로??1개만 ?�용?????�습?�다.\n/points ?�이지?�서 ?�용권을 결제?�면 ?�러 ?�로?�을 ?�용?????�습?�다.');
+      alert('무료 플랜은 프로필 1개만 사용할 수 있습니다.\n/points 페이지에서 이용권을 결제하면 여러 프로필을 이용할 수 있습니다.');
       return;
     }
 
     activateSelectedProfile();
     return;
-    /* ??무료 ?�랜: ?�른 ?�로???�택 불�? (?�로??1�??�한) */
+    /* ★ 무료 플랜: 다른 프로필 선택 불가 (프로필 1개 제한) */
     var _curId = (DPStorage.current() || {}).id;
     if (_dpGetMaxProfiles() <= 1 && id !== _curId) {
-      alert('무료 ?�랜?� ?�로??1개만 ?�용?????�습?�다.\n/points ?�이지?�서 구독???�그?�이?�하�??�러 ?�로?�을 ?�용?????�습?�다.');
+      alert('무료 플랜은 프로필 1개만 사용할 수 있습니다.\n/points 페이지에서 구독을 업그레이드하면 여러 프로필을 이용할 수 있습니다.');
       return;
     }
     DPStorage.setCurrent(id);
@@ -3515,14 +3503,14 @@
     broadcastProfileChange(p);
     dpCloseList();
     spawnStardust(document.getElementById('dpMasterCard'));
-    _toast('??' + (p ? _esc(p.name) : '') + ' · ?�로???�성??, 'success');
+    _toast('✦ ' + (p ? _esc(p.name) : '') + ' · 프로필 활성화', 'success');
   };
 
   window.dpDeleteProfile = function(id) {
-    alert('?�로??카드????�??�성?�면 ?�정 �???��가 불�??�합?�다.\n?�성 ?�에 ?�력 ?�보�?�??�시 ?�인??주세??');
+    alert('프로필 카드는 한 번 생성하면 수정 및 삭제가 불가능합니다.\n생성 전에 입력 정보를 꼭 다시 확인해 주세요.');
   };
 
-  /** 베다?????��? ?�이지�??�길 ?�재 ?�로??(?�?�된 ?�재 ?�택 ?�로???�는 ???�이?? */
+  /** 베다점 등 외부 페이지로 넘길 현재 프로필 (저장된 현재 선택 프로필 또는 폼 데이터) */
   window.dpGetDataForVedic = function() {
     var p = _resolveVedicProfileCandidate();
     if (p && p.birth) return _buildVedicBridgePayload(p);
@@ -3689,7 +3677,7 @@
   window.dpGenerateGuardianAvatar = async function() {
     var p = DPStorage.current();
     if (!p || !p.birth) {
-      _toast('?�️ ?�로?�을 먼�? ?�?�해 주세??', 'warn');
+      _toast('⚠️ 프로필을 먼저 저장해 주세요.', 'warn');
       return;
     }
 
@@ -3697,7 +3685,7 @@
     var oldText = btn ? btn.textContent : '';
     if (btn) {
       btn.disabled = true;
-      btn.textContent = '???�성 �?..';
+      btn.textContent = '✨ 생성 중...';
       btn.style.opacity = '0.75';
     }
 
@@ -3709,7 +3697,7 @@
       });
       var data = await resp.json().catch(function() { return null; });
       if (!resp.ok || !data || !data.ok || !data.guardian) {
-        throw new Error((data && data.message) || ('?�바?� ?�성 ?�패 (' + resp.status + ')'));
+        throw new Error((data && data.message) || ('아바타 생성 실패 (' + resp.status + ')'));
       }
 
       var guardian = data.guardian;
@@ -3732,13 +3720,13 @@
       var updated = DPStorage.current() || p;
       renderMasterCard(updated);
       broadcastProfileChange(updated);
-      _toast('?�� 가?�언 ?�템 ?��?지가 ?�성?�었?�니??', 'success');
+      _toast('🪄 가디언 토템 이미지가 완성되었습니다!', 'success');
     } catch (err) {
-      _toast('?�️ ?�용?��? 많아???�패?�습?�다. ?�시 ???�시 ?�도?�주?�요.', 'warn');
+      _toast('⚠️ 이용자가 많아서 실패했습니다. 잠시 후 다시 시도해주세요.', 'warn');
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.textContent = oldText || '?���?가?�언 ?�템 ?�성';
+        btn.textContent = oldText || '🖼️ 가디언 토템 생성';
         btn.style.opacity = '';
       }
     }
@@ -3746,12 +3734,12 @@
 
   window.dpLoadProfile = function() {
     var p = DPStorage.current();
-    if (!p) { _toast('?�️ 불러???�로?�이 ?�습?�다', 'warn'); return; }
+    if (!p) { _toast('⚠️ 불러올 프로필이 없습니다', 'warn'); return; }
 
     var card = document.getElementById('dpMasterCard');
     spawnStardust(card);
 
-    /* ?�주 ???�기??(?�주 ?�행 경로 ?�전 준�? */
+    /* 사주 폼 동기화 (사주 실행 경로 사전 준비) */
     var b = p.birth, l = p.location || {};
     var nameEl = document.getElementById('nameInput');
     if (nameEl) nameEl.value = p.name || '';
@@ -3795,7 +3783,7 @@
     }
     if (window.setGender) window.setGender(p.gender || 'F');
     window._gender = p.gender || 'F';
-    /* ?�별 버튼 UI ?�기??*/
+    /* 성별 버튼 UI 동기화 */
     var dpBtnF = document.getElementById('btnF');
     var dpBtnM = document.getElementById('btnM');
     if (dpBtnF || dpBtnM) {
@@ -3821,9 +3809,9 @@
     if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
     broadcastProfileChange(p);
 
-    /* ?�?� ?�세 ?�형 ?�택 모달 ?�?� */
+    /* ── 운세 유형 선택 모달 ── */
     var zodiac   = _zodiacEmoji(b.year);
-    var calLabel = b.calType === 'solar' ? '?�력' : (b.calType === 'lunar_leap' ? '?�력(??' : '?�력');
+    var calLabel = b.calType === 'solar' ? '양력' : (b.calType === 'lunar_leap' ? '음력(윤)' : '음력');
     var dateStr  = calLabel + ' ' + b.year + '.' + String(b.month).padStart(2,'0') + '.' + String(b.day).padStart(2,'0')
                  + '&nbsp;·&nbsp;' + String(b.hour != null ? b.hour : 12).padStart(2,'0')
                  + ':' + String(b.minute != null ? b.minute : 0).padStart(2,'0');
@@ -3831,24 +3819,24 @@
     ov.className = 'dp-fsel-overlay';
     ov.innerHTML =
       '<div class="dp-fsel-modal">'
-      + '<button type="button" class="dp-fsel-close-btn" aria-label="?�기" onclick="window._dpCloseFortuneSel && window._dpCloseFortuneSel(); return false;">??/button>'
+      + '<button type="button" class="dp-fsel-close-btn" aria-label="닫기" onclick="window._dpCloseFortuneSel && window._dpCloseFortuneSel(); return false;">✕</button>'
       + '<div class="dp-fsel-profile">'
         + '<span class="dp-fsel-zodiac">' + zodiac + '</span>'
         + '<div class="dp-fsel-pname">' + _esc(p.name) + '</div>'
         + '<div class="dp-fsel-pdate">' + dateStr + '</div>'
-        + (l.label ? '<div class="dp-fsel-ploc">?�� ' + _esc(l.label) + '</div>' : '')
+        + (l.label ? '<div class="dp-fsel-ploc">📍 ' + _esc(l.label) + '</div>' : '')
       + '</div>'
       + '<div class="dp-fsel-divider"></div>'
-      + '<div class="dp-fsel-ask">?�떤 ?�세�?보시겠습?�까?</div>'
+      + '<div class="dp-fsel-ask">어떤 운세를 보시겠습니까?</div>'
       + '<div class="dp-fsel-btns">'
-        + '<button class="dp-fsel-btn dp-fsel-btn--saju"   onclick="window._dpOpenFortuneType(\'saju\')"   style="touch-action:manipulation"><span class="dp-fsel-btn-icon">?��</span><span class="dp-fsel-btn-label">?�주 ?�??/span></button>'
-        + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">?��</span><span class="dp-fsel-btn-label">?�요??/span></button>'
-        + '<button class="dp-fsel-btn dp-fsel-btn--ziwei" onclick="window._dpOpenFortuneType(\'ziwei\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">?��</span><span class="dp-fsel-btn-label">?��??�수</span></button>'
-        + '<button class="dp-fsel-btn dp-fsel-btn--astro" onclick="window._dpOpenFortuneType(\'astro\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">??/span><span class="dp-fsel-btn-label">?�성??/span></button>'
-        + (function(){ var lk=_dpIsFeatureLocked('olympus-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--olympus' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'?��':'??) + '</span><span class="dp-fsel-btn-label">?�림?�스 ?�탁' + (lk?'<span class="dp-fsel-btn-cost"> ?�� 100코인</span>':'') + '</span></button>'; })()
-        + '<button class="dp-fsel-btn dp-fsel-btn--vedic" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">?��</span><span class="dp-fsel-btn-label">베다??/span></button>'
-        + '<button class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">?��</span><span class="dp-fsel-btn-label">?��?/span></button>'
-        + (function(){ var lk=_dpIsFeatureLocked('flower-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--flower' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'?��':'?��') + '</span><span class="dp-fsel-btn-label">?�명??�? + (lk?'<span class="dp-fsel-btn-cost"> 200코인</span>':'') + '</span></button>'; })()
+        + '<button class="dp-fsel-btn dp-fsel-btn--saju"   onclick="window._dpOpenFortuneType(\'saju\')"   style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🔮</span><span class="dp-fsel-btn-label">사주 풀이</span></button>'
+        + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
+        + '<button class="dp-fsel-btn dp-fsel-btn--ziwei" onclick="window._dpOpenFortuneType(\'ziwei\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
+        + '<button class="dp-fsel-btn dp-fsel-btn--astro" onclick="window._dpOpenFortuneType(\'astro\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
+        + (function(){ var lk=_dpIsFeatureLocked('olympus-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--olympus' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'⚡') + '</span><span class="dp-fsel-btn-label">올림푸스 신탁' + (lk?'<span class="dp-fsel-btn-cost"> 🔒 100코인</span>':'') + '</span></button>'; })()
+        + '<button class="dp-fsel-btn dp-fsel-btn--vedic" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
+        + '<button class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
+        + (function(){ var lk=_dpIsFeatureLocked('flower-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--flower' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'🌸') + '</span><span class="dp-fsel-btn-label">운명의 꽃' + (lk?'<span class="dp-fsel-btn-cost"> 200코인</span>':'') + '</span></button>'; })()
       + '</div>'
       + '</div>';
     document.body.appendChild(ov);
@@ -3893,13 +3881,13 @@
   };
 
   window._dpOpenFortuneType = function(type) {
-    /* fsel ?�버?�이�??�이?�아????DOM?�서 ?�전 ?�거????모달 ?�기
-       (backdrop-filter stacking context ??iOS WebKit ?�이?�스?�린 방�?) */
+    /* fsel 오버레이를 페이드아웃 후 DOM에서 완전 제거한 뒤 모달 열기
+       (backdrop-filter stacking context → iOS WebKit 화이트스크린 방지) */
     var ov = window._dpFortuneSelEl || document.querySelector('.dp-fsel-overlay');
     window._dpFortuneSelEl = null;
 
     function _openTarget() {
-      /* 코인 ?�금 ?�??기능?� 게이?��? ?�과?�야 ?�행 */
+      /* 코인 잠금 대상 기능은 게이트를 통과해야 실행 */
       if (_DP_FEATURE_LOCKS[type]) {
         _dpGateLockFeature(type, function() { _runFortuneType(type); });
         return;
@@ -3964,7 +3952,7 @@
           try { pOlympus = _normalizeProfileForVedic(readFormData()); } catch (_) {}
         }
         if (!pOlympus || !pOlympus.birth) {
-          _toast('?�️ ?�림?�스 ?�탁?� ?�년?�일·?�간???�는 ?�로?�이 ?�요?�니??', 'warn');
+          _toast('⚠️ 올림푸스 신탁은 생년월일·시간이 있는 프로필이 필요합니다.', 'warn');
           return;
         }
         if (pOlympus.id) {
@@ -3985,7 +3973,7 @@
         if (_olympusScript) {
           setTimeout(function() {
             if (!_runOlympusBridge()) {
-              _toast('?�️ ?�림?�스 ?�탁 모듈 로딩??지?�되�??�습?�다. ?�시 ???�시 ?�도??주세??', 'warn');
+              _toast('⚠️ 올림푸스 신탁 모듈 로딩이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.', 'warn');
             }
           }, 0);
           return;
@@ -3998,15 +3986,15 @@
           _s.defer = true;
           _s.onload = function() {
             if (!_runOlympusBridge()) {
-              _toast('?�️ ?�림?�스 ?�탁 모듈 로딩??지?�되�??�습?�다. ?�시 ???�시 ?�도??주세??', 'warn');
+              _toast('⚠️ 올림푸스 신탁 모듈 로딩이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.', 'warn');
             }
           };
           _s.onerror = function() {
-            _toast('?�️ ?�림?�스 ?�탁 모듈 로딩???�패?�습?�다. ?�시 ???�시 ?�도??주세??', 'warn');
+            _toast('⚠️ 올림푸스 신탁 모듈 로딩에 실패했습니다. 잠시 후 다시 시도해 주세요.', 'warn');
           };
           document.head.appendChild(_s);
         } catch (_) {
-          _toast('?�️ ?�림?�스 ?�탁 모듈 로딩???�패?�습?�다. ?�시 ???�시 ?�도??주세??', 'warn');
+          _toast('⚠️ 올림푸스 신탁 모듈 로딩에 실패했습니다. 잠시 후 다시 시도해 주세요.', 'warn');
         }
       } else if (type === 'vedic') {
         var pVedic = _resolveVedicProfileCandidate();
@@ -4014,7 +4002,7 @@
           try { pVedic = _normalizeProfileForVedic(readFormData()); } catch (_) {}
         }
         if (!pVedic || !pVedic.birth) {
-          _toast('?�️ 베다?�을 보려�??�년?�일·?�간???�는 ?�로?�을 ?�택??주세??', 'warn');
+          _toast('⚠️ 베다점을 보려면 생년월일·시간이 있는 프로필을 선택해 주세요.', 'warn');
           return;
         }
         if (pVedic.id) {
@@ -4060,14 +4048,14 @@
             }, 80);
           }
         } else {
-          _toast('?�️ ?�명??�?모듈???�직 로딩 중입?�다. ?�시 ???�시 ?�도?�세??', 'warn');
+          _toast('⚠️ 운명의 꽃 모듈이 아직 로딩 중입니다. 잠시 후 다시 시도하세요.', 'warn');
         }
       }
     }
 
     if (!ov) { _openTarget(); return; }
 
-    /* CSS ?�랜지?????�거 ??모달 ?�기 */
+    /* CSS 트랜지션 후 제거 → 모달 열기 */
     ov.classList.remove('dp-fsel-overlay--in');
     setTimeout(function() {
       if (ov.parentNode) ov.parentNode.removeChild(ov);
@@ -4085,7 +4073,7 @@
         try { olympusProfile = _normalizeProfileForVedic(readFormData()); } catch (_) {}
       }
       if (!olympusProfile || !olympusProfile.birth) {
-        _toast('?�️ ?�림?�스 ?�탁?� ?�년?�일·?�간???�는 ?�로?�을 먼�? ?�력??주세??', 'warn');
+        _toast('⚠️ 올림푸스 신탁은 생년월일·시간이 있는 프로필을 먼저 입력해 주세요.', 'warn');
         if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
         return false;
       }
@@ -4097,7 +4085,7 @@
         try { vedicProfile = _normalizeProfileForVedic(readFormData()); } catch (_) {}
       }
       if (!vedicProfile || !vedicProfile.birth) {
-        _toast('?�️ 베다?�을 보려�??�년?�일·?�간???�는 ?�로?�을 먼�? ?�력??주세??', 'warn');
+        _toast('⚠️ 베다점을 보려면 생년월일·시간이 있는 프로필을 먼저 입력해 주세요.', 'warn');
         if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
         return false;
       }
@@ -4112,7 +4100,7 @@
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  /* ?��??�서 _injectAndRun ?�출 ???�로???�환 ???�주 ?�계??*/
+  /* 외부에서 _injectAndRun 호출 — 프로필 전환 후 사주 재계산 */
   window.dpRunWithProfile = function(profileId) {
     var list = DPStorage.list();
     var p = null;
@@ -4122,10 +4110,11 @@
     _injectAndRun(p, 'saju');
   };
 
-  /* ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-     9. ?�스??  ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
+  /* ──────────────────────────────────────────
+     9. 토스트
+  ────────────────────────────────────────── */
   function _toast(msg, type) {
-    /* 기존 같�? ?�???�스???�거 */
+    /* 기존 같은 타입 토스트 제거 */
     var prev = document.querySelector('.dp-toast.dp-toast--' + (type || 'info'));
     if (prev && prev.parentNode) prev.parentNode.removeChild(prev);
     var t = document.createElement('div');
@@ -4139,10 +4128,11 @@
     }, 2600);
   }
 
-  /* ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�
-     10. 초기??  ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� */
+  /* ──────────────────────────────────────────
+     10. 초기화
+  ────────────────────────────────────────── */
   function init() {
-    /* 모바??브라?��?(BFCache/?�션 복원)?�서 ?�트 ?�린 ?�태가 ?�는 문제 방�? */
+    /* 모바일 브라우저(BFCache/세션 복원)에서 시트 열린 상태가 남는 문제 방지 */
     dpCloseList();
 
     _dpBindTouchScrollMark();
@@ -4151,11 +4141,11 @@
 
     renderMasterCard(DPStorage.current());
 
-    /* ??구독 ?�랜 기반 ?�??버튼 초기??*/
+    /* ★ 구독 플랜 기반 저장 버튼 초기화 */
     _dpLoadSubCache();
     _dpUpdateSaveBtn();
 
-    // 초기 진입 ?�에???�증 ?�태�?먼�? ?�인???�에�?결제/구독/?�로??API�??�출?�다.
+    // 초기 진입 시에는 인증 상태를 먼저 확인한 뒤에만 결제/구독/프로필 API를 호출한다.
     _dpVerifyLoginSession(false).then(function(ok) {
       if (!ok) return;
 
@@ -4169,24 +4159,24 @@
       _fetchSubscription();
     }).catch(function() {});
 
-    /* ESC ?�로 ?�트 ?�기 */
+    /* ESC 키로 시트 닫기 */
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') dpCloseList();
     });
 
-    /* ?�버?�이 ?�릭?�로 ?�트 ?�기 */
+    /* 오버레이 클릭으로 시트 닫기 */
     var overlay = document.getElementById('dpListOverlay');
     if (overlay) overlay.addEventListener('click', dpCloseList);
     var sheet = document.getElementById('dpListSheet');
     if (sheet) {
       var sheetCloseTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
-      /* ?�트 ?��? ?�릭: data-action ?�소??버블�??�용, ?�머지??stopPropagation */
+      /* 시트 내부 클릭: data-action 요소는 버블링 허용, 나머지는 stopPropagation */
       sheet.addEventListener('click', function(e) {
         var targetEl = _resolveEventElement(e.target);
         if (targetEl && targetEl.closest('[data-action]')) return;
         e.stopPropagation();
       });
-      /* ?�기 버튼: ?�트 ?�임?�로 처리 (직접 바인???�패·모바???�치 ?�?? */
+      /* 닫기 버튼: 시트 위임으로 처리 (직접 바인딩 실패·모바일 터치 대응) */
       sheet.addEventListener('click', function(e) {
         var targetEl = _resolveEventElement(e.target);
         if (targetEl && targetEl.closest('.dp-sheet-close')) {
@@ -4238,7 +4228,7 @@
       }, { passive: true });
     }
 
-    /* 모바?? document ?�치 ?�임 ??dp-sheet ?�기 버튼 (iOS Safari onclick ?�실 방�?) */
+    /* 모바일: document 터치 위임 — dp-sheet 닫기 버튼 (iOS Safari onclick 유실 방지) */
     var dpSheetDocTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
     document.addEventListener('touchstart', function(e) {
       if (e.touches && e.touches[0]) {
@@ -4269,7 +4259,7 @@
     var card = document.getElementById('dpMasterCard');
     if (card) {
       var cardTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
-      /* 모바?�에??onclick ?�실?�는 경우�??�비해 ?�치 ?�들?��? 추�??�다. */
+      /* 모바일에서 onclick 유실되는 경우를 대비해 터치 핸들러를 추가한다. */
       card.addEventListener('touchstart', function(e) {
         _dpRecordTouchTapStart(cardTouchState, e);
       }, { passive: true });
@@ -4343,7 +4333,7 @@
       }
     });
 
-    /* ?�세 ?�형 ?�택 모달(dp-fsel) ??모바???�치 ?�임 (onclick ?�실 방�?) */
+    /* 운세 유형 선택 모달(dp-fsel) — 모바일 터치 위임 (onclick 유실 방지) */
     var fselTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
     document.addEventListener('touchstart', function(e) {
       if (e.touches && e.touches[0]) {
@@ -4369,7 +4359,7 @@
       }
       var btn = targetEl.closest('.dp-fsel-overlay .dp-fsel-btn');
       if (!btn) return;
-      if (!_dpIsStableTouchTap(fselTouchState, e, { moveX: 10, moveY: 16 })) return; /* ?�크롤로 간주 */
+      if (!_dpIsStableTouchTap(fselTouchState, e, { moveX: 10, moveY: 16 })) return; /* 스크롤로 간주 */
       if (e.cancelable) e.preventDefault();
       var type = '';
       if (btn.classList.contains('dp-fsel-btn--saju')) type = 'saju';
@@ -4388,7 +4378,7 @@
       _dpResetTouchTapState(fselTouchState);
     }, { passive: true });
 
-    /* 모바???�치 ?�벤???�임 ??iOS Safari onclick ?�벤???�실 방�? */
+    /* 모바일 터치 이벤트 위임 — iOS Safari onclick 이벤트 유실 방지 */
     var listInner = document.getElementById('dpListInner');
     if (listInner) {
       var listTouchState = { active: false, x: 0, y: 0, startedAt: 0 };
@@ -4396,7 +4386,7 @@
         _dpRecordTouchTapStart(listTouchState, e);
       }, { passive: true });
       listInner.addEventListener('touchend', function(e) {
-        /* ?�크롤이 ?�닌 ??�� 처리 (?�동 10px 미만) */
+        /* 스크롤이 아닌 탭만 처리 (이동 10px 미만) */
         if (!_dpIsStableTouchTap(listTouchState, e, { moveX: 10, moveY: 16 })) return;
         var targetEl = _resolveEventElement(e.target);
         if (!targetEl) return;
@@ -4422,11 +4412,11 @@
       }, { passive: true });
     }
 
-    /* ??변�???카드 ?�동 갱신 (?�???�이?�도 ?�소??반영) */
+    /* 폼 변경 시 카드 자동 갱신 (저장 전이라도 장소는 반영) */
     ['birthCountry'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) el.addEventListener('change', function() {
-        /* ?�재 ?�로?�이 ?�을 ?�만 리렌??*/
+        /* 현재 프로필이 있을 때만 리렌더 */
         if (DPStorage.current()) renderMasterCard(DPStorage.current());
       });
     });
@@ -4442,7 +4432,7 @@
     init();
   }
 
-  /* ?��? ?�출 */
+  /* 외부 노출 */
   window.DestinyProfileManager = {
     storage: DPStorage,
     calcTrueSolarOffset: calcTrueSolarOffset,
@@ -4511,7 +4501,7 @@
     window._cdGetMonthlyCreditBalance = window._cdGetMonthlyCreditBalance || _dpGetMonthlyCreditBalance;
     window._cdChooseServicePaymentMode = function(options) {
       var opts = options || {};
-      var title = String(opts.title || '?�료 ?�비??).trim();
+      var title = String(opts.title || '유료 서비스').trim();
       var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
       var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || (coinPrice * 100))));
       var requiredMonthlyCredits = Math.max(0, coinPrice * 10);
@@ -4532,23 +4522,23 @@
         modal.setAttribute('aria-modal', 'true');
         modal.innerHTML =
           '<div class="cd-direct-payment-dialog">' +
-            '<h2 class="cd-direct-payment-title">?�빛 결제 방식 ?�택</h2>' +
-            '<p class="cd-direct-payment-sub">??콘텐츠만 ??�?구매?�고, 구매 ?????�로?�에?�는 계속 ?�람?????�어??</p>' +
-            '<div class="cd-direct-payment-note"><strong>' + escapeHtml(title) + '</strong>?�건 결제: ' + coinPrice.toLocaleString('ko-KR') + '코인 · ' + amountKrw.toLocaleString('ko-KR') + '??br>?�정??결제: ?�요 ?�정??' + requiredMonthlyCredits.toLocaleString('ko-KR') + '�?· ?�재 보유 ?�정??' + monthlyBalance.toLocaleString('ko-KR') + '</div>' +
+            '<h2 class="cd-direct-payment-title">달빛 결제 방식 선택</h2>' +
+            '<p class="cd-direct-payment-sub">이 콘텐츠만 한 번 구매하고, 구매 후 이 프로필에서는 계속 열람할 수 있어요.</p>' +
+            '<div class="cd-direct-payment-note"><strong>' + escapeHtml(title) + '</strong>단건 결제: ' + coinPrice.toLocaleString('ko-KR') + '코인 · ' + amountKrw.toLocaleString('ko-KR') + '원<br>월정석 결제: 필요 월정석 ' + requiredMonthlyCredits.toLocaleString('ko-KR') + '개 · 현재 보유 월정석 ' + monthlyBalance.toLocaleString('ko-KR') + '</div>' +
             '<div class="cd-direct-payment-options">' +
               '<button type="button" class="cd-direct-payment-option" data-mode="direct">' +
-                '<em class="cd-direct-payment-mode">PortOne V2 · KG?�니?�스</em>' +
-                '<strong>?�건 결제</strong>' +
-                '<span>??콘텐츠만 ??�?구매?�고, 구매 ?????�로?�에?�는 계속 ?�람?????�어??</span>' +
-                '<span class="cd-direct-payment-metric"><span>결제 금액</span><b>' + coinPrice.toLocaleString('ko-KR') + '코인 · ' + amountKrw.toLocaleString('ko-KR') + '??/b></span>' +
-                '<span class="cd-direct-payment-metric"><span>?�인 방식</span><b>?�버 ?�전 ?�인</b></span>' +
+                '<em class="cd-direct-payment-mode">PortOne V2 · KG이니시스</em>' +
+                '<strong>단건 결제</strong>' +
+                '<span>이 콘텐츠만 한 번 구매하고, 구매 후 이 프로필에서는 계속 열람할 수 있어요.</span>' +
+                '<span class="cd-direct-payment-metric"><span>결제 금액</span><b>' + coinPrice.toLocaleString('ko-KR') + '코인 · ' + amountKrw.toLocaleString('ko-KR') + '원</b></span>' +
+                '<span class="cd-direct-payment-metric"><span>확인 방식</span><b>서버 안전 확인</b></span>' +
               '</button>' +
               '<button type="button" class="cd-direct-payment-option' + (canUseMonthly ? '' : ' is-disabled') + '" data-mode="' + (canUseMonthly ? 'monthly' : 'monthly-disabled') + '">' +
-                '<em class="cd-direct-payment-mode">보유 ?�정??/em>' +
-                '<strong>?�정??결제</strong>' +
-                '<span>' + (canUseMonthly ? '보유???�정???�량?�로 결제?�고 즉시 ?�용?�니??' : '보유???�정???�량??부족해 ??방식?� ?�용?????�습?�다.') + '</span>' +
-                '<span class="cd-direct-payment-metric"><span>?�요 ?�정??/span><b>' + requiredMonthlyCredits.toLocaleString('ko-KR') + '�?/b></span>' +
-                '<span class="cd-direct-payment-metric"><span>' + (canUseMonthly ? '결제 ???�여' : '부�??�정??) + '</span><b>' + (canUseMonthly ? (monthlyBalance - requiredMonthlyCredits) : monthlyShortage).toLocaleString('ko-KR') + '</b></span>' +
+                '<em class="cd-direct-payment-mode">보유 월정석</em>' +
+                '<strong>월정석 결제</strong>' +
+                '<span>' + (canUseMonthly ? '보유한 월정석 잔량으로 결제하고 즉시 이용합니다.' : '보유한 월정석 잔량이 부족해 이 방식은 사용할 수 없습니다.') + '</span>' +
+                '<span class="cd-direct-payment-metric"><span>필요 월정석</span><b>' + requiredMonthlyCredits.toLocaleString('ko-KR') + '개</b></span>' +
+                '<span class="cd-direct-payment-metric"><span>' + (canUseMonthly ? '결제 후 잔여' : '부족 월정석') + '</span><b>' + (canUseMonthly ? (monthlyBalance - requiredMonthlyCredits) : monthlyShortage).toLocaleString('ko-KR') + '</b></span>' +
               '</button>' +
             '</div>' +
             '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">취소</button></div>' +
@@ -4602,9 +4592,9 @@
         window._cdCoinGatePerUseInFlight = false;
         window.__cdCoinGatePerUseLockAt = 0;
         _dpSetPaymentPending(false);
-        window.alert('?�전 결제 ?�태�?복구?�습?�다. ?�시 ?�도??주세??');
+        window.alert('이전 결제 상태를 복구했습니다. 다시 시도해 주세요.');
       } else {
-        window.alert('?�전 결제 처리 중입?�다. ?�시 ???�시 ?�도??주세??');
+        window.alert('이전 결제 처리 중입니다. 잠시 후 다시 시도해 주세요.');
       }
       if (typeof onCancel === 'function') onCancel();
       return;
@@ -4628,8 +4618,8 @@
       if (token) consumeHeaders.Authorization = 'Bearer ' + token;
       window._cdCoinGatePerUseInFlight = true;
       window.__cdCoinGatePerUseLockAt = Date.now();
-      var pendingLabel = String(reason || '').trim() || '?�료 ?�비??;
-      _dpSetPaymentPending(true, pendingLabel + ' ?�정??결제�??�인?�는 중입?�다...');
+      var pendingLabel = String(reason || '').trim() || '유료 서비스';
+      _dpSetPaymentPending(true, pendingLabel + ' 월정석 결제를 확인하는 중입니다...');
       return _dpWaitForPaymentOverlayPaint().then(function() {
         return _dpFetchJsonWithFallback('/api/billing/coin-gate', {
           method: 'POST',
@@ -4656,7 +4646,7 @@
         if (res.status === 401 || res.status === 403) {
           if (typeof window.__cdOpenLoginRequiredModal === 'function') {
             window.__cdOpenLoginRequiredModal({
-              reason: '로그?�이 ?�요??기능?�니??',
+              reason: '로그인이 필요한 기능입니다.',
               redirectTo: window.location.pathname + window.location.search + window.location.hash,
             });
           }
@@ -4667,7 +4657,7 @@
         var rawData = (res && res.data && typeof res.data === 'object') ? res.data : {};
         var data = (rawData.data && typeof rawData.data === 'object') ? rawData.data : rawData;
         if (res.status === 402 || !res.ok || !data || data.ok === false) {
-          var failMessage = String((data && data.message) || rawData.message || '?�정?�이 부족합?�다. ?�요 ?�정?�과 보유 ?�정?�을 ?�인??주세??');
+          var failMessage = String((data && data.message) || rawData.message || '월정석이 부족합니다. 필요 월정석과 보유 월정석을 확인해 주세요.');
           window.alert(failMessage);
           if (typeof onCancel === 'function') onCancel();
           return;
@@ -4684,20 +4674,20 @@
         window.__cdCoinGatePerUseLockAt = 0;
         _dpSetPaymentPending(false);
         console.error('[coin-gate-per-use]', error);
-        window.alert('결제�?처리?�는 �?문제가 발생?�습?�다. ?�시 ???�시 ?�도??주세??');
+        window.alert('결제를 처리하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
         if (typeof onCancel === 'function') onCancel();
       });
     }
 
     function runDirectCheckout() {
       if (typeof window._cdRunDirectKrwCheckout !== 'function') {
-        window.alert('?�건 결제 모듈??찾을 ???�습?�다. ?�이지�??�로고침?????�시 ?�도??주세??');
+        window.alert('단건 결제 모듈을 찾을 수 없습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
         if (typeof onCancel === 'function') onCancel();
         return Promise.resolve();
       }
       window._cdCoinGatePerUseInFlight = true;
       window.__cdCoinGatePerUseLockAt = Date.now();
-      _dpSetPaymentPending(true, String(reason || '?�료 ?�비??) + ' ?�건 결제�?준비하??중입?�다...');
+      _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 준비하는 중입니다...');
       return window._cdRunDirectKrwCheckout({
         coinPrice: cost,
         cost: cost,
@@ -4722,7 +4712,7 @@
         window.__cdCoinGatePerUseLockAt = 0;
         _dpSetPaymentPending(false);
         console.error('[direct-checkout]', error);
-        window.alert(String(error && error.message || '?�건 결제�??�료?��? 못했?�니?? 결제 ?�단???�인?????�시 ?�도??주세??'));
+        window.alert(String(error && error.message || '단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요.'));
         if (typeof onCancel === 'function') onCancel(error);
       });
     }

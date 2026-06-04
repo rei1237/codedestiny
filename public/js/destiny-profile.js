@@ -1768,7 +1768,7 @@
         channelKey: config.channelKey,
         paymentId: merchantUid,
         orderName: String(order.productName || checkoutPayload.reason || '디지털 운세 콘텐츠').slice(0, 80),
-        amount: orderAmount,
+        totalAmount: orderAmount,
         currency: config.currency || 'CURRENCY_KRW',
         payMethod: config.payMethod || 'CARD',
         customer: customer,
