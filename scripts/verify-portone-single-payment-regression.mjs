@@ -394,7 +394,9 @@ function runClientStaticTests() {
   assertContains(indexSource, "alreadyUnlocked", "already unlocked branch");
   assertContains(pagesHeadersSource, "connect-src 'self'", "Cloudflare Pages CSP connect-src");
   assertContains(pagesHeadersSource, "connect-src 'self' https://code-destiny.com https://www.code-destiny.com https://code-destiny-web.bulegyung.workers.dev https://cdn.portone.io https://checkout-service.prod.iamport.co", "PortOne checkout prepare API must be allowed by connect-src");
+  assertContains(pagesHeadersSource, "https://tx-gateway-service.prod.iamport.co", "KG Inicis virtual-account notification gateway must be allowed by CSP");
   assertContains(pagesHeadersSource, "frame-src 'self' https://checkout-service.prod.iamport.co", "PortOne checkout frame must be allowed by frame-src");
+  assertContains(pagesHeadersSource, "form-action 'self' https://tx-gateway-service.prod.iamport.co", "KG Inicis virtual-account gateway form action must be allowed");
 }
 
 function runE2EStaticTests() {
@@ -415,6 +417,7 @@ try {
   runClientStaticTests();
   runE2EStaticTests();
   assertContains(portoneSource, "Authorization: `PortOne ${apiSecret}`", "PortOne REST authorization header");
+  assertContains(portoneSource, "noticeUrl: getPortOneWebhookUrl(env)", "PortOne public config should expose webhook notice URL");
   console.log("[verify-portone-single-payment-regression] PASS");
 } finally {
   restoreMocks();

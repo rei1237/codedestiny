@@ -178,6 +178,7 @@ export function getPortOnePublicConfig(env) {
     channelKey,
     currency: "CURRENCY_KRW",
     payMethod: "CARD",
+    noticeUrl: getPortOneWebhookUrl(env),
     configured: Boolean(storeId && channelKey),
     serverVerificationConfigured,
   };
