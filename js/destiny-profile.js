@@ -1719,11 +1719,126 @@
     });
   }
 
-  if (typeof window._cdRunDirectKrwCheckout !== 'function') {
+
+  var __dpPaidPassGateCache = window.__cdPassAccessResultCache || (window.__cdPassAccessResultCache = {});
+
+  function _dpPaidPassCacheKey(opts, title, coinPrice) {
+    opts = opts || {};
+    var featureKey = String(opts.featureKey || opts.subFeatureKey || opts.serviceKey || opts.productId || '').trim();
+    var reason = String(opts.reason || title || opts.title || '').trim();
+    var cost = Math.max(0, Math.floor(Number(coinPrice || opts.coinPrice || opts.cost || 0)));
+    return [featureKey, reason, cost].join('|');
+  }
+
+  function _dpStorePaidPassGateResult(key, result) {
+    if (!key || !result) return;
+    __dpPaidPassGateCache[key] = { access: result, expiresAt: Date.now() + 15000 };
+  }
+
+  function _dpTakePaidPassGateResult(key) {
+    if (!key) return null;
+    var entry = __dpPaidPassGateCache[key];
+    if (!entry) return null;
+    delete __dpPaidPassGateCache[key];
+    if (entry.expiresAt && entry.expiresAt < Date.now()) return null;
+    return entry.access || null;
+  }
+
+  function _dpIsMembershipPassGrantedPayload(payload) {
+    var data = _dpExtractBillingData(payload || {});
+    var consume = data && data.consume && typeof data.consume === 'object' ? data.consume : {};
+    var accessGrant = data && data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    var values = [data.freeBySubscription === true ? 'membership_pass' : '', data.alreadyUnlocked === true ? 'already_unlocked' : '', data.accessType, data.transactionType, data.accessMethod, data.paymentMethod, consume.accessType, consume.transactionType, consume.accessMethod, consume.paymentMethod, accessGrant.accessType, accessGrant.transactionType, accessGrant.accessMethod, accessGrant.paymentMethod];
+    for (var i = 0; i < values.length; i += 1) {
+      var value = String(values[i] || '').toLowerCase();
+      if (value === 'membership_pass' || value === 'pass' || value === 'already_unlocked') return true;
+    }
+    return false;
+  }
+
+  function _dpPaidPassPayloadTransactionId(payload, fallbackId) {
+    var data = _dpExtractBillingData(payload || {});
+    var consume = data && data.consume && typeof data.consume === 'object' ? data.consume : {};
+    var accessGrant = data && data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    return String(data.transactionId || data.paymentId || data.purchaseId || data.requestId || consume.transactionId || consume.requestId || accessGrant.evidenceId || accessGrant.purchaseId || accessGrant.requestId || fallbackId || '');
+  }
+
+  async function _dpApplyMembershipPassBeforePayment(options) {
+    var opts = options || {};
+    var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
+    if (!coinPrice) return { status: 'payment_required' };
+    var title = String(opts.title || opts.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4').trim();
+    var featureKey = String(opts.featureKey || opts.subFeatureKey || opts.serviceKey || opts.productId || opts.reason || title || 'coin-gate-per-use').trim();
+    var requestId = String(opts.requestId || '').trim() || ('pass-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
+    var cacheKey = _dpPaidPassCacheKey(opts, title, coinPrice);
+    var cached = _dpTakePaidPassGateResult(cacheKey);
+    if (cached && (cached.status === 'pass_applied' || cached.status === 'already_unlocked')) return cached;
+    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify({ cost: coinPrice, coinPrice: coinPrice, reason: String(opts.reason || title), featureKey: featureKey, paymentMode: 'MEMBERSHIP_PASS', forceDeduct: true, requestId: requestId, categoryKey: opts.categoryKey || undefined, subFeatureKey: opts.subFeatureKey || undefined, productId: opts.productId || undefined, reportType: opts.reportType || undefined, serviceKey: opts.serviceKey || undefined, profileId: opts.profileId || undefined, selectedProfileId: opts.selectedProfileId || opts.profileId || undefined }) });
+    var payload = res && res.payload ? res.payload : res;
+    var statusCode = Number((res && res.status) || (payload && payload.status) || 0);
+    var code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
+    if (res && res.ok && _dpIsMembershipPassGrantedPayload(payload)) {
+      var result = { status: _dpExtractBillingData(payload).alreadyUnlocked === true ? 'already_unlocked' : 'pass_applied', payload: payload, requestId: requestId };
+      _dpStorePaidPassGateResult(cacheKey, result);
+      try {
+        if (result.status === 'pass_applied') {
+          if (typeof window._cdShowMembershipFreeNotice === 'function') window._cdShowMembershipFreeNotice({ title: title, coinPrice: coinPrice, payload: payload });
+          else if (typeof window._cdShowSubscriptionShieldNotice === 'function') window._cdShowSubscriptionShieldNotice({ message: '\uC774\uC6A9\uAD8C\uC73C\uB85C \uCF54\uC778 \uCC28\uAC10 \uC5C6\uC774 \uC774\uC6A9\uD569\uB2C8\uB2E4.', requiredCoins: coinPrice });
+        }
+      } catch (_) {}
+      return result;
+    }
+    if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') return { status: 'payment_required', payload: payload, requestId: requestId };
+    return { status: 'payment_required', payload: payload, requestId: requestId };
+  }
+
+  async function _dpRunMonthlyCreditFromMainGate(options) {
+    var opts = options || {};
+    var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
+    var title = String(opts.title || opts.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4').trim();
+    var featureKey = String(opts.featureKey || opts.subFeatureKey || opts.serviceKey || opts.productId || opts.reason || title || 'coin-gate-per-use').trim();
+    var requestId = String(opts.requestId || '').trim() || ('monthly-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
+    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify({ cost: coinPrice, coinPrice: coinPrice, reason: String(opts.reason || title), featureKey: featureKey, paymentMode: 'MONTHLY_CREDIT', forceDeduct: true, requestId: requestId, categoryKey: opts.categoryKey || undefined, subFeatureKey: opts.subFeatureKey || undefined, productId: opts.productId || undefined, reportType: opts.reportType || undefined, serviceKey: opts.serviceKey || undefined, profileId: opts.profileId || undefined, selectedProfileId: opts.selectedProfileId || opts.profileId || undefined }) });
+    if (!res || !res.ok) throw new Error(_dpReadBillingMessage(res && res.payload, '\uC6D4\uC815\uC11D \uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.'));
+    return res.payload || res;
+  }
+
+  window.__cdApplyMembershipPassBeforePayment = window.__cdApplyMembershipPassBeforePayment || _dpApplyMembershipPassBeforePayment;
+
+  if (typeof window._cdOpenPaidServiceGate !== 'function') {
+    window._cdOpenPaidServiceGate = async function(options) {
+      var opts = options || {};
+      var title = String(opts.title || opts.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4').trim();
+      var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
+      var requestId = String(opts.requestId || '').trim() || ('paid-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
+      var passResult = await _dpApplyMembershipPassBeforePayment(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId }));
+      if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) {
+        var passTx = _dpPaidPassPayloadTransactionId(passResult.payload, requestId);
+        if (typeof opts.onGranted === 'function') opts.onGranted(passTx, passResult.payload || {}, passResult);
+        return { status: 'granted', transactionId: passTx, payload: passResult.payload || {}, access: passResult };
+      }
+      if (typeof window._cdChooseServicePaymentMode !== 'function') throw new Error('\uACB0\uC81C \uC120\uD0DD\uCC3D\uC744 \uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.');
+      var choice = await window._cdChooseServicePaymentMode(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, internalMainGate: true, skipPassProbe: true }));
+      if (!choice || choice === 'cancel') {
+        if (typeof opts.onCancel === 'function') opts.onCancel();
+        return { status: 'cancelled' };
+      }
+      var payload = choice === 'monthly' ? await _dpRunMonthlyCreditFromMainGate(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId })) : await window._cdRunDirectKrwCheckout(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, forceDirectPayment: true, internalMainGate: true }));
+      var txId = _dpPaidPassPayloadTransactionId(payload, requestId);
+      if (typeof opts.onGranted === 'function') opts.onGranted(txId, payload || {}, { status: choice === 'monthly' ? 'monthly_paid' : 'direct_paid' });
+      return { status: 'granted', transactionId: txId, payload: payload || {} };
+    };
+  }  if (typeof window._cdRunDirectKrwCheckout !== 'function') {
     window._cdRunDirectKrwCheckout = async function(options) {
       var opts = options || {};
       var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
       var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || (coinPrice * 100))));
+      if (opts.forceDirectPayment !== true && typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
+        var passBeforeDirect = await window.__cdApplyMembershipPassBeforePayment(opts);
+        if (passBeforeDirect && (passBeforeDirect.status === 'pass_applied' || passBeforeDirect.status === 'already_unlocked')) {
+          return passBeforeDirect.payload || {};
+        }
+      }
       var checkoutPayload = Object.assign({
         paymentType: 'digital_content',
         paymentMode: 'DIRECT_KRW',
@@ -1938,6 +2053,29 @@
       return;
     }
 
+    if (typeof window._cdOpenPaidServiceGate === 'function') {
+      return window._cdOpenPaidServiceGate({
+        title: reason,
+        reason: reason,
+        coinPrice: cost,
+        cost: cost,
+        featureKey: normalizedFeatureKey,
+        requestId: requestId,
+        reportType: optionBag.reportType,
+        serviceKey: optionBag.serviceKey,
+        profileId: optionBag.profileId,
+        selectedProfileId: optionBag.selectedProfileId,
+        onGranted: function(transactionId, payload) {
+          if (typeof cb === 'function') cb(String(transactionId || requestId), payload || {});
+        },
+        onCancel: onCancel
+      }).catch(function(error) {
+        console.error('[legacy-main-paid-service-gate]', error);
+        window.alert(String(error && error.message || '\uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.'));
+        if (typeof onCancel === 'function') onCancel(error);
+        return null;
+      });
+    }
     var token = '';
     try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
     var balance = 0;
@@ -4875,8 +5013,9 @@
         });
       };
 
-      _dpEnsureServicePaymentStyles();
-      return new Promise(function(resolve) {
+      function openServicePaymentChoiceModal() {
+        _dpEnsureServicePaymentStyles();
+        return new Promise(function(resolve) {
         var modal = document.createElement('div');
         modal.className = 'cd-direct-payment-modal is-open';
         modal.setAttribute('role', 'dialog');
@@ -4924,7 +5063,17 @@
         document.body.appendChild(modal);
         var direct = modal.querySelector('[data-mode="direct"]');
         if (direct && typeof direct.focus === 'function') direct.focus();
-      });
+        });
+      }
+      if (opts.internalMainGate !== true && opts.skipPassProbe !== true && typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
+        return window.__cdApplyMembershipPassBeforePayment(opts).then(function(passResult) {
+          if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) return 'direct';
+          return openServicePaymentChoiceModal();
+        }).catch(function() {
+          return openServicePaymentChoiceModal();
+        });
+      }
+      return openServicePaymentChoiceModal();
     };
   }
 

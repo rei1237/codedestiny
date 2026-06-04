@@ -1622,6 +1622,20 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           passTier: subscriptionPass.passTier,
           freeLimit: subscriptionPass.freeLimit,
         },
+        membershipPassDebug: {
+          detectedTier: subscriptionPass.tier,
+          passTier: subscriptionPass.passTier,
+          freeLimit: subscriptionPass.freeLimit,
+          passLimit: paymentDecision.passLimit,
+          requestedCoinPrice: Number(pricing?.coinPrice || pricing?.cost || 0),
+          hasActivePass: paymentDecision.hasActivePass,
+          canUseByPass: paymentDecision.canUseByPass,
+          status: subscriptionPass.profileSubscription?.status
+            || subscriptionPass.profileSubscription?.subscriptionStatus
+            || subscriptionPass.profileSubscription?.membershipStatus
+            || null,
+          expiresAt: subscriptionPass.profileSubscription?.expiresAt || null,
+        },
       });
     }
 
