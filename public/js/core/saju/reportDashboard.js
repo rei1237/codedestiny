@@ -936,8 +936,8 @@ function renderReportDashboard() {
   var dashCard  = document.getElementById('reportDashboardCard');
   if (!container || !dashCard) return;
   dashCard.style.display = '';
-  container.hidden = true;
-  container.style.display = 'none';
+  container.hidden = false;
+  container.style.display = '';
 
   (function ensureDashboardToggle() {
     var head = dashCard.querySelector('.report-dashboard-head') || dashCard;
@@ -951,8 +951,8 @@ function renderReportDashboard() {
       head.appendChild(toggle);
     }
     if (!toggle) return;
-    toggle.setAttribute('aria-expanded', 'false');
-    toggle.textContent = '열기';
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.textContent = '접기';
     if (toggle.__cdReportDashboardToggleBound) return;
     toggle.__cdReportDashboardToggleBound = true;
     toggle.addEventListener('click', function() {
