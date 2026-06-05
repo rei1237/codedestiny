@@ -3834,13 +3834,46 @@ function updateFortunePointNotice(points){
   }
 }
 
+function getSajuReturnPath(){
+  var pathname = '/';
+  var search = '';
+  var hash = '';
+  var resultPage = null;
+  try { pathname = window.location.pathname || '/'; } catch (_) {}
+  try { search = window.location.search || ''; } catch (_) {}
+  try { hash = window.location.hash || ''; } catch (_) {}
+  try { resultPage = document.getElementById('resultPage'); } catch (_) {}
+  if (!hash && resultPage && resultPage.style.display !== 'none') hash = '#resultPage';
+  return pathname + search + hash;
+}
+
+function isSajuRedirectDebugEnabled(){
+  try {
+    var host = window.location.hostname;
+    return host === 'localhost' || host === '127.0.0.1' || host === '::1' || window.location.search.indexOf('debugSajuRedirect=1') !== -1;
+  } catch (_) {
+    return false;
+  }
+}
+
+function getSajuEncodedReturnPath(reason){
+  var returnPath = getSajuReturnPath();
+  if (isSajuRedirectDebugEnabled()) {
+    console.warn('[saju-redirect-blocked]', {
+      reason: reason || 'preserve-saju-return-path',
+      pathname: (window.location && window.location.pathname) || '',
+      returnPath: returnPath
+    });
+  }
+  return encodeURIComponent(returnPath);
+}
 function redirectToLoginForFortune(){
-  var nextPath = encodeURIComponent('/');
+  var nextPath = getSajuEncodedReturnPath('fortune-login-return-path');
   window.location.href = '/login?next=' + nextPath;
 }
 
 function redirectToPointRecharge(){
-  var nextPath = encodeURIComponent('/');
+  var nextPath = getSajuEncodedReturnPath('fortune-point-return-path');
   window.location.href = '/points?next=' + nextPath;
 }
 
@@ -4577,8 +4610,116 @@ function _openSajuPaidPaymentMode(cost, reason, featureKey) {
       return Promise.resolve(null);
     }
   } catch (_) {}
-  window.location.href = '/points?next=%2F';
+  window.location.href = '/points?next=' + getSajuEncodedReturnPath('paid-feature-point-return-path');
   return Promise.resolve(null);
+}
+
+function _cdAIPromptPayloadData(payload) {
+  var source = payload && typeof payload === 'object' ? payload : {};
+  return source.data && typeof source.data === 'object' ? source.data : source;
+}
+
+function _cdAIPromptRequestJson(path, init) {
+  if (typeof window.fetchJsonWithAuth === 'function') return window.fetchJsonWithAuth(path, init || {});
+  var headers = { 'Content-Type': 'application/json' };
+  try {
+    var token = getFortuneAuthToken();
+    if (token) headers.Authorization = 'Bearer ' + token;
+  } catch (_) {}
+  return fetch(path, {
+    method: (init && init.method) || 'POST',
+    credentials: 'include',
+    cache: 'no-store',
+    headers: Object.assign(headers, (init && init.headers) || {}),
+    body: init && init.body
+  }).then(function(res) {
+    return res.json().catch(function() { return {}; }).then(function(payload) {
+      return { ok: res.ok, status: res.status, payload: payload || {} };
+    });
+  });
+}
+
+function _cdAIPromptGate(input) {
+  var opts = input && typeof input === 'object' ? input : {};
+  var featureKey = String(opts.featureKey || '').trim();
+  var reason = String(opts.reason || 'AI 질문 프롬프트 생성').trim();
+  var requestId = String(opts.requestId || featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)).trim();
+  function normalize(result) {
+    var payload = result && result.payload ? result.payload : {};
+    var data = _cdAIPromptPayloadData(payload);
+    return {
+      ok: !!(result && result.ok),
+      status: Number((result && result.status) || 0),
+      payload: payload,
+      data: data,
+      requestId: requestId,
+      code: String(payload.code || (payload.error && payload.error.code) || data.code || '').trim(),
+      message: String((payload.error && payload.error.message) || payload.message || data.message || '').trim(),
+      requiredCoins: Number((data.pricing && (data.pricing.coinPrice || data.pricing.cost)) || data.requiredCoins || opts.cost || 0)
+    };
+  }
+  return _cdAIPromptRequestJson('/api/billing/coin-gate', {
+    method: 'POST',
+    body: JSON.stringify({
+      featureKey: featureKey,
+      reason: reason,
+      requestId: requestId,
+      categoryKey: String(opts.categoryKey || 'ai-prompt').trim(),
+      forceDeduct: true
+    })
+  }).then(function(result) {
+    var gate = normalize(result);
+    if (gate.ok || gate.status !== 402 || typeof window._cdOpenPaidServiceGate !== 'function') return gate;
+    return window._cdOpenPaidServiceGate({
+      title: reason,
+      reason: reason,
+      featureKey: featureKey,
+      coinPrice: Number(opts.cost || gate.requiredCoins || 100),
+      cost: Number(opts.cost || gate.requiredCoins || 100),
+      requestId: requestId
+    }).then(function(openResult) {
+      if (openResult && openResult.status === 'granted') return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
+      return gate;
+    }).catch(function() {
+      return gate;
+    });
+  });
+}
+
+function _cdAIPromptGateEvidence(gateResult) {
+  var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
+  var data = gate.data && typeof gate.data === 'object' ? gate.data : {};
+  var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
+  var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+  return {
+    requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
+    accessGrant: accessGrant,
+    consume: consume,
+    payment: data.payment && typeof data.payment === 'object' ? data.payment : undefined,
+    _paymentContext: {
+      requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
+      featureKey: String(data.featureKey || accessGrant.featureKey || consume.featureKey || '').trim(),
+      transactionId: String(data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
+      accessType: String(data.accessType || accessGrant.accessType || consume.accessType || '').trim()
+    }
+  };
+}
+
+function _cdAIPromptFailureResult(gateResult) {
+  var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
+  var code = String(gate.code || '').trim();
+  if (gate.status === 401 || gate.status === 403) code = 'AUTH_REQUIRED';
+  if (gate.status === 402 && !code) code = 'PAYMENT_REQUIRED';
+  return {
+    ok: false,
+    status: gate.status || 400,
+    payload: {
+      ok: false,
+      code: code || 'PAYMENT_REQUIRED',
+      message: gate.message || '결제 후 프롬프트를 생성할 수 있습니다.',
+      requiredCoins: gate.requiredCoins || 0
+    }
+  };
 }
 
 function _sajuPromptClone(value) {
@@ -4749,24 +4890,35 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
       }
     } catch (_) {}
 
-    function runAt(index) {
+    var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+
+    function runAt(index, finalBody) {
       return fetch(urls[index], {
         method: 'POST',
         credentials: 'include',
         cache: 'no-store',
         headers: buildHeaders(),
-        body: JSON.stringify(body)
+        body: JSON.stringify(finalBody || body)
       }).then(function(res) {
         return res.json().catch(function() { return {}; }).then(function(payload) {
           return { ok: res.ok, status: res.status, payload: payload || {} };
         });
       }).catch(function(err) {
-        if (index + 1 < urls.length) return runAt(index + 1);
+        if (index + 1 < urls.length) return runAt(index + 1, finalBody);
         throw err;
       });
     }
 
-    return runAt(0);
+    return _cdAIPromptGate({
+      featureKey: 'saju_ai_prompt_generator',
+      reason: '사주 AI 질문 프롬프트 생성',
+      cost: SAJU_AI_PROMPT_COST,
+      requestId: 'saju-ai-prompt:' + requestNonce,
+      categoryKey: 'saju'
+    }).then(function(gateResult) {
+      if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
+      return runAt(0, Object.assign({}, body, _cdAIPromptGateEvidence(gateResult)));
+    });
   }
 
   generateBtn.addEventListener('click', function() {
@@ -4822,7 +4974,7 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
       if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
         _setSajuAIPromptStatus(statusEl, '로그인이 필요합니다.', 'error');
         if (window.confirm('로그인이 필요한 기능입니다. 로그인 페이지로 이동할까요?')) {
-          var next = encodeURIComponent(window.location.pathname + window.location.search);
+          var next = getSajuEncodedReturnPath('saju-login-return-path');
           window.location.href = '/login?next=' + next;
         }
         return;
@@ -9617,24 +9769,35 @@ function renderAstroInsight() {
         }
       } catch (_) {}
 
-      function runAt(index) {
+      var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+
+      function runAt(index, finalBody) {
         return fetch(urls[index], {
           method: 'POST',
           credentials: 'include',
           cache: 'no-store',
           headers: _astroBuildPromptHeaders(),
-          body: JSON.stringify(body)
+          body: JSON.stringify(finalBody || body)
         }).then(function(res) {
           return res.json().catch(function() { return {}; }).then(function(payload) {
             return { ok: res.ok, status: res.status, payload: payload || {} };
           });
         }).catch(function(err) {
-          if (index + 1 < urls.length) return runAt(index + 1);
+          if (index + 1 < urls.length) return runAt(index + 1, finalBody);
           throw err;
         });
       }
 
-      return runAt(0);
+      return _cdAIPromptGate({
+        featureKey: 'astrology_ai_prompt_generator',
+        reason: '점성술 AI 질문 프롬프트 생성',
+        cost: ASTROLOGY_AI_PROMPT_COST,
+        requestId: 'astrology-ai-prompt:' + requestNonce,
+        categoryKey: 'astrology'
+      }).then(function(gateResult) {
+        if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
+        return runAt(0, Object.assign({}, body, _cdAIPromptGateEvidence(gateResult)));
+      });
     }
 
     function _astroMountPromptSection() {
@@ -9723,7 +9886,7 @@ function renderAstroInsight() {
           if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
             _astroSetPromptStatus(statusEl, '로그인이 필요합니다.', 'error');
             if (window.confirm('로그인이 필요한 기능입니다. 로그인 페이지로 이동할까요?')) {
-              var next = encodeURIComponent(window.location.pathname + window.location.search);
+              var next = getSajuEncodedReturnPath('saju-login-return-path');
               window.location.href = '/login?next=' + next;
             }
             return;
@@ -10170,7 +10333,7 @@ function renderAstroInsight() {
         try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
         if (!token) {
           if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-            window.location.href = '/login?next=%2F';
+            window.location.href = '/login?next=' + getSajuEncodedReturnPath('saju-login-return-path');
           }
           return;
         }
@@ -10420,7 +10583,7 @@ function renderAstroInsight() {
         try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
         if (!token) {
           if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-            window.location.href = '/login?next=%2F';
+            window.location.href = '/login?next=' + getSajuEncodedReturnPath('saju-login-return-path');
           }
           return;
         }
@@ -15327,18 +15490,34 @@ function renderZiwei(p, natal, targetId) {
       setLoading(true);
       setStatus('명반 데이터를 바탕으로 프롬프트를 생성하고 있습니다...', 'info');
 
-      fetch('/api/fortune/ziwei/ai-prompt', {
-        method: 'POST',
-        credentials: 'include',
-        headers: buildHeaders(),
-        cache: 'no-store',
-        body: JSON.stringify({
-          question: question,
-          chartResult: chartResult
-        })
-      }).then(function(res) {
-        return res.json().catch(function() { return {}; }).then(function(payload) {
-          return { ok: res.ok, status: res.status, payload: payload || {} };
+      var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+      _cdAIPromptGate({
+        featureKey: 'ziwei_ai_prompt_generator',
+        reason: '자미두수 AI 질문 프롬프트 생성',
+        cost: _ZW_AI_PROMPT_COST,
+        requestId: 'ziwei-ai-prompt:' + requestNonce,
+        categoryKey: 'ziwei'
+      }).then(function(gateResult) {
+        if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
+        var evidence = _cdAIPromptGateEvidence(gateResult);
+        return fetch('/api/fortune/ziwei/ai-prompt', {
+          method: 'POST',
+          credentials: 'include',
+          headers: buildHeaders(),
+          cache: 'no-store',
+          body: JSON.stringify({
+            question: question,
+            chartResult: chartResult,
+            requestId: evidence.requestId || ('ziwei-ai-prompt:' + requestNonce),
+            accessGrant: evidence.accessGrant,
+            consume: evidence.consume,
+            payment: evidence.payment,
+            _paymentContext: evidence._paymentContext
+          })
+        }).then(function(res) {
+          return res.json().catch(function() { return {}; }).then(function(payload) {
+            return { ok: res.ok, status: res.status, payload: payload || {} };
+          });
         });
       }).then(function(result) {
         var payload = result.payload || {};
@@ -15368,7 +15547,7 @@ function renderZiwei(p, natal, targetId) {
           setStatus('로그인이 필요합니다. 로그인 페이지로 이동합니다.', 'error');
           setTimeout(function() {
             try {
-              var next = encodeURIComponent(window.location.pathname + window.location.search);
+              var next = getSajuEncodedReturnPath('saju-login-return-path');
               window.location.href = '/login?next=' + next;
             } catch (_) {}
           }, 700);
@@ -15876,7 +16055,7 @@ function renderZiwei(p, natal, targetId) {
       try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
       if (!token) {
         if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-          window.location.href = '/login?next=%2F';
+          window.location.href = '/login?next=' + getSajuEncodedReturnPath('saju-login-return-path');
         }
         return;
       }
@@ -20344,7 +20523,7 @@ async function runCompat(){
       compatRunBtn.style.opacity = '';
     }
     if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-      window.location.href = '/login?next=%2F';
+      window.location.href = '/login?next=' + getSajuEncodedReturnPath('saju-login-return-path');
     }
     return;
   }

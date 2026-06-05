@@ -1798,13 +1798,58 @@
     return !key || key === 'coin-gate-per-use' || key === 'paid-service' || key === 'paid_service' || key === 'default' || key === 'service';
   }
 
+  function _dpNormalizePaidReason(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  var _DP_PAID_REASON_FEATURE_KEYS = {
+    '십이지신 천운 타로': 'tarot-year-fortune',
+    '우리는 무슨 사이? 타로 리딩': 'tarot-love-relationship',
+    '재회운 타로 리딩': 'tarot-reunion-reading',
+    '주역 거북점 리딩': 'openJuyukModal',
+    '이집트 신탁 리딩': 'openKemetModal',
+    '애니멀 토템 리딩': 'animal-totem-basic',
+    '애니멀 토템 심화 리딩': 'animal-totem-deep',
+    '점성술 셜럭 시나스트리 궁합': 'compat-astro-synastry',
+    '점성술 직접 입력 시나스트리 궁합': 'compat-astro-direct-synastry',
+    '자미두수 궁합 분석': 'compat-ziwei-compatibility',
+    '사주 궁합 분석': 'compat-saju-compatibility',
+    '숙요점 유명인 궁합': 'compat-sukuyo-compatibility',
+    '숙요점 궁합 분석': 'compat-sukuyo-compatibility',
+    '프로필 카드 추가': 'profile-card-manage',
+    '프로필 카드 수정': 'profile-card-manage',
+    '프로필 카드 삭제': 'profile-card-manage'
+  };
+
+  function _dpResolvePaidGateReasonFeatureKey(opts, title) {
+    opts = opts || {};
+    var reason = _dpNormalizePaidReason(opts.reason || title || opts.title || '');
+    if (_DP_PAID_REASON_FEATURE_KEYS[reason]) return _DP_PAID_REASON_FEATURE_KEYS[reason];
+    var compact = reason.replace(/\s+/g, '');
+    if (!compact) return '';
+    if (compact.indexOf('십이지신') >= 0 && compact.indexOf('천운') >= 0 && compact.indexOf('타로') >= 0) return 'tarot-year-fortune';
+    if (compact.indexOf('우리는무슨사이') >= 0 && compact.indexOf('타로') >= 0) return 'tarot-love-relationship';
+    if (compact.indexOf('재회운') >= 0 && compact.indexOf('타로') >= 0) return 'tarot-reunion-reading';
+    if (compact.indexOf('주역') >= 0 && compact.indexOf('거북점') >= 0) return 'openJuyukModal';
+    if (compact.indexOf('이집트') >= 0 && compact.indexOf('신탁') >= 0) return 'openKemetModal';
+    if (compact.indexOf('애니멀토템심화') >= 0) return 'animal-totem-deep';
+    if (compact.indexOf('애니멀토템') >= 0) return 'animal-totem-basic';
+    if (compact.indexOf('점성술셜럭') >= 0 && compact.indexOf('시나스트리궁합') >= 0) return 'compat-astro-synastry';
+    if (compact.indexOf('점성술직접입력') >= 0 && compact.indexOf('시나스트리궁합') >= 0) return 'compat-astro-direct-synastry';
+    if (compact.indexOf('자미두수') >= 0 && compact.indexOf('궁합') >= 0) return 'compat-ziwei-compatibility';
+    if (compact.indexOf('사주') >= 0 && compact.indexOf('궁합분석') >= 0) return 'compat-saju-compatibility';
+    if (compact.indexOf('숙요점') >= 0 && compact.indexOf('궁합') >= 0) return 'compat-sukuyo-compatibility';
+    if (compact.indexOf('프로필카드') >= 0) return 'profile-card-manage';
+    return '';
+  }
+
   function _dpResolvePaidGateFeatureKey(opts, title) {
     opts = opts || {};
     var explicit = String(opts.featureKey || '').trim();
     if (!_dpIsGenericPaidGateFeatureKey(explicit)) return explicit;
-    var fallback = String(opts.subFeatureKey || opts.serviceKey || opts.productId || '').trim();
+    var fallback = String(opts.subFeatureKey || opts.serviceKey || opts.productId || opts.actionType || opts.profileAction || opts.action || '').trim();
     if (!_dpIsGenericPaidGateFeatureKey(fallback)) return fallback;
-    return '';
+    return _dpResolvePaidGateReasonFeatureKey(opts, title);
   }
 
   function _dpStorePaidPassGateResult(key, result) {

@@ -8769,18 +8769,118 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     window.location.href = '/login?next=%2F';
   }
 
-  function syFetchCoinBalance() {
-    return fetch('/api/fortune/pig-coin/balance', {
-      method: 'GET',
+  function syPromptPayloadData(payload) {
+    var source = payload && typeof payload === 'object' ? payload : {};
+    return source.data && typeof source.data === 'object' ? source.data : source;
+  }
+
+  function syPromptRequestJson(path, init) {
+    if (typeof window.fetchJsonWithAuth === 'function') return window.fetchJsonWithAuth(path, init || {});
+    return fetch(path, {
+      method: (init && init.method) || 'POST',
       credentials: 'include',
       cache: 'no-store',
-      headers: syBuildFortuneAuthHeaders()
+      headers: syBuildFortuneAuthHeaders((init && init.headers) || null),
+      body: init && init.body
     }).then(function(res) {
-      if (!res.ok) return null;
-      return res.json().catch(function() { return null; });
-    }).then(function(payload) {
+      return res.json().catch(function() { return {}; }).then(function(payload) {
+        return { ok: res.ok, status: res.status, payload: payload || {} };
+      });
+    });
+  }
+
+  function syPromptGate(input) {
+    var opts = input && typeof input === 'object' ? input : {};
+    var featureKey = String(opts.featureKey || 'sukuyo_ai_prompt_generator').trim();
+    var reason = String(opts.reason || '숙요점 AI 질문 프롬프트 생성').trim();
+    var requestId = String(opts.requestId || featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)).trim();
+    function normalize(result) {
+      var payload = result && result.payload ? result.payload : {};
+      var data = syPromptPayloadData(payload);
+      return {
+        ok: !!(result && result.ok),
+        status: Number((result && result.status) || 0),
+        payload: payload,
+        data: data,
+        requestId: requestId,
+        code: String(payload.code || (payload.error && payload.error.code) || data.code || '').trim(),
+        message: String((payload.error && payload.error.message) || payload.message || data.message || '').trim(),
+        requiredCoins: Number((data.pricing && (data.pricing.coinPrice || data.pricing.cost)) || data.requiredCoins || opts.cost || 0)
+      };
+    }
+    return syPromptRequestJson('/api/billing/coin-gate', {
+      method: 'POST',
+      body: JSON.stringify({
+        featureKey: featureKey,
+        reason: reason,
+        requestId: requestId,
+        categoryKey: String(opts.categoryKey || 'sukuyo').trim(),
+        forceDeduct: true
+      })
+    }).then(function(result) {
+      var gate = normalize(result);
+      if (gate.ok || gate.status !== 402 || typeof window._cdOpenPaidServiceGate !== 'function') return gate;
+      return window._cdOpenPaidServiceGate({
+        title: reason,
+        reason: reason,
+        featureKey: featureKey,
+        coinPrice: Number(opts.cost || gate.requiredCoins || 100),
+        cost: Number(opts.cost || gate.requiredCoins || 100),
+        requestId: requestId
+      }).then(function(openResult) {
+        if (openResult && openResult.status === 'granted') return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
+        return gate;
+      }).catch(function() {
+        return gate;
+      });
+    });
+  }
+
+  function syPromptGateEvidence(gateResult) {
+    var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
+    var data = gate.data && typeof gate.data === 'object' ? gate.data : {};
+    var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
+    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    return {
+      requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
+      accessGrant: accessGrant,
+      consume: consume,
+      payment: data.payment && typeof data.payment === 'object' ? data.payment : undefined,
+      _paymentContext: {
+        requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
+        featureKey: String(data.featureKey || accessGrant.featureKey || consume.featureKey || '').trim(),
+        transactionId: String(data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
+        accessType: String(data.accessType || accessGrant.accessType || consume.accessType || '').trim()
+      }
+    };
+  }
+
+  function syPromptGateFailureResult(gateResult) {
+    var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
+    var code = String(gate.code || '').trim();
+    if (gate.status === 401 || gate.status === 403) code = 'AUTH_REQUIRED';
+    if (gate.status === 402 && !code) code = 'PAYMENT_REQUIRED';
+    return {
+      ok: false,
+      status: gate.status || 400,
+      payload: {
+        ok: false,
+        code: code || 'PAYMENT_REQUIRED',
+        message: gate.message || '결제 후 프롬프트를 생성할 수 있습니다.',
+        requiredCoins: gate.requiredCoins || 0
+      }
+    };
+  }
+
+  function syFetchCoinBalance() {
+    return syPromptRequestJson('/api/billing/balance', { method: 'GET' }).then(function(result) {
+      if (!result || !result.ok) return null;
+      var payload = syPromptPayloadData(result.payload);
       if (!payload || typeof payload !== 'object') return null;
-      var points = Number((payload.user && payload.user.points) || payload.balance);
+      var rawPoints = payload.legacyCoinBalance;
+      if (!Number.isFinite(Number(rawPoints))) rawPoints = payload.balance;
+      if (!Number.isFinite(Number(rawPoints))) rawPoints = payload.user && payload.user.points;
+      var points = Number(rawPoints);
       return Number.isFinite(points) ? points : null;
     }).catch(function() {
       return null;
@@ -8800,23 +8900,38 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var compatibilityResult = syGetPromptCompatibilityResult(basicResult, !!opts.preferCompatibility);
     var requestNonce = Date.now() + ':' + Math.random().toString(16).slice(2);
 
-    return fetch('/api/fortune/sukuyo/ai-prompt', {
-      method: 'POST',
-      credentials: 'include',
-      cache: 'no-store',
-      headers: syBuildFortuneAuthHeaders({ 'idempotency-key': 'sy-ai:' + requestNonce }),
-      body: JSON.stringify({
-        question: question,
-        basicResult: basicResult,
-        compatibilityResult: compatibilityResult
-      })
-    }).then(function(res) {
-      return res.json().catch(function() { return {}; }).then(function(payload) {
-        return {
-          ok: res.ok && payload && payload.ok !== false,
-          status: res.status,
-          payload: payload || {}
-        };
+    return syPromptGate({
+      featureKey: 'sukuyo_ai_prompt_generator',
+      reason: '숙요점 AI 질문 프롬프트 생성',
+      cost: 100,
+      requestId: 'sukuyo-ai-prompt:' + requestNonce,
+      categoryKey: 'sukuyo'
+    }).then(function(gateResult) {
+      if (!gateResult.ok) return syPromptGateFailureResult(gateResult);
+      var evidence = syPromptGateEvidence(gateResult);
+      return fetch('/api/fortune/sukuyo/ai-prompt', {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+        headers: syBuildFortuneAuthHeaders({ 'idempotency-key': 'sy-ai:' + requestNonce }),
+        body: JSON.stringify({
+          question: question,
+          basicResult: basicResult,
+          compatibilityResult: compatibilityResult,
+          requestId: evidence.requestId || ('sukuyo-ai-prompt:' + requestNonce),
+          accessGrant: evidence.accessGrant,
+          consume: evidence.consume,
+          payment: evidence.payment,
+          _paymentContext: evidence._paymentContext
+        })
+      }).then(function(res) {
+        return res.json().catch(function() { return {}; }).then(function(payload) {
+          return {
+            ok: res.ok && payload && payload.ok !== false,
+            status: res.status,
+            payload: payload || {}
+          };
+        });
       });
     }).catch(function(error) {
       return {
@@ -10038,4 +10153,3 @@ function renderQuantumStrategy(p, natal, bazi){
   area.innerHTML=html;
   card.style.display='block';
 }
-

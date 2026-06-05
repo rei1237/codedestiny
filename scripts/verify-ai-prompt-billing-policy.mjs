@@ -7,6 +7,8 @@ import { FEATURE_KEY_PRICE_TABLE } from "../worker/lib/paid-feature-registry.js"
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const coinGateSource = readFileSync(resolve(root, "app/hooks/useCoinGate.ts"), "utf8");
+const sajuEngineSource = readFileSync(resolve(root, "js/saju-engine.js"), "utf8");
+const sukuyoEngineSource = readFileSync(resolve(root, "js/saju-engine-tarot-sukuyo-quantum.js"), "utf8");
 
 const promptFeatures = [
   "saju_ai_prompt_generator",
@@ -35,6 +37,12 @@ assert.match(fortuneSource, /points: \{ \$gte: cost \}/, "coin consume must chec
 assert.match(fortuneSource, /kind: "deduct"/, "coin consume must write deduct history");
 assert.match(fortuneSource, /metadata:\s*\{[\s\S]*requestId: coinRequestId/, "deduct history must bind requestId");
 assert.match(fortuneSource, /accessGrant: body\?\.accessGrant/, "prompt routes must forward accessGrant evidence");
+assert.match(sajuEngineSource, /\/api\/billing\/coin-gate/, "saju static AI prompt clients must use billing coin-gate");
+assert.match(sajuEngineSource, /saju_ai_prompt_generator/, "saju prompt must use canonical server feature key");
+assert.match(sajuEngineSource, /ziwei_ai_prompt_generator/, "ziwei prompt must use canonical server feature key");
+assert.match(sajuEngineSource, /astrology_ai_prompt_generator/, "astrology prompt must use canonical server feature key");
+assert.match(sukuyoEngineSource, /\/api\/billing\/coin-gate/, "sukuyo prompt client must use billing coin-gate");
+assert.match(sukuyoEngineSource, /sukuyo_ai_prompt_generator/, "sukuyo prompt must use canonical server feature key");
 assert.match(coinGateSource, /consume\.chargedCoins \?\? consume\.cost/, "client must prefer server chargedCoins");
 
 console.log("[verify-ai-prompt-billing-policy] PASS");
