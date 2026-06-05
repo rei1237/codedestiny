@@ -26,6 +26,19 @@ let _phyActiveSectionIndex = 0;
 let _phyMediaPipeReadyPromise = null;
 
 const PHY_FILE_HARD_LIMIT_BYTES = 20 * 1024 * 1024;
+const PHY_IMAGE_MAX_EDGE = 1280;
+const PHY_IMAGE_MAX_PIXELS = 1280 * 1280;
+const PHY_IMAGE_JPEG_QUALITY = 0.86;
+const PHY_MEDIAPIPE_VERSION = {
+  controlUtils: '0.6.1629159505',
+  drawingUtils: '0.3.1620248257',
+  faceMesh: '0.4.1633559619'
+};
+const PHY_MEDIAPIPE_CDN_BASES = [
+  'https://cdn.jsdelivr.net/npm',
+  'https://unpkg.com'
+];
+let _phyFaceMeshAssetBase = `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@${PHY_MEDIAPIPE_VERSION.faceMesh}`;
 const PHY_LOADING_STEPS = [
   '이미지의 윤곽을 정리하는 중입니다.',
   '이목구비의 균형을 읽고 있습니다.',
@@ -617,6 +630,7 @@ async function ensureFaceMeshReady(timeoutMs) {
     await _phyMediaPipeReadyPromise;
   } catch (err) {
     console.error('FaceMesh 초기화 실패:', err);
+    resetFaceMeshRuntime();
   }
   return !!faceMesh;
 }
@@ -702,6 +716,24 @@ function clearPreparedImageResources() {
   _phyAnalysisSourceEl = null;
 }
 
+function resetFaceMeshRuntime() {
+  try {
+    if (faceMesh && typeof faceMesh.close === 'function') {
+      faceMesh.close();
+    }
+  } catch (err) {
+    console.warn('FaceMesh 정리 실패(무시):', err);
+  }
+  faceMesh = null;
+  landmarksData = null;
+  _phyMediaPipeReadyPromise = null;
+}
+
+function isFaceMeshRuntimeError(error) {
+  const message = String((error && error.message) || error || '');
+  return /MEDIAPIPE|FACEMESH|LANDMARK_TIMEOUT|Failed to load|Module|wasm|WebAssembly/i.test(message);
+}
+
 function abortRunningAnalysis(opts) {
   const options = opts || {};
   const shouldResetStatus = options.keepStatus !== true;
@@ -730,6 +762,72 @@ function readFileAsDataUrl(file) {
     reader.onerror = () => reject(new Error('IMAGE_READ_FAILED'));
     reader.readAsDataURL(file);
   });
+}
+
+function loadImageFromDataUrl(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('IMAGE_DECODE_FAILED'));
+    image.src = dataUrl;
+  });
+}
+
+function canvasToDataUrl(canvas, mimeType, quality) {
+  try {
+    return canvas.toDataURL(mimeType || 'image/jpeg', quality);
+  } catch (err) {
+    console.warn('이미지 최적화 실패(원본 사용):', err);
+    return '';
+  }
+}
+
+async function prepareImageForLandmark(file) {
+  const sourceDataUrl = await readFileAsDataUrl(file);
+  const image = await loadImageFromDataUrl(sourceDataUrl);
+  const width = Number(image.naturalWidth || image.width || 0);
+  const height = Number(image.naturalHeight || image.height || 0);
+
+  if (!width || !height) {
+    throw new Error('IMAGE_DIMENSION_FAILED');
+  }
+
+  const maxEdgeRatio = Math.min(1, PHY_IMAGE_MAX_EDGE / Math.max(width, height));
+  const maxPixelRatio = Math.min(1, Math.sqrt(PHY_IMAGE_MAX_PIXELS / Math.max(1, width * height)));
+  const scale = Math.min(maxEdgeRatio, maxPixelRatio);
+
+  if (scale >= 0.995 && file.size <= 4 * 1024 * 1024) {
+    return {
+      dataUrl: sourceDataUrl,
+      width,
+      height,
+      optimized: false
+    };
+  }
+
+  const targetWidth = Math.max(1, Math.round(width * scale));
+  const targetHeight = Math.max(1, Math.round(height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const ctx = canvas.getContext('2d', { alpha: false });
+  if (!ctx) {
+    return {
+      dataUrl: sourceDataUrl,
+      width,
+      height,
+      optimized: false
+    };
+  }
+
+  ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+  const optimizedDataUrl = canvasToDataUrl(canvas, 'image/jpeg', PHY_IMAGE_JPEG_QUALITY);
+  return {
+    dataUrl: optimizedDataUrl || sourceDataUrl,
+    width: targetWidth,
+    height: targetHeight,
+    optimized: Boolean(optimizedDataUrl)
+  };
 }
 
 function extractDescriptionSection(descriptionHtml, sectionLabel) {
@@ -1076,23 +1174,68 @@ window.sharePhysiognomyKakao = function() {
   }, 500);
 };
 
-function loadMediaPipeScripts() {
+function loadScriptFromCandidates(candidates, attrs) {
   return new Promise((resolve, reject) => {
-    if (window.FaceMesh) { resolve(); return; }
-    let loadedCount = 0;
-    const scripts = [
-      'https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js',
-      'https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js',
-      'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js'
-    ];
-    scripts.forEach(src => {
+    const sources = Array.isArray(candidates) ? candidates.filter(Boolean) : [];
+    let index = 0;
+
+    const tryNext = () => {
+      const src = sources[index++];
+      if (!src) {
+        reject(new Error('MEDIAPIPE_SCRIPT_LOAD_FAILED'));
+        return;
+      }
+
+      const existing = Array.from(document.querySelectorAll('script[src]')).find((script) => {
+        const currentSrc = script.getAttribute('src') || '';
+        return currentSrc === src || script.src === src;
+      });
+      if (existing && existing.dataset.loaded === '1') {
+        resolve(existing.src || src);
+        return;
+      }
+
       const script = document.createElement('script');
-      script.src = src; script.crossOrigin = 'anonymous';
-      script.onload = () => { if(++loadedCount === scripts.length) resolve(); };
-      script.onerror = () => reject(new Error(`Failed to load: ${src}`));
+      script.src = src;
+      script.crossOrigin = 'anonymous';
+      script.referrerPolicy = 'no-referrer';
+      Object.keys(attrs || {}).forEach((key) => {
+        script.dataset[key] = attrs[key];
+      });
+      script.onload = () => {
+        script.dataset.loaded = '1';
+        resolve(script.src || src);
+      };
+      script.onerror = () => {
+        script.remove();
+        tryNext();
+      };
       document.head.appendChild(script);
-    });
+    };
+
+    tryNext();
   });
+}
+
+function mediaPipeCandidates(pkg, version, file) {
+  return PHY_MEDIAPIPE_CDN_BASES.map((base) => `${base}/@mediapipe/${pkg}@${version}/${file}`);
+}
+
+async function loadMediaPipeScripts() {
+  if (window.FaceMesh) return;
+  await loadScriptFromCandidates(
+    mediaPipeCandidates('control_utils', PHY_MEDIAPIPE_VERSION.controlUtils, 'control_utils.js'),
+    { phyMediaPipe: 'control-utils' }
+  );
+  await loadScriptFromCandidates(
+    mediaPipeCandidates('drawing_utils', PHY_MEDIAPIPE_VERSION.drawingUtils, 'drawing_utils.js'),
+    { phyMediaPipe: 'drawing-utils' }
+  );
+  const faceMeshScriptSrc = await loadScriptFromCandidates(
+    mediaPipeCandidates('face_mesh', PHY_MEDIAPIPE_VERSION.faceMesh, 'face_mesh.js'),
+    { phyMediaPipe: 'face-mesh' }
+  );
+  _phyFaceMeshAssetBase = String(faceMeshScriptSrc || '').replace(/\/face_mesh\.js(?:\?.*)?$/, '') || _phyFaceMeshAssetBase;
 }
 
 function onResults(results) {
@@ -1188,12 +1331,20 @@ function createCustomCamera(videoEl, onFrame, width, height) {
 }
 
 async function startMediaPipe() {
-  faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
-  faceMesh.setOptions({
-    maxNumFaces: 1, refineLandmarks: true,
-    minDetectionConfidence: 0.5, minTrackingConfidence: 0.5
-  });
-  faceMesh.onResults(onResults);
+  if (!window.FaceMesh) throw new Error('MEDIAPIPE_FACEMESH_MISSING');
+
+  const nextFaceMesh = new FaceMesh({ locateFile: (file) => `${_phyFaceMeshAssetBase}/${file}` });
+  try {
+    nextFaceMesh.setOptions({
+      maxNumFaces: 1, refineLandmarks: true,
+      minDetectionConfidence: 0.5, minTrackingConfidence: 0.5
+    });
+    nextFaceMesh.onResults(onResults);
+    faceMesh = nextFaceMesh;
+  } catch (err) {
+    faceMesh = null;
+    throw err;
+  }
 
   if(currentMode === 'camera') {
     camera = createCustomCamera(
@@ -1236,7 +1387,9 @@ window.openPhysiognomyApp = async function() {
       window.faceAnalysisEngine.loadFaceApiModels().catch(() => {});
     }
   } catch (e) {
-    updateStatus('로딩 중 오류 발생. 새로고침 후 다시 시도해주세요.');
+    console.error('관상 엔진 로딩 실패:', e);
+    if (isFaceMeshRuntimeError(e)) resetFaceMeshRuntime();
+    updateStatus('관상 엔진 로딩이 지연되고 있습니다. 사진 업로드로 다시 시도해 주세요.');
   }
 }
 
@@ -1338,7 +1491,7 @@ window.handleFileUpload = async function(event) {
 
   try {
     await waitForUiFrame();
-    const imageDataUrl = await readFileAsDataUrl(file);
+    const preparedImage = await prepareImageForLandmark(file);
     if (uploadToken !== _phyUploadToken) return;
 
     const imgEl = document.getElementById('phyImage');
@@ -1353,17 +1506,18 @@ window.handleFileUpload = async function(event) {
         canvasCtx.drawImage(imgEl, 0, 0, canvasElement.width, canvasElement.height);
       }
 
-      updateStatus('귀와 이목구비의 468개 랜드마크를 추출 중입니다...');
+      updateStatus(preparedImage.optimized ? '이미지를 가볍게 정리한 뒤 관상 포인트를 추출 중입니다...' : '귀와 이목구비의 468개 랜드마크를 추출 중입니다...');
 
       if (!faceMesh) {
         updateStatus('관상 엔진을 준비하는 중입니다. 잠시만 기다려 주세요...');
-        const ready = await ensureFaceMeshReady(12000);
+        const ready = await ensureFaceMeshReady(18000);
         if (!ready) {
           showPreviewSkeleton(false);
-          updateStatus('관상 엔진 로딩이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.');
+          resetFaceMeshRuntime();
+          updateStatus('관상 엔진 로딩이 지연되고 있습니다. 다시 업로드하면 새로 연결합니다.');
           return;
         }
-        updateStatus('귀와 이목구비의 468개 랜드마크를 추출 중입니다...');
+        updateStatus(preparedImage.optimized ? '이미지를 가볍게 정리한 뒤 관상 포인트를 추출 중입니다...' : '귀와 이목구비의 468개 랜드마크를 추출 중입니다...');
       }
 
       try {
@@ -1375,13 +1529,18 @@ window.handleFileUpload = async function(event) {
 
         await waitForUiFrame();
         if (uploadToken !== _phyUploadToken) return;
-        await withTimeout(faceMesh.send({ image: imgEl }), 15000, 'LANDMARK_TIMEOUT');
+        await withTimeout(faceMesh.send({ image: imgEl }), 22000, 'LANDMARK_TIMEOUT');
       } catch (err) {
         console.error('이미지 랜드마크 추출 실패:', err);
+        landmarksData = null;
+        _phyAnalysisSourceEl = null;
+        if (isFaceMeshRuntimeError(err)) resetFaceMeshRuntime();
         if (err && err.message === 'LANDMARK_TIMEOUT') {
-          updateStatus('랜드마크 추출 시간이 초과되었습니다. 다른 이미지를 선택해 주세요.');
+          updateStatus('랜드마크 추출 시간이 초과되었습니다. 이미지를 다시 선택하면 엔진을 새로 연결합니다.');
+        } else if (err && /MEDIAPIPE_SCRIPT_LOAD_FAILED|MEDIAPIPE_FACEMESH_MISSING/i.test(err.message || '')) {
+          updateStatus('관상 엔진 연결에 실패했습니다. 잠시 후 다시 업로드해 주세요.');
         } else {
-          updateStatus('이미지 분석 중 오류가 발생했습니다. 다른 이미지를 선택해 주세요.');
+          updateStatus('이미지 분석 중 오류가 발생했습니다. 정면 사진으로 다시 선택해 주세요.');
         }
       }
     };
@@ -1391,12 +1550,16 @@ window.handleFileUpload = async function(event) {
       updateStatus('이미지를 불러오지 못했습니다. 다른 파일로 다시 시도해 주세요.');
     };
 
-    imgEl.src = imageDataUrl;
+    imgEl.src = preparedImage.dataUrl;
   } catch (err) {
     console.error('이미지 로드 실패:', err);
     showPreviewSkeleton(false);
     if (err && err.message === 'IMAGE_READ_FAILED') {
       updateStatus('이미지를 읽는 중 오류가 발생했습니다. 다른 파일로 다시 시도해 주세요.');
+    } else if (err && err.message === 'IMAGE_DECODE_FAILED') {
+      updateStatus('이미지 크기를 읽지 못했습니다. 다른 형식의 사진으로 다시 시도해 주세요.');
+    } else if (err && err.message === 'IMAGE_DIMENSION_FAILED') {
+      updateStatus('이미지 해상도 정보를 확인하지 못했습니다. 다른 사진을 선택해 주세요.');
     } else {
       updateStatus('이미지를 처리하지 못했습니다. 다른 파일로 다시 시도해 주세요.');
     }
