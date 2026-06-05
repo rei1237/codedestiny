@@ -820,6 +820,7 @@ function mapSocialProfile(provider, payload) {
       email: payload?.email ? String(payload.email).toLowerCase() : "",
       name: String(payload?.name || payload?.given_name || "Google user"),
       image: String(payload?.picture || ""),
+      phoneNumber: normalizeKoreanPhoneNumber(payload?.phone_number || payload?.phoneNumber || ""),
     };
   }
 
@@ -830,6 +831,7 @@ function mapSocialProfile(provider, payload) {
       email: profile?.email ? String(profile.email).toLowerCase() : "",
       name: String(profile?.name || profile?.nickname || "Naver user"),
       image: String(profile?.profile_image || ""),
+      phoneNumber: normalizeKoreanPhoneNumber(profile?.mobile || profile?.mobile_e164 || profile?.phone || profile?.phoneNumber || ""),
     };
   }
 
@@ -841,6 +843,7 @@ function mapSocialProfile(provider, payload) {
       email: account?.email ? String(account.email).toLowerCase() : "",
       name: String(profile?.nickname || "Kakao user"),
       image: String(profile?.profile_image_url || profile?.thumbnail_image_url || ""),
+      phoneNumber: normalizeKoreanPhoneNumber(account?.phone_number || account?.phoneNumber || account?.phone || ""),
     };
   }
 
@@ -909,7 +912,14 @@ async function findOrCreateSocialUser(provider, profile) {
   const socialField = `socialAccounts.${provider}.id`;
 
   let user = await User.findOne({ [socialField]: profile.providerId });
-  if (user) return { user, created: false };
+  if (user) {
+    const profilePhoneNumber = normalizeKoreanPhoneNumber(profile.phoneNumber);
+    if (profilePhoneNumber && !normalizeKoreanPhoneNumber(user.phoneNumber || user.phone)) {
+      user.set("phoneNumber", profilePhoneNumber);
+      await user.save();
+    }
+    return { user, created: false };
+  }
 
   if (profile.email) {
     user = await User.findOne({ email: profile.email });
@@ -919,6 +929,10 @@ async function findOrCreateSocialUser(provider, profile) {
       if (!String(user.profileImage || "").trim() && String(profile.image || "").trim()) {
         user.set("profileImage", String(profile.image || "").trim());
       }
+      const profilePhoneNumber = normalizeKoreanPhoneNumber(profile.phoneNumber);
+      if (profilePhoneNumber && !normalizeKoreanPhoneNumber(user.phoneNumber || user.phone)) {
+        user.set("phoneNumber", profilePhoneNumber);
+      }
       await user.save();
       return { user, created: false };
     }
@@ -926,10 +940,12 @@ async function findOrCreateSocialUser(provider, profile) {
 
   const fallbackEmail = `${provider}_${profile.providerId}@social.code-destiny.local`;
   const joinedAt = new Date();
+  const profilePhoneNumber = normalizeKoreanPhoneNumber(profile.phoneNumber);
   const createdUser = await User.create({
     name: profile.name || `${provider} user`,
     email: profile.email || fallbackEmail,
     profileImage: String(profile.image || ""),
+    ...(profilePhoneNumber ? { phoneNumber: profilePhoneNumber } : {}),
     passwordHash: "",
     birthDate: "1900-01-01",
     birthTime: "00:00",
@@ -1076,8 +1092,9 @@ function toErrorMessage(error) {
 
 function normalizeKoreanPhoneNumber(value) {
   const digits = String(value || "").replace(/\D/g, "");
-  if (!/^01\d{8,9}$/.test(digits)) return "";
-  return digits;
+  const localDigits = digits.startsWith("82") && /^821\d{8,9}$/.test(digits) ? `0${digits.slice(2)}` : digits;
+  if (!/^01\d{8,9}$/.test(localDigits)) return "";
+  return localDigits;
 }
 
 function normalizeAuthUserResponse(user) {
@@ -1653,6 +1670,71 @@ async function handleMe(request, env) {
       code: "AUTH_ME_RECOVERED",
     });
   }
+}
+
+async function handleUpdatePhoneNumber(request, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const phoneNumber = normalizeKoreanPhoneNumber(body?.phoneNumber || body?.phone);
+
+  if (!phoneNumber) {
+    return json({
+      ok: false,
+      code: "invalid_phone_number",
+      message: "Phone number is required for payment customer information.",
+    }, { status: 400 });
+  }
+
+  const userId = String(auth.userId || "");
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return json({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
+  }
+
+  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_phone_connect_db");
+  const updatedResult = await withAuthOpTimeout(
+    User.collection.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      { $set: { phoneNumber } },
+      {
+        returnDocument: "after",
+        projection: {
+          _id: 1,
+          name: 1,
+          email: 1,
+          phoneNumber: 1,
+          phone: 1,
+          birthDate: 1,
+          birthTime: 1,
+          gender: 1,
+          role: 1,
+          points: 1,
+          joinedAt: 1,
+          profileSubscription: 1,
+          localAuth: 1,
+        },
+        maxTimeMS: dbMaxTimeMs,
+      },
+    ),
+    timeoutMs,
+    "auth_phone_update_user",
+  );
+  const user = unwrapFindOneAndUpdateResult(updatedResult);
+
+  if (!user) {
+    return json({ ok: false, code: "user_not_found", message: "User not found." }, { status: 404 });
+  }
+
+  return json({
+    ok: true,
+    message: "Phone number updated.",
+    phoneNumber,
+    user: {
+      ...normalizeAuthUserResponse(user),
+      hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
+    },
+  });
 }
 
 async function handleRefresh(request, env) {
@@ -2269,6 +2351,7 @@ export async function handleAuthRoutes(request, env) {
       || path === "/withdraw"
       || path === "/oauth/complete"
       || path === "/referral/kakao-share"
+      || path === "/me/phone-number"
     ) {
       const configError = configMismatchResponse("auth-basic", env);
       if (configError) return configError;
@@ -2286,6 +2369,7 @@ export async function handleAuthRoutes(request, env) {
     if (method === "POST" && path === "/login") return await handleLogin(request, env);
     if (method === "POST" && path === "/refresh") return await handleRefresh(request, env);
     if (method === "GET" && path === "/me") return await handleMe(request, env);
+    if ((method === "PATCH" || method === "POST") && path === "/me/phone-number") return await handleUpdatePhoneNumber(request, env);
     if (method === "GET" && path === "/withdraw") return await handleWithdrawCsrfIssue(request, env);
     if (method === "POST" && path === "/withdraw") return await handleWithdraw(request, env);
     if (method === "POST" && path === "/logout") return await handleLogout(request, env);
