@@ -18,6 +18,7 @@
   var _dpScopedStorageReadyScope = '';
   var PROFILE_CARD_MANAGE_FEATURE_KEY = 'profile-card-manage';
   var PROFILE_CARD_MANAGE_COST = 50;
+  var _dpProfileMenuLastTouchAt = 0;
 
   function _dpReadAuthUser() {
     try {
@@ -3100,13 +3101,14 @@
     style.id = 'dpProfileActionMenuStyles';
     style.textContent = ''
       + '.dp-mc-action-wrap{position:relative;z-index:8;display:flex;align-items:flex-start;}'
-      + '.dp-mc-action-menu{position:absolute;right:0;top:calc(100% + 8px);width:min(230px,72vw);display:none;gap:6px;padding:8px;border-radius:8px;background:linear-gradient(145deg,rgba(8,13,32,.98),rgba(37,29,78,.96));border:1px solid rgba(255,215,0,.32);box-shadow:0 18px 46px rgba(0,0,0,.45),0 0 24px rgba(255,215,0,.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}'
+      + '.dp-mc-action-menu{position:absolute;right:0;top:calc(100% + 10px);width:min(248px,76vw);display:none;gap:8px;padding:10px;border-radius:8px;background:linear-gradient(145deg,rgba(8,13,32,.98),rgba(37,29,78,.96));border:1px solid rgba(255,215,0,.32);box-shadow:0 18px 46px rgba(0,0,0,.45),0 0 24px rgba(255,215,0,.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}'
       + '.dp-mc-action-wrap.is-open .dp-mc-action-menu{display:grid;}'
-      + '.dp-mc-action-menu__item{width:100%;min-height:42px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.06);color:#f8fafc;padding:10px 12px;text-align:left;font-size:.78rem;font-weight:900;line-height:1.25;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;}'
+      + '.dp-mc-action-menu__item{width:100%;min-height:48px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.06);color:#f8fafc;padding:12px 13px;text-align:left;font-size:.82rem;font-weight:900;line-height:1.25;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}'
       + '.dp-mc-action-menu__item span{font-size:.68rem;font-weight:800;color:rgba(226,232,240,.72);white-space:nowrap;}'
       + '.dp-mc-action-menu__item:active{transform:translateY(1px);}'
       + '.dp-mc-action-menu__item--danger{border-color:rgba(251,113,133,.42);background:rgba(127,29,29,.24);color:#fecdd3;}'
-      + '.dp-mc-action-menu__item--danger span{color:#fbbf24;}';
+      + '.dp-mc-action-menu__item--danger span{color:#fbbf24;}'
+      + '@media(max-width:768px){.dp-mc-action-wrap{z-index:20}.dp-mc-action-menu{right:-4px;top:calc(100% + 12px);width:min(260px,82vw);padding:10px}.dp-mc-action-menu__item{min-height:52px;font-size:.86rem;}}';
     document.head.appendChild(style);
   }
 
@@ -3228,8 +3230,8 @@
               + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
             + '</button>'
             + '<div class="dp-mc-action-menu" role="menu" aria-label="프로필 카드 관리">'
-              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" onclick="dpOpenList(); dpCloseProfileMenu();">프로필 목록<span>전환</span></button>'
-              + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--danger" role="menuitem" onclick="dpDeleteProfile(\'' + _dpEscapeJsString(profile.id) + '\'); dpCloseProfileMenu();">프로필 카드 삭제<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
+              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" data-dp-menu-action="list" onclick="dpRunProfileMenuAction(this,event)">프로필 목록 보기<span>전환</span></button>'
+              + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--danger" role="menuitem" data-dp-menu-action="delete" data-profile-id="' + _esc(profile.id) + '" onclick="dpRunProfileMenuAction(this,event)">프로필 카드 삭제<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
             + '</div>'
           + '</div>'
         + '</div>'
@@ -4055,6 +4057,8 @@
   window.dpToggleProfileMenu = function(event) {
     if (event && event.preventDefault) event.preventDefault();
     if (event && event.stopPropagation) event.stopPropagation();
+    if (event && event.type === 'click' && Date.now() - _dpProfileMenuLastTouchAt < 700) return;
+    if (event && event.source === 'touch') _dpProfileMenuLastTouchAt = Date.now();
     var btn = event && event.currentTarget ? event.currentTarget : document.querySelector('#dpMasterCard .dp-mc-menu-btn');
     var wrap = btn && btn.closest ? btn.closest('.dp-mc-action-wrap') : null;
     if (!wrap) return;
@@ -4065,6 +4069,23 @@
   };
 
   window.dpCloseProfileMenu = _dpCloseProfileMenu;
+
+  window.dpRunProfileMenuAction = function(node, event) {
+    if (event && event.preventDefault) event.preventDefault();
+    if (event && event.stopPropagation) event.stopPropagation();
+    var item = node && node.closest ? node.closest('.dp-mc-action-menu__item') : null;
+    if (!item) return;
+    var action = String(item.getAttribute('data-dp-menu-action') || '').trim();
+    var profileId = String(item.getAttribute('data-profile-id') || '').trim();
+    _dpCloseProfileMenu();
+    if (action === 'list') {
+      dpOpenList();
+      return;
+    }
+    if (action === 'delete' && profileId) {
+      dpDeleteProfile(profileId);
+    }
+  };
 
   window.dpDeleteProfile = function(id) {
     var profileId = String(id || '').trim();
@@ -4902,10 +4923,18 @@
         if (!_dpIsStableTouchTap(cardTouchState, e, { moveX: 14, moveY: 20, recentScrollBlockMs: 260 })) return;
         var targetEl = _resolveEventElement(e.target);
         if (!targetEl) return;
+        var menuItem = targetEl.closest('.dp-mc-action-menu__item');
+        if (menuItem) {
+          if (e.cancelable) e.preventDefault();
+          e.stopPropagation();
+          dpRunProfileMenuAction(menuItem, { preventDefault: function(){}, stopPropagation: function(){} });
+          return;
+        }
         var menuBtn = targetEl.closest('.dp-mc-menu-btn');
         if (menuBtn) {
           if (e.cancelable) e.preventDefault();
-          dpToggleProfileMenu({ currentTarget: menuBtn, preventDefault: function(){}, stopPropagation: function(){} });
+          e.stopPropagation();
+          dpToggleProfileMenu({ currentTarget: menuBtn, source: 'touch', preventDefault: function(){}, stopPropagation: function(){} });
           return;
         }
         var loadBtn = targetEl.closest('.dp-mc-load-btn');
