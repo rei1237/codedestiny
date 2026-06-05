@@ -5525,173 +5525,19 @@
     try { window.__cdRestoreCanonicalPaymentMode(); } catch (_) {}
   }
   if (typeof window._cdChooseServicePaymentMode !== 'function' || window._cdChooseServicePaymentMode.__cdSupportsPassChoice !== true) {
-    function _dpGetMonthlyCreditBalance() {
-      try {
-        var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
-        var sub = user.profileSubscription || {};
-        var candidates = [
-          sub.membershipCreditBalance,
-          user.membershipCreditBalance,
-          user.monthlyCreditBalance,
-          user.points,
-          user.coinBalance,
-          user.coins,
-          user.balance
-        ];
-        for (var i = 0; i < candidates.length; i += 1) {
-          var amount = Number(candidates[i]);
-          if (Number.isFinite(amount) && amount >= 0) return Math.floor(amount);
-        }
-      } catch (_) {}
-      return 0;
-    }
-
-    function _dpEnsureServicePaymentStyles() {
-      if (document.getElementById('cdDirectPaymentStyles')) return;
-      var style = document.createElement('style');
-      style.id = 'cdDirectPaymentStyles';
-      style.textContent = [
-        '.cd-direct-payment-modal{position:fixed;inset:0;z-index:100260;display:none;align-items:flex-end;justify-content:center;padding:max(14px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) max(14px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));background:radial-gradient(circle at 72% 8%,rgba(254,240,138,.20),transparent 22%),linear-gradient(180deg,rgba(2,6,23,.62),rgba(2,6,23,.82));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);overflow:hidden}',
-        '.cd-direct-payment-modal.is-open{display:flex}',
-        '.cd-direct-payment-dialog{width:min(490px,100%);max-height:min(82dvh,calc(100dvh - 28px - env(safe-area-inset-top,0px)));border:1px solid rgba(237,229,198,.38);border-radius:8px;background:linear-gradient(145deg,rgba(9,18,42,.82),rgba(24,29,62,.76));color:#fff7e6;box-shadow:0 24px 78px rgba(0,0,0,.52),inset 0 1px 0 rgba(255,255,255,.18);padding:24px 24px calc(24px + env(safe-area-inset-bottom,0px));position:relative;overflow:auto;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}',
-        '.cd-direct-payment-dialog::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 18% 34%,rgba(255,255,255,.12),transparent 24%),radial-gradient(circle at 92% 84%,rgba(250,204,21,.12),transparent 20%);pointer-events:none}',
-        '.cd-direct-payment-dialog::after{content:"";position:absolute;right:18px;top:18px;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 38% 35%,#fff7d8 0 13%,#d9e1ef 14% 34%,#68799b 48%,rgba(18,31,59,.08) 64%,transparent 72%);box-shadow:0 0 24px rgba(225,234,255,.32);pointer-events:none}',
-        '.cd-direct-payment-title{position:relative;z-index:1;margin:0 96px 10px 0;font-family:Georgia,"Times New Roman","Noto Serif KR",serif;font-size:23px;font-weight:800;line-height:1.35;color:#f4f0e7;text-shadow:0 2px 18px rgba(0,0,0,.62)}',
-        '.cd-direct-payment-sub{position:relative;z-index:1;margin:0 84px 16px 0;color:#eee8de;font-size:14px;line-height:1.65;text-shadow:0 1px 10px rgba(0,0,0,.56)}',
-        '.cd-direct-payment-note{position:relative;z-index:1;margin:0 0 14px;padding:15px 92px 15px 16px;border-radius:8px;background:linear-gradient(135deg,rgba(255,255,255,.20),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.30);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 12px 28px rgba(0,0,0,.24);color:#f8f1df;font-size:13px;line-height:1.55;backdrop-filter:blur(16px);overflow:hidden}',
-        '.cd-direct-payment-note::after{content:"";position:absolute;right:18px;top:18px;width:58px;height:72px;opacity:.22;background:linear-gradient(90deg,transparent 0 20%,rgba(255,255,255,.8) 21% 22%,transparent 23%),radial-gradient(circle at 48% 43%,transparent 0 28%,rgba(255,255,255,.95) 29% 31%,transparent 32%);border:1px solid rgba(255,255,255,.38);border-radius:10px;transform:rotate(5deg);pointer-events:none}',
-        '.cd-direct-payment-note strong{display:block;margin-bottom:5px;color:#fff8df;font-size:17px;line-height:1.35;text-shadow:0 1px 10px rgba(0,0,0,.52)}',
-        '.cd-direct-payment-options,.cd-direct-payment-choice-grid{display:grid;grid-template-columns:1fr;gap:12px;position:relative;z-index:1}',
-        '.cd-direct-payment-option{width:100%;min-height:auto;margin:0;padding:16px;border:1px solid rgba(255,255,255,.30);border-radius:8px;background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(72,91,140,.24));color:inherit;text-align:left;cursor:pointer;position:relative;z-index:1;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 12px 28px rgba(0,0,0,.24);backdrop-filter:blur(16px)}',
-        '.cd-direct-payment-option::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,.18),transparent 38%,rgba(255,255,255,.06));pointer-events:none}',
-        '.cd-direct-payment-option[data-mode="direct"]{border-color:rgba(248,222,140,.62);background:linear-gradient(145deg,rgba(255,255,255,.18),rgba(34,45,88,.40))}',
-        '.cd-direct-payment-option[data-mode="monthly"]{border-color:rgba(198,190,255,.58);background:linear-gradient(145deg,rgba(212,219,255,.18),rgba(28,43,91,.46))}',
-        '.cd-direct-payment-option.is-disabled{opacity:.58;cursor:not-allowed}',
-        '.cd-direct-payment-mode{position:relative;display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;padding:5px 10px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.25),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.30);font-size:11px;font-weight:900;color:#fff8df;box-shadow:inset 0 1px 0 rgba(255,255,255,.24)}',
-        '.cd-direct-payment-option strong{position:relative;display:block;margin-bottom:7px;font-size:16px;color:#fff9e8;text-shadow:0 1px 10px rgba(0,0,0,.54)}',
-        '.cd-direct-payment-option span{position:relative;display:block;font-size:12.5px;line-height:1.55;color:#f1ecdf}',
-        '.cd-direct-payment-metric{position:relative;display:flex;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12);font-size:12px;color:#d8deef}',
-        '.cd-direct-payment-metric b{color:#fff7d1}',
-        '.cd-direct-payment-status{min-height:20px;margin-top:12px;color:#d8f4ff;font-size:12px;line-height:1.5;position:relative;z-index:1}.cd-direct-payment-status.is-error{color:#fecaca}',
-        '.cd-direct-payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;position:relative;z-index:1}',
-        '.cd-direct-payment-cancel{border:1px solid rgba(255,255,255,.38);border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.05));color:#f6efe4;padding:10px 16px;cursor:pointer;font-weight:800}',
-        '@media(min-width:561px){.cd-direct-payment-modal{align-items:center}}',
-        '@media(max-width:560px){.cd-direct-payment-modal{padding:0 0 env(safe-area-inset-bottom,0px)}.cd-direct-payment-dialog{width:100%;padding:20px 16px calc(22px + env(safe-area-inset-bottom,0px));border-radius:8px 8px 0 0}.cd-direct-payment-title{margin-right:78px;font-size:21px}.cd-direct-payment-sub{margin-right:74px}.cd-direct-payment-note{padding-right:76px}.cd-direct-payment-option{min-height:0}}'
-      ].join('');
-      document.head.appendChild(style);
-    }
-
-    window._cdGetMonthlyCreditBalance = window._cdGetMonthlyCreditBalance || _dpGetMonthlyCreditBalance;
-    window._cdChooseServicePaymentMode = function(options) {
-      var opts = options || {};
-      var title = String(opts.title || '유료 서비스').trim();
-      var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
-      var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || (coinPrice * 100))));
-      var requiredMonthlyCredits = Math.max(0, coinPrice * 10);
-      var monthlyBalance = _dpGetMonthlyCreditBalance();
-      var canUseMonthly = monthlyBalance >= requiredMonthlyCredits && requiredMonthlyCredits > 0;
-      var monthlyShortage = Math.max(0, requiredMonthlyCredits - monthlyBalance);
-      var passEligible = coinPrice > 0 && coinPrice <= 100;
-      var escapeHtml = function(value) {
-        return String(value || '').replace(/[&<>"']/g, function(ch) {
-          return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch] || ch;
-        });
-      };
-
-      function openServicePaymentChoiceModal() {
-        _dpEnsureServicePaymentStyles();
-        return new Promise(function(resolve) {
-        var modal = document.createElement('div');
-        modal.className = 'cd-direct-payment-modal is-open';
-        modal.setAttribute('role', 'dialog');
-        modal.setAttribute('aria-modal', 'true');
-        modal.innerHTML =
-          '<div class="cd-direct-payment-dialog">' +
-            '<h2 class="cd-direct-payment-title">달빛 결제 방식 선택</h2>' +
-            '<p class="cd-direct-payment-sub">이 콘텐츠만 한 번 구매하고, 구매 후 이 프로필에서는 계속 열람할 수 있어요.</p>' +
-            '<div class="cd-direct-payment-note"><strong>' + escapeHtml(title) + '</strong>단건 결제: ' + coinPrice.toLocaleString('ko-KR') + '코인 · ' + amountKrw.toLocaleString('ko-KR') + '원<br>월정석 결제: 필요 월정석 ' + requiredMonthlyCredits.toLocaleString('ko-KR') + '개 · 현재 보유 월정석 ' + monthlyBalance.toLocaleString('ko-KR') + '</div>' +
-            '<div class="cd-direct-payment-options">' +
-              '<button type="button" class="cd-direct-payment-option' + (passEligible ? '' : ' is-disabled') + '" data-mode="' + (passEligible ? 'pass' : 'pass-disabled') + '">' +
-                '<em class="cd-direct-payment-mode">\uC774\uC6A9\uAD8C PASS</em>' +
-                '<strong>\uC774\uC6A9\uAD8C\uC73C\uB85C \uC774\uC6A9</strong>' +
-                '<span>' + (passEligible ? '\uD074\uB9AD\uD558\uBA74 \uC11C\uBC84\uC5D0\uC11C \uC774\uC6A9\uAD8C \uD1B5\uACFC \uAC00\uB2A5 \uC5EC\uBD80\uB9CC \uD655\uC778\uD569\uB2C8\uB2E4.' : '\uC774 \uCF58\uD150\uCE20\uB294 \uC774\uC6A9\uAD8C \uBB34\uB8CC \uC0C1\uD55C\uC744 \uCD08\uACFC\uD569\uB2C8\uB2E4.') + '</span>' +
-                '<span class="cd-direct-payment-metric"><span>\uCC28\uAC10</span><b>0\uCF54\uC778</b></span>' +
-                '<span class="cd-direct-payment-metric"><span>\uC870\uD68C</span><b>\uD074\uB9AD \uC2DC 1\uD68C</b></span>' +
-              '</button>' +
-              '<button type="button" class="cd-direct-payment-option" data-mode="direct">' +
-                '<em class="cd-direct-payment-mode">PortOne V2 · KG이니시스</em>' +
-                '<strong>단건 결제</strong>' +
-                '<span>이 콘텐츠만 한 번 구매하고, 구매 후 이 프로필에서는 계속 열람할 수 있어요.</span>' +
-                '<span class="cd-direct-payment-metric"><span>결제 금액</span><b>' + coinPrice.toLocaleString('ko-KR') + '코인 · ' + amountKrw.toLocaleString('ko-KR') + '원</b></span>' +
-                '<span class="cd-direct-payment-metric"><span>확인 방식</span><b>서버 안전 확인</b></span>' +
-              '</button>' +
-              '<button type="button" class="cd-direct-payment-option' + (canUseMonthly ? '' : ' is-disabled') + '" data-mode="' + (canUseMonthly ? 'monthly' : 'monthly-disabled') + '">' +
-                '<em class="cd-direct-payment-mode">보유 월정석</em>' +
-                '<strong>월정석 결제</strong>' +
-                '<span>' + (canUseMonthly ? '보유한 월정석 잔량으로 결제하고 즉시 이용합니다.' : '보유한 월정석 잔량이 부족해 이 방식은 사용할 수 없습니다.') + '</span>' +
-                '<span class="cd-direct-payment-metric"><span>필요 월정석</span><b>' + requiredMonthlyCredits.toLocaleString('ko-KR') + '개</b></span>' +
-                '<span class="cd-direct-payment-metric"><span>' + (canUseMonthly ? '결제 후 잔여' : '부족 월정석') + '</span><b>' + (canUseMonthly ? (monthlyBalance - requiredMonthlyCredits) : monthlyShortage).toLocaleString('ko-KR') + '</b></span>' +
-              '</button>' +
-            '</div>' +
-            '<div class="cd-direct-payment-status" data-payment-status></div>' +
-            '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">취소</button></div>' +
-          '</div>';
-
-        function status(message, isError) {
-          var statusNode = modal.querySelector('[data-payment-status]');
-          if (!statusNode) return;
-          statusNode.textContent = message || '';
-          statusNode.classList.toggle('is-error', !!isError);
-        }
-
-        function close(mode) {
-          modal.classList.remove('is-open');
-          if (modal.parentNode) modal.parentNode.removeChild(modal);
-          resolve(mode);
-        }
-
-        modal.addEventListener('click', function(event) {
-          if (event.target === modal) close('cancel');
-        });
-        modal.querySelectorAll('[data-mode]').forEach(function(node) {
-          node.addEventListener('click', async function() {
-            var mode = node.getAttribute('data-mode') || 'cancel';
-            if (mode === 'pass-disabled') return;
-            if (mode === 'pass') {
-              if (node.disabled) return;
-              node.disabled = true;
-              node.classList.add('is-loading');
-              status('\uC774\uC6A9\uAD8C\uC744 \uC11C\uBC84\uC5D0\uC11C \uD655\uC778\uD558\uACE0 \uC788\uC5B4\uC694.', false);
-              try {
-                var passResult = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
-                  title: title,
-                  coinPrice: coinPrice,
-                  cost: coinPrice
-                }));
-                if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) {
-                  close('pass');
-                  return;
-                }
-                status('\uC774\uC6A9\uAD8C\uC73C\uB85C \uCC98\uB9AC\uD560 \uC218 \uC5C6\uC5B4\uC694. \uB2E8\uAC74\uACB0\uC81C\uB098 \uC6D4\uC815\uC11D\uC744 \uC120\uD0DD\uD574 \uC8FC\uC138\uC694.', true);
-              } catch (error) {
-                status(String((error && error.message) || error || '\uC774\uC6A9\uAD8C \uD655\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.'), true);
-              }
-              node.disabled = false;
-              node.classList.remove('is-loading');
-              return;
-            }
-            if (mode === 'monthly-disabled') return;
-            close(mode);
-          });
-        });
-        document.body.appendChild(modal);
-        var direct = modal.querySelector('[data-mode="pass"]') || modal.querySelector('[data-mode="direct"]');
-        if (direct && typeof direct.focus === 'function') direct.focus();
-        });
+    var _dpCanonicalPaymentChoice = function(options) {
+      var restored = null;
+      if (typeof window.__cdRestoreCanonicalPaymentMode === 'function') {
+        try { restored = window.__cdRestoreCanonicalPaymentMode(); } catch (_) { restored = null; }
       }
-      return openServicePaymentChoiceModal();
+      var canonical = restored || window.__cdChooseServicePaymentModeCanonical;
+      if (typeof canonical === 'function' && canonical !== _dpCanonicalPaymentChoice && canonical.__cdSupportsPassChoice === true) {
+        return canonical(options || {});
+      }
+      return Promise.resolve('cancel');
     };
-    try { window._cdChooseServicePaymentMode.__cdSupportsPassChoice = true; } catch (_) {}
+    _dpCanonicalPaymentChoice.__cdSupportsPassChoice = true;
+    window._cdChooseServicePaymentMode = _dpCanonicalPaymentChoice;
   }
 
   window._cdCoinGatePerUse = function(cost, reason, cb, onCancel, options) {

@@ -45,6 +45,7 @@ import {
   createPremiumAccessToken,
   resolvePremiumAccessReportType,
 } from "../lib/premium-access-token.js";
+import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
@@ -2712,6 +2713,22 @@ async function handleSubscriptionStatus(request, env, auth) {
   const user = await findUserByIdRaw(auth.userId, {
     points: 1,
     profileSubscription: 1,
+    subscription: 1,
+    membership: 1,
+    pass: 1,
+    entitlement: 1,
+    plan: 1,
+    planId: 1,
+    productId: 1,
+    subscriptionTier: 1,
+    membershipTier: 1,
+    passTier: 1,
+    status: 1,
+    subscriptionStatus: 1,
+    membershipStatus: 1,
+    isActive: 1,
+    isSubscribed: 1,
+    expiresAt: 1,
     has_started_paid_service: 1,
     first_service_access_date: 1,
   });
@@ -2766,9 +2783,12 @@ async function handleSubscriptionStatus(request, env, auth) {
   let points = Number(user.points || 0);
   const plan = PROFILE_SUB_PLANS[tier];
   const now = new Date();
+  const legacyEntitlement = normalizeHoneyPassEntitlement(user || {});
 
   let effectiveTier = "free";
   let effectiveExpAt = expAt;
+  let effectivePassTier = null;
+  let effectiveSource = source;
   let autoRenewed = false;
 
   if (tier !== "free") {
@@ -2808,10 +2828,21 @@ async function handleSubscriptionStatus(request, env, auth) {
     }
   }
 
+  if (legacyEntitlement.isActive) {
+    effectiveTier = legacyEntitlement.tier;
+    effectivePassTier = legacyEntitlement.passTier || legacyEntitlement.tier;
+    effectiveExpAt = toValidDate(legacyEntitlement.expiresAt) || effectiveExpAt;
+    effectiveSource = legacyEntitlement.source || effectiveSource;
+  }
+
   const isActive = effectiveTier !== "free";
   const profileLimit = isActive ? (PROFILE_SUB_PLANS[effectiveTier]?.profileLimit ?? 1) : 1;
   const lowBalanceWarning = isActive && points <= (PROFILE_SUB_PLANS[effectiveTier]?.lowWarnAt ?? 30);
   const policy = getPlanPolicy(isActive ? effectiveTier : null);
+  const passLimit = isActive
+    ? Number(legacyEntitlement.maxCoveredCoin || policy.freeLimit || 0)
+    : Number(policy.freeLimit || 0);
+  const membershipCreditBalance = Math.max(0, Math.floor(Number(sub.membershipCreditBalance || 0)));
 
   const adminToken = extractAdminTokenFromRequest(request);
   const adminMode = adminToken ? await verifyFlowerAdminToken(adminToken, env) : false;
@@ -2865,15 +2896,17 @@ async function handleSubscriptionStatus(request, env, auth) {
       tier: effectiveTier,
       status: isActive ? (rawSubscriptionStatus || "active") : (rawSubscriptionStatus || "free"),
       expiresAt: toIsoOrNull(effectiveExpAt),
-      freeLimit: policy.freeLimit,
-      passLimit: policy.freeLimit,
-      maxCoveredCoin: policy.freeLimit,
+      passTier: isActive ? (effectivePassTier || effectiveTier) : null,
+      freeLimit: passLimit,
+      passLimit,
+      maxCoveredCoin: passLimit,
+      membershipCreditBalance,
     },
     isSubscribed: Boolean(isActive),
     plan: effectiveTier,
     tier: effectiveTier,
-    passTier: isActive ? effectiveTier : null,
-    source: effectiveTier === "free" ? "coin" : source,
+    passTier: isActive ? (effectivePassTier || effectiveTier) : null,
+    source: effectiveTier === "free" ? "coin" : effectiveSource,
     status: isActive ? (rawSubscriptionStatus || "active") : (rawSubscriptionStatus || "free"),
     subscriptionStatus: rawSubscriptionStatus || null,
     isActive: Boolean(isActive),
@@ -2889,9 +2922,10 @@ async function handleSubscriptionStatus(request, env, auth) {
     adminMode,
     simulated: false,
     adminTestTier: null,
-    freeLimit: policy.freeLimit,
-    passLimit: policy.freeLimit,
-    maxCoveredCoin: policy.freeLimit,
+    freeLimit: passLimit,
+    passLimit,
+    maxCoveredCoin: passLimit,
+    membershipCreditBalance,
     recommendedCoins: policy.recommendedCoins,
   });
 }

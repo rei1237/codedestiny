@@ -1984,7 +1984,6 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       subscriptionPass.profileSubscription,
     );
     if (paymentDecision.canUseByPass && !passBlockedByAccessDecision) {
-      if (!singleOrMonthlyOnly) {
       const passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
         ...scopedBody,
         reportId,
@@ -2068,7 +2067,6 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       }, "이용권 무료 한도 조건으로 서비스를 열었습니다.");
     }
 
-      }
     if (membershipPassOnly) {
       const passFailureCode = accessDecision.reason === "profile_limit_exceeded"
         ? "PROFILE_LIMIT_EXCEEDED"

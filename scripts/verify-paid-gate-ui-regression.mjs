@@ -97,11 +97,14 @@ assertContains(billingRouteSource, '"/api/payments/confirm"', "direct payment co
 assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable", '"/api/payments/prepare"', "pass checked before card prepare");
 assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable", '"/api/payments/confirm"', "pass checked before card confirm");
 
-assertContains(destinyProfileSource, "data-mode=\"' + (passEligible ? 'pass' : 'pass-disabled') + '\"", "destiny payment modal pass option");
-assertContains(destinyProfileSource, "__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {", "destiny pass lookup on pass click");
+assertContains(indexSource, "passButtonHtml", "canonical payment modal pass option");
+assertContains(indexSource, "_cdResolvePassBeforePaymentChoice(Object.assign({}, opts, {", "canonical pass lookup on pass click");
 assertContains(destinyProfileSource, "if (choice === 'pass')", "destiny pass choice grant path");
 assertContains(destinyProfileSource, "__cdRestoreCanonicalPaymentMode", "destiny fallback restores canonical selector");
 assertContains(destinyProfileSource, "__cdSupportsPassChoice", "destiny fallback requires pass-capable selector");
+assertNotContains(destinyProfileSource, "달빛 결제 방식 선택", "legacy two-option moon payment modal removed");
+assertNotContains(destinyProfileSource, "openServicePaymentChoiceModal", "legacy destiny payment selector renderer removed");
+assertContains(destinyProfileSource, "__cdChooseServicePaymentModeCanonical", "destiny fallback delegates to canonical pass selector");
 assertNotContains(destinyProfileSource, "opts.internalMainGate !== true && opts.__cdPaymentGateAuthorized !== true && typeof window.__cdApplyMembershipPassBeforePayment", "destiny no pre-modal pass bottleneck");
 
 assertContains(paymentsRouteSource, "fetchPortOnePayment", "server PortOne verification");

@@ -13,6 +13,7 @@ import {
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
 const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
+const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const pointsSource = readFileSync(resolve(root, "app/points/page.tsx"), "utf8");
 
@@ -209,6 +210,7 @@ assertContains(billingSource, 'accessMethod: "PASS"', "PASS access method respon
 assertContains(billingSource, "charged: 0", "PASS charged zero response");
 assertContains(billingSource, 'paymentMethod: "PASS"', "PASS usage log marker");
 assertContains(billingSource, "recordPassAccessIfNeeded", "PASS usage evidence");
+assertNotContains(billingSource, "if (!singleOrMonthlyOnly)", "monthly choice must not block PASS coverage");
 assertContains(billingSource, "consumeMembershipCreditIfAvailable", "monthly deduction path remains");
 assertContains(billingSource, 'accessMethod: "MONTHLY"', "monthly access method remains");
 assertContains(billingSource, 'charged: Number(membershipConsume.coinPrice || 0)', "monthly charged amount remains");
@@ -263,5 +265,11 @@ assertContains(indexSource, "getSubscriptionMonthlyCreditCost", "main pass shop 
 assertContains(indexSource, "buildMembershipMonthlyCreditRequestId", "main pass shop monthly credit request id");
 assertContains(indexSource, "/api/payments/subscription/confirm", "main pass shop monthly credit purchase API");
 assertContains(indexSource, "paymentMethod: 'monthly_credit'", "main pass shop monthly credit payment method");
+assertContains(fortuneSource, "normalizeHoneyPassEntitlement", "subscription status uses canonical pass entitlement");
+assertContains(fortuneSource, "subscription: 1", "subscription status reads legacy subscription field");
+assertContains(fortuneSource, "membership: 1", "subscription status reads legacy membership field");
+assertContains(fortuneSource, "pass: 1", "subscription status reads legacy pass field");
+assertContains(fortuneSource, "entitlement: 1", "subscription status reads legacy entitlement field");
+assertContains(fortuneSource, "membershipCreditBalance", "subscription status returns monthly credit balance");
 
 console.log("billing pass policy regression checks passed");
