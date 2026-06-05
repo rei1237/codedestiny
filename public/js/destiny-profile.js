@@ -4923,10 +4923,18 @@
         if (!_dpIsStableTouchTap(cardTouchState, e, { moveX: 14, moveY: 20, recentScrollBlockMs: 260 })) return;
         var targetEl = _resolveEventElement(e.target);
         if (!targetEl) return;
+        var menuItem = targetEl.closest('.dp-mc-action-menu__item');
+        if (menuItem) {
+          if (e.cancelable) e.preventDefault();
+          e.stopPropagation();
+          dpRunProfileMenuAction(menuItem, { preventDefault: function(){}, stopPropagation: function(){} });
+          return;
+        }
         var menuBtn = targetEl.closest('.dp-mc-menu-btn');
         if (menuBtn) {
           if (e.cancelable) e.preventDefault();
-          dpToggleProfileMenu({ currentTarget: menuBtn, preventDefault: function(){}, stopPropagation: function(){} });
+          e.stopPropagation();
+          dpToggleProfileMenu({ currentTarget: menuBtn, source: 'touch', preventDefault: function(){}, stopPropagation: function(){} });
           return;
         }
         var loadBtn = targetEl.closest('.dp-mc-load-btn');
