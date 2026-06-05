@@ -315,7 +315,10 @@ async function resolvePaidContentAccess(env, {
   }
 
   try {
-    const existingUnlock = await findActiveSajuProfileUnlock(env, { userId, profileId, featureKey });
+    const [existingUnlock, existingPass] = await Promise.all([
+      findActiveSajuProfileUnlock(env, { userId, profileId, featureKey }),
+      Promise.resolve(subscriptionPass || getActiveMembershipPassForUser(env, userId)),
+    ]);
     if (existingUnlock) {
       return buildPaidContentAccessDecision({
         accessGranted: true,
@@ -325,7 +328,14 @@ async function resolvePaidContentAccess(env, {
       });
     }
 
-    const activePass = subscriptionPass || await getActiveMembershipPassForUser(env, userId);
+    const activePass = existingPass || {
+      isActive: false,
+      tier: "free",
+      passTier: null,
+      freeLimit: 0,
+      profileSubscription: null,
+      entitlement: {},
+    };
     const paymentOptions = buildPassPaymentDecision(
       activePass.entitlement,
       pricing,
@@ -401,7 +411,52 @@ async function getActiveMembershipPassForUser(env, authUserId) {
 }
 
 function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
-  if (snapshot?.isActive !== true) return null;
+  const rawStatus = String(
+    snapshot?.status
+      || snapshot?.subscriptionStatus
+      || snapshot?.membershipStatus
+      || snapshot?.subscription?.status
+      || "",
+  ).trim().toLowerCase();
+  const inactiveStatus = rawStatus === "expired"
+    || rawStatus === "canceled"
+    || rawStatus === "cancelled"
+    || rawStatus === "inactive"
+    || rawStatus === "failed"
+    || rawStatus === "paused"
+    || rawStatus === "refunded";
+  const activeStatus = rawStatus === "active"
+    || rawStatus === "paid"
+    || rawStatus === "current"
+    || rawStatus === "subscribed"
+    || rawStatus === "trialing"
+    || rawStatus === "success"
+    || rawStatus === "registered"
+    || rawStatus === "registering"
+    || rawStatus === "pending"
+    || rawStatus === "processing"
+    || rawStatus === "enrolled"
+    || rawStatus === "enabled"
+    || rawStatus === "valid"
+    || rawStatus === "ok"
+    || rawStatus === "complete"
+    || rawStatus === "completed"
+    || rawStatus === "confirmed"
+    || rawStatus === "approved"
+    || rawStatus === "등록중"
+    || rawStatus === "이용중"
+    || rawStatus === "유효"
+    || rawStatus === "완료";
+  const isSnapshotActive = !inactiveStatus && (
+    snapshot?.isActive === true
+      || snapshot?.isSubscribed === true
+      || snapshot?.active === true
+      || snapshot?.enabled === true
+      || snapshot?.valid === true
+      || snapshot?.registered === true
+      || activeStatus
+  );
+  if (!isSnapshotActive) return null;
   const tier = String(snapshot?.tier || snapshot?.plan || snapshot?.passTier || "free").trim().toLowerCase();
   if (!tier || tier === "free") return null;
   const profileSubscription = {
@@ -409,7 +464,7 @@ function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
     passTier: snapshot?.passTier || tier,
     isActive: true,
     isSubscribed: true,
-    status: "active",
+    status: rawStatus || "active",
     expiresAt: snapshot?.expiresAt || snapshot?.subscription?.expiresAt || null,
     freeLimit: Number(snapshot?.freeLimit || 0),
     source: snapshot?.source || "subscription_status_snapshot",
@@ -1663,11 +1718,11 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       freeBySubscription: false,
     }, "ADMIN_TEST_PAYMENT_BYPASS");
   }
-  const profileId = authCheck?.auth?.userId ? await resolveBillingProfileId(authCheck.auth.userId, body) : "";
+  const [profileId, subscriptionPassForDecision] = await Promise.all([
+    authCheck?.auth?.userId ? resolveBillingProfileId(authCheck.auth.userId, body) : Promise.resolve(""),
+    authCheck?.auth?.userId ? getMembershipPassForBillingRequest(request, env, authCheck.auth.userId) : Promise.resolve(null),
+  ]);
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
-  const subscriptionPassForDecision = authCheck?.auth?.userId
-    ? await getMembershipPassForBillingRequest(request, env, authCheck.auth.userId)
-    : null;
   let paymentDecision = buildPassPaymentDecision(null, pricing, null);
   let accessDecision = buildPaidContentAccessDecision({
     reason: "payment_required",
@@ -1753,44 +1808,6 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const passBlockedByAccessDecision = accessDecision.reason === "profile_limit_exceeded"
     || accessDecision.reason === "price_exceeds_pass_limit";
 
-  if (!isPdfGenerationService) {
-    const existingProfileUnlock = await findActiveSajuProfileUnlock(env, {
-      userId: authCheck.auth.userId,
-      profileId,
-      featureKey: pricing?.featureKey,
-    });
-    if (existingProfileUnlock) {
-      return await successWithPremiumAccess(env, authCheck.auth.userId, {
-        pricing,
-        alreadyUnlocked: true,
-        consume: {
-          ok: true,
-          transactionType: "unlock_entitlement",
-          accessType: "already_unlocked",
-          requestId,
-          featureKey: String(pricing.featureKey || ""),
-          profileId: profileId || undefined,
-          chargedCoins: 0,
-        },
-        accessGrant: {
-          ok: true,
-          accessType: "already_unlocked",
-          featureKey: String(pricing.featureKey || ""),
-          sessionId: reportSessionId || undefined,
-          requestId,
-          purchaseId: String(existingProfileUnlock._id || ""),
-          evidenceId: String(existingProfileUnlock._id || ""),
-          reportId: reportId || undefined,
-          profileId: profileId || undefined,
-          paidAt: existingProfileUnlock.unlockedAt ? new Date(existingProfileUnlock.unlockedAt).toISOString() : new Date().toISOString(),
-        },
-        unlockedFeatures: [String(pricing.featureKey || "")],
-        unlockMap: { [String(pricing.featureKey || "")]: true },
-        balance: null,
-      }, "ALREADY_UNLOCKED");
-    }
-  }
-
   let usagePassChecked = false;
   const tryUsagePassAccess = async () => {
     usagePassChecked = true;
@@ -1865,9 +1882,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   };
 
   if (authCheck?.auth?.userId) {
-    const subscriptionPass = subscriptionPassForDecision?.isActive === true
-      ? subscriptionPassForDecision
-      : await getMembershipPassForBillingRequest(request, env, authCheck.auth.userId);
+    const subscriptionPass = subscriptionPassForDecision || null;
     const coinPrice = Number(pricing?.coinPrice || pricing?.cost || 0);
     paymentDecision = buildPassPaymentDecision(
       subscriptionPass.entitlement,
