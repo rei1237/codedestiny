@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
@@ -158,21 +158,21 @@ function profileActionProductName(action: ProfileActionType) {
 
 function profileActionButtonLabel(action: ProfileActionType, isVvipFree: boolean, coinBalance: number) {
   const label = profileActionLabel(action);
-  if (isVvipFree) return `${label} 勇?VVIP \uBB34\uB8CC`;
+  if (isVvipFree) return `VVIP 무료 ${profileActionLabel(action)}`;
   if (coinBalance >= PROFILE_CARD_ACTION_COST_COINS) return `${label} 勇?${PROFILE_CARD_ACTION_COST_COINS}\uCF54\uC778`;
   return `${label} 勇?${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}\uC6D0`;
 }
 
 function profileActionPrimaryLabel(action: ProfileActionType, isVvipFree: boolean, coinBalance: number) {
-  if (isVvipFree) return `VVIP \uBB34\uB8CC ${profileActionLabel(action)}`;
+  if (isVvipFree) return `VVIP 무료 ${profileActionLabel(action)}`;
   if (coinBalance >= PROFILE_CARD_ACTION_COST_COINS) return `${PROFILE_CARD_ACTION_COST_COINS}\uCF54\uC778 \uC0AC\uC6A9`;
   return `${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}\uC6D0 \uACB0\uC81C`;
 }
 
 function profileActionProgressLabel(action: ProfileActionType, stage: ProfileActionStage) {
   if (stage === "pass") return "\uC774\uC6A9\uAD8C\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.";
-  if (stage === "payment") return "\uACB0\uC81C\uCC3D\uC744 \uC5EC\uB294 \uC911\uC785\uB2C8\uB2E4.";
-  if (stage === "coin") return "\uCF54\uC778\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.";
+  if (stage === "payment") return "결제창을 여는 중입니다.";
+  if (stage === "coin") return "코인을 차감하는 중입니다.";
   if (stage === "saving") return "\uC218\uC815 \uB0B4\uC6A9\uC744 \uC800\uC7A5\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.";
   if (stage === "deleting") return "\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.";
   return action === "edit" ? "\uC218\uC815 \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4." : "\uC0AD\uC81C \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.";
@@ -343,6 +343,9 @@ export default function MePage() {
   const [deleteTarget, setDeleteTarget] = useState<DestinyProfile | null>(null);
   const [profileActionStage, setProfileActionStage] = useState<ProfileActionStage>("");
   const [profilePassSuccessNotice, setProfilePassSuccessNotice] = useState<ProfilePassSuccessNotice>(null);
+  const [activeProfileMenuId, setActiveProfileMenuId] = useState("");
+  const activeProfileMenuRef = useRef<HTMLDivElement | null>(null);
+  const activeProfileCardRef = useRef<HTMLElement | null>(null);
 
   const currentProfile = profiles.find((profile) => profile.id === currentId) || profiles[0] || null;
   const profileLimit = subscription.profileLimit > 0 ? subscription.profileLimit : 1;
@@ -354,12 +357,30 @@ export default function MePage() {
   const isExpiredVvipProfileAction = hasStoredVvipPass && !subscription.isActive;
   const isVvipProfileLimitExceeded = subscription.isActive && subscription.tier === "vvip" && profiles.length > profileLimit;
   const profileActionPolicyNotice = isVvipProfileActionFree
-    ? "VVIP ?? ?? ? ? ?? ? ?? ??"
+    ? "VVIP 혜택 적용 중 · 한도 내 무료 관리"
     : isExpiredVvipProfileAction
-      ? "??????⑤뜤?誘⑸쿋????????饔낅떽?????傭???꿔꺂??????50?????밸븶??????????諛몃마????꿔꺂??????"
+      ? "이용권이 만료되어 50코인이 필요합니다."
       : isVvipProfileLimitExceeded
-        ? "VVIP ?????諛몃마??λ????????노듋???????꿔꺂?????????꿔꺂??????50?????밸븶??????????諛몃마????꿔꺂??????"
-        : "?????諛몃마??λ????????노듋????????癰궽블뀯???????1??50?????밸븶?????????戮?Ĳ??";
+        ? "VVIP 프로필 한도를 초과해 50코인이 필요합니다."
+        : "프로필 카드 추가·수정·삭제는 1회 50코인이 필요합니다.";
+
+  useEffect(() => {
+    if (!activeProfileMenuId) return;
+    const closeFromOutside = (event: PointerEvent) => {
+      const target = event.target;
+      if (target instanceof Node && activeProfileMenuRef.current?.contains(target)) return;
+      setActiveProfileMenuId("");
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setActiveProfileMenuId("");
+    };
+    document.addEventListener("pointerdown", closeFromOutside, true);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeFromOutside, true);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [activeProfileMenuId]);
 
   const applyProfilePayload = useCallback((payload: ProfileStatePayload | null) => {
     if (!payload || payload.ok !== true) return;
@@ -770,6 +791,7 @@ export default function MePage() {
   }, [apiBase]);
 
   const activateProfile = async (profileId: string) => {
+    setActiveProfileMenuId("");
     setBusyAction(`activate:${profileId}`);
     try {
       const response = await authFetch(`${apiBase}/api/profile/current`, {
@@ -795,6 +817,16 @@ export default function MePage() {
     } finally {
       setBusyAction("");
     }
+  };
+
+  const viewProfile = async (profile: DestinyProfile) => {
+    setActiveProfileMenuId("");
+    if (profile.id !== currentId) {
+      await activateProfile(profile.id);
+    }
+    window.requestAnimationFrame(() => {
+      activeProfileCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   const executeProfileAction = useCallback(async (
@@ -901,12 +933,14 @@ export default function MePage() {
   }, [executeProfileAction, isVvipProfileActionFree, profileActionCoinBalance, runProfileActionCardPayment, runProfileActionPassGate, subscription.tier]);
 
   const openEditProfile = (profile: DestinyProfile) => {
+    setActiveProfileMenuId("");
     setEditTarget(profile);
     setEditDraft(buildEditDraft(profile));
     setAuthNotice("");
   };
 
   const deleteProfile = async (profileId: string) => {
+    setActiveProfileMenuId("");
     const profile = profiles.find((item) => item.id === profileId);
     if (!profile) {
       setAuthNotice("??????????諛몃마??λ????????노듋?????壤굿?쒓낯???饔낅떽???????????????깅즽????????놁졄.");
@@ -991,7 +1025,7 @@ export default function MePage() {
         </section>
 
         <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-          <article className="rounded-lg border border-amber-300/20 bg-[linear-gradient(145deg,rgba(25,28,58,0.98),rgba(42,30,70,0.96))] p-5 shadow-2xl shadow-black/25">
+          <article ref={activeProfileCardRef} className="rounded-lg border border-amber-300/20 bg-[linear-gradient(145deg,rgba(25,28,58,0.98),rgba(42,30,70,0.96))] p-5 shadow-2xl shadow-black/25">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-300">Active Card</p>
@@ -1087,42 +1121,78 @@ export default function MePage() {
                   const editing = busyAction === `edit:${profile.id}`;
                   const deleting = busyAction === `delete:${profile.id}`;
                   const actionHint = profileActionPolicyNotice;
+                  const menuOpen = activeProfileMenuId === profile.id;
 
                   return (
-                    <div key={profile.id} className={`rounded-lg border p-3 ${active ? "border-amber-300/45 bg-amber-300/10" : "border-white/10 bg-black/10"}`}>
+                    <div key={profile.id} className={`relative overflow-visible rounded-lg border p-3 ${menuOpen ? "z-30" : "z-0"} ${active ? "border-amber-300/45 bg-amber-300/10" : "border-white/10 bg-black/10"}`}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="truncate font-semibold text-white">{profile.name}</p>
                           <p className="mt-1 text-xs text-slate-400">{formatProfileBirth(profile)}</p>
                           <p className="mt-1 text-[11px] font-semibold text-amber-200">{actionHint}</p>
                         </div>
-                        {active ? <span className="rounded-full bg-amber-300 px-2 py-0.5 text-[11px] font-bold text-slate-950">??</span> : null}
-                      </div>
-                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                        <button
-                          type="button"
-                          onClick={() => void activateProfile(profile.id)}
-                          disabled={active || activating || editing || deleting || !!busyAction}
-                          className="min-h-[44px] rounded-md border border-white/15 px-3 py-2 text-xs font-semibold text-slate-200 disabled:opacity-45"
-                        >
-                          {activating ? "???..." : "??"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => openEditProfile(profile)}
-                          disabled={editing || deleting || activating || !!busyAction}
-                          className="min-h-[44px] rounded-md border border-amber-300/35 bg-amber-300/10 px-3 py-2 text-xs font-semibold text-amber-100 disabled:opacity-35"
-                        >
-                          {editing ? profileActionProgressLabel("edit", profileActionStage) : profileActionButtonLabel("edit", isVvipProfileActionFree, profileActionCoinBalance)}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void deleteProfile(profile.id)}
-                          disabled={deleting || editing || activating || !!busyAction}
-                          className="min-h-[44px] rounded-md border border-rose-300/35 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-100 disabled:opacity-35"
-                        >
-                          {deleting ? profileActionProgressLabel("delete", profileActionStage) : profileActionButtonLabel("delete", isVvipProfileActionFree, profileActionCoinBalance)}
-                        </button>
+                        <div ref={menuOpen ? activeProfileMenuRef : null} className="relative z-40 flex flex-none items-start gap-2">
+                          {active ? <span className="mt-1 rounded-full bg-amber-300 px-2 py-0.5 text-[11px] font-bold text-slate-950">??</span> : null}
+                          <button
+                            type="button"
+                            aria-haspopup="menu"
+                            aria-expanded={menuOpen}
+                            aria-label="프로필 카드 메뉴"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setActiveProfileMenuId((prev) => prev === profile.id ? "" : profile.id);
+                            }}
+                            disabled={!!busyAction}
+                            className="flex min-h-[44px] min-w-[44px] touch-manipulation items-center justify-center rounded-md border border-white/15 bg-black/25 text-xl font-black leading-none text-slate-100 shadow-lg shadow-black/20 disabled:opacity-35"
+                          >
+                            ⋯
+                          </button>
+                          {menuOpen ? (
+                            <div
+                              role="menu"
+                              className="absolute right-0 top-full z-[80] mt-2 w-[min(78vw,13rem)] overflow-hidden rounded-lg border border-white/15 bg-[#11142b]/95 p-1.5 shadow-2xl shadow-black/45 backdrop-blur-xl"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              <button
+                                type="button"
+                                role="menuitem"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  void viewProfile(profile);
+                                }}
+                                disabled={activating || editing || deleting || (!!busyAction && !activating)}
+                                className="flex min-h-[44px] w-full touch-manipulation items-center justify-between rounded-md px-3 py-2 text-left text-sm font-semibold text-slate-100 hover:bg-white/10 disabled:opacity-40"
+                              >
+                                <span>프로필 조회</span>
+                                <span className="text-xs text-slate-400">{activating ? "..." : ""}</span>
+                              </button>
+                              <button
+                                type="button"
+                                role="menuitem"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openEditProfile(profile);
+                                }}
+                                disabled={editing || deleting || activating || !!busyAction}
+                                className="flex min-h-[44px] w-full touch-manipulation items-center rounded-md px-3 py-2 text-left text-sm font-semibold text-amber-100 hover:bg-amber-300/10 disabled:opacity-40"
+                              >
+                                {editing ? profileActionProgressLabel("edit", profileActionStage) : profileActionButtonLabel("edit", isVvipProfileActionFree, profileActionCoinBalance)}
+                              </button>
+                              <button
+                                type="button"
+                                role="menuitem"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  void deleteProfile(profile.id);
+                                }}
+                                disabled={deleting || editing || activating || !!busyAction}
+                                className="flex min-h-[44px] w-full touch-manipulation items-center rounded-md px-3 py-2 text-left text-sm font-bold text-rose-100 hover:bg-rose-500/15 disabled:opacity-40"
+                              >
+                                {deleting ? profileActionProgressLabel("delete", profileActionStage) : profileActionButtonLabel("delete", isVvipProfileActionFree, profileActionCoinBalance)}
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   );

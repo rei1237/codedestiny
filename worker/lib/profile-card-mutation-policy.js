@@ -144,11 +144,28 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
   const isActivePass = entitlement?.isActive === true;
   const isActiveVvip = isActiveVvipEntitlement(entitlement);
   const wasVvipTier = isActiveVvip || hasStoredVvipTier(user);
+  const isVvipFreeAllowed = isActiveVvip
+    && Number.isInteger(vvipLimit)
+    && vvipLimit > 0
+    && currentProfileCardCount <= vvipLimit;
   const isPassFreeAllowed = isActivePass
     && canUseByPass(entitlement, PROFILE_CARD_EDIT_DELETE_COST_COINS)
     && Number.isInteger(passProfileLimit)
     && passProfileLimit > 0
     && currentProfileCardCount <= passProfileLimit;
+
+  if (isVvipFreeAllowed) {
+    return buildProfileCardMutationPolicyResult({
+      allowed: true,
+      requiresPayment: false,
+      costCoins: 0,
+      costKrw: 0,
+      reason: "VVIP_PROFILE_LIMIT_INCLUDED",
+      passType: String(entitlement.passTier || entitlement.tier || "vvip"),
+      limit: vvipLimit,
+      currentProfileCardCount,
+    });
+  }
 
   if (isPassFreeAllowed) {
     return buildProfileCardMutationPolicyResult({
