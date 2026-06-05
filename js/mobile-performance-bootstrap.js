@@ -208,7 +208,12 @@ function __loadScriptOnce(src) {
       s.dataset.loaded = '1';
       resolve();
     };
-    s.onerror = () => reject(new Error('load failed: ' + src));
+    s.onerror = () => {
+      s.dataset.loading = '0';
+      s.dataset.loaded = '0';
+      s.remove();
+      reject(new Error('load failed: ' + src));
+    };
     document.head.appendChild(s);
   });
 }
@@ -661,7 +666,7 @@ function setupLazySectionHydration() {
 
 function setupFeatureCodeSplit() {
   const loaders = {
-    physiognomy: () => __loadScriptOnce('AnalysisEngine.js?v=20260511-physio-stallfix1').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260511-physio-stallfix1')),
+    physiognomy: () => __loadScriptOnce('AnalysisEngine.js?v=20260605-physio-fastflow').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260605-physio-fastflow')),
     mbti: () => __loadScriptOnce('js/astral-soul.js'),
     hwatu: () => __loadScriptOnce('HwatuFortune.js')
   };
@@ -670,7 +675,12 @@ function setupFeatureCodeSplit() {
 
   function ensure(key) {
     if (!loaders[key]) return Promise.resolve();
-    if (!state[key]) state[key] = loaders[key]();
+    if (!state[key]) {
+      state[key] = loaders[key]().catch((error) => {
+        state[key] = null;
+        throw error;
+      });
+    }
     return state[key];
   }
 

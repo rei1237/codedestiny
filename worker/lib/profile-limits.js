@@ -118,6 +118,8 @@ function isActiveStatus(value) {
     || status === "success"
     || status === "registered"
     || status === "registering"
+    || status === "pending"
+    || status === "processing"
     || status === "enrolled"
     || status === "enabled"
     || status === "valid"
@@ -188,7 +190,10 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
 
     const expiresAt = readDate(source.expiresAt || source.currentPeriodEnd || source.endsAt || source.endAt || source.validUntil);
     const status = source.status || source.subscriptionStatus || source.membershipStatus || source.lastBillingStatus;
-    const explicitInactive = isInactiveStatus(status) || source.isActive === false || source.isSubscribed === false;
+    const activeByStatus = isActiveStatus(status);
+    const explicitInactive = isInactiveStatus(status)
+      || (source.isActive === false && !activeByStatus)
+      || (source.isSubscribed === false && !activeByStatus);
     const explicitActive = source.isActive === true
       || source.isSubscribed === true
       || source.active === true
@@ -196,7 +201,7 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
       || source.valid === true
       || source.isValid === true
       || source.registered === true
-      || isActiveStatus(status);
+      || activeByStatus;
     const dateActive = expiresAt ? expiresAt.getTime() > Date.now() : false;
     const isActive = !explicitInactive && (expiresAt ? dateActive : explicitActive);
     if (!isActive) continue;
