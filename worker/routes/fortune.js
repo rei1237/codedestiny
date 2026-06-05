@@ -537,6 +537,7 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "sajuDiary",
   "secretHouseEpisodes",
   "animal-destiny-unlock",
+  "loveSimulation",
   "premiumDivinationPack",
   "rpt_specialCharmCard",
   "rpt_quantumCard",
