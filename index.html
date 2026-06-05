@@ -11527,11 +11527,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   function ChargeModal() {
     var root = document.getElementById('goldenGrainChargeModalRoot');
     if (!root) return;
-    var chargeButtonLabel = '결제 수단 등록하기';
-    var chargeNotice = '<div class="golden-grain-modal__notice">코인은 1코인 = 100원 기준의 콘텐츠 가치 단위입니다. 월정석은 이벤트로 지급되는 보너스 결제 잔량이며 구매·충전할 수 없습니다.</div>';
+    var chargeButtonLabel = '달빛이용권 상점 안내 보기';
+    var chargeNotice = '<div class="golden-grain-modal__notice">달빛 이용권은 30일 동안 여러 프로필에 혜택을 넉넉하게 여는 선택입니다. 코인은 1코인 = 100원 기준의 콘텐츠 가치 단위이며, 월정석은 이벤트로만 지급되는 보너스 결제 잔량입니다.</div>';
     var packageItems = goldenPackages.map(function (pkg) {
       var bestRibbon = pkg.id === 'premium' ? '<span class="golden-grain-package__best">BEST</span>' : '';
-      var bonusHTML = '<span class="golden-grain-package__bonus">결제 수단 등록 후 카드 단건 결제</span>';
+      var bonusHTML = '<span class="golden-grain-package__bonus">30일 혜택 · 프로필별 적용</span>';
       return [
         '<button type="button" class="golden-grain-package' + (pkg.id === selectedPackageId ? ' is-selected' : '') + '" data-action="selectGoldenPackage" data-package-id="' + pkg.id + '">',
         bestRibbon,
@@ -11544,7 +11544,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         '    <span><span class="golden-grain-package__price">' + formatWon(pkg.price) + '</span></span>',
         '    <span class="golden-grain-package__total">프로필 ' + pkg.profileLimit + '개</span>',
         '  </span>',
-        '  <span class="golden-grain-package__sale">카드 결제 기준 안내</span>',
+        '  <span class="golden-grain-package__sale">달빛 이용권 혜택 요약</span>',
         bonusHTML,
         '</button>'
       ].join('');
@@ -11553,17 +11553,17 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     root.innerHTML = [
       '<div id="goldenGrainChargeModal" class="golden-grain-modal" role="dialog" aria-modal="true" aria-labelledby="goldenChargeTitle">',
       '  <div class="golden-grain-modal__card">',
-      '    <button type="button" class="golden-grain-modal__close" data-action="closeGoldenGrainCharge" aria-label="결제 수단 관리 닫기">×</button>',
+      '    <button type="button" class="golden-grain-modal__close" data-action="closeGoldenGrainCharge" aria-label="달빛이용권 상점 안내 닫기">×</button>',
       '    <div class="golden-grain-modal__head">',
       '      <div id="goldenPiggyBank" class="golden-grain-piggy" aria-hidden="true"><span class="golden-grain-piggy__img"></span></div>',
-      '      <h3 id="goldenChargeTitle" class="golden-grain-modal__title"><button type="button" class="golden-grain-modal__title-btn" data-action="confirmGoldenCharge" aria-label="결제 수단 등록 페이지로 이동">결제 수단 관리</button></h3>',
-      '      <p class="golden-grain-modal__subtitle">유료 서비스는 카드/간편결제 수단 등록 후 코인 가치 기준으로 원화 단건 결제됩니다. 월정석은 신규 가입·이벤트로만 지급되는 보너스 결제 잔량입니다.</p>',
+      '      <h3 id="goldenChargeTitle" class="golden-grain-modal__title"><button type="button" class="golden-grain-modal__title-btn" data-action="confirmGoldenCharge" aria-label="달빛이용권 상점 안내 열기">달빛이용권 상점 안내</button></h3>',
+      '      <p class="golden-grain-modal__subtitle">30일 동안 더 넉넉하게 누리는 달빛 이용권, 그리고 이벤트로만 쌓이는 보너스 월정석을 한눈에 확인하세요.</p>',
       '    </div>',
       '    <div class="golden-grain-modal__scroll"><div class="golden-grain-packages">' + packageItems + '</div></div>',
       '    <div class="golden-grain-modal__cta">',
       '      <button type="button" class="golden-grain-modal__charge-btn" data-action="confirmGoldenCharge">' + chargeButtonLabel + '</button>',
       chargeNotice,
-      '      <div class="golden-grain-modal__footer-copy">월정석 잔량으로 열 수 없는 서비스는 등록된 결제 수단으로 원화 단건 결제됩니다.</div>',
+      '      <div class="golden-grain-modal__footer-copy">달빛 이용권은 자동결제가 아닌 30일 이용권이며, 기간 종료 후 무료 플랜으로 전환됩니다.</div>',
       '    </div>',
       '  </div>',
       '</div>'
@@ -13282,14 +13282,35 @@ function updateBadge() {
       if (consumeInFlight) {
         return false;
       }
-      consumeInFlight = true;
+        consumeInFlight = true;
       try {
         var perUseRequestId = 'peruse:' + action + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
         var explicitFeatureKey = String(actionNode.getAttribute('data-feature-key') || '').trim();
         var perUseFeatureKey = String(explicitFeatureKey || __CD_PDF_ENTRY_FEATURE_KEY_BY_ACTION[action] || action || 'coin-gate-per-use').trim().slice(0, 80) || 'coin-gate-per-use';
         var isDirectPremiumPdfEntry = !!__CD_DIRECT_PREMIUM_MODAL_ACTIONS[action];
         var membershipCoverage = _cdGetActiveMembershipCoverageFromCache(tileCoinCost);
-        var passAccess = await _cdResolvePaidContentAccess({ title: fname, coinPrice: tileCoinCost, cost: tileCoinCost, categoryKey: 'main-tile', subFeatureKey: perUseFeatureKey, featureKey: perUseFeatureKey, reason: fname + ' 이용', requestId: perUseRequestId, membershipCoverage: membershipCoverage });
+        var passAccessRequest = {
+          title: fname,
+          coinPrice: tileCoinCost,
+          cost: tileCoinCost,
+          categoryKey: 'main-tile',
+          subFeatureKey: perUseFeatureKey,
+          featureKey: perUseFeatureKey,
+          reason: fname + ' 이용',
+          requestId: perUseRequestId,
+          membershipCoverage: membershipCoverage,
+        };
+        var passAccessCacheKey = _cdBuildPassAccessCacheKey(passAccessRequest, fname, tileCoinCost);
+        var passAccess = _cdTakePassAccessResult(passAccessCacheKey);
+        if (!_cdIsPassBypassAccess(passAccess) && passAccess && passAccess.status !== 'payment_required') {
+          passAccess = null;
+        }
+        if (!passAccess) {
+          passAccess = await _cdResolvePaidContentAccess(passAccessRequest);
+          if (_cdIsPassBypassAccess(passAccess) || passAccess.status === 'payment_required') {
+            _cdStorePassAccessResult(passAccessCacheKey, passAccess);
+          }
+        }
         if (passAccess.status === 'already_unlocked' || passAccess.status === 'pass_applied') {
           var passPayload = passAccess.payload || _cdToCoinPayload(passAccess.rawPayload || {});
           userBalance = _cdResolveBalanceFromPayload(passPayload, userBalance);
