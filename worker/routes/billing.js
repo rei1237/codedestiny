@@ -1882,7 +1882,14 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   };
 
   if (authCheck?.auth?.userId) {
-    const subscriptionPass = subscriptionPassForDecision || null;
+    const subscriptionPass = subscriptionPassForDecision || {
+      isActive: false,
+      entitlement: {},
+      profileSubscription: null,
+      tier: "free",
+      passTier: null,
+      freeLimit: 0,
+    };
     const coinPrice = Number(pricing?.coinPrice || pricing?.cost || 0);
     paymentDecision = buildPassPaymentDecision(
       subscriptionPass.entitlement,
