@@ -48,7 +48,9 @@ export async function readJson(request) {
 export function getRoutePath(request, prefix) {
   const pathname = new URL(request.url).pathname;
   const rest = pathname.slice(prefix.length);
-  return rest || "/";
+  if (!rest) return "/";
+  const normalized = rest.replace(/\/+$/, "");
+  return normalized || "/";
 }
 
 export function notFound() {

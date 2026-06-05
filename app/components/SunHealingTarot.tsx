@@ -69,6 +69,8 @@ const SPREAD_CARD_COUNT = 4 as const;
 const CHAR_DELAY_MS = 12;
 const SECTION_GAP_MS = 320;
 const INITIAL_TEXT_BURST_CHARS = 72;
+const DRAW_ENDPOINT = "/api/tarot/draw";
+const READING_ENDPOINT = "/api/tarot/reading";
 
 const SHARE_FALLBACK_URL = "https://code-destiny.com";
 const SHARE_TITLE = "태양 회복 타로";
@@ -321,7 +323,7 @@ export default function SunHealingTarot() {
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      const res = await fetch("/api/tarot/draw/", {
+      const res = await fetch(DRAW_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ spreadType: SPREAD_TYPE }),
@@ -330,6 +332,7 @@ export default function SunHealingTarot() {
       const data = await res.json();
       if (!res.ok || data?.ok === false) throw new Error(data?.message || "draw failed");
       const drawn = Array.isArray(data?.cards) ? (data.cards as TarotCardDto[]) : [];
+      if (drawn.length < SPREAD_CARD_COUNT) throw new Error("draw payload incomplete");
       setCards(drawn.slice(0, SPREAD_CARD_COUNT));
       setStage("spread");
     } catch (error) {
@@ -360,7 +363,7 @@ export default function SunHealingTarot() {
     abortRef.current = ac;
     try {
       const payloadCards = cards.map((c) => ({ cardId: c.cardId, position: c.position, orientation: c.orientation }));
-      const res = await fetch("/api/tarot/reading/", {
+      const res = await fetch(READING_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category: "healing", spreadType: SPREAD_TYPE, cards: payloadCards }),
