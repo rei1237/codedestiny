@@ -2,6 +2,7 @@ import {
   COIN_GATE_PER_USE_REASON_COSTS,
   FEATURE_KEY_PRICE_TABLE,
   UNLOCK_PRODUCT_BY_FEATURE_KEY,
+  getPaidFeatureBillingType,
   normalizePaidFeatureKey,
 } from "./paid-feature-registry.js";
 import {
@@ -128,6 +129,7 @@ function toPricingShape({ categoryKey, categoryLabel, subFeatureKey, featureKey,
   const coinPrice = Number(cost);
   const amountKRW = toSinglePurchaseAmountKRW(coinPrice);
   const membershipCreditCost = calculateMembershipCreditCost(coinPrice);
+  const billingType = getPaidFeatureBillingType(featureKey);
   return {
     categoryKey,
     categoryLabel,
@@ -149,6 +151,8 @@ function toPricingShape({ categoryKey, categoryLabel, subFeatureKey, featureKey,
     },
     paymentMode: "single_purchase",
     coinDisplayOnly: true,
+    billingType,
+    accessKind: billingType,
   };
 }
 

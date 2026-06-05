@@ -4,6 +4,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   FEATURE_KEY_PRICE_TABLE,
+  PAID_FEATURE_BILLING_TYPES,
+  getPaidFeatureBillingType,
+  isPerUsePaidFeatureKey,
+  isUnlockPaidFeatureKey,
   UNLOCK_PRODUCT_BY_FEATURE_KEY,
 } from "../worker/lib/paid-feature-registry.js";
 
@@ -64,10 +68,47 @@ assert.match(destinyProfileSource, /PROFILE_CARD_MANAGE_FEATURE_KEY = 'profile-c
 assert.match(destinyProfileSource, /featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY/, "profile card actions must pass featureKey into billing gate");
 assert.match(destinyProfileSource, /\/api\/billing\/coin-gate/, "common paid gate must use worker billing coin-gate");
 
-assert.equal(UNLOCK_PRODUCT_BY_FEATURE_KEY["compat-sukuyo-compatibility"], undefined, "sukuyo compatibility must not be an unlock product");
-assert.match(billingSource, /PER_USE_PAID_FEATURE_KEYS = new Set/, "worker billing must explicitly separate per-use paid features");
-assert.match(billingSource, /"compat-sukuyo-compatibility"/, "sukuyo compatibility must be classified as per-use paid");
-assert.match(billingSource, /PER_USE_PAID_FEATURE_KEYS\.has\(key\)\) return false/, "per-use paid features must not persist profile unlock entitlements");
+for (const featureKey of Object.keys(FEATURE_KEY_PRICE_TABLE)) {
+  assert.ok(getPaidFeatureBillingType(featureKey), `${featureKey} must have a billing type`);
+}
+
+for (const featureKey of [
+  "compat-astro-synastry",
+  "compat-astro-direct-synastry",
+  "compat-ziwei-compatibility",
+  "compat-saju-compatibility",
+  "compat-sukuyo-compatibility",
+  "vedic-compatibility-per-use",
+  "tarot-prompt-maker",
+  "saju_ai_prompt_generator",
+  "ziwei_ai_prompt_generator",
+  "sukuyo_ai_prompt_generator",
+  "astrology_ai_prompt_generator",
+  "vedic_ai_prompt_generator",
+  "profile-card-manage",
+]) {
+  assert.equal(UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey], undefined, `${featureKey} must not be an unlock product`);
+  assert.equal(getPaidFeatureBillingType(featureKey), PAID_FEATURE_BILLING_TYPES.PER_USE, `${featureKey} must be per-use paid`);
+  assert.equal(isPerUsePaidFeatureKey(featureKey), true, `${featureKey} must be per-use paid`);
+  assert.equal(isUnlockPaidFeatureKey(featureKey), false, `${featureKey} must not persist unlock entitlement`);
+}
+
+for (const featureKey of [
+  "section_daewun",
+  "section_summary",
+  "section_compat",
+  "flower-fc",
+  "olympus-fc",
+  "animal-destiny-unlock",
+  "rpt_specialCharmCard",
+  "fun.quantumLotto.ritualReport",
+]) {
+  assert.equal(getPaidFeatureBillingType(featureKey), PAID_FEATURE_BILLING_TYPES.UNLOCK, `${featureKey} must be an unlock feature`);
+  assert.equal(isUnlockPaidFeatureKey(featureKey), true, `${featureKey} must persist unlock entitlement`);
+}
+
+assert.match(billingSource, /isUnlockPaidFeatureKey/, "worker billing must use registry unlock classification");
+assert.doesNotMatch(billingSource, /PER_USE_PAID_FEATURE_KEYS = new Set/, "worker billing must not keep a local per-use list");
 assert.match(billingSource, /persistProfileUnlockEntitlement && !profileId/, "profile-scoped unlocks must validate profile before payment");
 
 const registrySource = source("worker/lib/paid-feature-registry.js");

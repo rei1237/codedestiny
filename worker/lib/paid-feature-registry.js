@@ -275,6 +275,152 @@ export const UNLOCK_PRODUCT_BY_FEATURE_KEY = Object.freeze(
   }, Object.create(null)),
 );
 
+export const PAID_FEATURE_BILLING_TYPES = Object.freeze({
+  PER_USE: "per_use",
+  UNLOCK: "unlock",
+  PDF: "pdf",
+});
+
+const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
+  "tarot-year-fortune",
+  "tarot-love-relationship",
+  "tarot-reunion-reading",
+  "tarot-mindscan",
+  "tarot-celestial-harmony",
+  "tarot-crystal-soul-reading",
+  "tarot-numerology-reading",
+  "tarot-prompt-maker",
+  "tarot-ijik",
+  "fortune-fish-gacha",
+  "royal-tea-oracle",
+  "ifa-oracle",
+  "neville-meditation",
+  "cosmic-soul-meditation",
+  "yoga-guru-per-use",
+  "flower-studio-per-use",
+  "compat-astro-synastry",
+  "compat-astro-direct-synastry",
+  "compat-ziwei-compatibility",
+  "compat-saju-compatibility",
+  "compat-sukuyo-compatibility",
+  "vedic-compatibility-per-use",
+  "openJuyukModal",
+  "openKemetModal",
+  "openGeomancyOracle",
+  "loveSimulation",
+  "turtleIChing",
+  "egyptOracle",
+  "geomancy",
+  "stonehengeRunes",
+  "stonehenge-runes-single",
+  "stonehenge-runes-triad",
+  "stonehenge-runes-deep",
+  "stonehenge-runes-yearly",
+  "animal-totem-basic",
+  "animal-totem-deep",
+  "destiny_meeting_place",
+  "premiumTarot",
+  "palm-reading-general",
+  "palm-reading-love",
+  "palm-reading-wealth",
+  "palm-reading-career",
+  "palm-reading-personality",
+  "palm-reading-relationship",
+  "saju_ai_prompt_generator",
+  "ziwei_ai_prompt_generator",
+  "sukuyo_ai_prompt_generator",
+  "astrology_ai_prompt_generator",
+  "vedic_ai_prompt_generator",
+  "premium-sibyl-dominator",
+  "premium-sukuyo-compat-extra",
+  "premium-veda-compatibility-addon",
+  "destiny-bias-analyze",
+  "profile-card-manage",
+]);
+
+const PDF_PAID_FEATURE_KEY_LIST = Object.freeze([
+  "premium-love-secret-solo",
+  "premium-love-secret-couple",
+  "saju_love_book_pdf",
+  "saju_life_book_pdf",
+  "premium-lifebook-report",
+  "premium_pdf_saju_life_book",
+  "saju_new_year_pdf",
+  "premium-saju-newyear-report",
+  "premium_pdf_saju_new_year",
+  "premium_pdf_saju_yearly",
+  "premium_pdf_saju_love_secret",
+  "premium_pdf_saju_love_secret_compat",
+  "premium-ziwei-report",
+  "premium-ziwei-report-compat",
+  "premium_pdf_ziwei",
+  "premium_pdf_ziwei_compat",
+  "premium-astrology-report",
+  "premium-astrology-report-compat",
+  "premium_pdf_western_astrology",
+  "premium_pdf_western_astrology_compat",
+  "premium-sukuyo-report",
+  "premium-sukuyo-report-compat",
+  "premium_pdf_sukyo",
+  "premium_pdf_sukyo_compat",
+  "premium-vedic-report",
+  "premium-vedic-report-compat",
+  "premium_pdf_vedic",
+  "premium_pdf_vedic_compat",
+  "premium_pdf_soul_origin",
+  "premium-soul-origin-report",
+  "premium-fpti-report",
+]);
+
+const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
+  "section_daewun",
+  "section_summary",
+  "section_compat",
+  "animal-destiny-unlock",
+  "destiny-bias-theme-premium",
+  "destiny-bias-collection-save",
+  "destiny-bias-deep-profile",
+  "rpt_specialCharmCard",
+  "rpt_quantumCard",
+  "rpt_healthReportCard",
+  "rpt_skillTreeCard",
+  "rpt_energyCoordCard",
+  "rpt_villainCard",
+  "rpt_luckSyncDiaryEntryCard",
+  "rpt_secretHouseEntryCard",
+  "fun.quantumLotto.ritualReport",
+]);
+
+export const PER_USE_PAID_FEATURE_KEYS = Object.freeze([...PER_USE_PAID_FEATURE_KEY_LIST].sort());
+export const PDF_PAID_FEATURE_KEYS = Object.freeze([...PDF_PAID_FEATURE_KEY_LIST].sort());
+export const UNLOCK_PAID_FEATURE_KEYS = Object.freeze(
+  Array.from(new Set([
+    ...Object.keys(UNLOCK_PRODUCT_BY_FEATURE_KEY),
+    ...EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST,
+  ])).sort(),
+);
+
+const PER_USE_PAID_FEATURE_KEY_SET = new Set(PER_USE_PAID_FEATURE_KEYS);
+const PDF_PAID_FEATURE_KEY_SET = new Set(PDF_PAID_FEATURE_KEYS);
+const UNLOCK_PAID_FEATURE_KEY_SET = new Set(UNLOCK_PAID_FEATURE_KEYS);
+
+export function getPaidFeatureBillingType(featureKey) {
+  const key = normalizePaidFeatureKey(featureKey);
+  if (!key) return "";
+  if (UNLOCK_PAID_FEATURE_KEY_SET.has(key)) return PAID_FEATURE_BILLING_TYPES.UNLOCK;
+  if (PDF_PAID_FEATURE_KEY_SET.has(key)) return PAID_FEATURE_BILLING_TYPES.PDF;
+  if (PER_USE_PAID_FEATURE_KEY_SET.has(key)) return PAID_FEATURE_BILLING_TYPES.PER_USE;
+  return FEATURE_KEY_PRICE_TABLE[key] ? PAID_FEATURE_BILLING_TYPES.PER_USE : "";
+}
+
+export function isPerUsePaidFeatureKey(featureKey) {
+  return getPaidFeatureBillingType(featureKey) === PAID_FEATURE_BILLING_TYPES.PER_USE;
+}
+
+export function isUnlockPaidFeatureKey(featureKey) {
+  return getPaidFeatureBillingType(featureKey) === PAID_FEATURE_BILLING_TYPES.UNLOCK;
+}
+
 export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
   "premium-sukyo": "premium-sukuyo",
   "openjuyuk": "openJuyukModal",

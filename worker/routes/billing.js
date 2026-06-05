@@ -13,6 +13,9 @@ import {
   listBillingFeatures,
 } from "../lib/billing-feature-registry.js";
 import {
+  isUnlockPaidFeatureKey,
+} from "../lib/paid-feature-registry.js";
+import {
   completeServiceExecution,
   failServiceExecution,
   getServiceExecution,
@@ -76,25 +79,6 @@ const ADMIN_TEST_USER_ID = "flower-admin";
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const PAID_ACCESS_DECISION_CACHE_TTL_MS = 4000;
 const PAID_ACCESS_DECISION_CACHE_MAX_ENTRIES = 2500;
-
-const PER_USE_PAID_FEATURE_KEYS = new Set([
-  "compat-astro-synastry",
-  "compat-astro-direct-synastry",
-  "compat-ziwei-compatibility",
-  "compat-saju-compatibility",
-  "compat-sukuyo-compatibility",
-  "vedic-compatibility-per-use",
-  "tarot-year-fortune",
-  "tarot-love-relationship",
-  "tarot-reunion-reading",
-  "tarot-prompt-maker",
-  "saju_ai_prompt_generator",
-  "ziwei_ai_prompt_generator",
-  "sukuyo_ai_prompt_generator",
-  "astrology_ai_prompt_generator",
-  "vedic_ai_prompt_generator",
-  "profile-card-manage",
-]);
 
 const paidAccessDecisionCache = globalThis.__paidAccessDecisionCache
   || (globalThis.__paidAccessDecisionCache = {
@@ -992,11 +976,7 @@ async function resolveBillingProfileId(authUserId, body = {}) {
 
 function isProfileScopedUnlockKey(featureKey) {
   const key = String(featureKey || "").trim();
-  if (!key) return false;
-  if (PER_USE_PAID_FEATURE_KEYS.has(key)) return false;
-  return key === LOTTO_RITUAL_REPORT_FEATURE_KEY
-    || Boolean(UNLOCK_PRODUCT_BY_FEATURE_KEY[key])
-    || /^section_(daewun|summary|compat)$/.test(key);
+  return Boolean(key && isUnlockPaidFeatureKey(key));
 }
 
 async function resolveProfileScopedUnlocks(authUserId, profileId) {
@@ -1071,9 +1051,7 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
   let unlockedFeatures = Array.isArray(data?.unlockedFeatures) ? [...data.unlockedFeatures] : [];
   let unlockMap = data?.unlockMap && typeof data.unlockMap === "object" ? { ...data.unlockMap } : {};
   const isAdminTestAccess = data?.adminBypass === true || data?.adminTestMode === true || consume?.adminBypass === true || consume?.adminTestMode === true;
-  const isPermanentUnlock = !isAdminTestAccess && (pricing?.categoryKey === "unlock-feature"
-    || featureKey === LOTTO_RITUAL_REPORT_FEATURE_KEY
-    || /^section_(daewun|summary|compat)$/.test(featureKey));
+  const isPermanentUnlock = !isAdminTestAccess && isUnlockPaidFeatureKey(featureKey);
   if (authUserId && featureKey && isPermanentUnlock) {
     await connectDb(env);
     const updatedUser = await User.findByIdAndUpdate(
