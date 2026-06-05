@@ -780,6 +780,47 @@ function normalizeSubscriptionTier(value) {
   return VALID_SUB_TIERS.has(tier) ? tier : null;
 }
 
+function normalizeSubscriptionStatusValue(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function isActiveSubscriptionStatus(value) {
+  const status = normalizeSubscriptionStatusValue(value);
+  return status === "active"
+    || status === "paid"
+    || status === "current"
+    || status === "subscribed"
+    || status === "trialing"
+    || status === "success"
+    || status === "registered"
+    || status === "registering"
+    || status === "pending"
+    || status === "processing"
+    || status === "enrolled"
+    || status === "enabled"
+    || status === "valid"
+    || status === "ok"
+    || status === "complete"
+    || status === "completed"
+    || status === "confirmed"
+    || status === "approved"
+    || status === "\uB4F1\uB85D\uC911"
+    || status === "\uC774\uC6A9\uC911"
+    || status === "\uC720\uD6A8"
+    || status === "\uC644\uB8CC";
+}
+
+function isInactiveSubscriptionStatus(value) {
+  const status = normalizeSubscriptionStatusValue(value);
+  return status === "expired"
+    || status === "canceled"
+    || status === "cancelled"
+    || status === "inactive"
+    || status === "failed"
+    || status === "paused"
+    || status === "refunded";
+}
+
 function getPlanPolicy(tier) {
   const plan = PROFILE_SUB_PLANS[tier] || null;
   if (!plan) {
@@ -2683,6 +2724,15 @@ async function handleSubscriptionStatus(request, env, auth) {
   const tier = sub.tier || "free";
   const source = String(sub.source || "coin").toLowerCase();
   const expAt = toValidDate(sub.expiresAt);
+  const rawSubscriptionStatus = sub.status || sub.subscriptionStatus || sub.membershipStatus || sub.lastBillingStatus || "";
+  const statusIndicatesActive = isActiveSubscriptionStatus(rawSubscriptionStatus)
+    || sub.isActive === true
+    || sub.isSubscribed === true
+    || sub.active === true
+    || sub.enabled === true
+    || sub.valid === true
+    || sub.registered === true;
+  const statusIndicatesInactive = isInactiveSubscriptionStatus(rawSubscriptionStatus);
   const cancelAtPeriodEnd = Boolean(sub.cancelAtPeriodEnd);
   const cancelRequestedAt = toValidDate(sub.cancelRequestedAt);
   let points = Number(user.points || 0);
@@ -2693,10 +2743,12 @@ async function handleSubscriptionStatus(request, env, auth) {
   let effectiveExpAt = expAt;
   let autoRenewed = false;
 
-  if (tier !== "free" && effectiveExpAt) {
-    if (effectiveExpAt > now) {
+  if (tier !== "free") {
+    if (!statusIndicatesInactive && statusIndicatesActive) {
       effectiveTier = tier;
-    } else if (source !== "card" && !cancelAtPeriodEnd && plan && points >= plan.coins) {
+    } else if (effectiveExpAt && effectiveExpAt > now) {
+      effectiveTier = tier;
+    } else if (effectiveExpAt && source !== "card" && !cancelAtPeriodEnd && plan && points >= plan.coins) {
       const newExpAt = new Date(Math.max(effectiveExpAt.getTime(), now.getTime()) + plan.durationDays * 86400000);
       const updatedUser = await User.findOneAndUpdate(
         { _id: auth.userId, points: { $gte: plan.coins } },
@@ -2745,11 +2797,17 @@ async function handleSubscriptionStatus(request, env, auth) {
       subscription: {
         isSubscribed: true,
         plan: adminTestTier,
+        tier: adminTestTier,
+        status: "active",
         expiresAt: toIsoOrNull(effectiveExpAt),
+        freeLimit: simulatedPolicy.freeLimit,
+        passLimit: simulatedPolicy.freeLimit,
+        maxCoveredCoin: simulatedPolicy.freeLimit,
       },
       isSubscribed: true,
       plan: adminTestTier,
       tier: adminTestTier,
+      passTier: adminTestTier,
       isActive: true,
       expiresAt: toIsoOrNull(effectiveExpAt),
       profileLimit: simulatedPolicy.profileLimit,
@@ -2764,6 +2822,8 @@ async function handleSubscriptionStatus(request, env, auth) {
       simulated: true,
       adminTestTier,
       freeLimit: simulatedPolicy.freeLimit,
+      passLimit: simulatedPolicy.freeLimit,
+      maxCoveredCoin: simulatedPolicy.freeLimit,
       recommendedCoins: simulatedPolicy.recommendedCoins,
     });
   }
@@ -2774,12 +2834,20 @@ async function handleSubscriptionStatus(request, env, auth) {
     subscription: {
       isSubscribed: Boolean(isActive),
       plan: effectiveTier,
+      tier: effectiveTier,
+      status: isActive ? (rawSubscriptionStatus || "active") : (rawSubscriptionStatus || "free"),
       expiresAt: toIsoOrNull(effectiveExpAt),
+      freeLimit: policy.freeLimit,
+      passLimit: policy.freeLimit,
+      maxCoveredCoin: policy.freeLimit,
     },
     isSubscribed: Boolean(isActive),
     plan: effectiveTier,
     tier: effectiveTier,
+    passTier: isActive ? effectiveTier : null,
     source: effectiveTier === "free" ? "coin" : source,
+    status: isActive ? (rawSubscriptionStatus || "active") : (rawSubscriptionStatus || "free"),
+    subscriptionStatus: rawSubscriptionStatus || null,
     isActive: Boolean(isActive),
     expiresAt: toIsoOrNull(effectiveExpAt),
     profileLimit,
@@ -2794,6 +2862,8 @@ async function handleSubscriptionStatus(request, env, auth) {
     simulated: false,
     adminTestTier: null,
     freeLimit: policy.freeLimit,
+    passLimit: policy.freeLimit,
+    maxCoveredCoin: policy.freeLimit,
     recommendedCoins: policy.recommendedCoins,
   });
 }

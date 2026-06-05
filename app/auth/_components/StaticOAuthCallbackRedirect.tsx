@@ -390,10 +390,50 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
               try {
                 const rawUser = localStorage.getItem("fortune_auth_user") || "{}";
                 const parsedUser = JSON.parse(rawUser);
+                const subscription = subPayload.subscription && typeof subPayload.subscription === "object" ? subPayload.subscription : {};
+                const tierRaw = String(subPayload.tier || subscription.tier || subPayload.passTier || subscription.passTier || subPayload.plan || subscription.plan || "free").toLowerCase();
+                const tier = tierRaw.includes("vvip") ? "vvip" : (tierRaw.includes("premium") ? "premium" : (tierRaw.includes("standard") ? "standard" : "free"));
+                const passLimit = tier === "vvip" ? 100 : (tier === "premium" ? 50 : (tier === "standard" ? 30 : 0));
+                const status = String(subPayload.status || subPayload.subscriptionStatus || subPayload.membershipStatus || subscription.status || "").toLowerCase();
+                const statusActive = [
+                  "active",
+                  "paid",
+                  "current",
+                  "subscribed",
+                  "trialing",
+                  "success",
+                  "registered",
+                  "registering",
+                  "pending",
+                  "processing",
+                  "enrolled",
+                  "enabled",
+                  "valid",
+                  "ok",
+                  "complete",
+                  "completed",
+                  "confirmed",
+                  "approved",
+                  "\uB4F1\uB85D\uC911",
+                  "\uC774\uC6A9\uC911",
+                  "\uC720\uD6A8",
+                  "\uC644\uB8CC",
+                ].includes(status);
                 parsedUser.profileSubscription = {
-                  tier: subPayload.tier || "free",
-                  isActive: !!subPayload.isActive,
-                  expiresAt: subPayload.expiresAt || null,
+                  tier,
+                  passTier: subPayload.passTier || subscription.passTier || tier,
+                  plan: subPayload.plan || subscription.plan || tier,
+                  planId: subPayload.planId || subscription.planId || subPayload.plan || subscription.plan || tier,
+                  isActive: !!(subPayload.isActive || subPayload.isSubscribed || subscription.isSubscribed || statusActive),
+                  isSubscribed: !!(subPayload.isActive || subPayload.isSubscribed || subscription.isSubscribed || statusActive),
+                  status: subPayload.status || subPayload.subscriptionStatus || subPayload.membershipStatus || subscription.status || "",
+                  subscriptionStatus: subPayload.subscriptionStatus || subscription.subscriptionStatus || subPayload.status || "",
+                  membershipStatus: subPayload.membershipStatus || subscription.membershipStatus || "",
+                  expiresAt: subPayload.expiresAt || subscription.expiresAt || null,
+                  freeLimit: passLimit || Number(subPayload.freeLimit || subscription.freeLimit || 0),
+                  passLimit: passLimit || Number(subPayload.passLimit || subscription.passLimit || subPayload.freeLimit || subscription.freeLimit || 0),
+                  maxCoveredCoin: passLimit || Number(subPayload.maxCoveredCoin || subscription.maxCoveredCoin || subPayload.freeLimit || subscription.freeLimit || 0),
+                  source: subPayload.source || subscription.source || "oauth_subscription_status",
                   profileLimit: Number.isFinite(Number(subPayload.profileLimit)) ? Number(subPayload.profileLimit) : undefined,
                 };
                 localStorage.setItem("fortune_auth_user", JSON.stringify(parsedUser));
