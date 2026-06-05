@@ -8,6 +8,7 @@ export type ClientAuthUser = {
   image?: string;
   role?: string;
   points?: number;
+  monthlyCredits?: number;
   plan?: string;
   hasLocalAuth?: boolean;
   profileSubscription?: {
@@ -15,6 +16,9 @@ export type ClientAuthUser = {
     isActive?: boolean;
     expiresAt?: string | null;
     profileLimit?: number;
+    membershipCreditBalance?: number;
+    membershipCreditGranted?: number;
+    membershipCreditUsed?: number;
   };
 };
 
@@ -53,6 +57,16 @@ export function sanitizeClientAuthUser(input: unknown): ClientAuthUser | null {
     safe.points = points;
   }
 
+  const monthlyCredits = Number(
+    source.monthlyCredits
+    ?? (source.profileSubscription && typeof source.profileSubscription === "object"
+      ? (source.profileSubscription as Record<string, unknown>).membershipCreditBalance
+      : NaN),
+  );
+  if (Number.isFinite(monthlyCredits) && monthlyCredits >= 0) {
+    safe.monthlyCredits = monthlyCredits;
+  }
+
   const profileSubscription = source.profileSubscription;
   if (profileSubscription && typeof profileSubscription === "object") {
     const sub = profileSubscription as Record<string, unknown>;
@@ -61,6 +75,9 @@ export function sanitizeClientAuthUser(input: unknown): ClientAuthUser | null {
       isActive: !!sub.isActive,
       expiresAt: typeof sub.expiresAt === "string" ? sub.expiresAt : null,
       profileLimit: Number.isFinite(Number(sub.profileLimit)) ? Number(sub.profileLimit) : undefined,
+      membershipCreditBalance: Number.isFinite(Number(sub.membershipCreditBalance)) ? Number(sub.membershipCreditBalance) : undefined,
+      membershipCreditGranted: Number.isFinite(Number(sub.membershipCreditGranted)) ? Number(sub.membershipCreditGranted) : undefined,
+      membershipCreditUsed: Number.isFinite(Number(sub.membershipCreditUsed)) ? Number(sub.membershipCreditUsed) : undefined,
     };
   }
 

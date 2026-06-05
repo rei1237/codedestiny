@@ -12,6 +12,7 @@ export type AuthUser = ClientAuthUser & {
   email?: string;
   role?: string;
   points?: number;
+  monthlyCredits?: number;
 };
 
 export type AuthState = {
@@ -154,6 +155,10 @@ function mergeAuthUsers(base: AuthUser | null, patch: AuthUser | null): AuthUser
     merged.points = Number(patch.points);
   }
 
+  if (Number.isFinite(Number(patch.monthlyCredits)) && Number(patch.monthlyCredits) >= 0) {
+    merged.monthlyCredits = Number(patch.monthlyCredits);
+  }
+
   if (patch.profileSubscription && typeof patch.profileSubscription === "object") {
     const current = base.profileSubscription || {};
     const next = patch.profileSubscription;
@@ -164,6 +169,15 @@ function mergeAuthUsers(base: AuthUser | null, patch: AuthUser | null): AuthUser
       profileLimit: Number.isFinite(Number(next.profileLimit))
         ? Number(next.profileLimit)
         : (Number.isFinite(Number(current.profileLimit)) ? Number(current.profileLimit) : undefined),
+      membershipCreditBalance: Number.isFinite(Number(next.membershipCreditBalance))
+        ? Number(next.membershipCreditBalance)
+        : (Number.isFinite(Number(current.membershipCreditBalance)) ? Number(current.membershipCreditBalance) : undefined),
+      membershipCreditGranted: Number.isFinite(Number(next.membershipCreditGranted))
+        ? Number(next.membershipCreditGranted)
+        : (Number.isFinite(Number(current.membershipCreditGranted)) ? Number(current.membershipCreditGranted) : undefined),
+      membershipCreditUsed: Number.isFinite(Number(next.membershipCreditUsed))
+        ? Number(next.membershipCreditUsed)
+        : (Number.isFinite(Number(current.membershipCreditUsed)) ? Number(current.membershipCreditUsed) : undefined),
     };
   }
 
@@ -274,10 +288,51 @@ async function refreshProfileSubscriptionCache() {
 }
 
 async function refreshEntitlements() {
-  await authFetch("/api/billing/balance", {
+  const response = await authFetch("/api/billing/balance", {
     method: "GET",
     cache: "no-store",
   });
+  if (!response.ok) return;
+  const payload = (await response.json().catch(() => null)) as {
+    monthlyCredits?: number;
+    membershipCreditBalance?: number;
+    membership?: {
+      membershipCreditBalance?: number;
+      membershipCreditGranted?: number;
+      membershipCreditUsed?: number;
+      tier?: string;
+      isActive?: boolean;
+      expiresAt?: string | null;
+      profileLimit?: number;
+    };
+  } | null;
+  if (!payload) return;
+
+  const monthlyCredits = Number(
+    payload.monthlyCredits
+    ?? payload.membershipCreditBalance
+    ?? payload.membership?.membershipCreditBalance,
+  );
+  const base = readSanitizedAuthUser() as AuthUser | null;
+  const merged = mergeAuthUsers(base, {
+    monthlyCredits: Number.isFinite(monthlyCredits) ? monthlyCredits : undefined,
+    profileSubscription: {
+      tier: String(payload.membership?.tier || "free"),
+      isActive: !!payload.membership?.isActive,
+      expiresAt: typeof payload.membership?.expiresAt === "string" ? payload.membership?.expiresAt : null,
+      profileLimit: Number.isFinite(Number(payload.membership?.profileLimit))
+        ? Number(payload.membership?.profileLimit)
+        : undefined,
+      membershipCreditBalance: Number.isFinite(monthlyCredits) ? monthlyCredits : undefined,
+      membershipCreditGranted: Number.isFinite(Number(payload.membership?.membershipCreditGranted))
+        ? Number(payload.membership?.membershipCreditGranted)
+        : undefined,
+      membershipCreditUsed: Number.isFinite(Number(payload.membership?.membershipCreditUsed))
+        ? Number(payload.membership?.membershipCreditUsed)
+        : undefined,
+    },
+  });
+  resolveSafeUser(merged);
 }
 
 export async function syncPostLoginData() {

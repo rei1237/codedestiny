@@ -14,9 +14,11 @@ type AuthUser = {
   image?: string;
   role: "user" | "admin";
   points?: number;
+  monthlyCredits?: number;
   profileSubscription?: {
     tier?: string;
     isActive?: boolean;
+    membershipCreditBalance?: number;
   };
 };
 
@@ -79,7 +81,11 @@ export default function AuthWidget() {
     const displayEmail = String(user.email || "");
     const displayImage = String(user.image || "");
     const initial = displayName.trim().charAt(0) || "사";
-    const displayPoints = user.points ?? 0;
+    const displayMonthlyCredits = Number(
+      user.monthlyCredits
+      ?? user.profileSubscription?.membershipCreditBalance
+      ?? 0,
+    );
     const subscriptionTier = user.profileSubscription?.isActive
       ? String(user.profileSubscription?.tier || "free").toLowerCase()
       : "free";
@@ -130,9 +136,9 @@ export default function AuthWidget() {
         <Link
           href="/points"
           className="rounded-lg border border-fuchsia-400/30 bg-fuchsia-500/10 px-2.5 py-1 text-xs font-semibold text-fuchsia-200 transition hover:bg-fuchsia-500/25"
-          title="결제/내역"
+          title="월정석 잔액"
         >
-          {displayPoints.toLocaleString()}P
+          월정석 {Math.max(0, Math.floor(displayMonthlyCredits)).toLocaleString()}
         </Link>
         <Link
           href="/points"
