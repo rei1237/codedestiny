@@ -27,6 +27,7 @@ type SignupResult = {
     id: string;
     name: string;
     email: string;
+    phoneNumber?: string;
     birthDate: string;
     birthTime: string;
     gender: string;
@@ -60,6 +61,12 @@ function resolveNextPathFromQuery(params: URLSearchParams): string {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function normalizeKoreanPhoneNumber(value: string) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (!/^01\d{8,9}$/.test(digits)) return "";
+  return digits;
 }
 
 async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs = LOCAL_AUTH_TIMEOUT_MS) {
@@ -201,6 +208,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [loginId, setLoginId] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [birthDate, setBirthDate] = useState("1990-01-01");
@@ -412,6 +420,12 @@ export default function SignupPage() {
       return;
     }
 
+    const normalizedPhoneNumber = normalizeKoreanPhoneNumber(phoneNumber);
+    if (!normalizedPhoneNumber) {
+      setError("휴대폰 번호를 정확히 입력해 주세요. 예: 01012345678");
+      return;
+    }
+
     setError("");
     setLoading(true);
 
@@ -437,6 +451,7 @@ export default function SignupPage() {
             body: JSON.stringify({
               name: name.trim(),
               email: loginId.trim(),
+              phoneNumber: normalizedPhoneNumber,
               password,
               birthDate,
               birthTime,
@@ -608,6 +623,22 @@ export default function SignupPage() {
                     placeholder="name@example.com"
                     className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label htmlFor="signup-phone-number" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">PHONE</label>
+                  <input
+                    id="signup-phone-number"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    value={phoneNumber}
+                    onChange={(event) => setPhoneNumber(event.target.value)}
+                    disabled={loading || socialLoading !== null}
+                    placeholder="01012345678"
+                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                  <p className="mt-1.5 text-[11px] text-violet-100/65">단건 결제창 호출에 필요한 구매자 휴대폰 번호입니다.</p>
                 </div>
 
                 <div className="sm:col-span-2">

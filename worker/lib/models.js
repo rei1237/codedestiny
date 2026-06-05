@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true, minlength: 2, maxlength: 40 },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, match: emailRegex },
   profileImage: { type: String, default: "", trim: true },
+  phoneNumber: { type: String, default: "", trim: true, match: /^01\d{8,9}$/ },
   passwordHash: { type: String, required: false, default: "", select: false },
   birthDate: { type: String, required: true, default: "1900-01-01", match: birthDateRegex },
   birthTime: { type: String, required: true, default: "00:00", match: birthTimeRegex },

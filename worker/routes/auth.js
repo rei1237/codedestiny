@@ -1074,6 +1074,21 @@ function toErrorMessage(error) {
   return String(error?.message || "").slice(0, 240);
 }
 
+function normalizeKoreanPhoneNumber(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (!/^01\d{8,9}$/.test(digits)) return "";
+  return digits;
+}
+
+function normalizeAuthUserResponse(user) {
+  const normalized = normalizeUserResponse(user);
+  const phoneNumber = normalizeKoreanPhoneNumber(user?.phoneNumber || user?.phone);
+  return {
+    ...normalized,
+    ...(phoneNumber ? { phoneNumber } : {}),
+  };
+}
+
 function isAuthInfraFailure(error, markers = []) {
   const message = String(error?.message || "");
   if (!message) return false;
@@ -1162,7 +1177,7 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
   const response = json({
     ok: true,
     message: status === 201 ? "Registration completed." : "Login completed.",
-    user: normalizeUserResponse(user),
+    user: normalizeAuthUserResponse(user),
     nextPath: sanitizeNextPath(nextPath) || "/",
     accessToken,
     tokenType: "Bearer",
@@ -1174,11 +1189,13 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
 }
 
 function buildTokenFallbackUser(auth) {
+  const phoneNumber = normalizeKoreanPhoneNumber(auth.phoneNumber || auth.phone);
   return {
     id: auth.userId,
     name: auth.name || auth.email || "",
     email: auth.email || "",
     image: auth.image || "",
+    ...(phoneNumber ? { phoneNumber } : {}),
     birthDate: auth.birthDate || "",
     birthTime: auth.birthTime || "",
     gender: auth.gender || "OTHER",
@@ -1296,6 +1313,16 @@ async function handleRegister(request, env) {
   }
 
   const { name, email, password, birthDate, birthTime, gender } = validated.sanitized;
+  const phoneNumber = normalizeKoreanPhoneNumber(body.phoneNumber || body.phone);
+  if (!phoneNumber) {
+    return signupErrorResponse(
+      request,
+      env,
+      400,
+      "invalid_phone_number",
+      "Phone number is required for payment customer information.",
+    );
+  }
 
   try {
     const users = User.collection;
@@ -1353,6 +1380,7 @@ async function handleRegister(request, env) {
       User.create({
         name,
         email,
+        phoneNumber,
         passwordHash,
         birthDate,
         birthTime,
@@ -1442,6 +1470,8 @@ async function handleLogin(request, env) {
               _id: 1,
               name: 1,
               email: 1,
+              phoneNumber: 1,
+              phone: 1,
               birthDate: 1,
               birthTime: 1,
               gender: 1,
@@ -1546,6 +1576,8 @@ async function handleMe(request, env) {
               _id: 1,
               name: 1,
               email: 1,
+              phoneNumber: 1,
+              phone: 1,
               birthDate: 1,
               birthTime: 1,
               gender: 1,
@@ -1579,7 +1611,7 @@ async function handleMe(request, env) {
       ok: true,
       message: "Authenticated user loaded.",
       user: {
-        ...normalizeUserResponse(user),
+        ...normalizeAuthUserResponse(user),
         hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
       },
     });
@@ -1684,6 +1716,8 @@ async function handleRefresh(request, env) {
         _id: 1,
         name: 1,
         email: 1,
+        phoneNumber: 1,
+        phone: 1,
         birthDate: 1,
         birthTime: 1,
         gender: 1,
@@ -1719,7 +1753,7 @@ async function handleRefresh(request, env) {
     tokenType: "Bearer",
     accessTokenExpiresInSec: accessExpiresInSec,
     user: {
-      ...normalizeUserResponse(user),
+      ...normalizeAuthUserResponse(user),
       hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
     },
   });
@@ -2106,6 +2140,8 @@ async function handleOAuthComplete(request, env) {
                 _id: 1,
                 name: 1,
                 email: 1,
+                phoneNumber: 1,
+                phone: 1,
                 birthDate: 1,
                 birthTime: 1,
                 gender: 1,
@@ -2147,7 +2183,7 @@ async function handleOAuthComplete(request, env) {
         const response = json({
           ok: true,
           message: "Social login completed.",
-          user: normalizeUserResponse(user),
+          user: normalizeAuthUserResponse(user),
           nextPath: sanitizeNextPath(payload.nextPath) || "/",
           provider: payload.provider,
           accessToken,
