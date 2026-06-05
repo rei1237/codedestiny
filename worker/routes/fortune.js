@@ -114,6 +114,96 @@ function normalizeFeatureKey(rawKey) {
   return normalizePaidFeatureKey(rawKey);
 }
 
+function uniqueStrings(values) {
+  return Array.from(new Set(
+    (Array.isArray(values) ? values : [])
+      .map((value) => String(value || "").trim())
+      .filter(Boolean),
+  ));
+}
+
+function collectAIPromptPaymentTokens(body = {}, requestId = "") {
+  const accessGrant = body?.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
+  const consume = body?.consume && typeof body.consume === "object" ? body.consume : {};
+  const payment = body?.payment && typeof body.payment === "object" ? body.payment : {};
+  const paymentContext = body?._paymentContext && typeof body._paymentContext === "object" ? body._paymentContext : {};
+  return uniqueStrings([
+    requestId,
+    body?.transactionId,
+    body?.purchaseId,
+    body?.paymentId,
+    body?.merchantUid,
+    body?.impUid,
+    body?.orderId,
+    body?.idempotencyKey,
+    body?.requestId,
+    accessGrant.evidenceId,
+    accessGrant.purchaseId,
+    accessGrant.paymentId,
+    accessGrant.merchantUid,
+    accessGrant.requestId,
+    consume.transactionId,
+    consume.purchaseId,
+    consume.receiptId,
+    consume.pointHistoryId,
+    consume.requestId,
+    payment.transactionId,
+    payment.purchaseId,
+    payment.paymentId,
+    payment.merchantUid,
+    payment.impUid,
+    payment.requestId,
+    paymentContext.transactionId,
+    paymentContext.purchaseId,
+    paymentContext.paymentId,
+    paymentContext.merchantUid,
+    paymentContext.requestId,
+  ]);
+}
+
+function buildAIPromptPaymentTokenClauses(tokens) {
+  const clauses = [];
+  for (const token of tokens) {
+    clauses.push({ "metadata.requestId": token });
+    clauses.push({ "metadata.purchaseId": token });
+    clauses.push({ "metadata.idempotencyKey": token });
+    clauses.push({ "metadata.orderId": token });
+    clauses.push({ "metadata.transactionId": token });
+    clauses.push({ "metadata.sourceTransactionId": token });
+    clauses.push({ "metadata.paymentId": token });
+    clauses.push({ impUid: token });
+    clauses.push({ merchantUid: token });
+    if (mongoose.Types.ObjectId.isValid(token)) {
+      clauses.push({ _id: token });
+      clauses.push({ paymentId: token });
+    }
+  }
+  return clauses;
+}
+
+async function findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, cost }) {
+  const userId = String(auth?.userId || "").trim();
+  const normalizedFeatureKey = normalizeFeatureKey(featureKey);
+  const featureKeys = uniqueStrings([featureKey, normalizedFeatureKey]);
+  const tokens = collectAIPromptPaymentTokens(body, requestId);
+  const clauses = buildAIPromptPaymentTokenClauses(tokens);
+  if (!userId || !featureKeys.length || !clauses.length) return null;
+
+  const query = {
+    userId,
+    kind: "deduct",
+    featureKey: featureKeys.length > 1 ? { $in: featureKeys } : featureKeys[0],
+    $or: clauses,
+  };
+  const minCost = Math.floor(Number(cost || 0));
+  if (minCost > 0) query.delta = { $lte: -minCost };
+
+  return PointHistory.findOne(query)
+    .select("_id delta balanceAfter featureKey reason metadata")
+    .sort({ createdAt: -1 })
+    .lean();
+}
+
 function buildReasonPricingMap(pricingEntries) {
   const table = Object.create(null);
 
@@ -1052,6 +1142,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       || request.headers.get("x-idempotency-key")
       || "",
   ).trim().slice(0, 120);
+  const forceDeduct = body?.forceDeduct === true || String(body?.forceDeduct || "").trim().toLowerCase() === "true";
   const isAdminTestAccess = adminMode || String(auth?.userId || "") === ADMIN_TEST_USER_ID;
   if (isAdminTestAccess) {
     const adminUserId = String(auth?.userId || ADMIN_TEST_USER_ID);
@@ -1165,6 +1256,141 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       unlockedFeatures,
       unlockMap: toUnlockMap(unlockedFeatures),
     }, {}, premiumAccessToken, env);
+  }
+
+  if (!forceDeduct) {
+    const krwEquivalent = cost * 100;
+    return json({
+      ok: false,
+      message: "?붿젙???щ튆 ?먮뒗 ?곹뭹蹂??먰솕 ?④굔 寃곗젣媛 ?꾩슂?⑸땲??",
+      code: "PAYMENT_REQUIRED",
+      featureKey,
+      reason,
+      pricing: {
+        featureKey,
+        reason,
+        coinPrice: cost,
+        membershipCreditCost: 0,
+        krwEquivalent,
+        displayUnit: "content_value",
+      },
+    }, { status: 402 });
+  }
+
+  const coinRequestId = requestId || `coin:${featureKey}:${String(auth.userId || "")}:${payloadHash || Date.now().toString(36)}`;
+  const existingCoinSpend = await findAIPromptPaymentEvidence({
+    auth,
+    featureKey,
+    body,
+    requestId: coinRequestId,
+    cost,
+  });
+
+  if (existingCoinSpend) {
+    const unlockedFeatures = normalizePersistentUnlockKeys(subscriptionUser.unlockedFeatures);
+    return json({
+      message: "Already processed coin payment.",
+      code: "ALREADY_PROCESSED",
+      featureKey,
+      reason,
+      requiredCoins: cost,
+      chargedCoins: Math.max(0, Math.abs(Number(existingCoinSpend.delta || cost))),
+      membershipCreditCost: 0,
+      accessType: "coin",
+      accessMethod: "COIN",
+      paymentMode: "COIN",
+      forceDeductApplied: true,
+      transactionId: String(existingCoinSpend._id || ""),
+      consume: {
+        ok: true,
+        transactionId: String(existingCoinSpend._id || ""),
+        transactionType: "coin",
+        accessType: "coin",
+        accessMethod: "COIN",
+        paymentMethod: "COIN",
+        paymentMode: "COIN",
+        requestId: coinRequestId,
+        featureKey,
+        coinPrice: cost,
+        chargedCoins: Math.max(0, Math.abs(Number(existingCoinSpend.delta || cost))),
+        membershipCreditCost: 0,
+        idempotent: true,
+      },
+      user: userPayload(auth, Number(existingCoinSpend.balanceAfter || subscriptionUser.points || 0), unlockedFeatures),
+      unlockedFeatures,
+      unlockMap: toUnlockMap(unlockedFeatures),
+    });
+  }
+
+  const updatedUser = await User.findOneAndUpdate(
+    {
+      _id: auth.userId,
+      points: { $gte: cost },
+      ...(coinRequestId ? { recentConsumeRequestIds: { $ne: coinRequestId } } : {}),
+    },
+    {
+      $inc: { points: -cost },
+      ...(coinRequestId ? { $addToSet: { recentConsumeRequestIds: coinRequestId } } : {}),
+    },
+    { returnDocument: "after", projection: { points: 1, unlockedFeatures: 1 } },
+  ).lean();
+
+  if (updatedUser) {
+    const history = await PointHistory.create({
+      userId: auth.userId,
+      kind: "deduct",
+      delta: -cost,
+      balanceAfter: Number(updatedUser.points || 0),
+      reason,
+      featureKey,
+      metadata: {
+        source: "fortune.pig-coin.consume",
+        accessType: "coin",
+        accessMethod: "COIN",
+        paymentMethod: "COIN",
+        paymentMode: "COIN",
+        requestId: coinRequestId,
+        categoryKey,
+        subFeatureKey,
+        payloadHash,
+        featureKey,
+        coinPrice: cost,
+        chargedCoins: cost,
+        paidAt: new Date().toISOString(),
+      },
+    });
+    const unlockedFeatures = normalizePersistentUnlockKeys(updatedUser.unlockedFeatures);
+    return json({
+      message: `${cost.toLocaleString("ko-KR")} coins deducted.`,
+      featureKey,
+      reason,
+      requiredCoins: cost,
+      chargedCoins: cost,
+      membershipCreditCost: 0,
+      accessType: "coin",
+      accessMethod: "COIN",
+      paymentMode: "COIN",
+      forceDeductApplied: true,
+      transactionId: String(history?._id || ""),
+      consume: {
+        ok: true,
+        transactionId: String(history?._id || ""),
+        transactionType: "coin",
+        accessType: "coin",
+        accessMethod: "COIN",
+        paymentMethod: "COIN",
+        paymentMode: "COIN",
+        requestId: coinRequestId,
+        featureKey,
+        coinPrice: cost,
+        chargedCoins: cost,
+        membershipCreditCost: 0,
+        idempotent: false,
+      },
+      user: userPayload(auth, Number(updatedUser.points || 0), unlockedFeatures),
+      unlockedFeatures,
+      unlockMap: toUnlockMap(unlockedFeatures),
+    });
   }
 
   const krwEquivalent = cost * 100;
@@ -1808,6 +2034,10 @@ async function handleAstrologyAIPrompt(request, auth, env) {
         categoryKey: "astrology",
         subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
         payloadHash,
+        accessGrant: body?.accessGrant,
+        consume: body?.consume,
+        payment: body?.payment,
+        _paymentContext: body?._paymentContext,
       }),
     });
 
@@ -1932,6 +2162,10 @@ async function handleVedicAIPrompt(request, auth, env) {
         categoryKey: "vedic",
         subFeatureKey: String(builtPrompt.questionType || "general").slice(0, 60),
         payloadHash,
+        accessGrant: body?.accessGrant,
+        consume: body?.consume,
+        payment: body?.payment,
+        _paymentContext: body?._paymentContext,
       }),
     });
 
@@ -2051,6 +2285,10 @@ async function handleSajuAIPrompt(request, auth, env) {
         categoryKey: "saju",
         subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
         payloadHash,
+        accessGrant: body?.accessGrant,
+        consume: body?.consume,
+        payment: body?.payment,
+        _paymentContext: body?._paymentContext,
       }),
     });
 
@@ -2173,6 +2411,10 @@ async function handleZiweiAIPrompt(request, auth, env) {
         categoryKey: "ziweidoushu",
         subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
         payloadHash,
+        accessGrant: body?.accessGrant,
+        consume: body?.consume,
+        payment: body?.payment,
+        _paymentContext: body?._paymentContext,
       }),
     });
 
@@ -2331,6 +2573,10 @@ async function handleSukuyoAIPrompt(request, auth, env) {
         categoryKey: "sukuyo",
         subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
         payloadHash,
+        accessGrant: body?.accessGrant,
+        consume: body?.consume,
+        payment: body?.payment,
+        _paymentContext: body?._paymentContext,
       }),
     });
 

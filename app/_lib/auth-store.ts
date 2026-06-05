@@ -11,7 +11,6 @@ export type AuthUser = ClientAuthUser & {
   name?: string;
   email?: string;
   role?: string;
-  points?: number;
   monthlyCredits?: number;
 };
 
@@ -151,10 +150,6 @@ function mergeAuthUsers(base: AuthUser | null, patch: AuthUser | null): AuthUser
     merged.hasLocalAuth = patch.hasLocalAuth;
   }
 
-  if (Number.isFinite(Number(patch.points)) && Number(patch.points) >= 0) {
-    merged.points = Number(patch.points);
-  }
-
   if (Number.isFinite(Number(patch.monthlyCredits)) && Number(patch.monthlyCredits) >= 0) {
     merged.monthlyCredits = Number(patch.monthlyCredits);
   }
@@ -243,29 +238,6 @@ function clearStaleGuestCache() {
   });
 }
 
-async function refreshCoinBalanceFromServer() {
-  const response = await authFetch("/api/fortune/pig-coin/balance", {
-    method: "GET",
-    cache: "no-store",
-  });
-  if (!response.ok) return;
-  const payload = (await response.json().catch(() => null)) as {
-    points?: number;
-    balance?: number;
-    user?: { points?: number };
-  } | null;
-  const points = Number(payload?.user?.points ?? payload?.balance ?? payload?.points);
-  if (!Number.isFinite(points)) return;
-
-  const base = readSanitizedAuthUser() as AuthUser | null;
-  const merged = {
-    ...(base || {}),
-    points,
-  };
-  resolveSafeUser(merged);
-  debugAuth("[auth] coin refreshed");
-}
-
 async function refreshProfileSubscriptionCache() {
   const response = await authFetch("/api/fortune/pig-coin/profile-subscription/status", {
     method: "GET",
@@ -337,7 +309,6 @@ async function refreshEntitlements() {
 
 export async function syncPostLoginData() {
   await Promise.allSettled([
-    refreshCoinBalanceFromServer(),
     refreshProfileSubscriptionCache(),
     refreshEntitlements(),
   ]);

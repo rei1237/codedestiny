@@ -13,7 +13,6 @@ type AuthUser = {
   email?: string;
   image?: string;
   role: "user" | "admin";
-  points?: number;
   monthlyCredits?: number;
   profileSubscription?: {
     tier?: string;

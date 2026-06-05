@@ -7,7 +7,6 @@ export type ClientAuthUser = {
   email?: string;
   image?: string;
   role?: string;
-  points?: number;
   monthlyCredits?: number;
   plan?: string;
   hasLocalAuth?: boolean;
@@ -50,11 +49,6 @@ export function sanitizeClientAuthUser(input: unknown): ClientAuthUser | null {
 
   if (typeof source.hasLocalAuth === "boolean") {
     safe.hasLocalAuth = source.hasLocalAuth;
-  }
-
-  const points = Number(source.points);
-  if (Number.isFinite(points) && points >= 0) {
-    safe.points = points;
   }
 
   const monthlyCredits = Number(

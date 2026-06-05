@@ -7,6 +7,7 @@ import {
   ContentEntitlement,
   Payment,
   PaymentFailureLog,
+  MonthlyCreditLedger,
   PointHistory,
   ProfileCard,
   SAJU_LOCKED_CONTENT_KEYS,
@@ -3895,6 +3896,21 @@ function formatPointHistoryEntry(entry) {
   };
 }
 
+function formatMonthlyCreditLedgerEntry(entry) {
+  return {
+    id: String(entry?._id || entry?.id || ""),
+    type: String(entry?.type || ""),
+    amount: Number(entry?.amount || 0),
+    beforeBalance: Number(entry?.beforeBalance || 0),
+    afterBalance: Number(entry?.afterBalance || 0),
+    reason: entry?.reason ? String(entry.reason) : "",
+    sourceId: entry?.sourceId ? String(entry.sourceId) : "",
+    serviceKey: entry?.serviceKey ? String(entry.serviceKey) : "",
+    createdAt: entry?.createdAt,
+    metadata: entry?.metadata || {},
+  };
+}
+
 function buildSubscriptionSummary(profileSubscription) {
   const sub = profileSubscription || {};
   const entitlement = normalizeHoneyPassEntitlement({ profileSubscription: sub });
@@ -3923,7 +3939,7 @@ function buildSubscriptionSummary(profileSubscription) {
   }];
 }
 
-function buildMeResponseBody(auth, user, recentPayments, pointHistories) {
+function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthlyCreditLedgers) {
   const safeUser = user || {};
   const unlockedFeatures = Array.isArray(safeUser.unlockedFeatures) ? safeUser.unlockedFeatures : [];
   const usagePasses = Array.isArray(safeUser.usagePasses)
@@ -3949,6 +3965,11 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories) {
     : [];
   const subscriptions = buildSubscriptionSummary(safeUser.profileSubscription);
   const balance = Number(safeUser.points || 0);
+  const profileSubscription = safeUser.profileSubscription || {};
+  const monthlyCredits = Number(profileSubscription.membershipCreditBalance || 0);
+  const mappedMonthlyCreditLedgers = Array.isArray(monthlyCreditLedgers)
+    ? monthlyCreditLedgers.map((entry) => formatMonthlyCreditLedgerEntry(entry)).filter((entry) => entry.id)
+    : [];
 
   return {
     success: true,
@@ -3959,12 +3980,16 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories) {
       payments: mappedPayments,
       subscriptions,
       usagePasses,
+      monthlyCredits,
+      membershipCreditBalance: monthlyCredits,
+      monthlyCreditLedgers: mappedMonthlyCreditLedgers,
     },
     user: {
       id: String(auth.userId),
       name: safeUser.name || "",
       email: safeUser.email || "",
       points: balance,
+      monthlyCredits,
       unlockedFeatures,
       usagePasses,
     },
@@ -3973,6 +3998,7 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories) {
     unlockMap,
     payments: mappedPayments,
     pointHistories: mappedTransactions,
+    monthlyCreditLedgers: mappedMonthlyCreditLedgers,
     subscriptions,
   };
 }
@@ -3991,12 +4017,16 @@ function buildTokenFallbackPaymentsMe(auth, message) {
       payments: [],
       subscriptions: [],
       usagePasses: [],
+      monthlyCredits: 0,
+      membershipCreditBalance: 0,
+      monthlyCreditLedgers: [],
     },
     user: {
       id: String(auth?.userId || ""),
       name: String(auth?.name || ""),
       email: String(auth?.email || ""),
       points: balance,
+      monthlyCredits: 0,
       unlockedFeatures: [],
       usagePasses: [],
     },
@@ -4005,6 +4035,7 @@ function buildTokenFallbackPaymentsMe(auth, message) {
     unlockMap: {},
     payments: [],
     pointHistories: [],
+    monthlyCreditLedgers: [],
     subscriptions: [],
   };
 }
@@ -4021,16 +4052,19 @@ async function handleMe(auth, env) {
       profileSubscription: 1,
     });
 
-    const [recentPaymentsResult, pointHistoriesResult] = await Promise.allSettled([
+    const [recentPaymentsResult, pointHistoriesResult, monthlyCreditLedgersResult] = await Promise.allSettled([
       findRecentPaymentsForUser(auth.userId, 20),
       PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
+      MonthlyCreditLedger.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
     ]);
     const recentPayments = recentPaymentsResult.status === "fulfilled" ? recentPaymentsResult.value : [];
     const pointHistories = pointHistoriesResult.status === "fulfilled" ? pointHistoriesResult.value : [];
+    const monthlyCreditLedgers = monthlyCreditLedgersResult.status === "fulfilled" ? monthlyCreditLedgersResult.value : [];
 
-    const body = buildMeResponseBody(auth, user, recentPayments, pointHistories);
+    const body = buildMeResponseBody(auth, user, recentPayments, pointHistories, monthlyCreditLedgers);
     body.data.degradedPayments = recentPaymentsResult.status === "rejected";
     body.data.degradedTransactions = pointHistoriesResult.status === "rejected";
+    body.data.degradedMonthlyCredits = monthlyCreditLedgersResult.status === "rejected";
     if (!user) {
       body.message = "User profile is missing. Returned safe defaults.";
       body.userFound = false;

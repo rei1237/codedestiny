@@ -25,7 +25,6 @@ type AuthUser = {
   phone?: string;
   phoneNumber?: string;
   role?: "user" | "admin";
-  points?: number;
 };
 
 type PointPackage = {
@@ -106,7 +105,6 @@ type BillingBalanceResponse = {
     monthlyCredits?: number;
     membership?: { membershipCreditBalance?: number };
   };
-  user?: { points?: number };
 };
 
 type PaymentHistoryItem = {
@@ -150,7 +148,7 @@ type SubscriptionPlan = {
   productType:  "membership_pass";
   coins:        number;
   profileLimit: number | null; // null = unlimited
-  freeUpTo:     number | null; // null = 모든 서비스 무료, number = 해당 코인 이하 무료
+  freeUpTo:     number | null; // null = 모든 서비스 무료, number = 해당 기준 이하 무료
   theme:        "amber" | "rose" | "purple";
   features:     string[];
   badge?:       string;
@@ -321,7 +319,7 @@ const SUBSCRIPTION_BASE_PLANS = [
     badge:        "",
     features:     [
       "프로필 최대 3개 생성",
-      "30코인 이하 서비스 무료 이용",
+      "30 기준 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
       "30일간 유효 (기간 기반)",
       "자동결제 없는 30일 이용권",
@@ -337,7 +335,7 @@ const SUBSCRIPTION_BASE_PLANS = [
     theme:        "rose",
     features:     [
       "프로필 최대 7개 생성",
-      "50코인 이하 서비스 무료 이용",
+      "50 기준 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
       "30일간 유효 (기간 기반)",
       "자동결제 없는 30일 이용권",
@@ -354,7 +352,7 @@ const SUBSCRIPTION_BASE_PLANS = [
     theme:        "purple",
     features:     [
       "프로필 최대 15개 생성",
-      "100코인 이하 서비스 무료 이용",
+      "100 기준 이하 서비스 무료 이용",
       "모든 프로필에서 해금 콘텐츠 동일 적용",
       "30일간 유효 (기간 기반)",
       "자동결제 없는 30일 이용권",
@@ -398,12 +396,12 @@ function getSubscriptionTierRank(tier: SubscriptionTier | string | null | undefi
 const POINT_PACKAGES: PointPackage[] = [
   { id: "saju_unlock_3", title: "사주 잠금 서비스 3개 해제권", amount: 12000, points: 150, featureKey: "usage-pass-saju-unlock-3", description: "사주 잠금 콘텐츠 3개를 필요한 순간에 해제", productType: "usage_pass" },
   { id: "saju_unlock_5", title: "사주 잠금 서비스 5개 해제권", amount: 19000, points: 250, featureKey: "usage-pass-saju-unlock-5", description: "사주 잠금 콘텐츠 5개를 필요한 순간에 해제", productType: "usage_pass" },
-  { id: "fortune_30_3", title: "30코인 이하 운세 3회 이용권", amount: 6900, points: 90, featureKey: "usage-pass-fortune-30-3", description: "30코인 이하 운세 서비스를 3회 이용", productType: "usage_pass" },
-  { id: "fortune_30_10", title: "30코인 이하 운세 10회 이용권", amount: 22500, points: 300, featureKey: "usage-pass-fortune-30-10", description: "30코인 이하 운세 서비스를 10회 이용", productType: "usage_pass" },
-  { id: "fortune_30_30", title: "30코인 이하 운세 30회 이용권", amount: 63000, points: 900, featureKey: "usage-pass-fortune-30-30", description: "30코인 이하 운세 서비스를 30회 이용", productType: "usage_pass" },
-  { id: "fortune_50_3", title: "50코인 이하 운세 3회 이용권", amount: 11500, points: 150, featureKey: "usage-pass-fortune-50-3", description: "50코인 이하 운세 서비스를 3회 이용", productType: "usage_pass" },
-  { id: "fortune_50_10", title: "50코인 이하 운세 10회 이용권", amount: 37500, points: 500, featureKey: "usage-pass-fortune-50-10", description: "50코인 이하 운세 서비스를 10회 이용", productType: "usage_pass" },
-  { id: "fortune_50_30", title: "50코인 이하 운세 30회 이용권", amount: 105000, points: 1500, featureKey: "usage-pass-fortune-50-30", description: "50코인 이하 운세 서비스를 30회 이용", productType: "usage_pass" },
+  { id: "fortune_30_3", title: "30 기준 이하 운세 3회 이용권", amount: 6900, points: 90, featureKey: "usage-pass-fortune-30-3", description: "30 기준 이하 운세 서비스를 3회 이용", productType: "usage_pass" },
+  { id: "fortune_30_10", title: "30 기준 이하 운세 10회 이용권", amount: 22500, points: 300, featureKey: "usage-pass-fortune-30-10", description: "30 기준 이하 운세 서비스를 10회 이용", productType: "usage_pass" },
+  { id: "fortune_30_30", title: "30 기준 이하 운세 30회 이용권", amount: 63000, points: 900, featureKey: "usage-pass-fortune-30-30", description: "30 기준 이하 운세 서비스를 30회 이용", productType: "usage_pass" },
+  { id: "fortune_50_3", title: "50 기준 이하 운세 3회 이용권", amount: 11500, points: 150, featureKey: "usage-pass-fortune-50-3", description: "50 기준 이하 운세 서비스를 3회 이용", productType: "usage_pass" },
+  { id: "fortune_50_10", title: "50 기준 이하 운세 10회 이용권", amount: 37500, points: 500, featureKey: "usage-pass-fortune-50-10", description: "50 기준 이하 운세 서비스를 10회 이용", productType: "usage_pass" },
+  { id: "fortune_50_30", title: "50 기준 이하 운세 30회 이용권", amount: 105000, points: 1500, featureKey: "usage-pass-fortune-50-30", description: "50 기준 이하 운세 서비스를 30회 이용", productType: "usage_pass" },
   { id: "compat_3", title: "운세 서비스 궁합 3회 이용권", amount: 11500, points: 150, featureKey: "usage-pass-compat-3", description: "궁합 계열 운세 서비스를 3회 이용", productType: "usage_pass" },
   { id: "compat_10", title: "운세 서비스 궁합 10회 이용권", amount: 37500, points: 500, featureKey: "usage-pass-compat-10", description: "궁합 계열 운세 서비스를 10회 이용", productType: "usage_pass" },
   { id: "compat_30", title: "운세 서비스 궁합 30회 이용권", amount: 105000, points: 1500, featureKey: "usage-pass-compat-30", description: "궁합 계열 운세 서비스를 30회 이용", productType: "usage_pass" },
@@ -470,12 +468,19 @@ const PAYMENT_METHODS: PaymentMethodOption[] = [
    유틸리티 함수
 ══════════════════════════════════════════════════════════════════ */
 
-function formatPoints(points: number) {
-  return `${Number(points || 0).toLocaleString("ko-KR")}코인`;
-}
-
 function formatWon(amount: number) {
   return `${Number(amount || 0).toLocaleString("ko-KR")}원`;
+}
+
+function formatMonthlyCredits(amount: number) {
+  return `${Number(amount || 0).toLocaleString("ko-KR")} 월정석`;
+}
+
+function mapMonthlyCreditLedgerLabel(type: MonthlyCreditLedgerItem["type"]) {
+  if (type === "MONTHLY_CREDIT_SPEND") {
+    return { label: "월정석 사용", cls: "bg-rose-100 text-rose-700 border-rose-300", prefix: "-" };
+  }
+  return { label: "월정석 지급", cls: "bg-emerald-100 text-emerald-800 border-emerald-300", prefix: "+" };
 }
 
 function formatDateTime(raw?: string | null) {
@@ -527,7 +532,7 @@ function normalizeMePayload(payload: MeResponse) {
   const user = payload?.user;
   const balance = Number(
     (typeof node.balance === "number" ? node.balance : undefined)
-    ?? (typeof user?.points === "number" ? user.points : 0),
+    ?? 0,
   );
   const payments = Array.isArray(node.payments)
     ? node.payments
@@ -848,7 +853,7 @@ function SubscriptionSection({
               <span aria-hidden="true">🧪</span> 관리자 이용권 티어 테스트 모드
             </p>
             <p className="mt-1 text-[11.5px] text-violet-700">
-              관리자 모드는 항상 프리패스로 동작하며, 아래 티어를 선택하면 이용권 상품 기준(프로필 한도/무료 한도/기준 코인)이 해당 티어로 시뮬레이션됩니다.
+              관리자 모드는 항상 프리패스로 동작하며, 아래 티어를 선택하면 이용권 상품 기준(프로필 한도/무료 한도/콘텐츠 기준)이 해당 티어로 시뮬레이션됩니다.
             </p>
             <div className="mt-2.5 flex flex-wrap gap-2">
               {([
@@ -880,8 +885,8 @@ function SubscriptionSection({
                 <p>
                   현재 시뮬레이션: <strong>{adminTierPlan.title}</strong>
                   <span className="mx-1">·</span>프로필 최대 <strong>{adminTierPlan.profileLimit ?? 1}개</strong>
-                  <span className="mx-1">·</span>무료 한도 <strong>{adminTierPlan.freeUpTo ?? 0}코인</strong>
-                  <span className="mx-1">·</span>기준 코인 <strong>{adminTierPlan.coins}코인</strong>
+                  <span className="mx-1">·</span>무료 한도 <strong>{adminTierPlan.freeUpTo ?? 0} 기준</strong>
+                  <span className="mx-1">·</span>이용 기준 <strong>{adminTierPlan.coins}</strong>
                 </p>
               ) : (
                 <p>현재 시뮬레이션: 해제 (관리자 프리패스만 적용)</p>
@@ -1040,7 +1045,7 @@ function SubscriptionSection({
               {/* 무료 이용 범위 태그 */}
               <div className={`mt-2 inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${theme.freeTag}`}>
                 🆓{" "}
-                {plan.freeUpTo === null ? "모든 서비스 무료" : `${plan.freeUpTo}코인 이하 무료`}
+                {plan.freeUpTo === null ? "모든 서비스 무료" : `${plan.freeUpTo} 기준 이하 무료`}
               </div>
 
               {/* 기능 목록 */}
@@ -1188,7 +1193,7 @@ function ToastContainer({
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   서브 컴포넌트: CSS 기반 골드 코인 아이콘
+   서브 컴포넌트: 콘텐츠 기준 아이콘
    🪙 이모지 렌더링 불안정 문제를 해결합니다.
 ══════════════════════════════════════════════════════════════════ */
 
@@ -1215,7 +1220,7 @@ function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg" |
 
 /* ══════════════════════════════════════════════════════════════════
   서브 컴포넌트: 콘텐츠 가치 단위 카드
-  코인은 콘텐츠 가치 단위로만 안내합니다.
+  콘텐츠 기준은 가격 산정용 내부 단위로만 안내합니다.
 ══════════════════════════════════════════════════════════════════ */
 
 function WalletCard({ name, monthlyCredits }: { name: string; monthlyCredits: number }) {
@@ -1311,12 +1316,12 @@ function PackageCard({
         </span>
       )}
 
-      {/* 상단 행: 상품명 + 코인 기준 가격 */}
+      {/* 상단 행: 상품명 + 콘텐츠 기준 가격 */}
       <div className={`flex items-center justify-between gap-2 ${isBest ? "pr-[90px]" : ""}`}>
         <span className="text-[15px] font-bold text-white">{pkg.title}</span>
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[15px] font-black text-[#f3dd9a]">
           <CoinIcon size="md" />
-          {pkg.points.toLocaleString("ko-KR")}코인 가치
+          콘텐츠 기준 {pkg.points.toLocaleString("ko-KR")}
         </span>
       </div>
       <p className="mt-1 text-[11.5px] font-semibold text-slate-200">{pkg.description}</p>
@@ -1366,7 +1371,6 @@ export default function PointsPage() {
 
   /* ── 상태 ──────────────────────────────────────────────────────── */
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-  const [currentPoints, setCurrentPoints] = useState(0);
   const [currentMonthlyCredits, setCurrentMonthlyCredits] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<PointPackage>(POINT_PACKAGES[0]);
   const [selectedMethod, setSelectedMethod] = useState<string>("card_general");
@@ -1451,17 +1455,22 @@ export default function PointsPage() {
     };
   }, [hideProcessingOverlay]);
 
-  /* ── 포인트 로컬 동기화 ────────────────────────────────────────── */
-  const persistUserPoints = useCallback((points: number) => {
-    setCurrentPoints(points);
+  /* ── 월정석 로컬 동기화 ────────────────────────────────────────── */
+  const persistMonthlyCredits = useCallback((monthlyCredits: number) => {
+    const normalizedMonthlyCredits = Math.max(0, Math.floor(Number(monthlyCredits || 0)));
+    setCurrentMonthlyCredits(normalizedMonthlyCredits);
     try {
       const user = readSanitizedAuthUser() || {};
-      user.points = points;
+      user.monthlyCredits = normalizedMonthlyCredits;
+      user.profileSubscription = {
+        ...(user.profileSubscription || {}),
+        membershipCreditBalance: normalizedMonthlyCredits,
+      };
       persistSanitizedAuthUser(user);
     } catch { /* noop */ }
 
     try {
-      const payload = { source: "points-page", event: "points", at: Date.now() };
+      const payload = { source: "points-page", event: "monthlyCredits", at: Date.now() };
       window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
       if (typeof BroadcastChannel !== "undefined") {
         const channel = new BroadcastChannel("code-destiny-auth-sync");
@@ -1483,10 +1492,8 @@ export default function PointsPage() {
     const payload = await safeParseJson<BillingBalanceResponse>(response);
     const data = payload.data || {};
     const monthlyCredits = Number(data.monthlyCredits ?? data.membershipCreditBalance ?? data.membership?.membershipCreditBalance ?? 0);
-    setCurrentMonthlyCredits(Number.isFinite(monthlyCredits) ? Math.max(0, Math.floor(monthlyCredits)) : 0);
-    const points = Number(payload.user?.points ?? NaN);
-    if (Number.isFinite(points)) persistUserPoints(Math.max(0, Math.floor(points)));
-  }, [apiBase, persistUserPoints]);
+    if (Number.isFinite(monthlyCredits)) persistMonthlyCredits(monthlyCredits);
+  }, [apiBase, persistMonthlyCredits]);
 
   /** 이용권 성공 후 legacy destiny-profile.js가 읽는 localStorage 캐시를 갱신합니다. */
   const persistSubscriptionCache = useCallback((sub: SubscriptionStatus) => {
@@ -1524,7 +1531,7 @@ export default function PointsPage() {
     } catch { /* noop */ }
   }, []);
 
-  /* ── 서버에서 포인트 상태 조회 ─────────────────────────────────── */
+  /* ── 서버에서 월정석/주문 상태 조회 ─────────────────────────────── */
   const fetchMyPointState = useCallback(
     async () => {
       if (fetchMyPointStateInFlightRef.current) {
@@ -1561,13 +1568,12 @@ export default function PointsPage() {
         if (payloadCode === "AUTH_REFRESH_TEMPORARY_FAILURE") {
           throw new Error(mapAuthRefreshTemporaryFailureMessage());
         }
-        throw new Error(payload.message || "포인트 정보를 불러오지 못했습니다.");
+        throw new Error(payload.message || "월정석 정보를 불러오지 못했습니다.");
       }
 
       const normalized = normalizeMePayload(payload);
       const nextUser = normalized.user;
-      const points = normalized.balance;
-      persistUserPoints(points);
+      persistMonthlyCredits(normalized.monthlyCredits);
       await refreshWalletFromServer().catch(() => {});
 
       const normalizedPayments = Array.isArray(normalized.payments)
@@ -1576,6 +1582,11 @@ export default function PointsPage() {
             .slice(0, 10)
         : [];
       setPaymentHistory(normalizedPayments);
+      setMonthlyCreditLedgers(
+        Array.isArray(normalized.monthlyCreditLedgers)
+          ? normalized.monthlyCreditLedgers.filter((entry) => entry && typeof entry === "object").slice(0, 20)
+          : [],
+      );
 
       if (nextUser) {
         setAuthUser((prev) => ({
@@ -1583,7 +1594,6 @@ export default function PointsPage() {
           id: nextUser.id,
           name: nextUser.name,
           email: nextUser.email,
-          points,
         }));
       }
       })();
@@ -1596,7 +1606,7 @@ export default function PointsPage() {
         }
       }
     },
-    [apiBase, persistUserPoints, refreshWalletFromServer, router],
+    [apiBase, persistMonthlyCredits, refreshWalletFromServer, router],
   );
 
   /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
@@ -1605,8 +1615,13 @@ export default function PointsPage() {
 
     if (parsedUser) {
       setAuthUser(parsedUser);
-      if (typeof parsedUser.points === "number") {
-        setCurrentPoints(parsedUser.points);
+      const cachedMonthlyCredits = Number(
+        parsedUser.monthlyCredits
+        ?? parsedUser.profileSubscription?.membershipCreditBalance
+        ?? NaN,
+      );
+      if (Number.isFinite(cachedMonthlyCredits)) {
+        setCurrentMonthlyCredits(Math.max(0, Math.floor(cachedMonthlyCredits)));
       }
     }
 
@@ -1621,12 +1636,12 @@ export default function PointsPage() {
     saveAdminTestTierClient(adminTestTier);
   }, [adminTestTier, authUser]);
 
-  /* ── 부팅 후 포인트 로드 ───────────────────────────────────────── */
+  /* ── 부팅 후 월정석/주문 정보 로드 ─────────────────────────────── */
   useEffect(() => {
     if (isBooting) return;
 
     fetchMyPointState().catch((error) => {
-      pushToast("error", getErrorMessage(error, "포인트 정보를 불러오지 못했습니다."));
+      pushToast("error", getErrorMessage(error, "월정석 정보를 불러오지 못했습니다."));
     });
   }, [fetchMyPointState, isBooting, pushToast]);
 
@@ -1831,8 +1846,6 @@ export default function PointsPage() {
   /* ── 결제 성공 후 처리 ─────────────────────────────────────────── */
   const handleConfirmSuccess = useCallback(
     async (result: ConfirmResponse, fromRedirect = false) => {
-      const points = Number(result.user?.points || 0);
-      persistUserPoints(points);
       pushToast(
         "success",
         fromRedirect
@@ -1843,13 +1856,13 @@ export default function PointsPage() {
       setTimeout(() => setShowStarBurst(false), 1200);
       await fetchMyPointState();
     },
-    [fetchMyPointState, persistUserPoints, pushToast],
+    [fetchMyPointState, pushToast],
   );
 
   const requestCancelPayment = useCallback(
     async (payment: PaymentHistoryItem) => {
       const ok = window.confirm(
-        `${formatWon(payment.paymentAmount)} 결제를 취소할까요?\n이미 사용한 코인이 있으면 취소가 제한될 수 있습니다.`,
+        `${formatWon(payment.paymentAmount)} 결제를 취소할까요?\n이미 사용한 월정석 또는 이용 내역이 있으면 취소가 제한될 수 있습니다.`,
       );
       if (!ok) return;
 
@@ -1881,10 +1894,6 @@ export default function PointsPage() {
           throw new Error(payload.message || "결제 취소에 실패했습니다.");
         }
 
-        if (typeof payload.user?.points === "number") {
-          persistUserPoints(Number(payload.user.points));
-        }
-
         await fetchMyPointState();
         pushToast("success", payload.message || "결제가 취소되었습니다.");
       } catch (error: unknown) {
@@ -1893,7 +1902,7 @@ export default function PointsPage() {
         setCancelingPaymentId(null);
       }
     },
-    [apiBase, fetchMyPointState, persistUserPoints, pushToast],
+    [apiBase, fetchMyPointState, pushToast],
   );
 
   /* ── 모바일 결제 리디렉션 복귀 처리 ───────────────────────────── */
@@ -1975,10 +1984,6 @@ export default function PointsPage() {
           paymentMethod: pendingSub.paymentMethod,
       })
         .then((data) => {
-          if (data.user?.points !== undefined) {
-            persistUserPoints(Number(data.user.points));
-          }
-
           if (data.subscription) {
             const newSub: SubscriptionStatus = {
               tier: data.subscription?.tier || "free",
@@ -2067,7 +2072,6 @@ export default function PointsPage() {
     confirmSubscriptionWithServer,
     handleConfirmSuccess,
     isBooting,
-    persistUserPoints,
     persistSubscriptionCache,
     pushToast,
     reportPaymentFailureToServer,
@@ -2361,8 +2365,6 @@ export default function PointsPage() {
           paymentMethod: selectedMethod || "card_general",
         });
 
-        if (confirmData.user?.points !== undefined) persistUserPoints(Number(confirmData.user.points));
-
         if (confirmData.subscription) {
           const newSub: SubscriptionStatus = {
             tier: confirmData.subscription?.tier || "free",
@@ -2566,7 +2568,7 @@ export default function PointsPage() {
                     달빛 이용권 상품과 보너스 월정석 잔량을 한 화면에서 확인하세요.
                   </p>
                   <p className="mt-1 text-[12px] text-[#f3dd9a]">
-                    코인은 콘텐츠 가치 표시 단위이며 1코인 = 100원으로 계산됩니다.
+                    콘텐츠 기준은 가격 산정용 내부 단위이며 실제 잔액은 월정석으로 관리됩니다.
                   </p>
                 </div>
               </div>
@@ -2591,6 +2593,48 @@ export default function PointsPage() {
 
         {/* ② 잔액 카드 */}
         <WalletCard name={authUser?.name || "사용자"} monthlyCredits={currentMonthlyCredits} />
+
+        <section className="rounded-[20px] border border-white/12 bg-white/[0.08] p-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="font-bold text-white">월정석 사용 내역</h3>
+            <span className="text-[11px] font-semibold text-slate-300">지급 / 사용 / 잔액</span>
+          </div>
+
+          {monthlyCreditLedgers.length === 0 ? (
+            <p className="text-sm text-slate-300">아직 월정석 사용 내역이 없습니다.</p>
+          ) : (
+            <div className="space-y-2.5">
+              {monthlyCreditLedgers.map((entry) => {
+                const typeMeta = mapMonthlyCreditLedgerLabel(entry.type);
+                return (
+                  <div
+                    key={entry.id}
+                    className="rounded-[14px] border border-[#EFDCA8] bg-white/90 p-3.5"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${typeMeta.cls}`}>
+                          {typeMeta.label}
+                        </span>
+                        <p className="truncate text-sm font-bold text-[#5C3A1E]">
+                          {entry.reason || entry.serviceKey || "-"}
+                        </p>
+                      </div>
+                      <span className="text-sm font-black text-[#5C3A1E]">
+                        {typeMeta.prefix}{formatMonthlyCredits(entry.amount)}
+                      </span>
+                    </div>
+                    <div className="mt-2 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-3">
+                      <p>일시: {formatDateTime(entry.createdAt)}</p>
+                      <p>이전 잔액: {formatMonthlyCredits(entry.beforeBalance)}</p>
+                      <p>반영 후: {formatMonthlyCredits(entry.afterBalance)}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
         {/* ②-1 이용권 상태 카드 */}
         <SubscriptionStatusCard subscription={subscription} />
@@ -2621,7 +2665,7 @@ export default function PointsPage() {
           aria-label="원화 단건 결제 안내"
           className="rounded-[20px] border border-white/12 bg-white/[0.06] px-5 py-4 text-sm leading-6 text-slate-200"
         >
-          각 서비스의 코인 가치는 가격 기준으로만 표시됩니다. 이용권 범위와 이벤트 월정석 잔량으로 열리지 않는 서비스는 실행 시 원화 단건 결제로 진행됩니다.
+          각 서비스의 콘텐츠 기준은 가격 산정용으로만 표시됩니다. 이용권 범위와 이벤트 월정석 잔량으로 열리지 않는 서비스는 실행 시 원화 단건 결제로 진행됩니다.
         </section>
 
         <section className="rounded-[20px] border border-white/12 bg-white/[0.08] p-5">
@@ -2644,7 +2688,7 @@ export default function PointsPage() {
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-sm font-bold text-[#5C3A1E]">
-                        {formatWon(payment.paymentAmount)} · {formatPoints(payment.chargedPoints)}
+                        {formatWon(payment.paymentAmount)}
                       </p>
                       <span className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${statusMeta.cls}`}>
                         {statusMeta.label}
@@ -2737,7 +2781,7 @@ export default function PointsPage() {
               <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
                 <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">콘텐츠 가치 단위</p>
                 <p className="text-sm font-semibold text-amber-700">
-                  1코인 = 100원 상당
+                  콘텐츠 기준은 가격 산정 전용
                 </p>
               </div>
               <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
@@ -2824,7 +2868,7 @@ export default function PointsPage() {
                   이용권 구매 방법 선택
                 </p>
                 <h4 className="mt-0.5 text-lg font-bold text-[#5C3A1E]">
-                  {selectedPackage.title} · {selectedPackage.points.toLocaleString("ko-KR")}코인
+                  {selectedPackage.title} · 콘텐츠 기준 {selectedPackage.points.toLocaleString("ko-KR")}
                 </h4>
                 <p className="text-sm font-semibold text-[#7A5230]">
                   {formatWon(selectedPackage.amount)}

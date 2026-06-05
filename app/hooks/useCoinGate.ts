@@ -207,7 +207,7 @@ export function useCoinGate() {
 
       const consume = (chargeResult.data.consume || {}) as Record<string, unknown>;
       const transactionId = toText(consume.transactionId || consume._id || "");
-      const chargedCoins = toNumber(consume.cost, requiredCoins);
+      const chargedCoins = toNumber(consume.chargedCoins ?? consume.cost, requiredCoins);
       const balanceAfter = toNumber(chargeResult.data.balance, 0);
       const resolvedFeatureKey = toText(consume.featureKey || input.featureKey || pricingResult.data.pricing.featureKey);
 
