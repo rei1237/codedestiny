@@ -194,6 +194,544 @@ export type FamousSajuArticle = {
   seoKeywords: string[];
 };
 
+type CraftedFamousSajuArticle = {
+  heroCopy: string;
+  summary: string;
+  conclusion: string;
+  sections: FamousSajuArticleSection[];
+};
+
+const craftedFamousSajuArticles: Record<string, CraftedFamousSajuArticle> = {
+  "yi-sun-sin": {
+    heroCopy: "이순신의 명식은 칼끝 같은 관성의 압박 속에서도 스스로의 중심을 잃지 않는 장수의 구조로 읽힙니다. 두려움을 지우는 사주가 아니라, 두려움을 군율과 전략으로 바꾸는 사주입니다.",
+    summary: "이순신 사주의 핵심은 충성과 전략이 따로 놀지 않는다는 데 있습니다. 강한 책임의 별은 명예욕으로 흐르지 않고 백성을 살리는 방어의 칼로 정련되며, 고립과 누명은 그의 격을 꺾기보다 더 맑게 벼립니다. 이 명식은 승리를 탐한 팔자가 아니라 반드시 지켜야 할 것을 지키기 위해 운명과 정면으로 맞선 장수의 명식입니다.",
+    conclusion: "이순신의 사주는 바다가 흔들릴수록 더 맑아지는 장수의 별입니다. 큰 운은 그에게 편안한 길을 주지 않았지만, 혹독한 압박 속에서 오히려 이름을 불멸로 새기게 했습니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Korean admiral sea battle night stars destiny", imageSection: "default", body: "이순신의 명식을 펼치면 가장 먼저 느껴지는 것은 흔들림을 허락하지 않는 기강입니다. 장수의 사주가 힘만 강하면 흉하게 흐르기 쉬우나, 이 명식은 힘을 백성의 생명과 국가의 경계 안에 묶어 두는 절제가 함께 보입니다. 그래서 그의 용기는 격정이 아니라 냉정에 가깝고, 분노가 아니라 책임으로 움직입니다." },
+      { title: "오행과 십성의 결", imageQuery: "moonlit ocean five elements military strategy", imageSection: "default", body: "수의 흐름은 전장을 읽는 지혜로, 목의 기운은 꺾이지 않는 신념으로, 금의 기운은 명령과 결단으로 드러납니다. 관성의 압박은 사람을 무너뜨리기도 하지만, 이순신에게는 두려움을 군율로 바꾸고 고립을 전략으로 바꾸는 힘이 됩니다. 물은 바다를 알고, 나무는 방향을 잃지 않으며, 쇠는 칼처럼 마무리를 짓습니다." },
+      { title: "운의 흐름", imageQuery: "stormy sea lone commander destiny", imageSection: "default", body: "이 명식의 대운은 편안한 상승보다 시련 속에서 격을 드러내는 흐름입니다. 억울함, 고립, 모함이 들어와도 그것이 곧 무너짐으로 이어지지 않고 오히려 내면의 칼날을 더 선명하게 만듭니다. 좋은 운은 그에게 화려한 보상이 아니라 필요한 순간 필요한 결단을 잃지 않는 형태로 왔습니다." },
+      { title: "운명의 한 문장", imageQuery: "stars over Korean sea admiral destiny", imageSection: "default", body: "이순신은 승리를 좇은 사람이 아니라, 물러설 수 없는 자리에 섰기 때문에 승리가 따라온 명식입니다." },
+    ],
+  },
+  "king-sejong": {
+    heroCopy: "세종대왕의 명식은 왕의 권위보다 학자의 등불이 먼저 보이는 구조입니다. 백성을 향한 큰 마음과 문자를 창조하는 지성이 함께 놓여, 통치가 곧 보살핌이고 학문이 곧 나라의 운을 바꾸는 힘으로 작동합니다.",
+    summary: "세종대왕 사주의 핵심은 밝히는 힘과 품는 힘의 조화입니다. 화의 빛은 지식과 창조성으로 나타나고, 수의 깊이는 백성의 고통을 읽는 통찰로 흐릅니다. 이 명식은 높은 자리에 올라 군림하는 팔자가 아니라, 높은 자리에서 더 낮은 곳을 비추는 군왕의 명식입니다.",
+    conclusion: "세종대왕의 사주는 하늘의 빛을 글자로 내리고, 백성의 숨을 제도로 품은 창조 군왕의 별입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "King Sejong Hangul stars royal study", imageSection: "default", body: "세종대왕의 명식을 보면 권력의 무게보다 먼저 지성의 온기가 느껴집니다. 왕의 사주가 강하면 위엄으로 흐르기 쉬우나, 이 명식은 위엄을 학문과 제도 속에 녹여 백성에게 돌려주는 구조입니다. 머리의 밝음과 마음의 넓이가 함께 움직이므로 한 시대의 언어와 과학을 새로 여는 힘이 생깁니다." },
+      { title: "오행과 십성의 결", imageQuery: "Hangul manuscript five elements royal palace", imageSection: "default", body: "화의 기운은 밝히고 드러내며, 수의 기운은 깊이 헤아립니다. 세종의 명식에서 빛은 허영이 아니라 깨우침으로 작용하고, 물은 흔들림이 아니라 사려 깊은 정책 감각으로 흐릅니다. 재성의 넓은 시야와 인성의 학문성이 만나 세상에 필요한 것을 실제 형태로 빚어냅니다." },
+      { title: "운의 흐름", imageQuery: "king study candle illness destiny", imageSection: "default", body: "세종의 운은 빛만 많은 운이 아닙니다. 몸의 부담과 책임의 과중함이 함께 오기 때문에, 큰 업적 뒤에는 스스로를 태우는 기운이 놓입니다. 그러나 이 명식은 소모를 무의미하게 흘려보내지 않고, 짧은 몸의 여력을 긴 문화의 생명으로 바꾸는 힘이 있습니다." },
+      { title: "운명의 한 문장", imageQuery: "golden Hangul letters night sky destiny", imageSection: "default", body: "세종대왕은 권력으로 이름을 남긴 군왕이 아니라, 백성의 입에 빛을 심어 이름이 된 명식입니다." },
+    ],
+  },
+  "yu-gwan-sun": {
+    heroCopy: "유관순의 명식은 거대한 물기운 속에서도 꺼지지 않는 작은 불꽃처럼 읽힙니다. 몸은 어렸으나 신념은 오래된 별처럼 단단했고, 시대의 어둠 앞에서 자신의 생을 횃불로 바꾼 구조입니다.",
+    summary: "유관순 사주의 핵심은 약해 보이는 불이 강한 물을 만나 오히려 정신의 빛으로 승화된다는 데 있습니다. 수의 압박은 두려움이 아니라 시대의 아픔을 받아들이는 깊은 감수성으로 작용했고, 정화의 불빛은 작지만 끝까지 꺼지지 않는 신념으로 남았습니다.",
+    conclusion: "유관순의 사주는 짧은 생을 긴 울림으로 바꾼 신념의 불꽃입니다. 그 별은 작아서 약한 것이 아니라, 어둠 속에서 더욱 분명해지는 빛입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Korean independence movement young woman stars", imageSection: "default", body: "유관순의 명식은 크고 화려한 힘으로 밀어붙이는 구조가 아닙니다. 오히려 깊은 물속에 숨은 촛불처럼, 외부의 압박이 강할수록 안쪽의 신념이 더 또렷해지는 형상입니다. 이런 사주는 삶의 길이가 아니라 정신의 밀도로 운명을 말합니다." },
+      { title: "오행과 십성의 결", imageQuery: "candle in rain Korean flag destiny", imageSection: "default", body: "수의 기운은 시대의 슬픔을 깊이 느끼게 하고, 화의 기운은 그 슬픔을 외침으로 바꿉니다. 정관의 별은 세상의 권위에 순응하는 힘이 아니라 더 높은 하늘의 법을 따르는 힘으로 작용합니다. 그래서 어린 나이에도 무엇이 옳고 그른지 판단이 흔들리지 않았습니다." },
+      { title: "운의 흐름", imageQuery: "prison light young martyr destiny", imageSection: "default", body: "유관순의 운은 평탄한 성장으로 열리지 않았습니다. 강한 수의 압박은 고난과 감금, 외부 권력의 억압으로 드러났지만, 그 속에서 화의 기운은 오히려 순도를 높였습니다. 명리적으로 보면 이 고난은 빛을 꺼뜨린 것이 아니라 빛의 의미를 시대 전체에 번지게 했습니다." },
+      { title: "운명의 한 문장", imageQuery: "Korean flag stars candle destiny", imageSection: "default", body: "유관순은 시대가 꺼뜨리려 한 작은 불이었으나, 그 불은 나라의 새벽을 부르는 별이 되었습니다." },
+    ],
+  },
+  "an-jung-geun": {
+    heroCopy: "안중근의 명식은 칼처럼 선명한 금기운과 사상가의 고독한 별이 함께 놓인 구조입니다. 그의 결단은 순간의 격분이 아니라 오래 벼린 신념이 한 점으로 모인 운명의 작용입니다.",
+    summary: "안중근 사주의 핵심은 의로움이 행동으로 내려오는 힘입니다. 강한 금의 기운은 판단과 절단의 능력으로 나타나고, 편인의 별은 독자적 사상과 역사적 책임의식을 깊게 만듭니다. 이 명식은 타협보다 명분을, 생존보다 의를 먼저 세운 결단의 사주입니다.",
+    conclusion: "안중근의 사주는 몸은 묶여도 뜻은 꺾이지 않는 금의 명식입니다. 그의 운명은 칼끝의 사건보다 더 깊은 곳에서 동양 평화라는 큰 문장을 향해 있었습니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "An Jung-geun Harbin stars destiny", imageSection: "default", body: "안중근의 명식은 부드럽게 흘러가기보다 선을 긋고 방향을 정하는 힘이 강합니다. 금의 기운이 살아 있으면 세상의 모순을 날카롭게 보고, 무엇을 끊어야 하는지 본능적으로 압니다. 이 사주는 평온한 시대보다 불의가 드러난 시대에 자신의 역할을 더 분명히 깨닫는 구조입니다." },
+      { title: "오행과 십성의 결", imageQuery: "metal sword philosophy stars East Asia", imageSection: "default", body: "금은 결단이고 수는 사유입니다. 안중근의 명식에서는 이 두 기운이 만나 생각이 행동으로 굳어지는 흐름을 만듭니다. 편인의 별은 홀로 깊이 파고드는 정신의 별이며, 그에게는 세상과 조금 다른 시선과 시대를 뛰어넘어 큰 질서를 보려는 철학으로 작용합니다." },
+      { title: "운의 흐름", imageQuery: "prison calligraphy righteous destiny", imageSection: "default", body: "이 명식에서 고난은 피할 수 없는 길목처럼 보입니다. 강한 금은 부딪힘을 만들고, 편인은 외로운 길을 걷게 합니다. 그러나 그 외로움은 패배가 아니라 사명의 농도를 높이는 자리입니다. 옥중에서도 글과 뜻이 무너지지 않은 이유가 여기에 있습니다." },
+      { title: "운명의 한 문장", imageQuery: "Harbin snow stars justice destiny", imageSection: "default", body: "안중근은 칼로만 기억될 사람이 아니라, 뜻을 칼보다 높이 세운 금의 별입니다." },
+    ],
+  },
+  "kim-gu": {
+    heroCopy: "김구의 명식은 불의 열기와 목의 신념이 함께 살아 있는 독립운동가의 구조입니다. 격동의 시대를 지나며 권력보다 나라의 혼을 먼저 붙잡았고, 통합과 문화의 이상을 운명의 큰 축으로 세웠습니다.",
+    summary: "김구 사주의 핵심은 뜨거운 신념을 오래 견디는 힘입니다. 화의 기운은 대중 앞에 뜻을 밝히는 힘으로, 목의 기운은 이상을 포기하지 않는 생명력으로 나타납니다. 이 명식은 정치적 계산보다 정신의 독립을 먼저 세우는 사주이며, 백범이라는 이름처럼 큰 바탕 위에 스스로를 낮추는 길을 택합니다.",
+    conclusion: "김구의 사주는 불처럼 뜨겁고 나무처럼 굽히지 않는 독립의 명식입니다. 그의 운명은 나라를 되찾는 일에서 끝나지 않고, 어떤 나라가 되어야 하는지를 묻는 데까지 이어집니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Kim Gu Korean independence stars destiny", imageSection: "default", body: "김구의 명식은 한 자리에 조용히 머무르는 구조가 아닙니다. 시대의 불길 속으로 들어가 스스로도 타오르면서 주변의 뜻을 모으는 형상입니다. 화의 기운이 강하면 성급해질 수 있으나, 이 사주는 목의 신념이 그 불을 이상과 민족의 방향으로 붙잡습니다." },
+      { title: "오행과 십성의 결", imageQuery: "Korean provisional government fire wood destiny", imageSection: "default", body: "화는 뜻을 드러내고 목은 그 뜻을 자라게 합니다. 김구의 사주에서 불은 분노만이 아니라 희망의 횃불이며, 나무는 꺾여도 다시 살아나는 독립의 생명력입니다. 말과 행동으로 시대를 움직이되, 그 표현이 공적 책임으로 이어질 때 가장 크게 빛납니다." },
+      { title: "운의 흐름", imageQuery: "exile provisional government night stars", imageSection: "default", body: "김구의 운은 고향의 안온함보다 떠돌며 지켜야 하는 길로 열립니다. 망명과 투옥, 위협 같은 거친 흐름이 많지만, 이 사주는 그런 고난 속에서 오히려 이름의 무게를 키웁니다. 편한 운은 아니나, 큰 뜻을 가진 사람에게 필요한 단련의 운입니다." },
+      { title: "운명의 한 문장", imageQuery: "Korean independence flag stars destiny", imageSection: "default", body: "김구는 권력을 꿈꾼 정치인이 아니라, 나라의 혼이 어디로 가야 하는지를 물은 불의 별입니다." },
+    ],
+  },
+  "jeong-yak-yong": {
+    heroCopy: "정약용의 명식은 물의 깊은 사유와 흙의 실용 감각이 함께 놓인 학자의 구조입니다. 유배의 고독 속에서도 학문을 현실의 약으로 빚어 냈고, 생각을 백성을 위한 제도로 내려놓는 힘이 강하게 보입니다.",
+    summary: "정약용 사주의 핵심은 고난을 지식의 창고로 바꾸는 능력입니다. 수의 기운은 깊은 탐구와 성찰로, 토의 기운은 구체적 제도와 실학의 감각으로 나타납니다. 이 명식은 세상과 떨어진 자리에서 오히려 세상을 더 정밀하게 읽어 낸 학자의 명식입니다.",
+    conclusion: "정약용의 사주는 유배의 어둠을 학문의 등불로 바꾼 실학의 명식입니다. 그의 운명은 높은 벼슬보다 오래 남는 문장과 제도 속에서 빛납니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Jeong Yak-yong scholar exile stars", imageSection: "default", body: "정약용의 명식은 화려한 권세보다 깊은 책상 앞의 기운이 먼저 보입니다. 물은 생각을 깊게 하고, 흙은 그 생각을 현실의 밭에 심습니다. 그래서 이 사주는 관념에 머무르는 학자가 아니라, 백성의 생활과 제도의 허점을 집요하게 살피는 실천형 지성으로 읽힙니다." },
+      { title: "오행과 십성의 결", imageQuery: "Korean scholar books water earth destiny", imageSection: "default", body: "수의 기운은 끝없이 묻고 살피는 힘이며, 토의 기운은 답을 생활 속에 고정하는 힘입니다. 인성의 별은 학문을 낳고, 식상의 흐름은 그 학문을 글과 제안으로 밖으로 내보냅니다. 생각이 깊어도 뜬구름이 되지 않고, 현실을 보아도 천박한 계산에 머물지 않습니다." },
+      { title: "운의 흐름", imageQuery: "exile hut candle books destiny", imageSection: "default", body: "정약용에게 유배는 흉한 운이면서 동시에 학문의 문이 열린 운입니다. 세상과 떨어지는 고통은 컸지만, 그 고립은 사유를 맑게 하고 문장을 깊게 만들었습니다. 이 명식은 억울한 시간을 허비하지 않고, 운이 막힌 곳에서 오히려 후대의 길을 뚫습니다." },
+      { title: "운명의 한 문장", imageQuery: "Dasan scholar stars manuscript destiny", imageSection: "default", body: "정약용은 유배지에 갇힌 사람이 아니라, 그 고요한 자리에서 조선의 미래를 다시 설계한 물의 학자입니다." },
+    ],
+  },
+  "bts-rm": {
+    heroCopy: "BTS RM의 명식은 언어의 물길과 무대의 불빛이 함께 흐르는 창작자의 구조입니다. 리더의 별은 앞에서 명령하기보다 흩어진 감정과 생각을 한 문장으로 모으는 방식으로 빛납니다.",
+    summary: "BTS RM 사주의 핵심은 사유를 리듬으로 바꾸는 힘입니다. 깊이 생각하는 기운은 혼자 안으로만 잠기지 않고, 음악과 말, 팀의 방향성으로 밖으로 흘러나옵니다. 이 명식은 대중의 환호를 단순한 인기운으로 쓰지 않고, 시대의 언어를 번역하는 창작자의 운으로 다룹니다.",
+    conclusion: "BTS RM의 사주는 말이 길이 되고, 사유가 무대의 별빛으로 바뀌는 창작 리더의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "BTS RM cosmic stage poetry stars", imageSection: "career", body: "BTS RM의 명식을 보면 먼저 생각의 밀도가 느껴집니다. 이 사주는 가볍게 반응하는 팔자가 아니라, 한 번 받아들인 감정과 질문을 오래 숙성시킨 뒤 자신만의 언어로 내보내는 구조입니다. 리더십 역시 강압보다 해석의 힘에 가깝습니다." },
+      { title: "오행과 십성의 결", imageQuery: "music lyrics ink five elements stars", imageSection: "default", body: "수의 깊이는 철학적 질문과 자기 성찰로 흐르고, 화의 기운은 그 생각을 무대 위 메시지로 밝힙니다. 식상은 언어와 음악으로 자신을 표현하게 하고, 인성은 그 표현이 쉽게 소모되지 않도록 사유의 뿌리를 붙잡습니다. 그래서 그의 창작은 즉흥보다 축적의 향이 강합니다." },
+      { title: "운의 흐름", imageQuery: "global concert road stars destiny", imageSection: "default", body: "이 명식의 운은 개인의 재능이 팀의 운과 맞물릴 때 크게 열립니다. 혼자 빛나는 운도 있으나, 더 큰 길은 여러 사람의 목소리를 하나의 상징으로 묶을 때 옵니다. 대운이 확장될수록 중요한 것은 속도가 아니라 자기 언어의 중심을 잃지 않는 일입니다." },
+      { title: "운명의 한 문장", imageQuery: "poetry microphone night sky destiny", imageSection: "default", body: "BTS RM은 무대 위에서 노래하는 사람을 넘어, 한 세대의 마음을 문장으로 정리하는 별입니다." },
+    ],
+  },
+  iu: {
+    heroCopy: "IU의 명식은 맑은 화기와 섬세한 수기가 함께 놓인 서정의 구조입니다. 노래와 연기, 글과 이미지가 하나의 결로 이어지며, 부드러운 목소리 안에 강한 자기 기준이 숨어 있습니다.",
+    summary: "IU 사주의 핵심은 여린 감각을 오래가는 작품성으로 바꾸는 힘입니다. 감정의 물결은 쉽게 흩어지지 않고, 표현의 불빛을 만나 노래와 서사로 정돈됩니다. 이 명식은 사랑받는 운만 강한 것이 아니라, 사랑받은 뒤에도 자신을 잃지 않는 절제의 별이 함께 작동합니다.",
+    conclusion: "IU의 사주는 작은 떨림을 긴 울림으로 바꾸는 서정의 명식입니다. 부드러움 안에 중심이 있고, 중심 안에 오래가는 빛이 있습니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "IU moonlit stage lyrical stars destiny", imageSection: "career", body: "IU의 명식은 화려함보다 맑은 여운이 먼저 남습니다. 이 사주는 감정을 과장해 터뜨리기보다, 아주 작은 결을 놓치지 않고 붙잡아 오래 들리는 목소리로 바꾸는 구조입니다. 대중성은 표면이고, 안쪽에는 자기 작품을 끝까지 다듬는 장인의 기운이 있습니다." },
+      { title: "오행과 십성의 결", imageQuery: "moon song water fire five elements", imageSection: "default", body: "수의 감수성은 사람의 마음을 읽고, 화의 표현력은 그 마음을 밝힙니다. 식상의 별은 노래와 글, 연기로 자신을 밖에 세우게 하고, 관성의 절제는 그 표현이 흐트러지지 않도록 품격을 줍니다. 그래서 IU의 운은 감성만으로 설명되지 않고 완성도와 책임감까지 함께 보아야 합니다." },
+      { title: "운의 흐름", imageQuery: "singer actress moon road stars", imageSection: "default", body: "이 명식은 어린 시절부터 빨리 세상 앞에 서는 운을 갖지만, 빠른 등장이 곧 가벼운 운을 뜻하지는 않습니다. 시간이 갈수록 목소리의 순수함보다 자기 해석의 깊이가 더 중요해지고, 작품을 고르는 기준이 운의 품격을 결정합니다." },
+      { title: "운명의 한 문장", imageQuery: "silver microphone moon destiny", imageSection: "default", body: "IU는 사랑받는 목소리를 넘어, 한 사람의 마음이 계절처럼 변하는 법을 노래하는 별입니다." },
+    ],
+  },
+  "son-heung-min": {
+    heroCopy: "손흥민의 명식은 속도의 불빛과 절제된 금기가 함께 살아 있는 승부사의 구조입니다. 빠르게 달리되 흩어지지 않고, 강하게 겨루되 팀의 흐름을 읽는 균형이 돋보입니다.",
+    summary: "손흥민 사주의 핵심은 순발력과 자기관리의 결합입니다. 화의 추진력은 폭발적인 스피드와 결정력으로 나타나고, 금의 절제는 훈련과 반복, 정확한 마무리로 이어집니다. 이 명식은 재능만 믿고 뛰는 팔자가 아니라, 재능을 매일 단련해 운으로 만드는 선수의 사주입니다.",
+    conclusion: "손흥민의 사주는 달리는 불꽃이면서도 끝내 팀의 길을 비추는 별입니다. 속도는 그의 재능이고, 성실은 그의 운을 지키는 그릇입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Son Heung-min football stadium stars destiny", imageSection: "career", body: "손흥민의 명식은 움직임이 빠르고 장면 전환이 선명합니다. 이런 사주는 머뭇거릴수록 빛이 줄고, 순간의 판단을 믿고 치고 나갈 때 운이 열립니다. 다만 단순한 공격성만 있는 것이 아니라, 팀 안에서 자기 자리를 아는 균형감이 함께 보입니다." },
+      { title: "오행과 십성의 결", imageQuery: "football fire metal five elements stars", imageSection: "default", body: "화는 폭발적인 추진력이고, 금은 정확한 마무리입니다. 손흥민의 사주에서 이 둘이 만나면 속도와 결정력이 동시에 살아납니다. 비겁의 경쟁심은 자신을 계속 밀어 올리고, 관성의 절제는 그 경쟁심을 훈련과 책임감 안에 묶어 둡니다." },
+      { title: "운의 흐름", imageQuery: "football road stadium night destiny", imageSection: "default", body: "이 명식의 운은 낯선 무대에 나가 스스로를 증명하는 방식으로 커집니다. 해외 무대와 강한 경쟁은 부담이면서 동시에 길입니다. 운이 강해질수록 중요한 것은 몸의 리듬을 아끼고, 승부의 불을 오래 유지할 수 있는 관리의 힘입니다." },
+      { title: "운명의 한 문장", imageQuery: "football goal stars destiny", imageSection: "default", body: "손흥민은 빠르게 달리는 선수이기 전에, 매일의 반복으로 자신의 별을 지켜 온 승부사의 명식입니다." },
+    ],
+  },
+  "newjeans-hanni": {
+    heroCopy: "뉴진스 하니의 명식은 맑은 목기와 부드러운 수기가 어우러진 청량한 무대의 구조입니다. 자연스럽게 사람을 끌어당기는 기운이 강하고, 밝은 이미지 안에 섬세한 감각의 결이 숨어 있습니다.",
+    summary: "뉴진스 하니 사주의 핵심은 꾸미지 않은 매력을 무대의 호흡으로 바꾸는 힘입니다. 목의 생동감은 성장과 신선함으로, 수의 감각은 음색과 표정의 여백으로 드러납니다. 이 명식은 강하게 밀어붙이는 스타성보다 자연스럽게 스며드는 스타성이 돋보입니다.",
+    conclusion: "뉴진스 하니의 사주는 청량한 바람처럼 다가와 오래 기억되는 무대의 별입니다. 맑음이 곧 힘이 되는 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "NewJeans Hanni fresh stage stars destiny", imageSection: "career", body: "뉴진스 하니의 명식은 처음부터 강하게 압도하기보다 어느새 시선을 머물게 하는 구조입니다. 목의 기운이 살아 있어 성장성과 신선함이 좋고, 수의 기운은 감정의 여백을 만들어 무대 위 표정과 음색에 자연스러운 깊이를 줍니다." },
+      { title: "오행과 십성의 결", imageQuery: "fresh pop stage water wood five elements", imageSection: "default", body: "목은 새싹처럼 자라는 힘이고, 수는 그 새싹을 적시는 감각입니다. 하니의 사주에서 식상은 표현력으로 열리고, 인성은 분위기를 받아들이는 섬세함으로 작용합니다. 그래서 과한 힘보다 호흡, 과장보다 자연스러움이 운을 살립니다." },
+      { title: "운의 흐름", imageQuery: "idol stage soft light destiny", imageSection: "default", body: "이 명식은 성장 과정 자체가 운의 핵심입니다. 빠르게 완성형으로 굳어지기보다, 해마다 이미지와 표현의 폭이 넓어질수록 더 좋아집니다. 좋은 운은 무리한 변신보다 본래의 맑은 결을 잃지 않으면서 새로운 색을 조금씩 더하는 방식으로 옵니다." },
+      { title: "운명의 한 문장", imageQuery: "soft pop stage spring stars", imageSection: "default", body: "뉴진스 하니는 큰 소리로 자신을 증명하기보다, 맑은 결 하나로 사람의 기억에 스며드는 별입니다." },
+    ],
+  },
+  "yu-hae-jin": {
+    heroCopy: "유해진의 명식은 흙의 생활감과 금의 절도가 어우러진 배우의 구조입니다. 화려한 포장보다 사람 냄새가 먼저 닿고, 평범해 보이는 장면 안에서 깊은 진심을 길어 올리는 힘이 큽니다.",
+    summary: "유해진 사주의 핵심은 현실감과 진정성입니다. 토의 기운은 일상의 질감과 안정감을 만들고, 금의 기운은 연기의 선을 정확히 잡아 줍니다. 이 명식은 과장된 스타성보다 오래 볼수록 믿음이 생기는 배우의 운으로 읽힙니다.",
+    conclusion: "유해진의 사주는 사람의 체온을 연기로 바꾸는 흙의 명식입니다. 소박함은 약점이 아니라 가장 오래가는 매력입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Korean actor warm cinema stars destiny", imageSection: "career", body: "유해진의 명식은 눈부신 장식보다 단단한 질감이 먼저 느껴집니다. 이런 사주는 큰 말 없이도 존재감이 쌓이고, 시간이 지날수록 사람들에게 신뢰를 줍니다. 배우로서는 캐릭터를 꾸미기보다 인물의 생활과 숨결을 살리는 데 강합니다." },
+      { title: "오행과 십성의 결", imageQuery: "earth metal cinema actor five elements", imageSection: "default", body: "토는 사람을 땅에 붙이고, 금은 장면의 선을 정리합니다. 유해진의 사주에서 식상은 자연스러운 표현력으로, 재성은 현실을 읽는 감각으로 나타납니다. 그래서 웃음도 가볍게 날아가지 않고, 슬픔도 지나치게 꾸며지지 않습니다." },
+      { title: "운의 흐름", imageQuery: "film road actor night stars", imageSection: "default", body: "이 명식은 단번에 폭발하는 운보다 시간이 쌓일수록 진가가 드러나는 운입니다. 조연과 주연, 코미디와 드라마를 넘나드는 폭은 우연이 아니라 토의 넓은 수용력에서 나옵니다. 좋은 운은 꾸준함과 신뢰가 한계점을 넘는 순간 크게 열립니다." },
+      { title: "운명의 한 문장", imageQuery: "warm movie light stars destiny", imageSection: "default", body: "유해진은 평범한 얼굴 속에서 비범한 온기를 꺼내는 배우의 별입니다." },
+    ],
+  },
+  "bong-joon-ho": {
+    heroCopy: "봉준호의 명식은 수의 통찰과 금의 구조감이 맞물린 감독의 사주입니다. 웃음과 불안, 현실과 상징을 한 화면 안에 배치하며, 보이지 않는 사회의 균열을 정교하게 드러내는 힘이 큽니다.",
+    summary: "봉준호 사주의 핵심은 장면 뒤에 숨어 있는 구조를 읽는 능력입니다. 수의 기운은 인간 심리와 사회의 어두운 물길을 감지하고, 금의 기운은 그것을 정확한 미장센과 서사 구조로 다듬습니다. 이 명식은 이야기를 꾸미는 팔자가 아니라, 세계의 모순을 영화라는 그릇에 담아내는 창작자의 명식입니다.",
+    conclusion: "봉준호의 사주는 현실의 그림자를 예술의 언어로 번역하는 감독의 별입니다. 불편함을 피하지 않을 때 그의 운은 가장 크게 빛납니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Bong Joon-ho cinema stairs stars destiny", imageSection: "career", body: "봉준호의 명식은 겉으로 웃고 있으나 안쪽에서는 매우 정밀한 계산이 돌아가는 구조입니다. 수의 통찰은 사람의 욕망과 불안을 깊이 읽고, 금의 절도는 그 복잡한 감정을 정확한 장면으로 잘라 냅니다. 그래서 그의 영화는 재미와 불편함이 동시에 남습니다." },
+      { title: "오행과 십성의 결", imageQuery: "film director water metal five elements", imageSection: "default", body: "수는 보이지 않는 흐름을 읽고, 금은 그것을 형태로 고정합니다. 봉준호의 사주에서 식상은 독특한 이야기의 배출구가 되고, 편인의 기운은 남들이 지나치는 균열을 집요하게 바라보게 합니다. 이 별의 조합은 대중성과 작가성을 한 화면에 넣는 힘을 줍니다." },
+      { title: "운의 흐름", imageQuery: "Oscar cinema night road destiny", imageSection: "default", body: "이 명식의 운은 좁은 장르 안에 갇힐 때보다 경계를 넘어설 때 커집니다. 한국적 현실에서 출발한 이야기가 세계의 언어로 읽히는 흐름은, 수의 보편성과 금의 완성도가 함께 작동한 결과입니다. 큰 운은 기이함을 숨기지 않을 때 열립니다." },
+      { title: "운명의 한 문장", imageQuery: "cinema frame shadow stars destiny", imageSection: "default", body: "봉준호는 세계의 어두운 계단을 웃음과 서늘함으로 비추는 감독의 명식입니다." },
+    ],
+  },
+  "ryu-hyun-jin": {
+    heroCopy: "류현진의 명식은 물의 침착함과 흙의 버티는 힘이 어우러진 투수의 구조입니다. 빠른 기세보다 흐름을 읽는 감각이 강하고, 흔들리는 경기 속에서도 자기 리듬으로 승부를 정돈하는 별이 보입니다.",
+    summary: "류현진 사주의 핵심은 압박 속에서 속도를 낮추고 판을 읽는 능력입니다. 수의 기운은 타자와 경기 흐름을 읽는 감각으로, 토의 기운은 긴 이닝을 버티는 안정감으로 작용합니다. 이 명식은 힘으로만 누르는 투수가 아니라, 제구와 완급으로 상대의 운을 끊는 투수의 사주입니다.",
+    conclusion: "류현진의 사주는 조용히 흐르다 결정적 순간에 판을 잠그는 물의 명식입니다. 침착함이 곧 그의 승부수입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Ryu Hyun-jin baseball mound stars destiny", imageSection: "career", body: "류현진의 명식은 요란하게 타오르는 구조가 아니라, 묵직하게 흐름을 붙잡는 구조입니다. 이런 사주는 위기에서 더 차분해지고, 상대가 흔들릴수록 자신의 템포를 잃지 않을 때 강합니다. 투수로서는 공 하나의 속도보다 경기 전체의 호흡을 읽는 힘이 큽니다." },
+      { title: "오행과 십성의 결", imageQuery: "baseball water earth five elements mound", imageSection: "default", body: "수는 흐름을 읽고, 토는 중심을 세웁니다. 류현진의 사주에서 관성은 경기의 규율과 자기관리로 나타나고, 식상은 공의 변화와 타이밍 조절로 드러납니다. 그래서 그의 힘은 폭발보다 조절에 있고, 조절이 쌓여 압도감이 됩니다." },
+      { title: "운의 흐름", imageQuery: "baseball stadium night recovery destiny", imageSection: "default", body: "이 명식은 부상과 회복, 국내와 해외 무대를 오가며 운의 깊이를 키우는 흐름입니다. 몸의 리듬이 곧 운의 그릇이므로 무리한 확장보다 오래 던질 수 있는 균형이 중요합니다. 좋은 운은 한 번의 강속구보다 흔들리지 않는 복귀력에서 옵니다." },
+      { title: "운명의 한 문장", imageQuery: "baseball mound moon stars destiny", imageSection: "default", body: "류현진은 빠르게 압도하기보다, 조용히 흐름을 잠그며 승부를 자기 쪽으로 돌리는 별입니다." },
+    ],
+  },
+  "miyazaki-hayao": {
+    heroCopy: "미야자키 하야오의 명식은 목의 상상력과 수의 깊은 생명감이 맞물린 창작자의 구조입니다. 그의 세계는 단순한 환상이 아니라, 자연과 인간의 상처를 오래 바라본 영혼의 지도처럼 펼쳐집니다.",
+    summary: "미야자키 하야오 사주의 핵심은 순수한 상상력을 장인적 집요함으로 끝까지 완성하는 힘입니다. 목의 기운은 생명과 성장, 숲과 비행의 이미지를 만들고, 수의 기운은 그 세계에 그리움과 두려움, 치유의 깊이를 더합니다. 이 명식은 어린이를 위한 이야기를 만들지만, 실제로는 어른의 잃어버린 혼을 되찾게 하는 창작자의 사주입니다.",
+    conclusion: "미야자키 하야오의 사주는 바람과 숲, 소녀와 기계가 모두 하나의 생명으로 숨 쉬는 상상력의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Hayao Miyazaki forest sky animation stars destiny", imageSection: "career", body: "미야자키 하야오의 명식은 현실을 떠나는 사주가 아니라, 현실의 상처를 다른 세계의 언어로 치유하는 구조입니다. 목의 기운은 숲과 성장, 생명의 회복으로 나타나고, 수의 기운은 기억과 상실, 그리움의 물결을 작품 속에 흐르게 합니다." },
+      { title: "오행과 십성의 결", imageQuery: "animation forest water wood five elements", imageSection: "default", body: "목은 자라나는 세계이고, 수는 그 세계를 적시는 감정입니다. 여기에 식상의 별이 강하게 작용하면 머릿속의 풍경이 화면과 서사로 흘러나옵니다. 이 명식의 상상력은 가볍게 떠오르는 꿈이 아니라, 손으로 수천 번 그려야 비로소 완성되는 수행에 가깝습니다." },
+      { title: "운의 흐름", imageQuery: "studio ghibli road wind stars destiny", imageSection: "default", body: "이 명식은 시간이 갈수록 자기 세계가 더 깊어지는 운입니다. 젊은 시절의 기술과 노동은 중년 이후 거대한 세계관으로 바뀌고, 말년에는 한 작품 한 작품이 유언 같은 밀도를 갖습니다. 운이 좋을수록 쉬워지는 것이 아니라, 더 높은 완성도를 요구받는 구조입니다." },
+      { title: "운명의 한 문장", imageQuery: "flying castle forest stars destiny", imageSection: "default", body: "미야자키 하야오는 하늘을 나는 그림으로 땅의 생명을 다시 사랑하게 만드는 별입니다." },
+    ],
+  },
+  naruhito: {
+    heroCopy: "나루히토 일왕의 명식은 물의 유연함과 금의 품격이 왕실의 상징성 안에서 조용히 빛나는 구조입니다. 강한 권력보다 균형과 의례, 관계의 조율을 통해 시대의 흐름을 잇는 별이 보입니다.",
+    summary: "나루히토 일왕 사주의 핵심은 부드러운 외교성과 안정적 계승의 기운입니다. 수의 기운은 세계와 소통하는 감각으로, 금의 기운은 왕실의 형식과 품위를 지키는 힘으로 나타납니다. 이 명식은 앞장서서 시대를 흔드는 팔자라기보다, 조용히 흐름을 받아들이며 상징의 무게를 관리하는 사주입니다.",
+    conclusion: "나루히토 일왕의 사주는 흐르는 물처럼 시대를 잇고, 단정한 금처럼 왕실의 격을 지키는 상징의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Naruhito imperial ceremony water stars destiny", imageSection: "default", body: "나루히토 일왕의 명식은 강한 돌파보다 조용한 조율의 기운이 먼저 보입니다. 이런 사주는 자기 목소리를 크게 내기보다 주어진 자리의 의미를 잃지 않는 데 힘을 씁니다. 왕실이라는 오래된 형식 안에서 현대의 흐름을 받아들이는 균형감이 중요합니다." },
+      { title: "오행과 십성의 결", imageQuery: "imperial palace water metal five elements", imageSection: "default", body: "수는 외부 세계와의 유연한 소통이고, 금은 의례와 품위의 선입니다. 나루히토의 사주에서 관성은 자리의 책임으로 작용하고, 인성은 전통과 배움을 통해 그 책임을 감당하게 합니다. 그래서 화려한 카리스마보다 단정한 안정감이 운을 살립니다." },
+      { title: "운의 흐름", imageQuery: "imperial bridge river stars destiny", imageSection: "default", body: "이 명식의 운은 개인적 확장보다 계승과 전환의 흐름 속에서 읽어야 합니다. 시대가 바뀌는 문턱에서 과한 주장보다 안정된 상징성이 필요하고, 그 역할을 오래 지키는 것이 곧 운의 길입니다. 물처럼 낮게 흐를수록 더 멀리 갑니다." },
+      { title: "운명의 한 문장", imageQuery: "imperial moon river destiny", imageSection: "default", body: "나루히토 일왕은 크게 흔드는 별이 아니라, 오래된 강의 물길을 새 시대까지 이어 주는 명식입니다." },
+    ],
+  },
+  "otani-shohei": {
+    heroCopy: "오타니 쇼헤이의 명식은 불의 도전성과 금의 완성도가 동시에 살아 있는 이도류의 구조입니다. 하나의 길에 머무르지 않고, 두 개의 재능을 한 몸에서 조화시키려는 큰 그릇이 보입니다.",
+    summary: "오타니 쇼헤이 사주의 핵심은 한계를 깨는 확장성과 철저한 자기관리입니다. 화의 기운은 새로운 도전을 향한 열망으로, 금의 기운은 기술을 정밀하게 완성하는 집중력으로 나타납니다. 이 명식은 재능이 많아 흩어지는 사주가 아니라, 두 재능을 하나의 운명적 상징으로 묶는 특별한 운동가의 사주입니다.",
+    conclusion: "오타니 쇼헤이의 사주는 두 개의 태양을 한 하늘에 띄우려는 승부사의 명식입니다. 도전은 그의 언어이고, 절제는 그의 운을 지키는 법입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Shohei Ohtani baseball two way star destiny", imageSection: "career", body: "오타니 쇼헤이의 명식은 한쪽으로만 흐르기에는 그릇이 큽니다. 투수와 타자, 수비와 공격, 절제와 폭발이 동시에 살아야 운이 열립니다. 이런 사주는 평범한 기준으로 재단하면 오히려 빛이 줄고, 불가능해 보이는 균형을 실제 훈련으로 만들 때 크게 빛납니다." },
+      { title: "오행과 십성의 결", imageQuery: "baseball fire metal five elements destiny", imageSection: "default", body: "화는 도전의 불이고, 금은 완성의 칼날입니다. 오타니의 사주에서 비겁은 자기 한계를 계속 밀어붙이는 경쟁심으로, 관성은 그 경쟁심을 루틴과 몸 관리 안에 묶어 두는 힘으로 작용합니다. 그래서 천재성은 즉흥이 아니라 엄격한 반복 속에서 살아납니다." },
+      { title: "운의 흐름", imageQuery: "baseball stadium two way road stars", imageSection: "default", body: "이 명식의 운은 낯선 판으로 갈수록 더 커집니다. 일본에서 미국으로, 하나의 역할에서 두 개의 역할로, 안정된 길에서 기록을 새로 쓰는 길로 운이 움직입니다. 다만 큰 불은 몸의 그릇을 태울 수 있으므로 회복과 절제가 곧 장기 운의 열쇠입니다." },
+      { title: "운명의 한 문장", imageQuery: "baseball bat glove stars destiny", imageSection: "default", body: "오타니 쇼헤이는 재능을 둘로 나눈 사람이 아니라, 두 재능을 하나의 별자리로 만든 명식입니다." },
+    ],
+  },
+  "takeshi-kitano": {
+    heroCopy: "기타노 다케시의 명식은 금의 냉정함과 화의 기괴한 웃음이 함께 놓인 예술가의 구조입니다. 코미디와 폭력, 침묵과 폭발을 한 화면 안에 넣으며 인간의 낯선 얼굴을 드러냅니다.",
+    summary: "기타노 다케시 사주의 핵심은 모순을 자기 색으로 만드는 힘입니다. 금의 기운은 차갑고 간결한 연출로, 화의 기운은 갑작스러운 웃음과 충격으로 나타납니다. 이 명식은 부드럽게 설명하기보다 장면 하나로 관객의 감각을 깨우는 감독이자 배우의 사주입니다.",
+    conclusion: "기타노 다케시의 사주는 웃음과 침묵, 상처와 아름다움이 동시에 번쩍이는 금화의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Takeshi Kitano cinema silence stars destiny", imageSection: "career", body: "기타노 다케시의 명식은 친절하게 감정을 설명하지 않습니다. 차갑게 비워 둔 공간 안에서 갑자기 웃음이나 폭력이 튀어나오는 식입니다. 이런 사주는 평범한 호감보다 독자적 색이 중요하며, 자기만의 리듬을 지킬 때 운이 크게 살아납니다." },
+      { title: "오행과 십성의 결", imageQuery: "film comedy violence metal fire destiny", imageSection: "default", body: "금은 절단과 침묵, 화는 순간의 폭발입니다. 기타노의 사주에서 식상은 예측하기 어려운 표현으로 나오고, 편인의 기운은 보통 사람이 지나치는 어긋남과 공허를 오래 바라보게 합니다. 그래서 그의 작품은 웃긴데 슬프고, 잔혹한데 묘하게 맑습니다." },
+      { title: "운의 흐름", imageQuery: "Japanese cinema road night destiny", imageSection: "default", body: "이 명식은 한 분야에만 머무르면 답답해지는 흐름입니다. 코미디, 방송, 연기, 영화 연출이 서로 충돌하는 듯하지만 실제로는 한 사주의 다른 얼굴입니다. 운은 변신 속에서 열리고, 변신은 자기 중심을 잃지 않을 때 작품성이 됩니다." },
+      { title: "운명의 한 문장", imageQuery: "silent cinema stars blue destiny", imageSection: "default", body: "기타노 다케시는 웃음 뒤의 공허를 영화의 칼날로 깎아 내는 별입니다." },
+    ],
+  },
+  "murakami-haruki": {
+    heroCopy: "무라카미 하루키의 명식은 수의 고독과 목의 서사가 깊게 흐르는 작가의 구조입니다. 현실과 꿈의 경계를 조용히 열어 두고, 상실과 음악, 기억을 긴 문장 속에 흐르게 합니다.",
+    summary: "무라카미 하루키 사주의 핵심은 고독을 세계관으로 바꾸는 능력입니다. 수의 기운은 무의식과 기억의 물길로, 목의 기운은 그 물길을 따라 자라는 서사로 나타납니다. 이 명식은 사건을 크게 외치는 작가가 아니라, 텅 빈 방 안에서 들리는 아주 작은 소리를 끝까지 따라가는 작가의 사주입니다.",
+    conclusion: "무라카미 하루키의 사주는 고독이 문장이 되고, 문장이 또 다른 세계의 문이 되는 수목의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Haruki Murakami jazz night stars destiny", imageSection: "default", body: "무라카미 하루키의 명식은 겉으로 조용하지만 안쪽에는 깊은 물길이 흐릅니다. 이런 사주는 사람들 사이에서보다 혼자 있는 시간 속에서 더 많은 것을 듣습니다. 현실의 틈, 꿈의 잔향, 잃어버린 감각들이 그의 문장 속에서 천천히 형태를 얻습니다." },
+      { title: "오행과 십성의 결", imageQuery: "jazz literature water wood five elements", imageSection: "default", body: "수는 무의식과 기억이고, 목은 이야기가 자라는 힘입니다. 인성은 읽고 사유하는 내면의 방을 만들고, 식상은 그 방에서 들려오는 소리를 문장으로 내보냅니다. 그래서 그의 작품은 줄거리보다 분위기, 설명보다 여백, 결론보다 긴 여운으로 운을 씁니다." },
+      { title: "운의 흐름", imageQuery: "writer desk night city destiny", imageSection: "default", body: "이 명식의 운은 반복과 고독 속에서 깊어집니다. 매일 쓰고, 달리고, 듣는 생활의 리듬이 작품 운을 지탱합니다. 큰 변곡점은 외부 사건보다 내면의 문이 열리는 순간에 오며, 세계적 확장은 오히려 가장 개인적인 고독을 끝까지 밀고 간 결과입니다." },
+      { title: "운명의 한 문장", imageQuery: "lonely writer moon jazz stars", imageSection: "default", body: "무라카미 하루키는 혼자 있는 밤의 소리를 세계의 언어로 번역하는 작가의 별입니다." },
+    ],
+  },
+  "bruce-lee": {
+    heroCopy: "이소룡의 명식은 불의 속도와 금의 절도가 번개처럼 만나는 무인의 구조입니다. 몸은 철저히 단련된 도구이고, 움직임은 철학을 드러내는 언어로 작동합니다.",
+    summary: "이소룡 사주의 핵심은 몸과 정신을 하나로 만드는 힘입니다. 화의 기운은 폭발적인 속도와 존재감으로, 금의 기운은 동작의 정확성과 절단력으로 나타납니다. 이 명식은 싸움을 잘하는 팔자가 아니라, 무술을 통해 삶의 원리를 보여 주는 사주입니다.",
+    conclusion: "이소룡의 사주는 번개처럼 짧았지만, 몸의 한 동작으로 세계의 무술관을 바꾼 불금의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Bruce Lee martial arts lightning stars destiny", imageSection: "career", body: "이소룡의 명식은 멈춰 있는 순간에도 속도가 느껴집니다. 화의 기운이 강하면 존재감이 커지고, 금의 기운이 살아 있으면 움직임이 군더더기 없이 날카로워집니다. 이 사주는 육체가 단순한 힘의 그릇이 아니라 정신의 칼날이 되는 구조입니다." },
+      { title: "오행과 십성의 결", imageQuery: "martial arts fire metal five elements", imageSection: "default", body: "화는 순간의 폭발이고, 금은 정확한 절단입니다. 이소룡의 사주에서 식상은 몸으로 표현되는 철학이고, 비겁은 자기 한계를 밀어붙이는 투지입니다. 그래서 그의 무술은 형식에 갇히지 않고, 불필요한 것을 잘라 내며 본질만 남기는 방향으로 흐릅니다." },
+      { title: "운의 흐름", imageQuery: "martial artist cinema road stars", imageSection: "default", body: "이 명식의 운은 짧고 강한 불꽃처럼 전개됩니다. 동양과 서양, 무술과 영화, 몸과 철학의 경계를 넘으면서 세계적 상징이 됩니다. 다만 불기운이 강한 사주는 소모도 빠르므로, 그의 삶은 강렬한 빛과 짧은 시간의 비극을 함께 품습니다." },
+      { title: "운명의 한 문장", imageQuery: "dragon martial arts stars destiny", imageSection: "default", body: "이소룡은 싸움의 기술을 넘어, 움직임 하나로 자유의 철학을 보여 준 별입니다." },
+    ],
+  },
+  "jackie-chan": {
+    heroCopy: "성룡의 명식은 토의 버티는 힘과 화의 유쾌한 움직임이 결합된 액션 배우의 구조입니다. 위험을 웃음으로 바꾸고, 몸의 고통을 관객의 즐거움으로 전환하는 독특한 운이 보입니다.",
+    summary: "성룡 사주의 핵심은 몸으로 운을 개척하는 능력입니다. 토의 기운은 넘어져도 다시 일어나는 회복력으로, 화의 기운은 장면을 밝히는 유머와 활력으로 나타납니다. 이 명식은 영웅처럼 완벽해 보이기보다, 다치고 구르면서도 끝내 웃게 만드는 생활형 영웅의 사주입니다.",
+    conclusion: "성룡의 사주는 상처를 장면으로, 위험을 웃음으로 바꾸는 액션의 명식입니다. 몸이 곧 그의 운명이고, 유쾌함이 곧 그의 부적입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Jackie Chan action comedy stars destiny", imageSection: "career", body: "성룡의 명식은 고고한 거리감보다 현장에서 직접 부딪히는 힘이 강합니다. 토의 기운은 몸으로 버티고 쌓아 올리는 근성을 주며, 화의 기운은 그 고생을 무겁게만 보이지 않게 하는 밝은 활력을 줍니다. 그래서 그의 액션은 위험하지만 친근합니다." },
+      { title: "오행과 십성의 결", imageQuery: "action cinema earth fire five elements", imageSection: "default", body: "토는 몸의 기억이고, 화는 장면의 생기입니다. 성룡의 사주에서 식상은 몸을 통한 표현으로 크게 열리고, 비겁은 수많은 시도와 실패를 견디는 현장성을 줍니다. 완벽한 초인이 아니라 계속 넘어지고 다시 일어나는 힘이 그의 별입니다." },
+      { title: "운의 흐름", imageQuery: "Hong Kong action film road destiny", imageSection: "default", body: "이 명식의 운은 어린 수련과 혹독한 현장을 지나 세계적 확장으로 열립니다. 좋은 운은 편안한 자리보다 몸을 던지는 장면에서 찾아오고, 위험을 통제하는 경험이 쌓일수록 브랜드가 됩니다. 다만 몸의 손상이 운의 그릇을 약하게 만들 수 있어 관리가 매우 중요합니다." },
+      { title: "운명의 한 문장", imageQuery: "action comedy cinema stars destiny", imageSection: "default", body: "성룡은 넘어지는 순간까지 관객에게 웃음을 건네는 몸의 장인입니다." },
+    ],
+  },
+  "jack-ma": {
+    heroCopy: "마윈의 명식은 목의 확장성과 화의 설득력이 상업의 무대 위에서 크게 살아나는 기업가의 구조입니다. 작은 판을 크게 키우고, 보이지 않는 시장의 흐름을 사람들의 욕망과 연결하는 힘이 강합니다.",
+    summary: "마윈 사주의 핵심은 말과 비전을 통해 사람과 자본, 기술의 흐름을 움직이는 능력입니다. 목의 기운은 새로운 판을 키우는 성장성으로, 화의 기운은 대중 앞에서 비전을 밝히는 설득력으로 나타납니다. 이 명식은 이미 있는 길을 걷는 팔자가 아니라, 아직 믿지 않는 사람들에게 미래의 문을 먼저 보여 주는 창업가의 사주입니다.",
+    conclusion: "마윈의 사주는 시장의 빈틈을 보고 사람들의 마음에 불을 붙이는 확장형 기업가의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Jack Ma business stage stars destiny", imageSection: "career", body: "마윈의 명식은 조용히 계산만 하는 상인의 사주가 아닙니다. 사람 앞에 서서 가능성을 말하고, 그 말이 다시 사람과 돈과 기술을 움직이게 만드는 구조입니다. 목의 성장성이 강하면 처음에는 작아 보여도 판을 키우는 운이 있고, 화의 표현력이 붙으면 그 판에 대중의 시선이 모입니다." },
+      { title: "오행과 십성의 결", imageQuery: "commerce platform fire wood five elements", imageSection: "default", body: "목은 확장이고 화는 설득입니다. 마윈의 사주에서 재성은 시장을 읽는 감각으로, 식상은 비전을 말로 풀어내는 힘으로 작용합니다. 그래서 사업은 단순한 거래가 아니라 이야기와 신뢰를 팔아 판을 여는 방식으로 전개됩니다." },
+      { title: "운의 흐름", imageQuery: "digital marketplace road stars destiny", imageSection: "default", body: "이 명식의 운은 작은 실패와 거절을 지나 큰 플랫폼으로 열립니다. 초년의 좌절은 운이 막힌 것이 아니라 설득력과 생존감을 단련하는 자리입니다. 큰 운에서는 확장이 빠르지만, 확장 이후에는 규율과 균형이 부족하면 운의 압박도 함께 커집니다." },
+      { title: "운명의 한 문장", imageQuery: "marketplace lights destiny stars", imageSection: "default", body: "마윈은 사람들이 보지 못한 시장의 문을 말과 비전으로 먼저 열어 보인 별입니다." },
+    ],
+  },
+  confucius: {
+    heroCopy: "공자의 명식은 토의 질서와 목의 도덕성이 깊게 뿌리내린 스승의 구조입니다. 혼란한 시대 속에서 예와 배움, 관계의 바른 자리를 세우려는 힘이 강하게 보입니다.",
+    summary: "공자 사주의 핵심은 세상을 힘으로 고치기보다 사람의 마음과 질서를 바로 세우려는 기운입니다. 토의 중심성은 사회의 기틀과 예법으로, 목의 성장성은 교육과 수양의 길로 나타납니다. 이 명식은 한 시대의 권력을 얻는 팔자가 아니라, 여러 시대의 정신을 기르는 스승의 사주입니다.",
+    conclusion: "공자의 사주는 혼란한 땅에 예의 뿌리를 심고, 배움을 통해 사람의 길을 세운 스승의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Confucius ancient scholar stars destiny", imageSection: "default", body: "공자의 명식은 빠르게 바꾸는 혁명가의 결보다 오래 세우는 스승의 결이 강합니다. 이런 사주는 당대에는 답답하게 보일 수 있어도, 시간이 지날수록 말의 무게가 커집니다. 중심을 잃은 시대에 무엇이 사람의 도리인지 묻는 힘이 그의 운을 이룹니다." },
+      { title: "오행과 십성의 결", imageQuery: "ancient Chinese scholar earth wood five elements", imageSection: "default", body: "토는 질서와 중심이고, 목은 사람을 기르는 교육의 힘입니다. 공자의 사주에서 인성은 배움과 전통을 품고, 관성은 사회적 도리와 책임을 세웁니다. 그래서 그의 사상은 개인의 재능 과시가 아니라, 사람 사이의 관계를 바로잡는 길로 흐릅니다." },
+      { title: "운의 흐름", imageQuery: "ancient road teacher disciples destiny", imageSection: "default", body: "이 명식의 운은 현실 권력과 완전히 맞아떨어지기보다, 제자와 후대의 시간을 통해 열립니다. 당대의 좌절은 이름을 지우지 않고 오히려 사상의 순도를 높였습니다. 공자의 큰 운은 살아 있는 동안의 성공보다 죽은 뒤 오래 이어지는 가르침에서 완성됩니다." },
+      { title: "운명의 한 문장", imageQuery: "bamboo scroll stars wisdom destiny", imageSection: "default", body: "공자는 왕이 되지 않고도 수천 년의 마음을 다스린 스승의 별입니다." },
+    ],
+  },
+  "taylor-swift": {
+    heroCopy: "Taylor Swift의 명식은 화의 무대성과 수의 서사 감각이 섬세하게 맞물린 작곡가형 스타의 구조입니다. 사랑과 상처, 기억과 복수를 모두 노래의 세계로 바꾸는 힘이 강합니다.",
+    summary: "Taylor Swift 사주의 핵심은 개인적 감정을 대중적 서사로 확장하는 능력입니다. 수의 기운은 기억과 관계의 미세한 감정을 길어 올리고, 화의 기운은 그것을 무대와 브랜드, 시대의 목소리로 밝힙니다. 이 명식은 단순한 팝 스타가 아니라 자기 인생을 거대한 이야기로 편집하는 창작자의 사주입니다.",
+    conclusion: "Taylor Swift의 사주는 사적인 일기를 세계의 합창으로 바꾸는 서사의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Taylor Swift concert stars destiny", imageSection: "career", body: "Taylor Swift의 명식은 감정을 숨기지 않고 작품의 중심으로 가져오는 구조입니다. 상처와 설렘, 관계의 흔적을 그대로 흘려보내지 않고 노래와 이미지, 공연의 서사로 재구성합니다. 그래서 대중은 음악을 듣는 동시에 한 사람의 성장사를 따라가게 됩니다." },
+      { title: "오행과 십성의 결", imageQuery: "pop music water fire five elements", imageSection: "default", body: "수는 기억이고 화는 무대의 빛입니다. 식상의 별은 작곡과 가사, 공연으로 자신을 표현하게 하고, 재성의 감각은 그 표현을 거대한 산업과 브랜드로 연결합니다. 감정이 상품으로만 흐르면 얕아질 수 있으나, 이 명식은 서사와 통제력으로 그 위험을 넘습니다." },
+      { title: "운의 흐름", imageQuery: "stadium tour road stars destiny", imageSection: "default", body: "이 명식의 운은 시대마다 자신의 이미지를 새로 편집할 때 열립니다. 컨트리에서 팝으로, 소녀의 고백에서 거대한 공연 서사로 변하는 과정은 단순한 변신이 아니라 운의 장르가 바뀐 것입니다. 좋은 운은 자기 이야기를 남에게 빼앗기지 않을 때 가장 강합니다." },
+      { title: "운명의 한 문장", imageQuery: "red microphone stadium stars destiny", imageSection: "default", body: "Taylor Swift는 마음의 기록을 시대의 노래로 바꾸는 서사형 스타의 별입니다." },
+    ],
+  },
+  "elon-musk": {
+    heroCopy: "Elon Musk의 명식은 화의 돌파력과 금의 공학적 절단력이 강하게 충돌하는 개척자의 구조입니다. 안정된 길을 넓히기보다 불가능해 보이는 문을 부수고 새 판을 열려는 기운이 큽니다.",
+    summary: "Elon Musk 사주의 핵심은 위험을 피하지 않고 미래의 물질적 형태로 밀어붙이는 힘입니다. 화의 기운은 비전과 속도로, 금의 기운은 기술과 시스템으로 나타납니다. 이 명식은 평온한 운영자보다 경계선을 깨는 창업가의 사주이며, 운이 강할수록 성취와 과열이 함께 커지는 구조입니다.",
+    conclusion: "Elon Musk의 사주는 미래를 말로 예언하기보다 로켓과 공장, 코드와 배터리로 밀어붙이는 돌파형 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Elon Musk rocket technology stars destiny", imageSection: "career", body: "Elon Musk의 명식은 적당한 성공에 머물기 어렵습니다. 한계를 보면 돌아가기보다 뚫고 지나가려는 기운이 강하고, 현실의 저항이 클수록 오히려 더 큰 판을 상상합니다. 이런 사주는 강한 추진력이 복이지만, 동시에 과열을 조심해야 합니다." },
+      { title: "오행과 십성의 결", imageQuery: "rocket fire metal technology five elements", imageSection: "default", body: "화는 미래를 밝히는 비전이고, 금은 그 비전을 기계와 시스템으로 자르는 힘입니다. 재성은 거대한 자본과 시장을 움직이고, 식상은 아이디어를 제품과 선언으로 밖에 내보냅니다. 다만 관성의 균형이 약해질 때는 규율과 관계의 마찰이 운의 부담으로 돌아옵니다." },
+      { title: "운의 흐름", imageQuery: "space road electric car destiny stars", imageSection: "default", body: "이 명식의 운은 한 산업 안에서 끝나지 않습니다. 결제, 전기차, 우주, 인공지능처럼 판을 옮길수록 강한 별이 살아납니다. 그러나 확장이 빠를수록 정리와 검증의 운도 필요합니다. 큰 불은 어둠을 밝히지만, 그릇이 약하면 주변을 태울 수 있습니다." },
+      { title: "운명의 한 문장", imageQuery: "rocket launch night stars destiny", imageSection: "default", body: "Elon Musk는 미래라는 이름의 불가능을 현실의 기계로 끌어내리려는 별입니다." },
+    ],
+  },
+  "michael-jackson": {
+    heroCopy: "마이클 잭슨의 명식은 화의 무대성과 수의 깊은 감수성이 극단적으로 빛나는 예술가의 구조입니다. 몸짓 하나가 음악이 되고, 음악 하나가 세계의 기억이 되는 강한 별이 보입니다.",
+    summary: "마이클 잭슨 사주의 핵심은 무대 위에서 영혼 전체가 발광하는 힘입니다. 화의 기운은 압도적 존재감과 퍼포먼스로, 수의 기운은 상처와 감수성, 어린 영혼의 떨림으로 나타납니다. 이 명식은 대중의 사랑을 먹고 자라지만, 그 사랑의 압력에 마음이 쉽게 다칠 수 있는 예술가의 사주입니다.",
+    conclusion: "마이클 잭슨의 사주는 춤과 목소리로 시대의 심장을 움직인 무대의 명식입니다. 빛이 너무 컸기에 그림자도 깊었습니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Michael Jackson moonwalk stage stars destiny", imageSection: "career", body: "마이클 잭슨의 명식은 무대에 오르는 순간 일상적 인간의 크기를 넘어섭니다. 화의 기운은 관객의 시선을 한 점에 모으고, 수의 감수성은 그 빛 아래에 외로움과 상처를 남깁니다. 그래서 그의 예술은 환희와 슬픔이 동시에 들립니다." },
+      { title: "오행과 십성의 결", imageQuery: "pop dance fire water five elements", imageSection: "default", body: "화는 퍼포먼스의 태양이고, 수는 내면의 깊은 밤입니다. 식상의 별은 춤과 노래, 이미지로 폭발하고, 인성은 어린 시절부터 쌓인 감정의 기억을 붙잡습니다. 이 조합은 천재적 무대를 만들지만, 마음의 경계가 약해질 때 큰 소모를 부릅니다." },
+      { title: "운의 흐름", imageQuery: "global pop stage moon destiny", imageSection: "default", body: "이 명식의 운은 어린 나이에 세상 앞에 서며 매우 빠르게 열립니다. 큰 운은 세계적 상징을 만들지만, 동시에 사적인 삶을 보호하기 어렵게 합니다. 운을 오래 지키려면 빛의 크기만큼 어둠을 쉬게 할 공간이 필요했을 명식입니다." },
+      { title: "운명의 한 문장", imageQuery: "white glove moon stars destiny", imageSection: "default", body: "마이클 잭슨은 몸짓 하나로 지구의 리듬을 바꾼 무대의 별입니다." },
+    ],
+  },
+  "steve-jobs": {
+    heroCopy: "스티브 잡스의 명식은 금의 미감과 화의 선언력이 결합된 창조 경영자의 구조입니다. 기술을 차가운 도구로 두지 않고, 사람의 욕망과 감각을 건드리는 하나의 의식으로 바꾸는 힘이 강합니다.",
+    summary: "스티브 잡스 사주의 핵심은 불필요한 것을 잘라 내고 본질만 남기는 능력입니다. 금의 기운은 디자인과 선택의 칼날로, 화의 기운은 세상 앞에 제품의 의미를 밝히는 무대성으로 나타납니다. 이 명식은 발명가와 예술가, 사업가의 기운이 한곳에서 충돌하며 강한 완성도를 만들어 내는 사주입니다.",
+    conclusion: "스티브 잡스의 사주는 기술에 영혼의 형태를 입힌 금화의 명식입니다. 단순함은 그의 미학이고, 집요함은 그의 운명이었습니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Steve Jobs design technology stars destiny", imageSection: "career", body: "스티브 잡스의 명식은 많은 것을 더하기보다 끝까지 덜어내는 힘이 강합니다. 금의 기운은 무엇이 필요한지보다 무엇을 버려야 하는지를 알게 하고, 화의 기운은 남겨진 하나를 세상 앞에서 빛나게 합니다. 그래서 그의 창조는 기능보다 경험의 의식에 가깝습니다." },
+      { title: "오행과 십성의 결", imageQuery: "minimal design metal fire five elements", imageSection: "default", body: "금은 완성의 기준이고, 화는 메시지의 빛입니다. 재성은 시장과 욕망을 읽고, 식상은 제품과 프레젠테이션으로 비전을 구체화합니다. 관성이 강하게 작동할 때는 기준이 품질이 되지만, 과하면 주변 사람에게 날카로운 압박으로 느껴질 수 있습니다." },
+      { title: "운의 흐름", imageQuery: "garage computer stage road destiny", imageSection: "default", body: "이 명식의 운은 추방과 복귀를 통해 더 강해집니다. 한 번 밀려난 경험은 단순한 좌절이 아니라 미감과 통제력의 순도를 높이는 시간으로 작용합니다. 큰 운은 두 번째 등장에서 열리며, 제품이 곧 철학이 되는 순간 이름이 시대의 상징이 됩니다." },
+      { title: "운명의 한 문장", imageQuery: "black turtleneck stage stars destiny", imageSection: "default", body: "스티브 잡스는 차가운 기계 위에 인간의 욕망과 아름다움을 새긴 별입니다." },
+    ],
+  },
+  "martin-luther-king-jr": {
+    heroCopy: "마틴 루터 킹의 명식은 목의 도덕성과 화의 연설력이 강하게 살아 있는 예언자형 지도자의 구조입니다. 꿈을 말하되 공허하게 띄우지 않고, 억눌린 사람들의 존엄을 시대의 언어로 세웁니다.",
+    summary: "마틴 루터 킹 사주의 핵심은 정의를 말로 밝히고 사람들의 마음을 한 방향으로 모으는 힘입니다. 목의 기운은 평등과 성장의 이상으로, 화의 기운은 강력한 연설과 대중적 울림으로 나타납니다. 이 명식은 갈등을 증폭시키는 팔자가 아니라, 고통 속에서도 인간의 품격을 잃지 않으려는 영적 지도자의 사주입니다.",
+    conclusion: "마틴 루터 킹의 사주는 꿈을 외친 사람이 아니라, 꿈이라는 말로 시대의 양심을 깨운 목화의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Martin Luther King speech stars destiny", imageSection: "default", body: "마틴 루터 킹의 명식은 말이 곧 촛불이 되는 구조입니다. 목의 기운은 사람을 살리고 키우려는 도덕적 방향으로, 화의 기운은 그 방향을 군중 앞에서 밝히는 연설의 힘으로 드러납니다. 그의 카리스마는 지배가 아니라 깨움에 가깝습니다." },
+      { title: "오행과 십성의 결", imageQuery: "civil rights fire wood five elements", imageSection: "default", body: "목은 정의와 성장이고, 화는 말씀과 확산입니다. 관성은 더 높은 법과 양심을 세우고, 식상은 그 양심을 대중의 언어로 풀어냅니다. 그래서 그의 연설은 정치적 구호를 넘어 영적인 울림을 갖습니다." },
+      { title: "운의 흐름", imageQuery: "civil rights march road destiny", imageSection: "default", body: "이 명식의 운은 개인의 안온함보다 시대의 고통 속에서 열립니다. 강한 이상은 거센 저항을 부르지만, 그 저항이 오히려 사명의 무게를 증명합니다. 큰 운은 오래 사는 안정이 아니라 짧은 시간에 시대의 방향을 바꾸는 밀도로 나타납니다." },
+      { title: "운명의 한 문장", imageQuery: "I have a dream stars destiny", imageSection: "default", body: "마틴 루터 킹은 꿈을 말해 잠든 양심을 깨운 시대의 목소리입니다." },
+    ],
+  },
+  "elvis-presley": {
+    heroCopy: "엘비스 프레슬리의 명식은 화의 무대성과 금의 매력이 강하게 결합된 로큰롤의 구조입니다. 몸짓과 목소리, 반항과 달콤함이 한 몸에서 터져 나와 대중문화의 문을 새로 열었습니다.",
+    summary: "엘비스 프레슬리 사주의 핵심은 억눌린 리듬을 대중 앞에서 폭발시키는 힘입니다. 화의 기운은 무대 위 존재감과 관능적 에너지로, 금의 기운은 목소리의 색과 스타의 윤곽으로 나타납니다. 이 명식은 단순한 가수가 아니라 한 시대의 몸짓과 욕망을 바꾼 상징의 사주입니다.",
+    conclusion: "엘비스 프레슬리의 사주는 목소리와 몸짓으로 세대의 금기를 흔든 로큰롤의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Elvis Presley rock and roll stars destiny", imageSection: "career", body: "엘비스 프레슬리의 명식은 무대 위에서 즉시 시선을 끌어당기는 힘이 강합니다. 화의 기운은 관객의 열기를 만들고, 금의 기운은 그 열기에 선명한 윤곽과 매력을 줍니다. 이런 사주는 시대의 금기와 욕망을 몸으로 먼저 표현합니다." },
+      { title: "오행과 십성의 결", imageQuery: "rock music fire metal five elements", imageSection: "default", body: "화는 폭발하는 리듬이고, 금은 스타의 선명한 이미지입니다. 식상은 노래와 몸짓으로 크게 열리고, 재성은 대중의 욕망을 끌어당기는 매력으로 작용합니다. 그래서 엘비스의 운은 음악적 재능만이 아니라 이미지와 시대 분위기가 함께 만든 큰 파도입니다." },
+      { title: "운의 흐름", imageQuery: "vintage stage road neon destiny", imageSection: "default", body: "이 명식은 젊은 시절의 폭발력이 매우 강합니다. 빠른 상승은 대중문화의 왕좌를 주지만, 동시에 몸과 마음의 소모도 크게 만듭니다. 화려한 운일수록 사적인 안정과 건강의 그릇이 필요했으며, 그 균형이 흔들릴 때 그림자가 깊어집니다." },
+      { title: "운명의 한 문장", imageQuery: "rock and roll microphone stars destiny", imageSection: "default", body: "엘비스 프레슬리는 한 시대의 심장 박동을 몸으로 먼저 들려준 무대의 별입니다." },
+    ],
+  },
+  "bill-gates": {
+    heroCopy: "빌 게이츠의 명식은 금의 체계성과 수의 지적 흐름이 결합된 설계자의 구조입니다. 보이지 않는 논리를 소프트웨어의 질서로 만들고, 축적된 부를 다시 사회적 책임의 물길로 돌리는 힘이 보입니다.",
+    summary: "빌 게이츠 사주의 핵심은 복잡한 세계를 규칙과 시스템으로 정리하는 능력입니다. 금의 기운은 코드와 구조, 선택의 정확성으로 나타나고, 수의 기운은 정보와 전략의 흐름을 읽는 감각으로 작용합니다. 이 명식은 빠른 감각보다 긴 판을 보는 지성이 강한 기업가의 사주입니다.",
+    conclusion: "빌 게이츠의 사주는 지식과 체계를 부로 바꾸고, 부를 다시 책임으로 돌리는 금수의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Bill Gates software library stars destiny", imageSection: "career", body: "빌 게이츠의 명식은 번쩍이는 쇼맨십보다 차갑고 정밀한 설계의 힘이 먼저 보입니다. 이런 사주는 세계를 감정으로 보기보다 구조와 규칙으로 읽습니다. 운이 열릴 때는 하나의 제품보다 표준과 생태계를 장악하는 방식으로 커집니다." },
+      { title: "오행과 십성의 결", imageQuery: "software metal water five elements", imageSection: "default", body: "금은 체계와 기준이고 수는 정보의 흐름입니다. 재성은 시장을 읽는 감각으로, 인성은 지식과 분석의 축적으로 작용합니다. 그래서 그의 부는 단순한 장사 운이 아니라 기술의 표준을 선점한 구조적 재물운으로 읽힙니다." },
+      { title: "운의 흐름", imageQuery: "technology philanthropy road stars", imageSection: "default", body: "이 명식의 운은 초년의 집중과 중년의 확장, 후반의 환원으로 흐릅니다. 강한 금수의 기운은 지식과 돈을 쌓는 데 유리하지만, 말년 운에서는 그 축적을 어디로 흘려보내느냐가 격을 결정합니다. 자선과 공공 보건은 재성이 책임으로 바뀌는 흐름입니다." },
+      { title: "운명의 한 문장", imageQuery: "code window stars destiny", imageSection: "default", body: "빌 게이츠는 코드를 산업의 질서로 바꾸고, 질서를 다시 책임의 언어로 돌린 별입니다." },
+    ],
+  },
+  "park-chan-ho": {
+    heroCopy: "박찬호의 명식은 토의 인내와 금의 승부 감각이 함께 놓인 개척자의 구조입니다. 낯선 리그와 언어, 긴 마운드의 고독을 견디며 한국 야구의 길을 먼저 뚫은 별입니다.",
+    summary: "박찬호 사주의 핵심은 버티는 힘으로 문을 여는 능력입니다. 토의 기운은 긴 훈련과 고독을 견디는 기반으로, 금의 기운은 승부의 순간에 공을 꽂아 넣는 결단으로 나타납니다. 이 명식은 한 번의 화려함보다 길을 만드는 책임이 큰 스포츠 개척자의 사주입니다.",
+    conclusion: "박찬호의 사주는 낯선 마운드 위에서 나라의 길을 먼저 연 토금의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Park Chan-ho baseball mound stars destiny", imageSection: "career", body: "박찬호의 명식은 쉬운 길보다 먼저 건너는 길에 강합니다. 토의 기운은 흔들리는 환경에서도 중심을 잡고, 금의 기운은 승부의 선을 날카롭게 세웁니다. 해외 무대의 외로움은 이 사주에서 약점이 아니라 길을 여는 단련으로 작용합니다." },
+      { title: "오행과 십성의 결", imageQuery: "baseball pitcher earth metal destiny", imageSection: "default", body: "토는 오래 버티는 힘이고 금은 정확한 결단입니다. 관성은 규율과 책임으로, 비겁은 경쟁 속에서 자신을 밀어 올리는 힘으로 작용합니다. 그래서 박찬호의 운은 개인 성적뿐 아니라 한국 야구 전체의 상징을 짊어지는 형태로 커졌습니다." },
+      { title: "운의 흐름", imageQuery: "major league road night destiny", imageSection: "default", body: "이 명식의 운은 국내의 안정된 무대보다 낯선 곳으로 나갈 때 더 크게 열립니다. 처음에는 고독하고 거칠지만, 버틴 시간이 후대의 길이 됩니다. 큰 운은 승수보다 개척의 의미에서 더 오래 남습니다." },
+      { title: "운명의 한 문장", imageQuery: "baseball road Korea stars", imageSection: "default", body: "박찬호는 혼자 오른 마운드 위에서 뒤따라올 세대의 길을 밝힌 별입니다." },
+    ],
+  },
+  "kim-yuna": {
+    heroCopy: "김연아의 명식은 금의 완성도와 수의 우아한 흐름이 결합된 예술형 승부사의 구조입니다. 얼음 위에서 감정은 절제되고, 절제는 다시 세계가 인정한 아름다움으로 빛납니다.",
+    summary: "김연아 사주의 핵심은 압박 속에서도 선을 흐트러뜨리지 않는 힘입니다. 금의 기운은 기술의 정확성과 완성도로, 수의 기운은 유려한 흐름과 감정의 깊이로 나타납니다. 이 명식은 재능을 과시하는 팔자가 아니라, 재능을 극도로 정제해 품격으로 만드는 스포츠 예술가의 사주입니다.",
+    conclusion: "김연아의 사주는 차가운 얼음 위에서 가장 맑은 선을 그린 금수의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Yuna Kim figure skating stars destiny", imageSection: "career", body: "김연아의 명식은 격정적인 폭발보다 완벽한 선의 긴장감이 먼저 보입니다. 금의 기운이 강하면 기준이 높고, 수의 기운이 흐르면 움직임이 굳지 않습니다. 그래서 그녀의 무대는 승부이면서 동시에 하나의 의식처럼 느껴집니다." },
+      { title: "오행과 십성의 결", imageQuery: "figure skating metal water five elements", imageSection: "default", body: "금은 기술의 정확성이고 수는 흐름과 음악성입니다. 관성은 압박을 견디는 규율로, 식상은 몸으로 표현되는 예술성으로 작용합니다. 이 조합은 흔들림 없는 점프와 깊은 표현력을 동시에 가능하게 합니다." },
+      { title: "운의 흐름", imageQuery: "ice rink gold medal stars destiny", imageSection: "default", body: "이 명식의 운은 어린 나이부터 큰 압박과 함께 열립니다. 기대가 클수록 흔들릴 수 있으나, 금수의 균형이 살아 있으면 압박은 오히려 집중력의 통로가 됩니다. 은퇴 이후에도 이름의 품격이 유지되는 것은 운의 선이 흐트러지지 않았기 때문입니다." },
+      { title: "운명의 한 문장", imageQuery: "ice queen stars destiny", imageSection: "default", body: "김연아는 차가운 무대에서 세계가 숨을 죽이게 만든 완성의 별입니다." },
+    ],
+  },
+  "park-se-ri": {
+    heroCopy: "박세리의 명식은 토의 집념과 목의 개척성이 강하게 살아 있는 승부사의 구조입니다. 한 번 박힌 의지는 쉽게 흔들리지 않고, 어려운 판에서도 길을 만들어 후대를 이끄는 힘이 큽니다.",
+    summary: "박세리 사주의 핵심은 버티며 돌파하는 개척운입니다. 토의 기운은 긴 훈련과 흔들리지 않는 멘탈로, 목의 기운은 새로운 무대를 향한 성장성과 도전으로 나타납니다. 이 명식은 개인 우승을 넘어 한국 골프의 문을 연 선구자의 사주입니다.",
+    conclusion: "박세리의 사주는 진흙 속에서도 흔들리지 않고 길을 만든 토목의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Pak Se-ri golf stars destiny", imageSection: "career", body: "박세리의 명식은 강한 뿌리와 긴 호흡이 먼저 보입니다. 순간적인 화려함보다 끝까지 버티는 힘이 크고, 위기에서 포기하지 않는 근성이 운을 엽니다. 이런 사주는 한 사람의 성취가 곧 후대의 길이 되는 경우가 많습니다." },
+      { title: "오행과 십성의 결", imageQuery: "golf earth wood five elements destiny", imageSection: "default", body: "토는 중심이고 목은 성장입니다. 비겁은 경쟁심과 자기 확신으로, 관성은 훈련과 경기 규율로 작용합니다. 박세리의 강점은 감정의 파도보다 목표를 향해 몸을 묵묵히 움직이는 지속성에 있습니다." },
+      { title: "운의 흐름", imageQuery: "golf green road victory destiny", imageSection: "default", body: "이 명식의 운은 어려운 환경을 뚫는 순간 크게 열립니다. 해외 무대와 큰 경기의 압박은 부담이지만 동시에 이름을 새기는 자리입니다. 맨발 투혼으로 상징되는 장면은 이 사주의 토기운이 가장 선명하게 드러난 순간입니다." },
+      { title: "운명의 한 문장", imageQuery: "golf green stars Korea destiny", imageSection: "default", body: "박세리는 한 번의 우승보다 한 세대의 가능성을 깨운 개척의 별입니다." },
+    ],
+  },
+  "park-chung-hee": {
+    heroCopy: "박정희의 명식은 금의 통제력과 화의 추진력이 강하게 맞물린 권력형 구조입니다. 산업화의 속도와 국가 운영의 강한 의지가 보이지만, 그만큼 권위와 균형의 그림자도 함께 읽히는 사주입니다.",
+    summary: "박정희 사주의 핵심은 질서와 속도를 통해 시대를 밀어붙이는 힘입니다. 금의 기운은 규율과 통제, 군사적 판단으로 나타나고, 화의 기운은 빠른 실행과 국가적 동원력으로 드러납니다. 이 명식은 성취와 논쟁이 분리되지 않는 권력자의 사주입니다.",
+    conclusion: "박정희의 사주는 강한 금화의 추진력으로 시대를 바꾸되, 그 힘의 그림자까지 함께 남긴 권력의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Park Chung-hee industrial Korea stars destiny", imageSection: "default", body: "박정희의 명식은 부드러운 조율보다 강한 명령과 추진이 먼저 보입니다. 금의 기운이 강하면 체계와 질서를 만들고, 화의 기운이 붙으면 빠르게 실행합니다. 이런 사주는 한 시대를 압축적으로 움직이는 힘이 있지만, 균형이 약하면 경직과 갈등도 커집니다." },
+      { title: "오행과 십성의 결", imageQuery: "industrialization metal fire five elements", imageSection: "default", body: "금은 통제이고 화는 동원입니다. 관성은 국가와 조직의 규율로 작용하고, 재성은 경제 개발과 현실 성과를 향한 집착으로 나타납니다. 이 조합은 빠른 성과를 만들 수 있으나, 사람의 숨을 충분히 살피지 못하면 운의 빚이 남습니다." },
+      { title: "운의 흐름", imageQuery: "Korean industrial road night destiny", imageSection: "default", body: "이 명식의 운은 전쟁과 빈곤 이후의 강한 재건 흐름과 맞물려 열립니다. 시대가 속도를 요구할 때 그의 사주는 크게 작동했습니다. 그러나 권력운은 오래 잡을수록 스스로를 태우는 성질이 있어, 말년에는 강한 기운이 충돌로 돌아오기 쉽습니다." },
+      { title: "운명의 한 문장", imageQuery: "factory lights iron stars destiny", imageSection: "default", body: "박정희는 국가를 빠르게 움직인 강한 별이지만, 그 빛과 그림자를 함께 남긴 권력의 명식입니다." },
+    ],
+  },
+  "kim-dae-jung": {
+    heroCopy: "김대중의 명식은 수의 지혜와 목의 신념이 오래 버티는 정치가의 구조입니다. 거듭된 고난 속에서도 말과 사상을 잃지 않고, 민주주의와 평화의 물길을 끝까지 붙잡는 힘이 큽니다.",
+    summary: "김대중 사주의 핵심은 고난을 사상과 외교의 힘으로 바꾸는 능력입니다. 수의 기운은 깊은 전략과 언어의 유연함으로, 목의 기운은 꺾이지 않는 민주주의의 신념으로 나타납니다. 이 명식은 박해 속에서 무너지는 팔자가 아니라, 박해를 통해 뜻의 뿌리가 더 깊어지는 정치가의 사주입니다.",
+    conclusion: "김대중의 사주는 깊은 물처럼 오래 흐르고, 마침내 평화의 문을 두드린 수목의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Kim Dae-jung democracy peace stars destiny", imageSection: "default", body: "김대중의 명식은 빠른 힘보다 오래 견디는 지혜가 먼저 보입니다. 수의 기운은 복잡한 정세를 읽고, 목의 기운은 옳다고 믿는 방향을 끝까지 붙잡게 합니다. 이런 사주는 고난이 많을수록 말의 무게와 신념의 깊이가 커집니다." },
+      { title: "오행과 십성의 결", imageQuery: "democracy water wood five elements", imageSection: "default", body: "수는 외교와 전략이고 목은 신념과 성장입니다. 인성은 사유와 독서, 사상으로 작용하고, 관성은 공적 책임과 민주주의의 원칙으로 나타납니다. 그래서 김대중의 정치운은 단순한 권력 쟁취보다 생존과 설득, 화해의 긴 흐름으로 읽힙니다." },
+      { title: "운의 흐름", imageQuery: "peace bridge Korea stars destiny", imageSection: "default", body: "이 명식의 운은 죽음의 문턱과 긴 박해를 지나 늦게 크게 열립니다. 젊은 시절의 고난은 운을 막은 것이 아니라 정치적 내공을 깊게 만들었습니다. 말년의 평화운은 오래 참은 물길이 마침내 넓은 강으로 열린 모습입니다." },
+      { title: "운명의 한 문장", imageQuery: "Nobel peace stars Korea destiny", imageSection: "default", body: "김대중은 오래 막힌 물길을 끝내 평화의 강으로 이끈 정치가의 별입니다." },
+    ],
+  },
+  "han-kang": {
+    heroCopy: "한강의 명식은 수의 심연과 금의 문장 감각이 고요하게 빛나는 작가의 구조입니다. 상처와 침묵, 몸과 기억을 깊이 들여다보며 말로 다할 수 없는 것을 문장으로 길어 올립니다.",
+    summary: "한강 사주의 핵심은 고통의 밑바닥을 아름답지만 서늘한 언어로 바꾸는 힘입니다. 수의 기운은 인간 내면의 어둠과 기억을 깊이 살피고, 금의 기운은 그 감각을 날카롭고 절제된 문장으로 다듬습니다. 이 명식은 소리 높여 외치는 작가가 아니라 침묵의 중심을 오래 바라보는 작가의 사주입니다.",
+    conclusion: "한강의 사주는 상처의 깊은 물을 맑고 차가운 문장으로 건져 올리는 금수의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Han Kang writer quiet night stars destiny", imageSection: "default", body: "한강의 명식은 화려한 서사보다 침묵의 무게가 먼저 느껴집니다. 수의 기운은 말해지지 않은 고통을 감지하고, 금의 기운은 그 고통을 과장 없이 정제합니다. 그래서 그의 문장은 조용하지만 오래 몸에 남습니다." },
+      { title: "오행과 십성의 결", imageQuery: "literature water metal five elements", imageSection: "default", body: "수는 기억과 심연이고 금은 절제된 문장입니다. 인성은 깊은 사유로, 식상은 말과 이미지의 형태로 밖으로 나옵니다. 이 사주는 감정을 크게 폭발시키기보다, 차갑게 비워 둔 자리에서 독자가 스스로 떨림을 느끼게 합니다." },
+      { title: "운의 흐름", imageQuery: "writer desk rain night destiny", imageSection: "default", body: "이 명식의 운은 느리게 깊어지는 흐름입니다. 빠른 대중성보다 작품의 밀도가 먼저 쌓이고, 시간이 지나 세계가 그 침묵을 알아보는 방식으로 열립니다. 좋은 운은 더 크게 말하는 것이 아니라 더 정확히 침묵하는 데서 옵니다." },
+      { title: "운명의 한 문장", imageQuery: "white book rain stars destiny", imageSection: "default", body: "한강은 고통의 침묵을 세계가 읽을 수 있는 문장으로 바꾼 별입니다." },
+    ],
+  },
+  "toyotomi-hideyoshi": {
+    heroCopy: "도요토미 히데요시의 명식은 토의 야망과 화의 상승력이 거칠게 분출하는 권력자의 구조입니다. 낮은 자리에서 권력의 정상까지 치고 올라가는 힘이 강하지만, 확장이 과하면 운의 균형도 흔들립니다.",
+    summary: "도요토미 히데요시 사주의 핵심은 신분의 한계를 돌파하는 현실 장악력입니다. 토의 기운은 판을 움켜쥐는 실용성과 권력욕으로, 화의 기운은 빠른 상승과 대중적 존재감으로 나타납니다. 이 명식은 난세에서 빛나는 출세운을 갖지만, 말년의 과도한 확장은 스스로 운의 균형을 무너뜨리는 흐름으로 읽힙니다.",
+    conclusion: "도요토미 히데요시의 사주는 난세의 흙먼지 속에서 태양처럼 치솟았으나, 과한 확장으로 그림자를 부른 권력의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Toyotomi Hideyoshi samurai castle stars destiny", imageSection: "default", body: "도요토미 히데요시의 명식은 낮은 곳에 머무르지 못하는 상승의 기운이 강합니다. 토의 현실감은 권력의 판을 읽게 하고, 화의 기운은 기회를 잡는 순간 빠르게 이름을 키웁니다. 난세는 이 사주에게 위험이면서 동시에 사다리입니다." },
+      { title: "오행과 십성의 결", imageQuery: "samurai earth fire five elements destiny", imageSection: "default", body: "토는 권력의 기반이고 화는 상승의 속도입니다. 재성은 현실적 이익과 판세를 읽는 감각으로, 비겁은 경쟁 속에서 자신을 밀어 올리는 힘으로 나타납니다. 그러나 강한 야망은 균형을 잃으면 정복욕으로 흐르기 쉽습니다." },
+      { title: "운의 흐름", imageQuery: "Japanese castle war road destiny", imageSection: "default", body: "이 명식의 운은 초중년에 크게 솟구칩니다. 낮은 출발은 오히려 권력 감각을 날카롭게 만들고, 통일의 성취로 운이 절정에 이릅니다. 다만 말년의 원정과 확장은 강한 토화가 과열된 모습으로, 큰 운의 끝에는 반드시 절제가 필요했음을 보여 줍니다." },
+      { title: "운명의 한 문장", imageQuery: "gold castle moon stars destiny", imageSection: "default", body: "도요토미 히데요시는 난세를 딛고 올랐지만, 정점에서 절제를 잃은 권력의 별입니다." },
+    ],
+  },
+  "akira-kurosawa": {
+    heroCopy: "쿠로사와 아키라의 명식은 금의 구도감과 수의 인간 이해가 결합된 영화 거장의 구조입니다. 칼과 비, 침묵과 군중을 한 화면 안에 배치하며 인간의 명예와 욕망을 깊게 응시합니다.",
+    summary: "쿠로사와 아키라 사주의 핵심은 장면을 운명처럼 조각하는 힘입니다. 금의 기운은 화면 구성과 서사의 절도로, 수의 기운은 인간 심리와 비극의 깊이로 나타납니다. 이 명식은 영화를 찍는 기술자가 아니라, 인간의 내면을 거대한 시각 언어로 세운 감독의 사주입니다.",
+    conclusion: "쿠로사와 아키라의 사주는 비와 칼, 인간의 얼굴을 영화적 운명으로 새긴 금수의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Akira Kurosawa samurai cinema rain stars", imageSection: "career", body: "쿠로사와 아키라의 명식은 장면 하나도 허투루 놓지 않는 금의 결이 강합니다. 수의 깊이는 인물의 고독과 갈등을 들여다보게 하고, 금의 절도는 그 감정을 화면의 구조로 고정합니다. 그래서 그의 영화는 거칠면서도 정교합니다." },
+      { title: "오행과 십성의 결", imageQuery: "cinema rain sword metal water destiny", imageSection: "default", body: "금은 화면의 선이고 수는 인간의 심연입니다. 식상은 강력한 이미지와 연출로 밖으로 나오고, 편인의 기운은 세계를 독자적 시선으로 바라보게 합니다. 이 조합은 시대극을 넘어 보편적 인간 드라마를 만드는 힘입니다." },
+      { title: "운의 흐름", imageQuery: "film set rain road destiny stars", imageSection: "default", body: "이 명식의 운은 국내의 거장성을 넘어 세계 영화의 문법으로 확장됩니다. 초년의 훈련은 중년의 걸작으로, 말년의 고독은 더 깊은 작품 세계로 바뀝니다. 운은 흥행보다 장면의 생명력으로 오래 남습니다." },
+      { title: "운명의 한 문장", imageQuery: "samurai silhouette rain stars destiny", imageSection: "default", body: "쿠로사와 아키라는 비 내리는 화면 속에 인간의 운명을 칼처럼 새긴 별입니다." },
+    ],
+  },
+  "namie-amuro": {
+    heroCopy: "아무로 나미에의 명식은 화의 무대성과 금의 스타일 감각이 선명한 팝 아이콘의 구조입니다. 빠른 리듬과 절제된 이미지, 시대를 앞서는 감각으로 한 세대의 스타일을 바꿨습니다.",
+    summary: "아무로 나미에 사주의 핵심은 무대 위 자기 완성도와 시대적 감각입니다. 화의 기운은 퍼포먼스와 대중적 열기로, 금의 기운은 스타일과 이미지의 정확성으로 나타납니다. 이 명식은 오래 설명하기보다 한 장면, 한 실루엣, 한 리듬으로 시대를 움직이는 스타의 사주입니다.",
+    conclusion: "아무로 나미에의 사주는 무대와 스타일로 시대의 속도를 바꾼 금화의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Namie Amuro J-pop stage stars destiny", imageSection: "career", body: "아무로 나미에의 명식은 무대 위에서 이미지가 곧 언어가 되는 구조입니다. 화의 기운은 관객의 열기를 만들고, 금의 기운은 그 열기를 세련된 스타일로 정리합니다. 그래서 그의 존재감은 노래뿐 아니라 시대의 감각 전체에 남습니다." },
+      { title: "오행과 십성의 결", imageQuery: "J-pop dance fire metal five elements", imageSection: "default", body: "화는 퍼포먼스이고 금은 스타일의 선입니다. 식상은 춤과 노래로 크게 열리고, 재성은 대중의 취향을 민감하게 끌어당깁니다. 이 조합은 유행을 따르는 것이 아니라 유행의 기준을 바꾸는 힘으로 작용합니다." },
+      { title: "운의 흐름", imageQuery: "pop queen farewell tour destiny", imageSection: "default", body: "이 명식의 운은 젊은 시절 빠르게 열리고, 긴 시간 자기 이미지를 지키며 완성됩니다. 중요한 것은 계속 노출되는 것이 아니라 퇴장까지 하나의 미학으로 만드는 감각입니다. 은퇴의 선택 또한 금의 절제가 살아 있는 운의 마무리로 읽힙니다." },
+      { title: "운명의 한 문장", imageQuery: "J-pop queen lights stars destiny", imageSection: "default", body: "아무로 나미에는 무대 위의 움직임으로 한 시대의 스타일을 다시 쓴 별입니다." },
+    ],
+  },
+  "napoleon-bonaparte": {
+    heroCopy: "나폴레옹의 명식은 금의 군사적 결단과 토의 권력 장악력이 강하게 솟은 정복자의 구조입니다. 시대의 혼란을 자신의 질서로 재편하려는 힘이 크지만, 과한 팽창은 운의 균형을 무너뜨립니다.",
+    summary: "나폴레옹 사주의 핵심은 전략과 야망이 결합된 압도적 실행력입니다. 금의 기운은 전쟁의 판단과 법제의 정비로, 토의 기운은 제국의 중심을 세우려는 권력욕으로 나타납니다. 이 명식은 난세에서 비상하는 별이지만, 한계를 인정하지 않을 때 몰락의 문도 함께 열리는 사주입니다.",
+    conclusion: "나폴레옹의 사주는 전쟁과 법, 야망과 몰락을 한 몸에 품은 금토의 제왕 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Napoleon battlefield empire stars destiny", imageSection: "default", body: "나폴레옹의 명식은 작은 판에 머무르기 어렵습니다. 금의 기운은 전장의 질서를 읽고, 토의 기운은 그 질서를 제국의 중심으로 묶으려 합니다. 난세의 혼란은 그에게 위험보다 기회의 얼굴로 다가옵니다." },
+      { title: "오행과 십성의 결", imageQuery: "empire metal earth five elements destiny", imageSection: "default", body: "금은 결단이고 토는 지배의 기반입니다. 비겁은 강한 자기 확신으로, 관성은 군사와 법의 질서로 작용합니다. 이 조합은 압도적인 추진력을 만들지만, 자신과 세계를 동일시할 때 운의 과열이 시작됩니다." },
+      { title: "운의 흐름", imageQuery: "European campaign road snow destiny", imageSection: "default", body: "이 명식의 운은 혁명기의 혼란 속에서 급상승합니다. 전쟁과 제도 정비에서 큰 이름을 얻지만, 러시아 원정처럼 한계를 넘는 확장은 강한 금토가 얼어붙는 형상입니다. 큰 운일수록 멈출 줄 아는 절제가 필요했습니다." },
+      { title: "운명의 한 문장", imageQuery: "imperial crown battlefield stars", imageSection: "default", body: "나폴레옹은 시대를 자신의 발아래 모았지만, 끝내 운명의 경계까지 정복하지는 못한 별입니다." },
+    ],
+  },
+  "zhang-yimou": {
+    heroCopy: "장이머우의 명식은 토의 장대한 화면감과 화의 색채 감각이 강하게 살아 있는 영상 시인의 구조입니다. 역사와 인간의 운명을 붉은 색, 넓은 공간, 집단의 리듬으로 펼쳐내는 힘이 큽니다.",
+    summary: "장이머우 사주의 핵심은 시각적 질서와 색채의 권능입니다. 토의 기운은 거대한 무대와 역사적 무게로, 화의 기운은 강렬한 색과 감정의 빛으로 나타납니다. 이 명식은 이야기를 말로 설명하기보다 화면 전체의 압력으로 관객을 움직이는 감독의 사주입니다.",
+    conclusion: "장이머우의 사주는 색채와 군무, 역사와 인간을 거대한 화면으로 엮는 토화의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Zhang Yimou red lantern cinema stars destiny", imageSection: "career", body: "장이머우의 명식은 작은 장면보다 큰 화면에서 빛납니다. 토의 기운은 역사와 공간의 무게를 만들고, 화의 기운은 그 공간에 강렬한 색과 감정을 입힙니다. 그래서 그의 영화는 이야기 이전에 색채와 구도가 먼저 운을 압도합니다." },
+      { title: "오행과 십성의 결", imageQuery: "cinema color earth fire five elements", imageSection: "default", body: "토는 무대의 기반이고 화는 색의 폭발입니다. 식상은 영상적 표현으로 크게 열리고, 재성은 대중성과 규모의 감각으로 작용합니다. 이 조합은 예술영화와 국가적 이벤트, 개인 서사와 집단 미학을 함께 다루게 합니다." },
+      { title: "운의 흐름", imageQuery: "Olympic ceremony red stage destiny", imageSection: "default", body: "이 명식의 운은 초기의 예술적 인정에서 대형 연출의 흐름으로 확장됩니다. 작은 인간의 비극을 다루던 감각이 거대한 국가적 장면으로 커지는 것은 토화의 스케일이 넓어진 모습입니다. 운은 색채가 곧 권력이 되는 자리에서 크게 열립니다." },
+      { title: "운명의 한 문장", imageQuery: "red cinema lantern stars destiny", imageSection: "default", body: "장이머우는 색채로 역사를 말하고, 화면으로 시대의 숨을 지휘하는 별입니다." },
+    ],
+  },
+  "mao-zedong": {
+    heroCopy: "마오쩌둥의 명식은 수의 이념적 깊이와 금의 권력적 절단력이 강하게 충돌하는 혁명가의 구조입니다. 거대한 시대를 움직인 힘이 크지만, 그 힘은 빛과 그림자를 함께 남깁니다.",
+    summary: "마오쩌둥 사주의 핵심은 사상을 현실 권력으로 밀어붙이는 압도적 의지입니다. 수의 기운은 이념과 전략, 장기 투쟁의 물길로 나타나고, 금의 기운은 적과 아군을 가르는 강한 절단력으로 작용합니다. 이 명식은 대중을 움직이는 혁명운이 강하지만, 균형을 잃으면 거대한 시대적 상처도 함께 만드는 사주입니다.",
+    conclusion: "마오쩌둥의 사주는 혁명의 물길과 권력의 칼날이 함께 흐른 거대한 시대의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Mao Zedong revolution stars destiny", imageSection: "default", body: "마오쩌둥의 명식은 개인의 안온한 삶보다 거대한 집단의 흐름을 움직이는 데 기운이 쏠립니다. 수의 깊이는 장기 전략과 이념의 물길을 만들고, 금의 강함은 그 물길을 권력의 방향으로 자릅니다. 이런 사주는 시대를 바꾸지만, 동시에 시대를 크게 흔듭니다." },
+      { title: "오행과 십성의 결", imageQuery: "revolution water metal five elements", imageSection: "default", body: "수는 사상과 대중의 흐름이고 금은 절단과 통제입니다. 편인은 독자적 이념으로, 관성은 권력과 조직의 장악으로 나타납니다. 이 조합은 흔들리는 시대에는 강한 구심점이 되지만, 과하면 사람의 삶을 이념의 도구로 만들 위험이 있습니다." },
+      { title: "운의 흐름", imageQuery: "long march revolution road destiny", imageSection: "default", body: "이 명식의 운은 긴 투쟁과 생존, 권력 장악을 통해 커집니다. 초기의 고난은 혁명적 정당성을 키우고, 집권 이후에는 강한 기운이 국가 전체에 작용합니다. 다만 대운의 후반에는 통제의 과잉이 운의 그림자로 깊게 남습니다." },
+      { title: "운명의 한 문장", imageQuery: "red flag mountain stars destiny", imageSection: "default", body: "마오쩌둥은 한 나라의 물길을 바꾼 별이지만, 그 물결의 거센 상처까지 함께 남긴 명식입니다." },
+    ],
+  },
+  "barack-obama": {
+    heroCopy: "버락 오바마의 명식은 수의 유연한 지성과 목의 이상주의가 정치의 언어로 빛나는 지도자의 구조입니다. 분열된 흐름을 말과 상징으로 잇고, 새로운 세대의 가능성을 부드럽게 열어 보입니다.",
+    summary: "버락 오바마 사주의 핵심은 설득과 조율의 힘입니다. 수의 기운은 복잡한 정세와 사람의 마음을 읽는 감각으로, 목의 기운은 성장과 변화의 이상으로 나타납니다. 이 명식은 강압보다 언어와 품격, 상징을 통해 운을 여는 정치가의 사주입니다.",
+    conclusion: "버락 오바마의 사주는 말의 물길로 사람들을 잇고, 변화의 나무를 시대 위에 세운 수목의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Barack Obama speech stars destiny", imageSection: "default", body: "버락 오바마의 명식은 거친 힘보다 부드러운 설득의 결이 강합니다. 수의 기운은 상대의 언어를 이해하게 하고, 목의 기운은 그 이해를 미래의 방향으로 자라게 합니다. 그래서 그의 리더십은 압도보다 연결에 가깝습니다." },
+      { title: "오행과 십성의 결", imageQuery: "politics speech water wood five elements", imageSection: "default", body: "수는 지성과 외교이고 목은 변화와 성장입니다. 인성은 학습과 사유로, 식상은 연설과 대중적 메시지로 나타납니다. 관성은 공적 책임과 품격으로 작용해 그의 정치적 이미지를 단정하게 만듭니다." },
+      { title: "운의 흐름", imageQuery: "White House road stars destiny", imageSection: "default", body: "이 명식의 운은 개인의 배경을 시대적 상징으로 바꿀 때 크게 열립니다. 다층적 정체성은 혼란이 아니라 연결의 언어가 되었고, 변화의 메시지는 대중의 기대를 모았습니다. 다만 이상이 클수록 현실 정치의 벽도 함께 높아지는 구조입니다." },
+      { title: "운명의 한 문장", imageQuery: "hope speech stars destiny", imageSection: "default", body: "버락 오바마는 갈라진 시대에 말의 다리를 놓은 정치의 별입니다." },
+    ],
+  },
+  "steve-wozniak": {
+    heroCopy: "스티브 워즈니악의 명식은 금의 공학적 정밀함과 수의 놀이 같은 지성이 결합된 창조 기술자의 구조입니다. 권력보다 만들기의 기쁨이 먼저이며, 복잡한 회로를 사람에게 가까운 도구로 바꾸는 힘이 큽니다.",
+    summary: "스티브 워즈니악 사주의 핵심은 순수한 기술적 창의성입니다. 금의 기운은 회로와 구조, 정확한 구현력으로 나타나고, 수의 기운은 호기심과 유연한 사고로 흐릅니다. 이 명식은 시장을 지배하는 사주라기보다, 기술의 본질을 즐기며 새 문을 여는 엔지니어의 사주입니다.",
+    conclusion: "스티브 워즈니악의 사주는 회로 속에 장난기와 천재성을 함께 숨긴 금수의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Steve Wozniak computer circuit stars destiny", imageSection: "career", body: "스티브 워즈니악의 명식은 과시보다 순수한 만들기의 기쁨이 먼저 보입니다. 금의 정밀함은 회로와 설계로, 수의 유연함은 새로운 방식의 문제 해결로 나타납니다. 이런 사주는 권력보다 작동하는 아름다움에 더 큰 만족을 느낍니다." },
+      { title: "오행과 십성의 결", imageQuery: "computer engineering metal water five elements", imageSection: "default", body: "금은 구조이고 수는 아이디어의 흐름입니다. 인성은 깊은 이해로, 식상은 실제로 작동하는 장치로 밖으로 나옵니다. 그래서 그의 창의성은 추상적 발상이 아니라 손끝에서 완성되는 발명으로 빛납니다." },
+      { title: "운의 흐름", imageQuery: "garage computer stars destiny", imageSection: "default", body: "이 명식의 운은 작은 작업실과 친구 관계 속에서 크게 열립니다. 거대한 조직보다 자유로운 실험의 공간이 운을 살리고, 순수한 기술이 시대의 산업으로 확장됩니다. 이름의 격은 시장 지배보다 원형을 만든 사람의 깊이에서 나옵니다." },
+      { title: "운명의 한 문장", imageQuery: "circuit board stars destiny", imageSection: "default", body: "스티브 워즈니악은 기술을 권력보다 놀이와 자유에 가깝게 만든 엔지니어의 별입니다." },
+    ],
+  },
+  madonna: {
+    heroCopy: "마돈나의 명식은 화의 도발성과 금의 자기 연출력이 강하게 살아 있는 변신형 스타의 구조입니다. 시대의 금기를 읽고, 그 금기를 무대와 이미지로 뒤집어 자신의 왕국을 만듭니다.",
+    summary: "마돈나 사주의 핵심은 끊임없는 재창조입니다. 화의 기운은 대담한 무대성과 욕망의 표현으로, 금의 기운은 이미지와 스타일의 통제력으로 나타납니다. 이 명식은 사랑받기 위해 맞추는 팔자가 아니라, 기준을 흔들어 대중이 자신을 따라오게 만드는 사주입니다.",
+    conclusion: "마돈나의 사주는 변신을 무기로 시대의 욕망을 지휘한 금화의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Madonna pop queen stage stars destiny", imageSection: "career", body: "마돈나의 명식은 순응보다 도발의 힘이 강합니다. 화의 기운은 무대 위 욕망을 숨기지 않고, 금의 기운은 그 욕망을 선명한 이미지로 다듬습니다. 그래서 그는 유행을 따르기보다 논쟁을 통해 유행을 새로 만듭니다." },
+      { title: "오행과 십성의 결", imageQuery: "pop icon fire metal five elements", imageSection: "default", body: "화는 폭발과 노출이고 금은 통제와 스타일입니다. 식상은 몸과 음악, 이미지로 크게 열리고, 재성은 대중의 시선을 자산으로 바꿉니다. 이 사주는 금기를 두려워하지 않을 때 운이 열리지만, 자기 통제력을 잃으면 소모도 빠르게 커집니다." },
+      { title: "운의 흐름", imageQuery: "pop reinvention road stars destiny", imageSection: "default", body: "이 명식의 운은 한 번의 성공에 머물지 않고 계속 껍질을 갈아입을 때 살아납니다. 시대가 변할 때마다 이미지와 메시지를 새로 구성하는 능력이 장기 운의 핵심입니다. 변신 자체가 그의 운을 지키는 의식입니다." },
+      { title: "운명의 한 문장", imageQuery: "pop queen neon cross stars", imageSection: "default", body: "마돈나는 금기를 무대의 왕관으로 바꾼 변신의 별입니다." },
+    ],
+  },
+  "martin-scorsese": {
+    heroCopy: "마틴 스코세이지의 명식은 화의 강렬한 죄의식과 금의 영화적 절단력이 결합된 감독의 구조입니다. 폭력과 신앙, 욕망과 구원을 한 화면 안에 몰아넣는 힘이 큽니다.",
+    summary: "마틴 스코세이지 사주의 핵심은 인간의 죄와 구원을 집요하게 파고드는 시선입니다. 화의 기운은 격렬한 감정과 도시의 열기로, 금의 기운은 편집과 리듬, 장면의 칼날로 나타납니다. 이 명식은 편안한 이야기를 만드는 감독이 아니라, 인간의 어두운 심장을 영화로 해부하는 사주입니다.",
+    conclusion: "마틴 스코세이지의 사주는 도시의 불빛 아래 죄와 구원을 동시에 바라보는 금화의 영화 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Martin Scorsese cinema city stars destiny", imageSection: "career", body: "마틴 스코세이지의 명식은 고요한 균형보다 강한 내적 긴장이 먼저 느껴집니다. 화의 기운은 분노와 욕망, 신앙적 갈등을 끌어올리고, 금의 기운은 그 뜨거운 감정을 영화의 리듬으로 잘라 냅니다. 그래서 그의 작품은 살아 있는 상처처럼 박동합니다." },
+      { title: "오행과 십성의 결", imageQuery: "cinema city fire metal five elements", imageSection: "default", body: "화는 인간의 죄와 열망이고 금은 편집과 판단의 칼입니다. 편인의 기운은 어두운 인간 심리를 오래 응시하게 하고, 식상은 그 응시를 강렬한 이미지와 음악, 카메라 움직임으로 밖에 냅니다. 영화는 그에게 고백이자 심판입니다." },
+      { title: "운의 흐름", imageQuery: "New York cinema road destiny", imageSection: "default", body: "이 명식의 운은 도시와 남성성, 폭력과 구원의 주제를 반복하며 깊어집니다. 반복은 한계가 아니라 자신의 업을 계속 다른 각도에서 닦는 수행입니다. 말년으로 갈수록 영화사의 기억과 개인적 신앙이 더 크게 겹쳐집니다." },
+      { title: "운명의 한 문장", imageQuery: "film reel city night stars", imageSection: "default", body: "마틴 스코세이지는 인간의 죄를 영화의 리듬으로 고백하게 만든 감독의 별입니다." },
+    ],
+  },
+  "leonardo-da-vinci": {
+    heroCopy: "레오나르도 다 빈치의 명식은 목의 호기심과 수의 무한한 관찰력이 결합된 천재의 구조입니다. 예술과 과학, 해부와 비행, 미와 기계를 하나의 우주처럼 바라보는 별입니다.",
+    summary: "레오나르도 다 빈치 사주의 핵심은 세계 전체를 배우고 연결하려는 힘입니다. 목의 기운은 끝없는 성장과 탐구로, 수의 기운은 자연의 숨은 원리를 읽는 관찰력으로 나타납니다. 이 명식은 한 분야의 장인이 아니라, 모든 분야가 서로 통한다고 믿는 르네상스형 천재의 사주입니다.",
+    conclusion: "레오나르도 다 빈치의 사주는 붓과 해부도, 날개와 물길을 하나의 우주로 엮은 수목의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Leonardo da Vinci notebooks stars destiny", imageSection: "default", body: "레오나르도 다 빈치의 명식은 한곳에 머물기에는 질문이 너무 많습니다. 목의 기운은 계속 자라고, 수의 기운은 보이지 않는 원리를 끝없이 비춥니다. 이런 사주는 세상의 모든 현상을 서로 연결된 비밀로 바라봅니다." },
+      { title: "오행과 십성의 결", imageQuery: "renaissance art science water wood five elements", imageSection: "default", body: "목은 탐구의 가지이고 수는 지혜의 샘입니다. 인성은 관찰과 학습으로, 식상은 그림과 설계, 발명으로 밖으로 나옵니다. 예술과 과학이 따로 갈라지지 않는 이유는 명식 안에서 감각과 원리가 함께 흐르기 때문입니다." },
+      { title: "운의 흐름", imageQuery: "Renaissance workshop stars destiny", imageSection: "default", body: "이 명식의 운은 완성보다 탐구 자체에서 깊어집니다. 미완성도 실패가 아니라 다음 질문으로 넘어가는 문입니다. 후대가 그의 노트를 다시 읽는 것은, 그의 운이 당대보다 훨씬 넓은 시간 속에서 열리기 때문입니다." },
+      { title: "운명의 한 문장", imageQuery: "Mona Lisa flying machine stars", imageSection: "default", body: "레오나르도 다 빈치는 세계를 하나의 살아 있는 수수께끼로 본 별입니다." },
+    ],
+  },
+  "albert-einstein": {
+    heroCopy: "알베르트 아인슈타인의 명식은 수의 우주적 통찰과 목의 자유로운 상상력이 결합된 사상가형 과학자의 구조입니다. 보이지 않는 시간과 공간의 결을 직관으로 붙잡아 새로운 세계관을 열었습니다.",
+    summary: "알베르트 아인슈타인 사주의 핵심은 상상력으로 우주의 법칙을 다시 읽는 힘입니다. 수의 기운은 깊은 사유와 직관으로, 목의 기운은 기존 틀을 넘어서는 자유로운 사고로 나타납니다. 이 명식은 계산만 강한 학자가 아니라, 우주의 언어를 이미지처럼 느끼고 다시 수식으로 옮기는 천재의 사주입니다.",
+    conclusion: "알베르트 아인슈타인의 사주는 시간과 빛, 중력과 상상력을 하나의 통찰로 묶은 수목의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "Albert Einstein cosmos stars destiny", imageSection: "default", body: "알베르트 아인슈타인의 명식은 책상 위 계산보다 먼저 머릿속 우주가 움직이는 구조입니다. 수의 깊이는 보이지 않는 원리를 감지하고, 목의 자유는 기존 권위의 틀을 넘어섭니다. 이런 사주는 남들이 당연하다고 여기는 것을 다시 묻습니다." },
+      { title: "오행과 십성의 결", imageQuery: "relativity water wood five elements cosmos", imageSection: "default", body: "수는 직관과 심연이고 목은 새로운 사고의 성장입니다. 편인의 기운은 독창적 관점으로, 식상은 그 관점을 논문과 이론으로 밖으로 냅니다. 그래서 그의 천재성은 외운 지식보다 세계를 다르게 보는 능력에서 나옵니다." },
+      { title: "운의 흐름", imageQuery: "physics blackboard stars destiny", imageSection: "default", body: "이 명식의 운은 주류의 중심에서 곧장 열리기보다 주변부의 고독한 사유 속에서 깊어집니다. 특허청의 시간과 독립적 사고는 오히려 운의 문이 됩니다. 이후 세계적 명성은 개인의 발견을 인류의 세계관으로 바꾸는 흐름입니다." },
+      { title: "운명의 한 문장", imageQuery: "light beam universe stars destiny", imageSection: "default", body: "아인슈타인은 빛을 따라가며 시간의 문을 연 우주의 사상가입니다." },
+    ],
+  },
+  "william-shakespeare": {
+    heroCopy: "윌리엄 셰익스피어의 명식은 수의 인간 심리와 화의 극적 표현력이 결합된 극작가의 구조입니다. 왕과 광대, 사랑과 질투, 욕망과 죽음을 한 무대 위에 올려 인간 전체를 비춥니다.",
+    summary: "윌리엄 셰익스피어 사주의 핵심은 인간의 마음을 끝없이 다른 얼굴로 말하게 하는 힘입니다. 수의 기운은 심리의 어둠과 욕망을 읽고, 화의 기운은 그것을 대사와 장면, 무대의 열기로 밝힙니다. 이 명식은 특정 시대의 작가를 넘어 인간 자체의 거울이 되는 사주입니다.",
+    conclusion: "윌리엄 셰익스피어의 사주는 인간의 모든 얼굴을 무대 위 별자리로 바꾼 수화의 명식입니다.",
+    sections: [
+      { title: "명식의 첫 인상", imageQuery: "William Shakespeare theatre stars destiny", imageSection: "default", body: "셰익스피어의 명식은 인간을 단순하게 보지 않습니다. 수의 깊이는 마음의 모순을 읽고, 화의 표현력은 그 모순을 대사와 사건으로 밝힙니다. 그래서 그의 인물들은 선악 중 하나로 갇히지 않고 살아 있는 인간처럼 흔들립니다." },
+      { title: "오행과 십성의 결", imageQuery: "theatre water fire five elements", imageSection: "default", body: "수는 심리와 비밀이고 화는 무대와 언어의 빛입니다. 식상은 대사와 희곡으로 크게 열리고, 편인의 기운은 인간 본성을 독자적으로 해석하게 합니다. 이 조합은 웃음과 비극, 왕권과 욕망을 한 작품 안에서 동시에 살립니다." },
+      { title: "운의 흐름", imageQuery: "Globe Theatre night stars destiny", imageSection: "default", body: "이 명식의 운은 극장이라는 살아 있는 공간에서 열립니다. 대중의 웃음과 귀족의 취향, 시대의 정치와 인간의 본능을 모두 흡수해 작품으로 내보냅니다. 시간이 흐를수록 그의 운은 영국을 넘어 인간 보편의 언어로 확장됩니다." },
+      { title: "운명의 한 문장", imageQuery: "quill theatre moon stars destiny", imageSection: "default", body: "셰익스피어는 인간의 마음을 무대 위에 풀어 놓아 시대가 바뀌어도 다시 살아나게 만든 별입니다." },
+    ],
+  },
+};
+
 function parseBirthDate(birthDate: string) {
   const [year, month, day] = birthDate.split("-").map(Number);
   if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) throw new Error(`Invalid birthDate: ${birthDate}`);
@@ -785,6 +1323,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
     { label: "세운", value: annualLabel, description: annualClassification },
   ];
   const seoKeywords = uniqueKeywords([...person.seoKeywords, `${person.nameKo} 사주`, `${dayElement} 일간`, dayMasterLabel, `${person.nameKo} 유명인 사주`, saju.timeUnknown ? "삼주 기반 분석" : "사주팔자 분석"]);
+  const craftedArticle = craftedFamousSajuArticles[person.slug];
 
   return {
     celebrity: person,
@@ -797,15 +1336,15 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
     elementProfile,
     engineInputSummary,
     heroImageQuery: getFamousSajuImageMood(person),
-    heroCopy,
+    heroCopy: craftedArticle?.heroCopy || heroCopy,
     coreKeywords,
     analysisBadge,
     timeNotice,
-    summary,
-    sections,
+    summary: craftedArticle?.summary || summary,
+    sections: craftedArticle?.sections || sections,
     insightCards,
     reliabilityNotes: calculatedChart.reliabilityNotes,
-    conclusion,
+    conclusion: craftedArticle?.conclusion || conclusion,
     seoTitle: buildFamousSajuSeoTitle(person),
     seoDescription: buildFamousSajuSeoDescription(person, {
       dayMasterLabel,

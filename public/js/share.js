@@ -636,7 +636,7 @@ function updateFavoriteButtonThemeText(isNeo) {
   }
   var btnHome = document.getElementById('btnFavoriteHome');
   if (btnHome) {
-    var iconElHome = btnHome.querySelector('.btn-favorite-icon');
+    var iconElHome = btnHome.querySelector('.btn-favorite-icon,.cd-top-install-icon');
     if (iconElHome) iconElHome.textContent = icon;
   }
 }

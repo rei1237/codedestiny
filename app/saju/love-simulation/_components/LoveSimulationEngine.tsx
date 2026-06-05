@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ChevronRight, Heart, MessageCircle, RefreshCw, Sparkles, UserRound } from "lucide-react";
 import { INITIAL_STATS, LOVE_CHARACTERS, LOVE_SCENES, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveStats } from "../_data/loveCodeMvp";
 import { fetchSajuPillar } from "../_services/sajuApi";
 import { applyEffects, getRelationshipMetrics, resolveResult } from "../_utils/loveCodeScoring";
 import { matchLoveCharactersFromSaju, type LoveCharacterMatchResult } from "../_utils/loveCharacterMatching";
+
+const LoveCharacterStorySection = lazy(() => import("./LoveCharacterStorySection"));
 
 type PartnerCalendarType = "solar" | "lunar" | "lunar_leap";
 type PartnerGender = "female" | "male";
@@ -1544,6 +1546,16 @@ export const LoveSimulationEngine: React.FC = () => {
                 </div>
               </div>
 
+              <Suspense
+                fallback={
+                  <div className="mt-6 rounded-[1.75rem] border border-white/10 bg-white/8 p-5 text-sm font-bold leading-7 text-white/64">
+                    캐릭터 스토리를 여는 중입니다.
+                  </div>
+                }
+              >
+                <LoveCharacterStorySection character={character} />
+              </Suspense>
+
               <button
                 onClick={resetToSelect}
                 className={`mt-8 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r px-5 py-3 text-sm font-bold text-zinc-950 transition hover:brightness-110 ${character.palette.button}`}
@@ -1643,13 +1655,22 @@ export const LoveSimulationEngine: React.FC = () => {
 
               <div className="rounded-lg border border-white/12 bg-white/[0.07] p-4">
                 <p className="text-sm leading-7 text-white/64">{currentScene.situation}</p>
-                <div className="mt-4 grid gap-3">
-                  {scenePrelude.map((paragraph) => (
-                    <p key={paragraph} className="rounded-lg border border-rose-100/10 bg-black/18 px-4 py-3 text-sm font-semibold leading-7 text-rose-50/72">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
+                <details className="group mt-4 rounded-lg border border-rose-100/12 bg-black/18">
+                  <summary
+                    className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-black text-rose-50/82"
+                    aria-label={`${character.name} 사주 힌트 펼치기`}
+                  >
+                    <span>사주 힌트 보기</span>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-rose-100/66 transition group-open:rotate-90" />
+                  </summary>
+                  <div className="grid gap-3 border-t border-rose-100/10 px-3 py-3">
+                    {scenePrelude.map((paragraph) => (
+                      <p key={paragraph} className="rounded-lg border border-rose-100/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold leading-7 text-rose-50/72">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                </details>
                 <p className="mt-4 text-base font-semibold leading-7 text-white">"{currentScene.dialogue}"</p>
               </div>
 

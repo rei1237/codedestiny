@@ -47,7 +47,7 @@ export type PaymentEligibility = {
   priceKRW: number;
   pass: {
     hasActivePass: boolean;
-    tier: "BRONZE" | "SILVER" | "GOLD" | null;
+    tier: "standard" | "premium" | "vvip" | null;
     label: string | null;
     limit: number | null;
     canUse: boolean;
@@ -468,17 +468,16 @@ export async function fetchBillingFeaturePricing(input: {
 
 function normalizePassTier(value: unknown): PaymentEligibility["pass"]["tier"] {
   const tier = toText(value).toUpperCase();
-  if (tier === "BRONZE" || tier === "SILVER" || tier === "GOLD") return tier;
-  if (tier === "STANDARD") return "BRONZE";
-  if (tier === "PREMIUM") return "SILVER";
-  if (tier === "VVIP") return "GOLD";
+  if (tier === "STANDARD" || tier === "BRONZE") return "standard";
+  if (tier === "PREMIUM" || tier === "SILVER") return "premium";
+  if (tier === "VVIP" || tier === "GOLD") return "vvip";
   return null;
 }
 
 function labelForPassTier(tier: PaymentEligibility["pass"]["tier"]) {
-  if (tier === "BRONZE") return "동색 이용권";
-  if (tier === "SILVER") return "은색 이용권";
-  if (tier === "GOLD") return "금색 이용권";
+  if (tier === "standard") return "스탠다드 이용권";
+  if (tier === "premium") return "프리미엄 이용권";
+  if (tier === "vvip") return "VVIP 이용권";
   return null;
 }
 

@@ -14,6 +14,7 @@ const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
 const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
+const pointsSource = readFileSync(resolve(root, "app/points/page.tsx"), "utf8");
 
 function futureDate(days = 30) {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
@@ -119,54 +120,54 @@ function assertBefore(source, first, second, label) {
   assert.ok(firstIndex < secondIndex, `${label}: order`);
 }
 
-const bronze30 = decision({
-  pass: activePass(PASS_TIERS.BRONZE),
+const standard30 = decision({
+  pass: activePass(PASS_TIERS.STANDARD),
   coinCost: 30,
   monthlyBalance: 300,
 });
-assert.equal(canUseByPass(activePass(PASS_TIERS.BRONZE), 30), true, "BRONZE covers 30 coins");
-assertPassFree(bronze30, "BRONZE 30");
-assertFinalPass(bronze30, "monthly", "BRONZE 30 requested monthly");
-assertFinalPass(bronze30, "card", "BRONZE 30 requested card");
+assert.equal(canUseByPass(activePass(PASS_TIERS.STANDARD), 30), true, "standard covers 30 coins");
+assertPassFree(standard30, "standard 30");
+assertFinalPass(standard30, "monthly", "standard 30 requested monthly");
+assertFinalPass(standard30, "card", "standard 30 requested card");
 
-const bronze50 = decision({
-  pass: activePass(PASS_TIERS.BRONZE),
+const standard50 = decision({
+  pass: activePass(PASS_TIERS.STANDARD),
   coinCost: 50,
   monthlyBalance: 500,
 });
-assertPaidFallback(bronze50, "BRONZE 50");
+assertPaidFallback(standard50, "standard 50");
 
-const silver50 = decision({
-  pass: activePass(PASS_TIERS.SILVER),
+const premium50 = decision({
+  pass: activePass(PASS_TIERS.PREMIUM),
   coinCost: 50,
   monthlyBalance: 500,
 });
-assertPassFree(silver50, "SILVER 50");
-assertFinalPass(silver50, "monthly", "SILVER 50 requested monthly");
+assertPassFree(premium50, "premium 50");
+assertFinalPass(premium50, "monthly", "premium 50 requested monthly");
 
-const gold100 = decision({
-  pass: activePass(PASS_TIERS.GOLD),
+const vvip100 = decision({
+  pass: activePass(PASS_TIERS.VVIP),
   coinCost: 100,
   monthlyBalance: 1000,
 });
-assertPassFree(gold100, "GOLD 100");
-assertFinalPass(gold100, "card", "GOLD 100 requested card");
+assertPassFree(vvip100, "vvip 100");
+assertFinalPass(vvip100, "card", "vvip 100 requested card");
 
-const gold200 = decision({
-  pass: activePass(PASS_TIERS.GOLD),
+const vvip200 = decision({
+  pass: activePass(PASS_TIERS.VVIP),
   coinCost: 200,
   monthlyBalance: 2000,
 });
-assertPaidFallback(gold200, "GOLD 200");
+assertPaidFallback(vvip200, "vvip 200");
 
-const expiredPass = activePass(PASS_TIERS.GOLD, pastDate());
-const expiredGold50 = decision({
+const expiredPass = activePass(PASS_TIERS.VVIP, pastDate());
+const expiredVvip50 = decision({
   pass: expiredPass,
   coinCost: 50,
   monthlyBalance: 500,
 });
 assert.equal(canUseByPass(expiredPass, 50), false, "expired pass must not cover");
-assertPaidFallback(expiredGold50, "expired GOLD 50");
+assertPaidFallback(expiredVvip50, "expired vvip 50");
 
 const noPassMonthly = decision({
   coinCost: 30,
@@ -200,7 +201,7 @@ assert.deepEqual(finalAccess(noPassCard, "card"), {
 
 assertBefore(
   billingSource,
-  "if (paymentDecision.canUseByPass)",
+  "if (paymentDecision.canUseByPass && !passBlockedByAccessDecision)",
   "if (monthlyBalanceRequested)",
   "PASS is evaluated before monthly deduction",
 );
@@ -231,6 +232,12 @@ assertContains(billingSource, '"/api/payments/confirm"', "single card confirm pa
 assertContains(paymentsSource, "fetchPortOnePayment", "PortOne verification remains");
 assertContains(paymentsSource, "PortOne V2 KG Inicis", "KG Inicis public config remains");
 assertContains(paymentsSource, 'accessMethod: "CARD"', "card access method remains");
+assertContains(paymentsSource, "handleSubscriptionMonthlyCreditConfirm", "subscription pass monthly credit confirm path");
+assertContains(paymentsSource, 'paymentMethodHint === "monthly_credit"', "subscription pass monthly credit routing");
+assertContains(paymentsSource, 'type: "MONTHLY_CREDIT_SPEND"', "subscription pass monthly credit ledger");
+assertContains(pointsSource, "onSubscribeWithMonthlyCredit", "subscription pass monthly credit UI handler");
+assertContains(pointsSource, 'paymentMethod: "monthly_credit"', "subscription pass monthly credit request");
+assertContains(pointsSource, "월정석 {monthlyCreditCost.toLocaleString", "subscription pass monthly credit CTA");
 
 assertBefore(
   indexSource,
@@ -239,10 +246,11 @@ assertBefore(
   "payment modal shows card before monthly",
 );
 assertContains(indexSource, 'class="cd-direct-payment-option" data-mode="direct"', "single payment CTA");
-assertContains(indexSource, 'class="cd-direct-payment-option" data-mode="monthly"', "monthly payment CTA");
-assertContains(indexSource, "monthlyBalance >= coinPrice", "simple frontend monthly balance check");
+assertContains(indexSource, "var monthlyButtonHtml", "monthly payment CTA");
+assertContains(indexSource, 'data-mode="monthly"', "monthly payment mode marker");
+assertContains(indexSource, "monthlyBalance >= requiredMonthlyCredits", "simple frontend monthly balance check");
 assertContains(indexSource, "cd-direct-payment-dialog", "legacy direct payment dialog");
-assertContains(indexSource, "width:min(490px,100%)", "legacy modal width");
+assertContains(indexSource, "width:min(460px,100%)", "legacy modal width");
 assertContains(indexSource, "min-height:auto", "legacy option height");
 assertNotContains(indexSource, 'data-mode="membership"', "payment modal hides pass CTA");
 assertNotContains(indexSource, "membershipButtonHtml", "payment modal removes pass card HTML");

@@ -105,12 +105,12 @@ let mbtiPickStep = 0;
 let mbtiCompatibilityMap = null;
 
 const RITUAL_PHASE_TIMINGS = {
-    init: 100,
-    surge: 700,
-    merge: 1500,
-    burst: 2100,
-    complete: 2500,
-    finish: 3400
+    init: 0,
+    surge: 120,
+    merge: 240,
+    burst: 360,
+    complete: 500,
+    finish: 640
 };
 
 const RITUAL_PARTICLE_COLORS = ['#FFD700', '#FDB931', '#b44fff', '#fff', '#a0f0ff'];
@@ -283,7 +283,7 @@ function phaseComplete(el) {
     el.subMsg.style.opacity = '1';
 }
 
-function runRitualTimeline(el) {
+function runRitualTimeline(el, onFinish) {
     setTimeout(() => phaseInit(el), RITUAL_PHASE_TIMINGS.init);
     setTimeout(() => phaseSurge(el), RITUAL_PHASE_TIMINGS.surge);
     setTimeout(() => phaseMerge(el), RITUAL_PHASE_TIMINGS.merge);
@@ -291,7 +291,7 @@ function runRitualTimeline(el) {
     setTimeout(() => phaseComplete(el), RITUAL_PHASE_TIMINGS.complete);
     setTimeout(() => {
         el.stage.style.display = 'none';
-        showSynergyResult();
+        if (typeof onFinish === 'function') onFinish();
     }, RITUAL_PHASE_TIMINGS.finish);
 }
 
@@ -677,10 +677,11 @@ function revealAstralSynergy() {
 
     const a1 = ASTRAL_DATA[selectedTotems[0]];
     const a2 = ASTRAL_DATA[selectedTotems[1]];
+    const synergy = getSynergyText(a1, a2);
 
     resetRitualTokens(ritual.t1El, ritual.t2El, a1, a2);
     resetRitualVisualState(ritual);
-    runRitualTimeline(ritual);
+    runRitualTimeline(ritual, () => showSynergyResult(synergy));
 }
 
 function createNode(tag, className, text) {
@@ -775,7 +776,7 @@ function createSynergySectionGrid(synergy) {
     return grid;
 }
 
-function showSynergyResult() {
+function showSynergyResult(precomputedSynergy) {
     const c1 = ASTRAL_DATA[selectedTotems[0]];
     const c2 = ASTRAL_DATA[selectedTotems[1]];
     
@@ -788,7 +789,7 @@ function showSynergyResult() {
     backBtn.innerHTML = "← 다시 선택하기";
 
     const resContent = document.getElementById('astralResultContent');
-    const synergy = getSynergyText(c1, c2);
+    const synergy = precomputedSynergy || getSynergyText(c1, c2);
 
     resContent.replaceChildren();
 

@@ -36,12 +36,14 @@
   /* ── 핵심 브랜드 UI 애니메이션: mobile-lite에서도 반드시 실행 ── */
   html.cd-mobile-lite .honeypig-logo-icon,
   html.cd-mobile-lite .neo-logo-icon {
-    animation: pig-float 3.2s ease-in-out infinite !important;
-    -webkit-animation: pig-float 3.2s ease-in-out infinite !important;
+    animation: none !important;
+    -webkit-animation: none !important;
+    will-change: auto !important;
   }
   html.cd-mobile-lite .pig-svg-wrap::after {
-    animation: pig-shadow-anim 3.2s ease-in-out infinite !important;
-    -webkit-animation: pig-shadow-anim 3.2s ease-in-out infinite !important;
+    display: none !important;
+    animation: none !important;
+    -webkit-animation: none !important;
   }
   html.cd-mobile-lite .cd-user-star {
     animation: cdStarBlink var(--dur, 2s) ease-in-out var(--delay, 0s) infinite !important;

@@ -193,14 +193,40 @@ const rawSeeds: RawCelebritySeed[] = [
   ["steven-spielberg", "스티븐 스필버그", "감독·작가", "US", "1946-12-18", null, ["감독", "영화", "상상력"], "Steven Spielberg"],
   ["christopher-nolan", "크리스토퍼 놀란", "감독·작가", "UK", "1970-07-30", null, ["감독", "구조", "시간"], "Christopher Nolan"],
   ["j-k-rowling", "J.K. 롤링", "감독·작가", "UK", "1965-07-31", null, ["작가", "세계관", "상상력"], "J.K. Rowling"],
+  ["yu-hae-jin", "유해진", "배우", "KR", "1970-01-04", null, ["배우", "생활감", "연기"]],
+  ["naruhito", "나루히토 일왕", "왕족·정치인", "JP", "1960-02-23", null, ["왕실", "외교", "상징"], "Naruhito"],
+  ["takeshi-kitano", "기타노 다케시", "JP 일본", "JP", "1947-01-18", null, ["감독", "코미디", "영화"], "Takeshi Kitano"],
+  ["bruce-lee", "이소룡", "CN 중국", "US", "1940-11-27", null, ["무술", "영화", "철학"], "Bruce Lee"],
+  ["jack-ma", "마윈", "기업인", "CN", "1964-09-10", null, ["창업", "플랫폼", "상업"], "Jack Ma"],
+  ["confucius", "공자", "사상가·예술가", "CN", "0551-09-28", null, ["철학", "교육", "예"], "Confucius"],
+  ["martin-luther-king-jr", "마틴 루터 킹", "왕족·정치인", "US", "1929-01-15", null, ["연설", "평등", "신념"], "Martin Luther King Jr."],
+  ["elvis-presley", "엘비스 프레슬리", "가수", "US", "1935-01-08", null, ["로큰롤", "무대", "상징"], "Elvis Presley"],
+  ["park-chan-ho", "박찬호", "스포츠", "KR", "1973-06-30", null, ["야구", "개척", "인내"]],
+  ["han-kang", "한강", "감독·작가", "KR", "1970-11-27", null, ["문학", "상처", "서정성"]],
+  ["toyotomi-hideyoshi", "도요토미 히데요시", "JP 일본", "JP", "1537-03-17", null, ["권력", "전략", "통일"], "Toyotomi Hideyoshi"],
+  ["akira-kurosawa", "쿠로사와 아키라", "JP 일본", "JP", "1910-03-23", null, ["감독", "영화", "미학"], "Akira Kurosawa"],
+  ["namie-amuro", "아무로 나미에", "가수", "JP", "1977-09-20", null, ["J-팝", "무대", "댄스"], "Namie Amuro"],
+  ["zhang-yimou", "장이머우", "감독·작가", "CN", "1950-04-02", null, ["감독", "색채", "영상"], "Zhang Yimou"],
+  ["mao-zedong", "마오쩌둥", "왕족·정치인", "CN", "1893-12-26", null, ["혁명", "정치", "이념"], "Mao Zedong"],
+  ["steve-wozniak", "스티브 워즈니악", "기업인", "US", "1950-08-11", null, ["공학", "컴퓨터", "창업"], "Steve Wozniak"],
+  ["madonna", "마돈나", "가수", "US", "1958-08-16", null, ["팝", "변신", "무대"], "Madonna"],
+  ["martin-scorsese", "마틴 스코세이지", "감독·작가", "US", "1942-11-17", null, ["감독", "영화", "서사"], "Martin Scorsese"],
+  ["leonardo-da-vinci", "레오나르도 다 빈치", "사상가·예술가", "IT", "1452-04-15", null, ["예술", "과학", "천재성"], "Leonardo da Vinci"],
+  ["albert-einstein", "알베르트 아인슈타인", "사상가·예술가", "DE", "1879-03-14", null, ["물리학", "상상력", "우주"], "Albert Einstein"],
+  ["william-shakespeare", "윌리엄 셰익스피어", "감독·작가", "UK", "1564-04-26", null, ["문학", "극작", "인간심리"], "William Shakespeare"],
 ];
 
 const baseKeywords = ["유명인 사주", "사주팔자", "일간 분석", "오행 분석", "운세 사주"];
 
 const extraAliasesBySlug: Record<string, string[]> = {
   "yi-sun-sin": ["충무공", "충무공 이순신"],
-  iu: ["이지은"],
-  "bts-rm": ["RM", "알엠", "김남준", "BTS 알엠"],
+  iu: ["이지은", "IU (이지은)", "아이유"],
+  "bts-rm": ["RM", "알엠", "김남준", "BTS 알엠", "BTS RM (김남준)"],
+  "bruce-lee": ["이소룡 (李小龍)", "李小龍"],
+  "jackie-chan": ["성룡 (成龍)", "成龍"],
+  "jack-ma": ["마윈 (马云)", "马云"],
+  confucius: ["공자 (孔子)", "孔子"],
+  "napoleon-bonaparte": ["나폴레옹", "나폴레옹 (비교)"],
 };
 
 function uniqueText(values: Array<string | null | undefined>) {

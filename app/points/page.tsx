@@ -25,6 +25,10 @@ type AuthUser = {
   phone?: string;
   phoneNumber?: string;
   role?: "user" | "admin";
+  monthlyCredits?: number;
+  profileSubscription?: {
+    membershipCreditBalance?: number;
+  };
 };
 
 type PointPackage = {
@@ -83,6 +87,19 @@ type ConfirmResponse = {
   payment?: PaymentHistoryItem;
 };
 
+type MonthlyCreditLedgerItem = {
+  id: string;
+  type: "MONTHLY_CREDIT_GRANT" | "MONTHLY_CREDIT_SPEND" | "MONTHLY_CREDIT_REFUND" | string;
+  amount: number;
+  beforeBalance?: number;
+  afterBalance?: number;
+  reason?: string;
+  sourceId?: string;
+  serviceKey?: string;
+  createdAt?: string;
+  metadata?: Record<string, unknown>;
+};
+
 type ConfirmSubscriptionResponse = {
   message?: string;
   idempotent?: boolean;
@@ -91,12 +108,16 @@ type ConfirmSubscriptionResponse = {
     points: number;
   };
   subscription?: SubscriptionStatus & {
-    source?: "card" | "pass";
+    source?: "card" | "pass" | "monthly_credit";
     customerUid?: string;
     paymentMethod?: string;
     nextBillingAt?: string | null;
     lastBillingStatus?: string;
+    membershipCreditBalance?: number;
+    membershipCreditCost?: number;
   };
+  monthlyCredits?: number;
+  monthlyCreditLedger?: MonthlyCreditLedgerItem | null;
 };
 
 type BillingBalanceResponse = {
@@ -161,14 +182,19 @@ type MeResponse = {
   data?: {
     balance?: number;
     payments?: PaymentHistoryItem[];
+    monthlyCredits?: number;
+    membershipCreditBalance?: number;
+    monthlyCreditLedgers?: MonthlyCreditLedgerItem[];
   };
   user?: {
     id: string;
     name: string;
     email: string;
     points: number;
+    monthlyCredits?: number;
   };
   payments?: PaymentHistoryItem[];
+  monthlyCreditLedgers?: MonthlyCreditLedgerItem[];
 };
 
 type PendingOrder = {
@@ -476,6 +502,10 @@ function formatMonthlyCredits(amount: number) {
   return `${Number(amount || 0).toLocaleString("ko-KR")} 월정석`;
 }
 
+function getSubscriptionMonthlyCreditCost(plan: Pick<SubscriptionPlan, "wonPrice">) {
+  return Math.max(0, Math.ceil(Number(plan?.wonPrice || 0) / 10));
+}
+
 function mapMonthlyCreditLedgerLabel(type: MonthlyCreditLedgerItem["type"]) {
   if (type === "MONTHLY_CREDIT_SPEND") {
     return { label: "월정석 사용", cls: "bg-rose-100 text-rose-700 border-rose-300", prefix: "-" };
@@ -537,11 +567,22 @@ function normalizeMePayload(payload: MeResponse) {
   const payments = Array.isArray(node.payments)
     ? node.payments
     : (Array.isArray(payload?.payments) ? payload.payments : []);
+  const monthlyCredits = Number(
+    (typeof node.monthlyCredits === "number" ? node.monthlyCredits : undefined)
+    ?? (typeof node.membershipCreditBalance === "number" ? node.membershipCreditBalance : undefined)
+    ?? (typeof payload?.user?.monthlyCredits === "number" ? payload.user.monthlyCredits : undefined)
+    ?? 0,
+  );
+  const monthlyCreditLedgers = Array.isArray(node.monthlyCreditLedgers)
+    ? node.monthlyCreditLedgers
+    : (Array.isArray(payload?.monthlyCreditLedgers) ? payload.monthlyCreditLedgers : []);
 
   return {
     user,
     balance: Number.isFinite(balance) ? balance : 0,
+    monthlyCredits: Number.isFinite(monthlyCredits) ? monthlyCredits : 0,
     payments,
+    monthlyCreditLedgers,
   };
 }
 
@@ -729,7 +770,9 @@ function readPendingSubscriptionPass() {
 function SubscriptionSection({
   subscription,
   onSubscribe,
+  onSubscribeWithMonthlyCredit,
   onCancelSubscription,
+  monthlyCredits,
   isProcessing,
   isFlowerAdminMode,
   adminTestTier,
@@ -738,7 +781,9 @@ function SubscriptionSection({
 }: {
   subscription:  SubscriptionStatus;
   onSubscribe:   (plan: SubscriptionPlan) => void;
+  onSubscribeWithMonthlyCredit: (plan: SubscriptionPlan) => void;
   onCancelSubscription: (resume: boolean) => void;
+  monthlyCredits: number;
   isProcessing:  boolean;
   isFlowerAdminMode: boolean;
   adminTestTier: AdminTestTier;
@@ -996,6 +1041,8 @@ function SubscriptionSection({
           const planTierRank = getSubscriptionTierRank(plan.tier);
           const lowerTierBlocked = !isFlowerAdminMode && activeTierRank > 0 && planTierRank < activeTierRank;
           const ctaDisabled = isProcessing || lowerTierBlocked;
+          const monthlyCreditCost = getSubscriptionMonthlyCreditCost(plan);
+          const monthlyCreditBlocked = ctaDisabled || monthlyCredits < monthlyCreditCost;
           return (
             <div
               key={plan.id}
@@ -1095,6 +1142,21 @@ function SubscriptionSection({
                     ? `${theme.icon} 이용권 선택`
                     : `${theme.icon} ${plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`} 결제 기준 확인`}
               </button>
+
+              <button
+                type="button"
+                onClick={() => onSubscribeWithMonthlyCredit(plan)}
+                disabled={monthlyCreditBlocked}
+                className="mt-2 w-full rounded-[12px] border border-amber-200/60 bg-white/10 px-3 py-2.5 text-[12px] font-black text-amber-100 shadow transition-all hover:-translate-y-0.5 hover:bg-white/15 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                월정석 {monthlyCreditCost.toLocaleString("ko-KR")}개로 구매
+              </button>
+
+              {monthlyCredits < monthlyCreditCost && !lowerTierBlocked && (
+                <p className="mt-1 text-[11px] font-semibold text-amber-200/80">
+                  보유 월정석 {monthlyCredits.toLocaleString("ko-KR")}개
+                </p>
+              )}
 
               {lowerTierBlocked && (
                 <p className="mt-2 text-[11px] font-semibold text-violet-700">
@@ -1387,8 +1449,10 @@ export default function PointsPage() {
   } = usePaymentProcessing();
   const [showStarBurst, setShowStarBurst] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
+  const [monthlyCreditLedgers, setMonthlyCreditLedgers] = useState<MonthlyCreditLedgerItem[]>([]);
   const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
   const [adminTestTier, setAdminTestTier] = useState<AdminTestTier>("off");
+  const isFlowerAdminMode = authUser?.role === "admin" && isFlowerAdminSessionClient();
   const [landingPlanPreset, setLandingPlanPreset] = useState<"standard" | "premium" | "vvip" | null>(null);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
@@ -1775,8 +1839,8 @@ export default function PointsPage() {
 
   const confirmSubscriptionWithServer = useCallback(
     async (body: {
-      impUid: string;
-      merchantUid: string;
+      impUid?: string;
+      merchantUid?: string;
       tier: string;
       planId?: string;
       durationMonths: number;
@@ -1785,8 +1849,9 @@ export default function PointsPage() {
       productType: string;
       customerUid?: string;
       paymentMethod?: string;
+      requestId?: string;
     }) => {
-      const confirmKey = `${body.impUid}:${body.merchantUid}`;
+      const confirmKey = `${body.impUid || body.requestId || "monthly_credit"}:${body.merchantUid || body.planId || ""}`;
       const existing = confirmSubscriptionInFlightRef.current.get(confirmKey);
       if (existing) return existing;
 
@@ -2412,6 +2477,85 @@ export default function PointsPage() {
     }
   };
 
+  const handleSubscribeWithMonthlyCredit = async (plan: SubscriptionPlan) => {
+    const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
+    const requestedTierRank = getSubscriptionTierRank(plan.tier);
+    const requiredMonthlyCredits = getSubscriptionMonthlyCreditCost(plan);
+
+    if (!authUser) {
+      router.replace("/login?next=%2Fpoints");
+      return;
+    }
+
+    if (!isFlowerAdminMode && activeTierRank > requestedTierRank) {
+      pushToast("info", "현재 상위 티어 이용권이 활성화되어 하위 플랜은 선택할 수 없습니다.");
+      return;
+    }
+
+    if (currentMonthlyCredits < requiredMonthlyCredits) {
+      pushToast("error", `월정석이 부족합니다. 필요: ${requiredMonthlyCredits.toLocaleString("ko-KR")}개`);
+      return;
+    }
+
+    const requestId = `subscription-monthly:${plan.planId}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const actionLockKey = `subscription-monthly:${plan.planId}`;
+    if (!acquirePaymentActionLock(actionLockKey)) return;
+
+    setIsProcessing(true);
+    setProcessingText(`${plan.title}을 월정석으로 활성화하고 있습니다...`);
+
+    try {
+      const confirmData = await confirmSubscriptionWithServer({
+        merchantUid: requestId,
+        tier: plan.tier,
+        planId: plan.planId,
+        durationMonths: plan.durationMonths,
+        amount: plan.wonPrice,
+        currency: "KRW",
+        productType: plan.productType,
+        paymentMethod: "monthly_credit",
+        requestId,
+      });
+
+      if (confirmData.subscription) {
+        const newSub: SubscriptionStatus = {
+          tier: confirmData.subscription?.tier || "free",
+          source: confirmData.subscription?.source || "pass",
+          isActive: !!confirmData.subscription?.isActive,
+          expiresAt: confirmData.subscription?.expiresAt || null,
+          profileLimit: typeof confirmData.subscription?.profileLimit === "number"
+            ? confirmData.subscription.profileLimit
+            : 1,
+          lowBalanceWarning: false,
+          cancelAtPeriodEnd: !!confirmData.subscription?.cancelAtPeriodEnd,
+          cancelRequestedAt: confirmData.subscription?.cancelRequestedAt || null,
+          freeLimit: 0,
+        };
+        setSubscription((prev) => ({ ...newSub, freeLimit: prev.freeLimit || 0 }));
+        persistSubscriptionCache(newSub);
+      }
+
+      const nextMonthlyCredits = Number(
+        confirmData.monthlyCredits
+        ?? confirmData.subscription?.membershipCreditBalance
+        ?? currentMonthlyCredits - requiredMonthlyCredits,
+      );
+      persistMonthlyCredits(nextMonthlyCredits);
+      if (confirmData.monthlyCreditLedger) {
+        setMonthlyCreditLedgers((prev) => [confirmData.monthlyCreditLedger as MonthlyCreditLedgerItem, ...prev].slice(0, 20));
+      }
+
+      pushToast("success", confirmData.message || `${plan.title}이 월정석으로 활성화되었습니다.`);
+      setShowStarBurst(true);
+      setTimeout(() => setShowStarBurst(false), 1200);
+    } catch (error: unknown) {
+      pushToast("error", getErrorMessage(error, "월정석 이용권 구매에 실패했습니다."));
+    } finally {
+      releasePaymentActionLock(actionLockKey);
+      setIsProcessing(false);
+    }
+  };
+
   const handleSubscriptionCancel = async (resume: boolean) => {
     const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = getFlowerAdminTokenClient();
@@ -2493,8 +2637,6 @@ export default function PointsPage() {
       </main>
     );
   }
-
-  const isFlowerAdminMode = authUser?.role === "admin" && isFlowerAdminSessionClient();
 
   /* ── 메인 렌더 ─────────────────────────────────────────────────── */
   return (
@@ -2626,8 +2768,8 @@ export default function PointsPage() {
                     </div>
                     <div className="mt-2 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-3">
                       <p>일시: {formatDateTime(entry.createdAt)}</p>
-                      <p>이전 잔액: {formatMonthlyCredits(entry.beforeBalance)}</p>
-                      <p>반영 후: {formatMonthlyCredits(entry.afterBalance)}</p>
+                      <p>이전 잔액: {formatMonthlyCredits(entry.beforeBalance ?? 0)}</p>
+                      <p>반영 후: {formatMonthlyCredits(entry.afterBalance ?? 0)}</p>
                     </div>
                   </div>
                 );
@@ -2652,7 +2794,9 @@ export default function PointsPage() {
         <SubscriptionSection
           subscription={subscription}
           onSubscribe={handleSubscribe}
+          onSubscribeWithMonthlyCredit={handleSubscribeWithMonthlyCredit}
           onCancelSubscription={handleSubscriptionCancel}
+          monthlyCredits={currentMonthlyCredits}
           isProcessing={isProcessing}
           isFlowerAdminMode={isFlowerAdminMode}
           adminTestTier={adminTestTier}

@@ -379,6 +379,10 @@ function buildSubscriptionCustomerUid(userId) {
   return `cdsub_${String(userId || "guest").replace(/[^a-zA-Z0-9]/g, "")}`;
 }
 
+function calculateSubscriptionMonthlyCreditCost(plan) {
+  return Math.max(0, Math.ceil(Number(plan?.wonPrice || 0) / 10));
+}
+
 function toValidDate(value) {
   if (!value) return null;
   const date = new Date(value);
@@ -3294,6 +3298,274 @@ async function handleSubscriptionPrepare(request, auth) {
   }, { status: 201 });
 }
 
+async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, plan, tier, paymentMethodHint }) {
+  const requestId = String(body?.requestId || body?.idempotencyKey || body?.merchantUid || "").trim().slice(0, 160)
+    || `sub_monthly_${Date.now()}_${tier}_${String(auth.userId || "user").slice(-8)}`;
+  const merchantUid = String(body?.merchantUid || body?.merchant_uid || requestId).trim().slice(0, 160);
+  const customerUid = String(body?.customerUid || "").trim() || buildSubscriptionCustomerUid(auth.userId);
+  const requiredMonthlyCredits = calculateSubscriptionMonthlyCreditCost(plan);
+
+  const existingPayment = await Payment.findOne({
+    userId: auth.userId,
+    paymentType: "membership_pass",
+    idempotencyKey: requestId,
+  }).sort({ createdAt: -1 }).lean();
+
+  if (existingPayment?.status === "success") {
+    const currentUser = await User.findById(auth.userId).select("points profileSubscription").lean();
+    const sub = currentUser?.profileSubscription || {};
+    return json({
+      message: "Membership pass monthly-credit payment already processed.",
+      idempotent: true,
+      payment: formatPaymentResponse(existingPayment),
+      subscription: {
+        tier: sub?.tier || "free",
+        source: sub?.source || "pass",
+        isActive: hasActiveSubscriptionConflict(sub),
+        expiresAt: toIsoOrNull(sub?.expiresAt),
+        profileLimit: plan.profileLimit,
+        planId: String(sub?.planId || plan.planId),
+        durationMonths: Number(sub?.durationMonths || plan.durationMonths),
+        productType: String(sub?.productType || plan.productType),
+        membershipCreditBalance: Number(sub?.membershipCreditBalance || 0),
+        membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
+        membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
+        membershipCreditCost: requiredMonthlyCredits,
+        cancelAtPeriodEnd: Boolean(sub?.cancelAtPeriodEnd),
+        cancelRequestedAt: toIsoOrNull(sub?.cancelRequestedAt),
+        customerUid,
+        paymentMethod: "monthly_credit",
+        nextBillingAt: null,
+        lastBillingStatus: "success",
+      },
+      monthlyCredits: Number(sub?.membershipCreditBalance || 0),
+      user: {
+        id: String(auth.userId),
+        points: Number(currentUser?.points || 0),
+      },
+    });
+  }
+
+  const now = new Date();
+  const existingUser = await User.findById(auth.userId).select("points profileSubscription").lean();
+  if (!existingUser) return json({ message: "User not found." }, { status: 404 });
+
+  const transition = evaluateSubscriptionTierTransition(existingUser?.profileSubscription, tier);
+  if (!transition.allow) {
+    return json({
+      message: transition.code === "SUBSCRIPTION_DOWNGRADE_BLOCKED"
+        ? "A higher-tier subscription is currently active. Lower-tier purchase is disabled."
+        : "An active subscription of the same tier already exists. Concurrent subscriptions are not allowed.",
+      code: transition.code,
+      activeTier: transition.activeTier,
+    }, { status: 409 });
+  }
+
+  const currentMonthlyCredits = Math.max(0, Math.floor(Number(existingUser?.profileSubscription?.membershipCreditBalance || 0)));
+  if (currentMonthlyCredits < requiredMonthlyCredits) {
+    return json({
+      message: "월정석 잔량이 부족합니다.",
+      code: "INSUFFICIENT_MONTHLY_CREDITS",
+      requiredMonthlyCredits,
+      currentMonthlyCredits,
+      membershipCreditBalance: currentMonthlyCredits,
+    }, { status: 402 });
+  }
+
+  const currentExpiresAt = toValidDate(existingUser?.profileSubscription?.expiresAt);
+  const extensionBaseTime = currentExpiresAt && currentExpiresAt.getTime() > now.getTime()
+    ? currentExpiresAt.getTime()
+    : now.getTime();
+  const expiresAt = new Date(extensionBaseTime + plan.durationDays * 86400000);
+
+  let paymentRecord = existingPayment;
+  if (!paymentRecord) {
+    paymentRecord = await Payment.create({
+      userId: auth.userId,
+      merchantUid,
+      idempotencyKey: requestId,
+      paymentAmount: plan.wonPrice,
+      expectedChargedPoints: 0,
+      chargedPoints: 0,
+      paymentMethod: "monthly_credit",
+      status: "pending",
+      source: "prepare",
+      paymentType: "membership_pass",
+      subscriptionTier: tier,
+      productId: plan.planId,
+      membershipCreditCost: requiredMonthlyCredits,
+      requestId,
+      metadata: {
+        planId: plan.planId,
+        durationMonths: plan.durationMonths,
+        productType: plan.productType,
+        currency: "MONTHLY_CREDIT",
+        requiredMonthlyCredits,
+        paymentMethod: paymentMethodHint,
+      },
+    });
+  }
+
+  const updatedUser = await User.findOneAndUpdate(
+    {
+      _id: auth.userId,
+      "profileSubscription.membershipCreditBalance": { $gte: requiredMonthlyCredits },
+    },
+    {
+      $set: {
+        "profileSubscription.tier": tier,
+        "profileSubscription.planId": plan.planId,
+        "profileSubscription.durationMonths": plan.durationMonths,
+        "profileSubscription.productType": plan.productType,
+        "profileSubscription.source": "pass",
+        "profileSubscription.startedAt": now,
+        "profileSubscription.expiresAt": expiresAt,
+        "profileSubscription.cancelAtPeriodEnd": false,
+        "profileSubscription.cancelRequestedAt": null,
+        "profileSubscription.customerUid": customerUid,
+        "profileSubscription.paymentMethod": "monthly_credit",
+        "profileSubscription.nextBillingAt": null,
+        "profileSubscription.lastBillingAt": now,
+        "profileSubscription.lastBillingStatus": "success",
+        "profileSubscription.lastBillingError": "",
+        "profileSubscription.firstSubAt": existingUser?.profileSubscription?.firstSubAt || now,
+      },
+      $inc: {
+        "profileSubscription.membershipCreditBalance": -requiredMonthlyCredits,
+        "profileSubscription.membershipCreditUsed": requiredMonthlyCredits,
+      },
+    },
+    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
+  ).lean();
+
+  if (!updatedUser) {
+    await markPaymentFailure(paymentRecord, {
+      status: "failed",
+      paymentMethod: "monthly_credit",
+      failureCode: "subscription_monthly_credit_insufficient",
+      failureMessage: "Insufficient monthly credits for membership pass purchase.",
+      failureStage: "subscription_monthly_credit_consume",
+      incrementAttempt: true,
+    }).catch(() => {});
+    return json({
+      message: "월정석 잔량이 부족합니다.",
+      code: "INSUFFICIENT_MONTHLY_CREDITS",
+      requiredMonthlyCredits,
+      currentMonthlyCredits,
+    }, { status: 402 });
+  }
+
+  let ledger = null;
+  try {
+    ledger = await MonthlyCreditLedger.create({
+      userId: auth.userId,
+      type: "MONTHLY_CREDIT_SPEND",
+      amount: requiredMonthlyCredits,
+      beforeBalance: currentMonthlyCredits,
+      afterBalance: Math.max(0, currentMonthlyCredits - requiredMonthlyCredits),
+      reason: `${plan.name} monthly-credit membership pass purchase`,
+      sourceId: requestId,
+      serviceKey: plan.planId,
+      profileId: "",
+      metadata: {
+        paymentId: String(paymentRecord?._id || ""),
+        merchantUid,
+        requestId,
+        planId: plan.planId,
+        tier,
+        durationMonths: plan.durationMonths,
+        productType: plan.productType,
+        wonPrice: plan.wonPrice,
+        requiredMonthlyCredits,
+      },
+    });
+  } catch (error) {
+    await User.findByIdAndUpdate(auth.userId, {
+      $set: { profileSubscription: existingUser.profileSubscription || {} },
+    }).catch(() => {});
+    await markPaymentFailure(paymentRecord, {
+      status: "failed",
+      paymentMethod: "monthly_credit",
+      failureCode: "subscription_monthly_credit_ledger_failed",
+      failureMessage: String(error?.message || "Monthly credit ledger creation failed."),
+      failureStage: "subscription_monthly_credit_ledger",
+      incrementAttempt: true,
+    }).catch(() => {});
+    throw error;
+  }
+
+  await Payment.findByIdAndUpdate(paymentRecord._id, {
+    $set: {
+      paymentAmount: plan.wonPrice,
+      expectedChargedPoints: 0,
+      chargedPoints: 0,
+      paymentMethod: "monthly_credit",
+      status: "success",
+      paidAt: now,
+      source: "confirm",
+      paymentType: "membership_pass",
+      subscriptionTier: tier,
+      productId: plan.planId,
+      membershipCreditCost: requiredMonthlyCredits,
+      metadata: {
+        ...(paymentRecord.metadata || {}),
+        planId: plan.planId,
+        durationMonths: plan.durationMonths,
+        productType: plan.productType,
+        currency: "MONTHLY_CREDIT",
+        verifiedAmount: plan.wonPrice,
+        requiredMonthlyCredits,
+        monthlyCreditLedgerId: String(ledger?._id || ""),
+      },
+      rawPortOne: null,
+      failureCode: null,
+      failureMessage: null,
+      failureStage: null,
+      lastErrorAt: null,
+    },
+  });
+
+  return json({
+    message: "월정석으로 달빛 이용권이 활성화되었습니다.",
+    idempotent: false,
+    payment: formatPaymentResponse(await Payment.findById(paymentRecord._id).lean()),
+    subscription: {
+      tier,
+      source: "pass",
+      isActive: true,
+      expiresAt: expiresAt.toISOString(),
+      profileLimit: plan.profileLimit,
+      planId: plan.planId,
+      durationMonths: plan.durationMonths,
+      productType: plan.productType,
+      membershipCreditBalance: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
+      membershipCreditGranted: Number(updatedUser?.profileSubscription?.membershipCreditGranted || 0),
+      membershipCreditUsed: Number(updatedUser?.profileSubscription?.membershipCreditUsed || 0),
+      membershipCreditCost: requiredMonthlyCredits,
+      cancelAtPeriodEnd: false,
+      cancelRequestedAt: null,
+      customerUid,
+      paymentMethod: "monthly_credit",
+      nextBillingAt: null,
+      lastBillingStatus: "success",
+    },
+    monthlyCredits: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
+    monthlyCreditLedger: ledger ? {
+      id: String(ledger._id || ""),
+      type: ledger.type,
+      amount: Number(ledger.amount || 0),
+      beforeBalance: Number(ledger.beforeBalance || 0),
+      afterBalance: Number(ledger.afterBalance || 0),
+      reason: String(ledger.reason || ""),
+      createdAt: ledger.createdAt ? ledger.createdAt.toISOString() : new Date().toISOString(),
+    } : null,
+    user: {
+      id: String(auth.userId),
+      points: Number(updatedUser?.points || 0),
+    },
+  });
+}
+
 async function handleSubscriptionConfirm(request, env, auth) {
   const body = await readJson(request);
   const impUid = String(body?.impUid || body?.paymentId || "").trim();
@@ -3308,14 +3580,20 @@ async function handleSubscriptionConfirm(request, env, auth) {
   const paymentMethodHint = normalizePaymentMethod(body?.paymentMethod || "card");
   const plan = resolveSubscriptionPlan(tier, durationMonths);
 
-  if (!impUid || !plan) {
-    return json({ message: "impUid and valid tier are required." }, { status: 400 });
+  if (!plan) {
+    return json({ message: "Valid tier is required." }, { status: 400 });
   }
   if ((planId && planId !== plan.planId) || productType !== plan.productType) {
     return json({ message: "Subscription plan payload mismatch.", code: "SUBSCRIPTION_PLAN_MISMATCH" }, { status: 400 });
   }
   if ((requestedAmount !== null && requestedAmount !== plan.wonPrice) || !["KRW", "CURRENCY_KRW"].includes(requestedCurrency)) {
     return json({ message: "Subscription amount or currency mismatch.", code: "SUBSCRIPTION_PRICE_MISMATCH" }, { status: 400 });
+  }
+  if (paymentMethodHint === "monthly_credit" || paymentMethodHint === "monthly") {
+    return await handleSubscriptionMonthlyCreditConfirm(request, auth, { body, plan, tier, paymentMethodHint });
+  }
+  if (!impUid) {
+    return json({ message: "impUid and valid tier are required." }, { status: 400 });
   }
 
   let portOnePayment;
