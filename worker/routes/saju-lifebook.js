@@ -287,6 +287,7 @@ const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
   "premium_pdf_saju_life_book",
   "premium-lifebook-report",
 ]);
+const LIFEBOOK_TEMPORARY_PAYMENT_BYPASS = true;
 
 const LIFEBOOK_MIN_CATEGORY_CHARS = 700;
 const LIFEBOOK_MIN_CHAPTER_CHARS = 4300;
@@ -5957,13 +5958,21 @@ async function handlePrepare(request, env) {
   try {
   const featureKey = resolveLifeBookFeatureKey(body?.featureKey);
   const billingFeatureKey = toBillingFeatureKey(featureKey);
-  const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "lifeBook", {
-    ...body,
-    featureKey: billingFeatureKey,
-    reportType: "lifeBook",
-    premiumAccessToken: premiumAccessToken || undefined,
-    _accessRoute: "/api/premium/saju-lifebook/prepare",
-  });
+  const access = LIFEBOOK_TEMPORARY_PAYMENT_BYPASS
+    ? {
+      ok: true,
+      accessType: "temporary_free",
+      accessMethod: "TEMP_FREE",
+      reportType: "lifeBook",
+      featureKey: billingFeatureKey,
+    }
+    : await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "lifeBook", {
+      ...body,
+      featureKey: billingFeatureKey,
+      reportType: "lifeBook",
+      premiumAccessToken: premiumAccessToken || undefined,
+      _accessRoute: "/api/premium/saju-lifebook/prepare",
+    });
 
   if (!access?.ok) {
     const status = Number(access?.status || 402);

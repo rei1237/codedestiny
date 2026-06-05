@@ -41,6 +41,24 @@ type LoginApiPayload = {
   errors?: string[];
 };
 
+type BillingBalanceData = {
+  monthlyCredits?: number;
+  membershipCreditBalance?: number;
+  membership?: {
+    membershipCreditBalance?: number;
+    membershipCreditGranted?: number;
+    membershipCreditUsed?: number;
+    tier?: string;
+    isActive?: boolean;
+    expiresAt?: string | null;
+    profileLimit?: number;
+  };
+};
+
+type BillingBalancePayload = BillingBalanceData & {
+  data?: BillingBalanceData;
+};
+
 const LOGIN_MAX_ATTEMPTS = 2;
 const LOGIN_RETRY_BASE_DELAY_MS = 180;
 const LOGIN_ATTEMPT_TIMEOUT_MS = 7000;
@@ -59,6 +77,7 @@ let state: AuthState = {
 
 const subscribers = new Set<() => void>();
 let refreshInFlight: Promise<AuthUser | null> | null = null;
+let billingBalanceInFlight: Promise<number | null> | null = null;
 let meRequestSeq = 0;
 let latestAppliedMeSeq = 0;
 let lastRefreshCompletedAt = 0;
@@ -104,6 +123,30 @@ function publishAuthSync(event: "login" | "logout") {
   const payload = {
     source: "auth-store",
     event,
+    at: Date.now(),
+  };
+  try {
+    window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
+  } catch (e) {
+    // best-effort
+  }
+  try {
+    if (typeof BroadcastChannel !== "undefined") {
+      const channel = new BroadcastChannel("code-destiny-auth-sync");
+      channel.postMessage(payload);
+      channel.close();
+    }
+  } catch (e) {
+    // best-effort
+  }
+}
+
+function publishMonthlyCreditsSync(monthlyCredits: number) {
+  if (typeof window === "undefined") return;
+  const payload = {
+    source: "auth-store",
+    event: "monthlyCredits",
+    monthlyCredits,
     at: Date.now(),
   };
   try {
@@ -259,52 +302,64 @@ async function refreshProfileSubscriptionCache() {
   resolveSafeUser(merged);
 }
 
-async function refreshEntitlements() {
-  const response = await authFetch("/api/billing/balance", {
-    method: "GET",
-    cache: "no-store",
-  });
-  if (!response.ok) return;
-  const payload = (await response.json().catch(() => null)) as {
-    monthlyCredits?: number;
-    membershipCreditBalance?: number;
-    membership?: {
-      membershipCreditBalance?: number;
-      membershipCreditGranted?: number;
-      membershipCreditUsed?: number;
-      tier?: string;
-      isActive?: boolean;
-      expiresAt?: string | null;
-      profileLimit?: number;
-    };
-  } | null;
-  if (!payload) return;
+export async function refreshBillingBalance() {
+  if (billingBalanceInFlight) return billingBalanceInFlight;
 
-  const monthlyCredits = Number(
-    payload.monthlyCredits
-    ?? payload.membershipCreditBalance
-    ?? payload.membership?.membershipCreditBalance,
-  );
-  const base = readSanitizedAuthUser() as AuthUser | null;
-  const merged = mergeAuthUsers(base, {
-    monthlyCredits: Number.isFinite(monthlyCredits) ? monthlyCredits : undefined,
-    profileSubscription: {
-      tier: String(payload.membership?.tier || "free"),
-      isActive: !!payload.membership?.isActive,
-      expiresAt: typeof payload.membership?.expiresAt === "string" ? payload.membership?.expiresAt : null,
-      profileLimit: Number.isFinite(Number(payload.membership?.profileLimit))
-        ? Number(payload.membership?.profileLimit)
-        : undefined,
-      membershipCreditBalance: Number.isFinite(monthlyCredits) ? monthlyCredits : undefined,
-      membershipCreditGranted: Number.isFinite(Number(payload.membership?.membershipCreditGranted))
-        ? Number(payload.membership?.membershipCreditGranted)
-        : undefined,
-      membershipCreditUsed: Number.isFinite(Number(payload.membership?.membershipCreditUsed))
-        ? Number(payload.membership?.membershipCreditUsed)
-        : undefined,
-    },
-  });
-  resolveSafeUser(merged);
+  billingBalanceInFlight = (async () => {
+    const response = await authFetch("/api/billing/balance", {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!response.ok) return null;
+    const payload = (await response.json().catch(() => null)) as BillingBalancePayload | null;
+    if (!payload) return null;
+    const balanceData = payload.data && typeof payload.data === "object" ? payload.data : payload;
+
+    const monthlyCredits = Number(
+      balanceData.monthlyCredits
+      ?? balanceData.membershipCreditBalance
+      ?? balanceData.membership?.membershipCreditBalance,
+    );
+    const normalizedMonthlyCredits = Number.isFinite(monthlyCredits)
+      ? Math.max(0, Math.floor(monthlyCredits))
+      : undefined;
+    const base = readSanitizedAuthUser() as AuthUser | null;
+    const merged = mergeAuthUsers(base, {
+      monthlyCredits: normalizedMonthlyCredits,
+      profileSubscription: {
+        tier: String(balanceData.membership?.tier || "free"),
+        isActive: !!balanceData.membership?.isActive,
+        expiresAt: typeof balanceData.membership?.expiresAt === "string" ? balanceData.membership?.expiresAt : null,
+        profileLimit: Number.isFinite(Number(balanceData.membership?.profileLimit))
+          ? Number(balanceData.membership?.profileLimit)
+          : undefined,
+        membershipCreditBalance: normalizedMonthlyCredits,
+        membershipCreditGranted: Number.isFinite(Number(balanceData.membership?.membershipCreditGranted))
+          ? Number(balanceData.membership?.membershipCreditGranted)
+          : undefined,
+        membershipCreditUsed: Number.isFinite(Number(balanceData.membership?.membershipCreditUsed))
+          ? Number(balanceData.membership?.membershipCreditUsed)
+          : undefined,
+      },
+    });
+    const safe = resolveSafeUser(merged);
+    if (safe) applyResolvedUser(safe);
+    if (typeof normalizedMonthlyCredits === "number") {
+      publishMonthlyCreditsSync(normalizedMonthlyCredits);
+      return normalizedMonthlyCredits;
+    }
+    return null;
+  })();
+
+  try {
+    return await billingBalanceInFlight;
+  } finally {
+    billingBalanceInFlight = null;
+  }
+}
+
+async function refreshEntitlements() {
+  await refreshBillingBalance();
 }
 
 export async function syncPostLoginData() {

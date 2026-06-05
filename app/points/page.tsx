@@ -10,6 +10,7 @@ import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
+import { refreshBillingBalance } from "../_lib/auth-store";
 
 /* ══════════════════════════════════════════════════════════════════
    타입 정의
@@ -118,14 +119,6 @@ type ConfirmSubscriptionResponse = {
   };
   monthlyCredits?: number;
   monthlyCreditLedger?: MonthlyCreditLedgerItem | null;
-};
-
-type BillingBalanceResponse = {
-  data?: {
-    membershipCreditBalance?: number;
-    monthlyCredits?: number;
-    membership?: { membershipCreditBalance?: number };
-  };
 };
 
 type PaymentHistoryItem = {
@@ -1455,6 +1448,7 @@ export default function PointsPage() {
   const isFlowerAdminMode = authUser?.role === "admin" && isFlowerAdminSessionClient();
   const [landingPlanPreset, setLandingPlanPreset] = useState<"standard" | "premium" | "vvip" | null>(null);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [pendingMonthlyCreditPlan, setPendingMonthlyCreditPlan] = useState<SubscriptionPlan | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     tier:         "free",
     isActive:     false,
@@ -1467,6 +1461,9 @@ export default function PointsPage() {
 
   /** Toast 알림 목록 */
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const pendingMonthlyCreditCost = pendingMonthlyCreditPlan
+    ? getSubscriptionMonthlyCreditCost(pendingMonthlyCreditPlan)
+    : 0;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1519,45 +1516,15 @@ export default function PointsPage() {
     };
   }, [hideProcessingOverlay]);
 
-  /* ── 월정석 로컬 동기화 ────────────────────────────────────────── */
-  const persistMonthlyCredits = useCallback((monthlyCredits: number) => {
-    const normalizedMonthlyCredits = Math.max(0, Math.floor(Number(monthlyCredits || 0)));
-    setCurrentMonthlyCredits(normalizedMonthlyCredits);
-    try {
-      const user = readSanitizedAuthUser() || {};
-      user.monthlyCredits = normalizedMonthlyCredits;
-      user.profileSubscription = {
-        ...(user.profileSubscription || {}),
-        membershipCreditBalance: normalizedMonthlyCredits,
-      };
-      persistSanitizedAuthUser(user);
-    } catch { /* noop */ }
-
-    try {
-      const payload = { source: "points-page", event: "monthlyCredits", at: Date.now() };
-      window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: payload }));
-      if (typeof BroadcastChannel !== "undefined") {
-        const channel = new BroadcastChannel("code-destiny-auth-sync");
-        channel.postMessage(payload);
-        channel.close();
-      }
-    } catch { /* noop */ }
-  }, []);
-
   const refreshWalletFromServer = useCallback(async () => {
-    const response = await authFetch(`${apiBase}/api/billing/balance`, {
-      method: "GET",
-      credentials: "include",
-      cache: "no-store",
-    }, {
-      retryOn401: true,
-      apiBase,
-    });
-    const payload = await safeParseJson<BillingBalanceResponse>(response);
-    const data = payload.data || {};
-    const monthlyCredits = Number(data.monthlyCredits ?? data.membershipCreditBalance ?? data.membership?.membershipCreditBalance ?? 0);
-    if (Number.isFinite(monthlyCredits)) persistMonthlyCredits(monthlyCredits);
-  }, [apiBase, persistMonthlyCredits]);
+    const monthlyCredits = await refreshBillingBalance();
+    if (!Number.isFinite(Number(monthlyCredits))) {
+      throw new Error("billing_balance_sync_failed");
+    }
+    const normalizedMonthlyCredits = Math.max(0, Math.floor(Number(monthlyCredits)));
+    setCurrentMonthlyCredits(normalizedMonthlyCredits);
+    return normalizedMonthlyCredits;
+  }, []);
 
   /** 이용권 성공 후 legacy destiny-profile.js가 읽는 localStorage 캐시를 갱신합니다. */
   const persistSubscriptionCache = useCallback((sub: SubscriptionStatus) => {
@@ -1637,7 +1604,6 @@ export default function PointsPage() {
 
       const normalized = normalizeMePayload(payload);
       const nextUser = normalized.user;
-      persistMonthlyCredits(normalized.monthlyCredits);
       await refreshWalletFromServer().catch(() => {});
 
       const normalizedPayments = Array.isArray(normalized.payments)
@@ -1670,7 +1636,7 @@ export default function PointsPage() {
         }
       }
     },
-    [apiBase, persistMonthlyCredits, refreshWalletFromServer, router],
+    [apiBase, refreshWalletFromServer, router],
   );
 
   /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
@@ -2492,7 +2458,8 @@ export default function PointsPage() {
       return;
     }
 
-    if (currentMonthlyCredits < requiredMonthlyCredits) {
+    const latestMonthlyCredits = await refreshWalletFromServer().catch(() => currentMonthlyCredits);
+    if (latestMonthlyCredits < requiredMonthlyCredits) {
       pushToast("error", `월정석이 부족합니다. 필요: ${requiredMonthlyCredits.toLocaleString("ko-KR")}개`);
       return;
     }
@@ -2501,6 +2468,7 @@ export default function PointsPage() {
     const actionLockKey = `subscription-monthly:${plan.planId}`;
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
+    setPendingMonthlyCreditPlan(null);
     setIsProcessing(true);
     setProcessingText(`${plan.title}을 월정석으로 활성화하고 있습니다...`);
 
@@ -2535,12 +2503,7 @@ export default function PointsPage() {
         persistSubscriptionCache(newSub);
       }
 
-      const nextMonthlyCredits = Number(
-        confirmData.monthlyCredits
-        ?? confirmData.subscription?.membershipCreditBalance
-        ?? currentMonthlyCredits - requiredMonthlyCredits,
-      );
-      persistMonthlyCredits(nextMonthlyCredits);
+      await refreshWalletFromServer().catch(() => {});
       if (confirmData.monthlyCreditLedger) {
         setMonthlyCreditLedgers((prev) => [confirmData.monthlyCreditLedger as MonthlyCreditLedgerItem, ...prev].slice(0, 20));
       }
@@ -2673,6 +2636,54 @@ export default function PointsPage() {
       {/* ── Toast 컨테이너 ────────────────────────────────────────── */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
+      {pendingMonthlyCreditPlan && (
+        <div
+          className="fixed inset-0 z-[180] flex items-center justify-center bg-slate-950/72 px-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="monthlyCreditPassConfirmTitle"
+          onClick={(event) => {
+            if (event.target === event.currentTarget && !isProcessing) setPendingMonthlyCreditPlan(null);
+          }}
+        >
+          <div className="w-full max-w-sm rounded-[20px] border border-amber-200/35 bg-[#111832] p-5 text-slate-100 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
+            <p id="monthlyCreditPassConfirmTitle" className="text-base font-black text-white">
+              월정석으로 달빛 이용권 구매
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-200">
+              {pendingMonthlyCreditPlan.title}을 활성화하기 위해 월정석 {pendingMonthlyCreditCost.toLocaleString("ko-KR")}개를 사용합니다.
+            </p>
+            <div className="mt-4 rounded-[14px] border border-white/10 bg-white/[0.07] px-3 py-2 text-[12px] text-slate-200">
+              <p>현재 월정석 {currentMonthlyCredits.toLocaleString("ko-KR")}개</p>
+              <p>구매 후 예상 잔량 {Math.max(0, currentMonthlyCredits - pendingMonthlyCreditCost).toLocaleString("ko-KR")}개</p>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                disabled={isProcessing}
+                onClick={() => setPendingMonthlyCreditPlan(null)}
+                className="rounded-[12px] border border-white/15 bg-white/10 px-3 py-2.5 text-sm font-bold text-slate-200 transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                disabled={isProcessing || currentMonthlyCredits < pendingMonthlyCreditCost}
+                onClick={() => handleSubscribeWithMonthlyCredit(pendingMonthlyCreditPlan)}
+                className="rounded-[12px] bg-gradient-to-r from-amber-200 to-violet-200 px-3 py-2.5 text-sm font-black text-[#151832] shadow-[0_10px_22px_rgba(243,221,154,0.22)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isProcessing ? "처리 중..." : "구매하기"}
+              </button>
+            </div>
+            {currentMonthlyCredits < pendingMonthlyCreditCost && (
+              <p className="mt-3 text-[12px] font-bold text-rose-200">
+                월정석 잔량이 부족합니다.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── 페이지 콘텐츠 ────────────────────────────────────────── */}
       <div className="relative mx-auto w-full max-w-2xl space-y-5">
 
@@ -2794,7 +2805,7 @@ export default function PointsPage() {
         <SubscriptionSection
           subscription={subscription}
           onSubscribe={handleSubscribe}
-          onSubscribeWithMonthlyCredit={handleSubscribeWithMonthlyCredit}
+          onSubscribeWithMonthlyCredit={setPendingMonthlyCreditPlan}
           onCancelSubscription={handleSubscriptionCancel}
           monthlyCredits={currentMonthlyCredits}
           isProcessing={isProcessing}

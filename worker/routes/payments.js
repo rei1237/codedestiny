@@ -3305,7 +3305,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
   const customerUid = String(body?.customerUid || "").trim() || buildSubscriptionCustomerUid(auth.userId);
   const requiredMonthlyCredits = calculateSubscriptionMonthlyCreditCost(plan);
 
-  const existingPayment = await Payment.findOne({
+  let existingPayment = await Payment.findOne({
     userId: auth.userId,
     paymentType: "membership_pass",
     idempotencyKey: requestId,
@@ -3377,39 +3377,63 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
     ? currentExpiresAt.getTime()
     : now.getTime();
   const expiresAt = new Date(extensionBaseTime + plan.durationDays * 86400000);
+  const subscriptionUpdateGuard = currentExpiresAt && currentExpiresAt.getTime() > now.getTime()
+    ? { "profileSubscription.expiresAt": currentExpiresAt }
+    : {
+      $or: [
+        { "profileSubscription.expiresAt": { $exists: false } },
+        { "profileSubscription.expiresAt": null },
+        { "profileSubscription.expiresAt": { $lte: now } },
+      ],
+    };
 
   let paymentRecord = existingPayment;
   if (!paymentRecord) {
-    paymentRecord = await Payment.create({
-      userId: auth.userId,
-      merchantUid,
-      idempotencyKey: requestId,
-      paymentAmount: plan.wonPrice,
-      expectedChargedPoints: 0,
-      chargedPoints: 0,
-      paymentMethod: "monthly_credit",
-      status: "pending",
-      source: "prepare",
-      paymentType: "membership_pass",
-      subscriptionTier: tier,
-      productId: plan.planId,
-      membershipCreditCost: requiredMonthlyCredits,
-      requestId,
-      metadata: {
-        planId: plan.planId,
-        durationMonths: plan.durationMonths,
-        productType: plan.productType,
-        currency: "MONTHLY_CREDIT",
-        requiredMonthlyCredits,
-        paymentMethod: paymentMethodHint,
-      },
-    });
+    try {
+      paymentRecord = await Payment.create({
+        userId: auth.userId,
+        merchantUid,
+        idempotencyKey: requestId,
+        paymentAmount: plan.wonPrice,
+        expectedChargedPoints: 0,
+        chargedPoints: 0,
+        paymentMethod: "monthly_credit",
+        status: "pending",
+        source: "prepare",
+        paymentType: "membership_pass",
+        subscriptionTier: tier,
+        productId: plan.planId,
+        membershipCreditCost: requiredMonthlyCredits,
+        requestId,
+        metadata: {
+          planId: plan.planId,
+          durationMonths: plan.durationMonths,
+          productType: plan.productType,
+          currency: "MONTHLY_CREDIT",
+          requiredMonthlyCredits,
+          paymentMethod: paymentMethodHint,
+        },
+      });
+    } catch (error) {
+      if (Number(error?.code) !== 11000) throw error;
+      paymentRecord = await Payment.findOne({
+        userId: auth.userId,
+        paymentType: "membership_pass",
+        $or: [
+          { idempotencyKey: requestId },
+          { merchantUid },
+        ],
+      }).sort({ createdAt: -1 });
+      if (!paymentRecord) throw error;
+    }
   }
 
   const updatedUser = await User.findOneAndUpdate(
     {
       _id: auth.userId,
       "profileSubscription.membershipCreditBalance": { $gte: requiredMonthlyCredits },
+      recentConsumeRequestIds: { $ne: requestId },
+      ...subscriptionUpdateGuard,
     },
     {
       $set: {
@@ -3417,6 +3441,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
         "profileSubscription.planId": plan.planId,
         "profileSubscription.durationMonths": plan.durationMonths,
         "profileSubscription.productType": plan.productType,
+        "profileSubscription.profileLimit": plan.profileLimit,
         "profileSubscription.source": "pass",
         "profileSubscription.startedAt": now,
         "profileSubscription.expiresAt": expiresAt,
@@ -3434,11 +3459,79 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
         "profileSubscription.membershipCreditBalance": -requiredMonthlyCredits,
         "profileSubscription.membershipCreditUsed": requiredMonthlyCredits,
       },
+      $addToSet: { recentConsumeRequestIds: requestId },
     },
     { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
   ).lean();
 
   if (!updatedUser) {
+    const currentUser = await User.findById(auth.userId).select("points profileSubscription recentConsumeRequestIds").lean();
+    if (Array.isArray(currentUser?.recentConsumeRequestIds) && currentUser.recentConsumeRequestIds.includes(requestId)) {
+      const sub = currentUser?.profileSubscription || {};
+      const activeExpiresAt = toValidDate(sub?.expiresAt);
+      const remainingDays = activeExpiresAt
+        ? Math.max(0, Math.ceil((activeExpiresAt.getTime() - Date.now()) / 86400000))
+        : 0;
+      return json({
+        message: "Membership pass monthly-credit payment already processed.",
+        idempotent: true,
+        payment: formatPaymentResponse(await Payment.findById(paymentRecord._id).lean() || paymentRecord),
+        subscription: {
+          tier: sub?.tier || "free",
+          source: sub?.source || "pass",
+          isActive: hasActiveSubscriptionConflict(sub),
+          expiresAt: toIsoOrNull(sub?.expiresAt),
+          profileLimit: Number(sub?.profileLimit || plan.profileLimit || 1),
+          planId: String(sub?.planId || plan.planId),
+          durationMonths: Number(sub?.durationMonths || plan.durationMonths),
+          productType: String(sub?.productType || plan.productType),
+          membershipCreditBalance: Number(sub?.membershipCreditBalance || 0),
+          membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
+          membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
+          membershipCreditCost: requiredMonthlyCredits,
+          cancelAtPeriodEnd: Boolean(sub?.cancelAtPeriodEnd),
+          cancelRequestedAt: toIsoOrNull(sub?.cancelRequestedAt),
+          customerUid,
+          paymentMethod: "monthly_credit",
+          nextBillingAt: null,
+          lastBillingStatus: String(sub?.lastBillingStatus || "success"),
+        },
+        monthlyCredits: Number(sub?.membershipCreditBalance || 0),
+        membershipCreditBalance: Number(sub?.membershipCreditBalance || 0),
+        passBalance: {
+          active: hasActiveSubscriptionConflict(sub),
+          tier: sub?.tier || "free",
+          remainingDays,
+          expiresAt: toIsoOrNull(sub?.expiresAt),
+          profileLimit: Number(sub?.profileLimit || plan.profileLimit || 1),
+        },
+        user: {
+          id: String(auth.userId),
+          points: Number(currentUser?.points || 0),
+        },
+      });
+    }
+    const postTransition = evaluateSubscriptionTierTransition(currentUser?.profileSubscription, tier);
+    if (!postTransition.allow) {
+      await markPaymentFailure(paymentRecord, {
+        status: "failed",
+        paymentMethod: "monthly_credit",
+        failureCode: "subscription_monthly_credit_conflict",
+        failureMessage: "Subscription state changed before monthly-credit purchase could be completed.",
+        failureStage: "subscription_monthly_credit_subscription_guard",
+        incrementAttempt: true,
+      }).catch(() => {});
+      return json({
+        message: postTransition.code === "SUBSCRIPTION_DOWNGRADE_BLOCKED"
+          ? "A higher-tier subscription is currently active. Lower-tier purchase is disabled."
+          : "An active subscription of the same tier already exists. Concurrent subscriptions are not allowed.",
+        code: postTransition.code,
+        activeTier: postTransition.activeTier,
+        monthlyCredits: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
+        membershipCreditBalance: Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0))),
+      }, { status: 409 });
+    }
+
     await markPaymentFailure(paymentRecord, {
       status: "failed",
       paymentMethod: "monthly_credit",
@@ -3455,14 +3548,20 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
     }, { status: 402 });
   }
 
+  const updatedMonthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
+  const updatedExpiresAt = toValidDate(updatedUser?.profileSubscription?.expiresAt);
+  const remainingPassDays = updatedExpiresAt
+    ? Math.max(0, Math.ceil((updatedExpiresAt.getTime() - Date.now()) / 86400000))
+    : 0;
+
   let ledger = null;
   try {
     ledger = await MonthlyCreditLedger.create({
       userId: auth.userId,
       type: "MONTHLY_CREDIT_SPEND",
       amount: requiredMonthlyCredits,
-      beforeBalance: currentMonthlyCredits,
-      afterBalance: Math.max(0, currentMonthlyCredits - requiredMonthlyCredits),
+      beforeBalance: updatedMonthlyCredits + requiredMonthlyCredits,
+      afterBalance: updatedMonthlyCredits,
       reason: `${plan.name} monthly-credit membership pass purchase`,
       sourceId: requestId,
       serviceKey: plan.planId,
@@ -3482,6 +3581,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
   } catch (error) {
     await User.findByIdAndUpdate(auth.userId, {
       $set: { profileSubscription: existingUser.profileSubscription || {} },
+      $pull: { recentConsumeRequestIds: requestId },
     }).catch(() => {});
     await markPaymentFailure(paymentRecord, {
       status: "failed",
@@ -3549,7 +3649,15 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
       nextBillingAt: null,
       lastBillingStatus: "success",
     },
-    monthlyCredits: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
+    monthlyCredits: updatedMonthlyCredits,
+    membershipCreditBalance: updatedMonthlyCredits,
+    passBalance: {
+      active: true,
+      tier,
+      remainingDays: remainingPassDays,
+      expiresAt: expiresAt.toISOString(),
+      profileLimit: plan.profileLimit,
+    },
     monthlyCreditLedger: ledger ? {
       id: String(ledger._id || ""),
       type: ledger.type,

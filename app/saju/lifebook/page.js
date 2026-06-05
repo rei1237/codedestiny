@@ -9,6 +9,7 @@ import LifeFortuneGraph, {
 
 const SERVICE_KEY = "saju-lifebook";
 const FEATURE_KEY = "saju_life_book_pdf";
+const LIFEBOOK_TEMPORARY_FREE = true;
 
 const STEP_LABELS = [
   "프로필 정보를 확인하는 중입니다",
@@ -222,17 +223,19 @@ export default function SajuLifebookPage() {
       const reportId = `saju-lifebook-${Date.now().toString(36)}`;
       const reportSessionId = `life-book:${reportId}`;
 
-      const gate = await runBillingCoinGate({
-        categoryKey: "premium-report",
-        featureKey: FEATURE_KEY,
-        subFeatureKey: FEATURE_KEY,
-        reason: "인생의 책 생성 (13챕터)",
-        requestId,
-        reportId,
-        sessionId: reportSessionId,
-        reportSessionId,
-        forceDeduct: true,
-      });
+      const gate = LIFEBOOK_TEMPORARY_FREE
+        ? { ok: true, raw: {}, data: {} }
+        : await runBillingCoinGate({
+          categoryKey: "premium-report",
+          featureKey: FEATURE_KEY,
+          subFeatureKey: FEATURE_KEY,
+          reason: "인생의 책 생성 (13챕터)",
+          requestId,
+          reportId,
+          sessionId: reportSessionId,
+          reportSessionId,
+          forceDeduct: true,
+        });
 
       if (!gate?.ok) {
         throw new Error(gate?.error?.message || gate?.message || "프리미엄 PDF 생성 권한이 필요합니다.");
