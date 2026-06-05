@@ -19,6 +19,8 @@
   var PROFILE_CARD_MANAGE_FEATURE_KEY = 'profile-card-manage';
   var PROFILE_CARD_MANAGE_COST = 50;
   var _dpProfileMenuLastTouchAt = 0;
+  var _dpProfileMenuPointerHandledAt = 0;
+  var _dpProfileEditTargetId = '';
 
   function _dpReadAuthUser() {
     try {
@@ -120,6 +122,12 @@
         safe.profileSubscription.maxCoveredCoin = Math.floor(passLimit);
       }
       if (user.profileSubscription.passTier) safe.profileSubscription.passTier = String(user.profileSubscription.passTier);
+      var profileLimit = Number(user.profileSubscription.profileLimit || user.profileSubscription.maxProfileLimit || user.profileSubscription.profileCardLimit || user.profileSubscription.maxProfiles);
+      if (Number.isFinite(profileLimit) && profileLimit > 0) safe.profileSubscription.profileLimit = Math.floor(profileLimit);
+      if (user.profileSubscription.plan) safe.profileSubscription.plan = String(user.profileSubscription.plan);
+      if (user.profileSubscription.planId) safe.profileSubscription.planId = String(user.profileSubscription.planId);
+      if (user.profileSubscription.productId) safe.profileSubscription.productId = String(user.profileSubscription.productId);
+      if (user.profileSubscription.status) safe.profileSubscription.status = String(user.profileSubscription.status);
     }
     return Object.keys(safe).length ? safe : null;
   }
@@ -2670,6 +2678,33 @@
     } catch (e) {}
   }
 
+  function _dpReadAuthSubscriptionSnapshot() {
+    var user = _dpReadAuthUser();
+    var sub = user && user.profileSubscription && typeof user.profileSubscription === 'object' ? user.profileSubscription : null;
+    if (!sub) return null;
+    var tier = _dpNormalizeTier(sub.tier || sub.passTier || sub.plan || sub.planId || sub.productId || user.plan);
+    var active = tier !== 'free' && !!(
+      sub.isActive
+      || sub.isSubscribed
+      || sub.active
+      || sub.enabled
+      || sub.valid
+      || sub.registered
+      || _dpIsActiveMembershipStatusValue(sub.status)
+      || _dpIsActiveMembershipStatusValue(sub.subscriptionStatus)
+      || _dpIsActiveMembershipStatusValue(sub.membershipStatus)
+      || _dpHasFutureMembershipExpiry(sub.expiresAt)
+    );
+    var rawLimit = Number(sub.profileLimit || sub.maxProfileLimit || sub.profileCardLimit || sub.maxProfiles);
+    var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
+    return {
+      tier: tier,
+      isActive: active,
+      profileLimit: active ? Math.max(1, Math.floor(resolvedLimit || 1)) : 1,
+      expiresAt: sub.expiresAt || null
+    };
+  }
+
   /** localStorage 캐시에서 구독 상태를 읽어 변수 초기화 */
   function _dpLoadSubCache() {
     var scope = _dpGetProfileScope();
@@ -2678,6 +2713,7 @@
     _dpSubIsActive = false;
     _dpSubProfileLimit = 1;
     try {
+      var authSnapshot = _dpReadAuthSubscriptionSnapshot();
       var raw = localStorage.getItem(_dpGetSubCacheKey()) || '';
       if (!raw) {
         var legacyRaw = localStorage.getItem(_DP_SUB_CACHE_LEGACY_KEY) || '';
@@ -2687,13 +2723,27 @@
           localStorage.setItem(_dpGetSubCacheKey(), legacyRaw);
         }
       }
-      if (!raw) return;
+      if (!raw) {
+        if (authSnapshot && authSnapshot.isActive) {
+          _dpSubTier = authSnapshot.tier;
+          _dpSubIsActive = true;
+          _dpSubProfileLimit = authSnapshot.profileLimit;
+          _dpWriteSubCache(authSnapshot.tier, true, authSnapshot.profileLimit, authSnapshot.expiresAt);
+        }
+        return;
+      }
 
       var c = JSON.parse(raw);
       var tier = _dpNormalizeTier(c && c.tier);
       var active = !!(c && c.isActive) && tier !== 'free';
       var rawLimit = Number(c && c.profileLimit);
       var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
+      if (authSnapshot && authSnapshot.isActive && (!active || authSnapshot.profileLimit >= resolvedLimit)) {
+        tier = authSnapshot.tier;
+        active = true;
+        resolvedLimit = authSnapshot.profileLimit;
+        _dpWriteSubCache(authSnapshot.tier, true, authSnapshot.profileLimit, authSnapshot.expiresAt);
+      }
 
       _dpSubTier         = tier;
       _dpSubIsActive     = active;
@@ -2806,16 +2856,39 @@
   }
 
   /** 저장 버튼 상태를 구독 플랜에 맞게 업데이트 */
+  function _dpUpdateProfileQuotaText(profileCount, maxProfiles, planLabel, canUsePlanSlot) {
+    var quotaText = document.getElementById('dpProfileQuotaText');
+    if (!quotaText) return;
+    var used = Math.max(0, Math.floor(Number(profileCount || 0)));
+    var limit = Math.max(1, Math.floor(Number(maxProfiles || 1)));
+    var remaining = Math.max(0, limit - used);
+    var label = planLabel || '무료 플랜';
+    if (canUsePlanSlot) {
+      quotaText.textContent = label + ' · 등록 가능 ' + remaining + '개 남음 (' + used + '/' + limit + ')';
+    } else {
+      quotaText.textContent = label + ' · 기본 한도 ' + limit + '개 사용 완료 · 추가 생성 50코인';
+    }
+  }
+
   function _dpUpdateSaveBtn() {
     var btn = document.getElementById('dpSaveBtn');
-    if (!btn) return;
-
     var profileCount = DPStorage.list().length;
     var maxProfiles = Math.max(1, Math.floor(Number(_dpGetMaxProfiles() || 1)));
     var hasProfiles = profileCount > 0;
     var canUsePlanSlot = profileCount < maxProfiles;
     var planLabel = _dpGetTierLabel(_dpSubIsActive ? _dpSubTier : _dpGetUserPlan());
     var slotLabel = profileCount + '/' + maxProfiles;
+    _dpUpdateProfileQuotaText(profileCount, maxProfiles, planLabel, canUsePlanSlot);
+    if (!btn) return;
+
+    if (_dpProfileEditTargetId) {
+      btn.disabled = false;
+      btn.textContent = '프로필 수정 확정 · ' + PROFILE_CARD_MANAGE_COST + '코인';
+      try { document.body.classList.add('dp-profile-editing'); } catch (_) {}
+      return;
+    }
+    try { document.body.classList.remove('dp-profile-editing'); } catch (_) {}
+
     btn.disabled = false;
     if (!hasProfiles) {
       btn.textContent = '✦ 이 정보를 나의 운명 카드에 저장 · ' + slotLabel;
@@ -3100,15 +3173,18 @@
     var style = document.createElement('style');
     style.id = 'dpProfileActionMenuStyles';
     style.textContent = ''
-      + '.dp-mc-action-wrap{position:relative;z-index:8;display:flex;align-items:flex-start;}'
-      + '.dp-mc-action-menu{position:absolute;right:0;top:calc(100% + 10px);width:min(248px,76vw);display:none;gap:8px;padding:10px;border-radius:8px;background:linear-gradient(145deg,rgba(8,13,32,.98),rgba(37,29,78,.96));border:1px solid rgba(255,215,0,.32);box-shadow:0 18px 46px rgba(0,0,0,.45),0 0 24px rgba(255,215,0,.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}'
+      + '.dp-mc-action-wrap{position:relative;z-index:80;display:flex;align-items:flex-start;overflow:visible;pointer-events:auto;}'
+      + '.dp-mc-menu-btn{min-width:46px!important;min-height:46px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;position:relative;z-index:82;pointer-events:auto!important;-webkit-tap-highlight-color:transparent;}'
+      + '.dp-mc-action-menu{position:fixed;right:14px;top:86px;width:min(272px,calc(100vw - 28px));display:none;gap:8px;padding:10px;border-radius:8px;background:linear-gradient(145deg,rgba(8,13,32,.98),rgba(37,29,78,.96));border:1px solid rgba(255,215,0,.32);box-shadow:0 18px 46px rgba(0,0,0,.45),0 0 24px rgba(255,215,0,.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);pointer-events:auto;isolation:isolate;}'
       + '.dp-mc-action-wrap.is-open .dp-mc-action-menu{display:grid;}'
       + '.dp-mc-action-menu__item{width:100%;min-height:48px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.06);color:#f8fafc;padding:12px 13px;text-align:left;font-size:.82rem;font-weight:900;line-height:1.25;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}'
       + '.dp-mc-action-menu__item span{font-size:.68rem;font-weight:800;color:rgba(226,232,240,.72);white-space:nowrap;}'
       + '.dp-mc-action-menu__item:active{transform:translateY(1px);}'
       + '.dp-mc-action-menu__item--danger{border-color:rgba(251,113,133,.42);background:rgba(127,29,29,.24);color:#fecdd3;}'
       + '.dp-mc-action-menu__item--danger span{color:#fbbf24;}'
-      + '@media(max-width:768px){.dp-mc-action-wrap{z-index:20}.dp-mc-action-menu{right:-4px;top:calc(100% + 12px);width:min(260px,82vw);padding:10px}.dp-mc-action-menu__item{min-height:52px;font-size:.86rem;}}';
+      + '.dp-mc-action-menu__item--edit{border-color:rgba(251,191,36,.36);background:rgba(251,191,36,.10);color:#fef3c7;}'
+      + '.dp-profile-editing #dpSaveBtn{background:linear-gradient(135deg,#fbbf24,#f97316)!important;color:#180b02!important;}'
+      + '@media(max-width:768px){.dp-mc-action-wrap{z-index:120}.dp-mc-action-menu{right:12px;top:max(74px,env(safe-area-inset-top,0px) + 64px);width:min(284px,calc(100vw - 24px));padding:10px}.dp-mc-action-menu__item{min-height:54px;font-size:.88rem;}.dp-master-card,.dp-mc-inner,.dp-mc-header{overflow:visible!important;}}';
     document.head.appendChild(style);
   }
 
@@ -3118,6 +3194,20 @@
     wrap.classList.remove('is-open');
     var btn = wrap.querySelector('.dp-mc-menu-btn');
     if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+
+  function _dpPositionProfileMenu(btn, wrap) {
+    if (!btn || !wrap || !btn.getBoundingClientRect) return;
+    var menu = wrap.querySelector('.dp-mc-action-menu');
+    if (!menu) return;
+    var rect = btn.getBoundingClientRect();
+    var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    var width = Math.min(284, Math.max(220, vw - 24));
+    var right = Math.max(12, vw - rect.right);
+    var top = Math.max(12, Math.round(rect.bottom + 10));
+    menu.style.width = width + 'px';
+    menu.style.right = Math.min(right, Math.max(12, vw - 12 - width)) + 'px';
+    menu.style.top = top + 'px';
   }
 
   function _dpRunProfileManageGate(action, profileId, requestId) {
@@ -3230,7 +3320,8 @@
               + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
             + '</button>'
             + '<div class="dp-mc-action-menu" role="menu" aria-label="프로필 카드 관리">'
-              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" data-dp-menu-action="list" onclick="dpRunProfileMenuAction(this,event)">프로필 목록 보기<span>전환</span></button>'
+              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" data-dp-menu-action="view" data-profile-id="' + _esc(profile.id) + '" onclick="dpRunProfileMenuAction(this,event)">프로필 조회<span>열기</span></button>'
+              + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--edit" role="menuitem" data-dp-menu-action="edit" data-profile-id="' + _esc(profile.id) + '" onclick="dpRunProfileMenuAction(this,event)">프로필 카드 수정<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
               + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--danger" role="menuitem" data-dp-menu-action="delete" data-profile-id="' + _esc(profile.id) + '" onclick="dpRunProfileMenuAction(this,event)">프로필 카드 삭제<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
             + '</div>'
           + '</div>'
@@ -3805,10 +3896,80 @@
   /* ──────────────────────────────────────────
      8. 공개 API (window.dp*)
   ────────────────────────────────────────── */
+  function _dpApplyProfileToForm(profile) {
+    if (!profile || !profile.birth) return;
+    var b = profile.birth;
+    var l = profile.location || {};
+    var nameEl = document.getElementById('nameInput');
+    if (nameEl) nameEl.value = profile.name || '';
+    var bdEl = document.getElementById('birthDate');
+    if (bdEl) {
+      bdEl.value = b.year + '-' + String(b.month).padStart(2,'0') + '-' + String(b.day).padStart(2,'0');
+      try { bdEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+    }
+    var calBtns = document.querySelectorAll('input[name="calType"]');
+    calBtns.forEach(function(btn) {
+      btn.checked = btn.value === (b.calType || 'solar');
+      if (btn.checked) try { btn.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+    });
+    var hourEl = document.getElementById('birthHour');
+    var minEl = document.getElementById('birthMinute');
+    if (hourEl) hourEl.value = (b.hour !== undefined && b.hour !== null) ? b.hour : 12;
+    if (minEl) minEl.value = (b.minute !== undefined && b.minute !== null) ? b.minute : 0;
+    var countrySel = document.getElementById('birthCountry');
+    if (countrySel && l.tz) {
+      var lng = (l.lng !== undefined && l.lng !== null) ? Number(l.lng) : Number(l.lon);
+      var matched = false;
+      for (var i = 0; i < countrySel.options.length; i++) {
+        var opt = countrySel.options[i];
+        var optLng = parseFloat(opt.getAttribute('data-long') || '0');
+        if (opt.value === l.tz && isFinite(lng) && Math.abs(optLng - lng) < 1) {
+          countrySel.selectedIndex = i;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        for (var j = 0; j < countrySel.options.length; j++) {
+          if (countrySel.options[j].value === l.tz) {
+            countrySel.selectedIndex = j;
+            break;
+          }
+        }
+      }
+      try { countrySel.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+    }
+    if (window.setGender) window.setGender(profile.gender || 'F');
+    window._gender = profile.gender || 'F';
+  }
+
+  function _dpClearProfileEditMode() {
+    _dpProfileEditTargetId = '';
+    try { document.body.classList.remove('dp-profile-editing'); } catch (_) {}
+    _dpUpdateSaveBtn();
+  }
+
+  function _dpPatchProfile(profileId, data, requestId, paymentContext) {
+    return _dpFetchJsonWithFallback('/api/profile/' + encodeURIComponent(profileId), {
+      method: 'PATCH',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(Object.assign({ profile: data, requestId: requestId }, data || {}, paymentContext || {}))
+    }, {
+      retryOn401: true,
+      timeoutMs: _DP_FETCH_TIMEOUT_MS
+    });
+  }
+
   window.dpSaveProfile = function() {
     var data = readFormData();
     if (!data) {
       alert('이름과 생년월일을 입력해주세요.');
+      return;
+    }
+    if (_dpProfileEditTargetId) {
+      dpConfirmEditProfile(_dpProfileEditTargetId, data);
       return;
     }
     var profileCount = DPStorage.list().length;
@@ -3946,6 +4107,117 @@
     });
   };
 
+  window.dpStartEditProfile = function(id) {
+    var profileId = String(id || '').trim();
+    var list = DPStorage.list();
+    var profile = list.find(function(item) { return item && String(item.id || '') === profileId; });
+    if (!profile) {
+      alert('수정할 프로필 카드를 찾을 수 없습니다.');
+      return;
+    }
+    DPStorage.setCurrent(profileId);
+    _dpProfileEditTargetId = profileId;
+    try { document.body.classList.add('dp-profile-editing'); } catch (_) {}
+    _dpApplyProfileToForm(profile);
+    renderMasterCard(profile);
+    broadcastProfileChange(profile);
+    _dpUpdateSaveBtn();
+    var formEl = document.querySelector('.input-section') || document.getElementById('destinyCardForm');
+    if (formEl) {
+      try { formEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) { formEl.scrollIntoView(); }
+    }
+    _toast('프로필 정보를 수정한 뒤 수정 확정 버튼을 눌러주세요.', 'success');
+  };
+
+  window.dpConfirmEditProfile = function(id, data) {
+    var profileId = String(id || '').trim();
+    var profile = DPStorage.list().find(function(item) { return item && String(item.id || '') === profileId; });
+    if (!profile || !profileId) {
+      alert('수정할 프로필 카드를 찾을 수 없습니다.');
+      _dpClearProfileEditMode();
+      return;
+    }
+    if (!data) {
+      alert('이름과 생년월일을 입력해주세요.');
+      return;
+    }
+    if (window.__dpProfileEditInFlight === profileId) {
+      alert('프로필 카드 수정이 이미 진행 중입니다.');
+      return;
+    }
+    if (!confirm((profile.name || '선택한 프로필') + ' 프로필 카드를 수정할까요?\n수정 비용은 50코인이며, 서버 확인 후 저장됩니다.')) return;
+
+    var requestId = _dpBuildProfileManageRequestId('edit', profileId);
+    var btn = document.getElementById('dpSaveBtn');
+    window.__dpProfileEditInFlight = profileId;
+    if (btn) {
+      btn.disabled = true;
+      btn.style.opacity = '0.65';
+      btn.style.cursor = 'not-allowed';
+      btn.textContent = '프로필 수정 중...';
+    }
+
+    function requestEdit(paymentContext) {
+      _dpSetPaymentPending(true, '프로필 카드를 수정하는 중입니다...');
+      return _dpPatchProfile(profileId, data, requestId, paymentContext);
+    }
+
+    _dpVerifyLoginSession(true).then(function(ok) {
+      if (!ok) throw new Error('AUTH_REQUIRED');
+      return requestEdit();
+    }).then(function(result) {
+      var payload = result && result.data ? result.data : null;
+      var code = String((payload && payload.code) || '').trim().toUpperCase();
+      if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
+        _dpSetPaymentPending(false);
+        return _dpRunProfileManageGate('edit', profileId, requestId).then(function(paymentContext) {
+          if (!paymentContext) return null;
+          return requestEdit(paymentContext);
+        });
+      }
+      return result;
+    }).then(function(result) {
+      _dpSetPaymentPending(false);
+      if (!result) return null;
+      if (!result.ok || !result.data || result.data.ok === false) {
+        throw new Error((result.data && result.data.message) || '프로필 카드 수정에 실패했습니다.');
+      }
+      var payload = result.data || {};
+      var updated = payload.profile && typeof payload.profile === 'object' ? payload.profile : Object.assign({}, profile, data, { id: profileId });
+      DPStorage.update(profileId, updated);
+      DPStorage.setCurrent(profileId);
+      _dpClearProfileEditMode();
+      var current = DPStorage.current() || updated;
+      renderMasterCard(current);
+      renderProfileList();
+      broadcastProfileChange(current);
+      spawnStardust(document.getElementById('dpMasterCard'));
+      _toast('프로필 카드가 수정되었습니다.', 'success');
+      _dpLoadFromServer(function(loaded) {
+        if (!loaded) return;
+        var refreshed = DPStorage.current();
+        renderMasterCard(refreshed || current);
+        renderProfileList();
+        broadcastProfileChange(refreshed || current);
+        _dpUpdateSaveBtn();
+      });
+      return null;
+    }).catch(function(error) {
+      _dpSetPaymentPending(false);
+      var msg = String(error && error.message || '프로필 카드 수정 중 오류가 발생했습니다.');
+      if (msg === 'AUTH_REQUIRED') msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
+      alert(msg);
+    }).then(function() {
+      if (window.__dpProfileEditInFlight === profileId) window.__dpProfileEditInFlight = '';
+      if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '';
+        btn.style.cursor = '';
+      }
+      _dpUpdateSaveBtn();
+    });
+  };
+
   window.dpOpenList = function() {
     var sheet = document.getElementById('dpListSheet');
     var overlay = document.getElementById('dpListOverlay');
@@ -4057,7 +4329,7 @@
   window.dpToggleProfileMenu = function(event) {
     if (event && event.preventDefault) event.preventDefault();
     if (event && event.stopPropagation) event.stopPropagation();
-    if (event && event.type === 'click' && Date.now() - _dpProfileMenuLastTouchAt < 700) return;
+    if (event && event.type === 'click' && (Date.now() - _dpProfileMenuLastTouchAt < 700 || Date.now() - _dpProfileMenuPointerHandledAt < 700)) return;
     if (event && event.source === 'touch') _dpProfileMenuLastTouchAt = Date.now();
     var btn = event && event.currentTarget ? event.currentTarget : document.querySelector('#dpMasterCard .dp-mc-menu-btn');
     var wrap = btn && btn.closest ? btn.closest('.dp-mc-action-wrap') : null;
@@ -4066,6 +4338,7 @@
     _dpCloseProfileMenu();
     wrap.classList.toggle('is-open', willOpen);
     btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    if (willOpen) _dpPositionProfileMenu(btn, wrap);
   };
 
   window.dpCloseProfileMenu = _dpCloseProfileMenu;
@@ -4078,11 +4351,23 @@
     var action = String(item.getAttribute('data-dp-menu-action') || '').trim();
     var profileId = String(item.getAttribute('data-profile-id') || '').trim();
     _dpCloseProfileMenu();
+    if (action === 'view') {
+      _dpClearProfileEditMode();
+      if (profileId) dpSelectProfile(profileId);
+      dpLoadProfile();
+      return;
+    }
     if (action === 'list') {
+      _dpClearProfileEditMode();
       dpOpenList();
       return;
     }
+    if (action === 'edit' && profileId) {
+      dpStartEditProfile(profileId);
+      return;
+    }
     if (action === 'delete' && profileId) {
+      if (_dpProfileEditTargetId === profileId) _dpClearProfileEditMode();
       dpDeleteProfile(profileId);
     }
   };
@@ -4814,6 +5099,28 @@
       }
     });
 
+    document.addEventListener('pointerdown', function(e) {
+      var targetEl = _resolveEventElement(e.target);
+      if (!targetEl || !targetEl.closest) return;
+      var menuItem = targetEl.closest('#dpMasterCard .dp-mc-action-menu__item');
+      if (menuItem) {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        _dpProfileMenuPointerHandledAt = Date.now();
+        dpRunProfileMenuAction(menuItem, { preventDefault: function(){}, stopPropagation: function(){} });
+        return;
+      }
+      var menuBtn = targetEl.closest('#dpMasterCard .dp-mc-menu-btn');
+      if (menuBtn) {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        _dpProfileMenuPointerHandledAt = Date.now();
+        dpToggleProfileMenu({ currentTarget: menuBtn, source: 'pointer', preventDefault: function(){}, stopPropagation: function(){} });
+        return;
+      }
+      if (!targetEl.closest('#dpMasterCard .dp-mc-action-wrap')) _dpCloseProfileMenu();
+    }, { capture: true, passive: false });
+
     document.addEventListener('click', function(e) {
       var targetEl = _resolveEventElement(e.target);
       if (targetEl && targetEl.closest && targetEl.closest('#dpMasterCard .dp-mc-action-wrap')) return;
@@ -4925,6 +5232,7 @@
         if (!targetEl) return;
         var menuItem = targetEl.closest('.dp-mc-action-menu__item');
         if (menuItem) {
+          if (Date.now() - _dpProfileMenuPointerHandledAt < 700) return;
           if (e.cancelable) e.preventDefault();
           e.stopPropagation();
           dpRunProfileMenuAction(menuItem, { preventDefault: function(){}, stopPropagation: function(){} });
@@ -4932,6 +5240,7 @@
         }
         var menuBtn = targetEl.closest('.dp-mc-menu-btn');
         if (menuBtn) {
+          if (Date.now() - _dpProfileMenuPointerHandledAt < 700) return;
           if (e.cancelable) e.preventDefault();
           e.stopPropagation();
           dpToggleProfileMenu({ currentTarget: menuBtn, source: 'touch', preventDefault: function(){}, stopPropagation: function(){} });
