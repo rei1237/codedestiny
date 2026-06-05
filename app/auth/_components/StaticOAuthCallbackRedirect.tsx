@@ -208,6 +208,22 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       } catch (e) {}
     }
 
+    function extractBalancePoints(payload) {
+      if (!payload || typeof payload !== "object") return NaN;
+      const candidates = [
+        payload.balance,
+        payload.legacyCoinBalance,
+        payload?.user?.points,
+        payload?.user?.legacyCoinBalance,
+        payload.points,
+      ];
+      for (let i = 0; i < candidates.length; i += 1) {
+        const value = Number(candidates[i]);
+        if (Number.isFinite(value)) return value;
+      }
+      return NaN;
+    }
+
     const params = new URLSearchParams(window.location.search);
     const oauthError = params.get("error") || params.get("social_error");
     const socialGrant = params.get("social_grant");
@@ -353,7 +369,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
           })
             .then((response) => response.ok ? response.json() : null)
             .then((balancePayload) => {
-              const nextPoints = Number(balancePayload && balancePayload.user && balancePayload.user.points);
+              const nextPoints = extractBalancePoints(balancePayload);
               if (!Number.isFinite(nextPoints)) return;
               try {
                 const rawUser = localStorage.getItem("fortune_auth_user") || "{}";
