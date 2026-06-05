@@ -1364,6 +1364,10 @@ function canGeneratePaidPdf(pricing = {}) {
   return isSajuPdfGenerationFeatureKey(pricing?.featureKey);
 }
 
+function shouldPersistProfileUnlockEntitlement(pricing = {}) {
+  return !canGeneratePaidPdf(pricing) && isProfileScopedUnlockKey(pricing?.featureKey);
+}
+
 function decodeCookieValue(rawValue) {
   try {
     return decodeURIComponent(String(rawValue || ""));
@@ -1730,6 +1734,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId)).trim();
   const isPdfGenerationService = canGeneratePaidPdf(pricing);
+  const persistProfileUnlockEntitlement = shouldPersistProfileUnlockEntitlement(pricing);
   if (authCheck.adminMode) {
     const adminAuthUserId = String(authCheck?.auth?.userId || ADMIN_TEST_USER_ID);
     const adminFeatureKey = String(pricing?.featureKey || "").trim();
@@ -1783,8 +1788,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         role: "admin",
         adminMode: true,
       },
-      unlockedFeatures: adminFeatureKey && !isPdfGenerationService ? [adminFeatureKey] : [],
-      unlockMap: adminFeatureKey && !isPdfGenerationService ? { [adminFeatureKey]: true } : {},
+      unlockedFeatures: adminFeatureKey && persistProfileUnlockEntitlement ? [adminFeatureKey] : [],
+      unlockMap: adminFeatureKey && persistProfileUnlockEntitlement ? { [adminFeatureKey]: true } : {},
       freeBySubscription: false,
     }, "ADMIN_TEST_PAYMENT_BYPASS");
   }
@@ -1800,7 +1805,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     priceCoin: Number(pricing?.coinPrice || pricing?.cost || 0),
     paymentOptions: paymentDecision,
   });
-  if (!isPdfGenerationService) {
+  if (persistProfileUnlockEntitlement) {
     accessDecision = await resolvePaidContentAccess(env, {
       userId: authCheck.auth.userId,
       profileId,
@@ -1884,7 +1889,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     const usagePassConsume = await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
     if (!usagePassConsume) return null;
     let unlockEntitlement = null;
-    if (!isPdfGenerationService) {
+    if (persistProfileUnlockEntitlement) {
       try {
         unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
           userId: authCheck.auth.userId,
@@ -1976,7 +1981,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         reportSessionId,
       }, subscriptionPass.entitlement);
       let unlockEntitlement = null;
-      if (!isPdfGenerationService) {
+      if (persistProfileUnlockEntitlement) {
         try {
           unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
             userId: authCheck.auth.userId,
@@ -2098,7 +2103,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       });
       if (membershipConsume) {
         let unlockEntitlement = null;
-        if (!isPdfGenerationService) {
+        if (persistProfileUnlockEntitlement) {
           try {
             unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
               userId: authCheck.auth.userId,
@@ -2256,7 +2261,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     const usagePassConsume = usagePassChecked || singleOrMonthlyOnly ? null : await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
     if (usagePassConsume) {
       let unlockEntitlement = null;
-      if (!isPdfGenerationService) {
+      if (persistProfileUnlockEntitlement) {
         try {
           unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
             userId: authCheck.auth.userId,
@@ -2508,7 +2513,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
     let accessGrant = null;
     let unlockEntitlement = null;
-    if (!isPdfGenerationService) {
+    if (persistProfileUnlockEntitlement) {
       try {
         unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
           userId: authCheck.auth.userId,
@@ -3172,6 +3177,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
   if (authCheck.adminMode) {
     const adminAuthUserId = String(authCheck?.auth?.userId || ADMIN_TEST_USER_ID);
     const adminFeatureKey = String(pricing?.featureKey || "").trim();
+    const persistProfileUnlockEntitlement = shouldPersistProfileUnlockEntitlement(pricing);
     const adminPurchaseId = String(requestId || `admin:${adminFeatureKey || "paid-service"}:${Date.now().toString(36)}`).trim();
     const adminProfileId = cleanProfileId(body?.profileId || body?.selectedProfileId || body?.profile?.profileId || body?.profile?.id);
     const adminPaymentDecision = buildPassPaymentDecision(null, pricing, null);
@@ -3222,14 +3228,15 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
         role: "admin",
         adminMode: true,
       },
-      unlockedFeatures: adminFeatureKey && !isPdfGenerationService ? [adminFeatureKey] : [],
-      unlockMap: adminFeatureKey && !isPdfGenerationService ? { [adminFeatureKey]: true } : {},
+      unlockedFeatures: adminFeatureKey && persistProfileUnlockEntitlement ? [adminFeatureKey] : [],
+      unlockMap: adminFeatureKey && persistProfileUnlockEntitlement ? { [adminFeatureKey]: true } : {},
       freeBySubscription: false,
     }, "ADMIN_TEST_PAYMENT_BYPASS");
   }
   const profileId = await resolveBillingProfileId(authCheck.auth.userId, body);
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
-  if (!isPdfGenerationService) {
+  const persistProfileUnlockEntitlement = shouldPersistProfileUnlockEntitlement(pricing);
+  if (persistProfileUnlockEntitlement) {
     const existingProfileUnlock = await findActiveSajuProfileUnlock(env, {
       userId: authCheck.auth.userId,
       profileId,
@@ -3307,7 +3314,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
     reportSessionId,
   }, subscriptionPass.entitlement);
   let unlockEntitlement = null;
-  if (!isPdfGenerationService) {
+  if (persistProfileUnlockEntitlement) {
     try {
       unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
         userId: authCheck.auth.userId,

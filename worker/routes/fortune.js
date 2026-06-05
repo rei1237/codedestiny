@@ -181,6 +181,34 @@ function buildAIPromptPaymentTokenClauses(tokens) {
   return clauses;
 }
 
+function isAIPromptPassAccessPayload(body = {}) {
+  const accessGrant = body?.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
+  const consume = body?.consume && typeof body.consume === "object" ? body.consume : {};
+  const paymentContext = body?._paymentContext && typeof body._paymentContext === "object" ? body._paymentContext : {};
+  const accessType = String(
+    accessGrant.accessType
+      || consume.accessType
+      || consume.transactionType
+      || paymentContext.accessType
+      || "",
+  ).trim().toLowerCase();
+  const accessMethod = String(
+    accessGrant.accessMethod
+      || consume.accessMethod
+      || consume.paymentMethod
+      || paymentContext.accessMethod
+      || "",
+  ).trim().toUpperCase();
+
+  return body?.freeBySubscription === true
+    || accessType === "membership_pass"
+    || accessType === "usage_pass"
+    || accessType === "already_unlocked"
+    || accessType === "admin_test"
+    || accessMethod === "PASS"
+    || accessMethod === "ADMIN_TEST";
+}
+
 async function findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, cost }) {
   const userId = String(auth?.userId || "").trim();
   const normalizedFeatureKey = normalizeFeatureKey(featureKey);
@@ -196,7 +224,7 @@ async function findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, 
     $or: clauses,
   };
   const minCost = Math.floor(Number(cost || 0));
-  if (minCost > 0) query.delta = { $lte: -minCost };
+  if (minCost > 0 && !isAIPromptPassAccessPayload(body)) query.delta = { $lte: -minCost };
 
   return PointHistory.findOne(query)
     .select("_id delta balanceAfter featureKey reason metadata")
