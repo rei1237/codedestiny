@@ -616,12 +616,23 @@ function writeFavoriteModeState(nextState) {
   } catch (_) {}
 }
 
+function canAddFavoriteNatively() {
+  try {
+    return !!(
+      (window.external && typeof window.external.AddFavorite === 'function') ||
+      (window.sidebar && typeof window.sidebar.addPanel === 'function')
+    );
+  } catch (_) {
+    return false;
+  }
+}
+
 function updateFavoriteButtonThemeText(isNeo) {
   var labels = getFavoriteModeLabels();
   var txt = isNeo ? labels.neo : labels.pig;
   var icon = isNeo ? '⭐' : '🌸';
   var savedState = readFavoriteModeState();
-  var isSaved = isNeo ? savedState.neo : savedState.pig;
+  var isSaved = canAddFavoriteNatively() && (isNeo ? savedState.neo : savedState.pig);
   var renderedText = (isSaved ? '✅ ' : '') + txt;
 
   var label = document.getElementById('favoriteLabel');
@@ -657,40 +668,52 @@ function handleFavoriteAdd() {
   var title = isNeo ? labels.neo : labels.pig;
   var icon = isNeo ? '⭐' : '🌸';
   var savedState = readFavoriteModeState();
-  var alreadySaved = !!savedState[modeKey];
-
-  savedState[modeKey] = true;
-  writeFavoriteModeState(savedState);
-  updateFavoriteButtonThemeText(isNeo);
-  pulseFavoriteSaved();
+  var nativeSupported = canAddFavoriteNatively();
+  var alreadySaved = nativeSupported && !!savedState[modeKey];
 
   var nativeAdded = false;
 
-  try {
-    if (window.external && typeof window.external.AddFavorite === 'function') {
-      window.external.AddFavorite(window.location.href, title);
-      nativeAdded = true;
-    }
-  } catch (_) {}
+  if (nativeSupported) {
+    try {
+      if (window.external && typeof window.external.AddFavorite === 'function') {
+        window.external.AddFavorite(window.location.href, title);
+        nativeAdded = true;
+      }
+    } catch (_) {}
 
-  try {
-    if (window.sidebar && typeof window.sidebar.addPanel === 'function') {
-      window.sidebar.addPanel(title, window.location.href, '');
-      nativeAdded = true;
-    }
-  } catch (_) {}
+    try {
+      if (!nativeAdded && window.sidebar && typeof window.sidebar.addPanel === 'function') {
+        window.sidebar.addPanel(title, window.location.href, '');
+        nativeAdded = true;
+      }
+    } catch (_) {}
+  }
 
   if (nativeAdded) {
+    savedState[modeKey] = true;
+    writeFavoriteModeState(savedState);
+    updateFavoriteButtonThemeText(isNeo);
+    pulseFavoriteSaved();
     showToast(icon + ' ' + title + ' 즐겨찾기가 저장되었어요!');
     return;
   }
+
+  if (savedState[modeKey]) {
+    savedState[modeKey] = false;
+    writeFavoriteModeState(savedState);
+  }
+
+  updateFavoriteButtonThemeText(isNeo);
 
   if (alreadySaved) {
     showToast(icon + ' 이미 저장된 즐겨찾기예요.');
     return;
   }
 
-  showToast(icon + ' ' + title + ' 즐겨찾기가 저장되었어요!');
+  showToast(icon + ' 이 브라우저에서는 자동 즐겨찾기 창을 열 수 없어요. 브라우저 메뉴에서 즐겨찾기를 추가해 주세요.');
+  copyToClipboard(window.location.href, icon + ' 링크를 복사했어요. 브라우저 즐겨찾기에 붙여넣어 주세요.');
+  var modal = document.getElementById('ios-install-modal');
+  if (modal) modal.classList.add('open');
 }
 
 // [UX FIX] PWA 팝업 조건: 30초 + 스크롤 50% AND 충족 시만 자동 표시
