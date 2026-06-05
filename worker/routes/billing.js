@@ -74,6 +74,60 @@ const LOTTO_RITUAL_REPORT_FEATURE_KEY = "fun.quantumLotto.ritualReport";
 const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
 const ADMIN_TEST_USER_ID = "flower-admin";
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+const PAID_ACCESS_DECISION_CACHE_TTL_MS = 4000;
+const PAID_ACCESS_DECISION_CACHE_MAX_ENTRIES = 2500;
+
+const paidAccessDecisionCache = globalThis.__paidAccessDecisionCache
+  || (globalThis.__paidAccessDecisionCache = {
+    entries: new Map(),
+    lastPruneAt: 0,
+  });
+
+function buildPaidAccessDecisionCacheKey({ userId, profileId, featureKey, coinPrice, requestedPaymentMode, allowPassAutoUnlock }) {
+  return [
+    String(userId || ""),
+    String(profileId || ""),
+    String(featureKey || ""),
+    Math.max(0, Math.floor(Number(coinPrice || 0))),
+    String((requestedPaymentMode || "")).toLowerCase(),
+    allowPassAutoUnlock === false ? "0" : "1",
+  ].join("|");
+}
+
+function readPaidAccessDecisionFromCache(cacheKey) {
+  if (!cacheKey) return null;
+  const now = Date.now();
+  const entry = paidAccessDecisionCache.entries.get(cacheKey);
+  if (!entry) return null;
+  if (entry.expiresAt <= now) {
+    paidAccessDecisionCache.entries.delete(cacheKey);
+    return null;
+  }
+  return entry.decision || null;
+}
+
+function writePaidAccessDecisionToCache(cacheKey, decision, priceCoin) {
+  if (!cacheKey || !decision) return decision;
+  const now = Date.now();
+  if (paidAccessDecisionCache.lastPruneAt + 2000 < now) {
+    paidAccessDecisionCache.lastPruneAt = now;
+    for (const [key, entry] of paidAccessDecisionCache.entries.entries()) {
+      if (!entry || entry.expiresAt <= now) paidAccessDecisionCache.entries.delete(key);
+    }
+  }
+  if (paidAccessDecisionCache.entries.size > PAID_ACCESS_DECISION_CACHE_MAX_ENTRIES) {
+    const earliestKey = paidAccessDecisionCache.entries.keys().next().value;
+    if (earliestKey) paidAccessDecisionCache.entries.delete(earliestKey);
+  }
+  paidAccessDecisionCache.entries.set(cacheKey, {
+    decision: decision,
+    createdAt: now,
+    expiresAt: now + Math.max(1000, Math.floor(PAID_ACCESS_DECISION_CACHE_TTL_MS)),
+    priceCoin: Number.isFinite(Number(priceCoin)) ? Math.max(0, Math.floor(Number(priceCoin))) : 0,
+  });
+  return decision;
+}
+
 const SAJU_PDF_GENERATION_FEATURE_KEYS = new Set([
   "saju_life_book_pdf",
   "premium-lifebook-report",
@@ -299,6 +353,16 @@ async function resolvePaidContentAccess(env, {
 } = {}) {
   const priceCoin = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
   const featureKey = String(pricing?.featureKey || "").trim();
+  const cacheKey = buildPaidAccessDecisionCacheKey({
+    userId,
+    profileId,
+    featureKey,
+    coinPrice: priceCoin,
+    requestedPaymentMode,
+    allowPassAutoUnlock,
+  });
+  const cachedAccessDecision = readPaidAccessDecisionFromCache(cacheKey);
+  if (cachedAccessDecision) return cachedAccessDecision;
 
   if (!userId) {
     return buildPaidContentAccessDecision({
@@ -320,12 +384,12 @@ async function resolvePaidContentAccess(env, {
       Promise.resolve(subscriptionPass || getActiveMembershipPassForUser(env, userId)),
     ]);
     if (existingUnlock) {
-      return buildPaidContentAccessDecision({
+      return writePaidAccessDecisionToCache(cacheKey, buildPaidContentAccessDecision({
         accessGranted: true,
         reason: "already_unlocked",
         unlockId: existingUnlock._id,
         priceCoin,
-      });
+      }), priceCoin);
     }
 
     const activePass = existingPass || {
@@ -344,24 +408,24 @@ async function resolvePaidContentAccess(env, {
     const normalizedPaymentMode = String(requestedPaymentMode || "").trim().toLowerCase();
 
     if (normalizedPaymentMode.includes("monthly") && !paymentOptions.canUseByMonthly) {
-      return buildPaidContentAccessDecision({
+      return writePaidAccessDecisionToCache(cacheKey, buildPaidContentAccessDecision({
         reason: "monthly_balance_required",
         priceCoin,
         paymentOptions,
-      });
+      }), priceCoin);
     }
 
     if (paymentOptions.canUseByPass && allowPassAutoUnlock) {
       const profilePolicy = await assertProfileCardPassPolicyIfNeeded({ userId, profileId, pricing, body });
       if (!profilePolicy.ok) {
-        return buildPaidContentAccessDecision({
+        return writePaidAccessDecisionToCache(cacheKey, buildPaidContentAccessDecision({
           reason: profilePolicy.reason,
           priceCoin,
           paymentOptions: {
             ...paymentOptions,
             profilePolicy: profilePolicy.policy || null,
           },
-        });
+        }), priceCoin);
       }
       const unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
         userId,
@@ -371,21 +435,21 @@ async function resolvePaidContentAccess(env, {
         passId: `membership:${activePass.tier || "pass"}:${requestId || Date.now().toString(36)}`,
         coinAmount: 0,
       });
-      return buildPaidContentAccessDecision({
+      return writePaidAccessDecisionToCache(cacheKey, buildPaidContentAccessDecision({
         accessGranted: true,
         reason: "pass_covered",
         unlockId: unlockEntitlement?._id,
         priceCoin,
         paymentOptions,
-      });
+      }), priceCoin);
     }
 
-    return buildPaidContentAccessDecision({
+    return writePaidAccessDecisionToCache(cacheKey, buildPaidContentAccessDecision({
       reason: "payment_required",
       shouldOpenPaymentSelector: true,
       priceCoin,
       paymentOptions,
-    });
+    }), priceCoin);
   } catch (error) {
     return buildPaidContentAccessDecision({
       reason: String(error?.code || "") === "MISSING_PROFILE_ID" ? "invalid_profile" : "error",
@@ -443,10 +507,10 @@ function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
     || rawStatus === "completed"
     || rawStatus === "confirmed"
     || rawStatus === "approved"
-    || rawStatus === "등록중"
-    || rawStatus === "이용중"
-    || rawStatus === "유효"
-    || rawStatus === "완료";
+    || rawStatus === "\uB4F1\uB85D\uC911"
+    || rawStatus === "\uC774\uC6A9\uC911"
+    || rawStatus === "\uC720\uD6A8"
+    || rawStatus === "\uC644\uB8CC";
   const isSnapshotActive = !inactiveStatus && (
     snapshot?.isActive === true
       || snapshot?.isSubscribed === true
@@ -2842,11 +2906,24 @@ async function readSubscriptionStatusSnapshot(request, env) {
       return { isActive: false, tier: "free", passTier: null, freeLimit: 0 };
     }
     const payload = await readPayloadSafe(delegatedResponse);
+    const subscription = payload?.subscription && typeof payload.subscription === "object" ? payload.subscription : null;
     return {
       isActive: Boolean(payload?.isActive),
-      tier: String(payload?.tier || "free"),
-      passTier: payload?.passTier || null,
-      freeLimit: Number(payload?.freeLimit || 0),
+      isSubscribed: Boolean(payload?.isSubscribed || subscription?.isSubscribed),
+      active: payload?.active,
+      enabled: payload?.enabled,
+      valid: payload?.valid,
+      registered: payload?.registered,
+      tier: String(payload?.tier || subscription?.tier || payload?.plan || subscription?.plan || payload?.passTier || subscription?.passTier || "free"),
+      plan: payload?.plan || subscription?.plan || null,
+      passTier: payload?.passTier || subscription?.passTier || null,
+      status: payload?.status || subscription?.status || null,
+      subscriptionStatus: payload?.subscriptionStatus || subscription?.subscriptionStatus || null,
+      membershipStatus: payload?.membershipStatus || subscription?.membershipStatus || null,
+      expiresAt: payload?.expiresAt || subscription?.expiresAt || null,
+      freeLimit: Number(payload?.freeLimit || subscription?.freeLimit || 0),
+      source: payload?.source || subscription?.source || "profile_subscription_status",
+      subscription,
     };
   } catch (_) {
     return { isActive: false, tier: "free", passTier: null, freeLimit: 0 };
