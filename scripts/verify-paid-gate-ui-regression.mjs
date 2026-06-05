@@ -53,6 +53,8 @@ function section(source, startMarker, endMarker, label) {
 assertContains(indexSource, "function _cdChooseServicePaymentMode(options)", "common payment mode selector");
 assertContains(indexSource, "function _cdRunDirectKrwCheckout(options)", "common direct KRW checkout");
 assertContains(indexSource, "window._cdChooseServicePaymentMode = _cdChooseServicePaymentMode", "payment selector exported");
+assertContains(indexSource, "window.__cdChooseServicePaymentModeCanonical = _cdChooseServicePaymentMode", "canonical payment selector exported");
+assertContains(indexSource, "window.__cdRestoreCanonicalPaymentMode", "canonical payment selector restore guard");
 assertContains(indexSource, "window._cdRunDirectKrwCheckout = _cdRunDirectKrwCheckout", "direct checkout exported");
 assertContains(indexSource, "window._cdHasVerifiedServerAccess = _cdHasVerifiedServerAccess", "server access guard exported");
 assertContains(indexSource, "fallbackCoverage.source = 'cache_unverified';", "payment modal immediate cache fallback");
@@ -98,6 +100,8 @@ assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBe
 assertContains(destinyProfileSource, "data-mode=\"' + (passEligible ? 'pass' : 'pass-disabled') + '\"", "destiny payment modal pass option");
 assertContains(destinyProfileSource, "__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {", "destiny pass lookup on pass click");
 assertContains(destinyProfileSource, "if (choice === 'pass')", "destiny pass choice grant path");
+assertContains(destinyProfileSource, "__cdRestoreCanonicalPaymentMode", "destiny fallback restores canonical selector");
+assertContains(destinyProfileSource, "__cdSupportsPassChoice", "destiny fallback requires pass-capable selector");
 assertNotContains(destinyProfileSource, "opts.internalMainGate !== true && opts.__cdPaymentGateAuthorized !== true && typeof window.__cdApplyMembershipPassBeforePayment", "destiny no pre-modal pass bottleneck");
 
 assertContains(paymentsRouteSource, "fetchPortOnePayment", "server PortOne verification");

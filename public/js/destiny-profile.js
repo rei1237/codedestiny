@@ -5521,7 +5521,10 @@
 
   window.generateGuardianAvatar = window.dpGenerateGuardianAvatar;
 
-  if (typeof window._cdChooseServicePaymentMode !== 'function') {
+  if (typeof window.__cdRestoreCanonicalPaymentMode === 'function') {
+    try { window.__cdRestoreCanonicalPaymentMode(); } catch (_) {}
+  }
+  if (typeof window._cdChooseServicePaymentMode !== 'function' || window._cdChooseServicePaymentMode.__cdSupportsPassChoice !== true) {
     function _dpGetMonthlyCreditBalance() {
       try {
         var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
@@ -5688,6 +5691,7 @@
       }
       return openServicePaymentChoiceModal();
     };
+    try { window._cdChooseServicePaymentMode.__cdSupportsPassChoice = true; } catch (_) {}
   }
 
   window._cdCoinGatePerUse = function(cost, reason, cb, onCancel, options) {

@@ -248,14 +248,20 @@ assertBefore(
 assertContains(indexSource, 'class="cd-direct-payment-option" data-mode="direct"', "single payment CTA");
 assertContains(indexSource, "var monthlyButtonHtml", "monthly payment CTA");
 assertContains(indexSource, 'data-mode="monthly"', "monthly payment mode marker");
+assertContains(indexSource, 'data-mode="pass"', "payment modal shows pass CTA");
+assertContains(indexSource, "passButtonHtml", "payment modal includes pass card HTML");
 assertContains(indexSource, "monthlyBalance >= requiredMonthlyCredits", "simple frontend monthly balance check");
 assertContains(indexSource, "cd-direct-payment-dialog", "legacy direct payment dialog");
 assertContains(indexSource, "width:min(460px,100%)", "legacy modal width");
 assertContains(indexSource, "min-height:auto", "legacy option height");
-assertNotContains(indexSource, 'data-mode="membership"', "payment modal hides pass CTA");
-assertNotContains(indexSource, "membershipButtonHtml", "payment modal removes pass card HTML");
+assertNotContains(indexSource, 'data-mode="membership"', "payment modal avoids legacy membership mode");
+assertNotContains(indexSource, "membershipButtonHtml", "payment modal avoids legacy membership variable");
 assertNotContains(indexSource, "_cdResolvePaymentEligibilityForOptions", "payment modal avoids server eligibility helper");
 assertContains(indexSource, 'data-mode="cancel"', "cancel button");
 assertContains(indexSource, "PortOne V2", "card provider badge");
+assertContains(indexSource, "getSubscriptionMonthlyCreditCost", "main pass shop monthly credit cost");
+assertContains(indexSource, "buildMembershipMonthlyCreditRequestId", "main pass shop monthly credit request id");
+assertContains(indexSource, "/api/payments/subscription/confirm", "main pass shop monthly credit purchase API");
+assertContains(indexSource, "paymentMethod: 'monthly_credit'", "main pass shop monthly credit payment method");
 
 console.log("billing pass policy regression checks passed");
