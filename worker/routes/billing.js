@@ -400,6 +400,39 @@ async function getActiveMembershipPassForUser(env, authUserId) {
   };
 }
 
+function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
+  if (snapshot?.isActive !== true) return null;
+  const tier = String(snapshot?.tier || snapshot?.plan || snapshot?.passTier || "free").trim().toLowerCase();
+  if (!tier || tier === "free") return null;
+  const profileSubscription = {
+    tier,
+    passTier: snapshot?.passTier || tier,
+    isActive: true,
+    isSubscribed: true,
+    status: "active",
+    expiresAt: snapshot?.expiresAt || snapshot?.subscription?.expiresAt || null,
+    freeLimit: Number(snapshot?.freeLimit || 0),
+    source: snapshot?.source || "subscription_status_snapshot",
+  };
+  const entitlement = normalizeHoneyPassEntitlement({ profileSubscription });
+  if (!entitlement.isActive) return null;
+  return {
+    isActive: true,
+    tier: entitlement.tier,
+    passTier: entitlement.passTier,
+    freeLimit: Number(entitlement.maxCoveredCoin || 0),
+    profileSubscription,
+    entitlement,
+  };
+}
+
+async function getMembershipPassForBillingRequest(request, env, authUserId) {
+  const directPass = await getActiveMembershipPassForUser(env, authUserId);
+  if (directPass?.isActive === true) return directPass;
+  const snapshot = await readSubscriptionStatusSnapshot(request, env);
+  return buildMembershipPassFromStatusSnapshot(snapshot) || directPass;
+}
+
 async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
   const user = await User.findById(authUserId)
     .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
@@ -1632,8 +1665,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   }
   const profileId = authCheck?.auth?.userId ? await resolveBillingProfileId(authCheck.auth.userId, body) : "";
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
-  const subscriptionPassForDecision = !isPdfGenerationService && authCheck?.auth?.userId
-    ? await getActiveMembershipPassForUser(env, authCheck.auth.userId)
+  const subscriptionPassForDecision = authCheck?.auth?.userId
+    ? await getMembershipPassForBillingRequest(request, env, authCheck.auth.userId)
     : null;
   let paymentDecision = buildPassPaymentDecision(null, pricing, null);
   let accessDecision = buildPaidContentAccessDecision({
@@ -1832,7 +1865,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   };
 
   if (authCheck?.auth?.userId) {
-    const subscriptionPass = await getActiveMembershipPassForUser(env, authCheck.auth.userId);
+    const subscriptionPass = subscriptionPassForDecision?.isActive === true
+      ? subscriptionPassForDecision
+      : await getMembershipPassForBillingRequest(request, env, authCheck.auth.userId);
     const coinPrice = Number(pricing?.coinPrice || pricing?.cost || 0);
     paymentDecision = buildPassPaymentDecision(
       subscriptionPass.entitlement,
@@ -3122,7 +3157,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
     }
   }
 
-  const subscriptionPass = await getActiveMembershipPassForUser(env, authCheck.auth.userId);
+  const subscriptionPass = await getMembershipPassForBillingRequest(request, env, authCheck.auth.userId);
   const paymentDecision = buildPassPaymentDecision(
     subscriptionPass.entitlement,
     pricing,
