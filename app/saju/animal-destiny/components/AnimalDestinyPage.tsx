@@ -70,15 +70,21 @@ export default function AnimalDestinyPage() {
 
   const handleHeaderBack = useCallback(() => {
     if (handleAnalysisBack()) return;
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      window.history.back();
-      return;
-    }
-
     const localeMatch = pathname.match(/^\/(en|ja|zh|en-us|ja-jp|zh-cn)(?=\/|$)/i);
     const fallbackPath = localeMatch ? `/${localeMatch[1]}/saju` : "/saju";
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname;
+      if (host === "localhost" || host === "127.0.0.1" || host === "::1" || window.location.search.includes("debugSajuRedirect=1")) {
+        console.warn("[saju-redirect-blocked]", {
+          reason: "animal-destiny-history-back-replaced",
+          pathname,
+          status,
+          fallbackPath,
+        });
+      }
+    }
     router.replace(fallbackPath);
-  }, [handleAnalysisBack, pathname, router]);
+  }, [handleAnalysisBack, pathname, router, status]);
 
   useBackNavigation({
     scope: "analysis",

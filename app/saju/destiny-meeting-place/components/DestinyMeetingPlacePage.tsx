@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { fetchBillingBalance, openPaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
@@ -42,6 +43,7 @@ function getDayMasterLabel(sajuResult: Record<string, unknown>) {
 }
 
 export default function DestinyMeetingPlacePage() {
+  const router = useRouter();
   const [input, setInput] = useState<AnimalDestinyInput>(INITIAL_INPUT);
   const [result, setResult] = useState<MeetingResult | null>(null);
   const [meta, setMeta] = useState<AnalysisMeta | null>(null);
@@ -182,6 +184,51 @@ export default function DestinyMeetingPlacePage() {
     setError("");
   }, []);
 
+  const handleBack = useCallback(() => {
+    const canDebug = (() => {
+      if (typeof window === "undefined") return false;
+      const host = window.location.hostname;
+      return host === "localhost" || host === "127.0.0.1" || host === "::1" || window.location.search.includes("debugSajuRedirect=1");
+    })();
+
+    if (isLoading || isCharging) {
+      if (canDebug) {
+        console.warn("[saju-redirect-blocked]", {
+          reason: "destiny-meeting-place-loading-back-blocked",
+          pathname: window.location.pathname,
+          isLoading,
+          isCharging,
+        });
+      }
+      return;
+    }
+
+    if (visibleResult || error) {
+      setResult(null);
+      setMeta(null);
+      setError("");
+      setShowPremiumDemo(false);
+      if (canDebug) {
+        console.warn("[saju-redirect-blocked]", {
+          reason: "destiny-meeting-place-back-reset-internal-state",
+          pathname: window.location.pathname,
+          hasResult: Boolean(visibleResult),
+          hasError: Boolean(error),
+        });
+      }
+      return;
+    }
+
+    if (canDebug) {
+      console.warn("[saju-redirect-blocked]", {
+        reason: "destiny-meeting-place-history-back-replaced",
+        pathname: window.location.pathname,
+        fallbackPath: "/saju",
+      });
+    }
+    router.replace("/saju");
+  }, [error, isCharging, isLoading, router, visibleResult]);
+
   return (
     <main className="relative min-h-[100dvh] overflow-x-hidden bg-[radial-gradient(circle_at_10%_12%,rgba(255,164,216,0.28),transparent_34%),radial-gradient(circle_at_88%_4%,rgba(101,212,255,0.3),transparent_30%),radial-gradient(circle_at_52%_92%,rgba(126,108,255,0.24),transparent_36%),linear-gradient(168deg,#050617_0%,#171038_45%,#2a0f47_100%)] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(255,255,255,0.13),transparent_38%),radial-gradient(circle_at_74%_68%,rgba(255,255,255,0.08),transparent_42%)]" />
@@ -194,7 +241,7 @@ export default function DestinyMeetingPlacePage() {
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 pt-4 sm:px-6 sm:pt-6">
           <button
             type="button"
-            onClick={() => window.history.back()}
+            onClick={handleBack}
             className="pointer-events-auto rounded-full border border-[#b7dbff]/35 bg-white/10 p-2 text-white transition-all hover:bg-white/20"
             aria-label="Go back"
           >
@@ -219,7 +266,7 @@ export default function DestinyMeetingPlacePage() {
       <header hidden className="sticky top-0 z-40 border-b border-[#92cbff]/30 bg-[#0a0a2b]/74 px-4 py-4 shadow-[0_10px_32px_rgba(3,6,20,0.45)] backdrop-blur-xl sm:px-6">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between">
           <button
-            onClick={() => window.history.back()}
+            onClick={handleBack}
             className="rounded-full border border-[#b7dbff]/35 bg-white/10 p-2 text-white transition-all hover:bg-white/20"
             aria-label="뒤로 가기"
           >

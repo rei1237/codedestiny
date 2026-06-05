@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { fetchBillingBalance, openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
@@ -277,6 +278,7 @@ function InputField({
 }
 
 export default function DestinyBiasClient() {
+  const router = useRouter();
   const reduceMotion = useReducedMotion();
   const { guardHandlers, shouldBlockClick } = useDestinyBiasTouchGuard();
 
@@ -592,10 +594,20 @@ export default function DestinyBiasClient() {
   });
 
   const goBackToMain = useCallback(() => {
+    if (handleAnalysisBack()) return;
     if (typeof window !== "undefined") {
-      window.location.assign("/");
+      const host = window.location.hostname;
+      if (host === "localhost" || host === "127.0.0.1" || host === "::1" || window.location.search.includes("debugSajuRedirect=1")) {
+        console.warn("[saju-redirect-blocked]", {
+          reason: "destiny-bias-root-back-replaced",
+          pathname: window.location.pathname,
+          isAnalyzing: analyzing,
+          uiStep,
+        });
+      }
     }
-  }, []);
+    router.replace("/saju");
+  }, [analyzing, handleAnalysisBack, router, uiStep]);
 
   const validateBirthInput = useCallback((value: string, target: "me" | "bias") => {
     const result = normalizeBirthDateInput(value);
