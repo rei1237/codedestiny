@@ -10,6 +10,7 @@ const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.
 const billingRouteSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
 const paymentsRouteSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
 const tarotLoveSource = readFileSync(resolve(root, "js/tarot-love-experience.js"), "utf8");
+const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
 
 function assertContains(source, marker, label = marker) {
   assert.ok(source.includes(marker), `${label}: missing marker`);
@@ -54,18 +55,18 @@ assertContains(indexSource, "function _cdRunDirectKrwCheckout(options)", "common
 assertContains(indexSource, "window._cdChooseServicePaymentMode = _cdChooseServicePaymentMode", "payment selector exported");
 assertContains(indexSource, "window._cdRunDirectKrwCheckout = _cdRunDirectKrwCheckout", "direct checkout exported");
 assertContains(indexSource, "window._cdHasVerifiedServerAccess = _cdHasVerifiedServerAccess", "server access guard exported");
-assertContains(indexSource, "setTimeout(function(){ resolve(fallbackCoverage); }, 120)", "payment modal immediate fallback");
+assertContains(indexSource, "fallbackCoverage.source = 'cache_unverified';", "payment modal immediate cache fallback");
 const perUseGateSource = section(indexSource, "function _cdRunPerUseCoinGate(", "window.__cdRunPerUseCoinGateFromTile", "per-use gate");
 assertBefore(perUseGateSource, "_cdBeginPaidFeatureInFlight(action, paidGateFeatureKey", "await _cdChooseServicePaymentMode({", "paid gate opens before eligibility wait");
 
-assertBefore(indexSource, 'data-mode="membership"', 'data-mode="direct"', "membership option appears before direct card");
+assertBefore(indexSource, 'data-mode="pass"', 'data-mode="direct"', "pass option appears before direct card");
 assertBefore(indexSource, 'data-mode="direct"', 'data-mode="monthly"', "direct and monthly options both visible");
-assertContains(indexSource, 'data-pass-state="covered"', "covered pass state");
-assertContains(indexSource, 'data-pass-state="over"', "pass over-limit state");
-assertContains(indexSource, 'data-pass-state="empty"', "empty pass state");
-assertContains(indexSource, 'data-pass-state="monthly-unavailable"', "monthly unavailable state remains visible");
+assertContains(indexSource, "var passDisabledAttr = passEligible ? '' : ' disabled aria-disabled=\"true\"';", "pass disabled state");
+assertContains(indexSource, "var passBusy = false;", "pass lookup click lock");
+assertContains(indexSource, 'data-payment-status', "payment choice status state");
+assertContains(indexSource, "var monthlyButtonHtml = '<button type=\"button\" class=\"cd-direct-payment-option' + monthlyDisabledClass", "monthly option remains visible");
 
-assertBefore(indexSource, "if (!order.merchantUid && checkoutData.accessGrant", "await _cdLoadPortOneV2Sdk()", "pass access returns before PortOne SDK");
+assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdLoadPortOneV2Sdk()", "pass access returns before PortOne SDK");
 assertContains(indexSource, "provider: 'PORTONE_V2'", "PortOne provider in checkout payload");
 assertContains(indexSource, "pg: 'KG_INICIS'", "KG Inicis pg in checkout payload");
 assertContains(indexSource, "window.PortOne.requestPayment(requestData)", "PortOne V2 requestPayment call");
@@ -94,6 +95,11 @@ assertContains(billingRouteSource, '"/api/payments/confirm"', "direct payment co
 assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable", '"/api/payments/prepare"', "pass checked before card prepare");
 assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable", '"/api/payments/confirm"', "pass checked before card confirm");
 
+assertContains(destinyProfileSource, "data-mode=\"' + (passEligible ? 'pass' : 'pass-disabled') + '\"", "destiny payment modal pass option");
+assertContains(destinyProfileSource, "__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {", "destiny pass lookup on pass click");
+assertContains(destinyProfileSource, "if (choice === 'pass')", "destiny pass choice grant path");
+assertNotContains(destinyProfileSource, "opts.internalMainGate !== true && opts.__cdPaymentGateAuthorized !== true && typeof window.__cdApplyMembershipPassBeforePayment", "destiny no pre-modal pass bottleneck");
+
 assertContains(paymentsRouteSource, "fetchPortOnePayment", "server PortOne verification");
 assertContains(paymentsRouteSource, "merchantUid", "merchantUid duplicate key");
 assertContains(paymentsRouteSource, "idempotencyKey", "idempotency duplicate key");
@@ -106,10 +112,10 @@ assertContains(tarotLoveSource, "window._cdHasVerifiedServerAccess", "tarot love
 
 for (const source of [indexSource, staticIndexSource]) {
   assertContains(source, 'id="cd-main-shell-critical-v20260604"', "critical CSS marker mirrored");
-  assertContains(source, 'data-marker="moonstone-pass-ui-v20260604-tailwind-glass"', "glass CSS marker mirrored");
+  assertContains(source, 'data-marker="moonstone-pass-ui-v20260605-starlight-cta"', "glass CSS marker mirrored");
   assertContains(source, ".moon-hero{grid-template-columns", "desktop critical layout");
   assertContains(source, "@media (max-width:860px)", "mobile critical layout");
-  assertContains(source, ".moon-start-grid,.moon-journey-grid{grid-template-columns:1fr}", "mobile card layout fallback");
+  assertContains(source, ".moon-start-grid{grid-template-columns:1fr}", "mobile card layout fallback");
   assertContains(source, '<link rel="stylesheet" href="/styles/core-ui.css', "core CSS blocking stylesheet");
   assertContains(source, '<link rel="stylesheet" href="/styles/fortune-ui.css', "fortune CSS blocking stylesheet");
 }

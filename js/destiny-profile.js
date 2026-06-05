@@ -1957,17 +1957,21 @@
       var title = String(opts.title || opts.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4').trim();
       var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
       var requestId = String(opts.requestId || '').trim() || ('paid-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
-      var passResult = await _dpApplyMembershipPassBeforePayment(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId }));
-      if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) {
-        var passTx = _dpPaidPassPayloadTransactionId(passResult.payload, requestId);
-        if (typeof opts.onGranted === 'function') opts.onGranted(passTx, passResult.payload || {}, passResult);
-        return { status: 'granted', transactionId: passTx, payload: passResult.payload || {}, access: passResult };
-      }
       if (typeof window._cdChooseServicePaymentMode !== 'function') throw new Error('\uACB0\uC81C \uC120\uD0DD\uCC3D\uC744 \uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.');
       var choice = await window._cdChooseServicePaymentMode(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, internalMainGate: true, skipPassProbe: true }));
       if (!choice || choice === 'cancel') {
         if (typeof opts.onCancel === 'function') opts.onCancel();
         return { status: 'cancelled' };
+      }
+      if (choice === 'pass') {
+        var passCacheKey = _dpPaidPassCacheKey(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId }), title, coinPrice);
+        var passResult = _dpTakePaidPassGateResult(passCacheKey);
+        if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) {
+          var passTx = _dpPaidPassPayloadTransactionId(passResult.payload, requestId);
+          if (typeof opts.onGranted === 'function') opts.onGranted(passTx, passResult.payload || {}, passResult);
+          return { status: 'granted', transactionId: passTx, payload: passResult.payload || {}, access: passResult };
+        }
+        return { status: 'cancelled', reason: 'pass_applied_in_modal' };
       }
       var payload = choice === 'monthly' ? await _dpRunMonthlyCreditFromMainGate(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId })) : await window._cdRunDirectKrwCheckout(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, forceDirectPayment: true, internalMainGate: true }));
       var txId = _dpPaidPassPayloadTransactionId(payload, requestId);
@@ -2282,6 +2286,30 @@
             profileId: optionBag.profileId,
             selectedProfileId: optionBag.selectedProfileId
           }).then(function(choice) {
+            if (choice === 'pass') {
+              if (typeof cb === 'function') cb(requestId, { __cdPassGateResolved: true, requestId: requestId });
+              return { __cdPassGateResolved: true, requestId: requestId };
+            }
+            if (choice === 'monthly') {
+              window._cdCoinGatePerUseInFlight = true;
+              window.__cdCoinGatePerUseLockAt = Date.now();
+              _dpSetPaymentPending(true, String(reason || '').trim() + ' 월정석 결제를 준비하는 중입니다...');
+              return _dpRunMonthlyCreditFromMainGate({
+                title: reason,
+                reason: reason,
+                coinPrice: cost,
+                cost: cost,
+                featureKey: normalizedFeatureKey || undefined,
+                requestId: requestId,
+                reportType: optionBag.reportType,
+                serviceKey: optionBag.serviceKey,
+                actionType: optionBag.actionType,
+                profileAction: optionBag.profileAction,
+                action: optionBag.action,
+                profileId: optionBag.profileId,
+                selectedProfileId: optionBag.selectedProfileId
+              });
+            }
             if (choice !== 'direct') {
               if (typeof onCancel === 'function') onCancel();
               return null;
@@ -2296,6 +2324,9 @@
               reason: reason,
               featureKey: normalizedFeatureKey || undefined,
               requestId: requestId,
+              forceDirectPayment: true,
+              internalMainGate: true,
+              __cdPaymentGateAuthorized: true,
               checkoutPayload: {
                 paymentMode: 'DIRECT_KRW',
                 reportType: optionBag.reportType,
@@ -2336,6 +2367,30 @@
           reason: reason,
           featureKey: normalizedFeatureKey || undefined,
           }).then(function(choice) {
+          if (choice === 'pass') {
+            if (typeof cb === 'function') cb(String(optionBag.requestId || ''), { __cdPassGateResolved: true });
+            return null;
+          }
+          if (choice === 'monthly') {
+            window._cdCoinGatePerUseInFlight = true;
+            window.__cdCoinGatePerUseLockAt = Date.now();
+            _dpSetPaymentPending(true, String(reason || '').trim() + ' 월정석 결제를 준비하는 중입니다...');
+            return _dpRunMonthlyCreditFromMainGate({
+              title: reason,
+              reason: reason,
+              coinPrice: cost,
+              cost: cost,
+              featureKey: normalizedFeatureKey || undefined,
+              requestId: String(optionBag.requestId || '').trim().slice(0, 120) || undefined
+            }).then(function(payload) {
+              window._cdCoinGatePerUseInFlight = false;
+              window.__cdCoinGatePerUseLockAt = 0;
+              _dpSetPaymentPending(false);
+              var txId = String((payload && (payload.transactionId || payload.paymentId || payload.purchaseId || payload.requestId)) || '');
+              if (typeof cb === 'function') cb(txId, payload || {});
+              return payload;
+            });
+          }
           if (choice !== 'direct') {
             if (typeof onCancel === 'function') onCancel();
             return null;
@@ -2350,6 +2405,9 @@
             reason: reason,
             featureKey: normalizedFeatureKey || undefined,
             requestId: String(optionBag.requestId || '').trim().slice(0, 120) || undefined,
+            forceDirectPayment: true,
+            internalMainGate: true,
+            __cdPaymentGateAuthorized: true,
             checkoutPayload: {
               paymentMode: 'DIRECT_KRW',
             },
@@ -2581,6 +2639,9 @@
             featureKey: info.key,
             productId: unlockProductId,
             requestId: unlockRequestId,
+            forceDirectPayment: true,
+            internalMainGate: true,
+            __cdPaymentGateAuthorized: true,
             checkoutPayload: {
               productId: unlockProductId,
               paymentMode: 'DIRECT_KRW'
@@ -5508,6 +5569,7 @@
         '.cd-direct-payment-option span{position:relative;display:block;font-size:12.5px;line-height:1.55;color:#f1ecdf}',
         '.cd-direct-payment-metric{position:relative;display:flex;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12);font-size:12px;color:#d8deef}',
         '.cd-direct-payment-metric b{color:#fff7d1}',
+        '.cd-direct-payment-status{min-height:20px;margin-top:12px;color:#d8f4ff;font-size:12px;line-height:1.5;position:relative;z-index:1}.cd-direct-payment-status.is-error{color:#fecaca}',
         '.cd-direct-payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;position:relative;z-index:1}',
         '.cd-direct-payment-cancel{border:1px solid rgba(255,255,255,.38);border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.05));color:#f6efe4;padding:10px 16px;cursor:pointer;font-weight:800}',
         '@media(min-width:561px){.cd-direct-payment-modal{align-items:center}}',
@@ -5526,6 +5588,7 @@
       var monthlyBalance = _dpGetMonthlyCreditBalance();
       var canUseMonthly = monthlyBalance >= requiredMonthlyCredits && requiredMonthlyCredits > 0;
       var monthlyShortage = Math.max(0, requiredMonthlyCredits - monthlyBalance);
+      var passEligible = coinPrice > 0 && coinPrice <= 100;
       var escapeHtml = function(value) {
         return String(value || '').replace(/[&<>"']/g, function(ch) {
           return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch] || ch;
@@ -5545,6 +5608,13 @@
             '<p class="cd-direct-payment-sub">이 콘텐츠만 한 번 구매하고, 구매 후 이 프로필에서는 계속 열람할 수 있어요.</p>' +
             '<div class="cd-direct-payment-note"><strong>' + escapeHtml(title) + '</strong>단건 결제: ' + coinPrice.toLocaleString('ko-KR') + '코인 · ' + amountKrw.toLocaleString('ko-KR') + '원<br>월정석 결제: 필요 월정석 ' + requiredMonthlyCredits.toLocaleString('ko-KR') + '개 · 현재 보유 월정석 ' + monthlyBalance.toLocaleString('ko-KR') + '</div>' +
             '<div class="cd-direct-payment-options">' +
+              '<button type="button" class="cd-direct-payment-option' + (passEligible ? '' : ' is-disabled') + '" data-mode="' + (passEligible ? 'pass' : 'pass-disabled') + '">' +
+                '<em class="cd-direct-payment-mode">\uC774\uC6A9\uAD8C PASS</em>' +
+                '<strong>\uC774\uC6A9\uAD8C\uC73C\uB85C \uC774\uC6A9</strong>' +
+                '<span>' + (passEligible ? '\uD074\uB9AD\uD558\uBA74 \uC11C\uBC84\uC5D0\uC11C \uC774\uC6A9\uAD8C \uD1B5\uACFC \uAC00\uB2A5 \uC5EC\uBD80\uB9CC \uD655\uC778\uD569\uB2C8\uB2E4.' : '\uC774 \uCF58\uD150\uCE20\uB294 \uC774\uC6A9\uAD8C \uBB34\uB8CC \uC0C1\uD55C\uC744 \uCD08\uACFC\uD569\uB2C8\uB2E4.') + '</span>' +
+                '<span class="cd-direct-payment-metric"><span>\uCC28\uAC10</span><b>0\uCF54\uC778</b></span>' +
+                '<span class="cd-direct-payment-metric"><span>\uC870\uD68C</span><b>\uD074\uB9AD \uC2DC 1\uD68C</b></span>' +
+              '</button>' +
               '<button type="button" class="cd-direct-payment-option" data-mode="direct">' +
                 '<em class="cd-direct-payment-mode">PortOne V2 · KG이니시스</em>' +
                 '<strong>단건 결제</strong>' +
@@ -5560,8 +5630,16 @@
                 '<span class="cd-direct-payment-metric"><span>' + (canUseMonthly ? '결제 후 잔여' : '부족 월정석') + '</span><b>' + (canUseMonthly ? (monthlyBalance - requiredMonthlyCredits) : monthlyShortage).toLocaleString('ko-KR') + '</b></span>' +
               '</button>' +
             '</div>' +
+            '<div class="cd-direct-payment-status" data-payment-status></div>' +
             '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">취소</button></div>' +
           '</div>';
+
+        function status(message, isError) {
+          var statusNode = modal.querySelector('[data-payment-status]');
+          if (!statusNode) return;
+          statusNode.textContent = message || '';
+          statusNode.classList.toggle('is-error', !!isError);
+        }
 
         function close(mode) {
           modal.classList.remove('is-open');
@@ -5573,23 +5651,39 @@
           if (event.target === modal) close('cancel');
         });
         modal.querySelectorAll('[data-mode]').forEach(function(node) {
-          node.addEventListener('click', function() {
+          node.addEventListener('click', async function() {
             var mode = node.getAttribute('data-mode') || 'cancel';
+            if (mode === 'pass-disabled') return;
+            if (mode === 'pass') {
+              if (node.disabled) return;
+              node.disabled = true;
+              node.classList.add('is-loading');
+              status('\uC774\uC6A9\uAD8C\uC744 \uC11C\uBC84\uC5D0\uC11C \uD655\uC778\uD558\uACE0 \uC788\uC5B4\uC694.', false);
+              try {
+                var passResult = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
+                  title: title,
+                  coinPrice: coinPrice,
+                  cost: coinPrice
+                }));
+                if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) {
+                  close('pass');
+                  return;
+                }
+                status('\uC774\uC6A9\uAD8C\uC73C\uB85C \uCC98\uB9AC\uD560 \uC218 \uC5C6\uC5B4\uC694. \uB2E8\uAC74\uACB0\uC81C\uB098 \uC6D4\uC815\uC11D\uC744 \uC120\uD0DD\uD574 \uC8FC\uC138\uC694.', true);
+              } catch (error) {
+                status(String((error && error.message) || error || '\uC774\uC6A9\uAD8C \uD655\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.'), true);
+              }
+              node.disabled = false;
+              node.classList.remove('is-loading');
+              return;
+            }
             if (mode === 'monthly-disabled') return;
             close(mode);
           });
         });
         document.body.appendChild(modal);
-        var direct = modal.querySelector('[data-mode="direct"]');
+        var direct = modal.querySelector('[data-mode="pass"]') || modal.querySelector('[data-mode="direct"]');
         if (direct && typeof direct.focus === 'function') direct.focus();
-        });
-      }
-      if (opts.internalMainGate !== true && opts.__cdPaymentGateAuthorized !== true && typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
-        return window.__cdApplyMembershipPassBeforePayment(opts).then(function(passResult) {
-          if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) return 'direct';
-          return openServicePaymentChoiceModal();
-        }).catch(function() {
-          return openServicePaymentChoiceModal();
         });
       }
       return openServicePaymentChoiceModal();
@@ -5677,7 +5771,7 @@
           return passPayload;
         }
         if (access && access.status === 'error') { window.alert(access.message || '\uC774\uC6A9\uAD8C \uD655\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.'); if (typeof onCancel === 'function') onCancel(access); return null; }
-        if (typeof window._cdChooseServicePaymentMode === 'function') { return window._cdChooseServicePaymentMode({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey || undefined }).then(function(choice) { if (choice === 'direct') return runDirectCheckout(); if (choice === 'monthly') return runMonthlyCreditGate(); if (typeof onCancel === 'function') onCancel(); return null; }); }
+        if (typeof window._cdChooseServicePaymentMode === 'function') { return window._cdChooseServicePaymentMode({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey || undefined }).then(function(choice) { if (choice === 'direct') return runDirectCheckout(); if (choice === 'monthly') return runMonthlyCreditGate(); if (choice === 'pass') { if (typeof cb === 'function') cb(); return null; } if (typeof onCancel === 'function') onCancel(); return null; }); }
         return runMonthlyCreditGate();
       }).catch(function(error) { window.alert(String(error && error.message || '\uC774\uC6A9\uAD8C \uD655\uC778 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.')); if (typeof onCancel === 'function') onCancel(error); return null; });
     }
@@ -5771,6 +5865,9 @@
         reason: reason,
         featureKey: normalizedFeatureKey,
         requestId: requestId,
+        forceDirectPayment: true,
+        internalMainGate: true,
+        __cdPaymentGateAuthorized: true,
         checkoutPayload: {
           reportType: optionBag.reportType,
           serviceKey: optionBag.serviceKey,
@@ -5815,6 +5912,7 @@
       }).then(function(choice) {
         if (choice === 'direct') return runDirectCheckout();
         if (choice === 'monthly') return runMonthlyCreditGate();
+        if (choice === 'pass') { if (typeof cb === 'function') cb(); return null; }
         if (typeof onCancel === 'function') onCancel();
       });
     }
