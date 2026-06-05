@@ -4,12 +4,14 @@ import {
   CONTENT_ENTITLEMENT_SCOPES,
   CONTENT_ENTITLEMENT_SERVICE_KEYS,
   CONTENT_ENTITLEMENT_SOURCES,
+  CONTENT_ENTITLEMENT_STATUSES,
   Payment,
   PointHistory,
   ProfileCard,
   SAJU_LOCKED_CONTENT_KEYS,
 } from "../lib/models.js";
 import {
+  findActivePaidContentUnlock,
   getUnlockedContentKeys,
   upsertContentUnlock,
 } from "../lib/content-unlocks.js";
@@ -25,6 +27,10 @@ const SAJU_FEATURE_KEY_BY_CONTENT_KEY = {
   [SAJU_LOCKED_CONTENT_KEYS.COMPATIBILITY]: "section_compat",
 };
 
+const SAJU_CONTENT_KEY_BY_FEATURE_KEY = Object.fromEntries(
+  Object.entries(SAJU_FEATURE_KEY_BY_CONTENT_KEY).map(([contentKey, featureKey]) => [featureKey, contentKey]),
+);
+
 const BACKFILL_SUCCESS_PAYMENT_STATUSES = ["success", "paid", "fulfilled"];
 const BACKFILL_BLOCKED_PAYMENT_STATUSES = ["failed", "cancelled", "refunded", "pending", "expired"];
 const BACKFILL_PASS_ACCESS_TYPES = ["membership_pass", "membership_credit"];
@@ -32,6 +38,31 @@ const BACKFILL_PASS_ACCESS_METHODS = ["PASS", "MONTHLY"];
 
 function sanitizeAccessKey(value, maxLen = 120) {
   return String(value || "").trim().slice(0, maxLen);
+}
+
+function normalizeContentKey(value) {
+  const key = sanitizeAccessKey(value, 160);
+  return SAJU_CONTENT_KEY_BY_FEATURE_KEY[key] || key;
+}
+
+function normalizeUnlockSource(value) {
+  const source = String(value || "").trim().toLowerCase();
+  if (source === "coin") return CONTENT_ENTITLEMENT_SOURCES.COIN;
+  if (source === "pass") return CONTENT_ENTITLEMENT_SOURCES.PASS;
+  if (source === "monthly") return CONTENT_ENTITLEMENT_SOURCES.MONTHLY;
+  if (source === "admin") return CONTENT_ENTITLEMENT_SOURCES.ADMIN;
+  if (source === "migration") return CONTENT_ENTITLEMENT_SOURCES.BACKFILL;
+  return "";
+}
+
+function toApiUnlockSource(value) {
+  const source = String(value || "").trim().toUpperCase();
+  if (source === CONTENT_ENTITLEMENT_SOURCES.COIN) return "coin";
+  if (source === CONTENT_ENTITLEMENT_SOURCES.PASS) return "pass";
+  if (source === CONTENT_ENTITLEMENT_SOURCES.MONTHLY) return "monthly";
+  if (source === CONTENT_ENTITLEMENT_SOURCES.ADMIN) return "admin";
+  if (source === CONTENT_ENTITLEMENT_SOURCES.BACKFILL) return "migration";
+  return "";
 }
 
 function toIsoString(value) {
@@ -121,11 +152,12 @@ async function findPaymentForHistory(history) {
 async function findBackfillEvidence({ userId, profileId, contentKey }) {
   const featureKey = SAJU_FEATURE_KEY_BY_CONTENT_KEY[contentKey] || "";
   if (!featureKey) return null;
+  const featureAliases = Array.from(new Set([featureKey, contentKey].filter(Boolean)));
 
   const histories = await PointHistory.find({
     userId,
     kind: "deduct",
-    featureKey,
+    featureKey: { $in: featureAliases },
     $or: [
       { "metadata.profileId": profileId },
       { "metadata.selectedProfileId": profileId },
@@ -147,11 +179,24 @@ async function findBackfillEvidence({ userId, profileId, contentKey }) {
   const payment = await Payment.findOne({
     userId,
     paymentType: "digital_content",
-    featureKey,
     status: { $in: BACKFILL_SUCCESS_PAYMENT_STATUSES },
-    $or: [
-      { "pricingSnapshot.profileId": profileId },
-      { "pricingSnapshot.selectedProfileId": profileId },
+    $and: [
+      {
+        $or: [
+          { "pricingSnapshot.profileId": profileId },
+          { "pricingSnapshot.selectedProfileId": profileId },
+        ],
+      },
+      {
+        $or: [
+          { featureKey: { $in: featureAliases } },
+          { contentKey: { $in: featureAliases } },
+          { contentId: { $in: featureAliases } },
+          { "pricingSnapshot.featureKey": { $in: featureAliases } },
+          { "pricingSnapshot.contentKey": { $in: featureAliases } },
+          { "pricingSnapshot.contentId": { $in: featureAliases } },
+        ],
+      },
     ],
   }).sort({ paidAt: -1, updatedAt: -1, createdAt: -1 }).select("_id merchantUid status paymentType featureKey coinPrice expectedChargedPoints paidAt createdAt updatedAt pricingSnapshot").lean();
 
@@ -191,6 +236,102 @@ async function verifyProfileOwnership({ userId, profileId }) {
   return profile;
 }
 
+function toUnlockStatusPayload({ userId, profileId, serviceKey, contentKey, doc }) {
+  return {
+    ok: true,
+    userId,
+    profileId,
+    serviceKey,
+    contentKey,
+    unlocked: Boolean(doc?._id),
+    source: toApiUnlockSource(doc?.source),
+    unlockSource: toApiUnlockSource(doc?.source),
+    unlockedAt: toIsoString(doc?.unlockedAt),
+    orderId: String(doc?.orderId || ""),
+  };
+}
+
+async function handleStatus(request, env) {
+  if (request.method !== "GET") return methodNotAllowed();
+
+  const url = new URL(request.url);
+  const auth = await requireUserFromRequest(request, env);
+  const userId = String(auth.userId || "");
+  const profileId = sanitizeAccessKey(url.searchParams.get("profileId"), 100);
+  const featureKey = sanitizeAccessKey(url.searchParams.get("featureKey"), 160);
+  const contentKey = normalizeContentKey(url.searchParams.get("contentKey") || featureKey);
+  const serviceKey = sanitizeAccessKey(url.searchParams.get("serviceKey") || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU, 80);
+
+  if (!profileId) throw createHttpError(403, "Profile ownership could not be verified.", { code: "MISSING_PROFILE_ID" });
+  if (!contentKey) throw createHttpError(400, "Content key is required.", { code: "MISSING_CONTENT_KEY" });
+
+  await connectDb(env);
+  await verifyProfileOwnership({ userId, profileId });
+
+  const doc = await findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey, featureKey });
+  return json(toUnlockStatusPayload({ userId, profileId, serviceKey, contentKey, doc }));
+}
+
+async function readJsonBody(request) {
+  try {
+    const body = await request.json();
+    return body && typeof body === "object" ? body : {};
+  } catch {
+    return {};
+  }
+}
+
+async function handleConfirm(request, env) {
+  if (request.method !== "POST") return methodNotAllowed();
+
+  const auth = await requireUserFromRequest(request, env);
+  const userId = String(auth.userId || "");
+  const body = await readJsonBody(request);
+  const profileId = sanitizeAccessKey(body.profileId, 100);
+  const featureKey = sanitizeAccessKey(body.featureKey, 160);
+  const contentKey = normalizeContentKey(body.contentKey || featureKey);
+  const serviceKey = sanitizeAccessKey(body.serviceKey || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU, 80);
+  const source = normalizeUnlockSource(body.unlockSource || body.source);
+  const orderId = sanitizeAccessKey(body.orderId, 160);
+
+  if (!profileId) throw createHttpError(403, "Profile ownership could not be verified.", { code: "MISSING_PROFILE_ID" });
+  if (!contentKey) throw createHttpError(400, "Content key is required.", { code: "MISSING_CONTENT_KEY" });
+  if (!source) throw createHttpError(400, "Unlock source is invalid.", { code: "INVALID_UNLOCK_SOURCE" });
+
+  await connectDb(env);
+  await verifyProfileOwnership({ userId, profileId });
+
+  const existing = await findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey, featureKey });
+  if (existing) {
+    return json(toUnlockStatusPayload({ userId, profileId, serviceKey, contentKey, doc: existing }));
+  }
+
+  const isAdmin = String(auth.role || "").toLowerCase() === "admin" || auth.isAdmin === true;
+  if (source === CONTENT_ENTITLEMENT_SOURCES.ADMIN && !isAdmin) {
+    throw createHttpError(403, "Admin unlock is not allowed.", { code: "ADMIN_UNLOCK_FORBIDDEN" });
+  }
+  if (source !== CONTENT_ENTITLEMENT_SOURCES.ADMIN) {
+    const evidence = await findBackfillEvidence({ userId, profileId, contentKey });
+    if (!evidence) throw createHttpError(409, "Unlock evidence was not found.", { code: "UNLOCK_EVIDENCE_NOT_FOUND" });
+  }
+
+  const doc = await upsertContentUnlock({
+    userId,
+    profileId,
+    serviceKey,
+    contentKey,
+    scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
+    status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+    source,
+    orderId,
+    unlockedBy: source === CONTENT_ENTITLEMENT_SOURCES.ADMIN ? userId : "",
+    unlockedAt: new Date(),
+    expiresAt: null,
+  });
+
+  return json(toUnlockStatusPayload({ userId, profileId, serviceKey, contentKey, doc }));
+}
+
 async function handleUnlocks(request, env) {
   if (request.method !== "GET") return methodNotAllowed();
 
@@ -202,6 +343,8 @@ async function handleUnlocks(request, env) {
     url.searchParams.get("serviceKey") || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
     80,
   );
+  const includeBackfill = url.searchParams.get("backfill") === "1"
+    || url.searchParams.get("includeBackfill") === "1";
 
   if (!profileId) {
     throw createHttpError(403, "Profile ownership could not be verified.", { code: "MISSING_PROFILE_ID" });
@@ -211,7 +354,9 @@ async function handleUnlocks(request, env) {
   await verifyProfileOwnership({ userId, profileId });
 
   const docs = await getUnlockedContentKeys({ userId, profileId, serviceKey });
-  const backfilledDocs = await backfillMissingUnlocks({ userId, profileId, serviceKey, existingDocs: docs });
+  const backfilledDocs = includeBackfill
+    ? await backfillMissingUnlocks({ userId, profileId, serviceKey, existingDocs: docs })
+    : [];
   const activeDocs = docs.concat(backfilledDocs);
 
   const unlocks = createLockedMap(serviceKey);
@@ -244,6 +389,8 @@ export async function handleAccessRoutes(request, env) {
   const trace = { route: "access", method: request.method, requestPath: new URL(request.url).pathname };
 
   try {
+    if (routePath === "/status") return await handleStatus(request, env);
+    if (routePath === "/confirm") return await handleConfirm(request, env);
     if (routePath === "/unlocks") return await handleUnlocks(request, env);
     return notFound();
   } catch (error) {

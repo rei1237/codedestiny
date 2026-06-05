@@ -555,6 +555,11 @@ export default {
         return withCorsHeaders(request, env, await handleAccessRoutes(request, env));
       }
 
+      if (url.pathname === "/api/unlocks" || url.pathname.startsWith("/api/unlocks/")) {
+        const rewrittenRequest = rewriteRequestPath(request, url.pathname.replace("/api/unlocks", "/api/access"));
+        return withCorsHeaders(request, env, await handleAccessRoutes(rewrittenRequest, env));
+      }
+
       if (url.pathname === "/api/rpg" || url.pathname.startsWith("/api/rpg/")) {
         return withCorsHeaders(request, env, await handleRpgRoutes(request, env));
       }

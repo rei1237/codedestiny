@@ -144,7 +144,9 @@ const SAJU_PDF_GENERATION_FEATURE_KEYS = new Set([
   "premium_pdf_saju_yearly",
 ]);
 
-function resolveSajuProfileUnlockContentKey(featureKey) {
+function resolveSajuProfileUnlockContentKey(featureKey, contentKey = "") {
+  const explicitContentKey = String(contentKey || "").trim();
+  if (SAJU_PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[explicitContentKey]) return explicitContentKey;
   return SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[String(featureKey || "").trim()] || "";
 }
 
@@ -164,6 +166,7 @@ async function upsertSajuProfileUnlockEntitlement(env, {
   userId,
   profileId,
   featureKey,
+  contentKey = "",
   source,
   orderId = "",
   paymentId = "",
@@ -178,10 +181,12 @@ async function upsertSajuProfileUnlockEntitlement(env, {
   }
 
   await connectDb(env);
+  const normalizedContentKey = resolveSajuProfileUnlockContentKey(featureKey, contentKey);
   return upsertPaidContentUnlock({
     userId,
     profileId,
     featureKey,
+    contentKey: normalizedContentKey || undefined,
     source,
     orderId,
     paymentId,
@@ -431,6 +436,7 @@ async function resolvePaidContentAccess(env, {
         userId,
         profileId,
         featureKey,
+        contentKey: body?.contentKey,
         source: CONTENT_ENTITLEMENT_SOURCES.PASS,
         passId: `membership:${activePass.tier || "pass"}:${requestId || Date.now().toString(36)}`,
         coinAmount: 0,
@@ -1884,6 +1890,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           userId: authCheck.auth.userId,
           profileId,
           featureKey: pricing.featureKey,
+          contentKey: body?.contentKey,
           source: CONTENT_ENTITLEMENT_SOURCES.PASS,
           passId: `${usagePassConsume.category}:${requestId}`,
           coinAmount: 0,
@@ -1975,6 +1982,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             userId: authCheck.auth.userId,
             profileId,
             featureKey: pricing.featureKey,
+            contentKey: body?.contentKey,
             source: CONTENT_ENTITLEMENT_SOURCES.PASS,
             passId: `membership:${subscriptionPass.tier}:${requestId}`,
             coinAmount: 0,
@@ -2096,7 +2104,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
               userId: authCheck.auth.userId,
               profileId,
               featureKey: pricing.featureKey,
-              source: CONTENT_ENTITLEMENT_SOURCES.COIN,
+              contentKey: body?.contentKey,
+              source: CONTENT_ENTITLEMENT_SOURCES.MONTHLY,
               orderId: membershipConsume.purchaseId || requestId,
               paymentId: membershipConsume.transactionId || requestId,
               coinAmount: Number(membershipConsume.coinPrice || 0),
@@ -2253,6 +2262,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             userId: authCheck.auth.userId,
             profileId,
             featureKey: pricing.featureKey,
+            contentKey: body?.contentKey,
             source: CONTENT_ENTITLEMENT_SOURCES.PASS,
             passId: `${usagePassConsume.category}:${requestId}`,
             coinAmount: 0,
@@ -2504,6 +2514,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           userId: authCheck.auth.userId,
           profileId,
           featureKey: coinFeatureKey,
+          contentKey: body?.contentKey,
           source: CONTENT_ENTITLEMENT_SOURCES.COIN,
           paymentId: String(coinHistory?._id || coinPurchaseId || requestId),
           orderId: coinPurchaseId || requestId,
@@ -2692,6 +2703,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         userId: authCheck.auth.userId,
         profileId,
         featureKey: requestedFeatureKey,
+        contentKey: body?.contentKey,
         source: CONTENT_ENTITLEMENT_SOURCES.COIN,
         paymentId: purchaseId,
         orderId: requestId,
@@ -3301,6 +3313,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
         userId: authCheck.auth.userId,
         profileId,
         featureKey: pricing.featureKey,
+        contentKey: body?.contentKey,
         source: CONTENT_ENTITLEMENT_SOURCES.PASS,
         passId: `membership:${subscriptionPass.tier}:${requestId}`,
         coinAmount: 0,

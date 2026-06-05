@@ -274,6 +274,7 @@ export const CONTENT_ENTITLEMENT_SOURCES = Object.freeze({
   COIN: "COIN",
   PAYMENT: "PAYMENT",
   PASS: "PASS",
+  MONTHLY: "MONTHLY",
   ADMIN: "ADMIN",
   BACKFILL: "BACKFILL",
 });

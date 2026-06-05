@@ -16,6 +16,12 @@ const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_compat: SAJU_LOCKED_CONTENT_KEYS.COMPATIBILITY,
 });
 
+const SAJU_PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
+  Object.fromEntries(
+    Object.entries(SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY).map(([featureKey, contentKey]) => [contentKey, featureKey]),
+  ),
+);
+
 function cleanKey(value, maxLen = 160) {
   return String(value || "").trim().slice(0, maxLen);
 }
@@ -42,8 +48,27 @@ function buildProfileScopeClause(profileId) {
     $or: [
       { scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE, profileId },
       { scope: CONTENT_ENTITLEMENT_SCOPES.USER },
+      { profileId: USER_SCOPE_PROFILE_ID },
     ],
   };
+}
+
+function canonicalizeContentKey(value) {
+  const key = cleanKey(value, 160);
+  return SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[key] || key;
+}
+
+function resolveContentKeyAliases(value) {
+  const canonicalKey = canonicalizeContentKey(value);
+  const aliases = new Set([canonicalKey]);
+  const legacyFeatureKey = SAJU_PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[canonicalKey];
+  if (legacyFeatureKey) aliases.add(legacyFeatureKey);
+  return Array.from(aliases).filter(Boolean);
+}
+
+function buildContentKeyClause(contentKey) {
+  const aliases = resolveContentKeyAliases(contentKey);
+  return aliases.length > 1 ? { contentKey: { $in: aliases } } : { contentKey: aliases[0] || "" };
 }
 
 function resolvePaidContentServiceKey(featureKey, fallback = "") {
@@ -75,9 +100,10 @@ export function resolvePaidContentUnlockTarget({
 } = {}) {
   const rawFeatureKey = cleanKey(featureKey || contentKey || productKey, 160);
   const sajuContentKey = SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[rawFeatureKey] || "";
+  const explicitContentKey = canonicalizeContentKey(contentKey);
   const isLottoRitualReport = rawFeatureKey === "fun.quantumLotto.ritualReport";
   const normalizedContentKey = cleanKey(
-    contentKey
+    explicitContentKey
       || sajuContentKey
       || normalizePaidFeatureKey(rawFeatureKey)
       || rawFeatureKey
@@ -112,7 +138,7 @@ export async function findActivePaidContentUnlock(input = {}) {
   return ContentEntitlement.findOne({
     userId: target.userId,
     serviceKey: target.serviceKey,
-    contentKey: target.contentKey,
+    ...buildContentKeyClause(target.contentKey),
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
     $and: [
       activeExpiryClause(),
@@ -151,7 +177,7 @@ export async function hasUnlockedContent({ userId, profileId, serviceKey, conten
   const doc = await ContentEntitlement.findOne({
     userId: normalized.userId,
     serviceKey: normalized.serviceKey,
-    contentKey: normalized.contentKey,
+    ...buildContentKeyClause(normalized.contentKey),
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
     $and: [
       activeExpiryClause(),
@@ -249,7 +275,10 @@ export async function getUnlockedContentKeys({ userId, profileId, serviceKey }) 
     ],
   }).select("contentKey source unlockedAt expiresAt").lean();
 
-  return docs;
+  return docs.map((doc) => ({
+    ...doc,
+    contentKey: canonicalizeContentKey(doc?.contentKey),
+  }));
 }
 
 export async function ensureContentAccessOrThrow({ userId, profileId, serviceKey, contentKey }) {
