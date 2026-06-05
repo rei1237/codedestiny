@@ -47,6 +47,27 @@ var DESTINY_MEETING_PLACE_FEATURE = {
   target: 'destinyMeetingPlaceEntryCard'
 };
 
+var LOVE_CODE_FEATURE = {
+  id: 'love-code',
+  title: 'LOVE CODE',
+  shortTitle: '러브 코드',
+  description: '사주 오행으로 상대방과 가장 닮은 연애 페르소나를 찾고, 선택형 데이트 시뮬레이션으로 케미를 확인합니다.',
+  category: 'fun-saju',
+  group: '재미있는 사주 콘텐츠',
+  href: '/saju/love-simulation',
+  tags: ['러브 코드', '연애 시뮬레이션', '오행 궁합', '소울메이트'],
+  badge: 'LOCK',
+  enabled: true,
+  requiresLogin: true,
+  requiresProfile: false,
+  cta: '💕 러브 코드 잠금 해제',
+  lockKey: 'loveSimulation',
+  coinCost: 100,
+  thumb: 'love code.webp',
+  action: 'openLoveSimulationRoute',
+  target: 'loveCodeEntryCard'
+};
+
 var REPORT_CARDS = [
   { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:'✨ 매력 분석 자세히 보기',     accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:30  },
   { id:'quantum',    thumb:'quntum.webp', label:'퀀텀 명리 엔진',        desc:'합화 우선 분석으로 나만의 천기 지도를 제공합니다.',      note:'지금 밀어붙일 타이밍인지, 숨을 고를 타이밍인지 천기적으로 짚어드립니다.', cta:'⚡ 천기 리포트 보기',          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        coinCost:50  },
@@ -62,12 +83,14 @@ var REPORT_CARDS = [
   { id:'4CUT',       label:'사주네컷 : 운명 필터',   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:'📸 사주네컷 열기',            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
   { id:'secretHouse', thumb:'imsolo.webp', label:'시크릿 하우스 : 연애 시뮬', desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:'🏠 시크릿 하우스 입장', accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
   { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group },
-  { id: DESTINY_MEETING_PLACE_FEATURE.id, thumb: DESTINY_MEETING_PLACE_FEATURE.thumb, label: DESTINY_MEETING_PLACE_FEATURE.title, shortTitle: DESTINY_MEETING_PLACE_FEATURE.shortTitle, desc: DESTINY_MEETING_PLACE_FEATURE.description, note:'이 페이지 단독으로 생년월일 입력부터 분석까지 실행하며, 인연 장소 TOP5·국가/도시·만남 타이밍·아이템·실천 플랜을 한 번에 제시합니다.', cta: DESTINY_MEETING_PLACE_FEATURE.cta, accent:'#c084fc', glow:'rgba(192,132,252,.45)', target: DESTINY_MEETING_PLACE_FEATURE.target, action: DESTINY_MEETING_PLACE_FEATURE.action, lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey, coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost, badge: DESTINY_MEETING_PLACE_FEATURE.badge, tags: DESTINY_MEETING_PLACE_FEATURE.tags, group: DESTINY_MEETING_PLACE_FEATURE.group }
+  { id: DESTINY_MEETING_PLACE_FEATURE.id, thumb: DESTINY_MEETING_PLACE_FEATURE.thumb, label: DESTINY_MEETING_PLACE_FEATURE.title, shortTitle: DESTINY_MEETING_PLACE_FEATURE.shortTitle, desc: DESTINY_MEETING_PLACE_FEATURE.description, note:'이 페이지 단독으로 생년월일 입력부터 분석까지 실행하며, 인연 장소 TOP5·국가/도시·만남 타이밍·아이템·실천 플랜을 한 번에 제시합니다.', cta: DESTINY_MEETING_PLACE_FEATURE.cta, accent:'#c084fc', glow:'rgba(192,132,252,.45)', target: DESTINY_MEETING_PLACE_FEATURE.target, action: DESTINY_MEETING_PLACE_FEATURE.action, lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey, coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost, badge: DESTINY_MEETING_PLACE_FEATURE.badge, tags: DESTINY_MEETING_PLACE_FEATURE.tags, group: DESTINY_MEETING_PLACE_FEATURE.group },
+  { id: LOVE_CODE_FEATURE.id, thumb: LOVE_CODE_FEATURE.thumb, label: LOVE_CODE_FEATURE.title, shortTitle: LOVE_CODE_FEATURE.shortTitle, desc: LOVE_CODE_FEATURE.description, note:'상대의 생년월일시를 입력하면 사주 오행·일간 흐름으로 가장 닮은 러브 코드 캐릭터를 찾고, 선택에 따라 관계 온도가 달라지는 가상 데이트를 엽니다.', cta: LOVE_CODE_FEATURE.cta, accent:'#f472b6', glow:'rgba(244,114,182,.48)', target: LOVE_CODE_FEATURE.target, action: LOVE_CODE_FEATURE.action, lockKey: LOVE_CODE_FEATURE.lockKey, coinCost: LOVE_CODE_FEATURE.coinCost, badge: LOVE_CODE_FEATURE.badge, tags: LOVE_CODE_FEATURE.tags, group: LOVE_CODE_FEATURE.group }
 ];
 
 (function ensureSajuAnimalCardOrder() {
   var animalCard = null;
   var meetingPlaceCard = null;
+  var loveCodeCard = null;
   var normalized = [];
 
   for (var i = 0; i < REPORT_CARDS.length; i += 1) {
@@ -79,6 +102,10 @@ var REPORT_CARDS = [
     }
     if (item.id === DESTINY_MEETING_PLACE_FEATURE.id) {
       meetingPlaceCard = item;
+      continue;
+    }
+    if (item.id === LOVE_CODE_FEATURE.id) {
+      loveCodeCard = item;
       continue;
     }
     normalized.push(item);
@@ -126,6 +153,27 @@ var REPORT_CARDS = [
     };
   }
 
+  if (!loveCodeCard) {
+    loveCodeCard = {
+      id: LOVE_CODE_FEATURE.id,
+      thumb: LOVE_CODE_FEATURE.thumb,
+      label: LOVE_CODE_FEATURE.title,
+      shortTitle: LOVE_CODE_FEATURE.shortTitle,
+      desc: LOVE_CODE_FEATURE.description,
+      note: '상대의 생년월일시를 입력하면 사주 오행·일간 흐름으로 가장 닮은 러브 코드 캐릭터를 찾고, 선택에 따라 관계 온도가 달라지는 가상 데이트를 엽니다.',
+      cta: LOVE_CODE_FEATURE.cta,
+      accent: '#f472b6',
+      glow: 'rgba(244,114,182,.48)',
+      target: LOVE_CODE_FEATURE.target,
+      action: LOVE_CODE_FEATURE.action,
+      lockKey: LOVE_CODE_FEATURE.lockKey,
+      coinCost: LOVE_CODE_FEATURE.coinCost,
+      badge: LOVE_CODE_FEATURE.badge,
+      tags: LOVE_CODE_FEATURE.tags,
+      group: LOVE_CODE_FEATURE.group
+    };
+  }
+
   var secretIdx = -1;
   for (var j = 0; j < normalized.length; j += 1) {
     if (normalized[j] && normalized[j].id === 'secretHouse') {
@@ -137,9 +185,11 @@ var REPORT_CARDS = [
   if (secretIdx >= 0) {
     normalized.splice(secretIdx + 1, 0, animalCard);
     normalized.splice(secretIdx + 2, 0, meetingPlaceCard);
+    normalized.splice(secretIdx + 3, 0, loveCodeCard);
   } else {
     normalized.push(animalCard);
     normalized.push(meetingPlaceCard);
+    normalized.push(loveCodeCard);
   }
 
   REPORT_CARDS = normalized;
@@ -166,7 +216,7 @@ var REPORT_CARDS = [
 })();
 
 function _rptIsDirectAction(actionName) {
-  return actionName === 'openLuckSyncDiary' || actionName === 'openSecretHouseRoute' || actionName === 'openAnimalDestinyRoute' || actionName === 'openDestinyMeetingPlaceRoute';
+  return actionName === 'openLuckSyncDiary' || actionName === 'openSecretHouseRoute' || actionName === 'openAnimalDestinyRoute' || actionName === 'openDestinyMeetingPlaceRoute' || actionName === 'openLoveSimulationRoute';
 }
 
 window.openSecretHouseRoute = function() {
@@ -203,6 +253,15 @@ window.openAnimalDestinyRoute = function() {
 
 window.openDestinyMeetingPlaceRoute = function() {
   var target = DESTINY_MEETING_PLACE_FEATURE.href || '/saju/destiny-meeting-place';
+  try {
+    window.location.assign(target);
+  } catch (e) {
+    window.open(target, '_blank');
+  }
+};
+
+window.openLoveSimulationRoute = function() {
+  var target = LOVE_CODE_FEATURE.href || '/saju/love-simulation';
   try {
     window.location.assign(target);
   } catch (e) {
