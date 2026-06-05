@@ -2,6 +2,10 @@
 
 import { useMemo, useRef, useState } from "react";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import LifeFortuneGraph, {
+  resolveLifeFortuneCurrentAge,
+  resolveLifeFortuneGraphData,
+} from "@/app/components/lifebook/LifeFortuneGraph";
 
 const SERVICE_KEY = "saju-lifebook";
 const FEATURE_KEY = "saju_life_book_pdf";
@@ -47,6 +51,10 @@ function parseBirthDate(dateText) {
     month: Number.isFinite(m) ? m : NaN,
     day: Number.isFinite(d) ? d : NaN,
   };
+}
+
+function getDisplayCurrentAge(result, birthDate) {
+  return resolveLifeFortuneCurrentAge(result, birthDate);
 }
 
 function compactPreview(text) {
@@ -143,6 +151,8 @@ export default function SajuLifebookPage() {
     const current = Math.max(1, Math.min(total, stepIndex + 1));
     return Math.round((current / total) * 100);
   }, [stepIndex]);
+  const fortuneGraphData = useMemo(() => resolveLifeFortuneGraphData(result), [result]);
+  const fortuneCurrentAge = useMemo(() => getDisplayCurrentAge(result, form.birthDate), [form.birthDate, result]);
 
   const updateField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -465,6 +475,12 @@ export default function SajuLifebookPage() {
           ) : null}
 
         </form>
+
+        <LifeFortuneGraph
+          data={fortuneGraphData}
+          currentAge={fortuneCurrentAge}
+          preview={!fortuneGraphData}
+        />
 
         {chapters.length ? (
           <section style={{ marginTop: 20, borderRadius: 18, padding: 16, border: "1px solid rgba(240,209,157,.22)", background: "rgba(24,17,12,.72)" }}>
