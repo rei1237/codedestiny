@@ -282,6 +282,9 @@ export function useCoinGate() {
                 const consume = readNestedObject(payload, "consume");
                 const dataConsume = readNestedObject(data, "consume");
                 const resolvedConsume = Object.keys(consume).length ? consume : dataConsume;
+                const payloadAccessGrant = readNestedObject(payload, "accessGrant");
+                const dataAccessGrant = readNestedObject(data, "accessGrant");
+                const accessGrant = Object.keys(payloadAccessGrant).length ? payloadAccessGrant : dataAccessGrant;
                 const transactionId = toText(
                   runtimeResult?.transactionId
                   || runtimeResult?.paymentId
@@ -310,6 +313,9 @@ export function useCoinGate() {
                   0,
                 );
                 const resolvedFeatureKey = toText(resolvedConsume.featureKey || input.featureKey || pricingResult.data.pricing.featureKey);
+                const accessMethod = normalizeCode(payload.accessMethod || data.accessMethod || resolvedConsume.accessMethod || resolvedConsume.paymentMethod || accessGrant.accessMethod);
+                const accessType = toText(payload.accessType || data.accessType || resolvedConsume.accessType || resolvedConsume.transactionType || accessGrant.accessType).toLowerCase();
+                const passGranted = Boolean(payload.freeBySubscription === true || data.freeBySubscription === true || accessMethod === "PASS" || accessType === "membership_pass" || accessType === "usage_pass");
 
                 if (typeof input.onPaid === "function") {
                   setPaymentMessage("결제가 완료되었습니다. 결과를 생성하고 있습니다...");
@@ -341,7 +347,7 @@ export function useCoinGate() {
 
                 return {
                   ok: true,
-                  code: "OK",
+                  code: passGranted ? "PASS_FREE" : "OK",
                   message: "결제가 완료되었습니다.",
                   requiredCoins,
                   chargedCoins,
@@ -404,6 +410,11 @@ export function useCoinGate() {
       const chargedCoins = toNumber(consume.chargedCoins ?? consume.cost, requiredCoins);
       const balanceAfter = toNumber(chargeResult.data.balance, 0);
       const resolvedFeatureKey = toText(consume.featureKey || input.featureKey || pricingResult.data.pricing.featureKey);
+      const chargeData = chargeResult.data as Record<string, unknown>;
+      const chargeAccessGrant = readNestedObject(chargeData, "accessGrant");
+      const chargeAccessMethod = normalizeCode(chargeData.accessMethod || consume.accessMethod || consume.paymentMethod || chargeAccessGrant.accessMethod);
+      const chargeAccessType = toText(chargeData.accessType || consume.accessType || consume.transactionType || chargeAccessGrant.accessType).toLowerCase();
+      const chargePassGranted = Boolean(chargeData.freeBySubscription === true || chargeAccessMethod === "PASS" || chargeAccessType === "membership_pass" || chargeAccessType === "usage_pass");
 
       if (typeof input.onPaid === "function") {
         setPaymentMessage("결제가 완료되었습니다. 결과를 생성하고 있습니다...");
@@ -435,7 +446,7 @@ export function useCoinGate() {
 
       return {
         ok: true,
-        code: "OK",
+        code: chargePassGranted ? "PASS_FREE" : "OK",
         message: "결제가 완료되었습니다.",
         requiredCoins,
         chargedCoins,

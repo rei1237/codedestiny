@@ -31,8 +31,29 @@ const ANIMAL_EMOJI: Record<TwelveStage, string> = {
   묘: "🐹",
   절: "🐈‍⬛",
   태: "🐣",
-  양: "🐷",
+  양: "🐑",
 };
+
+const STAGE_TONE: Record<TwelveStage, { label: string; action: string }> = {
+  장생: { label: "새싹 모드", action: "처음은 작게 열고, 칭찬은 바로 저장하세요." },
+  목욕: { label: "달빛 모드", action: "감정은 숨기지 말고 부드럽게 이름 붙이세요." },
+  관대: { label: "리본 모드", action: "보여 줄 장면을 하나 정하면 존재감이 살아납니다." },
+  건록: { label: "수호 모드", action: "오늘의 약속 하나를 끝까지 지키면 운이 단단해집니다." },
+  제왕: { label: "태양 모드", action: "크게 결정하되, 한 번은 숨을 고르고 확인하세요." },
+  쇠: { label: "현자 모드", action: "정리한 기준 하나가 내일의 손실을 막아줍니다." },
+  병: { label: "구름 모드", action: "무리한 친절보다 회복 시간을 먼저 챙기세요." },
+  사: { label: "나비 모드", action: "끝낼 것과 살릴 것을 나누면 새 문이 열립니다." },
+  묘: { label: "보물 모드", action: "작은 자원을 기록하면 숨은 복이 보입니다." },
+  절: { label: "밤문 모드", action: "끊어야 할 한 가지를 정하면 길이 또렷해집니다." },
+  태: { label: "별알 모드", action: "완성보다 실험 하나를 먼저 부화시키세요." },
+  양: { label: "솜구름 모드", action: "돌봄은 나에게도 나누어 줄 때 복이 자랍니다." },
+};
+
+function compactText(text: string, max = 82) {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  if (normalized.length <= max) return normalized;
+  return `${normalized.slice(0, max - 1)}…`;
+}
 
 type Props = {
   animal: AnimalDestinyData;
@@ -41,6 +62,13 @@ type Props = {
 };
 
 export default function TwelveAnimalResultCard({ animal, result, representativeStage }: Props) {
+  const stageTone = STAGE_TONE[representativeStage];
+  const quickNotes = [
+    { label: "운성 무드", title: stageTone.label, body: stageTone.action },
+    { label: "오늘 실천", title: "작은 발자국", body: compactText(result.todayAction) },
+    { label: "회복 힌트", title: "마음 충전", body: compactText(result.recoveryGuide) },
+  ];
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 14 }}
@@ -85,6 +113,21 @@ export default function TwelveAnimalResultCard({ animal, result, representativeS
             <p className="mt-1 text-sm font-semibold text-[#2f5b80]">
               {animal.short_copy}
             </p>
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-3">
+            {quickNotes.map((note) => (
+              <div key={note.label} className="rounded-2xl border border-[#d7e6f3] bg-white/82 p-3">
+                <p className="text-[11px] font-black text-[#6b86a0]">{note.label}</p>
+                <p className="mt-1 text-sm font-black text-[#274f73]">{note.title}</p>
+                <p className="mt-1 text-xs font-semibold leading-relaxed text-[#4f6f8c]">{note.body}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-2xl border border-[#d9d5a2] bg-[#fff8de]/82 p-3">
+            <p className="text-xs font-black text-[#8e7b34]">이번 주 성장 주문</p>
+            <p className="mt-1 text-sm font-semibold leading-relaxed text-[#67562a]">{compactText(result.growthMission, 118)}</p>
           </div>
         </div>
       </div>

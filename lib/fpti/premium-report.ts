@@ -43,12 +43,19 @@ export type FptiReportAccessState = {
 
 export type FptiDeepSection = {
   title: string;
+  category?: string;
+  lens?: string;
   interpretation: string;
   body?: string;
   strength?: string;
   risk?: string;
   action?: string;
   advice?: string;
+  triadLabels?: {
+    strength: string;
+    risk: string;
+    action: string;
+  };
   debugSignals?: string[];
 };
 
@@ -122,11 +129,22 @@ type NarrativeSeed = {
   judgmentStyle: string;
   executionStyle: string;
   visionStyle: string;
+  mbtiLensLine: string;
   dayMasterLine: string;
   monthBranchLine: string;
   elementBalanceLine: string;
+  elementPrescriptionLine: string;
   tenGodLine: string;
   coreStrengthLine: string;
+  aptitudeLine: string;
+  careerLine: string;
+  loveLine: string;
+  conflictLine: string;
+  moneyLine: string;
+  stressLine: string;
+  growthLine: string;
+  relationshipTempoLine: string;
+  workEnvironmentLine: string;
   shadowLine: string;
   actionLine: string;
   debugSignals: string[];
@@ -134,17 +152,118 @@ type NarrativeSeed = {
 
 type TenGodName = "비견" | "겁재" | "식신" | "상관" | "정재" | "편재" | "정관" | "편관" | "정인" | "편인";
 
-const TEN_GOD_CUES: Record<TenGodName, { personality: string; career: string }> = {
-  비견: { personality: "자기 기준과 주체성이 강한 축", career: "독립 실행과 대등 협업에 강한 축" },
-  겁재: { personality: "경쟁 반응과 돌파력이 강한 축", career: "위기 대응과 현장 전환에 강한 축" },
-  식신: { personality: "꾸준함과 생활 리듬이 안정적인 축", career: "생산성·콘텐츠·서비스에 강한 축" },
-  상관: { personality: "표현력과 문제 제기가 분명한 축", career: "기획·개선·발표에 강한 축" },
-  정재: { personality: "현실 감각과 관리 본능이 강한 축", career: "정산·운영·예산 관리에 강한 축" },
-  편재: { personality: "기회 포착과 유동성이 빠른 축", career: "영업·확장·수익 다각화에 강한 축" },
-  정관: { personality: "책임감과 기준 준수가 분명한 축", career: "조직 운영·규정·품질 통제에 강한 축" },
-  편관: { personality: "압박 속 추진력과 결단이 살아나는 축", career: "리스크 관리·구조 개편에 강한 축" },
-  정인: { personality: "정리·학습·회복이 깊은 축", career: "연구·분석·기획 보조에 강한 축" },
-  편인: { personality: "통찰과 비정형 이해가 빠른 축", career: "창의 기획·특수 분야 탐구에 강한 축" },
+type TenGodCue = {
+  personality: string;
+  career: string;
+  aptitude: string;
+  love: string;
+  conflict: string;
+  money: string;
+  shadow: string;
+  growth: string;
+};
+
+const TEN_GOD_CUES: Record<TenGodName, TenGodCue> = {
+  비견: {
+    personality: "자기 기준과 주체성이 강한 축",
+    career: "독립 실행과 대등 협업에 강한 축",
+    aptitude: "자기 이름을 걸고 완성하는 프로젝트, 1인 브랜드, 전문 프리랜스, 동료와 수평적으로 겨루는 환경에서 재능이 살아납니다.",
+    love: "연애에서는 대등함과 존중이 가장 중요해, 상대가 나를 통제하려 할 때 마음의 문이 빠르게 닫힙니다.",
+    conflict: "갈등이 생기면 먼저 물러서기보다 내 기준을 지키려 하므로, 감정 싸움보다 합의 가능한 선을 분명히 잡아야 합니다.",
+    money: "돈은 독립성과 연결되어 있어, 고정 수입보다 스스로 통제할 수 있는 수익 구조가 심리적 안정감을 줍니다.",
+    shadow: "과열되면 고집과 자존심이 방어막이 되어 도움을 늦게 받아들이는 흐름이 생깁니다.",
+    growth: "성장은 혼자 이기는 방식보다 기준을 공유하고 함께 커지는 방식에서 더 길게 이어집니다.",
+  },
+  겁재: {
+    personality: "경쟁 반응과 돌파력이 강한 축",
+    career: "위기 대응과 현장 전환에 강한 축",
+    aptitude: "영업, 협상, 이벤트성 프로젝트, 속도전이 필요한 현장, 판을 뒤집는 역할에서 존재감이 커집니다.",
+    love: "연애에서는 뜨거운 몰입과 즉각적인 반응을 원하지만, 감정 온도가 높을수록 상대의 속도를 확인해야 오래 갑니다.",
+    conflict: "불리하다고 느끼면 방어보다 반격이 먼저 나올 수 있어, 승패 구도 대신 같은 편이라는 확인이 필요합니다.",
+    money: "기회 포착은 빠르지만 지출도 순간적으로 커질 수 있어, 도전 예산과 생활 예산을 분리해야 재물 흐름이 안정됩니다.",
+    shadow: "과열되면 경쟁심이 불안을 덮어 버려, 필요 없는 비교와 소모전에 휘말리기 쉽습니다.",
+    growth: "성장은 강한 추진력을 방향 있는 승부로 압축할 때 가장 빠르게 나타납니다.",
+  },
+  식신: {
+    personality: "꾸준함과 생활 리듬이 안정적인 축",
+    career: "생산성·콘텐츠·서비스에 강한 축",
+    aptitude: "콘텐츠 제작, 교육, 서비스 운영, 식음료, 웰니스, 반복 품질이 중요한 업무에서 장기 성과가 납니다.",
+    love: "연애에서는 편안함과 돌봄이 사랑의 언어가 되며, 사소한 생활 리듬을 함께 나눌 때 애정이 깊어집니다.",
+    conflict: "불편을 바로 터뜨리기보다 쌓아 두는 편이라, 작은 서운함을 초기에 말하는 연습이 필요합니다.",
+    money: "돈은 꾸준히 모으고 안정적으로 불리는 방식이 맞으며, 생활 만족을 해치지 않는 저축 구조가 오래 갑니다.",
+    shadow: "과열되면 편안함에 머물러 변화의 타이밍을 놓치거나, 좋은 사람 역할에 지칠 수 있습니다.",
+    growth: "성장은 생활 루틴을 정교하게 다듬고 작은 산출물을 계속 쌓을 때 깊어집니다.",
+  },
+  상관: {
+    personality: "표현력과 문제 제기가 분명한 축",
+    career: "기획·개선·발표에 강한 축",
+    aptitude: "브랜딩, 콘텐츠 기획, 강의, 발표, UX 개선, 문제를 새 언어로 풀어내는 역할에서 재능이 돋보입니다.",
+    love: "연애에서는 재치 있는 대화와 감각적 자극이 중요하며, 지루하거나 답답한 관계에서는 마음이 식기 쉽습니다.",
+    conflict: "말이 빠르고 정확해질수록 상대에게는 날카롭게 들릴 수 있으니, 정답보다 온도를 먼저 조절해야 합니다.",
+    money: "돈은 아이디어와 표현력이 수익으로 전환될 때 커지며, 즉흥 지출은 창작비와 충동비를 구분해야 안정됩니다.",
+    shadow: "과열되면 비판성이 앞서 관계의 신뢰보다 문제 지적이 먼저 보일 수 있습니다.",
+    growth: "성장은 날카로운 감각을 사람을 살리는 언어로 바꿀 때 품격 있게 열립니다.",
+  },
+  정재: {
+    personality: "현실 감각과 관리 본능이 강한 축",
+    career: "정산·운영·예산 관리에 강한 축",
+    aptitude: "회계, 운영관리, 재무, 구매, 품질관리, 일정과 자원을 정확히 맞추는 직무에서 강합니다.",
+    love: "연애에서는 성실함과 약속 이행을 통해 마음을 보여주며, 불확실한 관계보다 책임이 보이는 관계에서 안정됩니다.",
+    conflict: "상대가 약속을 가볍게 여기면 신뢰가 빠르게 줄어들어, 관계의 룰을 초기에 맞추는 것이 중요합니다.",
+    money: "돈은 새는 곳을 막고 구조를 세울 때 강해지며, 안정 자산과 현금 흐름 관리가 재물운의 중심입니다.",
+    shadow: "과열되면 걱정이 계산으로 변해, 좋은 기회 앞에서도 지나치게 보수적으로 굳을 수 있습니다.",
+    growth: "성장은 안정성을 지키면서도 작은 실험을 허용할 때 더 넓어집니다.",
+  },
+  편재: {
+    personality: "기회 포착과 유동성이 빠른 축",
+    career: "영업·확장·수익 다각화에 강한 축",
+    aptitude: "사업개발, 영업, 투자형 프로젝트, 제휴, 유통, 사람과 자원을 연결하는 영역에서 판을 키웁니다.",
+    love: "연애에서는 매력과 여유가 강하지만, 자유가 지나치면 상대에게 불안으로 읽힐 수 있습니다.",
+    conflict: "관계가 답답해지면 거리 두기로 반응하기 쉬워, 자유와 책임의 범위를 말로 정해야 합니다.",
+    money: "돈은 흐름을 넓힐 때 커지지만, 벌리는 만큼 관리 장치가 없으면 수익이 흩어질 수 있습니다.",
+    shadow: "과열되면 새 기회를 쫓느라 이미 쌓은 기반을 느슨하게 만들 수 있습니다.",
+    growth: "성장은 확장 본능에 우선순위를 붙이고, 가장 수익성 높은 길에 힘을 모을 때 완성됩니다.",
+  },
+  정관: {
+    personality: "책임감과 기준 준수가 분명한 축",
+    career: "조직 운영·규정·품질 통제에 강한 축",
+    aptitude: "공공기관, 법무, 인사, 관리직, 컴플라이언스, 조직의 기준과 신뢰를 세우는 자리에서 빛납니다.",
+    love: "연애에서는 가볍게 흔들리는 관계보다 책임과 미래 계획이 보이는 관계에서 마음을 깊게 엽니다.",
+    conflict: "관계가 무질서하다고 느끼면 통제하거나 평가하는 태도가 나올 수 있어, 기준을 강요보다 합의로 바꿔야 합니다.",
+    money: "돈은 안정적인 직함, 장기 계약, 제도권 구조와 잘 맞으며 꾸준한 상승 곡선을 만들 수 있습니다.",
+    shadow: "과열되면 완벽해야 한다는 압박이 커져 자신과 상대를 동시에 지치게 할 수 있습니다.",
+    growth: "성장은 책임을 혼자 짊어지는 것이 아니라 신뢰할 수 있는 규칙으로 나누는 데서 시작됩니다.",
+  },
+  편관: {
+    personality: "압박 속 추진력과 결단이 살아나는 축",
+    career: "리스크 관리·구조 개편에 강한 축",
+    aptitude: "위기관리, 보안, 응급 대응, 전략 실행, 조직 개편, 강한 결단이 필요한 프로젝트에서 힘이 살아납니다.",
+    love: "연애에서는 보호 본능과 강한 몰입이 있지만, 긴장감이 사랑의 증거처럼 굳어지지 않게 해야 합니다.",
+    conflict: "위협을 느끼면 단호하게 선을 긋기 쉬워, 중요한 대화에서는 속도를 낮추고 확인 질문을 먼저 두어야 합니다.",
+    money: "돈은 위험을 읽는 감각이 강점이지만, 불안을 이기려 큰 결정을 앞당기면 손실 관리가 흔들릴 수 있습니다.",
+    shadow: "과열되면 늘 전투 태세가 되어 쉬어야 할 순간에도 몸과 마음이 긴장을 풀지 못합니다.",
+    growth: "성장은 강한 결단력을 평상시의 안정 루틴과 연결할 때 폭발력이 오래 갑니다.",
+  },
+  정인: {
+    personality: "정리·학습·회복이 깊은 축",
+    career: "연구·분석·기획 보조에 강한 축",
+    aptitude: "연구, 상담, 교육, 문서화, 기획지원, 자격 기반 전문직처럼 축적과 해석이 필요한 분야에 맞습니다.",
+    love: "연애에서는 정서적 안정과 깊은 이해를 원하며, 상대가 내 마음을 안전하게 받아줄 때 신뢰가 커집니다.",
+    conflict: "상처를 받으면 말보다 침묵으로 들어가기 쉬워, 마음이 닫히기 전 감정의 이름을 먼저 꺼내야 합니다.",
+    money: "돈은 지식과 전문성이 자산으로 바뀔 때 안정되며, 공부와 자격 투자가 장기 재물운을 키웁니다.",
+    shadow: "과열되면 생각이 깊어지는 만큼 실행이 늦어지고, 보호받고 싶은 마음이 의존으로 기울 수 있습니다.",
+    growth: "성장은 배운 것을 현실의 산출물로 바꾸는 작은 마감에서 열립니다.",
+  },
+  편인: {
+    personality: "통찰과 비정형 이해가 빠른 축",
+    career: "창의 기획·특수 분야 탐구에 강한 축",
+    aptitude: "심리, 영성, 리서치, 데이터 해석, 특수 기술, 예술 기획처럼 남들이 놓치는 패턴을 읽는 일에 강합니다.",
+    love: "연애에서는 독특한 교감과 정신적 연결을 중시하며, 지나치게 평면적인 관계에서는 쉽게 건조해집니다.",
+    conflict: "불편을 느끼면 설명보다 거리 두기로 반응할 수 있어, 사라지기 전에 최소한의 신호를 남기는 것이 중요합니다.",
+    money: "돈은 희소한 전문성과 독창적 관점에서 열리지만, 현실 구조가 약하면 재능이 수익으로 늦게 이어집니다.",
+    shadow: "과열되면 의심과 해석이 많아져 실제보다 복잡하게 상황을 읽을 수 있습니다.",
+    growth: "성장은 깊은 직관을 반복 가능한 언어와 상품 구조로 번역할 때 안정됩니다.",
+  },
 };
 
 const FORBIDDEN_TEXT = [
@@ -283,6 +402,35 @@ const CHAPTERS: ChapterDefinition[] = [
     ],
   },
 ];
+
+const REPORT_CHAPTER_LENSES = ["성향 총론", "내면 감정", "연애 관계", "진로 적성", "재물 현실", "그림자 회복", "성장 로드맵"];
+const REPORT_SECTION_LENSES = [
+  ["FPTI 코드", "십성 중심", "내면 대비", "선택 패턴", "강점 조건", "흔들림 조건"],
+  ["감정 수용", "방어 습관", "친밀 관계", "회복 리듬", "감정 신호", "안정 기준"],
+  ["매력 포인트", "호감 표현", "기대 조율", "연애 십성", "관계 그림자", "조율 전략"],
+  ["일 처리", "성과 환경", "주의 업무", "재능 사용", "협업 방식", "성장 전략"],
+  ["돈 태도", "소비 저축", "재성 감각", "흔들림 지점", "수익 구조", "현실 습관"],
+  ["압박 반응", "과잉 십성", "부족 십성", "방어기제", "무너짐 패턴", "회복 처방"],
+  ["성장 방향", "습관 교정", "균형 전략", "30일 루틴", "90일 로드맵", "핵심 문장"],
+];
+
+function reportTriadLabels(chapterOrder: number) {
+  if (chapterOrder === 3) return { strength: "연애 강점", risk: "관계 주의", action: "조율 실행" };
+  if (chapterOrder === 4) return { strength: "적성 강점", risk: "진로 주의", action: "업무 실행" };
+  if (chapterOrder === 5) return { strength: "재물 강점", risk: "현실 주의", action: "돈 실행" };
+  if (chapterOrder === 6) return { strength: "회복 강점", risk: "그림자 주의", action: "처방 실행" };
+  if (chapterOrder === 7) return { strength: "성장 강점", risk: "습관 주의", action: "루틴 실행" };
+  return { strength: "성향 강점", risk: "주의", action: "실행" };
+}
+
+function reportSectionMeta(chapter: ChapterDefinition, sectionIndex = 0) {
+  const chapterIndex = Math.max(0, chapter.order - 1);
+  return {
+    category: REPORT_CHAPTER_LENSES[chapterIndex] || "심층 해석",
+    lens: REPORT_SECTION_LENSES[chapterIndex]?.[sectionIndex] || "핵심 관점",
+    triadLabels: reportTriadLabels(chapter.order),
+  };
+}
 
 function toText(value: unknown): string {
   return String(value ?? "").trim();
@@ -444,12 +592,80 @@ function topElements(source: LocalTypeResult["source"]): { strong: string; weak:
   };
 }
 
+type ElementCue = {
+  talent: string;
+  prescription: string;
+};
+
+const ELEMENT_CUES: Record<string, ElementCue> = {
+  목: {
+    talent: "성장 방향을 세우고 사람과 일을 앞으로 밀어 올리는 힘",
+    prescription: "약해진 목 기운은 계획을 작게 쪼개고 매주 새 배움 하나를 심는 방식으로 회복됩니다.",
+  },
+  화: {
+    talent: "표현력, 존재감, 빠른 반응으로 분위기를 밝히는 힘",
+    prescription: "약해진 화 기운은 햇빛, 발표, 짧은 운동, 감정을 드러내는 대화로 살아납니다.",
+  },
+  토: {
+    talent: "현실을 붙들고 관계와 자원을 안정시키는 힘",
+    prescription: "약해진 토 기운은 수면, 식사, 정리된 공간, 반복 가능한 생활 루틴으로 보완됩니다.",
+  },
+  금: {
+    talent: "기준을 세우고 불필요한 것을 정리해 완성도를 높이는 힘",
+    prescription: "약해진 금 기운은 우선순위 정리, 마감선 설정, 필요 없는 약속을 줄이는 습관으로 다듬어집니다.",
+  },
+  수: {
+    talent: "흐름을 읽고 깊게 배우며 막힌 길의 우회로를 찾는 힘",
+    prescription: "약해진 수 기운은 혼자 생각하는 시간, 기록, 충분한 휴식, 장기 관점의 재정렬로 채워집니다.",
+  },
+};
+
+function elementCue(element: string): ElementCue {
+  return ELEMENT_CUES[element] || ELEMENT_CUES.토;
+}
+
+function mbtiLensLine(scores: FptiScores): string {
+  const energy = scores.A >= scores.M ? "E처럼 외부 자극에서 힘을 얻지만" : "I처럼 내면 정리에서 힘을 얻지만";
+  const judgment = scores.H >= scores.L ? "F처럼 관계의 온도를 먼저 읽고" : "T처럼 기준과 논리를 먼저 세우고";
+  const execution = scores.F >= scores.B ? "P처럼 가능성을 열어 두며 움직이며" : "J처럼 구조와 마감을 세워 움직이며";
+  const vision = scores.R >= scores.V ? "S처럼 현실의 비용과 효율을 확인하는 편입니다." : "N처럼 의미와 가능성의 큰 흐름을 먼저 보는 편입니다.";
+  return `MBTI 관점으로 번역하면 ${energy}, ${judgment}, ${execution}, ${vision}`;
+}
+
+function relationshipTempoLine(scores: FptiScores): string {
+  if (scores.H >= scores.L && scores.F >= scores.B) {
+    return "관계의 템포는 마음이 움직이면 빠르게 가까워지는 편이지만, 오래 가려면 감정의 속도와 약속의 속도를 따로 맞춰야 합니다.";
+  }
+  if (scores.H >= scores.L && scores.B > scores.F) {
+    return "관계의 템포는 부드럽지만 신중해, 다정함 속에서도 안정적인 약속과 반복되는 확인을 원합니다.";
+  }
+  if (scores.L > scores.H && scores.F >= scores.B) {
+    return "관계의 템포는 자유롭고 솔직하지만, 상대가 불안해하지 않도록 기준과 경계를 미리 말해 주어야 합니다.";
+  }
+  return "관계의 템포는 천천히 깊어지는 쪽에 가까워, 신뢰가 확인될수록 표현과 헌신이 안정적으로 커집니다.";
+}
+
+function workEnvironmentLine(scores: FptiScores): string {
+  if (scores.F >= scores.B && scores.V >= scores.R) {
+    return "업무 환경은 새 가능성을 탐색하고 빠르게 실험할 수 있는 곳이 맞으며, 너무 촘촘한 승인 구조에서는 재능이 답답해집니다.";
+  }
+  if (scores.F >= scores.B && scores.R > scores.V) {
+    return "업무 환경은 현장 판단과 빠른 수정이 가능한 곳이 맞으며, 숫자와 반응을 보며 전략을 바꿀 때 성과가 납니다.";
+  }
+  if (scores.B > scores.F && scores.V >= scores.R) {
+    return "업무 환경은 큰 방향을 체계로 바꾸는 곳이 맞으며, 장기 기획과 시스템 설계에서 존재감이 커집니다.";
+  }
+  return "업무 환경은 역할, 마감, 책임이 분명한 곳이 맞으며, 안정적인 운영과 품질 관리에서 신뢰를 얻습니다.";
+}
+
 function buildNarrativeSeed(typeResult: LocalTypeResult): NarrativeSeed {
   const { scores } = typeResult;
   const tenGods = tenGodHighlights(typeResult.source);
   const elements = topElements(typeResult.source);
   const strength = typeResult.topAxes[0];
   const shadow = typeResult.lowAxes[0];
+  const strongElementCue = elementCue(elements.strong);
+  const weakElementCue = elementCue(elements.weak);
 
   const energyStyle = choose(
     scores.A,
@@ -488,11 +704,22 @@ function buildNarrativeSeed(typeResult: LocalTypeResult): NarrativeSeed {
     judgmentStyle,
     executionStyle,
     visionStyle,
+    mbtiLensLine: mbtiLensLine(scores),
     dayMasterLine: dayMasterNarrative(toText(typeResult.source?.dayMaster)),
     monthBranchLine: monthBranchNarrative(toText(typeResult.source?.monthBranch)),
-    elementBalanceLine: `오행 흐름으로 보면 ${elements.strong} 기운이 주도권을 잡고 ${elements.weak} 기운이 상대적으로 약해, 강점은 밀어주고 약점은 생활 습관으로 보완하는 접근이 필요합니다.`,
+    elementBalanceLine: `오행 흐름으로 보면 ${elements.strong} 기운이 주도권을 잡고 ${elements.weak} 기운이 상대적으로 약해, ${strongElementCue.talent}이 강점으로 드러납니다.`,
+    elementPrescriptionLine: weakElementCue.prescription,
     tenGodLine,
     coreStrengthLine,
+    aptitudeLine: `${tenGods.primary}의 적성은 ${primaryCue.aptitude} 여기에 ${tenGods.secondary} 흐름이 더해지면 ${secondaryCue.career}이 직업적 무기가 됩니다.`,
+    careerLine: `${tenGods.primary}이 앞설 때 진로는 ${primaryCue.career}에서 열리고, ${tenGods.secondary} 흐름은 일의 방식에 현실적인 결을 더합니다.`,
+    loveLine: `${tenGods.primary}의 연애 성향은 ${primaryCue.love} ${tenGods.secondary} 흐름까지 함께 보면 ${secondaryCue.love}`,
+    conflictLine: `${tenGods.primary} 흐름의 갈등 패턴은 ${primaryCue.conflict} ${tenGods.secondary} 흐름이 과해질 때는 ${secondaryCue.conflict}`,
+    moneyLine: `${tenGods.primary}의 재물 감각은 ${primaryCue.money} ${tenGods.secondary} 흐름은 ${secondaryCue.money}`,
+    stressLine: `${tenGods.primary} 흐름이 그림자로 기울면 ${primaryCue.shadow} ${tenGods.secondary} 흐름의 그림자는 ${secondaryCue.shadow}`,
+    growthLine: `${tenGods.primary}의 성장 처방은 ${primaryCue.growth} ${tenGods.secondary} 흐름을 살리려면 ${secondaryCue.growth}`,
+    relationshipTempoLine: relationshipTempoLine(scores),
+    workEnvironmentLine: workEnvironmentLine(scores),
     shadowLine: `당신이 흔들릴 때는 보통 ${shadow.label} 구간에서 먼저 피로 신호가 올라옵니다. 이때 무리하게 밀어붙이면 성과보다 소모가 커지기 쉽습니다.`,
     actionLine: `지금 성장의 핵심은 ${strength.label} 강점을 더 세게 쓰는 것이 아니라, 취약 구간에서 복귀 속도를 높이는 운영 규칙을 확보하는 것입니다.`,
     debugSignals: uniqueList([
@@ -541,17 +768,121 @@ function chapterFlavor(chapterOrder: number): { strength: string; risk: string; 
   return { strength: "실행 단위를 작게 쪼개면 성장 지속성이 높아집니다.", risk: "목표가 추상적이면 계획만 늘고 실행이 줄어듭니다.", action: "7일과 30일 목표를 분리해 체크리스트로 운영하세요." };
 }
 
+function sectionFocus(chapter: ChapterDefinition, title: string, seed: NarrativeSeed): string {
+  if (chapter.order === 1) {
+    if (title.includes("FPTI 코드")) {
+      return `${seed.typeName}은 사주의 기운을 행동 심리 언어로 풀었을 때 드러나는 대표 성향입니다. ${seed.mbtiLensLine} 이 조합은 겉으로 보이는 성격보다 실제 선택 습관을 더 정확히 보여 줍니다.`;
+    }
+    if (title.includes("대표 십성")) {
+      return `${seed.coreStrengthLine} ${seed.tenGodLine} ${seed.aptitudeLine}`;
+    }
+    if (title.includes("겉모습")) {
+      return `겉으로는 ${seed.energyStyle} 그러나 실제 내면에서는 ${seed.dayMasterLine} 겉모습과 내면의 차이를 이해하면 관계에서 불필요한 오해가 줄어듭니다.`;
+    }
+    if (title.includes("반복되는 선택")) {
+      return `반복 선택은 ${seed.judgmentStyle} ${seed.executionStyle} ${seed.visionStyle} 이 세 흐름이 만나는 지점에서 생깁니다.`;
+    }
+    if (title.includes("강해지는 조건")) {
+      return `${seed.workEnvironmentLine} ${seed.elementBalanceLine} ${seed.growthLine}`;
+    }
+    return `${seed.stressLine} ${seed.conflictLine} 흔들림은 약함의 증거가 아니라 기운의 사용 방식이 한쪽으로 기울었다는 신호입니다.`;
+  }
+
+  if (chapter.order === 2) {
+    if (title.includes("감정")) return `${seed.judgmentStyle} ${seed.loveLine} 감정은 당신에게 결정을 방해하는 소음이 아니라, 관계의 온도를 알려 주는 섬세한 예보입니다.`;
+    if (title.includes("무의식")) return `${seed.stressLine} 스스로를 지키는 방식은 처음에는 보호막이지만, 오래 지속되면 가까운 사람과의 거리를 만들 수 있습니다.`;
+    if (title.includes("가까운 사람")) return `${seed.relationshipTempoLine} 가까운 사람 앞에서는 힘을 주고 버티는 모습보다, 진짜 욕구와 피로가 먼저 드러납니다.`;
+    if (title.includes("혼자")) return `${seed.energyStyle} ${seed.elementPrescriptionLine} 혼자 있는 시간은 도피가 아니라 기운을 다시 정렬하는 의식에 가깝습니다.`;
+    if (title.includes("쌓였을")) return `${seed.shadowLine} ${seed.conflictLine} 감정이 쌓이면 말투보다 침묵, 속도 변화, 결정 회피에서 먼저 신호가 나옵니다.`;
+    return `${seed.elementPrescriptionLine} ${seed.growthLine} 마음을 안정시키는 기준은 거창한 결심보다 매일 반복 가능한 작은 질서에서 생깁니다.`;
+  }
+
+  if (chapter.order === 3) {
+    if (title.includes("매력")) return `${seed.loveLine} 당신의 매력은 단순한 호감보다 상대가 안전하다고 느끼는 방식에서 깊어집니다.`;
+    if (title.includes("좋아하는 사람")) return `${seed.relationshipTempoLine} 호감이 생기면 표현 속도와 확신 속도가 달라질 수 있으니, 상대가 따라올 수 있는 리듬을 남겨야 합니다.`;
+    if (title.includes("기대와 실망")) return `${seed.conflictLine} 기대를 말로 꺼내지 않으면 상대는 당신의 깊이를 배려가 아니라 거리감으로 오해할 수 있습니다.`;
+    if (title.includes("연애에서 강점")) return `${seed.coreStrengthLine} ${seed.loveLine} 이 흐름은 연애에서 신뢰를 만드는 방식과 상처를 회복하는 방식을 동시에 보여 줍니다.`;
+    if (title.includes("망치기 쉬운")) return `${seed.stressLine} 관계를 망치는 순간은 사랑이 부족할 때보다, 불안을 다루는 방식이 거칠어질 때 찾아옵니다.`;
+    return `${seed.relationshipTempoLine} 건강한 관계는 감정의 크기보다 약속, 거리, 표현 빈도를 함께 조율할 때 오래 갑니다.`;
+  }
+
+  if (chapter.order === 4) {
+    if (title.includes("일 처리")) return `${seed.workEnvironmentLine} ${seed.executionStyle} 일 처리의 핵심은 속도 자체보다 어떤 구조에서 실력이 가장 덜 새는지 아는 데 있습니다.`;
+    if (title.includes("성과")) return `${seed.careerLine} 성과는 강점이 요구되는 환경과 책임 범위가 맞아떨어질 때 가장 크게 열립니다.`;
+    if (title.includes("피해야")) return `${seed.stressLine} 피해야 할 업무 구조는 능력이 부족한 곳이 아니라, 강점을 소모하게 만드는 곳입니다.`;
+    if (title.includes("재능")) return `${seed.aptitudeLine} 재능은 타고난 가능성에서 끝나지 않고, 반복 가능한 직무 형태로 바뀔 때 운의 통로가 됩니다.`;
+    if (title.includes("리더십")) return `${seed.mbtiLensLine} 협업에서는 이 흐름을 이해한 뒤 의사결정 기준, 보고 방식, 마감 단위를 먼저 맞추는 편이 좋습니다.`;
+    return `${seed.growthLine} 직업적 성장은 더 많은 일을 떠안는 방향보다, 가장 강한 역할을 선명하게 선택하는 방향에서 깊어집니다.`;
+  }
+
+  if (chapter.order === 5) {
+    if (title.includes("바라보는")) return `${seed.moneyLine} 돈은 단순한 숫자가 아니라 안정감, 자유, 책임감 중 무엇을 더 중요하게 여기는지 보여 주는 거울입니다.`;
+    if (title.includes("소비")) return `${seed.conflictLine} 소비와 저축은 감정 조절 방식과 이어져 있어, 불안한 날의 결정을 따로 관리해야 합니다.`;
+    if (title.includes("재성")) return `${seed.moneyLine} 재성의 흐름은 돈을 버는 감각뿐 아니라 유지하고 순환시키는 방식까지 함께 읽어야 선명해집니다.`;
+    if (title.includes("흔들리는")) return `${seed.shadowLine} 돈 때문에 흔들리는 지점은 욕심보다 불안이 앞설 때 드러나므로, 결정 전 감정 상태를 먼저 확인해야 합니다.`;
+    if (title.includes("수익 구조")) return `${seed.careerLine} 안정적인 수익 구조는 직업 적성과 돈의 흐름이 같은 방향으로 놓일 때 만들어집니다.`;
+    return `${seed.elementPrescriptionLine} 현실 판단력은 큰 결정을 잘하는 힘보다, 작은 지출과 작은 선택을 반복해서 정렬하는 힘에서 커집니다.`;
+  }
+
+  if (title.includes("압박")) return `${seed.stressLine} 압박을 받을 때 드러나는 반응은 숨겨진 약점이 아니라 평소 강점이 과열된 모습입니다.`;
+  if (title.includes("과잉")) return `${seed.coreStrengthLine} 과잉된 기운은 장점의 농도가 짙어진 상태라, 방향을 바꾸면 다시 힘이 됩니다.`;
+  if (title.includes("부족")) return `${seed.elementPrescriptionLine} 부족한 기운은 채워야 할 결핍이 아니라 생활 속에서 보완해야 할 균형점입니다.`;
+  if (title.includes("방어기제")) return `${seed.conflictLine} 방어기제는 상대를 밀어내려는 의도보다 스스로를 지키려는 오래된 습관에서 나옵니다.`;
+  if (title.includes("무너질 때")) return `${seed.shadowLine} 무너질 때 반복되는 선택을 알아차리면, 같은 운의 파도에서도 다른 결말을 만들 수 있습니다.`;
+  return `${seed.growthLine} 회복 처방은 마음을 다잡는 말보다 몸, 일정, 관계 경계를 동시에 낮추는 현실적인 순서에서 시작됩니다.`;
+}
+
+function sectionTriad(chapter: ChapterDefinition, title: string, seed: NarrativeSeed): { strength: string; risk: string; action: string; advice: string } {
+  const flavor = chapterFlavor(chapter.order);
+  if (chapter.order === 3) {
+    return {
+      strength: `${title}에서는 ${flavor.strength} ${seed.relationshipTempoLine}`,
+      risk: `${title}에서 ${flavor.risk} ${seed.conflictLine}`,
+      action: `${flavor.action} 표현 빈도, 거리감, 약속 기준을 한 문장으로 남기세요.`,
+      advice: "사랑의 크기보다 반복되는 안전감이 관계의 운을 오래 붙잡습니다.",
+    };
+  }
+  if (chapter.order === 4) {
+    return {
+      strength: `${title}에서는 ${flavor.strength} ${seed.aptitudeLine}`,
+      risk: `${title}에서 ${flavor.risk} ${seed.stressLine}`,
+      action: `${flavor.action} 이번 주 업무를 적성에 맞는 일, 소모가 큰 일, 위임할 일로 나누세요.`,
+      advice: "진로의 운은 재능을 많이 쓰는 곳보다 재능이 덜 새는 구조에서 열립니다.",
+    };
+  }
+  if (chapter.order === 5) {
+    return {
+      strength: `${title}에서는 ${flavor.strength} ${seed.moneyLine}`,
+      risk: `${title}에서 ${flavor.risk} 감정이 높은 날의 지출과 투자는 하루 늦춰야 안정됩니다.`,
+      action: `${flavor.action} 안전자금, 성장자금, 만족지출을 분리해 흐름을 보세요.`,
+      advice: "돈의 흐름은 막는 것보다 방향을 정할 때 더 맑아집니다.",
+    };
+  }
+  if (chapter.order === 6) {
+    return {
+      strength: `${title}에서는 ${flavor.strength} ${seed.growthLine}`,
+      risk: `${title}에서 ${flavor.risk} ${seed.shadowLine}`,
+      action: `${flavor.action} 피로 신호가 보이면 결정보다 회복 순서를 먼저 적용하세요.`,
+      advice: "그림자는 없애는 것이 아니라 빛이 너무 강해진 방향을 낮추는 과정입니다.",
+    };
+  }
+  return {
+    strength: `${title}에서는 ${flavor.strength} ${seed.coreStrengthLine}`,
+    risk: `${title}에서 ${flavor.risk} ${seed.shadowLine}`,
+    action: `${flavor.action} 오늘 적용할 기준과 멈출 기준을 각각 한 줄로 정하세요.`,
+    advice: "운의 흐름은 기질을 억누를 때가 아니라 올바른 자리에 배치할 때 부드럽게 열립니다.",
+  };
+}
+
 function sectionFrame(chapter: ChapterDefinition, title: string, seed: NarrativeSeed): string {
   return repeatSafe([
     `${title}에서 가장 먼저 기억할 점은, 당신의 기질이 단점과 장점으로 깔끔하게 나뉘지 않는다는 사실입니다.`,
+    sectionFocus(chapter, title, seed),
     chapterBackdrop(chapter.order, seed),
-    seed.energyStyle,
-    seed.judgmentStyle,
-    seed.executionStyle,
-    seed.visionStyle,
-    seed.tenGodLine,
     seed.elementBalanceLine,
-    seed.shadowLine,
+    seed.elementPrescriptionLine,
+    seed.mbtiLensLine,
+    `현실에서는 이 흐름이 성향, 진로, 적성, 연애 스타일에서 각각 다른 표정으로 나타납니다.`,
     `그래서 ${title}의 해답은 더 강하게 밀어붙이는 태도보다, 오래 유지되는 기준을 만들고 피로가 올라오는 순간 즉시 속도를 조절하는 운영감각에 있습니다.`,
   ].join(" "));
 }
@@ -661,36 +992,41 @@ function buildSectionNarrative(chapter: ChapterDefinition, title: string, seed: 
 
   const interpretation = sectionFrame(chapter, title, seed);
   const body = repeatSafe(`${interpretation} ${title}을 읽을 때는 자신을 평가하려 하기보다, 실제 생활에서 반복되는 장면을 떠올리며 적용 지점을 찾는 태도가 가장 중요합니다.`);
+  const triad = sectionTriad(chapter, title, seed);
   return {
     interpretation,
     body,
-    strength: repeatSafe(`${seed.coreStrengthLine} ${title}에서는 이 강점을 사람과 환경에 맞춰 조절할 때 성과의 지속성이 높아집니다.`),
-    risk: repeatSafe(`${seed.shadowLine} ${title} 장면에서 무리하게 버티면 판단의 정확도보다 감정 소모가 먼저 커질 수 있습니다.`),
-    action: repeatSafe(`${seed.actionLine} ${title}에 대해 이번 주 실행 문장 하나를 정해 매일 적용 여부를 점검해 보세요.`),
-    advice: repeatSafe("완벽한 하루를 목표로 하기보다, 흔들린 날에도 돌아올 수 있는 최소 기준을 지키는 것이 당신에게 더 큰 힘이 됩니다."),
+    strength: repeatSafe(triad.strength),
+    risk: repeatSafe(triad.risk),
+    action: repeatSafe(triad.action),
+    advice: repeatSafe(triad.advice),
   };
 }
 
-export function buildFptiDeepSection(typeResult: LocalTypeResult, sectionDefinition: { chapter: ChapterDefinition; title: string }): FptiDeepSection {
-  const { chapter, title } = sectionDefinition;
+export function buildFptiDeepSection(typeResult: LocalTypeResult, sectionDefinition: { chapter: ChapterDefinition; title: string; sectionIndex?: number }): FptiDeepSection {
+  const { chapter, title, sectionIndex = 0 } = sectionDefinition;
   const seed = buildNarrativeSeed(typeResult);
   const built = buildSectionNarrative(chapter, title, seed);
   const includeDebugSignals = process.env.NODE_ENV !== "production";
+  const meta = reportSectionMeta(chapter, sectionIndex);
 
   return {
     title,
+    category: meta.category,
+    lens: meta.lens,
     interpretation: repeatSafe(built.interpretation),
     body: repeatSafe(built.body || built.interpretation),
     strength: repeatSafe(built.strength),
     risk: repeatSafe(built.risk),
     action: repeatSafe(built.action),
     advice: repeatSafe(built.advice),
+    triadLabels: meta.triadLabels,
     ...(includeDebugSignals ? { debugSignals: seed.debugSignals } : {}),
   };
 }
 
 export function buildFptiDeepChapter(typeResult: LocalTypeResult, chapterDefinition: ChapterDefinition, unlocked = true): FptiDeepChapter {
-  const sections = chapterDefinition.sections.map((title) => buildFptiDeepSection(typeResult, { chapter: chapterDefinition, title }));
+  const sections = chapterDefinition.sections.map((title, sectionIndex) => buildFptiDeepSection(typeResult, { chapter: chapterDefinition, title, sectionIndex }));
   const previewSection = sections[0]
     ? {
       ...sections[0],

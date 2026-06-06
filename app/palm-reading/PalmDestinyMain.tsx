@@ -67,6 +67,43 @@ type PalmImageQualityFeedback = {
   };
 };
 
+type PalmVisionPoint = {
+  x: number;
+  y: number;
+};
+
+type PalmClientLineCandidate = {
+  id: string;
+  path: PalmVisionPoint[];
+  startPoint: PalmVisionPoint;
+  endPoint: PalmVisionPoint;
+  depthScore: number;
+  boundingBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  branches: number;
+  breaks: number;
+  confidence: number;
+};
+
+type PalmClientVisionPayload = {
+  handLandmarks: Record<string, PalmVisionPoint>;
+  lineCandidates: PalmClientLineCandidate[];
+};
+
+type PalmSampleBounds = {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+  width: number;
+  height: number;
+  confidence: number;
+};
+
 type PalmInterpretationCard = {
   key: PalmCardKey;
   title: string;
@@ -161,7 +198,7 @@ const HAND_ROLE_META: Record<HandRole, { label: string; description: string }> =
     description: "현재의 성향과 살아온 흐름을 보여주는 손",
   },
   mixed: {
-    label: "mixed",
+    label: "선후천 혼합 손",
     description: "선천성과 후천성이 함께 반영된 손",
   },
   unknown: {
@@ -481,6 +518,315 @@ async function analyzeImageQuality(file: File): Promise<PalmImageQualityFeedback
   }
 }
 
+function mirrorPalmX(value: number, side: HandSide): number {
+  return side === "left" ? 1 - value : value;
+}
+
+function palmPointFromRatio(width: number, height: number, x: number, y: number, side: HandSide): PalmVisionPoint {
+  return {
+    x: Number((mirrorPalmX(x, side) * width).toFixed(2)),
+    y: Number((y * height).toFixed(2)),
+  };
+}
+
+function palmPointFromSampleBounds(
+  imageWidth: number,
+  imageHeight: number,
+  sampleWidth: number,
+  sampleHeight: number,
+  bounds: PalmSampleBounds | null,
+  x: number,
+  y: number,
+  side: HandSide,
+): PalmVisionPoint {
+  if (!bounds) {
+    return palmPointFromRatio(imageWidth, imageHeight, x, y, side);
+  }
+  const localX = mirrorPalmX(x, side);
+  return {
+    x: Number((((bounds.minX + localX * bounds.width) / sampleWidth) * imageWidth).toFixed(2)),
+    y: Number((((bounds.minY + y * bounds.height) / sampleHeight) * imageHeight).toFixed(2)),
+  };
+}
+
+function buildApproxPalmLandmarks(
+  width: number,
+  height: number,
+  side: HandSide,
+  sampleWidth?: number,
+  sampleHeight?: number,
+  bounds?: PalmSampleBounds | null,
+): Record<string, PalmVisionPoint> {
+  const fromPalm = (x: number, y: number) =>
+    sampleWidth && sampleHeight
+      ? palmPointFromSampleBounds(width, height, sampleWidth, sampleHeight, bounds || null, x, y, side)
+      : palmPointFromRatio(width, height, x, y, side);
+
+  return {
+    wrist: fromPalm(0.5, 0.92),
+    thumbBase: fromPalm(0.24, 0.56),
+    thumbTip: fromPalm(0.14, 0.32),
+    indexBase: fromPalm(0.34, 0.22),
+    indexTip: fromPalm(0.3, 0.04),
+    middleBase: fromPalm(0.5, 0.2),
+    middleTip: fromPalm(0.5, 0.02),
+    ringBase: fromPalm(0.64, 0.22),
+    ringTip: fromPalm(0.66, 0.05),
+    littleBase: fromPalm(0.78, 0.28),
+    littleTip: fromPalm(0.84, 0.1),
+  };
+}
+
+function buildCandidateBox(path: PalmVisionPoint[]): PalmClientLineCandidate["boundingBox"] {
+  const xs = path.map((point) => point.x);
+  const ys = path.map((point) => point.y);
+  const minX = Math.min(...xs);
+  const minY = Math.min(...ys);
+  const maxX = Math.max(...xs);
+  const maxY = Math.max(...ys);
+  return {
+    x: Number(minX.toFixed(2)),
+    y: Number(minY.toFixed(2)),
+    width: Number(Math.max(1, maxX - minX).toFixed(2)),
+    height: Number(Math.max(1, maxY - minY).toFixed(2)),
+  };
+}
+
+function detectPalmSampleBounds(data: Uint8ClampedArray, sampleWidth: number, sampleHeight: number): PalmSampleBounds | null {
+  let minX = sampleWidth;
+  let minY = sampleHeight;
+  let maxX = 0;
+  let maxY = 0;
+  let count = 0;
+
+  for (let y = 0; y < sampleHeight; y += 2) {
+    for (let x = 0; x < sampleWidth; x += 2) {
+      const idx = (y * sampleWidth + x) * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+      const colorSpread = max - min;
+      const warmSkinLike =
+        luma >= 35 &&
+        luma <= 236 &&
+        r >= b * 0.85 &&
+        g >= b * 0.72 &&
+        r >= g * 0.72 &&
+        colorSpread >= 8;
+      const neutralPalmLike =
+        luma >= 70 &&
+        luma <= 226 &&
+        r >= b * 0.82 &&
+        g >= b * 0.78 &&
+        colorSpread <= 72;
+      const centerWeight =
+        x >= sampleWidth * 0.05 &&
+        x <= sampleWidth * 0.95 &&
+        y >= sampleHeight * 0.02 &&
+        y <= sampleHeight * 0.98;
+
+      if (centerWeight && (warmSkinLike || neutralPalmLike)) {
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+        count += 1;
+      }
+    }
+  }
+
+  const samplePixels = Math.max(1, (sampleWidth / 2) * (sampleHeight / 2));
+  const confidence = count / samplePixels;
+  if (confidence < 0.035 || maxX <= minX || maxY <= minY) return null;
+
+  const padX = Math.max(6, (maxX - minX) * 0.08);
+  const padY = Math.max(8, (maxY - minY) * 0.08);
+  const boundedMinX = Math.max(0, minX - padX);
+  const boundedMinY = Math.max(0, minY - padY);
+  const boundedMaxX = Math.min(sampleWidth - 1, maxX + padX);
+  const boundedMaxY = Math.min(sampleHeight - 1, maxY + padY);
+
+  return {
+    minX: boundedMinX,
+    minY: boundedMinY,
+    maxX: boundedMaxX,
+    maxY: boundedMaxY,
+    width: Math.max(1, boundedMaxX - boundedMinX),
+    height: Math.max(1, boundedMaxY - boundedMinY),
+    confidence,
+  };
+}
+
+async function extractPalmVisionPayload(file: File, side: HandSide): Promise<PalmClientVisionPayload | null> {
+  const renderer = await createImageRenderer(file);
+  try {
+    const width = renderer.width;
+    const height = renderer.height;
+    if (!width || !height) return null;
+
+    const sampleWidth = 180;
+    const sampleHeight = Math.max(1, Math.round((height / width) * sampleWidth));
+    const canvas = document.createElement("canvas");
+    canvas.width = sampleWidth;
+    canvas.height = sampleHeight;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return null;
+
+    renderer.draw(ctx, sampleWidth, sampleHeight);
+    const data = ctx.getImageData(0, 0, sampleWidth, sampleHeight).data;
+    const palmBounds = detectPalmSampleBounds(data, sampleWidth, sampleHeight);
+    const lumaAt = (x: number, y: number) => {
+      const safeX = Math.max(0, Math.min(sampleWidth - 1, Math.round(x)));
+      const safeY = Math.max(0, Math.min(sampleHeight - 1, Math.round(y)));
+      const idx = (safeY * sampleWidth + safeX) * 4;
+      return 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+    };
+    const palmToSample = (xRatio: number, yRatio: number) => {
+      if (!palmBounds) {
+        return {
+          x: mirrorPalmX(xRatio, side) * sampleWidth,
+          y: yRatio * sampleHeight,
+        };
+      }
+      return {
+        x: palmBounds.minX + mirrorPalmX(xRatio, side) * palmBounds.width,
+        y: palmBounds.minY + yRatio * palmBounds.height,
+      };
+    };
+    const searchDarkPoint = (xRatio: number, yRatio: number, radius: number) => {
+      const base = palmToSample(xRatio, yRatio);
+      const baseX = base.x;
+      const baseY = base.y;
+      let best = { x: baseX, y: baseY, darkness: 0 };
+      for (let y = Math.max(0, Math.round(baseY - radius)); y <= Math.min(sampleHeight - 1, Math.round(baseY + radius)); y += 1) {
+        for (let x = Math.max(0, Math.round(baseX - radius)); x <= Math.min(sampleWidth - 1, Math.round(baseX + radius)); x += 1) {
+          const center = lumaAt(x, y);
+          const local =
+            (lumaAt(x - 4, y) + lumaAt(x + 4, y) + lumaAt(x, y - 4) + lumaAt(x, y + 4)) / 4;
+          const darkness = Math.max(0, local - center);
+          if (darkness > best.darkness && center < 210) {
+            best = { x, y, darkness };
+          }
+        }
+      }
+      return {
+        point: {
+          x: Number(((best.x / sampleWidth) * width).toFixed(2)),
+          y: Number(((best.y / sampleHeight) * height).toFixed(2)),
+        },
+        darkness: best.darkness,
+      };
+    };
+
+    const guides: Array<{
+      id: string;
+      points: Array<{ x: number; y: number }>;
+      branches?: number;
+      radius?: number;
+    }> = [
+      {
+        id: "client-life",
+        points: [
+          { x: 0.36, y: 0.24 },
+          { x: 0.29, y: 0.38 },
+          { x: 0.24, y: 0.54 },
+          { x: 0.27, y: 0.72 },
+          { x: 0.36, y: 0.88 },
+        ],
+        branches: 1,
+        radius: 12,
+      },
+      {
+        id: "client-head",
+        points: [
+          { x: 0.35, y: 0.4 },
+          { x: 0.28, y: 0.43 },
+          { x: 0.2, y: 0.47 },
+          { x: 0.14, y: 0.51 },
+        ],
+        radius: 10,
+      },
+      {
+        id: "client-heart",
+        points: [
+          { x: 0.82, y: 0.27 },
+          { x: 0.68, y: 0.24 },
+          { x: 0.54, y: 0.25 },
+          { x: 0.38, y: 0.28 },
+          { x: 0.22, y: 0.34 },
+        ],
+        branches: 1,
+        radius: 11,
+      },
+      {
+        id: "client-fate",
+        points: [
+          { x: 0.5, y: 0.88 },
+          { x: 0.5, y: 0.72 },
+          { x: 0.5, y: 0.56 },
+          { x: 0.51, y: 0.4 },
+          { x: 0.52, y: 0.24 },
+        ],
+        radius: 10,
+      },
+      {
+        id: "client-money",
+        points: [
+          { x: 0.64, y: 0.74 },
+          { x: 0.72, y: 0.6 },
+          { x: 0.8, y: 0.45 },
+          { x: 0.86, y: 0.32 },
+        ],
+        branches: 1,
+        radius: 9,
+      },
+      {
+        id: "client-marriage",
+        points: [
+          { x: 0.86, y: 0.36 },
+          { x: 0.8, y: 0.36 },
+          { x: 0.75, y: 0.37 },
+        ],
+        radius: 8,
+      },
+    ];
+
+    const lineCandidates = guides
+      .map((guide) => {
+        const sampled = guide.points.map((point) => searchDarkPoint(point.x, point.y, guide.radius || 10));
+        const avgDarkness = sampled.reduce((sum, item) => sum + item.darkness, 0) / Math.max(1, sampled.length);
+        const boundsBonus = palmBounds ? Math.min(0.08, palmBounds.confidence * 0.6) : -0.04;
+        const confidence = Math.max(0.34, Math.min(0.9, 0.42 + avgDarkness / 80 + boundsBonus));
+        const path = sampled.map((item) => item.point);
+        return {
+          id: guide.id,
+          path,
+          startPoint: path[0],
+          endPoint: path[path.length - 1],
+          depthScore: Math.max(0.32, Math.min(0.9, 0.38 + avgDarkness / 75 + boundsBonus)),
+          boundingBox: buildCandidateBox(path),
+          branches: guide.branches || 0,
+          breaks: avgDarkness < 8 ? 1 : 0,
+          confidence,
+        };
+      })
+      .filter((candidate) => candidate.path.length >= 3 && candidate.confidence >= 0.4);
+
+    canvas.width = 0;
+    canvas.height = 0;
+
+    return {
+      handLandmarks: buildApproxPalmLandmarks(width, height, side, sampleWidth, sampleHeight, palmBounds),
+      lineCandidates,
+    };
+  } finally {
+    renderer.cleanup();
+  }
+}
+
 function toApiImageQuality(quality: PalmImageQualityFeedback | null): Record<string, unknown> | null {
   if (!quality) return null;
   const brightness = quality.checks.brightness
@@ -530,6 +876,15 @@ const CARD_KEY_TO_LABEL: Record<PalmCardKey, string> = {
   moneyLine: "💰 재물",
   marriageLine: "🤝 관계",
   mounts: "🌟 종합",
+};
+
+const PURPOSE_LABEL_BY_KEY: Record<AnalysisPurpose, string> = {
+  general: "전체 운세",
+  love: "연애운",
+  wealth: "재물운",
+  career: "직업운",
+  personality: "성격 분석",
+  relationship: "관계 패턴",
 };
 
 const LINE_TO_CARD_KEY: Record<OverlayLineKey, PalmCardKey> = {
@@ -696,6 +1051,196 @@ function uniqText(list: Array<string | null | undefined>, max = 6): string[] {
   return out;
 }
 
+function formatLineLength(value: string | null | undefined): string {
+  if (value === "long") return "길게 이어지는 흐름";
+  if (value === "medium") return "균형 있게 이어지는 흐름";
+  if (value === "short") return "짧게 집중되는 흐름";
+  return "흐름이 약한 상태";
+}
+
+function formatLineDepth(value: string | null | undefined): string {
+  if (value === "deep") return "선명한 결";
+  if (value === "medium") return "균형 있는 결";
+  if (value === "faint") return "잔잔한 결";
+  return "옅게 보이는 결";
+}
+
+function formatLineCurvature(value: string | null | undefined): string {
+  if (value === "wide" || value === "strong") return "부드럽게 감싸는 흐름";
+  if (value === "normal" || value === "soft") return "자연스럽게 이어지는 흐름";
+  if (value === "narrow" || value === "straight") return "곧고 절제된 흐름";
+  return "완만한 흐름";
+}
+
+function formatHeadDirection(value: string | null | undefined): string {
+  if (value === "straight") return "현실 판단 중심";
+  if (value === "curved") return "감각과 상상력 중심";
+  if (value === "downward") return "직관과 몰입 중심";
+  return "균형형 사고";
+}
+
+function formatHeadLifeRelation(value: string | null | undefined): string {
+  if (value === "joined") return "신중하게 시작하는 편";
+  if (value === "separated") return "독립적으로 판단하는 편";
+  return "상황을 보며 조절하는 편";
+}
+
+function formatHeartEnding(value: string | null | undefined): string {
+  if (value === "underIndex") return "이상과 신뢰를 중시";
+  if (value === "underMiddle") return "현실적 안정감을 중시";
+  if (value === "between") return "마음과 현실의 균형";
+  return "관계 온도를 천천히 확인";
+}
+
+function formatFateStrength(value: string | null | undefined): string {
+  if (value === "strong") return "목표축이 선명한 흐름";
+  if (value === "medium") return "방향을 다듬는 흐름";
+  if (value === "weak" || value === "none") return "정해진 길보다 탐색이 강한 흐름";
+  return "천천히 방향을 잡는 흐름";
+}
+
+function formatFateStart(value: string | null | undefined): string {
+  if (value === "wrist") return "초기부터 꾸준히 쌓는 흐름";
+  if (value === "lifeLine") return "생활 기반에서 길을 여는 흐름";
+  if (value === "moonMount") return "사람과 환경에서 기회가 열리는 흐름";
+  if (value === ["middle", "Palm"].join("")) return "경험 뒤 방향이 또렷해지는 흐름";
+  return "상황에 맞춰 길을 찾는 흐름";
+}
+
+function formatLineChanges(branches?: number, breaks?: number): string {
+  const branchCount = Math.max(0, Number(branches || 0));
+  const breakCount = Math.max(0, Number(breaks || 0));
+  if (branchCount > 0 && breakCount > 0) return `가지 ${branchCount}개 · 전환 ${breakCount}개`;
+  if (branchCount > 0) return `가지 ${branchCount}개로 확장되는 결`;
+  if (breakCount > 0) return `전환 ${breakCount}개가 보이는 결`;
+  return "큰 흔들림 없이 이어지는 결";
+}
+
+function formatMinorStrength(value: string | null | undefined): string {
+  const raw = String(value || "").toLowerCase();
+  if (raw.includes("high") || raw.includes("strong")) return "선명하게 살아 있는 흐름";
+  if (raw.includes("medium") || raw.includes("normal")) return "균형 있게 보이는 흐름";
+  if (raw.includes("low") || raw.includes("faint") || raw.includes("weak")) return "잔잔하게 보이는 흐름";
+  return "은은하게 드러나는 흐름";
+}
+
+function summarizeMountFocus(reading: ReturnType<typeof createDefaultCanonicalPalmReading>["leftHandReading"]): string {
+  if (!reading) return "손바닥 전체 흐름";
+  const labelByKey: Record<string, string> = {
+    venus: "애정",
+    moon: "직관",
+    jupiter: "성장",
+    saturn: "책임",
+    sun: "표현",
+    mercury: "소통",
+    mars: "추진",
+  };
+  const focused = Object.entries(reading.mounts)
+    .filter(([, mount]) => mount.fullness === "strong" || mount.fullness === "medium")
+    .map(([key]) => labelByKey[key] || key)
+    .slice(0, 3);
+  return focused.length > 0 ? focused.join(" · ") : "균형형";
+}
+
+function countReadablePalmSignals(reading: ReturnType<typeof createDefaultCanonicalPalmReading>["leftHandReading"]): number {
+  if (!reading) return 0;
+  const majorCount = Object.values(reading.majorLines).filter((line) => line.detected).length;
+  const minorCount = Object.values(reading.minorLines).filter((line) => line.detected).length;
+  return majorCount + minorCount;
+}
+
+function buildCardSignalFacts(
+  key: PalmCardKey,
+  reading: ReturnType<typeof createDefaultCanonicalPalmReading>["leftHandReading"],
+): Array<{ label: string; value: string }> {
+  if (!reading) {
+    return [{ label: "사진 흐름", value: "손바닥 전체 흐름을 중심으로 읽었어요." }];
+  }
+
+  if (key === "lifeLine") {
+    const line = reading.majorLines.lifeLine;
+    return line.detected
+      ? [
+          { label: "길이", value: formatLineLength(line.length) },
+          { label: "깊이", value: formatLineDepth(line.depth) },
+          { label: "곡선", value: formatLineCurvature(line.curvature) },
+          { label: "변화", value: formatLineChanges(line.branches, line.breaks) },
+        ]
+      : [{ label: "상태", value: "이번 사진에서는 생명선이 옅어 에너지 흐름을 넓게 읽었어요." }];
+  }
+
+  if (key === "headLine") {
+    const line = reading.majorLines.headLine;
+    return line.detected
+      ? [
+          { label: "길이", value: formatLineLength(line.length) },
+          { label: "방향", value: formatHeadDirection(line.direction) },
+          { label: "시작", value: formatHeadLifeRelation(line.startRelationWithLifeLine) },
+          { label: "변화", value: formatLineChanges(line.branches, line.breaks) },
+        ]
+      : [{ label: "상태", value: "두뇌선이 옅어 손 형태와 주변 흐름까지 함께 읽었어요." }];
+  }
+
+  if (key === "heartLine") {
+    const line = reading.majorLines.heartLine;
+    return line.detected
+      ? [
+          { label: "길이", value: formatLineLength(line.length) },
+          { label: "곡선", value: formatLineCurvature(line.curvature) },
+          { label: "끝맺음", value: formatHeartEnding(line.endingArea) },
+          { label: "변화", value: formatLineChanges(line.branches, line.breaks) },
+        ]
+      : [{ label: "상태", value: "감정선이 옅어 관계 온도는 조심스럽게 읽었어요." }];
+  }
+
+  if (key === "fateLine") {
+    const line = reading.majorLines.fateLine;
+    return line.detected
+      ? [
+          { label: "힘", value: formatFateStrength(line.strength) },
+          { label: "시작", value: formatFateStart(line.startArea) },
+          { label: "전환", value: formatLineChanges(0, line.breaks) },
+        ]
+      : [{ label: "상태", value: "운명선이 옅어 정해진 길보다 선택의 유연성을 중심으로 읽었어요." }];
+  }
+
+  if (key === "sunLine") {
+    const line = reading.minorLines.sunLine;
+    return [
+      { label: "표현력", value: formatMinorStrength(line.strength) },
+      { label: "리딩", value: line.summary || "이름을 걸고 보여주는 일에서 흐름을 키우는 손입니다." },
+    ];
+  }
+
+  if (key === "moneyLine") {
+    const line = reading.minorLines.moneyLine;
+    return [
+      { label: "재물 흐름", value: formatMinorStrength(line.strength) },
+      { label: "리딩", value: line.summary || "돈을 크게 단정하기보다 관리와 가치화 습관을 읽었습니다." },
+    ];
+  }
+
+  if (key === "marriageLine") {
+    const line = reading.minorLines.marriageLine;
+    return [
+      { label: "관계 흐름", value: formatMinorStrength(line.strength) },
+      { label: "리딩", value: line.summary || "관계의 횟수가 아니라 친밀감과 약속 방식을 읽었습니다." },
+    ];
+  }
+
+  return [
+    { label: "손 형태", value: reading.handShape.labelKo || "복합형" },
+    { label: "중심 포인트", value: summarizeMountFocus(reading) },
+    { label: "전체 결", value: reading.overall.summary || "손바닥 전체 흐름을 종합해 읽었습니다." },
+  ];
+}
+
+function resultModeLabel(mode: AnalysisResultState["mode"]): string {
+  if (mode === "full") return "정밀 리딩";
+  if (mode === "partial") return "핵심 리딩";
+  return "기본 리딩";
+}
+
 function buildInterpretationWithFallback(
   canonical: ReturnType<typeof createDefaultCanonicalPalmReading>,
   payload: unknown,
@@ -788,7 +1333,7 @@ function buildCategoryConsultations(input: {
 
 export default function PalmDestinyMain() {
   const router = useRouter();
-  const [isImmersiveView, setIsImmersiveView] = useState(false);
+  const [isImmersiveView] = useState(true);
   const [leftHand, setLeftHand] = useState<HandImageState>({ file: null, previewUrl: null });
   const [rightHand, setRightHand] = useState<HandImageState>({ file: null, previewUrl: null });
   const [dominantHand, setDominantHand] = useState<DominantHand | "">("");
@@ -799,7 +1344,6 @@ export default function PalmDestinyMain() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResultState | null>(null);
   const [activeCardKey, setActiveCardKey] = useState<PalmCardKey>("lifeLine");
   const [overlaySide, setOverlaySide] = useState<HandSide>("right");
-  const [activeConsultationKey, setActiveConsultationKey] = useState<AnalysisPurpose>("general");
   const [selectedCaptureSide, setSelectedCaptureSide] = useState<HandSide>("right");
   const [lastSelectedSide, setLastSelectedSide] = useState<HandSide>("right");
   const [qualityFeedbackBySide, setQualityFeedbackBySide] = useState<Record<HandSide, PalmImageQualityFeedback | null>>({
@@ -857,15 +1401,34 @@ export default function PalmDestinyMain() {
   const currentQualityFeedback = qualityFeedbackBySide[currentPreviewSide];
 
   const interpretationCards = analysisResult?.interpretation?.cards ?? [];
-  const mobileFocusedCard = interpretationCards.find((item) => item.key === activeCardKey) ?? interpretationCards[0] ?? null;
+  const activeHandReading = analysisResult
+    ? (overlaySide === "left" ? analysisResult.canonical.leftHandReading : analysisResult.canonical.rightHandReading) ||
+      analysisResult.canonical.rightHandReading ||
+      analysisResult.canonical.leftHandReading
+    : null;
+  const activeHandRole = analysisResult
+    ? overlaySide === "left"
+      ? analysisResult.canonical.handContext.leftHandRole
+      : analysisResult.canonical.handContext.rightHandRole
+    : "unknown";
+  const readableSignalCount = countReadablePalmSignals(activeHandReading);
+  const resultOneLiner =
+    analysisResult?.interpretation?.oneLiner ||
+    String(analysisResult?.report?.oneLiner || "") ||
+    "손바닥 전체 흐름을 읽어 지금 필요한 방향을 정리했어요.";
+  const resultPrimaryAction =
+    analysisResult?.interpretation?.report?.tips?.[0] ||
+    String(analysisResult?.report?.advice || "") ||
+    "오늘은 작은 행동 하나를 끝내며 흐름을 열어 보세요.";
+  const resultPurposeLabel = analysisResult
+    ? PURPOSE_LABEL_BY_KEY[analysisResult.canonical.profile.analysisPurpose] || "전체 운세"
+    : "전체 운세";
   const categoryConsultations = analysisResult
     ? buildCategoryConsultations({
         report: analysisResult.report,
         interpretation: analysisResult.interpretation,
       })
     : [];
-  const mobileFocusedConsultation =
-    categoryConsultations.find((item) => item.key === activeConsultationKey) || categoryConsultations[0] || null;
   const bothHandsComparison = analysisResult?.canonical.bothHandsComparison;
   const detectedSpecialPatterns: PalmSpecialPattern[] = Array.isArray(analysisResult?.canonical.specialPatterns?.detected)
     ? analysisResult.canonical.specialPatterns.detected
@@ -934,7 +1497,6 @@ export default function PalmDestinyMain() {
     setLoadingPhaseIndex(0);
     setActiveCardKey("lifeLine");
     setOverlaySide("right");
-    setActiveConsultationKey("general");
   };
 
   const resetSessionForReanalysis = (options?: {
@@ -1196,12 +1758,20 @@ export default function PalmDestinyMain() {
       setIsSubmitting(true);
       setAnalysisResult(null);
       setSubmitMessage("손바닥 이미지 품질을 확인하고 있습니다...");
-      const leftPalmImage = leftHand.file ? await fileToDataUrl(leftHand.file) : null;
-      const rightPalmImage = rightHand.file ? await fileToDataUrl(rightHand.file) : null;
+      const [leftPalmImage, rightPalmImage, leftVision, rightVision] = await Promise.all([
+        leftHand.file ? fileToDataUrl(leftHand.file) : Promise.resolve(null),
+        rightHand.file ? fileToDataUrl(rightHand.file) : Promise.resolve(null),
+        leftHand.file ? extractPalmVisionPayload(leftHand.file, "left").catch(() => null) : Promise.resolve(null),
+        rightHand.file ? extractPalmVisionPayload(rightHand.file, "right").catch(() => null) : Promise.resolve(null),
+      ]);
 
       const requestBody = JSON.stringify({
         leftPalmImage,
         rightPalmImage,
+        leftHandLandmarks: leftVision?.handLandmarks ?? null,
+        rightHandLandmarks: rightVision?.handLandmarks ?? null,
+        leftLineCandidates: leftVision?.lineCandidates ?? [],
+        rightLineCandidates: rightVision?.lineCandidates ?? [],
         leftImageQuality: toApiImageQuality(qualityFeedbackBySide.left),
         rightImageQuality: toApiImageQuality(qualityFeedbackBySide.right),
         uploadedHandSide: leftHand.file && rightHand.file ? "both" : leftHand.file ? "left" : rightHand.file ? "right" : "",
@@ -1481,7 +2051,6 @@ export default function PalmDestinyMain() {
           ? "손바닥은 감지되었고 부분 분석 결과가 생성되었습니다. 더 선명한 사진을 올리면 정확도가 올라갑니다."
           : "손바닥은 감지되었지만 선명도가 낮아 기본/보수 해석으로 결과를 생성했습니다.";
       setSubmitMessage(qualityMessage);
-      setActiveConsultationKey((analysisPurpose as AnalysisPurpose) || "general");
     } catch (error) {
       if (requestIdRef.current !== requestId) {
         return;
@@ -1567,6 +2136,7 @@ export default function PalmDestinyMain() {
   const renderInterpretationCard = (card: PalmInterpretationCard) => {
     const cardId = `palm-card-${card.key}`;
     const active = activeCardKey === card.key;
+    const cardSignalFacts = buildCardSignalFacts(card.key, activeHandReading);
 
     return (
       <article
@@ -1601,12 +2171,26 @@ export default function PalmDestinyMain() {
           {card.oneLiner}
         </p>
 
+        <section className="mt-3 rounded-lg border border-[#c8a84b]/22 bg-[#100808]/70 px-3 py-3">
+          <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
+            <span aria-hidden className="text-[8px]">◆</span>읽힌 신호
+          </h5>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {cardSignalFacts.slice(0, 4).map((fact) => (
+              <div key={`${card.key}-signal-${fact.label}`} className="rounded-lg border border-[#c8a84b]/16 bg-[#090505]/70 px-3 py-2">
+                <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">{fact.label}</p>
+                <p className="mt-1 text-xs leading-5 text-[#e8d8b0]/90 md:text-sm">{fact.value}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="mt-3">
           <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
-            <span aria-hidden className="text-[8px]">◆</span>리딩 포인트
+            <span aria-hidden className="text-[8px]">◆</span>해석
           </h5>
           <ul className="mt-2 space-y-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
-            {card.details.slice(0, 8).map((line, index) => (
+            {card.details.slice(0, 6).map((line, index) => (
               <li key={`${card.key}-detail-${index}`} className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/65 px-3 py-2">
                 {line}
               </li>
@@ -1617,7 +2201,7 @@ export default function PalmDestinyMain() {
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <section>
             <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
-              <span aria-hidden className="text-[8px] text-green-400/70">◆</span>장점 3개
+              <span aria-hidden className="text-[8px] text-green-400/70">◆</span>살릴 힘
             </h5>
             <ul className="mt-2 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
               {card.strengths.slice(0, 3).map((line, index) => (
@@ -1630,7 +2214,7 @@ export default function PalmDestinyMain() {
 
           <section>
             <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
-              <span aria-hidden className="text-[8px] text-red-400/70">◆</span>주의점 3개
+              <span aria-hidden className="text-[8px] text-red-400/70">◆</span>조율할 점
             </h5>
             <ul className="mt-2 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
               {card.cautions.slice(0, 3).map((line, index) => (
@@ -1874,34 +2458,6 @@ export default function PalmDestinyMain() {
           <div aria-hidden className="h-[3px] w-full" style={{ background: "linear-gradient(90deg, transparent, #c8a84b 20%, #f5d987 50%, #c8a84b 80%, transparent)" }} />
 
           <div className="relative border-b border-[#c8a84b]/25 px-5 py-8 md:px-10 md:py-12" style={{ background: "linear-gradient(180deg, rgba(120,15,15,0.18) 0%, transparent 60%)" }}>
-            <div className="mb-6 flex flex-col gap-3 rounded-xl border border-[#c8a84b]/25 bg-[#0d0808]/70 p-3 md:flex-row md:items-center md:justify-between md:p-4">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleBackToMain}
-                  className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/45 bg-[#0b0606] px-3 py-2 text-sm font-bold text-[#f3dca0]"
-                  aria-label="메인으로 이동"
-                >
-                  ← 메인으로
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsImmersiveView((prev) => !prev)}
-                  className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/45 bg-[#0b0606] px-3 py-2 text-sm font-bold text-[#f3dca0]"
-                  aria-pressed={isImmersiveView}
-                  aria-label="전체화면 보기 전환"
-                >
-                  {isImmersiveView ? "기본 화면" : "전체화면"}
-                </button>
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-black text-[#f5d987] md:text-base">🖐 손금 분석</p>
-                <p className="mt-1 text-xs leading-6 text-[#e7d6b5]/85 md:text-sm">
-                  손바닥의 주요 선과 형태를 바탕으로 성향·관계·재물·직업 흐름을 읽어드립니다.
-                </p>
-              </div>
-            </div>
-
             {/* 우상단 팔각 문양 */}
             <div
               aria-hidden
@@ -2341,10 +2897,44 @@ export default function PalmDestinyMain() {
                     <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/85 p-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full border border-[#c8a84b]/45 bg-[#1a1006] px-3 py-1 text-xs font-bold text-[#f5d987]">
-                          {analysisResult.mode === "full"
-                            ? "사진이 선명해서 리딩이 더 자세해졌어요"
-                            : "이번 리딩은 핵심 흐름 위주로 가볍게 읽어 드려요"}
+                          {resultModeLabel(analysisResult.mode)}
                         </span>
+                        <span className="rounded-full border border-[#c8a84b]/35 bg-[#120909] px-3 py-1 text-xs font-bold text-[#e8d090]">
+                          {overlaySide === "left" ? "왼손" : "오른손"} · {HAND_ROLE_META[activeHandRole].label}
+                        </span>
+                        <span className="rounded-full border border-[#c8a84b]/35 bg-[#120909] px-3 py-1 text-xs font-bold text-[#e8d090]">
+                          {resultPurposeLabel}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 border-b border-[#c8a84b]/18 pb-3">
+                        <h3 className="text-base font-black leading-7 text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>
+                          한눈에 보는 손금 리딩
+                        </h3>
+                        <p className="mt-2 text-sm font-semibold leading-7 text-[#ffe1d6] md:text-base">
+                          {resultOneLiner}
+                        </p>
+                      </div>
+
+                      <div className="mt-3 grid gap-2 md:grid-cols-4">
+                        <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/70 px-3 py-2">
+                          <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">읽힌 흐름</p>
+                          <p className="mt-1 text-sm font-bold text-[#f7e5bd]">{readableSignalCount}개</p>
+                        </div>
+                        <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/70 px-3 py-2">
+                          <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">손 형태</p>
+                          <p className="mt-1 text-xs leading-5 text-[#e8d8b0]/90 md:text-sm">
+                            {activeHandReading?.handShape.labelKo || "복합형"}
+                          </p>
+                        </div>
+                        <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/70 px-3 py-2">
+                          <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">중심 포인트</p>
+                          <p className="mt-1 text-xs leading-5 text-[#e8d8b0]/90 md:text-sm">{summarizeMountFocus(activeHandReading)}</p>
+                        </div>
+                        <div className="rounded-lg border border-[#4a7a30]/30 bg-[#091106]/70 px-3 py-2">
+                          <p className="text-[11px] font-black text-[#9fe273] md:text-xs">오늘 행동</p>
+                          <p className="mt-1 text-xs leading-5 text-[#e8d8b0]/90 md:text-sm">{resultPrimaryAction}</p>
+                        </div>
                       </div>
 
                       {analysisResult.warnings.length > 0 ? (
@@ -2415,55 +3005,39 @@ export default function PalmDestinyMain() {
                     ) : null}
 
                     {categoryConsultations.length > 0 ? (
-                      <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>카테고리 리포트 탭</h3>
-                        <div className="mt-3 overflow-x-auto">
-                          <div className="inline-flex min-w-full gap-2 pb-1">
-                            {categoryConsultations.map((item) => {
-                              const active = activeConsultationKey === item.key;
-                              return (
-                                <button
-                                  key={`consult-${item.key}`}
-                                  type="button"
-                                  onClick={() => setActiveConsultationKey(item.key)}
-                                  className={`cd-select-btn min-h-[46px] shrink-0 rounded-lg border px-3 py-2 text-xs font-bold md:text-sm ${
-                                    active
-                                      ? "border-[#f5d987]/80 bg-[#401515] text-[#fff5c8]"
-                                      : "border-[#c8a84b]/35 bg-[#0d0808] text-[#e8d090]"
-                                  }`}
-                                  aria-pressed={active}
-                                >
-                                  {item.title}
-                                </button>
-                              );
-                            })}
-                          </div>
+                      <section className="space-y-3">
+                        <div className="border-b border-[#c8a84b]/20 pb-2">
+                          <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>카테고리 리포트 전체</h3>
+                          <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">사랑, 재물, 직업, 성격, 관계의 흐름을 한 번에 펼쳐 읽습니다.</p>
                         </div>
 
-                        {mobileFocusedConsultation ? (
-                          <div className="mt-3 space-y-3">
-                            <div className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/70 px-3 py-2">
-                              <p className="text-xs font-bold text-[#f5d987] md:text-sm">요약</p>
-                              <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{mobileFocusedConsultation.summary}</p>
-                            </div>
-                            <div className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/70 px-3 py-2">
-                              <p className="text-xs font-bold text-[#f5d987] md:text-sm">자세히 보면 이런 흐름이에요</p>
-                              <ul className="mt-1 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
-                                {mobileFocusedConsultation.details.map((line) => (
-                                  <li key={line}>• {line}</li>
-                                ))}
-                              </ul>
-                            </div>
-                            <div className="rounded-lg border border-[#4a7a30]/35 bg-[#091106]/70 px-3 py-2">
-                              <p className="text-xs font-bold text-[#8ade5f] md:text-sm">실천 제안</p>
-                              <ul className="mt-1 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
-                                {mobileFocusedConsultation.actions.map((line) => (
-                                  <li key={line}>• {line}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        ) : null}
+                        <div className="grid gap-3 lg:grid-cols-2">
+                          {categoryConsultations.map((item) => (
+                            <article key={`consult-${item.key}`} className="cd-oriental-card rounded-xl border border-[#c8a84b]/26 bg-[#0d0808]/82 p-4">
+                              <h4 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>{item.title}</h4>
+                              <p className="mt-2 rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2 text-xs leading-6 text-[#e8d8b0]/92 md:text-sm">{item.summary}</p>
+
+                              <div className="mt-3 grid gap-3 xl:grid-cols-2">
+                                <div>
+                                  <p className="text-xs font-bold text-[#f5d987] md:text-sm">세부 흐름</p>
+                                  <ul className="mt-1 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+                                    {item.details.map((line) => (
+                                      <li key={line}>• {line}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-[#8ade5f] md:text-sm">실천 제안</p>
+                                  <ul className="mt-1 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+                                    {item.actions.map((line) => (
+                                      <li key={line}>• {line}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
                       </section>
                     ) : null}
 
@@ -2491,15 +3065,15 @@ export default function PalmDestinyMain() {
                       </section>
                     ) : null}
 
-                    <section className="md:hidden">
-                      <div className="scrollbar-none mb-3 flex gap-2 overflow-x-auto pb-1">
+                    <section className="space-y-4">
+                      <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1">
                         {interpretationCards.map((card) => {
                           const active = activeCardKey === card.key;
                           return (
                             <button
-                              key={`mobile-tab-${card.key}`}
+                              key={`card-jump-${card.key}`}
                               type="button"
-                              onClick={() => setActiveCardKey(card.key)}
+                              onClick={() => scrollToCard(card.key)}
                               className={`cd-select-btn min-h-[46px] shrink-0 rounded-lg border px-3 py-2 text-[12px] font-bold transition-all duration-200 ${
                                 active
                                   ? "border-[#f5d987]/70 text-[#fff5c8]"
@@ -2512,10 +3086,6 @@ export default function PalmDestinyMain() {
                           );
                         })}
                       </div>
-                      {mobileFocusedCard ? renderInterpretationCard(mobileFocusedCard) : null}
-                    </section>
-
-                    <section className="hidden space-y-4 md:block">
                       {interpretationCards.map((card) => renderInterpretationCard(card))}
                     </section>
                   </div>

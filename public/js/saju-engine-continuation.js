@@ -26,6 +26,27 @@ function closeModal(e){
 }
 
 function resetApp(){
+  try {
+    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false);
+    if (typeof window.__cdCloseLoginRequiredModal === 'function') window.__cdCloseLoginRequiredModal();
+    var paidGateEl = document.getElementById('cdPaidFeatureGate');
+    if (paidGateEl) paidGateEl.classList.remove('is-open');
+    var tilePreviewEl = document.getElementById('tilePvwOverlay');
+    if (tilePreviewEl) {
+      tilePreviewEl.classList.remove('pvw-open');
+      tilePreviewEl.classList.remove('pvw-prem');
+    }
+    if (typeof window.__cdForceUnlockBodyScroll === 'function') {
+      window.__cdForceUnlockBodyScroll();
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    }
+    document.documentElement.style.overflow = '';
+    document.body.classList.remove('lb-modal-open');
+  } catch (_resetScrollLockErr) {}
   var inputPageEl = document.getElementById('inputPage');
   var resultPageEl = document.getElementById('resultPage');
   var letterBoxEl = document.getElementById('letterBox');

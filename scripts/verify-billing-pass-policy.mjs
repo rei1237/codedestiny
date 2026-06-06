@@ -16,6 +16,7 @@ const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), 
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const pointsSource = readFileSync(resolve(root, "app/points/page.tsx"), "utf8");
+const headersSource = readFileSync(resolve(root, "_headers"), "utf8");
 
 function futureDate(days = 30) {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
@@ -240,6 +241,11 @@ assertContains(paymentsSource, 'type: "MONTHLY_CREDIT_SPEND"', "subscription pas
 assertContains(pointsSource, "onSubscribeWithMonthlyCredit", "subscription pass monthly credit UI handler");
 assertContains(pointsSource, 'paymentMethod: "monthly_credit"', "subscription pass monthly credit request");
 assertContains(pointsSource, "월정석 {monthlyCreditCost.toLocaleString", "subscription pass monthly credit CTA");
+assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "points page reads payments/me subscriptions");
+assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points page normalizes subscription payloads");
+assertContains(pointsSource, "mergeSubscriptionState", "points page merges server subscription state");
+assertContains(pointsSource, "<SubscriptionStatusCard subscription={subscription} monthlyCredits={currentMonthlyCredits} />", "points page passes monthly credits to status card");
+assertNotContains(paymentsSource, '"profileSubscription.membershipCreditBalance": 0,\n        "profileSubscription.membershipCreditGranted": 0,\n        "profileSubscription.membershipCreditUsed": 0,', "card pass confirm must preserve monthly credit ledger");
 
 assertBefore(
   indexSource,
@@ -271,5 +277,6 @@ assertContains(fortuneSource, "membership: 1", "subscription status reads legacy
 assertContains(fortuneSource, "pass: 1", "subscription status reads legacy pass field");
 assertContains(fortuneSource, "entitlement: 1", "subscription status reads legacy entitlement field");
 assertContains(fortuneSource, "membershipCreditBalance", "subscription status returns monthly credit balance");
+assertContains(headersSource, "https://pagead2.googlesyndication.com", "AdSense script domain allowed by CSP");
 
 console.log("billing pass policy regression checks passed");

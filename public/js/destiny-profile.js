@@ -1958,6 +1958,19 @@
       var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
       var requestId = String(opts.requestId || '').trim() || ('paid-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
       if (typeof window._cdChooseServicePaymentMode !== 'function') throw new Error('\uACB0\uC81C \uC120\uD0DD\uCC3D\uC744 \uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.');
+      if (typeof window.__cdApplyMembershipPassBeforePayment === 'function' && opts.disablePassFirst !== true) {
+        var passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
+          title: title,
+          coinPrice: coinPrice,
+          cost: coinPrice,
+          requestId: requestId
+        }));
+        if (passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked')) {
+          var passFirstTx = _dpPaidPassPayloadTransactionId(passFirst.payload, requestId);
+          if (typeof opts.onGranted === 'function') opts.onGranted(passFirstTx, passFirst.payload || {}, passFirst);
+          return { status: 'granted', transactionId: passFirstTx, payload: passFirst.payload || {}, access: passFirst };
+        }
+      }
       var choice = await window._cdChooseServicePaymentMode(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, internalMainGate: true, skipPassProbe: true }));
       if (!choice || choice === 'cancel') {
         if (typeof opts.onCancel === 'function') opts.onCancel();
@@ -3289,7 +3302,6 @@
       + '.dp-mc-action-menu__item:active{transform:translateY(1px);}'
       + '.dp-mc-action-menu__item--danger{border-color:rgba(251,113,133,.42);background:rgba(127,29,29,.24);color:#fecdd3;}'
       + '.dp-mc-action-menu__item--danger span{color:#fbbf24;}'
-      + '.dp-mc-action-menu__item--edit{border-color:rgba(251,191,36,.36);background:rgba(251,191,36,.10);color:#fef3c7;}'
       + '.dp-profile-editing #dpSaveBtn{background:linear-gradient(135deg,#fbbf24,#f97316)!important;color:#180b02!important;}'
       + '@media(max-width:768px){.dp-mc-action-wrap{z-index:220}.dp-mc-action-menu{top:calc(100% + 8px);width:min(284px,calc(100vw - 24px));padding:10px}.dp-mc-action-menu__item{min-height:54px;font-size:.88rem;}.dp-master-card,.dp-mc-inner,.dp-mc-header{overflow:visible!important;}}';
     document.head.appendChild(style);
@@ -3356,10 +3368,6 @@
     if (action === 'list') {
       _dpClearProfileEditMode();
       window.dpOpenList();
-      return;
-    }
-    if (action === 'edit' && profileId) {
-      window.dpStartEditProfile(profileId);
       return;
     }
     if (action === 'delete' && profileId) {
@@ -3507,12 +3515,11 @@
             + '</div>'
           + '</div>'
           + '<div class="dp-mc-action-wrap">'
-            + '<button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="프로필 카드 메뉴" aria-expanded="false" data-profile-menu-marker="profile-card-menu-actions-v20260605" style="touch-action:manipulation">'
+            + '<button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="프로필 카드 메뉴" aria-expanded="false" data-profile-menu-marker="profile-card-menu-read-delete-v20260606" style="touch-action:manipulation">'
               + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
             + '</button>'
             + '<div class="dp-mc-action-menu" role="menu" aria-label="프로필 카드 관리">'
-              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" data-dp-menu-action="view" data-profile-id="' + _esc(profile.id) + '">프로필 조회<span>열기</span></button>'
-              + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--edit" role="menuitem" data-dp-menu-action="edit" data-profile-id="' + _esc(profile.id) + '">프로필 카드 수정<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
+              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" data-dp-menu-action="list">프로필 조회<span>목록</span></button>'
               + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--danger" role="menuitem" data-dp-menu-action="delete" data-profile-id="' + _esc(profile.id) + '">프로필 카드 삭제<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
             + '</div>'
           + '</div>'
@@ -4054,6 +4061,7 @@
                 + '<div class="dp-li-loc">📍 ' + _esc(locLabel) + '</div>'
               + '</div>'
             + '</div>'
+            + '<button type="button" class="dp-li-del" aria-label="프로필 카드 삭제">삭제</button>'
             + '</div>';
         }).join('') + lockedNotice;
       } catch (err) {
@@ -5515,6 +5523,18 @@
       listInner.addEventListener('touchstart', function(e) {
         _dpRecordTouchTapStart(listTouchState, e);
       }, { passive: true });
+      listInner.addEventListener('click', function(e) {
+        var targetEl = _resolveEventElement(e.target);
+        if (!targetEl) return;
+        var delBtn = targetEl.closest('.dp-li-del');
+        if (!delBtn) return;
+        var delItem = targetEl.closest('[data-profile-id]');
+        var delPid = delItem ? delItem.getAttribute('data-profile-id') : '';
+        if (!delPid) return;
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        dpDeleteProfile(delPid);
+      }, true);
       listInner.addEventListener('touchend', function(e) {
         /* 스크롤이 아닌 탭만 처리 (이동 10px 미만) */
         if (!_dpIsStableTouchTap(listTouchState, e, { moveX: 10, moveY: 16 })) return;

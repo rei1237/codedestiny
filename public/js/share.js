@@ -649,6 +649,23 @@ function pulseFavoriteSaved() {
     setTimeout(function(){ btn.classList.remove('saved'); }, 1200);
   });
 }
+function tryNativeFavoriteAdd(url, title) {
+  try {
+    if (window.external && typeof window.external.AddFavorite === 'function') {
+      window.external.AddFavorite(url, title);
+      return true;
+    }
+  } catch (_) {}
+
+  try {
+    if (window.sidebar && typeof window.sidebar.addPanel === 'function') {
+      window.sidebar.addPanel(title, url, '');
+      return true;
+    }
+  } catch (_) {}
+
+  return false;
+}
 
 function handleFavoriteAdd() {
   var isNeo = (typeof NEO_MODE !== 'undefined' && NEO_MODE) || document.body.classList.contains('neo-mode');
@@ -659,38 +676,23 @@ function handleFavoriteAdd() {
   var savedState = readFavoriteModeState();
   var alreadySaved = !!savedState[modeKey];
 
-  savedState[modeKey] = true;
-  writeFavoriteModeState(savedState);
-  updateFavoriteButtonThemeText(isNeo);
-  pulseFavoriteSaved();
+  if (alreadySaved) {
+    showToast(icon + ' ?? ??? ??????.');
+    return;
+  }
 
-  var nativeAdded = false;
-
-  try {
-    if (window.external && typeof window.external.AddFavorite === 'function') {
-      window.external.AddFavorite(window.location.href, title);
-      nativeAdded = true;
-    }
-  } catch (_) {}
-
-  try {
-    if (window.sidebar && typeof window.sidebar.addPanel === 'function') {
-      window.sidebar.addPanel(title, window.location.href, '');
-      nativeAdded = true;
-    }
-  } catch (_) {}
+  var nativeAdded = tryNativeFavoriteAdd(window.location.href, title);
 
   if (nativeAdded) {
-    showToast(icon + ' ' + title + ' 즐겨찾기가 저장되었어요!');
+    savedState[modeKey] = true;
+    writeFavoriteModeState(savedState);
+    updateFavoriteButtonThemeText(isNeo);
+    pulseFavoriteSaved();
+    showToast(icon + ' ' + title + ' ????? ?????!');
     return;
   }
 
-  if (alreadySaved) {
-    showToast(icon + ' 이미 저장된 즐겨찾기예요.');
-    return;
-  }
-
-  showToast(icon + ' ' + title + ' 즐겨찾기가 저장되었어요!');
+  showToast(icon + ' ? ??????? ?? ???? ??? ???? ???. Ctrl/Cmd + D? ??? ???.');
 }
 
 // [UX FIX] PWA 팝업 조건: 30초 + 스크롤 50% AND 충족 시만 자동 표시

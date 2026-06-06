@@ -19,8 +19,14 @@ const STAGE_ICON: Record<string, string> = {
   묘: "🐹",
   절: "🐈‍⬛",
   태: "🐣",
-  양: "🐷",
+  양: "🐑",
 };
+
+function compactText(text: string, max = 72) {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  if (normalized.length <= max) return normalized;
+  return `${normalized.slice(0, max - 1)}…`;
+}
 
 const TwelveAnimalShareCard = forwardRef<HTMLDivElement, Props>(function TwelveAnimalShareCard({ result }, ref) {
   return (
@@ -41,6 +47,17 @@ const TwelveAnimalShareCard = forwardRef<HTMLDivElement, Props>(function TwelveA
         </div>
 
         <p className="rounded-2xl border border-[#c8def0] bg-white/88 p-4 text-sm leading-relaxed text-[#335f82]">{result.summary}</p>
+
+        <div className="grid gap-2">
+          <div className="rounded-2xl border border-[#d9d3a2] bg-[#fff9e8]/90 p-3">
+            <p className="text-[11px] font-black text-[#806e2e]">오늘의 운 열기</p>
+            <p className="mt-1 text-xs font-semibold leading-relaxed text-[#69562a]">{compactText(result.todayAction)}</p>
+          </div>
+          <div className="rounded-2xl border border-[#d9d3a2] bg-[#fff9e8]/90 p-3">
+            <p className="text-[11px] font-black text-[#806e2e]">성장 주문</p>
+            <p className="mt-1 text-xs font-semibold leading-relaxed text-[#69562a]">{compactText(result.growthMission)}</p>
+          </div>
+        </div>
 
         <div className="flex flex-wrap gap-2">
           {result.keywords.slice(0, 5).map((tag) => (

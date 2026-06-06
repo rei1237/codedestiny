@@ -372,6 +372,9 @@ class AnalysisEngine {
     const LEFT_EYE_BOTTOM = landmarks[145];
     const RIGHT_EYE_IN = landmarks[362];
     const RIGHT_EYE_OUT = landmarks[446];
+    const RIGHT_EYE_TOP = landmarks[386];
+    const RIGHT_EYE_BOTTOM = landmarks[374];
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
     
     // 오관(五官)과 삼정(三停)을 구성하는 우주의 좌표점
     const NOSE_LEFT = landmarks[129];
@@ -392,8 +395,12 @@ class AnalysisEngine {
     const faceLength = this.calculateDistance(FOREHEAD, CHIN);
     const faceWidth = this.calculateDistance(JAW_LEFT, JAW_RIGHT);
 
-    const eyeWidth = this.calculateDistance(LEFT_EYE_IN, LEFT_EYE_OUT);
-    const eyeHeight = this.calculateDistance(LEFT_EYE_TOP, LEFT_EYE_BOTTOM);
+    const leftEyeWidth = this.calculateDistance(LEFT_EYE_IN, LEFT_EYE_OUT);
+    const rightEyeWidth = this.calculateDistance(RIGHT_EYE_IN, RIGHT_EYE_OUT);
+    const eyeWidth = (leftEyeWidth + rightEyeWidth) / 2;
+    const leftEyeHeight = this.calculateDistance(LEFT_EYE_TOP, LEFT_EYE_BOTTOM);
+    const rightEyeHeight = this.calculateDistance(RIGHT_EYE_TOP, RIGHT_EYE_BOTTOM);
+    const eyeHeight = (leftEyeHeight + rightEyeHeight) / 2;
     const eyeRatio = eyeWidth / (eyeHeight || 1); 
     
     // 눈꼬리의 기울기 역학 (관상학적 음양의 균형을 수치화)
@@ -402,6 +409,8 @@ class AnalysisEngine {
     const rightSlant = (RIGHT_EYE_OUT.y - RIGHT_EYE_IN.y) * 100;
     // 음수면 꼬리가 위로 솟구친 형상(음의 기운/호랑이·고양이상), 양수면 아래로 처진 형상(양의 기운/강아지·사슴상)
     const eyeSlantAngle = (leftSlant + rightSlant) / 2;
+    const eyeAsymmetry = Math.abs(leftEyeWidth - rightEyeWidth) / (eyeWidth || 1);
+    const eyeSlantDelta = Math.abs(leftSlant - rightSlant);
 
     // 미간(눈 사이)의 거리 계산 (관상학적 인당의 넓이)
     const interEyeDistance = this.calculateDistance(LEFT_EYE_IN, RIGHT_EYE_IN);
@@ -425,6 +434,13 @@ class AnalysisEngine {
     const middle_len = this.calculateDistance(GLABELLA, NOSE_TIP);
     const lower_len = this.calculateDistance(NOSE_TIP, CHIN);
     const total_samjung = upper_len + middle_len + lower_len;
+    const jawTilt = Math.abs((JAW_LEFT.y || 0) - (JAW_RIGHT.y || 0)) * 100;
+    const faceCenterX = ((JAW_LEFT.x || 0) + (JAW_RIGHT.x || 0)) / 2;
+    const noseCenterOffset = Math.abs((NOSE_TIP.x || 0) - faceCenterX) / (faceWidth || 1);
+    const faceSizeScore = clamp((faceLength / 0.32) * 100, 45, 100);
+    const frontalityPenalty = Math.min(25, eyeAsymmetry * 80 + noseCenterOffset * 20 + jawTilt * 1.2);
+    const slantStabilityPenalty = Math.min(20, eyeSlantDelta * 2.5);
+    const qualityScore = Math.round(clamp(faceSizeScore - frontalityPenalty - slantStabilityPenalty, 45, 100));
 
     return {
       faceRatio: faceWidth / (faceLength||1), // 0.72(Sharp) ~ 0.88(Wide)
@@ -433,8 +449,13 @@ class AnalysisEngine {
       eyeRatio: eyeRatio, 
       eyeSlant: eyeSlantAngle, // -5(Upward) ~ +5(Downward)
       eyeDistRatio: eyeDistRatio, // 0.8(Narrow) ~ 1.2(Wide)
+      eyeDistance: eyeDistRatio,
+      eyeAsymmetry: eyeAsymmetry,
+      eyeSlantDelta: eyeSlantDelta,
       eyeHeight: eyeHeight,
       eyeWidth: eyeWidth,
+      leftEyeWidth: leftEyeWidth,
+      rightEyeWidth: rightEyeWidth,
       noseRatio: noseRatio,
       noseWidthRatio: noseWidthRatio, // 0.7(Narrow) ~ 1.0(Wide)
       noseZ: noseZ,
@@ -445,6 +466,7 @@ class AnalysisEngine {
       earRatio: earHeight / (faceLength||1),
       earPosition: EAR_LEFT_TOP.y < LEFT_EYE_OUT.y ? "high" : "normal",
       jawSquareness: faceWidth / (faceLength || 1),
+      qualityScore: qualityScore,
       // 여성형 판별용 추가 수치
       eyeToFaceRatio: (eyeWidth * 2 + interEyeDistance) / (faceWidth || 1), // 눈이 얼굴 대비 얼마나 큰지
       lipThickness: this.calculateDistance(MOUTH_TOP, MOUTH_BOTTOM),
@@ -1146,6 +1168,7 @@ class AnalysisEngine {
 
 async analyze(landmarksData, expressionData) {
     const features = this.extractGeometricFeatures(landmarksData);
+    const qualityScore = Math.max(45, Math.min(100, Number(features.qualityScore || 100)));
     
           // --- 6차원 유클리디안-중력장 거리 연산 (절대 좌표 매핑 복원 & 스케일 최적화) ---
       // 각 동물상 대표 연예인의 골격 주파수를 6차원(턱선,눈매각도,미간,코너비,입크기,눈비율)으로 완전 타겟팅
@@ -1243,7 +1266,7 @@ async analyze(landmarksData, expressionData) {
         sad:       { dog:30, deer:35, bear:20, rabbit:15, camel:25, giraffe:20, horse:15, alpaca:10, pig:10 }
       };
 
-      // 표정 점수 보정 및 최종 totalScore 산출 (기하 60% + 표정 40%)
+      // 표정 점수 보정 및 최종 totalScore 산출 (기하 82% + 표정 8% + 프로파일 보정 10%)
       candidates.forEach(c => {
         let exprScore = 0;
         if (expressionData && typeof expressionData === 'object') {
@@ -1253,8 +1276,9 @@ async analyze(landmarksData, expressionData) {
             exprScore += prob * boost * 20;
           });
         }
-        c.exprScore = exprScore;
-        c.totalScore = Math.max(0, c.geoScore * 0.60 + exprScore * 0.40);
+        c.exprScore = Math.min(220, exprScore);
+        c.baseScore = Math.max(0, c.geoScore * 0.82 + c.exprScore * 0.08);
+        c.totalScore = c.baseScore;
       });
 
       // 특수 조건 보정 반영 (기존 penalty 조정 → totalScore 직접 가감)
@@ -1268,11 +1292,11 @@ async analyze(landmarksData, expressionData) {
           if (features.eyeSlant <= -4.0) foxBonus += 151;
           else if (features.eyeSlant <= -2.0) foxBonus += 90;
           else if (features.eyeSlant <= -1.0) foxBonus += 43;
-          if (features.eyeDistance <= 0.95) foxBonus += 65;
-          else if (features.eyeDistance <= 1.00) foxBonus += 32;
+          if (features.eyeDistRatio <= 0.95) foxBonus += 65;
+          else if (features.eyeDistRatio <= 1.00) foxBonus += 32;
           if (features.noseWidthRatio >= 0.83 && features.noseWidthRatio <= 0.92) foxBonus += 43;
           if (features.faceRatio <= 0.82 && features.eyeSlant <= -2.0) foxBonus += 101;
-          if (features.faceRatio <= 0.83 && features.eyeSlant <= -1.5 && features.eyeDistance <= 1.00) foxBonus += 72;
+          if (features.faceRatio <= 0.83 && features.eyeSlant <= -1.5 && features.eyeDistRatio <= 1.00) foxBonus += 72;
           foxBonus += 54; // 기본 여우상 베이스 부스트
           c.totalScore += foxBonus;
         }
@@ -1304,7 +1328,7 @@ async analyze(landmarksData, expressionData) {
           if (features.faceRatio <= 0.82) wolfBonus += 350;
           if (features.eyeSlant <= -3.0) wolfBonus += 400;
           else if (features.eyeSlant <= -1.5) wolfBonus += 200;
-          if (features.eyeDistance <= 1.00) wolfBonus += 200;
+          if (features.eyeDistRatio <= 1.00) wolfBonus += 200;
           if (features.mouthRatio >= 1.38) wolfBonus += 150;
           c.totalScore += wolfBonus;
         }
@@ -1330,8 +1354,8 @@ async analyze(landmarksData, expressionData) {
         // ── 원숭이상 ──
         if (c.animal.id === 'monkey') {
           let monkeyBonus = 0;
-          if (features.eyeDistance <= 0.96) monkeyBonus += 350;
-          else if (features.eyeDistance <= 1.02) monkeyBonus += 150;
+          if (features.eyeDistRatio <= 0.96) monkeyBonus += 350;
+          else if (features.eyeDistRatio <= 1.02) monkeyBonus += 150;
           if (features.noseWidthRatio >= 0.98) monkeyBonus += 300;
           else if (features.noseWidthRatio >= 0.92) monkeyBonus += 150;
           if (Math.abs(features.eyeSlant) <= 1.5) monkeyBonus += 250;
@@ -1366,7 +1390,7 @@ async analyze(landmarksData, expressionData) {
           if (features.faceRatio <= 0.82) lynxBonus += 300;
           else if (features.faceRatio <= 0.85) lynxBonus += 150;
           // 고양이와 차별화: 좁은 미간이면 스라소니 가산
-          if (features.eyeDistance <= 1.02) lynxBonus += 250;
+          if (features.eyeDistRatio <= 1.02) lynxBonus += 250;
           c.totalScore += lynxBonus;
         }
         // ── 햄스터상 ──
@@ -1482,7 +1506,7 @@ async analyze(landmarksData, expressionData) {
         // ── 독수리상 ──
         if (c.animal.id === 'eagle') {
           let eagleBonus = 0;
-          if (features.eyeDistance <= 0.92) eagleBonus += 350;
+          if (features.eyeDistRatio <= 0.92) eagleBonus += 350;
           if (features.eyeSlant <= -2.0) eagleBonus += 250;
           if (features.noseWidthRatio >= 0.94) eagleBonus += 200;
           c.totalScore += eagleBonus;
@@ -1575,8 +1599,8 @@ async analyze(landmarksData, expressionData) {
             else if (features.faceRatio <= 0.85) bonus += 40;
             if (features.eyeSlant <= -3.0) bonus += 101;
             else if (features.eyeSlant <= -1.5) bonus += 54;
-            if (features.eyeDistance <= 0.95) bonus += 54;
-            else if (features.eyeDistance <= 1.00) bonus += 29;
+            if (features.eyeDistRatio <= 0.95) bonus += 54;
+            else if (features.eyeDistRatio <= 1.00) bonus += 29;
             if (features.mouthRatio >= 1.30 && features.mouthRatio <= 1.45) bonus += 43;
             bonus += 72; // 기본 여성 부스트
           }
@@ -1674,8 +1698,8 @@ async analyze(landmarksData, expressionData) {
             else if (features.faceRatio <= 0.85) bonus += 40;
             if (features.eyeSlant <= -3.0) bonus += 90;
             else if (features.eyeSlant <= -1.5) bonus += 47;
-            if (features.eyeDistance <= 0.95) bonus += 54;
-            else if (features.eyeDistance <= 1.00) bonus += 29;
+            if (features.eyeDistRatio <= 0.95) bonus += 54;
+            else if (features.eyeDistRatio <= 1.00) bonus += 29;
             if (features.faceRatio <= 0.82 && features.eyeSlant <= -2.0) bonus += 79;
             bonus += 36; // 기본 남성 부스트
           }
@@ -1684,7 +1708,7 @@ async analyze(landmarksData, expressionData) {
             if (features.faceRatio <= 0.82) bonus += 300;
             if (features.eyeSlant <= -3.0) bonus += 350;
             else if (features.eyeSlant <= -1.5) bonus += 180;
-            if (features.eyeDistance <= 1.00) bonus += 150;
+            if (features.eyeDistRatio <= 1.00) bonus += 150;
           }
           // 8) 뱀상
           if (c.animal.id === 'snake') {
@@ -1693,7 +1717,7 @@ async analyze(landmarksData, expressionData) {
           }
           // 9) 독수리상
           if (c.animal.id === 'eagle') {
-            if (features.eyeDistance <= 0.92) bonus += 300;
+            if (features.eyeDistRatio <= 0.92) bonus += 300;
             if (features.eyeSlant <= -2.0) bonus += 200;
             if (features.noseWidthRatio >= 0.94) bonus += 150;
           }
@@ -1701,6 +1725,21 @@ async analyze(landmarksData, expressionData) {
           if (bonus > 0) c.totalScore += bonus * mascPower;
         });
       }
+
+      candidates.forEach(c => {
+        const baseScore = c.baseScore || 0;
+        const adjustedSignal = Math.max(0, c.totalScore || 0);
+        const profileRaw = Math.max(0, adjustedSignal - baseScore);
+        const suppressionRaw = Math.max(0, baseScore - adjustedSignal);
+        const profileBonus = Math.min(profileRaw, 700) * 0.10;
+        const suppressionPenalty = Math.min(suppressionRaw, baseScore * 0.72);
+        const qualityPenalty = (100 - qualityScore) * 2.4;
+        c.rawTotalScore = adjustedSignal;
+        c.profileBonus = profileBonus;
+        c.suppressionPenalty = suppressionPenalty;
+        c.qualityPenalty = qualityPenalty;
+        c.totalScore = Math.max(0, baseScore + profileBonus - suppressionPenalty - qualityPenalty);
+      });
 
       // ── 점수 압축 (극단적 격차 완화) ──
       // 1위 점수가 지나치게 높으면 분포가 한 동물에 쏠리므로
@@ -1717,28 +1756,26 @@ async analyze(landmarksData, expressionData) {
       // 내림차순 정렬 (높은 점수가 1위)
       candidates.sort((a, b) => b.totalScore - a.totalScore);
 
-      // ── 소프트맥스(Softmax)로 퍼센트 계산 ──
+      // ── 후보 간 격차 기반 퍼센트 계산 ──
       const TOP_K = candidates.slice(0, 6);
-      const TEMP = 0.003;
-      const expArr = TOP_K.map(c => Math.exp(c.totalScore * TEMP));
-      const sumExp = expArr.reduce((s, v) => s + v, 0);
-      const pctArr = expArr.map(v => (v / sumExp) * 100);
-
       let bestMatch = candidates[0].animal;
-      // 좋은 관상 강조: confidence 상향 조정 (최대 99.9%)
-      let matchProb = Math.min(99.9, pctArr[0] * 1.25);
+      const runnerUpScore = candidates[1] ? candidates[1].totalScore : 0;
+      const scoreGap = Math.max(0, candidates[0].totalScore - runnerUpScore);
+      const qualityFactor = Math.max(0.55, Math.min(1, qualityScore / 100));
+      let matchProb = Math.max(42, Math.min(96, 52 + scoreGap / 18)) * qualityFactor;
+      matchProb = Math.max(38, Math.min(96, matchProb));
 
-      // TOP3 동물상의 퍼센트도 좋은 관상이 더 도드라지도록 조정
-      const top3 = TOP_K.slice(0, 3).map((c, i) => {
-        let pct = pctArr[i] * (i === 0 ? 1.25 : i === 1 ? 1.08 : 1.0);
-        pct = Math.min(99.9, pct);
-        // 상위 3개 퍼센트가 100을 넘으면 정규화
+      const top3Source = TOP_K.slice(0, 3);
+      const top3Total = top3Source.reduce((sum, c) => sum + Math.max(1, c.totalScore), 0) || 1;
+      const top3 = top3Source.map((c, i) => {
+        const pct = (Math.max(1, c.totalScore) / top3Total) * 100;
         return {
           animal: c.animal,
           pct: pct.toFixed(1),
           isTop: i === 0
         };
       });
+      const bestCandidate = candidates[0] || {};
 
     // --- 1. 정밀 안상(眼相) 분석 (운명을 결정짓는 창) --- 
     let eyes = [
@@ -2059,9 +2096,17 @@ async analyze(landmarksData, expressionData) {
       celebrities: bestMatch.celebrities.join(", "),
       description: bestMatch.description,
       expertReportHtml: expertReportHtml,
-      // 소프트맥스 기반 1위 퍼센트 (face-api 표정 반영)
       confidence: matchProb.toFixed(1),
       top3,
+      qualityScore: qualityScore,
+      scoreBreakdown: {
+        geometry: Math.round(bestCandidate.geoScore || 0),
+        expression: Math.round(bestCandidate.exprScore || 0),
+        profileBonus: Math.round(bestCandidate.profileBonus || 0),
+        qualityPenalty: Math.round(bestCandidate.qualityPenalty || 0),
+        suppressionPenalty: Math.round(bestCandidate.suppressionPenalty || 0),
+        total: Math.round(bestCandidate.totalScore || 0)
+      },
       extractedFeatures: features
     };
   }
@@ -2111,7 +2156,136 @@ async analyze(landmarksData, expressionData) {
       triangle: { name: '역삼각형(逆三角型)', element: '火', emoji: '🔺', desc: '창의적이고 감각적인 상', fortune: '예술적 재능·직관력 출중' }
     };
 
-    return { type: topType, ...info[topType], score: types[0][1] };
+  return { type: topType, ...info[topType], score: types[0][1] };
+  }
+
+  calculatePastLifePhysiognomy(result) {
+    const animalName = String(result && result.primaryAnimal || '');
+    const animal = this.animalDb.animals.find(a => a.name === animalName) || {};
+    const features = result && result.extractedFeatures ? result.extractedFeatures : {};
+    const shape = this.analyzeFaceShape(features);
+    const samjung = features.samjung || { upper: 0.333, middle: 0.333, lower: 0.334 };
+    const dominantEntry = Object.entries(samjung).sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0] || ['middle'];
+    const dominant = dominantEntry[0] || 'middle';
+    const dominantText = {
+      upper: '하늘의 뜻과 명예를 먼저 좇던 전생의 흔적',
+      middle: '사람과 사람 사이의 신뢰를 업으로 삼던 전생의 흔적',
+      lower: '현실을 일구고 재물을 지키던 전생의 흔적'
+    }[dominant];
+
+    const profiles = {
+      dog: ['마을을 지키던 충직한 수호자', '한 번 맺은 인연을 끝까지 책임지는 서약의 업', '이번 생에서는 마음을 다 주기 전에 자신의 경계를 먼저 세워야 합니다.'],
+      cat: ['달빛 아래 기록을 남기던 은둔의 예술가', '혼자 있을 때 더욱 선명해지는 감각의 업', '이번 생에서는 독립성과 친밀함을 동시에 허락하는 법을 배워야 합니다.'],
+      fox: ['왕실의 비밀을 읽던 책략가', '말과 눈빛으로 흐름을 바꾸던 지혜의 업', '이번 생에서는 설득보다 진심을 먼저 드러낼 때 운이 열립니다.'],
+      deer: ['숲의 제단을 돌보던 치유자', '상처 입은 사람을 조용히 품던 연민의 업', '이번 생에서는 남을 살피는 만큼 자신의 소망도 귀하게 대해야 합니다.'],
+      rabbit: ['봄의 정원을 가꾸던 길상 전령', '부드러운 태도로 닫힌 마음을 여는 화합의 업', '이번 생에서는 망설임보다 선택의 속도를 조금 더 믿어야 합니다.'],
+      tiger: ['변방을 지키던 장수', '두려움 앞에서 물러서지 않던 결단의 업', '이번 생에서는 강함을 증명하기보다 필요한 순간에만 꺼내는 절제가 복입니다.'],
+      lion: ['태양 신전의 지도자', '사람들을 한 방향으로 모으던 위엄의 업', '이번 생에서는 인정 욕구를 사명감으로 바꿀 때 큰 문이 열립니다.'],
+      bear: ['겨울 창고를 지키던 큰 살림꾼', '느리지만 무너지지 않는 축적의 업', '이번 생에서는 익숙한 안전지대 밖에서도 자신의 무게를 믿어야 합니다.'],
+      eagle: ['높은 탑에서 별을 읽던 감시자', '멀리 보고 정확히 판단하던 통찰의 업', '이번 생에서는 날카로운 판단 뒤에 따뜻한 언어를 더해야 합니다.'],
+      snake: ['비밀 의식을 전하던 약초술사', '보이지 않는 흐름을 읽는 직감의 업', '이번 생에서는 의심을 통찰로, 집착을 집중력으로 바꾸는 것이 과제입니다.'],
+      wolf: ['밤길의 동료를 이끌던 순례대장', '외로움 속에서도 의리를 지키던 결속의 업', '이번 생에서는 혼자 버티는 습관을 내려놓고 도움을 받아야 합니다.']
+    };
+    const fallback = ['오래된 문양을 해석하던 운명의 관찰자', '사람의 표정 너머 흐름을 읽던 직관의 업', '이번 생에서는 타고난 감각을 현실의 선택으로 옮길 때 복이 깊어집니다.'];
+    const profile = profiles[animal.id] || fallback;
+
+    return {
+      title: `${shape.name} ${animalName || '관상'}에 남은 전생의 문장`,
+      archetype: profile[0],
+      pastKarma: profile[1],
+      currentTask: profile[2],
+      faceSeal: `${shape.element} 기운의 ${shape.desc}`,
+      dominantText,
+      relationEcho: '오래된 인연은 처음부터 편안하거나 이상하게 신경 쓰이는 방식으로 다가옵니다. 서두르지 말고 반복되는 감정의 결을 살피세요.',
+      wealthEcho: '전생의 재물 감각은 한 번에 크게 얻는 운보다 꾸준히 지키고 키우는 운으로 이어집니다.',
+      talisman: `${animal.emoji || '✦'} ${animalName || '운명'}의 표정을 부드럽게 열 때, 이번 생의 길도 함께 밝아집니다.`
+    };
+  }
+
+  calculatePastLifeCompatibility(result1, result2) {
+    const animal1 = String(result1 && result1.primaryAnimal || '첫 번째 얼굴');
+    const animal2 = String(result2 && result2.primaryAnimal || '두 번째 얼굴');
+    const emoji1 = String(result1 && result1.emoji || '✦');
+    const emoji2 = String(result2 && result2.emoji || '✦');
+    const id1 = (this.animalDb.animals.find(a => a.name === animal1) || {}).id || '';
+    const id2 = (this.animalDb.animals.find(a => a.name === animal2) || {}).id || '';
+    const feat1 = result1 && result1.extractedFeatures ? result1.extractedFeatures : {};
+    const feat2 = result2 && result2.extractedFeatures ? result2.extractedFeatures : {};
+    const shape1 = this.analyzeFaceShape(feat1);
+    const shape2 = this.analyzeFaceShape(feat2);
+    const samjung1 = feat1.samjung || { upper: 0.333, middle: 0.333, lower: 0.334 };
+    const samjung2 = feat2.samjung || { upper: 0.333, middle: 0.333, lower: 0.334 };
+    const dominantOf = (samjung) => {
+      const item = Object.entries(samjung).sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))[0] || ['middle'];
+      return item[0] || 'middle';
+    };
+    const dom1 = dominantOf(samjung1);
+    const dom2 = dominantOf(samjung2);
+    const shapePair = `${shape1.type}-${shape2.type}`;
+    const reverseShapePair = `${shape2.type}-${shape1.type}`;
+    const fatedPairs = ['dog-cat', 'cat-dog', 'fox-rabbit', 'rabbit-fox', 'tiger-deer', 'deer-tiger', 'wolf-deer', 'deer-wolf', 'eagle-snake', 'snake-eagle'];
+    const intensePairs = ['fox-snake', 'snake-fox', 'tiger-lion', 'lion-tiger', 'cat-cat', 'wolf-wolf', 'eagle-eagle'];
+    const softPairs = ['dog-rabbit', 'rabbit-dog', 'bear-rabbit', 'rabbit-bear', 'otter-dog', 'dog-otter', 'koala-alpaca', 'alpaca-koala'];
+    const pairKey = `${id1}-${id2}`;
+
+    let score = 64;
+    if (dom1 === dom2) score += 8;
+    if (shape1.type === shape2.type) score += 7;
+    if (['round-square', 'round-long', 'long-triangle', 'square-round'].includes(shapePair) || ['round-square', 'round-long', 'long-triangle', 'square-round'].includes(reverseShapePair)) score += 9;
+    if (fatedPairs.includes(pairKey)) score += 12;
+    if (softPairs.includes(pairKey)) score += 10;
+    if (intensePairs.includes(pairKey)) score += 6;
+    score += Math.max(0, 8 - Math.abs(Number(feat1.faceRatio || 0.82) - Number(feat2.faceRatio || 0.82)) * 40);
+    score = Math.max(42, Math.min(98, Math.round(score)));
+
+    const typePool = score >= 88
+      ? ['왕실의 봉인 인연', '다시 만난 서약의 짝', '별문을 함께 지키던 동맹']
+      : score >= 76
+        ? ['금지된 정원의 인연', '전우로 시작해 연인이 된 인연', '서로의 이름을 기억한 인연']
+        : score >= 64
+          ? ['빚을 갚으러 돌아온 인연', '스승과 제자로 엇갈린 인연', '미완의 약속을 품은 인연']
+          : ['서로를 깨우는 시험의 인연', '닮아서 부딪히는 거울 인연', '업장을 정리하러 온 인연'];
+    const typeIndex = Math.abs((id1 + id2 + shape1.type + shape2.type).split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0)) % typePool.length;
+    const relationType = typePool[typeIndex];
+    const grade = score >= 90 ? '운명 재회급' : score >= 80 ? '강한 카르마' : score >= 68 ? '묘한 재회운' : '업장 정리형';
+    const attraction = score >= 82
+      ? `${emoji1} ${animal1}의 기운이 ${emoji2} ${animal2}의 오래된 기억을 건드립니다. 처음부터 익숙하거나 이상하게 신경 쓰이는 끌림이 강합니다.`
+      : `${animal1}과 ${animal2}는 빠르게 달아오르기보다, 반복해서 마주칠수록 전생의 실마리가 또렷해지는 조합입니다.`;
+    const conflict = intensePairs.includes(pairKey)
+      ? '전생에서 서로의 자존심을 건드린 흔적이 강합니다. 이번 생에서는 이기고 지는 대화보다 먼저 풀어내는 말투가 중요합니다.'
+      : dom1 === dom2
+        ? '두 사람은 같은 감정 리듬을 공유하지만, 동시에 같은 순간에 고집이 세질 수 있습니다. 침묵이 길어지기 전에 작게 풀어야 합니다.'
+        : '전생의 갈등은 속도 차이에서 시작됩니다. 한 사람은 빠르게 확신하고, 한 사람은 천천히 마음의 문을 여는 흐름입니다.';
+    const mission = score >= 82
+      ? '이번 생의 미션은 서로의 재능을 현실로 끌어내는 것입니다. 함께 목표를 세우면 애정이 성과로 이어집니다.'
+      : '이번 생의 미션은 관계를 통해 오래된 반응 패턴을 알아차리는 것입니다. 서운함이 올라올 때 바로 결론내리지 마세요.';
+    const reunion = score >= 85 ? '끊겨도 다시 이어지는 힘이 강합니다.' : score >= 70 ? '시간을 두고 다시 확인하는 재회 흐름이 있습니다.' : '억지로 붙잡기보다 마음의 빚을 정리할수록 인연이 가벼워집니다.';
+
+    const metrics = [
+      { label: '전생 끌림', value: Math.min(99, score + 4), text: attraction },
+      { label: '업장 부채', value: Math.max(36, 104 - score), text: score >= 82 ? '부채보다 약속의 기운이 강합니다.' : '풀어야 할 감정 잔상이 남아 있습니다.' },
+      { label: '말투 궁합', value: Math.max(45, Math.min(96, score - (dom1 === dom2 ? 4 : 0) + 3)), text: '짧은 확인, 부드러운 농담, 늦은 밤의 긴 대화가 관계를 살립니다.' },
+      { label: '현실 궁합', value: Math.max(40, Math.min(95, score + (shape1.element === shape2.element ? 2 : 6))), text: '돈과 일은 역할을 나눌수록 안정됩니다. 한 사람은 방향, 한 사람은 리듬을 맡으면 좋습니다.' },
+      { label: '재회 자력', value: Math.max(42, Math.min(98, score + (fatedPairs.includes(pairKey) ? 7 : -2))), text: reunion }
+    ];
+
+    return {
+      score,
+      grade,
+      relationType,
+      title: `${emoji1} ${animal1} × ${emoji2} ${animal2}`,
+      subtitle: `${shape1.name}와 ${shape2.name}이 만든 ${relationType}`,
+      summary: `${animal1}과 ${animal2}는 ${grade}의 흐름을 가진 조합입니다. 전생의 감정은 장난처럼 시작해도, 중요한 순간에는 꽤 깊게 흔들립니다.`,
+      sections: [
+        { title: '첫눈에 끌리는 이유', body: attraction },
+        { title: '전생에서 반복된 갈등', body: conflict },
+        { title: '이번 생에서 다시 만난 목적', body: mission },
+        { title: '질투와 집착 포인트', body: `${dom1 === dom2 ? '같은 곳에서 예민해져 서로의 마음을 다 안다고 착각하기 쉽습니다.' : '한 사람은 확인을 원하고, 한 사람은 자유를 원할 때 작은 오해가 커집니다.'} 애정을 시험하지 말고 원하는 방식을 직접 말하세요.` },
+        { title: '둘만의 전생 상징', body: `${shape1.element}와 ${shape2.element}의 문양이 겹친 오래된 부적입니다. 함께 있을 때 반복되는 색, 장소, 노래가 이 인연의 힌트가 됩니다.` }
+      ],
+      metrics,
+      closing: `둘의 관계 미션은 “${mission.replace(/입니다\.$/, '으로 남기는 것')}”입니다. ${reunion}`,
+    };
   }
 
   // ============================================
@@ -2807,11 +2981,3 @@ async analyze(landmarksData, expressionData) {
 
 window.FaceAnalysisEngine = AnalysisEngine;
 window.faceAnalysisEngine = new AnalysisEngine();
-
-
-
-
-
-
-
-

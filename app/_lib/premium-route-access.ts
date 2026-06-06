@@ -105,30 +105,6 @@ function buildAlternativePaymentRules(reportType: string, requestBody: Record<st
   }
 
   if (reportType === "vedicPremium") {
-    const isCompat = normalizeModeToken(requestBody).includes("compat");
-    if (isCompat) {
-      return [
-        {
-          featureKey: "premium_pdf_vedic_compat",
-          reason: "베다 점성술 프리미엄 PDF 궁합 리포트 생성",
-          minCost: 490,
-          windowMinutes: 120,
-        },
-        {
-          featureKey: "premium-vedic-report-compat",
-          reason: "베다 점성술 프리미엄 PDF 궁합 리포트 생성",
-          minCost: 490,
-          windowMinutes: 120,
-        },
-        {
-          featureKey: "coin-gate-per-use",
-          reason: "베다 점성술 프리미엄 PDF 궁합 리포트 생성",
-          minCost: 490,
-          windowMinutes: 120,
-        },
-      ];
-    }
-
     return [
       {
         featureKey: "premium_pdf_vedic",

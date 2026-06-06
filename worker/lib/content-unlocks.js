@@ -16,9 +16,18 @@ const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_compat: SAJU_LOCKED_CONTENT_KEYS.COMPATIBILITY,
 });
 
-const SAJU_PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
+const ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
+  ziwei_decade_luck: "ziwei.decadeLuck",
+});
+
+const PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
+  ...SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY,
+  ...ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY,
+});
+
+const PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
   Object.fromEntries(
-    Object.entries(SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY).map(([featureKey, contentKey]) => [contentKey, featureKey]),
+    Object.entries(PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY).map(([featureKey, contentKey]) => [contentKey, featureKey]),
   ),
 );
 
@@ -55,13 +64,13 @@ function buildProfileScopeClause(profileId) {
 
 function canonicalizeContentKey(value) {
   const key = cleanKey(value, 160);
-  return SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[key] || key;
+  return PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[key] || key;
 }
 
 function resolveContentKeyAliases(value) {
   const canonicalKey = canonicalizeContentKey(value);
   const aliases = new Set([canonicalKey]);
-  const legacyFeatureKey = SAJU_PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[canonicalKey];
+  const legacyFeatureKey = PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[canonicalKey];
   if (legacyFeatureKey) aliases.add(legacyFeatureKey);
   return Array.from(aliases).filter(Boolean);
 }
@@ -75,6 +84,7 @@ function resolvePaidContentServiceKey(featureKey, fallback = "") {
   const key = String(featureKey || "").trim().toLowerCase();
   if (key === "fun.quantumlotto.ritualreport") return "saju";
   if (key.startsWith("section_") || key.includes("saju") || key.includes("lifebook") || key.includes("love-secret")) return "saju";
+  if (ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[key] || PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[key]) return "ziwei";
   if (key.includes("ziwei")) return "ziwei";
   if (key.includes("astrology") || key.includes("western")) return "western_astrology";
   if (key.includes("sukuyo") || key.includes("sukyo")) return "sukuyo";
@@ -99,19 +109,19 @@ export function resolvePaidContentUnlockTarget({
   scope = "",
 } = {}) {
   const rawFeatureKey = cleanKey(featureKey || contentKey || productKey, 160);
-  const sajuContentKey = SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[rawFeatureKey] || "";
+  const profileContentKey = PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[rawFeatureKey] || "";
   const explicitContentKey = canonicalizeContentKey(contentKey);
   const isLottoRitualReport = rawFeatureKey === "fun.quantumLotto.ritualReport";
   const normalizedContentKey = cleanKey(
     explicitContentKey
-      || sajuContentKey
+      || profileContentKey
       || normalizePaidFeatureKey(rawFeatureKey)
       || rawFeatureKey
       || productKey,
     160,
   );
   const resolvedServiceKey = cleanKey(serviceKey || resolvePaidContentServiceKey(rawFeatureKey || normalizedContentKey), 80);
-  const requiresProfile = Boolean(sajuContentKey) || isLottoRitualReport;
+  const requiresProfile = Boolean(profileContentKey) || isLottoRitualReport;
   const normalizedScope = cleanKey(scope, 20)
     || (requiresProfile || profileId ? CONTENT_ENTITLEMENT_SCOPES.PROFILE : CONTENT_ENTITLEMENT_SCOPES.USER);
   const normalizedProfileId = cleanKey(profileId || (normalizedScope === CONTENT_ENTITLEMENT_SCOPES.USER ? USER_SCOPE_PROFILE_ID : ""), 100);

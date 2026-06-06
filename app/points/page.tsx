@@ -28,7 +28,13 @@ type AuthUser = {
   role?: "user" | "admin";
   monthlyCredits?: number;
   profileSubscription?: {
+    tier?: string;
+    isActive?: boolean;
+    expiresAt?: string | null;
+    profileLimit?: number;
     membershipCreditBalance?: number;
+    membershipCreditGranted?: number;
+    membershipCreditUsed?: number;
   };
 };
 
@@ -172,12 +178,16 @@ type MeResponse = {
   ok?: boolean;
   success?: boolean;
   message?: string;
+  subscription?: Record<string, unknown> | null;
+  subscriptions?: Record<string, unknown>[];
   data?: {
     balance?: number;
     payments?: PaymentHistoryItem[];
     monthlyCredits?: number;
     membershipCreditBalance?: number;
     monthlyCreditLedgers?: MonthlyCreditLedgerItem[];
+    subscription?: Record<string, unknown> | null;
+    subscriptions?: Record<string, unknown>[];
   };
   user?: {
     id: string;
@@ -550,6 +560,134 @@ function mapPaymentErrorMessage(rawMessage: string) {
   return "결제를 완료하지 못했습니다. 네트워크 상태와 결제 정보를 확인 후 다시 시도해 주세요.";
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeSubscriptionTier(value: unknown): SubscriptionTier {
+  const text = String(value || "").trim().toLowerCase();
+  if (text === "standard" || text.includes("스탠다드")) return "standard";
+  if (text === "premium" || text.includes("프리미엄")) return "premium";
+  if (text === "vvip" || text.includes("브이브이아이피") || text.includes("골드")) return "vvip";
+  return "free";
+}
+
+function normalizeSubscriptionSource(value: unknown): "card" | "pass" {
+  const text = String(value || "").trim().toLowerCase();
+  return text === "card" || text === "legacy_subscription" || text === "subscription" ? "card" : "pass";
+}
+
+function normalizeSubscriptionDate(value: unknown): string | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) ? value : null;
+}
+
+function statusIndicatesActive(value: unknown) {
+  const status = String(value || "").trim().toLowerCase();
+  return [
+    "active",
+    "paid",
+    "current",
+    "subscribed",
+    "trialing",
+    "success",
+    "registered",
+    "registering",
+    "pending",
+    "processing",
+    "enrolled",
+    "enabled",
+    "valid",
+    "ok",
+    "complete",
+    "completed",
+    "confirmed",
+    "approved",
+    "등록중",
+    "이용중",
+    "유효",
+    "완료",
+  ].includes(status);
+}
+
+function statusIndicatesInactive(value: unknown) {
+  const status = String(value || "").trim().toLowerCase();
+  return ["expired", "canceled", "cancelled", "inactive", "failed", "paused", "refunded"].includes(status);
+}
+
+function normalizeSubscriptionStatusFromPayload(value: unknown): SubscriptionStatus | null {
+  if (!isRecord(value)) return null;
+  const nested = isRecord(value.subscription) ? value.subscription : {};
+  const tier = normalizeSubscriptionTier(
+    value.tier
+      ?? value.plan
+      ?? value.passTier
+      ?? value.subscriptionTier
+      ?? nested.tier
+      ?? nested.plan
+      ?? nested.passTier,
+  );
+  const expiresAt = normalizeSubscriptionDate(
+    value.expiresAt
+      ?? value.currentPeriodEnd
+      ?? value.endsAt
+      ?? value.validUntil
+      ?? nested.expiresAt
+      ?? nested.currentPeriodEnd
+      ?? nested.endsAt
+      ?? nested.validUntil,
+  );
+  const expiresDate = expiresAt ? new Date(expiresAt) : null;
+  const isDateActive = !!expiresDate && Number.isFinite(expiresDate.getTime()) && expiresDate.getTime() > Date.now();
+  const rawStatus = value.status ?? value.subscriptionStatus ?? value.membershipStatus ?? nested.status ?? nested.subscriptionStatus ?? nested.membershipStatus;
+  const explicitActive = value.isActive === true
+    || value.isSubscribed === true
+    || value.active === true
+    || value.enabled === true
+    || value.valid === true
+    || nested.isActive === true
+    || nested.isSubscribed === true
+    || statusIndicatesActive(rawStatus);
+  const explicitInactive = statusIndicatesInactive(rawStatus)
+    || (value.isActive === false && !explicitActive)
+    || (value.isSubscribed === false && !explicitActive)
+    || (nested.isActive === false && !explicitActive)
+    || (nested.isSubscribed === false && !explicitActive);
+  const isActive = tier !== "free" && !explicitInactive && (isDateActive || explicitActive);
+  const profileLimit = Number(value.profileLimit ?? value.maxProfiles ?? nested.profileLimit ?? nested.maxProfiles);
+  const freeLimit = Number(value.freeLimit ?? value.passLimit ?? value.maxCoveredCoin ?? nested.freeLimit ?? nested.passLimit ?? nested.maxCoveredCoin);
+  const cancelRequestedAt = normalizeSubscriptionDate(value.cancelRequestedAt ?? nested.cancelRequestedAt);
+
+  return {
+    tier,
+    source: normalizeSubscriptionSource(value.source ?? nested.source),
+    isActive,
+    expiresAt,
+    profileLimit: Number.isFinite(profileLimit) && profileLimit > 0 ? Math.floor(profileLimit) : 1,
+    lowBalanceWarning: !!(value.lowBalanceWarning ?? nested.lowBalanceWarning),
+    cancelAtPeriodEnd: !!(value.cancelAtPeriodEnd ?? nested.cancelAtPeriodEnd),
+    cancelRequestedAt,
+    freeLimit: Number.isFinite(freeLimit) && freeLimit >= 0 ? Math.floor(freeLimit) : 0,
+  };
+}
+
+function normalizeFirstSubscription(value: unknown): SubscriptionStatus | null {
+  const entries = Array.isArray(value) ? value : [value];
+  const normalized = entries
+    .map((entry) => normalizeSubscriptionStatusFromPayload(entry))
+    .filter((entry): entry is SubscriptionStatus => !!entry);
+  return normalized.find((entry) => entry.isActive) || normalized[0] || null;
+}
+
+function mergeSubscriptionState(prev: SubscriptionStatus, next: SubscriptionStatus): SubscriptionStatus {
+  return {
+    ...next,
+    freeLimit: next.freeLimit ?? prev.freeLimit ?? 0,
+    lowBalanceWarning: next.lowBalanceWarning ?? prev.lowBalanceWarning,
+  };
+}
+
 function normalizeMePayload(payload: MeResponse) {
   const node = payload?.data && typeof payload.data === "object" ? payload.data : {};
   const user = payload?.user;
@@ -569,6 +707,10 @@ function normalizeMePayload(payload: MeResponse) {
   const monthlyCreditLedgers = Array.isArray(node.monthlyCreditLedgers)
     ? node.monthlyCreditLedgers
     : (Array.isArray(payload?.monthlyCreditLedgers) ? payload.monthlyCreditLedgers : []);
+  const subscription = normalizeFirstSubscription(node.subscriptions)
+    || normalizeFirstSubscription(payload?.subscriptions)
+    || normalizeSubscriptionStatusFromPayload(node.subscription)
+    || normalizeSubscriptionStatusFromPayload(payload?.subscription);
 
   return {
     user,
@@ -576,6 +718,7 @@ function normalizeMePayload(payload: MeResponse) {
     monthlyCredits: Number.isFinite(monthlyCredits) ? monthlyCredits : 0,
     payments,
     monthlyCreditLedgers,
+    subscription,
   };
 }
 
@@ -1604,7 +1747,17 @@ export default function PointsPage() {
 
       const normalized = normalizeMePayload(payload);
       const nextUser = normalized.user;
-      await refreshWalletFromServer().catch(() => {});
+      const refreshedMonthlyCredits = await refreshWalletFromServer().catch(() => null);
+      if (!Number.isFinite(Number(refreshedMonthlyCredits))) {
+        setCurrentMonthlyCredits(Math.max(0, Math.floor(Number(normalized.monthlyCredits || 0))));
+      }
+      if (normalized.subscription) {
+        setSubscription((prev) => {
+          const nextSubscription = mergeSubscriptionState(prev, normalized.subscription as SubscriptionStatus);
+          if (nextSubscription.isActive) persistSubscriptionCache(nextSubscription);
+          return nextSubscription;
+        });
+      }
 
       const normalizedPayments = Array.isArray(normalized.payments)
         ? normalized.payments
@@ -1636,7 +1789,7 @@ export default function PointsPage() {
         }
       }
     },
-    [apiBase, refreshWalletFromServer, router],
+    [apiBase, persistSubscriptionCache, refreshWalletFromServer, router],
   );
 
   /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
@@ -1652,6 +1805,10 @@ export default function PointsPage() {
       );
       if (Number.isFinite(cachedMonthlyCredits)) {
         setCurrentMonthlyCredits(Math.max(0, Math.floor(cachedMonthlyCredits)));
+      }
+      const cachedSubscription = normalizeSubscriptionStatusFromPayload(parsedUser.profileSubscription);
+      if (cachedSubscription?.isActive) {
+        setSubscription((prev) => mergeSubscriptionState(prev, cachedSubscription));
       }
     }
 
@@ -1717,27 +1874,19 @@ export default function PointsPage() {
       })
       .then((d) => {
         if (!d) return;
-        const tier = d.tier === "standard" || d.tier === "premium" || d.tier === "vvip" || d.tier === "free"
-          ? d.tier
-          : "free";
-        const expiresAt = typeof d.expiresAt === "string" ? d.expiresAt : null;
-        const cancelRequestedAt = typeof d.cancelRequestedAt === "string" ? d.cancelRequestedAt : null;
-        setSubscription({
-          tier,
-          isActive:          !!d.isActive,
-          expiresAt,
-          profileLimit:      typeof d.profileLimit === "number" ? d.profileLimit : 1,
-          lowBalanceWarning: !!d.lowBalanceWarning,
-          cancelAtPeriodEnd: !!d.cancelAtPeriodEnd,
-          cancelRequestedAt,
-          freeLimit: typeof d.freeLimit === "number" ? d.freeLimit : 0,
+        const normalizedSubscription = normalizeSubscriptionStatusFromPayload(d);
+        if (!normalizedSubscription) return;
+        setSubscription((prev) => {
+          const nextSubscription = mergeSubscriptionState(prev, normalizedSubscription);
+          if (nextSubscription.isActive) persistSubscriptionCache(nextSubscription);
+          return nextSubscription;
         });
-        if (d.isActive) {
+        if (normalizedSubscription.isActive) {
           localStorage.removeItem("fortune_pending_subscription_pass");
         }
       })
       .catch(() => {});
-  }, [isBooting, apiBase, adminTestTier, authUser]);
+  }, [isBooting, apiBase, adminTestTier, authUser, persistSubscriptionCache]);
 
   /* ── 서버 결제 검증 ────────────────────────────────────────────── */
   const confirmPaymentWithServer = useCallback(
@@ -2790,7 +2939,7 @@ export default function PointsPage() {
         </section>
 
         {/* ②-1 이용권 상태 카드 */}
-        <SubscriptionStatusCard subscription={subscription} />
+        <SubscriptionStatusCard subscription={subscription} monthlyCredits={currentMonthlyCredits} />
 
         {/* ②-2 이용권 섹션 구분선 */}
         <div className="flex items-center gap-3 px-1">

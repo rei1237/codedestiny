@@ -175,8 +175,18 @@ async function ensureReferralCodeForUser(user, env, dbMaxTimeMs = 8000) {
   throw new Error("referral_code_generation_failed");
 }
 
-function buildReferralShareUrl(env, referralCode, referralShareToken) {
-  const base = String(getFrontendBaseUrl(env) || "https://code-destiny.com").replace(/\/+$/, "");
+function resolveReferralFrontendBaseUrl(request, env) {
+  const requestOrigin = getRequestOrigin(request);
+  if (requestOrigin && !isWorkersDevOrigin(requestOrigin)) return requestOrigin;
+
+  const configured = normalizeOriginOnly(getFrontendBaseUrl(env));
+  if (configured && !isWorkersDevOrigin(configured) && !isLocalHostname(new URL(configured).hostname)) return configured;
+
+  return "https://code-destiny.com";
+}
+
+function buildReferralShareUrl(request, env, referralCode, referralShareToken) {
+  const base = String(resolveReferralFrontendBaseUrl(request, env) || "https://code-destiny.com").replace(/\/+$/, "");
   const url = new URL(base || "https://code-destiny.com");
   url.searchParams.set("ref", referralCode);
   url.searchParams.set("rs", referralShareToken);
@@ -2063,7 +2073,7 @@ async function handleKakaoReferralShare(request, env) {
 
   const referralCode = await ensureReferralCodeForUser(user, env);
   const referralShareToken = await signReferralShareToken(user._id, referralCode, env);
-  const shareUrl = buildReferralShareUrl(env, referralCode, referralShareToken);
+  const shareUrl = buildReferralShareUrl(request, env, referralCode, referralShareToken);
 
   return json({
     ok: true,

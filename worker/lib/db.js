@@ -149,9 +149,9 @@ export async function connectDb(env = {}) {
           connectTask,
           guardTimeoutMS,
           "MongoDB connection timed out in Worker.",
-        ).catch((error) => {
+        ).catch(async (error) => {
           console.error(`[db-connect-error] connection promise failed. family=${ipFamily}:`, error.message);
-          resetMongooseConnection().catch(() => {});
+          await resetMongooseConnection();
           throw error;
         });
       }

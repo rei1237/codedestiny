@@ -135,6 +135,41 @@ function resolveSectionTitle(value: unknown, chapterIdx: number, sectionIdx: num
   return cleaned;
 }
 
+const CHAPTER_LENS_LABELS = ["성향 총론", "내면 감정", "연애 관계", "진로 적성", "재물 현실", "그림자 회복", "성장 로드맵"];
+const SECTION_LENS_SCHEMA = [
+  ["FPTI 코드", "십성 중심", "내면 대비", "선택 패턴", "강점 조건", "흔들림 조건"],
+  ["감정 수용", "방어 습관", "친밀 관계", "회복 리듬", "감정 신호", "안정 기준"],
+  ["매력 포인트", "호감 표현", "기대 조율", "연애 십성", "관계 그림자", "조율 전략"],
+  ["일 처리", "성과 환경", "주의 업무", "재능 사용", "협업 방식", "성장 전략"],
+  ["돈 태도", "소비 저축", "재성 감각", "흔들림 지점", "수익 구조", "현실 습관"],
+  ["압박 반응", "과잉 십성", "부족 십성", "방어기제", "무너짐 패턴", "회복 처방"],
+  ["성장 방향", "습관 교정", "균형 전략", "30일 루틴", "90일 로드맵", "핵심 문장"],
+];
+
+function resolveSectionLens(chapterIdx: number, sectionIdx: number, section?: Record<string, unknown>) {
+  return {
+    chapter: sanitizeUserText(section?.category, CHAPTER_LENS_LABELS[chapterIdx] || "심층 해석"),
+    section: sanitizeUserText(section?.lens, SECTION_LENS_SCHEMA[chapterIdx]?.[sectionIdx] || "핵심 관점"),
+  };
+}
+
+function resolveTriadLabels(chapterIdx: number, section?: Record<string, unknown>) {
+  const labels = section?.triadLabels && typeof section.triadLabels === "object" ? section.triadLabels as Record<string, unknown> : null;
+  if (labels) {
+    return {
+      strength: sanitizeUserText(labels.strength, "강점"),
+      risk: sanitizeUserText(labels.risk, "주의"),
+      action: sanitizeUserText(labels.action, "실행"),
+    };
+  }
+  if (chapterIdx === 2) return { strength: "연애 강점", risk: "관계 주의", action: "조율 실행" };
+  if (chapterIdx === 3) return { strength: "적성 강점", risk: "진로 주의", action: "업무 실행" };
+  if (chapterIdx === 4) return { strength: "재물 강점", risk: "현실 주의", action: "돈 실행" };
+  if (chapterIdx === 5) return { strength: "회복 강점", risk: "그림자 주의", action: "처방 실행" };
+  if (chapterIdx === 6) return { strength: "성장 강점", risk: "습관 주의", action: "루틴 실행" };
+  return { strength: "성향 강점", risk: "주의", action: "실행" };
+}
+
 function buildUnlockRequestId(scope: string, signature: string): string {
   const base = `${scope}|${signature}`.toLowerCase();
   let hash = 0;
@@ -155,6 +190,9 @@ function normalizeDeepReport(report: FptiDeepReport, unlocked: boolean): FptiDee
       return {
         ...section,
         title: sanitizeUserText(resolveSectionTitle(section?.title, idx, sectionIdx), CATEGORY_SCHEMA[idx]?.[sectionIdx] || `핵심 항목 ${sectionIdx + 1}`),
+        category: sanitizeUserText((section as Record<string, unknown>)?.category, CHAPTER_LENS_LABELS[idx] || "심층 해석"),
+        lens: sanitizeUserText((section as Record<string, unknown>)?.lens, SECTION_LENS_SCHEMA[idx]?.[sectionIdx] || "핵심 관점"),
+        triadLabels: resolveTriadLabels(idx, section as Record<string, unknown>),
         interpretation: safeBody,
         body: safeBody,
         strength: sanitizeUserText(section?.strength, "강점이 발휘되는 장면을 정확히 읽으면 선택의 일관성이 높아집니다."),
@@ -175,12 +213,15 @@ function normalizeDeepReport(report: FptiDeepReport, unlocked: boolean): FptiDee
       sections: unlocked
         ? (normalizedSections.length ? normalizedSections : [{
           title: "핵심 해석",
+          category: CHAPTER_LENS_LABELS[idx] || "심층 해석",
+          lens: SECTION_LENS_SCHEMA[idx]?.[0] || "핵심 관점",
           interpretation: "일부 정보가 완벽하지 않아도 지금 드러난 성향의 흐름은 충분히 읽을 수 있습니다. 이 장에서는 당신이 반복해서 선택하는 방식이 관계와 일, 돈에서 어떤 결과를 만드는지 차분히 짚고, 오늘 바로 적용할 기준 문장을 제안합니다.",
           body: "일부 정보가 완벽하지 않아도 지금 드러난 성향의 흐름은 충분히 읽을 수 있습니다. 이 장에서는 당신이 반복해서 선택하는 방식이 관계와 일, 돈에서 어떤 결과를 만드는지 차분히 짚고, 오늘 바로 적용할 기준 문장을 제안합니다.",
           strength: "기준을 세우고 책임을 지는 힘이 분명해 위기 상황에서도 중심을 잡을 수 있습니다.",
           risk: "피로 신호를 놓치면 혼자 버티는 습관이 커져 판단이 느려질 수 있습니다.",
           action: "기준 한 줄과 중단 한 줄을 적고, 하루가 끝날 때 실제 적용 여부를 점검하세요.",
           advice: "무너지지 않는 사람이 되기보다, 무너져도 돌아오는 구조를 먼저 만드세요.",
+          triadLabels: resolveTriadLabels(idx),
         }])
         : (idx === 0 ? normalizedSections.slice(0, 1) : []),
     };
@@ -218,12 +259,15 @@ function mapServerDeepReport(result: FptiAnalysisResult, serverRaw: unknown): Fp
       const body = sanitizeUserText(section.body || section.interpretation, `${idx + 1}장 ${sectionIdx + 1}절은 현재 성향 축을 기준으로 관계, 일, 돈, 감정 패턴을 현실적으로 정리한 해석입니다.`);
       return {
         title: sanitizeUserText(resolveSectionTitle(section.title, idx, sectionIdx), CATEGORY_SCHEMA[idx]?.[sectionIdx] || `핵심 항목 ${sectionIdx + 1}`),
+        category: sanitizeUserText(section.category, CHAPTER_LENS_LABELS[idx] || "심층 해석"),
+        lens: sanitizeUserText(section.lens, SECTION_LENS_SCHEMA[idx]?.[sectionIdx] || "핵심 관점"),
         interpretation: body,
         body,
         strength: sanitizeUserText(section.strength, "강점이 살아나는 환경을 구분하면 성과의 안정성이 높아집니다."),
         risk: sanitizeUserText(section.risk, "컨디션이 낮은 날에는 판단 속도보다 기준 유지가 먼저 필요합니다."),
         action: sanitizeUserText(section.action, "하루 마감 전에 적용한 기준과 보류한 기준을 각각 한 줄로 기록하세요."),
         advice: sanitizeUserText(section.advice || section.action, "하루 마감 전에 적용한 기준과 보류한 기준을 각각 한 줄로 기록하세요."),
+        triadLabels: resolveTriadLabels(idx, section),
       };
     });
 
@@ -836,22 +880,30 @@ export default function FptiResultCard({ result }: Props) {
                     )}
 
                     {!lockedChapter && <div className="space-y-3">
-                      {chapter.sections && Array.isArray(chapter.sections) && chapter.sections.map((section) => (
+                      {chapter.sections && Array.isArray(chapter.sections) && chapter.sections.map((section, sectionIdx) => {
+                        const sectionMeta = section as Record<string, unknown>;
+                        const lens = resolveSectionLens(idx, sectionIdx, sectionMeta);
+                        const triadLabels = resolveTriadLabels(idx, sectionMeta);
+                        return (
                         <article key={`${chapter.roman}-${section?.title}`} className="rounded-2xl border border-cyan-300/20 bg-cyan-500/5 p-3 transition hover:shadow-[0_0_20px_rgba(56,189,248,0.22)]">
-                          <div className="flex items-start justify-between gap-3">
-                            <h6 className="text-sm font-semibold text-cyan-100">{section?.title || "제목 없음"}</h6>
-                            <span className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-[10px] text-slate-200">상담 섹션</span>
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <h6 className="min-w-0 flex-1 text-sm font-semibold text-cyan-100">{section?.title || "제목 없음"}</h6>
+                            <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+                              <span className="rounded-full border border-cyan-200/25 bg-cyan-500/10 px-2 py-0.5 text-[10px] text-cyan-100">{lens.chapter}</span>
+                              <span className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-[10px] text-slate-200">{lens.section}</span>
+                            </div>
                           </div>
                           <p className="mt-2 whitespace-pre-wrap text-[14px] leading-8 text-slate-100">{sanitizeUserText((section as Record<string, unknown>)?.body || section?.interpretation, "이 섹션은 현재 성향 축과 십성 분포를 바탕으로 행동 패턴, 관계 반응, 현실 선택 전략을 균형 있게 해석한 안내입니다.")}</p>
                           {accessState.isUnlocked && (
                             <div className="mt-3 grid gap-2 md:grid-cols-3">
-                              <p className="rounded-lg border border-emerald-200/25 bg-emerald-500/10 p-2 text-xs text-emerald-100">강점: {section?.strength || "-"}</p>
-                              <p className="rounded-lg border border-amber-200/25 bg-amber-500/10 p-2 text-xs text-amber-100">주의: {section?.risk || "-"}</p>
-                              <p className="rounded-lg border border-sky-200/25 bg-sky-500/10 p-2 text-xs text-sky-100">실행: {sanitizeUserText((section as Record<string, unknown>)?.advice || section?.action, "핵심 행동 1개를 먼저 완료하고 주간 점검을 고정하세요.")}</p>
+                              <p className="rounded-lg border border-emerald-200/25 bg-emerald-500/10 p-2 text-xs text-emerald-100">{triadLabels.strength}: {section?.strength || "-"}</p>
+                              <p className="rounded-lg border border-amber-200/25 bg-amber-500/10 p-2 text-xs text-amber-100">{triadLabels.risk}: {section?.risk || "-"}</p>
+                              <p className="rounded-lg border border-sky-200/25 bg-sky-500/10 p-2 text-xs text-sky-100">{triadLabels.action}: {sanitizeUserText((section as Record<string, unknown>)?.advice || section?.action, "핵심 행동 1개를 먼저 완료하고 주간 점검을 고정하세요.")}</p>
                             </div>
                           )}
                         </article>
-                      ))}
+                        );
+                      })}
                     </div>}
 
                     <p className="mt-4 rounded-xl border border-amber-200/30 bg-amber-300/10 p-3 text-sm leading-7 text-amber-100">

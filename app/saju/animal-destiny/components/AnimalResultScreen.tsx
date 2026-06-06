@@ -28,7 +28,10 @@ type Props = {
   isExporting: boolean;
 };
 
-const PILLAR_ORDER: Array<"year" | "month" | "day" | "hour"> = ["year", "month", "day", "hour"];
+type PillarKey = "year" | "month" | "day" | "hour";
+type StageRhythmKey = "expand" | "refine" | "renew";
+
+const PILLAR_ORDER: PillarKey[] = ["year", "month", "day", "hour"];
 const DETAILED_REPORT_SECTIONS = [
   { key: "personality", title: "본질 성격" },
   { key: "love", title: "연애 흐름" },
@@ -41,7 +44,7 @@ const DETAILED_REPORT_SECTIONS = [
 // Legacy static-test markers: buildAnimalNarrativeInsights, buildDetailedInterpretation, TAB_LABELS
 // 네 기둥 십이운성 카드 / 오늘의 대표 동물 프로필 / 사주 근거 요약
 
-const PILLAR_META: Record<"year" | "month" | "day" | "hour", { label: string; title: string; meaning: string; focus: string }> = {
+const PILLAR_META: Record<PillarKey, { label: string; title: string; meaning: string; focus: string }> = {
   year: {
     label: "연주",
     title: "바깥 인상",
@@ -67,6 +70,70 @@ const PILLAR_META: Record<"year" | "month" | "day" | "hour", { label: string; ti
     focus: "시간 정보가 있을 때 숨은 재능과 후반부 성장 방향을 보완합니다.",
   },
 };
+
+const STAGE_RHYTHM_ORDER: StageRhythmKey[] = ["expand", "refine", "renew"];
+const STAGE_RHYTHM_META: Record<StageRhythmKey, { label: string; title: string; stages: string; message: string }> = {
+  expand: {
+    label: "피어나는 운",
+    title: "기회와 표현",
+    stages: "장생·목욕·관대·건록·제왕",
+    message: "밖으로 나가 말하고 보여 줄수록 운이 선명해지는 축입니다.",
+  },
+  refine: {
+    label: "다듬는 운",
+    title: "정리와 회복",
+    stages: "쇠·병·사·묘",
+    message: "속도를 낮추고 기준을 세울수록 실속과 회복력이 커지는 축입니다.",
+  },
+  renew: {
+    label: "새로 여는 운",
+    title: "전환과 양육",
+    stages: "절·태·양",
+    message: "비우고 준비하고 돌보는 과정을 통해 다음 가능성이 열리는 축입니다.",
+  },
+};
+
+function stageRhythmKey(stage?: string): StageRhythmKey | null {
+  if (!stage) return null;
+  if (["장생", "목욕", "관대", "건록", "제왕"].includes(stage)) return "expand";
+  if (["쇠", "병", "사", "묘"].includes(stage)) return "refine";
+  return "renew";
+}
+
+function buildStageRhythm(pillarItems: Record<PillarKey, FourPillarStageItem>, timeUnknown?: boolean) {
+  const counts: Record<StageRhythmKey, number> = { expand: 0, refine: 0, renew: 0 };
+  const evidence: Record<StageRhythmKey, string[]> = { expand: [], refine: [], renew: [] };
+
+  PILLAR_ORDER.forEach((pillarKey) => {
+    const item = pillarItems[pillarKey];
+    const rhythmKey = stageRhythmKey(item.stage);
+    if (!rhythmKey || !item.stage) return;
+    counts[rhythmKey] += 1;
+    evidence[rhythmKey].push(`${PILLAR_META[pillarKey].label} ${item.stage}`);
+  });
+
+  const dominant = [...STAGE_RHYTHM_ORDER].sort((left, right) => counts[right] - counts[left])[0];
+  const dominantMeta = STAGE_RHYTHM_META[dominant];
+  const balance = STAGE_RHYTHM_ORDER
+    .filter((key) => counts[key] > 0)
+    .map((key) => `${STAGE_RHYTHM_META[key].label} ${counts[key]}`)
+    .join(" · ");
+  const summary = counts[dominant] > 0
+    ? `${dominantMeta.label}이 가장 두드러집니다. ${dominantMeta.message}`
+    : "입력된 기둥 정보가 부족해 운성 리듬은 보조 해석으로만 참고합니다.";
+
+  return {
+    balance: balance || "운성 정보 보완 필요",
+    summary,
+    timeNote: timeUnknown ? "태어난 시간을 모르면 시주의 잠재력 해석은 부드럽게 참고해 주세요." : "",
+    cards: STAGE_RHYTHM_ORDER.map((key) => ({
+      key,
+      ...STAGE_RHYTHM_META[key],
+      count: counts[key],
+      evidence: evidence[key].join(" · ") || "해당 기둥 없음",
+    })),
+  };
+}
 
 function stageGuide(stage?: string) {
   if (!stage) return "입력 정보가 부족해 이 축은 보조 해석에서 제외했습니다.";
@@ -111,6 +178,7 @@ export default function AnimalResultScreen({
     animal,
     pillars: pillarItems,
   }), [animal, pillarItems]);
+  const stageRhythm = useMemo(() => buildStageRhythm(pillarItems, timeUnknown), [pillarItems, timeUnknown]);
 
   const representativeStage = twelveStages.day || twelveStages.primary || animal.saju_stage;
   const representativeItem = pillarItems.day.stage
@@ -149,6 +217,32 @@ export default function AnimalResultScreen({
             {representativeMeta.focus} {stageGuide(representativeStage)}
           </p>
         </article>
+        <article className="mb-4 rounded-2xl border border-[#d9d3a2] bg-[#fff9e8] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-black text-[#806e2e]">내 십이운성 리듬</p>
+            <span className="rounded-full bg-white/85 px-3 py-1 text-[11px] font-black text-[#806e2e]">{stageRhythm.balance}</span>
+          </div>
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-[#5f5026]">{stageRhythm.summary}</p>
+          {stageRhythm.timeNote ? (
+            <p className="mt-2 text-[11px] font-semibold leading-relaxed text-[#8a7437]">{stageRhythm.timeNote}</p>
+          ) : null}
+        </article>
+        <div className="mb-4 grid gap-3 md:grid-cols-3">
+          {stageRhythm.cards.map((card) => (
+            <article key={card.key} className="rounded-2xl border border-[#d8e0ef] bg-white/88 p-3 shadow-[0_6px_16px_rgba(35,62,96,0.08)]">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-xs font-black text-[#2f5b7d]">{card.label}</p>
+                  <p className="mt-1 text-[11px] font-semibold text-[#6b7e92]">{card.title}</p>
+                </div>
+                <span className="rounded-full bg-[#f4f8fc] px-2 py-1 text-[11px] font-black text-[#3d607f]">{card.count}개</span>
+              </div>
+              <p className="mt-2 text-[11px] font-semibold text-[#7a8795]">{card.stages}</p>
+              <p className="mt-2 text-xs font-semibold leading-relaxed text-[#3d607f]">{card.message}</p>
+              <p className="mt-2 rounded-xl bg-[#f4f8fc] p-2 text-[11px] font-semibold leading-relaxed text-[#5a7188]">{card.evidence}</p>
+            </article>
+          ))}
+        </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {PILLAR_ORDER.map((pillarKey) => {
             const item = pillarItems[pillarKey];

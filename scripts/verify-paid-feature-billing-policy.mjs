@@ -15,6 +15,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = (path) => readFileSync(resolve(root, path), "utf8");
 
 const destinyProfileSource = source("js/destiny-profile.js");
+const physiognomySource = source("PhysiognomyUI.js");
 const sajuEngineSource = source("js/saju-engine.js");
 const sukuyoEngineSource = source("js/saju-engine-tarot-sukuyo-quantum.js");
 const indexRuntimeSource = source("js/core/index-inline-runtime.js");
@@ -38,6 +39,8 @@ const expectedCosts = {
   "compat-ziwei-compatibility": 50,
   "compat-saju-compatibility": 50,
   "compat-sukuyo-compatibility": 50,
+  "physiognomy-compatibility": 50,
+  "physiognomy-pastlife-compatibility": 50,
   "profile-card-manage": 50,
 };
 
@@ -64,6 +67,8 @@ for (const featureKey of [
 }
 
 assert.match(destinyProfileSource, /_dpResolvePaidGateReasonFeatureKey/, "common paid gate must resolve legacy paid reasons");
+assert.match(physiognomySource, /featureKey:\s*['"]physiognomy-compatibility['"]/, "physiognomy compatibility must pass its canonical featureKey into billing gate");
+assert.match(physiognomySource, /featureKey:\s*['"]physiognomy-pastlife-compatibility['"]/, "past-life physiognomy compatibility must pass its canonical featureKey into billing gate");
 assert.match(destinyProfileSource, /PROFILE_CARD_MANAGE_FEATURE_KEY = 'profile-card-manage'/, "profile cards must use canonical billing key");
 assert.match(destinyProfileSource, /featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY/, "profile card actions must pass featureKey into billing gate");
 assert.match(destinyProfileSource, /\/api\/billing\/coin-gate/, "common paid gate must use worker billing coin-gate");
@@ -79,6 +84,8 @@ for (const featureKey of [
   "compat-saju-compatibility",
   "compat-sukuyo-compatibility",
   "vedic-compatibility-per-use",
+  "physiognomy-compatibility",
+  "physiognomy-pastlife-compatibility",
   "tarot-prompt-maker",
   "saju_ai_prompt_generator",
   "ziwei_ai_prompt_generator",

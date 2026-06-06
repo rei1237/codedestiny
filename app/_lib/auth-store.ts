@@ -324,23 +324,28 @@ export async function refreshBillingBalance() {
       ? Math.max(0, Math.floor(monthlyCredits))
       : undefined;
     const base = readSanitizedAuthUser() as AuthUser | null;
+    const membershipPatch = balanceData.membership && typeof balanceData.membership === "object"
+      ? {
+          tier: String(balanceData.membership.tier || "free"),
+          isActive: !!balanceData.membership.isActive,
+          expiresAt: typeof balanceData.membership.expiresAt === "string" ? balanceData.membership.expiresAt : null,
+          profileLimit: Number.isFinite(Number(balanceData.membership.profileLimit))
+            ? Number(balanceData.membership.profileLimit)
+            : undefined,
+          membershipCreditBalance: normalizedMonthlyCredits,
+          membershipCreditGranted: Number.isFinite(Number(balanceData.membership.membershipCreditGranted))
+            ? Number(balanceData.membership.membershipCreditGranted)
+            : undefined,
+          membershipCreditUsed: Number.isFinite(Number(balanceData.membership.membershipCreditUsed))
+            ? Number(balanceData.membership.membershipCreditUsed)
+            : undefined,
+        }
+      : {
+          membershipCreditBalance: normalizedMonthlyCredits,
+        };
     const merged = mergeAuthUsers(base, {
       monthlyCredits: normalizedMonthlyCredits,
-      profileSubscription: {
-        tier: String(balanceData.membership?.tier || "free"),
-        isActive: !!balanceData.membership?.isActive,
-        expiresAt: typeof balanceData.membership?.expiresAt === "string" ? balanceData.membership?.expiresAt : null,
-        profileLimit: Number.isFinite(Number(balanceData.membership?.profileLimit))
-          ? Number(balanceData.membership?.profileLimit)
-          : undefined,
-        membershipCreditBalance: normalizedMonthlyCredits,
-        membershipCreditGranted: Number.isFinite(Number(balanceData.membership?.membershipCreditGranted))
-          ? Number(balanceData.membership?.membershipCreditGranted)
-          : undefined,
-        membershipCreditUsed: Number.isFinite(Number(balanceData.membership?.membershipCreditUsed))
-          ? Number(balanceData.membership?.membershipCreditUsed)
-          : undefined,
-      },
+      profileSubscription: membershipPatch,
     });
     const safe = resolveSafeUser(merged);
     if (safe) applyResolvedUser(safe);

@@ -14,6 +14,19 @@ import type { DestinyElement, DestinyMeetingPlaceResult, MeetingEnergyProfile } 
 
 const ELEMENT_KEYS: DestinyElement[] = ["wood", "fire", "earth", "metal", "water"];
 
+type EnrichedRecommendedPlace = DestinyMeetingPlaceResult["recommendedPlaces"][number] & {
+  secondaryElement?: DestinyElement;
+  categoryLabel?: string;
+  destinyGrade?: string;
+  elementalProfile?: string;
+  baziInsight?: string;
+  fitStrategy?: string;
+  avoidWhen?: string;
+  bestTimeHint?: string;
+  ritual?: string;
+  purposeTags?: string[];
+};
+
 const STEM_TO_ELEMENT: Record<string, DestinyElement> = {
   갑: "wood", 甲: "wood", 을: "wood", 乙: "wood",
   병: "fire", 丙: "fire", 정: "fire", 丁: "fire",
@@ -448,48 +461,108 @@ function buildConversationOpener(placeType: DestinyMeetingPlaceResult["recommend
   return openerByType[placeType];
 }
 
-function buildEmotionalHook(profile: MeetingEnergyProfile, placeElement: DestinyElement): string {
+function buildEmotionalHook(profile: MeetingEnergyProfile, placeElement: DestinyElement, secondaryElement?: DestinyElement): string {
   const base = `${ELEMENT_LABEL[placeElement]} 기운은 ${profile.relationshipPattern} 리듬을 강화해 상대의 경계심을 천천히 낮추고 대화의 안전지대를 만듭니다.`;
   if (profile.primaryElement === placeElement) {
     return `${base} 특히 당신의 핵심 인연 축과 직접 공명해, 디테일을 알아보는 사람을 안정적으로 끌어당기는 힘이 강해집니다.`;
   }
+  if (secondaryElement && profile.usefulElements.includes(secondaryElement)) {
+    return `${base} 여기에 ${ELEMENT_LABEL[secondaryElement]} 보조 기운이 붙어 부족한 흐름을 채우고, 호감이 실제 약속으로 이어질 가능성을 높입니다.`;
+  }
   return `${base} 보조 오행으로 작동해 과열된 감정 대신 오래 가는 호기심과 신뢰를 남기는 데 유리합니다.`;
 }
 
+function buildPlaceDestinyGrade(score: number, categoryLabel: string): string {
+  if (score >= 94) return "대길지";
+  if (score >= 89) return categoryLabel;
+  if (score >= 82) return "길지";
+  return "보완지";
+}
+
+function buildElementalProfile(mainElement: DestinyElement, secondaryElement?: DestinyElement): string {
+  return secondaryElement
+    ? `주기운 ${ELEMENT_LABEL[mainElement]} · 보조기운 ${ELEMENT_LABEL[secondaryElement]}`
+    : `주기운 ${ELEMENT_LABEL[mainElement]}`;
+}
+
+function buildBaziPlaceInsight(
+  profile: MeetingEnergyProfile,
+  item: { element: DestinyElement; secondaryElement?: DestinyElement; baziInsight: string },
+): string {
+  const elements = [item.element, item.secondaryElement].filter(Boolean) as DestinyElement[];
+  const usefulMatches = elements.filter((element) => profile.usefulElements.includes(element));
+  const weakMatches = elements.filter((element) => element === profile.weakestElement);
+  const avoidMatches = elements.filter((element) => profile.avoidElements.includes(element));
+
+  if (usefulMatches.length) {
+    return `${item.baziInsight} 당신의 사주에서는 ${usefulMatches.map((element) => ELEMENT_LABEL[element]).join("·")} 기운이 용신·희신 축과 맞닿아 장소 자체가 인연운을 여는 부적처럼 작동합니다.`;
+  }
+  if (weakMatches.length) {
+    return `${item.baziInsight} 특히 부족한 ${weakMatches.map((element) => ELEMENT_LABEL[element]).join("·")} 기운을 채워, 움츠러든 표현과 감정 순환을 다시 살려줍니다.`;
+  }
+  if (avoidMatches.length) {
+    return `${item.baziInsight} 다만 ${avoidMatches.map((element) => ELEMENT_LABEL[element]).join("·")} 기운이 과열되기 쉬우니 머무는 시간을 짧고 선명하게 잡을 때 길하게 바뀝니다.`;
+  }
+  return `${item.baziInsight} 당신의 사주에서는 과한 기운을 누르고 부족한 기운을 부드럽게 잇는 완충 장소로 읽힙니다.`;
+}
+
 function buildRecommendedPlaces(profile: MeetingEnergyProfile): DestinyMeetingPlaceResult["recommendedPlaces"] {
-  const basePool = [
-    ...PLACE_POOL_BY_ELEMENT[profile.primaryElement].map((item) => ({ ...item, element: profile.primaryElement })),
-    ...PLACE_POOL_BY_ELEMENT[profile.secondaryElement].map((item) => ({ ...item, element: profile.secondaryElement })),
-  ];
+  const focusElements = uniqueBy(
+    [profile.primaryElement, profile.secondaryElement, ...profile.usefulElements, profile.weakestElement].filter(Boolean) as DestinyElement[],
+    (element) => element,
+  );
+  const basePool = focusElements.flatMap((element) =>
+    PLACE_POOL_BY_ELEMENT[element].map((item) => ({ ...item, element })),
+  );
 
-  const shuffled = shuffleWithSeed(basePool, profile.seed + 17);
-  const selected = uniqueBy(shuffled, (item) => item.name).slice(0, 5);
-
-  return selected.map((item, index) => {
+  const scored = shuffleWithSeed(basePool, profile.seed + 17).map((item, order) => {
+    const elements = [item.element, item.secondaryElement].filter(Boolean) as DestinyElement[];
     const sinsalBoost =
-      (profile.sinsalSignals.dohwa && (item.type === "night" || item.type === "culture") ? 8 : 0)
-      + (profile.sinsalSignals.hongyeom && (item.type === "cafe" || item.type === "night") ? 6 : 0)
-      + (profile.sinsalSignals.yeokma && item.type === "travel" ? 7 : 0)
-      + (profile.sinsalSignals.hwagae && item.type === "spiritual" ? 6 : 0);
+      (profile.sinsalSignals.dohwa && (item.type === "night" || item.type === "culture" || item.purposeTags.includes("도화")) ? 8 : 0)
+      + (profile.sinsalSignals.hongyeom && (item.type === "cafe" || item.type === "night" || item.purposeTags.includes("홍염")) ? 6 : 0)
+      + (profile.sinsalSignals.yeokma && (item.type === "travel" || item.purposeTags.includes("이동운")) ? 7 : 0)
+      + (profile.sinsalSignals.hwagae && (item.type === "spiritual" || item.purposeTags.includes("관계 숙성")) ? 6 : 0);
+    const usefulBoost = elements.reduce((score, element) => score + (profile.usefulElements.includes(element) ? 8 : 0), 0);
+    const weakBoost = elements.reduce((score, element) => score + (element === profile.weakestElement ? 5 : 0), 0);
+    const primaryBoost = item.element === profile.primaryElement ? 5 : 0;
+    const secondaryBoost = item.element === profile.secondaryElement || item.secondaryElement === profile.secondaryElement ? 3 : 0;
+    const avoidPenalty = elements.reduce((score, element) => score + (profile.avoidElements.includes(element) ? 8 : 0), 0);
+    const score = 72 + usefulBoost + weakBoost + primaryBoost + secondaryBoost + sinsalBoost - avoidPenalty;
+    return { item, order, score };
+  });
 
-    const usefulBoost = profile.usefulElements.includes(item.element) ? 7 : 0;
-    const avoidPenalty = profile.avoidElements.includes(item.element) ? 14 : 0;
+  const selected = uniqueBy(
+    scored.sort((a, b) => b.score - a.score || a.order - b.order),
+    ({ item }) => item.name,
+  ).slice(0, 5);
 
-    const romancePotential = Math.max(60, Math.min(98, 72 + usefulBoost + sinsalBoost - avoidPenalty + (4 - index) * 2));
+  return selected.map(({ item, score }, index) => {
+    const romancePotential = Math.max(60, Math.min(98, score + (4 - index) * 2));
     const conversationOpener = buildConversationOpener(item.type);
 
-    return {
+    const enrichedPlace: EnrichedRecommendedPlace = {
       rank: index + 1,
       name: item.name,
       type: item.type,
       element: item.element,
+      secondaryElement: item.secondaryElement,
+      categoryLabel: item.categoryLabel,
+      destinyGrade: buildPlaceDestinyGrade(romancePotential, item.categoryLabel),
+      elementalProfile: buildElementalProfile(item.element, item.secondaryElement),
+      baziInsight: buildBaziPlaceInsight(profile, item),
+      fitStrategy: item.fitStrategy,
+      avoidWhen: item.avoidWhen,
+      bestTimeHint: item.bestTimeHint,
+      ritual: item.ritual,
+      purposeTags: item.purposeTags,
       sceneDescription: buildSceneDescription(item.name, item.type, item.element),
-      emotionalHook: buildEmotionalHook(profile, item.element),
+      emotionalHook: buildEmotionalHook(profile, item.element, item.secondaryElement),
       conversationOpener,
-      reason: `${item.reason} 이 공간은 ${profile.relationshipPattern} 흐름과 정확히 맞아, 첫 만남에서도 대화의 깊이를 빠르게 확보하기 좋습니다.`,
+      reason: `${item.reason} 이 공간은 ${profile.relationshipPattern} 흐름과 맞물려, 첫 만남에서도 대화의 깊이를 빠르게 확보하기 좋습니다.`,
       actionTip: `${item.actionTip} 도착 후 3분 안에 "${conversationOpener}"처럼 감각 질문으로 첫 문장을 열면 호감 형성 속도가 눈에 띄게 좋아집니다.`,
       romancePotential,
     };
+    return enrichedPlace;
   });
 }
 
@@ -722,11 +795,11 @@ export function generateDestinyMeetingPlaceResult(sajuResult: SajuEngineResult):
 
   return {
     summary: {
-      title: "사주로 보는 인연의 장소",
-      oneLine: `당신의 인연은 ${ELEMENT_LABEL[profile.primaryElement]} 기운이 머무는 공간에서 가장 선명하게 열립니다. 속도를 낮춘 대화 동선이 첫 호감을 신뢰로 바꾸며 관계의 결을 깊게 만듭니다.`,
+      title: "사주로 보는 운명의 장소",
+      oneLine: `당신의 운명은 ${ELEMENT_LABEL[profile.primaryElement]} 기운이 머무는 장소에서 가장 선명하게 숨을 고릅니다. 공간의 오행이 사주의 부족한 결을 채우면 첫 호감은 신뢰가 되고, 우연한 동선은 인연의 문으로 바뀝니다.`,
       mainEnergy: ELEMENT_LABEL[profile.primaryElement],
       romanceKeyword: style.romanceKeyword,
-      placeTheme: `${ELEMENT_LABEL[profile.primaryElement]} 중심의 ${profile.meetingStyle} 루트`,
+      placeTheme: `${ELEMENT_LABEL[profile.primaryElement]} 중심의 운명 장소 루트`,
     },
     energyProfile: {
       dayMaster: profile.dayMasterLabel,

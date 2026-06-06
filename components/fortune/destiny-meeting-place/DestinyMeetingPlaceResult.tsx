@@ -12,6 +12,19 @@ type Props = {
 
 type PromptPack = NonNullable<DestinyMeetingPlaceResult["promptPack"]>;
 
+type EnrichedPlace = DestinyMeetingPlaceResult["recommendedPlaces"][number] & {
+  secondaryElement?: DestinyMeetingPlaceResult["recommendedPlaces"][number]["element"];
+  categoryLabel?: string;
+  destinyGrade?: string;
+  elementalProfile?: string;
+  baziInsight?: string;
+  fitStrategy?: string;
+  avoidWhen?: string;
+  bestTimeHint?: string;
+  ritual?: string;
+  purposeTags?: string[];
+};
+
 type SectionCardProps = {
   title: string;
   subtitle: string;
@@ -97,6 +110,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
   const [selectedPromptId, setSelectedPromptId] = useState(() => promptPack?.prompts[0]?.id || "");
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
   const selectedPrompt = promptPack?.prompts.find((prompt) => prompt.id === selectedPromptId) || promptPack?.prompts[0] || null;
+  const topPlace = result.recommendedPlaces[0] as EnrichedPlace | undefined;
 
   async function copyPrompt(id: string, text: string) {
     if (!text) return;
@@ -121,6 +135,30 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
           ))}
           <span className="rounded-full border border-[#d8dbe2]/45 bg-[#d9dee8]/15 px-3 py-1 text-[#f3f4f7]">분석 코인 {chargedCoins}</span>
         </div>
+        {topPlace ? (
+          <article className="mt-5 rounded-3xl border border-[#f0d7ad]/40 bg-[linear-gradient(140deg,rgba(244,214,164,0.18),rgba(92,124,168,0.14))] p-4 sm:p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#e6c793]">Today's Place</p>
+                <h4 className={`mt-1 text-3xl leading-tight text-[#fff4df] ${serifClass}`}>{topPlace.name}</h4>
+              </div>
+              <div className="flex flex-wrap gap-2 text-xs">
+                {topPlace.destinyGrade ? (
+                  <span className="rounded-full border border-[#ffe0a6]/55 bg-[#f2d6a6]/18 px-3 py-1 text-[#fff1d2]">{topPlace.destinyGrade}</span>
+                ) : null}
+                <span className={`rounded-full border px-3 py-1 ${elementToneClass(topPlace.element)}`}>{elementLabel(topPlace.element)}</span>
+                {topPlace.secondaryElement ? (
+                  <span className={`rounded-full border px-3 py-1 ${elementToneClass(topPlace.secondaryElement)}`}>{elementLabel(topPlace.secondaryElement)}</span>
+                ) : null}
+              </div>
+            </div>
+            {topPlace.elementalProfile ? <p className="mt-3 text-sm font-bold text-[#f4dfbb]">{topPlace.elementalProfile}</p> : null}
+            {topPlace.baziInsight ? <p className="mt-3 text-sm leading-relaxed text-[#f5eadb]">{topPlace.baziInsight}</p> : null}
+            {topPlace.ritual ? (
+              <p className={`mt-3 text-base leading-relaxed text-[#fff1d9] ${serifClass}`}>{topPlace.ritual}</p>
+            ) : null}
+          </article>
+        ) : null}
       </SectionCard>
 
       {promptPack?.prompts.length ? (
@@ -231,15 +269,42 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
 
       <SectionCard title="장소 TOP 5" subtitle="Where Destiny Opens" icon={<MapPin size={18} />} index={4}>
         <div className="grid gap-3 md:grid-cols-2">
-          {result.recommendedPlaces.map((place) => (
+          {result.recommendedPlaces.map((basePlace) => {
+            const place = basePlace as EnrichedPlace;
+            return (
             <article key={place.name} className="rounded-2xl border border-[#efd8b4]/35 bg-[linear-gradient(150deg,rgba(26,31,48,0.58),rgba(33,24,44,0.5))] p-4 text-sm text-[#efe7d9]">
               <div className="flex items-center justify-between gap-3">
-                <p className={`text-xl text-[#fff2df] ${serifClass}`}>#{place.rank} {place.name}</p>
-                <span className={`rounded-full border px-2 py-0.5 text-[11px] ${elementToneClass(place.element)}`}>{elementLabel(place.element)}</span>
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#e6c793]">
+                    #{place.rank} {place.destinyGrade || place.categoryLabel || "길지"}
+                  </p>
+                  <p className={`mt-1 text-xl text-[#fff2df] ${serifClass}`}>{place.name}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`rounded-full border px-2 py-0.5 text-[11px] ${elementToneClass(place.element)}`}>{elementLabel(place.element)}</span>
+                  {place.secondaryElement ? (
+                    <span className={`rounded-full border px-2 py-0.5 text-[11px] ${elementToneClass(place.secondaryElement)}`}>{elementLabel(place.secondaryElement)}</span>
+                  ) : null}
+                </div>
               </div>
-              <p className="mt-2 text-xs text-[#d9cab1]">인연 가능성 {place.romancePotential}%</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+                <span className="rounded-full border border-[#f0d7ad]/40 bg-[#f0d7ad]/12 px-2.5 py-1 text-[#f7e6c8]">궁합 {place.romancePotential}%</span>
+                {place.elementalProfile ? (
+                  <span className="rounded-full border border-white/15 bg-white/6 px-2.5 py-1 text-[#e9dfd1]">{place.elementalProfile}</span>
+                ) : null}
+                {place.purposeTags?.slice(0, 3).map((tag) => (
+                  <span key={`${place.name}-${tag}`} className="rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[#d9cebd]">{tag}</span>
+                ))}
+              </div>
               {place.sceneDescription ? <p className="mt-3 leading-relaxed text-[#f2e7d6]">{place.sceneDescription}</p> : null}
               <p className="mt-2 leading-relaxed text-[#e8dccb]">{place.reason}</p>
+              {place.baziInsight ? (
+                <div className="mt-3 rounded-xl border border-[#f0d7ad]/25 bg-[#f0d7ad]/8 p-3">
+                  <p className="text-[11px] uppercase tracking-[0.16em] text-[#e6c793]">Saju Match</p>
+                  <p className="mt-1 leading-relaxed text-[#f2e7d6]">{place.baziInsight}</p>
+                </div>
+              ) : null}
+              {place.fitStrategy ? <p className="mt-3 text-[#e7dbc9]">{place.fitStrategy}</p> : null}
               {place.emotionalHook ? <p className="mt-2 text-[#d8cbb8]">{place.emotionalHook}</p> : null}
               {place.conversationOpener ? (
                 <div className="mt-3 rounded-xl border border-white/15 bg-white/5 p-3">
@@ -247,9 +312,27 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
                   <p className="mt-1 text-[#f3eadf]">{place.conversationOpener}</p>
                 </div>
               ) : null}
+              <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+                {place.bestTimeHint ? (
+                  <div className="rounded-xl border border-white/12 bg-white/5 p-3">
+                    <p className="uppercase tracking-[0.14em] text-[#e6c793]">Time</p>
+                    <p className="mt-1 text-[#f1e6d5]">{place.bestTimeHint}</p>
+                  </div>
+                ) : null}
+                {place.avoidWhen ? (
+                  <div className="rounded-xl border border-rose-200/20 bg-rose-300/8 p-3">
+                    <p className="uppercase tracking-[0.14em] text-rose-100">Avoid</p>
+                    <p className="mt-1 text-[#f1dedc]">{place.avoidWhen}</p>
+                  </div>
+                ) : null}
+              </div>
+              {place.ritual ? (
+                <p className={`mt-3 rounded-xl border border-white/12 bg-black/12 p-3 leading-relaxed text-[#fff1d8] ${serifClass}`}>{place.ritual}</p>
+              ) : null}
               <p className="mt-3 text-[#e4d5be]">{place.actionTip}</p>
             </article>
-          ))}
+            );
+          })}
         </div>
       </SectionCard>
 

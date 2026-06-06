@@ -17,8 +17,14 @@ import {
 } from "../lib/content-unlocks.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
 
+const ZIWEI_SERVICE_KEY = "ziwei";
+const ZIWEI_LOCKED_CONTENT_KEYS = Object.freeze({
+  DECADE_LUCK: "ziwei.decadeLuck",
+});
+
 const KNOWN_CONTENT_KEYS_BY_SERVICE = {
   [CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU]: Object.values(SAJU_LOCKED_CONTENT_KEYS),
+  [ZIWEI_SERVICE_KEY]: Object.values(ZIWEI_LOCKED_CONTENT_KEYS),
 };
 
 const SAJU_FEATURE_KEY_BY_CONTENT_KEY = {
@@ -27,8 +33,17 @@ const SAJU_FEATURE_KEY_BY_CONTENT_KEY = {
   [SAJU_LOCKED_CONTENT_KEYS.COMPATIBILITY]: "section_compat",
 };
 
-const SAJU_CONTENT_KEY_BY_FEATURE_KEY = Object.fromEntries(
-  Object.entries(SAJU_FEATURE_KEY_BY_CONTENT_KEY).map(([contentKey, featureKey]) => [featureKey, contentKey]),
+const ZIWEI_FEATURE_KEY_BY_CONTENT_KEY = {
+  [ZIWEI_LOCKED_CONTENT_KEYS.DECADE_LUCK]: "ziwei_decade_luck",
+};
+
+const PROFILE_FEATURE_KEY_BY_CONTENT_KEY = {
+  ...SAJU_FEATURE_KEY_BY_CONTENT_KEY,
+  ...ZIWEI_FEATURE_KEY_BY_CONTENT_KEY,
+};
+
+const PROFILE_CONTENT_KEY_BY_FEATURE_KEY = Object.fromEntries(
+  Object.entries(PROFILE_FEATURE_KEY_BY_CONTENT_KEY).map(([contentKey, featureKey]) => [featureKey, contentKey]),
 );
 
 const BACKFILL_SUCCESS_PAYMENT_STATUSES = ["success", "paid", "fulfilled"];
@@ -42,7 +57,17 @@ function sanitizeAccessKey(value, maxLen = 120) {
 
 function normalizeContentKey(value) {
   const key = sanitizeAccessKey(value, 160);
-  return SAJU_CONTENT_KEY_BY_FEATURE_KEY[key] || key;
+  return PROFILE_CONTENT_KEY_BY_FEATURE_KEY[key] || key;
+}
+
+function normalizeServiceKey(value, contentKey = "") {
+  const explicitServiceKey = sanitizeAccessKey(value, 80);
+  if (explicitServiceKey) return explicitServiceKey;
+  const key = normalizeContentKey(contentKey);
+  for (const [serviceKey, contentKeys] of Object.entries(KNOWN_CONTENT_KEYS_BY_SERVICE)) {
+    if ((contentKeys || []).includes(key)) return serviceKey;
+  }
+  return CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU;
 }
 
 function normalizeUnlockSource(value) {
@@ -150,7 +175,7 @@ async function findPaymentForHistory(history) {
 }
 
 async function findBackfillEvidence({ userId, profileId, contentKey }) {
-  const featureKey = SAJU_FEATURE_KEY_BY_CONTENT_KEY[contentKey] || "";
+  const featureKey = PROFILE_FEATURE_KEY_BY_CONTENT_KEY[contentKey] || "";
   if (!featureKey) return null;
   const featureAliases = Array.from(new Set([featureKey, contentKey].filter(Boolean)));
 
@@ -210,12 +235,13 @@ async function upsertBackfillUnlock({ userId, profileId, serviceKey, contentKey,
 }
 
 async function backfillMissingUnlocks({ userId, profileId, serviceKey, existingDocs }) {
-  if (serviceKey !== CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU) return [];
+  const contentKeys = KNOWN_CONTENT_KEYS_BY_SERVICE[serviceKey] || [];
+  if (!contentKeys.length) return [];
 
   const existingKeys = new Set((existingDocs || []).map((doc) => String(doc?.contentKey || "")));
   const created = [];
 
-  for (const contentKey of Object.values(SAJU_LOCKED_CONTENT_KEYS)) {
+  for (const contentKey of contentKeys) {
     if (existingKeys.has(contentKey)) continue;
 
     const evidence = await findBackfillEvidence({ userId, profileId, contentKey });
@@ -260,7 +286,7 @@ async function handleStatus(request, env) {
   const profileId = sanitizeAccessKey(url.searchParams.get("profileId"), 100);
   const featureKey = sanitizeAccessKey(url.searchParams.get("featureKey"), 160);
   const contentKey = normalizeContentKey(url.searchParams.get("contentKey") || featureKey);
-  const serviceKey = sanitizeAccessKey(url.searchParams.get("serviceKey") || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU, 80);
+  const serviceKey = normalizeServiceKey(url.searchParams.get("serviceKey"), contentKey);
 
   if (!profileId) throw createHttpError(403, "Profile ownership could not be verified.", { code: "MISSING_PROFILE_ID" });
   if (!contentKey) throw createHttpError(400, "Content key is required.", { code: "MISSING_CONTENT_KEY" });
@@ -290,7 +316,7 @@ async function handleConfirm(request, env) {
   const profileId = sanitizeAccessKey(body.profileId, 100);
   const featureKey = sanitizeAccessKey(body.featureKey, 160);
   const contentKey = normalizeContentKey(body.contentKey || featureKey);
-  const serviceKey = sanitizeAccessKey(body.serviceKey || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU, 80);
+  const serviceKey = normalizeServiceKey(body.serviceKey, contentKey);
   const source = normalizeUnlockSource(body.unlockSource || body.source);
   const orderId = sanitizeAccessKey(body.orderId, 160);
 

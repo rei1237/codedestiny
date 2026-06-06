@@ -11905,21 +11905,23 @@ function renderZiwei(p, natal, targetId) {
     .zw-grid-wrap {
       flex: 1.4;
       background:
-        radial-gradient(circle at 14% 16%, rgba(250, 204, 21, 0.14), transparent 34%),
-        radial-gradient(circle at 86% 84%, rgba(59, 130, 246, 0.16), transparent 38%),
-        radial-gradient(circle at 54% 52%, rgba(125, 211, 252, 0.08), transparent 62%),
-        linear-gradient(140deg, #070d20 0%, #130a2c 46%, #0a1734 100%);
+        radial-gradient(circle at 12% 15%, rgba(250, 204, 21, 0.18), transparent 34%),
+        radial-gradient(circle at 88% 12%, rgba(125, 211, 252, 0.18), transparent 32%),
+        radial-gradient(circle at 86% 84%, rgba(59, 130, 246, 0.18), transparent 38%),
+        radial-gradient(circle at 48% 50%, rgba(196, 181, 253, 0.13), transparent 58%),
+        linear-gradient(140deg, #050816 0%, #130a2c 43%, #081731 100%);
       padding: 15px;
       border-radius: 16px;
       box-shadow:
-        inset 0 0 26px rgba(0,0,0,0.78),
-        inset 0 0 0 1px rgba(167,139,250,0.2),
-        0 12px 28px rgba(2,6,23,0.55);
+        inset 0 0 32px rgba(0,0,0,0.82),
+        inset 0 0 0 1px rgba(167,139,250,0.24),
+        0 16px 34px rgba(2,6,23,0.6);
       position: relative;
       min-width: 0; /* flex child 오버플로우 방지 */
       overflow: hidden;
       -webkit-overflow-scrolling: touch;
       border: 1px solid rgba(167, 139, 250, 0.24);
+      isolation: isolate;
     }
     .zw-grid-wrap::before {
       content: "";
@@ -11938,7 +11940,24 @@ function renderZiwei(p, natal, targetId) {
       position: absolute;
       inset: 0;
       pointer-events: none;
-      background: linear-gradient(180deg, rgba(14, 24, 52, 0) 0%, rgba(14, 24, 52, 0.18) 100%);
+      background:
+        linear-gradient(90deg, rgba(250,204,21,0.22), transparent 14%, transparent 86%, rgba(125,211,252,0.2)),
+        linear-gradient(180deg, rgba(14, 24, 52, 0) 0%, rgba(14, 24, 52, 0.2) 100%);
+      z-index: 0;
+    }
+    .zw-chart-mobile-note {
+      display: none;
+      position: relative;
+      z-index: 3;
+      margin: 0 0 7px;
+      color: #bfdbfe;
+      font-size: 0.68rem;
+      line-height: 1.45;
+      text-align: center;
+      border: 1px solid rgba(125,211,252,0.28);
+      background: rgba(15, 23, 42, 0.55);
+      border-radius: 999px;
+      padding: 4px 9px;
     }
     .zw-grid {
       display: grid;
@@ -11946,6 +11965,8 @@ function renderZiwei(p, natal, targetId) {
       grid-template-rows: repeat(4, minmax(85px, auto));
       gap: 5px;
       width: 100%;
+      position: relative;
+      z-index: 1;
     }
     
     .zw-cell {
@@ -11969,6 +11990,51 @@ function renderZiwei(p, natal, targetId) {
       word-break: keep-all;
       overflow-wrap: anywhere;
       white-space: normal;
+    }
+    .zw-cell-aura {
+      position: absolute;
+      inset: -18%;
+      border-radius: inherit;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 45%, var(--zw-cell-glow, rgba(250,204,21,0.18)), transparent 46%),
+        radial-gradient(circle at 22% 18%, rgba(255,255,255,0.18), transparent 24%);
+      opacity: calc(0.28 + (var(--zw-cell-score, 52) * 0.004));
+      filter: blur(10px);
+      transform: scale(0.92);
+    }
+    .zw-palace-starlane {
+      position: absolute;
+      left: 9px;
+      right: 9px;
+      bottom: 7px;
+      height: 2px;
+      border-radius: 999px;
+      pointer-events: none;
+      background: linear-gradient(90deg, rgba(255,255,255,0), var(--zw-cell-glow, rgba(250,204,21,0.58)), rgba(255,255,255,0));
+      opacity: 0.55;
+      transform-origin: left center;
+      transform: scaleX(calc(var(--zw-cell-score, 52) / 100));
+      box-shadow: 0 0 9px var(--zw-cell-glow, rgba(250,204,21,0.3));
+    }
+    .zw-cell-power-high {
+      border-color: rgba(250, 204, 21, 0.58);
+      box-shadow: inset 0 0 22px rgba(250,204,21,0.1), 0 0 18px rgba(250,204,21,0.12);
+    }
+    .zw-cell-power-mid {
+      border-color: rgba(125, 211, 252, 0.36);
+      box-shadow: inset 0 0 18px rgba(125,211,252,0.08);
+    }
+    .zw-cell-power-low {
+      border-color: rgba(148, 163, 184, 0.24);
+    }
+    .zw-cell-meng {
+      box-shadow: inset 0 0 24px rgba(250,204,21,0.28), 0 0 22px rgba(250,204,21,0.22);
+      border-color: rgba(250, 204, 21, 0.78);
+    }
+    .zw-cell-shen {
+      box-shadow: inset 0 0 22px rgba(56,189,248,0.2), 0 0 18px rgba(56,189,248,0.16);
+      border-color: rgba(125, 211, 252, 0.62);
     }
     .zw-cell::before {
       content: "";
@@ -12067,6 +12133,70 @@ function renderZiwei(p, natal, targetId) {
         radial-gradient(circle at 70% 36%, rgba(255,255,255,0.3) 0 1px, transparent 1.6px),
         radial-gradient(circle at 56% 76%, rgba(255,255,255,0.22) 0 1px, transparent 1.8px);
       opacity: 0.38;
+    }
+    .zw-center-orbit {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border: 1px solid rgba(250, 204, 21, 0.2);
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+    .zw-center-orbit-one {
+      width: 76%;
+      aspect-ratio: 1;
+      box-shadow: 0 0 18px rgba(250,204,21,0.12);
+      animation: zwOrbitSlow 18s linear infinite;
+    }
+    .zw-center-orbit-two {
+      width: 58%;
+      aspect-ratio: 1;
+      border-color: rgba(125, 211, 252, 0.2);
+      animation: zwOrbitSlow 24s linear reverse infinite;
+    }
+    .zw-center-seal {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      min-height: 58px;
+      margin-bottom: 7px;
+      border-radius: 50%;
+      color: #fff7cc;
+      font-size: 0.78rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      border: 1px solid rgba(250,204,21,0.44);
+      background:
+        radial-gradient(circle at 50% 28%, rgba(255,255,255,0.18), transparent 35%),
+        linear-gradient(145deg, rgba(120, 53, 15, 0.54), rgba(49, 46, 129, 0.46));
+      box-shadow: inset 0 0 18px rgba(250,204,21,0.18), 0 0 22px rgba(250,204,21,0.18);
+    }
+    .zw-center-legend {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px;
+      margin-top: 7px;
+    }
+    .zw-center-legend-item {
+      color: #c7d2fe;
+      font-size: 0.58rem;
+      line-height: 1;
+      border: 1px solid rgba(196,181,253,0.25);
+      background: rgba(15, 23, 42, 0.48);
+      border-radius: 999px;
+      padding: 3px 6px;
+      white-space: nowrap;
+    }
+    @keyframes zwOrbitSlow {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
     }
 
     
@@ -12826,6 +12956,63 @@ function renderZiwei(p, natal, targetId) {
       font-size: 0.82rem;
       white-space: nowrap;
     }
+    .zw-oracle-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .zw-oracle-card {
+      border-radius: 10px;
+      border: 1px solid rgba(196,181,253,0.3);
+      background:
+        radial-gradient(circle at 16% 16%, rgba(255,255,255,0.08), transparent 34%),
+        rgba(15,23,42,0.48);
+      padding: 10px 11px;
+      color: #e2e8f0;
+      font-size: 0.84rem;
+      line-height: 1.66;
+      min-width: 0;
+    }
+    .zw-oracle-card b {
+      color: #fef3c7;
+      font-weight: 900;
+    }
+    .zw-oracle-card__title {
+      color: #c4b5fd;
+      font-size: 0.82rem;
+      font-weight: 900;
+      margin-bottom: 5px;
+    }
+    .zw-oracle-card--rose {
+      border-color: rgba(244,114,182,0.36);
+      background: linear-gradient(140deg, rgba(83, 30, 63, 0.5), rgba(30, 27, 75, 0.42));
+    }
+    .zw-oracle-card--gold {
+      border-color: rgba(250,204,21,0.34);
+      background: linear-gradient(140deg, rgba(120, 53, 15, 0.42), rgba(30, 27, 75, 0.42));
+    }
+    .zw-timing-ribbon {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0 0;
+    }
+    .zw-timing-chip {
+      border-radius: 999px;
+      border: 1px solid rgba(125,211,252,0.35);
+      background: rgba(14, 116, 144, 0.18);
+      color: #bae6fd;
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      line-height: 1.25;
+      font-weight: 800;
+      white-space: nowrap;
+    }
     .ziwei-report-container .love-card,
     .ziwei-report-container .compatibility-card {
       border-radius: 12px;
@@ -13427,6 +13614,29 @@ function renderZiwei(p, natal, targetId) {
       gap: 4px;
       letter-spacing: 0.01em;
     }
+    .zw-pv-phase-rail {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 5px;
+      margin: 8px 0 0;
+    }
+    .zw-pv-phase-step {
+      border-radius: 8px;
+      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.32);
+      background: rgba(15,23,42,0.42);
+      padding: 6px 5px;
+      color: #dbeafe;
+      font-size: 0.68rem;
+      line-height: 1.42;
+      text-align: center;
+      min-width: 0;
+    }
+    .zw-pv-phase-step b {
+      display: block;
+      color: rgba(var(--pivot-rgb, 167,139,250), 1);
+      font-size: 0.7rem;
+      margin-bottom: 2px;
+    }
     .zw-pv-star-tags {
       display: flex;
       flex-wrap: wrap;
@@ -13594,15 +13804,33 @@ function renderZiwei(p, natal, targetId) {
         border-radius: 12px;
         overflow-x: auto;
         overflow-y: visible;
+        scroll-snap-type: x proximity;
+        overscroll-behavior-x: contain;
+        scrollbar-width: thin;
+      }
+      .zw-grid-wrap::-webkit-scrollbar { height: 5px; }
+      .zw-grid-wrap::-webkit-scrollbar-thumb {
+        background: linear-gradient(90deg, rgba(250,204,21,0.5), rgba(125,211,252,0.5));
+        border-radius: 999px;
+      }
+      .zw-chart-mobile-note {
+        display: block;
+        position: sticky;
+        left: 0;
+        width: max-content;
+        max-width: calc(100vw - 42px);
+        margin-left: auto;
+        margin-right: auto;
       }
       /* 12궁 4×4 그리드 — aspect-ratio 기반 정방형, 모든 모바일 해상도 대응 */
       .zw-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(124px, 1fr));
+        grid-template-columns: repeat(4, minmax(118px, 1fr));
         grid-template-rows: repeat(4, minmax(74px, auto));
         gap: 3px;
-        min-width: 540px;
-        width: 540px;
+        min-width: 516px;
+        width: max(516px, 100%);
+        scroll-snap-align: start;
       }
       .zw-cell {
         min-height: 74px;
@@ -13620,6 +13848,7 @@ function renderZiwei(p, natal, targetId) {
         -webkit-tap-highlight-color: transparent;
         opacity: 1;
         animation: none;
+        scroll-snap-align: nearest;
       }
       .zw-center-panel {
         grid-column: 2 / 4;
@@ -13639,10 +13868,13 @@ function renderZiwei(p, natal, targetId) {
         justify-content: center;
       }
       .zw-center-title { font-size: 0.8rem; margin-bottom: 4px; }
+      .zw-center-seal { min-width: 42px; min-height: 42px; font-size: 0.58rem; margin-bottom: 4px; }
       .zw-center-meta { gap: 3px; margin-bottom: 5px; }
       .zw-center-chip { font-size: 0.53rem; padding: 3px 5px; }
       .zw-center-desc { font-size: 0.59rem; line-height: 1.35; display: block; }
       .zw-center-hint { font-size: 0.56rem; margin-top: 5px; }
+      .zw-center-legend { gap: 3px; margin-top: 5px; }
+      .zw-center-legend-item { font-size: 0.49rem; padding: 2px 4px; }
       /* 가변 폰트(clamp): 좁은 화면에서도 텍스트 넘침 방지 */
       .zw-palace-name { font-size: 0.66rem; margin-bottom: 3px; padding: 0 30px 2px 0; }
       .zw-tag-layer { margin: -1px 0 4px; gap: 2px; }
@@ -13718,6 +13950,9 @@ function renderZiwei(p, natal, targetId) {
       .ziwei-report-container .zw-compat-ref-content {
         overflow-x: hidden;
       }
+      .zw-pv-phase-rail {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
       .ziwei-report-container .zw-pastlife-archive { padding: 7px; }
       .ziwei-report-container .zw-pastlife-layout {
         gap: 8px;
@@ -13781,8 +14016,8 @@ function renderZiwei(p, natal, targetId) {
 
     @media (max-width: 430px) {
       .zw-grid {
-        min-width: 500px;
-        width: 500px;
+        min-width: 488px;
+        width: 488px;
       }
       .report-container,
       #zwComprehensiveReport,
@@ -14299,7 +14534,8 @@ function renderZiwei(p, natal, targetId) {
 
   <div class="zw-dashboard">
     <!-- Left: Grid -->
-    <div class="zw-grid-wrap">
+    <div class="zw-grid-wrap" data-zw-chart-ui="cosmic-chart-ui-v20260606">
+      <div class="zw-chart-mobile-note">명반을 좌우로 밀어 12궁의 별자리 흐름을 확인하세요.</div>
       <div class="zw-grid">
   `;
 
@@ -15703,7 +15939,6 @@ function renderZiwei(p, natal, targetId) {
     let st = palace.stars[i] || { main: [], borrowedMain: [], aux: [], bad: [] };
     let mainList = (st.main && st.main.length) ? st.main : (st.borrowedMain || []);
     
-    let highlight = (pZhi === palace.meng) ? 'box-shadow: inset 0 0 20px rgba(212,175,55,0.6); border-color: #FFD700;' : '';
     let dName = pName;
     let cellTags = '';
     if (pZhi === palace.meng) cellTags += '<span class="zw-tag zw-tag-meng">명궁</span>';
@@ -15722,8 +15957,21 @@ function renderZiwei(p, natal, targetId) {
       let sihuaClass = sihuaCell === '화기' ? 'zw-tag-hwa-gi' : 'zw-tag-hwa-good';
       cellTags += '<span class="zw-tag ' + sihuaClass + '">' + sihuaCell + '</span>';
     }
+    let palacePower = 30 + (mainList.length * 17) + ((st.aux || []).length * 5) - ((st.bad || []).length * 3);
+    if (sihuaCell) palacePower += sihuaCell === '화기' ? 4 : 10;
+    if (pZhi === palace.meng) palacePower += 18;
+    if (pZhi === palace.shen) palacePower += 12;
+    palacePower = Math.max(24, Math.min(96, palacePower));
+    let palacePowerClass = palacePower >= 72 ? 'zw-cell-power-high' : (palacePower >= 52 ? 'zw-cell-power-mid' : 'zw-cell-power-low');
+    let roleClass = (pZhi === palace.meng ? ' zw-cell-meng' : '') + (pZhi === palace.shen ? ' zw-cell-shen' : '');
+    let glowColor = sihuaCell === '화기'
+      ? 'rgba(248,113,113,0.42)'
+      : (pZhi === palace.meng ? 'rgba(250,204,21,0.5)' : (pZhi === palace.shen ? 'rgba(125,211,252,0.46)' : 'rgba(196,181,253,0.34)'));
+    let cellStyle = '--zw-cell-score:' + palacePower + ';--zw-cell-glow:' + glowColor + '; animation-delay: '+(i*0.06)+'s;';
 
-    html += '<div class="zw-cell zw-cell-'+i+'" role="button" tabindex="0" aria-label="'+dName+' 상세 해석 보기" style="'+highlight+'; animation-delay: '+(i*0.06)+'s;" onclick="window._handleZwClick('+i+', this)">';
+    html += '<div class="zw-cell zw-cell-'+i+' '+palacePowerClass+roleClass+'" role="button" tabindex="0" aria-label="'+dName+' 상세 해석 보기, 별 밀도 '+palacePower+'점" style="'+cellStyle+'" onclick="window._handleZwClick('+i+', this)">';
+    html += '<div class="zw-cell-aura" aria-hidden="true"></div>';
+    html += '<div class="zw-palace-starlane" aria-hidden="true"></div>';
     html += '<div class="zw-palace-name">' + dName + '</div>';
     if (cellTags) html += '<div class="zw-tag-layer">' + cellTags + '</div>';
     html += '<div class="zw-stars-wrap star-list">';
@@ -15754,7 +16002,10 @@ function renderZiwei(p, natal, targetId) {
   }
 
   html += '<div class="zw-center-panel">';
-  html += '<div class="zw-center-title">자미두수 명반</div>';
+  html += '<div class="zw-center-orbit zw-center-orbit-one" aria-hidden="true"></div>';
+  html += '<div class="zw-center-orbit zw-center-orbit-two" aria-hidden="true"></div>';
+  html += '<div class="zw-center-seal">紫微星圖</div>';
+  html += '<div class="zw-center-title">자미 성도 명반</div>';
   html += '<div class="zw-center-meta">';
   html += '<span class="zw-center-chip zw-center-chip-meng">명궁 ' + palace.meng + '</span>';
   html += '<span class="zw-center-chip zw-center-chip-shen">신궁 ' + palace.shen + '</span>';
@@ -15764,7 +16015,13 @@ function renderZiwei(p, natal, targetId) {
   if (palace.calcMeta) {
     html += '<span style="font-size:0.68rem;color:#94a3b8;display:block;margin-top:6px">기준: 음력 '+palace.calcMeta.lunarMonth+'월 '+palace.calcMeta.lunarDay+'일 · 시지 '+palace.calcMeta.hourBranch+'</span>';
   }
-  html += '<span class="zw-center-hint">궁(宮)을 클릭하면 각 궁의 별 해석과 실행 가이드를 확인할 수 있습니다.</span>';
+  html += '<span class="zw-center-hint">별빛이 강한 궁일수록 현재 명반에서 선명하게 작동하는 운명의 축입니다.</span>';
+  html += '<div class="zw-center-legend" aria-label="명반 범례">';
+  html += '<span class="zw-center-legend-item">금빛: 명궁</span>';
+  html += '<span class="zw-center-legend-item">청빛: 신궁</span>';
+  html += '<span class="zw-center-legend-item">붉은빛: 화기 주의</span>';
+  html += '<span class="zw-center-legend-item">궤도선: 별 밀도</span>';
+  html += '</div>';
   html += '</div>';
   html += '</div>';
   html += '</div></div>';
@@ -17781,6 +18038,32 @@ function renderZiwei(p, natal, targetId) {
             ? '이번 주 핵심 과제를 1페이지 구조도로 정리하세요. 문제정의-가설-실험-회수 지표 4단으로 만들면 설득력이 급상승합니다.'
             : '수익/성과 회수 시점을 먼저 정하고 실행하세요. 시작 기준보다 종료 기준을 선명히 잡을수록 손실이 줄고 누적 성장이 커집니다.');
 
+        var potentialArchetype = dominantTrack.k === '협업 아키텍처'
+          ? '사람과 자원을 배치해 큰 판을 움직이는 성좌 설계자'
+          : (dominantTrack.k === '논리적 심미안'
+            ? '흩어진 신호를 문장과 구조로 바꾸는 별빛 해석가'
+            : '기회가 열린 순간 빠르게 궤도에 진입하는 돌파 항해자');
+        var potentialMoneyPath = dominantTrack.k === '협업 아키텍처'
+          ? '프로젝트 총괄, 운영 설계, 파트너십, 팀 빌딩처럼 여러 사람의 힘을 하나의 결과로 묶을 때 재물화가 빠릅니다.'
+          : (dominantTrack.k === '논리적 심미안'
+            ? '분석 리포트, 컨설팅, 교육, 콘텐츠, 브랜딩처럼 복잡한 정보를 이해 가능한 언어로 바꾸는 영역에서 값이 붙습니다.'
+            : '영업, 런칭, 이동형 비즈니스, 단기 실험, 신시장 개척처럼 속도와 타이밍을 다루는 장면에서 성과가 커집니다.');
+        var potentialRelationshipUse = dominantTrack.k === '협업 아키텍처'
+          ? '관계에서는 감정의 편을 드는 사람보다, 서로의 역할과 기대치를 정리해 주는 조율자로 빛납니다.'
+          : (dominantTrack.k === '논리적 심미안'
+            ? '관계에서는 상대의 말 뒤에 숨은 맥락을 읽고, 감정이 길을 잃지 않게 언어를 부여하는 힘이 강합니다.'
+            : '관계에서는 정체된 분위기에 새 경험과 행동을 넣어 다시 움직이게 만드는 점화력이 강합니다.');
+        var potentialShadow = dominantTrack.k === '협업 아키텍처'
+          ? '과도한 책임감으로 모든 사람의 문제를 떠안으면 별빛이 흐려집니다. 역할 경계가 곧 운의 보호막입니다.'
+          : (dominantTrack.k === '논리적 심미안'
+            ? '생각이 깊어질수록 실행을 늦추는 함정이 생깁니다. 70% 확신에서 작은 실험을 시작해야 별이 움직입니다.'
+            : '속도가 강점인 만큼 회수 기준 없이 달리면 손실도 빨라집니다. 시작 전 종료 조건을 먼저 새기세요.');
+        var potential90Day = dominantTrack.k === '협업 아키텍처'
+          ? '30일은 역할 정리, 60일은 협업 루틴 고정, 90일은 위임 가능한 시스템으로 확장하세요.'
+          : (dominantTrack.k === '논리적 심미안'
+            ? '30일은 자료 수집, 60일은 구조화, 90일은 공개 가능한 결과물 하나로 완성하세요.'
+            : '30일은 시장 탐색, 60일은 빠른 실험, 90일은 성과가 난 채널 하나에 집중하세요.');
+
         var sec_hidden_power = '<section class="zw-hidden-power">'
           +'<div class="zw-hidden-power__starfield" aria-hidden="true"></div>'
           +'<div class="zw-hidden-power__inner">'
@@ -17808,6 +18091,13 @@ function renderZiwei(p, natal, targetId) {
                 +'<p><b>핵심 역량:</b> 달려야 할 때와 멈춰야 할 때를 분리해 성장 효율을 높입니다.</p>'
                 +'<p><b>상세 풀이:</b> '+growthDetail+'</p>'
               +'</article>'
+            +'</div>'
+            +'<div class="zw-oracle-grid" aria-label="잠재력 심층 지도">'
+              +'<article class="zw-oracle-card zw-oracle-card--gold"><div class="zw-oracle-card__title">재능 원형</div><b>'+potentialArchetype+'</b><br>현재 명반에서 가장 강하게 반복되는 잠재력 축은 '+dominantTrack.k+'입니다.</article>'
+              +'<article class="zw-oracle-card"><div class="zw-oracle-card__title">돈이 되는 방식</div>'+potentialMoneyPath+'</article>'
+              +'<article class="zw-oracle-card"><div class="zw-oracle-card__title">관계에서 쓰이는 힘</div>'+potentialRelationshipUse+'</article>'
+              +'<article class="zw-oracle-card zw-oracle-card--rose"><div class="zw-oracle-card__title">잠재력의 그림자</div>'+potentialShadow+'</article>'
+              +'<article class="zw-oracle-card" style="grid-column:1 / -1;"><div class="zw-oracle-card__title">90일 활성화 처방</div>'+potential90Day+'</article>'
             +'</div>'
             +'<div class="zw-hidden-power__guide">'
               +'<h3>💡 활용 가이드 (Success Code)</h3>'
@@ -18093,14 +18383,27 @@ function renderZiwei(p, natal, targetId) {
           var val = loveDestinyMetrics[item.key] || 0;
           return '<div class="zw-love-metric-item"><span>'+item.icon+' <b>'+item.name+'</b></span><span style="color:#fde68a;font-weight:900;">'+val+'%</span></div>';
         }).join('');
+        var loveTimingRibbon = '<div class="zw-timing-ribbon" aria-label="연애운 타이밍 신호">'
+          +'<span class="zw-timing-chip">인연 유입: '+(loveHeat >= 68 ? '강한 끌림이 먼저 열린다' : '천천히 신뢰를 쌓을 때 열린다')+'</span>'
+          +'<span class="zw-timing-chip">정착 운: '+(commitment >= 68 ? '약속과 생활 설계에 강함' : '관계 규칙을 먼저 맞춰야 안정')+'</span>'
+          +'<span class="zw-timing-chip">주의 운: '+(flirtRiskScore >= 66 ? '외부 자극·경계선 관리' : '작은 서운함의 조기 공유')+'</span>'
+        +'</div>';
+        var loveDeepOracle = '<div class="zw-oracle-grid" aria-label="연애운 심층 해석">'
+          +'<article class="zw-oracle-card zw-oracle-card--rose"><div class="zw-oracle-card__title">인연이 들어오는 문</div>'+magnetConflict+'</article>'
+          +'<article class="zw-oracle-card"><div class="zw-oracle-card__title">장기 관계의 핵심</div>'+spouseProfile+'</article>'
+          +'<article class="zw-oracle-card zw-oracle-card--gold"><div class="zw-oracle-card__title">결실 가능성</div>'+futureGoldText+'</article>'
+          +'<article class="zw-oracle-card"><div class="zw-oracle-card__title">관계 회복법</div>'+healingPartnerTip+'</article>'
+        +'</div>';
 
         var sec_love_compat_spread = '<div class="zw-love-compat-spread report-card report-section love-card star-effect">'
           + '<div class="zw-cosmic-stars"></div>'
           + '<div class="zw-love-compat-title love-title">💘 [사랑 인연 별자리]</div>'
+          + '<div class="zw-love-compat-sub">끌림·신뢰·약속의 궤도를 한 장의 별자리로 펼친 연애운 성도입니다.</div>'
           + '<div class="zw-love-compat-canvas-wrap">'
             + '<canvas id="zwLoveDestinyStarCanvas" class="zw-love-compat-canvas" width="920" height="380"></canvas>'
           + '</div>'
           + '<div class="zw-love-metric-grid">'+loveDestinyMetricHtml+'</div>'
+          + loveTimingRibbon
         + '</div>';
 
         var sec_love = '<div class="zw-cosmic-card zw-love-card report-card report-section love-card star-effect">'
@@ -18115,6 +18418,7 @@ function renderZiwei(p, natal, targetId) {
             +'<div style="font-size:1.03rem;font-weight:900;color:#ffe4e6;line-height:1.45;">💌 '+loveNameSafe+'의 연애 운명: "'+loveDestinyTitle+'"</div>'
             +'<div style="margin-top:6px;color:#ffe4e6;font-size:0.87rem;line-height:1.72;"><b>한 줄 요약:</b> '+oneLineSummary+'</div>'
           +'</div>'
+          + loveDeepOracle
           +'<div style="position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:9px;font-size:0.89rem;line-height:1.76;color:#f3e8ff;">'
             +'<div style="background:rgba(53,25,62,0.48);border:1px solid rgba(244,114,182,0.3);border-radius:10px;padding:10px 11px;">'
               +'<div style="color:#fecdd3;font-weight:900;margin-bottom:6px;">1. 당신의 연애 본능 (The Stats)</div>'
@@ -18290,6 +18594,34 @@ function renderZiwei(p, natal, targetId) {
           '복덕궁': { focus:'마음의 복, 휴식, 장기 만족', money:'욕심을 줄이면 오래 남는 선택이 보입니다.', relation:'부드러운 말과 휴식이 관계의 복을 되살립니다.' },
           '부모궁': { focus:'윗사람, 문서, 승인 운', money:'문서와 승인 절차를 바르게 밟으면 기회가 커집니다.', relation:'조언을 받아들이되 최종 결정권은 직접 쥐세요.' }
         };
+        var ZW_FLOW_OLYMPUS_BY_STAR = {
+          '자미': { god:'제우스', seal:'왕관과 번개', tone:'권위와 결단이 하늘의 중심축을 세웁니다.', oracle:'명분을 먼저 세우면 사람과 자원이 뒤따릅니다.' },
+          '천부': { god:'헤라', seal:'공작의 왕관', tone:'질서와 품격이 기반을 지키는 힘으로 작동합니다.', oracle:'관계와 자산은 격을 갖출 때 오래 남습니다.' },
+          '태양': { god:'아폴론', seal:'황금 리라', tone:'명예와 공개성이 강하게 빛납니다.', oracle:'숨지 말고 밝은 무대에서 이름을 드러내세요.' },
+          '태음': { god:'아르테미스', seal:'달빛 활', tone:'감각, 보호, 축적의 힘이 은밀하게 자랍니다.', oracle:'서두르지 않는 축적이 가장 큰 무기가 됩니다.' },
+          '무곡': { god:'헤파이스토스', seal:'대장간의 망치', tone:'현실 감각과 재물 운용력이 단단합니다.', oracle:'숫자, 계약, 자산 구조를 직접 쥐어야 복이 남습니다.' },
+          '천기': { god:'헤르메스', seal:'날개 지팡이', tone:'정보, 이동, 전략의 별이 빠르게 길을 바꿉니다.', oracle:'한 가지 길만 고집하지 말고 신호가 오는 통로를 넓히세요.' },
+          '천동': { god:'데메테르', seal:'밀 이삭', tone:'회복, 돌봄, 생활의 복이 부드럽게 들어옵니다.', oracle:'몸과 마음을 살리는 루틴이 운의 밭을 기름지게 합니다.' },
+          '염정': { god:'아레스', seal:'붉은 검', tone:'강렬한 욕망과 승부수가 시험대를 만듭니다.', oracle:'힘은 쓰되 명분 없는 전투는 피해야 합니다.' },
+          '천량': { god:'아테나', seal:'올빼미 방패', tone:'보호, 원칙, 조언자의 별이 중심을 잡습니다.', oracle:'원칙을 지킬수록 늦게 오는 복이 크게 돌아옵니다.' },
+          '칠살': { god:'아레스', seal:'전장의 투구', tone:'돌파와 결단의 검이 흐름을 가릅니다.', oracle:'두려움보다 기준을 앞세우면 전장이 길이 됩니다.' },
+          '파군': { god:'포세이돈', seal:'삼지창', tone:'해체와 재건의 파도가 오래된 판을 흔듭니다.', oracle:'무너지는 것에 매달리지 말고 새 판을 설계하세요.' },
+          '탐랑': { god:'아프로디테', seal:'장미와 잔', tone:'매혹, 욕망, 예술적 확장이 사람을 끌어옵니다.', oracle:'매력은 자산이지만 경계가 없으면 복이 흩어집니다.' },
+          '거문': { god:'디오니소스', seal:'가면과 포도주잔', tone:'말, 의심, 숨은 진실이 운의 문을 엽니다.', oracle:'가면 뒤의 진심을 읽으면 어둠 속 정보가 힘이 됩니다.' },
+          '천상': { god:'아테나', seal:'올리브 가지', tone:'중재와 균형의 지혜가 관계를 안정시킵니다.', oracle:'중심을 지키는 사람이 결국 판을 지배합니다.' }
+        };
+        var ZW_FLOW_OLYMPUS_BY_PALACE = {
+          '명궁':'제우스', '형제궁':'헤르메스', '부처궁':'헤라', '자녀궁':'아폴론',
+          '재백궁':'헤파이스토스', '질액궁':'아폴론', '천이궁':'포세이돈', '노복궁':'아테나',
+          '관록궁':'제우스', '전택궁':'데메테르', '복덕궁':'아르테미스', '부모궁':'헤라'
+        };
+        var ZW_FLOW_DOMAIN_META = {
+          money:{ label:'재물', good:'수익 회수와 자산 고정화가 열립니다.', care:'지출, 보증, 과욕성 투자를 조심하세요.' },
+          career:{ label:'직업', good:'역할 확대와 공개 성과에 유리합니다.', care:'권한 충돌과 일정 과부하를 조율하세요.' },
+          love:{ label:'사랑', good:'마음을 드러내면 관계의 온도가 살아납니다.', care:'오해를 방치하면 감정 빚이 커집니다.' },
+          health:{ label:'건강', good:'회복 루틴을 만들면 기력이 안정됩니다.', care:'수면, 염증, 소화, 긴장성 피로를 살피세요.' },
+          move:{ label:'이동', good:'이직, 이사, 외부 제안의 문이 열립니다.', care:'서류와 동선의 착오를 두 번 확인하세요.' }
+        };
         function zwFlowEsc(value) {
           return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
             return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch] || ch;
@@ -18340,6 +18672,84 @@ function renderZiwei(p, natal, targetId) {
             return '<span style="display:inline-flex;margin:2px 4px 2px 0;padding:2px 6px;border-radius:999px;border:1px solid '+col+'66;color:'+col+';background:'+col+'18;font-size:0.68rem;font-weight:800;">'+zwFlowEsc(s.star)+' '+zwFlowEsc(s.type)+'</span>';
           }).join('');
         }
+        function zwFlowOlympus(signal) {
+          var primary = signal && signal.main && signal.main[0] ? signal.main[0] : '';
+          var byStar = primary && ZW_FLOW_OLYMPUS_BY_STAR[primary] ? ZW_FLOW_OLYMPUS_BY_STAR[primary] : null;
+          var byPalaceGod = signal && ZW_FLOW_OLYMPUS_BY_PALACE[signal.palaceName] ? ZW_FLOW_OLYMPUS_BY_PALACE[signal.palaceName] : '헤르메스';
+          if (byStar) return byStar;
+          return { god:byPalaceGod, seal:'별의 인장', tone:'궁위의 상징이 신화의 언어로 드러납니다.', oracle:'지금 강하게 울리는 궁위를 현실의 선택으로 옮기세요.' };
+        }
+        function zwFlowDomainScore(signal, domain) {
+          var score = signal ? Number(signal.score || 50) : 50;
+          var counts = (signal && signal.counts) || {};
+          var badLen = signal && signal.bad ? signal.bad.length : 0;
+          if (domain === 'money' && signal && /재백궁|전택궁|관록궁/.test(signal.palaceName)) score += 10;
+          if (domain === 'career' && signal && /관록궁|천이궁|명궁/.test(signal.palaceName)) score += 10;
+          if (domain === 'love' && signal && /부처궁|자녀궁|복덕궁/.test(signal.palaceName)) score += 10;
+          if (domain === 'health' && signal && /질액궁|복덕궁|명궁/.test(signal.palaceName)) score += 8;
+          if (domain === 'move' && signal && /천이궁|노복궁|관록궁/.test(signal.palaceName)) score += 9;
+          score += (counts['화록'] || 0) * 7 + (counts['화권'] || 0) * 5 + (counts['화과'] || 0) * 4 - (counts['화기'] || 0) * 9 - badLen * 3;
+          return Math.max(10, Math.min(99, Math.round(score)));
+        }
+        function zwFlowDomainHtml(signal) {
+          return Object.keys(ZW_FLOW_DOMAIN_META).map(function(key) {
+            var meta = ZW_FLOW_DOMAIN_META[key];
+            var score = zwFlowDomainScore(signal, key);
+            var tone = score >= 75 ? meta.good : (score <= 45 ? meta.care : '작게 열리는 흐름을 꾸준히 관리하세요.');
+            var color = score >= 75 ? '#86efac' : (score <= 45 ? '#fca5a5' : '#fcd34d');
+            return '<div style="background:rgba(2,6,23,0.36);border:1px solid rgba(148,163,184,0.18);border-radius:8px;padding:7px;">'
+              +'<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;"><b style="color:#dbeafe;">'+meta.label+'</b><span style="color:'+color+';font-weight:900;">'+score+'</span></div>'
+              +'<div style="font-size:0.7rem;color:#cbd5e1;line-height:1.5;margin-top:3px;">'+zwFlowEsc(tone)+'</div>'
+            +'</div>';
+          }).join('');
+        }
+        function zwFlowDeepReading(signal, olympus, label) {
+          var mainStar = signal && signal.main && signal.main[0] ? signal.main[0] : '공궁';
+          var badText = signal && signal.bad && signal.bad.length ? signal.bad.slice(0, 3).join(' · ') : '큰 흉성 압박은 약함';
+          var sihuaText = signal && signal.sihua && signal.sihua.length
+            ? signal.sihua.map(function(s){ return s.star + ' ' + s.type; }).join(' · ')
+            : '사화 직접 작용 약함';
+          return '<details style="margin-top:9px;border-top:1px solid rgba(148,163,184,0.18);padding-top:8px;">'
+            +'<summary style="cursor:pointer;color:#fde68a;font-weight:900;font-size:0.78rem;">'+zwFlowEsc(label)+' 세부 운기 펼치기</summary>'
+            +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:7px;margin-top:8px;">'+zwFlowDomainHtml(signal)+'</div>'
+            +'<div style="font-size:0.76rem;color:#dbeafe;line-height:1.7;margin-top:8px;">'
+              +'<b style="color:#c4b5fd;">별의 근거:</b> '+zwFlowEsc(signal.palaceName)+'에서 '+zwFlowEsc(mainStar)+'이 중심이 되고, '+zwFlowEsc(sihuaText)+'이 운의 방향을 정합니다.<br>'
+              +'<b style="color:#fca5a5;">주의 신호:</b> '+zwFlowEsc(badText)+'<br>'
+              +'<b style="color:#fef3c7;">올림푸스 인장:</b> '+zwFlowEsc(olympus.god)+' · '+zwFlowEsc(olympus.seal)+' — '+zwFlowEsc(olympus.oracle)
+            +'</div>'
+          +'</details>';
+        }
+        function zwFlowTopSignals(items, cautious) {
+          var sorted = items.slice().sort(function(a, b) {
+            return cautious ? (a.signal.score - b.signal.score) : (b.signal.score - a.signal.score);
+          });
+          return sorted.slice(0, 3);
+        }
+        function zwFlowRankList(items, cautious) {
+          return zwFlowTopSignals(items, cautious).map(function(item) {
+            return '<span style="display:inline-flex;margin:2px 4px 2px 0;padding:3px 7px;border-radius:999px;border:1px solid rgba(250,204,21,0.24);background:rgba(250,204,21,0.08);color:#fde68a;font-size:0.72rem;font-weight:800;">'+zwFlowEsc(item.label)+' · '+zwFlowEsc(item.signal.palaceName)+' '+item.signal.score+'</span>';
+          }).join('');
+        }
+        function zwFlowAnnualSummary(items, year, ganji) {
+          if (!items.length) return '';
+          var best = zwFlowRankList(items, false);
+          var caution = zwFlowRankList(items, true);
+          var guardian = zwFlowOlympus(items[0].signal);
+          return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin:0 0 13px;">'
+            +'<div style="background:rgba(250,204,21,0.08);border:1px solid rgba(250,204,21,0.24);border-radius:11px;padding:11px;"><b style="color:#fde68a;">올해의 별지도</b><div style="font-size:0.76rem;color:#e2e8f0;line-height:1.65;margin-top:5px;">'+year+'년 '+zwFlowEsc(ganji)+'의 흐름은 월마다 다른 궁위로 내려앉습니다. 가장 좋은 달은 과감히 열고, 낮은 달은 정리와 보호로 운을 지키세요.</div></div>'
+            +'<div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.22);border-radius:11px;padding:11px;"><b style="color:#86efac;">황금기 TOP 3</b><div style="margin-top:5px;">'+best+'</div></div>'
+            +'<div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.22);border-radius:11px;padding:11px;"><b style="color:#fca5a5;">경계기 TOP 3</b><div style="margin-top:5px;">'+caution+'</div></div>'
+            +'<div style="background:rgba(125,211,252,0.08);border:1px solid rgba(125,211,252,0.22);border-radius:11px;padding:11px;"><b style="color:#bae6fd;">올해의 수호신</b><div style="font-size:0.76rem;color:#e2e8f0;line-height:1.65;margin-top:5px;">'+zwFlowEsc(guardian.god)+' · '+zwFlowEsc(guardian.seal)+'<br>'+zwFlowEsc(guardian.tone)+'</div></div>'
+          +'</div>';
+        }
+        function zwFlowDecadeSummary(items, title) {
+          if (!items.length) return '';
+          return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin:10px 0 12px;">'
+            +'<div style="background:rgba(196,181,253,0.08);border:1px solid rgba(196,181,253,0.22);border-radius:10px;padding:10px;"><b style="color:#c4b5fd;">10년 총론</b><div style="font-size:0.76rem;color:#dbeafe;line-height:1.65;margin-top:5px;">'+zwFlowEsc(title)+'은 한 해 운보다 깊은 바닥 물결입니다. 같은 궁위와 사화가 반복되는 해를 중심으로 인생의 큰 선택을 배치하세요.</div></div>'
+            +'<div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.22);border-radius:10px;padding:10px;"><b style="color:#86efac;">10년 황금기</b><div style="margin-top:5px;">'+zwFlowRankList(items, false)+'</div></div>'
+            +'<div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.22);border-radius:10px;padding:10px;"><b style="color:#fca5a5;">10년 경계기</b><div style="margin-top:5px;">'+zwFlowRankList(items, true)+'</div></div>'
+          +'</div>';
+        }
         var flowYear = new Date().getFullYear();
         var flowGanji = zwFlowGanji(flowYear);
         var flowYearGan = flowGanji.charAt(0) || pd.yearGan || '';
@@ -18348,10 +18758,14 @@ function renderZiwei(p, natal, targetId) {
         if (annualAnchorIdx < 0 && pd.palacesByIndex) annualAnchorIdx = pd.palacesByIndex.indexOf('명궁');
         if (annualAnchorIdx < 0) annualAnchorIdx = 0;
         var monthlyFlowHtml = '';
+        var monthlyFlowSignals = [];
         for (var mf = 0; mf < 12; mf += 1) {
           var monthIdx = (annualAnchorIdx + mf) % 12;
           var monthSignal = zwFlowPalaceSignal(monthIdx, flowYearGan);
+          monthlyFlowSignals.push({ label:(mf + 1)+'월', signal:monthSignal });
           var primaryStar = monthSignal.main[0] || '공궁';
+          var monthOlympus = zwFlowOlympus(monthSignal);
+          var monthDeepHtml = zwFlowDeepReading(monthSignal, monthOlympus, (mf + 1)+'월');
           var isCarefulMonth = monthSignal.counts['화기'] > 0 || monthSignal.bad.length >= 2;
           var actionLine = isCarefulMonth
             ? '계약, 지출, 감정 표현은 하루를 더 두고 확인하세요.'
@@ -18369,8 +18783,11 @@ function renderZiwei(p, natal, targetId) {
               +'<b style="color:#86efac;">실행:</b> '+actionLine
             +'</div>'
             +'<div style="margin-top:7px;">'+zwFlowSihuaTags(monthSignal.sihua)+'</div>'
+            +'<div style="margin-top:7px;font-size:0.74rem;color:#fde68a;line-height:1.55;"><b>올림푸스 인장:</b> '+zwFlowEsc(monthOlympus.god)+' · '+zwFlowEsc(monthOlympus.seal)+'</div>'
+            +monthDeepHtml
           +'</article>';
         }
+        var monthlySummaryHtml = zwFlowAnnualSummary(monthlyFlowSignals, flowYear, flowGanji || String(flowYear));
         var birthYearForFlow = Number((window._ziweiBirth && window._ziweiBirth.year) || 0);
         var currentKoreanAge = birthYearForFlow > 0 ? (flowYear - birthYearForFlow + 1) : 0;
         var currentDahan = null;
@@ -18380,6 +18797,8 @@ function renderZiwei(p, natal, targetId) {
           }) || pd.daHanList[0];
         }
         var decadeRowsHtml = '';
+        var decadeSummaryHtml = '';
+        var decadeFlowSignals = [];
         var decadeTitle = '현재 대한 10년운';
         if (currentDahan) {
           decadeTitle = currentDahan.startAge + '~' + currentDahan.endAge + '세 · ' + currentDahan.palaceName + ' 대한';
@@ -18389,6 +18808,9 @@ function renderZiwei(p, natal, targetId) {
             var rowGan = rowGanji.charAt(0) || flowYearGan;
             var rowIdx = (Number(currentDahan.idx) + rowNo * (pd.direction || 1) + 120) % 12;
             var rowSignal = zwFlowPalaceSignal(rowIdx, rowGan);
+            decadeFlowSignals.push({ label:rowYear+'년', signal:rowSignal });
+            var rowOlympus = zwFlowOlympus(rowSignal);
+            var rowDeepHtml = zwFlowDeepReading(rowSignal, rowOlympus, rowYear+'년');
             var rowCareful = rowSignal.counts['화기'] > 0 || rowSignal.bad.length >= 2;
             var rowAdvice = rowCareful
               ? '큰 결정보다 정리, 검토, 방어가 복을 지킵니다.'
@@ -18398,16 +18820,20 @@ function renderZiwei(p, natal, targetId) {
               +'<div style="font-size:0.8rem;color:#dbeafe;line-height:1.65;">'
                 +'<b style="color:#e9d5ff;">'+zwFlowEsc(rowSignal.palaceName)+'</b> · '+zwFlowEsc(rowGanji)+' · '+zwFlowEsc(rowSignal.grade)+' '+rowSignal.score+'점<br>'
                 +'<span style="color:#cbd5e1;">주성 '+zwFlowEsc(rowSignal.main[0] || '공궁')+'이 '+zwFlowEsc(rowSignal.theme.focus)+'을 밀어 올립니다. '+rowAdvice+'</span>'
+                +'<div style="margin-top:4px;color:#fde68a;"><b>신화 인장:</b> '+zwFlowEsc(rowOlympus.god)+' · '+zwFlowEsc(rowOlympus.seal)+'</div>'
                 +'<div style="margin-top:4px;">'+zwFlowSihuaTags(rowSignal.sihua)+'</div>'
+                +rowDeepHtml
               +'</div>'
             +'</div>';
           }
+          decadeSummaryHtml = zwFlowDecadeSummary(decadeFlowSignals, decadeTitle);
         } else {
           decadeRowsHtml = '<p style="font-size:0.82rem;color:#cbd5e1;line-height:1.7;margin:0;">대한 데이터가 제한되어 10년운을 산출하지 못했습니다. 출생 시간과 프로필을 다시 확인해 주세요.</p>';
         }
         var sec_ziwei_flow = '<div data-cd-marker="'+ZW_FLOW_MARKER+'" style="background:linear-gradient(145deg,rgba(17,24,39,0.92),rgba(49,22,83,0.68));padding:18px;border-radius:12px;margin-bottom:20px;border:1px solid rgba(216,180,254,0.28);box-shadow:0 12px 28px rgba(0,0,0,0.24);">'
           +'<h2 style="color:#fef3c7;font-size:1.18rem;margin:0 0 8px;border-bottom:1px solid rgba(250,204,21,0.24);padding-bottom:8px;">📅 자미두수 1년운 — '+flowYear+'년 월별 운기</h2>'
           +'<p style="font-size:0.8rem;color:#c4b5fd;line-height:1.65;margin:0 0 12px;">유년 '+zwFlowEsc(flowGanji || String(flowYear))+'의 사화와 12궁 흐름을 월별로 펼친 운세입니다.</p>'
+          +monthlySummaryHtml
           +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin-bottom:14px;">'+monthlyFlowHtml+'</div>'
           +'<div class="cd-section-gate" id="ziweiDecadeLuckGate" data-locked-title="자미두수 10년운 잠금" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 100코인이 필요합니다." style="border-radius:12px;margin-top:14px;">'
             +'<div class="cd-section-gate__overlay">'
@@ -18421,11 +18847,41 @@ function renderZiwei(p, natal, targetId) {
               +'<div style="background:rgba(15,23,42,0.62);border:1px solid rgba(125,211,252,0.22);border-radius:11px;padding:13px 14px;">'
                 +'<h3 style="margin:0 0 8px;color:#93c5fd;font-size:1rem;">⏳ '+zwFlowEsc(decadeTitle)+'</h3>'
                 +'<p style="font-size:0.78rem;color:#cbd5e1;line-height:1.65;margin:0 0 8px;">이 10년은 월운보다 깊게 작동하는 대한의 바닥 기류입니다. 기회는 반복되는 궁에서 열리고, 위험은 같은 사화가 겹칠 때 선명해집니다.</p>'
+                +decadeSummaryHtml
                 +decadeRowsHtml
               +'</div>'
             +'</div>'
           +'</div>'
         +'</div>';
+        var natalOlympusIdx = (typeof ZHI_LIST !== 'undefined' && pd.meng) ? ZHI_LIST.indexOf(pd.meng) : -1;
+        if (natalOlympusIdx < 0 && pd.palacesByIndex) natalOlympusIdx = pd.palacesByIndex.indexOf('명궁');
+        if (natalOlympusIdx < 0) natalOlympusIdx = 0;
+        var natalOlympusSignal = zwFlowPalaceSignal(natalOlympusIdx, pd.yearGan || flowYearGan);
+        var natalOlympus = zwFlowOlympus(natalOlympusSignal);
+        var olympusCategoryHtml = Object.keys(ZW_FLOW_DOMAIN_META).map(function(key) {
+          var meta = ZW_FLOW_DOMAIN_META[key];
+          var score = zwFlowDomainScore(natalOlympusSignal, key);
+          var color = score >= 75 ? '#86efac' : (score <= 45 ? '#fca5a5' : '#fcd34d');
+          return '<div style="background:rgba(15,23,42,0.56);border:1px solid rgba(216,180,254,0.18);border-radius:10px;padding:10px;">'
+            +'<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;"><b style="color:#e9d5ff;">'+meta.label+' 신전</b><span style="color:'+color+';font-weight:900;">'+score+'</span></div>'
+            +'<div style="font-size:0.74rem;color:#cbd5e1;line-height:1.6;margin-top:5px;">'+zwFlowEsc(score >= 75 ? meta.good : (score <= 45 ? meta.care : '균형을 맞추면 신전의 문이 천천히 열립니다.'))+'</div>'
+          +'</div>';
+        }).join('');
+        var sec_olympus_ziwei = '<section data-cd-marker="ziwei-olympus-guardian-v20260606" style="position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(12,18,38,0.95),rgba(39,20,68,0.88) 52%,rgba(6,35,54,0.9));padding:18px;border-radius:12px;margin-bottom:20px;border:1px solid rgba(250,204,21,0.28);box-shadow:0 14px 34px rgba(0,0,0,0.28),inset 0 0 0 1px rgba(255,255,255,0.06);">'
+          +'<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px;">'
+            +'<div><div style="font-size:0.76rem;color:#fde68a;font-weight:900;letter-spacing:0.02em;">OLYMPUS SEAL · 紫微斗數</div><h2 style="margin:4px 0 0;color:#fef3c7;font-size:1.16rem;">올림푸스 별자리 인장 — '+zwFlowEsc(natalOlympus.god)+'의 수호</h2></div>'
+            +'<button type="button" data-action="openOlympusOracleModal" style="border:1px solid rgba(250,204,21,0.38);background:rgba(250,204,21,0.12);color:#fde68a;border-radius:999px;padding:8px 12px;font-weight:900;cursor:pointer;">올림푸스 신탁 보기</button>'
+          +'</div>'
+          +'<div style="display:grid;grid-template-columns:minmax(170px,0.8fr) minmax(0,1.2fr);gap:12px;align-items:stretch;">'
+            +'<div style="background:rgba(2,6,23,0.44);border:1px solid rgba(250,204,21,0.2);border-radius:12px;padding:14px;">'
+              +'<div style="font-size:2rem;line-height:1;">⚡</div>'
+              +'<div style="color:#fde68a;font-weight:900;font-size:1.02rem;margin-top:6px;">'+zwFlowEsc(natalOlympus.god)+'</div>'
+              +'<div style="color:#c4b5fd;font-size:0.8rem;line-height:1.65;margin-top:4px;">'+zwFlowEsc(natalOlympus.seal)+' · '+zwFlowEsc(natalOlympus.tone)+'</div>'
+              +'<div style="color:#e2e8f0;font-size:0.78rem;line-height:1.7;margin-top:8px;">명궁의 별이 올림푸스의 상징으로 번역될 때, 운명은 더 선명한 이미지가 됩니다. '+zwFlowEsc(natalOlympus.oracle)+'</div>'
+            +'</div>'
+            +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;">'+olympusCategoryHtml+'</div>'
+          +'</div>'
+        +'</section>';
         var sec_grand = '<div style="background:linear-gradient(135deg,rgba(88,28,220,0.15),rgba(20,10,50,0.8));padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.3);">'
           +'<h2 style="color:#F9A8D4;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(249,168,212,0.3);padding-bottom:8px;">🌟 생애 총론(生涯 總論)</h2>'
           +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.88rem;margin-bottom:12px;">'
@@ -18762,6 +19218,14 @@ function renderZiwei(p, natal, targetId) {
           } else {
             sihuaTags = '<span style="font-size:0.72rem;color:#64748b;">사화 직접 작용 약함</span>';
           }
+          var phaseRailHtml = '<div class="zw-pv-phase-rail" aria-label="변곡점 발동 흐름">'
+            +'<div class="zw-pv-phase-step"><b>전조기</b>기운의 방향이 바뀌기 시작</div>'
+            +'<div class="zw-pv-phase-step"><b>개문기</b>'+p.phaseTheme+' 과제가 표면화</div>'
+            +'<div class="zw-pv-phase-step"><b>충돌기</b>선택과 책임의 압축</div>'
+            +'<div class="zw-pv-phase-step"><b>결실기</b>새 구조의 성과 회수</div>'
+            +'<div class="zw-pv-phase-step"><b>정리기</b>남길 것과 끊을 것 분리</div>'
+          +'</div>';
+          var pivotEvidence = p.lifeStage+'입니다. '+p.lifeCtx+' 핵심 성계 '+p.coreStars+'와 '+p.sihuaLabel+' 신호가 겹치며, 변곡 강도 '+scoreWidth+'%로 발동합니다.';
           pivotHtml += '<div class="zw-pivot-card'+(isDefaultOpen ? ' is-open' : '')+'" style="--pivot-accent:'+bc+';--pivot-rgb:'+bcRgb+';">'
             +'<button type="button" class="zw-pivot-toggle" aria-expanded="'+(isDefaultOpen ? 'true' : 'false')+'" onclick="window._toggleZwPivotCard(this, \''+cardId+'\')">'
               // 상단 줄: 순번 + 단계 뱃지 + 나이 범위 + 화살표
@@ -18798,6 +19262,11 @@ function renderZiwei(p, natal, targetId) {
                 +'<div class="zw-pv-star-tags">'+sihuaTags+'</div>'
                 +'<div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">'+p.borrowedLabel+'</div>'
               +'</div>'
+              +'<div class="zw-pv-section">'
+                +'<div class="zw-pv-section-title">🕯️ 인생 단계와 발동 흐름</div>'
+                +'<div style="font-size:0.78rem;color:#dbeafe;line-height:1.65;">'+pivotEvidence+'</div>'
+                +phaseRailHtml
+              +'</div>'
               // 섹션 2: 전략 조언
               +'<div class="zw-pv-section">'
                 +'<div class="zw-pv-section-title">⚡ '+p.phaseTheme+' 단계 핵심 전략</div>'
@@ -18822,7 +19291,7 @@ function renderZiwei(p, natal, targetId) {
 
         var sec_pivot = '<div class="zw-pivot-section">'
           +'<h2 class="zw-pivot-title">🔱 인생의 3대 변곡점</h2>'
-          +'<p class="zw-pivot-sub">사화(四化), 주성/보조성/흉성, 차성(대궁 차용)을 통합 반영합니다. 카드를 하나씩 눌러 해당 시기의 핵심 성계 구성, 단계별 전략, 리스크 대응법을 확인하세요.</p>'
+          +'<p class="zw-pivot-sub">사화(四化), 주성/보조성/흉성, 차성(대궁 차용)을 통합해 전조기·개문기·충돌기·결실기·정리기의 흐름으로 풀이합니다. 카드를 눌러 왜 이 시기가 변곡점인지와 실행 전략을 확인하세요.</p>'
           +'<div class="zw-pivot-deck">'
           + pivotHtml
           +'</div>'
@@ -18846,7 +19315,7 @@ function renderZiwei(p, natal, targetId) {
             + '<h1 style="margin:0;color:#C084FC;font-size:1.5rem;">자미두수 천명(天命) 종합 리포트</h1>'
             + (showClose ? '<button type="button" class="zw-report-close-btn" onclick="window._closeZwComprehensiveReport()">리포트 닫기 ✕</button>' : '')
             + '</div>'
-            + sec_persona + sec_ability + sec_hidden_power + sec_love_compat_spread + sec_love + sec_compat + sec_grand + sec_ziwei_flow + sec2 + sec_dahan + sec_pivot
+            + sec_persona + sec_ability + sec_hidden_power + sec_love_compat_spread + sec_love + sec_compat + sec_grand + sec_olympus_ziwei + sec_ziwei_flow + sec2 + sec_dahan + sec_pivot
             + '</div>';
         }
 

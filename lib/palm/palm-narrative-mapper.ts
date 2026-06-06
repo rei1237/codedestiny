@@ -341,23 +341,336 @@ function sanitizeList(values: string[], found: Set<string>): string[] {
   return values.map((line) => sanitizeText(line, found));
 }
 
+function firstText(...values: Array<string | null | undefined>): string {
+  for (const value of values) {
+    const text = String(value || "").trim();
+    if (text) return text;
+  }
+  return "";
+}
+
+function lineLengthText(value: string | null | undefined): string {
+  if (value === "long") return "길게 이어져 지속성과 축적력이 강한 편";
+  if (value === "medium") return "중간 길이로 현실 감각과 유연성이 균형을 이루는 편";
+  if (value === "short") return "짧게 모여 필요한 곳에 힘을 집중하는 편";
+  return "길이 판단이 옅어 전체 손의 분위기와 함께 보아야 하는 편";
+}
+
+function lineDepthText(value: string | null | undefined): string {
+  if (value === "deep") return "깊이가 선명해 의지와 체감 에너지가 강하게 드러납니다";
+  if (value === "medium") return "깊이가 고르게 보여 현재 리듬을 안정적으로 유지합니다";
+  if (value === "faint") return "깊이가 옅어 무리보다 회복과 정리가 먼저 필요합니다";
+  return "깊이 신호가 약해 사진의 빛과 손바닥 결을 함께 참고했습니다";
+}
+
+function lineCurveText(value: string | null | undefined): string {
+  if (value === "wide" || value === "strong") return "곡선이 넓어 감정과 에너지를 크게 쓰는 손입니다";
+  if (value === "normal" || value === "soft") return "곡선이 부드러워 상황에 맞춰 조율하는 힘이 있습니다";
+  if (value === "narrow" || value === "straight") return "흐름이 곧아 판단과 표현이 절제되는 편입니다";
+  return "곡선이 옅어 주변 선의 흐름까지 함께 읽었습니다";
+}
+
+function headDirectionText(value: string | null | undefined): string {
+  if (value === "straight") return "현실 판단, 분석, 계획의 힘이 먼저 작동합니다";
+  if (value === "curved") return "상상력과 감각 판단이 함께 살아납니다";
+  if (value === "downward") return "직관, 몰입, 내면 탐구 쪽으로 생각이 깊어집니다";
+  return "생각의 방향은 한쪽으로 치우치지 않고 상황에 따라 달라집니다";
+}
+
+function headStartText(value: string | null | undefined): string {
+  if (value === "joined") return "생명선과 붙어 시작해 신중함과 안정 확인 욕구가 강합니다";
+  if (value === "separated") return "생명선과 떨어져 시작해 독립 판단과 자기 주도성이 강합니다";
+  return "시작점이 옅어 신중함과 독립성의 균형을 함께 보았습니다";
+}
+
+function heartEndingText(value: string | null | undefined): string {
+  if (value === "underIndex") return "끝이 검지 아래로 향해 이상, 신뢰, 존중을 관계의 기준으로 삼습니다";
+  if (value === "underMiddle") return "끝이 중지 아래로 향해 현실적 안정과 책임감을 중시합니다";
+  if (value === "between") return "끝이 검지와 중지 사이에 머물러 마음과 현실의 균형을 찾습니다";
+  return "끝 지점이 옅어 애정 표현과 관계 온도를 조심스럽게 읽었습니다";
+}
+
+function fateStrengthText(value: string | null | undefined): string {
+  if (value === "strong") return "운명선의 힘이 살아 목표축과 사회적 방향성이 분명합니다";
+  if (value === "medium") return "운명선이 균형 있게 보여 방향을 다듬으며 성장하는 흐름입니다";
+  if (value === "weak" || value === "none") return "운명선이 옅어 정해진 길보다 선택과 탐색의 운이 큽니다";
+  return "운명선 신호가 약해 일의 방향은 생활 변화와 함께 보았습니다";
+}
+
+function fateStartText(value: string | null | undefined): string {
+  if (value === "wrist") return "손목 쪽에서 올라와 초반부터 꾸준히 쌓는 길에 강합니다";
+  if (value === "lifeLine") return "생활 기반과 자기 노력에서 직업 흐름이 열립니다";
+  if (value === "moonMount") return "사람, 이동, 외부 환경에서 기회가 들어오는 손입니다";
+  if (value === "middlePalm") return "경험을 거친 뒤 중반부터 방향이 또렷해지는 흐름입니다";
+  return "시작점이 옅어 현재 선택과 환경의 작용을 함께 보았습니다";
+}
+
+function fateEndText(value: string | null | undefined): string {
+  if (value === "saturnMount") return "책임, 전문성, 장기 과제 쪽으로 힘이 모입니다";
+  if (value === "middlePalm") return "중간 과정에서 진로 조정과 역할 변화가 중요합니다";
+  return "끝 지점이 옅어 목표를 고정하기보다 흐름을 살피는 편이 좋습니다";
+}
+
+function lineChangeText(label: string, branches?: number, breaks?: number): string {
+  const branchCount = Math.max(0, Number(branches || 0));
+  const breakCount = Math.max(0, Number(breaks || 0));
+  if (branchCount > 0 && breakCount > 0) {
+    return `${label}에는 가지 ${branchCount}개와 전환 ${breakCount}개가 보여, 확장 욕구와 리듬 변화가 함께 읽힙니다.`;
+  }
+  if (branchCount > 0) return `${label}의 가지 ${branchCount}개는 관심사의 확장, 이동, 새로운 선택지를 뜻합니다.`;
+  if (breakCount > 0) return `${label}의 전환 ${breakCount}개는 흐름이 꺾이는 예언이 아니라 생활 방식의 재정비 지점입니다.`;
+  return `${label}은 큰 흔들림보다 한 방향으로 이어지는 결이 더 강합니다.`;
+}
+
+function minorStrengthText(value: string | null | undefined): string {
+  const raw = String(value || "").toLowerCase();
+  if (raw.includes("strong") || raw.includes("high")) return "선명하게 살아 있는 보조선";
+  if (raw.includes("medium") || raw.includes("normal")) return "균형 있게 드러나는 보조선";
+  if (raw.includes("weak") || raw.includes("low") || raw.includes("faint")) return "아직 은은하게만 보이는 보조선";
+  return "사진 흐름상 조심스럽게 참고한 보조선";
+}
+
+function mountToneText(value: string | null | undefined): string {
+  if (value === "strong") return "강하게 차올라 성향의 중심으로 작동합니다";
+  if (value === "medium") return "균형 있게 살아 있어 상황에 따라 힘을 냅니다";
+  if (value === "weak") return "옅게 보여 의식적으로 보완하면 좋아집니다";
+  return "사진상 또렷하지 않아 전체 흐름 속에서 참고했습니다";
+}
+
+function mountFocusLines(reading: PalmHandReading): string[] {
+  const labelByKey: Record<keyof PalmHandReading["mounts"], string> = {
+    venus: "애정과 활력 포인트",
+    moon: "직관과 상상 포인트",
+    jupiter: "성장과 자존 포인트",
+    saturn: "책임과 인내 포인트",
+    sun: "표현과 명예 포인트",
+    mercury: "말과 거래 포인트",
+    mars: "추진과 버티는 힘 포인트",
+  };
+  return (Object.entries(reading.mounts) as Array<[keyof PalmHandReading["mounts"], PalmHandReading["mounts"][keyof PalmHandReading["mounts"]]]>)
+    .filter(([, mount]) => mount.fullness === "strong" || mount.fullness === "medium")
+    .map(([key, mount]) => `${labelByKey[key]}는 ${mountToneText(mount.fullness)}. ${mount.summary}`)
+    .slice(0, 5);
+}
+
+function cardEvidenceLines(key: NarrativeCardKey, reading: PalmHandReading | null): string[] {
+  if (!reading) return [];
+
+  if (key === "lifeLine") {
+    const line = reading.majorLines.lifeLine;
+    return uniqTop([
+      line.summary,
+      line.advice,
+      line.detected
+        ? `생명선은 ${lineLengthText(line.length)}이며, ${lineDepthText(line.depth)}. ${lineCurveText(line.curvature)}`
+        : "이번 사진에서는 생명선이 옅어 손바닥의 큰 결, 손 형태, 회복 리듬을 함께 보정해 읽었습니다.",
+      lineChangeText("생명선", line.branches, line.breaks),
+      "생명선은 수명을 단정하는 선이 아니라 기운을 쓰고 회복하는 생활 방식의 결을 보여줍니다.",
+    ], 6);
+  }
+
+  if (key === "headLine") {
+    const line = reading.majorLines.headLine;
+    return uniqTop([
+      line.summary,
+      line.advice,
+      line.detected
+        ? `두뇌선은 ${lineLengthText(line.length)}이고, ${headDirectionText(line.direction)}. ${headStartText(line.startRelationWithLifeLine)}.`
+        : "두뇌선이 옅게 보이면 생각의 힘이 약하다는 뜻이 아니라, 사진 속 손 형태와 다른 선을 함께 보아 판단 흐름을 읽습니다.",
+      lineChangeText("두뇌선", line.branches, line.breaks),
+      "두뇌선은 지능의 높낮이가 아니라 문제를 붙잡는 방식, 결정을 확정하는 속도, 집중의 결을 보여줍니다.",
+    ], 6);
+  }
+
+  if (key === "heartLine") {
+    const line = reading.majorLines.heartLine;
+    return uniqTop([
+      line.summary,
+      line.advice,
+      line.detected
+        ? `감정선은 ${lineLengthText(line.length)}이고, ${lineCurveText(line.curvature)}. ${heartEndingText(line.endingArea)}.`
+        : "감정선이 옅을 때는 마음이 없는 손이 아니라, 표현 방식이 조심스럽고 관계의 온도를 천천히 확인하는 흐름으로 읽습니다.",
+      lineChangeText("감정선", line.branches, line.breaks),
+      "감정선은 사랑의 결과를 고정하지 않고, 애정 표현과 상처를 받아들이는 방식, 관계에서 기대하는 안정감을 봅니다.",
+    ], 6);
+  }
+
+  if (key === "fateLine") {
+    const line = reading.majorLines.fateLine;
+    return uniqTop([
+      line.summary,
+      line.advice,
+      line.detected
+        ? `${fateStrengthText(line.strength)}. ${fateStartText(line.startArea)} ${fateEndText(line.endArea)}.`
+        : "운명선이 옅은 손은 정해진 길이 없다는 뜻보다, 환경과 선택에 따라 길을 만들어 가는 폭이 넓다는 뜻에 가깝습니다.",
+      lineChangeText("운명선", 0, line.breaks),
+      "운명선은 직업의 이름을 예언하기보다 목표의식, 사회적 책임, 오래 붙잡을 과제의 방향을 보여줍니다.",
+    ], 6);
+  }
+
+  if (key === "sunLine") {
+    const line = reading.minorLines.sunLine;
+    return uniqTop([
+      line.summary,
+      `태양선은 ${minorStrengthText(line.strength)}으로 읽히며, 사람들이 기억하는 이미지와 표현력의 결을 보여줍니다.`,
+      "이 선은 갑작스러운 명성을 단정하기보다, 이름을 걸고 보여주는 일에서 신뢰가 쌓이는 방식을 봅니다.",
+    ], 5);
+  }
+
+  if (key === "moneyLine") {
+    const line = reading.minorLines.moneyLine;
+    return uniqTop([
+      line.summary,
+      `재물선은 ${minorStrengthText(line.strength)}으로 읽히며, 돈을 끌어오는 감각보다 돈을 다루는 습관을 먼저 봅니다.`,
+      "재물 흐름은 확정 금액이 아니라 기술, 정보, 말, 경험을 가치로 바꾸는 능력과 연결됩니다.",
+    ], 5);
+  }
+
+  if (key === "marriageLine") {
+    const line = reading.minorLines.marriageLine;
+    return uniqTop([
+      line.summary,
+      `관계선은 ${minorStrengthText(line.strength)}으로 읽히며, 친밀감의 속도와 약속을 받아들이는 방식을 보여줍니다.`,
+      "관계선은 결혼 횟수를 단정하지 않고, 마음을 여는 거리감과 안정 욕구를 조심스럽게 읽습니다.",
+    ], 5);
+  }
+
+  return uniqTop([
+    reading.handShape.summary,
+    reading.overall.summary,
+    ...mountFocusLines(reading),
+    reading.mounts.venus.summary,
+    reading.mounts.moon.summary,
+    reading.mounts.jupiter.summary,
+    reading.mounts.saturn.summary,
+    reading.mounts.sun.summary,
+    reading.mounts.mercury.summary,
+    reading.mounts.mars.summary,
+  ], 6);
+}
+
+function cardStrengthLines(key: NarrativeCardKey): string[] {
+  const map: Record<NarrativeCardKey, string[]> = {
+    lifeLine: [
+      "생명선의 깊이를 생활 리듬에 맞추면 지치기 전에 회복할 타이밍을 잡을 수 있습니다.",
+      "곡선의 폭을 알면 에너지를 넓게 쓰는 날과 좁게 모아야 하는 날을 구분할 수 있습니다.",
+      "가지가 보이는 손은 이동, 배움, 새 환경에서 기운이 살아나는 장점이 있습니다.",
+    ],
+    headLine: [
+      "두뇌선의 방향을 알면 생각이 현실형인지 감각형인지 선명해져 결정이 빨라집니다.",
+      "시작점의 결을 보면 신중함과 독립성 중 어느 힘을 먼저 써야 할지 알 수 있습니다.",
+      "선의 변화 지점은 생각이 흔들리는 약점이 아니라 사고 방식이 바뀌는 성장점입니다.",
+    ],
+    heartLine: [
+      "감정선의 끝 지점은 사랑에서 무엇을 기준으로 삼는지 또렷하게 보여줍니다.",
+      "곡선이 살아 있으면 마음을 표현하고 공감하는 힘을 관계의 장점으로 쓸 수 있습니다.",
+      "가지가 많은 손은 섬세한 감정 감지가 강해 대화의 결을 잘 읽습니다.",
+    ],
+    fateLine: [
+      "운명선의 힘을 알면 지금은 길을 고정할 때인지 넓게 탐색할 때인지 구분할 수 있습니다.",
+      "시작 지점은 직업운이 자기 노력, 환경, 사람 중 어디서 열리는지 알려줍니다.",
+      "중간 전환은 좌절보다 역할을 바꾸어 힘을 다시 세우는 신호로 활용할 수 있습니다.",
+    ],
+    sunLine: [
+      "태양선의 결은 재능보다 사람들이 기억하는 인상과 표현의 지속성을 보여줍니다.",
+      "작게라도 공개 가능한 결과물을 쌓으면 존재감의 운이 살아납니다.",
+      "이름을 걸고 보여주는 일에서 신뢰와 매력이 함께 자라는 흐름입니다.",
+    ],
+    moneyLine: [
+      "재물선은 돈을 부르는 감각보다 돈의 흐름을 붙잡는 습관을 강점으로 살립니다.",
+      "말, 정보, 기술, 경험을 거래 가능한 가치로 바꾸는 힘을 키우기 좋습니다.",
+      "작은 수익 구조를 반복하면 재물운의 체감이 안정적으로 붙습니다.",
+    ],
+    marriageLine: [
+      "관계선은 마음을 여는 속도와 약속의 무게를 스스로 조율하게 도와줍니다.",
+      "거리감의 기준을 알면 급하게 확정하지 않아도 안정감을 만들 수 있습니다.",
+      "상대 반응보다 내 마음의 기준을 먼저 세우는 힘이 관계운을 편하게 합니다.",
+    ],
+    mounts: [
+      "손 형태와 손바닥 포인트를 함께 보면 성격, 일, 관계의 균형이 더 또렷해집니다.",
+      "강한 포인트는 재능의 출구이고 옅은 포인트는 의식적으로 보완할 영역입니다.",
+      "한 가지 선보다 전체 손의 분위기를 볼수록 현실적인 운의 방향이 깊어집니다.",
+    ],
+  };
+  return map[key];
+}
+
+function cardCautionLines(key: NarrativeCardKey): string[] {
+  const map: Record<NarrativeCardKey, string[]> = {
+    lifeLine: [
+      "기운이 남아 보여도 회복 시간을 미루면 흐름이 둔해질 수 있습니다.",
+      "무리한 일정은 운을 빠르게 쓰는 방식이므로 속도 조절이 필요합니다.",
+      "생활 리듬이 흔들릴 때는 큰 결정보다 기본 루틴을 먼저 세워야 합니다.",
+    ],
+    headLine: [
+      "생각만 길어지면 좋은 타이밍을 놓칠 수 있습니다.",
+      "확신이 부족할 때도 작은 실행으로 기준을 확인해야 합니다.",
+      "혼자 결론을 굳히기보다 사실 확인을 먼저 하는 편이 좋습니다.",
+    ],
+    heartLine: [
+      "상대 반응을 혼자 해석하면 마음이 먼저 지칠 수 있습니다.",
+      "애정 표현을 아끼거나 몰아치면 관계 온도가 흔들릴 수 있습니다.",
+      "좋아하는 마음과 불안한 마음을 구분해 보는 시간이 필요합니다.",
+    ],
+    fateLine: [
+      "목표가 커질수록 하루 단위의 실행 기준이 필요합니다.",
+      "방향을 자주 바꾸면 힘이 흩어질 수 있으니 기준 하나를 고정하세요.",
+      "성과를 빨리 단정하기보다 쌓이는 흐름을 지켜봐야 합니다.",
+    ],
+    sunLine: [
+      "보여주는 일만 앞서면 내실이 약해질 수 있습니다.",
+      "반응에 지나치게 흔들리면 표현의 결이 흐려질 수 있습니다.",
+      "나를 드러내는 방식은 화려함보다 지속성이 중요합니다.",
+    ],
+    moneyLine: [
+      "한 번의 큰 기회만 기다리면 작은 돈 흐름을 놓칠 수 있습니다.",
+      "수입보다 지출 기준이 흐리면 재물운의 체감이 약해집니다.",
+      "확정 수익을 단정하기보다 관리 습관을 먼저 다듬어야 합니다.",
+    ],
+    marriageLine: [
+      "관계 결과를 빨리 확정하려 하면 자연스러운 흐름이 막힐 수 있습니다.",
+      "상대에게 맞추기만 하면 내 기준이 흐려질 수 있습니다.",
+      "말하지 않은 기대는 오해가 되기 쉬워 확인 대화가 필요합니다.",
+    ],
+    mounts: [
+      "강한 기질 하나만 밀면 균형이 무너질 수 있습니다.",
+      "약한 흐름을 결핍으로 보지 말고 보완 지점으로 읽어야 합니다.",
+      "전체 손의 분위기는 생활 습관에 따라 충분히 달라질 수 있습니다.",
+    ],
+  };
+  return map[key];
+}
+
+function cardSevenDayPractice(key: NarrativeCardKey): string {
+  const map: Record<NarrativeCardKey, string> = {
+    lifeLine: "7일 동안 수면, 식사, 회복 시간을 한 줄로 기록해 기운이 살아나는 리듬을 찾으세요.",
+    headLine: "7일 동안 중요한 선택마다 기준 1개와 실행 1개를 적어 판단 흐름을 선명하게 만드세요.",
+    heartLine: "7일 동안 마음이 움직인 순간과 실제로 표현한 말을 나란히 적어 관계 온도를 확인하세요.",
+    fateLine: "7일 동안 매일 같은 시간에 일의 핵심 행동 1개를 끝내 목표축을 단단히 세우세요.",
+    sunLine: "7일 동안 나를 보여주는 작은 결과물 1개를 남겨 존재감의 결을 키우세요.",
+    moneyLine: "7일 동안 지출을 목적별로 적고, 줄일 것 1개와 키울 가치 1개를 정하세요.",
+    marriageLine: "7일 동안 관계에서 편안했던 순간과 불편했던 순간을 기록해 나의 약속 기준을 찾으세요.",
+    mounts: "7일 동안 에너지, 감정, 일, 돈, 관계 중 가장 강했던 흐름을 하나씩 표시해 전체 균형을 보세요.",
+  };
+  return map[key];
+}
+
 function cardFromSection(input: {
   key: NarrativeCardKey;
   section: PalmNarrativeSection;
   purpose: PalmAnalysisPurpose;
   oneLiner: string;
+  reading: PalmHandReading | null;
 }): PalmNarrativeCard {
-  const details = uniqTop([input.section.summary, input.section.detail], 4);
-  const strengths = uniqTop([
-    "내 흐름을 알고 움직일수록 결과가 더 안정됩니다.",
-    "작은 반복을 지키면 운의 체감이 빠르게 좋아집니다.",
-    "지금의 장점을 꾸준히 쓰면 신뢰가 쌓이는 타입이에요.",
-  ], 3);
-  const cautions = uniqTop([
-    "혼자 해석만 오래하면 에너지가 빠질 수 있어요.",
-    "한 번에 큰 결론을 내리기보다 확인 대화를 먼저 해보세요.",
-    "무리한 속도보다 내 리듬을 지키는 편이 훨씬 유리해요.",
-  ], 3);
+  const evidenceLines = cardEvidenceLines(input.key, input.reading);
+  const details = uniqTop([
+    ...evidenceLines,
+    input.section.summary,
+    input.section.detail,
+  ], 6);
+  const strengths = uniqTop(cardStrengthLines(input.key), 3);
+  const cautions = uniqTop(cardCautionLines(input.key), 3);
+  const todayAdvice = firstText(input.section.advice, evidenceLines[1]);
 
   return {
     key: input.key,
@@ -366,8 +679,8 @@ function cardFromSection(input: {
     details,
     strengths,
     cautions,
-    todayAdvice: input.section.advice,
-    sevenDayPractice: "7일 동안 하루 1줄로 기분/지출/일 진행 상황을 기록해 패턴을 확인해 보세요.",
+    todayAdvice,
+    sevenDayPractice: cardSevenDayPractice(input.key),
     emphasisScore: purposeEmphasis(input.key, input.purpose),
   };
 }
@@ -460,14 +773,14 @@ export function buildPalmNarrativeBundle(canonical: CanonicalPalmReading): PalmN
   };
 
   const cardBase = [
-    cardFromSection({ key: "lifeLine", section: healthSection, purpose, oneLiner: healthSection.summary }),
-    cardFromSection({ key: "headLine", section: personalitySection, purpose, oneLiner: personalitySection.summary }),
-    cardFromSection({ key: "heartLine", section: loveSection, purpose, oneLiner: loveSection.summary }),
-    cardFromSection({ key: "fateLine", section: careerSection, purpose, oneLiner: careerSection.summary }),
-    cardFromSection({ key: "sunLine", section: personalitySection, purpose, oneLiner: "사람들이 기억하는 나만의 분위기를 키우는 흐름이 좋아요." }),
-    cardFromSection({ key: "moneyLine", section: wealthSection, purpose, oneLiner: wealthSection.summary }),
-    cardFromSection({ key: "marriageLine", section: relationshipSection, purpose, oneLiner: relationshipSection.summary }),
-    cardFromSection({ key: "mounts", section: overallSection, purpose, oneLiner: overallSection.summary }),
+    cardFromSection({ key: "lifeLine", section: healthSection, purpose, oneLiner: healthSection.summary, reading }),
+    cardFromSection({ key: "headLine", section: personalitySection, purpose, oneLiner: personalitySection.summary, reading }),
+    cardFromSection({ key: "heartLine", section: loveSection, purpose, oneLiner: loveSection.summary, reading }),
+    cardFromSection({ key: "fateLine", section: careerSection, purpose, oneLiner: careerSection.summary, reading }),
+    cardFromSection({ key: "sunLine", section: personalitySection, purpose, oneLiner: "사람들이 기억하는 나만의 분위기를 키우는 흐름이 좋아요.", reading }),
+    cardFromSection({ key: "moneyLine", section: wealthSection, purpose, oneLiner: wealthSection.summary, reading }),
+    cardFromSection({ key: "marriageLine", section: relationshipSection, purpose, oneLiner: relationshipSection.summary, reading }),
+    cardFromSection({ key: "mounts", section: overallSection, purpose, oneLiner: overallSection.summary, reading }),
   ];
 
   const found = new Set<string>();

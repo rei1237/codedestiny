@@ -17,6 +17,7 @@ const CHROMELESS_ROUTES = [
   "/tarot/healing",
   "/saju/animal-destiny",
   "/saju/animal-test",
+  "/palm-reading",
 ];
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {

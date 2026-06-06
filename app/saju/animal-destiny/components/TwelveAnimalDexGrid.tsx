@@ -21,7 +21,7 @@ const ANIMAL_EMOJI: Record<string, string> = {
   묘: "🐹",
   절: "🐈‍⬛",
   태: "🐣",
-  양: "🐷",
+  양: "🐑",
 };
 
 function stageDistance(leftStage: string, rightStage: string) {

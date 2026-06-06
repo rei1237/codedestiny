@@ -128,6 +128,9 @@ describe("fpti deep report quality", () => {
     expect(source.includes("export function validateFptiDeepReport")).toBe(true);
     expect(source.includes("export function buildFptiDeepChapter")).toBe(true);
     expect(source.includes("export function buildFptiDeepSection")).toBe(true);
+    expect(source.includes("category?: string")).toBe(true);
+    expect(source.includes("lens?: string")).toBe(true);
+    expect(source.includes("triadLabels?:")).toBe(true);
 
     expect(source.includes("FPTI 유형 총론 - 나의 운명 성향 코드")).toBe(true);
     expect(source.includes("내면 성격과 감정 패턴")).toBe(true);
@@ -148,6 +151,9 @@ describe("fpti deep report quality", () => {
     expect(source.includes("const PLACEHOLDER_TITLE_PATTERN")).toBe(true);
     expect(source.includes("function resolveChapterTitle")).toBe(true);
     expect(source.includes("function resolveSectionTitle")).toBe(true);
+    expect(source.includes("function resolveSectionLens")).toBe(true);
+    expect(source.includes("function resolveTriadLabels")).toBe(true);
+    expect(source.includes("상담 섹션")).toBe(false);
   });
 
   test("워커 deep-report 라우트에 스키마 버전/구아카이브 재생성 가드가 있어야 한다", () => {
@@ -234,6 +240,22 @@ describe("fpti deep report quality", () => {
 
       const chapter7 = report.chapters.find((chapter) => chapter.roman === "VII");
       expect(Boolean(chapter7)).toBe(true);
+      const relationshipChapter = report.chapters.find((chapter) => chapter.roman === "III");
+      const careerChapter = report.chapters.find((chapter) => chapter.roman === "IV");
+      const wealthChapter = report.chapters.find((chapter) => chapter.roman === "V");
+      const stressChapter = report.chapters.find((chapter) => chapter.roman === "VI");
+      expect(relationshipChapter.sections[3].category).toBe("연애 관계");
+      expect(relationshipChapter.sections[3].lens).toBe("연애 십성");
+      expect(relationshipChapter.sections[3].triadLabels).toEqual({ strength: "연애 강점", risk: "관계 주의", action: "조율 실행" });
+      expect(careerChapter.sections[3].category).toBe("진로 적성");
+      expect(careerChapter.sections[3].lens).toBe("재능 사용");
+      expect(careerChapter.sections[3].triadLabels).toEqual({ strength: "적성 강점", risk: "진로 주의", action: "업무 실행" });
+      expect(wealthChapter.sections[2].category).toBe("재물 현실");
+      expect(wealthChapter.sections[2].lens).toBe("재성 감각");
+      expect(wealthChapter.sections[2].triadLabels).toEqual({ strength: "재물 강점", risk: "현실 주의", action: "돈 실행" });
+      expect(stressChapter.sections[5].category).toBe("그림자 회복");
+      expect(stressChapter.sections[5].lens).toBe("회복 처방");
+      expect(stressChapter.sections[5].triadLabels).toEqual({ strength: "회복 강점", risk: "그림자 주의", action: "처방 실행" });
 
       for (const chapter of report.chapters) {
         const bodies = new Set();

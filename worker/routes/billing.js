@@ -66,11 +66,25 @@ const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_compat: SAJU_LOCKED_CONTENT_KEYS.COMPATIBILITY,
 });
 
-const SAJU_PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
+const ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
+  ziwei_decade_luck: "ziwei.decadeLuck",
+});
+
+const PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
+  ...SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY,
+  ...ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY,
+});
+
+const PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
   Object.fromEntries(
-    Object.entries(SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY).map(([featureKey, contentKey]) => [contentKey, featureKey]),
+    Object.entries(PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY).map(([featureKey, contentKey]) => [contentKey, featureKey]),
   ),
 );
+
+const PROFILE_UNLOCK_SERVICE_KEYS = Object.freeze([
+  CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+  "ziwei",
+]);
 
 const ACCESS_METHOD_ORDER = Object.freeze(["pass", "one_time", "monthly"]);
 const LOTTO_RITUAL_REPORT_FEATURE_KEY = "fun.quantumLotto.ritualReport";
@@ -149,8 +163,8 @@ const SAJU_PDF_GENERATION_FEATURE_KEYS = new Set([
 
 function resolveSajuProfileUnlockContentKey(featureKey, contentKey = "") {
   const explicitContentKey = String(contentKey || "").trim();
-  if (SAJU_PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[explicitContentKey]) return explicitContentKey;
-  return SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[String(featureKey || "").trim()] || "";
+  if (PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[explicitContentKey]) return explicitContentKey;
+  return PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[String(featureKey || "").trim()] || "";
 }
 
 function createUnlockEntitlementSaveError(error) {
@@ -163,6 +177,16 @@ function createUnlockEntitlementSaveError(error) {
 async function findActiveSajuProfileUnlock(env, { userId, profileId, featureKey }) {
   await connectDb(env);
   return findActivePaidContentUnlock({ userId, profileId, featureKey });
+}
+
+async function hasUserScopedPermanentUnlock(env, { userId, featureKey }) {
+  const key = String(featureKey || "").trim();
+  if (!userId || !key || !isUnlockPaidFeatureKey(key) || resolveSajuProfileUnlockContentKey(key) || key === LOTTO_RITUAL_REPORT_FEATURE_KEY) {
+    return false;
+  }
+  await connectDb(env);
+  const row = await User.exists({ _id: userId, unlockedFeatures: key });
+  return Boolean(row);
 }
 
 async function upsertSajuProfileUnlockEntitlement(env, {
@@ -296,16 +320,23 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   )));
   const hasActivePass = entitlement?.isActive === true;
   const passTier = hasActivePass ? normalizePassTier(entitlement?.passTier || entitlement?.tier) : null;
+  const passCovered = canUseByPass(entitlement, coinCost);
+  const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
 
   return {
     coinCost,
     hasActivePass,
     passTier,
     passLimit: hasActivePass && passLimitValue > 0 ? passLimitValue : null,
-    canUseByPass: canUseByPass(entitlement, coinCost),
+    canUseByPass: passCovered,
     monthlyBalance,
-    canUseByMonthly: coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost,
+    canUseByMonthly: monthlyCovered,
     canUseByCard: true,
+    recommendedMethod: passCovered ? "PASS" : (monthlyCovered ? "MONTHLY_CREDIT" : "DIRECT_KRW"),
+    hiddenMethods: passCovered ? ["DIRECT_KRW", "MONTHLY_CREDIT", "COIN"] : [],
+    decisionReason: passCovered
+      ? "PASS_COVERED"
+      : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED"),
   };
 }
 
@@ -387,15 +418,16 @@ async function resolvePaidContentAccess(env, {
   }
 
   try {
-    const [existingUnlock, existingPass] = await Promise.all([
+    const [existingUnlock, userPermanentUnlock, existingPass] = await Promise.all([
       findActiveSajuProfileUnlock(env, { userId, profileId, featureKey }),
+      hasUserScopedPermanentUnlock(env, { userId, featureKey }),
       Promise.resolve(subscriptionPass || getActiveMembershipPassForUser(env, userId)),
     ]);
-    if (existingUnlock) {
+    if (existingUnlock || userPermanentUnlock) {
       return writePaidAccessDecisionToCache(cacheKey, buildPaidContentAccessDecision({
         accessGranted: true,
         reason: "already_unlocked",
-        unlockId: existingUnlock._id,
+        unlockId: String(existingUnlock?._id || `user:${featureKey}`),
         priceCoin,
       }), priceCoin);
     }
@@ -994,7 +1026,7 @@ async function resolveProfileScopedUnlocks(authUserId, profileId) {
   const entitlementDocs = await ContentEntitlement.find({
     userId: String(authUserId),
     profileId: String(profileId),
-    serviceKey: CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
+    serviceKey: { $in: PROFILE_UNLOCK_SERVICE_KEYS },
     scope: CONTENT_ENTITLEMENT_SCOPES.PROFILE,
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
     $or: [
@@ -1006,7 +1038,7 @@ async function resolveProfileScopedUnlocks(authUserId, profileId) {
   const entitlementKeys = entitlementDocs
     .map((doc) => {
       const contentKey = String(doc?.contentKey || "").trim();
-      return SAJU_PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[contentKey]
+      return PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[contentKey]
         || (isProfileScopedUnlockKey(contentKey) ? contentKey : "");
     })
     .filter(Boolean);
@@ -1052,7 +1084,10 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
   let unlockMap = data?.unlockMap && typeof data.unlockMap === "object" ? { ...data.unlockMap } : {};
   const isAdminTestAccess = data?.adminBypass === true || data?.adminTestMode === true || consume?.adminBypass === true || consume?.adminTestMode === true;
   const isPermanentUnlock = !isAdminTestAccess && isUnlockPaidFeatureKey(featureKey);
-  if (authUserId && featureKey && isPermanentUnlock) {
+  const isUserScopedPermanentUnlock = isPermanentUnlock
+    && !resolveSajuProfileUnlockContentKey(featureKey)
+    && featureKey !== LOTTO_RITUAL_REPORT_FEATURE_KEY;
+  if (authUserId && featureKey && isUserScopedPermanentUnlock) {
     await connectDb(env);
     const updatedUser = await User.findByIdAndUpdate(
       authUserId,
@@ -2880,18 +2915,29 @@ async function handleBalance(request, env) {
   let membership = null;
   let scopedProfileId = "";
   let scopedUnlocks = null;
+  let userScopedUnlockedFeatures = [];
+  let userScopedUnlockMap = {};
   try {
     const auth = await getOptionalUserFromRequest(request, env);
     if (auth?.userId) {
       await connectDb(env);
       await seedMembershipCreditForExistingPassIfNeeded(auth.userId);
       const user = await User.findById(auth.userId)
-        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId")
+        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId unlockedFeatures")
         .lean();
       const sub = user?.profileSubscription || {};
       const entitlement = normalizeHoneyPassEntitlement(user || {});
       scopedProfileId = cleanProfileId(user?.destinyProfilesCurrentId);
       scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId);
+      userScopedUnlockedFeatures = Array.isArray(user?.unlockedFeatures)
+        ? user.unlockedFeatures
+          .map((key) => String(key || "").trim())
+          .filter((key) => key && isUnlockPaidFeatureKey(key) && !resolveSajuProfileUnlockContentKey(key) && key !== LOTTO_RITUAL_REPORT_FEATURE_KEY)
+        : [];
+      userScopedUnlockMap = userScopedUnlockedFeatures.reduce((acc, key) => {
+        acc[key] = true;
+        return acc;
+      }, {});
       membershipCreditBalance = Number(sub?.membershipCreditBalance || 0);
       membership = {
         tier: entitlement.isActive ? entitlement.tier : String(sub?.tier || "free"),
@@ -2916,6 +2962,18 @@ async function handleBalance(request, env) {
     membership = null;
   }
 
+  const mergedUnlockedFeatures = Array.from(new Set([
+    ...userScopedUnlockedFeatures,
+    ...(scopedUnlocks ? scopedUnlocks.unlockedFeatures : []),
+  ]));
+  const mergedUnlockMap = {
+    ...userScopedUnlockMap,
+    ...(scopedUnlocks ? scopedUnlocks.unlockMap : {}),
+  };
+  const responseUser = payload?.user && typeof payload.user === "object"
+    ? { ...payload.user, unlockedFeatures: mergedUnlockedFeatures }
+    : null;
+
   return success({
     authenticated: Boolean(payload?.authenticated),
     balance: Number.isFinite(balance) ? balance : 0,
@@ -2926,9 +2984,9 @@ async function handleBalance(request, env) {
     monthlyCreditsAsCoins: Math.max(0, Math.floor(Number(membershipCreditBalance || 0))) / MEMBERSHIP_CREDIT_PER_COIN,
     membership,
     currentProfileId: scopedProfileId || undefined,
-    user: payload?.user || null,
-    unlockedFeatures: scopedUnlocks ? scopedUnlocks.unlockedFeatures : [],
-    unlockMap: scopedUnlocks ? scopedUnlocks.unlockMap : {},
+    user: responseUser,
+    unlockedFeatures: mergedUnlockedFeatures,
+    unlockMap: mergedUnlockMap,
     raw: payload,
   }, "이용 가능 혜택을 조회했습니다.");
 }
@@ -3432,7 +3490,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
 async function handleCheckout(request, env) {
   const body = await readJson(request);
   const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
-  if (!isSubscription && !shouldCreateDirectPortOneOrder(body)) {
+  if (!isSubscription) {
     const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
     if (passAccess) return passAccess;
   }

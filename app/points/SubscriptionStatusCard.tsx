@@ -19,6 +19,7 @@ type SubscriptionStatus = {
 
 type Props = {
   subscription: SubscriptionStatus;
+  monthlyCredits?: number;
 };
 
 const TIER_META: Record<SubscriptionTier, {
@@ -88,9 +89,10 @@ const TIER_META: Record<SubscriptionTier, {
   },
 };
 
-export default function SubscriptionStatusCard({ subscription }: Props) {
+export default function SubscriptionStatusCard({ subscription, monthlyCredits = 0 }: Props) {
   const effectiveTier: SubscriptionTier = subscription.isActive ? subscription.tier : "free";
   const meta = TIER_META[effectiveTier];
+  const monthlyCreditBalance = Math.max(0, Math.floor(Number(monthlyCredits || 0)));
 
   // Date validation: ensure expiresAt is a valid date string
   const toValidDate = (value: string | null | undefined): Date | null => {
@@ -206,6 +208,10 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
                   <p className="text-[12px] font-black text-white">{meta.freeUpTo}</p>
                 </div>
               )}
+              <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
+                <p className="text-[10px] text-slate-300 font-bold">보유 월정석</p>
+                <p className="text-[14px] font-black text-white">{monthlyCreditBalance.toLocaleString("ko-KR")}개</p>
+              </div>
             </div>
 
             <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
@@ -253,6 +259,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
               <div className="rounded-[14px] border border-white/12 bg-white/8 px-3.5 py-3">
                 <p className="text-[12.5px] text-slate-200">{meta.desc}</p>
                 <p className="mt-1 text-[11.5px] text-[#f3dd9a]">단건 결제 가능 · 콘텐츠 가치 단위 1코인 = 100원</p>
+                <p className="mt-1 text-[11.5px] font-bold text-[#cab8ff]">보유 월정석 {monthlyCreditBalance.toLocaleString("ko-KR")}개</p>
               </div>
             )}
           </div>

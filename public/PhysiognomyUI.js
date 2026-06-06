@@ -24,6 +24,7 @@ let _phyScrollSuppressUntil = 0;
 let _phySectionRenderTimers = [];
 let _phyActiveSectionIndex = 0;
 let _phyMediaPipeReadyPromise = null;
+let _phyActiveLandmarkToken = 0;
 
 const PHY_FILE_HARD_LIMIT_BYTES = 20 * 1024 * 1024;
 const PHY_IMAGE_MAX_EDGE = 1280;
@@ -49,6 +50,7 @@ const PHY_LOADING_STEPS = [
 
 // ── 궁합 분석 상태 변수 ──
 let compatMode = false;        // 궁합 모드 활성화 여부
+let pastLifeCompatMode = false;
 let firstAnalysisResult = null; // 첫 번째 사람 분석 결과 저장
 let secondAnalysisResult = null; // 두 번째 사람 분석 결과 저장
 
@@ -61,13 +63,13 @@ styleLink.textContent = `
   #physiognomy-app {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(17, 17, 17, 0.95);
+    background: linear-gradient(160deg, #090d18 0%, #111827 44%, #2e1739 100%);
     z-index: 9999;
     display: none;
     flex-direction: column;
     color: #fff;
     font-family: 'Pretendard', sans-serif;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(8px);
     overscroll-behavior: contain;
   }
   #physiognomy-app.phy-reduced-effects {
@@ -75,19 +77,19 @@ styleLink.textContent = `
     background: rgba(8, 11, 18, 0.97);
   }
   .phy-header {
-    padding: 15px 20px;
-    background: rgba(34, 34, 34, 0.9);
+    padding: 14px 18px;
+    background: linear-gradient(135deg, rgba(15,23,42,0.96), rgba(49,46,129,0.82));
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #444;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 14px 34px rgba(0,0,0,0.28);
   }
   .phy-title {
-    font-size: 1.3rem;
+    font-size: 1.18rem;
     font-weight: 800;
-    color: #10b981;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    color: #f8fafc;
+    text-shadow: 0 2px 14px rgba(168,85,247,0.32);
   }
   .phy-close-btn {
     background: none;
@@ -113,10 +115,11 @@ styleLink.textContent = `
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
-    background: #333;
+    background: rgba(15,23,42,0.78);
     padding: 6px;
-    border-radius: 30px;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 12px 28px rgba(0,0,0,0.2);
   }
   .switch-btn {
     background: transparent;
@@ -130,9 +133,9 @@ styleLink.textContent = `
     transition: all 0.3s;
   }
   .switch-btn.active {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #14b8a6 0%, #7c3aed 100%);
     color: #fff;
-    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 8px 18px rgba(124,58,237,0.28);
   }
   .video-container {
     position: relative;
@@ -140,9 +143,9 @@ styleLink.textContent = `
     height: 300px;
     border-radius: 50%;
     overflow: hidden;
-    border: 5px solid #10b981;
+    border: 4px solid rgba(45,212,191,0.9);
     margin-bottom: 15px;
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.5), inset 0 0 20px rgba(0,0,0,0.5);
+    box-shadow: 0 18px 48px rgba(0,0,0,0.38), 0 0 34px rgba(124,58,237,0.22), inset 0 0 20px rgba(0,0,0,0.5);
     background: #000;
   }
   #physiognomy-app.phy-reduced-effects .video-container {
@@ -185,9 +188,9 @@ styleLink.textContent = `
   }
   
   .privacy-notice {
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 16px;
     padding: 15px;
     width: 100%;
     max-width: 320px;
@@ -196,30 +199,30 @@ styleLink.textContent = `
     font-size: 0.85rem;
     line-height: 1.5;
     color: #cbd5e1;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.22);
   }
 
   .status-text {
-    font-size: 1.1rem;
+    font-size: 1rem;
     margin-bottom: 20px;
     text-align: center;
     color: #a7f3d0;
     font-weight: 600;
-    background: rgba(6, 78, 59, 0.4);
+    background: rgba(15, 23, 42, 0.74);
     padding: 10px 20px;
-    border-radius: 20px;
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 999px;
+    border: 1px solid rgba(45,212,191,0.26);
   }
   .action-btn {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #14b8a6 0%, #2563eb 100%);
     color: white;
     border: none;
     padding: 15px 35px;
-    border-radius: 30px;
+    border-radius: 18px;
     font-size: 1.15rem;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 12px 26px rgba(37,99,235,0.28);
     transition: all 0.2s;
     touch-action: manipulation;
   }
@@ -231,19 +234,20 @@ styleLink.textContent = `
   }
   .action-btn:active {
     transform: translateY(3px);
-    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 4px 12px rgba(37,99,235,0.26);
   }
   .result-card {
-    background: #ffffff;
-    color: #333;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    color: #1e293b;
     padding: 30px 20px;
-    border-radius: 20px;
+    border-radius: 18px;
     width: 100%;
     max-width: 460px;
     display: none;
     margin-top: 10px;
     animation: slideUp 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    border: 1px solid rgba(226,232,240,0.92);
+    box-shadow: 0 22px 58px rgba(2,6,23,0.34);
   }
 
   .preview-skeleton {
@@ -556,6 +560,8 @@ const appHtml = `
 
 
         <button class="action-btn" style="width: 100%; margin-top: 15px; background: #FEE500; color: #3B1E08; border: none; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" onclick="sharePhysiognomyKakao()">💬 카카오톡으로 관상 결과 공유하기</button>
+        <button class="action-btn" id="pastLifeFaceBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%); color:#fff; box-shadow:0 4px 15px rgba(124,58,237,0.35); padding:13px;" onclick="showPastLifePhysiognomy()">🌘 나의 전생 관상 보기</button>
+        <button class="action-btn" id="pastLifeCompatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #4f46e5 0%, #9333ea 52%, #e11d48 100%); color:#fff; box-shadow:0 4px 15px rgba(79,70,229,0.38); padding:14px 14px 10px; font-size:1.05rem; flex-direction:column; align-items:center; gap:5px;" onclick="startPastLifeCompatMode()"><span>🌘 전생 관상 궁합 보기</span><span style="font-size:0.78rem; font-weight:700; background:rgba(255,255,255,0.22); border-radius:20px; padding:3px 12px;">🐷 50 코인 차감</span></button>
         <button class="action-btn" id="compatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #f472b6 0%, #e11d48 100%); color: #fff; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); padding:14px 14px 10px; font-size:1.05rem; flex-direction:column; align-items:center; gap:5px;" onclick="startCompatMode()"><span>💕 상대방과 관상 궁합 보기</span><span style="font-size:0.78rem; font-weight:700; background:rgba(255,255,255,0.22); border-radius:20px; padding:3px 12px; letter-spacing:0.02em;">🐷 50 코인 차감</span></button>
         <button class="action-btn" style="width: 100%; margin-top: 10px; background: #e2e8f0; color: #475569; box-shadow: none; padding:12px;" onclick="resetPhysiognomyApp()"> 다른 사진으로 분석하기</button>
         <button class="action-btn" style="width: 100%; margin-top: 10px; background: #fff; color: #475569; border: 1px solid #cbd5e1; box-shadow: none; padding:12px;" onclick="closePhysiognomyApp()"> 메인 화면으로 돌아가기</button>
@@ -611,9 +617,17 @@ async function ensureFaceMeshReady(timeoutMs) {
   const limitMs = Math.max(1000, Number(timeoutMs) || 12000);
   const deadline = Date.now() + limitMs;
 
-  while (!faceMesh && Date.now() < deadline) {
-    await sleepMs(90);
+  if (_phyMediaPipeReadyPromise) {
+    try {
+      await withTimeout(_phyMediaPipeReadyPromise, limitMs, 'MEDIAPIPE_READY_TIMEOUT');
+    } catch (err) {
+      console.error('FaceMesh 초기화 실패:', err);
+      resetFaceMeshRuntime();
+    }
+    return !!faceMesh;
   }
+
+  while (!faceMesh && Date.now() < deadline) await sleepMs(90);
   if (faceMesh) return true;
 
   if (!_phyMediaPipeReadyPromise) {
@@ -627,7 +641,7 @@ async function ensureFaceMeshReady(timeoutMs) {
   }
 
   try {
-    await _phyMediaPipeReadyPromise;
+    await withTimeout(_phyMediaPipeReadyPromise, limitMs, 'MEDIAPIPE_READY_TIMEOUT');
   } catch (err) {
     console.error('FaceMesh 초기화 실패:', err);
     resetFaceMeshRuntime();
@@ -744,6 +758,7 @@ function abortRunningAnalysis(opts) {
   }
 
   isAnalyzing = false;
+  _phyActiveLandmarkToken = 0;
   setReducedEffects(false);
   stopAnalysisStepFlow();
 
@@ -890,6 +905,12 @@ function createResultSections(result) {
   const top3Text = top3.length
     ? top3.map((item, index) => `${index + 1}순위 ${item.animal && item.animal.name ? item.animal.name : '-'} ${item.pct || 0}%`).join(' · ')
     : '동물상 순위 데이터는 기본 프로파일을 중심으로 안정적으로 해석되었습니다.';
+  const scoreBreakdown = result && result.scoreBreakdown ? result.scoreBreakdown : {};
+  const qualityScore = Number(result && result.qualityScore || 0);
+  const scoreValue = value => isFinite(Number(value)) ? Math.round(Number(value)) : '-';
+  const qualityText = qualityScore
+    ? (qualityScore < 62 ? `사진 품질 ${qualityScore}점으로, 정면과 빛이 더 안정되면 판정 결이 한층 선명해집니다.` : `사진 품질 ${qualityScore}점으로, 얼굴의 중심선과 이목구비 흐름이 안정적으로 읽혔습니다.`)
+    : '사진의 빛과 각도를 기준으로 관상의 흐름을 안정적으로 살폈습니다.';
 
   return [
     {
@@ -899,6 +920,10 @@ function createResultSections(result) {
     {
       title: '얼굴형 분석',
       body: `<p>${faceShapeText}</p><p>핵심 관찰 포인트: ${top3Text}</p>`
+    },
+    {
+      title: '판정 근거',
+      body: `<p>이번 판정은 얼굴 구조 ${scoreValue(scoreBreakdown.geometry)}, 표정 기운 ${scoreValue(scoreBreakdown.expression)}, 관상 보정 ${scoreValue(scoreBreakdown.profileBonus)}의 흐름을 함께 살폈습니다.</p><p>${qualityText}</p>`
     },
     {
       title: '오관(五官) 특징',
@@ -1023,7 +1048,11 @@ function setResultMeta(result, sections) {
   const top3Text = top3.length
     ? top3.slice(0, 3).map((item, index) => `${index + 1}위 ${item && item.animal && item.animal.name ? item.animal.name : '-'}`).join(' · ')
     : '카테고리별 세부 해석을 펼쳐서 확인할 수 있습니다.';
-  const summaryText = `${sections.length}개 카테고리 분석 · ${top3Text}`;
+  const confidenceText = result && result.confidence ? `${result.confidence}% 신뢰도` : '';
+  const qualityScore = Number(result && result.qualityScore || 0);
+  const qualityText = qualityScore ? `사진 품질 ${qualityScore}점` : '';
+  const retryText = qualityScore && qualityScore < 62 ? '정면 사진 재시도 권장' : '';
+  const summaryText = [`${sections.length}개 카테고리 분석`, top3Text, confidenceText, qualityText, retryText].filter(Boolean).join(' · ');
 
   if (titleEl) titleEl.innerText = titleText;
   if (summaryEl) summaryEl.innerText = summaryText;
@@ -1240,6 +1269,7 @@ async function loadMediaPipeScripts() {
 
 function onResults(results) {
   if(!canvasCtx) return;
+  if (currentMode === 'file' && _phyActiveLandmarkToken && _phyActiveLandmarkToken !== _phyUploadToken) return;
   canvasCtx.save();
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
@@ -1251,7 +1281,7 @@ function onResults(results) {
     if (!isAnalyzing && !analysisComplete) {
       if (compatMode && firstAnalysisResult) {
         document.getElementById('phyStatus').innerText = "상대방 얼굴이 인식되었습니다! 버튼을 눌러주세요.";
-        document.getElementById('captureBtn').innerText = "💕 궁합 분석 시작하기";
+        document.getElementById('captureBtn').innerText = pastLifeCompatMode ? "🌘 전생 궁합 분석 시작하기" : "💕 궁합 분석 시작하기";
       } else {
         document.getElementById('phyStatus').innerText = "이목구비가 인식되었습니다! 버튼을 눌러주세요.";
         document.getElementById('captureBtn').innerText = " 초정밀 스캔 시작하기";
@@ -1411,6 +1441,7 @@ window.resetPhysiognomyApp = function(preserveCompat) {
   landmarksData = null;
   if (!preserveCompat) {
     compatMode = false;
+    pastLifeCompatMode = false;
     firstAnalysisResult = null;
     secondAnalysisResult = null;
   }
@@ -1418,6 +1449,8 @@ window.resetPhysiognomyApp = function(preserveCompat) {
   document.getElementById('scanOverlay').style.display = "none";
   document.getElementById('captureBtn').style.display = "none";
   document.getElementById('captureBtn').disabled = false;
+  document.getElementById('pastLifeFaceBtn').style.display = "none";
+  document.getElementById('pastLifeCompatStartBtn').style.display = "none";
   document.getElementById('compatStartBtn').style.display = "none";
   document.getElementById('expertReportContainer').innerHTML = "";
   clearResultMeta();
@@ -1485,6 +1518,7 @@ window.handleFileUpload = async function(event) {
   const isInCompatMode = compatMode && firstAnalysisResult;
   resetPhysiognomyApp(isInCompatMode);
   const uploadToken = _phyUploadToken;
+  _phyActiveLandmarkToken = uploadToken;
   showPreviewSkeleton(true);
 
   updateStatus(isInCompatMode ? '상대방 이미지를 불러오는 중입니다...' : '이미지를 불러오는 중입니다...');
@@ -1526,6 +1560,7 @@ window.handleFileUpload = async function(event) {
         }
 
         _phyAnalysisSourceEl = imgEl;
+        _phyActiveLandmarkToken = uploadToken;
 
         await waitForUiFrame();
         if (uploadToken !== _phyUploadToken) return;
@@ -1573,6 +1608,7 @@ window.startCapture = async function() {
     alert('얼굴이 제대로 인식되지 않았습니다. 밝은 곳에서 다시 시도해주세요.');
     return;
   }
+  const analysisLandmarks = landmarksData;
 
   isAnalyzing = true;
   analysisComplete = false;
@@ -1612,7 +1648,7 @@ window.startCapture = async function() {
 
     if (controller.signal.aborted) throw new Error('ANALYSIS_ABORTED');
     const result = await withTimeout(
-      window.faceAnalysisEngine.analyze(landmarksData, expressionData),
+      window.faceAnalysisEngine.analyze(analysisLandmarks, expressionData),
       45000,
       'ANALYSIS_TIMEOUT'
     );
@@ -1624,13 +1660,17 @@ window.startCapture = async function() {
     if (compatMode && firstAnalysisResult) {
       secondAnalysisResult = result;
       updateStatus(`<div style="text-align:center;">
-        <div style="font-size:1.1rem; font-weight:800; color:#f472b6;">💕 궁합 분석 완료!</div>
+        <div style="font-size:1.1rem; font-weight:800; color:#f472b6;">${pastLifeCompatMode ? '🌘 전생 관상 궁합 완료!' : '💕 궁합 분석 완료!'}</div>
         <div style="font-size:0.85rem; color:#a7f3d0; margin-top:4px;">${firstAnalysisResult.emoji} ${firstAnalysisResult.primaryAnimal} × ${secondAnalysisResult.emoji} ${secondAnalysisResult.primaryAnimal}</div>
       </div>`, true);
 
       try {
-        const compatResult = window.faceAnalysisEngine.calculateCompatibility(firstAnalysisResult, secondAnalysisResult);
-        if (compatResult && compatResult.compatHtml) {
+        const compatResult = pastLifeCompatMode
+          ? window.faceAnalysisEngine.calculatePastLifeCompatibility(firstAnalysisResult, secondAnalysisResult)
+          : window.faceAnalysisEngine.calculateCompatibility(firstAnalysisResult, secondAnalysisResult);
+        if (pastLifeCompatMode && compatResult && compatResult.sections) {
+          renderPastLifeCompatResult(compatResult);
+        } else if (compatResult && compatResult.compatHtml) {
           renderCompatResult(compatResult);
         } else {
           throw new Error('궁합 결과 생성 실패');
@@ -1640,7 +1680,7 @@ window.startCapture = async function() {
         const titleEl = getEl('phyResultTitle');
         const summaryEl = getEl('phyResultSummary');
         const categoryNavEl = getEl('phyCategoryNav');
-        if (titleEl) titleEl.innerText = '💕 관상 궁합 리포트';
+        if (titleEl) titleEl.innerText = pastLifeCompatMode ? '🌘 전생 관상 궁합 리포트' : '💕 관상 궁합 리포트';
         if (summaryEl) summaryEl.innerText = '궁합 상세 분석 중 오류가 발생해 요약 결과를 표시합니다.';
         if (categoryNavEl) {
           categoryNavEl.innerHTML = '';
@@ -1655,6 +1695,7 @@ window.startCapture = async function() {
           </div>`;
         document.getElementById('phyResult').style.display = 'block';
         compatMode = false;
+        pastLifeCompatMode = false;
       }
     } else {
       firstAnalysisResult = result;
@@ -1713,10 +1754,164 @@ function renderResult(result) {
   document.getElementById('phyResult').style.display = 'block';
 
   if (!compatMode) {
+    const pastLifeBtn = document.getElementById('pastLifeFaceBtn');
+    if (pastLifeBtn) {
+      pastLifeBtn.innerText = '🌘 나의 전생 관상 보기';
+      pastLifeBtn.onclick = window.showPastLifePhysiognomy;
+      pastLifeBtn.style.display = 'block';
+    }
+    const pastLifeCompatBtn = document.getElementById('pastLifeCompatStartBtn');
+    if (pastLifeCompatBtn) pastLifeCompatBtn.style.display = 'flex';
     document.getElementById('compatStartBtn').style.display = 'block';
   }
 
   setTimeout(scrollResultToTop, 120);
+}
+
+function renderPastLifeResult(pastLife) {
+  const emojiNode = document.getElementById('resEmoji');
+  if (emojiNode) emojiNode.innerText = '🌘';
+
+  const titleEl = getEl('phyResultTitle');
+  const summaryEl = getEl('phyResultSummary');
+  const categoryNavEl = getEl('phyCategoryNav');
+  if (titleEl) titleEl.innerText = '나의 전생 관상 리포트';
+  if (summaryEl) summaryEl.innerText = pastLife.title || '얼굴에 남은 오래된 기운을 읽었습니다.';
+  if (categoryNavEl) {
+    categoryNavEl.innerHTML = '';
+    categoryNavEl.style.display = 'none';
+  }
+
+  const reportContainer = document.getElementById('expertReportContainer');
+  if (reportContainer) {
+    reportContainer.innerHTML = `
+      <div style="display:grid;gap:14px;">
+        <section style="border:1px solid rgba(124,58,237,0.22);background:linear-gradient(145deg,#faf5ff 0%,#fff1f2 100%);border-radius:18px;padding:18px;color:#3b0764;">
+          <div style="font-size:0.78rem;font-weight:900;color:#7c3aed;letter-spacing:0.08em;margin-bottom:7px;">PAST LIFE FACE READING</div>
+          <div style="font-size:1.2rem;font-weight:900;line-height:1.35;margin-bottom:8px;">${pastLife.archetype}</div>
+          <p style="margin:0;color:#5b21b6;line-height:1.7;font-weight:700;">${pastLife.pastKarma}</p>
+        </section>
+        <section style="border:1px solid #e9d5ff;background:#fff;border-radius:16px;padding:16px;color:#334155;">
+          <div style="font-weight:900;color:#6d28d9;margin-bottom:6px;">얼굴에 남은 전생의 인장</div>
+          <p style="margin:0;line-height:1.7;">${pastLife.faceSeal}<br>${pastLife.dominantText}</p>
+        </section>
+        <section style="border:1px solid #fecdd3;background:#fff7f7;border-radius:16px;padding:16px;color:#334155;">
+          <div style="font-weight:900;color:#be123c;margin-bottom:6px;">이번 생의 관계와 재물 흐름</div>
+          <p style="margin:0 0 8px;line-height:1.7;">${pastLife.relationEcho}</p>
+          <p style="margin:0;line-height:1.7;">${pastLife.wealthEcho}</p>
+        </section>
+        <section style="border:1px solid #bae6fd;background:#f0f9ff;border-radius:16px;padding:16px;color:#0f172a;">
+          <div style="font-weight:900;color:#0369a1;margin-bottom:6px;">이번 생의 과제</div>
+          <p style="margin:0 0 10px;line-height:1.7;">${pastLife.currentTask}</p>
+          <p style="margin:0;color:#0c4a6e;font-weight:800;line-height:1.65;">${pastLife.talisman}</p>
+        </section>
+      </div>`;
+  }
+
+  const pastLifeBtn = document.getElementById('pastLifeFaceBtn');
+  const pastLifeCompatBtn = document.getElementById('pastLifeCompatStartBtn');
+  const compatBtn = document.getElementById('compatStartBtn');
+  if (pastLifeBtn) {
+    pastLifeBtn.style.display = 'block';
+    pastLifeBtn.innerText = '관상 결과로 돌아가기';
+    pastLifeBtn.onclick = function() {
+      if (firstAnalysisResult) {
+        pastLifeBtn.innerText = '🌘 나의 전생 관상 보기';
+        pastLifeBtn.onclick = window.showPastLifePhysiognomy;
+        renderResult(firstAnalysisResult);
+      }
+    };
+  }
+  if (pastLifeCompatBtn) pastLifeCompatBtn.style.display = 'none';
+  if (compatBtn) compatBtn.style.display = 'none';
+  document.getElementById('phyResult').style.display = 'block';
+  setTimeout(scrollResultToTop, 100);
+}
+
+window.showPastLifePhysiognomy = function showPastLifePhysiognomy() {
+  if (!firstAnalysisResult) {
+    alert('먼저 관상 분석을 완료해주세요.');
+    return;
+  }
+  if (!window.faceAnalysisEngine || typeof window.faceAnalysisEngine.calculatePastLifePhysiognomy !== 'function') {
+    alert('전생 관상 엔진을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
+  const pastLife = window.faceAnalysisEngine.calculatePastLifePhysiognomy(firstAnalysisResult);
+  renderPastLifeResult(pastLife);
+};
+
+function renderPastLifeCompatResult(result) {
+  stopAnalysisStepFlow();
+  clearSectionRenderTimers();
+  const emojiNode = document.getElementById('resEmoji');
+  if (emojiNode) emojiNode.innerText = '🌘';
+
+  const titleEl = getEl('phyResultTitle');
+  const summaryEl = getEl('phyResultSummary');
+  const categoryNavEl = getEl('phyCategoryNav');
+  if (titleEl) titleEl.innerText = '전생 관상 궁합 리포트';
+  if (summaryEl) summaryEl.innerText = `${result.title} · ${result.grade}`;
+  if (categoryNavEl) {
+    categoryNavEl.innerHTML = '';
+    categoryNavEl.style.display = 'none';
+  }
+
+  const meters = Array.isArray(result.metrics) ? result.metrics : [];
+  const sections = Array.isArray(result.sections) ? result.sections : [];
+  document.getElementById('expertReportContainer').innerHTML = `
+    <div style="display:grid;gap:14px;">
+      <section style="border:1px solid rgba(147,51,234,0.22);background:linear-gradient(145deg,#faf5ff 0%,#fff1f2 54%,#f0f9ff 100%);border-radius:18px;padding:18px;color:#312e81;">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px;">
+          <div>
+            <div style="font-size:0.78rem;font-weight:900;color:#7c3aed;letter-spacing:0.08em;margin-bottom:6px;">PAST LIFE COMPATIBILITY</div>
+            <div style="font-size:1.25rem;font-weight:950;line-height:1.35;">${result.relationType}</div>
+            <div style="font-size:0.9rem;color:#6d28d9;font-weight:800;margin-top:5px;">${result.subtitle}</div>
+          </div>
+          <div style="min-width:82px;text-align:center;border-radius:18px;background:rgba(255,255,255,0.76);border:1px solid rgba(124,58,237,0.18);padding:10px 12px;">
+            <div style="font-size:2rem;font-weight:950;color:#be123c;line-height:1;">${result.score}</div>
+            <div style="font-size:0.74rem;font-weight:900;color:#7c3aed;margin-top:3px;">${result.grade}</div>
+          </div>
+        </div>
+        <p style="margin:0;color:#334155;line-height:1.75;font-weight:700;">${result.summary}</p>
+      </section>
+      <section style="display:grid;gap:10px;">
+        ${meters.map((item) => `
+          <div style="border:1px solid #e9d5ff;background:#fff;border-radius:14px;padding:13px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px;">
+              <span style="font-weight:900;color:#4c1d95;">${item.label}</span>
+              <span style="font-weight:950;color:#be123c;">${item.value}%</span>
+            </div>
+            <div style="height:8px;border-radius:999px;background:#ede9fe;overflow:hidden;margin-bottom:8px;">
+              <div style="height:100%;width:${item.value}%;background:linear-gradient(90deg,#8b5cf6,#ec4899);border-radius:999px;"></div>
+            </div>
+            <p style="margin:0;color:#475569;line-height:1.6;font-size:0.9rem;">${item.text}</p>
+          </div>`).join('')}
+      </section>
+      <section style="display:grid;gap:10px;">
+        ${sections.map((item) => `
+          <article style="border:1px solid #dbeafe;background:#f8fbff;border-radius:14px;padding:14px;color:#1e293b;">
+            <div style="font-weight:950;color:#1d4ed8;margin-bottom:6px;">${item.title}</div>
+            <p style="margin:0;line-height:1.7;">${item.body}</p>
+          </article>`).join('')}
+      </section>
+      <section style="border:1px solid #fecdd3;background:#fff7f7;border-radius:16px;padding:16px;color:#881337;">
+        <div style="font-weight:950;margin-bottom:6px;">이번 생 관계 미션</div>
+        <p style="margin:0;line-height:1.75;font-weight:750;">${result.closing}</p>
+      </section>
+      <div style="text-align:center;font-size:0.78rem;color:#94a3b8;padding:8px 4px;">※ 전생 관상 궁합은 재미와 자기성찰을 위한 리딩입니다.</div>
+    </div>`;
+
+  const pastLifeBtn = document.getElementById('pastLifeFaceBtn');
+  const pastLifeCompatBtn = document.getElementById('pastLifeCompatStartBtn');
+  const compatBtn = document.getElementById('compatStartBtn');
+  if (pastLifeBtn) pastLifeBtn.style.display = 'none';
+  if (pastLifeCompatBtn) pastLifeCompatBtn.style.display = 'none';
+  if (compatBtn) compatBtn.style.display = 'none';
+  document.getElementById('phyResult').style.display = 'block';
+  compatMode = false;
+  pastLifeCompatMode = false;
+  setTimeout(scrollResultToTop, 100);
 }
 
   function scrollResultToTop() {
@@ -1748,9 +1943,11 @@ function renderResult(result) {
         return;
       }
 
-      window._cdCoinGatePerUse(50, '관상 궁합 이용', function () {
+      const compatRequestId = 'physiognomy-compatibility:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+      window._cdCoinGatePerUse(50, '관상 궁합 분석', function () {
         // 코인 차감 성공 → 궁합 모드 시작
         compatMode = true;
+        pastLifeCompatMode = false;
         _phyUploadToken += 1;
 
         // UI 리셋하되 궁합 상태는 유지
@@ -1760,6 +1957,8 @@ function renderResult(result) {
         document.getElementById('phyResult').style.display = 'none';
         document.getElementById('scanOverlay').style.display = 'none';
         document.getElementById('captureBtn').style.display = 'none';
+        document.getElementById('pastLifeFaceBtn').style.display = 'none';
+        document.getElementById('pastLifeCompatStartBtn').style.display = 'none';
         document.getElementById('expertReportContainer').innerHTML = '';
         clearResultMeta();
         showAnalysisStage(false);
@@ -1787,6 +1986,70 @@ function renderResult(result) {
           // 카메라 모드면 카메라 재시작
           if(camera) camera.start();
         }
+      }, null, {
+        featureKey: 'physiognomy-compatibility',
+        serviceKey: 'physiognomy',
+        action: 'startPhysiognomyCompatibility',
+        requestId: compatRequestId
+      });
+    })();
+  }
+
+  window.startPastLifeCompatMode = function() {
+    if (!firstAnalysisResult) {
+      alert('먼저 관상 분석을 완료해주세요.');
+      return;
+    }
+
+    (function () {
+      if (typeof window._cdCoinGatePerUse !== 'function') {
+        window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+        return;
+      }
+
+      const requestId = 'physiognomy-pastlife-compatibility:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+      window._cdCoinGatePerUse(50, '전생 관상 궁합 분석', function () {
+        compatMode = true;
+        pastLifeCompatMode = true;
+        _phyUploadToken += 1;
+        isAnalyzing = false;
+        analysisComplete = false;
+        landmarksData = null;
+        document.getElementById('phyResult').style.display = 'none';
+        document.getElementById('scanOverlay').style.display = 'none';
+        document.getElementById('captureBtn').style.display = 'none';
+        document.getElementById('pastLifeFaceBtn').style.display = 'none';
+        document.getElementById('pastLifeCompatStartBtn').style.display = 'none';
+        document.getElementById('compatStartBtn').style.display = 'none';
+        document.getElementById('expertReportContainer').innerHTML = '';
+        clearResultMeta();
+        showAnalysisStage(false);
+        showPreviewSkeleton(false);
+        clearPreparedImageResources();
+
+        const imgEl = document.getElementById('phyImage');
+        if (imgEl) {
+          imgEl.src = '';
+          imgEl.onload = null;
+        }
+        if (canvasCtx) canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+        document.getElementById('phyStatus').innerHTML = `<div style="text-align:center;">
+          <div style="font-size:1.1rem; font-weight:800; color:#c4b5fd; margin-bottom:6px;">🌘 전생 관상 궁합 모드</div>
+          <div style="font-size:0.9rem; color:#a7f3d0;">상대방의 사진을 촬영하거나 업로드해주세요</div>
+          <div style="font-size:0.8rem; color:#cbd5e1; margin-top:4px;">첫 번째: ${firstAnalysisResult.emoji} ${firstAnalysisResult.primaryAnimal}</div>
+        </div>`;
+
+        if (currentMode === 'file') {
+          document.getElementById('fileUploadContainer').style.display = 'block';
+        } else if (camera) {
+          camera.start();
+        }
+      }, null, {
+        featureKey: 'physiognomy-pastlife-compatibility',
+        serviceKey: 'physiognomy',
+        action: 'startPastLifePhysiognomyCompatibility',
+        requestId
       });
     })();
   }
@@ -1809,6 +2072,8 @@ function renderResult(result) {
     }
 
     document.getElementById('expertReportContainer').innerHTML = compatResult.compatHtml;
+    document.getElementById('pastLifeFaceBtn').style.display = 'none';
+    document.getElementById('pastLifeCompatStartBtn').style.display = 'none';
     document.getElementById('compatStartBtn').style.display = 'none';
     document.getElementById('phyResult').style.display = 'block';
 

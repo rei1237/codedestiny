@@ -560,6 +560,7 @@ export async function runBillingCoinGate(input: {
   reason?: string;
   requestId?: string;
   forceDeduct?: boolean;
+  paymentMode?: string;
   payloadHash?: string;
   reportId?: string;
   sessionId?: string;
@@ -618,6 +619,7 @@ export async function runBillingCoinGate(input: {
       reason: input.reason,
     }).catch(() => null);
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
+    const passFirstEligible = eligibility?.pass.canUse === true;
     if (eligibility) {
       emitPaidFeatureGate("update", {
         featureId,
@@ -647,6 +649,8 @@ export async function runBillingCoinGate(input: {
       },
       body: JSON.stringify({
         ...(input || {}),
+        paymentMode: passFirstEligible ? "MEMBERSHIP_PASS" : input.paymentMode,
+        forceDeduct: passFirstEligible ? false : input.forceDeduct,
         attemptId: activeAttempt.attemptId,
       }),
     });
