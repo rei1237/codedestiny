@@ -580,6 +580,132 @@ function buildPracticalPlan(profile: MeetingEnergyProfile, places: DestinyMeetin
   };
 }
 
+function buildPromptPack(
+  profile: MeetingEnergyProfile,
+  places: DestinyMeetingPlaceResult["recommendedPlaces"],
+  countries: DestinyMeetingPlaceResult["recommendedCountries"],
+  luckyTiming: DestinyMeetingPlaceResult["luckyTiming"],
+  stylingGuide: DestinyMeetingPlaceResult["stylingGuide"],
+  avoidGuide: DestinyMeetingPlaceResult["avoidGuide"],
+  practicalPlan: DestinyMeetingPlaceResult["practicalPlan"],
+): DestinyMeetingPlaceResult["promptPack"] {
+  const topPlace = places[0];
+  const secondPlace = places[1];
+  const travel = countries[0];
+  const primaryLabel = ELEMENT_LABEL[profile.primaryElement];
+  const secondaryLabel = ELEMENT_LABEL[profile.secondaryElement];
+  const bestTime = luckyTiming.bestTimeOfDay.join(", ");
+  const bestMonths = luckyTiming.bestMonths.join(", ");
+  const microActions = practicalPlan.microActions?.join("\n- ") || "첫 대화의 온도, 이동 동선, 마무리 인사를 차분히 기록하기";
+
+  return {
+    title: `${profile.dayMasterLabel} 인연 프롬프트 북`,
+    intro: `${primaryLabel} 기운이 열리는 장소와 ${secondaryLabel} 보조 흐름을 엮어, 오늘 바로 쓸 수 있는 인연 질문과 실천 문장을 준비했습니다.`,
+    prompts: [
+      {
+        id: "meeting-place-oracle",
+        title: "인연 장소 리딩",
+        category: "장소",
+        intent: "나에게 맞는 만남의 공간을 깊게 해석할 때",
+        relatedPlace: topPlace?.name,
+        prompt: [
+          "당신은 사주 명리와 관계 심리를 함께 읽는 인연 상담가입니다.",
+          `나의 일간은 ${profile.dayMasterLabel}, 핵심 인연 기운은 ${primaryLabel}, 보조 기운은 ${secondaryLabel}입니다.`,
+          `추천 장소는 ${topPlace?.name || "차분한 산책 공간"}이며, 이 장소의 분위기는 "${topPlace?.sceneDescription || profile.meetingStyle}"입니다.`,
+          `이 장소가 나의 관계 패턴 "${profile.relationshipPattern}"과 어떻게 맞물리는지, 첫 만남의 감정선과 신뢰가 열리는 장면을 중심으로 풀어주세요.`,
+          "문장은 신비롭지만 현실적인 톤으로 쓰고, 마지막에는 오늘 바로 실행할 작은 행동 하나를 제안해주세요.",
+        ].join("\n"),
+      },
+      {
+        id: "conversation-opener",
+        title: "첫 대화 문장",
+        category: "대화",
+        intent: "어색함 없이 첫 문장을 열고 싶을 때",
+        relatedPlace: topPlace?.name,
+        prompt: [
+          "당신은 사주 흐름에 맞는 첫 대화의 문장을 고르는 관계 코치입니다.",
+          `나는 ${primaryLabel} 기운이 살아나는 ${topPlace?.name || "편안한 공간"}에서 인연운이 열립니다.`,
+          `기본 대화 실마리는 "${topPlace?.conversationOpener || "이 공간에서 가장 마음이 편해지는 지점이 어디인가요?"}"입니다.`,
+          "이 문장을 바탕으로 부담 없이 시작할 수 있는 첫 대화 문장 7개를 만들어주세요.",
+          "각 문장은 상대를 시험하지 않고, 취향과 감각을 자연스럽게 열어주는 말이어야 합니다.",
+        ].join("\n"),
+      },
+      {
+        id: "date-route",
+        title: "데이트 동선 설계",
+        category: "동선",
+        intent: "장소를 실제 만남 루트로 바꾸고 싶을 때",
+        relatedPlace: `${topPlace?.name || "첫 장소"} · ${secondPlace?.name || "두 번째 장소"}`,
+        prompt: [
+          "당신은 사주 오행과 장소 무드를 엮어 만남의 동선을 설계하는 기획자입니다.",
+          `나에게 좋은 장소는 ${topPlace?.name || "첫 장소"}와 ${secondPlace?.name || "두 번째 장소"}입니다.`,
+          `좋은 시간대는 ${bestTime}, 좋은 달은 ${bestMonths}입니다.`,
+          `나의 관계 흐름은 "${profile.meetingStyle}"이고, 오늘의 실천 문장은 "${practicalPlan.todayAction}"입니다.`,
+          "첫 만남, 두 번째 만남, 관계가 깊어지는 세 번째 만남까지 이어지는 동선을 제안해주세요.",
+          "각 동선에는 머무는 시간, 대화 주제, 피해야 할 과속 지점을 함께 담아주세요.",
+        ].join("\n"),
+      },
+      {
+        id: "travel-romance",
+        title: "여행 인연 시나리오",
+        category: "여행",
+        intent: "도시·해외 인연운을 상상하고 준비할 때",
+        relatedPlace: travel ? `${travel.country} ${travel.cities[0]}` : undefined,
+        prompt: [
+          "당신은 사주와 도시의 기운을 함께 읽는 여행 인연 큐레이터입니다.",
+          `나에게 어울리는 여행 무드는 ${travel?.country || "따뜻한 도시"}의 ${travel?.cities.join(", ") || "고요한 거리"}입니다.`,
+          `이 여행지는 "${travel?.travelMood || "낯선 풍경 속에서 마음이 천천히 열리는 흐름"}"을 품고 있습니다.`,
+          `핵심 오행은 ${primaryLabel}, 보조 오행은 ${secondaryLabel}입니다.`,
+          "이 도시에서 인연을 만날 가능성이 높은 장소, 시간, 대화의 시작점, 혼자 있을 때의 태도를 하나의 짧은 여행 리딩으로 써주세요.",
+        ].join("\n"),
+      },
+      {
+        id: "style-scent",
+        title: "매력 스타일링",
+        category: "스타일",
+        intent: "첫인상을 사주 기운에 맞게 정리할 때",
+        prompt: [
+          "당신은 사주 오행과 첫인상 이미지를 함께 다루는 매력 스타일리스트입니다.",
+          `나의 인연 무드는 "${stylingGuide.mood}"입니다.`,
+          `어울리는 색은 ${stylingGuide.colors.join(", ")}이며, 의상 방향은 "${stylingGuide.outfit}"입니다.`,
+          `향과 장신구 힌트는 "${stylingGuide.fragrance || "은은한 잔향"}", "${stylingGuide.accessory || "작고 선명한 포인트"}"입니다.`,
+          "첫 만남에서 과하지 않게 매력이 살아나는 스타일링 리딩을 써주세요.",
+          "옷, 향, 표정, 첫 인사, 자리 선택까지 한 번에 실천할 수 있게 정리해주세요.",
+        ].join("\n"),
+      },
+      {
+        id: "avoid-shadow",
+        title: "피해야 할 인연 흐름",
+        category: "주의",
+        intent: "관계가 어긋나는 장소와 타이밍을 피하고 싶을 때",
+        prompt: [
+          "당신은 인연운의 밝은 문과 그림자를 함께 읽는 사주 상담가입니다.",
+          `내가 피해야 할 장소는 ${avoidGuide.avoidPlaces.join(", ")}입니다.`,
+          `주의할 시간은 ${avoidGuide.avoidTiming.join(", ")}이고, 반복하기 쉬운 패턴은 ${avoidGuide.avoidPatterns.join(", ")}입니다.`,
+          `그 이유는 "${avoidGuide.reason}"입니다.`,
+          "이 흐름을 겁주는 말이 아니라 품위 있는 경계 문장으로 풀어주세요.",
+          "마지막에는 같은 에너지를 좋은 방향으로 바꾸는 대체 장소와 대체 행동을 제안해주세요.",
+        ].join("\n"),
+      },
+      {
+        id: "seven-day-ritual",
+        title: "7일 인연 의식",
+        category: "실천",
+        intent: "이번 주 인연운을 실제 행동으로 열고 싶을 때",
+        prompt: [
+          "당신은 사주 흐름을 일상 속 작은 의식으로 바꾸는 라이프 리딩 전문가입니다.",
+          `오늘의 행동은 "${practicalPlan.todayAction}"입니다.`,
+          `이번 주 행동은 "${practicalPlan.thisWeekAction}"입니다.`,
+          `이번 달 흐름은 "${practicalPlan.thisMonthAction}"입니다.`,
+          `마이크로 액션은 다음과 같습니다.\n- ${microActions}`,
+          "이 내용을 바탕으로 7일 동안 실천할 수 있는 인연 의식 플랜을 만들어주세요.",
+          "각 날짜는 한 문장의 마음가짐, 하나의 행동, 하나의 기록 질문으로 구성해주세요.",
+        ].join("\n"),
+      },
+    ],
+  };
+}
+
 export function generateDestinyMeetingPlaceResult(sajuResult: SajuEngineResult): DestinyMeetingPlaceResult {
   const profile = deriveMeetingEnergyProfile(sajuResult);
   const style = DAY_MASTER_STYLE[profile.dayMasterStem] || DAY_MASTER_STYLE.갑;
@@ -592,6 +718,7 @@ export function generateDestinyMeetingPlaceResult(sajuResult: SajuEngineResult):
   const avoidGuide = buildAvoidGuide(profile);
   const practicalPlan = buildPracticalPlan(profile, recommendedPlaces);
   const stylingGuide = STYLING_GUIDE_BY_ELEMENT[profile.primaryElement];
+  const promptPack = buildPromptPack(profile, recommendedPlaces, recommendedCountries, luckyTiming, stylingGuide, avoidGuide, practicalPlan);
 
   return {
     summary: {
@@ -618,5 +745,6 @@ export function generateDestinyMeetingPlaceResult(sajuResult: SajuEngineResult):
     stylingGuide,
     avoidGuide,
     practicalPlan,
+    promptPack,
   };
 }

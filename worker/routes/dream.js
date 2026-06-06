@@ -482,12 +482,12 @@ function normalizeConsultCards(cards) {
 
 function consultToneGuide(tone) {
   if (tone === "motivation") {
-    return "따뜻하지만 추진력 있는 코치처럼 말하고, 실행 타이밍과 행동 동선을 분명하게 제시하세요.";
+    return "따뜻하지만 추진력 있는 드림 타로 리더처럼 말하고, 꿈이 남긴 에너지를 오늘 움직일 수 있는 작고 선명한 선택으로 내려놓으세요.";
   }
   if (tone === "coaching") {
-    return "질문형 코칭 톤으로 말하고, 감정-사실-행동 순서로 현실적인 체크포인트를 제시하세요.";
+    return "질문형 리딩 톤으로 말하고, 꿈의 장면, 감정의 잔향, 오늘의 선택을 차례로 짚어 주는 체크포인트를 제시하세요.";
   }
-  return "정서적 안정감을 주는 상담사 톤으로 말하고, 불안을 낮추는 구체 행동을 제시하세요.";
+  return "정서적 안정감을 주는 드림 타로 리더 톤으로 말하고, 불안을 키우지 않으면서 마음을 정리하는 작은 회복 행동을 제시하세요.";
 }
 
 function tarotConsultPrompt({ dreamText, cards, tone, summary }) {
@@ -498,29 +498,31 @@ function tarotConsultPrompt({ dreamText, cards, tone, summary }) {
   });
 
   return [
-    "당신은 한국어 전문 꿈-타로 상담사입니다.",
+    "당신은 꿈의 잔향을 세 장의 타로 카드로 읽는 한국어 드림 타로 리더입니다.",
     consultToneGuide(tone),
-    "과장된 예언이나 단정은 금지하고, 현실 행동 중심의 조언을 제공합니다.",
+    "과장된 예언이나 단정은 금지하고, 꿈의 상징, 깨어난 뒤의 감정, 카드의 방향을 연결해 신비롭지만 현실적인 조언을 제공합니다.",
+    "각 문단은 꿈을 해부하는 설명문이 아니라, 사용자가 자기 마음을 안전하게 알아차리도록 돕는 리딩 문장으로 작성하세요.",
+    "기술 용어, API, 모델, 데이터, fallback, JSON 같은 표현은 절대 쓰지 마세요.",
     "출력은 반드시 아래 형식 그대로 작성하세요.",
     "",
-    "## 카드 핵심 진단",
-    "3~4문장",
+    "## 꿈의 문을 여는 카드",
+    "3~4문장. 꿈 원문에서 가장 선명한 장면과 세 카드 이름을 자연스럽게 엮어, 이 꿈이 어떤 문을 열었는지 읽으세요.",
     "",
-    "## 상담사가 보는 현재 감정",
-    "3~4문장",
+    "## 마음 아래 흐르는 감정",
+    "3~4문장. 꿈이 남긴 감정의 잔향과 카드의 정방향/역방향 흐름을 함께 읽고, 불안을 단정하지 말고 감정의 이름을 부드럽게 붙이세요.",
     "",
-    "## 지금 바로 할 3가지",
-    "- 항목 1",
-    "- 항목 2",
-    "- 항목 3",
+    "## 오늘의 작은 선택 3가지",
+    "- 꿈의 장면을 현실에서 안전하게 다루는 작은 행동 1",
+    "- 관계나 일에서 바로 확인할 수 있는 작은 행동 1",
+    "- 잠들기 전 마음을 봉인하는 회복 행동 1",
     "",
-    "## 관계/일/회복 한 줄 가이드",
-    "- 관계: ...",
-    "- 일/돈: ...",
-    "- 회복: ...",
+    "## 관계/일/회복의 길",
+    "- 관계: 상대를 단정하기보다 내 감정과 필요를 정리하는 방향으로 쓰세요.",
+    "- 일/돈: 큰 결론보다 오늘 줄일 수 있는 부담과 현실적 우선순위를 쓰세요.",
+    "- 회복: 수면, 호흡, 기록처럼 오늘 밤 반복 가능한 회복 루틴을 쓰세요.",
     "",
-    "## 오늘의 확언",
-    "한 줄",
+    "## 봉인 문장",
+    "한 줄. 꿈의 빛을 오늘의 선택으로 옮기는 신비롭고 단정한 문장으로 마무리하세요.",
     "",
     "[사용자 꿈 원문]",
     dreamText,
@@ -537,26 +539,26 @@ function fallbackTarotConsultMarkdown({ dreamText, cards }) {
   const compact = String(dreamText || "").replace(/\s+/g, " ").trim().slice(0, 180);
   const cardLine = cards.map((card) => card.name).join(" · ");
   return [
-    "## 카드 핵심 진단",
-    `${cardLine || "오늘의 카드"} 조합은 마음속 불안을 피하려는 흐름보다, 지금 마주하고 정리해야 할 과제를 보여줍니다. 꿈 속 장면("${compact}")은 감정 정리가 늦어질수록 피로가 커진다는 신호에 가깝습니다.`,
-    "당장 결론을 내리기보다, 오늘 처리 가능한 한 가지를 먼저 끝내는 방식이 현재 운을 안정시키는 핵심입니다.",
+    "## 꿈의 문을 여는 카드",
+    `${cardLine || "오늘의 카드"} 조합은 꿈속 장면("${compact}")이 단순한 잔상이 아니라, 지금 마음이 붙잡고 있는 문을 비추고 있음을 보여줍니다. 이 문은 불안을 키우기 위한 것이 아니라, 아직 이름 붙이지 못한 감정과 필요를 조용히 드러내는 통로에 가깝습니다.`,
+    "당장 결론을 내리기보다, 오늘 다룰 수 있는 한 장면만 골라 현실의 작은 행동으로 옮길 때 꿈의 파장이 안정됩니다.",
     "",
-    "## 상담사가 보는 현재 감정",
-    "지금 감정의 중심은 두려움 자체보다, 통제력을 잃을 수 있다는 긴장감입니다. 그래서 생각은 많아지는데 행동은 지연되는 패턴이 나타날 수 있습니다.",
-    "지금 필요한 것은 완벽한 해답이 아니라, 내 감정을 사실처럼 적어보는 짧은 정리 습관입니다. 감정을 이름 붙이는 순간 불안 강도는 실제로 낮아집니다.",
+    "## 마음 아래 흐르는 감정",
+    "지금 감정의 중심에는 두려움 자체보다, 내가 놓치고 싶지 않은 안정과 확인받고 싶은 마음이 함께 흐릅니다. 그래서 생각은 많아지지만, 실제 행동은 늦어지는 패턴이 나타날 수 있습니다.",
+    "지금 필요한 것은 완벽한 해답이 아니라, 깨어난 뒤 남은 감정을 사실과 분리해 적어보는 짧은 정리입니다. 감정의 이름을 붙이는 순간 꿈은 막연한 예감이 아니라 나를 돌보는 언어가 됩니다.",
     "",
-    "## 지금 바로 할 3가지",
-    "- 오늘 가장 불안했던 장면을 한 문장으로 적고, 감정 점수를 1~10으로 기록하기",
-    "- 미루던 일 1개를 15분 단위로 쪼개 바로 시작하기",
-    "- 잠들기 전 5분 동안 디지털 자극을 끄고 호흡 정리하기",
+    "## 오늘의 작은 선택 3가지",
+    "- 꿈에서 가장 선명했던 장면 하나를 적고, 그때의 감정을 한 단어로 봉인하기",
+    "- 관계나 일에서 미뤄 둔 확인 하나를 오늘 가능한 가장 작은 방식으로 정리하기",
+    "- 잠들기 전 5분 동안 조명을 낮추고, 오늘의 감정을 세 문장으로 내려놓기",
     "",
-    "## 관계/일/회복 한 줄 가이드",
-    "- 관계: 상대를 해석하기보다 내 필요를 한 문장으로 먼저 표현하세요.",
-    "- 일/돈: 큰 결정보다 이번 주 리스크를 줄이는 작은 실행을 우선하세요.",
-    "- 회복: 회복 루틴은 길이보다 반복이 중요합니다. 5분이라도 매일 유지하세요.",
+    "## 관계/일/회복의 길",
+    "- 관계: 상대의 마음을 단정하기보다, 내가 바라는 안정과 거리감을 먼저 한 문장으로 정리하세요.",
+    "- 일/돈: 큰 결정보다 이번 주 부담을 줄이는 작은 실행을 우선하면 흐름이 맑아집니다.",
+    "- 회복: 회복 루틴은 길이보다 반복이 중요합니다. 짧은 기록과 호흡만으로도 밤의 파장이 낮아집니다.",
     "",
-    "## 오늘의 확언",
-    "나는 오늘의 작은 실행으로 내일의 불안을 줄인다.",
+    "## 봉인 문장",
+    "나는 꿈이 남긴 잔향을 오늘의 작고 안전한 선택으로 봉인한다.",
   ].join("\n");
 }
 
@@ -576,7 +578,7 @@ function firstMeaningfulLine(text) {
 }
 
 function extractActionPlan(markdown) {
-  const section = sectionText(markdown, "지금 바로 할 3가지");
+  const section = sectionText(markdown, "오늘의 작은 선택 3가지");
   const lines = section
     .split(/\n+/)
     .map((line) => String(line || "").trim())
@@ -606,7 +608,7 @@ async function handleTarotConsult(request, env) {
     summary: String(body?.summary || "").trim(),
   });
 
-  const ai = await callGeminiText(env, prompt, {
+  const ai = await dreamGeminiCaller(env, prompt, {
     keyEnvKeys: ["DREAM_TAROT_GEMINI_API_KEY", "PSYCHO_ANALYSIS_GEMINI_API_KEY"],
     modelEnvKeys: ["DREAM_TAROT_GEMINI_MODEL", "PSYCHO_ANALYSIS_GEMINI_MODEL"],
     temperature: 0.84,
@@ -622,15 +624,15 @@ async function handleTarotConsult(request, env) {
     markdown = String(ai.text || "").trim();
     formatWarning = !/^##\s+/m.test(markdown);
     if (formatWarning) {
-      markdown = `## 카드 핵심 진단\n${markdown}`;
+      markdown = `## 꿈의 문을 여는 카드\n${markdown}`;
     }
   } else {
     markdown = fallbackTarotConsultMarkdown({ dreamText: normalized.text, cards: cards.cards });
     formatWarning = true;
   }
 
-  const summary = firstMeaningfulLine(sectionText(markdown, "카드 핵심 진단"));
-  const goldenAdvice = firstMeaningfulLine(sectionText(markdown, "상담사가 보는 현재 감정"));
+  const summary = firstMeaningfulLine(sectionText(markdown, "꿈의 문을 여는 카드"));
+  const goldenAdvice = firstMeaningfulLine(sectionText(markdown, "마음 아래 흐르는 감정"));
   const actionPlan = extractActionPlan(markdown);
 
   return json({
@@ -741,4 +743,3 @@ export async function handleDreamRoutes(request, env) {
     return handleRouteError(error);
   }
 }
-

@@ -287,32 +287,32 @@ const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
   "premium_pdf_saju_life_book",
   "premium-lifebook-report",
 ]);
-const LIFEBOOK_TEMPORARY_PAYMENT_BYPASS = true;
+const LIFEBOOK_TEMPORARY_PAYMENT_BYPASS = false;
 
-const LIFEBOOK_MIN_CATEGORY_CHARS = 700;
-const LIFEBOOK_MIN_CHAPTER_CHARS = 4300;
-const LIFEBOOK_MIN_TOTAL_CHARS = 170000;
+const LIFEBOOK_MIN_CATEGORY_CHARS = 850;
+const LIFEBOOK_MIN_CHAPTER_CHARS = 3600;
+const LIFEBOOK_MIN_TOTAL_CHARS = 85000;
 const LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS = 250;
-const LIFEBOOK_BLOCKING_MIN_CHAPTER_CHARS = 1800;
-const LIFEBOOK_BLOCKING_MIN_TOTAL_CHARS = 25000;
+const LIFEBOOK_BLOCKING_MIN_CHAPTER_CHARS = 2600;
+const LIFEBOOK_BLOCKING_MIN_TOTAL_CHARS = 70000;
 const LIFEBOOK_QUALITY_REPAIR_MAX_ROUNDS = 3;
 const LIFEBOOK_LLM_TARGET_YEAR = 2026;
 const LIFEBOOK_A4_CHAR_RANGE = Object.freeze({ min: 850, target: 950, max: 1100 });
-const LIFEBOOK_A4_TOTAL_TARGET = Object.freeze({ pages: 200, minChars: 170000, targetChars: 190000, maxChars: 220000 });
+const LIFEBOOK_A4_TOTAL_TARGET = Object.freeze({ pages: 100, minChars: 85000, targetChars: 95000, maxChars: 110000 });
 const LIFEBOOK_CHAPTER_PAGE_TARGETS = Object.freeze({
-  "01": { targetPages: 16, partCount: 4 },
-  "02": { targetPages: 14, partCount: 4 },
-  "03": { targetPages: 14, partCount: 4 },
-  "04": { targetPages: 20, partCount: 6 },
-  "05": { targetPages: 14, partCount: 4 },
-  "06": { targetPages: 13, partCount: 3 },
-  "07": { targetPages: 15, partCount: 4 },
-  "08": { targetPages: 16, partCount: 4 },
-  "09": { targetPages: 13, partCount: 3 },
-  "10": { targetPages: 14, partCount: 4 },
-  "11": { targetPages: 20, partCount: 6 },
-  "12": { targetPages: 18, partCount: 5 },
-  "13": { targetPages: 13, partCount: 3 },
+  "01": { targetPages: 8, partCount: 3 },
+  "02": { targetPages: 7, partCount: 3 },
+  "03": { targetPages: 7, partCount: 3 },
+  "04": { targetPages: 10, partCount: 4 },
+  "05": { targetPages: 7, partCount: 3 },
+  "06": { targetPages: 6, partCount: 3 },
+  "07": { targetPages: 8, partCount: 3 },
+  "08": { targetPages: 8, partCount: 3 },
+  "09": { targetPages: 6, partCount: 3 },
+  "10": { targetPages: 7, partCount: 3 },
+  "11": { targetPages: 10, partCount: 4 },
+  "12": { targetPages: 9, partCount: 4 },
+  "13": { targetPages: 7, partCount: 3 },
 });
 const LIFEBOOK_CHAPTER_COMMON_STRUCTURE = Object.freeze([
   "챕터 표지 문구",
@@ -2076,6 +2076,27 @@ function buildLifeBookLocalSajuJson(birthInput, profile, signals, chapters = [])
       riskElement: clean(signals?.caution),
       phase: clean(signals?.currentDaewun),
     },
+    calculationPolicy: {
+      calendarType: clean(birthInput?.calendarType || profile?.calendarType || "solar"),
+      timezone: clean(birthInput?.timezone || profile?.timezone || "Asia/Seoul"),
+      hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+      dayChangePolicy: "MIDNIGHT",
+      coordinatePolicy: "birthplace-lat-lng-with-seoul-default",
+    },
+    sourceTrace: {
+      source: "worker.routes.saju-lifebook",
+      engine: "destiny-bias-engine",
+      engineProfileResolved: Boolean(signals?.engineProfile),
+      generatedFromProfile: true,
+      generatedFromAnalysisSignals: Boolean(signals?.tenGodCounts || signals?.elementWeights),
+    },
+    confidence: {
+      pillarCompleteness: ["year", "month", "day", "hour"].reduce((sum, key) => sum + Number(Boolean(clean(pillars?.[key]?.ganji))), 0) / 4,
+      hasElementBalance: Boolean(payload?.elementBalance?.ratio && Object.keys(payload.elementBalance.ratio).length >= 5),
+      hasTenGods: Boolean(signals?.tenGodCounts && Object.keys(signals.tenGodCounts).length >= 4),
+      hasDaeun: Array.isArray(signals?.daewunCycles) && signals.daewunCycles.length >= 3,
+    },
+    normalizationWarnings: [],
     derivedAt: new Date().toISOString(),
   };
 }
@@ -2215,7 +2236,7 @@ function buildLifeBookMonthlyLuckContract(body = {}, structured = {}) {
   const fromStructured = rowsOf(structured?.sewoon?.monthlyHighlights);
   const fromBody = rowsOf(body?.yearlyLuck2026?.monthly || body?.monthlyLuck2026 || body?.wolun2026);
   const source = fromStructured.length ? fromStructured : fromBody;
-  return source.map((row, index) => ({
+  const normalized = source.map((row, index) => ({
     month: Number(row?.month || row?.monthNo || row?.index || index + 1) || index + 1,
     ganji: firstClean(row?.ganji, row?.label, row?.pillar),
     tenGod: firstClean(row?.tenGod, row?.tenGodStem, row?.stemTenGod),
@@ -2225,6 +2246,31 @@ function buildLifeBookMonthlyLuckContract(body = {}, structured = {}) {
     actionGuide: firstClean(row?.actionGuide, row?.advice, row?.action),
     avoidChoice: firstClean(row?.avoidChoice, row?.avoid, row?.warning),
   })).filter((row) => row.ganji || row.tenGod || row.element || row.natalTrigger || row.actionGuide || row.avoidChoice);
+  if (normalized.length >= 12) return normalized.slice(0, 12);
+  const byMonth = new Map(normalized.map((row) => [Number(row.month), row]));
+  const annualTheme = firstClean(
+    body?.yearlyLuck2026?.elementEffect,
+    structured?.sewoon?.analysis,
+    structured?.sewoon?.currentYear?.summary,
+    "annual-flow",
+  );
+  return Array.from({ length: 12 }, (_, index) => {
+    const month = index + 1;
+    const existing = byMonth.get(month);
+    if (existing) return existing;
+    return {
+      month,
+      ganji: "",
+      tenGod: "",
+      element: "",
+      natalTrigger: annualTheme,
+      daeunSewoonRelation: "",
+      actionGuide: `${month}월은 연간 세운 흐름을 기준으로 생활 리듬, 관계, 지출, 회복 루틴을 점검하는 보조 구간입니다.`,
+      avoidChoice: "월별 원자료가 없으므로 단정적 사건 예측 대신 연간 흐름 안에서 조심할 선택만 정리합니다.",
+      source: "fallback-from-year2026",
+      isFallback: true,
+    };
+  });
 }
 
 function buildLifeBookDaeunContract(signals = {}, localSajuJson = {}, structured = {}) {
@@ -2312,9 +2358,41 @@ function buildLifeBookEngineContract({ birthInput = {}, profile = {}, signals = 
   );
   const pillars = localSajuJson?.pillars || {};
   const summary = buildLifeBookEngineSummary({ birthInput, profile, signals, localSajuJson, structured, body });
+  const normalizationWarnings = [
+    ...(structured && typeof structured === "object" ? [] : ["structuredAdvancedReport_missing"]),
+    ...(localSajuJson?.tenGodsByPillar && Object.keys(localSajuJson.tenGodsByPillar).length >= 3 ? [] : ["tenGodsByPillar_sparse"]),
+    ...(Array.isArray(localSajuJson?.sinsal) && localSajuJson.sinsal.length ? [] : ["specialStars_sparse"]),
+    ...(Array.isArray(localSajuJson?.twelveGrowthStages) && localSajuJson.twelveGrowthStages.length >= 3 ? [] : ["twelveStages_sparse"]),
+  ];
   return {
-    version: "life-book-engine-contract-v1",
+    version: "life-book-engine-contract-v2",
     source: firstClean(structured?.metadata?.engineVersion, body?.engineVersion, "normalized-worker-saju"),
+    calculationPolicy: {
+      calendarType: firstClean(birthInput?.calendarType, structured?.input?.calendarType, localSajuJson?.calculationPolicy?.calendarType),
+      timezone: firstClean(birthInput?.timezone, structured?.metadata?.timezone, localSajuJson?.calculationPolicy?.timezone, "Asia/Seoul"),
+      hourPillarTimePolicy: firstClean(structured?.metadata?.hourPillarTimePolicy, localSajuJson?.calculationPolicy?.hourPillarTimePolicy, "TRUE_SOLAR_TIME"),
+      dayChangePolicy: firstClean(structured?.metadata?.dayChangePolicy, localSajuJson?.calculationPolicy?.dayChangePolicy, "MIDNIGHT"),
+      coordinatePolicy: firstClean(localSajuJson?.calculationPolicy?.coordinatePolicy, "birthplace-lat-lng-with-seoul-default"),
+    },
+    sourceTrace: {
+      route: "worker.routes.saju-lifebook",
+      contractBuilder: "buildLifeBookEngineContract",
+      hasStructuredAdvancedReport: Boolean(structured && typeof structured === "object"),
+      hasCanonicalSajuChart: Boolean(body?.canonicalSajuChart),
+      hasQuantumMyeongriJson: Boolean(body?.quantumMyeongriJson),
+      hasAnalysisSignals: Boolean(body?.analysisSignals),
+      localSajuJsonDerivedAt: clean(localSajuJson?.derivedAt),
+      normalizedAt: new Date().toISOString(),
+    },
+    confidence: {
+      pillarCompleteness: ["year", "month", "day", "hour"].reduce((sum, key) => sum + Number(Boolean(clean(pillars?.[key]?.ganji))), 0) / 4,
+      fiveElementCompleteness: localSajuJson?.fiveElements && typeof localSajuJson.fiveElements === "object" ? Math.min(1, Object.keys(localSajuJson.fiveElements).length / 5) : 0,
+      tenGodCompleteness: localSajuJson?.tenGods && typeof localSajuJson.tenGods === "object" ? Math.min(1, Object.keys(localSajuJson.tenGods).length / 4) : 0,
+      daeunCompleteness: Array.isArray(localSajuJson?.daeun) ? Math.min(1, localSajuJson.daeun.length / 3) : 0,
+      sourceCompleteness: structured && typeof structured === "object" ? 1 : 0.72,
+    },
+    normalizationWarnings,
+    validation: null,
     userInfo: {
       name: firstClean(profile?.name, body?.name),
       gender: firstClean(profile?.gender, birthInput?.gender),
@@ -4383,6 +4461,312 @@ function validateLifeBookLocalSajuJson(localSajuJson) {
   };
 }
 
+function validateLifeBookJsonContract({ birthInput = {}, localSajuJson = {}, engineContract = null } = {}) {
+  const hardErrors = [];
+  const softWarnings = [];
+  const evidence = {};
+  const requireText = (path, value, severity = "hard") => {
+    const ok = Boolean(clean(value));
+    evidence[path] = ok;
+    if (!ok) {
+      if (severity === "hard") hardErrors.push(`${path}_missing`);
+      else softWarnings.push(`${path}_missing`);
+    }
+    return ok;
+  };
+  const requireObjectKeys = (path, value, minimum, severity = "hard") => {
+    const count = value && typeof value === "object" ? Object.keys(value).filter((key) => clean(key)).length : 0;
+    const ok = count >= minimum;
+    evidence[path] = { ok, count, minimum };
+    if (!ok) {
+      if (severity === "hard") hardErrors.push(`${path}_incomplete`);
+      else softWarnings.push(`${path}_incomplete`);
+    }
+    return ok;
+  };
+  const requireArrayLength = (path, value, minimum, severity = "hard") => {
+    const count = Array.isArray(value) ? value.length : 0;
+    const ok = count >= minimum;
+    evidence[path] = { ok, count, minimum };
+    if (!ok) {
+      if (severity === "hard") hardErrors.push(`${path}_incomplete`);
+      else softWarnings.push(`${path}_incomplete`);
+    }
+    return ok;
+  };
+
+  requireText("birthInput.birthDate", birthInput?.birthDate || localSajuJson?.birthInput?.birthDate);
+  requireText("birthInput.birthTime", birthInput?.birthTime || localSajuJson?.birthInput?.birthTime);
+  requireText("birthInput.timezone", birthInput?.timezone || localSajuJson?.birthInput?.timezone || localSajuJson?.profile?.timezone, "soft");
+
+  ["year", "month", "day", "hour"].forEach((key) => {
+    const pillar = localSajuJson?.pillars?.[key] || {};
+    requireText(`pillars.${key}.stem`, pillar.stem);
+    requireText(`pillars.${key}.branch`, pillar.branch);
+    requireText(`pillars.${key}.ganji`, pillar.ganji || `${clean(pillar.stem)}${clean(pillar.branch)}`);
+  });
+
+  requireText("dayMaster", localSajuJson?.dayMaster);
+  requireText("monthBranch", localSajuJson?.monthBranch);
+  requireObjectKeys("fiveElements", localSajuJson?.fiveElements, 5);
+  requireObjectKeys("tenGods", localSajuJson?.tenGods, 4);
+  requireObjectKeys("tenGodsByPillar", localSajuJson?.tenGodsByPillar, 3, "soft");
+  requireText("yongshin.usefulElement", localSajuJson?.yongshin?.usefulElement || localSajuJson?.usefulGods?.usefulElement);
+  requireArrayLength("yongshin.usefulElements", localSajuJson?.yongshin?.usefulElements || localSajuJson?.usefulGods?.usefulElements, 1);
+  requireArrayLength("yongshin.cautionElements", localSajuJson?.yongshin?.cautionElements || localSajuJson?.usefulGods?.cautionElements, 1, "soft");
+  requireArrayLength("daeun.cycles", localSajuJson?.daeun, 3);
+  requireText("daeun.current.label", localSajuJson?.currentDaeun?.label || localSajuJson?.currentDaeun?.ganji);
+  requireText("daeun.next.label", localSajuJson?.nextDaeun?.label || localSajuJson?.nextDaeun?.ganji, "soft");
+  requireText("yearlyFlow.year", localSajuJson?.yearlyFlow?.year);
+  requireText("yearlyFlow.pillar", localSajuJson?.yearlyFlow?.pillar, "soft");
+  requireArrayLength("twelveGrowthStages", localSajuJson?.twelveGrowthStages, 3, "soft");
+  requireArrayLength("sinsal", localSajuJson?.sinsal, 1, "soft");
+
+  if (engineContract && typeof engineContract === "object") {
+    requireText("engineContract.version", engineContract.version);
+    requireText("engineContract.source", engineContract.source);
+    requireText("engineContract.natal.dayPillar", engineContract?.natal?.dayPillar);
+    requireObjectKeys("engineContract.fiveElements.counts", engineContract?.fiveElements?.counts, 5);
+    requireArrayLength("engineContract.daeun.cycles", engineContract?.daeun?.cycles, 3);
+    requireText("engineContract.year2026.ganji", engineContract?.year2026?.ganji, "soft");
+    requireArrayLength("engineContract.monthlyLuck2026", engineContract?.monthlyLuck2026, 12, "soft");
+  }
+
+  const hardPenalty = hardErrors.length * 8;
+  const softPenalty = softWarnings.length * 2;
+  return {
+    ok: hardErrors.length === 0,
+    hardErrors: Array.from(new Set(hardErrors)),
+    softWarnings: Array.from(new Set(softWarnings)),
+    evidence,
+    qualityScore: clamp(100 - hardPenalty - softPenalty, 0, 100),
+  };
+}
+
+function getLifeBookContractPathValue(source = {}, path = "") {
+  return String(path || "").split(".").filter(Boolean).reduce((current, key) => {
+    if (current == null) return undefined;
+    return current?.[key];
+  }, source);
+}
+
+function hasLifeBookContractEvidence(source = {}, path = "") {
+  const value = getLifeBookContractPathValue(source, path);
+  if (Array.isArray(value)) return value.length > 0;
+  if (value && typeof value === "object") return Object.keys(value).length > 0;
+  return Boolean(clean(value));
+}
+
+function roundLifeBookRatio(value = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.round(n * 1000) / 1000 : 0;
+}
+
+function resolveLifeBookEngineFieldPointers(label = "") {
+  const field = clean(label);
+  const pointers = new Set(["natal.pillars", "natal.dayMaster", "tenGods.distribution", "fiveElements.counts"]);
+  const add = (...items) => items.forEach((item) => pointers.add(item));
+
+  if (/대운|세운|월운|2026|운세|시기|흐름|연도|로드맵/i.test(field)) {
+    add("daeun.current", "daeun.cycles", "year2026.ganji", "year2026.theme");
+  }
+  if (/용신|희신|기신|조후|강약|일간|월령|월지|계절|균형|오행/i.test(field)) {
+    add("strengthJohuYongshin.strength", "strengthJohuYongshin.johu", "strengthJohuYongshin.yongshin.primary", "fiveElements.yongshinCandidates");
+  }
+  if (/십성|격국|사회|직업|재물|돈|관성|재성|식상|인성|성공/i.test(field)) {
+    add("tenGods.byPillar", "gyeokguk.primary", "gyeokguk.reasoning", "year2026.career", "year2026.wealth");
+  }
+  if (/관계|연애|결혼|배우자|인연|파트너|사랑/i.test(field)) {
+    add("year2026.relationship", "year2026.love", "summary.relationshipPattern");
+  }
+  if (/건강|심신|회복|스트레스|수면|몸|마음/i.test(field)) {
+    add("year2026.health", "summary.healthEnergyPattern", "strengthJohuYongshin.johu");
+  }
+  if (/신살|십이운성|12운성|도화|홍염|화개|귀문|특수|코드/i.test(field)) {
+    add("specialStars", "twelveStages.byPillar");
+  }
+  if (/합|충|형|파|해|원진|귀문|관계성|상호작용/i.test(field)) {
+    add("interactions", "interactions.dochung", "interactions.clashAnalysis");
+  }
+
+  return Array.from(pointers);
+}
+
+function buildLifeBookChapterEvidenceCoverage(chapterPlans = [], engineContract = {}) {
+  const plans = Array.isArray(chapterPlans) ? chapterPlans : [];
+  const chapters = plans.map((plan, index) => {
+    const labels = Array.from(new Set((Array.isArray(plan?.sections) ? plan.sections : [])
+      .flatMap((section) => Array.isArray(section?.requiredEngineFields) ? section.requiredEngineFields : [])
+      .map(clean)
+      .filter(Boolean)));
+    const requiredPointers = Array.from(new Set(labels.flatMap(resolveLifeBookEngineFieldPointers)));
+    const coveredPointers = requiredPointers.filter((path) => hasLifeBookContractEvidence(engineContract, path));
+    const missingPointers = requiredPointers.filter((path) => !coveredPointers.includes(path));
+    const coverageRatio = requiredPointers.length ? coveredPointers.length / requiredPointers.length : 1;
+    return {
+      chapter: index + 1,
+      chapterId: clean(plan?.chapterId || String(index + 1).padStart(2, "0")),
+      requiredFieldCount: labels.length,
+      requiredPointerCount: requiredPointers.length,
+      coveredPointerCount: coveredPointers.length,
+      coverageRatio: roundLifeBookRatio(coverageRatio),
+      requiredPointers,
+      missingPointers,
+    };
+  });
+  const totalRequired = chapters.reduce((sum, chapter) => sum + Number(chapter.requiredPointerCount || 0), 0);
+  const totalCovered = chapters.reduce((sum, chapter) => sum + Number(chapter.coveredPointerCount || 0), 0);
+  const lowCoverageChapters = chapters.filter((chapter) => Number(chapter.coverageRatio || 0) < 0.72);
+  return {
+    ok: lowCoverageChapters.length === 0,
+    totalRequired,
+    totalCovered,
+    coverageRatio: roundLifeBookRatio(totalRequired ? totalCovered / totalRequired : 1),
+    lowCoverageChapters: lowCoverageChapters.map((chapter) => ({
+      chapter: chapter.chapter,
+      chapterId: chapter.chapterId,
+      coverageRatio: chapter.coverageRatio,
+      missingPointers: chapter.missingPointers.slice(0, 8),
+    })),
+    chapters,
+  };
+}
+
+function normalizeLifeBookCanonicalSpecialStars(engineSpecialStars, localSpecialStars) {
+  if (Array.isArray(engineSpecialStars)) return engineSpecialStars;
+  if (Array.isArray(engineSpecialStars?.active)) return engineSpecialStars.active;
+  if (Array.isArray(engineSpecialStars?.requested)) {
+    return engineSpecialStars.requested
+      .map((name) => ({ name: clean(name) }))
+      .filter((item) => clean(item.name));
+  }
+  if (Array.isArray(localSpecialStars)) return localSpecialStars;
+  return [];
+}
+
+function buildLifeBookCanonicalSajuChartFromContract(engineContract = {}, localSajuJson = {}) {
+  const counts = engineContract?.fiveElements?.counts || localSajuJson?.fiveElements || {};
+  const countEntries = Object.entries(counts || {}).map(([key, value]) => [key, safeNumber(value, 0)]);
+  const sortedCounts = countEntries.slice().sort((a, b) => Number(b[1]) - Number(a[1]));
+  const pillars = engineContract?.natal?.pillars || localSajuJson?.pillars || {};
+  const specialStars = normalizeLifeBookCanonicalSpecialStars(engineContract?.specialStars, localSajuJson?.sinsal);
+  return {
+    version: "life-book-canonical-worker-v1",
+    input: {
+      name: clean(engineContract?.userInfo?.name || localSajuJson?.profile?.name),
+      gender: clean(engineContract?.userInfo?.gender || localSajuJson?.profile?.gender),
+      calendarType: clean(engineContract?.userInfo?.calendarType || localSajuJson?.birthInput?.calendarType),
+      birthDate: clean(engineContract?.userInfo?.birthDate || localSajuJson?.birthInput?.birthDate),
+      birthTime: clean(engineContract?.userInfo?.birthTime || localSajuJson?.birthInput?.birthTime),
+      birthPlace: clean(engineContract?.userInfo?.birthPlace || localSajuJson?.birthInput?.birthplace),
+      timezone: clean(engineContract?.userInfo?.timezone || localSajuJson?.birthInput?.timezone),
+    },
+    calculationMeta: {
+      methodVersion: clean(engineContract?.source || "normalized-worker-saju"),
+      contractVersion: clean(engineContract?.version),
+      policy: engineContract?.calculationPolicy || localSajuJson?.calculationPolicy || {},
+      sourceTrace: engineContract?.sourceTrace || localSajuJson?.sourceTrace || {},
+    },
+    fourPillars: {
+      year: pillars.year || {},
+      month: pillars.month || {},
+      day: pillars.day || {},
+      hour: pillars.hour || {},
+    },
+    dayMaster: {
+      stem: clean(engineContract?.natal?.dayMaster || localSajuJson?.dayMaster),
+      branch: clean(localSajuJson?.dayBranch || pillars?.day?.branch),
+      pillar: clean(engineContract?.natal?.dayPillar || pillars?.day?.ganji),
+    },
+    fiveElements: {
+      ...counts,
+      dominant: clean(engineContract?.fiveElements?.excessive?.[0] || localSajuJson?.elementBalance?.dominant || sortedCounts?.[0]?.[0]),
+      weakest: clean(engineContract?.fiveElements?.lacking?.[0] || localSajuJson?.elementBalance?.deficient || sortedCounts?.[sortedCounts.length - 1]?.[0]),
+      missing: countEntries.filter(([, value]) => Number(value) <= 0).map(([key]) => key),
+    },
+    tenGods: {
+      distribution: engineContract?.tenGods?.distribution || localSajuJson?.tenGods || {},
+      byPillar: engineContract?.tenGods?.byPillar || localSajuJson?.tenGodsByPillar || {},
+      dominant: clean(engineContract?.tenGods?.dominant),
+    },
+    usefulGods: {
+      yongsin: {
+        element: clean(engineContract?.strengthJohuYongshin?.yongshin?.primary || localSajuJson?.yongshin?.usefulElement),
+        candidates: engineContract?.fiveElements?.yongshinCandidates || localSajuJson?.yongshin?.usefulElements || [],
+      },
+      huisin: {
+        elements: engineContract?.strengthJohuYongshin?.yongshin?.huishin || [],
+      },
+      gisin: {
+        elements: engineContract?.strengthJohuYongshin?.yongshin?.gishin || localSajuJson?.yongshin?.cautionElements || [],
+      },
+    },
+    yongshinAnalysis: {
+      strength: engineContract?.strengthJohuYongshin?.strength || localSajuJson?.strength || {},
+      johu: engineContract?.strengthJohuYongshin?.johu || localSajuJson?.johu || {},
+      reasoning: clean(engineContract?.strengthJohuYongshin?.yongshin?.reasoning),
+      strategy: clean(engineContract?.strengthJohuYongshin?.yongshin?.strategy),
+    },
+    relations: engineContract?.interactions || localSajuJson?.interactions || {},
+    luckCycles: {
+      currentDaewoon: engineContract?.daeun?.current || localSajuJson?.currentDaeun || null,
+      nextDaewoon: engineContract?.daeun?.next || localSajuJson?.nextDaeun || null,
+      cycles: engineContract?.daeun?.cycles || localSajuJson?.daeun || [],
+    },
+    annualLuck: engineContract?.year2026 || localSajuJson?.yearlyFlow || {},
+    monthlyLuck: engineContract?.monthlyLuck2026 || [],
+    specialStars,
+    twelveStages: engineContract?.twelveStages?.byPillar || localSajuJson?.twelveGrowthStages || [],
+    validation: null,
+  };
+}
+
+function validateLifeBookCanonicalSajuChart(canonical = {}) {
+  const missing = [];
+  const softWarnings = [];
+  const requireText = (path, value, severity = "hard") => {
+    if (clean(value)) return;
+    if (severity === "hard") missing.push(path);
+    else softWarnings.push(path);
+  };
+  const requireObjectKeys = (path, value, minimum, severity = "hard") => {
+    const count = value && typeof value === "object" ? Object.keys(value).filter((key) => clean(key)).length : 0;
+    if (count >= minimum) return;
+    if (severity === "hard") missing.push(path);
+    else softWarnings.push(path);
+  };
+  const requireArrayLength = (path, value, minimum, severity = "hard") => {
+    const count = Array.isArray(value) ? value.length : 0;
+    if (count >= minimum) return;
+    if (severity === "hard") missing.push(path);
+    else softWarnings.push(path);
+  };
+
+  requireText("input.birthDate", canonical?.input?.birthDate);
+  requireText("input.birthTime", canonical?.input?.birthTime);
+  requireText("calculationMeta.contractVersion", canonical?.calculationMeta?.contractVersion);
+  ["year", "month", "day", "hour"].forEach((key) => {
+    requireText(`fourPillars.${key}.stem`, canonical?.fourPillars?.[key]?.stem);
+    requireText(`fourPillars.${key}.branch`, canonical?.fourPillars?.[key]?.branch);
+  });
+  requireText("dayMaster.stem", canonical?.dayMaster?.stem);
+  requireObjectKeys("fiveElements", canonical?.fiveElements, 5);
+  requireObjectKeys("tenGods.distribution", canonical?.tenGods?.distribution, 4);
+  requireText("usefulGods.yongsin.element", canonical?.usefulGods?.yongsin?.element);
+  requireArrayLength("luckCycles.cycles", canonical?.luckCycles?.cycles, 3);
+  requireText("annualLuck.ganji", canonical?.annualLuck?.ganji, "soft");
+  requireArrayLength("monthlyLuck", canonical?.monthlyLuck, 12, "soft");
+  requireArrayLength("specialStars", canonical?.specialStars, 1, "soft");
+  requireArrayLength("twelveStages", canonical?.twelveStages, 3, "soft");
+
+  return {
+    ok: missing.length === 0,
+    missing,
+    softWarnings,
+    qualityScore: clamp(100 - (missing.length * 8) - (softWarnings.length * 2), 0, 100),
+  };
+}
+
 function repairLifeBookLocalSajuJson(localSajuJson, birthInput, profile, signals) {
   const payload = deriveLifeBookPayload(profile, signals, [], { calendarType: birthInput?.calendarType });
   const engineProfile = signals?.engineProfile || {};
@@ -5661,6 +6045,10 @@ export const __lifeBookTestUtils = {
   deriveLocalSignals,
   buildLifeBookLocalSajuJson,
   validateLifeBookLocalSajuJson,
+  validateLifeBookJsonContract,
+  buildLifeBookChapterEvidenceCoverage,
+  buildLifeBookCanonicalSajuChartFromContract,
+  validateLifeBookCanonicalSajuChart,
   buildLifeBookLLMInput,
   buildLifeBookEngineContract,
   buildLifeBookEngineSummary,
@@ -6036,10 +6424,11 @@ async function handlePrepare(request, env) {
   const signals = deriveLocalSignals(profile, body?.sajuData || "", body?.analysisSignals || {});
   let localSajuJson = buildLifeBookLocalSajuJson(birthInput, profile, signals, []);
   let localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
-  if (!localSajuValidation.ok) {
+  if (!localSajuValidation.ok || (Array.isArray(localSajuValidation.warnings) && localSajuValidation.warnings.length)) {
     logLifeBookServer("LocalSajuValidationFailed", {
       sessionId,
       missing: localSajuValidation.missing,
+      warnings: localSajuValidation.warnings,
     });
     localSajuJson = repairLifeBookLocalSajuJson(localSajuJson, birthInput, profile, signals);
     localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
@@ -6051,16 +6440,78 @@ async function handlePrepare(request, env) {
       });
     }
   }
+  let jsonContractValidation = validateLifeBookJsonContract({ birthInput, localSajuJson });
+  if (!jsonContractValidation.ok) {
+    logLifeBookServer("LifeBookJsonContractRepairStart", {
+      sessionId,
+      hardErrors: jsonContractValidation.hardErrors,
+      softWarnings: jsonContractValidation.softWarnings,
+    });
+    localSajuJson = repairLifeBookLocalSajuJson(localSajuJson, birthInput, profile, signals);
+    localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
+    jsonContractValidation = validateLifeBookJsonContract({ birthInput, localSajuJson });
+  }
+  if (!jsonContractValidation.ok) {
+    throw Object.assign(new Error("인생의 책 JSON 계산 데이터가 생성 기준을 충족하지 못했습니다. 출생 정보와 사주 계산 결과를 다시 확인해 주세요."), {
+      code: "LIFEBOOK_JSON_CONTRACT_INVALID",
+      status: 422,
+      details: jsonContractValidation,
+    });
+  }
   logLifeBookServer("LocalCalculationSuccess", {
     sessionId,
     dayMasterResolved: Boolean(localSajuJson?.dayMaster),
     pillarCount: Number(Boolean(localSajuJson?.pillars?.year?.ganji)) + Number(Boolean(localSajuJson?.pillars?.month?.ganji)) + Number(Boolean(localSajuJson?.pillars?.day?.ganji)) + Number(Boolean(localSajuJson?.pillars?.hour?.ganji)),
     daewoonResolved: Boolean(localSajuJson?.currentDaeun?.label),
     yearlyLuckResolved: Boolean(localSajuJson?.yearlyFlow?.year),
+    jsonContractScore: jsonContractValidation.qualityScore,
+    jsonContractWarnings: jsonContractValidation.softWarnings,
   });
 
   const requestId = clean(body?.requestId || body?.accessGrant?.requestId || reportId);
   const llmInput = buildLifeBookLLMInput(birthInput, profile, signals, localSajuJson, body);
+  const engineContractValidation = validateLifeBookJsonContract({
+    birthInput,
+    localSajuJson,
+    engineContract: llmInput.engineContract,
+  });
+  if (!engineContractValidation.ok) {
+    throw Object.assign(new Error("인생의 책 엔진 계약 JSON이 생성 기준을 충족하지 못했습니다. 계산 데이터를 보강한 뒤 다시 생성해 주세요."), {
+      code: "LIFEBOOK_ENGINE_CONTRACT_INVALID",
+      status: 422,
+      details: engineContractValidation,
+    });
+  }
+  llmInput.engineContract.validation = engineContractValidation;
+  const canonicalSajuChart = buildLifeBookCanonicalSajuChartFromContract(llmInput.engineContract, localSajuJson);
+  const canonicalValidation = validateLifeBookCanonicalSajuChart(canonicalSajuChart);
+  canonicalSajuChart.validation = canonicalValidation;
+  llmInput.engineContract.canonicalSajuChart = canonicalSajuChart;
+  localSajuJson.canonicalSajuChart = canonicalSajuChart;
+  if (!canonicalValidation.ok) {
+    throw Object.assign(new Error("인생의 책 canonical 사주 JSON이 생성 기준을 충족하지 못했습니다. 계산 데이터를 보강한 뒤 다시 생성해 주세요."), {
+      code: "LIFEBOOK_CANONICAL_JSON_INVALID",
+      status: 422,
+      details: canonicalValidation,
+    });
+  }
+  const chapterEvidenceCoverage = buildLifeBookChapterEvidenceCoverage(llmInput.engineContract?.chapterPlans || buildLifeBookChapterPlans(), llmInput.engineContract);
+  if (!chapterEvidenceCoverage.ok) {
+    throw Object.assign(new Error("인생의 책 챕터별 JSON 근거가 충분하지 않습니다. 계산 데이터를 보강한 뒤 다시 생성해 주세요."), {
+      code: "LIFEBOOK_CHAPTER_EVIDENCE_INSUFFICIENT",
+      status: 422,
+      details: chapterEvidenceCoverage,
+    });
+  }
+  logLifeBookServer("LifeBookJsonContractValidated", {
+    sessionId,
+    requestId,
+    localScore: jsonContractValidation.qualityScore,
+    engineScore: engineContractValidation.qualityScore,
+    canonicalScore: canonicalValidation.qualityScore,
+    evidenceCoverageRatio: chapterEvidenceCoverage.coverageRatio,
+    softWarnings: engineContractValidation.softWarnings,
+  });
   logLifeBookServer("GeminiDraftBuildStart", {
     requestId,
     sessionId,
@@ -6116,6 +6567,33 @@ async function handlePrepare(request, env) {
   const finalQualityWarnings = Array.isArray(qualityEvaluation.softWarnings) ? qualityEvaluation.softWarnings : [];
   const finalQualityScore = Number(qualityEvaluation.qualityScore || 0);
   const repairedCategoryCount = Number(generatedLifeBook.deterministicReinforcedCount || 0);
+  const finalQualityBlockingWarnings = (Array.isArray(qualityEvaluation.warningItems) ? qualityEvaluation.warningItems : [])
+    .filter((item) => clean(item?.severity) === "high")
+    .map((item) => clean(item?.code))
+    .filter(Boolean);
+
+  if (finalQualityBlockingWarnings.length) {
+    throw Object.assign(new Error("인생의 책 원고 품질 기준을 충족하지 못했습니다. 핵심 원고를 보강한 뒤 다시 생성해 주세요."), {
+      code: "LIFEBOOK_QUALITY_BLOCKED",
+      status: 422,
+      details: {
+        blockingWarnings: finalQualityBlockingWarnings,
+        qualityScore: finalQualityScore,
+        totalLength: qualityEvaluation.totalLength,
+      },
+    });
+  }
+
+  if (!generatedLifeBook.finalQualityReviewPassed) {
+    throw Object.assign(new Error("인생의 책 최종 검수 기준을 통과하지 못했습니다. 원고를 보강한 뒤 다시 생성해 주세요."), {
+      code: "LIFEBOOK_FINAL_QUALITY_REVIEW_FAILED",
+      status: 422,
+      details: {
+        errors: generatedLifeBook.finalQualityReviewErrors || generatedLifeBook.finalManuscriptErrors || [],
+        warnings: generatedLifeBook.finalQualityReviewWarnings || [],
+      },
+    });
+  }
 
   logLifeBookServer("LifeBookFinalizeReady", {
     sessionId,
@@ -6150,14 +6628,19 @@ async function handlePrepare(request, env) {
     finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
     finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
     finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
+    jsonContractValidation: engineContractValidation,
+    canonicalValidation,
+    chapterEvidenceCoverage,
     finalManuscriptMarkdown,
     pdfHtml: generateLifeBookPdfFromChapters(profile, signals, completedChapters, generatedAt, finalManuscriptMarkdown),
   });
   const requestOrigin = new URL(request.url).origin;
-  const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
-  pdfReady.pdfUrl = archiveUrl;
-  pdfReady.htmlUrl = archiveUrl;
-  pdfReady.downloadUrl = archiveUrl;
+  const archiveApiUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
+  const archiveDocumentUrl = `${archiveApiUrl}?format=html`;
+  pdfReady.archiveApiUrl = archiveApiUrl;
+  pdfReady.pdfUrl = archiveDocumentUrl;
+  pdfReady.htmlUrl = archiveDocumentUrl;
+  pdfReady.downloadUrl = archiveDocumentUrl;
   pdfReady.storageKey = `premium-archive:life-book:${reportId}`;
   pdfReady.mimeType = "text/html";
 
@@ -6219,6 +6702,9 @@ async function handlePrepare(request, env) {
       finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
       finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
       finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
+      jsonContractValidation: engineContractValidation,
+      canonicalValidation,
+      chapterEvidenceCoverage,
       localSajuJson,
       lifeBookEngineContract: llmInput.engineContract,
       pdfReady,
@@ -6259,6 +6745,9 @@ async function handlePrepare(request, env) {
     finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
     finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
     finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
+    jsonContractValidation: engineContractValidation,
+    canonicalValidation,
+    chapterEvidenceCoverage,
     chapters: completedChapters,
     pdfReady,
     pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),

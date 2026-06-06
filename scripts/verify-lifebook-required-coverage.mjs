@@ -1,5 +1,4 @@
-import { LIFE_BOOK_CHAPTERS } from "../worker/lib/saju/life-book/chapterConfig.js";
-import { validateLifeBookChapter } from "../worker/lib/saju/life-book/validateLifeBookChapter.js";
+import { __lifeBookTestUtils as utils } from "../worker/routes/saju-lifebook.js";
 
 function assert(condition, message) {
   if (!condition) {
@@ -7,159 +6,236 @@ function assert(condition, message) {
   }
 }
 
-function toText(value) {
+function text(value) {
   return String(value == null ? "" : value).trim();
 }
 
-function escapeRegExp(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function countLiteralOccurrences(source, token) {
-  if (!token) return 0;
-  const re = new RegExp(escapeRegExp(token), "g");
-  const matches = String(source || "").match(re);
-  return matches ? matches.length : 0;
-}
-
-function buildValidSampleResult(chapterConfig) {
-  const requiredCoverage = Array.isArray(chapterConfig?.requiredCoverage)
-    ? chapterConfig.requiredCoverage.map((item) => toText(item)).filter(Boolean)
-    : [];
-
-  const blocks = [
-    `## ${toText(chapterConfig.roman)}. ${toText(chapterConfig.title)}`,
-    `${toText(chapterConfig.title)} 챕터는 계산 데이터 기반의 실행 전략으로 구성합니다.`,
-    "## 데이터 핵심 해석",
-    "년주·월주·일주·시주와 오행, 십성 맥락을 연결해 핵심 패턴을 정리합니다.",
-    "## 현실 적용 원칙",
-    "관계·직업·재물·건강을 분리해 우선순위를 정하고 실행 순서를 명확히 둡니다.",
-    "## 필수 작성 항목 반영",
-  ];
-
-  requiredCoverage.forEach((item, index) => {
-    blocks.push(`### ${item}`);
-    blocks.push(`${item} 항목은 ${index + 1}번 근거로 반영하며, 실제 선택 기준과 행동 지침으로 이어지게 정리합니다.`);
-  });
-
-  let seq = 1;
-  while (blocks.join("\n\n").length < Math.max(2600, Number(chapterConfig?.minLength || 2500))) {
-    blocks.push(`### 실행 확장 ${seq}`);
-    blocks.push(`실행 확장 ${seq}에서는 사주 구조와 생활 루틴을 연결해 반복 실수 방지 규칙을 구체화합니다. ${seq}번째 점검 문장은 중복 방지를 위해 고유 번호를 유지합니다.`);
-    seq += 1;
-  }
-
+function buildProfile() {
   return {
-    id: toText(chapterConfig.id),
-    roman: toText(chapterConfig.roman),
-    title: toText(chapterConfig.title),
-    subtitle: toText(chapterConfig.subtitle),
-    contentMarkdown: blocks.join("\n\n"),
-    summary: `${toText(chapterConfig.title)}의 필수 항목을 모두 반영해 실행 기준을 확정했습니다.`,
-    practicalAdvice: [
-      "핵심 결정 1개를 먼저 고정하고 주간 단위로 결과를 기록하세요.",
-      "사람·일·돈의 우선순위를 동시에 바꾸지 말고 순차적으로 조정하세요.",
-      "과부하 신호가 보이면 즉시 회복 루틴을 실행해 손실을 차단하세요.",
-    ],
-    warnings: [],
+    name: "Coverage User",
+    gender: "male",
+    calendarType: "solar",
+    year: 1991,
+    month: 2,
+    day: 20,
+    hour: 7,
+    minute: 30,
+    timeKnown: true,
+    birthplace: "Seoul",
+    birthIso: "1991-02-20 07:30",
   };
 }
 
-function pickLikelyUniqueCoverageItem(contentMarkdown, requiredCoverage) {
-  let selected = "";
-  for (const item of requiredCoverage) {
-    const count = countLiteralOccurrences(contentMarkdown, item);
-    if (count === 1) {
-      selected = item;
-      break;
-    }
-  }
-  if (!selected) {
-    selected = requiredCoverage.slice().sort((a, b) => b.length - a.length)[0] || "";
-  }
-  return selected;
+function buildSignals() {
+  return {
+    dayMaster: "gap",
+    yearStem: "sin",
+    monthStem: "gyeong",
+    hourStem: "byeong",
+    yearBranch: "mi",
+    monthBranch: "in",
+    dayBranch: "ja",
+    hourBranch: "jin",
+    useful: "wood",
+    support: "water",
+    caution: "metal",
+    dominantElement: "wood",
+    weakestElement: "fire",
+    powerLabel: "balanced",
+    currentDaewun: "gyeongsin",
+    nextDaewun: "sinyu",
+    currentYearPillar: "byeongo",
+    geokguk: "resource-centered structure",
+    relationshipFocus: "steady partnership rhythm",
+    spouseSignal: "relationship signals work through trust and timing.",
+    wealthSignal: "wealth grows through repeatable systems and careful pacing.",
+    careerSignal: "career flow favors expertise, planning, and visible output.",
+    talentSignal: "talent becomes stronger when ideas are organized into practice.",
+    timing: { current: "gyeongsin", next: "sinyu", year: 2026, yearPillar: "byeongo" },
+    currentDaewun: "gyeongsin",
+    nextDaewun: "sinyu",
+    currentYear: 2026,
+    currentYearPillar: "byeongo",
+    daewunCycles: [
+      { label: "gyeongsin", startAge: 32, endAge: 41 },
+      { label: "sinyu", startAge: 42, endAge: 51 },
+      { label: "imsa", startAge: 52, endAge: 61 },
+    ],
+    currentDaeunNode: { label: "gyeongsin", startAge: 32, endAge: 41 },
+    nextDaeunNode: { label: "sinyu", startAge: 42, endAge: 51 },
+    elementWeights: { wood: 25, fire: 20, earth: 20, metal: 20, water: 15 },
+    tenGodCounts: { resource: 2, wealth: 1, officer: 1, output: 1 },
+    tenGodByPillar: { year: "resource", month: "wealth", day: "self", hour: "output" },
+    twelveGrowthStages: [
+      { pillar: "year", stage: "crown" },
+      { pillar: "month", stage: "growth" },
+      { pillar: "day", stage: "birth" },
+    ],
+    specialStars: ["dohwa", "hwagae"],
+    weakSignals: ["fire rhythm", "rest rhythm"],
+    topTenGod: "resource",
+  };
 }
 
-function removeAllLiteral(source, token) {
-  if (!token) return String(source || "");
-  return String(source || "").replace(new RegExp(escapeRegExp(token), "g"), "");
+function categoryBody(chapter, categoryTitle, index) {
+  const focus = Array.isArray(chapter?.engineFocus) ? chapter.engineFocus.map(text).filter(Boolean) : [];
+  const focusLine = focus.length ? `Core calculation focus: ${focus.join(", ")}.` : "Core calculation focus: natal pillars, ten gods, elements, and timing.";
+  const base = [
+    `${categoryTitle} is interpreted from the user's natal pillars, day master, monthly branch, useful element, ten-god balance, and current timing.`,
+    focusLine,
+    "The reading separates evidence, interpretation, practical decision criteria, caution points, and a thirty-day action rhythm so the result stays precise and usable.",
+    `For this section, action step ${index + 1} is to choose one measurable routine, review it weekly, and adjust relationships, work, money, and recovery without exaggerating good or difficult luck.`,
+    "The tone remains professional and mystical while avoiding absolute claims, fatalistic wording, internal implementation details, and unsupported certainty.",
+  ].join(" ");
+  return utils.ensureCategoryLength(
+    base,
+    chapter.id,
+    categoryTitle,
+    index,
+    utils.LIFEBOOK_MIN_CATEGORY_CHARS + 80,
+  );
 }
 
-function findActuallyDetectableMissingCase(validSample, chapter, requiredCoverage) {
-  for (const item of requiredCoverage) {
-    const candidate = {
-      ...validSample,
-      contentMarkdown: removeAllLiteral(validSample.contentMarkdown, item),
+function buildValidChapter(chapter) {
+  const categories = chapter.categories.map((categoryTitle, index) => {
+    const finalText = categoryBody(chapter, categoryTitle, index);
+    return {
+      id: String(index + 1),
+      title: categoryTitle,
+      localSummary: finalText,
+      finalText,
+      order: index + 1,
     };
-    const check = validateLifeBookChapter(candidate, chapter, []);
-    const hasMissing = Array.isArray(check.errors) && check.errors.includes("CHAPTER_REQUIRED_COVERAGE_MISSING");
-    if (!check.ok && hasMissing) {
-      return {
-        removedItem: item,
-        check,
-      };
-    }
-  }
-  return null;
+  });
+  const finalText = [
+    chapter.title,
+    chapter.subtitle || "",
+    ...(Array.isArray(chapter.engineFocus) ? chapter.engineFocus : []),
+    ...categories.map((category) => `${category.title}\n${category.finalText}`),
+  ].filter(Boolean).join("\n\n");
+  return {
+    id: chapter.id,
+    roman: chapter.roman,
+    title: chapter.title,
+    subtitle: chapter.subtitle,
+    chapterOpening: finalText.slice(0, 1200),
+    categories,
+    finalText,
+    text: finalText,
+    reviewedMarkdown: finalText,
+    editedMarkdown: finalText,
+    mergedMarkdown: finalText,
+    source: "verify-lifebook-required-coverage",
+  };
 }
 
 function run() {
-  const chapters = Array.isArray(LIFE_BOOK_CHAPTERS) ? LIFE_BOOK_CHAPTERS : [];
-  assert(chapters.length === 13, `[lifebook-required-coverage] expected 13 chapters, got ${chapters.length}`);
+  const blueprints = Array.isArray(utils.CHAPTER_BLUEPRINTS) ? utils.CHAPTER_BLUEPRINTS : [];
+  assert(blueprints.length === 13, `[lifebook-required-coverage] expected 13 blueprints, got ${blueprints.length}`);
+  assert(Number(utils.LIFEBOOK_A4_TOTAL_TARGET?.pages || 0) === 100, "[lifebook-required-coverage] expected 100 target pages");
+
+  const categoryCount = blueprints.reduce((sum, chapter) => sum + (Array.isArray(chapter.categories) ? chapter.categories.length : 0), 0);
+  assert(categoryCount >= 78, `[lifebook-required-coverage] expected at least 78 categories, got ${categoryCount}`);
+  blueprints.forEach((chapter, index) => {
+    const categories = Array.isArray(chapter.categories) ? chapter.categories : [];
+    assert(categories.length > 0, `[lifebook-required-coverage] chapter ${index + 1} has no categories`);
+  });
+
+  const chapters = blueprints.map(buildValidChapter);
+  const structure = utils.validateLifeBookStructure(chapters);
+  assert(structure.ok, `[lifebook-required-coverage] valid sample structure failed: ${JSON.stringify(structure.blockingErrors || [])}`);
+
+  const quality = utils.evaluateLifeBookQuality(chapters);
+  const highWarnings = (Array.isArray(quality.warningItems) ? quality.warningItems : []).filter((item) => text(item?.severity) === "high");
+  assert(highWarnings.length === 0, `[lifebook-required-coverage] valid sample has high warnings: ${JSON.stringify(highWarnings)}`);
 
   const reportRows = [];
+  blueprints.forEach((blueprint, index) => {
+    const chapter = chapters[index];
+    const generatedCheck = utils.validateLifeBookGeneratedChapter(chapter, blueprint);
+    assert(generatedCheck.ok, `[lifebook-required-coverage] chapter ${blueprint.id} generated check failed: ${JSON.stringify(generatedCheck.errors || [])}`);
 
-  for (const chapter of chapters) {
-    const chapterNo = Number(chapter?.number || 0);
-    const chapterId = toText(chapter?.id);
-    const requiredCoverage = Array.isArray(chapter?.requiredCoverage)
-      ? chapter.requiredCoverage.map((item) => toText(item)).filter(Boolean)
-      : [];
-
-    assert(requiredCoverage.length > 0, `[lifebook-required-coverage] chapter ${chapterNo} (${chapterId}) has empty requiredCoverage`);
-
-    const validSample = buildValidSampleResult(chapter);
-    const validCheck = validateLifeBookChapter(validSample, chapter, []);
-    const hasCoverageMissingInValid = Array.isArray(validCheck.errors)
-      && validCheck.errors.includes("CHAPTER_REQUIRED_COVERAGE_MISSING");
+    const removedCategory = {
+      ...chapter,
+      categories: chapter.categories.slice(0, -1),
+    };
+    const missingCheck = utils.validateLifeBookGeneratedChapter(removedCategory, blueprint);
     assert(
-      Number(validCheck?.quality?.missingRequiredCoverageCount || 0) === 0,
-      `[lifebook-required-coverage] chapter ${chapterNo} valid sample missing coverage count: ${validCheck?.quality?.missingRequiredCoverageCount}`,
-    );
-    assert(
-      !hasCoverageMissingInValid,
-      `[lifebook-required-coverage] chapter ${chapterNo} valid sample unexpectedly flagged missing coverage: ${JSON.stringify(validCheck.errors || [])}`,
+      !missingCheck.ok && Array.isArray(missingCheck.errors) && missingCheck.errors.includes("category_count_mismatch"),
+      `[lifebook-required-coverage] chapter ${blueprint.id} missing category was not detected`,
     );
 
-    const preferredItem = pickLikelyUniqueCoverageItem(validSample.contentMarkdown, requiredCoverage);
-    const detectable = findActuallyDetectableMissingCase(validSample, chapter, [
-      ...(preferredItem ? [preferredItem] : []),
-      ...requiredCoverage.filter((item) => item !== preferredItem),
-    ]);
-
+    const renamedCategory = {
+      ...chapter,
+      categories: chapter.categories.map((category, categoryIndex) => (
+        categoryIndex === 0 ? { ...category, title: `${category.title} changed` } : category
+      )),
+    };
+    const titleCheck = utils.validateLifeBookGeneratedChapter(renamedCategory, blueprint);
     assert(
-      detectable,
-      `[lifebook-required-coverage] chapter ${chapterNo} missing-coverage detection failed for all required items`,
+      !titleCheck.ok && Array.isArray(titleCheck.errors) && titleCheck.errors.includes("category_1_title_mismatch"),
+      `[lifebook-required-coverage] chapter ${blueprint.id} category title mismatch was not detected`,
     );
-
-    const removedItem = detectable.removedItem;
-    const invalidCheck = detectable.check;
-    const hasMissingError = Array.isArray(invalidCheck.errors) && invalidCheck.errors.includes("CHAPTER_REQUIRED_COVERAGE_MISSING");
 
     reportRows.push({
-      chapter: chapterNo,
-      id: chapterId,
-      requiredCoverage: requiredCoverage.length,
-      removedItem,
-      missingDetected: hasMissingError,
+      chapter: index + 1,
+      id: blueprint.id,
+      categories: blueprint.categories.length,
+      engineFocus: Array.isArray(blueprint.engineFocus) ? blueprint.engineFocus.length : 0,
     });
-  }
+  });
+
+  const profile = buildProfile();
+  const signals = buildSignals();
+  const birthInput = {
+    name: profile.name,
+    gender: profile.gender,
+    calendarType: profile.calendarType,
+    birthDate: `${profile.year}-02-20`,
+    birthTime: "07:30",
+    birthHour: profile.hour,
+    birthMinute: profile.minute,
+    timezone: "Asia/Seoul",
+    birthplace: profile.birthplace,
+  };
+  const localSajuJson = utils.buildLifeBookLocalSajuJson(birthInput, profile, signals, []);
+  const localContract = utils.validateLifeBookJsonContract({ birthInput, localSajuJson });
+  assert(localContract.ok, `[lifebook-required-coverage] local json contract failed: ${JSON.stringify(localContract.hardErrors || [])}`);
+  const llmInput = utils.buildLifeBookLLMInput(birthInput, profile, signals, localSajuJson, {});
+  assert(llmInput.engineContract?.version === "life-book-engine-contract-v2", "[lifebook-required-coverage] engine contract v2 missing");
+  assert(llmInput.engineContract?.calculationPolicy?.hourPillarTimePolicy === "TRUE_SOLAR_TIME", "[lifebook-required-coverage] calculation policy missing");
+  assert(llmInput.engineContract?.sourceTrace?.route === "worker.routes.saju-lifebook", "[lifebook-required-coverage] source trace missing");
+  const engineContract = utils.validateLifeBookJsonContract({
+    birthInput,
+    localSajuJson,
+    engineContract: llmInput.engineContract,
+  });
+  assert(engineContract.ok, `[lifebook-required-coverage] engine json contract failed: ${JSON.stringify(engineContract.hardErrors || [])}`);
+  llmInput.engineContract.validation = engineContract;
+  const canonicalSajuChart = utils.buildLifeBookCanonicalSajuChartFromContract(llmInput.engineContract, localSajuJson);
+  const canonicalValidation = utils.validateLifeBookCanonicalSajuChart(canonicalSajuChart);
+  assert(canonicalValidation.ok, `[lifebook-required-coverage] canonical json failed: ${JSON.stringify(canonicalValidation.missing || [])}`);
+  llmInput.engineContract.canonicalSajuChart = { ...canonicalSajuChart, validation: canonicalValidation };
+  const evidenceCoverage = utils.buildLifeBookChapterEvidenceCoverage(utils.buildLifeBookChapterPlans(), llmInput.engineContract);
+  assert(evidenceCoverage.ok, `[lifebook-required-coverage] chapter evidence coverage failed: ${JSON.stringify(evidenceCoverage.lowCoverageChapters || [])}`);
+
+  const html = utils.buildLifeBookDocument({
+    profile,
+    signals,
+    chapters,
+    generatedAt: new Date().toISOString(),
+    finalManuscriptMarkdown: utils.buildLifeBookDeterministicFinalManuscript(profile, chapters),
+  });
+  assert(typeof html === "string" && html.includes("<!doctype html>"), "[lifebook-required-coverage] pdf html missing doctype");
+  assert(html.includes("인생의 책"), "[lifebook-required-coverage] pdf html missing service title");
 
   console.log("[lifebook-required-coverage] PASS");
+  console.log(`  - targetPages=${utils.LIFEBOOK_A4_TOTAL_TARGET.pages}, categoryCount=${categoryCount}, minChars=${utils.LIFEBOOK_MIN_TOTAL_CHARS}, blockingMinChars=${utils.LIFEBOOK_BLOCKING_MIN_TOTAL_CHARS}`);
+  console.log(`  - jsonContract localScore=${localContract.qualityScore}, engineScore=${engineContract.qualityScore}`);
+  console.log(`  - canonicalContract score=${canonicalValidation.qualityScore}, softWarnings=${canonicalValidation.softWarnings.length}`);
+  console.log(`  - evidenceCoverage ratio=${evidenceCoverage.coverageRatio}, covered=${evidenceCoverage.totalCovered}/${evidenceCoverage.totalRequired}`);
   reportRows.forEach((row) => {
-    console.log(
-      `  - ch${String(row.chapter).padStart(2, "0")} ${row.id}: required=${row.requiredCoverage}, removed='${row.removedItem}', missingDetected=${row.missingDetected}`,
-    );
+    console.log(`  - ch${String(row.chapter).padStart(2, "0")} ${row.id}: categories=${row.categories}, engineFocus=${row.engineFocus}`);
   });
 }
 

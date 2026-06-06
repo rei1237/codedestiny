@@ -187,7 +187,7 @@ export default function SeoLandingTemplate({ page }) {
               {href === "/manse" ? "꿀꿀 만세력 확인하기" : ""}
               {href === "/daily-fortune" ? "오늘의 운세 확인하기" : ""}
               {href === "/compatibility" ? "사주 궁합 분석하기" : ""}
-              {href === "/tarot" ? "AI 타로 리딩 시작하기" : ""}
+              {href === "/tarot" ? "명리학 타로 시작하기" : ""}
               {href === "/ziwei" ? "자미두수 명반 보기" : ""}
               {href === "/astrology" ? "점성술 출생차트 보기" : ""}
               {href === "/sukuyo" ? "숙요점 27숙 궁합 확인하기" : ""}

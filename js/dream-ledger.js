@@ -296,26 +296,26 @@
     var guide = $('dreamDrawGuide');
     if (!guide) return;
     if (!state.reading) {
-      guide.textContent = '카드가 준비되면 1단계부터 열어 서사를 시작하세요.';
+      guide.textContent = '카드가 준비되면 첫 장부터 꿈의 서사를 열어주세요.';
       return;
     }
     if (state.visibleStage === 4) {
-      guide.textContent = '황금 카드 상담 단계입니다. 오늘 실행할 한 가지를 정해보세요.';
+      guide.textContent = '봉인 카드가 전하는 오늘의 조언입니다. 지금 붙잡을 선택 하나를 정해보세요.';
       return;
     }
     if (!state.stageDone[state.visibleStage]) {
       guide.textContent = state.autoReveal
-        ? state.visibleStage + '단계 카드를 자동으로 여는 중입니다.'
-        : state.visibleStage + '단계 카드를 눌러 다음 문장을 확인하세요.';
+        ? state.visibleStage + '번째 카드의 문장을 여는 중입니다.'
+        : state.visibleStage + '번째 카드를 눌러 꿈의 다음 문장을 확인하세요.';
       return;
     }
     if (state.visibleStage < 3) {
       guide.textContent = state.autoReveal
-        ? '자동 모드로 다음 카드로 이어집니다.'
-        : '다음 카드 보기 버튼으로 다음 단계로 이동하세요.';
+        ? '다음 꿈 장면으로 부드럽게 이어집니다.'
+        : '다음 카드 보기 버튼으로 다음 장면을 열어주세요.';
       return;
     }
-    guide.textContent = '세 장이 모두 열렸습니다. 황금 카드가 곧 나타납니다.';
+    guide.textContent = '세 장이 모두 열렸습니다. 봉인 카드가 곧 마지막 조언을 건넵니다.';
   }
 
   function setBodyLock(locked) {
@@ -363,7 +363,7 @@
   function updateStoryModeLabel() {
     var modeEl = $('dreamStoryMode');
     if (!modeEl) return;
-    modeEl.textContent = '꿈의 마법책 낭독 모드 · ' + speedLabel(state.textSpeed) + 'x · 황금 톤 ' + toneLabel(state.goldenTone);
+    modeEl.textContent = '꿈 상징 리딩 · ' + speedLabel(state.textSpeed) + 'x · 조언 톤 ' + toneLabel(state.goldenTone);
   }
 
   function renderSpeedButtons() {
@@ -693,7 +693,7 @@
           throw httpErr;
         }
         if (!isAcceptableApiPayload(data)) {
-          throw new Error('Invalid tarot API response payload');
+          throw new Error('타로 카드 응답을 읽지 못했습니다.');
         }
         return data;
       });
@@ -1339,7 +1339,7 @@
     $('dreamCardSummary').textContent = state.reading.summary;
     renderKeywordChips(state.reading.keywords);
     renderCardFaces(state.reading);
-    $('dreamStageTitle').textContent = '제1장 · 첫 번째 카드가 들려줄 서사를 열어주세요.';
+    $('dreamStageTitle').textContent = '첫 번째 카드가 꿈의 근원을 비춥니다.';
     $('dreamStageText').textContent = '';
     $('dreamFinalSpell').textContent = '';
     var goldenAdviceText = $('dreamGoldenAdvice');
@@ -1348,7 +1348,7 @@
     if (finalConsultText) finalConsultText.textContent = '';
 
     var cardName4 = $('dreamCardName4');
-    if (cardName4) cardName4.textContent = '[' + (reading.goldenCardName || '황금 카드') + ']';
+    if (cardName4) cardName4.textContent = '[' + (reading.goldenCardName || '봉인 카드') + ']';
     var cardSymbol4 = $('dreamCardSymbol4');
     if (cardSymbol4) cardSymbol4.textContent = reading.goldenCardSymbol || '✶';
 
@@ -1362,7 +1362,7 @@
     var nextBtn = $('dreamNextStageBtn');
     if (nextBtn) nextBtn.style.display = 'none';
     updateVisibleStage(1);
-    setWizardLine('카드가 소환되었습니다. 꿈의 마법책이 1장부터 차례대로 이야기를 들려줍니다.');
+    setWizardLine('세 장의 카드가 준비되었습니다. 꿈의 장면이 첫 카드부터 차례로 열립니다.');
     updateAutoRevealUi();
     updateStoryModeLabel();
     renderToneButtons();
@@ -1411,9 +1411,9 @@
 
   function stagePayload(s) {
     if (!state.reading) return { title: '', text: '' };
-    if (s === 1) return { title: '1단계 · 기원', text: state.reading.scene };
-    if (s === 2) return { title: '2단계 · 전언', text: state.reading.symbol };
-    return { title: '3단계 · 지침', text: state.reading.echo };
+    if (s === 1) return { title: '1장 · 꿈의 근원', text: state.reading.scene };
+    if (s === 2) return { title: '2장 · 마음의 전언', text: state.reading.symbol };
+    return { title: '3장 · 내일의 지침', text: state.reading.echo };
   }
 
   function normalizedFinalSpell(reading) {
@@ -1449,17 +1449,17 @@
 
     if (aiConsult) {
       return [
-        '■ 카드 기반 Gemini 상담 리포트 — ' + title,
+        '■ 드림 타로 종합 리딩 — ' + title,
         '',
         aiConsult,
         '',
-        '【이번 해몽 핵심】',
+        '【꿈의 핵심 장면】',
         summary || '현재 꿈의 상징은 내면의 불안을 인식하고 삶의 방향을 재정비하라는 신호로 해석됩니다.',
         '',
-        '【핵심 상징】',
+        '【카드가 비춘 상징】',
         keyLine,
         aiActions.length ? '' : '',
-        aiActions.length ? '【지금 바로 할 3가지】' : '',
+        aiActions.length ? '【오늘의 작은 선택 3가지】' : '',
         aiActions.length ? ('- ' + aiActions.join('\n- ')) : '',
         '',
         '【마무리 확언】',
@@ -1468,18 +1468,18 @@
     }
 
     return [
-      '■ 꿈 해몽 종합 리포트 — ' + title,
+      '■ 드림 타로 종합 리딩 — ' + title,
       '',
-      '【해몽 요약】',
+      '【꿈의 첫 문장】',
       summary || '현재 꿈의 상징은 내면의 불안을 인식하고 삶의 방향을 재정비하라는 신호로 해석됩니다.',
       '',
-      '【핵심 상징】',
+      '【카드가 비춘 상징】',
       keyLine,
       '',
-      '【실천 권고사항】',
-      '① 감정 정리: 오늘 가장 마음을 흔든 감정을 한 문장으로 기록하고, 이를 완화할 수 있는 구체적 행동 1가지를 실행하세요.',
-      '② 루틴 고정: 72시간 이내 관계·업무·건강 중 우선순위 1개를 정해 15분 일일 루틴으로 안정화하세요.',
-      '③ 점진적 회복: 완벽한 해결보다 이번 주 반복 가능한 작은 성취를 3회 이상 달성하며 자기효능감을 회복하세요.',
+      '【오늘의 작은 선택】',
+      '① 감정 정리: 오늘 가장 마음을 흔든 감정을 한 문장으로 기록하고, 이를 누그러뜨릴 작은 행동 1가지를 실행하세요.',
+      '② 리듬 고정: 72시간 이내 관계·업무·건강 중 우선순위 1개를 정해 15분 루틴으로 안정화하세요.',
+      '③ 점진적 회복: 완벽한 해결보다 이번 주 반복 가능한 작은 성취를 3회 이상 쌓아 마음의 중심을 회복하세요.',
       '',
       '【마무리 확언】',
       finalSpell
@@ -1501,7 +1501,7 @@
 
     if (nextBtn) nextBtn.style.display = 'none';
     if (stageText) stageText.textContent = '';
-    if (title) title.textContent = '4단계 · 황금 카드의 힐링 조언';
+    if (title) title.textContent = '4장 · 봉인 카드의 조언';
 
     triggerGoldenImpactFeedback();
     setGoldenTabVisible(true);
@@ -1546,7 +1546,7 @@
         state.nextStage = 5;
         sendAutoTuneSignal('completed_golden', 0.95, state.reading, { oncePerReading: true });
         setInteractionLocked(false);
-        setWizardLine('황금 카드가 전한 조언까지 완성되었습니다. 오늘의 리듬을 다정하게 지켜주세요.');
+        setWizardLine('봉인 카드가 전한 조언까지 완성되었습니다. 오늘의 리듬을 다정하게 지켜주세요.');
         return;
       }
 
@@ -1557,14 +1557,14 @@
         state.nextStage = 5;
         sendAutoTuneSignal('completed_golden', 0.95, state.reading, { oncePerReading: true });
         setInteractionLocked(false);
-        setWizardLine('황금 카드 조언과 최종 컨설팅이 모두 완성되었습니다. 지금 바로 실행할 한 가지를 정해보세요.');
+        setWizardLine('봉인 카드 조언과 종합 리딩이 모두 완성되었습니다. 지금 바로 실행할 한 가지를 정해보세요.');
       });
     });
   }
 
   function scheduleGoldenStageReveal() {
     clearGoldenTimer();
-    setWizardLine('세 장의 서사가 하나로 결합되는 중입니다. 1.5초 뒤 황금 카드가 열립니다.');
+    setWizardLine('세 장의 서사가 하나로 모이는 중입니다. 곧 봉인 카드가 마지막 문장을 엽니다.');
     state.goldenTimer = setTimeout(function () {
       state.goldenTimer = null;
       revealGoldenStage();
@@ -1588,7 +1588,7 @@
       overlay.classList.add('dream-ledger-overlay--show');
     });
     syncInputEnergy();
-    setWizardLine('반갑습니다, 무의식의 여행자여. 마법책의 표지를 열고 오늘 밤의 장면을 적어주세요.');
+    setWizardLine('반갑습니다, 무의식의 여행자여. 꿈의 서재를 열고 오늘 밤의 장면을 적어주세요.');
     renderSpeedButtons();
     renderToneButtons();
     renderDreamLibraryCategoryButtons();
@@ -1636,10 +1636,10 @@
     $('dreamResultWrap').style.display = 'none';
     if ($('dreamArchivePanel')) $('dreamArchivePanel').style.display = 'none';
     $('dreamLoader').style.display = 'none';
-    setLoaderText('수정구슬이 꿈의 파장을 수집 중입니다...');
+    setLoaderText('카드가 꿈의 파장을 모으는 중입니다...');
     resetCards();
     renderKeywordChips([]);
-    $('dreamStageTitle').textContent = '카드를 열어 숨겨진 문장을 확인하세요.';
+    $('dreamStageTitle').textContent = '카드를 열어 꿈이 남긴 문장을 확인하세요.';
     $('dreamStageText').textContent = '';
     $('dreamFinalSpell').textContent = '';
     var spellWrap = $('dreamFinalSpellWrap');
@@ -1652,7 +1652,7 @@
     if (finalConsultWrap) finalConsultWrap.style.display = 'none';
     var finalConsultText = $('dreamFinalConsult');
     if (finalConsultText) finalConsultText.textContent = '';
-    setWizardLine('누가(무엇이) 어떤 행동을 했고, 당신의 감정이 어떻게 흔들렸는지 적어주세요.');
+    setWizardLine('누가 또는 무엇이 나타났고, 그 장면에서 마음이 어떻게 흔들렸는지 적어주세요.');
     updateAutoRevealUi();
     updateStoryModeLabel();
     renderToneButtons();
@@ -1707,8 +1707,8 @@
       var cardName = cardLabel(idx);
       var orient = cardOrientLabel(ac);
       var keywords = Array.isArray(ac.keywords) ? ac.keywords.slice(0, 3).join(' · ') : '';
-      var header = '타로 ' + cardName + (orient ? ' (' + orient + ')' : '')
-        + (keywords ? '의 핵심 키워드는 ' + keywords + ' 입니다.' : '의 흐름이 선명합니다.');
+      var header = cardName + (orient ? ' (' + orient + ')' : '')
+        + (keywords ? '가 꿈 위에 남긴 빛의 단서는 ' + keywords + '입니다.' : '가 꿈의 흐름을 선명하게 비춥니다.');
       if (!base) return header + '\n' + narrative;
       return header + '\n' + narrative + '\n\n' + base;
     }
@@ -1723,10 +1723,10 @@
       localReading.echo = buildStageText(localReading.echo, 2);
     }
 
-    // 타로 종합 조언을 황금 카드 조언에 통합
+    // 타로 종합 조언을 봉인 카드 조언에 통합
     if (apiReadingObj.advice) {
       localReading.goldenAdvice = (localReading.goldenAdvice || '')
-        + '\n\n【타로 종합 조언】\n' + apiReadingObj.advice;
+        + '\n\n【카드가 남긴 종합 조언】\n' + apiReadingObj.advice;
     }
 
     return localReading;
@@ -1827,14 +1827,14 @@
 
     var ai = window.DreamLedgerAI;
     if (!ai || typeof ai.interpretDream !== 'function') {
-      setLoaderText('드림 타로 엔진을 불러오는 중입니다...');
+      setLoaderText('드림 타로의 문을 여는 중입니다...');
       $('dreamLoader').style.display = 'block';
       ensureDreamLedgerAiReady().then(function (loadedAi) {
         if (loadedAi && typeof loadedAi.interpretDream === 'function') {
           window.startDreamReading();
           return;
         }
-        setLoaderText('드림 타로 엔진을 초기화하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+        setLoaderText('드림 타로의 문이 잠시 닫혀 있습니다. 잠시 후 다시 시도해 주세요.');
         setTimeout(function () {
           $('dreamLoader').style.display = 'none';
         }, 1500);
@@ -1849,9 +1849,9 @@
     $('dreamLoader').style.display = 'block';
 
     syncInputEnergy();
-    setWizardLine('지팡이를 들어 꿈의 장면을 소환합니다. 카드가 차례대로 서사를 들려줄 거예요.');
-    setLoaderText('수정구슬이 상징의 결을 읽는 중...');
-    setTimeout(function () { setLoaderText('실제 타로 카드에 꿈의 서사를 새기는 중...'); }, 700);
+    setWizardLine('꿈의 장면을 조용히 펼칩니다. 카드가 차례대로 서사를 들려줄 거예요.');
+    setLoaderText('카드가 상징의 결을 읽는 중...');
+    setTimeout(function () { setLoaderText('세 장의 카드에 꿈의 서사를 새기는 중...'); }, 700);
 
     setTimeout(function () {
       var reading;
@@ -1875,7 +1875,7 @@
             reasons: enhancedReading._pipelineFallbacks,
             fallbackReason: enhancedReading.fallbackReason
           });
-          setWizardLine('일부 카드 상담이 지연되어 로컬 해몽과 병합해 마법책을 완성했습니다.');
+          setWizardLine('일부 카드 전언이 늦어져, 꿈의 기본 서사와 함께 리딩을 완성했습니다.');
         }
         hydrateReading(enhancedReading);
         setInteractionLocked(false);
@@ -1936,7 +1936,7 @@
             pipelineFallbacks.push('draw:skipped');
           }
 
-          setLoaderText('카드 조합으로 상담 메시지를 정리하는 중...');
+          setLoaderText('카드 조합이 마지막 조언을 엮는 중...');
           return callDreamApi('tarot-consult', {
             dreamText: text,
             spreadType: 'three_card_past_present_future',
@@ -2097,7 +2097,7 @@
     if (state.uiLocked) return;
     state.goldenTone = normalizeGoldenTone(tone);
     renderToneButtons();
-    setWizardLine('황금 카드 조언 톤을 ' + toneLabel(state.goldenTone) + ' 모드로 맞췄습니다.');
+    setWizardLine('봉인 카드 조언 톤을 ' + toneLabel(state.goldenTone) + ' 모드로 맞췄습니다.');
   };
 
   window.dreamToggleAutoReveal = function dreamToggleAutoReveal() {
@@ -2231,7 +2231,7 @@
       '[숨겨진 근원] ' + state.reading.scene,
       '[현재의 전언] ' + state.reading.symbol,
       '[내일의 지침] ' + state.reading.echo,
-      '[황금 조언] ' + normalizedGoldenAdvice(state.reading),
+      '[봉인 조언] ' + normalizedGoldenAdvice(state.reading),
       '행운 주문: ' + normalizedFinalSpell(state.reading)
     ].join('\n\n');
   }

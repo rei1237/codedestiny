@@ -4,18 +4,24 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 
 const rootDir = process.cwd();
 const manifestPath = resolve(rootDir, ".next", "server", "pages-manifest.json");
+const appManifestPath = resolve(rootDir, ".next", "server", "app-paths-manifest.json");
 const pagesDir = resolve(rootDir, ".next", "server", "pages");
+const appDir = resolve(rootDir, ".next", "server", "app");
 const export500Path = resolve(rootDir, ".next", "export", "500.html");
 const nextCli = resolve(rootDir, "node_modules", "next", "dist", "bin", "next");
 
-function readManifestKeys() {
-  if (!existsSync(manifestPath)) return [];
+function readJsonObject(filePath) {
+  if (!existsSync(filePath)) return {};
   try {
-    const parsed = JSON.parse(readFileSync(manifestPath, "utf8"));
-    return Object.keys(parsed || {});
+    const parsed = JSON.parse(readFileSync(filePath, "utf8"));
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
   } catch {
-    return [];
+    return {};
   }
+}
+
+function readManifestKeys() {
+  return Object.keys(readJsonObject(manifestPath));
 }
 
 function collectPagesManifestEntries(dir = pagesDir, entries = {}) {
@@ -74,6 +80,23 @@ function ensurePagesManifest() {
   }
 }
 
+function ensureAppPathsManifest() {
+  const notFoundOutputPath = join(appDir, "_not-found", "page.js");
+  if (!existsSync(notFoundOutputPath)) return;
+
+  const current = readJsonObject(appManifestPath);
+  const merged = { ...current, "/_not-found/page": "app/_not-found/page.js" };
+  if (JSON.stringify(current) === JSON.stringify(merged)) return;
+
+  mkdirSync(dirname(appManifestPath), { recursive: true });
+  writeFileSync(appManifestPath, `${JSON.stringify(merged, null, 2)}\n`, "utf8");
+}
+
+function ensureBuildManifests() {
+  ensurePagesManifest();
+  ensureAppPathsManifest();
+}
+
 function seedEmptyPagesManifest() {
   if (existsSync(manifestPath)) return;
   mkdirSync(dirname(manifestPath), { recursive: true });
@@ -82,7 +105,7 @@ function seedEmptyPagesManifest() {
 
 seedEmptyPagesManifest();
 
-const timer = setInterval(ensurePagesManifest, 100);
+const timer = setInterval(ensureBuildManifests, 100);
 const child = spawn(process.execPath, [nextCli, "build"], {
   cwd: rootDir,
   stdio: "inherit",
@@ -91,7 +114,7 @@ const child = spawn(process.execPath, [nextCli, "build"], {
 
 child.on("close", (code) => {
   clearInterval(timer);
-  ensurePagesManifest();
+  ensureBuildManifests();
   process.exit(code ?? 1);
 });
 

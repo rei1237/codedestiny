@@ -8,6 +8,10 @@ export interface SajuPillarRequest {
   month: number;
   day: number;
   hour: number;
+  minute?: number;
+  hasTime?: boolean;
+  calendarType?: "solar" | "lunar" | "lunar_leap";
+  timezone?: string;
 }
 
 const GAN_ELEMENT: Record<string, "목" | "화" | "토" | "금" | "수"> = {
@@ -43,20 +47,30 @@ function normalizeHour(rawHour: number): number {
   return Math.max(0, Math.min(23, Math.floor(rawHour)));
 }
 
+function normalizeMinute(rawMinute: number): number {
+  if (!Number.isFinite(rawMinute) || rawMinute < 0) return 0;
+  return Math.max(0, Math.min(59, Math.floor(rawMinute)));
+}
+
 function fallbackSajuAnalysis(params: SajuPillarRequest): SajuAnalysis {
   const year = Number(params.year) || 1990;
   const month = Number(params.month) || 1;
   const day = Number(params.day) || 1;
   const hour = normalizeHour(Number(params.hour));
+  const minute = normalizeMinute(Number(params.minute ?? 0));
+  const hasTime = params.hasTime !== false;
+  const isLunarInput = params.calendarType === "lunar" || params.calendarType === "lunar_leap";
 
   const local = calculateLocalSaju({
     year,
     month,
     day,
     hour,
-    minute: 0,
-    hasTime: true,
-    calendarType: "solar",
+    minute,
+    hasTime,
+    calendarType: isLunarInput ? "lunar" : "solar",
+    lunarLeap: params.calendarType === "lunar_leap",
+    timezone: params.timezone || "Asia/Seoul",
   });
   const yearPillar = local.pillars.year.ganji;
   const monthPillar = local.pillars.month.ganji;

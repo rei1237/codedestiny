@@ -91,6 +91,18 @@ export type DestinyMeetingPlaceResult = {
     toneReminder?: string;
     microActions?: string[];
   };
+  promptPack?: {
+    title: string;
+    intro: string;
+    prompts: Array<{
+      id: string;
+      title: string;
+      category: string;
+      intent: string;
+      relatedPlace?: string;
+      prompt: string;
+    }>;
+  };
 };
 
 export type MeetingEnergyProfile = {

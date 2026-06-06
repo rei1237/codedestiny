@@ -46,6 +46,25 @@ type EnsurePaidAccessResult = {
   refunded: boolean;
 };
 
+type RuntimePaidServiceGateResult = {
+  status?: string;
+  reason?: string;
+  transactionId?: string;
+  paymentId?: string;
+  purchaseId?: string;
+  requestId?: string;
+  payload?: Record<string, unknown>;
+  data?: Record<string, unknown>;
+};
+
+type RuntimePaidServiceGateWindow = Window & {
+  _cdOpenPaidServiceGate?: (options: Record<string, unknown>) => Promise<RuntimePaidServiceGateResult> | RuntimePaidServiceGateResult;
+};
+
+const LEGACY_PAYMENT_RUNTIME_SRC = "/js/destiny-profile.js?v=build-dc8b1dedfe26";
+
+let legacyPaymentRuntimePromise: Promise<RuntimePaidServiceGateWindow["_cdOpenPaidServiceGate"] | null> | null = null;
+
 function toText(value: unknown): string {
   return String(value || "").trim();
 }
@@ -57,6 +76,64 @@ function toNumber(value: unknown, fallback = 0): number {
 
 function normalizeCode(value: unknown): string {
   return String(value || "").trim().toUpperCase();
+}
+
+function getRuntimePaidServiceGate() {
+  if (typeof window === "undefined") return null;
+  const runtimeWindow = window as RuntimePaidServiceGateWindow;
+  return typeof runtimeWindow._cdOpenPaidServiceGate === "function" ? runtimeWindow._cdOpenPaidServiceGate : null;
+}
+
+function loadRuntimePaidServiceGate() {
+  const current = getRuntimePaidServiceGate();
+  if (current) return Promise.resolve(current);
+  if (typeof document === "undefined") return Promise.resolve(null);
+  if (legacyPaymentRuntimePromise) return legacyPaymentRuntimePromise;
+
+  legacyPaymentRuntimePromise = new Promise((resolve) => {
+    const finish = () => resolve(getRuntimePaidServiceGate());
+    const existing = document.querySelector<HTMLScriptElement>('script[src^="/js/destiny-profile.js"]');
+    if (existing) {
+      existing.addEventListener("load", finish, { once: true });
+      existing.addEventListener("error", () => resolve(null), { once: true });
+      window.setTimeout(finish, 1200);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = LEGACY_PAYMENT_RUNTIME_SRC;
+    script.async = true;
+    script.dataset.cdPaymentRuntimeLoader = "1";
+    script.onload = finish;
+    script.onerror = () => resolve(null);
+    document.head.appendChild(script);
+  });
+
+  return legacyPaymentRuntimePromise;
+}
+
+function unwrapRuntimeGatePayload(result: RuntimePaidServiceGateResult | null | undefined) {
+  const payload = result?.payload && typeof result.payload === "object"
+    ? result.payload
+    : (result?.data && typeof result.data === "object" ? result.data : result);
+  return (payload && typeof payload === "object" ? payload : {}) as Record<string, unknown>;
+}
+
+function isRuntimeGateGranted(result: RuntimePaidServiceGateResult | null | undefined) {
+  const payload = unwrapRuntimeGatePayload(result);
+  const status = String(result?.status || payload.status || "").trim().toLowerCase();
+  return status === "granted"
+    || status === "paid"
+    || status === "success"
+    || Boolean(payload.accessGrant)
+    || Boolean(payload.premiumAccessToken)
+    || Boolean(payload.consume)
+    || Boolean(payload.payment);
+}
+
+function readNestedObject(source: Record<string, unknown>, key: string) {
+  const value = source[key];
+  return value && typeof value === "object" ? value as Record<string, unknown> : {};
 }
 
 function resolveLoginRequired(code: string, status: number) {
@@ -181,6 +258,123 @@ export function useCoinGate() {
         }
 
         if (chargeResult.status === 402 || code === "PAYMENT_REQUIRED") {
+          const runtimeGate = await loadRuntimePaidServiceGate();
+          if (runtimeGate) {
+            const runtimeRequestId = toText(input.requestId || `paid-gate:${toText(input.featureKey || pricingResult.data.pricing.featureKey)}:${Date.now()}`);
+            try {
+              setPaymentMessage("결제창을 여는 중입니다...");
+              const runtimeResult = await runtimeGate({
+                categoryKey: input.categoryKey,
+                subFeatureKey: input.subFeatureKey,
+                featureKey: input.featureKey || pricingResult.data.pricing.featureKey,
+                reason: input.reason || pricingResult.data.pricing.reason,
+                title: input.reason || pricingResult.data.pricing.reason,
+                cost: requiredCoins,
+                coinPrice: requiredCoins,
+                amountKrw: amountKRW,
+                requestId: runtimeRequestId,
+                forceDeduct: input.forceDeduct !== false,
+              });
+
+              if (isRuntimeGateGranted(runtimeResult)) {
+                const payload = unwrapRuntimeGatePayload(runtimeResult);
+                const data = readNestedObject(payload, "data");
+                const consume = readNestedObject(payload, "consume");
+                const dataConsume = readNestedObject(data, "consume");
+                const resolvedConsume = Object.keys(consume).length ? consume : dataConsume;
+                const transactionId = toText(
+                  runtimeResult?.transactionId
+                  || runtimeResult?.paymentId
+                  || runtimeResult?.purchaseId
+                  || runtimeResult?.requestId
+                  || payload.transactionId
+                  || payload.paymentId
+                  || payload.purchaseId
+                  || payload.requestId
+                  || resolvedConsume.transactionId
+                  || resolvedConsume._id
+                  || runtimeRequestId,
+                );
+                const chargedCoins = toNumber(
+                  resolvedConsume.chargedCoins
+                  ?? resolvedConsume.cost
+                  ?? payload.chargedCoins
+                  ?? data.chargedCoins,
+                  requiredCoins,
+                );
+                const balanceAfter = toNumber(
+                  payload.balance
+                  ?? data.balance
+                  ?? resolvedConsume.balanceAfter
+                  ?? resolvedConsume.afterBalance,
+                  0,
+                );
+                const resolvedFeatureKey = toText(resolvedConsume.featureKey || input.featureKey || pricingResult.data.pricing.featureKey);
+
+                if (typeof input.onPaid === "function") {
+                  setPaymentMessage("결제가 완료되었습니다. 결과를 생성하고 있습니다...");
+                  markPaidAttemptGenerationStarted("runtime_paid_gate_callback_start");
+                  try {
+                    await input.onPaid({
+                      transactionId,
+                      chargedCoins,
+                      requiredCoins,
+                      amountKRW,
+                      balanceAfter,
+                      featureKey: resolvedFeatureKey,
+                    });
+                    markPaidAttemptGenerationCompleted();
+                  } catch (error) {
+                    markPaidAttemptFailed("feature_execution_failed");
+                    return {
+                      ok: false,
+                      code: "FEATURE_EXECUTION_FAILED",
+                      message: error instanceof Error ? error.message : "유료 기능 실행에 실패했습니다.",
+                      requiredCoins,
+                      chargedCoins,
+                      balanceAfter,
+                      transactionId,
+                      refunded: false,
+                    };
+                  }
+                }
+
+                return {
+                  ok: true,
+                  code: "OK",
+                  message: "결제가 완료되었습니다.",
+                  requiredCoins,
+                  chargedCoins,
+                  balanceAfter,
+                  transactionId,
+                  refunded: false,
+                };
+              }
+
+              return {
+                ok: false,
+                code: "PAYMENT_CANCELLED",
+                message: toText(runtimeResult?.reason || "결제가 취소되었습니다."),
+                requiredCoins,
+                chargedCoins: 0,
+                balanceAfter: 0,
+                transactionId: "",
+                refunded: false,
+              };
+            } catch (error) {
+              return {
+                ok: false,
+                code: "PAYMENT_REQUIRED",
+                message: error instanceof Error ? error.message : message,
+                requiredCoins,
+                chargedCoins: 0,
+                balanceAfter: 0,
+                transactionId: "",
+                refunded: false,
+              };
+            }
+          }
+
           return {
             ok: false,
             code: "PAYMENT_REQUIRED",

@@ -90,7 +90,7 @@ interface ReadingResult {
 // ── CONSTANTS ──────────────────────────────────────────────────────────────────
 const POSITIONS: TarotPos[] = [
   { id: "top",    label: "위",   meaning: "겉으로 보이는 태도",       icon: "🎭", col: 2, row: 1 },
-  { id: "left",   label: "좌",   meaning: "실제 속마음",               icon: "💓", col: 1, row: 2 },
+  { id: "left",   label: "좌",   meaning: "속마음의 결",               icon: "💓", col: 1, row: 2 },
   { id: "center", label: "중앙", meaning: "다가오지 않는 이유",        icon: "🧱", col: 2, row: 2, isCenter: true },
   { id: "right",  label: "우",   meaning: "숨겨진 욕구",               icon: "🫧", col: 3, row: 2 },
   { id: "bottom", label: "아래", meaning: "관계에 대한 판단",          icon: "⚖️", col: 2, row: 3 },
@@ -331,14 +331,14 @@ function IntroStage({ onStart }: { onStart: () => void }) {
           </div>
           <p className="text-[11px] tracking-[0.55em] text-purple-300/70 uppercase">Mind Scan Tarot</p>
           <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight drop-shadow-[0_0_20px_rgba(192,132,252,0.42)]" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
-            상대방의 정확한<br />
+            그 사람 마음의 결<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-fuchsia-300 to-pink-400">
-              속마음 읽기
+              관계 간격 리딩
             </span>
           </h1>
           <p className="text-sm text-indigo-100/70 leading-relaxed max-w-sm mx-auto">
             직관을 따라 10장의 카드를 선택하세요.<br />
-            타로 마스터가 상대방의 진짜 감정과 숨겨진 의도를 깊이 해석합니다.
+            말과 침묵 사이에 놓인 감정의 거리와 다가갈 수 있는 속도를 읽습니다.
           </p>
         </motion.div>
 
@@ -356,7 +356,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
         {/* Flow steps */}
         <motion.div className="flex items-center gap-2 mb-8 text-[10px] text-indigo-200/55"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-          {["메인 5장", "→", "보조 5장", "→", "포지션 공개", "→", "AI 리딩"].map((t, i) => (
+          {["메인 5장", "→", "보조 5장", "→", "자리 공개", "→", "심층 리딩"].map((t, i) => (
             <span key={i} className={t === "→" ? "text-purple-800/40" : ""}>{t}</span>
           ))}
         </motion.div>
@@ -370,12 +370,12 @@ function IntroStage({ onStart }: { onStart: () => void }) {
           <motion.div className="absolute inset-0 rounded-full"
             animate={{ opacity: [0, 0.32, 0] }} transition={{ duration: 2.2, repeat: Infinity }}
             style={{ background: "radial-gradient(ellipse at center, rgba(232,121,249,0.55) 0%, transparent 70%)" }} />
-          <span className="relative z-10">🔮 시작하기</span>
+          <span className="relative z-10">🔮 마음의 문 열기</span>
         </motion.button>
 
         <motion.p className="mt-5 text-[10px] text-purple-500/38 tracking-widest"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85 }}>
-          ✦ 상대방을 마음속으로 떠올리며 시작하세요 ✦
+          ✦ 그 사람의 말과 행동을 조용히 떠올리며 시작하세요 ✦
         </motion.p>
         </motion.div>
       </div>
@@ -539,7 +539,7 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
               initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -7 }}
               transition={{ duration: 0.28 }}>
               {allRevealed
-                ? <>모든 속마음이 <span className="text-fuchsia-300">드러났습니다</span> ✨</>
+                ? <>마음의 결이 모두 <span className="text-fuchsia-300">펼쳐졌습니다</span> ✨</>
                 : <>{POSITIONS[revealedCount]?.icon} <span className="text-fuchsia-300">{POSITIONS[revealedCount]?.label}</span> 포지션이 열립니다</>
               }
             </motion.h2>
@@ -669,9 +669,9 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
                     ? <>
                       <motion.span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white inline-block"
                         animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }} />
-                      타로 마스터가 해석 중...
+                      카드의 간격을 읽는 중...
                     </>
-                    : "✨ 속마음 리딩 받기"}
+                    : "✨ 마음의 결 리딩 열기"}
                 </span>
               </motion.button>
             </motion.div>
@@ -821,7 +821,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
     const shortIntro = String(reading?.intro || "")
       .replace(/\s+/g, " ")
       .slice(0, 90);
-    const shareDesc = shortIntro || "상대방의 속마음을 깊이 읽어주는 마인드 스캔 타로";
+    const shareDesc = shortIntro || "겉말과 속마음의 간격을 섬세하게 읽는 마인드 스캔 타로";
 
     try {
       const kakao = (window as Window & {
@@ -918,9 +918,9 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
           <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-amber-300/35 bg-amber-200/10 text-lg text-amber-100 shadow-[0_0_18px_rgba(251,191,36,0.38)]">
             ✦
           </div>
-          <p className="text-[11px] tracking-[0.55em] text-amber-200/72 uppercase mb-2">Mind Scan Tarot · Master Reading</p>
+          <p className="text-[11px] tracking-[0.55em] text-amber-200/72 uppercase mb-2">Mind Scan Tarot · 관계 간격 리딩</p>
           <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow-[0_0_20px_rgba(251,191,36,0.2)]" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
-            상대방의 진심이{" "}
+            그 사람 마음의 결이{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-rose-200">열렸습니다</span>
           </h2>
           <div className="flex items-center justify-center gap-3 mt-2.5">
@@ -969,7 +969,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                 style={{ background: "rgba(251,191,36,0.16)", border: "1px solid rgba(251,191,36,0.32)" }}>
                 <span className="text-lg">🔮</span>
               </div>
-              <h3 className="text-sm font-bold text-amber-50 tracking-wide">타로 마스터의 도입</h3>
+              <h3 className="text-sm font-bold text-amber-50 tracking-wide">마음의 문턱</h3>
             </div>
             <p className="text-[15px] sm:text-base text-stone-100/92 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.intro}</p>
           </motion.div>
@@ -979,13 +979,13 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             style={{ background: "linear-gradient(130deg,rgba(120,53,15,0.28),rgba(146,64,14,0.12),rgba(30,41,59,0.3))" }}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: visibleCount >= 4 ? 1 : 0, y: visibleCount >= 4 ? 0 : 14 }}>
-            <h3 className="text-base sm:text-lg font-black text-amber-50 mb-3" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>상대방 속마음 요약</h3>
+            <h3 className="text-base sm:text-lg font-black text-amber-50 mb-3" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>속마음의 전체 기류</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm">
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/95">
                 감정 온도: <b>{summaryCard.emotionalTemperatureText || `${summaryCard.emotionalTemperature || 3} / 5`}</b>
               </div>
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/95">
-                재접근 가능성: <b>{summaryCard.reApproachChance || "중간"}</b>
+                다시 열릴 여지: <b>{summaryCard.reApproachChance || "중간"}</b>
               </div>
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/95">
                 연락 가능성: <b>{summaryCard.contactChance || "낮지는 않지만, 방어심리가 변수"}</b>
@@ -995,20 +995,20 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
               </div>
             </div>
             <p className="mt-3 text-sm text-amber-50/95 leading-7">
-              현재 심리: {summaryCard.corePsychology || "미련은 있지만 먼저 다가오기는 조심스러운 상태"}
+              겉으로 숨긴 중심: {summaryCard.corePsychology || "미련은 있지만 먼저 다가오기는 조심스러운 상태"}
             </p>
             <p className="text-sm text-amber-50/90 leading-7">
-              추천 행동: {summaryCard.recommendedAction || "무거운 확인보다 가벼운 안부로 시작"}
+              오늘 건넬 태도: {summaryCard.recommendedAction || "무거운 확인보다 가벼운 안부로 시작"}
             </p>
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/92">
-                관계 단계: <b>{summaryCard.relationshipStage || "유보형 거리두기 단계"}</b>
+                관계의 현재 문턱: <b>{summaryCard.relationshipStage || "유보형 거리두기 단계"}</b>
               </div>
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/92">
-                침묵 동인: <b>{summaryCard.silenceDriver || "자존심과 상처 재발 우려"}</b>
+                침묵의 그림자: <b>{summaryCard.silenceDriver || "자존심과 상처 재발 우려"}</b>
               </div>
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/92 sm:col-span-2">
-                상황 압력: <b>{summaryCard.situationPressure || "접근 강도 조절이 필요한 구간"}</b>
+                흐름을 누르는 힘: <b>{summaryCard.situationPressure || "접근 강도 조절이 필요한 구간"}</b>
               </div>
             </div>
             <div className="mt-4 grid grid-cols-1 gap-2 text-[12px]">
@@ -1016,7 +1016,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                 상대의 감정 온도: <b>{innerHeartSummary.emotionalTemperature || "감정과 방어가 동시에 움직이는 흐름"}</b>
               </div>
               <div className="rounded-xl border border-indigo-300/20 bg-indigo-500/10 px-3 py-2 text-indigo-50/95">
-                핵심 카드 흐름: <b>{innerHeartSummary.hiddenCore || "속마음과 망설임이 동시에 작동합니다."}</b>
+                가장 깊은 카드 결: <b>{innerHeartSummary.hiddenCore || "속마음과 망설임이 동시에 작동합니다."}</b>
               </div>
               <div className="rounded-xl border border-amber-300/20 bg-amber-500/10 px-3 py-2 text-amber-50/95">
                 연락 가능성 요약: <b>{innerHeartSummary.contactPossibility || "압박 없는 접점에서 반응 가능성이 열립니다."}</b>
@@ -1034,8 +1034,8 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: visibleCount >= 5 ? 1 : 0, y: visibleCount >= 5 ? 0 : 14 }}>
               <div className="flex items-center justify-between gap-3 mb-3">
-                <h3 className="text-base sm:text-lg font-black text-amber-50">상대방 감정/상황 딥다이브 카드</h3>
-                <span className="text-[11px] text-amber-100/78 tracking-wide">카드를 눌러 하나씩 확인하세요</span>
+                <h3 className="text-base sm:text-lg font-black text-amber-50">숨은 감정 보조 카드</h3>
+                <span className="text-[11px] text-amber-100/78 tracking-wide">한 장씩 열어 마음의 단서를 확인하세요</span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-4">
@@ -1067,8 +1067,8 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                       ) : (
                         <>
                           <p className="text-[10px] text-amber-100/65 tracking-[0.18em] uppercase mb-2">Mindscan Deck</p>
-                          <p className="text-xs text-stone-50/90 font-semibold">카드 #{idx + 1}</p>
-                          <p className="text-[11px] text-amber-100/75 mt-2">눌러서 뽑기</p>
+                          <p className="text-xs text-stone-50/90 font-semibold">숨은 조각 {idx + 1}</p>
+                          <p className="text-[11px] text-amber-100/75 mt-2">열어보기</p>
                         </>
                       )}
                     </motion.button>
@@ -1088,11 +1088,11 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                       <h4 className="text-sm sm:text-base font-bold text-indigo-50 mt-1">{activeInsight.icon || "🃏"} {activeInsight.title}</h4>
                     </div>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${RISK_LEVEL_CLASS[activeInsight.riskLevel || "중간"] || RISK_LEVEL_CLASS["중간"]}`}>
-                      리스크 {activeInsight.riskLevel || "중간"}
+                      그림자 {activeInsight.riskLevel || "중간"}
                     </span>
                   </div>
                   {activeInsight.headline && (
-                    <p className="text-sm text-indigo-100/95 leading-7">핵심: {activeInsight.headline}</p>
+                    <p className="text-sm text-indigo-100/95 leading-7">드러난 결: {activeInsight.headline}</p>
                   )}
                   {activeInsight.summary && (
                     <p className="text-sm text-indigo-100/86 leading-7 mt-1.5">{activeInsight.summary}</p>
@@ -1126,10 +1126,10 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                   {s.subtitle && <p className="text-xs text-amber-100/70 mt-1">{s.subtitle}</p>}
                   {(s.mainCardName || s.subCardName) && (
                     <div className="flex flex-wrap items-center gap-x-1 mt-0.5">
-                      <span className="text-[10px] text-amber-100/60">메인:</span>
+                      <span className="text-[10px] text-amber-100/60">앞장:</span>
                       <span className="text-[10px] text-stone-100 font-medium">{s.mainCardName || "—"}</span>
                       <span className="text-[10px] text-amber-200/35 mx-0.5">·</span>
-                      <span className="text-[10px] text-amber-100/60">보조:</span>
+                      <span className="text-[10px] text-amber-100/60">이면:</span>
                       <span className="text-[10px] text-stone-100 font-medium">{s.subCardName || "—"}</span>
                     </div>
                   )}
@@ -1164,23 +1164,14 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                 </div>
               )}
               <div className="sm:pl-12 mt-3 grid grid-cols-1 gap-2">
-                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>카드명/방향:</b> {s.cardNameKo || s.mainCardName || "카드"} {s.orientation ? `(${s.orientation === "reversed" ? "역방향" : "정방향"})` : ""}</p>
-                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>카드 기본 의미:</b> {s.cardMeaning || s.summary || s.content}</p>
-                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>이 위치에서의 의미:</b> {s.positionMeaning || s.subtitle || "이 포지션의 질문에 맞춘 해석"}</p>
-                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>상대 속마음 해석:</b> {s.emotionalReading || s.summary || "감정과 방어가 함께 작동하는 흐름"}</p>
-                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>상대가 말하지 못하는 메시지:</b> {s.hiddenMessage || "확답보다 안전한 대화 환경을 먼저 원하고 있습니다."}</p>
-                <p className="text-[13px] sm:text-sm text-amber-100/90 leading-7"><b>주의할 점:</b> {s.caution || "감정 확인을 몰아붙이면 방어가 강화될 수 있습니다."}</p>
-                <p className="text-[13px] sm:text-sm text-emerald-100/90 leading-7"><b>내가 취할 태도:</b> {s.advice || "짧고 부담 없는 메시지로 리듬을 회복하세요."}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>카드의 얼굴:</b> {s.cardNameKo || s.mainCardName || "카드"} {s.orientation ? `(${s.orientation === "reversed" ? "역방향" : "정방향"})` : ""}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>카드가 비춘 장면:</b> {s.cardMeaning || s.summary || s.content}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>이 자리의 속삭임:</b> {s.positionMeaning || s.subtitle || "이 자리의 질문에 맞춘 해석"}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>속마음의 결:</b> {s.emotionalReading || s.summary || "감정과 방어가 함께 작동하는 흐름"}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>말하지 못한 메시지:</b> {s.hiddenMessage || "확답보다 안전한 대화 환경을 먼저 원하고 있습니다."}</p>
+                <p className="text-[13px] sm:text-sm text-amber-100/90 leading-7"><b>조심할 그림자:</b> {s.caution || "감정 확인을 몰아붙이면 방어가 강화될 수 있습니다."}</p>
+                <p className="text-[13px] sm:text-sm text-emerald-100/90 leading-7"><b>내가 건넬 태도:</b> {s.advice || "짧고 부담 없는 메시지로 리듬을 회복하세요."}</p>
               </div>
-              {(Array.isArray(s.detail) && s.detail.length > 0) && (
-                <div className="sm:pl-12 mt-2.5 space-y-2">
-                  {s.detail.map((line, idx) => (
-                    <p key={`${s.slot}-detail-${idx}`} className="text-[13px] sm:text-sm text-purple-100/78 leading-7">
-                      • {line}
-                    </p>
-                  ))}
-                </div>
-              )}
             </motion.article>
           ))}
 

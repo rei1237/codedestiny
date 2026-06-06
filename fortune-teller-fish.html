@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>포춘텔러 물고기</title>
+<script src="/js/destiny-profile.js?v=build-dc8b1dedfe26"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Cinzel:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -863,14 +864,16 @@ async function doGachaRoll() {
     setFortuneFishPaymentPending(true, '포춘텔러 피쉬 행운 가챠 결제를 확인하는 중입니다...');
     try {
       const requestId = 'fortune-fish-gacha:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 10);
-      const res = await authFetchWithRefresh('/api/fortune/pig-coin/consume', {
+      const res = await authFetchWithRefresh('/api/billing/coin-gate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cost: GACHA_COST, reason: '포춘텔러 피쉬 행운 가챠', featureKey: 'fortune-fish-gacha', requestId })
+        body: JSON.stringify({ cost: GACHA_COST, coinPrice: GACHA_COST, reason: '포춘텔러 피쉬 행운 가챠', featureKey: 'fortune-fish-gacha', serviceKey: 'fortune-fish', action: 'doGachaRoll', paymentMode: 'COIN', forceDeduct: true, requestId })
       });
-      const d = await res.json();
-      if (!d.ok) { showToast(d.message || '코인 차감 실패'); return; }
-      STATE.serverCoins = d.user.points;
+      const d = await res.json().catch(() => ({}));
+      const data = d && d.data && typeof d.data === 'object' ? d.data : d;
+      if (!res.ok || d.ok === false) { showToast(d.message || '결제를 완료하지 못했습니다.'); return; }
+      const nextUser = data && data.user && typeof data.user.points === 'number' ? data.user : null;
+      if (nextUser) STATE.serverCoins = nextUser.points;
     } catch(e) {
       showToast('서버 연결 실패. 로컬 코인으로 진행합니다.');
       if (STATE.coins < GACHA_COST) { showToast(`코인이 부족해요 🥺`); return; }

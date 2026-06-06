@@ -3,11 +3,11 @@ import { buildFortuneJsonLd, generatePageMetadata } from "../../../lib/generate-
 
 const META = {
   path: "/dream/tarot",
-  title: "드림 타로 - AI 꿈 해석 리포트 | Code Destiny",
-  description: "꿈의 장면과 감정 키워드를 분석해 현재 심리 상태와 다음 행동 힌트를 제시하는 꿈해몽 가이드입니다.",
-  keywords: ["꿈해몽", "드림 타로", "AI 꿈 해석", "dream interpretation", "무의식"],
+  title: "드림 타로 - 꿈의 잔향을 여는 3카드 리딩 | Code Destiny",
+  description: "꿈속 장면과 깨어난 뒤의 감정을 세 장의 카드에 겹쳐, 무의식이 남긴 상징과 오늘 봉인할 선택을 읽습니다.",
+  keywords: ["꿈해몽", "드림 타로", "꿈 상징", "dream interpretation", "무의식"],
   image: "https://code-destiny.com/fuctionassets/heamong.webp",
-  featureList: ["꿈 상징 해석", "감정 톤 분석", "실행형 조언"],
+  featureList: ["꿈 장면의 상징 카드", "깨어난 뒤 감정의 잔향", "오늘 봉인할 작은 선택"],
   applicationCategory: "LifestyleApplication",
 } as const;
 
@@ -22,13 +22,13 @@ const SERVICE = {
   description: META.description,
   ogImage: META.image,
   landingPoints: [...META.featureList],
-  seoText: "드림 타로는 꿈 속 사건, 감정, 반복 상징을 기반으로 현재 심리 흐름을 읽는 AI 꿈해몽 서비스입니다.",
-  valueGuideTitle: "꿈해몽을 현실 통찰로 바꾸는 6단계",
+  seoText: "드림 타로는 꿈속 사건, 감정, 반복 상징을 카드의 언어로 옮겨 지금 마음이 붙잡은 신호와 오늘의 회복 방향을 읽는 꿈해몽 리딩입니다.",
+  valueGuideTitle: "꿈의 잔향을 현실 통찰로 바꾸는 6단계",
   valueSections: [
     {
       title: "1. 꿈해몽은 길흉 예언보다 감정 신호 해석입니다",
       body:
-        "꿈은 미래를 단정하는 메시지라기보다 최근 정서와 스트레스가 압축된 형태로 나타나는 경우가 많습니다. 그래서 장면 자체보다 꿈에서 느낀 감정, 깬 직후 남은 여운을 먼저 기록하면 해석 정확도가 높아집니다. 꿈해몽을 불안 증폭 도구가 아닌 자기관찰 도구로 쓰는 태도가 핵심입니다.",
+        "꿈은 미래를 단정하는 메시지라기보다 최근 정서와 스트레스가 압축된 형태로 나타나는 경우가 많습니다. 그래서 장면 자체보다 꿈에서 느낀 감정, 깬 직후 남은 여운을 먼저 기록하면 상징의 결이 선명해집니다. 꿈해몽을 불안 증폭 도구가 아닌 자기관찰 도구로 쓰는 태도가 핵심입니다.",
     },
     {
       title: "2. 상징은 사전 뜻보다 개인 맥락이 우선입니다",
@@ -53,7 +53,7 @@ const SERVICE = {
     {
       title: "6. 주간 꿈 로그를 만들면 패턴이 보입니다",
       body:
-        "꿈 내용, 감정 강도, 다음날 컨디션을 짧게 기록하면 2~3주 안에 반복 패턴이 드러납니다. 특정 업무 전날 악몽이 잦거나, 특정 관계 이슈 후 특정 상징이 반복되는 식의 연결점이 보이면 대응 전략을 세울 수 있습니다. 꿈해몽은 기록이 쌓일수록 정확도가 높아지는 느린 도구입니다.",
+        "꿈 내용, 감정 강도, 다음날 컨디션을 짧게 기록하면 2~3주 안에 반복 패턴이 드러납니다. 특정 업무 전날 악몽이 잦거나, 특정 관계 이슈 후 특정 상징이 반복되는 식의 연결점이 보이면 대응 전략을 세울 수 있습니다. 꿈해몽은 기록이 쌓일수록 내 마음의 언어를 더 또렷하게 비추는 느린 도구입니다.",
     },
   ],
 };

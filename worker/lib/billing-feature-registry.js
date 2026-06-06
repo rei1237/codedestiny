@@ -1,5 +1,6 @@
 import {
   COIN_GATE_PER_USE_REASON_COSTS,
+  FEATURE_KEY_REASON_COSTS,
   FEATURE_KEY_PRICE_TABLE,
   UNLOCK_PRODUCT_BY_FEATURE_KEY,
   getPaidFeatureBillingType,
@@ -219,6 +220,26 @@ function resolveByFeatureKey(featureKey) {
   });
 }
 
+function resolveByFeatureReason(featureKey, reason) {
+  const requestedFeatureKey = normalizeText(featureKey);
+  const normalizedFeatureKey = normalizePaidFeatureKey(requestedFeatureKey);
+  const normalizedReason = normalizeText(reason);
+  if (!normalizedFeatureKey || !normalizedReason) return null;
+
+  const reasonTable = FEATURE_KEY_REASON_COSTS[normalizedFeatureKey] || null;
+  const cost = Number(reasonTable?.[normalizedReason]);
+  if (!Number.isFinite(cost) || cost <= 0) return null;
+
+  return toPricingShape({
+    categoryKey: "legacy-feature",
+    categoryLabel: "레거시 기능",
+    subFeatureKey: normalizeKey(normalizedFeatureKey) || "default",
+    featureKey: normalizedFeatureKey,
+    cost,
+    reason: normalizedReason,
+  });
+}
+
 function resolveByReason(reason) {
   const normalizedReason = normalizeText(reason);
   if (!normalizedReason) return null;
@@ -312,6 +333,15 @@ export function getBillingFeaturePricing(input = {}) {
   }
 
   if (normalized.featureKey && !isGenericCoinGateFeatureKey(normalized.featureKey)) {
+    const fromFeatureReason = resolveByFeatureReason(normalized.featureKey, normalized.reason);
+    if (fromFeatureReason) {
+      return {
+        ok: true,
+        pricing: fromFeatureReason,
+        source: "feature-key-reason",
+      };
+    }
+
     const fromFeature = resolveByFeatureKey(normalized.featureKey);
     if (fromFeature) {
       return {

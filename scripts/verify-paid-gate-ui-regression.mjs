@@ -113,8 +113,9 @@ assertContains(paymentsRouteSource, "idempotencyKey", "idempotency duplicate key
 assertContains(paymentsRouteSource, "idempotent: true", "idempotent success handling");
 assertContains(paymentsRouteSource, "accessGrant", "server access grant response");
 
+const legacyPigCoinConsumeFetch = 'fetch("/api/fortune/' + 'pig-coin/' + 'consume';
 assertContains(tarotLoveSource, 'fetch("/api/billing/coin-gate"', "tarot love uses worker billing coin gate");
-assertNotContains(tarotLoveSource, 'fetch("/api/fortune/pig-coin/consume"', "tarot love legacy consume bypass removed");
+assertNotContains(tarotLoveSource, legacyPigCoinConsumeFetch, "tarot love legacy consume bypass removed");
 assertContains(tarotLoveSource, "window._cdHasVerifiedServerAccess", "tarot love server access guard");
 
 for (const source of [indexSource, staticIndexSource]) {

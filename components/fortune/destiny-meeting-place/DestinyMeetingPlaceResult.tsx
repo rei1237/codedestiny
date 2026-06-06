@@ -1,12 +1,16 @@
+"use client";
+
 import { motion } from "framer-motion";
-import { Heart, MapPin, Moon, Sparkles, Star } from "lucide-react";
-import type { ReactNode } from "react";
+import { Copy, Heart, MapPin, Moon, Sparkles, Star, WandSparkles } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import type { DestinyMeetingPlaceResult } from "./destinyMeetingPlaceTypes";
 
 type Props = {
   result: DestinyMeetingPlaceResult;
   chargedCoins: number;
 };
+
+type PromptPack = NonNullable<DestinyMeetingPlaceResult["promptPack"]>;
 
 type SectionCardProps = {
   title: string;
@@ -50,6 +54,20 @@ function elementToneClass(element: string) {
   return map[element] || "border-white/30 bg-white/10 text-white";
 }
 
+function buildPromptPackText(promptPack: PromptPack) {
+  return [
+    promptPack.title,
+    promptPack.intro,
+    ...promptPack.prompts.map((prompt, index) => [
+      `${index + 1}. ${prompt.title}`,
+      `분류: ${prompt.category}`,
+      `목적: ${prompt.intent}`,
+      prompt.relatedPlace ? `연결 장소: ${prompt.relatedPlace}` : "",
+      prompt.prompt,
+    ].filter(Boolean).join("\n")),
+  ].join("\n\n");
+}
+
 function SectionCard({ title, subtitle, icon, index, children }: SectionCardProps) {
   return (
     <motion.section
@@ -75,6 +93,21 @@ function SectionCard({ title, subtitle, icon, index, children }: SectionCardProp
 
 export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Props) {
   const majorKeywordChips = [result.summary.mainEnergy, result.summary.romanceKeyword, result.summary.placeTheme];
+  const promptPack = result.promptPack;
+  const [selectedPromptId, setSelectedPromptId] = useState(() => promptPack?.prompts[0]?.id || "");
+  const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
+  const selectedPrompt = promptPack?.prompts.find((prompt) => prompt.id === selectedPromptId) || promptPack?.prompts[0] || null;
+
+  async function copyPrompt(id: string, text: string) {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedPromptId(id);
+      window.setTimeout(() => setCopiedPromptId(null), 1400);
+    } catch {
+      setCopiedPromptId(null);
+    }
+  }
 
   return (
     <div className={`space-y-5 ${sansClass}`}>
@@ -90,7 +123,69 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
         </div>
       </SectionCard>
 
-      <SectionCard title="나의 기운" subtitle="Energy Signature" icon={<Heart size={18} />} index={1}>
+      {promptPack?.prompts.length ? (
+        <SectionCard title="사주 프롬프트 북" subtitle="Prompt Atelier" icon={<WandSparkles size={18} />} index={1}>
+          <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="space-y-3">
+              <p className={`text-lg leading-relaxed text-[#fff0d6] ${serifClass}`}>{promptPack.intro}</p>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1" role="tablist" aria-label="사주 프롬프트 선택">
+                {promptPack.prompts.map((prompt) => {
+                  const isActive = selectedPrompt?.id === prompt.id;
+                  return (
+                    <button
+                      key={prompt.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      onClick={() => setSelectedPromptId(prompt.id)}
+                      className={`rounded-2xl border px-4 py-3 text-left transition-all ${isActive ? "border-[#ffe0a6]/70 bg-[#f4d6a4]/18 text-[#fff6e8] shadow-[0_0_22px_rgba(244,214,164,0.16)]" : "border-white/12 bg-white/5 text-[#dfd4c4] hover:border-[#f0d7ad]/45 hover:bg-white/8"}`}
+                    >
+                      <span className="block text-[11px] font-black uppercase tracking-[0.16em] text-[#e6c793]">{prompt.category}</span>
+                      <span className={`mt-1 block text-base leading-snug ${serifClass}`}>{prompt.title}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => copyPrompt("all-prompts", buildPromptPackText(promptPack))}
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[#f0d7ad]/45 bg-[#f0d7ad]/12 px-4 py-2 text-sm font-black text-[#fff1d7] transition-all hover:bg-[#f0d7ad]/18"
+              >
+                <Copy size={15} />
+                {copiedPromptId === "all-prompts" ? "전체 세트 복사 완료" : "전체 프롬프트 세트 복사"}
+              </button>
+            </div>
+
+            {selectedPrompt ? (
+              <article className="rounded-3xl border border-[#f1d7ad]/35 bg-[linear-gradient(150deg,rgba(32,24,45,0.7),rgba(18,24,46,0.62))] p-4 text-[#f3eadf] sm:p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#e6c793]">{selectedPrompt.category}</p>
+                    <h4 className={`mt-1 text-2xl leading-tight text-[#fff2de] ${serifClass}`}>{selectedPrompt.title}</h4>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyPrompt(selectedPrompt.id, selectedPrompt.prompt)}
+                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/18 bg-white/8 px-3 py-2 text-xs font-black text-[#fff4df] transition-all hover:bg-white/14"
+                  >
+                    <Copy size={14} />
+                    {copiedPromptId === selectedPrompt.id ? "복사 완료" : "복사"}
+                  </button>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-[#dfd5c8]">{selectedPrompt.intent}</p>
+                {selectedPrompt.relatedPlace ? (
+                  <p className="mt-2 text-xs font-bold text-[#f1d7ad]">연결 장소: {selectedPrompt.relatedPlace}</p>
+                ) : null}
+                <div className="mt-4 max-h-[420px] overflow-auto rounded-2xl border border-white/12 bg-black/18 p-4 text-sm leading-7 text-[#f8efe4] whitespace-pre-wrap break-words">
+                  {selectedPrompt.prompt}
+                </div>
+              </article>
+            ) : null}
+          </div>
+        </SectionCard>
+      ) : null}
+
+      <SectionCard title="나의 기운" subtitle="Energy Signature" icon={<Heart size={18} />} index={2}>
         <div className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
           <div className="space-y-2 text-[15px] leading-relaxed text-[#ece5d7]">
             <p className="text-sm text-[#f4dfbb]">일간</p>
@@ -116,7 +211,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
         </div>
       </SectionCard>
 
-      <SectionCard title="타이밍" subtitle="Timing Window" icon={<Moon size={18} />} index={2}>
+      <SectionCard title="타이밍" subtitle="Timing Window" icon={<Moon size={18} />} index={3}>
         <div className="grid gap-3 md:grid-cols-3">
           <article className="rounded-2xl border border-white/15 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">Season</p>
@@ -134,7 +229,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
         <p className="mt-4 text-sm leading-relaxed text-[#e5dccd]">{result.luckyTiming.explanation}</p>
       </SectionCard>
 
-      <SectionCard title="장소 TOP 5" subtitle="Where Destiny Opens" icon={<MapPin size={18} />} index={3}>
+      <SectionCard title="장소 TOP 5" subtitle="Where Destiny Opens" icon={<MapPin size={18} />} index={4}>
         <div className="grid gap-3 md:grid-cols-2">
           {result.recommendedPlaces.map((place) => (
             <article key={place.name} className="rounded-2xl border border-[#efd8b4]/35 bg-[linear-gradient(150deg,rgba(26,31,48,0.58),rgba(33,24,44,0.5))] p-4 text-sm text-[#efe7d9]">
@@ -158,7 +253,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
         </div>
       </SectionCard>
 
-      <SectionCard title="액션 플랜" subtitle="This Week Ritual" icon={<Star size={18} />} index={4}>
+      <SectionCard title="액션 플랜" subtitle="This Week Ritual" icon={<Star size={18} />} index={5}>
         <div className="space-y-3 text-sm text-[#ece4d7]">
           <article className="rounded-2xl border border-white/15 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">오늘</p>

@@ -6,7 +6,7 @@ import { ArrowLeft, ChevronRight, Heart, MessageCircle, RefreshCw, Sparkles, Use
 import { INITIAL_STATS, LOVE_CHARACTERS, LOVE_SCENES, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveStats } from "../_data/loveCodeMvp";
 import { fetchSajuPillar } from "../_services/sajuApi";
 import { applyEffects, getRelationshipMetrics, resolveResult } from "../_utils/loveCodeScoring";
-import { matchLoveCharactersFromSaju, type LoveCharacterMatchResult } from "../_utils/loveCharacterMatching";
+import { buildSajuCoupleCompatibility, matchLoveCharactersFromSaju, type LoveCharacterMatchResult, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
 
 const LoveCharacterStorySection = lazy(() => import("./LoveCharacterStorySection"));
 
@@ -20,6 +20,7 @@ type PartnerMatchInput = {
   minute: string;
   country: string;
   gender: PartnerGender;
+  hasTime: boolean;
 };
 
 type StoredProfile = {
@@ -29,12 +30,21 @@ type StoredProfile = {
   birthDate?: string;
   birthTime?: string;
   birthIso?: string;
+  birthTimeUnknown?: boolean;
+  calType?: string;
+  calendarType?: string;
+  timezone?: string;
+  country?: string;
   birth?: {
     year?: number;
     month?: number;
     day?: number;
     hour?: number;
     minute?: number;
+    hasTime?: boolean;
+    calType?: string;
+    calendarType?: string;
+    timezone?: string;
   };
 };
 
@@ -45,6 +55,9 @@ type StoredAuthUser = {
   gender?: string;
   birthDate?: string;
   birthTime?: string;
+  calType?: string;
+  calendarType?: string;
+  timezone?: string;
 };
 
 type ProfileSeed = {
@@ -52,6 +65,10 @@ type ProfileSeed = {
   gender: "남" | "여";
   birthDate: string;
   hour: number;
+  minute: number;
+  hasTime: boolean;
+  calendarType: PartnerCalendarType;
+  timezone: string;
 };
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => hour);
@@ -253,17 +270,54 @@ function normalizeBirthDateFromProfile(profile: StoredProfile | null | undefined
   return normalizeBirthDate(profile?.birthDate) || normalizeBirthDate(profile?.birthIso);
 }
 
-function normalizeBirthHourFromProfile(profile: StoredProfile | null | undefined) {
+function parseBirthTimeParts(...values: unknown[]) {
+  for (const value of values) {
+    const raw = String(value || "").trim();
+    if (!raw) continue;
+    const matched = raw.match(/(?:T|\s|^)(\d{1,2})(?::?(\d{2}))(?::\d{2})?/);
+    if (!matched) continue;
+    const hour = Number(matched[1]);
+    const minute = Number(matched[2] || 0);
+    if (Number.isFinite(hour) && Number.isFinite(minute)) {
+      return {
+        hour: Math.max(0, Math.min(23, Math.floor(hour))),
+        minute: Math.max(0, Math.min(59, Math.floor(minute))),
+      };
+    }
+  }
+
+  return null;
+}
+
+function normalizeBirthHourFromProfile(profile: StoredProfile | null | undefined, authUser?: StoredAuthUser | null) {
   const directHour = Number(profile?.birth?.hour);
   if (Number.isFinite(directHour)) return Math.max(0, Math.min(23, Math.floor(directHour)));
 
-  const digits = String(profile?.birthTime || profile?.birthIso || "").replace(/\D/g, "");
-  if (digits.length >= 2) {
-    const hour = Number(digits.slice(0, 2));
-    if (Number.isFinite(hour)) return Math.max(0, Math.min(23, Math.floor(hour)));
-  }
+  const parsed = parseBirthTimeParts(profile?.birthTime, authUser?.birthTime, profile?.birthIso);
+  if (parsed) return parsed.hour;
 
   return 12;
+}
+
+function normalizeBirthMinuteFromProfile(profile: StoredProfile | null | undefined, authUser?: StoredAuthUser | null) {
+  const directMinute = Number(profile?.birth?.minute);
+  if (Number.isFinite(directMinute)) return Math.max(0, Math.min(59, Math.floor(directMinute)));
+
+  const parsed = parseBirthTimeParts(profile?.birthTime, authUser?.birthTime, profile?.birthIso);
+  return parsed ? parsed.minute : 0;
+}
+
+function hasKnownBirthTime(profile: StoredProfile | null | undefined, authUser?: StoredAuthUser | null) {
+  if (profile?.birthTimeUnknown === true || profile?.birth?.hasTime === false) return false;
+  if (Number.isFinite(Number(profile?.birth?.hour))) return true;
+  return Boolean(parseBirthTimeParts(profile?.birthTime, authUser?.birthTime, profile?.birthIso));
+}
+
+function normalizeProfileCalendarType(value: unknown): PartnerCalendarType {
+  const raw = String(value || "").toLowerCase();
+  if (raw.includes("leap") || raw.includes("윤")) return "lunar_leap";
+  if (raw.includes("lunar") || raw.includes("음")) return "lunar";
+  return "solar";
 }
 
 function normalizeProfileGender(value: unknown): "남" | "여" {
@@ -289,11 +343,16 @@ function readCurrentProfileSeed(): ProfileSeed | null {
     const profile = Array.isArray(list) ? (currentId ? list.find((item) => item?.id === currentId) : list[0]) || list[0] : null;
     const birthDate = normalizeBirthDateFromProfile(profile) || normalizeBirthDate(authUser?.birthDate);
     if (!birthDate) return null;
+    const profileCalendarType = profile?.birth?.calendarType || profile?.birth?.calType || profile?.calendarType || profile?.calType || authUser?.calendarType || authUser?.calType;
 
     return {
       birthDate,
       gender: normalizeProfileGender(profile?.gender || authUser?.gender),
-      hour: normalizeBirthHourFromProfile(profile),
+      hour: normalizeBirthHourFromProfile(profile, authUser),
+      minute: normalizeBirthMinuteFromProfile(profile, authUser),
+      hasTime: hasKnownBirthTime(profile, authUser),
+      calendarType: normalizeProfileCalendarType(profileCalendarType),
+      timezone: String(profile?.birth?.timezone || profile?.timezone || profile?.country || authUser?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
       name: String(profile?.name || authUser?.name || "나").trim(),
     };
   } catch {
@@ -304,6 +363,10 @@ function readCurrentProfileSeed(): ProfileSeed | null {
       birthDate,
       gender: normalizeProfileGender(authUser?.gender),
       hour: 12,
+      minute: 0,
+      hasTime: Boolean(parseBirthTimeParts(authUser?.birthTime)),
+      calendarType: normalizeProfileCalendarType(authUser?.calendarType || authUser?.calType),
+      timezone: String(authUser?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
       name: String(authUser?.name || "나").trim(),
     };
   }
@@ -627,11 +690,13 @@ function RecommendedMatchCard({
   character,
   result,
   secondaryLabels,
+  compatibility,
   onStart,
 }: {
   character: LoveCharacter;
   result: LoveCharacterMatchResult;
   secondaryLabels: string[];
+  compatibility: SajuCoupleCompatibility | null;
   onStart: () => void;
 }) {
   return (
@@ -655,6 +720,19 @@ function RecommendedMatchCard({
             입력한 상대는 <span className={character.palette.accent}>{character.name}형 성향</span>과 가장 가까워요.
           </h3>
           <p className="mt-3 text-sm font-semibold leading-7 text-white/70">{result.summary}</p>
+          {compatibility ? (
+            <div className="mt-4 rounded-lg border border-rose-100/18 bg-rose-100/10 px-4 py-3">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-100/72">Couple Code</p>
+              <p className="mt-2 text-sm font-black text-white">
+                {compatibility.grade} · {compatibility.score}점
+              </p>
+              <p className="mt-2 text-xs font-bold leading-6 text-white/68">{compatibility.summary}</p>
+            </div>
+          ) : (
+            <p className="mt-4 rounded-lg border border-white/10 bg-black/18 px-3 py-2 text-xs font-bold leading-5 text-white/58">
+              내 프로필 카드 생년월일을 연결하면 쌍방 궁합까지 함께 반영됩니다.
+            </p>
+          )}
           <div className="mt-4 grid gap-2">
             {result.reasonBullets.slice(0, 3).map((reason) => (
               <div key={reason} className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs font-bold leading-5 text-white/72">
@@ -822,6 +900,311 @@ function buildCustomAdvice(character: LoveCharacter, choiceAnalysis: ChoiceAnaly
   return `${character.name}에게는 ${character.bestApproach} 특히 ${affection} 같은 순간이 호감의 문을 열고, ${trust} 같은 태도가 신뢰를 깊게 만듭니다. 다만 ${character.conflictPattern} ${toneGuide}`;
 }
 
+type SajuCompatibilityVerdict = {
+  score: number;
+  grade: string;
+  body: string;
+  chips: string[];
+  reasons: string[];
+  risk: string;
+  dateTip: string;
+};
+
+type DateOutcome = {
+  title: string;
+  body: string;
+  highlight: string;
+};
+
+type ChoiceRecap = {
+  sceneLabel: string;
+  choiceText: string;
+  insight: string;
+  tone: string;
+};
+
+function getSajuCompatibilityScore(stats: LoveStats) {
+  const raw = Math.round(stats.affection * 0.22 + stats.trust * 0.28 + stats.chemistry * 0.2 + stats.stability * 0.22 - stats.tension * 0.16 + 20);
+  return Math.max(0, Math.min(100, raw));
+}
+
+function resolveSajuCompatibilityGrade(score: number) {
+  if (score >= 86) return "상급 궁합";
+  if (score >= 74) return "안정 성장궁합";
+  if (score >= 62) return "설렘 조율궁합";
+  if (score >= 48) return "거리 조절궁합";
+  return "냉각 주의궁합";
+}
+
+function buildSajuCompatibilityVerdict(character: LoveCharacter, stats: LoveStats, entryMode: "preset" | "sajuMatch", coupleCompatibility?: SajuCoupleCompatibility | null): SajuCompatibilityVerdict {
+  const playScore = getSajuCompatibilityScore(stats);
+  const score = coupleCompatibility ? Math.round(coupleCompatibility.score * 0.58 + playScore * 0.42) : playScore;
+  const grade = resolveSajuCompatibilityGrade(score);
+  const source = entryMode === "sajuMatch" ? "상대 사주 입력 기반" : `${character.dayMaster} 일간 캐릭터 기준`;
+  const elementLabel = ELEMENT_LOVE_NARRATIVE[character.element].label;
+  const chips = coupleCompatibility
+    ? [...coupleCompatibility.chips.slice(0, 3), `데이트 반응 ${playScore}점`]
+    : [
+        `${character.dayMaster} 일간`,
+        elementLabel,
+        `긴장 ${stats.tension}`,
+        `신뢰 ${stats.trust}`,
+      ];
+  const reasons = coupleCompatibility?.reasons?.length
+    ? coupleCompatibility.reasons
+    : [
+        `${character.dayMaster} 일간의 연애 결은 ${DAY_MASTER_LOVE_NARRATIVE[character.dayMaster].attraction}`,
+        `${elementLabel} 기운은 ${ELEMENT_LOVE_NARRATIVE[character.element].harmony}`,
+      ];
+
+  return {
+    score,
+    grade,
+    chips,
+    reasons,
+    risk: coupleCompatibility?.risk || `${character.dislikes.behaviors[0]}이 반복되면 궁합 점수가 빠르게 흔들립니다.`,
+    dateTip: coupleCompatibility?.dateTip || `${character.name}에게는 ${character.bestApproach}`,
+    body: coupleCompatibility
+      ? `${coupleCompatibility.summary} 데이트 선택까지 반영하면 최종 체감 궁합은 ${grade}입니다.`
+      : `${source}으로 보면 이 궁합은 ${grade}입니다. ${character.name}에게는 ${character.bestApproach} ${character.trustTriggers[0]}이 관계의 뿌리를 만듭니다.`,
+  };
+}
+
+function buildDateOutcome(character: LoveCharacter, stats: LoveStats, choiceAnalysis: ChoiceAnalysis, choiceLog: ChoiceLog[]): DateOutcome {
+  const score = getSajuCompatibilityScore(stats);
+  const lastChoice = choiceLog[choiceLog.length - 1] ?? null;
+  const neoTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "전시장 2회차 예약 엔딩",
+    trust: "이어폰 한쪽 공유 엔딩",
+    tension: "읽씹 직전 냉각 엔딩",
+    neutral: "다음 역까지 동행 엔딩",
+  };
+  const taejunTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "태양 코트 직진 엔딩",
+    trust: "같은 팀 확정 엔딩",
+    tension: "작전 타임 요청 엔딩",
+    neutral: "다음 경기 관전 엔딩",
+  };
+  const sehyunTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "유리 첨탑 고백 엔딩",
+    trust: "공유 캘린더 확정 엔딩",
+    tension: "기준 재협상 엔딩",
+    neutral: "다음 약속 검토 엔딩",
+  };
+  const michaelTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "달빛 도서관 고백 엔딩",
+    trust: "고요한 동행 확정 엔딩",
+    tension: "잠수 직전 회복 엔딩",
+    neutral: "심야 산책 연장 엔딩",
+  };
+  const yuanTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "흙빛 편지 고백 엔딩",
+    trust: "생활의 동맹 확정 엔딩",
+    tension: "괜찮다는 말 안쪽 엔딩",
+    neutral: "다음 책갈피 예약 엔딩",
+  };
+  const ijunTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "검은 강변 고백 엔딩",
+    trust: "돌아올 자유 확정 엔딩",
+    tension: "차가운 토론 냉각 엔딩",
+    neutral: "심야 서재 연장 엔딩",
+  };
+  const siwooTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "청춘 정원 고백 엔딩",
+    trust: "같이 걷는 계절 엔딩",
+    tension: "숙제 같은 관계 조율 엔딩",
+    neutral: "다음 프로젝트 예약 엔딩",
+  };
+  const yunseoTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "앙코르 고백 엔딩",
+    trust: "무대 뒤 진심 확정 엔딩",
+    tension: "비상구 직전 조율 엔딩",
+    neutral: "다음 세트리스트 예약 엔딩",
+  };
+  const mingTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "달빛 살롱 고백 엔딩",
+    trust: "오래 지켜지는 예의 엔딩",
+    tension: "유리 장미 수리 엔딩",
+    neutral: "다음 티룸 예약 엔딩",
+  };
+  const jieunTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "검은 장미 고백 엔딩",
+    trust: "시험 대신 부탁 엔딩",
+    tension: "미로 탈출 조율 엔딩",
+    neutral: "비밀 온실 재방문 엔딩",
+  };
+  const saebyeokTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "붉은 도시 고백 엔딩",
+    trust: "진짜 편 확정 엔딩",
+    tension: "자존심 재협상 엔딩",
+    neutral: "다음 루프탑 예약 엔딩",
+  };
+  const seoyeonTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "데이지 고백 엔딩",
+    trust: "오래 머무는 다정함 엔딩",
+    tension: "꽃잎 속도 조율 엔딩",
+    neutral: "다음 계절 산책 엔딩",
+  };
+  const sohaTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "초록 스프린트 고백 엔딩",
+    trust: "같은 팀 확정 엔딩",
+    tension: "페이스 재조율 엔딩",
+    neutral: "다음 러닝 예약 엔딩",
+  };
+  const jiyoonTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "푸른 엽서 고백 엔딩",
+    trust: "돌아올 항구 확정 엔딩",
+    tension: "파도 거리 조율 엔딩",
+    neutral: "다음 해변 산책 엔딩",
+  };
+  const harinTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "핑크 네온 고백 엔딩",
+    trust: "진심 컷 저장 엔딩",
+    tension: "리액션 재충전 엔딩",
+    neutral: "다음 팝업 예약 엔딩",
+  };
+  const yeoniTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "분홍 꽃등 고백 엔딩",
+    trust: "서로의 등불 확정 엔딩",
+    tension: "마음 속도 회복 엔딩",
+    neutral: "다음 찻집 약속 엔딩",
+  };
+  const genericTitles: Record<ChoiceAnalysisTone, string> = {
+    warm: "설렘 온도 상승 엔딩",
+    trust: "천천히 스며드는 엔딩",
+    tension: "관계 재정비 엔딩",
+    neutral: "다음 약속 보류 엔딩",
+  };
+  const title =
+    character.id === "neo"
+      ? score >= 86
+        ? "은빛 책갈피 고백 엔딩"
+        : neoTitles[choiceAnalysis.tone]
+      : character.id === "kang-taejun"
+        ? score >= 86
+          ? "태양 코트 팀메이트 엔딩"
+          : taejunTitles[choiceAnalysis.tone]
+        : character.id === "kwon-sehyun"
+          ? score >= 86
+            ? "계획 밖의 신뢰 엔딩"
+            : sehyunTitles[choiceAnalysis.tone]
+          : character.id === "michael"
+            ? score >= 86
+              ? "고요한 물결의 고백 엔딩"
+              : michaelTitles[choiceAnalysis.tone]
+            : character.id === "seo-yuan"
+              ? score >= 86
+                ? "서로 기대는 온실 엔딩"
+                : yuanTitles[choiceAnalysis.tone]
+              : character.id === "seo-ijun"
+                ? score >= 86
+                  ? "피할 수 없는 반례 엔딩"
+                  : ijunTitles[choiceAnalysis.tone]
+                : character.id === "yoon-siwoo"
+                  ? score >= 86
+                    ? "쉼의 계절 고백 엔딩"
+                    : siwooTitles[choiceAnalysis.tone]
+                  : character.id === "han-yunseo"
+                    ? score >= 86
+                      ? "텅 빈 무대의 앙코르 엔딩"
+                      : yunseoTitles[choiceAnalysis.tone]
+                    : character.id === "kim-ming"
+                      ? score >= 86
+                        ? "은빛 잔향의 고백 엔딩"
+                        : mingTitles[choiceAnalysis.tone]
+                      : character.id === "park-jieun"
+                        ? score >= 86
+                          ? "비밀 온실의 안심 엔딩"
+                          : jieunTitles[choiceAnalysis.tone]
+                        : character.id === "saebyeok"
+                          ? score >= 86
+                            ? "새벽 네온의 편 엔딩"
+                            : saebyeokTitles[choiceAnalysis.tone]
+                          : character.id === "seoyeon"
+                            ? score >= 86
+                              ? "천천히 피는 정원 엔딩"
+                              : seoyeonTitles[choiceAnalysis.tone]
+                            : character.id === "soha"
+                              ? score >= 86
+                                ? "같이 도착하는 트랙 엔딩"
+                                : sohaTitles[choiceAnalysis.tone]
+                              : character.id === "jiyoon"
+                                ? score >= 86
+                                  ? "돌아올 항구의 고백 엔딩"
+                                  : jiyoonTitles[choiceAnalysis.tone]
+                                : character.id === "harin"
+                                  ? score >= 86
+                                    ? "이번 컷은 진짜 엔딩"
+                                    : harinTitles[choiceAnalysis.tone]
+                                  : character.id === "yeoni"
+                                    ? score >= 86
+                                      ? "서로의 등불 고백 엔딩"
+                                      : yeoniTitles[choiceAnalysis.tone]
+                        : genericTitles[choiceAnalysis.tone];
+  const lastToneLine = lastChoice ? `마지막 선택은 ${lastChoice.tone}의 결로 남았습니다.` : "아직 마지막 선택의 여운은 조용히 비어 있습니다.";
+  const outcomeBody =
+    character.id === "neo"
+      ? `네오와의 데이트는 큰 이벤트보다 기억력 싸움에 가까웠습니다. 침묵을 재촉하지 않고, 취향을 가볍게 소비하지 않으며, 작은 약속을 지킨 선택일수록 네오의 방어적인 은빛이 부드럽게 풀렸습니다. ${lastToneLine}`
+      : character.id === "kang-taejun"
+        ? `강태준과의 데이트는 승부보다 팀워크를 배우는 흐름이었습니다. 결과만 칭찬하기보다 다시 뛰는 과정, 힘든 날의 편, 쉬어야 할 때의 호흡을 알아준 선택일수록 태준의 뜨거운 직진이 안정적인 애정으로 바뀌었습니다. ${lastToneLine}`
+        : character.id === "kwon-sehyun"
+          ? `권세현과의 데이트는 감정보다 신뢰의 운영 방식을 먼저 확인하는 흐름이었습니다. 기준을 통제로 단정하지 않고, 약속·비밀·경계·변수를 침착하게 조율한 선택일수록 세현의 차가운 보호 본능이 따뜻한 확신으로 바뀌었습니다. ${lastToneLine}`
+          : character.id === "michael"
+            ? `미카엘과의 데이트는 말보다 여백을 읽는 흐름이었습니다. 침묵을 벌처럼 해석하지 않고, 깊은 질문을 두려워하지 않으며, 사라진 뒤에도 돌아올 수 있는 자리를 남겨준 선택일수록 미카엘의 고요한 물결은 숨지 않는 고백으로 변했습니다. ${lastToneLine}`
+            : character.id === "seo-yuan"
+              ? `서유안과의 데이트는 다정함을 당연히 받는 시간이 아니라, 서로가 쉬어 갈 자리를 만들어 가는 흐름이었습니다. 작은 배려를 구체적으로 고마워하고, 괜찮다는 말 안쪽의 피로를 알아차리며, 유안도 기대도 된다고 말해준 선택일수록 그의 흙빛 온기는 돌봄을 넘어 사랑의 집이 되었습니다. ${lastToneLine}`
+              : character.id === "seo-ijun"
+                ? `서이준과의 데이트는 정답을 맞히는 시험이 아니라, 서로의 사유를 견딜 수 있는지 확인하는 흐름이었습니다. 얕은 확신으로 단정하지 않고, 고독을 존중하며, 돌아올 자유를 남겨준 선택일수록 이준의 냉소는 반박이 아니라 고백을 위한 마지막 문장으로 바뀌었습니다. ${lastToneLine}`
+                : character.id === "yoon-siwoo"
+                  ? `윤시우와의 데이트는 같이 자라는 청춘의 속도를 맞추는 흐름이었습니다. 약속과 계획을 존중하고, 성실함을 당연하게 쓰지 않으며, 지친 날에는 쉬어도 된다고 말해준 선택일수록 시우의 밝은 응원은 숙제가 아니라 함께 머무는 정원으로 깊어졌습니다. ${lastToneLine}`
+                  : character.id === "han-yunseo"
+                    ? `한윤서와의 데이트는 환호보다 정확한 시선을 원하는 무대 뒤의 흐름이었습니다. 장난을 통제하지 않고, 창의성을 무시하지 않으며, 웃기지 않아도 괜찮다고 말해준 선택일수록 윤서의 반짝이는 방어는 한 사람에게만 들려주는 앙코르 고백으로 변했습니다. ${lastToneLine}`
+                    : character.id === "kim-ming"
+                      ? `김밍과의 데이트는 분위기를 꾸미는 일이 아니라 마음이 안전하게 머물 결을 다듬는 흐름이었습니다. 작은 취향을 기억하고, 약속을 가볍게 여기지 않으며, 무심한 말을 구체적으로 다시 수리한 선택일수록 밍의 은빛 섬세함은 조용하지만 오래 남는 고백으로 피어났습니다. ${lastToneLine}`
+                      : character.id === "park-jieun"
+                        ? `박지은과의 데이트는 매혹적인 시험을 통과하는 게임이 아니라, 불안을 부탁으로 바꾸는 흐름이었습니다. 질투를 비난하지 않고 이유를 묻되, 시험이 반복될 때는 부드럽게 경계를 세운 선택일수록 지은의 검은 장미는 소유가 아니라 안심을 향해 피어났습니다. ${lastToneLine}`
+                        : character.id === "saebyeok"
+                          ? `새벽과의 데이트는 강함을 꺾는 승부가 아니라, 같은 방향에 서는 편을 증명하는 흐름이었습니다. 취향을 맞춘 준비와 확실한 표현, 강한 사람이라 괜찮겠지로 넘기지 않고 약한 순간을 자존심 상하지 않게 받아준 선택일수록 새벽의 붉은 카리스마는 혼자 앞서가는 빛에서 함께 기대는 도시의 고백으로 바뀌었습니다. ${lastToneLine}`
+                          : character.id === "seoyeon"
+                            ? `서연과의 데이트는 빠른 확신을 요구하는 길이 아니라, 작은 기억과 오래 머무는 다정함으로 마음을 피우는 흐름이었습니다. 사소한 취향을 기억하고, 연락과 약속을 가볍게 넘기지 않으며, 그녀의 느린 표현을 끝까지 기다려준 선택일수록 서연의 연분홍 설렘은 시들지 않는 정원의 고백으로 피어났습니다. ${lastToneLine}`
+                            : character.id === "soha"
+                              ? `소화와의 데이트는 기록을 겨루는 경기가 아니라, 같은 페이스로 몸과 마음을 회복하는 흐름이었습니다. 함께 도전하되 컨디션을 먼저 묻고, 밝지 않은 날도 밀어붙이지 않으며, 루틴과 휴식을 같은 팀의 약속으로 받아준 선택일수록 소화의 초록빛 에너지는 같이 도착하는 고백으로 깊어졌습니다. ${lastToneLine}`
+                              : character.id === "jiyoon"
+                                ? `지윤과의 데이트는 편안함을 핑계로 마음을 흐리는 시간이 아니라, 자유와 신뢰가 같은 파도를 타는 흐름이었습니다. 그녀를 묶으려 하지 않되 진심을 미루지 않고, 농담 뒤의 깊이를 알아보며 돌아올 자리를 남겨준 선택일수록 지윤의 청량한 바다는 머물고 싶은 항구의 고백으로 변했습니다. ${lastToneLine}`
+                                : character.id === "harin"
+                                  ? `하린과의 데이트는 단순히 웃긴 장면을 모으는 놀이가 아니라, 장난 뒤에 숨어 있는 진심을 포토카드처럼 꺼내 보는 흐름이었습니다. 크게 반응해주되 귀엽게만 소비하지 않고, 친구와 자유로운 표현을 존중하며, 진지한 순간을 어색해하지 않은 선택일수록 하린의 핑크 네온은 이번 컷은 진짜라는 고백으로 저장되었습니다. ${lastToneLine}`
+                                  : character.id === "yeoni"
+                                    ? `연이와의 데이트는 위로를 받기만 하는 시간이 아니라, 서로의 마음을 등불처럼 밝혀주는 흐름이었습니다. 침묵을 재촉하지 않고, 상처를 가볍게 여기지 않으며, 그녀의 피로와 소원까지 되물어준 선택일수록 연이의 분홍빛 치유는 한쪽으로 흐르지 않는 서로의 등불 고백으로 피어났습니다. ${lastToneLine}`
+                        : `${character.name}와의 데이트는 선택한 말의 온도에 따라 다른 루트로 흘렀습니다. ${lastToneLine}`;
+
+  return {
+    title,
+    body: outcomeBody,
+    highlight:
+      score >= 86
+        ? "데이트 결과: 다음 만남 확정. 상대의 취향 저장소에 당신 이름이 생겼습니다."
+        : score >= 68
+          ? "데이트 결과: 애프터 가능성 높음. 속도만 맞추면 관계가 더 깊어집니다."
+          : score >= 52
+            ? "데이트 결과: 호감은 남았지만 조율 필요. 다음 선택에서 안정감을 보여주세요."
+            : "데이트 결과: 잠깐 냉각. 재촉보다 짧은 사과와 여백이 먼저입니다.",
+  };
+}
+
+function buildRecentChoiceRecaps(choiceLog: ChoiceLog[], scenes: LoveScene[]): ChoiceRecap[] {
+  return choiceLog.slice(-3).map((log) => {
+    const scene = scenes.find((item) => item.id === log.sceneId);
+    const choice = scene?.choices.find((item) => item.id === log.choiceId);
+
+    return {
+      sceneLabel: scene ? `${scene.location} · ${scene.title}` : "기록된 데이트 장면",
+      choiceText: choice?.text ?? `${log.tone} 선택`,
+      insight: choice?.insight ?? "선택의 여운이 관계 흐름에 반영되었습니다.",
+      tone: log.tone,
+    };
+  });
+}
+
 function ResultCard({
   eyebrow,
   title,
@@ -858,8 +1241,10 @@ export const LoveSimulationEngine: React.FC = () => {
   const [partnerMinute, setPartnerMinute] = useState("0");
   const [partnerCountry, setPartnerCountry] = useState("Asia/Seoul");
   const [partnerGender, setPartnerGender] = useState<PartnerGender>("female");
+  const [partnerHasTime, setPartnerHasTime] = useState(true);
   const [expandedProfileId, setExpandedProfileId] = useState<CharacterId | null>(null);
   const [matchResults, setMatchResults] = useState<LoveCharacterMatchResult[]>([]);
+  const [coupleCompatibility, setCoupleCompatibility] = useState<SajuCoupleCompatibility | null>(null);
   const [matchError, setMatchError] = useState("");
   const [isMatching, setIsMatching] = useState(false);
   const [initialCompatibilityNote, setInitialCompatibilityNote] = useState("");
@@ -879,11 +1264,17 @@ export const LoveSimulationEngine: React.FC = () => {
   const canMatchPartner = Boolean(partnerBirthDate && !isMatching);
 
   const startWithCharacter = (id: CharacterId, mode: "preset" | "sajuMatch" = "preset") => {
+    const nextCoupleCompatibility = mode === "sajuMatch" ? coupleCompatibility : null;
     setSelectedId(id);
     setEntryMode(mode);
     setSceneIndex(0);
-    setStats(INITIAL_STATS);
-    setInitialCompatibilityNote("프로필 카드 사주를 확인해 초반 궁합 흐름을 맞추는 중입니다.");
+    setStats(nextCoupleCompatibility ? applyEffects(INITIAL_STATS, nextCoupleCompatibility.statEffects) : INITIAL_STATS);
+    setCoupleCompatibility(nextCoupleCompatibility);
+    setInitialCompatibilityNote(
+      nextCoupleCompatibility
+        ? `${nextCoupleCompatibility.grade} 흐름으로 시작합니다. ${nextCoupleCompatibility.chips.slice(0, 2).join(" · ")}`
+        : "프로필 카드 사주를 확인해 초반 궁합 흐름을 맞추는 중입니다.",
+    );
     setSelectedChoice(null);
     setIsChoiceOpen(false);
     setChoiceLog([]);
@@ -893,6 +1284,7 @@ export const LoveSimulationEngine: React.FC = () => {
 
   useEffect(() => {
     if (screen !== "play" || !character) return;
+    if (entryMode === "sajuMatch" && coupleCompatibility) return;
 
     let cancelled = false;
     const profileSeed = readCurrentProfileSeed();
@@ -916,6 +1308,10 @@ export const LoveSimulationEngine: React.FC = () => {
           month,
           day,
           hour: profileSeed.hour,
+          minute: profileSeed.minute,
+          hasTime: profileSeed.hasTime,
+          calendarType: profileSeed.calendarType,
+          timezone: profileSeed.timezone,
         });
         if (cancelled) return;
 
@@ -935,7 +1331,7 @@ export const LoveSimulationEngine: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [character, screen]);
+  }, [character, coupleCompatibility, entryMode, screen]);
 
   const handleChoice = (choice: LoveChoice) => {
     if (!currentScene || selectedChoice) return;
@@ -983,10 +1379,12 @@ export const LoveSimulationEngine: React.FC = () => {
       minute: partnerMinute,
       country: partnerCountry,
       gender: partnerGender,
+      hasTime: partnerHasTime,
     };
     const [year, month, day] = targetInput.birthDate.split("-").map((value) => Number(value));
     if (!year || !month || !day) {
       setMatchResults([]);
+      setCoupleCompatibility(null);
       setMatchError("상대의 사주 정보를 불러오지 못했어요. 입력값을 확인한 뒤 다시 시도해주세요.");
       return;
     }
@@ -994,22 +1392,47 @@ export const LoveSimulationEngine: React.FC = () => {
     setIsMatching(true);
     setMatchError("");
     setMatchResults([]);
+    setCoupleCompatibility(null);
 
     try {
-      const sajuResult = await fetchSajuPillar({
-        name: targetInput.name.trim() || "상대",
-        gender: targetInput.gender === "male" ? "남" : "여",
-        year,
-        month,
-        day,
-        hour: Number(targetInput.hour) || 12,
-      });
-      const results = matchLoveCharactersFromSaju(sajuResult, LOVE_CHARACTERS, targetInput.gender);
+      const profileSeed = readCurrentProfileSeed();
+      const [partnerSaju, selfSaju] = await Promise.all([
+        fetchSajuPillar({
+          name: targetInput.name.trim() || "상대",
+          gender: targetInput.gender === "male" ? "남" : "여",
+          year,
+          month,
+          day,
+          hour: Number(targetInput.hour) || 12,
+          minute: Number(targetInput.minute) || 0,
+          hasTime: targetInput.hasTime,
+          calendarType: targetInput.calType,
+          timezone: targetInput.country,
+        }),
+        profileSeed
+          ? fetchSajuPillar({
+              name: profileSeed.name || "나",
+              gender: profileSeed.gender,
+              year: Number(profileSeed.birthDate.slice(0, 4)),
+              month: Number(profileSeed.birthDate.slice(5, 7)),
+              day: Number(profileSeed.birthDate.slice(8, 10)),
+              hour: profileSeed.hour,
+              minute: profileSeed.minute,
+              hasTime: profileSeed.hasTime,
+              calendarType: profileSeed.calendarType,
+              timezone: profileSeed.timezone,
+            })
+          : Promise.resolve(null),
+      ]);
+      const results = matchLoveCharactersFromSaju(partnerSaju, LOVE_CHARACTERS, targetInput.gender);
+      const compatibility = selfSaju ? buildSajuCoupleCompatibility(selfSaju, partnerSaju) : null;
 
       if (results.length === 0) throw new Error("empty love character match result");
       setMatchResults(results);
+      setCoupleCompatibility(compatibility);
     } catch {
       setMatchResults([]);
+      setCoupleCompatibility(null);
       setMatchError("상대의 사주 정보를 불러오지 못했어요. 입력값을 확인한 뒤 다시 시도해주세요.");
     } finally {
       setIsMatching(false);
@@ -1119,6 +1542,7 @@ export const LoveSimulationEngine: React.FC = () => {
                   minute: String(formData.get("partnerMinute") ?? "0"),
                   country: String(formData.get("partnerCountry") ?? "Asia/Seoul"),
                   gender: partnerGender,
+                  hasTime: partnerHasTime,
                 });
               }}
               className="rounded-lg border border-rose-100/20 bg-white/[0.09] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.38)] backdrop-blur-2xl sm:p-7"
@@ -1192,7 +1616,10 @@ export const LoveSimulationEngine: React.FC = () => {
                       name="partnerHour"
                       aria-label="출생 시(시간)"
                       value={partnerHour}
-                      onChange={(event) => setPartnerHour(event.target.value)}
+                      onChange={(event) => {
+                        setPartnerHour(event.target.value);
+                        setPartnerHasTime(true);
+                      }}
                     >
                       {HOUR_OPTIONS.map((hour) => (
                         <option key={hour} value={hour}>
@@ -1205,7 +1632,10 @@ export const LoveSimulationEngine: React.FC = () => {
                       name="partnerMinute"
                       aria-label="출생 분(분)"
                       value={partnerMinute}
-                      onChange={(event) => setPartnerMinute(event.target.value)}
+                      onChange={(event) => {
+                        setPartnerMinute(event.target.value);
+                        setPartnerHasTime(true);
+                      }}
                     >
                       {MINUTE_OPTIONS.map((minute) => (
                         <option key={minute} value={minute}>
@@ -1261,13 +1691,14 @@ export const LoveSimulationEngine: React.FC = () => {
                 </div>
 
                 <div className="rounded-lg border border-rose-100/14 bg-black/24 px-4 py-3 text-sm font-bold text-rose-50/86">
-                  시간 미입력 시 낮 12시로 계산됩니다.
+                  {partnerHasTime ? "선택한 출생 시각까지 반영합니다." : "출생시간 미상으로 표시하고 낮 12시 기준 보조 계산을 사용합니다."}
                 </div>
                 <button
                   type="button"
                   onClick={() => {
                     setPartnerHour("12");
                     setPartnerMinute("0");
+                    setPartnerHasTime(false);
                   }}
                   className="min-h-12 rounded-lg border border-white/15 bg-white/10 px-4 text-sm font-black text-white transition hover:bg-white/18"
                 >
@@ -1299,6 +1730,7 @@ export const LoveSimulationEngine: React.FC = () => {
                       character={primaryMatchCharacter}
                       result={primaryMatch}
                       secondaryLabels={secondaryMatchLabels}
+                      compatibility={coupleCompatibility}
                       onStart={() => startWithCharacter(primaryMatch.characterId, "sajuMatch")}
                     />
                   ) : null}
@@ -1469,6 +1901,10 @@ export const LoveSimulationEngine: React.FC = () => {
     const myeongliCoda = buildMyeongliResultCoda(character);
     const riskCoda = buildMyeongliRiskCoda(character);
     const sajuEntrySummary = buildSajuEntrySummary(entryMode, character);
+    const sajuCompatibility = buildSajuCompatibilityVerdict(character, stats, entryMode, coupleCompatibility);
+    const dateOutcome = buildDateOutcome(character, stats, choiceAnalysis, choiceLog);
+    const finalRelationshipType = resolveFinalRelationshipType(stats);
+    const recentChoiceRecaps = buildRecentChoiceRecaps(choiceLog, scenes);
 
     return (
       <section className={`min-h-[100svh] bg-gradient-to-br ${character.palette.shell} text-white`}>
@@ -1507,6 +1943,37 @@ export const LoveSimulationEngine: React.FC = () => {
                 {characterResultSummary} {myeongliCoda}
               </p>
 
+              <div className="mt-7 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+                <ResultCard eyebrow="Saju Compatibility" title={`${sajuCompatibility.grade} · ${sajuCompatibility.score}점`}>
+                  <p>{sajuCompatibility.body}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {sajuCompatibility.chips.map((chip) => (
+                      <span key={chip} className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-black text-white/68">
+                        {chip}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-4 grid gap-2">
+                    {sajuCompatibility.reasons.slice(0, 3).map((reason) => (
+                      <p key={reason} className="rounded-lg border border-white/10 bg-black/18 px-3 py-2 text-xs font-bold leading-6 text-white/66">
+                        {reason}
+                      </p>
+                    ))}
+                  </div>
+                  <p className="mt-4 rounded-lg border border-rose-100/14 bg-rose-100/10 px-3 py-2 text-xs font-bold leading-6 text-rose-50/78">
+                    리스크: {sajuCompatibility.risk}
+                  </p>
+                  <p className="mt-3 text-xs font-bold leading-6 text-white/58">데이트 팁: {sajuCompatibility.dateTip}</p>
+                </ResultCard>
+                <ResultCard eyebrow="Date Result" title={dateOutcome.title}>
+                  <p>{dateOutcome.body}</p>
+                  <p className="mt-3 rounded-lg border border-rose-100/18 bg-rose-100/10 px-3 py-2 text-xs font-black leading-6 text-rose-50/86">{dateOutcome.highlight}</p>
+                  <p className="mt-3 text-xs font-bold leading-6 text-white/58">
+                    관계 루트: {finalRelationshipType.title}. {finalRelationshipType.body}
+                  </p>
+                </ResultCard>
+              </div>
+
               <div className="mt-7 grid gap-4 sm:grid-cols-3">
                 {metrics.map((metric) => (
                   <MetricBar key={metric.label} label={metric.label} value={metric.value} />
@@ -1534,11 +2001,14 @@ export const LoveSimulationEngine: React.FC = () => {
                 <h3 className="mb-3 text-sm font-bold text-white">대화 선택 기반 분석</h3>
                 <div className="grid gap-3">
                   <p className="text-sm leading-7 text-white/76">{choiceAnalysis.summary}</p>
-                  {choiceLog.slice(-3).map((log, index) => (
-                    <div key={`${log.sceneId}-${log.choiceId}`} className="border-b border-white/10 pb-3 last:border-b-0 last:pb-0">
-                      <p className="text-xs font-semibold text-white/50">선택 {choiceLog.length - choiceLog.slice(-3).length + index + 1}</p>
+                  {recentChoiceRecaps.map((recap, index) => (
+                    <div key={`${recap.sceneLabel}-${recap.choiceText}`} className="border-b border-white/10 pb-3 last:border-b-0 last:pb-0">
+                      <p className="text-xs font-semibold text-white/50">선택 {choiceLog.length - recentChoiceRecaps.length + index + 1} · {recap.sceneLabel}</p>
                       <p className="mt-1 text-sm text-white/80">
-                        {log.tone}의 결로 반응했고, 관계의 온도는 선택한 대답의 여운만큼 천천히 달라졌습니다.
+                        {recap.choiceText}
+                      </p>
+                      <p className="mt-1 text-xs font-semibold leading-6 text-white/58">
+                        {recap.tone} 반응. {recap.insight}
                       </p>
                     </div>
                   ))}

@@ -113,22 +113,28 @@ async function consumeForSukuyo(base, authToken, requestId) {
     requestId,
   };
 
-  const { response, data } = await requestJson(base, "/api/fortune/pig-coin/consume", {
+  const { response, data } = await requestJson(base, "/api/billing/coin-gate", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${authToken}`,
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      ...body,
+      paymentMode: "COIN",
+      forceDeduct: true,
+    }),
   });
+  const billingData = data?.data && typeof data.data === "object" ? data.data : data;
+  const consume = billingData?.consume && typeof billingData.consume === "object" ? billingData.consume : billingData;
 
   return {
     status: response.status,
     ok: response.ok,
     data,
-    premiumAccessToken: clean(data?.premiumAccessToken),
-    chargedCoins: Number(data?.chargedCoins || 0),
-    code: clean(data?.code),
+    premiumAccessToken: clean(billingData?.premiumAccessToken || data?.premiumAccessToken),
+    chargedCoins: Number(consume?.chargedCoins || consume?.cost || data?.chargedCoins || 0),
+    code: clean(billingData?.code || data?.code),
   };
 }
 

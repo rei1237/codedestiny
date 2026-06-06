@@ -1211,6 +1211,35 @@ async function handlePdfArchiveDetail(request, env, reportIdRaw) {
     return failure(404, "REPORT_NOT_FOUND", "저장된 PDF 결과를 찾을 수 없습니다.");
   }
 
+  const format = cleanText(new URL(request.url).searchParams.get("format"), 40).toLowerCase();
+  if (format === "html" || format === "document" || format === "print") {
+    const metadata = (doc && typeof doc.metadata === "object" && doc.metadata) ? doc.metadata : {};
+    const archive = (metadata.archive && typeof metadata.archive === "object") ? metadata.archive : {};
+    const htmlContent = String(
+      archive?.pdfReady?.html
+      || archive?.lifeBookPdfRecord?.htmlContent
+      || metadata?.lifeBookPdfRecord?.htmlContent
+      || "",
+    );
+    if (!htmlContent.trim()) {
+      return failure(404, "PDF_HTML_NOT_FOUND", "저장된 PDF 문서를 찾을 수 없습니다.");
+    }
+    const fileBase = cleanText(archive?.title || archive?.displayName || reportId, 120)
+      .replace(/[^\w가-힣.-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      || "code-destiny-report";
+    const asciiFileBase = fileBase.replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "code-destiny-report";
+    const encodedFileName = encodeURIComponent(`${fileBase}.html`);
+    return new Response(htmlContent, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/html; charset=UTF-8",
+        "Content-Disposition": `inline; filename="${asciiFileBase}.html"; filename*=UTF-8''${encodedFileName}`,
+        "Cache-Control": "private, no-store",
+      },
+    });
+  }
+
   const report = toArchiveBase(doc);
   return json({ ok: true, report });
 }

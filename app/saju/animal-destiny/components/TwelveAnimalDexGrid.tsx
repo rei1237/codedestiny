@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ANIMAL_DESTINY_LIST, STAGE_LABEL_TO_KEY } from "@/components/fortune/animal-twelve/animalTwelveData";
+import { ANIMAL_DESTINY_LIST, STAGE_KEY_TO_HANJA, STAGE_LABEL_TO_KEY, STAGE_SEQUENCE } from "@/components/fortune/animal-twelve/animalTwelveData";
 import type { AnimalDestinyData } from "../lib/types";
 import { resolveTwelveGrowthAnimalResult } from "../lib/twelveGrowthAnimalResults";
 
@@ -24,6 +24,24 @@ const ANIMAL_EMOJI: Record<string, string> = {
   양: "🐷",
 };
 
+function stageDistance(leftStage: string, rightStage: string) {
+  const leftKey = STAGE_LABEL_TO_KEY[leftStage as keyof typeof STAGE_LABEL_TO_KEY];
+  const rightKey = STAGE_LABEL_TO_KEY[rightStage as keyof typeof STAGE_LABEL_TO_KEY];
+  const leftIndex = STAGE_SEQUENCE.indexOf(leftKey);
+  const rightIndex = STAGE_SEQUENCE.indexOf(rightKey);
+  if (leftIndex < 0 || rightIndex < 0) return 6;
+  const direct = Math.abs(leftIndex - rightIndex);
+  return Math.min(direct, STAGE_SEQUENCE.length - direct);
+}
+
+function relationTone(distance: number) {
+  if (distance === 0) return "현재 나의 핵심 운성";
+  if (distance <= 1) return "감정 박자가 가까운 에너지";
+  if (distance <= 3) return "역할을 나누면 보완되는 에너지";
+  if (distance <= 5) return "속도와 표현 조율이 필요한 에너지";
+  return "경계와 약속을 먼저 세워야 하는 에너지";
+}
+
 export default function TwelveAnimalDexGrid({ currentAnimal }: Props) {
   const [selectedStage, setSelectedStage] = useState(currentAnimal.saju_stage);
 
@@ -34,6 +52,8 @@ export default function TwelveAnimalDexGrid({ currentAnimal }: Props) {
   const selectedResult = useMemo(() => {
     return resolveTwelveGrowthAnimalResult(selectedEntry);
   }, [selectedEntry]);
+  const selectedDistance = stageDistance(currentAnimal.saju_stage, selectedEntry.saju_stage);
+  const selectedStageKey = STAGE_LABEL_TO_KEY[selectedResult.stageName];
 
   return (
     <section className="rounded-[1.9rem] border border-[#bad7ed] bg-white/90 p-4 shadow-[0_16px_36px_rgba(58,109,153,0.14)] sm:p-6">
@@ -70,9 +90,19 @@ export default function TwelveAnimalDexGrid({ currentAnimal }: Props) {
         </h4>
         <p className="mt-2 text-sm leading-relaxed text-[#355f81]">{selectedResult.personality}</p>
         <p className="mt-2 text-sm leading-relaxed text-[#355f81]">{selectedResult.growthMission}</p>
-        <p className="mt-3 text-xs font-semibold text-[#567b9b]">
-          운성 키: {STAGE_LABEL_TO_KEY[selectedResult.stageName]} / 태그: {selectedResult.elementTags?.join(" · ")}
-        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <span className="rounded-full border border-[#c9deef] bg-white px-3 py-1 text-xs font-black text-[#426d90]">
+            {selectedResult.stageName}({STAGE_KEY_TO_HANJA[selectedStageKey]})
+          </span>
+          <span className="rounded-full border border-[#d9d7a3] bg-[#fff8df] px-3 py-1 text-xs font-black text-[#7a6c2f]">
+            {relationTone(selectedDistance)}
+          </span>
+          {selectedResult.elementTags?.slice(0, 3).map((tag) => (
+            <span key={tag} className="rounded-full border border-[#d7e8f5] bg-[#f8fcff] px-3 py-1 text-xs font-bold text-[#567b9b]">
+              {tag}
+            </span>
+          ))}
+        </div>
       </article>
     </section>
   );

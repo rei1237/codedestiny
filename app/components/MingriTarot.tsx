@@ -144,35 +144,35 @@ function shuffle<T>(arr: T[]) {
 function generateLocalReading(category: TarotCategory, mode: TarotMode, selectedCards: DrawnCard[]): ReadingPayload {
   const catLabel = CATEGORY_OPTIONS.find((c) => c.value === category)?.label || "일반";
   const summary = selectedCards
-    .map((card, idx) => `${idx + 1}. ${card.position || `카드 ${idx + 1}`} - ${card.nameKr || card.cardId} (${orientationKr(card.orientation)})`)
+    .map((card, idx) => `${idx + 1}. ${card.position || `자리 ${idx + 1}`} · ${card.nameKr || card.cardId} (${orientationKr(card.orientation)})`)
     .join("\n");
 
   const opening =
     mode === "three"
-      ? `${catLabel} 이슈를 과거-현재-미래 축으로 점검했습니다. 감정의 원인보다 흐름을 읽는 것이 이번 리딩의 핵심입니다.`
-      : `${catLabel} 이슈의 핵심 에너지를 원카드로 집중 점검했습니다. 지금 가장 중요한 선택 포인트를 먼저 보세요.`;
+      ? `${catLabel}의 기운을 원인, 현재, 다음 선택의 세 문으로 펼쳤습니다. 이번 리딩의 핵심은 단정이 아니라 흐름의 순서를 읽는 데 있습니다.`
+      : `${catLabel}의 중심 기운을 한 장의 카드에 모았습니다. 지금 가장 먼저 붙잡아야 할 선택의 결을 비춥니다.`;
 
   const context =
     category === "love" || category === "reunion"
-      ? "상대를 단정하기보다 대화의 질을 높이는 접근이 관계를 빠르게 안정시킵니다."
+      ? "상대의 마음을 단정하기보다 내가 보내는 말의 온도와 간격을 먼저 정돈할 때 관계의 기운이 안정됩니다."
       : category === "wealth" || category === "contract"
-        ? "손익보다 리스크 통제를 먼저 점검하면 결정의 품질이 좋아집니다."
+        ? "손익의 크기보다 새어 나가는 기운과 감당 가능한 범위를 먼저 보면 재물의 결이 선명해집니다."
         : category === "health"
-          ? "속도를 잠시 낮추고 회복 루틴을 구조화하면 불안이 먼저 줄어듭니다."
-          : "지금은 결과 예측보다 실행 가능한 한 걸음을 명확히 잡는 것이 유리합니다.";
+          ? "속도를 잠시 낮추고 몸이 보내는 작은 신호를 회복의 리듬으로 다시 묶어야 합니다."
+          : "지금은 결과를 맞히려 하기보다 오늘 움직일 수 있는 한 걸음을 분명히 잡는 것이 유리합니다.";
 
   const actionPlan = [
-    "오늘 안에 실행할 1가지 행동을 구체적으로 적고 24시간 안에 완료하세요.",
-    "감정적 해석과 사실 정보를 분리해서 기록해 판단 오류를 줄이세요.",
-    "일주일 뒤 같은 질문으로 재점검해 흐름 변화를 비교하세요.",
+    "오늘 안에 지킬 작은 선택 하나를 적고, 해가 지기 전에 마무리하세요.",
+    "감정의 파동과 실제로 확인된 일을 분리해 적어 마음의 안개를 걷어내세요.",
+    "일주일 뒤 같은 질문을 다시 열어 카드의 기운이 어떻게 변했는지 살펴보세요.",
   ];
 
   return {
-    "리딩 요약": opening,
-    "선택된 카드": summary,
-    "핵심 해석": `${context}\n\n카드들은 공통적으로 "서두르지 말고 핵심 기준을 먼저 세우라"는 메시지를 반복합니다.`,
-    "실전 행동 가이드": actionPlan,
-    "마무리": "이번 결과는 절대 예언이 아니라 현재 선택의 품질을 높이기 위한 참고 가이드입니다.",
+    "명리의 첫 문": opening,
+    "펼쳐진 카드": summary,
+    "오행과 카드의 결": `${context}\n\n카드들은 공통적으로 "서두르지 말고 중심 기준을 먼저 세우라"는 메시지를 반복합니다.`,
+    "오늘의 작은 의식": actionPlan,
+    "봉인 문장": "이번 리딩은 고정된 예언이 아니라, 지금의 선택을 더 맑게 바라보도록 돕는 명리의 거울입니다.",
   };
 }
 
@@ -180,8 +180,8 @@ export default function MingriTarot({
   initialMode = "one",
   initialCategory = "love",
   lockCategory = false,
-  heading = "명리학 AI 타로",
-  subtitle = "로컬 전용 리딩 모드입니다. API 호출 없이 브라우저에서 바로 카드를 뽑고 해석합니다.",
+  heading = "명리학 오라클 타로",
+  subtitle = "오행의 결 위에 타로 카드를 올려 오늘의 선택 방향을 읽습니다.",
 }: MingriTarotProps) {
   const router = useRouter();
   const [mode, setMode] = useState<TarotMode>(initialMode);
@@ -263,7 +263,7 @@ export default function MingriTarot({
         position: positions[idx],
         orientation: Math.random() < 0.2 ? "reversed" : "upright",
       }));
-      if (!picked.length) throw new Error("카드 데이터가 비어 있습니다.");
+      if (!picked.length) throw new Error("카드의 문이 아직 열리지 않았습니다.");
       setCards(picked);
     } catch (e: any) {
       setError(e?.message || "카드 뽑기 중 오류가 발생했습니다.");
@@ -318,7 +318,7 @@ export default function MingriTarot({
               </select>
             </label>
             <label className="flex flex-col gap-1 text-sm md:col-span-2">
-              <span>고민 카테고리</span>
+                <span>질문의 문</span>
               <select
                 className="rounded-md border border-slate-600 bg-slate-900 px-2 py-2"
                 value={category}
@@ -340,13 +340,13 @@ export default function MingriTarot({
             disabled={loading}
             className="mt-4 rounded-lg bg-violet-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {loading ? "카드 준비 중..." : "카드 뽑기 시작"}
+            {loading ? "카드의 결을 여는 중..." : "카드의 문 열기"}
           </button>
         </section>
 
         {cards.length > 0 ? (
           <section className="rounded-2xl border border-slate-700 bg-slate-900/65 p-5">
-            <h2 className="mb-3 text-lg font-semibold">뽑힌 카드</h2>
+            <h2 className="mb-3 text-lg font-semibold">펼쳐진 카드</h2>
             <div className={`grid gap-3 ${mode === "three" ? "md:grid-cols-3" : "md:grid-cols-1"}`}>
               {cards.map((card, idx) => {
                 const isRevealed = idx < revealedCount;
@@ -374,7 +374,7 @@ export default function MingriTarot({
                       </>
                     ) : (
                       <div className="flex h-full items-center justify-center p-4 text-center text-sm text-slate-300">
-                        {canReveal ? "클릭해서 카드 공개" : "이전 카드를 먼저 공개하세요"}
+                        {canReveal ? "카드의 빛 열기" : "앞선 카드의 빛을 먼저 여세요"}
                       </div>
                     )}
                   </button>
@@ -389,10 +389,10 @@ export default function MingriTarot({
                 disabled={!canRead}
                 className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
               >
-                해석 보기
+                리딩 열기
               </button>
               <span className="text-xs text-slate-400">
-                공개 진행: {revealedCount}/{requiredRevealCount}
+                열린 카드: {revealedCount}/{requiredRevealCount}
               </span>
             </div>
           </section>
@@ -404,8 +404,8 @@ export default function MingriTarot({
 
         {readingRaw ? (
           <section className="rounded-2xl border border-emerald-600/35 bg-emerald-950/20 p-5">
-            <h2 className="mb-3 text-lg font-semibold">명리학 해석 결과</h2>
-            <p className="mb-3 text-xs text-emerald-200/75">텍스트가 천천히 출력됩니다. 잠시 기다려 주세요.</p>
+            <h2 className="mb-3 text-lg font-semibold">명리 오라클 리딩</h2>
+            <p className="mb-3 text-xs text-emerald-200/75">카드의 문장이 천천히 열립니다. 잠시 흐름을 따라가 주세요.</p>
             <div className="space-y-3 text-sm leading-7 text-slate-100">
               {Object.entries(readingRaw).map(([key, value]) => {
                 if (!value) return null;

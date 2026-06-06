@@ -905,6 +905,7 @@
 </section>
 
 <!-- ══════════ SCRIPTS ══════════ -->
+<script src="/js/destiny-profile.js?v=build-85c9e151d071"></script>
 <script>
 (function(){
 'use strict';
@@ -1544,12 +1545,12 @@ function _hideMeditationPaymentUi(){
   if(overlay)overlay.classList.remove('is-show');
 }
 
-function _showMeditationDeductedUi(cost,balanceAfter){
+function _showMeditationAccessGrantedUi(balanceAfter){
   _ensureMeditationPaymentUi();
   var toast=document.getElementById('cdMeditationPayToast');
   if(!toast)return;
 
-  var msg='🪙 '+Number(cost||0)+'코인 차감 완료';
+  var msg='이용 권한 확인 완료';
   if(typeof balanceAfter==='number'&&Number.isFinite(balanceAfter)){
     msg+=' · 잔액 '+Number(balanceAfter).toLocaleString('ko-KR')+'코인';
   }
@@ -1571,54 +1572,54 @@ async function _consumeMeditationCoin(cost,reason){
     return false;
   }
 
-  var pts=0;
-  try{pts=Number(JSON.parse(localStorage.getItem('fortune_auth_user')||'{}').points||0);}catch(_){pts=0;}
-  if(pts<cost){
-    window.alert('🐷 꽃돼지 코인이 부족해요!\n이용에 '+cost+'코인 필요 / 현재: '+pts+'코인\n충전 후 이용해 주세요.');
+  if(typeof window._cdCoinGatePerUse!=='function'){
+    window.alert('결제 게이트를 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
     return false;
   }
 
-  _showMeditationPaymentUi('코즈믹 소울 명상 결제를 확인하는 중입니다...');
-  var abortController=typeof AbortController==='function'?new AbortController():null;
-  var requestTimeout=null;
-  if(abortController){
-    requestTimeout=setTimeout(function(){
-      try{abortController.abort();}catch(_){ }
-    },12000);
-  }
+  var granted=false;
   try{
-    var r=await fetch('/api/fortune/pig-coin/consume',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({cost:cost,reason:reason}),
-      signal:abortController?abortController.signal:undefined
-    });
-    var d={};
-    try{d=await r.json();}catch(_){d={};}
-
-    if(r.status===402||!r.ok){
-      window.alert('🐷 꽃돼지 코인이 부족해요!\n충전 후 이용해 주세요.');
-      return false;
+    var requestId='cosmic-soul-meditation:'+cost+':'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9);
+    var result=window._cdCoinGatePerUse(
+      cost,
+      reason,
+      function(_transactionId,payload){
+        granted=true;
+        var data=payload&&payload.data?payload.data:payload;
+        var user=data&&data.user?data.user:null;
+        var balanceAfter=Number(user&&user.points);
+        if(Number.isFinite(balanceAfter)){
+          try{
+            var u=JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
+            u.points=balanceAfter;
+            localStorage.setItem('fortune_auth_user',JSON.stringify(u));
+          }catch(_){ }
+          if(typeof window.__cdSetGoldenBalance==='function')window.__cdSetGoldenBalance(balanceAfter);
+        }
+        _showMeditationAccessGrantedUi(Number.isFinite(balanceAfter)?balanceAfter:null);
+      },
+      function(){granted=false;},
+      {
+        featureKey:'cosmic-soul-meditation',
+        serviceKey:'cosmic-soul-meditation',
+        action:'openCosmicSoulMeditation',
+        forceDeduct:true,
+        requestId:requestId
+      }
+    );
+    if(result&&typeof result.then==='function'){
+      result=await result;
     }
-
-    var balanceAfter=null;
-    if(d&&d.user&&typeof d.user.points==='number'){
-      balanceAfter=d.user.points;
-      try{
-        var u=JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
-        u.points=d.user.points;
-        localStorage.setItem('fortune_auth_user',JSON.stringify(u));
-      }catch(_){ }
-      if(typeof window.__cdSetGoldenBalance==='function')window.__cdSetGoldenBalance(d.user.points);
+    if(result==null){
+      return granted===true;
     }
-    _showMeditationDeductedUi(cost,balanceAfter);
+    if(result&&result.ok===false)return false;
+    granted=true;
     return true;
-  }catch(_){
-    window.alert('코인 차감 처리 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+  }catch(err){
+    console.error('[cosmic meditation][billing]',err);
+    window.alert('결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     return false;
-  }finally{
-    if(requestTimeout)clearTimeout(requestTimeout);
-    _hideMeditationPaymentUi();
   }
 }
 

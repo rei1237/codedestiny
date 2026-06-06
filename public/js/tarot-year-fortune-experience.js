@@ -1333,8 +1333,8 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     var defExam = "집중력과 꾸준한 노력이 좋은 결과로 이어집니다. 짧은 시간이라도 매일 반복하는 습관이 합격운을 높입니다.";
 
     state.reading = {
-      summary: "천상의 열두 수호신이 한 해의 문을 열었습니다. 1月부터 12月까지 각 월패를 눌러 해당 달의 전반 운세, 재물·연애·인간관계·합격운을 자세히 확인하세요. 월별 카드와 삼재 스프레드가 당신의 한 해를 안내합니다.",
-      finalAdvice: "올해는 십이지신이 지키는 한 해입니다. 매월의 카드 메시지를 곁에 두고, 작은 결심 하나하나를 실천하면 운명의 수레바퀴가 유리하게 돌아갑니다. 급하지 않게, 그러나 꾸준히 나아가면 재물·인연·성취의 기운이 차분히 쌓일 것입니다.",
+      summary: "천상의 열두 수호신이 한 해의 문을 열었습니다. 1月부터 12月까지 각 월패를 눌러 해당 달의 전반 운세, 재물·연애·인간관계·합격운을 자세히 확인하세요. 월별 카드와 세 갈래 월운이 당신의 한 해를 차분히 비춥니다.",
+      finalAdvice: "올해는 십이지신이 지키는 한 해입니다. 매월의 카드 메시지를 곁에 두고, 작은 결심 하나하나를 실천하면 운명의 수레바퀴가 유리하게 돌아갑니다. 급하지 않게, 그러나 꾸준히 나아가면 재물·인연·성취의 기운이 차분히 쌓입니다.",
       monthlyReadings: state.cards.map(function (card, idx) {
         var id = card.cardId || card.id;
         var ori = card.orientation === "reversed" ? "r" : "u";
@@ -1374,17 +1374,17 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     if (summaryEl) {
       var summaryLines = [];
       if (Array.isArray(state.consultingHighlights) && state.consultingHighlights.length) {
-        summaryLines.push("🔭 핵심 상담 하이라이트");
+        summaryLines.push("🔭 올해 먼저 떠오른 천운");
         summaryLines.push(state.consultingHighlights.map(function (line) { return "• " + line; }).join("\n"));
         summaryLines.push("");
       }
       if (annual.summary) summaryLines.push(annual.summary);
       if (annual.overallFlow) summaryLines.push(annual.overallFlow);
-      summaryLines.push("가장 강한 슈트: " + (annual.dominantSuit || "메이저"));
-      summaryLines.push("역방향 비율: " + (typeof annual.reversedRatio === "number" ? annual.reversedRatio + "%" : "0%"));
-      summaryLines.push("메이저 비율: " + (typeof annual.majorRatio === "number" ? annual.majorRatio + "%" : "0%"));
-      if (annual.bestMonth) summaryLines.push("가장 좋은 달: " + (annual.bestMonth.monthLabel || (annual.bestMonth.month + "월")));
-      if (annual.cautionMonth) summaryLines.push("주의할 달: " + (annual.cautionMonth.monthLabel || (annual.cautionMonth.month + "월")));
+      summaryLines.push("한 해를 지배하는 카드 기운: " + (annual.dominantSuit || "메이저"));
+      summaryLines.push("속도를 늦춰 살필 달: " + (typeof annual.reversedCount === "number" ? annual.reversedCount + "개월" : "0개월"));
+      summaryLines.push("큰 전환의 문이 열리는 달: " + (typeof annual.majorCount === "number" ? annual.majorCount + "개월" : "0개월"));
+      if (annual.bestMonth) summaryLines.push("황금빛이 강한 달: " + (annual.bestMonth.monthLabel || (annual.bestMonth.month + "월")));
+      if (annual.cautionMonth) summaryLines.push("속도 조절이 필요한 달: " + (annual.cautionMonth.monthLabel || (annual.cautionMonth.month + "월")));
       summaryEl.style.display = "block";
       typewriterText(summaryEl, summaryLines.join("\n\n"), 24);
     }

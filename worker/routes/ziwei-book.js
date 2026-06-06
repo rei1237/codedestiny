@@ -4,6 +4,7 @@ import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
+import { callGeminiText } from "../lib/gemini.js";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
@@ -16,7 +17,25 @@ const ZIWEI_FEATURE_KEY = "premium-ziwei-report";
 const ZIWEI_FEATURE_ALIASES = new Set(["premium-ziwei-report", "premium_pdf_ziwei"]);
 const CHAPTER_MIN_CHARS = 3200;
 const SECTION_MIN_CHARS = 700;
-const TOTAL_MIN_CHARS = 42000;
+const TOTAL_MIN_CHARS = 50000;
+const ZIWEI_LLM_KEY_ENV_KEYS = Object.freeze([
+  "ZIWEI_GEMINI_API_KEY1",
+  "ZIWEI_GEMINI_API_KEY2",
+  "ZIWEI_GEMINI_API_KEY3",
+  "ZIWEI_GEMINI_API_KEY4",
+  "ZIWEI_GEMINI_API_KEY5",
+  "ZIWEI_GEMINI_API_KEY",
+  "PREMIUM_GEMINI_API_KEY1",
+  "PREMIUM_GEMINI_API_KEY2",
+  "PREMIUM_GEMINI_API_KEY3",
+  "PREMIUM_GEMINI_API_KEY4",
+  "PREMIUM_GEMINI_API_KEY5",
+  "GOOGLE_GENERATIVE_AI_API_KEY",
+  "GOOGLE_AI_API_KEY",
+  "GEMINI_API_KEY",
+]);
+const ZIWEI_LLM_MODEL_ENV_KEYS = Object.freeze(["ZIWEI_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"]);
+const ZIWEI_LLM_RISKY_ASSERTION_RE = /(반드시\s*(결혼|이혼|성공|실패|큰돈|수익)|100\s*%|확정|무조건|질병을\s*얻게|암에\s*걸|우울증|공황장애|투자\s*수익|수익\s*보장|대박|파산|죽음|사망)/i;
 const SESSION_LOCKS = new Map();
 const REPORT_CACHE = new Map();
 const ZIWEI_PRIMARY_STARS = Object.freeze([
@@ -71,168 +90,194 @@ const CHAPTER_BLUEPRINTS = [
     id: "01",
     roman: "I",
     palaceKey: "ming",
-    title: "Chapter 1. 명반 총론 — 삶의 중심 구조",
+    title: "Chapter 1. 자미 명반 총론 — 운명의 중심 지도",
     categories: [
-      "명궁과 신궁의 핵심 구조",
-      "오행국과 대한 진행 방향",
-      "전체 명반의 첫인상",
-      "삶의 중심 과제",
-      "이 명반이 강하게 쓰이는 방향",
+      "명반 스냅샷과 첫인상",
+      "명궁·신궁·오행국의 운명 축",
+      "삶을 움직이는 주제와 반복 패턴",
+      "타고난 강점과 활용 영역",
+      "초기 리스크와 실전 요약",
     ],
   },
   {
     id: "02",
     roman: "II",
     palaceKey: "ming",
-    title: "Chapter 2. 명궁 심층 해설 — 타고난 나의 결",
+    title: "Chapter 2. 명궁과 신궁 — 타고난 나와 완성되는 나",
     categories: [
-      "명궁 주성이 만드는 자아상",
-      "명궁 보조성과 선택 기준",
-      "명궁 살성·잡요가 드러내는 부담",
-      "명궁의 강점과 약점",
-      "사람을 믿는 방식과 무너지는 패턴",
+      "명궁 주성이 만드는 자아의 결",
+      "신궁이 밀어 올리는 후천 구동력",
+      "내면 기준과 실제 행동의 간극",
+      "성장할수록 선명해지는 방향",
+      "자기 운을 안정시키는 실행 조언",
     ],
   },
   {
     id: "03",
     roman: "III",
-    palaceKey: "body",
-    title: "Chapter 3. 신궁과 후천적 삶의 방향",
+    palaceKey: "ming",
+    title: "Chapter 3. 선천 사화 정밀 해석",
     categories: [
-      "신궁 위치와 후천적 주제",
-      "나이가 들수록 강해지는 변화",
-      "명궁과 신궁의 같은 방향",
-      "명궁과 신궁의 다른 방향",
-      "후천적 삶을 안정시키는 선택",
+      "화록이 여는 욕망과 기회",
+      "화권이 만드는 힘과 책임",
+      "화과가 정리하는 평판과 명예",
+      "화기가 드러내는 집착과 막힘",
+      "사화를 균형 있게 쓰는 전략",
     ],
   },
   {
     id: "04",
     roman: "IV",
     palaceKey: "ming",
-    title: "Chapter 4. 12궁 전체 해설",
+    title: "Chapter 4. 14주성 완전 해석",
     categories: [
-      "명궁·형제궁·부처궁의 기본 흐름",
-      "자녀궁·재백궁·질액궁의 현실 리듬",
-      "천이궁·노복궁·관록궁의 사회적 움직임",
-      "전택궁·복덕궁·부모궁의 뿌리와 안정감",
-      "특히 강한 궁과 부담이 되는 궁",
+      "명반을 지배하는 핵심 주성",
+      "주성의 강약과 현실 발현",
+      "주성 조합의 균형과 충돌",
+      "주성이 만드는 선택 습관",
+      "주성을 실제 성과로 바꾸는 법",
     ],
   },
   {
     id: "05",
     roman: "V",
     palaceKey: "ming",
-    title: "Chapter 5. 사화 구조 해석",
+    title: "Chapter 5. 보좌성과 살성의 역학 관계",
     categories: [
-      "화록이 여는 욕망과 기회",
-      "화권이 만드는 힘과 책임",
-      "화과가 정리하는 평판과 명예",
-      "화기가 보여주는 집착과 막힘",
-      "사화가 서로 보완하거나 충돌하는 방식",
+      "보좌성이 열어 주는 보호 신호",
+      "살성이 만드는 압박과 경계선",
+      "별들이 발동하는 트리거 패턴",
+      "관계와 일에 미치는 영향",
+      "압박 신호를 완화하는 운영법",
     ],
   },
   {
     id: "06",
     roman: "VI",
-    palaceKey: "ming",
-    title: "Chapter 6. 삼방사정과 인생의 핵심 축",
+    palaceKey: "career",
+    title: "Chapter 6. 재백궁과 관록궁 — 돈과 사회적 성취",
     categories: [
-      "명궁 삼방사정의 큰 구조",
-      "재백궁으로 이어지는 현실 선택",
-      "관록궁으로 드러나는 사회적 역할",
-      "천이궁에서 받는 외부 평가",
-      "삶의 핵심 작동 방식",
+      "재백궁이 보여주는 돈의 그릇",
+      "관록궁이 만드는 직업 속도",
+      "재물과 명예가 연결되는 방식",
+      "돈이 새는 위험과 사회적 압박",
+      "성장 실행을 오래 유지하는 법",
     ],
   },
   {
     id: "07",
     roman: "VII",
-    palaceKey: "career",
-    title: "Chapter 7. 직업과 사회적 성공",
+    palaceKey: "spouse",
+    title: "Chapter 7. 부처궁과 자녀궁 — 사랑과 가족 리듬",
     categories: [
-      "관록궁으로 보는 일의 구조",
-      "재백궁과 관록궁의 연결",
-      "천이궁에서 얻는 기회",
-      "조직·사업·프리랜서 적합성",
-      "사회적 성공을 오래 유지하는 조건",
+      "부처궁이 보여주는 인연 패턴",
+      "연애와 결혼의 흐름",
+      "가족 안에서 반복되는 감정 구조",
+      "자녀궁이 드러내는 창조성과 생활 리듬",
+      "관계를 안정시키는 조화 가이드",
     ],
   },
   {
     id: "08",
     roman: "VIII",
-    palaceKey: "wealth",
-    title: "Chapter 8. 재물과 돈의 흐름",
+    palaceKey: "travel",
+    title: "Chapter 8. 천이궁과 전택궁 — 이동과 기반의 운",
     categories: [
-      "재백궁이 보여주는 돈의 그릇",
-      "돈을 버는 방식",
-      "돈이 새는 패턴",
-      "전택궁과 자산의 기반",
-      "재물운을 현실에서 키우는 습관",
+      "천이궁이 여는 외부 기회",
+      "전택궁이 만드는 자산과 거처 기반",
+      "이동·이직·확장 타이밍",
+      "집과 공간을 다루는 전략",
+      "밖에서 열리는 기회 지도",
     ],
   },
   {
     id: "09",
     roman: "IX",
-    palaceKey: "spouse",
-    title: "Chapter 9. 연애와 결혼",
+    palaceKey: "friends",
+    title: "Chapter 9. 노복궁과 형제궁 — 인맥과 협업 운",
     categories: [
-      "부처궁이 보여주는 관계 패턴",
-      "명궁과 부처궁의 거리",
-      "복덕궁으로 보는 감정 만족도",
-      "자녀궁과 생활 리듬",
-      "결혼 생활의 안정 조건",
+      "사회적 네트워크의 기본 결",
+      "협업자와 동료의 질",
+      "신뢰가 쌓이는 신호",
+      "갈등과 손실을 부르는 신호",
+      "사람 운을 살리는 관계 운영법",
     ],
   },
   {
     id: "10",
     roman: "X",
-    palaceKey: "friends",
-    title: "Chapter 10. 인간관계와 귀인·악연",
+    palaceKey: "fortune",
+    title: "Chapter 10. 복덕궁과 부모궁 — 내면 회복과 뿌리",
     categories: [
-      "노복궁으로 보는 대인관계 방식",
-      "형제궁과 가까운 관계의 리듬",
-      "부모궁과 권위 관계",
-      "천이궁에서 만나는 귀인",
-      "소모되는 관계를 피하는 기준",
+      "복덕궁이 보여주는 마음의 안정축",
+      "부모궁과 원가족 패턴",
+      "감정 회복과 쉼의 방식",
+      "권위·상속·기대에서 반복되는 흐름",
+      "마음을 지키는 실전 수련",
     ],
   },
   {
     id: "11",
     roman: "XI",
     palaceKey: "health",
-    title: "Chapter 11. 건강과 심리 리듬",
+    title: "Chapter 11. 질액궁 — 몸과 마음의 취약 신호",
     categories: [
-      "질액궁으로 보는 몸의 리듬",
-      "복덕궁으로 보는 마음의 회복력",
-      "명궁과 질액궁의 연결",
-      "스트레스가 누적되는 방식",
-      "생활 리듬을 회복하는 조건",
+      "질액궁이 드러내는 몸의 경고 지도",
+      "스트레스가 쌓이는 신호",
+      "에너지 관리와 회복 속도",
+      "생활 습관을 교정해야 하는 영역",
+      "예방 중심의 체크리스트",
     ],
   },
   {
     id: "12",
     roman: "XII",
     palaceKey: "timing",
-    title: "Chapter 12. 대한과 인생 주기",
+    title: "Chapter 12. 대한 정밀 분석 — 10년 주기의 방향",
     categories: [
-      "대한 시작 나이와 진행 방향",
-      "초년과 청년 대한의 과제",
-      "중년 대한의 역할 변화",
-      "장년 대한에서 강해지는 주제",
-      "현재 대한과 다음 대한의 준비",
+      "현재 대한의 핵심 주제",
+      "대한이 여는 기회",
+      "대한에서 조심해야 할 위험",
+      "10년 주기의 우선순위",
+      "대한을 실행 전략으로 바꾸는 법",
     ],
   },
   {
     id: "13",
     roman: "XIII",
     palaceKey: "timing",
-    title: "Chapter 13. 최종 운명 전략과 마스터플랜",
+    title: "Chapter 13. 유년 로드맵 — 올해의 운 흐름",
     categories: [
-      "이 명반의 최종 결론",
-      "반드시 살려야 할 장점",
-      "조심해야 할 반복 패턴",
-      "1년·3년·5년·10년 전략",
+      "올해 흐름의 전체 요약",
+      "월별·분기별 실행 계획",
+      "기회가 열리는 타이밍",
+      "주의해야 할 경고 구간",
+      "올해 운을 현실로 만드는 행동 가이드",
+    ],
+  },
+  {
+    id: "14",
+    roman: "XIV",
+    palaceKey: "timing",
+    title: "Chapter 14. 생애 마스터플랜 — 전환점과 장기 전략",
+    categories: [
+      "생애 전체의 큰 흐름",
+      "중요 전환점과 선택의 문",
+      "운이 강하게 피어나는 절정기",
+      "회복과 재정비가 필요한 주기",
+      "장기 인생 운영 계획",
+    ],
+  },
+  {
+    id: "15",
+    roman: "XV",
+    palaceKey: "timing",
+    title: "Chapter 15. 자미 거장의 최종 전략 제언",
+    categories: [
+      "이 명반의 최종 진단",
+      "평생 지켜야 할 전략 규칙",
+      "중요 결정을 위한 체크리스트",
+      "위기 때 작동할 안전장치",
       "마지막 상담 조언",
     ],
   },
@@ -1592,12 +1637,19 @@ function normalizeChapterShape(chapter = {}, blueprint, profile = {}, seed = {})
     if (!baseText || containsForbiddenNarrative(baseText)) {
       return fallback.categories[categoryIndex];
     }
+    const expandedText = expandToMinLength(baseText, SECTION_MIN_CHARS, clean(profile?.name || "사용자"));
     return {
       id: `${blueprint.id}-${String(categoryIndex + 1).padStart(2, "0")}`,
       title,
       localSummary: baseText,
-      finalText: expandToMinLength(baseText, SECTION_MIN_CHARS, clean(profile?.name || "사용자")),
+      finalText: expandedText,
       order: categoryIndex + 1,
+      evidenceAnchors: normalizeZiweiEvidenceAnchors(hit?.evidenceAnchors, expandedText, seed),
+      expertThesis: sanitizeCounselingText(hit?.expertThesis || ""),
+      timingAdvice: sanitizeCounselingText(hit?.timingAdvice || ""),
+      actionPlan: Array.isArray(hit?.actionPlan) ? hit.actionPlan.map(sanitizeCounselingText).filter(Boolean).slice(0, 5) : [],
+      caution: sanitizeCounselingText(hit?.caution || ""),
+      confidence: clean(hit?.confidence || ""),
     };
   });
   const normalized = {
@@ -1745,18 +1797,600 @@ function computeDuplicateRate(chapters = []) {
   return Math.min(1, ((paragraphRate * 0.6) + (sentenceRate * 0.4) + openerPenalty));
 }
 
-async function enhanceChaptersLocally(_env, profile, seed, localChapters, pass = 1) {
+function safeJsonForPrompt(value) {
+  return JSON.stringify(value, null, 2)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+}
+
+function extractZiweiJsonObject(text = "") {
+  const raw = clean(text)
+    .replace(/^\s*```(?:json|javascript|js)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+  try {
+    return JSON.parse(raw);
+  } catch (_) {}
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start >= 0 && end > start) {
+    try {
+      return JSON.parse(raw.slice(start, end + 1));
+    } catch (_) {}
+  }
+  throw Object.assign(new Error("ZIWEI_LLM_JSON_PARSE_FAILED"), { code: "ZIWEI_LLM_JSON_PARSE_FAILED" });
+}
+
+function compactStarForPrompt(star = {}) {
+  return {
+    name: clean(star.name),
+    strength: clean(`${star.strengthSymbol || ""} ${star.strengthName || ""}`.trim()),
+    sihua: clean(star.sihua),
+    borrowed: Boolean(star.borrowed),
+  };
+}
+
+function compactPalaceForPrompt(palace = {}) {
+  return {
+    key: clean(palace.key),
+    nameKo: clean(palace.nameKo),
+    branch: clean(palace.branch),
+    mainStars: normalizeStarList(palace.mainStars).map(compactStarForPrompt),
+    auxiliaryStars: normalizeStarList(palace.auxStars).map(compactStarForPrompt),
+    maleficStars: normalizeStarList(palace.maleficStars).map(compactStarForPrompt),
+    transformations: Array.isArray(palace.transformations) ? palace.transformations.map((item) => ({
+      star: clean(item?.star),
+      type: clean(item?.type || item?.label),
+    })).filter((item) => item.star || item.type) : [],
+  };
+}
+
+function getZiweiPromptPalaceKeys(blueprint = {}) {
+  const id = clean(blueprint.id);
+  const keys = new Set(["ming"]);
+  const primary = clean(blueprint.palaceKey);
+  if (primary && primary !== "timing") keys.add(primary);
+  if (id === "02") keys.add("body");
+  if (id === "06") ["wealth", "career", "travel"].forEach((key) => keys.add(key));
+  if (id === "07") ["spouse", "children", "fortune"].forEach((key) => keys.add(key));
+  if (id === "08") ["travel", "property"].forEach((key) => keys.add(key));
+  if (id === "09") ["friends", "siblings", "parents"].forEach((key) => keys.add(key));
+  if (id === "10") ["fortune", "parents"].forEach((key) => keys.add(key));
+  if (id === "11") ["health", "fortune", "ming"].forEach((key) => keys.add(key));
+  if (["12", "13", "14", "15"].includes(id)) ["ming", "body", "wealth", "career", "spouse", "fortune", "health"].forEach((key) => keys.add(key));
+  return Array.from(keys);
+}
+
+function buildZiweiLLMInput({ profile = {}, seed = {}, blueprint = {}, localChapter = {}, previousSummaries = [], attempt = 1, lastErrors = [] } = {}) {
+  const palaceKeys = getZiweiPromptPalaceKeys(blueprint);
+  const palaces = palaceKeys
+    .map((key) => findPalace(seed, key))
+    .filter(Boolean)
+    .map(compactPalaceForPrompt);
+  const allPalaces = (Array.isArray(seed?.chart?.palaces) ? seed.chart.palaces : []).map(compactPalaceForPrompt);
+  const palaceIndex = buildZiweiPalaceIndex(seed);
+  const relevantPalaceIndex = palaceKeys.reduce((acc, key) => {
+    if (palaceIndex[key]) acc[key] = palaceIndex[key];
+    return acc;
+  }, {});
+  const crossPalaceRelations = buildZiweiCrossPalaceRelations(seed)
+    .filter((relation) => palaceKeys.includes(clean(relation?.palaceKey)));
+  return {
+    serviceName: "자미두수 프리미엄 PDF",
+    chapter: {
+      id: blueprint.id,
+      roman: blueprint.roman,
+      chapterNo: Number(blueprint.id),
+      title: blueprint.title,
+      categories: blueprint.categories,
+    },
+    userProfile: {
+      name: clean(profile?.name || "사용자"),
+      birthDate: clean(seed?.birthProfile?.birthDate),
+      birthTime: clean(seed?.birthProfile?.birthTime),
+      gender: clean(seed?.birthProfile?.gender),
+      calendarType: clean(seed?.birthProfile?.calendarType),
+    },
+    chartMeta: {
+      mingGong: clean(seed?.chart?.mingGong),
+      shenGong: clean(seed?.chart?.shenGong),
+      fiveElementBureau: clean(seed?.chart?.fiveElementBureau),
+      yearStemBranch: clean(seed?.chart?.yearStemBranch),
+    },
+    relevantPalaces: palaces,
+    allPalaceSnapshot: allPalaces,
+    expertContext: {
+      palaceIndex: relevantPalaceIndex,
+      crossPalaceRelations,
+      transformationLayers: buildZiweiTransformationLayers(seed),
+      luckTimeline: buildZiweiLuckTimeline(seed),
+      requiredEvidenceTypes: ["palace", "star", "sihua", "timing"],
+      evidenceWritingRule: "각 판단은 궁명, 별명, 강약, 사화, 대한·유년 중 최소 3개 근거를 자연스럽게 연결한다.",
+    },
+    transformations: Array.isArray(seed?.chart?.transformations) ? seed.chart.transformations.map((item) => ({
+      star: clean(item?.star),
+      type: clean(item?.type || item?.label),
+      palace: clean(item?.palace || item?.palaceName),
+    })) : [],
+    timing: {
+      decadeLuck: Array.isArray(seed?.chart?.decadeLuck) ? seed.chart.decadeLuck.slice(0, 8) : [],
+      annualLuck: Array.isArray(seed?.chart?.annualLuck) ? seed.chart.annualLuck.slice(0, 12) : [],
+    },
+    interpretationSeeds: safeObject(seed?.localZiweiChartJson?.interpretationSeeds),
+    localDraftSummary: {
+      title: clean(localChapter?.title),
+      categories: Array.isArray(localChapter?.categories)
+        ? localChapter.categories.map((category) => ({ title: clean(category?.title), sample: clean(category?.finalText || category?.text).slice(0, 420) }))
+        : [],
+    },
+    previousSummaries,
+    attempt,
+    lastErrors,
+  };
+}
+
+function buildZiweiChapterPrompt(input = {}) {
+  return `너는 자미두수 최고 고수이자 프리미엄 PDF 원고 작가다.
+
+역할:
+계산된 자미두수 명반 자료만 근거로 사용해 현재 챕터의 완성형 상담문을 작성한다.
+
+절대 규칙:
+1. 자미두수 명반을 새로 계산하지 않는다.
+2. 입력 자료에 없는 별, 궁, 사화, 시기 정보를 만들지 않는다.
+3. 내부 용어(JSON, payload, debug, API, LLM, prompt, schema, engine)를 본문에 쓰지 않는다.
+4. 공포 조장, 질병 진단, 투자 수익 보장, 확정 예언을 하지 않는다.
+5. 단정 대신 경향, 가능성, 전략, 선택 기준으로 쓴다.
+6. 각 카테고리 본문은 최소 700자 이상 작성한다.
+7. 각 카테고리에는 실제 근거를 2개 이상 넣는다. 근거는 궁명, 별명, 강약 기호(◎ O ▲ △ X), 사화, 대한·유년 중에서 고른다.
+8. 문체는 전문적이고 신비롭게 쓰되 개발 문서처럼 보이면 안 된다.
+9. 카테고리 제목은 입력된 순서와 문구를 정확히 유지한다.
+10. 각 카테고리의 evidenceAnchors에는 실제 입력에서 확인되는 궁, 별, 사화, 시기 근거를 3개 이상 넣는다.
+
+출력 형식:
+오직 JSON 객체 하나만 출력한다.
+{
+  "chapterNo": 숫자,
+  "title": "입력된 챕터 제목",
+  "summary": "80자 이상의 챕터 요약",
+  "categories": [
+    {
+      "title": "입력된 카테고리 제목",
+      "expertThesis": "이 카테고리의 한 줄 핵심 판단",
+      "evidenceAnchors": [
+        { "type": "palace", "name": "궁명", "reason": "판단 근거" },
+        { "type": "star", "name": "별명", "strength": "강약 기호", "reason": "판단 근거" },
+        { "type": "sihua", "name": "사화명", "reason": "판단 근거" }
+      ],
+      "finalText": "완성형 상담문",
+      "timingAdvice": "시기 조언",
+      "actionPlan": ["실행 1", "실행 2", "실행 3"],
+      "caution": "주의 흐름",
+      "confidence": "high"
+    }
+  ],
+  "practicalAdvice": "실전 조언",
+  "cautionFlow": "주의할 흐름",
+  "transitionLine": "다음 장으로 이어지는 문장"
+}
+
+입력:
+${safeJsonForPrompt(input)}`;
+}
+
+async function callZiweiGemini(env, prompt, options = {}) {
+  const model = clean(env?.ZIWEI_GEMINI_MODEL || env?.PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "gemini-2.5-flash");
+  const result = await callGeminiText(env, prompt, {
+    keyEnvKeys: ZIWEI_LLM_KEY_ENV_KEYS,
+    modelEnvKeys: ZIWEI_LLM_MODEL_ENV_KEYS,
+    models: [model],
+    temperature: Number(env?.ZIWEI_GEMINI_TEMPERATURE || env?.PREMIUM_GEMINI_TEMPERATURE || 0.35),
+    topP: Number(env?.ZIWEI_GEMINI_TOP_P || env?.PREMIUM_GEMINI_TOP_P || 0.9),
+    maxOutputTokens: Number(env?.ZIWEI_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 16384),
+    timeoutMs: Number(env?.ZIWEI_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
+    totalTimeoutMs: Number(env?.ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || 0),
+    maxAttemptsPerPair: Number(env?.ZIWEI_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 2),
+    disableVertexFallback: env?.ZIWEI_GEMINI_DISABLE_VERTEX_FALLBACK ?? env?.GEMINI_DISABLE_VERTEX_FALLBACK,
+    metadata: {
+      requestId: clean(options?.requestId),
+      chapterNumber: clean(options?.chapterNumber),
+    },
+  });
+  if (!result?.ok || !clean(result?.text)) {
+    throw Object.assign(new Error(clean(result?.message || "자미두수 원고 생성에 실패했습니다.")), {
+      code: clean(result?.error || "ZIWEI_LLM_GENERATION_FAILED"),
+      status: Number(result?.status || 502),
+    });
+  }
+  return clean(result.text);
+}
+
+function normalizeZiweiEvidenceAnchors(anchors = [], text = "", seed = {}) {
+  const sourceAnchors = Array.isArray(anchors) ? anchors : [];
+  const normalized = sourceAnchors.map((item) => ({
+    type: clean(item?.type || "evidence"),
+    name: clean(item?.name || item?.title || item?.star || item?.palace),
+    palaceKey: clean(item?.palaceKey),
+    palaceName: clean(item?.palaceName || item?.palace),
+    strength: clean(item?.strength || item?.strengthSymbol),
+    sihuaType: clean(item?.sihuaType || item?.sihua),
+    reason: sanitizeCounselingText(item?.reason || ""),
+  })).filter((item) => item.name);
+  const collected = collectZiweiEvidenceAnchors(text, seed);
+  const merged = [...normalized, ...collected];
+  const seen = new Set();
+  return merged.filter((item) => {
+    const key = `${item.type}:${item.name}:${item.palaceKey || item.palaceName || ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 8);
+}
+
+function toZiweiGeneratedChapter(parsed = {}, blueprint = {}, profile = {}, seed = {}) {
+  const parsedCategories = Array.isArray(parsed?.categories) ? parsed.categories : [];
+  const categories = blueprint.categories.map((title, index) => {
+    const hit = parsedCategories[index] || parsedCategories.find((item) => clean(item?.title) === clean(title)) || {};
+    const finalText = sanitizeCounselingText(hit?.finalText || hit?.text || hit?.body || "");
+    return {
+      id: `${blueprint.id}-${String(index + 1).padStart(2, "0")}`,
+      title,
+      localSummary: finalText,
+      finalText,
+      order: index + 1,
+      evidenceAnchors: normalizeZiweiEvidenceAnchors(hit?.evidenceAnchors, finalText, seed),
+      expertThesis: sanitizeCounselingText(hit?.expertThesis || ""),
+      timingAdvice: sanitizeCounselingText(hit?.timingAdvice || ""),
+      actionPlan: Array.isArray(hit?.actionPlan) ? hit.actionPlan.map(sanitizeCounselingText).filter(Boolean).slice(0, 5) : [],
+      caution: sanitizeCounselingText(hit?.caution || ""),
+      confidence: clean(hit?.confidence || ""),
+    };
+  });
+  return normalizeChapterShape({
+    id: blueprint.id,
+    roman: blueprint.roman,
+    chapterNo: Number(blueprint.id),
+    title: blueprint.title,
+    summary: sanitizeCounselingText(parsed?.summary || ""),
+    practicalAdvice: sanitizeCounselingText(parsed?.practicalAdvice || ""),
+    cautionFlow: sanitizeCounselingText(parsed?.cautionFlow || ""),
+    transitionLine: sanitizeCounselingText(parsed?.transitionLine || ""),
+    categories,
+    source: "gemini-chapter",
+  }, blueprint, profile, seed);
+}
+
+function validateZiweiGeneratedChapter(chapter = {}, blueprint = {}, seed = {}) {
+  const errors = [];
+  if (clean(chapter?.title) !== clean(blueprint?.title)) errors.push("chapter_title_mismatch");
+  const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+  if (categories.length !== blueprint.categories.length) errors.push("category_count_mismatch");
+  const combinedText = [
+    chapter?.summary,
+    chapter?.practicalAdvice,
+    chapter?.cautionFlow,
+    chapter?.transitionLine,
+    ...categories.map((category) => category?.finalText || category?.text || ""),
+  ].join("\n\n");
+  if (ZIWEI_LLM_RISKY_ASSERTION_RE.test(combinedText)) errors.push("risky_assertion");
+  categories.forEach((category, index) => {
+    const title = clean(blueprint.categories[index]);
+    if (clean(category?.title) !== title) errors.push(`category_${index + 1}_title`);
+    const text = sanitizeCounselingText(category?.finalText || category?.text || "");
+    if (text.length < SECTION_MIN_CHARS) errors.push(`category_${index + 1}_too_short`);
+    if (containsForbiddenNarrative(text)) errors.push(`category_${index + 1}_forbidden`);
+    const evidenceSignals = ["궁", "사화", "주성", "보조성", "살성", "실전 조언", "◎", "O", "▲", "△", "X"];
+    const hitCount = evidenceSignals.reduce((count, token) => (text.includes(token) ? count + 1 : count), 0);
+    if (hitCount < 4) errors.push(`category_${index + 1}_evidence_weak`);
+    const anchors = normalizeZiweiEvidenceAnchors(category?.evidenceAnchors, text, seed);
+    if (anchors.length < 3) errors.push(`category_${index + 1}_evidence_anchor_weak`);
+  });
+  return { ok: errors.length === 0, errors };
+}
+
+async function generateZiweiChapterWithLLM(env, { profile = {}, seed = {}, blueprint = {}, localChapter = {}, previousSummaries = [], requestId = "" } = {}) {
+  let lastErrors = [];
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const input = buildZiweiLLMInput({ profile, seed, blueprint, localChapter, previousSummaries, attempt, lastErrors });
+    const prompt = buildZiweiChapterPrompt(input);
+    const text = await callZiweiGemini(env, prompt, { requestId, chapterNumber: blueprint.roman });
+    const parsed = extractZiweiJsonObject(text);
+    const chapter = toZiweiGeneratedChapter(parsed, blueprint, profile, seed);
+    const validation = validateZiweiGeneratedChapter(chapter, blueprint, seed);
+    if (validation.ok) return chapter;
+    lastErrors = validation.errors;
+  }
+  throw Object.assign(new Error(`자미두수 LLM 챕터 검수에 실패했습니다: ${blueprint.roman}`), {
+    code: "ZIWEI_LLM_CHAPTER_INVALID",
+    status: 502,
+    detail: { chapterNumber: blueprint.roman, errors: lastErrors },
+  });
+}
+
+async function enhanceChaptersLocally(env, profile, seed, localChapters, pass = 1, options = {}) {
   const seeded = Array.isArray(localChapters) && localChapters.length === CHAPTER_BLUEPRINTS.length
     ? localChapters
     : buildHighQualityLocalZiweiChapters(profile, seed, pass).chapters;
-  const chapterPolished = seeded.map((chapter) => ensureChapterLength(chapter, CHAPTER_MIN_CHARS));
+  const chapters = [];
+  const previousSummaries = [];
+  let fallbackChapterCount = 0;
+  for (let index = 0; index < CHAPTER_BLUEPRINTS.length; index += 1) {
+    const blueprint = CHAPTER_BLUEPRINTS[index];
+    try {
+      const chapter = await generateZiweiChapterWithLLM(env, {
+        profile,
+        seed,
+        blueprint,
+        localChapter: seeded[index],
+        previousSummaries,
+        requestId: clean(options?.requestId),
+      });
+      chapters.push(ensureChapterLength({ ...chapter, source: "gemini-chapter" }, CHAPTER_MIN_CHARS));
+      previousSummaries.push({ chapterNo: index + 1, title: blueprint.title, summary: clean(chapter.summary).slice(0, 240) });
+    } catch (error) {
+      fallbackChapterCount += 1;
+      console.warn("[ZiweiPremiumPDF][LLMChapterFallback]", {
+        chapter: index + 1,
+        code: clean(error?.code || "ZIWEI_LLM_FAILED"),
+        message: clean(error?.message),
+      });
+      const fallback = normalizeChapterShape(seeded[index], blueprint, profile, seed);
+      const reinforced = ensureChapterLength({ ...fallback, source: "deterministic-reinforcement-after-llm-fail" }, CHAPTER_MIN_CHARS);
+      chapters.push(reinforced);
+      previousSummaries.push({ chapterNo: index + 1, title: blueprint.title, summary: clean(reinforced.summary).slice(0, 240) });
+    }
+  }
   return {
-    chapters: chapterPolished.map((chapter) => ({ ...chapter, source: "local-counseling-engine" })),
-    fallbackUsed: false,
+    chapters,
+    fallbackUsed: fallbackChapterCount > 0,
+    fallbackChapterCount,
+    llmChapterCount: chapters.length - fallbackChapterCount,
+    source: fallbackChapterCount > 0 ? "gemini-chapter+deterministic-reinforcement" : "gemini-chapter",
+  };
+}
+
+function buildZiweiPalaceIndex(seed = {}) {
+  const palaces = Array.isArray(seed?.chart?.palaces) ? seed.chart.palaces : [];
+  const entries = {};
+  palaces.forEach((palace, index) => {
+    const key = clean(palace?.key || `palace_${index + 1}`);
+    entries[key] = {
+      order: index + 1,
+      key,
+      nameKo: clean(palace?.nameKo),
+      branch: clean(palace?.branch),
+      meaning: clean(PALACE_MEANINGS[clean(palace?.nameKo)] || ""),
+      mainStars: normalizeStarList(palace?.mainStars).map(compactStarForPrompt),
+      auxiliaryStars: normalizeStarList(palace?.auxStars).map(compactStarForPrompt),
+      maleficStars: normalizeStarList(palace?.maleficStars).map(compactStarForPrompt),
+      transformations: Array.isArray(palace?.transformations) ? palace.transformations.map((item) => ({
+        star: clean(item?.star),
+        type: clean(item?.type || item?.label),
+        meaning: clean(SIHUA_RULES[clean(item?.type || item?.label)] || ""),
+      })).filter((item) => item.star || item.type) : [],
+      strengthSignals: normalizeStarList([
+        ...(palace?.mainStars || []),
+        ...(palace?.auxStars || []),
+        ...(palace?.maleficStars || []),
+      ]).map((star) => ({
+        name: clean(star?.name),
+        strengthSymbol: clean(star?.strengthSymbol),
+        strengthName: clean(star?.strengthName),
+      })).filter((star) => star.name),
+    };
+  });
+  return entries;
+}
+
+function buildZiweiStarIndex(seed = {}) {
+  const palaces = Array.isArray(seed?.chart?.palaces) ? seed.chart.palaces : [];
+  const starIndex = {};
+  palaces.forEach((palace) => {
+    [
+      ["main", palace?.mainStars],
+      ["auxiliary", palace?.auxStars],
+      ["malefic", palace?.maleficStars],
+    ].forEach(([role, list]) => {
+      normalizeStarList(list).forEach((star) => {
+        const name = clean(star?.name);
+        if (!name) return;
+        if (!starIndex[name]) {
+          starIndex[name] = {
+            name,
+            placements: [],
+            rules: safeObject(STAR_RULES[name] || AUX_MALEFIC_RULES[name]),
+          };
+        }
+        starIndex[name].placements.push({
+          palaceKey: clean(palace?.key),
+          palaceName: clean(palace?.nameKo),
+          branch: clean(palace?.branch),
+          role,
+          strengthSymbol: clean(star?.strengthSymbol),
+          strengthName: clean(star?.strengthName),
+          sihua: clean(star?.sihua),
+          borrowed: Boolean(star?.borrowed),
+        });
+      });
+    });
+  });
+  return starIndex;
+}
+
+function buildZiweiTransformationLayers(seed = {}) {
+  const mapTransformation = (item = {}) => ({
+    star: clean(item?.star),
+    type: clean(item?.type || item?.label),
+    palace: clean(item?.palace || item?.palaceName),
+    meaning: clean(SIHUA_RULES[clean(item?.type || item?.label)] || ""),
+  });
+  const decadeLuck = Array.isArray(seed?.chart?.decadeLuck) ? seed.chart.decadeLuck : [];
+  const annualLuck = Array.isArray(seed?.chart?.annualLuck) ? seed.chart.annualLuck : [];
+  return {
+    natal: (Array.isArray(seed?.chart?.transformations) ? seed.chart.transformations : []).map(mapTransformation).filter((item) => item.star || item.type),
+    decade: decadeLuck.map((item, index) => ({
+      order: index + 1,
+      label: clean(item?.label || item?.name || item?.range),
+      current: Boolean(item?.current || item?.isCurrent),
+      transformations: Array.isArray(item?.transformations) ? item.transformations.map(mapTransformation).filter((t) => t.star || t.type) : [],
+    })),
+    annual: annualLuck.map((item, index) => ({
+      order: index + 1,
+      year: clean(item?.year || item?.label),
+      label: clean(item?.label || item?.theme || item?.name),
+      current: Boolean(item?.current || item?.isCurrent),
+      transformations: Array.isArray(item?.transformations) ? item.transformations.map(mapTransformation).filter((t) => t.star || t.type) : [],
+    })),
+  };
+}
+
+function buildZiweiCrossPalaceRelations(seed = {}) {
+  const palaces = Array.isArray(seed?.chart?.palaces) ? seed.chart.palaces : [];
+  const relationFor = (palace, index) => {
+    const triadIndexes = [index, (index + 4) % 12, (index + 8) % 12].filter((item) => palaces[item]);
+    const opposite = palaces[(index + 6) % 12];
+    const left = palaces[(index + 11) % 12];
+    const right = palaces[(index + 1) % 12];
+    return {
+      palaceKey: clean(palace?.key),
+      palaceName: clean(palace?.nameKo),
+      triadPalaces: triadIndexes.map((idx) => ({
+        key: clean(palaces[idx]?.key),
+        nameKo: clean(palaces[idx]?.nameKo),
+        branch: clean(palaces[idx]?.branch),
+      })),
+      oppositePalace: opposite ? {
+        key: clean(opposite?.key),
+        nameKo: clean(opposite?.nameKo),
+        branch: clean(opposite?.branch),
+      } : null,
+      adjacentPalaces: [left, right].filter(Boolean).map((item) => ({
+        key: clean(item?.key),
+        nameKo: clean(item?.nameKo),
+        branch: clean(item?.branch),
+      })),
+    };
+  };
+  return palaces.map(relationFor);
+}
+
+function buildZiweiLuckTimeline(seed = {}) {
+  const decadeLuck = Array.isArray(seed?.chart?.decadeLuck) ? seed.chart.decadeLuck : [];
+  const annualLuck = Array.isArray(seed?.chart?.annualLuck) ? seed.chart.annualLuck : [];
+  const currentDecadeIndex = Math.max(0, decadeLuck.findIndex((item) => item?.current || item?.isCurrent));
+  return {
+    currentDecade: safeObject(decadeLuck[currentDecadeIndex] || decadeLuck[0]),
+    nextDecade: safeObject(decadeLuck[currentDecadeIndex + 1] || {}),
+    decadeSequence: decadeLuck.slice(0, 10).map((item, index) => ({
+      order: index + 1,
+      label: clean(item?.label || item?.name || item?.range),
+      current: Boolean(item?.current || item?.isCurrent),
+      palace: clean(item?.palace || item?.palaceName),
+      theme: clean(item?.theme || item?.summary),
+    })),
+    annualSequence: annualLuck.slice(0, 12).map((item, index) => ({
+      order: index + 1,
+      year: clean(item?.year || item?.label),
+      label: clean(item?.label || item?.theme || item?.name),
+      palace: clean(item?.palace || item?.palaceName),
+      theme: clean(item?.theme || item?.summary),
+    })),
+  };
+}
+
+function collectZiweiEvidenceAnchors(text = "", seed = {}) {
+  const source = clean(text);
+  const anchors = [];
+  const push = (type, name, detail = {}) => {
+    const normalized = clean(name);
+    if (!normalized) return;
+    const key = `${type}:${normalized}`;
+    if (anchors.some((item) => item.key === key)) return;
+    anchors.push({ key, type, name: normalized, ...detail });
+  };
+  (Array.isArray(seed?.chart?.palaces) ? seed.chart.palaces : []).forEach((palace) => {
+    if (source.includes(clean(palace?.nameKo))) {
+      push("palace", palace.nameKo, { palaceKey: clean(palace?.key), branch: clean(palace?.branch) });
+    }
+    normalizeStarList([...(palace?.mainStars || []), ...(palace?.auxStars || []), ...(palace?.maleficStars || [])]).forEach((star) => {
+      if (source.includes(clean(star?.name))) {
+        push("star", star.name, {
+          palaceKey: clean(palace?.key),
+          palaceName: clean(palace?.nameKo),
+          strengthSymbol: clean(star?.strengthSymbol),
+          strengthName: clean(star?.strengthName),
+        });
+      }
+    });
+  });
+  (Array.isArray(seed?.chart?.transformations) ? seed.chart.transformations : []).forEach((item) => {
+    const type = clean(item?.type || item?.label);
+    const star = clean(item?.star);
+    if ((type && source.includes(type)) || (star && source.includes(star))) {
+      push("sihua", `${star} ${type}`.trim(), {
+        star,
+        sihuaType: type,
+        palace: clean(item?.palace || item?.palaceName),
+      });
+    }
+  });
+  return anchors.map(({ key, ...item }) => item).slice(0, 8);
+}
+
+function buildZiweiChapterEvidenceMap(chapters = [], seed = {}) {
+  return (Array.isArray(chapters) ? chapters : []).map((chapter, chapterIndex) => ({
+    chapterNo: Number(chapter?.chapterNo || chapterIndex + 1),
+    id: clean(chapter?.id || CHAPTER_BLUEPRINTS[chapterIndex]?.id),
+    title: clean(chapter?.title),
+    categoryEvidence: (Array.isArray(chapter?.categories) ? chapter.categories : []).map((category, categoryIndex) => ({
+      order: categoryIndex + 1,
+      title: clean(category?.title),
+      evidenceAnchors: normalizeZiweiEvidenceAnchors(category?.evidenceAnchors, category?.finalText || category?.text || "", seed),
+    })),
+  }));
+}
+
+function buildZiweiJsonV2(profile = {}, seed = {}, chapters = [], metadata = {}) {
+  return {
+    schemaVersion: "ziwei-pdf-v2",
+    serviceKey: ZIWEI_SERVICE_KEY,
+    featureKey: ZIWEI_FEATURE_KEY,
+    generatedAt: new Date().toISOString(),
+    calculationBasis: {
+      mode: "single",
+      timezone: "Asia/Seoul",
+      birthProfile: safeObject(seed?.birthProfile),
+      birthInput: safeObject(seed?.localZiweiChartJson?.birthInput),
+      profileName: clean(profile?.name),
+      chartMeta: {
+        mingGong: clean(seed?.chart?.mingGong),
+        shenGong: clean(seed?.chart?.shenGong),
+        fiveElementBureau: clean(seed?.chart?.fiveElementBureau),
+        yearStemBranch: clean(seed?.chart?.yearStemBranch),
+      },
+      diagnostics: safeObject(seed?.diagnostics),
+    },
+    palaceIndex: buildZiweiPalaceIndex(seed),
+    starIndex: buildZiweiStarIndex(seed),
+    transformationLayers: buildZiweiTransformationLayers(seed),
+    luckTimeline: buildZiweiLuckTimeline(seed),
+    crossPalaceRelations: buildZiweiCrossPalaceRelations(seed),
+    interpretationSeeds: safeObject(seed?.localZiweiChartJson?.interpretationSeeds),
+    chapterEvidenceMap: buildZiweiChapterEvidenceMap(chapters, seed),
+    quality: {
+      chapterCount: Array.isArray(chapters) ? chapters.length : 0,
+      expectedChapterCount: CHAPTER_BLUEPRINTS.length,
+      validation: validateZiweiPdfChapterQuality({ chapters }),
+      manuscriptSource: clean(metadata?.manuscriptSource || metadata?.source),
+      llmChapterCount: Number(metadata?.llmChapterCount || 0),
+      fallbackChapterCount: Number(metadata?.fallbackChapterCount || 0),
+    },
   };
 }
 
 function buildZiweiPayload(profile, seed, chapters, metadata = {}) {
+  const ziweiJsonV2 = buildZiweiJsonV2(profile, seed, chapters, metadata);
   return {
     mode: "single",
     birthProfile: seed.birthProfile,
@@ -1770,6 +2404,7 @@ function buildZiweiPayload(profile, seed, chapters, metadata = {}) {
     },
     strengthLegend: seed.strengthLegend,
     localZiweiChartJson: seed.localZiweiChartJson,
+    ziweiJsonV2,
     interpretationSeeds: seed.localZiweiChartJson?.interpretationSeeds || {
       personalityKeywords: [],
       relationshipKeywords: [],
@@ -1972,7 +2607,7 @@ async function handleDownload(request, env) {
 
   const chapters = Array.isArray(normalized?.chapters) ? normalized.chapters : [];
   if (chapters.length < CHAPTER_BLUEPRINTS.length) {
-    return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "ZIWEI_RESULT_INCOMPLETE", message: "13챕터 생성이 완료되지 않아 PDF를 준비하지 못했습니다." }, { status: 409 });
+    return json({ ok: false, serviceKey: ZIWEI_SERVICE_KEY, code: "ZIWEI_RESULT_INCOMPLETE", message: `${CHAPTER_BLUEPRINTS.length}챕터 생성이 완료되지 않아 PDF를 준비하지 못했습니다.` }, { status: 409 });
   }
 
   const pdfReady = safeObject(normalized?.pdfReady);
@@ -2152,7 +2787,7 @@ async function handlePrepare(request, env) {
     duplicateRate: localQuality.duplicateRate,
   });
 
-  const enhanced = await enhanceChaptersLocally(env, profile, seed, localChapters, localQuality.pass || 1);
+  const enhanced = await enhanceChaptersLocally(env, profile, seed, localChapters, localQuality.pass || 1, { requestId: reportId });
   const completedChapters = sanitizeFinalManuscript({ chapters: enhanced.chapters, profile, seed });
   const validation = validateChapters(completedChapters);
   const duplicateRate = computeDuplicateRate(completedChapters);
@@ -2191,7 +2826,12 @@ async function handlePrepare(request, env) {
   });
 
   console.info("[ZiweiPremiumPDF][PdfRenderStart]", { chapterCount: completedChapters.length, qualityStatus: "passed" });
-  const ziweiPayload = buildZiweiPayload(profile, seed, completedChapters, { accessType: clean(access.accessType || "unknown") });
+  const ziweiPayload = buildZiweiPayload(profile, seed, completedChapters, {
+    accessType: clean(access.accessType || "unknown"),
+    manuscriptSource: clean(enhanced.source || "gemini-chapter"),
+    llmChapterCount: Number(enhanced.llmChapterCount || 0),
+    fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
+  });
   const pdfReady = buildPdfReadyPayload(profile, seed, completedChapters, { featureKey, reportType: "ziweiPremium", qualityStatus: "passed" });
   const downloadUrl = buildArchivePdfUrl(reportId);
   pdfReady.pdfUrl = downloadUrl;
@@ -2204,8 +2844,10 @@ async function handlePrepare(request, env) {
   console.info("[ZiweiPremiumPDF][PdfRenderSuccess]", { chapterCount: completedChapters.length });
 
   await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
-    manuscriptSource: "local-only",
+    manuscriptSource: clean(enhanced.source || "gemini-chapter"),
     chapterCount: completedChapters.length,
+    llmChapterCount: Number(enhanced.llmChapterCount || 0),
+    fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
     archive: {
       reportId,
       reportType: "ziwei_book",
@@ -2234,12 +2876,16 @@ async function handlePrepare(request, env) {
     payload: ziweiPayload,
     ziweiPayload,
     localZiweiChartJson: seed.localZiweiChartJson,
+    ziweiJsonV2: ziweiPayload.ziweiJsonV2,
     pdfReady,
     downloadUrl,
     pdfUrl: downloadUrl,
     storedUrl: downloadUrl,
     reportUrl: downloadUrl,
     qualityStatus: "passed",
+    manuscriptSource: clean(enhanced.source || "gemini-chapter"),
+    llmChapterCount: Number(enhanced.llmChapterCount || 0),
+    fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
     localDraftChapterCount: localChapters.length,
     finalChapterCount: completedChapters.length,
   };

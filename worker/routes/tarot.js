@@ -72,7 +72,7 @@ const CRYSTAL_MEANINGS = {
     nameEn: "Tiger's Eye",
     categoryAffinity: ["wealth", "career", "move"],
     keywords: ["결단", "보호", "현실 판단", "사업 감각"],
-    meaning: "감정 과열을 낮추고 현실 데이터를 기준으로 선택하도록 돕는 원석입니다.",
+    meaning: "감정 과열을 낮추고 흔들린 판단을 기준의 빛으로 가라앉히는 원석입니다.",
     adviceTone: "기준을 정하고 실행",
     cautionTone: "승부욕 과열 경계",
   },
@@ -101,8 +101,8 @@ const CRYSTAL_MEANINGS = {
     nameKo: "시트린",
     nameEn: "Citrine",
     categoryAffinity: ["wealth", "move", "health"],
-    keywords: ["풍요", "활력", "매출", "자기표현"],
-    meaning: "현실 실행력과 자신감을 끌어올려 기회를 실제 성과로 연결시키는 원석입니다.",
+    keywords: ["풍요", "활력", "자기표현", "기회"],
+    meaning: "작은 활력을 깨워 기회와 자신감의 빛을 다시 밝히는 원석입니다.",
     adviceTone: "작은 실행의 축적",
     cautionTone: "낙관 과신 경계",
   },
@@ -289,7 +289,7 @@ const CATEGORY_VOICES = {
     summaryLead: "재회운은 미련보다 조건을 먼저 보는 흐름입니다.",
     pulse: "남은 감정은 분명하지만, 다시 가까워지기 위한 전제가 아직 정리되지 않았습니다.",
     caution: "상대의 속도와 준비를 무시한 재접근은 같은 상처를 반복할 수 있습니다.",
-    uplift: "원석의 통찰로 감정과 현실을 분리하면, 재회의 가능성도 더 정확히 보입니다.",
+    uplift: "원석의 통찰로 감정과 현실을 분리하면, 다시 닿아도 안전한 거리가 더 선명해집니다.",
     neo: "재회는 감정이 남아 있는 것만으로 성사되지 않습니다. 조건과 태도가 함께 맞아야 합니다.",
     youn: "서로를 다그치기보다, 필요한 시간을 인정할수록 인연은 더 분명하게 드러나요.",
     action: [
@@ -417,13 +417,13 @@ function buildCardMeaning(cardName, orientation, tarotKeywords = []) {
 }
 
 const CRYSTAL_MASTER_CHAPTER_TITLES = [
-  "챕터 1. 오프닝 오라 진단",
-  "챕터 2. 카드 핵심 키워드 해석",
-  "챕터 3. 아르카나 · 수비학 통합",
-  "챕터 4. 크리스탈 치유 주파수",
-  "챕터 5. 관계와 현실 행동 전략",
-  "챕터 6. 14~30일 실행 리추얼",
-  "챕터 7. 마스터의 봉인 조언",
+  "첫 번째 문 · 오라의 입구",
+  "두 번째 문 · 카드가 남긴 빛",
+  "세 번째 문 · 아르카나와 숫자의 결",
+  "네 번째 문 · 크리스탈 정화의 파동",
+  "다섯 번째 문 · 현실에 내려앉는 선택",
+  "여섯 번째 문 · 14~30일의 리추얼",
+  "일곱 번째 문 · 봉인 오라클",
 ];
 
 const MAJOR_ARCANA_NUMBERS = {
@@ -470,7 +470,7 @@ const MINOR_CARD_NUMBERS = {
 
 function buildKeywordVisual(keywords = []) {
   const list = Array.isArray(keywords) ? keywords.filter(Boolean).slice(0, 4) : [];
-  return `[키워드: ${list.join(", ")}]`;
+  return `[빛의 단서: ${list.join(", ")}]`;
 }
 
 function tarotNumerologyInsight(cardNameEn) {
@@ -547,7 +547,7 @@ function buildVariedReadingLead(position, cardNameKo, orientation, categoryName,
     `${position.title}에서는 ${cardNameKo} ${orientationLabel}의 흐름이 ${categoryName}의 첫 숨을 정리합니다.`,
     `${cardNameKo} ${orientationLabel}은 ${position.title}에서 지금 당장 손대야 할 우선순위를 드러냅니다.`,
     `${position.title}에 놓인 ${cardNameKo}는 ${crystalName}과 만나 감정과 현실의 접점을 다시 맞춥니다.`,
-    `${categoryName} 전체에서 ${position.title}은(는) 흐름의 방향을 바꾸는 관문처럼 작동합니다.`,
+    `${categoryName} 전체에서 ${position.title} 자리는 흐름의 방향을 바꾸는 관문처럼 작동합니다.`,
     `${cardNameKo} ${orientationLabel}이 보여 주는 핵심은 ${position.title}에 맞는 행동 속도를 찾는 일입니다.`,
   ];
   return templates[(position.order - 1) % templates.length];
@@ -574,7 +574,7 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
   const caution = `${orientation === "reversed" ? "같은 실수를 설명만으로 넘기지 말고 중단 지점을 먼저 세워야 합니다." : "속도를 올리기보다 기준을 먼저 맞춰야 결과가 오래 갑니다."}`;
   const uplift = `${crystal.nameKo}의 기운은 ${category.name}에서 기준과 순서를 회복시키는 편입니다. ${voice.uplift} ${position.title}의 결론은 한 번에 바꾸는 것이 아니라, 오늘의 선택을 작게 바로잡는 데 있습니다.`;
   const practicalActions = uniqueSentenceList([...(Array.isArray(voice.action) ? voice.action : []), `${position.title}와 연결된 행동을 오늘 1개만 끝냅니다.`, `${crystal.nameKo}를 떠올리며 판단 기준을 1줄로 적습니다.`]).slice(0, 4);
-  const opportunity = `${tarotKeywords.slice(0, 2).join(" · ")} 신호는 ${position.title}에서 실질적 기회를 만듭니다. 이번 주에는 기대보다 확인 가능한 지표 하나를 정해 움직여 보세요.`;
+  const opportunity = `${tarotKeywords.slice(0, 2).join(" · ")} 신호는 ${position.title}에서 작은 문을 엽니다. 이번 주에는 기대를 키우기보다 확인 가능한 단서 하나를 정해 조용히 움직여 보세요.`;
   const action = practicalActions.join(" / ");
   const neoLine = `네오: ${voice.neo}`;
   const younLine = `연이: ${voice.youn}`;
@@ -585,7 +585,7 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
     currentPulse,
     caution,
     uplift,
-    `실전 조언: ${action}`,
+    `오늘의 의식: ${action}`,
     neoLine,
     younLine,
   ]).join(" ");
@@ -634,7 +634,7 @@ function buildCrystalSoulSummary(category, sections, coreCrystal) {
     coreCrystal: coreCrystal.nameKo,
     overallFlow: `${category.name}의 5장 흐름은 초반 ${sections[0]?.positionTitle || "첫 번째 자리"}에서 감지된 시작점을, 중반 ${sections[2]?.positionTitle || "세 번째 자리"}에서 걸림을 확인하고, 후반 ${sections[4]?.positionTitle || "마지막 자리"}에서 실제 선택으로 마무리하도록 안내합니다. ${coreCrystal.nameKo}는 이 흐름을 한 줄로 묶기보다 단계별로 정돈하게 돕습니다.`,
     strongestSignal: `${strongest.cardNameKo}와 ${strongest.positionTitle}의 결합이 가장 선명한 신호입니다. ${strongest.oneLineSummary} 이 조합은 회피보다 확인, 감정보다 기준을 먼저 두라고 말합니다.`,
-    opportunity: `${sections[1]?.positionTitle || "두 번째 자리"}에서는 ${sections[1]?.tarotKeywords.slice(0, 2).join(" · ")} 신호가 실제 기회로 바뀝니다. 기대를 키우기보다 지금 할 수 있는 작은 실행으로 번역하는 편이 유리합니다.`,
+    opportunity: `${sections[1]?.positionTitle || "두 번째 자리"}에서는 ${sections[1]?.tarotKeywords.slice(0, 2).join(" · ")} 신호가 작은 가능성의 문으로 바뀝니다. 기대를 키우기보다 지금 할 수 있는 부드러운 실행으로 번역하는 편이 유리합니다.`,
     risk: `${sections[2]?.positionTitle || "세 번째 자리"}의 경고를 흐리게 읽으면 같은 패턴이 다시 반복될 수 있습니다. ${voice.caution} 따라서 반응을 늦추고 사실을 먼저 확인하는 태도가 필요합니다.`,
     timingAdvice: `${voice.pulse} 지금은 크게 밀어붙이기보다 14~30일 검증 구간을 두는 타이밍입니다. 준비와 실행을 분리해 기록하면 흐름이 더 또렷해집니다.`,
     practicalActions,
@@ -713,13 +713,13 @@ function buildCrystalSoulMasterChaptersFallback(readingData) {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[0],
       openingKeywords: ["오라", "현재 파동", "상담 오프닝"],
       keywordVisual: buildKeywordVisual((s1.tarotKeywords || []).concat(s2.tarotKeywords || [])),
-      content: `내담자님, 오늘 당신의 무의식이 선택한 첫 번째 진입점은 ${summary.coreCrystal || readingData.coreCrystal}의 파동입니다. ${summary.overallFlow || "현재 흐름은 즉흥보다 기준을 세우는 쪽에 힘이 실립니다."} 지금의 장면은 좋은 운과 나쁜 운을 이분법으로 판정하는 구간이 아니라, 현재 감정과 현실 행동의 간격을 정교하게 맞추는 구간입니다. ${s1.oneLineSummary || "첫 번째 카드가 핵심 기운을 보여 줍니다."} 이 문장을 오프닝의 중심으로 붙잡아 두시면, 이후 챕터에서 제시되는 행동 지침을 더 안정적으로 소화할 수 있습니다.`,
+      content: `내담자님, 오늘 당신의 무의식이 선택한 첫 번째 진입점은 ${summary.coreCrystal || readingData.coreCrystal}의 파동입니다. ${summary.overallFlow || "현재 흐름은 즉흥보다 기준을 세우는 쪽에 힘이 실립니다."} 지금의 장면은 좋은 운과 나쁜 운을 이분법으로 판정하는 구간이 아니라, 현재 감정과 현실 행동의 간격을 섬세하게 맞추는 구간입니다. ${s1.oneLineSummary || "첫 번째 카드가 핵심 기운을 보여 줍니다."} 이 문장을 첫 문턱의 중심으로 붙잡아 두시면, 뒤따르는 작은 의식들이 더 안정적으로 마음에 내려앉습니다.`,
     },
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[1],
       openingKeywords: ["핵심 키워드", "상징", "무의식"],
       keywordVisual: buildKeywordVisual(s2.tarotKeywords || []),
-      content: `카드 키워드는 단어 목록이 아니라 심리 구조 지도입니다. ${s2.keywordVisual || buildKeywordVisual(s2.tarotKeywords || [])} 이 조합은 지금 내담자님의 선택 기준이 어디에서 흔들리고 어디에서 회복되는지를 직접 보여 줍니다. ${s2.cardFlow || "카드 흐름은 현재 선택의 우선순위를 명확히 합니다."} 또한 ${s3.keywordVisual || buildKeywordVisual(s3.tarotKeywords || [])}는 반복 습관의 그림자를 가리키는 경향이 있어, 같은 자극에 같은 반응을 하지 않도록 호흡 간격을 의식적으로 늘릴 필요가 있습니다. 키워드별로 오늘 바로 실행할 행동 하나씩을 붙이면 텍스트 해석이 현실 전략으로 변환됩니다.`,
+      content: `카드 키워드는 단어 목록이 아니라 마음이 흔들리는 방향을 비추는 지도입니다. ${s2.keywordVisual || buildKeywordVisual(s2.tarotKeywords || [])} 이 조합은 지금 내담자님의 선택 기준이 어디에서 흐려지고 어디에서 회복되는지를 조용히 보여 줍니다. ${s2.cardFlow || "카드 흐름은 현재 선택의 우선순위를 명확히 합니다."} 또한 ${s3.keywordVisual || buildKeywordVisual(s3.tarotKeywords || [])}는 반복 습관의 그림자를 가리키는 경향이 있어, 같은 자극에 같은 반응을 하지 않도록 호흡 간격을 의식적으로 늘릴 필요가 있습니다. 빛의 단서마다 오늘의 작은 의식을 하나씩 붙이면 오라클 문장이 하루의 선택으로 내려앉습니다.`,
     },
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[2],
@@ -731,19 +731,19 @@ function buildCrystalSoulMasterChaptersFallback(readingData) {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[3],
       openingKeywords: ["원석", "정화", "치유 주파수"],
       keywordVisual: buildKeywordVisual([readingData.coreCrystal, "정화", "회복", "안정"]),
-      content: `${readingData.coreCrystal}는 감정을 눌러 버리는 돌이 아니라, 감정과 판단의 속도를 맞춰 주는 조율자입니다. ${s1.crystalEnergy || "첫 번째 카드에 배치된 원석 에너지는 흐름을 안정화합니다."} ${s4.crystalEnergy || "네 번째 카드의 원석은 실전 행동의 결을 잡아 줍니다."} 내담자님이 해야 할 치유 동작은 복잡하지 않습니다. 하루 10분 호흡 정리, 하루 1회 감정 기록, 하루 1회 기준 문장 확인만 지켜도 원석 파동은 점진적으로 안정 신호를 키웁니다. 정화 주파수는 즉시 극적인 변화를 만들기보다, 반복 가능한 회복 루틴을 통해 누적 효과를 냅니다.`,
+      content: `${readingData.coreCrystal}는 감정을 눌러 버리는 돌이 아니라, 감정과 판단의 속도를 맞춰 주는 조율자입니다. ${s1.crystalEnergy || "첫 번째 카드에 배치된 원석 에너지는 흐름을 안정화합니다."} ${s4.crystalEnergy || "네 번째 카드의 원석은 오늘 움직일 결을 잡아 줍니다."} 내담자님이 해야 할 치유 동작은 복잡하지 않습니다. 하루 10분 호흡 정리, 하루 1회 감정 기록, 하루 1회 기준 문장 확인만 지켜도 원석 파동은 점진적으로 안정 신호를 키웁니다. 정화의 파동은 즉시 극적인 변화를 만들기보다, 반복 가능한 회복 리듬을 통해 누적됩니다.`,
     },
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[4],
       openingKeywords: ["관계", "현실", "실행"],
       keywordVisual: buildKeywordVisual(["경계", "표현", "협상", "기준"]),
-      content: `상담의 품질은 통찰 문장보다 실행 문장에서 결정됩니다. ${summary.strongestSignal || "가장 강한 신호는 핵심 카드 조합에서 드러납니다."} ${summary.opportunity || "두 번째 자리에서 실제 기회가 열립니다."} 관계에서는 감정 해명을 길게 하기보다, 사실 1개와 요청 1개를 분리해 전달하세요. 재물/진로 영역에서는 이번 주 실행 목표를 하나만 남기고, 성공 기준을 수치화해야 합니다. 내담자님이 오늘 만들 문장은 길 필요가 없습니다. '지금은 무엇을 멈추고, 무엇을 시작할지' 이 두 문장을 또렷하게 쓰는 순간, 카드가 말한 가능성은 행동의 형태를 얻습니다.`,
+      content: `이 리딩의 빛은 통찰을 오래 붙잡는 데서 끝나지 않고, 오늘의 작은 선택으로 내려올 때 선명해집니다. ${summary.strongestSignal || "가장 강한 신호는 핵심 카드 조합에서 드러납니다."} ${summary.opportunity || "두 번째 자리에서 가능성의 문이 열립니다."} 관계에서는 감정 해명을 길게 하기보다, 사실 1개와 요청 1개를 분리해 전달하세요. 재물/진로 영역에서는 이번 주에 지킬 기준 하나만 남기고, 그 기준이 지켜졌는지를 부드럽게 확인해야 합니다. 내담자님이 오늘 만들 문장은 길 필요가 없습니다. '지금은 무엇을 멈추고, 무엇을 시작할지' 이 두 문장을 또렷하게 쓰는 순간, 카드가 말한 가능성은 행동의 형태를 얻습니다.`,
     },
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[5],
       openingKeywords: ["타이밍", "루틴", "14~30일"],
       keywordVisual: buildKeywordVisual(["타이밍", "체크포인트", "리추얼", "누적"]),
-      content: `${summary.timingAdvice || "지금은 즉흥 확장보다 검증 구간을 먼저 확보하는 타이밍입니다."} 14~30일 구간은 운세를 기다리는 기간이 아니라 실험 기간입니다. 1주차에는 정리와 관찰, 2주차에는 소규모 실행, 3~4주차에는 유지 여부 판단을 권장합니다. 리추얼은 화려할 필요가 없습니다. 같은 시간대에 3분 정리 메모를 남기고, 매주 한 번 카드 키워드를 다시 읽어 오늘의 행동과 일치율을 점검하세요. 이렇게 하면 타로 상징이 추상 언어에서 벗어나 생활의 반복 가능한 의사결정 프로토콜로 바뀝니다.`,
+      content: `${summary.timingAdvice || "지금은 즉흥 확장보다 검증 구간을 먼저 확보하는 타이밍입니다."} 14~30일 구간은 운세를 기다리는 시간이 아니라 파동을 몸에 익히는 기간입니다. 1주차에는 정리와 관찰, 2주차에는 작은 움직임, 3~4주차에는 유지할 것과 내려놓을 것을 가르는 리듬을 권장합니다. 리추얼은 화려할 필요가 없습니다. 같은 시간대에 3분 정리 메모를 남기고, 매주 한 번 카드의 빛의 단서를 다시 읽어 오늘의 행동과 얼마나 맞닿았는지 확인하세요. 이렇게 하면 타로 상징이 추상 언어에서 벗어나 생활 속에서 반복 가능한 선택의 신호로 바뀝니다.`,
     },
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[6],
@@ -783,17 +783,17 @@ function buildCrystalSoulMasterPrompt(readingData, intake = {}) {
   }));
 
   return [
-    "당신은 세계 최고 수준의 프리미엄 타로 마스터입니다.",
+    "당신은 원석의 파동과 타로 상징을 함께 읽는 크리스탈 오라클 리더입니다.",
     "문체 규칙:",
     "- 반드시 1:1 상담 대화체로 작성하고, 기계적 나열형 문장을 금지합니다.",
     "- 각 카드 해설은 메이저/마이너 아르카나 맥락과 수비학 신호를 자연스럽게 포함합니다.",
-    "- 카드와 원석의 치유 주파수를 결합해 실전 치유 솔루션을 제시합니다.",
+    "- 카드와 원석의 치유 파동을 결합해 오늘 실천할 작은 회복 의식을 제시합니다.",
     "- 각 섹션 도입부에 반드시 [키워드: ...] 형식 문자열을 제공합니다.",
-    "- 분량 축소 금지: 카드 5섹션 + 마스터 7챕터를 모두 작성합니다.",
+    "- 분량 축소 금지: 카드 5섹션 + 깊은 7개의 문을 모두 작성합니다.",
     "",
     "출력 규칙:",
     "- JSON만 출력합니다. 코드펜스/설명문/주석 금지.",
-    "- 아래 스키마를 정확히 따릅니다.",
+    "- 아래 리딩 형식을 유지합니다.",
     "",
     '{"sections":[{"order":1,"keywordVisual":"[키워드: ...]","categoryReading":"...","crystalEnergy":"...","cardFlow":"...","currentPulse":"...","caution":"...","uplift":"...","practicalActions":["...","...","..."]}],"summary":{"overallFlow":"...","strongestSignal":"...","opportunity":"...","risk":"...","timingAdvice":"...","oracleMessage":"...","practicalActions":["...","...","...","..."]},"masterChapters":[{"no":1,"title":"...","openingKeywords":["...","...","..."],"keywordVisual":"[키워드: ...]","content":"..."}]}',
     "",
@@ -976,15 +976,15 @@ function crystalReadingToText(reading) {
     lines.push(`한 줄 요약: ${section.oneLineSummary}`);
     lines.push(`원석 에너지: ${section.crystalEnergy}`);
     lines.push(`카드 흐름: ${section.cardFlow}`);
-    lines.push(`기본 의미: ${section.cardMeaning}`);
+    lines.push(`카드가 비춘 장면: ${section.cardMeaning}`);
     lines.push(`원석의 기운: ${section.crystalMeaning}`);
-    lines.push(`위치 해석: ${section.positionInterpretation}`);
+    lines.push(`자리의 속삭임: ${section.positionInterpretation}`);
     lines.push(`지금의 흐름: ${section.currentPulse}`);
-    lines.push(`카테고리 상담: ${section.categoryReading}`);
+    lines.push(`주제의 깊은 흐름: ${section.categoryReading}`);
     lines.push(`기회: ${section.opportunity}`);
     lines.push(`주의점: ${section.caution}`);
     lines.push(`좋게 살리는 방법: ${section.uplift}`);
-    lines.push(`실전 조언: ${(section.practicalActions || []).join(" / ")}`);
+    lines.push(`오늘의 의식: ${(section.practicalActions || []).join(" / ")}`);
     lines.push(section.neoLine);
     lines.push(section.younLine);
     lines.push("");
@@ -995,14 +995,14 @@ function crystalReadingToText(reading) {
   lines.push(`기회: ${reading.summary.opportunity}`);
   lines.push(`주의할 점: ${reading.summary.risk}`);
   lines.push(`타이밍 조언: ${reading.summary.timingAdvice}`);
-  lines.push("실행 체크리스트:");
+  lines.push("오늘의 작은 의식:");
   (reading.summary.practicalActions || []).forEach((item, idx) => lines.push(`${idx + 1}. ${item}`));
   lines.push(`크리스탈 오라클: ${reading.summary.oracleMessage}`);
 
   const chapters = Array.isArray(reading.masterChapters) ? reading.masterChapters : [];
   if (chapters.length) {
     lines.push("");
-    lines.push("마스터 7챕터 심층 상담");
+    lines.push("일곱 개의 크리스탈 문");
     chapters.forEach((chapter, idx) => {
       lines.push("");
       lines.push(`${chapter.title || `챕터 ${idx + 1}`}`);

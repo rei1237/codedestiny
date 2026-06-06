@@ -6,13 +6,14 @@ import { dbConnect } from "../app/_lib/dbConnect.js";
 import { getUserModel } from "../app/_lib/models/UserModel.js";
 import { PointHistory } from "../worker/lib/models.js";
 import { signAuthToken } from "../worker/lib/auth.js";
-import { handleFortuneRoutes } from "../worker/routes/fortune.js";
+import { handleBillingRoutes } from "../worker/routes/billing.js";
 import {
   COIN_GATE_PER_USE_REASON_COSTS,
   FEATURE_KEY_PRICE_TABLE,
   FEATURE_KEY_REASON_COSTS,
   PAID_FEATURE_KEY_ALIASES,
   PIG_COIN_UNLOCK_PRODUCTS,
+  isUnlockPaidFeatureKey,
   listServerPricedFeatureKeys,
   normalizePaidFeatureKey,
 } from "../worker/lib/paid-feature-registry.js";
@@ -51,7 +52,8 @@ if (
 
 const args = parseArgs(process.argv.slice(2));
 const TEST_LOGIN_ID = String(args.email || "test1234@example.com").trim().toLowerCase();
-const TEST_POINTS = Number.isFinite(Number(args.points)) ? Number(args.points) : 9999;
+const TEST_POINTS = Number.isFinite(Number(args.points)) ? Number(args.points) : 100000;
+const TEST_PROFILE_ID = String(args.profileId || `qa-all-paid-${Date.now().toString(36)}`).trim();
 const REQUEST_ID_PREFIX = `qa-all-paid-${Date.now().toString(36)}`;
 
 if (!Number.isInteger(TEST_POINTS) || TEST_POINTS <= 0) {
@@ -161,6 +163,14 @@ function verifyCoverage(cases) {
   }
 }
 
+function requiresProfileScope(testCase) {
+  if (isUnlockPaidFeatureKey(testCase?.featureKey)) return true;
+  return Object.entries(FEATURE_KEY_PRICE_TABLE).some(([featureKey, spec]) => (
+    isUnlockPaidFeatureKey(featureKey)
+    && String(spec?.reason || "").trim() === String(testCase?.reason || "").trim()
+  ));
+}
+
 async function prepareTestUser(email, points) {
   await dbConnect();
   const User = await getUserModel();
@@ -176,6 +186,7 @@ async function prepareTestUser(email, points) {
       $set: {
         role: "user",
         points,
+        destinyProfilesCurrentId: TEST_PROFILE_ID,
         unlockedFeatures: [],
         recentConsumeRequestIds: [],
         "profileSubscription.tier": "free",
@@ -193,8 +204,15 @@ async function prepareTestUser(email, points) {
 
 async function consumeOne({ env, authToken, testCase, index }) {
   const requestId = `${REQUEST_ID_PREFIX}-${String(index).padStart(3, "0")}`;
-  const response = await handleFortuneRoutes(
-    new Request("https://local.test/api/fortune/pig-coin/consume", {
+  const scopedProfileId = `${TEST_PROFILE_ID}-${String(index).padStart(3, "0")}`;
+  const profileScope = requiresProfileScope(testCase)
+    ? {
+        profileId: scopedProfileId,
+        selectedProfileId: scopedProfileId,
+      }
+    : {};
+  const response = await handleBillingRoutes(
+    new Request("https://local.test/api/billing/coin-gate", {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -203,7 +221,10 @@ async function consumeOne({ env, authToken, testCase, index }) {
       body: JSON.stringify({
         featureKey: testCase.featureKey,
         reason: testCase.reason,
+        paymentMode: "COIN",
+        forceDeduct: true,
         requestId,
+        ...profileScope,
       }),
     }),
     env,
@@ -215,7 +236,9 @@ async function consumeOne({ env, authToken, testCase, index }) {
     throw new Error(`consume 실패 (${testCase.id}): status=${response.status}, body=${JSON.stringify(payload)}`);
   }
 
-  const chargedCoins = Number(payload?.chargedCoins || 0);
+  const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
+  const consume = data?.consume && typeof data.consume === "object" ? data.consume : data;
+  const chargedCoins = Number(consume?.chargedCoins ?? consume?.cost ?? 0);
   if (!Number.isFinite(chargedCoins) || chargedCoins <= 0) {
     throw new Error(`차감 코인 검증 실패 (${testCase.id}): chargedCoins=${chargedCoins}`);
   }

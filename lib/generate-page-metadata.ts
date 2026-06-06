@@ -25,6 +25,7 @@ import { buildOpenGraphImageUrl, getCanonicalUrl, isIndexableRoute, normalizePat
 
 const SITE_ORIGIN =
   (process.env.NEXT_PUBLIC_SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
+const DEFAULT_OG_IMAGE_URL = `${SITE_ORIGIN}/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp`;
 
 /** 경로 끝 슬래시를 제거해 canonical 중복 방지 */
 function normalizeCanonicalPath(path: string): string {
@@ -132,7 +133,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
   const uniqueTitle = appendUniqueTitle(title, routeMetaCode);
   const uniqueDescription = appendUniqueDescription(description, routeMetaCode);
 
-  const ogImage = buildOpenGraphImageUrl({ image: image || `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp` });
+  const ogImage = buildOpenGraphImageUrl({ image: image || DEFAULT_OG_IMAGE_URL });
 
   const languagesMap: Record<string, string> = {};
   if (hreflangPaths) {
@@ -203,7 +204,7 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
   const routeMetaCode = buildRouteMetaCode(canonicalPath, variantKey, inLanguage);
   const uniqueTitle = appendUniqueTitle(title, routeMetaCode);
   const uniqueDescription = appendUniqueDescription(description, routeMetaCode);
-  const ogImage = buildOpenGraphImageUrl({ image: image || `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp` });
+  const ogImage = buildOpenGraphImageUrl({ image: image || DEFAULT_OG_IMAGE_URL });
   const now = new Date().toISOString();
 
   const data = {
@@ -279,7 +280,7 @@ export function withUniqueRouteMetadata(
   const imageCandidate =
     pickFirstImageUrl(openGraph?.images) ||
     pickFirstImageUrl(twitter?.images) ||
-    `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp`;
+    DEFAULT_OG_IMAGE_URL;
   const absoluteImage = toAbsoluteUrl(imageCandidate);
   const locale = languageHint.replace("-", "_");
   const openGraphImages = Array.isArray(openGraph?.images)

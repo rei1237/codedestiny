@@ -254,7 +254,7 @@ assertContains(indexSource, 'data-mode="pass"', "payment modal shows pass CTA");
 assertContains(indexSource, "passButtonHtml", "payment modal includes pass card HTML");
 assertContains(indexSource, "monthlyBalance >= requiredMonthlyCredits", "simple frontend monthly balance check");
 assertContains(indexSource, "cd-direct-payment-dialog", "legacy direct payment dialog");
-assertContains(indexSource, "width:min(460px,100%)", "legacy modal width");
+assertContains(indexSource, "width:min(520px,100%)", "legacy modal width");
 assertContains(indexSource, "min-height:auto", "legacy option height");
 assertNotContains(indexSource, 'data-mode="membership"', "payment modal avoids legacy membership mode");
 assertNotContains(indexSource, "membershipButtonHtml", "payment modal avoids legacy membership variable");

@@ -132,18 +132,25 @@
   async function consumeAnimalTotemViaCommonGate(spec) {
     if (typeof global._cdCoinGatePerUse !== "function") return null;
 
-    togglePaymentOverlay(true, "결제를 확인 중입니다...");
+    var granted = false;
     try {
       var requestId = "animal-totem:" + spec.subFeatureKey + ":" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
       var immediate = global._cdCoinGatePerUse(
         spec.cost,
         spec.reason,
-        null,
-        null,
+        function(_transactionId, payload) {
+          granted = true;
+          syncUserPointsFromBilling(payload);
+        },
+        function() {
+          granted = false;
+        },
         {
           categoryKey: "animal-totem",
           subFeatureKey: spec.subFeatureKey,
           featureKey: spec.featureKey,
+          serviceKey: "animal-totem",
+          action: "drawAnimalTotemSpread",
           forceDeduct: true,
           requestId: requestId,
         }
@@ -152,6 +159,9 @@
       var result = immediate;
       if (result && typeof result.then === "function") {
         result = await result;
+      }
+      if (result == null) {
+        return granted === true;
       }
       result = result || {};
 
@@ -216,10 +226,6 @@
     var spec = getBillingSpec(mode);
     if (!spec || !(spec.cost > 0)) return true;
     if (typeof global.__cdIsAdminLikeUser === "function" && global.__cdIsAdminLikeUser()) return true;
-
-    if (!global.confirm("🪙 " + spec.label + "\n이용에 " + spec.cost + "코인이 필요합니다.\n진행하시겠습니까?")) {
-      return false;
-    }
 
     var commonGateResult = await consumeAnimalTotemViaCommonGate(spec);
     if (commonGateResult !== null) return commonGateResult;

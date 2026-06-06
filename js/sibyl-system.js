@@ -3551,7 +3551,7 @@
       || ''
     ).trim();
 
-    var refundRes = await _fetchApiJson('/api/fortune/pig-coin/refund', {
+    var refundRes = await _fetchApiJson('/api/billing/refund', {
       method: 'POST',
       body: JSON.stringify({
         cost: Number(pricing.cost || 100),

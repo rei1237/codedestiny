@@ -90,7 +90,7 @@ export default function HomeServiceSections({ variant = "default" }: Props) {
         <p className="mt-2 text-sm leading-relaxed text-slate-300">
           {belowLegacy
             ? "위 화면에서 기존 메인과 동일하게 카드·모달로 이용할 수 있습니다. 검색·내부 링크용으로 서비스별 네이티브 페이지로 바로 갈 수 있는 목록입니다."
-            : "무료 사주 만세력·자미두수·AI 타로·점성술·주역·숙요점·화투점·동물 관상·MBTI 궁합·운명의 꽃·드림 타로 등 운세 서비스를 한곳에서 이용할 수 있습니다. 아래 카테고리에서 원하는 항목을 눌러 네이티브 페이지로 이동하세요."}
+            : "무료 사주 만세력·자미두수·명리학 타로·점성술·주역·숙요점·화투점·동물 관상·MBTI 궁합·운명의 꽃·드림 타로 등 운세 서비스를 한곳에서 이용할 수 있습니다. 아래 카테고리에서 원하는 항목을 눌러 네이티브 페이지로 이동하세요."}
         </p>
         {!belowLegacy ? (
           <p className="mt-4 flex flex-wrap gap-3 text-sm">

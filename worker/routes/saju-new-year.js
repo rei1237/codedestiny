@@ -54,20 +54,7 @@ const LOCAL_BRANCH_CLASHES = Object.freeze({ 子: "午", 午: "子", 丑: "未",
 const LOCAL_BRANCH_HARMS = Object.freeze({ 子: "未", 未: "子", 丑: "午", 午: "丑", 寅: "巳", 巳: "寅", 卯: "辰", 辰: "卯", 申: "亥", 亥: "申", 酉: "戌", 戌: "酉" });
 const LOCAL_BRANCH_BREAKS = Object.freeze({ 子: "酉", 酉: "子", 丑: "辰", 辰: "丑", 寅: "亥", 亥: "寅", 卯: "午", 午: "卯", 巳: "申", 申: "巳", 未: "戌", 戌: "未" });
 
-const LOCAL_NEW_YEAR_CHAPTERS = Object.freeze([
-  { no: 1, title: "{YEAR}년 올해의 총운", categories: ["올해의 핵심 기운", "원국과 세운의 만남", "현재 대운이 주는 영향", "가장 크게 바뀌는 영역", "올해 지켜야 할 기준"] },
-  { no: 2, title: "{YEAR}년 일과 커리어 흐름", categories: ["올해 일의 기본 방향", "직장과 조직운", "이직·전환·확장 가능성", "성과가 나는 방식", "커리어 실전 전략"] },
-  { no: 3, title: "{YEAR}년 재물운과 소비 전략", categories: ["돈이 들어오는 방식", "돈이 새는 패턴", "투자와 확장에 대한 주의", "지출 구조 정리", "재물운을 살리는 행동"] },
-  { no: 4, title: "{YEAR}년 인간관계와 귀인운", categories: ["올해 만나는 사람의 성격", "귀인이 들어오는 방식", "정리해야 할 관계", "갈등이 생기기 쉬운 관계", "관계 확장 전략"] },
-  { no: 5, title: "{YEAR}년 연애운과 결혼운", categories: ["올해의 연애 흐름", "새로운 인연 가능성", "기존 관계의 변화", "결혼을 생각할 때의 기준", "감정적으로 조절할 부분"] },
-  { no: 6, title: "{YEAR}년 가족과 가까운 사람의 흐름", categories: ["가족 관계의 이슈", "가까운 사람과의 책임", "의존과 거리감", "집안 문제를 다루는 방식", "감정 소모를 줄이는 기준"] },
-  { no: 7, title: "{YEAR}년 건강과 컨디션 관리", categories: ["몸의 리듬", "오행 균형에 따른 관리", "스트레스가 쌓이는 방식", "수면과 회복", "장기적으로 관리할 습관"] },
-  { no: 8, title: "{YEAR}년 마음의 흐름과 심리 변화", categories: ["감정의 기본 패턴", "불안과 압박이 생기는 구간", "자존감이 흔들리는 이유", "마음이 회복되는 방식", "멘탈 관리 전략"] },
-  { no: 9, title: "{YEAR}년 신살과 합충형파해", categories: ["올해 주목할 신살", "합이 만드는 기회", "충이 만드는 변화", "형파해가 주는 긴장", "사건을 다루는 현실적 태도"] },
-  { no: 10, title: "{YEAR}년 월별 운세 흐름", categories: ["1분기 흐름", "2분기 흐름", "3분기 흐름", "4분기 흐름", "중요한 달과 조절할 달"] },
-  { no: 11, title: "{YEAR}년 기회와 위기 관리", categories: ["올해의 가장 큰 기회", "주의해야 할 선택", "반복하면 안 되는 실수", "위기가 기회로 바뀌는 조건", "위험을 낮추는 운영법"] },
-  { no: 12, title: "{YEAR}년 최종 실천 로드맵", categories: ["올해의 최종 메시지", "먼저 정리해야 할 것", "반드시 밀어붙일 것", "내려놓아야 할 것", "월별 실행 루틴"] },
-]);
+const LOCAL_NEW_YEAR_CHAPTERS = NEW_YEAR_CHAPTERS;
 
 function buildSajuNewYearChapterSpecs(targetYear) {
   const year = toInt(targetYear, resolveDefaultTargetYear());
@@ -760,6 +747,304 @@ function localRelationRows(pillars, annualBranch) {
   return rows;
 }
 
+function normalizeElementName(value) {
+  const raw = clean(value).toLowerCase();
+  if (!raw) return "";
+  if (/wood|목|甲|乙|寅|卯/.test(raw)) return "wood";
+  if (/fire|화|丙|丁|巳|午/.test(raw)) return "fire";
+  if (/earth|토|戊|己|辰|戌|丑|未/.test(raw)) return "earth";
+  if (/metal|금|庚|辛|申|酉/.test(raw)) return "metal";
+  if (/water|수|壬|癸|亥|子/.test(raw)) return "water";
+  return "";
+}
+
+function collectElementHints(source, preferredKeys = []) {
+  const out = [];
+  const seen = new Set();
+  const push = (value) => {
+    const element = normalizeElementName(value);
+    if (element && !seen.has(element)) {
+      seen.add(element);
+      out.push(element);
+    }
+  };
+  const visit = (value, depth = 0) => {
+    if (depth > 3 || value == null) return;
+    if (typeof value === "string" || typeof value === "number") {
+      push(value);
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach((item) => visit(item, depth + 1));
+      return;
+    }
+    if (typeof value === "object") {
+      const keys = preferredKeys.length ? preferredKeys : Object.keys(value);
+      keys.forEach((key) => visit(value?.[key], depth + 1));
+    }
+  };
+  visit(source);
+  return out;
+}
+
+function inferJohuProfile(pillars = {}, usefulGods = {}) {
+  const monthBranch = clean(pillars?.month?.branch || "");
+  const rawType = clean(usefulGods?.johu?.type || usefulGods?.johu?.name || usefulGods?.johuType || "").toLowerCase();
+  let type = "neutral";
+  if (/hot|warm|조열|더움|화/.test(rawType) || ["巳", "午", "未"].includes(monthBranch)) type = "hot";
+  else if (/cold|cool|한랭|추움|수/.test(rawType) || ["亥", "子", "丑", "寅"].includes(monthBranch)) type = "cold";
+  else if (["申", "酉", "戌"].includes(monthBranch)) type = "dry";
+
+  const favorable = type === "hot"
+    ? ["water", "metal"]
+    : type === "cold"
+      ? ["fire", "wood"]
+      : type === "dry"
+        ? ["water", "wood"]
+        : [];
+  const caution = type === "hot"
+    ? ["fire", "wood"]
+    : type === "cold"
+      ? ["water", "metal"]
+      : type === "dry"
+        ? ["metal", "earth"]
+        : [];
+
+  return {
+    type,
+    monthBranch,
+    favorable,
+    caution,
+    summary: type === "hot"
+      ? "조후상 열기가 강하므로 수·금의 냉각과 정리가 균형을 돕습니다."
+      : type === "cold"
+        ? "조후상 한기가 강하므로 화·목의 온기와 생장이 균형을 돕습니다."
+        : type === "dry"
+          ? "조후상 건조함이 두드러지므로 수·목의 순환과 유연성이 균형을 돕습니다."
+          : "조후는 극단보다 균형 조정 관점에서 보정합니다.",
+  };
+}
+
+function buildQuantumElementRoles({ pillars = {}, fiveElements = {}, usefulGods = {} } = {}) {
+  const elements = ["wood", "fire", "earth", "metal", "water"];
+  const counts = fiveElements?.counts || fiveElements?.scores || fiveElements?.ratio || fiveElements || {};
+  const strongest = dominantElement(fiveElements, "earth");
+  const weakest = elements.slice().sort((a, b) => Number(counts?.[a] || 0) - Number(counts?.[b] || 0))[0] || "water";
+  const total = elements.reduce((sum, el) => sum + Number(counts?.[el] || 0), 0);
+  const dominantCount = Number(counts?.[strongest] || 0);
+  const possibleJong = total > 0 && dominantCount >= 5 && dominantCount / total >= 0.55;
+  const johu = inferJohuProfile(pillars, usefulGods);
+  const usefulHints = collectElementHints(usefulGods, ["yong", "hi", "hee", "useful", "yongsin", "huisin", "primary", "secondary"]);
+  const cautionHints = collectElementHints(usefulGods, ["gisin", "kishin", "avoid", "忌神", "bad"]);
+  const useful = usefulHints.length ? usefulHints : [weakest];
+  const caution = cautionHints.length ? cautionHints : [strongest].filter((el) => Number(counts?.[el] || 0) >= 3);
+  const roleByElement = {};
+
+  elements.forEach((element) => {
+    let score = 0;
+    const reasons = [];
+    if (useful.includes(element)) {
+      score += 2;
+      reasons.push("용신·희신 후보");
+    }
+    if (caution.includes(element)) {
+      score -= 2;
+      reasons.push("기신·과다 후보");
+    }
+    if (johu.favorable.includes(element)) {
+      score += 2;
+      reasons.push("조후 보정 유리");
+    }
+    if (johu.caution.includes(element)) {
+      score -= 2;
+      reasons.push("조후 보정 주의");
+    }
+    if (possibleJong && (element === strongest || element === LOCAL_GENERATES[strongest])) {
+      score += 1;
+      reasons.push("종격 추정 흐름 보조");
+    }
+    if (possibleJong && element === LOCAL_CONTROLS[strongest]) {
+      score -= 1;
+      reasons.push("종격 추정 흐름 제어");
+    }
+
+    const role = score >= 2 ? "good" : score <= -2 ? "bad" : "neutral";
+    roleByElement[element] = {
+      element,
+      label: LOCAL_ELEMENT_KO[element] || element,
+      role,
+      roleLabel: role === "good" ? "유리" : role === "bad" ? "주의" : "중립",
+      score,
+      reasons: reasons.length ? reasons : ["균형 관찰"],
+    };
+  });
+
+  return {
+    mode: "조후+억부+합화 보정",
+    johu,
+    strongest,
+    weakest,
+    possibleJong,
+    usefulElements: useful,
+    cautionElements: caution,
+    roles: elements.map((element) => roleByElement[element]),
+    roleByElement,
+  };
+}
+
+function analyzeQuantumHap({ pillar = {}, natalPillars = {}, roleByElement = {}, label = "" } = {}) {
+  const ganHap = { 甲: { 己: "earth" }, 己: { 甲: "earth" }, 乙: { 庚: "metal" }, 庚: { 乙: "metal" }, 丙: { 辛: "water" }, 辛: { 丙: "water" }, 丁: { 壬: "wood" }, 壬: { 丁: "wood" }, 戊: { 癸: "fire" }, 癸: { 戊: "fire" } };
+  const jiHap = { 子: { 丑: "earth" }, 丑: { 子: "earth" }, 寅: { 亥: "wood" }, 亥: { 寅: "wood" }, 卯: { 戌: "fire" }, 戌: { 卯: "fire" }, 辰: { 酉: "metal" }, 酉: { 辰: "metal" }, 巳: { 申: "water" }, 申: { 巳: "water" }, 午: { 未: "fire" }, 未: { 午: "fire" } };
+  const natalStems = [natalPillars?.year?.stem, natalPillars?.month?.stem, natalPillars?.day?.stem, natalPillars?.hour?.stem].filter(Boolean);
+  const natalBranches = [natalPillars?.year?.branch, natalPillars?.month?.branch, natalPillars?.day?.branch, natalPillars?.hour?.branch].filter(Boolean);
+  const results = [];
+  const pushResult = (type, src, partner, hapElement, originalElement) => {
+    const before = roleByElement?.[originalElement]?.role || "neutral";
+    const after = roleByElement?.[hapElement]?.role || "neutral";
+    const effect = after === "good" && before !== "good" ? "supportive" : after === "bad" ? "caution" : "neutral";
+    results.push({
+      type,
+      label,
+      src,
+      partner,
+      originalElement,
+      originalRole: before,
+      transformedElement: hapElement,
+      transformedRole: after,
+      effect,
+      changed: before !== after,
+      summary: `${label || "운"} ${src}와 원국 ${partner}의 ${type}은 ${LOCAL_ELEMENT_KO[hapElement] || hapElement} 기운으로 합화되어 ${effect === "supportive" ? "용신 방향의 기회" : effect === "caution" ? "기신 방향의 과몰입 주의" : "중립 보정"}로 읽힙니다.`,
+    });
+  };
+
+  natalStems.forEach((stem) => {
+    const hapElement = ganHap[pillar?.stem]?.[stem] || ganHap[stem]?.[pillar?.stem];
+    if (hapElement) pushResult("천간합", pillar.stem, stem, hapElement, LOCAL_STEM_ELEMENT[pillar.stem] || hapElement);
+  });
+  natalBranches.forEach((branch) => {
+    const hapElement = jiHap[pillar?.branch]?.[branch] || jiHap[branch]?.[pillar?.branch];
+    if (hapElement) pushResult("지지합", pillar.branch, branch, hapElement, LOCAL_BRANCH_ELEMENT[pillar.branch] || hapElement);
+  });
+  return results;
+}
+
+function decisionFromScore(score) {
+  return score >= 75 ? "GO" : score >= 60 ? "WATCH" : "STOP";
+}
+
+function toneFromScore(score) {
+  return score >= 75 ? "확장" : score >= 60 ? "정비" : "보수";
+}
+
+function buildQuantumPillarJudgement({ pillar = {}, natalPillars = {}, elementRoles = {}, relations = [], label = "", baseScore = 62 } = {}) {
+  const element = pillar?.element || LOCAL_BRANCH_ELEMENT[pillar?.branch] || LOCAL_STEM_ELEMENT[pillar?.stem] || "earth";
+  const role = elementRoles.roleByElement?.[element] || { role: "neutral", roleLabel: "중립", reasons: ["균형 관찰"] };
+  const hapHwa = analyzeQuantumHap({ pillar, natalPillars, roleByElement: elementRoles.roleByElement, label });
+  const supportiveHap = hapHwa.filter((item) => item.effect === "supportive").length;
+  const cautionHap = hapHwa.filter((item) => item.effect === "caution").length;
+  const comboCount = relations.filter((item) => item.type === "합").length;
+  const clashCount = relations.filter((item) => item.type === "충").length;
+  const subtleRiskCount = relations.filter((item) => item.type === "해" || item.type === "파" || item.type === "형").length;
+  const roleAdjustment = role.role === "good" ? 7 : role.role === "bad" ? -8 : 0;
+  const hapAdjustment = supportiveHap * 4 - cautionHap * 5;
+  const relationAdjustment = comboCount * 3 - clashCount * 6 - subtleRiskCount * 3;
+  const quantumAdjustment = clamp(roleAdjustment + hapAdjustment + relationAdjustment, -18, 18);
+  const finalScore = clamp(Math.round(Number(baseScore || 62) + quantumAdjustment), 0, 100);
+  const decision = decisionFromScore(finalScore);
+  const reasons = [
+    `${LOCAL_ELEMENT_KO[element] || element} 오행 ${role.roleLabel}`,
+    ...role.reasons,
+    supportiveHap ? `용신 방향 합화 ${supportiveHap}건` : "",
+    cautionHap ? `기신 방향 합화 ${cautionHap}건` : "",
+    comboCount ? `합 ${comboCount}건` : "",
+    clashCount ? `충 ${clashCount}건` : "",
+    subtleRiskCount ? `해·파 ${subtleRiskCount}건` : "",
+  ].filter(Boolean);
+
+  return {
+    label,
+    pillar,
+    element,
+    elementLabel: LOCAL_ELEMENT_KO[element] || element,
+    elementRole: role.role,
+    elementRoleLabel: role.roleLabel,
+    baseScore: Math.round(Number(baseScore || 62)),
+    quantumAdjustment,
+    finalScore,
+    decision,
+    tone: toneFromScore(finalScore),
+    hapHwa,
+    relations,
+    reasons,
+    summary: `${label || "운"}은 ${pillar?.label || ""} ${LOCAL_ELEMENT_KO[element] || element} 기운이며 퀀텀 보정은 ${quantumAdjustment >= 0 ? "+" : ""}${quantumAdjustment}점입니다. 최종 판정은 ${decision}입니다.`,
+  };
+}
+
+function buildQuantumMyeongriLayer({ computed, targetYear, annualLuck, monthlyLuck = [] } = {}) {
+  const elementRoles = buildQuantumElementRoles({
+    pillars: computed?.pillars || {},
+    fiveElements: computed?.fiveElements || {},
+    usefulGods: computed?.usefulGods || {},
+  });
+  const annualPillar = {
+    year: targetYear,
+    stem: annualLuck?.stem,
+    branch: annualLuck?.branch,
+    label: annualLuck?.label,
+    element: annualLuck?.element,
+  };
+  const annualRelations = localRelationRows(computed?.pillars || {}, annualPillar.branch);
+  const annualQuantum = buildQuantumPillarJudgement({
+    pillar: annualPillar,
+    natalPillars: computed?.pillars || {},
+    elementRoles,
+    relations: annualRelations,
+    label: `${targetYear}년 세운`,
+    baseScore: 68,
+  });
+  const monthlyQuantum = monthlyLuck.map((item) => {
+    const relations = localRelationRows(computed?.pillars || {}, item?.pillar?.branch);
+    return {
+      month: item.month,
+      ...buildQuantumPillarJudgement({
+        pillar: item.pillar,
+        natalPillars: computed?.pillars || {},
+        elementRoles,
+        relations,
+        label: `${item.month}월 월운`,
+        baseScore: item.score,
+      }),
+    };
+  });
+  const favorableElements = elementRoles.roles.filter((item) => item.role === "good").map((item) => item.label);
+  const cautionElements = elementRoles.roles.filter((item) => item.role === "bad").map((item) => item.label);
+  const riskCorrection = monthlyQuantum.map((item) => ({
+    month: item.month,
+    decision: item.decision,
+    finalScore: item.finalScore,
+    correction: item.quantumAdjustment,
+    message: item.decision === "GO"
+      ? `${item.month}월은 합화·용신 보정이 살아나 실행성이 높습니다.`
+      : item.decision === "STOP"
+        ? `${item.month}월은 기신·충해파 보정이 겹치므로 큰 결정을 늦추는 편이 안전합니다.`
+        : `${item.month}월은 기회와 부담이 공존하므로 점검 후 실행하는 흐름입니다.`,
+  }));
+
+  return {
+    version: "new-year-quantum-v1",
+    mode: elementRoles.mode,
+    elementRoles: elementRoles.roles,
+    favorableElements,
+    cautionElements,
+    johuType: elementRoles.johu.type,
+    johuSummary: elementRoles.johu.summary,
+    annualQuantum,
+    monthlyQuantum,
+    riskCorrection,
+    professionalSummary: `퀀텀 명리 보정상 유리 오행은 ${favorableElements.join("·") || "중립"}이고, 주의 오행은 ${cautionElements.join("·") || "중립"}입니다. ${elementRoles.johu.summary} 세운 ${annualLuck?.label || ""}은 ${annualQuantum.elementRoleLabel} 흐름으로 판정되며, 월별 Go/Stop은 기본 월운에 합화와 용신·기신 보정을 더해 해석합니다.`,
+  };
+}
+
 function buildLocalMonthlyLuck(targetYear, dayStem) {
   const dayElement = LOCAL_STEM_ELEMENT[dayStem] || "earth";
   return Array.from({ length: 12 }, (_, idx) => {
@@ -786,8 +1071,41 @@ function buildPdfSeed(profile, targetYear, body = {}) {
     dayMasterRelation: localElementRelation(LOCAL_STEM_ELEMENT[dayStem] || "earth", annualElement),
   };
   annualLuck.elementKo = LOCAL_ELEMENT_KO[annualElement] || "오행";
-  const monthlyLuck = buildLocalMonthlyLuck(targetYear, dayStem);
+  let monthlyLuck = buildLocalMonthlyLuck(targetYear, dayStem);
   const branchRelations = localRelationRows(computed.pillars, annual.branch);
+  const quantumMyeongri = buildQuantumMyeongriLayer({
+    computed,
+    targetYear,
+    annualLuck,
+    monthlyLuck,
+  });
+  annualLuck.quantum = quantumMyeongri.annualQuantum;
+  monthlyLuck = monthlyLuck.map((item, index) => {
+    const quantum = quantumMyeongri.monthlyQuantum[index] || {};
+    const finalScore = Number(quantum.finalScore || item.score);
+    const tone = toneFromScore(finalScore);
+    return {
+      ...item,
+      baseScore: item.score,
+      quantumAdjustment: Number(quantum.quantumAdjustment || 0),
+      finalScore,
+      score: finalScore,
+      tone,
+      decision: clean(quantum.decision || decisionFromScore(finalScore)),
+      quantumRole: clean(quantum.elementRole || "neutral"),
+      quantumSummary: clean(quantum.summary || ""),
+      quantum,
+      advice: `${item.month}월은 ${item.pillar.label} 월운과 ${LOCAL_ELEMENT_KO[item.pillar.element] || "오행"} 기운이 들어오며, 퀀텀 보정 ${Number(quantum.quantumAdjustment || 0) >= 0 ? "+" : ""}${Number(quantum.quantumAdjustment || 0)}점으로 ${tone} 관점의 ${clean(quantum.decision || decisionFromScore(finalScore))} 운영이 적합합니다.`,
+    };
+  });
+  quantumMyeongri.monthlyQuantum = monthlyLuck.map((item) => ({
+    ...item.quantum,
+    baseScore: item.baseScore,
+    quantumAdjustment: item.quantumAdjustment,
+    finalScore: item.finalScore,
+    decision: item.decision,
+    tone: item.tone,
+  }));
   const seed = {
     mode: "single",
     targetYear,
@@ -807,6 +1125,7 @@ function buildPdfSeed(profile, targetYear, body = {}) {
       luckCycle: computed.daeun,
       annualLuck,
       monthlyLuck,
+      quantumMyeongri,
       relations: {
         stems: [{ dayMaster: dayStem, annualStem: annual.stem, tenGod: annualLuck.tenGod }],
         branches: [{ annualBranch: annual.branch, annualElement }],
@@ -823,6 +1142,7 @@ function buildPdfSeed(profile, targetYear, body = {}) {
   };
   seed.interpretationSeeds = buildInterpretationSeeds(seed);
   seed.chapters = buildLocalSkeleton(seed);
+  seed.quantumMyeongri = quantumMyeongri;
 
   const strongest = dominantElement(seed?.saju?.fiveElements || {}, "earth");
   const weakest = Object.keys(seed?.saju?.fiveElements || {}).sort((a, b) => Number(seed.saju.fiveElements[a] || 0) - Number(seed.saju.fiveElements[b] || 0))[0] || "water";
@@ -862,10 +1182,14 @@ function buildPdfSeed(profile, targetYear, body = {}) {
     monthlyFortunes: (seed.saju.monthlyLuck || []).map((item) => ({
       month: item.month,
       pillar: item.pillar.label,
+      baseScore: item.baseScore,
+      quantumAdjustment: item.quantumAdjustment,
       score: item.score,
-      keywords: [item.pillar.label, item.tone, item.relation],
-      opportunitySignals: item.score >= 72 ? ["확장", item.pillar.label] : [],
-      cautionSignals: item.score < 60 ? ["보수", item.pillar.label] : [],
+      finalScore: item.finalScore,
+      decision: item.decision,
+      keywords: [item.pillar.label, item.tone, item.relation, item.decision],
+      opportunitySignals: item.finalScore >= 72 ? ["확장", item.pillar.label, "퀀텀 보정"] : [],
+      cautionSignals: item.finalScore < 60 ? ["보수", item.pillar.label, "퀀텀 주의"] : [],
     })),
   };
   seed.structure = {
@@ -882,6 +1206,12 @@ function buildPdfSeed(profile, targetYear, body = {}) {
     crisisSignals: seed.interpretationSeeds.risks.slice(0, 4),
     opportunitySignals: seed.interpretationSeeds.opportunities.slice(0, 4),
     monthlyStrategySignals: seed.interpretationSeeds.monthly.slice(0, 12),
+    quantumSignals: [
+      quantumMyeongri.professionalSummary,
+      `유리 오행: ${quantumMyeongri.favorableElements.join("·") || "중립"}`,
+      `주의 오행: ${quantumMyeongri.cautionElements.join("·") || "중립"}`,
+      `세운 퀀텀 판정: ${quantumMyeongri.annualQuantum.decision}`,
+    ],
   };
   seed.twelveGrowthStages = [{ stage: "장생" }, { stage: "목욕" }, { stage: "관대" }, { stage: "임관" }];
   seed.chapterSpecs = chapterSpecs;
@@ -928,6 +1258,14 @@ function validateSajuNewYearSeed(seed = {}) {
   if (!clean(seed?.natalChart?.dayMaster)) errors.push("natalChart.dayMaster");
   if (!Array.isArray(seed?.luckCycles?.monthlyFortunes) || seed.luckCycles.monthlyFortunes.length !== 12) errors.push("luckCycles.monthlyFortunes");
   if (!clean(seed?.input?.targetYear)) errors.push("input.targetYear");
+  if (!Array.isArray(seed?.quantumMyeongri?.elementRoles) || seed.quantumMyeongri.elementRoles.length !== 5) errors.push("quantumMyeongri.elementRoles");
+  if (!seed?.quantumMyeongri?.annualQuantum) errors.push("quantumMyeongri.annualQuantum");
+  if (!Array.isArray(seed?.quantumMyeongri?.monthlyQuantum) || seed.quantumMyeongri.monthlyQuantum.length !== 12) errors.push("quantumMyeongri.monthlyQuantum");
+  (seed?.quantumMyeongri?.monthlyQuantum || []).forEach((item, index) => {
+    const score = Number(item?.finalScore);
+    if (!Number.isFinite(score) || score < 0 || score > 100) errors.push(`quantumMyeongri.monthlyQuantum.${index + 1}.finalScore`);
+    if (!["GO", "WATCH", "STOP"].includes(clean(item?.decision))) errors.push(`quantumMyeongri.monthlyQuantum.${index + 1}.decision`);
+  });
   return { ok: errors.length === 0, errors };
 }
 
@@ -939,7 +1277,7 @@ function buildDeterministicChapterFromSpec(seed, chapterSpec, reason = "") {
   };
   const sections = (chapterSpec?.categories || []).map((categoryTitle, idx) => ({
     title: categoryTitle,
-    body: ensureMinLength(localParagraph(seed, chapter, categoryTitle, idx), desiredSectionLength(), seed, categoryTitle),
+    body: ensureMinLength(buildHighQualityNewYearSection(seed, chapter, categoryTitle, idx), desiredSectionLength(), seed, categoryTitle),
   }));
   return {
     no: chapter.no,
@@ -962,7 +1300,7 @@ function reinforceChapterFromSpec({ seed, chapterSpec, chapter, reason = "" } = 
     reinforced = true;
     return {
       title,
-      body: ensureMinLength(localParagraph(seed, { no: chapterSpec.no, title: chapterSpec.title, categories: chapterSpec.categories }, title, idx), desiredSectionLength(), seed, title),
+      body: ensureMinLength(buildHighQualityNewYearSection(seed, chapterSpec, title, idx), desiredSectionLength(), seed, title),
     };
   });
   return {
@@ -1034,9 +1372,10 @@ function localParagraph(seed, chapter, category, idx) {
   const dayPillarBranch = seed.saju.pillars?.day?.branch || "";
   const hourPillarBranch = seed.saju.pillars?.hour?.branch || "";
   const relMsgs = relations.slice(0, 3).map((r) => r.message).join(" ");
+  const canonicalChapterNo = Number(chapter.no || 0);
 
-  // Chapter 8 — 월별 운세
-  if (chapter.no === 8) {
+  // Chapter 9 — 월별 Go/Stop
+  if (canonicalChapterNo === 9) {
     if (idx === 0) {
       const firstHalf = seed.saju.monthlyLuck.slice(0, 6);
       return describeMonthlyGroup(firstHalf, seed) + `\n\n상반기는 올해 전체 방향을 실제 행동으로 바꾸는 구간입니다. ${annual.label} 세운이 초반에 던지는 신호를 흘려보내지 말고, 1월부터 6월까지의 흐름을 연결해서 보면 어디에서 속도를 내고 어디에서 균형을 잡아야 하는지가 선명해집니다. 상반기에 무리하게 모든 것을 끝내려 하기보다, 6월까지 기반을 단단히 세우고 관계와 일의 우선순위를 정리해 두면 하반기의 성과가 훨씬 안정적으로 이어집니다.`;
@@ -1056,7 +1395,27 @@ function localParagraph(seed, chapter, category, idx) {
     return `월별 운세는 달마다 점수가 다르다는 사실을 보는 데서 끝나면 큰 의미가 없습니다. 중요한 것은 그 달의 기운을 실제 계획에 어떻게 배치하느냐입니다. 점수가 높은 달에는 사람을 만나고, 제안을 하고, 중요한 결정을 내리는 쪽으로 일정을 설계하고, 점수가 낮은 달에는 점검과 정리, 관계 조율, 비용 관리에 무게를 두는 방식이 가장 현실적입니다. 또한 올해의 월운은 원국과 대운, 세운이 함께 만든 리듬이므로 한 달만 떼어 보지 말고 앞뒤 달의 연결까지 함께 봐야 흐름이 읽힙니다. 월별 운세 활용법의 핵심은 달의 좋고 나쁨을 따지는 것이 아니라, 달마다 해야 할 행동의 성격을 다르게 가져가는 데 있습니다. 그 기준만 잡혀 있으면 한 해 전체가 훨씬 덜 흔들리고, 운을 생활 속 선택으로 바꾸는 힘이 생깁니다.`;
   }
 
-  const chapterNo = chapter.no;
+  if (canonicalChapterNo === 7) {
+    const q1 = seed.saju.monthlyLuck.slice(0, 3);
+    const q2 = seed.saju.monthlyLuck.slice(3, 6);
+    const q3 = seed.saju.monthlyLuck.slice(6, 9);
+    const q4 = seed.saju.monthlyLuck.slice(9, 12);
+    const quarterText = (label, rows) => {
+      const strong = rows.filter((m) => Number(m.score || 0) >= 75).map((m) => `${m.month}월`);
+      const care = rows.filter((m) => Number(m.score || 0) < 60).map((m) => `${m.month}월`);
+      return `${label}는 ${rows.map((m) => `${m.month}월 ${m.pillar?.label || ""}(${m.score}점)`).join(", ")}의 흐름으로 열립니다. ${strong.length ? `${strong.join("·")}에는 제안, 실행, 발표, 관계 확장처럼 밖으로 드러나는 선택을 배치하는 것이 좋습니다.` : "무리한 확장보다 기반을 다듬는 운영이 더 중요합니다."} ${care.length ? `${care.join("·")}에는 일정, 지출, 감정 반응을 보수적으로 조절해야 합니다.` : "크게 꺾이는 달이 적더라도 결정의 순서를 정돈해야 안정감이 유지됩니다."}`;
+    };
+    const texts = [
+      `${quarterText("1분기", q1)} 1분기는 한 해의 기준을 세우는 문입니다. 이 시기에는 새로운 목표를 많이 늘리기보다, 원국과 세운이 가리키는 핵심 과제를 먼저 한 문장으로 정리해야 합니다. 세운 ${annual.label}의 ${annual.tenGod} 기운이 초반부터 압박이나 기회로 들어올 수 있으므로, 사람·돈·일정의 우선순위를 빠르게 확정하는 것이 좋습니다. 1분기에 선택해야 할 것은 큰 승부가 아니라 올해 끝까지 지킬 기준입니다.`,
+      `${quarterText("2분기", q2)} 2분기는 1분기에 세운 기준을 현실에서 검증하는 시기입니다. 좋은 흐름이 열리면 제안과 실행을 늦추지 말고, 흐름이 약한 달에는 계약 조건과 협업 구조를 다시 확인해야 합니다. 이때 중요한 것은 확장 자체가 아니라 확장한 뒤 감당할 수 있는가입니다. 세운과 월운이 함께 살아나는 달에는 커리어, 재물, 관계에서 눈에 보이는 반응이 들어올 수 있으므로 미리 준비한 안건을 꺼내는 용기가 필요합니다.`,
+      `${quarterText("3분기", q3)} 3분기는 상반기의 결과가 사람과 돈, 감정의 문제로 되돌아오는 구간입니다. 이 시기에는 속도보다 조율이 중요하며, 이미 시작한 일의 손익과 관계의 온도를 함께 살펴야 합니다. 충이나 해의 신호가 강한 달에는 작은 오해가 큰 피로로 커질 수 있으므로 말의 결론보다 말의 순서를 조심해야 합니다. 3분기를 잘 쓰면 한 해의 중반 피로가 성과 회수의 힘으로 바뀝니다.`,
+      `${quarterText("4분기", q4)} 4분기는 마무리와 재설계가 함께 필요한 시기입니다. 성과가 난 일은 구조화하고, 힘만 들고 남은 것이 적은 일은 과감하게 덜어내야 합니다. 연말의 운은 다음 해의 기반과 이어지므로, 단순히 버티는 방식보다 무엇을 남기고 무엇을 닫을지 분명히 정하는 것이 좋습니다. 4분기에는 큰 결론보다 정리의 품질이 다음 흐름을 결정합니다.`,
+      `올해 가장 중요한 결정 타이밍은 월운 점수가 높은 달과 세운의 ${annual.tenGod} 기운이 현실 사건으로 드러나는 순간이 겹칠 때입니다. ${monthlyStrong.length ? `${monthlyStrong.slice(0, 3).map((m) => `${m.month}월`).join("·")}은 실행 후보가 될 수 있고,` : "좋은 흐름은 특정 달 하나보다 준비된 순간에 열릴 수 있고,"} ${monthlyCare.length ? `${monthlyCare.slice(0, 2).map((m) => `${m.month}월`).join("·")}은 재검토 후보가 됩니다.` : "낮은 흐름은 감정과 일정이 동시에 무거워질 때 재검토해야 합니다."} 분기별 의사결정의 핵심은 운을 기다리는 것이 아니라, 강한 달에는 열고 약한 달에는 닫는 문을 정확히 구분하는 데 있습니다.`,
+    ];
+    return texts[idx] || texts[0];
+  }
+
+  const chapterNo = ({ 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 8: 9 }[canonicalChapterNo] || canonicalChapterNo);
 
   // Chapter 1 — 올해의 큰 흐름
   if (chapterNo === 1) {
@@ -1179,6 +1538,57 @@ function localParagraph(seed, chapter, category, idx) {
   return `${base}\n\n${tenGodLib.yearlyTheme}\n\n${relMsgs || "올해는 선택의 기준을 미리 세워두는 것이 가장 중요한 준비입니다."}\n\n${tenGodLib.advice}`;
 }
 
+function getNewYearSectionFocus(categoryTitle = "") {
+  const title = clean(categoryTitle);
+  if (/커리어|직장|조직|평가|이직|전환|확장|성과|업무|일\b/.test(title)) {
+    return {
+      toneKey: "career",
+      subject: "일의 방향과 사회적 역할",
+      reality: "올해 현실에서는 맡은 역할, 평가 기준, 성과가 드러나는 방식이 함께 움직입니다. 관성이 강하면 책임과 신뢰가 중요해지고, 식상이 살아나면 표현과 결과물이 성과로 이어지며, 재성이 작동하면 일의 결과가 수익과 계약으로 연결됩니다.",
+    };
+  }
+  if (/재물|돈|수익|지출|손실|계약|투자|가격/.test(title)) {
+    return {
+      toneKey: "money",
+      subject: "돈의 흐름과 손익 구조",
+      reality: "올해 현실에서는 수입의 통로, 지출의 압력, 계약 조건이 한 덩어리로 움직입니다. 재성이 직접 열리는 달에는 수익 기회가 살아나고, 충·해·파가 강한 구간에는 작은 비용 결정도 손실로 커질 수 있으므로 숫자와 약속을 함께 관리해야 합니다.",
+    };
+  }
+  if (/연애|인연|결혼|약속|가족|관계|귀인|협업|파트너|감정|거리/.test(title)) {
+    return {
+      toneKey: "relationship",
+      subject: "사람과 마음의 연결 방식",
+      reality: "올해 현실에서는 가까워지는 사람, 멀어지는 사람, 책임이 필요한 관계가 선명하게 갈립니다. 합의 기운은 연결을 만들고, 충의 기운은 관계의 재배치를 요구하므로 감정의 크기보다 약속과 역할의 균형을 먼저 보아야 합니다.",
+    };
+  }
+  if (/건강|심리|몸|피로|스트레스|마음|회복|멘탈|생활/.test(title)) {
+    return {
+      toneKey: "health",
+      subject: "몸과 마음의 회복 리듬",
+      reality: "올해 현실에서는 몸의 예민함과 감정의 밀도가 함께 움직입니다. 약한 오행이 눌리거나 과한 오행이 더 과열되는 달에는 피로, 수면, 소화, 호흡, 긴장 반응이 먼저 신호를 보내므로 생활 리듬을 운의 강약에 맞춰 조절해야 합니다.",
+    };
+  }
+  if (/위험|위기|흔들|합충|형파해|사건|실수|회복 플랜|주의/.test(title)) {
+    return {
+      toneKey: "caution",
+      subject: "위험 신호와 반전의 조건",
+      reality: "올해 현실에서는 작은 균열이 사람, 돈, 일정, 감정 중 한 곳에서 먼저 드러납니다. 합은 기회를 만들지만 과한 기대를 부를 수 있고, 충·해·파는 변화를 재촉하므로 위기를 피하려 하기보다 초기에 구조를 조정하는 태도가 필요합니다.",
+    };
+  }
+  if (/분기|월별|Go\/Stop|상반기|하반기|타이밍|로드맵|루틴|메시지|정리|밀어붙일|내려놓/.test(title)) {
+    return {
+      toneKey: "advice",
+      subject: "시간표와 실행 순서",
+      reality: "올해 현실에서는 어느 달에 열고 어느 달에 닫을지가 성과를 가릅니다. 좋은 흐름은 실행으로 쓰고, 부담이 커지는 흐름은 점검과 정리로 쓰면 같은 운도 훨씬 안정적인 결과로 이어집니다.",
+    };
+  }
+  return {
+    toneKey: "yearlyTheme",
+    subject: "올해 전체 운의 방향",
+    reality: "올해 현실에서는 세운의 기운이 원국의 강점과 약점을 동시에 드러냅니다. 중요한 것은 길흉을 단정하는 것이 아니라, 어떤 선택이 운을 살리고 어떤 습관이 흐름을 막는지 구체적으로 구분하는 일입니다.",
+  };
+}
+
 function buildHighQualityNewYearSection(seed, chapterSpec, categoryTitle, sectionIndex = 0) {
   const annual = seed?.saju?.annualLuck || {};
   const pillars = seed?.saju?.pillars || {};
@@ -1203,16 +1613,27 @@ function buildHighQualityNewYearSection(seed, chapterSpec, categoryTitle, sectio
     ? `용신·희신 흐름은 ${usefulKeywords.join(" / ")} 방향에서 힘을 보태며, 기신이 강해지는 구간에서는 과열된 결정을 낮추는 방식이 필요합니다.`
     : "용신과 희신의 방향은 균형 회복에 맞추고, 기신이 강해질 때는 속도를 조절하는 원칙으로 운영해야 안정감이 높아집니다.";
   const tone = getTenGodLib(annualTenGod);
+  const focus = getNewYearSectionFocus(categoryTitle);
+  const domainTone = clean(tone?.[focus.toneKey] || tone?.yearlyTheme || "");
+  const quantum = seed?.quantumMyeongri || seed?.saju?.quantumMyeongri || {};
+  const annualQuantum = quantum?.annualQuantum || {};
+  const quantumSummary = clean(quantum?.professionalSummary || "");
+  const quantumStrongMonths = Array.isArray(quantum?.monthlyQuantum)
+    ? quantum.monthlyQuantum.filter((m) => m.decision === "GO").slice(0, 4).map((m) => `${m.month}월`)
+    : [];
+  const quantumCareMonths = Array.isArray(quantum?.monthlyQuantum)
+    ? quantum.monthlyQuantum.filter((m) => m.decision === "STOP").slice(0, 4).map((m) => `${m.month}월`)
+    : [];
 
   const lines = [
     "핵심 진단",
-    `${seed.targetYear}년 ${annualLabel} 세운은 일간 ${dayMaster}(${dayElementKo})에게 ${annualTenGod} 흐름으로 작동합니다. ${categoryTitle}에서는 ${dayMasterRelation}의 패턴이 직접 체감되므로, 단순한 길흉 판단보다 내 선택의 기준을 선명하게 잡는 것이 우선입니다. ${tone.yearlyTheme}`,
+    `${seed.targetYear}년 ${annualLabel} 세운은 일간 ${dayMaster}(${dayElementKo})에게 ${annualTenGod} 흐름으로 작동합니다. ${categoryTitle}는 ${focus.subject}을 읽는 자리이며, ${dayMasterRelation}의 패턴이 실제 선택 안에서 체감됩니다. 단순한 길흉 판단보다 이 주제가 올해 어떤 기준을 요구하는지 선명하게 잡는 것이 우선입니다. ${domainTone}`,
     "",
     "명식 근거",
-    `원국의 일간은 ${dayMaster}이며, 세운 간지는 ${annualLabel}입니다. 세운 십성은 ${annualTenGod}, 일간과 세운 오행 관계는 ${dayMasterRelation}로 읽힙니다. 원국 지지(년지 ${clean(pillars?.year?.branch || "-")}, 월지 ${clean(pillars?.month?.branch || "-")}, 일지 ${clean(pillars?.day?.branch || "-")}, 시지 ${clean(pillars?.hour?.branch || "-")})와 세운 지지 ${annualBranch || "-"}의 합·충·해·파 관계는 다음과 같습니다. ${relationSummary} ${geokguk ? `격국은 ${geokguk} 흐름을 기준으로 해석하며,` : ""} ${usefulSummary}`,
+    `원국의 일간은 ${dayMaster}이며, 세운 간지는 ${annualLabel}입니다. 세운 십성은 ${annualTenGod}, 일간과 세운 오행 관계는 ${dayMasterRelation}로 읽힙니다. 원국 지지(년지 ${clean(pillars?.year?.branch || "-")}, 월지 ${clean(pillars?.month?.branch || "-")}, 일지 ${clean(pillars?.day?.branch || "-")}, 시지 ${clean(pillars?.hour?.branch || "-")})와 세운 지지 ${annualBranch || "-"}의 합·충·해·파 관계는 다음과 같습니다. ${relationSummary} ${geokguk ? `격국은 ${geokguk} 흐름을 기준으로 해석하며,` : ""} ${usefulSummary} 퀀텀 명리 보정에서는 세운이 ${clean(annualQuantum.elementRoleLabel || "중립")} 흐름으로 판정되고, 최종 세운 점수는 ${Number(annualQuantum.finalScore || 0) || "관찰"} 기준입니다. ${quantumSummary}`,
     "",
     "올해 현실에서 드러나는 모습",
-    `${categoryTitle} 주제는 재성·관성·식상·인성·비겁의 작동 순서에 따라 현실에서 다르게 나타납니다. 재성 흐름이 열리면 수익과 관리 이슈가 먼저 올라오고, 관성이 강하면 책임과 기준 정렬이 필요해집니다. 식상이 강한 달에는 표현과 실행이 성과로 이어지며, 인성 흐름이 들어오면 배움과 회복이 장기 성과의 기반이 됩니다. 비겁이 강해지는 구간은 경쟁과 비교가 커질 수 있으므로 역할 경계를 선명하게 정해야 합니다. ${tone.career}`,
+    `${focus.reality} 재성 흐름이 열리면 수익과 관리 이슈가 먼저 올라오고, 관성이 강하면 책임과 기준 정렬이 필요해집니다. 식상이 강한 달에는 표현과 실행이 성과로 이어지며, 인성 흐름이 들어오면 배움과 회복이 장기 성과의 기반이 됩니다. 비겁이 강해지는 구간은 경쟁과 비교가 커질 수 있으므로 역할 경계를 선명하게 정해야 합니다.`,
     "",
     "주의할 흐름",
     `${careMonths.length ? `${careMonths.join("·")}은` : "월운 점수가 낮아지는 구간은"} 감정적 결론, 무리한 일정 확장, 준비 없는 지출 결정이 손실로 이어질 수 있습니다. ${tone.caution} 특히 지지 충·해·파 신호가 겹치는 시기에는 관계와 계약의 말투, 일정 확정 방식, 비용 지출 순서를 보수적으로 가져가야 불필요한 소모를 줄일 수 있습니다. 중요한 결정은 하루 이상 간격을 두고 검토하는 습관이 안전합니다.`,
@@ -1221,7 +1642,7 @@ function buildHighQualityNewYearSection(seed, chapterSpec, categoryTitle, sectio
     `${strongMonths.length ? `${strongMonths.join("·")}에는` : "월운이 살아나는 구간에는"} 핵심 제안, 협상, 발표, 전환 행동을 집중 배치하세요. ${tone.advice} 이때 핵심은 완벽한 조건을 기다리는 것이 아니라, 이미 준비한 기준을 실행 순서에 올리는 것입니다. 실행한 뒤에는 결과를 문장으로 기록해 다음 달 전략에 반영하면 운의 강약이 실제 성과로 바뀌는 속도가 빨라집니다.`,
     "",
     "월별 실행 조언",
-    `1분기에는 기반 정비와 우선순위 확정, 2분기에는 실행 범위 확대, 3분기에는 성과 회수와 관계 조율, 4분기에는 손익 정리와 다음 해 준비를 권합니다. ${monthly.length ? `월운 상위 달(${strongMonths.join("·") || "해당 없음"})에는 확장 행동을, 하위 달(${careMonths.join("·") || "해당 없음"})에는 점검 행동을 적용하면 연간 변동을 안정적으로 다룰 수 있습니다.` : "월운 점수 변화를 월별로 기록해 실행 강약을 조절하세요."} ${sectionIndex + 1}번째 세부 항목인 ${categoryTitle}에서는 매달 하나의 실행 항목과 하나의 금지 항목을 동시에 정해 운영하면 체감 성과가 가장 빠르게 개선됩니다.`,
+    `1분기에는 기반 정비와 우선순위 확정, 2분기에는 실행 범위 확대, 3분기에는 성과 회수와 관계 조율, 4분기에는 손익 정리와 다음 해 준비를 권합니다. ${monthly.length ? `월운 상위 달(${strongMonths.join("·") || "해당 없음"})에는 확장 행동을, 하위 달(${careMonths.join("·") || "해당 없음"})에는 점검 행동을 적용하면 연간 변동을 안정적으로 다룰 수 있습니다.` : "월운 점수 변화를 월별로 기록해 실행 강약을 조절하세요."} 퀀텀 Go 판정 달(${quantumStrongMonths.join("·") || "해당 없음"})에는 실행을 앞세우고, Stop 판정 달(${quantumCareMonths.join("·") || "해당 없음"})에는 큰 결정을 늦추는 것이 좋습니다. ${sectionIndex + 1}번째 세부 항목인 ${categoryTitle}에서는 매달 하나의 실행 항목과 하나의 금지 항목을 동시에 정해 운영하면 체감 성과가 가장 빠르게 개선됩니다.`,
   ];
 
   return lines.join("\n");
@@ -1305,7 +1726,7 @@ function buildLocalSkeleton(seed) {
   const expectedChapters = buildSajuNewYearChapterSpecs(seed?.targetYear || resolveDefaultTargetYear());
   return expectedChapters.map((chapter) => {
     const categories = chapter.categories.map((category, idx) => {
-      const base = localParagraph(seed, chapter, category, idx);
+      const base = buildHighQualityNewYearSection(seed, chapter, category, idx);
       const expanded = ensureMinLength(base, desiredSectionLength(), seed, category);
       const sanitized = stripForbiddenText(expanded);
       return {
@@ -1394,7 +1815,8 @@ function renderNewYearSectionBody(body = "") {
 
 function buildReportHtml(seed, chapters) {
   const profile = seed.birthProfile;
-  const monthlyRows = seed.saju.monthlyLuck.map((item) => `<tr><td>${item.month}월</td><td>${escHtml(item.pillar.label)}</td><td>${escHtml(item.tone)}</td><td>${item.score}</td><td>${escHtml(item.advice)}</td></tr>`).join("");
+  const quantum = seed?.quantumMyeongri || seed?.saju?.quantumMyeongri || {};
+  const monthlyRows = seed.saju.monthlyLuck.map((item) => `<tr><td>${item.month}월</td><td>${escHtml(item.pillar.label)}</td><td>${item.baseScore ?? item.score}</td><td>${Number(item.quantumAdjustment || 0) >= 0 ? "+" : ""}${Number(item.quantumAdjustment || 0)}</td><td>${item.finalScore ?? item.score}</td><td>${escHtml(item.decision || decisionFromScore(item.finalScore || item.score))}</td><td>${escHtml(item.advice)}</td></tr>`).join("");
   const toc = chapters.map((chapter) => `<li><span>${chapter.no}</span>${escHtml(chapter.title)}</li>`).join("");
   const body = chapters.map((chapter, idx) => {
     const sections = Array.isArray(chapter?.sections)
@@ -1412,7 +1834,7 @@ function buildReportHtml(seed, chapters) {
     @page{size:A4;margin:16mm}*{box-sizing:border-box}body{margin:0;background:#080b19;color:#1f2937;font-family:Arial,'Noto Sans KR',sans-serif;line-height:1.72}.page{background:#fff;min-height:100vh}.cover{min-height:100vh;padding:56px 48px;color:#fff;background:radial-gradient(circle at 70% 20%,rgba(245,158,11,.42),transparent 30%),linear-gradient(145deg,#07111f,#11183a 48%,#3b0f14);display:flex;flex-direction:column;justify-content:space-between}.cover img{width:100%;max-height:360px;object-fit:cover;border-radius:18px;border:1px solid rgba(250,204,21,.42);box-shadow:0 24px 60px rgba(0,0,0,.36)}.badge{display:inline-block;padding:7px 12px;border:1px solid rgba(250,204,21,.7);border-radius:999px;color:#fde68a;font-size:12px;letter-spacing:.08em}.cover h1{font-size:42px;margin:22px 0 8px;color:#fff4c2}.cover p{font-size:17px;color:#fef3c7}.meta{color:#fde68a;font-size:14px}.content{padding:34px 42px;background:#fff}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}.summary div{border:1px solid #f1d58b;background:#fff8e1;border-radius:10px;padding:12px}.toc{padding:24px 42px;background:#fffaf0}.toc h2,.chapter h2{color:#7f1d1d}.toc li{margin:8px 0}.toc span{display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;margin-right:8px;border-radius:50%;background:#991b1b;color:#fff}.chapter{padding:32px 42px;background:#fff}.chapter h2{font-size:25px;border-bottom:2px solid #f59e0b;padding-bottom:10px}.chapter article{margin:18px 0;padding:16px;border-left:4px solid #d97706;background:#fffaf0;border-radius:0 10px 10px 0}.chapter h3{margin:0 0 8px;color:#92400e}.section-body{display:flex;flex-direction:column;gap:12px}.section-body h5{margin:18px 0 2px;color:#8a5a32;font-weight:800}.section-body p{margin:0;line-height:1.9;word-break:keep-all;overflow-wrap:break-word}.monthly{width:100%;border-collapse:collapse;margin:18px 0;background:#fff}.monthly th,.monthly td{border:1px solid #ead7a6;padding:8px;font-size:12px;text-align:left}.monthly th{background:#7f1d1d;color:#fff}.page-break{page-break-before:always}@media print{body{background:#fff}.page{min-height:auto}.cover{height:100vh}.page-break{break-before:page}}
   </style></head><body><main class="page">
     <section class="cover"><div><span class="badge">CODE DESTINY · NEW YEAR SAJU</span><h1>${seed.targetYear} 신년운세 프리미엄 리포트</h1><p>사주 원국과 세운으로 읽는 올해의 운명 지도</p><p class="meta">${escHtml(profile.name || "사용자")} · ${escHtml(profile.birthDate)} ${escHtml(profile.birthTime || "시간 미상")}</p></div><img src="${COVER_IMAGE}" alt="신년운세 표지 이미지" onerror="this.style.display='none'"><p>${seed.targetYear}년 나의 운의 흐름과 선택 전략</p></section>
-    <section class="content"><h2>올해의 핵심 요약</h2><div class="summary"><div><strong>세운</strong><br>${escHtml(seed.saju.annualLuck.label)} · ${escHtml(seed.saju.annualLuck.elementKo)}</div><div><strong>일간 관계</strong><br>${escHtml(seed.saju.annualLuck.tenGod)} · ${escHtml(seed.saju.annualLuck.dayMasterRelation)}</div><div><strong>월별 운영</strong><br>강한 달과 보수 달을 분리해 실행</div></div><table class="monthly"><thead><tr><th>월</th><th>월운</th><th>흐름</th><th>점수</th><th>전략</th></tr></thead><tbody>${monthlyRows}</tbody></table></section>
+    <section class="content"><h2>올해의 핵심 요약</h2><div class="summary"><div><strong>세운</strong><br>${escHtml(seed.saju.annualLuck.label)} · ${escHtml(seed.saju.annualLuck.elementKo)}</div><div><strong>일간 관계</strong><br>${escHtml(seed.saju.annualLuck.tenGod)} · ${escHtml(seed.saju.annualLuck.dayMasterRelation)}</div><div><strong>퀀텀 보정</strong><br>${escHtml((quantum.favorableElements || []).join("·") || "중립")} 유리 · ${escHtml((quantum.cautionElements || []).join("·") || "중립")} 주의</div></div><p>${escHtml(quantum.professionalSummary || "월별 운영은 기본 월운과 퀀텀 보정을 함께 보아 실행 강약을 조절합니다.")}</p><table class="monthly"><thead><tr><th>월</th><th>월운</th><th>기본</th><th>퀀텀</th><th>최종</th><th>판정</th><th>전략</th></tr></thead><tbody>${monthlyRows}</tbody></table></section>
     <section class="toc"><h2>${chapters.length}챕터 목차</h2><ol>${toc}</ol></section>${body}
   </main></body></html>`;
 }
@@ -1424,6 +1846,7 @@ function buildPdfReadyPayload(seed, chapters, metadata = {}) {
     generatedAt: new Date().toISOString(),
     profile: seed.birthProfile,
     targetYear: seed.targetYear,
+    quantumMyeongri: seed.quantumMyeongri || seed.saju?.quantumMyeongri || null,
     metadata,
     html: buildReportHtml(seed, chapters),
     chapters: chapters.map((chapter) => ({

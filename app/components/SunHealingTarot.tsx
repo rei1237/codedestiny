@@ -71,21 +71,22 @@ const SECTION_GAP_MS = 320;
 const INITIAL_TEXT_BURST_CHARS = 72;
 const DRAW_ENDPOINT = "/api/tarot/draw";
 const READING_ENDPOINT = "/api/tarot/reading";
+const API_TIMEOUT_MS = 30000;
 
 const SHARE_FALLBACK_URL = "https://code-destiny.com";
 const SHARE_TITLE = "태양 회복 타로";
 const SHARE_TEXT_PREFIX = "태양 회복 타로 결과를 공유합니다.\n\n";
 
 const READING_SECTIONS: ReadingSection[] = [
-  { key: "consultingHighlights", title: "핵심 상담 하이라이트", tone: "focus", icon: Sparkles },
-  { key: "opening", title: "오늘의 상담 프롤로그", tone: "neutral", icon: Sparkles },
-  { key: "cardDeepDive", title: "카드별 심층 해석", tone: "focus", icon: Telescope },
-  { key: "hiddenTruth", title: "1. 마음 깊은 원인", tone: "focus", icon: Telescope },
-  { key: "embracePain", title: "2. 감정 안아주기", tone: "warm", icon: HeartHandshake },
-  { key: "silverLining", title: "3. 회복의 단서", tone: "focus", icon: Lightbulb },
-  { key: "stepForward", title: "4. 오늘의 한 걸음", tone: "warm", icon: Footprints },
-  { key: "integrationMessage", title: "종합 풀이: 회복의 흐름", tone: "neutral", icon: Sparkles },
-  { key: "actionPlan", title: "오늘 바로 해볼 수 있는 작은 실천", tone: "focus", icon: Sparkles },
+  { key: "consultingHighlights", title: "지금 가장 먼저 비친 빛", tone: "focus", icon: Sparkles },
+  { key: "opening", title: "새벽빛 프롤로그", tone: "neutral", icon: Sparkles },
+  { key: "cardDeepDive", title: "4장의 태양 메시지", tone: "focus", icon: Telescope },
+  { key: "hiddenTruth", title: "1. 마음이 지친 진짜 자리", tone: "focus", icon: Telescope },
+  { key: "embracePain", title: "2. 밀어내지 않아도 되는 감정", tone: "warm", icon: HeartHandshake },
+  { key: "silverLining", title: "3. 다시 따뜻해지는 단서", tone: "focus", icon: Lightbulb },
+  { key: "stepForward", title: "4. 오늘 열 수 있는 작은 창", tone: "warm", icon: Footprints },
+  { key: "integrationMessage", title: "종합 풀이: 태양이 돌아오는 흐름", tone: "neutral", icon: Sparkles },
+  { key: "actionPlan", title: "오늘의 회복 루틴", tone: "focus", icon: Sparkles },
 ];
 
 function clamp(n: number, min: number, max: number) {
@@ -322,6 +323,11 @@ export default function SunHealingTarot() {
     abortRef.current?.abort();
     const ac = new AbortController();
     abortRef.current = ac;
+    let timedOut = false;
+    const timeoutId = window.setTimeout(() => {
+      timedOut = true;
+      ac.abort();
+    }, API_TIMEOUT_MS);
     try {
       const res = await fetch(DRAW_ENDPOINT, {
         method: "POST",
@@ -336,10 +342,12 @@ export default function SunHealingTarot() {
       setCards(drawn.slice(0, SPREAD_CARD_COUNT));
       setStage("spread");
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
+      if (error instanceof DOMException && error.name === "AbortError" && !timedOut) return;
       console.error(error);
-      alert("카드를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      alert(timedOut ? "카드 준비가 지연되고 있습니다. 페이지를 새로고침한 뒤 다시 시작해 주세요." : "카드를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
+      window.clearTimeout(timeoutId);
+      if (abortRef.current === ac) abortRef.current = null;
       setLoading(false);
     }
   }, []);
@@ -361,6 +369,11 @@ export default function SunHealingTarot() {
     abortRef.current?.abort();
     const ac = new AbortController();
     abortRef.current = ac;
+    let timedOut = false;
+    const timeoutId = window.setTimeout(() => {
+      timedOut = true;
+      ac.abort();
+    }, API_TIMEOUT_MS);
     try {
       const payloadCards = cards.map((c) => ({ cardId: c.cardId, position: c.position, orientation: c.orientation }));
       const res = await fetch(READING_ENDPOINT, {
@@ -382,10 +395,12 @@ export default function SunHealingTarot() {
       setTyped({});
       setTypingSection(null);
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
+      if (error instanceof DOMException && error.name === "AbortError" && !timedOut) return;
       console.error(error);
-      alert("해석을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      alert(timedOut ? "해석 준비가 지연되고 있습니다. 페이지를 새로고침한 뒤 다시 확인해 주세요." : "해석을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
+      window.clearTimeout(timeoutId);
+      if (abortRef.current === ac) abortRef.current = null;
       setLoading(false);
     }
   }, [cards, revealedCount]);
@@ -580,15 +595,15 @@ export default function SunHealingTarot() {
           ) : null}
           {stage === "result" ? (
             <motion.section key="result" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 gap-5 pb-5 lg:grid-cols-[330px_minmax(0,1fr)]">
-              <aside className="rounded-[30px] border border-white/80 bg-white/68 p-5 shadow-[0_24px_70px_rgba(180,120,35,0.16)] backdrop-blur-2xl lg:sticky lg:top-6 lg:max-h-[calc(100dvh-48px)]">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-700/75">Reading Result</p>
-                <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight text-amber-950">상담 리딩 결과</h2>
-                <p className="mt-3 text-sm leading-7 text-stone-700">카드의 의미를 마음의 회복 언어로 다시 풀었습니다. 천천히 읽어도 괜찮습니다.</p>
+              <aside className="rounded-lg border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(255,247,237,0.72),rgba(240,253,250,0.36))] p-5 shadow-[0_24px_70px_rgba(180,120,35,0.16)] backdrop-blur-2xl lg:sticky lg:top-6 lg:max-h-[calc(100dvh-48px)]">
+                <p className="text-xs font-semibold uppercase tracking-normal text-teal-700/75">Sunrise Reading</p>
+                <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight text-amber-950">새벽빛 회복 리딩</h2>
+                <p className="mt-3 text-sm leading-7 text-stone-700">카드가 비춘 상처의 이름, 감정의 온도, 다시 움직일 수 있는 작은 빛을 차례로 읽습니다.</p>
                 {cards.length > 0 && (
                   <div className="mt-6 grid grid-cols-4 gap-2 lg:grid-cols-2">
                     {cards.map((card, idx) => (
                       <div key={idx}>
-                        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl border border-amber-200/70 shadow-[0_16px_34px_rgba(180,120,35,0.18)]">{card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(card, idx)} fill sizes="120px" className="object-cover" unoptimized />) : (<div className="absolute inset-0 bg-amber-50" />)}</div>
+                        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border border-amber-200/70 shadow-[0_16px_34px_rgba(180,120,35,0.18)]">{card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(card, idx)} fill sizes="120px" className="object-cover" unoptimized />) : (<div className="absolute inset-0 bg-amber-50" />)}</div>
                         <p className="mt-1 text-center text-[10px] font-semibold text-amber-800">{POSITION_LABELS_SHORT[idx]}</p>
                       </div>
                     ))}
@@ -600,11 +615,11 @@ export default function SunHealingTarot() {
                   <button type="button" onClick={goHome} className="min-h-11 rounded-full bg-stone-900 px-4 text-sm font-bold text-white shadow-[0_16px_34px_rgba(68,64,60,0.18)] transition-colors hover:bg-amber-950">다른 운세 보기</button>
                 </div>
               </aside>
-              <div className="min-w-0 rounded-[30px] border border-white/80 bg-white/72 p-4 shadow-[0_30px_90px_rgba(180,120,35,0.18)] backdrop-blur-2xl md:p-6">
-                <div className="mb-5 rounded-3xl border border-amber-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(254,243,199,0.74),rgba(204,251,241,0.42))] p-5 shadow-inner">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-700/78">Healing Counsel</p>
-                  <h3 className="mt-2 font-serif text-2xl font-semibold text-amber-950">심리 상담사와 타로 마스터의 종합 해석</h3>
-                  <p className="mt-3 text-sm leading-7 text-stone-700">지금의 마음을 문제로 만들지 않고, 카드가 비춘 상징을 회복 가능한 언어로 정리합니다.</p>
+              <div className="min-w-0 rounded-lg border border-white/80 bg-white/76 p-4 shadow-[0_30px_90px_rgba(180,120,35,0.18)] backdrop-blur-2xl md:p-6">
+                <div className="mb-5 rounded-lg border border-amber-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(254,243,199,0.78),rgba(255,237,213,0.62),rgba(204,251,241,0.36))] p-5 shadow-inner">
+                  <p className="text-xs font-semibold uppercase tracking-normal text-amber-700/78">Dawn Counsel</p>
+                  <h3 className="mt-2 font-serif text-2xl font-semibold text-amber-950">상처를 지우지 않고 빛을 돌려놓는 해석</h3>
+                  <p className="mt-3 text-sm leading-7 text-stone-700">지금의 마음을 문제로 만들지 않고, 카드가 비춘 상징을 회복 가능한 장면과 말로 정리합니다.</p>
                 </div>
                 <div className="space-y-3">
                   {READING_SECTIONS.map((section) => {

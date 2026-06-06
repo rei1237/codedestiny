@@ -106,36 +106,37 @@ function deriveExpertKeywords(card: DrawnTarotCard) {
 
 export function buildOraclePrompt(spread: TarotSpread, question: string, drawnCards: DrawnTarotCard[]): OraclePromptResult {
   const effectiveQuestion = ensureText(question) || DEFAULT_QUESTION_BY_CATEGORY[spread.category];
+  const cardFlow = drawnCards.map((card) => `${card.cardNameKo} ${card.orientationLabel}`).join(", ");
   const cardDigest = drawnCards.map((card, index) => {
     const expertKeywords = deriveExpertKeywords(card);
-    return `${index + 1}. ${card.positionLabel} - ${card.cardNameKo} (${card.orientationLabel}) | 전문 키워드: ${expertKeywords.join(" | ")}`;
+    return `${index + 1}. ${card.positionLabel} - ${card.cardNameKo} (${card.orientationLabel}) | 신탁 단서: ${expertKeywords.join(" | ")}`;
   });
   const guidance = [
-    "해석 우선순위는 포지션 질문 -> 카드 원형 의미 -> 정/역방향 변조 -> 스프레드 내 상호작용 순서로 고정합니다.",
-    "정방향은 발현 강도를, 역방향은 지연/내면화/과잉의 가능성을 점검해 단정 없이 맥락형 문장으로 씁니다.",
-    "메이저 아르카나는 사건의 큰 축, 마이너는 일상 작동 메커니즘으로 분리 해석합니다.",
-    "수트 해석 시 완드=행동, 컵=감정, 소드=인지, 펜타클=현실 운영 축을 반드시 명시합니다.",
-    "랭크는 진행 단계(시작-갈등-회복-종결)를 나타내므로 시간/강도 문장으로 변환합니다.",
-    "상대 속마음, 재회, 미래 질문은 확정적 예언을 금지하고 조건부 시나리오(가능성 A/B)로 제시합니다.",
-    "모든 카드 해석은 질문자의 실행 가능 행동으로 마무리하고, 최소 3개의 구체 행동을 제공합니다.",
-    "문체는 따뜻하지만 현실적인 상담 톤을 유지하고 공포 유도/운명 단정/도덕 판단 문장을 금지합니다.",
+    "먼저 질문의 숨은 정서를 짧게 짚고, 포지션 질문과 카드 상징을 한 호흡으로 연결합니다.",
+    "정방향은 자연스럽게 열리는 문, 역방향은 아직 잠겨 있거나 과해진 문으로 읽어 단정 없이 풀이합니다.",
+    "메이저 아르카나는 운명의 큰 날씨로, 마이너 아르카나는 오늘의 말·행동·선택으로 번역합니다.",
+    "완드는 행동, 컵은 감정, 소드는 생각과 경계, 펜타클은 현실 조건을 비추는 축으로 사용합니다.",
+    "랭크는 흐름의 나이와 속도입니다. 시작, 갈등, 회복, 마무리의 감각을 시간 문장으로 풀어냅니다.",
+    "속마음, 재회, 미래 질문은 확정 예언 대신 가능성 A/B와 지금 바꿀 수 있는 선택을 함께 제시합니다.",
+    "각 카드 해석은 질문자가 오늘 붙잡을 수 있는 작은 행동 하나로 닫습니다.",
+    "문체는 신비롭되 선명하게, 따뜻하되 현실적으로 유지하고 공포 유도와 운명 단정은 피합니다.",
   ];
-  const summary = `${spread.title}에서 ${drawnCards.map((card) => `${card.cardNameKo} ${card.orientationLabel}`).join(", ")} 흐름이 잡혔습니다. 전문가 해석 프레임(원형-방향-포지션-상호작용)을 포함해 ${CATEGORY_LABEL[spread.category]} 질문을 정밀하게 읽도록 설계되었습니다.`;
+  const summary = `${spread.title} 위에 ${cardFlow} 흐름이 놓였습니다. 이 오라클 원고는 ${CATEGORY_LABEL[spread.category]} 질문을 카드의 상징, 방향, 포지션, 현실 선택까지 이어지는 하나의 리딩 문장으로 펼칩니다.`;
 
   const interpretationMethod = [
-    "카드별 해석 템플릿: [포지션 질문] -> [카드 원형 핵심] -> [방향 변조] -> [관계/상황 맥락] -> [실행 조언]",
-    "교차 해석: 1번(문제 인식)과 마지막 카드(결론)의 긴장/합치를 우선 비교",
-    "리스크 해석: 소드/펜타클 역방향 비중이 높으면 의사소통-현실운영 충돌 경고 문장 추가",
-    "기회 해석: 컵/완드 정방향 비중이 높으면 관계 회복/행동 추진 문장 강화",
+    "카드별 리딩: 포지션이 묻는 질문, 카드의 원형 상징, 방향이 바꾸는 뉘앙스, 지금 가능한 행동을 순서대로 씁니다.",
+    "교차 리딩: 첫 카드가 연 문과 마지막 카드가 닫는 문이 서로 맞물리는지 먼저 봅니다.",
+    "주의 리딩: 소드와 펜타클 역방향이 강하면 말의 오해와 현실 조건의 충돌을 부드럽게 경고합니다.",
+    "기회 리딩: 컵과 완드 정방향이 강하면 마음의 회복과 행동 추진을 현실적인 속도로 제안합니다.",
   ];
 
   const prompt = [
-    "당신은 감정 과잉 없이 따뜻하고 정확하게 흐름을 읽는 한국어 타로 리더이자, 상징 해석과 심리적 맥락화를 수행하는 전문가입니다.",
+    "당신은 카드를 과장하지 않고, 질문자의 마음을 조용히 밝혀 주는 한국어 타로 리더입니다. 상징은 신비롭게 풀되 결론은 현실의 선택으로 내려놓습니다.",
     "",
     "[질문]",
     effectiveQuestion,
     "",
-    "[스프레드 정보]",
+    "[스프레드의 문]",
     `이름: ${spread.title}`,
     `카테고리: ${CATEGORY_LABEL[spread.category]}`,
     `카드 수: ${spread.cardCount}`,
@@ -148,23 +149,23 @@ export function buildOraclePrompt(spread: TarotSpread, question: string, drawnCa
     `- ${ORIENTATION_MEANING.upright}`,
     `- ${ORIENTATION_MEANING.reversed}`,
     "",
-    "[해석 규칙]",
+    "[리딩의 결]",
     ...guidance.map((rule, index) => `${index + 1}. ${rule}`),
     "",
-    "[전문 해석 방법론]",
+    "[카드가 이어지는 방식]",
     ...interpretationMethod.map((rule, index) => `${index + 1}. ${rule}`),
     "",
-    "[출력 형식]",
-    "1. 질문 요약",
-    "2. 전체 흐름 한눈에 보기(핵심 축 2개 + 리스크 축 1개)",
-    "3. 카드별 해석(포지션 질문/카드 상징/방향 변조/실행 조언 포함)",
-    "4. 교차 해석(핵심 카드 간 상호작용)",
-    "5. 지금 놓치면 안 되는 진실",
-    "6. 행동 조언 3가지(24시간/7일/30일 단위)",
-    "7. 한 문장 결론",
+    "[리딩 원고]",
+    "1. 질문의 속뜻을 한 문단으로 부드럽게 엽니다.",
+    "2. 카드들이 만든 전체 흐름을 핵심 빛 2개와 조심할 그림자 1개로 정리합니다.",
+    "3. 카드별 해석: 포지션의 질문, 카드 상징, 정/역방향의 뉘앙스, 오늘의 선택을 포함합니다.",
+    "4. 핵심 카드끼리 서로 밀고 당기는 관계를 해석합니다.",
+    "5. 지금 놓치면 안 되는 진실을 한 문단으로 남깁니다.",
+    "6. 24시간, 7일, 30일 단위의 작은 선택 3가지를 제안합니다.",
+    "7. 질문자가 마음에 품고 나갈 한 문장을 건넵니다.",
     "",
-    "[톤]",
-    "지나치게 운명론적이거나 자극적인 문장을 피하고, 위로와 현실 감각을 함께 유지합니다.",
+    "[목소리]",
+    "운명론적이거나 자극적인 문장을 피하고, 위로와 현실 감각을 함께 유지합니다.",
     "질문자의 주도권을 강화하는 문장을 우선하며, 관계를 단정하는 문장은 금지합니다.",
   ].join("\n");
 

@@ -1,12 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
-import crypto from "node:crypto";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 import { dbConnect } from "../app/_lib/dbConnect.js";
 import { getUserModel } from "../app/_lib/models/UserModel.js";
 import { PointHistory } from "../worker/lib/models.js";
 import { signAuthToken } from "../worker/lib/auth.js";
-import { handleFortuneRoutes } from "../worker/routes/fortune.js";
+import { handleBillingRoutes } from "../worker/routes/billing.js";
 
 for (const fileName of [".env.local", ".env"]) {
   const envPath = path.join(process.cwd(), fileName);
@@ -41,17 +41,6 @@ function getEnvForWorker() {
   };
 }
 
-function base64urlJson(value) {
-  return Buffer.from(JSON.stringify(value), "utf8").toString("base64url");
-}
-
-function issueAdminToken(secret) {
-  const now = Math.floor(Date.now() / 1000);
-  const payloadB64 = base64urlJson({ v: 1, issued: now, exp: now + 3600 });
-  const sig = crypto.createHmac("sha256", secret).update(payloadB64).digest("hex");
-  return `${payloadB64}.${sig}`;
-}
-
 async function main() {
   await dbConnect();
   const User = await getUserModel();
@@ -76,20 +65,18 @@ async function main() {
   const freshUser = await User.findById(user._id).lean();
   const env = getEnvForWorker();
   const authToken = await signAuthToken(freshUser, env);
-  const adminToken = issueAdminToken(env.FLOWER_ADMIN_SECRET);
-
-  const response = await handleFortuneRoutes(
-    new Request("https://local.test/api/fortune/pig-coin/consume", {
+  const response = await handleBillingRoutes(
+    new Request("https://local.test/api/billing/coin-gate", {
       method: "POST",
       headers: {
         "content-type": "application/json",
         authorization: `Bearer ${authToken}`,
-        "x-admin-token": adminToken,
       },
       body: JSON.stringify({
-        cost: VERIFY_COST,
         reason: VERIFY_REASON,
         featureKey: VERIFY_FEATURE_KEY,
+        paymentMode: "COIN",
+        forceDeduct: true,
       }),
     }),
     env,
@@ -99,7 +86,9 @@ async function main() {
   if (response.status !== 200) {
     throw new Error(`consume API 실패: status=${response.status}, body=${JSON.stringify(payload)}`);
   }
-  if (payload?.adminBypass === true) {
+  const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
+  const consume = data?.consume && typeof data.consume === "object" ? data.consume : data;
+  if (payload?.adminBypass === true || data?.adminBypass === true || consume?.adminBypass === true) {
     throw new Error("테스트 계정이 adminBypass로 통과했습니다. 일반 결제 흐름 검증 실패.");
   }
 
@@ -127,7 +116,15 @@ async function main() {
   console.log("  - admin token 동시 전달 시에도 bypass 없이 차감 확인");
 }
 
-main().catch((error) => {
-  console.error("[verify-test-account-payment-flow] FAIL:", error?.message || error);
-  process.exitCode = 1;
-});
+main()
+  .catch((error) => {
+    console.error("[verify-test-account-payment-flow] FAIL:", error?.message || error);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    try {
+      await mongoose.disconnect();
+    } catch (e) {
+      void e;
+    }
+  });

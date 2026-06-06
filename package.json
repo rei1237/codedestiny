@@ -52,6 +52,7 @@
     "verify:billing-pass-policy": "node scripts/verify-billing-pass-policy.mjs",
     "verify:paid-gate-ui": "node scripts/verify-paid-gate-ui-regression.mjs",
     "verify:profile-card-action-policy": "node scripts/verify-profile-card-action-policy.mjs",
+    "verify:lifebook-required-coverage": "node scripts/verify-lifebook-required-coverage.mjs",
     "verify:locale-main-sync": "node scripts/verify-locale-main-sync.mjs",
     "verify:runtime-cache-sync": "node scripts/verify-runtime-cache-sync.mjs",
     "verify:rpg-phase9": "node scripts/verify-rpg-phase9.mjs",

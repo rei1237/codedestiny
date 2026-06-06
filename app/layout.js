@@ -12,6 +12,8 @@ import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 const notoSansKRVariable = "font-noto-sans-kr-offline";
 
 const CANONICAL_ORIGIN = "https://code-destiny.com";
+const BRAND_ICON_PATH = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
+const BRAND_ICON_URL = `${CANONICAL_ORIGIN}${BRAND_ICON_PATH}`;
 
 // Static metadata for static export
 export const metadata = {
@@ -47,11 +49,11 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/icons/꿀꿀 운세 로고.webp",
-    shortcut: "/icons/꿀꿀 운세 로고.webp",
-    apple: "/icons/꿀꿀 운세 로고.webp",
+    icon: BRAND_ICON_PATH,
+    shortcut: BRAND_ICON_PATH,
+    apple: BRAND_ICON_PATH,
     other: [
-      { rel: "icon", type: "image/webp", sizes: "1200x1200", url: "/icons/꿀꿀 운세 로고.webp" },
+      { rel: "icon", type: "image/webp", sizes: "1200x1200", url: BRAND_ICON_PATH },
     ],
   },
   manifest: "/manifest.json",
@@ -59,7 +61,7 @@ export const metadata = {
     capable: true,
     title: "꿀꿀 운세",
     statusBarStyle: "default",
-    startupImage: ["/icons/꿀꿀 운세 로고.webp"],
+    startupImage: [BRAND_ICON_PATH],
   },
   alternates: {
     canonical: "/",
@@ -82,7 +84,7 @@ export const metadata = {
       "꿀꿀 운세는 Code Destiny(코드 데스티니)가 제공하는 무료 운세, 숙요점, 사주팔자, 자미두수 명반, 타로 카드, 베다 점성술, 고품질 운세 리포트를 한곳에서 제공하는 통합 운세 플랫폼입니다.",
     images: [
       {
-        url: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
+        url: BRAND_ICON_URL,
         width: 1200,
         height: 630,
         alt: "꿀꿀 운세 - 무료 사주팔자, 자미두수 운세 분석",
@@ -94,7 +96,7 @@ export const metadata = {
     title: "꿀꿀 운세 | 무료 사주팔자 · 오늘의 운세 · 코드 데스티니",
     description:
       "꿀꿀 운세는 Code Destiny(코드 데스티니)가 제공하는 무료 운세, 숙요점, 사주팔자, 자미두수 명반, 타로 카드, 베다 점성술, 고품질 운세 리포트를 한곳에서 제공하는 통합 운세 플랫폼입니다.",
-    images: ["https://code-destiny.com/icons/꿀꿀 운세 로고.webp"],
+    images: [BRAND_ICON_URL],
     creator: "@codedestiny",
   },
   verification: {
@@ -143,14 +145,14 @@ const jsonLd = JSON.stringify({
       url: "https://code-destiny.com",
       logo: {
         "@type": "ImageObject",
-        "@id": "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
-        url: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
-        contentUrl: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
+        "@id": BRAND_ICON_URL,
+        url: BRAND_ICON_URL,
+        contentUrl: BRAND_ICON_URL,
         width: 1200,
         height: 630,
         caption: "꿀꿀 운세 - Free Saju & Fortune Platform",
       },
-      image: { "@id": "https://code-destiny.com/icons/꿀꿀 운세 로고.webp" },
+      image: { "@id": BRAND_ICON_URL },
     },
     {
       "@type": "SoftwareApplication",
@@ -184,7 +186,7 @@ const jsonLd = JSON.stringify({
       name: "꿀꿀 운세 | 무료 사주팔자 · 오늘의 운세 · 코드 데스티니",
       isPartOf: { "@id": "https://code-destiny.com/#website" },
       about: { "@id": "https://code-destiny.com/#organization" },
-      primaryImageOfPage: { "@id": "https://code-destiny.com/icons/꿀꿀 운세 로고.webp" },
+      primaryImageOfPage: { "@id": BRAND_ICON_URL },
       datePublished: "2024-01-01T00:00:00+09:00",
       dateModified: new Date().toISOString(),
       description:

@@ -17,6 +17,16 @@
   var STORAGE_KEY = 'premium:soul-origin:last:v1';
   var REQUEST_ID_KEY = 'premium:soul-origin:last-request-id:v1';
   var SESSION_ID_KEY = 'premium:soul-origin:last-session-id:v1';
+  var TONE_PRESETS = {
+    default: 1,
+    emotion_first: 1,
+    direct_action: 1,
+    relationship_focus: 1,
+    money_focus: 1,
+    destiny_focus: 1,
+  };
+  var DEFAULT_TONE_PRESET = 'default';
+  var DEFAULT_TONE_INTENSITY = 2;
 
   var _result = null;
   var _loadingTimer = null;
@@ -116,6 +126,110 @@
     if (/seoul|tokyo/i.test(timezone)) return 9;
     if (/utc/i.test(timezone)) return 0;
     return 9;
+  }
+
+  function normalizeTonePreset(value) {
+    var raw = clean(value).toLowerCase().replace(/[\s]/g, '_');
+    if (!raw || !TONE_PRESETS[raw]) {
+      return DEFAULT_TONE_PRESET;
+    }
+    return raw;
+  }
+
+  function normalizeToneIntensity(value) {
+    var parsed = Number(clean(value));
+    if (!Number.isFinite(parsed)) return DEFAULT_TONE_INTENSITY;
+    var next = Math.round(parsed);
+    if (next < 1 || next > 5) return DEFAULT_TONE_INTENSITY;
+    return next;
+  }
+
+  function normalizeToneWeightValue(value) {
+    var parsed = Number(clean(value));
+    if (!Number.isFinite(parsed)) return null;
+    var next = Math.round(parsed);
+    if (next < 0 || next > 10) return null;
+    return next;
+  }
+
+  function readSoulOriginToneWeightsFromQuery(params) {
+    var result = {};
+    var parsedWeights = {};
+
+    try {
+      if (typeof params.get === 'function') {
+        var packed = clean(params.get('toneWeights'));
+        if (packed) {
+          var parsed = JSON.parse(packed);
+          if (parsed && typeof parsed === 'object') {
+            parsedWeights = parsed;
+          }
+        }
+      }
+    } catch (_) {
+      parsedWeights = {};
+    }
+
+    var direct = {
+      love: normalizeToneWeightValue((typeof params.get === 'function' && params.get('toneWeightLove')) || ''),
+      career: normalizeToneWeightValue((typeof params.get === 'function' && params.get('toneWeightCareer')) || ''),
+      money: normalizeToneWeightValue((typeof params.get === 'function' && params.get('toneWeightMoney')) || ''),
+      fortune: normalizeToneWeightValue((typeof params.get === 'function' && params.get('toneWeightFortune')) || ''),
+      identity: normalizeToneWeightValue((typeof params.get === 'function' && params.get('toneWeightIdentity')) || ''),
+    };
+    var pLove = normalizeToneWeightValue(parsedWeights.love);
+    var pCareer = normalizeToneWeightValue(parsedWeights.career);
+    var pMoney = normalizeToneWeightValue(parsedWeights.money);
+    var pFortune = normalizeToneWeightValue(parsedWeights.fortune);
+    var pIdentity = normalizeToneWeightValue(parsedWeights.identity);
+    var globalWeights = {};
+    try { globalWeights = window.__cdSoulOriginToneWeights && typeof window.__cdSoulOriginToneWeights === 'object' ? window.__cdSoulOriginToneWeights : {}; } catch (_) { globalWeights = {}; }
+
+    var gLove = normalizeToneWeightValue(globalWeights.love);
+    var gCareer = normalizeToneWeightValue(globalWeights.career);
+    var gMoney = normalizeToneWeightValue(globalWeights.money);
+    var gFortune = normalizeToneWeightValue(globalWeights.fortune);
+    var gIdentity = normalizeToneWeightValue(globalWeights.identity);
+
+    if (pLove !== null || gLove !== null || direct.love !== null) result.love = direct.love !== null ? direct.love : (gLove !== null ? gLove : pLove);
+    if (pCareer !== null || gCareer !== null || direct.career !== null) result.career = direct.career !== null ? direct.career : (gCareer !== null ? gCareer : pCareer);
+    if (pMoney !== null || gMoney !== null || direct.money !== null) result.money = direct.money !== null ? direct.money : (gMoney !== null ? gMoney : pMoney);
+    if (pFortune !== null || gFortune !== null || direct.fortune !== null) result.fortune = direct.fortune !== null ? direct.fortune : (gFortune !== null ? gFortune : pFortune);
+    if (pIdentity !== null || gIdentity !== null || direct.identity !== null) result.identity = direct.identity !== null ? direct.identity : (gIdentity !== null ? gIdentity : pIdentity);
+
+    if (Object.keys(result).length <= 0) return {};
+    return result;
+  }
+
+  function readSoulOriginToneSettings() {
+    var params = {};
+    try {
+      params = new URLSearchParams(window.location && window.location.search ? window.location.search : '');
+    } catch (_) {
+      params = {};
+    }
+
+    var preset = normalizeTonePreset(
+      (typeof params.get === 'function' && clean(params.get('tonePreset'))) ||
+      (typeof params.get === 'function' && clean(params.get('counselingTonePreset'))) ||
+      (typeof params.get === 'function' && clean(params.get('toneMode'))) ||
+      window.__cdSoulOriginTonePreset ||
+      '',
+    );
+
+    var intensity = normalizeToneIntensity(
+      (typeof params.get === 'function' && params.get('toneIntensity')) ||
+      (typeof params.get === 'function' && params.get('toneWeight')) ||
+      (typeof params.get === 'function' && params.get('toneStrength')) ||
+      window.__cdSoulOriginToneIntensity,
+    );
+    var toneWeights = readSoulOriginToneWeightsFromQuery(params);
+
+    return {
+      tonePreset: preset,
+      toneIntensity: intensity,
+      toneWeights: toneWeights,
+    };
   }
 
   function readStorageProfile() {
@@ -393,6 +507,7 @@
   function mapSoulOriginUserMessage(error) {
     var status = Number(error && error.status || 0);
     var code = clean(error && error.code).toUpperCase();
+    var stage = clean(error && error.stage).toUpperCase();
     var raw = clean(error && error.message);
 
     if (status === 401 || code.indexOf('UNAUTHORIZED') >= 0 || code.indexOf('AUTH') >= 0) {
@@ -407,8 +522,33 @@
     if (code.indexOf('BIRTH_') >= 0 || raw.indexOf('태어난 시간') >= 0 || raw.indexOf('생년월일') >= 0) {
       return '생년월일시 정보를 확인한 뒤 다시 시도해 주세요.';
     }
-    if (code.indexOf('SOUL_ORIGIN_GENERATION_FAILED') >= 0 || code.indexOf('SOUL_ORIGIN_MANUSCRIPT_INVALID') >= 0) {
+    if (stage === 'LLM-GENERATION' || stage === 'LLM_GENERATION') {
+      return '상담 문장 생성 단계에서 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (code.indexOf('SOUL_ORIGIN_LLM_CHAPTER_FAILED') >= 0
+      || code.indexOf('SOUL_ORIGIN_LLM_DISABLED') >= 0
+      || code.indexOf('LLM_ONLY') >= 0
+    ) {
+      return '운명의 상담 문장을 생성하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (code.indexOf('SOUL_ORIGIN_LLM_GENERATION_FAILED') >= 0
+      || code.indexOf('SOUL_ORIGIN_LLM_JSON_PARSE_FAILED') >= 0
+      || code.indexOf('SOUL_ORIGIN_LLM_CHAPTER_VALIDATION_FAILED') >= 0
+      || code.indexOf('SOUL_ORIGIN_LLM_MANUSCRIPT_VALIDATION_FAILED') >= 0
+      || code.indexOf('SOUL_ORIGIN_GENERATION_FAILED') >= 0
+      || code.indexOf('SOUL_ORIGIN_MANUSCRIPT_INVALID') >= 0
+    ) {
       return '운명의 업 상담서 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.';
+    }
+    if (code.indexOf('GEMINI_KEYS_MISSING') >= 0
+      || code.indexOf('GEMINI_KEYS_UNUSABLE') >= 0
+      || code.indexOf('GEMINI_EXHAUSTED') >= 0
+      || code.indexOf('GEMINI_SDK') >= 0
+    ) {
+      return '상담 엔진 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (code.indexOf('SOUL_ORIGIN_ARCHIVE_URL_MISSING') >= 0) {
+      return '상담 원고가 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.';
     }
     return raw || '운명의 업 상담서를 여는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
   }
@@ -636,11 +776,15 @@
     var endpoints = getApiBaseCandidates(path);
     var idx = 0;
     var lastClientError = '';
+    var lastStage = '';
 
     return new Promise(function (resolve, reject) {
       function run() {
         if (idx >= endpoints.length) {
-          reject(new Error(lastClientError || '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.'));
+          var finalError = new Error(lastClientError || '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+          finalError.code = 'REQUEST_FAILED';
+          if (lastStage) finalError.stage = lastStage;
+          reject(finalError);
           return;
         }
 
@@ -663,13 +807,20 @@
 
             if (isAuthOrPaymentFailure(pack.status, pack.data || {}) || (pack.status >= 400 && pack.status < 500 && !isRetryableStatus(pack.status))) {
               var message = clean(pack.data && (pack.data.message || pack.data.error || pack.data.code));
+              var remoteStage = clean(pack.data && pack.data.debugSafe && pack.data.debugSafe.stage);
               lastClientError = message || '입력값 또는 결제 상태를 확인해 주세요.';
               var reqError = new Error(lastClientError);
               reqError.status = Number(pack.status || 0);
               reqError.code = clean(pack.data && (pack.data.code || pack.data.error || 'REQUEST_FAILED'));
+              if (remoteStage) {
+                reqError.stage = remoteStage;
+                lastStage = remoteStage;
+              }
               reject(reqError);
               return;
             }
+
+            lastStage = clean(pack.data && pack.data.debugSafe && pack.data.debugSafe.stage);
 
             idx += 1;
             run();
@@ -677,6 +828,7 @@
           .catch(function (error) {
             var reason = clean(error && error.message);
             if (reason && !lastClientError) lastClientError = reason;
+            if (error && error.stage) lastStage = clean(error.stage);
             idx += 1;
             run();
           });
@@ -723,6 +875,7 @@
       writeSessionValue(SESSION_ID_KEY, paymentSessionId || sessionId);
 
       var reportId = 'soul-origin:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+      var toneSettings = readSoulOriginToneSettings();
       var payload = {
         mode: 'personal',
         featureKey: FEATURE_KEY,
@@ -763,6 +916,9 @@
           sessionId: clean(accessGrant.sessionId || paymentSessionId || sessionId) || undefined,
           reportSessionId: clean(accessGrant.reportSessionId || accessGrant.sessionId || paymentSessionId || sessionId) || undefined,
         } : undefined,
+        tonePreset: toneSettings.tonePreset,
+        toneIntensity: toneSettings.toneIntensity,
+        toneWeights: toneSettings.toneWeights,
       };
 
       logStage('SessionCreateStart', { requestId: requestId, sessionId: sessionId });

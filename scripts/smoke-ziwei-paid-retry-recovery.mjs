@@ -117,21 +117,27 @@ async function consumeZiwei(base, token, requestId) {
     requestId,
   };
 
-  const { response, data } = await requestJson(base, "/api/fortune/pig-coin/consume", {
+  const { response, data } = await requestJson(base, "/api/billing/coin-gate", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      ...body,
+      paymentMode: "COIN",
+      forceDeduct: true,
+    }),
   });
+  const billingData = data?.data && typeof data.data === "object" ? data.data : data;
+  const consume = billingData?.consume && typeof billingData.consume === "object" ? billingData.consume : billingData;
 
   return {
     status: response.status,
     ok: response.ok,
     data,
-    chargedCoins: Number(data?.chargedCoins || data?.data?.chargedCoins || 0),
-    premiumAccessToken: clean(data?.premiumAccessToken || data?.data?.premiumAccessToken || ""),
+    chargedCoins: Number(consume?.chargedCoins || consume?.cost || data?.chargedCoins || data?.data?.chargedCoins || 0),
+    premiumAccessToken: clean(billingData?.premiumAccessToken || data?.premiumAccessToken || data?.data?.premiumAccessToken || ""),
   };
 }
 
@@ -265,7 +271,7 @@ async function pollResult(base, token, sessionId, reportId, maxAttempts = 4) {
     const result = await fetchResult(base, token, sessionId, reportId);
     const chapters = Array.isArray(result?.data?.chapters) ? result.data.chapters.length : 0;
     const hasHtml = Boolean(clean(result?.data?.pdfReady?.html));
-    if (result.ok && result.data?.ok === true && chapters >= 13 && hasHtml) {
+    if (result.ok && result.data?.ok === true && chapters >= 15 && hasHtml) {
       return { ok: true, attempt: i, result };
     }
     last = { attempt: i, result };
@@ -326,7 +332,7 @@ async function main() {
   const retryChapters = Array.isArray(retryPrepare?.data?.chapters) ? retryPrepare.data.chapters.length : 0;
   const retryHasHtml = Boolean(clean(retryPrepare?.data?.pdfReady?.html));
 
-  if (!(retryPrepare.ok && retryPrepare.data?.ok === true && retryChapters >= 13 && retryHasHtml)) {
+  if (!(retryPrepare.ok && retryPrepare.data?.ok === true && retryChapters >= 15 && retryHasHtml)) {
     const polled = await pollResult(base, loginResult.token, sessionId, retryReportId, 5);
     ensure(polled.ok, "result 복구 조회 실패", polled.last?.result?.data || polled.last);
     finalPayload = polled.result;
@@ -336,10 +342,14 @@ async function main() {
   const chapters = Array.isArray(finalPayload?.data?.chapters) ? finalPayload.data.chapters.length : 0;
   const hasHtml = Boolean(clean(finalPayload?.data?.pdfReady?.html));
   const finalReportId = clean(finalPayload?.data?.reportId || retryReportId);
+  const ziweiJsonV2 = finalPayload?.data?.ziweiJsonV2 || finalPayload?.data?.payload?.ziweiJsonV2 || finalPayload?.data?.ziweiPayload?.ziweiJsonV2;
+  const evidenceMap = Array.isArray(ziweiJsonV2?.chapterEvidenceMap) ? ziweiJsonV2.chapterEvidenceMap : [];
 
   ensure(finalPayload.ok && finalPayload.data?.ok === true, "최종 결과가 ok=true가 아님", finalPayload.data);
-  ensure(chapters >= 13, "최종 챕터 수 부족", { chapters, payload: finalPayload.data });
+  ensure(chapters >= 15, "최종 챕터 수 부족", { chapters, payload: finalPayload.data });
   ensure(hasHtml, "최종 pdfReady.html 누락", finalPayload.data);
+  ensure(ziweiJsonV2?.schemaVersion === "ziwei-pdf-v2", "ziweiJsonV2 schemaVersion missing", finalPayload.data);
+  ensure(evidenceMap.length >= 15, "ziweiJsonV2 evidence map too small", { evidenceMapLength: evidenceMap.length });
 
   const meAfter = await fetchAuthMe(base, loginResult.token);
   printKv("ME_AFTER_STATUS", meAfter.status);
@@ -350,6 +360,8 @@ async function main() {
 
   printKv("REPORT_ID", finalReportId);
   printKv("CHAPTERS", chapters);
+  printKv("ZIWEI_JSON_V2", ziweiJsonV2.schemaVersion);
+  printKv("EVIDENCE_MAP", evidenceMap.length);
   printKv("HAS_PDF_HTML", hasHtml);
   printKv("E2E_RESULT", "PASS");
 }

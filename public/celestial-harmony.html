@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>?饔낅떽???壤굿??깆떡?亦껋꼦維?????????읐?癰???| Celestial Harmony Tarot</title>
+  <title>천체의 선율 타로 | Celestial Harmony Tarot</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -202,7 +202,7 @@
       cursor: pointer;
     }
 
-    /* ???? Planetary Spread Layout ???? */
+    /* Planetary Spread Layout */
     .spread-label {
       text-align:center; color:rgba(180,160,120,.55);
       font-size:.6rem; letter-spacing:.25em; text-transform:uppercase;
@@ -232,7 +232,7 @@
     /* ??5: col 2 (center) */
     .spread-pos-11 { grid-column:2; grid-row:5; }
 
-    /* ????????노듋????*/
+    /* Tarot Card Layout */
     .tarot-card {
       position:relative;
       aspect-ratio:2/3;
@@ -356,52 +356,52 @@
               <div class="absolute inset-0 rounded-full border border-amber-400/50" style="animation:orbitRing 20s linear infinite;"></div>
               <div class="absolute rounded-full border border-violet-400/35" style="inset:5px;animation:orbitRing 13s linear infinite reverse;"></div>
               <div class="absolute rounded-full border border-cyan-400/25" style="inset:11px;animation:orbitRing 8s linear infinite;"></div>
-              <div class="absolute inset-0 flex items-center justify-center"><span style="color:#f5d06f;font-size:1.1rem;">??/span></div>
+              <div class="absolute inset-0 flex items-center justify-center"><span style="color:#f5d06f;font-size:1.1rem;">✦</span></div>
             </div>
           </div>
         </div>
         <div class="p-6 md:p-9">
-          <p class="text-amber-400/55 text-xs tracking-widest uppercase font-mono mb-3">??Celestial Harmony &middot; 11 Planetary Tarot Master Reading ??/p>
+          <p class="text-amber-400/55 text-xs tracking-widest uppercase font-mono mb-3">Celestial Harmony &middot; 11 Planetary Tarot</p>
           <h1 class="shimmer-gold font-bold mb-4" style="font-size:clamp(1.9rem,4vw,3.2rem);line-height:1.22;">
-            ?饔낅떽???壤굿??깆떡?亦껋꼦維?????????읐?癰???br>
-            <span style="font-size:clamp(1.3rem,2.6vw,2rem);font-weight:500;">11???μ떜媛?슙????????饔낅떽???????????녾컯?遺븐땡??/span>
+            천체의 선율 타로<br>
+            <span style="font-size:clamp(1.3rem,2.6vw,2rem);font-weight:500;">11행성의 목소리를 엮는 리딩</span>
           </h1>
           <p class="text-amber-100/68 text-sm md:text-base leading-relaxed max-w-2xl mb-2">
-            ???????11?????μ떜媛?슙?????????沃섃넄?????源녾텛?????ル늉?? ???癲??嶺????????ㅻ쑋????????怨룹씐????꿔꺂?????? ????????????????饔낅떽????ш낄?뉔뇡?????????ㅻ쑄???????????????????????????????????닿튃癲???꿔꺂??????
-            ?????μ떜媛?슙???? ??轅붽틓??????????꿔꺂?????덉뗄?middot;???嶺뚮Ĳ?????middot;??????????롮쾸?椰?? ?????⑥щ똿????????鶯???汝뷴젆??녷뉩??읂???雅?퍔瑗?땟?壤굿??걜??????沃섃넄?????源녾텛????????怨멸텛??????????????놁졄.
+            태양부터 카이론까지 11개의 행성 자리에 타로 카드를 펼쳐 의식, 무의식, 그림자, 영혼 과제, 현실 조율을 하나의 선율로 읽습니다.
+            각 카드는 독립된 예언이 아니라 행성의 질문과 만나 지금 필요한 선택의 방향을 섬세하게 비춥니다.
           </p>
-          <p class="text-amber-100/38 text-xs">?饔낅떽???????<span style="color:rgba(245,208,111,.65);">????猷멸컼??????? ????노듋????/span>????ル늉?? 11?????μ떜媛?슙?????????沃섃넄?????源녾텛??????汝뷴젆?琉껆????????????????????????????????꿔꺂??????</p>
+          <p class="text-amber-100/38 text-xs">별빛 통합 카드까지 더해 11행성의 흐름을 하나의 오라클로 완성합니다.</p>
           <div class="flex flex-wrap gap-3 mt-7">
-            <button id="drawBtn" style="background:linear-gradient(120deg,#5b21b6,#7c3aed);border:1px solid rgba(167,139,250,.45);padding:.75rem 1.75rem;border-radius:999px;font-weight:700;font-size:.875rem;cursor:pointer;color:#ede9fe;transition:all .3s;font-family:inherit;">??????노듋????????썹땟戮녹????????ш끽維귞댆?/button>
-            <button id="readBtn" disabled style="background:linear-gradient(120deg,#92400e,#d97706);border:1px solid rgba(245,158,11,.4);padding:.75rem 1.75rem;border-radius:999px;font-weight:700;font-size:.875rem;cursor:pointer;color:#fef3c7;transition:all .3s;font-family:inherit;opacity:.4;">???????????녾컯?遺븐땡??????썹땟戮녹???猷고ｏ쭗??/button>
-            <button id="resetBtn" style="background:transparent;border:1px solid rgba(255,255,255,.2);padding:.75rem 1.75rem;border-radius:999px;font-weight:700;font-size:.875rem;cursor:pointer;color:rgba(255,255,255,.6);transition:all .3s;font-family:inherit;">&#8635; ??????살퓢?????꿔꺂???影?우Ŀ?/button>
+            <button id="drawBtn" style="background:linear-gradient(120deg,#5b21b6,#7c3aed);border:1px solid rgba(167,139,250,.45);padding:.75rem 1.75rem;border-radius:999px;font-weight:700;font-size:.875rem;cursor:pointer;color:#ede9fe;transition:all .3s;font-family:inherit;">행성 자리 펼치기</button>
+            <button id="readBtn" disabled style="background:linear-gradient(120deg,#92400e,#d97706);border:1px solid rgba(245,158,11,.4);padding:.75rem 1.75rem;border-radius:999px;font-weight:700;font-size:.875rem;cursor:pointer;color:#fef3c7;transition:all .3s;font-family:inherit;opacity:.4;">별빛 통합 리딩 열기</button>
+            <button id="resetBtn" style="background:transparent;border:1px solid rgba(255,255,255,.2);padding:.75rem 1.75rem;border-radius:999px;font-weight:700;font-size:.875rem;cursor:pointer;color:rgba(255,255,255,.6);transition:all .3s;font-family:inherit;">&#8635; 다시 펼치기</button>
           </div>
           <div class="premium-status-panel" id="premiumStatusPanel" aria-live="polite">
             <div class="premium-status-row">
-              <span class="premium-chip" id="premiumChip">premium idle</span>
-              <span style="font-size:.72rem;color:rgba(255,255,255,.64);">????ル늉????<strong style="color:rgba(253,230,138,.95);">100?????밸븶????/strong> ????棺堉?뤃???傭?끆??????꿔꺂??琉몃쨨???????????力?肉??????쇰뮛?筌믡꺂?뜻ㅀ袁⑦뀘????饔낅떽??????/span>
+              <span class="premium-chip" id="premiumChip">카드 대기</span>
+              <span style="font-size:.72rem;color:rgba(255,255,255,.64);">11행성 심층 리딩 <strong style="color:rgba(253,230,138,.95);">100코인</strong> · 별빛 통합 오라클이 열립니다.</span>
             </div>
-            <div id="premiumStatusText" style="font-size:.78rem;color:rgba(255,255,255,.78);line-height:1.5;">????노듋?????壤굿?쒓낯??????썹땟戮녹???????????棺堉?뤃??????????녾컯?遺븐땡???關???꾨き?筌욌끀??鍮㎳???????됰Ŧ鍮???戮?걫癲?????쎛 ????癲???꿔꺂??????</div>
+            <div id="premiumStatusText" style="font-size:.78rem;color:rgba(255,255,255,.78);line-height:1.5;">행성 자리를 먼저 펼친 뒤, 별빛 통합 오라클을 열 수 있습니다.</div>
             <div class="premium-steps" id="premiumSteps">
-              <div class="premium-step" data-step="draw"><div class="premium-step__k">step 1</div><div class="premium-step__v">????노듋????????썹땟戮녹????/div></div>
-              <div class="premium-step" data-step="payment"><div class="premium-step__k">step 2</div><div class="premium-step__v">??棺堉?뤃??????棺堉?뤃????/div></div>
-              <div class="premium-step" data-step="generate"><div class="premium-step__k">step 3</div><div class="premium-step__v">????녾컯?遺븐땡?????熬곣뫖利???/div></div>
-              <div class="premium-step" data-step="complete"><div class="premium-step__k">step 4</div><div class="premium-step__v">??棺堉?뤃?????????節뗭젔???????⑤뜪??/div></div>
+              <div class="premium-step" data-step="draw"><div class="premium-step__k">1단계</div><div class="premium-step__v">카드 배치</div></div>
+              <div class="premium-step" data-step="payment"><div class="premium-step__k">2단계</div><div class="premium-step__v">결제 확인</div></div>
+              <div class="premium-step" data-step="generate"><div class="premium-step__k">3단계</div><div class="premium-step__v">오라클 생성</div></div>
+              <div class="premium-step" data-step="complete"><div class="premium-step__k">4단계</div><div class="premium-step__v">리딩 완성</div></div>
             </div>
           </div>
-          <p class="mt-5 text-amber-200/28 text-xs">&#x1F4AB; ?饔낅떽??????????1??100?????밸븶??????棺堉?뤃????????????⑤뜤????꿔꺂??????</p>
+          <p class="mt-5 text-amber-200/28 text-xs">&#x1F4AB; 1회 100코인으로 11행성 전체 리딩과 별빛 통합 오라클을 엽니다.</p>
         </div>
       </div>
     </section>
 
-    <!-- 11???μ떜媛?슙???????노듋?????????좊틣????-->
+    <!-- Planetary spread -->
     <section id="boardSec" style="display:none;">
       <div class="flex items-center gap-3 mb-6">
         <div class="cosmic-divider"></div>
         <span class="text-amber-300/65 text-xs tracking-widest uppercase font-mono px-4 whitespace-nowrap">&#x2B21; PLANETARY SPREAD &#x2B21;</span>
         <div class="cosmic-divider"></div>
       </div>
-      <p class="spread-label">????노듋?????壤굿?쒓낯?????????꿔꺂?????? ???????????????쇰뮛???????/p>
+      <p class="spread-label">카드를 선택하면 해당 행성 리딩으로 이동합니다.</p>
       <div id="board" class="spread-grid mb-12"></div>
     </section>
 
@@ -413,25 +413,25 @@
         <div class="absolute inset-0 flex items-center justify-center"><span style="color:#f5d06f;font-size:1.8rem;">&#x2726;</span></div>
       </div>
       <div class="ld mb-5"><span></span><span></span><span></span></div>
-      <p style="color:rgba(253,230,138,.88);font-size:1.1rem;font-weight:700;margin-bottom:.5rem;">??????????????沃섃넄?????源녾텛??????꿔꺂????濡?쟼???#8230;</p>
-      <p id="loadMsg" style="color:rgba(255,255,255,.45);font-size:.875rem;">Gemini AI????ル늉?? ?????μ떜媛?슙?????????沃섃넄?????源녾텛?????????????닿튃癲????濡ろ뜐???????????????놁졄</p>
+      <p style="color:rgba(253,230,138,.88);font-size:1.1rem;font-weight:700;margin-bottom:.5rem;">천체의 신호를 정렬하고 있습니다...</p>
+      <p id="loadMsg" style="color:rgba(255,255,255,.45);font-size:.875rem;">11행성 카드 배열의 목소리를 하나의 선율로 엮고 있습니다.</p>
     </section>
 
-    <!-- ????녾컯?遺븐땡????棺堉?뤃????-->
+    <!-- Card reading results -->
     <section id="resSec" style="display:none;">
       <div class="flex items-center gap-3 mb-8">
         <div class="cosmic-divider"></div>
-        <span class="text-amber-300/65 text-xs tracking-widest uppercase font-mono px-4 whitespace-nowrap">&#x2B21; ???μ떜媛?슙????????????????녾컯?遺븐땡??&#x2B21;</span>
+        <span class="text-amber-300/65 text-xs tracking-widest uppercase font-mono px-4 whitespace-nowrap">&#x2B21; PLANETARY CARD READING &#x2B21;</span>
         <div class="cosmic-divider"></div>
       </div>
       <div id="resCon" class="space-y-12"></div>
     </section>
 
-    <!-- ????猷멸컼??????? ????노듋????-->
+    <!-- Golden integration oracle -->
     <section id="goldSec" class="mt-16" style="display:none;">
       <div class="flex items-center gap-3 mb-8">
         <div class="cosmic-divider"></div>
-        <span style="color:rgba(245,208,111,.78);font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;font-family:monospace;padding:0 1rem;white-space:nowrap;">&#x2726; ????猷멸컼??????? ????노듋????&#x2726;</span>
+        <span style="color:rgba(245,208,111,.78);font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;font-family:monospace;padding:0 1rem;white-space:nowrap;">&#x2726; GOLDEN INTEGRATION ORACLE &#x2726;</span>
         <div class="cosmic-divider"></div>
       </div>
       <div id="goldCon"></div>
@@ -451,25 +451,25 @@
       starsBg.appendChild(s);
     }
     var PLANETS = [
-      { name:'??????, symbol:'&#x2609;', en:'Sun', key:'sun', question:'???汝뷴젆??녷뉩??읂??饔낅떽????????????????? ???꿔꺂?????????????轅붽틓?????關??????꿔꺂??틝????떻???汝뷴젆??녷뉩??읂????ル늉???', energy:'???꿔꺂?????덉뗄???關???꾨き??熬곥룊??? },
-      { name:'??, symbol:'&#x263D;', en:'Moon', key:'moon', question:'???饔낅떽??????????롮쾸?椰?? ?????⑥щ똿???????썹땟戮녹??????汝뷴젆??녷뉩??읂?????ル늉??????????鶯ㅺ동???怨몄쓥?? ???嶺뚮Ĳ???????', energy:'???嶺뚮Ĳ???????????????ル뒇??? },
-      { name:'???꿔꺂??節낆젂??, symbol:'&#x263F;', en:'Mercury', key:'mercury', question:'???汝뷴젆??녷뉩??읂??????????猷몄굣?????饔낅떽????????????????????????諛몃마嶺뚮캙維?????????닿튃癲???汝뷴젆??녷뉩??읂????ル늉???', energy:'????猷몄굣??????轅붽틓??????????? },
-      { name:'???亦낃콛??????紐낅뭽?, symbol:'&#x2640;', en:'Venus', key:'venus', question:'???汝뷴젆??녷뉩??읂????嶺뚮Ĳ????????????濡ろ뜐??????嶺뚮Ĳ????????????ル늉??????노듋???? ????????', energy:'????????먃?????ル늉??????노듋??????? },
-      { name:'????嫄???, symbol:'&#x2642;', en:'Mars', key:'mars', question:'?????嚥싲갭큔?????轅붽틓??????????⑥ル츧癲?????????????關??濡녹춻?????', energy:'??轅붽틓????????????곕춴傭??????⑥ル럯??? },
-      { name:'?饔낅떽????ш낄?뉔뇡????듬뭽?, symbol:'&#x2643;', en:'Jupiter', key:'jupiter', question:'????? ???????????轅붽틓?????????濡ろ뜐????????????븍툖???????? ??關?쒎첎?嫄????????留왖????', energy:'??轅붽틓???????????븍툖??????? },
-      { name:'??????읐??, symbol:'&#x2644;', en:'Saturn', key:'saturn', question:'??? ??????????깅짆?????????諛몃마嶺뚮캙維????????????????? ???嶺뚮Ĳ???????', energy:'????⑤슦????? ?????????嶺???? },
-      { name:'?饔낅떽???壤굿??깆떡???, symbol:'&#x26E2;', en:'Uranus', key:'uranus', question:'???????關履???????롮쾸????????汝뷴젆??녷뉩??읂??????? ????쇰뮛??????嫄??????嚥▲굧?먪춯?????? ???嶺뚮Ĳ???????', energy:'????ル늉??????????????癲??????몃뼪?? },
-      { name:'??????⑤뜤???, symbol:'&#x2646;', en:'Neptune', key:'neptune', question:'????????? ???嶺뚮Ĳ?????????됰Ŧ???????????????????꿔꺂??節낆젂?븍；留????轅붽틓?????????????????ル늉???', energy:'????됰Ŧ????????꿔꺂??節낆젂?븍；留??????썹땟戮녹????? },
-      { name:'?饔낅떽???嶺뚮슢梨뜹ㅇ???, symbol:'&#x2647;', en:'Pluto', key:'pluto', question:'??? ?饔낅떽???????????깅짆????????ル늉????????롮쾸?椰?? ?????좊틣????? ????쇰뮛??????嫄??????? ???嶺뚮Ĳ???????', energy:'?????좊틣????? ????쇰뮛????轅붽틓???????????? },
-      { name:'????노듋?????됰슦?????, symbol:'&#x26B7;', en:'Chiron', key:'chiron', question:'????????ㅻ쑋????????????썹땟??貫沅?????????????노듋??????? ?饔낅떽??????? ???汝뷴젆??녷뉩??읂????ル늉???', energy:'??????ㅻ쑋??? ????노듋????????? }
+      { name:'태양', symbol:'☉', en:'Sun', key:'sun', question:'나는 지금 어떤 자아와 생명력으로 세상에 드러나는가?', energy:'의식의 중심과 삶의 목적을 밝히는 힘' },
+      { name:'달', symbol:'☽', en:'Moon', key:'moon', question:'마음 깊은 곳에서 반복되는 감정 기억과 본능은 무엇인가?', energy:'무의식의 물결과 정서적 안정 욕구' },
+      { name:'수성', symbol:'☿', en:'Mercury', key:'mercury', question:'나는 어떤 생각과 말의 패턴으로 현실을 해석하는가?', energy:'사고, 언어, 판단, 소통의 회로' },
+      { name:'금성', symbol:'♀', en:'Venus', key:'venus', question:'나는 무엇을 사랑하고 어디에서 아름다움과 가치를 느끼는가?', energy:'사랑, 매력, 관계 욕구, 자기 가치감' },
+      { name:'화성', symbol:'♂', en:'Mars', key:'mars', question:'내 안의 욕망, 분노, 추진력은 어디로 향하는가?', energy:'행동력, 용기, 욕망을 현실로 밀어내는 불꽃' },
+      { name:'목성', symbol:'♃', en:'Jupiter', key:'jupiter', question:'내 삶은 어디에서 확장되고 어떤 믿음이 나를 성장시키는가?', energy:'성장, 기회, 신념, 보호의 문' },
+      { name:'토성', symbol:'♄', en:'Saturn', key:'saturn', question:'내가 통과해야 할 현실의 시험과 책임은 무엇인가?', energy:'한계, 책임, 시간, 구조, 성숙의 관문' },
+      { name:'천왕성', symbol:'♅', en:'Uranus', key:'uranus', question:'내 삶에서 깨어나고 있는 자유와 변화의 충동은 무엇인가?', energy:'해방, 혁신, 돌파, 각성의 번개' },
+      { name:'해왕성', symbol:'♆', en:'Neptune', key:'neptune', question:'내 영혼은 무엇을 꿈꾸며 어디에서 환상과 직관을 만나는가?', energy:'꿈, 영성, 환상, 직관의 바다' },
+      { name:'명왕성', symbol:'♇', en:'Pluto', key:'pluto', question:'내가 직면해야 할 가장 깊은 그림자와 변화의 통로는 무엇인가?', energy:'죽음과 재생, 집착, 심층 변형의 심연' },
+      { name:'카이론', symbol:'⚷', en:'Chiron', key:'chiron', question:'내 상처는 어떤 방식으로 치유와 지혜가 되는가?', energy:'상처를 치유와 내면의 스승으로 바꾸는 별' }
     ];
     var MAJOR = [
-      {n:'????썹땟戮녹?????,en:'The Fool',r:'0'},{n:'?饔낅떽???????????,en:'The Magician',r:'I'},{n:'?????,en:'The High Priestess',r:'II'},{n:'?????,en:'The Empress',r:'III'},
-      {n:'???????,en:'The Emperor',r:'IV'},{n:'??????,en:'The Hierophant',r:'V'},{n:'????????,en:'The Lovers',r:'VI'},{n:'?????諛몃마嶺뚮Ŋ二??,en:'The Chariot',r:'VII'},
-      {n:'??,en:'Strength',r:'VIII'},{n:'??????嫄???,en:'The Hermit',r:'IX'},{n:'??????????썹땟戮녹????,en:'Wheel of Fortune',r:'X'},{n:'??轅붽틓????????,en:'Justice',r:'XI'},
-      {n:'?饔낅떽??????꿔꺂???????,en:'The Hanged Man',r:'XII'},{n:'?????⑹름???,en:'Death',r:'XIII'},{n:'???嚥싲갭큔?源??,en:'Temperance',r:'XIV'},{n:'??????ㅿ폍??,en:'The Devil',r:'XV'},
-      {n:'??,en:'The Tower',r:'XVI'},{n:'??,en:'The Star',r:'XVII'},{n:'??,en:'The Moon',r:'XVIII'},{n:'??????,en:'The Sun',r:'XIX'},
-      {n:'????,en:'Judgement',r:'XX'},{n:'??轅붽틓??????,en:'The World',r:'XXI'}
+      {n:'바보',en:'The Fool',r:'0'},{n:'마법사',en:'The Magician',r:'I'},{n:'여사제',en:'The High Priestess',r:'II'},{n:'여황제',en:'The Empress',r:'III'},
+      {n:'황제',en:'The Emperor',r:'IV'},{n:'교황',en:'The Hierophant',r:'V'},{n:'연인',en:'The Lovers',r:'VI'},{n:'전차',en:'The Chariot',r:'VII'},
+      {n:'힘',en:'Strength',r:'VIII'},{n:'은둔자',en:'The Hermit',r:'IX'},{n:'운명의 수레바퀴',en:'Wheel of Fortune',r:'X'},{n:'정의',en:'Justice',r:'XI'},
+      {n:'매달린 사람',en:'The Hanged Man',r:'XII'},{n:'죽음',en:'Death',r:'XIII'},{n:'절제',en:'Temperance',r:'XIV'},{n:'악마',en:'The Devil',r:'XV'},
+      {n:'탑',en:'The Tower',r:'XVI'},{n:'별',en:'The Star',r:'XVII'},{n:'달',en:'The Moon',r:'XVIII'},{n:'태양',en:'The Sun',r:'XIX'},
+      {n:'심판',en:'Judgement',r:'XX'},{n:'세계',en:'The World',r:'XXI'}
     ];
 
     function $(id){return document.getElementById(id);}
@@ -502,7 +502,7 @@
     var localReadingUsed=false;
     var localReadingReason='';
 
-    // ????????????쇰뮛???????嚥싲갭큔?댁옃紐?????諛몃마?????????汝뷴젆???堉샕?11?癲?????꿔꺂???≪쾸??????노듋?????됰슦?????????읐?癰????筌?痢?????
+    // Visual order for the 11-card planetary spread.
     var SPREAD_ORDER=[10,8,1,4,2,7,0,5,6,9,3];
 
     function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
@@ -632,8 +632,8 @@
         fool: { core:['순간의 용기','새로운 문턱의 진입','부재를 통과하는 선택'], shadow:['성급한 낙관','준비 누락'], lesson:['우선순위 1개로 행동 시작'], practice:['24시간 동안 감정 흐름 기록'], integration:['계획을 짧게 쪼개 1차 실행'] },
         themagician: { core:['잠재력의 결속','의도와 표현의 일치','도구의 실천화'], shadow:['지식 과신','실행 지연'], lesson:['작은 약속으로 실력 검증'], practice:['오늘 단일 약속 1건만 이행'], integration:['행동 전 목적을 한 줄 확정'] },
         magician: { core:['잠재력의 결속','의도와 표현의 일치','도구의 실천화'], shadow:['지식 과신','실행 지연'], lesson:['작은 약속으로 실력 검증'], practice:['오늘 단일 약속 1건만 이행'], integration:['행동 전 목적을 한 줄 확정'] },
-        thehighpriestess: { core:['무의식의 안내','침묵에서 정리된 통찰','직감의 번역'], shadow:['정보 회피','감정 누락'], lesson:['질문 3개를 적고 답을 기다림'], practice:['직감 일지 5분 작성'], integration:['결과보다 신호를 우선 판독'] },
-        highpriestess: { core:['무의식의 안내','침묵에서 정리된 통찰','직감의 번역'], shadow:['정보 회피','감정 누락'], lesson:['질문 3개를 적고 답을 기다림'], practice:['직감 일지 5분 작성'], integration:['결과보다 신호를 우선 판독'] },
+        thehighpriestess: { core:['무의식의 안내','침묵에서 정리된 통찰','직감의 번역'], shadow:['정보 회피','감정 누락'], lesson:['질문 3개를 적고 답을 기다림'], practice:['직감 일지 5분 작성'], integration:['결과보다 신호를 먼저 듣기'] },
+        highpriestess: { core:['무의식의 안내','침묵에서 정리된 통찰','직감의 번역'], shadow:['정보 회피','감정 누락'], lesson:['질문 3개를 적고 답을 기다림'], practice:['직감 일지 5분 작성'], integration:['결과보다 신호를 먼저 듣기'] },
         theempress: { core:['생성의 확장','돌봄의 경계 관리','관계의 생생함 보존'], shadow:['과보호','과잉 동정'], lesson:['돌보되 상대의 선택권 보존'], practice:['감사 메시지 1개 보내기'], integration:['공유 방식과 경계 기준 합의'] },
         empress: { core:['생성의 확장','돌봄의 경계 관리','관계의 생생함 보존'], shadow:['과보호','과잉 동정'], lesson:['돌보되 상대의 선택권 보존'], practice:['감사 메시지 1개 보내기'], integration:['공유 방식과 경계 기준 합의'] },
         theemperor: { core:['구조의 안정','결정의 책임성','실행의 일관성'], shadow:['권위 집중','융통성 상실'], lesson:['규칙을 3개로 단축'], practice:['오늘 꼭 지킬 기준 3개 적기'], integration:['변경 가능 항목과 불변 항목 분리'] },
@@ -747,15 +747,15 @@
           orientation: orientation,
           cardNameKo: cardNameKo,
           cardNameEn: cardNameEn,
-          cardMeaning: cardNameKo + ' / ' + orientationLabel + ' 해석에서는 ' + phase + ' 구간에서 ' + guide.core[0] + '이 먼저 도달합니다. ' + guide.core[1] + '와 ' + guide.core[2] + '가 ' + alignmentHint + '로 수렴해, 질문 \"' + questionHint + '\"의 방향을 만든 뒤 실행 신호를 고정합니다.',
-          planetMeaning: planetName + '의 층 ' + layer + '은 ' + planet.signal + '을 선포합니다. ' + planet.tone + '의 안내 아래 ' + planet.focus + '를 유지하면 ' + guide.core[1] + '와 실천 사이의 마찰이 줄어듭니다.',
-          archetypeReading: (planetName + '은(는) ' + guide.core[0] + ' 패턴입니다. ' + guide.core[1] + '이 지나치면 ' + planet.caution + '이 생길 수 있으므로, ' + guide.lesson[0] + '로 즉시 역량을 조정하세요.'),
-          consciousMessage: planet.focus + '을 정면으로 다뤄야 합니다. ' + guide.lesson[0] + '를 중심으로 ' + guide.practice[0] + '. ' + planet.focus + '은(는) ' + guide.core[0] + '의 실천적 방향입니다.',
+          cardMeaning: cardNameKo + ' ' + orientationLabel + '은 ' + phase + '의 하늘에서 ' + guide.core[0] + '을 먼저 울립니다. ' + guide.core[1] + '와 ' + guide.core[2] + '가 ' + alignmentHint + '의 빛과 만나며, 질문 \"' + questionHint + '\" 앞에서 오늘 필요한 선택의 방향을 밝힙니다.',
+          planetMeaning: planetName + '의 자리는 ' + planet.signal + '을 부드럽게 드러냅니다. ' + planet.tone + '의 리듬을 따라 ' + planet.focus + '를 붙잡으면 ' + guide.core[1] + '이 현실의 작은 행동으로 내려옵니다.',
+          archetypeReading: (planetName + '은(는) ' + guide.core[0] + '의 원형을 깨웁니다. ' + guide.core[1] + '이 지나치게 커지면 ' + planet.caution + '이 그림자로 떠오를 수 있으니, ' + guide.lesson[0] + '을 오늘의 균형추로 삼으세요.'),
+          consciousMessage: planet.focus + '을 정면으로 바라볼 때입니다. ' + guide.lesson[0] + '를 중심에 두고 ' + guide.practice[0] + '. ' + planet.focus + '은(는) ' + guide.core[0] + '을 현실에 고정하는 작은 등불입니다.',
           unconsciousPattern: orientation === 'upright'
             ? ('무의식은 안정이 급해 보일수록 ' + guide.shadow[0] + '로 반응합니다. ' + guide.shadow[1] + '가 나타나면 신호 해석이 지연됩니다.')
             : ('무의식은 역방향에서 ' + guide.shadow[1] + '으로 과거 반복을 소환합니다. ' + guide.shadow[0] + '을 먼저 분리하면 판단이 복구됩니다.'),
           shadowWarning: '주의 신호는 ' + planet.caution + '입니다. ' + guide.shadow[0] + ', ' + guide.shadow[1] + '가 동시에 강화되면 판단이 가짜 확신으로 잠길 수 있습니다.',
-          soulLesson: '오늘의 핵심 교훈은 ' + guide.lesson[0] + '입니다. ' + guide.lesson[0] + '과 ' + planet.focus + '이 결합될 때 카드/행성 조합은 ' + guide.core[0] + '을 현실로 변환합니다.',
+          soulLesson: '오늘의 핵심 교훈은 ' + guide.lesson[0] + '입니다. ' + guide.lesson[0] + '과 ' + planet.focus + '이 만날 때 이 행성의 카드는 ' + guide.core[0] + '을 현실의 언어로 바꿉니다.',
           integrationPractice: '1) ' + guide.practice[0] + '\n2) ' + guide.practice[1] + '\n3) ' + guide.practice[2] + '\n4) 현재 질문에 대한 핵심 한 줄 선언을 밤에 1회 반복',
           tarotKeywords: [cardNameKo, cardNameEn, layer, tone, phase, guide.core[0]],
           planetKeywords: [planetName, key, symbol, alignmentHint, planet.signal]
@@ -801,16 +801,16 @@
 
       var openingCard = cards[0] || {};
       var closingCard = cards[cards.length - 1] || {};
-      var oracle = '첫 장 ' + (openingCard.planetKo || '초기 신호') + '에서 시작한 결을 마지막 장 ' + (closingCard.planetKo || '종결 신호') + '에서 정돈하면, 11장의 의미가 하나의 지도처럼 이어집니다. 각 카드는 단독 판독이 아니라 카드-행성-방향 결절을 함께 해석해야 합니다.';
+      var oracle = '첫 장 ' + (openingCard.planetKo || '초기 신호') + '에서 시작한 선율을 마지막 장 ' + (closingCard.planetKo || '종결 신호') + '에서 정돈하면, 11장의 의미가 하나의 별자리처럼 이어집니다. 각 카드는 따로 떨어진 답이 아니라 행성의 질문과 방향이 만난 오늘의 오라클입니다.';
 
       return {
         cards: cards,
         summary: {
-          overallTheme: '전체 배열은 ' + strengths.join(', ') + '의 흐름을 따라 ' + dominantLayer + ' 층이 주도하고, 실제로는 ' + tone + '의 속도에서 실천으로 떨어지는 패턴이 가장 강합니다. 질문의 핵심은 각 카드의 메시지를 통합해 일괄 실행 가능한 한 문장으로 줄이는 것입니다.',
-          strongestPlanetSignal: '우위 행성 신호: ' + dominantPlanet,
+          overallTheme: '전체 배열은 ' + strengths.join(', ') + '의 흐름을 따라 ' + dominantLayer + '의 하늘을 통과합니다. 지금 가장 강한 리듬은 ' + tone + '이며, 질문의 핵심은 흩어진 카드의 목소리를 오늘 지킬 수 있는 한 문장으로 모으는 것입니다.',
+          strongestPlanetSignal: '가장 크게 울리는 행성: ' + dominantPlanet,
           deepestShadow: deepestShadow,
           soulLesson: '오늘은 ‘실행 가능한 하나’를 기준으로 리듬을 재설정하세요. 감정의 파동을 기록하고, 판단 이전에 3초의 멈춤을 넣으면 카드의 상호작용이 선명해집니다.',
-          integrationPath: cards[0].planetKo + '의 질문에서 출발해, ' + cards[5].planetKo + '의 패턴 점검, ' + cards[10].planetKo + '의 정합으로 3일 연동 실행하십시오.',
+          integrationPath: cards[0].planetKo + '의 질문에서 출발해, ' + cards[5].planetKo + '의 그림자를 살피고, ' + cards[10].planetKo + '의 통합으로 3일 동안 작은 선택을 반복하세요.',
           dominantLayer: dominantLayer,
           dominantSuit: 'major arcana',
           majorArcanaRatio: '11/11 cards',
@@ -858,14 +858,14 @@
     function updateReadButtonLabel(){
       if(!$read) return;
       if(hasCompletedResult){
-        $read.textContent='?????棺堉?뤃????????쇰뮛?筌믡꺂?뜻ㅀ袁⑦뀘?????????살퓢??????쇰뮛?????;
+        $read.textContent='완성된 리딩 다시 보기';
         return;
       }
       if(hasAccess){
-        $read.textContent='???????녾컯?遺븐땡?????熬곣뫖利???????쇰뮛?筌믡꺂?뜻ㅀ袁⑦뀘???;
+        $read.textContent='천체의 선율 리딩 생성';
         return;
       }
-      $read.textContent='???????????녾컯?遺븐땡??????썹땟戮녹???猷고ｏ쭗??;
+      $read.textContent='천체의 선율 리딩 열기';
     }
 
     function updateReadButtonState(){
@@ -956,7 +956,17 @@
     }
 
     function updatePremiumStatus(chip, textMsg, activeStep, doneSteps){
-      if($premiumChip) $premiumChip.textContent = chip || 'premium idle';
+      var chipLabels = {
+        'premium idle': '카드 대기',
+        'premium ready': '리딩 준비',
+        'premium active': '결제 확인',
+        'premium paid': '오라클 생성',
+        'premium complete': '리딩 완성',
+        'premium locked': '결제 필요',
+        'premium recover': '리딩 복구',
+        'premium issue': '확인 필요'
+      };
+      if($premiumChip) $premiumChip.textContent = chipLabels[chip] || chip || '카드 대기';
       if($premiumStatusText) $premiumStatusText.textContent = textMsg || '';
       resetStepState();
       (Array.isArray(doneSteps)?doneSteps:[]).forEach(function(step){ setStepState(step,'done'); });
@@ -1005,12 +1015,12 @@
         var item=spread[pi];
         var pk='p-'+item.planet.key;
         var dl=(pos*.06).toFixed(2)+'s';
-        var dir=item.orientation==='reversed'?'??:'??;
+        var dir=item.orientation==='reversed'?'역방향':'정방향';
         var lockedClass = canDraw ? '' : ' tarot-card--locked';
         var selectedClass = selectedCardIdx===pi ? ' is-selected' : '';
         cells.push(
           '<article class="tarot-card tarot-card--revealed '+pk+' spread-pos-'+(pos+1)+lockedClass+selectedClass+' board-in" data-card-idx="'+pi+'" role="button" tabindex="0" aria-disabled="'+(canDraw?'false':'true')+'" style="animation-delay:'+dl+';">'+
-            '<p class="tarot-card__planet-name">'+esc(item.planet.en.toUpperCase())+' ??'+dir+'</p>'+
+            '<p class="tarot-card__planet-name">'+esc(item.planet.en.toUpperCase())+' · '+dir+'</p>'+
             '<span class="tarot-card__symbol">'+item.planet.symbol+'</span>'+
             '<p class="tarot-card__arcana">'+esc(item.tarot.r)+' '+esc(item.tarot.n)+'</p>'+
             '<p class="tarot-card__num">'+String(pos+1).padStart(2,'0')+'</p>'+
@@ -1026,25 +1036,25 @@
       $resCon.innerHTML=cards.map(function(item,idx){
         var p=PLANETS[idx]||{};
         var pk='p-'+(p.key||item.planetId||'sun');
-        var dir=item.orientation==='reversed'?'?????:'??轅붽틓????泳?뿀???;
+        var dir=item.orientation==='reversed'?'역방향':'정방향';
         return '<article class="planet-card fade-rise '+pk+'" data-reading-idx="'+idx+'" style="border-radius:20px;overflow:hidden;animation-delay:'+(idx*0.08).toFixed(2)+'s;">'+
           '<div style="background:rgba(0,0,0,.38);padding:1.2rem 1.4rem;">'+
-            '<p style="color:rgba(255,255,255,.35);font-size:.68rem;font-family:monospace;margin:0 0 .35rem;">'+esc(item.planetEn)+' ??'+esc(item.layer)+' ??'+esc(item.planetSymbol)+'</p>'+
+            '<p style="color:rgba(255,255,255,.35);font-size:.68rem;font-family:monospace;margin:0 0 .35rem;">'+esc(item.planetEn)+' · '+esc(item.layer)+' · '+esc(item.planetSymbol)+'</p>'+
             '<h3 class="planet-lbl" style="font-size:1.25rem;font-weight:700;margin:0 0 .5rem;">'+esc(item.planetKo)+' - '+esc(item.planetTitle)+'</h3>'+
-            '<p style="color:rgba(255,255,255,.56);font-size:.85rem;line-height:1.6;margin:0;">'+esc(item.cardNameKo)+' ('+esc(item.cardNameEn)+') ??'+dir+'</p>'+
+            '<p style="color:rgba(255,255,255,.56);font-size:.85rem;line-height:1.6;margin:0;">'+esc(item.cardNameKo)+' ('+esc(item.cardNameEn)+') · '+dir+'</p>'+
           '</div>'+
           '<details open style="padding:1.2rem 1.4rem;">'+
-            '<summary style="cursor:pointer;color:rgba(245,208,111,.95);font-weight:700;margin-bottom:.7rem;">????????녾컯?遺븐땡?????μ떜媛?걫??녿펾筌????????ル펽??/summary>'+
-            '<p class="rt"><strong>???????嚥싲갭큔?댁쉻彛??/strong> '+esc((item.tarotKeywords||[]).join(', '))+'</p>'+
-            '<p class="rt"><strong>???μ떜媛?슙??????嚥싲갭큔?댁쉻彛??/strong> '+esc((item.planetKeywords||[]).join(', '))+'</p>'+
-            '<p class="rt"><strong>????노듋???????????????</strong> '+esc(item.cardMeaning||'')+'</p>'+
-            '<p class="rt"><strong>???μ떜媛?슙?????雅?퍔瑗?땟?壤굿??걜????</strong> '+esc(item.planetMeaning||'')+'</p>'+
-            '<p class="rt"><strong>??雅?퍔瑗?땟?壤굿??걜???????????닿튃癲?/strong> '+esc(item.archetypeReading||'')+'</p>'+
-            '<p class="rt"><strong>???꿔꺂?????덉뗄??饔낅떽?????????</strong> '+esc(item.consciousMessage||'')+'</p>'+
-            '<p class="rt"><strong>???嶺뚮Ĳ??????????/strong> '+esc(item.unconsciousPattern||'')+'</p>'+
-            '<p class="rt"><strong>?????좊틣??????棺堉?뤃????/strong> '+esc(item.shadowWarning||'')+'</p>'+
-            '<p class="rt"><strong>?????????逆???/strong> '+esc(item.soulLesson||'')+'</p>'+
-            '<p class="rt"><strong>???? ???嚥싲갭큔?딆뼅琉?/strong> '+esc(item.integrationPractice||'')+'</p>'+
+            '<summary style="cursor:pointer;color:rgba(245,208,111,.95);font-weight:700;margin-bottom:.7rem;">행성의 카드 리딩</summary>'+
+            '<p class="rt"><strong>카드 키워드</strong> '+esc((item.tarotKeywords||[]).join(', '))+'</p>'+
+            '<p class="rt"><strong>행성 키워드</strong> '+esc((item.planetKeywords||[]).join(', '))+'</p>'+
+            '<p class="rt"><strong>카드 의미</strong> '+esc(item.cardMeaning||'')+'</p>'+
+            '<p class="rt"><strong>행성 원형</strong> '+esc(item.planetMeaning||'')+'</p>'+
+            '<p class="rt"><strong>원형 리딩</strong> '+esc(item.archetypeReading||'')+'</p>'+
+            '<p class="rt"><strong>의식 메시지</strong> '+esc(item.consciousMessage||'')+'</p>'+
+            '<p class="rt"><strong>무의식 패턴</strong> '+esc(item.unconsciousPattern||'')+'</p>'+
+            '<p class="rt"><strong>그림자 경고</strong> '+esc(item.shadowWarning||'')+'</p>'+
+            '<p class="rt"><strong>영혼 과제</strong> '+esc(item.soulLesson||'')+'</p>'+
+            '<p class="rt"><strong>통합 실천</strong> '+esc(item.integrationPractice||'')+'</p>'+
           '</details>'+
         '</article>';
       }).join('');
@@ -1058,7 +1068,7 @@
       var ritualPlan = Array.isArray(s.ritualPlan)?s.ritualPlan:[];
       var highlights = Array.isArray(s.planetHighlights)?s.planetHighlights:[];
       var highlightHtml = highlights.slice(0,5).map(function(item){
-        return '<p class="rt" style="margin:.23rem 0;">??'+esc(item)+'</p>';
+        return '<p class="rt" style="margin:.23rem 0;">· '+esc(item)+'</p>';
       }).join('');
       var matrixCards = [
         { k:'LOVE', v: insightMatrix.love || '' },
@@ -1070,29 +1080,29 @@
       $goldCon.innerHTML='<div class="golden-card fade-rise" style="padding:2rem 1.6rem;">'+
         '<div class="golden-inner-border"></div>'+
         '<div style="position:relative;z-index:1;">'+
-          '<h3 class="shimmer-gold" style="font-size:clamp(1.35rem,2.8vw,2rem);font-weight:700;margin:0 0 .8rem;">11????????닿틧??? ????녾컯?遺븐땡??/h3>'+
-          '<p class="rt" style="margin-bottom:.9rem;"><strong>????????????諛몃마????????읐?癰???/strong> '+esc(s.overallTheme||'')+'</p>'+
-          '<p class="rt"><strong>????ル늉????????ル늉??筌?六?????雅?퍔瑗?땟?壤굿??걜??????沃섃넄?????源녾텛?</strong> '+esc(s.strongestPlanetSignal||'')+'</p>'+
-          '<p class="rt"><strong>?????좊틣????????????/strong> '+esc(s.deepestShadow||'')+'</p>'+
-          '<p class="rt"><strong>?????????關?쒎첎?嫄?????逆???/strong> '+esc(s.soulLesson||'')+'</p>'+
-          '<p class="rt"><strong>?????諛몃마嶺뚮캙維?????? ????썹땟??貫沅????/strong> '+esc(s.integrationPath||'')+'</p>'+
-          '<p class="rt"><strong>???嚥싲갭큔?댁옃紐????????怨룸젾/?饔낅떽??????? ?????/strong> '+esc(s.dominantLayer||'')+' / '+esc(s.dominantSuit||'')+' / '+esc(s.majorArcanaRatio||'')+'</p>'+
+          '<h3 class="shimmer-gold" style="font-size:clamp(1.35rem,2.8vw,2rem);font-weight:700;margin:0 0 .8rem;">11행성 통합 선율</h3>'+
+          '<p class="rt" style="margin-bottom:.9rem;"><strong>전체 테마</strong> '+esc(s.overallTheme||'')+'</p>'+
+          '<p class="rt"><strong>가장 크게 울리는 행성</strong> '+esc(s.strongestPlanetSignal||'')+'</p>'+
+          '<p class="rt"><strong>가장 깊은 그림자</strong> '+esc(s.deepestShadow||'')+'</p>'+
+          '<p class="rt"><strong>영혼 과제</strong> '+esc(s.soulLesson||'')+'</p>'+
+          '<p class="rt"><strong>통합 경로</strong> '+esc(s.integrationPath||'')+'</p>'+
+          '<p class="rt"><strong>선율의 결</strong> '+esc(s.dominantLayer||'')+' / '+esc(s.dominantSuit||'')+' / '+esc(s.majorArcanaRatio||'')+'</p>'+
           (highlightHtml?('<div style="margin:.75rem 0;">'+
-            '<p class="rt" style="color:rgba(245,208,111,.95);"><strong>????????μ떜媛?슙???????癰궽블뀮????μ떜媛?걫????/strong></p>'+
+            '<p class="rt" style="color:rgba(245,208,111,.95);"><strong>행성 하이라이트</strong></p>'+
             highlightHtml+
           '</div>'):'')+
           (matrixCards.length?('<div class="summary-grid">'+matrixCards.map(function(item){
             return '<div class="summary-card"><div class="k">'+esc(item.k)+'</div><div class="v">'+esc(item.v)+'</div></div>';
           }).join('')+'</div>'):'')+
-          '<div style="margin:.8rem 0;">'+practices.map(function(p){return '<p class="rt" style="margin:.25rem 0;">??'+esc(p)+'</p>';}).join('')+'</div>'+
+          '<div style="margin:.8rem 0;">'+practices.map(function(p){return '<p class="rt" style="margin:.25rem 0;">· '+esc(p)+'</p>';}).join('')+'</div>'+
           (ritualPlan.length?('<div style="margin:.8rem 0;">'+
-            '<p class="rt" style="color:rgba(245,208,111,.95);"><strong>7??????녾컯??????????/strong></p>'+
-            ritualPlan.map(function(p){return '<p class="rt" style="margin:.22rem 0;">??'+esc(p)+'</p>';}).join('')+
+            '<p class="rt" style="color:rgba(245,208,111,.95);"><strong>7일 별빛 조율</strong></p>'+
+            ritualPlan.map(function(p){return '<p class="rt" style="margin:.22rem 0;">· '+esc(p)+'</p>';}).join('')+
           '</div>'):'')+
-          '<p class="rt" style="color:rgba(253,230,138,.95);"><strong>?饔낅떽?????壤???볥옖???????????饔낅떽?????????</strong> '+esc(s.finalOracle||'')+'</p>'+
+          '<p class="rt" style="color:rgba(253,230,138,.95);"><strong>별빛 통합 오라클</strong> '+esc(s.finalOracle||'')+'</p>'+
           '<div class="summary-actions">'+
-            '<button type="button" class="summary-btn" id="copySummaryBtn">????嫄???????쇰뮛?筌믡꺂?????/button>'+
-            '<button type="button" class="summary-btn" id="copyOracleBtn">????????????쇰뮛?筌믡꺂?????/button>'+
+            '<button type="button" class="summary-btn" id="copySummaryBtn">요약 복사</button>'+
+            '<button type="button" class="summary-btn" id="copyOracleBtn">오라클 복사</button>'+
           '</div>'+
           '<p style="color:rgba(255,255,255,.35);font-size:.75rem;margin-top:1rem;">reportId: '+esc(payment.reportId||'')+' / transactionId: '+esc(payment.transactionId||'')+'</p>'+
         '</div>'+
@@ -1102,14 +1112,14 @@
       if($copySummaryBtn){
         $copySummaryBtn.addEventListener('click', function(){
           var textBlob = [
-            '[?饔낅떽???壤굿??깆떡?亦껋꼦維?????????읐?癰???????????嫄???',
-            '????????????諛몃마????????읐?癰??? ' + clean(s.overallTheme),
-            '????ル늉????????ル늉??筌?六?????雅?퍔瑗?땟?壤굿??걜??????沃섃넄?????源녾텛?: ' + clean(s.strongestPlanetSignal),
-            '?????????關?쒎첎?嫄?????逆??? ' + clean(s.soulLesson),
-            '?????諛몃마嶺뚮캙維?????? ????썹땟??貫沅???? ' + clean(s.integrationPath),
+            '[천체의 선율 타로 요약]',
+            '전체 테마: ' + clean(s.overallTheme),
+            '가장 강한 행성 신호: ' + clean(s.strongestPlanetSignal),
+            '영혼 과제: ' + clean(s.soulLesson),
+            '통합 경로: ' + clean(s.integrationPath),
           ].join('\n');
           navigator.clipboard.writeText(textBlob).then(function(){
-            updatePremiumStatus('premium complete', '????嫄??????????影??날??????????쇰뮛?筌믡꺂??????????????', 'complete', ['draw','payment','generate','complete']);
+            updatePremiumStatus('premium complete', '요약을 클립보드에 복사했습니다.', 'complete', ['draw','payment','generate','complete']);
           }).catch(function(){});
         });
       }
@@ -1117,7 +1127,7 @@
       if($copyOracleBtn){
         $copyOracleBtn.addEventListener('click', function(){
           navigator.clipboard.writeText(clean(s.finalOracle)).then(function(){
-            updatePremiumStatus('premium complete', '?饔낅떽?????壤???볥옖???????????饔낅떽?????????????ル늉?? ????쇰뮛?筌믡꺂??????????????', 'complete', ['draw','payment','generate','complete']);
+            updatePremiumStatus('premium complete', '별빛 통합 오라클을 클립보드에 복사했습니다.', 'complete', ['draw','payment','generate','complete']);
           }).catch(function(){});
         });
       }
@@ -1146,7 +1156,7 @@
         categoryKey:'premium-report',
         featureKey:FEATURE_KEY,
         reportType:'celestialHarmony',
-        reason:'????????산뭐?????????????????????????녾컯?遺븐땡??,
+        reason:'천체의 선율 11행성 심층 타로 리딩',
         requestId:requestId,
         reportId:reportId,
         sessionId:sessionId,
@@ -1183,7 +1193,7 @@
       try{payload=await res.json();}catch(_){payload={};}
       console.log('[CelestialHarmony][CoinGate] response', { status: res.status, payload: payload });
       if(!res.ok || payload.ok===false){
-        var gateErr = new Error((payload&&payload.error&&payload.error.message)||payload.message||'?????밸븶??????棺堉?뤃???傭?끆??????? ?????諛몃마???? ?????繹먮굝???????');
+        var gateErr = new Error((payload&&payload.error&&payload.error.message)||payload.message||'코인 결제 확인에 실패했습니다.');
         gateErr.status = res.status;
         gateErr.payload = payload;
         throw gateErr;
@@ -1228,7 +1238,7 @@
     function handleCardInteraction(cardIdx){
       if(!spread.length || cardIdx<0 || cardIdx>=spread.length) return;
       if(!canDraw){
-        updatePremiumStatus('premium locked','??棺堉?뤃??????棺堉?뤃???饔낅떽??影?곗몡???紐???????諛몃마???????????노듋??????轅붽틓??筌뚮챶夷???????믨틵????饔낅떽??影?곗몡嶺뚮??껆빊???????節뗭젔????????⑤뜪????꿔꺂??????','payment',['draw']);
+        updatePremiumStatus('premium locked','리딩을 열려면 먼저 결제 확인이 필요합니다. 결제 확인 후 선택한 카드 배열로 결과를 생성합니다.','payment',['draw']);
         if(!paymentInFlight) runReadingFlow();
         return;
       }
@@ -1373,8 +1383,8 @@
         hasAuthToken: Boolean(readAuthToken()),
         premiumTokenMasked: maskToken(currentPremiumToken || readPremiumToken())
       });
-      updatePremiumStatus('premium active','??棺堉?뤃??????????녾컯?遺븐땡????????? ???꿔꺂???影?우Ŀ???꿔꺂??????','payment',['draw']);
-      setLoading(true,'?????밸븶??????棺堉?뤃??????????녾컯?遺븐땡????轅붽틓????????轅붽틓??????????汝뷴젆??녷뉩??읂??關???꾨き??熬곥룊?????????놁졄...');
+      updatePremiumStatus('premium active','결제 확인을 진행하고 있습니다.','payment',['draw']);
+      setLoading(true,'코인 결제를 확인하고 천체의 선율 리딩을 준비하고 있습니다...');
 
       try{
         if(!currentReportId) currentReportId = buildReportId();
@@ -1393,7 +1403,7 @@
           if(gate.premiumAccessToken) persistPremiumToken(gate.premiumAccessToken);
           activateAccessState(gate);
           recoverablePaymentSession = true;
-          updatePremiumStatus('premium paid','??棺堉?뤃??????轅붽틓??????????????諛몃마??????????? ????녾컯?遺븐땡?????熬곣뫖利?????饔낅떽?????嶺뚮ㅎ?????꿔꺂??????','generate',['draw','payment']);
+          updatePremiumStatus('premium paid','결제가 확인되었습니다. 리딩 생성을 시작합니다.','generate',['draw','payment']);
           persistSession({
             reportId:currentReportId,
             transactionId:currentTransactionId,
@@ -1409,7 +1419,7 @@
           });
         }
 
-        setLoading(true,'11???μ떜媛?슙?????雅?퍔瑗?땟?壤굿??걜??????노듋???????????棺堉?뤃???????????????녾컯?遺븐땡??????熬곣뫖利????關???꾨き??熬곥룊?????????놁졄...');
+        setLoading(true,'11행성 카드의 상징을 정렬하고 깊은 리딩을 생성하고 있습니다...');
         var reading = await callGenerate(currentReportId, currentTransactionId, false, {
           accessGrant: currentAccessGrant,
           consume: currentConsume,
@@ -1423,9 +1433,9 @@
         hasCompletedResult = true;
         recoverablePaymentSession = false;
         if(localReadingUsed){
-          updatePremiumStatus('premium complete','?꿔꺂??節덉쭍?誘⑹뇢??????◈?볦춻???꿔꺂??????汝??吏??놁뗀?????ㅻ샑筌??11????????썹땟???????????딅젩.','complete',['draw','payment','generate','complete']);
+          updatePremiumStatus('premium complete','리딩이 완성되었습니다. 11개 행성 결과를 아래에서 확인하세요.','complete',['draw','payment','generate','complete']);
         }else{
-          updatePremiumStatus('premium complete','??棺堉?뤃??????棺堉?뤃??????????녾컯?遺븐땡?????熬곣뫖利?????????諛몃마???????????','complete',['draw','payment','generate','complete']);
+          updatePremiumStatus('premium complete','결제된 리딩 결과를 복구했습니다.','complete',['draw','payment','generate','complete']);
         }
         persistSession({
           reportId:currentReportId,
@@ -1449,22 +1459,22 @@
         var code = clean((err && err.code) || (err && err.payload && err.payload.code) || '');
         var recoverable = hasAccess && (currentReportId || currentTransactionId);
         if(status===401 || code==='UNAUTHORIZED'){
-          updatePremiumStatus('premium issue','?癲??嶺???轅붽틓?????됱깢???饔낅떽?????傭?????????? ??????살퓢???癲??嶺????????꿔꺂???????????⑹름??????뭽??','payment',['draw']);
+          updatePremiumStatus('premium issue','결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.','payment',['draw']);
         } else if(!hasAccess){
-          updatePremiumStatus('premium issue','?????밸븶??????棺堉?뤃???傭?끆??????? ?????諛몃마???? ?????繹먮굝???????','payment',['draw']);
+          updatePremiumStatus('premium issue','코인 결제 확인에 실패했습니다.','payment',['draw']);
         } else {
-          updatePremiumStatus('premium recover','??棺堉?뤃???????轅붽틓????????????????? ????ル늉??? ??棺堉?뤃??????轅붽틓????????????????녾컯?遺븐땡?????????살퓢?????熬곣뫖利?????꿔꺂??????','generate',['draw','payment']);
+          updatePremiumStatus('premium recover','결제는 확인되었습니다. 저장된 권한으로 리딩 생성을 다시 시도합니다.','generate',['draw','payment']);
         }
         if(recoverable){
           try {
-            updatePremiumStatus('premium recover','??β뼯援??????????밸븶???癲ル슢????????ㅼ뒧?戮ル탶椰꾨텑??????ル봿????μ떝?롳쭗????β뼯援??????ル꺄椰????곗뒭?????癲ル슢?????','generate',['draw','payment']);
+            updatePremiumStatus('premium recover','저장된 결제 권한으로 서버 결과를 다시 확인합니다.','generate',['draw','payment']);
             var restored = await restoreFromApi(currentReportId, currentTransactionId);
             if(restored){
               renderResults(restored);
               renderSummary(restored);
               hasCompletedResult = true;
               recoverablePaymentSession = false;
-              updatePremiumStatus('premium complete','??β뼯援???????轅붽틓???????????棺堉?뤃???????リ틖濾?????쇰뮛?筌믡꺂?뜻ㅀ袁⑦뀘??????????????놁졄.','complete',['draw','payment','generate','complete']);
+              updatePremiumStatus('premium complete','저장된 리딩 결과를 복구했습니다.','complete',['draw','payment','generate','complete']);
               persistSession({
                 reportId:currentReportId,
                 transactionId:currentTransactionId,
@@ -1492,7 +1502,7 @@
               renderSummary(fallback);
               hasCompletedResult = true;
               recoverablePaymentSession = false;
-              updatePremiumStatus('premium complete','?꿔꺂??節덉쭍?誘⑹뇢??????◈?볦춻????뚯???維◈??汝??吏??놁뗀?????ㅻ샑筌????Β??????⑤베鍮???잙갭큔筌???????썹땟???????????딅젩.','complete',['draw','payment','generate','complete']);
+              updatePremiumStatus('premium complete','리딩이 완성되었습니다. 결과를 확인하세요.','complete',['draw','payment','generate','complete']);
               persistSession({
                 reportId:currentReportId,
                 transactionId:currentTransactionId,
@@ -1515,9 +1525,9 @@
         recoverablePaymentSession = Boolean(hasAccess);
         setLoading(false,'');
         if(code==='SCHEMA_INVALID'){
-          updatePremiumStatus('premium issue','????녾컯?遺븐땡????棺堉?뤃??????轅붽틓???????곷뾼????????? ????????????놁졄. ?????곸궔?????녾컯??????轅붽틓??????????????諛몃마????꿔꺂??????','generate',['draw','payment']);
+          updatePremiumStatus('premium issue','리딩 생성 중 문제가 발생했습니다. 카드 배열을 유지한 채 다시 시도할 수 있습니다.','generate',['draw','payment']);
         } else if(recoverablePaymentSession){
-          updatePremiumStatus('premium recover','??棺堉?뤃??????轅붽틓?????? ????????????? ??棺堉?뤃????????쇰뮛?筌믡꺂?뜻ㅀ袁⑦뀘?????????살퓢??????쇰뮛??????빧??影?ろ뀮?????꿔꺂???????????⑹름??????뭽??','generate',['draw','payment']);
+          updatePremiumStatus('premium recover','결제 권한은 유지되어 있습니다. 다시 생성 버튼을 눌러 이어갈 수 있습니다.','generate',['draw','payment']);
         }
       }finally{
         paymentInFlight = false;
@@ -1545,7 +1555,7 @@
       selectedCardIdx = -1;
       renderBoard();
       updateReadButtonState();
-      updatePremiumStatus('premium ready','????노듋????????썹땟戮녹???????猷몃??? ?????諛몃마??????????? ??棺堉?뤃??????轅붽틓??????????????????녾컯?遺븐땡??????꿔꺂???影?우Ŀ????????????????놁졄.','payment',['draw']);
+      updatePremiumStatus('premium ready','카드 배열이 완성되었습니다. 결제 확인 후 천체의 선율 리딩을 열 수 있습니다.','payment',['draw']);
       $resSec.style.display='none';$resCon.innerHTML='';
       $goldSec.style.display='none';$goldCon.innerHTML='';
       persistSession({ reportId:currentReportId, transactionId:'', paid:false, cards:buildCardsPayload(), spread:spread, goldenCard:goldenCard });
@@ -1610,7 +1620,7 @@
       $goldSec.style.display='none';$goldCon.innerHTML='';
       $loadSec.style.display='none';
       readBtnOn(false);
-      updatePremiumStatus('premium idle','????노듋?????壤굿?쒓낯????????살퓢??????썹땟戮녹?????????雅????轅붽틓?????????꿔꺂???影?우Ŀ???꿔꺂??節낆젂???','draw',[]);
+      updatePremiumStatus('premium idle','새로운 카드 배열을 준비했습니다. 다시 카드를 펼쳐 주세요.','draw',[]);
     });
 
     (async function bootstrapRestore(){
@@ -1639,7 +1649,7 @@
         updateReadButtonState();
         updatePremiumStatus(
           hasAccess ? 'premium paid' : 'premium ready',
-          hasAccess ? '?????얜궙??뺣뙀?洹?㎦???棺堉?뤃??????轅붽틓??????????ル늉????????????? ??棺堉?뤃????????쇰뮛?筌믡꺂?뜻ㅀ袁⑦뀘???????????꿔꺂???????꿔꺂??????' : '?????얜궙??뺣뙀?洹?㎦?????노듋??????轅붽틓??????????쇰뮛?筌믡꺂??????????????놁졄. ??棺堉?뤃??????????녾컯?遺븐땡??????ル늉????關??濡녹춻?????????놁졄.',
+          hasAccess ? '이전 결제 세션을 확인했습니다. 리딩을 이어서 열 수 있습니다.' : '이전 카드 배열을 복구했습니다. 결제 확인 후 리딩을 생성합니다.',
           hasAccess ? 'generate' : 'payment',
           hasAccess ? ['draw','payment'] : ['draw']
         );
@@ -1648,7 +1658,7 @@
           renderSummary(saved.reading);
           hasCompletedResult = true;
           recoverablePaymentSession = false;
-          updatePremiumStatus('premium complete','?????얜궙??뺣뙀?洹?㎦???棺堉?뤃???????リ틖濾?????쇰뮛?筌믡꺂??????????????놁졄.','complete',['draw','payment','generate','complete']);
+          updatePremiumStatus('premium complete','저장된 리딩 결과를 복구했습니다.','complete',['draw','payment','generate','complete']);
         }
       }
 
@@ -1664,7 +1674,7 @@
         hasCompletedResult = true;
         recoverablePaymentSession = false;
         canDraw = true;
-        updatePremiumStatus('premium complete','???꿔꺂??틝???彛???????棺堉?뤃?????????녾컯?遺븐땡????棺堉?뤃???????リ틖濾?????쇰뮛?筌믡꺂?뜻ㅀ袁⑦뀘??????????????놁졄.','complete',['draw','payment','generate','complete']);
+        updatePremiumStatus('premium complete','서버에서 리딩 결과를 복구했습니다.','complete',['draw','payment','generate','complete']);
         persistSession({
           reportId:currentReportId,
           transactionId:currentTransactionId,
@@ -1681,16 +1691,16 @@
         });
         updateReadButtonState();
       } else if(saved && saved.paid && !saved.reading && spread.length===11){
-        // ??棺堉?뤃??????????諛몃마?????????棺堉?뤃?????嶺뚮???? ????嶺뚮ㅎ?????棺堉?뤃??????????????        try {
+        try {
           hasAccess = true;
           recoverablePaymentSession = true;
           canDraw = true;
-          updatePremiumStatus('premium recover','??棺堉?뤃???????轅붽틓??????????關?쒎첎?嫄?濚밸쮦??????꿔꺂???????꿔꺂??????','generate',['draw','payment']);
+          updatePremiumStatus('premium recover','결제된 카드 배열을 발견했습니다. 리딩을 이어서 생성합니다.','generate',['draw','payment']);
           await runReadingFlow();
         } catch (_) { }
       }
       if(!saved && !remote){
-        updatePremiumStatus('premium idle','????노듋?????壤굿?쒓낯??????썹땟戮녹???????????棺堉?뤃??????????녾컯?遺븐땡????傭?끆???????汝??繹?? ????癲?????饔낅떽?????嶺뚮ㅎ?????꿔꺂??????','draw',[]);
+        updatePremiumStatus('premium idle','카드를 펼치면 결제 확인 후 천체의 선율 리딩을 생성합니다.','draw',[]);
       }
       updateReadButtonState();
     }());

@@ -52,9 +52,9 @@ const CARD_POOL = (TAROT_CARDS as TarotCardSource[])
 const DECK_SLOTS = Array.from({ length: 78 }, (_, index) => index);
 
 const STEP_META: Array<{ id: Stage; title: string; caption: string; icon: string }> = [
-  { id: "question", title: "질문 입력", caption: "마음 속 질문을 입력하고 스프레드를 선택하세요.", icon: "✦" },
-  { id: "draw", title: "카드 뽑기", caption: "직관을 따라 카드를 뽑아보세요. 타로가 당신의 이야기를 준비 중이에요.", icon: "✦" },
-  { id: "prompt", title: "프롬프트 생성", caption: "선택된 카드가 전하는 메시지를 프롬프트로 확인하세요.", icon: "✦" },
+  { id: "question", title: "질문 올리기", caption: "마음속 질문을 밤하늘에 올리고 어울리는 스프레드를 고르세요.", icon: "✦" },
+  { id: "draw", title: "카드 열기", caption: "직관이 닿는 순서대로 카드를 열어 질문의 별자리를 만듭니다.", icon: "✦" },
+  { id: "prompt", title: "오라클 문장", caption: "카드가 만든 흐름을 바로 읽을 수 있는 리딩 원고로 정리합니다.", icon: "✦" },
 ];
 
 const CARD_COUNT_FILTERS = ["all", 3, 5, 7, 10, 12, 14] as const;
@@ -74,9 +74,9 @@ function normalizeText(value: string) {
 function buildFlowLines(cards: DrawnTarotCard[]) {
   if (!cards.length) {
     return [
-      "카드가 선택되면 포지션별 흐름이 여기서 정리됩니다.",
-      "지금은 질문과 스프레드에 맞는 첫 장을 기다리고 있어요.",
-      "직관이 끌리는 순서대로 한 장씩 뽑아보세요.",
+      "카드가 열리면 질문의 별자리와 포지션별 흐름이 이곳에 떠오릅니다.",
+      "지금은 질문과 스프레드에 맞는 첫 문장을 기다리고 있습니다.",
+      "직관이 머무는 순서대로 한 장씩 조용히 열어보세요.",
     ];
   }
   const first = cards[0];
@@ -85,9 +85,9 @@ function buildFlowLines(cards: DrawnTarotCard[]) {
   const uprightCount = cards.filter((card) => card.orientation === "upright").length;
   const reversedCount = cards.length - uprightCount;
   return [
-    `${first.cardNameKo} ${first.orientationLabel}에서 시작된 흐름이 ${middle.cardNameKo} ${middle.orientationLabel}을 지나고 있습니다.`,
-    `현재 조합은 정방향 ${uprightCount}장, 역방향 ${reversedCount}장으로 감정과 현실의 속도 차이를 함께 보여줍니다.`,
-    `${last.positionLabel}에 놓인 ${last.cardNameKo}가 이번 질문의 마무리 톤을 결정합니다.`,
+    `${first.cardNameKo} ${first.orientationLabel}에서 열린 첫빛이 ${middle.cardNameKo} ${middle.orientationLabel}을 지나며 질문의 중심을 비춥니다.`,
+    `현재 조합은 정방향 ${uprightCount}장, 역방향 ${reversedCount}장으로 열리는 힘과 머무는 힘의 균형을 보여줍니다.`,
+    `${last.positionLabel}에 놓인 ${last.cardNameKo}가 이 프롬프트의 마지막 문장과 행동 톤을 정합니다.`,
   ];
 }
 
@@ -360,7 +360,7 @@ export default function TarotPromptMakerPage() {
         setFeedback(paymentResult.message || "코인 차감에 실패했습니다.");
       }
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "프롬프트 생성 중 오류가 발생했습니다.");
+      setFeedback(error instanceof Error ? error.message : "오라클 문장을 엮는 중 문제가 발생했습니다.");
     } finally {
       setIsGenerating(false);
     }
@@ -371,7 +371,7 @@ export default function TarotPromptMakerPage() {
     try {
       await navigator.clipboard.writeText(promptResult.prompt);
       setCopied(true);
-      showToast("프롬프트가 복사되었습니다.", "success");
+      showToast("오라클 원고가 복사되었습니다.", "success");
     } catch (_error) {
       showToast("클립보드 복사에 실패했습니다.", "error");
     }
@@ -382,7 +382,7 @@ export default function TarotPromptMakerPage() {
     const nextPrompt = buildOraclePrompt(selectedSpread, effectiveQuestion, drawnCards);
     setPromptResult(nextPrompt);
     setFeedback("");
-    showToast("같은 카드 조합으로 프롬프트를 다시 정리했습니다.", "success");
+    showToast("같은 카드 조합으로 오라클 원고를 다시 정리했습니다.", "success");
   }
 
   function handleRedrawCards() { resetDrawState(); setStage("draw"); setFeedback(""); }
@@ -431,17 +431,17 @@ export default function TarotPromptMakerPage() {
           {/* ── Header ── */}
           <header className="text-center mb-8 pt-2">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#a855f7]/40 bg-[#a855f7]/10 text-[11px] font-semibold tracking-[0.25em] text-[#c4b5fd] uppercase mb-4">
-              ✦ Tarot Prompt Generator ✦
+              ✦ Oracle Prompt Atelier ✦
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{ color: "#fff", textShadow: "0 0 40px rgba(168,85,247,0.4)" }}>
-              <span className="text-[#e9d5ff]">질문 입력</span>
+              <span className="text-[#e9d5ff]">질문을 올리고</span>
               <span className="mx-3 text-[#c084fc]">→</span>
-              <span className="text-[#e9d5ff]">카드 뽑기</span>
+              <span className="text-[#e9d5ff]">카드를 열어</span>
               <span className="mx-3 text-[#c084fc]">→</span>
-              <span className="bg-gradient-to-r from-[#c084fc] to-[#f472b6] bg-clip-text text-transparent">프롬프트 생성</span>
+              <span className="bg-gradient-to-r from-[#c084fc] to-[#f472b6] bg-clip-text text-transparent">오라클 원고로</span>
             </h1>
             <p className="mt-3 text-[#c4b5fd]/70 text-sm sm:text-base">
-              당신의 질문에, 타로가 건네는 이야기 🌙
+              질문, 스프레드, 카드의 방향을 하나의 섬세한 오라클 리딩 원고로 엮습니다.
             </p>
 
             {/* Billing badge */}
@@ -819,7 +819,7 @@ export default function TarotPromptMakerPage() {
                       className="w-full py-4 rounded-2xl font-bold text-sm text-[#1a0533] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                       style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 8px 30px rgba(168,85,247,0.3)" }}
                     >
-                      {isGenerating || isPaying ? "✦ 프롬프트 생성 중..." : "✦ 프롬프트 생성하기"}
+                      {isGenerating || isPaying ? "✦ 오라클 문장 조율 중..." : "✦ 오라클 원고 만들기"}
                     </motion.button>
 
                     {feedback && <p className="text-rose-300/80 text-xs text-center">{feedback}</p>}
@@ -882,7 +882,7 @@ export default function TarotPromptMakerPage() {
 
                     {/* Spread summary */}
                     <div className="rounded-2xl border border-white/8 p-4" style={{ background: "rgba(5,3,15,0.6)" }}>
-                      <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/55 mb-2">스프레드 해석 요약</div>
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/55 mb-2">카드가 만든 신탁 지도</div>
                       <div className="space-y-1.5">
                         {flowLines.map((line, i) => (
                           <p key={i} className="text-xs leading-relaxed text-[#a78bfa]/70">{line}</p>
@@ -902,15 +902,15 @@ export default function TarotPromptMakerPage() {
                     >
                       <div className="flex items-center justify-between gap-3 mb-4">
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60">타로 프롬프트</div>
-                          <div className="text-base font-bold text-[#e9d5ff] mt-0.5">카드가 전하는 이야기 ✦</div>
+                          <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60">Oracle Prompt</div>
+                          <div className="text-base font-bold text-[#e9d5ff] mt-0.5">지금 복사할 오라클 원고 ✦</div>
                         </div>
                         <button
                           type="button"
                           onClick={handleCopyPrompt}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#c084fc]/40 bg-[#c084fc]/10 text-[#e9d5ff] text-xs font-semibold hover:bg-[#c084fc]/20 transition-all"
                         >
-                          {copied ? "✓ 복사 완료" : "📋 복사하기"}
+                          {copied ? "✓ 복사 완료" : "📋 문장 복사"}
                         </button>
                       </div>
 
@@ -927,13 +927,13 @@ export default function TarotPromptMakerPage() {
                     {/* Action buttons */}
                     <div className="grid grid-cols-2 gap-3">
                       <button type="button" onClick={handleCopyPrompt} className="col-span-2 py-3 rounded-2xl font-bold text-sm text-[#1a0533] transition-all" style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 6px 25px rgba(168,85,247,0.25)" }}>
-                        {copied ? "✓ 복사 완료" : "✦ 프롬프트 복사"}
+                        {copied ? "✓ 복사 완료" : "✦ 오라클 원고 복사"}
                       </button>
                       <button type="button" onClick={handleRegeneratePrompt} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
-                        ↺ 프롬프트 다시 생성
+                        ↺ 같은 카드로 다시 엮기
                       </button>
                       <button type="button" onClick={handleRedrawCards} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
-                        🃏 다시 카드 뽑기
+                        🃏 카드 다시 열기
                       </button>
                       <button type="button" onClick={handleChooseAnotherSpread} className="py-2.5 rounded-xl border border-[#7c3aed]/30 bg-[#7c3aed]/10 text-xs font-semibold text-[#c4b5fd] hover:bg-[#7c3aed]/20 transition-all">
                         다른 스프레드 선택

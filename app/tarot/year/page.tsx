@@ -3,11 +3,11 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const META = {
   path: "/tarot/year",
-  title: "십이지신 천운(天運) - 12개월 연간 운세 타로 | Code Destiny",
-  description: "12개월 연간 운세를 타로로 확인하는 십이지신 천운 리딩 서비스.",
+  title: "십이지신 천운 타로 - 열두 달의 수호 리듬 | Code Destiny",
+  description: "열두 수호 기운과 12장의 카드를 엮어 한 해의 상승 구간, 속도 조절이 필요한 달, 월별 선택의 결을 읽습니다.",
   keywords: ["십이지신 천운", "연간 운세 타로", "12개월 타로", "월별 타로", "재물운", "연애운"],
-  image: "https://code-destiny.com/fuctionassets/12shin.webp",
-  featureList: ["12개월 연간 운세", "상승/주의 구간 분석", "월별 행동 포인트 제안"],
+  image: "https://code-destiny.com/fuctionassets/12animals.webp",
+  featureList: ["열두 달의 수호 리듬", "상승과 속도 조절의 달", "월별 선택의 작은 의식"],
   applicationCategory: "EntertainmentApplication",
 } as const;
 
@@ -19,7 +19,7 @@ export default function TarotYearLandingPage() {
   return (
     <FeatureLandingPage
       service={{
-        h1: "십이지신 천운(天運)",
+        h1: "십이지신 천운 타로",
         description: META.description,
         ogImage: META.image,
         landingPoints: [...META.featureList],

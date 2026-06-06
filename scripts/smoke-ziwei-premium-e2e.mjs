@@ -284,10 +284,14 @@ async function main() {
   const reportId = String(prepareJson?.reportId || "").trim();
   const pdfHtml = String(prepareJson?.pdfReady?.html || "").trim();
   const fallbackUsed = Boolean(prepareJson?.fallbackUsed);
+  const ziweiJsonV2 = prepareJson?.ziweiJsonV2 || prepareJson?.payload?.ziweiJsonV2 || prepareJson?.ziweiPayload?.ziweiJsonV2;
+  const evidenceMap = Array.isArray(ziweiJsonV2?.chapterEvidenceMap) ? ziweiJsonV2.chapterEvidenceMap : [];
 
   if (!reportId) throw new Error("reportId가 비어 있습니다.");
-  if (chapters.length < 13) throw new Error(`챕터 수가 부족합니다: ${chapters.length}`);
+  if (chapters.length < 15) throw new Error(`챕터 수가 부족합니다: ${chapters.length}`);
   if (pdfHtml.length < 5000) throw new Error(`pdfReady.html 길이가 비정상적으로 짧습니다: ${pdfHtml.length}`);
+  if (ziweiJsonV2?.schemaVersion !== "ziwei-pdf-v2") throw new Error("ziweiJsonV2 schemaVersion missing");
+  if (evidenceMap.length < 15) throw new Error(`ziweiJsonV2 evidence map too small: ${evidenceMap.length}`);
 
   fs.writeFileSync(OUT_FILE, pdfHtml, "utf8");
 
@@ -302,6 +306,8 @@ async function main() {
   console.log(`  - chargedCoins: ${chargedCoins}`);
   console.log(`  - reportId: ${reportId}`);
   console.log(`  - chapters: ${chapters.length}`);
+  console.log(`  - ziweiJsonV2: ${ziweiJsonV2.schemaVersion}`);
+  console.log(`  - evidenceMap: ${evidenceMap.length}`);
   console.log(`  - fallbackUsed: ${fallbackUsed}`);
   console.log(`  - htmlLength: ${pdfHtml.length}`);
   console.log(`  - outFile: ${path.relative(process.cwd(), OUT_FILE)}`);

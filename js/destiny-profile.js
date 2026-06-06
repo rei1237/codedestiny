@@ -3279,9 +3279,10 @@
     var style = document.createElement('style');
     style.id = 'dpProfileActionMenuStyles';
     style.textContent = ''
-      + '.dp-mc-action-wrap{position:relative;z-index:80;display:flex;align-items:flex-start;overflow:visible;pointer-events:auto;}'
+      + '.dp-master-card.dp-master-card--active,.dp-master-card.dp-master-card--active .dp-mc-inner,.dp-master-card.dp-master-card--active .dp-mc-header{overflow:visible!important;}'
+      + '.dp-mc-action-wrap{position:relative;z-index:180;display:flex;align-items:flex-start;overflow:visible;pointer-events:auto;}'
       + '.dp-mc-menu-btn{min-width:46px!important;min-height:46px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;position:relative;z-index:82;pointer-events:auto!important;-webkit-tap-highlight-color:transparent;}'
-      + '.dp-mc-action-menu{position:fixed;right:14px;top:86px;width:min(272px,calc(100vw - 28px));display:none;gap:8px;padding:10px;border-radius:8px;background:linear-gradient(145deg,rgba(8,13,32,.98),rgba(37,29,78,.96));border:1px solid rgba(255,215,0,.32);box-shadow:0 18px 46px rgba(0,0,0,.45),0 0 24px rgba(255,215,0,.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);pointer-events:auto;isolation:isolate;}'
+      + '.dp-mc-action-menu{position:absolute;right:0;top:calc(100% + 10px);width:min(272px,calc(100vw - 28px));display:none;gap:8px;padding:10px;border-radius:8px;background:linear-gradient(145deg,rgba(8,13,32,.98),rgba(37,29,78,.96));border:1px solid rgba(255,215,0,.32);box-shadow:0 18px 46px rgba(0,0,0,.45),0 0 24px rgba(255,215,0,.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);pointer-events:auto;isolation:isolate;z-index:9999;overflow-y:auto;}'
       + '.dp-mc-action-wrap.is-open .dp-mc-action-menu{display:grid;}'
       + '.dp-mc-action-menu__item{width:100%;min-height:48px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.06);color:#f8fafc;padding:12px 13px;text-align:left;font-size:.82rem;font-weight:900;line-height:1.25;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}'
       + '.dp-mc-action-menu__item span{font-size:.68rem;font-weight:800;color:rgba(226,232,240,.72);white-space:nowrap;}'
@@ -3290,7 +3291,7 @@
       + '.dp-mc-action-menu__item--danger span{color:#fbbf24;}'
       + '.dp-mc-action-menu__item--edit{border-color:rgba(251,191,36,.36);background:rgba(251,191,36,.10);color:#fef3c7;}'
       + '.dp-profile-editing #dpSaveBtn{background:linear-gradient(135deg,#fbbf24,#f97316)!important;color:#180b02!important;}'
-      + '@media(max-width:768px){.dp-mc-action-wrap{z-index:120}.dp-mc-action-menu{right:12px;top:max(74px,env(safe-area-inset-top,0px) + 64px);width:min(284px,calc(100vw - 24px));padding:10px}.dp-mc-action-menu__item{min-height:54px;font-size:.88rem;}.dp-master-card,.dp-mc-inner,.dp-mc-header{overflow:visible!important;}}';
+      + '@media(max-width:768px){.dp-mc-action-wrap{z-index:220}.dp-mc-action-menu{top:calc(100% + 8px);width:min(284px,calc(100vw - 24px));padding:10px}.dp-mc-action-menu__item{min-height:54px;font-size:.88rem;}.dp-master-card,.dp-mc-inner,.dp-mc-header{overflow:visible!important;}}';
     document.head.appendChild(style);
   }
 
@@ -3307,13 +3308,97 @@
     var menu = wrap.querySelector('.dp-mc-action-menu');
     if (!menu) return;
     var rect = btn.getBoundingClientRect();
+    var wrapRect = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : rect;
+    var card = document.getElementById('dpMasterCard');
+    var cardRect = card && card.getBoundingClientRect ? card.getBoundingClientRect() : null;
     var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-    var width = Math.min(284, Math.max(220, vw - 24));
-    var right = Math.max(12, vw - rect.right);
-    var top = Math.max(12, Math.round(rect.bottom + 10));
+    var width = Math.min(_isMobileViewport() ? 284 : 272, Math.max(220, vw - 24));
+    var minLeft = Math.max(12, cardRect ? cardRect.left + 8 : 12);
+    var maxRight = Math.min(vw - 12, cardRect ? cardRect.right - 8 : vw - 12);
+    var desiredRight = Math.min(maxRight, Math.max(minLeft + width, wrapRect.right));
+    var right = Math.round(wrapRect.right - desiredRight);
     menu.style.width = width + 'px';
-    menu.style.right = Math.min(right, Math.max(12, vw - 12 - width)) + 'px';
-    menu.style.top = top + 'px';
+    menu.style.right = right + 'px';
+    menu.style.top = '';
+    menu.style.left = '';
+    menu.style.maxHeight = 'min(72vh, 360px)';
+  }
+
+  function _dpToggleProfileMenuFromButton(btn, event, source) {
+    if (event && event.preventDefault) event.preventDefault();
+    if (event && event.stopPropagation) event.stopPropagation();
+    if (event && event.type === 'click' && (Date.now() - _dpProfileMenuLastTouchAt < 700 || Date.now() - _dpProfileMenuPointerHandledAt < 700)) return;
+    if (source === 'touch') _dpProfileMenuLastTouchAt = Date.now();
+    var wrap = btn && btn.closest ? btn.closest('.dp-mc-action-wrap') : null;
+    if (!wrap) return;
+    var willOpen = !wrap.classList.contains('is-open');
+    _dpCloseProfileMenu();
+    wrap.classList.toggle('is-open', willOpen);
+    btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    if (willOpen) _dpPositionProfileMenu(btn, wrap);
+  }
+
+  function _dpRunProfileMenuActionNode(node, event) {
+    if (event && event.preventDefault) event.preventDefault();
+    if (event && event.stopPropagation) event.stopPropagation();
+    if (event && event.type === 'click' && Date.now() - _dpProfileMenuPointerHandledAt < 700) return;
+    var item = node && node.closest ? node.closest('.dp-mc-action-menu__item') : null;
+    if (!item) return;
+    var action = String(item.getAttribute('data-dp-menu-action') || '').trim();
+    var profileId = String(item.getAttribute('data-profile-id') || '').trim();
+    _dpCloseProfileMenu();
+    if (action === 'view') {
+      _dpClearProfileEditMode();
+      if (profileId) window.dpSelectProfile(profileId);
+      window.dpLoadProfile();
+      return;
+    }
+    if (action === 'list') {
+      _dpClearProfileEditMode();
+      window.dpOpenList();
+      return;
+    }
+    if (action === 'edit' && profileId) {
+      window.dpStartEditProfile(profileId);
+      return;
+    }
+    if (action === 'delete' && profileId) {
+      if (_dpProfileEditTargetId === profileId) _dpClearProfileEditMode();
+      window.dpDeleteProfile(profileId);
+    }
+  }
+
+  function _dpBindMasterCardMenuEvents(root) {
+    if (!root || !root.querySelector) return;
+    var btn = root.querySelector('.dp-mc-menu-btn');
+    if (btn && btn.getAttribute('data-dp-bound') !== '1') {
+      btn.setAttribute('data-dp-bound', '1');
+      btn.addEventListener('click', function(event) {
+        _dpToggleProfileMenuFromButton(btn, event, 'click');
+      });
+      btn.addEventListener('touchend', function(event) {
+        _dpToggleProfileMenuFromButton(btn, event, 'touch');
+      }, { passive: false });
+    }
+    root.querySelectorAll('.dp-mc-action-menu__item').forEach(function(item) {
+      if (item.getAttribute('data-dp-bound') === '1') return;
+      item.setAttribute('data-dp-bound', '1');
+      item.addEventListener('click', function(event) {
+        _dpRunProfileMenuActionNode(item, event);
+      });
+      item.addEventListener('touchend', function(event) {
+        _dpRunProfileMenuActionNode(item, event);
+      }, { passive: false });
+    });
+    var loadBtn = root.querySelector('.dp-mc-load-btn');
+    if (loadBtn && loadBtn.getAttribute('data-dp-bound') !== '1') {
+      loadBtn.setAttribute('data-dp-bound', '1');
+      loadBtn.addEventListener('click', function(event) {
+        if (event && event.preventDefault) event.preventDefault();
+        if (event && event.stopPropagation) event.stopPropagation();
+        if (typeof window.dpLoadProfile === 'function') window.dpLoadProfile();
+      });
+    }
   }
 
   function _dpRunProfileManageGate(action, profileId, requestId) {
@@ -3422,13 +3507,13 @@
             + '</div>'
           + '</div>'
           + '<div class="dp-mc-action-wrap">'
-            + '<button class="dp-mc-list-btn dp-mc-menu-btn" onclick="dpToggleProfileMenu(event)" aria-label="프로필 카드 메뉴" aria-expanded="false" style="touch-action:manipulation">'
+            + '<button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="프로필 카드 메뉴" aria-expanded="false" data-profile-menu-marker="profile-card-menu-actions-v20260605" style="touch-action:manipulation">'
               + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
             + '</button>'
             + '<div class="dp-mc-action-menu" role="menu" aria-label="프로필 카드 관리">'
-              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" data-dp-menu-action="view" data-profile-id="' + _esc(profile.id) + '" onclick="dpRunProfileMenuAction(this,event)">프로필 조회<span>열기</span></button>'
-              + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--edit" role="menuitem" data-dp-menu-action="edit" data-profile-id="' + _esc(profile.id) + '" onclick="dpRunProfileMenuAction(this,event)">프로필 카드 수정<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
-              + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--danger" role="menuitem" data-dp-menu-action="delete" data-profile-id="' + _esc(profile.id) + '" onclick="dpRunProfileMenuAction(this,event)">프로필 카드 삭제<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
+              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" data-dp-menu-action="view" data-profile-id="' + _esc(profile.id) + '">프로필 조회<span>열기</span></button>'
+              + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--edit" role="menuitem" data-dp-menu-action="edit" data-profile-id="' + _esc(profile.id) + '">프로필 카드 수정<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
+              + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--danger" role="menuitem" data-dp-menu-action="delete" data-profile-id="' + _esc(profile.id) + '">프로필 카드 삭제<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
             + '</div>'
           + '</div>'
         + '</div>'
@@ -3459,8 +3544,9 @@
             + '<span class="dp-mc-info-val">' + l.lng.toFixed(1) + '°</span>'
           + '</div>'
         + '</div>'
-        + '<button class="dp-mc-load-btn" onclick="dpLoadProfile()" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
+        + '<button class="dp-mc-load-btn" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
       + '</div>';
+    _dpBindMasterCardMenuEvents(el);
   }
 
   function _emptyCard() {
@@ -4433,49 +4519,14 @@
   };
 
   window.dpToggleProfileMenu = function(event) {
-    if (event && event.preventDefault) event.preventDefault();
-    if (event && event.stopPropagation) event.stopPropagation();
-    if (event && event.type === 'click' && (Date.now() - _dpProfileMenuLastTouchAt < 700 || Date.now() - _dpProfileMenuPointerHandledAt < 700)) return;
-    if (event && event.source === 'touch') _dpProfileMenuLastTouchAt = Date.now();
     var btn = event && event.currentTarget ? event.currentTarget : document.querySelector('#dpMasterCard .dp-mc-menu-btn');
-    var wrap = btn && btn.closest ? btn.closest('.dp-mc-action-wrap') : null;
-    if (!wrap) return;
-    var willOpen = !wrap.classList.contains('is-open');
-    _dpCloseProfileMenu();
-    wrap.classList.toggle('is-open', willOpen);
-    btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-    if (willOpen) _dpPositionProfileMenu(btn, wrap);
+    _dpToggleProfileMenuFromButton(btn, event, event && event.source);
   };
 
   window.dpCloseProfileMenu = _dpCloseProfileMenu;
 
   window.dpRunProfileMenuAction = function(node, event) {
-    if (event && event.preventDefault) event.preventDefault();
-    if (event && event.stopPropagation) event.stopPropagation();
-    var item = node && node.closest ? node.closest('.dp-mc-action-menu__item') : null;
-    if (!item) return;
-    var action = String(item.getAttribute('data-dp-menu-action') || '').trim();
-    var profileId = String(item.getAttribute('data-profile-id') || '').trim();
-    _dpCloseProfileMenu();
-    if (action === 'view') {
-      _dpClearProfileEditMode();
-      if (profileId) dpSelectProfile(profileId);
-      dpLoadProfile();
-      return;
-    }
-    if (action === 'list') {
-      _dpClearProfileEditMode();
-      dpOpenList();
-      return;
-    }
-    if (action === 'edit' && profileId) {
-      dpStartEditProfile(profileId);
-      return;
-    }
-    if (action === 'delete' && profileId) {
-      if (_dpProfileEditTargetId === profileId) _dpClearProfileEditMode();
-      dpDeleteProfile(profileId);
-    }
+    _dpRunProfileMenuActionNode(node, event);
   };
 
   window.dpDeleteProfile = function(id) {

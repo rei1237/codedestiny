@@ -356,7 +356,7 @@ function isTarotModalActive() {
 
 // 스프레드 모드별 라벨 (카테고리별 커스텀 가능)
 var TAROT_SPREAD_LABELS = {
-  default: ['과거', '현재', '미래'],
+  default: ['흘러온 결', '지금의 결', '다가오는 결'],
   situationAdviceOutcome: ['상황', '조언', '결과']
 };
 
@@ -416,8 +416,8 @@ function selectTarotCategory(cat, btn) {
   var catCtx = TAROT_CONTEXT[cat];
   if (msgEl) {
     msgEl.innerHTML = catCtx
-      ? `🌿 <b>${catCtx.label}</b>에 관한 카드를 펼칩니다. 잠시 호흡을 가다듬어 보세요.`
-      : '🌿 카드를 펼칠 준비를 하고 있습니다. 잠시만 기다려주세요.';
+      ? `🌿 <b>${catCtx.label}</b>의 질문 위에 카드를 펼칩니다. 잠시 호흡을 고르세요.`
+      : '🌿 질문의 결 위에 카드를 펼칠 준비를 하고 있습니다.';
     msgEl.style.opacity = 0.6;
   }
   
@@ -1221,8 +1221,8 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
     : '지금은 ' + tenProfile.work + '으로 이미 있는 흐름을 옮기세요. ' + tenProfile.reality + ' 그래서 오늘의 행동은 ' + tenProfile.action + '입니다.';
 
   var oracleMessage = dir === 'reversed'
-    ? '🧙 명리 타로 상담 결론: 지금은 ' + tenProfile.work + '을 더 억지로 밀기보다 구조를 다시 잡아야 할 때입니다. ' + tenProfile.risk + ' 이번 리딩은 준비를 늘리는 흐름이 아니라 멈춤과 재정렬의 흐름을 말합니다.'
-    : '🧙 명리 타로 상담 결론: 당신의 직업운은 지금 당장 새로운 공부를 더하는 것보다 이미 가지고 있는 능력을 세상에 공개하는 방향이 훨씬 강하게 열려 있습니다. 특히 이번 리딩은 ' + comboArchetype + ' 흐름으로 이어지기 때문에 ' + tenProfile.work + '에서 결과가 먼저 드러납니다. 가장 경계해야 할 것은 ' + (mainTenGod === '편인' ? '완벽주의' : tenProfile.risk) + '입니다. 이번 리딩은 준비의 끝이 아니라 출발의 시작을 말하고 있습니다.';
+    ? '🧙 명리 타로 봉인 문장: 지금은 ' + tenProfile.work + '을 더 억지로 밀기보다 구조를 다시 잡아야 할 때입니다. ' + tenProfile.risk + ' 이번 리딩은 준비를 늘리는 흐름이 아니라 멈춤과 재정렬의 흐름을 말합니다.'
+    : '🧙 명리 타로 봉인 문장: 지금은 새로운 공부를 더하기보다 이미 가진 힘을 세상에 보여주는 쪽으로 기운이 열립니다. 특히 이번 리딩은 ' + comboArchetype + ' 흐름으로 이어지기 때문에 ' + tenProfile.work + '에서 먼저 길이 드러납니다. 가장 경계해야 할 것은 ' + (mainTenGod === '편인' ? '완벽주의' : tenProfile.risk) + '입니다. 이번 리딩은 준비의 끝이 아니라 출발의 시작을 말합니다.';
   var currentSituation = '현재는 ' + comboArchetype + '의 국면입니다. ' + bridge;
   var whyThisHappens = dir === 'reversed'
     ? '왜 이런 일이 생겼는가: ' + cardName + '의 힘이 안으로 접히며 ' + tenProfile.focus + '가 과열되거나 지연되고 있습니다.'
@@ -1283,18 +1283,18 @@ function buildMyeongriTarotReadingHtml(reading, slotLabel) {
     '<div style="margin-bottom:18px;padding:14px;border:1px solid rgba(255,255,255,0.14);border-radius:12px;background:rgba(17,24,39,0.34);">' +
       '<b style="color:#ffd700;font-size:1.02rem">' + escapeTarotHtml(slotLabel || '핵심 카드') + ' — ' + escapeTarotHtml(reading.card.nameKo) + ' (' + escapeTarotHtml(orientationLabel) + ')</b>' +
       '<div style="margin-top:8px;line-height:1.85;color:#e5e7eb;">' +
-        '<b style="color:#a7f3d0;">질문 카테고리:</b> ' + escapeTarotHtml(reading.category) + '<br>' +
-        '<b style="color:#c4b5fd;">오늘의 명리 타로 제목:</b> ' + escapeTarotHtml(reading.title) + '<br>' +
-        '<b style="color:#fde68a;">카드 핵심 키워드:</b> ' + escapeTarotHtml(cardKw) + '<br>' +
-        '<b style="color:#93c5fd;">십성 핵심 키워드:</b> ' + escapeTarotHtml(reading.tenGod.main + ' · ' + reading.tenGod.group + ' · ' + reading.tenGod.meaning) +
+        '<b style="color:#a7f3d0;">질문의 자리:</b> ' + escapeTarotHtml(reading.category) + '<br>' +
+        '<b style="color:#c4b5fd;">오늘의 카드 이름:</b> ' + escapeTarotHtml(reading.title) + '<br>' +
+        '<b style="color:#fde68a;">카드가 남긴 단서:</b> ' + escapeTarotHtml(cardKw) + '<br>' +
+        '<b style="color:#93c5fd;">십성이 비추는 결:</b> ' + escapeTarotHtml(reading.tenGod.main + ' · ' + reading.tenGod.group + ' · ' + reading.tenGod.meaning) +
       '</div>' +
-      '<div style="margin-top:10px;line-height:1.85;"><b style="color:#c4b5fd;">타로 카드 해석:</b> ' + escapeTarotHtml(reading.cardMeaning) + '</div>' +
-      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#93c5fd;">십성 해석:</b> ' + escapeTarotHtml(reading.tenGodInterpretation) + '</div>' +
-      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#86efac;">카드 + 십성 결합 해석:</b> ' + escapeTarotHtml(reading.combinedReading) + '</div>' +
-      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#fca5a5;">그림자 경고:</b> ' + escapeTarotHtml(reading.shadowWarning) + '</div>' +
-      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#fcd34d;">현실 조언:</b> ' + escapeTarotHtml(reading.practicalAdvice) + '</div>' +
+      '<div style="margin-top:10px;line-height:1.85;"><b style="color:#c4b5fd;">카드의 전언:</b> ' + escapeTarotHtml(reading.cardMeaning) + '</div>' +
+      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#93c5fd;">십성의 조율:</b> ' + escapeTarotHtml(reading.tenGodInterpretation) + '</div>' +
+      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#86efac;">카드와 십성이 만난 해석:</b> ' + escapeTarotHtml(reading.combinedReading) + '</div>' +
+      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#fca5a5;">그림자가 건네는 주의:</b> ' + escapeTarotHtml(reading.shadowWarning) + '</div>' +
+      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#fcd34d;">오늘의 조율:</b> ' + escapeTarotHtml(reading.practicalAdvice) + '</div>' +
       '<div style="margin-top:10px;padding:13px 14px;border:1px solid rgba(253,230,138,0.24);border-radius:12px;background:rgba(2,6,23,0.38);">' +
-        '<b style="color:#fde68a;font-size:1em">🧙 명리 타로 상담 결론</b><br><br>' +
+        '<b style="color:#fde68a;font-size:1em">🧙 명리 타로 봉인 문장</b><br><br>' +
         '<span style="line-height:1.9;color:#fef3c7;">' + escapeTarotHtml(reading.oracleMessage || reading.oneLineConclusion || '') + '</span>' +
       '</div>' +
       qualityTag +
@@ -1338,11 +1338,11 @@ function buildTarotRealityPlan(cardsData, category, labels, readings) {
   var nowReading = (readings && readings[1]) || combineTarotAndTenGod(now.card || {}, '', category, now.isReversed ? 'reversed' : 'upright');
   var futReading = (readings && readings[2]) || combineTarotAndTenGod(fut.card || {}, '', category, fut.isReversed ? 'reversed' : 'upright');
   var dom = summarizeDominantSipsin(cardsData) || '정인';
-  var l1 = labels[0] || '과거';
-  var l2 = labels[1] || '현재';
-  var l3 = labels[2] || '미래';
+  var l1 = labels[0] || '흘러온 결';
+  var l2 = labels[1] || '지금의 결';
+  var l3 = labels[2] || '다가오는 결';
   var title = mapCategoryToMyeongriCategory(category);
-  var futureCard = String((fut.card && fut.card.name_kr) || '미래 카드');
+  var futureCard = String((fut.card && fut.card.name_kr) || '다가오는 카드');
   var tenGodFlow = [
     (pastReading.tenGod && pastReading.tenGod.main) || '미상',
     (nowReading.tenGod && nowReading.tenGod.main) || '미상',
@@ -1350,14 +1350,14 @@ function buildTarotRealityPlan(cardsData, category, labels, readings) {
   ].join(' → ');
   var coreConclusion = (futureCard === '태양' || futReading.tenGod.main === '식신')
     ? '이번 리딩의 핵심은 “더 준비하라”가 아니라 “이제 공개하라”입니다. 특히 ' + tenGodFlow + ' 흐름은 배움 → 준비 → 결과물 생산으로 이어집니다.'
-    : (futReading.oneLineConclusion || '이번 리딩의 핵심은 생각을 끝내고 현실 행동으로 옮기는 것입니다.') + ' 특히 ' + tenGodFlow + ' 흐름을 한 줄로 묶어 읽어야 정확합니다.';
-  var pastStory = '과거의 ' + escapeTarotHtml((past.card && past.card.name_kr) || l1) + '는 ' + escapeTarotHtml(pastReading.comboArchetype || pastReading.tenGod.main) + '를 쌓아온 시간입니다. ' + escapeTarotHtml(pastReading.cardMeaning);
-  var nowStory = '현재의 ' + escapeTarotHtml((now.card && now.card.name_kr) || l2) + '는 ' + escapeTarotHtml(nowReading.comboArchetype || nowReading.tenGod.main) + '의 다음 수를 고르는 순간입니다. ' + escapeTarotHtml(nowReading.practicalAdvice);
-  var futureStory = '미래의 ' + escapeTarotHtml(futureCard) + '는 ' + escapeTarotHtml(futReading.comboArchetype || futReading.tenGod.main) + '가 현실 성과로 드러나는 장면입니다. ' + escapeTarotHtml(futReading.oracleMessage);
+    : (futReading.oneLineConclusion || '이번 리딩의 핵심은 생각을 끝내고 현실 행동으로 옮기는 것입니다.') + ' 특히 ' + tenGodFlow + ' 흐름을 한 줄로 묶어 읽을 때 방향이 선명합니다.';
+  var pastStory = '흘러온 결의 ' + escapeTarotHtml((past.card && past.card.name_kr) || l1) + '는 ' + escapeTarotHtml(pastReading.comboArchetype || pastReading.tenGod.main) + '를 쌓아온 시간을 비춥니다. ' + escapeTarotHtml(pastReading.cardMeaning);
+  var nowStory = '지금의 결에 놓인 ' + escapeTarotHtml((now.card && now.card.name_kr) || l2) + '는 ' + escapeTarotHtml(nowReading.comboArchetype || nowReading.tenGod.main) + '의 다음 수를 고르는 순간을 말합니다. ' + escapeTarotHtml(nowReading.practicalAdvice);
+  var futureStory = '다가오는 결의 ' + escapeTarotHtml(futureCard) + '는 ' + escapeTarotHtml(futReading.comboArchetype || futReading.tenGod.main) + '가 어떤 선택을 통해 드러날 수 있는지 보여줍니다. ' + escapeTarotHtml(futReading.oracleMessage);
 
   return '' +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(196,181,253,0.4);border-radius:12px;background:rgba(76,29,149,0.16);">' +
-      '<b style="color:#c4b5fd;font-size:1em">📖 직업운 스토리</b><br><br>' +
+      '<b style="color:#c4b5fd;font-size:1em">📖 세 장의 명리 흐름</b><br><br>' +
       '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">' +
         '<span style="padding:3px 9px;border-radius:20px;background:rgba(196,181,253,0.18);color:#e9d5ff;font-size:.76rem;font-weight:700;">' + escapeTarotHtml(l1) + '</span>' +
         '<span style="padding:3px 9px;border-radius:20px;background:rgba(196,181,253,0.14);color:#ddd6fe;font-size:.76rem;font-weight:700;">' + escapeTarotHtml(l2) + '</span>' +
@@ -1371,11 +1371,11 @@ function buildTarotRealityPlan(cardsData, category, labels, readings) {
       '</div>' +
     '</div>' +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(253,230,138,0.35);border-radius:12px;background:rgba(120,53,15,0.14);">' +
-      '<b style="color:#fde68a;font-size:1em">🛠 현실 실행 플랜 (24시간·7일·30일)</b><br><br>' +
+      '<b style="color:#fde68a;font-size:1em">🛠 오늘의 실행 의식 (24시간·7일·30일)</b><br><br>' +
       '<span style="line-height:1.85;"><b>1) 24시간:</b> 지금 가장 무거운 감정 1가지를 적고, 그 감정 아래 숨은 욕구를 한 줄로 정리하세요.</span><br>' +
-      '<span style="line-height:1.85;"><b>2) 7일:</b> 현재 카드 <b>' + escapeTarotHtml((now.card && now.card.name_kr) || '현재 카드') + '</b> 해석을 기준으로 "' + escapeTarotHtml(nowReading.practicalAdvice) + '"를 매일 10분 실천하세요.</span><br>' +
-      '<span style="line-height:1.85;"><b>3) 30일:</b> 미래 카드 <b>' + escapeTarotHtml(futureCard) + '</b>의 메시지( ' + escapeTarotHtml(futReading.combinedReading) + ' )를 기준으로 장기 선택 1개를 확정하세요.</span><br>' +
-      '<span style="line-height:1.85;"><b>주도 십성:</b> <b>' + escapeTarotHtml(dom) + '</b> · <b>질문 카테고리:</b> ' + escapeTarotHtml(title) + '</span>' +
+      '<span style="line-height:1.85;"><b>2) 7일:</b> 지금의 카드 <b>' + escapeTarotHtml((now.card && now.card.name_kr) || '지금의 카드') + '</b> 해석을 기준으로 "' + escapeTarotHtml(nowReading.practicalAdvice) + '"를 매일 10분 실천하세요.</span><br>' +
+      '<span style="line-height:1.85;"><b>3) 30일:</b> 다가오는 카드 <b>' + escapeTarotHtml(futureCard) + '</b>의 메시지( ' + escapeTarotHtml(futReading.combinedReading) + ' )를 기준으로 오래 가져갈 선택 1개를 정하세요.</span><br>' +
+      '<span style="line-height:1.85;"><b>주도 십성:</b> <b>' + escapeTarotHtml(dom) + '</b> · <b>질문의 자리:</b> ' + escapeTarotHtml(title) + '</span>' +
     '</div>';
 }
 
@@ -1417,7 +1417,7 @@ function startThreeCardFlow() {
   var finalBtn = document.getElementById('tarotFinalBtn');
   if (finalBtn) finalBtn.disabled = true;
   var guideEl = document.getElementById('tarotSpreadGuide');
-  if (guideEl) guideEl.textContent = (labels[0] || '과거') + ' 자리의 카드를 먼저 열어보세요';
+  if (guideEl) guideEl.textContent = (labels[0] || '흘러온 결') + ' 자리의 카드를 먼저 열어보세요';
   if (msgEl) msgEl.innerHTML = '🌙 마음을 고요히 하고, 끌리는 카드를 순서대로 열어보세요.';
   isReading = false;
 }
@@ -1495,7 +1495,7 @@ function _runShowTarotFinalInterpretation() {
   var cardsData = tarotThreeCardState.cards;
   var labels = getTarotSpreadLabels(curTarotCat);
   var msgEl = document.getElementById('tarotRitualMsg');
-  if (msgEl) msgEl.innerHTML = '🔮 세 장의 맥락을 연결해 명리 리딩을 생성하는 중...';
+  if (msgEl) msgEl.innerHTML = '🔮 세 장의 결을 이어 명리 타로를 여는 중...';
 
   var cardNameEl = document.getElementById('tarotCardName');
   if (cardNameEl) {
@@ -1514,22 +1514,22 @@ function _runShowTarotFinalInterpretation() {
   var advice = removeRepeatedMyeongriTarotPhrases(
     '질문 카테고리 ' + mapCategoryToMyeongriCategory(curTarotCat) + '에서는 ' +
     cardsData.map(function(d) { return d.card.name_kr; }).join(' -> ') +
-    '의 흐름을 ' + dominantTenGod + ' 관점으로 연결해 읽을 때 가장 정확합니다.'
+    '의 흐름을 ' + dominantTenGod + ' 관점으로 연결해 읽을 때 선택의 방향이 선명해집니다.'
   );
   var oracle = (readings[readings.length - 1] && readings[readings.length - 1].oracleMessage) || '';
   var interpretation = '' +
-    '<b style="color:#c4b5fd;font-size:1.02em">🔮 명리학 타로 3카드 리딩</b><br>' +
-    '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">카드 · 십성 · 카테고리를 하나의 상담문으로 통합한 리딩입니다.</span><br><br>' +
+    '<b style="color:#c4b5fd;font-size:1.02em">🔮 명리학 타로 세 장의 흐름</b><br>' +
+    '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">카드의 상징과 십성의 기운을 오늘의 선택 문장으로 엮은 리딩입니다.</span><br><br>' +
     parts +
     realityPlan +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(167,243,208,0.35);border-radius:12px;background:rgba(5,150,105,0.10);">' +
-      '<b style="color:#6ee7b7;font-size:1em">🪷 상담 조언</b><br><br>' +
+      '<b style="color:#6ee7b7;font-size:1em">🪷 오늘의 조율 문장</b><br><br>' +
       '<span style="line-height:1.88;color:#d1fae5;">' + escapeTarotHtml(advice) + '</span>' +
     '</div>';
   var oracleEl = document.getElementById('tarotOracleText');
   if (oracleEl) {
     oracleEl.innerHTML = oracle
-      ? '<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 오늘의 오라클 메시지</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(oracle) + '"</span>'
+        ? '<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 봉인 오라클</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(oracle) + '"</span>'
       : '';
     if (oracle) oracleEl.classList.add('show');
   }
@@ -1544,8 +1544,8 @@ function _runShowTarotFinalInterpretation() {
     setTimeout(function() {
       streamRitualHtmlTyped(interpretation, 'destinyFortune', function() {
         var guide = document.getElementById('tarotSpreadGuide');
-        if (guide) guide.textContent = '✨ 명리 리딩이 완료되었습니다.';
-        if (msgEl) msgEl.innerHTML = '🌟 카드의 흐름을 행동으로 바꿔보세요.';
+        if (guide) guide.textContent = '✨ 세 장의 명리 흐름이 완성되었습니다.';
+        if (msgEl) msgEl.innerHTML = '🌟 카드의 결을 오늘의 행동으로 옮겨보세요.';
       });
     }, 350);
   }, 80);
@@ -1556,7 +1556,7 @@ function startTarotReading() {
     var now = Date.now();
     if ((now - lastTarotMissingCategoryAlertAt) < 900) return;
     lastTarotMissingCategoryAlertAt = now;
-    alert("먼저 고민 카테고리를 선택해. 너의 파동을 읽어야 하니까.");
+    alert("먼저 고민 카테고리를 선택해 주세요. 선택한 질문 위에 카드를 펼칠게요.");
     return;
   }
   if(isReading) return;
@@ -1578,7 +1578,7 @@ function _runStartTarotReading() {
   var token = tarotLifecycleToken;
   
   // 1. 셔플 단계
-  msgEl.innerHTML = `🌀 무의식이 카드를 고르고 있습니다...`;
+  msgEl.innerHTML = `🌀 카드가 질문의 결을 고르고 있습니다...`;
   msgEl.style.opacity = 1;
   
   // 카드 흔들림 효과
@@ -1617,7 +1617,7 @@ function _runStartTarotReading() {
     card.classList.add('flipped');
     playTarotFlipSound();
     createGoldDust(card);
-    msgEl.innerHTML = '✦ ' + picked.name_kr + '(' + picked.name + ') — 명리 타로가 선택했습니다.';
+    msgEl.innerHTML = '✦ ' + picked.name_kr + '(' + picked.name + ') — 명리 타로가 오늘의 결로 선택했습니다.';
     var direction = isReversed ? '역행(逆行)' : '순행(順行)';
     var cardNameEl = document.getElementById('tarotCardName');
     if (cardNameEl) {
@@ -1631,8 +1631,8 @@ function _runStartTarotReading() {
     var reading = combineTarotAndTenGod(picked, '', curTarotCat, isReversed ? 'reversed' : 'upright');
     var resultEl = document.getElementById('tarotResultContainer');
     if (resultEl) resultEl.classList.remove('is-empty');
-    var interpretation = '<b style="color:#ddd6fe;font-size:1.02em">🌙 명리학 타로 원카드 리딩</b><br>' +
-      '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">타로 카드, 십성, 질문 맥락을 한 문장으로 연결한 상담입니다.</span><br><br>' +
+    var interpretation = '<b style="color:#ddd6fe;font-size:1.02em">🌙 명리학 타로 한 장 리딩</b><br>' +
+      '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">타로의 상징과 십성의 기운을 오늘의 선택으로 연결합니다.</span><br><br>' +
       buildMyeongriTarotReadingHtml(reading, '오늘');
     streamRitualHtmlTyped(interpretation, 'destinyFortune', function() {
       if (token !== tarotLifecycleToken) return;
@@ -1640,14 +1640,14 @@ function _runStartTarotReading() {
       var oracleEl = document.getElementById('tarotOracleText');
       if (oracleEl) {
         oracleEl.innerHTML = advice
-          ? '<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 오늘의 오라클 메시지</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(advice) + '"</span>'
+          ? '<div style="font-weight:700;color:#FFD700;margin-bottom:6px;letter-spacing:0.03em">✨ 봉인 오라클</div><span style="font-style:italic;line-height:1.8">"' + escapeTarotHtml(advice) + '"</span>'
           : '';
         if (advice) oracleEl.classList.add('show');
       }
       isReading = false;
       card.setAttribute('data-action', 'enterDivineFocusFromCard');
       card.style.cursor = 'zoom-in';
-      msgEl.innerHTML = '🌟 카드를 탭하면 더 깊은 에너지를 느낄 수 있습니다.';
+      msgEl.innerHTML = '🌟 카드를 탭하면 상징의 결을 더 깊게 느낄 수 있습니다.';
     });
   }, 2000);
 }
@@ -6386,6 +6386,13 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
   var integratedGuardianLabel = reading && reading.guardian
     ? String((reading.guardian.emoji || '✨') + ' ' + (reading.guardian.name || '달빛 수호령'))
     : '✨ 달빛 수호령';
+  var moonPhaseSeal = phaseLabel.indexOf('보름') >= 0 || phaseLabel.indexOf('만월') >= 0
+    ? '●'
+    : (phaseLabel.indexOf('초승') >= 0
+      ? '☾'
+      : (phaseLabel.indexOf('하현') >= 0
+        ? '◑'
+        : (phaseLabel.indexOf('상현') >= 0 ? '◐' : '◯')));
 
   var renderTagList = function (items) {
     return items.map(function (item) {
@@ -6405,10 +6412,11 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
   }
 
   return ''
-    + '<div class="sy-card sy-canon-card" id="syCanonicalDashboard">'
+    + '<div class="sy-card sy-canon-card" id="syCanonicalDashboard" data-sy-personal-moon-hero="20260605-sukuyo-personal-hero">'
     + '<div class="sy-canon-hero">'
-    + '<div class="sy-canon-overline">MAIN SUKUYO · CANONICAL</div>'
-    + '<h4>🌕 기본 숙요점 · 월하 명식 통합 대시보드</h4>'
+    + '<div class="sy-canon-hero-copy">'
+    + '<div class="sy-canon-overline">MOON MAP · 27 SUKUYO</div>'
+    + '<h4>나의 달빛 지도</h4>'
     + '<p>' + syCanonicalEsc(integratedHeroSubtitle) + '</p>'
     + '<div class="sy-canon-hero-row">'
     + '<span class="sy-canon-pill">본명숙 ' + syCanonicalEsc(mansionLabel) + '</span>'
@@ -6416,6 +6424,13 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
     + '<span class="sy-canon-pill">월상 ' + syCanonicalEsc(phaseLabel) + '</span>'
     + '<span class="sy-canon-pill">' + syCanonicalEsc(integratedMoonLabel) + '</span>'
     + '<span class="sy-canon-pill">수호 상징 ' + syCanonicalEsc(integratedGuardianLabel) + '</span>'
+    + '</div>'
+    + '</div>'
+    + '<div class="sy-canon-moon-stage" aria-hidden="true">'
+    + '<div class="sy-canon-moon-orbit"><span></span><i></i><b></b></div>'
+    + '<div class="sy-canon-moon-core">' + syCanonicalEsc(moonPhaseSeal) + '</div>'
+    + '<div class="sy-canon-moon-label">' + syCanonicalEsc(phaseLabel) + '</div>'
+    + '<div class="sy-canon-moon-illum">' + syCanonicalEsc(illum) + '</div>'
     + '</div>'
     + '</div>'
     + validationMsg
@@ -6476,14 +6491,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         var _sySt = document.createElement('style');
         _sySt.id = 'sy-main-style';
         _sySt.textContent = `
-        .sy-container { background: linear-gradient(160deg, rgba(10,12,25,0.98) 0%, rgba(20,22,45,0.98) 100%); border: 1px solid rgba(180,160,255,0.25); border-radius: 18px; padding: 30px 24px; color: #ede8d0; font-family: 'Noto Sans KR','Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif; box-shadow: 0 15px 50px rgba(0,0,0,0.7), 0 0 80px rgba(120,80,220,0.07); position: relative; touch-action: pan-y; overflow-x: hidden; }
-        .sy-container::before { content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; background:radial-gradient(circle, rgba(120,80,220,0.12) 0%, transparent 70%); pointer-events:none; }
-        .sy-header { text-align: center; border-bottom: 1px solid rgba(180,160,255,0.2); padding-bottom: 16px; margin-bottom: 22px; }
-        .sy-header h3 { margin: 0; background: linear-gradient(135deg, #e2c9ff, #ffd700, #e2c9ff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size: 1.6rem; text-shadow: none; }
-        .sy-card { position:relative; overflow:hidden; background:radial-gradient(circle at 88% 0%, rgba(226,232,255,0.12), transparent 34%), linear-gradient(150deg, rgba(20,24,48,0.94), rgba(14,18,38,0.9) 56%, rgba(28,20,52,0.88)); border-radius: 14px; padding: 20px; margin-bottom: 16px; border:1px solid rgba(196,181,253,0.24); border-left: 3px solid #a78bfa; box-shadow:0 18px 44px rgba(2,6,23,0.36), inset 0 1px 0 rgba(255,255,255,0.07); transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
-        .sy-card::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 12% 14%, rgba(125,211,252,0.08), transparent 32%), radial-gradient(circle at 90% 84%, rgba(196,181,253,0.1), transparent 38%); pointer-events:none; }
+        .sy-container { --sy-night:#070a18; --sy-midnight:#101529; --sy-moon:#f8fafc; --sy-moon-soft:#dbeafe; --sy-pearl:#f8e7b7; --sy-orchid:#c4b5fd; --sy-jade:#99f6e4; --sy-rose:#fbcfe8; background:radial-gradient(circle at 78% 4%, rgba(248,250,252,0.18), transparent 9%), radial-gradient(circle at 83% 9%, rgba(191,219,254,0.12), transparent 17%), radial-gradient(circle at 12% 24%, rgba(153,246,228,0.1), transparent 22%), linear-gradient(165deg, rgba(7,10,24,0.99) 0%, rgba(15,18,38,0.98) 42%, rgba(25,18,42,0.96) 100%); border: 1px solid rgba(219,234,254,0.26); border-radius: 20px; padding: 32px 24px; color: #eef2ff; font-family: 'Noto Sans KR','Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif; box-shadow: 0 18px 58px rgba(0,0,0,0.72), 0 0 70px rgba(219,234,254,0.08), inset 0 1px 0 rgba(255,255,255,0.06); position: relative; touch-action: pan-y; overflow-x: hidden; isolation:isolate; }
+        .sy-container::before { content:''; position:absolute; top:-72px; right:-58px; width:240px; height:240px; border-radius:999px; background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.96) 0%, rgba(226,232,240,0.74) 30%, rgba(191,219,254,0.22) 56%, transparent 72%); box-shadow:0 0 48px rgba(219,234,254,0.22); pointer-events:none; z-index:-1; }
+        .sy-container::after { content:''; position:absolute; inset:0; background-image:radial-gradient(circle, rgba(248,250,252,0.34) 0 1px, transparent 1.5px), radial-gradient(circle, rgba(251,232,183,0.22) 0 1px, transparent 1.5px); background-size:72px 72px, 118px 118px; background-position:12px 18px, 44px 58px; opacity:0.22; pointer-events:none; z-index:-1; }
+        .sy-header { position:relative; text-align: center; border: 1px solid rgba(219,234,254,0.16); border-bottom-color:rgba(248,231,183,0.24); border-radius:18px; padding:18px 14px 16px; margin-bottom: 22px; background:linear-gradient(145deg, rgba(15,23,42,0.54), rgba(30,27,75,0.24)); box-shadow:inset 0 1px 0 rgba(255,255,255,0.05); overflow:hidden; }
+        .sy-header::before { content:''; position:absolute; left:50%; top:-46px; width:118px; height:118px; transform:translateX(-50%); border-radius:999px; background:radial-gradient(circle at 38% 32%, rgba(255,255,255,0.88), rgba(219,234,254,0.42) 42%, transparent 68%); opacity:0.36; pointer-events:none; }
+        .sy-header h3 { position:relative; margin: 0; background: linear-gradient(135deg, #f8fafc, #f8e7b7 48%, #c4b5fd); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size: 1.62rem; text-shadow: none; }
+        .sy-header p { position:relative; }
+        .sy-card { position:relative; overflow:hidden; background:radial-gradient(circle at 88% 0%, rgba(248,250,252,0.16), transparent 31%), radial-gradient(circle at 10% 86%, rgba(153,246,228,0.08), transparent 30%), linear-gradient(150deg, rgba(13,18,36,0.94), rgba(18,24,46,0.92) 54%, rgba(31,24,50,0.9)); border-radius: 16px; padding: 20px; margin-bottom: 16px; border:1px solid rgba(219,234,254,0.22); border-left: 3px solid #c4b5fd; box-shadow:0 18px 46px rgba(2,6,23,0.42), 0 0 24px rgba(191,219,254,0.06), inset 0 1px 0 rgba(255,255,255,0.07); transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
+        .sy-card::before { content:''; position:absolute; inset:0; background:linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.045) 35%, transparent 58%), radial-gradient(circle at 12% 14%, rgba(125,211,252,0.08), transparent 32%), radial-gradient(circle at 90% 84%, rgba(196,181,253,0.1), transparent 38%); pointer-events:none; }
         .sy-card > * { position:relative; z-index:1; }
-        @media (hover: hover) { .sy-card:hover { transform: translateY(-3px); border-color:rgba(221,214,254,0.42); box-shadow:0 20px 54px rgba(2,6,23,0.48), 0 0 24px rgba(167,139,250,0.16); } }
+        @media (hover: hover) { .sy-card:hover { transform: translateY(-3px); border-color:rgba(248,250,252,0.36); box-shadow:0 22px 58px rgba(2,6,23,0.52), 0 0 28px rgba(219,234,254,0.14); } }
         .sy-gauge-bg { background: rgba(255,255,255,0.08); height: 9px; border-radius: 5px; margin-top: 6px; overflow: hidden; }
         .sy-gauge-fill { height: 100%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 5px; }
         .sy-glow-text { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px rgba(255,215,0,0.4); }
@@ -6577,15 +6595,52 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-guardian-meta { margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 11px; border-radius:999px; background:rgba(15,23,42,0.72); border:1px solid rgba(148,163,184,0.35); }
         .sy-guardian-meta span { font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; font-weight:700; }
         .sy-guardian-meta strong { color:#f8fafc; font-size:0.9rem; }
-        .sy-canon-card { border-left-color:#fbbf24; background:linear-gradient(155deg, rgba(30,20,45,0.97) 0%, rgba(14,25,48,0.97) 48%, rgba(10,16,36,0.97) 100%); box-shadow:0 16px 34px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(250,204,21,0.08); position:relative; overflow:hidden; }
+        .sy-canon-card { border-left-color:#f8e7b7; background:radial-gradient(circle at 84% 12%, rgba(248,250,252,0.16), transparent 28%), linear-gradient(155deg, rgba(21,19,43,0.97) 0%, rgba(12,24,46,0.97) 48%, rgba(7,10,28,0.98) 100%); box-shadow:0 18px 42px rgba(0,0,0,0.42), 0 0 28px rgba(219,234,254,0.08), inset 0 0 0 1px rgba(250,232,183,0.1); position:relative; overflow:hidden; }
         .sy-canon-card::before { content:''; position:absolute; inset:-24% auto auto -12%; width:260px; height:260px; pointer-events:none; background:radial-gradient(circle, rgba(251,191,36,0.15) 0%, rgba(251,191,36,0.03) 40%, rgba(251,191,36,0) 72%); }
         .sy-canon-card::after { content:''; position:absolute; right:-120px; bottom:-120px; width:280px; height:280px; pointer-events:none; background:radial-gradient(circle, rgba(99,102,241,0.22) 0%, rgba(99,102,241,0.06) 40%, rgba(99,102,241,0) 74%); }
-        .sy-canon-hero { margin-bottom:12px; }
-        .sy-canon-overline { font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:#fde68a; margin-bottom:4px; }
-        .sy-canon-hero h4 { margin:0 0 6px 0; color:#fef3c7; font-size:1.05rem; }
-        .sy-canon-hero p { margin:0; color:#d8d0ee; font-size:0.88rem; line-height:1.7; }
+        .sy-canon-hero { margin-bottom:14px; display:grid; grid-template-columns:minmax(0,1fr) 136px; gap:14px; align-items:center; }
+        .sy-canon-hero-copy { min-width:0; }
+        .sy-canon-overline { font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:#f8e7b7; margin-bottom:4px; }
+        .sy-canon-hero h4 { margin:0 0 6px 0; color:#fef9c3; font-size:1.18rem; letter-spacing:0; }
+        .sy-canon-hero p { margin:0; color:#e0e7ff; font-size:0.9rem; line-height:1.75; word-break:keep-all; }
         .sy-canon-hero-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
         .sy-canon-pill { display:inline-flex; align-items:center; border-radius:999px; border:1px solid rgba(251,191,36,0.4); background:rgba(120,53,15,0.32); color:#fde68a; font-size:0.72rem; font-weight:700; padding:4px 10px; }
+        .sy-canon-moon-stage { position:relative; min-height:142px; border-radius:18px; border:1px solid rgba(219,234,254,0.22); background:radial-gradient(circle at 50% 42%, rgba(248,250,252,0.16), transparent 36%), rgba(2,6,23,0.28); display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06); }
+        .sy-canon-moon-orbit { position:absolute; width:106px; height:106px; border-radius:999px; border:1px solid rgba(219,234,254,0.22); }
+        .sy-canon-moon-orbit span,.sy-canon-moon-orbit i,.sy-canon-moon-orbit b { position:absolute; width:6px; height:6px; border-radius:999px; background:#f8fafc; box-shadow:0 0 12px rgba(219,234,254,0.72); }
+        .sy-canon-moon-orbit span { left:13px; top:20px; }
+        .sy-canon-moon-orbit i { right:10px; top:42px; }
+        .sy-canon-moon-orbit b { left:48px; bottom:8px; }
+        .sy-canon-moon-core { width:62px; height:62px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#0f172a; font-size:1.5rem; font-weight:900; background:radial-gradient(circle at 35% 28%, #ffffff 0%, #f8e7b7 48%, #93c5fd 100%); box-shadow:0 0 26px rgba(248,250,252,0.38), 0 0 46px rgba(147,197,253,0.2); }
+        .sy-canon-moon-label { margin-top:8px; color:#f8e7b7; font-size:0.78rem; font-weight:900; text-align:center; }
+        .sy-canon-moon-illum { margin-top:2px; color:#bfdbfe; font-size:0.72rem; font-weight:800; }
+        .sy-lunar-year-card { border-left-color:#f8e7b7!important; background:radial-gradient(circle at 84% 9%, rgba(248,250,252,0.18), transparent 27%), radial-gradient(circle at 12% 78%, rgba(196,181,253,0.12), transparent 32%), linear-gradient(145deg,rgba(31,24,56,0.82),rgba(8,13,30,0.94))!important; }
+        .sy-lunar-overline { font-size:0.72rem; color:#f8e7b7; letter-spacing:0; text-transform:uppercase; font-weight:900; margin-bottom:7px; }
+        .sy-lunar-year-head { display:grid; grid-template-columns:minmax(0,1fr) 142px; gap:14px; align-items:stretch; margin-bottom:12px; }
+        .sy-lunar-year-copy h4 { margin:0 0 6px; color:#fef9c3; font-size:1.1rem; line-height:1.38; }
+        .sy-lunar-year-copy p { margin:0; color:#e9d5ff; font-size:0.88rem; line-height:1.78; word-break:keep-all; }
+        .sy-lunar-score-orb { position:relative; min-height:142px; border-radius:18px; border:1px solid rgba(248,231,183,0.24); background:radial-gradient(circle at 50% 38%, rgba(248,250,252,0.18), transparent 42%), rgba(2,6,23,0.34); display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; }
+        .sy-lunar-score-orb::before { content:''; position:absolute; width:104px; height:104px; border-radius:999px; border:1px solid rgba(248,231,183,0.25); box-shadow:0 0 30px rgba(248,231,183,0.08); }
+        .sy-lunar-score { position:relative; color:#fef9c3; font-size:1.55rem; font-weight:900; line-height:1; }
+        .sy-lunar-score-label { position:relative; margin-top:8px; color:#bfdbfe; font-size:0.74rem; font-weight:800; }
+        .sy-lunar-year-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; font-size:0.8rem; line-height:1.7; }
+        .sy-lunar-year-grid article { background:rgba(2,6,23,0.44); border:1px solid rgba(248,231,183,0.18); border-radius:12px; padding:10px; }
+        .sy-lunar-year-grid strong { display:block; color:#f8e7b7; margin-bottom:4px; }
+        .sy-lunar-year-grid span { display:block; color:#fef9c3; font-weight:900; margin-bottom:5px; }
+        .sy-lunar-year-grid p { margin:0; color:#e9d5ff; }
+        .sy-lunar-month-card { border-left-color:#99f6e4!important; background:radial-gradient(circle at 90% 8%, rgba(153,246,228,0.14), transparent 28%), radial-gradient(circle at 13% 92%, rgba(191,219,254,0.11), transparent 30%), linear-gradient(145deg,rgba(10,49,46,0.5),rgba(8,13,30,0.94))!important; }
+        .sy-lunar-month-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; font-size:0.78rem; line-height:1.68; color:#dcfce7; }
+        .sy-lunar-month-item { position:relative; overflow:hidden; background:rgba(2,6,23,0.46); border:1px solid rgba(153,246,228,0.2); border-radius:13px; padding:11px; }
+        .sy-lunar-month-item::before { content:''; position:absolute; right:-20px; top:-22px; width:72px; height:72px; border-radius:999px; background:radial-gradient(circle at 36% 30%, rgba(248,250,252,0.7), rgba(153,246,228,0.2) 48%, transparent 70%); opacity:0.42; pointer-events:none; }
+        .sy-lunar-month-head { position:relative; display:flex; justify-content:space-between; gap:8px; align-items:flex-start; margin-bottom:7px; }
+        .sy-lunar-month-title { display:flex; gap:7px; align-items:center; min-width:0; color:#ccfbf1; font-weight:900; }
+        .sy-lunar-phase { width:28px; height:28px; flex:0 0 auto; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; background:radial-gradient(circle at 35% 28%, #f8fafc, #f8e7b7 46%, #38bdf8 100%); color:#0f172a; box-shadow:0 0 18px rgba(153,246,228,0.22); }
+        .sy-lunar-band { color:#f8e7b7; font-weight:900; white-space:nowrap; }
+        .sy-lunar-month-item p { position:relative; margin:7px 0 5px; color:#dcfce7; word-break:keep-all; }
+        .sy-lunar-month-item .sy-lunar-note { margin:0 0 4px; }
+        .sy-lunar-month-item .sy-lunar-note--relation { color:#bfdbfe; }
+        .sy-lunar-month-item .sy-lunar-note--work { color:#fde68a; }
+        .sy-lunar-month-item .sy-lunar-note--caution { color:#fed7aa; margin-bottom:0; }
         .sy-canon-validation { margin-bottom:10px; font-size:0.78rem; color:#fca5a5; background:rgba(127,29,29,0.25); border:1px solid rgba(252,165,165,0.4); border-radius:8px; padding:8px 10px; }
         .sy-canon-tabs { display:flex; gap:7px; flex-wrap:wrap; margin:10px 0 12px; }
         .sy-canon-tab { padding:7px 12px; border-radius:999px; border:1px solid rgba(251,191,36,0.35); background:rgba(251,191,36,0.1); color:#fde68a; font-size:0.78rem; font-weight:700; cursor:pointer; min-height:38px; }
@@ -6680,6 +6735,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-wheel-title { font-size:0.92rem; }
           .sy-wheel-caption { font-size:0.82rem; }
           .sy-wheel-meta-grid { grid-template-columns:1fr; }
+          .sy-canon-hero { grid-template-columns:1fr; }
+          .sy-canon-moon-stage { min-height:128px; }
+          .sy-lunar-year-head { grid-template-columns:1fr; }
+          .sy-lunar-year-grid { grid-template-columns:1fr 1fr; }
+          .sy-lunar-month-grid { grid-template-columns:1fr; }
           .sy-canon-grid { grid-template-columns:1fr; }
           .sy-canon-brief-grid { grid-template-columns:1fr; }
           .sy-canon-rhythm-grid { grid-template-columns:1fr; }
@@ -6689,6 +6749,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-header h3 { font-size:1.22rem; }
           .sy-hero-title { font-size:1.08rem; }
           .sy-summary-grid { grid-template-columns:1fr; }
+          .sy-canon-moon-stage { min-height:116px; }
+          .sy-lunar-year-grid { grid-template-columns:1fr; }
+          .sy-lunar-score-orb { min-height:116px; }
           .sy-mini-grid { grid-template-columns:1fr; }
           .sy-narr-grid { grid-template-columns:1fr; }
           .sy-ntab, .sy-rel-tab, .sy-canon-tab { min-height:44px; }
@@ -6701,7 +6764,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     // 별 파티클 헤더
     const starsHtml = '<span class="sy-star">✦</span> <span class="sy-star">✧</span> <span class="sy-star">✦</span> <span class="sy-star">✧</span>';
-    html += `<div class="sy-container" id="lunarNexusApp">`;
+    html += `<div class="sy-container" id="lunarNexusApp" data-sy-moon-ui="20260605-sukuyo-moon-ui">`;
     html += `<div class="sy-header"><h3>☽ Lunar Nexus · 숙요점 ☾</h3><p style="font-size: 0.82rem; opacity: 0.65; margin-top:6px; letter-spacing:0.08em;">${starsHtml} &nbsp; 카르마와 별의 궤적이 교차하는 곳 &nbsp; ${starsHtml}</p></div>`;
 
     if (!lunarObj) {
@@ -6735,6 +6798,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       catch (_e) { return { name: '성운 고양이', emoji: '🐈' }; }
     })();
     var _reading = syBuildBasicReading(canonicalData, sData, dailyFlow, _selfGuardian);
+    var _annualMonthlyReading = sData ? syBuildSukuyoAnnualMonthlyReading(canonicalData, sData, dailyFlow, sourceProfile || window._ziweiBirth || null) : null;
     var _dailySectionHtml = '';
     var _legacyNexusHtml = '';
 
@@ -6871,6 +6935,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     if (canonicalData) {
       html += syRenderCanonicalDashboard(canonicalData, _reading);
+    }
+
+    if (_annualMonthlyReading) {
+      html += syRenderSukuyoAnnualMonthlySections(_annualMonthlyReading);
     }
 
     if (_legacyNexusHtml) {
@@ -8296,6 +8364,175 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
   };
 
+  var SY_RELATION_STRUCTURE_COPY = {
+    yeongchin: {
+      structureTitle: '서로를 살리는 성장 인연',
+      essence: '두 사람은 서로의 생활력과 마음의 체력을 함께 키우는 인연입니다. 편안함 속에서도 상대가 더 나은 선택을 하도록 조용히 등을 밀어주는 힘이 있습니다.',
+      attraction: '처음 끌림은 강한 자극보다 믿을 수 있다는 감각에서 시작됩니다. 말보다 태도, 설렘보다 안정감이 먼저 마음을 움직입니다.',
+      deepening: '가까워질수록 응원과 보호 본능이 커지고, 함께 정한 목표가 관계의 접착제가 됩니다.',
+      pattern: '익숙함이 깊어지면 표현을 생략하기 쉽습니다. 고마움을 당연하게 넘기면 좋은 인연도 천천히 건조해질 수 있습니다.',
+      prescription: '새로운 경험을 주기적으로 넣고, 작은 도움에도 감사의 말을 남기세요. 이 관계는 애정 표현이 생활 속에서 반복될 때 가장 오래 빛납니다.',
+      question: '우리는 서로를 더 넓고 건강한 방향으로 자라게 하고 있는가?'
+    },
+    ankai: {
+      structureTitle: '강한 끌림과 경계가 함께 필요한 인연',
+      essence: '이 관계는 서로의 숨은 욕망과 상처를 빠르게 깨우는 인연입니다. 마음이 크게 움직이는 만큼 관계를 다루는 규칙이 없으면 소모도 빨라집니다.',
+      attraction: '처음에는 이유보다 감각이 먼저 반응합니다. 상대의 말투, 눈빛, 거리감 하나에도 마음이 크게 흔들릴 수 있습니다.',
+      deepening: '가까워질수록 끌림은 강해지지만, 동시에 통제하고 싶거나 확인받고 싶은 마음도 함께 커집니다.',
+      pattern: '좋을 때는 매우 깊어지고, 불안할 때는 상대를 시험하거나 결론을 재촉하는 패턴이 반복되기 쉽습니다.',
+      prescription: '감정이 과열된 순간에는 결론을 미루고, 24시간 안에 다시 이야기할 시간을 정하세요. 이 관계는 사랑보다 경계선의 품질이 오래감을 결정합니다.',
+      question: '나는 지금 사랑을 표현하고 있는가, 불안을 증명하려 하고 있는가?'
+    },
+    usei: {
+      structureTitle: '정서적 쉼터가 되는 인연',
+      essence: '두 사람은 마음의 긴장을 낮추고 조용히 기대게 만드는 인연입니다. 큰 사건보다 일상의 공감과 지속성이 관계를 깊게 만듭니다.',
+      attraction: '처음에는 불꽃처럼 치솟기보다 편안함, 말이 통한다는 느낌, 함께 있을 때 숨이 쉬어진다는 감각이 먼저 옵니다.',
+      deepening: '시간이 쌓일수록 서로의 습관과 감정 결을 잘 알게 되어, 친구 같은 연인이나 오래 가는 동료 관계로 발전하기 쉽습니다.',
+      pattern: '불편한 말을 미루면 관계가 조용히 멀어집니다. 겉으로는 괜찮아 보여도 마음속 서운함이 누적될 수 있습니다.',
+      prescription: '다정함만큼 솔직함도 함께 쓰세요. 작은 불편을 부드럽게 말하는 습관이 이 인연의 온도를 지킵니다.',
+      question: '편안함에 숨어 말하지 못한 진심은 없는가?'
+    },
+    seongwi: {
+      structureTitle: '서로의 현실을 움직이는 동맹 인연',
+      essence: '두 사람은 감정만으로 머물기보다 목표, 성장, 현실적 성과를 통해 강해지는 인연입니다. 함께 무언가를 만들 때 관계의 힘이 또렷해집니다.',
+      attraction: '처음에는 상대의 능력, 추진력, 선택 방식에 눈길이 갑니다. 마음보다 가능성을 먼저 알아보는 흐름이 있습니다.',
+      deepening: '공동 목표가 생기면 결속이 빠르게 단단해집니다. 계획, 역할, 약속이 관계의 중심축이 됩니다.',
+      pattern: '성과와 책임에 몰두하다 보면 감정을 뒤로 미루기 쉽습니다. 관계가 프로젝트처럼 느껴지면 따뜻함이 줄어듭니다.',
+      prescription: '역할은 분명히 나누되, 감정 점검 시간을 따로 마련하세요. 목표와 애정이 함께 있어야 이 인연은 오래 갑니다.',
+      question: '우리는 같은 방향을 보고 있는가, 서로를 평가만 하고 있는가?'
+    },
+    life: {
+      structureTitle: '거울처럼 닮아 서로를 비추는 인연',
+      essence: '두 사람은 서로를 통해 자기 안의 장점과 약점을 또렷하게 보게 되는 인연입니다. 닮음이 빠른 공감을 만들지만, 독립성도 함께 지켜야 합니다.',
+      attraction: '처음부터 오래 알던 사람처럼 느껴질 수 있습니다. 설명하지 않아도 통한다는 감각이 강하게 올라옵니다.',
+      deepening: '가까워질수록 이해 속도는 빨라지지만, 같은 약점이 동시에 드러나면 관계가 정체되거나 예민해질 수 있습니다.',
+      pattern: '서로를 너무 잘 안다고 믿는 순간 오해가 시작됩니다. 닮았다는 이유로 상대의 현재 마음까지 단정하기 쉽습니다.',
+      prescription: '같은 점보다 다른 점을 자주 확인하세요. 거울 인연은 서로를 소유하지 않고 비춰줄 때 가장 맑아집니다.',
+      question: '나는 상대를 보고 있는가, 내 마음을 상대에게 투사하고 있는가?'
+    },
+    taegeuk: {
+      structureTitle: '업과 회복이 함께 움직이는 인연',
+      essence: '두 사람은 설명하기 어려운 익숙함과 책임감을 함께 느끼는 인연입니다. 쉽게 지나치기 어렵고, 관계를 통해 주고받음의 균형을 배우게 됩니다.',
+      attraction: '처음에는 이유 없이 신경 쓰이고, 마음 한쪽에 오래 남는 감각이 강합니다. 끌림 안에 돌봐야 할 것 같은 느낌이 섞입니다.',
+      deepening: '가까워질수록 헌신과 기대의 균형이 중요해집니다. 한쪽이 계속 주고 한쪽이 계속 받는 구조가 되면 관계의 빛이 흐려집니다.',
+      pattern: '고마움이 말로 표현되지 않으면 마음의 빚이 쌓입니다. 미련, 책임감, 서운함이 뒤섞여 관계를 복잡하게 만들 수 있습니다.',
+      prescription: '도와주는 마음과 자기 경계를 함께 세우세요. 감사 표현과 부탁의 기준을 분명히 하면 업의 무게가 회복의 힘으로 바뀝니다.',
+      question: '이 관계에서 나는 사랑과 책임을 구분하고 있는가?'
+    },
+    default: {
+      structureTitle: '조율로 완성되는 숙요 인연',
+      essence: '두 사람은 서로의 리듬을 알아가며 관계의 품질을 만들어가는 인연입니다. 타고난 흐름보다 어떻게 맞춰가느냐가 더 중요합니다.',
+      attraction: '처음에는 낯섦과 호기심이 함께 올라오고, 대화가 쌓일수록 관계의 방향이 선명해집니다.',
+      deepening: '가까워질수록 생활 속 선택과 감정 표현 방식이 관계의 안정감을 결정합니다.',
+      pattern: '기대치를 말하지 않으면 상대가 알아주길 바라는 마음이 커지고, 그만큼 오해도 쉽게 생깁니다.',
+      prescription: '감정, 일정, 연락, 갈등 후 회복 방식을 짧은 문장으로 합의하세요. 이 관계는 조율할수록 깊어집니다.',
+      question: '우리는 관계를 운에 맡기고 있는가, 함께 가꾸고 있는가?'
+    }
+  };
+
+  var SY_DISTANCE_STRUCTURE_COPY = {
+    same: '동숙 흐름은 같은 별빛이 겹쳐 친밀감이 빠르게 열립니다. 다만 서로를 너무 쉽게 안다고 믿을수록 현재의 차이를 놓치기 쉽습니다.',
+    near: '근거리 흐름은 감정 반응이 빠르고 일상 체감이 강합니다. 가까움이 답답함으로 바뀌지 않게 회복 시간을 미리 정하는 것이 좋습니다.',
+    middle: '중거리 흐름은 감정과 현실의 균형을 맞추기 좋습니다. 서두르지 않고 반복되는 신뢰를 쌓을수록 관계가 안정됩니다.',
+    far: '원거리 흐름은 운명감과 각자의 세계가 함께 존재합니다. 방치가 아니라 존중으로 느껴지도록 정기적인 연결 신호가 필요합니다.',
+    default: '두 사람의 거리는 고정된 판정이 아니라 관계를 운영하는 리듬입니다. 속도와 회복 방식을 맞출수록 인연의 질이 달라집니다.'
+  };
+
+  var SY_DISTANCE_DEEP_COPY = {
+    same: {
+      title: '동숙 · 같은 별빛의 밀착 거리',
+      pace: '처음부터 익숙함이 빠르게 열리고, 서로의 반응을 읽는 속도가 매우 빠릅니다.',
+      strength: '말하지 않아도 통하는 장면이 많고, 취향과 감정의 결이 비슷해 관계 진입 장벽이 낮습니다.',
+      caution: '닮았다는 이유로 상대의 현재 마음까지 단정하면 오히려 섬세한 차이를 놓칠 수 있습니다.',
+      operation: '주 1회 “요즘 달라진 마음”을 짧게 나누면 익숙함이 정체가 아니라 안정감으로 바뀝니다.',
+      timing: '갈등이 생기면 오래 미루지 말고 같은 날 안에 짧게 풀어야 감정 잔상이 덜 남습니다.'
+    },
+    near: {
+      title: '근거리 · 빠르게 체감되는 관계 거리',
+      pace: '호감, 불안, 기대가 모두 빠르게 움직입니다. 가까워지는 속도는 빠르지만 사소한 변화도 크게 느껴집니다.',
+      strength: '일상 공유와 반복 만남에 강합니다. 작은 루틴이 두 사람의 소속감과 안정감을 빠르게 키웁니다.',
+      caution: '연락 간격, 말투, 약속 변경처럼 작은 신호를 과하게 해석하면 관계가 답답해질 수 있습니다.',
+      operation: '연락 빈도와 혼자 쉬는 시간을 미리 정하세요. 가까운 관계일수록 숨 쉴 틈이 있어야 오래 갑니다.',
+      timing: '화해는 빠를수록 좋지만 감정이 뜨거운 직후에는 2시간 정도 식힌 뒤 말하는 편이 안정적입니다.'
+    },
+    middle: {
+      title: '중거리 · 균형과 조율의 관계 거리',
+      pace: '관계가 천천히 선명해집니다. 초반 확정보다 반복되는 태도와 현실 조율이 더 중요한 흐름입니다.',
+      strength: '감정과 생활의 균형을 맞추기 좋고, 서로의 속도를 존중하면 안정적인 장기 관계로 자라기 쉽습니다.',
+      caution: '표현을 너무 아끼면 상대가 마음을 읽지 못합니다. 적당한 거리감이 방치로 느껴지지 않게 해야 합니다.',
+      operation: '주간 약속, 월간 대화 주제, 갈등 후 재접속 방식을 가볍게 정하면 관계가 편안하게 깊어집니다.',
+      timing: '중요한 고백이나 결정은 감정이 오른 당일보다는 하루 이상 지난 뒤 차분하게 꺼내는 편이 좋습니다.'
+    },
+    far: {
+      title: '원거리 · 각자의 세계를 존중하는 관계 거리',
+      pace: '처음에는 천천히 다가오지만 마음 한쪽에 오래 남는 힘이 있습니다. 당장 붙는 관계보다 시간이 지나며 의미가 커집니다.',
+      strength: '서로의 독립성과 삶의 방향을 존중할 때 성숙한 인연으로 발전합니다. 긴 호흡의 신뢰에 강합니다.',
+      caution: '존중이 방치처럼 보이면 관계 온도가 낮아집니다. 아무 말 없이 기다리기만 하면 오해가 커질 수 있습니다.',
+      operation: '짧아도 정기적인 연결 신호를 만드세요. 일정한 안부, 다음 만남의 예고, 감정 확인 문장이 신뢰를 지킵니다.',
+      timing: '관계 진전은 천천히 잡는 편이 좋습니다. 고백, 재회, 결혼 논의는 충분한 관찰 기간 뒤에 힘을 얻습니다.'
+    },
+    default: {
+      title: '관계 거리 · 두 사람만의 리듬',
+      pace: '가까워지는 속도와 회복 속도를 함께 보아야 하는 관계입니다.',
+      strength: '서로의 차이를 이해할수록 관계의 품질이 올라갑니다.',
+      caution: '거리감을 운명처럼 고정해 읽으면 실제 조율 기회를 놓칠 수 있습니다.',
+      operation: '연락, 만남, 갈등 후 회복 방식을 말로 합의하세요.',
+      timing: '중요한 결정은 감정이 안정된 뒤에 하는 편이 좋습니다.'
+    }
+  };
+
+  var SY_PURPOSE_COMPAT_COPY = {
+    yeongchin: {
+      love: '연애에서는 편안함과 성장감이 함께 살아납니다. 설렘이 폭발하기보다 믿음이 쌓이면서 마음이 깊어지는 구조입니다.',
+      marriage: '결혼에서는 생활 리듬과 책임 분담이 안정적으로 맞기 쉽습니다. 다만 익숙함에 기대어 표현을 줄이면 관계 온도가 낮아질 수 있습니다.',
+      reunion: '재회는 감정의 상처보다 서로에게 남은 고마움이 클 때 유리합니다. 다시 만난다면 예전의 편안함을 새 약속으로 갱신해야 합니다.',
+      flirting: '썸과 연락은 무리한 밀당보다 꾸준한 다정함이 잘 통합니다. 상대는 강한 말보다 변함없는 태도에서 마음을 엽니다.',
+      business: '일과 사업에서는 신뢰 기반의 장기 협업에 강합니다. 서로의 장점을 인정하고 역할을 분명히 나누면 성과가 안정됩니다.'
+    },
+    ankai: {
+      love: '연애에서는 끌림이 빠르게 올라오지만 감정의 파도도 큽니다. 사랑을 확인하려는 말이 상대에게 압박으로 들리지 않게 조절해야 합니다.',
+      marriage: '결혼은 강한 애정보다 갈등 후 회복 규칙이 먼저 필요합니다. 생활 규칙과 경계선이 선명할수록 불안정한 파동이 줄어듭니다.',
+      reunion: '재회 가능성은 강하지만 같은 상처를 반복할 위험도 큽니다. 다시 만나려면 그리움보다 달라진 대화 방식이 먼저 증명되어야 합니다.',
+      flirting: '썸과 연락은 속도가 빠를수록 오해도 빨라집니다. 답장을 시험하거나 감정을 몰아붙이기보다 호감의 온도를 천천히 확인하세요.',
+      business: '일과 사업에서는 강한 추진력과 긴장이 동시에 생깁니다. 결정권, 돈, 책임 범위를 문서처럼 명확히 정해야 관계가 상하지 않습니다.'
+    },
+    usei: {
+      love: '연애에서는 친구 같은 편안함이 애정으로 깊어집니다. 다만 관계를 너무 안전하게만 두면 설렘의 표현이 부족해질 수 있습니다.',
+      marriage: '결혼은 조용한 안정감이 장점입니다. 생활의 작은 불편을 미루지 않고 나누면 오래 편안한 동반자 흐름이 됩니다.',
+      reunion: '재회는 미련보다 정서적 익숙함에서 시작됩니다. 다시 이어진다면 예전처럼 참기보다 서운함을 바로 말하는 습관이 필요합니다.',
+      flirting: '썸과 연락은 느리지만 오래 이어지는 방식이 좋습니다. 가벼운 일상 공유와 따뜻한 반응이 상대의 경계를 낮춥니다.',
+      business: '일과 사업에서는 정서적 신뢰와 팀워크가 강점입니다. 속도 경쟁보다 서로의 페이스를 존중할 때 협업 만족도가 높습니다.'
+    },
+    seongwi: {
+      love: '연애에서는 서로의 능력과 방향성에 끌립니다. 다만 감정 표현이 목표와 계획 뒤로 밀리면 관계가 건조하게 느껴질 수 있습니다.',
+      marriage: '결혼은 현실 운영 능력이 중요한 궁합입니다. 돈, 일정, 가족 역할을 미리 합의하면 강한 생활 동맹이 됩니다.',
+      reunion: '재회는 감정보다 앞으로의 계획이 맞을 때 힘을 얻습니다. 다시 만나도 같은 미래를 그리지 못하면 관계가 오래 버티기 어렵습니다.',
+      flirting: '썸과 연락은 분명한 약속과 구체적인 제안이 잘 통합니다. 애매한 분위기보다 목적이 있는 만남이 관계를 진전시킵니다.',
+      business: '일과 사업에서는 결과를 만드는 힘이 큽니다. 역할과 의사결정권을 선명히 나누면 서로의 능력이 크게 살아납니다.'
+    },
+    life: {
+      love: '연애에서는 처음부터 익숙하고 빠르게 가까워지는 힘이 있습니다. 닮음이 큰 만큼 상대를 내 마음처럼 단정하지 않는 것이 중요합니다.',
+      marriage: '결혼은 생활 취향이 잘 맞으면 안정적이지만, 같은 약점이 동시에 올라올 수 있습니다. 각자의 공간과 선택권을 지켜야 오래 갑니다.',
+      reunion: '재회는 서로를 잊기 어려운 구조입니다. 다시 만난다면 익숙함에 기대기보다 예전과 다른 경계와 표현을 세워야 합니다.',
+      flirting: '썸과 연락은 빠르게 친밀해질 수 있습니다. 하지만 너무 빨리 모든 것을 안다고 느끼면 긴장이 사라지니 천천히 새 면을 발견하세요.',
+      business: '일과 사업에서는 생각이 빨리 맞는 장점이 있습니다. 다만 비슷한 blind spot이 생길 수 있어 외부 기준과 기록이 필요합니다.'
+    },
+    taegeuk: {
+      love: '연애에서는 이유 없이 신경 쓰이고 오래 남는 끌림이 있습니다. 사랑과 책임감이 섞이기 쉬우므로 내가 원하는 관계를 분명히 해야 합니다.',
+      marriage: '결혼은 헌신과 감사의 균형이 핵심입니다. 한쪽만 계속 주는 구조가 되면 애정보다 의무감이 커질 수 있습니다.',
+      reunion: '재회는 미련과 책임감이 함께 작동합니다. 다시 이어지려면 누가 더 많이 참았는지보다 앞으로 어떻게 균형을 맞출지가 중요합니다.',
+      flirting: '썸과 연락은 묘한 익숙함으로 시작되지만 속단은 금물입니다. 상대를 돌보려는 마음이 과해지지 않게 천천히 확인하세요.',
+      business: '일과 사업에서는 서로의 부족한 부분을 채우는 힘이 있습니다. 다만 부탁과 보답의 기준을 분명히 해야 관계가 가벼워집니다.'
+    },
+    default: {
+      love: '연애에서는 서로의 속도를 맞추는 과정이 중요합니다. 호감이 생겨도 표현 방식이 다르면 오해가 먼저 올라올 수 있습니다.',
+      marriage: '결혼은 생활 규칙과 감정 표현의 합의가 핵심입니다. 현실 주제를 피하지 않을수록 관계가 안정됩니다.',
+      reunion: '재회는 그리움만으로 결정하기보다 반복 문제를 다시 보아야 합니다. 달라진 행동이 있을 때 관계가 새로 시작됩니다.',
+      flirting: '썸과 연락은 자연스러운 반복이 좋습니다. 자주보다 꾸준히, 강하게보다 따뜻하게 이어가는 흐름이 유리합니다.',
+      business: '일과 사업에서는 역할과 책임을 명확히 할수록 좋습니다. 기대를 말로 정리하면 감정 충돌을 줄일 수 있습니다.'
+    }
+  };
+
   function syRelationKeyFromType(typeText) {
     var t = String(typeText || '');
     if (t.indexOf('영친') !== -1) return 'yeongchin';
@@ -8333,6 +8570,831 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         { icon: '🌙', title: '관계의 발전 양상', text: relCopy.development + ' ' + distCopy.developmentAddon },
         { icon: '🧭', title: '주의할 점과 극복법', text: relCopy.caution + ' ' + distCopy.cautionAddon + roleLine + guideLine }
       ]
+    };
+  }
+
+  function syBuildRelationStructure(rel, distInfo) {
+    var relKey = syRelationKeyFromType(rel && (rel.typeLabel || rel.type));
+    var relCopy = SY_RELATION_STRUCTURE_COPY[relKey] || SY_RELATION_STRUCTURE_COPY.default;
+    var distKey = (distInfo && distInfo.tier) || 'default';
+    var distInsight = SY_DISTANCE_STRUCTURE_COPY[distKey] || SY_DISTANCE_STRUCTURE_COPY.default;
+    var relStoryCopy = SY_RELATION_STORY_COPY[relKey] || SY_RELATION_STORY_COPY.default;
+    var distStoryCopy = SY_DISTANCE_STORY_COPY[distKey] || SY_DISTANCE_STORY_COPY.default;
+
+    return {
+      title: relCopy.structureTitle,
+      labels: relStoryCopy.label + ' · ' + distStoryCopy.label,
+      essence: relCopy.essence + ' ' + distInsight,
+      attraction: relCopy.attraction,
+      deepening: relCopy.deepening,
+      pattern: relCopy.pattern,
+      prescription: relCopy.prescription,
+      question: relCopy.question
+    };
+  }
+
+  function syPurposeBand(value) {
+    var n = Number(value || 0);
+    if (n >= 82) return '매우 강함';
+    if (n >= 68) return '강함';
+    if (n >= 52) return '조율형';
+    return '천천히 확인';
+  }
+
+  function syBuildPurposeCompatibilityReadings(ctx) {
+    var key = String(ctx.relationKey || 'default');
+    var copy = SY_PURPOSE_COMPAT_COPY[key] || SY_PURPOSE_COMPAT_COPY.default;
+    var distanceKo = String(ctx.distanceKo || '중거리');
+    var distanceLine = distanceKo === '근거리'
+      ? '근거리 흐름에서는 체감이 빠르므로 감정 확인과 회복 약속을 초반에 잡는 편이 좋습니다.'
+      : (distanceKo === '원거리'
+        ? '원거리 흐름에서는 각자의 세계를 존중하되, 연결 신호가 끊기지 않게 만드는 것이 핵심입니다.'
+        : '중거리 흐름에서는 급하게 확정하기보다 안정적인 반복과 현실 조율이 관계를 깊게 만듭니다.');
+
+    return [
+      { key: 'love', label: '연애', title: '연애 궁합', band: syPurposeBand(ctx.emotionalChemistry), body: copy.love + ' ' + distanceLine },
+      { key: 'marriage', label: '결혼', title: '결혼 궁합', band: syPurposeBand(ctx.longTermPotential), body: copy.marriage + ' 장기성은 ' + syPurposeBand(ctx.longTermPotential) + '으로 읽히며, 생활 합의가 관계의 실제 안정감을 좌우합니다.' },
+      { key: 'reunion', label: '재회', title: '재회 궁합', band: syPurposeBand(ctx.recoveryPotential), body: copy.reunion + ' 회복력은 ' + syPurposeBand(ctx.recoveryPotential) + ' 흐름이므로, 감정의 크기보다 달라진 행동을 먼저 보세요.' },
+      { key: 'flirting', label: '썸·연락', title: '썸과 연락 궁합', band: syPurposeBand(ctx.communicationChemistry), body: copy.flirting + ' 연락은 관계를 증명하는 시험이 아니라 온도를 조율하는 신호로 쓰는 편이 좋습니다.' },
+      { key: 'business', label: '일·사업', title: '일과 사업 궁합', band: syPurposeBand(ctx.dailyLifeChemistry), body: copy.business + ' 돈과 책임이 얽히는 일은 초반에 기준을 세울수록 신뢰가 오래 갑니다.' }
+    ];
+  }
+
+  function syBuildDistanceDeepReading(distInfo, distanceMetrics, relationKey) {
+    var distKey = (distInfo && distInfo.tier) || 'default';
+    var copy = SY_DISTANCE_DEEP_COPY[distKey] || SY_DISTANCE_DEEP_COPY.default;
+    var shortest = Number(distanceMetrics && distanceMetrics.shortestDistance);
+    var forward = Number(distanceMetrics && distanceMetrics.forwardDistance);
+    var reverse = Number(distanceMetrics && distanceMetrics.reverseDistance);
+    var numericLine = Number.isFinite(forward) && Number.isFinite(reverse)
+      ? 'A에서 B로 ' + forward + '칸, B에서 A로 ' + reverse + '칸 흐르며 최단 체감 거리는 ' + (Number.isFinite(shortest) ? shortest : '?') + '칸입니다.'
+      : '정밀 거리값은 관계 계산 후 보조 지표로 읽습니다.';
+    var relationHint = relationKey === 'ankai'
+      ? '이 관계에서는 거리감이 좁아질수록 감정 파동도 커지므로, 가까워질 때일수록 경계선 문장이 필요합니다.'
+      : (relationKey === 'yeongchin'
+        ? '이 관계에서는 거리감이 안정될수록 보호와 성장의 힘이 더 선명해집니다.'
+        : (relationKey === 'taegeuk'
+          ? '이 관계에서는 거리감이 헌신과 기대의 균형을 드러내므로, 주고받음의 기준을 자주 확인해야 합니다.'
+          : '이 관계에서는 거리감이 좋고 나쁨보다 속도와 회복법을 알려주는 지도에 가깝습니다.'));
+
+    return {
+      title: copy.title,
+      numericLine: numericLine,
+      relationHint: relationHint,
+      pace: copy.pace,
+      strength: copy.strength,
+      caution: copy.caution,
+      operation: copy.operation,
+      timing: copy.timing
+    };
+  }
+
+  function syIndicatorBand(score) {
+    var n = Number(score || 0);
+    if (n >= 82) return '매우 선명';
+    if (n >= 68) return '강하게 작동';
+    if (n >= 52) return '조율 가능';
+    return '천천히 확인';
+  }
+
+  function syRiskBand(score) {
+    var n = Number(score || 0);
+    if (n >= 82) return '강한 주의';
+    if (n >= 68) return '주의 필요';
+    if (n >= 52) return '관리 가능';
+    return '낮음';
+  }
+
+  function syBuildEmotionalIndicators(ctx) {
+    var relationKey = String(ctx.relationKey || 'default');
+    var attraction = syCompatClamp(ctx.physicalMagnetism, 20, 99);
+    var stability = syCompatClamp(ctx.dailyLifeChemistry, 20, 99);
+    var conversation = syCompatClamp(ctx.communicationChemistry, 20, 99);
+    var recovery = syCompatClamp(ctx.recoveryPotential, 20, 99);
+    var longTerm = syCompatClamp(ctx.longTermPotential, 20, 99);
+    var conflict = syCompatClamp(ctx.conflictRisk, 20, 99);
+    var emotional = syCompatClamp(ctx.emotionalChemistry, 20, 99);
+    var trustBonus = relationKey === 'yeongchin' ? 8 : (relationKey === 'ankai' ? -6 : (relationKey === 'life' ? -2 : 2));
+    var trust = syCompatClamp(conversation * 0.42 + stability * 0.36 + recovery * 0.22 + trustBonus, 20, 99);
+    var drain = syCompatClamp(conflict * 0.5 + attraction * 0.22 + (100 - recovery) * 0.28 + (relationKey === 'ankai' ? 8 : 0), 20, 99);
+    var marriage = syCompatClamp(longTerm * 0.5 + stability * 0.28 + trust * 0.22, 20, 99);
+    var reunion = syCompatClamp(recovery * 0.42 + emotional * 0.34 + trust * 0.24 - (conflict >= 82 ? 6 : 0), 20, 99);
+    var reality = syCompatClamp(stability * 0.46 + conversation * 0.26 + longTerm * 0.28, 20, 99);
+
+    return [
+      { key: 'attraction', label: '끌림 지수', score: attraction, band: syIndicatorBand(attraction), body: '서로에게 시선이 돌아가는 힘입니다. 높을수록 관계 진입은 빠르지만, 결정은 감정 온도가 내려간 뒤에 하는 편이 좋습니다.' },
+      { key: 'stability', label: '안정감 지수', score: stability, band: syIndicatorBand(stability), body: '함께 있을 때 마음과 생활 리듬이 얼마나 편안해지는지 봅니다. 안정감은 데이트보다 평일 루틴에서 더 정확히 드러납니다.' },
+      { key: 'conversation', label: '대화 지수', score: conversation, band: syIndicatorBand(conversation), body: '오해를 줄이고 마음을 설명하는 능력입니다. 낮게 느껴질수록 추측보다 확인 질문이 먼저 필요합니다.' },
+      { key: 'trust', label: '신뢰 지수', score: trust, band: syIndicatorBand(trust), body: '말과 행동이 반복될 때 믿음으로 쌓이는 힘입니다. 약속의 크기보다 지키는 빈도가 이 지표를 키웁니다.' },
+      { key: 'recovery', label: '갈등 회복력', score: recovery, band: syIndicatorBand(recovery), body: '다툼 뒤 다시 연결되는 힘입니다. 회복력이 높아도 사과, 요약, 다음 행동 합의가 없으면 같은 상처가 반복됩니다.' },
+      { key: 'drain', label: '집착·소모 가능성', score: drain, band: syRiskBand(drain), body: '강한 끌림이 불안으로 바뀔 때 생기는 소모입니다. 높게 나올수록 연락 시험, 침묵 테스트, 결론 강요를 피해야 합니다.' },
+      { key: 'longTerm', label: '장기 지속력', score: longTerm, band: syIndicatorBand(longTerm), body: '감정이 지나간 뒤에도 관계를 운영할 수 있는 힘입니다. 생활, 돈, 일정, 가족 이야기를 피하지 않을수록 올라갑니다.' },
+      { key: 'marriage', label: '결혼 적합도', score: marriage, band: syIndicatorBand(marriage), body: '함께 살 때의 책임감과 현실 조화를 봅니다. 설렘보다 생활 규칙과 감정 점검의 균형이 핵심입니다.' },
+      { key: 'reunion', label: '재회 가능성', score: reunion, band: syIndicatorBand(reunion), body: '끊어진 뒤 다시 이어질 수 있는 감정 잔상과 회복 여지를 봅니다. 그리움보다 달라진 행동이 있어야 안정됩니다.' },
+      { key: 'reality', label: '현실 조화력', score: reality, band: syIndicatorBand(reality), body: '관계가 실제 생활 속에서 무리 없이 굴러가는 힘입니다. 서로의 우선순위와 시간 사용법을 맞추면 체감 궁합이 좋아집니다.' }
+    ];
+  }
+
+  function syCompatDateLabel(offset) {
+    var d = new Date();
+    d.setHours(12, 0, 0, 0);
+    d.setDate(d.getDate() + Number(offset || 0));
+    var week = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()] || '';
+    return (d.getMonth() + 1) + '월 ' + d.getDate() + '일' + (week ? ' ' + week + '요일' : '');
+  }
+
+  function syBuildRelationshipTiming(ctx) {
+    var relationKey = String(ctx.relationKey || 'default');
+    var distanceKo = String(ctx.distanceKo || '중거리');
+    var seed = Number(ctx.seed || 0);
+    var emotional = syCompatClamp(ctx.emotionalChemistry, 20, 99);
+    var conversation = syCompatClamp(ctx.communicationChemistry, 20, 99);
+    var stability = syCompatClamp(ctx.dailyLifeChemistry, 20, 99);
+    var attraction = syCompatClamp(ctx.physicalMagnetism, 20, 99);
+    var conflict = syCompatClamp(ctx.conflictRisk, 20, 99);
+    var recovery = syCompatClamp(ctx.recoveryPotential, 20, 99);
+    var longTerm = syCompatClamp(ctx.longTermPotential, 20, 99);
+    var distanceBias = distanceKo === '근거리' ? 4 : (distanceKo === '원거리' ? -3 : 1);
+    var relationTiming = {
+      ankai: '강하게 당겨지는 날일수록 결론을 늦추고, 감정의 파도가 가라앉은 뒤 약속을 정해야 합니다.',
+      usei: '편안한 정서가 깊어지는 달입니다. 다만 익숙함 뒤에 숨은 서운함은 오래 묵히지 않는 편이 좋습니다.',
+      seongwi: '함께 정할 목표가 관계의 방향을 밝힙니다. 감정보다 일정, 역할, 현실 약속이 먼저 길을 냅니다.',
+      yeongchin: '돌봄과 안정이 자연스럽게 살아나는 달입니다. 다정함에 새로움을 조금 섞으면 권태를 막을 수 있습니다.',
+      life: '서로가 서로의 거울처럼 반응하는 달입니다. 닮은 상처를 건드릴 때는 판단보다 인정이 먼저 필요합니다.',
+      taegeuk: '오래된 인연감이 다시 선명해지는 달입니다. 큰 고백보다 작은 반복이 운의 문을 엽니다.',
+      default: '서두르지 않을수록 관계의 결이 또렷해지는 달입니다. 감정, 대화, 현실 약속을 차례로 맞추세요.'
+    };
+    var phaseDefs = [
+      {
+        key: 'observe',
+        title: '1구간 · 온도 맞추기',
+        start: 0,
+        end: 6,
+        score: emotional * 0.34 + attraction * 0.28 + stability * 0.2 + (100 - conflict) * 0.18 + distanceBias,
+        focus: '연락의 속도, 만남의 간격, 감정 표현의 농도를 가볍게 맞추는 시기입니다.',
+        action: relationKey === 'ankai' ? '확인 질문은 한 번만, 답을 재촉하지 않는 것이 좋습니다.' : '짧은 안부와 작은 칭찬을 반복하면 마음의 문이 부드럽게 열립니다.'
+      },
+      {
+        key: 'open',
+        title: '2구간 · 마음 열기',
+        start: 7,
+        end: 13,
+        score: conversation * 0.38 + emotional * 0.24 + recovery * 0.18 + longTerm * 0.2,
+        focus: '서운함보다 바람을 말하기 좋은 구간입니다. 관계의 방향을 부드럽게 꺼내도 흐름이 무너지지 않습니다.',
+        action: '“나는 이런 방식이 편해”처럼 자기 기준을 먼저 말하면 상대도 방어를 낮춥니다.'
+      },
+      {
+        key: 'adjust',
+        title: '3구간 · 흔들림 조율',
+        start: 14,
+        end: 20,
+        score: recovery * 0.36 + stability * 0.24 + (100 - conflict) * 0.26 + conversation * 0.14,
+        focus: '감정의 진폭이 드러나는 구간입니다. 약속이 어긋나거나 기대가 엇갈릴 때 관계의 체력이 시험됩니다.',
+        action: '불편한 감정은 당일 결론보다 다음 대화 시간을 예약하는 쪽이 안전합니다.'
+      },
+      {
+        key: 'settle',
+        title: '4구간 · 약속 정리',
+        start: 21,
+        end: 29,
+        score: longTerm * 0.34 + stability * 0.3 + conversation * 0.2 + recovery * 0.16 + distanceBias,
+        focus: '관계의 다음 형태를 정리하기 좋습니다. 만남의 규칙, 연락 리듬, 서로의 우선순위를 현실적으로 맞추세요.',
+        action: relationKey === 'yeongchin' ? '익숙한 안정 위에 새로운 데이트나 공동 목표를 하나 더하세요.' : '큰 약속보다 지킬 수 있는 작은 규칙 하나가 운을 안정시킵니다.'
+      }
+    ];
+    var phaseRows = phaseDefs.map(function(item, idx) {
+      var score = syCompatClamp(item.score + ((seed >>> (idx + 1)) % 7) - 3, 20, 99);
+      return {
+        key: item.key,
+        title: item.title,
+        range: syCompatDateLabel(item.start) + ' - ' + syCompatDateLabel(item.end),
+        score: score,
+        band: score >= 82 ? '강한 상승' : (score >= 68 ? '좋은 흐름' : (score >= 52 ? '조율 구간' : '천천히 보기')),
+        focus: item.focus,
+        action: item.action
+      };
+    });
+    var used = {};
+    function uniqueOffset(raw) {
+      var n = Math.max(0, Math.min(29, Number(raw || 0)));
+      while (used[n] && n < 29) n += 1;
+      while (used[n] && n > 0) n -= 1;
+      used[n] = true;
+      return n;
+    }
+    var talkOffset = uniqueOffset(6 + (seed % 7));
+    var attractionOffset = uniqueOffset(2 + ((seed >>> 3) % 6));
+    var cautionOffset = uniqueOffset((relationKey === 'ankai' ? 10 : 13) + ((seed >>> 5) % 6));
+    var recoveryOffset = uniqueOffset(16 + ((seed >>> 7) % 6));
+    var promiseOffset = uniqueOffset(23 + ((seed >>> 9) % 7));
+    var keyDates = [
+      {
+        type: '끌림 상승일',
+        date: syCompatDateLabel(attractionOffset),
+        score: syCompatClamp(attraction + ((seed >>> 2) % 9) - 2, 20, 99),
+        body: '눈빛, 말투, 우연한 접촉에서 인연감이 강해지는 날입니다. 고백보다 분위기를 남기는 편이 더 오래 갑니다.',
+        action: '짧고 선명한 칭찬을 남기세요.'
+      },
+      {
+        type: '대화 개방일',
+        date: syCompatDateLabel(talkOffset),
+        score: syCompatClamp(conversation + ((seed >>> 4) % 9) - 3, 20, 99),
+        body: '서로의 속마음을 무겁지 않게 꺼내기 좋은 날입니다. 관계의 불확실함을 부드러운 언어로 정리할 수 있습니다.',
+        action: '질문은 하나만 깊게 하세요.'
+      },
+      {
+        type: '주의일',
+        date: syCompatDateLabel(cautionOffset),
+        score: syCompatClamp(conflict + ((seed >>> 6) % 8), 20, 99),
+        body: '기대와 현실의 간격이 크게 느껴질 수 있습니다. 상대의 침묵을 결론으로 단정하면 운의 결이 거칠어집니다.',
+        action: '답을 요구하기보다 시간을 정해 다시 말하세요.'
+      },
+      {
+        type: '회복일',
+        date: syCompatDateLabel(recoveryOffset),
+        score: syCompatClamp(recovery + ((seed >>> 8) % 8) - 2, 20, 99),
+        body: '어긋난 마음을 다시 맞추기 좋은 날입니다. 사과, 설명, 다음 행동 약속이 함께 있을 때 회복력이 살아납니다.',
+        action: '지난 감정보다 다음 행동을 합의하세요.'
+      },
+      {
+        type: '약속 정리일',
+        date: syCompatDateLabel(promiseOffset),
+        score: syCompatClamp(longTerm + stability * 0.18 + ((seed >>> 10) % 7) - 5, 20, 99),
+        body: '앞으로의 만남 방식과 관계의 이름을 정돈하기 좋은 날입니다. 현실적인 약속이 감정을 안정시킵니다.',
+        action: '지킬 수 있는 작은 규칙 하나를 정하세요.'
+      }
+    ];
+    var bestPhase = phaseRows.slice().sort(function(a, b) { return b.score - a.score; })[0] || phaseRows[0];
+    var cautionPhase = phaseRows.slice().sort(function(a, b) { return a.score - b.score; })[0] || phaseRows[2];
+    return {
+      title: '앞으로 30일 관계 타이밍',
+      summary: relationTiming[relationKey] || relationTiming.default,
+      bestWindow: bestPhase ? bestPhase.range + ' · ' + bestPhase.title : '',
+      cautionWindow: cautionPhase ? cautionPhase.range + ' · ' + cautionPhase.title : '',
+      phaseRows: phaseRows,
+      keyDates: keyDates
+    };
+  }
+
+  function syBuildRelationshipPrescriptions(ctx) {
+    var relationKey = String(ctx.relationKey || 'default');
+    var distanceKo = String(ctx.distanceKo || '중거리');
+    var conversation = syCompatClamp(ctx.communicationChemistry, 20, 99);
+    var conflict = syCompatClamp(ctx.conflictRisk, 20, 99);
+    var recovery = syCompatClamp(ctx.recoveryPotential, 20, 99);
+    var stability = syCompatClamp(ctx.dailyLifeChemistry, 20, 99);
+    var attraction = syCompatClamp(ctx.physicalMagnetism, 20, 99);
+    var roleA = String(ctx.roleA || '나');
+    var roleB = String(ctx.roleB || '상대');
+    var styleMap = {
+      ankai: {
+        title: '강한 파동을 경계선으로 다루는 관계',
+        tone: '짧고 분명하게, 결론은 하루 뒤로 미루는 말투가 좋습니다.',
+        avoid: '시험하듯 묻기, 침묵으로 벌주기, 헤어짐을 압박 카드로 쓰기',
+        close: '이 관계는 뜨겁게 붙잡는 힘보다 멈출 줄 아는 힘이 운을 살립니다.'
+      },
+      usei: {
+        title: '정서의 온도를 꾸준히 쌓는 관계',
+        tone: '부드럽게 확인하고, 서운함을 오래 숨기지 않는 말투가 좋습니다.',
+        avoid: '괜찮다고 말해놓고 마음속 장부에 쌓아두기',
+        close: '이 관계는 작은 표현을 반복할수록 깊어지고, 표현이 사라지면 천천히 멀어집니다.'
+      },
+      seongwi: {
+        title: '목표와 감정을 함께 정렬하는 관계',
+        tone: '감정 설명 뒤에 현실 제안을 붙이는 말투가 좋습니다.',
+        avoid: '성과, 일정, 책임 이야기만 하고 마음을 생략하기',
+        close: '이 관계는 역할을 나눌 때 강해지지만, 마음 점검을 빼면 건조해집니다.'
+      },
+      yeongchin: {
+        title: '안정 속에 새로움을 심는 관계',
+        tone: '편안한 인정과 작은 새 제안을 함께 건네는 말투가 좋습니다.',
+        avoid: '가족처럼 편하다는 이유로 설렘과 예의를 생략하기',
+        close: '이 관계는 익숙함이 복이지만, 새 빛을 넣어야 오래 따뜻합니다.'
+      },
+      life: {
+        title: '거울처럼 반응하는 관계',
+        tone: '상대 평가보다 내 반응을 먼저 고백하는 말투가 좋습니다.',
+        avoid: '닮은 약점을 공격하거나, 상대를 통해 자기 불안을 해결하려 하기',
+        close: '이 관계는 서로를 고치려 들 때 흔들리고, 스스로를 알아차릴 때 깊어집니다.'
+      },
+      taegeuk: {
+        title: '오래된 인연감을 현실로 내리는 관계',
+        tone: '큰 운명론보다 오늘 가능한 행동을 약속하는 말투가 좋습니다.',
+        avoid: '인연이라는 말로 현실 책임을 흐리기',
+        close: '이 관계는 묵은 감정을 아름답게 말하되, 현재의 행동으로 증명해야 살아납니다.'
+      },
+      default: {
+        title: '속도와 진심을 조율하는 관계',
+        tone: '부드럽게 말하되, 원하는 행동은 선명하게 요청하는 말투가 좋습니다.',
+        avoid: '마음 읽기를 기대하고 직접 말하지 않기',
+        close: '이 관계는 운보다 대화의 순서가 품질을 바꿉니다.'
+      }
+    };
+    var style = styleMap[relationKey] || styleMap.default;
+    var distanceAction = distanceKo === '근거리'
+      ? '가까운 만큼 즉시 반응하지 말고, 감정이 오른 날은 한 박자 쉬어가세요.'
+      : (distanceKo === '원거리'
+        ? '멀어질수록 상상으로 빈칸을 채우기 쉬우니, 일정과 연락 기준을 숫자로 정하세요.'
+        : '적당한 거리의 장점이 있으니, 만남과 개인 시간을 번갈아 안정시키세요.');
+    var talkMode = conversation >= 72 ? '대화 운이 열려 있으므로 핵심 문장을 짧게 던지면 상대가 받아들일 여지가 큽니다.' : '대화가 엇갈릴 수 있으니 감정 설명보다 확인 질문을 먼저 두는 편이 안전합니다.';
+    var conflictMode = conflict >= 76 ? '갈등이 커질 수 있는 조합이므로 즉석 결론, 최후통첩, 과거 소환은 피해야 합니다.' : '큰 충돌보다 미세한 오해가 쌓이기 쉬우니, 사소한 불편을 초기에 풀어야 합니다.';
+    var recoveryMode = recovery >= 70 ? '회복 운은 살아 있습니다. 사과와 다음 행동 약속이 함께 있으면 다시 부드러워집니다.' : '회복에는 시간이 필요합니다. 바로 풀려고 밀어붙이기보다 침묵 뒤의 재접속 시간을 정하세요.';
+    var scripts = [
+      {
+        key: 'first',
+        title: '마음 열기',
+        when: '호감은 있지만 관계의 이름이 아직 흐릴 때',
+        say: '나는 너와 있을 때 마음이 자연스럽게 열려. 급하게 정답을 내리기보다, 우리 리듬을 조금 더 알아가고 싶어.',
+        avoid: '그래서 우리는 대체 무슨 사이야?',
+        action: attraction >= 76 ? '분위기는 충분하니 고백보다 다음 만남 약속을 먼저 잡으세요.' : '호감 표현을 작게 반복해 상대가 안심할 시간을 주세요.'
+      },
+      {
+        key: 'define',
+        title: '관계 정의',
+        when: '썸, 재회, 애매한 관계의 방향을 정해야 할 때',
+        say: '나는 이 관계를 가볍게 흘려보내고 싶지 않아. 네 마음의 속도도 존중하고 싶으니, 우리가 어디까지 같은 마음인지 차분히 확인하고 싶어.',
+        avoid: '지금 당장 확실히 말해.',
+        action: stability >= 70 ? '만남의 이름보다 앞으로의 행동 기준을 먼저 정하면 안정됩니다.' : '큰 결정보다 연락, 만남, 표현 기준부터 맞추세요.'
+      },
+      {
+        key: 'hurt',
+        title: '서운함 전달',
+        when: '기대가 어긋났지만 싸움으로 키우고 싶지 않을 때',
+        say: '네가 틀렸다는 말이 아니라, 나는 그 순간 조금 멀어진 느낌을 받았어. 다음에는 이렇게 해주면 훨씬 안심될 것 같아.',
+        avoid: '너는 항상 이런 식이야.',
+        action: conversation >= 68 ? '감정 한 문장, 사실 한 문장, 요청 한 문장 순서로 말하세요.' : '먼저 글로 정리한 뒤 짧게 말하면 오해가 줄어듭니다.'
+      },
+      {
+        key: 'conflict',
+        title: '갈등 직후',
+        when: '말이 날카로워졌거나 서로 방어가 올라왔을 때',
+        say: '지금은 서로를 설득하기보다 상처를 키우지 않는 게 먼저인 것 같아. 잠깐 쉬고, 다시 말할 시간을 정하자.',
+        avoid: '됐어, 네 마음 다 알겠어.',
+        action: conflict >= 78 ? '최소 3시간 이상 간격을 두고 다시 대화하세요.' : '감정이 내려간 뒤 상대가 이해한 내용을 먼저 확인하세요.'
+      },
+      {
+        key: 'distance',
+        title: '거리 조율',
+        when: '연락 빈도, 만남 간격, 개인 시간이 불편해졌을 때',
+        say: '나는 가까워지고 싶은 마음과 내 시간을 지키고 싶은 마음이 같이 있어. 우리 둘 다 편한 간격을 정해보면 좋겠어.',
+        avoid: '왜 이렇게 연락이 안 돼?',
+        action: distanceAction
+      },
+      {
+        key: 'reconnect',
+        title: '재접속',
+        when: '잠시 멀어졌거나 다시 말을 걸어야 할 때',
+        say: '그때의 감정을 그냥 덮고 싶지는 않아. 다만 다시 싸우고 싶은 것도 아니야. 지금의 마음으로 한 번만 차분히 이야기해보고 싶어.',
+        avoid: '나 없으니까 어때?',
+        action: recovery >= 72 ? '과거 해명보다 지금 바뀐 행동을 먼저 보여주세요.' : '연락은 짧게, 만남 제안은 상대가 숨 쉴 여지를 두고 건네세요.'
+      }
+    ];
+    return {
+      title: style.title,
+      tone: style.tone,
+      avoid: style.avoid,
+      close: style.close,
+      roleLine: '현재 역할 흐름은 나 ' + roleA + ', 상대 ' + roleB + '입니다. 이 역할은 고정된 운명이 아니라 대화 순간마다 바뀌는 반응의 옷입니다.',
+      diagnostic: [talkMode, conflictMode, recoveryMode].join(' '),
+      rituals: [
+        { title: '첫 문장', body: '비난 없이 내 감정부터 말하세요. “너 때문에”보다 “나는 이렇게 느꼈어”가 관계 운을 열어줍니다.' },
+        { title: '중간 문장', body: '상대가 이해한 내용을 한 번 확인하세요. 서로 다른 해석을 같은 사실로 착각하지 않는 것이 중요합니다.' },
+        { title: '마무리 문장', body: '다음 행동 하나를 정하세요. 사과만 있고 행동이 없으면 같은 파동이 되돌아옵니다.' }
+      ],
+      scripts: scripts
+    };
+  }
+
+  function syBuildRelationshipRiskRoutines(ctx) {
+    var relationKey = String(ctx.relationKey || 'default');
+    var distanceKo = String(ctx.distanceKo || '중거리');
+    var conversation = syCompatClamp(ctx.communicationChemistry, 20, 99);
+    var conflict = syCompatClamp(ctx.conflictRisk, 20, 99);
+    var recovery = syCompatClamp(ctx.recoveryPotential, 20, 99);
+    var stability = syCompatClamp(ctx.dailyLifeChemistry, 20, 99);
+    var attraction = syCompatClamp(ctx.physicalMagnetism, 20, 99);
+    var longTerm = syCompatClamp(ctx.longTermPotential, 20, 99);
+    var roleA = String(ctx.roleA || '공진자');
+    var roleB = String(ctx.roleB || '공진자');
+    var relationRisk = {
+      ankai: {
+        title: '강렬한 끌림이 시험으로 변하는 순간',
+        summary: '감정의 불이 빨리 붙는 만큼, 확인 욕구와 상처 주는 말이 동시에 올라오기 쉽습니다. 이 관계의 위험은 사랑이 없는 데 있지 않고, 사랑을 증명하려다 서로를 지치게 하는 데 있습니다.',
+        ban: '최후통첩, 질투 유도, 일부러 늦게 답하기'
+      },
+      usei: {
+        title: '편안함 뒤에 서운함이 고이는 순간',
+        summary: '겉으로는 부드럽지만 마음속 기대가 조용히 쌓일 수 있습니다. 이 관계의 위험은 폭발보다 누적입니다.',
+        ban: '괜찮은 척하기, 돌려 말하기, 혼자 결론 내리기'
+      },
+      seongwi: {
+        title: '목표는 맞지만 마음이 밀리는 순간',
+        summary: '현실적인 합은 강하지만 감정 확인이 뒤로 밀리면 관계가 과제처럼 느껴질 수 있습니다. 이 관계의 위험은 효율이 친밀함을 밀어내는 데 있습니다.',
+        ban: '성과로 마음을 대신하기, 일정만 정하고 감정은 생략하기'
+      },
+      yeongchin: {
+        title: '안정이 당연함으로 변하는 순간',
+        summary: '서로를 편하게 여기는 힘은 크지만, 익숙함이 예의를 덮으면 서운함이 늦게 드러납니다. 이 관계의 위험은 권태와 무심함입니다.',
+        ban: '고마움을 생략하기, 설렘을 방치하기, 상대의 돌봄을 당연시하기'
+      },
+      life: {
+        title: '상대가 내 그림자를 비추는 순간',
+        summary: '닮은 점이 많을수록 위로도 빠르지만 방어도 빠르게 올라옵니다. 이 관계의 위험은 상대를 고치려다 자기 상처를 공격하는 데 있습니다.',
+        ban: '상대를 내 불안의 증거로 삼기, 닮은 약점을 찌르기'
+      },
+      taegeuk: {
+        title: '운명감이 현실 책임을 흐리는 순간',
+        summary: '깊은 인연감이 강하게 느껴지지만, 현실의 약속이 없으면 감정만 오래 맴돌 수 있습니다. 이 관계의 위험은 말보다 행동이 늦어지는 데 있습니다.',
+        ban: '인연이라는 말로 책임을 미루기, 오래 기다리게 하기'
+      },
+      default: {
+        title: '마음 읽기 기대가 커지는 순간',
+        summary: '서로의 속도를 확인하지 않으면 작은 오해가 관계의 방향처럼 보일 수 있습니다. 이 관계의 위험은 직접 말하지 않고 알아주길 바라는 데 있습니다.',
+        ban: '추측으로 결론 내리기, 확인 없이 거리 두기'
+      }
+    };
+    var profile = relationRisk[relationKey] || relationRisk.default;
+    var distancePressure = distanceKo === '근거리' ? 7 : (distanceKo === '원거리' ? 5 : 2);
+    var riskScore = syCompatClamp(conflict * 0.42 + attraction * 0.2 + (100 - recovery) * 0.24 + (100 - stability) * 0.14 + distancePressure, 20, 99);
+    var repairScore = syCompatClamp(recovery * 0.38 + conversation * 0.28 + stability * 0.22 + longTerm * 0.12, 20, 99);
+    var boundaryScore = syCompatClamp(conflict * 0.35 + (100 - conversation) * 0.24 + attraction * 0.18 + (100 - stability) * 0.23, 20, 99);
+    var riskBand = syRiskBand(riskScore);
+    var repairBand = syIndicatorBand(repairScore);
+    var distanceHint = distanceKo === '근거리'
+      ? '가까울수록 감정이 바로 튀어나오니, 즉답보다 호흡을 먼저 두세요.'
+      : (distanceKo === '원거리'
+        ? '멀수록 상상이 커지니, 연락 기준과 다음 만남 시점을 숫자로 정해야 합니다.'
+        : '적당한 거리는 장점이지만, 애매함이 길어지면 마음의 방향이 흐려질 수 있습니다.');
+    var redFlags = [
+      {
+        title: '확인 욕구가 사랑의 증거처럼 느껴질 때',
+        level: boundaryScore >= 78 ? '강한 주의' : '주의',
+        body: '상대의 답장 속도, 말투, 표정 하나로 마음 전체를 판단하려는 흐름입니다. 이때는 질문을 늘리기보다 내 불안을 먼저 이름 붙여야 합니다.',
+        remedy: '“내가 지금 불안해서 확인하고 싶어졌어”라고 말한 뒤, 답을 강요하지 않습니다.'
+      },
+      {
+        title: '침묵이 휴식이 아니라 벌처럼 쓰일 때',
+        level: conflict >= 78 ? '강한 주의' : '관리',
+        body: '말하지 않는 시간이 관계를 쉬게 하는 것이 아니라 상대를 흔드는 도구가 되는 순간입니다. 침묵이 길어질수록 오해는 운처럼 굳어집니다.',
+        remedy: '쉬는 시간을 정하고, 돌아올 시간을 함께 말하세요.'
+      },
+      {
+        title: '역할 피로가 쌓일 때',
+        level: stability <= 58 ? '주의' : '관찰',
+        body: '나 ' + roleA + ', 상대 ' + roleB + '의 흐름이 한쪽 책임으로 굳어지는 신호입니다. 한 사람이 계속 달래거나 밀어붙이면 관계의 균형이 기울어집니다.',
+        remedy: '이번에는 누가 먼저 사과하고, 누가 다음 행동을 맡을지 나눠 정하세요.'
+      },
+      {
+        title: '거리감이 상상으로 채워질 때',
+        level: distanceKo === '원거리' ? '주의' : '관찰',
+        body: distanceHint,
+        remedy: '다음 연락 시간, 다음 만남, 답이 늦을 때의 기준을 구체적으로 정하세요.'
+      }
+    ];
+    var recoveryRoutine = [
+      {
+        step: '1단계 · 멈춤',
+        time: '감정이 오른 즉시',
+        action: '해명, 추궁, 장문의 메시지를 멈추고 몸의 긴장을 먼저 낮춥니다.',
+        line: '지금은 상처를 키우지 않기 위해 잠깐 멈출게.'
+      },
+      {
+        step: '2단계 · 분리',
+        time: conflict >= 78 ? '3시간 이상' : '40분 이상',
+        action: '사실, 감정, 요청을 따로 적습니다. 상대의 의도를 추측한 문장은 지웁니다.',
+        line: '내가 느낀 것과 실제 있었던 일을 나눠서 말해볼게.'
+      },
+      {
+        step: '3단계 · 재접속',
+        time: '서로 말할 수 있을 때',
+        action: '먼저 한 문장으로 사과하거나 인정한 뒤, 바라는 행동을 하나만 말합니다.',
+        line: '내가 날카로웠던 부분은 미안해. 다음에는 이 방식으로 맞춰보고 싶어.'
+      },
+      {
+        step: '4단계 · 봉인',
+        time: '대화 마무리',
+        action: '같은 갈등을 다시 열지 않기 위한 작은 규칙을 정합니다.',
+        line: '다음에 비슷한 일이 오면 이 순서로 다시 이야기하자.'
+      }
+    ];
+    var taboos = [
+      { title: '헤어짐을 협박처럼 쓰기', why: '관계의 뿌리에 공포가 남아 이후의 대화가 모두 방어적으로 변합니다.', replace: '결론 유예 시간을 정하고 감정이 내려간 뒤 다시 말하세요.' },
+      { title: '상대의 침묵을 마음 없음으로 단정하기', why: '상대의 회복 방식과 애정의 크기를 혼동하게 됩니다.', replace: '침묵의 의미를 묻기 전에 돌아올 시간을 먼저 정하세요.' },
+      { title: '과거 상처를 한꺼번에 소환하기', why: '현재 문제의 문이 닫히고 오래된 방어만 깨어납니다.', replace: '오늘의 사건 하나만 다루세요.' },
+      { title: '연락 빈도로 사랑을 채점하기', why: '확인 욕구가 커질수록 관계의 자연스러운 호흡이 사라집니다.', replace: '연락 기준을 합의하고 예외 상황을 미리 정하세요.' },
+      { title: profile.ban, why: '이 관계의 고유한 약점이 가장 빠르게 깨어나는 금기입니다.', replace: '상대의 반응을 시험하기보다 내가 원하는 행동을 직접 요청하세요.' }
+    ];
+    return {
+      title: profile.title,
+      summary: profile.summary,
+      riskScore: riskScore,
+      riskBand: riskBand,
+      repairScore: repairScore,
+      repairBand: repairBand,
+      boundaryScore: boundaryScore,
+      distanceHint: distanceHint,
+      redFlags: redFlags,
+      recoveryRoutine: recoveryRoutine,
+      taboos: taboos
+    };
+  }
+
+  function syBuildRelationshipCategoryReadings(ctx) {
+    var relationKey = String(ctx.relationKey || 'default');
+    var distanceKo = String(ctx.distanceKo || '중거리');
+    var seed = Number(ctx.seed || 0);
+    var emotional = syCompatClamp(ctx.emotionalChemistry, 20, 99);
+    var conversation = syCompatClamp(ctx.communicationChemistry, 20, 99);
+    var stability = syCompatClamp(ctx.dailyLifeChemistry, 20, 99);
+    var attraction = syCompatClamp(ctx.physicalMagnetism, 20, 99);
+    var conflict = syCompatClamp(ctx.conflictRisk, 20, 99);
+    var recovery = syCompatClamp(ctx.recoveryPotential, 20, 99);
+    var longTerm = syCompatClamp(ctx.longTermPotential, 20, 99);
+    var relBoost = {
+      love: relationKey === 'ankai' ? 6 : (relationKey === 'yeongchin' ? 3 : 2),
+      marriage: relationKey === 'yeongchin' ? 8 : (relationKey === 'seongwi' ? 5 : (relationKey === 'ankai' ? -6 : 2)),
+      reunion: relationKey === 'ankai' ? 7 : (relationKey === 'usei' ? 5 : 2),
+      secret: relationKey === 'ankai' ? 8 : (relationKey === 'life' ? 5 : 0),
+      distance: distanceKo === '원거리' ? 5 : (distanceKo === '근거리' ? -2 : 2),
+      business: relationKey === 'seongwi' ? 9 : (relationKey === 'yeongchin' ? 5 : (relationKey === 'ankai' ? -3 : 2))
+    };
+    function band(score) {
+      if (score >= 82) return '매우 유리';
+      if (score >= 68) return '좋은 편';
+      if (score >= 52) return '조율 필요';
+      return '천천히 보기';
+    }
+    function jitter(offset) {
+      return ((seed >>> offset) % 7) - 3;
+    }
+    var rows = [
+      {
+        key: 'love',
+        title: '연애',
+        score: attraction * 0.3 + emotional * 0.28 + conversation * 0.2 + recovery * 0.12 + stability * 0.1 + relBoost.love + jitter(2),
+        body: '감정의 온도와 서로에게 끌리는 힘을 중심으로 봅니다. 설렘이 빠르게 올라올수록 관계의 이름보다 리듬을 먼저 맞추는 것이 좋습니다.',
+        action: '고백이나 확답보다 다음 만남의 질을 높이세요.',
+        caution: conflict >= 76 ? '확인 욕구가 밀려오면 애정 확인보다 불안의 이름을 먼저 말해야 합니다.' : '좋은 분위기를 오래 끌려면 표현을 작게 반복하세요.'
+      },
+      {
+        key: 'marriage',
+        title: '결혼',
+        score: longTerm * 0.38 + stability * 0.3 + recovery * 0.18 + conversation * 0.14 + relBoost.marriage + jitter(4),
+        body: '생활 리듬, 회복력, 책임의 분담을 중심으로 봅니다. 설렘보다 함께 지킬 수 있는 규칙이 결혼운을 안정시킵니다.',
+        action: '돈, 가족, 일정, 갈등 후 회복법을 구체적으로 말해보세요.',
+        caution: stability < 62 ? '생활 합이 아직 덜 맞으므로 큰 약속 전에 평일 루틴을 먼저 확인하세요.' : '안정감이 장점이지만 예의와 고마움은 생략하지 마세요.'
+      },
+      {
+        key: 'reunion',
+        title: '재회',
+        score: recovery * 0.38 + emotional * 0.25 + conversation * 0.22 + (100 - conflict) * 0.15 + relBoost.reunion + jitter(6),
+        body: '그리움의 크기보다 달라진 대화 방식과 반복을 끊는 힘을 봅니다. 같은 상처가 반복되면 운은 다시 닫힙니다.',
+        action: '사과, 변화 증거, 다음 약속을 한 묶음으로 보여주세요.',
+        caution: conflict >= 80 ? '감정만으로 다시 붙으면 같은 장면이 빠르게 돌아올 수 있습니다.' : '짧은 연락으로 문을 열고 만남은 서두르지 마세요.'
+      },
+      {
+        key: 'secret',
+        title: '비밀연애',
+        score: attraction * 0.32 + emotional * 0.25 + (100 - stability) * 0.15 + conversation * 0.1 + (100 - conflict) * 0.18 + relBoost.secret + jitter(8),
+        body: '강한 끌림과 숨겨진 감정의 압력을 함께 봅니다. 은밀함은 몰입을 키우지만, 기준이 없으면 관계를 빠르게 소모시킵니다.',
+        action: '비밀로 둘 범위, 공개 시점, 감정 책임을 먼저 정하세요.',
+        caution: '상대의 반응을 시험하거나 기다림을 미덕으로 포장하지 마세요.'
+      },
+      {
+        key: 'distance',
+        title: '장거리',
+        score: conversation * 0.3 + recovery * 0.24 + longTerm * 0.22 + stability * 0.16 + emotional * 0.08 + relBoost.distance + jitter(10),
+        body: '물리적 거리보다 연락 기준과 재접속 능력을 봅니다. 장거리는 마음의 크기보다 일정의 선명도가 중요합니다.',
+        action: '다음 만남, 연락 시간, 답이 늦을 때의 기준을 숫자로 정하세요.',
+        caution: distanceKo === '원거리' ? '상상으로 빈칸을 채우지 말고 확인 가능한 약속을 늘리세요.' : '가까운 거리라도 개인 시간을 침범하면 관계가 답답해집니다.'
+      },
+      {
+        key: 'business',
+        title: '협업',
+        score: conversation * 0.26 + stability * 0.24 + longTerm * 0.24 + recovery * 0.14 + (100 - conflict) * 0.12 + relBoost.business + jitter(12),
+        body: '감정보다 역할 분담, 신뢰, 목표 정렬을 중심으로 봅니다. 좋은 협업은 친밀함보다 책임의 경계가 분명할 때 오래 갑니다.',
+        action: '역할, 마감, 결정권, 감정 이슈를 다루는 방식을 먼저 합의하세요.',
+        caution: relationKey === 'ankai' ? '주도권 싸움이 성과를 갉아먹지 않게 결정권을 문서처럼 명확히 하세요.' : '너무 편하다는 이유로 기준을 흐리지 마세요.'
+      }
+    ];
+    return rows.map(function(item) {
+      var score = syCompatClamp(item.score, 20, 99);
+      return {
+        key: item.key,
+        title: item.title,
+        score: score,
+        band: band(score),
+        body: item.body,
+        action: item.action,
+        caution: item.caution
+      };
+    });
+  }
+
+  function syBuildSukuyoExpertFinal(ctx) {
+    var relationKey = String(ctx.relationKey || 'default');
+    var distanceKo = String(ctx.distanceKo || '중거리');
+    var baseCompat = syCompatClamp(ctx.compatibilityIndex, 20, 99);
+    var conflict = syCompatClamp(ctx.conflictRisk, 20, 99);
+    var recovery = syCompatClamp(ctx.recoveryPotential, 20, 99);
+    var longTerm = syCompatClamp(ctx.longTermPotential, 20, 99);
+    var stability = syCompatClamp(ctx.dailyLifeChemistry, 20, 99);
+    var conversation = syCompatClamp(ctx.communicationChemistry, 20, 99);
+    var attraction = syCompatClamp(ctx.physicalMagnetism, 20, 99);
+    var categories = Array.isArray(ctx.categoryReadings) ? ctx.categoryReadings : [];
+    var risk = ctx.riskRoutines || {};
+    var total = syCompatClamp(baseCompat * 0.24 + recovery * 0.2 + longTerm * 0.2 + stability * 0.16 + conversation * 0.12 + (100 - conflict) * 0.08, 20, 99);
+    var level = total >= 84 ? '상급 인연' : (total >= 72 ? '성장형 인연' : (total >= 58 ? '조율형 인연' : '수련형 인연'));
+    var best = categories.slice().sort(function(a, b) { return b.score - a.score; })[0] || null;
+    var weakest = categories.slice().sort(function(a, b) { return a.score - b.score; })[0] || null;
+    var relationAdvice = {
+      ankai: '이 인연은 운명의 강도가 높지만, 경계선이 없으면 상처도 빠르게 깊어집니다. 사랑을 시험하지 말고 감정의 속도를 관리해야 합니다.',
+      usei: '이 인연은 오래 익을수록 진심이 드러납니다. 다만 서운함을 미루면 편안함이 거리감으로 바뀝니다.',
+      seongwi: '이 인연은 함께 목표를 잡을 때 강해집니다. 현실을 움직이는 힘은 좋지만 마음의 온도 점검을 빼면 건조해질 수 있습니다.',
+      yeongchin: '이 인연은 안정과 돌봄의 힘이 큽니다. 오래 갈수록 고마움과 새로움을 의식적으로 넣어야 복이 유지됩니다.',
+      life: '이 인연은 서로를 비추는 거울입니다. 상대를 고치려 들기보다 내 반응을 알아차릴수록 관계가 깊어집니다.',
+      taegeuk: '이 인연은 오래된 약속처럼 느껴질 수 있습니다. 운명감은 강하지만 현실의 작은 행동으로 증명해야 길이 열립니다.',
+      default: '이 인연은 선택과 조율에 따라 품질이 달라집니다. 속도보다 대화의 순서를 잘 잡는 것이 핵심입니다.'
+    };
+    var sevenDays = [
+      { day: '1일차', title: '관계 온도 기록', body: '오늘 느낀 끌림, 불안, 편안함을 각각 한 문장으로 적습니다.' },
+      { day: '2일차', title: '연락 기준 정리', body: '서로가 편한 연락 시간과 답이 늦을 때의 기준을 정합니다.' },
+      { day: '3일차', title: '감정 한 문장 전달', body: '비난 없이 “나는 이렇게 느껴”로 시작하는 문장을 하나 건넵니다.' },
+      { day: '4일차', title: '작은 약속 실행', body: '큰 고백보다 지킬 수 있는 작은 약속 하나를 실제로 지킵니다.' },
+      { day: '5일차', title: '금기 행동 차단', body: '시험, 침묵, 과거 소환 중 가장 자주 쓰는 패턴 하나를 멈춥니다.' },
+      { day: '6일차', title: '현실 합의', body: '만남, 돈, 일정, 공개 범위 중 하나를 구체적으로 맞춥니다.' },
+      { day: '7일차', title: '다음 리듬 결정', body: '이번 주에 좋았던 방식 하나와 줄여야 할 방식 하나를 함께 정합니다.' }
+    ];
+    return {
+      title: '숙요점 전문가 종합판정',
+      score: total,
+      level: level,
+      bestCategory: best ? best.title + ' · ' + best.band : '관계 조율',
+      weakestCategory: weakest ? weakest.title + ' · ' + weakest.band : '속도 조절',
+      summary: relationAdvice[relationKey] || relationAdvice.default,
+      core: '핵심 운은 ' + (best ? best.title : '관계 조율') + '에서 가장 잘 열리고, ' + (weakest ? weakest.title : '속도 조절') + '에서는 더 섬세한 합의가 필요합니다.',
+      priority: attraction >= 78 && conflict >= 76 ? '끌림을 증명하려 하지 말고 관계의 안전장치를 먼저 세우세요.' : (recovery >= 72 ? '갈등을 피하기보다 회복 순서를 정할 때 관계가 강해집니다.' : '관계의 속도를 낮추고 작은 약속을 반복해 신뢰를 먼저 쌓으세요.'),
+      distanceNote: distanceKo === '원거리' ? '원거리 흐름은 약속의 구체성이 곧 애정의 체감입니다.' : (distanceKo === '근거리' ? '근거리 흐름은 가까운 만큼 감정 반응을 늦추는 기술이 필요합니다.' : '중거리 흐름은 개인 시간과 만남의 균형이 관계 품질을 좌우합니다.'),
+      riskNote: risk && risk.riskBand ? '현재 위험 압력은 ' + risk.riskBand + '로 읽힙니다.' : '위험 압력은 대화 방식에 따라 달라집니다.',
+      sevenDays: sevenDays
+    };
+  }
+
+  function syBuildSukuyoAnnualMonthlyReading(canonicalData, sData, daily, sourceProfile) {
+    if (!sData) return null;
+    var year = new Date().getFullYear();
+    var traits = sData.traits || {};
+    var mansionIdx = Number.isFinite(Number(sData.mansionIdx)) ? Number(sData.mansionIdx) : 0;
+    var mansionLabel = String(sData.mansion || '본명숙');
+    var birth = sourceProfile && sourceProfile.birth ? sourceProfile.birth : (sourceProfile || {});
+    var birthKey = [birth.year, birth.month, birth.day, birth.hour, birth.minute].join('-');
+    var baseDaily = daily || {};
+    var overall = syCompatClamp((Number(baseDaily.overall || 62) * 0.35) + (Number(baseDaily.relations || 62) * 0.2) + (Number(baseDaily.love || 62) * 0.15) + (Number(baseDaily.wealth || 62) * 0.18) + ((mansionIdx % 9) * 1.4), 20, 99);
+    var relations = syCompatClamp(Number(baseDaily.relations || overall), 20, 99);
+    var love = syCompatClamp(Number(baseDaily.love || overall), 20, 99);
+    var wealth = syCompatClamp(Number(baseDaily.wealth || overall), 20, 99);
+    var seed = syCompatHash([mansionLabel, mansionIdx, year, birthKey, overall, relations, love, wealth].join('|'));
+    var themes = ['성장', '정리', '인연', '재물', '이동', '회복', '창조', '공부', '결실', '전환', '보호', '확장'];
+    var monthTypes = ['상승월', '정리월', '관계월', '시험월', '수확월', '휴식월', '전환월', '집중월'];
+    var theme = themes[(seed + mansionIdx) % themes.length];
+    var relationTone = relations >= 76 ? '새 인연과 귀인의 문이 열리며, 기존 관계에서는 더 깊은 신뢰를 확인하는 해입니다.' : (relations >= 60 ? '가까운 사람과의 속도 조절이 중요합니다. 서두른 확답보다 꾸준한 말이 운을 살립니다.' : '관계에서는 정리와 선별이 먼저입니다. 마음을 소모시키는 약속은 줄이고 진짜 인연만 남겨야 합니다.');
+    var workTone = wealth >= 76 ? '일과 재물은 수확을 향해 움직입니다. 다만 커지는 흐름일수록 지출 기준과 역할 경계를 명확히 해야 합니다.' : (wealth >= 60 ? '재물은 큰 변동보다 안정적인 축적에 유리합니다. 작은 수입, 반복되는 루틴, 실용적 선택이 복을 만듭니다.' : '올해는 공격적 확장보다 현금 흐름과 에너지 보존이 우선입니다. 무리한 투자와 충동 지출은 피하세요.');
+    var emotionTone = love >= 74 ? '감정은 따뜻하게 열리지만, 마음이 커질수록 기대도 커집니다. 표현은 자주, 결론은 천천히가 좋습니다.' : '감정은 깊어지는 대신 예민해질 수 있습니다. 혼자 해석하기보다 짧게 확인하는 습관이 필요합니다.';
+    var yearlyCards = [
+      { title: '올해의 숙요 테마', value: theme + '의 해', body: mansionLabel + '의 별빛은 올해 ' + theme + '을 중심으로 열립니다. 크게 흔드는 사건보다 반복되는 선택이 운의 품질을 바꿉니다.' },
+      { title: '관계운', value: syIndicatorBand(relations), body: relationTone },
+      { title: '일·돈 흐름', value: syIndicatorBand(wealth), body: workTone },
+      { title: '감정 리듬', value: syIndicatorBand(love), body: emotionTone },
+      { title: '주의점', value: overall >= 72 ? '과속 주의' : '소모 주의', body: '좋은 흐름도 욕심이 앞서면 흐려집니다. 약속, 돈, 감정 표현은 한 번 더 확인한 뒤 움직이세요.' },
+      { title: '행운법', value: '달빛 루틴', body: '매월 초에는 목표 하나를 정하고, 보름 전후에는 관계와 감정을 정리하세요. 그믐 무렵에는 쉬어가는 선택이 운을 지킵니다.' }
+    ];
+    var monthly = [];
+    for (var i = 0; i < 12; i++) {
+      var raw = (seed >>> (i % 16)) + mansionIdx + (i * 17);
+      var type = monthTypes[Math.abs(raw) % monthTypes.length];
+      var monthScore = syCompatClamp((overall * 0.28) + (relations * ((i % 3 === 0) ? 0.24 : 0.16)) + (wealth * ((i % 4 === 1) ? 0.24 : 0.16)) + (love * ((i % 4 === 2) ? 0.24 : 0.16)) + 18 + ((raw % 13) - 6), 20, 99);
+      var focus = type === '관계월' ? '관계와 귀인' : (type === '재물월' ? '돈과 일' : (type === '정리월' ? '정리와 회복' : (type === '시험월' ? '감정 조율' : (type === '수확월' ? '성과와 결실' : '리듬 조절'))));
+      monthly.push({
+        month: (i + 1) + '월',
+        type: type,
+        score: monthScore,
+        band: syIndicatorBand(monthScore),
+        focus: focus,
+        body: type + '입니다. ' + focus + '이 중심이 되며, ' + syFirstToken(syCanonicalTokenize(traits.core || traits.desc, '내면의 기준'), '내면의 기준') + '을 잃지 않을수록 흐름이 안정됩니다.',
+        relation: relations >= 68 ? '관계에서는 먼저 다가가되 상대의 속도를 존중하세요.' : '관계에서는 약속을 줄이고 진심이 남는 대화만 선택하세요.',
+        work: wealth >= 68 ? '일과 돈은 실행을 작게 나누면 성과가 보입니다.' : '일과 돈은 확장보다 정리, 점검, 재배치가 유리합니다.',
+        caution: monthScore >= 76 ? '기회가 많아질수록 무리한 약속을 조심하세요.' : '마음이 느려지는 달에는 결론을 서두르지 마세요.'
+      });
+    }
+    return {
+      year: year,
+      title: year + '년 숙요점 1년운',
+      mansionLabel: mansionLabel,
+      score: overall,
+      theme: theme,
+      summary: mansionLabel + '의 ' + year + '년은 ' + theme + '의 문이 열리는 해입니다. 운은 한 번에 폭발하기보다 달마다 다른 문을 통과하며 깊어집니다.',
+      yearlyCards: yearlyCards,
+      monthly: monthly
+    };
+  }
+
+  function syRenderSukuyoAnnualMonthlySections(reading) {
+    if (!reading) return '';
+    var moonMarks = ['☾', '◐', '●', '◑'];
+    var bar = function(score, color) {
+      var n = syCompatClamp(score, 0, 100);
+      return '<div style="height:7px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;"><div style="height:100%;width:' + n + '%;background:' + color + ';border-radius:999px;"></div></div>';
+    };
+    return ''
+      + '<div class="sy-card sy-lunar-year-card" data-sy-year-fortune="20260605-sukuyo-year" data-sy-year-moon-ui="20260606-sukuyo-year-moon">'
+      + '<div class="sy-lunar-overline">Annual Sukuyo Fortune</div>'
+      + '<div class="sy-lunar-year-head">'
+      + '<div class="sy-lunar-year-copy">'
+      + '<h4>' + syCanonicalEsc(reading.title) + ' · ' + syCanonicalEsc(reading.theme) + '</h4>'
+      + '<p>' + syCanonicalEsc(reading.summary) + '</p>'
+      + '</div>'
+      + '<article class="sy-lunar-score-orb"><div class="sy-lunar-score">' + syCanonicalEsc(reading.score) + '점</div><div class="sy-lunar-score-label">올해 총운</div></article>'
+      + '</div>'
+      + '<article style="background:rgba(2,6,23,0.42);border:1px solid rgba(216,180,254,0.22);border-radius:12px;padding:11px;color:#ede9fe;font-size:0.84rem;line-height:1.8;margin-bottom:10px;">본명숙 <strong style="color:#fef3c7;">' + syCanonicalEsc(reading.mansionLabel) + '</strong> 기준으로 올해의 인연, 일, 감정, 재물 흐름을 12개월 리듬으로 나누어 봅니다. 좋은 달에는 과속을 줄이고, 느린 달에는 회복을 선택하는 것이 핵심입니다.</article>'
+      + '<div class="sy-lunar-year-grid">'
+      + reading.yearlyCards.map(function(item) {
+        return '<article>'
+          + '<strong>' + syCanonicalEsc(item.title) + '</strong>'
+          + '<span>' + syCanonicalEsc(item.value) + '</span>'
+          + '<p>' + syCanonicalEsc(item.body) + '</p>'
+          + '</article>';
+      }).join('')
+      + '</div>'
+      + '</div>'
+      + '<div class="sy-card sy-lunar-month-card" data-sy-monthly-fortune="20260605-sukuyo-monthly" data-sy-monthly-moon-ui="20260606-sukuyo-monthly-moon">'
+      + '<div class="sy-lunar-overline" style="color:#99f6e4;">Monthly Sukuyo Rhythm</div>'
+      + '<h4 style="margin:0 0 8px;color:#ccfbf1;">월별 숙요 운세</h4>'
+      + '<div class="sy-lunar-month-grid">'
+      + reading.monthly.map(function(item, idx) {
+        var color = item.score >= 76 ? '#86efac' : (item.score >= 62 ? '#fde68a' : '#bfdbfe');
+        return '<article class="sy-lunar-month-item">'
+          + '<div class="sy-lunar-month-head"><strong class="sy-lunar-month-title"><span class="sy-lunar-phase">' + syCanonicalEsc(moonMarks[idx % moonMarks.length]) + '</span><span>' + syCanonicalEsc(item.month) + ' · ' + syCanonicalEsc(item.type) + '</span></strong><span class="sy-lunar-band" style="color:' + color + ';">' + syCanonicalEsc(item.band) + '</span></div>'
+          + bar(item.score, 'linear-gradient(90deg,#10b981,#86efac)')
+          + '<p>' + syCanonicalEsc(item.body) + '</p>'
+          + '<p class="sy-lunar-note sy-lunar-note--relation">관계 · ' + syCanonicalEsc(item.relation) + '</p>'
+          + '<p class="sy-lunar-note sy-lunar-note--work">일·돈 · ' + syCanonicalEsc(item.work) + '</p>'
+          + '<p class="sy-lunar-note sy-lunar-note--caution">주의 · ' + syCanonicalEsc(item.caution) + '</p>'
+          + '</article>';
+      }).join('')
+      + '</div>'
+      + '</div>';
+  }
+
+  function syBuildSukuyoCompatYearlyForecast(ctx) {
+    var relationKey = String(ctx.relationKey || 'default');
+    var distanceKo = String(ctx.distanceKo || '중거리');
+    var seed = Number(ctx.seed || 0);
+    var baseCompat = syCompatClamp(ctx.compatibilityIndex, 20, 99);
+    var recovery = syCompatClamp(ctx.recoveryPotential, 20, 99);
+    var longTerm = syCompatClamp(ctx.longTermPotential, 20, 99);
+    var stability = syCompatClamp(ctx.dailyLifeChemistry, 20, 99);
+    var conversation = syCompatClamp(ctx.communicationChemistry, 20, 99);
+    var conflict = syCompatClamp(ctx.conflictRisk, 20, 99);
+    var startYear = new Date().getFullYear();
+    var phaseNames = ['가까워지는 해', '현실 조건을 맞추는 해', '관계의 이름이 바뀌는 해', '서로의 약점을 보는 해', '다시 깊어지는 해', '장기 약속을 시험하는 해', '거리와 자유를 조율하는 해', '결실을 확인하는 해', '새 규칙을 세우는 해', '인연의 방향을 확정하는 해'];
+    var relationAdvice = {
+      ankai: '감정의 파도가 강하므로 해마다 경계선과 회복 규칙을 먼저 세워야 합니다.',
+      usei: '정서적 편안함은 장점이지만, 표현이 줄어드는 해에는 서운함이 쌓이지 않게 해야 합니다.',
+      seongwi: '공동 목표가 있는 해에는 강해지고, 목표가 사라지는 해에는 감정 점검이 필요합니다.',
+      yeongchin: '안정과 돌봄이 장기운을 밀어주지만, 익숙함이 커지는 해에는 새로움이 필요합니다.',
+      life: '서로를 거울처럼 비추는 해가 반복되므로, 상대를 고치기보다 자기 반응을 먼저 봐야 합니다.',
+      taegeuk: '운명감은 오래가지만, 현실 약속이 없는 해에는 감정만 맴돌 수 있습니다.',
+      default: '관계의 품질은 해마다 대화의 순서와 속도 조절에 따라 달라집니다.'
+    };
+    var years = [];
+    for (var i = 0; i < 10; i++) {
+      var y = startYear + i;
+      var drift = ((seed >>> (i % 16)) % 17) - 8;
+      var distanceBias = distanceKo === '근거리' ? (i % 2 === 0 ? 5 : -2) : (distanceKo === '원거리' ? (i % 3 === 0 ? -4 : 4) : 1);
+      var score = syCompatClamp(baseCompat * 0.22 + recovery * 0.2 + longTerm * 0.22 + stability * 0.16 + conversation * 0.12 + (100 - conflict) * 0.08 + drift + distanceBias, 20, 99);
+      var phase = phaseNames[(i + relationKey.length + (seed % 5)) % phaseNames.length];
+      var band = score >= 82 ? '강한 결속' : (score >= 68 ? '좋은 흐름' : (score >= 52 ? '조율 필요' : '신중한 해'));
+      years.push({
+        year: y,
+        title: y + ' · ' + phase,
+        score: score,
+        band: band,
+        summary: phase + '입니다. ' + (relationAdvice[relationKey] || relationAdvice.default),
+        closeWindow: ((i % 4) + 2) + '월·' + ((i % 5) + 7) + '월',
+        cautionWindow: ((i % 6) + 1) + '월·' + ((i % 4) + 9) + '월',
+        bestUse: score >= 72 ? '고백, 재회, 결혼, 동업처럼 관계의 이름을 분명히 하기 좋습니다.' : '큰 결정보다 대화 방식과 만남의 규칙을 다시 맞추는 해입니다.',
+        caution: conflict >= 78 ? '감정이 올라온 날에는 즉시 결론을 내리지 말고 회복 시간을 먼저 정하세요.' : '좋은 흐름에도 익숙함과 방심은 줄여야 합니다.'
+      });
+    }
+    return {
+      title: '연도별 관계 흐름',
+      summary: '올해부터 10년까지 두 사람의 관계가 어떤 국면으로 움직이는지 봅니다. 3년은 가까운 선택, 5년은 장기 방향, 10년은 인연의 큰 궤도를 읽습니다.',
+      views: [
+        { label: '3년 보기', body: years.slice(0, 3).map(function(v) { return v.year + ' ' + v.band; }).join(' · ') },
+        { label: '5년 보기', body: years.slice(0, 5).map(function(v) { return v.year + ' ' + v.band; }).join(' · ') },
+        { label: '10년 보기', body: years.map(function(v) { return v.year + ' ' + v.band; }).join(' · ') }
+      ],
+      years: years
     };
   }
 
@@ -8488,6 +9550,101 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     ].join('|');
     var seed = syCompatHash(seedRaw);
     var pastLife = syBuildPastLifeArchive({ relationKey: relationKey, relationKo: relationKo, distanceKo: distanceKo, seed: seed });
+    var structure = syBuildRelationStructure(ctx.rel, ctx.distInfo);
+    var distanceDeep = syBuildDistanceDeepReading(ctx.distInfo, ctx.distanceMetrics || (ctx.rel && ctx.rel.distanceMetrics), relationKey);
+    var purposeReadings = syBuildPurposeCompatibilityReadings({
+      relationKey: relationKey,
+      distanceKo: distanceKo,
+      emotionalChemistry: emotionalChemistry,
+      communicationChemistry: communicationChemistry,
+      dailyLifeChemistry: dailyLifeChemistry,
+      recoveryPotential: recoveryPotential,
+      longTermPotential: longTermPotential
+    });
+    var emotionalIndicators = syBuildEmotionalIndicators({
+      relationKey: relationKey,
+      emotionalChemistry: emotionalChemistry,
+      communicationChemistry: communicationChemistry,
+      dailyLifeChemistry: dailyLifeChemistry,
+      physicalMagnetism: physicalMagnetism,
+      conflictRisk: conflictRisk,
+      recoveryPotential: recoveryPotential,
+      longTermPotential: longTermPotential
+    });
+    var relationshipTiming = syBuildRelationshipTiming({
+      relationKey: relationKey,
+      distanceKo: distanceKo,
+      seed: seed,
+      emotionalChemistry: emotionalChemistry,
+      communicationChemistry: communicationChemistry,
+      dailyLifeChemistry: dailyLifeChemistry,
+      physicalMagnetism: physicalMagnetism,
+      conflictRisk: conflictRisk,
+      recoveryPotential: recoveryPotential,
+      longTermPotential: longTermPotential
+    });
+    var relationshipPrescriptions = syBuildRelationshipPrescriptions({
+      relationKey: relationKey,
+      distanceKo: distanceKo,
+      roleA: roleA,
+      roleB: roleB,
+      emotionalChemistry: emotionalChemistry,
+      communicationChemistry: communicationChemistry,
+      dailyLifeChemistry: dailyLifeChemistry,
+      physicalMagnetism: physicalMagnetism,
+      conflictRisk: conflictRisk,
+      recoveryPotential: recoveryPotential,
+      longTermPotential: longTermPotential
+    });
+    var relationshipRiskRoutines = syBuildRelationshipRiskRoutines({
+      relationKey: relationKey,
+      distanceKo: distanceKo,
+      roleA: roleA,
+      roleB: roleB,
+      emotionalChemistry: emotionalChemistry,
+      communicationChemistry: communicationChemistry,
+      dailyLifeChemistry: dailyLifeChemistry,
+      physicalMagnetism: physicalMagnetism,
+      conflictRisk: conflictRisk,
+      recoveryPotential: recoveryPotential,
+      longTermPotential: longTermPotential
+    });
+    var relationshipCategoryReadings = syBuildRelationshipCategoryReadings({
+      relationKey: relationKey,
+      distanceKo: distanceKo,
+      seed: seed,
+      emotionalChemistry: emotionalChemistry,
+      communicationChemistry: communicationChemistry,
+      dailyLifeChemistry: dailyLifeChemistry,
+      physicalMagnetism: physicalMagnetism,
+      conflictRisk: conflictRisk,
+      recoveryPotential: recoveryPotential,
+      longTermPotential: longTermPotential
+    });
+    var expertFinal = syBuildSukuyoExpertFinal({
+      relationKey: relationKey,
+      distanceKo: distanceKo,
+      compatibilityIndex: baseCompat,
+      communicationChemistry: communicationChemistry,
+      dailyLifeChemistry: dailyLifeChemistry,
+      physicalMagnetism: physicalMagnetism,
+      conflictRisk: conflictRisk,
+      recoveryPotential: recoveryPotential,
+      longTermPotential: longTermPotential,
+      categoryReadings: relationshipCategoryReadings,
+      riskRoutines: relationshipRiskRoutines
+    });
+    var yearlyRelationshipForecast = syBuildSukuyoCompatYearlyForecast({
+      relationKey: relationKey,
+      distanceKo: distanceKo,
+      seed: seed,
+      compatibilityIndex: baseCompat,
+      communicationChemistry: communicationChemistry,
+      dailyLifeChemistry: dailyLifeChemistry,
+      conflictRisk: conflictRisk,
+      recoveryPotential: recoveryPotential,
+      longTermPotential: longTermPotential
+    });
     var signature = (ctx.relationVariant ? String(ctx.relationVariant) + ' · ' : '') + 'SIG-' + String(seed.toString(36)).toUpperCase();
 
     var nicknames = {
@@ -8548,6 +9705,16 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       keywords3: key3,
       seed: seed,
       signature: signature,
+      structure: structure,
+      distanceDeep: distanceDeep,
+      purposeReadings: purposeReadings,
+      emotionalIndicators: emotionalIndicators,
+      relationshipTiming: relationshipTiming,
+      relationshipPrescriptions: relationshipPrescriptions,
+      relationshipRiskRoutines: relationshipRiskRoutines,
+      relationshipCategoryReadings: relationshipCategoryReadings,
+      expertFinal: expertFinal,
+      yearlyRelationshipForecast: yearlyRelationshipForecast,
       pastLife: pastLife
     };
   }
@@ -9359,6 +10526,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           const enhanced = syBuildEnhancedSukuyoResult({
             rel: rel,
             distInfo: distInfo,
+            distanceMetrics: distanceMetrics,
             compatibilityIndex: compatibilityIndex,
             relationVariant: relationVariant,
             userMansion: myMansionName || '',
@@ -9383,6 +10551,16 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 recoveryPotential: enhanced.recoveryPotential,
                 longTermPotential: enhanced.longTermPotential
               },
+              structure: enhanced.structure,
+              distanceDeep: enhanced.distanceDeep,
+              purposeReadings: enhanced.purposeReadings,
+              emotionalIndicators: enhanced.emotionalIndicators,
+              relationshipTiming: enhanced.relationshipTiming,
+              relationshipPrescriptions: enhanced.relationshipPrescriptions,
+              relationshipRiskRoutines: enhanced.relationshipRiskRoutines,
+              relationshipCategoryReadings: enhanced.relationshipCategoryReadings,
+              expertFinal: enhanced.expertFinal,
+              yearlyRelationshipForecast: enhanced.yearlyRelationshipForecast,
               pastLife: enhanced.pastLife
             };
           }
@@ -9435,6 +10613,51 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <div style="font-size:0.8rem;color:#eef2ff;line-height:1.8;">핵심은 <strong style="color:#fef3c7;">끌림의 속도와 생활 리듬을 같은 언어로 맞추는 것</strong>입니다. 호감은 빠르게 올라올 수 있지만, 관계가 오래 가려면 연락 빈도·갈등 후 회복 방식·약속 결정 순서를 명확히 정해야 합니다. 계산 시그니처: ${enhanced.signature}</div>
             </section>`;
 
+          const relationStructureSection = `
+            <section data-sy-compat-structure="20260605-sukuyo-structure" style="background:linear-gradient(145deg,rgba(20,24,54,0.68),rgba(10,14,34,0.62));border:1px solid rgba(253,186,116,0.34);border-radius:16px;padding:15px 15px 12px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#fdba74;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:6px;">Section 1 · 인연 구조 정밀 해석</div>
+              <div style="font-size:1rem;font-weight:900;color:#fff7ed;line-height:1.55;margin-bottom:4px;">${syCanonicalEsc(enhanced.structure.title)}</div>
+              <div style="font-size:0.76rem;color:#fed7aa;margin-bottom:10px;">${syCanonicalEsc(enhanced.structure.labels)}</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:0.8rem;line-height:1.78;color:#ffedd5;">
+                <article style="background:rgba(2,6,23,0.46);border:1px solid rgba(253,186,116,0.22);border-radius:10px;padding:9px;"><strong style="color:#fed7aa;">인연의 본질</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.structure.essence)}</p></article>
+                <article style="background:rgba(2,6,23,0.46);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;"><strong style="color:#fde68a;">처음 끌리는 이유</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.structure.attraction)}</p></article>
+                <article style="background:rgba(2,6,23,0.46);border:1px solid rgba(196,181,253,0.22);border-radius:10px;padding:9px;"><strong style="color:#ddd6fe;">가까워질수록</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.structure.deepening)}</p></article>
+                <article style="background:rgba(2,6,23,0.46);border:1px solid rgba(248,113,113,0.22);border-radius:10px;padding:9px;"><strong style="color:#fecaca;">반복 감정 패턴</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.structure.pattern)}</p></article>
+                <article style="background:rgba(2,6,23,0.46);border:1px solid rgba(52,211,153,0.22);border-radius:10px;padding:9px;"><strong style="color:#bbf7d0;">오래 가는 처방</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.structure.prescription)}</p></article>
+                <article style="background:rgba(2,6,23,0.46);border:1px solid rgba(147,197,253,0.22);border-radius:10px;padding:9px;"><strong style="color:#bfdbfe;">오늘의 질문</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.structure.question)}</p></article>
+              </div>
+            </section>`;
+
+          const purposeCompatibilitySection = `
+            <section data-sy-compat-purpose="20260605-sukuyo-purpose" style="background:rgba(15,23,42,0.56);border:1px solid rgba(244,114,182,0.3);border-radius:16px;padding:15px 15px 12px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#f9a8d4;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 2 · 목적별 궁합 리딩</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:0.8rem;line-height:1.78;color:#fce7f3;">
+                ${enhanced.purposeReadings.map(function(item) {
+                  return '<article style="background:rgba(2,6,23,0.46);border:1px solid rgba(244,114,182,0.22);border-radius:10px;padding:10px;">'
+                    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:6px;">'
+                    + '<strong style="color:#fbcfe8;">' + syCanonicalEsc(item.title) + '</strong>'
+                    + '<span style="background:rgba(244,114,182,0.14);border:1px solid rgba(244,114,182,0.28);border-radius:999px;padding:2px 7px;font-size:0.7rem;color:#f9a8d4;">' + syCanonicalEsc(item.band) + '</span>'
+                    + '</div>'
+                    + '<p style="margin:0;color:#fce7f3;">' + syCanonicalEsc(item.body) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+            </section>`;
+
+          const distanceDeepSection = `
+            <section data-sy-compat-distance="20260605-sukuyo-distance" style="background:linear-gradient(145deg,rgba(8,47,73,0.52),rgba(15,23,42,0.62));border:1px solid rgba(125,211,252,0.34);border-radius:16px;padding:15px 15px 12px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#7dd3fc;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:6px;">Section 3 · 거리감 정밀 해석</div>
+              <div style="font-size:1rem;font-weight:900;color:#e0f2fe;line-height:1.55;margin-bottom:6px;">${syCanonicalEsc(enhanced.distanceDeep.title)}</div>
+              <div style="font-size:0.8rem;color:#bae6fd;line-height:1.75;background:rgba(2,6,23,0.42);border:1px solid rgba(125,211,252,0.22);border-radius:10px;padding:9px 10px;margin-bottom:9px;">${syCanonicalEsc(enhanced.distanceDeep.numericLine)} ${syCanonicalEsc(enhanced.distanceDeep.relationHint)}</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:0.8rem;line-height:1.78;color:#dbeafe;">
+                <article style="background:rgba(2,6,23,0.46);border:1px solid rgba(125,211,252,0.22);border-radius:10px;padding:9px;"><strong style="color:#bae6fd;">체감 속도</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.distanceDeep.pace)}</p></article>
+                <article style="background:rgba(2,6,23,0.46);border:1px solid rgba(52,211,153,0.22);border-radius:10px;padding:9px;"><strong style="color:#bbf7d0;">거리의 장점</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.distanceDeep.strength)}</p></article>
+                <article style="background:rgba(2,6,23,0.46);border:1px solid rgba(248,113,113,0.22);border-radius:10px;padding:9px;"><strong style="color:#fecaca;">주의할 거리감</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.distanceDeep.caution)}</p></article>
+                <article style="background:rgba(2,6,23,0.46);border:1px solid rgba(196,181,253,0.22);border-radius:10px;padding:9px;"><strong style="color:#ddd6fe;">운영법</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.distanceDeep.operation)}</p></article>
+                <article style="grid-column:1/-1;background:rgba(2,6,23,0.46);border:1px solid rgba(251,191,36,0.24);border-radius:10px;padding:9px;"><strong style="color:#fde68a;">좋은 타이밍</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.distanceDeep.timing)}</p></article>
+              </div>
+            </section>`;
+
           const enhancedFlowSection = `
             <section style="background:rgba(15,23,42,0.56);border:1px solid rgba(125,211,252,0.34);border-radius:16px;padding:15px 15px 11px;margin-bottom:14px;">
               <div style="font-size:0.74rem;color:#7dd3fc;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 4 · 첫 만남 → 썸 → 연애 → 장기 관계</div>
@@ -9460,9 +10683,221 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               </div>
             </section>`;
 
+          const emotionalIndicatorSection = `
+            <section data-sy-compat-emotion="20260605-sukuyo-emotion" style="background:linear-gradient(145deg,rgba(49,46,129,0.48),rgba(15,23,42,0.64));border:1px solid rgba(167,139,250,0.34);border-radius:16px;padding:15px 15px 12px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#c4b5fd;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 6 · 감정 지표 세분화</div>
+              <div style="font-size:0.82rem;color:#e9d5ff;line-height:1.75;background:rgba(2,6,23,0.42);border:1px solid rgba(167,139,250,0.22);border-radius:10px;padding:9px 10px;margin-bottom:9px;">점수는 좋고 나쁨의 판정이 아니라 관계를 조율하는 계기판입니다. 끌림이 높으면 속도를 늦추고, 신뢰가 낮으면 약속의 반복성을 먼저 보세요.</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:0.8rem;line-height:1.72;color:#ede9fe;">
+                ${enhanced.emotionalIndicators.map(function(item) {
+                  var isRisk = item.key === 'drain';
+                  var scoreColor = isRisk
+                    ? (item.score >= 82 ? '#fca5a5' : (item.score >= 68 ? '#fdba74' : '#bef264'))
+                    : (item.score >= 82 ? '#86efac' : (item.score >= 68 ? '#fde68a' : '#bfdbfe'));
+                  return '<article style="background:rgba(2,6,23,0.46);border:1px solid rgba(167,139,250,0.22);border-radius:10px;padding:10px;">'
+                    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:6px;">'
+                    + '<strong style="color:#ddd6fe;">' + syCanonicalEsc(item.label) + '</strong>'
+                    + '<span style="color:' + scoreColor + ';font-weight:900;">' + syCanonicalEsc(item.score) + '</span>'
+                    + '</div>'
+                    + '<div style="font-family:monospace;font-size:0.72rem;color:#c4b5fd;line-height:1.3;margin-bottom:6px;">' + syBar(item.score) + '</div>'
+                    + '<div style="display:inline-block;background:rgba(167,139,250,0.14);border:1px solid rgba(167,139,250,0.28);border-radius:999px;padding:2px 7px;font-size:0.7rem;color:#c4b5fd;margin-bottom:7px;">' + syCanonicalEsc(item.band) + '</div>'
+                    + '<p style="margin:0;color:#ede9fe;">' + syCanonicalEsc(item.body) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+            </section>`;
+
+          const relationshipTimingSection = `
+            <section data-sy-compat-timing="20260605-sukuyo-30day" style="background:linear-gradient(145deg,rgba(64,64,122,0.5),rgba(15,23,42,0.66));border:1px solid rgba(129,140,248,0.34);border-radius:16px;padding:15px 15px 12px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#a5b4fc;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 7 · 30일 관계 타이밍</div>
+              <div style="font-size:1rem;font-weight:900;color:#e0e7ff;line-height:1.55;margin-bottom:6px;">${syCanonicalEsc(enhanced.relationshipTiming.title)}</div>
+              <div style="font-size:0.82rem;color:#dbeafe;line-height:1.78;background:rgba(2,6,23,0.42);border:1px solid rgba(129,140,248,0.24);border-radius:10px;padding:9px 10px;margin-bottom:9px;">${syCanonicalEsc(enhanced.relationshipTiming.summary)}</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:9px;font-size:0.8rem;line-height:1.7;color:#e0e7ff;">
+                <article style="background:rgba(2,6,23,0.44);border:1px solid rgba(134,239,172,0.24);border-radius:10px;padding:9px;"><strong style="color:#bbf7d0;">가장 좋은 창</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.relationshipTiming.bestWindow)}</p></article>
+                <article style="background:rgba(2,6,23,0.44);border:1px solid rgba(253,186,116,0.24);border-radius:10px;padding:9px;"><strong style="color:#fed7aa;">조심할 창</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.relationshipTiming.cautionWindow)}</p></article>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:9px;font-size:0.8rem;line-height:1.72;color:#e0e7ff;">
+                ${enhanced.relationshipTiming.phaseRows.map(function(item) {
+                  var scoreColor = item.score >= 82 ? '#86efac' : (item.score >= 68 ? '#fde68a' : '#bfdbfe');
+                  return '<article style="background:rgba(2,6,23,0.46);border:1px solid rgba(129,140,248,0.22);border-radius:10px;padding:9px;">'
+                    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:5px;"><strong style="color:#c7d2fe;">' + syCanonicalEsc(item.title) + '</strong><span style="color:' + scoreColor + ';font-weight:900;">' + syCanonicalEsc(item.band) + '</span></div>'
+                    + '<div style="font-size:0.75rem;color:#a5b4fc;margin-bottom:6px;">' + syCanonicalEsc(item.range) + '</div>'
+                    + syBar(item.score)
+                    + '<p style="margin:7px 0 0;color:#dbeafe;">' + syCanonicalEsc(item.focus) + '</p>'
+                    + '<p style="margin:5px 0 0;color:#bfdbfe;">' + syCanonicalEsc(item.action) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:7px;font-size:0.8rem;line-height:1.72;color:#e0e7ff;">
+                ${enhanced.relationshipTiming.keyDates.map(function(item) {
+                  var isCaution = item.type === '주의일';
+                  var accent = isCaution ? '#fdba74' : '#c4b5fd';
+                  return '<article style="background:rgba(2,6,23,0.44);border:1px solid rgba(129,140,248,0.2);border-radius:10px;padding:9px;">'
+                    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:5px;"><strong style="color:' + accent + ';">' + syCanonicalEsc(item.type) + '</strong><span style="color:#dbeafe;font-weight:800;">' + syCanonicalEsc(item.date) + '</span></div>'
+                    + '<div style="margin-bottom:6px;">' + syBar(item.score) + '</div>'
+                    + '<p style="margin:0;color:#dbeafe;">' + syCanonicalEsc(item.body) + '</p>'
+                    + '<p style="margin:5px 0 0;color:#bfdbfe;">오늘의 한 수: ' + syCanonicalEsc(item.action) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+            </section>`;
+
+          const relationshipPrescriptionSection = `
+            <section data-sy-compat-prescription="20260605-sukuyo-script" style="background:linear-gradient(145deg,rgba(76,29,149,0.48),rgba(15,23,42,0.66));border:1px solid rgba(216,180,254,0.34);border-radius:16px;padding:15px 15px 12px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#d8b4fe;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 8 · 관계 행동 처방</div>
+              <div style="font-size:1rem;font-weight:900;color:#f3e8ff;line-height:1.55;margin-bottom:6px;">${syCanonicalEsc(enhanced.relationshipPrescriptions.title)}</div>
+              <div style="font-size:0.82rem;color:#ede9fe;line-height:1.78;background:rgba(2,6,23,0.42);border:1px solid rgba(216,180,254,0.22);border-radius:10px;padding:9px 10px;margin-bottom:8px;">${syCanonicalEsc(enhanced.relationshipPrescriptions.tone)} ${syCanonicalEsc(enhanced.relationshipPrescriptions.roleLine)}</div>
+              <div style="font-size:0.8rem;color:#ddd6fe;line-height:1.75;background:rgba(2,6,23,0.38);border:1px solid rgba(167,139,250,0.22);border-radius:10px;padding:9px 10px;margin-bottom:9px;">${syCanonicalEsc(enhanced.relationshipPrescriptions.diagnostic)}</div>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:9px;font-size:0.8rem;line-height:1.68;color:#f3e8ff;">
+                ${enhanced.relationshipPrescriptions.rituals.map(function(item) {
+                  return '<article style="background:rgba(2,6,23,0.44);border:1px solid rgba(216,180,254,0.2);border-radius:10px;padding:9px;">'
+                    + '<strong style="color:#e9d5ff;">' + syCanonicalEsc(item.title) + '</strong>'
+                    + '<p style="margin:5px 0 0;color:#ddd6fe;">' + syCanonicalEsc(item.body) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:0.8rem;line-height:1.72;color:#f3e8ff;">
+                ${enhanced.relationshipPrescriptions.scripts.map(function(item) {
+                  return '<article style="background:rgba(2,6,23,0.46);border:1px solid rgba(216,180,254,0.22);border-radius:10px;padding:10px;">'
+                    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:6px;"><strong style="color:#e9d5ff;">' + syCanonicalEsc(item.title) + '</strong><span style="color:#c4b5fd;font-size:0.74rem;text-align:right;">' + syCanonicalEsc(item.when) + '</span></div>'
+                    + '<div style="background:rgba(88,28,135,0.22);border:1px solid rgba(216,180,254,0.18);border-radius:9px;padding:8px 9px;color:#f5f3ff;margin-bottom:7px;">“' + syCanonicalEsc(item.say) + '”</div>'
+                    + '<p style="margin:0 0 5px;color:#fecaca;"><strong>피할 말</strong> · ' + syCanonicalEsc(item.avoid) + '</p>'
+                    + '<p style="margin:0;color:#ddd6fe;"><strong style="color:#bfdbfe;">행동</strong> · ' + syCanonicalEsc(item.action) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+              <div style="font-size:0.8rem;color:#e9d5ff;line-height:1.72;background:rgba(2,6,23,0.4);border:1px solid rgba(216,180,254,0.2);border-radius:10px;padding:9px 10px;margin-top:9px;">피해야 할 패턴: ${syCanonicalEsc(enhanced.relationshipPrescriptions.avoid)}. ${syCanonicalEsc(enhanced.relationshipPrescriptions.close)}</div>
+            </section>`;
+
+          const relationshipRiskSection = `
+            <section data-sy-compat-risk="20260605-sukuyo-risk" style="background:linear-gradient(145deg,rgba(127,29,29,0.42),rgba(15,23,42,0.68));border:1px solid rgba(252,165,165,0.34);border-radius:16px;padding:15px 15px 12px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#fca5a5;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 9 · 위험 신호와 회복 루틴</div>
+              <div style="font-size:1rem;font-weight:900;color:#fee2e2;line-height:1.55;margin-bottom:6px;">${syCanonicalEsc(enhanced.relationshipRiskRoutines.title)}</div>
+              <div style="font-size:0.82rem;color:#fecaca;line-height:1.78;background:rgba(2,6,23,0.42);border:1px solid rgba(252,165,165,0.22);border-radius:10px;padding:9px 10px;margin-bottom:9px;">${syCanonicalEsc(enhanced.relationshipRiskRoutines.summary)}</div>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:9px;font-size:0.8rem;line-height:1.68;color:#fee2e2;">
+                <article style="background:rgba(2,6,23,0.44);border:1px solid rgba(252,165,165,0.22);border-radius:10px;padding:9px;"><strong style="color:#fecaca;">위험 압력</strong><div style="margin:6px 0;">${syBar(enhanced.relationshipRiskRoutines.riskScore)}</div><p style="margin:0;color:#fee2e2;">${syCanonicalEsc(enhanced.relationshipRiskRoutines.riskBand)}</p></article>
+                <article style="background:rgba(2,6,23,0.44);border:1px solid rgba(134,239,172,0.22);border-radius:10px;padding:9px;"><strong style="color:#bbf7d0;">회복 가능성</strong><div style="margin:6px 0;">${syBar(enhanced.relationshipRiskRoutines.repairScore)}</div><p style="margin:0;color:#dcfce7;">${syCanonicalEsc(enhanced.relationshipRiskRoutines.repairBand)}</p></article>
+                <article style="background:rgba(2,6,23,0.44);border:1px solid rgba(253,186,116,0.22);border-radius:10px;padding:9px;"><strong style="color:#fed7aa;">경계선 필요도</strong><div style="margin:6px 0;">${syBar(enhanced.relationshipRiskRoutines.boundaryScore)}</div><p style="margin:0;color:#ffedd5;">${syCanonicalEsc(enhanced.relationshipRiskRoutines.distanceHint)}</p></article>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:9px;font-size:0.8rem;line-height:1.72;color:#fee2e2;">
+                ${enhanced.relationshipRiskRoutines.redFlags.map(function(item) {
+                  var levelColor = item.level === '강한 주의' ? '#fca5a5' : (item.level === '주의' ? '#fdba74' : '#bfdbfe');
+                  return '<article style="background:rgba(2,6,23,0.46);border:1px solid rgba(252,165,165,0.2);border-radius:10px;padding:10px;">'
+                    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:6px;"><strong style="color:#fecaca;">' + syCanonicalEsc(item.title) + '</strong><span style="color:' + levelColor + ';font-weight:900;font-size:0.74rem;">' + syCanonicalEsc(item.level) + '</span></div>'
+                    + '<p style="margin:0 0 6px;color:#fee2e2;">' + syCanonicalEsc(item.body) + '</p>'
+                    + '<p style="margin:0;color:#bfdbfe;"><strong>회복</strong> · ' + syCanonicalEsc(item.remedy) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:9px;font-size:0.78rem;line-height:1.66;color:#fee2e2;">
+                ${enhanced.relationshipRiskRoutines.recoveryRoutine.map(function(item) {
+                  return '<article style="background:rgba(2,6,23,0.45);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:9px;">'
+                    + '<strong style="color:#fecaca;">' + syCanonicalEsc(item.step) + '</strong>'
+                    + '<div style="color:#fca5a5;font-size:0.74rem;margin:4px 0 6px;">' + syCanonicalEsc(item.time) + '</div>'
+                    + '<p style="margin:0 0 6px;color:#fee2e2;">' + syCanonicalEsc(item.action) + '</p>'
+                    + '<p style="margin:0;color:#ddd6fe;">“' + syCanonicalEsc(item.line) + '”</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:7px;font-size:0.8rem;line-height:1.7;color:#fee2e2;">
+                ${enhanced.relationshipRiskRoutines.taboos.map(function(item) {
+                  return '<article style="background:rgba(2,6,23,0.42);border:1px solid rgba(252,165,165,0.18);border-radius:10px;padding:9px;">'
+                    + '<strong style="color:#fecaca;">금기 · ' + syCanonicalEsc(item.title) + '</strong>'
+                    + '<p style="margin:5px 0;color:#fee2e2;">' + syCanonicalEsc(item.why) + '</p>'
+                    + '<p style="margin:0;color:#bfdbfe;">대신 이렇게: ' + syCanonicalEsc(item.replace) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+            </section>`;
+
+          const relationshipCategoriesSection = `
+            <section data-sy-compat-categories="20260605-sukuyo-categories" style="background:linear-gradient(145deg,rgba(20,83,45,0.45),rgba(15,23,42,0.66));border:1px solid rgba(134,239,172,0.34);border-radius:16px;padding:15px 15px 12px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#86efac;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 10 · 관계 카테고리 확장</div>
+              <div style="font-size:0.82rem;color:#dcfce7;line-height:1.78;background:rgba(2,6,23,0.42);border:1px solid rgba(134,239,172,0.22);border-radius:10px;padding:9px 10px;margin-bottom:9px;">연애, 결혼, 재회, 비밀연애, 장거리, 협업 흐름을 따로 읽어 관계가 어느 장면에서 가장 잘 열리고 어느 장면에서 조율이 필요한지 봅니다.</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:0.8rem;line-height:1.72;color:#dcfce7;">
+                ${enhanced.relationshipCategoryReadings.map(function(item) {
+                  var scoreColor = item.score >= 82 ? '#86efac' : (item.score >= 68 ? '#fde68a' : (item.score >= 52 ? '#bfdbfe' : '#fecaca'));
+                  return '<article style="background:rgba(2,6,23,0.46);border:1px solid rgba(134,239,172,0.22);border-radius:10px;padding:10px;">'
+                    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:6px;"><strong style="color:#bbf7d0;">' + syCanonicalEsc(item.title) + '</strong><span style="color:' + scoreColor + ';font-weight:900;">' + syCanonicalEsc(item.band) + '</span></div>'
+                    + '<div style="margin-bottom:7px;">' + syBar(item.score) + '</div>'
+                    + '<p style="margin:0 0 6px;color:#dcfce7;">' + syCanonicalEsc(item.body) + '</p>'
+                    + '<p style="margin:0 0 5px;color:#bfdbfe;"><strong>열리는 법</strong> · ' + syCanonicalEsc(item.action) + '</p>'
+                    + '<p style="margin:0;color:#fed7aa;"><strong>주의</strong> · ' + syCanonicalEsc(item.caution) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+            </section>`;
+
+          const expertFinalSection = `
+            <section data-sy-compat-final="20260605-sukuyo-final" style="background:linear-gradient(145deg,rgba(88,28,135,0.44),rgba(15,23,42,0.7));border:1px solid rgba(250,204,21,0.34);border-radius:16px;padding:15px 15px 12px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#fde68a;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 11 · 전문가 종합판정</div>
+              <div style="display:grid;grid-template-columns:minmax(0,0.9fr) minmax(0,1.4fr);gap:10px;margin-bottom:9px;">
+                <article style="background:rgba(2,6,23,0.46);border:1px solid rgba(250,204,21,0.24);border-radius:12px;padding:11px;">
+                  <div style="font-size:0.78rem;color:#fde68a;font-weight:900;margin-bottom:5px;">${syCanonicalEsc(enhanced.expertFinal.title)}</div>
+                  <div style="font-size:1.35rem;color:#fef3c7;font-weight:900;line-height:1.2;margin-bottom:7px;">${syCanonicalEsc(enhanced.expertFinal.level)}</div>
+                  ${syBar(enhanced.expertFinal.score)}
+                  <div style="font-size:0.78rem;color:#e9d5ff;line-height:1.65;margin-top:7px;">${syCanonicalEsc(enhanced.expertFinal.riskNote)}</div>
+                </article>
+                <article style="background:rgba(2,6,23,0.42);border:1px solid rgba(216,180,254,0.22);border-radius:12px;padding:11px;font-size:0.82rem;color:#f5f3ff;line-height:1.78;">
+                  <p style="margin:0 0 7px;">${syCanonicalEsc(enhanced.expertFinal.summary)}</p>
+                  <p style="margin:0 0 7px;color:#ddd6fe;">${syCanonicalEsc(enhanced.expertFinal.core)}</p>
+                  <p style="margin:0;color:#bfdbfe;">${syCanonicalEsc(enhanced.expertFinal.priority)} ${syCanonicalEsc(enhanced.expertFinal.distanceNote)}</p>
+                </article>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:9px;font-size:0.8rem;line-height:1.7;color:#fef3c7;">
+                <article style="background:rgba(2,6,23,0.42);border:1px solid rgba(134,239,172,0.2);border-radius:10px;padding:9px;"><strong style="color:#bbf7d0;">가장 잘 열리는 장면</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.expertFinal.bestCategory)}</p></article>
+                <article style="background:rgba(2,6,23,0.42);border:1px solid rgba(253,186,116,0.2);border-radius:10px;padding:9px;"><strong style="color:#fed7aa;">가장 조심할 장면</strong><p style="margin:5px 0 0;">${syCanonicalEsc(enhanced.expertFinal.weakestCategory)}</p></article>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;font-size:0.76rem;line-height:1.6;color:#f5f3ff;">
+                ${enhanced.expertFinal.sevenDays.map(function(item) {
+                  return '<article style="background:rgba(2,6,23,0.44);border:1px solid rgba(250,204,21,0.18);border-radius:10px;padding:8px;">'
+                    + '<strong style="display:block;color:#fde68a;margin-bottom:4px;">' + syCanonicalEsc(item.day) + '</strong>'
+                    + '<span style="display:block;color:#e9d5ff;font-weight:800;margin-bottom:4px;">' + syCanonicalEsc(item.title) + '</span>'
+                    + '<p style="margin:0;color:#ddd6fe;">' + syCanonicalEsc(item.body) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+            </section>`;
+
+          const yearlyRelationshipSection = `
+            <section class="sy-compat-yearly" data-sy-compat-yearly="20260605-sukuyo-yearly" data-sy-compat-yearly-moon-ui="20260606-sukuyo-yearly-timeline">
+              <div class="sy-compat-section-kicker">Section 12 · 연도별 관계 흐름</div>
+              <div class="sy-compat-yearly-head">
+                <div>
+                  <div class="sy-compat-yearly-title">${syCanonicalEsc(enhanced.yearlyRelationshipForecast.title)}</div>
+                  <p>${syCanonicalEsc(enhanced.yearlyRelationshipForecast.summary)}</p>
+                </div>
+                <div class="sy-compat-yearly-moon" aria-hidden="true"><span>☽</span><i></i><b></b></div>
+              </div>
+              <div class="sy-compat-yearly-views">
+                ${enhanced.yearlyRelationshipForecast.views.map(function(item) {
+                  return '<article>'
+                    + '<strong>' + syCanonicalEsc(item.label) + '</strong>'
+                    + '<p>' + syCanonicalEsc(item.body) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+              <div class="sy-compat-yearline">
+                ${enhanced.yearlyRelationshipForecast.years.map(function(item, idx) {
+                  var scoreColor = item.score >= 82 ? '#86efac' : (item.score >= 68 ? '#fde68a' : (item.score >= 52 ? '#bfdbfe' : '#fecaca'));
+                  var phase = ['☾','◐','●','◑'][idx % 4];
+                  return '<article class="sy-compat-year-node">'
+                    + '<div class="sy-compat-year-node-head"><strong><span>' + syCanonicalEsc(phase) + '</span>' + syCanonicalEsc(item.title) + '</strong><em style="color:' + scoreColor + ';">' + syCanonicalEsc(item.band) + '</em></div>'
+                    + '<div class="sy-compat-year-bar">' + syBar(item.score) + '</div>'
+                    + '<p>' + syCanonicalEsc(item.summary) + '</p>'
+                    + '<ul>'
+                    + '<li><b>가까워지는 시기</b>' + syCanonicalEsc(item.closeWindow) + '</li>'
+                    + '<li><b>충돌 주의 시기</b>' + syCanonicalEsc(item.cautionWindow) + '</li>'
+                    + '<li><b>활용</b>' + syCanonicalEsc(item.bestUse) + '</li>'
+                    + '<li><b>주의</b>' + syCanonicalEsc(item.caution) + '</li>'
+                    + '</ul>'
+                    + '</article>';
+                }).join('')}
+              </div>
+            </section>`;
+
           const roleSection = `
             <section style="background:rgba(30,41,59,0.52);border:1px solid rgba(147,197,253,0.3);border-radius:14px;padding:14px 14px 10px;margin-bottom:14px;">
-              <div style="font-size:0.74rem;color:#93c5fd;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 6 · 역할 분석 강화</div>
+              <div style="font-size:0.74rem;color:#93c5fd;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">Section 13 · 역할 분석 강화</div>
               <div style="font-size:0.82rem;color:#dbeafe;line-height:1.85;">나의 역할은 <strong>${enhanced.roleA}</strong>, 상대의 역할은 <strong>${enhanced.roleB}</strong>로 읽힙니다. 이는 고정된 운명이 아니라 관계 안에서 자주 맡게 되는 반응 방식에 가깝습니다. 가까워질수록 역할이 바뀌기도 하므로, “나는 지금 안정이 필요해 / 자극이 필요해”처럼 현재 상태를 말하는 편이 좋습니다.</div>
               <div style="font-size:0.8rem;color:#e2e8f0;line-height:1.8;background:rgba(2,6,23,0.45);border:1px solid rgba(148,163,184,0.24);border-radius:10px;padding:9px 10px;margin-top:8px;">내가 지치기 쉬운 지점은 역할을 혼자 오래 떠맡는 순간입니다. 상대가 불안해지는 지점은 거절당했다는 느낌이 반복될 때입니다. 감정을 단정하기보다 다음 행동을 합의하면 관계가 덜 소모됩니다.</div>
             </section>`;
@@ -9508,7 +10943,51 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-report::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 88% 4%,rgba(255,255,255,.12),transparent 18%),radial-gradient(circle at 12% 18%,rgba(125,211,252,.08),transparent 24%)}',
             '.sy-sec{margin-bottom:14px;padding:15px 16px;border-radius:14px;font-size:0.92rem;line-height:1.68;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
             '.sy-sec-title{font-weight:900;font-size:0.82rem;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;text-shadow:0 0 12px rgba(196,181,253,.2)}',
-            '@media(max-width:680px){.sy-report [style*="grid-template-columns:repeat(2"]{grid-template-columns:1fr!important}.sy-report [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}}'
+            '.sy-compat-moon-hero{display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:16px;align-items:center;background:radial-gradient(circle at 92% 8%,rgba(255,255,255,.26),transparent 18%),' + gradColor + ';padding:22px 20px 20px;position:relative;overflow:hidden}',
+            '.sy-compat-moon-hero::before{content:"";position:absolute;right:-24px;top:-32px;width:142px;height:142px;border-radius:999px;background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.78),rgba(226,232,255,.24) 44%,rgba(167,139,250,.08) 70%,transparent 73%);opacity:.76;pointer-events:none}',
+            '.sy-compat-moon-copy{position:relative;min-width:0}',
+            '.sy-compat-moon-kicker{font-size:.7rem;text-transform:uppercase;letter-spacing:2.5px;color:rgba(255,255,255,.68);margin-bottom:4px;font-weight:900}',
+            '.sy-compat-moon-title{font-size:1.34rem;font-weight:900;color:#fff;margin-bottom:4px;line-height:1.24;text-shadow:0 0 18px rgba(255,255,255,.12)}',
+            '.sy-compat-moon-sub{font-size:.82rem;color:rgba(255,255,255,.82);margin-bottom:10px}',
+            '.sy-compat-badges{display:flex;gap:8px;flex-wrap:wrap;font-size:.78rem}',
+            '.sy-compat-badges span{background:rgba(2,6,23,.28);border:1px solid rgba(255,255,255,.18);padding:4px 10px;border-radius:999px;color:#e0e7ff;line-height:1.45}',
+            '.sy-compat-orbit-stage{position:relative;min-height:148px;border-radius:20px;border:1px solid rgba(219,234,254,.24);background:radial-gradient(circle at 50% 45%,rgba(248,250,252,.16),transparent 42%),rgba(2,6,23,.22);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}',
+            '.sy-compat-orbit-stage::before{content:"";position:absolute;width:118px;height:118px;border-radius:999px;border:1px solid rgba(219,234,254,.24)}',
+            '.sy-compat-orb{position:absolute;width:54px;height:54px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fff,#f8e7b7 48%,#93c5fd);color:#0f172a;font-weight:900;box-shadow:0 0 28px rgba(219,234,254,.28)}',
+            '.sy-compat-orb--me{left:23px;top:34px}',
+            '.sy-compat-orb--partner{right:23px;bottom:30px;background:radial-gradient(circle at 35% 30%,#fff,#fbcfe8 48%,#c4b5fd)}',
+            '.sy-compat-bridge{position:absolute;width:82px;height:1px;background:linear-gradient(90deg,transparent,rgba(248,250,252,.7),transparent);transform:rotate(-23deg)}',
+            '.sy-compat-orbit-label{position:absolute;bottom:12px;left:12px;right:12px;text-align:center;color:#f8e7b7;font-size:.74rem;font-weight:900}',
+            '.sy-compat-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:16px}',
+            '.sy-compat-metric-card{background:radial-gradient(circle at 82% 8%,rgba(248,250,252,.12),transparent 30%),rgba(15,23,42,.62);border-radius:14px;padding:13px 10px;text-align:center;border:1px solid rgba(219,234,254,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
+            '.sy-compat-metric-label{font-size:.68rem;color:#dbeafe;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:900}',
+            '.sy-compat-metric-value{font-size:2.16rem;font-weight:900;line-height:1}',
+            '.sy-compat-metric-sub{font-size:.7rem;color:#cbd5e1;margin-top:2px}',
+            '.sy-compat-metric-note{margin:7px 0 0;color:#e2e8f0;font-size:.72rem;line-height:1.55}',
+            '.sy-compat-indicators{margin-bottom:16px;background:rgba(15,23,42,.5);border:1px solid rgba(147,197,253,.28);border-radius:14px;padding:12px}',
+            '.sy-compat-indicators-title{font-size:.74rem;color:#93c5fd;text-transform:uppercase;font-weight:900;margin-bottom:9px}',
+            '.sy-compat-indicator-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}',
+            '.sy-compat-indicator{background:rgba(2,6,23,.45);border:1px solid rgba(147,197,253,.22);border-radius:11px;padding:9px 10px;font-size:.8rem;line-height:1.62;color:#dbeafe}',
+            '.sy-compat-indicator--full{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:10px}',
+            '.sy-compat-indicator strong{color:#f8e7b7}',
+            '.sy-compat-section-kicker{font-size:.74rem;color:#bfdbfe;letter-spacing:.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px}',
+            '.sy-compat-yearly{background:radial-gradient(circle at 89% 7%,rgba(248,250,252,.15),transparent 24%),linear-gradient(145deg,rgba(30,64,175,.38),rgba(15,23,42,.72));border:1px solid rgba(147,197,253,.34);border-radius:17px;padding:15px;margin-bottom:14px}',
+            '.sy-compat-yearly-head{display:grid;grid-template-columns:minmax(0,1fr) 116px;gap:12px;align-items:center;margin-bottom:10px}',
+            '.sy-compat-yearly-title{font-size:1rem;font-weight:900;color:#dbeafe;line-height:1.55;margin-bottom:5px}',
+            '.sy-compat-yearly-head p{margin:0;color:#dbeafe;font-size:.82rem;line-height:1.78}',
+            '.sy-compat-yearly-moon{position:relative;min-height:104px;border-radius:16px;border:1px solid rgba(219,234,254,.22);background:rgba(2,6,23,.28);display:flex;align-items:center;justify-content:center;overflow:hidden}',
+            '.sy-compat-yearly-moon span{width:52px;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#0f172a;background:radial-gradient(circle at 35% 30%,#fff,#f8e7b7 52%,#93c5fd);box-shadow:0 0 24px rgba(219,234,254,.28);font-weight:900}',
+            '.sy-compat-yearly-moon i,.sy-compat-yearly-moon b{position:absolute;width:6px;height:6px;border-radius:999px;background:#f8fafc;box-shadow:0 0 10px rgba(219,234,254,.75)}',
+            '.sy-compat-yearly-moon i{left:18px;top:24px}.sy-compat-yearly-moon b{right:20px;bottom:25px}',
+            '.sy-compat-yearly-views{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px;font-size:.78rem;line-height:1.66;color:#dbeafe}',
+            '.sy-compat-yearly-views article{background:rgba(2,6,23,.44);border:1px solid rgba(147,197,253,.2);border-radius:11px;padding:9px}',
+            '.sy-compat-yearly-views strong{display:block;color:#bfdbfe;margin-bottom:5px}.sy-compat-yearly-views p{margin:0;color:#dbeafe}',
+            '.sy-compat-yearline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;font-size:.8rem;line-height:1.72;color:#dbeafe}',
+            '.sy-compat-year-node{position:relative;overflow:hidden;background:rgba(2,6,23,.46);border:1px solid rgba(147,197,253,.22);border-radius:13px;padding:10px}',
+            '.sy-compat-year-node::before{content:"";position:absolute;right:-20px;top:-22px;width:70px;height:70px;border-radius:999px;background:radial-gradient(circle at 35% 30%,rgba(248,250,252,.58),rgba(147,197,253,.16) 48%,transparent 70%);opacity:.42}',
+            '.sy-compat-year-node-head{position:relative;display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:6px}.sy-compat-year-node-head strong{display:flex;align-items:center;gap:7px;color:#bfdbfe}.sy-compat-year-node-head span{width:26px;height:26px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fff,#f8e7b7 50%,#93c5fd);color:#0f172a}.sy-compat-year-node-head em{font-style:normal;font-weight:900;white-space:nowrap}',
+            '.sy-compat-year-bar{position:relative;margin-bottom:7px}.sy-compat-year-node p{position:relative;margin:0 0 7px;color:#dbeafe}.sy-compat-year-node ul{position:relative;list-style:none;margin:0;padding:0;display:grid;gap:4px}.sy-compat-year-node li{color:#e0e7ff}.sy-compat-year-node li b{color:#f8e7b7;margin-right:6px}',
+            '@media(max-width:760px){.sy-compat-moon-hero,.sy-compat-yearly-head{grid-template-columns:1fr}.sy-compat-orbit-stage{min-height:132px}.sy-compat-metric-grid,.sy-compat-yearly-views,.sy-compat-yearline{grid-template-columns:1fr}.sy-compat-indicator-grid{grid-template-columns:1fr}.sy-compat-indicator--full{grid-column:auto;display:block}.sy-report [style*="grid-template-columns:repeat(2"]{grid-template-columns:1fr!important}.sy-report [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}}'
           ].join('');
 
           // ── 안·괴 포지션 배지 ──
@@ -9535,27 +11014,39 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             </div>`).join('');
 
           rd.innerHTML = `
-          <div class="sy-report" data-sy-compat-moonlight="20260603" style="background:radial-gradient(circle at 88% 0%,rgba(255,255,255,0.12),transparent 24%),radial-gradient(circle at 12% 28%,rgba(125,211,252,0.08),transparent 30%),linear-gradient(155deg,rgba(6,9,24,0.98),rgba(17,20,48,0.96) 54%,rgba(30,23,62,0.94)); border-radius:20px; overflow:hidden; border:1px solid rgba(196,181,253,0.38); box-shadow:0 22px 60px rgba(0,0,0,0.64),0 0 36px rgba(147,197,253,0.12); font-family:'Gowun Dodum',sans-serif;">
+          <div class="sy-report" data-sy-compat-moonlight="20260603" data-sy-compat-moon-ui="20260606-sukuyo-compat-moon" style="background:radial-gradient(circle at 88% 0%,rgba(255,255,255,0.12),transparent 24%),radial-gradient(circle at 12% 28%,rgba(125,211,252,0.08),transparent 30%),linear-gradient(155deg,rgba(6,9,24,0.98),rgba(17,20,48,0.96) 54%,rgba(30,23,62,0.94)); border-radius:20px; overflow:hidden; border:1px solid rgba(196,181,253,0.38); box-shadow:0 22px 60px rgba(0,0,0,0.64),0 0 36px rgba(147,197,253,0.12); font-family:'Gowun Dodum',sans-serif;">
 
             <!-- ══ HEADER ══ -->
-            <div style="background:radial-gradient(circle at 92% 8%,rgba(255,255,255,0.3),transparent 18%),${gradColor}; padding:22px 20px 20px; position:relative; overflow:hidden;">
-              <div style="position:absolute; right:-22px; top:-30px; width:130px; height:130px; border-radius:50%; background:radial-gradient(circle at 34% 30%,rgba(255,255,255,0.68),rgba(226,232,255,0.22) 42%,rgba(167,139,250,0.08) 70%,transparent 72%); opacity:0.72; pointer-events:none;"></div>
-              <div style="position:absolute; right:10px; top:10px; font-size:5.8rem; opacity:0.12; line-height:1; pointer-events:none;">${rel.icon}</div>
-              <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:2.5px; color:rgba(255,255,255,0.65); margin-bottom:4px;">27宿 인연 深層 리포트</div>
-              <div style="font-size:1.3rem; font-weight:900; color:#fff; margin-bottom:3px; line-height:1.2;">${rel.typeLabel || rel.type}</div>
-              <div style="font-size:0.82rem; color:rgba(255,255,255,0.8); margin-bottom:10px;">인연의 낙인: <strong>${rel.stamp || rel.type}</strong></div>
-              <div style="display:flex; gap:8px; flex-wrap:wrap; font-size:0.78rem;">
-                <span style="background:rgba(0,0,0,0.25); padding:3px 10px; border-radius:20px; color:rgba(255,255,255,0.85);">상대방 별: <strong>${tData.mansion}</strong></span>
-                <span style="background:rgba(59,130,246,0.2); border:1px solid rgba(59,130,246,0.45); padding:3px 10px; border-radius:20px; color:#bfdbfe;">상대 성별: ${partnerGenderLabel}</span>
-                <span style="background:rgba(251,191,36,0.2); border:1px solid rgba(251,191,36,0.45); padding:3px 10px; border-radius:20px; color:#fde68a;">${relationStory.distanceBadge}</span>
-                <span style="background:rgba(196,181,253,0.2); border:1px solid rgba(196,181,253,0.45); padding:3px 10px; border-radius:20px; color:#e9d5ff;">${relationStory.relationBadge}</span>
-                ${relationVariant ? '<span style="background:rgba(147,197,253,0.18); border:1px solid rgba(147,197,253,0.45); padding:3px 10px; border-radius:20px; color:#dbeafe;">' + relationVariant + '</span>' : ''}
+            <div class="sy-compat-moon-hero">
+              <div class="sy-compat-moon-copy">
+                <div class="sy-compat-moon-kicker">27宿 인연 深層 리포트</div>
+                <div class="sy-compat-moon-title">${rel.typeLabel || rel.type}</div>
+                <div class="sy-compat-moon-sub">인연의 낙인: <strong>${rel.stamp || rel.type}</strong></div>
+                <div class="sy-compat-badges">
+                  <span>상대방 별: <strong>${tData.mansion}</strong></span>
+                  <span>상대 성별: ${partnerGenderLabel}</span>
+                  <span>${relationStory.distanceBadge}</span>
+                  <span>${relationStory.relationBadge}</span>
+                  ${relationVariant ? '<span>' + relationVariant + '</span>' : ''}
+                </div>
+              </div>
+              <div class="sy-compat-orbit-stage" aria-hidden="true">
+                <div class="sy-compat-bridge"></div>
+                <div class="sy-compat-orb sy-compat-orb--me">${syCanonicalEsc(myMansionName || '宿')}</div>
+                <div class="sy-compat-orb sy-compat-orb--partner">${syCanonicalEsc(tData.mansion || '宿')}</div>
+                <div class="sy-compat-orbit-label">${syCanonicalEsc(relationStory.distanceBadge)} · ${syCanonicalEsc(relationStory.relationBadge)}</div>
               </div>
             </div>
 
             <div style="padding:20px 16px;">
 
               ${enhancedSummarySection}
+
+              ${relationStructureSection}
+
+              ${purposeCompatibilitySection}
+
+              ${distanceDeepSection}
 
               <section class="mb-4 rounded-2xl border border-violet-300/30 bg-slate-900/45 p-4" style="background:rgba(15,23,42,0.45);border:1px solid rgba(196,181,253,0.3);border-radius:14px;padding:14px 14px 12px;margin-bottom:16px;">
                 <div class="text-xs font-extrabold tracking-[0.15em] uppercase mb-2" style="color:#c4b5fd;letter-spacing:1.2px;font-size:0.75rem;font-weight:800;margin-bottom:8px;">관계 해석 로드맵</div>
@@ -9568,47 +11059,47 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               ${enhancedFlowSection}
 
               <!-- ── 3종 수치 대시보드 ── -->
-              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
-                <div style="background:rgba(15,23,42,0.62); border-radius:12px; padding:12px 9px; text-align:center; border:1px solid rgba(196,181,253,0.22);">
-                  <div style="font-size:0.68rem; color:#dbeafe; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;font-weight:800;">카르마 점수</div>
-                  <div style="font-size:2.2rem; font-weight:900; color:${scoreColor}; line-height:1;">${rel.score}</div>
-                  <div style="font-size:0.7rem; color:#cbd5e1; margin-top:2px;">/ 100</div>
-                  <p style="margin:7px 0 0;color:#e2e8f0;font-size:0.72rem;line-height:1.55;">${syMetricNote('karma', rel.score)}</p>
+              <div class="sy-compat-metric-grid" data-sy-compat-indicators-ui="20260606-sukuyo-compat-indicators">
+                <div class="sy-compat-metric-card">
+                  <div class="sy-compat-metric-label">카르마 점수</div>
+                  <div class="sy-compat-metric-value" style="color:${scoreColor};">${rel.score}</div>
+                  <div class="sy-compat-metric-sub">/ 100</div>
+                  <p class="sy-compat-metric-note">${syMetricNote('karma', rel.score)}</p>
                 </div>
-                <div style="background:rgba(15,23,42,0.62); border-radius:12px; padding:12px 9px; text-align:center; border:1px solid rgba(147,197,253,0.22);">
-                  <div style="font-size:0.68rem; color:#dbeafe; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;font-weight:800;">인연 온도</div>
-                  <div style="font-size:2.2rem; font-weight:900; color:${tempInfo.color}; line-height:1;">${rel.temperature}</div>
-                  <div style="font-size:0.7rem; color:#cbd5e1; margin-top:2px;">° / 100</div>
-                  <p style="margin:7px 0 0;color:#e2e8f0;font-size:0.72rem;line-height:1.55;">${syMetricNote('temperature', rel.temperature)}</p>
+                <div class="sy-compat-metric-card">
+                  <div class="sy-compat-metric-label">인연 온도</div>
+                  <div class="sy-compat-metric-value" style="color:${tempInfo.color};">${rel.temperature}</div>
+                  <div class="sy-compat-metric-sub">° / 100</div>
+                  <p class="sy-compat-metric-note">${syMetricNote('temperature', rel.temperature)}</p>
                 </div>
-                <div style="background:rgba(15,23,42,0.62); border-radius:12px; padding:12px 9px; text-align:center; border:1px solid rgba(244,114,182,0.22); animation: glowPulse 3s infinite;">
-                  <div style="font-size:0.68rem; color:#dbeafe; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px;font-weight:800;">자력(磁力)</div>
-                  <div style="font-size:2.2rem; font-weight:900; color:${th.color1}; line-height:1;">${mgVal}</div>
-                  <div style="font-size:0.7rem; color:#cbd5e1; margin-top:2px;">Magnetism</div>
-                  <p style="margin:7px 0 0;color:#e2e8f0;font-size:0.72rem;line-height:1.55;">${syMetricNote('magnetism', mgVal)}</p>
+                <div class="sy-compat-metric-card" style="animation:glowPulse 3s infinite;">
+                  <div class="sy-compat-metric-label">자력(磁力)</div>
+                  <div class="sy-compat-metric-value" style="color:${th.color1};">${mgVal}</div>
+                  <div class="sy-compat-metric-sub">Magnetism</div>
+                  <p class="sy-compat-metric-note">${syMetricNote('magnetism', mgVal)}</p>
                 </div>
               </div>
 
-              <div style="margin-bottom:16px;background:rgba(15,23,42,0.48);border:1px solid rgba(147,197,253,0.28);border-radius:12px;padding:11px 12px;">
-                <div style="font-size:0.74rem;color:#93c5fd;letter-spacing:0.08em;text-transform:uppercase;font-weight:800;margin-bottom:8px;">정밀 궁합 확장 지표</div>
-                <div style="display:grid;grid-template-columns:1fr;gap:8px;">
-                  <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;background:rgba(2,6,23,0.45);border:1px solid rgba(52,211,153,0.25);border-radius:10px;padding:8px 9px;">
-                    <span style="font-size:0.79rem;color:#dbeafe;">궁합 지수</span>
+              <div class="sy-compat-indicators">
+                <div class="sy-compat-indicators-title">정밀 궁합 확장 지표</div>
+                <div class="sy-compat-indicator-grid">
+                  <div class="sy-compat-indicator sy-compat-indicator--full">
+                    <span>궁합 지수</span>
                     <strong style="font-size:1.05rem;color:${compatIndexColor};">${compatibilityIndex}</strong>
                   </div>
-                  <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(52,211,153,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#d1fae5;line-height:1.6;">
+                  <div class="sy-compat-indicator" style="color:#d1fae5;">
                     ${compatibilityIndexNote}
                   </div>
-                  <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(125,211,252,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#dbeafe;line-height:1.6;">
+                  <div class="sy-compat-indicator">
                     📏 거리 정밀값: A→B ${distanceMetrics.forwardDistance} / B→A ${distanceMetrics.reverseDistance} / 최단 ${distanceMetrics.shortestDistance} · ${distanceMetrics.tensionBand || ''} ${distanceMetrics.resonanceCode ? '(' + distanceMetrics.resonanceCode + ')' : ''}
                   </div>
-                  <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(196,181,253,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e9d5ff;line-height:1.6;">
+                  <div class="sy-compat-indicator" style="color:#e9d5ff;">
                     🧭 역할 액션: ${roleGuide.meAction || '나의 역할 문장을 먼저 합의하세요.'}<br>${roleGuide.otherAction || '상대의 역할 반응을 확인하세요.'}
                   </div>
-                  <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(251,191,36,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#fde68a;line-height:1.6;">
+                  <div class="sy-compat-indicator" style="color:#fde68a;">
                     🧪 오행 합: ${elementHarmony.summary || '오행 조합 데이터를 계산 중입니다.'}
                   </div>
-                  <div style="background:rgba(2,6,23,0.45);border:1px solid rgba(248,113,113,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#fecaca;line-height:1.6;">
+                  <div class="sy-compat-indicator" style="color:#fecaca;">
                     🧩 강점-그림자 보완: ${strengthShadowMap.complementSummary || '장점과 그림자 보완 포인트를 설정해 보세요.'}
                   </div>
                 </div>
@@ -9626,6 +11117,20 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               </div>
 
               ${chemistrySection}
+
+              ${emotionalIndicatorSection}
+
+              ${relationshipTimingSection}
+
+              ${relationshipPrescriptionSection}
+
+              ${relationshipRiskSection}
+
+              ${relationshipCategoriesSection}
+
+              ${expertFinalSection}
+
+              ${yearlyRelationshipSection}
 
               ${roleSection}
 

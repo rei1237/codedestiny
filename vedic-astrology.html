@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <title>베다 점성술 — 별들의 지도</title>
+<script src="/js/destiny-profile.js?v=build-dc8b1dedfe26"></script>
 <link id="gfont" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=optional" onerror="this.remove()">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" onerror="this.remove()">
 <style>
@@ -4203,6 +4204,22 @@ function renderResult(){
     ? (CHKINFO[report.chakra.blocked]?CHKINFO[report.chakra.blocked].kr:report.chakra.blocked)+' 정체 + '+(report.remedies&&report.remedies.dosha?report.remedies.dosha.type:'도샤 밸런스')+' 점검'
     : ((report.remedies&&report.remedies.dosha?report.remedies.dosha.type:'도샤 밸런스')+' 중심 관리');
   const vedicRoutineText=(insights&&insights.remedyDay?insights.remedyDay:'주간 루틴')+' · '+(insights&&insights.remedyItem?insights.remedyItem:'정화 루틴')+' · 만트라 '+(insights&&insights.remedyMantra?insights.remedyMantra:'옴 샨티');
+  const vedicAk=(report&&report.ext&&report.ext.atmakaraka)||'Sun';
+  const vedicAmk=(report&&report.ext&&report.ext.amatyakaraka)||'Mercury';
+  const vedicDk=(report&&report.ext&&report.ext.darakaraka)||'Venus';
+  const vedicDignityText=allPlanets
+    .filter(function(p){return rasi.planets[p]&&['Exalted','Own','Debilitated'].indexOf(rasi.planets[p].dignity)>=0;})
+    .slice(0,4)
+    .map(function(p){return PKR[p]+' '+SIGNKR[rasi.planets[p].sign]+' '+({Exalted:'고양',Own:'자기 자리',Debilitated:'쇠약'}[rasi.planets[p].dignity]||rasi.planets[p].dignity);})
+    .join(' · ')||'강약 신호는 균형형입니다';
+  const vedicDrishtiText=['Mars','Jupiter','Saturn']
+    .filter(function(p){return rasi.planets[p];})
+    .map(function(p){
+      const h=planetHouse(rasi,p);
+      const targets=(p==='Mars'?[4,7,8]:(p==='Jupiter'?[5,7,9]:(p==='Saturn'?[3,7,10]:[7]))).map(function(o){return ((h+o-2)%12)+1+'H';}).join('/');
+      return PKR[p]+' '+h+'H→'+targets;
+    })
+    .join(' · ');
   const vedicCanonicalCardsHtml=`
   <div class="reveal reveal-delay-2" style="margin:12px 0 16px">
     <div class="section-head section-head-kr" style="margin-bottom:10px">🪷 기본 운세 확장 카테고리</div>
@@ -4234,6 +4251,28 @@ function renderResult(){
       </div>
     </div>
     <div style="margin-top:8px;font-size:11px;color:var(--text3);line-height:1.65">요가 포인트: ${yogaFocusText}</div>
+    <div class="summary-grid" style="margin-top:10px">
+      <div class="sum-card" style="border-color:rgba(212,175,55,0.25)">
+        <div class="sum-card-label">나크샤트라 파다</div>
+        <div class="sum-card-val" style="color:var(--gold)">${nak.name} ${nak.pada}파다</div>
+        <div class="sum-card-sub">${(nkData.tr||[]).slice(0,3).join(' · ')||'달의 본능'} / 그림자 ${(nkData.sh||[]).slice(0,2).join(' · ')||'감정 과열'}</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(6,182,212,0.25)">
+        <div class="sum-card-label">카라카 축</div>
+        <div class="sum-card-val" style="color:var(--cyan)">${PKR[vedicAk]} · ${PKR[vedicAmk]} · ${PKR[vedicDk]}</div>
+        <div class="sum-card-sub">영혼 · 직업 재능 · 관계 카르마</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(167,139,250,0.25)">
+        <div class="sum-card-label">드리슈티 압력</div>
+        <div class="sum-card-val" style="color:var(--purple2)">화성·목성·토성</div>
+        <div class="sum-card-sub">${vedicDrishtiText}</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(34,197,94,0.25)">
+        <div class="sum-card-label">행성 강약</div>
+        <div class="sum-card-val" style="color:#22C55E">Dignity</div>
+        <div class="sum-card-sub">${vedicDignityText}</div>
+      </div>
+    </div>
   </div>`;
 
   // ── 탭 1: 종합 (Overview) ─────────────────────────────
@@ -5150,29 +5189,68 @@ async function _vedicCompatCoinGate(cost, reason){
   cost=VEDIC_COMPAT_COST;
   reason=String(reason||'베다점 궁합 계산');
 
+  var requestId='vedic:compat:'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9);
+  function syncVedicBilling(payload, txId){
+    var source=payload&&typeof payload==='object'?payload:{};
+    var data=source.data&&typeof source.data==='object'?source.data:{};
+    var consume=source.consume&&typeof source.consume==='object'?source.consume:(data.consume&&typeof data.consume==='object'?data.consume:{});
+    var nb=Number(source.balance ?? data.balance ?? (source.user&&source.user.points) ?? (data.user&&data.user.points));
+    if(Number.isFinite(nb)&&nb>=0){
+      try{
+        var _u3=JSON.parse(localStorage.getItem('fortune_auth_user')||'null')||{};
+        _u3.points=nb;
+        localStorage.setItem('fortune_auth_user',JSON.stringify(_u3));
+      }catch(_){}
+      if(typeof window.__cdSetGoldenBalance==='function')window.__cdSetGoldenBalance(nb);
+    }
+    return String(txId||source.transactionId||source.paymentId||source.purchaseId||consume.transactionId||consume._id||requestId);
+  }
+
+  if(typeof window._cdCoinGatePerUse==='function'){
+    if(_vedicCompatChargeInFlight){
+      window.alert('결제 요청 처리 중입니다. 잠시 후 다시 시도해 주세요.');
+      return false;
+    }
+    _vedicCompatChargeInFlight=true;
+    _vedicSetPaymentPending(true,'베다 궁합 결제 권한을 확인하는 중입니다...');
+    var granted=false;
+    try{
+      var gateResult=window._cdCoinGatePerUse(cost,reason,function(transactionId,payload){
+        granted=true;
+        syncVedicBilling(payload,transactionId);
+      },function(){granted=false;},{
+        featureKey:'vedic-compatibility-per-use',
+        serviceKey:'vedic-compatibility',
+        action:'calculateVedicCompatibility',
+        forceDeduct:true,
+        requestId:requestId
+      });
+      if(gateResult&&typeof gateResult.then==='function')gateResult=await gateResult;
+      if(!granted&&gateResult&&typeof gateResult==='object'){
+        var payload=gateResult.payload&&typeof gateResult.payload==='object'?gateResult.payload:gateResult;
+        var status=String(gateResult.status||payload.status||'').toLowerCase();
+        if(status==='granted'||status==='paid'||status==='success'||payload.accessGrant||payload.premiumAccessToken||payload.consume){
+          granted=true;
+          syncVedicBilling(payload,gateResult.transactionId);
+        }
+      }
+      return granted;
+    }catch(e){
+      console.error('[vedic compat coin-gate]',e);
+      window.alert('결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      return false;
+    }finally{
+      _vedicCompatChargeInFlight=false;
+      _vedicSetPaymentPending(false);
+    }
+  }
+
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
   if (!token) {
     if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
       window.location.href = '/login?next=' + encodeURIComponent(location.pathname + location.search);
     }
-    return false;
-  }
-
-  var balance = 0;
-  try {
-    var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
-    balance = Number(_u2 && _u2.points) || 0;
-  } catch(_) {}
-
-  if (balance < cost) {
-    if (window.confirm('🪙 ' + reason + '\n\n이 기능은 이용할 때마다 ' + cost + '코인이 필요합니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n코인 충전 페이지로 이동하시겠습니까?')) {
-      window.location.href = '/points';
-    }
-    return false;
-  }
-
-  if (!window.confirm('🪙 ' + reason + '\n\n이용할 때마다 ' + cost + '코인이 차감됩니다.\n현재 보유: ' + Number(balance).toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) {
     return false;
   }
 
@@ -5184,24 +5262,19 @@ async function _vedicCompatCoinGate(cost, reason){
   _vedicSetPaymentPending(true, '베다 궁합 결제를 확인하는 중입니다...');
 
   try {
-    var resp = await fetch('/api/fortune/pig-coin/consume', {
+    var resp = await fetch('/api/billing/coin-gate', {
       method: 'POST',
+      credentials:'include',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ cost: cost, reason: reason, featureKey: 'vedic-compatibility-per-use', forceDeduct: true, requestId: 'vedic:compat:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9) })
+      body: JSON.stringify({ cost: cost, coinPrice: cost, reason: reason, featureKey: 'vedic-compatibility-per-use', serviceKey:'vedic-compatibility', action:'calculateVedicCompatibility', paymentMode:'COIN', forceDeduct: true, requestId: requestId })
     });
-    var data = await resp.json();
+    var data = await resp.json().catch(function(){return {};});
     if (!resp.ok) {
-      window.alert((data && data.message) || '코인 차감에 실패했습니다. 다시 시도해 주세요.');
-      if (resp.status === 402 || resp.status === 403) window.location.href = '/points';
+      window.alert((data && data.message) || '결제를 완료하지 못했습니다. 다시 시도해 주세요.');
+      if (resp.status === 401 || resp.status === 403) window.location.href = '/login?next=' + encodeURIComponent(location.pathname + location.search);
       return false;
     }
-    var nb = (data && data.user && typeof data.user.points === 'number') ? data.user.points : Math.max(0, balance - cost);
-    try {
-      var _u3 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
-      _u3.points = nb;
-      localStorage.setItem('fortune_auth_user', JSON.stringify(_u3));
-    } catch(_) {}
-    if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nb);
+    syncVedicBilling(data,'');
     return true;
   } catch(e) {
     console.error('[vedic compat coin-gate]', e);

@@ -57,18 +57,21 @@ const LOVE_SECRET_CANONICAL_SOLO_CHAPTERS = Object.freeze([
 ]);
 
 const LOVE_SECRET_CANONICAL_COMPAT_CHAPTERS = Object.freeze([
-  { title: "두 사람의 궁합 총론", subtitle: "일간·일지·월지로 보는 관계의 기본 결" },
-  { title: "나의 사랑 방식", subtitle: "내가 관계에서 원하는 것과 방어하는 것" },
-  { title: "상대의 사랑 방식", subtitle: "상대가 관계에서 드러내는 애정과 거리감" },
-  { title: "끌림과 배우자성", subtitle: "서로를 당기는 기운과 오래 남는 매력" },
-  { title: "감정 표현 궁합", subtitle: "말, 침묵, 서운함이 엇갈리는 지점" },
-  { title: "갈등과 회복력", subtitle: "충돌의 원인과 다시 가까워지는 방식" },
-  { title: "생활 리듬과 역할", subtitle: "일상, 책임, 현실 감각의 조율" },
-  { title: "친밀감과 속궁합", subtitle: "조후와 오행 균형으로 읽는 정서적 체온" },
-  { title: "현실 조건과 결혼 가능성", subtitle: "가족, 돈, 일, 약속을 함께 감당하는 힘" },
-  { title: "이별 위험과 재회 조건", subtitle: "멀어지는 신호와 관계를 살리는 태도" },
-  { title: "앞으로의 연애운", subtitle: "대운·세운 흐름 속 두 사람의 전환점" },
-  { title: "최종 궁합 비책", subtitle: "관계를 오래 지키는 선택과 실천 조언" },
+  { title: "두 사람의 사랑 구조 총론", subtitle: "궁합의 핵심 결을 한눈에 정리" },
+  { title: "나의 연애 성향 요약", subtitle: "관계를 읽는 나의 기본 렌즈" },
+  { title: "상대의 연애 성향 요약", subtitle: "상대를 이해하는 핵심 포인트" },
+  { title: "일간 궁합과 기본 기질", subtitle: "두 사람 기질의 상호작용" },
+  { title: "일지 궁합과 관계의 뿌리", subtitle: "생활 밀착 영역의 궁합 진단" },
+  { title: "배우자성으로 보는 사랑의 기대치", subtitle: "서로가 관계에서 바라는 기준" },
+  { title: "오행 균형으로 보는 감정 궁합", subtitle: "감정 온도와 안정감의 균형" },
+  { title: "조후로 보는 속궁합과 친밀감", subtitle: "정서적 밀착과 몸의 편안함" },
+  { title: "대화와 표현 궁합", subtitle: "말의 결이 맞는 지점과 엇갈림" },
+  { title: "갈등과 화해 패턴", subtitle: "충돌의 구조와 회복의 방식" },
+  { title: "이별과 재회 가능성", subtitle: "관계 지속의 조건과 한계" },
+  { title: "결혼과 장기 관계 궁합", subtitle: "현실 생활로 이어질 가능성" },
+  { title: "현실 문제와 관계 유지 전략", subtitle: "돈·일·가족·생활의 실제 조율" },
+  { title: "두 사람의 운 흐름과 타이밍", subtitle: "대운·세운으로 보는 전환점" },
+  { title: "두 사람을 위한 최종 사랑 전략", subtitle: "관계를 이어가거나 정리할 기준" },
 ]);
 
 const LOVE_SECRET_CANONICAL_MODE_CONFIG = Object.freeze({
@@ -84,10 +87,10 @@ const LOVE_SECRET_CANONICAL_MODE_CONFIG = Object.freeze({
   couple: Object.freeze({
     mode: "couple",
     title: "사주 궁합 비책",
-    totalChapters: 12,
-    minTotalChars: 43000,
-    chapterMinDefault: 3200,
-    chapterMinByIndex: loveSecretChapterMins(12, 3200),
+    totalChapters: 15,
+    minTotalChars: 54000,
+    chapterMinDefault: 3500,
+    chapterMinByIndex: loveSecretChapterMins(15, 3400),
     chapters: LOVE_SECRET_CANONICAL_COMPAT_CHAPTERS,
   }),
 });
@@ -255,21 +258,158 @@ const SOLO_LOVE_CHAPTER_SPECS = Object.freeze([
   }),
 ]);
 
+const SOLO_LOVE_CHAPTER_QUALITY_GUIDES = Object.freeze({
+  I: Object.freeze({
+    readerQuestion: "나는 사랑에서 어떤 사람으로 보이고, 무엇 때문에 사랑받을 수 있을까?",
+    emotionalHook: "자기 이해와 매력 확신",
+    mustAnswer: Object.freeze(["내 사랑의 원형", "상대에게 비치는 첫 분위기", "반복되는 선택의 이유", "사랑에서 지켜야 할 가치"]),
+    premiumPromise: "독자가 스스로를 더 다정하고 품격 있게 바라보게 만드는 첫 장으로 씁니다.",
+  }),
+  II: Object.freeze({
+    readerQuestion: "나는 왜 특정한 사람에게 흔들리고, 누가 나에게 진짜 좋은 끌림일까?",
+    emotionalHook: "설렘의 이유와 위험한 끌림의 구분",
+    mustAnswer: Object.freeze(["끌리는 오행과 십성", "상대가 나에게 끌리는 지점", "소모적인 끌림의 신호", "건강한 설렘의 기준"]),
+    premiumPromise: "설렘을 부정하지 않으면서도 독자가 자기 편의 선택 기준을 갖게 합니다.",
+  }),
+  III: Object.freeze({
+    readerQuestion: "왜 나는 연애에서 비슷한 장면을 반복할까?",
+    emotionalHook: "반복 패턴을 자책이 아니라 이해로 바꾸는 안도감",
+    mustAnswer: Object.freeze(["시작 방식", "깊어질 때의 반응", "권태와 거리감", "반복해서 만나는 상대 유형"]),
+    premiumPromise: "독자가 관계의 반복을 운명처럼 단정하지 않고, 바꿀 수 있는 습관으로 정리하게 합니다.",
+  }),
+  IV: Object.freeze({
+    readerQuestion: "내 말과 표현은 사랑을 키울까, 오해를 만들까?",
+    emotionalHook: "말의 온도와 사랑받는 표현 방식",
+    mustAnswer: Object.freeze(["감정 표현 방식", "연락과 대화 리듬", "오해받기 쉬운 말투", "화해에 유리한 표현"]),
+    premiumPromise: "독자가 바로 쓸 수 있는 부드러운 문장과 관계 회복 대화법을 줍니다.",
+  }),
+  V: Object.freeze({
+    readerQuestion: "나는 왜 사랑할수록 불안해지고 확인받고 싶어질까?",
+    emotionalHook: "불안을 숨기지 않고 안정감으로 돌리는 위로",
+    mustAnswer: Object.freeze(["불안이 올라오는 조건", "집착과 회피 패턴", "확인 욕구", "건강한 애착 루틴"]),
+    premiumPromise: "독자가 불안을 부끄러운 약점이 아니라 사랑을 안전하게 배우는 신호로 해석하게 합니다.",
+  }),
+  VI: Object.freeze({
+    readerQuestion: "나는 어떤 사람과 오래 가고, 결혼을 현실로 만들 수 있을까?",
+    emotionalHook: "사랑이 생활로 이어지는 현실적 안정감",
+    mustAnswer: Object.freeze(["배우자성의 강약", "장기 관계 조건", "역할 분담 성향", "결혼 전 확인할 가치관"]),
+    premiumPromise: "독자가 결혼을 단정하지 않고 오래 갈 관계의 품격 있는 기준을 세우게 합니다.",
+  }),
+  VII: Object.freeze({
+    readerQuestion: "이별과 재회 앞에서 나는 무엇을 붙잡고 무엇을 놓아야 할까?",
+    emotionalHook: "미련을 선택 기준으로 정리하는 단단함",
+    mustAnswer: Object.freeze(["이별 신호", "미련이 남는 이유", "재회를 생각할 조건", "새 사랑으로 넘어가는 정리법"]),
+    premiumPromise: "재회를 부추기지 않고 독자의 자존과 회복을 우선하는 문장으로 씁니다.",
+  }),
+  VIII: Object.freeze({
+    readerQuestion: "나는 어떤 친밀감의 속도와 온도에서 가장 편안할까?",
+    emotionalHook: "몸과 마음의 편안함을 함께 살피는 섬세함",
+    mustAnswer: Object.freeze(["조후 기반 친밀감 온도", "정서적 밀착 속도", "편안한 스킨십 리듬", "건강한 거리감"]),
+    premiumPromise: "독자가 노골적인 표현 없이 조후를 바탕으로 친밀감과 속궁합의 정서적 결을 이해하게 합니다.",
+  }),
+  IX: Object.freeze({
+    readerQuestion: "좋은 인연은 언제, 어디서, 어떤 조건으로 들어올까?",
+    emotionalHook: "기다림을 현실 행동으로 바꾸는 기대감",
+    mustAnswer: Object.freeze(["좋은 인연의 시기", "유리한 만남 경로", "피해야 할 조건", "인연운 활성화 행동"]),
+    premiumPromise: "독자가 운의 타이밍을 막연한 예언이 아니라 실행 가능한 만남 전략으로 바꾸게 합니다.",
+  }),
+  X: Object.freeze({
+    readerQuestion: "앞으로 나는 어떤 사랑을 선택해야 더 예뻐질까?",
+    emotionalHook: "90일 실천과 1년 방향을 정리하는 마지막 확신",
+    mustAnswer: Object.freeze(["핵심 매력", "관리할 약점", "이상적인 상대 조건", "90일 행동 계획", "최종 선택 기준"]),
+    premiumPromise: "독자가 PDF를 덮은 뒤 바로 실행할 수 있는 연애 마스터플랜으로 마무리합니다.",
+  }),
+});
+
+function getSoloLoveChapterQualityGuide(chapterSpec = {}) {
+  const chapterNumber = clean(chapterSpec?.number || "");
+  const guide = SOLO_LOVE_CHAPTER_QUALITY_GUIDES[chapterNumber] || {};
+  return {
+    chapterNumber,
+    chapterTitle: clean(chapterSpec?.title || ""),
+    readerQuestion: clean(guide.readerQuestion || "이 장에서 독자의 사랑 선택 기준을 분명하게 정리합니다."),
+    emotionalHook: clean(guide.emotionalHook || "자기 이해와 현실적 실천"),
+    mustAnswer: Array.isArray(guide.mustAnswer) ? guide.mustAnswer.map((item) => clean(item)).filter(Boolean) : [],
+    premiumPromise: clean(guide.premiumPromise || "사주 근거를 바탕으로 감정과 현실 행동을 함께 제시합니다."),
+  };
+}
+
 const COMPATIBILITY_LOVE_CHAPTER_SPECS = Object.freeze([
-  Object.freeze({ number: "I", title: "두 사람의 관계 설계도", categories: Object.freeze([]) }),
-  Object.freeze({ number: "II", title: "일간 궁합 — 서로를 바라보는 본질", categories: Object.freeze([]) }),
-  Object.freeze({ number: "III", title: "일지와 배우자궁 — 오래 갈 수 있는 관계인가", categories: Object.freeze([]) }),
-  Object.freeze({ number: "IV", title: "월지와 생활 리듬 — 함께 살 때 드러나는 차이", categories: Object.freeze([]) }),
-  Object.freeze({ number: "V", title: "오행 보완 궁합 — 부족함을 채우는가, 과잉을 키우는가", categories: Object.freeze([]) }),
-  Object.freeze({ number: "VI", title: "십성 관계 궁합 — 사랑, 책임, 의존, 통제의 구조", categories: Object.freeze([]) }),
-  Object.freeze({ number: "VII", title: "끌림과 케미 — 왜 서로에게 반응하는가", categories: Object.freeze([]) }),
-  Object.freeze({ number: "VIII", title: "표현과 소통 궁합 — 말이 통하는 관계인가", categories: Object.freeze([]) }),
-  Object.freeze({ number: "IX", title: "갈등과 권력 구조 — 싸움이 반복되는 지점", categories: Object.freeze([]) }),
-  Object.freeze({ number: "X", title: "결혼 현실성 — 사랑이 생활로 이어질 수 있는가", categories: Object.freeze([]) }),
-  Object.freeze({ number: "XI", title: "조후로 보는 친밀감과 속궁합 — 온도, 습도, 리듬의 조화", categories: Object.freeze([]) }),
-  Object.freeze({ number: "XII", title: "신살·12운성으로 보는 숨은 인연 코드", categories: Object.freeze([]) }),
-  Object.freeze({ number: "XIII", title: "대운·세운으로 보는 관계의 타이밍", categories: Object.freeze([]) }),
-  Object.freeze({ number: "XIV", title: "두 사람을 위한 최종 관계 전략서", categories: Object.freeze([]) }),
+  Object.freeze({
+    number: "I",
+    title: "두 사람의 사랑 구조 총론",
+    categories: Object.freeze(["첫눈에 느껴지는 관계의 결", "일간·일지·월지 핵심 궁합", "끌림과 안정감의 균형", "관계를 흔드는 반복 신호", "두 사람의 최종 궁합 한 문장"]),
+  }),
+  Object.freeze({
+    number: "II",
+    title: "나의 연애 성향 요약",
+    categories: Object.freeze(["내가 사랑에서 원하는 것", "내가 안심하는 표현 방식", "서운함이 올라오는 순간", "관계에서 지키고 싶은 품위", "내가 먼저 바꿀 수 있는 태도"]),
+  }),
+  Object.freeze({
+    number: "III",
+    title: "상대의 연애 성향 요약",
+    categories: Object.freeze(["상대가 사랑에서 원하는 것", "상대가 안심하는 표현 방식", "상대가 멀어지는 순간", "상대의 마음을 여는 문장", "상대를 품격 있게 이해하는 법"]),
+  }),
+  Object.freeze({
+    number: "IV",
+    title: "일간 궁합과 기본 기질",
+    categories: Object.freeze(["두 일간이 서로를 바라보는 방식", "처음 호감이 생기는 이유", "기질 차이가 매력으로 보이는 지점", "기질 차이가 상처가 되는 지점", "기본 궁합을 살리는 태도"]),
+  }),
+  Object.freeze({
+    number: "V",
+    title: "일지 궁합과 관계의 뿌리",
+    categories: Object.freeze(["배우자궁이 맞물리는 방식", "생활 밀착에서 편안한 부분", "가까워질수록 예민해지는 부분", "오래 갈 수 있는 관계 습관", "두 사람의 일상 궁합 처방"]),
+  }),
+  Object.freeze({
+    number: "VI",
+    title: "배우자성으로 보는 사랑의 기대치",
+    categories: Object.freeze(["내가 기대하는 연인의 역할", "상대가 기대하는 연인의 역할", "기대가 설렘으로 바뀌는 순간", "기대가 부담으로 바뀌는 순간", "서로를 지치게 하지 않는 약속"]),
+  }),
+  Object.freeze({
+    number: "VII",
+    title: "오행 균형으로 보는 감정 궁합",
+    categories: Object.freeze(["부족한 기운을 채워주는 지점", "과잉 기운이 충돌하는 지점", "감정 온도가 맞는 순간", "안정감을 잃기 쉬운 상황", "오행 균형을 살리는 데이트와 대화"]),
+  }),
+  Object.freeze({
+    number: "VIII",
+    title: "조후로 보는 속궁합과 친밀감",
+    categories: Object.freeze(["정서적 온도와 거리감", "친밀감의 속도 차이", "편안함을 느끼는 스킨십 태도", "부담스럽게 느껴질 수 있는 방식", "건강한 친밀감을 지키는 규칙"]),
+  }),
+  Object.freeze({
+    number: "IX",
+    title: "대화와 표현 궁합",
+    categories: Object.freeze(["말이 잘 통하는 지점", "침묵이 오해가 되는 순간", "서운함을 안전하게 말하는 순서", "상대가 듣고 싶어 하는 확인 문장", "관계를 살리는 대화 루틴"]),
+  }),
+  Object.freeze({
+    number: "X",
+    title: "갈등과 화해 패턴",
+    categories: Object.freeze(["갈등이 시작되는 원인", "싸울 때 각자 보이는 반응", "상처가 깊어지는 금지 문장", "화해가 쉬워지는 타이밍", "다시 가까워지는 회복 의식"]),
+  }),
+  Object.freeze({
+    number: "XI",
+    title: "이별과 재회 가능성",
+    categories: Object.freeze(["멀어지는 초기 신호", "이별 위험이 커지는 관계 습관", "재회를 생각할 수 있는 조건", "붙잡기보다 정리해야 할 조건", "관계를 살리는 마지막 선택 기준"]),
+  }),
+  Object.freeze({
+    number: "XII",
+    title: "결혼과 장기 관계 궁합",
+    categories: Object.freeze(["장기 관계로 이어질 수 있는 힘", "결혼 현실성의 강점", "가족·일·돈에서 조율할 지점", "약속이 무거워지는 시기", "함께 살아도 사랑이 남는 방식"]),
+  }),
+  Object.freeze({
+    number: "XIII",
+    title: "현실 문제와 관계 유지 전략",
+    categories: Object.freeze(["돈과 소비 감각의 차이", "일과 목표가 관계에 미치는 영향", "가족과 주변 시선의 변수", "생활 계획을 맞추는 순서", "현실 문제를 사랑의 편으로 돌리는 법"]),
+  }),
+  Object.freeze({
+    number: "XIV",
+    title: "두 사람의 운 흐름과 타이밍",
+    categories: Object.freeze(["좋은 흐름이 열리는 시기", "조심해야 할 전환점", "관계 결정에 유리한 때", "각자의 운이 엇갈릴 때의 운영", "함께 운을 살리는 공동 행동"]),
+  }),
+  Object.freeze({
+    number: "XV",
+    title: "두 사람을 위한 최종 사랑 전략",
+    categories: Object.freeze(["두 사람의 최종 궁합 메시지", "반드시 지켜야 할 태도", "반드시 피해야 할 습관", "90일 관계 회복 루틴", "관계를 이어가거나 정리할 품격 있는 기준"]),
+  }),
 ]);
 
 const LOVE_SECRET_CANONICAL_SECTIONS = Object.freeze({
@@ -289,15 +429,18 @@ const LOVE_SECRET_CANONICAL_SECTIONS = Object.freeze({
     1: ["관계의 기본 결", "두 일간의 만남", "두 일지의 생활감", "강한 끌림의 이유", "조율해야 할 약점"],
     2: ["내가 원하는 사랑", "내 방어 방식", "내가 서운해지는 지점", "내가 오래 머무는 조건", "내가 바꿀 수 있는 태도"],
     3: ["상대가 원하는 사랑", "상대의 방어 방식", "상대가 서운해지는 지점", "상대를 안심시키는 말", "상대를 이해하는 실천"],
-    4: ["처음 끌림의 구조", "배우자성의 작동", "오행 보완의 매력", "매력이 약해지는 순간", "끌림을 오래 지키는 법"],
-    5: ["말이 통하는 부분", "말이 엇갈리는 부분", "침묵과 서운함", "감정 확인의 순서", "대화를 회복하는 문장"],
-    6: ["갈등이 생기는 원인", "충돌할 때의 반응", "상처가 깊어지는 말", "화해가 쉬워지는 조건", "회복력을 키우는 약속"],
-    7: ["생활 리듬의 차이", "역할과 책임", "돈과 시간의 감각", "현실 계획의 균형", "함께 사는 법"],
+    4: ["두 일간의 시선", "처음 호감의 이유", "기질 차이의 매력", "기질 차이의 상처", "기본 궁합을 살리는 태도"],
+    5: ["배우자궁의 맞물림", "생활 밀착의 편안함", "가까워질수록 예민한 지점", "오래 갈 수 있는 습관", "일상 궁합 처방"],
+    6: ["내가 기대하는 역할", "상대가 기대하는 역할", "기대가 설렘이 되는 순간", "기대가 부담이 되는 순간", "서로를 지치게 하지 않는 약속"],
+    7: ["오행 보완의 매력", "오행 과잉의 충돌", "감정 온도가 맞는 순간", "안정감을 잃기 쉬운 상황", "균형을 살리는 데이트와 대화"],
     8: ["조후로 보는 친밀감", "정서적 온도 차이", "속궁합의 리듬", "편안한 거리와 접촉", "건강한 친밀감의 규칙"],
-    9: ["결혼 가능성", "가족과 주변의 영향", "일과 목표의 조율", "현실 부담의 분담", "장기 약속의 조건"],
-    10: ["멀어지는 신호", "이별 위험 구간", "재회가 가능한 조건", "반복하면 안 되는 행동", "관계를 살리는 선택"],
-    11: ["앞으로의 전환점", "좋은 흐름이 열리는 때", "주의해야 할 흐름", "함께 성장하는 방식", "운을 살리는 공동 행동"],
-    12: ["최종 궁합 메시지", "서로에게 필요한 태도", "반드시 피할 습관", "관계를 지키는 루틴", "두 사람의 비책"],
+    9: ["말이 통하는 부분", "말이 엇갈리는 부분", "침묵과 서운함", "감정 확인의 순서", "대화를 회복하는 문장"],
+    10: ["갈등이 생기는 원인", "충돌할 때의 반응", "상처가 깊어지는 말", "화해가 쉬워지는 조건", "회복력을 키우는 약속"],
+    11: ["멀어지는 신호", "이별 위험 구간", "재회가 가능한 조건", "반복하면 안 되는 행동", "관계를 살리는 선택"],
+    12: ["장기 관계의 힘", "결혼 현실성의 강점", "가족·일·돈의 조율", "약속이 무거워지는 시기", "함께 살아도 사랑이 남는 방식"],
+    13: ["돈과 소비 감각", "일과 목표의 영향", "가족과 주변 시선", "생활 계획의 순서", "현실 문제를 사랑의 편으로 돌리는 법"],
+    14: ["좋은 흐름이 열리는 때", "조심해야 할 전환점", "관계 결정에 유리한 때", "운이 엇갈릴 때의 운영", "운을 살리는 공동 행동"],
+    15: ["최종 궁합 메시지", "서로에게 필요한 태도", "반드시 피할 습관", "90일 관계 회복 루틴", "품격 있는 선택 기준"],
   }),
 });
 
@@ -318,15 +461,18 @@ const LOVE_SECRET_CANONICAL_TOPIC_KEYWORDS = Object.freeze({
     1: ["궁합", "일간", "일지", "관계", "끌림", "조율"],
     2: ["사랑", "방어", "서운함", "조건", "태도", "관계"],
     3: ["상대", "사랑", "방어", "이해", "안심", "실천"],
-    4: ["끌림", "배우자성", "오행", "매력", "보완", "조건"],
-    5: ["소통", "말", "침묵", "감정", "대화", "회복"],
-    6: ["갈등", "충돌", "상처", "화해", "회복력", "약속"],
-    7: ["생활", "리듬", "역할", "책임", "현실", "균형"],
+    4: ["일간", "기질", "호감", "매력", "상처", "태도"],
+    5: ["일지", "배우자궁", "생활", "습관", "일상", "궁합"],
+    6: ["배우자성", "기대", "역할", "설렘", "부담", "약속"],
+    7: ["오행", "보완", "과잉", "감정", "균형", "안정감"],
     8: ["조후", "친밀감", "속궁합", "온도", "리듬", "거리"],
-    9: ["결혼", "가족", "일", "목표", "분담", "약속"],
-    10: ["이별", "재회", "위험", "신호", "선택", "관계"],
-    11: ["연애운", "전환점", "대운", "세운", "성장", "행동"],
-    12: ["궁합", "비책", "태도", "습관", "루틴", "관계"],
+    9: ["소통", "말", "침묵", "감정", "대화", "회복"],
+    10: ["갈등", "충돌", "상처", "화해", "회복력", "약속"],
+    11: ["이별", "재회", "위험", "신호", "선택", "관계"],
+    12: ["결혼", "장기", "가족", "일", "돈", "약속"],
+    13: ["현실", "돈", "일", "가족", "생활", "조율"],
+    14: ["연애운", "전환점", "대운", "세운", "성장", "행동"],
+    15: ["궁합", "비책", "태도", "습관", "루틴", "관계"],
   }),
 });
 
@@ -1509,6 +1655,7 @@ function normalizeCompatibilityPerson(profile = {}, sajuResult = {}, targetYear 
     specialStars: normalized.specialStars,
     twelveStages: normalized.twelveStages,
     luckFlow: normalized.luckFlow,
+    loveSecretReference: safeLoveSecretClone(sajuResult?.loveSecretReference),
   };
 }
 
@@ -1637,6 +1784,12 @@ function buildCompatibilityLoveLLMInput({
     personA,
     personB,
     comparison: {
+      romanticNarrative: compactLoveSecretObject({
+        appealFocus: personASajuResult?.loveSecretReference?.compatibility?.feminineAppealFocus,
+        emotionalMood: personASajuResult?.loveSecretReference?.compatibility?.emotionalMood,
+        tensionPoint: personASajuResult?.loveSecretReference?.compatibility?.tensionPoint,
+        strategyLine: personASajuResult?.loveSecretReference?.compatibility?.strategyLine,
+      }),
       dayMasterRelation: {
         personA: aChart.dayMaster,
         personB: bChart.dayMaster,
@@ -1684,6 +1837,11 @@ function buildCompatibilityLoveLLMInput({
       desiredOutcome: clean(relationshipContext?.desiredOutcome),
       tone: clean(relationshipContext?.tone || "professional-mystical"),
       productTier: clean(relationshipContext?.productTier || "premium"),
+    },
+    writingDirection: {
+      readerMood: "여성 독자가 감정적으로 몰입할 수 있도록 섬세하고 우아한 연애 상담체로 작성합니다.",
+      mustInclude: ["사주 근거", "상대가 나에게 끌리는 지점", "내가 사랑받는 방식", "관계를 지키는 현실적 행동"],
+      avoid: ["불안 조장", "상대를 조종하는 표현", "결혼·이별·재회 단정", "노골적 성적 표현"],
     },
   });
 }
@@ -1826,6 +1984,7 @@ function validateCompatibilityLoveChapter({ chapter, chapterSpec }) {
 }
 
 function buildSoloLoveChapterPrompt({ input, chapterSpec, previousSummaries = [], validationFeedback = "" }) {
+  const chapterQualityGuide = getSoloLoveChapterQualityGuide(chapterSpec);
   const systemPrompt = [
     "당신은 사주 원국을 바탕으로 연애 비책 PDF 원고를 쓰는 전문 상담가입니다.",
     "사주 계산을 새로 하지 말고 제공된 사주 엔진 값만 사용하세요.",
@@ -1833,6 +1992,9 @@ function buildSoloLoveChapterPrompt({ input, chapterSpec, previousSummaries = []
     "연애 결과를 단정하지 말고 가능성, 경향, 선택 기준으로 표현하세요.",
     "사주 근거, 연애 해석, 현실 발현, 주의점, 실천 전략 흐름을 유지하세요.",
     "존댓말 상담체로 쓰고 전문적이며 신비로운 분위기를 유지하세요.",
+    "여성 독자가 읽을 때 내 마음을 정확히 알아준다고 느끼도록 섬세하고 우아한 감정 언어를 사용하세요.",
+    "내가 사랑에서 빛나는 지점, 상대가 나에게 끌리는 분위기, 관계가 예뻐지는 행동을 구체적으로 풀어 쓰세요.",
+    "불안 조장, 상대를 조종하는 표현, 결혼·이별·재회 단정, 노골적 성적 표현은 금지합니다.",
     "출력은 순수 JSON 객체 하나만 허용합니다. 코드블록과 설명문은 쓰지 마세요.",
     "응답은 반드시 { 로 시작해서 } 로 끝나야 합니다.",
     "본문에는 JSON, prompt, schema, API, Gemini 같은 개발 용어를 절대 쓰지 마세요.",
@@ -1860,7 +2022,10 @@ function buildSoloLoveChapterPrompt({ input, chapterSpec, previousSummaries = []
       oneSectionPerCategory: true,
       minimumBodyLengthPerSection: 260,
       categories: chapterSpec.categories,
+      eachSectionMustInclude: ["사주 근거", "감정 해석", "연애 매력", "상대가 느끼는 분위기", "현실 행동", "품격 있는 주의점"],
+      tone: "전문적이고 신비롭지만 여성 독자의 연애 감정선이 살아 있는 상담체",
     },
+    chapterQualityGuide,
     previousSummaries,
     validationFeedback: clean(validationFeedback),
     input,
@@ -1880,13 +2045,16 @@ async function generateSoloLoveChapter({ env, input, chapterSpec, previousSummar
 }
 
 function buildCompatibilityLoveChapterPrompt({ input, chapterSpec, previousSummaries = [], validationFeedback = "" }) {
-  const isJohuIntimacyChapter = clean(chapterSpec?.number) === "XI";
+  const isJohuIntimacyChapter = clean(chapterSpec?.number) === "VIII";
   const johuIntimacy = input?.comparison?.johuIntimacy || {};
   const systemPrompt = [
     "당신은 두 사람의 사주 원국을 비교해 궁합 PDF 원고를 쓰는 전문 상담가입니다.",
     "사주 계산을 새로 하지 말고 제공된 A/B 사주 엔진 값과 서버 비교 데이터만 사용하세요.",
     "없는 값은 만들지 말고, 확인된 값 중심으로 균형 있게 해석하세요.",
     "한쪽을 비난하지 말고 A/B 관점을 모두 공정하게 다루세요.",
+    "여성 독자가 읽을 때 '내 마음을 정확히 알아준다'고 느끼도록 섬세한 감정 언어를 사용하세요.",
+    "상대가 나에게 끌리는 지점, 내가 사랑받는 방식, 관계가 예뻐지는 행동을 우아하게 풀어 쓰세요.",
+    "궁합이 낮은 지점도 공포가 아니라 품격 있는 선택 기준과 회복 전략으로 제시하세요.",
     "결혼, 이별, 재회 결과를 단정하지 말고 선택 기준과 조율 전략으로 표현하세요.",
     "조후 친밀감은 allowed가 false이면 비성적 친밀감과 정서적 거리감으로만 쓰세요.",
     "노골적 성적 표현, 신체 부위, 성행위, 성 기능 진단은 금지합니다.",
@@ -1920,6 +2088,10 @@ function buildCompatibilityLoveChapterPrompt({ input, chapterSpec, previousSumma
     sectionRules: {
       minimumSections: 5,
       minimumBodyLengthPerSection: 420,
+      oneSectionPerCategory: true,
+      categories: chapterSpec.categories,
+      eachSectionMustInclude: ["A 관점", "B 관점", "관계 역학", "궁합 전략", "사주 근거", "실천 가이드"],
+      tone: "전문적이고 신비롭지만 연애 감정선이 살아 있는 상담체",
       activeChapterNumber: chapterSpec.number,
       activeChapterTitle: chapterSpec.title,
       johuIntimacyAllowed: johuIntimacy.allowed !== false,
@@ -2267,6 +2439,7 @@ function localCategoryDraft(base, chapterTitle, sectionTitle, mode, chapterNo) {
   const dayBranchRelationHint = buildDayBranchRelationHint(db, partnerDb);
   const identity = ref?.identity || null;
   const primaryRisk = Array.isArray(ref?.risks) && ref.risks.length ? ref.risks[0] : null;
+  const compatRef = normalizeMode(mode) === "compatibility" && ref?.compatibility ? ref.compatibility : null;
   const bestMonths = Array.isArray(ref?.monthlyWindows?.best) ? ref.monthlyWindows.best.slice(0, 2).map((row) => `${row.month} ${row.score}점`).join(", ") : "";
   const cautionMonths = Array.isArray(ref?.monthlyWindows?.caution) ? ref.monthlyWindows.caution.slice(0, 2).map((row) => `${row.month} ${row.score}점`).join(", ") : "";
 
@@ -2286,6 +2459,10 @@ function localCategoryDraft(base, chapterTitle, sectionTitle, mode, chapterNo) {
   }
   if (chapterNo >= 9 && bestMonths) {
     profileLines.push(`실행 타이밍은 상위 구간 ${bestMonths}에 집중하고, 주의 구간 ${cautionMonths || "저점 달"}에는 결론보다 조율을 우선해야 합니다.`);
+  }
+  if (compatRef) {
+    profileLines.push(`${compatRef.emotionalMood}으로 읽히며, ${compatRef.feminineAppealFocus}`);
+    profileLines.push(`주의할 지점은 ${compatRef.tensionPoint} ${compatRef.strategyLine}`);
   }
   if (chapterNo === 10 && ref?.gaeun) {
     profileLines.push(`개운 루틴은 ${ref.gaeun.livingColor}, ${ref.gaeun.perfume}, 확언 "${ref.gaeun.affirmation}"을 함께 쓰는 방식이 가장 안정적입니다.`);
@@ -2489,30 +2666,55 @@ function buildLoveSecretArchiveUrl(requestOrOrigin, reportId) {
   return `${origin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
 }
 
+function buildLoveSecretArchiveHtmlUrl(requestOrOrigin, reportId) {
+  const archiveUrl = buildLoveSecretArchiveUrl(requestOrOrigin, reportId);
+  return archiveUrl ? `${archiveUrl}?format=html` : "";
+}
+
 function buildLoveSecretPdfReady(requestOrOrigin, reportId, chapters, base, mode) {
   const archiveUrl = buildLoveSecretArchiveUrl(requestOrOrigin, reportId);
+  const archiveHtmlUrl = buildLoveSecretArchiveHtmlUrl(requestOrOrigin, reportId);
   const normalizedMode = normalizeMode(mode);
   const selfName = clean(base?.user?.name || "사용자");
   const partnerName = clean(base?.partner?.user?.name || "상대");
+  const displayName = normalizedMode === "compatibility" ? `${selfName} × ${partnerName}` : selfName;
+  const title = normalizedMode === "compatibility" ? "사주 궁합 비책" : "사주 연애 비책";
+  const generatedAt = new Date().toISOString();
+  const chapterCount = Array.isArray(chapters) ? chapters.length : 0;
+  const sectionCount = Array.isArray(chapters)
+    ? chapters.reduce((total, chapter) => total + (Array.isArray(chapter?.sections) ? chapter.sections.length : 0), 0)
+    : 0;
+  const documentUrl = archiveHtmlUrl || archiveUrl;
   const selfEightCharacters = ["year", "month", "day", "hour"].map((key) => loveSecretPillarRaw(base?.pillars?.[key])).filter(Boolean).join(" ");
   const partnerEightCharacters = ["year", "month", "day", "hour"].map((key) => loveSecretPillarRaw(base?.partner?.pillars?.[key])).filter(Boolean).join(" ");
   const targetYear = 2026;
   return {
+    reportId: clean(reportId),
+    mode: normalizedMode,
+    title,
+    displayName,
+    chapterCount,
+    sectionCount,
+    generatedAt,
     html: renderLoveSecretHtmlClean(chapters, {
-      mode,
-      name: normalizedMode === "compatibility" ? `${selfName} × ${partnerName}` : selfName,
+      mode: normalizedMode,
+      name: displayName,
       birthDate: clean(base?.user?.birthDate || ""),
       birthTime: clean(base?.user?.birthTime || ""),
-      generatedAt: new Date().toISOString(),
+      generatedAt,
       eightCharacters: normalizedMode === "compatibility"
         ? [`A 사주 8글자 ${selfEightCharacters}`, `B 사주 8글자 ${partnerEightCharacters}`, `궁합 분석 기준 연도 ${targetYear}`].filter(Boolean).join(" / ")
         : selfEightCharacters,
     }),
-    pdfUrl: archiveUrl,
-    htmlUrl: archiveUrl,
-    downloadUrl: archiveUrl,
+    pdfUrl: documentUrl,
+    htmlUrl: documentUrl,
+    downloadUrl: documentUrl,
+    documentUrl,
+    archiveUrl,
     storageKey: `premium-archive:love-secret:${reportId}`,
     mimeType: "text/html",
+    contentType: "text/html; charset=UTF-8",
+    renderFormat: "html-printable",
   };
 }
 
@@ -3418,6 +3620,8 @@ export const __loveSecretTestUtils = Object.freeze({
   normalizeCompatibilityLoveGeneratedChapter,
   convertLoveGeneratedChapterToPdfChapter,
   SOLO_LOVE_CHAPTER_SPECS,
+  SOLO_LOVE_CHAPTER_QUALITY_GUIDES,
+  getSoloLoveChapterQualityGuide,
   COMPATIBILITY_LOVE_CHAPTER_SPECS,
   renderLoveSecretHtmlClean,
   buildLoveSecretPdfReady,

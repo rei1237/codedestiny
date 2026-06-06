@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Geomancy Oracle — Codex Alchemicus</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="/js/destiny-profile.js?v=build-dc8b1dedfe26"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════════
@@ -752,14 +753,50 @@ function consumeGeomancyPerUseCoin() {
       resolve(true);
       return;
     }
+    var requestId = 'geomancy:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
     if (typeof window._cdCoinGatePerUse === 'function') {
       try {
-        window._cdCoinGatePerUse(
+        var granted = false;
+        var gateResult = window._cdCoinGatePerUse(
           GEOMANCY_COIN_COST,
           '지오맨시 흙점 리딩',
-          function() { resolve(true); },
-          function() { resolve(false); }
+          function(_transactionId, payload) {
+            granted = true;
+            var source = payload && typeof payload === 'object' ? payload : {};
+            var data = source.data && typeof source.data === 'object' ? source.data : {};
+            var nextBalance = Number(source.balance ?? data.balance ?? (source.user && source.user.points) ?? (data.user && data.user.points));
+            if (Number.isFinite(nextBalance) && nextBalance >= 0) {
+              try {
+                var user = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
+                user.points = nextBalance;
+                localStorage.setItem('fortune_auth_user', JSON.stringify(user));
+              } catch (_e) {}
+              if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nextBalance);
+            }
+            resolve(true);
+          },
+          function() { resolve(false); },
+          {
+            featureKey: GEOMANCY_FEATURE_KEY,
+            serviceKey: 'geomancy',
+            action: 'openGeomancyOracle',
+            forceDeduct: true,
+            requestId: requestId
+          }
         );
+        if (gateResult && typeof gateResult.then === 'function') {
+          gateResult.then(function(result) {
+            if (granted) return;
+            if (!result || typeof result !== 'object') { resolve(false); return; }
+            var payload = result.payload && typeof result.payload === 'object' ? result.payload : result;
+            var status = String(result.status || payload.status || '').toLowerCase();
+            resolve(status === 'granted' || status === 'paid' || status === 'success' || Boolean(payload.accessGrant) || Boolean(payload.premiumAccessToken) || Boolean(payload.consume));
+          }).catch(function() { resolve(false); });
+        } else if (gateResult && typeof gateResult === 'object') {
+          var immediatePayload = gateResult.payload && typeof gateResult.payload === 'object' ? gateResult.payload : gateResult;
+          var immediateStatus = String(gateResult.status || immediatePayload.status || '').toLowerCase();
+          resolve(immediateStatus === 'granted' || immediateStatus === 'paid' || immediateStatus === 'success' || Boolean(immediatePayload.accessGrant) || Boolean(immediatePayload.premiumAccessToken) || Boolean(immediatePayload.consume));
+        }
         return;
       } catch (_gateErr) {}
     }
@@ -775,38 +812,43 @@ function consumeGeomancyPerUseCoin() {
     }
 
     setGeomancyPaymentPending(true, '지오맨시 흙점 리딩 결제를 확인하는 중입니다...');
-    fetch('/api/fortune/pig-coin/consume', {
+    fetch('/api/billing/coin-gate', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + token,
       },
       body: JSON.stringify({
         cost: GEOMANCY_COIN_COST,
+        coinPrice: GEOMANCY_COIN_COST,
         reason: '지오맨시 흙점 리딩',
         featureKey: GEOMANCY_FEATURE_KEY,
+        serviceKey: 'geomancy',
+        action: 'openGeomancyOracle',
+        paymentMode: 'COIN',
+        forceDeduct: true,
+        requestId: requestId,
       }),
     }).then(function(resp) {
       return resp.json().catch(function() { return {}; }).then(function(payload) {
         if (resp.ok) {
-          if (payload && payload.user && typeof payload.user.points === 'number') {
+          var data = payload && payload.data && typeof payload.data === 'object' ? payload.data : payload;
+          var nextUser = data && data.user && typeof data.user.points === 'number' ? data.user : null;
+          if (nextUser) {
             try {
               var user = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
-              user.points = payload.user.points;
+              user.points = nextUser.points;
               localStorage.setItem('fortune_auth_user', JSON.stringify(user));
             } catch (_e2) {}
             if (typeof window.__cdSetGoldenBalance === 'function') {
-              window.__cdSetGoldenBalance(payload.user.points);
+              window.__cdSetGoldenBalance(nextUser.points);
             }
           }
           resolve(true);
           return;
         }
-        if (resp.status === 402) {
-          window.alert('코인이 부족합니다. 충전 후 다시 시도해 주세요.');
-        } else {
-          window.alert((payload && payload.message) || '코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.');
-        }
+        window.alert((payload && payload.message) || '결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.');
         resolve(false);
       });
     }).catch(function() {

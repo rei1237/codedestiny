@@ -1173,6 +1173,7 @@
       out = out.replace(pattern, "");
     });
     out = out.replace(/읽는\s*정확함/g, "해석 정확도");
+    out = out.replace(/낮추기이/g, "낮추기가").replace(/정리이/g, "정리가");
     out = removeRepeatedSentences(out);
     out = out.replace(/\s{2,}/g, " ").trim();
     return out;
@@ -1415,13 +1416,13 @@
       ? r.summary.comprehensive
       : {};
     summarySection.innerHTML =
-      '<h4 class="tarot-reunion-section-title">🌙 당신 마음을 먼저 안아주는 재회 이야기</h4>' +
+      '<h4 class="tarot-reunion-section-title">🌙 등대가 비춘 재회의 현재 좌표</h4>' +
       '<div class="tarot-reunion-summary-grid">' +
       '  <article class="tarot-reunion-summary-item"><h5>🌙 다시 이어질 가능성</h5><p>' + escapeHtml(r.summary.reunionChanceLabel + ' ' + r.summary.reunionChanceScore + '%') + '</p></article>' +
       '  <article class="tarot-reunion-summary-item"><h5>💭 지금 그 사람이 머무는 마음</h5><p>' + escapeHtml(r.summary.partnerState) + '</p></article>' +
       '  <article class="tarot-reunion-summary-item"><h5>⏳ 다시 닿기 좋은 타이밍</h5><p>' + escapeHtml(r.summary.bestContactTiming) + '</p></article>' +
       '  <article class="tarot-reunion-summary-item"><h5>🚧 두 사람 사이의 현실 장벽</h5><p>' + escapeHtml(r.summary.mainObstacle) + '</p></article>' +
-      '  <article class="tarot-reunion-summary-item"><h5>🕯️ 오늘의 따뜻한 행동 가이드</h5><p>' + escapeHtml(r.summary.oneLineAdvice) + '</p></article>' +
+      '  <article class="tarot-reunion-summary-item"><h5>🕯️ 오늘 먼저 지켜야 할 기준</h5><p>' + escapeHtml(r.summary.oneLineAdvice) + '</p></article>' +
       '</div>' +
       '<div class="tarot-reunion-summary-grid" style="margin-top:10px">' +
       '  <article class="tarot-reunion-summary-item"><h5>1) 재회의 흐름</h5><p>' + escapeHtml(comprehensive.reunionChanceVerdict || r.summary.reunionChanceLabel) + '</p></article>' +
@@ -1438,7 +1439,7 @@
       var opening = document.createElement("section");
       opening.className = "tarot-reunion-section tarot-reunion-section--star-sea";
       opening.innerHTML =
-        '<h4 class="tarot-reunion-section-title">🌌 짧은 서문</h4>' +
+        '<h4 class="tarot-reunion-section-title">🌌 밤바다 프롤로그</h4>' +
         '<p class="tarot-reunion-section-text">' + escapeHtml(r.opening) + '</p>';
       container.appendChild(opening);
     }
@@ -1514,14 +1515,14 @@
         })
         .join("");
       body.innerHTML =
-        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">카드 번호 / 카테고리</p><p class="tarot-reunion-section-text">' + escapeHtml(String(pos.order || (idx + 1))) + '번 · ' + escapeHtml(pos.title || pos.positionTitle || "포지션") + '</p></div>' +
-        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">질문</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.question || "") + '</p></div>' +
-        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">카드명 / 방향</p><p class="tarot-reunion-section-text">' + escapeHtml((pos.cardNameKo || pos.cardName || "") + ((pos.cardNameEn || "") ? ' (' + pos.cardNameEn + ')' : '')) + ' · ' + escapeHtml(pos.orientationLabel || "") + '</p></div>' +
-        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">핵심 키워드</p><p class="tarot-reunion-section-text">' + (keywordHtml || '<span>-</span>') + '</p></div>' +
-        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">카드 의미 요약</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.cardMeaning || pos.headline || "") + '</p></div>' +
-        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">재회 상황 해석</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.reunionInterpretation || pos.detailedReading || pos.directAnswer || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">등대 자리</p><p class="tarot-reunion-section-text">' + escapeHtml(String(pos.order || (idx + 1))) + '번 · ' + escapeHtml(pos.title || pos.positionTitle || "포지션") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">이 자리가 묻는 것</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.question || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">카드와 방향</p><p class="tarot-reunion-section-text">' + escapeHtml((pos.cardNameKo || pos.cardName || "") + ((pos.cardNameEn || "") ? ' (' + pos.cardNameEn + ')' : '')) + ' · ' + escapeHtml(pos.orientationLabel || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">핵심 신호</p><p class="tarot-reunion-section-text">' + (keywordHtml || '<span>-</span>') + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">카드가 비춘 장면</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.cardMeaning || pos.headline || "") + '</p></div>' +
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">재회 흐름 해석</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.reunionInterpretation || pos.detailedReading || pos.directAnswer || "") + '</p></div>' +
         '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">현실 조언</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.advice || "") + '</p></div>' +
-        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">주의할 점</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.caution || pos.reunionPoint || "") + '</p></div>';
+        '<div class="tarot-reunion-field"><p class="tarot-reunion-field-title">조심할 파도</p><p class="tarot-reunion-section-text">' + escapeHtml(pos.caution || pos.reunionPoint || "") + '</p></div>';
       sec.appendChild(body);
       container.appendChild(sec);
     });
@@ -1529,7 +1530,7 @@
     var finalGuide = document.createElement("section");
     finalGuide.className = "tarot-reunion-section tarot-reunion-section--guidance tarot-reunion-final-guide";
     finalGuide.innerHTML =
-      '<h4 class="tarot-reunion-section-title">🕯️ 부담 없이 다시 닿는 방법</h4>' +
+      '<h4 class="tarot-reunion-section-title">🕯️ 다시 닿기 전 준비할 말과 거리</h4>' +
       '<div class="tarot-reunion-final-grid">' +
       '  <article class="tarot-reunion-final-item"><h5>지금 손을 내밀어도 될까?</h5><p>' + escapeHtml(r.finalGuide.shouldContactNow || "") + '</p></article>' +
       '  <article class="tarot-reunion-final-item"><h5>부담 없이 건넬 첫 문장</h5><p class="tarot-reunion-message-example">' + escapeHtml(r.finalGuide.messageExample || "") + '</p></article>' +
@@ -1541,7 +1542,7 @@
     if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
       var action = document.createElement("section");
       action.className = "tarot-reunion-section tarot-reunion-section--star-sea";
-      action.innerHTML = '<h4 class="tarot-reunion-section-title">✅ 실전 체크리스트</h4><ul class="tarot-reunion-checklist"></ul>';
+      action.innerHTML = '<h4 class="tarot-reunion-section-title">✅ 7일 안에 지킬 재회 체크리스트</h4><ul class="tarot-reunion-checklist"></ul>';
       var ul = action.querySelector("ul");
       r.actionPlan.slice(0, 6).forEach(function (item) {
         var li = document.createElement("li");
@@ -1647,7 +1648,7 @@
     text += "🚧 핵심 장애물: " + r.summary.mainObstacle + "\n";
     text += "🕯️ 지금 할 일: " + r.summary.oneLineAdvice + "\n\n";
     text += "추천 메시지: \"" + r.finalGuide.messageExample + "\"\n\n";
-    text += "👉 무료 재회운 타로 보기: https://code-destiny.com";
+    text += "👉 재회운 타로 보기: https://code-destiny.com";
 
     if (navigator.share) {
       navigator.share({

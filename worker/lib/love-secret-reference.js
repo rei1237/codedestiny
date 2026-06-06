@@ -227,6 +227,82 @@ function deriveRisks(specialStars) {
   return risks;
 }
 
+function relationTypeByBranch(a, b) {
+  const first = clean(a);
+  const second = clean(b);
+  if (!first || !second) return "미상";
+  const pair = `${first}${second}`;
+  const rev = `${second}${first}`;
+  const has = (list) => list.includes(pair) || list.includes(rev);
+  if (has(["자축", "인해", "묘술", "진유", "사신", "오미"])) return "합";
+  if (has(["자오", "축미", "인신", "묘유", "진술", "사해"])) return "충";
+  if (has(["인사", "사신", "신인", "축술", "술미", "미축", "자묘", "묘자", "진진", "오오", "유유", "해해"])) return "형";
+  if (has(["자미", "축오", "인사", "묘진", "신해", "유술"])) return "해";
+  if (has(["자유", "축진", "인해", "묘오", "사신", "미술"])) return "파";
+  return "중립";
+}
+
+function deriveCompatibilityTone(selfElement, partnerElement, selfDeficient, partnerDeficient) {
+  const fillsSelf = partnerElement && selfDeficient && partnerElement === selfDeficient;
+  const fillsPartner = selfElement && partnerDeficient && selfElement === partnerDeficient;
+  if (fillsSelf && fillsPartner) {
+    return {
+      mood: "서로의 빈자리를 감정적으로 알아보는 상호 보완형 궁합",
+      charm: "함께 있을 때 내가 더 부드럽고 괜찮은 사람이 된다는 감각을 줍니다.",
+      risk: "상대에게 모든 안정감을 맡기면 기대가 무거워질 수 있습니다.",
+    };
+  }
+  if (fillsSelf) {
+    return {
+      mood: "상대가 내 부족한 기운을 채워 주는 끌림 우세형 궁합",
+      charm: "상대의 존재가 마음의 빈칸을 살짝 덮어 주는 듯한 설렘을 만듭니다.",
+      risk: "고마움과 의존을 구분하지 못하면 관계 주도권이 흔들릴 수 있습니다.",
+    };
+  }
+  if (fillsPartner) {
+    return {
+      mood: "내가 상대의 마음을 안정시키는 보호형 궁합",
+      charm: "상대는 나에게서 쉽게 설명하기 어려운 편안함과 신뢰를 느끼기 쉽습니다.",
+      risk: "돌봄이 과해지면 사랑보다 책임감이 앞설 수 있습니다.",
+    };
+  }
+  return {
+    mood: "끌림과 조율을 함께 배워야 하는 성장형 궁합",
+    charm: "서로 다른 결이 익숙해지는 순간, 단순한 설렘보다 오래 남는 정이 생깁니다.",
+    risk: "차이를 매력으로 읽지 못하면 같은 문제를 반복 확인하게 됩니다.",
+  };
+}
+
+function deriveCompatibilityReference(base = {}) {
+  const partner = base?.partner && typeof base.partner === "object" ? base.partner : null;
+  if (!partner) return null;
+  const selfDayMaster = normalizeGan(base?.core?.dayMaster) || "";
+  const partnerDayMaster = normalizeGan(partner?.core?.dayMaster) || "";
+  const selfElement = GAN_EL[selfDayMaster] || normalizeElement(base?.elementBalance?.dominant) || "";
+  const partnerElement = GAN_EL[partnerDayMaster] || normalizeElement(partner?.elementBalance?.dominant) || "";
+  const selfDeficient = normalizeElement(base?.elementBalance?.deficient);
+  const partnerDeficient = normalizeElement(partner?.elementBalance?.deficient);
+  const tone = deriveCompatibilityTone(selfElement, partnerElement, selfDeficient, partnerDeficient);
+  const spousePalaceRelation = relationTypeByBranch(base?.core?.dayBranch, partner?.core?.dayBranch);
+  const lifeRhythmRelation = relationTypeByBranch(base?.core?.monthBranch, partner?.core?.monthBranch);
+  return {
+    partnerDayMaster,
+    partnerDayMasterLabel: GAN_KO[partnerDayMaster] || partnerDayMaster,
+    partnerDayElement: partnerElement,
+    partnerDayElementLabel: EL_KO[partnerElement] || partnerElement,
+    spousePalaceRelation,
+    lifeRhythmRelation,
+    emotionalMood: tone.mood,
+    feminineAppealFocus: tone.charm,
+    tensionPoint: tone.risk,
+    strategyLine: spousePalaceRelation === "충"
+      ? "강한 끌림을 오래 가져가려면 결론보다 말의 순서, 약속보다 감정 확인을 먼저 세워야 합니다."
+      : spousePalaceRelation === "합"
+        ? "잘 맞는 순간에 관계를 서두르기보다 작은 약속을 반복해 신뢰의 밀도를 높이는 편이 좋습니다."
+        : "차이를 지적하기보다 서로가 안심하는 표현을 찾아 반복할 때 관계의 온도가 안정됩니다.",
+  };
+}
+
 export function buildLoveSecretReference(base = {}) {
   const dayMaster = normalizeGan(base?.core?.dayMaster) || "甲";
   const dayEl = GAN_EL[dayMaster] || normalizeElement(base?.elementBalance?.dominant) || "earth";
@@ -260,6 +336,7 @@ export function buildLoveSecretReference(base = {}) {
   const idealPartner = YONGSHIN_PARTNER[yongshinEl] || YONGSHIN_PARTNER.earth;
   const gaeun = GAEUN_LOVE[dayEl] || GAEUN_LOVE.earth;
   const risks = deriveRisks(specialStars);
+  const compatibility = deriveCompatibilityReference(base);
   const strengthTip = base?.strength?.isStrong === true
     ? "신강 구조라 연애에서 내 의견과 에너지가 강하게 작동할 수 있으니, 상대가 주도할 공간을 남겨두는 운영이 중요합니다."
     : base?.strength?.isStrong === false
@@ -290,5 +367,6 @@ export function buildLoveSecretReference(base = {}) {
     marriageAgeLabel: `${marriageWindow.label} (용신 대운 초입이 최적)`,
     strengthTip,
     daeunFlow: DAEWUN_LOVE_FLOW[dominantEl] || DAEWUN_LOVE_FLOW.earth,
+    compatibility,
   };
 }

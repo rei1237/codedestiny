@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCoinGate } from "./app/hooks/useCoinGate";
 
 const CRYSTAL_COST = 50;
 
@@ -11,7 +12,7 @@ const GEMSTONES = [
     color: "#c8960c",
     glow: "#daa520",
     keywords: ["결단", "보호", "현실 판단"],
-    meaning: "감정 과열을 낮추고 수치와 기준으로 선택하도록 돕는 원석",
+    meaning: "흔들린 판단을 기준의 빛으로 가라앉히는 원석",
   },
   {
     id: "rose-quartz",
@@ -34,8 +35,8 @@ const GEMSTONES = [
     name: "시트린",
     color: "#e8b830",
     glow: "#ffd700",
-    keywords: ["풍요", "활력", "매출"],
-    meaning: "창의성과 실행력을 현실 성과로 연결하는 원석",
+    keywords: ["풍요", "활력", "자기표현"],
+    meaning: "작은 활력을 기회와 자신감의 빛으로 밝히는 원석",
   },
   {
     id: "lapis",
@@ -369,9 +370,9 @@ function buildLocalFallback(topic, coreGem, cards) {
     lines.push(`카드: ${cardLabel}`);
     lines.push(`질문: ${spread.question}`);
     lines.push(`${coreGem.name}의 기운은 ${topic.title} 안에서 ${coreGem.keywords.slice(0, 2).join("과 ")} 중심을 다시 잡도록 돕습니다.`);
-    lines.push(`${cardLabel}은(는) 지금의 질문에 ${topic.title} 특유의 현실적인 선택 기준을 더해 줍니다.`);
+    lines.push(`${cardLabel} 카드는 지금의 질문에 ${topic.title} 특유의 현실적인 선택 기준을 더해 줍니다.`);
     lines.push("오늘은 결론을 서두르기보다, 확인 가능한 기준 1개와 실행 1개를 분리해 적어 보세요.");
-    lines.push(`실전 조언: ${spread.title}와 연결된 행동을 오늘 안에 한 가지만 끝내고, 끝낸 뒤의 감각을 메모로 남기세요.`);
+    lines.push(`오늘의 의식: ${spread.title}와 연결된 작은 행동을 오늘 한 가지만 끝내고, 끝낸 뒤의 감각을 메모로 남기세요.`);
     lines.push("");
   });
   lines.push("종합 조언");
@@ -664,7 +665,7 @@ function ReadingAccordion({ section, expanded, onToggle }) {
           </div>
 
           <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12, marginBottom: 12 }}>
-            <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>실전 조언</div>
+              <div style={{ fontSize: 11, color: "#d7c3a4", marginBottom: 6 }}>오늘의 의식</div>
             <ol style={{ margin: 0, paddingLeft: 18, color: "#f5ebdc", fontSize: 13, lineHeight: 1.8 }}>
               {actionItems.map((item, idx) => (
                 <li key={`${idx}-${item}`}>{item}</li>
@@ -710,6 +711,7 @@ export default function CrystalSoulTarot() {
   const chargeAreaRef = useRef(null);
   const lastPointRef = useRef(null);
   const particleIdRef = useRef(0);
+  const { ensurePaidAccess, isPaying } = useCoinGate();
 
   useBodyLock(true);
 
@@ -801,7 +803,7 @@ export default function CrystalSoulTarot() {
         headers["x-admin-subscription-tier"] = adminTier;
       }
 
-      const rr = await fetch("/api/fortune/pig-coin/refund", {
+      const rr = await fetch("/api/billing/refund", {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -902,7 +904,7 @@ export default function CrystalSoulTarot() {
       playTypewriter(fallback);
       if (!fallback) {
         await autoRefundCrystal();
-        setError("리딩 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        setError("크리스탈 문을 열지 못했습니다. 잠시 후 다시 시도해 주세요.");
         setLoading(false);
       }
     }
@@ -921,67 +923,36 @@ export default function CrystalSoulTarot() {
       return;
     }
 
-    const token = localStorage.getItem("fortune_auth_token") || localStorage.getItem("cdToken") || "";
-    const adminToken = (() => {
-      try {
-        const raw = String(sessionStorage.getItem("flower_admin_token") || localStorage.getItem("flower_admin_token") || "");
-        return FLOWER_ADMIN_TOKEN_RE.test(raw) ? raw : "";
-      } catch (e) {
-        return "";
-      }
-    })();
-
-    const adminTier = (() => {
-      try {
-        return String(localStorage.getItem("flower_admin_test_tier") || "").toLowerCase();
-      } catch (e) {
-        return "";
-      }
-    })();
-
-    if (!token) {
-      setPayError("로그인이 필요합니다.");
-      setPaying(false);
-      setTimeout(() => {
-        window.location.href = "/login?next=%2Ftarot%2Fcrystal-soul";
-      }, 600);
-      return;
-    }
-
     try {
-      const headers = { "Content-Type": "application/json", Authorization: "Bearer " + token };
-      if (adminToken) headers["x-admin-token"] = adminToken;
-      if (adminToken && (adminTier === "standard" || adminTier === "premium" || adminTier === "vvip")) {
-        headers["x-admin-subscription-tier"] = adminTier;
-      }
-
-      const response = await fetch("/api/fortune/pig-coin/consume", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ cost: CRYSTAL_COST, reason: "크리스탈 소울 타로 리딩", featureKey: "tarot-crystal-soul-reading" }),
+      const paymentResult = await ensurePaidAccess({
+        featureKey: "tarot-crystal-soul-reading",
+        reason: "크리스탈 소울 타로 리딩",
+        forceDeduct: true,
+        requestId: `tarot-crystal-soul-reading:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        onPaid: async ({ transactionId }) => {
+          setPaidTxId(String(transactionId || ""));
+          setPaid(true);
+          await requestReading();
+        },
       });
 
-      const data = await response.json().catch(() => ({}));
-      if (response.status === 402) {
-        setPayError(`${CRYSTAL_COST}코인이 필요합니다. 코인을 충전해 주세요.`);
-        setPaying(false);
+      if (!paymentResult.ok) {
+        if (paymentResult.code === "AUTH_REQUIRED") {
+          setPayError("로그인이 필요합니다.");
+          setTimeout(() => {
+            window.location.href = "/login?next=%2Ftarot%2Fcrystal-soul";
+          }, 600);
+          return;
+        }
+        setPayError(paymentResult.message || "결제를 완료하지 못했습니다.");
         return;
       }
-      if (!response.ok) {
-        setPayError(String(data?.message || "코인 차감에 실패했습니다."));
-        setPaying(false);
-        return;
-      }
-
-      setPaidTxId(String(data?.transactionId || ""));
-      setPaid(true);
-      await requestReading();
     } catch (e) {
-      setPayError("결제 처리 중 오류가 발생했습니다.");
+      setPayError("크리스탈 문을 여는 과정에서 오류가 발생했습니다.");
     } finally {
       setPaying(false);
     }
-  }, [requestReading, selectedTopic]);
+  }, [ensurePaidAccess, requestReading, selectedTopic]);
 
   const toggleSection = useCallback((index) => {
     setExpandedSet((prev) => {
@@ -1050,7 +1021,7 @@ export default function CrystalSoulTarot() {
       ? "원석 선택"
       : stage === "sync"
         ? "원석 올리기"
-        : "결과 보기";
+      : "빛의 문 열기";
 
   const summaryLine = useMemo(() => {
     if (!readingPayload?.summary) return "";
@@ -1133,10 +1104,10 @@ export default function CrystalSoulTarot() {
           <div>
             <header style={{ marginBottom: 22 }}>
               <h1 style={{ fontFamily: "Noto Serif KR,serif", fontSize: "clamp(24px,4.6vw,38px)", fontWeight: 400, lineHeight: 1.45, marginBottom: 10 }}>
-                원석을 올리고, 빛이 켜진 자리에서 읽는 타로
+                손끝의 원석이 카드의 속삭임을 깨우는 타로
               </h1>
               <p style={{ color: "#d6c4ab", fontSize: 13, lineHeight: 1.85, maxWidth: 720 }}>
-                주제를 고른 뒤 원석을 선택하고, 원석을 올려 빛을 채우면 카드와 원석이 함께 말하는 상세 상담형 리딩이 열립니다.
+                주제를 고른 뒤 원석을 선택하고 빛을 채우면, 카드와 원석이 함께 말하는 깊은 오라클 리딩이 열립니다.
               </p>
             </header>
 
@@ -1153,7 +1124,7 @@ export default function CrystalSoulTarot() {
             <header style={{ border: `1px solid ${(selectedGemSource?.color || "#c8960c")}66`, borderRadius: 20, background: "rgba(8,8,14,.82)", padding: 16, marginBottom: 16, boxShadow: `0 0 36px ${(selectedGemSource?.glow || "#daa520")}22` }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
                 <div style={{ minWidth: 220 }}>
-                  <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 6 }}>선택 카테고리</div>
+                  <div style={{ color: "#d8c5a9", fontSize: 11, marginBottom: 6 }}>선택한 문</div>
                   <div style={{ fontFamily: "Noto Serif KR,serif", fontSize: 24, marginBottom: 8 }}>{selectedTopic.title}</div>
                   <div style={{ color: "#cbb69a", fontSize: 12, lineHeight: 1.75 }}>{selectedTopic.subtitle}</div>
                 </div>
@@ -1320,26 +1291,26 @@ export default function CrystalSoulTarot() {
                   <div style={{ width: "100%", height: 8, borderRadius: 999, overflow: "hidden", background: "rgba(255,255,255,.08)", marginBottom: 8 }}>
                     <div style={{ width: `${syncEnergy}%`, height: "100%", borderRadius: 999, background: `linear-gradient(90deg, ${(selectedGemSource?.color || "#c8960c")}90, ${(selectedGemSource?.glow || "#daa520")})`, boxShadow: `0 0 12px ${(selectedGemSource?.glow || "#daa520")}88` }} />
                   </div>
-                  <div style={{ color: syncEnergy >= 88 ? (selectedGemSource?.glow || "#daa520") : "#d0c0a7", fontSize: 12 }}>{syncEnergy >= 88 ? "열람 준비 완료" : `${Math.floor(syncEnergy)}%`}</div>
+                  <div style={{ color: syncEnergy >= 88 ? (selectedGemSource?.glow || "#daa520") : "#d0c0a7", fontSize: 12 }}>{syncEnergy >= 88 ? "빛의 문이 열렸습니다" : `${Math.floor(syncEnergy)}%`}</div>
                 </div>
 
                 <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
                   <button
                     type="button"
                     onClick={handlePay}
-                    disabled={paying || !syncReady}
+                    disabled={paying || isPaying || !syncReady}
                     style={{
                       borderRadius: 999,
                       border: `1px solid ${(selectedGemSource?.color || "#c8960c")}88`,
-                      background: paying || !syncReady ? "rgba(255,255,255,.06)" : `${selectedGemSource?.color || "#c8960c"}28`,
-                      color: paying || !syncReady ? "#9f927e" : "#f2e4d1",
+                      background: paying || isPaying || !syncReady ? "rgba(255,255,255,.06)" : `${selectedGemSource?.color || "#c8960c"}28`,
+                      color: paying || isPaying || !syncReady ? "#9f927e" : "#f2e4d1",
                       fontSize: 13,
                       letterSpacing: ".06em",
                       padding: "12px 18px",
-                      cursor: paying || !syncReady ? "not-allowed" : "pointer",
+                      cursor: paying || isPaying || !syncReady ? "not-allowed" : "pointer",
                     }}
                   >
-                    {paying ? "처리 중..." : syncReady ? `리딩 열람하기 (${CRYSTAL_COST}코인)` : "원석을 조금 더 올려주세요"}
+                    {paying || isPaying ? "크리스탈 문을 여는 중..." : syncReady ? `크리스탈 문 열기 (${CRYSTAL_COST}코인)` : "원석을 조금 더 올려주세요"}
                   </button>
                   <button
                     type="button"
@@ -1378,7 +1349,7 @@ export default function CrystalSoulTarot() {
                     ))}
                   </div>
                   <div style={{ color: "#f2e2c6", fontSize: 13, lineHeight: 1.85, borderRadius: 16, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 14 }}>
-                    {summaryLine || "원석과 카드가 함께 정리한 전체 흐름이 아래 상세 상담으로 이어집니다."}
+                    {summaryLine || "원석과 카드가 함께 밝힌 빛의 결이 아래의 깊은 리딩으로 이어집니다."}
                   </div>
                 </div>
                 <div style={{ borderRadius: 22, border: "1px solid rgba(255,255,255,.12)", background: `linear-gradient(160deg, ${(selectedGemSource?.color || "#c8960c")}24, rgba(8,8,14,.82) 74%)`, backdropFilter: "blur(10px)", padding: 18, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
@@ -1411,7 +1382,7 @@ export default function CrystalSoulTarot() {
                         <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", transform: "rotateY(180deg)", borderRadius: 14, border: "1px solid rgba(255,255,255,.16)", background: "rgba(255,255,255,.08)", padding: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "#dfcaa7", lineHeight: 1.6, textAlign: "center" }}>
                           선택된 카드의 상징을
                           <br />
-                          원석 파동과 결합 중
+                          원석의 빛으로 읽는 중
                         </div>
                       </div>
                     </div>
@@ -1422,7 +1393,7 @@ export default function CrystalSoulTarot() {
 
             {loading && (
               <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,.12)", padding: 20, background: "rgba(0,0,0,.45)", marginBottom: 14 }}>
-                <p style={{ color: "#d8c7ad", fontSize: 13, margin: 0 }}>원석과 카드의 상징을 결합해 상담을 생성하고 있습니다...</p>
+                <p style={{ color: "#d8c7ad", fontSize: 13, margin: 0 }}>원석의 빛과 카드의 상징으로 크리스탈 문을 열고 있습니다...</p>
               </div>
             )}
 
@@ -1453,7 +1424,7 @@ export default function CrystalSoulTarot() {
 
                 {Array.isArray(readingPayload.masterChapters) && readingPayload.masterChapters.length ? (
                   <div className="cd-scroll-surface" style={{ marginTop: 12, borderRadius: 18, border: "1px solid rgba(255,255,255,.14)", background: "rgba(8,8,14,.62)", backdropFilter: "blur(12px)", padding: 14, maxHeight: "46vh", overflowY: "auto" }}>
-                    <h4 style={{ margin: 0, marginBottom: 10, fontFamily: "Noto Serif KR,serif", fontSize: 18 }}>마스터 7챕터 심층 상담</h4>
+                    <h4 style={{ margin: 0, marginBottom: 10, fontFamily: "Noto Serif KR,serif", fontSize: 18 }}>일곱 개의 크리스탈 문</h4>
                     <div style={{ display: "grid", gap: 10 }}>
                       {readingPayload.masterChapters.map((chapter) => (
                         <article key={chapter.no || chapter.title} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.04)", padding: 12 }}>
@@ -1478,7 +1449,7 @@ export default function CrystalSoulTarot() {
 
             {readingPayload?.summary && (
               <footer style={{ border: "1px solid rgba(255,255,255,.14)", borderRadius: 20, background: "rgba(8,8,14,.82)", padding: 16, marginBottom: 16 }}>
-                <h3 style={{ margin: 0, marginBottom: 12, fontFamily: "Noto Serif KR,serif", fontSize: 20 }}>카테고리 종합 리딩</h3>
+                <h3 style={{ margin: 0, marginBottom: 12, fontFamily: "Noto Serif KR,serif", fontSize: 20 }}>원석 오라 종합 리딩</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, marginBottom: 12 }}>
                   {[
                     ["전체 흐름", readingPayload.summary.overallFlow],
@@ -1494,7 +1465,7 @@ export default function CrystalSoulTarot() {
                   ))}
                 </div>
                 <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 13, color: "#f2e5d1", marginBottom: 6 }}><strong>실행 체크리스트</strong></div>
+                  <div style={{ fontSize: 13, color: "#f2e5d1", marginBottom: 6 }}><strong>오늘의 작은 의식</strong></div>
                   <ol style={{ margin: 0, paddingLeft: 18, color: "#e9dcc8", fontSize: 13, lineHeight: 1.8 }}>
                     {(readingPayload.summary.practicalActions || []).map((item, idx) => (
                       <li key={`${idx}-${item}`}>{item}</li>
@@ -1518,8 +1489,8 @@ export default function CrystalSoulTarot() {
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button
                 type="button"
-                onClick={requestReading}
-                disabled={loading}
+                onClick={handlePay}
+                disabled={loading || paying || isPaying}
                 style={{
                   borderRadius: 999,
                   border: "1px solid rgba(255,255,255,.24)",
@@ -1527,10 +1498,10 @@ export default function CrystalSoulTarot() {
                   color: "#e7d8c2",
                   fontSize: 12,
                   padding: "8px 12px",
-                  cursor: loading ? "not-allowed" : "pointer",
+                  cursor: loading || paying || isPaying ? "not-allowed" : "pointer",
                 }}
               >
-                다시 뽑기
+                다시 열람하기 ({CRYSTAL_COST}코인)
               </button>
               <button
                 type="button"

@@ -30,7 +30,7 @@ const SERVICE_LINKS = [
   { href: "/index.html", label: "오늘의 운세 확인하기" },
   { href: "/index.html", label: "꿀꿀 운세 확인하기" },
   { href: "/index.html?action=runCompat", label: "사주 궁합 분석하기" },
-  { href: "/index.html?action=openTarotModal", label: "AI 타로 리딩 시작하기" },
+  { href: "/index.html?action=openTarotModal", label: "명리학 타로 시작하기" },
   { href: "/index.html?action=openZiweiModal", label: "자미두수 명반 보기" },
   { href: "/index.html?action=openSukuyoModal", label: "숙요점 궁합 바로 보기" },
   { href: "/index.html?action=openAstroModal", label: "점성술 차트 보기" },

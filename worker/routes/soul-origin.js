@@ -9,6 +9,7 @@ import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, no
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
+import { callGeminiText } from "../lib/gemini.js";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
@@ -33,6 +34,73 @@ const SOUL_ORIGIN_FEATURE_ALIASES = [
   "soul-origin",
   "premium-soul-origin-report",
 ];
+
+const SOUL_ORIGIN_LLM_KEY_ENV_KEYS = Object.freeze([
+  "SOUL_ORIGIN_GEMINI_API_KEY1",
+  "SOUL_ORIGIN_GEMINI_API_KEY2",
+  "SOUL_ORIGIN_GEMINI_API_KEY3",
+  "SOUL_ORIGIN_GEMINI_API_KEY4",
+  "SOUL_ORIGIN_GEMINI_API_KEY5",
+  "SOUL_ORIGIN_GEMINI_API_KEY6",
+  "SOUL_ORIGIN_GEMINI_API_KEY7",
+  "SOUL_ORIGIN_GEMINI_API_KEY8",
+  "PREMIUM_GEMINI_API_KEY1",
+  "PREMIUM_GEMINI_API_KEY2",
+  "PREMIUM_GEMINI_API_KEY3",
+  "PREMIUM_GEMINI_API_KEY4",
+  "PREMIUM_GEMINI_API_KEY5",
+  "GEMINI_API_KEY",
+  "GEMINIF_API_KEY1",
+  "GEMINIF_API_KEY2",
+  "GEMINIF_API_KEY3",
+  "GEMINIF_API_KEY4",
+  "GEMINIF_API_KEY5",
+  "GEMINIF_API_KEY6",
+  "GEMINIF_API_KEY7",
+  "GEMINIF_API_KEY8",
+  "GOOGLE_GEMINI_API_KEY",
+]);
+const SOUL_ORIGIN_LLM_MODEL_ENV_KEYS = Object.freeze([
+  "SOUL_ORIGIN_GEMINI_MODEL",
+  "PREMIUM_GEMINI_MODEL",
+  "GEMINI_MODEL",
+]);
+const SOUL_ORIGIN_DEFAULT_TONE_PRESET = "default";
+const SOUL_ORIGIN_DEFAULT_TONE_INTENSITY = 2;
+const SOUL_ORIGIN_TONE_INTENSITY_MIN = 1;
+const SOUL_ORIGIN_TONE_INTENSITY_MAX = 5;
+const SOUL_ORIGIN_TONE_PRESETS = Object.freeze({
+  default: {
+    label: "균형 상담형",
+    direction: "사주와 사주/점성/베다/자미두수를 한 번에 엮되, 감정은 공감으로, 해결은 실행으로 마무리",
+    weights: { love: 3, career: 3, money: 3, fortune: 3, identity: 3 },
+  },
+  emotion_first: {
+    label: "감정 우선형",
+    direction: "공감과 위로를 더 깊게 깔고, 관계 문장을 부드럽게 늘려 공감 선호 독자에게 집중",
+    weights: { love: 6, career: 2, money: 2, fortune: 3, identity: 4 },
+  },
+  direct_action: {
+    label: "결과 액션형",
+    direction: "감정만 공허하게 감싸지 않고, 판단 기준·실행 순서를 짧고 명확하게 제시",
+    weights: { love: 2, career: 5, money: 4, fortune: 4, identity: 3 },
+  },
+  relationship_focus: {
+    label: "연애/관계 집중형",
+    direction: "연애·인간관계의 의사결정 패턴, 상처 반복, 재연결/거리두기의 리듬을 중심으로 정밀 해석",
+    weights: { love: 7, career: 2, money: 2, fortune: 3, identity: 3 },
+  },
+  money_focus: {
+    label: "재물·직장 집중형",
+    direction: "재물흐름·투자 판단·직업 전환 임계점을 실행 가능한 언어로 연결",
+    weights: { love: 1, career: 6, money: 7, fortune: 3, identity: 2 },
+  },
+  destiny_focus: {
+    label: "운명 예측형",
+    direction: "시기 전환, 미래 리스크, 타이밍 판단을 구조적으로 강조해 앞선 흐름을 구체 예측",
+    weights: { love: 2, career: 4, money: 4, fortune: 7, identity: 4 },
+  },
+});
 
 const MIN_CATEGORY_CHARS = 900;
 const MIN_CHAPTER_CHARS = 4000;
@@ -1022,26 +1090,389 @@ function buildCategoryText(localSeed, chapter, categoryTitle, categoryIndex) {
   return ensureCategoryLength(stripForbiddenTokens(body.join("\n\n")), chapterId);
 }
 
-function buildSoulOriginChapters(localSeed) {
-  return CHAPTER_BLUEPRINTS.map((chapter) => {
-    const categories = chapter.categories.map((title, idx) => {
-      const body = buildCategoryText(localSeed, chapter, title, idx);
-      return {
-        id: `${chapter.id}-${String(idx + 1).padStart(2, "0")}`,
-        title,
-        body,
-      };
-    });
+function safeJsonForPrompt(value) {
+  return JSON.stringify(value, null, 2)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+}
 
+function extractSoulOriginJsonObject(text = "") {
+  const raw = clean(text)
+    .replace(/^\s*```(?:json|javascript|js)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+  try {
+    return JSON.parse(raw);
+  } catch (_) {}
+
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start >= 0 && end > start) {
+    try {
+      return JSON.parse(raw.slice(start, end + 1));
+    } catch (_) {}
+  }
+
+  throw Object.assign(new Error("SOUL_ORIGIN_LLM_JSON_PARSE_FAILED"), { code: "SOUL_ORIGIN_LLM_JSON_PARSE_FAILED" });
+}
+
+function normalizeTonePreset(value) {
+  const raw = clean(value || "").toLowerCase().replace(/[\s]/g, "_");
+  if (!raw || !SOUL_ORIGIN_TONE_PRESETS[raw]) {
+    return SOUL_ORIGIN_DEFAULT_TONE_PRESET;
+  }
+  return raw;
+}
+
+function normalizeToneIntensity(value) {
+  const raw = Number(value);
+  if (!Number.isFinite(raw)) {
+    return SOUL_ORIGIN_DEFAULT_TONE_INTENSITY;
+  }
+  const parsed = Math.round(raw);
+  if (parsed < SOUL_ORIGIN_TONE_INTENSITY_MIN || parsed > SOUL_ORIGIN_TONE_INTENSITY_MAX) {
+    return SOUL_ORIGIN_DEFAULT_TONE_INTENSITY;
+  }
+  return parsed;
+}
+
+function normalizeToneWeight(value, fallback = 0) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  const clamped = Math.max(0, Math.min(10, Math.round(parsed)));
+  return Number.isFinite(clamped) ? clamped : fallback;
+}
+
+function buildSoulOriginToneProfile(rawTone = {}) {
+  const preset = normalizeTonePreset(rawTone?.tonePreset || SOUL_ORIGIN_DEFAULT_TONE_PRESET);
+  const intensity = normalizeToneIntensity(rawTone?.toneIntensity);
+  const presetConfig = SOUL_ORIGIN_TONE_PRESETS[preset] || SOUL_ORIGIN_TONE_PRESETS.default;
+  const customWeight = rawTone?.toneWeights && typeof rawTone.toneWeights === "object" ? rawTone.toneWeights : {};
+  const mergedWeights = {
+    love: normalizeToneWeight(customWeight?.love, Number(presetConfig.weights?.love || 3)),
+    career: normalizeToneWeight(customWeight?.career, Number(presetConfig.weights?.career || 3)),
+    money: normalizeToneWeight(customWeight?.money, Number(presetConfig.weights?.money || 3)),
+    fortune: normalizeToneWeight(customWeight?.fortune, Number(presetConfig.weights?.fortune || 3)),
+    identity: normalizeToneWeight(customWeight?.identity, Number(presetConfig.weights?.identity || 3)),
+  };
+  return {
+    preset,
+    presetLabel: presetConfig.label,
+    intensity,
+    direction: presetConfig.direction,
+    weights: mergedWeights,
+  };
+}
+
+function formatWeightSummary(weights = {}) {
+  const normalized = {
+    love: Number(weights?.love || 0),
+    career: Number(weights?.career || 0),
+    money: Number(weights?.money || 0),
+    fortune: Number(weights?.fortune || 0),
+    identity: Number(weights?.identity || 0),
+  };
+  return Object.keys(normalized).map((key) => `${key}=${normalized[key]}`).join(", ");
+}
+
+function buildSoulOriginTonePrompt(toneProfile = {}) {
+  return [
+    `현재 상담 톤 프리셋: ${toneProfile?.presetLabel || SOUL_ORIGIN_TONE_PRESETS.default.label}.`,
+    `상담 강도: ${toneProfile?.intensity || SOUL_ORIGIN_DEFAULT_TONE_INTENSITY}(1~5).`,
+    `가중치 프리셋 적용: ${formatWeightSummary(toneProfile?.weights || {})}.`,
+    `방향성: ${toneProfile?.direction || SOUL_ORIGIN_TONE_PRESETS.default.direction}.`,
+    "실행형 문장(권고/주의/회피) 비중을 톤 강도에 맞춰 늘리고, 같은 표현 반복은 줄인다.",
+  ].join("\n");
+}
+
+function buildSoulOriginPromptSeed(localSeed = {}) {
+  const signals = localSeed?.signals || {};
+  const saju = localSeed?.saju || {};
+  const ziwei = localSeed?.ziwei || {};
+  const astro = localSeed?.astro || {};
+  const vedic = localSeed?.vedic || {};
+  const sukyo = localSeed?.sukyo || {};
+
+  return {
+    profile: {
+      name: clean(localSeed?.birthInput?.name || "\uC758\uB7EC\uC778"),
+      birthDate: clean(localSeed?.birthInput?.birthDate),
+      birthTime: clean(localSeed?.birthInput?.birthTime),
+      timezone: clean(localSeed?.birthInput?.timezone || "Asia/Seoul"),
+      birthPlace: clean(localSeed?.birthInput?.birthPlace || "Korea"),
+    },
+    saju: {
+      dayMaster: clean(saju?.core?.dayMaster),
+      tenGod: clean(saju?.core?.tenGod),
+      yongshin: clean(saju?.core?.yongshin),
+      heesin: clean(saju?.core?.heesin),
+      gisin: clean(saju?.core?.gisin),
+      pillars: clean(saju?.pillars || ""),
+      yinYang: clean(saju?.balance?.yinYang || ""),
+      dominantElement: clean(signals.dominantElement || ""),
+      deficientElement: clean(signals.deficientElement || ""),
+    },
+    ziwei: {
+      mingGong: clean(ziwei?.chartMeta?.mingGong || ""),
+      shenGong: clean(ziwei?.chartMeta?.shenGong || ""),
+      stars: clean(ziwei?.chartText || ""),
+    },
+    astrology: {
+      sun: clean(astro?.sun || ""),
+      moon: clean(astro?.moon || ""),
+      ascendant: clean(astro?.ascendant || ""),
+      majorTransit: clean(signals.astro || ""),
+    },
+    vedic: {
+      lagna: clean(vedic?.lagna || ""),
+      nakshatra: clean(vedic?.moonNakshatra || ""),
+      dasha: clean(vedic?.dasha?.current || ""),
+      flow: clean(signals.vedic || ""),
+    },
+    sukyo: {
+      natalStar: clean(sukyo?.natalStar || ""),
+      pattern: clean(sukyo?.pattern || ""),
+      karmicTheme: clean(sukyo?.karmicTheme || ""),
+    },
+    signalAnchors: {
+      keywords: Object.keys(TOPIC_KEYWORDS || {}).flatMap((chapterId) => TOPIC_KEYWORDS[chapterId] || []),
+      requiredChapters: CHAPTER_BLUEPRINTS.map((chapter) => `${chapter.id}:${chapter.title}`),
+      summary: clean(summarizeSignal(localSeed)),
+    },
+  };
+}
+
+function buildSoulOriginChapterPrompt({ chapter, blueprint = {}, localSeed = {}, toneProfile = {} }) {
+  const chapterId = String(chapter?.id || blueprint?.id || "").padStart(2, "0");
+  const categoryNames = Array.isArray(blueprint?.categories) ? blueprint.categories : [];
+  const safeCategories = categoryNames.map((title) => clean(title)).filter(Boolean);
+  const sectionShape = safeCategories.map((title) => ({
+    title,
+    body: `...`,
+  }));
+  const seed = buildSoulOriginPromptSeed(localSeed);
+  return [
+    "?먮쫾?ㄴ?먯쥾 ?대? ?덈쓬?",
+    "네가 해야 할 일:",
+    "- 출력은 순수 JSON 한 개만 반환. 설명 텍스트, 코드블록, ``` 절대 금지.",
+    "- 로컬 계산 엔진의 결과를 상담 맥락으로 재해석해 1장의 해석을 작성.",
+    "- 사주/자미두수/점성/베다/숙요점 데이터 간 인과 고리를 실제 인간 상황(연애·직장·재물·관계)으로 연결.",
+    "- 이 장은 반드시 사용자 성향-과거-시기 구조로 1인칭 상담문장으로 끝나야 함.",
+    "- 각 섹션 본문에는 다음 소제목 문자열을 모두 1회 이상 반드시 포함: " + SECTION_TITLES.map((heading) => `"${heading}"`).join(", "),
+    "- 섹션은 총 5개, 각 본문은 최소 900자 이상, 중복 표현 금지(특히 고정 패턴 반복 금지).",
+    "- 출력 스키마:",
+    safeJsonForPrompt({
+      id: chapterId,
+      title: clean(blueprint?.title || chapter?.title || ""),
+      subtitle: clean(blueprint?.subtitle || ""),
+      sections: sectionShape,
+    }),
+    "",
+    "tone settings:",
+    buildSoulOriginTonePrompt(toneProfile),
+    "",
+    "seed snapshot:",
+    safeJsonForPrompt(seed),
+  ].join("\n");
+}
+
+async function callSoulOriginGemini(env, prompt, options = {}) {
+  const result = await callGeminiText(env, prompt, {
+    keyEnvKeys: SOUL_ORIGIN_LLM_KEY_ENV_KEYS,
+    modelEnvKeys: SOUL_ORIGIN_LLM_MODEL_ENV_KEYS,
+    temperature: Number(env?.SOUL_ORIGIN_GEMINI_TEMPERATURE || env?.PREMIUM_GEMINI_TEMPERATURE || 0.35),
+    topP: Number(env?.SOUL_ORIGIN_GEMINI_TOP_P || env?.PREMIUM_GEMINI_TOP_P || 0.9),
+    maxOutputTokens: Number(env?.SOUL_ORIGIN_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 24576),
+    timeoutMs: Number(env?.SOUL_ORIGIN_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
+    totalTimeoutMs: Number(env?.SOUL_ORIGIN_GEMINI_TOTAL_TIMEOUT_MS || env?.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 0),
+    maxAttemptsPerPair: Number(env?.SOUL_ORIGIN_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 2),
+    metadata: options?.metadata || {},
+  });
+  if (!result?.ok || !clean(result?.text)) {
+    throw Object.assign(new Error(clean(result?.message || "운명의 업 챕터 LLM 호출 실패.")), {
+      code: clean(result?.error || "SOUL_ORIGIN_LLM_GENERATION_FAILED"),
+      status: Number(result?.status || 502),
+      details: { ...(result?.status ? { status: result.status } : {}) },
+    });
+  }
+  return clean(result.text);
+}
+
+function normalizeSoulOriginLlmChapter(parsed = {}, blueprint = {}) {
+  const chapterId = String(blueprint?.id || clean(parsed?.id || ""));
+  const expected = CHAPTER_BLUEPRINTS.find((item) => clean(item.id) === String(chapterId)) || blueprint || {};
+  const expectedTitles = Array.isArray(expected?.categories) ? expected.categories : [];
+  const parsedSections = Array.isArray(parsed?.sections) ? parsed.sections : [];
+
+  const sections = expectedTitles.map((title, index) => {
+    const srcSection = parsedSections[index] || {};
+    const sectionBody = ensureCategoryLength(stripForbiddenTokens(clean(srcSection?.body || "")), chapterId);
     return {
-      id: chapter.id,
-      title: chapter.title,
-      subtitle: chapter.subtitle,
-      sections: categories,
-      text: categories.map((section) => `${section.title}\n\n${section.body}`).join("\n\n"),
-      source: "local-only",
+      id: `${String(chapterId || "").padStart(2, "0")}-${String(index + 1).padStart(2, "0")}`,
+      title: clean(srcSection?.title || title || ""),
+      body: sectionBody,
     };
   });
+
+  const chapterText = sections.map((section) => `${section.title}\n\n${section.body}`).join("\n\n");
+
+  return {
+    id: String(expected.id || chapterId).padStart(2, "0"),
+    title: clean(parsed?.title || expected.title || ""),
+    subtitle: clean(parsed?.subtitle || expected.subtitle || ""),
+    sections,
+    text: chapterText,
+    source: "llm-only",
+  };
+}
+
+function validateSoulOriginGeneratedChapter(chapter = {}, blueprint = {}) {
+  const expected = CHAPTER_BLUEPRINTS.find((item) => String(item.id) === String(blueprint?.id || chapter?.id || "")) || blueprint || {};
+  const expectedTitles = Array.isArray(expected.categories) ? expected.categories : [];
+  const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
+
+  if (clean(chapter?.id) !== clean(expected.id)) {
+    return { ok: false, errors: [`chapter_${clean(chapter?.id || "")}_title`] };
+  }
+  if (clean(chapter?.title || "") !== clean(expected.title || "")) {
+    return { ok: false, errors: ["chapter_title_mismatch"] };
+  }
+  if (sections.length !== expectedTitles.length) {
+    return { ok: false, errors: ["chapter_section_count"] };
+  }
+  if (clean(chapter?.subtitle || "") !== clean(expected.subtitle || "")) {
+    return { ok: false, errors: ["chapter_subtitle_mismatch"] };
+  }
+
+  const errors = [];
+  let chapterChars = 0;
+  sections.forEach((section, index) => {
+    const expectedTitle = clean(expectedTitles[index] || "");
+    const title = clean(section?.title || "");
+    const body = stripForbiddenTokens(section?.body || "");
+    if (expectedTitle && title !== expectedTitle) {
+      errors.push(`chapter_${expected.id}_section_${index + 1}_title`);
+    }
+    if (body.length < MIN_CATEGORY_CHARS) {
+      errors.push(`chapter_${expected.id}_section_${index + 1}_short`);
+    }
+    if (hasForbiddenText(body)) {
+      errors.push(`chapter_${expected.id}_section_${index + 1}_forbidden`);
+    }
+    SECTION_TITLES.forEach((heading) => {
+      if (!body.includes(heading)) {
+        errors.push(`chapter_${expected.id}_section_${index + 1}_heading_missing`);
+      }
+    });
+    chapterChars += body.length;
+  });
+
+  if (chapterChars < MIN_CHAPTER_CHARS) {
+    errors.push(`chapter_${expected.id}_total_short`);
+  }
+
+  return {
+    ok: errors.length === 0,
+    errors,
+    totalChars: sections.reduce((sum, section) => sum + stripForbiddenTokens(section?.body || "").length, 0),
+  };
+}
+
+async function generateSoulOriginChaptersByLLM(env, { localSeed, toneProfile = {}, requestId = "" }) {
+  const chapters = [];
+  for (let index = 0; index < CHAPTER_BLUEPRINTS.length; index += 1) {
+    const blueprint = CHAPTER_BLUEPRINTS[index];
+    const chapterId = String(blueprint?.id || "").padStart(2, "0");
+    logFlow("LLMChapterStart", {
+      requestId,
+      chapterId,
+      chapterIndex: index + 1,
+      totalChapters: CHAPTER_BLUEPRINTS.length,
+      stage: "llm-generation",
+    });
+
+    const prompt = buildSoulOriginChapterPrompt({
+      chapter: blueprint,
+      blueprint,
+      localSeed,
+      toneProfile,
+    });
+
+    let text;
+    try {
+      text = await callSoulOriginGemini(env, prompt, {
+        metadata: { requestId, chapterNumber: chapterId, stage: "soul-origin-l1" },
+      });
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error("운명의 업 챕터 LLM 호출에 실패했습니다.");
+      err.code = clean(err.code || "SOUL_ORIGIN_LLM_GENERATION_FAILED");
+      err.status = Number(err.status || 502);
+      err.chapter = chapterId;
+      err.stage = "llm-generation";
+      err.step = "call";
+      logFlow("LLMChapterFailed", {
+        requestId,
+        chapterId,
+        chapterIndex: index + 1,
+        errorCode: clean(err.code),
+        stage: "llm-generation",
+      });
+      throw err;
+    }
+
+    const parsed = extractSoulOriginJsonObject(text);
+    const chapter = normalizeSoulOriginLlmChapter(parsed, blueprint);
+    const validation = validateSoulOriginGeneratedChapter(chapter, blueprint);
+    if (!validation.ok) {
+      const err = new Error(`챕터 ${blueprint?.id} LLM 생성 검증 실패.`);
+      err.code = "SOUL_ORIGIN_LLM_CHAPTER_VALIDATION_FAILED";
+      err.status = 502;
+      err.details = validation;
+      err.chapter = blueprint?.id;
+      err.stage = "llm-generation";
+      logFlow("LLMChapterValidationFailed", {
+        requestId,
+        chapterId,
+        chapterIndex: index + 1,
+        errorCode: "SOUL_ORIGIN_LLM_CHAPTER_VALIDATION_FAILED",
+        errorCount: Number(Array.isArray(validation?.errors) ? validation.errors.length : 0),
+        stage: "llm-generation",
+      });
+      throw err;
+    }
+    chapter.source = "llm-only";
+    logFlow("LLMChapterSuccess", {
+      requestId,
+      chapterId,
+      chapterIndex: index + 1,
+      sectionCount: Number(Array.isArray(chapter?.sections) ? chapter.sections.length : 0),
+      totalChars: Number((chapter?.text || "").length || 0),
+      stage: "llm-generation",
+    });
+    chapters.push(chapter);
+  }
+  const finalValidation = validateFinalManuscript(chapters);
+  if (!finalValidation.ok) {
+    const err = new Error("운명의 업 전체 챕터 검증 실패.");
+    err.code = "SOUL_ORIGIN_LLM_MANUSCRIPT_VALIDATION_FAILED";
+    err.status = 502;
+    err.details = finalValidation;
+    err.stage = "llm-generation";
+    logFlow("LLMManuscriptValidationFailed", {
+      requestId,
+      errorCode: "SOUL_ORIGIN_LLM_MANUSCRIPT_VALIDATION_FAILED",
+      errorCount: Number(Array.isArray(finalValidation?.errors) ? finalValidation.errors.length : 0),
+      stage: "llm-generation",
+    });
+    throw err;
+  }
+  logFlow("LLMGenerationComplete", {
+    requestId,
+    chapterCount: Number(chapters.length || 0),
+    stage: "llm-generation",
+  });
+  return chapters;
 }
 
 function countRepeatedSentences(chapters = []) {
@@ -1455,19 +1886,25 @@ async function handlePrepare(request, env) {
     const localSeed = await buildSoulOriginLocalSeed(env, birthInput);
     logFlow("LocalCalcSuccess", { requestId, sessionId, reportId });
 
-    let chapters = buildSoulOriginChapters(localSeed);
-    let validation = validateFinalManuscript(chapters);
-    if (!validation.ok) {
-      chapters = buildSoulOriginChapters(localSeed);
-      validation = validateFinalManuscript(chapters);
-      if (!validation.ok) {
-        const err = new Error("운명의 업 원고를 품질 기준에 맞게 완성하지 못했습니다.");
-        err.code = "SOUL_ORIGIN_MANUSCRIPT_INVALID";
-        err.status = 422;
-        err.details = validation;
-        throw err;
-      }
-    }
+    const toneProfile = buildSoulOriginToneProfile({
+      tonePreset: clean(body?.tonePreset ?? body?.tone?.preset ?? body?.tone?.tonePreset),
+      toneIntensity: clean(body?.toneIntensity ?? body?.tone?.intensity ?? body?.tone?.toneLevel),
+      toneWeights: body?.toneWeights || body?.tone?.weights || body?.toneProfile?.weights,
+    });
+
+    logFlow("LLMGenerationStart", { requestId, sessionId, reportId, stage: "llm-generation" });
+    const chapters = await generateSoulOriginChaptersByLLM(env, {
+      localSeed,
+      toneProfile,
+      requestId,
+    });
+    logFlow("LLMGenerationSuccess", {
+      requestId,
+      sessionId,
+      reportId,
+      stage: "llm-generation",
+      chapterCount: Number(chapters?.length || 0),
+    });
 
     const summary = summarizeSignal(localSeed);
     const generatedAt = new Date().toISOString();
@@ -1496,6 +1933,7 @@ async function handlePrepare(request, env) {
       status: "completed",
       serverStatus: "completed",
       qualityStatus: "passed",
+      manuscriptSource: "llm-only",
       serviceKey: SOUL_ORIGIN_SERVICE_KEY,
       featureKey,
       reportType: "soulOriginKarma",
@@ -1506,6 +1944,12 @@ async function handlePrepare(request, env) {
       summary,
       birthInput,
       chapters,
+      toneProfile: {
+        preset: toneProfile.preset,
+        presetLabel: toneProfile.presetLabel,
+        intensity: toneProfile.intensity,
+        weights: toneProfile.weights,
+      },
       pdfReady,
       downloadUrl: clean(pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
       pdfUrl: clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl),
@@ -1516,7 +1960,7 @@ async function handlePrepare(request, env) {
     };
 
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
-      manuscriptSource: "local-only",
+      manuscriptSource: "llm-only",
       chapterCount: chapters.length,
       archive: {
         reportId,
@@ -1529,6 +1973,12 @@ async function handlePrepare(request, env) {
         chapters,
         localSeed,
         pdfReady,
+        toneProfile: {
+          preset: toneProfile.preset,
+          presetLabel: toneProfile.presetLabel,
+          intensity: toneProfile.intensity,
+          weights: toneProfile.weights,
+        },
         downloadUrl: clean(pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
         pdfUrl: clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl),
         htmlUrl: clean(pdfReady.htmlUrl || pdfReady.pdfUrl || pdfReady.downloadUrl),
@@ -1612,7 +2062,8 @@ async function handlePrepare(request, env) {
       debugSafe: {
         reportId,
         sessionId,
-        stage: "local-only-generation",
+        stage: error?.code?.includes("LLM") ? "llm-generation" : "soul-origin-generation",
+        manuscriptSource: "llm-only",
       },
     }, { status: Number(error?.status || 500) });
   }

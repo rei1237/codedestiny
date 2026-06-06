@@ -4,6 +4,7 @@ import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { ASTRO_PREMIUM_CHAPTERS, ASTRO_PREMIUM_FEATURE_KEY } from "../lib/astro-premium-chapters.js";
 import {
+  buildAstroLocalChartJson,
   generateAstroPremiumReport,
   hasUsableSwissAstroChart,
   normalizeAstroPremiumBirthInput,
@@ -11,6 +12,7 @@ import {
 } from "../lib/astro-premium-generator.js";
 import { VEDIC_PREMIUM_CHAPTERS, VEDIC_PREMIUM_FEATURE_KEY } from "../lib/vedic-premium-chapters.js";
 import {
+  buildVedicLocalChartJson,
   fallbackChartSourceFromBirthInput,
   generateVedicPremiumReport,
   normalizeVedicError,
@@ -51,13 +53,23 @@ function normalizeChartInput(body = {}) {
 async function handleAstroWesternChart(request, env) {
   const body = await readJson(request);
   const chart = await getSwissWesternChart(env, normalizeChartInput(body), { requestUrl: request.url });
-  return json({ ok: true, ...chart });
+  const localAstroChartJson = buildAstroLocalChartJson(
+    normalizeAstroPremiumBirthInput(body),
+    chart,
+    null,
+    { strictPremium: false },
+  );
+  return json({ ok: true, ...chart, insights: localAstroChartJson.insights, localAstroChartJson });
 }
 
 async function handleVedicPlanets(request, env) {
   const body = await readJson(request);
   const result = await getSwissVedicPlanets(env, normalizeChartInput(body), { requestUrl: request.url });
-  return json({ ok: true, ...result });
+  const localVedicChartJson = buildVedicLocalChartJson({
+    ...body,
+    chart: result,
+  }, { strictPremium: false });
+  return json({ ok: true, ...result, insights: localVedicChartJson.insights, localVedicChartJson });
 }
 
 function readPremiumAccessToken(request, body = {}) {
@@ -91,7 +103,7 @@ function toAstroFailureTrace(error, body = {}, birthInput = {}) {
   const providedSwissChart = body?.swissChart || body?.chart;
   const providedAstroBase = body?.astroBase || body?.payload?.localAstroChartJson?.chart || body?.payload?.localAstroChartJson;
   return {
-    stage: clean(error?.stage || details?.stage || "local-only-generation") || "local-only-generation",
+    stage: clean(error?.stage || details?.stage || "llm-generation") || "llm-generation",
     code: clean(error?.code) || null,
     message: clean(error?.message || "unknown"),
     hasBirthInput: Boolean(clean(birthInput?.birthDate)),
@@ -479,7 +491,7 @@ async function handleAstroPremiumPrepare(request, env) {
       localAstroChartJson: generated.localAstroChartJson,
       validation: generated.validation,
       validationWarning: Boolean(generated?.validationWarning),
-      manuscriptSource: "local-only",
+      manuscriptSource: clean(generated?.manuscriptSource || "gemini-chapter"),
       quality: generated.quality,
       finalManuscript: generated.finalManuscript,
       totalLength: generated.totalLength,
@@ -549,7 +561,7 @@ async function handleAstroPremiumPrepare(request, env) {
       code: error?.code || "ASTRO_PREMIUM_GENERATION_FAILED",
       message: userFacingMessage,
       debugSafe: {
-        stage: "local-only-generation",
+        stage: "llm-generation",
         sessionId,
         reportId: clean(body?.reportId || body?.accessGrant?.reportId),
         originalCode: error?.code || null,
@@ -691,7 +703,7 @@ async function handleVedicPremiumPrepare(request, env) {
     const generated = await generateVedicPremiumReport(env, preparedPayload, {
       log: (stage, payload) => {
         const tag = `[VedicPremiumPDF][${stage}]`;
-        if (stage === "LLMEnhanceFailedUseLocal") {
+        if (stage === "LLMManuscriptFailed") {
           console.warn(tag, payload || {});
           return;
         }
@@ -762,7 +774,7 @@ async function handleVedicPremiumPrepare(request, env) {
       canReopen: true,
       canDownload: true,
       quality: generated.quality,
-      manuscriptSource: "local-only",
+      manuscriptSource: generated.manuscriptSource,
       localDraftChapterCount: Array.isArray(generated?.localDraft?.chapters) ? generated.localDraft.chapters.length : 0,
       finalChapterCount: Array.isArray(generated?.chapters) ? generated.chapters.length : 0,
     };

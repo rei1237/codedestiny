@@ -9,7 +9,7 @@ import LifeFortuneGraph, {
 
 const SERVICE_KEY = "saju-lifebook";
 const FEATURE_KEY = "saju_life_book_pdf";
-const LIFEBOOK_TEMPORARY_FREE = true;
+const LIFEBOOK_TEMPORARY_FREE = false;
 
 const STEP_LABELS = [
   "프로필 정보를 확인하는 중입니다",
@@ -330,6 +330,28 @@ export default function SajuLifebookPage() {
   };
 
   const handlePrint = () => {
+    const html = String(result?.pdfReady?.html || "").trim();
+    if (html) {
+      const popup = window.open("", "_blank", "noopener,noreferrer,width=980,height=1280");
+      if (!popup) {
+        setError("브라우저 팝업이 차단되었습니다. 팝업 허용 후 다시 시도해 주세요.");
+        return;
+      }
+
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      const blobUrl = URL.createObjectURL(blob);
+      popup.location.href = blobUrl;
+      setTimeout(() => {
+        try {
+          popup.focus();
+          popup.print();
+        } finally {
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 1200);
+        }
+      }, 500);
+      return;
+    }
+
     const url = String(
       result?.pdfUrl
       || result?.downloadUrl
@@ -341,33 +363,14 @@ export default function SajuLifebookPage() {
     ).trim();
 
     if (url) {
-      window.open(url, "_blank", "noopener,noreferrer");
+      const documentUrl = url.includes("/api/premium/pdf-archive/") && !/[?&]format=/.test(url)
+        ? `${url}${url.includes("?") ? "&" : "?"}format=html`
+        : url;
+      window.open(documentUrl, "_blank", "noopener,noreferrer");
       return;
     }
 
-    const html = String(result?.pdfReady?.html || "").trim();
-    if (!html) {
-      setError("리포트 열람 데이터가 비어 있습니다. 다시 시도해 주세요.");
-      return;
-    }
-
-    const popup = window.open("", "_blank", "noopener,noreferrer,width=980,height=1280");
-    if (!popup) {
-      setError("브라우저 팝업이 차단되었습니다. 팝업 허용 후 다시 시도해 주세요.");
-      return;
-    }
-
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const blobUrl = URL.createObjectURL(blob);
-    popup.location.href = blobUrl;
-    setTimeout(() => {
-      try {
-        popup.focus();
-        popup.print();
-      } finally {
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 1200);
-      }
-    }, 500);
+    setError("리포트 열람 데이터가 비어 있습니다. 다시 시도해 주세요.");
   };
 
   return (

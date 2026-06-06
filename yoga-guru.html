@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Divya Yoga — Sacred Practice Portal</title>
 <script src="/js/inline/api-base-init.js" defer></script>
+<script src="/js/destiny-profile.js?v=build-dc8b1dedfe26"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Noto+Sans+Devanagari:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -1470,7 +1471,7 @@ function _showMeditationDeductedUi(cost, balanceAfter) {
   var toast = document.getElementById('cdMeditationPayToast');
   if (!toast) return;
 
-  var msg = '🪙 ' + Number(cost || 0) + '코인 차감 완료';
+  var msg = '이용 권한 확인 완료';
   if (typeof balanceAfter === 'number' && Number.isFinite(balanceAfter)) {
     msg += ' · 잔액 ' + Number(balanceAfter).toLocaleString('ko-KR') + '코인';
   }
@@ -1486,50 +1487,86 @@ function _showMeditationDeductedUi(cost, balanceAfter) {
 async function _consumeMeditationCoin(cost, reason) {
   if (_isAdminMeditationSession()) return true;
 
+  var requestId = 'yoga:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+  function syncYogaBilling(payload, txId) {
+    var source = payload && typeof payload === 'object' ? payload : {};
+    var data = source.data && typeof source.data === 'object' ? source.data : {};
+    var consume = source.consume && typeof source.consume === 'object' ? source.consume : (data.consume && typeof data.consume === 'object' ? data.consume : {});
+    _cdYogaLastTx = String(txId || source.transactionId || source.paymentId || source.purchaseId || consume.transactionId || consume._id || requestId);
+    var nextBalance = Number(source.balance ?? data.balance ?? (source.user && source.user.points) ?? (data.user && data.user.points));
+    if (Number.isFinite(nextBalance) && nextBalance >= 0) {
+      try {
+        var nextUser = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
+        nextUser.points = nextBalance;
+        localStorage.setItem('fortune_auth_user', JSON.stringify(nextUser));
+      } catch (_) {}
+      if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nextBalance);
+      _showMeditationDeductedUi(cost, nextBalance);
+    } else {
+      _showMeditationDeductedUi(cost, null);
+    }
+  }
+
+  if (typeof window._cdCoinGatePerUse === 'function') {
+    var granted = false;
+    _showMeditationPaymentUi('요가 구루 명상 코스 결제 권한을 확인하는 중입니다...');
+    try {
+      var gateResult = window._cdCoinGatePerUse(cost, reason, function(transactionId, payload) {
+        granted = true;
+        syncYogaBilling(payload, transactionId);
+      }, function() {
+        granted = false;
+      }, {
+        featureKey: 'yoga-guru-per-use',
+        serviceKey: 'yoga-guru',
+        action: 'openYogaGuru',
+        forceDeduct: true,
+        requestId: requestId
+      });
+      if (gateResult && typeof gateResult.then === 'function') gateResult = await gateResult;
+      if (!granted && gateResult && typeof gateResult === 'object') {
+        var payload = gateResult.payload && typeof gateResult.payload === 'object' ? gateResult.payload : gateResult;
+        var status = String(gateResult.status || payload.status || '').toLowerCase();
+        if (status === 'granted' || status === 'paid' || status === 'success' || payload.accessGrant || payload.premiumAccessToken || payload.consume) {
+          granted = true;
+          syncYogaBilling(payload, gateResult.transactionId);
+        }
+      }
+      return granted;
+    } catch (_) {
+      window.alert('결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      return false;
+    } finally {
+      _hideMeditationPaymentUi();
+    }
+  }
+
   var token = await _resolveMeditationAuthToken();
   if (!token) {
     _redirectLoginForMeditation();
     return false;
   }
 
-  var pts = 0;
-  try { pts = Number(JSON.parse(localStorage.getItem('fortune_auth_user') || '{}').points || 0); } catch (_) { pts = 0; }
-  if (pts < cost) {
-    window.alert('🐷 꽃돼지 코인이 부족해요!\n이용에 ' + cost + '코인 필요 / 현재: ' + pts + '코인\n충전 후 이용해 주세요.');
-    return false;
-  }
-
   _showMeditationPaymentUi('요가 구루 명상 코스 결제를 확인하는 중입니다...');
   try {
-    var r = await fetch('/api/fortune/pig-coin/consume', {
+    var r = await fetch('/api/billing/coin-gate', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ cost: cost, reason: reason, featureKey: 'yoga-guru-per-use', forceDeduct: true, requestId: 'yoga:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9) })
+      body: JSON.stringify({ cost: cost, coinPrice: cost, reason: reason, featureKey: 'yoga-guru-per-use', serviceKey: 'yoga-guru', action: 'openYogaGuru', paymentMode: 'COIN', forceDeduct: true, requestId: requestId })
     });
     var d = {};
     try { d = await r.json(); } catch (_) { d = {}; }
 
     if (r.status === 402 || !r.ok) {
-      window.alert('🐷 꽃돼지 코인이 부족해요!\n충전 후 이용해 주세요.');
+      window.alert((d && d.message) || '결제를 완료하지 못했습니다. 다시 시도해 주세요.');
       return false;
     }
 
-    _cdYogaLastTx = String((d && d.transactionId) || '');
-
-    var balanceAfter = null;
-    if (d && d.user && typeof d.user.points === 'number') {
-      balanceAfter = d.user.points;
-      try {
-        var u = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
-        u.points = d.user.points;
-        localStorage.setItem('fortune_auth_user', JSON.stringify(u));
-      } catch (_) {}
-      if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(d.user.points);
-    }
-    _showMeditationDeductedUi(cost, balanceAfter);
+    syncYogaBilling(d, '');
     return true;
   } catch (_) {
-    window.alert('코인 차감 처리 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    window.alert('결제 처리 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     return false;
   } finally {
     _hideMeditationPaymentUi();
@@ -1544,7 +1581,7 @@ async function _refundMeditationCoinForApiFailure(cost, sourceTxId, reasonTag) {
   if (!token) return false;
 
   try {
-    var rr = await fetch('/api/fortune/pig-coin/refund', {
+    var rr = await fetch('/api/billing/refund', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({
