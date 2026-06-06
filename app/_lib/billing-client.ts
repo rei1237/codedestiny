@@ -66,7 +66,7 @@ export type PaymentEligibility = {
 
 type RuntimeApiWindow = Window & {
   CODE_DESTINY_API_BASE_URL?: string;
-  _cdSetCoinGateOverlay?: (show: boolean, message?: string) => void;
+  _cdSetCoinGateOverlay?: (show: boolean, message?: string, mode?: string) => void;
   __cdPaidFeatureGate?: {
     close?: (requestId?: string) => void;
   };
@@ -310,17 +310,42 @@ function runtimeNow() {
   return Date.now();
 }
 
-function paymentModalOwnsPaidFeatureStatus(status: string) {
+function paymentLoadingOwnsPaidFeatureStatus(status: string) {
   return [
     "opening",
     "checkingEntitlement",
     "hasEntitlement",
-    "noEntitlement",
     "loadingProducts",
-    "readyToPay",
     "paymentProcessing",
     "paymentSuccess",
   ].includes(status);
+}
+
+function resolvePaidFeatureOverlay(status: string, message?: string) {
+  const text = toText(message);
+  if (status === "checkingEntitlement") {
+    return { message: "이용권을 적용하고 있습니다.", mode: "pass" };
+  }
+  if (status === "hasEntitlement") {
+    return { message: "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
+  }
+  if (status === "paymentSuccess") {
+    if (/이용권 적용|이용권으로|pass_applied|membership/i.test(text)) {
+      return { message: "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
+    }
+    return { message: text || "이용 권한 저장이 완료되었습니다.", mode: "unlock-saving" };
+  }
+  if (status === "opening" || status === "loadingProducts") {
+    return { message: text || "결제 가능한 수단을 확인하고 있습니다.", mode: "checkout" };
+  }
+  if (status === "paymentProcessing") {
+    const lower = text.toLowerCase();
+    if (/월정석|monthly|moonstone/.test(lower)) return { message: text || "월정석 잔량을 반영하고 있습니다.", mode: "monthly" };
+    if (/구독|subscription|이용권 결제|플랜/.test(lower)) return { message: text || "달빛 이용권 결제를 확인하고 있습니다.", mode: "subscription" };
+    if (/저장|해금|권한/.test(lower)) return { message: text || "이용 권한을 저장하고 있습니다.", mode: "unlock-saving" };
+    return { message: text || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: "confirm" };
+  }
+  return { message: text || "결제 상태를 안전하게 확인하고 있습니다.", mode: "payment" };
 }
 
 function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFeatureGateRuntimeDetail) {
@@ -335,27 +360,33 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
   };
   const status = String(payload.status || "checkingEntitlement");
   const copyFromStatus: Record<PaidFeatureGateRuntimeStatus, string> = {
-    opening: "결제 상태를 확인하고 있습니다.",
-    checkingEntitlement: "결제 진행 중입니다. 잠시만 기다려 주세요.",
-    hasEntitlement: "이용권 이용 상태가 확인되어 계속 진행합니다.",
+    opening: "결제 가능한 수단을 확인하고 있습니다.",
+    checkingEntitlement: "이용권을 적용하고 있습니다.",
+    hasEntitlement: "이용권 적용이 완료되었습니다.",
     noEntitlement: "결제가 필요합니다. 결제 페이지로 이동해 주세요.",
     loadingProducts: "결제 상품 정보를 확인하고 있습니다.",
     readyToPay: "결제 수단을 확인해 주세요.",
-    paymentProcessing: "결제 처리 중입니다. 잠시만 기다려 주세요.",
-    paymentSuccess: "결제가 완료되었습니다.",
+    paymentProcessing: "결제 승인과 이용 권한을 확인하고 있습니다.",
+    paymentSuccess: "이용 권한 저장이 완료되었습니다.",
     paymentFailed: "결제 처리에 실패했습니다.",
     error: "결제 처리 중 오류가 발생했습니다.",
   };
-  const overlayMessage = String(payload.message || copyFromStatus[status as PaidFeatureGateRuntimeStatus] || "결제 진행 중입니다.").trim();
+  const overlayMessage = String(payload.message || copyFromStatus[status as PaidFeatureGateRuntimeStatus] || "결제 상태를 안전하게 확인하고 있습니다.").trim();
   try {
     if (typeof performance !== "undefined" && typeof performance.mark === "function") {
       performance.mark(`cd-paid-feature-gate-${action}`);
     }
   } catch (_) {}
   const runtimeWindow = window as RuntimeApiWindow;
-  if (action !== "close" && paymentModalOwnsPaidFeatureStatus(status)) {
-    runtimeWindow._cdSetCoinGateOverlay?.(false);
+  if (action !== "close" && paymentLoadingOwnsPaidFeatureStatus(status)) {
+    const overlay = resolvePaidFeatureOverlay(status, overlayMessage);
+    runtimeWindow._cdSetCoinGateOverlay?.(true, overlay.message, overlay.mode);
     runtimeWindow.__cdPaidFeatureGate?.close?.(payload.requestId);
+    if (status === "hasEntitlement" || status === "paymentSuccess") {
+      window.setTimeout(() => {
+        runtimeWindow._cdSetCoinGateOverlay?.(false);
+      }, 900);
+    }
     return;
   }
   if (action === "close") {
@@ -368,13 +399,7 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
       return;
     }
   } else if (typeof runtimeWindow._cdSetCoinGateOverlay === "function") {
-    runtimeWindow._cdSetCoinGateOverlay(true, overlayMessage);
-    if (status === "hasEntitlement" || status === "paymentSuccess") {
-      window.setTimeout(() => {
-        runtimeWindow._cdSetCoinGateOverlay?.(false);
-      }, 900);
-    }
-    return;
+    runtimeWindow._cdSetCoinGateOverlay(false);
   }
   window.dispatchEvent(new CustomEvent("cd:paid-feature-gate", { detail: payload }));
 }
@@ -410,7 +435,7 @@ export function openPaidFeatureGate(input: {
     featureKey: featureId,
     requestId,
     title: input.title,
-    message: input.message || "이용권 확인 중",
+    message: input.message || "이용권을 적용하고 있습니다.",
     status: input.status || "checkingEntitlement",
     cost: input.cost,
   });
@@ -581,7 +606,7 @@ export async function runBillingCoinGate(input: {
       featureKey: featureId,
       requestId: existing.requestId,
       status: "checkingEntitlement",
-      message: "이미 확인 중입니다.",
+      message: "이미 이용권을 확인하고 있습니다.",
     });
     return existing.promise;
   }
@@ -592,7 +617,7 @@ export async function runBillingCoinGate(input: {
       featureKey: featureId,
       requestId: recent.requestId,
       status: "paymentProcessing",
-      message: "요청을 확인 중입니다.",
+      message: "최근 요청 결과를 확인하고 있습니다.",
     });
     return recent.promise;
   }
@@ -608,7 +633,7 @@ export async function runBillingCoinGate(input: {
     featureKey: featureId,
     requestId: gateRequestId,
     status: "checkingEntitlement",
-    message: "이용권 확인 중",
+    message: "이용권을 적용하고 있습니다.",
   });
 
   const requestPromise = (async () => {
@@ -625,9 +650,9 @@ export async function runBillingCoinGate(input: {
         featureId,
         featureKey: featureId,
         requestId: gateRequestId,
-        status: eligibility.pass.canUse ? "hasEntitlement" : "readyToPay",
+        status: eligibility.pass.canUse ? "checkingEntitlement" : "readyToPay",
         message: eligibility.pass.canUse
-          ? `${eligibility.pass.label || "달빛 이용권"}으로 차감 없이 이용합니다.`
+          ? "이용권을 적용하고 있습니다."
           : "결제 가능한 수단을 확인했습니다.",
         cost: eligibility.coinCost,
       });
@@ -639,7 +664,7 @@ export async function runBillingCoinGate(input: {
       featureKey: featureId,
       requestId: gateRequestId,
       status: "paymentProcessing",
-      message: "결제와 이용권 반영을 확인 중입니다.",
+      message: passFirstEligible ? "이용 권한을 저장하고 있습니다." : "결제 승인과 이용 권한을 확인하고 있습니다.",
     });
 
     const response = await authFetchBilling("/api/billing/coin-gate", {
@@ -689,12 +714,15 @@ export async function runBillingCoinGate(input: {
       invalidateBillingBalanceCache();
       markPaidAttemptPaymentSucceeded();
       markPaidAttemptCallbackReturned();
+      const consume = asRecord(parsed.data.consume);
+      const accessType = toText(consume?.accessType);
+      const passApplied = passFirstEligible || accessType === "membership_pass" || accessType === "already_unlocked";
       emitPaidFeatureGate("update", {
         featureId,
         featureKey: featureId,
         requestId: gateRequestId,
-        status: "paymentSuccess",
-        message: "이용권 확인이 완료되었습니다.",
+        status: passApplied ? "hasEntitlement" : "paymentSuccess",
+        message: passApplied ? "이용권 적용이 완료되었습니다." : "이용 권한 저장이 완료되었습니다.",
         cost: parsed.data.pricing?.cost,
       });
     } else {

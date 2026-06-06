@@ -3359,14 +3359,10 @@
     var action = String(item.getAttribute('data-dp-menu-action') || '').trim();
     var profileId = String(item.getAttribute('data-profile-id') || '').trim();
     _dpCloseProfileMenu();
-    if (action === 'view') {
+    if (action === 'view' || action === 'list') {
       _dpClearProfileEditMode();
-      if (profileId) window.dpSelectProfile(profileId);
-      window.dpLoadProfile();
-      return;
-    }
-    if (action === 'list') {
-      _dpClearProfileEditMode();
+      var currentProfileId = String((DPStorage.current() || {}).id || '').trim();
+      if (profileId && profileId !== currentProfileId) window.dpSelectProfile(profileId);
       window.dpOpenList();
       return;
     }
@@ -3519,7 +3515,7 @@
               + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
             + '</button>'
             + '<div class="dp-mc-action-menu" role="menu" aria-label="프로필 카드 관리">'
-              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" data-dp-menu-action="list">프로필 조회<span>목록</span></button>'
+              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" data-dp-menu-action="view" data-profile-id="' + _esc(profile.id) + '">프로필 조회<span>목록</span></button>'
               + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--danger" role="menuitem" data-dp-menu-action="delete" data-profile-id="' + _esc(profile.id) + '">프로필 카드 삭제<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
             + '</div>'
           + '</div>'
@@ -4561,7 +4557,15 @@
         credentials: 'include',
         cache: 'no-store',
         headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(Object.assign({ requestId: requestId }, paymentContext || {}))
+        body: JSON.stringify(Object.assign({
+          requestId: requestId,
+          featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+          actionType: 'delete',
+          profileAction: 'delete',
+          action: 'delete',
+          profileId: profileId,
+          selectedProfileId: profileId
+        }, paymentContext || {}))
       }, {
         retryOn401: true,
         timeoutMs: _DP_FETCH_TIMEOUT_MS

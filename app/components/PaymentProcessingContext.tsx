@@ -10,14 +10,18 @@ import {
   useState,
 } from "react";
 
+import PaymentLoading, { type PaymentLoadingProps } from "./common/PaymentLoading";
+
+type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
+
 type PaymentProcessingContextValue = {
   isProcessing: boolean;
   isPaymentLoading: boolean;
   processingMessage: string;
-  startProcessing: (message?: string) => void;
+  startProcessing: (message?: string, variant?: PaymentLoadingVariant) => void;
   stopProcessing: () => void;
   setProcessingMessage: (message: string) => void;
-  startPayment: (message?: string) => void;
+  startPayment: (message?: string, variant?: PaymentLoadingVariant) => void;
   endPayment: () => void;
   setPaymentMessage: (message: string) => void;
 };
@@ -69,62 +73,88 @@ type PaidFeatureGateContextValue = {
 const DEFAULT_PROCESSING_MESSAGE = "결제가 진행 중입니다.";
 
 const PAID_GATE_DEFAULT_TITLE = "결제/이용권 확인";
-const PAID_GATE_DEFAULT_MESSAGE = "이용권 확인 중";
+const PAID_GATE_DEFAULT_MESSAGE = "이용권을 적용하고 있습니다.";
 
 const PAID_GATE_COPY: Record<PaidFeatureGateStatus, { label: string; title: string; message: string }> = {
   idle: { label: "대기", title: PAID_GATE_DEFAULT_TITLE, message: PAID_GATE_DEFAULT_MESSAGE },
-  opening: { label: "열림", title: PAID_GATE_DEFAULT_TITLE, message: "확인 창을 여는 중" },
-  checkingEntitlement: { label: "확인 중", title: PAID_GATE_DEFAULT_TITLE, message: "이용권 확인 중" },
-  hasEntitlement: { label: "이용 가능", title: "이용권 확인 완료", message: "보유 이용권으로 바로 이용할 수 있습니다." },
+  opening: { label: "준비", title: "결제 준비", message: "결제 가능한 수단을 확인하고 있습니다." },
+  checkingEntitlement: { label: "확인 중", title: "이용권 확인", message: "이용권을 적용하고 있습니다." },
+  hasEntitlement: { label: "이용 가능", title: "이용권 적용 완료", message: "이용권으로 바로 이용할 수 있습니다." },
   noEntitlement: { label: "결제 필요", title: PAID_GATE_DEFAULT_TITLE, message: "이용 가능한 이용권을 찾지 못했습니다." },
-  loadingProducts: { label: "상품 조회", title: PAID_GATE_DEFAULT_TITLE, message: "결제 가능한 상품을 불러오는 중" },
+  loadingProducts: { label: "상품 조회", title: "결제 수단 확인", message: "결제 가능한 상품을 확인하고 있습니다." },
   readyToPay: { label: "결제 가능", title: "결제 가능", message: "결제 후 바로 이용할 수 있습니다." },
-  paymentProcessing: { label: "처리 중", title: "결제 처리 중", message: "결제와 이용권 반영을 확인 중입니다." },
-  paymentSuccess: { label: "완료", title: "결제 확인 완료", message: "잠시 후 결과 화면으로 이어집니다." },
+  paymentProcessing: { label: "처리 중", title: "결제 승인 확인", message: "결제 승인과 이용 권한을 확인하고 있습니다." },
+  paymentSuccess: { label: "완료", title: "이용 권한 저장 완료", message: "잠시 후 결과 화면으로 이어집니다." },
   paymentFailed: { label: "실패", title: "결제 확인 실패", message: "결제를 완료하지 못했습니다." },
   error: { label: "오류", title: "확인 실패", message: "네트워크 상태를 확인한 뒤 다시 시도해 주세요." },
 };
 
 const PaidFeatureGateContext = createContext<PaidFeatureGateContextValue | undefined>(undefined);
 
-function resolveProcessingCopy(message: string) {
+function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentLoadingVariant {
+  const normalizedMode = String(mode || "").trim().toLowerCase();
+  if (normalizedMode === "pass-applied" || normalizedMode === "passapplied") return "pass-applied";
+  if (normalizedMode === "pass" || normalizedMode === "pass-checking" || normalizedMode === "membership") return "pass-checking";
+  if (["checkout", "card", "prepare", "opening"].includes(normalizedMode)) return "checkout";
+  if (["confirm", "verification", "payment-confirm"].includes(normalizedMode)) return "confirm";
+  if (["monthly", "monthly-credit", "moonstone"].includes(normalizedMode)) return "monthly";
+  if (["subscription", "subscription-confirm", "subscription-prepare"].includes(normalizedMode)) return "subscription";
+  if (["unlock-saving", "savingunlock", "saving-unlock"].includes(normalizedMode)) return "unlock-saving";
+  if (normalizedMode === "refund") return "refund";
+
   const normalizedMessage = String(message || "");
-  const isUnlockFlow = /잠금|해금|unlock|해제/i.test(normalizedMessage);
-
-  if (isUnlockFlow) {
-    return {
-      title: "이용 권한 확인 중입니다...",
-      description: "결제 게이트를 확인하고 이용 권한을 적용하고 있습니다. 잠시만 기다려 주세요.",
-    };
-  }
-
-  return {
-    title: "운명을 읽어오는 중입니다...",
-    description: "결제가 진행 중입니다. 잠시만 기다려 주세요.",
-  };
+  if (/이용권을 적용|이용권 확인|이용권 권한|membership_pass|pass_applied|달빛 결제 시스템/i.test(normalizedMessage)) return "pass-checking";
+  if (/결제창|주문|checkout|prepare|연결|열고/i.test(normalizedMessage)) return "checkout";
+  if (/검증|승인|confirm|복귀 신호|확인하고 있습니다/i.test(normalizedMessage)) return "confirm";
+  if (/월정석|moonstone|monthly/i.test(normalizedMessage)) return "monthly";
+  if (/이용권 결제|구독|subscription|플랜|활성화/i.test(normalizedMessage)) return "subscription";
+  if (/권한 저장|저장|해금|잠금 해제|결과 화면/i.test(normalizedMessage)) return "unlock-saving";
+  if (/환불|refund|복구/i.test(normalizedMessage)) return "refund";
+  return "payment";
 }
 
 const PaymentProcessingContext = createContext<PaymentProcessingContextValue | undefined>(
   undefined,
 );
 
-function emitCoinGateOverlay(open: boolean, message?: string) {
+function emitCoinGateOverlay(open: boolean, message?: string, mode?: string) {
   if (typeof window === "undefined") return;
-  const overlayWindow = window as Window & { _cdSetCoinGateOverlay?: (show: boolean, overlayMessage?: string) => void };
-  overlayWindow._cdSetCoinGateOverlay?.(open, message);
+  const overlayWindow = window as Window & { _cdSetCoinGateOverlay?: (show: boolean, overlayMessage?: string, mode?: string) => void };
+  overlayWindow._cdSetCoinGateOverlay?.(open, message, mode);
 }
 
-function paymentModalOwnsPaidFeatureStatus(status: PaidFeatureGateStatus) {
+function paymentLoadingOwnsPaidFeatureStatus(status: PaidFeatureGateStatus) {
   return [
     "opening",
     "checkingEntitlement",
     "hasEntitlement",
-    "noEntitlement",
     "loadingProducts",
-    "readyToPay",
     "paymentProcessing",
     "paymentSuccess",
   ].includes(status);
+}
+
+function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, message?: string) {
+  if (status === "checkingEntitlement") {
+    return { message: "이용권을 적용하고 있습니다.", mode: "pass" };
+  }
+  if (status === "hasEntitlement") {
+    return { message: "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
+  }
+  if (status === "paymentSuccess") {
+    const text = String(message || "");
+    if (/이용권 적용|이용권으로|pass_applied|membership/i.test(text)) {
+      return { message: "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
+    }
+    return { message: text || "이용 권한 저장이 완료되었습니다.", mode: "unlock-saving" };
+  }
+  if (status === "opening" || status === "loadingProducts") {
+    return { message: message || "결제 가능한 수단을 확인하고 있습니다.", mode: "checkout" };
+  }
+  if (status === "paymentProcessing") {
+    return { message: message || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: resolvePaymentLoadingVariant(message, "confirm") };
+  }
+  return { message, mode: resolvePaymentLoadingVariant(message) };
 }
 
 function nowForPaidGate() {
@@ -191,12 +221,16 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       closeTimerRef.current = null;
     }
 
-    if (paymentModalOwnsPaidFeatureStatus(status)) {
+    if (paymentLoadingOwnsPaidFeatureStatus(status)) {
+      const overlay = resolvePaidFeatureStatusOverlay(status, detail.message || copy.message);
       setState((prev) => {
         if (!prev.open) return prev;
         return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
       });
-      emitCoinGateOverlay(false);
+      emitCoinGateOverlay(true, overlay.message, overlay.mode);
+      if (status === "hasEntitlement" || status === "paymentSuccess") {
+        window.setTimeout(() => emitCoinGateOverlay(false), 900);
+      }
       return seq;
     }
 
@@ -235,27 +269,46 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
         } catch (_) {}
       });
     }
-    emitCoinGateOverlay(true, detail.message || copy.message);
+    emitCoinGateOverlay(false);
     return seq;
   }, []);
 
   const update = useCallback((detail: PaidFeatureGateDetail) => {
     const requestedStatus = detail.status || "checkingEntitlement";
-    if (paymentModalOwnsPaidFeatureStatus(requestedStatus)) {
+    if (paymentLoadingOwnsPaidFeatureStatus(requestedStatus)) {
+      const overlay = resolvePaidFeatureStatusOverlay(
+        requestedStatus,
+        detail.message || PAID_GATE_COPY[detail.status || "checkingEntitlement"]?.message || PAID_GATE_DEFAULT_MESSAGE,
+      );
       setState((prev) => {
         if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
         if (!prev.open) return prev;
         return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
       });
-      emitCoinGateOverlay(false);
+      emitCoinGateOverlay(true, overlay.message, overlay.mode);
+      if (requestedStatus === "hasEntitlement" || requestedStatus === "paymentSuccess") {
+        window.setTimeout(() => emitCoinGateOverlay(false), 900);
+      }
       return;
     }
 
     setState((prev) => {
-      if (!prev.open) return prev;
       if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
       const status = detail.status || prev.status;
       const copy = PAID_GATE_COPY[status] || PAID_GATE_COPY.checkingEntitlement;
+      if (!prev.open) {
+        return {
+          open: true,
+          status,
+          featureId: detail.featureId || detail.featureKey || prev.featureId || "paid-feature",
+          requestId: String(detail.requestId || prev.requestId || `paid-feature:${Date.now().toString(36)}`),
+          title: detail.title || copy.title,
+          message: detail.message || copy.message,
+          cost: Number.isFinite(Number(detail.cost)) ? Number(detail.cost) : null,
+          seq: prev.seq + 1,
+          startedAt: nowForPaidGate(),
+        };
+      }
       return {
         ...prev,
         status,
@@ -265,7 +318,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
         cost: Number.isFinite(Number(detail.cost)) ? Number(detail.cost) : prev.cost,
       };
     });
-    emitCoinGateOverlay(true, detail.message || PAID_GATE_COPY[detail.status || "checkingEntitlement"]?.message || PAID_GATE_DEFAULT_MESSAGE);
+    emitCoinGateOverlay(false);
   }, []);
 
   const preload = useCallback(() => {
@@ -396,39 +449,58 @@ export function PaymentProcessingProvider({
   children,
 }: PaymentProcessingProviderProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingVariant, setProcessingVariant] = useState<PaymentLoadingVariant>("payment");
   const [processingMessage, setProcessingMessageState] = useState(
     DEFAULT_PROCESSING_MESSAGE,
   );
 
-  const startProcessing = useCallback((message?: string) => {
+  const startProcessing = useCallback((message?: string, variant?: PaymentLoadingVariant) => {
     if (typeof message === "string" && message.trim()) {
       setProcessingMessageState(message);
     }
+    setProcessingVariant(variant || resolvePaymentLoadingVariant(message));
     setIsProcessing(true);
   }, []);
 
   const stopProcessing = useCallback(() => {
     setIsProcessing(false);
+    setProcessingVariant("payment");
     setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
   }, []);
 
   const setProcessingMessage = useCallback((message: string) => {
     if (!message || !message.trim()) {
       setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
+      setProcessingVariant("payment");
       return;
     }
     setProcessingMessageState(message);
+    setProcessingVariant(resolvePaymentLoadingVariant(message));
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const overlayWindow = window as Window & { _cdSetCoinGateOverlay?: (show: boolean, message?: string) => void };
-    if (isProcessing) {
-      overlayWindow._cdSetCoinGateOverlay?.(true, processingMessage);
-    } else {
-      overlayWindow._cdSetCoinGateOverlay?.(false);
-    }
-  }, [isProcessing, processingMessage]);
+    const overlayWindow = window as Window & { _cdSetCoinGateOverlay?: (show: boolean, message?: string, mode?: string) => void };
+    const previousOverlay = overlayWindow._cdSetCoinGateOverlay;
+    const reactPaymentOverlay = (show: boolean, message?: string, mode?: string) => {
+      if (show) {
+        const nextVariant = resolvePaymentLoadingVariant(message, mode);
+        setProcessingVariant(nextVariant);
+        setProcessingMessageState(String(message || "").trim() || DEFAULT_PROCESSING_MESSAGE);
+        setIsProcessing(true);
+        return;
+      }
+      setIsProcessing(false);
+      setProcessingVariant("payment");
+      setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
+    };
+    overlayWindow._cdSetCoinGateOverlay = reactPaymentOverlay;
+    return () => {
+      if (overlayWindow._cdSetCoinGateOverlay === reactPaymentOverlay) {
+        overlayWindow._cdSetCoinGateOverlay = previousOverlay;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -496,6 +568,11 @@ export function PaymentProcessingProvider({
   return (
     <PaymentProcessingContext.Provider value={value}>
       {children}
+      <PaymentLoading
+        open={isProcessing}
+        variant={processingVariant}
+        statusMessage={processingMessage}
+      />
     </PaymentProcessingContext.Provider>
   );
 }

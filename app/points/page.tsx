@@ -6,11 +6,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import WithdrawModal from "../components/WithdrawModal";
 import { usePaymentProcessing } from "../components/PaymentProcessingContext";
+import type { PaymentLoadingProps } from "../components/common/PaymentLoading";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 import { refreshBillingBalance } from "../_lib/auth-store";
+
+type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 
 /* ══════════════════════════════════════════════════════════════════
    타입 정의
@@ -1576,8 +1579,9 @@ export default function PointsPage() {
   const [isBooting, setIsBooting] = useState(true);
   const [isMethodModalOpen, setIsMethodModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingVariant, setProcessingVariant] = useState<PaymentLoadingVariant>("subscription");
   const [processingText, setProcessingText] = useState(
-    "신비로운 기운으로 이용권 결제를 연결 중입니다...",
+    "달빛 이용권 결제 정보를 확인하고 있습니다.",
   );
   const {
     startProcessing: showProcessingOverlay,
@@ -1647,11 +1651,21 @@ export default function PointsPage() {
 
   useEffect(() => {
     if (isProcessing) {
-      showProcessingOverlay(processingText);
+      showProcessingOverlay(processingText, processingVariant);
       return;
     }
     hideProcessingOverlay();
-  }, [hideProcessingOverlay, isProcessing, processingText, showProcessingOverlay]);
+  }, [hideProcessingOverlay, isProcessing, processingText, processingVariant, showProcessingOverlay]);
+
+  const setProcessingStage = useCallback((text: string, variant: PaymentLoadingVariant) => {
+    setProcessingVariant(variant);
+    setProcessingText(text);
+  }, []);
+
+  const showPassAppliedStage = useCallback(async () => {
+    setProcessingStage("이용권 적용이 완료되었습니다.", "pass-applied");
+    await new Promise((resolve) => window.setTimeout(resolve, 820));
+  }, [setProcessingStage]);
 
   useEffect(() => {
     return () => {
@@ -2132,10 +2146,11 @@ export default function PointsPage() {
     if (!acquirePaymentRedirectLock(redirectConfirmKey)) return;
 
     setIsProcessing(true);
-    setProcessingText(
+    setProcessingStage(
       isSubscriptionRedirect
-        ? "모바일 이용권 결제 복귀 신호를 확인하고 있습니다..."
+        ? "모바일 이용권 결제 복귀를 확인하고 있습니다."
         : "모바일 결제 복귀 신호를 확인하고 있습니다...",
+      isSubscriptionRedirect ? "subscription" : "confirm",
     );
 
     if (isSubscriptionRedirect) {
@@ -2163,7 +2178,7 @@ export default function PointsPage() {
           customerUid: pendingSub.customerUid,
           paymentMethod: pendingSub.paymentMethod,
       })
-        .then((data) => {
+        .then(async (data) => {
           if (data.subscription) {
             const newSub: SubscriptionStatus = {
               tier: data.subscription?.tier || "free",
@@ -2183,6 +2198,7 @@ export default function PointsPage() {
           }
 
           clearPendingSubscriptionOrder();
+          await showPassAppliedStage();
           pushToast("success", data.message || "이용권 결제가 완료되어 이용권이 활성화되었습니다.");
           setShowStarBurst(true);
           setTimeout(() => setShowStarBurst(false), 1200);
@@ -2255,6 +2271,8 @@ export default function PointsPage() {
     persistSubscriptionCache,
     pushToast,
     reportPaymentFailureToServer,
+    setProcessingStage,
+    showPassAppliedStage,
   ]);
 
   /* ── 이용권 결제 시작 ───────────────────────────────────────────── */
@@ -2268,7 +2286,7 @@ export default function PointsPage() {
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
-    setProcessingText("신비로운 기운으로 이용권 결제를 연결 중입니다...");
+    setProcessingStage("결제창을 열기 전 주문 정보를 확인하고 있습니다.", "checkout");
 
     try {
       const prepareResponse = await authFetch(`${apiBase}/api/payments/prepare`, {
@@ -2367,7 +2385,7 @@ export default function PointsPage() {
       }
 
       try {
-        setProcessingText("결제 검증을 진행하고 있습니다...");
+        setProcessingStage("결제 승인을 서버에서 검증하고 있습니다.", "confirm");
         const result = await confirmPaymentWithServer({
           impUid: paymentId,
           merchantUid: order.merchantUid,
@@ -2428,7 +2446,7 @@ export default function PointsPage() {
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
-    setProcessingText(`${plan.title} 결제를 준비하고 있습니다...`);
+    setProcessingStage(`${plan.title} 결제 정보를 확인하고 있습니다.`, "subscription");
 
     try {
       const prepareRes = await authFetch(`${apiBase}/api/payments/subscription/prepare`, {
@@ -2531,7 +2549,7 @@ export default function PointsPage() {
       }
 
       try {
-        setProcessingText("이용권 결제 검증 및 활성화를 진행하고 있습니다...");
+        setProcessingStage("이용권 결제 승인과 활성화를 확인하고 있습니다.", "subscription");
         const confirmData = await confirmSubscriptionWithServer({
           impUid: paymentId,
           merchantUid: order.merchantUid,
@@ -2564,6 +2582,7 @@ export default function PointsPage() {
         }
 
         clearPendingSubscriptionOrder();
+        await showPassAppliedStage();
         pushToast("success", confirmData.message || `${plan.title}이 활성화되었습니다.`);
         setShowStarBurst(true);
         setTimeout(() => setShowStarBurst(false), 1200);
@@ -2619,7 +2638,7 @@ export default function PointsPage() {
 
     setPendingMonthlyCreditPlan(null);
     setIsProcessing(true);
-    setProcessingText(`${plan.title}을 월정석으로 활성화하고 있습니다...`);
+    setProcessingStage(`${plan.title}을 월정석으로 활성화하고 있습니다.`, "monthly");
 
     try {
       const confirmData = await confirmSubscriptionWithServer({
@@ -2657,6 +2676,7 @@ export default function PointsPage() {
         setMonthlyCreditLedgers((prev) => [confirmData.monthlyCreditLedger as MonthlyCreditLedgerItem, ...prev].slice(0, 20));
       }
 
+      await showPassAppliedStage();
       pushToast("success", confirmData.message || `${plan.title}이 월정석으로 활성화되었습니다.`);
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);
@@ -2685,7 +2705,7 @@ export default function PointsPage() {
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
-    setProcessingText("이용권 상태를 확인하는 중입니다...");
+    setProcessingStage("이용권 상태를 안전하게 확인하고 있습니다.", "subscription");
     try {
       const res = await authFetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/cancel`, {
         method: "POST",
