@@ -114,8 +114,8 @@ export const FEATURE_KEY_REASON_COSTS = Object.freeze({
     "openNevilleMeditationPage 60분 코스": 50,
   }),
   "cosmic-soul-meditation": Object.freeze({
-    "openCosmicSoulMeditation 30분 코스": 100,
-    "openCosmicSoulMeditation 60분 코스": 200,
+    "openCosmicSoulMeditation 30분 코스": 50,
+    "openCosmicSoulMeditation 60분 코스": 100,
   }),
   "yoga-guru-per-use": Object.freeze({
     "openYogaGuru 30분 코스": 30,
