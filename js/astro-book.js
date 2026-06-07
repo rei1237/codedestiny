@@ -923,6 +923,115 @@
     return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
   }
 
+  function _astroStatusHeaders() {
+    var headers = {};
+    var authToken = '';
+    var premiumToken = _readPremiumAccessToken();
+    try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
+    if (authToken) headers.Authorization = 'Bearer ' + authToken;
+    if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+    return headers;
+  }
+
+  function _fetchAstroStatus(sessionId) {
+    var sid = _clean(sessionId);
+    if (!sid) return Promise.reject(new Error('점성술 생성 세션을 확인할 수 없습니다.'));
+    var endpoints = _buildApiCandidates(ASTRO_STATUS_API + '?sessionId=' + encodeURIComponent(sid));
+    var idx = 0;
+    function run(resolve, reject, lastErr) {
+      if (idx >= endpoints.length) {
+        reject(new Error(lastErr || '점성술 생성 상태를 확인할 수 없습니다.'));
+        return;
+      }
+      fetch(endpoints[idx++], { method: 'GET', headers: _astroStatusHeaders() })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (json) {
+            return { res: res, json: json };
+          });
+        })
+        .then(function (pack) {
+          if (pack.res.ok && pack.json && pack.json.ok) {
+            resolve(pack.json);
+            return;
+          }
+          run(resolve, reject, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
+        })
+        .catch(function (err) {
+          run(resolve, reject, String(err && err.message || err || '상태 확인 실패'));
+        });
+    }
+    return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
+  }
+
+  function _statusData(payload) {
+    if (payload && payload.data && typeof payload.data === 'object') return payload.data;
+    return payload || {};
+  }
+
+  function _progressTitle(progress, statusData) {
+    var state = _clean((progress && progress.stateKey) || (statusData && statusData.status));
+    var title = _clean(progress && progress.currentChapterTitle);
+    if (state === 'local_calculation') return '출생 차트와 하우스 근거를 정리하는 중입니다';
+    if (state === 'writing_seed') return '차트 근거를 프리미엄 원고 신호로 정리하는 중입니다';
+    if (state === 'writing_llm') return title ? (title + ' 원고를 작성하는 중입니다') : '프리미엄 원고를 장별로 작성하는 중입니다';
+    if (state === 'manuscript_validated') return '프리미엄 원고 검수를 완료하는 중입니다';
+    if (state === 'pdf_rendering') return 'PDF 편집/렌더링 중';
+    if (state === 'pdf_rendered') return 'PDF 저장 정보를 확인하는 중입니다';
+    if (state === 'local_fallback') return '프리미엄 원고 작성이 완료되지 않아 결과를 확정하지 않습니다';
+    if (state === 'llm_failed' || state === 'failed') return '프리미엄 원고 작성이 완료되지 않았습니다';
+    if (state === 'completed' || state === 'done') return '완료';
+    return title || '점성술 코즈믹 차트 PDF를 준비하는 중입니다';
+  }
+
+  function _applyAstroStatusProgress(statusPayload) {
+    var data = _statusData(statusPayload);
+    var progress = data.progress && typeof data.progress === 'object' ? data.progress : {};
+    var total = Number(progress.totalChapters || data.chapterCount || ASTRO_TOTAL_CHAPTERS || 12);
+    var current = Number(progress.currentChapterNo || data.llmChapterCount || 0);
+    var state = _clean(progress.stateKey || data.status);
+    if (Number.isFinite(total) && total > 0) ASTRO_TOTAL_CHAPTERS = Math.trunc(total);
+    _setLoadingProgress(
+      Number.isFinite(current) ? current : 0,
+      _getTotalChapters(),
+      _progressTitle(progress, data),
+      state === 'completed' || state === 'done'
+    );
+    return data;
+  }
+
+  function _startAstroStatusPolling(sessionId) {
+    _stopProgressAnimation();
+    function tick() {
+      if (!_generating) {
+        _stopProgressAnimation();
+        return;
+      }
+      _fetchAstroStatus(sessionId)
+        .then(function (payload) {
+          var data = _applyAstroStatusProgress(payload);
+          if (data.status === 'done' || data.status === 'failed') _stopProgressAnimation();
+        })
+        .catch(function () {});
+    }
+    tick();
+    _progressTimer = setInterval(tick, 1800);
+  }
+
+  function _waitForAstroCompletion(sessionId) {
+    var started = Date.now();
+    var timeoutMs = 12 * 60 * 1000;
+    function wait() {
+      return _fetchAstroStatus(sessionId).then(function (payload) {
+        var data = _applyAstroStatusProgress(payload);
+        if (data.status === 'done' && data.result) return data.result;
+        if (data.status === 'failed') throw new Error((data.error && data.error.message) || '점성술 PDF 생성에 실패했습니다.');
+        if (Date.now() - started > timeoutMs) throw new Error('점성술 PDF 생성 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.');
+        return new Promise(function (resolve) { setTimeout(resolve, 1800); }).then(wait);
+      });
+    }
+    return wait();
+  }
+
   function _ensurePremiumPaymentAsync() {
     if (_hasPremiumAccessForGeneration()) {
       _logStage('PaymentGateStart', { featureKey: ASTRO_BILLING_FEATURE_KEY, reused: true });
@@ -1052,9 +1161,9 @@
     _setStartBusy(true);
     _showScreen('abLoadingScreen');
     var total = _getTotalChapters();
-    _setLoadingProgress(1, total, '프로필 정보 확인 중');
+    _setLoadingProgress(0, total, '프로필 정보 확인 중');
     _startProgressAnimation();
-    _setLoadingProgress(2, total, '결제 및 세션 준비 중');
+    _setLoadingProgress(0, total, '결제 및 세션 준비 중');
     _logStage('PaymentAndSessionStart', { totalChapters: total });
 
     _ensurePremiumPaymentAsync()
@@ -1070,7 +1179,8 @@
         paymentContext.premiumAccessToken = _readPremiumAccessToken() || paymentContext.premiumAccessToken || undefined;
         var paymentGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
         _logStage('SessionCreateSuccess', { sessionId: sessionId });
-        _setLoadingProgress(total, total, '점성술 코즈믹 차트 PDF를 완성하는 중입니다');
+        _setLoadingProgress(0, total, '출생 차트 계산 요청 중');
+        _startAstroStatusPolling(sessionId);
         _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
         return _postPrepare({
           featureKey: ASTRO_FEATURE_KEY,
@@ -1087,9 +1197,17 @@
           birthInput: birthInput,
           profile: profile,
           astroClientEvidenceJson: astroClientEvidenceJson,
+        }).then(function (response) {
+          if (response && response.status === 'running') return _waitForAstroCompletion(sessionId);
+          return response;
         });
       })
       .then(function (response) {
+        if (response && response.result && response.status === 'done') response = response.result;
+        total = _getTotalChapters();
+        if (response && (response.fallbackUsed || Number(response.llmChapterCount || 0) < total)) {
+          throw new Error('점성술 프리미엄 원고 작성이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+        }
         if (!_isCompletedReportReady(response)) {
           throw new Error('점성술 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.');
         }
@@ -1099,15 +1217,11 @@
         if (!_chapters.length) throw new Error('점성술 챕터 데이터가 비어 있습니다.');
         ASTRO_TOTAL_CHAPTERS = _chapters.length;
         total = _getTotalChapters();
-        _setLoadingProgress(total, total, '점성술 코즈믹 차트 PDF를 완성하는 중입니다');
-        if (response && response.fallbackUsed && _isCompletedReportReady(response)) {
-          _logStage('LLMEnhanceFailedUseLocal', { chapterCount: total });
-          _setLoadingProgress(total, total, '로컬 점성술 차트 해석을 반영해 PDF를 완성하고 있습니다.');
-        }
+        _setLoadingProgress(total, total, 'PDF 저장 정보를 확인하는 중입니다');
         _logStage('PdfRenderStart', { chapterCount: total });
         _setLoadingProgress(total, total, 'PDF 편집/렌더링 중');
         _renderResult(_chapters, response.payload || {});
-        _setLoadingProgress(total, total, '완료');
+        _setLoadingProgress(total, total, '완료', true);
         _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
         _showScreen('abResultScreen');
       })

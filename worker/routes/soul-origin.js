@@ -21,15 +21,17 @@ const SOUL_ORIGIN_FEATURE_KEY = "premium_pdf_soul_origin";
 const SOUL_ORIGIN_SERVICE_KEY = "soul-origin";
 const SOUL_ORIGIN_DISPLAY_NAME = "운명의 업";
 const SOUL_ORIGIN_TITLE = "운명의 업 프리미엄 상담서";
-const SOUL_ORIGIN_REPORT_TYPE = "soul_origin_karma";
+const SOUL_ORIGIN_REPORT_TYPE = "soulOriginKarma";
+const SOUL_ORIGIN_ARCHIVE_REPORT_TYPE = "soul_origin_karma";
 const SOUL_ORIGIN_REPORT_TYPE_ALIASES = [
   "premium_pdf_soul_origin",
+  SOUL_ORIGIN_REPORT_TYPE,
   "soul_origin_karma",
   "soul-origin",
   "premium-soul-origin-report",
 ];
 const SOUL_ORIGIN_FEATURE_ALIASES = [
-  "soulOriginKarma",
+  SOUL_ORIGIN_REPORT_TYPE,
   "soul_origin_karma",
   "soul-origin",
   "premium-soul-origin-report",
@@ -1819,9 +1821,11 @@ async function handlePrepare(request, env) {
     logFlow("ProductLookupStart", { requestId, sessionId, reportId });
 
     const featureKey = clean(body?.featureKey || SOUL_ORIGIN_FEATURE_KEY) || SOUL_ORIGIN_FEATURE_KEY;
-    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "soulOriginKarma", {
+    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, SOUL_ORIGIN_REPORT_TYPE, {
       ...body,
-      reportType: "soulOriginKarma",
+      reportType: SOUL_ORIGIN_REPORT_TYPE,
+      canonicalReportType: SOUL_ORIGIN_REPORT_TYPE,
+      archiveReportType: SOUL_ORIGIN_ARCHIVE_REPORT_TYPE,
       reportTypeAliases: SOUL_ORIGIN_REPORT_TYPE_ALIASES,
       featureKey,
       featureAliases: SOUL_ORIGIN_FEATURE_ALIASES,
@@ -1869,7 +1873,7 @@ async function handlePrepare(request, env) {
 
     const executionCtx = buildPremiumExecutionContext({
       serviceKey: SOUL_ORIGIN_SERVICE_KEY,
-      reportType: "soulOriginKarma",
+      reportType: SOUL_ORIGIN_REPORT_TYPE,
       userId: auth.userId,
       featureKey,
       sessionId,
@@ -1936,7 +1940,9 @@ async function handlePrepare(request, env) {
       manuscriptSource: "llm-only",
       serviceKey: SOUL_ORIGIN_SERVICE_KEY,
       featureKey,
-      reportType: "soulOriginKarma",
+      reportType: SOUL_ORIGIN_REPORT_TYPE,
+      canonicalReportType: SOUL_ORIGIN_REPORT_TYPE,
+      archiveReportType: SOUL_ORIGIN_ARCHIVE_REPORT_TYPE,
       chapterCount: CHAPTER_BLUEPRINTS.length,
       reportId,
       sessionId,
@@ -1965,11 +1971,15 @@ async function handlePrepare(request, env) {
       archive: {
         reportId,
         reportType: SOUL_ORIGIN_REPORT_TYPE,
+        canonicalReportType: SOUL_ORIGIN_REPORT_TYPE,
+        archiveReportType: SOUL_ORIGIN_ARCHIVE_REPORT_TYPE,
+        qualityStatus: "passed",
         displayName: SOUL_ORIGIN_DISPLAY_NAME,
         title: SOUL_ORIGIN_TITLE,
         summary,
         mode: "personal",
         birthName: clean(birthInput.name),
+        chapterCount: CHAPTER_BLUEPRINTS.length,
         chapters,
         localSeed,
         pdfReady,
@@ -2005,7 +2015,7 @@ async function handlePrepare(request, env) {
   } catch (error) {
     const executionCtx = buildPremiumExecutionContext({
       serviceKey: SOUL_ORIGIN_SERVICE_KEY,
-      reportType: "soulOriginKarma",
+      reportType: SOUL_ORIGIN_REPORT_TYPE,
       userId: auth.userId,
       featureKey: clean(body?.featureKey || SOUL_ORIGIN_FEATURE_KEY) || SOUL_ORIGIN_FEATURE_KEY,
       sessionId,
@@ -2105,12 +2115,20 @@ async function handleReadReport(request, env) {
   const payload = {
     ok: true,
     status: "completed",
-    reportType: "soulOriginKarma",
+    serverStatus: "completed",
+    qualityStatus: clean(archive.qualityStatus || "passed") || "passed",
+    serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+    featureKey: clean(archive.featureKey || SOUL_ORIGIN_FEATURE_KEY) || SOUL_ORIGIN_FEATURE_KEY,
+    reportType: SOUL_ORIGIN_REPORT_TYPE,
+    canonicalReportType: SOUL_ORIGIN_REPORT_TYPE,
+    archiveReportType: clean(archive.archiveReportType || SOUL_ORIGIN_ARCHIVE_REPORT_TYPE) || SOUL_ORIGIN_ARCHIVE_REPORT_TYPE,
+    chapterCount: Number(archive.chapterCount || (Array.isArray(archive.chapters) ? archive.chapters.length : 0)),
     reportId: clean(archive.reportId || reportId),
     sessionId: clean(archived?.sessionId || "") || undefined,
     title: clean(archive.title || SOUL_ORIGIN_TITLE) || SOUL_ORIGIN_TITLE,
     summary: clean(archive.summary || ""),
     chapters: Array.isArray(archive.chapters) ? archive.chapters : [],
+    toneProfile: archive?.toneProfile && typeof archive.toneProfile === "object" ? archive.toneProfile : undefined,
     pdfReady,
     downloadUrl: clean(archive.downloadUrl || pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
     pdfUrl: clean(archive.pdfUrl || pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl),

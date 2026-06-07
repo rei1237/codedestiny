@@ -7,11 +7,14 @@
 
   var VEDIC_FEATURE_KEY = 'premium_pdf_vedic';
   var VEDIC_PREPARE_API = '/api/vedic/premium/prepare';
+  var VEDIC_STATUS_API = '/api/vedic/premium/status';
   var VEDIC_CHAPTERS_API = '/api/vedic/premium/chapters';
   var VEDIC_PLANETS_API = '/api/vedic/planets';
   var VEDIC_TOTAL_CHAPTERS = 12;
   var VEDIC_COIN_COST = 390;
   var VEDIC_CLIENT_EVIDENCE_SCHEMA_VERSION = 'vedic-premium-client-evidence.v1';
+  var VEDIC_STATUS_MAX_ATTEMPTS = 150;
+  var VEDIC_STATUS_POLL_MS = 4000;
 
   var _chapters = [];
   var _canonicalChapters = [];
@@ -21,6 +24,7 @@
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
   var _currentVedicSessionId = '';
+  var _currentVedicReportId = '';
   var _lastPremiumPayment = null;
 
   function _qs(id) { return document.getElementById(id); }
@@ -569,6 +573,90 @@
     return hasReportId && hasPdfHtml && hasStoredUrl && chapters.length >= total && (!completed || completed === 'completed');
   }
 
+  function _isRunningReport(response) {
+    var status = _clean(response && response.status).toLowerCase();
+    return status === 'running' || status === 'pending' || status === 'generating';
+  }
+
+  function _sleep(ms) {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, Math.max(500, Number(ms || 0)));
+    });
+  }
+
+  function _queryString(params) {
+    var out = [];
+    Object.keys(params || {}).forEach(function (key) {
+      var value = _clean(params[key]);
+      if (value) out.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+    });
+    return out.length ? ('?' + out.join('&')) : '';
+  }
+
+  function _getVedicStatus(sessionId, reportId) {
+    var query = _queryString({ sessionId: sessionId, reportId: reportId });
+    var endpoints = _buildApiCandidates(VEDIC_STATUS_API + query);
+    var endpointIndex = 0;
+    var authToken = '';
+    try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
+    var premiumToken = _readPremiumAccessToken();
+    function run(resolve, reject, lastErr) {
+      if (endpointIndex >= endpoints.length) { reject(new Error(lastErr || '베다점 PDF 상태 확인에 실패했습니다.')); return; }
+      var url = endpoints[endpointIndex++];
+      var headers = {};
+      if (authToken) headers.Authorization = 'Bearer ' + authToken;
+      if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+      fetch(url, { method: 'GET', headers: headers, credentials: 'include', cache: 'no-store' })
+        .then(function (res) { return res.json().catch(function () { return {}; }).then(function (json) { return { res: res, json: json }; }); })
+        .then(function (pack) {
+          if (pack.res.ok && pack.json) { resolve(pack.json); return; }
+          var error = new Error((pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
+          error.status = pack.res.status;
+          error.code = _clean(pack.json && pack.json.code);
+          reject(error);
+        })
+        .catch(function (error) { run(resolve, reject, String(error && error.message || error || '요청 실패')); });
+    }
+    return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
+  }
+
+  function _waitForVedicCompletion(seed) {
+    var sessionId = _clean(seed && seed.sessionId) || _currentVedicSessionId;
+    var reportId = _clean(seed && seed.reportId) || _currentVedicReportId;
+    var attempts = 0;
+    function poll() {
+      attempts += 1;
+      _setLoadingProgress(
+        Math.min(VEDIC_TOTAL_CHAPTERS - 1, 3 + Math.floor(attempts / 12)),
+        VEDIC_TOTAL_CHAPTERS,
+        '베다점 원고와 PDF를 완성하는 중입니다'
+      );
+      return _getVedicStatus(sessionId, reportId).then(function (payload) {
+        if (_isCompletedReportReady(payload)) return payload;
+        if (payload && payload.ok === false && _clean(payload.status).toLowerCase() === 'failed') {
+          var failedError = new Error(_clean(payload.message) || '베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.');
+          failedError.permanent = true;
+          throw failedError;
+        }
+        if (payload && payload.ok === false && !_isRunningReport(payload)) {
+          var statusError = new Error(_clean(payload.message) || '베다점 PDF 생성에 실패했습니다.');
+          statusError.permanent = true;
+          throw statusError;
+        }
+        if (attempts >= VEDIC_STATUS_MAX_ATTEMPTS) {
+          throw new Error('베다점 PDF 생성 시간이 길어지고 있습니다. 잠시 후 다시 확인해 주세요.');
+        }
+        return _sleep(VEDIC_STATUS_POLL_MS).then(poll);
+      }).catch(function (error) {
+        if (error && error.permanent) throw error;
+        if (Number(error && error.status) === 401 || Number(error && error.status) === 403) throw error;
+        if (attempts >= VEDIC_STATUS_MAX_ATTEMPTS) throw error;
+        return _sleep(VEDIC_STATUS_POLL_MS).then(poll);
+      });
+    }
+    return poll();
+  }
+
   function _setStartBusy(isBusy) {
     var button = _qs('vdStartBtn');
     if (!button) return;
@@ -834,6 +922,7 @@
     }
 
     _currentVedicSessionId = 'vedic-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    _currentVedicReportId = '';
 
     _generating = true;
     _setStartBusy(true);
@@ -860,6 +949,7 @@
         paymentContext.sessionId = _clean(paymentContext.sessionId || _currentVedicSessionId) || undefined;
         paymentContext.reportSessionId = _clean(paymentContext.reportSessionId || paymentContext.sessionId || _currentVedicSessionId) || undefined;
         paymentContext.premiumAccessToken = _readPremiumAccessToken() || paymentContext.premiumAccessToken || undefined;
+        _currentVedicReportId = _clean(paymentContext.reportId);
         var paymentGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
         return _postPrepare({
           sessionId: _currentVedicSessionId,
@@ -892,8 +982,16 @@
         response = response || {};
 
         if (response && response.status === 'running') {
-          throw new Error('이미 같은 세션의 베다점 PDF 생성이 진행 중입니다. 잠시 후 다시 확인해주세요.');
+          _logStage('SessionAlreadyRunning', { sessionId: _clean(response.sessionId || _currentVedicSessionId) });
+          return _waitForVedicCompletion({
+            sessionId: _clean(response.sessionId || _currentVedicSessionId),
+            reportId: _clean(response.reportId || _currentVedicReportId),
+          });
         }
+        return response;
+      })
+      .then(function (response) {
+        response = response || {};
         if (!_isCompletedReportReady(response)) {
           throw new Error('베다점 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.');
         }
@@ -918,6 +1016,7 @@
       .finally(function () {
         _generating = false;
         _currentVedicSessionId = '';
+        _currentVedicReportId = '';
         _setStartBusy(false);
         _stopProgressAnimation();
       });

@@ -3744,6 +3744,7 @@ async function handlePrepareAsync(request, env, ctx) {
     }
     console.warn("[love-secret][async-job-db-fallback]", clean(error?.message || error) || error);
 
+    try {
     const {
       chapters,
       fallbackUsed,
@@ -3818,6 +3819,18 @@ async function handlePrepareAsync(request, env, ctx) {
       direct: true,
       message: "대기열 저장소 문제로 직접 생성 모드로 전환되었습니다.",
     }, { status: 200 });
+    } catch (fallbackError) {
+      await failPremiumPdfExecution(
+        env,
+        authz?.auth?.userId,
+        executionCtx,
+        "love_secret_prepare_failed",
+        clean(fallbackError?.message || error?.message || "연애 비책 준비 실패"),
+        "love-secret-prepare-fallback",
+      );
+      resolveLoveSecretLock(sessionId, "failed", "");
+      throw fallbackError;
+    }
   }
 }
 

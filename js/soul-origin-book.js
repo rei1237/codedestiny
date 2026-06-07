@@ -10,6 +10,21 @@
 
   var FEATURE_KEY = 'premium_pdf_soul_origin';
   var REPORT_TYPE = 'soulOriginKarma';
+  var ARCHIVE_REPORT_TYPE = 'soul_origin_karma';
+  var EXPECTED_CHAPTER_COUNT = 12;
+  var REPORT_TYPE_ALIASES = [
+    'premium_pdf_soul_origin',
+    REPORT_TYPE,
+    ARCHIVE_REPORT_TYPE,
+    'soul-origin',
+    'premium-soul-origin-report',
+  ];
+  var FEATURE_ALIASES = [
+    REPORT_TYPE,
+    ARCHIVE_REPORT_TYPE,
+    'soul-origin',
+    'premium-soul-origin-report',
+  ];
   var COIN_COST = 690;
   var PREPARE_API = '/api/soul-origin';
   var READ_API = '/api/soul-origin/report';
@@ -126,6 +141,14 @@
     if (/seoul|tokyo/i.test(timezone)) return 9;
     if (/utc/i.test(timezone)) return 0;
     return 9;
+  }
+
+  function normalizeCalendarType(value) {
+    var raw = clean(value || 'solar').toLowerCase();
+    if (raw.indexOf('lunar') >= 0 || raw.indexOf('음') >= 0) {
+      return raw.indexOf('leap') >= 0 || raw.indexOf('윤') >= 0 ? 'lunar_leap' : 'lunar';
+    }
+    return 'solar';
   }
 
   function normalizeTonePreset(value) {
@@ -246,6 +269,7 @@
         birthDate: clean(selected.birthDate || selected.birthday || birth.birthDate || ''),
         birthTime: clean(selected.birthTime || selected.time || ''),
         birthPlace: clean(selected.birthPlace || selected.birthplace || (selected.location && selected.location.label) || ''),
+        calendarType: clean(selected.calendarType || selected.calendar || selected.calType || birth.calendarType || birth.calendar || birth.calType || 'solar') || 'solar',
         timezone: clean(selected.timezone || (selected.location && selected.location.tz) || 'Asia/Seoul') || 'Asia/Seoul',
         latitude: Number(selected.latitude != null ? selected.latitude : (selected.location && selected.location.lat)),
         longitude: Number(selected.longitude != null ? selected.longitude : (selected.location && (selected.location.lon != null ? selected.location.lon : selected.location.lng))),
@@ -270,6 +294,7 @@
         birthDate: date,
         birthTime: time,
         birthPlace: clean(profile.birthPlace || (profile.location && profile.location.label) || ''),
+        calendarType: clean(profile.calendarType || profile.calendar || profile.calType || birth.calendarType || birth.calendar || birth.calType || 'solar') || 'solar',
         timezone: clean(profile.timezone || (profile.location && profile.location.tz) || 'Asia/Seoul') || 'Asia/Seoul',
         latitude: Number(profile.latitude != null ? profile.latitude : (profile.location && profile.location.lat)),
         longitude: Number(profile.longitude != null ? profile.longitude : (profile.location && (profile.location.lon != null ? profile.location.lon : profile.location.lng))),
@@ -302,17 +327,26 @@
     if (!Number.isFinite(lon)) lon = 126.978;
 
     var timezone = clean(src.timezone || 'Asia/Seoul') || 'Asia/Seoul';
+    var calendarType = normalizeCalendarType(src.calendarType || src.calendar || src.calType || 'solar');
 
     return {
       name: clean(src.name || '사용자') || '사용자',
       gender: clean(src.gender || 'unknown') || 'unknown',
-      birthDate: src.birthDate,
+      birthDate: [String(date.year).padStart(4, '0'), String(date.month).padStart(2, '0'), String(date.day).padStart(2, '0')].join('-'),
       birthTime: [String(time.hour).padStart(2, '0'), String(time.minute).padStart(2, '0')].join(':'),
       birthPlace: clean(src.birthPlace || '출생지 미상') || '출생지 미상',
+      calendarType: calendarType,
       timezone: timezone,
       timezoneOffset: inferTimezoneOffsetHours(timezone),
       latitude: lat,
       longitude: lon,
+      year: date.year,
+      month: date.month,
+      day: date.day,
+      hour: time.hour,
+      minute: time.minute,
+      birthHour: time.hour,
+      birthMinute: time.minute,
     };
   }
 
@@ -320,19 +354,27 @@
     var pdfReady = payload && payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
     return clean(
       (payload && payload.pdfUrl)
+      || (payload && payload.downloadUrl)
       || (payload && payload.htmlUrl)
       || pdfReady.pdfUrl
-      || pdfReady.htmlUrl
       || pdfReady.downloadUrl
+      || pdfReady.htmlUrl
     );
   }
 
   function isSoulOriginReportReady(payload) {
     var data = payload && typeof payload === 'object' ? payload : {};
     var chapters = Array.isArray(data.chapters) ? data.chapters : [];
+    var reportedCount = Number(data.chapterCount || 0);
+    var status = clean(data.status).toLowerCase();
+    var serverStatus = clean(data.serverStatus).toLowerCase();
+    var qualityStatus = clean(data.qualityStatus).toLowerCase();
     var hasReportId = !!clean(data.reportId);
     var hasStoredUrl = !!resolveReportUrl(data);
-    return hasReportId && hasStoredUrl && chapters.length > 0;
+    var isCompleted = (!status && !serverStatus) || status === 'completed' || serverStatus === 'completed';
+    var hasExpectedChapters = chapters.length >= EXPECTED_CHAPTER_COUNT || reportedCount >= EXPECTED_CHAPTER_COUNT;
+    var hasPassedQuality = !qualityStatus || qualityStatus === 'passed';
+    return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted;
   }
 
   function renderResultActions(payload) {
@@ -529,6 +571,9 @@
     }
     if (code.indexOf('BIRTH_') >= 0 || raw.indexOf('태어난 시간') >= 0 || raw.indexOf('생년월일') >= 0) {
       return '생년월일시 정보를 확인한 뒤 다시 시도해 주세요.';
+    }
+    if (code.indexOf('REPORT_SAVE_URL_MISSING') >= 0 || code.indexOf('SOUL_ORIGIN_REPORT_NOT_READY') >= 0) {
+      return 'PDF 저장 경로가 아직 열리지 않았습니다. 잠시 후 다시 시도해 주세요.';
     }
     if (stage === 'LLM-GENERATION' || stage === 'LLM_GENERATION') {
       return '상담 문장 생성 단계에서 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
@@ -954,18 +999,11 @@
         featureKey: FEATURE_KEY,
         productKey: FEATURE_KEY,
         reportType: REPORT_TYPE,
-        reportTypeAliases: [
-          'premium_pdf_soul_origin',
-          'soul_origin_karma',
-          'soul-origin',
-          'premium-soul-origin-report'
-        ],
-        featureAliases: [
-          'soulOriginKarma',
-          'soul_origin_karma',
-          'soul-origin',
-          'premium-soul-origin-report'
-        ],
+        canonicalReportType: REPORT_TYPE,
+        archiveReportType: ARCHIVE_REPORT_TYPE,
+        reportTypeAliases: REPORT_TYPE_ALIASES.slice(),
+        featureAliases: FEATURE_ALIASES.slice(),
+        expectedChapterCount: EXPECTED_CHAPTER_COUNT,
         requestId: paymentRequestId || requestId,
         sessionId: paymentSessionId || sessionId,
         reportSessionId: paymentSessionId || sessionId,
@@ -980,17 +1018,40 @@
         tonePreset: toneSettings.tonePreset,
         toneIntensity: toneSettings.toneIntensity,
         toneWeights: toneSettings.toneWeights,
+        tone: {
+          preset: toneSettings.tonePreset,
+          intensity: toneSettings.toneIntensity,
+          weights: toneSettings.toneWeights,
+        },
+        toneProfile: {
+          preset: toneSettings.tonePreset,
+          intensity: toneSettings.toneIntensity,
+          weights: toneSettings.toneWeights,
+        },
       };
 
       logStage('SessionCreateStart', { requestId: requestId, sessionId: sessionId });
-      logStage('LocalCalcStart', { requestId: requestId, sessionId: sessionId });
+      logStage('ServerLocalCalcStart', { requestId: requestId, sessionId: sessionId });
+      logStage('LLMGenerationStart', { requestId: requestId, sessionId: sessionId, expectedChapterCount: EXPECTED_CHAPTER_COUNT });
+      logStage('PDFRenderStart', { requestId: requestId, sessionId: sessionId });
       var data = await callApi(PREPARE_API, payload, token);
       if (!isSoulOriginReportReady(data)) {
-        throw new Error('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+        var readyError = new Error('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+        readyError.code = 'SOUL_ORIGIN_REPORT_NOT_READY';
+        throw readyError;
       }
-      logStage('LocalCalcSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
-      logStage('PDFCreateStart', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
-      logStage('PDFCreateSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
+      logStage('ServerLocalCalcSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
+      logStage('LLMGenerationSuccess', {
+        requestId: requestId,
+        sessionId: clean(data && data.sessionId) || sessionId,
+        chapterCount: Number(data && data.chapterCount || 0),
+        qualityStatus: clean(data && data.qualityStatus),
+      });
+      logStage('PDFRenderSuccess', {
+        requestId: requestId,
+        sessionId: clean(data && data.sessionId) || sessionId,
+        reportId: clean(data && data.reportId) || reportId,
+      });
       persistResult(data);
       renderResult(data);
     } catch (error) {

@@ -243,7 +243,7 @@ function buildAstroStatusPayload(lock = {}, fallback = {}) {
       completedAt: clean(lock.completedAt || result?.completedAt),
       failedAt: clean(lock.failedAt || fallback.failedAt),
       progress: {
-        stateKey: clean(progress.stateKey || (status === "done" ? "completed" : status === "failed" ? "failed" : "writing_seed")),
+        stateKey: clean(progress.stateKey || (status === "done" ? "completed" : status === "failed" ? "failed" : status === "not_found" ? "not_found" : "writing_seed")),
         currentChapterNo,
         totalChapters,
         currentChapterTitle: clean(progress.currentChapterTitle),
@@ -471,8 +471,9 @@ async function handleAstroPremiumPrepare(request, env) {
       return json({
         ...existingLock.result,
         deduped: true,
-        status: "done",
+        serverStatus: "done",
         sessionId,
+        progress: buildAstroStatusPayload(existingLock).data.progress,
       });
     }
 
@@ -603,7 +604,11 @@ async function handleAstroPremiumPrepare(request, env) {
       currentChapterTitle: "출생 차트 계산",
     });
 
-    const generated = await generateAstroPremiumReport(env, {
+    const astroGenerationEnv = {
+      ...(env || {}),
+      ASTRO_PREMIUM_DISABLE_SYNC_LOCAL_FALLBACK: clean(env?.ASTRO_PREMIUM_DISABLE_SYNC_LOCAL_FALLBACK) || "1",
+    };
+    const generated = await generateAstroPremiumReport(astroGenerationEnv, {
       ...body,
       sessionId,
       birthInput,
@@ -620,6 +625,17 @@ async function handleAstroPremiumPrepare(request, env) {
         console.info(tag, payload || {});
       },
     });
+    if (generated?.fallbackUsed || Number(generated?.llmChapterCount || 0) < ASTRO_PREMIUM_CHAPTERS.length) {
+      const error = new Error("점성술 프리미엄 원고 작성이 완료되지 않았습니다.");
+      error.code = "ASTRO_LLM_MANUSCRIPT_INCOMPLETE";
+      error.status = 502;
+      error.details = {
+        llmChapterCount: Number(generated?.llmChapterCount || 0),
+        fallbackUsed: Boolean(generated?.fallbackUsed),
+        llmFallbackReason: clean(generated?.llmFallbackReason),
+      };
+      throw error;
+    }
     const requestOrigin = new URL(request.url).origin;
     const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
     const archiveHtmlUrl = `${archiveUrl}?format=html`;
@@ -708,10 +724,10 @@ async function handleAstroPremiumPrepare(request, env) {
       localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
       finalChapterCount: Array.isArray(generated?.chapters) ? generated.chapters.length : 0,
       progress: {
-        stateKey: "completed",
-        currentChapterNo: ASTRO_PREMIUM_CHAPTERS.length,
+        stateKey: generated?.fallbackUsed ? "local_fallback" : "completed",
+        currentChapterNo: generated?.fallbackUsed ? Number(generated?.llmChapterCount || 0) : ASTRO_PREMIUM_CHAPTERS.length,
         totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
-        currentChapterTitle: "완료",
+        currentChapterTitle: generated?.fallbackUsed ? "원고 작성 대체 흐름" : "완료",
         manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
       },
     };
@@ -840,7 +856,7 @@ async function handleVedicPremiumPrepare(request, env) {
       return json({
         ...existingLock.result,
         deduped: true,
-        status: "done",
+        status: "completed",
         sessionId: vedicSessionId,
       });
     }
