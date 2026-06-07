@@ -223,6 +223,7 @@ export default function SajuLifebookPage() {
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [showDetail, setShowDetail] = useState(false);
   const timerRef = useRef(null);
+  const submitLockRef = useRef(false);
 
   const chapters = Array.isArray(result?.chapters) ? result.chapters : [];
   const currentChapter = chapters[selectedChapter] || null;
@@ -258,6 +259,7 @@ export default function SajuLifebookPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitLockRef.current || loading) return;
     setError("");
     setResult(null);
     setSelectedChapter(0);
@@ -289,6 +291,7 @@ export default function SajuLifebookPage() {
       return;
     }
 
+    submitLockRef.current = true;
     setLoading(true);
     setStepIndex(0);
     // DO NOT start ticker yet - wait for billing gate confirmation first
@@ -424,6 +427,7 @@ export default function SajuLifebookPage() {
       setError(String(submitError?.message || "PDF 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요."));
     } finally {
       stopTicker();
+      submitLockRef.current = false;
       setLoading(false);
     }
   };
