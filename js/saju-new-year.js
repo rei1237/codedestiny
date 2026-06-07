@@ -10,7 +10,7 @@
   var API_FEATURE_KEY = 'premium_pdf_saju_new_year';
   var REASON = '사주 신년운세 PDF 리포트 생성';
   var PREPARE_API = '/api/saju-new-year/prepare';
-  var TOTAL_CHAPTERS = 12;
+  var TOTAL_CHAPTERS = 10;
   var COIN_COST = 300;
   var COVER_IMAGE = '/fuctionassets/신년운세.webp';
 
@@ -25,8 +25,8 @@
     '사주 원국과 대상 연도를 검증하는 중입니다',
     '결제 및 접근 권한을 확인하는 중입니다',
     '원국, 대운, 세운, 월운 흐름을 계산하는 중입니다',
-    '12챕터 상담 원고를 정리하는 중입니다',
-    '최종 PDF를 렌더링하고 저장하는 중입니다'
+    '10챕터 상담 원고를 집필하는 중입니다',
+    '원고 품질을 검증하고 PDF를 준비하는 중입니다'
   ];
 
   function _qs(id) { return document.getElementById(id); }
@@ -63,6 +63,15 @@
       return fallback || '신년운세 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
     }
     return message;
+  }
+
+  function _sleep(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  function _isPrepareRunning(data) {
+    var status = String(data && (data.status || data.serverStatus) || '').toLowerCase();
+    return status === 'running';
   }
 
   function _resolveDefaultTargetYear() {
@@ -366,10 +375,10 @@
     _progressTimer = setInterval(function () {
       if (step < TOTAL_CHAPTERS) {
         step += 1;
-        _setProgress(step, '12챕터 로컬 원고 생성 중 (' + step + '/' + TOTAL_CHAPTERS + ')');
+        _setProgress(step, '10챕터 상담 원고 집필 중 (' + step + '/' + TOTAL_CHAPTERS + ')');
         return;
       }
-      _setProgress(TOTAL_CHAPTERS, '로컬 상담문 최종 검증 중');
+      _setProgress(TOTAL_CHAPTERS, '원고 품질 최종 검증 중');
     }, 900);
   }
 
@@ -545,6 +554,25 @@
     return body;
   }
 
+  async function _postPrepareUntilReady(payload) {
+    var attempts = 0;
+    var maxAttempts = 180;
+    while (true) {
+      var data = await _postPrepare(payload);
+      if (!_isPrepareRunning(data)) return data;
+      attempts += 1;
+      _setProgress(Math.max(1, TOTAL_CHAPTERS - 1), '동일 세션의 신년운세 원고가 생성 중입니다. 완료 결과를 확인하는 중입니다.');
+      if (attempts >= maxAttempts) {
+        var timeoutError = new Error('신년운세 PDF 생성 시간이 길어지고 있습니다. 잠시 후 다시 확인해 주세요.');
+        timeoutError.code = 'SAJU_NEW_YEAR_RUNNING_TIMEOUT';
+        timeoutError.stage = 'prepare';
+        throw timeoutError;
+      }
+      var waitMs = Number(data && data.retryAfterMs || 5000);
+      await _sleep(Math.max(2000, Math.min(10000, waitMs)));
+    }
+  }
+
   function _mdToHtml(text) {
     var lines = _clean(text).split(/\n+/);
     var html = '';
@@ -690,7 +718,7 @@
       var sajuBase = _collectSajuBase();
       _log('LocalEngineStarted', { targetYear: targetYear });
 
-      _postPrepare({
+      _postPrepareUntilReady({
         serviceKey: SERVICE_KEY,
         productKey: BILLING_FEATURE_KEY,
         featureKey: BILLING_FEATURE_KEY,

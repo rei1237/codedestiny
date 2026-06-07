@@ -286,6 +286,7 @@
 
   function _normalizeCalendarType(raw) {
     var token = _clean(raw).toLowerCase();
+    if (token.indexOf('lunar_leap') >= 0 || token.indexOf('lunar-leap') >= 0 || token.indexOf('leap') >= 0 || token.indexOf('\uc724') >= 0) return 'lunar_leap';
     if (token.indexOf('solar') >= 0 || token.indexOf('양') >= 0) return 'solar';
     if (token.indexOf('lunar') >= 0 || token.indexOf('음') >= 0) return 'lunar';
     return 'unknown';

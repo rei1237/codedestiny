@@ -29,6 +29,14 @@ const VEDIC_LLM_KEY_ENV_KEYS = Object.freeze([
   "GEMINIF_API_KEY6",
   "GEMINIF_API_KEY7",
   "GEMINIF_API_KEY8",
+  "GEMINI_API_KEY1",
+  "GEMINI_API_KEY2",
+  "GEMINI_API_KEY3",
+  "GEMINI_API_KEY4",
+  "GEMINI_API_KEY5",
+  "GEMINI_API_KEY6",
+  "GEMINI_API_KEY7",
+  "GEMINI_API_KEY8",
   "GEMINI_API_KEY",
   "GOOGLE_GEMINI_API_KEY",
   "GOOGLE_GENERATIVE_AI_API_KEY",
@@ -1521,6 +1529,10 @@ function normalizeManuscriptError(error) {
       name: error.name,
       message: error.message,
       stack: error.stack,
+      code: clean(error.code),
+      status: Number(error.status || 0) || null,
+      reasonClass: clean(error.reasonClass || classifyVedicLlmFailure(error)),
+      details: error.details || null,
     };
   }
   if (typeof error === "object" && error !== null) {
@@ -1531,6 +1543,19 @@ function normalizeManuscriptError(error) {
     }
   }
   return { message: String(error) };
+}
+
+function classifyVedicLlmFailure(error) {
+  const code = clean(error?.code || error?.error).toLowerCase();
+  const message = clean(error?.message || error).toLowerCase();
+  const status = Number(error?.status || 0);
+  const joined = `${code} ${message}`;
+  if (code === "gemini_keys_missing" || status === 401 || status === 403 || /key|credential|auth|permission|unauthorized|forbidden/.test(joined)) return "missing_key";
+  if (status === 429 || /rate|quota|resource_exhausted/.test(joined)) return "rate_limited";
+  if (status === 408 || status === 504 || /timeout|deadline|aborted|abort|timed\s*out|524/.test(joined)) return "timeout";
+  if (/chapter_invalid|invalid_chapter|parse|json|schema|signal|unsupported-claims/.test(joined)) return "invalid_chapter";
+  if (/manuscript_invalid|quality|repetition|evidence|validation|검증/.test(joined)) return "quality_gate_failed";
+  return "llm_generation_failed";
 }
 
 export function normalizeVedicError(error) {
@@ -1887,15 +1912,16 @@ function buildVedicLlmChapterPrompt({ chapter, chartJson, masterJson = {}, previ
     : "";
 
   return [
-    "당신은 최고 수준의 베다 점성술 상담가입니다. 결과 문장은 전문적이고 신비롭지만, 실제 삶에서 바로 이해되는 한국어로 작성하십시오.",
-    "출력은 순수 JSON 객체 하나만 허용합니다. 코드블록, 설명문, 마크다운, 사과문, 내부 용어를 쓰지 마십시오.",
-    "최종 본문에는 JSON, API, LLM, local, engine, debug, retry, fallback, template, 데이터 부족, 내부 데이터 같은 구현 용어를 절대 쓰지 마십시오.",
-    "모든 해석은 제공된 차트 신호만 근거로 삼고, 의료·법률·투자 보장처럼 단정적인 약속은 하지 마십시오.",
+    "당신은 베다 점성술 프리미엄 PDF의 개인화 본문만 작성하는 전문 상담가입니다.",
+    "표지, 목차, 챕터 제목, 섹션 제목, 공통 안내문은 코드 템플릿에서 이미 생성됩니다.",
+    "LLM은 제목을 새로 만들지 말고, 입력된 섹션 순서에 맞춰 body, evidenceSignals, advice, cautions만 작성합니다.",
+    "출력은 순수 JSON 객체 하나만 허용합니다. 코드블록, 설명문, 마크다운, 내부 용어를 쓰지 마세요.",
+    "최종 본문에는 JSON, API, LLM, local, engine, debug, retry, fallback, template, 데이터 부족 같은 구현 용어를 절대 쓰지 마세요.",
+    "모든 해석은 제공된 차트 신호만 근거로 삼고, 의료·법률·투자 보장처럼 확정적인 약속은 하지 마세요.",
     "각 카테고리 body는 한국어 950~1300자입니다. evidenceSignals는 3~6개, advice와 cautions는 각각 1~2문장입니다.",
-    "각 섹션 usedSignalIds는 evidencePack.allowedSignalIds 안에서만 고르고, 해당 섹션 requiredSignalIds를 반드시 포함하십시오.",
-    "사인, 하우스, 행성 위치, 다샤, 나크샤트라, 카라카는 evidencePack.signals에 있는 값만 사용하십시오.",
+    "각 섹션 usedSignalIds는 evidencePack.allowedSignalIds 안에서만 고르고, 해당 섹션 requiredSignalIds를 반드시 포함하세요.",
+    "라시, 하우스, 행성 위치, 다샤, 나크샤트라, 카라카는 evidencePack.signals에 있는 값만 사용하세요.",
     "행성-사인, 행성-하우스, 하우스-사인, 현재 다샤 조합은 evidencePack 값과 다르면 안 됩니다.",
-    "카테고리 id와 title은 아래 계약을 한 글자도 바꾸지 말고 순서도 유지하십시오.",
     JSON.stringify({
       chapterContract: {
         chapterId: chapter.id,
@@ -1905,6 +1931,11 @@ function buildVedicLlmChapterPrompt({ chapter, chartJson, masterJson = {}, previ
         subtitle: chapter.subtitle,
         categories,
       },
+      staticTemplatePolicy: {
+        chapterTitleIsFixed: chapter.title,
+        sectionTitlesAreFixedInThisOrder: categories.map((category) => category.title),
+        doNotGenerate: ["표지", "목차", "챕터 제목", "섹션 제목", "공통 안내문", "다운로드 안내"],
+      },
       requiredOutputShape: {
         chapterId: chapter.id,
         chapterNo: chapter.order,
@@ -1913,79 +1944,19 @@ function buildVedicLlmChapterPrompt({ chapter, chartJson, masterJson = {}, previ
           id: category.id,
           title: category.title,
           usedSignalIds: category.requiredSignalIds,
-          body: "한국어 950~1300자 본문",
+          body: "한국어 950~1300자 개인화 본문",
           evidenceSignals: ["차트 근거 1", "차트 근거 2", "차트 근거 3"],
           advice: "현실 조언",
-          cautions: "주의할 흐름",
+          cautions: "주의 흐름",
         })),
       },
       currentChartSignals: signalPack,
       verifiedVedicMasterJson: masterJson,
-      previousChapterSummaries: safeArray(previousSummaries).slice(-4),
+      previousSummaries: safeArray(previousSummaries).slice(-4),
+      repairBlock,
     }),
-    repairBlock,
-  ].filter(Boolean).join("\n\n");
+  ].join("\n\n");
 }
-
-function extractVedicLlmJsonObject(text = "") {
-  const raw = String(text || "")
-    .replace(/^\s*```(?:json)?\s*/i, "")
-    .replace(/\s*```\s*$/i, "")
-    .trim();
-  try {
-    return JSON.parse(raw);
-  } catch (_) {}
-
-  const candidates = [
-    raw.match(/```json\s*([\s\S]*?)\s*```/i)?.[1],
-    raw.match(/```\s*([\s\S]*?)\s*```/i)?.[1],
-  ].filter(Boolean);
-
-  const start = raw.indexOf("{");
-  if (start >= 0) {
-    let depth = 0;
-    let inString = false;
-    let escaped = false;
-    for (let index = start; index < raw.length; index += 1) {
-      const char = raw[index];
-      if (escaped) {
-        escaped = false;
-        continue;
-      }
-      if (char === "\\") {
-        escaped = true;
-        continue;
-      }
-      if (char === "\"") {
-        inString = !inString;
-        continue;
-      }
-      if (inString) continue;
-      if (char === "{") depth += 1;
-      if (char === "}") depth -= 1;
-      if (depth === 0) {
-        candidates.push(raw.slice(start, index + 1));
-        break;
-      }
-    }
-  }
-
-  for (const candidate of candidates) {
-    try {
-      return JSON.parse(clean(candidate));
-    } catch (_) {}
-  }
-
-  throw Object.assign(new Error("베다점 원고 응답 파싱에 실패했습니다."), {
-    code: "VEDIC_LLM_JSON_PARSE_FAILED",
-    status: 502,
-  });
-}
-
-function buildVedicEvidenceIndex(evidencePack = {}) {
-  return new Map(safeArray(evidencePack?.signals).map((signal) => [clean(signal?.id), signal]).filter((entry) => entry[0]));
-}
-
 function normalizeUsedSignalIds(ids = [], evidencePack = {}) {
   const evidenceIndex = buildVedicEvidenceIndex(evidencePack);
   return Array.from(new Set(safeArray(ids).map((id) => clean(id)).filter((id) => id && evidenceIndex.has(id))));
@@ -2331,10 +2302,13 @@ async function callVedicPremiumLlm(env, prompt, meta = {}) {
     metadata: meta,
   });
   if (!result?.ok || !clean(result?.text)) {
-    throw Object.assign(new Error(clean(result?.message || "베다점 원고 생성에 실패했습니다.")), {
+    const error = Object.assign(new Error(clean(result?.message || "베다점 원고 생성에 실패했습니다.")), {
       code: clean(result?.error || "VEDIC_LLM_GENERATION_FAILED"),
       status: Number(result?.status || 502),
+      details: result || null,
     });
+    error.reasonClass = classifyVedicLlmFailure(error);
+    throw error;
   }
   return {
     text: clean(result.text),
@@ -3208,9 +3182,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     chapterCount: VEDIC_PREMIUM_CHAPTERS.length,
   });
 
-  let localDraft = null;
   let llmDraft = null;
-  let llmFallbackReason = "";
   try {
     llmDraft = await enhanceVedicPremiumManuscriptWithLLM(env, null, localVedicChartJson, {
       requestId: clean(options?.requestId || rawInput?.reportId || rawInput?.sessionId),
@@ -3227,41 +3199,41 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
       },
     });
   } catch (error) {
-    llmFallbackReason = clean(error?.code || error?.message || "VEDIC_LLM_MANUSCRIPT_FAILED");
+    const llmError = error instanceof Error ? error : new Error(clean(error || "VEDIC_LLM_MANUSCRIPT_FAILED"));
+    const llmFailureClass = classifyVedicLlmFailure(llmError);
     log("LLMManuscriptFailed", {
-      code: llmFallbackReason,
-      reason: clean(error?.message || error),
+      code: clean(llmError?.code || "VEDIC_LLM_MANUSCRIPT_FAILED"),
+      failureClass: llmFailureClass,
+      status: Number(llmError?.status || 0) || null,
+      reason: clean(llmError?.message || llmError),
     });
-    localDraft = buildVedicLocalPremiumManuscript(localVedicChartJson);
-    const fallbackChapters = normalizeVedicLocalFallbackManuscript(localDraft, localVedicChartJson);
-    llmDraft = {
-      chapters: fallbackChapters,
-      llmFailed: true,
-      fallbackUsed: true,
-      reason: "LLM_LOCAL_HYBRID",
-      fallbackReason: llmFallbackReason,
-      error: normalizeManuscriptError(error),
-      attempts: [],
-      model: "",
+    llmError.code = clean(llmError?.code || "VEDIC_LLM_MANUSCRIPT_FAILED");
+    llmError.status = Number(llmError?.status || 502);
+    llmError.reasonClass = llmFailureClass;
+    llmError.details = {
+      ...(llmError?.details && typeof llmError.details === "object" ? llmError.details : {}),
+      reason: clean(llmError?.message || llmError),
+      failureClass: llmFailureClass,
     };
+    throw llmError;
   }
 
-  log(llmDraft?.fallbackUsed ? "LocalFallbackManuscriptBuildSuccess" : "LLMManuscriptBuildSuccess", {
+  log("LLMManuscriptBuildSuccess", {
     chapterCount: safeArray(llmDraft?.chapters).length,
     totalLength: allTextLength(llmDraft?.chapters),
     model: clean(llmDraft?.model),
   });
 
   const finalChapters = safeArray(llmDraft?.chapters);
-  const fallbackUsed = Boolean(llmDraft?.fallbackUsed);
-  const manuscriptSource = fallbackUsed ? "llm-local-hybrid" : "llm-only";
+  const fallbackUsed = false;
+  const manuscriptSource = "llm-only";
 
   const finalValidation = validateVedicFinalManuscript({
     birthInput,
     localVedicChartJson,
     chapters: finalChapters,
     requireSignalIds: true,
-    allowFallback: fallbackUsed,
+    allowFallback: false,
   });
 
   if (!finalValidation.ok) {
@@ -3283,7 +3255,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     throw error;
   }
 
-  const evidenceAudit = buildVedicEvidenceAudit(finalChapters, localVedicChartJson, { allowFallback: fallbackUsed });
+  const evidenceAudit = buildVedicEvidenceAudit(finalChapters, localVedicChartJson, { allowFallback: false });
 
   log("FinalManuscriptValidated", {
     chapterCount: finalValidation.stats.chapterCount,
@@ -3319,16 +3291,16 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     localVedicChartJson,
     vedicMasterJson,
     masterJsonValidation,
-    localDraft,
+    localDraft: null,
     chapters: legacyChapters,
     chapterDrafts,
     chapterCount: VEDIC_PREMIUM_CHAPTERS.length,
     fallbackUsed,
     manuscriptSource,
-    llmChapterCount: fallbackUsed ? 0 : finalChapters.length,
-    fallbackChapterCount: fallbackUsed ? finalChapters.length : 0,
-    llmFallbackReason: clean(llmDraft?.fallbackReason || llmFallbackReason),
-    localDraftChapterCount: safeArray(localDraft?.chapters).length,
+    llmChapterCount: finalChapters.length,
+    fallbackChapterCount: 0,
+    llmFallbackReason: "",
+    localDraftChapterCount: 0,
     calculationFallbackUsed: false,
     pdfReady,
     quality: {
@@ -3342,9 +3314,10 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     },
     diagnostics: {
       llm: {
-        reason: clean(llmDraft?.reason || (fallbackUsed ? "LLM_LOCAL_HYBRID" : "LLM_ONLY")),
+        reason: clean(llmDraft?.reason || "LLM_ONLY"),
         failed: Boolean(llmDraft?.llmFailed),
-        fallbackReason: clean(llmDraft?.fallbackReason || llmFallbackReason),
+        failureClass: clean(llmDraft?.failureClass || ""),
+        fallbackReason: "",
         model: clean(llmDraft?.model),
         attempts: safeArray(llmDraft?.attempts),
       },

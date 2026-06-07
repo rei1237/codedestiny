@@ -31,6 +31,7 @@ import { ServiceExecutionTransaction } from "../lib/models.js";
 const ASTRO_PREMIUM_LOCK_TTL_MS = 10 * 60 * 1000;
 const astroPremiumGenerationLocks = new Map();
 const VEDIC_PREMIUM_LOCK_TTL_MS = 10 * 60 * 1000;
+const VEDIC_STATUS_RETRY_AFTER_MS = 4000;
 const vedicPremiumGenerationLocks = new Map();
 
 function toNumber(value, fallback) {
@@ -207,8 +208,6 @@ function buildAstroProgressPatch(stage, payload = {}) {
       return { stateKey: "writing_llm", currentChapterNo: Math.max(0, chapterNo - 1), totalChapters, currentChapterTitle: title };
     case "LLMChapterBuildSuccess":
       return { stateKey: "writing_llm", currentChapterNo: chapterNo, totalChapters, currentChapterTitle: title };
-    case "LLMManuscriptSkippedForSyncFallback":
-      return { stateKey: "local_fallback", currentChapterNo: 0, totalChapters, currentChapterTitle: "원고 작성 대체 흐름" };
     case "LLMManuscriptFailed":
       return { stateKey: "llm_failed", totalChapters, currentChapterTitle: "원고 작성 실패" };
     case "FinalManuscriptValidated":
@@ -255,6 +254,36 @@ function buildAstroStatusPayload(lock = {}, fallback = {}) {
       canDownload: Boolean(result?.canDownload || clean(result?.pdfUrl || result?.downloadUrl || result?.htmlUrl || result?.pdfReady?.pdfUrl || result?.pdfReady?.downloadUrl)),
       error: lock.error || fallback.error || null,
     },
+  };
+}
+
+function buildAstroPdfQualityGate(generated = {}) {
+  const totalChapters = ASTRO_PREMIUM_CHAPTERS.length;
+  const quality = generated?.quality && typeof generated.quality === "object" ? generated.quality : {};
+  const stats = quality?.stats && typeof quality.stats === "object" ? quality.stats : {};
+  const validation = generated?.validation && typeof generated.validation === "object" ? generated.validation : {};
+  const llmChapterCount = Number(generated?.llmChapterCount || 0);
+  const manuscriptSource = clean(generated?.manuscriptSource || quality?.manuscriptSource);
+  const totalLength = Number(generated?.totalLength || 0);
+  const issues = [];
+  if (generated?.fallbackUsed) issues.push("fallback_used");
+  if (llmChapterCount < totalChapters) issues.push("llm_chapter_count");
+  if (manuscriptSource !== "llm-only") issues.push("manuscript_source");
+  if (validation.ok !== true) issues.push("validation_failed");
+  if (quality.ok !== true) issues.push("quality_failed");
+  if (Number(stats.geminiChapterCount || 0) < totalChapters) issues.push("gemini_chapter_count");
+  if (Number(stats.flaggedForbiddenSections || 0) > 0) issues.push("forbidden_sections");
+  if (Number(stats.flaggedRiskySections || 0) > 0) issues.push("risky_sections");
+  if (Number(stats.flaggedRepetitionSections || 0) > 0) issues.push("repetition_sections");
+  if (totalLength < 50000) issues.push("total_length");
+  return {
+    ok: issues.length === 0,
+    issues,
+    totalChapters,
+    llmChapterCount,
+    manuscriptSource,
+    totalLength,
+    stats,
   };
 }
 
@@ -315,6 +344,14 @@ function buildVedicStatusPayloadFromArchive(doc = {}, sessionId = "", reportId =
     vedicMasterJson: archive.vedicMasterJson || null,
     masterJsonValidation: archive.masterJsonValidation || null,
     pdfReady,
+    diagnostics: archive.diagnostics || metadata.diagnostics || null,
+    llmFailureClass: clean(archive.llmFailureClass || archive?.diagnostics?.llm?.failureClass || metadata?.diagnostics?.llm?.failureClass),
+    llmModel: clean(archive.llmModel || archive?.diagnostics?.llm?.model || metadata?.diagnostics?.llm?.model),
+    llmAttempts: Array.isArray(archive.llmAttempts)
+      ? archive.llmAttempts
+      : Array.isArray(archive?.diagnostics?.llm?.attempts)
+        ? archive.diagnostics.llm.attempts
+        : [],
     pdfUrl: clean(archive.pdfUrl || pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl),
     htmlUrl: clean(archive.htmlUrl || pdfReady.htmlUrl),
     downloadUrl: clean(archive.downloadUrl || pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
@@ -604,11 +641,7 @@ async function handleAstroPremiumPrepare(request, env) {
       currentChapterTitle: "출생 차트 계산",
     });
 
-    const astroGenerationEnv = {
-      ...(env || {}),
-      ASTRO_PREMIUM_DISABLE_SYNC_LOCAL_FALLBACK: clean(env?.ASTRO_PREMIUM_DISABLE_SYNC_LOCAL_FALLBACK) || "1",
-    };
-    const generated = await generateAstroPremiumReport(astroGenerationEnv, {
+    const generated = await generateAstroPremiumReport(env, {
       ...body,
       sessionId,
       birthInput,
@@ -625,14 +658,18 @@ async function handleAstroPremiumPrepare(request, env) {
         console.info(tag, payload || {});
       },
     });
-    if (generated?.fallbackUsed || Number(generated?.llmChapterCount || 0) < ASTRO_PREMIUM_CHAPTERS.length) {
+    const pdfQuality = buildAstroPdfQualityGate(generated);
+    if (!pdfQuality.ok) {
       const error = new Error("점성술 프리미엄 원고 작성이 완료되지 않았습니다.");
-      error.code = "ASTRO_LLM_MANUSCRIPT_INCOMPLETE";
+      error.code = pdfQuality.issues.includes("llm_chapter_count") || pdfQuality.issues.includes("fallback_used")
+        ? "ASTRO_LLM_MANUSCRIPT_INCOMPLETE"
+        : "ASTRO_PREMIUM_PDF_QUALITY_FAILED";
       error.status = 502;
       error.details = {
         llmChapterCount: Number(generated?.llmChapterCount || 0),
         fallbackUsed: Boolean(generated?.fallbackUsed),
         llmFallbackReason: clean(generated?.llmFallbackReason),
+        pdfQuality,
       };
       throw error;
     }
@@ -661,6 +698,7 @@ async function handleAstroPremiumPrepare(request, env) {
       fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
       fallbackUsed: Boolean(generated?.fallbackUsed),
       llmFallbackReason: clean(generated?.llmFallbackReason),
+      pdfQuality,
       archive: {
         reportId,
         reportType: "western_astrology_book",
@@ -685,6 +723,7 @@ async function handleAstroPremiumPrepare(request, env) {
         astroMasterJson: generated.astroMasterJson,
         masterJsonValidation: generated.masterJsonValidation,
         pdfReady,
+        pdfQuality,
         diagnostics: generated.diagnostics,
         canReopen: true,
         canDownload: Boolean(storedUrl),
@@ -702,6 +741,7 @@ async function handleAstroPremiumPrepare(request, env) {
       llmChapterCount: Number(generated?.llmChapterCount || 0),
       fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
       llmFallbackReason: clean(generated?.llmFallbackReason),
+      pdfQuality,
       reportId,
       chapters: generated.chapters,
       chapterDrafts: generated.finalManuscript,
@@ -724,10 +764,10 @@ async function handleAstroPremiumPrepare(request, env) {
       localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
       finalChapterCount: Array.isArray(generated?.chapters) ? generated.chapters.length : 0,
       progress: {
-        stateKey: generated?.fallbackUsed ? "local_fallback" : "completed",
-        currentChapterNo: generated?.fallbackUsed ? Number(generated?.llmChapterCount || 0) : ASTRO_PREMIUM_CHAPTERS.length,
+        stateKey: "completed",
+        currentChapterNo: ASTRO_PREMIUM_CHAPTERS.length,
         totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
-        currentChapterTitle: generated?.fallbackUsed ? "원고 작성 대체 흐름" : "완료",
+        currentChapterTitle: "완료",
         manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
       },
     };
@@ -849,7 +889,10 @@ async function handleVedicPremiumPrepare(request, env) {
         deduped: true,
         status: "running",
         sessionId: vedicSessionId,
+        reportId: clean(existingLock.reportId || body?.reportId || body?.accessGrant?.reportId),
         startedAt: existingLock.startedAt,
+        stage: clean(existingLock.stage || "running"),
+        retryAfterMs: VEDIC_STATUS_RETRY_AFTER_MS,
       }, { status: 202 });
     }
     if (existingLock?.status === "done" && existingLock?.result) {
@@ -863,6 +906,7 @@ async function handleVedicPremiumPrepare(request, env) {
 
     vedicPremiumGenerationLocks.set(vedicSessionId, {
       sessionId: vedicSessionId,
+      reportId: clean(body?.reportId || body?.accessGrant?.reportId),
       status: "running",
       startedAt: new Date().toISOString(),
       startedAtMs: Date.now(),
@@ -883,6 +927,10 @@ async function handleVedicPremiumPrepare(request, env) {
         startedAt: new Date().toISOString(),
         startedAtMs: Date.now(),
         stage: "birth-input-invalid",
+        error: {
+          code: "BIRTH_INPUT_INVALID",
+          message: clean(birthValidation?.message || "베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요."),
+        },
       });
       console.error("[VedicPremiumPDF][Error]", {
         code: "BIRTH_INPUT_INVALID",
@@ -914,6 +962,10 @@ async function handleVedicPremiumPrepare(request, env) {
         startedAt: new Date().toISOString(),
         startedAtMs: Date.now(),
         stage: "access-denied",
+        error: {
+          code: clean(access?.code || "UNAUTHORIZED"),
+          message: clean(access?.message || "베다점 프리미엄 PDF 접근 권한이 필요합니다."),
+        },
       });
       console.error("[VedicPremiumPDF][Error]", {
         code: String(access?.code || "UNAUTHORIZED"),
@@ -983,6 +1035,8 @@ async function handleVedicPremiumPrepare(request, env) {
       const error = new Error("베다점 프리미엄 LLM 원고 생성이 완료되지 않았습니다.");
       error.code = "VEDIC_LLM_ONLY_REQUIRED";
       error.status = 502;
+      error.reasonClass = clean(generated?.diagnostics?.llm?.failureClass || "llm_generation_failed");
+      error.details = generated?.diagnostics?.llm || null;
       throw error;
     }
     const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
@@ -1030,6 +1084,11 @@ async function handleVedicPremiumPrepare(request, env) {
         localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
         fallbackUsed: Boolean(generated?.fallbackUsed),
         llmFallbackReason: clean(generated?.llmFallbackReason),
+        llmFailureClass: clean(generated?.diagnostics?.llm?.failureClass),
+        diagnostics: generated.diagnostics,
+        quality: generated.quality,
+        llmModel: clean(generated?.diagnostics?.llm?.model),
+        llmAttempts: Array.isArray(generated?.diagnostics?.llm?.attempts) ? generated.diagnostics.llm.attempts : [],
         payload: generated.payload,
         localVedicChartJson: generated.localVedicChartJson,
         vedicMasterJson: generated.vedicMasterJson,
@@ -1051,6 +1110,7 @@ async function handleVedicPremiumPrepare(request, env) {
       llmChapterCount: Number(generated?.llmChapterCount || 0),
       fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
       llmFallbackReason: clean(generated?.llmFallbackReason),
+      llmFailureClass: clean(generated?.diagnostics?.llm?.failureClass),
       reportId,
       chapters: generated.chapters,
       chapterDrafts: generated.chapterDrafts,
@@ -1060,6 +1120,8 @@ async function handleVedicPremiumPrepare(request, env) {
       masterJsonValidation: generated.masterJsonValidation,
       pdfReady,
       diagnostics: generated.diagnostics,
+      llmModel: clean(generated?.diagnostics?.llm?.model),
+      llmAttempts: Array.isArray(generated?.diagnostics?.llm?.attempts) ? generated.diagnostics.llm.attempts : [],
       pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
       htmlUrl: clean(pdfReady?.htmlUrl),
       downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
@@ -1113,6 +1175,12 @@ async function handleVedicPremiumPrepare(request, env) {
         startedAt: new Date().toISOString(),
         startedAtMs: Date.now(),
         stage: "error",
+        error: {
+          code: clean(error?.code || "VEDIC_PREMIUM_GENERATION_FAILED"),
+          reasonClass: clean(error?.reasonClass),
+          details: normalizeVedicError(error),
+          message: clean(error?.message || "베다점 프리미엄 PDF 생성에 실패했습니다."),
+        },
       });
     }
     throw error;
@@ -1146,6 +1214,7 @@ async function handleVedicPremiumStatus(request, env) {
       reportId,
       startedAt: lock.startedAt,
       stage: clean(lock.stage || "running"),
+      retryAfterMs: VEDIC_STATUS_RETRY_AFTER_MS,
     }, { status: 202 });
   }
   if (lock?.status === "done" && lock?.result) {
@@ -1164,7 +1233,11 @@ async function handleVedicPremiumStatus(request, env) {
       status: "failed",
       sessionId: clean(lock.sessionId || sessionId),
       reportId,
-      message: "베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.",
+      code: clean(lock?.error?.code || "VEDIC_PREMIUM_GENERATION_FAILED"),
+      reasonClass: clean(lock?.error?.reasonClass),
+      details: lock?.error?.details || null,
+      failureStage: clean(lock.stage || "generation"),
+      message: clean(lock?.error?.message || "베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요."),
     });
   }
 
@@ -1189,6 +1262,7 @@ async function handleVedicPremiumStatus(request, env) {
       sessionId,
       reportId,
       stage: "waiting-for-result",
+      retryAfterMs: VEDIC_STATUS_RETRY_AFTER_MS,
     }, { status: 202 });
   }
 
@@ -1206,6 +1280,7 @@ async function handleVedicPremiumStatus(request, env) {
       sessionId: clean(doc.sessionId || sessionId),
       reportId: clean(doc.reportId || reportId),
       code: clean(doc.reasonCode || "VEDIC_PREMIUM_GENERATION_FAILED"),
+      failureStage: clean(doc.failureStage || doc.reasonCode || "generation"),
       message: clean(doc.reasonMessage || "베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요."),
     });
   }
@@ -1218,6 +1293,7 @@ async function handleVedicPremiumStatus(request, env) {
     sessionId: clean(doc.sessionId || sessionId),
     reportId: clean(doc.reportId || reportId),
     stage: clean(doc.premiumStatus || "generating"),
+    retryAfterMs: VEDIC_STATUS_RETRY_AFTER_MS,
   }, { status: 202 });
 }
 

@@ -1417,12 +1417,10 @@ function buildAstroChapterPrompt({ chartInput, masterJson = {}, chapterSpec, sig
   }));
   const responseShape = {
     chapterNo: Number(chapterSpec.order),
-    title: chapterSpec.title,
     summary: "이 장의 핵심을 180자 안팎으로 요약",
-    sections: categories.map((category) => ({
-      title: category.title,
-      body: "950자 이상의 완성 원고",
-      bullets: ["핵심 통찰", "주의할 흐름", "실천 포인트"],
+    sections: categories.map(() => ({
+      body: "950자 이상 1350자 이하의 개인화 상담 본문",
+      bullets: ["핵심 통찰", "주의 흐름", "실천 포인트"],
       evidenceSignals: ["태양 별자리", "달 별자리", "상승궁", "주요 하우스"],
       qualityFlags: {
         tone: "professional-mystical",
@@ -1431,19 +1429,21 @@ function buildAstroChapterPrompt({ chartInput, masterJson = {}, chapterSpec, sig
       },
     })),
   };
-  return `당신은 30년 이상 실전 상담을 해온 서양 점성술 전문가입니다.
-출생 차트의 행성·별자리·하우스·어스펙트를 바탕으로, 전문적이면서도 신비로운 한국어 프리미엄 PDF 원고를 작성하세요.
+  return `당신은 출생 차트를 바탕으로 프리미엄 점성술 PDF의 개인화 본문만 작성하는 전문 상담가입니다.
 
-[작성 원칙]
-1. 이번 장의 모든 카테고리 본문은 새로 작성합니다.
-2. 각 카테고리 body는 950자 이상 1,350자 이하로 작성합니다.
-3. 각 body에는 최소 4개 이상의 구체 차트 근거를 자연스럽게 포함합니다. 예: 태양/달/상승궁/MC, 행성 별자리, 하우스, 어스펙트, 역행, 원소·모드 균형.
-4. 본문 톤은 전문 상담가처럼 단정하고, 운명의 상징을 읽는 듯 신비롭게 유지합니다.
-5. 개발 용어, 내부 처리 용어, 데이터 부족 표현, 확정적 예언, 공포 조장, 의학·법률·투자 단정은 금지합니다.
-6. 같은 문장 구조를 반복하지 말고, 이전 장과 표현을 분명히 다르게 씁니다.
-7. 각 body는 다음 소제목을 자연스럽게 포함해도 됩니다: 핵심 진단, 차트 근거, 현실에서 드러나는 모습, 장점, 주의점, 상담사의 조언, 실천 과제.
-8. evidenceSignals에는 body에서 실제로 언급한 차트 근거만 4개 이상 넣습니다.
-9. qualityFlags는 본문 품질 상태를 짧은 문자열 또는 boolean으로만 표시합니다.
+정적 템플릿 정책:
+1. 표지, 목차, 챕터 제목, 섹션 제목, 공통 안내문은 코드 템플릿에서 이미 생성됩니다.
+2. LLM은 제목을 새로 쓰지 말고, 입력된 카테고리 순서에 맞춰 body와 상담 근거만 작성합니다.
+3. sections 배열은 입력 categories와 같은 순서와 개수여야 합니다.
+
+작성 원칙:
+1. 각 body는 950자 이상 1,350자 이하로 작성합니다.
+2. 각 body에는 최소 4개 이상의 구체 차트 근거를 자연스럽게 포함합니다. 예: 태양/달/상승궁/MC, 행성 별자리, 하우스, 어스펙트, 역행, 원소·모드 균형.
+3. 본문 톤은 전문 상담가처럼 품격 있고 신비롭게 유지합니다.
+4. 개발 용어, 내부 처리 용어, 데이터 부족 표현, 확정 예언, 공포 조장, 의학·법률·투자 단정은 금지합니다.
+5. 같은 문장 구조를 반복하지 말고 이전 장과 다른 표현을 사용합니다.
+6. evidenceSignals에는 body에서 실제로 언급한 차트 근거만 4개 이상 넣습니다.
+7. qualityFlags는 본문 점검 상태를 짧은 문자열 또는 boolean으로만 표시합니다.
 
 [출생 차트 핵심]
 ${safeJsonForPrompt(chartInput)}
@@ -1451,7 +1451,7 @@ ${safeJsonForPrompt(chartInput)}
 [검증된 점성술 마스터 JSON]
 ${safeJsonForPrompt(masterJson)}
 
-[이번 장]
+[이번 장 고정 템플릿]
 ${safeJsonForPrompt({
   chapterNo: chapterSpec.order,
   title: chapterSpec.title,
@@ -1464,16 +1464,12 @@ ${safeJsonForPrompt(signalBrief)}
 [이전 장 요약]
 ${safeJsonForPrompt(previousSummaries.slice(-4))}
 
-[검수 후 재작성 요청]
-${safeJsonForPrompt({
-  attempt,
-  lastErrors,
-})}
+[검수/재작성 요청]
+${safeJsonForPrompt({ attempt, lastErrors })}
 
-아래 JSON 객체만 반환하세요. 본문 문자열 안에는 JSON, API, LLM, fallback, debug, engine, payload, schema 같은 단어를 쓰지 마세요.
+아래 JSON 객체만 반환하세요. 본문 안에는 JSON, API, LLM, fallback, debug, engine, payload, schema 같은 단어를 쓰지 마세요.
 ${safeJsonForPrompt(responseShape)}`;
 }
-
 async function callAstroGemini(env, prompt, options = {}) {
   const model = clean(env?.ASTRO_GEMINI_MODEL || env?.PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "gemini-2.5-flash");
   const result = await callGeminiText(env, prompt, {
@@ -2213,58 +2209,30 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
   });
   let enhanced = null;
-  const disableSyncLocalFallback = ["1", "true", "yes", "on"].includes(
-    String(env?.ASTRO_PREMIUM_DISABLE_SYNC_LOCAL_FALLBACK || "").trim().toLowerCase(),
-  );
-  if (!disableSyncLocalFallback) {
-    emit("LLMManuscriptSkippedForSyncFallback", {
-      reason: "ASTRO_SYNC_LOCAL_FALLBACK",
+  try {
+    enhanced = await enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, {
+      log: emit,
+      requestId: clean(rawInput?.reportId || options?.requestId),
+      masterJson: astroMasterJson,
+    });
+  } catch (error) {
+    const failureReason = clean(error?.code || error?.message || "ASTRO_LLM_MANUSCRIPT_FAILED");
+    emit("LLMManuscriptFailed", {
+      reason: failureReason,
       chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
     });
-    const localDrafts = buildAstroLocalPremiumManuscript(localAstroChartJson);
-    const fallbackDrafts = normalizeAstroLocalFallbackManuscript(
-      reinforceAstroManuscriptLocally(localDrafts, localAstroChartJson),
-      localAstroChartJson,
-    );
-    enhanced = {
-      chapters: fallbackDrafts,
-      fallbackUsed: true,
-      fallbackReason: "ASTRO_SYNC_LOCAL_FALLBACK",
-      llmChapterCount: 0,
-      fallbackChapterCount: fallbackDrafts.length,
-      source: ASTRO_MANUSCRIPT_SOURCE.HYBRID,
+    const llmError = new Error("점성술 프리미엄 원고 작성이 완료되지 않았습니다.");
+    llmError.code = clean(error?.code || "ASTRO_LLM_MANUSCRIPT_FAILED");
+    llmError.status = Number(error?.status || 502);
+    llmError.details = {
+      reason: failureReason,
+      chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
     };
-  } else {
-    try {
-      enhanced = await enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, {
-        log: emit,
-        requestId: clean(rawInput?.reportId || options?.requestId),
-        masterJson: astroMasterJson,
-      });
-    } catch (error) {
-      const fallbackReason = clean(error?.code || error?.message || "ASTRO_LLM_MANUSCRIPT_FAILED");
-      emit("LLMManuscriptFailed", {
-        reason: fallbackReason,
-        chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-      });
-      const localDrafts = buildAstroLocalPremiumManuscript(localAstroChartJson);
-      const fallbackDrafts = normalizeAstroLocalFallbackManuscript(
-        reinforceAstroManuscriptLocally(localDrafts, localAstroChartJson),
-        localAstroChartJson,
-      );
-      enhanced = {
-        chapters: fallbackDrafts,
-        fallbackUsed: true,
-        fallbackReason,
-        llmChapterCount: 0,
-        fallbackChapterCount: fallbackDrafts.length,
-        source: ASTRO_MANUSCRIPT_SOURCE.HYBRID,
-      };
-    }
+    throw llmError;
   }
   const finalDrafts = safeArray(enhanced.chapters);
   const validated = validateFinalManuscript(localAstroChartJson, finalDrafts, {
-    allowFallback: Boolean(enhanced?.fallbackUsed),
+    allowFallback: false,
   });
 
   emit("FinalManuscriptValidated", {
@@ -2294,11 +2262,11 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     payload,
     chapters,
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-    fallbackUsed: Boolean(enhanced.fallbackUsed),
+    fallbackUsed: false,
     manuscriptSource,
     llmChapterCount: Number(enhanced.llmChapterCount ?? finalDrafts.length),
-    fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
-    llmFallbackReason: clean(enhanced.fallbackReason),
+    fallbackChapterCount: 0,
+    llmFallbackReason: "",
     localDraftChapterCount: 0,
     totalLength: totalLength(finalDrafts),
     pdfReady,
@@ -2308,7 +2276,13 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     finalManuscript: finalDrafts,
     validation: validated,
     validationWarning: !validated.ok,
-    quality: validated.stats,
+    quality: {
+      ok: validated.ok,
+      issues: validated.issues,
+      repetition: validated.repetition,
+      stats: validated.stats,
+      manuscriptSource,
+    },
   };
 }
 

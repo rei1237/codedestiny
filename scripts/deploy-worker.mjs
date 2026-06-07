@@ -35,6 +35,9 @@ for (const envFile of envFiles) {
 if (!process.env.CLOUDFLARE_API_TOKEN && process.env.CF_API_TOKEN) {
   process.env.CLOUDFLARE_API_TOKEN = process.env.CF_API_TOKEN;
 }
+if (!process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_APITOKEN) {
+  process.env.CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_APITOKEN;
+}
 
 const workerConfig = resolve(rootDir, "worker", "wrangler.toml");
 if (!existsSync(workerConfig)) {

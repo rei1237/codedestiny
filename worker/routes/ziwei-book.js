@@ -1604,6 +1604,68 @@ function buildLocalChapters(profile, seed, pass = 1) {
   return { drafts, chapters };
 }
 
+function buildCompactZiweiLocalChapterSeeds(profile = {}, seed = {}) {
+  const ming = findPalace(seed, "ming") || {};
+  const userName = clean(profile?.name || seed?.birthProfile?.name || "사용자") || "사용자";
+  return CHAPTER_BLUEPRINTS.map((blueprint, chapterIndex) => {
+    const palace = findPalace(seed, blueprint.palaceKey) || ming;
+    const palaceName = clean(palace?.nameKo || PALACE_LABELS[blueprint.palaceKey] || seed?.chart?.mingGong || "명궁");
+    const branch = clean(palace?.branch || "");
+    const mainStars = normalizeStarList(palace?.mainStars).slice(0, 4).map(compactStarForPrompt);
+    const auxStars = normalizeStarList(palace?.auxStars).slice(0, 3).map(compactStarForPrompt);
+    const maleficStars = normalizeStarList(palace?.maleficStars).slice(0, 2).map(compactStarForPrompt);
+    const transformations = Array.isArray(palace?.transformations)
+      ? palace.transformations.slice(0, 4).map((item) => ({ star: clean(item?.star), type: clean(item?.type || item?.label) })).filter((item) => item.star || item.type)
+      : [];
+    const evidenceAnchors = [
+      { type: "palace", name: palaceName, palaceKey: clean(palace?.key || blueprint.palaceKey), reason: `${palaceName}의 궁 흐름` },
+      ...mainStars.slice(0, 2).map((star) => ({ type: "star", name: star.name, strength: star.strength, reason: `${palaceName} 주성 신호` })),
+      ...transformations.slice(0, 1).map((item) => ({ type: "sihua", name: item.type, star: item.star, reason: `${item.star} ${item.type} 사화` })),
+    ].filter((item) => clean(item.name || item.star));
+    return {
+      id: blueprint.id,
+      roman: blueprint.roman,
+      chapterNo: chapterIndex + 1,
+      chapterId: blueprint.id,
+      chapterTitle: blueprint.title,
+      categories: blueprint.categories.map((title, categoryIndex) => ({
+        id: `${blueprint.id}-${String(categoryIndex + 1).padStart(2, "0")}`,
+        title,
+        order: categoryIndex + 1,
+        evidenceAnchors,
+      })),
+      palaceFacts: {
+        key: clean(palace?.key || blueprint.palaceKey),
+        nameKo: palaceName,
+        branch,
+        mainStars,
+        auxiliaryStars: auxStars,
+        maleficStars,
+        transformations,
+      },
+      starFacts: {
+        mainStars,
+        auxiliaryStars: auxStars,
+        maleficStars,
+      },
+      transformationFacts: transformations,
+      timelineFacts: {
+        decadeLuck: Array.isArray(seed?.chart?.decadeLuck) ? seed.chart.decadeLuck.slice(0, 6) : [],
+        annualLuck: Array.isArray(seed?.chart?.annualLuck) ? seed.chart.annualLuck.slice(0, 6) : [],
+      },
+      evidenceAnchors,
+      writingRequirements: {
+        author: userName,
+        categories: blueprint.categories,
+        minCategoryChars: SECTION_MIN_CHARS,
+        requiredEvidencePerCategory: 3,
+      },
+      source: "local-calculation-json",
+      calculationOnly: true,
+    };
+  });
+}
+
 function buildFallbackChapter(blueprint, profile = {}, seed = {}) {
   const categories = blueprint.categories.map((categoryTitle, categoryIndex) => {
     const guide = buildZiweiLocalChapterGuide({
@@ -1707,6 +1769,30 @@ function sanitizeFinalManuscript({ chapters = [], profile = {}, seed = {} } = {}
       id: CHAPTER_BLUEPRINTS[index].id,
       roman: CHAPTER_BLUEPRINTS[index].roman,
       title: CHAPTER_BLUEPRINTS[index].title,
+    };
+  });
+}
+
+function sanitizeLLMFinalManuscript({ chapters = [], seed = {} } = {}) {
+  const source = Array.isArray(chapters) ? chapters : [];
+  const byId = new Map(source.map((chapter) => [clean(chapter?.id), chapter]));
+  const byTitle = new Map(source.map((chapter) => [clean(chapter?.title), chapter]));
+  return CHAPTER_BLUEPRINTS.map((blueprint, index) => {
+    const found = byId.get(clean(blueprint.id)) || byTitle.get(clean(blueprint.title));
+    if (!found) {
+      throw Object.assign(new Error(`ZIWEI_LLM_CHAPTER_MISSING_${index + 1}`), {
+        code: "ZIWEI_LLM_CHAPTER_MISSING",
+        status: 502,
+        detail: { chapterNumber: index + 1, chapterId: blueprint.id },
+      });
+    }
+    return {
+      ...normalizeLLMGeneratedChapterShape(found, blueprint, seed),
+      chapterNo: index + 1,
+      id: blueprint.id,
+      roman: blueprint.roman,
+      title: blueprint.title,
+      source: "gemini-chapter",
     };
   });
 }
@@ -1861,6 +1947,65 @@ function compactPalaceForPrompt(palace = {}) {
   };
 }
 
+function collectZiweiCalculationEvidenceNames(localChapter = {}, seed = {}) {
+  const names = new Set();
+  const add = (value) => {
+    const name = clean(value);
+    if (name) names.add(name);
+  };
+  const addStar = (star) => {
+    add(star?.name);
+    add(star?.star);
+    add(star?.sihua);
+  };
+  safeArray(localChapter?.evidenceAnchors).forEach((anchor) => {
+    add(anchor?.name);
+    add(anchor?.star);
+    add(anchor?.palaceName);
+  });
+  safeArray(localChapter?.categories).forEach((category) => {
+    safeArray(category?.evidenceAnchors).forEach((anchor) => {
+      add(anchor?.name);
+      add(anchor?.star);
+      add(anchor?.palaceName);
+    });
+  });
+  const palaceFacts = safeObject(localChapter?.palaceFacts);
+  add(palaceFacts?.nameKo);
+  add(palaceFacts?.branch);
+  safeArray(palaceFacts?.mainStars).forEach(addStar);
+  safeArray(palaceFacts?.auxiliaryStars).forEach(addStar);
+  safeArray(palaceFacts?.maleficStars).forEach(addStar);
+  safeArray(palaceFacts?.transformations).forEach((item) => {
+    add(item?.star);
+    add(item?.type);
+  });
+  const starFacts = safeObject(localChapter?.starFacts);
+  safeArray(starFacts?.mainStars).forEach(addStar);
+  safeArray(starFacts?.auxiliaryStars).forEach(addStar);
+  safeArray(starFacts?.maleficStars).forEach(addStar);
+  safeArray(localChapter?.transformationFacts).forEach((item) => {
+    add(item?.star);
+    add(item?.type);
+  });
+  safeArray(seed?.chart?.palaces).forEach((palace) => {
+    add(palace?.nameKo);
+    add(palace?.branch);
+    normalizeStarList(palace?.mainStars).forEach(addStar);
+    normalizeStarList(palace?.auxStars).forEach(addStar);
+    normalizeStarList(palace?.maleficStars).forEach(addStar);
+    safeArray(palace?.transformations).forEach((item) => {
+      add(item?.star);
+      add(item?.type || item?.label);
+    });
+  });
+  safeArray(seed?.chart?.transformations).forEach((item) => {
+    add(item?.star);
+    add(item?.type || item?.label);
+  });
+  return names;
+}
+
 function getZiweiPromptPalaceKeys(blueprint = {}) {
   const id = clean(blueprint.id);
   const keys = new Set(["ming"]);
@@ -1883,7 +2028,12 @@ function buildZiweiLLMInput({ profile = {}, seed = {}, blueprint = {}, localChap
     .map((key) => findPalace(seed, key))
     .filter(Boolean)
     .map(compactPalaceForPrompt);
-  const allPalaces = (Array.isArray(seed?.chart?.palaces) ? seed.chart.palaces : []).map(compactPalaceForPrompt);
+  const allPalaceBrief = (Array.isArray(seed?.chart?.palaces) ? seed.chart.palaces : []).map((palace) => ({
+    key: clean(palace?.key),
+    nameKo: clean(palace?.nameKo),
+    branch: clean(palace?.branch),
+    mainStars: normalizeStarList(palace?.mainStars).slice(0, 2).map((star) => clean(star?.name)).filter(Boolean),
+  }));
   const palaceIndex = buildZiweiPalaceIndex(seed);
   const relevantPalaceIndex = palaceKeys.reduce((acc, key) => {
     if (palaceIndex[key]) acc[key] = palaceIndex[key];
@@ -1914,9 +2064,13 @@ function buildZiweiLLMInput({ profile = {}, seed = {}, blueprint = {}, localChap
       yearStemBranch: clean(seed?.chart?.yearStemBranch),
     },
     relevantPalaces: palaces,
-    allPalaceSnapshot: allPalaces,
+    allPalaceBrief,
     expertContext: {
-      ziweiMasterJson: masterJson,
+      masterJsonSummary: masterJson ? {
+        schemaVersion: clean(masterJson?.schemaVersion),
+        generationMode: clean(masterJson?.generationMode),
+        chapterCount: Array.isArray(masterJson?.chapterSpecs) ? masterJson.chapterSpecs.length : 0,
+      } : null,
       palaceIndex: relevantPalaceIndex,
       crossPalaceRelations,
       transformationLayers: buildZiweiTransformationLayers(seed),
@@ -1934,11 +2088,24 @@ function buildZiweiLLMInput({ profile = {}, seed = {}, blueprint = {}, localChap
       annualLuck: Array.isArray(seed?.chart?.annualLuck) ? seed.chart.annualLuck.slice(0, 12) : [],
     },
     interpretationSeeds: safeObject(seed?.localZiweiChartJson?.interpretationSeeds),
-    localDraftSummary: {
-      title: clean(localChapter?.title),
+    localCalculationJson: {
+      chapterId: clean(localChapter?.chapterId || localChapter?.id || blueprint.id),
+      chapterTitle: clean(localChapter?.chapterTitle || blueprint.title),
       categories: Array.isArray(localChapter?.categories)
-        ? localChapter.categories.map((category) => ({ title: clean(category?.title), sample: clean(category?.finalText || category?.text).slice(0, 420) }))
+        ? localChapter.categories.map((category) => ({
+          id: clean(category?.id),
+          title: clean(category?.title),
+          order: Number(category?.order || 0),
+          evidenceAnchors: safeArray(category?.evidenceAnchors),
+        }))
         : [],
+      palaceFacts: safeObject(localChapter?.palaceFacts),
+      starFacts: safeObject(localChapter?.starFacts),
+      transformationFacts: safeArray(localChapter?.transformationFacts),
+      timelineFacts: safeObject(localChapter?.timelineFacts),
+      evidenceAnchors: safeArray(localChapter?.evidenceAnchors),
+      writingRequirements: safeObject(localChapter?.writingRequirements),
+      calculationOnly: true,
     },
     previousSummaries,
     attempt,
@@ -1947,54 +2114,54 @@ function buildZiweiLLMInput({ profile = {}, seed = {}, blueprint = {}, localChap
 }
 
 function buildZiweiChapterPrompt(input = {}) {
-  return `너는 자미두수 최고 고수이자 프리미엄 PDF 원고 작가다.
+  return `당신은 자미두수 명반 자료를 바탕으로 프리미엄 PDF의 개인화 본문만 작성하는 전문 상담가입니다.
 
 역할:
-계산된 자미두수 명반 자료만 근거로 사용해 현재 챕터의 완성형 상담문을 작성한다.
+계산된 자미두수 명반 자료만 근거로 사용해 현재 챕터의 상담 본문을 작성합니다.
 
-절대 규칙:
-1. 자미두수 명반을 새로 계산하지 않는다.
-2. 입력 자료에 없는 별, 궁, 사화, 시기 정보를 만들지 않는다.
-3. 내부 용어(JSON, payload, debug, API, LLM, prompt, schema, engine)를 본문에 쓰지 않는다.
-4. 공포 조장, 질병 진단, 투자 수익 보장, 확정 예언을 하지 않는다.
-5. 단정 대신 경향, 가능성, 전략, 선택 기준으로 쓴다.
-6. 각 카테고리 본문은 최소 700자 이상 작성한다.
-7. 각 카테고리에는 실제 근거를 2개 이상 넣는다. 근거는 궁명, 별명, 강약 기호(◎ O ▲ △ X), 사화, 대한·유년 중에서 고른다.
-8. 문체는 전문적이고 신비롭게 쓰되 개발 문서처럼 보이면 안 된다.
-9. 카테고리 제목은 입력된 순서와 문구를 정확히 유지한다.
-10. 각 카테고리의 evidenceAnchors에는 실제 입력에서 확인되는 궁, 별, 사화, 시기 근거를 3개 이상 넣는다.
+정적 템플릿 정책:
+- 표지, 목차, 챕터 제목, 카테고리 제목, 공통 안내문은 코드 템플릿에서 이미 생성됩니다.
+- LLM은 제목을 새로 쓰지 말고, 입력된 카테고리 순서에 맞춰 개인화 본문만 작성합니다.
+- 출력 categories 배열은 입력 categories와 같은 순서와 개수여야 합니다.
+
+원칙:
+1. 자미두수 명반을 새로 계산하지 않습니다.
+2. 입력 자료에 없는 별, 궁, 사화, 시기 정보는 만들지 않습니다.
+3. 내부 용어(JSON, payload, debug, API, LLM, prompt, schema, engine)를 본문에 쓰지 않습니다.
+4. 공포 조장, 질병 진단, 투자 수익 보장, 확정 예언을 하지 않습니다.
+5. 단정 대신 경향, 가능성, 전략, 선택 기준으로 표현합니다.
+6. 각 카테고리 본문은 최소 700자 이상 작성합니다.
+7. 각 카테고리에는 실제 근거를 2개 이상 넣습니다. 근거는 궁명, 별명, 강약 기호(묘/O/리/평/X), 사화, 대운/세운 중에서 고릅니다.
+8. 문체는 전문적이고 신비롭게 유지하되 개발 문서처럼 보이면 안 됩니다.
 
 출력 형식:
-오직 JSON 객체 하나만 출력한다.
+순수 JSON 객체 하나만 출력합니다.
 {
-  "chapterNo": 숫자,
-  "title": "입력된 챕터 제목",
+  "chapterNo": number,
   "summary": "80자 이상의 챕터 요약",
   "categories": [
     {
-      "title": "입력된 카테고리 제목",
-      "expertThesis": "이 카테고리의 한 줄 핵심 판단",
+      "expertThesis": "이 카테고리의 핵심 판단",
       "evidenceAnchors": [
         { "type": "palace", "name": "궁명", "reason": "판단 근거" },
         { "type": "star", "name": "별명", "strength": "강약 기호", "reason": "판단 근거" },
         { "type": "sihua", "name": "사화명", "reason": "판단 근거" }
       ],
-      "finalText": "완성형 상담문",
+      "finalText": "완성된 개인화 상담 본문",
       "timingAdvice": "시기 조언",
-      "actionPlan": ["실행 1", "실행 2", "실행 3"],
+      "actionPlan": ["실천 1", "실천 2", "실천 3"],
       "caution": "주의 흐름",
       "confidence": "high"
     }
   ],
   "practicalAdvice": "실전 조언",
-  "cautionFlow": "주의할 흐름",
+  "cautionFlow": "주의해야 할 흐름",
   "transitionLine": "다음 장으로 이어지는 문장"
 }
 
 입력:
 ${safeJsonForPrompt(input)}`;
 }
-
 async function callZiweiGemini(env, prompt, options = {}) {
   const model = clean(env?.ZIWEI_GEMINI_MODEL || env?.PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "gemini-2.5-flash");
   const result = await callGeminiText(env, prompt, {
@@ -2006,7 +2173,7 @@ async function callZiweiGemini(env, prompt, options = {}) {
     maxOutputTokens: Number(env?.ZIWEI_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 16384),
     timeoutMs: Number(env?.ZIWEI_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
     totalTimeoutMs: Number(env?.ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || 0),
-    maxAttemptsPerPair: Number(env?.ZIWEI_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 2),
+    maxAttemptsPerPair: Number(env?.ZIWEI_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1),
     disableVertexFallback: env?.ZIWEI_GEMINI_DISABLE_VERTEX_FALLBACK ?? env?.GEMINI_DISABLE_VERTEX_FALLBACK,
     metadata: {
       requestId: clean(options?.requestId),
@@ -2044,6 +2211,45 @@ function normalizeZiweiEvidenceAnchors(anchors = [], text = "", seed = {}) {
   }).slice(0, 8);
 }
 
+function normalizeLLMGeneratedChapterShape(chapter = {}, blueprint = {}, seed = {}) {
+  const sourceCategories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+  const categories = blueprint.categories.map((title, index) => {
+    const hit = sourceCategories[index] || sourceCategories.find((item) => clean(item?.title) === clean(title)) || {};
+    const finalText = sanitizeCounselingText(hit?.finalText || hit?.text || hit?.body || "");
+    return {
+      id: `${blueprint.id}-${String(index + 1).padStart(2, "0")}`,
+      title,
+      finalText,
+      text: finalText,
+      order: index + 1,
+      evidenceAnchors: normalizeZiweiEvidenceAnchors(hit?.evidenceAnchors, finalText, seed),
+      expertThesis: sanitizeCounselingText(hit?.expertThesis || ""),
+      timingAdvice: sanitizeCounselingText(hit?.timingAdvice || ""),
+      actionPlan: Array.isArray(hit?.actionPlan) ? hit.actionPlan.map(sanitizeCounselingText).filter(Boolean).slice(0, 5) : [],
+      caution: sanitizeCounselingText(hit?.caution || ""),
+      confidence: clean(hit?.confidence || ""),
+    };
+  });
+  const normalized = {
+    id: blueprint.id,
+    roman: blueprint.roman,
+    chapterNo: Number(blueprint.id),
+    title: blueprint.title,
+    summary: sanitizeCounselingText(chapter?.summary || ""),
+    practicalAdvice: sanitizeCounselingText(chapter?.practicalAdvice || ""),
+    cautionFlow: sanitizeCounselingText(chapter?.cautionFlow || ""),
+    transitionLine: sanitizeCounselingText(chapter?.transitionLine || ""),
+    categories,
+    source: "gemini-chapter",
+  };
+  const merged = composeChapterText(normalized);
+  return {
+    ...normalized,
+    finalText: merged,
+    text: merged,
+  };
+}
+
 function toZiweiGeneratedChapter(parsed = {}, blueprint = {}, profile = {}, seed = {}) {
   const parsedCategories = Array.isArray(parsed?.categories) ? parsed.categories : [];
   const categories = blueprint.categories.map((title, index) => {
@@ -2052,7 +2258,6 @@ function toZiweiGeneratedChapter(parsed = {}, blueprint = {}, profile = {}, seed
     return {
       id: `${blueprint.id}-${String(index + 1).padStart(2, "0")}`,
       title,
-      localSummary: finalText,
       finalText,
       order: index + 1,
       evidenceAnchors: normalizeZiweiEvidenceAnchors(hit?.evidenceAnchors, finalText, seed),
@@ -2063,7 +2268,7 @@ function toZiweiGeneratedChapter(parsed = {}, blueprint = {}, profile = {}, seed
       confidence: clean(hit?.confidence || ""),
     };
   });
-  return normalizeChapterShape({
+  return normalizeLLMGeneratedChapterShape({
     id: blueprint.id,
     roman: blueprint.roman,
     chapterNo: Number(blueprint.id),
@@ -2074,11 +2279,12 @@ function toZiweiGeneratedChapter(parsed = {}, blueprint = {}, profile = {}, seed
     transitionLine: sanitizeCounselingText(parsed?.transitionLine || ""),
     categories,
     source: "gemini-chapter",
-  }, blueprint, profile, seed);
+  }, blueprint, seed);
 }
 
-function validateZiweiGeneratedChapter(chapter = {}, blueprint = {}, seed = {}) {
+function validateZiweiGeneratedChapter(chapter = {}, blueprint = {}, seed = {}, localChapter = {}) {
   const errors = [];
+  const localEvidenceNames = collectZiweiCalculationEvidenceNames(localChapter, seed);
   if (clean(chapter?.title) !== clean(blueprint?.title)) errors.push("chapter_title_mismatch");
   const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
   if (categories.length !== blueprint.categories.length) errors.push("category_count_mismatch");
@@ -2101,19 +2307,27 @@ function validateZiweiGeneratedChapter(chapter = {}, blueprint = {}, seed = {}) 
     if (hitCount < 4) errors.push(`category_${index + 1}_evidence_weak`);
     const anchors = normalizeZiweiEvidenceAnchors(category?.evidenceAnchors, text, seed);
     if (anchors.length < 3) errors.push(`category_${index + 1}_evidence_anchor_weak`);
+    const groundedAnchorCount = anchors.reduce((count, anchor) => {
+      const candidates = [anchor?.name, anchor?.palaceName, anchor?.strength, anchor?.sihuaType].map(clean).filter(Boolean);
+      return candidates.some((name) => localEvidenceNames.has(name)) ? count + 1 : count;
+    }, 0);
+    if (localEvidenceNames.size && groundedAnchorCount < 2) errors.push(`category_${index + 1}_evidence_not_grounded`);
+    const textGroundedCount = Array.from(localEvidenceNames).slice(0, 120).reduce((count, name) => (name && text.includes(name) ? count + 1 : count), 0);
+    if (localEvidenceNames.size && textGroundedCount < 1) errors.push(`category_${index + 1}_text_not_grounded`);
   });
   return { ok: errors.length === 0, errors };
 }
 
 async function generateZiweiChapterWithLLM(env, { profile = {}, seed = {}, blueprint = {}, localChapter = {}, previousSummaries = [], requestId = "", masterJson = null } = {}) {
   let lastErrors = [];
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+  const maxValidationAttempts = Math.max(1, Math.min(2, toInt(env?.ZIWEI_GEMINI_CHAPTER_VALIDATION_RETRIES || env?.PREMIUM_GEMINI_CHAPTER_VALIDATION_RETRIES, 1)));
+  for (let attempt = 1; attempt <= maxValidationAttempts; attempt += 1) {
     const input = buildZiweiLLMInput({ profile, seed, blueprint, localChapter, previousSummaries, attempt, lastErrors, masterJson });
     const prompt = buildZiweiChapterPrompt(input);
     const text = await callZiweiGemini(env, prompt, { requestId, chapterNumber: blueprint.roman });
     const parsed = extractZiweiJsonObject(text);
     const chapter = toZiweiGeneratedChapter(parsed, blueprint, profile, seed);
-    const validation = validateZiweiGeneratedChapter(chapter, blueprint, seed);
+    const validation = validateZiweiGeneratedChapter(chapter, blueprint, seed, localChapter);
     if (validation.ok) return chapter;
     lastErrors = validation.errors;
   }
@@ -2124,63 +2338,72 @@ async function generateZiweiChapterWithLLM(env, { profile = {}, seed = {}, bluep
   });
 }
 
-async function enhanceChaptersLocally(env, profile, seed, localChapters, pass = 1, options = {}) {
-  const seeded = Array.isArray(localChapters) && localChapters.length === CHAPTER_BLUEPRINTS.length
-    ? localChapters
-    : buildHighQualityLocalZiweiChapters(profile, seed, pass).chapters;
-  const disableSyncLocalFallback = ["1", "true", "yes", "on"].includes(
-    String(env?.ZIWEI_PREMIUM_DISABLE_SYNC_LOCAL_FALLBACK || "").trim().toLowerCase(),
-  );
-  if (!disableSyncLocalFallback) {
-    return {
-      chapters: CHAPTER_BLUEPRINTS.map((blueprint, index) => {
-        const fallback = normalizeChapterShape(seeded[index], blueprint, profile, seed);
-        return ensureChapterLength({ ...fallback, source: "deterministic-sync-local-fallback" }, CHAPTER_MIN_CHARS);
-      }),
-      fallbackUsed: true,
-      fallbackChapterCount: CHAPTER_BLUEPRINTS.length,
-      llmChapterCount: 0,
-      source: "llm-local-hybrid",
-      llmFallbackReason: "ZIWEI_SYNC_LOCAL_FALLBACK",
-    };
-  }
-  const chapters = [];
-  const previousSummaries = [];
-  let fallbackChapterCount = 0;
-  for (let index = 0; index < CHAPTER_BLUEPRINTS.length; index += 1) {
-    const blueprint = CHAPTER_BLUEPRINTS[index];
+async function mapZiweiChapterJobs(items = [], concurrency = 4, worker) {
+  const source = Array.isArray(items) ? items : [];
+  const limit = Math.max(1, Math.min(source.length || 1, toInt(concurrency, 4)));
+  const results = new Array(source.length);
+  let cursor = 0;
+  await Promise.all(Array.from({ length: limit }, async () => {
+    while (cursor < source.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await worker(source[index], index);
+    }
+  }));
+  return results;
+}
+
+async function generateZiweiChaptersWithLLM(env, profile, seed, localCalculationSeeds, options = {}) {
+  const seeded = Array.isArray(localCalculationSeeds) && localCalculationSeeds.length === CHAPTER_BLUEPRINTS.length
+    ? localCalculationSeeds
+    : buildCompactZiweiLocalChapterSeeds(profile, seed);
+  const concurrency = Math.max(1, Math.min(6, toInt(env?.ZIWEI_LLM_CHAPTER_CONCURRENCY || env?.PREMIUM_LLM_CHAPTER_CONCURRENCY, 4)));
+  const failedChapters = [];
+  const chapterResults = await mapZiweiChapterJobs(CHAPTER_BLUEPRINTS, concurrency, async (blueprint, index) => {
     try {
       const chapter = await generateZiweiChapterWithLLM(env, {
         profile,
         seed,
         blueprint,
         localChapter: seeded[index],
-        previousSummaries,
+        previousSummaries: [],
         requestId: clean(options?.requestId),
         masterJson: options?.masterJson || null,
       });
-      chapters.push(ensureChapterLength({ ...chapter, source: "gemini-chapter" }, CHAPTER_MIN_CHARS));
-      previousSummaries.push({ chapterNo: index + 1, title: blueprint.title, summary: clean(chapter.summary).slice(0, 240) });
+      return { ...chapter, source: "gemini-chapter" };
     } catch (error) {
-      fallbackChapterCount += 1;
-      console.warn("[ZiweiPremiumPDF][LLMChapterFallback]", {
+      const failure = {
         chapter: index + 1,
+        chapterId: clean(blueprint?.id),
+        title: clean(blueprint?.title),
         code: clean(error?.code || "ZIWEI_LLM_FAILED"),
         message: clean(error?.message),
-      });
-      const fallback = normalizeChapterShape(seeded[index], blueprint, profile, seed);
-      const reinforced = ensureChapterLength({ ...fallback, source: "deterministic-reinforcement-after-llm-fail" }, CHAPTER_MIN_CHARS);
-      chapters.push(reinforced);
-      previousSummaries.push({ chapterNo: index + 1, title: blueprint.title, summary: clean(reinforced.summary).slice(0, 240) });
+        detail: error?.detail || null,
+      };
+      failedChapters.push(failure);
+      console.warn("[ZiweiPremiumPDF][LLMChapterFailed]", failure);
+      return null;
     }
+  });
+  const chapters = chapterResults.filter(Boolean);
+  if (failedChapters.length) {
+    throw Object.assign(new Error("자미두수 LLM 챕터 생성이 완료되지 않았습니다."), {
+      code: "ZIWEI_LLM_CHAPTERS_INCOMPLETE",
+      status: 502,
+      detail: {
+        failedChapters,
+        llmChapterCount: chapters.length,
+        expectedChapterCount: CHAPTER_BLUEPRINTS.length,
+      },
+    });
   }
   return {
     chapters,
-    fallbackUsed: fallbackChapterCount > 0,
-    fallbackChapterCount,
-    llmChapterCount: chapters.length - fallbackChapterCount,
-    source: fallbackChapterCount > 0 ? "llm-local-hybrid" : "llm-only",
-    llmFallbackReason: fallbackChapterCount > 0 ? "ZIWEI_LLM_CHAPTER_FALLBACK" : "",
+    fallbackUsed: false,
+    fallbackChapterCount: 0,
+    llmChapterCount: chapters.length,
+    source: "llm-parallel",
+    llmFallbackReason: "",
   };
 }
 
@@ -3044,81 +3267,42 @@ async function handlePrepare(request, env) {
     });
   }
 
-  let localChapters = [];
+  let localCalculationSeeds = [];
 
   try {
 
-  console.info("[ZiweiPremiumPDF][LocalDraftBuildStart]", { chapterCount: CHAPTER_BLUEPRINTS.length });
-  let localQuality = buildHighQualityLocalZiweiChapters(profile, seed, 1);
-  localChapters = localQuality.chapters;
-  let localValidation = validateChapters(localChapters);
-  if (!localValidation.ok || localQuality.duplicateRate > 0.25) {
-    localQuality = buildHighQualityLocalZiweiChapters(profile, seed, 2);
-    localChapters = localQuality.chapters;
-    localValidation = validateChapters(localChapters);
-  }
-  if (!localValidation.ok || localQuality.duplicateRate > 0.25) {
-    localQuality = buildHighQualityLocalZiweiChapters(profile, seed, 3);
-    localChapters = localQuality.chapters;
-    localValidation = validateChapters(localChapters);
-  }
-  const localMetrics = validateChapters(localChapters);
-  for (let idx = 0; idx < localChapters.length; idx += 1) {
-    const chapter = localChapters[idx];
-    const chapterChars = (Array.isArray(chapter.categories) ? chapter.categories : []).reduce(
-      (sum, cat) => sum + stripForbiddenTokens(cat?.finalText || cat?.text || "").length,
-      0,
-    );
-    console.info("[ZiweiPremiumPDF][LocalDraftChapterDone]", { chapter: idx + 1, chapterChars });
-  }
-  console.info("[ZiweiPremiumPDF][LocalDraftBuildSuccess]", {
-    chapterCount: localChapters.length,
-    totalChars: localMetrics.totalChars,
-    localDraftValid: localMetrics.ok,
-    duplicateRate: localQuality.duplicateRate,
+  console.info("[ZiweiPremiumPDF][LocalJsonSeedBuildStart]", { chapterCount: CHAPTER_BLUEPRINTS.length });
+  localCalculationSeeds = buildCompactZiweiLocalChapterSeeds(profile, seed);
+  const localMetrics = {
+    ok: Array.isArray(localCalculationSeeds) && localCalculationSeeds.length === CHAPTER_BLUEPRINTS.length,
+    evidenceAnchorCount: localCalculationSeeds.reduce((sum, chapter) => sum + safeArray(chapter?.evidenceAnchors).length, 0),
+  };
+  console.info("[ZiweiPremiumPDF][LocalJsonSeedBuildSuccess]", {
+    chapterCount: localCalculationSeeds.length,
+    evidenceAnchorCount: localMetrics.evidenceAnchorCount,
+    localJsonSeedValid: localMetrics.ok,
   });
 
-  let enhanced = await enhanceChaptersLocally(env, profile, seed, localChapters, localQuality.pass || 1, {
+  let enhanced = await generateZiweiChaptersWithLLM(env, profile, seed, localCalculationSeeds, {
     requestId: reportId,
     masterJson: ziweiMasterJson,
   });
-  let completedChapters = sanitizeFinalManuscript({ chapters: enhanced.chapters, profile, seed });
+  let completedChapters = sanitizeLLMFinalManuscript({ chapters: enhanced.chapters, seed });
   let validation = validateChapters(completedChapters);
   let duplicateRate = computeDuplicateRate(completedChapters);
   let finalBundleValidation = validateFinalManuscript({ birthInput, seed, chapters: completedChapters });
   if (!validation.ok || duplicateRate > 0.25 || !finalBundleValidation.ok) {
-    const recovered = buildZiweiManuscriptRecovery({ chapters: completedChapters, localChapters, profile, seed, birthInput });
-    if (recovered) {
-      completedChapters = recovered.chapters;
-      validation = recovered.validation;
-      duplicateRate = recovered.duplicateRate;
-      finalBundleValidation = recovered.finalBundleValidation;
-      enhanced = {
-        ...enhanced,
-        chapters: completedChapters,
-        fallbackUsed: true,
-        fallbackChapterCount: Math.max(Number(enhanced.fallbackChapterCount || 0), CHAPTER_BLUEPRINTS.length),
-        source: "llm-local-recovered",
-        llmFallbackReason: clean(enhanced.llmFallbackReason || "ZIWEI_MANUSCRIPT_RECOVERED"),
-      };
-      console.warn("[ZiweiPremiumPDF][ManuscriptRecovered]", {
-        reportId,
-        validationErrors: validation.errors,
+    const qualityErrors = validation.ok ? [] : validation.errors;
+    const finalErrors = finalBundleValidation.ok ? [] : finalBundleValidation.errors;
+    throw Object.assign(new Error("자미두수 LLM 최종 원고 검증에 실패했습니다."), {
+      status: 502,
+      code: "ZIWEI_LLM_MANUSCRIPT_VALIDATION_FAILED",
+      detail: {
+        validationErrors: qualityErrors,
+        finalErrors,
         duplicateRate,
-      });
-    } else {
-      const qualityErrors = validation.ok ? [] : validation.errors;
-      const finalErrors = finalBundleValidation.ok ? [] : finalBundleValidation.errors;
-      throw Object.assign(new Error("자미두수 최종 원고 검증에 실패했습니다."), {
-        status: 422,
-        code: "ZIWEI_MANUSCRIPT_VALIDATION_FAILED",
-        detail: {
-          validationErrors: qualityErrors,
-          finalErrors,
-          duplicateRate,
-        },
-      });
-    }
+      },
+    });
   }
   let finalValidation = validation;
   console.info("[ZiweiPremiumPDF][FinalManuscriptValidated]", {
@@ -3225,7 +3409,8 @@ async function handlePrepare(request, env) {
       manuscript: finalBundleValidation,
       quality: finalValidation,
     },
-    localDraftChapterCount: localChapters.length,
+    localDraftChapterCount: localCalculationSeeds.length,
+    localCalculationSeedCount: localCalculationSeeds.length,
     finalChapterCount: completedChapters.length,
   };
   REPORT_CACHE.set(reportId, responsePayload);
@@ -3240,9 +3425,9 @@ async function handlePrepare(request, env) {
       clean(error?.message || "자미두수 PDF 생성에 실패했습니다."),
       "ziwei-generation",
     );
-    const fallbackChapters = ensureChapterFallback(localChapters, profile, seed);
     const retryCode = clean(error?.code || "ZIWEI_PREPARE_FAILED_RETRYABLE");
     const retryStatus = Number(error?.status || 500);
+    const errorDetail = safeObject(error?.detail);
     SESSION_LOCKS.set(sessionId, { status: "failed_retryable", failedAt: Date.now(), reportId, error: clean(error?.message || ""), code: retryCode });
     const retryable = {
       ok: false,
@@ -3258,10 +3443,12 @@ async function handlePrepare(request, env) {
       sessionId,
       birthHash,
       chapterCount: CHAPTER_BLUEPRINTS.length,
-      chapters: fallbackChapters,
+      chapters: [],
       qualityStatus: "processing",
-      localDraftChapterCount: fallbackChapters.length,
-      finalChapterCount: fallbackChapters.length,
+      localDraftChapterCount: localCalculationSeeds.length,
+      localCalculationSeedCount: localCalculationSeeds.length,
+      finalChapterCount: 0,
+      chapterDiagnostics: errorDetail?.failedChapters || [],
       detail: clean(error?.message || ""),
       failureStage: "ziwei-generation",
     };
@@ -3269,7 +3456,7 @@ async function handlePrepare(request, env) {
       reportId,
       sessionId,
       birthHash,
-      chapterCount: fallbackChapters.length,
+      chapterCount: 0,
       hasToken: Boolean(premiumAccessToken),
       status: retryStatus,
       code: retryCode,

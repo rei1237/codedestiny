@@ -15,6 +15,8 @@
   var GENERATING = false;
   var DOWNLOADING = false;
   var LAST_SEED = null;
+  var RESULT_POLL_MAX_ATTEMPTS = 90;
+  var RESULT_POLL_INTERVAL_MS = 4000;
   var ZIWEI_GENERATION_STATE = {
     isOpen: false,
     status: 'idle',
@@ -283,14 +285,18 @@
     var payload = data || {};
     var ready = payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
     var chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
+    var status = text(payload.status);
+    var serverStatus = text(payload.serverStatus);
     var hasSessionId = Boolean(text(payload.sessionId));
     var hasReportId = Boolean(text(payload.reportId));
     var hasPdfHtml = Boolean(text(ready.html));
     var hasStoredUrl = Boolean(text(
-      payload.downloadUrl
+      payload.directDownloadUrl
+      || payload.downloadUrl
       || payload.pdfUrl
       || payload.storedUrl
       || payload.reportUrl
+      || ready.directDownloadUrl
       || ready.downloadUrl
       || ready.pdfUrl
       || ready.storedUrl
@@ -298,13 +304,18 @@
       || ready.htmlUrl
     ));
     var ok = payload.ok === true;
-    var processing = text(payload.status) === 'processing' || text(payload.serverStatus) === 'processing';
-    var successCandidate = ok && (hasReportId || hasSessionId);
+    var retryable = payload.retryable === true;
+    var failedRetryable = serverStatus === 'failed_retryable' || status === 'failed_retryable';
+    var processing = status === 'processing' || serverStatus === 'processing' || retryable || failedRetryable;
+    var successCandidate = (ok || processing || retryable) && (hasReportId || hasSessionId);
     return {
       ok: ok,
       processing: processing,
+      retryable: retryable,
+      failedRetryable: failedRetryable,
+      recoverable: processing && (hasReportId || hasSessionId),
       successCandidate: successCandidate,
-      completed: successCandidate && (hasPdfHtml || hasStoredUrl) && chapters.length >= TOTAL_CHAPTERS,
+      completed: ok && successCandidate && (hasPdfHtml || hasStoredUrl) && chapters.length >= TOTAL_CHAPTERS,
       hasPdfHtml: hasPdfHtml,
       hasStoredUrl: hasStoredUrl,
       chapterCount: chapters.length,
@@ -315,6 +326,43 @@
 
   function isZiweiReportReady(data){
     return getZiweiReportReadiness(data).completed;
+  }
+
+  function getZiweiResponsePayload(data){
+    var payload = data && data.payload && typeof data.payload === 'object' ? data.payload : {};
+    var ziweiPayload = data && data.ziweiPayload && typeof data.ziweiPayload === 'object' ? data.ziweiPayload : {};
+    return Object.assign({}, ziweiPayload, payload);
+  }
+
+  function getZiweiResponseProfile(data){
+    var payload = getZiweiResponsePayload(data);
+    var master = data && data.ziweiMasterJson && typeof data.ziweiMasterJson === 'object' ? data.ziweiMasterJson : {};
+    var candidates = [
+      payload.profile,
+      payload.birthProfile,
+      data && data.birthProfile,
+      master.birthProfile,
+      window.__cdActiveBirthProfile
+    ];
+    for(var i = 0; i < candidates.length; i++){
+      if(candidates[i] && typeof candidates[i] === 'object') return candidates[i];
+    }
+    return {};
+  }
+
+  function getZiweiDownloadUrl(data){
+    var ready = data && data.pdfReady && typeof data.pdfReady === 'object' ? data.pdfReady : {};
+    return text(
+      ready.directDownloadUrl
+      || ready.downloadUrl
+      || ready.pdfUrl
+      || ready.storedUrl
+      || data.directDownloadUrl
+      || data.downloadUrl
+      || data.pdfUrl
+      || data.storedUrl
+      || data.reportUrl
+    );
   }
 
   function logFlow(tag, payload){
@@ -1067,8 +1115,10 @@
     var url = RESULT_API + '?' + query.join('&');
     var res = await fetch(url, { method: 'GET', credentials: 'include' });
     var json = await res.json().catch(function(){ return {}; });
-    if(!res.ok) return null;
-    if(!json || json.ok !== true) return null;
+    if(!res.ok && res.status !== 202) return null;
+    if(!json) return null;
+    var readiness = getZiweiReportReadiness(json);
+    if(json.ok !== true && !readiness.processing && !readiness.recoverable) return null;
     return json;
   }
 
@@ -1094,9 +1144,16 @@
     if(readiness.completed){
       return initial;
     }
-    for(var attempt = 0; attempt < 3; attempt++){
+    if(!baseSession && !baseReport){
+      return initial;
+    }
+    var latest = initial;
+    for(var attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt++){
+      var percent = Math.min(92, 56 + Math.round((attempt / Math.max(1, RESULT_POLL_MAX_ATTEMPTS - 1)) * 34));
+      updateProgress(percent, 'LLM 원고와 PDF 저장 상태를 확인하는 중입니다.');
       var recovered = await fetchZiweiResult(baseSession, baseReport);
       if(recovered){
+        latest = recovered;
         var recoveredReadiness = getZiweiReportReadiness(recovered);
         logFlow('ReportRecovered', {
           birthHash: text(payment && payment.birthHash),
@@ -1104,17 +1161,18 @@
           hasToken: Boolean(text(payment && payment.premiumAccessToken))
         });
         if(recoveredReadiness.completed) return recovered;
-        if(recoveredReadiness.processing) return Object.assign({}, recovered, { status: 'processing' });
+        if(!recoveredReadiness.processing && !recoveredReadiness.recoverable) break;
       }
-      await new Promise(function(resolve){ setTimeout(resolve, 850); });
+      await new Promise(function(resolve){ setTimeout(resolve, RESULT_POLL_INTERVAL_MS); });
     }
-    if(readiness.successCandidate){
-      return Object.assign({}, initial, {
+    var latestReadiness = getZiweiReportReadiness(latest);
+    if(latestReadiness.successCandidate || readiness.successCandidate){
+      return Object.assign({}, latest || initial, {
         status: 'processing',
-        chapters: ensureChapterFallback(initial.chapters)
+        chapters: ensureChapterFallback((latest && latest.chapters) || initial.chapters)
       });
     }
-    return initial;
+    return latest || initial;
   }
 
   async function postPrepare(profile, seed, payment, birthInput){
@@ -1219,9 +1277,9 @@
       }).join('');
     }
 
-    var profile = (data && data.payload && data.payload.profile) || {};
+    var profile = getZiweiResponseProfile(data);
     var issuedAt = text((data && data.pdfReady && data.pdfReady.generatedAt) || data.generatedAt || new Date().toISOString());
-    var summaryName = text(profile.name || (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name) || '사용자');
+    var summaryName = text(profile.name || profile.birthName || profile.profileName || (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name) || '사용자');
     setText('zbResultName', summaryName + ' 님');
     setText('zbResultDate', new Date(issuedAt).toLocaleDateString('ko-KR') + ' 생성');
 
@@ -1326,8 +1384,12 @@
   function mapErrorMessage(error){
     var status = Number(error && error.status || 0);
     var kind = text(error && error.kind);
+    var code = text(error && error.code);
     if(kind === 'payment' || status === 401 || status === 402 || status === 403){
       return '결제 또는 이용권 확인이 필요합니다. 로그인 상태와 결제 내역을 확인해 주세요.';
+    }
+    if(code === 'ZIWEI_PROCESSING' || code === 'ZIWEI_REPORT_RECOVERY_REQUIRED'){
+      return text(error && error.message) || '결제는 확인되었습니다. LLM 원고와 PDF 저장이 아직 진행 중입니다. 결제 내역으로 다시 생성해 이어받아 주세요.';
     }
     if(status === 422){
       return '명반 계산 또는 입력값 검증 단계에서 오류가 발생했습니다. 프로필 정보를 확인한 뒤 다시 시도해 주세요.';
@@ -1501,13 +1563,15 @@
             reportId: text(recoveredData.reportId || data.reportId),
             sessionId: text(recoveredData.sessionId || sessionId)
           });
-          throw buildRetryableError('결제는 확인되었습니다. 생성 재시도를 진행합니다.', 500, 'ZIWEI_PROCESSING', 'generation');
+          RESULT = recoveredData;
+          throw buildRetryableError('결제는 확인되었습니다. LLM 원고와 PDF 저장이 아직 진행 중입니다. 결제 내역으로 다시 생성 버튼을 눌러 이어받아 주세요.', 202, 'ZIWEI_PROCESSING', 'generation');
         }
         data = recoveredData;
       }
       if(!isZiweiReportReady(data)){
         writePaidSession({ status: 'failed_retryable', reportId: text(data && data.reportId), sessionId: text(data && data.sessionId) || sessionId });
-        throw buildRetryableError('결제는 확인되었습니다. 생성 재시도를 진행합니다.', 500, 'ZIWEI_REPORT_RECOVERY_REQUIRED', 'generation');
+        RESULT = data;
+        throw buildRetryableError('결제는 확인되었습니다. LLM 결과를 아직 PDF로 확정하지 못했습니다. 결제 내역으로 다시 생성 버튼을 눌러 이어받아 주세요.', 202, 'ZIWEI_REPORT_RECOVERY_REQUIRED', 'generation');
       }
       logFlow('SessionCreateSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
@@ -1605,7 +1669,8 @@
       return;
     }
     var chapters = Array.isArray(RESULT.chapters) ? RESULT.chapters : [];
-    if(chapters.length < TOTAL_CHAPTERS){
+    var readiness = getZiweiReportReadiness(RESULT);
+    if(chapters.length < TOTAL_CHAPTERS && !readiness.hasStoredUrl){
       showError('아직 15챕터가 모두 준비되지 않았습니다. 결제 내역으로 다시 생성 버튼을 눌러 복구해 주세요.');
       return;
     }
@@ -1622,8 +1687,7 @@
     DOWNLOADING = true;
     var failMessage = 'PDF 파일을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.';
     try {
-      var ready = RESULT && RESULT.pdfReady && typeof RESULT.pdfReady === 'object' ? RESULT.pdfReady : {};
-      var downloadUrl = text(ready.downloadUrl || ready.pdfUrl || RESULT.downloadUrl || RESULT.pdfUrl);
+      var downloadUrl = getZiweiDownloadUrl(RESULT);
       if(downloadUrl && downloadUrl.indexOf('/api/premium/pdf-archive/') !== -1){
         downloadUrl = withZiweiPdfArchiveFormat(downloadUrl, 'pdf');
       }

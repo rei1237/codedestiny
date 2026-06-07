@@ -600,6 +600,14 @@
     var authToken = '';
     try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
     var premiumToken = _readPremiumAccessToken();
+    function rejectWithStatus(reject, pack) {
+      var payload = pack && pack.json ? pack.json : {};
+      var error = new Error((payload && (payload.message || payload.code)) || ('HTTP ' + pack.res.status));
+      error.status = Number(pack.res.status || 0);
+      error.code = _clean(payload && payload.code);
+      error.permanent = error.status === 401 || error.status === 403 || error.status === 422 || _clean(payload.status).toLowerCase() === 'failed';
+      reject(error);
+    }
     function run(resolve, reject, lastErr) {
       if (endpointIndex >= endpoints.length) { reject(new Error(lastErr || '베다점 PDF 상태 확인에 실패했습니다.')); return; }
       var url = endpoints[endpointIndex++];
@@ -610,10 +618,11 @@
         .then(function (res) { return res.json().catch(function () { return {}; }).then(function (json) { return { res: res, json: json }; }); })
         .then(function (pack) {
           if (pack.res.ok && pack.json) { resolve(pack.json); return; }
-          var error = new Error((pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
-          error.status = pack.res.status;
-          error.code = _clean(pack.json && pack.json.code);
-          reject(error);
+          if (pack.res.status === 401 || pack.res.status === 403 || pack.res.status === 422 || _clean(pack.json && pack.json.status).toLowerCase() === 'failed') {
+            rejectWithStatus(reject, pack);
+            return;
+          }
+          run(resolve, reject, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
         })
         .catch(function (error) { run(resolve, reject, String(error && error.message || error || '요청 실패')); });
     }
@@ -646,10 +655,10 @@
         if (attempts >= VEDIC_STATUS_MAX_ATTEMPTS) {
           throw new Error('베다점 PDF 생성 시간이 길어지고 있습니다. 잠시 후 다시 확인해 주세요.');
         }
-        return _sleep(VEDIC_STATUS_POLL_MS).then(poll);
+        return _sleep(Number(payload && payload.retryAfterMs) || VEDIC_STATUS_POLL_MS).then(poll);
       }).catch(function (error) {
         if (error && error.permanent) throw error;
-        if (Number(error && error.status) === 401 || Number(error && error.status) === 403) throw error;
+        if (Number(error && error.status) === 401 || Number(error && error.status) === 403 || Number(error && error.status) === 422) throw error;
         if (attempts >= VEDIC_STATUS_MAX_ATTEMPTS) throw error;
         return _sleep(VEDIC_STATUS_POLL_MS).then(poll);
       });

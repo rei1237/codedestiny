@@ -16,6 +16,7 @@ import {
   failPremiumPdfExecution,
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
+import { getServiceExecution } from "../lib/service-execution-task.js";
 
 const SOUL_ORIGIN_FEATURE_KEY = "premium_pdf_soul_origin";
 const SOUL_ORIGIN_SERVICE_KEY = "soul-origin";
@@ -1240,7 +1241,7 @@ function buildSoulOriginPromptSeed(localSeed = {}) {
     signalAnchors: {
       keywords: Object.keys(TOPIC_KEYWORDS || {}).flatMap((chapterId) => TOPIC_KEYWORDS[chapterId] || []),
       requiredChapters: CHAPTER_BLUEPRINTS.map((chapter) => `${chapter.id}:${chapter.title}`),
-      summary: clean(summarizeSignal(localSeed)),
+      calculationOnly: true,
     },
   };
 }
@@ -1249,25 +1250,25 @@ function buildSoulOriginChapterPrompt({ chapter, blueprint = {}, localSeed = {},
   const chapterId = String(chapter?.id || blueprint?.id || "").padStart(2, "0");
   const categoryNames = Array.isArray(blueprint?.categories) ? blueprint.categories : [];
   const safeCategories = categoryNames.map((title) => clean(title)).filter(Boolean);
-  const sectionShape = safeCategories.map((title) => ({
-    title,
+  const sectionShape = safeCategories.map(() => ({
     body: `...`,
   }));
   const seed = buildSoulOriginPromptSeed(localSeed);
   return [
-    "?먮쫾?ㄴ?먯쥾 ?대? ?덈쓬?",
+    "운명의 업 프리미엄 상담서 챕터 본문을 작성한다.",
     "네가 해야 할 일:",
     "- 출력은 순수 JSON 한 개만 반환. 설명 텍스트, 코드블록, ``` 절대 금지.",
-    "- 로컬 계산 엔진의 결과를 상담 맥락으로 재해석해 1장의 해석을 작성.",
+    "- 표지, 목차, 챕터 번호, 챕터 제목, 부제, 섹션 제목, 공통 고지 문구는 정적 템플릿에서 이미 제공한다.",
+    "- 새 제목을 만들거나 기존 제목을 바꾸지 말고, 아래 섹션 순서에 맞는 본문만 작성한다.",
+    "- 계산 결과를 상담 맥락으로 재해석해 1장의 해석을 작성.",
     "- 사주/자미두수/점성/베다/숙요점 데이터 간 인과 고리를 실제 인간 상황(연애·직장·재물·관계)으로 연결.",
     "- 이 장은 반드시 사용자 성향-과거-시기 구조로 1인칭 상담문장으로 끝나야 함.",
     "- 각 섹션 본문에는 다음 소제목 문자열을 모두 1회 이상 반드시 포함: " + SECTION_TITLES.map((heading) => `"${heading}"`).join(", "),
     "- 섹션은 총 5개, 각 본문은 최소 900자 이상, 중복 표현 금지(특히 고정 패턴 반복 금지).",
+    "- 섹션 본문은 제공된 섹션 순서를 그대로 따른다: " + safeCategories.map((title, index) => `${index + 1}. ${title}`).join(" / "),
     "- 출력 스키마:",
     safeJsonForPrompt({
       id: chapterId,
-      title: clean(blueprint?.title || chapter?.title || ""),
-      subtitle: clean(blueprint?.subtitle || ""),
       sections: sectionShape,
     }),
     "",
@@ -1309,10 +1310,10 @@ function normalizeSoulOriginLlmChapter(parsed = {}, blueprint = {}) {
 
   const sections = expectedTitles.map((title, index) => {
     const srcSection = parsedSections[index] || {};
-    const sectionBody = ensureCategoryLength(stripForbiddenTokens(clean(srcSection?.body || "")), chapterId);
+    const sectionBody = stripForbiddenTokens(clean(srcSection?.body || ""));
     return {
       id: `${String(chapterId || "").padStart(2, "0")}-${String(index + 1).padStart(2, "0")}`,
-      title: clean(srcSection?.title || title || ""),
+      title: clean(title || ""),
       body: sectionBody,
     };
   });
@@ -1321,8 +1322,8 @@ function normalizeSoulOriginLlmChapter(parsed = {}, blueprint = {}) {
 
   return {
     id: String(expected.id || chapterId).padStart(2, "0"),
-    title: clean(parsed?.title || expected.title || ""),
-    subtitle: clean(parsed?.subtitle || expected.subtitle || ""),
+    title: clean(expected.title || ""),
+    subtitle: clean(expected.subtitle || ""),
     sections,
     text: chapterText,
     source: "llm-only",
@@ -1477,6 +1478,113 @@ async function generateSoulOriginChaptersByLLM(env, { localSeed, toneProfile = {
   return chapters;
 }
 
+function buildSoulOriginSummaryPrompt({ localSeed = {}, chapters = [], toneProfile = {} }) {
+  const seed = buildSoulOriginPromptSeed(localSeed);
+  const outline = (Array.isArray(chapters) ? chapters : []).map((chapter) => ({
+    id: clean(chapter?.id),
+    title: clean(chapter?.title),
+    subtitle: clean(chapter?.subtitle),
+    sectionTitles: Array.isArray(chapter?.sections) ? chapter.sections.map((section) => clean(section?.title)).filter(Boolean) : [],
+  }));
+  return [
+    "운명의 업 PDF 전체 요약을 작성한다.",
+    "출력은 순수 JSON 한 개만 반환한다. 코드블록, 설명 텍스트, markdown은 금지한다.",
+    "로컬 계산값은 원고 작성을 위한 근거로만 사용하고, 최종 요약 문장은 반드시 새로 작성한다.",
+    "요약은 180~420자 사이의 전문적이고 신비로운 한국어 상담문으로 작성한다.",
+    "요약 안에 JSON, API, LLM, local, fallback, seed, engine, debug 같은 내부 용어를 쓰지 않는다.",
+    "출력 스키마:",
+    safeJsonForPrompt({ summary: "..." }),
+    "",
+    "tone settings:",
+    buildSoulOriginTonePrompt(toneProfile),
+    "",
+    "calculation seed:",
+    safeJsonForPrompt(seed),
+    "",
+    "llm chapter outline:",
+    safeJsonForPrompt(outline),
+  ].join("\n");
+}
+
+function validateSoulOriginSummary(summary = "") {
+  const text = stripForbiddenTokens(summary);
+  const errors = [];
+  if (text.length < 120) errors.push("summary_short");
+  if (text.length > 700) errors.push("summary_long");
+  if (hasForbiddenText(text)) errors.push("summary_forbidden");
+  return { ok: errors.length === 0, errors, summary: text };
+}
+
+function buildSoulOriginStaticSummary({ localSeed = {}, toneProfile = {} } = {}) {
+  const seed = buildSoulOriginPromptSeed(localSeed);
+  const name = clean(seed?.profile?.name || "의뢰인");
+  const dominantElement = clean(seed?.saju?.dominantElement || seed?.saju?.dayMaster || "타고난 기운");
+  const mingGong = clean(seed?.ziwei?.mingGong || "명궁");
+  const sun = clean(seed?.astrology?.sun || "태양의 자리");
+  const nakshatra = clean(seed?.vedic?.nakshatra || "달의 별자리");
+  const natalStar = clean(seed?.sukyo?.natalStar || "숙명의 별");
+  const direction = clean(toneProfile?.direction || SOUL_ORIGIN_TONE_PRESETS.default.direction);
+  return stripForbiddenTokens(
+    `${name}님의 운명의 업은 ${dominantElement}, ${mingGong}, ${sun}, ${nakshatra}, ${natalStar}가 서로 맞물리며 드러나는 깊은 반복의 결이다. 이번 상담서는 그 결이 사랑, 일, 돈, 관계의 장면에서 어떻게 되살아나는지 짚고, 오래 끌고 온 선택의 습관을 더 성숙한 방향으로 바꾸는 길을 안내한다. ${direction}의 흐름을 따라 지금 필요한 것은 과거를 부정하는 일이 아니라, 같은 운명을 더 높은 방식으로 쓰는 결단이다.`
+  );
+}
+
+async function generateSoulOriginSummaryByLLM(env, { localSeed, chapters, toneProfile = {}, requestId = "" }) {
+  if (env?.SOUL_ORIGIN_STATIC_SUMMARY_TEMPLATE !== "0") {
+    logFlow("StaticSummaryStart", { requestId, stage: "static-template-summary" });
+    const summary = buildSoulOriginStaticSummary({ localSeed, toneProfile });
+    const validation = validateSoulOriginSummary(summary);
+    if (validation.ok) {
+      logFlow("StaticSummarySuccess", { requestId, stage: "static-template-summary" });
+      return validation.summary;
+    }
+    logFlow("StaticSummaryFallback", {
+      requestId,
+      errorCount: Number(validation.errors.length || 0),
+      stage: "static-template-summary",
+    });
+  }
+  logFlow("LLMSummaryStart", { requestId, stage: "llm-generation" });
+  const prompt = buildSoulOriginSummaryPrompt({ localSeed, chapters, toneProfile });
+  const text = await callSoulOriginGemini(env, prompt, {
+    metadata: { requestId, stage: "soul-origin-summary" },
+  });
+  const parsed = extractSoulOriginJsonObject(text);
+  const validation = validateSoulOriginSummary(clean(parsed?.summary || ""));
+  if (!validation.ok) {
+    const err = new Error("운명의 업 LLM 요약 검증에 실패했습니다.");
+    err.code = "SOUL_ORIGIN_LLM_SUMMARY_VALIDATION_FAILED";
+    err.status = 502;
+    err.details = validation;
+    err.stage = "llm-generation";
+    logFlow("LLMSummaryValidationFailed", {
+      requestId,
+      errorCode: err.code,
+      errorCount: Number(validation.errors.length || 0),
+      stage: "llm-generation",
+    });
+    throw err;
+  }
+  logFlow("LLMSummarySuccess", { requestId, stage: "llm-generation" });
+  return validation.summary;
+}
+
+function summarizeSignal(localSeed) {
+  const signals = localSeed?.signals || {};
+  const front = [
+    clean(signals.dayMaster) && `일간 ${clean(signals.dayMaster)}`,
+    clean(signals.monthBranch) && `월지 ${clean(signals.monthBranch)}`,
+    clean(signals.daewun) && `현재 대운 ${clean(signals.daewun)}`,
+    clean(signals.sewoon) && `세운 ${clean(signals.sewoon)}`,
+  ].filter(Boolean);
+
+  const base = front.join(" · ");
+  if (base) {
+    return `${base}을 중심축으로 반복 패턴의 원인과 해방 전략을 통합했습니다.`;
+  }
+  return "사주 원국과 운의 흐름을 바탕으로 반복 패턴의 원인과 해방 전략을 통합했습니다.";
+}
+
 function countRepeatedSentences(chapters = []) {
   const source = (Array.isArray(chapters) ? chapters : [])
     .flatMap((chapter) => Array.isArray(chapter?.sections) ? chapter.sections : [])
@@ -1598,22 +1706,6 @@ function validateFinalManuscript(chapters = []) {
   };
 }
 
-function summarizeSignal(localSeed) {
-  const signals = localSeed?.signals || {};
-  const front = [
-    clean(signals.dayMaster) && `일간 ${clean(signals.dayMaster)}`,
-    clean(signals.monthBranch) && `월지 ${clean(signals.monthBranch)}`,
-    clean(signals.daewun) && `현재 대운 ${clean(signals.daewun)}`,
-    clean(signals.sewoon) && `세운 ${clean(signals.sewoon)}`,
-  ].filter(Boolean);
-
-  const base = front.join(" · ");
-  if (base) {
-    return `${base}을 중심축으로 반복 패턴의 원인과 해방 전략을 통합했습니다.`;
-  }
-  return "사주 원국과 운의 흐름을 바탕으로 반복 패턴의 원인과 해방 전략을 통합했습니다.";
-}
-
 function escapeHtml(value = "") {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -1637,10 +1729,7 @@ function renderSoulOriginSectionBody(body = "") {
     .join("");
 }
 
-function renderSoulOriginPdf({ birthInput, localSeed, chapters, generatedAt }) {
-  const summary = summarizeSignal(localSeed);
-  const signals = localSeed?.signals || {};
-
+function renderSoulOriginPdf({ birthInput, chapters, summary, generatedAt }) {
   const toc = (Array.isArray(chapters) ? chapters : [])
     .map((chapter) => `<li><strong>${escapeHtml(stripForbiddenTokens(chapter.title))}</strong></li>`)
     .join("\n");
@@ -1665,12 +1754,7 @@ function renderSoulOriginPdf({ birthInput, localSeed, chapters, generatedAt }) {
 
   const safeName = escapeHtml(stripForbiddenTokens(birthInput?.name || "사용자"));
   const safeBirth = escapeHtml(stripForbiddenTokens(`${birthInput?.birthDate || ""} ${birthInput?.birthTime || ""}`.trim()));
-  const safeSignal = escapeHtml(stripForbiddenTokens([
-    clean(signals.dayMaster) && `일간 ${clean(signals.dayMaster)}`,
-    clean(signals.monthBranch) && `월지 ${clean(signals.monthBranch)}`,
-    clean(signals.daewun) && `대운 ${clean(signals.daewun)}`,
-    clean(signals.sewoon) && `세운 ${clean(signals.sewoon)}`,
-  ].filter(Boolean).join(" · ")));
+  const safeSummary = escapeHtml(stripForbiddenTokens(summary));
 
   return `<!doctype html>
   <html lang="ko">
@@ -1714,14 +1798,13 @@ function renderSoulOriginPdf({ birthInput, localSeed, chapters, generatedAt }) {
         <p>반복 패턴 이해와 해방 전략</p>
         <p>${safeName}</p>
         <p>${safeBirth}</p>
-        <p>${safeSignal}</p>
       </section>
 
       <section class="meta">
         <div class="meta-grid">
           <div class="meta-item"><b>생성일</b>${escapeHtml(stripForbiddenTokens(new Date(generatedAt).toLocaleString("ko-KR")))}</div>
           <div class="meta-item"><b>구성</b>12챕터 운명의 업 상담 구조</div>
-          <div class="meta-item"><b>핵심 요약</b>${escapeHtml(stripForbiddenTokens(summary))}</div>
+          <div class="meta-item"><b>핵심 요약</b>${safeSummary}</div>
         </div>
       </section>
 
@@ -1796,9 +1879,16 @@ async function handlePrepare(request, env) {
   if (existingLock?.status === "running") {
     return json({
       ok: true,
+      status: "running",
+      serverStatus: "running",
       serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+      reportType: SOUL_ORIGIN_REPORT_TYPE,
+      reportId: clean(existingLock.reportId || reportId),
+      sessionId,
       chapterCount: CHAPTER_BLUEPRINTS.length,
+      startedAt: existingLock.startedAt,
       data: {
+        reportId: clean(existingLock.reportId || reportId),
         sessionId,
         status: "running",
         startedAt: existingLock.startedAt,
@@ -1811,6 +1901,8 @@ async function handlePrepare(request, env) {
 
   SESSION_LOCKS.set(sessionId, {
     sessionId,
+    reportId,
+    requestId,
     status: "running",
     startedAt: new Date().toISOString(),
   });
@@ -1915,7 +2007,7 @@ async function handlePrepare(request, env) {
 
     logFlow("PDFCreateStart", { requestId, sessionId, reportId });
     const archiveUrl = buildArchiveUrl(request, reportId);
-    const pdfHtml = renderSoulOriginPdf({ birthInput, localSeed, chapters, generatedAt });
+    const pdfHtml = renderSoulOriginPdf({ birthInput, chapters, summary, generatedAt });
     const pdfReady = {
       html: pdfHtml,
       mimeType: "text/html",
@@ -1938,6 +2030,11 @@ async function handlePrepare(request, env) {
       serverStatus: "completed",
       qualityStatus: "passed",
       manuscriptSource: "llm-only",
+      chapterAuthoringSource: "llm-only",
+      summarySource: "local-calculation",
+      fallbackUsed: false,
+      fallbackChapterCount: 0,
+      localAuthoringUsed: false,
       serviceKey: SOUL_ORIGIN_SERVICE_KEY,
       featureKey,
       reportType: SOUL_ORIGIN_REPORT_TYPE,
@@ -1967,13 +2064,24 @@ async function handlePrepare(request, env) {
 
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       manuscriptSource: "llm-only",
+      chapterAuthoringSource: "llm-only",
+      summarySource: "local-calculation",
       chapterCount: chapters.length,
+      fallbackUsed: false,
+      fallbackChapterCount: 0,
+      localAuthoringUsed: false,
       archive: {
         reportId,
         reportType: SOUL_ORIGIN_REPORT_TYPE,
         canonicalReportType: SOUL_ORIGIN_REPORT_TYPE,
         archiveReportType: SOUL_ORIGIN_ARCHIVE_REPORT_TYPE,
         qualityStatus: "passed",
+        manuscriptSource: "llm-only",
+        chapterAuthoringSource: "llm-only",
+        summarySource: "local-calculation",
+        fallbackUsed: false,
+        fallbackChapterCount: 0,
+        localAuthoringUsed: false,
         displayName: SOUL_ORIGIN_DISPLAY_NAME,
         title: SOUL_ORIGIN_TITLE,
         summary,
@@ -2005,6 +2113,8 @@ async function handlePrepare(request, env) {
 
     SESSION_LOCKS.set(sessionId, {
       sessionId,
+      reportId,
+      requestId,
       status: "done",
       startedAt: existingLock?.startedAt || new Date().toISOString(),
       result: responseBody,
@@ -2052,7 +2162,12 @@ async function handlePrepare(request, env) {
 
     SESSION_LOCKS.set(sessionId, {
       sessionId,
+      reportId,
+      requestId,
       status: "failed",
+      code: clean(error?.code || "SOUL_ORIGIN_GENERATION_FAILED"),
+      message: clean(error?.message || "운명의 업 PDF 생성 중 문제가 발생했습니다."),
+      httpStatus: Number(error?.status || 500),
       startedAt: new Date().toISOString(),
       error: normalizeError(error),
     });
@@ -2079,18 +2194,10 @@ async function handlePrepare(request, env) {
   }
 }
 
-async function handleReadReport(request, env) {
-  const auth = await requireAuth(request, env);
-  const url = new URL(request.url);
-  const reportId = clean(url.searchParams.get("reportId"));
-
-  if (!reportId) {
-    return json({ ok: false, code: "MISSING_REPORT_ID", message: "reportId가 필요합니다." }, { status: 400 });
-  }
-
+async function loadSoulOriginReportPayload(env, auth, reportId) {
   const cached = REPORT_CACHE.get(reportId);
   if (cached && cached.userId === auth.userId) {
-    return json(cached.payload);
+    return { ok: true, payload: cached.payload };
   }
 
   await connectDb(env);
@@ -2108,7 +2215,7 @@ async function handleReadReport(request, env) {
     : null;
 
   if (!archive) {
-    return json({ ok: false, code: "REPORT_NOT_FOUND", message: "요청한 운명의 업 리포트를 찾을 수 없습니다." }, { status: 404 });
+    return { ok: false, status: 404, code: "REPORT_NOT_FOUND", message: "요청한 운명의 업 리포트를 찾을 수 없습니다." };
   }
 
   const pdfReady = archive?.pdfReady && typeof archive.pdfReady === "object" ? archive.pdfReady : {};
@@ -2117,6 +2224,12 @@ async function handleReadReport(request, env) {
     status: "completed",
     serverStatus: "completed",
     qualityStatus: clean(archive.qualityStatus || "passed") || "passed",
+    manuscriptSource: clean(archive.manuscriptSource || "llm-only") || "llm-only",
+    chapterAuthoringSource: clean(archive.chapterAuthoringSource || "llm-only") || "llm-only",
+    summarySource: clean(archive.summarySource || "local-calculation") || "local-calculation",
+    fallbackUsed: Boolean(archive.fallbackUsed === true),
+    fallbackChapterCount: Number(archive.fallbackChapterCount || 0),
+    localAuthoringUsed: Boolean(archive.localAuthoringUsed === true),
     serviceKey: SOUL_ORIGIN_SERVICE_KEY,
     featureKey: clean(archive.featureKey || SOUL_ORIGIN_FEATURE_KEY) || SOUL_ORIGIN_FEATURE_KEY,
     reportType: SOUL_ORIGIN_REPORT_TYPE,
@@ -2144,7 +2257,162 @@ async function handleReadReport(request, env) {
     payload,
   });
 
-  return json(payload);
+  return { ok: true, payload };
+}
+
+async function handleReadReport(request, env) {
+  const auth = await requireAuth(request, env);
+  const url = new URL(request.url);
+  const reportId = clean(url.searchParams.get("reportId"));
+
+  if (!reportId) {
+    return json({ ok: false, code: "MISSING_REPORT_ID", message: "reportId가 필요합니다." }, { status: 400 });
+  }
+
+  const loaded = await loadSoulOriginReportPayload(env, auth, reportId);
+  if (!loaded.ok) {
+    return json({ ok: false, code: loaded.code, message: loaded.message }, { status: Number(loaded.status || 404) });
+  }
+  return json(loaded.payload);
+}
+
+async function handleStatus(request, env) {
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      return json({
+        ok: false,
+        serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+        code: "UNAUTHORIZED",
+        message: "로그인 후 운명의 업 PDF 생성 상태를 확인할 수 있습니다.",
+      }, { status: 401 });
+    }
+    throw error;
+  }
+
+  const url = new URL(request.url);
+  const reportId = clean(url.searchParams.get("reportId"));
+  const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId"));
+  const executionKey = clean(url.searchParams.get("executionKey") || url.searchParams.get("requestId"));
+
+  if (!reportId && !sessionId && !executionKey) {
+    return json({
+      ok: false,
+      serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+      code: "MISSING_STATUS_LOOKUP_KEY",
+      message: "reportId, sessionId 또는 executionKey가 필요합니다.",
+    }, { status: 400 });
+  }
+
+  if (sessionId) {
+    const lock = SESSION_LOCKS.get(sessionId);
+    if (lock?.status === "done" && lock.result) {
+      return json(lock.result);
+    }
+    if (lock?.status === "running") {
+      return json({
+        ok: true,
+        status: "running",
+        serverStatus: "running",
+        serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+        reportType: SOUL_ORIGIN_REPORT_TYPE,
+        reportId: clean(lock.reportId || reportId),
+        sessionId,
+        chapterCount: CHAPTER_BLUEPRINTS.length,
+        startedAt: lock.startedAt,
+      });
+    }
+    if (lock?.status === "failed") {
+      return json({
+        ok: false,
+        status: "failed",
+        serverStatus: "failed",
+        serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+        reportType: SOUL_ORIGIN_REPORT_TYPE,
+        reportId: clean(lock.reportId || reportId),
+        sessionId,
+        code: clean(lock.code || "SOUL_ORIGIN_GENERATION_FAILED"),
+        message: clean(lock.message || "운명의 업 PDF 생성 중 문제가 발생했습니다."),
+      }, { status: Number(lock.httpStatus || 500) });
+    }
+  }
+
+  if (reportId) {
+    const loaded = await loadSoulOriginReportPayload(env, auth, reportId);
+    if (loaded.ok) return json(loaded.payload);
+  }
+
+  const executionResult = await getServiceExecution(env, auth.userId, {
+    executionKey,
+    sessionId,
+    reportId,
+  });
+
+  if (!executionResult?.ok) {
+    return json({
+      ok: false,
+      status: "not_found",
+      serverStatus: "not_found",
+      serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+      reportType: SOUL_ORIGIN_REPORT_TYPE,
+      reportId,
+      sessionId,
+      code: "SOUL_ORIGIN_EXECUTION_NOT_FOUND",
+      message: "운명의 업 PDF 생성 상태를 찾지 못했습니다.",
+    }, { status: Number(executionResult?.status || 404) });
+  }
+
+  const execution = executionResult.execution || {};
+  const finalReportId = clean(execution.reportId || reportId);
+  const finalSessionId = clean(execution.sessionId || sessionId);
+  const executionStatus = clean(execution.status).toLowerCase();
+  const premiumStatus = clean(execution.premiumStatus).toLowerCase();
+
+  if ((executionStatus === "success" || premiumStatus === "completed") && finalReportId) {
+    const loaded = await loadSoulOriginReportPayload(env, auth, finalReportId);
+    if (loaded.ok) return json(loaded.payload);
+    return json({
+      ok: true,
+      status: "completed",
+      serverStatus: "completed",
+      serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+      reportType: SOUL_ORIGIN_REPORT_TYPE,
+      reportId: finalReportId,
+      sessionId: finalSessionId,
+      chapterCount: CHAPTER_BLUEPRINTS.length,
+      code: loaded.code || "SOUL_ORIGIN_REPORT_ARCHIVE_PENDING",
+      message: loaded.message || "PDF 결과 저장을 확인하는 중입니다.",
+    });
+  }
+
+  if (executionStatus === "failed" || premiumStatus === "failed" || premiumStatus === "abandoned" || premiumStatus === "refunded" || premiumStatus === "refund_failed") {
+    return json({
+      ok: false,
+      status: "failed",
+      serverStatus: "failed",
+      serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+      reportType: SOUL_ORIGIN_REPORT_TYPE,
+      reportId: finalReportId,
+      sessionId: finalSessionId,
+      execution,
+      code: clean(execution.reasonCode || "SOUL_ORIGIN_GENERATION_FAILED"),
+      message: clean(execution.reasonMessage || "운명의 업 PDF 생성 중 문제가 발생했습니다."),
+    }, { status: 500 });
+  }
+
+  return json({
+    ok: true,
+    status: "running",
+    serverStatus: "running",
+    serviceKey: SOUL_ORIGIN_SERVICE_KEY,
+    reportType: SOUL_ORIGIN_REPORT_TYPE,
+    reportId: finalReportId,
+    sessionId: finalSessionId,
+    chapterCount: CHAPTER_BLUEPRINTS.length,
+    execution,
+  });
 }
 
 export async function handleSoulOriginRoutes(request, env = {}) {
@@ -2160,6 +2428,11 @@ export async function handleSoulOriginRoutes(request, env = {}) {
     if (path === "/report") {
       if (method !== "GET") return methodNotAllowed();
       return await handleReadReport(request, env);
+    }
+
+    if (path === "/status") {
+      if (method !== "GET") return methodNotAllowed();
+      return await handleStatus(request, env);
     }
 
     if (["GET", "POST"].includes(method)) return notFound();

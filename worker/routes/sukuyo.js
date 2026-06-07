@@ -151,6 +151,7 @@ function normalizeGender(raw) {
 
 function normalizeCalendarType(raw) {
   const token = clean(raw).toLowerCase();
+  if (token.includes("lunar_leap") || token.includes("lunar-leap") || token.includes("leap") || token.includes("\uc724")) return "lunar_leap";
   if (token.includes("solar") || token.includes("양")) return "solar";
   if (token.includes("lunar") || token.includes("음")) return "lunar";
   return "unknown";

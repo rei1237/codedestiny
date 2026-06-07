@@ -323,9 +323,22 @@
     var hasStoredUrl = !!_resolveAstroStoredUrl(payload);
     var completed = _clean(payload.status || '').toLowerCase();
     var chapterComplete = chapters.length >= total;
-    var llmChapterCount = Number(payload.llmChapterCount || 0);
-    var llmComplete = !payload.fallbackUsed && llmChapterCount >= total;
-    return hasReportId && hasStoredUrl && chapterComplete && completed === 'completed' && llmComplete;
+    return hasReportId && hasStoredUrl && chapterComplete && completed === 'completed' && _hasAstroLlmReady(payload, total);
+  }
+
+  function _hasAstroLlmReady(payload, totalOverride) {
+    var p = payload || {};
+    var total = Number(totalOverride || _getTotalChapters() || ASTRO_TOTAL_CHAPTERS || 12);
+    var llmChapterCount = Number(p.llmChapterCount || 0);
+    var quality = p.quality && typeof p.quality === 'object' ? p.quality : {};
+    var pdfQuality = p.pdfQuality && typeof p.pdfQuality === 'object' ? p.pdfQuality : {};
+    var validation = p.validation && typeof p.validation === 'object' ? p.validation : {};
+    var source = _clean(p.manuscriptSource || quality.manuscriptSource).toLowerCase();
+    var qualityOk = quality.ok !== false && pdfQuality.ok !== false && validation.ok !== false;
+    return !p.fallbackUsed
+      && llmChapterCount >= total
+      && source === 'llm-only'
+      && qualityOk;
   }
 
   function _setStartBusy(isBusy) {
@@ -977,8 +990,7 @@
     if (state === 'manuscript_validated') return '프리미엄 원고 검수를 완료하는 중입니다';
     if (state === 'pdf_rendering') return 'PDF 편집/렌더링 중';
     if (state === 'pdf_rendered') return 'PDF 저장 정보를 확인하는 중입니다';
-    if (state === 'local_fallback') return '프리미엄 원고 작성이 완료되지 않아 결과를 확정하지 않습니다';
-    if (state === 'llm_failed' || state === 'failed') return '프리미엄 원고 작성이 완료되지 않았습니다';
+    if (state === 'local_fallback' || state === 'llm_failed' || state === 'failed') return '프리미엄 원고 작성이 완료되지 않았습니다';
     if (state === 'completed' || state === 'done') return '완료';
     return title || '점성술 코즈믹 차트 PDF를 준비하는 중입니다';
   }
@@ -1205,7 +1217,7 @@
       .then(function (response) {
         if (response && response.result && response.status === 'done') response = response.result;
         total = _getTotalChapters();
-        if (response && (response.fallbackUsed || Number(response.llmChapterCount || 0) < total)) {
+        if (response && !_hasAstroLlmReady(response, total)) {
           throw new Error('점성술 프리미엄 원고 작성이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.');
         }
         if (!_isCompletedReportReady(response)) {
@@ -1237,6 +1249,10 @@
   };
 
   window.downloadAstroBookPdf = function () {
+    if (!_isCompletedReportReady(_resultPayload)) {
+      _setError('점성술 프리미엄 원고와 PDF 저장이 아직 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
     var url = _resolveAstroStoredUrl(_resultPayload);
 
     if (url) {

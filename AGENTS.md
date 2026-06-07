@@ -24,6 +24,15 @@
 - All fortune-related writing must read as professional and mystical, and must never sound like developer documentation, technical specs, or implementation notes.
 - New features should default to full-screen or header/footer-hidden layouts; do not introduce visible headers or footers unless explicitly requested.
 
+## 1.25 동시 변경/원복 방지 운영 룰 (Must Follow)
+- 세션 단위로 변경을 허용한다. 같은 세션에서 동일/연관 파일을 수정할 때 원복 대신 증분 수정만 허용한다.
+- 세션 시작 시 `목표 파일 1~3개`를 확정하고, 대상 범위를 벗어난 파일은 열거나 수정하지 않는다.
+- 서로 다른 세션/작업자가 같은 파일을 동시에 건드리지 않도록 파일 소유자(세션 리더)와 변경 책임자를 선점한다.
+- 변경 전후에 `git status` 기준 대상 파일 리스트와 핵심 diff를 기록해 추적성을 남긴다.
+- 기존 동작을 유지해야 하는 경우 되돌리기 대신 격리 수정(최소 스코프)으로 해결하고, 사용자 요청이 아닌 임의 `restore/reset/revert`는 금지한다.
+- 세션 종료 전 변경 로그를 남기고, 이전 세션 산출물을 삭제하거나 되돌리는 작업은 사용자 승인 없이 수행하지 않는다.
+- `index.html` 또는 정적 미러 동기화가 필요한 변경은 기존 동기화 절차( `npm run sync:public` → `npm run verify:locale-main-sync` → `npm run verify:runtime-cache-sync` )를 그대로 수행한다.
+
 ## 1.3 AI 개발 작업 기본 원칙 (Must Follow)
 - 관련 파일만 먼저 검색하고, 해당 기능과 직접 관련 없는 파일은 수정하지 마라.
 - 한 번에 전체 리팩토링하지 말고, 반드시 `원인 분석 → 최소 수정 → 빌드 검증` 순서로 진행해라.

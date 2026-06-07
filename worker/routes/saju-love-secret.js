@@ -5,6 +5,7 @@ import { LOVE_SECRET_MODE_CONFIG } from "../lib/saju-premium-chapters.js";
 import { buildLoveSecretReference } from "../lib/love-secret-reference.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { connectDb, mongoose } from "../lib/db.js";
+import { ServiceExecutionTransaction } from "../lib/models.js";
 import { callGeminiText } from "../lib/gemini.js";
 import {
   buildPremiumExecutionContext,
@@ -873,13 +874,110 @@ async function generateLoveSecretChapter(env, base, mode, config, chapterNo) {
   };
 }
 
+function firstLoveSecretText(...values) {
+  for (const value of values) {
+    const text = clean(value);
+    if (text) return text;
+  }
+  return "";
+}
+
+function normalizeLoveSecretGenerationBody(body = {}, mode = "solo", base = {}) {
+  const raw = body && typeof body === "object" ? body : {};
+  const serviceContext = raw.serviceContext && typeof raw.serviceContext === "object" ? raw.serviceContext : {};
+  const relationshipContext = raw.relationshipContext && typeof raw.relationshipContext === "object" ? raw.relationshipContext : {};
+  const normalizedMode = normalizeMode(mode);
+  const source = { ...serviceContext, ...relationshipContext, ...raw };
+  const targetYear = Number(source.targetYear || 2026);
+  const selfName = firstLoveSecretText(base?.user?.name, raw?.birthInput?.name, raw?.profile?.name, "의뢰인");
+  const partnerName = firstLoveSecretText(base?.partner?.user?.name, raw?.partnerBirthInput?.name, relationshipContext?.partnerName, "상대방");
+  const isCompatibility = normalizedMode === "compatibility";
+  const loveStatus = firstLoveSecretText(
+    source.loveStatus,
+    source.relationshipStatus,
+    source.currentLoveStatus,
+    isCompatibility
+      ? "상대와의 관계 흐름, 궁합, 감정의 온도와 지속 가능성을 함께 보고 싶은 상태"
+      : "현재 연애 흐름, 인연의 시기, 관계 선택을 함께 보고 싶은 상태",
+  );
+  const currentConcern = firstLoveSecretText(
+    source.currentConcern,
+    source.concern,
+    source.question,
+    isCompatibility
+      ? `${selfName} / ${partnerName} - 두 사람의 궁합, 감정 흐름, 관계 지속 가능성, 소통 방식을 알고 싶다`
+      : `${selfName} - 나에게 맞는 사랑의 방향과 현실적인 관계 전략을 알고 싶다`,
+  );
+  const idealType = firstLoveSecretText(
+    source.idealType,
+    source.preferredPartner,
+    isCompatibility ? partnerName : "사주 원국과 오행 균형에 맞는 자연스러운 인연",
+  );
+  const pastLovePattern = firstLoveSecretText(
+    source.pastLovePattern,
+    source.relationshipPattern,
+    "반복되는 끌림, 거리감, 타이밍을 점검하고 싶은 패턴",
+  );
+  const desiredOutcome = firstLoveSecretText(
+    source.desiredOutcome,
+    isCompatibility
+      ? "서로에게 맞는 소통과 관계 지속 전략을 알고 싶다"
+      : "나에게 맞는 사랑의 방향과 현실적인 관계 전략을 알고 싶다",
+  );
+  const clientFlow = {
+    schemaVersion: "love-secret-client-flow.v1",
+    source: "worker-love-secret-normalizer",
+    mode: normalizedMode,
+    chapterCount: normalizedMode === "compatibility" ? 15 : 10,
+    selfName,
+    partnerName: isCompatibility ? partnerName : "",
+    llmContract: "love-secret-master-json.v1",
+    ...(raw.clientFlow && typeof raw.clientFlow === "object" ? raw.clientFlow : {}),
+  };
+  const marriageEnabled = source.wantsMarriageAnalysis !== false && source.includeMarriageAnalysis !== false;
+  const reunionEnabled = source.wantsReunionAnalysis !== false && source.includeReunionAnalysis !== false;
+  const contract = {
+    mode: normalizedMode,
+    targetYear: Number.isFinite(targetYear) ? targetYear : 2026,
+    loveStatus,
+    relationshipStatus: loveStatus,
+    currentLoveStatus: loveStatus,
+    currentConcern,
+    concern: currentConcern,
+    question: currentConcern,
+    idealType,
+    preferredPartner: idealType,
+    pastLovePattern,
+    relationshipPattern: pastLovePattern,
+    wantsMarriageAnalysis: marriageEnabled,
+    includeMarriageAnalysis: marriageEnabled,
+    wantsReunionAnalysis: reunionEnabled,
+    includeReunionAnalysis: reunionEnabled,
+    relationshipType: firstLoveSecretText(source.relationshipType, source.status, isCompatibility ? "compatibility" : "solo"),
+    status: firstLoveSecretText(source.status, source.relationshipType, isCompatibility ? "relationship_or_interest" : "single_or_reviewing_love_flow"),
+    desiredOutcome,
+    tone: firstLoveSecretText(source.tone, source.writingStyle, "professional-mystical"),
+    writingStyle: firstLoveSecretText(source.writingStyle, source.tone, "professional-mystical"),
+    productTier: firstLoveSecretText(source.productTier, source.tier, "premium"),
+    tier: firstLoveSecretText(source.tier, source.productTier, "premium"),
+    clientFlow,
+  };
+  const normalized = { ...raw, ...contract };
+  delete normalized.serviceContext;
+  delete normalized.relationshipContext;
+  normalized.serviceContext = { ...contract, ...serviceContext };
+  normalized.relationshipContext = { ...contract, ...relationshipContext };
+  return normalized;
+}
+
 async function buildLoveSecretChapters(env, { base, mode, config, body = {}, requestId = "", onProgress = null } = {}) {
+  const normalizedBody = normalizeLoveSecretGenerationBody(body, mode, base);
   if (normalizeMode(mode) === "solo") {
-    const targetYear = Number(body?.targetYear || 2026);
+    const targetYear = Number(normalizedBody?.targetYear || 2026);
     const loveSecretMasterJson = buildLoveSecretMasterJson({
       base,
       mode,
-      body,
+      body: normalizedBody,
       targetYear: Number.isFinite(targetYear) ? targetYear : 2026,
     });
     const masterJsonValidation = validateLoveSecretMasterJson(loveSecretMasterJson);
@@ -889,7 +987,7 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
     const input = buildSoloLoveLLMInput({
       userProfile: base?.user || {},
       sajuEngineResult: base,
-      serviceContext: body,
+      serviceContext: normalizedBody,
       targetYear: Number.isFinite(targetYear) ? targetYear : 2026,
     });
     input.loveSecretMasterJson = loveSecretMasterJson;
@@ -897,7 +995,7 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
     const chapters = await generateSoloLoveChapters({
       env,
       input,
-      requestId: clean(requestId || body?.requestId || `love-secret:${Date.now().toString(36)}`),
+      requestId: clean(requestId || normalizedBody?.requestId || `love-secret:${Date.now().toString(36)}`),
       onProgress,
     });
     return {
@@ -911,11 +1009,11 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
   }
 
   if (normalizeMode(mode) === "compatibility") {
-    const targetYear = Number(body?.targetYear || 2026);
+    const targetYear = Number(normalizedBody?.targetYear || 2026);
     const loveSecretMasterJson = buildLoveSecretMasterJson({
       base,
       mode,
-      body,
+      body: normalizedBody,
       targetYear: Number.isFinite(targetYear) ? targetYear : 2026,
     });
     const masterJsonValidation = validateLoveSecretMasterJson(loveSecretMasterJson);
@@ -927,7 +1025,7 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
       personBProfile: base?.partner?.user || {},
       personASajuResult: base,
       personBSajuResult: base?.partner || {},
-      relationshipContext: body,
+      relationshipContext: normalizedBody,
       targetYear: Number.isFinite(targetYear) ? targetYear : 2026,
     });
     input.loveSecretMasterJson = loveSecretMasterJson;
@@ -935,7 +1033,7 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
     const chapters = await generateCompatibilityLoveChapters({
       env,
       input,
-      requestId: clean(requestId || body?.requestId || `love-secret-compatibility:${Date.now().toString(36)}`),
+      requestId: clean(requestId || normalizedBody?.requestId || `love-secret-compatibility:${Date.now().toString(36)}`),
       onProgress,
     });
     return {
@@ -2105,25 +2203,37 @@ async function generateLoveGeminiJson(env, { systemPrompt, userPrompt, requestId
   return parseLoveGeminiJson(result.text, schemaName);
 }
 
-function normalizeLoveGeneratedChapter(parsed, chapterSpec) {
-  const sections = Array.isArray(parsed?.sections) ? parsed.sections : [];
+function normalizeLoveGeneratedChapter(parsed = {}, chapterSpec = {}) {
+  const sourceSections = Array.isArray(parsed?.sections) ? parsed.sections : [];
+  const fixedSectionTitles = Array.isArray(chapterSpec?.categories) ? chapterSpec.categories : [];
+  const sectionTitles = fixedSectionTitles.length
+    ? fixedSectionTitles
+    : sourceSections.map((section, index) => clean(section?.heading || section?.title || `연애 항목 ${index + 1}`));
+  const sections = sectionTitles.map((title, index) => {
+    const source = sourceSections[index] || {};
+    return {
+      heading: clean(title),
+      title: clean(title),
+      body: stripUnsafeText(source.body || source.text || ""),
+      sajuEvidence: loveSecretCleanList(source.sajuEvidence, 8),
+      keyPoints: loveSecretCleanList(source.keyPoints, 8),
+      actionGuide: loveSecretCleanList(source.actionGuide, 8),
+      caution: loveSecretCleanList(source.caution, 8),
+    };
+  });
   return {
-    mode: normalizeMode(parsed?.mode || "solo"),
-    chapterNumber: clean(parsed?.chapterNumber || chapterSpec?.number),
-    chapterTitle: clean(parsed?.chapterTitle || chapterSpec?.title),
-    chapterSummary: clean(parsed?.chapterSummary),
-    sections: sections.map((section) => ({
-      heading: clean(section?.heading || section?.title),
-      body: clean(section?.body || section?.text),
-      sajuEvidence: loveSecretCleanList(section?.sajuEvidence, 8),
-      keyPoints: loveSecretCleanList(section?.keyPoints, 8),
-      actionGuide: loveSecretCleanList(section?.actionGuide, 8),
-      caution: loveSecretCleanList(section?.caution, 8),
-    })),
-    masterAdvice: clean(parsed?.masterAdvice),
+    mode: normalizeMode(parsed?.mode || chapterSpec?.mode || "solo"),
+    chapterNumber: clean(chapterSpec?.number || parsed?.chapterNumber),
+    chapterTitle: clean(chapterSpec?.title || parsed?.chapterTitle),
+    title: clean(chapterSpec?.title || parsed?.chapterTitle),
+    subtitle: clean(chapterSpec?.subtitle || parsed?.chapterSubtitle || ""),
+    chapterSummary: stripUnsafeText(parsed?.chapterSummary || parsed?.summary || ""),
+    sections,
+    text: sections.map((section) => `## ${section.title}\n\n${section.body}`).join("\n\n"),
+    masterAdvice: stripUnsafeText(parsed?.masterAdvice || ""),
+    source: LOVE_SECRET_MANUSCRIPT_SOURCE.LLM,
   };
 }
-
 function normalizeCompatibilityLoveGeneratedChapter(parsed, chapterSpec) {
   const base = normalizeLoveGeneratedChapter(parsed, chapterSpec);
   const rawSections = Array.isArray(parsed?.sections) ? parsed.sections : [];
@@ -2204,30 +2314,21 @@ function validateCompatibilityLoveChapter({ chapter, chapterSpec }) {
 function buildSoloLoveChapterPrompt({ input, chapterSpec, previousSummaries = [], validationFeedback = "" }) {
   const chapterQualityGuide = getSoloLoveChapterQualityGuide(chapterSpec);
   const systemPrompt = [
-    "당신은 사주 원국을 바탕으로 연애 비책 PDF 원고를 쓰는 전문 상담가입니다.",
-    "사주 계산을 새로 하지 말고 제공된 사주 엔진 값만 사용하세요.",
-    "제공된 마스터 상담 근거를 최우선 기준으로 삼으세요.",
-    "없는 값은 추측하지 말고, 확인된 값 중심으로 해석하세요.",
-    "연애 결과를 단정하지 말고 가능성, 경향, 선택 기준으로 표현하세요.",
-    "사주 근거, 연애 해석, 현실 발현, 주의점, 실천 전략 흐름을 유지하세요.",
-    "존댓말 상담체로 쓰고 전문적이며 신비로운 분위기를 유지하세요.",
-    "여성 독자가 읽을 때 내 마음을 정확히 알아준다고 느끼도록 섬세하고 우아한 감정 언어를 사용하세요.",
-    "내가 사랑에서 빛나는 지점, 상대가 나에게 끌리는 분위기, 관계가 예뻐지는 행동을 구체적으로 풀어 쓰세요.",
-    "불안 조장, 상대를 조종하는 표현, 결혼·이별·재회 단정, 노골적 성적 표현은 금지합니다.",
+    "당신은 사주 원국을 바탕으로 연애 비책 PDF의 개인화 본문만 쓰는 전문 상담가입니다.",
+    "챕터 제목, 섹션 제목, 표지, 목차, 공통 안내문은 코드 템플릿으로 이미 준비되어 있으므로 생성하지 마세요.",
+    "제공된 사주 계산값과 연애 상담 근거만 사용하고, 없는 값은 만들지 마세요.",
+    "확정적 예언, 불안 조장, 노골적 성적 표현, 의료적 진단처럼 들리는 표현은 금지합니다.",
+    "본문에는 JSON, prompt, schema, API, Gemini, LLM, 엔진 같은 개발 용어를 절대 쓰지 마세요.",
     "출력은 순수 JSON 객체 하나만 허용합니다. 코드블록과 설명문은 쓰지 마세요.",
-    "응답은 반드시 { 로 시작해서 } 로 끝나야 합니다.",
-    "본문에는 JSON, prompt, schema, API, Gemini 같은 개발 용어를 절대 쓰지 마세요.",
   ].join("\n");
   const userPrompt = JSON.stringify({
-    task: "연애 비책 PDF 솔로 모드 챕터 생성",
+    task: "연애 비책 PDF 솔로 모드 개인화 본문 생성",
     requiredOutputShape: {
       mode: "solo",
       chapterNumber: chapterSpec.number,
-      chapterTitle: chapterSpec.title,
       chapterSummary: "string",
       sections: [
         {
-          heading: "string",
           body: "string",
           sajuEvidence: ["string"],
           keyPoints: ["string"],
@@ -2237,12 +2338,17 @@ function buildSoloLoveChapterPrompt({ input, chapterSpec, previousSummaries = []
       ],
       masterAdvice: "string",
     },
+    staticTemplatePolicy: {
+      chapterTitleIsFixed: chapterSpec.title,
+      sectionTitlesAreFixedInThisOrder: chapterSpec.categories,
+      doNotGenerate: ["표지", "목차", "챕터 제목", "섹션 제목", "공통 안내문", "다운로드 안내"],
+    },
     sectionRules: {
-      oneSectionPerCategory: true,
-      minimumBodyLengthPerSection: 260,
       categories: chapterSpec.categories,
-      eachSectionMustInclude: ["사주 근거", "감정 해석", "연애 매력", "상대가 느끼는 분위기", "현실 행동", "품격 있는 주의점"],
-      tone: "전문적이고 신비롭지만 여성 독자의 연애 감정선이 살아 있는 상담체",
+      oneSectionPerCategory: true,
+      minimumBodyLengthPerSection: 650,
+      eachSectionMustInclude: ["사주 근거", "연애 패턴 해석", "현실 적용", "주의점", "실천 조언"],
+      tone: "전문적이고 신비로운 연애 상담체",
     },
     chapterQualityGuide,
     previousSummaries,
@@ -2251,7 +2357,6 @@ function buildSoloLoveChapterPrompt({ input, chapterSpec, previousSummaries = []
   });
   return { systemPrompt, userPrompt };
 }
-
 async function generateSoloLoveChapter({ env, input, chapterSpec, previousSummaries = [], requestId, validationFeedback = "" }) {
   const { systemPrompt, userPrompt } = buildSoloLoveChapterPrompt({ input, chapterSpec, previousSummaries, validationFeedback });
   const parsed = await generateLoveGeminiJson(env, {
@@ -2265,33 +2370,23 @@ async function generateSoloLoveChapter({ env, input, chapterSpec, previousSummar
 
 function buildCompatibilityLoveChapterPrompt({ input, chapterSpec, previousSummaries = [], validationFeedback = "" }) {
   const isJohuIntimacyChapter = clean(chapterSpec?.number) === "VIII";
-  const johuIntimacy = input?.comparison?.johuIntimacy || {};
   const systemPrompt = [
-    "당신은 두 사람의 사주 원국을 비교해 궁합 PDF 원고를 쓰는 전문 상담가입니다.",
-    "사주 계산을 새로 하지 말고 제공된 A/B 사주 엔진 값과 서버 비교 데이터만 사용하세요.",
-    "제공된 마스터 상담 근거를 최우선 기준으로 삼으세요.",
-    "없는 값은 만들지 말고, 확인된 값 중심으로 균형 있게 해석하세요.",
-    "한쪽을 비난하지 말고 A/B 관점을 모두 공정하게 다루세요.",
-    "여성 독자가 읽을 때 '내 마음을 정확히 알아준다'고 느끼도록 섬세한 감정 언어를 사용하세요.",
-    "상대가 나에게 끌리는 지점, 내가 사랑받는 방식, 관계가 예뻐지는 행동을 우아하게 풀어 쓰세요.",
-    "궁합이 낮은 지점도 공포가 아니라 품격 있는 선택 기준과 회복 전략으로 제시하세요.",
-    "결혼, 이별, 재회 결과를 단정하지 말고 선택 기준과 조율 전략으로 표현하세요.",
-    "조후 친밀감은 allowed가 false이면 비성적 친밀감과 정서적 거리감으로만 쓰세요.",
-    "노골적 성적 표현, 신체 부위, 성행위, 성 기능 진단은 금지합니다.",
+    "당신은 두 사람의 사주 궁합을 바탕으로 연애 비책 PDF의 개인화 본문만 쓰는 전문 상담가입니다.",
+    "챕터 제목, 섹션 제목, 표지, 목차, 공통 안내문은 코드 템플릿으로 이미 준비되어 있으므로 생성하지 마세요.",
+    "제공된 두 사람의 계산값과 궁합 근거만 사용하고, 없는 값은 만들지 마세요.",
+    "궁합을 성공/실패로 단정하지 말고 관계 역학, 조율 전략, 주의점으로 표현하세요.",
+    "노골적 성적 표현, 불안 조장, 의료적 진단처럼 들리는 표현은 금지합니다.",
+    "본문에는 JSON, prompt, schema, API, Gemini, LLM, 엔진 같은 개발 용어를 절대 쓰지 마세요.",
     "출력은 순수 JSON 객체 하나만 허용합니다. 코드블록과 설명문은 쓰지 마세요.",
-    "응답은 반드시 { 로 시작해서 } 로 끝나야 합니다.",
-    "본문에는 JSON, prompt, schema, API, Gemini 같은 개발 용어를 절대 쓰지 마세요.",
   ].join("\n");
   const userPrompt = JSON.stringify({
-    task: `연애 비책 PDF 궁합 모드 챕터 ${chapterSpec.number} 생성`,
+    task: "연애 비책 PDF 궁합 모드 개인화 본문 생성",
     requiredOutputShape: {
       mode: "compatibility",
       chapterNumber: chapterSpec.number,
-      chapterTitle: chapterSpec.title,
       chapterSummary: "string",
       sections: [
         {
-          heading: "string",
           body: "string",
           personAView: "string",
           personBView: "string",
@@ -2305,22 +2400,20 @@ function buildCompatibilityLoveChapterPrompt({ input, chapterSpec, previousSumma
       ],
       masterAdvice: "string",
     },
+    staticTemplatePolicy: {
+      chapterTitleIsFixed: chapterSpec.title,
+      sectionTitlesAreFixedInThisOrder: chapterSpec.categories,
+      doNotGenerate: ["표지", "목차", "챕터 제목", "섹션 제목", "공통 안내문", "다운로드 안내"],
+    },
     sectionRules: {
-      minimumSections: 5,
-      minimumBodyLengthPerSection: 420,
-      oneSectionPerCategory: true,
       categories: chapterSpec.categories,
-      eachSectionMustInclude: ["A 관점", "B 관점", "관계 역학", "궁합 전략", "사주 근거", "실천 가이드"],
-      tone: "전문적이고 신비롭지만 연애 감정선이 살아 있는 상담체",
-      activeChapterNumber: chapterSpec.number,
-      activeChapterTitle: chapterSpec.title,
-      johuIntimacyAllowed: johuIntimacy.allowed !== false,
-      safetyScope: isJohuIntimacyChapter
-        ? (johuIntimacy.allowed === false ? "nonsexual_intimacy_and_emotional_distance_only" : "johu_based_intimacy_temperature_moisture_rhythm_only")
-        : "compatibility_relationship_structure",
+      oneSectionPerCategory: true,
+      minimumBodyLengthPerSection: 700,
+      eachSectionMustInclude: ["두 사람의 사주 근거", "관계 역학", "현실 조율", "주의점", "실천 전략"],
+      tone: "전문적이고 신비로운 궁합 상담체",
       chapterScope: isJohuIntimacyChapter
-        ? (johuIntimacy.allowed === false ? "비성적 친밀감과 정서적 거리감만 다룹니다." : "조후 기반 친밀감의 온도, 습도, 리듬만 다룹니다.")
-        : "두 사람의 관계 구조만 다룹니다.",
+        ? "친밀감은 조후와 정서 온도 중심으로만 표현하고 노골적 성적 묘사는 피합니다."
+        : "관계의 선택과 조율 전략 중심으로 작성합니다.",
     },
     previousSummaries,
     validationFeedback: clean(validationFeedback),
@@ -2328,7 +2421,6 @@ function buildCompatibilityLoveChapterPrompt({ input, chapterSpec, previousSumma
   });
   return { systemPrompt, userPrompt };
 }
-
 async function generateCompatibilityLoveChapter({ env, input, chapterSpec, previousSummaries = [], requestId, validationFeedback = "" }) {
   const { systemPrompt, userPrompt } = buildCompatibilityLoveChapterPrompt({ input, chapterSpec, previousSummaries, validationFeedback });
   const parsed = await generateLoveGeminiJson(env, {
@@ -2976,6 +3068,137 @@ function buildLoveSecretSuccessPayload({ featureKey, mode, sessionId, reportId, 
   };
 }
 
+async function findLoveSecretReusableExecution(env, userId, executionCtx = {}, fallback = {}) {
+  try {
+    await connectDb(getLoveSecretFastDbEnv(env));
+    const filters = [];
+    const executionKey = clean(executionCtx.executionKey);
+    const sessionId = clean(executionCtx.sessionId || fallback.sessionId);
+    const reportId = clean(executionCtx.reportId || fallback.reportId);
+    const paymentSessionId = clean(executionCtx.paymentSessionId);
+    if (executionKey) filters.push({ executionKey });
+    if (sessionId) filters.push({ sessionId });
+    if (reportId) filters.push({ reportId });
+    if (paymentSessionId) filters.push({ paymentSessionId });
+    if (!filters.length) return null;
+    return await ServiceExecutionTransaction.findOne({
+      userId,
+      reportType: "loveSecret",
+      $or: filters,
+    }).sort({ completedAt: -1, updatedAt: -1, createdAt: -1 }).lean();
+  } catch (error) {
+    console.warn("[love-secret][reusable-execution-lookup-failed]", clean(error?.message || error));
+    return null;
+  }
+}
+
+function buildLoveSecretReusableExecutionResponse(doc = {}, fallback = {}) {
+  const metadata = doc?.metadata && typeof doc.metadata === "object" ? doc.metadata : {};
+  const archive = metadata?.archive && typeof metadata.archive === "object" ? metadata.archive : {};
+  const payload = archive?.payload && typeof archive.payload === "object" ? archive.payload : {};
+  const pdfReady = archive.pdfReady || metadata.pdfReady || payload.pdfReady || null;
+  const storedUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || archive.downloadUrl || archive.pdfUrl || payload.downloadUrl || payload.pdfUrl);
+  const effectivePdfReady = pdfReady || (storedUrl ? {
+    reportId: clean(doc.reportId || archive.reportId || metadata.reportId || fallback.reportId),
+    pdfUrl: storedUrl,
+    downloadUrl: storedUrl,
+    htmlUrl: clean(archive.htmlUrl || payload.htmlUrl),
+  } : null);
+  const mode = normalizeMode(archive.mode || payload.mode || fallback.mode);
+  const reportId = clean(doc.reportId || archive.reportId || metadata.reportId || fallback.reportId);
+  const sessionId = clean(doc.sessionId || metadata.sessionId || fallback.sessionId);
+  const isCompleted = clean(doc.status) === "success" && clean(doc.premiumStatus) === "completed";
+  const isFailed = clean(doc.status) === "failed" || clean(doc.premiumStatus) === "failed";
+
+  if (isCompleted && storedUrl) {
+    return {
+      status: 200,
+      payload: buildLoveSecretSuccessPayload({
+        featureKey: clean(doc.featureKey || metadata.featureKey || fallback.featureKey),
+        mode,
+        sessionId,
+        reportId,
+        chapterCount: Number(archive.chapterCount || payload.chapterCount || (Array.isArray(archive.chapters) ? archive.chapters.length : 0)),
+        fallbackUsed: Boolean(archive.fallbackUsed || payload.fallbackUsed),
+        manuscriptSource: clean(archive.manuscriptSource || metadata.manuscriptSource || fallback.manuscriptSource || LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL),
+        chapters: Array.isArray(archive.chapters) ? archive.chapters : [],
+        pdfReady: effectivePdfReady,
+        loveSecretMasterJson: payload.loveSecretMasterJson,
+        masterJsonValidation: payload.masterJsonValidation,
+      }),
+    };
+  }
+
+  if (isFailed) {
+    return {
+      status: 409,
+      payload: {
+        ok: false,
+        serviceKey: LOVE_SECRET_SERVICE_KEY,
+        code: "LOVE_SECRET_PREVIOUS_GENERATION_FAILED",
+        message: "이전 연애비책 PDF 생성이 실패했습니다. 새 생성 요청으로 다시 시도해 주세요.",
+        debugSafe: { reportId, sessionId, previousStatus: clean(doc.status), previousPremiumStatus: clean(doc.premiumStatus) },
+      },
+    };
+  }
+
+  if (clean(doc.status) === "pending" || clean(doc.premiumStatus) === "generating") {
+    return {
+      status: 202,
+      payload: {
+        ok: true,
+        accepted: true,
+        duplicate: true,
+        serviceKey: LOVE_SECRET_SERVICE_KEY,
+        mode,
+        reportId,
+        sessionId,
+        status: "running",
+        pollAfterMs: LOVE_SECRET_JOB_POLL_AFTER_MS,
+      },
+    };
+  }
+
+  return null;
+}
+
+async function acquireLoveSecretExecutionLease(env, userId, executionCtx = {}) {
+  const executionKey = clean(executionCtx.executionKey);
+  if (!executionKey) return { ok: true };
+  try {
+    await connectDb(getLoveSecretFastDbEnv(env));
+    const now = new Date();
+    const leaseUntil = new Date(now.getTime() + Math.max(LOVE_SECRET_LOCK_TTL_MS, Number(executionCtx.timeoutSeconds || 1800) * 1000));
+    const token = `${executionKey}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
+    const doc = await ServiceExecutionTransaction.findOneAndUpdate(
+      {
+        userId,
+        executionKey,
+        status: "pending",
+        $or: [
+          { "lock.until": { $lte: now } },
+          { "lock.until": null },
+          { "lock.until": { $exists: false } },
+          { "lock.token": "" },
+        ],
+      },
+      {
+        $set: {
+          "lock.token": token,
+          "lock.until": leaseUntil,
+          "lock.acquiredAt": now,
+          heartbeatAt: now,
+        },
+      },
+      { returnDocument: "after" },
+    ).lean();
+    return { ok: Boolean(doc), doc, token };
+  } catch (error) {
+    console.warn("[love-secret][execution-lease-acquire-failed]", clean(error?.message || error));
+    return { ok: false, error };
+  }
+}
+
 function toObjectIdOrNull(value) {
   const raw = clean(value);
   if (!raw || !mongoose.Types.ObjectId.isValid(raw)) return null;
@@ -3454,7 +3677,35 @@ async function handlePrepare(request, env) {
     body,
     timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
   });
+  const reusableExecution = await findLoveSecretReusableExecution(env, authz?.auth?.userId, executionCtx, {
+    sessionId,
+    reportId: clean(body?.reportId),
+    mode,
+    featureKey: authz.featureKey,
+  });
+  const reusableResponse = reusableExecution ? buildLoveSecretReusableExecutionResponse(reusableExecution, {
+    sessionId,
+    reportId: clean(body?.reportId),
+    mode,
+    featureKey: authz.featureKey,
+  }) : null;
+  if (reusableResponse) return json(reusableResponse.payload, { status: reusableResponse.status });
+
   await startPremiumPdfExecution(env, authz?.auth?.userId, executionCtx);
+  const executionLease = await acquireLoveSecretExecutionLease(env, authz?.auth?.userId, executionCtx);
+  if (!executionLease.ok && !executionLease.error) {
+    return json({
+      ok: true,
+      accepted: true,
+      duplicate: true,
+      serviceKey: LOVE_SECRET_SERVICE_KEY,
+      mode,
+      reportId: clean(body?.reportId),
+      sessionId,
+      status: "running",
+      pollAfterMs: LOVE_SECRET_JOB_POLL_AFTER_MS,
+    }, { status: 202 });
+  }
 
   try {
   console.info("[LoveBookPremiumPDF][LocalCalculationStart]", { mode });
@@ -3614,29 +3865,74 @@ async function handlePrepareAsync(request, env, ctx) {
     body,
     timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
   });
+  const reusableExecution = await findLoveSecretReusableExecution(env, authz?.auth?.userId, executionCtx, {
+    sessionId,
+    reportId: clean(body?.reportId),
+    mode,
+    featureKey: authz.featureKey,
+  });
+  const reusableResponse = reusableExecution ? buildLoveSecretReusableExecutionResponse(reusableExecution, {
+    sessionId,
+    reportId: clean(body?.reportId),
+    mode,
+    featureKey: authz.featureKey,
+  }) : null;
+  if (reusableResponse) return json(reusableResponse.payload, { status: reusableResponse.status });
+
+  let preflightJobsCollection = null;
+  try {
+    preflightJobsCollection = await getLoveSecretJobsCollection(env);
+    const existingJob = await preflightJobsCollection.findOne({
+      service: LOVE_SECRET_SERVICE_KEY,
+      userId: String(authz?.auth?.userId || ""),
+      "requestBody.sessionId": sessionId,
+      status: { $in: ["pending", "processing", "completed"] },
+    }, { sort: { updatedAt: -1, createdAt: -1 } });
+    if (existingJob && clean(existingJob.status) === "completed" && existingJob.result) {
+      resolveLoveSecretLock(sessionId, "done", String(existingJob?._id || ""));
+      return json({
+        ...existingJob.result,
+        fromCache: true,
+        duplicate: true,
+      }, { status: 200 });
+    }
+    if (existingJob) {
+      resolveLoveSecretLock(sessionId, "running", String(existingJob?._id || ""));
+      return json({
+        ok: true,
+        accepted: true,
+        duplicate: true,
+        sessionId,
+        jobId: String(existingJob?._id || ""),
+        status: clean(existingJob?.status) || "pending",
+        pollAfterMs: LOVE_SECRET_JOB_POLL_AFTER_MS,
+      }, { status: 202 });
+    }
+  } catch (error) {
+    if (!isLikelyDbUnavailableError(error)) throw error;
+  }
+
   await startPremiumPdfExecution(env, authz?.auth?.userId, executionCtx);
-  const lockState = acquireLoveSecretLock(sessionId);
-  if (!lockState.ok) {
-    const existing = lockState.existing || {};
+  const executionLease = await acquireLoveSecretExecutionLease(env, authz?.auth?.userId, executionCtx);
+  if (!executionLease.ok && !executionLease.error) {
     return json({
       ok: true,
       accepted: true,
       duplicate: true,
+      serviceKey: LOVE_SECRET_SERVICE_KEY,
+      mode,
+      reportId: clean(body?.reportId),
       sessionId,
-      jobId: clean(existing.jobId),
-      status: clean(existing.status || "running") || "running",
+      status: "running",
       pollAfterMs: LOVE_SECRET_JOB_POLL_AFTER_MS,
-      lock: {
-        sessionId,
-        status: clean(existing.status || "running") || "running",
-        startedAt: clean(existing.startedAt) || new Date().toISOString(),
-      },
     }, { status: 202 });
   }
+  const lockState = acquireLoveSecretLock(sessionId);
+  if (!lockState.ok) resolveLoveSecretLock(sessionId, "running", clean(lockState?.existing?.jobId));
 
   const totalChapters = Number(config.totalChapters || 0);
   try {
-    const coll = await getLoveSecretJobsCollection(env);
+    const coll = preflightJobsCollection || await getLoveSecretJobsCollection(env);
     const now = new Date();
 
     const runningJob = await coll.findOne({

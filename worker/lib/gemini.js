@@ -10,6 +10,16 @@ const geminiKeyHealthCache = new Map();
 const GEMINI_KEY_TTL_OK_MS = 10 * 60 * 1000;
 const GEMINI_KEY_TTL_RATE_LIMIT_MS = 45 * 1000;
 const GEMINI_KEY_TTL_INVALID_MS = 60 * 60 * 1000;
+const GEMINIF_PRIMARY_KEY_ENV_KEYS = Object.freeze([
+  "GEMINIF_API_KEY1",
+  "GEMINIF_API_KEY2",
+  "GEMINIF_API_KEY3",
+  "GEMINIF_API_KEY4",
+  "GEMINIF_API_KEY5",
+  "GEMINIF_API_KEY6",
+  "GEMINIF_API_KEY7",
+  "GEMINIF_API_KEY8",
+]);
 
 function clean(value) {
   return String(value || "").trim();
@@ -38,8 +48,10 @@ function unique(values) {
 }
 
 export function pickGeminiKeys(env, preferredEnvKeys = []) {
+  const primary = GEMINIF_PRIMARY_KEY_ENV_KEYS.map((key) => getEnv(env, key));
   const preferred = preferredEnvKeys.map((key) => getEnv(env, key));
   return unique([
+    ...primary,
     ...preferred,
     getEnv(env, "ZIWEI_GEMINI_API_KEY1"),
     getEnv(env, "ZIWEI_GEMINI_API_KEY2"),

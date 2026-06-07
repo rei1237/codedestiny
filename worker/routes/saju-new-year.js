@@ -4,6 +4,8 @@ import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
+import { connectDb } from "../lib/db.js";
+import { ServiceExecutionTransaction } from "../lib/models.js";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
@@ -1199,7 +1201,6 @@ function buildPdfSeed(profile, targetYear, body = {}) {
     chapters: [],
   };
   seed.interpretationSeeds = buildInterpretationSeeds(seed);
-  seed.chapters = buildLocalSkeleton(seed);
   seed.quantumMyeongri = quantumMyeongri;
 
   const strongest = dominantElement(seed?.saju?.fiveElements || {}, "earth");
@@ -1293,10 +1294,7 @@ function desiredSectionLength() {
 function normalizeGeneratedChapter(chapterSpec, parsed = {}) {
   const sections = (chapterSpec?.categories || []).map((title, index) => {
     const source = (Array.isArray(parsed.sections) ? parsed.sections[index] : null) || {};
-    const body = ensureMinLength(stripForbiddenText(source.body || source.text || ""), MIN_SECTION_CHARS, {
-      targetYear: toInt(chapterSpec?.title?.match(/(\d{4})년/)?.[1], resolveDefaultTargetYear()),
-      saju: { annualLuck: { label: "세운" } },
-    }, title);
+    const body = stripForbiddenText(source.body || source.text || "");
     return {
       title,
       body,
@@ -1307,7 +1305,7 @@ function normalizeGeneratedChapter(chapterSpec, parsed = {}) {
     title: clean(chapterSpec?.title || ""),
     sections,
     text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-    source: "local-only",
+    source: NEW_YEAR_MANUSCRIPT_SOURCE.LLM,
   };
 }
 
@@ -1601,7 +1599,7 @@ function normalizeNewYearGeneratedChapter(parsed = {}, chapterSpec = {}, seed = 
   const sourceSections = Array.isArray(parsed?.sections) ? parsed.sections : [];
   const sections = (chapterSpec?.categories || []).map((title, index) => {
     const source = sourceSections[index] || {};
-    const body = ensureMinLength(stripForbiddenText(source.body || source.text || ""), desiredSectionLength(), seed, title);
+    const body = stripForbiddenText(source.body || source.text || "");
     return {
       title,
       body,
@@ -1633,25 +1631,21 @@ function normalizeNewYearGeneratedChapter(parsed = {}, chapterSpec = {}, seed = 
 
 function buildNewYearChapterPrompt({ masterJson, chapterSpec, previousSummaries = [], validationFeedback = "" }) {
   const systemPrompt = [
-    "당신은 사주 원국과 세운, 월운, 대운을 바탕으로 신년운세 PDF 원고를 쓰는 최고 수준의 명리 상담가입니다.",
-    "사주 계산을 새로 하지 말고 제공된 마스터 상담 JSON과 상담 근거만 사용하세요.",
-    "없는 값은 만들지 말고, 확인된 값 중심으로 해석하세요.",
-    "좋고 나쁨을 단정하지 말고 한 해의 선택 기준, 실행 전략, 주의점으로 표현하세요.",
+    "당신은 사주 원국, 세운, 월운, 대운을 바탕으로 신년운세 PDF의 개인화 본문만 작성하는 명리 상담가입니다.",
+    "챕터 제목, 섹션 제목, 목차, 표지 문구, 공통 안내문은 이미 정적 템플릿으로 준비되어 있으므로 생성하지 마세요.",
+    "제공된 마스터 상담 JSON과 계산 근거만 사용하고, 없는 값은 만들지 마세요.",
+    "좋다/나쁘다로 단정하지 말고 올해의 선택 기준, 실행 전략, 주의점으로 표현하세요.",
     "재물, 건강, 직업 결과를 확정하거나 공포를 조장하지 마세요.",
-    "존댓말 상담체로 쓰고 전문적이며 신비로운 분위기를 유지하세요.",
     "본문에는 JSON, schema, prompt, API, Gemini, LLM, 엔진 같은 개발 용어를 절대 쓰지 마세요.",
     "출력은 순수 JSON 객체 하나만 허용합니다. 코드블록과 설명문은 쓰지 마세요.",
     "응답은 반드시 { 로 시작해서 } 로 끝나야 합니다.",
   ].join("\n");
   const userPrompt = JSON.stringify({
-    task: "사주 신년운세 프리미엄 PDF 챕터 생성",
+    task: "사주 신년운세 프리미엄 PDF 개인화 본문 생성",
     requiredOutputShape: {
       chapterNumber: chapterSpec.no,
-      chapterTitle: chapterSpec.title,
-      chapterSummary: "string",
       sections: [
         {
-          title: "string",
           body: "string",
           sajuEvidence: ["string"],
           actionGuide: ["string"],
@@ -1661,12 +1655,17 @@ function buildNewYearChapterPrompt({ masterJson, chapterSpec, previousSummaries 
       ],
       masterAdvice: "string",
     },
+    staticTemplatePolicy: {
+      chapterTitleIsFixed: chapterSpec.title,
+      sectionTitlesAreFixedInThisOrder: chapterSpec.categories,
+      doNotGenerate: ["표지", "목차", "챕터 제목", "섹션 제목", "공통 안내문", "면책 문구", "다운로드 안내"],
+    },
     sectionRules: {
       categories: chapterSpec.categories,
       oneSectionPerCategory: true,
       minimumBodyLengthPerSection: desiredSectionLength(),
       eachSectionMustInclude: ["사주 근거", "올해 현실 발현", "월별 또는 분기별 실행", "주의점", "품격 있는 조언"],
-      tone: "최고의 명리학자가 한 해의 길을 조용히 열어 주는 전문적이고 신비로운 상담체",
+      tone: "전문적인 명리 상담가가 한 해의 길을 조용히 열어 주는 신비롭고 품격 있는 상담체",
     },
     previousSummaries,
     validationFeedback: clean(validationFeedback),
@@ -2224,6 +2223,148 @@ function buildNewYearArchiveUrls(origin, reportId) {
   };
 }
 
+async function findNewYearReusableExecution(env, userId, executionCtx = {}, fallback = {}) {
+  try {
+    await connectDb(withPdfFastDbEnv(env));
+    const filters = [];
+    const executionKey = clean(executionCtx.executionKey);
+    const sessionId = clean(executionCtx.sessionId || fallback.sessionId);
+    const reportId = clean(executionCtx.reportId || fallback.reportId);
+    const paymentSessionId = clean(executionCtx.paymentSessionId);
+    if (executionKey) filters.push({ executionKey });
+    if (sessionId) filters.push({ sessionId });
+    if (reportId) filters.push({ reportId });
+    if (paymentSessionId) filters.push({ paymentSessionId });
+    if (!filters.length) return null;
+    return await ServiceExecutionTransaction.findOne({
+      userId,
+      reportType: "sajuNewYear",
+      $or: filters,
+    }).sort({ completedAt: -1, updatedAt: -1, createdAt: -1 }).lean();
+  } catch (error) {
+    console.warn("[new-year][reusable-execution-lookup-failed]", clean(error?.message || error));
+    return null;
+  }
+}
+
+function buildNewYearReusableExecutionResponse(doc = {}, fallback = {}) {
+  const metadata = doc?.metadata && typeof doc.metadata === "object" ? doc.metadata : {};
+  const archive = metadata?.archive && typeof metadata.archive === "object" ? metadata.archive : {};
+  const payload = archive?.payload && typeof archive.payload === "object" ? archive.payload : {};
+  const pdfReady = archive.pdfReady || metadata.pdfReady || payload.pdfReady || null;
+  const storedUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || archive.downloadUrl || archive.pdfUrl || payload.downloadUrl || payload.pdfUrl);
+  const reportId = clean(doc.reportId || archive.reportId || metadata.reportId || fallback.reportId);
+  const sessionId = clean(doc.sessionId || metadata.sessionId || fallback.sessionId);
+  const targetYear = Number(archive.targetYear || metadata.targetYear || payload.targetYear || fallback.targetYear || 0) || null;
+  const isCompleted = clean(doc.status) === "success" && clean(doc.premiumStatus) === "completed";
+  const isFailed = clean(doc.status) === "failed" || clean(doc.premiumStatus) === "failed";
+
+  if (isCompleted && storedUrl) {
+    const chapters = Array.isArray(archive.chapters) ? archive.chapters : [];
+    const data = {
+      reportId,
+      featureKey: clean(doc.featureKey || metadata.featureKey || fallback.featureKey),
+      sessionId,
+      reportType: "sajuNewYear",
+      serviceKey: SERVICE_KEY,
+      targetYear,
+      chapterCount: Number(archive.chapterCount || payload.chapterCount || chapters.length),
+      chapters,
+      localSajuJson: archive.localSajuJson || metadata.localSajuJson || null,
+      newYearMasterJson: archive.newYearMasterJson || metadata.newYearMasterJson || null,
+      masterJsonValidation: archive.masterJsonValidation || metadata.masterJsonValidation || null,
+      pdfReady,
+      pdfUrl: storedUrl,
+      htmlUrl: clean(pdfReady?.htmlUrl || archive.htmlUrl || payload.htmlUrl),
+      downloadUrl: storedUrl,
+      canReopen: true,
+      canDownload: true,
+      fromCache: true,
+    };
+    return {
+      status: 200,
+      payload: {
+        ok: true,
+        serviceKey: SERVICE_KEY,
+        reportType: "sajuNewYear",
+        status: "completed",
+        serverStatus: "completed",
+        qualityStatus: "passed",
+        data,
+        ...data,
+      },
+    };
+  }
+
+  if (isFailed) {
+    return {
+      status: 409,
+      payload: {
+        ok: false,
+        serviceKey: SERVICE_KEY,
+        code: "SAJU_NEW_YEAR_PREVIOUS_GENERATION_FAILED",
+        message: "이전 신년운세 PDF 생성이 실패했습니다. 새 생성 요청으로 다시 시도해 주세요.",
+        debugSafe: { reportId, sessionId, previousStatus: clean(doc.status), previousPremiumStatus: clean(doc.premiumStatus) },
+      },
+    };
+  }
+
+  if (clean(doc.status) === "pending" || clean(doc.premiumStatus) === "generating") {
+    return {
+      status: 202,
+      payload: {
+        ok: true,
+        serviceKey: SERVICE_KEY,
+        status: "running",
+        serverStatus: "running",
+        reportId,
+        sessionId,
+        targetYear,
+        message: "동일 세션의 신년운세 PDF 생성이 이미 진행 중입니다.",
+      },
+    };
+  }
+
+  return null;
+}
+
+async function acquireNewYearExecutionLease(env, userId, executionCtx = {}) {
+  const executionKey = clean(executionCtx.executionKey);
+  if (!executionKey) return { ok: true };
+  try {
+    await connectDb(withPdfFastDbEnv(env));
+    const now = new Date();
+    const leaseUntil = new Date(now.getTime() + Math.max(NEW_YEAR_PDF_LOCK_TTL_MS, Number(executionCtx.timeoutSeconds || 1800) * 1000));
+    const token = `${executionKey}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
+    const doc = await ServiceExecutionTransaction.findOneAndUpdate(
+      {
+        userId,
+        executionKey,
+        status: "pending",
+        $or: [
+          { "lock.until": { $lte: now } },
+          { "lock.until": null },
+          { "lock.until": { $exists: false } },
+          { "lock.token": "" },
+        ],
+      },
+      {
+        $set: {
+          "lock.token": token,
+          "lock.until": leaseUntil,
+          "lock.acquiredAt": now,
+          heartbeatAt: now,
+        },
+      },
+      { returnDocument: "after" },
+    ).lean();
+    return { ok: Boolean(doc), doc, token };
+  } catch (error) {
+    console.warn("[new-year][execution-lease-acquire-failed]", clean(error?.message || error));
+    return { ok: false, error };
+  }
+}
+
 async function handlePrepare(request, env) {
   compactNewYearLocks();
   let auth;
@@ -2246,6 +2387,31 @@ async function handlePrepare(request, env) {
   const featureKey = normalizeFeatureKey(body?.featureKey);
   const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-new-year-${normalized.targetYear}-${Date.now().toString(36)}`);
   const sessionKey = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || body?.sessionKey) || `saju-new-year:${reportId}`;
+  const reusableExecutionCtx = buildPremiumExecutionContext({
+    serviceKey: SERVICE_KEY,
+    reportType: "sajuNewYear",
+    userId: auth.userId,
+    featureKey,
+    sessionId: sessionKey,
+    reportId,
+    access: null,
+    body,
+    timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+  });
+  const reusableExecution = await findNewYearReusableExecution(env, auth.userId, reusableExecutionCtx, {
+    sessionId: sessionKey,
+    reportId,
+    featureKey,
+    targetYear: normalized.targetYear,
+  });
+  const reusableResponse = reusableExecution ? buildNewYearReusableExecutionResponse(reusableExecution, {
+    sessionId: sessionKey,
+    reportId,
+    featureKey,
+    targetYear: normalized.targetYear,
+  }) : null;
+  if (reusableResponse) return json(reusableResponse.payload, { status: reusableResponse.status });
+
   const lock = newYearPdfLocks.get(sessionKey);
   if (lock?.status === "running") {
     return json({
@@ -2322,6 +2488,20 @@ async function handlePrepare(request, env) {
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
     await startPremiumPdfExecution(env, auth.userId, executionCtx);
+    const executionLease = await acquireNewYearExecutionLease(env, auth.userId, executionCtx);
+    if (!executionLease.ok && !executionLease.error) {
+      newYearPdfLocks.delete(sessionKey);
+      return json({
+        ok: true,
+        serviceKey: SERVICE_KEY,
+        status: "running",
+        serverStatus: "running",
+        sessionId: sessionKey,
+        reportId,
+        targetYear: normalized.targetYear,
+        message: "동일 세션의 신년운세 PDF 생성이 이미 진행 중입니다.",
+      }, { status: 202 });
+    }
 
     console.info("[NewYearPremiumPDF][LocalEngineStarted]", { targetYear: normalized.targetYear, sessionId: sessionKey });
     const localYearSajuJson = buildPdfSeed(normalized.profile, normalized.targetYear, body);
@@ -2344,79 +2524,50 @@ async function handlePrepare(request, env) {
       });
     }
 
-    const localManuscript = buildLocalSkeleton(localYearSajuJson);
     const expectedChapters = buildSajuNewYearChapterSpecs(localYearSajuJson.targetYear);
-    let chapters = repairSajuNewYearChapters({
-      seed: localYearSajuJson,
-      chapters: localManuscript,
-      expectedChapters,
-      errors: ["initial_repair"],
-    });
+    let chapters = [];
+    let validation = { ok: false, errors: ["llm_not_started"], stats: { chapterCount: 0, totalChars: 0 } };
+    let manuscriptSource = NEW_YEAR_MANUSCRIPT_SOURCE.LLM;
+    let fallbackUsed = false;
+    let llmFallbackReason = "";
 
-    let validation = validateSajuNewYearPdfQuality({
-      chapters,
-      expectedChapters,
-      minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
-      minSectionLength: desiredSectionLength(),
-    });
-
-    for (let attempt = 0; attempt < 3 && !validation.ok; attempt += 1) {
-      chapters = repairSajuNewYearChapters({
+    try {
+      console.info("[NewYearPremiumPDF][LlmDraftBuildStarted]", { chapterCount: expectedChapters.length, targetYear: localYearSajuJson.targetYear });
+      chapters = (await generateNewYearChaptersWithGemini(env, {
+        masterJson: newYearMasterJson,
         seed: localYearSajuJson,
-        chapters,
-        expectedChapters,
-        errors: validation.errors,
-      });
+        chapterSpecs: expectedChapters,
+        requestId: clean(body?.requestId || reportId || sessionKey),
+      })).map((chapter) => ({ ...chapter, source: NEW_YEAR_MANUSCRIPT_SOURCE.LLM }));
       validation = validateSajuNewYearPdfQuality({
         chapters,
         expectedChapters,
         minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
         minSectionLength: desiredSectionLength(),
       });
-    }
-
-    let manuscriptSource = NEW_YEAR_MANUSCRIPT_SOURCE.LOCAL;
-    let fallbackUsed = false;
-    let llmFallbackReason = "";
-
-    try {
-      console.info("[NewYearPremiumPDF][LlmDraftBuildStarted]", { chapterCount: expectedChapters.length, targetYear: localYearSajuJson.targetYear });
-      const llmChapters = await generateNewYearChaptersWithGemini(env, {
-        masterJson: newYearMasterJson,
-        seed: localYearSajuJson,
-        chapterSpecs: expectedChapters,
-        requestId: clean(body?.requestId || reportId || sessionKey),
-      });
-      const repairedLlmChapters = repairSajuNewYearChapters({
-        seed: localYearSajuJson,
-        chapters: llmChapters,
-        expectedChapters,
-        errors: ["llm_normalize"],
-      }).map((chapter) => ({ ...chapter, source: NEW_YEAR_MANUSCRIPT_SOURCE.LLM }));
-      const llmValidation = validateSajuNewYearPdfQuality({
-        chapters: repairedLlmChapters,
-        expectedChapters,
-        minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
-        minSectionLength: desiredSectionLength(),
-      });
-      if (llmValidation.ok) {
-        chapters = repairedLlmChapters;
-        validation = llmValidation;
-        manuscriptSource = NEW_YEAR_MANUSCRIPT_SOURCE.LLM;
-        console.info("[NewYearPremiumPDF][LlmDraftBuildCompleted]", { chapterCount: chapters.length, totalChars: llmValidation.stats.totalChars });
-      } else {
-        fallbackUsed = true;
-        llmFallbackReason = `llm_quality_failed:${llmValidation.errors.slice(0, 8).join(",")}`;
-        console.warn("[NewYearPremiumPDF][LlmFallbackToLocal]", { reason: llmFallbackReason });
+      if (!validation.ok) {
+        llmFallbackReason = `llm_quality_failed:${validation.errors.slice(0, 8).join(",")}`;
+        throw Object.assign(new Error(`SAJU_NEW_YEAR_LLM_QUALITY_FAILED:${validation.errors.slice(0, 20).join(",")}`), {
+          code: "SAJU_NEW_YEAR_LLM_QUALITY_FAILED",
+          status: 422,
+          stage: "llm-quality",
+        });
       }
+      manuscriptSource = NEW_YEAR_MANUSCRIPT_SOURCE.LLM;
+      console.info("[NewYearPremiumPDF][LlmDraftBuildCompleted]", { chapterCount: chapters.length, totalChars: validation.stats.totalChars });
     } catch (error) {
-      fallbackUsed = true;
-      llmFallbackReason = clean(error?.code || error?.message || "llm_generation_failed");
-      console.warn("[NewYearPremiumPDF][LlmFallbackToLocal]", { reason: llmFallbackReason });
+      llmFallbackReason = llmFallbackReason || clean(error?.code || error?.message || "llm_generation_failed");
+      console.warn("[NewYearPremiumPDF][LlmDraftBuildFailed]", { reason: llmFallbackReason });
+      throw Object.assign(new Error("신년운세 원고를 LLM으로 완성하지 못했습니다."), {
+        code: clean(error?.code || "SAJU_NEW_YEAR_LLM_GENERATION_FAILED"),
+        status: Number(error?.status || 422),
+        stage: clean(error?.stage || "llm-generation"),
+        cause: error,
+      });
     }
 
     const finalTotalChars = chapters.reduce((acc, chapter) => acc + chapterTextLength(chapter), 0);
-    console.info("[NewYearPremiumPDF][LocalChapterDraftCompleted]", {
+    console.info("[NewYearPremiumPDF][LlmChapterDraftCompleted]", {
       chapterCount: chapters.length,
       totalChars: finalTotalChars,
       qualityOk: validation.ok,
@@ -2443,6 +2594,8 @@ async function handlePrepare(request, env) {
       fallbackUsed,
       llmFallbackReason,
       manuscriptSource,
+      localDraftChapterCount: 0,
+      writingPipeline: "local-calculation-json-llm-writing-only",
       sessionId: sessionKey,
       accessType: clean(access.accessType || "unknown"),
       masterJsonValidation,
@@ -2501,10 +2654,11 @@ async function handlePrepare(request, env) {
       serviceKey: SERVICE_KEY,
       targetYear: localYearSajuJson.targetYear,
       chapterCount: chapters.length,
-      localDraftChapterCount: localManuscript.length,
+      localDraftChapterCount: 0,
       finalChapterCount: chapters.length,
       manuscriptSource,
       localEngineUsed: true,
+      writingPipeline: "local-calculation-json-llm-writing-only",
       fallbackUsed,
       llmFallbackReason,
       chapters,

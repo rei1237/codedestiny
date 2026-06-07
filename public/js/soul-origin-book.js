@@ -27,8 +27,12 @@
   ];
   var COIN_COST = 690;
   var PREPARE_API = '/api/soul-origin';
+  var STATUS_API = '/api/soul-origin/status';
   var READ_API = '/api/soul-origin/report';
-  var SOUL_ORIGIN_FETCH_TIMEOUT_MS = 30000;
+  var SOUL_ORIGIN_FETCH_TIMEOUT_MS = 180000;
+  var SOUL_ORIGIN_STATUS_TIMEOUT_MS = 360000;
+  var SOUL_ORIGIN_STATUS_INITIAL_DELAY_MS = 2500;
+  var SOUL_ORIGIN_STATUS_MAX_DELAY_MS = 8000;
   var STORAGE_KEY = 'premium:soul-origin:last:v1';
   var REQUEST_ID_KEY = 'premium:soul-origin:last-request-id:v1';
   var SESSION_ID_KEY = 'premium:soul-origin:last-session-id:v1';
@@ -369,12 +373,149 @@
     var status = clean(data.status).toLowerCase();
     var serverStatus = clean(data.serverStatus).toLowerCase();
     var qualityStatus = clean(data.qualityStatus).toLowerCase();
+    var manuscriptSource = clean(data.manuscriptSource).toLowerCase();
+    var chapterAuthoringSource = clean(data.chapterAuthoringSource).toLowerCase();
+    var summarySource = clean(data.summarySource).toLowerCase();
+    var fallbackUsed = data.fallbackUsed === true;
+    var fallbackChapterCount = Number(data.fallbackChapterCount || 0);
+    var localAuthoringUsed = data.localAuthoringUsed === true;
     var hasReportId = !!clean(data.reportId);
     var hasStoredUrl = !!resolveReportUrl(data);
     var isCompleted = (!status && !serverStatus) || status === 'completed' || serverStatus === 'completed';
     var hasExpectedChapters = chapters.length >= EXPECTED_CHAPTER_COUNT || reportedCount >= EXPECTED_CHAPTER_COUNT;
     var hasPassedQuality = !qualityStatus || qualityStatus === 'passed';
-    return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted;
+    var hasLlmOnlyManuscript = !manuscriptSource || manuscriptSource === 'llm-only';
+    var hasLlmOnlyChapters = !chapterAuthoringSource || chapterAuthoringSource === 'llm-only';
+    var hasLocalSummary = !summarySource || summarySource === 'local-calculation';
+    var hasNoFallback = !fallbackUsed && fallbackChapterCount <= 0;
+    var hasNoLocalAuthoring = !localAuthoringUsed;
+    return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted && hasLlmOnlyManuscript && hasLlmOnlyChapters && hasLocalSummary && hasNoFallback && hasNoLocalAuthoring;
+  }
+
+  function isSoulOriginRunning(payload) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var nested = data.data && typeof data.data === 'object' ? data.data : {};
+    var status = clean(data.status || data.serverStatus || nested.status).toLowerCase();
+    return status === 'running' || status === 'processing' || status === 'generating' || status === 'pending';
+  }
+
+  function isSoulOriginFailed(payload) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var status = clean(data.status || data.serverStatus).toLowerCase();
+    var premiumStatus = clean(data.premiumStatus || (data.execution && data.execution.premiumStatus)).toLowerCase();
+    var code = clean(data.code).toUpperCase();
+    if (status === 'not_found' || code.indexOf('EXECUTION_NOT_FOUND') >= 0) return false;
+    return data.ok === false || status === 'failed' || premiumStatus === 'failed' || premiumStatus === 'abandoned' || premiumStatus === 'refunded' || premiumStatus === 'refund_failed';
+  }
+
+  function sleep(ms) {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, Math.max(0, Number(ms || 0)));
+    });
+  }
+
+  function buildStatusPath(context) {
+    var params = [];
+    function add(key, value) {
+      var text = clean(value);
+      if (text) params.push(encodeURIComponent(key) + '=' + encodeURIComponent(text));
+    }
+    add('reportId', context && context.reportId);
+    add('sessionId', context && context.sessionId);
+    add('requestId', context && context.requestId);
+    return STATUS_API + (params.length ? ('?' + params.join('&')) : '');
+  }
+
+  function callStatusApi(context, token) {
+    var endpoints = getApiBaseCandidates(buildStatusPath(context));
+    var idx = 0;
+    return new Promise(function (resolve, reject) {
+      function run() {
+        if (idx >= endpoints.length) {
+          var error = new Error('운명의 업 PDF 생성 상태를 확인하지 못했습니다.');
+          error.code = 'SOUL_ORIGIN_STATUS_LOOKUP_FAILED';
+          reject(error);
+          return;
+        }
+        var headers = {};
+        var premiumToken = clean(token || readPremiumToken());
+        var authToken = readAuthToken();
+        if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+        if (authToken) headers.Authorization = 'Bearer ' + authToken;
+        fetchJsonWithTimeout(endpoints[idx], { method: 'GET', headers: headers }, 20000)
+          .then(function (pack) {
+            if (pack.ok && pack.data) {
+              resolve(pack.data);
+              return;
+            }
+            if (pack.data) {
+              var status = clean(pack.data.status || pack.data.serverStatus).toLowerCase();
+              var code = clean(pack.data.code).toUpperCase();
+              if (status === 'not_found' || code.indexOf('EXECUTION_NOT_FOUND') >= 0) {
+                resolve(pack.data);
+                return;
+              }
+            }
+            if (pack.data && isSoulOriginFailed(pack.data)) {
+              var failed = new Error(clean(pack.data.message || pack.data.code) || '운명의 업 PDF 생성 중 문제가 발생했습니다.');
+              failed.status = Number(pack.status || 0);
+              failed.code = clean(pack.data.code || 'SOUL_ORIGIN_STATUS_FAILED');
+              reject(failed);
+              return;
+            }
+            idx += 1;
+            run();
+          })
+          .catch(function () {
+            idx += 1;
+            run();
+          });
+      }
+      run();
+    });
+  }
+
+  async function pollSoulOriginStatus(context, token) {
+    var started = Date.now();
+    var delay = SOUL_ORIGIN_STATUS_INITIAL_DELAY_MS;
+    while (Date.now() - started < SOUL_ORIGIN_STATUS_TIMEOUT_MS) {
+      await sleep(delay);
+      logStage('StatusPollStart', {
+        requestId: clean(context && context.requestId),
+        sessionId: clean(context && context.sessionId),
+        reportId: clean(context && context.reportId),
+      });
+      var data = await callStatusApi(context, token);
+      if (isSoulOriginReportReady(data)) {
+        logStage('StatusPollSuccess', {
+          requestId: clean(context && context.requestId),
+          sessionId: clean(data && data.sessionId) || clean(context && context.sessionId),
+          reportId: clean(data && data.reportId) || clean(context && context.reportId),
+        });
+        return data;
+      }
+      if (isSoulOriginFailed(data)) {
+        var failed = new Error(clean(data && (data.message || data.code)) || '운명의 업 PDF 생성 중 문제가 발생했습니다.');
+        failed.code = clean(data && data.code) || 'SOUL_ORIGIN_GENERATION_FAILED';
+        failed.status = Number(data && data.statusCode || 500);
+        throw failed;
+      }
+      delay = Math.min(SOUL_ORIGIN_STATUS_MAX_DELAY_MS, delay + 1000);
+    }
+    var timeout = new Error('운명의 업 PDF 생성이 오래 걸리고 있습니다. 잠시 후 다시 불러오기를 시도해 주세요.');
+    timeout.code = 'SOUL_ORIGIN_STATUS_TIMEOUT';
+    throw timeout;
+  }
+
+  function shouldRecoverWithStatus(error) {
+    var code = clean(error && error.code).toUpperCase();
+    var msg = clean(error && error.message).toLowerCase();
+    return code === 'REQUEST_FAILED'
+      || code.indexOf('TIMEOUT') >= 0
+      || msg.indexOf('abort') >= 0
+      || msg.indexOf('timeout') >= 0
+      || msg.indexOf('network') >= 0
+      || msg.indexOf('failed to fetch') >= 0;
   }
 
   function renderResultActions(payload) {
@@ -574,6 +715,9 @@
     }
     if (code.indexOf('REPORT_SAVE_URL_MISSING') >= 0 || code.indexOf('SOUL_ORIGIN_REPORT_NOT_READY') >= 0) {
       return 'PDF 저장 경로가 아직 열리지 않았습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (code.indexOf('SOUL_ORIGIN_STATUS_TIMEOUT') >= 0) {
+      return '운명의 업 PDF 생성이 오래 걸리고 있습니다. 잠시 후 reportId로 다시 불러와 주세요.';
     }
     if (stage === 'LLM-GENERATION' || stage === 'LLM_GENERATION') {
       return '상담 문장 생성 단계에서 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
@@ -1034,7 +1178,29 @@
       logStage('ServerLocalCalcStart', { requestId: requestId, sessionId: sessionId });
       logStage('LLMGenerationStart', { requestId: requestId, sessionId: sessionId, expectedChapterCount: EXPECTED_CHAPTER_COUNT });
       logStage('PDFRenderStart', { requestId: requestId, sessionId: sessionId });
-      var data = await callApi(PREPARE_API, payload, token);
+      var statusContext = {
+        reportId: reportId,
+        sessionId: paymentSessionId || sessionId,
+        requestId: paymentRequestId || requestId,
+      };
+      var data;
+      try {
+        data = await callApi(PREPARE_API, payload, token);
+      } catch (requestError) {
+        if (!shouldRecoverWithStatus(requestError)) throw requestError;
+        logStage('StatusRecoverStart', {
+          requestId: statusContext.requestId,
+          sessionId: statusContext.sessionId,
+          reportId: statusContext.reportId,
+          errorCode: clean(requestError && requestError.code) || 'REQUEST_FAILED',
+        });
+        data = await pollSoulOriginStatus(statusContext, token);
+      }
+      if (isSoulOriginRunning(data)) {
+        statusContext.reportId = clean(data && (data.reportId || (data.data && data.data.reportId))) || statusContext.reportId;
+        statusContext.sessionId = clean(data && (data.sessionId || (data.data && data.data.sessionId))) || statusContext.sessionId;
+        data = await pollSoulOriginStatus(statusContext, token);
+      }
       if (!isSoulOriginReportReady(data)) {
         var readyError = new Error('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
         readyError.code = 'SOUL_ORIGIN_REPORT_NOT_READY';

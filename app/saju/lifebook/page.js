@@ -87,6 +87,88 @@ function mapApiError(status, payload) {
   return "PDF 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.";
 }
 
+function normalizeClientLifeBookPillar(raw) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const stem = String(source.g || source.stem || source.stemKo || "").trim();
+  const branch = String(source.j || source.branch || source.branchKo || "").trim();
+  return {
+    stem,
+    branch,
+    ganji: String(source.ganji || `${stem}${branch}`).trim(),
+    stemElement: String(source.gE || source.stemElement || "").trim(),
+    branchElement: String(source.jE || source.branchElement || "").trim(),
+  };
+}
+
+function readClientLifeBookEnginePayload() {
+  if (typeof window === "undefined") return {};
+  const snapshot = window.__destinyFlowerSajuSnapshot && typeof window.__destinyFlowerSajuSnapshot === "object"
+    ? window.__destinyFlowerSajuSnapshot
+    : {};
+  const analysis = snapshot.analysis && typeof snapshot.analysis === "object"
+    ? snapshot.analysis
+    : (snapshot.saju && typeof snapshot.saju === "object" ? snapshot.saju : {});
+  const payload = {};
+  if (analysis && Object.keys(analysis).length) payload.analysisSignals = analysis;
+  if (window.G_PILLARS || window.G_POWER || window.G_JOHU || window.G_DAEWUN || window.G_DAEUN) {
+    const pillars = window.G_PILLARS && typeof window.G_PILLARS === "object" ? window.G_PILLARS : {};
+    payload.quantumMyeongriJson = {
+      version: "life-book-client-route-v1",
+      sourceTrace: {
+        source: "app/saju/lifebook/page.js",
+        hasPillars: Boolean(window.G_PILLARS),
+        hasPower: Boolean(window.G_POWER),
+        hasJohu: Boolean(window.G_JOHU),
+        hasDaewun: Boolean(window.G_DAEWUN || window.G_DAEUN),
+      },
+      structuredAdvancedReport: {
+        metadata: {
+          engineVersion: "client-route-quantum-myeongri-v1",
+          timezone: "Asia/Seoul",
+          hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+          dayChangePolicy: "MIDNIGHT",
+        },
+        fourPillars: {
+          year: normalizeClientLifeBookPillar(pillars.y || pillars.year),
+          month: normalizeClientLifeBookPillar(pillars.m || pillars.month),
+          day: normalizeClientLifeBookPillar(pillars.d || pillars.day),
+          hour: normalizeClientLifeBookPillar(pillars.h || pillars.hour),
+        },
+        strengthAnalysis: window.G_POWER || {},
+        climateAnalysis: window.G_JOHU || {},
+        yongshin: {
+          primary: String(analysis.yongshin || analysis.useful || "").trim(),
+          secondary: String(analysis.support || "").trim(),
+          gishin: Array.isArray(analysis.kishin_elements) ? analysis.kishin_elements : [],
+        },
+        gyeokguk: {
+          primary: String(analysis.gyeokguk || analysis.gyeok || "").trim(),
+          reasoning: String(analysis.gyeokgukReason || "").trim(),
+        },
+        daewoon: {
+          cycles: Array.isArray(window.G_DAEWUN) ? window.G_DAEWUN : (Array.isArray(window.G_DAEUN) ? window.G_DAEUN : []),
+        },
+        sewoon: {
+          currentYear: {
+            label: String(analysis.currentYearPillar || "").trim(),
+            ganji: String(analysis.currentYearPillar || "").trim(),
+          },
+          analysis: String(analysis.yearlyLuckSummary || "").trim(),
+        },
+        lifeDomains: {
+          relationships: String(analysis.relationshipSignal || "").trim(),
+          romance: String(analysis.spouseSignal || "").trim(),
+          career: String(analysis.careerSignal || "").trim(),
+          wealth: String(analysis.wealthSignal || "").trim(),
+          healthMind: String(analysis.healthSignal || "").trim(),
+        },
+      },
+    };
+    payload.structuredAdvancedReport = payload.quantumMyeongriJson.structuredAdvancedReport;
+  }
+  return payload;
+}
+
 function CoverImage() {
   const [loaded, setLoaded] = useState(true);
 
@@ -273,6 +355,7 @@ export default function SajuLifebookPage() {
             ? gateRaw.consume
             : null;
 
+      const clientEnginePayload = readClientLifeBookEnginePayload();
       const payload = {
         serviceKey: SERVICE_KEY,
         productKey: FEATURE_KEY,
@@ -280,6 +363,7 @@ export default function SajuLifebookPage() {
         reportType: "lifeBook",
         generationMode: "worker-native-llm",
         calculationSource: "worker-saju-engine",
+        authoringMode: "llm-only",
         sessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
         reportSessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
         reportId: String(accessGrant?.reportId || reportId || "").trim(),
@@ -303,7 +387,11 @@ export default function SajuLifebookPage() {
         engineData: {
           source: "app/saju/lifebook/page.js",
           workerNativeRequired: true,
+          structuredAdvancedReport: clientEnginePayload.structuredAdvancedReport || undefined,
         },
+        analysisSignals: clientEnginePayload.analysisSignals || undefined,
+        quantumMyeongriJson: clientEnginePayload.quantumMyeongriJson || undefined,
+        structuredAdvancedReport: clientEnginePayload.structuredAdvancedReport || undefined,
       };
 
       const headers = { "Content-Type": "application/json" };
@@ -320,9 +408,14 @@ export default function SajuLifebookPage() {
       if (!response.ok || !responsePayload?.ok) {
         throw new Error(mapApiError(response.status, responsePayload));
       }
+      const resultPayload = responsePayload.data || responsePayload || {};
+      const manuscriptSource = String(resultPayload?.manuscriptSource || "").trim();
+      if (resultPayload?.fallbackUsed || /(?:local|deterministic)/i.test(manuscriptSource)) {
+        throw new Error("LIFEBOOK_LLM_ONLY_AUTHORING_REQUIRED");
+      }
 
       setStepIndex(STEP_LABELS.length - 1);
-      setResult(responsePayload.data || responsePayload || null);
+      setResult(resultPayload || null);
       setShowDetail(true);
       console.info("[LifeBook][SessionCreateSuccess]");
       console.info("[LifeBook][PdfRequestSuccess]");
@@ -336,6 +429,24 @@ export default function SajuLifebookPage() {
   };
 
   const handlePrint = () => {
+    const storedUrl = String(
+      result?.pdfReady?.downloadUrl
+      || result?.pdfReady?.pdfUrl
+      || result?.downloadUrl
+      || result?.pdfUrl
+      || result?.pdfReady?.htmlUrl
+      || result?.htmlUrl
+      || "",
+    ).trim();
+
+    if (storedUrl) {
+      const documentUrl = storedUrl.includes("/api/premium/pdf-archive/") && !/[?&]format=/.test(storedUrl)
+        ? `${storedUrl}${storedUrl.includes("?") ? "&" : "?"}format=pdf`
+        : storedUrl;
+      window.open(documentUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
     const html = String(result?.pdfReady?.html || "").trim();
     if (html) {
       const popup = window.open("", "_blank", "noopener,noreferrer,width=980,height=1280");
@@ -370,7 +481,7 @@ export default function SajuLifebookPage() {
 
     if (url) {
       const documentUrl = url.includes("/api/premium/pdf-archive/") && !/[?&]format=/.test(url)
-        ? `${url}${url.includes("?") ? "&" : "?"}format=html`
+        ? `${url}${url.includes("?") ? "&" : "?"}format=pdf`
         : url;
       window.open(documentUrl, "_blank", "noopener,noreferrer");
       return;

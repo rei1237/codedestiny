@@ -20,6 +20,7 @@ const requiredHtmlMarkers = [
 
 const jsMirrorPairs = [
   ["js/core/index-inline-runtime.js", "public/js/core/index-inline-runtime.js"],
+  ["js/life-book.js", "public/js/life-book.js"],
   ["js/mobile-performance-bootstrap.js", "public/js/mobile-performance-bootstrap.js"],
   ["js/sibyl-system.js", "public/js/sibyl-system.js"],
   ["js/mobile-interaction-patch.js", "public/js/mobile-interaction-patch.js"],

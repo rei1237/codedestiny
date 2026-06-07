@@ -96,26 +96,23 @@ const masterValidation = validateVedicMasterJson(vedicMasterJson);
 assert.equal(vedicMasterJson.schemaVersion, "vedic-premium-master-json.v1", "master schema");
 assert.equal(masterValidation.ok, true, `master validation: ${masterValidation.missing.join(",")}`);
 
-const report = await generateVedicPremiumReport({}, rawInput, {
-  requestId: "smoke-vedic-premium",
-  log: () => {},
-});
+let generationError = null;
+try {
+  await generateVedicPremiumReport({}, rawInput, {
+    requestId: "smoke-vedic-premium",
+    log: () => {},
+  });
+} catch (error) {
+  generationError = error;
+}
 
-assert.equal(report.vedicMasterJson.schemaVersion, "vedic-premium-master-json.v1", "report master schema");
-assert.equal(report.masterJsonValidation.ok, true, "report master validation");
-assert.equal(report.diagnostics.masterJson.ok, true, "diagnostic master validation");
-assert.equal(report.diagnostics.manuscript.ok, true, "manuscript validation");
-assert.equal(report.diagnostics.evidence.ok, true, "evidence audit");
-assert.equal(report.fallbackUsed, true, "no-key smoke should use local fallback");
-assert.equal(report.manuscriptSource, "llm-local-hybrid", "fallback source");
-assert.equal(report.chapterCount, 12, "chapter count");
-assert.equal(report.chapters.length, 12, "legacy chapter count");
-assert.ok(String(report.pdfReady.html || "").length > 10000, "pdf html length");
+assert.ok(generationError, "no-key smoke should fail without local fallback");
+assert.equal(generationError.reasonClass, "missing_key", "llm failure class");
+assert.equal(generationError.details?.failureClass, "missing_key", "llm failure details");
 
 const archiveUrl = "https://example.test/api/premium/pdf-archive/smoke_vedic_premium_report";
 const pdfReady = {
-  ...report.pdfReady,
-  filename: String(report.pdfReady.filename || "vedic-premium-smoke.html").replace(/\.html?$/i, ".pdf"),
+  filename: "vedic-premium-smoke.pdf",
   pdfUrl: withArchiveFormat(archiveUrl, "pdf"),
   downloadUrl: withArchiveFormat(archiveUrl, "pdf"),
   htmlUrl: withArchiveFormat(archiveUrl, "html"),
@@ -133,5 +130,5 @@ assert.equal(pdfReady.renderFormat, "pdf-archive", "render format");
 assert.ok(/\.pdf$/i.test(pdfReady.filename), "pdf filename");
 
 console.log("SMOKE_VEDIC_PREMIUM_MASTER_JSON=ok");
-console.log("SMOKE_VEDIC_PREMIUM_FALLBACK=ok");
+console.log("SMOKE_VEDIC_PREMIUM_LLM_ONLY=ok");
 console.log("SMOKE_VEDIC_PREMIUM_ARCHIVE=ok");

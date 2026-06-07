@@ -324,6 +324,116 @@
     return Number.isFinite(coins) && coins > 0 ? coins : 300;
   }
 
+  function _lsCleanText(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function _lsFieldValue(id) {
+    var el = _qs(id);
+    return _lsCleanText(el && 'value' in el ? el.value : '');
+  }
+
+  function _lsSelectedText(id, fallback) {
+    var el = _qs(id);
+    if (!el) return _lsCleanText(fallback);
+    var option = el.options && el.selectedIndex >= 0 ? el.options[el.selectedIndex] : null;
+    return _lsCleanText((option && (option.getAttribute('data-context') || option.textContent)) || el.value || fallback);
+  }
+
+  function _ensureLoveSecretContextPanel() {
+    if (_qs('lsLoveContextPanel')) return;
+    var startScreen = _qs('lsStartScreen');
+    var generateBtn = _qs('lsGenerateBtn');
+    if (!startScreen || !generateBtn) return;
+    if (!_qs('lsLoveContextStyle')) {
+      var style = document.createElement('style');
+      style.id = 'lsLoveContextStyle';
+      style.textContent = [
+        '.ls-context-panel{width:min(100%,680px);margin:18px auto 16px;padding:16px;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(20,16,35,.52);box-shadow:0 16px 44px rgba(0,0,0,.18)}',
+        '.ls-context-panel__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}',
+        '.ls-context-panel__field{display:flex;flex-direction:column;gap:7px;text-align:left}',
+        '.ls-context-panel__field--wide{grid-column:1/-1}',
+        '.ls-context-panel__label{font-size:12px;font-weight:700;color:rgba(255,255,255,.82);letter-spacing:0}',
+        '.ls-context-panel__select,.ls-context-panel__input,.ls-context-panel__textarea{width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(255,255,255,.08);color:#fff;padding:11px 12px;font-size:14px;line-height:1.45;outline:none}',
+        '.ls-context-panel__textarea{min-height:72px;resize:vertical}',
+        '.ls-context-panel__select:focus,.ls-context-panel__input:focus,.ls-context-panel__textarea:focus{border-color:rgba(242,190,255,.72);box-shadow:0 0 0 3px rgba(242,190,255,.14)}',
+        '@media(max-width:640px){.ls-context-panel{padding:14px}.ls-context-panel__grid{grid-template-columns:1fr}.ls-context-panel__field--wide{grid-column:auto}}'
+      ].join('\n');
+      document.head.appendChild(style);
+    }
+    var panel = document.createElement('div');
+    panel.id = 'lsLoveContextPanel';
+    panel.className = 'ls-context-panel';
+    panel.innerHTML =
+      '<div class="ls-context-panel__grid">' +
+        '<label class="ls-context-panel__field" for="lsLoveStatus">' +
+          '<span class="ls-context-panel__label">\ud604\uc7ac \ub9c8\uc74c\uc758 \uc790\ub9ac</span>' +
+          '<select id="lsLoveStatus" class="ls-context-panel__select">' +
+            '<option value="flow" data-context="\ud604\uc7ac \uc5f0\uc560 \ud750\ub984, \uc778\uc5f0\uc758 \uc2dc\uae30, \uad00\uacc4 \uc120\ud0dd\uc744 \ud568\uaed8 \ubcf4\uace0 \uc2f6\uc740 \uc0c1\ud0dc">\uc778\uc5f0\uc758 \ud750\ub984\uc744 \ubcf4\uace0 \uc2f6\uc5b4\uc694</option>' +
+            '<option value="single" data-context="\uc0c8\ub85c\uc6b4 \uc778\uc5f0\uacfc \uc5f0\uc560 \uc2dc\uae30\ub97c \uc900\ube44\ud558\ub294 \uc0c1\ud0dc">\uc0c8\ub85c\uc6b4 \uc778\uc5f0\uc744 \uae30\ub2e4\ub824\uc694</option>' +
+            '<option value="relationship" data-context="\ud604\uc7ac \uad00\uacc4\uc758 \uc9c0\uc18d \uac00\ub2a5\uc131\uacfc \uac10\uc815 \uc628\ub3c4\ub97c \ud655\uc778\ud558\uace0 \uc2f6\uc740 \uc0c1\ud0dc">\ud604\uc7ac \uad00\uacc4\ub97c \uc810\uac80\ud558\uace0 \uc2f6\uc5b4\uc694</option>' +
+            '<option value="reunion" data-context="\uc774\ubcc4 \ud6c4 \ub0a8\uc740 \ub9c8\uc74c\uacfc \uc7ac\ud68c \uac00\ub2a5\uc131\uc744 \uc870\uc2ec\uc2a4\ub7fd\uac8c \ubcf4\uace0 \uc2f6\uc740 \uc0c1\ud0dc">\uc7ac\ud68c\uc758 \uac00\ub2a5\uc131\uc774 \uad81\uae08\ud574\uc694</option>' +
+          '</select>' +
+        '</label>' +
+        '<label class="ls-context-panel__field" for="lsLoveDesiredOutcome">' +
+          '<span class="ls-context-panel__label">\ubc14\ub77c\ub294 \uad00\uacc4\uc758 \uacb0</span>' +
+          '<select id="lsLoveDesiredOutcome" class="ls-context-panel__select">' +
+            '<option value="strategy" data-context="\ub098\uc5d0\uac8c \ub9de\ub294 \uc0ac\ub791\uc758 \ubc29\ud5a5\uacfc \ud604\uc2e4\uc801\uc778 \uad00\uacc4 \uc804\ub7b5\uc744 \uc54c\uace0 \uc2f6\ub2e4">\ud604\uc2e4\uc801\uc778 \uc804\ub7b5</option>' +
+            '<option value="marriage" data-context="\uc624\ub798 \uac08 \uc778\uc5f0, \uacb0\ud63c\uc6b4, \uc548\uc815\uc801\uc778 \ud30c\ud2b8\ub108\uc2ed\uc744 \uc54c\uace0 \uc2f6\ub2e4">\uc624\ub798 \uac00\ub294 \uc778\uc5f0</option>' +
+            '<option value="reunion" data-context="\uc774\ubcc4\uacfc \uc7ac\ud68c\uc758 \uc870\uac74, \ub2e4\uc2dc \uc774\uc5b4\uc9c8 \uc218 \uc788\ub294 \ud0c0\uc774\ubc0d\uc744 \uc54c\uace0 \uc2f6\ub2e4">\uc7ac\ud68c\uc758 \uc870\uac74</option>' +
+            '<option value="choice" data-context="\uc9c0\uae08\uc758 \uad00\uacc4\ub97c \uc774\uc5b4\uac08\uc9c0, \uc815\ub9ac\ud560\uc9c0, \ub354 \uc9c0\ucf1c\ubcfc\uc9c0\uc758 \uae30\uc900\uc744 \uc54c\uace0 \uc2f6\ub2e4">\uc120\ud0dd\uc758 \uae30\uc900</option>' +
+          '</select>' +
+        '</label>' +
+        '<label class="ls-context-panel__field ls-context-panel__field--wide" for="lsLoveConcern">' +
+          '<span class="ls-context-panel__label">\uac00\uc7a5 \uad81\uae08\ud55c \ud750\ub984</span>' +
+          '<textarea id="lsLoveConcern" class="ls-context-panel__textarea" maxlength="220" placeholder="\uc608: \uc65c \ubc18\ubcf5\ud574\uc11c \uac19\uc740 \uad00\uacc4 \ud328\ud134\uc5d0 \uba48\ubb34\ub294\uc9c0, \uc62c\ud574 \uc0ac\ub791\uc758 \ud0c0\uc774\ubc0d\uc774 \uad81\uae08\ud574\uc694."></textarea>' +
+        '</label>' +
+        '<label class="ls-context-panel__field ls-context-panel__field--wide" for="lsLoveIdealType">' +
+          '<span class="ls-context-panel__label">\ub04c\ub9ac\ub294 \uc778\uc5f0\uc758 \uacb0</span>' +
+          '<input id="lsLoveIdealType" class="ls-context-panel__input" maxlength="120" placeholder="\uc608: \ub530\ub73b\ud558\uace0 \uc9c4\uc2ec\uc744 \uc548\uc815\uc801\uc73c\ub85c \ud45c\ud604\ud558\ub294 \uc0ac\ub78c">' +
+        '</label>' +
+      '</div>';
+    var host = generateBtn.parentElement || startScreen;
+    host.insertBefore(panel, generateBtn);
+  }
+
+  function _collectLoveSecretUserContext(mode, partnerBirthInput) {
+    var normalizedMode = _normalizeLoveSecretMode(mode);
+    var isCompatibility = normalizedMode === 'compatibility';
+    var partnerName = _lsCleanText((partnerBirthInput && partnerBirthInput.name) || _lsFieldValue('lsPsName') || '\uc0c1\ub300\ubc29');
+    var loveStatus = _lsSelectedText('lsLoveStatus', isCompatibility
+      ? '\uc0c1\ub300\uc640\uc758 \uad00\uacc4 \ud750\ub984, \uad81\ud569, \uac10\uc815\uc758 \uc628\ub3c4\uc640 \uc9c0\uc18d \uac00\ub2a5\uc131\uc744 \ud568\uaed8 \ubcf4\uace0 \uc2f6\uc740 \uc0c1\ud0dc'
+      : '\ud604\uc7ac \uc5f0\uc560 \ud750\ub984, \uc778\uc5f0\uc758 \uc2dc\uae30, \uad00\uacc4 \uc120\ud0dd\uc744 \ud568\uaed8 \ubcf4\uace0 \uc2f6\uc740 \uc0c1\ud0dc');
+    var desiredOutcome = _lsSelectedText('lsLoveDesiredOutcome', '\ub098\uc5d0\uac8c \ub9de\ub294 \uc0ac\ub791\uc758 \ubc29\ud5a5\uacfc \ud604\uc2e4\uc801\uc778 \uad00\uacc4 \uc804\ub7b5\uc744 \uc54c\uace0 \uc2f6\ub2e4');
+    var concern = _lsFieldValue('lsLoveConcern') || desiredOutcome;
+    var idealType = _lsFieldValue('lsLoveIdealType') || (isCompatibility ? partnerName : '\uc0ac\uc8fc \uc6d0\uad6d\uacfc \uc624\ud589 \uade0\ud615\uc5d0 \ub9de\ub294 \uc790\uc5f0\uc2a4\ub7ec\uc6b4 \uc778\uc5f0');
+    return {
+      loveStatus: loveStatus,
+      currentConcern: concern,
+      idealType: idealType,
+      pastLovePattern: '\ubc18\ubcf5\ub418\ub294 \ub04c\ub9bc, \uac70\ub9ac\uac10, \ud0c0\uc774\ubc0d\uc744 \uc810\uac80\ud558\uace0 \uc2f6\uc740 \ud328\ud134',
+      desiredOutcome: desiredOutcome,
+      partnerName: isCompatibility ? partnerName : '',
+      wantsMarriageAnalysis: desiredOutcome.indexOf('\uacb0\ud63c') >= 0 || desiredOutcome.indexOf('\uc624\ub798') >= 0,
+      wantsReunionAnalysis: loveStatus.indexOf('\uc7ac\ud68c') >= 0 || desiredOutcome.indexOf('\uc7ac\ud68c') >= 0
+    };
+  }
+
+  function _validateLoveSecretGenerationContract(payload, mode) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var normalizedMode = _normalizeLoveSecretMode(mode);
+    var errors = [];
+    if (!data.clientFlow || data.clientFlow.schemaVersion !== 'love-secret-client-flow.v1') errors.push('clientFlow');
+    if (!Number(data.targetYear || 0)) errors.push('targetYear');
+    if (!data.serviceContext || !_lsCleanText(data.serviceContext.currentConcern || data.currentConcern)) errors.push('serviceContext.currentConcern');
+    if (!data.serviceContext || !_lsCleanText(data.serviceContext.loveStatus || data.loveStatus)) errors.push('serviceContext.loveStatus');
+    if (normalizedMode === 'compatibility') {
+      if (!data.relationshipContext || !_lsCleanText(data.relationshipContext.relationshipType || data.relationshipType)) errors.push('relationshipContext.relationshipType');
+      if (!data.relationshipContext || !_lsCleanText(data.relationshipContext.desiredOutcome || data.desiredOutcome)) errors.push('relationshipContext.desiredOutcome');
+    }
+    return { ok: errors.length === 0, errors: errors };
+  }
+
   function _lsGetJobClient() {
     return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
   }
@@ -1794,6 +1904,7 @@
     _prepareLoveSecretUi('solo');
     var modal = _qs('loveSecretModal');
     if (!modal) return;
+    _ensureLoveSecretContextPanel();
     var hasData = _lsAdoptBirthProfile({ allowPrompt: true });
     if (!hasData) {
       var _oLsFormEl = document.getElementById('birthDate') || document.getElementById('run-btn') || document.getElementById('loveSecretModal');
@@ -1963,6 +2074,7 @@
 
     window.generateLoveSecret = function () {
     if (_generating) return;
+    _ensureLoveSecretContextPanel();
     // 프로필 복구: __cdActiveBirthProfile 없으면 localStorage DP에서 시도
     _lsAdoptBirthProfile({ allowPrompt: true });
     var hasData = !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year);
@@ -2242,6 +2354,97 @@
     var _lsFeatureKey = _getLoveSecretFeatureKey(_currentChapterMode);
     var _lsSessionId = String((_lsAccessGrant && _lsAccessGrant.sessionId) || ('love-book:' + _lsReportId)).trim();
 
+    function _buildLoveSecretGenerationContext(mode, birthInput, partnerBirthInput) {
+      var normalizedMode = _normalizeLoveSecretMode(mode);
+      var isCompatibility = normalizedMode === 'compatibility';
+      var selfName = _clean((birthInput && birthInput.name) || ((window.__cdActiveBirthProfile || {}).name) || '\uc0ac\uc6a9\uc790') || '\uc0ac\uc6a9\uc790';
+      var partnerName = _clean((partnerBirthInput && partnerBirthInput.name) || '\uc0c1\ub300\ubc29') || '\uc0c1\ub300\ubc29';
+      var targetYear = 2026;
+      var userContext = _collectLoveSecretUserContext(normalizedMode, partnerBirthInput);
+      var soloLoveStatus = '\ud604\uc7ac \uc5f0\uc560 \ud750\ub984, \uc778\uc5f0\uc758 \uc2dc\uae30, \uad00\uacc4 \uc120\ud0dd\uc744 \ud568\uaed8 \ubcf4\uace0 \uc2f6\uc740 \uc0c1\ud0dc';
+      var compatLoveStatus = '\uc0c1\ub300\uc640\uc758 \uad00\uacc4 \ud750\ub984, \uad81\ud569, \uac10\uc815\uc758 \uc628\ub3c4\uc640 \uc9c0\uc18d \uac00\ub2a5\uc131\uc744 \ud568\uaed8 \ubcf4\uace0 \uc2f6\uc740 \uc0c1\ud0dc';
+      var soloConcern = selfName + ' - ' + '\ub098\uc5d0\uac8c \ub9de\ub294 \uc0ac\ub791\uc758 \ubc29\ud5a5\uacfc \ud604\uc2e4\uc801\uc778 \uad00\uacc4 \uc804\ub7b5\uc744 \uc54c\uace0 \uc2f6\ub2e4';
+      var compatConcern = selfName + ' / ' + partnerName + ' - ' + '\ub450 \uc0ac\ub78c\uc758 \uad81\ud569, \uac10\uc815 \ud750\ub984, \uad00\uacc4 \uc9c0\uc18d \uac00\ub2a5\uc131, \uc18c\ud1b5 \ubc29\uc2dd\uc744 \uc54c\uace0 \uc2f6\ub2e4';
+      var idealType = _clean(userContext.idealType) || (isCompatibility ? partnerName : '\uc0ac\uc8fc \uc6d0\uad6d\uacfc \uc624\ud589 \uade0\ud615\uc5d0 \ub9de\ub294 \uc790\uc5f0\uc2a4\ub7ec\uc6b4 \uc778\uc5f0');
+      var pastPattern = _clean(userContext.pastLovePattern) || '\ubc18\ubcf5\ub418\ub294 \ub04c\ub9bc, \uac70\ub9ac\uac10, \ud0c0\uc774\ubc0d\uc744 \uc810\uac80\ud558\uace0 \uc2f6\uc740 \ud328\ud134';
+      var currentConcern = _clean(userContext.currentConcern) || (isCompatibility ? compatConcern : soloConcern);
+      var loveStatus = _clean(userContext.loveStatus) || (isCompatibility ? compatLoveStatus : soloLoveStatus);
+      var desiredOutcome = _clean(userContext.desiredOutcome) || (isCompatibility
+        ? '\uc11c\ub85c\uc5d0\uac8c \ub9de\ub294 \uc18c\ud1b5\uacfc \uad00\uacc4 \uc9c0\uc18d \uc804\ub7b5\uc744 \uc54c\uace0 \uc2f6\ub2e4'
+        : '\ub098\uc5d0\uac8c \ub9de\ub294 \uc0ac\ub791\uc758 \ubc29\ud5a5\uacfc \ud604\uc2e4\uc801\uc778 \uad00\uacc4 \uc804\ub7b5\uc744 \uc54c\uace0 \uc2f6\ub2e4');
+      var clientFlow = {
+        schemaVersion: 'love-secret-client-flow.v1',
+        source: 'main-shell-love-secret-modal',
+        mode: normalizedMode,
+        chapterCount: _getLoveSecretModeTotalChapters(normalizedMode),
+        selfName: selfName,
+        partnerName: isCompatibility ? partnerName : '',
+        llmContract: 'love-secret-master-json.v1'
+      };
+      var baseContext = {
+        mode: normalizedMode,
+        targetYear: targetYear,
+        loveStatus: loveStatus,
+        relationshipStatus: loveStatus,
+        currentLoveStatus: loveStatus,
+        currentConcern: currentConcern,
+        concern: currentConcern,
+        question: currentConcern,
+        idealType: idealType,
+        preferredPartner: idealType,
+        pastLovePattern: pastPattern,
+        relationshipPattern: pastPattern,
+        wantsMarriageAnalysis: userContext.wantsMarriageAnalysis !== false,
+        includeMarriageAnalysis: userContext.wantsMarriageAnalysis !== false,
+        wantsReunionAnalysis: userContext.wantsReunionAnalysis !== false,
+        includeReunionAnalysis: userContext.wantsReunionAnalysis !== false,
+        relationshipType: isCompatibility ? 'compatibility' : 'solo',
+        status: isCompatibility ? 'relationship_or_interest' : 'single_or_reviewing_love_flow',
+        desiredOutcome: desiredOutcome,
+        tone: 'professional-mystical',
+        writingStyle: 'professional-mystical',
+        productTier: 'premium',
+        tier: 'premium',
+        userLoveContext: userContext,
+        clientFlow: clientFlow
+      };
+      return Object.assign({}, baseContext, {
+        serviceContext: Object.assign({}, baseContext, {
+          birthInput: birthInput || undefined,
+          profile: window.__cdActiveBirthProfile || {}
+        }),
+        relationshipContext: Object.assign({}, baseContext, {
+          partnerBirthInput: partnerBirthInput || undefined,
+          partnerName: isCompatibility ? partnerName : ''
+        })
+      });
+    }
+
+    function _attachLoveSecretGenerationContext(payload, context) {
+      var base = payload && typeof payload === 'object' ? payload : {};
+      var ctx = context && typeof context === 'object' ? context : {};
+      var merged = Object.assign({}, base, ctx);
+      merged.serviceContext = Object.assign({}, ctx.serviceContext || {}, base.serviceContext || {});
+      merged.relationshipContext = Object.assign({}, ctx.relationshipContext || {}, base.relationshipContext || {});
+      merged.clientFlow = Object.assign({}, ctx.clientFlow || {}, base.clientFlow || {});
+      return merged;
+    }
+
+    var _lsGenerationContext = _buildLoveSecretGenerationContext(_currentChapterMode, birthInput, partnerBirthInput);
+    var _lsContractCheck = _validateLoveSecretGenerationContract(_lsGenerationContext, _currentChapterMode);
+    if (!_lsContractCheck.ok) {
+      _generating = false;
+      _stopLoadingAnimation();
+      _setLoveBookGenerationState('failed');
+      _logLoveSecretFlow('ContractValidationFailed', {
+        mode: _currentChapterMode,
+        missing: _lsContractCheck.errors,
+        reportId: _lsCurrentReportId,
+      });
+      alert('\uc5f0\uc560 \ube44\ucc45 \uc0dd\uc131 \uc815\ubcf4\uac00 \ucda9\ubd84\ud558\uc9c0 \uc54a\uc544\uc694. \uad00\uacc4\uc758 \ud750\ub984\uacfc \uac00\uc7a5 \uad81\uae08\ud55c \uc9c8\ubb38\uc744 \ud655\uc778\ud55c \ub4a4 \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694.');
+      return;
+    }
+
     function _lsReadPremiumAccessToken() {
       var token = '';
       try { token = String(window.__cdPremiumAccessToken || '').trim(); } catch (_) { token = ''; }
@@ -2323,7 +2526,7 @@
             method: 'POST',
             credentials: 'include',
             headers: _lsHeaders,
-            body: JSON.stringify({
+            body: JSON.stringify(_attachLoveSecretGenerationContext({
               reportId: _lsReportId,
               requestId: _gateRequestId || _chapterRequestId,
               chapterRequestId: _chapterRequestId,
@@ -2358,7 +2561,7 @@
               profile: window.__cdActiveBirthProfile || {},
               partnerBirthInput: partnerBirthInput || undefined,
               partnerData: partnerBirthInput ? _collectPartnerScreenData() : '',
-            }),
+            }, _lsGenerationContext)),
             signal: _controller ? _controller.signal : undefined,
           })
             .then(function (res) {
@@ -2643,6 +2846,7 @@
         partnerData: partnerBirthInput ? _collectPartnerScreenData() : '',
         quantumMyeongriJson: _collectQuantumMyeongriJson(),
       };
+      preparePayload = _attachLoveSecretGenerationContext(preparePayload, _lsGenerationContext);
 
       _setLoveBookGenerationState('building_chapters');
       _logLoveSecretFlow('SessionCreateStart', { mode: _currentChapterMode, reportId: _lsReportId, sessionId: _lsSessionId, flow: 'sync-prepare' });

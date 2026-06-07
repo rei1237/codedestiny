@@ -38,22 +38,10 @@ assert.equal(masterJson.monthlyFlow.length, 12);
 assert.equal(masterJson.quantumMyeongri.monthlyQuantum.length, 12);
 
 const specs = newYear.buildSajuNewYearChapterSpecs(2026);
-const localChapters = newYear.repairSajuNewYearChapters({
-  seed,
-  chapters: newYear.buildLocalSkeleton(seed),
-  expectedChapters: specs,
-  errors: ["smoke"],
-});
-const localValidation = newYear.validateSajuNewYearPdfQuality({
-  chapters: localChapters,
-  expectedChapters: specs,
-  minChapterLength: 4000,
-  minSectionLength: 920,
-});
-assert.equal(localValidation.ok, true, `local quality validation ${JSON.stringify(localValidation)}`);
+assert.deepEqual(seed.chapters, []);
 
-const llmChapter = newYear.normalizeNewYearGeneratedChapter({
-  sections: specs[0].categories.map((title, index) => ({
+const llmChapters = specs.map((spec) => newYear.normalizeNewYearGeneratedChapter({
+  sections: spec.categories.map((title, index) => ({
     title,
     body: longBody(seed, title, index),
     sajuEvidence: ["세운 십성", "월운 점수", "퀀텀 판정"],
@@ -62,7 +50,16 @@ const llmChapter = newYear.normalizeNewYearGeneratedChapter({
     caution: ["결과를 단정하지 않기"],
   })),
   masterAdvice: "운을 기다리기보다 흐름에 맞게 움직이는 해입니다.",
-}, specs[0], seed);
+}, spec, seed));
+const llmValidation = newYear.validateSajuNewYearPdfQuality({
+  chapters: llmChapters,
+  expectedChapters: specs,
+  minChapterLength: 4000,
+  minSectionLength: 920,
+});
+assert.equal(llmValidation.ok, true, `llm quality validation ${JSON.stringify(llmValidation)}`);
+
+const llmChapter = llmChapters[0];
 assert.equal(llmChapter.source, "worker-native-llm");
 assert.equal(llmChapter.categories.length, specs[0].categories.length);
 assert.ok(llmChapter.categories[0].finalText.length >= 920);
@@ -71,8 +68,10 @@ const archiveUrls = newYear.buildNewYearArchiveUrls("https://example.test", "new
 assert.ok(archiveUrls.pdfUrl.includes("format=pdf"));
 assert.ok(archiveUrls.htmlUrl.includes("format=html"));
 
-const pdfReady = newYear.buildPdfReadyPayload(seed, localChapters, {
+const pdfReady = newYear.buildPdfReadyPayload(seed, llmChapters, {
   manuscriptSource: "worker-native-llm",
+  localDraftChapterCount: 0,
+  writingPipeline: "local-calculation-json-llm-writing-only",
 });
 pdfReady.pdfUrl = archiveUrls.pdfUrl;
 pdfReady.downloadUrl = archiveUrls.pdfUrl;
