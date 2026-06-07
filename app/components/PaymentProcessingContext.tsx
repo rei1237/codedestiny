@@ -70,21 +70,6 @@ type PaidFeatureGateContextValue = {
   preload: () => void;
 };
 
-type UnifiedPaymentFetchMeta = {
-  message: string;
-  mode: PaymentLoadingVariant;
-  closeOwnedOverlay: boolean;
-};
-
-type UnifiedPortOneRequestPayment = ((request: unknown) => Promise<unknown>) & {
-  __cdUnifiedPaymentWrapped?: boolean;
-  __cdUnifiedPaymentOriginal?: UnifiedPortOneRequestPayment;
-};
-
-type UnifiedPortOne = {
-  requestPayment?: UnifiedPortOneRequestPayment;
-};
-
 const DEFAULT_PROCESSING_MESSAGE = "결제가 진행 중입니다.";
 
 const PAID_GATE_DEFAULT_TITLE = "결제/이용권 확인";
@@ -131,58 +116,6 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
 
 function isPaymentCompletionVariant(variant: PaymentLoadingVariant) {
   return variant === "payment-complete" || variant === "unlock-saving" || variant === "pass-applied";
-}
-
-function resolveUnifiedPaymentPathname(input: unknown) {
-  try {
-    if (typeof input === "string") return new URL(input, window.location.origin).pathname;
-    if (input instanceof URL) return input.pathname;
-    if (typeof Request !== "undefined" && input instanceof Request) return new URL(input.url, window.location.origin).pathname;
-    const url = (input as { url?: unknown } | null)?.url;
-    if (typeof url === "string") return new URL(url, window.location.origin).pathname;
-  } catch (_) {}
-  return "";
-}
-
-function resolveUnifiedPaymentFetchMeta(pathname: string, method: string): UnifiedPaymentFetchMeta | null {
-  if (!["POST", "PUT", "PATCH", "DELETE"].includes(method)) return null;
-  const path = pathname.toLowerCase();
-  if (path.includes("/api/payments/confirm") || path.includes("/api/billing/confirm")) {
-    return {
-      message: "결제 승인과 이용 권한을 확인하고 있습니다.",
-      mode: "confirm",
-      closeOwnedOverlay: true,
-    };
-  }
-  if (path.includes("/api/payments/prepare") || path.includes("/api/billing/checkout")) {
-    return {
-      message: "결제 주문 정보를 안전하게 확인하고 있습니다.",
-      mode: "checkout",
-      closeOwnedOverlay: true,
-    };
-  }
-  if (path.includes("/api/billing/coin-gate")) {
-    return {
-      message: "이용권과 월정석 권한을 확인하고 있습니다.",
-      mode: "pass-checking",
-      closeOwnedOverlay: true,
-    };
-  }
-  if (path.includes("/api/subscription") || path.includes("/api/payments/subscription")) {
-    return {
-      message: "이용권 결제를 확인하고 있습니다.",
-      mode: "subscription",
-      closeOwnedOverlay: true,
-    };
-  }
-  if (path.includes("/api/payments/refund") || path.includes("/api/billing/refund")) {
-    return {
-      message: "환불 내역과 이용 권한을 확인하고 있습니다.",
-      mode: "refund",
-      closeOwnedOverlay: true,
-    };
-  }
-  return null;
 }
 
 const PaymentProcessingContext = createContext<PaymentProcessingContextValue | undefined>(
@@ -523,8 +456,6 @@ export function PaymentProcessingProvider({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingVariant, setProcessingVariant] = useState<PaymentLoadingVariant>("payment");
   const processingVariantRef = useRef<PaymentLoadingVariant>("payment");
-  const processingActiveRef = useRef(false);
-  const autoPaymentOverlayOwnerRef = useRef(false);
   const completionCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [processingMessage, setProcessingMessageState] = useState(
     DEFAULT_PROCESSING_MESSAGE,
@@ -544,7 +475,6 @@ export function PaymentProcessingProvider({
 
   const closeProcessingNow = useCallback(() => {
     clearCompletionCloseTimer();
-    autoPaymentOverlayOwnerRef.current = false;
     setIsProcessing(false);
     setPaymentLoadingVariant("payment");
     setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
@@ -584,10 +514,6 @@ export function PaymentProcessingProvider({
     return () => clearCompletionCloseTimer();
   }, [clearCompletionCloseTimer]);
 
-  useEffect(() => {
-    processingActiveRef.current = isProcessing;
-  }, [isProcessing]);
-
   const applyReactPaymentOverlay = useCallback((show: boolean, message?: string, mode?: string) => {
     if (show) {
       clearCompletionCloseTimer();
@@ -614,85 +540,6 @@ export function PaymentProcessingProvider({
       window.removeEventListener("cd:payment-loading-state", onPaymentLoadingState);
       if (overlayWindow._cdSetCoinGateOverlay === applyReactPaymentOverlay) {
         overlayWindow._cdSetCoinGateOverlay = previousOverlay;
-      }
-    };
-  }, [applyReactPaymentOverlay]);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.fetch !== "function") return;
-
-    const nativeFetch = window.fetch.bind(window);
-    const runtimeWindow = window as unknown as { PortOne?: UnifiedPortOne };
-    let wrappedPortOne: UnifiedPortOne | null = null;
-    let wrappedRequestPayment: UnifiedPortOneRequestPayment | null = null;
-    let originalRequestPayment: UnifiedPortOneRequestPayment | null = null;
-
-    const unifiedFetch: typeof window.fetch = async (input, init) => {
-      const method = String(
-        init?.method
-          || (typeof Request !== "undefined" && input instanceof Request ? input.method : "")
-          || "GET",
-      ).toUpperCase();
-      const meta = resolveUnifiedPaymentFetchMeta(resolveUnifiedPaymentPathname(input), method);
-      if (!meta) return nativeFetch(input, init);
-
-      const hadOverlay = processingActiveRef.current;
-      if (!hadOverlay) autoPaymentOverlayOwnerRef.current = true;
-      applyReactPaymentOverlay(true, meta.message, meta.mode);
-
-      try {
-        return await nativeFetch(input, init);
-      } finally {
-        if (meta.closeOwnedOverlay && autoPaymentOverlayOwnerRef.current && !hadOverlay) {
-          applyReactPaymentOverlay(false);
-        } else if (meta.closeOwnedOverlay && autoPaymentOverlayOwnerRef.current && meta.mode === "confirm") {
-          applyReactPaymentOverlay(false);
-        }
-      }
-    };
-
-    window.fetch = unifiedFetch;
-
-    const wrapPortOne = () => {
-      const portOne = runtimeWindow.PortOne;
-      const requestPayment = portOne?.requestPayment;
-      if (!portOne || typeof requestPayment !== "function" || requestPayment.__cdUnifiedPaymentWrapped) return;
-
-      originalRequestPayment = requestPayment;
-      wrappedPortOne = portOne;
-      const wrapped = (async (request: unknown) => {
-        const hadOverlay = processingActiveRef.current;
-        if (!hadOverlay) autoPaymentOverlayOwnerRef.current = true;
-        applyReactPaymentOverlay(true, "결제창을 열고 있습니다. 잠시만 기다려 주세요.", "checkout");
-
-        try {
-          const result = await originalRequestPayment!.call(portOne, request);
-          const responseCode = String((result as { code?: unknown } | null)?.code || "").trim();
-          if (responseCode) {
-            if (!hadOverlay && autoPaymentOverlayOwnerRef.current) applyReactPaymentOverlay(false);
-            return result;
-          }
-          applyReactPaymentOverlay(true, "결제 승인과 이용 권한을 확인하고 있습니다.", "confirm");
-          return result;
-        } catch (error) {
-          if (!hadOverlay && autoPaymentOverlayOwnerRef.current) applyReactPaymentOverlay(false);
-          throw error;
-        }
-      }) as UnifiedPortOneRequestPayment;
-      wrapped.__cdUnifiedPaymentWrapped = true;
-      wrapped.__cdUnifiedPaymentOriginal = requestPayment;
-      wrappedRequestPayment = wrapped;
-      portOne.requestPayment = wrapped;
-    };
-
-    wrapPortOne();
-    const wrapTimer = window.setInterval(wrapPortOne, 300);
-
-    return () => {
-      window.clearInterval(wrapTimer);
-      if (window.fetch === unifiedFetch) window.fetch = nativeFetch;
-      if (wrappedPortOne && wrappedPortOne.requestPayment === wrappedRequestPayment && originalRequestPayment) {
-        wrappedPortOne.requestPayment = originalRequestPayment;
       }
     };
   }, [applyReactPaymentOverlay]);

@@ -36,6 +36,13 @@ export default function PaymentLoading({
   const [elapsedMs, setElapsedMs] = useState(0);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const img = new window.Image();
+    img.decoding = "async";
+    img.src = YEON_SPRITE_URL;
+  }, []);
+
+  useEffect(() => {
     if (!open || typeof document === "undefined") return;
 
     const originalOverflow = document.body.style.overflow;
@@ -128,15 +135,15 @@ export default function PaymentLoading({
       aria-live="assertive"
       data-payment-loading-variant={variant}
       data-payment-loading-marker={UNIFIED_PAYMENT_MARKER}
-      className="fixed inset-0 z-[2147483003] flex items-center justify-center bg-[#050510]/86 px-4 backdrop-blur-xl"
+      className="fixed inset-0 z-[2147483003] flex items-center justify-center bg-[#050510]/78 px-4 backdrop-blur-md"
     >
-      <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-amber-100/35 bg-[linear-gradient(180deg,rgba(24,19,34,0.97),rgba(8,9,20,0.98))] p-8 text-center shadow-[0_28px_90px_rgba(0,0,0,0.48)]">
+      <div className="relative w-full max-w-[360px] overflow-hidden rounded-[1.5rem] border border-amber-100/35 bg-[linear-gradient(180deg,rgba(24,19,34,0.96),rgba(8,9,20,0.97))] p-5 text-center shadow-[0_20px_54px_rgba(0,0,0,0.38)] sm:p-6">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-100/70 to-transparent" />
         <div className="pointer-events-none absolute inset-x-8 top-0 h-28 bg-gradient-to-b from-amber-200/12 to-transparent" />
 
-        <div className="relative mx-auto mb-8 flex h-24 w-24 items-center justify-center">
-          <span className="absolute -inset-2 rounded-[1.65rem] border border-amber-100/20 bg-amber-100/5 shadow-[0_0_38px_rgba(251,191,36,0.22)]" />
-          <div className="relative h-24 w-24 overflow-hidden rounded-[1.4rem] border border-amber-100/45 bg-[#fff7ed] shadow-[0_12px_34px_rgba(251,191,36,0.25)]">
+        <div className="relative mx-auto mb-5 flex h-24 w-24 items-center justify-center">
+          <span className="absolute -inset-2 rounded-[1.5rem] border border-amber-100/18 bg-amber-100/5 shadow-[0_0_24px_rgba(251,191,36,0.18)]" />
+          <div className="relative h-24 w-24 overflow-hidden rounded-[1.25rem] border border-amber-100/45 bg-[#fff7ed] shadow-[0_10px_24px_rgba(251,191,36,0.2)]">
             <div
               className="h-full w-full animate-[cdYeonPaymentSprite_1.08s_steps(8)_infinite]"
               style={{
