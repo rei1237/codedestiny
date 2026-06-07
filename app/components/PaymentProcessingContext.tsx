@@ -93,6 +93,7 @@ const PaidFeatureGateContext = createContext<PaidFeatureGateContextValue | undef
 
 function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentLoadingVariant {
   const normalizedMode = String(mode || "").trim().toLowerCase();
+  if (["payment-complete", "paymentcomplete", "payment-success", "success", "complete"].includes(normalizedMode)) return "payment-complete";
   if (normalizedMode === "pass-applied" || normalizedMode === "passapplied") return "pass-applied";
   if (normalizedMode === "pass" || normalizedMode === "pass-checking" || normalizedMode === "membership") return "pass-checking";
   if (["checkout", "card", "prepare", "opening"].includes(normalizedMode)) return "checkout";
@@ -111,6 +112,10 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
   if (/권한 저장|저장|해금|잠금 해제|결과 화면/i.test(normalizedMessage)) return "unlock-saving";
   if (/환불|refund|복구/i.test(normalizedMessage)) return "refund";
   return "payment";
+}
+
+function isPaymentCompletionVariant(variant: PaymentLoadingVariant) {
+  return variant === "payment-complete" || variant === "unlock-saving" || variant === "pass-applied";
 }
 
 const PaymentProcessingContext = createContext<PaymentProcessingContextValue | undefined>(
@@ -146,7 +151,7 @@ function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, message?
     if (/이용권 적용|이용권으로|pass_applied|membership/i.test(text)) {
       return { message: "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
     }
-    return { message: text || "이용 권한 저장이 완료되었습니다.", mode: "unlock-saving" };
+    return { message: text || "이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
   }
   if (status === "opening" || status === "loadingProducts") {
     return { message: message || "결제 가능한 수단을 확인하고 있습니다.", mode: "checkout" };
@@ -450,33 +455,64 @@ export function PaymentProcessingProvider({
 }: PaymentProcessingProviderProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingVariant, setProcessingVariant] = useState<PaymentLoadingVariant>("payment");
+  const processingVariantRef = useRef<PaymentLoadingVariant>("payment");
+  const completionCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [processingMessage, setProcessingMessageState] = useState(
     DEFAULT_PROCESSING_MESSAGE,
   );
 
+  const setPaymentLoadingVariant = useCallback((variant: PaymentLoadingVariant) => {
+    processingVariantRef.current = variant;
+    setProcessingVariant(variant);
+  }, []);
+
+  const clearCompletionCloseTimer = useCallback(() => {
+    if (completionCloseTimerRef.current) {
+      clearTimeout(completionCloseTimerRef.current);
+      completionCloseTimerRef.current = null;
+    }
+  }, []);
+
+  const closeProcessingNow = useCallback(() => {
+    clearCompletionCloseTimer();
+    setIsProcessing(false);
+    setPaymentLoadingVariant("payment");
+    setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
+  }, [clearCompletionCloseTimer, setPaymentLoadingVariant]);
+
   const startProcessing = useCallback((message?: string, variant?: PaymentLoadingVariant) => {
+    clearCompletionCloseTimer();
     if (typeof message === "string" && message.trim()) {
       setProcessingMessageState(message);
     }
-    setProcessingVariant(variant || resolvePaymentLoadingVariant(message));
+    setPaymentLoadingVariant(variant || resolvePaymentLoadingVariant(message));
     setIsProcessing(true);
-  }, []);
+  }, [clearCompletionCloseTimer, setPaymentLoadingVariant]);
 
   const stopProcessing = useCallback(() => {
-    setIsProcessing(false);
-    setProcessingVariant("payment");
-    setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
-  }, []);
+    if (isPaymentCompletionVariant(processingVariantRef.current) && typeof window !== "undefined") {
+      clearCompletionCloseTimer();
+      completionCloseTimerRef.current = setTimeout(() => {
+        closeProcessingNow();
+      }, 900);
+      return;
+    }
+    closeProcessingNow();
+  }, [clearCompletionCloseTimer, closeProcessingNow]);
 
   const setProcessingMessage = useCallback((message: string) => {
     if (!message || !message.trim()) {
       setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
-      setProcessingVariant("payment");
+      setPaymentLoadingVariant("payment");
       return;
     }
     setProcessingMessageState(message);
-    setProcessingVariant(resolvePaymentLoadingVariant(message));
-  }, []);
+    setPaymentLoadingVariant(resolvePaymentLoadingVariant(message));
+  }, [setPaymentLoadingVariant]);
+
+  useEffect(() => {
+    return () => clearCompletionCloseTimer();
+  }, [clearCompletionCloseTimer]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -484,23 +520,28 @@ export function PaymentProcessingProvider({
     const previousOverlay = overlayWindow._cdSetCoinGateOverlay;
     const reactPaymentOverlay = (show: boolean, message?: string, mode?: string) => {
       if (show) {
+        clearCompletionCloseTimer();
         const nextVariant = resolvePaymentLoadingVariant(message, mode);
-        setProcessingVariant(nextVariant);
+        setPaymentLoadingVariant(nextVariant);
         setProcessingMessageState(String(message || "").trim() || DEFAULT_PROCESSING_MESSAGE);
         setIsProcessing(true);
         return;
       }
-      setIsProcessing(false);
-      setProcessingVariant("payment");
-      setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
+      stopProcessing();
+    };
+    const onPaymentLoadingState = (event: Event) => {
+      const detail = (event as CustomEvent<{ open?: boolean; message?: string; mode?: string }>).detail || {};
+      reactPaymentOverlay(Boolean(detail.open), detail.message, detail.mode);
     };
     overlayWindow._cdSetCoinGateOverlay = reactPaymentOverlay;
+    window.addEventListener("cd:payment-loading-state", onPaymentLoadingState);
     return () => {
+      window.removeEventListener("cd:payment-loading-state", onPaymentLoadingState);
       if (overlayWindow._cdSetCoinGateOverlay === reactPaymentOverlay) {
         overlayWindow._cdSetCoinGateOverlay = previousOverlay;
       }
     };
-  }, []);
+  }, [clearCompletionCloseTimer, setPaymentLoadingVariant, stopProcessing]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

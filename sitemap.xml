@@ -1,830 +1,1094 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://code-destiny.com/</loc>
-    <lastmod>2026-06-02</lastmod>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/" />
+    <lastmod>2026-06-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/about</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/astrology</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/compatibility</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.96</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/contact</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.60</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/daily-fortune</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.97</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/dream</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.00</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en/insights</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/insights" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en/insights/sukuyo-basics-en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights/sukuyo-basics" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights/sukuyo-basics" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/insights/sukuyo-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/insights/sukuyo-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights/sukuyo-basics-en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights/sukuyo-basics-en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights/sukuyo-basics" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en/insights/ziwei-basics-en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights/ziwei-basics" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights/ziwei-basics" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/insights/ziwei-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/insights/ziwei-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights/ziwei-basics-en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights/ziwei-basics-en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights/ziwei-basics" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en/sukuyo</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.94</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en/today</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/today" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/today" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/today" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/today" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/today" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/today" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/today" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.97</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/en/ziwei</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/ziwei" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/ziwei" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/ziwei" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/ziwei" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/ziwei" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/ziwei" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/famous-saju</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/adele</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/aespa-karina</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/aespa-winter</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/akira-kurosawa</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/akutagawa-ryunosuke</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/albert-einstein</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/amitabh-bachchan</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/an-jung-geun</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/angelina-jolie</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/ariana-grande</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/audrey-hepburn</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/barack-obama</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/beethoven</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/beyonce</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/bill-gates</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/billie-eilish</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/blackpink-jennie</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/blackpink-jisoo</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/blackpink-lisa</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/blackpink-rose</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/bong-joon-ho</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/brad-pitt</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/bruce-lee</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/bts-j-hope</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/bts-jimin</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/bts-jin</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/bts-jungkook</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/bts-rm</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/bts-suga</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/bts-v</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/category/actor</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/category/business</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/category/cn</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/category/director-writer</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/category/history</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/category/jp</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/category/k-star</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/category/politics</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/category/singer</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/category/sports</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/category/thinker-artist</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/category/us</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.72</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/christopher-nolan</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/confucius</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/cristiano-ronaldo</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/david-beckham</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/donald-trump</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/ed-sheeran</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/elon-musk</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/elvis-presley</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/emma-watson</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/faye-wong</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/gong-li</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/gong-yoo</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/han-kang</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/hanyu-yuzuru</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/hyun-bin</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/iu</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/ive-ahn-yujin</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/ive-jang-wonyoung</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/j-k-rowling</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/jack-ma</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/jackie-chan</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/jay-chou</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/jeff-bezos</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/jeong-yak-yong</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/jet-li</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/joe-biden</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/john-lennon</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/jun-ji-hyun</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/kamala-harris</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/kate-winslet</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/keanu-reeves</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/kim-dae-jung</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/kim-gu</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/kim-soo-hyun</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/kim-tae-ri</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/kim-yuna</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/king-sejong</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/kylian-mbappe</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/lady-gaga</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/lebron-james</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/lee-min-ho</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/leonardo-da-vinci</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/leonardo-dicaprio</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/lionel-messi</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/ma-dong-seok</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/madonna</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/mahatma-gandhi</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/mao-zedong</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/marilyn-monroe</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/mark-zuckerberg</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/martin-luther-king-jr</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/martin-scorsese</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/meryl-streep</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/michael-jackson</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/michael-jordan</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/miyazaki-hayao</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/mozart</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/murakami-haruki</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/namie-amuro</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/napoleon-bonaparte</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/naruhito</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/newjeans-danielle</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/newjeans-haerin</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/newjeans-hanni</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/newjeans-hyein</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/newjeans-minji</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/oprah-winfrey</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/osamu-tezuka</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/otani-shohei</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/park-bo-gum</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/park-chan-ho</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/park-chan-wook</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/park-chung-hee</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/park-se-ri</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/priyanka-chopra</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/robert-downey-jr</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/ryu-hyun-jin</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/scarlett-johansson</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/serena-williams</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/shah-rukh-khan</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/shin-saimdang</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/son-heung-min</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/son-ye-jin</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/song-hye-kyo</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/song-joong-ki</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/steve-jobs</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/steve-wozniak</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/steven-spielberg</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/takeshi-kitano</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/taylor-swift</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/tiger-woods</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/tony-leung</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/toyotomi-hideyoshi</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/warren-buffett</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/william-shakespeare</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/winston-churchill</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/yi-hwang</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/yi-i</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/yi-sun-sin</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/youn-yuh-jung</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/yu-gwan-sun</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/yu-hae-jin</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.76</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/famous-saju/zhang-yimou</loc>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/famous-saju/zhang-ziyi</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/faq</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.88</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/high-value</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.84</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/high-value/category/faq-page</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.68</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/high-value/category/informational-article</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.68</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/high-value/category/ultimate-guide</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.68</priority>
   </url>
@@ -866,9 +1130,21 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights</loc>
-    <lastmod>2026-06-02</lastmod>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/insights" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights" />
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
+    <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights/adsense-ready-content-checklist</loc>
@@ -890,25 +1166,13 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/astrology</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/astrology-birth-chart-guide</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/astrology-houses-quick-guide</loc>
     <lastmod>2026-03-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/astrology-houses-what-is</loc>
-    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -950,25 +1214,13 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/compatibility</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights/copyright-safe-writing-for-fortune</loc>
     <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/daewoon-vs-sewoon</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/day-master-personality-guide</loc>
-    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -980,7 +1232,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/dream</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -991,20 +1243,8 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/five-elements-balance-practical</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/five-elements-personality-deep-dive</loc>
     <lastmod>2026-03-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/manseoryeok-what-is</loc>
-    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -1015,32 +1255,20 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/nakshatra-what-is</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/new-moon-full-moon-fortune-routine</loc>
     <lastmod>2026-03-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/new-year-fortune-framework</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/rss.xml</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.20</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights/saju</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.84</priority>
   </url>
@@ -1063,20 +1291,8 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/saju-compatibility-how-to</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/saju-four-pillars-basics</loc>
     <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/saju-free-guide</loc>
-    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -1094,7 +1310,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/sukuyo</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
@@ -1105,22 +1321,22 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/sukuyo-27-mansions</loc>
-    <lastmod>2026-06-02</lastmod>
+    <loc>https://code-destiny.com/insights/sukuyo-basics</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights/sukuyo-basics" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights/sukuyo-basics" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/insights/sukuyo-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/insights/sukuyo-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights/sukuyo-basics-en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights/sukuyo-basics-en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights/sukuyo-basics" />
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/sukuyo-ankai</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/sukuyo-antai</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
+    <priority>0.80</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights/sukuyo-beginner-terms-easy-dictionary</loc>
@@ -1129,20 +1345,8 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/sukuyo-bonmyeongsuk-vs-wolmyeongsuk</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/sukuyo-boundary-setting-practical-guide</loc>
     <lastmod>2026-03-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/sukuyo-compatibility-guide</loc>
-    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -1177,20 +1381,8 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/sukuyo-eishin</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/sukuyo-friendship-teamwork-guide</loc>
     <lastmod>2026-03-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/sukuyo-love</loc>
-    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -1207,12 +1399,6 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/sukuyo-marriage</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/sukuyo-qa-most-asked-questions</loc>
     <lastmod>2026-03-20</lastmod>
     <changefreq>monthly</changefreq>
@@ -1225,32 +1411,14 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/sukuyo-vs-saju-compatibility</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/sukuyo-what-is</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/sukuyo-what-is-27-lunar-mansions</loc>
     <lastmod>2026-03-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/sun-moon-rising-difference</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/tarot</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
@@ -1279,18 +1447,6 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/tarot-how-to-read</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/tarot-love-question-design</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/tarot-major-arcana-0-to-21-with-images</loc>
     <lastmod>2026-03-20</lastmod>
     <changefreq>monthly</changefreq>
@@ -1309,20 +1465,8 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/tarot-partner-mind-reading</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/tarot-practical-reading-casebook-by-question</loc>
     <lastmod>2026-03-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/tarot-reunion-reading</loc>
-    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -1339,12 +1483,6 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/tarot-vs-saju</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/ten-gods-beginner-map</loc>
     <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
@@ -1357,20 +1495,8 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/ten-gods-career-relationship</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/ten-heavenly-stems-practical</loc>
     <lastmod>2026-04-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/today-tarot-routine</loc>
-    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -1382,7 +1508,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/vedic</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
@@ -1411,12 +1537,6 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/vedic-lagna-what-is</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/vedic-moon-sign-emotion-routine-guide</loc>
     <lastmod>2026-03-29</lastmod>
     <changefreq>monthly</changefreq>
@@ -1435,12 +1555,6 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/vedic-what-is</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/world-strange-divination-guide-including-pig-oracle</loc>
     <lastmod>2026-03-25</lastmod>
     <changefreq>monthly</changefreq>
@@ -1454,7 +1568,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/ziwei</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
@@ -1465,16 +1579,22 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/ziwei-career-palace-action</loc>
-    <lastmod>2026-06-02</lastmod>
+    <loc>https://code-destiny.com/insights/ziwei-basics</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights/ziwei-basics" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights/ziwei-basics" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/insights/ziwei-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/insights/ziwei-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights/ziwei-basics-en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights/ziwei-basics-en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights/ziwei-basics" />
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/ziwei-chart-guide</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
+    <priority>0.80</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights/ziwei-compatibility-palace-method</loc>
@@ -1501,26 +1621,8 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/ziwei-life-palaces</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/ziwei-love-compatibility</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/ziwei-lucun-and-huaji-practical</loc>
     <lastmod>2026-03-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/ziwei-minggong</loc>
-    <lastmod>2026-06-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -1549,18 +1651,6 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/ziwei-sihua</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/ziwei-star-brightness</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/ziwei-star-combinations-for-beginners</loc>
     <lastmod>2026-03-20</lastmod>
     <changefreq>monthly</changefreq>
@@ -1585,24 +1675,6 @@
     <priority>0.74</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/insights/ziwei-vs-saju</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/ziwei-wealth-career</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/insights/ziwei-what-is</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.74</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/ziwei-wugok-meaning-and-palaces</loc>
     <lastmod>2026-03-20</lastmod>
     <changefreq>monthly</changefreq>
@@ -1615,86 +1687,380 @@
     <priority>0.74</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/ja</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.00</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja/insights</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/insights" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja/insights/sukuyo-basics-jp</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights/sukuyo-basics" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights/sukuyo-basics" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/insights/sukuyo-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/insights/sukuyo-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights/sukuyo-basics-en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights/sukuyo-basics-en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights/sukuyo-basics" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja/insights/ziwei-basics-jp</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights/ziwei-basics" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights/ziwei-basics" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/insights/ziwei-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/insights/ziwei-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights/ziwei-basics-en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights/ziwei-basics-en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights/ziwei-basics" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja/sukuyo</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.94</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja/today</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/today" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/today" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/today" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/today" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/today" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/today" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/today" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.97</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja/ziwei</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/ziwei" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/ziwei" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/ziwei" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/ziwei" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/ziwei" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/ziwei" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/manse</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.98</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/methodology</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.86</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/physiognomy</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.93</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/premium</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.93</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/privacy</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/rss.xml</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.20</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.98</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/sukuyo</loc>
-    <lastmod>2026-06-02</lastmod>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo" />
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/sukuyo/compatibility</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.93</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.96</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/terms</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/today</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/today" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/today" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/today" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/today" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/today" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/today" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/today" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.97</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/vedic</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/zh</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.00</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh/insights</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/insights" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/insights" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh/insights/sukuyo-basics-zh</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights/sukuyo-basics" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights/sukuyo-basics" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/insights/sukuyo-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/insights/sukuyo-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/insights/sukuyo-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights/sukuyo-basics-en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights/sukuyo-basics-en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights/sukuyo-basics" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh/insights/ziwei-basics-zh</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights/ziwei-basics" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights/ziwei-basics" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/insights/ziwei-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/insights/ziwei-basics-jp" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/insights/ziwei-basics-zh" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights/ziwei-basics-en" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights/ziwei-basics-en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights/ziwei-basics" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh/sukuyo</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/sukuyo" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.94</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh/today</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/today" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/today" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/today" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/today" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/today" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/today" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/today" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/today" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.97</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/zh/ziwei</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/ziwei" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/ziwei" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/ziwei" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/ziwei" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/ziwei" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/ziwei" />
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/ziwei</loc>
-    <lastmod>2026-06-02</lastmod>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/ziwei" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/ziwei" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/ziwei" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh/ziwei" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/ziwei" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/ziwei" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/ziwei" />
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ziwei/chart</loc>
-    <lastmod>2026-06-02</lastmod>
+    <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.92</priority>
   </url>

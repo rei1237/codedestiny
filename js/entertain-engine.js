@@ -593,6 +593,7 @@
       '.ent-rpg-secret-copy{margin-top:6px;font-size:.78rem;line-height:1.7;color:rgba(235,225,255,.84)}',
       '.ent-rpg-secret-message{margin-top:10px;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:#fff7cf;font-size:.8rem;line-height:1.7}',
       '.ent-rpg-secret-note{margin-top:10px;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(246,205,121,.75);font-weight:900}',
+      '.ent-rpg-preview-note{margin-top:10px;padding:10px 11px;border-radius:14px;background:rgba(56,189,248,.08);border:1px solid rgba(125,211,252,.16);color:#dff7ff;font-size:.74rem;line-height:1.65}',
       '.ent-rpg-modal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,4,12,.7);backdrop-filter:blur(10px)}',
       '.ent-rpg-modal.is-open{display:flex}',
       '.ent-rpg-modal__panel{position:relative;max-width:430px;width:min(430px,100%);padding:18px;border-radius:24px;background:radial-gradient(120% 130% at 50% 0%,rgba(249,221,155,.18) 0%,rgba(18,10,38,.98) 46%,rgba(7,4,20,.99) 100%);border:1px solid rgba(247,214,120,.26);box-shadow:0 24px 50px rgba(0,0,0,.46)}',
@@ -716,12 +717,117 @@
     return message;
   }
 
+  function getRpgElementLabel(element) {
+    return (RPG_ELEMENT_META[element] && RPG_ELEMENT_META[element].label) || '운명';
+  }
+
+  function formatRpgElementName(element) {
+    return (RPG_ELEMENT_META[element] && RPG_ELEMENT_META[element].label) || String(element || '').trim();
+  }
+
+  function formatRpgElementList(raw) {
+    return toRpgList(raw).map(formatRpgElementName).filter(Boolean).join(', ');
+  }
+
+  function resolveRpgElementFromProfile(p) {
+    var dg = p && p.d && p.d.g;
+    var element = '';
+    try {
+      element = String((w.GAN && w.GAN[dg] && w.GAN[dg].e) || '').trim();
+    } catch (e) {}
+    return RPG_ELEMENT_META[element] ? element : 'earth';
+  }
+
+  function buildRpgFallbackMeta(state, p) {
+    var meta = state.generationMeta && typeof state.generationMeta === 'object' ? state.generationMeta : {};
+    var dayElement = String((meta.dayMaster && meta.dayMaster.element) || '').trim();
+    if (!RPG_ELEMENT_META[dayElement]) dayElement = resolveRpgElementFromProfile(p);
+    var dayStem = String((meta.dayMaster && meta.dayMaster.stemKo) || (p && p.d && p.d.g) || '').trim();
+    var scores = meta.fiveElements && meta.fiveElements.scores && typeof meta.fiveElements.scores === 'object'
+      ? meta.fiveElements.scores
+      : null;
+    if (!scores) {
+      scores = {};
+      RPG_ELEMENT_ORDER.forEach(function (element) {
+        scores[element] = element === dayElement ? 32 : 17;
+      });
+    }
+    return Object.assign({}, meta, {
+      dayMaster: Object.assign({
+        element: dayElement,
+        elementKo: getRpgElementLabel(dayElement),
+        stemKo: dayStem || '일간'
+      }, meta.dayMaster || {}),
+      fiveElements: Object.assign({
+        scores: scores,
+        dominant: [dayElement],
+        lacking: RPG_ELEMENT_ORDER.filter(function (element) { return element !== dayElement; }).slice(0, 2)
+      }, meta.fiveElements || {}),
+      usefulGods: Object.assign({
+        yong: [dayElement],
+        hee: [],
+        gi: []
+      }, meta.usefulGods || {}),
+      todayDayPillar: Object.assign({
+        element: dayElement
+      }, meta.todayDayPillar || {})
+    });
+  }
+
+  function buildRpgFallbackQuests(meta) {
+    var dayElement = String((meta.todayDayPillar && meta.todayDayPillar.element) || (meta.dayMaster && meta.dayMaster.element) || 'earth');
+    if (!RPG_ELEMENT_META[dayElement]) dayElement = 'earth';
+    var weakList = toRpgList(meta.fiveElements && meta.fiveElements.lacking).filter(function (element) { return RPG_ELEMENT_META[element]; });
+    var elements = [
+      weakList[0] || dayElement,
+      weakList[1] || dayElement,
+      dayElement
+    ];
+    return [
+      {
+        questId: 'preview-balance',
+        questType: 'preview_rpg_easy',
+        tier: 'easy',
+        element: elements[0],
+        expReward: 10,
+        text: getRpgElementLabel(elements[0]) + ' 기운을 깨우는 작은 행동 하나 정하기',
+        description: '서버 기록이 열리기 전에도 오늘의 성장 방향을 먼저 확인할 수 있습니다.',
+        reason: '부족한 기운을 작게 보완하면 하루의 리듬이 안정됩니다.',
+        afterCompleteMessage: '작은 선택이 운의 결을 다시 세웁니다.'
+      },
+      {
+        questId: 'preview-focus',
+        questType: 'preview_rpg_normal',
+        tier: 'normal',
+        element: elements[1],
+        expReward: 15,
+        text: '오늘 미룬 일 하나를 끝까지 닫기',
+        description: '완료 경험을 쌓아 캐릭터 시트의 성장 흐름을 선명하게 만듭니다.',
+        reason: '마무리된 행동은 흩어진 기운을 한곳으로 모읍니다.',
+        afterCompleteMessage: '끝낸 일 하나가 다음 레벨의 문을 두드립니다.'
+      },
+      {
+        questId: 'preview-core',
+        questType: 'preview_rpg_core',
+        tier: 'core',
+        element: elements[2],
+        expReward: 20,
+        text: getRpgElementLabel(dayElement) + ' 코어에 맞는 오늘의 기준 세우기',
+        description: '일간의 중심 기운을 기준으로 판단과 행동을 정렬합니다.',
+        reason: '나의 중심 기운을 의식하면 선택의 흔들림이 줄어듭니다.',
+        afterCompleteMessage: '중심을 세운 하루는 운의 방향을 잃지 않습니다.'
+      }
+    ];
+  }
+
   function buildRpgTemplate(state, p, options) {
     state = state || {};
     options = options || {};
-    var quests = Array.isArray(state.quests) ? state.quests : [];
+    var meta = buildRpgFallbackMeta(state, p);
+    var hasServerQuests = Array.isArray(state.quests) && state.quests.length > 0;
+    var quests = hasServerQuests ? state.quests : buildRpgFallbackQuests(meta);
+    var isPreviewMode = !hasServerQuests;
     var completedSet = new Set(toRpgList(state.completedQuestIds));
-    var meta = state.generationMeta || {};
     var dayMaster = meta.dayMaster || {};
     var usefulGods = meta.usefulGods || {};
     var fiveElements = meta.fiveElements || {};
@@ -732,7 +838,8 @@
     var currentLevelExp = toRpgNumber(state.currentLevelExp, 0);
     var nextLevelExp = Math.max(1, toRpgNumber(state.nextLevelExp, 100));
     var todayEarnedExp = toRpgNumber(state.todayEarnedExp, 0);
-    var todayMaxExp = Math.max(1, toRpgNumber(state.todayMaxExp, 85));
+    var fallbackMaxExp = quests.reduce(function (sum, quest) { return sum + toRpgNumber(quest.expReward, 0); }, 0) || 85;
+    var todayMaxExp = Math.max(1, toRpgNumber(state.todayMaxExp, fallbackMaxExp));
     var streakDays = toRpgNumber(state.streakDays, 0);
     var longestStreakDays = toRpgNumber(state.longestStreakDays, 0);
     var questCount = quests.length || 5;
@@ -740,7 +847,7 @@
     var expRemain = Math.max(0, nextLevelExp - currentLevelExp);
     var expPct = Math.max(0, Math.min(100, Math.round((currentLevelExp / nextLevelExp) * 100)));
     var isUnlockedSecret = completedCount >= questCount || unlockedSecrets.some(function (key) { return String(key || '').indexOf('daily_complete_') === 0; });
-    var isLoading = !!state.loading && !quests.length;
+    var isLoading = !!state.loading && isPreviewMode;
     var errText = String(state.errorMessage || state.message || '').trim();
     var profileDayEl = String((meta.todayDayPillar && meta.todayDayPillar.element) || dayMaster.element || 'earth').trim() || 'earth';
     var classLabel = String(dayMaster.stemKo || '').trim();
@@ -815,7 +922,7 @@
         + '</div>'
         + '<div class="ent-rpg-quest-footer">'
         +   '<div class="ent-rpg-exp-tag">+' + escapeRpgHtml(quest.expReward) + ' EXP</div>'
-        +   '<button type="button" class="ent-rpg-complete-btn' + (done ? ' is-done' : '') + '" data-rpg-complete="' + escapeRpgHtml(quest.questId) + '"' + (done ? ' disabled aria-pressed="true"' : ' aria-pressed="false"') + '>' + escapeRpgHtml(btnLabel) + '</button>'
+        +   '<button type="button" class="ent-rpg-complete-btn' + (done ? ' is-done' : '') + '" data-rpg-complete="' + escapeRpgHtml(quest.questId) + '"' + ((done || isPreviewMode) ? ' disabled aria-pressed="' + (done ? 'true' : 'false') + '"' : ' aria-pressed="false"') + '>' + escapeRpgHtml(isPreviewMode ? '미리보기' : btnLabel) + '</button>'
         + '</div>'
         + (done ? '<span class="cd-rpg-spark">COMPLETE</span>' : '')
         + '</article>';
@@ -863,10 +970,17 @@
       +     '<button type="button" class="ent-rpg-modal__close" data-rpg-modal-close>닫기</button>'
       +   '</div>'
       + '</div>';
+    var yongDisplay = formatRpgElementList(usefulGods.yong) || '미정';
+    var heeDisplay = formatRpgElementList(usefulGods.hee) || '미정';
+    var giDisplay = formatRpgElementList(usefulGods.gi) || '미정';
+    var abilityTitle = formatRpgElementName(toRpgList(usefulGods.yong)[0] || dayMaster.elementKo || dayMaster.element || '운명') + ' 공명';
+    var previewBlock = isPreviewMode
+      ? '<div class="ent-rpg-preview-note">운명의 기록이 열리는 동안, 지금 확인 가능한 성장 루트를 먼저 펼쳐드립니다. EXP 저장은 서버 응답 후 활성화됩니다.</div>'
+      : '';
     var loadingBlock = isLoading
       ? '<div class="ent-rpg-loading">오늘의 사주 기반 퀘스트를 불러오는 중입니다.</div>'
       : (errText && state.errorState ? '<div class="ent-rpg-empty">서버 응답을 불러오지 못했습니다.<br>' + escapeRpgHtml(errText) + '</div>' : '');
-    return '<section class="ent-rpg-shell ent-reveal" id="entRpgSection" data-dayel="' + escapeRpgHtml(profileDayEl) + '" data-state="' + escapeRpgHtml(state.errorState ? 'error' : (isLoading ? 'loading' : 'ready')) + '" data-profile-id="' + escapeRpgHtml(state.profileId || '') + '" data-quest-date="' + escapeRpgHtml(state.questDateKst || '') + '">'
+    return '<section class="ent-rpg-shell ent-reveal" id="entRpgSection" data-marker="rpg-character-sheet-fallback-v20260607" data-dayel="' + escapeRpgHtml(profileDayEl) + '" data-state="' + escapeRpgHtml(state.errorState ? 'error' : (isLoading ? 'loading' : 'ready')) + '" data-profile-id="' + escapeRpgHtml(state.profileId || '') + '" data-quest-date="' + escapeRpgHtml(state.questDateKst || '') + '">'
       + '<div class="ent-rpg-topline">'
       +   '<div>'
       +     '<div class="ent-quest-tag">⚡ DAILY QUEST SYSTEM</div>'
@@ -906,8 +1020,8 @@
       +   '</section>'
       +   '<section class="ent-rpg-card ent-rpg-card--abilities">'
       +     '<div class="ent-rpg-card__eyebrow">INNATE ABILITY</div>'
-      +     '<div class="ent-rpg-card__title">' + escapeRpgHtml((toRpgList(usefulGods.yong)[0] || dayMaster.elementKo || '운명') + ' 공명') + '</div>'
-      +     '<div class="ent-rpg-card__sub">용신 ' + escapeRpgHtml((toRpgList(usefulGods.yong).join(', ') || '미정')) + ' · 희신 ' + escapeRpgHtml((toRpgList(usefulGods.hee).join(', ') || '미정')) + ' · 기신 ' + escapeRpgHtml((toRpgList(usefulGods.gi).join(', ') || '미정')) + '</div>'
+      +     '<div class="ent-rpg-card__title">' + escapeRpgHtml(abilityTitle) + '</div>'
+      +     '<div class="ent-rpg-card__sub">용신 ' + escapeRpgHtml(yongDisplay) + ' · 희신 ' + escapeRpgHtml(heeDisplay) + ' · 기신 ' + escapeRpgHtml(giDisplay) + '</div>'
       +     '<div class="ent-rpg-card__eyebrow" style="margin-top:14px">MASTER SKILL</div>'
       +     '<div class="ent-rpg-card__title" style="font-size:.98rem">' + escapeRpgHtml((dayMaster.stemKo || '일간') + '의 본질') + '</div>'
       +     '<div class="ent-rpg-card__sub">오늘의 운명은 ' + escapeRpgHtml((dayMaster.stemKo || '일간') + ' ' + (dayMaster.elementKo || '오행')) + '에서 가장 선명하게 드러납니다.</div>'
@@ -921,6 +1035,7 @@
       +     '<div class="ent-rpg-card__title">오늘의 일일 퀘스트</div>'
       +     '<div class="ent-rpg-card__sub">퀘스트를 완료할수록 서버에 EXP가 누적되고, 레벨업과 내부 보상이 해금됩니다.</div>'
       +     loadingBlock
+      +     previewBlock
       +     '<div class="ent-rpg-summary" style="margin-top:12px">'
       +       '<span>완료 <strong>' + escapeRpgHtml(completedCount) + ' / ' + escapeRpgHtml(questCount) + '</strong></span>'
       +       '<span>오늘 EXP <strong>' + escapeRpgHtml(todayEarnedExp) + ' / ' + escapeRpgHtml(todayMaxExp) + '</strong></span>'
@@ -2341,16 +2456,16 @@
 
   function renderHealthPill(label, value, el) {
     var theme = getHealthElementTheme(el);
-    return '<span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black leading-none shadow-sm ring-1 ' + theme.badge + '">'
+    return '<span class="cd-health-pill inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black leading-none shadow-sm ring-1 ' + theme.badge + '">'
       + '<span class="text-sm leading-none">' + (EL_ICON[el] || '✦') + '</span>'
       + '<span>' + escapeHealthHtml(label) + ': ' + escapeHealthHtml(value) + '</span>'
       + '</span>';
   }
 
   function renderHealthSection(icon, title, summary, bodyHtml) {
-    return '<section class="rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_48px_rgba(2,6,23,0.28)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
+    return '<section class="cd-health-section rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_48px_rgba(2,6,23,0.28)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
       + '<div class="mb-3 flex items-start gap-3">'
-      + '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/10 text-lg shadow-inner">' + icon + '</span>'
+      + '<span class="cd-health-section-icon grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/10 text-lg shadow-inner">' + icon + '</span>'
       + '<div class="min-w-0">'
       + '<h4 class="m-0 text-base font-black leading-snug text-white sm:text-lg">' + title + '</h4>'
       + '<p class="m-0 mt-1 text-sm leading-6 text-indigo-100/75">' + summary + '</p>'
@@ -2493,7 +2608,7 @@
   }
 
   function renderHealthInfoCard(label, value, body, accent) {
-    return '<div class="rounded-2xl border border-white/10 bg-slate-950/24 p-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 ring-white/5 backdrop-blur-xl">'
+    return '<div class="cd-health-info rounded-2xl border border-white/10 bg-slate-950/24 p-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 ring-white/5 backdrop-blur-xl">'
       + '<div class="mb-1 text-[11px] font-black leading-5 text-indigo-100/60">' + label + '</div>'
       + '<div class="mb-1 text-sm font-black leading-6 text-white">' + value + '</div>'
       + '<p class="m-0 text-[13px] leading-6 text-indigo-50/75">' + body + '</p>'
@@ -2507,7 +2622,7 @@
     var theme = getHealthElementTheme(targetEl);
     return foods.map(function (food, idx) {
       var foodEl = food.element || targetEl;
-      return '<li class="rounded-2xl border border-white/10 bg-white/[0.07] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">'
+      return '<li class="cd-health-food rounded-2xl border border-white/10 bg-white/[0.07] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">'
         + '<div class="mb-2 flex items-start gap-2">'
         + '<span class="grid h-7 w-7 shrink-0 place-items-center rounded-full border text-[12px] font-black ' + theme.badge + '">' + (idx + 1) + '</span>'
         + '<div class="min-w-0">'
@@ -2519,6 +2634,24 @@
         + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/68"><b class="text-indigo-100">오늘 먹는 팁:</b> ' + escapeHealthHtml(food.tip || '과식하지 말고 따뜻하고 담백하게 드세요.') + '</p>'
         + '</li>';
     }).join('');
+  }
+
+  function renderHealthWellnessStyle() {
+    return '<style data-cd-health-ui="health-wellness-sunrise-v20260607">'
+      + '.cd-health-wellness-v20260607{background:linear-gradient(135deg,#fffdf4 0%,#f0fff7 42%,#e7f8ff 100%)!important;border:1px solid rgba(20,184,166,.28)!important;color:#12352d!important;box-shadow:0 24px 70px rgba(13,148,136,.18),inset 0 1px 0 rgba(255,255,255,.88)!important}'
+      + '.cd-health-wellness-v20260607 *{letter-spacing:0!important}'
+      + '.cd-health-wellness-v20260607 h3,.cd-health-wellness-v20260607 h4,.cd-health-wellness-v20260607 b{color:#103d34!important}'
+      + '.cd-health-wellness-v20260607 p,.cd-health-wellness-v20260607 div,.cd-health-wellness-v20260607 span,.cd-health-wellness-v20260607 li{color:#255247!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero,.cd-health-wellness-v20260607 .cd-health-section,.cd-health-wellness-v20260607 .cd-health-info,.cd-health-wellness-v20260607 .cd-health-food,.cd-health-wellness-v20260607 .cd-health-risk,.cd-health-wellness-v20260607 .cd-health-mission{background:rgba(255,255,255,.82)!important;border-color:rgba(20,184,166,.20)!important;box-shadow:0 14px 36px rgba(15,118,110,.10),inset 0 1px 0 rgba(255,255,255,.90)!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero{background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(236,253,245,.90) 52%,rgba(224,242,254,.86))!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-kicker{background:#ecfdf5!important;border-color:rgba(16,185,129,.32)!important;color:#047857!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-grade{background:#fff7ed!important;border-color:rgba(251,146,60,.32)!important;color:#7c2d12!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-callout{background:#dcfce7!important;border-color:rgba(34,197,94,.30)!important;color:#14532d!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-section-icon{background:#f0fdfa!important;border-color:rgba(20,184,166,.24)!important;color:#0f766e!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-pill{background:#ffffff!important;border-color:rgba(20,184,166,.24)!important;color:#0f766e!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-avoid{background:#fff7ed!important;border-color:rgba(251,146,60,.30)!important;color:#9a3412!important}'
+      + '.cd-health-wellness-v20260607 .text-white,.cd-health-wellness-v20260607 [class*="text-indigo"],.cd-health-wellness-v20260607 [class*="text-amber"],.cd-health-wellness-v20260607 [class*="text-orange"],.cd-health-wellness-v20260607 [class*="text-emerald"],.cd-health-wellness-v20260607 [class*="text-sky"],.cd-health-wellness-v20260607 [class*="text-zinc"],.cd-health-wellness-v20260607 [class*="text-slate"]{color:#255247!important}'
+      + '</style>';
   }
 
   function buildWellnessHealthReport(p, natal, johu, pw, jg) {
@@ -2555,7 +2688,7 @@
       var state = getHealthState(el, ratios, controlImpacts);
       var guide = getHealthSignalGuideV2(el, state);
       var theme = getHealthElementTheme(el);
-      return '<article class="rounded-2xl border p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 backdrop-blur-xl ' + theme.soft + '">'
+      return '<article class="cd-health-risk rounded-2xl border p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 backdrop-blur-xl ' + theme.soft + '">'
         + '<div class="mb-3 flex items-start justify-between gap-3">'
         + '<div class="flex min-w-0 items-center gap-2">'
         + '<span class="grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/10 text-base">' + EL_ICON[el] + '</span>'
@@ -2580,18 +2713,18 @@
     var routineFocus = getHealthRoutineFocus(axes.targetEl);
 
     if (!hasTodayElement) {
-      return '<div class="ec-card ent-reveal relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-950 via-slate-950 to-violet-950 p-4 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
-        + '<div class="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-amber-100/20 blur-3xl"></div>'
+      return renderHealthWellnessStyle()
+        + '<div class="ec-card ent-reveal cd-health-wellness-v20260607 relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-950 via-slate-950 to-violet-950 p-4 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-2xl sm:p-5" data-marker="health-wellness-sunrise-v20260607" data-legacy-marker="달빛 웰니스 클리닉">'
         + '<div class="relative z-10 grid gap-4">'
-        + '<header class="rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_54px_rgba(2,6,23,0.36)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
-        + '<div class="mb-2 inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-200/10 px-3 py-1 text-[11px] font-black text-amber-100">☾ 달빛 웰니스 클리닉</div>'
+        + '<header class="cd-health-hero rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_54px_rgba(2,6,23,0.36)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
+        + '<div class="cd-health-kicker mb-2 inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-200/10 px-3 py-1 text-[11px] font-black text-amber-100">☀ 햇살 웰니스 리포트</div>'
         + '<h3 class="m-0 text-xl font-black leading-tight text-white sm:text-2xl">명리 헬스 리포트</h3>'
-        + '<p class="m-0 mt-2 max-w-2xl text-sm leading-6 text-indigo-100/78">선천 체질 기준 웰니스 밸런스 가이드</p>'
+        + '<p class="m-0 mt-2 max-w-2xl text-sm leading-6 text-indigo-100/78">선천 체질 기준으로 몸의 균형과 회복 리듬을 맑게 정리합니다.</p>'
         + '<div class="mt-4 flex flex-wrap gap-2">'
         + renderHealthPill('선천 강점', EL_NAME[strongestEl], strongestEl)
         + renderHealthPill('보완 축', weakestEls.map(function (el) { return EL_NAME[el]; }).join(', '), weakestEls[0] || strongestEl)
         + '</div>'
-        + '<div class="mt-4 rounded-2xl border border-emerald-200/20 bg-emerald-300/10 p-3">'
+        + '<div class="cd-health-callout mt-4 rounded-2xl border border-emerald-200/20 bg-emerald-300/10 p-3">'
         + '<div class="mb-1 text-[11px] font-black text-emerald-100/80">선천 체질 기준 안내</div>'
         + '<p class="m-0 text-sm font-black leading-6 text-white sm:text-base">' + condition.lead + '</p>'
         + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">' + condition.second + '</p>'
@@ -2608,20 +2741,19 @@
         + '</div>';
     }
 
-    return '<div class="ec-card ent-reveal relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-950 via-slate-950 to-violet-950 p-4 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
-      + '<div class="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-amber-100/20 blur-3xl"></div>'
-      + '<div class="pointer-events-none absolute -left-20 top-24 h-52 w-52 rounded-full bg-sky-300/10 blur-3xl"></div>'
+    return renderHealthWellnessStyle()
+      + '<div class="ec-card ent-reveal cd-health-wellness-v20260607 relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-950 via-slate-950 to-violet-950 p-4 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-2xl sm:p-5" data-marker="health-wellness-sunrise-v20260607" data-legacy-marker="달빛 웰니스 클리닉">'
       + '<div class="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>'
       + '<div class="relative z-10 grid gap-4">'
 
-      + '<header class="rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_54px_rgba(2,6,23,0.36)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
+      + '<header class="cd-health-hero rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_54px_rgba(2,6,23,0.36)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
       + '<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">'
       + '<div class="min-w-0">'
-      + '<div class="mb-2 inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-200/10 px-3 py-1 text-[11px] font-black text-amber-100">☾ 달빛 웰니스 클리닉</div>'
+      + '<div class="cd-health-kicker mb-2 inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-200/10 px-3 py-1 text-[11px] font-black text-amber-100">☀ 햇살 웰니스 리포트</div>'
       + '<h3 class="m-0 text-xl font-black leading-tight text-white sm:text-2xl">명리 헬스 리포트</h3>'
-      + '<p class="m-0 mt-2 max-w-2xl text-sm leading-6 text-indigo-100/78">사주 원국과 오늘의 기운을 함께 읽는 웰니스 밸런스 가이드</p>'
+      + '<p class="m-0 mt-2 max-w-2xl text-sm leading-6 text-indigo-100/78">사주 원국과 오늘의 기운을 함께 읽어 컨디션, 식사, 움직임의 균형을 밝게 정리합니다.</p>'
       + '</div>'
-      + '<div class="rounded-2xl border border-white/10 bg-slate-950/32 p-3 text-left shadow-inner sm:min-w-[12rem]">'
+      + '<div class="cd-health-grade rounded-2xl border border-white/10 bg-slate-950/32 p-3 text-left shadow-inner sm:min-w-[12rem]">'
       + '<div class="text-[11px] font-black text-indigo-100/55">오늘의 컨디션 등급</div>'
       + '<div class="mt-1 text-lg font-black text-amber-100">' + escapeHealthHtml(grade.label) + '</div>'
       + '<p class="m-0 mt-1 text-[12px] leading-5 text-indigo-50/70">' + escapeHealthHtml(grade.body) + '</p>'
@@ -2632,7 +2764,7 @@
       + renderHealthPill('오늘 주의', EL_NAME[axes.avoidEl], axes.avoidEl)
       + renderHealthPill('안정 루틴', routineFocus, axes.targetEl)
       + '</div>'
-      + '<div class="mt-4 rounded-2xl border border-emerald-200/20 bg-emerald-300/10 p-3">'
+      + '<div class="cd-health-callout mt-4 rounded-2xl border border-emerald-200/20 bg-emerald-300/10 p-3">'
       + '<div class="mb-1 text-[11px] font-black text-emerald-100/80">1. 오늘의 한 줄 컨디션</div>'
       + '<p class="m-0 text-sm font-black leading-6 text-white sm:text-base">' + condition.lead + '</p>'
       + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">' + condition.second + '</p>'
@@ -2658,7 +2790,7 @@
 
       + renderHealthSection('🍽️', '5. 오늘의 회복 루틴', '식단, 움직임, 휴식, 환경을 한 곳에 모은 오늘의 웰니스 처방입니다.',
         '<div class="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(240px,.85fr)]">'
-        + '<div class="rounded-2xl border border-white/10 bg-slate-950/24 p-3 ring-1 ring-white/5 backdrop-blur-xl">'
+        + '<div class="cd-health-info rounded-2xl border border-white/10 bg-slate-950/24 p-3 ring-1 ring-white/5 backdrop-blur-xl">'
         + '<div class="mb-3 flex items-center justify-between gap-3">'
         + '<b class="text-sm font-black text-white">오늘의 추천 5선</b>'
         + '<span class="rounded-full border px-2.5 py-1 text-[11px] font-black ' + getHealthElementTheme(axes.targetEl).badge + '">' + EL_NAME[axes.targetEl] + '</span>'
@@ -2672,7 +2804,7 @@
         + '</div>'
         + '</div>')
 
-      + '<section class="rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_48px_rgba(2,6,23,0.28)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
+      + '<section class="cd-health-section rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_48px_rgba(2,6,23,0.28)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
       + '<div class="mb-3 flex items-start gap-3">'
       + '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/10 text-lg shadow-inner">✓</span>'
       + '<div class="min-w-0">'
@@ -2682,13 +2814,13 @@
       + '</div>'
       + '<ol class="m-0 grid list-none gap-2 p-0">'
       + missionList.map(function (mission) {
-        return '<li class="flex items-start gap-3 rounded-2xl border border-white/10 bg-slate-950/24 p-3 ring-1 ring-white/5">'
+        return '<li class="cd-health-mission flex items-start gap-3 rounded-2xl border border-white/10 bg-slate-950/24 p-3 ring-1 ring-white/5">'
           + '<span class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg border border-emerald-200/30 bg-emerald-300/15 text-[12px] font-black text-emerald-100">✓</span>'
           + '<span class="text-sm font-bold leading-6 text-indigo-50/82">' + escapeHealthHtml(mission) + '</span>'
           + '</li>';
       }).join('')
       + '</ol>'
-      + '<div class="mt-3 rounded-2xl border border-orange-200/20 bg-orange-400/10 p-3 text-[13px] leading-6 text-orange-100"><b>오늘 피해야 할 패턴:</b> ' + escapeHealthHtml(HEALTH_AVOID_PLAN[axes.avoidEl] || HEALTH_AVOID_PLAN.earth) + '</div>'
+      + '<div class="cd-health-avoid mt-3 rounded-2xl border border-orange-200/20 bg-orange-400/10 p-3 text-[13px] leading-6 text-orange-100"><b>오늘 피해야 할 패턴:</b> ' + escapeHealthHtml(HEALTH_AVOID_PLAN[axes.avoidEl] || HEALTH_AVOID_PLAN.earth) + '</div>'
       + '<p class="m-0 mt-4 border-t border-white/10 pt-3 text-[11px] leading-5 text-indigo-100/55">의료 진단이 아닌 사주 기반 웰니스 참고용 가이드입니다. 증상이 지속되면 전문의 상담을 권장합니다.</p>'
       + '</section>'
       + '</div>'

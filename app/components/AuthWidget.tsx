@@ -80,22 +80,21 @@ export default function AuthWidget() {
     const displayEmail = String(user.email || "");
     const displayImage = String(user.image || "");
     const initial = displayName.trim().charAt(0) || "사";
-    const displayMonthlyCredits = Number(
-      user.monthlyCredits
-      ?? user.profileSubscription?.membershipCreditBalance
-      ?? 0,
-    );
     const subscriptionTier = user.profileSubscription?.isActive
       ? String(user.profileSubscription?.tier || "free").toLowerCase()
       : "free";
-    const subscriptionLabel = subscriptionTier === "vvip"
+    const subscriptionLabel = subscriptionTier === "family"
+      ? "FAMILY"
+      : subscriptionTier === "vvip"
       ? "VVIP"
       : subscriptionTier === "premium"
         ? "PREMIUM"
         : subscriptionTier === "standard"
           ? "STANDARD"
           : "FREE";
-    const subscriptionCls = subscriptionTier === "vvip"
+    const subscriptionCls = subscriptionTier === "family"
+      ? "border-emerald-300/50 bg-emerald-500/15 text-emerald-100"
+      : subscriptionTier === "vvip"
       ? "border-purple-300/50 bg-purple-500/15 text-purple-100"
       : subscriptionTier === "premium"
         ? "border-rose-300/50 bg-rose-500/15 text-rose-100"
@@ -132,13 +131,6 @@ export default function AuthWidget() {
             관리자
           </Link>
         )}
-        <Link
-          href="/points"
-          className="rounded-lg border border-fuchsia-400/30 bg-fuchsia-500/10 px-2.5 py-1 text-xs font-semibold text-fuchsia-200 transition hover:bg-fuchsia-500/25"
-          title="월정석 잔액"
-        >
-          월정석 {Math.max(0, Math.floor(displayMonthlyCredits)).toLocaleString()}
-        </Link>
         <Link
           href="/points"
           className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition ${subscriptionCls}`}

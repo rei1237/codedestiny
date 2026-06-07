@@ -357,6 +357,52 @@ if (!globalThis.__LIFEBOOK_SESSION_LOCKS) {
   globalThis.__LIFEBOOK_SESSION_LOCKS = LIFEBOOK_SESSION_LOCKS;
 }
 
+function updateLifeBookSessionProgress(sessionId, progress = {}) {
+  const key = clean(sessionId);
+  if (!key || !LIFEBOOK_SESSION_LOCKS.has(key)) return;
+  const lock = LIFEBOOK_SESSION_LOCKS.get(key) || {};
+  LIFEBOOK_SESSION_LOCKS.set(key, {
+    ...lock,
+    progress: {
+      ...(lock.progress || {}),
+      ...progress,
+      updatedAt: new Date().toISOString(),
+    },
+  });
+}
+
+function buildLifeBookStatusPayload(lock = {}, fallback = {}) {
+  const rawStatus = clean(lock.status || fallback.status || "");
+  const status = rawStatus === "done" ? "done" : rawStatus === "failed" ? "failed" : rawStatus || "running";
+  const result = lock.result && typeof lock.result === "object" ? lock.result : null;
+  const data = result?.data && typeof result.data === "object" ? result.data : result;
+  const progress = lock.progress && typeof lock.progress === "object" ? lock.progress : {};
+  const totalChapters = Number(progress.totalChapters || data?.chapterCount || getLifeBookBlueprints().length);
+  return {
+    ok: true,
+    serviceKey: LIFEBOOK_SERVICE_KEY,
+    data: {
+      sessionId: clean(lock.sessionId || fallback.sessionId),
+      reportId: clean(lock.reportId || fallback.reportId || data?.reportId),
+      status,
+      startedAt: clean(lock.startedAt || fallback.startedAt),
+      completedAt: clean(fallback.completedAt || data?.completedAt),
+      failedAt: clean(fallback.failedAt),
+      progress: {
+        stateKey: clean(progress.stateKey || (status === "done" ? "completed" : status === "failed" ? "failed" : "writing_local")),
+        currentChapterNo: Math.max(0, Math.min(totalChapters, Number(progress.currentChapterNo || (status === "done" ? totalChapters : 0)) || 0)),
+        totalChapters,
+        currentChapterTitle: clean(progress.currentChapterTitle),
+        updatedAt: clean(progress.updatedAt),
+      },
+      lifeBookPdfRecord: lock.lifeBookPdfRecord || data?.lifeBookPdfRecord || fallback.lifeBookPdfRecord || null,
+      pdfReady: data?.pdfReady || fallback.pdfReady || null,
+      canDownload: Boolean(data?.canDownload || clean(data?.pdfUrl || data?.downloadUrl || data?.htmlUrl || data?.pdfReady?.pdfUrl || data?.pdfReady?.downloadUrl)),
+      error: lock.error || fallback.error || null,
+    },
+  };
+}
+
 const STEM_KO_MAP = Object.freeze({
   甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
 });
@@ -1140,6 +1186,12 @@ function normalizeIncomingAnalysisSignals(raw = {}) {
   const tenGodCounts = src.tenGodCounts && typeof src.tenGodCounts === "object"
     ? { ...src.tenGodCounts }
     : null;
+  const tenGodByPillar = src.tenGodByPillar && typeof src.tenGodByPillar === "object"
+    ? { ...src.tenGodByPillar }
+    : null;
+  const daewunCycles = Array.isArray(src.daewunCycles) ? src.daewunCycles : [];
+  const specialStars = Array.isArray(src.specialStars) ? src.specialStars : [];
+  const twelveGrowthStages = Array.isArray(src.twelveGrowthStages) ? src.twelveGrowthStages : [];
 
   return {
     dayMaster: clean(src.dayMaster),
@@ -1153,6 +1205,12 @@ function normalizeIncomingAnalysisSignals(raw = {}) {
     jongName: clean(src.jongName),
     elementWeights: weights,
     tenGodCounts,
+    tenGodByPillar,
+    daewunCycles,
+    currentDaeunNode: src.currentDaeunNode && typeof src.currentDaeunNode === "object" ? src.currentDaeunNode : null,
+    nextDaeunNode: src.nextDaeunNode && typeof src.nextDaeunNode === "object" ? src.nextDaeunNode : null,
+    specialStars,
+    twelveGrowthStages,
   };
 }
 
@@ -2086,9 +2144,14 @@ function buildLifeBookLocalSajuJson(birthInput, profile, signals, chapters = [])
     sourceTrace: {
       source: "worker.routes.saju-lifebook",
       engine: "destiny-bias-engine",
+      engines: [
+        "worker-saju-engine",
+        signals?.engineSources?.clientQuantumMyeongri ? "client-quantum-myeongri-engine" : "",
+      ].filter(Boolean),
       engineProfileResolved: Boolean(signals?.engineProfile),
       generatedFromProfile: true,
       generatedFromAnalysisSignals: Boolean(signals?.tenGodCounts || signals?.elementWeights),
+      generatedFromQuantumMyeongri: Boolean(signals?.engineSources?.clientQuantumMyeongri),
     },
     confidence: {
       pillarCompleteness: ["year", "month", "day", "hour"].reduce((sum, key) => sum + Number(Boolean(clean(pillars?.[key]?.ganji))), 0) / 4,
@@ -3202,6 +3265,7 @@ function buildLifeBookSectionLLMInput(llmInput = {}, chapterSpec = {}, chapterPl
   return {
     userProfile: cloneLifeBookData(llmInput.userProfile),
     engineSummary: cloneLifeBookData(llmInput.engineSummary),
+    lifeBookMasterJson: cloneLifeBookData(llmInput.lifeBookMasterJson),
     chapterPlan: cloneLifeBookData(chapterPlan),
     sectionPlan: cloneLifeBookData(sectionPlan),
     relevantEngineData: pickLifeBookRelevantEngineData(llmInput, sectionPlan?.requiredEngineFields),
@@ -4343,7 +4407,7 @@ async function generateLifeBookChapterWithGemini(env, { profile, signals, llmInp
   });
 }
 
-async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmInput, requestId }) {
+async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmInput, requestId, onProgress = null }) {
   const chapters = [];
   const summaries = [];
   let deterministicReinforcedCount = 0;
@@ -4357,8 +4421,16 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
     targetChars: chapterPlans.reduce((sum, plan) => sum + Number(plan?.targetChars || 0), 0),
   });
 
-  for (const chapterSpec of getLifeBookBlueprints()) {
+  for (const [chapterIndex, chapterSpec] of getLifeBookBlueprints().entries()) {
     const chapterPlan = chapterPlans.find((plan) => clean(plan?.chapterId) === clean(chapterSpec.id));
+    if (typeof onProgress === "function") {
+      onProgress({
+        stateKey: "writing_local",
+        currentChapterNo: chapterIndex,
+        currentChapterTitle: clean(chapterSpec.title),
+        totalChapters: getLifeBookBlueprints().length,
+      });
+    }
     logLifeBookServer("GeminiChapterStart", {
       requestId,
       chapterNumber: chapterSpec.roman,
@@ -4381,6 +4453,14 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
       summary: generated.summary,
     });
     if (generated.deterministicReinforced) deterministicReinforcedCount += 1;
+    if (typeof onProgress === "function") {
+      onProgress({
+        stateKey: "writing_local",
+        currentChapterNo: chapterIndex + 1,
+        currentChapterTitle: clean(chapterSpec.title),
+        totalChapters: getLifeBookBlueprints().length,
+      });
+    }
     logLifeBookServer("GeminiChapterDone", {
       requestId,
       chapterNumber: chapterSpec.roman,
@@ -4718,6 +4798,93 @@ function buildLifeBookCanonicalSajuChartFromContract(engineContract = {}, localS
     specialStars,
     twelveStages: engineContract?.twelveStages?.byPillar || localSajuJson?.twelveGrowthStages || [],
     validation: null,
+  };
+}
+
+function buildLifeBookMasterJson({ birthInput = {}, profile = {}, signals = {}, localSajuJson = {}, engineContract = {}, canonicalSajuChart = {}, body = {}, validations = {} } = {}) {
+  const hasQuantum = Boolean(
+    body?.quantumMyeongriJson
+    || body?.structuredAdvancedReport
+    || body?.engineData?.structuredAdvancedReport
+    || signals?.engineSources?.clientQuantumMyeongri
+  );
+  const sourceEngines = [
+    "worker-saju-engine",
+    hasQuantum ? "client-quantum-myeongri-engine" : "",
+    engineContract?.source ? clean(engineContract.source) : "",
+  ].filter(Boolean);
+  return {
+    version: "life-book-master-json-v1",
+    generatedAt: new Date().toISOString(),
+    serviceKey: LIFEBOOK_SERVICE_KEY,
+    featureKey: LIFEBOOK_FEATURE_KEY,
+    sourceTrace: {
+      route: "worker.routes.saju-lifebook",
+      sourceEngines: Array.from(new Set(sourceEngines)),
+      usesWorkerSajuEngine: true,
+      usesQuantumMyeongriEngine: hasQuantum,
+      hasStructuredAdvancedReport: Boolean(engineContract?.sourceTrace?.hasStructuredAdvancedReport),
+      hasCanonicalSajuChart: Boolean(canonicalSajuChart && typeof canonicalSajuChart === "object"),
+    },
+    user: {
+      name: clean(profile?.name || birthInput?.name),
+      gender: clean(profile?.gender || birthInput?.gender),
+      birthDate: clean(birthInput?.birthDate),
+      birthTime: clean(birthInput?.birthTime),
+      calendarType: clean(birthInput?.calendarType),
+      birthplace: clean(birthInput?.birthplace || profile?.birthplace),
+      timezone: clean(birthInput?.timezone || profile?.timezone),
+    },
+    consultationEvidence: {
+      fourPillars: canonicalSajuChart?.fourPillars || engineContract?.natal?.pillars || localSajuJson?.pillars || {},
+      dayMaster: canonicalSajuChart?.dayMaster || {
+        stem: clean(localSajuJson?.dayMaster),
+        pillar: clean(localSajuJson?.pillars?.day?.ganji),
+      },
+      fiveElements: canonicalSajuChart?.fiveElements || engineContract?.fiveElements || localSajuJson?.fiveElements || {},
+      tenGods: canonicalSajuChart?.tenGods || engineContract?.tenGods || {
+        distribution: localSajuJson?.tenGods || {},
+        byPillar: localSajuJson?.tenGodsByPillar || {},
+      },
+      strengthJohuYongshin: engineContract?.strengthJohuYongshin || {
+        strength: localSajuJson?.strength || {},
+        johu: localSajuJson?.johu || {},
+        yongshin: localSajuJson?.yongshin || {},
+      },
+      gyeokguk: engineContract?.gyeokguk || localSajuJson?.geokguk || {},
+      interactions: engineContract?.interactions || canonicalSajuChart?.relations || {},
+      daeun: engineContract?.daeun || canonicalSajuChart?.luckCycles || {},
+      annualLuck: engineContract?.year2026 || canonicalSajuChart?.annualLuck || {},
+      monthlyLuck: engineContract?.monthlyLuck2026 || canonicalSajuChart?.monthlyLuck || [],
+      specialStars: canonicalSajuChart?.specialStars || engineContract?.specialStars || localSajuJson?.sinsal || [],
+      twelveStages: canonicalSajuChart?.twelveStages || engineContract?.twelveStages || localSajuJson?.twelveGrowthStages || [],
+    },
+    consultationSummary: {
+      coreIdentity: clean(engineContract?.summary?.coreIdentity),
+      yongsinStrategy: clean(engineContract?.summary?.yongsinStrategy),
+      gyeokgukSummary: clean(engineContract?.summary?.gyeokgukSummary),
+      currentDaeunTheme: clean(engineContract?.summary?.currentDaeunTheme),
+      yearTheme: clean(engineContract?.summary?.year2026Theme),
+      relationshipPattern: clean(engineContract?.summary?.relationshipPattern),
+      careerPattern: clean(engineContract?.summary?.careerPattern),
+      wealthPattern: clean(engineContract?.summary?.wealthPattern),
+      healthEnergyPattern: clean(engineContract?.summary?.healthEnergyPattern),
+      masterAdviceSeed: clean(engineContract?.summary?.masterAdviceSeed),
+    },
+    quality: {
+      localJsonContract: validations.localJsonContract || null,
+      engineContract: validations.engineContract || null,
+      canonical: validations.canonical || null,
+      chapterEvidenceCoverage: validations.chapterEvidenceCoverage || null,
+      confidence: {
+        local: localSajuJson?.confidence || {},
+        engine: engineContract?.confidence || {},
+      },
+      normalizationWarnings: Array.from(new Set([
+        ...(Array.isArray(localSajuJson?.normalizationWarnings) ? localSajuJson.normalizationWarnings : []),
+        ...(Array.isArray(engineContract?.normalizationWarnings) ? engineContract.normalizationWarnings : []),
+      ])),
+    },
   };
 }
 
@@ -5081,6 +5248,7 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
 
   const engineTenGodCounts = engineProfile?.tenGods?.counts || null;
   const mergedTenGodCounts = parsedAnalysis.tenGodCounts || engineTenGodCounts || null;
+  const mergedTenGodByPillar = parsedAnalysis.tenGodByPillar || engineProfile?.tenGods?.pillarTenGods || null;
 
   const yearStem = getPillarStemLabel(enginePillars?.year);
   const monthStem = getPillarStemLabel(enginePillars?.month);
@@ -5128,12 +5296,15 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
   const tenGodStats = deriveTenGodStats(profile, { tenGodCounts: mergedTenGodCounts });
 
   const daewun = calcLifeBookDaewunFromBirth(profile);
+  const daewunCycles = parsedAnalysis.daewunCycles.length ? parsedAnalysis.daewunCycles : (Array.isArray(daewun.cycles) ? daewun.cycles : []);
+  const currentDaeunNode = parsedAnalysis.currentDaeunNode || daewun.current || null;
+  const nextDaeunNode = parsedAnalysis.nextDaeunNode || daewun.next || null;
   const currentYear = new Date().getFullYear();
   const currentYearSolar = Solar.fromDate(new Date());
   const currentYearPillar = `${normalizeStemLabel(currentYearSolar.getLunar().getEightChar().getYearGan())}${normalizeBranchLabel(currentYearSolar.getLunar().getEightChar().getYearZhi())}`.trim();
 
-  const specialStars = calcLifeBookSpecialStarsFromPillars(enginePillars);
-  const twelveGrowthStages = buildLifeBookTwelveGrowthStages(enginePillars);
+  const specialStars = parsedAnalysis.specialStars.length ? parsedAnalysis.specialStars : calcLifeBookSpecialStarsFromPillars(enginePillars);
+  const twelveGrowthStages = parsedAnalysis.twelveGrowthStages.length ? parsedAnalysis.twelveGrowthStages : buildLifeBookTwelveGrowthStages(enginePillars);
 
   const usefulElements = [useful, support].filter(Boolean);
   const avoidElements = [caution].filter(Boolean);
@@ -5173,12 +5344,12 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
     johuType: parsedAnalysis.johuType || "평형",
     yongshinElements: parsedAnalysis.yongshinElements.length ? parsedAnalysis.yongshinElements : usefulElements,
     kishinElements: parsedAnalysis.kishinElements.length ? parsedAnalysis.kishinElements : avoidElements,
-    currentDaewun: clean(daewun?.current?.label || parsedAnalysis.currentDaewun),
-    nextDaewun: clean(daewun?.next?.label || ""),
-    daewunStartAge: Number(daewun?.current?.startAge || 0) || null,
-    daewunCycles: Array.isArray(daewun.cycles) ? daewun.cycles : [],
-    currentDaeunNode: daewun.current,
-    nextDaeunNode: daewun.next,
+    currentDaewun: clean(currentDaeunNode?.label || parsedAnalysis.currentDaewun),
+    nextDaewun: clean(nextDaeunNode?.label || ""),
+    daewunStartAge: Number(currentDaeunNode?.startAge || 0) || null,
+    daewunCycles,
+    currentDaeunNode,
+    nextDaeunNode,
     currentYear,
     currentYearPillar,
     isJong: parsedAnalysis.isJong,
@@ -5202,10 +5373,10 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
     tenGodCounts: mergedTenGodCounts || {},
     tenGodStats,
     tenGodByPillar: {
-      year: clean(engineProfile?.tenGods?.pillarTenGods?.year || ""),
-      month: clean(engineProfile?.tenGods?.pillarTenGods?.month || ""),
-      day: clean(engineProfile?.tenGods?.pillarTenGods?.day || ""),
-      hour: clean(engineProfile?.tenGods?.pillarTenGods?.hour || ""),
+      year: clean(mergedTenGodByPillar?.year || ""),
+      month: clean(mergedTenGodByPillar?.month || ""),
+      day: clean(mergedTenGodByPillar?.day || ""),
+      hour: clean(mergedTenGodByPillar?.hour || ""),
     },
     specialStars,
     twelveGrowthStages,
@@ -5213,6 +5384,10 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
     usefulElements,
     avoidElements,
     weakSignals,
+    engineSources: {
+      workerSajuEngine: Boolean(engineProfile),
+      clientQuantumMyeongri: Boolean(analysisSignals && typeof analysisSignals === "object" && Object.keys(analysisSignals).length),
+    },
     engineProfile,
   };
 }
@@ -6049,6 +6224,7 @@ export const __lifeBookTestUtils = {
   buildLifeBookChapterEvidenceCoverage,
   buildLifeBookCanonicalSajuChartFromContract,
   validateLifeBookCanonicalSajuChart,
+  buildLifeBookMasterJson,
   buildLifeBookLLMInput,
   buildLifeBookEngineContract,
   buildLifeBookEngineSummary,
@@ -6264,6 +6440,97 @@ function buildPdfReadyPayload(profile, chapters, metadata = {}) {
   };
 }
 
+async function handleStatus(request, env) {
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      return json({
+        ok: false,
+        serviceKey: LIFEBOOK_SERVICE_KEY,
+        code: "UNAUTHORIZED",
+        message: "인생의 책 생성 상태를 확인하려면 먼저 로그인해 주세요.",
+      }, { status: 401 });
+    }
+    throw error;
+  }
+
+  const url = new URL(request.url);
+  const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId"));
+  const reportId = clean(url.searchParams.get("reportId"));
+  if (!sessionId && !reportId) {
+    return json({
+      ok: false,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      code: "MISSING_STATUS_KEY",
+      message: "sessionId 또는 reportId가 필요합니다.",
+    }, { status: 422 });
+  }
+
+  const lock = sessionId
+    ? LIFEBOOK_SESSION_LOCKS.get(sessionId)
+    : Array.from(LIFEBOOK_SESSION_LOCKS.values()).find((item) => clean(item?.reportId) === reportId);
+  if (lock) return json(buildLifeBookStatusPayload(lock, { sessionId, reportId }));
+
+  await connectDb(env);
+  const filters = [];
+  if (sessionId) filters.push({ sessionId });
+  if (reportId) filters.push({ reportId });
+  const doc = filters.length
+    ? await ServiceExecutionTransaction.findOne({ userId: auth.userId, $or: filters }).sort({ updatedAt: -1, completedAt: -1 }).lean()
+    : null;
+  if (!doc) {
+    return json({
+      ok: true,
+      serviceKey: LIFEBOOK_SERVICE_KEY,
+      data: {
+        sessionId,
+        reportId,
+        status: "unknown",
+        progress: {
+          stateKey: "not_found",
+          currentChapterNo: 0,
+          totalChapters: getLifeBookBlueprints().length,
+        },
+      },
+    });
+  }
+
+  const metadata = doc && typeof doc.metadata === "object" ? doc.metadata : {};
+  const archive = metadata?.archive && typeof metadata.archive === "object" ? metadata.archive : {};
+  const status = clean(doc.status) === "success" && clean(doc.premiumStatus) === "completed"
+    ? "done"
+    : clean(doc.status) === "failed" || clean(doc.premiumStatus) === "failed"
+      ? "failed"
+      : "running";
+  return json(buildLifeBookStatusPayload({
+    sessionId: clean(doc.sessionId || sessionId),
+    reportId: clean(doc.reportId || reportId),
+    status,
+    startedAt: doc.generationStartedAt || doc.createdAt,
+    progress: {
+      stateKey: status === "done" ? "completed" : status === "failed" ? "failed" : "writing_local",
+      currentChapterNo: status === "done" ? getLifeBookBlueprints().length : 0,
+      totalChapters: getLifeBookBlueprints().length,
+    },
+    lifeBookPdfRecord: archive.lifeBookPdfRecord || metadata.lifeBookPdfRecord || null,
+    result: {
+      data: {
+        reportId: clean(doc.reportId || reportId),
+        sessionId: clean(doc.sessionId || sessionId),
+        pdfReady: archive.pdfReady || metadata.pdfReady || null,
+        canDownload: Boolean(archive?.pdfReady?.downloadUrl || archive?.pdfReady?.pdfUrl || archive?.pdfUrl),
+      },
+    },
+  }, {
+    sessionId,
+    reportId,
+    completedAt: doc.completedAt || doc.generationCompletedAt,
+    failedAt: doc.failedAt || doc.generationFailedAt,
+  }));
+}
+
 async function handlePrepare(request, env) {
   logLifeBookServer("RequestReceived", { route: "/api/premium/saju-lifebook/prepare" });
   let auth;
@@ -6340,6 +6607,12 @@ async function handlePrepare(request, env) {
     reportId,
     status: "running",
     startedAt: new Date().toISOString(),
+    progress: {
+      stateKey: "payment-verification",
+      currentChapterNo: 0,
+      totalChapters: getLifeBookBlueprints().length,
+      updatedAt: new Date().toISOString(),
+    },
     lifeBookPdfRecord: generatingRecord,
   });
 
@@ -6396,6 +6669,11 @@ async function handlePrepare(request, env) {
   logLifeBookServer("PaymentVerificationPassed", {
     featureKey,
     accessType: clean(access?.accessType || ""),
+  });
+  updateLifeBookSessionProgress(sessionId, {
+    stateKey: "local_calculation",
+    currentChapterNo: 0,
+    totalChapters: getLifeBookBlueprints().length,
   });
   logLifeBookServer("LocalCalculationStart", { sessionId });
   const executionCtx = buildPremiumExecutionContext({
@@ -6512,6 +6790,28 @@ async function handlePrepare(request, env) {
     evidenceCoverageRatio: chapterEvidenceCoverage.coverageRatio,
     softWarnings: engineContractValidation.softWarnings,
   });
+  const lifeBookMasterJson = buildLifeBookMasterJson({
+    birthInput,
+    profile,
+    signals,
+    localSajuJson,
+    engineContract: llmInput.engineContract,
+    canonicalSajuChart,
+    body,
+    validations: {
+      localJsonContract: jsonContractValidation,
+      engineContract: engineContractValidation,
+      canonical: canonicalValidation,
+      chapterEvidenceCoverage,
+    },
+  });
+  llmInput.lifeBookMasterJson = lifeBookMasterJson;
+  localSajuJson.lifeBookMasterJson = lifeBookMasterJson;
+  updateLifeBookSessionProgress(sessionId, {
+    stateKey: "writing_local",
+    currentChapterNo: 0,
+    totalChapters: getLifeBookBlueprints().length,
+  });
   logLifeBookServer("GeminiDraftBuildStart", {
     requestId,
     sessionId,
@@ -6525,6 +6825,7 @@ async function handlePrepare(request, env) {
     signals,
     llmInput,
     requestId,
+    onProgress: (progress) => updateLifeBookSessionProgress(sessionId, progress),
   });
   let completedChapters = generatedLifeBook.chapters;
   logLifeBookServer("GeminiDraftBuildSuccess", {
@@ -6631,18 +6932,22 @@ async function handlePrepare(request, env) {
     jsonContractValidation: engineContractValidation,
     canonicalValidation,
     chapterEvidenceCoverage,
+    lifeBookMasterJson,
     finalManuscriptMarkdown,
     pdfHtml: generateLifeBookPdfFromChapters(profile, signals, completedChapters, generatedAt, finalManuscriptMarkdown),
   });
   const requestOrigin = new URL(request.url).origin;
   const archiveApiUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
   const archiveDocumentUrl = `${archiveApiUrl}?format=html`;
+  const archivePdfUrl = `${archiveApiUrl}?format=pdf`;
   pdfReady.archiveApiUrl = archiveApiUrl;
-  pdfReady.pdfUrl = archiveDocumentUrl;
+  pdfReady.pdfUrl = archivePdfUrl;
   pdfReady.htmlUrl = archiveDocumentUrl;
-  pdfReady.downloadUrl = archiveDocumentUrl;
+  pdfReady.downloadUrl = archivePdfUrl;
   pdfReady.storageKey = `premium-archive:life-book:${reportId}`;
-  pdfReady.mimeType = "text/html";
+  pdfReady.mimeType = "application/pdf";
+  pdfReady.contentType = "application/pdf";
+  pdfReady.htmlMimeType = "text/html";
 
   const storedUrl = clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl);
   if (!storedUrl) {
@@ -6705,6 +7010,7 @@ async function handlePrepare(request, env) {
       jsonContractValidation: engineContractValidation,
       canonicalValidation,
       chapterEvidenceCoverage,
+      lifeBookMasterJson,
       localSajuJson,
       lifeBookEngineContract: llmInput.engineContract,
       pdfReady,
@@ -6748,6 +7054,7 @@ async function handlePrepare(request, env) {
     jsonContractValidation: engineContractValidation,
     canonicalValidation,
     chapterEvidenceCoverage,
+    lifeBookMasterJson,
     chapters: completedChapters,
     pdfReady,
     pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
@@ -6777,6 +7084,12 @@ async function handlePrepare(request, env) {
     reportId,
     status: "done",
     startedAt: existingLock?.startedAt || new Date().toISOString(),
+    progress: {
+      stateKey: "completed",
+      currentChapterNo: getLifeBookBlueprints().length,
+      totalChapters: getLifeBookBlueprints().length,
+      updatedAt: new Date().toISOString(),
+    },
     lifeBookPdfRecord: completedRecord,
     result,
   });
@@ -6844,6 +7157,12 @@ async function handlePrepare(request, env) {
       reportId,
       status: "failed",
       startedAt: new Date().toISOString(),
+      progress: {
+        stateKey: "failed",
+        currentChapterNo: 0,
+        totalChapters: getLifeBookBlueprints().length,
+        updatedAt: new Date().toISOString(),
+      },
       lifeBookPdfRecord: failedRecord,
       error: normalizedError,
     });
@@ -6884,6 +7203,9 @@ export async function handleSajuLifebookRoutes(request, env = {}) {
 
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare")) {
       return await handlePrepare(request, env);
+    }
+    if (method === "GET" && path === "/status") {
+      return await handleStatus(request, env);
     }
 
     if (["GET", "POST"].includes(method)) return notFound();

@@ -285,13 +285,27 @@ async function main() {
   const pdfHtml = String(prepareJson?.pdfReady?.html || "").trim();
   const fallbackUsed = Boolean(prepareJson?.fallbackUsed);
   const ziweiJsonV2 = prepareJson?.ziweiJsonV2 || prepareJson?.payload?.ziweiJsonV2 || prepareJson?.ziweiPayload?.ziweiJsonV2;
+  const ziweiMasterJson = prepareJson?.ziweiMasterJson || prepareJson?.payload?.ziweiMasterJson || prepareJson?.ziweiPayload?.ziweiMasterJson;
+  const masterJsonValidation = prepareJson?.masterJsonValidation || prepareJson?.payload?.masterJsonValidation || prepareJson?.ziweiPayload?.masterJsonValidation;
+  const pdfReady = prepareJson?.pdfReady || {};
   const evidenceMap = Array.isArray(ziweiJsonV2?.chapterEvidenceMap) ? ziweiJsonV2.chapterEvidenceMap : [];
 
   if (!reportId) throw new Error("reportId가 비어 있습니다.");
   if (chapters.length < 15) throw new Error(`챕터 수가 부족합니다: ${chapters.length}`);
   if (pdfHtml.length < 5000) throw new Error(`pdfReady.html 길이가 비정상적으로 짧습니다: ${pdfHtml.length}`);
   if (ziweiJsonV2?.schemaVersion !== "ziwei-pdf-v2") throw new Error("ziweiJsonV2 schemaVersion missing");
+  if (ziweiMasterJson?.schemaVersion !== "ziwei-premium-master-json.v1") throw new Error("ziweiMasterJson schemaVersion missing");
+  if (masterJsonValidation?.ok !== true) throw new Error(`ziweiMasterJson validation failed: ${JSON.stringify(masterJsonValidation)}`);
   if (evidenceMap.length < 15) throw new Error(`ziweiJsonV2 evidence map too small: ${evidenceMap.length}`);
+  if (!String(pdfReady?.downloadUrl || "").includes("/api/premium/pdf-archive/") || !String(pdfReady?.downloadUrl || "").includes("format=pdf")) {
+    throw new Error(`pdfReady.downloadUrl is not premium archive pdf: ${pdfReady?.downloadUrl || ""}`);
+  }
+  if (!String(pdfReady?.htmlUrl || "").includes("/api/premium/pdf-archive/") || !String(pdfReady?.htmlUrl || "").includes("format=html")) {
+    throw new Error(`pdfReady.htmlUrl is not premium archive html: ${pdfReady?.htmlUrl || ""}`);
+  }
+  if (pdfReady?.contentType !== "application/pdf" || pdfReady?.renderFormat !== "pdf-archive") {
+    throw new Error(`pdfReady contract invalid: ${JSON.stringify({ contentType: pdfReady?.contentType, renderFormat: pdfReady?.renderFormat })}`);
+  }
 
   fs.writeFileSync(OUT_FILE, pdfHtml, "utf8");
 
@@ -307,6 +321,7 @@ async function main() {
   console.log(`  - reportId: ${reportId}`);
   console.log(`  - chapters: ${chapters.length}`);
   console.log(`  - ziweiJsonV2: ${ziweiJsonV2.schemaVersion}`);
+  console.log(`  - ziweiMasterJson: ${ziweiMasterJson.schemaVersion}`);
   console.log(`  - evidenceMap: ${evidenceMap.length}`);
   console.log(`  - fallbackUsed: ${fallbackUsed}`);
   console.log(`  - htmlLength: ${pdfHtml.length}`);

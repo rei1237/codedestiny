@@ -76,7 +76,7 @@ type PrepareSubscriptionOrderResponse = {
   order?: {
     merchantUid: string;
     customerUid: string;
-    tier: "standard" | "premium" | "vvip";
+    tier: "standard" | "premium" | "vvip" | "family";
     planId: string;
     durationMonths: number;
     paymentAmount: number;
@@ -145,8 +145,8 @@ type PaymentHistoryItem = {
 };
 
 /* ── 프로필 이용권 타입 ───────────────────────────────────────── */
-type SubscriptionTier = "free" | "standard" | "premium" | "vvip";
-type AdminTestTier = "off" | "standard" | "premium" | "vvip";
+type SubscriptionTier = "free" | "standard" | "premium" | "vvip" | "family";
+type AdminTestTier = "off" | "standard" | "premium" | "vvip" | "family";
 
 type SubscriptionStatus = {
   tier:               SubscriptionTier;
@@ -162,7 +162,7 @@ type SubscriptionStatus = {
 
 type SubscriptionPlan = {
   id:           string;
-  tier:         "standard" | "premium" | "vvip";
+  tier:         "standard" | "premium" | "vvip" | "family";
   planId:       string;
   title:        string;
   wonPrice:     number;
@@ -171,7 +171,7 @@ type SubscriptionPlan = {
   productType:  "membership_pass";
   coins:        number;
   profileLimit: number | null; // null = unlimited
-  freeUpTo:     number | null; // null = 모든 서비스 무료, number = 해당 기준 이하 무료
+  freeUpTo:     number | null; // null = Family all-inclusive, number = normal paid-service pass limit and PDF discount
   theme:        "amber" | "rose" | "purple";
   features:     string[];
   badge?:       string;
@@ -217,7 +217,7 @@ type PendingOrder = {
 type PendingSubscriptionOrder = {
   merchantUid: string;
   customerUid: string;
-  tier: "standard" | "premium" | "vvip";
+  tier: "standard" | "premium" | "vvip" | "family";
   planId?: string;
   durationMonths?: number;
   paymentMethod: string;
@@ -351,8 +351,9 @@ const SUBSCRIPTION_BASE_PLANS = [
     badge:        "",
     features:     [
       "프로필 최대 3개 생성",
-      "30 기준 이하 서비스 무료 이용",
-      "모든 프로필에서 해금 콘텐츠 동일 적용",
+      "일반 유료 서비스 30코인 이하 이용권 이용",
+      "PDF 생성 시 30코인 자동 할인",
+      "한도 초과 일반 서비스는 기존가 결제",
       "30일간 유효 (기간 기반)",
       "자동결제 없는 30일 이용권",
     ],
@@ -367,8 +368,9 @@ const SUBSCRIPTION_BASE_PLANS = [
     theme:        "rose",
     features:     [
       "프로필 최대 7개 생성",
-      "50 기준 이하 서비스 무료 이용",
-      "모든 프로필에서 해금 콘텐츠 동일 적용",
+      "일반 유료 서비스 50코인 이하 이용권 이용",
+      "PDF 생성 시 50코인 자동 할인",
+      "한도 초과 일반 서비스는 기존가 결제",
       "30일간 유효 (기간 기반)",
       "자동결제 없는 30일 이용권",
     ],
@@ -384,12 +386,30 @@ const SUBSCRIPTION_BASE_PLANS = [
     theme:        "purple",
     features:     [
       "프로필 최대 15개 생성",
-      "100 기준 이하 서비스 무료 이용",
-      "모든 프로필에서 해금 콘텐츠 동일 적용",
+      "일반 유료 서비스 100코인 이하 이용권 이용",
+      "PDF 생성 시 100코인 자동 할인",
+      "한도 초과 일반 서비스는 기존가 결제",
       "30일간 유효 (기간 기반)",
       "자동결제 없는 30일 이용권",
     ],
     badge:        "VVIP",
+  },
+  {
+    tier:         "family",
+    title:        "Code Destiny Family",
+    baseWonPrice: 300000,
+    coins:        3000,
+    profileLimit: null,
+    freeUpTo:     null,
+    theme:        "purple",
+    features:     [
+      "프로필 수정·삭제 무료, 제한 없음",
+      "PDF 포함 모든 유료 서비스 무료",
+      "일반 유료 서비스도 기존가 결제 없이 이용",
+      "월 300,000원 / 3,000코인 가치",
+      "30일 Family 이용권",
+    ],
+    badge:        "Family",
   },
 ] as const;
 
@@ -406,6 +426,8 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = SUBSCRIPTION_BASE_PLANS.flatMap((
     features: base.features.map((feature) =>
       feature.includes("30일간 유효")
         ? `${duration.label} 동안 유효 (기간 기반)`
+        : feature.includes("30일 Family 이용권")
+          ? `${duration.label} Family 이용권`
         : feature.includes("자동결제 없는 30일 이용권")
           ? `자동결제 없는 ${duration.label} 이용권`
           : feature
@@ -418,6 +440,7 @@ const SUBSCRIPTION_TIER_RANK: Record<SubscriptionTier, number> = {
   standard: 1,
   premium: 2,
   vvip: 3,
+  family: 4,
 };
 
 function getSubscriptionTierRank(tier: SubscriptionTier | string | null | undefined) {
@@ -482,7 +505,7 @@ function readAdminTestTierClient(): AdminTestTier {
   if (typeof window === "undefined") return "off";
   try {
     const raw = String(localStorage.getItem("flower_admin_test_tier") || "off").toLowerCase();
-    if (raw === "standard" || raw === "premium" || raw === "vvip") return raw;
+    if (raw === "standard" || raw === "premium" || raw === "vvip" || raw === "family") return raw;
   } catch {}
   return "off";
 }
@@ -510,6 +533,21 @@ function formatMonthlyCredits(amount: number) {
 
 function getSubscriptionMonthlyCreditCost(plan: Pick<SubscriptionPlan, "wonPrice">) {
   return Math.max(0, Math.ceil(Number(plan?.wonPrice || 0) / 10));
+}
+
+function formatSubscriptionPlanProfileLimit(plan: Pick<SubscriptionPlan, "profileLimit">) {
+  return plan.profileLimit === null ? "무제한" : `${plan.profileLimit}개`;
+}
+
+function formatSubscriptionPlanPolicy(plan: Pick<SubscriptionPlan, "freeUpTo">) {
+  if (plan.freeUpTo === null) return "모든 유료/PDF 서비스 무료";
+  return `일반 ${plan.freeUpTo}코인 이하 이용 · PDF ${plan.freeUpTo}코인 할인`;
+}
+
+function formatSubscriptionPlanValueLine(plan: Pick<SubscriptionPlan, "tier" | "coins" | "durationMonths">) {
+  const duration = plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`;
+  if (plan.tier === "family") return `Family ${plan.coins.toLocaleString("ko-KR")}코인 가치 / ${duration}`;
+  return `일반 서비스 한도 ${plan.coins.toLocaleString("ko-KR")} 기준 / ${duration}`;
 }
 
 function mapMonthlyCreditLedgerLabel(type: MonthlyCreditLedgerItem["type"]) {
@@ -572,6 +610,7 @@ function normalizeSubscriptionTier(value: unknown): SubscriptionTier {
   if (text === "standard" || text.includes("스탠다드")) return "standard";
   if (text === "premium" || text.includes("프리미엄")) return "premium";
   if (text === "vvip" || text.includes("브이브이아이피") || text.includes("골드")) return "vvip";
+  if (text === "family" || text.includes("code destiny family")) return "family";
   return "free";
 }
 
@@ -667,7 +706,7 @@ function normalizeSubscriptionStatusFromPayload(value: unknown): SubscriptionSta
     source: normalizeSubscriptionSource(value.source ?? nested.source),
     isActive,
     expiresAt,
-    profileLimit: Number.isFinite(profileLimit) && profileLimit > 0 ? Math.floor(profileLimit) : 1,
+    profileLimit: Number.isFinite(profileLimit) && profileLimit >= 0 ? Math.floor(profileLimit) : 1,
     lowBalanceWarning: !!(value.lowBalanceWarning ?? nested.lowBalanceWarning),
     cancelAtPeriodEnd: !!(value.cancelAtPeriodEnd ?? nested.cancelAtPeriodEnd),
     cancelRequestedAt,
@@ -868,7 +907,7 @@ function releasePaymentRedirectLock(key: string) {
 
 type PendingSubscriptionPass = {
   merchantUid: string;
-  tier: "free" | "standard" | "premium" | "vvip";
+  tier: "free" | "standard" | "premium" | "vvip" | "family";
   profileLimit: number;
   startedAt: number;
 };
@@ -877,6 +916,7 @@ function getPendingSubscriptionProfileLimit(tier: PendingSubscriptionPass["tier"
   if (tier === "standard") return 3;
   if (tier === "premium") return 7;
   if (tier === "vvip") return 15;
+  if (tier === "family") return 0;
   return 1;
 }
 
@@ -927,7 +967,7 @@ function SubscriptionSection({
   isFlowerAdminMode: boolean;
   adminTestTier: AdminTestTier;
   onChangeAdminTestTier: (tier: AdminTestTier) => void;
-  highlightedPlan: "standard" | "premium" | "vvip" | null;
+  highlightedPlan: "standard" | "premium" | "vvip" | "family" | null;
 }) {
   type PlanThemeKey = "amber" | "rose" | "purple";
   const planThemeMap: Record<PlanThemeKey, {
@@ -1021,7 +1061,10 @@ function SubscriptionSection({
           </p>
           <ul className="mt-1.5 space-y-1 text-[11.5px] text-slate-200">
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 이용권은 <strong>결제일로부터 30일간 유효</strong>합니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>결제 즉시 30일 동안 이용권 혜택이 활성화됩니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 30/50/100코인 이하일 때 이용권으로 이용할 수 있습니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>PDF 서비스는 무료 처리 대신 생성 결제 시 각 등급 한도만큼 자동 할인됩니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>한도 초과 일반 유료 서비스는 기존가 원화 단건 결제로 진행됩니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>Code Destiny Family는 PDF 포함 모든 기능을 무료로 이용하며, 프로필 수정·삭제도 무료·무제한입니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>월정석 잔량은 신규 가입·이벤트로만 지급되며 구매하거나 충전할 수 없습니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>이용권 전용 콘텐츠 열람 시 서비스 이용이 시작되며, 7일 이내라도 이용 기록이 있으면 전액 환불이 제한될 수 있습니다.</li>
@@ -1045,6 +1088,7 @@ function SubscriptionSection({
                 { id: "standard", label: "스탠다드 꿀" },
                 { id: "premium", label: "프리미엄 꿀" },
                 { id: "vvip", label: "VVIP 꿀단지" },
+                { id: "family", label: "Code Destiny Family" },
               ] as Array<{ id: AdminTestTier; label: string }>).map((mode) => {
                 const active = adminTestTier === mode.id;
                 return (
@@ -1068,8 +1112,8 @@ function SubscriptionSection({
               {adminTierPlan ? (
                 <p>
                   현재 시뮬레이션: <strong>{adminTierPlan.title}</strong>
-                  <span className="mx-1">·</span>프로필 최대 <strong>{adminTierPlan.profileLimit ?? 1}개</strong>
-                  <span className="mx-1">·</span>무료 한도 <strong>{adminTierPlan.freeUpTo ?? 0} 기준</strong>
+                  <span className="mx-1">·</span>프로필 <strong>{formatSubscriptionPlanProfileLimit(adminTierPlan)}</strong>
+                  <span className="mx-1">·</span><strong>{formatSubscriptionPlanPolicy(adminTierPlan)}</strong>
                   <span className="mx-1">·</span>이용 기준 <strong>{adminTierPlan.coins}</strong>
                 </p>
               ) : (
@@ -1083,7 +1127,7 @@ function SubscriptionSection({
           <div className="mb-4 rounded-[14px] border border-rose-300 bg-rose-50/70 px-4 py-3">
             <p className="text-[11.5px] font-extrabold text-rose-800">🎯 메인 화면에서 선택한 플랜으로 안내 중</p>
             <p className="mt-1 text-[11.5px] text-rose-700">
-              선택 플랜: <strong>{highlightedPlan === "standard" ? "스탠다드 달빛 이용권" : highlightedPlan === "premium" ? "프리미엄 달빛 이용권" : "VVIP 달빛 이용권"}</strong>
+              선택 플랜: <strong>{highlightedPlan === "standard" ? "스탠다드 달빛 이용권" : highlightedPlan === "premium" ? "프리미엄 달빛 이용권" : highlightedPlan === "family" ? "Code Destiny Family" : "VVIP 달빛 이용권"}</strong>
             </p>
           </div>
         )}
@@ -1172,7 +1216,7 @@ function SubscriptionSection({
       )}
 
       {/* 플랜 카드 */}
-      <div className="grid gap-3 p-5 pt-0 sm:grid-cols-3">
+      <div className="grid gap-3 p-5 pt-0 sm:grid-cols-2 xl:grid-cols-4">
         {SUBSCRIPTION_PLANS.map((plan) => {
           const theme = planThemeMap[plan.theme];
           const isCurrentActive = subscription.isActive && subscription.tier === plan.tier;
@@ -1214,7 +1258,7 @@ function SubscriptionSection({
               {/* 가격 */}
               <p className="mt-2 flex flex-wrap items-center gap-1 text-lg font-black text-white">
                 <CoinIcon size="md" />
-                달빛 잔여 혜택 {plan.coins.toLocaleString("ko-KR")} 기준 / {plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`}
+                {formatSubscriptionPlanValueLine(plan)}
               </p>
               <p className="text-[11px] text-slate-300">
                 월 단가 {formatWon(Math.round(plan.wonPrice / plan.durationMonths))} · 결제 금액 {formatWon(plan.wonPrice)}
@@ -1231,7 +1275,7 @@ function SubscriptionSection({
               {/* 무료 이용 범위 태그 */}
               <div className={`mt-2 inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${theme.freeTag}`}>
                 🆓{" "}
-                {plan.freeUpTo === null ? "모든 서비스 무료" : `${plan.freeUpTo} 기준 이하 무료`}
+                {formatSubscriptionPlanPolicy(plan)}
               </div>
 
               {/* 기능 목록 */}
@@ -1593,7 +1637,7 @@ export default function PointsPage() {
   const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
   const [adminTestTier, setAdminTestTier] = useState<AdminTestTier>("off");
   const isFlowerAdminMode = authUser?.role === "admin" && isFlowerAdminSessionClient();
-  const [landingPlanPreset, setLandingPlanPreset] = useState<"standard" | "premium" | "vvip" | null>(null);
+  const [landingPlanPreset, setLandingPlanPreset] = useState<"standard" | "premium" | "vvip" | "family" | null>(null);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [pendingMonthlyCreditPlan, setPendingMonthlyCreditPlan] = useState<SubscriptionPlan | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
@@ -1616,7 +1660,7 @@ export default function PointsPage() {
     if (typeof window === "undefined") return;
     const query = new URLSearchParams(window.location.search);
     const raw = String(query.get("plan") || "").toLowerCase();
-    if (raw === "standard" || raw === "premium" || raw === "vvip") {
+    if (raw === "standard" || raw === "premium" || raw === "vvip" || raw === "family") {
       setLandingPlanPreset(raw);
     }
   }, []);
@@ -2989,7 +3033,7 @@ export default function PointsPage() {
           aria-label="원화 단건 결제 안내"
           className="rounded-[20px] border border-white/12 bg-white/[0.06] px-5 py-4 text-sm leading-6 text-slate-200"
         >
-          각 서비스의 콘텐츠 기준은 가격 산정용으로만 표시됩니다. 이용권 범위와 이벤트 월정석 잔량으로 열리지 않는 서비스는 실행 시 원화 단건 결제로 진행됩니다.
+          일반 유료 서비스는 이용권 한도 이하일 때만 이용권으로 열립니다. PDF 서비스는 결제 시 등급 한도만큼 할인되며, Family는 PDF를 포함한 모든 기능이 무료로 처리됩니다.
         </section>
 
         <section className="rounded-[20px] border border-white/12 bg-white/[0.08] p-5">

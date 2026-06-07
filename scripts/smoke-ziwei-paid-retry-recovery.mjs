@@ -343,13 +343,21 @@ async function main() {
   const hasHtml = Boolean(clean(finalPayload?.data?.pdfReady?.html));
   const finalReportId = clean(finalPayload?.data?.reportId || retryReportId);
   const ziweiJsonV2 = finalPayload?.data?.ziweiJsonV2 || finalPayload?.data?.payload?.ziweiJsonV2 || finalPayload?.data?.ziweiPayload?.ziweiJsonV2;
+  const ziweiMasterJson = finalPayload?.data?.ziweiMasterJson || finalPayload?.data?.payload?.ziweiMasterJson || finalPayload?.data?.ziweiPayload?.ziweiMasterJson;
+  const masterJsonValidation = finalPayload?.data?.masterJsonValidation || finalPayload?.data?.payload?.masterJsonValidation || finalPayload?.data?.ziweiPayload?.masterJsonValidation;
+  const pdfReady = finalPayload?.data?.pdfReady || {};
   const evidenceMap = Array.isArray(ziweiJsonV2?.chapterEvidenceMap) ? ziweiJsonV2.chapterEvidenceMap : [];
 
   ensure(finalPayload.ok && finalPayload.data?.ok === true, "최종 결과가 ok=true가 아님", finalPayload.data);
   ensure(chapters >= 15, "최종 챕터 수 부족", { chapters, payload: finalPayload.data });
   ensure(hasHtml, "최종 pdfReady.html 누락", finalPayload.data);
   ensure(ziweiJsonV2?.schemaVersion === "ziwei-pdf-v2", "ziweiJsonV2 schemaVersion missing", finalPayload.data);
+  ensure(ziweiMasterJson?.schemaVersion === "ziwei-premium-master-json.v1", "ziweiMasterJson schemaVersion missing", finalPayload.data);
+  ensure(masterJsonValidation?.ok === true, "ziweiMasterJson validation failed", masterJsonValidation);
   ensure(evidenceMap.length >= 15, "ziweiJsonV2 evidence map too small", { evidenceMapLength: evidenceMap.length });
+  ensure(String(pdfReady?.downloadUrl || "").includes("/api/premium/pdf-archive/") && String(pdfReady?.downloadUrl || "").includes("format=pdf"), "pdfReady.downloadUrl is not premium archive pdf", pdfReady);
+  ensure(String(pdfReady?.htmlUrl || "").includes("/api/premium/pdf-archive/") && String(pdfReady?.htmlUrl || "").includes("format=html"), "pdfReady.htmlUrl is not premium archive html", pdfReady);
+  ensure(pdfReady?.contentType === "application/pdf" && pdfReady?.renderFormat === "pdf-archive", "pdfReady contract invalid", pdfReady);
 
   const meAfter = await fetchAuthMe(base, loginResult.token);
   printKv("ME_AFTER_STATUS", meAfter.status);
@@ -361,6 +369,7 @@ async function main() {
   printKv("REPORT_ID", finalReportId);
   printKv("CHAPTERS", chapters);
   printKv("ZIWEI_JSON_V2", ziweiJsonV2.schemaVersion);
+  printKv("ZIWEI_MASTER_JSON", ziweiMasterJson.schemaVersion);
   printKv("EVIDENCE_MAP", evidenceMap.length);
   printKv("HAS_PDF_HTML", hasHtml);
   printKv("E2E_RESULT", "PASS");

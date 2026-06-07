@@ -47,7 +47,7 @@ export type PaymentEligibility = {
   priceKRW: number;
   pass: {
     hasActivePass: boolean;
-    tier: "standard" | "premium" | "vvip" | null;
+    tier: "standard" | "premium" | "vvip" | "family" | null;
     label: string | null;
     limit: number | null;
     canUse: boolean;
@@ -348,6 +348,23 @@ function resolvePaidFeatureOverlay(status: string, message?: string) {
   return { message: text || "결제 상태를 안전하게 확인하고 있습니다.", mode: "payment" };
 }
 
+function emitPaymentLoadingState(open: boolean, message?: string, mode?: string) {
+  const runtimeWindow = window as RuntimeApiWindow;
+  const overlayMessage = toText(message) || "결제 상태를 안전하게 확인하고 있습니다.";
+  const overlayMode = toText(mode) || "payment";
+  if (typeof runtimeWindow._cdSetCoinGateOverlay === "function") {
+    runtimeWindow._cdSetCoinGateOverlay(open, overlayMessage, overlayMode);
+    return;
+  }
+  window.dispatchEvent(new CustomEvent("cd:payment-loading-state", {
+    detail: {
+      open,
+      message: overlayMessage,
+      mode: overlayMode,
+    },
+  }));
+}
+
 function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFeatureGateRuntimeDetail) {
   if (typeof window === "undefined") return;
   const featureId = toText(detail.featureId || detail.featureKey) || "paid-feature";
@@ -380,26 +397,21 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
   const runtimeWindow = window as RuntimeApiWindow;
   if (action !== "close" && paymentLoadingOwnsPaidFeatureStatus(status)) {
     const overlay = resolvePaidFeatureOverlay(status, overlayMessage);
-    runtimeWindow._cdSetCoinGateOverlay?.(true, overlay.message, overlay.mode);
+    emitPaymentLoadingState(true, overlay.message, overlay.mode);
     runtimeWindow.__cdPaidFeatureGate?.close?.(payload.requestId);
     if (status === "hasEntitlement" || status === "paymentSuccess") {
       window.setTimeout(() => {
-        runtimeWindow._cdSetCoinGateOverlay?.(false);
+        emitPaymentLoadingState(false);
       }, 900);
     }
     return;
   }
   if (action === "close") {
-    if (typeof runtimeWindow._cdSetCoinGateOverlay === "function") {
-      runtimeWindow._cdSetCoinGateOverlay(false);
-      return;
-    }
-    if (typeof runtimeWindow.__cdPaidFeatureGate?.close === "function") {
-      runtimeWindow.__cdPaidFeatureGate.close(payload.requestId);
-      return;
-    }
-  } else if (typeof runtimeWindow._cdSetCoinGateOverlay === "function") {
-    runtimeWindow._cdSetCoinGateOverlay(false);
+    emitPaymentLoadingState(false);
+    runtimeWindow.__cdPaidFeatureGate?.close?.(payload.requestId);
+    return;
+  } else {
+    emitPaymentLoadingState(false);
   }
   window.dispatchEvent(new CustomEvent("cd:paid-feature-gate", { detail: payload }));
 }
@@ -493,6 +505,7 @@ export async function fetchBillingFeaturePricing(input: {
 
 function normalizePassTier(value: unknown): PaymentEligibility["pass"]["tier"] {
   const tier = toText(value).toUpperCase();
+  if (tier.includes("FAMILY") || tier.includes("CODE DESTINY FAMILY")) return "family";
   if (tier === "STANDARD" || tier === "BRONZE") return "standard";
   if (tier === "PREMIUM" || tier === "SILVER") return "premium";
   if (tier === "VVIP" || tier === "GOLD") return "vvip";
@@ -500,9 +513,10 @@ function normalizePassTier(value: unknown): PaymentEligibility["pass"]["tier"] {
 }
 
 function labelForPassTier(tier: PaymentEligibility["pass"]["tier"]) {
-  if (tier === "standard") return "스탠다드 이용권";
-  if (tier === "premium") return "프리미엄 이용권";
-  if (tier === "vvip") return "VVIP 이용권";
+  if (tier === "standard") return "스탠다드 달빛 이용권";
+  if (tier === "premium") return "프리미엄 달빛 이용권";
+  if (tier === "vvip") return "VVIP 달빛 이용권";
+  if (tier === "family") return "Code Destiny Family";
   return null;
 }
 
@@ -637,14 +651,18 @@ export async function runBillingCoinGate(input: {
   });
 
   const requestPromise = (async () => {
-    const eligibilityResult = await fetchPaymentEligibility({
-      categoryKey: input.categoryKey,
-      subFeatureKey: input.subFeatureKey,
-      featureKey: input.featureKey,
-      reason: input.reason,
-    }).catch(() => null);
+    const requestedMode = toText(input.paymentMode).toUpperCase();
+    const explicitPassMode = requestedMode === "MEMBERSHIP_PASS";
+    const eligibilityResult = explicitPassMode
+      ? null
+      : await fetchPaymentEligibility({
+        categoryKey: input.categoryKey,
+        subFeatureKey: input.subFeatureKey,
+        featureKey: input.featureKey,
+        reason: input.reason,
+      }).catch(() => null);
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
-    const passFirstEligible = eligibility?.pass.canUse === true;
+    const passFirstEligible = explicitPassMode || eligibility?.pass.canUse === true;
     if (eligibility) {
       emitPaidFeatureGate("update", {
         featureId,

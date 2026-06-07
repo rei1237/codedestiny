@@ -4,6 +4,12 @@ import { callGeminiText } from "./gemini.js";
 const MIN_SECTION_LENGTH = 900;
 const MIN_CHAPTER_LENGTH = 4000;
 const MIN_TOTAL_LENGTH_FLOOR = 50000;
+const ASTRO_MASTER_JSON_SCHEMA_VERSION = "astro-premium-master-json.v1";
+const ASTRO_MANUSCRIPT_SOURCE = Object.freeze({
+  LLM: "llm-only",
+  LOCAL_COMPLETED: "local-rule-completed",
+  HYBRID: "llm-local-hybrid",
+});
 const ASTRO_LLM_KEY_ENV_KEYS = Object.freeze([
   "ASTRO_GEMINI_API_KEY1",
   "ASTRO_GEMINI_API_KEY2",
@@ -367,15 +373,15 @@ export async function resolveAstroChartForPremiumPdf(rawInput = {}, birthInput =
     }
   }
   catch (error) {
-    console.warn("[AstroPremiumPDF][SwissCalculationFailedUseSafeChart]", {
+    console.warn("[AstroPremiumPDF][SwissCalculationFailed]", {
       reason: clean(error?.message || error),
     });
   }
 
-  return {
-    source: "safe-local",
-    swissChart: buildSafeWesternChartFromBirthInput(birthInput),
-  };
+  const error = new Error("점성술 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.");
+  error.code = "ASTRO_CHART_SOURCE_INVALID";
+  error.status = 422;
+  throw error;
 }
 
 function signNameFromNode(node) {
@@ -977,6 +983,18 @@ function sanitizeBody(text) {
   return out.replace(/\s{2,}/g, " ").replace(/\n\s*\n\s*\n+/g, "\n\n").trim();
 }
 
+function softenAstroRiskyBody(text) {
+  return sanitizeBody(text)
+    .replace(/확정/g, "정리")
+    .replace(/무조건/g, "가능한 범위에서")
+    .replace(/반드시/g, "필요한 만큼")
+    .replace(/투자\s*수익/g, "재정 흐름")
+    .replace(/수익\s*보장/g, "재정 안정")
+    .replace(/대박/g, "큰 전환")
+    .replace(/파산/g, "재정 압박")
+    .replace(/죽음|사망/g, "큰 마무리");
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -1078,17 +1096,14 @@ export function buildAstroLocalPremiumManuscript(localAstroChartJson) {
   return reinforceManuscriptLength(drafts);
 }
 
-export async function enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, localDrafts, options = {}) {
+export async function enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, options = {}) {
   const emit = typeof options.log === "function" ? options.log : () => {};
   const chartInput = buildAstroLLMChartInput(localAstroChartJson);
-  const sourceDrafts = safeArray(localDrafts);
+  const masterJson = asObject(options.masterJson);
   const chapters = [];
   const previousSummaries = [];
 
   for (const chapterSpec of ASTRO_PREMIUM_CHAPTERS) {
-    const localChapter = sourceDrafts.find((chapter) => Number(chapter?.chapterNo) === Number(chapterSpec.order))
-      || sourceDrafts[Number(chapterSpec.order) - 1]
-      || {};
     emit("LLMChapterBuildStart", {
       chapterNo: chapterSpec.order,
       title: chapterSpec.title,
@@ -1096,8 +1111,9 @@ export async function enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJso
     const chapter = await generateAstroChapterWithLLM(env, {
       localAstroChartJson,
       chartInput,
+      masterJson,
       chapterSpec,
-      localChapter,
+      signalBrief: buildAstroLLMSignalBrief(localAstroChartJson, chapterSpec),
       previousSummaries,
       requestId: clean(options.requestId),
       log: emit,
@@ -1116,7 +1132,8 @@ export async function enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJso
     chapters,
     fallbackUsed: false,
     llmChapterCount: chapters.length,
-    source: "gemini-chapter",
+    fallbackChapterCount: 0,
+    source: "llm-only",
   };
 }
 
@@ -1207,18 +1224,181 @@ function buildAstroLLMChartInput(localAstroChartJson = {}) {
   };
 }
 
-function buildAstroLLMSignalBrief(localChapter = {}) {
-  return {
-    chapterNo: Number(localChapter?.chapterNo || 0) || undefined,
-    title: clean(localChapter?.title),
-    chapterSignals: safeArray(localChapter?.localQuality?.usedSignals).slice(0, 16),
-    sections: safeArray(localChapter?.sections).map((section) => ({
-      title: clean(section?.title),
+function buildAstroLLMSignalBrief(localAstroChartJson = {}, chapterSpec = {}) {
+  const chart = asObject(localAstroChartJson?.chart);
+  const insights = asObject(localAstroChartJson?.insights);
+  const planets = safeArray(chart.planets).slice(0, 12).map(compactAstroPlanetForLLM);
+  const houses = safeArray(chart.houses).slice(0, 12).map(compactAstroHouseForLLM);
+  const aspects = safeArray(chart.aspects).slice(0, 24).map(compactAstroAspectForLLM);
+  const coreSignals = uniqueList([
+    clean(chart.sunSign),
+    clean(chart.moonSign),
+    clean(chart.ascendantSign),
+    clean(chart.midheavenSign),
+    clean(chart.descendantSign),
+    clean(chart.icSign),
+    formatAstroChartRulerForText(chart.chartRuler),
+    ...planets.map((planet) => `${planet.name} ${planet.sign} ${planet.house ? `${planet.house}H` : ""}`),
+    ...houses.map((house) => `${house.house}H ${house.sign} ${house.topic}`),
+    ...aspects.map((aspect) => `${aspect.pair} ${aspect.type} ${aspect.orb}`),
+    ...safeArray(insights.strongAspects).map((aspect) => `${aspect.pair} ${aspect.type}`),
+    ...safeArray(insights.retrogrades),
+  ]).slice(0, 32);
+  const sectionSignals = safeArray(chapterSpec?.categories).map((category, index) => {
+    const planetOffset = index % Math.max(1, planets.length);
+    const houseOffset = index % Math.max(1, houses.length);
+    const aspectOffset = index % Math.max(1, aspects.length);
+    return {
+      title: clean(category?.title),
       evidence: uniqueList([
-        ...safeArray(section?.bullets),
-        ...safeArray(section?.localQuality?.usedSignals),
-      ]).slice(0, 10),
+        ...coreSignals.slice(0, 8),
+        ...planets.slice(planetOffset, planetOffset + 4).map((planet) => `${planet.name} ${planet.sign} ${planet.house ? `${planet.house}H` : ""}`),
+        ...houses.slice(houseOffset, houseOffset + 3).map((house) => `${house.house}H ${house.sign} ${house.topic}`),
+        ...aspects.slice(aspectOffset, aspectOffset + 3).map((aspect) => `${aspect.pair} ${aspect.type}`),
+      ]).slice(0, 16),
+      requiredEvidenceCount: 4,
+    };
+  });
+  return {
+    chapterNo: Number(chapterSpec?.order || 0) || undefined,
+    chapterId: clean(chapterSpec?.id),
+    title: clean(chapterSpec?.title),
+    chapterSignals: coreSignals,
+    sections: sectionSignals,
+    sourceContract: {
+      manuscriptSource: "llm-only",
+      localDraftAllowed: false,
+      fallbackAllowed: false,
+    },
+  };
+}
+
+export function buildAstroMasterJson(localAstroChartJson = {}, rawInput = {}) {
+  const birthInput = asObject(localAstroChartJson?.birthInput);
+  const chart = asObject(localAstroChartJson?.chart);
+  const insights = asObject(localAstroChartJson?.insights);
+  const clientEvidence = asObject(rawInput?.astroClientEvidenceJson || rawInput?.clientEvidenceJson);
+  return {
+    schemaVersion: ASTRO_MASTER_JSON_SCHEMA_VERSION,
+    serviceKey: "astro-premium",
+    featureKey: "premium-astrology-report",
+    reportType: "westernAstrologyPremium",
+    generationMode: "worker-native-llm",
+    calculationSource: clean(localAstroChartJson?.calculationMode || rawInput?.calculationMode || "worker-swiss-western-chart"),
+    birthProfile: {
+      name: clean(birthInput.name) || "사용자",
+      gender: clean(birthInput.gender),
+      birthDate: clean(birthInput.birthDate),
+      birthTime: clean(birthInput.birthTime),
+      birthHour: Number.isFinite(Number(birthInput.birthHour)) ? Number(birthInput.birthHour) : null,
+      birthMinute: Number.isFinite(Number(birthInput.birthMinute)) ? Number(birthInput.birthMinute) : 0,
+      birthPlace: clean(birthInput.birthPlace),
+      timezone: clean(birthInput.timezone),
+      latitude: Number.isFinite(Number(birthInput.latitude)) ? Number(birthInput.latitude) : null,
+      longitude: Number.isFinite(Number(birthInput.longitude)) ? Number(birthInput.longitude) : null,
+    },
+    chart: {
+      coreSigns: {
+        sun: clean(chart.sunSign),
+        moon: clean(chart.moonSign),
+        ascendant: clean(chart.ascendantSign),
+        midheaven: clean(chart.midheavenSign),
+        descendant: clean(chart.descendantSign),
+        ic: clean(chart.icSign),
+        chartRuler: formatAstroChartRulerForText(chart.chartRuler),
+      },
+      calculationMode: clean(localAstroChartJson?.calculationMode),
+      houseSystem: clean(chart.houseSystem || rawInput?.houseSystem || "Placidus"),
+      planets: safeArray(chart.planets).slice(0, 12).map(compactAstroPlanetForLLM),
+      houses: safeArray(chart.houses).slice(0, 12).map(compactAstroHouseForLLM),
+      aspects: safeArray(chart.aspects).slice(0, 32).map(compactAstroAspectForLLM),
+      nodes: asObject(chart.nodes),
+      elementBalance: asObject(chart.elementBalance),
+      modalityBalance: asObject(chart.modalityBalance),
+    },
+    insights: {
+      cards: safeArray(insights.cards).slice(0, 10).map((card) => ({
+        title: clean(card?.title),
+        text: clean(card?.text),
+      })),
+      strongAspects: safeArray(insights.strongAspects).slice(0, 12),
+      retrogrades: safeArray(insights.retrogrades).slice(0, 12),
+      lunarPhase: asObject(insights.lunarPhase),
+      houseFocus: asObject(insights.houseFocus),
+      nodeAxis: asObject(insights.nodeAxis),
+      interpretationSeeds: asObject(localAstroChartJson?.interpretationSeeds),
+    },
+    chapterSpecs: ASTRO_PREMIUM_CHAPTERS.map((chapter) => ({
+      id: clean(chapter.id),
+      order: Number(chapter.order || 0),
+      roman: clean(chapter.roman),
+      title: clean(chapter.title),
+      categories: safeArray(chapter.categories).map((category, index) => ({
+        id: clean(category.id),
+        order: index + 1,
+        title: clean(category.title),
+      })),
     })),
+    clientEvidence: clientEvidence?.schemaVersion ? {
+      schemaVersion: clean(clientEvidence.schemaVersion),
+      source: clean(clientEvidence.source || "browser"),
+      chartAvailable: Boolean(clientEvidence.chartAvailable),
+      evidenceCount: Number(clientEvidence.evidenceCount || 0),
+    } : null,
+    qualityRules: {
+      minSectionChars: MIN_SECTION_LENGTH,
+      minChapterChars: MIN_CHAPTER_LENGTH,
+      minTotalChars: getDynamicTotalMinLength(ASTRO_PREMIUM_CHAPTERS.length),
+      requiredEvidencePerSection: 4,
+      forbiddenDeveloperTerms: ["JSON", "API", "LLM", "schema", "prompt", "payload", "debug", "fallback"],
+      tone: "professional-mystical-korean-consultation",
+    },
+  };
+}
+
+export function validateAstroMasterJson(masterJson = {}) {
+  const missing = [];
+  const requireField = (ok, key) => {
+    if (!ok) missing.push(key);
+  };
+  const chart = asObject(masterJson?.chart);
+  const core = asObject(chart.coreSigns);
+  const birth = asObject(masterJson?.birthProfile);
+  const planets = safeArray(chart.planets);
+  const houses = safeArray(chart.houses);
+  const aspects = safeArray(chart.aspects);
+  const chapterSpecs = safeArray(masterJson?.chapterSpecs);
+  requireField(clean(masterJson?.schemaVersion) === ASTRO_MASTER_JSON_SCHEMA_VERSION, "schemaVersion");
+  requireField(clean(masterJson?.serviceKey) === "astro-premium", "serviceKey");
+  requireField(clean(masterJson?.generationMode) === "worker-native-llm", "generationMode");
+  requireField(clean(birth.birthDate), "birthProfile.birthDate");
+  requireField(Number.isFinite(Number(birth.birthHour)), "birthProfile.birthHour");
+  requireField(clean(birth.timezone), "birthProfile.timezone");
+  requireField(clean(core.sun), "chart.coreSigns.sun");
+  requireField(clean(core.moon), "chart.coreSigns.moon");
+  requireField(clean(core.ascendant), "chart.coreSigns.ascendant");
+  requireField(clean(core.midheaven), "chart.coreSigns.midheaven");
+  requireField(planets.length >= 7, "chart.planets");
+  requireField(houses.length >= 12, "chart.houses");
+  requireField(aspects.length >= 1, "chart.aspects");
+  requireField(chapterSpecs.length === ASTRO_PREMIUM_CHAPTERS.length, "chapterSpecs");
+  chapterSpecs.forEach((chapter, index) => {
+    const expected = ASTRO_PREMIUM_CHAPTERS[index] || {};
+    requireField(Number(chapter.order) === Number(expected.order), `chapterSpecs.${index}.order`);
+    requireField(clean(chapter.title) === clean(expected.title), `chapterSpecs.${index}.title`);
+    requireField(safeArray(chapter.categories).length === safeArray(expected.categories).length, `chapterSpecs.${index}.categories`);
+  });
+  return {
+    ok: missing.length === 0,
+    missing,
+    schemaVersion: ASTRO_MASTER_JSON_SCHEMA_VERSION,
+    stats: {
+      planetCount: planets.length,
+      houseCount: houses.length,
+      aspectCount: aspects.length,
+      chapterCount: chapterSpecs.length,
+      sectionCount: chapterSpecs.reduce((sum, chapter) => sum + safeArray(chapter.categories).length, 0),
+    },
   };
 }
 
@@ -1230,7 +1410,7 @@ function summarizeAstroLLMChapter(chapter = {}) {
   };
 }
 
-function buildAstroChapterPrompt({ chartInput, chapterSpec, signalBrief, previousSummaries = [], attempt = 1, lastErrors = [] } = {}) {
+function buildAstroChapterPrompt({ chartInput, masterJson = {}, chapterSpec, signalBrief, previousSummaries = [], attempt = 1, lastErrors = [] } = {}) {
   const categories = safeArray(chapterSpec?.categories).map((category, index) => ({
     order: index + 1,
     title: category.title,
@@ -1267,6 +1447,9 @@ function buildAstroChapterPrompt({ chartInput, chapterSpec, signalBrief, previou
 
 [출생 차트 핵심]
 ${safeJsonForPrompt(chartInput)}
+
+[검증된 점성술 마스터 JSON]
+${safeJsonForPrompt(masterJson)}
 
 [이번 장]
 ${safeJsonForPrompt({
@@ -1422,7 +1605,7 @@ function normalizeAstroLLMChapter(parsed = {}, chapterSpec = {}, localAstroChart
     subtitle: `${chapterSpec.roman}. ${chapterSpec.title}`,
     summary: sanitizeBody(textFromAstroLLMValue(parsed?.summary || parsed?.chapterSummary)).slice(0, 900),
     sections,
-    source: "gemini-chapter",
+    source: "llm-only",
   };
 }
 
@@ -1494,8 +1677,9 @@ function validateAstroLLMChapter(localAstroChartJson, chapter, chapterSpec) {
 async function generateAstroChapterWithLLM(env, {
   localAstroChartJson,
   chartInput,
+  masterJson = {},
   chapterSpec,
-  localChapter,
+  signalBrief,
   previousSummaries = [],
   requestId = "",
   log = () => {},
@@ -1508,8 +1692,9 @@ async function generateAstroChapterWithLLM(env, {
     try {
       const prompt = buildAstroChapterPrompt({
         chartInput,
+        masterJson,
         chapterSpec,
-        signalBrief: buildAstroLLMSignalBrief(localChapter),
+        signalBrief,
         previousSummaries,
         attempt,
         lastErrors,
@@ -1685,7 +1870,48 @@ function reinforceAstroManuscriptLocally(chapters, localAstroChartJson) {
   }));
 }
 
-function validateFinalManuscript(localAstroChartJson, chapters) {
+function normalizeAstroLocalFallbackManuscript(chapters, localAstroChartJson) {
+  return safeArray(chapters).map((chapter, chapterIndex) => {
+    const chapterSpec = ASTRO_PREMIUM_CHAPTERS.find((item) => Number(item.order) === Number(chapter?.chapterNo)) || ASTRO_PREMIUM_CHAPTERS[chapterIndex] || {};
+    const sections = safeArray(chapter.sections).map((section, sectionIndex) => {
+      const body = softenAstroRiskyBody(section.body);
+      const evidenceSignals = normalizeAstroEvidenceSignals(
+        localAstroChartJson,
+        body,
+        [
+          ...safeArray(section.evidenceSignals),
+          ...safeArray(section?.localQuality?.usedSignals),
+          ...safeArray(section?.localQuality?.usedPlanets),
+          ...safeArray(section?.localQuality?.usedHouses).map((house) => `${house}하우스`),
+          ...safeArray(section?.localQuality?.usedAspects),
+        ],
+      );
+      return {
+        ...section,
+        title: clean(section.title || chapterSpec?.categories?.[sectionIndex]?.title),
+        body,
+        evidenceSignals,
+        source: ASTRO_MANUSCRIPT_SOURCE.LOCAL_COMPLETED,
+        qualityFlags: {
+          ...asObject(section.qualityFlags),
+          ...buildAstroSectionQualityFlags(localAstroChartJson, body, evidenceSignals),
+          source: ASTRO_MANUSCRIPT_SOURCE.LOCAL_COMPLETED,
+        },
+      };
+    });
+    return {
+      ...chapter,
+      chapterNo: Number(chapter.chapterNo || chapterSpec.order || chapterIndex + 1),
+      title: clean(chapter.title || chapterSpec.title),
+      subtitle: clean(chapter.subtitle || `${chapterSpec.roman || chapterIndex + 1}. ${chapterSpec.title || chapter.title}`),
+      sections,
+      source: ASTRO_MANUSCRIPT_SOURCE.LOCAL_COMPLETED,
+    };
+  });
+}
+
+function validateFinalManuscript(localAstroChartJson, chapters, options = {}) {
+  const allowFallback = Boolean(options.allowFallback);
   const issues = [];
   const repetition = [];
   const qualityStats = {
@@ -1719,9 +1945,14 @@ function validateFinalManuscript(localAstroChartJson, chapters) {
 
   for (const chapter of safeArray(chapters)) {
     const schema = ASTRO_PREMIUM_CHAPTERS.find((item) => Number(item.order) === Number(chapter.chapterNo));
+    const chapterSource = clean(chapter.source);
     if (schema && clean(chapter.title) !== clean(schema.title)) issues.push(`chapter${chapter.chapterNo}.title`);
-    if (clean(chapter.source) !== "gemini-chapter") issues.push(`chapter${chapter.chapterNo}.source`);
-    if (clean(chapter.source) === "gemini-chapter") qualityStats.geminiChapterCount += 1;
+    if (allowFallback) {
+      if (![ASTRO_MANUSCRIPT_SOURCE.LLM, ASTRO_MANUSCRIPT_SOURCE.LOCAL_COMPLETED].includes(chapterSource)) issues.push(`chapter${chapter.chapterNo}.source`);
+    } else if (chapterSource !== ASTRO_MANUSCRIPT_SOURCE.LLM) {
+      issues.push(`chapter${chapter.chapterNo}.source`);
+    }
+    if (chapterSource === ASTRO_MANUSCRIPT_SOURCE.LLM) qualityStats.geminiChapterCount += 1;
     if (!Array.isArray(chapter.sections) || chapter.sections.length < 3) {
       issues.push(`chapter${chapter.chapterNo}.sections`);
       continue;
@@ -1735,10 +1966,12 @@ function validateFinalManuscript(localAstroChartJson, chapters) {
       const body = clean(section.body);
       const evidenceSignals = safeArray(section.evidenceSignals).map(clean).filter(Boolean);
       const qualityFlags = asObject(section.qualityFlags);
+      const sectionSource = clean(section.source);
+      const qualitySource = clean(qualityFlags.source);
       qualityStats.sectionCount += 1;
       qualityStats.evidenceSignalCount += evidenceSignals.length;
       qualityStats.minEvidenceSignalsPerSection = Math.min(qualityStats.minEvidenceSignalsPerSection, evidenceSignals.length);
-      if (clean(section.source) === "gemini") qualityStats.geminiSectionCount += 1;
+      if (sectionSource === "gemini") qualityStats.geminiSectionCount += 1;
       if (qualityFlags.hasForbiddenText === true) qualityStats.flaggedForbiddenSections += 1;
       if (qualityFlags.hasRiskyAssertion === true) qualityStats.flaggedRiskySections += 1;
       if (qualityFlags.repetitionExceeded === true) qualityStats.flaggedRepetitionSections += 1;
@@ -1749,11 +1982,19 @@ function validateFinalManuscript(localAstroChartJson, chapters) {
       if (body.length < MIN_SECTION_LENGTH) issues.push(`chapter${chapter.chapterNo}.${section.title}.length`);
       if (!body) issues.push(`chapter${chapter.chapterNo}.${section.title}.empty`);
       if (containsForbidden(body)) issues.push(`chapter${chapter.chapterNo}.${section.title}.forbidden`);
-      if (clean(section.source) !== "gemini") issues.push(`chapter${chapter.chapterNo}.${section.title}.source`);
+      if (allowFallback) {
+        if (!["gemini", ASTRO_MANUSCRIPT_SOURCE.LOCAL_COMPLETED].includes(sectionSource)) issues.push(`chapter${chapter.chapterNo}.${section.title}.source`);
+      } else if (sectionSource !== "gemini") {
+        issues.push(`chapter${chapter.chapterNo}.${section.title}.source`);
+      }
       if (ASTRO_LLM_RISKY_ASSERTION_RE.test(body)) issues.push(`chapter${chapter.chapterNo}.${section.title}.risky`);
       if (countAstroEvidenceHits(localAstroChartJson, body) < 4) issues.push(`chapter${chapter.chapterNo}.${section.title}.evidence`);
       if (evidenceSignals.length < 4) issues.push(`chapter${chapter.chapterNo}.${section.title}.evidenceSignals`);
-      if (clean(qualityFlags.source) !== "gemini") issues.push(`chapter${chapter.chapterNo}.${section.title}.qualitySource`);
+      if (allowFallback) {
+        if (!["gemini", ASTRO_MANUSCRIPT_SOURCE.LOCAL_COMPLETED].includes(qualitySource)) issues.push(`chapter${chapter.chapterNo}.${section.title}.qualitySource`);
+      } else if (qualitySource !== "gemini") {
+        issues.push(`chapter${chapter.chapterNo}.${section.title}.qualitySource`);
+      }
       if (Number(qualityFlags.evidenceCount || 0) < 4) issues.push(`chapter${chapter.chapterNo}.${section.title}.qualityEvidence`);
       if (qualityFlags.hasForbiddenText === true) issues.push(`chapter${chapter.chapterNo}.${section.title}.qualityForbidden`);
       if (qualityFlags.hasRiskyAssertion === true) issues.push(`chapter${chapter.chapterNo}.${section.title}.qualityRisky`);
@@ -1921,57 +2162,87 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     birthInput,
     resolved?.swissChart || {},
     extractProvidedAstroBase(rawInput),
-    { strictPremium: false },
+    { strictPremium: true },
   );
 
   const chartValidation = validateAstroChartForPremium(localAstroChartJson);
   if (!chartValidation.ok) {
-    emit("ChartValidationWarning", {
+    emit("ChartValidationFailed", {
       issues: chartValidation.missing,
       source: clean(resolved?.source || localAstroChartJson?.calculationMode),
     });
+    const error = new Error("점성술 차트 계산 JSON 검증에 실패했습니다.");
+    error.code = "ASTRO_CHART_SOURCE_INVALID";
+    error.status = 422;
+    error.details = chartValidation;
+    throw error;
   }
 
-  emit("LocalDraftBuildStart", {
+  const astroMasterJson = buildAstroMasterJson(localAstroChartJson, rawInput);
+  const masterJsonValidation = validateAstroMasterJson(astroMasterJson);
+  emit("MasterJsonValidated", {
+    ok: masterJsonValidation.ok,
+    missing: masterJsonValidation.missing,
+    stats: masterJsonValidation.stats,
+  });
+  if (!masterJsonValidation.ok) {
+    const error = new Error("점성술 마스터 JSON 검증에 실패했습니다.");
+    error.code = "ASTRO_MASTER_JSON_INVALID";
+    error.status = 422;
+    error.details = masterJsonValidation;
+    throw error;
+  }
+
+  emit("LocalCalculationJsonPrepared", {
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
     hasBirthDate: Boolean(clean(birthInput.birthDate)),
     hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
     hasTimezone: Boolean(clean(birthInput.timezone)),
     hasLocation: Boolean(clean(birthInput.birthPlace)),
     houseSystemUsed: true,
+    calculationMode: clean(localAstroChartJson?.calculationMode) || "strict-local",
   });
 
-  const localDrafts = safeArray(buildAstroLocalPremiumManuscript(localAstroChartJson)).map((chapter) => ({
-    ...chapter,
-    source: "local",
-  }));
-  for (let i = 0; i < localDrafts.length; i += 1) {
-    emit("LocalDraftChapterDone", {
-      chapterNo: Number(localDrafts[i]?.chapterNo || i + 1),
-      chapterTitle: clean(localDrafts[i]?.title),
-    });
-  }
-  emit("LocalDraftBuildSuccess", {
-    chapterCount: localDrafts.length,
-    totalLength: Number(totalLength(localDrafts)),
-    calculationMode: clean(localAstroChartJson?.calculationMode) || "recovered",
-  });
-
-  emit("LocalSignalDraftPrepared", {
+  emit("LLMSeedPrepared", {
     signalOnly: true,
-    chapterCount: localDrafts.length,
-    totalLength: totalLength(localDrafts),
+    chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
+    localDraftChapterCount: 0,
   });
 
   emit("LLMManuscriptBuildStart", {
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
   });
-  const enhanced = await enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, localDrafts, {
-    log: emit,
-    requestId: clean(rawInput?.reportId || options?.requestId),
-  });
+  let enhanced = null;
+  try {
+    enhanced = await enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, {
+      log: emit,
+      requestId: clean(rawInput?.reportId || options?.requestId),
+      masterJson: astroMasterJson,
+    });
+  } catch (error) {
+    const fallbackReason = clean(error?.code || error?.message || "ASTRO_LLM_MANUSCRIPT_FAILED");
+    emit("LLMManuscriptFailed", {
+      reason: fallbackReason,
+      chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
+    });
+    const localDrafts = buildAstroLocalPremiumManuscript(localAstroChartJson);
+    const fallbackDrafts = normalizeAstroLocalFallbackManuscript(
+      reinforceAstroManuscriptLocally(localDrafts, localAstroChartJson),
+      localAstroChartJson,
+    );
+    enhanced = {
+      chapters: fallbackDrafts,
+      fallbackUsed: true,
+      fallbackReason,
+      llmChapterCount: 0,
+      fallbackChapterCount: fallbackDrafts.length,
+      source: ASTRO_MANUSCRIPT_SOURCE.HYBRID,
+    };
+  }
   const finalDrafts = safeArray(enhanced.chapters);
-  const validated = validateFinalManuscript(localAstroChartJson, finalDrafts);
+  const validated = validateFinalManuscript(localAstroChartJson, finalDrafts, {
+    allowFallback: Boolean(enhanced?.fallbackUsed),
+  });
 
   emit("FinalManuscriptValidated", {
     ok: validated.ok,
@@ -1995,17 +2266,22 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
   emit("PdfRenderSuccess", { chapterCount: finalDrafts.length });
 
   const chapters = toLegacyChapters(finalDrafts);
-  const manuscriptSource = clean(enhanced.source || "gemini-chapter");
+  const manuscriptSource = clean(enhanced.source || "llm-only");
   return {
     payload,
     chapters,
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-    fallbackUsed: false,
+    fallbackUsed: Boolean(enhanced.fallbackUsed),
     manuscriptSource,
-    llmChapterCount: Number(enhanced.llmChapterCount || finalDrafts.length),
+    llmChapterCount: Number(enhanced.llmChapterCount ?? finalDrafts.length),
+    fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
+    llmFallbackReason: clean(enhanced.fallbackReason),
+    localDraftChapterCount: 0,
     totalLength: totalLength(finalDrafts),
     pdfReady,
     localAstroChartJson,
+    astroMasterJson,
+    masterJsonValidation,
     finalManuscript: finalDrafts,
     validation: validated,
     validationWarning: !validated.ok,

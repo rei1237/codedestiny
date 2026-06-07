@@ -52,11 +52,11 @@ const REQUIRED_URLS = [
 
 const TITLE_H1_EXPECTATIONS = {
   "/saju": {
-    title: "무료 사주풀이 · 사주팔자 만세력 분석 | Code Destiny",
+    title: "무료 사주풀이 · 사주팔자 만세력 분석 | 꿀꿀 운세",
     h1: "무료 사주풀이와 사주팔자 만세력 분석",
   },
   "/ziwei": {
-    title: "자미두수 무료 명반 · 12궁 운명 분석 | Code Destiny",
+    title: "자미두수 무료 명반 · 紫微斗數 12궁 분석 | 꿀꿀 운세",
     h1: "자미두수 무료 명반과 12궁 운명 분석",
   },
   "/ziwei/chart": {
@@ -64,7 +64,7 @@ const TITLE_H1_EXPECTATIONS = {
     h1: "자미두수 명반으로 보는 내 인생의 12궁",
   },
   "/sukuyo": {
-    title: "숙요점 무료 궁합 · 27숙 관계 분석 | Code Destiny",
+    title: "숙요점 무료 궁합 · 宿曜占星術 27숙 분석 | 꿀꿀 운세",
     h1: "숙요점으로 보는 27숙 궁합과 관계의 흐름",
   },
   "/sukuyo/compatibility": {
@@ -72,27 +72,27 @@ const TITLE_H1_EXPECTATIONS = {
     h1: "숙요점 궁합으로 보는 두 사람의 관계 패턴",
   },
   "/astrology": {
-    title: "무료 점성술 차트 · 태양궁·달궁·상승궁 해석 | Code Destiny",
+    title: "무료 점성술 차트 · 별자리·출생차트 해석 | 꿀꿀 운세",
     h1: "무료 점성술 차트와 나의 별자리 지도",
   },
   "/vedic": {
-    title: "베다점성술 무료 분석 · 라그나와 카르마 차트 | Code Destiny",
+    title: "베다점성술 무료 분석 · 라그나와 카르마 차트 | 꿀꿀 운세",
     h1: "베다점성술로 보는 라그나와 카르마 블루프린트",
   },
   "/tarot": {
-    title: "무료 타로 리딩 · 연애운·재회운·상대방 속마음 | Code Destiny",
+    title: "무료 타로 리딩 · 연애운·재회운·상대방 속마음 | 꿀꿀 운세",
     h1: "무료 타로 리딩으로 보는 지금의 마음과 선택",
   },
   "/compatibility": {
-    title: "무료 궁합 보기 · 사주·숙요점·자미두수 관계 분석 | Code Destiny",
+    title: "무료 궁합 보기 · 사주궁합·연애운 관계 분석 | 꿀꿀 운세",
     h1: "무료 궁합 보기와 두 사람의 관계 분석",
   },
   "/dream": {
-    title: "무료 꿈해몽 · 꿈의 상징과 운세 해석 | Code Destiny",
+    title: "무료 꿈해몽 · 꿈풀이·심리 꿈 해석 | 꿀꿀 운세",
     h1: "무료 꿈해몽으로 보는 무의식의 메시지",
   },
   "/physiognomy": {
-    title: "동물관상 · 얼굴 관상과 성향 분석 | Code Destiny",
+    title: "동물관상 · AI 관상·얼굴 운세 분석 | 꿀꿀 운세",
     h1: "동물관상으로 보는 나의 인상과 성향",
   },
   "/insights": {

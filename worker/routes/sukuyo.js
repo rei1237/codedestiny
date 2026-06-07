@@ -320,6 +320,24 @@ function resolveSukuyoReportId(body = {}, sessionId = "") {
   );
 }
 
+function isSukuyoCompletedPayloadReady(payload = {}) {
+  const chapters = Array.isArray(payload?.chapters) ? payload.chapters : [];
+  const ready = payload?.pdfReady && typeof payload.pdfReady === "object" ? payload.pdfReady : {};
+  const hasUrl = Boolean(clean(payload?.downloadUrl || payload?.pdfUrl || payload?.htmlUrl || ready?.downloadUrl || ready?.pdfUrl || ready?.htmlUrl));
+  return Boolean(
+    clean(payload?.reportId)
+    && hasUrl
+    && chapters.length === SUKYO_PDF_CHAPTER_COUNT
+    && clean(payload?.serverStatus) === "completed"
+    && clean(payload?.qualityStatus) === "passed"
+    && clean(payload?.manuscriptSource) === "gemini-only"
+    && Boolean(payload?.fallbackUsed) === false
+    && Number(payload?.llmChapterCount || 0) === SUKYO_PDF_CHAPTER_COUNT
+    && Number(payload?.fallbackChapterCount || 0) === 0
+    && Number(payload?.localDraftChapterCount || 0) === 0
+  );
+}
+
 async function handleSukuyoPremiumPreflight(request) {
   const body = await readJson(request);
   const input = normalizeCompatibilityInput(body);
@@ -375,6 +393,8 @@ async function handleSukuyoPremiumPrepare(request, env) {
   const sessionId = getSukuyoSessionId(body);
   const premiumAccessToken = readPremiumAccessToken(request, body);
   const featureKey = clean(body?.featureKey) || SUKYO_PDF_FEATURE_KEY;
+  const reportId = resolveSukuyoReportId(body, sessionId);
+  let executionCtx = null;
 
   const input = normalizeCompatibilityInput(body);
   if (input.mode !== "compatibility") {
@@ -421,12 +441,16 @@ async function handleSukuyoPremiumPrepare(request, env) {
   }
 
   if (existingLock?.status === "done" && existingLock?.result) {
+    if (!isSukuyoCompletedPayloadReady(existingLock.result)) {
+      sukuyoPdfGenerationLocks.delete(sessionId);
+    } else {
     return json({
       ...existingLock.result,
       status: "done",
       sessionId,
       fromCache: true,
     });
+    }
   }
 
   sukuyoPdfGenerationLocks.set(sessionId, {
@@ -451,6 +475,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
 
   try {
     const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sookyoPremium", {
+      ...body,
       reportType: "sookyoPremium",
       mode: "compatibility",
       reportMode: "compatibility",
@@ -473,13 +498,13 @@ async function handleSukuyoPremiumPrepare(request, env) {
       }, { status: Number(access?.status) || 403 });
     }
 
-    const executionCtx = buildPremiumExecutionContext({
+    executionCtx = buildPremiumExecutionContext({
       serviceKey: "sukuyo-premium",
       reportType: "sookyoPremium",
       userId: auth.userId,
       featureKey,
       sessionId,
-      reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+      reportId,
       access,
       body,
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
@@ -493,7 +518,11 @@ async function handleSukuyoPremiumPrepare(request, env) {
       progress: { stage: "payment-verified" },
     });
 
-    const reportId = resolveSukuyoReportId(body, sessionId);
+    dryRunSeed.sessionId = sessionId;
+    dryRunSeed.reportId = reportId;
+    dryRunSeed.requestId = clean(body?.requestId || body?.accessGrant?.requestId || body?._paymentContext?.requestId || sessionId);
+    dryRunSeed.featureKey = featureKey;
+
     const generated = await generateSukyoPremiumReport(env, dryRunSeed);
     const requestOrigin = new URL(request.url).origin;
     const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
@@ -515,9 +544,12 @@ async function handleSukuyoPremiumPrepare(request, env) {
       });
     }
 
-    await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+    const completedExecution = await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
-      manuscriptSource: generated.manuscriptSource || "local-only",
+      manuscriptSource: generated.manuscriptSource || "gemini-only",
+      llmChapterCount: Number(generated.llmChapterCount || 0),
+      fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
+      fallbackUsed: Boolean(generated.fallbackUsed),
       archive: {
         reportId,
         reportType: "sukyo_book",
@@ -535,10 +567,20 @@ async function handleSukuyoPremiumPrepare(request, env) {
         payload: generated.payload,
         localSukuyoCompatibilityJson: generated?.payload?.localSukuyoCompatibilityJson || generated?.payload,
         pdfReady,
+        manuscriptSource: generated.manuscriptSource || "gemini-only",
+        llmChapterCount: Number(generated.llmChapterCount || 0),
+        fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
+        fallbackUsed: Boolean(generated.fallbackUsed),
         canReopen: true,
         canDownload: true,
       },
     });
+    if (!completedExecution?.ok) {
+      throw Object.assign(new Error("숙요점 PDF 완료 저장에 실패했습니다."), {
+        status: 500,
+        code: "SUKUYO_EXECUTION_COMPLETE_FAILED",
+      });
+    }
 
     const responseBody = {
       ok: true,
@@ -555,9 +597,11 @@ async function handleSukuyoPremiumPrepare(request, env) {
       canonicalReportType: "sookyoPremium",
       aliasReportTypes: ["sukyoPremium", "sukyo_book"],
       chapterCount: generated.chapterCount,
-      localDraftChapterCount: generated.localDraftChapterCount,
+      localDraftChapterCount: Number(generated.localDraftChapterCount || 0),
+      llmChapterCount: Number(generated.llmChapterCount || 0),
+      fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
       fallbackUsed: Boolean(generated.fallbackUsed),
-      manuscriptSource: generated.manuscriptSource || "local-only",
+      manuscriptSource: generated.manuscriptSource || "gemini-only",
       reportId,
       chapters: generated.chapters,
       payload: generated.payload,
@@ -568,6 +612,12 @@ async function handleSukuyoPremiumPrepare(request, env) {
       canReopen: true,
       canDownload: true,
     };
+    if (!isSukuyoCompletedPayloadReady(responseBody)) {
+      throw Object.assign(new Error("숙요점 PDF 완료 응답 검증에 실패했습니다."), {
+        status: 500,
+        code: "SUKUYO_COMPLETED_PAYLOAD_INVALID",
+      });
+    }
 
     sukuyoPdfGenerationLocks.set(sessionId, {
       sessionId,
@@ -579,20 +629,21 @@ async function handleSukuyoPremiumPrepare(request, env) {
 
     return json(responseBody);
   } catch (error) {
+    const failedCtx = executionCtx || buildPremiumExecutionContext({
+      serviceKey: "sukuyo-premium",
+      reportType: "sookyoPremium",
+      userId: auth.userId,
+      featureKey,
+      sessionId,
+      reportId,
+      access: null,
+      body,
+      timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+    });
     await failPremiumPdfExecution(
       env,
       auth.userId,
-      buildPremiumExecutionContext({
-        serviceKey: "sukuyo-premium",
-        reportType: "sookyoPremium",
-        userId: auth.userId,
-        featureKey,
-        sessionId,
-        reportId: clean(body?.reportId || body?.accessGrant?.reportId),
-        access: null,
-        body,
-        timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
-      }),
+      failedCtx,
       "sukuyo_generation_failed",
       clean(error?.message || "숙요점 PDF 생성에 실패했습니다."),
       "sukuyo-generation",

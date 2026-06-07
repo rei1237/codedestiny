@@ -11,6 +11,7 @@
   var VEDIC_PLANETS_API = '/api/vedic/planets';
   var VEDIC_TOTAL_CHAPTERS = 12;
   var VEDIC_COIN_COST = 390;
+  var VEDIC_CLIENT_EVIDENCE_SCHEMA_VERSION = 'vedic-premium-client-evidence.v1';
 
   var _chapters = [];
   var _canonicalChapters = [];
@@ -99,6 +100,41 @@
       if (found) return found;
     }
     return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
+  }
+
+  function _extractAccessGrant(payload) {
+    if (!payload || typeof payload !== 'object') return null;
+    if (payload.accessGrant && typeof payload.accessGrant === 'object') return payload.accessGrant;
+    return _extractAccessGrant(payload.data) || _extractAccessGrant(payload.payload) || _extractAccessGrant(payload.payment) || _extractAccessGrant(payload._paymentContext) || _extractAccessGrant(payload.consume);
+  }
+
+  function _normalizePremiumPayment(transactionId, payload) {
+    var raw = payload && typeof payload === 'object' ? payload : {};
+    var data = raw.data && typeof raw.data === 'object' ? raw.data : {};
+    var nested = raw.payload && typeof raw.payload === 'object' ? raw.payload : {};
+    var payment = raw.payment && typeof raw.payment === 'object' ? raw.payment : {};
+    var context = raw._paymentContext && typeof raw._paymentContext === 'object' ? raw._paymentContext : {};
+    var grant = _extractAccessGrant(raw);
+    var token = _extractPremiumToken(raw) || _readPremiumAccessToken();
+    var tx = _clean(transactionId || raw.transactionId || data.transactionId || nested.transactionId || payment.transactionId || context.transactionId || raw.paymentId || data.paymentId || (grant && (grant.transactionId || grant.purchaseId || grant.requestId)));
+    var requestId = _clean((grant && (grant.requestId || grant.transactionId)) || raw.requestId || data.requestId || nested.requestId || payment.requestId || context.requestId || tx);
+    var purchaseId = _clean((grant && grant.purchaseId) || raw.purchaseId || data.purchaseId || nested.purchaseId || payment.purchaseId || context.purchaseId || raw.paymentId || data.paymentId || tx);
+    var sessionId = _clean((grant && (grant.sessionId || grant.reportSessionId)) || raw.sessionId || data.sessionId || nested.sessionId || payment.sessionId || context.sessionId);
+    var reportSessionId = _clean((grant && (grant.reportSessionId || grant.sessionId)) || raw.reportSessionId || data.reportSessionId || nested.reportSessionId || payment.reportSessionId || context.reportSessionId || sessionId);
+    var reportId = _clean((grant && grant.reportId) || raw.reportId || data.reportId || nested.reportId || payment.reportId || context.reportId);
+    var normalized = {
+      featureKey: VEDIC_FEATURE_KEY,
+      reportType: 'vedicPremium',
+      premiumAccessToken: token || undefined,
+      transactionId: tx || undefined,
+      requestId: requestId || undefined,
+      purchaseId: purchaseId || undefined,
+      sessionId: sessionId || undefined,
+      reportSessionId: reportSessionId || undefined,
+      reportId: reportId || undefined,
+    };
+    if (grant) normalized.accessGrant = grant;
+    return normalized;
   }
 
   function _premiumTokenMatches() {
@@ -425,6 +461,52 @@
     };
   }
 
+  function _buildVedicClientEvidenceJson(profile, birthInput, chart) {
+    var localChart = chart && typeof chart.localVedicChartJson === 'object' ? chart.localVedicChartJson : null;
+    var chartBody = chart && typeof chart === 'object' ? chart : {};
+    var planetMap = chartBody.planets && typeof chartBody.planets === 'object' ? chartBody.planets : {};
+    var localPlanets = localChart && localChart.chart && Array.isArray(localChart.chart.planets) ? localChart.chart.planets : [];
+    var localHouses = localChart && localChart.chart && Array.isArray(localChart.chart.houses) ? localChart.chart.houses : [];
+    var hasPlanets = Object.keys(planetMap).length > 0 || localPlanets.length > 0;
+    var hasAscendant = Number.isFinite(Number(chartBody.ascendantSidereal || chartBody.ascendant || chartBody.lagnaLongitude))
+      || Boolean(localChart && localChart.chart && _clean(localChart.chart.lagnaSign));
+    return {
+      schemaVersion: VEDIC_CLIENT_EVIDENCE_SCHEMA_VERSION,
+      source: 'browser-vedic-book',
+      featureKey: VEDIC_FEATURE_KEY,
+      chartAvailable: Boolean(chart),
+      hasBirthInput: Boolean(birthInput && _clean(birthInput.birthDate)),
+      hasPlanets: hasPlanets,
+      hasAscendant: hasAscendant,
+      evidenceCount: (hasPlanets ? 1 : 0) + (hasAscendant ? 1 : 0) + localHouses.length,
+      birthProfile: {
+        birthDate: _clean(birthInput && birthInput.birthDate),
+        birthTime: _clean(birthInput && birthInput.birthTime),
+        timezone: _clean(birthInput && birthInput.timezone),
+        birthPlace: _clean(birthInput && birthInput.birthPlace),
+      },
+      chartSummary: {
+        calculationMode: _clean(localChart && localChart.calculationMode),
+        lagnaSign: _clean(localChart && localChart.chart && localChart.chart.lagnaSign),
+        moonSign: _clean(localChart && localChart.chart && localChart.chart.moonSign),
+        sunSign: _clean(localChart && localChart.chart && localChart.chart.sunSign),
+        moonNakshatra: _clean(localChart && localChart.chart && localChart.chart.nakshatra && localChart.chart.nakshatra.name),
+        planetCount: localPlanets.length || Object.keys(planetMap).length,
+        houseCount: localHouses.length,
+      },
+    };
+  }
+
+  function _withVedicPdfArchiveFormat(url, format) {
+    var value = _clean(url);
+    var targetFormat = _clean(format) || 'pdf';
+    if (!value || value.indexOf('/api/premium/pdf-archive/') === -1) return value;
+    if (/[?&]format=/i.test(value)) {
+      return value.replace(/([?&]format=)[^&]+/i, '$1' + encodeURIComponent(targetFormat));
+    }
+    return value + (value.indexOf('?') >= 0 ? '&' : '?') + 'format=' + encodeURIComponent(targetFormat);
+  }
+
   function _renderVedicSectionBody(body) {
     var lines = String(body || '').split(/\n+/).map(function (line) { return _clean(line); }).filter(Boolean);
     var titleMap = {
@@ -445,13 +527,12 @@
 
   function _resolveVedicDownloadUrl(result) {
     var payload = result || {};
-    return _clean(
+    return _withVedicPdfArchiveFormat(_clean(
       payload.downloadUrl
       || payload.pdfUrl
-      || payload.htmlUrl
       || (payload.pdfReady && (payload.pdfReady.downloadUrl || payload.pdfReady.pdfUrl || payload.pdfReady.htmlUrl))
       || (payload.reportId ? ('/api/premium/pdf-archive/' + encodeURIComponent(payload.reportId)) : '')
-    );
+    ), 'pdf');
   }
 
   function _showScreen(screenId) {
@@ -647,12 +728,15 @@
     }
     _logStage('PaymentGateStart', { featureKey: VEDIC_FEATURE_KEY });
     window._cdCoinGatePerUse(VEDIC_COIN_COST, '베다 점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
-      _lastPremiumPayment = data || null;
-      _persistPremiumAccessToken(_extractPremiumToken(data));
+      _lastPremiumPayment = _normalizePremiumPayment(_transactionId, data);
+      _persistPremiumAccessToken(_lastPremiumPayment.premiumAccessToken || _extractPremiumToken(data));
       _markPremiumAccessVerified(25 * 60 * 1000);
       _logStage('PaymentGateSuccess', { featureKey: VEDIC_FEATURE_KEY });
       window.generateVedicBook();
-    }, null, {
+    }, function () {
+      _lastPremiumPayment = null;
+      _logStage('PaymentGateCancel', { featureKey: VEDIC_FEATURE_KEY });
+    }, {
       featureKey: VEDIC_FEATURE_KEY,
       requestId: 'vedic-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
     });
@@ -772,27 +856,26 @@
         _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '나크샤트라와 카라카를 해석하는 중입니다');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '베다 점성술 리포트를 완성하는 중입니다');
         _logStage('SessionCreateStart', { endpoint: VEDIC_PREPARE_API, featureKey: VEDIC_FEATURE_KEY });
-        var paymentGrant = _lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null;
-        var paymentContext = paymentGrant ? {
-          featureKey: VEDIC_FEATURE_KEY,
-          requestId: paymentGrant.requestId || paymentGrant.transactionId || '',
-          purchaseId: paymentGrant.purchaseId || '',
-          sessionId: paymentGrant.sessionId || paymentGrant.reportSessionId || '',
-          reportSessionId: paymentGrant.reportSessionId || paymentGrant.sessionId || '',
-          reportId: paymentGrant.reportId || '',
-        } : undefined;
+        var paymentContext = _normalizePremiumPayment('', _lastPremiumPayment || {});
+        paymentContext.sessionId = _clean(paymentContext.sessionId || _currentVedicSessionId) || undefined;
+        paymentContext.reportSessionId = _clean(paymentContext.reportSessionId || paymentContext.sessionId || _currentVedicSessionId) || undefined;
+        paymentContext.premiumAccessToken = _readPremiumAccessToken() || paymentContext.premiumAccessToken || undefined;
+        var paymentGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
         return _postPrepare({
           sessionId: _currentVedicSessionId,
           featureKey: VEDIC_FEATURE_KEY,
-          reportSessionId: paymentGrant && (paymentGrant.reportSessionId || paymentGrant.sessionId) || _currentVedicSessionId,
-          purchaseId: paymentGrant && paymentGrant.purchaseId || undefined,
-          requestId: paymentGrant && (paymentGrant.requestId || paymentGrant.transactionId) || undefined,
+          reportSessionId: paymentContext.reportSessionId || _currentVedicSessionId,
+          purchaseId: paymentContext.purchaseId || undefined,
+          requestId: paymentContext.requestId || undefined,
+          reportId: paymentContext.reportId || undefined,
           accessGrant: paymentGrant || undefined,
-          premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(_lastPremiumPayment) || undefined,
-          payment: paymentContext || undefined,
+          premiumAccessToken: paymentContext.premiumAccessToken || undefined,
+          payment: paymentContext,
+          _paymentContext: paymentContext,
           birthInput: birthInput,
           reportType: 'vedicPremium',
           mode: 'personal',
+          vedicClientEvidenceJson: _buildVedicClientEvidenceJson(profile, birthInput, chart),
           vedicBase: chart ? _buildVedicBase(profile, chart, birthInput) : null,
         }).then(function (data) {
           _logStage('SessionCreateSuccess', {
@@ -855,12 +938,15 @@
       anchor.href = storedUrl;
       anchor.target = '_blank';
       anchor.rel = 'noopener noreferrer';
-      anchor.download = _clean(_resultPayload && _resultPayload.pdfReady && _resultPayload.pdfReady.filename) || 'vedic-premium-report.html';
+      anchor.download = (_clean(_resultPayload && _resultPayload.pdfReady && _resultPayload.pdfReady.filename) || 'vedic-premium-report.pdf').replace(/\.html?$/i, '.pdf');
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
       return;
     }
+
+    alert('PDF 다운로드 링크가 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+    return;
 
     if (!_resultPayload.pdfReady || !_resultPayload.pdfReady.html) {
       alert('리포트가 아직 준비되지 않았습니다. 먼저 생성해 주세요.');

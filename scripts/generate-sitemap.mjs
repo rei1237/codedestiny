@@ -45,6 +45,7 @@ const coreRoutes = [
   { path: "/", changefreq: "daily", priority: 1.0 },
   { path: "/saju", changefreq: "daily", priority: 0.98 },
   { path: "/manse", changefreq: "daily", priority: 0.98 },
+  { path: "/today", changefreq: "daily", priority: 0.97 },
   { path: "/daily-fortune", changefreq: "daily", priority: 0.97 },
   { path: "/compatibility", changefreq: "weekly", priority: 0.96 },
   { path: "/tarot", changefreq: "weekly", priority: 0.96 },
@@ -76,6 +77,61 @@ const coreRoutes = [
   { path: "/high-value", changefreq: "weekly", priority: 0.84 },
   { path: "/rss.xml", changefreq: "daily", priority: 0.2 },
   { path: "/insights/rss.xml", changefreq: "daily", priority: 0.2 },
+];
+
+const localeHreflangAliases = {
+  ko: ["ko", "ko-KR"],
+  ja: ["ja", "ja-JP"],
+  zh: ["zh-CN", "zh", "zh-Hans", "zh-TW", "zh-Hant"],
+  en: ["en", "en-US"],
+};
+
+const i18nRouteGroups = [
+  {
+    paths: { ko: "/", ja: "/ja", zh: "/zh", en: "/en" },
+    changefreq: "daily",
+    priority: 1.0,
+  },
+  {
+    paths: { ko: "/ziwei", ja: "/ja/ziwei", zh: "/zh/ziwei", en: "/en/ziwei" },
+    changefreq: "weekly",
+    priority: 0.95,
+  },
+  {
+    paths: { ko: "/sukuyo", ja: "/ja/sukuyo", zh: "/zh/sukuyo", en: "/en/sukuyo" },
+    changefreq: "weekly",
+    priority: 0.94,
+  },
+  {
+    paths: { ko: "/today", ja: "/ja/today", zh: "/zh/today", en: "/en/today" },
+    changefreq: "daily",
+    priority: 0.97,
+  },
+  {
+    paths: { ko: "/insights", ja: "/ja/insights", zh: "/zh/insights", en: "/en/insights" },
+    changefreq: "weekly",
+    priority: 0.9,
+  },
+  {
+    paths: {
+      ko: "/insights/ziwei-basics",
+      ja: "/ja/insights/ziwei-basics-jp",
+      zh: "/zh/insights/ziwei-basics-zh",
+      en: "/en/insights/ziwei-basics-en",
+    },
+    changefreq: "monthly",
+    priority: 0.8,
+  },
+  {
+    paths: {
+      ko: "/insights/sukuyo-basics",
+      ja: "/ja/insights/sukuyo-basics-jp",
+      zh: "/zh/insights/sukuyo-basics-zh",
+      en: "/en/insights/sukuyo-basics-en",
+    },
+    changefreq: "monthly",
+    priority: 0.8,
+  },
 ];
 
 function normalizeDate(dateLike) {
@@ -217,6 +273,53 @@ function isPublicSitemapPath(pathname) {
   return !privateRoutePatterns.some((pattern) => pattern.test(normalized));
 }
 
+function escapeXml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function buildI18nAlternates(paths) {
+  const links = [];
+  const seen = new Set();
+
+  for (const locale of ["ko", "ja", "zh", "en"]) {
+    const path = paths[locale];
+    if (!path) continue;
+    const href = toUrl(normalizeSitemapPath(path));
+    for (const hreflang of localeHreflangAliases[locale] || []) {
+      const key = `${hreflang}|${href}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      links.push({ hreflang, href });
+    }
+  }
+
+  const defaultHref = toUrl(normalizeSitemapPath(paths.ko || "/"));
+  links.push({ hreflang: "x-default", href: defaultHref });
+  return links;
+}
+
+function buildI18nRouteEntries() {
+  const entries = [];
+
+  for (const group of i18nRouteGroups) {
+    const alternates = buildI18nAlternates(group.paths);
+    for (const path of Object.values(group.paths)) {
+      entries.push({
+        path,
+        changefreq: group.changefreq,
+        priority: group.priority,
+        alternates,
+      });
+    }
+  }
+
+  return entries;
+}
+
 async function fetchPublishedInsightsFromApi() {
   const out = [];
   const seen = new Set();
@@ -263,6 +366,7 @@ async function main() {
 
   const routeEntries = [
     ...coreRoutes,
+    ...buildI18nRouteEntries(),
     ...localInsights,
     ...dynamicInsights,
     ...extractFamousSajuRoutes(),
@@ -280,6 +384,7 @@ async function main() {
       lastmod: route.lastmod || today,
       changefreq: route.changefreq || "weekly",
       priority: Number(route.priority ?? 0.7).toFixed(2),
+      alternates: Array.isArray(route.alternates) ? route.alternates : [],
     };
 
     const prev = entryMap.get(loc);
@@ -295,27 +400,35 @@ async function main() {
       lastmod: Number.isFinite(nextTime) && nextTime > prevTime ? next.lastmod : prev.lastmod,
       changefreq: prev.changefreq || next.changefreq,
       priority: Number(Math.max(Number(prev.priority), Number(next.priority))).toFixed(2),
+      alternates: prev.alternates?.length ? prev.alternates : next.alternates,
     });
   }
 
   const sorted = Array.from(entryMap.values()).sort((a, b) => a.loc.localeCompare(b.loc));
   const body = sorted
     .map(
-      (entry) =>
-        [
+      (entry) => {
+        const alternateLines = (entry.alternates || []).map(
+          (alternate) =>
+            `    <xhtml:link rel="alternate" hreflang="${escapeXml(alternate.hreflang)}" href="${escapeXml(alternate.href)}" />`,
+        );
+
+        return [
           "  <url>",
-          `    <loc>${entry.loc}</loc>`,
+          `    <loc>${escapeXml(entry.loc)}</loc>`,
+          ...alternateLines,
           `    <lastmod>${entry.lastmod}</lastmod>`,
           `    <changefreq>${entry.changefreq}</changefreq>`,
           `    <priority>${entry.priority}</priority>`,
           "  </url>",
-        ].join("\n"),
+        ].join("\n");
+      },
     )
     .join("\n");
 
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
     body,
     "</urlset>",
     "",

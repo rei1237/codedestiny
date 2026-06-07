@@ -44,8 +44,8 @@ type DestinyProfile = {
 };
 
 type ProfileSubscription = {
-  tier: "free" | "standard" | "premium" | "vvip";
-  rawTier?: "free" | "standard" | "premium" | "vvip";
+  tier: "free" | "standard" | "premium" | "vvip" | "family";
+  rawTier?: "free" | "standard" | "premium" | "vvip" | "family";
   isActive: boolean;
   profileLimit: number;
   expiresAt: string | null;
@@ -156,15 +156,17 @@ function profileActionProductName(action: ProfileActionType) {
   return `\uD504\uB85C\uD544 \uCE74\uB4DC ${profileActionLabel(action)}`;
 }
 
-function profileActionButtonLabel(action: ProfileActionType, isVvipFree: boolean, coinBalance: number) {
+function profileActionButtonLabel(action: ProfileActionType, freeLabel: string, coinBalance: number) {
   const label = profileActionLabel(action);
-  if (isVvipFree) return `VVIP 무료 ${profileActionLabel(action)}`;
-  if (coinBalance >= PROFILE_CARD_ACTION_COST_COINS) return `${label} 勇?${PROFILE_CARD_ACTION_COST_COINS}\uCF54\uC778`;
-  return `${label} 勇?${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}\uC6D0`;
+  if (freeLabel === "VVIP") return `VVIP 무료 ${profileActionLabel(action)}`;
+  if (freeLabel) return `${freeLabel} 무료 ${profileActionLabel(action)}`;
+  if (coinBalance >= PROFILE_CARD_ACTION_COST_COINS) return `${label} · ${PROFILE_CARD_ACTION_COST_COINS}\uCF54\uC778`;
+  return `${label} · ${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}\uC6D0`;
 }
 
-function profileActionPrimaryLabel(action: ProfileActionType, isVvipFree: boolean, coinBalance: number) {
-  if (isVvipFree) return `VVIP 무료 ${profileActionLabel(action)}`;
+function profileActionPrimaryLabel(action: ProfileActionType, freeLabel: string, coinBalance: number) {
+  if (freeLabel === "VVIP") return `VVIP 무료 ${profileActionLabel(action)}`;
+  if (freeLabel) return `${freeLabel} 무료 ${profileActionLabel(action)}`;
   if (coinBalance >= PROFILE_CARD_ACTION_COST_COINS) return `${PROFILE_CARD_ACTION_COST_COINS}\uCF54\uC778 \uC0AC\uC6A9`;
   return `${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}\uC6D0 \uACB0\uC81C`;
 }
@@ -267,6 +269,7 @@ function planLabel(tier: ProfileSubscription["tier"]) {
   if (tier === "standard") return "\uC2A4\uD0E0\uB2E4\uB4DC \uC774\uC6A9\uAD8C";
   if (tier === "premium") return "\uD504\uB9AC\uBBF8\uC5C4 \uC774\uC6A9\uAD8C";
   if (tier === "vvip") return "VVIP \uC774\uC6A9\uAD8C";
+  if (tier === "family") return "Code Destiny Family";
   return "\uBB34\uB8CC \uACC4\uC815";
 }
 
@@ -348,16 +351,23 @@ export default function MePage() {
   const activeProfileCardRef = useRef<HTMLElement | null>(null);
 
   const currentProfile = profiles.find((profile) => profile.id === currentId) || profiles[0] || null;
-  const profileLimit = subscription.profileLimit > 0 ? subscription.profileLimit : 1;
-  const slotPercent = Math.min(100, Math.round((profiles.length / profileLimit) * 100));
+  const isUnlimitedProfilePlan = subscription.isActive && subscription.profileLimit === 0;
+  const profileLimit = isUnlimitedProfilePlan ? Math.max(profiles.length, 1) : (subscription.profileLimit > 0 ? subscription.profileLimit : 1);
+  const profileLimitLabel = isUnlimitedProfilePlan ? "∞" : String(profileLimit);
+  const slotPercent = isUnlimitedProfilePlan ? 100 : Math.min(100, Math.round((profiles.length / profileLimit) * 100));
   const monthlyStoneBalance = formatMonthlyStoneBalance(membershipCreditBalance);
   const profileActionCoinBalance = Math.max(0, Math.floor(Number(membershipCreditBalance || 0) / 10));
-  const isVvipProfileActionFree = subscription.isActive && subscription.tier === "vvip" && profiles.length <= profileLimit;
-  const hasStoredVvipPass = subscription.rawTier === "vvip" || subscription.tier === "vvip";
+  const profileActionFreeLabel = subscription.isActive && subscription.tier === "family"
+    ? "Family"
+    : (subscription.isActive && subscription.tier === "vvip" && profiles.length <= profileLimit ? "VVIP" : "");
+  const isVvipProfileActionFree = Boolean(profileActionFreeLabel);
+  const hasStoredVvipPass = subscription.rawTier === "vvip" || subscription.tier === "vvip" || subscription.rawTier === "family" || subscription.tier === "family";
   const isExpiredVvipProfileAction = hasStoredVvipPass && !subscription.isActive;
   const isVvipProfileLimitExceeded = subscription.isActive && subscription.tier === "vvip" && profiles.length > profileLimit;
-  const profileActionPolicyNotice = isVvipProfileActionFree
+  const profileActionPolicyNotice = profileActionFreeLabel === "VVIP"
     ? "VVIP 혜택 적용 중 · 한도 내 무료 관리"
+    : profileActionFreeLabel
+      ? `${profileActionFreeLabel} 무료 관리 적용 중`
     : isExpiredVvipProfileAction
       ? "이용권이 만료되어 50코인이 필요합니다."
       : isVvipProfileLimitExceeded
@@ -394,7 +404,7 @@ export default function MePage() {
             tier: (payload.subscription.tier || "free") as ProfileSubscription["tier"],
             rawTier: (payload.subscription.rawTier || payload.subscription.tier || "free") as ProfileSubscription["rawTier"],
             isActive: !!payload.subscription.isActive,
-            profileLimit: Number(payload.subscription.profileLimit || 1),
+            profileLimit: Number.isFinite(Number(payload.subscription.profileLimit)) ? Math.max(0, Math.floor(Number(payload.subscription.profileLimit))) : 1,
             expiresAt: payload.subscription.expiresAt || null,
         }
       : fallbackSubscription();
@@ -897,7 +907,7 @@ export default function MePage() {
         if (passApplied) {
           setProfilePassSuccessNotice({
             title: profileActionProductName(action),
-            tierLabel: subscription.tier === "vvip" ? "VVIP" : (subscription.tier === "premium" ? "\uD504\uB9AC\uBBF8\uC5C4" : "\uC2A4\uD0E0\uB2E4\uB4DC"),
+            tierLabel: subscription.tier === "family" ? "Family" : (subscription.tier === "vvip" ? "VVIP" : (subscription.tier === "premium" ? "\uD504\uB9AC\uBBF8\uC5C4" : "\uC2A4\uD0E0\uB2E4\uB4DC")),
           });
         }
       }
@@ -1016,7 +1026,7 @@ export default function MePage() {
         <section className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
             <p className="text-xs text-slate-400">??? ??</p>
-            <p className="mt-1 text-xl font-bold text-white">{profiles.length}/{profileLimit}</p>
+            <p className="mt-1 text-xl font-bold text-white">{profiles.length}/{profileLimitLabel}</p>
             <div className="mt-3 h-2 rounded-full bg-slate-800">
               <div className="h-2 rounded-full bg-amber-300" style={{ width: `${slotPercent}%` }} />
             </div>
@@ -1176,7 +1186,7 @@ export default function MePage() {
                                 disabled={editing || deleting || activating || !!busyAction}
                                 className="flex min-h-[44px] w-full touch-manipulation items-center rounded-md px-3 py-2 text-left text-sm font-semibold text-amber-100 hover:bg-amber-300/10 disabled:opacity-40"
                               >
-                                {editing ? profileActionProgressLabel("edit", profileActionStage) : profileActionButtonLabel("edit", isVvipProfileActionFree, profileActionCoinBalance)}
+                                {editing ? profileActionProgressLabel("edit", profileActionStage) : profileActionButtonLabel("edit", profileActionFreeLabel, profileActionCoinBalance)}
                               </button>
                               <button
                                 type="button"
@@ -1188,7 +1198,7 @@ export default function MePage() {
                                 disabled={deleting || editing || activating || !!busyAction}
                                 className="flex min-h-[44px] w-full touch-manipulation items-center rounded-md px-3 py-2 text-left text-sm font-bold text-rose-100 hover:bg-rose-500/15 disabled:opacity-40"
                               >
-                                {deleting ? profileActionProgressLabel("delete", profileActionStage) : profileActionButtonLabel("delete", isVvipProfileActionFree, profileActionCoinBalance)}
+                                {deleting ? profileActionProgressLabel("delete", profileActionStage) : profileActionButtonLabel("delete", profileActionFreeLabel, profileActionCoinBalance)}
                               </button>
                             </div>
                           ) : null}
@@ -1378,7 +1388,7 @@ export default function MePage() {
                 disabled={!editDraft.name.trim() || !editDraft.birthDate || !editDraft.birthTime || !!busyAction}
                 className="min-h-[44px] rounded-md bg-amber-300 px-3 py-2 text-sm font-bold text-slate-900 disabled:opacity-45"
               >
-                {busyAction === `edit:${editTarget.id}` ? profileActionProgressLabel("edit", profileActionStage) : profileActionPrimaryLabel("edit", isVvipProfileActionFree, profileActionCoinBalance)}
+                {busyAction === `edit:${editTarget.id}` ? profileActionProgressLabel("edit", profileActionStage) : profileActionPrimaryLabel("edit", profileActionFreeLabel, profileActionCoinBalance)}
               </button>
             </div>
           </div>
@@ -1427,7 +1437,7 @@ export default function MePage() {
                 disabled={!!busyAction}
                 className="min-h-[44px] rounded-md bg-rose-400 px-3 py-2 text-sm font-bold text-slate-950 shadow-lg shadow-rose-950/30 disabled:opacity-45"
               >
-                {busyAction === `delete:${deleteTarget.id}` ? profileActionProgressLabel("delete", profileActionStage) : profileActionPrimaryLabel("delete", isVvipProfileActionFree, profileActionCoinBalance)}
+                {busyAction === `delete:${deleteTarget.id}` ? profileActionProgressLabel("delete", profileActionStage) : profileActionPrimaryLabel("delete", profileActionFreeLabel, profileActionCoinBalance)}
               </button>
             </div>
           </div>

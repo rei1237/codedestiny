@@ -2,30 +2,37 @@ export const PASS_TIERS = Object.freeze({
   STANDARD: "standard",
   PREMIUM: "premium",
   VVIP: "vvip",
+  FAMILY: "family",
 });
+
+export const FAMILY_PASS_MAX_COVERED_COIN = 999999999;
 
 export const PASS_LIMITS = Object.freeze({
   [PASS_TIERS.STANDARD]: 30,
   [PASS_TIERS.PREMIUM]: 50,
   [PASS_TIERS.VVIP]: 100,
+  [PASS_TIERS.FAMILY]: FAMILY_PASS_MAX_COVERED_COIN,
 });
 
 export const PASS_TIER_UI = Object.freeze({
   [PASS_TIERS.STANDARD]: { tone: "standard", color: "warm_copper" },
   [PASS_TIERS.PREMIUM]: { tone: "premium", color: "cold_moonlight_silver" },
   [PASS_TIERS.VVIP]: { tone: "vvip", color: "golden_moonlight" },
+  [PASS_TIERS.FAMILY]: { tone: "family", color: "code_destiny_family" },
 });
 
 const LEGACY_TIER_TO_PASS_TIER = Object.freeze({
   standard: PASS_TIERS.STANDARD,
   premium: PASS_TIERS.PREMIUM,
   vvip: PASS_TIERS.VVIP,
+  family: PASS_TIERS.FAMILY,
 });
 
 const PASS_TIER_TO_LEGACY_TIER = Object.freeze({
   standard: "standard",
   premium: "premium",
   vvip: "vvip",
+  family: "family",
   bronze: "standard",
   silver: "premium",
   gold: "vvip",
@@ -55,18 +62,26 @@ export const HONEY_PASS_POLICY = Object.freeze({
     maxCoveredCoin: PASS_LIMITS.vvip,
     maxProfiles: 15,
   },
+  family: {
+    passTier: PASS_TIERS.FAMILY,
+    label: "Code Destiny Family",
+    maxCoveredCoin: PASS_LIMITS.family,
+    maxProfiles: 0,
+  },
 });
 
 export const PROFILE_LIMIT_BY_TIER = Object.freeze({
   standard: HONEY_PASS_POLICY.standard.maxProfiles,
   premium: HONEY_PASS_POLICY.premium.maxProfiles,
   vvip: HONEY_PASS_POLICY.vvip.maxProfiles,
+  family: HONEY_PASS_POLICY.family.maxProfiles,
 });
 
 export const HONEY_PASS_FREE_LIMIT_BY_TIER = Object.freeze({
   standard: HONEY_PASS_POLICY.standard.maxCoveredCoin,
   premium: HONEY_PASS_POLICY.premium.maxCoveredCoin,
   vvip: HONEY_PASS_POLICY.vvip.maxCoveredCoin,
+  family: HONEY_PASS_POLICY.family.maxCoveredCoin,
 });
 
 function toText(value) {
@@ -77,6 +92,7 @@ function tierFromValue(value) {
   const text = toText(value).toLowerCase();
   if (!text || text === "free" || text === "none") return "";
   if (PASS_TIER_TO_LEGACY_TIER[text]) return PASS_TIER_TO_LEGACY_TIER[text];
+  if (text.includes("code destiny family") || text.includes("code-destiny-family")) return "family";
   if (text === "vvip" || text.includes("vvip") || text.includes("꿀단지")) return "vvip";
   if (text.includes("\uBE0C\uC774\uBE0C\uC774\uC544\uC774\uD53C") || text.includes("\uACE8\uB4DC")) return "vvip";
   if (text === "premium" || text.includes("premium") || text.includes("프리미엄")) return "premium";
@@ -246,6 +262,7 @@ export function canUseByPass(activePass, coinCost) {
   if (!activePass || activePass.isActive !== true) return false;
   if (expiresAt && Number.isFinite(expiresAt.getTime()) && expiresAt.getTime() < Date.now()) return false;
   const passTier = normalizePassTier(activePass.passTier || activePass.tier);
+  if (passTier === PASS_TIERS.FAMILY) return Number.isFinite(price) && price >= 0;
   const limit = PASS_LIMITS[passTier] || Number(activePass.maxCoveredCoin || 0);
   return Boolean(
     Number.isFinite(price)

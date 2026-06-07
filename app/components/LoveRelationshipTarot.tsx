@@ -238,10 +238,10 @@ export default function LoveRelationshipTarot() {
           return;
         }
         if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) {
-          showToast("API 오류로 이번 결제가 자동 환불되었습니다.", "info");
+          showToast("리딩 생성이 완료되지 않아 이번 결제가 환불되었습니다.", "info");
         }
         if (!paymentResult.ok) {
-          setError(String(paymentResult.message || "코인 차감에 실패했습니다."));
+          setError(String(paymentResult.message || "결제 확인이 완료되지 않았습니다."));
           return;
         }
       }

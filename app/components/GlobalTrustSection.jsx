@@ -43,9 +43,9 @@ const TRUST_BADGES = [
   },
   {
     icon: "🔄",
-    label: "Guarantee",
-    value: "30-Day Refund",
-    sub: "No questions asked",
+    label: "Refund Guide",
+    value: "7-Day Unused",
+    sub: "Delivery-start limits apply",
   },
 ];
 
@@ -294,9 +294,10 @@ export default function GlobalTrustSection({ compact = false, showFooter = true,
                     margin: 0,
                   }}
                 >
-                  Premium Coins (digital credits) are refundable within{" "}
-                  <strong style={{ color: "#64748b" }}>14 days of purchase</strong> if unused,
-                  per consumer protection law. Used credits are non-refundable.{" "}
+                  Unused paid readings or PDF orders may be submitted for withdrawal within{" "}
+                  <strong style={{ color: "#64748b" }}>7 days of payment</strong>. Once digital
+                  content delivery starts, refunds may be limited. Failed, duplicated, or
+                  undelivered orders are regenerated or refunded.{" "}
                   <a
                     href={`${ORIGIN}/contact`}
                     style={{ color: "#a78bfa", textDecoration: "none" }}

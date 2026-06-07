@@ -8,8 +8,8 @@ import {
 
 export const SEO_SITE_URL = "https://code-destiny.com";
 export const SEO_DEFAULT_OG_IMAGE = `${SEO_SITE_URL}/og/code-destiny-og.png`;
-export const SEO_HOME_TITLE = "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니";
-export const SEO_TITLE_TEMPLATE = "%s | 코드 데스티니";
+export const SEO_HOME_TITLE = "무료 사주팔자 · 오늘의 운세 · 꿀꿀 운세 | 코드 데스티니";
+export const SEO_TITLE_TEMPLATE = "%s | 꿀꿀 운세";
 
 const SEO_REQUIRED_PLATFORM_KEYWORDS = [
   "코드 데스티니",
@@ -60,7 +60,7 @@ export type BuildSeoMetadataOptions = {
 export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
   const path = normalizePath(options.path);
   const canonical = getCanonicalUrl(path);
-  const title = path === "/" ? SEO_HOME_TITLE : String(options.title || "코드 데스티니").trim();
+  const title = path === "/" ? SEO_HOME_TITLE : String(options.title || "코드 데스티니 꿀꿀 운세").trim();
   const description = String(options.description || "").trim();
   const indexable = isIndexableRoute(path, Boolean(options.noindex));
 
@@ -113,7 +113,7 @@ export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
       title,
       description,
       url: canonical,
-      siteName: "Code Destiny",
+      siteName: "Code Destiny | 꿀꿀 운세",
       locale: "ko_KR",
       images: [
         {

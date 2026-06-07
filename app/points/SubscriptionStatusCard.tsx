@@ -5,7 +5,7 @@
  * 이용권 이용권 상태를 시각적으로 표시하는 카드 컴포넌트
  */
 
-type SubscriptionTier = "free" | "standard" | "premium" | "vvip";
+type SubscriptionTier = "free" | "standard" | "premium" | "vvip" | "family";
 
 type SubscriptionStatus = {
   tier: SubscriptionTier;
@@ -57,9 +57,9 @@ const TIER_META: Record<SubscriptionTier, {
     badge: "bg-gradient-to-r from-[#d8bd72] to-[#f5df9d] text-[#1d1834]",
     badgeText: "STANDARD",
     dot: "bg-[#f5df9d]",
-    desc: "30코인 이하 서비스 무료 · 최대 3개 프로필",
+    desc: "일반 유료 서비스 30코인 이하 이용 · PDF 생성 30코인 할인 · 최대 3개 프로필",
     profileMax: "3개",
-    freeUpTo: "30코인 이하 무료",
+    freeUpTo: "일반 30코인 이하 · PDF 30코인 할인",
   },
   premium: {
     icon: "🌕",
@@ -70,9 +70,9 @@ const TIER_META: Record<SubscriptionTier, {
     badge: "bg-gradient-to-r from-[#cab8ff] to-[#f2d48f] text-[#17142b]",
     badgeText: "PREMIUM",
     dot: "bg-[#cab8ff]",
-    desc: "50코인 이하 서비스 무료 · 최대 7개 프로필",
+    desc: "일반 유료 서비스 50코인 이하 이용 · PDF 생성 50코인 할인 · 최대 7개 프로필",
     profileMax: "7개",
-    freeUpTo: "50코인 이하 무료",
+    freeUpTo: "일반 50코인 이하 · PDF 50코인 할인",
   },
   vvip: {
     icon: "🌌",
@@ -83,9 +83,22 @@ const TIER_META: Record<SubscriptionTier, {
     badge: "bg-gradient-to-r from-[#f3dd9a] via-[#cab8ff] to-[#8cb8ff] text-[#11142a]",
     badgeText: "VVIP",
     dot: "bg-[#f3dd9a]",
-    desc: "100코인 이하 서비스 무료 · 최대 15개 프로필",
+    desc: "일반 유료 서비스 100코인 이하 이용 · PDF 생성 100코인 할인 · 최대 15개 프로필",
     profileMax: "15개",
-    freeUpTo: "100코인 이하 무료",
+    freeUpTo: "일반 100코인 이하 · PDF 100코인 할인",
+  },
+  family: {
+    icon: "∞",
+    label: "Code Destiny Family",
+    coinValue: 3000,
+    bg: "from-[#07150f]/95 via-[#123a2c]/92 to-[#374b2b]/90",
+    border: "border-emerald-200/55",
+    badge: "bg-gradient-to-r from-emerald-200 via-[#f3dd9a] to-[#8cb8ff] text-[#07150f]",
+    badgeText: "FAMILY",
+    dot: "bg-emerald-200",
+    desc: "PDF 포함 모든 유료 서비스 무료 · 프로필 수정·삭제 무료, 제한 없음",
+    profileMax: "무제한",
+    freeUpTo: "모든 유료/PDF 서비스 무료",
   },
 };
 
@@ -122,6 +135,9 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
   const isExpired = daysLeft === 0 && subscription.isActive === false;
   const isActivePass = subscription.isActive && effectiveTier !== "free";
   const wonValue = meta.coinValue * 100;
+  const singlePaymentCopy = effectiveTier === "family"
+    ? "Family 이용권으로 모든 서비스가 무료 처리됩니다."
+    : "일반 한도 초과 서비스는 기존가 결제, PDF는 할인 후 잔액 결제됩니다.";
 
   return (
     <section
@@ -204,7 +220,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
               </div>
               {meta.freeUpTo && (
                 <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
-                  <p className="text-[10px] text-slate-300 font-bold">무료 이용 범위</p>
+                  <p className="text-[10px] text-slate-300 font-bold">일반/PDF 정책</p>
                   <p className="text-[12px] font-black text-white">{meta.freeUpTo}</p>
                 </div>
               )}
@@ -216,7 +232,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
 
             <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
               <p className="text-[10px] text-slate-300 font-bold">단건 결제</p>
-              <p className="text-[12px] font-black text-white">플랜 범위 밖 서비스는 원화 단건 결제로 이용 가능</p>
+              <p className="text-[12px] font-black text-white">{singlePaymentCopy}</p>
             </div>
 
             {/* 이용권 혜택 범위 안내 */}

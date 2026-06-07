@@ -4,6 +4,7 @@
   var TOTAL_CHAPTERS = 15;
   var FEATURE_KEY = 'premium-ziwei-report';
   var FEATURE_KEY_ALIASES = ['premium-ziwei-report', 'premium_pdf_ziwei'];
+  var ZIWEI_CLIENT_EVIDENCE_SCHEMA_VERSION = 'ziwei-premium-client-evidence.v1';
   var COIN_COST = 590;
   var PREPARE_API = '/api/ziwei-book/prepare';
   var RESULT_API = '/api/ziwei-book/result';
@@ -823,6 +824,40 @@
     return seed;
   }
 
+  function buildZiweiClientEvidenceJson(seed, birthInput){
+    var source = seed && typeof seed === 'object' ? seed : {};
+    var palaces = Array.isArray(source.palaces) ? source.palaces : [];
+    var sihua = Array.isArray(source.sihua) ? source.sihua : [];
+    var decadeLuck = Array.isArray(source.luck && source.luck.decadeLuck) ? source.luck.decadeLuck : [];
+    var annualLuck = Array.isArray(source.luck && source.luck.annual) ? source.luck.annual : [];
+    var chartMeta = source.chartMeta && typeof source.chartMeta === 'object' ? source.chartMeta : {};
+    var input = birthInput && typeof birthInput === 'object' ? birthInput : {};
+    return {
+      schemaVersion: ZIWEI_CLIENT_EVIDENCE_SCHEMA_VERSION,
+      source: 'browser-ziwei-book',
+      featureKey: FEATURE_KEY,
+      generatedAt: new Date().toISOString(),
+      hasBirthInput: Boolean(input.birthDate || (input.year && input.month && input.day)),
+      chartAvailable: Boolean(source && palaces.length),
+      hasZiweiBase: Boolean(source && palaces.length),
+      hasPalaces: palaces.length >= 12,
+      hasMingGong: Boolean(text(chartMeta.mingGong)),
+      hasShenGong: Boolean(text(chartMeta.shenGong)),
+      evidenceCount: palaces.length + sihua.length + decadeLuck.length + annualLuck.length,
+      chartSummary: {
+        palaceCount: palaces.length,
+        sihuaCount: sihua.length,
+        decadeLuckCount: decadeLuck.length,
+        annualLuckCount: annualLuck.length,
+        mingGong: text(chartMeta.mingGong),
+        shenGong: text(chartMeta.shenGong),
+        fiveElementBureau: text(chartMeta.fiveElementBureau),
+        yearStemBranch: text(chartMeta.yearStemBranch)
+      },
+      diagnostics: source.diagnostics || null
+    };
+  }
+
   function getPremiumToken(){
     try {
       var keys = ['cd_premium_access','premiumAccessToken','cdPremiumAccessToken','ziweiPremiumAccessToken'];
@@ -840,6 +875,62 @@
       localStorage.setItem('ziweiPremiumAccessToken', token);
       sessionStorage.setItem('ziweiPremiumAccessToken', token);
     } catch(e) {}
+  }
+
+  function objectValue(source, key){
+    return source && typeof source[key] === 'object' && source[key] !== null ? source[key] : {};
+  }
+
+  function extractAccessGrant(source){
+    if(!source || typeof source !== 'object') return null;
+    if(source.accessGrant && typeof source.accessGrant === 'object') return source.accessGrant;
+    return extractAccessGrant(source.data) || extractAccessGrant(source.payload) || extractAccessGrant(source.payment) || extractAccessGrant(source._paymentContext) || extractAccessGrant(source.paymentContext) || extractAccessGrant(source.consume);
+  }
+
+  function normalizePaymentContext(source, birthHash){
+    var raw = source && typeof source === 'object' ? source : {};
+    var grant = extractAccessGrant(raw);
+    var sources = [
+      grant || {},
+      raw,
+      objectValue(raw, 'data'),
+      objectValue(raw, 'payload'),
+      objectValue(raw, 'payment'),
+      objectValue(raw, '_paymentContext'),
+      objectValue(raw, 'paymentContext'),
+      objectValue(raw, 'consume')
+    ];
+    function pick(keys){
+      for(var i = 0; i < sources.length; i += 1){
+        for(var k = 0; k < keys.length; k += 1){
+          var found = text(sources[i] && sources[i][keys[k]]);
+          if(found) return found;
+        }
+      }
+      return '';
+    }
+    var token = pick(['premiumAccessToken', '_premiumAccessToken', 'accessToken', 'token']) || getPremiumToken();
+    var transactionId = pick(['transactionId', 'paymentId', 'purchaseId', 'requestId']);
+    var requestId = pick(['requestId', 'transactionId']) || transactionId;
+    var purchaseId = pick(['purchaseId', 'paymentId', 'transactionId']) || transactionId;
+    var sessionId = pick(['sessionId', 'reportSessionId']) || buildSessionId(birthHash);
+    var reportSessionId = pick(['reportSessionId', 'sessionId']) || sessionId;
+    var context = {
+      featureKey: FEATURE_KEY,
+      featureAliases: FEATURE_KEY_ALIASES.slice(),
+      reportType: 'ziweiPremium',
+      premiumAccessToken: token || undefined,
+      transactionId: transactionId || undefined,
+      requestId: requestId || undefined,
+      purchaseId: purchaseId || undefined,
+      sessionId: sessionId || undefined,
+      reportSessionId: reportSessionId || undefined,
+      reportId: pick(['reportId']) || undefined,
+      paidAt: pick(['paidAt', 'createdAt']) || undefined,
+      birthHash: text(birthHash) || undefined
+    };
+    if(grant) context.accessGrant = grant;
+    return context;
   }
 
   async function ensurePaymentOrRestore(birthInput){
@@ -891,20 +982,23 @@
           reject(new Error(result.message || '코인 결제 확인이 필요합니다.'));
           return;
         }
-        var token = text(result && (result.premiumAccessToken || result.accessToken || result.token)) || getPremiumToken();
+        var paymentContext = normalizePaymentContext(result, birthHash);
+        var token = text(paymentContext.premiumAccessToken) || getPremiumToken();
         if(token) storePremiumToken(token);
-        var sessionId = text(result && (result.sessionId || result.reportSessionId)) || buildSessionId(birthHash);
-        var transactionId = text(result && (result.transactionId || (result.paymentContext && result.paymentContext.transactionId)));
-        var savedSession = writePaidSession({
+        var sessionId = text(paymentContext.sessionId) || buildSessionId(birthHash);
+        paymentContext.sessionId = sessionId;
+        paymentContext.reportSessionId = text(paymentContext.reportSessionId) || sessionId;
+        paymentContext.premiumAccessToken = token || undefined;
+        var savedSession = writePaidSession(Object.assign({}, paymentContext, {
           featureKey: FEATURE_KEY,
           reportType: 'ziweiPremium',
           sessionId: sessionId,
           premiumAccessToken: token,
-          transactionId: transactionId,
-          paidAt: new Date().toISOString(),
+          transactionId: text(paymentContext.transactionId),
+          paidAt: text(paymentContext.paidAt) || new Date().toISOString(),
           birthHash: birthHash,
           status: 'paid'
-        });
+        }));
         logFlow('PaymentCreated', {
           birthHash: birthHash,
           hasToken: Boolean(token),
@@ -914,7 +1008,10 @@
           ok: true,
           premiumAccessToken: token,
           sessionId: sessionId,
-          birthHash: birthHash
+          birthHash: birthHash,
+          accessGrant: paymentContext.accessGrant || undefined,
+          payment: paymentContext,
+          _paymentContext: paymentContext
         }));
       }
       try {
@@ -1006,20 +1103,31 @@
   }
 
   async function postPrepare(profile, seed, payment, birthInput){
-    var token = (payment && (payment.premiumAccessToken || payment.accessToken)) || getPremiumToken();
     var sessionId = text(payment && payment.sessionId) || buildSessionId(text(payment && payment.birthHash));
     var birthHash = text(payment && payment.birthHash) || makeBirthHash(birthInput || {});
+    var paymentContext = normalizePaymentContext(Object.assign({}, payment || {}, { sessionId: sessionId, birthHash: birthHash }), birthHash);
+    var token = text(paymentContext.premiumAccessToken) || (payment && (payment.premiumAccessToken || payment.accessToken)) || getPremiumToken();
+    paymentContext.premiumAccessToken = token || undefined;
+    paymentContext.sessionId = text(paymentContext.sessionId) || sessionId;
+    paymentContext.reportSessionId = text(paymentContext.reportSessionId) || paymentContext.sessionId || sessionId;
+    var accessGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
     var headers = { 'Content-Type': 'application/json' };
     if(token) headers['x-premium-access-token'] = token;
     var body = {
       featureKey: FEATURE_KEY,
       reportType: 'ziweiPremium',
       sessionId: sessionId || undefined,
-      reportSessionId: sessionId || undefined,
+      reportSessionId: paymentContext.reportSessionId || sessionId || undefined,
       idempotencyKey: 'ziwei:' + sessionId + ':' + birthHash,
       birthHash: birthHash,
       premiumAccessToken: token || '',
-      paymentContext: payment || {},
+      requestId: text(paymentContext.requestId) || undefined,
+      purchaseId: text(paymentContext.purchaseId) || undefined,
+      reportId: text(paymentContext.reportId) || undefined,
+      accessGrant: accessGrant || undefined,
+      payment: paymentContext,
+      _paymentContext: paymentContext,
+      paymentContext: paymentContext,
       birthProfile: profile,
       birthInput: birthInput,
       year: profile.year,
@@ -1030,6 +1138,7 @@
       gender: profile.gender,
       calendarType: profile.calendarType,
       birthplace: profile.birthplace,
+      ziweiClientEvidenceJson: buildZiweiClientEvidenceJson(seed, birthInput),
       ziweiBase: seed
     };
     logFlow('PrepareRequest', {
@@ -1458,6 +1567,16 @@
     return basic && basic[1] ? basic[1] : '';
   }
 
+  function withZiweiPdfArchiveFormat(url, format){
+    var value = text(url);
+    var targetFormat = text(format) || 'pdf';
+    if(!value || value.indexOf('/api/premium/pdf-archive/') === -1) return value;
+    if(/[?&]format=/i.test(value)){
+      return value.replace(/([?&]format=)[^&]+/i, '$1' + encodeURIComponent(targetFormat));
+    }
+    return value + (value.indexOf('?') === -1 ? '?' : '&') + 'format=' + encodeURIComponent(targetFormat);
+  }
+
   window.downloadZiweiBookPdf = async function(){
     if(DOWNLOADING) return;
     if(!RESULT){
@@ -1482,7 +1601,15 @@
     DOWNLOADING = true;
     var failMessage = 'PDF 파일을 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.';
     try {
-      var res = await fetch(DOWNLOAD_API + '?reportId=' + encodeURIComponent(reportId), {
+      var ready = RESULT && RESULT.pdfReady && typeof RESULT.pdfReady === 'object' ? RESULT.pdfReady : {};
+      var downloadUrl = text(ready.downloadUrl || ready.pdfUrl || RESULT.downloadUrl || RESULT.pdfUrl);
+      if(downloadUrl && downloadUrl.indexOf('/api/premium/pdf-archive/') !== -1){
+        downloadUrl = withZiweiPdfArchiveFormat(downloadUrl, 'pdf');
+      }
+      if(!downloadUrl){
+        downloadUrl = DOWNLOAD_API + '?reportId=' + encodeURIComponent(reportId);
+      }
+      var res = await fetch(downloadUrl, {
         method: 'GET',
         credentials: 'include'
       });

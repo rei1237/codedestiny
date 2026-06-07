@@ -243,22 +243,37 @@ async function main() {
   const manuscriptSource = clean(payload.manuscriptSource).toLowerCase();
   const calcMode = clean(payload?.localAstroChartJson?.calculationMode).toLowerCase();
   const hasPdfHtml = Boolean(clean(payload?.pdfReady?.html));
+  const pdfUrl = clean(payload?.pdfReady?.pdfUrl || payload?.pdfUrl);
+  const htmlUrl = clean(payload?.pdfReady?.htmlUrl || payload?.htmlUrl);
+  const mimeType = clean(payload?.pdfReady?.mimeType);
+  const masterSchema = clean(payload?.astroMasterJson?.schemaVersion);
+  const masterValidationOk = Boolean(payload?.masterJsonValidation?.ok);
   const validationOk = Boolean(payload?.validation?.ok);
 
   printKeyValue("PREPARE_OK", Boolean(payload.ok));
   printKeyValue("CHAPTERS", chapters.length);
   printKeyValue("MANUSCRIPT_SOURCE", manuscriptSource);
   printKeyValue("SEED_CALC_MODE", calcMode);
+  printKeyValue("MASTER_SCHEMA", masterSchema);
+  printKeyValue("MASTER_VALIDATION_OK", masterValidationOk);
   printKeyValue("VALIDATION_OK", validationOk);
   printKeyValue("HAS_PDF_HTML", hasPdfHtml);
+  printKeyValue("PDF_URL", pdfUrl);
+  printKeyValue("HTML_URL", htmlUrl);
+  printKeyValue("MIME_TYPE", mimeType);
   printKeyValue("REPORT_ID", clean(payload.reportId));
 
   ensure(prepareResult.ok && payload.ok, "점성술 prepare 실패", payload);
   ensure(chapters.length === 12, "챕터 수가 12가 아님", { chapterCount: chapters.length, payload });
   ensure(["llm-only", "llm-local-hybrid"].includes(manuscriptSource), "허용되지 않은 원고 소스", { manuscriptSource, payload });
   ensure(calcMode === "full", "Swiss 기반 full 계산 seed 아님", { calcMode, payload });
+  ensure(masterSchema === "astro-premium-master-json.v1", "점성술 마스터 JSON 스키마 누락", payload?.astroMasterJson || payload);
+  ensure(masterValidationOk, "점성술 마스터 JSON 검증 실패", payload?.masterJsonValidation || payload);
   ensure(validationOk, "최종 원고 검증 실패", payload?.validation || payload);
   ensure(hasPdfHtml, "PDF html 누락", payload?.pdfReady || payload);
+  ensure(/\/api\/premium\/pdf-archive\/.+[?&]format=pdf/i.test(pdfUrl), "PDF archive URL 형식 오류", payload?.pdfReady || payload);
+  ensure(/\/api\/premium\/pdf-archive\/.+[?&]format=html/i.test(htmlUrl), "HTML archive URL 형식 오류", payload?.pdfReady || payload);
+  ensure(mimeType === "application/pdf", "PDF mimeType 오류", payload?.pdfReady || payload);
 
   printKeyValue("E2E_RESULT", "PASS");
 }

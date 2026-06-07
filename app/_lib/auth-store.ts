@@ -42,6 +42,8 @@ type LoginApiPayload = {
 };
 
 type BillingBalanceData = {
+  authenticated?: boolean;
+  degraded?: boolean;
   monthlyCredits?: number;
   membershipCreditBalance?: number;
   membership?: {
@@ -314,6 +316,7 @@ export async function refreshBillingBalance() {
     const payload = (await response.json().catch(() => null)) as BillingBalancePayload | null;
     if (!payload) return null;
     const balanceData = payload.data && typeof payload.data === "object" ? payload.data : payload;
+    if (balanceData.authenticated === false || balanceData.degraded === true) return null;
 
     const monthlyCredits = Number(
       balanceData.monthlyCredits

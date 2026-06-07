@@ -18601,19 +18601,36 @@ function renderZiwei(p, natal, targetId) {
           '태음': { god:'아르테미스', seal:'달빛 활', tone:'감각, 보호, 축적의 힘이 은밀하게 자랍니다.', oracle:'서두르지 않는 축적이 가장 큰 무기가 됩니다.' },
           '무곡': { god:'헤파이스토스', seal:'대장간의 망치', tone:'현실 감각과 재물 운용력이 단단합니다.', oracle:'숫자, 계약, 자산 구조를 직접 쥐어야 복이 남습니다.' },
           '천기': { god:'헤르메스', seal:'날개 지팡이', tone:'정보, 이동, 전략의 별이 빠르게 길을 바꿉니다.', oracle:'한 가지 길만 고집하지 말고 신호가 오는 통로를 넓히세요.' },
-          '천동': { god:'데메테르', seal:'밀 이삭', tone:'회복, 돌봄, 생활의 복이 부드럽게 들어옵니다.', oracle:'몸과 마음을 살리는 루틴이 운의 밭을 기름지게 합니다.' },
-          '염정': { god:'아레스', seal:'붉은 검', tone:'강렬한 욕망과 승부수가 시험대를 만듭니다.', oracle:'힘은 쓰되 명분 없는 전투는 피해야 합니다.' },
+          '천동': { god:'헤스티아', seal:'성화의 화로', tone:'안식, 회복, 생활의 복이 조용히 불을 지킵니다.', oracle:'일상의 온기를 회복할 때 큰 운도 오래 머뭅니다.' },
+          '염정': { god:'아프로디테와 아레스', seal:'장미 위의 붉은 검', tone:'매혹과 정치적 승부수가 동시에 시험대를 만듭니다.', oracle:'끌림은 힘이지만 명분 없는 욕망은 스스로를 소모합니다.' },
           '천량': { god:'아테나', seal:'올빼미 방패', tone:'보호, 원칙, 조언자의 별이 중심을 잡습니다.', oracle:'원칙을 지킬수록 늦게 오는 복이 크게 돌아옵니다.' },
           '칠살': { god:'아레스', seal:'전장의 투구', tone:'돌파와 결단의 검이 흐름을 가릅니다.', oracle:'두려움보다 기준을 앞세우면 전장이 길이 됩니다.' },
           '파군': { god:'포세이돈', seal:'삼지창', tone:'해체와 재건의 파도가 오래된 판을 흔듭니다.', oracle:'무너지는 것에 매달리지 말고 새 판을 설계하세요.' },
           '탐랑': { god:'아프로디테', seal:'장미와 잔', tone:'매혹, 욕망, 예술적 확장이 사람을 끌어옵니다.', oracle:'매력은 자산이지만 경계가 없으면 복이 흩어집니다.' },
-          '거문': { god:'디오니소스', seal:'가면과 포도주잔', tone:'말, 의심, 숨은 진실이 운의 문을 엽니다.', oracle:'가면 뒤의 진심을 읽으면 어둠 속 정보가 힘이 됩니다.' },
+          '거문': { god:'헤르메스의 검은 서판', seal:'가면과 비밀 문서', tone:'말, 의심, 숨은 진실이 운의 문을 엽니다.', oracle:'가면 뒤의 진심을 읽으면 어둠 속 정보가 힘이 됩니다.' },
           '천상': { god:'아테나', seal:'올리브 가지', tone:'중재와 균형의 지혜가 관계를 안정시킵니다.', oracle:'중심을 지키는 사람이 결국 판을 지배합니다.' }
         };
         var ZW_FLOW_OLYMPUS_BY_PALACE = {
           '명궁':'제우스', '형제궁':'헤르메스', '부처궁':'헤라', '자녀궁':'아폴론',
-          '재백궁':'헤파이스토스', '질액궁':'아폴론', '천이궁':'포세이돈', '노복궁':'아테나',
+          '재백궁':'헤파이스토스', '질액궁':'아스클레피오스', '천이궁':'포세이돈', '노복궁':'아테나',
           '관록궁':'제우스', '전택궁':'데메테르', '복덕궁':'아르테미스', '부모궁':'헤라'
+        };
+        var ZW_FLOW_OLYMPUS_GOD_META = {
+          '제우스': { icon:'⚡', realm:'천궁', virtue:'명분·권위·중심축' },
+          '헤라': { icon:'🦚', realm:'왕좌', virtue:'품격·계약·기반 수호' },
+          '아폴론': { icon:'☀️', realm:'태양 신전', virtue:'명예·예술·공개성' },
+          '아르테미스': { icon:'🌙', realm:'달의 숲', virtue:'감각·보호·축적' },
+          '헤파이스토스': { icon:'🔨', realm:'대장간', virtue:'기술·재물·실행력' },
+          '헤르메스': { icon:'🪽', realm:'전령의 길', virtue:'정보·이동·전략' },
+          '헤스티아': { icon:'🔥', realm:'성화의 방', virtue:'안식·생활복·회복' },
+          '아프로디테': { icon:'🌹', realm:'장미 정원', virtue:'매력·예술·관계 확장' },
+          '아프로디테와 아레스': { icon:'🌹', realm:'붉은 장미 전장', virtue:'욕망·협상·승부' },
+          '아레스': { icon:'🛡️', realm:'전장', virtue:'돌파·결단·위기 대응' },
+          '아테나': { icon:'🦉', realm:'지혜의 성채', virtue:'원칙·중재·보호' },
+          '포세이돈': { icon:'🔱', realm:'심해', virtue:'해체·이동·재건' },
+          '데메테르': { icon:'🌾', realm:'풍요의 밭', virtue:'축적·양육·생활 기반' },
+          '아스클레피오스': { icon:'⚕️', realm:'치유 신전', virtue:'회복·진단·몸의 신호' },
+          '헤르메스의 검은 서판': { icon:'📜', realm:'비밀 서고', virtue:'말·의심·숨은 진실' }
         };
         var ZW_FLOW_DOMAIN_META = {
           money:{ label:'재물', good:'수익 회수와 자산 고정화가 열립니다.', care:'지출, 보증, 과욕성 투자를 조심하세요.' },
@@ -18672,12 +18689,72 @@ function renderZiwei(p, natal, targetId) {
             return '<span style="display:inline-flex;margin:2px 4px 2px 0;padding:2px 6px;border-radius:999px;border:1px solid '+col+'66;color:'+col+';background:'+col+'18;font-size:0.68rem;font-weight:800;">'+zwFlowEsc(s.star)+' '+zwFlowEsc(s.type)+'</span>';
           }).join('');
         }
+        function zwFlowOlympusMeta(god) {
+          return ZW_FLOW_OLYMPUS_GOD_META[god] || { icon:'✦', realm:'별의 회랑', virtue:'상징·선택·운의 방향' };
+        }
+        function zwFlowSihuaSeal(signal) {
+          var counts = (signal && signal.counts) || {};
+          var sihua = (signal && signal.sihua) || [];
+          var topType = '';
+          ['화기','화록','화권','화과'].forEach(function(type) {
+            if (!topType && (counts[type] || 0) > 0) topType = type;
+          });
+          var starText = sihua.length ? sihua.map(function(s){ return s.star + ' ' + s.type; }).join(' · ') : '사화 직접 작용 약함';
+          if (topType === '화록') return { name:'화록 축복 인장', god:'데메테르', icon:'🌾', seal:'황금 이삭과 풍요의 잔', tone:'재물, 인연, 기회가 열리는 사화입니다.', oracle:'받는 복을 흩뜨리지 말고 구조 안에 담아야 오래 남습니다.', basis:starText };
+          if (topType === '화권') return { name:'화권 명령 인장', god:'제우스', icon:'⚡', seal:'번개 지휘봉', tone:'권한, 책임, 결단이 강하게 요구됩니다.', oracle:'명령할 자격보다 책임질 태도를 먼저 세우세요.', basis:starText };
+          if (topType === '화과') return { name:'화과 월계 인장', god:'아폴론', icon:'☀️', seal:'월계관과 황금 리라', tone:'명예, 문서, 보호, 평판이 살아나는 사화입니다.', oracle:'보이는 품격을 정돈하면 보이지 않는 귀인이 움직입니다.', basis:starText };
+          if (topType === '화기') return { name:'화기 봉인 인장', god:'헤르메스의 검은 서판', icon:'📜', seal:'검은 월식과 비밀 문서', tone:'오해, 지연, 집착, 말의 그림자를 다루는 시험입니다.', oracle:'숨기거나 밀어붙이지 말고 기록, 확인, 거리두기로 봉인을 풀어야 합니다.', basis:starText };
+          return { name:'중립 별빛 인장', god:'헤르메스', icon:'🪽', seal:'은빛 나침반', tone:'사화가 강하게 치우치지 않아 선택의 여지가 넓습니다.', oracle:'작은 신호를 관찰하며 운의 방향을 천천히 조율하세요.', basis:starText };
+        }
+        function zwFlowShadowSeal(signal) {
+          var bad = (signal && signal.bad) || [];
+          var counts = (signal && signal.counts) || {};
+          var badText = bad.length ? bad.slice(0, 4).join(' · ') : '큰 흉성 압박은 약함';
+          if ((counts['화기'] || 0) > 0 && bad.length >= 2) {
+            return { name:'심연 봉인', icon:'🌑', seal:'검은 방패와 닫힌 문', tone:'화기와 흉성이 겹쳐 말, 돈, 관계의 오판을 키울 수 있습니다.', oracle:'중요 결정은 기록과 제3자 검토를 거친 뒤 움직이세요.', basis:badText };
+          }
+          if ((counts['화기'] || 0) > 0) {
+            return { name:'월식 봉인', icon:'🌘', seal:'그림자 달과 서약문', tone:'화기의 그림자가 의심, 지연, 감정 빚으로 나타날 수 있습니다.', oracle:'감정 판단을 늦추고 사실 확인을 먼저 하세요.', basis:badText };
+          }
+          if (bad.length >= 2) {
+            return { name:'전장 경계 인장', icon:'🛡️', seal:'붉은 방패와 경계선', tone:'흉성이 강하면 속도보다 방어선이 운을 지킵니다.', oracle:'손실 한도, 관계 경계, 일정 여백을 먼저 정하세요.', basis:badText };
+          }
+          return { name:'청명 수호 인장', icon:'✨', seal:'맑은 별과 보호 원', tone:'큰 그림자 압박은 약하나 기준을 느슨하게 만들면 복이 새어 나갑니다.', oracle:'잘될수록 원칙을 유지하면 별빛이 오래 갑니다.', basis:badText };
+        }
+        function zwFlowSealCard(title, seal, accent, basisLabel) {
+          return '<article style="background:linear-gradient(145deg,rgba(15,23,42,0.68),rgba(30,27,75,0.5));border:1px solid '+accent+'66;border-radius:12px;padding:12px;min-width:0;">'
+            +'<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:7px;">'
+              +'<div><div style="color:'+accent+';font-size:0.72rem;font-weight:900;letter-spacing:0.02em;">'+zwFlowEsc(title)+'</div><div style="color:#fef3c7;font-size:0.98rem;font-weight:900;margin-top:3px;">'+zwFlowEsc(seal.name || seal.god)+'</div></div>'
+              +'<div style="font-size:1.55rem;line-height:1;">'+zwFlowEsc(seal.icon || '✦')+'</div>'
+            +'</div>'
+            +'<div style="color:#c4b5fd;font-size:0.78rem;line-height:1.55;"><b>'+zwFlowEsc(seal.god || '별의 신전')+'</b> · '+zwFlowEsc(seal.seal || '별의 인장')+'</div>'
+            +'<div style="color:#dbeafe;font-size:0.76rem;line-height:1.65;margin-top:7px;">'+zwFlowEsc(seal.tone || '')+'</div>'
+            +'<div style="color:#e2e8f0;font-size:0.76rem;line-height:1.65;margin-top:6px;">'+zwFlowEsc(seal.oracle || '')+'</div>'
+            +'<div style="color:#94a3b8;font-size:0.68rem;line-height:1.5;margin-top:7px;border-top:1px solid rgba(148,163,184,0.16);padding-top:6px;"><b style="color:#cbd5e1;">'+zwFlowEsc(basisLabel || '근거')+':</b> '+zwFlowEsc(seal.basis || '명반 신호 종합')+'</div>'
+          +'</article>';
+        }
         function zwFlowOlympus(signal) {
           var primary = signal && signal.main && signal.main[0] ? signal.main[0] : '';
           var byStar = primary && ZW_FLOW_OLYMPUS_BY_STAR[primary] ? ZW_FLOW_OLYMPUS_BY_STAR[primary] : null;
           var byPalaceGod = signal && ZW_FLOW_OLYMPUS_BY_PALACE[signal.palaceName] ? ZW_FLOW_OLYMPUS_BY_PALACE[signal.palaceName] : '헤르메스';
-          if (byStar) return byStar;
-          return { god:byPalaceGod, seal:'별의 인장', tone:'궁위의 상징이 신화의 언어로 드러납니다.', oracle:'지금 강하게 울리는 궁위를 현실의 선택으로 옮기세요.' };
+          var base = byStar || { god:byPalaceGod, seal:'별의 인장', tone:'궁위의 상징이 신화의 언어로 드러납니다.', oracle:'지금 강하게 울리는 궁위를 현실의 선택으로 옮기세요.' };
+          var meta = zwFlowOlympusMeta(base.god);
+          var sihuaSeal = zwFlowSihuaSeal(signal);
+          var shadowSeal = zwFlowShadowSeal(signal);
+          return {
+            god:base.god,
+            seal:base.seal,
+            tone:base.tone,
+            oracle:base.oracle,
+            icon:meta.icon,
+            realm:meta.realm,
+            virtue:meta.virtue,
+            primaryStar:primary || '공궁',
+            palaceGod:byPalaceGod,
+            sihuaSeal:sihuaSeal,
+            shadowSeal:shadowSeal,
+            basis:(signal ? signal.palaceName : '궁위') + ' · 주성 ' + (primary || '공궁') + ' · ' + sihuaSeal.basis
+          };
         }
         function zwFlowDomainScore(signal, domain) {
           var score = signal ? Number(signal.score || 50) : 50;
@@ -18858,6 +18935,33 @@ function renderZiwei(p, natal, targetId) {
         if (natalOlympusIdx < 0) natalOlympusIdx = 0;
         var natalOlympusSignal = zwFlowPalaceSignal(natalOlympusIdx, pd.yearGan || flowYearGan);
         var natalOlympus = zwFlowOlympus(natalOlympusSignal);
+        var natalRealityIdx = (typeof ZHI_LIST !== 'undefined' && pd.shen) ? ZHI_LIST.indexOf(pd.shen) : -1;
+        if (natalRealityIdx < 0 && pd.palacesByIndex) natalRealityIdx = pd.palacesByIndex.indexOf('관록궁');
+        if (natalRealityIdx < 0) natalRealityIdx = natalOlympusIdx;
+        var natalRealitySignal = zwFlowPalaceSignal(natalRealityIdx, pd.yearGan || flowYearGan);
+        var natalRealityOlympus = zwFlowOlympus(natalRealitySignal);
+        var natalSihuaSeal = natalOlympus.sihuaSeal || zwFlowSihuaSeal(natalOlympusSignal);
+        var natalShadowSeal = natalOlympus.shadowSeal || zwFlowShadowSeal(natalOlympusSignal);
+        var olympusSealCardsHtml = zwFlowSealCard('BIRTH SEAL · 본명 인장', {
+            name:natalOlympus.god,
+            god:natalOlympus.realm,
+            icon:natalOlympus.icon,
+            seal:natalOlympus.seal,
+            tone:natalOlympus.tone,
+            oracle:natalOlympus.oracle,
+            basis:natalOlympus.basis
+          }, '#fde68a', '명궁 근거')
+          + zwFlowSealCard('BODY SEAL · 현실 인장', {
+            name:natalRealityOlympus.god,
+            god:natalRealityOlympus.realm,
+            icon:natalRealityOlympus.icon,
+            seal:natalRealityOlympus.seal,
+            tone:natalRealityOlympus.tone,
+            oracle:natalRealityOlympus.oracle,
+            basis:natalRealityOlympus.basis
+          }, '#93c5fd', '신궁/관록 근거')
+          + zwFlowSealCard('SIHUA SEAL · 사화 인장', natalSihuaSeal, '#c4b5fd', '사화 근거')
+          + zwFlowSealCard('SHADOW SEAL · 그림자 인장', natalShadowSeal, '#fca5a5', '주의 근거');
         var olympusCategoryHtml = Object.keys(ZW_FLOW_DOMAIN_META).map(function(key) {
           var meta = ZW_FLOW_DOMAIN_META[key];
           var score = zwFlowDomainScore(natalOlympusSignal, key);
@@ -18865,22 +18969,25 @@ function renderZiwei(p, natal, targetId) {
           return '<div style="background:rgba(15,23,42,0.56);border:1px solid rgba(216,180,254,0.18);border-radius:10px;padding:10px;">'
             +'<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;"><b style="color:#e9d5ff;">'+meta.label+' 신전</b><span style="color:'+color+';font-weight:900;">'+score+'</span></div>'
             +'<div style="font-size:0.74rem;color:#cbd5e1;line-height:1.6;margin-top:5px;">'+zwFlowEsc(score >= 75 ? meta.good : (score <= 45 ? meta.care : '균형을 맞추면 신전의 문이 천천히 열립니다.'))+'</div>'
+            +'<div style="font-size:0.66rem;color:#94a3b8;line-height:1.45;margin-top:5px;">근거: '+zwFlowEsc(natalOlympusSignal.palaceName)+' · '+zwFlowEsc(natalOlympus.primaryStar)+' · '+zwFlowEsc(natalSihuaSeal.name)+'</div>'
           +'</div>';
         }).join('');
-        var sec_olympus_ziwei = '<section data-cd-marker="ziwei-olympus-guardian-v20260606" style="position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(12,18,38,0.95),rgba(39,20,68,0.88) 52%,rgba(6,35,54,0.9));padding:18px;border-radius:12px;margin-bottom:20px;border:1px solid rgba(250,204,21,0.28);box-shadow:0 14px 34px rgba(0,0,0,0.28),inset 0 0 0 1px rgba(255,255,255,0.06);">'
+        var sec_olympus_ziwei = '<section data-cd-marker="ziwei-olympus-guardian-v20260606" data-cd-upgrade="ziwei-olympus-seal-v20260607" style="position:relative;overflow:hidden;background:radial-gradient(circle at 12% 16%,rgba(250,204,21,0.14),transparent 34%),radial-gradient(circle at 88% 20%,rgba(125,211,252,0.14),transparent 36%),linear-gradient(145deg,rgba(12,18,38,0.95),rgba(39,20,68,0.88) 52%,rgba(6,35,54,0.9));padding:18px;border-radius:12px;margin-bottom:20px;border:1px solid rgba(250,204,21,0.28);box-shadow:0 14px 34px rgba(0,0,0,0.28),inset 0 0 0 1px rgba(255,255,255,0.06);">'
           +'<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px;">'
-            +'<div><div style="font-size:0.76rem;color:#fde68a;font-weight:900;letter-spacing:0.02em;">OLYMPUS SEAL · 紫微斗數</div><h2 style="margin:4px 0 0;color:#fef3c7;font-size:1.16rem;">올림푸스 별자리 인장 — '+zwFlowEsc(natalOlympus.god)+'의 수호</h2></div>'
+            +'<div><div style="font-size:0.76rem;color:#fde68a;font-weight:900;letter-spacing:0.02em;">OLYMPUS SEAL · 紫微斗數 · 命身四化</div><h2 style="margin:4px 0 0;color:#fef3c7;font-size:1.16rem;">올림푸스 별자리 인장 — '+zwFlowEsc(natalOlympus.god)+' 본명과 '+zwFlowEsc(natalRealityOlympus.god)+' 현실축</h2><div style="font-size:0.76rem;color:#cbd5e1;line-height:1.65;margin-top:5px;">명궁·신궁·사화·그림자 신호를 함께 읽어 신화 인장을 산출합니다.</div></div>'
             +'<button type="button" data-action="openOlympusOracleModal" style="border:1px solid rgba(250,204,21,0.38);background:rgba(250,204,21,0.12);color:#fde68a;border-radius:999px;padding:8px 12px;font-weight:900;cursor:pointer;">올림푸스 신탁 보기</button>'
           +'</div>'
-          +'<div style="display:grid;grid-template-columns:minmax(170px,0.8fr) minmax(0,1.2fr);gap:12px;align-items:stretch;">'
-            +'<div style="background:rgba(2,6,23,0.44);border:1px solid rgba(250,204,21,0.2);border-radius:12px;padding:14px;">'
-              +'<div style="font-size:2rem;line-height:1;">⚡</div>'
-              +'<div style="color:#fde68a;font-weight:900;font-size:1.02rem;margin-top:6px;">'+zwFlowEsc(natalOlympus.god)+'</div>'
-              +'<div style="color:#c4b5fd;font-size:0.8rem;line-height:1.65;margin-top:4px;">'+zwFlowEsc(natalOlympus.seal)+' · '+zwFlowEsc(natalOlympus.tone)+'</div>'
-              +'<div style="color:#e2e8f0;font-size:0.78rem;line-height:1.7;margin-top:8px;">명궁의 별이 올림푸스의 상징으로 번역될 때, 운명은 더 선명한 이미지가 됩니다. '+zwFlowEsc(natalOlympus.oracle)+'</div>'
+          +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px;margin-bottom:12px;">'+olympusSealCardsHtml+'</div>'
+          +'<div style="background:rgba(2,6,23,0.38);border:1px solid rgba(250,204,21,0.16);border-radius:12px;padding:12px;margin-bottom:12px;">'
+            +'<div style="color:#fde68a;font-size:0.82rem;font-weight:900;margin-bottom:6px;">자미두수 판정 근거</div>'
+            +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:7px;font-size:0.73rem;line-height:1.55;color:#dbeafe;">'
+              +'<div style="background:rgba(15,23,42,0.5);border-radius:8px;padding:8px;"><b style="color:#fef3c7;">명궁</b><br>'+zwFlowEsc(natalOlympusSignal.palaceName)+' · '+zwFlowEsc(natalOlympus.primaryStar)+' · '+zwFlowEsc(natalOlympus.god)+'</div>'
+              +'<div style="background:rgba(15,23,42,0.5);border-radius:8px;padding:8px;"><b style="color:#bfdbfe;">신궁/현실축</b><br>'+zwFlowEsc(natalRealitySignal.palaceName)+' · '+zwFlowEsc(natalRealityOlympus.primaryStar)+' · '+zwFlowEsc(natalRealityOlympus.god)+'</div>'
+              +'<div style="background:rgba(15,23,42,0.5);border-radius:8px;padding:8px;"><b style="color:#c4b5fd;">사화</b><br>'+zwFlowEsc(natalSihuaSeal.name)+' · '+zwFlowEsc(natalSihuaSeal.basis)+'</div>'
+              +'<div style="background:rgba(15,23,42,0.5);border-radius:8px;padding:8px;"><b style="color:#fca5a5;">그림자</b><br>'+zwFlowEsc(natalShadowSeal.name)+' · '+zwFlowEsc(natalShadowSeal.basis)+'</div>'
             +'</div>'
-            +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;">'+olympusCategoryHtml+'</div>'
           +'</div>'
+          +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;">'+olympusCategoryHtml+'</div>'
         +'</section>';
         var sec_grand = '<div style="background:linear-gradient(135deg,rgba(88,28,220,0.15),rgba(20,10,50,0.8));padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.3);">'
           +'<h2 style="color:#F9A8D4;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(249,168,212,0.3);padding-bottom:8px;">🌟 생애 총론(生涯 總論)</h2>'

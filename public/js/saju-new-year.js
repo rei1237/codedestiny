@@ -304,6 +304,30 @@
     };
   }
 
+  function _collectQuantumMyeongriJson() {
+    var base = _collectSajuBase();
+    return {
+      schemaVersion: 'saju-new-year-client-evidence.v1',
+      calculationSource: 'main-shell-saju-engine',
+      evidencePolicy: 'supplemental_only_worker_engine_is_source_of_truth',
+      sajuBase: base,
+      pillars: base.pillars,
+      core: base.core,
+      elementBalance: base.elementBalance,
+      tenGods: base.tenGods,
+      strength: base.strength,
+      johu: window.G_JOHU || base.johu || null,
+      yongshin: base.yongshin,
+      specialStars: base.specialStars,
+      timing: base.timing,
+      quantumRuntime: {
+        power: window.G_POWER || null,
+        daeun: window.G_DAEWUN || window.G_DAEUN || [],
+        analysis: (window.__destinyFlowerSajuSnapshot && (window.__destinyFlowerSajuSnapshot.analysis || window.__destinyFlowerSajuSnapshot.saju)) || null
+      }
+    };
+  }
+
   function _showScreen(id) {
     ['nyStartScreen', 'nyLoadingScreen', 'nyResultScreen', 'nyErrorScreen'].forEach(function (screenId) {
       var el = _qs(screenId);
@@ -400,13 +424,17 @@
     if (premiumToken) headers['x-premium-access-token'] = premiumToken;
     _log('PaymentVerificationStarted', { featureKey: BILLING_FEATURE_KEY, reportId: reportId });
     if (typeof window._cdOpenPaidServiceGate === 'function') {
-      return await new Promise(function(resolve) {
+      var gateResult = await new Promise(function(resolve) {
         var settled = false;
         function finish(payload) {
           if (settled) return;
           settled = true;
           var raw = payload && typeof payload === 'object' ? payload : {};
-          var data = raw && raw.data && typeof raw.data === 'object' ? raw.data : raw;
+          var data = raw && raw.data && typeof raw.data === 'object'
+            ? raw.data
+            : (raw && raw.payload && typeof raw.payload === 'object')
+              ? raw.payload
+              : raw;
           var token = _extractPremiumToken(raw);
           if (token) _persistPremiumAccessToken(token);
           var grant = _normalizeAccessGrant(data, reportId, requestId);
@@ -421,6 +449,17 @@
           if (settled) return;
           settled = true;
           resolve({ ok: false, status: 402, message: '결제가 취소되었습니다.', requestId: requestId });
+        }
+        function fail(error) {
+          if (settled) return;
+          settled = true;
+          resolve({
+            ok: false,
+            status: Number(error && error.status || 0),
+            message: String(error && error.message || '결제 게이트를 불러오지 못했습니다.'),
+            requestId: requestId,
+            fallback: true,
+          });
         }
         try {
           var gate = window._cdOpenPaidServiceGate({
@@ -439,16 +478,16 @@
             onCancel: cancel
           });
           if (gate && typeof gate.then === 'function') gate.then(function(payload) {
-            if (payload === null || payload === undefined) cancel();
+            if (payload === null || payload === undefined || (payload && payload.status === 'cancelled')) cancel();
             else finish(payload);
-          }).catch(cancel);
+          }).catch(fail);
+          else if (!gate) fail(new Error('결제 게이트를 불러오지 못했습니다.'));
         } catch (_) {
-          cancel();
+          fail(_);
         }
       });
+      if (gateResult.ok || Number(gateResult.status) === 402 || !gateResult.fallback) return gateResult;
     }
-
-    return { ok: false, status: 0, message: '결제 게이트를 불러오지 못했습니다.', requestId: requestId };
 
     var response = await fetch('/api/billing/coin-gate', {
       method: 'POST',
@@ -693,7 +732,8 @@
         minute: normalizedBirth.birthMinute,
         profile: profile,
         birthInput: normalizedBirth,
-        sajuBase: sajuBase
+        sajuBase: sajuBase,
+        quantumMyeongriJson: _collectQuantumMyeongriJson()
       }).then(function (data) {
         var payload = data && data.data && typeof data.data === 'object' ? data.data : data;
         if (String(data && data.status || '') === 'running') {
@@ -764,7 +804,11 @@
     );
 
     if (resolvedUrl) {
-      var openWin = window.open(resolvedUrl, '_blank', 'noopener,noreferrer');
+      var documentUrl = resolvedUrl;
+      if (documentUrl.indexOf('/api/premium/pdf-archive/') >= 0 && !/[?&]format=/.test(documentUrl)) {
+        documentUrl += (documentUrl.indexOf('?') >= 0 ? '&' : '?') + 'format=pdf';
+      }
+      var openWin = window.open(documentUrl, '_blank', 'noopener,noreferrer');
       if (!openWin) {
         window.alert('팝업이 차단되어 출력 창을 열 수 없습니다. 팝업 허용 후 다시 시도해 주세요.');
         return;

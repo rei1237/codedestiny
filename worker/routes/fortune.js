@@ -471,14 +471,16 @@ const PROFILE_SUB_PLANS = {
   standard: { name: "스탠다드", coins: 115, profileLimit: 3, durationDays: 30, lowWarnAt: 30 },
   premium: { name: "프리미엄", coins: 360, profileLimit: 7, durationDays: 30, lowWarnAt: 50 },
   vvip: { name: "VVIP", coins: 700, profileLimit: 15, durationDays: 30, lowWarnAt: 100 },
+  family: { name: "Code Destiny Family", coins: 3000, profileLimit: 0, durationDays: 30, lowWarnAt: 300, freeLimit: 999999999 },
 };
 
-const VALID_SUB_TIERS = new Set(["standard", "premium", "vvip"]);
+const VALID_SUB_TIERS = new Set(["standard", "premium", "vvip", "family"]);
 const SUBSCRIPTION_TIER_RANK = Object.freeze({
   free: 0,
   standard: 1,
   premium: 2,
   vvip: 3,
+  family: 4,
 });
 
 function getSubscriptionTierRank(tierRaw) {
@@ -864,8 +866,8 @@ function getPlanPolicy(tier) {
 
   return {
     tier,
-    freeLimit: Number(plan.lowWarnAt || 0),
-    profileLimit: Number(plan.profileLimit || 1),
+    freeLimit: Number(plan.freeLimit ?? plan.lowWarnAt ?? 0),
+    profileLimit: Number.isFinite(Number(plan.profileLimit)) ? Math.max(0, Math.floor(Number(plan.profileLimit))) : 1,
     recommendedCoins: Number(plan.coins || 0),
   };
 }
@@ -3014,8 +3016,8 @@ function handleProfileSubscriptionPlans() {
       tier,
       label: String(plan?.name || tier),
       coins: Number(plan?.coins || 0),
-      profileLimit: Number(plan?.profileLimit || 1),
-      freeLimit: Number(plan?.lowWarnAt || 0),
+      profileLimit: Number.isFinite(Number(plan?.profileLimit)) ? Math.max(0, Math.floor(Number(plan?.profileLimit))) : 1,
+      freeLimit: Number(plan?.freeLimit ?? plan?.lowWarnAt ?? 0),
       durationDays: Number(plan?.durationDays || 30),
     })),
   ];

@@ -8,6 +8,7 @@ import { callGeminiText } from "./gemini.js";
 const MIN_SECTION_CHARS = 900;
 const MIN_CHAPTER_CHARS = 4000;
 const MIN_TOTAL_CHARS = Math.max(Number(VEDIC_SOLO_TARGET_CHARS || 0), 40000);
+const VEDIC_MASTER_JSON_SCHEMA_VERSION = "vedic-premium-master-json.v1";
 const FORBIDDEN_TEXT_RE = /\b(?:fallback|safe-local|seed|skeleton|payload|json|debug|local|localdraft|engine|validation|retry|llm|api|wasm|swiss\s*wasm|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|preflightfailed|chart\s*seed\s*failed)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|로컬\s*기반|계산\s*시그니처|데이터\s*정규화|품질\s*검증|재생성|내부\s*데이터|템플릿/gi;
 const VEDIC_LLM_KEY_ENV_KEYS = Object.freeze([
   "VEDIC_PREMIUM_GEMINI_API_KEY1",
@@ -288,6 +289,10 @@ function clean(value) {
 
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
+}
+
+function safeObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
 function safeNumber(value, fallback = NaN) {
@@ -1664,6 +1669,165 @@ function buildVedicEvidencePack(chartJson = {}, chapter = {}) {
   };
 }
 
+function buildVedicChapterSpecsWithEvidence(chartJson = {}) {
+  return VEDIC_PREMIUM_CHAPTERS.map((chapter) => {
+    const evidencePack = buildVedicEvidencePack(chartJson, chapter);
+    return {
+      id: clean(chapter.id),
+      order: Number(chapter.order || 0),
+      roman: clean(chapter.roman),
+      title: clean(chapter.title),
+      subtitle: clean(chapter.subtitle),
+      categories: safeArray(chapter.categories).map((category, index) => ({
+        id: clean(category.id),
+        order: index + 1,
+        title: clean(category.title),
+        requiredSignalIds: safeArray(evidencePack?.requiredSignalIdsBySection?.[category.id]),
+      })),
+      evidencePack,
+    };
+  });
+}
+
+function summarizeVedicClientEvidence(rawInput = {}) {
+  const clientEvidence = safeObject(rawInput?.vedicClientEvidenceJson || rawInput?.clientEvidenceJson);
+  if (!clean(clientEvidence?.schemaVersion)) return null;
+  return {
+    schemaVersion: clean(clientEvidence.schemaVersion),
+    source: clean(clientEvidence.source || "browser"),
+    chartAvailable: Boolean(clientEvidence.chartAvailable),
+    evidenceCount: Number(clientEvidence.evidenceCount || 0),
+    hasBirthInput: Boolean(clientEvidence.hasBirthInput),
+    hasPlanets: Boolean(clientEvidence.hasPlanets),
+    hasAscendant: Boolean(clientEvidence.hasAscendant),
+  };
+}
+
+export function buildVedicMasterJson(localVedicChartJson = {}, rawInput = {}) {
+  const birthInput = safeObject(localVedicChartJson?.birthInput);
+  const chart = safeObject(localVedicChartJson?.chart);
+  const context = localVedicChartJson?.pdfContext || normalizeVedicPdfContext(rawInput, localVedicChartJson);
+  const planets = safeArray(chart.planets).map(compactVedicPlanetForLlm).filter((planet) => clean(planet.name));
+  const houses = safeArray(chart.houses).map(compactVedicHouseForLlm).filter((house) => Number(house.house) >= 1);
+  const dashaPeriods = safeArray(chart?.dashas?.periods).slice(0, 12).map((row, index) => ({
+    planet: clean(row?.planet || row?.lord),
+    start: clean(row?.start),
+    end: clean(row?.end),
+    years: Number.isFinite(Number(row?.years)) ? Number(row.years) : undefined,
+    active: Boolean(row?.active || index === 0),
+  }));
+  return {
+    schemaVersion: VEDIC_MASTER_JSON_SCHEMA_VERSION,
+    serviceKey: "vedic-premium",
+    featureKey: "premium_pdf_vedic",
+    reportType: "vedicPremium",
+    generationMode: "worker-native-llm",
+    calculationSource: clean(localVedicChartJson?.calculationMode || rawInput?.calculationMode || "worker-swiss-vedic-chart"),
+    birthProfile: {
+      name: clean(birthInput.name) || "사용자",
+      gender: clean(birthInput.gender),
+      birthDate: clean(birthInput.birthDate),
+      birthTime: clean(birthInput.birthTime),
+      birthHour: Number.isFinite(Number(birthInput.birthHour)) ? Number(birthInput.birthHour) : null,
+      birthMinute: Number.isFinite(Number(birthInput.birthMinute)) ? Number(birthInput.birthMinute) : 0,
+      birthPlace: clean(birthInput.birthPlace),
+      timezone: clean(birthInput.timezone),
+      latitude: Number.isFinite(Number(birthInput.latitude)) ? Number(birthInput.latitude) : null,
+      longitude: Number.isFinite(Number(birthInput.longitude)) ? Number(birthInput.longitude) : null,
+    },
+    settings: {
+      zodiac: clean(localVedicChartJson?.settings?.zodiac || "sidereal"),
+      ayanamsa: clean(localVedicChartJson?.settings?.ayanamsa || context?.settings?.ayanamsa || "Lahiri"),
+      houseSystem: clean(localVedicChartJson?.settings?.houseSystem || "whole-sign"),
+      calculationMode: clean(localVedicChartJson?.calculationMode),
+    },
+    chart: {
+      core: {
+        lagnaSign: clean(chart.lagnaSign || context?.lagna?.signKo),
+        lagnaSignEn: clean(context?.lagna?.sign),
+        lagnaLord: clean(context?.lagna?.lord || houses.find((house) => Number(house.house) === 1)?.lord),
+        moonSign: clean(chart.moonSign),
+        sunSign: clean(chart.sunSign),
+        moonNakshatra: safeObject(context?.moonNakshatra || chart.nakshatra),
+        currentMahaDasha: clean(chart?.dashas?.currentMahaDasha || context?.derived?.activeDasha),
+        currentAntarDasha: clean(chart?.dashas?.currentAntarDasha || context?.dashas?.currentAntarDasha),
+        nextDasha: clean(context?.derived?.nextDasha),
+      },
+      planets,
+      houses,
+      dashas: {
+        system: clean(chart?.dashas?.system || "vimshottari"),
+        currentMahaDasha: clean(chart?.dashas?.currentMahaDasha || context?.derived?.activeDasha),
+        currentAntarDasha: clean(chart?.dashas?.currentAntarDasha || context?.dashas?.currentAntarDasha),
+        periods: dashaPeriods,
+      },
+      karakas: safeObject(context?.karakas || chart.karakas),
+      yogas: safeArray(chart?.insights?.yogas || localVedicChartJson?.insights?.yogas || context?.yogas).slice(0, 12),
+      aspects: safeArray(chart?.aspects || chart?.insights?.drishti || localVedicChartJson?.insights?.drishti).slice(0, 32),
+      insightCards: safeArray(localVedicChartJson?.insights?.cards || chart?.insights?.cards).slice(0, 12),
+      derived: safeObject(context?.derived),
+    },
+    chapterSpecs: buildVedicChapterSpecsWithEvidence(localVedicChartJson),
+    clientEvidence: summarizeVedicClientEvidence(rawInput),
+    qualityRules: {
+      minSectionChars: MIN_SECTION_CHARS,
+      minChapterChars: MIN_CHAPTER_CHARS,
+      minTotalChars: MIN_TOTAL_CHARS,
+      requiredEvidencePerSection: 3,
+      requiredUsedSignalIds: true,
+      forbiddenDeveloperTerms: ["JSON", "API", "LLM", "schema", "prompt", "payload", "debug", "fallback"],
+      tone: "professional-mystical-korean-vedic-consultation",
+    },
+  };
+}
+
+export function validateVedicMasterJson(masterJson = {}) {
+  const missing = [];
+  const requireField = (ok, key) => {
+    if (!ok) missing.push(key);
+  };
+  const birth = safeObject(masterJson?.birthProfile);
+  const chart = safeObject(masterJson?.chart);
+  const core = safeObject(chart.core);
+  const planets = safeArray(chart.planets);
+  const houses = safeArray(chart.houses);
+  const chapterSpecs = safeArray(masterJson?.chapterSpecs);
+  requireField(clean(masterJson?.schemaVersion) === VEDIC_MASTER_JSON_SCHEMA_VERSION, "schemaVersion");
+  requireField(clean(masterJson?.serviceKey) === "vedic-premium", "serviceKey");
+  requireField(clean(masterJson?.generationMode) === "worker-native-llm", "generationMode");
+  requireField(clean(birth.birthDate), "birthProfile.birthDate");
+  requireField(Number.isFinite(Number(birth.birthHour)), "birthProfile.birthHour");
+  requireField(clean(birth.timezone), "birthProfile.timezone");
+  requireField(clean(masterJson?.settings?.ayanamsa), "settings.ayanamsa");
+  requireField(clean(core.lagnaSign), "chart.core.lagnaSign");
+  requireField(clean(core.moonSign), "chart.core.moonSign");
+  requireField(clean(core.sunSign), "chart.core.sunSign");
+  requireField(clean(core.moonNakshatra?.name), "chart.core.moonNakshatra.name");
+  requireField(clean(core.currentMahaDasha) || safeArray(chart?.dashas?.periods).length > 0, "chart.dashas");
+  requireField(planets.length >= 9, "chart.planets");
+  requireField(houses.length >= 12, "chart.houses");
+  requireField(chapterSpecs.length === VEDIC_PREMIUM_CHAPTERS.length, "chapterSpecs");
+  chapterSpecs.forEach((chapter, index) => {
+    const expected = VEDIC_PREMIUM_CHAPTERS[index] || {};
+    requireField(Number(chapter.order) === Number(expected.order), `chapterSpecs.${index}.order`);
+    requireField(clean(chapter.title) === clean(expected.title), `chapterSpecs.${index}.title`);
+    requireField(safeArray(chapter.categories).length === safeArray(expected.categories).length, `chapterSpecs.${index}.categories`);
+  });
+  return {
+    ok: missing.length === 0,
+    missing,
+    schemaVersion: VEDIC_MASTER_JSON_SCHEMA_VERSION,
+    stats: {
+      planetCount: planets.length,
+      houseCount: houses.length,
+      chapterCount: chapterSpecs.length,
+      sectionCount: chapterSpecs.reduce((sum, chapter) => sum + safeArray(chapter.categories).length, 0),
+      evidenceSignalCount: chapterSpecs.reduce((sum, chapter) => sum + safeArray(chapter?.evidencePack?.signals).length, 0),
+      hasClientEvidence: Boolean(masterJson?.clientEvidence),
+    },
+  };
+}
+
 function buildVedicLlmSignalPack(chartJson = {}, chapter = {}) {
   const context = chartJson?.pdfContext || normalizeVedicPdfContext({}, chartJson);
   const chart = chartJson?.chart || {};
@@ -1710,7 +1874,7 @@ function buildVedicLlmSignalPack(chartJson = {}, chapter = {}) {
   };
 }
 
-function buildVedicLlmChapterPrompt({ chapter, chartJson, previousSummaries = [], lastDraft = null, lastErrors = [] } = {}) {
+function buildVedicLlmChapterPrompt({ chapter, chartJson, masterJson = {}, previousSummaries = [], lastDraft = null, lastErrors = [] } = {}) {
   const signalPack = buildVedicLlmSignalPack(chartJson, chapter);
   const categories = safeArray(chapter?.categories).map((category, index) => ({
     order: index + 1,
@@ -1756,6 +1920,7 @@ function buildVedicLlmChapterPrompt({ chapter, chartJson, previousSummaries = []
         })),
       },
       currentChartSignals: signalPack,
+      verifiedVedicMasterJson: masterJson,
       previousChapterSummaries: safeArray(previousSummaries).slice(-4),
     }),
     repairBlock,
@@ -2193,6 +2358,7 @@ async function generateVedicLlmChapter(env, chartJson, chapter, previousSummarie
     const prompt = buildVedicLlmChapterPrompt({
       chapter,
       chartJson,
+      masterJson: options?.masterJson,
       previousSummaries,
       lastDraft,
       lastErrors,
@@ -2256,6 +2422,7 @@ export async function enhanceVedicPremiumManuscriptWithLLM(env, localManuscript,
   for (const chapter of VEDIC_PREMIUM_CHAPTERS) {
     const generated = await generateVedicLlmChapter(env, localVedicChartJson, chapter, previousSummaries, {
       requestId: clean(options?.requestId),
+      masterJson: options?.masterJson,
     });
     chapters.push(generated.chapter);
     previousSummaries.push(generated.summary);
@@ -2285,6 +2452,48 @@ export async function enhanceVedicPremiumManuscriptWithLLM(env, localManuscript,
     attempts,
     model: Array.from(models).join(", "),
   };
+}
+
+function normalizeVedicLocalFallbackManuscript(localManuscript = {}, chartJson = {}) {
+  const expanded = expandVedicLocalManuscript(safeArray(localManuscript?.chapters), chartJson);
+  return VEDIC_PREMIUM_CHAPTERS.map((chapterSpec, chapterIndex) => {
+    const sourceChapter = expanded[chapterIndex] || {};
+    const evidencePack = buildVedicEvidencePack(chartJson, chapterSpec);
+    const evidenceIndex = buildVedicEvidenceIndex(evidencePack);
+    const sections = safeArray(chapterSpec.categories).map((category, sectionIndex) => {
+      const sourceSection = safeArray(sourceChapter.sections)[sectionIndex] || {};
+      const requiredSignalIds = safeArray(evidencePack?.requiredSignalIdsBySection?.[category.id]);
+      const allowedSignalIds = safeArray(evidencePack?.allowedSignalIds);
+      const usedSignalIds = Array.from(new Set([...requiredSignalIds, ...allowedSignalIds])).slice(0, 6);
+      const evidenceSignals = usedSignalIds
+        .map((id) => evidenceIndex.get(id))
+        .filter(Boolean)
+        .map((signal) => cleanForbidden(`${signal.label}: ${signal.value}`))
+        .filter(Boolean)
+        .slice(0, 6);
+      const evidenceBlock = evidenceSignals.length
+        ? `차트 근거\n\n${evidenceSignals.map((item) => `- ${item}`).join("\n")}`
+        : "";
+      return {
+        id: clean(sourceSection.id || category.id),
+        title: clean(sourceSection.title || category.title),
+        body: expandSectionText([sourceSection.body, evidenceBlock].filter(Boolean).join("\n\n"), chapterSpec, category, chartJson),
+        bullets: evidenceSignals,
+        usedSignalIds,
+      };
+    });
+    const draft = {
+      chapterNo: Number(chapterSpec.order),
+      id: chapterSpec.id,
+      key: chapterSpec.key,
+      roman: chapterSpec.roman,
+      title: chapterSpec.title,
+      subtitle: chapterSpec.subtitle,
+      sections,
+      localQuality: collectSignals({ ...sourceChapter, sections }, chartJson),
+    };
+    return draft;
+  });
 }
 
 function detectDuplicateRate(chapters) {
@@ -2621,7 +2830,8 @@ function validateVedicFinalSignalUsage(chapters = [], chartJson = {}) {
   return issues;
 }
 
-function buildVedicEvidenceAudit(chapters = [], chartJson = {}) {
+function buildVedicEvidenceAudit(chapters = [], chartJson = {}, options = {}) {
+  const allowFallback = Boolean(options?.allowFallback);
   const chapterSpecs = new Map(VEDIC_PREMIUM_CHAPTERS.map((chapter) => [chapter.id, chapter]));
   const usedUnique = new Set();
   let totalSections = 0;
@@ -2657,15 +2867,15 @@ function buildVedicEvidenceAudit(chapters = [], chartJson = {}) {
       ];
       missingRequiredCount += missingRequiredSignalIds.length;
       invalidSignalCount += invalidSignalIds.length;
-      unsupportedClaimCount += unsupportedClaims.length;
+      if (!allowFallback) unsupportedClaimCount += unsupportedClaims.length;
       return {
         sectionId: category.id,
-        ok: !invalidSignalIds.length && !missingRequiredSignalIds.length && !unsupportedClaims.length && usedSignalIds.length > 0,
+        ok: !invalidSignalIds.length && !missingRequiredSignalIds.length && (allowFallback || !unsupportedClaims.length) && usedSignalIds.length > 0,
         usedSignalIds,
         requiredSignalIds,
         missingRequiredSignalIds,
         invalidSignalIds,
-        unsupportedClaims: unsupportedClaims.slice(0, 6),
+        unsupportedClaims: allowFallback ? [] : unsupportedClaims.slice(0, 6),
       };
     });
     return {
@@ -2684,6 +2894,7 @@ function buildVedicEvidenceAudit(chapters = [], chartJson = {}) {
     missingRequiredCount,
     invalidSignalCount,
     unsupportedClaimCount,
+    fallbackClaimReviewRelaxed: allowFallback,
     chapters: chapterAudits,
   };
 }
@@ -2693,6 +2904,7 @@ export function validateVedicFinalManuscript(input) {
   const chartJson = input?.localVedicChartJson || null;
   const chapters = safeArray(input?.chapters);
   const requireSignalIds = Boolean(input?.requireSignalIds);
+  const allowFallback = Boolean(input?.allowFallback);
 
   const issues = [];
 
@@ -2714,7 +2926,10 @@ export function validateVedicFinalManuscript(input) {
 
   issues.push(...validateSections(chapters));
   if (requireSignalIds) {
-    issues.push(...validateVedicFinalSignalUsage(chapters, chartJson));
+    const signalUsageIssues = validateVedicFinalSignalUsage(chapters, chartJson);
+    issues.push(...(allowFallback
+      ? signalUsageIssues.filter((issue) => !String(issue || "").includes("unsupported-claims"))
+      : signalUsageIssues));
   }
 
   const totalLength = allTextLength(chapters);
@@ -2737,7 +2952,7 @@ export function validateVedicFinalManuscript(input) {
     || (repetitionCheck.repeatedLongNgram && duplicateRate > 0.78),
   );
   if (shouldFailByRepetition) {
-    issues.push("manuscript:repetition-detected");
+    if (!allowFallback) issues.push("manuscript:repetition-detected");
   }
 
   return {
@@ -2910,30 +3125,25 @@ function buildSafeVedicRawInput(rawInput = {}, birthInput = {}, safeChartSource 
 
 export async function generateVedicPremiumReport(env, rawInput = {}, options = {}) {
   const log = typeof options.log === "function" ? options.log : () => {};
-  const hasExplicitLocalChartJson = Boolean(rawInput?.localVedicChartJson && typeof rawInput.localVedicChartJson === "object");
 
   log("LocalCalculationStart", {
     hasBirthDate: Boolean(clean(rawInput?.birthDate || rawInput?.user?.birthDate || rawInput?.birth?.date)),
     hasBirthTime: Boolean(clean(rawInput?.birthTime || rawInput?.user?.birthTime || rawInput?.birth?.time)),
   });
 
-  const normalizedBirthInput = normalizeVedicPremiumBirthInput(rawInput);
   let workingInput = rawInput;
   let localVedicChartJson;
-  let chartRecoveryApplied = false;
 
   try {
     localVedicChartJson = buildVedicLocalChartJson(workingInput, { strictPremium: true });
   } catch (error) {
-    if (hasExplicitLocalChartJson) throw error;
-    const safeChartSource = fallbackChartSourceFromBirthInput(normalizedBirthInput);
-    workingInput = buildSafeVedicRawInput(rawInput, normalizedBirthInput, safeChartSource);
-    chartRecoveryApplied = true;
-    log("StrictChartBuildFailedUseSafeChart", {
+    log("StrictChartBuildFailed", {
       code: clean(error?.code || "VEDIC_CHART_SOURCE_INVALID"),
       reason: clean(error?.message || error),
     });
-    localVedicChartJson = buildVedicLocalChartJson(workingInput, { strictPremium: false });
+    error.code = clean(error?.code || "VEDIC_CHART_SOURCE_INVALID");
+    error.status = Number(error?.status || 422);
+    throw error;
   }
   localVedicChartJson.pdfContext = normalizeVedicPdfContext(workingInput, localVedicChartJson);
   localVedicChartJson.profile = {
@@ -2954,21 +3164,11 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
 
   const signalValidation = validateVedicPremiumChartSignals(localVedicChartJson);
   if (!signalValidation.ok) {
-    if (!chartRecoveryApplied) {
-      const safeChartSource = fallbackChartSourceFromBirthInput(birthInput);
-      workingInput = buildSafeVedicRawInput(rawInput, birthInput, safeChartSource);
-      localVedicChartJson = buildVedicLocalChartJson(workingInput, { strictPremium: false });
-      localVedicChartJson.pdfContext = normalizeVedicPdfContext(workingInput, localVedicChartJson);
-      chartRecoveryApplied = true;
-    }
-    const recoveredSignalValidation = validateVedicPremiumChartSignals(localVedicChartJson);
-    if (!recoveredSignalValidation.ok) {
-      const error = new Error("베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.");
-      error.code = "VEDIC_CHART_SOURCE_INVALID";
-      error.status = 422;
-      error.details = recoveredSignalValidation;
-      throw error;
-    }
+    const error = new Error("베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.");
+    error.code = "VEDIC_CHART_SOURCE_INVALID";
+    error.status = 422;
+    error.details = signalValidation;
+    throw error;
   }
 
   if (clean(localVedicChartJson?.calculationMode) === "full") {
@@ -2989,15 +3189,32 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     });
   }
 
+  const vedicMasterJson = buildVedicMasterJson(localVedicChartJson, rawInput);
+  const masterJsonValidation = validateVedicMasterJson(vedicMasterJson);
+  log("MasterJsonValidated", {
+    ok: masterJsonValidation.ok,
+    missing: masterJsonValidation.missing,
+    stats: masterJsonValidation.stats,
+  });
+  if (!masterJsonValidation.ok) {
+    const error = new Error("베다점 마스터 JSON 검증에 실패했습니다.");
+    error.code = "VEDIC_MASTER_JSON_INVALID";
+    error.status = 422;
+    error.details = masterJsonValidation;
+    throw error;
+  }
+
   log("LLMManuscriptBuildStart", {
     chapterCount: VEDIC_PREMIUM_CHAPTERS.length,
   });
 
-  const localDraft = null;
+  let localDraft = null;
   let llmDraft = null;
+  let llmFallbackReason = "";
   try {
     llmDraft = await enhanceVedicPremiumManuscriptWithLLM(env, null, localVedicChartJson, {
       requestId: clean(options?.requestId || rawInput?.reportId || rawInput?.sessionId),
+      masterJson: vedicMasterJson,
       onChapterDone: (meta) => {
         log("LLMManuscriptChapterDone", {
           chapterNo: Number(meta?.chapterNo || 0),
@@ -3010,31 +3227,41 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
       },
     });
   } catch (error) {
+    llmFallbackReason = clean(error?.code || error?.message || "VEDIC_LLM_MANUSCRIPT_FAILED");
     log("LLMManuscriptFailed", {
-      code: clean(error?.code || "VEDIC_LLM_MANUSCRIPT_FAILED"),
+      code: llmFallbackReason,
       reason: clean(error?.message || error),
     });
-    const wrapped = new Error("베다점 프리미엄 원고 생성에 실패했습니다.");
-    wrapped.code = clean(error?.code || "VEDIC_LLM_MANUSCRIPT_FAILED");
-    wrapped.status = Number(error?.status || 502);
-    wrapped.details = normalizeManuscriptError(error);
-    throw wrapped;
+    localDraft = buildVedicLocalPremiumManuscript(localVedicChartJson);
+    const fallbackChapters = normalizeVedicLocalFallbackManuscript(localDraft, localVedicChartJson);
+    llmDraft = {
+      chapters: fallbackChapters,
+      llmFailed: true,
+      fallbackUsed: true,
+      reason: "LLM_LOCAL_HYBRID",
+      fallbackReason: llmFallbackReason,
+      error: normalizeManuscriptError(error),
+      attempts: [],
+      model: "",
+    };
   }
 
-  log("LLMManuscriptBuildSuccess", {
+  log(llmDraft?.fallbackUsed ? "LocalFallbackManuscriptBuildSuccess" : "LLMManuscriptBuildSuccess", {
     chapterCount: safeArray(llmDraft?.chapters).length,
     totalLength: allTextLength(llmDraft?.chapters),
     model: clean(llmDraft?.model),
   });
 
   const finalChapters = safeArray(llmDraft?.chapters);
-  const manuscriptSource = "llm-only";
+  const fallbackUsed = Boolean(llmDraft?.fallbackUsed);
+  const manuscriptSource = fallbackUsed ? "llm-local-hybrid" : "llm-only";
 
   const finalValidation = validateVedicFinalManuscript({
     birthInput,
     localVedicChartJson,
     chapters: finalChapters,
     requireSignalIds: true,
+    allowFallback: fallbackUsed,
   });
 
   if (!finalValidation.ok) {
@@ -3056,7 +3283,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     throw error;
   }
 
-  const evidenceAudit = buildVedicEvidenceAudit(finalChapters, localVedicChartJson);
+  const evidenceAudit = buildVedicEvidenceAudit(finalChapters, localVedicChartJson, { allowFallback: fallbackUsed });
 
   log("FinalManuscriptValidated", {
     chapterCount: finalValidation.stats.chapterCount,
@@ -3090,12 +3317,19 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     payload: localVedicChartJson,
     birthInput,
     localVedicChartJson,
+    vedicMasterJson,
+    masterJsonValidation,
     localDraft,
     chapters: legacyChapters,
     chapterDrafts,
     chapterCount: VEDIC_PREMIUM_CHAPTERS.length,
-    fallbackUsed: false,
+    fallbackUsed,
     manuscriptSource,
+    llmChapterCount: fallbackUsed ? 0 : finalChapters.length,
+    fallbackChapterCount: fallbackUsed ? finalChapters.length : 0,
+    llmFallbackReason: clean(llmDraft?.fallbackReason || llmFallbackReason),
+    localDraftChapterCount: safeArray(localDraft?.chapters).length,
+    calculationFallbackUsed: false,
     pdfReady,
     quality: {
       ...finalValidation.stats,
@@ -3108,13 +3342,15 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     },
     diagnostics: {
       llm: {
-        reason: "LLM_ONLY",
-        failed: false,
+        reason: clean(llmDraft?.reason || (fallbackUsed ? "LLM_LOCAL_HYBRID" : "LLM_ONLY")),
+        failed: Boolean(llmDraft?.llmFailed),
+        fallbackReason: clean(llmDraft?.fallbackReason || llmFallbackReason),
         model: clean(llmDraft?.model),
         attempts: safeArray(llmDraft?.attempts),
       },
       manuscript: finalValidation,
       evidence: evidenceAudit,
+      masterJson: masterJsonValidation,
     },
   };
 }

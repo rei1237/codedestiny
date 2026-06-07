@@ -35,6 +35,16 @@
 
   function _clean(v) { return String(v || '').trim(); }
 
+  function _withPdfArchiveFormat(url, format) {
+    var value = _clean(url);
+    var targetFormat = _clean(format) || 'pdf';
+    if (!value || value.indexOf('/api/premium/pdf-archive/') < 0) return value;
+    if (/[?&]format=/i.test(value)) {
+      return value.replace(/([?&]format=)[^&]+/i, '$1' + encodeURIComponent(targetFormat));
+    }
+    return value + (value.indexOf('?') >= 0 ? '&' : '?') + 'format=' + encodeURIComponent(targetFormat);
+  }
+
   function _logFlow(code, meta) {
     try {
       console.info('[AstroBook][Flow] ' + code, meta || {});
@@ -143,6 +153,41 @@
       if (found) return found;
     }
     return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
+  }
+
+  function _extractAccessGrant(payload) {
+    if (!payload || typeof payload !== 'object') return null;
+    if (payload.accessGrant && typeof payload.accessGrant === 'object') return payload.accessGrant;
+    return _extractAccessGrant(payload.data) || _extractAccessGrant(payload.payload) || _extractAccessGrant(payload.payment) || _extractAccessGrant(payload._paymentContext) || _extractAccessGrant(payload.consume);
+  }
+
+  function _normalizePremiumPayment(transactionId, payload) {
+    var raw = payload && typeof payload === 'object' ? payload : {};
+    var data = raw.data && typeof raw.data === 'object' ? raw.data : {};
+    var nested = raw.payload && typeof raw.payload === 'object' ? raw.payload : {};
+    var payment = raw.payment && typeof raw.payment === 'object' ? raw.payment : {};
+    var context = raw._paymentContext && typeof raw._paymentContext === 'object' ? raw._paymentContext : {};
+    var grant = _extractAccessGrant(raw);
+    var token = _extractPremiumToken(raw) || _readPremiumAccessToken();
+    var tx = _clean(transactionId || raw.transactionId || data.transactionId || nested.transactionId || payment.transactionId || context.transactionId || raw.paymentId || data.paymentId || (grant && (grant.transactionId || grant.purchaseId || grant.requestId)));
+    var requestId = _clean((grant && (grant.requestId || grant.transactionId)) || raw.requestId || data.requestId || nested.requestId || payment.requestId || context.requestId || tx);
+    var purchaseId = _clean((grant && grant.purchaseId) || raw.purchaseId || data.purchaseId || nested.purchaseId || payment.purchaseId || context.purchaseId || raw.paymentId || data.paymentId || tx);
+    var sessionId = _clean((grant && (grant.sessionId || grant.reportSessionId)) || raw.sessionId || data.sessionId || nested.sessionId || payment.sessionId || context.sessionId);
+    var reportSessionId = _clean((grant && (grant.reportSessionId || grant.sessionId)) || raw.reportSessionId || data.reportSessionId || nested.reportSessionId || payment.reportSessionId || context.reportSessionId || sessionId);
+    var reportId = _clean((grant && grant.reportId) || raw.reportId || data.reportId || nested.reportId || payment.reportId || context.reportId);
+    var normalized = {
+      featureKey: ASTRO_BILLING_FEATURE_KEY,
+      reportType: 'westernAstrologyPremium',
+      premiumAccessToken: token || undefined,
+      transactionId: tx || undefined,
+      requestId: requestId || undefined,
+      purchaseId: purchaseId || undefined,
+      sessionId: sessionId || undefined,
+      reportSessionId: reportSessionId || undefined,
+      reportId: reportId || undefined,
+    };
+    if (grant) normalized.accessGrant = grant;
+    return normalized;
   }
 
   function _premiumTokenMatches(reportType) {
@@ -258,7 +303,7 @@
     var p = payload || {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
     var fallbackArchive = p.reportId ? ('/api/premium/pdf-archive/' + encodeURIComponent(String(p.reportId))) : '';
-    return _clean(
+    return _withPdfArchiveFormat(_clean(
       p.downloadUrl
       || p.pdfUrl
       || p.htmlUrl
@@ -266,7 +311,7 @@
       || ready.pdfUrl
       || ready.htmlUrl
       || fallbackArchive
-    );
+    ), 'pdf');
   }
 
   function _isCompletedReportReady(response) {
@@ -643,6 +688,53 @@
     });
   }
 
+  function _buildAstroClientEvidenceJson(profile, birthInput) {
+    var localBase = _buildAstroBase(profile) || {};
+    var chart = localBase.chart || {};
+    var planets = Array.isArray(chart.planets) ? chart.planets : [];
+    var houses = Array.isArray(chart.houses) ? chart.houses : [];
+    var aspects = Array.isArray(chart.aspects) ? chart.aspects : [];
+    var evidence = [
+      chart.sunSign,
+      chart.moonSign,
+      chart.ascendant,
+      chart.midheaven,
+    ].concat(
+      planets.slice(0, 12).map(function (planet) {
+        return _clean(planet.name) + ' ' + _clean(planet.sign) + (planet.house ? ' ' + planet.house + 'H' : '');
+      }),
+      houses.slice(0, 12).map(function (house) {
+        return _clean(house.house || house.number) + 'H ' + _clean(house.sign);
+      }),
+      aspects.slice(0, 16).map(function (aspect) {
+        return _clean(aspect.pair || aspect.type || aspect.aspect);
+      })
+    ).map(_clean).filter(Boolean);
+
+    return {
+      schemaVersion: 'astro-premium-client-evidence.v1',
+      source: 'browser-local-astro',
+      chartAvailable: Boolean(chart.sunSign && chart.moonSign && chart.ascendant),
+      evidenceCount: evidence.length,
+      birthInput: {
+        birthDate: _clean(birthInput && birthInput.birthDate),
+        birthTime: _clean(birthInput && birthInput.birthTime),
+        timezone: _clean(birthInput && birthInput.timezone),
+        birthPlace: _clean(birthInput && birthInput.birthPlace),
+      },
+      coreSigns: {
+        sun: _clean(chart.sunSign),
+        moon: _clean(chart.moonSign),
+        ascendant: _clean(chart.ascendant),
+        midheaven: _clean(chart.midheaven),
+      },
+      planetCount: planets.length,
+      houseCount: houses.length,
+      aspectCount: aspects.length,
+      evidence: evidence.slice(0, 40),
+    };
+  }
+
   function _renderProfileSummary(profile) {
     var el = _qs('abProfileSummary');
     if (!el) return;
@@ -847,11 +939,11 @@
     return new Promise(function (resolve, reject) {
       try {
         window._cdCoinGatePerUse(ASTRO_COIN_COST, '점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
-          _lastPremiumPayment = data || null;
-          _persistPremiumAccessToken(_extractPremiumToken(data));
+          _lastPremiumPayment = _normalizePremiumPayment(_transactionId, data);
+          _persistPremiumAccessToken(_lastPremiumPayment.premiumAccessToken || _extractPremiumToken(data));
           _markPremiumAccessVerified(25 * 60 * 1000);
           _logStage('PaymentGateSuccess', { featureKey: ASTRO_BILLING_FEATURE_KEY });
-          resolve({ ok: true, skipped: false, data: data || {} });
+          resolve({ ok: true, skipped: false, data: _lastPremiumPayment });
         }, function () {
           reject(new Error('결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.'));
         }, {
@@ -957,6 +1049,8 @@
       return;
     }
 
+    var astroClientEvidenceJson = _buildAstroClientEvidenceJson(profile, birthInput);
+
     _generating = true;
     _setStartBusy(true);
     _showScreen('abLoadingScreen');
@@ -968,43 +1062,34 @@
 
     _ensurePremiumPaymentAsync()
       .then(function (payment) {
-        var paymentGrant = payment && payment.data && payment.data.accessGrant ? payment.data.accessGrant : (_lastPremiumPayment && _lastPremiumPayment.accessGrant ? _lastPremiumPayment.accessGrant : null);
-        var paymentContext = paymentGrant ? {
-          featureKey: ASTRO_BILLING_FEATURE_KEY,
-          requestId: paymentGrant.requestId || paymentGrant.transactionId || '',
-          purchaseId: paymentGrant.purchaseId || '',
-          sessionId: paymentGrant.sessionId || paymentGrant.reportSessionId || '',
-          reportSessionId: paymentGrant.reportSessionId || paymentGrant.sessionId || '',
-          reportId: paymentGrant.reportId || '',
-        } : undefined;
+        var paymentContext = _normalizePremiumPayment('', (payment && payment.data) || _lastPremiumPayment || {});
         _logStage('SessionCreateStart', {
           hasBirthDate: !!_clean(birthInput.birthDate),
           hasBirthTime: Number.isFinite(Number(birthInput.birthHour)),
         });
         var sessionId = 'astro-premium:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+        paymentContext.sessionId = _clean(paymentContext.sessionId || sessionId) || undefined;
+        paymentContext.reportSessionId = _clean(paymentContext.reportSessionId || paymentContext.sessionId || sessionId) || undefined;
+        paymentContext.premiumAccessToken = _readPremiumAccessToken() || paymentContext.premiumAccessToken || undefined;
+        var paymentGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
         _logStage('SessionCreateSuccess', { sessionId: sessionId });
         _setLoadingProgress(total, total, '점성술 코즈믹 차트 PDF를 완성하는 중입니다');
         _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
         return _postPrepare({
           featureKey: ASTRO_FEATURE_KEY,
           reportType: 'westernAstrologyPremium',
-          premiumAccessToken: _readPremiumAccessToken() || _extractPremiumToken(payment && payment.data) || undefined,
+          premiumAccessToken: paymentContext.premiumAccessToken || undefined,
           sessionId: sessionId,
-          reportSessionId: paymentGrant && (paymentGrant.reportSessionId || paymentGrant.sessionId) || sessionId,
-          purchaseId: paymentGrant && paymentGrant.purchaseId || undefined,
-          requestId: paymentGrant && (paymentGrant.requestId || paymentGrant.transactionId) || undefined,
+          reportSessionId: paymentContext.reportSessionId || sessionId,
+          purchaseId: paymentContext.purchaseId || undefined,
+          requestId: paymentContext.requestId || undefined,
+          reportId: paymentContext.reportId || undefined,
           accessGrant: paymentGrant || undefined,
-          payment: paymentContext ? {
-            featureKey: ASTRO_BILLING_FEATURE_KEY,
-            requestId: paymentContext.requestId,
-            purchaseId: paymentContext.purchaseId,
-            sessionId: paymentContext.sessionId,
-            reportSessionId: paymentContext.reportSessionId,
-            reportId: paymentContext.reportId,
-          } : undefined,
+          payment: paymentContext,
           _paymentContext: paymentContext,
           birthInput: birthInput,
           profile: profile,
+          astroClientEvidenceJson: astroClientEvidenceJson,
         });
       })
       .then(function (response) {
@@ -1048,7 +1133,7 @@
       a.href = url;
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
-      a.download = (_resultPayload && _resultPayload.pdfReady && _resultPayload.pdfReady.filename) || 'astro-premium-report.html';
+      a.download = ((_resultPayload && _resultPayload.pdfReady && _resultPayload.pdfReady.filename) || 'astro-premium-report.pdf').replace(/\.html?$/i, '.pdf');
       document.body.appendChild(a);
       a.click();
       a.remove();

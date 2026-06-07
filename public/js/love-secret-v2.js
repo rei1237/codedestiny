@@ -941,6 +941,30 @@
     };
   }
 
+  function _collectQuantumMyeongriJson() {
+    var base = _collectSajuBase();
+    return {
+      schemaVersion: 'love-secret-client-evidence.v1',
+      calculationSource: 'main-shell-saju-engine',
+      evidencePolicy: 'supplemental_only_worker_engine_is_source_of_truth',
+      sajuBase: base,
+      pillars: base.pillars,
+      core: base.core,
+      elementBalance: base.elementBalance,
+      tenGods: base.tenGods,
+      strength: base.strength,
+      johu: window.G_JOHU || base.johu || null,
+      yongshin: base.yongshin,
+      specialStars: base.specialStars,
+      timing: base.timing,
+      quantumRuntime: {
+        power: window.G_POWER || null,
+        daeun: window.G_DAEWUN || window.G_DAEUN || [],
+        analysis: (window.__destinyFlowerSajuSnapshot && (window.__destinyFlowerSajuSnapshot.analysis || window.__destinyFlowerSajuSnapshot.saju)) || null
+      }
+    };
+  }
+
   function _collectPartnerData() {
     var section = _qs('lsPartnerSection');
     if (!section || !section.classList.contains('open')) return '';
@@ -2617,6 +2641,7 @@
         profile: window.__cdActiveBirthProfile || {},
         partnerBirthInput: partnerBirthInput || undefined,
         partnerData: partnerBirthInput ? _collectPartnerScreenData() : '',
+        quantumMyeongriJson: _collectQuantumMyeongriJson(),
       };
 
       _setLoveBookGenerationState('building_chapters');

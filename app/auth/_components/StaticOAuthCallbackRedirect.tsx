@@ -392,8 +392,8 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
                 const parsedUser = JSON.parse(rawUser);
                 const subscription = subPayload.subscription && typeof subPayload.subscription === "object" ? subPayload.subscription : {};
                 const tierRaw = String(subPayload.tier || subscription.tier || subPayload.passTier || subscription.passTier || subPayload.plan || subscription.plan || "free").toLowerCase();
-                const tier = tierRaw.includes("vvip") ? "vvip" : (tierRaw.includes("premium") ? "premium" : (tierRaw.includes("standard") ? "standard" : "free"));
-                const passLimit = tier === "vvip" ? 100 : (tier === "premium" ? 50 : (tier === "standard" ? 30 : 0));
+                const tier = tierRaw.includes("family") ? "family" : (tierRaw.includes("vvip") ? "vvip" : (tierRaw.includes("premium") ? "premium" : (tierRaw.includes("standard") ? "standard" : "free")));
+                const passLimit = tier === "family" ? 999999999 : (tier === "vvip" ? 100 : (tier === "premium" ? 50 : (tier === "standard" ? 30 : 0)));
                 const status = String(subPayload.status || subPayload.subscriptionStatus || subPayload.membershipStatus || subscription.status || "").toLowerCase();
                 const statusActive = [
                   "active",

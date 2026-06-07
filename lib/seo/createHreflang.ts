@@ -10,8 +10,12 @@ export function createHreflangFromRoutes(routeByLocale: Record<Locale, string>) 
 
   for (const locale of LOCALES) {
     const hrefLang = LOCALE_CONFIG[locale].hrefLang;
+    const aliases = LOCALE_CONFIG[locale].hrefLangAliases || [];
     const route = routeByLocale[locale];
     languages[hrefLang] = toAbsolute(route);
+    for (const alias of aliases) {
+      languages[alias] = toAbsolute(route);
+    }
   }
 
   languages["x-default"] = toAbsolute(routeByLocale.ko);

@@ -3,6 +3,7 @@ import { BASE_URL } from "../lib/seo-site-urls";
 import { buildSitemapEntriesV2 } from "../lib/seo.v2";
 import { LOCALES } from "../lib/i18n/locales";
 import { I18N_ROUTE_MAP } from "../lib/i18n/routes";
+import { createHreflangFromRoutes } from "../lib/seo/createHreflang";
 
 export const dynamic = "force-static";
 
@@ -18,13 +19,7 @@ function buildBaseEntries(): MetadataRoute.Sitemap {
 
 function buildLanguagesAlternates(routeByLocale: Record<"ko" | "ja" | "zh" | "en", string>) {
   return {
-    languages: {
-      ko: new URL(routeByLocale.ko, BASE_URL).toString(),
-      ja: new URL(routeByLocale.ja, BASE_URL).toString(),
-      zh: new URL(routeByLocale.zh, BASE_URL).toString(),
-      en: new URL(routeByLocale.en, BASE_URL).toString(),
-      "x-default": new URL(routeByLocale.ko, BASE_URL).toString(),
-    },
+    languages: createHreflangFromRoutes(routeByLocale),
   };
 }
 

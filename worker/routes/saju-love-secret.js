@@ -876,12 +876,24 @@ async function generateLoveSecretChapter(env, base, mode, config, chapterNo) {
 async function buildLoveSecretChapters(env, { base, mode, config, body = {}, requestId = "", onProgress = null } = {}) {
   if (normalizeMode(mode) === "solo") {
     const targetYear = Number(body?.targetYear || 2026);
+    const loveSecretMasterJson = buildLoveSecretMasterJson({
+      base,
+      mode,
+      body,
+      targetYear: Number.isFinite(targetYear) ? targetYear : 2026,
+    });
+    const masterJsonValidation = validateLoveSecretMasterJson(loveSecretMasterJson);
+    if (!masterJsonValidation.ok) {
+      throw new Error(`LOVE_SECRET_MASTER_JSON_INVALID:${masterJsonValidation.errors.join(",")}`);
+    }
     const input = buildSoloLoveLLMInput({
       userProfile: base?.user || {},
       sajuEngineResult: base,
       serviceContext: body,
       targetYear: Number.isFinite(targetYear) ? targetYear : 2026,
     });
+    input.loveSecretMasterJson = loveSecretMasterJson;
+    input.consultationEvidence = loveSecretMasterJson.consultationEvidence;
     const chapters = await generateSoloLoveChapters({
       env,
       input,
@@ -893,11 +905,23 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
       fallbackUsed: false,
       totalChapters: chapters.length,
       manuscriptSource: LOVE_SECRET_MANUSCRIPT_SOURCE.LLM,
+      loveSecretMasterJson,
+      masterJsonValidation,
     };
   }
 
   if (normalizeMode(mode) === "compatibility") {
     const targetYear = Number(body?.targetYear || 2026);
+    const loveSecretMasterJson = buildLoveSecretMasterJson({
+      base,
+      mode,
+      body,
+      targetYear: Number.isFinite(targetYear) ? targetYear : 2026,
+    });
+    const masterJsonValidation = validateLoveSecretMasterJson(loveSecretMasterJson);
+    if (!masterJsonValidation.ok) {
+      throw new Error(`LOVE_SECRET_MASTER_JSON_INVALID:${masterJsonValidation.errors.join(",")}`);
+    }
     const input = buildCompatibilityLoveLLMInput({
       personAProfile: base?.user || {},
       personBProfile: base?.partner?.user || {},
@@ -906,6 +930,8 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
       relationshipContext: body,
       targetYear: Number.isFinite(targetYear) ? targetYear : 2026,
     });
+    input.loveSecretMasterJson = loveSecretMasterJson;
+    input.consultationEvidence = loveSecretMasterJson.consultationEvidence;
     const chapters = await generateCompatibilityLoveChapters({
       env,
       input,
@@ -917,6 +943,8 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
       fallbackUsed: false,
       totalChapters: chapters.length,
       manuscriptSource: LOVE_SECRET_MANUSCRIPT_SOURCE.LLM,
+      loveSecretMasterJson,
+      masterJsonValidation,
     };
   }
 
@@ -1297,6 +1325,7 @@ function normalizeSajuBase(body = {}) {
         const partnerBase = buildLoveSecretBaseFromBirthInput(partnerBirthInput.input);
         partner = {
           raw: "",
+          user: partnerBase?.user || {},
           birthDate: clean(partnerBase?.user?.birthDate),
           birthTime: clean(partnerBase?.user?.birthTime),
           pillars: partnerBase?.pillars || {},
@@ -1307,6 +1336,12 @@ function normalizeSajuBase(body = {}) {
           },
           elementBalance: partnerBase?.elementBalance || {},
           tenGods: partnerBase?.tenGods || {},
+          strength: partnerBase?.strength || {},
+          johu: partnerBase?.johu,
+          yongshin: partnerBase?.yongshin,
+          specialStars: partnerBase?.specialStars,
+          timing: partnerBase?.timing,
+          loveSecretReference: buildLoveSecretReference(partnerBase),
         };
       } else {
         partner = parsePartnerSnapshot(body?.partnerData);
@@ -1504,6 +1539,189 @@ function loveSecretPillarRaw(pillar) {
   const gan = clean(pillar?.gan || pillar?.stemKo || pillar?.stem);
   const zhi = clean(pillar?.zhi || pillar?.branchKo || pillar?.branch);
   return gan && zhi ? `${gan}${zhi}` : "";
+}
+
+function buildLoveSecretMasterPersonJson(base = {}, targetYear = 2026) {
+  const src = base && typeof base === "object" ? base : {};
+  const reference = src?.loveSecretReference && typeof src.loveSecretReference === "object"
+    ? src.loveSecretReference
+    : buildLoveSecretReference(src);
+  const birthDate = clean(src?.user?.birthDate || src?.birthDate);
+  const birthTime = clean(src?.user?.birthTime || src?.birthTime);
+  const counts = src?.elementBalance?.counts && typeof src.elementBalance.counts === "object" ? src.elementBalance.counts : {};
+  const pillars = src?.pillars && typeof src.pillars === "object" ? src.pillars : {};
+
+  return compactLoveSecretObject({
+    user: {
+      name: clean(src?.user?.name || "의뢰인"),
+      gender: clean(src?.user?.gender),
+      birthDate,
+      birthTime,
+      calendarType: clean(src?.user?.calendarType || "solar") || "solar",
+      currentAge: loveSecretAgeAtYear(birthDate, targetYear),
+      isAdult: typeof loveSecretAgeAtYear(birthDate, targetYear) === "number"
+        ? loveSecretAgeAtYear(birthDate, targetYear) >= 19
+        : undefined,
+    },
+    pillars: {
+      year: pillars.year,
+      month: pillars.month,
+      day: pillars.day,
+      hour: pillars.hour,
+    },
+    eightCharacters: ["year", "month", "day", "hour"].map((key) => loveSecretPillarRaw(pillars?.[key])).filter(Boolean).join(" "),
+    core: {
+      dayMaster: clean(src?.core?.dayMaster),
+      dayBranch: clean(src?.core?.dayBranch),
+      monthBranch: clean(src?.core?.monthBranch),
+      season: clean(src?.core?.season),
+    },
+    elementBalance: {
+      counts,
+      dominant: clean(src?.elementBalance?.dominant),
+      deficient: clean(src?.elementBalance?.deficient),
+      balanceScore: src?.elementBalance?.balanceScore,
+    },
+    fiveElements: {
+      counts,
+      excessive: clean(src?.elementBalance?.dominant),
+      deficient: clean(src?.elementBalance?.deficient),
+    },
+    tenGods: src?.tenGods,
+    strength: src?.strength,
+    johu: src?.johu,
+    yongshin: src?.yongshin,
+    specialStars: src?.specialStars,
+    timing: src?.timing,
+    loveSecretReference: reference,
+  });
+}
+
+function buildLoveSecretConsultationEvidence(masterJson = {}) {
+  const mode = normalizeMode(masterJson?.mode);
+  const self = masterJson?.self || {};
+  const partner = masterJson?.partner || {};
+  const ref = self?.loveSecretReference || {};
+  const evidence = [
+    `원국 8글자: ${clean(self?.eightCharacters)}`,
+    `일간과 일지: ${clean(self?.core?.dayMaster)} / ${clean(self?.core?.dayBranch)}`,
+    `오행 중심: 강한 기운 ${clean(self?.elementBalance?.dominant)}, 보완 기운 ${clean(self?.elementBalance?.deficient)}`,
+    `용신 흐름: ${(Array.isArray(self?.yongshin?.usefulElements) ? self.yongshin.usefulElements : []).join(", ")}`,
+    `연애 정체성: ${clean(ref?.identity?.summary || ref?.identity?.title || ref?.dayMasterLabel)}`,
+    `이상적 인연상: ${clean(ref?.idealPartner?.personality || ref?.idealPartner?.element || ref?.yongshinElementLabel)}`,
+  ].filter((line) => clean(line).replace(/undefined|null/g, "").length > 8);
+
+  if (mode === "compatibility") {
+    evidence.push(
+      `상대 원국 8글자: ${clean(partner?.eightCharacters)}`,
+      `상대 일간과 일지: ${clean(partner?.core?.dayMaster)} / ${clean(partner?.core?.dayBranch)}`,
+      `배우자궁 관계: ${clean(masterJson?.compatibility?.spousePalaceRelation?.relationType)}`,
+      `생활 리듬 관계: ${clean(masterJson?.compatibility?.monthBranchLifeRhythm?.relationType)}`,
+    );
+  }
+
+  return compactLoveSecretObject({
+    sajuEvidence: evidence,
+    interpretationOrder: ["사주 근거", "연애 심리", "상대가 느끼는 분위기", "현실 행동", "품격 있는 주의점"],
+    writingVoice: "최고의 연애 상담가가 조용히 핵심을 짚어 주는 전문적이고 신비로운 존댓말 상담체",
+    safety: ["결과 단정 금지", "불안 조장 금지", "상대 조종 표현 금지", "노골적 성적 표현 금지"],
+  });
+}
+
+function buildLoveSecretMasterJson({ base = {}, mode = "solo", body = {}, targetYear = 2026 } = {}) {
+  const normalizedMode = normalizeMode(mode);
+  const self = buildLoveSecretMasterPersonJson(base, targetYear);
+  const partner = normalizedMode === "compatibility"
+    ? buildLoveSecretMasterPersonJson(base?.partner || {}, targetYear)
+    : undefined;
+  const clientEvidence = body?.quantumMyeongriJson || body?.clientEngineEvidence || body?.clientMyeongriJson || null;
+  const compatibility = normalizedMode === "compatibility"
+    ? compactLoveSecretObject({
+        dayMasterRelation: {
+          personA: clean(self?.core?.dayMaster),
+          personB: clean(partner?.core?.dayMaster),
+        },
+        spousePalaceRelation: {
+          personA: clean(self?.core?.dayBranch),
+          personB: clean(partner?.core?.dayBranch),
+          relationType: branchRelationType(self?.core?.dayBranch, partner?.core?.dayBranch),
+        },
+        monthBranchLifeRhythm: {
+          personA: clean(self?.core?.monthBranch),
+          personB: clean(partner?.core?.monthBranch),
+          relationType: branchRelationType(self?.core?.monthBranch, partner?.core?.monthBranch),
+        },
+        fiveElementComplement: elementComplement(self, partner),
+        johuIntimacy: buildJohuIntimacyData(self, partner),
+        reference: self?.loveSecretReference?.compatibility,
+      })
+    : undefined;
+  const masterJson = compactLoveSecretObject({
+    schemaVersion: "love-secret-master-json.v1",
+    calculationSource: "worker-saju-engine",
+    generationMode: "worker-native-llm",
+    mode: normalizedMode,
+    analysis: { targetYear },
+    self,
+    partner,
+    compatibility,
+    clientEngineEvidence: clientEvidence && typeof clientEvidence === "object"
+      ? {
+          usagePolicy: "supplemental_only_worker_engine_is_source_of_truth",
+          snapshot: safeLoveSecretClone(clientEvidence),
+        }
+      : undefined,
+    qualityRules: {
+      mustUseOnlyProvidedEvidence: true,
+      mustKeepCounselingTone: true,
+      mustAvoidDeterministicClaims: true,
+      mustAvoidManipulativeAdvice: true,
+    },
+  });
+
+  return {
+    ...masterJson,
+    consultationEvidence: buildLoveSecretConsultationEvidence(masterJson),
+  };
+}
+
+function hasLoveSecretElementCounts(counts = {}) {
+  const safe = counts && typeof counts === "object" ? counts : {};
+  return Object.keys(safe).some((key) => Number(safe[key] || 0) > 0);
+}
+
+function validateLoveSecretMasterJson(masterJson = {}) {
+  const errors = [];
+  const mode = normalizeMode(masterJson?.mode);
+  const self = masterJson?.self || {};
+  const partner = masterJson?.partner || {};
+  const requireField = (condition, code) => {
+    if (!condition) errors.push(code);
+  };
+
+  requireField(clean(masterJson?.schemaVersion) === "love-secret-master-json.v1", "schema_version_invalid");
+  requireField(clean(masterJson?.calculationSource) === "worker-saju-engine", "calculation_source_invalid");
+  requireField(clean(self?.user?.birthDate), "self_birth_date_missing");
+  requireField(clean(self?.user?.birthTime), "self_birth_time_missing");
+  ["year", "month", "day", "hour"].forEach((key) => {
+    requireField(Boolean(loveSecretPillarRaw(self?.pillars?.[key])), `self_${key}_pillar_missing`);
+  });
+  requireField(clean(self?.core?.dayMaster), "self_day_master_missing");
+  requireField(clean(self?.core?.dayBranch), "self_day_branch_missing");
+  requireField(hasLoveSecretElementCounts(self?.elementBalance?.counts), "self_element_counts_missing");
+  requireField(Array.isArray(self?.yongshin?.usefulElements) && self.yongshin.usefulElements.length > 0, "self_yongshin_missing");
+  requireField(Boolean(self?.loveSecretReference?.dayMasterLabel), "self_love_reference_missing");
+  requireField((masterJson?.consultationEvidence?.sajuEvidence || []).length >= 5, "consultation_evidence_too_thin");
+
+  if (mode === "compatibility") {
+    requireField(clean(partner?.user?.birthDate), "partner_birth_date_missing");
+    requireField(clean(partner?.core?.dayMaster), "partner_day_master_missing");
+    requireField(clean(partner?.core?.dayBranch), "partner_day_branch_missing");
+    requireField(Boolean(loveSecretPillarRaw(partner?.pillars?.day)), "partner_day_pillar_missing");
+    requireField(Boolean(masterJson?.compatibility?.spousePalaceRelation?.relationType), "compatibility_spouse_palace_missing");
+  }
+
+  return { ok: errors.length === 0, errors };
 }
 
 function buildSoloLoveLLMInput({ userProfile = {}, sajuEngineResult = {}, serviceContext = {}, targetYear = 2026 } = {}) {
@@ -1988,6 +2206,7 @@ function buildSoloLoveChapterPrompt({ input, chapterSpec, previousSummaries = []
   const systemPrompt = [
     "당신은 사주 원국을 바탕으로 연애 비책 PDF 원고를 쓰는 전문 상담가입니다.",
     "사주 계산을 새로 하지 말고 제공된 사주 엔진 값만 사용하세요.",
+    "제공된 마스터 상담 근거를 최우선 기준으로 삼으세요.",
     "없는 값은 추측하지 말고, 확인된 값 중심으로 해석하세요.",
     "연애 결과를 단정하지 말고 가능성, 경향, 선택 기준으로 표현하세요.",
     "사주 근거, 연애 해석, 현실 발현, 주의점, 실천 전략 흐름을 유지하세요.",
@@ -2050,6 +2269,7 @@ function buildCompatibilityLoveChapterPrompt({ input, chapterSpec, previousSumma
   const systemPrompt = [
     "당신은 두 사람의 사주 원국을 비교해 궁합 PDF 원고를 쓰는 전문 상담가입니다.",
     "사주 계산을 새로 하지 말고 제공된 A/B 사주 엔진 값과 서버 비교 데이터만 사용하세요.",
+    "제공된 마스터 상담 근거를 최우선 기준으로 삼으세요.",
     "없는 값은 만들지 말고, 확인된 값 중심으로 균형 있게 해석하세요.",
     "한쪽을 비난하지 말고 A/B 관점을 모두 공정하게 다루세요.",
     "여성 독자가 읽을 때 '내 마음을 정확히 알아준다'고 느끼도록 섬세한 감정 언어를 사용하세요.",
@@ -2671,9 +2891,15 @@ function buildLoveSecretArchiveHtmlUrl(requestOrOrigin, reportId) {
   return archiveUrl ? `${archiveUrl}?format=html` : "";
 }
 
+function buildLoveSecretArchivePdfUrl(requestOrOrigin, reportId) {
+  const archiveUrl = buildLoveSecretArchiveUrl(requestOrOrigin, reportId);
+  return archiveUrl ? `${archiveUrl}?format=pdf` : "";
+}
+
 function buildLoveSecretPdfReady(requestOrOrigin, reportId, chapters, base, mode) {
   const archiveUrl = buildLoveSecretArchiveUrl(requestOrOrigin, reportId);
   const archiveHtmlUrl = buildLoveSecretArchiveHtmlUrl(requestOrOrigin, reportId);
+  const archivePdfUrl = buildLoveSecretArchivePdfUrl(requestOrOrigin, reportId);
   const normalizedMode = normalizeMode(mode);
   const selfName = clean(base?.user?.name || "사용자");
   const partnerName = clean(base?.partner?.user?.name || "상대");
@@ -2684,7 +2910,7 @@ function buildLoveSecretPdfReady(requestOrOrigin, reportId, chapters, base, mode
   const sectionCount = Array.isArray(chapters)
     ? chapters.reduce((total, chapter) => total + (Array.isArray(chapter?.sections) ? chapter.sections.length : 0), 0)
     : 0;
-  const documentUrl = archiveHtmlUrl || archiveUrl;
+  const documentUrl = archivePdfUrl || archiveUrl;
   const selfEightCharacters = ["year", "month", "day", "hour"].map((key) => loveSecretPillarRaw(base?.pillars?.[key])).filter(Boolean).join(" ");
   const partnerEightCharacters = ["year", "month", "day", "hour"].map((key) => loveSecretPillarRaw(base?.partner?.pillars?.[key])).filter(Boolean).join(" ");
   const targetYear = 2026;
@@ -2707,18 +2933,18 @@ function buildLoveSecretPdfReady(requestOrOrigin, reportId, chapters, base, mode
         : selfEightCharacters,
     }),
     pdfUrl: documentUrl,
-    htmlUrl: documentUrl,
+    htmlUrl: archiveHtmlUrl || archiveUrl,
     downloadUrl: documentUrl,
     documentUrl,
     archiveUrl,
     storageKey: `premium-archive:love-secret:${reportId}`,
-    mimeType: "text/html",
-    contentType: "text/html; charset=UTF-8",
-    renderFormat: "html-printable",
+    mimeType: "application/pdf",
+    contentType: "application/pdf",
+    renderFormat: "pdf-archive",
   };
 }
 
-function buildLoveSecretSuccessPayload({ featureKey, mode, sessionId, reportId, chapterCount, fallbackUsed, manuscriptSource, chapters, pdfReady }) {
+function buildLoveSecretSuccessPayload({ featureKey, mode, sessionId, reportId, chapterCount, fallbackUsed, manuscriptSource, chapters, pdfReady, loveSecretMasterJson, masterJsonValidation }) {
   const storedUrl = clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl);
   if (!storedUrl) {
     const error = new Error("LOVE_SECRET_REPORT_URL_MISSING");
@@ -2739,6 +2965,8 @@ function buildLoveSecretSuccessPayload({ featureKey, mode, sessionId, reportId, 
     fallbackUsed: Boolean(fallbackUsed),
     manuscriptSource,
     pdfReady,
+    loveSecretMasterJson: loveSecretMasterJson && typeof loveSecretMasterJson === "object" ? loveSecretMasterJson : undefined,
+    masterJsonValidation: masterJsonValidation && typeof masterJsonValidation === "object" ? masterJsonValidation : undefined,
     pdfUrl: storedUrl,
     htmlUrl: clean(pdfReady?.htmlUrl || storedUrl),
     downloadUrl: clean(pdfReady?.downloadUrl || storedUrl),
@@ -2855,7 +3083,13 @@ async function runLoveSecretJob(env, jobId) {
     );
 
     console.info("[LoveBookPremiumPDF][LocalDraftBuildStart]", { chapterCount: expectedChapterCount, mode });
-    const { chapters: localChapters, totalChapters, manuscriptSource: generatedSource } = await buildLoveSecretChapters(env, {
+    const {
+      chapters: localChapters,
+      totalChapters,
+      manuscriptSource: generatedSource,
+      loveSecretMasterJson,
+      masterJsonValidation,
+    } = await buildLoveSecretChapters(env, {
       base,
       mode,
       config,
@@ -2972,6 +3206,8 @@ async function runLoveSecretJob(env, jobId) {
       manuscriptSource,
       chapters: finalChapters,
       pdfReady,
+      loveSecretMasterJson,
+      masterJsonValidation,
     });
 
     await coll.updateOne(
@@ -3011,7 +3247,7 @@ async function runLoveSecretJob(env, jobId) {
           htmlUrl: clean(pdfReady?.htmlUrl),
           downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
           chapters: finalChapters,
-          payload: { mode, chapterCount: totalChapters, pdfReady },
+          payload: { mode, chapterCount: totalChapters, pdfReady, loveSecretMasterJson, masterJsonValidation },
           pdfReady,
           canReopen: true,
           canDownload: true,
@@ -3228,7 +3464,13 @@ async function handlePrepare(request, env) {
   });
   console.info("[LoveBookPremiumPDF][LocalDraftBuildStart]", { chapterCount: Number(config?.totalChapters || 0), mode });
 
-  const { chapters: localChapters, totalChapters, manuscriptSource: generatedSource } = await buildLoveSecretChapters(env, {
+  const {
+    chapters: localChapters,
+    totalChapters,
+    manuscriptSource: generatedSource,
+    loveSecretMasterJson,
+    masterJsonValidation,
+  } = await buildLoveSecretChapters(env, {
     base,
     mode,
     config,
@@ -3291,6 +3533,8 @@ async function handlePrepare(request, env) {
     manuscriptSource,
     chapters: finalChapters,
     pdfReady,
+    loveSecretMasterJson,
+    masterJsonValidation,
   });
   await completePremiumPdfExecution(env, authz?.auth?.userId, executionCtx, reportId, {
     manuscriptSource,
@@ -3307,7 +3551,7 @@ async function handlePrepare(request, env) {
       htmlUrl: clean(pdfReady?.htmlUrl),
       downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
       chapters: finalChapters,
-      payload: { mode, chapterCount: totalChapters, pdfReady },
+      payload: { mode, chapterCount: totalChapters, pdfReady, loveSecretMasterJson, masterJsonValidation },
       pdfReady,
       canReopen: true,
       canDownload: true,
@@ -3429,6 +3673,8 @@ async function handlePrepareAsync(request, env, ctx) {
         partnerBirthInput: body?.partnerBirthInput && typeof body.partnerBirthInput === "object" ? body.partnerBirthInput : {},
         profile: body?.profile && typeof body.profile === "object" ? body.profile : {},
         partnerData: body?.partnerData || "",
+        quantumMyeongriJson: body?.quantumMyeongriJson && typeof body.quantumMyeongriJson === "object" ? body.quantumMyeongriJson : {},
+        clientEngineEvidence: body?.clientEngineEvidence && typeof body.clientEngineEvidence === "object" ? body.clientEngineEvidence : {},
       },
       requestOrigin: new URL(request.url).origin,
       execution: {
@@ -3492,7 +3738,14 @@ async function handlePrepareAsync(request, env, ctx) {
     }
     console.warn("[love-secret][async-job-db-fallback]", clean(error?.message || error) || error);
 
-    const { chapters, fallbackUsed, totalChapters: directChapterCount, manuscriptSource: directManuscriptSource } = await buildLoveSecretChapters(env, {
+    const {
+      chapters,
+      fallbackUsed,
+      totalChapters: directChapterCount,
+      manuscriptSource: directManuscriptSource,
+      loveSecretMasterJson,
+      masterJsonValidation,
+    } = await buildLoveSecretChapters(env, {
       base,
       mode,
       config,
@@ -3519,6 +3772,8 @@ async function handlePrepareAsync(request, env, ctx) {
       manuscriptSource,
       chapters: finalChapters,
       pdfReady,
+      loveSecretMasterJson,
+      masterJsonValidation,
     });
 
     resolveLoveSecretLock(sessionId, "done", "");
@@ -3543,7 +3798,7 @@ async function handlePrepareAsync(request, env, ctx) {
           htmlUrl: clean(pdfReady?.htmlUrl),
           downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
           chapters: finalChapters,
-          payload: { mode, chapterCount: directChapterCount, pdfReady },
+          payload: { mode, chapterCount: directChapterCount, pdfReady, loveSecretMasterJson, masterJsonValidation },
           pdfReady,
           canReopen: true,
           canDownload: true,
@@ -3609,6 +3864,8 @@ export const __loveSecretTestUtils = Object.freeze({
   validateLoveSecretManuscript,
   buildSoloLoveLLMInput,
   buildCompatibilityLoveLLMInput,
+  buildLoveSecretMasterJson,
+  validateLoveSecretMasterJson,
   generateSoloLoveChapter,
   generateSoloLoveChapters,
   generateCompatibilityLoveChapter,

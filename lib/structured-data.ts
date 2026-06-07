@@ -1,4 +1,5 @@
 import { SEO_SITE_URL, toAbsoluteUrl } from "./seo";
+import { SEO_SITE_CONFIG } from "./seo/siteConfig";
 
 type FaqItem = {
   question: string;
@@ -10,12 +11,12 @@ export function buildOrganizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "@id": `${SEO_SITE_URL}/#organization`,
-    name: "Code Destiny",
-    alternateName: ["코드 데스티니", "꿀꿀 만세력", "Ggulggul Manseryeok", "codedestiny"],
+    name: SEO_SITE_CONFIG.brandName,
+    alternateName: SEO_SITE_CONFIG.alternateNames,
     url: SEO_SITE_URL,
     logo: {
       "@type": "ImageObject",
-      url: `${SEO_SITE_URL}/og/code-destiny-og.png`,
+      url: SEO_SITE_CONFIG.defaultOgImage,
     },
     sameAs: [
       `${SEO_SITE_URL}/insights`,
@@ -31,8 +32,8 @@ export function buildWebsiteJsonLd() {
     "@type": "WebSite",
     "@id": `${SEO_SITE_URL}/#website`,
     url: SEO_SITE_URL,
-    name: "Code Destiny",
-    alternateName: ["코드 데스티니", "꿀꿀 만세력", "codedestiny"],
+    name: SEO_SITE_CONFIG.brandName,
+    alternateName: SEO_SITE_CONFIG.alternateNames,
     potentialAction: {
       "@type": "SearchAction",
       target: `${SEO_SITE_URL}/insights?q={search_term_string}`,
@@ -101,12 +102,12 @@ export function buildServiceJsonLd(input: {
     provider: {
       "@type": "Organization",
       "@id": `${SEO_SITE_URL}/#organization`,
-      name: "Code Destiny",
+      name: SEO_SITE_CONFIG.brandName,
     },
-    areaServed: {
+    areaServed: SEO_SITE_CONFIG.targetMarkets.map((name) => ({
       "@type": "Country",
-      name: "KR",
-    },
+      name,
+    })),
     offers: {
       "@type": "Offer",
       price: "0",
@@ -156,7 +157,7 @@ export function buildArticleJsonLd(input: {
     publisher: {
       "@type": "Organization",
       "@id": `${SEO_SITE_URL}/#organization`,
-      name: "Code Destiny",
+      name: SEO_SITE_CONFIG.brandName,
     },
     articleSection: input.category || "운세 인사이트",
     keywords: (input.keywords || []).join(", "),

@@ -9,6 +9,7 @@ import {
   PASS_LIMITS,
   PASS_TIERS,
 } from "../worker/lib/profile-limits.js";
+import { applyPdfPassDiscountToPricing } from "../worker/lib/pdf-pass-discount.js";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
@@ -16,6 +17,7 @@ const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), 
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const pointsSource = readFileSync(resolve(root, "app/points/page.tsx"), "utf8");
+const statusCardSource = readFileSync(resolve(root, "app/points/SubscriptionStatusCard.tsx"), "utf8");
 const headersSource = readFileSync(resolve(root, "_headers"), "utf8");
 
 function futureDate(days = 30) {
@@ -162,6 +164,51 @@ const vvip200 = decision({
 });
 assertPaidFallback(vvip200, "vvip 200");
 
+const family690 = decision({
+  pass: activePass(PASS_TIERS.FAMILY),
+  coinCost: 690,
+  monthlyBalance: 0,
+});
+assert.equal(canUseByPass(activePass(PASS_TIERS.FAMILY), 690), true, "family covers every priced service");
+assert.equal(family690.canUseByPass, true, "family 690: canUseByPass");
+assert.equal(family690.canUseByMonthly, false, "family 690: monthly fallback is unnecessary without balance");
+assertFinalPass(family690, "card", "family 690 requested card");
+
+const discountedPdf = applyPdfPassDiscountToPricing({
+  featureKey: "premium_pdf_ziwei",
+  billingType: "pdf",
+  cost: 590,
+  coinPrice: 590,
+  amountKRW: 59000,
+  cashPrice: 59000,
+  membershipCreditCost: 5900,
+}, activePass(PASS_TIERS.PREMIUM));
+assert.equal(discountedPdf.coinPrice, 540, "premium pass discounts PDF by 50 coins");
+const discountedPdfDecision = decision({
+  pass: activePass(PASS_TIERS.PREMIUM),
+  coinCost: discountedPdf.coinPrice,
+  monthlyBalance: 5400,
+});
+assert.equal(discountedPdfDecision.canUseByPass, false, "discounted PDF remainder must not be pass-covered again");
+
+const smallPdfRemainder = applyPdfPassDiscountToPricing({
+  featureKey: "premium_pdf_saju_love_secret",
+  billingType: "pdf",
+  cost: 50,
+  coinPrice: 50,
+  amountKRW: 5000,
+  cashPrice: 5000,
+  membershipCreditCost: 500,
+}, activePass(PASS_TIERS.STANDARD));
+const smallPdfDecision = __billingTestUtils.buildPassPaymentDecision(
+  activePass(PASS_TIERS.STANDARD),
+  smallPdfRemainder,
+  { membershipCreditBalance: 200 },
+);
+assert.equal(smallPdfRemainder.coinPrice, 20, "standard pass discounts small PDF by 30 coins");
+assert.equal(smallPdfDecision.canUseByPass, false, "small discounted PDF remainder still requires payment");
+assert.equal(smallPdfDecision.canUseByMonthly, true, "small discounted PDF remainder can use monthly credit");
+
 const expiredPass = activePass(PASS_TIERS.VVIP, pastDate());
 const expiredVvip50 = decision({
   pass: expiredPass,
@@ -245,6 +292,11 @@ assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "point
 assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points page normalizes subscription payloads");
 assertContains(pointsSource, "mergeSubscriptionState", "points page merges server subscription state");
 assertContains(pointsSource, "<SubscriptionStatusCard subscription={subscription} monthlyCredits={currentMonthlyCredits} />", "points page passes monthly credits to status card");
+assertContains(pointsSource, "PDF 생성 시 30코인 자동 할인", "standard pass PDF discount UI");
+assertContains(pointsSource, "프로필 수정·삭제 무료, 제한 없음", "family profile unlimited UI");
+assertContains(pointsSource, "formatSubscriptionPlanPolicy", "subscription pass policy formatter");
+assertContains(statusCardSource, "Family 이용권으로 모든 서비스가 무료 처리됩니다.", "family status card policy");
+assertContains(statusCardSource, "일반 한도 초과 서비스는 기존가 결제, PDF는 할인 후 잔액 결제됩니다.", "non-family paid service/PDF status policy");
 assertNotContains(paymentsSource, '"profileSubscription.membershipCreditBalance": 0,\n        "profileSubscription.membershipCreditGranted": 0,\n        "profileSubscription.membershipCreditUsed": 0,', "card pass confirm must preserve monthly credit ledger");
 
 assertBefore(
@@ -256,7 +308,13 @@ assertBefore(
 assertContains(indexSource, 'class="cd-direct-payment-option" data-mode="direct"', "single payment CTA");
 assertContains(indexSource, "var monthlyButtonHtml", "monthly payment CTA");
 assertContains(indexSource, 'data-mode="monthly"', "monthly payment mode marker");
-assertContains(indexSource, 'data-mode="pass"', "payment modal shows pass CTA");
+assertContains(indexSource, 'data-mode="pass"', "payment modal shows pass apply option");
+assertContains(indexSource, "\\uC774\\uC6A9\\uAD8C \\uC801\\uC6A9", "payment modal pass apply label");
+assertContains(indexSource, "statusTier === 'family' ? 999999999", "main shell family policy pass limit");
+assertContains(indexSource, "Code Destiny Family\\uB85C \\uBAA8\\uB4E0", "main shell family payment modal copy");
+assertContains(indexSource, "PDF \\uD560\\uC778 \\uC790\\uB3D9 \\uC801\\uC6A9", "main shell PDF discount modal copy");
+assertContains(indexSource, "directCoinLabel", "payment modal displays discounted coin basis");
+assertContains(indexSource, "membershipCoverage: (passFirstAccess && passFirstAccess.membershipCoverage)", "pass-first coverage feeds payment modal");
 assertContains(indexSource, "passButtonHtml", "payment modal includes pass card HTML");
 assertContains(indexSource, "monthlyBalance >= requiredMonthlyCredits", "simple frontend monthly balance check");
 assertContains(indexSource, "cd-direct-payment-dialog", "legacy direct payment dialog");

@@ -29,6 +29,7 @@ import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-healt
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 
 const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_daewun: SAJU_LOCKED_CONTENT_KEYS.DAEUN_ANALYSIS,
@@ -218,7 +219,7 @@ function buildUsagePassPricing(product) {
   };
 }
 
-function resolveDigitalContentPricing(body = {}) {
+function resolveDigitalContentPricing(body = {}, entitlement = {}) {
   const usagePassProduct = resolveUsagePassProductFromBody(body);
   if (usagePassProduct) {
     const pricing = buildUsagePassPricing(usagePassProduct);
@@ -250,7 +251,7 @@ function resolveDigitalContentPricing(body = {}) {
     };
   }
 
-  const pricing = resolved.pricing;
+  const pricing = applyPdfPassDiscountToPricing(resolved.pricing, entitlement);
   const paymentAmount = Number(pricing.amountKRW || pricing.cashPrice || 0);
   const coinPrice = Number(pricing.coinPrice || pricing.cost || 0);
   if (!Number.isInteger(paymentAmount) || paymentAmount <= 0 || !Number.isInteger(coinPrice) || coinPrice <= 0) {
@@ -336,6 +337,7 @@ const SUBSCRIPTION_BASE_PLANS = {
   standard: { tier: "standard", name: "스탠다드 달빛 이용권", monthlyWonPrice: 9900, profileLimit: 3, membershipCreditGrant: 0 },
   premium: { tier: "premium", name: "프리미엄 달빛 이용권", monthlyWonPrice: 29900, profileLimit: 7, membershipCreditGrant: 0 },
   vvip: { tier: "vvip", name: "VVIP 달빛 이용권", monthlyWonPrice: 59000, profileLimit: 15, membershipCreditGrant: 0 },
+  family: { tier: "family", name: "Code Destiny Family", monthlyWonPrice: 300000, profileLimit: 0, membershipCreditGrant: 0 },
 };
 
 const SUBSCRIPTION_DURATION_DISCOUNTS = Object.freeze({
@@ -350,6 +352,7 @@ const SUBSCRIPTION_TIER_RANK = Object.freeze({
   standard: 1,
   premium: 2,
   vvip: 3,
+  family: 4,
 });
 
 function resolveSubscriptionPlan(tierRaw, durationMonthsRaw = 1) {
@@ -2857,7 +2860,11 @@ async function handleWebhook(request, env) {
 }
 
 async function handleDigitalContentPrepare(request, auth, body) {
-  const resolved = resolveDigitalContentPricing(body);
+  const passUser = await User.findById(auth.userId)
+    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+    .lean();
+  const entitlement = normalizeHoneyPassEntitlement(passUser || {});
+  const resolved = resolveDigitalContentPricing(body, entitlement);
   if (!resolved.ok) {
     await writeFailureLog({
       request,
@@ -3481,7 +3488,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
           source: sub?.source || "pass",
           isActive: hasActiveSubscriptionConflict(sub),
           expiresAt: toIsoOrNull(sub?.expiresAt),
-          profileLimit: Number(sub?.profileLimit || plan.profileLimit || 1),
+          profileLimit: Number.isFinite(Number(sub?.profileLimit ?? plan.profileLimit)) ? Math.max(0, Math.floor(Number(sub?.profileLimit ?? plan.profileLimit))) : 1,
           planId: String(sub?.planId || plan.planId),
           durationMonths: Number(sub?.durationMonths || plan.durationMonths),
           productType: String(sub?.productType || plan.productType),
@@ -3503,7 +3510,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
           tier: sub?.tier || "free",
           remainingDays,
           expiresAt: toIsoOrNull(sub?.expiresAt),
-          profileLimit: Number(sub?.profileLimit || plan.profileLimit || 1),
+          profileLimit: Number.isFinite(Number(sub?.profileLimit ?? plan.profileLimit)) ? Math.max(0, Math.floor(Number(sub?.profileLimit ?? plan.profileLimit))) : 1,
         },
         user: {
           id: String(auth.userId),
@@ -4294,6 +4301,140 @@ function formatMonthlyCreditLedgerEntry(entry) {
   };
 }
 
+function collectMonthlyCreditLedgerKeys(entry) {
+  const metadata = entry?.metadata && typeof entry.metadata === "object" ? entry.metadata : {};
+  return [
+    entry?.id,
+    entry?._id,
+    entry?.sourceId,
+    metadata.pointHistoryId,
+    metadata.purchaseId,
+    metadata.requestId,
+    metadata.idempotencyKey,
+    metadata.orderId,
+  ]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean);
+}
+
+function formatMonthlyCreditLedgerEntryFromPointHistory(entry) {
+  const metadata = entry?.metadata && typeof entry.metadata === "object" ? entry.metadata : {};
+  const pointHistoryId = String(entry?._id || "").trim();
+  if (!pointHistoryId) return null;
+
+  const rewardType = String(metadata.rewardType || "").trim().toLowerCase();
+  const accessType = String(metadata.accessType || "").trim().toLowerCase();
+  const accessMethod = String(metadata.accessMethod || metadata.paymentMethod || "").trim().toUpperCase();
+  const isGrant = String(entry?.kind || "") === "share_reward" && rewardType === "membership_credit";
+  const isSpend = accessType === "membership_credit" || accessMethod === "MONTHLY";
+  if (!isGrant && !isSpend) return null;
+
+  const amount = Math.max(0, Math.floor(Number(
+    isGrant
+      ? (metadata.rewardMonthlyCredit ?? metadata.monthlyCreditAmount ?? entry?.delta)
+      : (metadata.requiredMonthlyCredits ?? metadata.membershipCreditCost ?? metadata.monthlyCreditCost),
+  )));
+  if (amount <= 0) return null;
+
+  const afterBalanceRaw = isGrant
+    ? (entry?.balanceAfter ?? metadata.balanceAfter)
+    : (metadata.remainingMembershipCredit ?? metadata.monthlyCredits ?? metadata.membershipCreditBalance);
+  const afterBalance = Number.isFinite(Number(afterBalanceRaw))
+    ? Math.max(0, Math.floor(Number(afterBalanceRaw)))
+    : (isGrant ? amount : 0);
+  const beforeBalance = isGrant
+    ? Math.max(0, afterBalance - amount)
+    : Math.max(0, afterBalance + amount);
+  const sourceId = String(
+    metadata.purchaseId
+      || metadata.idempotencyKey
+      || metadata.orderId
+      || metadata.requestId
+      || pointHistoryId,
+  ).trim().slice(0, 180);
+
+  return {
+    id: `point-history:${pointHistoryId}`,
+    type: isGrant ? "MONTHLY_CREDIT_GRANT" : "MONTHLY_CREDIT_SPEND",
+    amount,
+    beforeBalance,
+    afterBalance,
+    reason: entry?.reason ? String(entry.reason) : "",
+    sourceId,
+    serviceKey: entry?.featureKey ? String(entry.featureKey) : "",
+    createdAt: entry?.createdAt,
+    metadata: {
+      ...metadata,
+      pointHistoryId,
+      synthesizedFrom: "point_history",
+    },
+  };
+}
+
+function formatMonthlyCreditGrantSummary(auth, safeUser, ledgers) {
+  if (ledgers.some((entry) => entry.type === "MONTHLY_CREDIT_GRANT")) return null;
+  const sub = safeUser?.profileSubscription || {};
+  const granted = Math.max(0, Math.floor(Number(sub.membershipCreditGranted || 0)));
+  if (granted <= 0) return null;
+
+  const balance = Math.max(0, Math.floor(Number(sub.membershipCreditBalance || 0)));
+  const used = Math.max(0, Math.floor(Number(sub.membershipCreditUsed || 0)));
+  const userId = String(auth?.userId || safeUser?._id || "").trim();
+  const sourceId = `membership-credit-grant-summary:${userId || "unknown"}`;
+
+  return {
+    id: sourceId,
+    type: "MONTHLY_CREDIT_GRANT",
+    amount: granted,
+    beforeBalance: 0,
+    afterBalance: Math.max(granted, balance + used),
+    reason: "월정석 지급",
+    sourceId,
+    serviceKey: "membership_credit_grant",
+    createdAt: safeUser?.joinedAt || sub.legacyCoinCreditSeededAt || null,
+    metadata: {
+      synthesizedFrom: "membership_credit_summary",
+      membershipCreditGranted: granted,
+      membershipCreditUsed: used,
+      membershipCreditBalance: balance,
+    },
+  };
+}
+
+function buildMonthlyCreditLedgerTimeline(auth, safeUser, monthlyCreditLedgers, pointHistories) {
+  const seen = new Set();
+  const result = [];
+  const pushEntry = (entry) => {
+    if (!entry?.id) return;
+    const keys = collectMonthlyCreditLedgerKeys(entry);
+    if (keys.some((key) => seen.has(key))) return;
+    result.push(entry);
+    for (const key of keys) seen.add(key);
+  };
+
+  if (Array.isArray(monthlyCreditLedgers)) {
+    for (const ledger of monthlyCreditLedgers) {
+      pushEntry(formatMonthlyCreditLedgerEntry(ledger));
+    }
+  }
+
+  if (Array.isArray(pointHistories)) {
+    for (const history of pointHistories) {
+      pushEntry(formatMonthlyCreditLedgerEntryFromPointHistory(history));
+    }
+  }
+
+  pushEntry(formatMonthlyCreditGrantSummary(auth, safeUser, result));
+
+  return result
+    .sort((a, b) => {
+      const left = Date.parse(a?.createdAt || "");
+      const right = Date.parse(b?.createdAt || "");
+      return (Number.isFinite(right) ? right : 0) - (Number.isFinite(left) ? left : 0);
+    })
+    .slice(0, 20);
+}
+
 function buildSubscriptionSummary(profileSubscription) {
   const sub = profileSubscription || {};
   const entitlement = normalizeHoneyPassEntitlement({ profileSubscription: sub });
@@ -4312,7 +4453,7 @@ function buildSubscriptionSummary(profileSubscription) {
     source: String(entitlement.source || sub.source || "pass"),
     isActive,
     expiresAt: validExpiresAt,
-    profileLimit: Number(entitlement.maxProfiles || 1),
+    profileLimit: Number.isFinite(Number(entitlement.maxProfiles)) ? Math.max(0, Math.floor(Number(entitlement.maxProfiles))) : 1,
     freeLimit: Number(entitlement.maxCoveredCoin || 0),
     membershipCreditBalance: Number(sub.membershipCreditBalance || 0),
     membershipCreditGranted: Number(sub.membershipCreditGranted || 0),
@@ -4350,9 +4491,7 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
   const balance = Number(safeUser.points || 0);
   const profileSubscription = safeUser.profileSubscription || {};
   const monthlyCredits = Number(profileSubscription.membershipCreditBalance || 0);
-  const mappedMonthlyCreditLedgers = Array.isArray(monthlyCreditLedgers)
-    ? monthlyCreditLedgers.map((entry) => formatMonthlyCreditLedgerEntry(entry)).filter((entry) => entry.id)
-    : [];
+  const mappedMonthlyCreditLedgers = buildMonthlyCreditLedgerTimeline(auth, safeUser, monthlyCreditLedgers, pointHistories);
 
   return {
     success: true,
@@ -4430,6 +4569,7 @@ async function handleMe(auth, env) {
       name: 1,
       email: 1,
       points: 1,
+      joinedAt: 1,
       unlockedFeatures: 1,
       usagePasses: 1,
       profileSubscription: 1,

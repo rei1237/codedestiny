@@ -10,38 +10,43 @@ export const LOCALE_CONFIG: Record<Locale, {
   siteName: string;
   ogLocale: string;
   hrefLang: string;
+  hrefLangAliases?: string[];
 }> = {
   ko: {
     label: "한국어",
     htmlLang: "ko",
     pathPrefix: "",
-    siteName: "Code Destiny | 꿀꿀 만세력",
+    siteName: "Code Destiny | 꿀꿀 운세",
     ogLocale: "ko_KR",
     hrefLang: "ko",
+    hrefLangAliases: ["ko-KR"],
   },
   ja: {
     label: "日本語",
     htmlLang: "ja-JP",
     pathPrefix: "/ja",
-    siteName: "Code Destiny Japan",
+    siteName: "꿀꿀 운세 | Code Destiny Japan",
     ogLocale: "ja_JP",
     hrefLang: "ja",
+    hrefLangAliases: ["ja-JP"],
   },
   zh: {
     label: "简体中文",
     htmlLang: "zh-CN",
     pathPrefix: "/zh",
-    siteName: "Code Destiny 中文",
+    siteName: "꿀꿀 운세 | Code Destiny 中文",
     ogLocale: "zh_CN",
     hrefLang: "zh-CN",
+    hrefLangAliases: ["zh", "zh-Hans", "zh-TW", "zh-Hant"],
   },
   en: {
     label: "English",
     htmlLang: "en",
     pathPrefix: "/en",
-    siteName: "Code Destiny",
+    siteName: "꿀꿀 운세 | Code Destiny",
     ogLocale: "en_US",
     hrefLang: "en",
+    hrefLangAliases: ["en-US"],
   },
 };
 

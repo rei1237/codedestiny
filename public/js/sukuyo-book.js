@@ -21,6 +21,7 @@
   var _resultPayload = null;
   var _generating = false;
   var _activeSessionId = '';
+  var _lastPremiumPayment = null;
   var _activeChapterIndex = 0;
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
@@ -111,6 +112,42 @@
       if (found) return found;
     }
     return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
+  }
+
+  function _extractAccessGrant(payload) {
+    if (!payload || typeof payload !== 'object') return null;
+    if (payload.accessGrant && typeof payload.accessGrant === 'object') return payload.accessGrant;
+    return _extractAccessGrant(payload.data) || _extractAccessGrant(payload.payload) || _extractAccessGrant(payload.consume);
+  }
+
+  function _normalizePremiumPayment(transactionId, payload) {
+    var raw = payload && typeof payload === 'object' ? payload : {};
+    var data = raw.data && typeof raw.data === 'object' ? raw.data : {};
+    var nested = raw.payload && typeof raw.payload === 'object' ? raw.payload : {};
+    var grant = _extractAccessGrant(raw);
+    var token = _extractPremiumToken(raw);
+    var tx = _clean(transactionId || raw.transactionId || data.transactionId || nested.transactionId || (grant && (grant.transactionId || grant.purchaseId || grant.requestId)));
+    var requestId = _clean((grant && (grant.requestId || grant.transactionId)) || raw.requestId || data.requestId || nested.requestId || tx);
+    var purchaseId = _clean((grant && grant.purchaseId) || raw.purchaseId || data.purchaseId || nested.purchaseId || raw.paymentId || data.paymentId || tx);
+    var reportId = _clean((grant && grant.reportId) || raw.reportId || data.reportId || nested.reportId);
+    var sessionId = _clean((grant && (grant.sessionId || grant.reportSessionId)) || raw.sessionId || data.sessionId || nested.sessionId || _activeSessionId);
+    var reportSessionId = _clean((grant && (grant.reportSessionId || grant.sessionId)) || raw.reportSessionId || data.reportSessionId || nested.reportSessionId || sessionId);
+    var context = {
+      featureKey: SUKYO_FEATURE_KEY,
+      aliasFeatureKey: SUKYO_ALIAS_FEATURE_KEY,
+      reportType: 'sookyoPremium',
+      mode: 'compatibility',
+      reportMode: 'compatibility',
+      premiumAccessToken: token || undefined,
+      transactionId: tx || undefined,
+      requestId: requestId || undefined,
+      purchaseId: purchaseId || undefined,
+      sessionId: sessionId || undefined,
+      reportSessionId: reportSessionId || undefined,
+      reportId: reportId || undefined,
+    };
+    if (grant) context.accessGrant = grant;
+    return context;
   }
 
   function _persistPremiumAccessToken(token) {
@@ -643,11 +680,19 @@
     var chapters = Array.isArray(p.chapters) ? p.chapters : [];
     var hasReportId = !!_clean(p.reportId);
     var hasStoredUrl = !!_resolveSukuyoStoredUrl(p);
+    var llmChapterCount = Number(p.llmChapterCount || 0);
+    var fallbackChapterCount = Number(p.fallbackChapterCount || 0);
+    var localDraftChapterCount = Number(p.localDraftChapterCount || 0);
     return hasReportId
       && hasStoredUrl
-      && chapters.length >= SUKYO_TOTAL_CHAPTERS
+      && chapters.length === SUKYO_TOTAL_CHAPTERS
       && _clean(p.serverStatus) === 'completed'
-      && _clean(p.qualityStatus) === 'passed';
+      && _clean(p.qualityStatus) === 'passed'
+      && _clean(p.manuscriptSource) === 'gemini-only'
+      && p.fallbackUsed !== true
+      && llmChapterCount === SUKYO_TOTAL_CHAPTERS
+      && fallbackChapterCount === 0
+      && localDraftChapterCount === 0;
   }
 
   function _forceCompatibilityMode() {
@@ -793,6 +838,7 @@
   function _resetGenerationState(sessionId) {
     _chapters = [];
     _resultPayload = null;
+    _lastPremiumPayment = null;
     _activeSessionId = _clean(sessionId) || _newSessionId();
     _persistGenerationState({
       isOpen: true,
@@ -924,10 +970,37 @@
   }
 
   function _buildPrepareBody(normalizedInput) {
+    var sessionId = _activeSessionId || _newSessionId();
+    var paymentContext = _lastPremiumPayment && typeof _lastPremiumPayment === 'object' ? Object.assign({}, _lastPremiumPayment) : null;
+    var token = _readPremiumAccessToken() || _extractPremiumToken(paymentContext);
+    if (!paymentContext && token) {
+      paymentContext = {
+        featureKey: SUKYO_FEATURE_KEY,
+        aliasFeatureKey: SUKYO_ALIAS_FEATURE_KEY,
+        reportType: 'sookyoPremium',
+        mode: 'compatibility',
+        reportMode: 'compatibility',
+      };
+    }
+    if (paymentContext) {
+      paymentContext.premiumAccessToken = token || paymentContext.premiumAccessToken || undefined;
+      paymentContext.sessionId = _clean(paymentContext.sessionId || sessionId) || undefined;
+      paymentContext.reportSessionId = _clean(paymentContext.reportSessionId || paymentContext.sessionId || sessionId) || undefined;
+    }
+    var accessGrant = paymentContext && paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
+    var reportId = _clean(paymentContext && paymentContext.reportId || accessGrant && accessGrant.reportId || ('sukyo-premium-' + sessionId));
+    if (paymentContext) paymentContext.reportId = reportId || paymentContext.reportId || undefined;
     return {
-      sessionId: _activeSessionId || _newSessionId(),
+      sessionId: sessionId,
+      reportSessionId: (paymentContext && paymentContext.reportSessionId) || sessionId,
       featureKey: SUKYO_FEATURE_KEY,
-      premiumAccessToken: _readPremiumAccessToken() || undefined,
+      premiumAccessToken: token || undefined,
+      requestId: paymentContext && paymentContext.requestId || undefined,
+      purchaseId: paymentContext && paymentContext.purchaseId || undefined,
+      reportId: reportId || undefined,
+      accessGrant: accessGrant || undefined,
+      payment: paymentContext || undefined,
+      _paymentContext: paymentContext || undefined,
       mode: 'compatibility',
       reportMode: 'compatibility',
       reportType: 'sookyoPremium',
@@ -946,10 +1019,11 @@
     _log('[SukuyoBook][PaymentGateStart]', { featureKey: SUKYO_FEATURE_KEY, mode: 'compatibility' });
     return new Promise(function (resolve, reject) {
       window._cdCoinGatePerUse(SUKYO_COIN_COST, '숙요점 프리미엄 궁합 PDF 생성', function (_transactionId, data) {
-        _persistPremiumAccessToken(_extractPremiumToken(data));
+        _lastPremiumPayment = _normalizePremiumPayment(_transactionId, data);
+        _persistPremiumAccessToken(_lastPremiumPayment.premiumAccessToken || _extractPremiumToken(data));
         _markPremiumAccessVerified(25 * 60 * 1000);
         _log('[SukuyoBook][PaymentGateSuccess]', { featureKey: SUKYO_FEATURE_KEY });
-        resolve(true);
+        resolve(_lastPremiumPayment);
       }, function () {
         reject(new Error('결제가 취소되어 생성을 중단했습니다.'));
       }, {

@@ -3315,6 +3315,10 @@
     if (btn) btn.setAttribute('aria-expanded', 'false');
   }
 
+  function _dpWasProfileMenuPointerRecentlyHandled() {
+    return Date.now() - _dpProfileMenuPointerHandledAt < 700;
+  }
+
   function _dpPositionProfileMenu(btn, wrap) {
     if (!btn || !wrap || !btn.getBoundingClientRect) return;
     var menu = wrap.querySelector('.dp-mc-action-menu');
@@ -3339,7 +3343,8 @@
   function _dpToggleProfileMenuFromButton(btn, event, source) {
     if (event && event.preventDefault) event.preventDefault();
     if (event && event.stopPropagation) event.stopPropagation();
-    if (event && event.type === 'click' && (Date.now() - _dpProfileMenuLastTouchAt < 700 || Date.now() - _dpProfileMenuPointerHandledAt < 700)) return;
+    if (event && event.type === 'click' && (Date.now() - _dpProfileMenuLastTouchAt < 700 || _dpWasProfileMenuPointerRecentlyHandled())) return;
+    if (event && event.type === 'touchend' && _dpWasProfileMenuPointerRecentlyHandled()) return;
     if (source === 'touch') _dpProfileMenuLastTouchAt = Date.now();
     var wrap = btn && btn.closest ? btn.closest('.dp-mc-action-wrap') : null;
     if (!wrap) return;
@@ -3353,7 +3358,7 @@
   function _dpRunProfileMenuActionNode(node, event) {
     if (event && event.preventDefault) event.preventDefault();
     if (event && event.stopPropagation) event.stopPropagation();
-    if (event && event.type === 'click' && Date.now() - _dpProfileMenuPointerHandledAt < 700) return;
+    if (event && (event.type === 'click' || event.type === 'touchend') && _dpWasProfileMenuPointerRecentlyHandled()) return;
     var item = node && node.closest ? node.closest('.dp-mc-action-menu__item') : null;
     if (!item) return;
     var action = String(item.getAttribute('data-dp-menu-action') || '').trim();

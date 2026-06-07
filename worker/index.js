@@ -57,6 +57,18 @@ function applyNoCacheHeaders(headers) {
   headers.set("Pragma", "no-cache");
 }
 
+function buildOAuthCallbackShimResponse(provider) {
+  const callbackPath = `/api/auth/oauth/${provider}/callback`;
+  const callbackPathJson = JSON.stringify(callbackPath);
+  const body = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>Code Destiny</title></head><body><p>로그인을 연결하는 중입니다.</p><script>location.replace(${callbackPathJson}+location.search+location.hash);</script><noscript><a href="${callbackPath}">${callbackPath}</a></noscript></body></html>`;
+  const headers = new Headers({
+    "Content-Type": "text/html; charset=utf-8",
+    "X-Robots-Tag": "noindex, nofollow",
+  });
+  applyNoCacheHeaders(headers);
+  return new Response(body, { status: 200, headers });
+}
+
 function normalizeOrigin(rawValue) {
   const value = String(rawValue || "").trim().replace(/\/+$/, "");
   if (!value) return "";
@@ -435,6 +447,11 @@ export default {
           status: 204,
           headers: getCorsHeaders(request, env),
         });
+      }
+
+      const oauthCallbackPageMatch = url.pathname.match(/^\/auth\/(google|naver|kakao)\/callback$/);
+      if (request.method === "GET" && oauthCallbackPageMatch) {
+        return buildOAuthCallbackShimResponse(String(oauthCallbackPageMatch[1] || "").toLowerCase());
       }
 
       if (url.pathname === "/api/health") {

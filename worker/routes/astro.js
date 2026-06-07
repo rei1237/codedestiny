@@ -13,7 +13,6 @@ import {
 import { VEDIC_PREMIUM_CHAPTERS, VEDIC_PREMIUM_FEATURE_KEY } from "../lib/vedic-premium-chapters.js";
 import {
   buildVedicLocalChartJson,
-  fallbackChartSourceFromBirthInput,
   generateVedicPremiumReport,
   normalizeVedicError,
   normalizeVedicPremiumBirthInput,
@@ -119,6 +118,16 @@ function toAstroFailureTrace(error, body = {}, birthInput = {}) {
 
 function clean(value) {
   return String(value || "").trim();
+}
+
+function withPdfArchiveFormat(url, format) {
+  const value = clean(url);
+  const targetFormat = clean(format) || "pdf";
+  if (!value || !/\/api\/premium\/pdf-archive\//.test(value)) return value;
+  if (/[?&]format=/.test(value)) {
+    return value.replace(/([?&]format=)[^&]+/i, `$1${encodeURIComponent(targetFormat)}`);
+  }
+  return `${value}${value.includes("?") ? "&" : "?"}format=${encodeURIComponent(targetFormat)}`;
 }
 
 function normalizeAstroError(error) {
@@ -275,15 +284,15 @@ async function resolveVedicChartForPremiumPdf(rawInput, birthInput, env, request
       };
     }
   } catch (error) {
-    console.warn("[VedicPremiumPDF][SwissChartUnavailableUseSafeChart]", {
+    console.warn("[VedicPremiumPDF][SwissChartUnavailable]", {
       reason: clean(error?.message || error),
     });
   }
 
-  return {
-    source: "safe-local",
-    chartSource: normalizeVedicChartSourceForPdf(fallbackChartSourceFromBirthInput(birthInput)),
-  };
+  const error = new Error("베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.");
+  error.code = "VEDIC_CHART_SOURCE_INVALID";
+  error.status = 422;
+  throw error;
 }
 
 async function handleAstroPremiumPrepare(request, env) {
@@ -425,7 +434,7 @@ async function handleAstroPremiumPrepare(request, env) {
       requestUrl: request.url,
       log: (stage, payload) => {
         const tag = `[AstroPremiumPDF][${stage}]`;
-        if (stage === "LLMEnhanceFailedUseLocal") {
+        if (stage === "LLMManuscriptFailed") {
           console.warn(tag, payload || {});
           return;
         }
@@ -434,21 +443,29 @@ async function handleAstroPremiumPrepare(request, env) {
     });
     const requestOrigin = new URL(request.url).origin;
     const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
+    const archiveHtmlUrl = `${archiveUrl}?format=html`;
+    const archivePdfUrl = `${archiveUrl}?format=pdf`;
     const pdfReady = {
       ...(generated?.pdfReady || {}),
       html: clean(generated?.pdfReady?.html || generated?.html || ""),
-      filename: clean(generated?.pdfReady?.filename || `astro-premium-${reportId}.html`),
-      pdfUrl: clean(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || archiveUrl),
-      htmlUrl: clean(generated?.pdfReady?.htmlUrl || archiveUrl),
-      downloadUrl: clean(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || generated?.pdfReady?.htmlUrl || archiveUrl),
+      filename: clean(generated?.pdfReady?.filename || `astro-premium-${reportId}.pdf`).replace(/\.html?$/i, ".pdf"),
+      pdfUrl: withPdfArchiveFormat(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || archivePdfUrl, "pdf"),
+      htmlUrl: withPdfArchiveFormat(generated?.pdfReady?.htmlUrl || archiveHtmlUrl, "html"),
+      downloadUrl: withPdfArchiveFormat(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || archivePdfUrl, "pdf"),
       storageKey: clean(generated?.pdfReady?.storageKey || `premium-archive:astro:${reportId}`),
-      mimeType: clean(generated?.pdfReady?.mimeType || "text/html"),
+      mimeType: "application/pdf",
+      contentType: "application/pdf",
+      renderFormat: "pdf-archive",
     };
     const storedUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
 
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
       manuscriptSource: generated.manuscriptSource,
+      llmChapterCount: Number(generated?.llmChapterCount || 0),
+      fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
+      fallbackUsed: Boolean(generated?.fallbackUsed),
+      llmFallbackReason: clean(generated?.llmFallbackReason),
       archive: {
         reportId,
         reportType: "western_astrology_book",
@@ -462,9 +479,18 @@ async function handleAstroPremiumPrepare(request, env) {
         downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
         chapters: generated.chapters,
         chapterDrafts: generated.finalManuscript,
+        manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
+        llmChapterCount: Number(generated?.llmChapterCount || 0),
+        fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
+        localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
+        fallbackUsed: Boolean(generated?.fallbackUsed),
+        llmFallbackReason: clean(generated?.llmFallbackReason),
         payload: generated.payload,
         localAstroChartJson: generated.localAstroChartJson,
+        astroMasterJson: generated.astroMasterJson,
+        masterJsonValidation: generated.masterJsonValidation,
         pdfReady,
+        diagnostics: generated.diagnostics,
         canReopen: true,
         canDownload: Boolean(storedUrl),
       },
@@ -477,7 +503,10 @@ async function handleAstroPremiumPrepare(request, env) {
       sessionId,
       status: "completed",
       chapterCount: generated.chapterCount,
-      fallbackUsed: false,
+      fallbackUsed: Boolean(generated?.fallbackUsed),
+      llmChapterCount: Number(generated?.llmChapterCount || 0),
+      fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
+      llmFallbackReason: clean(generated?.llmFallbackReason),
       reportId,
       chapters: generated.chapters,
       chapterDrafts: generated.finalManuscript,
@@ -489,13 +518,15 @@ async function handleAstroPremiumPrepare(request, env) {
       canReopen: true,
       canDownload: Boolean(storedUrl),
       localAstroChartJson: generated.localAstroChartJson,
+      astroMasterJson: generated.astroMasterJson,
+      masterJsonValidation: generated.masterJsonValidation,
       validation: generated.validation,
       validationWarning: Boolean(generated?.validationWarning),
-      manuscriptSource: clean(generated?.manuscriptSource || "gemini-chapter"),
+      manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
       quality: generated.quality,
       finalManuscript: generated.finalManuscript,
       totalLength: generated.totalLength,
-      localDraftChapterCount: Array.isArray(generated?.finalManuscript) ? generated.finalManuscript.length : 0,
+      localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
       finalChapterCount: Array.isArray(generated?.chapters) ? generated.chapters.length : 0,
     };
 
@@ -643,6 +674,7 @@ async function handleVedicPremiumPrepare(request, env) {
     console.info("[VedicPremiumPDF][BirthInputValidated]", toSafeVedicBirthLog(birthInput, VEDIC_PREMIUM_CHAPTERS.length));
 
     const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "vedicPremium", {
+      ...body,
       reportType: "vedicPremium",
       featureKey,
       premiumAccessToken: premiumAccessToken || undefined,
@@ -719,20 +751,29 @@ async function handleVedicPremiumPrepare(request, env) {
     const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
     const requestOrigin = new URL(request.url).origin;
     const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
+    const archiveHtmlUrl = `${archiveUrl}?format=html`;
+    const archivePdfUrl = `${archiveUrl}?format=pdf`;
     const pdfReady = {
       ...(generated?.pdfReady || {}),
       html: clean(generated?.pdfReady?.html || generated?.html || "") || String(generated?.pdfReady?.html || generated?.html || ""),
-      filename: clean(generated?.pdfReady?.filename || `vedic-premium-${reportId}.html`) || `vedic-premium-${reportId}.html`,
-      pdfUrl: clean(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || archiveUrl),
-      htmlUrl: clean(generated?.pdfReady?.htmlUrl || archiveUrl),
-      downloadUrl: clean(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || generated?.pdfReady?.htmlUrl || archiveUrl),
+      filename: clean(generated?.pdfReady?.filename || `vedic-premium-${reportId}.pdf`).replace(/\.html?$/i, ".pdf") || `vedic-premium-${reportId}.pdf`,
+      pdfUrl: withPdfArchiveFormat(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || archivePdfUrl, "pdf"),
+      htmlUrl: withPdfArchiveFormat(generated?.pdfReady?.htmlUrl || archiveHtmlUrl, "html"),
+      downloadUrl: withPdfArchiveFormat(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || archivePdfUrl, "pdf"),
       storageKey: clean(generated?.pdfReady?.storageKey || `premium-archive:vedic:${reportId}`),
-      mimeType: clean(generated?.pdfReady?.mimeType || "text/html"),
+      mimeType: "application/pdf",
+      contentType: "application/pdf",
+      renderFormat: "pdf-archive",
     };
+    const storedUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
 
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
       manuscriptSource: generated.manuscriptSource,
+      llmChapterCount: Number(generated?.llmChapterCount || 0),
+      fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
+      fallbackUsed: Boolean(generated?.fallbackUsed),
+      llmFallbackReason: clean(generated?.llmFallbackReason),
       archive: {
         reportId,
         reportType: "vedic_book",
@@ -746,11 +787,19 @@ async function handleVedicPremiumPrepare(request, env) {
         downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
         chapters: generated.chapters,
         chapterDrafts: generated.chapterDrafts,
+        manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
+        llmChapterCount: Number(generated?.llmChapterCount || 0),
+        fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
+        localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
+        fallbackUsed: Boolean(generated?.fallbackUsed),
+        llmFallbackReason: clean(generated?.llmFallbackReason),
         payload: generated.payload,
         localVedicChartJson: generated.localVedicChartJson,
+        vedicMasterJson: generated.vedicMasterJson,
+        masterJsonValidation: generated.masterJsonValidation,
         pdfReady,
         canReopen: true,
-        canDownload: true,
+        canDownload: Boolean(storedUrl),
       },
     });
 
@@ -761,21 +810,27 @@ async function handleVedicPremiumPrepare(request, env) {
       status: "completed",
       sessionId: vedicSessionId,
       chapterCount: generated.chapterCount,
-      fallbackUsed: false,
+      fallbackUsed: Boolean(generated?.fallbackUsed),
+      llmChapterCount: Number(generated?.llmChapterCount || 0),
+      fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
+      llmFallbackReason: clean(generated?.llmFallbackReason),
       reportId,
       chapters: generated.chapters,
       chapterDrafts: generated.chapterDrafts,
       payload: generated.payload,
       localVedicChartJson: generated.localVedicChartJson,
+      vedicMasterJson: generated.vedicMasterJson,
+      masterJsonValidation: generated.masterJsonValidation,
       pdfReady,
+      diagnostics: generated.diagnostics,
       pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
       htmlUrl: clean(pdfReady?.htmlUrl),
       downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
       canReopen: true,
-      canDownload: true,
+      canDownload: Boolean(storedUrl),
       quality: generated.quality,
-      manuscriptSource: generated.manuscriptSource,
-      localDraftChapterCount: Array.isArray(generated?.localDraft?.chapters) ? generated.localDraft.chapters.length : 0,
+      manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
+      localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
       finalChapterCount: Array.isArray(generated?.chapters) ? generated.chapters.length : 0,
     };
 

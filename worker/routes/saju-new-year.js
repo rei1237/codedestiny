@@ -2,6 +2,7 @@ import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, re
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
+import { callGeminiText } from "../lib/gemini.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import {
   buildPremiumExecutionContext,
@@ -40,6 +41,23 @@ const newYearPdfLocks = new Map();
 export { NEW_YEAR_CHAPTERS };
 
 const NEW_YEAR_LOCAL_FORBIDDEN_RE = /\b(?:json|payload|debug|schema|engine|prompt|llm|api|undefined|null|nan|object|todo|fixme|placeholder)\b|\[object Object\]/gi;
+const NEW_YEAR_MANUSCRIPT_SOURCE = Object.freeze({
+  LLM: "worker-native-llm",
+  LOCAL: "local-rule-completed",
+});
+const NEW_YEAR_LLM_KEY_ENV_KEYS = Object.freeze([
+  "PREMIUM_SAJU_NEW_YEAR_GEMINI_API_KEY1",
+  "PREMIUM_SAJU_NEW_YEAR_GEMINI_API_KEY2",
+  "PREMIUM_SAJU_NEW_YEAR_GEMINI_API_KEY3",
+  "PREMIUM_SAJU_NEW_YEAR_GEMINI_API_KEY4",
+  "PREMIUM_SAJU_NEW_YEAR_GEMINI_API_KEY5",
+  "PREMIUM_GEMINI_API_KEY1",
+  "PREMIUM_GEMINI_API_KEY2",
+  "PREMIUM_GEMINI_API_KEY3",
+  "PREMIUM_GEMINI_API_KEY4",
+  "PREMIUM_GEMINI_API_KEY5",
+]);
+const NEW_YEAR_LLM_MODEL_ENV_KEYS = Object.freeze(["PREMIUM_SAJU_NEW_YEAR_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"]);
 
 const LOCAL_STEMS = Object.freeze(["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]);
 const LOCAL_BRANCHES = Object.freeze(["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]);
@@ -121,6 +139,46 @@ function stripForbiddenText(value) {
     .replace(NEW_YEAR_LOCAL_FORBIDDEN_RE, "")
     .replace(/\s{3,}/g, " ")
     .trim();
+}
+
+function cloneNewYearValue(value) {
+  if (!value || typeof value !== "object") return {};
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch {
+    return {};
+  }
+}
+
+function compactNewYearObject(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => compactNewYearObject(item))
+      .filter((item) => item !== undefined && item !== "");
+  }
+  if (value && typeof value === "object") {
+    const out = {};
+    for (const [key, item] of Object.entries(value)) {
+      const normalized = compactNewYearObject(item);
+      if (normalized === undefined || normalized === "") continue;
+      if (Array.isArray(normalized) && normalized.length === 0) continue;
+      if (normalized && typeof normalized === "object" && !Array.isArray(normalized) && Object.keys(normalized).length === 0) continue;
+      out[key] = normalized;
+    }
+    return out;
+  }
+  if (value === null || value === undefined) return undefined;
+  if (typeof value === "string") return clean(value) || undefined;
+  return value;
+}
+
+function pickNewYearGeminiModels(env = {}) {
+  return Array.from(new Set([
+    env?.PREMIUM_SAJU_NEW_YEAR_GEMINI_MODEL,
+    env?.PREMIUM_GEMINI_MODEL,
+    env?.GEMINI_MODEL,
+    "gemini-2.5-flash",
+  ].map((model) => clean(model)).filter(Boolean)));
 }
 
 function compactNewYearLocks(now = Date.now()) {
@@ -1357,6 +1415,298 @@ function validateSajuNewYearPdfQuality({ chapters = [], expectedChapters = build
   };
 }
 
+function buildNewYearConsultationEvidence(masterJson = {}) {
+  const chart = masterJson?.natalChart || {};
+  const yearly = masterJson?.yearlyFlow || {};
+  const quantum = masterJson?.quantumMyeongri || {};
+  const monthRows = Array.isArray(masterJson?.monthlyFlow) ? masterJson.monthlyFlow : [];
+  const goMonths = monthRows.filter((item) => item.decision === "GO").slice(0, 4).map((item) => `${item.month}월`);
+  const stopMonths = monthRows.filter((item) => item.decision === "STOP").slice(0, 4).map((item) => `${item.month}월`);
+
+  return compactNewYearObject({
+    sajuEvidence: [
+      `원국 8글자: ${clean(chart.eightCharacters)}`,
+      `일간과 일지: ${clean(chart.dayMaster)} / ${clean(chart.dayBranch)}`,
+      `세운: ${clean(yearly.pillar)} · 십성 ${clean(yearly.tenGodToDayMaster)} · 관계 ${clean(yearly.dayMasterRelation)}`,
+      `세운 합충형해파: ${(yearly.natalInteractions || []).join(" · ")}`,
+      `용신 키워드: ${(masterJson?.structure?.usefulGodKeywords || []).join(" · ")}`,
+      `퀀텀 명리: ${clean(quantum.professionalSummary)}`,
+      `실행 달: ${goMonths.join("·") || "월별 점검"} / 주의 달: ${stopMonths.join("·") || "월별 점검"}`,
+    ].filter((line) => clean(line).replace(/undefined|null/g, "").length > 8),
+    interpretationOrder: ["사주 근거", "올해의 흐름", "현실 발현", "월별 실행", "품격 있는 주의점"],
+    writingVoice: "최고의 신년운세 명리 상담가가 한 해의 선택 기준을 짚어 주는 전문적이고 신비로운 존댓말 상담체",
+    safety: ["결과 단정 금지", "불안 조장 금지", "투자·건강 진단 확정 금지", "개발 용어 노출 금지"],
+  });
+}
+
+function buildNewYearMasterJson(seed = {}, body = {}) {
+  const pillars = seed?.saju?.pillars || {};
+  const annual = seed?.saju?.annualLuck || {};
+  const monthly = Array.isArray(seed?.saju?.monthlyLuck) ? seed.saju.monthlyLuck : [];
+  const clientEvidence = body?.quantumMyeongriJson || body?.clientEngineEvidence || body?.clientMyeongriJson || null;
+  const masterJson = compactNewYearObject({
+    schemaVersion: "saju-new-year-master-json.v1",
+    calculationSource: "worker-saju-new-year-engine",
+    generationMode: "worker-native-llm",
+    serviceKey: SERVICE_KEY,
+    targetYear: seed?.targetYear,
+    input: seed?.input,
+    birthProfile: seed?.birthProfile,
+    natalChart: {
+      dayMaster: clean(seed?.saju?.dayMaster),
+      yearPillar: pillars.year,
+      monthPillar: pillars.month,
+      dayPillar: pillars.day,
+      hourPillar: pillars.hour,
+      eightCharacters: ["year", "month", "day", "hour"]
+        .map((key) => `${clean(pillars?.[key]?.stem)}${clean(pillars?.[key]?.branch)}`)
+        .filter(Boolean)
+        .join(" "),
+      monthBranch: clean(pillars?.month?.branch),
+      dayBranch: clean(pillars?.day?.branch),
+      fiveElements: seed?.saju?.fiveElements,
+      tenGods: seed?.saju?.tenGods,
+      usefulGod: seed?.saju?.usefulGod,
+      luckCycle: seed?.saju?.luckCycle,
+    },
+    yearlyFlow: {
+      year: annual.year,
+      pillar: clean(annual.label),
+      heavenlyStem: clean(annual.stem),
+      earthlyBranch: clean(annual.branch),
+      element: clean(annual.element),
+      elementKo: clean(annual.elementKo),
+      tenGodToDayMaster: clean(annual.tenGod),
+      dayMasterRelation: clean(annual.dayMasterRelation),
+      natalInteractions: (seed?.saju?.relations?.branchRelations || []).map((row) => clean(row?.message)).filter(Boolean),
+      quantum: annual.quantum,
+    },
+    monthlyFlow: monthly.map((item) => compactNewYearObject({
+      month: item.month,
+      pillar: clean(item?.pillar?.label),
+      element: clean(item?.pillar?.element),
+      relation: clean(item?.relation),
+      baseScore: item.baseScore,
+      quantumAdjustment: item.quantumAdjustment,
+      finalScore: item.finalScore ?? item.score,
+      decision: clean(item.decision || decisionFromScore(item.finalScore || item.score)),
+      tone: clean(item.tone),
+      advice: clean(item.advice),
+      quantumSummary: clean(item.quantumSummary),
+    })),
+    quantumMyeongri: seed?.quantumMyeongri || seed?.saju?.quantumMyeongri,
+    structure: seed?.structure,
+    derivedSignals: seed?.derivedSignals,
+    chapterSpecs: seed?.chapterSpecs,
+    localSeedSummary: {
+      yearlyThemeSignals: seed?.derivedSignals?.yearlyThemeSignals,
+      careerSignals: seed?.derivedSignals?.careerSignals,
+      moneySignals: seed?.derivedSignals?.moneySignals,
+      relationshipSignals: seed?.derivedSignals?.humanRelationSignals,
+      healthSignals: seed?.derivedSignals?.healthMindSignals,
+      riskSignals: seed?.derivedSignals?.crisisSignals,
+    },
+    clientEngineEvidence: clientEvidence && typeof clientEvidence === "object"
+      ? {
+          usagePolicy: "supplemental_only_worker_engine_is_source_of_truth",
+          snapshot: cloneNewYearValue(clientEvidence),
+        }
+      : undefined,
+    qualityRules: {
+      mustUseOnlyProvidedEvidence: true,
+      mustKeepCounselingTone: true,
+      mustAvoidDeterministicClaims: true,
+      mustIncludeMonthlyAction: true,
+    },
+  });
+
+  return {
+    ...masterJson,
+    consultationEvidence: buildNewYearConsultationEvidence(masterJson),
+  };
+}
+
+function validateNewYearMasterJson(masterJson = {}) {
+  const errors = [];
+  const requireField = (condition, code) => {
+    if (!condition) errors.push(code);
+  };
+  const monthly = Array.isArray(masterJson?.monthlyFlow) ? masterJson.monthlyFlow : [];
+  const quantumMonthly = Array.isArray(masterJson?.quantumMyeongri?.monthlyQuantum) ? masterJson.quantumMyeongri.monthlyQuantum : [];
+
+  requireField(clean(masterJson?.schemaVersion) === "saju-new-year-master-json.v1", "schema_version_invalid");
+  requireField(clean(masterJson?.calculationSource) === "worker-saju-new-year-engine", "calculation_source_invalid");
+  requireField(Number(masterJson?.targetYear) >= 1900 && Number(masterJson?.targetYear) <= 2100, "target_year_invalid");
+  requireField(clean(masterJson?.birthProfile?.birthDate), "birth_date_missing");
+  requireField(clean(masterJson?.natalChart?.dayMaster), "day_master_missing");
+  requireField(clean(masterJson?.natalChart?.yearPillar?.stem) && clean(masterJson?.natalChart?.yearPillar?.branch), "year_pillar_missing");
+  requireField(clean(masterJson?.natalChart?.monthPillar?.stem) && clean(masterJson?.natalChart?.monthPillar?.branch), "month_pillar_missing");
+  requireField(clean(masterJson?.natalChart?.dayPillar?.stem) && clean(masterJson?.natalChart?.dayPillar?.branch), "day_pillar_missing");
+  requireField(clean(masterJson?.yearlyFlow?.pillar), "yearly_pillar_missing");
+  requireField(clean(masterJson?.yearlyFlow?.tenGodToDayMaster), "yearly_ten_god_missing");
+  requireField(monthly.length === 12, "monthly_flow_count");
+  monthly.forEach((item, index) => {
+    const score = Number(item?.finalScore);
+    if (!Number.isFinite(score) || score < 0 || score > 100) errors.push(`monthly_flow_${index + 1}_score`);
+    if (!["GO", "WATCH", "STOP"].includes(clean(item?.decision))) errors.push(`monthly_flow_${index + 1}_decision`);
+  });
+  requireField(quantumMonthly.length === 12, "quantum_monthly_count");
+  requireField((masterJson?.consultationEvidence?.sajuEvidence || []).length >= 6, "consultation_evidence_too_thin");
+  requireField(Array.isArray(masterJson?.chapterSpecs) && masterJson.chapterSpecs.length === 10, "chapter_specs_count");
+
+  return { ok: errors.length === 0, errors };
+}
+
+function parseNewYearGeminiJson(text, schemaName) {
+  const raw = clean(text).replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+  const candidates = [
+    raw,
+    raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1),
+  ].filter((candidate) => clean(candidate).length > 1);
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      continue;
+    }
+  }
+  throw new Error(`SAJU_NEW_YEAR_LLM_JSON_PARSE_FAILED:${schemaName}`);
+}
+
+async function generateNewYearGeminiJson(env, { systemPrompt, userPrompt, requestId, schemaName }) {
+  const result = await callGeminiText(env, `${systemPrompt}\n\n${userPrompt}`, {
+    keyEnvKeys: NEW_YEAR_LLM_KEY_ENV_KEYS,
+    modelEnvKeys: NEW_YEAR_LLM_MODEL_ENV_KEYS,
+    models: pickNewYearGeminiModels(env),
+    temperature: Number(env?.SAJU_NEW_YEAR_GEMINI_TEMPERATURE || env?.PREMIUM_GEMINI_TEMPERATURE || 0.35),
+    topP: Number(env?.SAJU_NEW_YEAR_GEMINI_TOP_P || env?.PREMIUM_GEMINI_TOP_P || 0.9),
+    maxOutputTokens: Number(env?.SAJU_NEW_YEAR_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 24576),
+    timeoutMs: Number(env?.SAJU_NEW_YEAR_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
+    totalTimeoutMs: Number(env?.SAJU_NEW_YEAR_GEMINI_TOTAL_TIMEOUT_MS || 0),
+    maxAttemptsPerPair: Number(env?.SAJU_NEW_YEAR_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 2),
+    useSdk: false,
+    disableVertexFallback: true,
+    metadata: { requestId, schemaName },
+  });
+  if (!result?.ok) {
+    throw Object.assign(new Error(clean(result?.message || "신년운세 원고 생성에 실패했습니다.")), {
+      code: clean(result?.error || "SAJU_NEW_YEAR_LLM_GENERATION_FAILED"),
+      status: Number(result?.status || 0) || null,
+    });
+  }
+  return parseNewYearGeminiJson(result.text, schemaName);
+}
+
+function normalizeNewYearGeneratedChapter(parsed = {}, chapterSpec = {}, seed = {}) {
+  const sourceSections = Array.isArray(parsed?.sections) ? parsed.sections : [];
+  const sections = (chapterSpec?.categories || []).map((title, index) => {
+    const source = sourceSections[index] || {};
+    const body = ensureMinLength(stripForbiddenText(source.body || source.text || ""), desiredSectionLength(), seed, title);
+    return {
+      title,
+      body,
+      sajuEvidence: Array.isArray(source.sajuEvidence) ? source.sajuEvidence.map(stripForbiddenText).filter(Boolean).slice(0, 8) : [],
+      actionGuide: Array.isArray(source.actionGuide) ? source.actionGuide.map(stripForbiddenText).filter(Boolean).slice(0, 8) : [],
+      monthlyStrategy: Array.isArray(source.monthlyStrategy) ? source.monthlyStrategy.map(stripForbiddenText).filter(Boolean).slice(0, 12) : [],
+      caution: Array.isArray(source.caution) ? source.caution.map(stripForbiddenText).filter(Boolean).slice(0, 8) : [],
+    };
+  });
+  const categories = sections.map((section) => ({
+    title: section.title,
+    localSummary: section.body,
+    finalText: section.body,
+    sajuEvidence: section.sajuEvidence,
+    actionGuide: section.actionGuide,
+    monthlyStrategy: section.monthlyStrategy,
+    caution: section.caution,
+  }));
+  return {
+    no: Number(chapterSpec?.no || parsed?.chapterNumber || 0),
+    title: clean(chapterSpec?.title || parsed?.chapterTitle || ""),
+    categories,
+    sections,
+    text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
+    masterAdvice: stripForbiddenText(parsed?.masterAdvice || ""),
+    source: NEW_YEAR_MANUSCRIPT_SOURCE.LLM,
+  };
+}
+
+function buildNewYearChapterPrompt({ masterJson, chapterSpec, previousSummaries = [], validationFeedback = "" }) {
+  const systemPrompt = [
+    "당신은 사주 원국과 세운, 월운, 대운을 바탕으로 신년운세 PDF 원고를 쓰는 최고 수준의 명리 상담가입니다.",
+    "사주 계산을 새로 하지 말고 제공된 마스터 상담 JSON과 상담 근거만 사용하세요.",
+    "없는 값은 만들지 말고, 확인된 값 중심으로 해석하세요.",
+    "좋고 나쁨을 단정하지 말고 한 해의 선택 기준, 실행 전략, 주의점으로 표현하세요.",
+    "재물, 건강, 직업 결과를 확정하거나 공포를 조장하지 마세요.",
+    "존댓말 상담체로 쓰고 전문적이며 신비로운 분위기를 유지하세요.",
+    "본문에는 JSON, schema, prompt, API, Gemini, LLM, 엔진 같은 개발 용어를 절대 쓰지 마세요.",
+    "출력은 순수 JSON 객체 하나만 허용합니다. 코드블록과 설명문은 쓰지 마세요.",
+    "응답은 반드시 { 로 시작해서 } 로 끝나야 합니다.",
+  ].join("\n");
+  const userPrompt = JSON.stringify({
+    task: "사주 신년운세 프리미엄 PDF 챕터 생성",
+    requiredOutputShape: {
+      chapterNumber: chapterSpec.no,
+      chapterTitle: chapterSpec.title,
+      chapterSummary: "string",
+      sections: [
+        {
+          title: "string",
+          body: "string",
+          sajuEvidence: ["string"],
+          actionGuide: ["string"],
+          monthlyStrategy: ["string"],
+          caution: ["string"],
+        },
+      ],
+      masterAdvice: "string",
+    },
+    sectionRules: {
+      categories: chapterSpec.categories,
+      oneSectionPerCategory: true,
+      minimumBodyLengthPerSection: desiredSectionLength(),
+      eachSectionMustInclude: ["사주 근거", "올해 현실 발현", "월별 또는 분기별 실행", "주의점", "품격 있는 조언"],
+      tone: "최고의 명리학자가 한 해의 길을 조용히 열어 주는 전문적이고 신비로운 상담체",
+    },
+    previousSummaries,
+    validationFeedback: clean(validationFeedback),
+    masterJson,
+  });
+  return { systemPrompt, userPrompt };
+}
+
+async function generateNewYearChapterWithGemini(env, { masterJson, seed, chapterSpec, previousSummaries = [], requestId, validationFeedback = "" }) {
+  const { systemPrompt, userPrompt } = buildNewYearChapterPrompt({ masterJson, chapterSpec, previousSummaries, validationFeedback });
+  const parsed = await generateNewYearGeminiJson(env, {
+    systemPrompt,
+    userPrompt,
+    requestId,
+    schemaName: `SajuNewYearChapter${chapterSpec.no}`,
+  });
+  return normalizeNewYearGeneratedChapter(parsed, chapterSpec, seed);
+}
+
+async function generateNewYearChaptersWithGemini(env, { masterJson, seed, chapterSpecs, requestId }) {
+  const chapters = [];
+  const previousSummaries = [];
+  for (const chapterSpec of chapterSpecs) {
+    const chapter = await generateNewYearChapterWithGemini(env, {
+      masterJson,
+      seed,
+      chapterSpec,
+      previousSummaries,
+      requestId: clean(requestId || `saju-new-year:${seed?.targetYear}:${Date.now().toString(36)}`),
+    });
+    chapters.push(chapter);
+    previousSummaries.push({
+      no: chapter.no,
+      title: chapter.title,
+      summary: clean(chapter.masterAdvice || chapter.sections?.[0]?.body || "").slice(0, 420),
+    });
+  }
+  return chapters;
+}
+
 function localParagraph(seed, chapter, category, idx) {
   const annual = seed.saju.annualLuck;
   const tenGodLib = getTenGodLib(annual.tenGod);
@@ -1852,10 +2202,25 @@ function buildPdfReadyPayload(seed, chapters, metadata = {}) {
     chapters: chapters.map((chapter) => ({
       chapter: chapter.no,
       title: chapter.title,
-      categories: chapter.categories.map((category) => category.title),
+      categories: (Array.isArray(chapter.categories) ? chapter.categories : []).map((category) => category.title),
       text: chapter.text,
       source: chapter.source,
     })),
+  };
+}
+
+function buildNewYearArchiveUrl(origin, reportId) {
+  const base = clean(origin).replace(/\/+$/, "");
+  if (!base) return "";
+  return `${base}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
+}
+
+function buildNewYearArchiveUrls(origin, reportId) {
+  const archiveUrl = buildNewYearArchiveUrl(origin, reportId);
+  return {
+    archiveUrl,
+    htmlUrl: archiveUrl ? `${archiveUrl}?format=html` : "",
+    pdfUrl: archiveUrl ? `${archiveUrl}?format=pdf` : "",
   };
 }
 
@@ -1905,52 +2270,6 @@ async function handlePrepare(request, env) {
   newYearPdfLocks.set(sessionKey, { status: "running", startedAtMs: Date.now() });
 
   try {
-    console.info("[NewYearPremiumPDF][LocalEngineStarted]", { targetYear: normalized.targetYear, sessionId: sessionKey });
-    const localYearSajuJson = buildPdfSeed(normalized.profile, normalized.targetYear, body);
-    console.info("[NewYearPremiumPDF][LocalEngineCompleted]", { hasDayMaster: Boolean(localYearSajuJson.saju.dayMaster), targetYear: localYearSajuJson.targetYear });
-
-    const localManuscript = buildLocalSkeleton(localYearSajuJson);
-    const expectedChapters = buildSajuNewYearChapterSpecs(localYearSajuJson.targetYear);
-    let chapters = repairSajuNewYearChapters({
-      seed: localYearSajuJson,
-      chapters: localManuscript,
-      expectedChapters,
-      errors: ["initial_repair"],
-    });
-
-    let validation = validateSajuNewYearPdfQuality({
-      chapters,
-      expectedChapters,
-      minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
-      minSectionLength: desiredSectionLength(),
-    });
-
-    for (let attempt = 0; attempt < 3 && !validation.ok; attempt += 1) {
-      chapters = repairSajuNewYearChapters({
-        seed: localYearSajuJson,
-        chapters,
-        expectedChapters,
-        errors: validation.errors,
-      });
-      validation = validateSajuNewYearPdfQuality({
-        chapters,
-        expectedChapters,
-        minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
-        minSectionLength: desiredSectionLength(),
-      });
-    }
-
-    const localTotalChars = chapters.reduce((acc, chapter) => acc + chapterTextLength(chapter), 0);
-    console.info("[NewYearPremiumPDF][LocalChapterDraftCompleted]", {
-      chapterCount: chapters.length,
-      totalChars: localTotalChars,
-      qualityOk: validation.ok,
-      qualityErrors: validation.errors.slice(0, 20),
-    });
-    if (!validation.ok) {
-      console.warn("[NewYearPremiumPDF][ValidationWarningButContinue]", validation);
-    }
-
     const premiumAccessToken = clean(request.headers.get("x-premium-access-token") || body?.premiumAccessToken || body?._premiumAccessToken || cookieValue(request, "cd_premium_access"));
 
     console.info("[NewYearPremiumPDF][PaymentVerificationStarted]", { featureKey, userId: auth.userId });
@@ -2004,26 +2323,137 @@ async function handlePrepare(request, env) {
     });
     await startPremiumPdfExecution(env, auth.userId, executionCtx);
 
-    const manuscriptSource = "local-rule-completed";
+    console.info("[NewYearPremiumPDF][LocalEngineStarted]", { targetYear: normalized.targetYear, sessionId: sessionKey });
+    const localYearSajuJson = buildPdfSeed(normalized.profile, normalized.targetYear, body);
+    console.info("[NewYearPremiumPDF][LocalEngineCompleted]", { hasDayMaster: Boolean(localYearSajuJson.saju.dayMaster), targetYear: localYearSajuJson.targetYear });
+
+    const seedValidation = validateSajuNewYearSeed(localYearSajuJson);
+    if (!seedValidation.ok) {
+      throw Object.assign(new Error(`SAJU_NEW_YEAR_SEED_INVALID:${seedValidation.errors.join(",")}`), {
+        code: "SAJU_NEW_YEAR_SEED_INVALID",
+        status: 422,
+      });
+    }
+
+    const newYearMasterJson = buildNewYearMasterJson(localYearSajuJson, body);
+    const masterJsonValidation = validateNewYearMasterJson(newYearMasterJson);
+    if (!masterJsonValidation.ok) {
+      throw Object.assign(new Error(`SAJU_NEW_YEAR_MASTER_JSON_INVALID:${masterJsonValidation.errors.join(",")}`), {
+        code: "SAJU_NEW_YEAR_MASTER_JSON_INVALID",
+        status: 422,
+      });
+    }
+
+    const localManuscript = buildLocalSkeleton(localYearSajuJson);
+    const expectedChapters = buildSajuNewYearChapterSpecs(localYearSajuJson.targetYear);
+    let chapters = repairSajuNewYearChapters({
+      seed: localYearSajuJson,
+      chapters: localManuscript,
+      expectedChapters,
+      errors: ["initial_repair"],
+    });
+
+    let validation = validateSajuNewYearPdfQuality({
+      chapters,
+      expectedChapters,
+      minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
+      minSectionLength: desiredSectionLength(),
+    });
+
+    for (let attempt = 0; attempt < 3 && !validation.ok; attempt += 1) {
+      chapters = repairSajuNewYearChapters({
+        seed: localYearSajuJson,
+        chapters,
+        expectedChapters,
+        errors: validation.errors,
+      });
+      validation = validateSajuNewYearPdfQuality({
+        chapters,
+        expectedChapters,
+        minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
+        minSectionLength: desiredSectionLength(),
+      });
+    }
+
+    let manuscriptSource = NEW_YEAR_MANUSCRIPT_SOURCE.LOCAL;
+    let fallbackUsed = false;
+    let llmFallbackReason = "";
+
+    try {
+      console.info("[NewYearPremiumPDF][LlmDraftBuildStarted]", { chapterCount: expectedChapters.length, targetYear: localYearSajuJson.targetYear });
+      const llmChapters = await generateNewYearChaptersWithGemini(env, {
+        masterJson: newYearMasterJson,
+        seed: localYearSajuJson,
+        chapterSpecs: expectedChapters,
+        requestId: clean(body?.requestId || reportId || sessionKey),
+      });
+      const repairedLlmChapters = repairSajuNewYearChapters({
+        seed: localYearSajuJson,
+        chapters: llmChapters,
+        expectedChapters,
+        errors: ["llm_normalize"],
+      }).map((chapter) => ({ ...chapter, source: NEW_YEAR_MANUSCRIPT_SOURCE.LLM }));
+      const llmValidation = validateSajuNewYearPdfQuality({
+        chapters: repairedLlmChapters,
+        expectedChapters,
+        minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
+        minSectionLength: desiredSectionLength(),
+      });
+      if (llmValidation.ok) {
+        chapters = repairedLlmChapters;
+        validation = llmValidation;
+        manuscriptSource = NEW_YEAR_MANUSCRIPT_SOURCE.LLM;
+        console.info("[NewYearPremiumPDF][LlmDraftBuildCompleted]", { chapterCount: chapters.length, totalChars: llmValidation.stats.totalChars });
+      } else {
+        fallbackUsed = true;
+        llmFallbackReason = `llm_quality_failed:${llmValidation.errors.slice(0, 8).join(",")}`;
+        console.warn("[NewYearPremiumPDF][LlmFallbackToLocal]", { reason: llmFallbackReason });
+      }
+    } catch (error) {
+      fallbackUsed = true;
+      llmFallbackReason = clean(error?.code || error?.message || "llm_generation_failed");
+      console.warn("[NewYearPremiumPDF][LlmFallbackToLocal]", { reason: llmFallbackReason });
+    }
+
+    const finalTotalChars = chapters.reduce((acc, chapter) => acc + chapterTextLength(chapter), 0);
+    console.info("[NewYearPremiumPDF][LocalChapterDraftCompleted]", {
+      chapterCount: chapters.length,
+      totalChars: finalTotalChars,
+      qualityOk: validation.ok,
+      qualityErrors: validation.errors.slice(0, 20),
+      manuscriptSource,
+      fallbackUsed,
+    });
+    if (!validation.ok) {
+      throw Object.assign(new Error(`SAJU_NEW_YEAR_FINAL_VALIDATION_FAILED:${validation.errors.slice(0, 20).join(",")}`), {
+        code: "SAJU_NEW_YEAR_FINAL_VALIDATION_FAILED",
+        status: 422,
+      });
+    }
 
     console.info("[NewYearPremiumPDF][FinalValidationPassed]", { chapterCount: chapters.length, manuscriptSource });
     const requestOrigin = new URL(request.url).origin;
-    const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
+    const archiveUrls = buildNewYearArchiveUrls(requestOrigin, reportId);
+    const archiveUrl = archiveUrls.archiveUrl;
 
     console.info("[NewYearPremiumPDF][PDFRenderStarted]", { chapterCount: chapters.length });
     const pdfReady = buildPdfReadyPayload(localYearSajuJson, chapters, {
       featureKey,
       reportType: "sajuNewYear",
-      fallbackUsed: false,
+      fallbackUsed,
+      llmFallbackReason,
       manuscriptSource,
       sessionId: sessionKey,
       accessType: clean(access.accessType || "unknown"),
+      masterJsonValidation,
     });
-    pdfReady.htmlUrl = archiveUrl;
-    pdfReady.pdfUrl = archiveUrl;
-    pdfReady.downloadUrl = archiveUrl;
+    pdfReady.htmlUrl = archiveUrls.htmlUrl || archiveUrl;
+    pdfReady.pdfUrl = archiveUrls.pdfUrl || archiveUrl;
+    pdfReady.downloadUrl = archiveUrls.pdfUrl || archiveUrl;
     pdfReady.storageKey = `premium-archive:saju-new-year:${reportId}`;
-    pdfReady.mimeType = "text/html";
+    pdfReady.mimeType = "application/pdf";
+    pdfReady.contentType = "application/pdf";
+    pdfReady.renderFormat = "pdf-archive";
     console.info("[NewYearPremiumPDF][PDFRenderCompleted]", { chapterCount: chapters.length, manuscriptSource, archiveUrl });
 
     const storedUrl = clean(
@@ -2055,6 +2485,8 @@ async function handlePrepare(request, env) {
         downloadUrl: clean(pdfReady.downloadUrl || storedUrl),
         chapters,
         localSajuJson: localYearSajuJson,
+        newYearMasterJson,
+        masterJsonValidation,
         pdfReady,
         canReopen: true,
         canDownload: true,
@@ -2073,11 +2505,14 @@ async function handlePrepare(request, env) {
       finalChapterCount: chapters.length,
       manuscriptSource,
       localEngineUsed: true,
-      fallbackUsed: false,
+      fallbackUsed,
+      llmFallbackReason,
       chapters,
       seed: { ...localYearSajuJson, chapters: undefined },
       newYearPayload: localYearSajuJson,
       localSajuJson: localYearSajuJson,
+      newYearMasterJson,
+      masterJsonValidation,
       pdfReady,
       pdfUrl: storedUrl,
       htmlUrl: clean(pdfReady.htmlUrl),
@@ -2178,6 +2613,12 @@ export const __sajuNewYearTestUtils = {
   validateChapters,
   buildSajuNewYearChapterSpecs,
   validateSajuNewYearSeed,
+  buildNewYearMasterJson,
+  validateNewYearMasterJson,
+  buildNewYearChapterPrompt,
+  normalizeNewYearGeneratedChapter,
+  generateNewYearChapterWithGemini,
+  generateNewYearChaptersWithGemini,
   buildNewYearChapterLocalGuide,
   normalizeGeneratedChapter,
   buildDeterministicChapterFromSpec,
@@ -2187,4 +2628,5 @@ export const __sajuNewYearTestUtils = {
   validateSajuNewYearPdfQuality,
   stripForbiddenText,
   buildPdfReadyPayload,
+  buildNewYearArchiveUrls,
 };

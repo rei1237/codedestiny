@@ -37,6 +37,10 @@ import {
 } from "../lib/models.js";
 import { calculateMembershipCreditCost, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
 import {
+  applyPdfPassDiscountToPricing,
+  isPdfFeaturePricing,
+} from "../lib/pdf-pass-discount.js";
+import {
   findActivePaidContentUnlock,
   upsertPaidContentUnlock,
 } from "../lib/content-unlocks.js";
@@ -320,7 +324,8 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   )));
   const hasActivePass = entitlement?.isActive === true;
   const passTier = hasActivePass ? normalizePassTier(entitlement?.passTier || entitlement?.tier) : null;
-  const passCovered = canUseByPass(entitlement, coinCost);
+  const pdfDiscountRequiresPayment = pricing?.passDiscount && Number(pricing.passDiscount.finalCoinPrice || coinCost || 0) > 0;
+  const passCovered = !pdfDiscountRequiresPayment && canUseByPass(entitlement, coinCost);
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
 
   return {
@@ -336,7 +341,8 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     hiddenMethods: passCovered ? ["DIRECT_KRW", "MONTHLY_CREDIT", "COIN"] : [],
     decisionReason: passCovered
       ? "PASS_COVERED"
-      : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED"),
+      : (pdfDiscountRequiresPayment ? "PDF_PASS_DISCOUNT_APPLIED" : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED")),
+    ...(pricing?.passDiscount ? { passDiscount: pricing.passDiscount } : {}),
   };
 }
 
@@ -1247,15 +1253,15 @@ async function handlePdfArchiveDetail(request, env, reportIdRaw) {
   }
 
   const format = cleanText(new URL(request.url).searchParams.get("format"), 40).toLowerCase();
+  const metadata = (doc && typeof doc.metadata === "object" && doc.metadata) ? doc.metadata : {};
+  const archive = (metadata.archive && typeof metadata.archive === "object") ? metadata.archive : {};
+  const htmlContent = String(
+    archive?.pdfReady?.html
+    || archive?.lifeBookPdfRecord?.htmlContent
+    || metadata?.lifeBookPdfRecord?.htmlContent
+    || "",
+  );
   if (format === "html" || format === "document" || format === "print") {
-    const metadata = (doc && typeof doc.metadata === "object" && doc.metadata) ? doc.metadata : {};
-    const archive = (metadata.archive && typeof metadata.archive === "object") ? metadata.archive : {};
-    const htmlContent = String(
-      archive?.pdfReady?.html
-      || archive?.lifeBookPdfRecord?.htmlContent
-      || metadata?.lifeBookPdfRecord?.htmlContent
-      || "",
-    );
     if (!htmlContent.trim()) {
       return failure(404, "PDF_HTML_NOT_FOUND", "저장된 PDF 문서를 찾을 수 없습니다.");
     }
@@ -1270,6 +1276,25 @@ async function handlePdfArchiveDetail(request, env, reportIdRaw) {
       headers: {
         "Content-Type": "text/html; charset=UTF-8",
         "Content-Disposition": `inline; filename="${asciiFileBase}.html"; filename*=UTF-8''${encodedFileName}`,
+        "Cache-Control": "private, no-store",
+      },
+    });
+  }
+  if (format === "pdf" || format === "download") {
+    if (!htmlContent.trim()) {
+      return failure(404, "PDF_HTML_NOT_FOUND", "저장된 PDF 문서를 찾을 수 없습니다.");
+    }
+    const fileBase = cleanText(archive?.title || archive?.displayName || reportId, 120)
+      .replace(/[^\w가-힣.-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      || "code-destiny-report";
+    const asciiFileBase = fileBase.replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "code-destiny-report";
+    const encodedFileName = encodeURIComponent(`${fileBase}.pdf`);
+    return new Response(new TextEncoder().encode(htmlContent), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${asciiFileBase}.pdf"; filename*=UTF-8''${encodedFileName}`,
         "Cache-Control": "private, no-store",
       },
     });
@@ -1423,7 +1448,7 @@ function isSajuPdfGenerationFeatureKey(featureKey) {
 }
 
 function canGeneratePaidPdf(pricing = {}) {
-  return isSajuPdfGenerationFeatureKey(pricing?.featureKey);
+  return isSajuPdfGenerationFeatureKey(pricing?.featureKey) || isPdfFeaturePricing(pricing);
 }
 
 function shouldPersistProfileUnlockEntitlement(pricing = {}) {
@@ -1761,7 +1786,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   }
 
   const requestId = resolveRequestId(request, body);
-  const pricing = pricingResult.pricing;
+  let pricing = pricingResult.pricing;
   const forceDeductRaw = body?.forceDeduct;
   const forceDeduct = forceDeductRaw === undefined
     ? true
@@ -1859,6 +1884,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     authCheck?.auth?.userId ? resolveBillingProfileId(authCheck.auth.userId, body) : Promise.resolve(""),
     authCheck?.auth?.userId ? getMembershipPassForBillingRequest(request, env, authCheck.auth.userId) : Promise.resolve(null),
   ]);
+  pricing = applyPdfPassDiscountToPricing(pricing, subscriptionPassForDecision?.entitlement || {});
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
   if (persistProfileUnlockEntitlement && !profileId) {
     return failure(403, "MISSING_PROFILE_ID", "Profile selection is required before unlocking this paid section.", undefined, {
@@ -3064,30 +3090,33 @@ async function handleUnlockStatus(request, env) {
 
   const data = balancePayload.data || {};
   const unlockMap = data.unlockMap && typeof data.unlockMap === "object" ? data.unlockMap : {};
-  const pricing = pricingResult.pricing;
+  let pricing = pricingResult.pricing;
   let unlocked = Boolean(unlockMap[pricing.featureKey]);
   const currentBalance = Number(data.balance || 0);
   const subscription = await readSubscriptionStatusSnapshot(request, env);
-  let paymentDecision = buildPassPaymentDecision({
+  const subscriptionEntitlement = {
     isActive: subscription.isActive,
     tier: subscription.tier,
     passTier: subscription.passTier,
     maxCoveredCoin: subscription.freeLimit,
     expiresAt: subscription.entitlement?.expiresAt || null,
-  }, pricing, {
+  };
+  pricing = applyPdfPassDiscountToPricing(pricing, subscriptionEntitlement);
+  let paymentDecision = buildPassPaymentDecision(subscriptionEntitlement, pricing, {
     membershipCreditBalance: Number(data.membershipCreditBalance ?? data.membership?.membershipCreditBalance ?? 0),
   });
 
   const auth = await getOptionalUserFromRequest(request, env);
-    const accessDecision = await resolvePaidContentAccess(env, {
-      userId: auth?.userId || "",
-      profileId: cleanProfileId(url.searchParams.get("profileId") || data.currentProfileId || ""),
-      pricing,
-      requestId: String(url.searchParams.get("requestId") || "").trim(),
-      body: {
-        actionType: String(url.searchParams.get("actionType") || "").trim(),
-      },
-    });
+  const accessDecision = await resolvePaidContentAccess(env, {
+    userId: auth?.userId || "",
+    profileId: cleanProfileId(url.searchParams.get("profileId") || data.currentProfileId || ""),
+    pricing,
+    requestId: String(url.searchParams.get("requestId") || "").trim(),
+    allowPassAutoUnlock: shouldPersistProfileUnlockEntitlement(pricing),
+    body: {
+      actionType: String(url.searchParams.get("actionType") || "").trim(),
+    },
+  });
   if (accessDecision.paymentOptions) paymentDecision = accessDecision.paymentOptions;
   if (accessDecision.accessGranted) {
     unlocked = true;
@@ -3263,7 +3292,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
   const authCheck = await requireBillingAuth(request, env, pricingResult.pricing);
   if (!authCheck.ok || !authCheck?.auth?.userId) return null;
 
-  const pricing = pricingResult.pricing;
+  let pricing = pricingResult.pricing;
   const isPdfGenerationService = canGeneratePaidPdf(pricing);
   const requestId = resolveRequestId(request, body);
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
@@ -3372,6 +3401,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
   }
 
   const subscriptionPass = await getMembershipPassForBillingRequest(request, env, authCheck.auth.userId);
+  pricing = applyPdfPassDiscountToPricing(pricing, subscriptionPass.entitlement || {});
   const paymentDecision = buildPassPaymentDecision(
     subscriptionPass.entitlement,
     pricing,
@@ -3487,15 +3517,48 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
   }, "PASS_FREE");
 }
 
+async function buildDiscountedPdfPaymentDelegation(request, env, body = {}, pricingResult = null) {
+  const resolved = pricingResult || resolvePricingFromBody(body);
+  if (!resolved?.ok || !canGeneratePaidPdf(resolved.pricing)) {
+    return { body, pricing: resolved?.pricing || null };
+  }
+
+  const authCheck = await requireBillingAuth(request, env, resolved.pricing);
+  if (!authCheck.ok || !authCheck?.auth?.userId) return { body, pricing: resolved.pricing, response: authCheck.response };
+
+  const subscriptionPass = await getMembershipPassForBillingRequest(request, env, authCheck.auth.userId);
+  const pricing = applyPdfPassDiscountToPricing(resolved.pricing, subscriptionPass.entitlement || {});
+  if (!pricing?.passDiscount || Number(pricing.coinPrice || pricing.cost || 0) <= 0) return { body, pricing };
+
+  return {
+    pricing,
+    body: {
+      ...body,
+      cost: Number(pricing.cost || 0),
+      coinPrice: Number(pricing.coinPrice || 0),
+      paymentAmount: Number(pricing.amountKRW || pricing.cashPrice || 0),
+      amount: Number(pricing.amountKRW || pricing.cashPrice || 0),
+      membershipCreditCost: Number(pricing.membershipCreditCost || 0),
+      pricingSnapshot: pricing,
+      passDiscount: pricing.passDiscount,
+      pdfPassDiscount: pricing.passDiscount,
+    },
+  };
+}
+
 async function handleCheckout(request, env) {
   const body = await readJson(request);
   const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
+  let delegatedBody = body;
   if (!isSubscription) {
     const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
     if (passAccess) return passAccess;
+    const discounted = await buildDiscountedPdfPaymentDelegation(request, env, body);
+    if (discounted.response) return discounted.response;
+    delegatedBody = discounted.body;
   }
   const targetPath = isSubscription ? "/api/payments/subscription/prepare" : "/api/payments/prepare";
-  return delegateToPayments(request, env, targetPath, body);
+  return delegateToPayments(request, env, targetPath, delegatedBody);
 }
 
 async function handleConfirm(request, env) {
@@ -3503,25 +3566,33 @@ async function handleConfirm(request, env) {
   const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
   const hasPaymentVerificationPayload = Boolean(body?.impUid || body?.paymentId || body?.merchantUid || body?.merchant_uid);
   const pricingResult = !isSubscription ? resolvePricingFromBody(body) : null;
+  let delegatedBody = body;
+  let delegatedPricing = pricingResult?.pricing || null;
   if (!isSubscription && !hasPaymentVerificationPayload) {
     const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
     if (passAccess) return passAccess;
   }
+  if (!isSubscription && pricingResult?.ok) {
+    const discounted = await buildDiscountedPdfPaymentDelegation(request, env, body, pricingResult);
+    if (discounted.response) return discounted.response;
+    delegatedBody = discounted.body;
+    delegatedPricing = discounted.pricing || delegatedPricing;
+  }
   let premiumAccessOptions = null;
   if (!isSubscription && hasPaymentVerificationPayload && pricingResult?.ok) {
-    const reportType = resolvePremiumAccessReportType(pricingResult.pricing?.featureKey, pricingResult.pricing?.reason);
+    const reportType = resolvePremiumAccessReportType(delegatedPricing?.featureKey, delegatedPricing?.reason);
     if (reportType) {
-      const authCheck = await requireBillingAuth(request, env, pricingResult.pricing);
+      const authCheck = await requireBillingAuth(request, env, delegatedPricing);
       if (!authCheck.ok) return authCheck.response;
       premiumAccessOptions = {
         premiumAccess: true,
         authUserId: authCheck.auth.userId,
-        pricing: pricingResult.pricing,
+        pricing: delegatedPricing,
       };
     }
   }
   const targetPath = isSubscription ? "/api/payments/subscription/confirm" : "/api/payments/confirm";
-  return delegateToPayments(request, env, targetPath, body, premiumAccessOptions || undefined);
+  return delegateToPayments(request, env, targetPath, delegatedBody, premiumAccessOptions || undefined);
 }
 
 async function runServiceExecutionAction(request, env, action) {

@@ -1,5 +1,5 @@
 import { connectDb, mongoose, resetMongooseConnection, resolveMongoDbName } from "../lib/db.js";
-import { PointHistory, RefreshTokenSession, User } from "../lib/models.js";
+import { MonthlyCreditLedger, PointHistory, RefreshTokenSession, User } from "../lib/models.js";
 import { getEnv } from "../lib/env.js";
 import {
   ACCESS_COOKIE_NAME,
@@ -47,6 +47,48 @@ function buildSignupProfileSubscription(now = new Date()) {
     legacyCoinCreditSeeded: true,
     legacyCoinCreditSeededPoints: 0,
   };
+}
+
+async function recordMonthlyCreditGrantLedger({
+  userId,
+  amount,
+  beforeBalance,
+  afterBalance,
+  reason,
+  sourceId,
+  serviceKey,
+  metadata,
+}) {
+  const normalizedAmount = Math.max(0, Math.floor(Number(amount || 0)));
+  const normalizedSourceId = String(sourceId || "").trim().slice(0, 180);
+  if (!userId || normalizedAmount <= 0 || !normalizedSourceId) return;
+
+  try {
+    await MonthlyCreditLedger.updateOne(
+      {
+        userId,
+        type: "MONTHLY_CREDIT_GRANT",
+        sourceId: normalizedSourceId,
+      },
+      {
+        $setOnInsert: {
+          userId,
+          type: "MONTHLY_CREDIT_GRANT",
+          amount: normalizedAmount,
+          beforeBalance: Math.max(0, Math.floor(Number(beforeBalance || 0))),
+          afterBalance: Math.max(0, Math.floor(Number(afterBalance || normalizedAmount))),
+          reason: String(reason || "monthly_credit_grant").trim(),
+          sourceId: normalizedSourceId,
+          serviceKey: String(serviceKey || "").trim().slice(0, 120),
+          profileId: "",
+          metadata: metadata || null,
+        },
+      },
+      { upsert: true },
+    );
+  } catch (error) {
+    console.error("[auth/monthly-credit-ledger] grant insert failed:", error);
+  }
 }
 
 function normalizeReferralCode(rawCode) {
@@ -359,6 +401,25 @@ async function applyKakaoReferralReward(request, env, newUser, referralCapture =
   } catch (error) {
     console.error("[auth/referral] point history insert failed:", error);
   }
+
+  await recordMonthlyCreditGrantLedger({
+    userId: referrerObjectId,
+    amount: REFERRAL_REWARD_MONTHLY_CREDIT,
+    beforeBalance: Math.max(0, balanceAfter - REFERRAL_REWARD_MONTHLY_CREDIT),
+    afterBalance: balanceAfter,
+    reason: "카카오 공유 추천 가입 보상",
+    sourceId: `referral_signup_kakao:${newUserId}`,
+    serviceKey: "referral_signup_kakao",
+    metadata: {
+      grantType: "referral",
+      channel: "kakao",
+      referralCode,
+      referredUserId: newUserId,
+      dailyCap: REFERRAL_DAILY_MONTHLY_CREDIT_CAP,
+      shareOnly: true,
+      requestMeta: getRequestMeta(request),
+    },
+  });
 
   return {
     status: "rewarded",
@@ -975,6 +1036,20 @@ async function findOrCreateSocialUser(provider, profile) {
       },
     },
   });
+  await recordMonthlyCreditGrantLedger({
+    userId: createdUser._id,
+    amount: SIGNUP_MONTHLY_CREDIT_GRANT,
+    beforeBalance: 0,
+    afterBalance: SIGNUP_MONTHLY_CREDIT_GRANT,
+    reason: "회원가입 월정석 지급",
+    sourceId: `signup:${String(createdUser._id || "")}`,
+    serviceKey: "signup_bonus",
+    metadata: {
+      grantType: "signup",
+      authMethod: "social",
+      provider,
+    },
+  });
   return { user: createdUser, created: true };
 }
 
@@ -1443,6 +1518,20 @@ async function handleRegister(request, env) {
       toErrorMessage(error) || "Failed to create user.",
     );
   }
+
+  await recordMonthlyCreditGrantLedger({
+    userId: user._id,
+    amount: SIGNUP_MONTHLY_CREDIT_GRANT,
+    beforeBalance: 0,
+    afterBalance: SIGNUP_MONTHLY_CREDIT_GRANT,
+    reason: "회원가입 월정석 지급",
+    sourceId: `signup:${String(user._id || "")}`,
+    serviceKey: "signup_bonus",
+    metadata: {
+      grantType: "signup",
+      authMethod: "local",
+    },
+  });
 
   const referralReward = await applyKakaoReferralReward(
     request,

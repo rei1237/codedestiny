@@ -354,10 +354,10 @@ export default function TarotPromptMakerPage() {
           return;
         }
         if (paymentResult.code === "INSUFFICIENT_COINS") { setFeedback(`코인이 부족합니다. ${paymentResult.requiredCoins}코인이 필요합니다.`); return; }
-        if (paymentResult.code === "PRICE_NOT_FOUND") { setFeedback("서비스 가격 정책을 불러오지 못했습니다."); return; }
-        if (paymentResult.code === "SERVER_CONFIG_ERROR") { setFeedback("결제 서버 설정을 확인 중입니다."); return; }
-        if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) showToast("프롬프트 생성 실패로 이번 결제가 자동 환불되었습니다.", "info");
-        setFeedback(paymentResult.message || "코인 차감에 실패했습니다.");
+        if (paymentResult.code === "PRICE_NOT_FOUND") { setFeedback("서비스 이용 조건을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요."); return; }
+        if (paymentResult.code === "SERVER_CONFIG_ERROR") { setFeedback("결제 확인이 잠시 지연되고 있습니다. 잠시 후 다시 시도해 주세요."); return; }
+        if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) showToast("프롬프트 생성이 완료되지 않아 이번 결제가 환불되었습니다.", "info");
+        setFeedback(paymentResult.message || "결제 확인이 완료되지 않았습니다.");
       }
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "오라클 문장을 엮는 중 문제가 발생했습니다.");

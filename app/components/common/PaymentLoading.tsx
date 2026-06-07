@@ -11,6 +11,7 @@ export type PaymentLoadingProps = {
     | "monthly"
     | "subscription"
     | "unlock-saving"
+    | "payment-complete"
     | "refund"
     | "pass-checking"
     | "pass-applied";
@@ -22,7 +23,7 @@ export type PaymentLoadingProps = {
 const DEFAULT_TITLE = "운명을 읽어오는 중입니다...";
 const DEFAULT_DESCRIPTION = "결제가 진행 중입니다. 잠시만 기다려 주세요.";
 const YEON_SPRITE_URL =
-  "/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp";
+  "/fuctionassets/%EB%8F%88%EB%B0%9D%ED%9E%88%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=20260607-payment-complete";
 
 export default function PaymentLoading({
   open,
@@ -62,6 +63,7 @@ export default function PaymentLoading({
 
   const isPassChecking = variant === "pass-checking";
   const isPassApplied = variant === "pass-applied";
+  const isPaymentComplete = variant === "payment-complete" || variant === "unlock-saving" || isPassApplied;
   const copyMap: Record<NonNullable<PaymentLoadingProps["variant"]>, { title: string; description: string; status?: string }> = {
     payment: {
       title: "결제 상태를 안전하게 확인하고 있습니다",
@@ -87,12 +89,17 @@ export default function PaymentLoading({
       title: "이용 권한을 저장하고 있습니다",
       description: "결과 화면을 열기 전 권한 기록을 정리하고 있습니다.",
     },
+    "payment-complete": {
+      title: "결제 확인 완료",
+      description: "연이가 이용 권한을 열어두었습니다.",
+      status: "잠시 후 콘텐츠로 이어집니다.",
+    },
     refund: {
-      title: "자동 환불을 처리하고 있습니다",
-      description: "차감 내역을 확인하고 잔액을 복구하고 있습니다.",
+      title: "환불을 안전하게 처리하고 있습니다",
+      description: "결제 내역과 이용 권한을 확인하고 있습니다.",
     },
     "pass-checking": {
-      title: "달빛 결제 시스템 가동 중!",
+      title: "달빛 이용권을 확인하고 있습니다",
       description: "이용권을 적용하고 있습니다.",
       status: "이용권 범위와 프로필 권한을 안전하게 확인하고 있습니다.",
     },
@@ -113,7 +120,7 @@ export default function PaymentLoading({
       : cleanedStatus && cleanedStatus !== resolvedDescription
         ? cleanedStatus
         : copy.status;
-  const isWarmVariant = isPassChecking || isPassApplied || variant === "subscription";
+  const isWarmVariant = isPassChecking || isPaymentComplete || variant === "subscription";
 
   return (
     <div
@@ -124,7 +131,7 @@ export default function PaymentLoading({
       className="fixed inset-0 z-[2147483003] flex items-center justify-center bg-[#050510]/82 px-4 backdrop-blur-xl"
     >
       <div className={`relative w-full max-w-md overflow-hidden rounded-[2rem] border p-8 text-center shadow-[0_0_80px_rgba(79,70,229,0.3)] ${
-        isPassApplied
+        isPaymentComplete
           ? "border-amber-200/35 bg-gradient-to-b from-[#171022]/96 to-[#080612]/96"
           : isPassChecking || variant === "subscription"
             ? "border-amber-200/30 bg-[radial-gradient(circle_at_50%_0%,rgba(251,191,36,0.22),transparent_42%),linear-gradient(180deg,rgba(14,18,42,0.96),rgba(7,8,20,0.96))]"
@@ -134,14 +141,14 @@ export default function PaymentLoading({
         <div className="pointer-events-none absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-cyan-600/20 blur-[60px]" />
 
         <div className="relative mx-auto mb-8 flex h-24 w-24 items-center justify-center">
-          {isPassApplied ? (
+          {isPaymentComplete ? (
             <div className="relative h-24 w-24 overflow-hidden rounded-[1.4rem] border border-amber-100/40 bg-white/10 shadow-[0_0_34px_rgba(251,191,36,0.28)]">
               <div
-                className="h-full w-full animate-[cdYeonPaymentSprite_1.08s_steps(12)_infinite]"
+                className="h-full w-full animate-[cdYeonPaymentSprite_1.08s_steps(8)_infinite]"
                 style={{
                   backgroundImage: `url("${YEON_SPRITE_URL}")`,
                   backgroundRepeat: "no-repeat",
-                  backgroundSize: "400% 300%",
+                  backgroundSize: "400% 200%",
                   imageRendering: "auto",
                 }}
               />
@@ -184,16 +191,12 @@ export default function PaymentLoading({
         <style jsx global>{`
           @keyframes cdYeonPaymentSprite {
             0% { background-position: 0% 0%; }
-            8.333% { background-position: 33.333% 0%; }
-            16.666% { background-position: 66.666% 0%; }
-            25% { background-position: 100% 0%; }
-            33.333% { background-position: 0% 50%; }
-            41.666% { background-position: 33.333% 50%; }
-            50% { background-position: 66.666% 50%; }
-            58.333% { background-position: 100% 50%; }
-            66.666% { background-position: 0% 100%; }
-            75% { background-position: 33.333% 100%; }
-            83.333% { background-position: 66.666% 100%; }
+            12.5% { background-position: 33.333% 0%; }
+            25% { background-position: 66.666% 0%; }
+            37.5% { background-position: 100% 0%; }
+            50% { background-position: 0% 100%; }
+            62.5% { background-position: 33.333% 100%; }
+            75% { background-position: 66.666% 100%; }
             100% { background-position: 100% 100%; }
           }
         `}</style>

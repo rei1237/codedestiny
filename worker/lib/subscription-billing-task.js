@@ -3,6 +3,7 @@ import { Payment, PaymentFailureLog, User } from "./models.js";
 import { chargePortOneBilling } from "./portone.js";
 
 const CARD_SUBSCRIPTION_PLANS = {
+  family: { tier: "family", name: "Code Destiny Family", wonPrice: 300000, durationDays: 30 },
   standard: { tier: "standard", name: "스탠다드 꿀", wonPrice: 9900, durationDays: 30 },
   premium: { tier: "premium", name: "프리미엄 꿀", wonPrice: 29900, durationDays: 30 },
   vvip: { tier: "vvip", name: "VVIP 꿀단지", wonPrice: 59000, durationDays: 30 },
@@ -61,7 +62,7 @@ export async function runCardSubscriptionBillingTask(env) {
   const now = new Date();
   const candidates = await User.find({
     "profileSubscription.source": "card",
-    "profileSubscription.tier": { $in: ["standard", "premium", "vvip"] },
+    "profileSubscription.tier": { $in: ["standard", "premium", "vvip", "family"] },
     "profileSubscription.expiresAt": { $ne: null, $lte: now },
     "profileSubscription.cancelAtPeriodEnd": { $ne: true },
     "profileSubscription.customerUid": { $exists: true, $ne: "" },

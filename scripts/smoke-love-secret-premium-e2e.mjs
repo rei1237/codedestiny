@@ -51,6 +51,7 @@ const base = {
   },
   tenGods: { dominantTenGod: "식신", counts: { 식신: 3, 정관: 2, 정재: 1, 편인: 1 } },
   strength: { isStrong: true, label: "신강" },
+  yongshin: { usefulElements: ["목", "수"], cautionElements: ["금"] },
   specialStars: { tao: 55, yeokma: 20, hwa: 15, gwimun: false },
   partner: {
     user: { name: "상대", birthDate: "1992-02-03", birthTime: "21:00", gender: "M" },
@@ -70,6 +71,7 @@ const base = {
       counts: { wood: 1, fire: 1, earth: 2, metal: 3, water: 1 },
     },
     tenGods: { dominantTenGod: "정관", counts: { 정관: 3, 정재: 2, 식신: 1, 편인: 1 } },
+    yongshin: { usefulElements: ["금", "토"], cautionElements: ["화"] },
   },
 };
 base.loveSecretReference = buildLoveSecretReference(base);
@@ -122,6 +124,17 @@ function assertMode(mode, specs, expectedCount) {
   assert.equal(config.totalChapters, expectedCount, `${mode} config totalChapters`);
   assert.equal(specs.length, expectedCount, `${mode} spec count`);
   assert.equal(config.chapters.length, expectedCount, `${mode} config chapter metadata count`);
+  const masterJson = loveSecret.buildLoveSecretMasterJson({
+    base,
+    mode,
+    body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
+    targetYear: 2026,
+  });
+  const masterValidation = loveSecret.validateLoveSecretMasterJson(masterJson);
+  assert.equal(masterValidation.ok, true, `${mode} master json validation ${JSON.stringify(masterValidation)}`);
+  assert.equal(masterJson.mode, mode, `${mode} master mode`);
+  assert.ok(Array.isArray(masterJson.consultationEvidence.sajuEvidence), `${mode} master evidence array`);
+  assert.ok(masterJson.consultationEvidence.sajuEvidence.length >= 5, `${mode} master evidence count`);
 
   const chapters = buildChapters(mode, specs);
   const validation = loveSecret.validateLoveSecretManuscript({
@@ -142,12 +155,13 @@ function assertMode(mode, specs, expectedCount) {
   assert.ok(String(pdfReady.html || "").includes(mode === "compatibility" ? "궁합 비책 PDF" : "연애 비책 PDF"), `${mode} html title`);
   assert.ok(String(pdfReady.html || "").length > 10000, `${mode} html length`);
   assert.ok(String(pdfReady.downloadUrl || "").includes("/api/premium/pdf-archive/"), `${mode} archive url`);
-  assert.ok(String(pdfReady.downloadUrl || "").includes("format=html"), `${mode} document render url`);
+  assert.ok(String(pdfReady.downloadUrl || "").includes("format=pdf"), `${mode} document render url`);
+  assert.ok(String(pdfReady.htmlUrl || "").includes("format=html"), `${mode} html render url`);
   assert.equal(pdfReady.documentUrl, pdfReady.downloadUrl, `${mode} document url`);
   assert.ok(String(pdfReady.archiveUrl || "").includes("/api/premium/pdf-archive/"), `${mode} raw archive url`);
-  assert.equal(pdfReady.mimeType, "text/html", `${mode} archive mime`);
-  assert.equal(pdfReady.contentType, "text/html; charset=UTF-8", `${mode} content type`);
-  assert.equal(pdfReady.renderFormat, "html-printable", `${mode} render format`);
+  assert.equal(pdfReady.mimeType, "application/pdf", `${mode} archive mime`);
+  assert.equal(pdfReady.contentType, "application/pdf", `${mode} content type`);
+  assert.equal(pdfReady.renderFormat, "pdf-archive", `${mode} render format`);
 }
 
 function assertSoloQualityGuides() {

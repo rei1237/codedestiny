@@ -180,7 +180,8 @@ function resolveCurrentId(rawCurrentId, profiles) {
 }
 
 function resolveSingleProfileAccess(user, profiles, subscription) {
-  const profileLimit = Number(subscription?.profileLimit || 1);
+  const rawProfileLimit = Number(subscription?.profileLimit);
+  const profileLimit = Number.isFinite(rawProfileLimit) && rawProfileLimit >= 0 ? Math.floor(rawProfileLimit) : 1;
   const isSingleMode = false;
   const savedCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
 
@@ -288,6 +289,10 @@ async function ensureSyncProfileMutationPayment(auth, requestId) {
   if (existing) return { ok: true };
 
   const seedUser = await User.findById(auth.userId).select("points profileSubscription").lean();
+  const entitlement = normalizeHoneyPassEntitlement(seedUser || {});
+  if (entitlement.isActive && entitlement.tier === "family") {
+    return { ok: true, freeBySubscription: true };
+  }
   const legacyPoints = Math.floor(Number(seedUser?.points || 0));
   if (seedUser?._id && !seedUser?.profileSubscription?.legacyCoinCreditSeeded && legacyPoints > 0) {
     const legacyCredit = calculateMembershipCreditCost(legacyPoints);

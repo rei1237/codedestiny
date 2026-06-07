@@ -1,22 +1,23 @@
 import type { Metadata, MetadataRoute } from "next";
 import { ROUTES, BASE_URL, type SitemapRouteEntry } from "./seo-site-urls";
+import { SEO_SITE_CONFIG } from "./seo/siteConfig";
 
 export const SEO_V2_SITE = {
-  name: "Code Destiny",
-  titleTemplate: "%s | Code Destiny",
-  defaultTitle: "Code Destiny | Free Saju, Tarot, Astrology and Fortune Tools",
-  defaultDescription:
-    "Code Destiny provides public fortune, saju, tarot, astrology, compatibility, dream and insight pages with canonical SEO metadata and share-ready previews.",
+  name: SEO_SITE_CONFIG.brandName,
+  titleTemplate: SEO_SITE_CONFIG.titleTemplate,
+  defaultTitle: SEO_SITE_CONFIG.homeTitle,
+  defaultDescription: SEO_SITE_CONFIG.defaultDescription,
   siteUrl: (
     process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.PUBLIC_SITE_URL ||
     process.env.SITE_URL ||
+    SEO_SITE_CONFIG.siteUrl ||
     BASE_URL
   ).replace(/\/+$/, ""),
-  locale: "ko_KR",
-  author: "Code Destiny",
-  publisher: "Code Destiny",
-  defaultOgImage: "/og/code-destiny-og.png",
+  locale: SEO_SITE_CONFIG.locale,
+  author: SEO_SITE_CONFIG.brandFullName,
+  publisher: SEO_SITE_CONFIG.brandFullName,
+  defaultOgImage: SEO_SITE_CONFIG.defaultOgImage,
 };
 
 const PRIVATE_ROUTE_PATTERNS = [

@@ -1,15 +1,28 @@
 export const SEO_SITE_CONFIG = {
-  siteName: "Code Destiny | 꿀꿀 만세력",
+  siteName: "Code Destiny | 꿀꿀 운세",
+  brandName: "꿀꿀 운세",
+  brandFullName: "코드 데스티니 꿀꿀 운세",
   shortName: "Code Destiny",
   koreanName: "코드 데스티니",
   legacyName: "꿀꿀 만세력",
+  alternateNames: [
+    "Code Destiny",
+    "코드 데스티니",
+    "꿀꿀 운세",
+    "꿀꿀 만세력",
+    "꿀꿀 사주",
+    "Kkul-Kkul Fortune",
+    "Kkul-Kkul Manseryeok",
+    "Ggulggul Manseryeok",
+    "codedestiny",
+  ],
   siteUrl: "https://code-destiny.com",
   locale: "ko_KR",
   defaultOgImage: "https://code-destiny.com/og/code-destiny-og.png",
-  homeTitle: "무료 사주팔자 · 오늘의 운세 · 꿀꿀 만세력 | 코드 데스티니",
-  titleTemplate: "%s | 코드 데스티니",
+  homeTitle: "무료 사주팔자 · 타로 · 오늘의 운세 · 꿀꿀 운세 | 코드 데스티니",
+  titleTemplate: "%s | 꿀꿀 운세",
   defaultDescription:
-    "Code Destiny(코드 데스티니)는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
+    "Code Destiny(코드 데스티니)에서 사주팔자, 타로, 오늘의 운세, 궁합, 신년운세, 토정비결까지 확인하세요. 기존 서비스명인 '꿀꿀 만세력'도 함께 검색됩니다.",
   defaultLanguages: {
     ko: "/",
     en: "/en",
@@ -17,4 +30,5 @@ export const SEO_SITE_CONFIG = {
     zh: "/zh",
     "x-default": "/",
   } as Record<string, string>,
+  targetMarkets: ["KR", "US", "JP", "CN", "TW"],
 };

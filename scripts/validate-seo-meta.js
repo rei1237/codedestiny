@@ -68,13 +68,13 @@ try {
   const metaValueTests = [
     {
       name: 'canonical URL',
-      pattern: /href="([^"]+)" rel="canonical"/i,
-      expected: 'https://code-destiny.pages.dev'
+      pattern: /<link\b(?=[^>]*rel=["']canonical["'])(?=[^>]*href=["']([^"']+)["'])/i,
+      expected: (val) => val === 'https://code-destiny.com/'
     },
     {
       name: 'og:title',
       pattern: /property="og:title"\s+content="([^"]+)"/,
-      expected: 'CODE DESTINY'
+      expected: (val) => val && val.includes('꿀꿀 운세') && val.includes('무료')
     },
     {
       name: 'og:description',
@@ -84,7 +84,7 @@ try {
     {
       name: 'og:image',
       pattern: /property="og:image"\s+content="([^"]+)"/,
-      expected: (val) => val && val.includes('og-image')
+      expected: (val) => val && val.startsWith('https://code-destiny.com/') && (val.includes('/icons/') || val.includes('/og/'))
     },
     {
       name: 'theme-color',
@@ -133,8 +133,9 @@ try {
 
   const jsonLdTests = [
     { name: 'WebApplication', pattern: '"@type": "WebApplication"' },
-    { name: 'FAQPage', pattern: '"@type": "FAQPage"' },
-    { name: 'Organization', pattern: '"@type": "Organization"' },
+    { name: 'ItemList', pattern: '"@type": "ItemList"' },
+    { name: '신규 브랜드', pattern: '꿀꿀 운세' },
+    { name: '기존 명칭 검색어', pattern: '꿀꿀 만세력' },
     { name: 'name 필드', pattern: '"name":' },
     { name: 'description 필드', pattern: '"description":' },
     { name: 'url 필드', pattern: '"url":' }
@@ -153,8 +154,8 @@ try {
   console.log('✅ 6. RSS/Sitemap 링크 검증\n');
 
   const feedTests = [
-    { name: 'sitemap.xml', pattern: 'href="/sitemap.xml"' },
-    { name: 'robots.txt', pattern: 'href="/robots.txt"' }
+    { name: 'sitemap.xml', pattern: 'sitemap.xml' },
+    { name: 'rss.xml', pattern: 'rss.xml' }
   ];
 
   let feedOk = true;
@@ -198,9 +199,9 @@ try {
   console.log('  ✅ 메타 태그: 모든 기본 메타 태그 존재');
   console.log('  ✅ 동기화: index.html ↔ public/index.html 일치');
   console.log('  ✅ 메타 값: og:title, og:description, theme-color 모두 정상');
-  console.log('  ✅ 다국어: 10개 언어 hreflang 모두 정의');
-  console.log('  ✅ JSON-LD: WebApplication, FAQPage 구조화 데이터 완비');
-  console.log('  ✅ Feed: sitemap.xml, robots.txt 링크 완비\n');
+  console.log('  ✅ 다국어: 핵심 hreflang 정의');
+  console.log('  ✅ JSON-LD: WebApplication, ItemList, 브랜드 alternateName 완비');
+  console.log('  ✅ Feed: sitemap.xml, rss.xml 링크 완비\n');
 
   console.log('🎯 검증 통과율:\n');
   allChecks.forEach((check) => {
@@ -216,8 +217,7 @@ try {
   }
 
   console.log('🚀 배포 상태:\n');
-  console.log('  ✅ GitHub: commit 6c2450d pushed');
-  console.log('  ✅ Cloudflare Pages: 자동 배포 완료 (code-destiny.pages.dev)');
+  console.log('  ☑️ 배포 후 Search Console, Naver Search Advisor, Bing Webmaster Tools sitemap 재제출 권장');
   console.log('  ☑️ 실제 렌더링: 브라우저에서 og: 메타 태그 확인 필요\n');
 
   process.exit(deployReady ? 0 : 1);

@@ -116,12 +116,12 @@
     var p = payload || {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
     return _clean(
-      p.pdfUrl
-      || p.htmlUrl
-      || p.downloadUrl
+      p.downloadUrl
+      || p.pdfUrl
       || ready.pdfUrl
-      || ready.htmlUrl
       || ready.downloadUrl
+      || p.htmlUrl
+      || ready.htmlUrl
     );
   }
 
@@ -281,13 +281,17 @@
     if (premiumToken) headers['x-premium-access-token'] = premiumToken;
 
     if (typeof window._cdOpenPaidServiceGate === 'function') {
-      return await new Promise(function(resolve) {
+      var gateResult = await new Promise(function(resolve) {
         var settled = false;
         function finish(payload) {
           if (settled) return;
           settled = true;
           var raw = payload && typeof payload === 'object' ? payload : {};
-          var data = raw && raw.data && typeof raw.data === 'object' ? raw.data : raw;
+          var data = raw && raw.data && typeof raw.data === 'object'
+            ? raw.data
+            : (raw && raw.payload && typeof raw.payload === 'object')
+              ? raw.payload
+              : raw;
           var issuedToken = String(data.premiumAccessToken || raw.premiumAccessToken || '').trim();
           if (issuedToken) _persistPremiumAccessToken(issuedToken);
           var accessGrant = _normalizeLifeBookAccessGrant(data, reportId, requestId);
@@ -304,6 +308,17 @@
           if (settled) return;
           settled = true;
           resolve({ ok: false, status: 402, message: '결제가 취소되었습니다.', requestId: requestId });
+        }
+        function fail(error) {
+          if (settled) return;
+          settled = true;
+          resolve({
+            ok: false,
+            status: Number(error && error.status || 0),
+            message: String(error && error.message || '결제 게이트를 불러오지 못했습니다.'),
+            requestId: requestId,
+            fallback: true,
+          });
         }
         try {
           var gate = window._cdOpenPaidServiceGate({
@@ -322,16 +337,16 @@
             onCancel: cancel
           });
           if (gate && typeof gate.then === 'function') gate.then(function(payload) {
-            if (payload === null || payload === undefined) cancel();
+            if (payload === null || payload === undefined || (payload && payload.status === 'cancelled')) cancel();
             else finish(payload);
-          }).catch(cancel);
+          }).catch(fail);
+          else if (!gate) fail(new Error('결제 게이트를 불러오지 못했습니다.'));
         } catch (_) {
-          cancel();
+          fail(_);
         }
       });
+      if (gateResult.ok || Number(gateResult.status) === 402 || !gateResult.fallback) return gateResult;
     }
-
-    return { ok: false, status: 0, message: '결제 게이트를 불러오지 못했습니다.', requestId: requestId };
 
     var response = await fetch('/api/billing/coin-gate', {
       method: 'POST',
@@ -1014,13 +1029,165 @@
     return lines.join('\n');
   }
 
+  function _lbJsonClone(value, fallback) {
+    try {
+      if (value === undefined || value === null) return fallback;
+      return JSON.parse(JSON.stringify(value));
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  function _normalizeLifeBookPillar(raw) {
+    var src = raw && typeof raw === 'object' ? raw : {};
+    var stem = String(src.g || src.stem || src.stemKo || '').trim();
+    var branch = String(src.j || src.branch || src.branchKo || '').trim();
+    return {
+      stem: stem,
+      branch: branch,
+      ganji: String(stem + branch).trim(),
+      stemElement: String(src.gE || src.stemElement || '').trim(),
+      branchElement: String(src.jE || src.branchElement || '').trim(),
+    };
+  }
+
+  function _normalizeLifeBookDaewunList(list) {
+    if (!Array.isArray(list)) return [];
+    return list.slice(0, 16).map(function (row) {
+      var item = row && typeof row === 'object' ? row : {};
+      return {
+        age: Number(item.age || item.startAge || 0) || 0,
+        startAge: Number(item.startAge || item.age || 0) || 0,
+        stem: String(item.g || item.stem || '').trim(),
+        branch: String(item.j || item.branch || '').trim(),
+        label: String(item.label || ((item.g || '') + (item.j || ''))).trim(),
+        element: String(item.element || item.el || '').trim(),
+      };
+    });
+  }
+
+  function _collectLifeBookQuantumMyeongriJson(profile) {
+    var snap = window.__destinyFlowerSajuSnapshot || {};
+    var analysis = snap.analysis || snap.saju || {};
+    var pillars = window.G_PILLARS || {};
+    var power = window.G_POWER || {};
+    var johu = window.G_JOHU || {};
+    var jong = window.G_JONG || {};
+    var daewunList = _normalizeLifeBookDaewunList(window.G_DAEWUN || window.G_DAEUN || []);
+    var birth = (profile && profile.birth) || snap.birth || {};
+    var input = {
+      name: String((profile && profile.name) || snap.name || '').trim(),
+      gender: _normalizeGenderForApi((profile && profile.gender) || snap.gender || ''),
+      calendarType: _resolveCalendarTypeForApi(profile || {}),
+      birthDate: birth && birth.year ? [birth.year, String(birth.month || '').padStart(2, '0'), String(birth.day || '').padStart(2, '0')].join('-') : '',
+      birthTime: birth && birth.hour !== undefined ? String(birth.hour).padStart(2, '0') + ':' + String(birth.minute || 0).padStart(2, '0') : '',
+      birthPlace: String((profile && profile.location && profile.location.label) || '').trim(),
+      timezone: String((profile && profile.location && profile.location.tz) || 'Asia/Seoul').trim(),
+    };
+    var fourPillars = {
+      year: _normalizeLifeBookPillar(pillars.y),
+      month: _normalizeLifeBookPillar(pillars.m),
+      day: _normalizeLifeBookPillar(pillars.d),
+      hour: _normalizeLifeBookPillar(pillars.h),
+    };
+    var elementWeights = analysis.elementWeights && typeof analysis.elementWeights === 'object'
+      ? {
+          wood: Number(analysis.elementWeights.wood || 0),
+          fire: Number(analysis.elementWeights.fire || 0),
+          earth: Number(analysis.elementWeights.earth || 0),
+          metal: Number(analysis.elementWeights.metal || 0),
+          water: Number(analysis.elementWeights.water || 0),
+        }
+      : null;
+    var yongshinElements = Array.isArray(analysis.yongshin_elements) && analysis.yongshin_elements.length
+      ? analysis.yongshin_elements.slice(0, 4)
+      : Array.isArray(power.yongshin) ? power.yongshin.slice(0, 4) : [];
+    var gishinElements = Array.isArray(analysis.kishin_elements) && analysis.kishin_elements.length
+      ? analysis.kishin_elements.slice(0, 4)
+      : Array.isArray(power.kijishin) ? power.kijishin.slice(0, 4) : [];
+    var tenGodByPillar = power && power.pillarTenGods && typeof power.pillarTenGods === 'object'
+      ? _lbJsonClone(power.pillarTenGods, {})
+      : {};
+    return {
+      version: 'life-book-client-quantum-myeongri-v1',
+      sourceTrace: {
+        source: 'js/life-book.js',
+        engines: ['official-saju-engine', 'quantum-myeongri-engine'],
+        hasPillars: Boolean(pillars.y && pillars.m && pillars.d && pillars.h),
+        hasPower: Boolean(window.G_POWER),
+        hasJohu: Boolean(window.G_JOHU),
+        hasDaewun: daewunList.length > 0,
+      },
+      input: input,
+      structuredAdvancedReport: {
+        metadata: {
+          engineVersion: 'client-quantum-myeongri-v1',
+          timezone: input.timezone,
+          hourPillarTimePolicy: 'TRUE_SOLAR_TIME',
+          dayChangePolicy: 'MIDNIGHT',
+        },
+        input: input,
+        fourPillars: fourPillars,
+        strengthAnalysis: {
+          dayMasterStrength: String(analysis.power_label || analysis.powerLabel || (power && typeof power.isStrong === 'boolean' ? (power.isStrong ? '신강' : '신약') : '')).trim(),
+          isStrong: Boolean(power && power.isStrong),
+          jongName: String(analysis.jongName || jong.name || '').trim(),
+        },
+        climateAnalysis: {
+          primaryClimateIssue: String(analysis.johuType || analysis.johu_type || johu.type || '').trim(),
+          climateYongshin: _lbJsonClone(johu.yongshin || johu.need || [], []),
+        },
+        yongshin: {
+          primary: String(yongshinElements[0] || '').trim(),
+          secondary: String(yongshinElements[1] || '').trim(),
+          huishin: yongshinElements.slice(1),
+          gishin: gishinElements,
+          reasoning: String((power && power.reason) || (johu && johu.reason) || '').trim(),
+        },
+        gyeokguk: {
+          primary: String(analysis.gyeokguk || analysis.gyeok || '').trim(),
+          reasoning: String(analysis.gyeokgukReason || '').trim(),
+        },
+        daewoon: {
+          current: daewunList[0] || null,
+          cycles: daewunList,
+        },
+        sewoon: {
+          currentYear: {
+            label: String(analysis.currentYearPillar || '').trim(),
+            ganji: String(analysis.currentYearPillar || '').trim(),
+          },
+          analysis: String(analysis.yearlyLuckSummary || '').trim(),
+        },
+        dochungAnalysis: _lbJsonClone(analysis.dochungAnalysis || analysis.doChungAnalysis || {}, {}),
+        combinationTransformation: _lbJsonClone(analysis.combinationTransformation || {}, {}),
+        clashAnalysis: _lbJsonClone(analysis.clashAnalysis || {}, {}),
+        lifeDomains: {
+          relationships: String(analysis.relationshipSignal || '').trim(),
+          romance: String(analysis.spouseSignal || '').trim(),
+          career: String(analysis.careerSignal || '').trim(),
+          wealth: String(analysis.wealthSignal || '').trim(),
+          healthMind: String(analysis.healthSignal || '').trim(),
+        },
+      },
+      pillars: fourPillars,
+      power: _lbJsonClone(power, {}),
+      johu: _lbJsonClone(johu, {}),
+      jong: _lbJsonClone(jong, {}),
+      elementWeights: elementWeights,
+      tenGodCounts: _lbJsonClone((power && power.groups) || analysis.tenGodCounts || null, null),
+      tenGodByPillar: tenGodByPillar,
+      daewunCycles: daewunList,
+    };
+  }
+
   function _collectLifeBookAnalysisSignals(profile) {
     var snap = window.__destinyFlowerSajuSnapshot || {};
     var analysis = snap.analysis || snap.saju || {};
     var power = window.G_POWER || {};
     var johu = window.G_JOHU || {};
     var pillars = window.G_PILLARS || {};
-    var daewunList = window.G_DAEWUN || window.G_DAEUN || [];
+    var daewunList = _normalizeLifeBookDaewunList(window.G_DAEWUN || window.G_DAEUN || []);
 
     var elementWeights = analysis.elementWeights && typeof analysis.elementWeights === 'object'
       ? {
@@ -1046,6 +1213,8 @@
     }
 
     var currentDaewun = '';
+    var currentDaeunNode = null;
+    var nextDaeunNode = null;
     if (Array.isArray(daewunList) && daewunList.length && profile && profile.birth && profile.birth.year) {
       var currentAge = new Date().getFullYear() - Number(profile.birth.year || 0) + 1;
       for (var i = 0; i < daewunList.length; i++) {
@@ -1054,13 +1223,16 @@
         var ageStart = Number(cur.age || 0);
         var ageEnd = next ? Number(next.age || 999) : 999;
         if (currentAge >= ageStart && currentAge < ageEnd) {
-          currentDaewun = String((cur.g || '') + (cur.j || '')).trim();
+          currentDaewun = String(cur.label || ((cur.stem || '') + (cur.branch || ''))).trim();
+          currentDaeunNode = cur;
+          nextDaeunNode = next;
           break;
         }
       }
       if (!currentDaewun) {
         var last = daewunList[daewunList.length - 1] || {};
-        currentDaewun = String((last.g || '') + (last.j || '')).trim();
+        currentDaewun = String(last.label || ((last.stem || '') + (last.branch || ''))).trim();
+        currentDaeunNode = last;
       }
     }
 
@@ -1073,7 +1245,11 @@
       kishinElements: kiList,
       elementWeights: elementWeights,
       tenGodCounts: tenGods,
+      tenGodByPillar: power && power.pillarTenGods && typeof power.pillarTenGods === 'object' ? _lbJsonClone(power.pillarTenGods, {}) : null,
       currentDaewun: currentDaewun,
+      daewunCycles: daewunList,
+      currentDaeunNode: currentDaeunNode,
+      nextDaeunNode: nextDaeunNode,
       isJong: Boolean(analysis.isJong),
       jongName: String(analysis.jongName || ''),
     };
@@ -1789,6 +1965,7 @@
         birthplace: String((profile && profile.location && profile.location.label) || '대한민국'),
         sajuData: String(sajuData || ''),
         analysisSignals: _collectLifeBookAnalysisSignals(profile),
+        quantumMyeongriJson: _collectLifeBookQuantumMyeongriJson(profile),
       };
 
       _setGenerationState('local_chapters_start');

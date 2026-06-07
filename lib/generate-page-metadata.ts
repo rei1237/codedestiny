@@ -158,7 +158,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
       url: canonicalUrl,
       title: uniqueTitle,
       description: uniqueDescription,
-      siteName: "꿀꿀 만세력",
+      siteName: "코드 데스티니 꿀꿀 운세",
       images: [{ url: ogImage, width: 1200, height: 630, alt: uniqueTitle }],
       ...(publishedAt ? { publishedTime: new Date(publishedAt).toISOString() } : {}),
       ...(updatedAt ? { modifiedTime: new Date(updatedAt).toISOString() } : {}),
@@ -275,7 +275,7 @@ export function withUniqueRouteMetadata(
   const twitter = (metadata?.twitter as Record<string, unknown> | undefined) || undefined;
   const alternates = (metadata?.alternates as Record<string, unknown> | undefined) || undefined;
   const canonical = normalizeMetaText(alternates?.canonical) || toAbsoluteUrl(canonicalPath);
-  const mergedTitle = uniqueTitle || rawTitle || "Code Destiny";
+  const mergedTitle = uniqueTitle || rawTitle || "코드 데스티니 꿀꿀 운세";
   const mergedDescription = uniqueDescription || rawDescription;
   const imageCandidate =
     pickFirstImageUrl(openGraph?.images) ||
@@ -304,7 +304,7 @@ export function withUniqueRouteMetadata(
       type: normalizeMetaText(openGraph?.type) || "website",
       locale,
       url: normalizeMetaText(openGraph?.url) || canonical,
-      siteName: normalizeMetaText(openGraph?.siteName) || "꿀꿀 만세력",
+      siteName: normalizeMetaText(openGraph?.siteName) || "코드 데스티니 꿀꿀 운세",
       title: appendUniqueTitle(normalizeMetaText(openGraph?.title) || mergedTitle, routeMetaCode),
       description: appendUniqueDescription(
         normalizeMetaText(openGraph?.description) || mergedDescription,

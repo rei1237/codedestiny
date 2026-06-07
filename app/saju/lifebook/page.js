@@ -278,6 +278,8 @@ export default function SajuLifebookPage() {
         productKey: FEATURE_KEY,
         featureKey: FEATURE_KEY,
         reportType: "lifeBook",
+        generationMode: "worker-native-llm",
+        calculationSource: "worker-saju-engine",
         sessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
         reportSessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
         reportId: String(accessGrant?.reportId || reportId || "").trim(),
@@ -298,6 +300,10 @@ export default function SajuLifebookPage() {
         birthTimeKnown: true,
         birthplace: String(form.birthplace || "").trim(),
         timezone: "Asia/Seoul",
+        engineData: {
+          source: "app/saju/lifebook/page.js",
+          workerNativeRequired: true,
+        },
       };
 
       const headers = { "Content-Type": "application/json" };
