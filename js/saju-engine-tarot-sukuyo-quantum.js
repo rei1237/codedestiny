@@ -8657,6 +8657,36 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     return '천천히 확인';
   }
 
+  function syBuildMonthlySukuyoLunar(year, monthIndex) {
+    var lunarObj = null;
+    try {
+      if (typeof KasiEngine !== 'undefined' && typeof KasiEngine.solarToLunar === 'function') {
+        lunarObj = KasiEngine.solarToLunar(new Date(year, monthIndex, 1, 12, 0, 0), true);
+      }
+    } catch (_e) {}
+    if (!lunarObj || !lunarObj.month || !lunarObj.day) {
+      lunarObj = { year: year, month: monthIndex + 1, day: 1, isLeap: false };
+    }
+    return lunarObj;
+  }
+
+  function syMonthlySukuyoRelationProfile(shortLabel) {
+    var profiles = {
+      '명': { base: 74, type: '본명 점검월', focus: '자기 기준과 생활 리듬', relation: '관계에서는 새 약속보다 이미 쌓인 신뢰의 결을 확인하세요.', work: '일과 돈은 반복 루틴을 정돈할수록 흐름이 또렷해집니다.', caution: '익숙한 선택을 운명으로 착각하지 마세요.' },
+      '영': { base: 86, type: '영친 확장월', focus: '귀인과 성장', relation: '관계에서는 먼저 인사를 건네고 좋은 제안은 빠르게 붙잡으세요.', work: '일과 돈은 공개, 제안, 협업에서 열립니다.', caution: '좋은 흐름일수록 약속의 수를 줄여야 복이 오래 갑니다.' },
+      '친': { base: 82, type: '영친 안정월', focus: '보호와 신뢰', relation: '관계에서는 돌봄과 감사 표현이 인연을 깊게 만듭니다.', work: '일과 돈은 기존 자원, 단골, 익숙한 역할에서 안정됩니다.', caution: '편안함에 기대어 필요한 결정을 늦추지 마세요.' },
+      '우': { base: 70, type: '우쇠 교류월', focus: '대화와 조율', relation: '관계에서는 가벼운 대화가 뜻밖의 문을 엽니다.', work: '일과 돈은 정보 교환과 일정 조율에서 실마리가 생깁니다.', caution: '말이 많아질수록 핵심 약속은 짧게 남기세요.' },
+      '쇠': { base: 58, type: '우쇠 정리월', focus: '거리와 회복', relation: '관계에서는 무리한 친밀감보다 편안한 거리가 복을 지킵니다.', work: '일과 돈은 보류, 정산, 재배치가 유리합니다.', caution: '감정의 피로를 성급한 결론으로 바꾸지 마세요.' },
+      '성': { base: 78, type: '성위 성취월', focus: '성과와 역할', relation: '관계에서는 역할을 분명히 나눌수록 신뢰가 살아납니다.', work: '일과 돈은 마감, 발표, 계약처럼 결과가 보이는 일에 힘이 붙습니다.', caution: '성과 욕심이 사람의 마음을 앞지르지 않게 하세요.' },
+      '위': { base: 62, type: '성위 조심월', focus: '판단과 균형', relation: '관계에서는 기대치를 낮추고 확인 질문을 부드럽게 건네세요.', work: '일과 돈은 큰 확장보다 조건 검토와 위험 분리가 먼저입니다.', caution: '확신이 약한 일은 하룻밤 더 두고 결정하세요.' },
+      '안': { base: 54, type: '안괴 경계월', focus: '감정 파동 관리', relation: '관계에서는 가까워질수록 말의 온도를 낮추는 것이 좋습니다.', work: '일과 돈은 충동적 변경보다 손실 차단이 우선입니다.', caution: '불안이 올라올수록 증거와 감정을 분리해 보세요.' },
+      '괴': { base: 46, type: '안괴 재정비월', focus: '중단과 재설계', relation: '관계에서는 억지 화해보다 침묵의 시간을 두는 편이 낫습니다.', work: '일과 돈은 무리한 추진을 멈추고 구조를 다시 짜야 합니다.', caution: '강한 말, 큰 지출, 즉흥 약속은 피하세요.' },
+      '업': { base: 60, type: '업태 숙제월', focus: '반복 인연과 책임', relation: '관계에서는 오래된 패턴이 다시 올라오니 같은 반응을 반복하지 마세요.', work: '일과 돈은 밀린 책임을 정리할 때 다음 문이 열립니다.', caution: '남의 몫까지 떠안지 않도록 경계를 세우세요.' },
+      '태': { base: 66, type: '업태 회복월', focus: '보완과 재출발', relation: '관계에서는 미안함보다 새 기준을 보여주는 행동이 중요합니다.', work: '일과 돈은 작게 다시 시작하는 선택이 유리합니다.', caution: '과거의 감정으로 현재의 기회를 흐리지 마세요.' }
+    };
+    return profiles[shortLabel] || { base: 64, type: '중화 조율월', focus: '균형과 관찰', relation: '관계에서는 속도를 낮추고 상대의 반응을 살피세요.', work: '일과 돈은 작은 실행을 쌓을 때 안정됩니다.', caution: '흐름이 애매할수록 기준을 단순하게 잡으세요.' };
+  }
+
   function syRiskBand(score) {
     var n = Number(score || 0);
     if (n >= 82) return '강한 주의';
@@ -9255,7 +9285,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var wealth = syCompatClamp(Number(baseDaily.wealth || overall), 20, 99);
     var seed = syCompatHash([mansionLabel, mansionIdx, year, birthKey, overall, relations, love, wealth].join('|'));
     var themes = ['성장', '정리', '인연', '재물', '이동', '회복', '창조', '공부', '결실', '전환', '보호', '확장'];
-    var monthTypes = ['상승월', '정리월', '관계월', '시험월', '수확월', '휴식월', '전환월', '집중월'];
     var theme = themes[(seed + mansionIdx) % themes.length];
     var relationTone = relations >= 76 ? '새 인연과 귀인의 문이 열리며, 기존 관계에서는 더 깊은 신뢰를 확인하는 해입니다.' : (relations >= 60 ? '가까운 사람과의 속도 조절이 중요합니다. 서두른 확답보다 꾸준한 말이 운을 살립니다.' : '관계에서는 정리와 선별이 먼저입니다. 마음을 소모시키는 약속은 줄이고 진짜 인연만 남겨야 합니다.');
     var workTone = wealth >= 76 ? '일과 재물은 수확을 향해 움직입니다. 다만 커지는 흐름일수록 지출 기준과 역할 경계를 명확히 해야 합니다.' : (wealth >= 60 ? '재물은 큰 변동보다 안정적인 축적에 유리합니다. 작은 수입, 반복되는 루틴, 실용적 선택이 복을 만듭니다.' : '올해는 공격적 확장보다 현금 흐름과 에너지 보존이 우선입니다. 무리한 투자와 충동 지출은 피하세요.');
@@ -9270,20 +9299,37 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     ];
     var monthly = [];
     for (var i = 0; i < 12; i++) {
-      var raw = (seed >>> (i % 16)) + mansionIdx + (i * 17);
-      var type = monthTypes[Math.abs(raw) % monthTypes.length];
-      var monthScore = syCompatClamp((overall * 0.28) + (relations * ((i % 3 === 0) ? 0.24 : 0.16)) + (wealth * ((i % 4 === 1) ? 0.24 : 0.16)) + (love * ((i % 4 === 2) ? 0.24 : 0.16)) + 18 + ((raw % 13) - 6), 20, 99);
-      var focus = type === '관계월' ? '관계와 귀인' : (type === '재물월' ? '돈과 일' : (type === '정리월' ? '정리와 회복' : (type === '시험월' ? '감정 조율' : (type === '수확월' ? '성과와 결실' : '리듬 조절'))));
+      var monthLunar = syBuildMonthlySukuyoLunar(year, i);
+      var monthSukuyo = null;
+      try { monthSukuyo = calcSukuyoData(monthLunar); } catch (_me) { monthSukuyo = null; }
+      var monthIdx = monthSukuyo && Number.isFinite(Number(monthSukuyo.mansionIdx))
+        ? Number(monthSukuyo.mansionIdx)
+        : ((mansionIdx + i + 1) % 27);
+      var distance = (monthIdx - mansionIdx + 27) % 27;
+      var monthRelation = syWheelRelationFromDistance(distance);
+      var relationProfile = syMonthlySukuyoRelationProfile(monthRelation.short);
+      var domainScore = monthRelation.short === '영' || monthRelation.short === '친' || monthRelation.short === '우' || monthRelation.short === '쇠'
+        ? relations
+        : (monthRelation.short === '성' || monthRelation.short === '위' ? wealth : (monthRelation.short === '안' || monthRelation.short === '괴' ? love : overall));
+      var relationPulse = ((distance * 5 + i * 7 + (seed % 19)) % 17) - 8;
+      var monthScore = syCompatClamp(relationProfile.base + relationPulse + ((Number(domainScore || 62) - 62) * 0.08) + ((Number(overall || 62) - 62) * 0.05), 32, 96);
+      var lunarLabel = monthLunar && monthLunar.month && monthLunar.day
+        ? '음력 ' + monthLunar.month + '월 ' + monthLunar.day + '일'
+        : '월초';
+      var monthMansion = monthSukuyo && monthSukuyo.mansion ? monthSukuyo.mansion : '월숙';
       monthly.push({
         month: (i + 1) + '월',
-        type: type,
+        type: relationProfile.type,
         score: monthScore,
         band: syIndicatorBand(monthScore),
-        focus: focus,
-        body: type + '입니다. ' + focus + '이 중심이 되며, ' + syFirstToken(syCanonicalTokenize(traits.core || traits.desc, '내면의 기준'), '내면의 기준') + '을 잃지 않을수록 흐름이 안정됩니다.',
-        relation: relations >= 68 ? '관계에서는 먼저 다가가되 상대의 속도를 존중하세요.' : '관계에서는 약속을 줄이고 진심이 남는 대화만 선택하세요.',
-        work: wealth >= 68 ? '일과 돈은 실행을 작게 나누면 성과가 보입니다.' : '일과 돈은 확장보다 정리, 점검, 재배치가 유리합니다.',
-        caution: monthScore >= 76 ? '기회가 많아질수록 무리한 약속을 조심하세요.' : '마음이 느려지는 달에는 결론을 서두르지 마세요.'
+        focus: relationProfile.focus,
+        body: lunarLabel + ' 월숙 ' + monthMansion + '이 본명숙 ' + mansionLabel + '에 ' + monthRelation.label + '으로 들어오는 달입니다. ' + relationProfile.focus + '이 중심이 되며, ' + syFirstToken(syCanonicalTokenize(traits.core || traits.desc, '내면의 기준'), '내면의 기준') + '을 지킬수록 운의 결이 안정됩니다.',
+        relation: relationProfile.relation,
+        work: relationProfile.work,
+        caution: relationProfile.caution,
+        relationLabel: monthRelation.label,
+        mansionLabel: monthMansion,
+        distance: distance
       });
     }
     return {
