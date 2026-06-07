@@ -27,6 +27,103 @@ function buildRetentionUntil(baseDate) {
   return new Date(base.getTime() + (14 * 86400000));
 }
 
+function safeObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function firstClean(...values) {
+  for (const value of values) {
+    const text = clean(value, 2000);
+    if (text) return text;
+  }
+  return "";
+}
+
+function arrayLength(value) {
+  return Array.isArray(value) ? value.length : 0;
+}
+
+function resolvePremiumPdfReadiness(metadata, reportId) {
+  const source = safeObject(metadata);
+  const archive = safeObject(source.archive || source.resultArchive);
+  const payload = safeObject(archive.payload || source.payload);
+  const pdfReady = safeObject(archive.pdfReady || source.pdfReady || payload.pdfReady);
+  const lifeBookPdfRecord = safeObject(archive.lifeBookPdfRecord || source.lifeBookPdfRecord);
+  const chapters = arrayLength(archive.chapters)
+    ? archive.chapters
+    : (arrayLength(source.chapters) ? source.chapters : payload.chapters);
+  const chapterArrayCount = arrayLength(chapters);
+  const declaredChapterCount = toInt(
+    source.chapterCount
+    || source.finalChapterCount
+    || archive.chapterCount
+    || payload.chapterCount
+    || pdfReady.chapterCount,
+    0,
+  );
+  const resolvedReportId = firstClean(
+    reportId,
+    source.reportId,
+    archive.reportId,
+    payload.reportId,
+    pdfReady.reportId,
+  );
+  const downloadUrl = firstClean(
+    pdfReady.downloadUrl,
+    pdfReady.pdfUrl,
+    pdfReady.storedUrl,
+    pdfReady.reportUrl,
+    archive.downloadUrl,
+    archive.pdfUrl,
+    source.downloadUrl,
+    source.pdfUrl,
+  );
+  const htmlUrl = firstClean(pdfReady.htmlUrl, archive.htmlUrl, source.htmlUrl);
+  const html = firstClean(
+    pdfReady.html,
+    archive.html,
+    archive.htmlContent,
+    lifeBookPdfRecord.htmlContent,
+    source.html,
+    source.htmlContent,
+  );
+  const canDownload = archive.canDownload === true
+    || source.canDownload === true
+    || pdfReady.canDownload === true
+    || Boolean(downloadUrl);
+  const hasChapterEvidence = chapterArrayCount > 0
+    && (declaredChapterCount <= 0 || chapterArrayCount >= declaredChapterCount);
+  const ok = Boolean(
+    resolvedReportId
+    && downloadUrl
+    && htmlUrl
+    && html
+    && hasChapterEvidence
+    && canDownload
+  );
+
+  return {
+    ok,
+    reportId: resolvedReportId,
+    chapterArrayCount,
+    declaredChapterCount,
+    hasDownloadUrl: Boolean(downloadUrl),
+    hasHtmlUrl: Boolean(htmlUrl),
+    hasHtml: Boolean(html),
+    canDownload,
+  };
+}
+
+function buildPaymentRefFromBody(body = {}) {
+  const payment = safeObject(body.payment || body.paymentRef || body._paymentContext?.payment);
+  return {
+    impUid: clean(payment.impUid || payment.paymentId || body.impUid || body.paymentId, 120),
+    merchantUid: clean(payment.merchantUid || body.merchantUid || body.merchant_uid, 120),
+    paymentId: clean(payment.paymentId || payment.impUid || body.paymentId || body.impUid, 120),
+    cancelEligible: payment.cancelEligible === true || body.cancelEligible === true,
+  };
+}
+
 async function persistPremiumExecutionFallback(env, userId, ctx, reportId, metadata) {
   const userObjectId = toObjectId(userId);
   if (!userObjectId || !ctx?.executionKey || !ctx?.featureKey) return null;
@@ -37,6 +134,19 @@ async function persistPremiumExecutionFallback(env, userId, ctx, reportId, metad
   const resolvedReportId = clean(reportId || ctx.reportId, 120);
   const resolvedSessionId = clean(ctx.sessionId, 180);
   const nextMetadata = metadata && typeof metadata === "object" ? metadata : (ctx.metadata || null);
+  const existing = await ServiceExecutionTransaction.findOne({
+    userId: userObjectId,
+    executionKey: clean(ctx.executionKey, 120),
+  }).lean();
+  if (existing && String(existing.status || "") !== "pending") {
+    return {
+      ok: false,
+      status: 409,
+      idempotent: true,
+      execution: existing,
+      message: "Execution is already settled.",
+    };
+  }
 
   const doc = await ServiceExecutionTransaction.findOneAndUpdate(
     {
@@ -54,7 +164,7 @@ async function persistPremiumExecutionFallback(env, userId, ctx, reportId, metad
         featureKey: clean(ctx.featureKey, 80),
         cost: toInt(ctx.cost, 0),
         sourceTransactionId: clean(ctx.sourceTransactionId, 120),
-        paymentRef: {
+        paymentRef: ctx.payment || {
           impUid: "",
           merchantUid: "",
           paymentId: "",
@@ -138,17 +248,29 @@ export function buildPremiumExecutionContext({
   );
   const matchedTransactionId = clean(
     access?.matchedTransactionId
+    || body?.consume?.transactionId
+    || body?._paymentContext?.consume?.transactionId
+    || body?.accessGrant?.evidenceId
+    || body?.accessGrant?.purchaseId
     || body?.sourceTransactionId
     || body?.transactionId,
     120,
   );
   const chargedCoins = toInt(
     access?.chargedCoins
+    || body?.consume?.chargedCoins
+    || body?._paymentContext?.consume?.chargedCoins
+    || body?.consume?.coinPrice
     || body?.chargedCoins
     || body?.coinAmount
     || body?.cost,
     0,
   );
+  const consume = safeObject(body?.consume || body?._paymentContext?.consume);
+  const accessGrant = safeObject(body?.accessGrant || body?._paymentContext?.accessGrant);
+  const billingAccessType = clean(access?.accessType || consume.accessType || accessGrant.accessType || body?.accessType, 80);
+  const billingTransactionType = clean(consume.transactionType || access?.transactionType || body?.transactionType, 80);
+  const billingAccessMethod = clean(access?.accessMethod || consume.accessMethod || accessGrant.accessMethod || body?.accessMethod, 80);
 
   const executionKey = clean(
     `${serviceKey || reportType || "premium-pdf"}:${userId || "anonymous"}:${resolvedSessionId || resolvedReportId || requestId || Date.now().toString(36)}`,
@@ -166,6 +288,7 @@ export function buildPremiumExecutionContext({
     sourceTransactionId: matchedTransactionId,
     coinAmount: chargedCoins,
     cost: chargedCoins,
+    payment: buildPaymentRefFromBody(body),
     timeoutSeconds: Math.max(300, toInt(timeoutSeconds, 1800)),
     maxRetries: 6,
     idempotencyKey: executionKey,
@@ -177,6 +300,14 @@ export function buildPremiumExecutionContext({
       reportType: clean(reportType || serviceKey || "premium-pdf", 80),
       serviceKey: clean(serviceKey || "premium-pdf", 80),
       featureKey: clean(featureKey || access?.featureKey || body?.featureKey, 80),
+      billing: {
+        accessType: billingAccessType,
+        transactionType: billingTransactionType,
+        accessMethod: billingAccessMethod,
+        membershipCreditCost: toInt(consume.membershipCreditCost || consume.requiredMonthlyCredits || body?.membershipCreditCost, 0),
+        usagePassCategory: clean(consume.category || access?.category || accessGrant.category || body?.usagePassCategory, 80),
+        ledgerId: clean(consume.ledgerId || body?.ledgerId, 120),
+      },
     },
   };
 }
@@ -197,6 +328,22 @@ export async function completePremiumPdfExecution(env, userId, ctx, reportId, ex
     ...(extraMetadata && typeof extraMetadata === "object" ? extraMetadata : {}),
     reportId: clean(reportId || ctx.reportId, 120),
   };
+  const readiness = resolvePremiumPdfReadiness(metadata, reportId || ctx.reportId);
+  if (!readiness.ok) {
+    await failPremiumPdfExecution(
+      env,
+      userId,
+      ctx,
+      "premium_pdf_not_completed",
+      "Premium PDF was not fully completed before settlement.",
+      "pdf-completion-validation",
+    );
+    const error = new Error("PREMIUM_PDF_NOT_COMPLETED");
+    error.code = "PREMIUM_PDF_NOT_COMPLETED";
+    error.status = 422;
+    error.readiness = readiness;
+    throw error;
+  }
 
   try {
     let completed = await completeServiceExecution(env, userId, {
@@ -217,6 +364,7 @@ export async function completePremiumPdfExecution(env, userId, ctx, reportId, ex
         paymentSessionId: ctx.paymentSessionId,
         coinTransactionId: ctx.coinTransactionId,
         sourceTransactionId: ctx.sourceTransactionId,
+        payment: ctx.payment,
         coinAmount: ctx.coinAmount,
         cost: ctx.cost,
         timeoutSeconds: ctx.timeoutSeconds,
@@ -246,6 +394,14 @@ export async function completePremiumPdfExecution(env, userId, ctx, reportId, ex
       completed = await persistPremiumExecutionFallback(env, userId, ctx, reportId, metadata);
     }
 
+    const finalExecution = completed?.execution || null;
+    if (!completed?.ok || String(finalExecution?.status || "") !== "success" || String(finalExecution?.premiumStatus || "") !== "completed") {
+      const error = new Error("PREMIUM_PDF_EXECUTION_COMPLETE_FAILED");
+      error.code = "PREMIUM_PDF_EXECUTION_COMPLETE_FAILED";
+      error.status = Number(completed?.status || 500);
+      throw error;
+    }
+
     return completed;
   } catch (error) {
     console.error("[premium-pdf-execution][complete-error]", {
@@ -253,16 +409,7 @@ export async function completePremiumPdfExecution(env, userId, ctx, reportId, ex
       executionKey: clean(ctx?.executionKey, 120),
       reportId: clean(reportId || ctx?.reportId, 120),
     });
-    try {
-      return await persistPremiumExecutionFallback(env, userId, ctx, reportId, metadata);
-    } catch (fallbackError) {
-      console.error("[premium-pdf-execution][fallback-error]", {
-        message: String(fallbackError?.message || fallbackError),
-        executionKey: clean(ctx?.executionKey, 120),
-        reportId: clean(reportId || ctx?.reportId, 120),
-      });
-      return null;
-    }
+    throw error;
   }
 }
 
@@ -277,6 +424,7 @@ export async function failPremiumPdfExecution(env, userId, ctx, reasonCode, reas
       reasonMessage: clean(reasonMessage || "Premium PDF generation failed.", 500),
       failureStage: clean(failureStage || reasonCode || "generation", 80),
       failureReason: clean(reasonMessage || "Premium PDF generation failed.", 500),
+      forceRefundOnClose: true,
     });
   } catch (_) {
     return null;

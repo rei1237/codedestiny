@@ -25,6 +25,8 @@ import {
   failPremiumPdfExecution,
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
+import { connectDb } from "../lib/db.js";
+import { ServiceExecutionTransaction } from "../lib/models.js";
 
 const ASTRO_PREMIUM_LOCK_TTL_MS = 10 * 60 * 1000;
 const astroPremiumGenerationLocks = new Map();
@@ -169,6 +171,108 @@ function compactAstroPremiumLocks(now = Date.now()) {
   }
 }
 
+function clampAstroChapterNo(value, total) {
+  const n = Number(value || 0);
+  const max = Math.max(1, Number(total || ASTRO_PREMIUM_CHAPTERS.length || 12));
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(max, Math.trunc(n)));
+}
+
+function updateAstroSessionProgress(sessionId, progress = {}) {
+  const key = clean(sessionId);
+  if (!key || !astroPremiumGenerationLocks.has(key)) return;
+  const lock = astroPremiumGenerationLocks.get(key) || {};
+  astroPremiumGenerationLocks.set(key, {
+    ...lock,
+    progress: {
+      ...(lock.progress || {}),
+      ...progress,
+      totalChapters: Number(progress.totalChapters || lock.progress?.totalChapters || ASTRO_PREMIUM_CHAPTERS.length),
+      updatedAt: new Date().toISOString(),
+    },
+  });
+}
+
+function buildAstroProgressPatch(stage, payload = {}) {
+  const totalChapters = ASTRO_PREMIUM_CHAPTERS.length;
+  const chapterNo = clampAstroChapterNo(payload?.chapterNo || payload?.chapter || payload?.completed, totalChapters);
+  const title = clean(payload?.title || payload?.chapterTitle);
+  switch (stage) {
+    case "LocalCalculationJsonPrepared":
+      return { stateKey: "local_calculation", currentChapterNo: 0, totalChapters, currentChapterTitle: "출생 차트 근거 정리" };
+    case "LLMSeedPrepared":
+    case "LLMManuscriptBuildStart":
+      return { stateKey: "writing_seed", currentChapterNo: 0, totalChapters, currentChapterTitle: "원고 작성 신호 구성" };
+    case "LLMChapterBuildStart":
+      return { stateKey: "writing_llm", currentChapterNo: Math.max(0, chapterNo - 1), totalChapters, currentChapterTitle: title };
+    case "LLMChapterBuildSuccess":
+      return { stateKey: "writing_llm", currentChapterNo: chapterNo, totalChapters, currentChapterTitle: title };
+    case "LLMManuscriptSkippedForSyncFallback":
+      return { stateKey: "local_fallback", currentChapterNo: 0, totalChapters, currentChapterTitle: "원고 작성 대체 흐름" };
+    case "LLMManuscriptFailed":
+      return { stateKey: "llm_failed", totalChapters, currentChapterTitle: "원고 작성 실패" };
+    case "FinalManuscriptValidated":
+      return { stateKey: "manuscript_validated", currentChapterNo: totalChapters, totalChapters, currentChapterTitle: "원고 검수 완료" };
+    case "PdfRenderStart":
+      return { stateKey: "pdf_rendering", currentChapterNo: totalChapters, totalChapters, currentChapterTitle: "PDF 편집/렌더링" };
+    case "PdfRenderSuccess":
+      return { stateKey: "pdf_rendered", currentChapterNo: totalChapters, totalChapters, currentChapterTitle: "PDF 렌더링 완료" };
+    default:
+      return null;
+  }
+}
+
+function buildAstroStatusPayload(lock = {}, fallback = {}) {
+  const result = lock.result && typeof lock.result === "object" ? lock.result : null;
+  const progress = lock.progress && typeof lock.progress === "object" ? lock.progress : {};
+  const rawStatus = clean(lock.status || fallback.status || "");
+  const status = rawStatus === "done" ? "done" : rawStatus === "failed" ? "failed" : rawStatus || "running";
+  const totalChapters = Number(progress.totalChapters || result?.chapterCount || ASTRO_PREMIUM_CHAPTERS.length);
+  const currentChapterNo = clampAstroChapterNo(
+    progress.currentChapterNo || (status === "done" ? totalChapters : 0),
+    totalChapters,
+  );
+  return {
+    ok: true,
+    serviceKey: "astro-premium",
+    data: {
+      sessionId: clean(lock.sessionId || fallback.sessionId),
+      reportId: clean(lock.reportId || fallback.reportId || result?.reportId),
+      status,
+      startedAt: clean(lock.startedAt || fallback.startedAt),
+      completedAt: clean(lock.completedAt || result?.completedAt),
+      failedAt: clean(lock.failedAt || fallback.failedAt),
+      progress: {
+        stateKey: clean(progress.stateKey || (status === "done" ? "completed" : status === "failed" ? "failed" : "writing_seed")),
+        currentChapterNo,
+        totalChapters,
+        currentChapterTitle: clean(progress.currentChapterTitle),
+        manuscriptSource: clean(progress.manuscriptSource || result?.manuscriptSource),
+        updatedAt: clean(progress.updatedAt),
+      },
+      result: status === "done" ? result : null,
+      pdfReady: result?.pdfReady || null,
+      canDownload: Boolean(result?.canDownload || clean(result?.pdfUrl || result?.downloadUrl || result?.htmlUrl || result?.pdfReady?.pdfUrl || result?.pdfReady?.downloadUrl)),
+      error: lock.error || fallback.error || null,
+    },
+  };
+}
+
+async function handleAstroPremiumStatus(request, env) {
+  const auth = await requireAuth(request, env);
+  const url = new URL(request.url);
+  const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId") || url.searchParams.get("generationId"));
+  compactAstroPremiumLocks();
+  const lock = sessionId ? astroPremiumGenerationLocks.get(sessionId) : null;
+  if (!lock || (lock.userId && lock.userId !== auth.userId)) {
+    return json(buildAstroStatusPayload({}, {
+      sessionId,
+      status: "not_found",
+    }));
+  }
+  return json(buildAstroStatusPayload(lock));
+}
+
 function getVedicSessionId(body = {}) {
   const fromBody = clean(body?.sessionId || body?.reportSessionId || body?.generationId);
   if (fromBody) return fromBody.slice(0, 160);
@@ -182,6 +286,45 @@ function compactVedicPremiumLocks(now = Date.now()) {
       vedicPremiumGenerationLocks.delete(sessionId);
     }
   }
+}
+
+function buildVedicStatusPayloadFromArchive(doc = {}, sessionId = "", reportId = "") {
+  const metadata = doc?.metadata && typeof doc.metadata === "object" ? doc.metadata : {};
+  const archive = metadata?.archive && typeof metadata.archive === "object" ? metadata.archive : null;
+  if (!archive) return null;
+  const pdfReady = archive?.pdfReady && typeof archive.pdfReady === "object" ? archive.pdfReady : {};
+  const resolvedReportId = clean(archive.reportId || doc.reportId || metadata.reportId || reportId);
+  const resolvedSessionId = clean(archive.sessionId || doc.sessionId || metadata.sessionId || sessionId);
+  const chapters = Array.isArray(archive.chapters) ? archive.chapters : [];
+  return {
+    ok: true,
+    serviceKey: "vedic-premium",
+    featureKey: VEDIC_PREMIUM_FEATURE_KEY,
+    status: "completed",
+    sessionId: resolvedSessionId,
+    chapterCount: Number(archive.chapterCount || chapters.length || VEDIC_PREMIUM_CHAPTERS.length),
+    fallbackUsed: Boolean(archive.fallbackUsed),
+    llmChapterCount: Number(archive.llmChapterCount || 0),
+    fallbackChapterCount: Number(archive.fallbackChapterCount || 0),
+    llmFallbackReason: clean(archive.llmFallbackReason),
+    reportId: resolvedReportId,
+    chapters,
+    chapterDrafts: Array.isArray(archive.chapterDrafts) ? archive.chapterDrafts : [],
+    payload: archive.payload || archive.localVedicChartJson || null,
+    localVedicChartJson: archive.localVedicChartJson || archive.payload || null,
+    vedicMasterJson: archive.vedicMasterJson || null,
+    masterJsonValidation: archive.masterJsonValidation || null,
+    pdfReady,
+    pdfUrl: clean(archive.pdfUrl || pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl),
+    htmlUrl: clean(archive.htmlUrl || pdfReady.htmlUrl),
+    downloadUrl: clean(archive.downloadUrl || pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
+    canReopen: archive.canReopen !== false,
+    canDownload: Boolean(archive.canDownload || pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
+    quality: archive.quality || null,
+    manuscriptSource: clean(archive.manuscriptSource || "llm-only"),
+    localDraftChapterCount: Number(archive.localDraftChapterCount || 0),
+    finalChapterCount: chapters.length,
+  };
 }
 
 function toSafeVedicBirthLog(input = {}, chapterCount = 0) {
@@ -321,6 +464,7 @@ async function handleAstroPremiumPrepare(request, env) {
         status: "running",
         sessionId,
         startedAt: existingLock.startedAt,
+        progress: buildAstroStatusPayload(existingLock).data.progress,
       }, { status: 202 });
     }
     if (existingLock?.status === "done" && existingLock?.result) {
@@ -334,10 +478,19 @@ async function handleAstroPremiumPrepare(request, env) {
 
     astroPremiumGenerationLocks.set(sessionId, {
       sessionId,
+      reportId,
+      userId: auth.userId,
       status: "running",
       startedAt: new Date().toISOString(),
       startedAtMs: Date.now(),
       stage: "request-received",
+      progress: {
+        stateKey: "payment_verification",
+        currentChapterNo: 0,
+        totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
+        currentChapterTitle: "결제 및 세션 확인",
+        updatedAt: new Date().toISOString(),
+      },
     });
 
     console.info("[AstroPremiumPDF][RequestReceived]", {
@@ -352,10 +505,19 @@ async function handleAstroPremiumPrepare(request, env) {
       const missingTime = validation.missing.includes("birthHour");
       astroPremiumGenerationLocks.set(sessionId, {
         sessionId,
+        reportId,
+        userId: auth.userId,
         status: "failed",
         startedAt: new Date().toISOString(),
         startedAtMs: Date.now(),
         stage: "birth-input-invalid",
+        progress: {
+          stateKey: "failed",
+          currentChapterNo: 0,
+          totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
+          currentChapterTitle: "출생 정보 확인 실패",
+          updatedAt: new Date().toISOString(),
+        },
       });
       return json({
         ok: false,
@@ -394,10 +556,19 @@ async function handleAstroPremiumPrepare(request, env) {
             : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
       astroPremiumGenerationLocks.set(sessionId, {
         sessionId,
+        reportId,
+        userId: auth.userId,
         status: "failed",
         startedAt: new Date().toISOString(),
         startedAtMs: Date.now(),
         stage: "access-denied",
+        progress: {
+          stateKey: "failed",
+          currentChapterNo: 0,
+          totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
+          currentChapterTitle: "결제 권한 확인 실패",
+          updatedAt: new Date().toISOString(),
+        },
       });
       return json({
         ok: false,
@@ -425,6 +596,12 @@ async function handleAstroPremiumPrepare(request, env) {
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
     await startPremiumPdfExecution(env, auth.userId, executionCtx);
+    updateAstroSessionProgress(sessionId, {
+      stateKey: "local_calculation",
+      currentChapterNo: 0,
+      totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
+      currentChapterTitle: "출생 차트 계산",
+    });
 
     const generated = await generateAstroPremiumReport(env, {
       ...body,
@@ -434,6 +611,8 @@ async function handleAstroPremiumPrepare(request, env) {
       requestUrl: request.url,
       log: (stage, payload) => {
         const tag = `[AstroPremiumPDF][${stage}]`;
+        const progressPatch = buildAstroProgressPatch(stage, payload || {});
+        if (progressPatch) updateAstroSessionProgress(sessionId, progressPatch);
         if (stage === "LLMManuscriptFailed") {
           console.warn(tag, payload || {});
           return;
@@ -528,14 +707,31 @@ async function handleAstroPremiumPrepare(request, env) {
       totalLength: generated.totalLength,
       localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
       finalChapterCount: Array.isArray(generated?.chapters) ? generated.chapters.length : 0,
+      progress: {
+        stateKey: "completed",
+        currentChapterNo: ASTRO_PREMIUM_CHAPTERS.length,
+        totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
+        currentChapterTitle: "완료",
+        manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
+      },
     };
 
+    const previousLock = astroPremiumGenerationLocks.get(sessionId) || {};
     astroPremiumGenerationLocks.set(sessionId, {
+      ...previousLock,
       sessionId,
+      reportId,
+      userId: auth.userId,
       status: "done",
-      startedAt: new Date().toISOString(),
-      startedAtMs: Date.now(),
+      startedAt: previousLock.startedAt || new Date().toISOString(),
+      startedAtMs: previousLock.startedAtMs || Date.now(),
+      completedAt: new Date().toISOString(),
       stage: "done",
+      progress: {
+        ...(previousLock.progress || {}),
+        ...responsePayload.progress,
+        updatedAt: new Date().toISOString(),
+      },
       result: responsePayload,
     });
 
@@ -566,12 +762,26 @@ async function handleAstroPremiumPrepare(request, env) {
       });
     }
     if (sessionId) {
+      const previousLock = astroPremiumGenerationLocks.get(sessionId) || {};
       astroPremiumGenerationLocks.set(sessionId, {
+        ...previousLock,
         sessionId,
+        userId: auth?.userId,
         status: "failed",
-        startedAt: new Date().toISOString(),
-        startedAtMs: Date.now(),
+        startedAt: previousLock.startedAt || new Date().toISOString(),
+        startedAtMs: previousLock.startedAtMs || Date.now(),
+        failedAt: new Date().toISOString(),
         stage: "error",
+        progress: {
+          ...(previousLock.progress || {}),
+          stateKey: "failed",
+          currentChapterTitle: "생성 오류",
+          updatedAt: new Date().toISOString(),
+        },
+        error: {
+          code: clean(error?.code || "ASTRO_PREMIUM_GENERATION_FAILED"),
+          message: clean(error?.message || "점성술 프리미엄 PDF 생성에 실패했습니다."),
+        },
       });
     }
     console.error("[AstroPremiumPDF][FailureTrace]", toAstroFailureTrace(error, body, normalizeAstroPremiumBirthInput(body)));
@@ -748,6 +958,17 @@ async function handleVedicPremiumPrepare(request, env) {
       error.status = 422;
       throw error;
     }
+    if (
+      generated?.fallbackUsed
+      || generated?.diagnostics?.llm?.failed
+      || clean(generated?.manuscriptSource) !== "llm-only"
+      || Number(generated?.llmChapterCount || 0) < VEDIC_PREMIUM_CHAPTERS.length
+    ) {
+      const error = new Error("베다점 프리미엄 LLM 원고 생성이 완료되지 않았습니다.");
+      error.code = "VEDIC_LLM_ONLY_REQUIRED";
+      error.status = 502;
+      throw error;
+    }
     const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
     const requestOrigin = new URL(request.url).origin;
     const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
@@ -882,6 +1103,108 @@ async function handleVedicPremiumPrepare(request, env) {
   }
 }
 
+async function handleVedicPremiumStatus(request, env) {
+  const auth = await requireAuth(request, env);
+  const url = new URL(request.url);
+  const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId"));
+  const reportId = clean(url.searchParams.get("reportId"));
+  if (!sessionId && !reportId) {
+    return json({
+      ok: false,
+      code: "MISSING_RESULT_KEY",
+      message: "sessionId 또는 reportId가 필요합니다.",
+    }, { status: 422 });
+  }
+
+  compactVedicPremiumLocks();
+  const lock = sessionId
+    ? vedicPremiumGenerationLocks.get(sessionId)
+    : Array.from(vedicPremiumGenerationLocks.values()).find((state) => clean(state?.result?.reportId) === reportId);
+  if (lock?.status === "running") {
+    return json({
+      ok: true,
+      serviceKey: "vedic-premium",
+      featureKey: VEDIC_PREMIUM_FEATURE_KEY,
+      status: "running",
+      sessionId: clean(lock.sessionId || sessionId),
+      reportId,
+      startedAt: lock.startedAt,
+      stage: clean(lock.stage || "running"),
+    }, { status: 202 });
+  }
+  if (lock?.status === "done" && lock?.result) {
+    return json({
+      ...lock.result,
+      deduped: true,
+      status: "completed",
+      sessionId: clean(lock.sessionId || lock.result.sessionId || sessionId),
+    });
+  }
+  if (lock?.status === "failed") {
+    return json({
+      ok: false,
+      serviceKey: "vedic-premium",
+      featureKey: VEDIC_PREMIUM_FEATURE_KEY,
+      status: "failed",
+      sessionId: clean(lock.sessionId || sessionId),
+      reportId,
+      message: "베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.",
+    });
+  }
+
+  await connectDb(env);
+  const query = {
+    userId: auth.userId,
+    ...(sessionId ? { sessionId } : { reportId }),
+    $or: [
+      { reportType: "vedicPremium" },
+      { "metadata.reportType": "vedicPremium" },
+      { "metadata.serviceKey": "vedic-premium" },
+      { "metadata.archive.reportType": "vedic_book" },
+    ],
+  };
+  const doc = await ServiceExecutionTransaction.findOne(query).sort({ createdAt: -1 }).lean();
+  if (!doc) {
+    return json({
+      ok: true,
+      serviceKey: "vedic-premium",
+      featureKey: VEDIC_PREMIUM_FEATURE_KEY,
+      status: "running",
+      sessionId,
+      reportId,
+      stage: "waiting-for-result",
+    }, { status: 202 });
+  }
+
+  if (String(doc.status || "") === "success" && String(doc.premiumStatus || "") === "completed") {
+    const payload = buildVedicStatusPayloadFromArchive(doc, sessionId, reportId);
+    if (payload) return json(payload);
+  }
+
+  if (String(doc.status || "") === "failed" || String(doc.premiumStatus || "") === "failed") {
+    return json({
+      ok: false,
+      serviceKey: "vedic-premium",
+      featureKey: VEDIC_PREMIUM_FEATURE_KEY,
+      status: "failed",
+      sessionId: clean(doc.sessionId || sessionId),
+      reportId: clean(doc.reportId || reportId),
+      code: clean(doc.reasonCode || "VEDIC_PREMIUM_GENERATION_FAILED"),
+      message: clean(doc.reasonMessage || "베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요."),
+    });
+  }
+
+  return json({
+    ok: true,
+    serviceKey: "vedic-premium",
+    featureKey: VEDIC_PREMIUM_FEATURE_KEY,
+    status: "running",
+    sessionId: clean(doc.sessionId || sessionId),
+    reportId: clean(doc.reportId || reportId),
+    stage: clean(doc.premiumStatus || "generating"),
+  }, { status: 202 });
+}
+
 export async function handleAstroRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
@@ -906,6 +1229,10 @@ export async function handleAstroRoutes(request, env) {
         if (method !== "POST") return methodNotAllowed();
         return await handleAstroPremiumPrepare(request, env);
       }
+      if (path === "/premium/status") {
+        if (method !== "GET") return methodNotAllowed();
+        return await handleAstroPremiumStatus(request, env);
+      }
       if (path === "/western-chart") {
         if (method !== "POST") return methodNotAllowed();
         return await handleAstroWesternChart(request, env);
@@ -928,6 +1255,10 @@ export async function handleAstroRoutes(request, env) {
       if (path === "/premium/prepare") {
         if (method !== "POST") return methodNotAllowed();
         return await handleVedicPremiumPrepare(request, env);
+      }
+      if (path === "/premium/status") {
+        if (method !== "GET") return methodNotAllowed();
+        return await handleVedicPremiumStatus(request, env);
       }
       if (path === "/planets") {
         if (method !== "POST") return methodNotAllowed();

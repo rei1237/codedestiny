@@ -1,5 +1,5 @@
 import { connectDb, mongoose } from "./db.js";
-import { Payment, PointHistory, ServiceExecutionTransaction, User } from "./models.js";
+import { MonthlyCreditLedger, Payment, PointHistory, ServiceExecutionTransaction, User } from "./models.js";
 import { cancelPortOnePayment } from "./portone.js";
 
 const DEFAULT_TIMEOUT_SECONDS = 600;
@@ -100,6 +100,10 @@ function normalizeRefundReason(value) {
   return String(value || "").trim().slice(0, 160);
 }
 
+function cleanMetadataText(value, max = 160) {
+  return String(value || "").trim().slice(0, max);
+}
+
 function isTruthy(value) {
   const raw = String(value == null ? "" : value).trim().toLowerCase();
   return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
@@ -149,6 +153,11 @@ function toSummary(doc) {
     compensation: {
       coinRefunded: Boolean(doc?.compensation?.coinRefunded),
       coinRefundTxId: String(doc?.compensation?.coinRefundTxId || ""),
+      monthlyCreditRefunded: Boolean(doc?.compensation?.monthlyCreditRefunded),
+      monthlyCreditRefundAmount: Number(doc?.compensation?.monthlyCreditRefundAmount || 0),
+      monthlyCreditRefundLedgerId: String(doc?.compensation?.monthlyCreditRefundLedgerId || ""),
+      usagePassRefunded: Boolean(doc?.compensation?.usagePassRefunded),
+      usagePassCategory: String(doc?.compensation?.usagePassCategory || ""),
       paymentCancelled: Boolean(doc?.compensation?.paymentCancelled),
     },
     refundStatus: String(doc?.refundStatus || "none"),
@@ -165,6 +174,9 @@ function toSummary(doc) {
 async function runCoinRefund({ userId, featureKey, cost, sourceTransactionId, executionId, requestId, reason }) {
   if (!userId || !sourceTransactionId || cost <= 0) {
     return { refunded: false, skipped: true };
+  }
+  if (!mongoose.Types.ObjectId.isValid(String(sourceTransactionId))) {
+    return { refunded: false, skipped: true, reason: "SOURCE_TRANSACTION_NOT_POINT_HISTORY_ID" };
   }
 
   const existing = await PointHistory.findOne({
@@ -187,6 +199,9 @@ async function runCoinRefund({ userId, featureKey, cost, sourceTransactionId, ex
   }).lean();
   if (!deducted) {
     return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
+  }
+  if (cleanMetadataText(deducted?.metadata?.accessType).toLowerCase() === "membership_credit") {
+    return { refunded: false, skipped: true, reason: "MEMBERSHIP_CREDIT_DEDUCT" };
   }
 
   const user = await User.findByIdAndUpdate(
@@ -218,6 +233,162 @@ async function runCoinRefund({ userId, featureKey, cost, sourceTransactionId, ex
     refunded: true,
     idempotent: false,
     refundTxId: String(refund?._id || ""),
+  };
+}
+
+async function runMonthlyCreditRefund({ userId, featureKey, sourceTransactionId, executionId, requestId, reason }) {
+  if (!userId || !sourceTransactionId) return { refunded: false, skipped: true };
+  if (!mongoose.Types.ObjectId.isValid(String(sourceTransactionId))) {
+    return { refunded: false, skipped: true, reason: "SOURCE_TRANSACTION_NOT_POINT_HISTORY_ID" };
+  }
+
+  const deducted = await PointHistory.findOne({
+    _id: sourceTransactionId,
+    userId,
+    kind: "deduct",
+  }).lean();
+  if (!deducted) return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
+
+  const metadata = deducted?.metadata && typeof deducted.metadata === "object" ? deducted.metadata : {};
+  const accessType = cleanMetadataText(metadata.accessType).toLowerCase();
+  if (accessType !== "membership_credit") return { refunded: false, skipped: true, reason: "NOT_MEMBERSHIP_CREDIT" };
+
+  const refundSourceId = `service-exec-refund:${String(sourceTransactionId)}`.slice(0, 180);
+  const existingLedger = await MonthlyCreditLedger.findOne({
+    userId,
+    type: "MONTHLY_CREDIT_GRANT",
+    sourceId: refundSourceId,
+  }).lean();
+  if (existingLedger) {
+    return {
+      refunded: true,
+      idempotent: true,
+      amount: Number(existingLedger.amount || 0),
+      ledgerId: String(existingLedger._id || ""),
+    };
+  }
+
+  const amount = normalizeCost(
+    metadata.membershipCreditCost
+    || metadata.requiredMonthlyCredits
+    || metadata.monthlyCreditCost
+    || 0,
+  );
+  if (amount <= 0) return { refunded: false, skipped: true, reason: "MEMBERSHIP_CREDIT_AMOUNT_MISSING" };
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    {
+      $inc: {
+        "profileSubscription.membershipCreditBalance": amount,
+        "profileSubscription.membershipCreditUsed": -amount,
+      },
+    },
+    { returnDocument: "after", projection: { profileSubscription: 1 } },
+  ).lean();
+  if (!updatedUser) throw new Error("USER_NOT_FOUND_FOR_MONTHLY_CREDIT_REFUND");
+
+  const afterBalance = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
+  const ledger = await MonthlyCreditLedger.create({
+    userId,
+    type: "MONTHLY_CREDIT_GRANT",
+    amount,
+    beforeBalance: Math.max(0, afterBalance - amount),
+    afterBalance,
+    reason,
+    sourceId: refundSourceId,
+    serviceKey: featureKey,
+    profileId: cleanMetadataText(metadata.profileId || metadata.selectedProfileId, 120),
+    metadata: {
+      source: "billing.service-execution",
+      requestId: String(requestId || "").slice(0, 120),
+      executionId: String(executionId || ""),
+      refundForPointHistoryId: String(sourceTransactionId),
+      sourceTransactionId: String(sourceTransactionId),
+      originalLedgerId: cleanMetadataText(metadata.ledgerId || metadata.monthlyCreditLedgerId, 120),
+      accessType: "membership_credit",
+      refundedAt: new Date(),
+    },
+  });
+
+  await PointHistory.updateOne(
+    { _id: sourceTransactionId, userId },
+    {
+      $set: {
+        "metadata.monthlyCreditRefundedForServiceExecution": true,
+        "metadata.monthlyCreditRefundedAt": new Date(),
+        "metadata.monthlyCreditRefundExecutionId": String(executionId || ""),
+        "metadata.monthlyCreditRefundLedgerId": String(ledger?._id || ""),
+      },
+    },
+  ).catch(() => {});
+
+  const originalLedgerId = cleanMetadataText(metadata.ledgerId || metadata.monthlyCreditLedgerId, 120);
+  if (originalLedgerId && mongoose.Types.ObjectId.isValid(originalLedgerId)) {
+    await MonthlyCreditLedger.updateOne(
+      { _id: originalLedgerId, userId },
+      {
+        $set: {
+          "metadata.refundedForServiceExecution": true,
+          "metadata.refundedAt": new Date(),
+          "metadata.refundExecutionId": String(executionId || ""),
+          "metadata.refundLedgerId": String(ledger?._id || ""),
+        },
+      },
+    ).catch(() => {});
+  }
+
+  return {
+    refunded: true,
+    idempotent: false,
+    amount,
+    ledgerId: String(ledger?._id || ""),
+  };
+}
+
+async function runUsagePassRefund({ userId, execution, requestId }) {
+  const metadata = execution?.metadata && typeof execution.metadata === "object" ? execution.metadata : {};
+  const billing = metadata.billing && typeof metadata.billing === "object" ? metadata.billing : {};
+  const accessType = cleanMetadataText(billing.accessType || metadata.accessType).toLowerCase();
+  const transactionType = cleanMetadataText(billing.transactionType || metadata.transactionType).toLowerCase();
+  if (accessType !== "usage_pass" && transactionType !== "usage_pass") {
+    return { refunded: false, skipped: true, reason: "NOT_USAGE_PASS" };
+  }
+
+  const category = cleanMetadataText(billing.usagePassCategory || billing.category || metadata.usagePassCategory || metadata.category, 80);
+  if (!category) return { refunded: false, skipped: true, reason: "USAGE_PASS_CATEGORY_MISSING" };
+
+  const updatedUser = await User.findOneAndUpdate(
+    {
+      _id: userId,
+      usagePasses: { $elemMatch: { category } },
+    },
+    {
+      $inc: { "usagePasses.$.remainingUses": 1 },
+      $set: { "usagePasses.$.updatedAt": new Date() },
+    },
+    {
+      returnDocument: "after",
+      projection: { usagePasses: 1 },
+    },
+  ).lean();
+  if (!updatedUser) return { refunded: false, skipped: true, reason: "USAGE_PASS_NOT_FOUND" };
+
+  await ServiceExecutionTransaction.updateOne(
+    { _id: execution._id },
+    {
+      $set: {
+        "metadata.billing.usagePassRefunded": true,
+        "metadata.billing.usagePassRefundedAt": new Date(),
+        "metadata.billing.usagePassRefundRequestId": String(requestId || "").slice(0, 120),
+      },
+    },
+  ).catch(() => {});
+
+  return {
+    refunded: true,
+    idempotent: false,
+    category,
   };
 }
 
@@ -281,9 +452,29 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       reason: `${reason.message}`.slice(0, 120),
     });
 
+    const monthlyCreditResult = await runMonthlyCreditRefund({
+      userId: execution.userId,
+      featureKey: execution.featureKey,
+      sourceTransactionId: execution.sourceTransactionId,
+      executionId: String(execution._id),
+      requestId,
+      reason: `${reason.message}`.slice(0, 120),
+    });
+
+    const usagePassResult = await runUsagePassRefund({
+      userId: execution.userId,
+      execution,
+      requestId,
+    });
+
     const paymentResult = await runPaymentCancel(env, execution.paymentRef || {}, reason.message);
 
-    const nextStatus = coinResult.refunded || paymentResult.cancelled ? "refunded" : "failed";
+    const nextStatus = coinResult.refunded
+      || monthlyCreditResult.refunded
+      || usagePassResult.refunded
+      || paymentResult.cancelled
+      ? "refunded"
+      : "failed";
     const now = nowDate();
     await ServiceExecutionTransaction.updateOne(
       { _id: execution._id },
@@ -301,6 +492,11 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
           refundReason: normalizeRefundReason(reason.code || reason.message || ""),
           "compensation.coinRefunded": Boolean(coinResult.refunded),
           "compensation.coinRefundTxId": String(coinResult.refundTxId || ""),
+          "compensation.monthlyCreditRefunded": Boolean(monthlyCreditResult.refunded),
+          "compensation.monthlyCreditRefundAmount": Number(monthlyCreditResult.amount || 0),
+          "compensation.monthlyCreditRefundLedgerId": String(monthlyCreditResult.ledgerId || ""),
+          "compensation.usagePassRefunded": Boolean(usagePassResult.refunded),
+          "compensation.usagePassCategory": String(usagePassResult.category || ""),
           "compensation.paymentCancelled": Boolean(paymentResult.cancelled),
           "lock.token": "",
           "lock.until": null,
@@ -313,6 +509,8 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       ok: true,
       status: nextStatus,
       coinResult,
+      monthlyCreditResult,
+      usagePassResult,
       paymentResult,
     };
   } catch (error) {

@@ -340,6 +340,7 @@ function resolvePaidFeatureOverlay(status: string, message?: string) {
   }
   if (status === "paymentProcessing") {
     const lower = text.toLowerCase();
+    if (/이용권|membership_pass|pass_applied|membership/i.test(lower)) return { message: text || "이용권을 적용하고 있습니다.", mode: "pass" };
     if (/월정석|monthly|moonstone/.test(lower)) return { message: text || "월정석 잔량을 반영하고 있습니다.", mode: "monthly" };
     if (/구독|subscription|이용권 결제|플랜/.test(lower)) return { message: text || "달빛 이용권 결제를 확인하고 있습니다.", mode: "subscription" };
     if (/저장|해금|권한/.test(lower)) return { message: text || "이용 권한을 저장하고 있습니다.", mode: "unlock-saving" };
@@ -682,7 +683,7 @@ export async function runBillingCoinGate(input: {
       featureKey: featureId,
       requestId: gateRequestId,
       status: "paymentProcessing",
-      message: passFirstEligible ? "이용 권한을 저장하고 있습니다." : "결제 승인과 이용 권한을 확인하고 있습니다.",
+      message: passFirstEligible ? "이용권을 적용하고 있습니다." : "결제 승인과 이용 권한을 확인하고 있습니다.",
     });
 
     const response = await authFetchBilling("/api/billing/coin-gate", {

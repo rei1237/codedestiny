@@ -2128,6 +2128,22 @@ async function enhanceChaptersLocally(env, profile, seed, localChapters, pass = 
   const seeded = Array.isArray(localChapters) && localChapters.length === CHAPTER_BLUEPRINTS.length
     ? localChapters
     : buildHighQualityLocalZiweiChapters(profile, seed, pass).chapters;
+  const disableSyncLocalFallback = ["1", "true", "yes", "on"].includes(
+    String(env?.ZIWEI_PREMIUM_DISABLE_SYNC_LOCAL_FALLBACK || "").trim().toLowerCase(),
+  );
+  if (!disableSyncLocalFallback) {
+    return {
+      chapters: CHAPTER_BLUEPRINTS.map((blueprint, index) => {
+        const fallback = normalizeChapterShape(seeded[index], blueprint, profile, seed);
+        return ensureChapterLength({ ...fallback, source: "deterministic-sync-local-fallback" }, CHAPTER_MIN_CHARS);
+      }),
+      fallbackUsed: true,
+      fallbackChapterCount: CHAPTER_BLUEPRINTS.length,
+      llmChapterCount: 0,
+      source: "llm-local-hybrid",
+      llmFallbackReason: "ZIWEI_SYNC_LOCAL_FALLBACK",
+    };
+  }
   const chapters = [];
   const previousSummaries = [];
   let fallbackChapterCount = 0;
@@ -2468,6 +2484,21 @@ function buildZiweiMasterJson(profile = {}, seed = {}, body = {}) {
   };
 }
 
+function countZiweiTransformationLayers(layers) {
+  if (Array.isArray(layers)) return layers.length;
+  const item = safeObject(layers);
+  const natalCount = safeArray(item.natal).length;
+  const decadeCount = safeArray(item.decade).reduce((sum, layer) => sum + safeArray(layer?.transformations).length, 0);
+  const annualCount = safeArray(item.annual).reduce((sum, layer) => sum + safeArray(layer?.transformations).length, 0);
+  return natalCount + decadeCount + annualCount;
+}
+
+function hasZiweiTransformationLayerShape(layers) {
+  if (Array.isArray(layers)) return layers.length >= 1;
+  const item = safeObject(layers);
+  return Array.isArray(item.natal) || Array.isArray(item.decade) || Array.isArray(item.annual);
+}
+
 function validateZiweiMasterJson(masterJson = {}) {
   const missing = [];
   const requireField = (ok, key) => {
@@ -2485,7 +2516,7 @@ function validateZiweiMasterJson(masterJson = {}) {
   requireField(clean(chart.mingGong), "chart.mingGong");
   requireField(clean(chart.shenGong), "chart.shenGong");
   requireField(palaces.length >= 12, "chart.palaces");
-  requireField(safeArray(chart.transformationLayers).length >= 1, "chart.transformationLayers");
+  requireField(hasZiweiTransformationLayerShape(chart.transformationLayers), "chart.transformationLayers");
   requireField(chapterSpecs.length === CHAPTER_BLUEPRINTS.length, "chapterSpecs");
   chapterSpecs.forEach((chapter, index) => {
     const expected = CHAPTER_BLUEPRINTS[index] || {};
@@ -2502,7 +2533,7 @@ function validateZiweiMasterJson(masterJson = {}) {
       chapterCount: chapterSpecs.length,
       sectionCount: chapterSpecs.reduce((sum, chapter) => sum + safeArray(chapter.categories).length, 0),
       starCount: Object.keys(safeObject(chart.starIndex)).length,
-      transformationCount: safeArray(chart.transformationLayers).length,
+      transformationCount: countZiweiTransformationLayers(chart.transformationLayers),
       hasClientEvidence: Boolean(masterJson?.clientEvidence),
     },
   };
@@ -2700,6 +2731,29 @@ function ensureChapterFallback(chapters = [], profile = {}, seed = {}) {
     return buildFallbackChapter(blueprint, profile, seed);
   });
   return padded.slice(0, CHAPTER_BLUEPRINTS.length);
+}
+
+function buildZiweiManuscriptRecovery({ chapters = [], localChapters = [], profile = {}, seed = {}, birthInput = null } = {}) {
+  const candidates = [chapters, localChapters].filter((items) => Array.isArray(items) && items.length);
+  for (const candidate of candidates) {
+    const recoveredChapters = sanitizeFinalManuscript({
+      chapters: ensureChapterFallback(candidate, profile, seed),
+      profile,
+      seed,
+    });
+    const validation = validateChapters(recoveredChapters);
+    const duplicateRate = computeDuplicateRate(recoveredChapters);
+    const finalBundleValidation = validateFinalManuscript({ birthInput, seed, chapters: recoveredChapters });
+    if (validation.ok && duplicateRate <= 0.25 && finalBundleValidation.ok) {
+      return {
+        chapters: recoveredChapters,
+        validation,
+        duplicateRate,
+        finalBundleValidation,
+      };
+    }
+  }
+  return null;
 }
 
 function normalizeArchiveShapeFromExecution(doc = {}) {
@@ -3024,34 +3078,49 @@ async function handlePrepare(request, env) {
     duplicateRate: localQuality.duplicateRate,
   });
 
-  const enhanced = await enhanceChaptersLocally(env, profile, seed, localChapters, localQuality.pass || 1, {
+  let enhanced = await enhanceChaptersLocally(env, profile, seed, localChapters, localQuality.pass || 1, {
     requestId: reportId,
     masterJson: ziweiMasterJson,
   });
-  const completedChapters = sanitizeFinalManuscript({ chapters: enhanced.chapters, profile, seed });
-  const validation = validateChapters(completedChapters);
-  const duplicateRate = computeDuplicateRate(completedChapters);
-  if (!validation.ok || duplicateRate > 0.25) {
-    throw Object.assign(new Error("자미두수 로컬 해석 품질 기준을 통과하지 못했습니다."), {
-      status: 422,
-      code: "ZIWEI_LOCAL_QUALITY_FAILED",
-      detail: {
+  let completedChapters = sanitizeFinalManuscript({ chapters: enhanced.chapters, profile, seed });
+  let validation = validateChapters(completedChapters);
+  let duplicateRate = computeDuplicateRate(completedChapters);
+  let finalBundleValidation = validateFinalManuscript({ birthInput, seed, chapters: completedChapters });
+  if (!validation.ok || duplicateRate > 0.25 || !finalBundleValidation.ok) {
+    const recovered = buildZiweiManuscriptRecovery({ chapters: completedChapters, localChapters, profile, seed, birthInput });
+    if (recovered) {
+      completedChapters = recovered.chapters;
+      validation = recovered.validation;
+      duplicateRate = recovered.duplicateRate;
+      finalBundleValidation = recovered.finalBundleValidation;
+      enhanced = {
+        ...enhanced,
+        chapters: completedChapters,
+        fallbackUsed: true,
+        fallbackChapterCount: Math.max(Number(enhanced.fallbackChapterCount || 0), CHAPTER_BLUEPRINTS.length),
+        source: "llm-local-recovered",
+        llmFallbackReason: clean(enhanced.llmFallbackReason || "ZIWEI_MANUSCRIPT_RECOVERED"),
+      };
+      console.warn("[ZiweiPremiumPDF][ManuscriptRecovered]", {
+        reportId,
         validationErrors: validation.errors,
         duplicateRate,
-      },
-    });
+      });
+    } else {
+      const qualityErrors = validation.ok ? [] : validation.errors;
+      const finalErrors = finalBundleValidation.ok ? [] : finalBundleValidation.errors;
+      throw Object.assign(new Error("자미두수 최종 원고 검증에 실패했습니다."), {
+        status: 422,
+        code: "ZIWEI_MANUSCRIPT_VALIDATION_FAILED",
+        detail: {
+          validationErrors: qualityErrors,
+          finalErrors,
+          duplicateRate,
+        },
+      });
+    }
   }
   let finalValidation = validation;
-  const finalBundleValidation = validateFinalManuscript({ birthInput, seed, chapters: completedChapters });
-  if (!finalBundleValidation.ok) {
-    throw Object.assign(new Error("자미두수 최종 원고 검증에 실패했습니다."), {
-      status: 422,
-      code: "ZIWEI_MANUSCRIPT_VALIDATION_FAILED",
-      detail: {
-        errors: finalBundleValidation.errors,
-      },
-    });
-  }
   console.info("[ZiweiPremiumPDF][FinalManuscriptValidated]", {
     chapterCount: completedChapters.length,
     totalChars: finalValidation.totalChars,
@@ -3172,13 +3241,18 @@ async function handlePrepare(request, env) {
       "ziwei-generation",
     );
     const fallbackChapters = ensureChapterFallback(localChapters, profile, seed);
-    SESSION_LOCKS.set(sessionId, { status: "failed_retryable", failedAt: Date.now(), reportId, error: clean(error?.message || "") });
+    const retryCode = clean(error?.code || "ZIWEI_PREPARE_FAILED_RETRYABLE");
+    const retryStatus = Number(error?.status || 500);
+    SESSION_LOCKS.set(sessionId, { status: "failed_retryable", failedAt: Date.now(), reportId, error: clean(error?.message || ""), code: retryCode });
     const retryable = {
       ok: false,
       serviceKey: ZIWEI_SERVICE_KEY,
-      code: "ZIWEI_PREPARE_FAILED_RETRYABLE",
-      message: "결제는 확인되었습니다. 생성 재시도를 진행합니다.",
+      code: retryCode,
+      message: retryStatus >= 500
+        ? "결제는 확인되었습니다. PDF 생성 서버가 응답하지 않아 재시도가 필요합니다."
+        : "결제는 확인되었습니다. 자미두수 원고 검증을 다시 진행해 주세요.",
       status: "processing",
+      serverStatus: "failed_retryable",
       retryable: true,
       reportId,
       sessionId,
@@ -3189,6 +3263,7 @@ async function handlePrepare(request, env) {
       localDraftChapterCount: fallbackChapters.length,
       finalChapterCount: fallbackChapters.length,
       detail: clean(error?.message || ""),
+      failureStage: "ziwei-generation",
     };
     console.warn("[ZiweiBook][Flow] PrepareFailedRetryable", {
       reportId,
@@ -3196,10 +3271,10 @@ async function handlePrepare(request, env) {
       birthHash,
       chapterCount: fallbackChapters.length,
       hasToken: Boolean(premiumAccessToken),
-      status: Number(error?.status || 500),
-      code: clean(error?.code || "ZIWEI_PREPARE_FAILED_RETRYABLE"),
+      status: retryStatus,
+      code: retryCode,
     });
-    return json(retryable, { status: 500 });
+    return json(retryable, { status: 202 });
   }
 }
 

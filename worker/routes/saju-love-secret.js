@@ -3485,7 +3485,10 @@ async function handlePrepare(request, env) {
     minChapterChars: Number(config?.chapterMinDefault || 2000),
   });
   if (!localValidation.ok) {
-    return buildApiError("LOCAL_DRAFT_INVALID", "로컬 원고 생성이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.", 422);
+    throw Object.assign(new Error("로컬 원고 생성이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요."), {
+      code: "LOCAL_DRAFT_INVALID",
+      status: 422,
+    });
   }
   console.info("[LoveBookPremiumPDF][LocalDraftBuildSuccess]", { chapterCount: localChapters.length, totalLength: localValidation.totalChars });
   console.info("[LoveBookPremiumPDF][LocalQualityValidated]", {
@@ -3512,7 +3515,10 @@ async function handlePrepare(request, env) {
   });
   if (!finalValidation.ok) {
     console.error("[LoveBookPremiumPDF][FinalValidationFailed]", finalValidation);
-    return buildApiError("FINAL_MANUSCRIPT_INVALID", "로컬 상담문 품질 검증을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요.", 422);
+    throw Object.assign(new Error("로컬 상담문 품질 검증을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요."), {
+      code: "FINAL_MANUSCRIPT_INVALID",
+      status: 422,
+    });
   }
   console.info("[LoveBookPremiumPDF][FinalManuscriptValidated]", {
     chapterCount: finalChapters.length,
@@ -3724,15 +3730,15 @@ async function handlePrepareAsync(request, env, ctx) {
       pollAfterMs: LOVE_SECRET_JOB_POLL_AFTER_MS,
     }, { status: 202 });
   } catch (error) {
-    await failPremiumPdfExecution(
-      env,
-      authz?.auth?.userId,
-      executionCtx,
-      "love_secret_prepare_failed",
-      clean(error?.message || "연애 비책 준비 실패"),
-      "love-secret-prepare",
-    );
     if (!isLikelyDbUnavailableError(error)) {
+      await failPremiumPdfExecution(
+        env,
+        authz?.auth?.userId,
+        executionCtx,
+        "love_secret_prepare_failed",
+        clean(error?.message || "연애 비책 준비 실패"),
+        "love-secret-prepare",
+      );
       resolveLoveSecretLock(sessionId, "failed", "");
       throw error;
     }

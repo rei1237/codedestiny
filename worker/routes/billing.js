@@ -1005,9 +1005,10 @@ function cleanProfileId(value) {
   return String(value || "").trim().slice(0, 80).replace(/\s+/g, "_");
 }
 
-async function resolveBillingProfileId(authUserId, body = {}) {
+async function resolveBillingProfileId(authUserId, body = {}, env = {}) {
   const explicit = cleanProfileId(body?.profileId || body?.selectedProfileId || body?.profile?.profileId || body?.profile?.id);
   if (explicit || !authUserId) return explicit;
+  await connectDb(env);
   const user = await User.findById(authUserId).select("destinyProfilesCurrentId").lean();
   return cleanProfileId(user?.destinyProfilesCurrentId);
 }
@@ -1402,7 +1403,13 @@ async function withTimeout(promise, timeoutMs, code = "BILLING_TIMEOUT") {
 
 function shouldRetryCoinConsumeException(error) {
   const code = String(error?.code || "").trim().toUpperCase();
-  return code === "COIN_GATE_CONSUME_TIMEOUT" || code === "WORKER_UNHANDLED_EXCEPTION";
+  const name = String(error?.name || "").trim().toUpperCase();
+  const message = String(error?.message || "").trim().toUpperCase();
+  return code === "COIN_GATE_CONSUME_TIMEOUT"
+    || code === "WORKER_UNHANDLED_EXCEPTION"
+    || name === "MONGOTOPOLOGYCLOSEDERROR"
+    || message.includes("TOPOLOGY IS CLOSED")
+    || message.includes("TOPOLOGY CLOSED");
 }
 
 function isProductionRuntime(env) {
@@ -1881,7 +1888,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }, "ADMIN_TEST_PAYMENT_BYPASS");
   }
   const [profileId, subscriptionPassForDecision] = await Promise.all([
-    authCheck?.auth?.userId ? resolveBillingProfileId(authCheck.auth.userId, body) : Promise.resolve(""),
+    authCheck?.auth?.userId ? resolveBillingProfileId(authCheck.auth.userId, body, env) : Promise.resolve(""),
     authCheck?.auth?.userId ? getMembershipPassForBillingRequest(request, env, authCheck.auth.userId) : Promise.resolve(null),
   ]);
   pricing = applyPdfPassDiscountToPricing(pricing, subscriptionPassForDecision?.entitlement || {});
@@ -2673,7 +2680,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       paidAt: new Date().toISOString(),
     };
 
-    return success({
+    const coinSuccessPayload = {
       pricing,
       accessMethod: "COIN",
       paymentMode: "COIN",
@@ -2701,7 +2708,13 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         points: coinBalance,
         profileSubscription: updatedUser?.profileSubscription || null,
       },
-    }, "코인으로 콘텐츠 이용 권한을 발급했습니다.");
+    };
+
+    if (isPdfGenerationService) {
+      return await successWithPremiumAccess(env, authCheck.auth.userId, coinSuccessPayload, "코인으로 콘텐츠 이용 권한을 발급했습니다.");
+    }
+
+    return success(coinSuccessPayload, "코인으로 콘텐츠 이용 권한을 발급했습니다.");
   }
 
   const delegatedBody = {
@@ -3358,7 +3371,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
       freeBySubscription: false,
     }, "ADMIN_TEST_PAYMENT_BYPASS");
   }
-  const profileId = await resolveBillingProfileId(authCheck.auth.userId, body);
+  const profileId = await resolveBillingProfileId(authCheck.auth.userId, body, env);
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
   const persistProfileUnlockEntitlement = shouldPersistProfileUnlockEntitlement(pricing);
   if (persistProfileUnlockEntitlement) {

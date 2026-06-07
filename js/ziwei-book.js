@@ -218,13 +218,24 @@
     return false;
   }
 
+  function hasPaymentEvidence(source, birthHash){
+    var context = normalizePaymentContext(source || {}, birthHash || '');
+    var grant = context.accessGrant && typeof context.accessGrant === 'object' ? context.accessGrant : null;
+    return Boolean(
+      text(context.premiumAccessToken)
+      || text(context.transactionId)
+      || text(context.purchaseId)
+      || text(grant && (grant.evidenceId || grant.paymentId || grant.purchaseId || grant.transactionId || grant.merchantUid))
+    );
+  }
+
   function isSamePaidSessionTarget(session, birthHash){
     var saved = session || {};
     return isZiweiFeatureKey(saved.featureKey)
       && text(saved.reportType) === 'ziweiPremium'
       && text(saved.birthHash) === text(birthHash)
       && isReusablePaidStatus(saved.status)
-      && Boolean(text(saved.premiumAccessToken));
+      && hasPaymentEvidence(saved, birthHash);
   }
 
   async function verifyPaidSessionAccess(saved){
@@ -989,6 +1000,10 @@
         paymentContext.sessionId = sessionId;
         paymentContext.reportSessionId = text(paymentContext.reportSessionId) || sessionId;
         paymentContext.premiumAccessToken = token || undefined;
+        if(!hasPaymentEvidence(Object.assign({}, result || {}, paymentContext), birthHash)){
+          reject(new Error('결제 확인 정보가 누락되었습니다. 다시 결제를 진행해 주세요.'));
+          return;
+        }
         var savedSession = writePaidSession(Object.assign({}, paymentContext, {
           featureKey: FEATURE_KEY,
           reportType: 'ziweiPremium',
@@ -1111,6 +1126,9 @@
     paymentContext.sessionId = text(paymentContext.sessionId) || sessionId;
     paymentContext.reportSessionId = text(paymentContext.reportSessionId) || paymentContext.sessionId || sessionId;
     var accessGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
+    if(!hasPaymentEvidence(Object.assign({}, paymentContext, { premiumAccessToken: token, accessGrant: accessGrant }), birthHash)){
+      throw buildRetryableError('결제 확인 정보가 누락되었습니다. 다시 결제를 진행해 주세요.', 402, 'PAYMENT_EVIDENCE_MISSING', 'payment');
+    }
     var headers = { 'Content-Type': 'application/json' };
     if(token) headers['x-premium-access-token'] = token;
     var body = {
@@ -1149,6 +1167,9 @@
     var res = await fetch(PREPARE_API, { method: 'POST', credentials: 'include', headers: headers, body: JSON.stringify(body) });
     var json = await res.json().catch(function(){ return {}; });
     if(!res.ok || !json.ok){
+      if(json && json.retryable && text(json.status) === 'processing' && (text(json.reportId) || text(json.sessionId) || Array.isArray(json.chapters))){
+        return json;
+      }
       var code = text(json.code || json.error || 'ZIWEI_PREPARE_FAILED');
       var message = text(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + res.status));
       if(res.status === 401 || res.status === 402 || res.status === 403){

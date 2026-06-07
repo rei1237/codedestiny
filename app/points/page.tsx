@@ -1706,9 +1706,9 @@ export default function PointsPage() {
     setProcessingText(text);
   }, []);
 
-  const showPassAppliedStage = useCallback(async () => {
-    setProcessingStage("이용권 적용이 완료되었습니다.", "pass-applied");
-    await new Promise((resolve) => window.setTimeout(resolve, 820));
+  const showPassAppliedStage = useCallback(async (message = "이용권 적용이 완료되었습니다.") => {
+    setProcessingStage(message, "pass-applied");
+    await new Promise((resolve) => window.setTimeout(resolve, 980));
   }, [setProcessingStage]);
 
   useEffect(() => {
@@ -1849,6 +1849,15 @@ export default function PointsPage() {
     },
     [apiBase, persistSubscriptionCache, refreshWalletFromServer, router],
   );
+
+  const syncSubscriptionAppliedStage = useCallback(async () => {
+    setProcessingStage("이용권 적용을 계정에 반영하고 있습니다.", "subscription");
+    await Promise.allSettled([
+      fetchMyPointState(),
+      refreshWalletFromServer(),
+    ]);
+    await showPassAppliedStage();
+  }, [fetchMyPointState, refreshWalletFromServer, setProcessingStage, showPassAppliedStage]);
 
   /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
   useEffect(() => {
@@ -2242,7 +2251,7 @@ export default function PointsPage() {
           }
 
           clearPendingSubscriptionOrder();
-          await showPassAppliedStage();
+          await syncSubscriptionAppliedStage();
           pushToast("success", data.message || "이용권 결제가 완료되어 이용권이 활성화되었습니다.");
           setShowStarBurst(true);
           setTimeout(() => setShowStarBurst(false), 1200);
@@ -2316,7 +2325,7 @@ export default function PointsPage() {
     pushToast,
     reportPaymentFailureToServer,
     setProcessingStage,
-    showPassAppliedStage,
+    syncSubscriptionAppliedStage,
   ]);
 
   /* ── 이용권 결제 시작 ───────────────────────────────────────────── */
@@ -2626,7 +2635,7 @@ export default function PointsPage() {
         }
 
         clearPendingSubscriptionOrder();
-        await showPassAppliedStage();
+        await syncSubscriptionAppliedStage();
         pushToast("success", confirmData.message || `${plan.title}이 활성화되었습니다.`);
         setShowStarBurst(true);
         setTimeout(() => setShowStarBurst(false), 1200);
@@ -2720,7 +2729,7 @@ export default function PointsPage() {
         setMonthlyCreditLedgers((prev) => [confirmData.monthlyCreditLedger as MonthlyCreditLedgerItem, ...prev].slice(0, 20));
       }
 
-      await showPassAppliedStage();
+      await syncSubscriptionAppliedStage();
       pushToast("success", confirmData.message || `${plan.title}이 월정석으로 활성화되었습니다.`);
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);

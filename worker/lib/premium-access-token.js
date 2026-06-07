@@ -46,6 +46,10 @@ export function resolvePremiumAccessReportType(featureKey = "", reason = "") {
     "premium-sukuyo-report": "sookyoPremium",
     "premium-sukuyo-report-compat": "sookyoPremium",
     "premium-vedic-report": "vedicPremium",
+    "premium_pdf_soul_origin": "soulOriginKarma",
+    "premium-soul-origin-report": "soulOriginKarma",
+    soulOriginKarma: "soulOriginKarma",
+    soul_origin_karma: "soulOriginKarma",
   };
 
   if (reportTypeByFeatureKey[canonicalKey]) {

@@ -516,6 +516,14 @@
     if (code.indexOf('PAYMENT_CONFIRMED_BUT_ACCESS_MISSING') >= 0) {
       return '결제는 완료되었지만 생성 권한 연결이 지연되었습니다. 다시 시도해 주세요.';
     }
+    if (status >= 500
+      || code.indexOf('SERVICE_UNAVAILABLE') >= 0
+      || code.indexOf('DB_UNAVAILABLE') >= 0
+      || raw.toLowerCase().indexOf('database is temporarily unavailable') >= 0
+      || raw.toLowerCase().indexOf('mongodb') >= 0
+    ) {
+      return '결제 서버 연결이 일시적으로 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
+    }
     if (status === 402 || code.indexOf('PAYMENT_REQUIRED') >= 0 || code.indexOf('INSUFFICIENT') >= 0 || code.indexOf('COIN') >= 0 || code.indexOf('POINT') >= 0) {
       return '운명의 업 PDF 생성을 위해 코인이 필요합니다.';
     }
@@ -674,13 +682,14 @@
   function ensurePayment() {
     var requestId = readSessionValue(REQUEST_ID_KEY) || makeRequestId();
     var sessionId = readSessionValue(SESSION_ID_KEY) || makeSessionId();
+    var paymentReportId = 'soul-origin:' + Date.now().toString(36);
     writeSessionValue(REQUEST_ID_KEY, requestId);
     writeSessionValue(SESSION_ID_KEY, sessionId);
 
     if (typeof window._cdCoinGatePerUse !== 'function') {
       if (typeof window._cdOpenPaidServiceGate === 'function') {
         return new Promise(function(resolve, reject) {
-          var reportId = 'soul-origin:' + Date.now().toString(36);
+          var reportId = paymentReportId;
           var settled = false;
           function finish(payload) {
             if (settled) return;
@@ -753,12 +762,16 @@
         if (settled) return;
         settled = true;
         if (payload && payload.ok === false) {
-          reject(new Error(clean(payload.message) || '결제 접근 권한을 확인하지 못했습니다. 다시 시도해 주세요.'));
+          var failError = new Error(clean(payload.message) || '결제 접근 권한을 확인하지 못했습니다. 다시 시도해 주세요.');
+          failError.status = Number(payload.status || payload.httpStatus || 0);
+          failError.code = clean(payload.code || payload.errorCode || payload.error || '');
+          failError.stage = clean(payload.stage || 'CoinGateFailed');
+          reject(failError);
           return;
         }
         var token = clean((payload && (payload.premiumAccessToken || payload.accessToken || payload.token)) || '');
         if (token) storePremiumToken(token);
-        var reportId = clean(payload && payload.reportId) || ('soul-origin:' + Date.now().toString(36));
+        var reportId = clean((payload && (payload.reportId || (payload.accessGrant && payload.accessGrant.reportId))) || '') || paymentReportId;
         var grant = normalizeAccessGrant(payload, reportId, requestId, sessionId);
         var paymentContext = buildPaymentContext(payload, grant, token, reportId, requestId, sessionId);
         resolve(Object.assign({}, payload || { ok: true, premiumAccessToken: readPremiumToken() }, {
@@ -787,25 +800,46 @@
             done(Object.assign({ ok: true, transactionId: transactionId }, data || {}));
           },
           function (error) {
-            logStage('Failed', { stage: 'CoinGateFailed', errorCode: 'COIN_GATE_FAILED' });
-            done({ ok: false, message: clean(error && error.message) || '코인 결제 확인이 필요합니다.' });
+            logStage('Failed', { stage: 'CoinGateFailed', errorCode: clean(error && error.code) || 'COIN_GATE_FAILED' });
+            done({
+              ok: false,
+              message: clean(error && error.message) || '코인 결제 확인이 필요합니다.',
+              code: clean(error && error.code) || 'COIN_GATE_FAILED',
+              status: Number(error && error.status || 0) || undefined,
+              stage: 'CoinGateFailed',
+            });
           },
           {
             featureKey: FEATURE_KEY,
             reportType: REPORT_TYPE,
             serviceKey: 'soul-origin',
+            reportId: paymentReportId,
+            sessionId: sessionId,
+            reportSessionId: sessionId,
             requestId: requestId,
           },
         );
 
         if (immediate && typeof immediate.then === 'function') {
           immediate.then(done).catch(function (error) {
-            done({ ok: false, message: clean(error && error.message) });
+            done({
+              ok: false,
+              message: clean(error && error.message),
+              code: clean(error && error.code),
+              status: Number(error && error.status || 0) || undefined,
+              stage: 'CoinGateFailed',
+            });
           });
         }
       } catch (error) {
         logStage('Failed', { stage: 'CoinGateException', errorCode: clean(error && error.code) || 'COIN_GATE_EXCEPTION' });
-        done({ ok: false, message: clean(error && error.message) });
+        done({
+          ok: false,
+          message: clean(error && error.message),
+          code: clean(error && error.code) || 'COIN_GATE_EXCEPTION',
+          status: Number(error && error.status || 0) || undefined,
+          stage: 'CoinGateException',
+        });
       }
     });
   }
@@ -912,7 +946,7 @@
       writeSessionValue(REQUEST_ID_KEY, paymentRequestId || requestId);
       writeSessionValue(SESSION_ID_KEY, paymentSessionId || sessionId);
 
-      var reportId = 'soul-origin:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+      var reportId = clean((accessGrant && accessGrant.reportId) || (payment && (payment.reportId || (payment.payment && payment.payment.reportId) || (payment._paymentContext && payment._paymentContext.reportId))) || '') || ('soul-origin:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8));
       var paymentContext = buildPaymentContext(payment, accessGrant, token, reportId, paymentRequestId || requestId, paymentSessionId || sessionId);
       var toneSettings = readSoulOriginToneSettings();
       var payload = {

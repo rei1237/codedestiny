@@ -13,8 +13,12 @@
   var SUKYO_PREFLIGHT_API = '/api/sukuyo/premium/preflight';
   var SUKYO_PREPARE_API = '/api/sukuyo/premium/prepare';
   var SUKYO_CHAPTERS_API = '/api/sukuyo/premium/chapters';
+  var SUKYO_EXECUTION_STATUS_API = '/api/billing/executions/status';
+  var SUKYO_ARCHIVE_API = '/api/premium/pdf-archive';
   var SUKYO_TOTAL_CHAPTERS = 15;
   var SUKYO_COIN_COST = 490;
+  var SUKYO_RUNNING_POLL_INTERVAL_MS = 4500;
+  var SUKYO_RUNNING_POLL_MAX_ATTEMPTS = 160;
 
   var _chapters = [];
   var _canonicalChapters = [];
@@ -210,6 +214,15 @@
       if (!seen[url]) { seen[url] = true; out.push(url); }
     });
     return out;
+  }
+
+  function _buildQueryString(params) {
+    var parts = [];
+    Object.keys(params || {}).forEach(function (key) {
+      var value = _clean(params[key]);
+      if (value) parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+    });
+    return parts.length ? ('?' + parts.join('&')) : '';
   }
 
   function _detachModalFromResultPage(modal) {
@@ -959,6 +972,52 @@
     return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
   }
 
+  function _getJson(pathname) {
+    var endpoints = _buildApiCandidates(pathname);
+    var endpointIndex = 0;
+    var authToken = '';
+    try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
+    var premiumToken = _readPremiumAccessToken();
+
+    function run(resolve, reject, lastErr) {
+      if (endpointIndex >= endpoints.length) {
+        reject(new Error(lastErr || '숙요점 생성 상태를 확인하지 못했습니다.'));
+        return;
+      }
+
+      var headers = {};
+      if (authToken) headers.Authorization = 'Bearer ' + authToken;
+      if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+
+      fetch(endpoints[endpointIndex++], {
+        method: 'GET',
+        headers: headers,
+        credentials: 'include',
+        cache: 'no-store',
+      })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (json) { return { res: res, json: json }; });
+        })
+        .then(function (pack) {
+          if (pack.res.ok && pack.json && pack.json.ok) {
+            _persistPremiumAccessToken(_extractPremiumToken(pack.json));
+            resolve(pack.json);
+            return;
+          }
+
+          var msg = (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status);
+          if (pack.res.status === 401) { reject(new Error('숙요점 PDF 생성을 위해 먼저 로그인해 주세요.')); return; }
+          if (pack.res.status === 403) { reject(new Error('숙요점 PDF 열람 권한을 확인하지 못했습니다.')); return; }
+          run(resolve, reject, msg);
+        })
+        .catch(function (error) {
+          run(resolve, reject, String(error && error.message || error || '요청 실패'));
+        });
+    }
+
+    return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
+  }
+
   function _runPreflight(normalizedInput) {
     return _postJson(SUKYO_PREFLIGHT_API, {
       mode: 'compatibility',
@@ -1008,6 +1067,138 @@
       partner: normalizedInput.partner,
       user: normalizedInput.self,
     };
+  }
+
+  function _normalizeArchivedSukuyoReport(report) {
+    var safeReport = report && typeof report === 'object' ? report : {};
+    var reportId = _clean(safeReport.reportId);
+    var chapters = Array.isArray(safeReport.chapters) ? safeReport.chapters : [];
+    var archivePath = reportId ? (SUKYO_ARCHIVE_API + '/' + encodeURIComponent(reportId)) : '';
+    var pdfUrl = _clean(safeReport.pdfUrl) || (archivePath ? (archivePath + '?format=pdf') : '');
+    var htmlUrl = archivePath ? (archivePath + '?format=html') : pdfUrl;
+    return {
+      ok: true,
+      serviceKey: 'sukuyo-premium',
+      reportType: 'sookyoPremium',
+      mode: 'compatibility',
+      status: 'completed',
+      serverStatus: 'completed',
+      qualityStatus: 'passed',
+      sessionId: _activeSessionId,
+      featureKey: SUKYO_FEATURE_KEY,
+      canonicalFeatureKey: SUKYO_FEATURE_KEY,
+      aliasFeatureKey: SUKYO_ALIAS_FEATURE_KEY,
+      reportId: reportId,
+      chapterCount: chapters.length,
+      localDraftChapterCount: 0,
+      llmChapterCount: chapters.length,
+      fallbackChapterCount: 0,
+      fallbackUsed: false,
+      manuscriptSource: 'gemini-only',
+      chapters: chapters,
+      payload: safeReport.payload || {},
+      pdfReady: {
+        reportId: reportId,
+        filename: reportId ? ('sukyo-premium-' + reportId + '.pdf') : 'sukyo-premium-report.pdf',
+        pdfUrl: pdfUrl,
+        downloadUrl: pdfUrl,
+        htmlUrl: htmlUrl,
+        mimeType: 'application/pdf',
+      },
+      pdfUrl: pdfUrl,
+      htmlUrl: htmlUrl,
+      downloadUrl: pdfUrl,
+      canReopen: true,
+      canDownload: !!pdfUrl,
+    };
+  }
+
+  function _fetchArchivedSukuyoReport(reportId) {
+    var id = _clean(reportId);
+    if (!id) return Promise.reject(new Error('완성된 숙요점 PDF reportId를 찾지 못했습니다.'));
+    return _getJson(SUKYO_ARCHIVE_API + '/' + encodeURIComponent(id))
+      .then(function (data) {
+        var restored = _normalizeArchivedSukuyoReport(data && data.report);
+        if (!_isSukyoReportReady(restored)) {
+          throw new Error('숙요점 PDF 완료본이 아직 저장되지 않았습니다. 잠시 후 다시 확인해 주세요.');
+        }
+        return restored;
+      });
+  }
+
+  function _buildExecutionStatusPath(sessionId, reportId) {
+    return SUKYO_EXECUTION_STATUS_API + _buildQueryString({
+      sessionId: sessionId,
+      reportId: reportId,
+    });
+  }
+
+  function _isSukuyoExecutionCompleted(execution) {
+    var status = _clean(execution && execution.status);
+    var premiumStatus = _clean(execution && execution.premiumStatus);
+    return status === 'success' || premiumStatus === 'completed' || !!_clean(execution && execution.completedAt);
+  }
+
+  function _isSukuyoExecutionFailed(execution) {
+    var status = _clean(execution && execution.status);
+    var premiumStatus = _clean(execution && execution.premiumStatus);
+    return status === 'failed' || status === 'abandoned' || premiumStatus === 'failed' || premiumStatus === 'abandoned' || premiumStatus === 'refunded' || premiumStatus === 'refund_failed';
+  }
+
+  function _pollSukuyoRunningResponse(runningResponse) {
+    var running = runningResponse && typeof runningResponse === 'object' ? runningResponse : {};
+    var sessionId = _clean(running.sessionId || _activeSessionId);
+    var reportId = _clean(running.reportId || (_resultPayload && _resultPayload.reportId));
+    if (sessionId) _activeSessionId = sessionId;
+    _persistGenerationState({
+      isOpen: true,
+      status: 'generating',
+      currentChapterIndex: 0,
+      currentChapterNo: 1,
+      totalChapters: SUKYO_TOTAL_CHAPTERS,
+      completedChapters: [],
+      failedChapters: [],
+      reportId: reportId || null,
+      sessionId: sessionId,
+      serverStatus: 'running',
+      updatedAt: Date.now(),
+    });
+
+    return new Promise(function (resolve, reject) {
+      var attempts = 0;
+      function tick() {
+        attempts += 1;
+        _getJson(_buildExecutionStatusPath(sessionId, reportId))
+          .then(function (data) {
+            var execution = data && data.execution || {};
+            var nextReportId = _clean(execution.reportId || reportId);
+            if (_isSukuyoExecutionCompleted(execution)) {
+              _setLoadingNotice('숙요점 프리미엄 궁합 PDF 완료본을 불러오는 중입니다');
+              _fetchArchivedSukuyoReport(nextReportId).then(resolve).catch(reject);
+              return;
+            }
+            if (_isSukuyoExecutionFailed(execution)) {
+              reject(new Error(_clean(execution.reasonMessage) || '숙요점 궁합 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.'));
+              return;
+            }
+            if (attempts >= SUKYO_RUNNING_POLL_MAX_ATTEMPTS) {
+              reject(new Error('숙요점 궁합 PDF 생성 상태 확인 시간이 초과되었습니다. 잠시 후 다시 확인해 주세요.'));
+              return;
+            }
+            _setLoadingNotice('같은 세션의 숙요점 궁합 PDF가 생성 중입니다. 완료 상태를 확인하고 있습니다.');
+            setTimeout(tick, SUKYO_RUNNING_POLL_INTERVAL_MS);
+          })
+          .catch(function (error) {
+            if (attempts >= SUKYO_RUNNING_POLL_MAX_ATTEMPTS) {
+              reject(error);
+              return;
+            }
+            _setLoadingNotice('숙요점 궁합 PDF 생성 상태를 다시 확인하는 중입니다.');
+            setTimeout(tick, SUKYO_RUNNING_POLL_INTERVAL_MS);
+          });
+      }
+      tick();
+    });
   }
 
   function _ensurePremiumPaymentThenStart() {
@@ -1076,6 +1267,55 @@
       dot.classList.toggle('lb-ch-dot--done', i <= done);
       dot.classList.toggle('lb-ch-dot--active', i === Math.min(done + 1, total));
     }
+  }
+
+  function _handleCompletedSukuyoResponse(response) {
+    if (!response || !response.ok) throw new Error('SESSION_CREATE_FAILED');
+    _log('[SukuyoBook][SessionCreateSuccess]', { chapterCount: response.chapterCount });
+
+    _log('[SukuyoBook][PdfRequestStart]', { chapterCount: response.chapterCount });
+
+    _resultPayload = response;
+    _chapters = Array.isArray(response.chapters) ? response.chapters : [];
+
+    if (!_chapters.length || Number(response.chapterCount) !== 15 || Number(_chapters.length) !== 15) {
+      throw new Error('15챕터 리포트 데이터가 비어 있습니다.');
+    }
+    if (!_isSukyoReportReady(response)) {
+      throw new Error('일부 챕터의 내용을 더 정밀하게 다듬고 있습니다.');
+    }
+
+    return _playChapterProgress(_chapters).then(function () {
+      _syncDotsByChapters(_chapters);
+      _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, '숙요점 프리미엄 궁합 PDF를 완성하는 중입니다');
+      _setLoadingNotice('회복 루틴과 최종 궁합 전략을 완성하는 중입니다');
+      _renderResult(_chapters, response);
+
+      _log('[SukuyoBook][PdfRequestSuccess]', {
+        chapterCount: _chapters.length,
+        fallbackUsed: !!response.fallbackUsed,
+        manuscriptSource: response.manuscriptSource || 'unknown',
+        sessionId: _activeSessionId,
+      });
+
+      _persistGenerationState({
+        isOpen: true,
+        status: 'completed',
+        currentChapterIndex: SUKYO_TOTAL_CHAPTERS - 1,
+        currentChapterNo: SUKYO_TOTAL_CHAPTERS,
+        totalChapters: SUKYO_TOTAL_CHAPTERS,
+        completedChapters: _chapters.map(function (c) { return Number(c.order || c.chapterNo || 0); }).filter(Boolean),
+        failedChapters: [],
+        reportId: _clean(response.reportId),
+        sessionId: _activeSessionId,
+        qualityStatus: 'passed',
+        serverStatus: 'completed',
+        updatedAt: Date.now(),
+      });
+
+      _setLoadingNotice('숙요점 프리미엄 궁합 PDF를 완성하는 중입니다');
+      _showScreen('skResultScreen');
+    });
   }
 
   window.openSukuyoBookModal = function () {
@@ -1213,55 +1453,12 @@
       })
       .then(function (response) {
         if (response && response.status === 'running' && !Array.isArray(response.chapters)) {
-          _setError('이미 같은 세션에서 생성이 진행 중입니다. 잠시 후 다시 확인해 주세요.');
-          return;
+          _resultPayload = response;
+          _setLoadingStage('숙요점 궁합 PDF 생성 중');
+          _setLoadingNotice(response.message || '같은 세션의 숙요점 궁합 PDF가 생성 중입니다. 완료 상태를 확인하고 있습니다.');
+          return _pollSukuyoRunningResponse(response).then(_handleCompletedSukuyoResponse);
         }
-        if (!response || !response.ok) throw new Error('SESSION_CREATE_FAILED');
-        _log('[SukuyoBook][SessionCreateSuccess]', { chapterCount: response.chapterCount });
-
-        _log('[SukuyoBook][PdfRequestStart]', { chapterCount: response.chapterCount });
-
-        _resultPayload = response;
-        _chapters = Array.isArray(response.chapters) ? response.chapters : [];
-
-        if (!_chapters.length || Number(response.chapterCount) !== 15 || Number(_chapters.length) !== 15) {
-          throw new Error('15챕터 리포트 데이터가 비어 있습니다.');
-        }
-        if (!_isSukyoReportReady(response)) {
-          throw new Error('일부 챕터의 내용을 더 정밀하게 다듬고 있습니다.');
-        }
-
-        return _playChapterProgress(_chapters).then(function () {
-          _syncDotsByChapters(_chapters);
-          _setLoadingProgress(SUKYO_TOTAL_CHAPTERS, SUKYO_TOTAL_CHAPTERS, '숙요점 프리미엄 궁합 PDF를 완성하는 중입니다');
-          _setLoadingNotice('회복 루틴과 최종 궁합 전략을 완성하는 중입니다');
-          _renderResult(_chapters, response);
-
-          _log('[SukuyoBook][PdfRequestSuccess]', {
-            chapterCount: _chapters.length,
-            fallbackUsed: !!response.fallbackUsed,
-            manuscriptSource: response.manuscriptSource || 'unknown',
-            sessionId: _activeSessionId,
-          });
-
-          _persistGenerationState({
-            isOpen: true,
-            status: 'completed',
-            currentChapterIndex: SUKYO_TOTAL_CHAPTERS - 1,
-            currentChapterNo: SUKYO_TOTAL_CHAPTERS,
-            totalChapters: SUKYO_TOTAL_CHAPTERS,
-            completedChapters: _chapters.map(function (c) { return Number(c.order || c.chapterNo || 0); }).filter(Boolean),
-            failedChapters: [],
-            reportId: _clean(response.reportId),
-            sessionId: _activeSessionId,
-            qualityStatus: 'passed',
-            serverStatus: 'completed',
-            updatedAt: Date.now(),
-          });
-
-          _setLoadingNotice('숙요점 프리미엄 궁합 PDF를 완성하는 중입니다');
-          _showScreen('skResultScreen');
-        });
+        return _handleCompletedSukuyoResponse(response);
       })
       .catch(function (error) {
         _logError(error, 'generate');

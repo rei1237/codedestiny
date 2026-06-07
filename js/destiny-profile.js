@@ -2022,6 +2022,10 @@
       if (opts.categoryKey) checkoutPayload.categoryKey = opts.categoryKey;
       if (opts.subFeatureKey) checkoutPayload.subFeatureKey = opts.subFeatureKey;
       if (opts.productId) checkoutPayload.productId = opts.productId;
+      if (opts.reportId) checkoutPayload.reportId = opts.reportId;
+      if (opts.sessionId) checkoutPayload.sessionId = opts.sessionId;
+      if (opts.reportSessionId || opts.sessionId) checkoutPayload.reportSessionId = opts.reportSessionId || opts.sessionId;
+      if (opts.purchaseId) checkoutPayload.purchaseId = opts.purchaseId;
 
       var checkoutRes = await _dpPaymentFetchJson('/api/billing/checkout', {
         method: 'POST',
@@ -2226,8 +2230,19 @@
         cost: cost,
         featureKey: normalizedFeatureKey,
         requestId: requestId,
+        categoryKey: optionBag.categoryKey,
+        subFeatureKey: optionBag.subFeatureKey,
+        contentKey: optionBag.contentKey,
+        productId: optionBag.productId,
         reportType: optionBag.reportType,
         serviceKey: optionBag.serviceKey,
+        reportId: optionBag.reportId,
+        sessionId: optionBag.sessionId,
+        reportSessionId: optionBag.reportSessionId || optionBag.sessionId,
+        purchaseId: optionBag.purchaseId,
+        actionType: optionBag.actionType,
+        profileAction: optionBag.profileAction,
+        action: optionBag.action,
         profileId: optionBag.profileId,
         selectedProfileId: optionBag.selectedProfileId,
         onGranted: function(transactionId, payload) {
@@ -2236,7 +2251,12 @@
         onCancel: onCancel
       }).catch(function(error) {
         console.error('[legacy-main-paid-service-gate]', error);
-        window.alert(String(error && error.message || '\uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.'));
+        var gateMessage = String(error && error.message || '\uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');
+        var gateCode = String(error && error.code || '').toUpperCase();
+        if (Number(error && error.status || 0) >= 500 || gateCode.indexOf('SERVICE_UNAVAILABLE') >= 0 || gateMessage.toLowerCase().indexOf('database is temporarily unavailable') >= 0) {
+          gateMessage = '결제 서버 연결이 일시적으로 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
+        }
+        window.alert(gateMessage);
         if (typeof onCancel === 'function') onCancel(error);
         return null;
       });
@@ -5673,8 +5693,16 @@
         cost: cost,
         featureKey: normalizedFeatureKey,
         requestId: requestId,
+        categoryKey: optionBag.categoryKey,
+        subFeatureKey: optionBag.subFeatureKey,
+        contentKey: optionBag.contentKey,
+        productId: optionBag.productId,
         reportType: optionBag.reportType,
         serviceKey: optionBag.serviceKey,
+        reportId: optionBag.reportId,
+        sessionId: optionBag.sessionId,
+        reportSessionId: optionBag.reportSessionId || optionBag.sessionId,
+        purchaseId: optionBag.purchaseId,
         actionType: optionBag.actionType,
         profileAction: optionBag.profileAction,
         action: optionBag.action,
@@ -5686,14 +5714,19 @@
         onCancel: onCancel
       }).catch(function(error) {
         console.error('[main-paid-service-gate]', error);
-        window.alert(String(error && error.message || '\uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.'));
+        var gateMessage = String(error && error.message || '\uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');
+        var gateCode = String(error && error.code || '').toUpperCase();
+        if (Number(error && error.status || 0) >= 500 || gateCode.indexOf('SERVICE_UNAVAILABLE') >= 0 || gateMessage.toLowerCase().indexOf('database is temporarily unavailable') >= 0) {
+          gateMessage = '결제 서버 연결이 일시적으로 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
+        }
+        window.alert(gateMessage);
         if (typeof onCancel === 'function') onCancel(error);
         return null;
       });
     }
 
     if (typeof window._cdResolvePaidContentAccess === 'function') {
-      return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, actionType: optionBag.actionType, profileAction: optionBag.profileAction, action: optionBag.action, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId }).then(function(access) {
+      return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, categoryKey: optionBag.categoryKey, subFeatureKey: optionBag.subFeatureKey, contentKey: optionBag.contentKey, productId: optionBag.productId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, reportId: optionBag.reportId, sessionId: optionBag.sessionId, reportSessionId: optionBag.reportSessionId || optionBag.sessionId, purchaseId: optionBag.purchaseId, actionType: optionBag.actionType, profileAction: optionBag.profileAction, action: optionBag.action, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId }).then(function(access) {
         if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
           var passPayload = access.payload || access.rawPayload || {};
           var passTransactionId = String(passPayload.transactionId || passPayload.paymentId || passPayload.purchaseId || passPayload.requestId || access.requestId || requestId);
@@ -5725,6 +5758,10 @@
             featureKey: normalizedFeatureKey || undefined,
             reportType: optionBag.reportType,
             serviceKey: optionBag.serviceKey,
+            reportId: optionBag.reportId,
+            sessionId: optionBag.sessionId,
+            reportSessionId: optionBag.reportSessionId || optionBag.sessionId,
+            purchaseId: optionBag.purchaseId,
             actionType: optionBag.actionType,
             profileAction: optionBag.profileAction,
             action: optionBag.action,
@@ -5799,8 +5836,16 @@
         internalMainGate: true,
         __cdPaymentGateAuthorized: true,
         checkoutPayload: {
+          categoryKey: optionBag.categoryKey,
+          subFeatureKey: optionBag.subFeatureKey,
+          contentKey: optionBag.contentKey,
+          productId: optionBag.productId,
           reportType: optionBag.reportType,
           serviceKey: optionBag.serviceKey,
+          reportId: optionBag.reportId,
+          sessionId: optionBag.sessionId,
+          reportSessionId: optionBag.reportSessionId || optionBag.sessionId,
+          purchaseId: optionBag.purchaseId,
           actionType: optionBag.actionType,
           profileAction: optionBag.profileAction,
           action: optionBag.action,

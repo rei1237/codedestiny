@@ -320,6 +320,18 @@ function resolveSukuyoReportId(body = {}, sessionId = "") {
   );
 }
 
+function buildSukuyoRunningLinks(request, sessionId, reportId) {
+  const origin = new URL(request.url).origin;
+  const resolvedReportId = clean(reportId);
+  const params = new URLSearchParams();
+  if (clean(sessionId)) params.set("sessionId", clean(sessionId));
+  if (resolvedReportId) params.set("reportId", resolvedReportId);
+  return {
+    archiveUrl: resolvedReportId ? `${origin}/api/premium/pdf-archive/${encodeURIComponent(resolvedReportId)}` : "",
+    statusPollUrl: `${origin}/api/billing/executions/status${params.toString() ? `?${params.toString()}` : ""}`,
+  };
+}
+
 function isSukuyoCompletedPayloadReady(payload = {}) {
   const chapters = Array.isArray(payload?.chapters) ? payload.chapters : [];
   const ready = payload?.pdfReady && typeof payload.pdfReady === "object" ? payload.pdfReady : {};
@@ -428,15 +440,22 @@ async function handleSukuyoPremiumPrepare(request, env) {
 
   const existingLock = sukuyoPdfGenerationLocks.get(sessionId);
   if (existingLock?.status === "running") {
+    const runningReportId = clean(existingLock.reportId || reportId);
+    const runningLinks = buildSukuyoRunningLinks(request, sessionId, runningReportId);
     return json({
       ok: true,
       status: "running",
+      serverStatus: "running",
       sessionId,
+      reportId: runningReportId,
+      featureKey: clean(existingLock.featureKey || featureKey),
       reportType: "sookyoPremium",
       mode: "compatibility",
       message: "같은 세션의 숙요점 PDF 생성이 이미 진행 중입니다.",
       progress: existingLock.progress || null,
       startedAt: existingLock.startedAt,
+      archiveUrl: runningLinks.archiveUrl,
+      statusPollUrl: runningLinks.statusPollUrl,
     });
   }
 
@@ -455,6 +474,8 @@ async function handleSukuyoPremiumPrepare(request, env) {
 
   sukuyoPdfGenerationLocks.set(sessionId, {
     sessionId,
+    reportId,
+    featureKey,
     status: "running",
     startedAt: new Date().toISOString(),
     progress: {
@@ -513,6 +534,8 @@ async function handleSukuyoPremiumPrepare(request, env) {
 
     sukuyoPdfGenerationLocks.set(sessionId, {
       sessionId,
+      reportId,
+      featureKey,
       status: "running",
       startedAt: new Date().toISOString(),
       progress: { stage: "payment-verified" },
@@ -524,8 +547,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
     dryRunSeed.featureKey = featureKey;
 
     const generated = await generateSukyoPremiumReport(env, dryRunSeed);
-    const requestOrigin = new URL(request.url).origin;
-    const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
+    const archiveUrl = buildSukuyoRunningLinks(request, sessionId, reportId).archiveUrl;
     const pdfReady = {
       ...(generated?.pdfReady || {}),
       html: generated?.pdfReady?.html || generated?.html || "",
@@ -621,6 +643,8 @@ async function handleSukuyoPremiumPrepare(request, env) {
 
     sukuyoPdfGenerationLocks.set(sessionId, {
       sessionId,
+      reportId,
+      featureKey,
       status: "done",
       startedAt: new Date().toISOString(),
       progress: { stage: "done", chapterCount: generated.chapterCount },
@@ -650,6 +674,8 @@ async function handleSukuyoPremiumPrepare(request, env) {
     );
     sukuyoPdfGenerationLocks.set(sessionId, {
       sessionId,
+      reportId,
+      featureKey,
       status: "failed",
       startedAt: new Date().toISOString(),
       progress: { stage: "failed", error: clean(error?.message || "unknown") },

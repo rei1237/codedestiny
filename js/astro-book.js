@@ -8,6 +8,7 @@
   var ASTRO_FEATURE_KEY = 'premium-astrology-report';
   var ASTRO_BILLING_FEATURE_KEY = 'premium-astrology-report';
   var ASTRO_PREPARE_API = '/api/astro/premium/prepare';
+  var ASTRO_STATUS_API = '/api/astro/premium/status';
   var ASTRO_CHAPTERS_API = '/api/astro/premium/chapters';
   var ASTRO_WESTERN_CHART_API = '/api/astro/western-chart';
   var ASTRO_TOTAL_CHAPTERS = 12;
@@ -322,7 +323,9 @@
     var hasStoredUrl = !!_resolveAstroStoredUrl(payload);
     var completed = _clean(payload.status || '').toLowerCase();
     var chapterComplete = chapters.length >= total;
-    return hasReportId && hasStoredUrl && chapterComplete && (!completed || completed === 'completed');
+    var llmChapterCount = Number(payload.llmChapterCount || 0);
+    var llmComplete = !payload.fallbackUsed && llmChapterCount >= total;
+    return hasReportId && hasStoredUrl && chapterComplete && completed === 'completed' && llmComplete;
   }
 
   function _setStartBusy(isBusy) {
@@ -756,22 +759,26 @@
     ].join(' · ');
   }
 
-  function _setLoadingProgress(step, total, title) {
-    var pct = Math.max(0, Math.min(100, Math.round((step / Math.max(total, 1)) * 100)));
+  function _setLoadingProgress(step, total, title, done) {
+    var safeTotal = Math.max(1, Math.trunc(Number(total || 1)));
+    var safeStep = Math.max(0, Math.min(safeTotal, Math.trunc(Number(step || 0))));
+    var isDone = done === true;
+    var pct = Math.max(0, Math.min(100, Math.round((safeStep / safeTotal) * 100)));
+    if (!isDone) pct = Math.min(92, pct);
     var bar = _qs('abProgressBar');
     var txt = _qs('abProgressText');
     var num = _qs('abLoadingChapterNum');
     var ch = _qs('abLoadingChapter');
     if (bar) bar.style.width = pct + '%';
-    if (txt) txt.textContent = step + ' / ' + total + ' 챕터 완성';
-    if (num) num.textContent = 'Chapter ' + step;
+    if (txt) txt.textContent = safeStep + ' / ' + safeTotal + ' 챕터 ' + (isDone ? '완성' : '진행');
+    if (num) num.textContent = 'Chapter ' + Math.max(1, safeStep || 1);
     if (ch) ch.textContent = _sanitizeText(title || '점성술 코즈믹 차트 PDF를 완성하는 중입니다');
 
     var dots = document.querySelectorAll('.ab-ch-dot');
     Array.prototype.forEach.call(dots, function (dot) {
       var n = Number(dot.getAttribute('data-abch'));
-      dot.classList.toggle('lb-ch-dot--active', n === step);
-      dot.classList.toggle('lb-ch-dot--done', n < step);
+      dot.classList.toggle('lb-ch-dot--active', !isDone && n === Math.max(1, safeStep || 1));
+      dot.classList.toggle('lb-ch-dot--done', isDone ? n <= safeStep : n < safeStep);
     });
   }
 
@@ -792,33 +799,23 @@
 
   function _startProgressAnimation() {
     _stopProgressAnimation();
-    var titles = _canonicalChapters.length
-      ? _canonicalChapters.map(function (c) { return c.title; })
-      : [];
-    if (!titles.length) {
-      titles = [
-        '태양·달·상승궁을 정리하는 중입니다',
-        '행성과 하우스의 흐름을 해석하는 중입니다',
-        '주요 어스펙트와 인생 과제를 구성하는 중입니다',
-        '사랑·직업·재물의 방향을 정리하는 중입니다',
-        '현재 시기와 회복 전략을 반영하는 중입니다',
-        '점성술 코즈믹 차트 PDF를 완성하는 중입니다',
-      ];
-    }
+    var titles = [
+      '프로필 정보 확인 중',
+      '결제 및 세션 준비 중',
+      '출생 차트 계산을 준비하는 중입니다',
+    ];
     var total = _getTotalChapters();
-    var idx = 1;
-    _setLoadingProgress(1, total, titles[0]);
+    var idx = 0;
+    _setLoadingProgress(0, total, titles[0]);
     _progressTimer = setInterval(function () {
       if (!_generating) {
         _stopProgressAnimation();
         return;
       }
       total = _getTotalChapters();
-      idx += 1;
-      if (idx > total) idx = total;
-      _setLoadingProgress(idx, total, titles[Math.min(idx - 1, titles.length - 1)]);
-      if (idx >= total) _stopProgressAnimation();
-    }, 850);
+      idx = (idx + 1) % titles.length;
+      _setLoadingProgress(0, total, titles[idx]);
+    }, 2400);
   }
 
   function _renderResult(chapters, payload) {

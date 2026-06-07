@@ -2213,16 +2213,12 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
   });
   let enhanced = null;
-  try {
-    enhanced = await enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, {
-      log: emit,
-      requestId: clean(rawInput?.reportId || options?.requestId),
-      masterJson: astroMasterJson,
-    });
-  } catch (error) {
-    const fallbackReason = clean(error?.code || error?.message || "ASTRO_LLM_MANUSCRIPT_FAILED");
-    emit("LLMManuscriptFailed", {
-      reason: fallbackReason,
+  const disableSyncLocalFallback = ["1", "true", "yes", "on"].includes(
+    String(env?.ASTRO_PREMIUM_DISABLE_SYNC_LOCAL_FALLBACK || "").trim().toLowerCase(),
+  );
+  if (!disableSyncLocalFallback) {
+    emit("LLMManuscriptSkippedForSyncFallback", {
+      reason: "ASTRO_SYNC_LOCAL_FALLBACK",
       chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
     });
     const localDrafts = buildAstroLocalPremiumManuscript(localAstroChartJson);
@@ -2233,11 +2229,38 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     enhanced = {
       chapters: fallbackDrafts,
       fallbackUsed: true,
-      fallbackReason,
+      fallbackReason: "ASTRO_SYNC_LOCAL_FALLBACK",
       llmChapterCount: 0,
       fallbackChapterCount: fallbackDrafts.length,
       source: ASTRO_MANUSCRIPT_SOURCE.HYBRID,
     };
+  } else {
+    try {
+      enhanced = await enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, {
+        log: emit,
+        requestId: clean(rawInput?.reportId || options?.requestId),
+        masterJson: astroMasterJson,
+      });
+    } catch (error) {
+      const fallbackReason = clean(error?.code || error?.message || "ASTRO_LLM_MANUSCRIPT_FAILED");
+      emit("LLMManuscriptFailed", {
+        reason: fallbackReason,
+        chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
+      });
+      const localDrafts = buildAstroLocalPremiumManuscript(localAstroChartJson);
+      const fallbackDrafts = normalizeAstroLocalFallbackManuscript(
+        reinforceAstroManuscriptLocally(localDrafts, localAstroChartJson),
+        localAstroChartJson,
+      );
+      enhanced = {
+        chapters: fallbackDrafts,
+        fallbackUsed: true,
+        fallbackReason,
+        llmChapterCount: 0,
+        fallbackChapterCount: fallbackDrafts.length,
+        source: ASTRO_MANUSCRIPT_SOURCE.HYBRID,
+      };
+    }
   }
   const finalDrafts = safeArray(enhanced.chapters);
   const validated = validateFinalManuscript(localAstroChartJson, finalDrafts, {

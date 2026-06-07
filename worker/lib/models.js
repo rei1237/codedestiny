@@ -409,6 +409,11 @@ const serviceExecutionTransactionSchema = new mongoose.Schema({
   compensation: {
     coinRefunded: { type: Boolean, default: false },
     coinRefundTxId: { type: String, default: "", trim: true, maxlength: 120 },
+    monthlyCreditRefunded: { type: Boolean, default: false },
+    monthlyCreditRefundAmount: { type: Number, default: 0, min: 0 },
+    monthlyCreditRefundLedgerId: { type: String, default: "", trim: true, maxlength: 120 },
+    usagePassRefunded: { type: Boolean, default: false },
+    usagePassCategory: { type: String, default: "", trim: true, maxlength: 80 },
     paymentCancelled: { type: Boolean, default: false },
   },
   metadata: { type: mongoose.Schema.Types.Mixed, default: null },
