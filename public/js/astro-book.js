@@ -58,6 +58,10 @@
         name: error.name,
         message: error.message,
         stack: error.stack,
+        status: error.status,
+        code: error.code,
+        stage: error.stage,
+        payloadSafe: error.payloadSafe,
       };
     }
     if (typeof error === 'object' && error !== null) {
@@ -70,6 +74,51 @@
     return { message: String(error) };
   }
 
+  function _shortList(value, limit) {
+    var source = Array.isArray(value) ? value : [];
+    return source.map(function (item) { return _clean(item); }).filter(Boolean).slice(0, Math.max(1, Number(limit || 6)));
+  }
+
+  function _payloadSafe(payload) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var nested = data.error && typeof data.error === 'object' ? data.error : {};
+    var debugSafe = data.debugSafe && typeof data.debugSafe === 'object' ? data.debugSafe : {};
+    return {
+      code: _clean(data.code || nested.code || data.errorCode || nested.errorCode) || undefined,
+      message: _clean(data.message || nested.message || data.reasonMessage || nested.reasonMessage) || undefined,
+      stage: _clean(data.stage || data.failureStage || debugSafe.stage || nested.stage || nested.failureStage) || undefined,
+      failureType: _clean(data.failureType || debugSafe.failureType || nested.failureType) || undefined,
+      reportId: _clean(data.reportId || debugSafe.reportId || nested.reportId) || undefined,
+      sessionId: _clean(data.sessionId || debugSafe.sessionId || nested.sessionId) || undefined,
+      executionId: _clean(data.executionId || debugSafe.executionId || nested.executionId) || undefined,
+      missing: _shortList(data.missing || nested.missing || data.hardMissingFields, 6),
+      issues: _shortList(data.issues || nested.issues || data.errors || nested.errors, 6),
+      debugSafe: Object.keys(debugSafe).length ? debugSafe : undefined
+    };
+  }
+
+  function _buildAstroApiError(pack, fallbackMessage, context) {
+    var res = pack && pack.res ? pack.res : {};
+    var payload = pack && pack.json && typeof pack.json === 'object'
+      ? pack.json
+      : (pack && pack.body && typeof pack.body === 'object' ? pack.body : {});
+    var status = Number((pack && pack.status) || res.status || payload.status || payload.statusCode || 0);
+    var safe = _payloadSafe(payload);
+    var err = new Error(_clean(safe.message || fallbackMessage || ('HTTP ' + (status || ''))) || 'Astro PDF request failed.');
+    err.status = status || undefined;
+    err.code = _clean(safe.code) || 'ASTRO_PREMIUM_REQUEST_FAILED';
+    err.stage = _clean(safe.stage || context && context.stage) || 'prepare';
+    err.failureType = _clean(safe.failureType);
+    err.reportId = _clean(safe.reportId || context && context.reportId);
+    err.sessionId = _clean(safe.sessionId || context && context.sessionId);
+    err.executionId = _clean(safe.executionId);
+    err.missing = safe.missing;
+    err.issues = safe.issues;
+    err.payloadSafe = safe;
+    err.payload = payload;
+    return err;
+  }
+
   function _logStage(stage, meta) {
     try {
       console.info('[AstroBook][' + stage + ']', meta || {});
@@ -78,11 +127,26 @@
 
   function _logError(error, meta) {
     try {
+      var payloadSafe = error && error.payloadSafe
+        ? error.payloadSafe
+        : _payloadSafe((error && error.payload) || (error && typeof error === 'object' ? error : {}));
       console.error('[AstroBook][Error]', {
-        stage: meta && meta.stage ? String(meta.stage) : '',
+        serviceKey: 'astro-premium',
+        featureKey: ASTRO_FEATURE_KEY,
+        billingFeatureKey: ASTRO_BILLING_FEATURE_KEY,
+        reportType: 'westernAstrologyPremium',
+        stage: _clean(meta && meta.stage || error && error.stage || payloadSafe.stage) || 'unknown',
         message: String(error && error.message ? error.message : error || 'unknown'),
         status: Number(error && error.status ? error.status : 0) || null,
-        code: String(error && error.code ? error.code : ''),
+        code: _clean(error && error.code || payloadSafe.code) || 'ASTRO_PREMIUM_CLIENT_ERROR',
+        failureType: _clean(error && error.failureType || payloadSafe.failureType) || undefined,
+        reportId: _clean(error && error.reportId || payloadSafe.reportId || meta && meta.reportId) || undefined,
+        sessionId: _clean(error && error.sessionId || payloadSafe.sessionId || meta && meta.sessionId) || undefined,
+        executionId: _clean(error && error.executionId || payloadSafe.executionId || meta && meta.executionId) || undefined,
+        missing: _shortList(error && error.missing || payloadSafe.missing, 6),
+        issues: _shortList(error && error.issues || payloadSafe.issues, 6),
+        causeMessage: _clean(error && error.cause && (error.cause.message || error.cause)) || undefined,
+        payloadSafe: payloadSafe,
         details: normalizeAstroError(error),
       });
     } catch (_) {}
@@ -330,15 +394,19 @@
     var p = payload || {};
     var total = Number(totalOverride || _getTotalChapters() || ASTRO_TOTAL_CHAPTERS || 12);
     var llmChapterCount = Number(p.llmChapterCount || 0);
+    var expectedLlmChapterCount = Number(p.expectedLlmChapterCount || (Array.isArray(p.enhancedChapterIds) ? p.enhancedChapterIds.length : 0) || 0);
     var quality = p.quality && typeof p.quality === 'object' ? p.quality : {};
     var pdfQuality = p.pdfQuality && typeof p.pdfQuality === 'object' ? p.pdfQuality : {};
     var validation = p.validation && typeof p.validation === 'object' ? p.validation : {};
     var source = _clean(p.manuscriptSource || quality.manuscriptSource).toLowerCase();
     var qualityOk = quality.ok !== false && pdfQuality.ok !== false && validation.ok !== false;
-    return !p.fallbackUsed
-      && llmChapterCount >= total
-      && source === 'llm-only'
-      && qualityOk;
+    var allowedSource = source === 'llm-only'
+      || source === 'llm-local-hybrid'
+      || source === 'hybrid-llm-local'
+      || source === 'local-template'
+      || source === 'local-rule-completed';
+    var llmWithinLimit = !expectedLlmChapterCount || llmChapterCount <= expectedLlmChapterCount;
+    return allowedSource && llmWithinLimit && llmChapterCount <= total && qualityOk;
   }
 
   function _setStartBusy(isBusy) {
@@ -902,7 +970,7 @@
 
     function run(resolve, reject, lastErr) {
       if (idx >= endpoints.length) {
-        reject(new Error(lastErr || '점성술 프리미엄 API 호출에 실패했습니다.'));
+        reject(lastErr instanceof Error ? lastErr : new Error(lastErr || '점성술 프리미엄 API 호출에 실패했습니다.'));
         return;
       }
       var url = endpoints[idx++];
@@ -926,10 +994,14 @@
             resolve(pack.json);
             return;
           }
-          run(resolve, reject, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
+          run(resolve, reject, _buildAstroApiError(pack, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status), {
+            stage: 'prepare',
+            sessionId: body && body.sessionId,
+            reportId: body && body.reportId
+          }));
         })
         .catch(function (err) {
-          run(resolve, reject, String(err && err.message || err || '요청 실패'));
+          run(resolve, reject, err instanceof Error ? err : new Error(String(err && err.message || err || '요청 실패')));
         });
     }
 
@@ -953,7 +1025,7 @@
     var idx = 0;
     function run(resolve, reject, lastErr) {
       if (idx >= endpoints.length) {
-        reject(new Error(lastErr || '점성술 생성 상태를 확인할 수 없습니다.'));
+        reject(lastErr instanceof Error ? lastErr : new Error(lastErr || '점성술 생성 상태를 확인할 수 없습니다.'));
         return;
       }
       fetch(endpoints[idx++], { method: 'GET', headers: _astroStatusHeaders() })
@@ -967,10 +1039,13 @@
             resolve(pack.json);
             return;
           }
-          run(resolve, reject, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
+          run(resolve, reject, _buildAstroApiError(pack, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status), {
+            stage: 'status',
+            sessionId: sid
+          }));
         })
         .catch(function (err) {
-          run(resolve, reject, String(err && err.message || err || '상태 확인 실패'));
+          run(resolve, reject, err instanceof Error ? err : new Error(String(err && err.message || err || '상태 확인 실패')));
         });
     }
     return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
@@ -1036,7 +1111,11 @@
       return _fetchAstroStatus(sessionId).then(function (payload) {
         var data = _applyAstroStatusProgress(payload);
         if (data.status === 'done' && data.result) return data.result;
-        if (data.status === 'failed') throw new Error((data.error && data.error.message) || '점성술 PDF 생성에 실패했습니다.');
+        if (data.status === 'failed') throw _buildAstroApiError({ status: data.statusCode || 500, body: data }, (data.error && data.error.message) || data.message || '점성술 PDF 생성에 실패했습니다.', {
+          stage: 'status',
+          sessionId: sessionId,
+          reportId: data.reportId
+        });
         if (Date.now() - started > timeoutMs) throw new Error('점성술 PDF 생성 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.');
         return new Promise(function (resolve) { setTimeout(resolve, 1800); }).then(wait);
       });
@@ -1051,7 +1130,12 @@
       return Promise.resolve({ ok: true, skipped: true });
     }
     if (typeof window._cdCoinGatePerUse !== 'function') {
-      return Promise.reject(new Error('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.'));
+      var missingPaymentError = new Error('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
+      missingPaymentError.status = 503;
+      missingPaymentError.code = 'ASTRO_PAYMENT_MODULE_MISSING';
+      missingPaymentError.stage = 'billing';
+      _logError(missingPaymentError, { stage: 'billing' });
+      return Promise.reject(missingPaymentError);
     }
     _logStage('PaymentGateStart', { featureKey: ASTRO_BILLING_FEATURE_KEY });
     return new Promise(function (resolve, reject) {
@@ -1063,7 +1147,12 @@
           _logStage('PaymentGateSuccess', { featureKey: ASTRO_BILLING_FEATURE_KEY });
           resolve({ ok: true, skipped: false, data: _lastPremiumPayment });
         }, function () {
-          reject(new Error('결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.'));
+          var billingError = new Error('결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+          billingError.status = 402;
+          billingError.code = 'ASTRO_PAYMENT_CANCELLED';
+          billingError.stage = 'billing';
+          _logError(billingError, { stage: 'billing' });
+          reject(billingError);
         }, {
           featureKey: ASTRO_BILLING_FEATURE_KEY,
           requestId: 'astro-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
@@ -1218,7 +1307,7 @@
         if (response && response.result && response.status === 'done') response = response.result;
         total = _getTotalChapters();
         if (response && !_hasAstroLlmReady(response, total)) {
-          throw new Error('점성술 프리미엄 원고 작성이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+          throw new Error('점성술 프리미엄 원고 검증이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.');
         }
         if (!_isCompletedReportReady(response)) {
           throw new Error('점성술 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.');

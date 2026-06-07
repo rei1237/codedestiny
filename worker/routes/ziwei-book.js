@@ -1666,6 +1666,49 @@ function buildCompactZiweiLocalChapterSeeds(profile = {}, seed = {}) {
   });
 }
 
+function buildZiweiLocalManuscriptEnhancementSeeds(profile = {}, seed = {}, localChapters = []) {
+  const compactSeeds = buildCompactZiweiLocalChapterSeeds(profile, seed);
+  return compactSeeds.map((chapterSeed, index) => {
+    const localChapter = localChapters[index] || {};
+    const localCategories = Array.isArray(localChapter?.categories) ? localChapter.categories : [];
+    const categories = safeArray(chapterSeed.categories).map((categorySeed, categoryIndex) => {
+      const localCategory = localCategories[categoryIndex] || {};
+      const localText = sanitizeCounselingText(localCategory?.finalText || localCategory?.text || localCategory?.localSummary || "");
+      return {
+        ...categorySeed,
+        localText,
+        localSummary: localText,
+        evidenceAnchors: normalizeZiweiEvidenceAnchors(
+          localCategory?.evidenceAnchors || categorySeed?.evidenceAnchors,
+          localText,
+          seed,
+        ),
+      };
+    });
+    return {
+      ...chapterSeed,
+      categories,
+      source: "local-json-manuscript",
+      calculationOnly: false,
+      localDraftChapter: {
+        id: clean(localChapter?.id || chapterSeed.id),
+        chapterNo: Number(localChapter?.chapterNo || chapterSeed.chapterNo || index + 1),
+        title: clean(localChapter?.title || chapterSeed.chapterTitle),
+        summary: sanitizeCounselingText(localChapter?.summary || ""),
+        practicalAdvice: sanitizeCounselingText(localChapter?.practicalAdvice || ""),
+        cautionFlow: sanitizeCounselingText(localChapter?.cautionFlow || ""),
+        transitionLine: sanitizeCounselingText(localChapter?.transitionLine || ""),
+        categories,
+      },
+      writingRequirements: {
+        ...safeObject(chapterSeed.writingRequirements),
+        mode: "enhance-local-json-manuscript",
+        preserveLocalTextFacts: true,
+      },
+    };
+  });
+}
+
 function buildFallbackChapter(blueprint, profile = {}, seed = {}) {
   const categories = blueprint.categories.map((categoryTitle, categoryIndex) => {
     const guide = buildZiweiLocalChapterGuide({
@@ -1792,7 +1835,7 @@ function sanitizeLLMFinalManuscript({ chapters = [], seed = {} } = {}) {
       id: blueprint.id,
       roman: blueprint.roman,
       title: blueprint.title,
-      source: "gemini-chapter",
+      source: clean(found?.source || "gemini-enhanced-local"),
     };
   });
 }
@@ -2097,15 +2140,18 @@ function buildZiweiLLMInput({ profile = {}, seed = {}, blueprint = {}, localChap
           title: clean(category?.title),
           order: Number(category?.order || 0),
           evidenceAnchors: safeArray(category?.evidenceAnchors),
+          localText: sanitizeCounselingText(category?.localText || category?.finalText || category?.text || category?.localSummary || ""),
+          localSummary: sanitizeCounselingText(category?.localSummary || category?.localText || category?.finalText || category?.text || ""),
         }))
         : [],
+      localDraftChapter: safeObject(localChapter?.localDraftChapter),
       palaceFacts: safeObject(localChapter?.palaceFacts),
       starFacts: safeObject(localChapter?.starFacts),
       transformationFacts: safeArray(localChapter?.transformationFacts),
       timelineFacts: safeObject(localChapter?.timelineFacts),
       evidenceAnchors: safeArray(localChapter?.evidenceAnchors),
       writingRequirements: safeObject(localChapter?.writingRequirements),
-      calculationOnly: true,
+      calculationOnly: Boolean(localChapter?.calculationOnly),
     },
     previousSummaries,
     attempt,
@@ -2114,10 +2160,11 @@ function buildZiweiLLMInput({ profile = {}, seed = {}, blueprint = {}, localChap
 }
 
 function buildZiweiChapterPrompt(input = {}) {
-  return `당신은 자미두수 명반 자료를 바탕으로 프리미엄 PDF의 개인화 본문만 작성하는 전문 상담가입니다.
+  return `당신은 자미두수 로컬 명반 JSON으로 먼저 생성된 프리미엄 PDF 원고를 보강하는 전문 상담가입니다.
 
 역할:
-계산된 자미두수 명반 자료만 근거로 사용해 현재 챕터의 상담 본문을 작성합니다.
+입력의 localCalculationJson.localDraftChapter와 categories.localText가 이미 완성된 로컬 PDF 문장 초안입니다.
+이 원고를 원본으로 삼아 문장 밀도, 상담감, 개인화 깊이만 보강합니다.
 
 정적 템플릿 정책:
 - 표지, 목차, 챕터 제목, 카테고리 제목, 공통 안내문은 코드 템플릿에서 이미 생성됩니다.
@@ -2127,12 +2174,13 @@ function buildZiweiChapterPrompt(input = {}) {
 원칙:
 1. 자미두수 명반을 새로 계산하지 않습니다.
 2. 입력 자료에 없는 별, 궁, 사화, 시기 정보는 만들지 않습니다.
-3. 내부 용어(JSON, payload, debug, API, LLM, prompt, schema, engine)를 본문에 쓰지 않습니다.
-4. 공포 조장, 질병 진단, 투자 수익 보장, 확정 예언을 하지 않습니다.
-5. 단정 대신 경향, 가능성, 전략, 선택 기준으로 표현합니다.
-6. 각 카테고리 본문은 최소 700자 이상 작성합니다.
-7. 각 카테고리에는 실제 근거를 2개 이상 넣습니다. 근거는 궁명, 별명, 강약 기호(묘/O/리/평/X), 사화, 대운/세운 중에서 고릅니다.
-8. 문체는 전문적이고 신비롭게 유지하되 개발 문서처럼 보이면 안 됩니다.
+3. localText의 판단 방향과 핵심 문장을 유지하되, 반복을 줄이고 근거 연결을 더 선명하게 보강합니다.
+4. 내부 용어(JSON, payload, debug, API, LLM, prompt, schema, engine)를 본문에 쓰지 않습니다.
+5. 공포 조장, 질병 진단, 투자 수익 보장, 확정 예언을 하지 않습니다.
+6. 단정 대신 경향, 가능성, 전략, 선택 기준으로 표현합니다.
+7. 각 카테고리 본문은 최소 700자 이상 작성합니다.
+8. 각 카테고리에는 실제 근거를 2개 이상 넣습니다. 근거는 궁명, 별명, 강약 기호(묘/O/리/평/X), 사화, 대운/세운 중에서 고릅니다.
+9. 문체는 전문적이고 신비롭게 유지하되 개발 문서처럼 보이면 안 됩니다.
 
 출력 형식:
 순수 JSON 객체 하나만 출력합니다.
@@ -2240,7 +2288,7 @@ function normalizeLLMGeneratedChapterShape(chapter = {}, blueprint = {}, seed = 
     cautionFlow: sanitizeCounselingText(chapter?.cautionFlow || ""),
     transitionLine: sanitizeCounselingText(chapter?.transitionLine || ""),
     categories,
-    source: "gemini-chapter",
+    source: clean(chapter?.source || "gemini-enhanced-local"),
   };
   const merged = composeChapterText(normalized);
   return {
@@ -2278,7 +2326,7 @@ function toZiweiGeneratedChapter(parsed = {}, blueprint = {}, profile = {}, seed
     cautionFlow: sanitizeCounselingText(parsed?.cautionFlow || ""),
     transitionLine: sanitizeCounselingText(parsed?.transitionLine || ""),
     categories,
-    source: "gemini-chapter",
+    source: "gemini-enhanced-local",
   }, blueprint, seed);
 }
 
@@ -2357,6 +2405,9 @@ async function generateZiweiChaptersWithLLM(env, profile, seed, localCalculation
   const seeded = Array.isArray(localCalculationSeeds) && localCalculationSeeds.length === CHAPTER_BLUEPRINTS.length
     ? localCalculationSeeds
     : buildCompactZiweiLocalChapterSeeds(profile, seed);
+  const localFallbackChapters = Array.isArray(options?.localChapters) && options.localChapters.length === CHAPTER_BLUEPRINTS.length
+    ? options.localChapters
+    : [];
   const concurrency = Math.max(1, Math.min(6, toInt(env?.ZIWEI_LLM_CHAPTER_CONCURRENCY || env?.PREMIUM_LLM_CHAPTER_CONCURRENCY, 4)));
   const failedChapters = [];
   const chapterResults = await mapZiweiChapterJobs(CHAPTER_BLUEPRINTS, concurrency, async (blueprint, index) => {
@@ -2370,7 +2421,7 @@ async function generateZiweiChaptersWithLLM(env, profile, seed, localCalculation
         requestId: clean(options?.requestId),
         masterJson: options?.masterJson || null,
       });
-      return { ...chapter, source: "gemini-chapter" };
+      return { ...chapter, source: "gemini-enhanced-local" };
     } catch (error) {
       const failure = {
         chapter: index + 1,
@@ -2387,22 +2438,30 @@ async function generateZiweiChaptersWithLLM(env, profile, seed, localCalculation
   });
   const chapters = chapterResults.filter(Boolean);
   if (failedChapters.length) {
-    throw Object.assign(new Error("자미두수 LLM 챕터 생성이 완료되지 않았습니다."), {
-      code: "ZIWEI_LLM_CHAPTERS_INCOMPLETE",
-      status: 502,
-      detail: {
-        failedChapters,
-        llmChapterCount: chapters.length,
-        expectedChapterCount: CHAPTER_BLUEPRINTS.length,
-      },
+    const merged = CHAPTER_BLUEPRINTS.map((blueprint, index) => {
+      if (chapterResults[index]) return chapterResults[index];
+      const localFallback = localFallbackChapters[index] || buildFallbackChapter(blueprint, profile, seed);
+      return {
+        ...normalizeChapterShape(localFallback, blueprint, profile, seed),
+        source: "local-json-manuscript",
+      };
     });
+    return {
+      chapters: merged,
+      fallbackUsed: true,
+      fallbackChapterCount: failedChapters.length,
+      llmChapterCount: chapters.length,
+      source: failedChapters.length === CHAPTER_BLUEPRINTS.length ? "local-json-manuscript" : "hybrid-local-json-llm",
+      llmFallbackReason: failedChapters.map((item) => `${item.chapter}:${item.code}`).join(", "),
+      failedChapters,
+    };
   }
   return {
     chapters,
     fallbackUsed: false,
     fallbackChapterCount: 0,
     llmChapterCount: chapters.length,
-    source: "llm-parallel",
+    source: "llm-enhanced-local-json",
     llmFallbackReason: "",
   };
 }
@@ -2654,7 +2713,7 @@ function buildZiweiMasterJson(profile = {}, seed = {}, body = {}) {
     serviceKey: ZIWEI_SERVICE_KEY,
     featureKey: ZIWEI_FEATURE_KEY,
     reportType: "ziweiPremium",
-    generationMode: "worker-native-llm",
+    generationMode: "local-json-llm-enhanced",
     calculationSource: clean(seed?.diagnostics?.generatedBy || body?.calculationSource || "browser-ziwei-engine"),
     birthProfile: {
       name: clean(profile?.name || localChart?.birthInput?.name) || "사용자",
@@ -2733,7 +2792,7 @@ function validateZiweiMasterJson(masterJson = {}) {
   const chapterSpecs = safeArray(masterJson?.chapterSpecs);
   requireField(clean(masterJson?.schemaVersion) === ZIWEI_MASTER_JSON_SCHEMA_VERSION, "schemaVersion");
   requireField(clean(masterJson?.serviceKey) === ZIWEI_SERVICE_KEY, "serviceKey");
-  requireField(clean(masterJson?.generationMode) === "worker-native-llm", "generationMode");
+  requireField(clean(masterJson?.generationMode) === "local-json-llm-enhanced", "generationMode");
   requireField(clean(birth.birthDate), "birthProfile.birthDate");
   requireField(Number.isFinite(Number(birth.birthHour)), "birthProfile.birthHour");
   requireField(clean(chart.mingGong), "chart.mingGong");
@@ -3271,37 +3330,93 @@ async function handlePrepare(request, env) {
 
   try {
 
-  console.info("[ZiweiPremiumPDF][LocalJsonSeedBuildStart]", { chapterCount: CHAPTER_BLUEPRINTS.length });
-  localCalculationSeeds = buildCompactZiweiLocalChapterSeeds(profile, seed);
+  console.info("[ZiweiPremiumPDF][LocalJsonManuscriptBuildStart]", { chapterCount: CHAPTER_BLUEPRINTS.length });
+  const localManuscript = buildHighQualityLocalZiweiChapters(profile, seed, 2);
+  const localChapters = sanitizeFinalManuscript({ chapters: localManuscript.chapters, profile, seed });
+  const localValidation = validateChapters(localChapters);
+  const localDuplicateRate = computeDuplicateRate(localChapters);
+  const localBundleValidation = validateFinalManuscript({ birthInput, seed, chapters: localChapters });
+  if (!localValidation.ok || localDuplicateRate > 0.25 || !localBundleValidation.ok) {
+    throw Object.assign(new Error("자미두수 로컬 JSON 원고 검증에 실패했습니다."), {
+      status: 422,
+      code: "ZIWEI_LOCAL_MANUSCRIPT_INVALID",
+      detail: {
+        validationErrors: localValidation.errors,
+        finalErrors: localBundleValidation.errors,
+        duplicateRate: localDuplicateRate,
+      },
+    });
+  }
+  localCalculationSeeds = buildZiweiLocalManuscriptEnhancementSeeds(profile, seed, localChapters);
   const localMetrics = {
     ok: Array.isArray(localCalculationSeeds) && localCalculationSeeds.length === CHAPTER_BLUEPRINTS.length,
     evidenceAnchorCount: localCalculationSeeds.reduce((sum, chapter) => sum + safeArray(chapter?.evidenceAnchors).length, 0),
+    localTextCharCount: localChapters.reduce((sum, chapter) => sum + safeArray(chapter?.categories).reduce((subtotal, category) => subtotal + stripForbiddenTokens(category?.finalText || category?.text || "").length, 0), 0),
   };
-  console.info("[ZiweiPremiumPDF][LocalJsonSeedBuildSuccess]", {
+  console.info("[ZiweiPremiumPDF][LocalJsonManuscriptBuildSuccess]", {
     chapterCount: localCalculationSeeds.length,
     evidenceAnchorCount: localMetrics.evidenceAnchorCount,
+    localTextCharCount: localMetrics.localTextCharCount,
     localJsonSeedValid: localMetrics.ok,
   });
 
-  let enhanced = await generateZiweiChaptersWithLLM(env, profile, seed, localCalculationSeeds, {
-    requestId: reportId,
-    masterJson: ziweiMasterJson,
-  });
-  let completedChapters = sanitizeLLMFinalManuscript({ chapters: enhanced.chapters, seed });
-  let validation = validateChapters(completedChapters);
-  let duplicateRate = computeDuplicateRate(completedChapters);
-  let finalBundleValidation = validateFinalManuscript({ birthInput, seed, chapters: completedChapters });
-  if (!validation.ok || duplicateRate > 0.25 || !finalBundleValidation.ok) {
-    const qualityErrors = validation.ok ? [] : validation.errors;
-    const finalErrors = finalBundleValidation.ok ? [] : finalBundleValidation.errors;
-    throw Object.assign(new Error("자미두수 LLM 최종 원고 검증에 실패했습니다."), {
-      status: 502,
-      code: "ZIWEI_LLM_MANUSCRIPT_VALIDATION_FAILED",
-      detail: {
-        validationErrors: qualityErrors,
-        finalErrors,
-        duplicateRate,
-      },
+  let enhanced = {
+    chapters: localChapters,
+    fallbackUsed: true,
+    fallbackChapterCount: CHAPTER_BLUEPRINTS.length,
+    llmChapterCount: 0,
+    source: "local-json-manuscript",
+    llmFallbackReason: "",
+  };
+  let completedChapters = localChapters;
+  let validation = localValidation;
+  let duplicateRate = localDuplicateRate;
+  let finalBundleValidation = localBundleValidation;
+
+  try {
+    const llmEnhanced = await generateZiweiChaptersWithLLM(env, profile, seed, localCalculationSeeds, {
+      requestId: reportId,
+      masterJson: ziweiMasterJson,
+      localChapters,
+    });
+    const candidateChapters = sanitizeLLMFinalManuscript({ chapters: llmEnhanced.chapters, seed });
+    const candidateValidation = validateChapters(candidateChapters);
+    const candidateDuplicateRate = computeDuplicateRate(candidateChapters);
+    const candidateBundleValidation = validateFinalManuscript({ birthInput, seed, chapters: candidateChapters });
+    if (!candidateValidation.ok || candidateDuplicateRate > 0.25 || !candidateBundleValidation.ok) {
+      throw Object.assign(new Error("자미두수 LLM 보강 원고 검증에 실패했습니다."), {
+        status: 502,
+        code: "ZIWEI_LLM_ENHANCEMENT_VALIDATION_FAILED",
+        detail: {
+          validationErrors: candidateValidation.errors,
+          finalErrors: candidateBundleValidation.errors,
+          duplicateRate: candidateDuplicateRate,
+        },
+      });
+    }
+    enhanced = llmEnhanced;
+    completedChapters = candidateChapters;
+    validation = candidateValidation;
+    duplicateRate = candidateDuplicateRate;
+    finalBundleValidation = candidateBundleValidation;
+  } catch (llmError) {
+    enhanced = {
+      chapters: localChapters,
+      fallbackUsed: true,
+      fallbackChapterCount: CHAPTER_BLUEPRINTS.length,
+      llmChapterCount: 0,
+      source: "local-json-manuscript",
+      llmFallbackReason: clean(llmError?.code || llmError?.message || "ZIWEI_LLM_ENHANCEMENT_SKIPPED"),
+      failedChapters: safeArray(llmError?.detail?.failedChapters),
+    };
+    completedChapters = localChapters;
+    validation = localValidation;
+    duplicateRate = localDuplicateRate;
+    finalBundleValidation = localBundleValidation;
+    console.warn("[ZiweiPremiumPDF][LLMEnhancementFallbackToLocal]", {
+      code: clean(llmError?.code || "ZIWEI_LLM_ENHANCEMENT_FAILED"),
+      message: clean(llmError?.message || ""),
+      localChapterCount: completedChapters.length,
     });
   }
   let finalValidation = validation;
@@ -3321,7 +3436,7 @@ async function handlePrepare(request, env) {
   console.info("[ZiweiPremiumPDF][PdfRenderStart]", { chapterCount: completedChapters.length, qualityStatus: "passed" });
   const ziweiPayload = buildZiweiPayload(profile, seed, completedChapters, {
     accessType: clean(access.accessType || "unknown"),
-    manuscriptSource: clean(enhanced.source || "gemini-chapter"),
+    manuscriptSource: clean(enhanced.source || "local-json-manuscript"),
     llmChapterCount: Number(enhanced.llmChapterCount || 0),
     fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
     llmFallbackReason: clean(enhanced.llmFallbackReason),
@@ -3346,7 +3461,7 @@ async function handlePrepare(request, env) {
   console.info("[ZiweiPremiumPDF][PdfRenderSuccess]", { chapterCount: completedChapters.length });
 
   await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
-    manuscriptSource: clean(enhanced.source || "gemini-chapter"),
+    manuscriptSource: clean(enhanced.source || "local-json-manuscript"),
     chapterCount: completedChapters.length,
     llmChapterCount: Number(enhanced.llmChapterCount || 0),
     fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
@@ -3399,7 +3514,7 @@ async function handlePrepare(request, env) {
     htmlUrl: archiveHtmlUrl,
     directDownloadUrl,
     qualityStatus: "passed",
-    manuscriptSource: clean(enhanced.source || "gemini-chapter"),
+    manuscriptSource: clean(enhanced.source || "local-json-manuscript"),
     llmChapterCount: Number(enhanced.llmChapterCount || 0),
     fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
     fallbackUsed: Boolean(enhanced.fallbackUsed),

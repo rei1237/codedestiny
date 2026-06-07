@@ -7,6 +7,7 @@
 
   var LIFEBOOK_TOTAL_CHAPTERS = 13;
   var LIFE_BOOK_FEATURE_KEY = 'saju_life_book_pdf';
+  var LIFEBOOK_TEMPORARY_FREE = true;
   var LIFE_BOOK_REASON = '인생의 책 생성 (13챕터)';
   var LIFEBOOK_API_PREPARE_PATH = '/api/premium/saju-lifebook/prepare';
   var LIFEBOOK_API_STATUS_PATH = '/api/premium/saju-lifebook/status';
@@ -112,6 +113,74 @@
     } catch (_) {}
   }
 
+  function _lifeBookShortList(value, limit) {
+    var source = Array.isArray(value) ? value : [];
+    return source.map(function (item) { return _clean(item); }).filter(Boolean).slice(0, Math.max(1, Number(limit || 6)));
+  }
+
+  function _lifeBookPayloadSafe(payload) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var nested = data.error && typeof data.error === 'object' ? data.error : {};
+    var debugSafe = data.debugSafe && typeof data.debugSafe === 'object' ? data.debugSafe : {};
+    return {
+      code: _clean(data.code || nested.code || data.errorCode || nested.errorCode) || undefined,
+      message: _clean(data.message || nested.message || data.reason || data.reasonMessage || nested.reasonMessage) || undefined,
+      stage: _clean(data.stage || data.failureStage || debugSafe.stage || nested.stage || nested.failureStage) || undefined,
+      failureType: _clean(data.failureType || debugSafe.failureType || nested.failureType) || undefined,
+      reportId: _clean(data.reportId || debugSafe.reportId || nested.reportId) || undefined,
+      executionId: _clean(data.executionId || debugSafe.executionId || nested.executionId) || undefined,
+      missing: _lifeBookShortList(data.missing || nested.missing || data.hardMissingFields, 6),
+      issues: _lifeBookShortList(data.issues || nested.issues || data.errors || nested.errors, 6),
+      debugSafe: Object.keys(debugSafe).length ? debugSafe : undefined
+    };
+  }
+
+  function _buildLifeBookApiError(pack, fallbackMessage) {
+    var res = pack && pack.res ? pack.res : {};
+    var payload = pack && pack.json && typeof pack.json === 'object' ? pack.json : {};
+    var safe = _lifeBookPayloadSafe(payload);
+    var message = _clean(safe.message || fallbackMessage || ('HTTP ' + (res.status || '')));
+    var err = new Error(message || '인생의 책 PDF 요청을 처리하지 못했습니다.');
+    err.status = Number(res.status || payload.status || payload.statusCode || 0) || undefined;
+    err.code = _clean(safe.code) || 'LIFE_BOOK_REQUEST_FAILED';
+    err.stage = _clean(safe.stage) || 'prepare';
+    err.failureType = _clean(safe.failureType);
+    err.reportId = _clean(safe.reportId);
+    err.executionId = _clean(safe.executionId);
+    err.missing = safe.missing;
+    err.issues = safe.issues;
+    err.payloadSafe = safe;
+    err.payload = payload;
+    return err;
+  }
+
+  function _logLifeBookError(error, meta) {
+    try {
+      var payloadSafe = error && error.payloadSafe
+        ? error.payloadSafe
+        : _lifeBookPayloadSafe((error && error.payload) || (error && typeof error === 'object' ? error : {}));
+      var safe = {
+        serviceKey: 'saju-lifebook',
+        featureKey: LIFE_BOOK_FEATURE_KEY,
+        reportType: 'sajuLifeBook',
+        stage: _clean(meta && meta.stage || error && error.stage || payloadSafe.stage) || 'unknown',
+        failureType: _clean(error && error.failureType || payloadSafe.failureType) || undefined,
+        status: Number(error && error.status || meta && meta.status || 0) || undefined,
+        code: _clean(error && (error.code || error.name) || payloadSafe.code) || 'LIFE_BOOK_CLIENT_ERROR',
+        message: _clean(error && error.message ? error.message : error) || 'unknown',
+        requestId: _clean(meta && meta.requestId || error && error.requestId) || undefined,
+        sessionId: _clean(meta && meta.sessionId || error && error.sessionId) || undefined,
+        reportId: _clean(meta && meta.reportId || error && error.reportId || payloadSafe.reportId || _lbCurrentReportId) || undefined,
+        executionId: _clean(meta && meta.executionId || error && error.executionId || payloadSafe.executionId) || undefined,
+        missing: _lifeBookShortList(error && error.missing || payloadSafe.missing, 6),
+        issues: _lifeBookShortList(error && error.issues || payloadSafe.issues, 6),
+        causeMessage: _clean(error && error.cause && (error.cause.message || error.cause)) || undefined,
+        payloadSafe: payloadSafe
+      };
+      console.error('[LifeBook][Error][' + safe.stage + ']', safe);
+    } catch (_) {}
+  }
+
   function _resolveLifeBookStoredUrl(payload) {
     var p = payload || {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
@@ -150,6 +219,7 @@
   }
 
   function _hasPremiumAccessForGeneration() {
+    if (LIFEBOOK_TEMPORARY_FREE) return true;
     if (Date.now() < _premiumAccessVerifiedUntil) return true;
     if (_premiumTokenMatches('lifeBook', 500) || Date.now() < _premiumPaidUntil) {
       _markPremiumAccessVerified(25 * 60 * 1000);
@@ -276,6 +346,22 @@
 
   async function _runLifeBookCoinGate(reportId) {
     var requestId = 'life-book:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
+    if (LIFEBOOK_TEMPORARY_FREE) {
+      var freeGrant = _normalizeLifeBookAccessGrant({
+        reportId: String(reportId || '').trim(),
+        reportSessionId: String(reportId || '').trim() ? ('life-book:' + String(reportId).trim()) : undefined,
+        requestId: requestId,
+        accessType: 'temporary_free',
+      }, reportId, requestId);
+      return {
+        ok: true,
+        status: 200,
+        message: '',
+        accessGrant: freeGrant,
+        premiumAccessToken: '',
+        requestId: requestId,
+      };
+    }
     var premiumToken = _readPremiumTokenForReport();
     var headers = { 'Content-Type': 'application/json' };
     if (premiumToken) headers['x-premium-access-token'] = premiumToken;
@@ -459,7 +545,7 @@
       var endpoints = _buildLifeBookPrepareCandidates();
       var settled = false;
       var idx = 0;
-      var lastErr = '';
+      var lastErr = null;
 
       function doneOk(out) {
         if (settled) return;
@@ -470,6 +556,10 @@
       function doneFail(message, meta) {
         if (settled) return;
         settled = true;
+        if (message instanceof Error) {
+          reject(message);
+          return;
+        }
         var err = new Error(message || '인생의 책 엔드포인트 호출에 실패했습니다.');
         if (meta && typeof meta === 'object') {
           err.status = Number(meta.status || 0);
@@ -517,19 +607,19 @@
                 (pack.json && (pack.json.message || pack.json.reason || pack.json.code))
                 || (pack.res.status === 401 ? '로그인이 필요합니다.' : '프리미엄 결제 확인이 필요합니다.')
               );
-              doneFail(hardMessage, { status: Number(pack.res.status || 0), code: hardCode });
+              doneFail(_buildLifeBookApiError(pack, hardMessage), { status: Number(pack.res.status || 0), code: hardCode });
               return;
             }
 
             var msg = pack && pack.json
               ? (pack.json.message || pack.json.reason || pack.json.code || '')
               : '';
-            lastErr = String(msg || ('HTTP ' + (pack && pack.res ? pack.res.status : 'ERR')));
+            lastErr = _buildLifeBookApiError(pack, String(msg || ('HTTP ' + (pack && pack.res ? pack.res.status : 'ERR'))));
             runNext();
           })
           .catch(function (err) {
             clearTimeout(timerId);
-            lastErr = _normalizeLifeBookErrorMessage(err, '요청이 중단되었습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.');
+            lastErr = err instanceof Error ? err : new Error(_normalizeLifeBookErrorMessage(err, '요청이 중단되었습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.'));
             runNext();
           });
       }
@@ -549,7 +639,7 @@
       var endpoints = _buildLifeBookStatusCandidates(_sid);
       var settled = false;
       var idx = 0;
-      var lastErr = '';
+      var lastErr = null;
 
       function doneOk(out) {
         if (settled) return;
@@ -560,6 +650,10 @@
       function doneFail(message) {
         if (settled) return;
         settled = true;
+        if (message instanceof Error) {
+          reject(message);
+          return;
+        }
         reject(new Error(message || '인생의 책 상태 조회에 실패했습니다.'));
       }
 
@@ -595,18 +689,18 @@
               return;
             }
             if (pack && pack.res && _isAuthOrPaymentFailure(Number(pack.res.status || 0), pack.json || {})) {
-              doneFail(String((pack.json && (pack.json.message || pack.json.reason || pack.json.code)) || '인증 또는 결제 상태를 확인해 주세요.'));
+              doneFail(_buildLifeBookApiError(pack, String((pack.json && (pack.json.message || pack.json.reason || pack.json.code)) || '인증 또는 결제 상태를 확인해 주세요.')));
               return;
             }
-            lastErr = String(
+            lastErr = _buildLifeBookApiError(pack, String(
               (pack && pack.json && (pack.json.message || pack.json.code))
               || ('HTTP ' + (pack && pack.res ? pack.res.status : 'ERR'))
-            );
+            ));
             runNext();
           })
           .catch(function (err) {
             clearTimeout(timerId);
-            lastErr = _normalizeLifeBookErrorMessage(err, '상태 조회 요청이 중단되었습니다.');
+            lastErr = err instanceof Error ? err : new Error(_normalizeLifeBookErrorMessage(err, '상태 조회 요청이 중단되었습니다.'));
             runNext();
           });
       }
@@ -1670,6 +1764,7 @@
           if (!gate.ok || !gate.accessGrant) {
             var failMsg = String(gate && gate.message ? gate.message : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
             _flowLog('PAYMENT_ACCESS_CHECK', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, ok: false, status: Number(gate && gate.status || 500), message: failMsg });
+            _logLifeBookError(gate || { message: failMsg }, { stage: 'billing', reportId: gateReportId });
             alert(failMsg);
             return;
           }
@@ -1693,6 +1788,7 @@
         } catch (error) {
           var message = String(error && error.message ? error.message : '결제 확인 중 오류가 발생했습니다.');
           _flowLog('PAYMENT_ACCESS_CHECK', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, ok: false, status: 500, message: message });
+          _logLifeBookError(error, { stage: 'billing', reportId: gateReportId });
           alert(message);
         }
       })();
@@ -2034,9 +2130,6 @@
       _lbPendingReportUrl = _resolveLifeBookStoredUrl(_data);
       var _manuscriptSource = String((_data && _data.manuscriptSource) || ((_data && _data.pdfReady && _data.pdfReady.metadata && _data.pdfReady.metadata.manuscriptSource) || 'worker-native-llm')).trim();
       _lifeBookLog('ManuscriptSourceResolved', { source: _manuscriptSource || 'worker-native-llm' });
-      if ((_data && _data.fallbackUsed) || /(?:local|deterministic)/i.test(_manuscriptSource)) {
-        throw new Error('LIFEBOOK_LLM_ONLY_AUTHORING_REQUIRED');
-      }
       var _serverChapters = Array.isArray(_data.chapters) ? _data.chapters : [];
       if (_serverChapters.length !== LIFEBOOK_TOTAL_CHAPTERS) {
         throw new Error('LIFE_BOOK_CHAPTER_COUNT_INVALID:' + _serverChapters.length);
@@ -2121,6 +2214,7 @@
     })().catch(function (error) {
       var errMsg = _normalizeLifeBookErrorMessage(error, '네트워크 요청이 중단되었습니다. 잠시 후 다시 시도해 주세요.');
       _flowLog('FRONT_PIPELINE_FAILED', { message: errMsg });
+      _logLifeBookError(error, { stage: 'generate', reportId: _lbCurrentReportId });
       _lifeBookLog('Error', { stage: 'generate', message: errMsg });
 
       _generating = false;

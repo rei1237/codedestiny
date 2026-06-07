@@ -5,6 +5,35 @@ const MIN_SECTION_LENGTH = 900;
 const MIN_CHAPTER_LENGTH = 4000;
 const MIN_TOTAL_LENGTH_FLOOR = 50000;
 const ASTRO_MASTER_JSON_SCHEMA_VERSION = "astro-premium-master-json.v1";
+export const WESTERN_ASTROLOGY_PROMPT_VERSION = "western-astrology-hybrid-v1";
+export const ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS = [
+  "astro_cosmic_summary",
+  "astro_sun",
+  "astro_personal_planets",
+  "astro_career",
+  "astro_love",
+  "astro_aspects",
+  "astro_timing",
+  "astro_master_plan",
+];
+export const ASTROLOGY_COMPATIBILITY_LLM_ENHANCED_CHAPTERS = [
+  "compatibility_overview",
+  "sun_moon_rising_comparison",
+  "venus_mars_attraction",
+  "synastry_aspects",
+  "conflict_pattern",
+  "long_term_potential",
+  "compatibility_master_plan",
+];
+export const ASTROLOGY_TRANSIT_LLM_ENHANCED_CHAPTERS = [
+  "period_overview",
+  "major_transits",
+  "outer_planet_transits",
+  "career_change",
+  "wealth_flow",
+  "caution_periods",
+  "period_master_plan",
+];
 const ASTRO_MANUSCRIPT_SOURCE = Object.freeze({
   LLM: "llm-only",
   LOCAL_COMPLETED: "local-rule-completed",
@@ -27,7 +56,9 @@ const ASTRO_LLM_KEY_ENV_KEYS = Object.freeze([
   "GEMINI_API_KEY",
 ]);
 const ASTRO_LLM_MODEL_ENV_KEYS = Object.freeze(["ASTRO_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"]);
-const ASTRO_LLM_RISKY_ASSERTION_RE = /(반드시\s*(결혼|이혼|성공|실패|큰돈|수익)|100\s*%|확정|무조건|질병을\s*얻게|암에\s*걸|우울증|공황장애|투자\s*수익|수익\s*보장|대박|파산|죽음|사망)/i;
+const ASTRO_LLM_CACHE_MAX = 96;
+const ASTRO_LLM_RISKY_ASSERTION_RE = /(반드시\s*(결혼|이혼|성공|실패|큰돈|수익|파산|이별)|100\s*%|확정|무조건|결혼하면\s*불행|질병을\s*얻게|암에\s*걸|우울증|공황장애|투자\s*수익|수익\s*보장|대박|파산|죽음|사망|직장을\s*잃|큰\s*사고|병에\s*걸|돈을\s*잃|평생\s*외롭|운명.*나쁘|차트.*나쁘)/i;
+const westernAstrologyLlmCache = new Map();
 const FORBIDDEN_PATTERNS = [
   /자동\s*복구\s*생성/gi,
   /fallback/gi,
@@ -117,6 +148,35 @@ const PLANET_KO = {
 
 function clean(value) {
   return String(value || "").trim();
+}
+
+function readAstroFlag(env, key, fallback = false) {
+  const raw = clean(env?.[key]).toLowerCase();
+  if (!raw) return Boolean(fallback);
+  if (["1", "true", "yes", "on", "enabled"].includes(raw)) return true;
+  if (["0", "false", "no", "off", "disabled"].includes(raw)) return false;
+  return Boolean(fallback);
+}
+
+function hasAstroLlmCredential(env = {}) {
+  return ASTRO_LLM_KEY_ENV_KEYS.some((key) => clean(env?.[key]));
+}
+
+function stableStringify(value) {
+  if (value === null || value === undefined) return "null";
+  if (typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map((item) => stableStringify(item)).join(",")}]`;
+  return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+}
+
+function hashStableValue(value) {
+  const input = stableStringify(value);
+  let hash = 2166136261;
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 function safeArray(value) {
@@ -1096,44 +1156,129 @@ export function buildAstroLocalPremiumManuscript(localAstroChartJson) {
   return reinforceManuscriptLength(drafts);
 }
 
-export async function enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, options = {}) {
+export async function enhanceAstroPremiumChaptersWithLLM(env, localManuscriptOrChart, localAstroChartJsonOrOptions = {}, maybeOptions = {}) {
+  const hasLocalManuscript = Array.isArray(localManuscriptOrChart)
+    || Array.isArray(localManuscriptOrChart?.chapters);
+  const localAstroChartJson = hasLocalManuscript ? localAstroChartJsonOrOptions : localManuscriptOrChart;
+  const options = hasLocalManuscript ? maybeOptions : localAstroChartJsonOrOptions;
   const emit = typeof options.log === "function" ? options.log : () => {};
+  const localInput = hasLocalManuscript
+    ? (Array.isArray(localManuscriptOrChart) ? localManuscriptOrChart : safeArray(localManuscriptOrChart?.chapters))
+    : buildAstroLocalPremiumManuscript(localAstroChartJson);
+  const localFallbackChapters = normalizeAstroLocalFallbackManuscript(localInput, localAstroChartJson);
   const chartInput = buildAstroLLMChartInput(localAstroChartJson);
   const masterJson = asObject(options.masterJson);
+  const facts = options.facts || buildWesternAstrologyFacts(localAstroChartJson, options.rawInput || {});
+  const chapterPlans = options.chapterPlans || buildWesternAstrologyChapterPlans({ chapters: localFallbackChapters }, facts, localAstroChartJson);
+  const chapterPlanById = new Map(chapterPlans.map((plan) => [clean(plan.chapterId), plan]));
+  const enhancedChapterIds = new Set(ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS);
+  const llmFlagEnabled = readAstroFlag(env, "WESTERN_ASTROLOGY_LLM_ENHANCEMENT_ENABLED", true);
+  const llmAvailable = llmFlagEnabled && (hasAstroLlmCredential(env) || typeof options.llmChapterGenerator === "function");
   const chapters = [];
   const previousSummaries = [];
+  const attempts = [];
+  const failures = [];
+  const models = new Set();
+  let stopLlmReason = llmAvailable ? "" : (llmFlagEnabled ? "missing_key" : "llm_disabled");
 
-  for (const chapterSpec of ASTRO_PREMIUM_CHAPTERS) {
-    emit("LLMChapterBuildStart", {
-      chapterNo: chapterSpec.order,
-      title: chapterSpec.title,
+  for (const [index, chapterSpec] of ASTRO_PREMIUM_CHAPTERS.entries()) {
+    const localChapter = localFallbackChapters[index]
+      || localFallbackChapters.find((item) => Number(item?.chapterNo) === Number(chapterSpec.order))
+      || {};
+    const chapterPlan = chapterPlanById.get(clean(chapterSpec.id)) || {};
+    let finalChapter = localChapter;
+    let source = stopLlmReason ? "local-template" : "local-template";
+    let chapterAttempts = 0;
+    let model = "";
+    const shouldEnhance = llmAvailable && !stopLlmReason && enhancedChapterIds.has(clean(chapterSpec.id));
+
+    if (shouldEnhance) {
+      emit("LLMChapterBuildStart", {
+        chapterNo: chapterSpec.order,
+        title: chapterSpec.title,
+        chapterId: chapterSpec.id,
+      });
+      const cacheKey = buildWesternAstrologyLlmCacheKey(facts, chapterSpec.id);
+      const cached = readWesternAstrologyLlmCache(cacheKey);
+      if (cached?.chapter) {
+        finalChapter = cached.chapter;
+        source = "llm-cache";
+        model = clean(cached.model || "cache");
+      } else {
+        try {
+          const generated = await generateAstroChapterWithLLM(env, {
+            localAstroChartJson,
+            chartInput,
+            masterJson,
+            chapterSpec,
+            signalBrief: buildAstroLLMSignalBrief(localAstroChartJson, chapterSpec),
+            chapterPlan,
+            previousSummaries,
+            requestId: clean(options.requestId),
+            llmChapterGenerator: options.llmChapterGenerator,
+            log: emit,
+          });
+          finalChapter = generated.chapter;
+          source = "llm-enhanced";
+          chapterAttempts = Number(generated.attempts || 1);
+          model = clean(generated.model);
+          writeWesternAstrologyLlmCache(cacheKey, {
+            chapter: finalChapter,
+            summary: summarizeAstroLLMChapter(finalChapter),
+            model,
+          });
+        } catch (error) {
+          const failureClass = classifyAstroLlmFailure(error);
+          failures.push({
+            chapterId: clean(chapterSpec.id),
+            chapterNo: Number(chapterSpec.order),
+            failureClass,
+            code: clean(error?.code || "ASTRO_LLM_CHAPTER_FAILED"),
+            message: clean(error?.message || error),
+          });
+          source = "local-fallback-after-llm-failure";
+          if (["missing_key", "rate_limited", "timeout"].includes(failureClass)) stopLlmReason = failureClass;
+        }
+      }
+    }
+
+    chapters.push(finalChapter);
+    previousSummaries.push(summarizeAstroLLMChapter(finalChapter));
+    attempts.push({
+      chapterId: clean(chapterSpec.id),
+      chapterNo: Number(chapterSpec.order),
+      attempts: chapterAttempts,
+      model,
+      source,
     });
-    const chapter = await generateAstroChapterWithLLM(env, {
-      localAstroChartJson,
-      chartInput,
-      masterJson,
-      chapterSpec,
-      signalBrief: buildAstroLLMSignalBrief(localAstroChartJson, chapterSpec),
-      previousSummaries,
-      requestId: clean(options.requestId),
-      log: emit,
-    });
-    chapters.push(chapter);
-    previousSummaries.push(summarizeAstroLLMChapter(chapter));
+    if (model && model !== "cache") models.add(model);
     emit("LLMChapterBuildSuccess", {
-      chapterNo: chapter.chapterNo,
-      title: chapter.title,
-      sectionCount: safeArray(chapter.sections).length,
-      chars: chapterLength(chapter),
+      chapterNo: Number(finalChapter.chapterNo || chapterSpec.order),
+      title: clean(finalChapter.title || chapterSpec.title),
+      sectionCount: safeArray(finalChapter.sections).length,
+      chars: chapterLength(finalChapter),
+      source,
     });
   }
 
+  const llmChapterCount = attempts.filter((item) => item.source === "llm-enhanced" || item.source === "llm-cache").length;
+  const localTemplateChapterCount = attempts.length - llmChapterCount;
   return {
     chapters,
-    fallbackUsed: false,
-    llmChapterCount: chapters.length,
-    fallbackChapterCount: 0,
-    source: "llm-only",
+    fallbackUsed: Boolean(failures.length || stopLlmReason),
+    llmChapterCount,
+    fallbackChapterCount: failures.length,
+    localDraftChapterCount: localTemplateChapterCount,
+    source: llmChapterCount > 0 ? ASTRO_MANUSCRIPT_SOURCE.HYBRID : "local-template",
+    enhancedChapterIds: ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS,
+    expectedLlmChapterCount: ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS.length,
+    promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
+    llmEnabled: llmFlagEnabled,
+    llmAvailable,
+    stopLlmReason,
+    failures,
+    attempts,
+    model: Array.from(models).join(", "),
   };
 }
 
@@ -1266,11 +1411,223 @@ function buildAstroLLMSignalBrief(localAstroChartJson = {}, chapterSpec = {}) {
     chapterSignals: coreSignals,
     sections: sectionSignals,
     sourceContract: {
-      manuscriptSource: "llm-only",
-      localDraftAllowed: false,
-      fallbackAllowed: false,
+      manuscriptSource: ASTRO_MANUSCRIPT_SOURCE.HYBRID,
+      localDraftAllowed: true,
+      fallbackAllowed: true,
+      calculationLocked: true,
     },
   };
+}
+
+function getAstroBirthTimeConfidence(birthInput = {}, rawInput = {}) {
+  const explicit = clean(rawInput?.birthTimeConfidence || birthInput?.birthTimeConfidence).toLowerCase();
+  if (["known", "approximate", "unknown"].includes(explicit)) return explicit;
+  if (birthInput?.isTimeUnknown || !Number.isFinite(Number(birthInput?.birthHour))) return "unknown";
+  if (birthInput?.isTimeApproximate || rawInput?.isTimeApproximate) return "approximate";
+  return "known";
+}
+
+function buildAstroTargetPeriod(rawInput = {}) {
+  const targetPeriod = asObject(rawInput?.targetPeriod || rawInput?.period);
+  return {
+    targetYear: Number.isFinite(Number(targetPeriod?.targetYear || rawInput?.targetYear)) ? Number(targetPeriod?.targetYear || rawInput?.targetYear) : null,
+    startDate: clean(targetPeriod?.startDate || rawInput?.startDate),
+    endDate: clean(targetPeriod?.endDate || rawInput?.endDate),
+    label: clean(targetPeriod?.label || rawInput?.periodLabel || rawInput?.yearLabel),
+  };
+}
+
+export function buildWesternAstrologyFacts(localAstroChartJson = {}, rawInput = {}) {
+  const birthInput = asObject(localAstroChartJson?.birthInput);
+  const chart = asObject(localAstroChartJson?.chart);
+  const planets = safeArray(chart?.planets).map(compactAstroPlanetForLLM);
+  const houses = safeArray(chart?.houses).map(compactAstroHouseForLLM);
+  const aspects = safeArray(chart?.aspects).map(compactAstroAspectForLLM);
+  const birthTimeConfidence = getAstroBirthTimeConfidence(birthInput, rawInput);
+  const mode = clean(rawInput?.mode || rawInput?.reportMode || "personal").toLowerCase() || "personal";
+  const calculationMode = clean(localAstroChartJson?.calculationMode || rawInput?.calculationMode || "worker-swiss-western-chart");
+  const calculationBasis = {
+    zodiacType: clean(rawInput?.zodiacType || rawInput?.calculationBasis?.zodiacType || "existing_engine_basis"),
+    houseSystem: clean(rawInput?.houseSystem || rawInput?.calculationBasis?.houseSystem || "existing_engine_value"),
+    timezone: clean(birthInput?.timezone || rawInput?.timezone),
+    birthPlace: {
+      name: clean(birthInput?.birthPlace || rawInput?.birthPlace),
+    },
+    coordinates: {
+      latitude: Number.isFinite(Number(birthInput?.latitude)) ? Number(birthInput.latitude) : null,
+      longitude: Number.isFinite(Number(birthInput?.longitude)) ? Number(birthInput.longitude) : null,
+    },
+    dstRule: clean(rawInput?.dstRule || rawInput?.calculationBasis?.dstRule || "existing_engine_basis"),
+    ephemerisVersion: clean(rawInput?.ephemerisVersion || rawInput?.calculationBasis?.ephemerisVersion || calculationMode),
+    algorithmVersion: calculationMode,
+    dateBoundaryRule: clean(rawInput?.dateBoundaryRule || rawInput?.calculationBasis?.dateBoundaryRule || "existing_engine_basis"),
+    aspectOrbRule: clean(rawInput?.aspectOrbRule || rawInput?.calculationBasis?.aspectOrbRule || "existing_engine_basis"),
+    birthTimeConfidence,
+  };
+  return {
+    productId: "western_astrology",
+    serviceKey: "astro-premium",
+    mode,
+    promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
+    birthInfo: {
+      name: clean(birthInput?.name),
+      gender: clean(birthInput?.gender),
+      birthDate: clean(birthInput?.birthDate),
+      birthTime: clean(birthInput?.birthTime),
+      birthYear: Number.isFinite(Number(birthInput?.birthYear)) ? Number(birthInput.birthYear) : null,
+      birthMonth: Number.isFinite(Number(birthInput?.birthMonth)) ? Number(birthInput.birthMonth) : null,
+      birthDay: Number.isFinite(Number(birthInput?.birthDay)) ? Number(birthInput.birthDay) : null,
+      birthHour: Number.isFinite(Number(birthInput?.birthHour)) ? Number(birthInput.birthHour) : null,
+      birthMinute: Number.isFinite(Number(birthInput?.birthMinute)) ? Number(birthInput.birthMinute) : null,
+      timezone: calculationBasis.timezone,
+      birthPlace: calculationBasis.birthPlace.name,
+      latitude: calculationBasis.coordinates.latitude,
+      longitude: calculationBasis.coordinates.longitude,
+      birthTimeConfidence,
+    },
+    partnerBirthInfo: asObject(rawInput?.partnerBirthInfo || rawInput?.partner || {}),
+    targetPeriod: buildAstroTargetPeriod(rawInput),
+    calculationBasis,
+    natalChart: {
+      ascendant: { sign: clean(chart?.ascendantSign), angle: clean(chart?.angles?.asc) },
+      midheaven: { sign: clean(chart?.midheavenSign), angle: clean(chart?.angles?.mc) },
+      descendant: { sign: clean(chart?.descendantSign), angle: clean(chart?.angles?.dsc) },
+      imumCoeli: { sign: clean(chart?.icSign), angle: clean(chart?.angles?.ic) },
+      sunSign: { sign: clean(chart?.sunSign) },
+      moonSign: { sign: clean(chart?.moonSign) },
+      planetPositions: planets,
+      houseCusps: houses,
+      housePlacements: houses,
+      aspects,
+      retrogradePlanets: planets.filter((planet) => planet.retrograde).map((planet) => clean(planet.name)).filter(Boolean),
+      dignities: [],
+      elementBalance: asObject(chart?.elementBalance),
+      modalityBalance: asObject(chart?.modalityBalance),
+      chartShape: clean(localAstroChartJson?.insights?.chartShape),
+      dominantPlanets: safeArray(localAstroChartJson?.insights?.dominantPlanets),
+      dominantSigns: safeArray(localAstroChartJson?.insights?.dominantSigns),
+      dominantHouses: safeArray(localAstroChartJson?.insights?.dominantHouses),
+    },
+    sensitivePoints: {
+      northNode: asObject(chart?.nodes?.north),
+      southNode: asObject(chart?.nodes?.south),
+      chiron: asObject(chart?.chiron),
+      lilith: asObject(chart?.lilith),
+      partOfFortune: asObject(chart?.partOfFortune),
+      otherPoints: [],
+    },
+    personalThemes: {
+      personalityCore: safeArray(localAstroChartJson?.interpretationSeeds?.personalityKeywords),
+      emotionalPattern: safeArray(localAstroChartJson?.interpretationSeeds?.soulKeywords),
+      communicationPattern: safeArray(localAstroChartJson?.interpretationSeeds?.communicationKeywords),
+      loveRelationshipPattern: safeArray(localAstroChartJson?.interpretationSeeds?.relationshipKeywords),
+      careerTalentPattern: safeArray(localAstroChartJson?.interpretationSeeds?.careerKeywords),
+      wealthResourcePattern: safeArray(localAstroChartJson?.interpretationSeeds?.moneyKeywords),
+      familyHomePattern: safeArray(localAstroChartJson?.interpretationSeeds?.familyKeywords),
+      healthLifestylePattern: safeArray(localAstroChartJson?.interpretationSeeds?.healthKeywords),
+      shadowPattern: safeArray(localAstroChartJson?.interpretationSeeds?.cautionKeywords),
+      growthPattern: safeArray(localAstroChartJson?.interpretationSeeds?.growthKeywords),
+      spiritualPattern: safeArray(localAstroChartJson?.interpretationSeeds?.spiritualKeywords),
+      riskWarnings: safeArray(localAstroChartJson?.interpretationSeeds?.cautionKeywords),
+      opportunitySignals: safeArray(localAstroChartJson?.interpretationSeeds?.growthKeywords),
+      recommendedActions: safeArray(localAstroChartJson?.insights?.cards).map((card) => clean(card?.text)).filter(Boolean).slice(0, 8),
+      avoidActions: birthTimeConfidence === "known" ? [] : ["출생 시간이 불명확하므로 상승궁, MC, 하우스 기반 해석은 단정하지 않는다."],
+    },
+    compatibility: {
+      partnerChartSummary: {},
+      synastryAspects: [],
+      compositeChart: {},
+      relationshipStrengths: [],
+      relationshipRisks: [],
+      relationshipAdvice: [],
+      compatibilityScore: null,
+    },
+    timingFlows: {
+      transits: safeArray(rawInput?.transits || rawInput?.timingFlows?.transits),
+      progressions: safeArray(rawInput?.progressions || rawInput?.timingFlows?.progressions),
+      solarReturn: asObject(rawInput?.solarReturn || rawInput?.timingFlows?.solarReturn),
+      lunarReturn: asObject(rawInput?.lunarReturn || rawInput?.timingFlows?.lunarReturn),
+      monthlyFlow: safeArray(rawInput?.monthlyFlow || rawInput?.timingFlows?.monthlyFlow),
+      annualFlow: safeArray(rawInput?.annualFlow || rawInput?.timingFlows?.annualFlow),
+    },
+  };
+}
+
+export function buildWesternAstrologyLlmCacheKey(facts = {}, chapterId = "") {
+  const basis = asObject(facts?.calculationBasis);
+  return [
+    "western-astrology-llm",
+    WESTERN_ASTROLOGY_PROMPT_VERSION,
+    clean(facts?.productId || "western_astrology"),
+    clean(facts?.mode || "personal"),
+    clean(chapterId),
+    clean(basis.zodiacType),
+    clean(basis.houseSystem),
+    clean(basis.aspectOrbRule),
+    clean(basis.ephemerisVersion || basis.algorithmVersion),
+    hashStableValue(facts?.birthInfo || {}),
+    hashStableValue(facts?.partnerBirthInfo || {}),
+    hashStableValue(facts?.targetPeriod || {}),
+    hashStableValue(basis),
+  ].join(":");
+}
+
+function readWesternAstrologyLlmCache(key) {
+  const token = clean(key);
+  if (!token || !westernAstrologyLlmCache.has(token)) return null;
+  const value = westernAstrologyLlmCache.get(token);
+  westernAstrologyLlmCache.delete(token);
+  westernAstrologyLlmCache.set(token, value);
+  return value;
+}
+
+function writeWesternAstrologyLlmCache(key, value) {
+  const token = clean(key);
+  if (!token || !value) return;
+  westernAstrologyLlmCache.set(token, value);
+  while (westernAstrologyLlmCache.size > ASTRO_LLM_CACHE_MAX) {
+    const oldest = westernAstrologyLlmCache.keys().next().value;
+    westernAstrologyLlmCache.delete(oldest);
+  }
+}
+
+export function buildWesternAstrologyChapterPlans(localManuscript = {}, facts = {}, localAstroChartJson = {}) {
+  const chapters = Array.isArray(localManuscript) ? localManuscript : safeArray(localManuscript?.chapters);
+  return ASTRO_PREMIUM_CHAPTERS.map((chapterSpec, index) => {
+    const chapter = chapters[index] || chapters.find((item) => Number(item?.chapterNo) === Number(chapterSpec.order)) || {};
+    const signalBrief = buildAstroLLMSignalBrief(localAstroChartJson, chapterSpec);
+    const lockedFacts = uniqueList([
+      `태양: ${clean(facts?.natalChart?.sunSign?.sign)}`,
+      `달: ${clean(facts?.natalChart?.moonSign?.sign)}`,
+      `상승궁: ${clean(facts?.natalChart?.ascendant?.sign)}`,
+      `MC: ${clean(facts?.natalChart?.midheaven?.sign)}`,
+      ...safeArray(signalBrief?.chapterSignals).slice(0, 10),
+    ]).filter(Boolean);
+    const localDraft = safeArray(chapter?.sections)
+      .map((section) => [clean(section?.title), clean(section?.body)].filter(Boolean).join("\n\n"))
+      .filter(Boolean)
+      .join("\n\n")
+      .slice(0, 9000);
+    const warnings = [
+      "상승궁, MC, 태양, 달, 행성 위치, 하우스, 어스펙트는 lockedFacts와 로컬 계산 결과만 따른다.",
+      "사주, 숙요, 베다점, 자미두수 용어를 서양 점성술 해석처럼 섞지 않는다.",
+      "행성별, 하우스별, 어스펙트별, 트랜짓별 개별 LLM 호출을 하지 않는다.",
+    ];
+    if (facts?.calculationBasis?.birthTimeConfidence !== "known") {
+      warnings.push("출생 시간이 불명확하므로 상승궁, MC, 하우스 기반 해석은 단정하지 않는다.");
+    }
+    return {
+      chapterId: clean(chapterSpec.id),
+      chapterTitle: clean(chapterSpec.title),
+      mode: clean(facts?.mode || "personal"),
+      purpose: clean(chapter?.subtitle || chapterSpec.title),
+      lockedFacts,
+      interpretationPoints: safeArray(chapterSpec.categories).map((category) => clean(category?.title)).filter(Boolean),
+      warnings,
+      recommendedTone: "전문적이고 신비로운 한국어 서양 점성술 상담문",
+      localDraft: softenAstroRiskyBody(localDraft),
+    };
+  });
 }
 
 export function buildAstroMasterJson(localAstroChartJson = {}, rawInput = {}) {
@@ -1283,7 +1640,8 @@ export function buildAstroMasterJson(localAstroChartJson = {}, rawInput = {}) {
     serviceKey: "astro-premium",
     featureKey: "premium-astrology-report",
     reportType: "westernAstrologyPremium",
-    generationMode: "worker-native-llm",
+    generationMode: "worker-native-hybrid",
+    promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
     calculationSource: clean(localAstroChartJson?.calculationMode || rawInput?.calculationMode || "worker-swiss-western-chart"),
     birthProfile: {
       name: clean(birthInput.name) || "사용자",
@@ -1370,7 +1728,7 @@ export function validateAstroMasterJson(masterJson = {}) {
   const chapterSpecs = safeArray(masterJson?.chapterSpecs);
   requireField(clean(masterJson?.schemaVersion) === ASTRO_MASTER_JSON_SCHEMA_VERSION, "schemaVersion");
   requireField(clean(masterJson?.serviceKey) === "astro-premium", "serviceKey");
-  requireField(clean(masterJson?.generationMode) === "worker-native-llm", "generationMode");
+  requireField(["worker-native-hybrid", "worker-native-llm"].includes(clean(masterJson?.generationMode)), "generationMode");
   requireField(clean(birth.birthDate), "birthProfile.birthDate");
   requireField(Number.isFinite(Number(birth.birthHour)), "birthProfile.birthHour");
   requireField(clean(birth.timezone), "birthProfile.timezone");
@@ -1410,7 +1768,7 @@ function summarizeAstroLLMChapter(chapter = {}) {
   };
 }
 
-function buildAstroChapterPrompt({ chartInput, masterJson = {}, chapterSpec, signalBrief, previousSummaries = [], attempt = 1, lastErrors = [] } = {}) {
+function buildAstroChapterPrompt({ chartInput, masterJson = {}, chapterSpec, signalBrief, chapterPlan = {}, previousSummaries = [], attempt = 1, lastErrors = [] } = {}) {
   const categories = safeArray(chapterSpec?.categories).map((category, index) => ({
     order: index + 1,
     title: category.title,
@@ -1430,10 +1788,13 @@ function buildAstroChapterPrompt({ chartInput, masterJson = {}, chapterSpec, sig
     })),
   };
   return `당신은 출생 차트를 바탕으로 프리미엄 점성술 PDF의 개인화 본문만 작성하는 전문 상담가입니다.
+당신은 점성술 계산자가 아닙니다. 출생차트, 상승궁, MC, 행성 위치, 하우스 배치, 어스펙트, 트랜짓, 프로그레션, 궁합 점수를 새로 산출하지 않습니다.
+아래 제공되는 점성술 계산 결과와 lockedFacts는 이미 확정된 값입니다. tropical/sidereal 기준, 하우스 시스템, 오브 기준, 행성 위치, 하우스, 어스펙트, 역행, 노드, 키론, 릴리스, 트랜짓을 절대 변경하지 마세요.
+제공되지 않은 행성, 하우스, 어스펙트, 트랜짓을 새로 만들지 말고, 사주·숙요·베다점·자미두수 용어를 점성술 해석에 섞지 마세요.
 
 정적 템플릿 정책:
 1. 표지, 목차, 챕터 제목, 섹션 제목, 공통 안내문은 코드 템플릿에서 이미 생성됩니다.
-2. LLM은 제목을 새로 쓰지 말고, 입력된 카테고리 순서에 맞춰 body와 상담 근거만 작성합니다.
+2. LLM은 제목을 새로 쓰지 말고, 입력된 카테고리 순서에 맞춰 localDraft를 프리미엄 상담문으로 보강합니다.
 3. sections 배열은 입력 categories와 같은 순서와 개수여야 합니다.
 
 작성 원칙:
@@ -1444,6 +1805,7 @@ function buildAstroChapterPrompt({ chartInput, masterJson = {}, chapterSpec, sig
 5. 같은 문장 구조를 반복하지 말고 이전 장과 다른 표현을 사용합니다.
 6. evidenceSignals에는 body에서 실제로 언급한 차트 근거만 4개 이상 넣습니다.
 7. qualityFlags는 본문 점검 상태를 짧은 문자열 또는 boolean으로만 표시합니다.
+8. 토성, 명왕성, 8하우스, 12하우스, 하드 어스펙트, 역행도 실패·파국·질병·손실로 단정하지 말고 현실적인 관리 포인트로 설명합니다.
 
 [출생 차트 핵심]
 ${safeJsonForPrompt(chartInput)}
@@ -1461,13 +1823,16 @@ ${safeJsonForPrompt({
 [카테고리별 차트 근거 신호]
 ${safeJsonForPrompt(signalBrief)}
 
+[챕터 플랜과 로컬 초안]
+${safeJsonForPrompt(chapterPlan)}
+
 [이전 장 요약]
 ${safeJsonForPrompt(previousSummaries.slice(-4))}
 
 [검수/재작성 요청]
 ${safeJsonForPrompt({ attempt, lastErrors })}
 
-아래 JSON 객체만 반환하세요. 본문 안에는 JSON, API, LLM, fallback, debug, engine, payload, schema 같은 단어를 쓰지 마세요.
+아래 JSON 객체만 반환하세요. 본문 안에는 JSON, API, LLM, fallback, debug, engine, payload, schema 같은 단어를 쓰지 마세요. lockedFacts 누락, 계산 결과 변경, 공포 마케팅, 건강·사고·금전·이혼·사망 단정은 금지합니다.
 ${safeJsonForPrompt(responseShape)}`;
 }
 async function callAstroGemini(env, prompt, options = {}) {
@@ -1478,10 +1843,10 @@ async function callAstroGemini(env, prompt, options = {}) {
     models: [model],
     temperature: Number(env?.ASTRO_GEMINI_TEMPERATURE || env?.PREMIUM_GEMINI_TEMPERATURE || 0.38),
     topP: Number(env?.ASTRO_GEMINI_TOP_P || env?.PREMIUM_GEMINI_TOP_P || 0.9),
-    maxOutputTokens: Number(env?.ASTRO_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 18000),
-    timeoutMs: Number(env?.ASTRO_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
+    maxOutputTokens: Number(env?.WESTERN_ASTROLOGY_LLM_MAX_OUTPUT_TOKENS || env?.ASTRO_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 7200),
+    timeoutMs: Number(env?.WESTERN_ASTROLOGY_LLM_TIMEOUT_MS || env?.ASTRO_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
     totalTimeoutMs: Number(env?.ASTRO_GEMINI_TOTAL_TIMEOUT_MS || 0),
-    maxAttemptsPerPair: Number(env?.ASTRO_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 2),
+    maxAttemptsPerPair: Math.max(1, Math.min(2, Number(env?.WESTERN_ASTROLOGY_LLM_RETRIES || env?.ASTRO_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1))),
     disableVertexFallback: env?.ASTRO_GEMINI_DISABLE_VERTEX_FALLBACK ?? env?.GEMINI_DISABLE_VERTEX_FALLBACK,
     metadata: {
       requestId: clean(options?.requestId),
@@ -1577,7 +1942,7 @@ function normalizeAstroLLMChapter(parsed = {}, chapterSpec = {}, localAstroChart
     : (Array.isArray(parsed?.categories) ? parsed.categories : []);
   const sections = safeArray(chapterSpec.categories).map((category, index) => {
     const hit = rawSections.find((section) => clean(section?.title) === clean(category.title)) || rawSections[index] || {};
-    const body = sanitizeBody(textFromAstroLLMValue(hit?.body || hit?.text || hit?.finalText || hit?.content));
+    const body = softenAstroRiskyBody(textFromAstroLLMValue(hit?.body || hit?.text || hit?.finalText || hit?.content));
     const evidenceSignals = normalizeAstroEvidenceSignals(
       localAstroChartJson,
       body,
@@ -1642,6 +2007,21 @@ function countAstroEvidenceHits(localAstroChartJson, text) {
   ), 0);
 }
 
+function classifyAstroLlmFailure(error) {
+  const status = Number(error?.status || 0);
+  const joined = [
+    clean(error?.code),
+    clean(error?.message),
+    clean(error?.reasonClass),
+    clean(error?.error),
+  ].join(" ").toLowerCase();
+  if (/missing|api[_\s-]*key|credential|unauthorized|forbidden/.test(joined) || status === 401 || status === 403) return "missing_key";
+  if (status === 429 || /rate|quota|resource_exhausted|too_many/.test(joined)) return "rate_limited";
+  if (status === 408 || status === 504 || /timeout|deadline|aborted|timed\s*out|524/.test(joined)) return "timeout";
+  if (/parse|json|schema|invalid|quality|검증/.test(joined)) return "invalid_chapter";
+  return "llm_generation_failed";
+}
+
 function validateAstroLLMChapter(localAstroChartJson, chapter, chapterSpec) {
   const errors = [];
   if (Number(chapter?.chapterNo) !== Number(chapterSpec?.order)) errors.push("chapter_no");
@@ -1676,11 +2056,13 @@ async function generateAstroChapterWithLLM(env, {
   masterJson = {},
   chapterSpec,
   signalBrief,
+  chapterPlan = {},
   previousSummaries = [],
   requestId = "",
+  llmChapterGenerator = null,
   log = () => {},
 } = {}) {
-  const maxAttempts = Math.max(1, Number(env?.ASTRO_GEMINI_CHAPTER_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 2));
+  const maxAttempts = Math.max(1, Math.min(2, Number(env?.WESTERN_ASTROLOGY_LLM_CHAPTER_RETRIES || env?.ASTRO_GEMINI_CHAPTER_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1)));
   let lastErrors = [];
   let lastError = null;
 
@@ -1691,18 +2073,39 @@ async function generateAstroChapterWithLLM(env, {
         masterJson,
         chapterSpec,
         signalBrief,
+        chapterPlan,
         previousSummaries,
         attempt,
         lastErrors,
       });
-      const text = await callAstroGemini(env, prompt, {
-        requestId,
-        chapterNumber: chapterSpec?.roman || chapterSpec?.order,
-      });
-      const parsed = parseAstroLLMJson(text);
+      const externalChapterSpec = {
+        ...chapterSpec,
+        chapterNo: Number(chapterSpec?.order || 0),
+        sections: safeArray(chapterSpec?.categories),
+      };
+      const generated = typeof llmChapterGenerator === "function"
+        ? await llmChapterGenerator({
+          chapterSpec: externalChapterSpec,
+          localAstroChartJson,
+          chartInput,
+          masterJson,
+          signalBrief,
+          chapterPlan,
+          prompt,
+          attempt,
+        })
+        : await callAstroGemini(env, prompt, {
+          requestId,
+          chapterNumber: chapterSpec?.roman || chapterSpec?.order,
+        });
+      const parsed = typeof generated === "string" ? parseAstroLLMJson(generated) : generated;
       const chapter = normalizeAstroLLMChapter(parsed, chapterSpec, localAstroChartJson);
       const errors = validateAstroLLMChapter(localAstroChartJson, chapter, chapterSpec);
-      if (!errors.length) return chapter;
+      if (!errors.length) return {
+        chapter,
+        attempts: attempt,
+        model: typeof llmChapterGenerator === "function" ? "mock-generator" : clean(env?.ASTRO_GEMINI_MODEL || env?.PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "gemini-2.5-flash"),
+      };
       lastErrors = errors;
       log("LLMChapterQualityRetry", {
         chapterNo: chapterSpec.order,
@@ -2174,7 +2577,13 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     throw error;
   }
 
+  const localDrafts = buildAstroLocalPremiumManuscript(localAstroChartJson);
+  const localFallbackChapters = normalizeAstroLocalFallbackManuscript(localDrafts, localAstroChartJson);
+  const westernAstrologyFacts = buildWesternAstrologyFacts(localAstroChartJson, rawInput);
+  const westernAstrologyChapterPlans = buildWesternAstrologyChapterPlans({ chapters: localFallbackChapters }, westernAstrologyFacts, localAstroChartJson);
   const astroMasterJson = buildAstroMasterJson(localAstroChartJson, rawInput);
+  astroMasterJson.westernAstrologyFacts = westernAstrologyFacts;
+  astroMasterJson.chapterPlans = westernAstrologyChapterPlans;
   const masterJsonValidation = validateAstroMasterJson(astroMasterJson);
   emit("MasterJsonValidated", {
     ok: masterJsonValidation.ok,
@@ -2202,18 +2611,26 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
   emit("LLMSeedPrepared", {
     signalOnly: true,
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-    localDraftChapterCount: 0,
+    localDraftChapterCount: localFallbackChapters.length,
+    enhancedChapterIds: ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS,
+    promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
   });
 
   emit("LLMManuscriptBuildStart", {
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
+    enhancedChapterIds: ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS,
+    promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
   });
   let enhanced = null;
   try {
-    enhanced = await enhanceAstroPremiumChaptersWithLLM(env, localAstroChartJson, {
+    enhanced = await enhanceAstroPremiumChaptersWithLLM(env, { chapters: localFallbackChapters }, localAstroChartJson, {
       log: emit,
       requestId: clean(rawInput?.reportId || options?.requestId),
       masterJson: astroMasterJson,
+      facts: westernAstrologyFacts,
+      chapterPlans: westernAstrologyChapterPlans,
+      rawInput,
+      llmChapterGenerator: options?.llmChapterGenerator,
     });
   } catch (error) {
     const failureReason = clean(error?.code || error?.message || "ASTRO_LLM_MANUSCRIPT_FAILED");
@@ -2221,18 +2638,30 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
       reason: failureReason,
       chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
     });
-    const llmError = new Error("점성술 프리미엄 원고 작성이 완료되지 않았습니다.");
-    llmError.code = clean(error?.code || "ASTRO_LLM_MANUSCRIPT_FAILED");
-    llmError.status = Number(error?.status || 502);
-    llmError.details = {
-      reason: failureReason,
-      chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
+    enhanced = {
+      chapters: localFallbackChapters,
+      fallbackUsed: true,
+      llmChapterCount: 0,
+      fallbackChapterCount: ASTRO_PREMIUM_CHAPTERS.length,
+      localDraftChapterCount: localFallbackChapters.length,
+      source: "local-template",
+      enhancedChapterIds: ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS,
+      expectedLlmChapterCount: ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS.length,
+      promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
+      llmEnabled: readAstroFlag(env, "WESTERN_ASTROLOGY_LLM_ENHANCEMENT_ENABLED", true),
+      stopLlmReason: failureReason,
+      failures: [{
+        failureClass: classifyAstroLlmFailure(error),
+        code: clean(error?.code || "ASTRO_LLM_MANUSCRIPT_FAILED"),
+        message: clean(error?.message || error),
+      }],
+      attempts: [],
+      model: "",
     };
-    throw llmError;
   }
   const finalDrafts = safeArray(enhanced.chapters);
   const validated = validateFinalManuscript(localAstroChartJson, finalDrafts, {
-    allowFallback: false,
+    allowFallback: true,
   });
 
   emit("FinalManuscriptValidated", {
@@ -2244,8 +2673,8 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     manuscriptSource: clean(enhanced.source),
   });
   if (!validated.ok) {
-    const error = new Error("점성술 LLM 프리미엄 원고 검증에 실패했습니다.");
-    error.code = "ASTRO_LLM_MANUSCRIPT_INVALID";
+    const error = new Error("점성술 프리미엄 원고 검증에 실패했습니다.");
+    error.code = "ASTRO_PREMIUM_MANUSCRIPT_INVALID";
     error.status = 422;
     error.details = validated;
     throw error;
@@ -2257,25 +2686,47 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
   emit("PdfRenderSuccess", { chapterCount: finalDrafts.length });
 
   const chapters = toLegacyChapters(finalDrafts);
-  const manuscriptSource = clean(enhanced.source || "llm-only");
+  const manuscriptSource = clean(enhanced.source || "local-template");
+  const llmChapterCount = Number(enhanced.llmChapterCount || 0);
+  const fallbackChapterCount = Number(enhanced.fallbackChapterCount || 0);
+  const localDraftChapterCount = Number(enhanced.localDraftChapterCount || 0);
+  const fallbackUsed = Boolean(enhanced.fallbackUsed);
   return {
     payload,
     chapters,
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-    fallbackUsed: false,
+    fallbackUsed,
     manuscriptSource,
-    llmChapterCount: Number(enhanced.llmChapterCount ?? finalDrafts.length),
-    fallbackChapterCount: 0,
-    llmFallbackReason: "",
-    localDraftChapterCount: 0,
+    llmChapterCount,
+    fallbackChapterCount,
+    llmFallbackReason: clean(enhanced.stopLlmReason || enhanced.failures?.[0]?.failureClass || ""),
+    localDraftChapterCount,
+    enhancedChapterIds: safeArray(enhanced.enhancedChapterIds),
+    expectedLlmChapterCount: Number(enhanced.expectedLlmChapterCount || ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS.length),
+    promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
     totalLength: totalLength(finalDrafts),
     pdfReady,
     localAstroChartJson,
     astroMasterJson,
+    westernAstrologyFacts,
+    westernAstrologyChapterPlans,
     masterJsonValidation,
     finalManuscript: finalDrafts,
     validation: validated,
     validationWarning: !validated.ok,
+    diagnostics: {
+      generationMode: "western-astrology-hybrid",
+      promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
+      enhancedChapterIds: safeArray(enhanced.enhancedChapterIds),
+      expectedLlmChapterCount: Number(enhanced.expectedLlmChapterCount || ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS.length),
+      llmEnabled: Boolean(enhanced.llmEnabled),
+      llmAvailable: Boolean(enhanced.llmAvailable),
+      llmAttempts: safeArray(enhanced.attempts),
+      llmFailures: safeArray(enhanced.failures),
+      llmModel: clean(enhanced.model),
+      fallbackReason: clean(enhanced.stopLlmReason || enhanced.failures?.[0]?.failureClass || ""),
+      factsMode: clean(westernAstrologyFacts.mode),
+    },
     quality: {
       ok: validated.ok,
       issues: validated.issues,

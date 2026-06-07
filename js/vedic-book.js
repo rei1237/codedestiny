@@ -45,7 +45,7 @@
 
   function normalizeVedicError(error) {
     if (error instanceof Error) {
-      return { name: error.name, message: error.message, stack: error.stack };
+      return { name: error.name, message: error.message, stack: error.stack, status: error.status, code: error.code, stage: error.stage, payloadSafe: error.payloadSafe };
     }
     if (typeof error === 'object' && error !== null) {
       try { return JSON.parse(JSON.stringify(error)); } catch (_) { return { message: String(error) }; }
@@ -53,17 +53,76 @@
     return { message: String(error) };
   }
 
+  function _shortList(value, limit) {
+    var source = Array.isArray(value) ? value : [];
+    return source.map(function (item) { return _clean(item); }).filter(Boolean).slice(0, Math.max(1, Number(limit || 6)));
+  }
+
+  function _payloadSafe(payload) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var nested = data.error && typeof data.error === 'object' ? data.error : {};
+    var debugSafe = data.debugSafe && typeof data.debugSafe === 'object' ? data.debugSafe : {};
+    return {
+      code: _clean(data.code || nested.code || data.errorCode || nested.errorCode) || undefined,
+      message: _clean(data.message || nested.message || data.reasonMessage || nested.reasonMessage) || undefined,
+      stage: _clean(data.stage || data.failureStage || debugSafe.stage || nested.stage || nested.failureStage) || undefined,
+      failureType: _clean(data.failureType || debugSafe.failureType || nested.failureType) || undefined,
+      reportId: _clean(data.reportId || debugSafe.reportId || nested.reportId) || undefined,
+      sessionId: _clean(data.sessionId || debugSafe.sessionId || nested.sessionId) || undefined,
+      executionId: _clean(data.executionId || debugSafe.executionId || nested.executionId) || undefined,
+      missing: _shortList(data.missing || nested.missing || data.hardMissingFields, 6),
+      issues: _shortList(data.issues || nested.issues || data.errors || nested.errors, 6),
+      debugSafe: Object.keys(debugSafe).length ? debugSafe : undefined
+    };
+  }
+
+  function _buildVedicApiError(pack, fallbackMessage, context) {
+    var res = pack && pack.res ? pack.res : {};
+    var payload = pack && pack.json && typeof pack.json === 'object'
+      ? pack.json
+      : (pack && pack.body && typeof pack.body === 'object' ? pack.body : {});
+    var status = Number((pack && pack.status) || res.status || payload.status || payload.statusCode || 0);
+    var safe = _payloadSafe(payload);
+    var err = new Error(_clean(safe.message || fallbackMessage || ('HTTP ' + (status || ''))) || 'Vedic PDF request failed.');
+    err.status = status || undefined;
+    err.code = _clean(safe.code) || 'VEDIC_PREMIUM_REQUEST_FAILED';
+    err.stage = _clean(safe.stage || context && context.stage) || 'prepare';
+    err.failureType = _clean(safe.failureType);
+    err.reportId = _clean(safe.reportId || context && context.reportId || _currentVedicReportId);
+    err.sessionId = _clean(safe.sessionId || context && context.sessionId || _currentVedicSessionId);
+    err.executionId = _clean(safe.executionId);
+    err.missing = safe.missing;
+    err.issues = safe.issues;
+    err.payloadSafe = safe;
+    err.payload = payload;
+    return err;
+  }
+
   function _logError(error, meta) {
-    var stage = _clean(meta && meta.stage) || 'unknown';
+    var payloadSafe = error && error.payloadSafe
+      ? error.payloadSafe
+      : _payloadSafe((error && error.payload) || (error && typeof error === 'object' ? error : {}));
+    var stage = _clean(meta && meta.stage || error && error.stage || payloadSafe.stage) || 'unknown';
     var message = _clean(error && error.message) || _clean(error) || 'unknown';
     var status = Number(error && error.status);
-    var code = _clean(error && error.code);
+    var code = _clean(error && error.code || payloadSafe.code);
     try {
       console.error('[VedicBook][Error]', {
+        serviceKey: 'vedic-premium',
+        featureKey: VEDIC_FEATURE_KEY,
+        reportType: 'vedicPremium',
         stage: stage,
         message: message,
         status: Number.isFinite(status) ? status : null,
-        code: code || null,
+        code: code || 'VEDIC_PREMIUM_CLIENT_ERROR',
+        failureType: _clean(error && error.failureType || payloadSafe.failureType) || undefined,
+        reportId: _clean(error && error.reportId || payloadSafe.reportId || meta && meta.reportId || _currentVedicReportId) || undefined,
+        sessionId: _clean(error && error.sessionId || payloadSafe.sessionId || meta && meta.sessionId || _currentVedicSessionId) || undefined,
+        executionId: _clean(error && error.executionId || payloadSafe.executionId || meta && meta.executionId) || undefined,
+        missing: _shortList(error && error.missing || payloadSafe.missing, 6),
+        issues: _shortList(error && error.issues || payloadSafe.issues, 6),
+        causeMessage: _clean(error && error.cause && (error.cause.message || error.cause)) || undefined,
+        payloadSafe: payloadSafe,
         details: normalizeVedicError(error),
       });
     } catch (_) {}
@@ -602,14 +661,16 @@
     var premiumToken = _readPremiumAccessToken();
     function rejectWithStatus(reject, pack) {
       var payload = pack && pack.json ? pack.json : {};
-      var error = new Error((payload && (payload.message || payload.code)) || ('HTTP ' + pack.res.status));
-      error.status = Number(pack.res.status || 0);
-      error.code = _clean(payload && payload.code);
+      var error = _buildVedicApiError(pack, (payload && (payload.message || payload.code)) || ('HTTP ' + pack.res.status), {
+        stage: 'status',
+        sessionId: sessionId,
+        reportId: reportId
+      });
       error.permanent = error.status === 401 || error.status === 403 || error.status === 422 || _clean(payload.status).toLowerCase() === 'failed';
       reject(error);
     }
     function run(resolve, reject, lastErr) {
-      if (endpointIndex >= endpoints.length) { reject(new Error(lastErr || '베다점 PDF 상태 확인에 실패했습니다.')); return; }
+      if (endpointIndex >= endpoints.length) { reject(lastErr instanceof Error ? lastErr : new Error(lastErr || '베다점 PDF 상태 확인에 실패했습니다.')); return; }
       var url = endpoints[endpointIndex++];
       var headers = {};
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
@@ -622,9 +683,13 @@
             rejectWithStatus(reject, pack);
             return;
           }
-          run(resolve, reject, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
+          run(resolve, reject, _buildVedicApiError(pack, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status), {
+            stage: 'status',
+            sessionId: sessionId,
+            reportId: reportId
+          }));
         })
-        .catch(function (error) { run(resolve, reject, String(error && error.message || error || '요청 실패')); });
+        .catch(function (error) { run(resolve, reject, error instanceof Error ? error : new Error(String(error && error.message || error || '요청 실패'))); });
     }
     return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
   }
@@ -643,12 +708,20 @@
       return _getVedicStatus(sessionId, reportId).then(function (payload) {
         if (_isCompletedReportReady(payload)) return payload;
         if (payload && payload.ok === false && _clean(payload.status).toLowerCase() === 'failed') {
-          var failedError = new Error(_clean(payload.message) || '베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.');
+          var failedError = _buildVedicApiError({ status: payload.statusCode || 500, body: payload }, _clean(payload.message) || '베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.', {
+            stage: 'status',
+            sessionId: sessionId,
+            reportId: reportId
+          });
           failedError.permanent = true;
           throw failedError;
         }
         if (payload && payload.ok === false && !_isRunningReport(payload)) {
-          var statusError = new Error(_clean(payload.message) || '베다점 PDF 생성에 실패했습니다.');
+          var statusError = _buildVedicApiError({ status: payload.statusCode || 500, body: payload }, _clean(payload.message) || '베다점 PDF 생성에 실패했습니다.', {
+            stage: 'status',
+            sessionId: sessionId,
+            reportId: reportId
+          });
           statusError.permanent = true;
           throw statusError;
         }
@@ -801,7 +874,7 @@
     try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
     var premiumToken = _readPremiumAccessToken();
     function run(resolve, reject, lastErr) {
-      if (endpointIndex >= endpoints.length) { reject(new Error(lastErr || '베다점 프리미엄 API 호출에 실패했습니다.')); return; }
+      if (endpointIndex >= endpoints.length) { reject(lastErr instanceof Error ? lastErr : new Error(lastErr || '베다점 프리미엄 API 호출에 실패했습니다.')); return; }
       var url = endpoints[endpointIndex++];
       var headers = { 'Content-Type': 'application/json' };
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
@@ -810,9 +883,13 @@
         .then(function (res) { return res.json().catch(function () { return {}; }).then(function (json) { return { res: res, json: json }; }); })
         .then(function (pack) {
           if (pack.res.ok && pack.json && pack.json.ok) { _persistPremiumAccessToken(_extractPremiumToken(pack.json)); resolve(pack.json); return; }
-          run(resolve, reject, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status));
+          run(resolve, reject, _buildVedicApiError(pack, (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status), {
+            stage: 'prepare',
+            sessionId: body && body.sessionId,
+            reportId: body && body.reportId
+          }));
         })
-        .catch(function (error) { run(resolve, reject, String(error && error.message || error || '요청 실패')); });
+        .catch(function (error) { run(resolve, reject, error instanceof Error ? error : new Error(String(error && error.message || error || '요청 실패'))); });
     }
     return new Promise(function (resolve, reject) { run(resolve, reject, ''); });
   }
@@ -820,6 +897,7 @@
   function _ensurePremiumPaymentThenStart() {
     if (_hasPremiumAccessForGeneration()) return true;
     if (typeof window._cdCoinGatePerUse !== 'function') {
+      _logError({ message: '결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.', status: 503, code: 'VEDIC_PAYMENT_MODULE_MISSING' }, { stage: 'billing' });
       alert('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
       return false;
     }
@@ -832,6 +910,7 @@
       window.generateVedicBook();
     }, function () {
       _lastPremiumPayment = null;
+      _logError({ message: '결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.', status: 402, code: 'VEDIC_PAYMENT_CANCELLED' }, { stage: 'billing' });
       _logStage('PaymentGateCancel', { featureKey: VEDIC_FEATURE_KEY });
     }, {
       featureKey: VEDIC_FEATURE_KEY,

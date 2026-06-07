@@ -141,16 +141,18 @@ export default function PaymentLoading({
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-100/70 to-transparent" />
         <div className="pointer-events-none absolute inset-x-8 top-0 h-28 bg-gradient-to-b from-amber-200/12 to-transparent" />
 
-        <div className="relative mx-auto mb-5 flex h-24 w-24 items-center justify-center">
+        <div className="relative mx-auto mb-5 flex h-[142px] w-[104px] items-center justify-center">
           <span className="absolute -inset-2 rounded-[1.5rem] border border-amber-100/18 bg-amber-100/5 shadow-[0_0_24px_rgba(251,191,36,0.18)]" />
-          <div className="relative h-24 w-24 overflow-hidden rounded-[1.25rem] border border-amber-100/45 bg-[#fff7ed] shadow-[0_10px_24px_rgba(251,191,36,0.2)]">
+          <div className="relative h-[132px] w-[88px] overflow-hidden rounded-[1.25rem] border border-amber-100/45 bg-[#fff7ed] shadow-[0_10px_24px_rgba(251,191,36,0.2)] [contain:paint]">
             <div
-              className="h-full w-full animate-[cdYeonPaymentSprite_1.08s_steps(8)_infinite]"
+              className="absolute left-0 top-0 h-[200%] w-[400%] animate-[cdYeonPaymentSprite_1.12s_linear_infinite]"
               style={{
                 backgroundImage: `url("${YEON_SPRITE_URL}")`,
                 backgroundRepeat: "no-repeat",
-                backgroundSize: "400% 200%",
+                backgroundSize: "100% 100%",
                 imageRendering: "auto",
+                transform: "translate3d(0, 0, 0)",
+                willChange: "transform",
               }}
             />
           </div>
@@ -174,14 +176,14 @@ export default function PaymentLoading({
 
         <style jsx global>{`
           @keyframes cdYeonPaymentSprite {
-            0% { background-position: 0% 0%; }
-            12.5% { background-position: 33.333% 0%; }
-            25% { background-position: 66.666% 0%; }
-            37.5% { background-position: 100% 0%; }
-            50% { background-position: 0% 100%; }
-            62.5% { background-position: 33.333% 100%; }
-            75% { background-position: 66.666% 100%; }
-            100% { background-position: 100% 100%; }
+            0%, 12.49% { transform: translate3d(0%, 0%, 0); }
+            12.5%, 24.99% { transform: translate3d(-25%, 0%, 0); }
+            25%, 37.49% { transform: translate3d(-50%, 0%, 0); }
+            37.5%, 49.99% { transform: translate3d(-75%, 0%, 0); }
+            50%, 62.49% { transform: translate3d(0%, -50%, 0); }
+            62.5%, 74.99% { transform: translate3d(-25%, -50%, 0); }
+            75%, 87.49% { transform: translate3d(-50%, -50%, 0); }
+            87.5%, 100% { transform: translate3d(-75%, -50%, 0); }
           }
         `}</style>
       </div>

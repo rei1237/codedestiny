@@ -2,6 +2,10 @@
 
 import assert from "node:assert/strict";
 import {
+  VEDIC_ASTROLOGY_PROMPT_VERSION,
+  VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS,
+  buildVedicAstrologyFacts,
+  buildVedicAstrologyLlmCacheKey,
   buildVedicLocalChartJson,
   buildVedicMasterJson,
   generateVedicPremiumReport,
@@ -96,19 +100,38 @@ const masterValidation = validateVedicMasterJson(vedicMasterJson);
 assert.equal(vedicMasterJson.schemaVersion, "vedic-premium-master-json.v1", "master schema");
 assert.equal(masterValidation.ok, true, `master validation: ${masterValidation.missing.join(",")}`);
 
-let generationError = null;
-try {
-  await generateVedicPremiumReport({}, rawInput, {
-    requestId: "smoke-vedic-premium",
-    log: () => {},
-  });
-} catch (error) {
-  generationError = error;
-}
+const facts = buildVedicAstrologyFacts(localVedicChartJson, rawInput);
+assert.equal(facts.productId, "vedic_astrology", "facts product");
+assert.equal(facts.mode, "personal", "facts mode");
+assert.equal(facts.calculationBasis.zodiacType, "sidereal", "zodiac basis");
+assert.equal(facts.calculationBasis.ayanamsa, "Lahiri", "ayanamsa basis");
+assert.equal(facts.calculationBasis.houseSystem, "whole-sign", "house basis");
+assert.equal(facts.calculationBasis.dashaSystem, "vimshottari", "dasha basis");
 
-assert.ok(generationError, "no-key smoke should fail without local fallback");
-assert.equal(generationError.reasonClass, "missing_key", "llm failure class");
-assert.equal(generationError.details?.failureClass, "missing_key", "llm failure details");
+const cacheKey = buildVedicAstrologyLlmCacheKey(facts, "vedic_soul_map");
+const changedAyanamsaKey = buildVedicAstrologyLlmCacheKey({
+  ...facts,
+  calculationBasis: { ...facts.calculationBasis, ayanamsa: "Raman" },
+}, "vedic_soul_map");
+const changedChapterKey = buildVedicAstrologyLlmCacheKey(facts, "vedic_lagna");
+assert.notEqual(cacheKey, changedAyanamsaKey, "cache key changes by ayanamsa");
+assert.notEqual(cacheKey, changedChapterKey, "cache key changes by chapter");
+assert.equal(VEDIC_ASTROLOGY_PROMPT_VERSION, "vedic-astrology-hybrid-v1", "prompt version");
+assert.ok(VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS.includes("vedic_dasha_flow"), "personal enhanced chapters");
+
+const generated = await generateVedicPremiumReport({}, rawInput, {
+  requestId: "smoke-vedic-premium",
+  log: () => {},
+});
+
+assert.equal(generated.diagnostics.manuscript.ok, true, "fallback manuscript validation");
+assert.equal(generated.manuscriptSource, "local-template", "no-key source falls back to local");
+assert.equal(generated.llmChapterCount, 0, "no-key llm chapter count");
+assert.equal(generated.diagnostics.llm.failed, true, "no-key llm failure recorded");
+assert.equal(generated.diagnostics.llm.failureClass, "missing_key", "no-key llm failure class");
+assert.equal(generated.chapterDrafts.length, 12, "chapter draft count");
+assert.equal(generated.chapterDrafts.every((chapter) => chapter.sections.every((section) => String(section.body || "").trim().length > 0)), true, "no empty sections");
+assert.ok(String(generated.pdfReady?.html || "").includes("베다점 프리미엄 PDF"), "pdf html rendered");
 
 const archiveUrl = "https://example.test/api/premium/pdf-archive/smoke_vedic_premium_report";
 const pdfReady = {
@@ -130,5 +153,5 @@ assert.equal(pdfReady.renderFormat, "pdf-archive", "render format");
 assert.ok(/\.pdf$/i.test(pdfReady.filename), "pdf filename");
 
 console.log("SMOKE_VEDIC_PREMIUM_MASTER_JSON=ok");
-console.log("SMOKE_VEDIC_PREMIUM_LLM_ONLY=ok");
+console.log("SMOKE_VEDIC_PREMIUM_HYBRID_FALLBACK=ok");
 console.log("SMOKE_VEDIC_PREMIUM_ARCHIVE=ok");

@@ -1246,7 +1246,7 @@ function buildSoulOriginPromptSeed(localSeed = {}) {
   };
 }
 
-function buildSoulOriginChapterPrompt({ chapter, blueprint = {}, localSeed = {}, toneProfile = {} }) {
+function buildSoulOriginChapterPrompt({ chapter, blueprint = {}, localSeed = {}, toneProfile = {}, localChapter = null }) {
   const chapterId = String(chapter?.id || blueprint?.id || "").padStart(2, "0");
   const categoryNames = Array.isArray(blueprint?.categories) ? blueprint.categories : [];
   const safeCategories = categoryNames.map((title) => clean(title)).filter(Boolean);
@@ -1254,6 +1254,16 @@ function buildSoulOriginChapterPrompt({ chapter, blueprint = {}, localSeed = {},
     body: `...`,
   }));
   const seed = buildSoulOriginPromptSeed(localSeed);
+  const localDraft = localChapter && typeof localChapter === "object"
+    ? {
+      id: clean(localChapter.id || chapterId),
+      title: clean(localChapter.title || blueprint?.title || ""),
+      sections: (Array.isArray(localChapter.sections) ? localChapter.sections : []).map((section) => ({
+        title: clean(section?.title || ""),
+        body: stripForbiddenTokens(section?.body || ""),
+      })),
+    }
+    : null;
   return [
     "운명의 업 프리미엄 상담서 챕터 본문을 작성한다.",
     "네가 해야 할 일:",
@@ -1275,6 +1285,13 @@ function buildSoulOriginChapterPrompt({ chapter, blueprint = {}, localSeed = {},
     "tone settings:",
     buildSoulOriginTonePrompt(toneProfile),
     "",
+    ...(localDraft ? [
+      "local calculation draft to enhance:",
+      safeJsonForPrompt(localDraft),
+      "",
+      "Enhance the local calculation draft. Keep every section title and the calculated meaning. Improve only the reading depth, flow, and professional mystical expression.",
+      "",
+    ] : []),
     "seed snapshot:",
     safeJsonForPrompt(seed),
   ].join("\n");
@@ -1330,6 +1347,99 @@ function normalizeSoulOriginLlmChapter(parsed = {}, blueprint = {}) {
   };
 }
 
+function buildSoulOriginLocalChapterFallback(localChapter = {}, error = null) {
+  const sections = (Array.isArray(localChapter.sections) ? localChapter.sections : []).map((section) => ({
+    id: clean(section?.id || ""),
+    title: clean(section?.title || ""),
+    body: stripForbiddenTokens(section?.body || ""),
+  }));
+  return {
+    id: clean(localChapter.id || ""),
+    title: clean(localChapter.title || ""),
+    subtitle: clean(localChapter.subtitle || ""),
+    sections,
+    text: sections.map((section) => `${section.title}\n\n${section.body}`).join("\n\n"),
+    source: "local-calculation",
+    localAuthoringSource: "local-calculation",
+    llmEnhancementUsed: false,
+    llmEnhancementStatus: "fallback",
+    llmEnhancementErrorCode: clean(error?.code || error?.message || ""),
+  };
+}
+
+function buildSoulOriginLocalChapters(localSeed, { requestId = "" } = {}) {
+  logFlow("LocalAuthoringStart", {
+    requestId,
+    chapterCount: CHAPTER_BLUEPRINTS.length,
+    stage: "local-authoring",
+  });
+
+  const chapters = CHAPTER_BLUEPRINTS.map((blueprint, chapterIndex) => {
+    const chapterId = String(blueprint?.id || "").padStart(2, "0");
+    const categories = Array.isArray(blueprint?.categories) ? blueprint.categories : [];
+    const sections = categories.map((title, sectionIndex) => {
+      const body = buildCategoryText(localSeed, blueprint, title, sectionIndex);
+      return {
+        id: `${chapterId}-${String(sectionIndex + 1).padStart(2, "0")}`,
+        title: clean(title || ""),
+        body,
+      };
+    });
+    const chapter = {
+      id: chapterId,
+      title: clean(blueprint?.title || ""),
+      subtitle: clean(blueprint?.subtitle || ""),
+      sections,
+      text: sections.map((section) => `${section.title}\n\n${section.body}`).join("\n\n"),
+      source: "local-calculation",
+      localAuthoringSource: "local-calculation",
+      llmEnhancementUsed: false,
+    };
+    const validation = validateSoulOriginGeneratedChapter(chapter, blueprint);
+    if (!validation.ok) {
+      const err = new Error(`Soul origin local chapter ${chapterId} validation failed.`);
+      err.code = "SOUL_ORIGIN_LOCAL_CHAPTER_VALIDATION_FAILED";
+      err.status = 500;
+      err.details = validation;
+      err.chapter = chapterId;
+      err.stage = "local-authoring";
+      logFlow("LocalAuthoringChapterValidationFailed", {
+        requestId,
+        chapterId,
+        chapterIndex: chapterIndex + 1,
+        errorCode: err.code,
+        errorCount: Number(Array.isArray(validation?.errors) ? validation.errors.length : 0),
+        stage: "local-authoring",
+      });
+      throw err;
+    }
+    return chapter;
+  });
+
+  const finalValidation = validateFinalManuscript(chapters);
+  if (!finalValidation.ok) {
+    const err = new Error("Soul origin local manuscript validation failed.");
+    err.code = "SOUL_ORIGIN_LOCAL_MANUSCRIPT_VALIDATION_FAILED";
+    err.status = 500;
+    err.details = finalValidation;
+    err.stage = "local-authoring";
+    logFlow("LocalAuthoringValidationFailed", {
+      requestId,
+      errorCode: err.code,
+      errorCount: Number(Array.isArray(finalValidation?.errors) ? finalValidation.errors.length : 0),
+      stage: "local-authoring",
+    });
+    throw err;
+  }
+
+  logFlow("LocalAuthoringSuccess", {
+    requestId,
+    chapterCount: Number(chapters.length || 0),
+    stage: "local-authoring",
+  });
+  return chapters;
+}
+
 function validateSoulOriginGeneratedChapter(chapter = {}, blueprint = {}) {
   const expected = CHAPTER_BLUEPRINTS.find((item) => String(item.id) === String(blueprint?.id || chapter?.id || "")) || blueprint || {};
   const expectedTitles = Array.isArray(expected.categories) ? expected.categories : [];
@@ -1382,17 +1492,19 @@ function validateSoulOriginGeneratedChapter(chapter = {}, blueprint = {}) {
   };
 }
 
-async function generateSoulOriginChaptersByLLM(env, { localSeed, toneProfile = {}, requestId = "" }) {
+async function generateSoulOriginChaptersByLLM(env, { localSeed, toneProfile = {}, requestId = "", localChapters = [] }) {
   const chapters = [];
   for (let index = 0; index < CHAPTER_BLUEPRINTS.length; index += 1) {
     const blueprint = CHAPTER_BLUEPRINTS[index];
     const chapterId = String(blueprint?.id || "").padStart(2, "0");
+    const localChapter = Array.isArray(localChapters) ? localChapters[index] : null;
     logFlow("LLMChapterStart", {
       requestId,
       chapterId,
       chapterIndex: index + 1,
       totalChapters: CHAPTER_BLUEPRINTS.length,
       stage: "llm-generation",
+      enhancementMode: localChapter ? "local-draft" : "llm-only",
     });
 
     const prompt = buildSoulOriginChapterPrompt({
@@ -1400,6 +1512,7 @@ async function generateSoulOriginChaptersByLLM(env, { localSeed, toneProfile = {
       blueprint,
       localSeed,
       toneProfile,
+      localChapter,
     });
 
     let text;
@@ -1421,6 +1534,17 @@ async function generateSoulOriginChaptersByLLM(env, { localSeed, toneProfile = {
         errorCode: clean(err.code),
         stage: "llm-generation",
       });
+      if (localChapter) {
+        logFlow("LLMChapterLocalFallback", {
+          requestId,
+          chapterId,
+          chapterIndex: index + 1,
+          errorCode: clean(err.code),
+          stage: "llm-generation",
+        });
+        chapters.push(buildSoulOriginLocalChapterFallback(localChapter, err));
+        continue;
+      }
       throw err;
     }
 
@@ -1442,9 +1566,23 @@ async function generateSoulOriginChaptersByLLM(env, { localSeed, toneProfile = {
         errorCount: Number(Array.isArray(validation?.errors) ? validation.errors.length : 0),
         stage: "llm-generation",
       });
+      if (localChapter) {
+        logFlow("LLMChapterLocalFallback", {
+          requestId,
+          chapterId,
+          chapterIndex: index + 1,
+          errorCode: "SOUL_ORIGIN_LLM_CHAPTER_VALIDATION_FAILED",
+          stage: "llm-generation",
+        });
+        chapters.push(buildSoulOriginLocalChapterFallback(localChapter, err));
+        continue;
+      }
       throw err;
     }
-    chapter.source = "llm-only";
+    chapter.source = localChapter ? "local-calculation+llm-enhanced" : "llm-only";
+    chapter.localAuthoringSource = localChapter ? "local-calculation" : "";
+    chapter.llmEnhancementUsed = Boolean(localChapter);
+    chapter.llmEnhancementStatus = localChapter ? "enhanced" : "generated";
     logFlow("LLMChapterSuccess", {
       requestId,
       chapterId,
@@ -1457,6 +1595,20 @@ async function generateSoulOriginChaptersByLLM(env, { localSeed, toneProfile = {
   }
   const finalValidation = validateFinalManuscript(chapters);
   if (!finalValidation.ok) {
+    if (Array.isArray(localChapters) && localChapters.length === CHAPTER_BLUEPRINTS.length) {
+      const localValidation = validateFinalManuscript(localChapters);
+      if (localValidation.ok) {
+        logFlow("LLMManuscriptLocalFallback", {
+          requestId,
+          errorCode: "SOUL_ORIGIN_LLM_MANUSCRIPT_VALIDATION_FAILED",
+          errorCount: Number(Array.isArray(finalValidation?.errors) ? finalValidation.errors.length : 0),
+          stage: "llm-generation",
+        });
+        return localChapters.map((chapter) => buildSoulOriginLocalChapterFallback(chapter, {
+          code: "SOUL_ORIGIN_LLM_MANUSCRIPT_VALIDATION_FAILED",
+        }));
+      }
+    }
     const err = new Error("운명의 업 전체 챕터 검증 실패.");
     err.code = "SOUL_ORIGIN_LLM_MANUSCRIPT_VALIDATION_FAILED";
     err.status = 502;
@@ -1981,6 +2133,7 @@ async function handlePrepare(request, env) {
     logFlow("LocalCalcStart", { requestId, sessionId, reportId });
     const localSeed = await buildSoulOriginLocalSeed(env, birthInput);
     logFlow("LocalCalcSuccess", { requestId, sessionId, reportId });
+    const localChapters = buildSoulOriginLocalChapters(localSeed, { requestId });
 
     const toneProfile = buildSoulOriginToneProfile({
       tonePreset: clean(body?.tonePreset ?? body?.tone?.preset ?? body?.tone?.tonePreset),
@@ -1988,19 +2141,43 @@ async function handlePrepare(request, env) {
       toneWeights: body?.toneWeights || body?.tone?.weights || body?.toneProfile?.weights,
     });
 
-    logFlow("LLMGenerationStart", { requestId, sessionId, reportId, stage: "llm-generation" });
-    const chapters = await generateSoulOriginChaptersByLLM(env, {
-      localSeed,
-      toneProfile,
-      requestId,
-    });
-    logFlow("LLMGenerationSuccess", {
-      requestId,
-      sessionId,
-      reportId,
-      stage: "llm-generation",
-      chapterCount: Number(chapters?.length || 0),
-    });
+    let chapters = localChapters;
+    let llmEnhancementErrorCode = "";
+    logFlow("LLMEnhancementStart", { requestId, sessionId, reportId, stage: "llm-generation" });
+    try {
+      chapters = await generateSoulOriginChaptersByLLM(env, {
+        localSeed,
+        toneProfile,
+        requestId,
+        localChapters,
+      });
+      logFlow("LLMEnhancementSuccess", {
+        requestId,
+        sessionId,
+        reportId,
+        stage: "llm-generation",
+        chapterCount: Number(chapters?.length || 0),
+      });
+    } catch (error) {
+      llmEnhancementErrorCode = clean(error?.code || error?.message || "SOUL_ORIGIN_LLM_ENHANCEMENT_FAILED");
+      chapters = localChapters.map((chapter) => buildSoulOriginLocalChapterFallback(chapter, {
+        code: llmEnhancementErrorCode,
+      }));
+      logFlow("LLMEnhancementLocalFallback", {
+        requestId,
+        sessionId,
+        reportId,
+        errorCode: llmEnhancementErrorCode,
+        stage: "llm-generation",
+      });
+    }
+
+    const llmEnhancedChapterCount = chapters.filter((chapter) => chapter?.llmEnhancementUsed === true || clean(chapter?.source) === "local-calculation+llm-enhanced").length;
+    const fallbackChapterCount = chapters.filter((chapter) => clean(chapter?.source) === "local-calculation").length;
+    const fallbackUsed = fallbackChapterCount > 0;
+    const llmEnhancementUsed = llmEnhancedChapterCount > 0;
+    const manuscriptSource = llmEnhancementUsed ? "local-calculation+llm-enhanced" : "local-calculation";
+    const chapterAuthoringSource = manuscriptSource;
 
     const summary = summarizeSignal(localSeed);
     const generatedAt = new Date().toISOString();
@@ -2029,12 +2206,15 @@ async function handlePrepare(request, env) {
       status: "completed",
       serverStatus: "completed",
       qualityStatus: "passed",
-      manuscriptSource: "llm-only",
-      chapterAuthoringSource: "llm-only",
+      manuscriptSource,
+      chapterAuthoringSource,
       summarySource: "local-calculation",
-      fallbackUsed: false,
-      fallbackChapterCount: 0,
-      localAuthoringUsed: false,
+      fallbackUsed,
+      fallbackChapterCount,
+      localAuthoringUsed: true,
+      llmEnhancementUsed,
+      llmEnhancedChapterCount,
+      llmEnhancementErrorCode: llmEnhancementErrorCode || undefined,
       serviceKey: SOUL_ORIGIN_SERVICE_KEY,
       featureKey,
       reportType: SOUL_ORIGIN_REPORT_TYPE,
@@ -2063,25 +2243,31 @@ async function handlePrepare(request, env) {
     };
 
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
-      manuscriptSource: "llm-only",
-      chapterAuthoringSource: "llm-only",
+      manuscriptSource,
+      chapterAuthoringSource,
       summarySource: "local-calculation",
       chapterCount: chapters.length,
-      fallbackUsed: false,
-      fallbackChapterCount: 0,
-      localAuthoringUsed: false,
+      fallbackUsed,
+      fallbackChapterCount,
+      localAuthoringUsed: true,
+      llmEnhancementUsed,
+      llmEnhancedChapterCount,
+      llmEnhancementErrorCode: llmEnhancementErrorCode || undefined,
       archive: {
         reportId,
         reportType: SOUL_ORIGIN_REPORT_TYPE,
         canonicalReportType: SOUL_ORIGIN_REPORT_TYPE,
         archiveReportType: SOUL_ORIGIN_ARCHIVE_REPORT_TYPE,
         qualityStatus: "passed",
-        manuscriptSource: "llm-only",
-        chapterAuthoringSource: "llm-only",
+        manuscriptSource,
+        chapterAuthoringSource,
         summarySource: "local-calculation",
-        fallbackUsed: false,
-        fallbackChapterCount: 0,
-        localAuthoringUsed: false,
+        fallbackUsed,
+        fallbackChapterCount,
+        localAuthoringUsed: true,
+        llmEnhancementUsed,
+        llmEnhancedChapterCount,
+        llmEnhancementErrorCode: llmEnhancementErrorCode || undefined,
         displayName: SOUL_ORIGIN_DISPLAY_NAME,
         title: SOUL_ORIGIN_TITLE,
         summary,
@@ -2188,7 +2374,7 @@ async function handlePrepare(request, env) {
         reportId,
         sessionId,
         stage: error?.code?.includes("LLM") ? "llm-generation" : "soul-origin-generation",
-        manuscriptSource: "llm-only",
+        manuscriptSource: "local-calculation",
       },
     }, { status: Number(error?.status || 500) });
   }
@@ -2230,6 +2416,9 @@ async function loadSoulOriginReportPayload(env, auth, reportId) {
     fallbackUsed: Boolean(archive.fallbackUsed === true),
     fallbackChapterCount: Number(archive.fallbackChapterCount || 0),
     localAuthoringUsed: Boolean(archive.localAuthoringUsed === true),
+    llmEnhancementUsed: Boolean(archive.llmEnhancementUsed === true),
+    llmEnhancedChapterCount: Number(archive.llmEnhancedChapterCount || 0),
+    llmEnhancementErrorCode: clean(archive.llmEnhancementErrorCode || "") || undefined,
     serviceKey: SOUL_ORIGIN_SERVICE_KEY,
     featureKey: clean(archive.featureKey || SOUL_ORIGIN_FEATURE_KEY) || SOUL_ORIGIN_FEATURE_KEY,
     reportType: SOUL_ORIGIN_REPORT_TYPE,

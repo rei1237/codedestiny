@@ -9,7 +9,7 @@ import LifeFortuneGraph, {
 
 const SERVICE_KEY = "saju-lifebook";
 const FEATURE_KEY = "saju_life_book_pdf";
-const LIFEBOOK_TEMPORARY_FREE = false;
+const LIFEBOOK_TEMPORARY_FREE = true;
 
 const STEP_LABELS = [
   "프로필 정보를 확인하는 중입니다",
@@ -364,9 +364,9 @@ export default function SajuLifebookPage() {
         productKey: FEATURE_KEY,
         featureKey: FEATURE_KEY,
         reportType: "lifeBook",
-        generationMode: "worker-native-llm",
+        generationMode: "worker-native-hybrid",
         calculationSource: "worker-saju-engine",
-        authoringMode: "llm-only",
+        authoringMode: "hybrid",
         sessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
         reportSessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
         reportId: String(accessGrant?.reportId || reportId || "").trim(),
@@ -412,10 +412,6 @@ export default function SajuLifebookPage() {
         throw new Error(mapApiError(response.status, responsePayload));
       }
       const resultPayload = responsePayload.data || responsePayload || {};
-      const manuscriptSource = String(resultPayload?.manuscriptSource || "").trim();
-      if (resultPayload?.fallbackUsed || /(?:local|deterministic)/i.test(manuscriptSource)) {
-        throw new Error("LIFEBOOK_LLM_ONLY_AUTHORING_REQUIRED");
-      }
 
       setStepIndex(STEP_LABELS.length - 1);
       setResult(resultPayload || null);

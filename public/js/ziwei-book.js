@@ -371,13 +371,83 @@
 
   function normalizeZiweiError(error){
     if(error instanceof Error){
-      return { name: error.name, message: error.message, stack: error.stack };
+      return { name: error.name, message: error.message, stack: error.stack, status: error.status, code: error.code, stage: error.stage, payloadSafe: error.payloadSafe };
     }
     if(typeof error === 'object' && error !== null){
       try { return JSON.parse(JSON.stringify(error)); }
       catch(_) { return { message: String(error) }; }
     }
     return { message: String(error) };
+  }
+
+  function ziweiShortList(value, limit){
+    var source = Array.isArray(value) ? value : [];
+    return source.map(function(item){ return text(item); }).filter(Boolean).slice(0, Math.max(1, Number(limit || 6)));
+  }
+
+  function ziweiPayloadSafe(payload){
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var nested = data.error && typeof data.error === 'object' ? data.error : {};
+    var debugSafe = data.debugSafe && typeof data.debugSafe === 'object' ? data.debugSafe : {};
+    return {
+      code: text(data.code || nested.code || data.errorCode || nested.errorCode) || undefined,
+      message: text(data.message || nested.message || data.reasonMessage || nested.reasonMessage || data.error) || undefined,
+      stage: text(data.stage || data.failureStage || debugSafe.stage || nested.stage || nested.failureStage) || undefined,
+      failureType: text(data.failureType || debugSafe.failureType || nested.failureType) || undefined,
+      reportId: text(data.reportId || debugSafe.reportId || nested.reportId) || undefined,
+      sessionId: text(data.sessionId || debugSafe.sessionId || nested.sessionId) || undefined,
+      executionId: text(data.executionId || debugSafe.executionId || nested.executionId) || undefined,
+      missing: ziweiShortList(data.missing || nested.missing || data.hardMissingFields, 6),
+      issues: ziweiShortList(data.issues || nested.issues || data.errors || nested.errors, 6),
+      debugSafe: Object.keys(debugSafe).length ? debugSafe : undefined
+    };
+  }
+
+  function buildZiweiApiError(pack, fallbackMessage, kind){
+    var res = pack && pack.res ? pack.res : {};
+    var payload = pack && pack.json && typeof pack.json === 'object'
+      ? pack.json
+      : (pack && pack.body && typeof pack.body === 'object' ? pack.body : {});
+    var status = Number((pack && pack.status) || res.status || payload.status || payload.statusCode || 0);
+    var safe = ziweiPayloadSafe(payload);
+    var error = buildRetryableError(text(safe.message || fallbackMessage || ('HTTP ' + (status || ''))), status || 500, text(safe.code) || 'ZIWEI_PREPARE_FAILED', kind || 'generation');
+    error.stage = text(safe.stage) || (kind === 'payment' ? 'billing' : 'prepare');
+    error.failureType = text(safe.failureType);
+    error.reportId = text(safe.reportId || payload.reportId);
+    error.sessionId = text(safe.sessionId || payload.sessionId);
+    error.executionId = text(safe.executionId);
+    error.missing = safe.missing;
+    error.issues = safe.issues;
+    error.payloadSafe = safe;
+    error.payload = payload;
+    return error;
+  }
+
+  function logZiweiError(error, meta){
+    try {
+      var payloadSafe = error && error.payloadSafe
+        ? error.payloadSafe
+        : ziweiPayloadSafe((error && error.payload) || (error && typeof error === 'object' ? error : {}));
+      var safe = {
+        serviceKey: 'ziwei-book',
+        featureKey: FEATURE_KEY,
+        reportType: 'ziweiPremium',
+        stage: text(meta && meta.stage || error && error.stage || payloadSafe.stage) || 'unknown',
+        failureType: text(error && error.failureType || payloadSafe.failureType) || undefined,
+        status: Number(error && error.status || meta && meta.status || 0) || undefined,
+        code: text(error && error.code || payloadSafe.code) || 'ZIWEI_CLIENT_ERROR',
+        message: text(error && error.message ? error.message : error) || 'unknown',
+        requestId: text(meta && meta.requestId || error && error.requestId) || undefined,
+        sessionId: text(meta && meta.sessionId || error && error.sessionId || payloadSafe.sessionId) || undefined,
+        reportId: text(meta && meta.reportId || error && error.reportId || payloadSafe.reportId || RESULT && RESULT.reportId) || undefined,
+        executionId: text(meta && meta.executionId || error && error.executionId || payloadSafe.executionId) || undefined,
+        missing: ziweiShortList(error && error.missing || payloadSafe.missing, 6),
+        issues: ziweiShortList(error && error.issues || payloadSafe.issues, 6),
+        causeMessage: text(error && error.cause && (error.cause.message || error.cause)) || undefined,
+        payloadSafe: payloadSafe
+      };
+      console.error('[ZiweiBook][Error][' + safe.stage + ']', safe);
+    } catch(_) {}
   }
 
   var EARTHLY_BRANCH_HOUR = {
@@ -1038,7 +1108,9 @@
         if(settled) return;
         settled = true;
         if(result && result.ok === false){
-          reject(new Error(result.message || '코인 결제 확인이 필요합니다.'));
+          var paymentError = buildZiweiApiError({ status: Number(result.status || 402), body: result }, result.message || '코인 결제 확인이 필요합니다.', 'payment');
+          logZiweiError(paymentError, { stage: 'billing', requestId: result && result.requestId });
+          reject(paymentError);
           return;
         }
         var paymentContext = normalizePaymentContext(result, birthHash);
@@ -1081,7 +1153,7 @@
         var immediate = window._cdCoinGatePerUse(COIN_COST, '자미두수 프리미엄 PDF 리포트 생성', function(_transactionId, data){
           finish(Object.assign({ ok: true, transactionId: _transactionId }, data || {}));
         }, function(error){
-          finish({ ok: false, message: (error && error.message) || '코인 결제 확인이 필요합니다.' });
+          finish(Object.assign({ ok: false, status: 402, code: 'ZIWEI_PAYMENT_CANCELLED', message: (error && error.message) || '코인 결제 확인이 필요합니다.' }, error || {}));
         }, {
           featureKey: FEATURE_KEY,
           serviceKey: 'ziwei-book',
@@ -1231,12 +1303,12 @@
       var code = text(json.code || json.error || 'ZIWEI_PREPARE_FAILED');
       var message = text(json.message || json.error || ('자미두수 PDF 생성 요청에 실패했습니다. HTTP ' + res.status));
       if(res.status === 401 || res.status === 402 || res.status === 403){
-        throw buildRetryableError(message, res.status, code, 'payment');
+        throw buildZiweiApiError({ res: res, json: json }, message, 'payment');
       }
       if(res.status === 422 || res.status >= 500){
-        throw buildRetryableError(message, res.status, code, 'generation');
+        throw buildZiweiApiError({ res: res, json: json }, message, 'generation');
       }
-      throw buildRetryableError(message, res.status, code, 'request');
+      throw buildZiweiApiError({ res: res, json: json }, message, 'request');
     }
     if(json.premiumAccessToken || json.accessToken) storePremiumToken(json.premiumAccessToken || json.accessToken);
     return json;
@@ -1622,6 +1694,7 @@
       renderResult(data);
     } catch(error) {
       var normalizedError = normalizeZiweiError(error);
+      logZiweiError(error, { stage: text(error && error.stage) || 'generate', sessionId: sessionId, reportId: text(RESULT && RESULT.reportId) });
       if((Number(error && error.status || 0) >= 422 && Number(error && error.status || 0) !== 401 && Number(error && error.status || 0) !== 402 && Number(error && error.status || 0) !== 403) || text(error && error.kind) === 'generation'){
         var paid = readPaidSession();
         if(paid){

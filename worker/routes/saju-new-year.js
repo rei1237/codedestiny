@@ -40,11 +40,67 @@ import {
 } from "../lib/saju-new-year-constants.js";
 
 const newYearPdfLocks = new Map();
+const annualFortuneLlmCache = new Map();
 export { NEW_YEAR_CHAPTERS };
 
+const ANNUAL_FORTUNE_PRODUCT_ID = "saju_annual_fortune";
+const ANNUAL_FORTUNE_PROMPT_VERSION = "saju-annual-fortune-hybrid-v1";
+const ANNUAL_FORTUNE_ENGINE_VERSION = "worker-saju-new-year-engine.v1";
+const ANNUAL_FORTUNE_LLM_ENHANCEMENT_ENV = "ANNUAL_FORTUNE_LLM_ENHANCEMENT_ENABLED";
+const ANNUAL_FORTUNE_QUARTERLY_LLM_ENV = "ANNUAL_FORTUNE_QUARTERLY_LLM_ENABLED";
+const ANNUAL_FORTUNE_LLM_CACHE_ENV = "ANNUAL_FORTUNE_LLM_CACHE_ENABLED";
+const ANNUAL_FORTUNE_CHAPTER_CACHE_REPORT_TYPE = "sajuNewYearChapterCache";
+const ANNUAL_FORTUNE_CHAPTER_CACHE_TTL_DAYS = 90;
+const ANNUAL_FORTUNE_CACHE_LIMIT = 160;
+const ANNUAL_FORTUNE_LLM_ENHANCED_CHAPTERS = Object.freeze([
+  "annual_overview",
+  "annual_pillar_interaction",
+  "major_luck_annual_luck",
+  "career_business",
+  "wealth_money",
+  "relationship_family",
+  "relationship_love_family",
+  "caution_periods",
+  "annual_master_plan",
+]);
+const ANNUAL_FORTUNE_OPTIONAL_QUARTERLY_LLM_CHAPTERS = Object.freeze([
+  "monthly_q1",
+  "monthly_q2",
+  "monthly_q3",
+  "monthly_q4",
+  "quarterly_decision",
+]);
+const ANNUAL_FORTUNE_CHAPTER_ID_BY_NO = Object.freeze({
+  1: "annual_overview",
+  2: "career_business",
+  3: "wealth_money",
+  4: "relationship_family",
+  5: "relationship_love_family",
+  6: "health_lifestyle",
+  7: "quarterly_decision",
+  8: "caution_periods",
+  9: "monthly_map",
+  10: "annual_master_plan",
+});
+const ANNUAL_FORTUNE_RISK_REPLACEMENTS = Object.freeze([
+  [/반드시\s*망한다/gi, "무리한 확장은 부담으로 돌아올 수 있으니 속도 조절이 필요합니다"],
+  [/큰\s*사고가\s*난다/gi, "이동, 일정, 컨디션 관리에서 평소보다 신중함이 필요합니다"],
+  [/병에\s*걸린다/gi, "생활 리듬과 체력 관리에 신경 써야 하는 시기입니다"],
+  [/돈을\s*(?:크게\s*)?잃는다/gi, "충동적인 지출이나 검증되지 않은 투자는 보수적으로 접근하는 편이 좋습니다"],
+  [/해고된다/gi, "직장 내 역할 변화나 책임 조정이 생길 수 있으므로 관계와 성과 관리가 중요합니다"],
+  [/사업이\s*실패한다/gi, "사업 운영에서는 속도보다 검증과 현금 흐름 관리가 중요합니다"],
+  [/이별한다/gi, "관계의 속도와 기대치 차이를 조율해야 하는 시기입니다"],
+  [/소송에\s*휘말린다/gi, "계약과 약속은 문서와 절차를 더 세심하게 확인하는 편이 좋습니다"],
+  [/가족\s*문제가\s*터진다/gi, "가족과 가까운 관계에서는 미뤄 둔 대화를 차분히 정리할 필요가 있습니다"],
+  [/올해는\s*최악이다/gi, "압박감이 커질 수 있지만 방향을 정리하면 기준을 세우기 좋은 해입니다"],
+  [/아무것도\s*하지\s*마라/gi, "큰 결정보다 점검과 정리에 집중하는 편이 좋습니다"],
+  [/무조건\s*투자하지\s*마라/gi, "투자는 검증된 범위 안에서 보수적으로 판단하는 편이 좋습니다"],
+  [/무조건\s*결혼하지\s*마라/gi, "관계의 약속은 속도와 책임을 충분히 맞춘 뒤 결정하는 편이 좋습니다"],
+]);
 const NEW_YEAR_LOCAL_FORBIDDEN_RE = /\b(?:json|payload|debug|schema|engine|prompt|llm|api|undefined|null|nan|object|todo|fixme|placeholder)\b|\[object Object\]/gi;
 const NEW_YEAR_MANUSCRIPT_SOURCE = Object.freeze({
   LLM: "worker-native-llm",
+  HYBRID: "annual-fortune-hybrid",
   LOCAL: "local-rule-completed",
 });
 const NEW_YEAR_LLM_KEY_ENV_KEYS = Object.freeze([
@@ -172,6 +228,331 @@ function compactNewYearObject(value) {
   if (value === null || value === undefined) return undefined;
   if (typeof value === "string") return clean(value) || undefined;
   return value;
+}
+
+function readBooleanFlag(env = {}, key, fallback = false) {
+  const raw = env?.[key];
+  if (raw === undefined || raw === null || raw === "") return fallback;
+  if (typeof raw === "boolean") return raw;
+  return /^(1|true|yes|on)$/i.test(clean(raw));
+}
+
+function stableNewYearStringify(value) {
+  if (Array.isArray(value)) return `[${value.map((item) => stableNewYearStringify(item)).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableNewYearStringify(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value ?? null);
+}
+
+function hashAnnualFortuneValue(value) {
+  const input = stableNewYearStringify(value);
+  let h1 = 0xdeadbeef;
+  let h2 = 0x41c6ce57;
+  for (let i = 0; i < input.length; i += 1) {
+    const ch = input.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return `${(h2 >>> 0).toString(36)}${(h1 >>> 0).toString(36)}`;
+}
+
+function normalizeAnnualFortunePillar(pillar = {}) {
+  return compactNewYearObject({
+    stem: clean(pillar?.stem),
+    branch: clean(pillar?.branch),
+    label: clean(pillar?.label || `${clean(pillar?.stem)}${clean(pillar?.branch)}`),
+    element: clean(pillar?.element),
+    elementKo: clean(pillar?.elementKo),
+  });
+}
+
+function getAnnualFortuneChapterId(chapterSpec = {}) {
+  return ANNUAL_FORTUNE_CHAPTER_ID_BY_NO[Number(chapterSpec?.no || 0)] || `chapter_${Number(chapterSpec?.no || 0) || "unknown"}`;
+}
+
+function annualFortuneLlmEnabled(env = {}) {
+  return readBooleanFlag(env, ANNUAL_FORTUNE_LLM_ENHANCEMENT_ENV, true);
+}
+
+function annualFortuneQuarterlyLlmEnabled(env = {}) {
+  return readBooleanFlag(env, ANNUAL_FORTUNE_QUARTERLY_LLM_ENV, false);
+}
+
+function annualFortuneLlmCacheEnabled(env = {}) {
+  return readBooleanFlag(env, ANNUAL_FORTUNE_LLM_CACHE_ENV, true);
+}
+
+function shouldEnhanceAnnualFortuneChapter(chapterSpec = {}, env = {}) {
+  if (!annualFortuneLlmEnabled(env)) return false;
+  const chapterId = getAnnualFortuneChapterId(chapterSpec);
+  if (ANNUAL_FORTUNE_LLM_ENHANCED_CHAPTERS.includes(chapterId)) return true;
+  if (ANNUAL_FORTUNE_OPTIONAL_QUARTERLY_LLM_CHAPTERS.includes(chapterId)) return annualFortuneQuarterlyLlmEnabled(env);
+  return false;
+}
+
+function softenAnnualFortuneRiskText(value, targetYear) {
+  let result = stripForbiddenText(value);
+  for (const [pattern, replacement] of ANNUAL_FORTUNE_RISK_REPLACEMENTS) {
+    result = result.replace(pattern, replacement);
+  }
+  const year = Number(targetYear || 0);
+  if (year >= 1900 && year <= 2100) {
+    result = result.replace(/\b(19\d{2}|20\d{2}|21\d{2})년/g, (match, rawYear) => (
+      Number(rawYear) === year ? match : `${year}년`
+    ));
+  }
+  return result.replace(/\s{3,}/g, " ").trim();
+}
+
+function deriveAnnualFortuneDayMasterStrength(seed = {}) {
+  const dayMaster = clean(seed?.saju?.dayMaster || seed?.saju?.pillars?.day?.stem || "戊");
+  const element = STEM_ELEMENT[dayMaster] || LOCAL_STEM_ELEMENT[dayMaster] || "earth";
+  const count = Number(seed?.saju?.fiveElements?.[element] || 0);
+  if (count >= 3) return "강";
+  if (count <= 1) return "약";
+  return "중화";
+}
+
+function buildAnnualFortuneMonthlyPoint(item = {}, seed = {}) {
+  const month = Number(item?.month || 0);
+  const monthLabel = `${month || ""}월`;
+  const tone = clean(item?.tone || toneFromScore(item?.finalScore || item?.score));
+  const pillar = clean(item?.pillar?.label);
+  const relation = clean(item?.relation);
+  const decision = clean(item?.decision || decisionFromScore(item?.finalScore || item?.score));
+  return compactNewYearObject({
+    monthIndex: month,
+    monthLabel,
+    monthTheme: `${pillar} 월운 · ${tone} 운영`,
+    monthPillar: normalizeAnnualFortunePillar(item?.pillar),
+    monthTenGodForDayMaster: localTenGod(clean(seed?.saju?.dayMaster || "戊"), clean(item?.pillar?.stem || "甲")),
+    elementImpact: {
+      element: clean(item?.pillar?.element),
+      elementKo: LOCAL_ELEMENT_KO[item?.pillar?.element] || ELEMENT_KO[item?.pillar?.element] || "",
+      relation,
+      baseScore: item?.baseScore,
+      finalScore: item?.finalScore ?? item?.score,
+      decision,
+    },
+    combinationsAndConflicts: [],
+    themeKeywords: [pillar, tone, relation, decision].filter(Boolean),
+    careerPoint: `${monthLabel}에는 ${tone} 리듬에 맞춰 업무 우선순위와 일정 밀도를 조절하는 편이 좋습니다.`,
+    wealthPoint: `${monthLabel} 재물 흐름은 지출 속도와 계약 조건을 확인하며 보수적으로 관리하면 안정됩니다.`,
+    relationshipPoint: `${monthLabel} 관계에서는 기대치를 먼저 말로 정리하고 약속의 범위를 좁혀 가는 방식이 유리합니다.`,
+    healthLifestylePoint: `${monthLabel} 생활 리듬은 수면, 식사, 이동 일정을 무리하지 않게 배치하는 것이 핵심입니다.`,
+    cautionPoint: decision === "STOP" ? "큰 결정을 서두르기보다 확인과 보완에 집중하세요." : "좋은 흐름이 있더라도 기록과 검토를 함께 두면 흔들림이 줄어듭니다.",
+    actionGuide: clean(item?.advice || `${tone} 관점으로 한 달 계획을 조정하세요.`),
+  });
+}
+
+function buildAnnualFortuneFacts(seed = {}) {
+  const annual = seed?.saju?.annualLuck || {};
+  const quantum = seed?.quantumMyeongri || seed?.saju?.quantumMyeongri || {};
+  const monthly = Array.isArray(seed?.saju?.monthlyLuck) ? seed.saju.monthlyLuck : [];
+  const relations = Array.isArray(seed?.saju?.relations?.branchRelations) ? seed.saju.relations.branchRelations : [];
+  const usefulKeywords = Array.isArray(seed?.structure?.usefulGodKeywords) ? seed.structure.usefulGodKeywords.filter(Boolean) : [];
+  return compactNewYearObject({
+    productId: ANNUAL_FORTUNE_PRODUCT_ID,
+    targetYear: Number(seed?.targetYear || annual?.year || 0),
+    displayYearLabel: `${Number(seed?.targetYear || annual?.year || 0)}년`,
+    calculationBasis: {
+      yearBoundary: "existing_engine_basis",
+      monthBoundary: "existing_engine_basis",
+      usesSolarTerms: true,
+      engineVersion: ANNUAL_FORTUNE_ENGINE_VERSION,
+    },
+    birthInfo: seed?.birthProfile || seed?.input,
+    fourPillars: seed?.saju?.pillars,
+    dayMaster: clean(seed?.saju?.dayMaster),
+    dayMasterStrength: deriveAnnualFortuneDayMasterStrength(seed),
+    fiveElementBalance: seed?.saju?.fiveElements,
+    tenGods: seed?.saju?.tenGods,
+    usefulGods: usefulKeywords,
+    avoidGods: Array.isArray(quantum?.cautionElements) ? quantum.cautionElements : [],
+    structureType: clean(seed?.structure?.geokguk),
+    currentMajorLuckCycle: seed?.saju?.luckCycle,
+    annualPillar: normalizeAnnualFortunePillar(annual),
+    annualTenGodForDayMaster: clean(annual?.tenGod),
+    annualElementImpact: {
+      element: clean(annual?.element),
+      elementKo: clean(annual?.elementKo),
+      dayMasterRelation: clean(annual?.dayMasterRelation),
+      quantum: annual?.quantum || quantum?.annualQuantum,
+    },
+    annualUsefulGodImpact: Array.isArray(quantum?.favorableElements) ? quantum.favorableElements.join("·") : "",
+    annualAvoidGodImpact: Array.isArray(quantum?.cautionElements) ? quantum.cautionElements.join("·") : "",
+    annualCombinationsAndConflicts: relations.map((row) => compactNewYearObject({
+      type: row?.type,
+      target: row?.target,
+      message: row?.message,
+    })),
+    annualStars: [],
+    annualThemeKeywords: seed?.luckCycles?.targetYearSewoon?.keywords || [annual?.label, annual?.tenGod, annual?.dayMasterRelation].filter(Boolean),
+    careerFortune: seed?.derivedSignals?.careerSignals,
+    wealthFortune: seed?.derivedSignals?.moneySignals,
+    relationshipFortune: [
+      ...(seed?.derivedSignals?.loveRelationshipSignals || []),
+      ...(seed?.derivedSignals?.humanRelationSignals || []),
+    ].slice(0, 8),
+    healthLifestyleFortune: seed?.derivedSignals?.healthMindSignals,
+    studyGrowthFortune: seed?.interpretationSeeds?.study || [],
+    familySocialFortune: seed?.derivedSignals?.humanRelationSignals,
+    riskWarnings: seed?.derivedSignals?.crisisSignals,
+    opportunitySignals: seed?.derivedSignals?.opportunitySignals,
+    monthlyFlows: monthly.map((item) => buildAnnualFortuneMonthlyPoint(item, seed)),
+    quarterlyStrategy: seed?.interpretationSeeds?.monthly || [],
+    annualStrategy: seed?.interpretationSeeds?.finalStrategy || [],
+    doList: seed?.derivedSignals?.opportunitySignals || [],
+    avoidList: seed?.derivedSignals?.crisisSignals || [],
+  });
+}
+
+function buildAnnualFortuneLockedFacts(facts = {}, chapterSpec = {}) {
+  const monthly = Array.isArray(facts?.monthlyFlows) ? facts.monthlyFlows : [];
+  const goMonths = monthly.filter((item) => item?.elementImpact?.decision === "GO").map((item) => item.monthLabel).slice(0, 4);
+  const stopMonths = monthly.filter((item) => item?.elementImpact?.decision === "STOP").map((item) => item.monthLabel).slice(0, 4);
+  const base = [
+    `대상 연도는 ${facts.displayYearLabel || `${facts.targetYear}년`}입니다.`,
+    "계산 기준은 기존 서비스의 절기와 월운 기준을 그대로 따릅니다.",
+    `일간은 ${facts.dayMaster || "확인 필요"}이고 일간 강약은 ${facts.dayMasterStrength || "중화"}입니다.`,
+    `세운은 ${facts?.annualPillar?.label || "세운"}이며 일간 기준 십성은 ${facts.annualTenGodForDayMaster || "십성"}입니다.`,
+    `세운과 일간의 관계는 ${facts?.annualElementImpact?.dayMasterRelation || "관계"}입니다.`,
+    `월운은 1월부터 12월까지 ${monthly.length}개가 확정되어 있습니다.`,
+  ];
+  const chapterId = getAnnualFortuneChapterId(chapterSpec);
+  if (/career/.test(chapterId)) base.push(...(facts.careerFortune || []).slice(0, 3));
+  if (/wealth/.test(chapterId)) base.push(...(facts.wealthFortune || []).slice(0, 3));
+  if (/relationship/.test(chapterId)) base.push(...(facts.relationshipFortune || []).slice(0, 3));
+  if (/health/.test(chapterId)) base.push(...(facts.healthLifestyleFortune || []).slice(0, 3));
+  if (/caution/.test(chapterId)) base.push(...(facts.riskWarnings || []).slice(0, 3));
+  if (/master|overview/.test(chapterId)) base.push(...(facts.annualStrategy || []).slice(0, 3));
+  if (goMonths.length) base.push(`기회가 강한 달은 ${goMonths.join("·")}입니다.`);
+  if (stopMonths.length) base.push(`조심할 달은 ${stopMonths.join("·")}입니다.`);
+  return base.map(stripForbiddenText).filter(Boolean);
+}
+
+function buildAnnualFortuneChapterPlans(seed = {}, chapterSpecs = []) {
+  const facts = seed?.annualFortuneFacts || buildAnnualFortuneFacts(seed);
+  const specs = Array.isArray(chapterSpecs) && chapterSpecs.length ? chapterSpecs : buildSajuNewYearChapterSpecs(seed?.targetYear || resolveDefaultTargetYear());
+  return specs.map((chapterSpec) => {
+    const chapterId = getAnnualFortuneChapterId(chapterSpec);
+    const local = buildDeterministicChapterFromSpec(seed, chapterSpec, "annual_fortune_plan_local_draft");
+    return compactNewYearObject({
+      chapterId,
+      chapterTitle: clean(chapterSpec?.title),
+      targetYear: facts.targetYear,
+      purpose: `${clean(chapterSpec?.title)}에서 확정된 세운·월운·원국 근거를 독자가 이해할 수 있는 상담문으로 풀어냅니다.`,
+      lockedFacts: buildAnnualFortuneLockedFacts(facts, chapterSpec),
+      interpretationPoints: (chapterSpec?.categories || []).map((title, index) => `${index + 1}. ${title}`).concat((facts.annualThemeKeywords || []).slice(0, 4)),
+      warnings: [
+        "사주 계산, 세운 계산, 월운 계산을 새로 하지 않습니다.",
+        "lockedFacts와 충돌하는 문장을 쓰지 않습니다.",
+        "건강·금전·관계·직업 결과를 단정적으로 예언하지 않습니다.",
+        "월별 운세는 제공된 12개월 월운을 벗어나 임의 생성하지 않습니다.",
+      ],
+      recommendedTone: "전문적이고 신비로운 프리미엄 신년운세 상담체",
+      localDraft: local.text,
+    });
+  });
+}
+
+function buildAnnualFortuneLlmCacheKey(facts = {}, chapterPlan = {}) {
+  return [
+    ANNUAL_FORTUNE_PRODUCT_ID,
+    `targetYear:${facts.targetYear}`,
+    `birth:${hashAnnualFortuneValue(facts.birthInfo || {})}`,
+    `engine:${ANNUAL_FORTUNE_ENGINE_VERSION}`,
+    `prompt:${ANNUAL_FORTUNE_PROMPT_VERSION}`,
+    `chapter:${clean(chapterPlan.chapterId)}`,
+    `basis:${hashAnnualFortuneValue(facts.calculationBasis || {})}`,
+  ].join("|");
+}
+
+function buildAnnualFortunePersistentCacheExecutionKey(cacheKey) {
+  return `ny-ch:${hashAnnualFortuneValue(cacheKey)}`;
+}
+
+function rememberAnnualFortuneLlmCache(key, chapter) {
+  if (!clean(key) || !chapter) return;
+  annualFortuneLlmCache.set(key, cloneNewYearValue(chapter));
+  while (annualFortuneLlmCache.size > ANNUAL_FORTUNE_CACHE_LIMIT) {
+    const oldest = annualFortuneLlmCache.keys().next().value;
+    annualFortuneLlmCache.delete(oldest);
+  }
+}
+
+async function findAnnualFortunePersistentChapterCache(env = {}, userId, cacheKey) {
+  if (!annualFortuneLlmCacheEnabled(env) || !userId || !clean(cacheKey)) return null;
+  try {
+    await connectDb(withPdfFastDbEnv(env));
+    const doc = await ServiceExecutionTransaction.findOne({
+      userId,
+      executionKey: buildAnnualFortunePersistentCacheExecutionKey(cacheKey),
+      reportType: ANNUAL_FORTUNE_CHAPTER_CACHE_REPORT_TYPE,
+      status: "success",
+      premiumStatus: "completed",
+    }).lean();
+    const metadata = doc?.metadata && typeof doc.metadata === "object" ? doc.metadata : {};
+    if (clean(metadata.cacheKey) !== clean(cacheKey)) return null;
+    if (clean(metadata.promptVersion) !== ANNUAL_FORTUNE_PROMPT_VERSION) return null;
+    if (clean(metadata.engineVersion) !== ANNUAL_FORTUNE_ENGINE_VERSION) return null;
+    const chapter = metadata.chapter && typeof metadata.chapter === "object" ? metadata.chapter : null;
+    if (!chapter || !Array.isArray(chapter.sections)) return null;
+    return cloneNewYearValue(chapter);
+  } catch (error) {
+    console.warn("[NewYearPremiumPDF][AnnualFortuneChapterCacheReadFailed]", {
+      reason: clean(error?.message || error),
+    });
+    return null;
+  }
+}
+
+async function rememberAnnualFortunePersistentChapterCache(env = {}, userId, cacheKey, chapter, extra = {}) {
+  if (!annualFortuneLlmCacheEnabled(env) || !userId || !clean(cacheKey) || !chapter) return false;
+  try {
+    await connectDb(withPdfFastDbEnv(env));
+    const now = new Date();
+    const ttlDays = clamp(Number(env?.ANNUAL_FORTUNE_LLM_CACHE_TTL_DAYS || ANNUAL_FORTUNE_CHAPTER_CACHE_TTL_DAYS), 1, 365);
+    const retentionUntil = new Date(now.getTime() + ttlDays * 24 * 60 * 60 * 1000);
+    const executionKey = buildAnnualFortunePersistentCacheExecutionKey(cacheKey);
+    await ServiceExecutionTransaction.findOneAndUpdate(
+      { userId, executionKey },
+      {
+        $set: {
+          reportType: ANNUAL_FORTUNE_CHAPTER_CACHE_REPORT_TYPE,
+          reportId: executionKey,
+          sessionId: executionKey,
+          featureKey: FEATURE_KEY,
+          cost: 0,
+          status: "success",
+          premiumStatus: "completed",
+          completedAt: now,
+          generationCompletedAt: now,
+          timeoutAt: retentionUntil,
+          retentionUntil,
+          metadata: {
+            cacheKind: "saju-new-year-annual-fortune-chapter",
+            productId: ANNUAL_FORTUNE_PRODUCT_ID,
+            cacheKey,
+            promptVersion: ANNUAL_FORTUNE_PROMPT_VERSION,
+            engineVersion: ANNUAL_FORTUNE_ENGINE_VERSION,
+            chapter: cloneNewYearValue(chapter),
+            ...compactNewYearObject(extra),
+          },
+        },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    ).lean();
+    return true;
+  } catch (error) {
+    console.warn("[NewYearPremiumPDF][AnnualFortuneChapterCacheWriteFailed]", {
+      reason: clean(error?.message || error),
+    });
+    return false;
+  }
 }
 
 function pickNewYearGeminiModels(env = {}) {
@@ -1274,6 +1655,8 @@ function buildPdfSeed(profile, targetYear, body = {}) {
   };
   seed.twelveGrowthStages = [{ stage: "장생" }, { stage: "목욕" }, { stage: "관대" }, { stage: "임관" }];
   seed.chapterSpecs = chapterSpecs;
+  seed.annualFortuneFacts = buildAnnualFortuneFacts(seed);
+  seed.annualFortuneChapterPlans = buildAnnualFortuneChapterPlans(seed, chapterSpecs);
   return seed;
 }
 
@@ -1445,7 +1828,10 @@ function buildNewYearMasterJson(seed = {}, body = {}) {
   const masterJson = compactNewYearObject({
     schemaVersion: "saju-new-year-master-json.v1",
     calculationSource: "worker-saju-new-year-engine",
-    generationMode: "worker-native-llm",
+    generationMode: "annual-fortune-facts-plan-hybrid-v1",
+    productId: ANNUAL_FORTUNE_PRODUCT_ID,
+    promptVersion: ANNUAL_FORTUNE_PROMPT_VERSION,
+    engineVersion: ANNUAL_FORTUNE_ENGINE_VERSION,
     serviceKey: SERVICE_KEY,
     targetYear: seed?.targetYear,
     input: seed?.input,
@@ -1493,6 +1879,11 @@ function buildNewYearMasterJson(seed = {}, body = {}) {
       quantumSummary: clean(item.quantumSummary),
     })),
     quantumMyeongri: seed?.quantumMyeongri || seed?.saju?.quantumMyeongri,
+    annualFortuneFacts: seed?.annualFortuneFacts || buildAnnualFortuneFacts(seed),
+    annualFortuneChapterPlans: (seed?.annualFortuneChapterPlans || []).map((plan) => ({
+      ...plan,
+      localDraft: clean(plan.localDraft).slice(0, 2400),
+    })),
     structure: seed?.structure,
     derivedSignals: seed?.derivedSignals,
     chapterSpecs: seed?.chapterSpecs,
@@ -1551,6 +1942,10 @@ function validateNewYearMasterJson(masterJson = {}) {
   requireField(quantumMonthly.length === 12, "quantum_monthly_count");
   requireField((masterJson?.consultationEvidence?.sajuEvidence || []).length >= 6, "consultation_evidence_too_thin");
   requireField(Array.isArray(masterJson?.chapterSpecs) && masterJson.chapterSpecs.length === 10, "chapter_specs_count");
+  requireField(clean(masterJson?.annualFortuneFacts?.productId) === ANNUAL_FORTUNE_PRODUCT_ID, "annual_fortune_facts_product");
+  requireField(Number(masterJson?.annualFortuneFacts?.targetYear) === Number(masterJson?.targetYear), "annual_fortune_facts_target_year");
+  requireField(Array.isArray(masterJson?.annualFortuneFacts?.monthlyFlows) && masterJson.annualFortuneFacts.monthlyFlows.length === 12, "annual_fortune_facts_monthly_count");
+  requireField(Array.isArray(masterJson?.annualFortuneChapterPlans) && masterJson.annualFortuneChapterPlans.length === 10, "annual_fortune_chapter_plans_count");
 
   return { ok: errors.length === 0, errors };
 }
@@ -1578,10 +1973,10 @@ async function generateNewYearGeminiJson(env, { systemPrompt, userPrompt, reques
     models: pickNewYearGeminiModels(env),
     temperature: Number(env?.SAJU_NEW_YEAR_GEMINI_TEMPERATURE || env?.PREMIUM_GEMINI_TEMPERATURE || 0.35),
     topP: Number(env?.SAJU_NEW_YEAR_GEMINI_TOP_P || env?.PREMIUM_GEMINI_TOP_P || 0.9),
-    maxOutputTokens: Number(env?.SAJU_NEW_YEAR_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 24576),
-    timeoutMs: Number(env?.SAJU_NEW_YEAR_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
+    maxOutputTokens: Number(env?.SAJU_NEW_YEAR_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 8192),
+    timeoutMs: Number(env?.SAJU_NEW_YEAR_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
     totalTimeoutMs: Number(env?.SAJU_NEW_YEAR_GEMINI_TOTAL_TIMEOUT_MS || 0),
-    maxAttemptsPerPair: Number(env?.SAJU_NEW_YEAR_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 2),
+    maxAttemptsPerPair: Math.min(1, Number(env?.SAJU_NEW_YEAR_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1)),
     useSdk: false,
     disableVertexFallback: true,
     metadata: { requestId, schemaName },
@@ -1599,7 +1994,7 @@ function normalizeNewYearGeneratedChapter(parsed = {}, chapterSpec = {}, seed = 
   const sourceSections = Array.isArray(parsed?.sections) ? parsed.sections : [];
   const sections = (chapterSpec?.categories || []).map((title, index) => {
     const source = sourceSections[index] || {};
-    const body = stripForbiddenText(source.body || source.text || "");
+    const body = softenAnnualFortuneRiskText(source.body || source.text || "", seed?.targetYear);
     return {
       title,
       body,
@@ -1624,14 +2019,87 @@ function normalizeNewYearGeneratedChapter(parsed = {}, chapterSpec = {}, seed = 
     categories,
     sections,
     text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
-    masterAdvice: stripForbiddenText(parsed?.masterAdvice || ""),
+    masterAdvice: softenAnnualFortuneRiskText(parsed?.masterAdvice || "", seed?.targetYear),
     source: NEW_YEAR_MANUSCRIPT_SOURCE.LLM,
   };
 }
 
-function buildNewYearChapterPrompt({ masterJson, chapterSpec, previousSummaries = [], validationFeedback = "" }) {
+function countAnnualFortuneLockedFactMatches(text = "", lockedFacts = []) {
+  const body = clean(text);
+  if (!body || !Array.isArray(lockedFacts) || lockedFacts.length === 0) return 0;
+  return lockedFacts.reduce((acc, fact) => {
+    const tokens = clean(fact).match(/[가-힣A-Za-z0-9甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]{2,}/g) || [];
+    return acc + (tokens.some((token) => body.includes(token)) ? 1 : 0);
+  }, 0);
+}
+
+function sanitizeAnnualFortuneChapter({ seed, chapterSpec, chapter, chapterPlan, source = NEW_YEAR_MANUSCRIPT_SOURCE.LOCAL } = {}) {
+  const plan = chapterPlan || {};
+  const lockedFacts = Array.isArray(plan.lockedFacts) ? plan.lockedFacts : [];
+  const localDraft = buildDeterministicChapterFromSpec(seed, chapterSpec, "annual_fortune_chapter_sanitize");
+  const srcSections = Array.isArray(chapter?.sections)
+    ? chapter.sections
+    : Array.isArray(chapter?.categories)
+      ? chapter.categories.map((item) => ({ title: item?.title, body: item?.finalText || item?.localSummary || item?.body || "" }))
+      : [];
+  let fallbackSections = 0;
+  const sections = (chapterSpec?.categories || []).map((title, index) => {
+    const src = srcSections[index] || {};
+    const localBody = clean(localDraft.sections?.[index]?.body || buildHighQualityNewYearSection(seed, chapterSpec, title, index));
+    let body = softenAnnualFortuneRiskText(src.body || src.finalText || src.text || "", seed?.targetYear);
+    if (clean(src.title) !== clean(title) || body.length < MIN_SECTION_CHARS || hasForbiddenText(body)) {
+      fallbackSections += 1;
+      body = localBody;
+    }
+    const matches = countAnnualFortuneLockedFactMatches(body, lockedFacts);
+    if (lockedFacts.length && matches < Math.min(3, lockedFacts.length)) {
+      body = `${body}\n\n이 장에서 변하지 않는 기준은 ${lockedFacts.slice(0, 3).join(" ")} 이 흐름입니다. 따라서 ${seed?.targetYear}년의 판단은 제공된 세운과 월운, 원국 관계를 벗어나지 않는 선에서 조정해야 합니다.`;
+    }
+    return {
+      title,
+      body: ensureMinLength(softenAnnualFortuneRiskText(body, seed?.targetYear), desiredSectionLength(), seed, title),
+    };
+  });
+  const categories = sections.map((section) => ({
+    title: section.title,
+    localSummary: section.body,
+    finalText: section.body,
+  }));
+  return {
+    chapter: {
+      no: Number(chapterSpec?.no || 0),
+      title: clean(chapterSpec?.title || ""),
+      categories,
+      sections,
+      text: sections.map((section) => `## ${section.title}\n${section.body}`).join("\n\n"),
+      masterAdvice: softenAnnualFortuneRiskText(chapter?.masterAdvice || "", seed?.targetYear),
+      source: fallbackSections > 0 && source === NEW_YEAR_MANUSCRIPT_SOURCE.LLM ? "hybrid-llm-with-local-fallback" : source,
+      chapterPlanId: clean(plan.chapterId || getAnnualFortuneChapterId(chapterSpec)),
+      fallbackSections,
+    },
+    fallbackSections,
+  };
+}
+
+function buildNewYearChapterPrompt({ masterJson, chapterSpec, chapterPlan = {}, previousSummaries = [], validationFeedback = "" }) {
   const systemPrompt = [
-    "당신은 사주 원국, 세운, 월운, 대운을 바탕으로 신년운세 PDF의 개인화 본문만 작성하는 명리 상담가입니다.",
+    "당신은 사주 계산자가 아닙니다.",
+    "당신은 세운이나 월운을 새로 산출하는 사람이 아닙니다.",
+    "아래 제공되는 신년운세 계산 결과는 이미 확정된 값입니다.",
+    "일간, 일간 강약, 오행 분포, 십성, 용신, 희신, 기신, 격국, 대운, 세운, 월운, 충합형파해, 신살을 절대 변경하지 마세요.",
+    "새로운 사주 계산, 세운 계산, 월운 계산을 하지 마세요.",
+    "제공되지 않은 정보를 단정하지 마세요.",
+    "lockedFacts는 반드시 반영하세요.",
+    "로컬 계산 결과와 모순되는 문장을 쓰지 마세요.",
+    "독자의 불안감을 과도하게 자극하지 마세요.",
+    "반드시 망한다, 큰 사고가 난다, 돈을 잃는다, 병에 걸린다, 이별한다, 실패한다 같은 단정적이고 공포를 조장하는 표현을 피하세요.",
+    "건강, 사고, 금전 손실, 이별, 소송, 해고 같은 민감한 주제는 가능성, 주의점, 관리법 중심으로 표현하세요.",
+    "신년운세 상담문처럼 자연스럽고 깊이 있게 작성하세요.",
+    "반복 문장을 줄이고, 챕터마다 다른 관점으로 설명하세요.",
+    "한국어로 작성하세요.",
+    "최종 PDF 독자가 돈을 내고 읽는 프리미엄 신년운세 리포트처럼 느껴지게 작성하세요.",
+    "실천 조언은 구체적이되, 과도한 확정 예언처럼 쓰지 마세요.",
+    "당신은 사주 원국, 세운, 월운, 대운을 바탕으로 신년운세 PDF의 개인화 본문만 다듬는 명리 상담가입니다.",
     "챕터 제목, 섹션 제목, 목차, 표지 문구, 공통 안내문은 이미 정적 템플릿으로 준비되어 있으므로 생성하지 마세요.",
     "제공된 마스터 상담 JSON과 계산 근거만 사용하고, 없는 값은 만들지 마세요.",
     "좋다/나쁘다로 단정하지 말고 올해의 선택 기준, 실행 전략, 주의점으로 표현하세요.",
@@ -1642,6 +2110,7 @@ function buildNewYearChapterPrompt({ masterJson, chapterSpec, previousSummaries 
   ].join("\n");
   const userPrompt = JSON.stringify({
     task: "사주 신년운세 프리미엄 PDF 개인화 본문 생성",
+    promptVersion: ANNUAL_FORTUNE_PROMPT_VERSION,
     requiredOutputShape: {
       chapterNumber: chapterSpec.no,
       sections: [
@@ -1667,6 +2136,29 @@ function buildNewYearChapterPrompt({ masterJson, chapterSpec, previousSummaries 
       eachSectionMustInclude: ["사주 근거", "올해 현실 발현", "월별 또는 분기별 실행", "주의점", "품격 있는 조언"],
       tone: "전문적인 명리 상담가가 한 해의 길을 조용히 열어 주는 신비롭고 품격 있는 상담체",
     },
+    annualFortuneChapterPlan: {
+      chapterId: chapterPlan.chapterId,
+      chapterTitle: chapterPlan.chapterTitle,
+      targetYear: chapterPlan.targetYear,
+      purpose: chapterPlan.purpose,
+      lockedFacts: chapterPlan.lockedFacts,
+      interpretationPoints: chapterPlan.interpretationPoints,
+      warnings: chapterPlan.warnings,
+      recommendedTone: chapterPlan.recommendedTone,
+      localDraft: clean(chapterPlan.localDraft).slice(0, 5200),
+    },
+    outputConditions: [
+      "한국어",
+      "프리미엄 사주 신년운세 상담문 스타일",
+      "독자에게 직접 말하는 문체",
+      "불필요한 반복 금지",
+      "계산 결과 변경 금지",
+      "세운/월운 임의 생성 금지",
+      "lockedFacts 누락 금지",
+      "과장, 공포 마케팅 금지",
+      "건강/사고/금전/이별 관련 단정 금지",
+      "각 섹션 본문은 바로 PDF에 넣을 수 있게 작성",
+    ],
     previousSummaries,
     validationFeedback: clean(validationFeedback),
     masterJson,
@@ -1674,8 +2166,8 @@ function buildNewYearChapterPrompt({ masterJson, chapterSpec, previousSummaries 
   return { systemPrompt, userPrompt };
 }
 
-async function generateNewYearChapterWithGemini(env, { masterJson, seed, chapterSpec, previousSummaries = [], requestId, validationFeedback = "" }) {
-  const { systemPrompt, userPrompt } = buildNewYearChapterPrompt({ masterJson, chapterSpec, previousSummaries, validationFeedback });
+async function generateNewYearChapterWithGemini(env, { masterJson, seed, chapterSpec, chapterPlan = {}, previousSummaries = [], requestId, validationFeedback = "" }) {
+  const { systemPrompt, userPrompt } = buildNewYearChapterPrompt({ masterJson, chapterSpec, chapterPlan, previousSummaries, validationFeedback });
   const parsed = await generateNewYearGeminiJson(env, {
     systemPrompt,
     userPrompt,
@@ -1685,25 +2177,131 @@ async function generateNewYearChapterWithGemini(env, { masterJson, seed, chapter
   return normalizeNewYearGeneratedChapter(parsed, chapterSpec, seed);
 }
 
-async function generateNewYearChaptersWithGemini(env, { masterJson, seed, chapterSpecs, requestId }) {
+async function generateAnnualFortuneHybridChapters(env, { masterJson, seed, chapterSpecs, requestId, userId = null }) {
+  const facts = seed?.annualFortuneFacts || buildAnnualFortuneFacts(seed);
+  const plans = Array.isArray(seed?.annualFortuneChapterPlans) && seed.annualFortuneChapterPlans.length
+    ? seed.annualFortuneChapterPlans
+    : buildAnnualFortuneChapterPlans(seed, chapterSpecs);
+  const localChapters = buildLocalSkeleton(seed);
   const chapters = [];
   const previousSummaries = [];
+  const stats = {
+    promptVersion: ANNUAL_FORTUNE_PROMPT_VERSION,
+    engineVersion: ANNUAL_FORTUNE_ENGINE_VERSION,
+    llmEnabled: annualFortuneLlmEnabled(env),
+    quarterlyLlmEnabled: annualFortuneQuarterlyLlmEnabled(env),
+    llmAttempted: 0,
+    llmSucceeded: 0,
+    llmCached: 0,
+    persistentCacheHits: 0,
+    persistentCacheWrites: 0,
+    llmSkipped: 0,
+    localFallback: 0,
+    fallbackSections: 0,
+    cacheKeys: [],
+    enhancedChapterIds: [],
+    skippedChapterIds: [],
+  };
   for (const chapterSpec of chapterSpecs) {
-    const chapter = await generateNewYearChapterWithGemini(env, {
-      masterJson,
-      seed,
-      chapterSpec,
-      previousSummaries,
-      requestId: clean(requestId || `saju-new-year:${seed?.targetYear}:${Date.now().toString(36)}`),
-    });
-    chapters.push(chapter);
-    previousSummaries.push({
-      no: chapter.no,
-      title: chapter.title,
-      summary: clean(chapter.masterAdvice || chapter.sections?.[0]?.body || "").slice(0, 420),
-    });
+    const index = Math.max(0, Number(chapterSpec?.no || 1) - 1);
+    const chapterPlan = plans.find((plan) => clean(plan?.chapterId) === getAnnualFortuneChapterId(chapterSpec)) || plans[index] || {};
+    const chapterId = clean(chapterPlan?.chapterId || getAnnualFortuneChapterId(chapterSpec));
+    const localChapter = localChapters[index] || buildDeterministicChapterFromSpec(seed, chapterSpec, "annual_fortune_hybrid_local");
+    if (!shouldEnhanceAnnualFortuneChapter(chapterSpec, env)) {
+      stats.llmSkipped += 1;
+      stats.skippedChapterIds.push(chapterId);
+      chapters.push({ ...localChapter, source: NEW_YEAR_MANUSCRIPT_SOURCE.LOCAL, chapterPlanId: chapterId });
+      continue;
+    }
+
+    const cacheKey = buildAnnualFortuneLlmCacheKey(facts, chapterPlan);
+    stats.cacheKeys.push(cacheKey);
+    const cached = annualFortuneLlmCache.get(cacheKey);
+    if (cached) {
+      stats.llmCached += 1;
+      stats.enhancedChapterIds.push(chapterId);
+      chapters.push({ ...cloneNewYearValue(cached), source: "annual-fortune-llm-cache", chapterPlanId: chapterId });
+      previousSummaries.push({
+        no: cached.no,
+        title: cached.title,
+        summary: clean(cached.masterAdvice || cached.sections?.[0]?.body || "").slice(0, 420),
+      });
+      continue;
+    }
+
+    const persistentCached = await findAnnualFortunePersistentChapterCache(env, userId, cacheKey);
+    if (persistentCached) {
+      rememberAnnualFortuneLlmCache(cacheKey, persistentCached);
+      stats.llmCached += 1;
+      stats.persistentCacheHits += 1;
+      stats.enhancedChapterIds.push(chapterId);
+      chapters.push({ ...persistentCached, source: "annual-fortune-db-cache", chapterPlanId: chapterId });
+      previousSummaries.push({
+        no: persistentCached.no,
+        title: persistentCached.title,
+        summary: clean(persistentCached.masterAdvice || persistentCached.sections?.[0]?.body || "").slice(0, 420),
+      });
+      continue;
+    }
+
+    stats.llmAttempted += 1;
+    try {
+      const generated = await generateNewYearChapterWithGemini(env, {
+        masterJson,
+        seed,
+        chapterSpec,
+        chapterPlan,
+        previousSummaries,
+        requestId: clean(requestId || `saju-new-year:${seed?.targetYear}:${Date.now().toString(36)}`),
+      });
+      const sanitized = sanitizeAnnualFortuneChapter({
+        seed,
+        chapterSpec,
+        chapter: generated,
+        chapterPlan,
+        source: NEW_YEAR_MANUSCRIPT_SOURCE.LLM,
+      });
+      stats.fallbackSections += sanitized.fallbackSections;
+      stats.llmSucceeded += 1;
+      stats.enhancedChapterIds.push(chapterId);
+      rememberAnnualFortuneLlmCache(cacheKey, sanitized.chapter);
+      if (await rememberAnnualFortunePersistentChapterCache(env, userId, cacheKey, sanitized.chapter, {
+        targetYear: facts.targetYear,
+        chapterId,
+        calculationBasisHash: hashAnnualFortuneValue(facts.calculationBasis || {}),
+        birthInfoHash: hashAnnualFortuneValue(facts.birthInfo || {}),
+      })) {
+        stats.persistentCacheWrites += 1;
+      }
+      chapters.push(sanitized.chapter);
+      previousSummaries.push({
+        no: sanitized.chapter.no,
+        title: sanitized.chapter.title,
+        summary: clean(sanitized.chapter.masterAdvice || sanitized.chapter.sections?.[0]?.body || "").slice(0, 420),
+      });
+    } catch (error) {
+      stats.localFallback += 1;
+      console.warn("[NewYearPremiumPDF][AnnualFortuneChapterFallback]", {
+        chapterId,
+        reason: clean(error?.code || error?.message || "llm_failed"),
+      });
+      const sanitized = sanitizeAnnualFortuneChapter({
+        seed,
+        chapterSpec,
+        chapter: localChapter,
+        chapterPlan,
+        source: NEW_YEAR_MANUSCRIPT_SOURCE.LOCAL,
+      });
+      stats.fallbackSections += sanitized.fallbackSections;
+      chapters.push(sanitized.chapter);
+    }
   }
-  return chapters;
+  return { chapters, stats };
+}
+
+async function generateNewYearChaptersWithGemini(env, { masterJson, seed, chapterSpecs, requestId }) {
+  const result = await generateAnnualFortuneHybridChapters(env, { masterJson, seed, chapterSpecs, requestId });
+  return result.chapters;
 }
 
 function localParagraph(seed, chapter, category, idx) {
@@ -2273,6 +2871,7 @@ function buildNewYearReusableExecutionResponse(doc = {}, fallback = {}) {
       localSajuJson: archive.localSajuJson || metadata.localSajuJson || null,
       newYearMasterJson: archive.newYearMasterJson || metadata.newYearMasterJson || null,
       masterJsonValidation: archive.masterJsonValidation || metadata.masterJsonValidation || null,
+      hybridStats: archive.hybridStats || metadata.hybridStats || null,
       pdfReady,
       pdfUrl: storedUrl,
       htmlUrl: clean(pdfReady?.htmlUrl || archive.htmlUrl || payload.htmlUrl),
@@ -2527,44 +3126,65 @@ async function handlePrepare(request, env) {
     const expectedChapters = buildSajuNewYearChapterSpecs(localYearSajuJson.targetYear);
     let chapters = [];
     let validation = { ok: false, errors: ["llm_not_started"], stats: { chapterCount: 0, totalChars: 0 } };
-    let manuscriptSource = NEW_YEAR_MANUSCRIPT_SOURCE.LLM;
+    let manuscriptSource = NEW_YEAR_MANUSCRIPT_SOURCE.HYBRID;
     let fallbackUsed = false;
     let llmFallbackReason = "";
+    let hybridStats = {};
 
-    try {
-      console.info("[NewYearPremiumPDF][LlmDraftBuildStarted]", { chapterCount: expectedChapters.length, targetYear: localYearSajuJson.targetYear });
-      chapters = (await generateNewYearChaptersWithGemini(env, {
-        masterJson: newYearMasterJson,
+    console.info("[NewYearPremiumPDF][AnnualFortuneHybridBuildStarted]", {
+      chapterCount: expectedChapters.length,
+      targetYear: localYearSajuJson.targetYear,
+      llmEnabled: annualFortuneLlmEnabled(env),
+      quarterlyLlmEnabled: annualFortuneQuarterlyLlmEnabled(env),
+    });
+    const hybridResult = await generateAnnualFortuneHybridChapters(env, {
+      masterJson: newYearMasterJson,
+      seed: localYearSajuJson,
+      chapterSpecs: expectedChapters,
+      requestId: clean(body?.requestId || reportId || sessionKey),
+      userId: auth.userId,
+    });
+    chapters = hybridResult.chapters;
+    hybridStats = hybridResult.stats || {};
+    fallbackUsed = Number(hybridStats.localFallback || 0) > 0 || Number(hybridStats.fallbackSections || 0) > 0 || Number(hybridStats.llmSucceeded || 0) === 0;
+    llmFallbackReason = fallbackUsed ? `hybrid_local_fallback:${Number(hybridStats.localFallback || 0)}_chapters:${Number(hybridStats.fallbackSections || 0)}_sections` : "";
+    manuscriptSource = Number(hybridStats.llmSucceeded || 0) > 0 || Number(hybridStats.llmCached || 0) > 0
+      ? NEW_YEAR_MANUSCRIPT_SOURCE.HYBRID
+      : NEW_YEAR_MANUSCRIPT_SOURCE.LOCAL;
+    validation = validateSajuNewYearPdfQuality({
+      chapters,
+      expectedChapters,
+      minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
+      minSectionLength: desiredSectionLength(),
+    });
+    if (!validation.ok) {
+      const beforeRepair = validation.errors.slice(0, 20);
+      chapters = repairSajuNewYearChapters({
         seed: localYearSajuJson,
-        chapterSpecs: expectedChapters,
-        requestId: clean(body?.requestId || reportId || sessionKey),
-      })).map((chapter) => ({ ...chapter, source: NEW_YEAR_MANUSCRIPT_SOURCE.LLM }));
+        chapters,
+        expectedChapters,
+        errors: validation.errors,
+      });
+      fallbackUsed = true;
+      manuscriptSource = Number(hybridStats.llmSucceeded || 0) > 0 || Number(hybridStats.llmCached || 0) > 0
+        ? NEW_YEAR_MANUSCRIPT_SOURCE.HYBRID
+        : NEW_YEAR_MANUSCRIPT_SOURCE.LOCAL;
       validation = validateSajuNewYearPdfQuality({
         chapters,
         expectedChapters,
         minChapterLength: Math.max(MIN_CHAPTER_CHARS, 4000),
         minSectionLength: desiredSectionLength(),
       });
-      if (!validation.ok) {
-        llmFallbackReason = `llm_quality_failed:${validation.errors.slice(0, 8).join(",")}`;
-        throw Object.assign(new Error(`SAJU_NEW_YEAR_LLM_QUALITY_FAILED:${validation.errors.slice(0, 20).join(",")}`), {
-          code: "SAJU_NEW_YEAR_LLM_QUALITY_FAILED",
-          status: 422,
-          stage: "llm-quality",
-        });
-      }
-      manuscriptSource = NEW_YEAR_MANUSCRIPT_SOURCE.LLM;
-      console.info("[NewYearPremiumPDF][LlmDraftBuildCompleted]", { chapterCount: chapters.length, totalChars: validation.stats.totalChars });
-    } catch (error) {
-      llmFallbackReason = llmFallbackReason || clean(error?.code || error?.message || "llm_generation_failed");
-      console.warn("[NewYearPremiumPDF][LlmDraftBuildFailed]", { reason: llmFallbackReason });
-      throw Object.assign(new Error("신년운세 원고를 LLM으로 완성하지 못했습니다."), {
-        code: clean(error?.code || "SAJU_NEW_YEAR_LLM_GENERATION_FAILED"),
-        status: Number(error?.status || 422),
-        stage: clean(error?.stage || "llm-generation"),
-        cause: error,
-      });
+      llmFallbackReason = `quality_repaired:${beforeRepair.join(",")}`;
     }
+    console.info("[NewYearPremiumPDF][AnnualFortuneHybridBuildCompleted]", {
+      chapterCount: chapters.length,
+      targetYear: localYearSajuJson.targetYear,
+      manuscriptSource,
+      fallbackUsed,
+      hybridStats,
+      validationOk: validation.ok,
+    });
 
     const finalTotalChars = chapters.reduce((acc, chapter) => acc + chapterTextLength(chapter), 0);
     console.info("[NewYearPremiumPDF][LlmChapterDraftCompleted]", {
@@ -2574,6 +3194,7 @@ async function handlePrepare(request, env) {
       qualityErrors: validation.errors.slice(0, 20),
       manuscriptSource,
       fallbackUsed,
+      hybridStats,
     });
     if (!validation.ok) {
       throw Object.assign(new Error(`SAJU_NEW_YEAR_FINAL_VALIDATION_FAILED:${validation.errors.slice(0, 20).join(",")}`), {
@@ -2595,7 +3216,10 @@ async function handlePrepare(request, env) {
       llmFallbackReason,
       manuscriptSource,
       localDraftChapterCount: 0,
-      writingPipeline: "local-calculation-json-llm-writing-only",
+      writingPipeline: "annual-fortune-facts-plan-hybrid-v1",
+      promptVersion: ANNUAL_FORTUNE_PROMPT_VERSION,
+      engineVersion: ANNUAL_FORTUNE_ENGINE_VERSION,
+      hybridStats,
       sessionId: sessionKey,
       accessType: clean(access.accessType || "unknown"),
       masterJsonValidation,
@@ -2640,6 +3264,7 @@ async function handlePrepare(request, env) {
         localSajuJson: localYearSajuJson,
         newYearMasterJson,
         masterJsonValidation,
+        hybridStats,
         pdfReady,
         canReopen: true,
         canDownload: true,
@@ -2658,9 +3283,12 @@ async function handlePrepare(request, env) {
       finalChapterCount: chapters.length,
       manuscriptSource,
       localEngineUsed: true,
-      writingPipeline: "local-calculation-json-llm-writing-only",
+      writingPipeline: "annual-fortune-facts-plan-hybrid-v1",
+      promptVersion: ANNUAL_FORTUNE_PROMPT_VERSION,
+      engineVersion: ANNUAL_FORTUNE_ENGINE_VERSION,
       fallbackUsed,
       llmFallbackReason,
+      hybridStats,
       chapters,
       seed: { ...localYearSajuJson, chapters: undefined },
       newYearPayload: localYearSajuJson,
@@ -2770,6 +3398,12 @@ export const __sajuNewYearTestUtils = {
   buildNewYearMasterJson,
   validateNewYearMasterJson,
   buildNewYearChapterPrompt,
+  buildAnnualFortuneFacts,
+  buildAnnualFortuneChapterPlans,
+  buildAnnualFortuneLlmCacheKey,
+  shouldEnhanceAnnualFortuneChapter,
+  generateAnnualFortuneHybridChapters,
+  softenAnnualFortuneRiskText,
   normalizeNewYearGeneratedChapter,
   generateNewYearChapterWithGemini,
   generateNewYearChaptersWithGemini,

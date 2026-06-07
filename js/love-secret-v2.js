@@ -510,6 +510,80 @@
     } catch (_) {}
   }
 
+  function _lsShortList(value, limit) {
+    var source = Array.isArray(value) ? value : [];
+    return source.map(function (item) { return String(item || '').trim(); }).filter(Boolean).slice(0, Math.max(1, Number(limit || 6)));
+  }
+
+  function _lsPayloadSafe(payload) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var nested = data.error && typeof data.error === 'object' ? data.error : {};
+    var debugSafe = data.debugSafe && typeof data.debugSafe === 'object' ? data.debugSafe : {};
+    return {
+      code: String(data.code || nested.code || data.errorCode || nested.errorCode || '').trim() || undefined,
+      message: String(data.message || nested.message || data.reasonMessage || nested.reasonMessage || '').trim() || undefined,
+      stage: String(data.stage || data.failureStage || debugSafe.stage || nested.stage || nested.failureStage || '').trim() || undefined,
+      failureType: String(data.failureType || debugSafe.failureType || nested.failureType || '').trim() || undefined,
+      reportId: String(data.reportId || debugSafe.reportId || nested.reportId || '').trim() || undefined,
+      executionId: String(data.executionId || debugSafe.executionId || nested.executionId || '').trim() || undefined,
+      missing: _lsShortList(data.missing || nested.missing || data.hardMissingFields, 6),
+      issues: _lsShortList(data.issues || nested.issues || data.errors || nested.errors, 6),
+      debugSafe: Object.keys(debugSafe).length ? debugSafe : undefined
+    };
+  }
+
+  function _buildLoveSecretApiError(pack, fallbackMessage, context) {
+    var res = pack && pack.res ? pack.res : {};
+    var payload = pack && pack.json && typeof pack.json === 'object'
+      ? pack.json
+      : (pack && pack.body && typeof pack.body === 'object' ? pack.body : {});
+    var status = Number((pack && pack.status) || res.status || payload.status || payload.statusCode || 0);
+    var safe = _lsPayloadSafe(payload);
+    var message = String(safe.message || fallbackMessage || ('HTTP ' + (status || ''))).trim();
+    var err = new Error(message || '연애 비책 PDF 요청을 처리하지 못했습니다.');
+    err.status = status || undefined;
+    err.code = String(safe.code || 'LOVE_SECRET_REQUEST_FAILED').trim();
+    err.stage = String(safe.stage || (context && context.stage) || 'prepare').trim();
+    err.failureType = String(safe.failureType || '').trim();
+    err.reportId = String(safe.reportId || (context && context.reportId) || _lsCurrentReportId || '').trim();
+    err.sessionId = String(context && context.sessionId || '').trim();
+    err.executionId = String(safe.executionId || '').trim();
+    err.missing = safe.missing;
+    err.issues = safe.issues;
+    err.payloadSafe = safe;
+    err.payload = payload;
+    return err;
+  }
+
+  function _logLoveSecretError(error, context) {
+    try {
+      var payloadSafe = error && error.payloadSafe
+        ? error.payloadSafe
+        : _lsPayloadSafe((error && error.payload) || (error && typeof error === 'object' ? error : {}));
+      var mode = _normalizeLoveSecretMode((context && context.mode) || _currentChapterMode);
+      var safe = {
+        serviceKey: 'saju-love-secret',
+        featureKey: _getLoveSecretFeatureKey(mode),
+        reportType: mode === 'compatibility' ? 'sajuLoveSecretCompatibility' : 'sajuLoveSecretSolo',
+        mode: mode,
+        stage: String((context && context.stage) || (error && error.stage) || payloadSafe.stage || 'unknown').trim(),
+        failureType: String((error && error.failureType) || payloadSafe.failureType || '').trim() || undefined,
+        status: Number(error && error.status || context && context.status || 0) || undefined,
+        code: String((error && (error.code || error.name)) || payloadSafe.code || 'LOVE_SECRET_CLIENT_ERROR').trim(),
+        message: String(error && error.message ? error.message : error || 'unknown').trim(),
+        requestId: String(context && context.requestId || error && error.requestId || '').trim() || undefined,
+        sessionId: String(context && context.sessionId || error && error.sessionId || '').trim() || undefined,
+        reportId: String(context && context.reportId || error && error.reportId || payloadSafe.reportId || _lsCurrentReportId || '').trim() || undefined,
+        executionId: String(context && context.executionId || error && error.executionId || payloadSafe.executionId || '').trim() || undefined,
+        missing: _lsShortList(error && error.missing || payloadSafe.missing, 6),
+        issues: _lsShortList(error && error.issues || payloadSafe.issues, 6),
+        causeMessage: String(error && error.cause && (error.cause.message || error.cause) || '').trim() || undefined,
+        payloadSafe: payloadSafe
+      };
+      console.error('[LoveBook][Error][' + safe.stage + ']', safe);
+    } catch (_) {}
+  }
+
   async function _getLoveBookCoinGateHelper() {
     _setLoveBookGenerationState('loading_helper');
     
@@ -2018,6 +2092,7 @@
       },
     }).catch(function (error) {
       var msg = String(error && error.message ? error.message : error || '부분 재생성 중 오류가 발생했습니다.');
+      _logLoveSecretError(error, { stage: 'partial-regenerate', mode: _currentChapterMode, reportId: _lsCurrentReportId });
       alert('연애 비책 부분 재생성 중 오류가 발생했습니다: ' + msg);
     });
   }
@@ -2476,6 +2551,7 @@
         });
         var _attemptPlan = [];
         var _lastMsg = '';
+        var _lastError = null;
 
         for (var _ei = 0; _ei < _endpoints.length; _ei++) {
           for (var _ri = 0; _ri < 2; _ri++) {
@@ -2496,6 +2572,12 @@
             return;
           }
           if (at >= _attemptPlan.length) {
+            _logLoveSecretError(_lastError || { message: _lastMsg || '모든 API 엔드포인트 시도에 실패했습니다.' }, {
+              stage: 'chapter',
+              mode: _currentChapterMode,
+              reportId: _lsReportId,
+              sessionId: _lsSessionId
+            });
             _done({ ok: false, message: _lastMsg || '모든 API 엔드포인트 시도에 실패했습니다.' });
             return;
           }
@@ -2567,13 +2649,23 @@
             .then(function (res) {
               if (!res.ok) {
                 return res.json().catch(function () { return {}; }).then(function (e) {
-                  return { ok: false, message: (e && e.message) || ('HTTP ' + res.status) };
+                  return _buildLoveSecretApiError({ res: res, json: e }, (e && e.message) || ('HTTP ' + res.status), {
+                    stage: 'chapter',
+                    reportId: _lsReportId,
+                    sessionId: _lsSessionId
+                  });
                 });
               }
               return res.json().catch(function () { return { ok: false, message: 'JSON 파싱 오류' }; });
             })
             .then(function (data) {
               clearTimeout(timeoutId);
+              if (data instanceof Error) {
+                _lastError = data;
+                _lastMsg = data.message;
+                _runAttempt(at + 1);
+                return;
+              }
               _lsResultPayload = data && typeof data === 'object' ? data : null;
               if (_activeRequestController === _controller) _activeRequestController = null;
               if (data && data.ok) {
@@ -2591,6 +2683,7 @@
               } else {
                 _lastMsg = String(err && err.message ? err.message : err);
               }
+              _lastError = err instanceof Error ? err : new Error(_lastMsg);
               _runAttempt(at + 1);
             });
         }
@@ -2675,7 +2768,11 @@
             })
             .then(function (pack) {
               if (!pack.ok || !pack.body || !pack.body.ok) {
-                throw new Error((pack.body && pack.body.message) || ('HTTP ' + pack.status));
+                throw _buildLoveSecretApiError(pack, (pack.body && pack.body.message) || ('HTTP ' + pack.status), {
+                  stage: 'status',
+                  reportId: _lsReportId,
+                  sessionId: _lsSessionId
+                });
               }
 
               var body = pack.body;
@@ -2705,7 +2802,11 @@
               if (status === 'failed') {
                 _stop();
                 _setLoveBookGenerationState('failed');
-                reject(new Error(String(body.errorMessage || body.message || '연애 비책 생성에 실패했습니다.')));
+                reject(_buildLoveSecretApiError({ status: body.statusCode || 500, body: body }, String(body.errorMessage || body.message || '연애 비책 생성에 실패했습니다.'), {
+                  stage: 'status',
+                  reportId: _lsReportId,
+                  sessionId: _lsSessionId
+                }));
                 return;
               }
 
@@ -2871,6 +2972,19 @@
         _logLoveSecretFlow('PdfRequestSuccess', { mode: _currentChapterMode, reportId: _lsReportId, flow: 'sync-prepare' });
         return;
       }
+      if (!syncPrepareRes.ok || (syncPrepareBody && syncPrepareBody.ok === false)) {
+        _logLoveSecretError(_buildLoveSecretApiError({ res: syncPrepareRes, json: syncPrepareBody }, (syncPrepareBody && syncPrepareBody.message) || ('HTTP ' + syncPrepareRes.status), {
+          stage: 'sync-prepare',
+          mode: _currentChapterMode,
+          reportId: _lsReportId,
+          sessionId: _lsSessionId
+        }), {
+          stage: 'sync-prepare',
+          mode: _currentChapterMode,
+          reportId: _lsReportId,
+          sessionId: _lsSessionId
+        });
+      }
 
       _setLoveBookGenerationState('building_chapters');
       _logLoveSecretFlow('SessionCreateStart', { mode: _currentChapterMode, reportId: _lsReportId, sessionId: _lsSessionId });
@@ -2896,7 +3010,12 @@
           if (!_finalizeGenerationSuccess()) return;
           return;
         }
-        throw new Error(submitMsg);
+        throw _buildLoveSecretApiError({ res: submitRes, json: submitBody }, submitMsg, {
+          stage: 'prepare-async',
+          mode: _currentChapterMode,
+          reportId: _lsReportId,
+          sessionId: _lsSessionId
+        });
       }
 
       _logLoveSecretFlow('SessionCreateSuccess', {
@@ -2935,6 +3054,7 @@
       _logLoveSecretFlow('PdfRequestSuccess', { mode: _currentChapterMode, reportId: _lsReportId });
     })().catch(function (error) {
       var msg = String(error && error.message ? error.message : error || '챕터 생성 중 오류가 발생했습니다.');
+      _logLoveSecretError(error, { stage: error && error.stage || 'generate', mode: _currentChapterMode, reportId: _lsReportId, sessionId: _lsSessionId });
       _logLoveSecretFlow('Error', { mode: _currentChapterMode, message: msg, reportId: _lsReportId });
       if (_cancelGeneration) {
         _generating = false;

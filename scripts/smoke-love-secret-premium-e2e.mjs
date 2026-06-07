@@ -183,11 +183,91 @@ function assertSoloQualityGuides() {
   assert.ok(guideText.includes("90일"), "solo guide action plan keyword");
 }
 
+async function assertHybridScaffold() {
+  const soloConfig = loveSecret.safeModeChapterConfig("solo");
+  const coupleConfig = loveSecret.safeModeChapterConfig("compatibility");
+  const soloMasterA = loveSecret.buildLoveSecretMasterJson({ base, mode: "solo", targetYear: 2026 });
+  const soloMasterB = loveSecret.buildLoveSecretMasterJson({ base, mode: "solo", targetYear: 2026 });
+  const coupleMasterA = loveSecret.buildLoveSecretMasterJson({ base, mode: "compatibility", targetYear: 2026 });
+  const coupleMasterB = loveSecret.buildLoveSecretMasterJson({ base, mode: "compatibility", targetYear: 2026 });
+  const soloFactsA = loveSecret.buildLoveSecretFacts(soloMasterA);
+  const soloFactsB = loveSecret.buildLoveSecretFacts(soloMasterB);
+  const coupleFactsA = loveSecret.buildLoveSecretFacts(coupleMasterA);
+  const coupleFactsB = loveSecret.buildLoveSecretFacts(coupleMasterB);
+
+  assert.deepEqual(soloFactsA, soloFactsB, "solo facts deterministic");
+  assert.deepEqual(coupleFactsA, coupleFactsB, "couple facts deterministic");
+  assert.equal(soloFactsA.productId, "love_secret", "solo facts product id");
+  assert.equal(soloFactsA.mode, "solo", "solo facts mode");
+  assert.equal(coupleFactsA.mode, "couple", "couple facts mode");
+  assert.ok(coupleFactsA.partnerDayMaster, "couple partner day master");
+
+  const soloPlans = loveSecret.buildLoveSecretChapterPlans({
+    mode: "solo",
+    config: soloConfig,
+    chapters: buildChapters("solo", loveSecret.SOLO_LOVE_CHAPTER_SPECS),
+    loveSecretFacts: soloFactsA,
+  });
+  const couplePlans = loveSecret.buildLoveSecretChapterPlans({
+    mode: "compatibility",
+    config: coupleConfig,
+    chapters: buildChapters("compatibility", loveSecret.COMPATIBILITY_LOVE_CHAPTER_SPECS),
+    loveSecretFacts: coupleFactsA,
+  });
+  assert.equal(soloPlans.length, 10, "solo chapter plan count");
+  assert.equal(couplePlans.length, 15, "couple chapter plan count");
+  assert.deepEqual(loveSecret.LOVE_SECRET_SOLO_LLM_ENHANCED_CHAPTERS, [
+    "love_overview",
+    "attraction_pattern",
+    "love_risk_pattern",
+    "ideal_partner_gap",
+    "breakup_risk",
+    "love_luck_cycles",
+    "love_master_plan",
+  ], "solo enhanced chapter ids");
+  assert.deepEqual(loveSecret.LOVE_SECRET_COUPLE_LLM_ENHANCED_CHAPTERS, [
+    "couple_overview",
+    "attraction_reason",
+    "emotional_tempo_gap",
+    "conflict_pattern",
+    "long_term_potential",
+    "couple_luck_cycles",
+    "couple_master_plan",
+  ], "couple enhanced chapter ids");
+
+  const softened = loveSecret.softenLoveSecretSensitiveText("반드시 헤어진다. 집착이 심하다. 결혼하면 불행하다.");
+  assert.ok(!softened.includes("반드시 헤어진다"), "hard breakup phrase softened");
+  assert.ok(!softened.includes("집착이 심하다"), "labeling phrase softened");
+  assert.ok(!softened.includes("결혼하면 불행하다"), "marriage fear phrase softened");
+
+  const sampleEnhancedText = `본인 일간 ${soloFactsA.dayMaster}과 본인 일간 강약 ${soloFactsA.dayMasterStrength}을 바탕으로 사랑의 기질을 차분히 정리합니다. 본인 우세 오행 wood, 본인 보완 오행 water, 배우자성 관성(정관·편관)은 이미 확정된 근거로만 다루며, 독자가 관계에서 바로 적용할 수 있도록 말의 온도와 선택 기준을 부드럽게 안내합니다. 이 장은 새로운 계산 없이 로컬 초안의 핵심을 프리미엄 상담문으로 확장합니다. 흔들리는 지점은 불안이 아니라 조율이 필요한 신호로 읽고, 좋은 인연을 알아보는 기준을 현실적인 행동으로 연결합니다. 특히 관계가 시작되는 순간에는 감정의 속도보다 반복되는 태도가 중요하므로, 독자가 자신의 매력을 과장 없이 받아들이고 상대에게 필요한 안정감을 차분히 확인하도록 돕습니다. 또한 연애의 방향을 단정하지 않고, 이미 드러난 사주 근거를 토대로 지금 선택할 수 있는 대화, 거리감, 약속의 방식을 구체적으로 정리합니다. `.repeat(2);
+  const enhancedValidation = loveSecret.validateLoveSecretEnhancedText(sampleEnhancedText, soloPlans[0]);
+  assert.equal(enhancedValidation.ok, true, "enhanced text validation passes with locked facts");
+  assert.equal(loveSecret.validateLoveSecretEnhancedText("짧음", soloPlans[0]).ok, false, "short enhanced text rejected");
+
+  const generated = await loveSecret.buildLoveSecretChapters({
+    LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "false",
+  }, {
+    base,
+    mode: "solo",
+    config: soloConfig,
+    body: { requestId: "smoke-disabled-llm" },
+    requestId: "smoke-disabled-llm",
+  });
+  assert.equal(generated.manuscriptSource, "local-only", "disabled llm uses local manuscript");
+  assert.equal(generated.llmEnhancement.enabled, false, "llm disabled flag honored");
+  assert.equal(generated.llmEnhancement.attempted, 0, "disabled llm does not attempt enhancement");
+  assert.equal(generated.chapters.length, 10, "disabled llm generated chapter count");
+  assert.ok(generated.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "disabled llm has no empty chapter");
+  assert.ok(generated.loveSecretChapterPlans.every((plan) => Array.isArray(plan.lockedFacts) && plan.lockedFacts.length > 0), "chapter plans carry locked facts");
+}
+
 assert.ok(base.loveSecretReference.compatibility, "compatibility reference should exist");
 assert.ok(base.loveSecretReference.compatibility.feminineAppealFocus, "compatibility appeal focus should exist");
 
 assertSoloQualityGuides();
 assertMode("solo", loveSecret.SOLO_LOVE_CHAPTER_SPECS, 10);
 assertMode("compatibility", loveSecret.COMPATIBILITY_LOVE_CHAPTER_SPECS, 15);
+await assertHybridScaffold();
 
 console.log("[smoke-love-secret-premium-e2e] ok");

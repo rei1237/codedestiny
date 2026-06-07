@@ -263,15 +263,17 @@ function buildAstroPdfQualityGate(generated = {}) {
   const stats = quality?.stats && typeof quality.stats === "object" ? quality.stats : {};
   const validation = generated?.validation && typeof generated.validation === "object" ? generated.validation : {};
   const llmChapterCount = Number(generated?.llmChapterCount || 0);
+  const expectedLlmChapterCount = Number(generated?.expectedLlmChapterCount || generated?.diagnostics?.expectedLlmChapterCount || 0);
   const manuscriptSource = clean(generated?.manuscriptSource || quality?.manuscriptSource);
   const totalLength = Number(generated?.totalLength || 0);
+  const allowedSources = new Set(["llm-only", "llm-local-hybrid", "hybrid-llm-local", "local-template", "local-rule-completed"]);
   const issues = [];
-  if (generated?.fallbackUsed) issues.push("fallback_used");
-  if (llmChapterCount < totalChapters) issues.push("llm_chapter_count");
-  if (manuscriptSource !== "llm-only") issues.push("manuscript_source");
+  if (!allowedSources.has(manuscriptSource)) issues.push("manuscript_source");
+  if (expectedLlmChapterCount > 0 && llmChapterCount > expectedLlmChapterCount) issues.push("llm_chapter_over_limit");
+  if (llmChapterCount > totalChapters) issues.push("llm_chapter_count");
   if (validation.ok !== true) issues.push("validation_failed");
   if (quality.ok !== true) issues.push("quality_failed");
-  if (Number(stats.geminiChapterCount || 0) < totalChapters) issues.push("gemini_chapter_count");
+  if (Number(stats.geminiChapterCount || 0) > totalChapters) issues.push("gemini_chapter_count");
   if (Number(stats.flaggedForbiddenSections || 0) > 0) issues.push("forbidden_sections");
   if (Number(stats.flaggedRiskySections || 0) > 0) issues.push("risky_sections");
   if (Number(stats.flaggedRepetitionSections || 0) > 0) issues.push("repetition_sections");
@@ -281,8 +283,11 @@ function buildAstroPdfQualityGate(generated = {}) {
     issues,
     totalChapters,
     llmChapterCount,
+    expectedLlmChapterCount,
     manuscriptSource,
     totalLength,
+    fallbackUsed: Boolean(generated?.fallbackUsed),
+    llmFallbackReason: clean(generated?.llmFallbackReason),
     stats,
   };
 }
@@ -714,6 +719,9 @@ async function handleAstroPremiumPrepare(request, env) {
         chapterDrafts: generated.finalManuscript,
         manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
         llmChapterCount: Number(generated?.llmChapterCount || 0),
+        expectedLlmChapterCount: Number(generated?.expectedLlmChapterCount || 0),
+        enhancedChapterIds: Array.isArray(generated?.enhancedChapterIds) ? generated.enhancedChapterIds : [],
+        promptVersion: clean(generated?.promptVersion),
         fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
         localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
         fallbackUsed: Boolean(generated?.fallbackUsed),
@@ -739,6 +747,9 @@ async function handleAstroPremiumPrepare(request, env) {
       chapterCount: generated.chapterCount,
       fallbackUsed: Boolean(generated?.fallbackUsed),
       llmChapterCount: Number(generated?.llmChapterCount || 0),
+      expectedLlmChapterCount: Number(generated?.expectedLlmChapterCount || 0),
+      enhancedChapterIds: Array.isArray(generated?.enhancedChapterIds) ? generated.enhancedChapterIds : [],
+      promptVersion: clean(generated?.promptVersion),
       fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
       llmFallbackReason: clean(generated?.llmFallbackReason),
       pdfQuality,
@@ -1029,15 +1040,16 @@ async function handleVedicPremiumPrepare(request, env) {
     if (
       generated?.fallbackUsed
       || generated?.diagnostics?.llm?.failed
-      || clean(generated?.manuscriptSource) !== "llm-only"
-      || Number(generated?.llmChapterCount || 0) < VEDIC_PREMIUM_CHAPTERS.length
+      || clean(generated?.manuscriptSource) !== "hybrid-llm-local"
+      || Number(generated?.llmChapterCount || 0) < 1
     ) {
-      const error = new Error("베다점 프리미엄 LLM 원고 생성이 완료되지 않았습니다.");
-      error.code = "VEDIC_LLM_ONLY_REQUIRED";
-      error.status = 502;
-      error.reasonClass = clean(generated?.diagnostics?.llm?.failureClass || "llm_generation_failed");
-      error.details = generated?.diagnostics?.llm || null;
-      throw error;
+      console.warn("[VedicPremiumPDF][HybridFallbackUsed]", {
+        manuscriptSource: clean(generated?.manuscriptSource),
+        llmChapterCount: Number(generated?.llmChapterCount || 0),
+        fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
+        fallbackReason: clean(generated?.llmFallbackReason),
+        llmFailed: Boolean(generated?.diagnostics?.llm?.failed),
+      });
     }
     const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
     const requestOrigin = new URL(request.url).origin;

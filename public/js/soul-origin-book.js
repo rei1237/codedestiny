@@ -101,6 +101,77 @@
     console.info(tag, payload);
   }
 
+  function shortList(value, limit) {
+    var source = Array.isArray(value) ? value : [];
+    return source.map(function (item) { return clean(item); }).filter(Boolean).slice(0, Math.max(1, Number(limit || 6)));
+  }
+
+  function payloadSafe(payload) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var nested = data.error && typeof data.error === 'object' ? data.error : {};
+    var debugSafe = data.debugSafe && typeof data.debugSafe === 'object' ? data.debugSafe : {};
+    return {
+      code: clean(data.code || nested.code || data.errorCode || nested.errorCode || data.error) || undefined,
+      message: clean(data.message || nested.message || data.reasonMessage || nested.reasonMessage || data.error) || undefined,
+      stage: clean(data.stage || data.failureStage || debugSafe.stage || nested.stage || nested.failureStage) || undefined,
+      failureType: clean(data.failureType || debugSafe.failureType || nested.failureType) || undefined,
+      reportId: clean(data.reportId || debugSafe.reportId || nested.reportId) || undefined,
+      sessionId: clean(data.sessionId || debugSafe.sessionId || nested.sessionId) || undefined,
+      executionId: clean(data.executionId || debugSafe.executionId || nested.executionId) || undefined,
+      missing: shortList(data.missing || nested.missing || data.hardMissingFields, 6),
+      issues: shortList(data.issues || nested.issues || data.errors || nested.errors, 6),
+      debugSafe: Object.keys(debugSafe).length ? debugSafe : undefined
+    };
+  }
+
+  function buildApiError(pack, fallbackMessage, context) {
+    var payload = pack && pack.data && typeof pack.data === 'object'
+      ? pack.data
+      : (pack && pack.body && typeof pack.body === 'object' ? pack.body : {});
+    var status = Number((pack && pack.status) || payload.statusCode || payload.status || 0);
+    var safe = payloadSafe(payload);
+    var error = new Error(clean(safe.message || fallbackMessage || ('HTTP ' + (status || ''))) || 'Soul origin PDF request failed.');
+    error.status = status || undefined;
+    error.code = clean(safe.code) || 'SOUL_ORIGIN_REQUEST_FAILED';
+    error.stage = clean(safe.stage || context && context.stage) || 'prepare';
+    error.failureType = clean(safe.failureType);
+    error.reportId = clean(safe.reportId || context && context.reportId);
+    error.sessionId = clean(safe.sessionId || context && context.sessionId);
+    error.executionId = clean(safe.executionId);
+    error.missing = safe.missing;
+    error.issues = safe.issues;
+    error.payloadSafe = safe;
+    error.payload = payload;
+    return error;
+  }
+
+  function logExactError(error, extras) {
+    try {
+      var safePayload = error && error.payloadSafe
+        ? error.payloadSafe
+        : payloadSafe((error && error.payload) || (error && typeof error === 'object' ? error : {}));
+      var safe = {
+        serviceKey: 'soul-origin',
+        featureKey: FEATURE_KEY,
+        reportType: REPORT_TYPE,
+        stage: clean(extras && extras.stage || error && error.stage || safePayload.stage) || 'unknown',
+        failureType: clean(error && error.failureType || safePayload.failureType) || undefined,
+        status: Number(error && error.status || extras && extras.status || 0) || undefined,
+        code: clean(error && error.code || safePayload.code) || 'SOUL_ORIGIN_CLIENT_ERROR',
+        message: clean(error && error.message ? error.message : error) || 'unknown',
+        requestId: clean(extras && extras.requestId || error && error.requestId || readSessionValue(REQUEST_ID_KEY)) || undefined,
+        sessionId: clean(extras && extras.sessionId || error && error.sessionId || safePayload.sessionId || readSessionValue(SESSION_ID_KEY)) || undefined,
+        reportId: clean(extras && extras.reportId || error && error.reportId || safePayload.reportId) || undefined,
+        executionId: clean(extras && extras.executionId || error && error.executionId || safePayload.executionId) || undefined,
+        missing: shortList(error && error.missing || safePayload.missing, 6),
+        issues: shortList(error && error.issues || safePayload.issues, 6),
+        causeMessage: clean(error && error.cause && (error.cause.message || error.cause)) || undefined,
+        payloadSafe: safePayload
+      };
+      console.error('[SoulOriginBook][Error][' + safe.stage + ']', safe);
+    } catch (_) {}
+  }
+
   function showScreen(name) {
     setDisplay('soStartScreen', name === 'start' ? '' : 'none');
     setDisplay('soLoadingScreen', name === 'loading' ? '' : 'none');
@@ -384,12 +455,12 @@
     var isCompleted = (!status && !serverStatus) || status === 'completed' || serverStatus === 'completed';
     var hasExpectedChapters = chapters.length >= EXPECTED_CHAPTER_COUNT || reportedCount >= EXPECTED_CHAPTER_COUNT;
     var hasPassedQuality = !qualityStatus || qualityStatus === 'passed';
-    var hasLlmOnlyManuscript = !manuscriptSource || manuscriptSource === 'llm-only';
-    var hasLlmOnlyChapters = !chapterAuthoringSource || chapterAuthoringSource === 'llm-only';
+    var hasAcceptedManuscript = !manuscriptSource || manuscriptSource === 'llm-only' || manuscriptSource === 'local-calculation' || manuscriptSource === 'local-calculation+llm-enhanced';
+    var hasAcceptedChapters = !chapterAuthoringSource || chapterAuthoringSource === 'llm-only' || chapterAuthoringSource === 'local-calculation' || chapterAuthoringSource === 'local-calculation+llm-enhanced';
     var hasLocalSummary = !summarySource || summarySource === 'local-calculation';
-    var hasNoFallback = !fallbackUsed && fallbackChapterCount <= 0;
-    var hasNoLocalAuthoring = !localAuthoringUsed;
-    return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted && hasLlmOnlyManuscript && hasLlmOnlyChapters && hasLocalSummary && hasNoFallback && hasNoLocalAuthoring;
+    var hasUsableFallback = !fallbackUsed || fallbackChapterCount <= EXPECTED_CHAPTER_COUNT;
+    var hasAcceptedAuthoring = localAuthoringUsed || manuscriptSource === 'llm-only' || !manuscriptSource;
+    return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted && hasAcceptedManuscript && hasAcceptedChapters && hasLocalSummary && hasUsableFallback && hasAcceptedAuthoring;
   }
 
   function isSoulOriginRunning(payload) {
@@ -429,11 +500,12 @@
   function callStatusApi(context, token) {
     var endpoints = getApiBaseCandidates(buildStatusPath(context));
     var idx = 0;
+    var lastError = null;
     return new Promise(function (resolve, reject) {
       function run() {
         if (idx >= endpoints.length) {
-          var error = new Error('운명의 업 PDF 생성 상태를 확인하지 못했습니다.');
-          error.code = 'SOUL_ORIGIN_STATUS_LOOKUP_FAILED';
+          var error = lastError || new Error('운명의 업 PDF 생성 상태를 확인하지 못했습니다.');
+          error.code = clean(error.code) || 'SOUL_ORIGIN_STATUS_LOOKUP_FAILED';
           reject(error);
           return;
         }
@@ -457,16 +529,25 @@
               }
             }
             if (pack.data && isSoulOriginFailed(pack.data)) {
-              var failed = new Error(clean(pack.data.message || pack.data.code) || '운명의 업 PDF 생성 중 문제가 발생했습니다.');
-              failed.status = Number(pack.status || 0);
-              failed.code = clean(pack.data.code || 'SOUL_ORIGIN_STATUS_FAILED');
+              var failed = buildApiError(pack, clean(pack.data.message || pack.data.code) || '운명의 업 PDF 생성 중 문제가 발생했습니다.', {
+                stage: 'status',
+                reportId: clean(context && context.reportId),
+                sessionId: clean(context && context.sessionId)
+              });
+              failed.code = clean(failed.code) || 'SOUL_ORIGIN_STATUS_FAILED';
               reject(failed);
               return;
             }
+            lastError = buildApiError(pack, clean(pack.data && (pack.data.message || pack.data.code)) || ('HTTP ' + pack.status), {
+              stage: 'status',
+              reportId: clean(context && context.reportId),
+              sessionId: clean(context && context.sessionId)
+            });
             idx += 1;
             run();
           })
-          .catch(function () {
+          .catch(function (error) {
+            lastError = error instanceof Error ? error : new Error(clean(error && error.message) || '상태 확인 실패');
             idx += 1;
             run();
           });
@@ -495,9 +576,12 @@
         return data;
       }
       if (isSoulOriginFailed(data)) {
-        var failed = new Error(clean(data && (data.message || data.code)) || '운명의 업 PDF 생성 중 문제가 발생했습니다.');
-        failed.code = clean(data && data.code) || 'SOUL_ORIGIN_GENERATION_FAILED';
-        failed.status = Number(data && data.statusCode || 500);
+        var failed = buildApiError({ status: Number(data && data.statusCode || 500), data: data }, clean(data && (data.message || data.code)) || '운명의 업 PDF 생성 중 문제가 발생했습니다.', {
+          stage: 'status',
+          reportId: clean(context && context.reportId),
+          sessionId: clean(context && context.sessionId)
+        });
+        failed.code = clean(failed.code) || 'SOUL_ORIGIN_GENERATION_FAILED';
         throw failed;
       }
       delay = Math.min(SOUL_ORIGIN_STATUS_MAX_DELAY_MS, delay + 1000);
@@ -801,7 +885,7 @@
 
     function next(resolve, reject, lastMessage) {
       if (idx >= endpoints.length) {
-        reject(new Error(lastMessage || '코인 결제 확인에 실패했습니다.'));
+        reject(lastMessage instanceof Error ? lastMessage : new Error(lastMessage || '코인 결제 확인에 실패했습니다.'));
         return;
       }
 
@@ -846,22 +930,33 @@
           }
 
           if (isAuthOrPaymentFailure(pack.status, payload)) {
-            var accessErr = new Error(clean(payload.message || payload.error || payload.code) || '결제는 완료되었지만 생성 권한 연결이 지연되었습니다. 다시 시도해 주세요.');
-            accessErr.status = Number(pack.status || 0);
-            accessErr.code = clean(payload.code || payload.error || 'PAYMENT_REQUIRED');
+            var accessErr = buildApiError({ status: pack.status, data: payload }, clean(payload.message || payload.error || payload.code) || '결제는 완료되었지만 생성 권한 연결이 지연되었습니다. 다시 시도해 주세요.', {
+              stage: 'billing',
+              reportId: reportId,
+              sessionId: sessionId
+            });
+            accessErr.code = clean(accessErr.code) || 'PAYMENT_REQUIRED';
             reject(accessErr);
             return;
           }
 
           if (!isRetryableStatus(pack.status)) {
-            reject(new Error(clean(payload.message || payload.error || payload.code) || ('HTTP ' + pack.status)));
+            reject(buildApiError({ status: pack.status, data: payload }, clean(payload.message || payload.error || payload.code) || ('HTTP ' + pack.status), {
+              stage: 'billing',
+              reportId: reportId,
+              sessionId: sessionId
+            }));
             return;
           }
 
-          next(resolve, reject, clean(payload.message || payload.error || payload.code));
+          next(resolve, reject, buildApiError({ status: pack.status, data: payload }, clean(payload.message || payload.error || payload.code), {
+            stage: 'billing',
+            reportId: reportId,
+            sessionId: sessionId
+          }));
         })
         .catch(function (error) {
-          next(resolve, reject, clean(error && error.message));
+          next(resolve, reject, error instanceof Error ? error : new Error(clean(error && error.message)));
         });
     }
 
@@ -942,7 +1037,12 @@
           }
         });
       }
-      return Promise.reject(new Error('결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'));
+      var gateError = new Error('결제 게이트를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.');
+      gateError.status = 503;
+      gateError.code = 'SOUL_ORIGIN_PAYMENT_GATE_MISSING';
+      gateError.stage = 'billing';
+      logExactError(gateError, { stage: 'billing', requestId: requestId, sessionId: sessionId });
+      return Promise.reject(gateError);
     }
 
     return new Promise(function (resolve, reject) {
@@ -951,10 +1051,13 @@
         if (settled) return;
         settled = true;
         if (payload && payload.ok === false) {
-          var failError = new Error(clean(payload.message) || '결제 접근 권한을 확인하지 못했습니다. 다시 시도해 주세요.');
-          failError.status = Number(payload.status || payload.httpStatus || 0);
-          failError.code = clean(payload.code || payload.errorCode || payload.error || '');
-          failError.stage = clean(payload.stage || 'CoinGateFailed');
+          var failError = buildApiError({ status: Number(payload.status || payload.httpStatus || 0), data: payload }, clean(payload.message) || '결제 접근 권한을 확인하지 못했습니다. 다시 시도해 주세요.', {
+            stage: 'billing',
+            requestId: requestId,
+            sessionId: sessionId
+          });
+          failError.stage = clean(payload.stage || failError.stage || 'billing');
+          logExactError(failError, { stage: 'billing', requestId: requestId, sessionId: sessionId });
           reject(failError);
           return;
         }
@@ -1038,12 +1141,13 @@
     var idx = 0;
     var lastClientError = '';
     var lastStage = '';
+    var lastError = null;
 
     return new Promise(function (resolve, reject) {
       function run() {
         if (idx >= endpoints.length) {
-          var finalError = new Error(lastClientError || '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.');
-          finalError.code = 'REQUEST_FAILED';
+          var finalError = lastError || new Error(lastClientError || '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+          finalError.code = clean(finalError.code) || 'REQUEST_FAILED';
           if (lastStage) finalError.stage = lastStage;
           reject(finalError);
           return;
@@ -1070,9 +1174,12 @@
               var message = clean(pack.data && (pack.data.message || pack.data.error || pack.data.code));
               var remoteStage = clean(pack.data && pack.data.debugSafe && pack.data.debugSafe.stage);
               lastClientError = message || '입력값 또는 결제 상태를 확인해 주세요.';
-              var reqError = new Error(lastClientError);
-              reqError.status = Number(pack.status || 0);
-              reqError.code = clean(pack.data && (pack.data.code || pack.data.error || 'REQUEST_FAILED'));
+              var reqError = buildApiError(pack, lastClientError, {
+                stage: remoteStage || 'prepare',
+                reportId: payload && payload.reportId,
+                sessionId: payload && payload.sessionId
+              });
+              reqError.code = clean(reqError.code || pack.data && (pack.data.code || pack.data.error || 'REQUEST_FAILED'));
               if (remoteStage) {
                 reqError.stage = remoteStage;
                 lastStage = remoteStage;
@@ -1082,6 +1189,11 @@
             }
 
             lastStage = clean(pack.data && pack.data.debugSafe && pack.data.debugSafe.stage);
+            lastError = buildApiError(pack, clean(pack.data && (pack.data.message || pack.data.error || pack.data.code)) || ('HTTP ' + pack.status), {
+              stage: lastStage || 'prepare',
+              reportId: payload && payload.reportId,
+              sessionId: payload && payload.sessionId
+            });
 
             idx += 1;
             run();
@@ -1090,6 +1202,7 @@
             var reason = clean(error && error.message);
             if (reason && !lastClientError) lastClientError = reason;
             if (error && error.stage) lastStage = clean(error.stage);
+            lastError = error instanceof Error ? error : new Error(reason || '요청 실패');
             idx += 1;
             run();
           });
@@ -1227,6 +1340,7 @@
         sessionId: sessionId,
         errorCode: clean(error && error.code) || 'DESTINY_PRAYER_BOOK_FAILED',
       });
+      logExactError(error, { stage: clean(error && error.stage) || 'generate', requestId: requestId, sessionId: sessionId });
       var msg = mapSoulOriginUserMessage(error);
       var errEl = $('soErrorMsg');
       if (errEl) errEl.textContent = msg;
@@ -1335,4 +1449,3 @@
     }
   }, true);
 })();
-

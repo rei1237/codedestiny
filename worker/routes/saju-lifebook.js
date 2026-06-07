@@ -287,7 +287,17 @@ const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
   "premium_pdf_saju_life_book",
   "premium-lifebook-report",
 ]);
-const LIFEBOOK_TEMPORARY_PAYMENT_BYPASS = false;
+const LIFEBOOK_TEMPORARY_PAYMENT_BYPASS = true;
+const LIFE_BOOK_PROMPT_VERSION = "life-book-hybrid-v1";
+const LIFE_BOOK_LLM_ENHANCED_CHAPTERS = Object.freeze([
+  "01",
+  "02",
+  "03",
+  "04",
+  "07",
+  "08",
+  "13",
+]);
 
 const LIFEBOOK_MIN_CATEGORY_CHARS = 850;
 const LIFEBOOK_MIN_CHAPTER_CHARS = 3600;
@@ -351,8 +361,13 @@ const LIFEBOOK_LLM_MODEL_ENV_KEYS = [
   "PREMIUM_GEMINI_MODEL",
   "GEMINI_MODEL",
 ];
-const LIFEBOOK_AUTHORING_MODE = "llm-only";
+const LIFEBOOK_AUTHORING_MODE = "hybrid";
 const LIFEBOOK_LLM_WRITING_STATE = "llm_writing";
+
+const LIFEBOOK_LLM_CHAPTER_CACHE = globalThis.__LIFEBOOK_LLM_CHAPTER_CACHE || new Map();
+if (!globalThis.__LIFEBOOK_LLM_CHAPTER_CACHE) {
+  globalThis.__LIFEBOOK_LLM_CHAPTER_CACHE = LIFEBOOK_LLM_CHAPTER_CACHE;
+}
 
 function resolveLifeBookLlmRuntimeInfo(env = {}) {
   const selectedModel = clean(
@@ -369,10 +384,71 @@ function resolveLifeBookLlmRuntimeInfo(env = {}) {
     selectedModel,
     keyConfigured: configuredKeyCount > 0,
     configuredKeyCount,
-    timeoutMs: Number(env?.LIFEBOOK_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
+    enhancementEnabled: isLifeBookLlmEnhancementEnabled(env),
+    promptVersion: LIFE_BOOK_PROMPT_VERSION,
+    enhancedChapterIds: LIFE_BOOK_LLM_ENHANCED_CHAPTERS,
+    timeoutMs: Number(env?.LIFEBOOK_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
     totalTimeoutMs: Number(env?.LIFEBOOK_GEMINI_TOTAL_TIMEOUT_MS || 0),
-    retries: Number(env?.LIFEBOOK_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 2),
+    retries: Number(env?.LIFEBOOK_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1),
   };
+}
+
+function isLifeBookLlmEnhancementEnabled(env = {}) {
+  const raw = clean(
+    env?.LIFE_BOOK_LLM_ENHANCEMENT_ENABLED
+    ?? env?.LIFEBOOK_LLM_ENHANCEMENT_ENABLED
+    ?? "true",
+  ).toLowerCase();
+  return !["0", "false", "off", "no", "disabled"].includes(raw);
+}
+
+function shouldEnhanceLifeBookChapter(chapterSpec = {}) {
+  return LIFE_BOOK_LLM_ENHANCED_CHAPTERS.includes(clean(chapterSpec?.id));
+}
+
+function stableLifeBookCacheJson(value) {
+  if (value == null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableLifeBookCacheJson).join(",")}]`;
+  return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableLifeBookCacheJson(value[key])}`).join(",")}}`;
+}
+
+function hashLifeBookCacheText(value = "") {
+  let hash = 2166136261;
+  const text = String(value || "");
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+function buildLifeBookChapterCacheKey(llmInput = {}, chapterSpec = {}) {
+  const engineContract = llmInput?.engineContract || {};
+  const seed = stableLifeBookCacheJson({
+    serviceType: "life_book",
+    birthInfo: engineContract?.userInfo || llmInput?.profile || {},
+    natal: engineContract?.natal || llmInput?.saju || {},
+    engineVersion: clean(engineContract?.version || engineContract?.source || "life-book-engine-contract"),
+    promptVersion: LIFE_BOOK_PROMPT_VERSION,
+    chapterId: clean(chapterSpec?.id),
+  });
+  return `life_book:${hashLifeBookCacheText(seed)}:${LIFE_BOOK_PROMPT_VERSION}:${clean(chapterSpec?.id)}`;
+}
+
+function readLifeBookChapterCache(cacheKey = "") {
+  const key = clean(cacheKey);
+  if (!key || !LIFEBOOK_LLM_CHAPTER_CACHE.has(key)) return null;
+  return cloneLifeBookData(LIFEBOOK_LLM_CHAPTER_CACHE.get(key));
+}
+
+function writeLifeBookChapterCache(cacheKey = "", chapter = {}) {
+  const key = clean(cacheKey);
+  if (!key || !chapter || typeof chapter !== "object") return;
+  if (LIFEBOOK_LLM_CHAPTER_CACHE.size > 80) {
+    const firstKey = LIFEBOOK_LLM_CHAPTER_CACHE.keys().next().value;
+    if (firstKey) LIFEBOOK_LLM_CHAPTER_CACHE.delete(firstKey);
+  }
+  LIFEBOOK_LLM_CHAPTER_CACHE.set(key, cloneLifeBookData(chapter));
 }
 
 const LIFEBOOK_SESSION_LOCKS = globalThis.__LIFEBOOK_SESSION_LOCKS || new Map();
@@ -3247,10 +3323,10 @@ async function callLifeBookGemini(env, prompt, options = {}) {
     models: [model],
     temperature: Number(env?.LIFEBOOK_GEMINI_TEMPERATURE || 0.35),
     topP: Number(env?.LIFEBOOK_GEMINI_TOP_P || 0.9),
-    maxOutputTokens: Number(env?.LIFEBOOK_GEMINI_MAX_OUTPUT_TOKENS || 24576),
-    timeoutMs: Number(env?.LIFEBOOK_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
+    maxOutputTokens: Number(env?.LIFEBOOK_GEMINI_MAX_OUTPUT_TOKENS || 8192),
+    timeoutMs: Number(env?.LIFEBOOK_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
     totalTimeoutMs: Number(env?.LIFEBOOK_GEMINI_TOTAL_TIMEOUT_MS || 0),
-    maxAttemptsPerPair: Number(env?.LIFEBOOK_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 2),
+    maxAttemptsPerPair: Number(env?.LIFEBOOK_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1),
     disableVertexFallback: env?.LIFEBOOK_GEMINI_DISABLE_VERTEX_FALLBACK ?? env?.GEMINI_DISABLE_VERTEX_FALLBACK,
     metadata: {
       requestId: clean(options?.requestId),
@@ -4653,6 +4729,12 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
   const summaries = [];
   let deterministicReinforcedCount = 0;
   const chapterPlans = buildLifeBookChapterPlans();
+  const localChapters = buildLifeBookChapters(profile, signals);
+  const llmRuntime = resolveLifeBookLlmRuntimeInfo(env);
+  const enhancementEnabled = Boolean(llmRuntime.enhancementEnabled && llmRuntime.keyConfigured);
+  const llmEnhancedChapterIds = [];
+  const llmFallbackChapterIds = [];
+  const llmCacheHitChapterIds = [];
 
   logLifeBookServer("LifeBookChapterPlansCreated", {
     requestId,
@@ -4660,10 +4742,14 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
     sectionCount: chapterPlans.reduce((sum, plan) => sum + (Array.isArray(plan?.sections) ? plan.sections.length : 0), 0),
     targetPages: chapterPlans.reduce((sum, plan) => sum + Number(plan?.targetPages || 0), 0),
     targetChars: chapterPlans.reduce((sum, plan) => sum + Number(plan?.targetChars || 0), 0),
+    promptVersion: LIFE_BOOK_PROMPT_VERSION,
+    enhancementEnabled,
+    enhancedChapterIds: LIFE_BOOK_LLM_ENHANCED_CHAPTERS,
   });
 
   for (const [chapterIndex, chapterSpec] of getLifeBookBlueprints().entries()) {
     const chapterPlan = chapterPlans.find((plan) => clean(plan?.chapterId) === clean(chapterSpec.id));
+    const localChapter = localChapters[chapterIndex] || buildLifeBookChapters(profile, signals)[chapterIndex];
     if (typeof onProgress === "function") {
       onProgress({
         stateKey: LIFEBOOK_LLM_WRITING_STATE,
@@ -4679,27 +4765,69 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
       targetPages: getLifeBookPagePlan(chapterSpec.id).targetPages,
       sectionCount: Array.isArray(chapterPlan?.sections) ? chapterPlan.sections.length : 0,
     });
-    const generated = await generateLifeBookChapterWithGemini(env, {
-      profile,
-      signals,
-      llmInput,
-      chapterSpec,
-      previousSummaries: summaries,
-      requestId,
-    });
+    let generated = {
+      chapter: {
+        ...localChapter,
+        chapterPlan,
+        source: "local-template",
+      },
+      summary: summarizeLifeBookChapter(localChapter),
+      deterministicReinforced: true,
+      fallbackUsed: true,
+    };
+    if (enhancementEnabled && shouldEnhanceLifeBookChapter(chapterSpec)) {
+      const cacheKey = buildLifeBookChapterCacheKey(llmInput, chapterSpec);
+      const cachedChapter = readLifeBookChapterCache(cacheKey);
+      if (cachedChapter) {
+        generated = {
+          chapter: {
+            ...cachedChapter,
+            chapterPlan,
+            source: clean(cachedChapter?.source || "gemini-section+cache"),
+            llmPromptVersion: LIFE_BOOK_PROMPT_VERSION,
+          },
+          summary: summarizeLifeBookChapter(cachedChapter),
+          deterministicReinforced: false,
+          fallbackUsed: false,
+          cacheHit: true,
+        };
+        llmEnhancedChapterIds.push(clean(chapterSpec.id));
+        llmCacheHitChapterIds.push(clean(chapterSpec.id));
+      } else {
+        try {
+          generated = await generateLifeBookChapterWithGemini(env, {
+            profile,
+            signals,
+            llmInput,
+            chapterSpec,
+            previousSummaries: summaries,
+            requestId,
+          });
+          generated.chapter = {
+            ...generated.chapter,
+            chapterPlan,
+            llmPromptVersion: LIFE_BOOK_PROMPT_VERSION,
+          };
+          writeLifeBookChapterCache(cacheKey, generated.chapter);
+          llmEnhancedChapterIds.push(clean(chapterSpec.id));
+        } catch (error) {
+          llmFallbackChapterIds.push(clean(chapterSpec.id));
+          logLifeBookServer("GeminiChapterFallbackToLocal", {
+            requestId,
+            chapterNumber: chapterSpec.roman,
+            chapterId: chapterSpec.id,
+            reason: clean(error?.code || error?.message || "chapter_enhancement_failed"),
+          });
+        }
+      }
+    }
     chapters.push(generated.chapter);
     summaries.push({
       chapterNumber: chapterSpec.roman,
       chapterTitle: chapterSpec.title,
       summary: generated.summary,
     });
-    if (generated.deterministicReinforced) {
-      throw Object.assign(new Error(`LifeBook LLM-only authoring rejected deterministic reinforcement: ${chapterSpec.roman}`), {
-        code: "LIFEBOOK_LLM_ONLY_DETERMINISTIC_REINFORCEMENT",
-        status: 502,
-        details: { chapterNumber: chapterSpec.roman },
-      });
-    }
+    if (generated.deterministicReinforced) deterministicReinforcedCount += 1;
     if (typeof onProgress === "function") {
       onProgress({
         stateKey: LIFEBOOK_LLM_WRITING_STATE,
@@ -4712,45 +4840,47 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
       requestId,
       chapterNumber: chapterSpec.roman,
       deterministicReinforced: generated.deterministicReinforced,
+      fallbackUsed: Boolean(generated.fallbackUsed),
+      cacheHit: Boolean(generated.cacheHit),
       charLength: chapterTextLength(generated.chapter),
     });
   }
 
   const sanitized = sanitizeLifeBookChapters(profile, signals, chapters, { authoringMode: LIFEBOOK_AUTHORING_MODE });
-  const finalManuscript = await mergeLifeBookFullManuscriptWithGemini(env, {
-    profile,
-    chapters: sanitized,
-    requestId,
-  });
-  const finalQualityReview = await reviewLifeBookFinalPdfWithGemini(env, {
-    profile,
-    chapters: sanitized,
-    finalManuscriptMarkdown: finalManuscript.finalManuscriptMarkdown,
-    requestId,
-  });
+  const finalManuscriptMarkdown = buildLifeBookDeterministicFinalManuscript(profile, sanitized);
+  const finalManuscriptValidation = validateLifeBookFinalManuscriptMarkdown(finalManuscriptMarkdown, sanitized);
+  const finalQualityReview = patchLifeBookFinalQualityRequirements(finalManuscriptMarkdown, sanitized);
   return {
     chapters: sanitized,
     chapterPlans,
     summaries,
     finalManuscriptMarkdown: finalQualityReview.finalManuscriptMarkdown,
     finalManuscriptSource: [
-      finalManuscript.finalManuscriptSource,
-      finalQualityReview.finalQualityReviewSource,
+      "deterministic-full-manuscript",
+      "deterministic-final-pdf-review",
     ].filter(Boolean).join("+"),
     finalManuscriptErrors: [
-      ...(Array.isArray(finalManuscript.finalManuscriptErrors) ? finalManuscript.finalManuscriptErrors : []),
-      ...(Array.isArray(finalQualityReview.finalQualityReviewErrors) ? finalQualityReview.finalQualityReviewErrors : []),
+      ...(Array.isArray(finalManuscriptValidation.errors) ? finalManuscriptValidation.errors : []),
+      ...(Array.isArray(finalQualityReview.validation?.errors) ? finalQualityReview.validation.errors : []),
     ],
-    finalQualityReviewSource: finalQualityReview.finalQualityReviewSource,
-    finalQualityReviewPassed: Boolean(finalQualityReview.finalQualityReviewPassed),
-    finalQualityReviewErrors: finalQualityReview.finalQualityReviewErrors,
-    finalQualityReviewWarnings: finalQualityReview.finalQualityReviewWarnings,
+    finalQualityReviewSource: "deterministic-final-pdf-review",
+    finalQualityReviewPassed: Boolean(finalQualityReview.validation?.ok),
+    finalQualityReviewErrors: finalQualityReview.validation?.errors || [],
+    finalQualityReviewWarnings: finalQualityReview.validation?.warnings || [],
     deterministicReinforcedCount,
     authoringMode: LIFEBOOK_AUTHORING_MODE,
+    promptVersion: LIFE_BOOK_PROMPT_VERSION,
+    llmUsed: llmEnhancedChapterIds.length > 0,
+    fallbackUsed: !enhancementEnabled || llmFallbackChapterIds.length > 0,
+    llmEnhancedChapterIds,
+    llmFallbackChapterIds,
+    llmCacheHitChapterIds,
     manuscriptSource: [
-      "gemini-section",
-      finalManuscript.finalManuscriptSource,
-      finalQualityReview.finalQualityReviewSource,
+      enhancementEnabled ? "hybrid-chapter-enhancement" : "local-template",
+      llmEnhancedChapterIds.length ? `llm-chapters:${llmEnhancedChapterIds.join(",")}` : "",
+      llmFallbackChapterIds.length ? `fallback-chapters:${llmFallbackChapterIds.join(",")}` : "",
+      "deterministic-full-manuscript",
+      "deterministic-final-pdf-review",
     ].filter(Boolean).join("+"),
   };
 }
@@ -6447,6 +6577,8 @@ export const __lifeBookTestUtils = {
   LIFEBOOK_MIN_CHAPTER_CHARS,
   LIFEBOOK_MIN_TOTAL_CHARS,
   LIFEBOOK_A4_TOTAL_TARGET,
+  LIFE_BOOK_PROMPT_VERSION,
+  LIFE_BOOK_LLM_ENHANCED_CHAPTERS,
   LIFEBOOK_CHAPTER_PAGE_TARGETS,
   LIFEBOOK_CHAPTER_COMMON_STRUCTURE,
   LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS,
@@ -6480,6 +6612,8 @@ export const __lifeBookTestUtils = {
   buildLifeBookChapterOpeningText,
   buildLifeBookChapterPlan,
   buildLifeBookChapterPlans,
+  buildLifeBookChapterCacheKey,
+  shouldEnhanceLifeBookChapter,
   buildLifeBookSectionLLMInput,
   buildLifeBookSectionPrompt,
   buildLifeBookChapterMergePrompt,
@@ -6509,6 +6643,7 @@ export const __lifeBookTestUtils = {
   validateLifeBookGeneratedChapter,
   reinforceLifeBookChapterDeterministically,
   generateLifeBookChapterWithGemini,
+  generateLifeBookChaptersWithGemini,
   buildLifeBookPdfRecord,
   buildPdfReadyPayload: buildPdfReadyPayloadClean,
 };
@@ -7217,6 +7352,10 @@ async function handlePrepare(request, env) {
     finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
     finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
     finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
+    promptVersion: generatedLifeBook.promptVersion || LIFE_BOOK_PROMPT_VERSION,
+    llmEnhancedChapterIds: generatedLifeBook.llmEnhancedChapterIds || [],
+    llmFallbackChapterIds: generatedLifeBook.llmFallbackChapterIds || [],
+    llmCacheHitChapterIds: generatedLifeBook.llmCacheHitChapterIds || [],
     jsonContractValidation: engineContractValidation,
     canonicalValidation,
     chapterEvidenceCoverage,
@@ -7297,6 +7436,10 @@ async function handlePrepare(request, env) {
       finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
       finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
       finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
+      promptVersion: generatedLifeBook.promptVersion || LIFE_BOOK_PROMPT_VERSION,
+      llmEnhancedChapterIds: generatedLifeBook.llmEnhancedChapterIds || [],
+      llmFallbackChapterIds: generatedLifeBook.llmFallbackChapterIds || [],
+      llmCacheHitChapterIds: generatedLifeBook.llmCacheHitChapterIds || [],
       jsonContractValidation: engineContractValidation,
       canonicalValidation,
       chapterEvidenceCoverage,
@@ -7342,6 +7485,10 @@ async function handlePrepare(request, env) {
     finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
     finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
     finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
+    promptVersion: generatedLifeBook.promptVersion || LIFE_BOOK_PROMPT_VERSION,
+    llmEnhancedChapterIds: generatedLifeBook.llmEnhancedChapterIds || [],
+    llmFallbackChapterIds: generatedLifeBook.llmFallbackChapterIds || [],
+    llmCacheHitChapterIds: generatedLifeBook.llmCacheHitChapterIds || [],
     jsonContractValidation: engineContractValidation,
     canonicalValidation,
     chapterEvidenceCoverage,
@@ -7352,8 +7499,8 @@ async function handlePrepare(request, env) {
     htmlUrl: clean(pdfReady?.htmlUrl),
     canReopen: true,
     canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
-    fallbackUsed: false,
-    llmUsed: true,
+    fallbackUsed: Boolean(generatedLifeBook.fallbackUsed),
+    llmUsed: Boolean(generatedLifeBook.llmUsed),
     llmRuntime,
   };
 

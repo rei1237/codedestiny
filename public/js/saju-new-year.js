@@ -41,16 +41,64 @@
   function _log(stage, meta) {
     try { console.info('[NewYearPremiumPDF][' + String(stage || 'Unknown') + ']', meta || {}); } catch (_) {}
   }
+  function _toShortList(value, limit) {
+    var source = Array.isArray(value) ? value : [];
+    return source.map(function (item) { return _clean(item); }).filter(Boolean).slice(0, Math.max(1, Number(limit || 6)));
+  }
+  function _payloadSafe(payload) {
+    var data = payload && typeof payload === 'object' ? payload : {};
+    var nested = data.error && typeof data.error === 'object' ? data.error : {};
+    var debugSafe = data.debugSafe && typeof data.debugSafe === 'object' ? data.debugSafe : {};
+    return {
+      code: _clean(data.code || nested.code || data.errorCode || nested.errorCode) || undefined,
+      message: _clean(data.message || nested.message || data.reasonMessage || nested.reasonMessage) || undefined,
+      stage: _clean(data.stage || data.failureStage || debugSafe.stage || nested.stage || nested.failureStage) || undefined,
+      failureType: _clean(data.failureType || debugSafe.failureType || nested.failureType) || undefined,
+      reportId: _clean(data.reportId || debugSafe.reportId || nested.reportId) || undefined,
+      executionId: _clean(data.executionId || debugSafe.executionId || nested.executionId) || undefined,
+      missing: _toShortList(data.missing || nested.missing, 6),
+      issues: _toShortList(data.issues || nested.issues || data.errors || nested.errors, 6),
+      debugSafe: Object.keys(debugSafe).length ? debugSafe : undefined
+    };
+  }
+  function _buildPdfApiError(payload, status, fallbackMessage) {
+    var safe = _payloadSafe(payload);
+    var msg = _clean(safe.message || fallbackMessage || ('HTTP ' + (status || '')));
+    var err = new Error(msg || '?좊뀈?댁꽭 PDF ?붿껌???ㅽ뙣?덉뒿?덈떎.');
+    err.status = Number(status || 0) || undefined;
+    err.code = _clean(safe.code) || 'SAJU_NEW_YEAR_REQUEST_FAILED';
+    err.stage = _clean(safe.stage) || 'prepare';
+    err.failureType = _clean(safe.failureType);
+    err.reportId = _clean(safe.reportId);
+    err.executionId = _clean(safe.executionId);
+    err.missing = safe.missing;
+    err.issues = safe.issues;
+    err.payloadSafe = safe;
+    err.payload = payload && typeof payload === 'object' ? payload : undefined;
+    return err;
+  }
   function _logError(error, meta) {
     try {
+      var safePayload = error && error.payloadSafe
+        ? error.payloadSafe
+        : _payloadSafe((error && error.payload) || (error && error.debugSafe ? { debugSafe: error.debugSafe } : error));
       var safe = {
+        serviceKey: SERVICE_KEY,
+        featureKey: API_FEATURE_KEY,
+        billingFeatureKey: BILLING_FEATURE_KEY,
+        reportType: 'sajuNewYear',
         stage: _clean(meta && meta.stage) || _clean(error && error.stage) || 'unknown',
         code: _clean(error && (error.code || error.name)) || _clean(meta && meta.code) || 'SAJU_NEW_YEAR_CLIENT_ERROR',
+        failureType: _clean(error && error.failureType || safePayload.failureType) || undefined,
         message: _clean(error && error.message ? error.message : error) || 'unknown',
         status: Number(error && error.status || meta && meta.status || 0) || undefined,
-        reportId: _clean(error && error.reportId || meta && meta.reportId || _resultPayload && _resultPayload.reportId) || undefined,
+        reportId: _clean(error && error.reportId || safePayload.reportId || meta && meta.reportId || _resultPayload && _resultPayload.reportId) || undefined,
         sessionId: _clean(error && error.sessionId || meta && meta.sessionId || '') || undefined,
-        causeMessage: _clean(error && error.causeMessage || error && error.cause && (error.cause.message || error.cause) || meta && meta.causeMessage) || undefined
+        executionId: _clean(error && error.executionId || safePayload.executionId || meta && meta.executionId) || undefined,
+        missing: _toShortList(error && error.missing || safePayload.missing, 6),
+        issues: _toShortList(error && error.issues || safePayload.issues, 6),
+        causeMessage: _clean(error && error.causeMessage || error && error.cause && (error.cause.message || error.cause) || meta && meta.causeMessage) || undefined,
+        payloadSafe: safePayload
       };
       if (error && error.debugSafe && typeof error.debugSafe === 'object') safe.debugSafe = error.debugSafe;
       console.error('[NewYearPremiumPDF][Error][' + safe.stage + ']', safe);
@@ -541,11 +589,7 @@
     if (!response.ok || !body || body.ok === false) {
       var msg = _clean(body && body.message) || ('HTTP ' + response.status);
       _log('RequestFailed', { status: response.status, code: _clean(body && body.code), message: msg });
-      var requestError = new Error(msg);
-      requestError.status = response.status;
-      requestError.code = _clean(body && body.code) || 'SAJU_NEW_YEAR_REQUEST_FAILED';
-      requestError.stage = _clean(body && body.debugSafe && body.debugSafe.stage) || 'prepare';
-      requestError.reportId = _clean(body && body.debugSafe && body.debugSafe.reportId);
+      var requestError = _buildPdfApiError(body, response.status, msg);
       requestError.sessionId = _clean(body && body.debugSafe && body.debugSafe.sessionId);
       requestError.causeMessage = _clean(body && body.debugSafe && body.debugSafe.causeMessage);
       requestError.debugSafe = body && body.debugSafe;
@@ -797,6 +841,7 @@
 
     _runCoinGate(reportId).then(function (gate) {
       if (!gate.ok) {
+        _logError(gate, { stage: 'billing', reportId: reportId });
         if (Number(gate.status) === 402 && typeof window.__cdOpenChargeModal === 'function') window.__cdOpenChargeModal();
         window.alert(gate.message || '프리미엄 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.');
         return;
