@@ -37,11 +37,18 @@
 
   function normalizeSukuyoError(error) {
     if (error instanceof Error) {
-      return {
+      var normalized = {
         name: error.name,
         message: error.message,
         stack: error.stack,
       };
+      try {
+        Object.keys(error).forEach(function (key) {
+          normalized[key] = error[key];
+        });
+      } catch (_) {}
+      if (error.cause) normalized.cause = normalizeSukuyoError(error.cause);
+      return normalized;
     }
 
     if (typeof error === 'object' && error !== null) {
@@ -75,21 +82,94 @@
     try { console.info(label, payload || {}); } catch (_) {}
   }
 
+  function _stringifySukuyoLogPayload(payload) {
+    var seen = [];
+    return JSON.stringify(payload, function (_key, value) {
+      if (value && typeof value === 'object') {
+        if (seen.indexOf(value) >= 0) return '[Circular]';
+        seen.push(value);
+      }
+      return value;
+    }, 2);
+  }
+
   function _logError(error, stage) {
     var normalized = normalizeSukuyoError(error);
     var original = error || {};
     var cause = original && original.cause;
+    var details = normalized && normalized.details || original.details || {};
+    var payload = {
+      stage: _clean(stage),
+      name: _clean(normalized && normalized.name) || 'Error',
+      code: _clean(normalized && normalized.code || original.code || original.errorCode),
+      status: _clean(normalized && normalized.status || original.status || original.statusCode),
+      message: _clean(normalized && normalized.message) || 'unknown',
+      reportId: _clean(normalized && normalized.reportId || original.reportId || original.executionId),
+      sessionId: _clean(normalized && normalized.sessionId || original.sessionId || _activeSessionId),
+      causeMessage: _clean(cause && cause.message),
+      details: details,
+    };
     try {
-      console.error('[SukuyoBook][Error]', {
-        stage: _clean(stage),
-        name: _clean(normalized && normalized.name) || 'Error',
-        code: _clean(normalized && normalized.code || original.code || original.errorCode),
-        status: _clean(normalized && normalized.status || original.status || original.statusCode),
-        message: _clean(normalized && normalized.message) || 'unknown',
-        reportId: _clean(original.reportId || original.executionId),
-        causeMessage: _clean(cause && cause.message),
-      });
+      console.error('[SukuyoBook][Error] ' + _stringifySukuyoLogPayload(payload), error);
     } catch (_) {}
+  }
+
+  function _createSukuyoError(message, details) {
+    var err = new Error(_clean(message) || '숙요점 PDF 생성 중 오류가 발생했습니다.');
+    var safeDetails = details && typeof details === 'object' ? details : {};
+    err.details = safeDetails;
+    err.code = _clean(safeDetails.code);
+    err.status = _clean(safeDetails.status);
+    err.reportId = _clean(safeDetails.reportId);
+    err.sessionId = _clean(safeDetails.sessionId || _activeSessionId);
+    return err;
+  }
+
+  function _summarizeSukuyoPayload(payload) {
+    var p = payload && typeof payload === 'object' ? payload : {};
+    var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
+    var execution = p.execution && typeof p.execution === 'object' ? p.execution : {};
+    var chapters = Array.isArray(p.chapters) ? p.chapters : [];
+    return {
+      ok: p.ok,
+      code: _clean(p.code || p.errorCode || p.error),
+      message: _clean(p.message || p.reasonMessage),
+      status: _clean(p.status || p.serverStatus || execution.status),
+      premiumStatus: _clean(p.premiumStatus || execution.premiumStatus),
+      reportId: _clean(p.reportId || ready.reportId || execution.reportId),
+      sessionId: _clean(p.sessionId || p.reportSessionId || execution.sessionId),
+      chapterCount: Number(p.chapterCount || chapters.length || 0),
+      expectedChapterCount: SUKYO_TOTAL_CHAPTERS,
+      qualityStatus: _clean(p.qualityStatus),
+      manuscriptSource: _clean(p.manuscriptSource),
+      fallbackUsed: p.fallbackUsed === true,
+      llmChapterCount: Number(p.llmChapterCount || 0),
+      fallbackChapterCount: Number(p.fallbackChapterCount || 0),
+      localDraftChapterCount: Number(p.localDraftChapterCount || 0),
+      hasPdfUrl: !!_clean(p.downloadUrl || p.pdfUrl || p.storedUrl || p.reportUrl || p.fileUrl || p.storageUrl || ready.downloadUrl || ready.pdfUrl),
+      keys: Object.keys(p).slice(0, 30),
+    };
+  }
+
+  function _describeSukuyoReadiness(payload) {
+    var p = payload && typeof payload === 'object' ? payload : {};
+    var chapters = Array.isArray(p.chapters) ? p.chapters : [];
+    var summary = _summarizeSukuyoPayload(p);
+    var checks = {
+      hasReportId: !!_clean(p.reportId),
+      hasStoredUrl: !!_resolveSukuyoStoredUrl(p),
+      hasAllChapters: chapters.length === SUKYO_TOTAL_CHAPTERS,
+      serverCompleted: _clean(p.serverStatus) === 'completed',
+      qualityPassed: _clean(p.qualityStatus) === 'passed',
+      geminiOnly: _clean(p.manuscriptSource) === 'gemini-only',
+      noFallback: p.fallbackUsed !== true,
+      llmComplete: Number(p.llmChapterCount || 0) === SUKYO_TOTAL_CHAPTERS,
+      noFallbackChapters: Number(p.fallbackChapterCount || 0) === 0,
+      noLocalDraftChapters: Number(p.localDraftChapterCount || 0) === 0,
+    };
+    summary.failedChecks = Object.keys(checks).filter(function (key) { return !checks[key]; });
+    summary.checks = checks;
+    return summary;
   }
 
   function _sanitizeText(value) {
@@ -927,13 +1007,19 @@
   function _postJson(pathname, body) {
     var endpoints = _buildApiCandidates(pathname);
     var endpointIndex = 0;
+    var attempts = [];
     var authToken = '';
     try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
     var premiumToken = _readPremiumAccessToken();
 
     function run(resolve, reject, lastErr) {
       if (endpointIndex >= endpoints.length) {
-        reject(new Error(lastErr || '숙요점 API 호출에 실패했습니다.'));
+        reject(_createSukuyoError(lastErr || '숙요점 API 호출에 실패했습니다.', {
+          stage: 'api-post',
+          method: 'POST',
+          pathname: pathname,
+          attempts: attempts.slice(-5),
+        }));
         return;
       }
 
@@ -941,7 +1027,8 @@
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
       if (premiumToken) headers['x-premium-access-token'] = premiumToken;
 
-      fetch(endpoints[endpointIndex++], {
+      var endpoint = endpoints[endpointIndex++];
+      fetch(endpoint, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(body || {}),
@@ -958,14 +1045,55 @@
             return;
           }
 
+          var summary = _summarizeSukuyoPayload(pack.json);
+          summary.httpStatus = pack.res.status;
+          summary.endpoint = endpoint;
+          attempts.push(summary);
           var msg = (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status);
-          if (pack.res.status === 401) { reject(new Error('숙요점 PDF 생성을 위해 먼저 로그인해 주세요.')); return; }
-          if (pack.res.status === 402 || pack.res.status === 403) { reject(new Error('프리미엄 궁합 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.')); return; }
-          if (pack.res.status === 400 || pack.res.status === 422) { reject(new Error(msg || '입력 정보를 확인해 주세요.')); return; }
+          if (pack.res.status === 401) {
+            reject(_createSukuyoError('숙요점 PDF 생성을 위해 먼저 로그인해 주세요.', {
+              stage: 'api-post',
+              method: 'POST',
+              pathname: pathname,
+              endpoint: endpoint,
+              status: pack.res.status,
+              response: summary,
+              attempts: attempts.slice(-5),
+            }));
+            return;
+          }
+          if (pack.res.status === 402 || pack.res.status === 403) {
+            reject(_createSukuyoError('프리미엄 궁합 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.', {
+              stage: 'api-post',
+              method: 'POST',
+              pathname: pathname,
+              endpoint: endpoint,
+              status: pack.res.status,
+              response: summary,
+              attempts: attempts.slice(-5),
+            }));
+            return;
+          }
+          if (pack.res.status === 400 || pack.res.status === 422) {
+            reject(_createSukuyoError(msg || '입력 정보를 확인해 주세요.', {
+              stage: 'api-post',
+              method: 'POST',
+              pathname: pathname,
+              endpoint: endpoint,
+              status: pack.res.status,
+              response: summary,
+              attempts: attempts.slice(-5),
+            }));
+            return;
+          }
 
           run(resolve, reject, msg);
         })
         .catch(function (error) {
+          attempts.push({
+            endpoint: endpoint,
+            message: String(error && error.message || error || '요청 실패'),
+          });
           run(resolve, reject, String(error && error.message || error || '요청 실패'));
         });
     }
@@ -976,13 +1104,19 @@
   function _getJson(pathname) {
     var endpoints = _buildApiCandidates(pathname);
     var endpointIndex = 0;
+    var attempts = [];
     var authToken = '';
     try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
     var premiumToken = _readPremiumAccessToken();
 
     function run(resolve, reject, lastErr) {
       if (endpointIndex >= endpoints.length) {
-        reject(new Error(lastErr || '숙요점 생성 상태를 확인하지 못했습니다.'));
+        reject(_createSukuyoError(lastErr || '숙요점 생성 상태를 확인하지 못했습니다.', {
+          stage: 'api-get',
+          method: 'GET',
+          pathname: pathname,
+          attempts: attempts.slice(-5),
+        }));
         return;
       }
 
@@ -990,7 +1124,8 @@
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
       if (premiumToken) headers['x-premium-access-token'] = premiumToken;
 
-      fetch(endpoints[endpointIndex++], {
+      var endpoint = endpoints[endpointIndex++];
+      fetch(endpoint, {
         method: 'GET',
         headers: headers,
         credentials: 'include',
@@ -1006,12 +1141,42 @@
             return;
           }
 
+          var summary = _summarizeSukuyoPayload(pack.json);
+          summary.httpStatus = pack.res.status;
+          summary.endpoint = endpoint;
+          attempts.push(summary);
           var msg = (pack.json && (pack.json.message || pack.json.code)) || ('HTTP ' + pack.res.status);
-          if (pack.res.status === 401) { reject(new Error('숙요점 PDF 생성을 위해 먼저 로그인해 주세요.')); return; }
-          if (pack.res.status === 403) { reject(new Error('숙요점 PDF 열람 권한을 확인하지 못했습니다.')); return; }
+          if (pack.res.status === 401) {
+            reject(_createSukuyoError('숙요점 PDF 생성을 위해 먼저 로그인해 주세요.', {
+              stage: 'api-get',
+              method: 'GET',
+              pathname: pathname,
+              endpoint: endpoint,
+              status: pack.res.status,
+              response: summary,
+              attempts: attempts.slice(-5),
+            }));
+            return;
+          }
+          if (pack.res.status === 403) {
+            reject(_createSukuyoError('숙요점 PDF 열람 권한을 확인하지 못했습니다.', {
+              stage: 'api-get',
+              method: 'GET',
+              pathname: pathname,
+              endpoint: endpoint,
+              status: pack.res.status,
+              response: summary,
+              attempts: attempts.slice(-5),
+            }));
+            return;
+          }
           run(resolve, reject, msg);
         })
         .catch(function (error) {
+          attempts.push({
+            endpoint: endpoint,
+            message: String(error && error.message || error || '요청 실패'),
+          });
           run(resolve, reject, String(error && error.message || error || '요청 실패'));
         });
     }
@@ -1116,12 +1281,21 @@
 
   function _fetchArchivedSukuyoReport(reportId) {
     var id = _clean(reportId);
-    if (!id) return Promise.reject(new Error('완성된 숙요점 PDF reportId를 찾지 못했습니다.'));
+    if (!id) {
+      return Promise.reject(_createSukuyoError('완성된 숙요점 PDF reportId를 찾지 못했습니다.', {
+        stage: 'archive-fetch',
+        reason: 'missing-report-id',
+      }));
+    }
     return _getJson(SUKYO_ARCHIVE_API + '/' + encodeURIComponent(id))
       .then(function (data) {
         var restored = _normalizeArchivedSukuyoReport(data && data.report);
         if (!_isSukyoReportReady(restored)) {
-          throw new Error('숙요점 PDF 완료본이 아직 저장되지 않았습니다. 잠시 후 다시 확인해 주세요.');
+          throw _createSukuyoError('숙요점 PDF 완료본이 아직 저장되지 않았습니다. 잠시 후 다시 확인해 주세요.', {
+            stage: 'archive-ready-check',
+            reportId: id,
+            readiness: _describeSukuyoReadiness(restored),
+          });
         }
         return restored;
       });
@@ -1179,11 +1353,22 @@
               return;
             }
             if (_isSukuyoExecutionFailed(execution)) {
-              reject(new Error(_clean(execution.reasonMessage) || '숙요점 궁합 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.'));
+              reject(_createSukuyoError(_clean(execution.reasonMessage) || '숙요점 궁합 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.', {
+                stage: 'execution-status-failed',
+                reportId: nextReportId,
+                sessionId: sessionId,
+                execution: _summarizeSukuyoPayload({ execution: execution }),
+              }));
               return;
             }
             if (attempts >= SUKYO_RUNNING_POLL_MAX_ATTEMPTS) {
-              reject(new Error('숙요점 궁합 PDF 생성 상태 확인 시간이 초과되었습니다. 잠시 후 다시 확인해 주세요.'));
+              reject(_createSukuyoError('숙요점 궁합 PDF 생성 상태 확인 시간이 초과되었습니다. 잠시 후 다시 확인해 주세요.', {
+                stage: 'execution-status-timeout',
+                reportId: nextReportId,
+                sessionId: sessionId,
+                attempts: attempts,
+                execution: _summarizeSukuyoPayload({ execution: execution }),
+              }));
               return;
             }
             _setLoadingNotice('같은 세션의 숙요점 궁합 PDF가 생성 중입니다. 완료 상태를 확인하고 있습니다.');
@@ -1280,10 +1465,18 @@
     _chapters = Array.isArray(response.chapters) ? response.chapters : [];
 
     if (!_chapters.length || Number(response.chapterCount) !== 15 || Number(_chapters.length) !== 15) {
-      throw new Error('15챕터 리포트 데이터가 비어 있습니다.');
+      throw _createSukuyoError('15챕터 리포트 데이터가 비어 있습니다.', {
+        stage: 'completed-response-chapter-check',
+        reportId: _clean(response.reportId),
+        readiness: _describeSukuyoReadiness(response),
+      });
     }
     if (!_isSukyoReportReady(response)) {
-      throw new Error('일부 챕터의 내용을 더 정밀하게 다듬고 있습니다.');
+      throw _createSukuyoError('일부 챕터의 내용을 더 정밀하게 다듬고 있습니다.', {
+        stage: 'completed-response-ready-check',
+        reportId: _clean(response.reportId),
+        readiness: _describeSukuyoReadiness(response),
+      });
     }
 
     return _playChapterProgress(_chapters).then(function () {
