@@ -2543,6 +2543,33 @@ function firstObject(...values) {
   return {};
 }
 
+function scoreLifeBookStructuredAdvancedReport(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return -1;
+  const engineVersion = clean(value?.metadata?.engineVersion);
+  const title = clean(value?.userReport?.title);
+  const markdown = clean(value?.userReport?.markdown);
+  let score = 1;
+  if (engineVersion === "QUANTUM_MYEONGRI_ENGINE_V2") score += 100;
+  if (/QUANTUM MYEONGRI Engine v\.2/i.test(title) || /QUANTUM MYEONGRI Engine v\.2/i.test(markdown)) score += 40;
+  if (/운의 환골탈태/.test(markdown)) score += 10;
+  if (/천기적 액션 처방/.test(markdown)) score += 10;
+  if (Array.isArray(value?.actionPrescription) && value.actionPrescription.length) score += 10;
+  return score;
+}
+
+function selectLifeBookStructuredAdvancedReport(...values) {
+  let selected = {};
+  let selectedScore = -1;
+  values.forEach((value) => {
+    const score = scoreLifeBookStructuredAdvancedReport(value);
+    if (score > selectedScore) {
+      selected = value;
+      selectedScore = score;
+    }
+  });
+  return selected;
+}
+
 function rowsOf(value) {
   if (Array.isArray(value)) return value.filter((item) => item && typeof item === "object");
   return [];
@@ -2664,7 +2691,7 @@ function buildLifeBookEngineSummary({ birthInput = {}, profile = {}, signals = {
 }
 
 function buildLifeBookEngineContract({ birthInput = {}, profile = {}, signals = {}, localSajuJson = {}, body = {} } = {}) {
-  const structured = firstObject(
+  const structured = selectLifeBookStructuredAdvancedReport(
     body?.lifeBookEngineContract?.structuredAdvancedReport,
     body?.quantumMyeongriJson?.structuredAdvancedReport,
     body?.structuredAdvancedReport,
@@ -5186,9 +5213,12 @@ function buildLifeBookMasterJson({ birthInput = {}, profile = {}, signals = {}, 
     || body?.engineData?.structuredAdvancedReport
     || signals?.engineSources?.clientQuantumMyeongri
   );
+  const quantumEngineName = /QUANTUM_MYEONGRI_ENGINE_V2|Engine v\.2/i.test(clean(engineContract?.source))
+    ? "client-quantum-myeongri-engine-v2"
+    : "client-quantum-myeongri-engine";
   const sourceEngines = [
     "worker-saju-engine",
-    hasQuantum ? "client-quantum-myeongri-engine" : "",
+    hasQuantum ? quantumEngineName : "",
     engineContract?.source ? clean(engineContract.source) : "",
   ].filter(Boolean);
   return {

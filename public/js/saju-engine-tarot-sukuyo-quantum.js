@@ -2283,22 +2283,6 @@ function renderLetter(p){
       '<p style="text-align:right;font-style:italic;color:var(--pink-l);font-weight:700;font-size:.82rem">— 연이가 온 마음을 담아 🐷💕</p>';
   }
 
-  // ── 사주 AI 프롬프트 질문 박스 직접 마운트 ──
-  try {
-    var _qMount = document.getElementById('sajuAiPromptQuestionMount') || document.getElementById('aiPromptMount');
-    if (_qMount && typeof _mountSajuAIPromptQuestionBox === 'function') {
-      // 기존 질문 박스가 없을 때만 안전하게 초기화 및 주입 (경쟁 덮어쓰기 원천 차단)
-      if (!document.getElementById('sajuAiPromptQuestionBox')) {
-        _qMount.innerHTML = '<div id="aiPromptCard" style="margin-bottom:12px;"></div>';
-        var _aiCard = document.getElementById('aiPromptCard');
-        if (_aiCard) {
-          _mountSajuAIPromptQuestionBox(_aiCard);
-        }
-      }
-    }
-  } catch(_e) {
-    console.error('[renderLetter] AI 프롬프트 마운트 실패:', _e);
-  }
 }
 
 /* ── renderEnergyCoord: 에너지 원정 리포트 ── */

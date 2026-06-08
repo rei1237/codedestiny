@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import { calculateLocalSaju } from "@/app/saju/animal-destiny/engine/localSajuCalculator";
 import LifeFortuneGraph, {
   resolveLifeFortuneCurrentAge,
   resolveLifeFortuneGraphData,
@@ -100,7 +101,36 @@ function normalizeClientLifeBookPillar(raw) {
   };
 }
 
-function readClientLifeBookEnginePayload() {
+function normalizeLifeBookEngineGender(gender) {
+  if (gender === "male") return "male";
+  if (gender === "female") return "female";
+  return "unknown";
+}
+
+function isAdvancedQuantumMyeongriReport(report) {
+  if (!report || typeof report !== "object") return false;
+  const engineVersion = String(report?.metadata?.engineVersion || "").trim();
+  const userMarkdown = String(report?.userReport?.markdown || "").trim();
+  return engineVersion === "QUANTUM_MYEONGRI_ENGINE_V2" || userMarkdown.includes("QUANTUM MYEONGRI Engine v.2");
+}
+
+function buildLocalLifeBookEngine({ form, birth, hour, minute }) {
+  return calculateLocalSaju({
+    year: birth.year,
+    month: birth.month,
+    day: birth.day,
+    hour,
+    minute,
+    hasTime: true,
+    calendarType: form.calendarType === "lunar" ? "lunar" : "solar",
+    lunarLeap: false,
+    gender: normalizeLifeBookEngineGender(form.gender),
+    timezone: "Asia/Seoul",
+    birthplace: String(form.birthplace || "").trim(),
+  });
+}
+
+function readClientLifeBookEnginePayload(localEngine = null) {
   if (typeof window === "undefined") return {};
   const snapshot = window.__destinyFlowerSajuSnapshot && typeof window.__destinyFlowerSajuSnapshot === "object"
     ? window.__destinyFlowerSajuSnapshot
@@ -110,6 +140,28 @@ function readClientLifeBookEnginePayload() {
     : (snapshot.saju && typeof snapshot.saju === "object" ? snapshot.saju : {});
   const payload = {};
   if (analysis && Object.keys(analysis).length) payload.analysisSignals = analysis;
+
+  if (isAdvancedQuantumMyeongriReport(localEngine?.structuredAdvancedReport)) {
+    payload.quantumMyeongriJson = {
+      version: "life-book-client-route-v2",
+      sourceTrace: {
+        source: "app/saju/lifebook/page.js",
+        engine: "app/saju/animal-destiny/engine/localSajuCalculator.ts",
+        engineVersion: String(localEngine.structuredAdvancedReport?.metadata?.engineVersion || "QUANTUM_MYEONGRI_ENGINE_V2"),
+        hasFinalAdvancedReport: Boolean(localEngine.finalAdvancedReport),
+        hasCalculationEvidence: Boolean(localEngine.calculationEvidence),
+      },
+      structuredAdvancedReport: localEngine.structuredAdvancedReport,
+      finalAdvancedReport: localEngine.finalAdvancedReport || {},
+      calculationEvidence: localEngine.calculationEvidence || {},
+    };
+    payload.structuredAdvancedReport = localEngine.structuredAdvancedReport;
+    payload.finalAdvancedReport = localEngine.finalAdvancedReport || {};
+    payload.calculationEvidence = localEngine.calculationEvidence || {};
+    payload.engineVersion = String(localEngine.structuredAdvancedReport?.metadata?.engineVersion || "QUANTUM_MYEONGRI_ENGINE_V2");
+    return payload;
+  }
+
   if (window.G_PILLARS || window.G_POWER || window.G_JOHU || window.G_DAEWUN || window.G_DAEUN) {
     const pillars = window.G_PILLARS && typeof window.G_PILLARS === "object" ? window.G_PILLARS : {};
     payload.quantumMyeongriJson = {
@@ -222,6 +274,7 @@ export default function SajuLifebookPage() {
   const [selectedChapter, setSelectedChapter] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [showDetail, setShowDetail] = useState(false);
+  const [enginePreview, setEnginePreview] = useState(null);
   const timerRef = useRef(null);
   const submitLockRef = useRef(false);
 
@@ -265,6 +318,7 @@ export default function SajuLifebookPage() {
     setSelectedChapter(0);
     setSelectedCategory(0);
     setShowDetail(false);
+    setEnginePreview(null);
 
     const name = String(form.name || "").trim();
     console.info("[LifeBook][ModalOpen]");
@@ -288,6 +342,24 @@ export default function SajuLifebookPage() {
     const minute = Number(form.minute);
     if (!Number.isFinite(hour) || !Number.isFinite(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
       setError("태어난 시간을 정확히 입력해 주세요.");
+      return;
+    }
+
+    let localEngine = null;
+    try {
+      localEngine = buildLocalLifeBookEngine({ form, birth, hour, minute });
+      if (!isAdvancedQuantumMyeongriReport(localEngine?.structuredAdvancedReport)) {
+        throw new Error("QUANTUM_MYEONGRI_ENGINE_V2 structured report missing");
+      }
+      setEnginePreview({
+        status: "ready",
+        title: String(localEngine.finalAdvancedReport?.title || localEngine.structuredAdvancedReport?.userReport?.title || "QUANTUM MYEONGRI Engine v.2 고급 분석 리포트"),
+        engineVersion: String(localEngine.structuredAdvancedReport?.metadata?.engineVersion || "QUANTUM_MYEONGRI_ENGINE_V2"),
+        summary: String(localEngine.finalAdvancedReport?.brandPhrases?.join(" · ") || "운의 환골탈태 · 천기적 액션 처방"),
+      });
+    } catch (engineError) {
+      console.warn("[LifeBook][QuantumMyeongriV2Failed]", engineError);
+      setError("퀀텀 명리엔진 v2 계산값을 만들지 못했습니다. 생년월일시와 양력/음력 설정을 다시 확인해 주세요.");
       return;
     }
 
@@ -358,14 +430,14 @@ export default function SajuLifebookPage() {
             ? gateRaw.consume
             : null;
 
-      const clientEnginePayload = readClientLifeBookEnginePayload();
+      const clientEnginePayload = readClientLifeBookEnginePayload(localEngine);
       const payload = {
         serviceKey: SERVICE_KEY,
         productKey: FEATURE_KEY,
         featureKey: FEATURE_KEY,
         reportType: "lifeBook",
         generationMode: "worker-native-hybrid",
-        calculationSource: "worker-saju-engine",
+        calculationSource: "client-quantum-myeongri-v2+worker-saju-engine",
         authoringMode: "hybrid",
         sessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
         reportSessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
@@ -390,11 +462,15 @@ export default function SajuLifebookPage() {
         engineData: {
           source: "app/saju/lifebook/page.js",
           workerNativeRequired: true,
+          engineVersion: clientEnginePayload.engineVersion || undefined,
           structuredAdvancedReport: clientEnginePayload.structuredAdvancedReport || undefined,
+          finalAdvancedReport: clientEnginePayload.finalAdvancedReport || undefined,
+          calculationEvidence: clientEnginePayload.calculationEvidence || undefined,
         },
         analysisSignals: clientEnginePayload.analysisSignals || undefined,
         quantumMyeongriJson: clientEnginePayload.quantumMyeongriJson || undefined,
         structuredAdvancedReport: clientEnginePayload.structuredAdvancedReport || undefined,
+        finalAdvancedReport: clientEnginePayload.finalAdvancedReport || undefined,
       };
 
       const headers = { "Content-Type": "application/json" };
@@ -567,6 +643,23 @@ export default function SajuLifebookPage() {
               <input type="checkbox" checked={!form.birthTimeKnown} onChange={(e) => updateField("birthTimeKnown", !e.target.checked)} />
               <span>태어난 시간을 모릅니다 (시간 미상 기준)</span>
             </label>
+          </div>
+
+          <div style={{ marginTop: 12, borderRadius: 14, padding: 12, border: "1px solid rgba(244,213,159,.28)", background: "rgba(244,213,159,.07)", display: "grid", gap: 7 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+              <strong style={{ color: "#f5d69f" }}>QUANTUM MYEONGRI Engine v.2</strong>
+              <span style={{ borderRadius: 999, padding: "4px 10px", fontSize: 12, border: "1px solid rgba(244,213,159,.38)", color: "#ffe5b8" }}>
+                {enginePreview?.status === "ready" ? "계산값 반영 완료" : "생성 시 정밀 계산"}
+              </span>
+            </div>
+            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: "#dcc5a1" }}>
+              {enginePreview?.title || "생성 버튼을 누르면 입력값 기준으로 고급 분석 리포트를 먼저 계산한 뒤 PDF 원고에 반영합니다."}
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {["운의 환골탈태", "천기적 액션 처방", enginePreview?.engineVersion || "QUANTUM_MYEONGRI_ENGINE_V2"].map((tag) => (
+                <span key={tag} style={{ borderRadius: 999, padding: "4px 9px", fontSize: 11, background: "rgba(255,244,229,.08)", color: "#f7e8cf" }}>{tag}</span>
+              ))}
+            </div>
           </div>
 
           <p style={{ marginTop: 10, fontSize: 13, color: "#dcc5a1" }}>로그인 및 결제 권한 확인 후 생성이 시작됩니다.</p>

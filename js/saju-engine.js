@@ -4570,9 +4570,6 @@ function generateIdealPartnerPrompt(p, natal){
   return prompt;
 }
 
-var SAJU_AI_PROMPT_COST = 100;
-var SAJU_AI_PROMPT_MIN_LENGTH = 5;
-var SAJU_AI_PROMPT_MAX_LENGTH = 1000;
 var ASTROLOGY_AI_PROMPT_COST = 100;
 var ASTROLOGY_AI_PROMPT_MIN_LENGTH = 5;
 var ASTROLOGY_AI_PROMPT_MAX_LENGTH = 1000;
@@ -4764,272 +4761,6 @@ function _applySajuAIPromptBalance(points) {
   } catch (_) {}
 }
 
-function _setSajuAIPromptStatus(node, message, tone) {
-  if (!node) return;
-  node.textContent = String(message || '');
-  if (tone === 'error') {
-    node.style.color = '#b91c1c';
-  } else if (tone === 'success') {
-    node.style.color = '#166534';
-  } else {
-    node.style.color = '#475569';
-  }
-}
-
-function _mountSajuAIPromptQuestionBox(aiCard) {
-  if (!aiCard || document.getElementById('sajuAiPromptQuestionBox')) return;
-
-  var box = document.createElement('div');
-  box.id = 'sajuAiPromptQuestionBox';
-  box.className = 'prem-box';
-  box.style.position = 'relative';
-  box.style.overflow = 'hidden';
-  box.style.padding = '16px';
-  box.style.background = 'radial-gradient(120% 150% at 6% 0%, rgba(251,191,36,0.18), transparent 46%), radial-gradient(72% 90% at 100% 0%, rgba(244,114,182,0.08), transparent 34%), linear-gradient(180deg,#fffaf2 0%,#fff7ea 100%)';
-  box.style.border = '1px solid rgba(180,83,9,0.22)';
-  box.style.boxShadow = '0 24px 54px rgba(180,83,9,0.12), inset 0 1px 0 rgba(255,255,255,0.92)';
-  box.style.borderRadius = '22px';
-  box.style.marginBottom = '12px';
-
-  var exampleQuestions = [
-    { label: '재물운', text: '올해 금전운과 투자 타이밍은 언제가 가장 좋을까요?' },
-    { label: '연애운', text: '현재 연애 흐름에서 재회 가능성과 주의점은 무엇인가요?' },
-    { label: '직업운', text: '이직이나 사업 확장에 가장 유리한 시기와 조건은 무엇인가요?' }
-  ];
-
-  box.innerHTML = ''
-    + '<div aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,0.32),transparent 35%),radial-gradient(circle at top right, rgba(251,191,36,0.18), transparent 28%),radial-gradient(circle at bottom left, rgba(244,114,182,0.08), transparent 25%);"></div>'
-    + '<div style="position:relative;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px;">'
-    + '  <div style="min-width:0;flex:1 1 280px;">'
-    + '    <div class="prem-title" style="color:#6b2a0f;font-size:1.02rem;letter-spacing:0.2px;line-height:1.35;">사주 질문 프롬프트 만들기</div>'
-    + '    <p style="margin:6px 0 0;font-size:0.82rem;color:#8a4b22;line-height:1.72;">현재 사주 분석 결과를 바탕으로, AI에게 더 깊고 정확한 질문을 던질 수 있게 문장을 정리해드립니다.</p>'
-    + '  </div>'
-    + '  <span style="align-self:flex-start;font-size:0.71rem;font-weight:700;letter-spacing:0.08em;color:#9a3412;border:1px solid rgba(180,83,9,0.22);background:rgba(251,191,36,0.16);padding:5px 10px;border-radius:999px;white-space:nowrap;">결과 기반 고품질 질문</span>'
-    + '</div>'
-    + '<div style="position:relative;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'
-    + exampleQuestions.map(function(item) {
-      return '<button type="button" data-saju-example-question="' + item.text.replace(/"/g, '&quot;') + '" style="appearance:none;border:1px solid rgba(180,83,9,0.18);background:rgba(255,252,244,0.95);color:#7c2d12;border-radius:999px;padding:8px 11px;font-size:0.77rem;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(180,83,9,0.08);transition:transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;">' + item.label + '</button>';
-    }).join('')
-    + '</div>'
-    + '<div style="position:relative;display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">'
-    + '  <label for="sajuAiPromptQuestionInput" style="font-size:0.75rem;font-weight:700;letter-spacing:0.08em;color:#9a3412;text-transform:uppercase;">질문 입력</label>'
-    + '  <span style="font-size:0.72rem;color:#8a4b22;">짧게 적어도 AI가 더 긴 질문으로 다듬어 드립니다.</span>'
-    + '</div>'
-    + '<textarea id="sajuAiPromptQuestionInput" maxlength="1000" placeholder="예: 올해 돈을 벌 수 있을까요? / 그 사람과 다시 이어질 수 있을까요?" style="position:relative;width:100%;min-height:124px;border:1px solid rgba(194,120,3,0.34);border-radius:16px;padding:14px 15px;font-size:0.86rem;line-height:1.72;color:#3f2a13;background:linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,249,237,0.92));backdrop-filter:blur(2px);resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(146,64,14,0.08);"></textarea>'
-    + '<div style="position:relative;display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap;">'
-    + '  <span id="sajuAiPromptQuestionCount" style="font-size:0.73rem;color:#9a3412;">0 / 1000</span>'
-    + '  <span style="font-size:0.73rem;color:#9a3412;border:1px solid rgba(180,83,9,0.18);background:rgba(255,255,255,0.58);padding:4px 10px;border-radius:999px;">생성 비용: <b>100코인</b></span>'
-    + '</div>'
-    + '<div style="position:relative;display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center;">'
-    + '  <button id="sajuAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#a16207,#d97706 52%,#f59e0b 82%);color:#fff;border:1px solid rgba(180,83,9,0.45);border-radius:14px;padding:11px 15px;font-size:0.8rem;font-weight:800;cursor:pointer;box-shadow:0 10px 22px rgba(180,83,9,0.22);">질문 프롬프트 만들기 (100코인)</button>'
-    + '  <button id="sajuAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#111827,#334155);color:#fff;border:1px solid rgba(51,65,85,0.45);border-radius:14px;padding:11px 14px;font-size:0.8rem;font-weight:800;cursor:pointer;box-shadow:0 10px 20px rgba(15,23,42,0.18);">프롬프트 복사</button>'
-    + '</div>'
-    + '<div style="position:relative;margin-top:12px;padding:13px;border:1px solid rgba(180,83,9,0.14);background:linear-gradient(180deg,rgba(255,255,255,0.75),rgba(255,250,242,0.96));border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.8);display:none;" id="sajuAiPromptOutputPanel">'
-    + '  <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">'
-    + '    <div style="font-size:0.74rem;font-weight:800;letter-spacing:0.08em;color:#92400e;text-transform:uppercase;">생성된 프롬프트</div>'
-    + '    <div style="font-size:0.72rem;color:#8a4b22;">복사 버튼으로 바로 사용할 수 있습니다.</div>'
-    + '  </div>'
-    + '  <textarea id="sajuAiPromptOutput" readonly style="display:none;width:100%;min-height:220px;border:1px solid rgba(59,130,246,0.18);border-radius:16px;padding:14px 15px;font-size:0.84rem;line-height:1.72;color:#111827;background:linear-gradient(180deg,#fcfeff,#f4f8ff);resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(15,23,42,0.06);"></textarea>'
-    + '</div>'
-    + '<div id="sajuAiPromptStatus" style="position:relative;margin-top:10px;font-size:0.78rem;color:#7c2d12;line-height:1.6;"></div>';
-
-  aiCard.insertBefore(box, aiCard.firstChild);
-
-  var inputEl = document.getElementById('sajuAiPromptQuestionInput');
-  var countEl = document.getElementById('sajuAiPromptQuestionCount');
-  var generateBtn = document.getElementById('sajuAiPromptGenerateBtn');
-  var copyBtn = document.getElementById('sajuAiPromptCopyBtn');
-  var outputEl = document.getElementById('sajuAiPromptOutput');
-  var statusEl = document.getElementById('sajuAiPromptStatus');
-
-  if (!inputEl || !countEl || !generateBtn || !copyBtn || !outputEl || !statusEl) return;
-
-  var inFlight = false;
-
-  function applyExampleQuestion(text) {
-    inputEl.value = String(text || '').trim();
-    updateCount();
-    inputEl.focus();
-  }
-
-  function setLoading(nextLoading) {
-    inFlight = !!nextLoading;
-    generateBtn.disabled = inFlight;
-    inputEl.disabled = inFlight;
-    generateBtn.style.opacity = inFlight ? '0.72' : '1';
-    generateBtn.textContent = inFlight
-      ? '프롬프트 생성 중...'
-      : ('질문 프롬프트 만들기 (' + SAJU_AI_PROMPT_COST + '코인)');
-  }
-
-  function updateCount() {
-    var len = String(inputEl.value || '').trim().length;
-    countEl.textContent = len + ' / ' + SAJU_AI_PROMPT_MAX_LENGTH;
-  }
-
-  function buildHeaders() {
-    var headers = { 'Content-Type': 'application/json' };
-    var token = '';
-    try { token = getFortuneAuthToken(); } catch (_) {}
-    if (token) headers.Authorization = 'Bearer ' + token;
-    return headers;
-  }
-
-  function requestSajuPrompt(body) {
-    var primaryPath = '/api/fortune/saju/question-prompt';
-    var legacyPath = '/api/fortune/saju/ai-prompt';
-    var urls = [primaryPath, legacyPath];
-    try {
-      var base = getFortuneApiBaseUrl();
-      if (base) {
-        var baseNormalized = String(base).replace(/\/+$/, '');
-        var fullPrimary = baseNormalized + primaryPath;
-        var fullLegacy = baseNormalized + legacyPath;
-        if (urls.indexOf(fullPrimary) < 0) urls.push(fullPrimary);
-        if (urls.indexOf(fullLegacy) < 0) urls.push(fullLegacy);
-      }
-    } catch (_) {}
-
-    var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-
-    function runAt(index, finalBody) {
-      return fetch(urls[index], {
-        method: 'POST',
-        credentials: 'include',
-        cache: 'no-store',
-        headers: buildHeaders(),
-        body: JSON.stringify(finalBody || body)
-      }).then(function(res) {
-        return res.json().catch(function() { return {}; }).then(function(payload) {
-          return { ok: res.ok, status: res.status, payload: payload || {} };
-        });
-      }).catch(function(err) {
-        if (index + 1 < urls.length) return runAt(index + 1, finalBody);
-        throw err;
-      });
-    }
-
-    return _cdAIPromptGate({
-      featureKey: 'saju_ai_prompt_generator',
-      reason: '사주 AI 질문 프롬프트 생성',
-      cost: SAJU_AI_PROMPT_COST,
-      requestId: 'saju-ai-prompt:' + requestNonce,
-      categoryKey: 'saju'
-    }).then(function(gateResult) {
-      if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
-      return runAt(0, Object.assign({}, body, _cdAIPromptGateEvidence(gateResult)));
-    });
-  }
-
-  generateBtn.addEventListener('click', function() {
-    if (inFlight) return;
-
-    var question = String(inputEl.value || '').trim();
-    if (!question || question.length < SAJU_AI_PROMPT_MIN_LENGTH) {
-      _setSajuAIPromptStatus(statusEl, '질문은 최소 ' + SAJU_AI_PROMPT_MIN_LENGTH + '자 이상 입력해 주세요.', 'error');
-      return;
-    }
-    if (question.length > SAJU_AI_PROMPT_MAX_LENGTH) {
-      _setSajuAIPromptStatus(statusEl, '질문은 최대 ' + SAJU_AI_PROMPT_MAX_LENGTH + '자까지 입력할 수 있습니다.', 'error');
-      return;
-    }
-
-    var sajuPayload = _buildSajuAIPromptPayload();
-    if (!sajuPayload || !sajuPayload.pillars || !sajuPayload.pillars.d) {
-      _setSajuAIPromptStatus(statusEl, '사주 분석 결과를 먼저 생성한 뒤 다시 시도해 주세요.', 'error');
-      return;
-    }
-
-    setLoading(true);
-    _setSajuAIPromptStatus(statusEl, '질문 프롬프트를 생성하고 있습니다...', 'info');
-
-    requestSajuPrompt({
-      question: question,
-      sajuResult: sajuPayload
-    }).then(function(result) {
-      var payload = result.payload || {};
-      if (result.ok && payload.ok === true && typeof payload.prompt === 'string' && payload.prompt.trim()) {
-        var outputPanel = document.getElementById('sajuAiPromptOutputPanel');
-        if (outputPanel) outputPanel.style.display = 'block';
-        outputEl.style.display = 'block';
-        outputEl.value = payload.prompt;
-        outputEl.scrollTop = 0;
-        copyBtn.style.display = 'inline-flex';
-        var charged = Math.max(0, Number(payload.chargedCoins || 0));
-        var balanceAfter = Number(payload.balanceAfter);
-        if (Number.isFinite(balanceAfter)) _applySajuAIPromptBalance(balanceAfter);
-        _setSajuAIPromptStatus(
-          statusEl,
-          charged > 0
-            ? ('프롬프트 생성 완료. ' + charged + '코인이 차감되었습니다.')
-            : '프롬프트 생성 완료.',
-          'success'
-        );
-        return;
-      }
-
-      var code = String(payload.code || '').trim();
-      var message = String(payload.message || '').trim() || '생성에 실패했습니다. 잠시 후 다시 시도해 주세요.';
-
-      if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
-        _setSajuAIPromptStatus(statusEl, '로그인이 필요합니다.', 'error');
-        if (window.confirm('로그인이 필요한 기능입니다. 로그인 페이지로 이동할까요?')) {
-          var next = getSajuEncodedReturnPath('saju-login-return-path');
-          window.location.href = '/login?next=' + next;
-        }
-        return;
-      }
-
-      if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
-        _setSajuAIPromptStatus(statusEl, message, 'error');
-        _openSajuPaidPaymentMode(SAJU_AI_PROMPT_COST, '사주 질문 프롬프트', 'saju-ai-prompt');
-        return;
-      }
-
-      _setSajuAIPromptStatus(statusEl, message, 'error');
-    }).catch(function() {
-      _setSajuAIPromptStatus(statusEl, '생성에 실패했습니다. 잠시 후 다시 시도해 주세요.', 'error');
-    }).finally(function() {
-      setLoading(false);
-    });
-  });
-
-  copyBtn.addEventListener('click', function() {
-    var text = String(outputEl.value || '').trim();
-    if (!text) {
-      _setSajuAIPromptStatus(statusEl, '복사할 프롬프트가 없습니다.', 'error');
-      return;
-    }
-    navigator.clipboard.writeText(text).then(function() {
-      _setSajuAIPromptStatus(statusEl, '프롬프트를 복사했습니다.', 'success');
-    }).catch(function() {
-      _setSajuAIPromptStatus(statusEl, '복사에 실패했습니다. 텍스트를 직접 복사해 주세요.', 'error');
-    });
-  });
-
-  var exampleButtons = box.querySelectorAll('[data-saju-example-question]');
-  Array.prototype.forEach.call(exampleButtons, function(button) {
-    button.addEventListener('click', function() {
-      applyExampleQuestion(button.getAttribute('data-saju-example-question'));
-      _setSajuAIPromptStatus(statusEl, '예시 질문을 입력했습니다. 필요하면 더 구체적으로 다듬어 보세요.', 'info');
-    });
-    button.addEventListener('mouseenter', function() {
-      button.style.transform = 'translateY(-1px)';
-      button.style.boxShadow = '0 10px 22px rgba(180,83,9,0.12)';
-      button.style.borderColor = 'rgba(180,83,9,0.28)';
-    });
-    button.addEventListener('mouseleave', function() {
-      button.style.transform = 'translateY(0)';
-      button.style.boxShadow = '0 6px 18px rgba(180,83,9,0.08)';
-      button.style.borderColor = 'rgba(180,83,9,0.18)';
-    });
-  });
-
-  inputEl.addEventListener('input', updateCount);
-  updateCount();
-}
-
-/* ─── 심화 매력 분석 & AI 물상 렌더링 (초디테일 버전) ─── */
   function renderSpecialCharm(p, natal) {
     // 기초 데이터
     var branches  = [p.y.j, p.m.j, p.d.j, p.h.j];
@@ -5632,12 +5363,6 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
       return '<div class="cs-strategy-item"><strong>'+s.label+'</strong><span>'+s.text+'</span></div>';
     }).join('');
 
-    var musangMap={'甲':'Majestic Ancient Tree','乙':'Delicate Flower Garden','丙':'Bright Warm Sun',
-      '丁':'Twinkling Candlelight','戊':'Golden High Mountain','己':'Cozy Garden Soil',
-      '庚':'Strong Silver Rock','辛':'Sparkling Jewelry','壬':'Deep Blue Ocean','癸':'Soft Misty Rain'};
-    var prompt=(musangMap[p.d.g]||'Poetic Nature Landscape')+', beautiful landscape painting, soft pastel colors, atmospheric lighting, high-detail scenic view, poetic and serene, high quality, 8k --ar 16:9';
-    var safePrompt=prompt.replace(/'/g,"\\'");
-
     var html =
       '<div id="specialCharmCard" style="margin-top:15px">'+
       '<div class="cscard">'+
@@ -5682,8 +5407,18 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
       '</div>'+
       '</div>';
 
-    var aiPromptHtml = 
-      '<div id="aiPromptCard" style="margin-top:15px">'+
+    var musangMap={'甲':'Majestic Ancient Tree','乙':'Delicate Flower Garden','丙':'Bright Warm Sun',
+      '丁':'Twinkling Candlelight','戊':'Golden High Mountain','己':'Cozy Garden Soil',
+      '庚':'Strong Silver Rock','辛':'Sparkling Jewelry','壬':'Deep Blue Ocean','癸':'Soft Misty Rain'};
+    var prompt=(musangMap[p.d.g]||'Poetic Nature Landscape')+', beautiful landscape painting, soft pastel colors, atmospheric lighting, high-detail scenic view, poetic and serene, high quality, 8k --ar 16:9';
+    var safePrompt=prompt.replace(/'/g,"\\'");
+    var avatarPrompt=generateAvatarPrompt(p);
+    var safeAvatarPrompt=avatarPrompt.replace(/'/g,"\\'");
+    var idealPartnerPrompt=generateIdealPartnerPrompt(p,natal);
+    var safeIdealPartnerPrompt=idealPartnerPrompt.replace(/'/g,"\\'");
+
+    var aiPromptHtml =
+      '<div id="aiPromptCard" data-cd-marker="saju-ai-image-prompt-free-v20260608" style="margin-top:15px">'+
       '<div class="prem-box" style="background:#fff;border:1px solid #FFB7B2;">'+
         '<span class="prem-title" style="color:#FF8BA7;">🎨 맞춤형 사주 물상 AI 프롬프트</span>'+
         '<p style="font-size:0.8rem;color:#888;margin-bottom:10px;">이 문구를 복사해 AI(미드저니 등)에게 풍경화 스타일 물상을 요청해보세요.</p>'+
@@ -5693,14 +5428,14 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
       '<div class="prem-box" style="background:linear-gradient(135deg,#FCE4EC,#F3E5F5);margin-top:12px;border:1.5px solid #E91E63;">'+
         '<span class="prem-title" style="color:#C2185B;">🐾 내 사주 아바타 — 귀여운 동물 캐릭터</span>'+
         '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">타고난 사주 기운을 귀여운 동물로 표현했습니다.</p>'+
-        '<div style="background:rgba(255,255,255,.8);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #E879A4;word-break:break-all;color:#555;">'+generateAvatarPrompt(p)+'</div>'+
-        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#E879A4;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+generateAvatarPrompt(p).replace(/'/g,"\\'")+'\').then(function(){alert(\'✨ 아바타 프롬프트가 복사되었습니다!\');})">📋 아바타 프롬프트 복사</button>'+
+        '<div style="background:rgba(255,255,255,.8);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #E879A4;word-break:break-all;color:#555;">'+avatarPrompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#E879A4;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safeAvatarPrompt+'\').then(function(){alert(\'✨ 아바타 프롬프트가 복사되었습니다!\');})">📋 아바타 프롬프트 복사</button>'+
       '</div>'+
       '<div class="prem-box" style="background:linear-gradient(135deg,#E1F5FE,#F0F4C3);margin-top:12px;border:1.5px solid #0277BD;">'+
         '<span class="prem-title" style="color:#01579B;">💕 내 이상형 얼굴 — 사주 궁합 기반 AI 초상화</span>'+
         '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">당신의 사주와 잘 맞는 이상형의 특징을 반영한 얼굴 초상화 프롬프트입니다.</p>'+
-        '<div style="background:rgba(255,255,255,.8);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #4FC3F7;word-break:break-all;color:#555;">'+generateIdealPartnerPrompt(p,natal)+'</div>'+
-        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#4FC3F7;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+generateIdealPartnerPrompt(p,natal).replace(/'/g,"\\'")+'\').then(function(){alert(\'✨ 이상형 프롬프트가 복사되었습니다!\');})">📋 이상형 프롬프트 복사</button>'+
+        '<div style="background:rgba(255,255,255,.8);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #4FC3F7;word-break:break-all;color:#555;">'+idealPartnerPrompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#4FC3F7;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safeIdealPartnerPrompt+'\').then(function(){alert(\'✨ 이상형 프롬프트가 복사되었습니다!\');})">📋 이상형 프롬프트 복사</button>'+
       '</div>'+
       '</div>';
 
@@ -5730,7 +5465,6 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
           targetCard.insertAdjacentHTML('afterend', html);
         }
         
-        // 이미지/아바타 물상화 프롬프트 카드 3개는 sajuAiImagePromptMount 에 주입
         var imgMount = document.getElementById('sajuAiImagePromptMount');
         if (imgMount) {
           imgMount.innerHTML = aiPromptHtml;
@@ -5743,24 +5477,6 @@ function _mountSajuAIPromptQuestionBox(aiCard) {
           }
         }
 
-        // 질문 프롬프트 생성은 기존 프롬프트를 대체하지 않는 별도 카드로, 연이의 편지 바로 위에 고정 주입
-        var questionHostHtml = '<div id="sajuQuestionPromptGeneratorCard" style="margin-top:12px;margin-bottom:12px;"></div>';
-        var qMount = document.getElementById('sajuAiPromptQuestionMount');
-        if (qMount) {
-          qMount.innerHTML = questionHostHtml;
-        } else if (letterBox) {
-          letterBox.insertAdjacentHTML('beforebegin', questionHostHtml);
-        } else {
-          var anchorCard = document.getElementById('aiPromptCard') || document.getElementById('specialCharmCard');
-          if (anchorCard) {
-            anchorCard.insertAdjacentHTML('afterend', questionHostHtml);
-          }
-        }
-
-        var questionHost = document.getElementById('sajuQuestionPromptGeneratorCard');
-        if (questionHost) {
-          _mountSajuAIPromptQuestionBox(questionHost);
-        }
       } catch (e) {
         console.error('[renderSpecialCharm] UI 렌더링 실패:', e);
       }
@@ -24243,10 +23959,20 @@ function _sajuVillainEscapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function _sajuVillainListHtml(items, className) {
+function _sajuVillainShortText(value, maxLen) {
+  var text = String(value == null ? '' : value).replace(/\s+/g, ' ').trim();
+  if (!text || text.length <= maxLen) return text;
+  var sentence = text.match(/^(.{18,}?[.!?。！？]|.{18,}?[.。]|.{18,}?[다요죠]\.)/);
+  if (sentence && sentence[1] && sentence[1].length <= maxLen + 12) return sentence[1].trim();
+  return text.slice(0, Math.max(0, maxLen - 1)).trim() + '…';
+}
+
+function _sajuVillainListHtml(items, className, limit) {
+  var list = items || [];
+  var source = list.slice(0, limit || list.length);
   return '<ul class="villain-v2-list ' + className + '">'
-    + (items || []).map(function(item) {
-      return '<li>' + _sajuVillainEscapeHtml(item) + '</li>';
+    + source.map(function(item) {
+      return '<li>' + _sajuVillainEscapeHtml(_sajuVillainShortText(item, 72)) + '</li>';
     }).join('')
     + '</ul>';
 }
@@ -24262,7 +23988,7 @@ function _sajuVillainRelationshipHtml(zones) {
   return '<div class="villain-zone-grid">' + labels.map(function(pair) {
     return '<div class="villain-zone-card">'
       + '<div class="villain-zone-label"><span>' + pair[2] + '</span>' + pair[1] + '</div>'
-      + '<p>' + _sajuVillainEscapeHtml(zones[pair[0]]) + '</p>'
+      + '<p>' + _sajuVillainEscapeHtml(_sajuVillainShortText(zones[pair[0]], 74)) + '</p>'
       + '</div>';
   }).join('') + '</div>';
 }
@@ -24320,20 +24046,16 @@ function _sajuVillainSummaryHtml(summary, profiles) {
     return '<span class="villain-summary-badge ' + _sajuVillainRankClass(rank) + '">' + _sajuVillainRankLabel(rank) + ' ' + rankCounts[rank] + '</span>';
   }).join('');
 
-  return '<div class="villain-case-header bg-slate-950 text-red-100 border-red-400/30">'
-    + '<div class="villain-case-eyebrow">MOONLIGHT CASE FILE · RELATION RISK RADAR</div>'
+  return '<div class="villain-case-header bg-slate-950 text-red-100 border-red-400/30" data-villain-ui-marker="villain-radar-dossier-v20260608">'
+    + '<div class="villain-case-eyebrow">RELATION RISK DOSSIER</div>'
     + '<div class="villain-case-title-row">'
-    + '  <div><h3>💀 요주의 빌런 블랙리스트</h3><p>사주가 감지한 관계 리스크 패턴</p></div>'
+    + '  <div><h3>요주의 빌런 블랙리스트</h3><p>반복되는 관계 피로 신호를 짧게 확인하고, 대응 기준을 세웁니다.</p></div>'
     + '  <div class="villain-risk-badges">' + badges + '</div>'
     + '</div>'
-    + '<p class="villain-case-notice">재미용 콘텐츠이지만, 돈·연애·직장·가족·친구 사이에서 경계선을 점검하는 실전 매뉴얼로 활용할 수 있어요.</p>'
-    + '</div>'
     + '<div class="villain-summary-grid">'
-    + '  <div class="villain-summary-card is-top"><span>TOP 1 빌런 유형</span><strong>' + _sajuVillainEscapeHtml(summary.topName) + '</strong><em>' + _sajuVillainRankLabel(summary.topRank) + ' · ' + summary.topRisk + '/100</em></div>'
-    + '  <div class="villain-summary-card"><span>내 취약 축</span><strong>' + _sajuVillainEscapeHtml(summary.weakAxis) + '</strong></div>'
-    + '  <div class="villain-summary-card"><span>활성화된 위험 십성</span><strong>' + _sajuVillainEscapeHtml(summary.activeTenGods) + '</strong></div>'
-    + '  <div class="villain-summary-card"><span>주의해야 할 관계 영역</span><strong>' + _sajuVillainEscapeHtml(summary.riskAreas) + '</strong></div>'
-    + '  <div class="villain-summary-card is-keyword"><span>오늘의 방어 키워드</span><strong>' + _sajuVillainEscapeHtml(summary.defenseKeyword) + '</strong></div>'
+    + '  <div class="villain-summary-card is-top"><span>최우선 감지</span><strong>' + _sajuVillainEscapeHtml(summary.topName) + '</strong><em>' + _sajuVillainRankLabel(summary.topRank) + ' · 위험도 ' + summary.topRisk + '</em></div>'
+    + '  <div class="villain-summary-card"><span>취약 축</span><strong>' + _sajuVillainEscapeHtml(summary.weakAxis) + '</strong><em>' + _sajuVillainEscapeHtml(summary.activeTenGods) + '</em></div>'
+    + '  <div class="villain-summary-card is-keyword"><span>방어 키워드</span><strong>' + _sajuVillainEscapeHtml(summary.defenseKeyword) + '</strong><em>' + _sajuVillainEscapeHtml(summary.riskAreas) + '</em></div>'
     + '</div>';
 }
 
@@ -24347,6 +24069,51 @@ function _sajuVillainEmergencyHtml(profile) {
     + '</div>';
 }
 
+function _sajuVillainEnsureDossierStyles() {
+  if (typeof document === 'undefined' || document.getElementById('villainDossierStyleV20260608')) return;
+  var style = document.createElement('style');
+  style.id = 'villainDossierStyleV20260608';
+  style.textContent = [
+    '.villain-blacklist-v2{gap:16px;}',
+    '.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"]{border-color:rgba(248,113,113,.28);border-radius:8px;padding:18px;background:linear-gradient(135deg,rgba(15,23,42,.98),rgba(39,39,42,.94) 58%,rgba(69,10,10,.82)),radial-gradient(circle at 100% 0,rgba(251,191,36,.14),transparent 38%);box-shadow:0 18px 44px rgba(2,6,23,.42),inset 0 1px 0 rgba(255,255,255,.08);}',
+    '.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"]::before{background:linear-gradient(90deg,transparent,rgba(248,113,113,.12),transparent);opacity:.22;}',
+    '.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"] .villain-case-eyebrow,.villain-summary-card span,.villain-quick-grid span{color:rgba(253,230,138,.82);}',
+    '.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"] .villain-case-title-row h3{font-size:1.42rem;line-height:1.24;}',
+    '.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"] .villain-summary-grid{grid-template-columns:minmax(0,1.35fr) repeat(2,minmax(0,1fr));margin-top:16px;}',
+    '.villain-summary-card,.villain-profile-card,.villain-safety-note,.villain-v2-section,.villain-profile-card .villain-checklist-wrap,.villain-emergency-panel,.villain-profile-card .villain-quotes,.villain-zone-card,.villain-profile-card .villain-quote{border-radius:8px;}',
+    '.villain-summary-card{padding:12px;background:rgba(2,6,23,.38);}',
+    '.villain-summary-card strong{font-size:.95rem;line-height:1.34;}',
+    '.villain-summary-card em{color:rgba(186,230,253,.84);font-size:.78rem;line-height:1.35;}',
+    '.villain-card-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:14px;}',
+    '.villain-profile-card{padding:16px;background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(39,39,42,.9) 62%,rgba(69,10,10,.5));box-shadow:0 16px 42px rgba(2,6,23,.38),inset 0 1px 0 rgba(255,255,255,.07);}',
+    '.villain-profile-card.is-rank-s{box-shadow:0 18px 46px rgba(127,29,29,.34),inset 0 1px 0 rgba(255,255,255,.08);}',
+    '.villain-radar-mark{flex-basis:44px;width:44px;height:44px;background:rgba(127,29,29,.36);}',
+    '.villain-radar-mark::after{animation:none;inset:auto 9px auto 9px;top:50%;height:1px;transform:none;background:rgba(253,230,138,.5);}',
+    '.villain-radar-mark span{inset:0;display:flex;align-items:center;justify-content:center;color:#fee2e2;font-size:.82rem;font-weight:900;line-height:1;background:transparent;box-shadow:none;}',
+    '.villain-risk-score{color:#fef3c7;}',
+    '.villain-progress{height:7px;margin:9px 0 11px;}',
+    '.villain-progress span{background:linear-gradient(90deg,#f43f5e,#f59e0b);box-shadow:0 0 14px rgba(248,113,113,.5);}',
+    '.villain-one-line{margin-bottom:0;line-height:1.5;}',
+    '.villain-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:14px 0 10px;}',
+    '.villain-quick-grid div{min-width:0;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;background:rgba(2,6,23,.34);}',
+    '.villain-quick-grid span{display:block;margin-bottom:5px;font-size:.72rem;font-weight:900;}',
+    '.villain-quick-grid strong{display:block;color:rgba(226,232,240,.9);font-size:.84rem;line-height:1.45;word-break:keep-all;overflow-wrap:anywhere;}',
+    '.villain-accordion{margin-top:12px;}',
+    '.villain-accordion summary,.villain-copy-btn,.villain-profile-card .villain-submit-btn,.villain-profile-card .villain-check-item,.villain-emergency-lines p{border-radius:8px;}',
+    '.villain-accordion summary b,.villain-profile-card .villain-section-title{color:#fef3c7;}',
+    '.villain-v2-section,.villain-profile-card .villain-checklist-wrap,.villain-emergency-panel,.villain-profile-card .villain-quotes{padding:12px;}',
+    '.villain-v2-section p,.villain-zone-card p,.villain-v2-list li{font-size:.86rem;line-height:1.5;}',
+    '.villain-v2-section.is-defense{border-color:rgba(45,212,191,.28);background:rgba(19,78,74,.16);}',
+    '.villain-zone-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;}',
+    '.villain-zone-card{padding:10px;}',
+    '.villain-copy-btn,.villain-profile-card .villain-submit-btn{background:linear-gradient(135deg,rgba(225,29,72,.92),rgba(180,83,9,.86));}',
+    '.villain-copy-btn.is-copied{border-color:rgba(45,212,191,.55);background:linear-gradient(135deg,rgba(13,148,136,.95),rgba(20,83,45,.84));}',
+    '@media (max-width:980px){.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"] .villain-summary-grid,.villain-zone-grid{grid-template-columns:1fr;}}',
+    '@media (max-width:720px){.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"],.villain-profile-card{border-radius:8px;padding:14px;}.villain-quick-grid{grid-template-columns:1fr;}.villain-radar-mark{flex-basis:40px;width:40px;height:40px;}}'
+  ].join('\n');
+  document.head.appendChild(style);
+}
+
 function _sajuVillainRenderProfile(profile, idx) {
   var checklistHtml = profile.checklist.map(function(item, checkIdx) {
     var id = 'villainChk-' + profile.id + '-' + checkIdx;
@@ -24356,32 +24123,36 @@ function _sajuVillainRenderProfile(profile, idx) {
       + '</label>';
   }).join('');
   var rankClass = _sajuVillainRankClass(profile.rank);
-  var isOpen = idx === 0 ? ' open' : '';
   var progressWidth = _sajuVillainClamp(profile.riskScore, 0, 100);
+  var firstSignal = profile.redFlags && profile.redFlags.length ? _sajuVillainShortText(profile.redFlags[0], 76) : _sajuVillainShortText(profile.sajuReasonSummary, 76);
+  var firstDefense = profile.defenseGuide && profile.defenseGuide.length ? _sajuVillainShortText(profile.defenseGuide[0], 76) : profile.defenseKeyword;
 
   return ''
-    + '<article class="villain-profile-card bg-white/5 backdrop-blur-xl rounded-3xl shadow-[0_0_40px_rgba(239,68,68,0.18)] ' + rankClass + '">'
+    + '<article class="villain-profile-card bg-white/5 backdrop-blur-xl rounded-3xl shadow-[0_0_40px_rgba(239,68,68,0.18)] ' + rankClass + '" data-villain-rank="' + _sajuVillainEscapeHtml(profile.rank) + '">'
     + '  <div class="villain-profile-top">'
-    + '    <div class="villain-radar-mark"><span></span></div>'
+    + '    <div class="villain-radar-mark"><span>' + (idx + 1) + '</span></div>'
     + '    <div class="villain-profile-main">'
     + '      <div class="villain-grade-row"><span class="villain-rank-badge">' + _sajuVillainRankLabel(profile.rank) + '</span><span class="villain-risk-score">위험도 ' + progressWidth + '/100</span></div>'
     + '      <div class="villain-progress"><span style="width:' + progressWidth + '%"></span></div>'
     + '      <p class="villain-code-name">코드네임 ' + _sajuVillainEscapeHtml(profile.codeName) + '</p>'
     + '      <h4>' + _sajuVillainEscapeHtml(profile.koreanName) + '</h4>'
-    + '      <p class="villain-one-line">' + _sajuVillainEscapeHtml(profile.subtitle) + '</p>'
-    + '      ' + _sajuVillainChipHtml(profile.activatedBy.slice(0, 4), 'villain-signal-chips')
+    + '      <p class="villain-one-line">' + _sajuVillainEscapeHtml(_sajuVillainShortText(profile.subtitle, 82)) + '</p>'
     + '    </div>'
     + '  </div>'
-    + '  <details class="villain-accordion"' + isOpen + '>'
-    + '    <summary><span>대응 가이드 보기</span><b>' + (idx === 0 ? 'TOP 1 기본 펼침' : '클릭해서 펼치기') + '</b></summary>'
+    + '  <div class="villain-quick-grid">'
+    + '    <div><span>감지 신호</span><strong>' + _sajuVillainEscapeHtml(firstSignal) + '</strong></div>'
+    + '    <div><span>대응 기준</span><strong>' + _sajuVillainEscapeHtml(firstDefense) + '</strong></div>'
+    + '  </div>'
+    + '  ' + _sajuVillainChipHtml(profile.activatedBy.slice(0, 3), 'villain-signal-chips')
+    + '  <details class="villain-accordion">'
+    + '    <summary><span>대응 가이드 보기</span><b>상세 열기</b></summary>'
     + '    <div class="villain-detail-grid">'
-    + '      <div class="villain-v2-section is-reason"><div class="villain-section-title">사주 기반 감지 이유</div><p>' + _sajuVillainEscapeHtml(profile.sajuReasonSummary) + '</p></div>'
-    + '      <div class="villain-v2-section"><div class="villain-section-title">몽타주/분위기 프로파일</div><p>' + _sajuVillainEscapeHtml(profile.montage) + '</p></div>'
-    + '      <div class="villain-v2-section"><div class="villain-section-title">접근 방식</div><p>' + _sajuVillainEscapeHtml(profile.approachPattern) + '</p></div>'
-    + '      <div class="villain-v2-section is-red"><div class="villain-section-title">레드 플래그 5개</div>' + _sajuVillainListHtml(profile.redFlags, 'villain-red-flags') + '</div>'
+    + '      <div class="villain-v2-section is-reason"><div class="villain-section-title">사주 감지 이유</div><p>' + _sajuVillainEscapeHtml(_sajuVillainShortText(profile.sajuReasonSummary, 118)) + '</p></div>'
+    + '      <div class="villain-v2-section"><div class="villain-section-title">접근 패턴</div><p>' + _sajuVillainEscapeHtml(_sajuVillainShortText(profile.approachPattern, 118)) + '</p></div>'
+    + '      <div class="villain-v2-section is-red"><div class="villain-section-title">핵심 레드 플래그</div>' + _sajuVillainListHtml(profile.redFlags, 'villain-red-flags', 3) + '</div>'
+    + '      <div class="villain-v2-section is-defense"><div class="villain-section-title">방어 루틴</div>' + _sajuVillainListHtml(profile.defenseGuide, 'villain-defense-list', 3) + '</div>'
     + '      <div class="villain-v2-section is-wide"><div class="villain-section-title">관계별 주의 구역</div>' + _sajuVillainRelationshipHtml(profile.relationshipZones) + '</div>'
-    + '      <div class="villain-v2-section"><div class="villain-section-title">충돌 트리거 타이밍</div>' + _sajuVillainListHtml(profile.conflictTrigger, 'villain-triggers') + '</div>'
-    + '      <div class="villain-v2-section is-defense"><div class="villain-section-title">실전 방어 가이드 5개</div>' + _sajuVillainListHtml(profile.defenseGuide, 'villain-defense-list') + '</div>'
+    + '      <div class="villain-v2-section is-wide"><div class="villain-section-title">충돌 트리거</div>' + _sajuVillainListHtml(profile.conflictTrigger, 'villain-triggers', 3) + '</div>'
     + '      <div class="villain-v2-section is-wide">' + _sajuVillainEmergencyHtml(profile) + '</div>'
     + '      <div class="villain-checklist-wrap is-wide" data-villain-checklist="' + _sajuVillainEscapeHtml(profile.id) + '">'
     + '        <div class="villain-section-title">자가진단 체크리스트 5문항</div>'
@@ -24409,6 +24180,7 @@ function renderVillain(p, power) {
   }
 
   card.style.display = 'block';
+  _sajuVillainEnsureDossierStyles();
 
   var villainInput = {
     pillars: p,
@@ -24434,7 +24206,7 @@ function renderVillain(p, power) {
     + '<div class="villain-card-grid">'
     + profiles.map(function(profile, idx) { return _sajuVillainRenderProfile(profile, idx); }).join('')
     + '</div>'
-    + '<p class="villain-safety-note">이 콘텐츠는 실제 사람을 단정하거나 낙인찍기 위한 기능이 아니라, 사주 구조에서 반복되기 쉬운 관계 피로 패턴을 재미있게 시각화한 것입니다. 중요한 관계 판단은 상대의 실제 행동, 반복 패턴, 기록, 나의 컨디션을 함께 보고 결정하세요.</p>'
+    + '<p class="villain-safety-note">실제 사람을 단정하기보다 반복 행동, 기록, 내 컨디션을 함께 보며 관계 경계선을 점검하세요.</p>'
     + '</section>';
 
   resultArea.querySelectorAll('[data-villain-copy]').forEach(function(copyBtn) {
