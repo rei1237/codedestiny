@@ -1438,12 +1438,12 @@
     } catch (_) {}
   }
 
-  function _dpSetPaymentPending(show, message) {
+  function _dpSetPaymentPending(show, message, mode) {
     var text = String(message || '').trim() || '결제가 진행 중입니다.';
 
     try {
       if (typeof window._cdSetCoinGateOverlay === 'function') {
-        window._cdSetCoinGateOverlay(!!show, text);
+        window._cdSetCoinGateOverlay(!!show, text, mode);
       } else {
         _dpSetStandalonePaymentOverlay(!!show, text);
       }
@@ -1470,7 +1470,7 @@
         ? window.requestAnimationFrame.bind(window)
         : function(callback) { return setTimeout(callback, 16); };
       raf(function() {
-        setTimeout(resolve, 0);
+        raf(resolve);
       });
     });
   }
@@ -2155,6 +2155,8 @@
       };
       if (config.noticeUrl) requestData.noticeUrls = [config.noticeUrl];
 
+      _dpSetPaymentPending(true, String(order.productName || checkoutPayload.reason || '?? ???') + ' ?? ???? ?? ????...', 'card');
+      await _dpWaitForPaymentOverlayPaint();
       var rsp = await window.PortOne.requestPayment(requestData);
       var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
       if (!rsp || rsp.code || !paymentId) {
