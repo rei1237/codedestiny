@@ -34,6 +34,7 @@ const SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS = Object.freeze([
   "chapter-11-marriage",
   "chapter-15-final",
 ]);
+export const SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT = SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS.length;
 const SUKUYO_LLM_ENHANCEMENT_ENABLED_DEFAULT = true;
 const SUKUYO_TIMING_LLM_ENHANCEMENT_ENABLED_DEFAULT = false;
 const SUKUYO_LLM_CACHE_MAX = 240;
@@ -2235,6 +2236,7 @@ export async function enhanceSukyoChaptersWithLLM(env, seed, skeleton, options =
     fallbackUsed: fallbackChapterCount > 0,
     enhancedChapterCount: llmChapterCount,
     llmChapterCount,
+    targetLlmChapterCount: targetKeys.size,
     fallbackChapterCount,
     localDraftChapterCount: chapters.length - llmChapterCount,
     source: llmChapterCount > 0 ? (fallbackChapterCount > 0 ? "hybrid-fallback" : "hybrid") : "local",
@@ -2265,6 +2267,25 @@ export function buildSukyoFallbackChapters(seed, skeleton) {
       }),
     };
   });
+}
+
+function buildValidatedSukyoLocalChapters(seed) {
+  const chapters = chapterArrayToRendererInput(buildSukyoFallbackChapters(seed, SUKYO_PDF_CHAPTERS));
+  const validation = validateRenderedManuscript(seed, chapters);
+  if (!validation.ok) {
+    const error = new Error("숙요점 로컬 원고가 품질 검증을 통과하지 못했습니다.");
+    error.code = "SUKYO_LOCAL_MANUSCRIPT_QUALITY_FAILED";
+    error.status = 502;
+    error.issues = validation.issues;
+    error.stats = validation.stats;
+    throw error;
+  }
+  assertSukyoCompatibilityPdfComplete({
+    chapters,
+    expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
+    expectedSectionsByChapter: SUKYO_PDF_CHAPTERS,
+  });
+  return { chapters, validation };
 }
 
 export function renderSukyoChapterMarkdown(chapter = {}) {
@@ -2565,6 +2586,13 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     relationType: text(localJson?.relation?.typeKo),
     distance: text(localJson?.relation?.distanceLabel),
   });
+  const localBaseline = buildValidatedSukyoLocalChapters(seed);
+  console.log("[SukuyoPremiumPDF][LocalManuscriptValidated]", {
+    chapterCount: localBaseline.chapters.length,
+    totalLength: localBaseline.validation.totalLength,
+    forbiddenTermsCount: localBaseline.validation.forbiddenTermsCount,
+    repetitionScore: localBaseline.validation.repetitionScore,
+  });
 
   console.log("[SukuyoPremiumPDF][LLMGenerationStart]", {
     chapterCount: SUKYO_PDF_CHAPTER_COUNT,
@@ -2588,15 +2616,8 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
         chars: (Array.isArray(chapter?.sections) ? chapter.sections : []).reduce((sum, section) => sum + text(section?.body).length, 0),
       })),
     });
-    chapters = chapterArrayToRendererInput(buildSukyoFallbackChapters(seed, SUKYO_PDF_CHAPTERS));
-    finalCheck = validateRenderedManuscript(seed, chapters);
-    if (!finalCheck.ok) {
-      const error = new Error("숙요점 로컬 원고가 품질 검증을 통과하지 못했습니다.");
-      error.code = "SUKYO_LOCAL_MANUSCRIPT_QUALITY_FAILED";
-      error.status = 502;
-      error.issues = finalCheck.issues;
-      throw error;
-    }
+    chapters = localBaseline.chapters;
+    finalCheck = localBaseline.validation;
     enhanced.source = "local";
     enhanced.fallbackUsed = true;
     enhanced.llmChapterCount = 0;
@@ -2652,7 +2673,10 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
       chapters,
       manuscriptValidation: finalCheck,
       manuscriptSource,
+      localQualityStatus: "passed",
+      localBaselineChapterCount: localBaseline.chapters.length,
       llmChapterCount: Number(enhanced.llmChapterCount || 0),
+      targetLlmChapterCount: Number(enhanced.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT),
       fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
       localDraftChapterCount: Number(enhanced.localDraftChapterCount || 0),
       qualityStatus: "passed",
@@ -2660,8 +2684,11 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     chapters,
     chapterCount: SUKYO_PDF_CHAPTER_COUNT,
     fallbackUsed: Boolean(enhanced.fallbackUsed),
+    localQualityStatus: "passed",
+    localBaselineChapterCount: localBaseline.chapters.length,
     localDraftChapterCount: Number(enhanced.localDraftChapterCount || 0),
     llmChapterCount: Number(enhanced.llmChapterCount || 0),
+    targetLlmChapterCount: Number(enhanced.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT),
     fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
     manuscriptSource,
     promptVersion: SUKUYO_PROMPT_VERSION,

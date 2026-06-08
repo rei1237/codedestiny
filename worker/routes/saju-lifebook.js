@@ -369,6 +369,10 @@ if (!globalThis.__LIFEBOOK_LLM_CHAPTER_CACHE) {
   globalThis.__LIFEBOOK_LLM_CHAPTER_CACHE = LIFEBOOK_LLM_CHAPTER_CACHE;
 }
 
+function isLifeBookLlmOnlyAuthoringMode(value) {
+  return clean(value).toLowerCase() === "llm-only";
+}
+
 function resolveLifeBookLlmRuntimeInfo(env = {}) {
   const selectedModel = clean(
     env?.PREMIUM_SAJU_LIFEBOOK_GEMINI_MODEL
@@ -496,6 +500,9 @@ function buildLifeBookStatusPayload(lock = {}, fallback = {}) {
       },
       lifeBookPdfRecord: lock.lifeBookPdfRecord || data?.lifeBookPdfRecord || fallback.lifeBookPdfRecord || null,
       pdfReady: data?.pdfReady || fallback.pdfReady || null,
+      chapters: data?.chapters || data?.pdfReady?.chapters || fallback.chapters || [],
+      pdfUrl: clean(data?.pdfUrl || data?.downloadUrl || data?.htmlUrl || data?.pdfReady?.pdfUrl || data?.pdfReady?.downloadUrl),
+      htmlUrl: clean(data?.htmlUrl || data?.pdfReady?.htmlUrl),
       canDownload: Boolean(data?.canDownload || clean(data?.pdfUrl || data?.downloadUrl || data?.htmlUrl || data?.pdfReady?.pdfUrl || data?.pdfReady?.downloadUrl)),
       error: lock.error || fallback.error || null,
     },
@@ -1874,7 +1881,7 @@ function sanitizeCategoryText(text = "", chapterId = "", categoryTitle = "", cat
 }
 
 function sanitizeLifeBookChapters(profile, signals, chapters = [], options = {}) {
-  const llmOnly = clean(options?.authoringMode) === LIFEBOOK_AUTHORING_MODE;
+  const llmOnly = isLifeBookLlmOnlyAuthoringMode(options?.authoringMode);
   const normalized = ensureCompleteLifeBookChapters(profile, signals, Array.isArray(chapters) ? chapters : [], options);
   return normalized.map((chapter, chapterIndex) => {
     const blueprint = getLifeBookBlueprints()[chapterIndex] || chapter;
@@ -6213,7 +6220,7 @@ function renderLifeBookFinalMarkdownHtml(markdown = "") {
 }
 
 function ensureCompleteLifeBookChapters(profile, signals, chapters = [], options = {}) {
-  const llmOnly = clean(options?.authoringMode) === LIFEBOOK_AUTHORING_MODE;
+  const llmOnly = isLifeBookLlmOnlyAuthoringMode(options?.authoringMode);
   const chapterMap = new Map((Array.isArray(chapters) ? chapters : []).map((item) => [String(item?.id || ""), item]));
 
   return getLifeBookBlueprints().map((blueprint) => {
@@ -6945,7 +6952,7 @@ async function handleStatus(request, env) {
   }));
 }
 
-async function handlePrepare(request, env) {
+async function handlePrepareSync(request, env) {
   logLifeBookServer("RequestReceived", { route: "/api/premium/saju-lifebook/prepare" });
   let auth;
   try {
@@ -7665,7 +7672,117 @@ async function handlePrepare(request, env) {
   }
 }
 
-export async function handleSajuLifebookRoutes(request, env = {}) {
+async function handlePrepare(request, env, ctx) {
+  if (!ctx || typeof ctx.waitUntil !== "function" || request.headers.get("x-lifebook-sync") === "1") {
+    return await handlePrepareSync(request, env);
+  }
+
+  const bodyText = await request.clone().text().catch(() => "");
+  let body = {};
+  try {
+    body = bodyText ? JSON.parse(bodyText) : {};
+  } catch (_) {
+    return await handlePrepareSync(new Request(request, { body: bodyText }), env);
+  }
+
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      return json({
+        ok: false,
+        serviceKey: LIFEBOOK_SERVICE_KEY,
+        message: "Login is required to generate the life book PDF.",
+        code: "UNAUTHORIZED",
+      }, { status: 401 });
+    }
+    throw error;
+  }
+
+  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId)
+    || `life-book:${auth.userId}:${clean(body?.birthDate || "unknown")}:${clean(body?.birthTime || body?.hour || "unknown")}`;
+  const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-lifebook-${Date.now()}`);
+  const existingLock = LIFEBOOK_SESSION_LOCKS.get(sessionId);
+
+  if (existingLock?.status === "done" && existingLock.result) {
+    return json(existingLock.result);
+  }
+  if (["queued", "running"].includes(clean(existingLock?.status))) {
+    return json(buildLifeBookStatusPayload(existingLock, { sessionId, reportId }), { status: 202 });
+  }
+
+  LIFEBOOK_SESSION_LOCKS.set(sessionId, {
+    sessionId,
+    reportId,
+    status: "queued",
+    startedAt: new Date().toISOString(),
+    progress: {
+      stateKey: "queued",
+      currentChapterNo: 0,
+      totalChapters: getLifeBookBlueprints().length,
+      updatedAt: new Date().toISOString(),
+    },
+  });
+
+  const backgroundRequest = new Request(request, { body: bodyText });
+  ctx.waitUntil(
+    handlePrepareSync(backgroundRequest, env)
+      .then(async (response) => {
+        try { await response?.text?.(); } catch (_) {}
+      })
+      .catch((error) => {
+        const normalizedError = normalizeLifeBookError(error);
+        logLifeBookServer("BackgroundGenerationFailed", {
+          sessionId,
+          reportId,
+          errorCode: error?.code,
+          errorStatus: error?.status,
+          errorMessage: clean(error?.message || error).slice(0, 200),
+        });
+        LIFEBOOK_SESSION_LOCKS.set(sessionId, {
+          sessionId,
+          reportId,
+          status: "failed",
+          startedAt: new Date().toISOString(),
+          progress: {
+            stateKey: "failed",
+            currentChapterNo: 0,
+            totalChapters: getLifeBookBlueprints().length,
+            updatedAt: new Date().toISOString(),
+          },
+          error: normalizedError,
+        });
+      }),
+  );
+
+  logLifeBookServer("LIFE_BOOK_BACKGROUND_GENERATION_STARTED", { sessionId, reportId });
+  return json({
+    ok: true,
+    serviceKey: LIFEBOOK_SERVICE_KEY,
+    status: "running",
+    serverStatus: "running",
+    reportId,
+    sessionId,
+    data: {
+      reportId,
+      sessionId,
+      status: "running",
+      progress: {
+        stateKey: "queued",
+        currentChapterNo: 0,
+        totalChapters: getLifeBookBlueprints().length,
+      },
+    },
+    debugSafe: {
+      stage: "LIFE_BOOK_BACKGROUND_GENERATION_STARTED",
+      reportId,
+      sessionId,
+    },
+  }, { status: 202 });
+}
+
+export async function handleSajuLifebookRoutes(request, env = {}, ctx = null) {
   try {
     const method = request.method.toUpperCase();
     let path = getRoutePath(request, "/api/premium/saju-lifebook");
@@ -7674,7 +7791,7 @@ export async function handleSajuLifebookRoutes(request, env = {}) {
     }
 
     if (method === "POST" && (path === "" || path === "/" || path === "/prepare")) {
-      return await handlePrepare(request, env);
+      return await handlePrepare(request, env, ctx);
     }
     if (method === "GET" && path === "/status") {
       return await handleStatus(request, env);

@@ -360,17 +360,17 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
   if (status === "checkingEntitlement") return { message: text || "이용권 확인 중입니다.", mode: "pass" };
   if (status === "hasEntitlement") return { message: text || "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
   if (status === "opening" || status === "loadingProducts" || status === "readyToPay") {
-    if (kind === "subscription") return { message: text || "월정석 결제 정보를 준비하고 있습니다.", mode: "subscription" };
-    if (kind === "monthly") return { message: text || "월정석 잔량을 확인하고 있습니다.", mode: "monthly" };
-    if (kind === "single") return { message: text || "단건 결제를 준비하고 있습니다.", mode: "card" };
+    if (kind === "subscription") return { message: text || "월정석 결제 정보를 확인하고 있습니다.", mode: "subscription" };
+    if (kind === "monthly") return { message: text || "보유 월정석을 확인하고 콘텐츠 이용 권한을 여는 중입니다.", mode: "monthly" };
+    if (kind === "single") return { message: text || "단건 결제창을 여는 중입니다. 주문 금액과 인증 정보를 안전하게 맞추고 있습니다.", mode: "card" };
     if (kind === "unlock") return { message: text || "잠금 해제 준비 중입니다.", mode: "unlock-saving" };
     return { message: text || "결제창을 열기 전 주문 정보를 확인하고 있습니다.", mode: "checkout" };
   }
   if (status === "paymentProcessing") {
     if (kind === "pass") return { message: text || "이용권을 적용하고 있습니다.", mode: "pass" };
     if (kind === "subscription") return { message: text || "월정석 결제 승인과 활성화를 확인하고 있습니다.", mode: "subscription" };
-    if (kind === "monthly") return { message: text || "월정석 잔량을 반영하고 있습니다.", mode: "monthly" };
-    if (kind === "single") return { message: text || "단건 결제 승인을 확인하고 있습니다.", mode: "confirm" };
+    if (kind === "monthly") return { message: text || "월정석 차감과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "monthly" };
+    if (kind === "single") return { message: text || "단건 결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "confirm" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제를 반영하고 있습니다.", mode: "unlock-saving" };
     return { message: text || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: "confirm" };
   }
@@ -480,6 +480,7 @@ export function openPaidFeatureGate(input: {
   title?: string;
   message?: string;
   status?: PaidFeatureGateRuntimeStatus;
+  paymentMode?: string;
 }) {
   const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "paid-feature");
   const requestId = toText(input.requestId || `${featureId}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
@@ -491,6 +492,8 @@ export function openPaidFeatureGate(input: {
     message: input.message || "이용권 확인 중입니다.",
     status: input.status || "checkingEntitlement",
     cost: input.cost,
+    paymentMode: input.paymentMode,
+    reason: input.reason,
   });
   return requestId;
 }
@@ -504,6 +507,9 @@ export function updatePaidFeatureGate(input: {
   title?: string;
   message?: string;
   status?: PaidFeatureGateRuntimeStatus;
+  paymentMode?: string;
+  reason?: string;
+  accessType?: string;
 }) {
   const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "paid-feature");
   emitPaidFeatureGate("update", {
@@ -514,6 +520,9 @@ export function updatePaidFeatureGate(input: {
     message: input.message,
     status: input.status,
     cost: input.cost,
+    paymentMode: input.paymentMode,
+    reason: input.reason,
+    accessType: input.accessType,
   });
 }
 

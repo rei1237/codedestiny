@@ -602,11 +602,27 @@
     if (selfGender) selfGender.textContent = _clean(profile.gender) || '미지정';
   }
 
+  function _withSukuyoArchiveFormat(url, format) {
+    var value = _clean(url);
+    var targetFormat = _clean(format) || 'pdf';
+    if (!value || value.indexOf('/api/premium/pdf-archive/') === -1) return value;
+    if (/[?&]format=/i.test(value)) {
+      return value.replace(/([?&]format=)[^&]+/i, '$1' + encodeURIComponent(targetFormat));
+    }
+    return value + (value.indexOf('?') >= 0 ? '&' : '?') + 'format=' + encodeURIComponent(targetFormat);
+  }
+
+  function _buildSukuyoArchiveUrl(reportId, format) {
+    var id = _clean(reportId);
+    if (!id) return '';
+    return _withSukuyoArchiveFormat('/api/premium/pdf-archive/' + encodeURIComponent(id), format || 'pdf');
+  }
+
   function _resolveSukuyoStoredUrl(payload) {
     var p = payload || {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
     var reportId = _clean(p.reportId || ready.reportId);
-    var archiveUrl = reportId ? ('/api/premium/pdf-archive/' + encodeURIComponent(reportId)) : '';
+    var archiveUrl = _buildSukuyoArchiveUrl(reportId, 'pdf');
     return _clean(
       p.downloadUrl
       || p.pdfUrl
@@ -775,18 +791,38 @@
     var hasReportId = !!_clean(p.reportId);
     var hasStoredUrl = !!_resolveSukuyoStoredUrl(p);
     var llmChapterCount = Number(p.llmChapterCount || 0);
+    var targetLlmChapterCount = Number(p.targetLlmChapterCount || (p.pdfReady && p.pdfReady.targetLlmChapterCount) || 7);
     var fallbackChapterCount = Number(p.fallbackChapterCount || 0);
     var localDraftChapterCount = Number(p.localDraftChapterCount || 0);
+    var manuscriptSource = _clean(p.manuscriptSource || (p.pdfReady && p.pdfReady.manuscriptSource));
+    var sourceOk = ['gemini-only', 'hybrid', 'hybrid-fallback', 'local'].indexOf(manuscriptSource) >= 0;
+    var countContractOk = Number.isFinite(llmChapterCount)
+      && Number.isFinite(targetLlmChapterCount)
+      && Number.isFinite(fallbackChapterCount)
+      && Number.isFinite(localDraftChapterCount)
+      && llmChapterCount >= 0
+      && llmChapterCount <= SUKYO_TOTAL_CHAPTERS
+      && targetLlmChapterCount >= 0
+      && targetLlmChapterCount <= SUKYO_TOTAL_CHAPTERS
+      && fallbackChapterCount >= 0
+      && fallbackChapterCount <= targetLlmChapterCount
+      && localDraftChapterCount >= 0
+      && localDraftChapterCount <= SUKYO_TOTAL_CHAPTERS
+      && llmChapterCount + localDraftChapterCount === SUKYO_TOTAL_CHAPTERS;
+    var chapterShapeOk = chapters.length === SUKYO_TOTAL_CHAPTERS
+      && chapters.every(function (chapter) {
+        var sections = Array.isArray(chapter && chapter.sections) ? chapter.sections : [];
+        return _clean(chapter && chapter.title)
+          && sections.length === 5
+          && sections.every(function (section) { return _clean(section && section.heading) && _clean(section && section.body); });
+      });
     return hasReportId
       && hasStoredUrl
-      && chapters.length === SUKYO_TOTAL_CHAPTERS
+      && chapterShapeOk
       && _clean(p.serverStatus) === 'completed'
       && _clean(p.qualityStatus) === 'passed'
-      && _clean(p.manuscriptSource) === 'gemini-only'
-      && p.fallbackUsed !== true
-      && llmChapterCount === SUKYO_TOTAL_CHAPTERS
-      && fallbackChapterCount === 0
-      && localDraftChapterCount === 0;
+      && sourceOk
+      && countContractOk;
   }
 
   function _forceCompatibilityMode() {
@@ -1237,11 +1273,18 @@
 
   function _normalizeArchivedSukuyoReport(report) {
     var safeReport = report && typeof report === 'object' ? report : {};
+    var ready = safeReport.pdfReady && typeof safeReport.pdfReady === 'object' ? safeReport.pdfReady : {};
+    var payload = safeReport.payload && typeof safeReport.payload === 'object' ? safeReport.payload : {};
     var reportId = _clean(safeReport.reportId);
     var chapters = Array.isArray(safeReport.chapters) ? safeReport.chapters : [];
-    var archivePath = reportId ? (SUKYO_ARCHIVE_API + '/' + encodeURIComponent(reportId)) : '';
-    var pdfUrl = _clean(safeReport.pdfUrl) || (archivePath ? (archivePath + '?format=pdf') : '');
-    var htmlUrl = archivePath ? (archivePath + '?format=html') : pdfUrl;
+    var pdfUrl = _withSukuyoArchiveFormat(_clean(safeReport.pdfUrl || ready.pdfUrl || safeReport.downloadUrl || ready.downloadUrl) || _buildSukuyoArchiveUrl(reportId, 'pdf'), 'pdf');
+    var htmlUrl = _withSukuyoArchiveFormat(_clean(safeReport.htmlUrl || ready.htmlUrl) || _buildSukuyoArchiveUrl(reportId, 'html'), 'html');
+    var llmChapterCount = Number(safeReport.llmChapterCount || payload.llmChapterCount || 0);
+    var targetLlmChapterCount = Number(safeReport.targetLlmChapterCount || payload.targetLlmChapterCount || ready.targetLlmChapterCount || 7);
+    var fallbackChapterCount = Number(safeReport.fallbackChapterCount || payload.fallbackChapterCount || 0);
+    var localDraftChapterCount = Number(safeReport.localDraftChapterCount || payload.localDraftChapterCount);
+    if (!Number.isFinite(localDraftChapterCount)) localDraftChapterCount = Math.max(0, chapters.length - llmChapterCount);
+    var manuscriptSource = _clean(safeReport.manuscriptSource || payload.manuscriptSource || ready.manuscriptSource || 'hybrid');
     return {
       ok: true,
       serviceKey: 'sukuyo-premium',
@@ -1256,20 +1299,26 @@
       aliasFeatureKey: SUKYO_ALIAS_FEATURE_KEY,
       reportId: reportId,
       chapterCount: chapters.length,
-      localDraftChapterCount: 0,
-      llmChapterCount: chapters.length,
-      fallbackChapterCount: 0,
-      fallbackUsed: false,
-      manuscriptSource: 'gemini-only',
+      localDraftChapterCount: localDraftChapterCount,
+      llmChapterCount: llmChapterCount,
+      targetLlmChapterCount: targetLlmChapterCount,
+      fallbackChapterCount: fallbackChapterCount,
+      fallbackUsed: safeReport.fallbackUsed === true || payload.fallbackUsed === true,
+      manuscriptSource: manuscriptSource,
       chapters: chapters,
-      payload: safeReport.payload || {},
+      payload: payload,
       pdfReady: {
+        ...(ready || {}),
         reportId: reportId,
-        filename: reportId ? ('sukyo-premium-' + reportId + '.pdf') : 'sukyo-premium-report.pdf',
+        filename: (_clean(ready.filename) || (reportId ? ('sukyo-premium-' + reportId + '.pdf') : 'sukyo-premium-report.pdf')).replace(/\.html?$/i, '.pdf'),
         pdfUrl: pdfUrl,
         downloadUrl: pdfUrl,
         htmlUrl: htmlUrl,
         mimeType: 'application/pdf',
+        contentType: 'application/pdf',
+        renderFormat: 'pdf-archive',
+        manuscriptSource: manuscriptSource,
+        targetLlmChapterCount: targetLlmChapterCount,
       },
       pdfUrl: pdfUrl,
       htmlUrl: htmlUrl,
@@ -1692,31 +1741,35 @@
 
     var reportId = _clean(_resultPayload && _resultPayload.reportId);
     var ready = _resultPayload && _resultPayload.pdfReady && typeof _resultPayload.pdfReady === 'object' ? _resultPayload.pdfReady : {};
-    var archiveUrl = reportId ? ('/api/premium/pdf-archive/' + encodeURIComponent(reportId)) : '';
-    var downloadUrl = _clean(
-      _resultPayload && _resultPayload.downloadUrl
-      || _resultPayload && _resultPayload.pdfUrl
-      || _resultPayload && _resultPayload.storedUrl
-      || _resultPayload && _resultPayload.reportUrl
-      || _resultPayload && _resultPayload.fileUrl
-      || _resultPayload && _resultPayload.storageUrl
-      || ready.downloadUrl
+    var archivePdfUrl = _buildSukuyoArchiveUrl(reportId, 'pdf');
+    var archiveHtmlUrl = _buildSukuyoArchiveUrl(reportId, 'html');
+    var pdfUrl = _withSukuyoArchiveFormat(_clean(
+      _resultPayload && _resultPayload.pdfUrl
       || ready.pdfUrl
-      || ready.storedUrl
-      || ready.reportUrl
-      || ready.fileUrl
-      || ready.storageUrl
-      || _resultPayload && _resultPayload.htmlUrl
-      || ready.htmlUrl
-      || archiveUrl
-    );
-    var pdfUrl = _clean(_resultPayload && _resultPayload.pdfUrl || ready.pdfUrl);
-    var htmlUrl = _clean(
+      || _resultPayload && _resultPayload.downloadUrl
+      || ready.downloadUrl
+      || archivePdfUrl
+    ), 'pdf');
+    var htmlUrl = _withSukuyoArchiveFormat(_clean(
       _resultPayload && _resultPayload.htmlUrl
       || ready.htmlUrl
       || _resultPayload && _resultPayload.storedUrl
       || ready.storedUrl
-      || archiveUrl
+      || archiveHtmlUrl
+    ), 'html');
+    var downloadUrl = _clean(
+      pdfUrl
+      || _resultPayload && _resultPayload.downloadUrl
+      || ready.downloadUrl
+      || _resultPayload && _resultPayload.storedUrl
+      || _resultPayload && _resultPayload.reportUrl
+      || _resultPayload && _resultPayload.fileUrl
+      || _resultPayload && _resultPayload.storageUrl
+      || ready.storedUrl
+      || ready.reportUrl
+      || ready.fileUrl
+      || ready.storageUrl
+      || htmlUrl
     );
     var canDownload = Boolean(_resultPayload && _resultPayload.canDownload);
 
@@ -1729,12 +1782,15 @@
     });
 
     if (downloadUrl) {
-      var filename = _clean(ready.filename) || (reportId ? ('sukyo-premium-' + reportId + '.html') : 'sukyo-premium-report.html');
+      var isPdfDownload = /\.pdf(?:$|[?#])/i.test(downloadUrl) || /format=pdf(?:$|&)/i.test(downloadUrl);
+      var isHtmlDownload = !isPdfDownload && (/\.html?(?:$|[?#])/i.test(downloadUrl) || /format=html(?:$|&)/i.test(downloadUrl) || /text\/html/i.test(_clean(ready.mimeType)) || downloadUrl === htmlUrl);
+      var filename = _clean(ready.filename) || (reportId ? ('sukyo-premium-' + reportId + '.pdf') : 'sukyo-premium-report.pdf');
+      filename = isHtmlDownload ? filename.replace(/\.pdf$/i, '.html') : filename.replace(/\.html?$/i, '.pdf');
       var anchor = document.createElement('a');
       anchor.href = downloadUrl;
       anchor.target = '_blank';
       anchor.rel = 'noopener noreferrer';
-      if (/\.html?(?:$|[?#])/i.test(downloadUrl) || /text\/html/i.test(_clean(ready.mimeType)) || downloadUrl === htmlUrl) {
+      if (isHtmlDownload) {
         anchor.download = filename;
       }
       document.body.appendChild(anchor);

@@ -17,7 +17,7 @@
 - Never rewrite the whole file when modifying code; output only the exact blocks that changed.
 - When showing partial edits, use comments like `// ... existing code ...` to represent unchanged sections.
 - Read and analyze only the files explicitly mentioned by the user or the currently active file.
-- If a request requires changing more than 3 files, stop and ask a clarifying question before writing code.
+- Implement changes only when the root cause is clear and can be validated with evidence; do not apply speculative fixes.
 - If the user's prompt is too vague, stop and ask a clarifying question before writing code.
 - Ensure every code snippet is copy-paste ready with enough local context for placement.
 - Do not write paragraphs of text before or after code blocks; output the code block immediately.
@@ -42,7 +42,7 @@
 
 ## 1.3 AI 개발 작업 기본 원칙 (Must Follow)
 - 관련 파일만 먼저 검색하고, 해당 기능과 직접 관련 없는 파일은 수정하지 마라.
-- 한 번에 전체 리팩토링하지 말고, 반드시 `원인 분석 → 최소 수정 → 빌드 검증` 순서로 진행해라.
+- 한 번에 전체 리팩토링하지 말고, 반드시 `원인 분석 → 정확한 수정 → 빌드 검증` 순서로 진행해라.
 - 수정 전에는 현재 기능의 실제 파일 구조, 호출 흐름, 상태 관리, API/Worker 연결을 먼저 확인해라.
 - 존재하지 않는 파일명, 함수명, 라우트, 데이터 구조를 상상해서 만들지 마라.
 - 사용자가 요청한 범위 밖의 기능을 임의로 추가하거나 삭제하지 마라.

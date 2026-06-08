@@ -968,7 +968,7 @@ export default {
           const suffix = url.pathname.slice("/api/premium/saju/life-book".length);
           routedRequest = rewriteRequestPath(request, "/api/premium/saju-lifebook" + (suffix || ""));
         }
-        return withCorsHeaders(request, env, await handleSajuLifebookRoutes(routedRequest, env));
+        return withCorsHeaders(request, env, await handleSajuLifebookRoutes(routedRequest, env, ctx));
       }
 
       if (url.pathname === "/api/love-secret" || url.pathname.startsWith("/api/love-secret/")) {

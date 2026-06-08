@@ -219,18 +219,29 @@ async function assertHybridScaffold() {
   assert.deepEqual(loveSecret.LOVE_SECRET_SOLO_LLM_ENHANCED_CHAPTERS, [
     "love_overview",
     "attraction_pattern",
+    "relationship_pattern",
+    "love_expression",
     "love_risk_pattern",
     "ideal_partner_gap",
     "breakup_risk",
+    "intimacy_pattern",
     "love_luck_cycles",
     "love_master_plan",
   ], "solo enhanced chapter ids");
   assert.deepEqual(loveSecret.LOVE_SECRET_COUPLE_LLM_ENHANCED_CHAPTERS, [
     "couple_overview",
+    "self_love_style",
+    "partner_love_style",
     "attraction_reason",
+    "spouse_palace_root",
+    "relationship_expectation",
     "emotional_tempo_gap",
+    "intimacy_tempo",
+    "communication_match",
     "conflict_pattern",
+    "breakup_reunion_pattern",
     "long_term_potential",
+    "reality_strategy",
     "couple_luck_cycles",
     "couple_master_plan",
   ], "couple enhanced chapter ids");
@@ -260,6 +271,28 @@ async function assertHybridScaffold() {
   assert.equal(generated.chapters.length, 10, "disabled llm generated chapter count");
   assert.ok(generated.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "disabled llm has no empty chapter");
   assert.ok(generated.loveSecretChapterPlans.every((plan) => Array.isArray(plan.lockedFacts) && plan.lockedFacts.length > 0), "chapter plans carry locked facts");
+
+  const generatedWithLlmFailure = await loveSecret.buildLoveSecretChapters({
+    LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "true",
+    GEMINI_API_KEY: "",
+    GEMINI_KEYS: "",
+    PREMIUM_GEMINI_API_KEY: "",
+    PREMIUM_GEMINI_KEYS: "",
+  }, {
+    base,
+    mode: "solo",
+    config: soloConfig,
+    body: { requestId: "smoke-llm-failure-local-fallback" },
+    requestId: "smoke-llm-failure-local-fallback",
+  });
+  assert.equal(generatedWithLlmFailure.manuscriptSource, "local-only", "failed llm falls back to local manuscript");
+  assert.equal(generatedWithLlmFailure.fallbackUsed, true, "failed llm marks fallback used");
+  assert.equal(generatedWithLlmFailure.llmEnhancement.enabled, true, "llm failure smoke keeps enhancement enabled");
+  assert.ok(generatedWithLlmFailure.llmEnhancement.attempted > 0, "llm failure smoke attempts enhancement");
+  assert.equal(generatedWithLlmFailure.llmEnhancement.enhancedChapterIds.length, 0, "failed llm has no enhanced chapters");
+  assert.ok(generatedWithLlmFailure.llmEnhancement.fallbackChapterIds.length > 0, "failed llm records fallback chapters");
+  assert.equal(generatedWithLlmFailure.chapters.length, 10, "failed llm generated chapter count");
+  assert.ok(generatedWithLlmFailure.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "failed llm has no empty chapter");
 }
 
 assert.ok(base.loveSecretReference.compatibility, "compatibility reference should exist");

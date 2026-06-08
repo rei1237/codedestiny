@@ -63,24 +63,8 @@ const LOVE_SECRET_COMPATIBILITY_CHAPTER_IDS = Object.freeze([
   "couple_luck_cycles",
   "couple_master_plan",
 ]);
-const LOVE_SECRET_SOLO_LLM_ENHANCED_CHAPTERS = Object.freeze([
-  "love_overview",
-  "attraction_pattern",
-  "love_risk_pattern",
-  "ideal_partner_gap",
-  "breakup_risk",
-  "love_luck_cycles",
-  "love_master_plan",
-]);
-const LOVE_SECRET_COUPLE_LLM_ENHANCED_CHAPTERS = Object.freeze([
-  "couple_overview",
-  "attraction_reason",
-  "emotional_tempo_gap",
-  "conflict_pattern",
-  "long_term_potential",
-  "couple_luck_cycles",
-  "couple_master_plan",
-]);
+const LOVE_SECRET_SOLO_LLM_ENHANCED_CHAPTERS = LOVE_SECRET_SOLO_CHAPTER_IDS;
+const LOVE_SECRET_COUPLE_LLM_ENHANCED_CHAPTERS = LOVE_SECRET_COMPATIBILITY_CHAPTER_IDS;
 const LOVE_SECRET_SENSITIVE_EXPRESSION_REPLACEMENTS = Object.freeze([
   Object.freeze([/반드시\s*헤어진다/g, "관계가 흔들리기 쉬운 지점이 있으므로 조율이 필요하다"]),
   Object.freeze([/이\s*사람과는\s*절대\s*안\s*된다/g, "서로의 속도와 기대치가 다를 수 있다"]),
@@ -1138,19 +1122,40 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
     loveSecretFacts,
     requestId: clean(requestId || normalizedBody?.requestId || `love-secret-hybrid:${Date.now().toString(36)}`),
   });
-  const finalChapters = llmEnhancement.chapters;
-  const llmFallbackUsed = llmEnhancement.enabled && llmEnhancement.attempted > llmEnhancement.enhancedChapterIds.length;
+  let finalChapters = llmEnhancement.chapters;
+  let llmFallbackUsed = llmEnhancement.enabled && llmEnhancement.attempted > llmEnhancement.enhancedChapterIds.length;
+  let recoveredToLocal = false;
+  const preparedHybrid = prepareLoveSecretFinalChapters({
+    candidateChapters: finalChapters,
+    localChapters: chapters,
+    mode: normalizedMode,
+    config,
+    base,
+  });
+  if (preparedHybrid.validation.ok) {
+    finalChapters = preparedHybrid.chapters;
+    if (preparedHybrid.recovered) {
+      recoveredToLocal = true;
+      llmFallbackUsed = true;
+      llmEnhancement.fallbackChapterIds = Array.from(new Set([
+        ...(Array.isArray(llmEnhancement.fallbackChapterIds) ? llmEnhancement.fallbackChapterIds : []),
+        "final-validation:local-recovery",
+      ]));
+      llmEnhancement.enhancedChapterIds = [];
+    }
+  }
   console.info("[LoveBook][Flow] ALL_CHAPTERS_DONE", {
     expected: totalChapters,
     actual: finalChapters.length,
     llmEnhanced: llmEnhancement.enhancedChapterIds.length,
     llmFallback: llmEnhancement.fallbackChapterIds.length,
+    recoveredToLocal,
   });
   return {
     chapters: finalChapters,
     fallbackUsed: fallbackUsed || llmFallbackUsed,
     totalChapters: finalChapters.length,
-    manuscriptSource: llmEnhancement.enhancedChapterIds.length > 0 ? LOVE_SECRET_MANUSCRIPT_SOURCE.HYBRID : LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
+    manuscriptSource: !recoveredToLocal && llmEnhancement.enhancedChapterIds.length > 0 ? LOVE_SECRET_MANUSCRIPT_SOURCE.HYBRID : LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
     loveSecretMasterJson,
     masterJsonValidation,
     loveSecretFacts,
@@ -3425,6 +3430,59 @@ function reinforceLoveSecretChapters(chapters = [], mode, config, base) {
   return list;
 }
 
+function prepareLoveSecretFinalChapters({ candidateChapters = [], localChapters = [], mode, config, base } = {}) {
+  const minChapterChars = Number(config?.chapterMinDefault || 2000);
+  const firstPass = reinforceLoveSecretChapters(
+    (Array.isArray(candidateChapters) ? candidateChapters : []).map((chapter) => ({ ...chapter })),
+    mode,
+    config,
+    base,
+  );
+  const firstValidation = validateLoveSecretManuscript({
+    mode,
+    chapters: firstPass,
+    config,
+    minChapterChars,
+  });
+  if (firstValidation.ok) {
+    return { chapters: firstPass, validation: firstValidation, recovered: false };
+  }
+
+  const localPass = reinforceLoveSecretChapters(
+    (Array.isArray(localChapters) ? localChapters : []).map((chapter) => ({
+      ...chapter,
+      source: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
+      llmEnhanced: false,
+      promptVersion: undefined,
+    })),
+    mode,
+    config,
+    base,
+  );
+  const localValidation = validateLoveSecretManuscript({
+    mode,
+    chapters: localPass,
+    config,
+    minChapterChars,
+  });
+  if (localValidation.ok) {
+    return {
+      chapters: localPass,
+      validation: localValidation,
+      recovered: true,
+      recoveryReason: "local_manuscript_recovery",
+      previousValidation: firstValidation,
+    };
+  }
+
+  return {
+    chapters: firstPass,
+    validation: firstValidation,
+    recovered: false,
+    localValidation,
+  };
+}
+
 function escapeLoveSecretHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -3912,33 +3970,30 @@ async function runLoveSecretJob(env, jobId) {
 
     let fallbackUsed = false;
     let manuscriptSource = clean(generatedSource) || LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
-    let finalChapters = reinforceLoveSecretChapters(
-      localChapters.map((chapter) => ({ ...chapter, source: manuscriptSource })),
+    const preparedFinal = prepareLoveSecretFinalChapters({
+      candidateChapters: localChapters.map((chapter) => ({ ...chapter, source: manuscriptSource })),
+      localChapters,
       mode,
       config,
       base,
-    );
-
-    const finalValidation = validateLoveSecretManuscript({
-      mode,
-      chapters: finalChapters,
-      config,
-      minChapterChars: Number(config?.chapterMinDefault || 2000),
     });
-
-    if (!finalValidation.ok) {
-      console.error("[LoveBookPremiumPDF][FinalValidationFailed]", finalValidation);
+    let finalChapters = preparedFinal.chapters;
+    const validatedFinal = preparedFinal.validation;
+    if (!validatedFinal.ok) {
+      console.error("[LoveBookPremiumPDF][FinalValidationFailed]", {
+        finalValidation: validatedFinal,
+        localValidation: preparedFinal.localValidation || null,
+      });
       throw new Error("FINAL_MANUSCRIPT_INVALID");
     }
-
-    const validatedFinal = validateLoveSecretManuscript({
-      mode,
-      chapters: finalChapters,
-      config,
-      minChapterChars: Number(config?.chapterMinDefault || 2000),
-    });
-    if (!validatedFinal.ok) {
-      throw new Error("FINAL_MANUSCRIPT_INVALID");
+    if (preparedFinal.recovered) {
+      fallbackUsed = true;
+      manuscriptSource = LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
+      console.warn("[LoveBookPremiumPDF][FinalLocalRecoveryUsed]", {
+        mode,
+        reason: preparedFinal.recoveryReason,
+        previousIssues: preparedFinal.previousValidation?.topicCoverageIssues || preparedFinal.previousValidation?.tooShortChapterIndexes || [],
+      });
     }
     console.info("[LoveBookPremiumPDF][FinalManuscriptValidated]", {
       mode,
@@ -4197,6 +4252,12 @@ async function handlePrepare(request, env) {
   if (!partnerValid.ok) {
     return buildApiError("MISSING_PARTNER_SAJU", "궁합 모드는 상대 생년월일과 핵심 명식 정보가 필요합니다. 상대 정보를 확인해 주세요.", 400);
   }
+  return buildApiError(
+    "ASYNC_GENERATION_REQUIRED",
+    "연애 비책 PDF는 안정적인 품질 검증을 위해 비동기 생성으로 진행됩니다. 잠시 후 진행 상태를 확인해 주세요.",
+    409,
+    { mode, asyncEndpoint: "/api/love-secret/prepare-async" },
+  );
 
   const config = safeModeChapterConfig(mode);
   const sessionId = clean(body?.sessionId || body?.reportSessionId) || "";
@@ -4291,24 +4352,31 @@ async function handlePrepare(request, env) {
 
   let fallbackUsed = false;
   let manuscriptSource = clean(generatedSource) || LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
-  let finalChapters = reinforceLoveSecretChapters(
-    localChapters.map((chapter) => ({ ...chapter, source: manuscriptSource })),
+  const preparedFinal = prepareLoveSecretFinalChapters({
+    candidateChapters: localChapters.map((chapter) => ({ ...chapter, source: manuscriptSource })),
+    localChapters,
     mode,
     config,
     base,
-  );
-
-  const finalValidation = validateLoveSecretManuscript({
-    mode,
-    chapters: finalChapters,
-    config,
-    minChapterChars: Number(config?.chapterMinDefault || 2000),
   });
+  let finalChapters = preparedFinal.chapters;
+  const finalValidation = preparedFinal.validation;
   if (!finalValidation.ok) {
-    console.error("[LoveBookPremiumPDF][FinalValidationFailed]", finalValidation);
+    console.error("[LoveBookPremiumPDF][FinalValidationFailed]", {
+      finalValidation,
+      localValidation: preparedFinal.localValidation || null,
+    });
     throw Object.assign(new Error("로컬 상담문 품질 검증을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요."), {
       code: "FINAL_MANUSCRIPT_INVALID",
       status: 422,
+    });
+  }
+  if (preparedFinal.recovered) {
+    fallbackUsed = true;
+    manuscriptSource = LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
+    console.warn("[LoveBookPremiumPDF][FinalLocalRecoveryUsed]", {
+      mode,
+      reason: preparedFinal.recoveryReason,
     });
   }
   console.info("[LoveBookPremiumPDF][FinalManuscriptValidated]", {

@@ -76,20 +76,20 @@ export default function PaymentLoading({
       description: "연이가 주문 정보와 이용 권한을 차례로 맞춰보고 있습니다.",
     },
     checkout: {
-      title: "보안 결제창을 열고 있습니다",
-      description: "주문 금액과 결제 정보를 정돈한 뒤 결제창으로 이어갑니다.",
+      title: "단건 결제창을 열고 있습니다",
+      description: "주문 금액과 인증 정보를 맞춰 안전한 결제창으로 이어갑니다.",
     },
     confirm: {
-      title: "결제 승인을 확인하고 있습니다",
-      description: "승인 금액, 주문번호, 이용 권한을 안전하게 대조하고 있습니다.",
+      title: "단건 결제 승인을 확인하고 있습니다",
+      description: "승인 신호와 콘텐츠 이용 권한을 함께 확인하고 있습니다.",
     },
     monthly: {
-      title: "월정석 잔량을 반영하고 있습니다",
-      description: "잔량 차감과 이용 권한을 한 번 더 확인하고 있습니다.",
+      title: "월정석 결제를 반영하고 있습니다",
+      description: "보유 월정석 잔량을 확인하고 콘텐츠 이용 권한을 여는 중입니다.",
     },
     subscription: {
-      title: "이용권 결제를 확인하고 있습니다",
-      description: "이용권 등급, 기간, 계정 권한을 차분하게 연결하고 있습니다.",
+      title: "월정석 결제를 확인하고 있습니다",
+      description: "월정석 결제 승인과 이용 권한을 차분하게 연결하고 있습니다.",
     },
     "unlock-saving": {
       title: "이용 권한을 저장하고 있습니다",

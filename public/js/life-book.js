@@ -725,6 +725,63 @@
     }
   }
 
+  function _extractLifeBookChaptersFromData(data) {
+    var source = data && typeof data === 'object' ? data : {};
+    if (Array.isArray(source.chapters)) return source.chapters;
+    if (source.pdfReady && Array.isArray(source.pdfReady.chapters)) return source.pdfReady.chapters;
+    if (source.data && Array.isArray(source.data.chapters)) return source.data.chapters;
+    if (source.data && source.data.pdfReady && Array.isArray(source.data.pdfReady.chapters)) return source.data.pdfReady.chapters;
+    return [];
+  }
+
+  function _isLifeBookRunningData(data) {
+    var source = data && typeof data === 'object' ? data : {};
+    var status = String(source.status || source.serverStatus || (source.data && (source.data.status || source.data.serverStatus)) || '').toLowerCase();
+    return status === 'running' || status === 'queued' || status === 'processing' || status === 'generating' || status === 'pending';
+  }
+
+  function _normalizeLifeBookDoneData(data) {
+    var source = data && typeof data === 'object' ? data : {};
+    var nested = source.data && typeof source.data === 'object' ? source.data : {};
+    var pdfReady = source.pdfReady || nested.pdfReady || null;
+    var chapters = _extractLifeBookChaptersFromData(source);
+    return Object.assign({}, nested, source, {
+      chapters: chapters,
+      pdfReady: pdfReady,
+      pdfUrl: source.pdfUrl || nested.pdfUrl || (pdfReady && (pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl)) || '',
+      htmlUrl: source.htmlUrl || nested.htmlUrl || (pdfReady && pdfReady.htmlUrl) || '',
+      canDownload: Boolean(source.canDownload || nested.canDownload || (pdfReady && (pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl))),
+    });
+  }
+
+  async function _waitLifeBookStatusDone(sessionId, headers, onProgress, shouldStop) {
+    var startedAt = Date.now();
+    var maxWaitMs = 20 * 60 * 1000;
+    for (;;) {
+      if (typeof shouldStop === 'function' && shouldStop()) throw new Error('LIFE_BOOK_CANCELLED');
+      var data = await _fetchLifeBookStatus(sessionId, headers);
+      if (data && typeof onProgress === 'function') onProgress(data);
+      var normalized = _normalizeLifeBookDoneData(data);
+      var status = String((data && data.status) || normalized.status || '').toLowerCase();
+      var chapters = _extractLifeBookChaptersFromData(normalized);
+      if (status === 'done' || status === 'completed' || (chapters.length === LIFEBOOK_TOTAL_CHAPTERS && normalized.canDownload)) {
+        return normalized;
+      }
+      if (status === 'failed') {
+        var failed = new Error(String((data && data.error && data.error.message) || 'LIFE_BOOK_BACKGROUND_FAILED'));
+        failed.code = String((data && data.error && data.error.code) || 'LIFE_BOOK_BACKGROUND_FAILED');
+        failed.payload = data;
+        throw failed;
+      }
+      if (Date.now() - startedAt > maxWaitMs) {
+        var timeout = new Error('LIFE_BOOK_BACKGROUND_TIMEOUT');
+        timeout.code = 'LIFE_BOOK_BACKGROUND_TIMEOUT';
+        throw timeout;
+      }
+      await new Promise(function (r) { setTimeout(r, 1800); });
+    }
+  }
+
   function _buildResultOverviewHtml() {
     var snap = window.__destinyFlowerSajuSnapshot || {};
     var analysis = snap.analysis || snap.saju || {};
@@ -2030,9 +2087,9 @@
         serviceKey: 'saju-lifebook',
         productKey: LIFE_BOOK_FEATURE_KEY,
         featureKey: LIFE_BOOK_FEATURE_KEY,
-        generationMode: 'worker-native-llm',
+        generationMode: 'worker-native-hybrid',
         calculationSource: 'worker-saju-engine',
-        authoringMode: 'llm-only',
+        authoringMode: 'hybrid',
         reportId: _lbReportId,
         sessionId: _sessionId,
         reportSessionId: _sessionId,
@@ -2069,30 +2126,31 @@
 
       _setGenerationState('calculation_validated');
       var _statusPollingStop = false;
+      var _handleStatusProgress = function (_statusData) {
+        if (!_statusData || typeof _statusData !== 'object') return;
+        var _stateKey = String(((_statusData.progress || {}).stateKey) || '').trim();
+        var _status = String(_statusData.status || '').trim();
+        var _current = Number(((_statusData.progress || {}).currentChapterNo) || 0);
+        var _total = Number(((_statusData.progress || {}).totalChapters) || LIFEBOOK_TOTAL_CHAPTERS);
+        if (_stateKey) _setGenerationState(_stateKey);
+        if (_status === 'running' || _status === 'queued' || _status === 'processing' || _status === 'generating') {
+          _setGenerationState('llm_writing');
+        }
+        if (Number.isFinite(_current) && _current > 0) {
+          _setProgress(Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)));
+          _lifeBookLog('LocalChapterProgress', {
+            chapterDone: Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)),
+            total: Number.isFinite(_total) && _total > 0 ? _total : LIFEBOOK_TOTAL_CHAPTERS,
+          });
+        }
+        if (_status === 'done' || _status === 'completed') {
+          _setProgress(LIFEBOOK_TOTAL_CHAPTERS);
+        }
+      };
       var _statusPollingPromise = _pollLifeBookStatus(
         _sessionId,
         _headers,
-        function (_statusData) {
-          if (!_statusData || typeof _statusData !== 'object') return;
-          var _stateKey = String(((_statusData.progress || {}).stateKey) || '').trim();
-          var _status = String(_statusData.status || '').trim();
-          var _current = Number(((_statusData.progress || {}).currentChapterNo) || 0);
-          var _total = Number(((_statusData.progress || {}).totalChapters) || LIFEBOOK_TOTAL_CHAPTERS);
-          if (_stateKey) _setGenerationState(_stateKey);
-          if (_status === 'running') {
-            _setGenerationState('llm_writing');
-          }
-          if (Number.isFinite(_current) && _current > 0) {
-            _setProgress(Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)));
-            _lifeBookLog('LocalChapterProgress', {
-              chapterDone: Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)),
-              total: Number.isFinite(_total) && _total > 0 ? _total : LIFEBOOK_TOTAL_CHAPTERS,
-            });
-          }
-          if (_status === 'done') {
-            _setProgress(LIFEBOOK_TOTAL_CHAPTERS);
-          }
-        },
+        _handleStatusProgress,
         function () { return _statusPollingStop; }
       );
 
@@ -2126,6 +2184,18 @@
       var _json = _prepare.json;
 
       var _data = (_json && _json.data && typeof _json.data === 'object') ? _json.data : _json;
+      _data = _normalizeLifeBookDoneData(_data);
+      if (_isLifeBookRunningData(_data) && _extractLifeBookChaptersFromData(_data).length !== LIFEBOOK_TOTAL_CHAPTERS) {
+        _flowLog('LIFE_BOOK_BACKGROUND_STATUS_WAIT', { reportId: _lbReportId, sessionId: _sessionId });
+        _setGenerationState('llm_writing');
+        _data = await _waitLifeBookStatusDone(
+          _sessionId,
+          _headers,
+          _handleStatusProgress,
+          function () { return _cancelGeneration; }
+        );
+        _flowLog('LIFE_BOOK_BACKGROUND_STATUS_DONE', { reportId: _lbReportId, sessionId: _sessionId });
+      }
       _lbPendingPdfHtml = String((_data && _data.pdfReady && _data.pdfReady.html) || '');
       _lbPendingReportUrl = _resolveLifeBookStoredUrl(_data);
       var _manuscriptSource = String((_data && _data.manuscriptSource) || ((_data && _data.pdfReady && _data.pdfReady.metadata && _data.pdfReady.metadata.manuscriptSource) || 'worker-native-llm')).trim();

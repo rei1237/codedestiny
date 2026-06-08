@@ -64,7 +64,7 @@
   function _buildPdfApiError(payload, status, fallbackMessage) {
     var safe = _payloadSafe(payload);
     var msg = _clean(safe.message || fallbackMessage || ('HTTP ' + (status || '')));
-    var err = new Error(msg || '?좊뀈?댁꽭 PDF ?붿껌???ㅽ뙣?덉뒿?덈떎.');
+    var err = new Error(msg || '신년운세 PDF 요청에 실패했습니다.');
     err.status = Number(status || 0) || undefined;
     err.code = _clean(safe.code) || 'SAJU_NEW_YEAR_REQUEST_FAILED';
     err.stage = _clean(safe.stage) || 'prepare';
@@ -457,10 +457,34 @@
     var data = raw && typeof raw === 'object' ? raw : {};
     var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
     var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
+    var access = data.access && typeof data.access === 'object' ? data.access : {};
     var normalizedReportId = _clean(accessGrant.reportId || data.reportId || reportId);
-    var purchaseId = _clean(accessGrant.purchaseId || data.purchaseId || data.transactionId || consume.transactionId);
     var sessionId = _clean(accessGrant.sessionId || data.sessionId || data.reportSessionId || ('saju-new-year:' + normalizedReportId));
     var requestId = _clean(accessGrant.requestId || data.requestId || consume.requestId || fallbackRequestId);
+    var explicitPurchaseId = _clean(
+      accessGrant.purchaseId
+      || accessGrant.transactionId
+      || data.purchaseId
+      || data.transactionId
+      || data.unlockId
+      || consume.purchaseId
+      || consume.transactionId
+      || consume.unlockId
+      || access.purchaseId
+      || access.transactionId
+      || access.unlockId
+    );
+    var statusText = _clean(data.status || accessGrant.status || consume.status || access.status).toLowerCase();
+    var accessOk = data.ok === true
+      || data.accessGranted === true
+      || data.granted === true
+      || accessGrant.ok === true
+      || accessGrant.accessGranted === true
+      || consume.ok === true
+      || access.ok === true
+      || access.accessGranted === true
+      || ['granted', 'success', 'succeeded', 'pass_applied', 'has_entitlement', 'completed'].indexOf(statusText) >= 0;
+    var purchaseId = explicitPurchaseId || (accessOk ? ('access:' + _clean(requestId || sessionId || normalizedReportId)) : '');
     if (!normalizedReportId || !purchaseId) return null;
     return {
       ok: true,
@@ -530,7 +554,11 @@
             sessionId: 'saju-new-year:' + reportId,
             reportSessionId: 'saju-new-year:' + reportId,
             requestId: requestId,
-            onGranted: function(_transactionId, payload) { finish(payload); },
+            onGranted: function(transactionId, payload) {
+              var grantedPayload = payload && typeof payload === 'object' ? payload : {};
+              var txId = _clean((grantedPayload && (grantedPayload.purchaseId || grantedPayload.transactionId)) || transactionId);
+              finish(Object.assign({}, grantedPayload, txId ? { purchaseId: txId, transactionId: txId } : {}));
+            },
             onPassApplied: function(access) { finish((access && (access.payload || access.rawPayload)) || access || {}); },
             onCancel: cancel
           });

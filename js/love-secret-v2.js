@@ -249,6 +249,7 @@
   var _chapterStructured = _buildChapterBuffer(_getLoveSecretModeTotalChapters(_currentChapterMode));
   var _chapterMeta = _buildChapterBuffer(_getLoveSecretModeTotalChapters(_currentChapterMode));
   var _generating = false;
+  var _paymentGateInFlight = null;
   var _quoteTimer = null;
   var _heartTimer = null;
   var _quoteIdx = 0;
@@ -322,6 +323,23 @@
     var normalizedMode = _normalizeLoveSecretMode(mode);
     var coins = Number(LOVE_SECRET_REQUIRED_COINS_BY_MODE[normalizedMode]);
     return Number.isFinite(coins) && coins > 0 ? coins : 300;
+  }
+
+  function _beginLoveSecretPaymentGate(mode, reportId) {
+    if (_generating || _paymentGateInFlight) return false;
+    _paymentGateInFlight = {
+      mode: _normalizeLoveSecretMode(mode),
+      reportId: String(reportId || '').trim(),
+      startedAt: Date.now(),
+    };
+    return true;
+  }
+
+  function _endLoveSecretPaymentGate(reportId) {
+    if (!_paymentGateInFlight) return;
+    var currentReportId = String(reportId || '').trim();
+    if (currentReportId && _paymentGateInFlight.reportId && currentReportId !== _paymentGateInFlight.reportId) return;
+    _paymentGateInFlight = null;
   }
 
   function _lsCleanText(value) {
@@ -2187,7 +2205,7 @@
   }
 
   window.handleStartCompatibilityLoveBook = async function () {
-    if (_generating) return;
+    if (_generating || _paymentGateInFlight) return;
     _currentChapterMode = 'compatibility';
     _logLoveSecretFlow('ModeResolved', { mode: 'compatibility' });
     var year = parseInt((_qs('lsPsYear') || {}).value || '0', 10);
@@ -2215,6 +2233,10 @@
 
     var startBtn = _qs('lsPsStartBtn');
     if (startBtn) { startBtn.disabled = true; startBtn.textContent = '처리 중...'; }
+    if (!_beginLoveSecretPaymentGate('compatibility', reportId)) {
+      _restorePartnerStartBtn();
+      return;
+    }
 
     function _restorePartnerStartBtn() {
       if (startBtn) {
@@ -2227,6 +2249,7 @@
       _restorePartnerStartBtn();
       var partnerBirthInput = _collectPartnerBirthInput();
       _logLoveSecretFlow('PartnerInputResolved', { hasPartnerInput: !!partnerBirthInput });
+      _endLoveSecretPaymentGate(reportId);
       _startGeneration(partnerBirthInput, paymentContext, reportId);
     }
 
@@ -2240,12 +2263,13 @@
       _logLoveSecretFlow('PaymentGateSuccess', { mode: 'compatibility', reportId: reportId, purchaseId: gateResult.purchaseId || '' });
       _startWithPartnerData(gateResult);
     } finally {
+      if (!_generating) _endLoveSecretPaymentGate(reportId);
       _restorePartnerStartBtn();
     }
   };
 
   window.handleStartSoloLoveBook = async function () {
-    if (_generating) return;
+    if (_generating || _paymentGateInFlight) return;
     _currentChapterMode = 'solo';
     _logLoveSecretFlow('ModeResolved', { mode: 'solo' });
     var reportId = _lsBuildReportId('solo');
@@ -2268,14 +2292,20 @@
       _startGeneration(null, { ok: true, accessGrant: _tokenAccessGrant, purchaseId: 'token:' + reportId, premiumAccessToken: '' }, reportId);
       return;
     }
+    if (!_beginLoveSecretPaymentGate('solo', reportId)) return;
     _logLoveSecretFlow('PaymentGateStart', { mode: 'solo', reportId: reportId });
-    var gateResult = await _runLoveSecretCoinGate('solo', reportId);
-    if (!gateResult.ok) {
-      window.alert(gateResult.message || '결제 확인에 실패했습니다.');
-      return;
+    try {
+      var gateResult = await _runLoveSecretCoinGate('solo', reportId);
+      if (!gateResult.ok) {
+        window.alert(gateResult.message || '결제 확인에 실패했습니다.');
+        return;
+      }
+      _logLoveSecretFlow('PaymentGateSuccess', { mode: 'solo', reportId: reportId, purchaseId: gateResult.purchaseId || '' });
+      _endLoveSecretPaymentGate(reportId);
+      _startGeneration(null, gateResult, reportId);
+    } finally {
+      if (!_generating) _endLoveSecretPaymentGate(reportId);
     }
-    _logLoveSecretFlow('PaymentGateSuccess', { mode: 'solo', reportId: reportId, purchaseId: gateResult.purchaseId || '' });
-    _startGeneration(null, gateResult, reportId);
   };
 
   window.lsStartWithPartner = function () {
@@ -2950,44 +2980,7 @@
       preparePayload = _attachLoveSecretGenerationContext(preparePayload, _lsGenerationContext);
 
       _setLoveBookGenerationState('building_chapters');
-      _logLoveSecretFlow('SessionCreateStart', { mode: _currentChapterMode, reportId: _lsReportId, sessionId: _lsSessionId, flow: 'sync-prepare' });
-      var syncPrepareRes = await fetch('/api/love-secret/prepare', {
-        method: 'POST',
-        credentials: 'include',
-        headers: submitHeaders,
-        body: JSON.stringify(preparePayload),
-      });
-      var syncPrepareBody = await syncPrepareRes.json().catch(function () { return {}; });
-      if (syncPrepareRes.ok && syncPrepareBody && syncPrepareBody.ok && Array.isArray(syncPrepareBody.chapters) && _hasLoveSecretStoredUrl(syncPrepareBody)) {
-        _logLoveSecretFlow('SessionCreateSuccess', {
-          mode: _currentChapterMode,
-          reportId: _lsReportId,
-          sessionId: _lsSessionId,
-          flow: 'sync-prepare',
-        });
-        _applyCompletedResult(syncPrepareBody);
-        if (_cancelGeneration) return;
-        _setLoveBookGenerationState('completed');
-        if (!_finalizeGenerationSuccess()) return;
-        _logLoveSecretFlow('PdfRequestSuccess', { mode: _currentChapterMode, reportId: _lsReportId, flow: 'sync-prepare' });
-        return;
-      }
-      if (!syncPrepareRes.ok || (syncPrepareBody && syncPrepareBody.ok === false)) {
-        _logLoveSecretError(_buildLoveSecretApiError({ res: syncPrepareRes, json: syncPrepareBody }, (syncPrepareBody && syncPrepareBody.message) || ('HTTP ' + syncPrepareRes.status), {
-          stage: 'sync-prepare',
-          mode: _currentChapterMode,
-          reportId: _lsReportId,
-          sessionId: _lsSessionId
-        }), {
-          stage: 'sync-prepare',
-          mode: _currentChapterMode,
-          reportId: _lsReportId,
-          sessionId: _lsSessionId
-        });
-      }
-
-      _setLoveBookGenerationState('building_chapters');
-      _logLoveSecretFlow('SessionCreateStart', { mode: _currentChapterMode, reportId: _lsReportId, sessionId: _lsSessionId });
+      _logLoveSecretFlow('SessionCreateStart', { mode: _currentChapterMode, reportId: _lsReportId, sessionId: _lsSessionId, flow: 'prepare-async' });
       var submitRes = await fetch('/api/love-secret/prepare-async', {
         method: 'POST',
         credentials: 'include',
@@ -3022,6 +3015,7 @@
         mode: _currentChapterMode,
         reportId: _lsReportId,
         sessionId: _lsSessionId,
+        flow: 'prepare-async',
         jobId: String(submitBody.jobId || ''),
       });
 

@@ -7,6 +7,7 @@ import {
   SUKYO_PDF_CHAPTER_COUNT,
   SUKYO_PDF_CHAPTERS,
   SUKYO_PDF_FEATURE_KEY,
+  SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT,
   buildSukyoPdfSeed,
   generateSukyoPremiumReport,
   validateSukyoPdfInput,
@@ -333,21 +334,62 @@ function buildSukuyoRunningLinks(request, sessionId, reportId) {
   };
 }
 
+function withSukuyoArchiveFormat(url, format = "pdf") {
+  const value = clean(url);
+  const targetFormat = clean(format) || "pdf";
+  if (!value || !/\/api\/premium\/pdf-archive\//.test(value)) return value;
+  if (/[?&]format=/i.test(value)) {
+    return value.replace(/([?&]format=)[^&]+/i, `$1${encodeURIComponent(targetFormat)}`);
+  }
+  return `${value}${value.includes("?") ? "&" : "?"}format=${encodeURIComponent(targetFormat)}`;
+}
+
+function buildSukuyoPdfFilename(reportId = "") {
+  const id = clean(reportId).replace(/[^\w.-]+/g, "-") || new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  return `sukyo-premium-${id}.pdf`;
+}
+
+function hasCompleteSukuyoChapters(chapters = []) {
+  if (!Array.isArray(chapters) || chapters.length !== SUKYO_PDF_CHAPTER_COUNT) return false;
+  return chapters.every((chapter, index) => {
+    const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
+    const expectedSections = Array.isArray(SUKYO_PDF_CHAPTERS[index]?.sections) ? SUKYO_PDF_CHAPTERS[index].sections.length : 5;
+    return clean(chapter?.title)
+      && sections.length === expectedSections
+      && sections.every((section) => clean(section?.heading) && clean(section?.body));
+  });
+}
+
 function isSukuyoCompletedPayloadReady(payload = {}) {
   const chapters = Array.isArray(payload?.chapters) ? payload.chapters : [];
   const ready = payload?.pdfReady && typeof payload.pdfReady === "object" ? payload.pdfReady : {};
   const hasUrl = Boolean(clean(payload?.downloadUrl || payload?.pdfUrl || payload?.htmlUrl || ready?.downloadUrl || ready?.pdfUrl || ready?.htmlUrl));
+  const manuscriptSource = clean(payload?.manuscriptSource || ready?.manuscriptSource);
+  const llmChapterCount = Number(payload?.llmChapterCount || 0);
+  const targetLlmChapterCount = Number(payload?.targetLlmChapterCount || ready?.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT);
+  const fallbackChapterCount = Number(payload?.fallbackChapterCount || 0);
+  const localDraftChapterCount = Number(payload?.localDraftChapterCount || 0);
+  const countContractOk = Number.isFinite(llmChapterCount)
+    && Number.isFinite(targetLlmChapterCount)
+    && Number.isFinite(fallbackChapterCount)
+    && Number.isFinite(localDraftChapterCount)
+    && llmChapterCount >= 0
+    && llmChapterCount <= SUKYO_PDF_CHAPTER_COUNT
+    && targetLlmChapterCount >= 0
+    && targetLlmChapterCount <= SUKYO_PDF_CHAPTER_COUNT
+    && fallbackChapterCount >= 0
+    && fallbackChapterCount <= targetLlmChapterCount
+    && localDraftChapterCount >= 0
+    && localDraftChapterCount <= SUKYO_PDF_CHAPTER_COUNT
+    && llmChapterCount + localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT;
   return Boolean(
     clean(payload?.reportId)
     && hasUrl
-    && chapters.length === SUKYO_PDF_CHAPTER_COUNT
+    && hasCompleteSukuyoChapters(chapters)
     && clean(payload?.serverStatus) === "completed"
     && clean(payload?.qualityStatus) === "passed"
-    && clean(payload?.manuscriptSource) === "gemini-only"
-    && Boolean(payload?.fallbackUsed) === false
-    && Number(payload?.llmChapterCount || 0) === SUKYO_PDF_CHAPTER_COUNT
-    && Number(payload?.fallbackChapterCount || 0) === 0
-    && Number(payload?.localDraftChapterCount || 0) === 0
+    && ["gemini-only", "hybrid", "hybrid-fallback", "local"].includes(manuscriptSource)
+    && countContractOk
   );
 }
 
@@ -549,15 +591,21 @@ async function handleSukuyoPremiumPrepare(request, env) {
 
     const generated = await generateSukyoPremiumReport(env, dryRunSeed);
     const archiveUrl = buildSukuyoRunningLinks(request, sessionId, reportId).archiveUrl;
+    const archivePdfUrl = withSukuyoArchiveFormat(archiveUrl, "pdf");
+    const archiveHtmlUrl = withSukuyoArchiveFormat(archiveUrl, "html");
     const pdfReady = {
       ...(generated?.pdfReady || {}),
       html: generated?.pdfReady?.html || generated?.html || "",
-      filename: generated?.pdfReady?.filename || generated?.filename || `sukyo-premium-${reportId}.html`,
-      htmlUrl: clean(generated?.pdfReady?.htmlUrl || archiveUrl),
-      pdfUrl: clean(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || archiveUrl),
-      downloadUrl: clean(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || archiveUrl),
+      filename: clean(generated?.pdfReady?.filename || generated?.filename || buildSukuyoPdfFilename(reportId)).replace(/\.html?$/i, ".pdf"),
+      htmlUrl: withSukuyoArchiveFormat(generated?.pdfReady?.htmlUrl || archiveHtmlUrl || archiveUrl, "html"),
+      pdfUrl: withSukuyoArchiveFormat(generated?.pdfReady?.pdfUrl || generated?.pdfReady?.downloadUrl || archivePdfUrl || archiveUrl, "pdf"),
+      downloadUrl: withSukuyoArchiveFormat(generated?.pdfReady?.downloadUrl || generated?.pdfReady?.pdfUrl || archivePdfUrl || archiveUrl, "pdf"),
       storageKey: clean(generated?.pdfReady?.storageKey || `premium-archive:sukyo:${reportId}`),
-      mimeType: clean(generated?.pdfReady?.mimeType || "text/html"),
+      mimeType: "application/pdf",
+      contentType: "application/pdf",
+      renderFormat: "pdf-archive",
+      manuscriptSource: clean(generated?.manuscriptSource || generated?.payload?.manuscriptSource || "hybrid"),
+      targetLlmChapterCount: Number(generated?.targetLlmChapterCount || generated?.payload?.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT),
     };
 
     if (!clean(pdfReady?.html) || !clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)) {
@@ -569,7 +617,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
 
     const completedExecution = await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
-      manuscriptSource: generated.manuscriptSource || "gemini-only",
+      manuscriptSource: generated.manuscriptSource || "hybrid",
       llmChapterCount: Number(generated.llmChapterCount || 0),
       fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
       fallbackUsed: Boolean(generated.fallbackUsed),
@@ -590,9 +638,11 @@ async function handleSukuyoPremiumPrepare(request, env) {
         payload: generated.payload,
         localSukuyoCompatibilityJson: generated?.payload?.localSukuyoCompatibilityJson || generated?.payload,
         pdfReady,
-        manuscriptSource: generated.manuscriptSource || "gemini-only",
+        manuscriptSource: generated.manuscriptSource || "hybrid",
         llmChapterCount: Number(generated.llmChapterCount || 0),
+        targetLlmChapterCount: Number(generated.targetLlmChapterCount || generated?.payload?.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT),
         fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
+        localDraftChapterCount: Number(generated.localDraftChapterCount || 0),
         fallbackUsed: Boolean(generated.fallbackUsed),
         canReopen: true,
         canDownload: true,
@@ -622,9 +672,10 @@ async function handleSukuyoPremiumPrepare(request, env) {
       chapterCount: generated.chapterCount,
       localDraftChapterCount: Number(generated.localDraftChapterCount || 0),
       llmChapterCount: Number(generated.llmChapterCount || 0),
+      targetLlmChapterCount: Number(generated.targetLlmChapterCount || generated?.payload?.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT),
       fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
       fallbackUsed: Boolean(generated.fallbackUsed),
-      manuscriptSource: generated.manuscriptSource || "gemini-only",
+      manuscriptSource: generated.manuscriptSource || "hybrid",
       reportId,
       chapters: generated.chapters,
       payload: generated.payload,
