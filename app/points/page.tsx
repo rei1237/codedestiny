@@ -1063,7 +1063,7 @@ function SubscriptionSection({
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 이용권은 <strong>결제일로부터 30일간 유효</strong>합니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 30/50/100코인 이하일 때 이용권으로 이용할 수 있습니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>PDF 서비스는 무료 처리 대신 생성 결제 시 각 등급 한도만큼 자동 할인됩니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>한도 초과 일반 유료 서비스는 기존가 원화 단건 결제로 진행됩니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>한도 초과 일반 유료 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>Code Destiny Family는 PDF 포함 모든 기능을 무료로 이용하며, 프로필 수정·삭제도 무료·무제한입니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>월정석 잔량은 신규 가입·이벤트로만 지급되며 구매하거나 충전할 수 없습니다.</li>
@@ -1515,7 +1515,7 @@ function WalletCard({ name, monthlyCredits }: { name: string; monthlyCredits: nu
               </span>
             </div>
             <p className="max-w-[280px] text-[11px] text-slate-200 sm:text-right">
-              신규 가입·이벤트로 지급된 보너스 결제 잔량입니다. 부족분은 카드 원화 단건 결제로 진행됩니다.
+              신규 가입·이벤트로 지급되는 보너스 월정석 잔량입니다. 잔량이 부족한 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.
             </p>
           </div>
         </div>
