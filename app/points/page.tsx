@@ -974,7 +974,7 @@ function SubscriptionSection({
     card: string; label: string; badge: string; freeTag: string; btn: string; icon: string;
   }> = {
     amber: {
-      card:    "border-[#e9d18a]/45 bg-white/[0.08]",
+      card:    "border-[#e9d18a]/38 bg-[#0d1430]/78",
       label:   "text-[#f3dd9a]",
       badge:   "from-[#d8bd72] to-[#f5df9d]",
       freeTag: "bg-[#f3dd9a]/15 text-[#f3dd9a] ring-1 ring-[#f3dd9a]/45",
@@ -982,7 +982,7 @@ function SubscriptionSection({
       icon:    "🌔",
     },
     rose: {
-      card:    "border-[#cab8ff]/45 bg-white/[0.08]",
+      card:    "border-[#cab8ff]/38 bg-[#101438]/78",
       label:   "text-[#cab8ff]",
       badge:   "from-[#cab8ff] to-[#f3dd9a]",
       freeTag: "bg-[#cab8ff]/15 text-[#cab8ff] ring-1 ring-[#cab8ff]/45",
@@ -990,7 +990,7 @@ function SubscriptionSection({
       icon:    "🌕",
     },
     purple: {
-      card:    "border-[#8cb8ff]/45 bg-white/[0.08]",
+      card:    "border-[#8cb8ff]/38 bg-[#111638]/78",
       label:   "text-[#8cb8ff]",
       badge:   "from-[#f3dd9a] via-[#cab8ff] to-[#8cb8ff]",
       freeTag: "bg-[#8cb8ff]/15 text-[#dbe8ff] ring-1 ring-[#8cb8ff]/45",
@@ -1011,12 +1011,12 @@ function SubscriptionSection({
   return (
     <section
       aria-label="달빛 이용권 30일 이용권"
-      className="overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.08] text-slate-100 shadow-[0_18px_46px_rgba(7,10,28,0.32)] backdrop-blur"
+      className="overflow-hidden rounded-[24px] border border-[#d9c77c]/24 bg-[#070b1c] text-slate-100 shadow-[0_24px_70px_rgba(4,7,26,0.48)] ring-1 ring-white/10 backdrop-blur"
     >
       {/* 섹션 헤더 */}
       <div
         className="px-5 pt-5 pb-4"
-        style={{ background: "linear-gradient(135deg, rgba(13,19,43,0.94) 0%, rgba(39,34,82,0.86) 58%, rgba(92,78,137,0.72) 100%)" }}
+        style={{ background: "linear-gradient(145deg, rgba(7,11,28,0.98) 0%, rgba(18,25,73,0.94) 42%, rgba(42,27,85,0.9) 72%, rgba(70,48,111,0.82) 100%)" }}
       >
         {/* 제목 */}
         <div className="mb-4">
@@ -1028,7 +1028,7 @@ function SubscriptionSection({
         </div>
 
         {/* 핵심 혜택 callout */}
-        <div className="mb-4 rounded-[14px] border border-[#cab8ff]/35 bg-white/[0.08] px-4 py-3 shadow-[inset_0_1px_3px_rgba(255,255,255,0.05)]">
+        <div className="mb-4 rounded-lg border border-[#cab8ff]/30 bg-white/[0.07] px-4 py-3 shadow-[inset_0_1px_3px_rgba(255,255,255,0.05)]">
           <p className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-[#f3dd9a]">
             <span aria-hidden="true">🌙</span> 달빛 이용권의 특별한 이유
           </p>
@@ -1055,7 +1055,7 @@ function SubscriptionSection({
         )}
 
         {/* 공통 운영 정책 안내 */}
-        <div className="mb-4 rounded-[14px] border border-[#8cb8ff]/30 bg-[#8cb8ff]/10 px-4 py-3">
+        <div className="mb-4 rounded-lg border border-[#8cb8ff]/28 bg-[#8cb8ff]/10 px-4 py-3">
           <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-[#dbe8ff]">
             <span aria-hidden="true">ℹ️</span> 이용권 운영 정책
           </p>
@@ -1230,12 +1230,12 @@ function SubscriptionSection({
             <div
               key={plan.id}
               className={[
-                "relative flex flex-col rounded-[20px] border p-4 transition-shadow",
+                "relative flex flex-col rounded-lg border p-3.5 transition-shadow",
                 isCurrentActive
                   ? "border-emerald-300/60 bg-emerald-300/10 shadow-[0_4px_20px_rgba(16,185,129,0.20)]"
                   : isHighlighted
-                    ? `${theme.card} ring-2 ring-rose-400/70 shadow-[0_10px_24px_rgba(244,63,94,0.22)]`
-                    : `${theme.card} shadow-[0_4px_18px_rgba(120,80,10,0.09)]`,
+                    ? `${theme.card} ring-2 ring-rose-300/65 shadow-[0_12px_28px_rgba(244,63,94,0.2)]`
+                    : `${theme.card} shadow-[0_12px_28px_rgba(4,7,26,0.25)]`,
                 lowerTierBlocked ? "opacity-65" : "",
               ].join(" ")}
             >
@@ -1252,11 +1252,11 @@ function SubscriptionSection({
               )}
 
               {/* 플랜 아이콘 & 이름 */}
-              <p className="text-2xl leading-none">{theme.icon}</p>
-              <p className={`mt-2 text-[11px] font-black uppercase tracking-wider ${theme.label}`}>{plan.title}</p>
+              <p className="text-xl leading-none">{theme.icon}</p>
+              <p className={`mt-2 text-[10.5px] font-black uppercase tracking-wider ${theme.label}`}>{plan.title}</p>
 
               {/* 가격 */}
-              <p className="mt-2 flex flex-wrap items-center gap-1 text-lg font-black text-white">
+              <p className="mt-2 flex flex-wrap items-center gap-1 text-base font-black text-white">
                 <CoinIcon size="md" />
                 {formatSubscriptionPlanValueLine(plan)}
               </p>
@@ -1279,7 +1279,7 @@ function SubscriptionSection({
               </div>
 
               {/* 기능 목록 */}
-              <ul className="mt-3 flex-1 space-y-1.5">
+              <ul className="mt-3 flex-1 space-y-1">
                 {plan.features.map((f) => {
                   const isBonus = f.startsWith("🎁");
                   const isKey   = !isBonus && (f.includes("무료") || f.includes("해금"));
@@ -1287,7 +1287,7 @@ function SubscriptionSection({
                     <li
                       key={f}
                       className={[
-                        "flex items-start gap-1.5 text-[11.5px]",
+                        "flex items-start gap-1.5 text-[11px]",
                         isBonus ? "font-semibold text-emerald-700"
                           : isKey  ? `font-semibold ${theme.label}`
                           : "text-slate-200",
@@ -1310,7 +1310,7 @@ function SubscriptionSection({
                 onClick={() => onSubscribe(plan)}
                 disabled={ctaDisabled}
                 className={[
-                  "mt-4 w-full rounded-[12px] px-3 py-2.5 text-[13px] font-black shadow transition-all",
+                  "mt-4 w-full rounded-lg px-3 py-2.5 text-[13px] font-black shadow transition-all",
                   "hover:-translate-y-0.5 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50",
                   isCurrentActive
                     ? "bg-gradient-to-r from-emerald-500 to-teal-500 shadow-[0_5px_14px_rgba(16,185,129,0.35)]"
@@ -1330,7 +1330,7 @@ function SubscriptionSection({
                 type="button"
                 onClick={() => onSubscribeWithMonthlyCredit(plan)}
                 disabled={monthlyCreditBlocked}
-                className="mt-2 w-full rounded-[12px] border border-amber-200/60 bg-white/10 px-3 py-2.5 text-[12px] font-black text-amber-100 shadow transition-all hover:-translate-y-0.5 hover:bg-white/15 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-2 w-full rounded-lg border border-amber-200/50 bg-white/[0.07] px-3 py-2.5 text-[12px] font-black text-amber-100 shadow transition-all hover:-translate-y-0.5 hover:bg-white/12 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 월정석 {monthlyCreditCost.toLocaleString("ko-KR")}개로 구매
               </button>
@@ -2907,7 +2907,7 @@ export default function PointsPage() {
       )}
 
       {/* ── 페이지 콘텐츠 ────────────────────────────────────────── */}
-      <div className="relative mx-auto w-full max-w-2xl space-y-5">
+      <div className="relative mx-auto w-full max-w-6xl space-y-5">
 
         {/* ① 헤더 카드 */}
         <header className="overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.08] shadow-[0_18px_46px_rgba(7,10,28,0.35)] backdrop-blur">
