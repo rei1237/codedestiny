@@ -135,8 +135,13 @@ type PaymentHistoryItem = {
   impUid?: string;
   merchantUid?: string;
   paymentAmount: number;
+  coinPrice?: number;
+  membershipCreditCost?: number;
   chargedPoints: number;
   paymentMethod: string;
+  paymentMethodLabel?: string;
+  paymentType?: string;
+  accessType?: string;
   status: "pending" | "paid" | "processing" | "success" | "fulfilled" | "retryable" | "failed" | "cancelled" | "refunded";
   paidAt?: string;
   approvalNumber?: string | null;
@@ -551,10 +556,40 @@ function formatSubscriptionPlanValueLine(plan: Pick<SubscriptionPlan, "tier" | "
 }
 
 function mapMonthlyCreditLedgerLabel(type: MonthlyCreditLedgerItem["type"]) {
-  if (type === "MONTHLY_CREDIT_SPEND") {
+  const normalized = String(type || "").trim().toUpperCase();
+  if (normalized.includes("REFUND")) {
+    return { label: "월정석 환불", cls: "bg-cyan-100 text-cyan-800 border-cyan-300", prefix: "+" };
+  }
+  if (normalized === "MONTHLY_CREDIT_SPEND") {
     return { label: "월정석 사용", cls: "bg-rose-100 text-rose-700 border-rose-300", prefix: "-" };
   }
   return { label: "월정석 지급", cls: "bg-emerald-100 text-emerald-800 border-emerald-300", prefix: "+" };
+}
+
+function isMonthlyCreditPayment(payment: Pick<PaymentHistoryItem, "paymentMethod" | "accessType">) {
+  const method = String(payment.paymentMethod || "").trim().toLowerCase();
+  const accessType = String(payment.accessType || "").trim().toLowerCase();
+  return method === "monthly_credit" || method === "monthly" || accessType === "membership_credit";
+}
+
+function formatPaymentMethodLabel(payment: PaymentHistoryItem) {
+  if (isMonthlyCreditPayment(payment)) return "월정석";
+  const method = String(payment.paymentMethodLabel || payment.paymentMethod || "").trim();
+  const normalized = method.toLowerCase();
+  if (!method) return "-";
+  if (normalized === "card_general" || normalized === "card") return "카드 결제";
+  if (normalized === "virtual_account") return "가상계좌";
+  if (normalized === "kakaopay") return "카카오페이";
+  if (normalized === "naverpay") return "네이버페이";
+  return method;
+}
+
+function formatPaymentMonthlyCreditHint(payment: PaymentHistoryItem) {
+  const cost = Math.max(0, Math.floor(Number(payment.membershipCreditCost || 0)));
+  if (cost <= 0) return "";
+  const amount = `${cost.toLocaleString("ko-KR")}개`;
+  if (isMonthlyCreditPayment(payment)) return `월정석 ${amount} 사용`;
+  return `월정석 기준 ${amount}`;
 }
 
 function formatDateTime(raw?: string | null) {
@@ -1006,8 +1041,13 @@ function SubscriptionSection({
   const adminTierPlan = adminTestTier !== "off"
     ? SUBSCRIPTION_PLANS.find((plan) => plan.tier === adminTestTier && plan.durationMonths === 1)
     : null;
+  const adminTierPlanSummary = adminTierPlan ? {
+    title: adminTierPlan.title,
+    profileLimit: formatSubscriptionPlanProfileLimit(adminTierPlan),
+    policy: formatSubscriptionPlanPolicy(adminTierPlan),
+    coins: adminTierPlan.coins,
+  } : null;
   const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
-
   return (
     <section
       aria-label="달빛 이용권 30일 이용권"
@@ -1109,12 +1149,12 @@ function SubscriptionSection({
               })}
             </div>
             <div className="mt-2.5 rounded-[12px] border border-violet-200 bg-white/85 px-3 py-2 text-[11.5px] text-violet-800">
-              {adminTierPlan ? (
+              {adminTierPlanSummary ? (
                 <p>
-                  현재 시뮬레이션: <strong>{adminTierPlan.title}</strong>
-                  <span className="mx-1">·</span>프로필 <strong>{formatSubscriptionPlanProfileLimit(adminTierPlan)}</strong>
-                  <span className="mx-1">·</span><strong>{formatSubscriptionPlanPolicy(adminTierPlan)}</strong>
-                  <span className="mx-1">·</span>이용 기준 <strong>{adminTierPlan.coins}</strong>
+                  현재 시뮬레이션: <strong>{adminTierPlanSummary?.title || ""}</strong>
+                  <span className="mx-1">·</span>프로필 <strong>{adminTierPlanSummary?.profileLimit || ""}</strong>
+                  <span className="mx-1">·</span><strong>{adminTierPlanSummary?.policy || ""}</strong>
+                  <span className="mx-1">·</span>이용 기준 <strong>{adminTierPlanSummary?.coins || ""}</strong>
                 </p>
               ) : (
                 <p>현재 시뮬레이션: 해제 (관리자 프리패스만 적용)</p>
@@ -3058,6 +3098,7 @@ export default function PointsPage() {
               {paymentHistory.map((payment) => {
                 const statusMeta = mapPaymentStatusLabel(payment.status);
                 const canCancel = payment.status === "success";
+                const paymentMethodHint = formatPaymentMonthlyCreditHint(payment);
                 return (
                   <div
                     key={payment.id}
@@ -3074,7 +3115,8 @@ export default function PointsPage() {
 
                     <div className="mt-2 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-2">
                       <p>결제시각: {formatDateTime(payment.paidAt || payment.cancelledAt)}</p>
-                      <p>결제수단: {payment.paymentMethod || "-"}</p>
+                      <p>결제수단: {formatPaymentMethodLabel(payment)}</p>
+                      {paymentMethodHint ? <p>월정석 표시: {paymentMethodHint}</p> : null}
                       <p>승인번호: {payment.approvalNumber || "-"}</p>
                       <p>주문번호: {payment.merchantUid || "-"}</p>
                     </div>

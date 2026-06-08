@@ -387,10 +387,10 @@ function runClientStaticTests() {
   assertContains(clientPaymentSource, "if (!rsp || rsp.code || !paymentId)", "PortOne response.code failure handling");
   assertContains(clientPaymentSource, "paymentFailed", "failure UI state");
   assertContains(clientPaymentSource, "paymentSuccess", "success UI state");
-  assertContains(indexSource, "checkingEntitlement: ['결제/이용권 확인'", "checking entitlement UI state");
-  assertContains(indexSource, "readyToPay: ['결제 가능'", "ready-to-pay UI state");
-  assertContains(indexSource, "paymentProcessing: ['결제 확인 중'", "payment processing UI state");
-  assertContains(indexSource, "savingUnlock: ['이용 권한 저장 중'", "unlock saving UI state");
+  assertContains(indexSource, "if (status === 'checkingEntitlement') return { title: '이용권 확인 중'", "checking entitlement UI state");
+  assertContains(indexSource, "status === 'opening' || status === 'loadingProducts' || status === 'readyToPay'", "ready-to-pay UI state");
+  assertContains(indexSource, "if (status === 'paymentProcessing')", "payment processing UI state");
+  assertContains(indexSource, "if (status === 'savingUnlock') return { title: '잠금 해제 저장 중'", "unlock saving UI state");
   assertContains(indexSource, "redirectUrl.searchParams.set('portone_redirect', '1')", "mobile redirect marker");
   assertContains(paymentsRouteSource, 'redirectUrl.searchParams.set("payment_id", paymentId)', "redirectUrl carries paymentId");
   assertBefore(indexSource, "_cdHasVerifiedServerAccess(confirmRes.payload", "return confirmRes.payload", "server complete failure must block unlock success");

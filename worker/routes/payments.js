@@ -469,6 +469,23 @@ function parseCustomDataUserId(customData) {
   return userId;
 }
 
+function resolvePaymentMethodLabel(payment) {
+  const metadata = payment?.metadata && typeof payment.metadata === "object" ? payment.metadata : {};
+  const method = String(payment?.paymentMethod || "").trim();
+  const normalized = method.toLowerCase();
+  const accessType = String(payment?.accessType || "").trim().toLowerCase();
+  const currency = String(metadata.currency || "").trim().toUpperCase();
+
+  if (normalized === "monthly_credit" || normalized === "monthly" || accessType === "membership_credit" || currency === "MONTHLY_CREDIT") {
+    return "월정석";
+  }
+  if (normalized === "card_general" || normalized === "card") return "카드 결제";
+  if (normalized === "virtual_account") return "가상계좌";
+  if (normalized === "kakaopay") return "카카오페이";
+  if (normalized === "naverpay") return "네이버페이";
+  return method || "-";
+}
+
 function formatPaymentResponse(payment) {
   if (!payment) return null;
 
@@ -498,6 +515,7 @@ function formatPaymentResponse(payment) {
     reportId: String(payment.reportId || ""),
     sessionId: String(payment.sessionId || ""),
     paymentMethod: payment.paymentMethod,
+    paymentMethodLabel: resolvePaymentMethodLabel(payment),
     paymentType: payment.paymentType || "point_charge",
     subscriptionTier: payment.subscriptionTier || "",
     status: payment.status,
@@ -4286,24 +4304,64 @@ function formatPointHistoryEntry(entry) {
   };
 }
 
+function hasMonthlyCreditRefundMetadata(metadata) {
+  if (!metadata || typeof metadata !== "object") return false;
+  return Boolean(
+    metadata.refundedAt
+      || metadata.refundedForUnlockFailure === true
+      || metadata.refundedForServiceExecution === true
+      || metadata.monthlyCreditRefundedForUnlockFailure === true
+      || metadata.monthlyCreditRefundedForServiceExecution === true
+      || metadata.refundForPointHistoryId
+      || metadata.monthlyCreditRefundLedgerId
+      || metadata.refundLedgerId,
+  );
+}
+
+function resolveMonthlyCreditRefundedAt(metadata, fallback) {
+  return metadata?.refundedAt
+    || metadata?.monthlyCreditRefundedAt
+    || metadata?.refundCreatedAt
+    || metadata?.serviceExecutionRefundedAt
+    || metadata?.unlockFailureRefundedAt
+    || fallback
+    || null;
+}
+
+function resolveMonthlyCreditRefundReason(metadata, fallback) {
+  const reason = String(
+    metadata?.refundReason
+      || metadata?.monthlyCreditRefundReason
+      || metadata?.failureMessage
+      || metadata?.errorMessage
+      || fallback
+      || "",
+  ).trim();
+  return reason || "월정석 환불";
+}
+
 function formatMonthlyCreditLedgerEntry(entry) {
+  const metadata = entry?.metadata && typeof entry.metadata === "object" ? entry.metadata : {};
+  const rawType = String(entry?.type || "");
+  const isRefund = rawType === "MONTHLY_CREDIT_GRANT" && hasMonthlyCreditRefundMetadata(metadata);
   return {
     id: String(entry?._id || entry?.id || ""),
-    type: String(entry?.type || ""),
+    type: isRefund ? "MONTHLY_CREDIT_REFUND" : rawType,
+    rawType,
     amount: Number(entry?.amount || 0),
     beforeBalance: Number(entry?.beforeBalance || 0),
     afterBalance: Number(entry?.afterBalance || 0),
-    reason: entry?.reason ? String(entry.reason) : "",
+    reason: isRefund ? resolveMonthlyCreditRefundReason(metadata, entry?.reason) : (entry?.reason ? String(entry.reason) : ""),
     sourceId: entry?.sourceId ? String(entry.sourceId) : "",
     serviceKey: entry?.serviceKey ? String(entry.serviceKey) : "",
     createdAt: entry?.createdAt,
-    metadata: entry?.metadata || {},
+    metadata,
   };
 }
 
 function collectMonthlyCreditLedgerKeys(entry) {
   const metadata = entry?.metadata && typeof entry.metadata === "object" ? entry.metadata : {};
-  return [
+  const baseKeys = [
     entry?.id,
     entry?._id,
     entry?.sourceId,
@@ -4312,9 +4370,48 @@ function collectMonthlyCreditLedgerKeys(entry) {
     metadata.requestId,
     metadata.idempotencyKey,
     metadata.orderId,
-  ]
+  ];
+  const refundKeys = String(entry?.type || "") === "MONTHLY_CREDIT_REFUND" ? [
+    metadata.refundForPointHistoryId ? `refund-for:${metadata.refundForPointHistoryId}` : "",
+    metadata.refundSourceId ? `refund-source:${metadata.refundSourceId}` : "",
+    metadata.originalLedgerId ? `refund-original:${metadata.originalLedgerId}` : "",
+    metadata.monthlyCreditRefundLedgerId ? `refund-ledger:${metadata.monthlyCreditRefundLedgerId}` : "",
+    metadata.refundLedgerId ? `refund-ledger:${metadata.refundLedgerId}` : "",
+  ] : [];
+
+  return baseKeys.concat(refundKeys)
     .map((value) => String(value || "").trim())
     .filter(Boolean);
+}
+
+function formatMonthlyCreditRefundEntryFromLedger(entry) {
+  const metadata = entry?.metadata && typeof entry.metadata === "object" ? entry.metadata : {};
+  if (!hasMonthlyCreditRefundMetadata(metadata)) return null;
+  if (String(entry?.type || "") !== "MONTHLY_CREDIT_SPEND") return null;
+
+  const originalId = String(entry?._id || entry?.id || "").trim();
+  const amount = Math.max(0, Math.floor(Number(entry?.amount || 0)));
+  if (!originalId || amount <= 0) return null;
+
+  const spendAfter = Math.max(0, Math.floor(Number(entry?.afterBalance || 0)));
+  const refundLedgerId = String(metadata.monthlyCreditRefundLedgerId || metadata.refundLedgerId || "").trim();
+  return {
+    id: refundLedgerId ? `monthly-credit-refund:${refundLedgerId}` : `monthly-credit-refund:${originalId}`,
+    type: "MONTHLY_CREDIT_REFUND",
+    rawType: String(entry?.type || ""),
+    amount,
+    beforeBalance: spendAfter,
+    afterBalance: spendAfter + amount,
+    reason: resolveMonthlyCreditRefundReason(metadata, entry?.reason),
+    sourceId: `refund:${String(entry?.sourceId || metadata.purchaseId || originalId).trim()}`.slice(0, 180),
+    serviceKey: entry?.serviceKey ? String(entry.serviceKey) : "",
+    createdAt: resolveMonthlyCreditRefundedAt(metadata, entry?.updatedAt || entry?.createdAt),
+    metadata: {
+      ...metadata,
+      originalLedgerId: originalId,
+      synthesizedFrom: "monthly_credit_spend_refund_metadata",
+    },
+  };
 }
 
 function formatMonthlyCreditLedgerEntryFromPointHistory(entry) {
@@ -4371,6 +4468,46 @@ function formatMonthlyCreditLedgerEntryFromPointHistory(entry) {
   };
 }
 
+function formatMonthlyCreditRefundEntryFromPointHistory(entry) {
+  const metadata = entry?.metadata && typeof entry.metadata === "object" ? entry.metadata : {};
+  const pointHistoryId = String(entry?._id || "").trim();
+  if (!pointHistoryId || !hasMonthlyCreditRefundMetadata(metadata)) return null;
+
+  const accessType = String(metadata.accessType || "").trim().toLowerCase();
+  const accessMethod = String(metadata.accessMethod || metadata.paymentMethod || "").trim().toUpperCase();
+  const isMonthlyCreditSpend = accessType === "membership_credit" || accessMethod === "MONTHLY";
+  if (!isMonthlyCreditSpend) return null;
+
+  const amount = Math.max(0, Math.floor(Number(
+    metadata.requiredMonthlyCredits
+      ?? metadata.membershipCreditCost
+      ?? metadata.monthlyCreditCost
+      ?? 0,
+  )));
+  if (amount <= 0) return null;
+
+  const spendAfterRaw = metadata.remainingMembershipCredit ?? metadata.monthlyCredits ?? metadata.membershipCreditBalance;
+  const beforeBalance = Number.isFinite(Number(spendAfterRaw)) ? Math.max(0, Math.floor(Number(spendAfterRaw))) : 0;
+  const refundLedgerId = String(metadata.monthlyCreditRefundLedgerId || metadata.refundLedgerId || "").trim();
+  return {
+    id: refundLedgerId ? `point-history-monthly-refund:${refundLedgerId}` : `point-history-monthly-refund:${pointHistoryId}`,
+    type: "MONTHLY_CREDIT_REFUND",
+    rawType: String(entry?.kind || ""),
+    amount,
+    beforeBalance,
+    afterBalance: beforeBalance + amount,
+    reason: resolveMonthlyCreditRefundReason(metadata, entry?.reason),
+    sourceId: `refund:${String(metadata.purchaseId || metadata.requestId || pointHistoryId).trim()}`.slice(0, 180),
+    serviceKey: entry?.featureKey ? String(entry.featureKey) : "",
+    createdAt: resolveMonthlyCreditRefundedAt(metadata, entry?.updatedAt || entry?.createdAt),
+    metadata: {
+      ...metadata,
+      pointHistoryId,
+      synthesizedFrom: "point_history_refund_metadata",
+    },
+  };
+}
+
 function formatMonthlyCreditGrantSummary(auth, safeUser, ledgers) {
   if (ledgers.some((entry) => entry.type === "MONTHLY_CREDIT_GRANT")) return null;
   const sub = safeUser?.profileSubscription || {};
@@ -4415,12 +4552,14 @@ function buildMonthlyCreditLedgerTimeline(auth, safeUser, monthlyCreditLedgers, 
   if (Array.isArray(monthlyCreditLedgers)) {
     for (const ledger of monthlyCreditLedgers) {
       pushEntry(formatMonthlyCreditLedgerEntry(ledger));
+      pushEntry(formatMonthlyCreditRefundEntryFromLedger(ledger));
     }
   }
 
   if (Array.isArray(pointHistories)) {
     for (const history of pointHistories) {
       pushEntry(formatMonthlyCreditLedgerEntryFromPointHistory(history));
+      pushEntry(formatMonthlyCreditRefundEntryFromPointHistory(history));
     }
   }
 
