@@ -644,6 +644,24 @@ async function ensureProfileEditDeleteAuthorized(auth, { action, profileId, body
   return { ok: true, requestId, policy: paidPolicy, evidence };
 }
 
+async function ensureProfileCreatePaymentAuthorized(auth, { profileId, body }) {
+  const action = "create";
+  const requestId = readProfileMutationRequestId(body, action, profileId);
+  const evidenceResult = await findProfileMutationPaymentEvidence(auth, { action, profileId, requestId, body });
+  if (!evidenceResult.ok) return evidenceResult;
+
+  let evidence = evidenceResult.evidence || null;
+  if (!evidence) {
+    const payment = await ensureProfileMutationPayment(auth, { action, profileId, requestId });
+    if (!payment.ok) return payment;
+    evidence = payment.evidence || null;
+  }
+
+  const claim = await claimProfileMutationEvidence(auth, { action, profileId, requestId, evidence });
+  if (!claim.ok) return claim;
+  return { ok: true, requestId, evidence };
+}
+
 async function claimProfileMutationEvidence(auth, { action, profileId, requestId, evidence }) {
   if (!evidence?._id) return { ok: true };
 
@@ -960,29 +978,53 @@ async function handleCreateProfile(request, auth) {
       return json({ ok: false, success: false, message: "이미 존재하는 프로필 ID입니다." }, { status: 409 });
     }
 
+    let createPayment = null;
     if (!canCreateProfileWithinSubscriptionLimit(subscription, count)) {
-      const payment = await ensureProfileMutationPayment(auth, {
-        action: "create",
+      createPayment = await ensureProfileCreatePaymentAuthorized(auth, {
         profileId: normalized.profileId,
-        requestId: body?.requestId || body?.payment?.requestId || body?.consume?.requestId || body?.accessGrant?.requestId,
+        body,
       });
-      if (!payment.ok) return payment.response;
+      if (!createPayment.ok) return createPayment.response;
     }
 
-    const created = await ProfileCard.create({
-      userId: auth.userId,
-      profileId: normalized.profileId,
-      name: normalized.name,
-      gender: normalized.gender,
-      birth: normalized.birth,
-      location: normalized.location,
-    });
+    let created;
+    try {
+      created = await ProfileCard.create({
+        userId: auth.userId,
+        profileId: normalized.profileId,
+        name: normalized.name,
+        gender: normalized.gender,
+        birth: normalized.birth,
+        location: normalized.location,
+      });
+    } catch (error) {
+      if (createPayment?.evidence) {
+        await refundProfileMutationCreditIfNeeded(auth, {
+          action: "create",
+          profileId: normalized.profileId,
+          requestId: createPayment.requestId,
+          evidence: createPayment.evidence,
+          reason: "프로필 카드 생성 실패 환불",
+        });
+      }
+      throw error;
+    }
 
     const profile = toClientProfile(created.toObject());
     const nextCurrentId = String(profile.id || "");
 
     if (nextCurrentId !== String(user.destinyProfilesCurrentId || "")) {
       await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
+    }
+
+    if (createPayment?.requestId) {
+      await recordProfileMutationCompleted(auth, {
+        action: "create",
+        profileId: normalized.profileId,
+        requestId: createPayment.requestId,
+        policy: { reason: "PAID_PROFILE_CARD_CREATE" },
+        evidence: createPayment.evidence,
+      });
     }
 
     return json({

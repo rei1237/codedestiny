@@ -2155,13 +2155,16 @@
       };
       if (config.noticeUrl) requestData.noticeUrls = [config.noticeUrl];
 
-      _dpSetPaymentPending(true, String(order.productName || checkoutPayload.reason || '?? ???') + ' ?? ???? ?? ????...', 'card');
+      _dpSetPaymentPending(true, String(order.productName || checkoutPayload.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4') + ' ' + '\uB2E8\uAC74 \uACB0\uC81C\uCC3D\uC744 \uC5EC\uB294 \uC911\uC785\uB2C8\uB2E4. \uC8FC\uBB38 \uAE08\uC561\uACFC \uC778\uC99D \uC815\uBCF4\uB97C \uC548\uC804\uD558\uAC8C \uB9DE\uCD94\uACE0 \uC788\uC2B5\uB2C8\uB2E4.', 'card');
       await _dpWaitForPaymentOverlayPaint();
+      _dpSetPaymentPending(true, '\uC5F4\uB9B0 \uACB0\uC81C\uCC3D\uC5D0\uC11C \uCE74\uB4DC \uC778\uC99D\uC744 \uC9C4\uD589\uD574 \uC8FC\uC138\uC694. \uC778\uC99D\uC774 \uB05D\uB098\uBA74 \uAD8C\uD55C\uC744 \uD655\uC778\uD569\uB2C8\uB2E4.', 'card');
       var rsp = await window.PortOne.requestPayment(requestData);
       var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
       if (!rsp || rsp.code || !paymentId) {
         throw new Error(String((rsp && (rsp.message || rsp.code)) || '결제가 완료되지 않았습니다.'));
       }
+
+      _dpSetPaymentPending(true, '\uB2E8\uAC74 \uACB0\uC81C \uC2B9\uC778\uACFC \uCF58\uD150\uCE20 \uC774\uC6A9 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.', 'confirm');
 
       var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', {
         method: 'POST',
@@ -2180,6 +2183,8 @@
         })),
       });
       if (!confirmRes.ok) throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
+      _dpSetPaymentPending(true, '\uACB0\uC81C\uAC00 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uCF58\uD150\uCE20\uB97C \uC5EC\uB294 \uC911\uC785\uB2C8\uB2E4.', 'payment-complete');
+      await _dpWaitForPaymentOverlayPaint();
       return confirmRes.payload;
     };
   }
@@ -3309,6 +3314,11 @@
     return ('profile-card:' + action + ':' + String(profileId || 'new') + ':' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8)).slice(0, 120);
   }
 
+  function _dpBuildProfileCreateId(seed) {
+    var suffix = String(seed || 'new').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 24) || 'new';
+    return ('dp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8) + '_' + suffix).slice(0, 80);
+  }
+
   function _dpEnsureProfileActionMenuStyles() {
     if (document.getElementById('dpProfileActionMenuStyles')) return;
     var style = document.createElement('style');
@@ -4199,7 +4209,10 @@
     var maxProfiles = Math.max(1, Math.floor(Number(_dpGetMaxProfiles() || 1)));
     var hasProfiles = profileCount > 0;
     var canUsePlanSlot = profileCount < maxProfiles;
-    var createRequestId = _dpBuildProfileManageRequestId('create', data && data.name);
+    var createProfileId = String(data.profileId || data.id || '').trim() || _dpBuildProfileCreateId(data && data.name);
+    data.profileId = createProfileId;
+    data.id = createProfileId;
+    var createRequestId = _dpBuildProfileManageRequestId('create', createProfileId);
     var createConfirm = hasProfiles && !canUsePlanSlot
       ? '프로필 카드를 추가 생성할까요?\n추가 생성은 서버에서 50코인 또는 5,000원 결제 확인 후 저장됩니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.'
       : '새 프로필 카드를 생성할까요?\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.';
@@ -4236,7 +4249,7 @@
         var payload = result && result.data ? result.data : null;
         var code = String((payload && payload.code) || '').trim().toUpperCase();
         if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
-          return _dpRunProfileManageGate('create', '', createRequestId).then(function(paymentContext) {
+          return _dpRunProfileManageGate('create', createProfileId, createRequestId).then(function(paymentContext) {
             if (!paymentContext) {
               restoreCardAfterSaveAttempt();
               return null;
@@ -4496,6 +4509,7 @@
   window.dpSelectProfile = function(id) {
     var access = _dpProfileAccess || {};
     var lockedId = String(access.lockedProfileId || '').trim();
+    var isSingleProfileLocked = String(access.mode || '').trim() === 'single' || access.locked === true || access.selectionRequired === true || !!lockedId;
     var maxProfiles = _dpGetMaxProfiles();
     var currentIdForPolicy = (DPStorage.current() || {}).id;
     function activateSelectedProfile() {
@@ -4508,12 +4522,12 @@
       _toast('✨ ' + (p ? _esc(p.name) : '') + ' · 프로필 활성화', 'success');
     }
 
-    if (maxProfiles <= 1 && lockedId && id !== lockedId) {
+    if (isSingleProfileLocked && maxProfiles <= 1 && lockedId && id !== lockedId) {
       alert('이용권 혜택 종료 후 확정한 프로필 카드만 사용할 수 있습니다.\n/points 페이지에서 이용권을 결제하면 다시 여러 프로필을 이용할 수 있습니다.');
       return;
     }
 
-    if (maxProfiles <= 1 && access.selectionRequired) {
+    if (isSingleProfileLocked && maxProfiles <= 1 && access.selectionRequired) {
       var selected = (DPStorage.list() || []).find(function(profile) { return profile && profile.id === id; });
       var profileName = selected && selected.name ? selected.name : '선택한 프로필';
       if (!confirm(profileName + ' 프로필 카드로 확정할까요?\n확정 후 추가 이용권 결제 전까지 이 카드만 사용할 수 있습니다.')) return;
@@ -4527,7 +4541,7 @@
       return;
     }
 
-    if (maxProfiles <= 1 && id !== currentIdForPolicy) {
+    if (isSingleProfileLocked && maxProfiles <= 1 && id !== currentIdForPolicy) {
       alert('무료 플랜은 프로필 1개만 사용할 수 있습니다.\n/points 페이지에서 이용권을 결제하면 여러 프로필을 이용할 수 있습니다.');
       return;
     }
