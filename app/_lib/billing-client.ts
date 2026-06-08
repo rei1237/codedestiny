@@ -93,6 +93,9 @@ type PaidFeatureGateRuntimeDetail = {
   message?: string;
   status?: PaidFeatureGateRuntimeStatus;
   cost?: number;
+  paymentMode?: string;
+  reason?: string;
+  accessType?: string;
   startedAt?: number;
 };
 
@@ -321,32 +324,69 @@ function paymentLoadingOwnsPaidFeatureStatus(status: string) {
   ].includes(status);
 }
 
-function resolvePaidFeatureOverlay(status: string, message?: string) {
+function resolvePaymentWaitKind(input: {
+  status?: string;
+  message?: string;
+  paymentMode?: string;
+  featureKey?: string;
+  reason?: string;
+  accessType?: string;
+}) {
+  const mode = toText(input.paymentMode).toUpperCase();
+  const haystack = [input.status, input.message, input.paymentMode, input.featureKey, input.reason, input.accessType]
+    .map((value) => toText(value).toLowerCase())
+    .filter(Boolean)
+    .join(" ");
+
+  if (mode === "MEMBERSHIP_PASS" || /membership_pass|pass_applied|이용권 확인|이용권 적용|이용권으로|membership/.test(haystack)) return "pass";
+  if (mode === "MONTHLY_CREDIT" || /monthly_credit|monthly|moonstone|월정석/.test(haystack)) return "monthly";
+  if (mode === "DIRECT_KRW" || /direct_krw|one[-_ ]?time|single|단건|원화|카드|checkout/.test(haystack)) return "single";
+  if (/subscription|구독|플랜|달빛 이용권 결제|이용권 결제/.test(haystack)) return "subscription";
+  if (/unlock|잠금|해제|권한|premium|pdf|리포트/.test(haystack)) return "unlock";
+  return "payment";
+}
+
+function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Record<string, unknown>) {
   const text = toText(message);
-  if (status === "checkingEntitlement") {
-    return { message: "이용권을 적용하고 있습니다.", mode: "pass" };
-  }
-  if (status === "hasEntitlement") {
-    return { message: "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
-  }
-  if (status === "paymentSuccess") {
-    if (/이용권 적용|이용권으로|pass_applied|membership/i.test(text)) {
-      return { message: "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
-    }
-    return { message: text || "이용 권한 저장이 완료되었습니다.", mode: "unlock-saving" };
-  }
-  if (status === "opening" || status === "loadingProducts") {
-    return { message: text || "결제 가능한 수단을 확인하고 있습니다.", mode: "checkout" };
+  const kind = resolvePaymentWaitKind({
+    status,
+    message: text,
+    paymentMode: toText(detail?.paymentMode),
+    featureKey: toText(detail?.featureKey || detail?.featureId),
+    reason: toText(detail?.reason || detail?.title),
+    accessType: toText(detail?.accessType),
+  });
+
+  if (status === "checkingEntitlement") return { message: text || "이용권 확인 중입니다.", mode: "pass" };
+  if (status === "hasEntitlement") return { message: text || "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
+  if (status === "opening" || status === "loadingProducts" || status === "readyToPay") {
+    if (kind === "subscription") return { message: text || "월정석 결제 정보를 준비하고 있습니다.", mode: "subscription" };
+    if (kind === "monthly") return { message: text || "월정석 잔량을 확인하고 있습니다.", mode: "monthly" };
+    if (kind === "single") return { message: text || "단건 결제를 준비하고 있습니다.", mode: "card" };
+    if (kind === "unlock") return { message: text || "잠금 해제 준비 중입니다.", mode: "unlock-saving" };
+    return { message: text || "결제창을 열기 전 주문 정보를 확인하고 있습니다.", mode: "checkout" };
   }
   if (status === "paymentProcessing") {
-    const lower = text.toLowerCase();
-    if (/이용권|membership_pass|pass_applied|membership/i.test(lower)) return { message: text || "이용권을 적용하고 있습니다.", mode: "pass" };
-    if (/월정석|monthly|moonstone/.test(lower)) return { message: text || "월정석 잔량을 반영하고 있습니다.", mode: "monthly" };
-    if (/구독|subscription|이용권 결제|플랜/.test(lower)) return { message: text || "달빛 이용권 결제를 확인하고 있습니다.", mode: "subscription" };
-    if (/저장|해금|권한/.test(lower)) return { message: text || "이용 권한을 저장하고 있습니다.", mode: "unlock-saving" };
+    if (kind === "pass") return { message: text || "이용권을 적용하고 있습니다.", mode: "pass" };
+    if (kind === "subscription") return { message: text || "월정석 결제 승인과 활성화를 확인하고 있습니다.", mode: "subscription" };
+    if (kind === "monthly") return { message: text || "월정석 잔량을 반영하고 있습니다.", mode: "monthly" };
+    if (kind === "single") return { message: text || "단건 결제 승인을 확인하고 있습니다.", mode: "confirm" };
+    if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제를 반영하고 있습니다.", mode: "unlock-saving" };
     return { message: text || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: "confirm" };
   }
+  if (status === "paymentSuccess") {
+    if (kind === "subscription") return { message: text || "월정석 활성화가 완료되었습니다.", mode: "payment-complete" };
+    if (kind === "monthly") return { message: text || "월정석으로 콘텐츠 이용 권한을 열었습니다.", mode: "payment-complete" };
+    if (kind === "single") return { message: text || "단건 결제와 이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
+    if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제가 완료되었습니다.", mode: "payment-complete" };
+    return { message: text || "이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
+  }
+  if (status === "paymentFailed" || status === "error") return { message: text || "결제 확인에 실패했습니다. 결제 내역을 확인한 뒤 다시 시도해 주세요.", mode: "confirm" };
   return { message: text || "결제 상태를 안전하게 확인하고 있습니다.", mode: "payment" };
+}
+
+function resolvePaidFeatureOverlay(status: string, message?: string, detail?: Record<string, unknown>) {
+  return resolvePaymentWaitOverlay(status, message, detail);
 }
 
 function emitPaymentLoadingState(open: boolean, message?: string, mode?: string) {
@@ -397,7 +437,7 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
   } catch (_) {}
   const runtimeWindow = window as RuntimeApiWindow;
   if (action !== "close" && paymentLoadingOwnsPaidFeatureStatus(status)) {
-    const overlay = resolvePaidFeatureOverlay(status, overlayMessage);
+    const overlay = resolvePaidFeatureOverlay(status, overlayMessage, payload as Record<string, unknown>);
     emitPaymentLoadingState(true, overlay.message, overlay.mode);
     runtimeWindow.__cdPaidFeatureGate?.close?.(payload.requestId);
     if (status === "hasEntitlement" || status === "paymentSuccess") {
@@ -448,7 +488,7 @@ export function openPaidFeatureGate(input: {
     featureKey: featureId,
     requestId,
     title: input.title,
-    message: input.message || "이용권을 적용하고 있습니다.",
+    message: input.message || "이용권 확인 중입니다.",
     status: input.status || "checkingEntitlement",
     cost: input.cost,
   });
@@ -648,13 +688,16 @@ export async function runBillingCoinGate(input: {
     featureKey: featureId,
     requestId: gateRequestId,
     status: "checkingEntitlement",
-    message: "이용권을 적용하고 있습니다.",
+    message: "이용권 확인 중입니다.",
+    paymentMode: input.paymentMode,
+    reason: input.reason,
   });
 
   const requestPromise = (async () => {
     const requestedMode = toText(input.paymentMode).toUpperCase();
     const explicitPassMode = requestedMode === "MEMBERSHIP_PASS";
-    const eligibilityResult = explicitPassMode
+    const explicitPaymentMode = explicitPassMode || requestedMode === "MONTHLY_CREDIT" || requestedMode === "DIRECT_KRW";
+    const eligibilityResult = explicitPaymentMode
       ? null
       : await fetchPaymentEligibility({
         categoryKey: input.categoryKey,
@@ -665,25 +708,37 @@ export async function runBillingCoinGate(input: {
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
     const passFirstEligible = explicitPassMode || eligibility?.pass.canUse === true;
     if (eligibility) {
+      const eligibilityOverlay = resolvePaymentWaitOverlay(
+        eligibility.pass.canUse ? "checkingEntitlement" : "loadingProducts",
+        undefined,
+        { paymentMode: requestedMode, featureKey: featureId, reason: input.reason },
+      );
       emitPaidFeatureGate("update", {
         featureId,
         featureKey: featureId,
         requestId: gateRequestId,
-        status: eligibility.pass.canUse ? "checkingEntitlement" : "readyToPay",
-        message: eligibility.pass.canUse
-          ? "이용권을 적용하고 있습니다."
-          : "결제 가능한 수단을 확인했습니다.",
+        status: eligibility.pass.canUse ? "checkingEntitlement" : "loadingProducts",
+        message: eligibilityOverlay.message,
         cost: eligibility.coinCost,
+        paymentMode: requestedMode,
+        reason: input.reason,
       });
     }
 
     markPaidAttemptPaymentRequested();
+    const processingOverlay = resolvePaymentWaitOverlay("paymentProcessing", undefined, {
+      paymentMode: passFirstEligible ? "MEMBERSHIP_PASS" : requestedMode,
+      featureKey: featureId,
+      reason: input.reason,
+    });
     emitPaidFeatureGate("update", {
       featureId,
       featureKey: featureId,
       requestId: gateRequestId,
       status: "paymentProcessing",
-      message: passFirstEligible ? "이용권을 적용하고 있습니다." : "결제 승인과 이용 권한을 확인하고 있습니다.",
+      message: processingOverlay.message,
+      paymentMode: passFirstEligible ? "MEMBERSHIP_PASS" : requestedMode,
+      reason: input.reason,
     });
 
     const response = await authFetchBilling("/api/billing/coin-gate", {
@@ -736,13 +791,22 @@ export async function runBillingCoinGate(input: {
       const consume = asRecord(parsed.data.consume);
       const accessType = toText(consume?.accessType);
       const passApplied = passFirstEligible || accessType === "membership_pass" || accessType === "already_unlocked";
+      const successOverlay = resolvePaymentWaitOverlay(passApplied ? "hasEntitlement" : "paymentSuccess", undefined, {
+        paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
+        featureKey: featureId,
+        reason: input.reason,
+        accessType,
+      });
       emitPaidFeatureGate("update", {
         featureId,
         featureKey: featureId,
         requestId: gateRequestId,
         status: passApplied ? "hasEntitlement" : "paymentSuccess",
-        message: passApplied ? "이용권 적용이 완료되었습니다." : "이용 권한 저장이 완료되었습니다.",
+        message: successOverlay.message,
         cost: parsed.data.pricing?.cost,
+        paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
+        reason: input.reason,
+        accessType,
       });
     } else {
       const code = String(parsed.error?.code || "").toUpperCase();

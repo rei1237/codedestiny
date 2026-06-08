@@ -67,6 +67,11 @@ function clampInt(rawValue, fallback, min, max) {
   return Math.max(min, Math.min(max, normalized));
 }
 
+function isTruthyLike(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "on" || normalized === "yes";
+}
+
 function sleep(ms) {
   const wait = Number(ms);
   if (!Number.isFinite(wait) || wait <= 0) return Promise.resolve();
@@ -115,7 +120,9 @@ export async function connectDb(env = {}) {
   const familyCandidates = (() => {
     if (Number.isFinite(explicitIpFamily) && explicitIpFamily === 0) return [0];
     if (Number.isFinite(explicitIpFamily) && (explicitIpFamily === 4 || explicitIpFamily === 6)) {
-      return [explicitIpFamily, 0];
+      return isTruthyLike(getEnv(env, "MONGO_IP_FAMILY_AUTO_FALLBACK"))
+        ? [explicitIpFamily, 0]
+        : [explicitIpFamily];
     }
     return [4, 0];
   })();

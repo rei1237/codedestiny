@@ -1,36 +1,241 @@
-import { handleAuthRoutes } from "./routes/auth.js";
-import { handleAdminRoutes } from "./routes/admin.js";
-import { handleFortuneRoutes } from "./routes/fortune.js";
-import { handleTarotRoutes } from "./routes/tarot.js";
-import { handleCelestialHarmonyRoutes } from "./routes/celestial-harmony.js";
-import { handleYoutubeRoutes } from "./routes/youtube.js";
-import { handlePaymentRoutes } from "./routes/payments.js";
-import { handleSajuLifebookRoutes } from "./routes/saju-lifebook.js";
-import { handleSajuLoveSecretRoutes } from "./routes/saju-love-secret.js";
-import { handleSajuNewYearRoutes } from "./routes/saju-new-year.js";
-import { handleZiweiBookRoutes } from "./routes/ziwei-book.js";
-import { handleDreamRoutes } from "./routes/dream.js";
-import { handleDebugRoutes } from "./routes/debug.js";
-import { handleYogaGuruRoutes } from "./routes/yoga-guru.js";
-import { handleSibylRoutes } from "./routes/sibyl.js";
-import { handleOracleRoutes } from "./routes/oracle.js";
-import { handleKasiRoutes } from "./routes/kasi.js";
-import { handleUserRoutes } from "./routes/user.js";
-import { handleProfileRoutes } from "./routes/profile.js";
-import { handleSubscriptionRoutes } from "./routes/subscriptions.js";
-import { handleAstroRoutes } from "./routes/astro.js";
-import { handleSukuyoRoutes } from "./routes/sukuyo.js";
-import { handleSoulOriginRoutes } from "./routes/soul-origin.js";
-import { handleInsightsRoutes } from "./routes/insights.js";
-import { handleContentRoutes } from "./routes/content.js";
-import { handlePalmRoutes } from "./routes/palm.js";
-import { handleDestinyBiasRoutes } from "./routes/destiny-bias.js";
-import { handleBillingRoutes } from "./routes/billing.js";
-import { handleAccessRoutes } from "./routes/access.js";
-import { handleRpgRoutes } from "./routes/rpg.js";
-import { handleFptiRoutes } from "./routes/fpti.js";
-import { buildRuntimeKeyMatrix } from "./lib/key-health.js";
 import { getEnv } from "./lib/env.js";
+
+const ROUTE_METRICS_STATE = {
+  byRoute: Object.create(null),
+  total: 0,
+};
+
+const ROUTE_METRIC_FLUSH_EVERY = 500;
+const RUNTIME_KEY_MATRIX_CACHE_TTL_MS = 30000;
+const RUNTIME_KEY_MATRIX_CACHE = {
+  expiresAt: 0,
+  value: null,
+};
+
+let runtimeKeyMatrixModulePromise = null;
+
+function isTruthyLike(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "on" || normalized === "yes";
+}
+
+function nowMs() {
+  if (typeof performance !== "undefined" && typeof performance.now === "function") {
+    return performance.now();
+  }
+
+  return Date.now();
+}
+
+function shouldCollectRouteMetrics(env) {
+  if (!env) return false;
+  return isTruthyLike(getEnv(env, "WORKER_ROUTE_METRICS")) || isTruthyLike(getEnv(env, "WORKER_ROUTE_TRACE"));
+}
+
+function recordRouteMetrics(routeName, durationMs, statusCode = 200, errored = false) {
+  const target = String(routeName || "unknown").trim() || "unknown";
+  const normalizedCode = Number.isFinite(Number(statusCode)) ? Number(statusCode) : 500;
+  const stats = ROUTE_METRICS_STATE.byRoute[target] || {
+    count: 0,
+    totalMs: 0,
+    minMs: Infinity,
+    maxMs: 0,
+    errors: 0,
+    lastMs: 0,
+  };
+  const rawMs = Number(durationMs);
+  const ms = Number.isFinite(rawMs) ? Math.max(0, rawMs) : 0;
+
+  stats.count += 1;
+  stats.totalMs += ms;
+  stats.lastMs = ms;
+  if (ms < stats.minMs) stats.minMs = ms;
+  if (ms > stats.maxMs) stats.maxMs = ms;
+  if (errored || normalizedCode >= 500) stats.errors += 1;
+
+  ROUTE_METRICS_STATE.byRoute[target] = stats;
+  ROUTE_METRICS_STATE.total += 1;
+
+  if (!ROUTE_METRICS_STATE.lastFlushAt) ROUTE_METRICS_STATE.lastFlushAt = 0;
+  if ((ROUTE_METRICS_STATE.total % ROUTE_METRIC_FLUSH_EVERY) === 0) {
+    const now = Date.now();
+    if (now - ROUTE_METRICS_STATE.lastFlushAt >= 30000) {
+      ROUTE_METRICS_STATE.lastFlushAt = now;
+      console.log("[worker-route-metrics]", JSON.stringify({
+        totalRequests: ROUTE_METRICS_STATE.total,
+        activeRoutes: Object.keys(ROUTE_METRICS_STATE.byRoute).length,
+      }));
+    }
+  }
+}
+
+async function runWithRouteMetrics(routeName, env, task, metricsEnabled = shouldCollectRouteMetrics(env)) {
+  if (!metricsEnabled) {
+    return task();
+  }
+
+  const startedAt = nowMs();
+  let statusCode = 200;
+  let errored = false;
+
+  try {
+    const response = await task();
+    statusCode = Number(response?.status) || 200;
+    return response;
+  } catch (error) {
+    errored = true;
+    statusCode = 500;
+    throw error;
+  } finally {
+    recordRouteMetrics(routeName, nowMs() - startedAt, statusCode, errored);
+  }
+}
+
+function normalizeRouteMetricBuckets() {
+  const buckets = Object.entries(ROUTE_METRICS_STATE.byRoute).map(([route, metric]) => {
+    const count = Number(metric?.count || 0);
+    const totalMs = Number(metric?.totalMs || 0);
+    return {
+      route,
+      count,
+      errors: Number(metric?.errors || 0),
+      avgMs: count > 0 ? Math.round(totalMs / count * 100) / 100 : 0,
+      minMs: Number.isFinite(Number(metric?.minMs)) ? Number(metric?.minMs) : 0,
+      maxMs: Number(metric?.maxMs || 0),
+      lastMs: Number(metric?.lastMs || 0),
+    };
+  });
+
+  buckets.sort((a, b) => b.count - a.count || b.avgMs - a.avgMs);
+  return {
+    total: ROUTE_METRICS_STATE.total,
+    routes: buckets,
+  };
+}
+
+function normalizeRouteMetricName(routeName) {
+  const normalized = String(routeName || "")
+    .trim()
+    .toLowerCase()
+    .replace(/^\/+/, "");
+  if (!normalized) return "";
+  return normalized.startsWith("api/") ? normalized : `api/${normalized}`;
+}
+
+function routeMetricNameFromModulePath(modulePath) {
+  const fileName = String(modulePath || "")
+    .split("/")
+    .pop()
+    .replace(/\.js$/i, "")
+    .trim()
+    .toLowerCase();
+  if (!fileName) return "";
+  return normalizeRouteMetricName(fileName);
+}
+
+function routeMetricNameFromExportName(exportName) {
+  const raw = String(exportName || "").replace(/^handle/, "").replace(/Routes?$/, "");
+  if (!raw) return "";
+  return normalizeRouteMetricName(
+    raw.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase(),
+  );
+}
+
+function hasRouteMetricsToken(request, env) {
+  const token = String(getEnv(env, "WORKER_ROUTE_METRICS_TOKEN") || "").trim();
+  if (!token) return true;
+
+  const headerToken = request.headers.get("x-cd-route-metrics-token") || "";
+  const bearer = request.headers.get("authorization") || "";
+  const bearerToken = bearer.startsWith("Bearer ") ? bearer.slice(7).trim() : "";
+  return headerToken === token || bearerToken === token;
+}
+
+function createLazyRouteHandler(modulePath, loadModule, exportName, routeNameOverride) {
+  let modulePromise = null;
+  const metricRouteName = normalizeRouteMetricName(
+    routeNameOverride || routeMetricNameFromModulePath(modulePath) || routeMetricNameFromExportName(exportName),
+  );
+
+  return async (...args) => {
+    const env = args[1] || {};
+
+    if (!modulePromise) {
+      modulePromise = loadModule().catch((error) => {
+        modulePromise = null;
+        throw error;
+      });
+    }
+
+    const executeHandler = async () => {
+      const moduleExports = await modulePromise;
+      const handler = moduleExports?.[exportName];
+      if (typeof handler !== "function") {
+        throw new Error(`[worker-route-loader] Missing handler ${exportName} in ${modulePath}`);
+      }
+      return handler(...args);
+    };
+
+    const metricsEnabled = shouldCollectRouteMetrics(env);
+    if (!metricsEnabled) {
+      return executeHandler();
+    }
+
+    return runWithRouteMetrics(metricRouteName, env, executeHandler, metricsEnabled);
+  };
+}
+
+const handleAuthRoutes = createLazyRouteHandler("./routes/auth.js", () => import("./routes/auth.js"), "handleAuthRoutes");
+const handleAdminRoutes = createLazyRouteHandler("./routes/admin.js", () => import("./routes/admin.js"), "handleAdminRoutes");
+const handleFortuneRoutes = createLazyRouteHandler("./routes/fortune.js", () => import("./routes/fortune.js"), "handleFortuneRoutes");
+const handleTarotRoutes = createLazyRouteHandler("./routes/tarot.js", () => import("./routes/tarot.js"), "handleTarotRoutes");
+const handleCelestialHarmonyRoutes = createLazyRouteHandler("./routes/celestial-harmony.js", () => import("./routes/celestial-harmony.js"), "handleCelestialHarmonyRoutes");
+const handleYoutubeRoutes = createLazyRouteHandler("./routes/youtube.js", () => import("./routes/youtube.js"), "handleYoutubeRoutes");
+const handlePaymentRoutes = createLazyRouteHandler("./routes/payments.js", () => import("./routes/payments.js"), "handlePaymentRoutes", "payments");
+const handleSajuLifebookRoutes = createLazyRouteHandler("./routes/saju-lifebook.js", () => import("./routes/saju-lifebook.js"), "handleSajuLifebookRoutes");
+const handleSajuLoveSecretRoutes = createLazyRouteHandler("./routes/saju-love-secret.js", () => import("./routes/saju-love-secret.js"), "handleSajuLoveSecretRoutes");
+const handleSajuNewYearRoutes = createLazyRouteHandler("./routes/saju-new-year.js", () => import("./routes/saju-new-year.js"), "handleSajuNewYearRoutes");
+const handleZiweiBookRoutes = createLazyRouteHandler("./routes/ziwei-book.js", () => import("./routes/ziwei-book.js"), "handleZiweiBookRoutes");
+const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => import("./routes/dream.js"), "handleDreamRoutes");
+const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => import("./routes/debug.js"), "handleDebugRoutes");
+const handleYogaGuruRoutes = createLazyRouteHandler("./routes/yoga-guru.js", () => import("./routes/yoga-guru.js"), "handleYogaGuruRoutes");
+const handleSibylRoutes = createLazyRouteHandler("./routes/sibyl.js", () => import("./routes/sibyl.js"), "handleSibylRoutes");
+const handleOracleRoutes = createLazyRouteHandler("./routes/oracle.js", () => import("./routes/oracle.js"), "handleOracleRoutes");
+const handleKasiRoutes = createLazyRouteHandler("./routes/kasi.js", () => import("./routes/kasi.js"), "handleKasiRoutes");
+const handleUserRoutes = createLazyRouteHandler("./routes/user.js", () => import("./routes/user.js"), "handleUserRoutes");
+const handleProfileRoutes = createLazyRouteHandler("./routes/profile.js", () => import("./routes/profile.js"), "handleProfileRoutes");
+const handleSubscriptionRoutes = createLazyRouteHandler("./routes/subscriptions.js", () => import("./routes/subscriptions.js"), "handleSubscriptionRoutes");
+const handleAstroRoutes = createLazyRouteHandler("./routes/astro.js", () => import("./routes/astro.js"), "handleAstroRoutes");
+const handleSukuyoRoutes = createLazyRouteHandler("./routes/sukuyo.js", () => import("./routes/sukuyo.js"), "handleSukuyoRoutes");
+const handleSoulOriginRoutes = createLazyRouteHandler("./routes/soul-origin.js", () => import("./routes/soul-origin.js"), "handleSoulOriginRoutes");
+const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
+const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
+const handlePalmRoutes = createLazyRouteHandler("./routes/palm.js", () => import("./routes/palm.js"), "handlePalmRoutes");
+const handleDestinyBiasRoutes = createLazyRouteHandler("./routes/destiny-bias.js", () => import("./routes/destiny-bias.js"), "handleDestinyBiasRoutes");
+const handleBillingRoutes = createLazyRouteHandler("./routes/billing.js", () => import("./routes/billing.js"), "handleBillingRoutes");
+const handleAccessRoutes = createLazyRouteHandler("./routes/access.js", () => import("./routes/access.js"), "handleAccessRoutes");
+const handleRpgRoutes = createLazyRouteHandler("./routes/rpg.js", () => import("./routes/rpg.js"), "handleRpgRoutes");
+const handleFptiRoutes = createLazyRouteHandler("./routes/fpti.js", () => import("./routes/fpti.js"), "handleFptiRoutes");
+
+const getRuntimeKeyMatrix = async (env, forceRefresh = false) => {
+  const now = Date.now();
+  if (!forceRefresh && RUNTIME_KEY_MATRIX_CACHE.value && RUNTIME_KEY_MATRIX_CACHE.expiresAt > now) {
+    return RUNTIME_KEY_MATRIX_CACHE.value;
+  }
+
+  if (!runtimeKeyMatrixModulePromise) {
+    runtimeKeyMatrixModulePromise = import("./lib/key-health.js").catch((error) => {
+      runtimeKeyMatrixModulePromise = null;
+      throw error;
+    });
+  }
+
+  const { buildRuntimeKeyMatrix } = await runtimeKeyMatrixModulePromise;
+  const value = buildRuntimeKeyMatrix(env);
+  RUNTIME_KEY_MATRIX_CACHE.value = value;
+  RUNTIME_KEY_MATRIX_CACHE.expiresAt = now + RUNTIME_KEY_MATRIX_CACHE_TTL_MS;
+  return value;
+};
 
 /**
  * Code Destiny API Worker.
@@ -455,74 +660,135 @@ export default {
       }
 
       if (url.pathname === "/api/health") {
-        const upstreamOrigin = getUpstreamOrigin(env);
-        const keyMatrix = buildRuntimeKeyMatrix(env);
-        const brokenFeatures = keyMatrix
-          .filter((item) => !item.ok)
-          .map((item) => item.feature);
-        return jsonResponse(request, env, {
-          ok: true,
-          service: "code-destiny-api-worker",
-          mode: "worker-native",
-          backendOnly: true,
-          nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "oracle", "kasi", "astro", "vedic", "soul-origin", "palm", "destiny-bias", "geo"],
-          fallbackProxyMode: upstreamOrigin
-            ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
-            : "disabled",
-          upstreamConfigured: Boolean(upstreamOrigin),
-          keyHealth: {
-            ok: brokenFeatures.length === 0,
-            brokenFeatures,
-            checkEndpoint: "/api/admin/keys",
-          },
-          legacyMode:
-            upstreamOrigin
-              ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "proxy")
-              : "not_configured",
+        return runWithRouteMetrics("api/health", env, async () => {
+          const upstreamOrigin = getUpstreamOrigin(env);
+          const keyMatrix = await getRuntimeKeyMatrix(env, url.searchParams.get("refresh") === "1");
+          const brokenFeatures = keyMatrix
+            .filter((item) => !item.ok)
+            .map((item) => item.feature);
+          return jsonResponse(request, env, {
+            ok: true,
+            service: "code-destiny-api-worker",
+            mode: "worker-native",
+            backendOnly: true,
+            nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-book", "lifebook", "love-secret", "dream", "yoga-guru", "sibyl", "oracle", "kasi", "astro", "vedic", "soul-origin", "palm", "destiny-bias", "geo"],
+            fallbackProxyMode: upstreamOrigin
+              ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
+              : "disabled",
+            upstreamConfigured: Boolean(upstreamOrigin),
+            routeMetrics: {
+              enabled: shouldCollectRouteMetrics(env),
+              endpoint: "/api/health/route-metrics",
+            },
+            keyHealth: {
+              ok: brokenFeatures.length === 0,
+              brokenFeatures,
+              checkEndpoint: "/api/admin/keys",
+            },
+            legacyMode:
+              upstreamOrigin
+                ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "proxy")
+                : "not_configured",
+          });
         });
       }
 
       if (url.pathname === "/api/health/auth-env") {
-        const mongoUriConfigured = resolveHealthBool(env, ["MONGO_URI", "MONGODB_URI"]);
-        const mongoDbNameConfigured = resolveHealthBool(env, ["MONGO_DB_NAME", "MONGO_NAME", "MONGODB_DB_NAME"]);
-        const jwtSecretConfigured = resolveHealthBool(env, ["JWT_SECRET", "AUTH_SECRET", "NEXTAUTH_SECRET"]);
+        return runWithRouteMetrics("api/health/auth-env", env, () => {
+          const mongoUriConfigured = resolveHealthBool(env, ["MONGO_URI", "MONGODB_URI"]);
+          const mongoDbNameConfigured = resolveHealthBool(env, ["MONGO_DB_NAME", "MONGO_NAME", "MONGODB_DB_NAME"]);
+          const jwtSecretConfigured = resolveHealthBool(env, ["JWT_SECRET", "AUTH_SECRET", "NEXTAUTH_SECRET"]);
 
-        return jsonResponse(request, env, {
-          ok: true,
-          service: "code-destiny-api-worker",
-          authEnv: {
-            mongoUriConfigured,
-            mongoDbNameConfigured,
-            jwtSecretConfigured,
-          },
+          return jsonResponse(request, env, {
+            ok: true,
+            service: "code-destiny-api-worker",
+            authEnv: {
+              mongoUriConfigured,
+              mongoDbNameConfigured,
+              jwtSecretConfigured,
+            },
+          });
+        });
+      }
+
+      if (url.pathname === "/api/health/route-metrics") {
+        return runWithRouteMetrics("api/health/route-metrics", env, () => {
+          if (request.method !== "GET") {
+            return jsonResponse(request, env, {
+              ok: false,
+              error: "method_not_allowed",
+              message: "Only GET is allowed for route metrics.",
+            }, { status: 405 });
+          }
+
+          const metricsEnabled = shouldCollectRouteMetrics(env);
+          if (!hasRouteMetricsToken(request, env)) {
+            return jsonResponse(request, env, {
+              ok: false,
+              error: "forbidden",
+              message: "Route metrics token required.",
+            }, { status: 401 });
+          }
+
+          const metricPayload = normalizeRouteMetricBuckets();
+          const top = Math.min(Math.max(parseInt(url.searchParams.get("top") || "50", 10), 1), 200);
+          const queryRoute = String(url.searchParams.get("route") || "").trim().toLowerCase();
+          const sort = String(url.searchParams.get("sort") || "count").trim().toLowerCase();
+
+          const filteredRoutes = queryRoute
+            ? metricPayload.routes.filter((item) => item.route.includes(queryRoute))
+            : metricPayload.routes;
+
+          const sortableRoutes = [...filteredRoutes].sort((a, b) => {
+            if (sort === "avg" || sort === "avgms" || sort === "avg_ms") return b.avgMs - a.avgMs;
+            if (sort === "min") return a.minMs - b.minMs;
+            if (sort === "max") return b.maxMs - a.maxMs;
+            if (sort === "errors") return b.errors - a.errors;
+            if (sort === "route") return String(a.route).localeCompare(String(b.route));
+            return b.count - a.count;
+          });
+
+          return jsonResponse(request, env, {
+            ok: true,
+            enabled: metricsEnabled,
+            endpoint: "/api/health/route-metrics",
+            total: metricPayload.total,
+            routes: sortableRoutes.slice(0, top),
+            routeCount: sortableRoutes.length,
+            updatedAt: new Date().toISOString(),
+          });
         });
       }
 
       if (url.pathname === "/api/geo") {
-        const country = detectCountry(request);
-        return jsonResponse(request, env, {
-          ok: true,
-          country,
-          locale: detectLocale(country),
+        return runWithRouteMetrics("api/geo", env, () => {
+          const country = detectCountry(request);
+          return jsonResponse(request, env, {
+            ok: true,
+            country,
+            locale: detectLocale(country),
+          });
         });
       }
 
       if (url.pathname === "/api/version") {
-        return jsonResponse(request, env, buildVersionPayload(env));
+        return runWithRouteMetrics("api/version", env, () => jsonResponse(request, env, buildVersionPayload(env)));
       }
 
       // Legacy compatibility: 일부 런타임이 /api/status 상태 체크를 사용한다.
       if (url.pathname === "/api/status") {
-        const version = buildVersionPayload(env);
-        const upstreamOrigin = getUpstreamOrigin(env);
-        return jsonResponse(request, env, {
-          ...version,
-          service: "code-destiny-api-worker",
-          mode: "worker-native",
-          backendOnly: true,
-          buildSource: version.source,
-          upstreamConfigured: Boolean(upstreamOrigin),
-          status: "ok",
+        return runWithRouteMetrics("api/status", env, () => {
+          const version = buildVersionPayload(env);
+          const upstreamOrigin = getUpstreamOrigin(env);
+          return jsonResponse(request, env, {
+            ...version,
+            service: "code-destiny-api-worker",
+            mode: "worker-native",
+            backendOnly: true,
+            buildSource: version.source,
+            upstreamConfigured: Boolean(upstreamOrigin),
+            status: "ok",
+          });
         });
       }
 
@@ -657,21 +923,21 @@ export default {
           || url.pathname.startsWith("/api/premium/saju-lifebook/")
         )
       ) {
-        return jsonResponse(request, env, {
+        return runWithRouteMetrics("api/premium", env, () => jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
           message: "프리미엄 통합 PDF 엔드포인트는 제거되었습니다. 인생의 책은 /api/premium/saju-lifebook/prepare 경로를 사용하세요.",
           supported: ["/api/premium/saju-lifebook", "/api/premium/saju-lifebook/prepare", "/api/lifebook", "/api/lifebook/prepare"],
-        }, { status: 410 });
+        }, { status: 410 }));
       }
 
       if (url.pathname === "/api/premium-report" || url.pathname.startsWith("/api/premium-report/")) {
-        return jsonResponse(request, env, {
+        return runWithRouteMetrics("api/premium-report", env, () => jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
           message: "premium-report 엔드포인트는 제거되었습니다. 인생의 책은 /api/premium/saju-lifebook/prepare 경로를 사용하세요.",
           supported: ["/api/premium/saju-lifebook", "/api/premium/saju-lifebook/prepare", "/api/lifebook", "/api/lifebook/prepare"],
-        }, { status: 410 });
+        }, { status: 410 }));
       }
 
       if (url.pathname === "/api/ziwei-book" || url.pathname.startsWith("/api/ziwei-book/")) {
@@ -679,11 +945,11 @@ export default {
       }
 
       if (url.pathname === "/api/ziwei" || url.pathname.startsWith("/api/ziwei/")) {
-        return jsonResponse(request, env, {
+        return runWithRouteMetrics("api/ziwei", env, () => jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
           message: "ziwei PDF 엔드포인트는 제거되었습니다.",
-        }, { status: 410 });
+        }, { status: 410 }));
       }
 
       if (
@@ -738,11 +1004,11 @@ export default {
         || url.pathname === "/api/astro/session"
         || url.pathname === "/api/astro/generate"
       ) {
-        return jsonResponse(request, env, {
+        return runWithRouteMetrics("api/astro", env, () => jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
           message: "astro premium PDF 엔드포인트는 제거되었습니다.",
-        }, { status: 410 });
+        }, { status: 410 }));
       }
 
       if (
@@ -750,11 +1016,11 @@ export default {
         || url.pathname === "/api/vedic/session"
         || url.pathname === "/api/vedic/generate"
       ) {
-        return jsonResponse(request, env, {
+        return runWithRouteMetrics("api/vedic", env, () => jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
           message: "vedic premium PDF 엔드포인트는 제거되었습니다.",
-        }, { status: 410 });
+        }, { status: 410 }));
       }
 
       if (
@@ -793,7 +1059,7 @@ export default {
       }
 
       if (url.pathname.startsWith("/api/")) {
-        return proxyApiRequest(request, env);
+        return runWithRouteMetrics("api/proxy", env, () => proxyApiRequest(request, env));
       }
 
       return jsonResponse(request, env, {
