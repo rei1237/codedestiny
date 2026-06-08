@@ -61,6 +61,37 @@ function nukeAllCachesLegacy() {
   return Promise.all(tasks).catch(function() {});
 }
 
+function isVersionGuardVisibleElement(element) {
+  if (!element) return false;
+  if (element.hidden) return false;
+  if (element.getAttribute && element.getAttribute('aria-hidden') === 'true') return false;
+  try {
+    var style = window.getComputedStyle ? window.getComputedStyle(element) : null;
+    if (style && (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0)) return false;
+  } catch (e) {}
+  return true;
+}
+
+function getSukuyoVersionGuardReason() {
+  var sukuyoModal = document.getElementById('sukuyoModalOverlay');
+  if (isVersionGuardVisibleElement(sukuyoModal)) {
+    var sukuyoCard = document.getElementById('sukuyoCard');
+    var sukuyoSection = document.getElementById('sukuyoSection');
+    var hasResult = isVersionGuardVisibleElement(sukuyoCard)
+      || (sukuyoSection && String(sukuyoSection.textContent || '').trim().length > 20);
+    return hasResult ? '숙요점 결과 열람 중' : '숙요점 열람 중';
+  }
+
+  var sukuyoBookModal = document.getElementById('sukuyoBookModal');
+  if (isVersionGuardVisibleElement(sukuyoBookModal)) {
+    if (isVersionGuardVisibleElement(document.getElementById('skResultScreen'))) return '숙요점 궁합 결과 열람 중';
+    if (isVersionGuardVisibleElement(document.getElementById('skLoadingScreen'))) return '숙요점 궁합 생성 중';
+    return '숙요점 궁합 입력 중';
+  }
+
+  return '';
+}
+
 function isCriticalOperationInProgress() {
   try {
     if (window.__CD_PAYMENT_PROCESSING__) return '결제 처리 중';
@@ -68,6 +99,8 @@ function isCriticalOperationInProgress() {
     if (document && document.body && document.body.dataset && document.body.dataset.cdVersionGuardBusy === '1') {
       return '핵심 작업 진행 중';
     }
+    var sukuyoReason = getSukuyoVersionGuardReason();
+    if (sukuyoReason) return sukuyoReason;
 
     var active = document.activeElement;
     if (active) {

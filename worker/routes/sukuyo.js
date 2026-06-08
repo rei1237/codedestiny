@@ -2,6 +2,8 @@ import { Solar } from "lunar-javascript";
 import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { verifyPremiumAccessToken } from "../lib/premium-access-token.js";
+import { normalizePaidFeatureKey } from "../lib/paid-feature-registry.js";
 import {
   SUKYO_PDF_ALIAS_FEATURE_KEY,
   SUKYO_PDF_CHAPTER_COUNT,
@@ -22,6 +24,7 @@ import {
 } from "../lib/premium-pdf-execution.js";
 
 const SUKUYO_SESSION_LOCK_TTL_MS = 20 * 60 * 1000;
+const SUKYO_COMPAT_TOKEN_MIN_COINS = 490;
 const sukuyoPdfGenerationLocks = new Map();
 
 function clean(value) {
@@ -349,6 +352,80 @@ function buildSukuyoPdfFilename(reportId = "") {
   return `sukyo-premium-${id}.pdf`;
 }
 
+function isSukuyoCompatibilityFeatureKey(value = "") {
+  const raw = clean(value).toLowerCase();
+  const normalized = clean(normalizePaidFeatureKey(value)).toLowerCase();
+  const candidates = [SUKYO_PDF_FEATURE_KEY, SUKYO_PDF_ALIAS_FEATURE_KEY]
+    .flatMap((key) => [clean(key).toLowerCase(), clean(normalizePaidFeatureKey(key)).toLowerCase()]);
+  return Boolean(raw && candidates.includes(raw)) || Boolean(normalized && candidates.includes(normalized));
+}
+
+function isSukuyoReportType(value = "") {
+  return ["sookyoPremium", "sukyoPremium", "sukyo_book"].includes(clean(value));
+}
+
+async function resolveSukuyoSignedTokenAccess(env, userId, premiumAccessToken) {
+  const token = clean(premiumAccessToken);
+  if (!token) return null;
+
+  const tokenCheck = await verifyPremiumAccessToken(token, env, { userId: clean(userId) });
+  if (!tokenCheck?.ok) return null;
+
+  const payload = tokenCheck.payload || {};
+  const tokenFeatureKey = clean(payload.featureKey);
+  const normalizedFeatureKey = clean(normalizePaidFeatureKey(tokenFeatureKey));
+  const reason = clean(payload.reason).replace(/\s+/g, "");
+  const chargedCoins = Math.max(0, Math.abs(Number(payload.chargedCoins || 0)));
+  const transactionId = clean(payload.transactionId);
+  const isCompatFeature = isSukuyoCompatibilityFeatureKey(tokenFeatureKey);
+  const isCoinGateCompat = normalizedFeatureKey === "coin-gate-per-use"
+    && chargedCoins >= SUKYO_COMPAT_TOKEN_MIN_COINS
+    && reason.includes("숙요점")
+    && reason.includes("궁합");
+
+  if (!isSukuyoReportType(payload.reportType) || (!isCompatFeature && !isCoinGateCompat)) return null;
+  if (payload.freeBySubscription !== true && chargedCoins < SUKYO_COMPAT_TOKEN_MIN_COINS && !transactionId) return null;
+
+  return {
+    ok: true,
+    accessType: "signed-payment-token-route",
+    reportType: "sookyoPremium",
+    matchedTransactionId: transactionId,
+    featureKey: isCompatFeature ? tokenFeatureKey : SUKYO_PDF_FEATURE_KEY,
+    chargedCoins,
+    signedTokenFallback: true,
+  };
+}
+
+function buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId) {
+  return {
+    reportId,
+    reportType: "sukyo_book",
+    reportTypeAliases: ["sookyoPremium", "sukyoPremium", "sukyo_book"],
+    displayName: "숙요점",
+    title: `${clean(input?.self?.name || "사용자")} · ${clean(input?.partner?.name || "상대")} 궁합 리포트`,
+    mode: "compatibility",
+    birthName: clean(input?.self?.name),
+    targetName: clean(input?.partner?.name),
+    summary: clean(generated?.chapters?.[0]?.sections?.[0]?.body || "", 1000),
+    pdfUrl: pdfReady.pdfUrl,
+    htmlUrl: pdfReady.htmlUrl,
+    downloadUrl: pdfReady.downloadUrl,
+    chapters: generated.chapters,
+    payload: generated.payload,
+    localSukuyoCompatibilityJson: generated?.payload?.localSukuyoCompatibilityJson || generated?.payload,
+    pdfReady,
+    manuscriptSource: generated.manuscriptSource || "hybrid",
+    llmChapterCount: Number(generated.llmChapterCount || 0),
+    targetLlmChapterCount: Number(generated.targetLlmChapterCount || generated?.payload?.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT),
+    fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
+    localDraftChapterCount: Number(generated.localDraftChapterCount || 0),
+    fallbackUsed: Boolean(generated.fallbackUsed),
+    canReopen: true,
+    canDownload: true,
+  };
+}
+
 function hasCompleteSukuyoChapters(chapters = []) {
   if (!Array.isArray(chapters) || chapters.length !== SUKYO_PDF_CHAPTER_COUNT) return false;
   return chapters.every((chapter, index) => {
@@ -538,15 +615,21 @@ async function handleSukuyoPremiumPrepare(request, env) {
   });
 
   try {
-    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sookyoPremium", {
-      ...body,
-      reportType: "sookyoPremium",
-      mode: "compatibility",
-      reportMode: "compatibility",
-      featureKey,
-      premiumAccessToken: premiumAccessToken || undefined,
-      _accessRoute: "/api/sukuyo/premium/prepare",
-    });
+    const signedTokenAccess = await resolveSukuyoSignedTokenAccess(env, auth.userId, premiumAccessToken);
+    const access = signedTokenAccess || await requirePremiumReportAccess(
+      withPdfFastDbEnv(env),
+      auth.userId,
+      "sookyoPremium",
+      {
+        ...body,
+        reportType: "sookyoPremium",
+        mode: "compatibility",
+        reportMode: "compatibility",
+        featureKey,
+        premiumAccessToken: premiumAccessToken || undefined,
+        _accessRoute: "/api/sukuyo/premium/prepare",
+      },
+    );
 
     if (!access?.ok) {
       sukuyoPdfGenerationLocks.set(sessionId, {
@@ -615,45 +698,43 @@ async function handleSukuyoPremiumPrepare(request, env) {
       });
     }
 
-    const completedExecution = await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
-      chapterCount: generated.chapterCount,
-      manuscriptSource: generated.manuscriptSource || "hybrid",
-      llmChapterCount: Number(generated.llmChapterCount || 0),
-      fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
-      fallbackUsed: Boolean(generated.fallbackUsed),
-      archive: {
-        reportId,
-        reportType: "sukyo_book",
-        reportTypeAliases: ["sookyoPremium", "sukyoPremium", "sukyo_book"],
-        displayName: "숙요점",
-        title: `${clean(input?.self?.name || "사용자")} · ${clean(input?.partner?.name || "상대")} 궁합 리포트`,
-        mode: "compatibility",
-        birthName: clean(input?.self?.name),
-        targetName: clean(input?.partner?.name),
-        summary: clean(generated?.chapters?.[0]?.sections?.[0]?.body || "", 1000),
-        pdfUrl: pdfReady.pdfUrl,
-        htmlUrl: pdfReady.htmlUrl,
-        downloadUrl: pdfReady.downloadUrl,
-        chapters: generated.chapters,
-        payload: generated.payload,
-        localSukuyoCompatibilityJson: generated?.payload?.localSukuyoCompatibilityJson || generated?.payload,
-        pdfReady,
+    const archiveMetadata = buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId);
+    let archiveStatus = "completed";
+    let archiveErrorCode = "";
+    let archiveErrorMessage = "";
+    let completedExecution = null;
+
+    try {
+      completedExecution = await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+        chapterCount: generated.chapterCount,
         manuscriptSource: generated.manuscriptSource || "hybrid",
         llmChapterCount: Number(generated.llmChapterCount || 0),
-        targetLlmChapterCount: Number(generated.targetLlmChapterCount || generated?.payload?.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT),
         fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
-        localDraftChapterCount: Number(generated.localDraftChapterCount || 0),
         fallbackUsed: Boolean(generated.fallbackUsed),
-        canReopen: true,
-        canDownload: true,
-      },
-    });
-    if (!completedExecution?.ok) {
-      throw Object.assign(new Error("숙요점 PDF 완료 저장에 실패했습니다."), {
-        status: 500,
-        code: "SUKUYO_EXECUTION_COMPLETE_FAILED",
+        archive: archiveMetadata,
+      });
+      if (!completedExecution?.ok) {
+        throw Object.assign(new Error("숙요점 PDF 완료 저장에 실패했습니다."), {
+          status: 500,
+          code: "SUKUYO_EXECUTION_COMPLETE_FAILED",
+        });
+      }
+    } catch (completionError) {
+      archiveStatus = "pending";
+      archiveErrorCode = clean(completionError?.code || "SUKUYO_ARCHIVE_PENDING");
+      archiveErrorMessage = clean(completionError?.message || "숙요점 PDF 저장소 연결이 지연되고 있습니다.");
+      console.warn("[SukuyoPremiumPDF][ArchivePending]", {
+        reportId,
+        sessionId,
+        code: archiveErrorCode,
+        message: archiveErrorMessage,
       });
     }
+
+    pdfReady.archiveStatus = archiveStatus;
+    pdfReady.archivePending = archiveStatus !== "completed";
+    pdfReady.archiveErrorCode = archiveErrorCode || undefined;
+    pdfReady.canDownload = true;
 
     const responseBody = {
       ok: true,
@@ -676,6 +757,11 @@ async function handleSukuyoPremiumPrepare(request, env) {
       fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
       fallbackUsed: Boolean(generated.fallbackUsed),
       manuscriptSource: generated.manuscriptSource || "hybrid",
+      archiveStatus,
+      archivePending: archiveStatus !== "completed",
+      archiveErrorCode: archiveErrorCode || undefined,
+      archiveErrorMessage: archiveErrorMessage || undefined,
+      completedExecutionStored: archiveStatus === "completed",
       reportId,
       chapters: generated.chapters,
       payload: generated.payload,

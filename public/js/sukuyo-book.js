@@ -195,13 +195,25 @@
       var found = _clean(payload[keys[i]]);
       if (found) return found;
     }
-    return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
+    var nestedKeys = ['data', 'payload', 'accessGrant', 'consume', 'payment', '_paymentContext'];
+    for (var j = 0; j < nestedKeys.length; j += 1) {
+      var nested = payload[nestedKeys[j]];
+      if (nested && nested !== payload) {
+        var nestedToken = _extractPremiumToken(nested);
+        if (nestedToken) return nestedToken;
+      }
+    }
+    return '';
   }
 
   function _extractAccessGrant(payload) {
     if (!payload || typeof payload !== 'object') return null;
     if (payload.accessGrant && typeof payload.accessGrant === 'object') return payload.accessGrant;
-    return _extractAccessGrant(payload.data) || _extractAccessGrant(payload.payload) || _extractAccessGrant(payload.consume);
+    return _extractAccessGrant(payload.data)
+      || _extractAccessGrant(payload.payload)
+      || _extractAccessGrant(payload.consume)
+      || _extractAccessGrant(payload.payment)
+      || _extractAccessGrant(payload._paymentContext);
   }
 
   function _normalizePremiumPayment(transactionId, payload) {
@@ -623,6 +635,10 @@
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
     var reportId = _clean(p.reportId || ready.reportId);
     var archiveUrl = _buildSukuyoArchiveUrl(reportId, 'pdf');
+    var archivePending = p.archivePending === true
+      || ready.archivePending === true
+      || _clean(p.archiveStatus || ready.archiveStatus) === 'pending';
+    if (archivePending && _clean(ready.html)) return 'inline:sukuyo-pdf';
     return _clean(
       p.downloadUrl
       || p.pdfUrl
@@ -1772,6 +1788,10 @@
       || htmlUrl
     );
     var canDownload = Boolean(_resultPayload && _resultPayload.canDownload);
+    var inlineHtml = _clean(ready.html);
+    var archivePending = _resultPayload && _resultPayload.archivePending === true
+      || ready.archivePending === true
+      || _clean(_resultPayload && _resultPayload.archiveStatus || ready.archiveStatus) === 'pending';
 
     console.log('[SukuyoPremiumPDF][DownloadClick]', {
       reportId: reportId,
@@ -1779,7 +1799,24 @@
       downloadUrl: downloadUrl,
       htmlUrl: htmlUrl,
       canDownload: canDownload,
+      archivePending: archivePending,
     });
+
+    if (archivePending && inlineHtml) {
+      var pendingBlob = new Blob([ready.html], { type: 'text/html;charset=utf-8' });
+      var pendingBlobUrl = URL.createObjectURL(pendingBlob);
+      var pendingAnchor = document.createElement('a');
+      pendingAnchor.href = pendingBlobUrl;
+      pendingAnchor.target = '_blank';
+      pendingAnchor.rel = 'noopener noreferrer';
+      pendingAnchor.download = (reportId ? ('sukyo-premium-' + reportId + '.html') : 'sukyo-premium-report.html');
+      document.body.appendChild(pendingAnchor);
+      pendingAnchor.click();
+      pendingAnchor.remove();
+      setTimeout(function () { URL.revokeObjectURL(pendingBlobUrl); }, 1500);
+      _showSukuyoToast('숙요점 궁합 PDF 원고를 다운로드했습니다. 저장 링크는 자동으로 다시 정리됩니다.');
+      return;
+    }
 
     if (downloadUrl) {
       var isPdfDownload = /\.pdf(?:$|[?#])/i.test(downloadUrl) || /format=pdf(?:$|&)/i.test(downloadUrl);
@@ -1809,7 +1846,6 @@
       return;
     }
 
-    var inlineHtml = _clean(ready.html);
     if (inlineHtml) {
       var blob = new Blob([ready.html], { type: 'text/html;charset=utf-8' });
       var blobUrl = URL.createObjectURL(blob);
