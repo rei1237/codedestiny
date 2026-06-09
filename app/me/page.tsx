@@ -89,6 +89,14 @@ type ProfileActionDraft = {
   birthTime: string;
 };
 
+type ProfileCreateDraft = ProfileActionDraft & {
+  calType: "solar" | "lunar" | "lunar_leap";
+  locationLabel: string;
+  longitude: string;
+  latitude: string;
+  timezone: string;
+};
+
 type PortOnePaymentResponse = {
   paymentId?: string;
   transactionType?: string;
@@ -181,7 +189,7 @@ function profileActionProgressLabel(action: ProfileActionType, stage: ProfileAct
 }
 
 
-function buildProfileActionRequestId(action: ProfileActionType, profileId: string) {
+function buildProfileActionRequestId(action: ProfileActionType | "create", profileId: string) {
   return `profile-card:${action}:${profileId}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`.slice(0, 120);
 }
 
@@ -216,11 +224,25 @@ function buildEditDraft(profile: DestinyProfile): ProfileActionDraft {
   };
 }
 
+function buildCreateDraft(): ProfileCreateDraft {
+  return {
+    name: "",
+    gender: "OTHER",
+    birthDate: "",
+    birthTime: "00:00",
+    calType: "solar",
+    locationLabel: "",
+    longitude: "127.0",
+    latitude: "37.5",
+    timezone: "Asia/Seoul",
+  };
+}
+
 function buildPortOneCustomer(user: AuthUser | null, paymentId: string) {
   const merged = { ...((readSanitizedAuthUser() as AuthUser | null) || {}), ...(user || {}) } as AuthUser;
   const email = String(merged.email || "").trim();
   if (!/^[^@\s]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    throw new Error("??棺堉?뤃?????????????????μ떜媛?걫?筌뚮챶夷???轅붽틓??????????????⑹름??????뭽??");
+    throw new Error("결제 진행에 필요한 이메일 정보를 확인해 주세요.");
   }
   return {
     customerId: String(merged.id || merged.userId || merged.uid || merged._id || paymentId).trim(),
@@ -231,7 +253,7 @@ function buildPortOneCustomer(user: AuthUser | null, paymentId: string) {
 
 function mapPaymentErrorMessage(message?: string) {
   const text = String(message || "").trim();
-  return text || "??棺堉?뤃???傭?끆??????? ?????諛몃마???? ?????繹먮굝???????";
+  return text || "결제가 취소되었거나 완료되지 않았습니다.";
 }
 
 function readCachedUser(): AuthUser | null {
@@ -276,7 +298,7 @@ function planLabel(tier: ProfileSubscription["tier"]) {
 function formatMonthlyStoneBalance(monthlyCredits?: number) {
   const value = Number(monthlyCredits || 0);
   const safeValue = Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
-  return `${safeValue.toLocaleString("ko-KR")} ??? ??`;
+  return `${safeValue.toLocaleString("ko-KR")} 월정석`;
 }
 
 function fallbackSubscription(): ProfileSubscription {
@@ -295,9 +317,9 @@ function emitDestinyProfileChanged(profiles: DestinyProfile[], currentId: string
 }
 
 function formatArchiveDate(raw?: string) {
-  if (!raw) return "?? ?? ??";
+  if (!raw) return "날짜 없음";
   const date = new Date(raw);
-  if (Number.isNaN(date.getTime())) return "?? ?? ??";
+  if (Number.isNaN(date.getTime())) return "날짜 없음";
   return new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
     month: "2-digit",
@@ -311,9 +333,9 @@ function formatArchiveDate(raw?: string) {
 
 function modeLabel(mode?: string) {
   const token = String(mode || "").toLowerCase();
-  if (token.includes("compat") || token.includes("couple")) return "????嚥싲갭횧???";
-  if (token.includes("solo")) return "??";
-  return "??";
+  if (token.includes("compat") || token.includes("couple")) return "궁합";
+  if (token.includes("solo")) return "개인";
+  return "운세";
 }
 
 export default function MePage() {
@@ -343,6 +365,8 @@ export default function MePage() {
     birthDate: "",
     birthTime: "00:00",
   });
+  const [isCreateProfileOpen, setIsCreateProfileOpen] = useState(false);
+  const [createDraft, setCreateDraft] = useState<ProfileCreateDraft>(buildCreateDraft());
   const [deleteTarget, setDeleteTarget] = useState<DestinyProfile | null>(null);
   const [profileActionStage, setProfileActionStage] = useState<ProfileActionStage>("");
   const [profilePassSuccessNotice, setProfilePassSuccessNotice] = useState<ProfilePassSuccessNotice>(null);
@@ -353,12 +377,12 @@ export default function MePage() {
   const currentProfile = profiles.find((profile) => profile.id === currentId) || profiles[0] || null;
   const isUnlimitedProfilePlan = subscription.isActive && subscription.profileLimit === 0;
   const profileLimit = isUnlimitedProfilePlan ? Math.max(profiles.length, 1) : (subscription.profileLimit > 0 ? subscription.profileLimit : 1);
-  const profileLimitLabel = isUnlimitedProfilePlan ? "∞" : String(profileLimit);
+  const profileLimitLabel = isUnlimitedProfilePlan ? "무제한" : String(profileLimit);
   const slotPercent = isUnlimitedProfilePlan ? 100 : Math.min(100, Math.round((profiles.length / profileLimit) * 100));
   const monthlyStoneBalance = formatMonthlyStoneBalance(membershipCreditBalance);
   const profileActionCoinBalance = Math.max(0, Math.floor(Number(membershipCreditBalance || 0) / 10));
   const profileActionFreeLabel = subscription.isActive && subscription.tier === "family"
-    ? "Family"
+    ? "FAMILY"
     : (subscription.isActive && subscription.tier === "vvip" && profiles.length <= profileLimit ? "VVIP" : "");
   const isVvipProfileActionFree = Boolean(profileActionFreeLabel);
   const hasStoredVvipPass = subscription.rawTier === "vvip" || subscription.tier === "vvip" || subscription.rawTier === "family" || subscription.tier === "family";
@@ -367,12 +391,12 @@ export default function MePage() {
   const profileActionPolicyNotice = profileActionFreeLabel === "VVIP"
     ? "VVIP 혜택 적용 중 · 한도 내 무료 관리"
     : profileActionFreeLabel
-      ? `${profileActionFreeLabel} 무료 관리 적용 중`
+      ? "FAMILY 이용권 이상 혜택으로 프로필 추가와 삭제가 무료입니다."
     : isExpiredVvipProfileAction
       ? "이용권이 만료되어 50코인이 필요합니다."
       : isVvipProfileLimitExceeded
-        ? "VVIP 프로필 한도를 초과해 50코인이 필요합니다."
-        : "프로필 카드 추가·수정·삭제는 1회 50코인이 필요합니다.";
+        ? "VVIP 프로필 한도를 초과해 삭제에는 50코인이 필요합니다."
+        : "프로필 삭제에는 50코인이 필요합니다.";
 
   useEffect(() => {
     if (!activeProfileMenuId) return;
@@ -481,7 +505,7 @@ export default function MePage() {
       const payload = await response.json().catch(() => null);
       if (!response.ok || !payload?.ok) {
         setArchiveItems([]);
-        setArchiveNotice(String(payload?.error?.message || payload?.message || "PDF ????쇰뮛????????얜끍??????⑥ル럯????? ?饔낅떽???壤??얜?裕?傭??????"));
+        setArchiveNotice(String(payload?.error?.message || payload?.message || "PDF 보관함을 불러오지 못했습니다."));
         return;
       }
 
@@ -500,7 +524,7 @@ export default function MePage() {
       } catch (_) {}
     } catch (_) {
       setArchiveItems([]);
-      setArchiveNotice("PDF ????쇰뮛????????얜끍??????⑥ル럯??????嶺뚮ㅎ???????????ㅼ굣?????ル늉?? ????썹땟戮녹??醫딆맚嶺뚮㉡???????????????놁졄.");
+      setArchiveNotice("PDF 보관함을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
       setArchiveLoading(false);
     }
@@ -544,7 +568,7 @@ export default function MePage() {
           router.replace("/login?next=%2Fme");
           return;
         }
-        setAuthNotice("???μ떜媛?걫??곷묄壤??????ㅻ쑋????????源낅젾??????곕츧???饔낅떽???????????????鶯ㅺ동????????????????? ??????饔끸뫅????????????????놁졄. ??????酉귘뵾?????????살퓢????轅붽틓??????????????⑹름??????뭽??");
+        setAuthNotice("내 운명 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
       } finally {
         if (mounted) {
           setLoading(false);
@@ -561,7 +585,7 @@ export default function MePage() {
 
   const ensurePortoneSdk = useCallback(() => new Promise<void>((resolve, reject) => {
     if (typeof window === "undefined") {
-      reject(new Error("????????щⅨ???? ??????鈺????鶯ㅺ동????ル쭔???棺堉?뤃???傭?끆???嶺뚮?猷볠꽴??饔낅떽?????嶺뚮ㅎ??????????????????놁졄."));
+      reject(new Error("브라우저 환경에서만 결제를 진행할 수 있습니다."));
       return;
     }
     if (window.PortOne?.requestPayment) {
@@ -573,9 +597,9 @@ export default function MePage() {
     if (existingScript) {
       existingScript.addEventListener("load", () => {
         if (window.PortOne?.requestPayment) resolve();
-        else reject(new Error("?????V2 SDK????ル늉?? ??????멸괜?????嫄????룸Ŧ爾????源녾텛? ?????繹먮굝???????"));
+        else reject(new Error("PortOne V2 SDK를 불러오지 못했습니다."));
       }, { once: true });
-      existingScript.addEventListener("error", () => reject(new Error("??棺堉?뤃????SDK??????⑥ル럯????? ?饔낅떽???壤??얜?裕?傭??????")), { once: true });
+      existingScript.addEventListener("error", () => reject(new Error("결제 SDK를 불러오지 못했습니다.")), { once: true });
       return;
     }
     const script = document.createElement("script");
@@ -584,9 +608,9 @@ export default function MePage() {
     script.async = true;
     script.onload = () => {
       if (window.PortOne?.requestPayment) resolve();
-      else reject(new Error("?????V2 SDK????ル늉?? ??????멸괜?????嫄????룸Ŧ爾????源녾텛? ?????繹먮굝???????"));
+      else reject(new Error("PortOne V2 SDK를 불러오지 못했습니다."));
     };
-    script.onerror = () => reject(new Error("??棺堉?뤃????SDK??????⑥ル럯????? ?饔낅떽???壤??얜?裕?傭??????"));
+    script.onerror = () => reject(new Error("결제 SDK를 불러오지 못했습니다."));
     document.body.appendChild(script);
   }), []);
 
@@ -600,7 +624,7 @@ export default function MePage() {
     });
     const payload = await safeParseJson<PortOnePaymentConfig>(response);
     if (!response.ok || !payload.storeId || !payload.channelKey) {
-      throw new Error(payload.message || "?????V2 ??棺堉?뤃???????嚥싲갭큔??????轅붽틓?????????????????깅즽????????놁졄.");
+      throw new Error(payload.message || "PortOne V2 결제 설정을 확인할 수 없습니다.");
     }
     return {
       storeId: String(payload.storeId || "").trim(),
@@ -654,11 +678,11 @@ export default function MePage() {
     }>(prepareResponse);
     const order = preparePayload.order;
     if (!prepareResponse.ok || !order?.merchantUid) {
-      throw new Error(preparePayload.message || "??棺堉?뤃?????關???꾨き?筌욌끀??鍮㎳??????곗뒧????????⑤슣?????????????놁졄.");
+      throw new Error(preparePayload.message || "결제 요청을 준비하지 못했습니다.");
     }
 
     await ensurePortoneSdk();
-    if (!window.PortOne?.requestPayment) throw new Error("?????V2 ??棺堉?뤃????SDK????ル늉?? ??????멸괜?????嫄????룸Ŧ爾????源녾텛? ?????繹먮굝???????");
+    if (!window.PortOne?.requestPayment) throw new Error("PortOne V2 결제 SDK를 사용할 수 없습니다.");
 
     const paymentConfig = await fetchPortOnePaymentConfig();
     const redirectUrl = new URL("/me", window.location.origin);
@@ -724,7 +748,7 @@ export default function MePage() {
       apiBase,
     });
     const confirmPayload = await safeParseJson<{ accessGrant?: Record<string, unknown>; payment?: Record<string, unknown> }>(confirmResponse);
-    if (!confirmResponse.ok) throw new Error(confirmPayload.message || "???꿔꺂??틝???彛???棺堉?뤃??????棺堉?뤃???饔낅떽??影?곗몡???紐????レ몘???????⑤슣?????????????놁졄.");
+    if (!confirmResponse.ok) throw new Error(confirmPayload.message || "결제 승인 확인에 실패했습니다.");
     return {
       accessGrant: confirmPayload.accessGrant || null,
       payment: confirmPayload.payment || null,
@@ -796,8 +820,8 @@ export default function MePage() {
       };
     }
     if (response.status === 402 || status === "payment_required" || code === "PAYMENT_REQUIRED" || code === "MEMBERSHIP_PASS_NOT_COVERED" || code === "PRICE_EXCEEDS_PASS_LIMIT" || code === "PROFILE_LIMIT_EXCEEDED") return null;
-    if (response.status === 401 || response.status === 403 || code === "AUTH_REQUIRED") throw new Error("?癲??嶺???轅붽틓?????됱깢???????諛몃마????꿔꺂??????");
-    throw new Error(String(raw.message || data.message || error.message || "??????⑤뜤?誘⑸쿋?????轅붽틓???????????????⑤슣?????????????놁졄."));
+    if (response.status === 401 || response.status === 403 || code === "AUTH_REQUIRED") throw new Error("로그인이 필요합니다.");
+    throw new Error(String(raw.message || data.message || error.message || "이용권 확인에 실패했습니다."));
   }, [apiBase]);
 
   const activateProfile = async (profileId: string) => {
@@ -815,7 +839,7 @@ export default function MePage() {
 
       const payload = await response.json().catch(() => null);
       if (!response.ok || !payload?.ok) {
-        setAuthNotice(String(payload?.message || "?????諛몃마??λ?????????????嫄?????????⑤슣?????????????놁졄."));
+        setAuthNotice(String(payload?.message || "프로필 카드를 선택하지 못했습니다."));
         return;
       }
 
@@ -823,7 +847,7 @@ export default function MePage() {
       emitDestinyProfileChanged(profiles, profileId);
       setAuthNotice("");
     } catch (e) {
-      setAuthNotice("?????諛몃마??λ???????????????????ㅼ굣?????ル늉?? ????썹땟戮녹??醫딆맚嶺뚮㉡???????????????놁졄.");
+      setAuthNotice("프로필 카드를 전환하는 중 오류가 발생했습니다.");
     } finally {
       setBusyAction("");
     }
@@ -874,7 +898,7 @@ export default function MePage() {
       apiBase,
     });
     const payload = await safeParseJson<{ profiles?: DestinyProfile[]; currentId?: string; profile?: DestinyProfile }>(response);
-    if (!response.ok || !payload?.ok) throw new Error(payload?.message || `${profileActionProductName(action)}????????⑤슣?????????????놁졄.`);
+    if (!response.ok || !payload?.ok) throw new Error(payload?.message || `${profileActionProductName(action)}에 실패했습니다.`);
 
     if (action === "delete") {
       const nextProfiles = Array.isArray(payload.profiles) ? payload.profiles : [];
@@ -930,7 +954,7 @@ export default function MePage() {
       setAuthNotice(passApplied
         ? `${profileActionProductName(action)}\uC774 \uC774\uC6A9\uAD8C\uC73C\uB85C \uCC98\uB9AC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.`
         : (isVvipProfileActionFree
-          ? `VVIP \uC774\uC6A9\uAD8C\uC73C\uB85C \uBB34\uB8CC ${label} \uC644\uB8CC`
+          ? `${profileActionFreeLabel} \uC774\uC6A9\uAD8C\uC73C\uB85C \uBB34\uB8CC ${label} \uC644\uB8CC`
           : `${profileActionProductName(action)}\uC774 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4.`));
       if (action === "edit") setEditTarget(null);
       if (action === "delete") setDeleteTarget(null);
@@ -940,7 +964,70 @@ export default function MePage() {
       setBusyAction("");
       setProfileActionStage("");
     }
-  }, [executeProfileAction, isVvipProfileActionFree, profileActionCoinBalance, runProfileActionCardPayment, runProfileActionPassGate, subscription.tier]);
+  }, [executeProfileAction, isVvipProfileActionFree, profileActionCoinBalance, profileActionFreeLabel, runProfileActionCardPayment, runProfileActionPassGate, subscription.tier]);
+
+  const openCreateProfile = () => {
+    setActiveProfileMenuId("");
+    setCreateDraft(buildCreateDraft());
+    setIsCreateProfileOpen(true);
+    setAuthNotice("");
+  };
+
+  const createProfile = useCallback(async () => {
+    if (busyAction) return;
+    const name = createDraft.name.trim();
+    if (!name || !createDraft.birthDate || !createDraft.birthTime || !createDraft.locationLabel.trim()) {
+      setAuthNotice("이름, 생년월일, 출생시간, 출생지를 입력해 주세요.");
+      return;
+    }
+
+    setBusyAction("create");
+    setProfileActionStage("saving");
+    try {
+      const response = await authFetch(`${apiBase}/api/profile`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestId: buildProfileActionRequestId("create", `create:${Date.now().toString(36)}`),
+          profile: {
+            name,
+            gender: createDraft.gender,
+            birthDate: createDraft.birthDate,
+            birthTime: createDraft.birthTime,
+            birth: { calType: createDraft.calType },
+            location: {
+              label: createDraft.locationLabel.trim(),
+              tz: createDraft.timezone.trim() || "Asia/Seoul",
+              lng: Number(createDraft.longitude),
+              lat: Number(createDraft.latitude),
+            },
+          },
+        }),
+      }, {
+        retryOn401: true,
+        apiBase,
+      });
+      const payload = await safeParseJson<ProfileStatePayload & { profile?: DestinyProfile; data?: DestinyProfile; code?: string }>(response);
+      if (!response.ok || !payload?.ok) {
+        const code = String(payload?.code || "").toUpperCase();
+        if (response.status === 402 || code === "PAYMENT_REQUIRED" || code === "INSUFFICIENT_COINS") {
+          throw new Error("프로필 추가에는 50코인이 필요합니다. 코인을 충전한 뒤 다시 시도해 주세요.");
+        }
+        throw new Error(payload?.message || "프로필 추가에 실패했습니다.");
+      }
+
+      applyProfilePayload(payload);
+      await refreshProfileActionBalance();
+      setIsCreateProfileOpen(false);
+      setCreateDraft(buildCreateDraft());
+      setAuthNotice("새 프로필이 추가되었습니다.");
+    } catch (error) {
+      setAuthNotice(error instanceof Error ? error.message : "프로필 추가 중 오류가 발생했습니다.");
+    } finally {
+      setBusyAction("");
+      setProfileActionStage("");
+    }
+  }, [apiBase, applyProfilePayload, busyAction, createDraft, refreshProfileActionBalance]);
 
   const openEditProfile = (profile: DestinyProfile) => {
     setActiveProfileMenuId("");
@@ -953,7 +1040,7 @@ export default function MePage() {
     setActiveProfileMenuId("");
     const profile = profiles.find((item) => item.id === profileId);
     if (!profile) {
-      setAuthNotice("??????????諛몃마??λ????????노듋?????壤굿?쒓낯???饔낅떽???????????????깅즽????????놁졄.");
+      setAuthNotice("삭제할 프로필 카드를 찾을 수 없습니다.");
       return;
     }
     setDeleteTarget(profile);
@@ -961,11 +1048,7 @@ export default function MePage() {
   };
 
   const handleAddProfileClick = () => {
-    if (canCreateMore) {
-      router.push("/#dpMasterCard");
-      return;
-    }
-    setShowUpgradeModal(true);
+    openCreateProfile();
   };
 
   const handleLogout = async () => {
@@ -1025,7 +1108,7 @@ export default function MePage() {
 
         <section className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-            <p className="text-xs text-slate-400">??? ??</p>
+            <p className="text-xs text-slate-400">프로필 슬롯</p>
             <p className="mt-1 text-xl font-bold text-white">{profiles.length}/{profileLimitLabel}</p>
             <div className="mt-3 h-2 rounded-full bg-slate-800">
               <div className="h-2 rounded-full bg-amber-300" style={{ width: `${slotPercent}%` }} />
@@ -1039,10 +1122,10 @@ export default function MePage() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-300">Active Card</p>
-                <h2 className="mt-2 text-2xl font-bold text-white">{currentProfile?.name || "?????諛몃마??蹂㏓룾??????諛몃마??λ???????諛몃마??維◈???????깅즽????????놁졄"}</h2>
+                <h2 className="mt-2 text-2xl font-bold text-white">{currentProfile?.name || "선택된 프로필 카드가 없습니다."}</h2>
               </div>
               <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-semibold text-amber-100">
-                ?????諛몃마??????
+                대표 프로필
               </span>
             </div>
 
@@ -1056,9 +1139,9 @@ export default function MePage() {
                     <span className="absolute right-[26%] top-[20%] h-1 w-1 rounded-full bg-[#ddd6fe]" />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">??? ??</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">월정석 잔액</p>
                     <p className="mt-0.5 text-xl font-black tracking-tight text-amber-100">{monthlyStoneBalance}</p>
-                    <p className="mt-1 text-[11px] leading-5 text-slate-300">???????饔낅떽??????????嫄???? ?????諛몃마??λ????????노듋????? ??傭?끆?????ル벥???????곸궔?????녾컯?遺븐땡??????</p>
+                    <p className="mt-1 text-[11px] leading-5 text-slate-300">프로필 카드 관리와 프리미엄 기능에 사용할 수 있는 잔액입니다.</p>
                   </div>
                 </div>
                 <Link href="/points" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#8b5cf6,#ec4899)] px-4 py-2 text-sm font-black text-white shadow-[0_10px_24px_rgba(139,92,246,0.34)] transition-transform hover:-translate-y-0.5">{"\uC774\uC6A9\uAD8C \uAD00\uB9AC"}</Link>
@@ -1067,25 +1150,25 @@ export default function MePage() {
             {currentProfile ? (
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-white/10 bg-black/18 p-4">
-                  <p className="text-xs text-slate-400">????</p>
+                  <p className="text-xs text-slate-400">생년월일시</p>
                   <p className="mt-1 font-semibold text-white">{formatProfileBirth(currentProfile)}</p>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-black/18 p-4">
-                  <p className="text-xs text-slate-400">????????濡μ뒙???</p>
-                  <p className="mt-1 font-semibold text-white">{currentProfile.location?.label || "???"}</p>
+                  <p className="text-xs text-slate-400">출생지</p>
+                  <p className="mt-1 font-semibold text-white">{currentProfile.location?.label || "미입력"}</p>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-black/18 p-4">
-                  <p className="text-xs text-slate-400">???????</p>
+                  <p className="text-xs text-slate-400">시간대</p>
                   <p className="mt-1 font-semibold text-white">{currentProfile.location?.tz || "Asia/Seoul"}</p>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-black/18 p-4">
-                  <p className="text-xs text-slate-400">??</p>
-                  <p className="mt-1 font-semibold text-white">{currentProfile.gender === "M" ? "??" : currentProfile.gender === "F" ? "??" : "??"}</p>
+                  <p className="text-xs text-slate-400">성별</p>
+                  <p className="mt-1 font-semibold text-white">{currentProfile.gender === "M" ? "남성" : currentProfile.gender === "F" ? "여성" : "기타"}</p>
                 </div>
               </div>
             ) : (
               <p className="mt-6 rounded-lg border border-dashed border-amber-300/25 bg-black/15 p-5 text-sm text-slate-300">
-                ?饔낅떽??????????嫄?彛?????????꿔꺂????????嫄????????????濡μ뒙???????????ㅼ굣塋?????????諛몃마??λ???????諛몃마?????????關??濡녹춻?????????猷밴텭???????癲???꿔꺂??????
+                아직 프로필 카드가 없습니다. 새 프로필을 추가해 운명의 기준점을 세워 주세요.
               </p>
             )}
 
@@ -1095,9 +1178,10 @@ export default function MePage() {
                 onClick={handleAddProfileClick}
                 className={`rounded-md px-4 py-2 text-sm font-bold ${canCreateMore ? "bg-amber-300 text-slate-950" : "border border-amber-300/40 bg-amber-500/10 text-amber-100"}`}
               >
-                ?????諛몃마??λ????????노듋?????????댄뱼???????ш끽維귞댆?              </button>
+                새 프로필 추가
+              </button>
               <Link href="/" className="rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-slate-200">
-                ??????닿퉻??????쇰뮛????????
+                메인으로 이동
               </Link>
             </div>
           </article>
@@ -1106,23 +1190,21 @@ export default function MePage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Profile List</p>
-                <h2 className="mt-1 text-lg font-bold text-white">??? ??</h2>
+                <h2 className="mt-1 text-lg font-bold text-white">프로필 목록</h2>
               </div>
-              {!canCreateMore ? (
-                <button
-                  type="button"
-                  onClick={() => setShowUpgradeModal(true)}
-                  className="rounded-md border border-amber-300/35 px-3 py-2 text-xs font-semibold text-amber-100"
-                >
-                  ???????汝뷴젆??곌떽????
-                </button>
-              ) : null}
+              <button
+                type="button"
+                onClick={openCreateProfile}
+                className="rounded-md border border-amber-300/35 px-3 py-2 text-xs font-semibold text-amber-100"
+              >
+                새 프로필 추가
+              </button>
             </div>
 
             <div className="mt-4 space-y-2">
               {profiles.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-white/15 p-4 text-sm text-slate-300">
-                  ?????얜궙??뺣뙀?洹?㎦??????諛몃마??λ????????노듋???????룸뗀?? ??????깅즽????????놁졄.
+                  저장된 프로필 카드가 없습니다. 새 프로필을 추가해 주세요.
                 </div>
               ) : (
                 profiles.map((profile) => {
@@ -1181,10 +1263,22 @@ export default function MePage() {
                                 role="menuitem"
                                 onClick={(event) => {
                                   event.stopPropagation();
-                                  openEditProfile(profile);
+                                  openCreateProfile();
                                 }}
                                 disabled={editing || deleting || activating || !!busyAction}
                                 className="flex min-h-[44px] w-full touch-manipulation items-center rounded-md px-3 py-2 text-left text-sm font-semibold text-amber-100 hover:bg-amber-300/10 disabled:opacity-40"
+                              >
+                                새 프로필 추가
+                              </button>
+                              <button
+                                type="button"
+                                role="menuitem"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openEditProfile(profile);
+                                }}
+                                disabled={editing || deleting || activating || !!busyAction}
+                                className="flex min-h-[44px] w-full touch-manipulation items-center rounded-md px-3 py-2 text-left text-sm font-semibold text-slate-100 hover:bg-white/10 disabled:opacity-40"
                               >
                                 {editing ? profileActionProgressLabel("edit", profileActionStage) : profileActionButtonLabel("edit", profileActionFreeLabel, profileActionCoinBalance)}
                               </button>
@@ -1216,15 +1310,15 @@ export default function MePage() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-300">PDF Archive</p>
-              <h2 className="mt-1 text-xl font-bold text-white">?? PDF ???</h2>
-              <p className="mt-1 text-sm text-slate-300">??????⑤뜪??????熬곣뫖利??????????덇텣?鰲???怨쀪덫????????껊뀋?PDF ????녾컯???觀萸???? ??????읐?????쇰뮛???????????살퓢????轅붽틓???????????????????????놁졄.</p>
+              <h2 className="mt-1 text-xl font-bold text-white">PDF 보관함</h2>
+              <p className="mt-1 text-sm text-slate-300">완성된 운명의 책과 프리미엄 리포트를 다시 열람하고 내려받을 수 있습니다.</p>
             </div>
             <button
               type="button"
               onClick={() => void loadPdfArchive()}
               className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200"
             >
-              ????雅????????
+              새로고침
             </button>
           </div>
 
@@ -1235,27 +1329,28 @@ export default function MePage() {
           ) : null}
 
           {archiveLoading ? (
-            <div className="mt-4 rounded-lg border border-dashed border-white/20 p-4 text-sm text-slate-300">????쇰뮛????????얜끍??????⑥ル럯??????嶺뚮ㅎ????關???꾨き??熬곥룊?????????놁졄.</div>
+            <div className="mt-4 rounded-lg border border-dashed border-white/20 p-4 text-sm text-slate-300">PDF 보관함을 불러오는 중입니다.</div>
           ) : archiveItems.length === 0 ? (
-            <div className="mt-4 rounded-lg border border-dashed border-white/20 p-4 text-sm text-slate-300">?????諛몃마??蹂㏓룾????熬곣뫖利????PDF ????녾컯???觀萸???? ??????깅즽????????놁졄.</div>
+            <div className="mt-4 rounded-lg border border-dashed border-white/20 p-4 text-sm text-slate-300">아직 보관된 프리미엄 PDF가 없습니다.</div>
           ) : (
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               {archiveItems.map((item) => {
-                const displayName = String(item.displayName || "???? ???");
+                const displayName = String(item.displayName || "운명 리포트");
                 const title = String(item.title || displayName);
                 const subject = String(item.targetName || item.birthName || "").trim();
                 return (
                   <article key={item.reportId} className="rounded-lg border border-white/10 bg-black/15 p-4">
                     <p className="text-xs font-semibold text-amber-200">{displayName}</p>
                     <h3 className="mt-1 text-base font-bold text-white">{title}</h3>
-                    <p className="mt-2 text-xs text-slate-300">{formatArchiveDate(item.completedAt)} ?? ??</p>
-                    <p className="mt-1 text-xs text-slate-400">?饔낅떽????ш낄?뉔뇡??? {modeLabel(item.mode)}{subject ? ` ??${subject}` : ""}</p>
+                    <p className="mt-2 text-xs text-slate-300">{formatArchiveDate(item.completedAt)} 생성</p>
+                    <p className="mt-1 text-xs text-slate-400">유형 {modeLabel(item.mode)}{subject ? ` · ${subject}` : ""}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Link
                         href={`/me/reports?reportId=${encodeURIComponent(item.reportId)}`}
                         className="rounded-md bg-amber-300 px-3 py-1.5 text-xs font-bold text-slate-900"
                       >
-                        ??????살퓢???????????ш끽維귞댆?                      </Link>
+                        다시 열기
+                      </Link>
                       {item.canDownload && item.pdfUrl ? (
                         <a
                           href={item.pdfUrl}
@@ -1263,7 +1358,7 @@ export default function MePage() {
                           rel="noreferrer"
                           className="rounded-md border border-white/20 px-3 py-1.5 text-xs font-semibold text-slate-200"
                         >
-                          PDF ???嚥싲갭큔???癲??嶺???ル맪??
+                          PDF 다운로드
                         </a>
                       ) : null}
                     </div>
@@ -1306,17 +1401,149 @@ export default function MePage() {
         </div>
       ) : null}
 
+      {isCreateProfileOpen ? (
+        <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/75 px-0 sm:items-center sm:px-4">
+          <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-amber-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
+            <h3 className="text-lg font-bold text-amber-100">새 프로필 추가</h3>
+            <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
+              {profileActionFreeLabel ? "FAMILY 이용권 이상 혜택으로 프로필 추가가 가능합니다." : "기본 정책에 따라 프로필 추가에는 50코인이 필요할 수 있습니다."}
+            </p>
+            {busyAction === "create" ? (
+              <div className="mt-3 rounded-lg border border-amber-300/35 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
+                프로필을 저장하는 중입니다.
+              </div>
+            ) : null}
+            {authNotice ? (
+              <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm leading-6 text-slate-200">
+                {authNotice}
+              </div>
+            ) : null}
+            <div className="mt-4 grid gap-3">
+              <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                이름/별칭
+                <input
+                  value={createDraft.name}
+                  onChange={(event) => setCreateDraft((prev) => ({ ...prev, name: event.target.value }))}
+                  className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                />
+              </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                  성별
+                  <select
+                    value={createDraft.gender}
+                    onChange={(event) => setCreateDraft((prev) => ({ ...prev, gender: event.target.value as ProfileCreateDraft["gender"] }))}
+                    className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                  >
+                    <option value="OTHER">기타</option>
+                    <option value="M">남성</option>
+                    <option value="F">여성</option>
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                  양력/음력
+                  <select
+                    value={createDraft.calType}
+                    onChange={(event) => setCreateDraft((prev) => ({ ...prev, calType: event.target.value as ProfileCreateDraft["calType"] }))}
+                    className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                  >
+                    <option value="solar">양력</option>
+                    <option value="lunar">음력</option>
+                    <option value="lunar_leap">윤달</option>
+                  </select>
+                </label>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                  생년월일
+                  <input
+                    type="date"
+                    value={createDraft.birthDate}
+                    onChange={(event) => setCreateDraft((prev) => ({ ...prev, birthDate: event.target.value }))}
+                    className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                  />
+                </label>
+                <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                  출생시간
+                  <input
+                    type="time"
+                    value={createDraft.birthTime}
+                    onChange={(event) => setCreateDraft((prev) => ({ ...prev, birthTime: event.target.value }))}
+                    className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                  />
+                </label>
+              </div>
+              <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                출생지
+                <input
+                  value={createDraft.locationLabel}
+                  onChange={(event) => setCreateDraft((prev) => ({ ...prev, locationLabel: event.target.value }))}
+                  placeholder="대한민국 · 서울"
+                  className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                />
+              </label>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                  경도
+                  <input
+                    inputMode="decimal"
+                    value={createDraft.longitude}
+                    onChange={(event) => setCreateDraft((prev) => ({ ...prev, longitude: event.target.value }))}
+                    className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                  />
+                </label>
+                <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                  위도
+                  <input
+                    inputMode="decimal"
+                    value={createDraft.latitude}
+                    onChange={(event) => setCreateDraft((prev) => ({ ...prev, latitude: event.target.value }))}
+                    className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                  />
+                </label>
+                <label className="grid gap-1 text-xs font-semibold text-slate-300">
+                  시간대
+                  <input
+                    value={createDraft.timezone}
+                    onChange={(event) => setCreateDraft((prev) => ({ ...prev, timezone: event.target.value }))}
+                    className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setIsCreateProfileOpen(false)}
+                disabled={!!busyAction}
+                className="min-h-[44px] rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200 disabled:opacity-45"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => void createProfile()}
+                disabled={!createDraft.name.trim() || !createDraft.birthDate || !createDraft.birthTime || !createDraft.locationLabel.trim() || !!busyAction}
+                className="min-h-[44px] rounded-md bg-amber-300 px-3 py-2 text-sm font-bold text-slate-900 disabled:opacity-45"
+              >
+                {busyAction === "create" ? "저장 중" : "프로필 추가"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {editTarget ? (
         <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/75 px-0 sm:items-center sm:px-4">
           <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-amber-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
-            <h3 className="text-lg font-bold text-amber-100">??? ?? ??</h3>
+            <h3 className="text-lg font-bold text-amber-100">프로필 수정</h3>
             <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
               {profileActionPolicyNotice}
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-200">
               {isVvipProfileActionFree
-                ? "VVIP ??????⑤뜤?誘⑸쿋?????????????????????諛몃마???????諛몃마??λ????????노듋???????꿔꺂???????????깅짆????꿔꺂??????????轅붽틓?節됰쑏???????癰궽블뀯?????????????????놁졄."
-                : "?????諛몃마??λ????????노듋????????癰궽블뀯??? 1??50?????밸븶??????????諛몃마????꿔꺂?????? ?????밸븶??????????뼿????怨쀫뮡???遺얘턁??????棺堉?뤃????5,000????棺堉?뤃???傭?끆?????ㅿ폑獄??饔낅떽?????嶺뚮ㅎ?????꿔꺂??????"}
+                ? "보유 중인 이용권 혜택으로 무료 수정됩니다. 코인은 차감되지 않습니다."
+                : "프로필 수정에는 50코인이 필요합니다. 서버에서 잔액을 확인한 뒤 처리합니다."}
             </p>
             <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
               <p className="truncate text-sm font-semibold text-white">{editTarget.name}</p>
@@ -1334,7 +1561,7 @@ export default function MePage() {
             ) : null}
             <div className="mt-4 grid gap-3">
               <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                ??
+                이름
                 <input
                   value={editDraft.name}
                   onChange={(event) => setEditDraft((prev) => ({ ...prev, name: event.target.value }))}
@@ -1342,20 +1569,20 @@ export default function MePage() {
                 />
               </label>
               <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                ??
+                성별
                 <select
                   value={editDraft.gender}
                   onChange={(event) => setEditDraft((prev) => ({ ...prev, gender: event.target.value as ProfileActionDraft["gender"] }))}
                   className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
                 >
-                  <option value="OTHER">???</option>
-                  <option value="M">??</option>
-                  <option value="F">??</option>
+                  <option value="OTHER">기타</option>
+                  <option value="M">남성</option>
+                  <option value="F">여성</option>
                 </select>
               </label>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  ????
+                  생년월일
                   <input
                     type="date"
                     value={editDraft.birthDate}
@@ -1364,7 +1591,7 @@ export default function MePage() {
                   />
                 </label>
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  ????
+                  출생시간
                   <input type="time"
                     value={editDraft.birthTime}
                     onChange={(event) => setEditDraft((prev) => ({ ...prev, birthTime: event.target.value }))}
@@ -1380,7 +1607,7 @@ export default function MePage() {
                 disabled={!!busyAction}
                 className="min-h-[44px] rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200 disabled:opacity-45"
               >
-                ??
+                취소
               </button>
               <button
                 type="button"
@@ -1398,17 +1625,17 @@ export default function MePage() {
       {deleteTarget ? (
         <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/75 px-0 sm:items-center sm:px-4">
           <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-rose-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
-            <h3 className="text-lg font-bold text-rose-100">??? ?? ??</h3>
+            <h3 className="text-lg font-bold text-rose-100">프로필 삭제 확인</h3>
             <p className="mt-2 rounded-lg border border-rose-300/25 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-100">
               {profileActionPolicyNotice}
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-200">
-              {isVvipProfileActionFree
-                ? "VVIP ??????⑤뜤?誘⑸쿋?????????????????????諛몃마???????諛몃마??λ????????노듋???????꿔꺂???????????깅짆????꿔꺂??????????轅붽틓?節됰쑏??????????????????????놁졄."
-                : "?????諛몃마??λ????????노듋?????????1??50?????밸븶??????????諛몃마????꿔꺂?????? ??????????쇰뮛?筌믡꺂?뜻ㅀ袁⑦뀘?????? ????????????????????놁졄."}
+              {profileActionFreeLabel
+                ? "FAMILY 이용권 이상 혜택으로 무료 삭제됩니다. 코인은 차감되지 않습니다."
+                : `프로필 삭제에는 ${PROFILE_CARD_ACTION_COST_COINS}코인이 필요합니다. 현재 사용 가능 코인은 ${profileActionCoinBalance.toLocaleString("ko-KR")}코인입니다.`}
             </p>
             <div className="mt-4 rounded-lg border border-rose-300/20 bg-rose-500/10 px-3 py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-rose-200">?? ??</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-rose-200">삭제 대상</p>
               <p className="mt-1 truncate text-base font-bold text-white">{deleteTarget.name}</p>
               <p className="mt-1 text-xs text-slate-300">{formatProfileBirth(deleteTarget)}</p>
             </div>
@@ -1429,7 +1656,7 @@ export default function MePage() {
                 disabled={!!busyAction}
                 className="min-h-[44px] rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200 disabled:opacity-45"
               >
-                ??????
+                취소
               </button>
               <button
                 type="button"
@@ -1447,9 +1674,9 @@ export default function MePage() {
       {showUpgradeModal ? (
         <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/70 px-4">
           <div className="w-full max-w-md rounded-xl border border-amber-300/35 bg-[#171a34] p-5 shadow-2xl shadow-black/40">
-            <h3 className="text-lg font-bold text-amber-100">?????諛몃마??λ????????노듋???????꿔꺂???????????諛몃마??????????????놁졄</h3>
+            <h3 className="text-lg font-bold text-amber-100">프로필 한도를 확인해 주세요</h3>
             <p className="mt-3 text-sm leading-6 text-slate-200">
-              ??????????⑤뜤?誘⑸쿋???????????嶺뚮ㅎ?????鶯ㅺ동??????? ?????諛몃마??λ????????노듋?????壤굿?쒓낯??1????ル늉????????????熬곣뫖利??????????????????놁졄. ????????노듋?????壤굿?쒓낯???????곸궔?????녾컯???觀萸???????ル뒇????????????⑤뜤?誘⑸쿋?????????關?쒎첎?嫄??怨몃룯????????⑹름??????뭽??
+              현재 이용권 한도에 따라 새 프로필 추가가 제한될 수 있습니다. 코인을 충전하거나 상위 이용권으로 전환한 뒤 다시 시도해 주세요.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -1457,14 +1684,15 @@ export default function MePage() {
                 onClick={() => setShowUpgradeModal(false)}
                 className="rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200"
               >
-                ???????
+                닫기
               </button>
               <Link
                 href="/points"
                 className="rounded-md bg-amber-300 px-3 py-2 text-sm font-bold text-slate-900"
                 onClick={() => setShowUpgradeModal(false)}
               >
-                ??????⑤뜤?誘⑸쿋?????關?쒎첎?嫄??怨몃룯??????ш끽維귞댆?              </Link>
+                이용권 관리로 이동
+              </Link>
             </div>
           </div>
         </div>

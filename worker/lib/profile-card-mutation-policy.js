@@ -3,6 +3,9 @@ import { canUseByPass, normalizeHoneyPassEntitlement, PROFILE_LIMIT_BY_TIER } fr
 
 export const PROFILE_CARD_EDIT_DELETE_COST_COINS = 50;
 export const PROFILE_CARD_EDIT_DELETE_COST_KRW = 5000;
+export const PROFILE_DELETE_COST_COINS = PROFILE_CARD_EDIT_DELETE_COST_COINS;
+export const FAMILY_OR_ABOVE_FREE_PROFILE_DELETE = true;
+export const FAMILY_OR_ABOVE_CAN_ADD_PROFILE = true;
 
 export const PROFILE_CARD_MUTATION_ACTIONS = Object.freeze({
   EDIT: "edit",
@@ -47,7 +50,35 @@ function resolveProfileCardPassLimit(entitlement) {
   const tier = String(entitlement?.tier || entitlement?.passTier || "").trim().toLowerCase();
   const entitlementLimit = Number(entitlement?.maxProfiles || 0);
   if (Number.isInteger(entitlementLimit) && entitlementLimit > 0) return entitlementLimit;
-  return Number(PROFILE_LIMIT_BY_TIER[tier] || 1);
+  if (tier && Object.prototype.hasOwnProperty.call(PROFILE_LIMIT_BY_TIER, tier)) return Number(PROFILE_LIMIT_BY_TIER[tier] || 0);
+  return 1;
+}
+
+export function isFamilyOrAbove(userMembership) {
+  const entitlement = normalizeHoneyPassEntitlement(userMembership || {});
+  return Boolean(entitlement?.isActive === true && String(entitlement?.tier || "").toLowerCase() === "family");
+}
+
+export function canAddProfile(userMembership, currentProfileCount) {
+  if (FAMILY_OR_ABOVE_CAN_ADD_PROFILE && isFamilyOrAbove(userMembership)) {
+    return { allowed: true, reason: "FAMILY_OR_ABOVE_CAN_ADD_PROFILE", limit: 0 };
+  }
+
+  const entitlement = normalizeHoneyPassEntitlement(userMembership || {});
+  const limit = Number(entitlement?.maxProfiles ?? PROFILE_LIMIT_BY_TIER[entitlement?.tier] ?? 1);
+  const safeLimit = Number.isInteger(limit) && limit > 0 ? limit : 1;
+  const count = Math.max(0, Math.floor(Number(currentProfileCount || 0)));
+  return {
+    allowed: count < safeLimit,
+    reason: count < safeLimit ? "PROFILE_LIMIT_AVAILABLE" : "PROFILE_LIMIT_EXCEEDED",
+    limit: safeLimit,
+  };
+}
+
+export function getProfileDeletePrice(userMembership) {
+  return FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && isFamilyOrAbove(userMembership)
+    ? 0
+    : PROFILE_DELETE_COST_COINS;
 }
 
 function isStoredVvipToken(value) {
@@ -139,11 +170,13 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
   }
 
   const entitlement = normalizeHoneyPassEntitlement(user);
+  const familyOrAbove = isFamilyOrAbove(user);
   const passProfileLimit = resolveProfileCardPassLimit(entitlement);
   const vvipLimit = resolveVvipProfileCardLimit(entitlement);
   const isActivePass = entitlement?.isActive === true;
   const isActiveVvip = isActiveVvipEntitlement(entitlement);
   const wasVvipTier = isActiveVvip || hasStoredVvipTier(user);
+  const passWithinLimit = passProfileLimit === 0 || currentProfileCardCount <= passProfileLimit;
   const isVvipFreeAllowed = isActiveVvip
     && Number.isInteger(vvipLimit)
     && vvipLimit > 0
@@ -151,8 +184,20 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
   const isPassFreeAllowed = isActivePass
     && canUseByPass(entitlement, PROFILE_CARD_EDIT_DELETE_COST_COINS)
     && Number.isInteger(passProfileLimit)
-    && passProfileLimit > 0
-    && currentProfileCardCount <= passProfileLimit;
+    && passWithinLimit;
+
+  if (familyOrAbove) {
+    return buildProfileCardMutationPolicyResult({
+      allowed: true,
+      requiresPayment: false,
+      costCoins: 0,
+      costKrw: 0,
+      reason: "FAMILY_OR_ABOVE_FREE_PROFILE_DELETE",
+      passType: String(entitlement.passTier || entitlement.tier || "family"),
+      limit: 0,
+      currentProfileCardCount,
+    });
+  }
 
   if (isVvipFreeAllowed) {
     return buildProfileCardMutationPolicyResult({

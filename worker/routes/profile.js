@@ -8,6 +8,7 @@ import {
   PROFILE_CARD_EDIT_DELETE_COST_COINS,
   PROFILE_CARD_EDIT_DELETE_COST_KRW,
   PROFILE_CARD_MUTATION_ACTIONS,
+  canAddProfile,
   getProfileCardMutationPolicy,
 } from "../lib/profile-card-mutation-policy.js";
 
@@ -218,9 +219,16 @@ function resolveSubscriptionPolicy(user) {
 }
 
 function canCreateProfileWithinSubscriptionLimit(subscription, currentCount) {
+  if (subscription?.isActive && String(subscription?.tier || "").toLowerCase() === "family") return true;
   const limit = Math.max(1, Math.floor(Number(subscription?.profileLimit || 1)));
   const count = Math.max(0, Math.floor(Number(currentCount || 0)));
   return count < limit;
+}
+
+function getRemainingProfileActionCoins(user) {
+  const creditBalance = Number(user?.profileSubscription?.membershipCreditBalance);
+  if (Number.isFinite(creditBalance) && creditBalance > 0) return Math.max(0, Math.floor(creditBalance / 10));
+  return Math.max(0, Math.floor(Number(user?.points || 0)));
 }
 
 function resolveStoredSubscriptionTier(user = {}) {
@@ -978,14 +986,17 @@ async function handleCreateProfile(request, auth) {
       return json({ ok: false, success: false, message: "이미 존재하는 프로필 ID입니다." }, { status: 409 });
     }
 
+    const createPolicy = subscription.isActive
+      ? canAddProfile(user, count)
+      : { allowed: false, reason: "PROFILE_CREATE_PAYMENT_REQUIRED", limit: 1 };
     let createPayment = null;
-    if (!subscription.isActive) {
+    if (!canCreateProfileWithinSubscriptionLimit(subscription, count)) {
       createPayment = await ensureProfileCreatePaymentAuthorized(auth, {
         profileId: normalized.profileId,
         body,
       });
       if (!createPayment.ok) return createPayment.response;
-    } else if (!canCreateProfileWithinSubscriptionLimit(subscription, count)) {
+    } else if (!createPolicy.allowed) {
       createPayment = await ensureProfileCreatePaymentAuthorized(auth, {
         profileId: normalized.profileId,
         body,
@@ -1094,7 +1105,7 @@ async function handleUpdateCurrent(request, auth) {
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
     .lean();
   if (!user) {
-    return json({ ok: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
+    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
   }
 
   const subscription = resolveSubscriptionPolicy(user);
@@ -1251,14 +1262,22 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
   });
 
   const profiles = await listUserProfiles(auth.userId);
-  const user = await User.findById(auth.userId).select("destinyProfilesCurrentId").lean();
+  const user = await User.findById(auth.userId)
+    .select("destinyProfilesCurrentId points profileSubscription")
+    .lean();
   const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
 
   await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
+  const chargedCoins = Math.max(0, Math.floor(Number(authorization.policy?.costCoins || 0)));
+  const freeByMembership = chargedCoins === 0;
 
   return json({
     ok: true,
+    success: true,
     deletedProfileId: profileId,
+    chargedCoins,
+    freeByMembership,
+    remainingCoins: getRemainingProfileActionCoins(user),
     profiles,
     currentId: nextCurrentId,
     currentProfile: profiles.find((profile) => String(profile?.id || "") === nextCurrentId) || null,
