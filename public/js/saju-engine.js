@@ -7430,6 +7430,11 @@ function renderAstroSwissUnavailable(reason) {
     + '</div></div></div>';
 }
 
+if (typeof window !== 'undefined') {
+  window.calcAstroSwissChartOrThrow = calcAstroSwissChartOrThrow;
+  window.renderAstroSwissUnavailable = renderAstroSwissUnavailable;
+}
+
 function _astroWheelNorm360(v) {
   var n = Number(v);
   if (!isFinite(n)) return NaN;
@@ -10964,6 +10969,11 @@ var ZW_STAR_PROFILE = {
   '지공': { element:'metal', yinYang:'yin', phase:10, amp:1.35, bias:0.2 },
   '지겁': { element:'water', yinYang:'yang', phase:0, amp:1.35, bias:0.2 }
 };
+if (typeof window !== 'undefined') {
+  window.AstroEngine = AstroEngine;
+  window.renderAstroInsight = renderAstroInsight;
+}
+
 function zwCircularDistance12(a, b){
   var d = Math.abs(((a - b) % 12 + 12) % 12);
   return d > 6 ? 12 - d : d;

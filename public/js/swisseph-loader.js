@@ -103,15 +103,43 @@ async function loadEphemerisFiles(swe) {
 		};
 	}
 
+	function finiteNumber(value) {
+		return Number.isFinite(Number(value));
+	}
+
+	function runSwissSelfTest(bridge) {
+		if (!bridge || typeof bridge.swe_calc_ut !== 'function' || typeof bridge.swe_houses_ex !== 'function') {
+			throw new Error('SwissEph bridge is missing calculation functions.');
+		}
+		var flags = (Number(bridge.SEFLG_SWIEPH) || 2) | (Number(bridge.SEFLG_SPEED) || 256);
+		var sun = bridge.swe_calc_ut(2451545.0, bridge.SE_SUN, flags);
+		var moon = bridge.swe_calc_ut(2451545.0, bridge.SE_MOON, flags);
+		var houses = bridge.swe_houses_ex(2451545.0, flags, 37.5665, 126.9780, 'P');
+		if (!finiteNumber(sun && sun[0]) || !finiteNumber(moon && moon[0])) {
+			throw new Error('SwissEph planet self-test returned invalid longitude.');
+		}
+		if (!houses || !Array.isArray(houses.cusps) || houses.cusps.length < 12 || !Array.isArray(houses.ascmc) || !finiteNumber(houses.ascmc[0])) {
+			throw new Error('SwissEph house self-test returned invalid houses.');
+		}
+		return {
+			sunLongitude: Number(sun[0]),
+			moonLongitude: Number(moon[0]),
+			ascendant: Number(houses.ascmc[0]),
+			houseCount: houses.cusps.length
+		};
+	}
+
 	(async function start() {
 		var SwissEphCtor = await loadSwissEphConstructor();
 		var swe = await initSwissEph(SwissEphCtor);
 		await loadEphemerisFiles(swe);
 
 		var bridge = buildBridge(swe);
+		var selfTest = runSwissSelfTest(bridge);
 		window.swisseph = bridge;
 		window.Swe = bridge;
 		window.swe = bridge;
+		window.__swissephSelfTest = selfTest;
 
 		window.__swissephBridge.ready = true;
 		window.__swissephBridge.precision = 'swisseph-wasm';

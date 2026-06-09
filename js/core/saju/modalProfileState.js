@@ -252,8 +252,20 @@ function _renderAstroSection() {
   if (sheet) sheet.scrollTop = 0;
   _cdModalHardResetTop('astroModalOverlay', 'astroModalSheet', 'astroResult');
   setTimeout(function () {
-    if (typeof renderAstroInsight === 'function') renderAstroInsight();
-    _cdModalHardResetTop('astroModalOverlay', 'astroModalSheet', 'astroResult');
+    var renderWithSwiss = function () {
+      if (typeof renderAstroInsight === 'function') renderAstroInsight();
+      _cdModalHardResetTop('astroModalOverlay', 'astroModalSheet', 'astroResult');
+    };
+    if (typeof window.__cdEnsureSwissEphLoaded === 'function') {
+      window.__cdEnsureSwissEphLoaded()
+        .then(renderWithSwiss)
+        .catch(function (err) {
+          if (typeof window.renderAstroSwissUnavailable === 'function') {
+            window.renderAstroSwissUnavailable((err && err.message) || err || 'SwissEph loader failed.');
+          }
+        });
+      return;
+    }
+    renderWithSwiss();
   }, 0);
 }
-
