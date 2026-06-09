@@ -444,7 +444,15 @@ export async function handleAstrologyRoutes(request, env) {
       return await handleAstrologyBasic(request, env);
     }
 
-    if (["GET", "POST"].includes(method)) return notFound();
+    if (!["GET", "POST"].includes(method)) return methodNotAllowed();
+
+    if (typeof handleAstroRoutes === "function") {
+      const mappedUrl = new URL(request.url);
+      mappedUrl.pathname = mappedUrl.pathname.replace(/^\/api\/astrology(\/|$)/, "/api/astro$1");
+      const mappedRequest = new Request(mappedUrl.toString(), request);
+      return await handleAstroRoutes(mappedRequest, env);
+    }
+
     return methodNotAllowed();
   } catch (error) {
     return handleRouteError(error, { request });
