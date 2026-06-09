@@ -1,5 +1,5 @@
 import { connectDb, mongoose } from "../lib/db.js";
-import { User, PointHistory } from "../lib/models.js";
+import { User, PointHistory, Payment } from "../lib/models.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
@@ -147,7 +147,11 @@ function collectAIPromptPaymentTokens(body = {}, requestId = "") {
     consume.purchaseId,
     consume.receiptId,
     consume.pointHistoryId,
+    consume.paymentId,
+    consume.merchantUid,
     consume.requestId,
+    payment._id,
+    payment.id,
     payment.transactionId,
     payment.purchaseId,
     payment.paymentId,
@@ -231,6 +235,194 @@ async function findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, 
     .select("_id delta balanceAfter featureKey reason metadata")
     .sort({ createdAt: -1 })
     .lean();
+}
+
+function readAIPromptAccessContext(body = {}) {
+  const accessGrant = body?.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
+  const consume = body?.consume && typeof body.consume === "object" ? body.consume : {};
+  const payment = body?.payment && typeof body.payment === "object" ? body.payment : {};
+  const paymentContext = body?._paymentContext && typeof body._paymentContext === "object" ? body._paymentContext : {};
+  const accessType = String(
+    body?.accessType
+      || accessGrant.accessType
+      || consume.accessType
+      || consume.transactionType
+      || payment.accessType
+      || paymentContext.accessType
+      || "",
+  ).trim().toLowerCase();
+  const accessMethod = String(
+    body?.accessMethod
+      || accessGrant.accessMethod
+      || consume.accessMethod
+      || consume.paymentMethod
+      || payment.accessMethod
+      || payment.paymentMethod
+      || paymentContext.accessMethod
+      || "",
+  ).trim().toUpperCase();
+  const paymentMode = String(
+    body?.paymentMode
+      || body?.accessMode
+      || accessGrant.paymentMode
+      || consume.paymentMode
+      || payment.paymentMode
+      || paymentContext.paymentMode
+      || "",
+  ).trim().toUpperCase();
+
+  return { accessGrant, consume, payment, paymentContext, accessType, accessMethod, paymentMode };
+}
+
+function isAIPromptAdminAccessPayload(body = {}) {
+  const ctx = readAIPromptAccessContext(body);
+  return ctx.accessType === "admin_test"
+    || ctx.accessMethod === "ADMIN_TEST"
+    || ctx.paymentMode === "ADMIN_BYPASS";
+}
+
+function isAIPromptDirectAccessPayload(body = {}) {
+  const ctx = readAIPromptAccessContext(body);
+  return ctx.accessType === "single_purchase"
+    || ctx.accessType === "direct_krw"
+    || ctx.accessMethod === "CARD"
+    || ctx.accessMethod === "DIRECT_KRW"
+    || ctx.paymentMode === "DIRECT_KRW"
+    || ctx.paymentMode === "SINGLE_PURCHASE";
+}
+
+function buildAIPromptPaymentClauses(tokens) {
+  const clauses = [];
+  for (const token of tokens) {
+    clauses.push({ merchantUid: token });
+    clauses.push({ impUid: token });
+    clauses.push({ idempotencyKey: token });
+    clauses.push({ requestId: token });
+    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: token });
+  }
+  return clauses;
+}
+
+async function findAIPromptDirectPaymentEvidence({ auth, featureKey, body, requestId, cost }) {
+  const userId = String(auth?.userId || "").trim();
+  const normalizedFeatureKey = normalizeFeatureKey(featureKey);
+  const featureKeys = uniqueStrings([featureKey, normalizedFeatureKey]);
+  const tokens = collectAIPromptPaymentTokens(body, requestId);
+  const tokenClauses = buildAIPromptPaymentClauses(tokens);
+  if (!userId || !featureKeys.length || !tokenClauses.length) return null;
+
+  const query = {
+    userId,
+    paymentType: "digital_content",
+    featureKey: featureKeys.length > 1 ? { $in: featureKeys } : featureKeys[0],
+    status: { $in: ["paid", "success", "fulfilled"] },
+    $and: [{ $or: tokenClauses }],
+  };
+  const minCost = Math.floor(Number(cost || 0));
+  if (minCost > 0) {
+    query.$and.push({
+      $or: [
+        { expectedChargedPoints: { $gte: minCost } },
+        { coinPrice: { $gte: minCost } },
+        { paymentAmount: { $gte: minCost * 100 } },
+      ],
+    });
+  }
+
+  return Payment.findOne(query)
+    .select("_id impUid merchantUid idempotencyKey paymentAmount expectedChargedPoints chargedPoints featureKey coinPrice accessType requestId status orderState paymentType")
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .lean();
+}
+
+async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestId, cost }) {
+  const pointHistory = await findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, cost });
+  if (pointHistory) return { source: "point_history", record: pointHistory };
+
+  if (isAIPromptDirectAccessPayload(body)) {
+    const payment = await findAIPromptDirectPaymentEvidence({ auth, featureKey, body, requestId, cost });
+    if (payment) return { source: "payment", record: payment };
+  }
+
+  if (isAIPromptAdminAccessPayload(body) && String(auth?.userId || "") === ADMIN_TEST_USER_ID) {
+    return { source: "admin_test", record: { _id: requestId || `admin:${featureKey}` } };
+  }
+
+  return null;
+}
+
+function buildAIPromptVerifiedConsumePayload({ auth, featureKey, reason, requestId, cost, body, evidence, subscriptionUser }) {
+  const ctx = readAIPromptAccessContext(body);
+  const record = evidence?.record || {};
+  const metadata = record?.metadata && typeof record.metadata === "object" ? record.metadata : {};
+  const isPass = isAIPromptPassAccessPayload(body) || evidence?.source === "admin_test";
+  const isDirect = evidence?.source === "payment" || isAIPromptDirectAccessPayload(body);
+  const accessType = isPass
+    ? (ctx.accessType || (evidence?.source === "admin_test" ? "admin_test" : "membership_pass"))
+    : (ctx.accessType || (isDirect ? "single_purchase" : "membership_credit"));
+  const accessMethod = ctx.accessMethod || (isPass ? "PASS" : (isDirect ? "CARD" : "MONTHLY"));
+  const paymentMode = ctx.paymentMode || (isPass ? "MEMBERSHIP_PASS" : (isDirect ? "DIRECT_KRW" : "MONTHLY_CREDIT"));
+  const chargedCoins = isPass
+    ? 0
+    : Math.max(0, Math.floor(Number(
+      ctx.consume.chargedCoins
+        || record.coinPrice
+        || record.expectedChargedPoints
+        || Math.abs(Number(record.delta || 0))
+        || cost
+        || 0,
+    )));
+  const membershipCreditCost = String(accessType || "").toLowerCase() === "membership_credit"
+    ? Math.max(0, Math.floor(Number(ctx.consume.membershipCreditCost || metadata.membershipCreditCost || metadata.requiredMonthlyCredits || 0)))
+    : 0;
+  const transactionId = String(
+    record._id
+      || ctx.consume.transactionId
+      || ctx.accessGrant.evidenceId
+      || ctx.accessGrant.purchaseId
+      || ctx.payment._id
+      || ctx.payment.id
+      || ctx.payment.paymentId
+      || ctx.payment.merchantUid
+      || requestId
+      || "",
+  ).trim();
+  const balanceAfterRaw = Number(record.balanceAfter ?? subscriptionUser?.points);
+  const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : 0;
+  const unlockedFeatures = normalizePersistentUnlockKeys(subscriptionUser?.unlockedFeatures);
+
+  return {
+    message: "Paid access already verified.",
+    code: "ALREADY_VERIFIED_PAID_ACCESS",
+    featureKey,
+    reason,
+    requiredCoins: cost,
+    chargedCoins,
+    membershipCreditCost,
+    accessType,
+    accessMethod,
+    paymentMode,
+    forceDeductApplied: false,
+    transactionId,
+    consume: {
+      ok: true,
+      transactionId,
+      transactionType: accessType,
+      accessType,
+      accessMethod,
+      paymentMethod: accessMethod,
+      paymentMode,
+      requestId,
+      featureKey,
+      coinPrice: cost,
+      chargedCoins,
+      membershipCreditCost,
+      idempotent: true,
+    },
+    user: userPayload(auth, balanceAfter, unlockedFeatures),
+    unlockedFeatures,
+    unlockMap: toUnlockMap(unlockedFeatures),
+  };
 }
 
 function buildReasonPricingMap(pricingEntries) {
@@ -1216,6 +1408,8 @@ async function handlePigCoinConsume(request, auth, options = {}) {
       || "",
   ).trim().slice(0, 120);
   const forceDeduct = body?.forceDeduct === true || String(body?.forceDeduct || "").trim().toLowerCase() === "true";
+  const requireExistingPaidAccess = body?.requireExistingPaidAccess === true
+    || String(body?.requireExistingPaidAccess || "").trim().toLowerCase() === "true";
   const isAdminTestAccess = adminMode || String(auth?.userId || "") === ADMIN_TEST_USER_ID;
   if (isAdminTestAccess) {
     const adminUserId = String(auth?.userId || ADMIN_TEST_USER_ID);
@@ -1296,6 +1490,44 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   if (!subscriptionUser) {
     return json({ message: "User not found.", code: "USER_NOT_FOUND" }, { status: 404 });
   }
+  if (requireExistingPaidAccess) {
+    const verifiedAccess = await findAIPromptPaidAccessEvidence({
+      auth,
+      featureKey,
+      body,
+      requestId,
+      cost,
+    });
+    if (verifiedAccess) {
+      return json(buildAIPromptVerifiedConsumePayload({
+        auth,
+        featureKey,
+        reason,
+        requestId,
+        cost,
+        body,
+        evidence: verifiedAccess,
+        subscriptionUser,
+      }));
+    }
+
+    const krwEquivalent = cost * 100;
+    return json({
+      ok: false,
+      message: "결제 확인 후 프롬프트를 생성할 수 있습니다.",
+      code: "PAYMENT_REQUIRED",
+      featureKey,
+      reason,
+      pricing: {
+        featureKey,
+        reason,
+        coinPrice: cost,
+        membershipCreditCost: 0,
+        krwEquivalent,
+        displayUnit: "content_value",
+      },
+    }, { status: 402 });
+  }
   const activeTierForPass = resolveEffectiveActiveTier(subscriptionUser);
   const activePolicyForPass = getPlanPolicy(activeTierForPass);
   if (activeTierForPass && cost <= activePolicyForPass.freeLimit) {
@@ -1335,7 +1567,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     const krwEquivalent = cost * 100;
     return json({
       ok: false,
-      message: "?붿젙???щ튆 ?먮뒗 ?곹뭹蹂??먰솕 ?④굔 寃곗젣媛 ?꾩슂?⑸땲??",
+      message: "월정석 잔량 또는 상품별 단건 결제가 필요합니다.",
       code: "PAYMENT_REQUIRED",
       featureKey,
       reason,
@@ -2103,6 +2335,7 @@ async function handleAstrologyAIPrompt(request, auth, env) {
         featureKey: ASTROLOGY_AI_PROMPT_FEATURE_KEY,
         reason: "점성술 AI 질문 프롬프트 생성",
         forceDeduct: true,
+        requireExistingPaidAccess: true,
         requestId,
         categoryKey: "astrology",
         subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
@@ -2231,6 +2464,7 @@ async function handleVedicAIPrompt(request, auth, env) {
         featureKey: VEDIC_AI_PROMPT_FEATURE_KEY,
         reason: "베다 점성술 AI 질문 프롬프트 생성",
         forceDeduct: true,
+        requireExistingPaidAccess: true,
         requestId,
         categoryKey: "vedic",
         subFeatureKey: String(builtPrompt.questionType || "general").slice(0, 60),
@@ -2354,6 +2588,7 @@ async function handleSajuAIPrompt(request, auth, env) {
         featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
         reason: "사주 AI 질문 프롬프트 생성",
         forceDeduct: true,
+        requireExistingPaidAccess: true,
         requestId,
         categoryKey: "saju",
         subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
@@ -2480,6 +2715,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
         featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
         reason: "자미두수 AI 질문 프롬프트 생성",
         forceDeduct: true,
+        requireExistingPaidAccess: true,
         requestId,
         categoryKey: "ziweidoushu",
         subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
@@ -2642,6 +2878,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
         featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
         reason: "숙요점 AI 질문 프롬프트 생성",
         forceDeduct: true,
+        requireExistingPaidAccess: true,
         requestId,
         categoryKey: "sukuyo",
         subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),

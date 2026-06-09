@@ -9991,6 +9991,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var featureKey = String(opts.featureKey || 'sukuyo_ai_prompt_generator').trim();
     var reason = String(opts.reason || '숙요점 AI 질문 프롬프트 생성').trim();
     var requestId = String(opts.requestId || featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)).trim();
+    var cost = Number(opts.cost || 100);
+    if (!Number.isFinite(cost) || cost <= 0) cost = 100;
     function normalize(result) {
       var payload = result && result.payload ? result.payload : {};
       var data = syPromptPayloadData(payload);
@@ -10005,6 +10007,41 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         requiredCoins: Number((data.pricing && (data.pricing.coinPrice || data.pricing.cost)) || data.requiredCoins || opts.cost || 0)
       };
     }
+    if (typeof window._cdOpenPaidServiceGate === 'function') {
+      return window._cdOpenPaidServiceGate({
+        title: reason,
+        reason: reason,
+        featureKey: featureKey,
+        categoryKey: String(opts.categoryKey || 'sukuyo').trim(),
+        subFeatureKey: String(opts.subFeatureKey || '').trim() || undefined,
+        coinPrice: cost,
+        cost: cost,
+        requestId: requestId
+      }).then(function(openResult) {
+        if (openResult && openResult.status === 'granted') {
+          return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
+        }
+        return normalize({
+          ok: false,
+          status: 402,
+          payload: {
+            code: 'PAYMENT_REQUIRED',
+            message: '결제 후 프롬프트를 생성할 수 있습니다.',
+            requiredCoins: cost
+          }
+        });
+      }).catch(function(error) {
+        return normalize({
+          ok: false,
+          status: Number(error && error.status) || 402,
+          payload: {
+            code: String(error && error.code || 'PAYMENT_REQUIRED'),
+            message: String(error && error.message || '결제 후 프롬프트를 생성할 수 있습니다.'),
+            requiredCoins: cost
+          }
+        });
+      });
+    }
     return syPromptRequestJson('/api/billing/coin-gate', {
       method: 'POST',
       body: JSON.stringify({
@@ -10012,24 +10049,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         reason: reason,
         requestId: requestId,
         categoryKey: String(opts.categoryKey || 'sukuyo').trim(),
+        paymentMode: 'MEMBERSHIP_PASS',
         forceDeduct: true
       })
     }).then(function(result) {
       var gate = normalize(result);
-      if (gate.ok || gate.status !== 402 || typeof window._cdOpenPaidServiceGate !== 'function') return gate;
-      return window._cdOpenPaidServiceGate({
-        title: reason,
-        reason: reason,
-        featureKey: featureKey,
-        coinPrice: Number(opts.cost || gate.requiredCoins || 100),
-        cost: Number(opts.cost || gate.requiredCoins || 100),
-        requestId: requestId
-      }).then(function(openResult) {
-        if (openResult && openResult.status === 'granted') return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
-        return gate;
-      }).catch(function() {
-        return gate;
-      });
+      if (gate.ok) return gate;
+      gate.code = gate.code || 'PAYMENT_REQUIRED';
+      gate.message = gate.message || '결제 후 프롬프트를 생성할 수 있습니다.';
+      return gate;
     });
   }
 
@@ -10047,7 +10075,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
         featureKey: String(data.featureKey || accessGrant.featureKey || consume.featureKey || '').trim(),
         transactionId: String(data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
-        accessType: String(data.accessType || accessGrant.accessType || consume.accessType || '').trim()
+        accessType: String(data.accessType || accessGrant.accessType || consume.accessType || '').trim(),
+        accessMethod: String(data.accessMethod || accessGrant.accessMethod || consume.accessMethod || consume.paymentMethod || '').trim(),
+        paymentMode: String(data.paymentMode || accessGrant.paymentMode || consume.paymentMode || '').trim()
       }
     };
   }

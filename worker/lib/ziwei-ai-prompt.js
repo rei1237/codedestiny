@@ -46,6 +46,11 @@ const PALACE_LABELS = Object.freeze({
   parents: "부모궁",
 });
 
+const PALACE_NAME_ALIASES = Object.freeze({
+  "부처궁": "spouse",
+  "노복궁": "friends",
+});
+
 const QUESTION_TYPE_PALACES = Object.freeze({
   love: ["spouse", "fortune", "ming", "travel"],
   career: ["career", "wealth", "ming", "travel"],
@@ -93,8 +98,45 @@ const ZIWEI_VAGUE_GUARD_TERMS = Object.freeze([
 ]);
 
 function toText(value, fallback = DEFAULT_TEXT) {
+  if (value && typeof value === "object") {
+    const objectText = objectToText(value);
+    return objectText || fallback;
+  }
   const text = String(value == null ? "" : value).trim();
   return text || fallback;
+}
+
+function objectToText(value) {
+  if (!value || typeof value !== "object") return "";
+  const startAge = Number(value.startAge != null ? value.startAge : value.start);
+  const endAge = Number(value.endAge != null ? value.endAge : value.end);
+  if (Number.isFinite(startAge) && Number.isFinite(endAge)) {
+    return `${Math.trunc(startAge)}~${Math.trunc(endAge)}세`;
+  }
+  const candidates = [
+    value.label,
+    value.range,
+    value.text,
+    value.value,
+    value.name,
+    value.title,
+    value.palaceName,
+    value.palace,
+  ];
+  for (let i = 0; i < candidates.length; i += 1) {
+    const candidate = candidates[i];
+    if (candidate && typeof candidate === "object") {
+      const nested = objectToText(candidate);
+      if (nested) return nested;
+      continue;
+    }
+    const text = String(candidate == null ? "" : candidate).trim();
+    if (text && text !== "[object Object]") return text;
+  }
+  if (value.star || value.starName || value.type || value.label) {
+    return [value.star || value.starName, value.type || value.label].map((item) => toText(item, "")).filter(Boolean).join(" ");
+  }
+  return "";
 }
 
 function toGenderLabel(gender) {
@@ -239,6 +281,7 @@ function normalizeStarList(stars) {
 function palaceIdFromName(name) {
   const normalized = String(name || "").trim();
   if (!normalized) return "";
+  if (PALACE_NAME_ALIASES[normalized]) return PALACE_NAME_ALIASES[normalized];
   const entries = Object.entries(PALACE_LABELS);
   for (let i = 0; i < entries.length; i += 1) {
     if (entries[i][1] === normalized) return entries[i][0];
@@ -281,12 +324,97 @@ function buildLegacyPalaces(chart) {
 function buildLegacyMajorPeriods(chart) {
   if (!Array.isArray(chart?.daHanList) || !chart.daHanList.length) return [];
   return chart.daHanList.map((range, index) => {
-    const palaceName = Array.isArray(chart?.palacesByIndex) ? chart.palacesByIndex[index] : "";
+    const periodIndex = Number.isFinite(Number(range?.idx)) ? Number(range.idx) : index;
+    const palaceName = toText(range?.palaceName, "")
+      || (Array.isArray(chart?.palacesByIndex) ? chart.palacesByIndex[periodIndex] : "")
+      || (Array.isArray(chart?.palacesByIndex) ? chart.palacesByIndex[index] : "");
     return {
       palaceId: palaceIdFromName(palaceName),
       range: toText(range, ""),
     };
   });
+}
+
+function sihuaTypeMatches(rawType, expectedType) {
+  const type = toText(rawType, "");
+  if (!type) return false;
+  const aliases = {
+    hualu: ["화록", "록", "祿", "禄", "hualu", "luk"],
+    huaquan: ["화권", "권", "權", "权", "huaquan", "quan"],
+    huake: ["화과", "과", "科", "huake", "ke"],
+    huaji: ["화기", "기", "忌", "huaji", "ji"],
+  };
+  return (aliases[expectedType] || []).some((alias) => type === alias || type.toLowerCase() === alias.toLowerCase());
+}
+
+function starNameFromTransform(value) {
+  if (!value) return "";
+  if (typeof value !== "object") return toText(value, "");
+  return toText(value.name || value.starName || value.star || value.sourceStar || value.value, "");
+}
+
+function extractSihuaValue(chart, keys, expectedType) {
+  const sihua = chart?.sihua && typeof chart.sihua === "object" ? chart.sihua : {};
+  for (let i = 0; i < keys.length; i += 1) {
+    const value = toText(sihua[keys[i]], "");
+    if (value) return value;
+  }
+
+  const transformations = chart?.fourTransformations;
+  if (transformations && typeof transformations === "object" && !Array.isArray(transformations)) {
+    for (let i = 0; i < keys.length; i += 1) {
+      const value = starNameFromTransform(transformations[keys[i]]);
+      if (value) return value;
+    }
+  }
+  if (Array.isArray(transformations)) {
+    const found = transformations.find((item) => sihuaTypeMatches(item?.type || item?.label || item?.transformation, expectedType));
+    const value = starNameFromTransform(found);
+    if (value) return value;
+  }
+
+  const sihuaData = chart?.sihuaData && typeof chart.sihuaData === "object" ? chart.sihuaData : {};
+  const starNames = Object.keys(sihuaData);
+  for (let i = 0; i < starNames.length; i += 1) {
+    const item = sihuaData[starNames[i]] || {};
+    if (!sihuaTypeMatches(item.type || item.label, expectedType)) continue;
+    const palaceName = toText(item.palaceName || item.palace, "");
+    return `${starNames[i]}${palaceName ? ` (${palaceName})` : ""}`;
+  }
+  return "";
+}
+
+function normalizeAnnualFlowSource(chart) {
+  const candidates = [
+    chart?.annualFlow,
+    chart?.yearlyLuck,
+    chart?.annualLuck,
+    chart?.luck?.annual,
+  ];
+  for (let i = 0; i < candidates.length; i += 1) {
+    if (candidates[i] && typeof candidates[i] === "object") return candidates[i];
+  }
+  return {};
+}
+
+function normalizeAnnualKeyPalaces(source, chart) {
+  const raw = Array.isArray(source.keyPalaces) ? source.keyPalaces
+    : Array.isArray(source.corePalaces) ? source.corePalaces
+      : Array.isArray(source.palaces) ? source.palaces
+        : [];
+  const values = raw
+    .map((item) => {
+      if (item && typeof item === "object") return item.palaceId || item.id || item.palaceKey || item.name || item.palaceName || item.palace;
+      return item;
+    })
+    .map((item) => toText(item, ""))
+    .filter(Boolean);
+  if (values.length) return values;
+
+  const sihuaData = chart?.sihuaData && typeof chart.sihuaData === "object" ? chart.sihuaData : {};
+  return Object.keys(sihuaData)
+    .map((star) => toText(sihuaData[star]?.palaceName || sihuaData[star]?.palace, ""))
+    .filter(Boolean);
 }
 
 function summarizePalace(palace) {
@@ -317,10 +445,15 @@ function normalizeChart(chartResult) {
   const strongestPalace = findPalace(palaces, chart?.summary?.strongestPalaceId);
   const weakestPalace = findPalace(palaces, chart?.summary?.weakestPalaceId);
 
-  const annualFlow = chart.annualFlow && typeof chart.annualFlow === "object" ? chart.annualFlow : {};
+  const annualFlow = normalizeAnnualFlowSource(chart);
   const majorPeriods = Array.isArray(chart.majorPeriods) && chart.majorPeriods.length
     ? chart.majorPeriods
-    : buildLegacyMajorPeriods(chart);
+    : Array.isArray(chart.majorLuck) && chart.majorLuck.length
+      ? chart.majorLuck
+      : Array.isArray(chart?.luck?.decadeLuck) && chart.luck.decadeLuck.length
+        ? chart.luck.decadeLuck
+        : buildLegacyMajorPeriods(chart);
+  const annualKeyPalaces = normalizeAnnualKeyPalaces(annualFlow, chart);
 
   const allPalaceLines = palaces
     .slice()
@@ -355,17 +488,21 @@ function normalizeChart(chartResult) {
     strengths: toCommaText(chart?.summary?.strengths),
     weaknesses: toCommaText(chart?.summary?.weaknesses),
     juInfo: toText(chart.juInfo),
-    hualu: toText(chart?.sihua?.hualu),
-    huaquan: toText(chart?.sihua?.huaquan),
-    huake: toText(chart?.sihua?.huake),
-    huaji: toText(chart?.sihua?.huaji),
+    hualu: toText(extractSihuaValue(chart, ["hualu", "luk", "lu"], "hualu")),
+    huaquan: toText(extractSihuaValue(chart, ["huaquan", "quan"], "huaquan")),
+    huake: toText(extractSihuaValue(chart, ["huake", "ke"], "huake")),
+    huaji: toText(extractSihuaValue(chart, ["huaji", "ji"], "huaji")),
     majorPeriods: majorPeriods.length
-      ? majorPeriods.map((period) => `${toText(PALACE_LABELS[period?.palaceId] || period?.palaceId)} ${toText(period?.range)}`)
+      ? majorPeriods.map((period) => {
+        const palaceLabel = toText(PALACE_LABELS[period?.palaceId] || period?.palaceName || period?.name || period?.palaceId, "");
+        const rangeLabel = toText(period?.range || period, "");
+        return [palaceLabel, rangeLabel].filter(Boolean).join(" ") || DEFAULT_TEXT;
+      })
       : [DEFAULT_TEXT],
     annualFlow: {
-      yearLabel: toText(annualFlow.yearLabel),
-      keyPalaces: Array.isArray(annualFlow.keyPalaces) && annualFlow.keyPalaces.length
-        ? annualFlow.keyPalaces.map((palaceId) => toText(PALACE_LABELS[String(palaceId)] || palaceId))
+      yearLabel: toText(annualFlow.yearLabel || annualFlow.year || annualFlow.label),
+      keyPalaces: annualKeyPalaces.length
+        ? annualKeyPalaces.map((palaceId) => toText(PALACE_LABELS[String(palaceId)] || palaceId))
         : [DEFAULT_TEXT],
       notes: Array.isArray(annualFlow.notes) && annualFlow.notes.length
         ? annualFlow.notes.map((note) => toText(note))

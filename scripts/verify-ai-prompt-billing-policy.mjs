@@ -33,15 +33,23 @@ for (const featureKey of promptFeatures) {
 
 assert.match(fortuneSource, /const forceDeduct = body\?\.forceDeduct === true/, "coin consume must require explicit forceDeduct");
 assert.match(fortuneSource, /findAIPromptPaymentEvidence\(\{[\s\S]*requestId: coinRequestId/, "coin consume must accept verified payment evidence");
+assert.match(fortuneSource, /findAIPromptDirectPaymentEvidence/, "AI prompt consume must verify direct single-payment evidence");
+assert.match(fortuneSource, /requireExistingPaidAccess/, "AI prompt consume must support existing-paid-access enforcement");
 assert.match(fortuneSource, /points: \{ \$gte: cost \}/, "coin consume must check balance before deduction");
 assert.match(fortuneSource, /kind: "deduct"/, "coin consume must write deduct history");
 assert.match(fortuneSource, /metadata:\s*\{[\s\S]*requestId: coinRequestId/, "deduct history must bind requestId");
 assert.match(fortuneSource, /accessGrant: body\?\.accessGrant/, "prompt routes must forward accessGrant evidence");
-assert.match(sajuEngineSource, /\/api\/billing\/coin-gate/, "saju static AI prompt clients must use billing coin-gate");
-assert.match(sajuEngineSource, /saju_ai_prompt_generator/, "saju prompt must use canonical server feature key");
+assert.equal(
+  (fortuneSource.match(/requireExistingPaidAccess: true/g) || []).length,
+  promptFeatures.length,
+  "all AI prompt routes must require pre-verified paid access",
+);
+assert.match(sajuEngineSource, /window\._cdOpenPaidServiceGate/, "saju/ziwei/astrology prompt clients must use the standard paid service gate");
+assert.match(sajuEngineSource, /paymentMode:\s*'MEMBERSHIP_PASS'/, "saju prompt fallback may only probe membership pass access");
 assert.match(sajuEngineSource, /ziwei_ai_prompt_generator/, "ziwei prompt must use canonical server feature key");
 assert.match(sajuEngineSource, /astrology_ai_prompt_generator/, "astrology prompt must use canonical server feature key");
-assert.match(sukuyoEngineSource, /\/api\/billing\/coin-gate/, "sukuyo prompt client must use billing coin-gate");
+assert.match(sukuyoEngineSource, /window\._cdOpenPaidServiceGate/, "sukuyo prompt client must use the standard paid service gate");
+assert.match(sukuyoEngineSource, /paymentMode:\s*'MEMBERSHIP_PASS'/, "sukuyo prompt fallback may only probe membership pass access");
 assert.match(sukuyoEngineSource, /sukuyo_ai_prompt_generator/, "sukuyo prompt must use canonical server feature key");
 assert.match(coinGateSource, /consume\.chargedCoins \?\? consume\.cost/, "client must prefer server chargedCoins");
 

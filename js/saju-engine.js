@@ -4641,6 +4641,8 @@ function _cdAIPromptGate(input) {
   var featureKey = String(opts.featureKey || '').trim();
   var reason = String(opts.reason || 'AI 질문 프롬프트 생성').trim();
   var requestId = String(opts.requestId || featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)).trim();
+  var cost = Number(opts.cost || 100);
+  if (!Number.isFinite(cost) || cost <= 0) cost = 100;
   function normalize(result) {
     var payload = result && result.payload ? result.payload : {};
     var data = _cdAIPromptPayloadData(payload);
@@ -4655,6 +4657,41 @@ function _cdAIPromptGate(input) {
       requiredCoins: Number((data.pricing && (data.pricing.coinPrice || data.pricing.cost)) || data.requiredCoins || opts.cost || 0)
     };
   }
+  if (typeof window._cdOpenPaidServiceGate === 'function') {
+    return window._cdOpenPaidServiceGate({
+      title: reason,
+      reason: reason,
+      featureKey: featureKey,
+      categoryKey: String(opts.categoryKey || 'ai-prompt').trim(),
+      subFeatureKey: String(opts.subFeatureKey || '').trim() || undefined,
+      coinPrice: cost,
+      cost: cost,
+      requestId: requestId
+    }).then(function(openResult) {
+      if (openResult && openResult.status === 'granted') {
+        return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
+      }
+      return normalize({
+        ok: false,
+        status: 402,
+        payload: {
+          code: 'PAYMENT_REQUIRED',
+          message: '결제 후 프롬프트를 생성할 수 있습니다.',
+          requiredCoins: cost
+        }
+      });
+    }).catch(function(error) {
+      return normalize({
+        ok: false,
+        status: Number(error && error.status) || 402,
+        payload: {
+          code: String(error && error.code || 'PAYMENT_REQUIRED'),
+          message: String(error && error.message || '결제 후 프롬프트를 생성할 수 있습니다.'),
+          requiredCoins: cost
+        }
+      });
+    });
+  }
   return _cdAIPromptRequestJson('/api/billing/coin-gate', {
     method: 'POST',
     body: JSON.stringify({
@@ -4662,24 +4699,15 @@ function _cdAIPromptGate(input) {
       reason: reason,
       requestId: requestId,
       categoryKey: String(opts.categoryKey || 'ai-prompt').trim(),
+      paymentMode: 'MEMBERSHIP_PASS',
       forceDeduct: true
     })
   }).then(function(result) {
     var gate = normalize(result);
-    if (gate.ok || gate.status !== 402 || typeof window._cdOpenPaidServiceGate !== 'function') return gate;
-    return window._cdOpenPaidServiceGate({
-      title: reason,
-      reason: reason,
-      featureKey: featureKey,
-      coinPrice: Number(opts.cost || gate.requiredCoins || 100),
-      cost: Number(opts.cost || gate.requiredCoins || 100),
-      requestId: requestId
-    }).then(function(openResult) {
-      if (openResult && openResult.status === 'granted') return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
-      return gate;
-    }).catch(function() {
-      return gate;
-    });
+    if (gate.ok) return gate;
+    gate.code = gate.code || 'PAYMENT_REQUIRED';
+    gate.message = gate.message || '결제 후 프롬프트를 생성할 수 있습니다.';
+    return gate;
   });
 }
 
@@ -4697,7 +4725,9 @@ function _cdAIPromptGateEvidence(gateResult) {
       requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
       featureKey: String(data.featureKey || accessGrant.featureKey || consume.featureKey || '').trim(),
       transactionId: String(data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
-      accessType: String(data.accessType || accessGrant.accessType || consume.accessType || '').trim()
+      accessType: String(data.accessType || accessGrant.accessType || consume.accessType || '').trim(),
+      accessMethod: String(data.accessMethod || accessGrant.accessMethod || consume.accessMethod || consume.paymentMethod || '').trim(),
+      paymentMode: String(data.paymentMode || accessGrant.paymentMode || consume.paymentMode || '').trim()
     }
   };
 }
@@ -15222,11 +15252,13 @@ function renderZiwei(p, natal, targetId) {
     var map = {
       '명궁': 'ming',
       '형제궁': 'siblings',
+      '부처궁': 'spouse',
       '부부궁': 'spouse',
       '자녀궁': 'children',
       '재백궁': 'wealth',
       '질액궁': 'health',
       '천이궁': 'travel',
+      '노복궁': 'friends',
       '교우궁': 'friends',
       '관록궁': 'career',
       '전택궁': 'property',
@@ -15269,6 +15301,80 @@ function renderZiwei(p, natal, targetId) {
     return list
       .map(function(item) { return _zwPromptNormalizeStar(item); })
       .filter(function(item) { return !!item && !!item.name; });
+  }
+
+  function _zwPromptPushUnique(list, value) {
+    var text = String(value || '').trim();
+    if (!text || list.indexOf(text) >= 0) return;
+    list.push(text);
+  }
+
+  function _zwPromptFormatDahanRange(period) {
+    if (!period || typeof period !== 'object') return String(period || '').trim();
+    var startAge = Number(period.startAge);
+    var endAge = Number(period.endAge);
+    if (Number.isFinite(startAge) && Number.isFinite(endAge)) {
+      return String(Math.trunc(startAge)) + '~' + String(Math.trunc(endAge)) + '세';
+    }
+    return String(period.label || period.range || '').trim();
+  }
+
+  function _zwPromptBuildSihua(pd) {
+    var result = { hualu: '', huaquan: '', huake: '', huaji: '' };
+    var keyByType = { '화록': 'hualu', '화권': 'huaquan', '화과': 'huake', '화기': 'huaji' };
+    if (pd && pd.sihuaData && typeof pd.sihuaData === 'object') {
+      Object.keys(pd.sihuaData).forEach(function(starName) {
+        var item = pd.sihuaData[starName] || {};
+        var key = keyByType[String(item.type || '').trim()];
+        if (!key || result[key]) return;
+        var palaceName = String(item.palaceName || '').trim();
+        result[key] = String(starName || '').trim() + (palaceName ? ' (' + palaceName + ')' : '');
+      });
+    }
+    var raw = (pd && pd.sihua && typeof pd.sihua === 'object') ? pd.sihua : {};
+    result.hualu = result.hualu || String(raw.hualu || raw.luk || '').trim();
+    result.huaquan = result.huaquan || String(raw.huaquan || raw.quan || '').trim();
+    result.huake = result.huake || String(raw.huake || raw.ke || '').trim();
+    result.huaji = result.huaji || String(raw.huaji || raw.ji || '').trim();
+    return result;
+  }
+
+  function _zwPromptGanji(year) {
+    var gan = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+    var zhi = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+    var offset = Number(year) - 1984;
+    if (!Number.isFinite(offset)) return '';
+    return gan[((offset % 10) + 10) % 10] + zhi[((offset % 12) + 12) % 12];
+  }
+
+  function _zwPromptBuildAnnualFlow(pd, majorPeriods) {
+    var year = new Date().getFullYear();
+    var ganji = _zwPromptGanji(year);
+    var yearZhi = ganji.charAt(1);
+    var keyPalaces = [];
+    var notes = [];
+    var anchorIdx = (typeof ZHI_LIST !== 'undefined' && yearZhi) ? ZHI_LIST.indexOf(yearZhi) : -1;
+    if (anchorIdx >= 0 && pd && pd.palacesByIndex) {
+      _zwPromptPushUnique(keyPalaces, _zwPromptPalaceIdFromName(pd.palacesByIndex[anchorIdx]));
+      notes.push(String(year) + '년 ' + ganji + ' 기준 유년 기준궁: ' + String(pd.palacesByIndex[anchorIdx] || '').trim());
+    }
+    if (pd && pd.sihuaData && typeof pd.sihuaData === 'object') {
+      Object.keys(pd.sihuaData).forEach(function(starName) {
+        var item = pd.sihuaData[starName] || {};
+        var palaceName = String(item.palaceName || '').trim();
+        _zwPromptPushUnique(keyPalaces, _zwPromptPalaceIdFromName(palaceName));
+        if (starName && item.type && palaceName) notes.push(String(item.type) + ' ' + String(starName) + ' 작동궁: ' + palaceName);
+      });
+    }
+    if (majorPeriods && majorPeriods.length) {
+      var first = majorPeriods[0] || {};
+      notes.push('대한 기준: ' + String(first.range || '').trim() + ' · ' + String(first.palaceName || '').trim());
+    }
+    return {
+      yearLabel: String(year) + '년' + (ganji ? ' ' + ganji : ''),
+      keyPalaces: keyPalaces.filter(Boolean).slice(0, 4),
+      notes: notes.filter(Boolean).slice(0, 6)
+    };
   }
 
   function _zwGetPromptProfile() {
@@ -15324,13 +15430,17 @@ function renderZiwei(p, natal, targetId) {
 
     var majorPeriods = Array.isArray(pd && pd.daHanList)
       ? pd.daHanList.map(function(period, idx) {
-        var palaceName = (pd && pd.palacesByIndex && pd.palacesByIndex[idx]) || '';
+        var palaceIdx = period && typeof period === 'object' && Number.isFinite(Number(period.idx)) ? Number(period.idx) : idx;
+        var palaceName = (period && period.palaceName) || (pd && pd.palacesByIndex && pd.palacesByIndex[palaceIdx]) || '';
         return {
           palaceId: _zwPromptPalaceIdFromName(palaceName),
-          range: String(period || '')
+          palaceName: String(palaceName || '').trim(),
+          range: _zwPromptFormatDahanRange(period)
         };
       })
       : [];
+    var promptSihua = _zwPromptBuildSihua(pd);
+    var annualFlow = _zwPromptBuildAnnualFlow(pd, majorPeriods);
 
     var summaryDirection = '';
     if (pd && typeof pd.meng !== 'undefined' && typeof pd.shen !== 'undefined') {
@@ -15341,24 +15451,18 @@ function renderZiwei(p, natal, targetId) {
       user: user,
       mingGong: String((pd && pd.meng) || ''),
       shenGong: String((pd && pd.shen) || ''),
+      yearGan: String((pd && pd.yearGan) || ''),
       juInfo: String((pd && pd.juInfo) || ''),
       summary: {
         direction: summaryDirection,
         strengths: [],
         weaknesses: []
       },
-      sihua: {
-        hualu: '',
-        huaquan: '',
-        huake: '',
-        huaji: ''
-      },
+      sihua: promptSihua,
       majorPeriods: majorPeriods,
-      annualFlow: {
-        yearLabel: String(new Date().getFullYear()) + '년',
-        keyPalaces: [],
-        notes: []
-      },
+      annualFlow: annualFlow,
+      sihuaData: (pd && pd.sihuaData) || {},
+      daHanList: Array.isArray(pd && pd.daHanList) ? pd.daHanList : [],
       palaces: palaces
     };
   }
