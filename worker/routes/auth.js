@@ -20,6 +20,7 @@ import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-healt
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, verifyPassword } from "../lib/password.js";
 import { validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
+import { Buffer } from "node:buffer";
 import { createHmac, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 const OAUTH_PROVIDERS = ["google", "naver", "kakao"];
@@ -454,12 +455,88 @@ function isLocalHostname(hostname) {
   return normalized === "localhost" || normalized === "127.0.0.1" || normalized === "[::1]";
 }
 
+function getRequestHostname(request) {
+  try {
+    const requestUrl = new URL(request.url);
+    const forwardedHost = String(request.headers.get("x-forwarded-host") || "").trim();
+    const host = String(forwardedHost || request.headers.get("host") || requestUrl.host || "").split(":")[0];
+    return host || requestUrl.hostname;
+  } catch (e) {
+    return "";
+  }
+}
+
+function isLocalDevAuthEnabled(request, env) {
+  if (!isTrueLike(getEnv(env, "LOCAL_DEV_AUTH_ENABLED", ""))) return false;
+  return isLocalHostname(getRequestHostname(request));
+}
+
+function getLocalDevAuthConfig(env) {
+  const configuredId = String(getEnv(env, "LOCAL_DEV_AUTH_USER_ID", "") || "").trim();
+  const userId = mongoose.Types.ObjectId.isValid(configuredId)
+    ? configuredId
+    : "000000000000000000000001";
+  const rawPoints = String(getEnv(env, "LOCAL_DEV_AUTH_POINTS", "") || "").trim();
+  const parsedPoints = rawPoints ? Number(rawPoints) : NaN;
+
+  return {
+    email: String(getEnv(env, "LOCAL_DEV_AUTH_EMAIL", "") || "local-login-test@example.com").trim().toLowerCase(),
+    password: String(getEnv(env, "LOCAL_DEV_AUTH_PASSWORD", "") || "LocalTest!2026").trim(),
+    userId,
+    name: String(getEnv(env, "LOCAL_DEV_AUTH_NAME", "") || "Local Login Test").trim(),
+    points: Number.isFinite(parsedPoints)
+      ? Math.max(0, Math.floor(parsedPoints))
+      : 9999,
+  };
+}
+
+function timingSafeTextEqual(left, right) {
+  const leftBuffer = Buffer.from(String(left || ""));
+  const rightBuffer = Buffer.from(String(right || ""));
+  if (leftBuffer.length !== rightBuffer.length) return false;
+  return timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+function resolveLocalDevAuthUser(request, env, email, password) {
+  if (!isLocalDevAuthEnabled(request, env)) return null;
+  const config = getLocalDevAuthConfig(env);
+  if (String(email || "").trim().toLowerCase() !== config.email) return null;
+  if (!config.password || !timingSafeTextEqual(password, config.password)) return null;
+
+  return {
+    _id: config.userId,
+    name: config.name,
+    email: config.email,
+    birthDate: "1990-01-01",
+    birthTime: "09:00",
+    gender: "OTHER",
+    role: "user",
+    points: config.points,
+    joinedAt: new Date("2026-01-01T00:00:00.000Z").toISOString(),
+    localAuth: {
+      enabled: true,
+    },
+  };
+}
+
+function isLocalDevAuthTokenUser(request, env, auth) {
+  if (!isLocalDevAuthEnabled(request, env)) return false;
+  const config = getLocalDevAuthConfig(env);
+  return String(auth?.userId || "") === config.userId
+    && String(auth?.email || "").trim().toLowerCase() === config.email;
+}
+
+function isLocalDevAuthRoute(request, env, method, path) {
+  if (!isLocalDevAuthEnabled(request, env)) return false;
+  return (method === "POST" && path === "/login")
+    || (method === "GET" && (path === "/me" || path === "/session"));
+}
+
 function resolveCookieSecure(request, env) {
   const requestUrl = new URL(request.url);
   const forwardedProto = String(request.headers.get("x-forwarded-proto") || "").trim().toLowerCase();
   const proto = forwardedProto || requestUrl.protocol.replace(":", "");
-  const forwardedHost = String(request.headers.get("x-forwarded-host") || "").trim();
-  const host = String(forwardedHost || requestUrl.host || "").split(":")[0];
+  const host = getRequestHostname(request);
   const localRequest = isLocalHostname(host);
 
   const forced = String(getEnv(env, "AUTH_COOKIE_SECURE", "")).trim().toLowerCase();
@@ -1290,6 +1367,35 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
   return response;
 }
 
+async function createLocalDevAuthSuccessResponse(request, env, user, status = 200, nextPath = "/") {
+  const accessToken = await signAuthToken(user, env);
+  const accessExpiresInSec = parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60);
+
+  const response = json({
+    ok: true,
+    message: "Login completed.",
+    user: {
+      ...normalizeAuthUserResponse(user),
+      hasLocalAuth: true,
+    },
+    nextPath: sanitizeNextPath(nextPath) || "/",
+    accessToken,
+    tokenType: "Bearer",
+    accessTokenExpiresInSec: accessExpiresInSec,
+    source: "local-dev",
+  }, { status });
+
+  const cookieOptions = buildAuthCookieOptions(request, env);
+  response.headers.append("Set-Cookie", buildCookieValue(ACCESS_COOKIE_NAME, accessToken, {
+    path: "/",
+    maxAge: cookieOptions.accessMaxAgeSec,
+    httpOnly: true,
+    secure: cookieOptions.secure,
+    sameSite: cookieOptions.sameSite,
+  }));
+  return response;
+}
+
 function buildTokenFallbackUser(auth) {
   const phoneNumber = normalizeKoreanPhoneNumber(auth.phoneNumber || auth.phone);
   return {
@@ -1572,6 +1678,10 @@ async function handleLogin(request, env) {
   }
 
   const { email, password } = validated.sanitized;
+  const localDevUser = resolveLocalDevAuthUser(request, env, email, password);
+  if (localDevUser) {
+    return await createLocalDevAuthSuccessResponse(request, env, localDevUser, 200, body?.nextPath);
+  }
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
@@ -1673,6 +1783,15 @@ async function handleMe(request, env) {
     const timeoutMs = getAuthOpTimeoutMs(env);
     const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
     const auth = await requireAuth(request, env);
+
+    if (isLocalDevAuthTokenUser(request, env, auth)) {
+      return json({
+        ok: true,
+        message: "Authenticated user loaded.",
+        user: buildTokenFallbackUser(auth),
+        source: "local-dev-token",
+      });
+    }
 
     const userId = String(auth.userId || "");
     if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -2452,8 +2571,10 @@ export async function handleAuthRoutes(request, env) {
       || path === "/referral/kakao-share"
       || path === "/me/phone-number"
     ) {
-      const configError = configMismatchResponse("auth-basic", env);
-      if (configError) return configError;
+      if (!isLocalDevAuthRoute(request, env, method, path)) {
+        const configError = configMismatchResponse("auth-basic", env);
+        if (configError) return configError;
+      }
     }
 
     const oauthPathMatch = path.match(/^\/oauth\/([^/]+)\/(start|callback)$/);

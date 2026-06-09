@@ -1,5 +1,5 @@
-import { existsSync, rmSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, readdirSync, rmSync, statSync } from "node:fs";
+import { join, resolve } from "node:path";
 
 const rootDir = process.cwd();
 const targets = [".open-next", ".next/cache", ".next", "dist", "out"];
@@ -18,6 +18,12 @@ function removeTarget(targetPath) {
       lastError = error;
       wait(180 + attempt * 120);
     }
+  }
+  if (lastError?.code === "EPERM" && existsSync(targetPath) && statSync(targetPath).isDirectory()) {
+    for (const entry of readdirSync(targetPath)) {
+      rmSync(join(targetPath, entry), { recursive: true, force: true, maxRetries: 8, retryDelay: 300 });
+    }
+    return;
   }
   throw lastError;
 }

@@ -4570,6 +4570,73 @@ function generateIdealPartnerPrompt(p, natal){
   return prompt;
 }
 
+function _sajuPromptSafeCopy(text){
+  return String(text || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r?\n/g,' ');
+}
+
+function _sajuPromptElementProfile(p, natal){
+  var dg = p && p.d ? p.d.g : '';
+  var el = ((GAN[dg] && GAN[dg].e) || (natal && natal.dominant) || 'earth');
+  var profiles = {
+    wood: { tone:'emerald green, fresh ivory, botanical gold', symbol:'ancient forest, vines, spring wind', role:'visionary creator', mood:'growing, elegant, hopeful' },
+    fire: { tone:'coral red, warm gold, sunrise orange', symbol:'sun flare, lanterns, gentle flame', role:'radiant performer', mood:'bright, passionate, cinematic' },
+    earth: { tone:'sand beige, clay brown, soft ochre', symbol:'mountain temple, fertile garden, warm stone', role:'grounded guardian', mood:'stable, warm, abundant' },
+    metal: { tone:'silver white, pearl gray, cool lavender', symbol:'moonlit jewelry, polished blade, crystal geometry', role:'refined strategist', mood:'precise, luxurious, clean' },
+    water: { tone:'deep navy, mist blue, silver aqua', symbol:'ocean wave, moon reflection, flowing mist', role:'intuitive navigator', mood:'mysterious, fluid, serene' }
+  };
+  return profiles[el] || profiles.earth;
+}
+
+function generateSajuLifeMoviePosterPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'cinematic life movie poster for a '+profile.role+', '+profile.mood+' atmosphere, '+profile.symbol+', color palette of '+profile.tone+', dramatic composition, elegant Korean editorial poster design, subtle destiny symbols, premium typography space, emotional lighting, high detail, 8k --ar 2:3';
+}
+
+function generateSajuLuckyCharmPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'personal lucky charm talisman wallpaper inspired by saju five elements, '+profile.symbol+', '+profile.tone+' color palette, mystical but modern Korean amulet design, delicate line art, soft glow, balanced symmetry, clean background, premium smartphone wallpaper, high quality, 8k --ar 9:16';
+}
+
+function generateSajuSoulRoomPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'dreamy personal soul room interior based on saju energy, '+profile.mood+' mood, '+profile.symbol+', '+profile.tone+' palette, cozy cinematic lighting, elegant objects that symbolize destiny, soft textures, Korean lifestyle magazine style, high-detail interior concept art, 8k --ar 16:9';
+}
+
+function generateSajuBrandLogoPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'personal destiny brand logo and mascot emblem based on saju energy, '+profile.role+' identity, '+profile.symbol+', '+profile.tone+' color palette, clean vector-like logo, cute but premium mascot mark, Korean fortune brand aesthetic, sticker-ready, simple background, high quality --ar 1:1';
+}
+
+function generateSajuPastLifeCharacterPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'past life character portrait inspired by saju energy, '+profile.role+' in an ancient mystical Korean fantasy world, '+profile.symbol+', '+profile.tone+' palette, ornate costume details, cinematic portrait lighting, story-rich expression, fantasy concept art, high detail, 8k --ar 3:4';
+}
+
+function generateSajuRpgJobPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'RPG game class character sheet based on saju five element destiny, '+profile.role+' hero, '+profile.symbol+', '+profile.tone+' color palette, full body character design, cute fantasy equipment, skill icons, game UI concept art, Korean mobile RPG style, high detail --ar 4:5';
+}
+
+function generateSajuFortuneDessertPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'magical fortune dessert inspired by saju energy, '+profile.symbol+', '+profile.tone+' color palette, beautiful Korean cafe dessert photography, glossy textures, cute mystical toppings, soft dreamy lighting, premium product shot, edible charm design, high quality, 8k --ar 1:1';
+}
+
+function generateSajuGuardianSpiritPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'personal guardian spirit creature born from saju energy, '+profile.mood+' aura, '+profile.symbol+', '+profile.tone+' palette, adorable but majestic mythical companion, glowing eyes, soft fur or elemental texture, storybook fantasy illustration, cinematic lighting, high detail --ar 4:5';
+}
+
+function generateSajuAlbumCoverPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'destiny music album cover based on saju energy, '+profile.mood+' mood, '+profile.symbol+', '+profile.tone+' palette, dreamy Korean indie album art, surreal symbolic composition, clean title space, emotional lighting, premium graphic design, high quality --ar 1:1';
+}
+
+function generateSajuTreasureMapPrompt(p, natal){
+  var profile = _sajuPromptElementProfile(p, natal);
+  return 'personal wealth luck treasure map inspired by saju five elements, '+profile.symbol+', '+profile.tone+' palette, mystical illustrated map, glowing route lines, lucky objects, elegant Korean fortune scroll design, warm magical lighting, high-detail fantasy map, 8k --ar 16:9';
+}
+
 var ASTROLOGY_AI_PROMPT_COST = 100;
 var ASTROLOGY_AI_PROMPT_MIN_LENGTH = 5;
 var ASTROLOGY_AI_PROMPT_MAX_LENGTH = 1000;
@@ -5441,14 +5508,34 @@ function _applySajuAIPromptBalance(points) {
       '丁':'Twinkling Candlelight','戊':'Golden High Mountain','己':'Cozy Garden Soil',
       '庚':'Strong Silver Rock','辛':'Sparkling Jewelry','壬':'Deep Blue Ocean','癸':'Soft Misty Rain'};
     var prompt=(musangMap[p.d.g]||'Poetic Nature Landscape')+', beautiful landscape painting, soft pastel colors, atmospheric lighting, high-detail scenic view, poetic and serene, high quality, 8k --ar 16:9';
-    var safePrompt=prompt.replace(/'/g,"\\'");
+    var safePrompt=_sajuPromptSafeCopy(prompt);
     var avatarPrompt=generateAvatarPrompt(p);
-    var safeAvatarPrompt=avatarPrompt.replace(/'/g,"\\'");
+    var safeAvatarPrompt=_sajuPromptSafeCopy(avatarPrompt);
     var idealPartnerPrompt=generateIdealPartnerPrompt(p,natal);
-    var safeIdealPartnerPrompt=idealPartnerPrompt.replace(/'/g,"\\'");
+    var safeIdealPartnerPrompt=_sajuPromptSafeCopy(idealPartnerPrompt);
+    var lifeMoviePrompt=generateSajuLifeMoviePosterPrompt(p,natal);
+    var safeLifeMoviePrompt=_sajuPromptSafeCopy(lifeMoviePrompt);
+    var luckyCharmPrompt=generateSajuLuckyCharmPrompt(p,natal);
+    var safeLuckyCharmPrompt=_sajuPromptSafeCopy(luckyCharmPrompt);
+    var soulRoomPrompt=generateSajuSoulRoomPrompt(p,natal);
+    var safeSoulRoomPrompt=_sajuPromptSafeCopy(soulRoomPrompt);
+    var brandLogoPrompt=generateSajuBrandLogoPrompt(p,natal);
+    var safeBrandLogoPrompt=_sajuPromptSafeCopy(brandLogoPrompt);
+    var pastLifePrompt=generateSajuPastLifeCharacterPrompt(p,natal);
+    var safePastLifePrompt=_sajuPromptSafeCopy(pastLifePrompt);
+    var rpgJobPrompt=generateSajuRpgJobPrompt(p,natal);
+    var safeRpgJobPrompt=_sajuPromptSafeCopy(rpgJobPrompt);
+    var fortuneDessertPrompt=generateSajuFortuneDessertPrompt(p,natal);
+    var safeFortuneDessertPrompt=_sajuPromptSafeCopy(fortuneDessertPrompt);
+    var guardianSpiritPrompt=generateSajuGuardianSpiritPrompt(p,natal);
+    var safeGuardianSpiritPrompt=_sajuPromptSafeCopy(guardianSpiritPrompt);
+    var albumCoverPrompt=generateSajuAlbumCoverPrompt(p,natal);
+    var safeAlbumCoverPrompt=_sajuPromptSafeCopy(albumCoverPrompt);
+    var treasureMapPrompt=generateSajuTreasureMapPrompt(p,natal);
+    var safeTreasureMapPrompt=_sajuPromptSafeCopy(treasureMapPrompt);
 
     var aiPromptHtml =
-      '<div id="aiPromptCard" data-cd-marker="saju-ai-image-prompt-free-v20260608" style="margin-top:15px">'+
+      '<div id="aiPromptCard" data-cd-marker="saju-ai-image-prompt-free-v20260609-fun-concepts" style="margin-top:15px">'+
       '<div class="prem-box" style="background:#fff;border:1px solid #FFB7B2;">'+
         '<span class="prem-title" style="color:#FF8BA7;">🎨 맞춤형 사주 물상 AI 프롬프트</span>'+
         '<p style="font-size:0.8rem;color:#888;margin-bottom:10px;">이 문구를 복사해 AI(미드저니 등)에게 풍경화 스타일 물상을 요청해보세요.</p>'+
@@ -5466,6 +5553,66 @@ function _applySajuAIPromptBalance(points) {
         '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">당신의 사주와 잘 맞는 이상형의 특징을 반영한 얼굴 초상화 프롬프트입니다.</p>'+
         '<div style="background:rgba(255,255,255,.8);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #4FC3F7;word-break:break-all;color:#555;">'+idealPartnerPrompt+'</div>'+
         '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#4FC3F7;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safeIdealPartnerPrompt+'\').then(function(){alert(\'✨ 이상형 프롬프트가 복사되었습니다!\');})">📋 이상형 프롬프트 복사</button>'+
+      '</div>'+
+      '<div class="prem-box" style="background:linear-gradient(135deg,#FFF7ED,#FEF3C7);margin-top:12px;border:1.5px solid #F59E0B;">'+
+        '<span class="prem-title" style="color:#B45309;">🎬 내 인생 영화 포스터 — 운명 서사 콘셉트</span>'+
+        '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">내 사주의 주인공성을 영화 포스터처럼 표현하는 프롬프트입니다.</p>'+
+        '<div style="background:rgba(255,255,255,.84);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #F59E0B;word-break:break-all;color:#555;">'+lifeMoviePrompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#F59E0B;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safeLifeMoviePrompt+'\').then(function(){alert(\'✨ 인생 영화 포스터 프롬프트가 복사되었습니다!\');})">📋 영화 포스터 프롬프트 복사</button>'+
+      '</div>'+
+      '<div class="prem-box" style="background:linear-gradient(135deg,#ECFDF5,#D1FAE5);margin-top:12px;border:1.5px solid #10B981;">'+
+        '<span class="prem-title" style="color:#047857;">🔮 오늘의 행운 부적 — 스마트폰 배경화면</span>'+
+        '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">오행 기운을 부적형 배경화면으로 바꾸는 프롬프트입니다.</p>'+
+        '<div style="background:rgba(255,255,255,.84);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #10B981;word-break:break-all;color:#555;">'+luckyCharmPrompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#10B981;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safeLuckyCharmPrompt+'\').then(function(){alert(\'✨ 행운 부적 프롬프트가 복사되었습니다!\');})">📋 행운 부적 프롬프트 복사</button>'+
+      '</div>'+
+      '<div class="prem-box" style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE);margin-top:12px;border:1.5px solid #8B5CF6;">'+
+        '<span class="prem-title" style="color:#6D28D9;">🏡 내 영혼의 방 — 사주 인테리어 콘셉트</span>'+
+        '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">내 사주의 분위기를 방과 공간 디자인으로 구현하는 프롬프트입니다.</p>'+
+        '<div style="background:rgba(255,255,255,.84);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #8B5CF6;word-break:break-all;color:#555;">'+soulRoomPrompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#8B5CF6;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safeSoulRoomPrompt+'\').then(function(){alert(\'✨ 영혼의 방 프롬프트가 복사되었습니다!\');})">📋 영혼의 방 프롬프트 복사</button>'+
+      '</div>'+
+      '<div class="prem-box" style="background:linear-gradient(135deg,#F8FAFC,#E0F2FE);margin-top:12px;border:1.5px solid #0EA5E9;">'+
+        '<span class="prem-title" style="color:#0369A1;">🪄 내 운명 브랜드 로고 — 마스코트 엠블럼</span>'+
+        '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">사주의 핵심 기운을 로고와 마스코트 엠블럼으로 만드는 프롬프트입니다.</p>'+
+        '<div style="background:rgba(255,255,255,.84);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #0EA5E9;word-break:break-all;color:#555;">'+brandLogoPrompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#0EA5E9;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safeBrandLogoPrompt+'\').then(function(){alert(\'✨ 운명 브랜드 로고 프롬프트가 복사되었습니다!\');})">📋 브랜드 로고 프롬프트 복사</button>'+
+      '</div>'+
+      '<div class="prem-box" style="background:linear-gradient(135deg,#FFF1F2,#FFE4E6);margin-top:12px;border:1.5px solid #F43F5E;">'+
+        '<span class="prem-title" style="color:#BE123C;">🧬 전생의 나 — 고대 판타지 캐릭터</span>'+
+        '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">내 사주 기운을 전생 캐릭터 초상화로 상상하는 프롬프트입니다.</p>'+
+        '<div style="background:rgba(255,255,255,.84);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #F43F5E;word-break:break-all;color:#555;">'+pastLifePrompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#F43F5E;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safePastLifePrompt+'\').then(function(){alert(\'✨ 전생 캐릭터 프롬프트가 복사되었습니다!\');})">📋 전생 캐릭터 프롬프트 복사</button>'+
+      '</div>'+
+      '<div class="prem-box" style="background:linear-gradient(135deg,#EEF2FF,#E0E7FF);margin-top:12px;border:1.5px solid #6366F1;">'+
+        '<span class="prem-title" style="color:#4338CA;">⚔️ 운명 RPG 직업 — 게임 캐릭터 시트</span>'+
+        '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">내 사주를 RPG 직업과 스킬 아이콘으로 바꾸는 프롬프트입니다.</p>'+
+        '<div style="background:rgba(255,255,255,.84);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #6366F1;word-break:break-all;color:#555;">'+rpgJobPrompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#6366F1;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safeRpgJobPrompt+'\').then(function(){alert(\'✨ RPG 직업 프롬프트가 복사되었습니다!\');})">📋 RPG 직업 프롬프트 복사</button>'+
+      '</div>'+
+      '<div class="prem-box" style="background:linear-gradient(135deg,#FFF7ED,#FFEDD5);margin-top:12px;border:1.5px solid #FB923C;">'+
+        '<span class="prem-title" style="color:#C2410C;">🍰 행운 디저트 — 사주 카페 메뉴</span>'+
+        '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">내 오행을 카페 디저트 사진처럼 귀엽게 만드는 프롬프트입니다.</p>'+
+        '<div style="background:rgba(255,255,255,.84);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #FB923C;word-break:break-all;color:#555;">'+fortuneDessertPrompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#FB923C;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safeFortuneDessertPrompt+'\').then(function(){alert(\'✨ 행운 디저트 프롬프트가 복사되었습니다!\');})">📋 행운 디저트 프롬프트 복사</button>'+
+      '</div>'+
+      '<div class="prem-box" style="background:linear-gradient(135deg,#ECFEFF,#CFFAFE);margin-top:12px;border:1.5px solid #06B6D4;">'+
+        '<span class="prem-title" style="color:#0E7490;">🐉 나의 수호 정령 — 운명 동반자</span>'+
+        '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">사주의 분위기에서 태어난 수호 정령 캐릭터 프롬프트입니다.</p>'+
+        '<div style="background:rgba(255,255,255,.84);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #06B6D4;word-break:break-all;color:#555;">'+guardianSpiritPrompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#06B6D4;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safeGuardianSpiritPrompt+'\').then(function(){alert(\'✨ 수호 정령 프롬프트가 복사되었습니다!\');})">📋 수호 정령 프롬프트 복사</button>'+
+      '</div>'+
+      '<div class="prem-box" style="background:linear-gradient(135deg,#FAF5FF,#F3E8FF);margin-top:12px;border:1.5px solid #A855F7;">'+
+        '<span class="prem-title" style="color:#7E22CE;">🎧 운명 앨범 커버 — 내 삶의 BGM</span>'+
+        '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">내 사주의 감성을 음악 앨범 커버처럼 표현하는 프롬프트입니다.</p>'+
+        '<div style="background:rgba(255,255,255,.84);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #A855F7;word-break:break-all;color:#555;">'+albumCoverPrompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#A855F7;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safeAlbumCoverPrompt+'\').then(function(){alert(\'✨ 운명 앨범 커버 프롬프트가 복사되었습니다!\');})">📋 앨범 커버 프롬프트 복사</button>'+
+      '</div>'+
+      '<div class="prem-box" style="background:linear-gradient(135deg,#FEFCE8,#FEF9C3);margin-top:12px;border:1.5px solid #EAB308;">'+
+        '<span class="prem-title" style="color:#A16207;">🗺️ 재물운 보물지도 — 행운 루트 일러스트</span>'+
+        '<p style="font-size:0.8rem;color:#555;margin-bottom:10px;">사주의 기운을 재물운 보물지도 일러스트로 만드는 프롬프트입니다.</p>'+
+        '<div style="background:rgba(255,255,255,.84);padding:12px;border-radius:10px;font-size:0.85rem;border:1px dashed #EAB308;word-break:break-all;color:#555;">'+treasureMapPrompt+'</div>'+
+        '<button class="btn-sub" style="margin-top:10px;padding:10px;font-size:0.8rem;background:#EAB308;color:white;border:none;border-radius:8px;" onclick="navigator.clipboard.writeText(\''+safeTreasureMapPrompt+'\').then(function(){alert(\'✨ 재물운 보물지도 프롬프트가 복사되었습니다!\');})">📋 보물지도 프롬프트 복사</button>'+
       '</div>'+
       '</div>';
 
@@ -7674,8 +7821,19 @@ function renderAstroInsight() {
       chartNow = calcAstroSwissChartOrThrow(now.getFullYear(), now.getMonth() + 1, now.getDate(), 12, lat, lon, tz, houseSystem);
     } catch (swissErr) {
       precisionReason = swissErr && swissErr.message ? String(swissErr.message) : String(swissErr || 'swiss unavailable');
-      renderAstroSwissUnavailable(precisionReason);
-      return;
+      precisionMode = 'legacy-fallback';
+      var strictPrecisionBeforeFallback = window.ASTRO_STRICT_PRECISION;
+      try {
+        window.ASTRO_STRICT_PRECISION = false;
+        chart = AstroEngine.calcAll(y, m, d, h + min / 60, lat, lon, tz, { houseSystem: houseSystem });
+        var fallbackNow = new Date();
+        chartNow = AstroEngine.calcAll(fallbackNow.getFullYear(), fallbackNow.getMonth() + 1, fallbackNow.getDate(), 12, lat, lon, tz, { houseSystem: houseSystem });
+      } catch (fallbackErr) {
+        renderAstroSwissUnavailable((fallbackErr && fallbackErr.message) || precisionReason);
+        return;
+      } finally {
+        window.ASTRO_STRICT_PRECISION = strictPrecisionBeforeFallback;
+      }
     }
 
     if (!chart || !chartNow || !chart.planets || !chartNow.planets || !chartNow.planets.Jupiter || !chartNow.planets.Jupiter.sign) {

@@ -984,7 +984,6 @@ function readPendingSubscriptionPass() {
 function SubscriptionSection({
   subscription,
   onSubscribe,
-  onSubscribeWithMonthlyCredit,
   onCancelSubscription,
   monthlyCredits,
   isProcessing,
@@ -995,7 +994,6 @@ function SubscriptionSection({
 }: {
   subscription:  SubscriptionStatus;
   onSubscribe:   (plan: SubscriptionPlan) => void;
-  onSubscribeWithMonthlyCredit: (plan: SubscriptionPlan) => void;
   onCancelSubscription: (resume: boolean) => void;
   monthlyCredits: number;
   isProcessing:  boolean;
@@ -1265,7 +1263,6 @@ function SubscriptionSection({
           const lowerTierBlocked = !isFlowerAdminMode && activeTierRank > 0 && planTierRank < activeTierRank;
           const ctaDisabled = isProcessing || lowerTierBlocked;
           const monthlyCreditCost = getSubscriptionMonthlyCreditCost(plan);
-          const monthlyCreditBlocked = ctaDisabled || monthlyCredits < monthlyCreditCost;
           return (
             <div
               key={plan.id}
@@ -1362,17 +1359,8 @@ function SubscriptionSection({
                   : lowerTierBlocked
                     ? "상위 티어 사용 중 (구매 불가)"
                   : isHighlighted
-                    ? `${theme.icon} 이용권 선택`
-                    : `${theme.icon} ${plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`} 결제 기준 확인`}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onSubscribeWithMonthlyCredit(plan)}
-                disabled={monthlyCreditBlocked}
-                className="mt-2 w-full rounded-lg border border-amber-200/50 bg-white/[0.07] px-3 py-2.5 text-[12px] font-black text-amber-100 shadow transition-all hover:-translate-y-0.5 hover:bg-white/12 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                월정석 {monthlyCreditCost.toLocaleString("ko-KR")}개로 구매
+                    ? `${theme.icon} 이용권 구매하기`
+                    : `${theme.icon} ${plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`} 이용권 구매하기`}
               </button>
 
               {monthlyCredits < monthlyCreditCost && !lowerTierBlocked && (
@@ -1679,6 +1667,7 @@ export default function PointsPage() {
   const isFlowerAdminMode = authUser?.role === "admin" && isFlowerAdminSessionClient();
   const [landingPlanPreset, setLandingPlanPreset] = useState<"standard" | "premium" | "vvip" | "family" | null>(null);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [pendingSubscriptionPaymentPlan, setPendingSubscriptionPaymentPlan] = useState<SubscriptionPlan | null>(null);
   const [pendingMonthlyCreditPlan, setPendingMonthlyCreditPlan] = useState<SubscriptionPlan | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     tier:         "free",
@@ -1694,6 +1683,9 @@ export default function PointsPage() {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const pendingMonthlyCreditCost = pendingMonthlyCreditPlan
     ? getSubscriptionMonthlyCreditCost(pendingMonthlyCreditPlan)
+    : 0;
+  const pendingSubscriptionPaymentMonthlyCreditCost = pendingSubscriptionPaymentPlan
+    ? getSubscriptionMonthlyCreditCost(pendingSubscriptionPaymentPlan)
     : 0;
 
   useEffect(() => {
@@ -2898,6 +2890,67 @@ export default function PointsPage() {
       {/* ── Toast 컨테이너 ────────────────────────────────────────── */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
+      {pendingSubscriptionPaymentPlan && (
+        <div
+          className="fixed inset-0 z-[180] flex items-center justify-center bg-slate-950/72 px-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="subscriptionPaymentChoiceTitle"
+          onClick={(event) => {
+            if (event.target === event.currentTarget && !isProcessing) setPendingSubscriptionPaymentPlan(null);
+          }}
+        >
+          <div className="w-full max-w-md rounded-[20px] border border-amber-200/35 bg-[#111832] p-5 text-slate-100 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
+            <p id="subscriptionPaymentChoiceTitle" className="text-base font-black text-white">
+              달빛 이용권 구매 방식 선택
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-200">
+              {pendingSubscriptionPaymentPlan.title} · {formatWon(pendingSubscriptionPaymentPlan.wonPrice)}
+            </p>
+            <div className="mt-4 grid gap-2">
+              <button
+                type="button"
+                disabled={isProcessing}
+                onClick={() => {
+                  const plan = pendingSubscriptionPaymentPlan;
+                  if (!plan) return;
+                  setPendingSubscriptionPaymentPlan(null);
+                  void handleSubscribe(plan);
+                }}
+                className="rounded-[14px] border border-amber-200/45 bg-amber-200 px-4 py-3 text-left text-[#151832] shadow-[0_10px_22px_rgba(243,221,154,0.18)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <span className="block text-sm font-black">단건 결제</span>
+                <span className="mt-1 block text-[12px] font-semibold">PortOne V2 보안 결제창에서 바로 결제합니다.</span>
+              </button>
+              <button
+                type="button"
+                disabled={isProcessing || currentMonthlyCredits < pendingSubscriptionPaymentMonthlyCreditCost}
+                onClick={() => {
+                  const plan = pendingSubscriptionPaymentPlan;
+                  if (!plan) return;
+                  setPendingSubscriptionPaymentPlan(null);
+                  setPendingMonthlyCreditPlan(plan);
+                }}
+                className="rounded-[14px] border border-white/15 bg-white/[0.08] px-4 py-3 text-left text-slate-100 shadow transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <span className="block text-sm font-black">보유 월정석으로 구매</span>
+                <span className="mt-1 block text-[12px] font-semibold text-slate-200">
+                  필요 {pendingSubscriptionPaymentMonthlyCreditCost.toLocaleString("ko-KR")}개 · 현재 {currentMonthlyCredits.toLocaleString("ko-KR")}개
+                </span>
+              </button>
+            </div>
+            <button
+              type="button"
+              disabled={isProcessing}
+              onClick={() => setPendingSubscriptionPaymentPlan(null)}
+              className="mt-4 w-full rounded-[12px] border border-white/15 bg-white/10 px-3 py-2.5 text-sm font-bold text-slate-200 transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
       {pendingMonthlyCreditPlan && (
         <div
           className="fixed inset-0 z-[180] flex items-center justify-center bg-slate-950/72 px-4 backdrop-blur-sm"
@@ -3066,8 +3119,7 @@ export default function PointsPage() {
         {/* ②-3 이용권 상품 카드 */}
         <SubscriptionSection
           subscription={subscription}
-          onSubscribe={handleSubscribe}
-          onSubscribeWithMonthlyCredit={setPendingMonthlyCreditPlan}
+          onSubscribe={setPendingSubscriptionPaymentPlan}
           onCancelSubscription={handleSubscriptionCancel}
           monthlyCredits={currentMonthlyCredits}
           isProcessing={isProcessing}

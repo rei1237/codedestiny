@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 
 const rootDir = process.cwd();
@@ -8,6 +8,7 @@ const appManifestPath = resolve(rootDir, ".next", "server", "app-paths-manifest.
 const pagesDir = resolve(rootDir, ".next", "server", "pages");
 const appDir = resolve(rootDir, ".next", "server", "app");
 const export500Path = resolve(rootDir, ".next", "export", "500.html");
+const diagnosticsPath = resolve(rootDir, ".next", "diagnostics", "build-diagnostics.json");
 const nextCli = resolve(rootDir, "node_modules", "next", "dist", "bin", "next");
 
 function readJsonObject(filePath) {
@@ -18,6 +19,13 @@ function readJsonObject(filePath) {
   } catch {
     return {};
   }
+}
+
+function writeJsonAtomic(filePath, value) {
+  mkdirSync(dirname(filePath), { recursive: true });
+  const tmpPath = `${filePath}.${process.pid}.tmp`;
+  writeFileSync(tmpPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  renameSync(tmpPath, filePath);
 }
 
 function readManifestKeys() {
@@ -71,8 +79,7 @@ function ensurePagesManifest() {
   }
 
   try {
-    mkdirSync(dirname(manifestPath), { recursive: true });
-    writeFileSync(manifestPath, `${JSON.stringify(entries, null, 2)}\n`, "utf8");
+    writeJsonAtomic(manifestPath, entries);
     ensureExport500Fallback();
   } catch (error) {
     if (error?.code === "ENOENT") return;
@@ -88,8 +95,7 @@ function ensureAppPathsManifest() {
   const merged = { ...current, "/_not-found/page": "app/_not-found/page.js" };
   if (JSON.stringify(current) === JSON.stringify(merged)) return;
 
-  mkdirSync(dirname(appManifestPath), { recursive: true });
-  writeFileSync(appManifestPath, `${JSON.stringify(merged, null, 2)}\n`, "utf8");
+  writeJsonAtomic(appManifestPath, merged);
 }
 
 function ensureBuildManifests() {
@@ -97,13 +103,18 @@ function ensureBuildManifests() {
   ensureAppPathsManifest();
 }
 
+function ensureBuildDiagnostics() {
+  if (existsSync(diagnosticsPath)) return;
+  writeJsonAtomic(diagnosticsPath, {});
+}
+
 function seedEmptyPagesManifest() {
   if (existsSync(manifestPath)) return;
-  mkdirSync(dirname(manifestPath), { recursive: true });
-  writeFileSync(manifestPath, "{}\n", "utf8");
+  writeJsonAtomic(manifestPath, {});
 }
 
 seedEmptyPagesManifest();
+ensureBuildDiagnostics();
 
 const timer = setInterval(ensureBuildManifests, 100);
 const child = spawn(process.execPath, [nextCli, "build"], {

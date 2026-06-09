@@ -1,4 +1,4 @@
-﻿/* saju-engine middle chunk — TAROT_DATA · 숙요/타로 플로우 · 퀀텀 명리 UI
+/* saju-engine middle chunk — TAROT_DATA · 숙요/타로 플로우 · 퀀텀 명리 UI
  * 로드 순서: js/saju-engine.js → (본 파일) → js/core/saju/reportDashboard.js → js/saju-engine-continuation.js
  * 알고리즘/데이터는 원본과 동일하게 유지 (이동만). */
 var TAROT_DATA = [
@@ -11669,12 +11669,15 @@ function renderQuantumStrategy(p, natal, bazi){
     ? _qSS_items.map(function(s){return '<div class="qm-action-item"><div class="qm-action-num">★</div><div class="qm-action-text" style="font-size:.84rem;line-height:1.75">'+s+'</div></div>';}).join('')
     : '<div class="qm-action-item"><div class="qm-action-num">—</div><div class="qm-action-text">주요 신살 해당 없음 — 순수 오행 에너지로 매력이 발현됩니다.</div></div>';
 
+  var quantumEngineVersion = 'v.2';
+  window.__cdQuantumMyeongriEngineVersion = quantumEngineVersion;
+
   var html=
     '<div class="qm-wrap">'+
       '<div class="qm-header">'+
         '<span class="qm-icon">⚡</span>'+
         '<div class="qm-title-wrap">'+
-          '<h3>QUANTUM MYEONGRI Engine v.1</h3>'+
+          '<h3>QUANTUM MYEONGRI Engine '+quantumEngineVersion+'</h3>'+
           '<p>// 현재 대운·세운 합화 및 충(沖) 변이 분석 · 억부+조후+종격 통합 엔진</p>'+
         '</div>'+
       '</div>'+

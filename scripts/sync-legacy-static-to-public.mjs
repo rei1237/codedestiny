@@ -4,10 +4,33 @@
  */
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, statSync, readdirSync, rmSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { resolve, join } from "node:path";
+import { dirname, resolve, join } from "node:path";
 
 const rootDir = process.cwd();
 const publicDir = resolve(rootDir, "public");
+
+function syncSwissEphVendor() {
+  const srcBase = resolve(rootDir, "node_modules", "sweph-wasm", "dist");
+  if (!existsSync(srcBase)) return;
+
+  const targetBase = resolve(rootDir, "js", "vendor", "sweph-wasm");
+  const files = [
+    ["index.js", "index.js"],
+    ["wasm/swisseph.js", "wasm/swisseph.js"],
+    ["wasm/swisseph.wasm", "wasm/swisseph.wasm"],
+    ["ephe/seas_18.se1", "ephe/seas_18.se1"],
+    ["ephe/sepl_18.se1", "ephe/sepl_18.se1"],
+    ["ephe/semo_18.se1", "ephe/semo_18.se1"],
+  ];
+
+  for (const [srcRel, dstRel] of files) {
+    const src = join(srcBase, srcRel);
+    const dst = join(targetBase, dstRel);
+    if (!existsSync(src)) continue;
+    mkdirSync(dirname(dst), { recursive: true });
+    cpSync(src, dst, { force: true });
+  }
+}
 
 const staticTargets = [
   "_headers",
@@ -38,6 +61,8 @@ const staticTargets = [
   "fuctionassets",
   "sudda",
 ];
+
+syncSwissEphVendor();
 
 /**
  * Safe per-file sync for the styles/ directory.

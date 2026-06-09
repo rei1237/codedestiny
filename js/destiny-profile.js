@@ -20,6 +20,7 @@
   var PROFILE_CARD_MANAGE_COST = 50;
   var _dpProfileMenuLastTouchAt = 0;
   var _dpProfileMenuPointerHandledAt = 0;
+  var _dpProfileMenuSyntheticEvent = false;
   var _dpProfileEditTargetId = '';
 
   function _dpReadAuthUser() {
@@ -3350,8 +3351,20 @@
     if (btn) btn.setAttribute('aria-expanded', 'false');
   }
 
-  function _dpWasProfileMenuPointerRecentlyHandled() {
-    return Date.now() - _dpProfileMenuPointerHandledAt < 700;
+  function _dpWasProfileMenuPointerRecentlyHandled(node) {
+    var handledAt = 0;
+    try {
+      handledAt = node && node.getAttribute ? Number(node.getAttribute('data-dp-pointer-handled-at') || 0) : 0;
+    } catch (_) {}
+    return handledAt > 0 && Date.now() - handledAt < 700;
+  }
+
+  function _dpMarkProfileMenuPointerHandled(node) {
+    var now = Date.now();
+    _dpProfileMenuPointerHandledAt = now;
+    try {
+      if (node && node.setAttribute) node.setAttribute('data-dp-pointer-handled-at', String(now));
+    } catch (_) {}
   }
 
   function _dpPositionProfileMenu(btn, wrap) {
@@ -3378,8 +3391,8 @@
   function _dpToggleProfileMenuFromButton(btn, event, source) {
     if (event && event.preventDefault) event.preventDefault();
     if (event && event.stopPropagation) event.stopPropagation();
-    if (event && event.type === 'click' && (Date.now() - _dpProfileMenuLastTouchAt < 700 || _dpWasProfileMenuPointerRecentlyHandled())) return;
-    if (event && event.type === 'touchend' && _dpWasProfileMenuPointerRecentlyHandled()) return;
+    if (!_dpProfileMenuSyntheticEvent && event && event.type === 'click' && (Date.now() - _dpProfileMenuLastTouchAt < 700 || _dpWasProfileMenuPointerRecentlyHandled(btn))) return;
+    if (!_dpProfileMenuSyntheticEvent && event && event.type === 'touchend' && _dpWasProfileMenuPointerRecentlyHandled(btn)) return;
     if (source === 'touch') _dpProfileMenuLastTouchAt = Date.now();
     var wrap = btn && btn.closest ? btn.closest('.dp-mc-action-wrap') : null;
     if (!wrap) return;
@@ -3393,16 +3406,14 @@
   function _dpRunProfileMenuActionNode(node, event) {
     if (event && event.preventDefault) event.preventDefault();
     if (event && event.stopPropagation) event.stopPropagation();
-    if (event && (event.type === 'click' || event.type === 'touchend') && _dpWasProfileMenuPointerRecentlyHandled()) return;
     var item = node && node.closest ? node.closest('.dp-mc-action-menu__item') : null;
     if (!item) return;
+    if (!_dpProfileMenuSyntheticEvent && event && (event.type === 'click' || event.type === 'touchend') && _dpWasProfileMenuPointerRecentlyHandled(item)) return;
     var action = String(item.getAttribute('data-dp-menu-action') || '').trim();
     var profileId = String(item.getAttribute('data-profile-id') || '').trim();
     _dpCloseProfileMenu();
     if (action === 'view' || action === 'list') {
       _dpClearProfileEditMode();
-      var currentProfileId = String((DPStorage.current() || {}).id || '').trim();
-      if (profileId && profileId !== currentProfileId) window.dpSelectProfile(profileId);
       window.dpOpenList();
       return;
     }
@@ -3555,7 +3566,7 @@
               + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
             + '</button>'
             + '<div class="dp-mc-action-menu" role="menu" aria-label="프로필 카드 관리">'
-              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" data-dp-menu-action="view" data-profile-id="' + _esc(profile.id) + '">프로필 조회<span>목록</span></button>'
+              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" data-dp-menu-action="view" data-profile-id="' + _esc(profile.id) + '">추가 프로필 조회<span>목록</span></button>'
               + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--danger" role="menuitem" data-dp-menu-action="delete" data-profile-id="' + _esc(profile.id) + '">프로필 카드 삭제<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
             + '</div>'
           + '</div>'
@@ -4075,8 +4086,7 @@
           return '<div class="dp-list-item' + (isActive ? ' dp-list-item--active' : '') + '"'
             + ' data-profile-id="' + pid + '"'
             + ' role="button" tabindex="0"'
-            + ' style="animation-delay:' + (idx * 0.07) + 's; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;"'
-            + ' onclick="dpSelectProfile(\'' + pid + '\')">'
+            + ' style="animation-delay:' + (idx * 0.07) + 's; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;">'
             + '<div class="dp-li-left">'
               + '<div class="dp-li-avatar">' + zodiac + '</div>'
               + '<div class="dp-li-body">'
@@ -4097,7 +4107,10 @@
                 + '<div class="dp-li-loc">📍 ' + _esc(locLabel) + '</div>'
               + '</div>'
             + '</div>'
-            + '<button type="button" class="dp-li-del" aria-label="프로필 카드 삭제">삭제</button>'
+            + '<div class="dp-li-actions" aria-label="프로필 카드 관리">'
+              + '<button type="button" class="dp-li-view" aria-label="프로필 카드 조회">조회</button>'
+              + '<button type="button" class="dp-li-del" aria-label="프로필 카드 삭제">삭제</button>'
+            + '</div>'
             + '</div>';
         }).join('') + lockedNotice;
       } catch (err) {
@@ -5375,16 +5388,26 @@
       if (menuItem) {
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
-        _dpProfileMenuPointerHandledAt = Date.now();
-        dpRunProfileMenuAction(menuItem, { preventDefault: function(){}, stopPropagation: function(){} });
+        _dpMarkProfileMenuPointerHandled(menuItem);
+        _dpProfileMenuSyntheticEvent = true;
+        try {
+          dpRunProfileMenuAction(menuItem, { preventDefault: function(){}, stopPropagation: function(){} });
+        } finally {
+          _dpProfileMenuSyntheticEvent = false;
+        }
         return;
       }
       var menuBtn = targetEl.closest('#dpMasterCard .dp-mc-menu-btn');
       if (menuBtn) {
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
-        _dpProfileMenuPointerHandledAt = Date.now();
-        dpToggleProfileMenu({ currentTarget: menuBtn, source: 'pointer', preventDefault: function(){}, stopPropagation: function(){} });
+        _dpMarkProfileMenuPointerHandled(menuBtn);
+        _dpProfileMenuSyntheticEvent = true;
+        try {
+          dpToggleProfileMenu({ currentTarget: menuBtn, source: 'pointer', preventDefault: function(){}, stopPropagation: function(){} });
+        } finally {
+          _dpProfileMenuSyntheticEvent = false;
+        }
         return;
       }
       if (!targetEl.closest('#dpMasterCard .dp-mc-action-wrap')) _dpCloseProfileMenu();
@@ -5631,13 +5654,14 @@
         var targetEl = _resolveEventElement(e.target);
         if (!targetEl) return;
         var delBtn = targetEl.closest('.dp-li-del');
-        if (!delBtn) return;
-        var delItem = targetEl.closest('[data-profile-id]');
-        var delPid = delItem ? delItem.getAttribute('data-profile-id') : '';
-        if (!delPid) return;
+        var viewBtn = targetEl.closest('.dp-li-view');
+        var actionItem = targetEl.closest('[data-profile-id]');
+        var actionPid = actionItem ? actionItem.getAttribute('data-profile-id') : '';
+        if (!actionPid) return;
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
-        dpDeleteProfile(delPid);
+        if (delBtn) dpDeleteProfile(actionPid);
+        else if (viewBtn || actionItem) dpSelectProfile(actionPid);
       }, true);
       listInner.addEventListener('touchend', function(e) {
         /* 스크롤이 아닌 탭만 처리 (이동 10px 미만) */
@@ -5655,8 +5679,19 @@
           }
           return;
         }
+        var viewBtn = targetEl.closest('.dp-li-view');
+        if (viewBtn) {
+          var viewItem = targetEl.closest('[data-profile-id]');
+          var viewPid = viewItem ? viewItem.getAttribute('data-profile-id') : '';
+          if (viewPid) {
+            if (e.cancelable) e.preventDefault();
+            e.stopPropagation();
+            dpSelectProfile(viewPid);
+          }
+          return;
+        }
         var item = targetEl.closest('[data-profile-id]');
-        if (item && !targetEl.closest('.dp-li-del')) {
+        if (item && !targetEl.closest('.dp-li-del') && !targetEl.closest('.dp-li-view')) {
           var pid = item.getAttribute('data-profile-id');
           if (pid) { if (e.cancelable) e.preventDefault(); dpSelectProfile(pid); }
         }

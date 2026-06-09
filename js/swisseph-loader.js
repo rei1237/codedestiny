@@ -1,21 +1,28 @@
-const SWISS_WASM_SOURCES = [
-	'https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src/swisseph.js',
-	'https://unpkg.com/swisseph-wasm@latest/src/swisseph.js'
-];
+const SWISS_WASM_MODULE_URL = '/js/vendor/sweph-wasm/index.js';
+const SWISS_WASM_BINARY_URL = '/js/vendor/sweph-wasm/wasm/swisseph.wasm';
+const SWISS_EPHEMERIS_URL = '/js/vendor/sweph-wasm/ephe/';
+const SWISS_EPHEMERIS_FILES = ['seas_18.se1', 'sepl_18.se1', 'semo_18.se1'];
 
 async function loadSwissEphConstructor() {
-	var errs = [];
-	for (var i = 0; i < SWISS_WASM_SOURCES.length; i += 1) {
-		var src = SWISS_WASM_SOURCES[i];
-		try {
-			var mod = await import(src);
-			if (mod && mod.default) return mod.default;
-			errs.push(src + ': missing default export');
-		} catch (e) {
-			errs.push(src + ': ' + String((e && e.message) || e || 'import failed'));
-		}
+	var mod = await import(SWISS_WASM_MODULE_URL);
+	if (mod && mod.default) return mod.default;
+	throw new Error(SWISS_WASM_MODULE_URL + ': missing default export');
+}
+
+async function initSwissEph(SwissEphCtor) {
+	if (SwissEphCtor && typeof SwissEphCtor.init === 'function') {
+		return SwissEphCtor.init(SWISS_WASM_BINARY_URL);
 	}
-	throw new Error('SwissEph module import failed. ' + errs.join(' | '));
+	var swe = new SwissEphCtor();
+	if (typeof swe.initSwissEph === 'function') {
+		await swe.initSwissEph();
+	}
+	return swe;
+}
+
+async function loadEphemerisFiles(swe) {
+	if (!swe || typeof swe.swe_set_ephe_path !== 'function') return;
+	await swe.swe_set_ephe_path(SWISS_EPHEMERIS_URL, SWISS_EPHEMERIS_FILES);
 }
 
 (function initSwissEphBridge() {
@@ -36,7 +43,8 @@ async function loadSwissEphConstructor() {
 
 	function buildBridge(swe) {
 		function sweCalcUt(jdUT, planetId, flags) {
-			var res = swe.calc_ut(Number(jdUT), Number(planetId), Number(flags || 0));
+			var calc = (typeof swe.swe_calc_ut === 'function') ? swe.swe_calc_ut.bind(swe) : swe.calc_ut.bind(swe);
+			var res = calc(Number(jdUT), Number(planetId), Number(flags || 0));
 			if (Array.isArray(res)) return res;
 			if (res && typeof res.length === 'number') return Array.from(res);
 			return res;
@@ -54,7 +62,8 @@ async function loadSwissEphConstructor() {
 
 		function sweHouses(jdUT, lat, lon, hsys) {
 			var hs = String(hsys || 'P');
-			var h = swe.houses(Number(jdUT), Number(lat), Number(lon), hs);
+			var houses = (typeof swe.swe_houses === 'function') ? swe.swe_houses.bind(swe) : swe.houses.bind(swe);
+			var h = houses(Number(jdUT), Number(lat), Number(lon), hs);
 			return {
 				cusps: toArray(h && h.cusps),
 				ascmc: toArray(h && h.ascmc)
@@ -63,7 +72,8 @@ async function loadSwissEphConstructor() {
 
 		function sweHousesEx(jdUT, iflag, lat, lon, hsys) {
 			var hs = String(hsys || 'P');
-			var h = swe.houses_ex(Number(jdUT), Number(iflag || 0), Number(lat), Number(lon), hs);
+			var housesEx = (typeof swe.swe_houses_ex === 'function') ? swe.swe_houses_ex.bind(swe) : swe.houses_ex.bind(swe);
+			var h = housesEx(Number(jdUT), Number(iflag || 0), Number(lat), Number(lon), hs);
 			return {
 				cusps: toArray(h && h.cusps),
 				ascmc: toArray(h && h.ascmc)
@@ -95,8 +105,8 @@ async function loadSwissEphConstructor() {
 
 	(async function start() {
 		var SwissEphCtor = await loadSwissEphConstructor();
-		var swe = new SwissEphCtor();
-		await swe.initSwissEph();
+		var swe = await initSwissEph(SwissEphCtor);
+		await loadEphemerisFiles(swe);
 
 		var bridge = buildBridge(swe);
 		window.swisseph = bridge;
@@ -115,10 +125,10 @@ async function loadSwissEphConstructor() {
 		window.__swissephBridge.ready = false;
 		window.__swissephBridge.precision = 'legacy';
 		window.__swissephBridge.error = String((err && err.message) || err || 'SwissEph init failed');
-		window.ASTRO_STRICT_PRECISION = true;
+		window.ASTRO_STRICT_PRECISION = false;
 		window.dispatchEvent(new CustomEvent('swisseph:error', {
 			detail: { error: window.__swissephBridge.error }
 		}));
-		console.warn('[SwissEph] init failed; strict precision remains enabled.', err);
+		console.warn('[SwissEph] init failed; legacy fallback enabled.', err);
 	});
 })();

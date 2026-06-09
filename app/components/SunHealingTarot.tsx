@@ -35,15 +35,45 @@ type TarotCardDto = {
 };
 
 type HealingReadingDto = {
+  subtitle?: string;
+  oneLineMessage?: string;
+  sunLine?: string;
+  summary?: string;
   opening?: string;
   cardDeepDive?: string[];
+  cardReadings?: SunRecoveryCardReadingDto[];
   hiddenTruth?: string;
   embracePain?: string;
   silverLining?: string;
   stepForward?: string;
+  storyFlow?: string;
+  recoveryRoutines?: RecoveryRoutineDto[];
+  affirmation?: string;
+  notice?: string;
   integrationMessage?: string;
   consultingHighlights?: string[];
   actionPlan?: string[];
+};
+
+type SunRecoveryCardReadingDto = {
+  position?: string;
+  positionLabel?: string;
+  cardName?: string;
+  cardNameEn?: string;
+  orientation?: TarotOrientation | string;
+  orientationLabel?: string;
+  keywords?: string[];
+  shortMessage?: string;
+  meaning?: string;
+  shadow?: string;
+  recoveryAdvice?: string;
+};
+
+type RecoveryRoutineDto = {
+  title?: string;
+  description?: string;
+  action?: string;
+  timeGuide?: string;
 };
 
 type EngineMetaDto = {
@@ -290,6 +320,103 @@ function ReadingCard({
   );
 }
 
+function normalizeReadingCards(reading: HealingReadingDto | null, cards: TarotCardDto[]) {
+  const structured = Array.isArray(reading?.cardReadings) ? reading.cardReadings : [];
+  if (structured.length) return structured.slice(0, SPREAD_CARD_COUNT);
+  return cards.slice(0, SPREAD_CARD_COUNT).map((card, idx) => ({
+    positionLabel: ["숨겨진 진실", "감정 수용", "회복 단서", "다음 행동"][idx],
+    cardName: card.nameKr || card.name || `카드 ${idx + 1}`,
+    orientation: card.orientation === "reversed" ? "reversed" : "upright",
+    orientationLabel: card.orientation === "reversed" ? "역방향" : "정방향",
+    keywords: [],
+    shortMessage: "",
+    meaning: Array.isArray(reading?.cardDeepDive) ? reading.cardDeepDive[idx] : "",
+    shadow: "",
+    recoveryAdvice: "",
+  }));
+}
+
+function orientationLabelOf(value?: string) {
+  return value === "reversed" ? "역방향" : "정방향";
+}
+
+function ResultCardSummary({ item, idx, card }: { item: SunRecoveryCardReadingDto; idx: number; card?: TarotCardDto }) {
+  const orientation = item.orientationLabel || orientationLabelOf(String(item.orientation || card?.orientation || "upright"));
+  const keywords = Array.isArray(item.keywords) ? item.keywords.slice(0, 3) : [];
+  return (
+    <article className="rounded-lg border border-amber-200/70 bg-white/82 p-3 shadow-[0_12px_30px_rgba(180,120,35,0.12)]">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-amber-100 bg-amber-50">
+        {card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(card, idx)} fill sizes="120px" className="object-cover" unoptimized />) : null}
+      </div>
+      <p className="mt-3 text-[11px] font-semibold text-teal-700">{idx + 1}. {item.positionLabel}</p>
+      <h4 className="mt-1 text-sm font-bold leading-tight text-amber-950">{item.cardName}</h4>
+      <p className="mt-1 text-xs font-semibold text-stone-500">{orientation}</p>
+      {keywords.length ? (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {keywords.map((keyword) => (
+            <span key={keyword} className="rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">{keyword}</span>
+          ))}
+        </div>
+      ) : null}
+      {item.shortMessage ? <p className="mt-3 text-xs leading-5 text-stone-700">{item.shortMessage}</p> : null}
+    </article>
+  );
+}
+
+function ResultDetailCard({ item, idx }: { item: SunRecoveryCardReadingDto; idx: number }) {
+  const orientation = item.orientationLabel || orientationLabelOf(String(item.orientation || "upright"));
+  const keywords = Array.isArray(item.keywords) ? item.keywords.slice(0, 3) : [];
+  return (
+    <article className="rounded-lg border border-white/80 bg-white/86 p-5 shadow-[0_18px_52px_rgba(180,120,35,0.14)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold text-teal-700">{idx + 1}. {item.positionLabel}</p>
+          <h3 className="mt-1 font-serif text-xl font-semibold leading-tight text-amber-950">{item.cardName}</h3>
+        </div>
+        <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">{orientation}</span>
+      </div>
+      {keywords.length ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {keywords.map((keyword) => (
+            <span key={keyword} className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">{keyword}</span>
+          ))}
+        </div>
+      ) : null}
+      {item.meaning ? (
+        <div className="mt-5">
+          <p className="text-xs font-bold uppercase tracking-normal text-amber-700">해석</p>
+          <p className="mt-2 text-sm leading-7 text-stone-700">{item.meaning}</p>
+        </div>
+      ) : null}
+      {item.shadow ? (
+        <div className="mt-4 rounded-lg border border-rose-100 bg-rose-50/70 p-4">
+          <p className="text-xs font-bold text-rose-700">조심히 살필 부분</p>
+          <p className="mt-2 text-sm leading-7 text-stone-700">{item.shadow}</p>
+        </div>
+      ) : null}
+      {item.recoveryAdvice ? (
+        <div className="mt-4 rounded-lg border border-teal-100 bg-teal-50/70 p-4">
+          <p className="text-xs font-bold text-teal-700">오늘의 회복 행동</p>
+          <p className="mt-2 text-sm leading-7 text-stone-700">{item.recoveryAdvice}</p>
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+function RoutineCard({ item }: { item: RecoveryRoutineDto }) {
+  return (
+    <article className="rounded-lg border border-amber-200/70 bg-amber-50/82 p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <h4 className="font-serif text-lg font-semibold leading-tight text-amber-950">{item.title}</h4>
+        {item.timeGuide ? <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-amber-800">{item.timeGuide}</span> : null}
+      </div>
+      {item.description ? <p className="mt-2 text-sm leading-6 text-stone-700">{item.description}</p> : null}
+      {item.action ? <p className="mt-3 text-sm font-semibold leading-6 text-stone-800">{item.action}</p> : null}
+    </article>
+  );
+}
+
 export default function SunHealingTarot() {
   const [stage, setStage] = useState<Stage>("intro");
   const [cards, setCards] = useState<TarotCardDto[]>([]);
@@ -408,8 +535,9 @@ export default function SunHealingTarot() {
 
   const share = useCallback(async () => {
     const url = typeof window !== "undefined" ? window.location.href : SHARE_FALLBACK_URL;
-    const highlightText = consultingHighlights.length ? `\n🔭 핵심 상담 하이라이트\n${consultingHighlights.slice(0, 2).map((line) => `• ${line}`).join("\n")}\n` : "";
-    const text = `${SHARE_TEXT_PREFIX}${highlightText}\n${url}`;
+    const firstLine = String(reading?.oneLineMessage || reading?.sunLine || "").trim();
+    const highlightText = consultingHighlights.length ? `\n핵심 상담 하이라이트\n${consultingHighlights.slice(0, 2).map((line) => `• ${line}`).join("\n")}\n` : "";
+    const text = `${SHARE_TEXT_PREFIX}${firstLine ? `${firstLine}\n` : ""}${highlightText}\n${url}`;
     try {
       const nav = navigator as Navigator & { share?: (data: object) => Promise<void> };
       if (nav.share) {
@@ -423,7 +551,7 @@ export default function SunHealingTarot() {
     } catch (e) {
       alert("공유를 지원하지 않는 환경입니다.");
     }
-  }, [consultingHighlights]);
+  }, [consultingHighlights, reading]);
 
   useEffect(() => {
     if (!reading || tapToReveal || stage !== "result") return;
@@ -459,6 +587,13 @@ export default function SunHealingTarot() {
 
   const POSITION_LABELS = ["마음 깊은 원인", "감정 수용", "회복의 단서", "다음 행동"] as const;
   const POSITION_LABELS_SHORT = ["원인", "수용", "회복", "행동"] as const;
+  const resultCards = useMemo(() => normalizeReadingCards(reading, cards), [reading, cards]);
+  const resultRoutines = useMemo(() => {
+    if (Array.isArray(reading?.recoveryRoutines) && reading.recoveryRoutines.length) return reading.recoveryRoutines.slice(0, 3);
+    return (reading?.actionPlan || []).slice(0, 3).map((line) => ({ title: line.split(":")[0] || "회복 루틴", action: line.includes(":") ? line.split(":").slice(1).join(":").trim() : line, timeGuide: "10분" }));
+  }, [reading]);
+  const resultStory = String(reading?.storyFlow || reading?.integrationMessage || "").trim();
+  const resultSunLine = String(reading?.oneLineMessage || reading?.sunLine || reading?.summary || "").trim();
 
   return (
     <main
@@ -595,12 +730,16 @@ export default function SunHealingTarot() {
           ) : null}
           {stage === "result" ? (
             <motion.section key="result" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 gap-5 pb-5 lg:grid-cols-[330px_minmax(0,1fr)]">
-              <aside className="rounded-lg border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(255,247,237,0.72),rgba(240,253,250,0.36))] p-5 shadow-[0_24px_70px_rgba(180,120,35,0.16)] backdrop-blur-2xl lg:sticky lg:top-6 lg:max-h-[calc(100dvh-48px)]">
+              <aside className="rounded-lg border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(255,247,237,0.76),rgba(240,253,250,0.42))] p-5 shadow-[0_24px_70px_rgba(180,120,35,0.16)] backdrop-blur-2xl lg:sticky lg:top-6 lg:max-h-[calc(100dvh-48px)] lg:overflow-auto">
                 <p className="text-xs font-semibold uppercase tracking-normal text-teal-700/75">Sunrise Reading</p>
-                <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight text-amber-950">새벽빛 회복 리딩</h2>
-                <p className="mt-3 text-sm leading-7 text-stone-700">카드가 비춘 상처의 이름, 감정의 온도, 다시 움직일 수 있는 작은 빛을 차례로 읽습니다.</p>
+                <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight text-amber-950">오늘의 태양 리딩</h2>
+                <p className="mt-3 text-sm leading-7 text-stone-700">{reading?.subtitle || "상처를 지우지 않고, 그 자리에 다시 빛을 들이는 리딩"}</p>
+                <div className="mt-5 rounded-lg border border-amber-200/70 bg-white/80 p-4">
+                  <p className="text-xs font-bold text-amber-700">오늘의 태양 한 문장</p>
+                  <p className="mt-2 font-serif text-xl font-semibold leading-8 text-amber-950">{resultSunLine}</p>
+                </div>
                 {cards.length > 0 && (
-                  <div className="mt-6 grid grid-cols-4 gap-2 lg:grid-cols-2">
+                  <div className="mt-5 grid grid-cols-4 gap-2 lg:grid-cols-2">
                     {cards.map((card, idx) => (
                       <div key={idx}>
                         <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border border-amber-200/70 shadow-[0_16px_34px_rgba(180,120,35,0.18)]">{card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(card, idx)} fill sizes="120px" className="object-cover" unoptimized />) : (<div className="absolute inset-0 bg-amber-50" />)}</div>
@@ -615,20 +754,56 @@ export default function SunHealingTarot() {
                   <button type="button" onClick={goHome} className="min-h-11 rounded-full bg-stone-900 px-4 text-sm font-bold text-white shadow-[0_16px_34px_rgba(68,64,60,0.18)] transition-colors hover:bg-amber-950">다른 운세 보기</button>
                 </div>
               </aside>
-              <div className="min-w-0 rounded-lg border border-white/80 bg-white/76 p-4 shadow-[0_30px_90px_rgba(180,120,35,0.18)] backdrop-blur-2xl md:p-6">
-                <div className="mb-5 rounded-lg border border-amber-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(254,243,199,0.78),rgba(255,237,213,0.62),rgba(204,251,241,0.36))] p-5 shadow-inner">
+              <div className="min-w-0 space-y-5 rounded-lg border border-white/80 bg-white/76 p-4 shadow-[0_30px_90px_rgba(180,120,35,0.18)] backdrop-blur-2xl md:p-6">
+                <section className="rounded-lg border border-amber-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(254,243,199,0.82),rgba(255,237,213,0.68),rgba(204,251,241,0.4))] p-5 shadow-inner">
                   <p className="text-xs font-semibold uppercase tracking-normal text-amber-700/78">Dawn Counsel</p>
-                  <h3 className="mt-2 font-serif text-2xl font-semibold text-amber-950">상처를 지우지 않고 빛을 돌려놓는 해석</h3>
-                  <p className="mt-3 text-sm leading-7 text-stone-700">지금의 마음을 문제로 만들지 않고, 카드가 비춘 상징을 회복 가능한 장면과 말로 정리합니다.</p>
-                </div>
-                <div className="space-y-3">
-                  {READING_SECTIONS.map((section) => {
-                    const value = typed[String(section.key)] || "";
-                    if (!value) return null;
-                    return (<ReadingCard key={String(section.key)} title={section.title} tone={section.tone} icon={section.icon} text={value} isTyping={typingSection === section.title} />);
-                  })}
-                  {engineMeta?.qualityEnhanced && (<p className="rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-xs font-semibold text-amber-800">엔진 품질 강화 상담 모드가 적용되었습니다.</p>)}
-                </div>
+                  <h3 className="mt-2 font-serif text-2xl font-semibold leading-tight text-amber-950">상처를 지우지 않고 빛을 돌려놓는 해석</h3>
+                  <p className="mt-3 text-sm leading-7 text-stone-700">{reading?.opening || "지금의 마음을 문제로 만들지 않고, 카드가 비춘 상징을 회복 가능한 장면과 말로 정리합니다."}</p>
+                </section>
+                <section>
+                  <div className="mb-3 flex items-end justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold text-teal-700">4장 카드 요약</p>
+                      <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">오늘 마음에 비친 네 장면</h3>
+                    </div>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    {resultCards.map((item, idx) => (
+                      <ResultCardSummary key={`${item.cardName}-${idx}`} item={item} idx={idx} card={cards[idx]} />
+                    ))}
+                  </div>
+                </section>
+                <section className="space-y-3">
+                  <div>
+                    <p className="text-xs font-semibold text-teal-700">카드별 상세 해석</p>
+                    <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">각 카드가 건네는 회복 문장</h3>
+                  </div>
+                  {resultCards.map((item, idx) => (
+                    <ResultDetailCard key={`${item.positionLabel}-${idx}`} item={item} idx={idx} />
+                  ))}
+                </section>
+                {resultStory ? (
+                  <ReadingCard title="종합 흐름" tone="neutral" icon={Sparkles} text={resultStory} />
+                ) : null}
+                {resultRoutines.length ? (
+                  <section>
+                    <p className="text-xs font-semibold text-teal-700">오늘의 회복 루틴</p>
+                    <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">10분 안에 열 수 있는 작은 창</h3>
+                    <div className="mt-3 grid gap-3 md:grid-cols-3">
+                      {resultRoutines.map((item, idx) => (
+                        <RoutineCard key={`${item.title}-${idx}`} item={item} />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+                {reading?.affirmation ? (
+                  <section className="rounded-lg border border-teal-200/70 bg-teal-50/76 p-5">
+                    <p className="text-xs font-semibold text-teal-700">오늘 나에게 건네는 문장</p>
+                    <p className="mt-2 font-serif text-xl font-semibold leading-8 text-stone-900">{reading.affirmation}</p>
+                  </section>
+                ) : null}
+                {reading?.notice ? <p className="text-xs leading-6 text-stone-500">{reading.notice}</p> : null}
+                {engineMeta?.qualityEnhanced && (<p className="rounded-lg border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-xs font-semibold text-amber-800">태양 회복 전용 문장 정돈이 적용되었습니다.</p>)}
               </div>
             </motion.section>
           ) : null}

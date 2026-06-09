@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { buildLoveSecretReference } from "../worker/lib/love-secret-reference.js";
 import { __loveSecretTestUtils as loveSecret } from "../worker/routes/saju-love-secret.js";
+
+const loveSecretRouteSource = readFileSync(new URL("../worker/routes/saju-love-secret.js", import.meta.url), "utf8");
 
 const TOPIC_KEYWORDS = Object.freeze({
   solo: {
@@ -76,6 +79,29 @@ const base = {
 };
 base.loveSecretReference = buildLoveSecretReference(base);
 
+const blockedLlmHosts = [
+  "generativelanguage.googleapis.com",
+  "vertexai.googleapis.com",
+  "api.openai.com",
+];
+let externalLlmFetchAttempts = 0;
+
+function installLoveSecretNoLlmFetchGuard() {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input, init) => {
+    const url = typeof input === "string" ? input : String(input?.url || "");
+    if (blockedLlmHosts.some((host) => url.includes(host))) {
+      externalLlmFetchAttempts += 1;
+      throw new Error(`LOVE_SECRET_EXTERNAL_LLM_FETCH_BLOCKED:${url}`);
+    }
+    if (typeof originalFetch === "function") return originalFetch(input, init);
+    throw new Error(`UNEXPECTED_FETCH:${url}`);
+  };
+  return () => {
+    globalThis.fetch = originalFetch;
+  };
+}
+
 function repeated(seed, count) {
   return Array.from({ length: count }, (_, idx) => `${seed} ${idx + 1}`).join(" ");
 }
@@ -96,17 +122,39 @@ function buildChapters(mode, specs) {
   return specs.map((spec, index) => {
     const chapterNo = index + 1;
     const keywords = TOPIC_KEYWORDS[mode][chapterNo];
-    const categories = Array.isArray(spec.categories) && spec.categories.length
+    const categories = mode === "compatibility"
+      ? Array.from(loveSecret.LOVE_SECRET_PHASE7_COMPAT_SECTIONS[chapterNo] || loveSecret.LOVE_SECRET_PHASE7_COMPAT_SECTIONS[1])
+      : Array.isArray(spec.categories) && spec.categories.length
       ? spec.categories.slice(0, 5)
       : ["핵심 성향", "감정 흐름", "사주 근거", "관계 전략", "실천 비책"];
     const sections = categories.map((title, sectionIndex) => ({
       title,
       body: sectionBody({ mode, chapterNo, sectionNo: sectionIndex + 1, title, keywords }),
       sajuEvidence: [`${keywords[0]} 근거`, `${keywords[1]} 근거`],
-      keyPoints: [`${keywords[2]} 포인트`, `${keywords[3]} 포인트`],
-      actionGuide: ["감정을 한 문장으로 확인하기", "작은 약속을 반복하기"],
-      caution: ["결론을 서두르지 않기", "상대를 단정하지 않기"],
+      keyPoints: [`${keywords[2]} 포인트`, `${keywords[3]} 포인트`, `${keywords[4]} 포인트`],
+      actionGuide: ["감정을 한 문장으로 확인하기", "작은 약속을 반복하기", "대화 시간을 미리 정하기"],
+      checklist: ["반복되는 반응 확인하기", "상대의 속도 존중하기", "오늘의 실천 하나 정하기"],
+      caution: ["결론을 서두르지 않기", "상대를 단정하지 않기", "없는 점수를 만들지 않기"],
     }));
+    if ((mode === "solo" && chapterNo === 8) || (mode === "compatibility" && chapterNo === 9)) {
+      sections[0].tableType = "monthly-love-flow";
+      sections[0].tableTitle = "월별 연애운 표";
+      sections[0].tableHeaders = ["월", "관계 흐름", "실천 조언"];
+      sections[0].tableRows = Array.from({ length: 12 }, (_, monthIndex) => [`${monthIndex + 1}월`, "관계 흐름", "실천 조언"]);
+    }
+    if (chapterNo === 10) {
+      sections[0].tableType = "thirty-day-routine";
+      sections[0].tableTitle = "30일 루틴 표";
+      sections[0].tableHeaders = ["기간", "주제", "실천법"];
+      sections[0].tableRows = [
+        ["1~5일", "감정 기록", "하루 한 문장 적기"],
+        ["6~10일", "대화 정리", "확인 질문 연습"],
+        ["11~15일", "관계 기준", "기준 세 가지 적기"],
+        ["16~20일", "화해 연습", "멈춤 문장 정하기"],
+        ["21~25일", "강점 강화", "좋았던 행동 반복"],
+        ["26~30일", "선택 정리", "다음 원칙 합의"],
+      ];
+    }
     return {
       chapter: chapterNo,
       chapterNumber: spec.number,
@@ -144,15 +192,40 @@ function assertMode(mode, specs, expectedCount) {
     minChapterChars: Number(config.chapterMinDefault || 2000),
   });
   assert.equal(validation.ok, true, `${mode} manuscript validation ${JSON.stringify(validation)}`);
+  assert.equal(validation.lowSummaryChapters.length, 0, `${mode} phase8 summary validation`);
+  assert.equal(validation.lowAdviceChapters.length, 0, `${mode} phase8 advice validation`);
+  assert.equal(validation.lowChecklistChapters.length, 0, `${mode} phase8 checklist validation`);
+  assert.ok(validation.cardSectionCount >= 8, `${mode} phase8 card validation`);
+  assert.ok(validation.monthlyTableCount >= 1, `${mode} phase8 monthly table validation`);
+  assert.ok(validation.routineTableCount >= 1, `${mode} phase8 routine table validation`);
+  assert.equal(validation.duplicateSectionBlockCount, 0, `${mode} phase9 duplicate section validation`);
+  assert.equal(validation.riskyAssertiveCount, 0, `${mode} phase9 assertive validation`);
+  assert.equal(validation.explicitIntimacyCount, 0, `${mode} phase9 explicit validation`);
+  assert.equal(validation.partnerBlameCount, 0, `${mode} phase9 blame validation`);
 
   const pdfReady = loveSecret.buildLoveSecretPdfReady("https://example.test", `love_secret_${mode}_smoke`, chapters, base, mode);
   assert.equal(pdfReady.reportId, `love_secret_${mode}_smoke`, `${mode} report id`);
   assert.equal(pdfReady.mode, mode, `${mode} pdf mode`);
-  assert.equal(pdfReady.title, mode === "compatibility" ? "사주 궁합 비책" : "사주 연애 비책", `${mode} pdf title`);
+  assert.equal(pdfReady.title, "연애 비책", `${mode} pdf title`);
   assert.equal(pdfReady.chapterCount, expectedCount, `${mode} pdf chapter count`);
   assert.ok(Number(pdfReady.sectionCount || 0) >= expectedCount * 5, `${mode} pdf section count`);
   assert.ok(String(pdfReady.generatedAt || "").includes("T"), `${mode} generated timestamp`);
-  assert.ok(String(pdfReady.html || "").includes(mode === "compatibility" ? "궁합 비책 PDF" : "연애 비책 PDF"), `${mode} html title`);
+  assert.ok(String(pdfReady.html || "").includes("<div class=\"brand\">Code</div>"), `${mode} cover brand`);
+  assert.ok(String(pdfReady.html || "").includes("<h1>연애 비책</h1>"), `${mode} cover title`);
+  assert.ok(String(pdfReady.html || "").includes("나의 사주 구조로 읽는 사랑의 패턴"), `${mode} cover subtitle`);
+  assert.ok(String(pdfReady.html || "").includes(mode === "compatibility" ? "궁합 모드" : "솔로 모드"), `${mode} cover mode`);
+  assert.ok(String(pdfReady.html || "").includes("<nav class=\"toc\"><h2>목차</h2>"), `${mode} toc`);
+  assert.ok(String(pdfReady.html || "").includes("CHAPTER"), `${mode} chapter cover`);
+  assert.ok(String(pdfReady.html || "").includes("연애 성향 요약표"), `${mode} relationship summary table`);
+  assert.ok(String(pdfReady.html || "").includes("오행 기반 애정 표현표"), `${mode} element expression table`);
+  assert.ok(String(pdfReady.html || "").includes("십성 기반 관계 욕구표"), `${mode} ten god need table`);
+  assert.ok(String(pdfReady.html || "").includes("월별 연애운 표"), `${mode} monthly table`);
+  assert.ok(String(pdfReady.html || "").includes("30일"), `${mode} routine table`);
+  assert.ok(String(pdfReady.html || "").includes("전체 요약"), `${mode} final summary`);
+  assert.ok(String(pdfReady.html || "").includes("재열람 안내"), `${mode} revisit guide`);
+  if (mode === "compatibility") {
+    assert.ok(String(pdfReady.html || "").includes("두 사람 비교표"), `${mode} comparison table`);
+  }
   assert.ok(String(pdfReady.html || "").length > 10000, `${mode} html length`);
   assert.ok(String(pdfReady.downloadUrl || "").includes("/api/premium/pdf-archive/"), `${mode} archive url`);
   assert.ok(String(pdfReady.downloadUrl || "").includes("format=pdf"), `${mode} document render url`);
@@ -162,6 +235,222 @@ function assertMode(mode, specs, expectedCount) {
   assert.equal(pdfReady.mimeType, "application/pdf", `${mode} archive mime`);
   assert.equal(pdfReady.contentType, "application/pdf", `${mode} content type`);
   assert.equal(pdfReady.renderFormat, "pdf-archive", `${mode} render format`);
+}
+
+function assertSoloNormalizedData(data, label) {
+  assert.equal(data.mode, "solo", `${label} normalized mode`);
+  assert.ok(data.profile && typeof data.profile === "object", `${label} normalized profile`);
+  assert.equal(typeof data.profile.birthDate, "string", `${label} birthDate string`);
+  assert.ok(data.pillars && typeof data.pillars === "object", `${label} normalized pillars`);
+  assert.equal(typeof data.pillars.year, "string", `${label} year pillar string`);
+  assert.equal(typeof data.pillars.month, "string", `${label} month pillar string`);
+  assert.equal(typeof data.pillars.day, "string", `${label} day pillar string`);
+  assert.ok(data.dayMaster && typeof data.dayMaster === "object", `${label} normalized day master`);
+  assert.equal(typeof data.dayMaster.stem, "string", `${label} day master stem string`);
+  assert.equal(typeof data.dayMaster.element, "string", `${label} day master element string`);
+  assert.equal(typeof data.dayMaster.yinYang, "string", `${label} day master yinYang string`);
+  assert.ok(["weak", "balanced", "strong", undefined].includes(data.dayMaster.strength), `${label} day master strength enum`);
+  assert.ok(data.fiveElements && typeof data.fiveElements === "object", `${label} normalized five elements`);
+  ["wood", "fire", "earth", "metal", "water"].forEach((key) => {
+    assert.equal(typeof data.fiveElements[key], "number", `${label} five element ${key} number`);
+  });
+  assert.ok(Array.isArray(data.fiveElements.strongest), `${label} strongest array`);
+  assert.ok(Array.isArray(data.fiveElements.weakest), `${label} weakest array`);
+  assert.equal(typeof data.fiveElements.balanceSummary, "string", `${label} balance summary string`);
+  assert.ok(data.tenGods && typeof data.tenGods === "object", `${label} normalized ten gods`);
+  assert.ok(data.tenGods.distribution && typeof data.tenGods.distribution === "object", `${label} ten god distribution`);
+  assert.ok(Array.isArray(data.tenGods.dominant), `${label} dominant ten gods array`);
+  assert.ok(Array.isArray(data.tenGods.weak), `${label} weak ten gods array`);
+  assert.ok(data.lovePattern && typeof data.lovePattern === "object", `${label} normalized love pattern`);
+  ["attractionStyle", "intimacyStyle", "communicationStyle", "conflictPattern", "emotionalNeeds", "cautionPoints"].forEach((key) => {
+    assert.ok(Array.isArray(data.lovePattern[key]), `${label} lovePattern ${key} array`);
+  });
+  assert.ok(data.usefulGods && typeof data.usefulGods === "object", `${label} normalized useful gods`);
+  assert.equal(typeof data.usefulGods.loveDirectionSummary, "string", `${label} useful gods summary string`);
+  assert.ok(data.timing && typeof data.timing === "object", `${label} normalized timing`);
+  assert.ok(Array.isArray(data.specialStars), `${label} special stars array`);
+  assert.ok(Array.isArray(data.opportunities), `${label} opportunities array`);
+  assert.ok(Array.isArray(data.risks), `${label} risks array`);
+  assert.ok(!JSON.stringify(data).includes("[object Object]"), `${label} normalized data has no object string`);
+}
+
+function assertNormalizedData() {
+  const soloMaster = loveSecret.buildLoveSecretMasterJson({ base, mode: "solo", targetYear: 2026 });
+  assertSoloNormalizedData(soloMaster.normalizedLoveSecret, "solo");
+  assert.ok(Array.isArray(soloMaster.normalizedLoveSecret.interpretationBlocks), "solo interpretation blocks array");
+  assert.ok(soloMaster.normalizedLoveSecret.interpretationBlocks.length >= 10, "solo selected interpretation blocks");
+  soloMaster.normalizedLoveSecret.interpretationBlocks.forEach((block, index) => assertLoveInterpretationBlock(block, `solo selected ${index}`));
+
+  const coupleMaster = loveSecret.buildLoveSecretMasterJson({ base, mode: "compatibility", targetYear: 2026 });
+  const couple = coupleMaster.normalizedLoveSecret;
+  assert.equal(couple.mode, "compatibility", "compatibility normalized mode");
+  assertSoloNormalizedData(couple.me, "compatibility me");
+  assertSoloNormalizedData(couple.partner, "compatibility partner");
+  assert.ok(couple.compatibility && typeof couple.compatibility === "object", "compatibility block");
+  ["elementRelation", "dayMasterRelation", "dayBranchRelation", "tenGodRelation", "usefulGodRelation", "strengths", "conflictPoints", "reconciliationKeys", "longTermKeys"].forEach((key) => {
+    assert.ok(Array.isArray(couple.compatibility[key]), `compatibility ${key} array`);
+  });
+  ["totalScore", "emotionalScore", "communicationScore", "attractionScore", "stabilityScore", "conflictScore"].forEach((key) => {
+    assert.ok(typeof couple.compatibility[key] === "number" || couple.compatibility[key] === undefined, `compatibility ${key} optional number`);
+  });
+  assert.ok(couple.timing && typeof couple.timing === "object", "compatibility timing");
+  assert.ok(Array.isArray(couple.timing.currentYearAdvice), "compatibility current year advice array");
+  assert.ok(Array.isArray(couple.interpretationBlocks.me), "compatibility me interpretation blocks array");
+  assert.ok(Array.isArray(couple.interpretationBlocks.partner), "compatibility partner interpretation blocks array");
+  assert.ok(couple.interpretationBlocks.me.length >= 10, "compatibility me selected interpretation blocks");
+  assert.ok(couple.interpretationBlocks.partner.length >= 10, "compatibility partner selected interpretation blocks");
+  assert.ok(!JSON.stringify(couple).includes("[object Object]"), "compatibility normalized data has no object string");
+}
+
+function assertNoUnsafeRenderedText(chapters, label) {
+  const text = (chapters || []).map((chapter) => String(chapter?.text || "")).join("\n");
+  ["[object Object]", "undefined", "null", "NaN", "준비중", "생성 실패", "스켈레톤"].forEach((token) => {
+    assert.ok(!text.includes(token), `${label} rendered text excludes ${token}`);
+  });
+}
+
+function uniqueListCount(chapter, keys) {
+  const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
+  const items = [
+    ...keys.flatMap((key) => Array.isArray(chapter?.[key]) ? chapter[key] : []),
+    ...sections.flatMap((section) => keys.flatMap((key) => Array.isArray(section?.[key]) ? section[key] : [])),
+  ].map((item) => String(item || "").trim()).filter(Boolean);
+  return new Set(items).size;
+}
+
+function assertPhase8ContentStandards(chapters, label) {
+  assert.ok(Array.isArray(chapters) && chapters.length > 0, `${label} phase8 chapters exist`);
+  chapters.forEach((chapter, index) => {
+    const bodyLength = String(chapter?.text || "").replace(/\s+/g, "").length;
+    assert.ok(bodyLength >= 1800, `${label} phase8 chapter ${index + 1} body length`);
+    assert.ok(uniqueListCount(chapter, ["summaryCards", "keyPoints"]) >= 3, `${label} phase8 chapter ${index + 1} summaries`);
+    assert.ok(uniqueListCount(chapter, ["actionItems", "actionGuide", "advice"]) >= 3, `${label} phase8 chapter ${index + 1} advice`);
+    assert.ok(uniqueListCount(chapter, ["checklist"]) >= 3, `${label} phase8 chapter ${index + 1} checklist`);
+  });
+  const sections = chapters.flatMap((chapter) => Array.isArray(chapter?.sections) ? chapter.sections : []);
+  const cardSections = sections.filter((section) => {
+    const cardItems = ["keyPoints", "actionGuide", "checklist", "caution"].reduce((sum, key) => (
+      sum + (Array.isArray(section?.[key]) ? section[key].filter(Boolean).length : 0)
+    ), 0);
+    return cardItems >= 3;
+  });
+  assert.ok(cardSections.length >= 8, `${label} phase8 card section count`);
+  assert.ok(sections.some((section) => section?.tableType === "monthly-love-flow" && Array.isArray(section?.tableRows) && section.tableRows.length >= 12), `${label} phase8 monthly table`);
+  assert.ok(sections.some((section) => section?.tableType === "thirty-day-routine" && Array.isArray(section?.tableRows) && section.tableRows.length >= 6), `${label} phase8 routine table`);
+}
+
+function assertPhase9SentenceRules(chapters, label) {
+  const text = (chapters || []).map((chapter) => [
+    chapter?.text,
+    ...(Array.isArray(chapter?.sections) ? chapter.sections.flatMap((section) => [
+      section?.body,
+      ...(Array.isArray(section?.keyPoints) ? section.keyPoints : []),
+      ...(Array.isArray(section?.actionGuide) ? section.actionGuide : []),
+      ...(Array.isArray(section?.checklist) ? section.checklist : []),
+      ...(Array.isArray(section?.caution) ? section.caution : []),
+    ]) : []),
+  ].filter(Boolean).join("\n")).join("\n");
+  [
+    /무조건/,
+    /반드시\s*결혼/,
+    /반드시\s*헤어/,
+    /반드시\s*재회/,
+    /100\s*%/,
+    /운명의\s*상대다/,
+    /절대\s*안\s*맞는다/,
+    /성행위|섹스|삽입|성기|노골적|음란|애무|체위|오르가즘|자위/,
+    /집착이\s*심하다|바람기가\s*있다|배신할\s*사람|문제\s*있는\s*상대|위험한\s*사람|나쁜\s*상대/,
+  ].forEach((pattern) => {
+    assert.ok(!pattern.test(text), `${label} phase9 excludes ${pattern}`);
+  });
+  const sectionPrefixes = (chapters || [])
+    .flatMap((chapter) => Array.isArray(chapter?.sections) ? chapter.sections : [])
+    .map((section) => String(section?.body || "").replace(/\s+/g, " ").trim().slice(0, 180))
+    .filter(Boolean);
+  assert.equal(new Set(sectionPrefixes).size, sectionPrefixes.length, `${label} phase9 no repeated section block`);
+  assert.ok(text.includes("작동 원리") || text.includes("참고점"), `${label} phase9 relation management wording`);
+  assert.ok(text.includes("정서적 거리감") || text.includes("스킨십 속도") || text.includes("친밀감의 속도"), `${label} phase9 intimacy wording`);
+}
+
+function assertChapterRequiredFields(chapters, label) {
+  assert.ok(Array.isArray(chapters) && chapters.length === 10, `${label} 10 chapters`);
+  chapters.forEach((chapter, index) => {
+    assert.ok(String(chapter?.title || "").trim(), `${label} chapter ${index + 1} title`);
+    assert.ok(uniqueListCount(chapter, ["summaryCards", "keyPoints"]) >= 3, `${label} chapter ${index + 1} summary`);
+    assert.ok(String(chapter?.text || "").trim().length >= 1800, `${label} chapter ${index + 1} body`);
+    assert.ok(uniqueListCount(chapter, ["actionItems", "actionGuide", "advice"]) >= 3, `${label} chapter ${index + 1} advice`);
+    assert.ok(uniqueListCount(chapter, ["checklist"]) >= 3, `${label} chapter ${index + 1} checklist`);
+  });
+}
+
+function assertPaymentFlowGuards() {
+  assert.match(loveSecretRouteSource, /async function authorizeLoveSecret/, "love secret has authz helper");
+  assert.match(loveSecretRouteSource, /requirePremiumReportAccess/, "love secret requires premium access before generation");
+  assert.match(loveSecretRouteSource, /if \(!authz\.ok\) return authz\.response;/, "generation stops before PDF work when access fails");
+  assert.match(loveSecretRouteSource, /PAYMENT_CONFIRMED_BUT_ACCESS_MISSING/, "payment binding missing case preserved");
+  assert.match(loveSecretRouteSource, /startPremiumPdfExecution/, "premium execution start preserved");
+  assert.match(loveSecretRouteSource, /completePremiumPdfExecution/, "premium execution completion preserved");
+  assert.match(loveSecretRouteSource, /failPremiumPdfExecution/, "premium execution failure path preserved");
+  assert.match(loveSecretRouteSource, /existingJob && clean\(existingJob\.status\) === "completed"/, "completed async job reused on refresh");
+  assert.match(loveSecretRouteSource, /fromCache: true/, "completed result reports cache reuse");
+  assert.match(loveSecretRouteSource, /cacheKey: pdfCacheKey/, "content cache key stored on job");
+}
+
+function assertPhase6SoloChapterStructure(chapters, label) {
+  const expectedTitles = loveSecret.LOVE_SECRET_PHASE6_SOLO_CHAPTERS.map((chapter) => chapter.title);
+  const expectedSections = loveSecret.LOVE_SECRET_PHASE6_SOLO_SECTIONS[1];
+  assert.equal(chapters.length, 10, `${label} phase6 solo chapter count`);
+  chapters.forEach((chapter, index) => {
+    assert.equal(chapter.title, expectedTitles[index], `${label} phase6 chapter ${index + 1} title`);
+    assert.ok(Array.isArray(chapter.sections), `${label} phase6 chapter ${index + 1} sections`);
+    assert.deepEqual(chapter.sections.map((section) => section.title), expectedSections, `${label} phase6 chapter ${index + 1} section titles`);
+    assert.ok(String(chapter.text || "").includes("핵심 요약 카드"), `${label} phase6 chapter ${index + 1} summary card text`);
+    assert.ok(String(chapter.text || "").includes("챕터 마무리 문장"), `${label} phase6 chapter ${index + 1} closing text`);
+  });
+}
+
+function assertPhase7CompatibilityChapterStructure(chapters, label) {
+  const expectedTitles = loveSecret.LOVE_SECRET_PHASE7_COMPAT_CHAPTERS.map((chapter) => chapter.title);
+  const expectedSections = loveSecret.LOVE_SECRET_PHASE7_COMPAT_SECTIONS[1];
+  assert.equal(chapters.length, 10, `${label} phase7 compatibility chapter count`);
+  chapters.forEach((chapter, index) => {
+    assert.equal(chapter.title, expectedTitles[index], `${label} phase7 chapter ${index + 1} title`);
+    assert.ok(Array.isArray(chapter.sections), `${label} phase7 chapter ${index + 1} sections`);
+    assert.deepEqual(chapter.sections.map((section) => section.title), expectedSections, `${label} phase7 chapter ${index + 1} section titles`);
+    expectedSections.forEach((sectionTitle) => {
+      assert.ok(String(chapter.text || "").includes(sectionTitle), `${label} phase7 chapter ${index + 1} includes ${sectionTitle}`);
+    });
+  });
+}
+
+function assertLoveInterpretationBlock(block, label) {
+  assert.equal(typeof block.id, "string", `${label} block id`);
+  assert.ok(Array.isArray(block.tags), `${label} block tags`);
+  assert.equal(typeof block.weight, "number", `${label} block weight`);
+  assert.equal(typeof block.title, "string", `${label} block title`);
+  assert.equal(typeof block.summary, "string", `${label} block summary`);
+  ["body", "advice", "caution", "checklist"].forEach((key) => {
+    assert.ok(Array.isArray(block[key]), `${label} block ${key}`);
+    assert.ok(block[key].every((item) => typeof item === "string" && item.trim()), `${label} block ${key} strings`);
+  });
+  assert.ok(!JSON.stringify(block).includes("[object Object]"), `${label} block has no object string`);
+}
+
+function assertLoveInterpretationBlocks() {
+  const db = loveSecret.LOVE_INTERPRETATION_BLOCK_DB;
+  assert.equal(Object.keys(db.dayMaster).length, 10, "day master block count");
+  assert.ok(Object.keys(db.fiveElements).length >= 11, "five element block count");
+  assert.equal(Object.keys(db.tenGods).length, 10, "ten god block count");
+  assert.ok(Array.isArray(db.relationship) && db.relationship.length >= 2, "relationship block count");
+  assert.ok(Object.keys(db.specialStars).length >= 4, "special star block count");
+  assert.ok(Object.keys(db.style).length >= 7, "style block count");
+
+  Object.entries(db.dayMaster).forEach(([key, block]) => assertLoveInterpretationBlock(block, `day master ${key}`));
+  Object.entries(db.fiveElements).forEach(([key, block]) => assertLoveInterpretationBlock(block, `five element ${key}`));
+  Object.entries(db.tenGods).forEach(([key, block]) => assertLoveInterpretationBlock(block, `ten god ${key}`));
+  db.relationship.forEach((block, index) => assertLoveInterpretationBlock(block, `relationship ${index}`));
+  Object.entries(db.specialStars).forEach(([key, block]) => assertLoveInterpretationBlock(block, `special star ${key}`));
+  Object.entries(db.style).forEach(([key, block]) => assertLoveInterpretationBlock(block, `style ${key}`));
 }
 
 function assertSoloQualityGuides() {
@@ -183,7 +472,44 @@ function assertSoloQualityGuides() {
   assert.ok(guideText.includes("90일"), "solo guide action plan keyword");
 }
 
+function assertLoveSecretPdfCache() {
+  const soloKeyA = loveSecret.buildLoveSecretPdfCacheKey(base, "solo", { requestId: "a", reportId: "r1" });
+  const soloKeyB = loveSecret.buildLoveSecretPdfCacheKey(base, "solo", { requestId: "b", reportId: "r2" });
+  const coupleKeyA = loveSecret.buildLoveSecretPdfCacheKey(base, "compatibility", { requestId: "a", reportId: "r1" });
+  const coupleKeyB = loveSecret.buildLoveSecretPdfCacheKey(base, "compatibility", { requestId: "b", reportId: "r2" });
+  assert.equal(soloKeyA, soloKeyB, "solo pdf cache key ignores volatile request ids");
+  assert.equal(coupleKeyA, coupleKeyB, "compatibility pdf cache key ignores volatile request ids");
+  assert.notEqual(soloKeyA, coupleKeyA, "solo and compatibility cache keys differ");
+
+  const payload = {
+    ok: true,
+    reportId: "cached-love-secret",
+    pdfReady: loveSecret.buildLoveSecretPdfReady("https://example.test", "cached-love-secret", buildChapters("solo", loveSecret.LOVE_SECRET_PHASE6_SOLO_CHAPTERS), base, "solo"),
+    chapters: buildChapters("solo", loveSecret.LOVE_SECRET_PHASE6_SOLO_CHAPTERS),
+  };
+  loveSecret.setLoveSecretPdfMemoryCache(soloKeyA, { payload });
+  const cached = loveSecret.getLoveSecretPdfMemoryCache(soloKeyA);
+  assert.ok(cached?.payload, "pdf memory cache hit");
+  const cachedText = JSON.stringify(cached.payload);
+  ["[object Object]", "undefined", "NaN"].forEach((token) => {
+    assert.ok(!cachedText.includes(token), `cached pdf excludes ${token}`);
+  });
+}
+
 async function assertHybridScaffold() {
+  externalLlmFetchAttempts = 0;
+  assert.deepEqual(loveSecret.LOVE_SECRET_PDF_CONFIG, {
+    generationMode: "local",
+    llmEnabled: false,
+    provider: "none",
+    templateVersion: "love-secret-local-v1",
+  }, "love secret pdf config is local-only");
+  assert.equal(loveSecret.isLoveSecretLlmEnhancementEnabled({
+    LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "true",
+    GEMINI_API_KEY: "test-key",
+  }), false, "love secret ignores llm enable env");
+
+  const restoreFetch = installLoveSecretNoLlmFetchGuard();
   const soloConfig = loveSecret.safeModeChapterConfig("solo");
   const coupleConfig = loveSecret.safeModeChapterConfig("compatibility");
   const soloMasterA = loveSecret.buildLoveSecretMasterJson({ base, mode: "solo", targetYear: 2026 });
@@ -211,11 +537,11 @@ async function assertHybridScaffold() {
   const couplePlans = loveSecret.buildLoveSecretChapterPlans({
     mode: "compatibility",
     config: coupleConfig,
-    chapters: buildChapters("compatibility", loveSecret.COMPATIBILITY_LOVE_CHAPTER_SPECS),
+    chapters: buildChapters("compatibility", loveSecret.LOVE_SECRET_PHASE7_COMPAT_CHAPTERS),
     loveSecretFacts: coupleFactsA,
   });
   assert.equal(soloPlans.length, 10, "solo chapter plan count");
-  assert.equal(couplePlans.length, 15, "couple chapter plan count");
+  assert.equal(couplePlans.length, 10, "couple chapter plan count");
   assert.deepEqual(loveSecret.LOVE_SECRET_SOLO_LLM_ENHANCED_CHAPTERS, [
     "love_overview",
     "attraction_pattern",
@@ -229,20 +555,15 @@ async function assertHybridScaffold() {
     "love_master_plan",
   ], "solo enhanced chapter ids");
   assert.deepEqual(loveSecret.LOVE_SECRET_COUPLE_LLM_ENHANCED_CHAPTERS, [
-    "couple_overview",
-    "self_love_style",
-    "partner_love_style",
-    "attraction_reason",
-    "spouse_palace_root",
-    "relationship_expectation",
-    "emotional_tempo_gap",
-    "intimacy_tempo",
+    "couple_code",
+    "first_attraction",
+    "emotional_match",
     "communication_match",
-    "conflict_pattern",
-    "breakup_reunion_pattern",
-    "long_term_potential",
-    "reality_strategy",
-    "couple_luck_cycles",
+    "conflict_match",
+    "reconciliation_match",
+    "reality_match",
+    "long_term_relation",
+    "current_year_flow",
     "couple_master_plan",
   ], "couple enhanced chapter ids");
 
@@ -257,6 +578,8 @@ async function assertHybridScaffold() {
   assert.equal(loveSecret.validateLoveSecretEnhancedText("짧음", soloPlans[0]).ok, false, "short enhanced text rejected");
 
   const generated = await loveSecret.buildLoveSecretChapters({
+    LOVE_SECRET_PDF_GENERATION_MODE: "local",
+    LOVE_SECRET_PDF_LLM_ENABLED: "false",
     LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "false",
   }, {
     base,
@@ -268,39 +591,82 @@ async function assertHybridScaffold() {
   assert.equal(generated.manuscriptSource, "local-only", "disabled llm uses local manuscript");
   assert.equal(generated.llmEnhancement.enabled, false, "llm disabled flag honored");
   assert.equal(generated.llmEnhancement.attempted, 0, "disabled llm does not attempt enhancement");
+  assert.equal(externalLlmFetchAttempts, 0, "disabled llm external fetch attempts");
   assert.equal(generated.chapters.length, 10, "disabled llm generated chapter count");
   assert.ok(generated.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "disabled llm has no empty chapter");
+  assertChapterRequiredFields(generated.chapters, "disabled llm");
+  assertPhase6SoloChapterStructure(generated.chapters, "disabled llm");
+  assertPhase8ContentStandards(generated.chapters, "disabled llm");
+  assertPhase9SentenceRules(generated.chapters, "disabled llm");
+  assertNoUnsafeRenderedText(generated.chapters, "disabled llm");
   assert.ok(generated.loveSecretChapterPlans.every((plan) => Array.isArray(plan.lockedFacts) && plan.lockedFacts.length > 0), "chapter plans carry locked facts");
 
-  const generatedWithLlmFailure = await loveSecret.buildLoveSecretChapters({
+  const generatedWithLlmKeys = await loveSecret.buildLoveSecretChapters({
+    LOVE_SECRET_PDF_GENERATION_MODE: "local",
+    LOVE_SECRET_PDF_LLM_ENABLED: "false",
     LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "true",
-    GEMINI_API_KEY: "",
-    GEMINI_KEYS: "",
-    PREMIUM_GEMINI_API_KEY: "",
-    PREMIUM_GEMINI_KEYS: "",
+    GEMINI_API_KEY: "test-gemini-key",
+    GEMINI_KEYS: "test-gemini-key",
+    PREMIUM_GEMINI_API_KEY: "test-premium-key",
+    PREMIUM_GEMINI_KEYS: "test-premium-key",
   }, {
     base,
     mode: "solo",
     config: soloConfig,
-    body: { requestId: "smoke-llm-failure-local-fallback" },
-    requestId: "smoke-llm-failure-local-fallback",
+    body: { requestId: "smoke-llm-env-forced-local" },
+    requestId: "smoke-llm-env-forced-local",
   });
-  assert.equal(generatedWithLlmFailure.manuscriptSource, "local-only", "failed llm falls back to local manuscript");
-  assert.equal(generatedWithLlmFailure.fallbackUsed, true, "failed llm marks fallback used");
-  assert.equal(generatedWithLlmFailure.llmEnhancement.enabled, true, "llm failure smoke keeps enhancement enabled");
-  assert.ok(generatedWithLlmFailure.llmEnhancement.attempted > 0, "llm failure smoke attempts enhancement");
-  assert.equal(generatedWithLlmFailure.llmEnhancement.enhancedChapterIds.length, 0, "failed llm has no enhanced chapters");
-  assert.ok(generatedWithLlmFailure.llmEnhancement.fallbackChapterIds.length > 0, "failed llm records fallback chapters");
-  assert.equal(generatedWithLlmFailure.chapters.length, 10, "failed llm generated chapter count");
-  assert.ok(generatedWithLlmFailure.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "failed llm has no empty chapter");
+  assert.equal(generatedWithLlmKeys.manuscriptSource, "local-only", "llm env keys still use local manuscript");
+  assert.equal(generatedWithLlmKeys.fallbackUsed, false, "llm disabled path is not a failure fallback");
+  assert.equal(generatedWithLlmKeys.llmEnhancement.enabled, false, "llm env enable flag is ignored");
+  assert.equal(generatedWithLlmKeys.llmEnhancement.attempted, 0, "llm env keys do not attempt enhancement");
+  assert.equal(externalLlmFetchAttempts, 0, "llm env keys external fetch attempts");
+  assert.equal(generatedWithLlmKeys.llmEnhancement.enhancedChapterIds.length, 0, "llm env keys have no enhanced chapters");
+  assert.equal(generatedWithLlmKeys.llmEnhancement.fallbackChapterIds.length, 0, "llm env keys do not create fallback chapters");
+  assert.equal(generatedWithLlmKeys.chapters.length, 10, "llm env keys generated chapter count");
+  assert.ok(generatedWithLlmKeys.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "llm env keys have no empty chapter");
+  assertChapterRequiredFields(generatedWithLlmKeys.chapters, "llm env keys");
+  assertPhase6SoloChapterStructure(generatedWithLlmKeys.chapters, "llm env keys");
+  assertPhase8ContentStandards(generatedWithLlmKeys.chapters, "llm env keys");
+  assertPhase9SentenceRules(generatedWithLlmKeys.chapters, "llm env keys");
+  assertNoUnsafeRenderedText(generatedWithLlmKeys.chapters, "llm env keys");
+
+  const generatedCompatibility = await loveSecret.buildLoveSecretChapters({
+    LOVE_SECRET_PDF_GENERATION_MODE: "local",
+    LOVE_SECRET_PDF_LLM_ENABLED: "false",
+    LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "true",
+    GEMINI_API_KEY: "test-gemini-key",
+  }, {
+    base,
+    mode: "compatibility",
+    config: coupleConfig,
+    body: { requestId: "smoke-compatibility-forced-local" },
+    requestId: "smoke-compatibility-forced-local",
+  });
+  assert.equal(generatedCompatibility.manuscriptSource, "local-only", "compatibility uses local manuscript");
+  assert.equal(generatedCompatibility.llmEnhancement.enabled, false, "compatibility llm disabled");
+  assert.equal(generatedCompatibility.llmEnhancement.attempted, 0, "compatibility does not attempt llm enhancement");
+  assert.equal(externalLlmFetchAttempts, 0, "compatibility external fetch attempts");
+  assert.equal(generatedCompatibility.chapters.length, 10, "compatibility generated chapter count");
+  assert.ok(generatedCompatibility.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "compatibility has no empty chapter");
+  assertChapterRequiredFields(generatedCompatibility.chapters, "compatibility");
+  assertPhase7CompatibilityChapterStructure(generatedCompatibility.chapters, "compatibility");
+  assertPhase8ContentStandards(generatedCompatibility.chapters, "compatibility");
+  assertPhase9SentenceRules(generatedCompatibility.chapters, "compatibility");
+  assertNoUnsafeRenderedText(generatedCompatibility.chapters, "compatibility");
+  restoreFetch();
 }
 
 assert.ok(base.loveSecretReference.compatibility, "compatibility reference should exist");
 assert.ok(base.loveSecretReference.compatibility.feminineAppealFocus, "compatibility appeal focus should exist");
 
+assertLoveInterpretationBlocks();
 assertSoloQualityGuides();
-assertMode("solo", loveSecret.SOLO_LOVE_CHAPTER_SPECS, 10);
-assertMode("compatibility", loveSecret.COMPATIBILITY_LOVE_CHAPTER_SPECS, 15);
+assertLoveSecretPdfCache();
+assertPaymentFlowGuards();
+assertMode("solo", loveSecret.LOVE_SECRET_PHASE6_SOLO_CHAPTERS, 10);
+assertMode("compatibility", loveSecret.LOVE_SECRET_PHASE7_COMPAT_CHAPTERS, 10);
+assertNormalizedData();
 await assertHybridScaffold();
 
 console.log("[smoke-love-secret-premium-e2e] ok");

@@ -4,11 +4,11 @@ import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
 const SERVICE = {
   h1: "🔮 명리학 타로",
   description:
-    "연애, 재회, 사업, 건강 등 고민의 문에 맞춰 한 장 리딩 또는 세 장 흐름으로 카드와 십성의 결을 읽습니다.",
+    "연애, 재회, 사업, 건강 등 고민의 문을 따라 한 장 리딩 또는 세 장 흐름으로 카드와 십성의 결을 읽는, 감성 있는 점술 서비스입니다.",
   ogImage: "https://code-destiny.com/fuctionassets/ai%20tarrot.webp",
   landingPoints: ["질문별 오라클 리딩", "한 장 리딩과 세 장 흐름", "카드와 십성의 조율 해석"],
   seoText:
-    "명리학 타로는 질문의 문맥 위에 타로 카드를 올려 지금 필요한 선택의 방향을 읽는 서비스입니다.",
+    "명리학 타로는 질문의 문맥 위에 타로 카드를 놓고, 점술 서비스 관점에서 지금 필요한 선택의 방향을 사람의 언어로 번역해 주는 서비스입니다.",
   valueGuideTitle: "명리학 타로를 제대로 쓰는 6가지",
   valueSections: [
     {

@@ -99,7 +99,7 @@ export function buildReadingResponse(_engine, category, spreadType, drawnCards) 
       cardCount: cards.length,
       cardDbCount: TAROT_CARDS.length,
       deterministic: true,
-      qualityEnhanced: normalizedSpreadType === "reunion_lighthouse_five_card",
+      qualityEnhanced: normalizedSpreadType === "reunion_lighthouse_five_card" || normalizedSpreadType === "healing_rising_four_card",
     },
   };
 

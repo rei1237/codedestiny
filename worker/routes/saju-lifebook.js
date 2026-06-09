@@ -337,6 +337,19 @@ const LIFEBOOK_CHAPTER_COMMON_STRUCTURE = Object.freeze([
   "장 요약 박스",
   "다음 장으로 연결되는 문장",
 ]);
+const LIFEBOOK_PHASE6_CHAPTER_STRUCTURE = Object.freeze([
+  "챕터 제목",
+  "핵심 요약 카드",
+  "상담형 본문",
+  "계산 근거 기반 해석",
+  "주의할 점",
+  "실천 조언",
+  "체크리스트",
+  "챕터 마무리 문장",
+]);
+
+const LIFEBOOK_PHASE6_CATEGORY_SECTIONS = Object.freeze(LIFEBOOK_PHASE6_CHAPTER_STRUCTURE.slice(1));
+
 const LIFEBOOK_LLM_KEY_ENV_KEYS = [
   "GEMINIF_API_KEY1",
   "GEMINIF_API_KEY2",
@@ -361,8 +374,15 @@ const LIFEBOOK_LLM_MODEL_ENV_KEYS = [
   "PREMIUM_GEMINI_MODEL",
   "GEMINI_MODEL",
 ];
-const LIFEBOOK_AUTHORING_MODE = "hybrid";
-const LIFEBOOK_LLM_WRITING_STATE = "llm_writing";
+export const LIFE_BOOK_PDF_CONFIG = Object.freeze({
+  generationMode: "local",
+  llmEnabled: false,
+  provider: "none",
+  templateVersion: "life-book-local-v1",
+});
+const LIFEBOOK_AUTHORING_MODE = "local";
+const LIFEBOOK_LOCAL_WRITING_STATE = "local_writing";
+const LIFEBOOK_LLM_WRITING_STATE = LIFEBOOK_LOCAL_WRITING_STATE;
 
 const LIFEBOOK_LLM_CHAPTER_CACHE = globalThis.__LIFEBOOK_LLM_CHAPTER_CACHE || new Map();
 if (!globalThis.__LIFEBOOK_LLM_CHAPTER_CACHE) {
@@ -374,6 +394,21 @@ function isLifeBookLlmOnlyAuthoringMode(value) {
 }
 
 function resolveLifeBookLlmRuntimeInfo(env = {}) {
+  if (LIFE_BOOK_PDF_CONFIG.generationMode === "local" || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) {
+    return {
+      provider: LIFE_BOOK_PDF_CONFIG.provider,
+      selectedModel: "",
+      keyConfigured: false,
+      configuredKeyCount: 0,
+      enhancementEnabled: false,
+      promptVersion: LIFE_BOOK_PROMPT_VERSION,
+      templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
+      enhancedChapterIds: [],
+      timeoutMs: 0,
+      totalTimeoutMs: 0,
+      retries: 0,
+    };
+  }
   const selectedModel = clean(
     env?.PREMIUM_SAJU_LIFEBOOK_GEMINI_MODEL
       || env?.PREMIUM_GEMINI_MODEL
@@ -398,6 +433,7 @@ function resolveLifeBookLlmRuntimeInfo(env = {}) {
 }
 
 function isLifeBookLlmEnhancementEnabled(env = {}) {
+  if (LIFE_BOOK_PDF_CONFIG.generationMode === "local" || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) return false;
   const raw = clean(
     env?.LIFE_BOOK_LLM_ENHANCEMENT_ENABLED
     ?? env?.LIFEBOOK_LLM_ENHANCEMENT_ENABLED
@@ -407,6 +443,7 @@ function isLifeBookLlmEnhancementEnabled(env = {}) {
 }
 
 function shouldEnhanceLifeBookChapter(chapterSpec = {}) {
+  if (LIFE_BOOK_PDF_CONFIG.generationMode === "local" || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) return false;
   return LIFE_BOOK_LLM_ENHANCED_CHAPTERS.includes(clean(chapterSpec?.id));
 }
 
@@ -424,6 +461,83 @@ function hashLifeBookCacheText(value = "") {
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0).toString(36);
+}
+
+const LIFEBOOK_LOCAL_PDF_RESULT_CACHE = globalThis.__LIFEBOOK_LOCAL_PDF_RESULT_CACHE || new Map();
+if (!globalThis.__LIFEBOOK_LOCAL_PDF_RESULT_CACHE) {
+  globalThis.__LIFEBOOK_LOCAL_PDF_RESULT_CACHE = LIFEBOOK_LOCAL_PDF_RESULT_CACHE;
+}
+
+function buildLifeBookCalculationResultHash(normalized = {}) {
+  const calculationSeed = stableLifeBookCacheJson({
+    normalizedData: normalized.lifeBookNormalizedData || null,
+    pillars: normalized.localSajuJson?.pillars || null,
+    fiveElements: normalized.localSajuJson?.fiveElements || null,
+    tenGods: normalized.localSajuJson?.tenGods || null,
+    tenGodsByPillar: normalized.localSajuJson?.tenGodsByPillar || null,
+    usefulGods: normalized.localSajuJson?.yongshin || normalized.localSajuJson?.usefulGods || null,
+    geokguk: normalized.localSajuJson?.geokguk || null,
+    interactions: normalized.localSajuJson?.interactions || null,
+    specialStars: normalized.localSajuJson?.sinsal || null,
+    twelveGrowthStages: normalized.localSajuJson?.twelveGrowthStages || null,
+    daeun: normalized.localSajuJson?.daeun || null,
+    currentDaeun: normalized.localSajuJson?.currentDaeun || null,
+    yearlyFlow: normalized.localSajuJson?.yearlyFlow || null,
+  });
+  return hashLifeBookCacheText(calculationSeed);
+}
+
+function buildLifeBookPdfProfileCacheSeed(profile = {}) {
+  return {
+    name: clean(profile?.name),
+    gender: clean(profile?.gender),
+    calendarType: clean(profile?.calendarType),
+    birthDate: clean(profile?.birthDate),
+    birthTime: clean(profile?.birthTime),
+    birthHour: Number.isFinite(Number(profile?.birthHour)) ? Number(profile.birthHour) : null,
+    birthMinute: Number.isFinite(Number(profile?.birthMinute)) ? Number(profile.birthMinute) : null,
+    timeKnown: profile?.timeKnown !== false,
+    birthplace: clean(profile?.birthplace || profile?.location || profile?.city),
+  };
+}
+
+function buildLifeBookPdfCacheKey({ profile = {}, calculationResultHash = "" } = {}) {
+  const seed = stableLifeBookCacheJson({
+    service: "life-book",
+    version: LIFE_BOOK_PDF_CONFIG.templateVersion,
+    profile: buildLifeBookPdfProfileCacheSeed(profile),
+    calculationResultHash: clean(calculationResultHash),
+  });
+  return `life_book_pdf:${LIFE_BOOK_PDF_CONFIG.templateVersion}:${hashLifeBookCacheText(seed)}`;
+}
+
+function buildLifeBookPdfCacheContext(profile = {}, normalized = {}) {
+  const calculationResultHash = buildLifeBookCalculationResultHash(normalized);
+  return {
+    calculationResultHash,
+    cacheKey: buildLifeBookPdfCacheKey({ profile, calculationResultHash }),
+  };
+}
+
+function readLifeBookLocalPdfResultCache(cacheKey = "") {
+  const key = clean(cacheKey);
+  if (!key || !LIFEBOOK_LOCAL_PDF_RESULT_CACHE.has(key)) return null;
+  try {
+    return JSON.parse(LIFEBOOK_LOCAL_PDF_RESULT_CACHE.get(key));
+  } catch {
+    LIFEBOOK_LOCAL_PDF_RESULT_CACHE.delete(key);
+    return null;
+  }
+}
+
+function writeLifeBookLocalPdfResultCache(cacheKey = "", result = {}) {
+  const key = clean(cacheKey);
+  if (!key || !result || typeof result !== "object") return;
+  if (LIFEBOOK_LOCAL_PDF_RESULT_CACHE.size > 24) {
+    const firstKey = LIFEBOOK_LOCAL_PDF_RESULT_CACHE.keys().next().value;
+    if (firstKey) LIFEBOOK_LOCAL_PDF_RESULT_CACHE.delete(firstKey);
+  }
+  LIFEBOOK_LOCAL_PDF_RESULT_CACHE.set(key, JSON.stringify(result));
 }
 
 function buildLifeBookChapterCacheKey(llmInput = {}, chapterSpec = {}) {
@@ -517,10 +631,18 @@ async function findLifeBookReusableExecution(env, userId, executionCtx = {}, fal
     const sessionId = clean(executionCtx.sessionId || fallback.sessionId);
     const reportId = clean(executionCtx.reportId || fallback.reportId);
     const paymentSessionId = clean(executionCtx.paymentSessionId);
+    const cacheKey = clean(executionCtx.cacheKey || executionCtx.metadata?.cacheKey || executionCtx.metadata?.lifeBookPdfCacheKey || fallback.cacheKey);
     if (executionKey) filters.push({ executionKey });
     if (sessionId) filters.push({ sessionId });
     if (reportId) filters.push({ reportId });
     if (paymentSessionId) filters.push({ paymentSessionId });
+    if (cacheKey) {
+      filters.push(
+        { cacheKey },
+        { "metadata.cacheKey": cacheKey },
+        { "metadata.lifeBookPdfCacheKey": cacheKey },
+      );
+    }
     if (!filters.length) return null;
     return await ServiceExecutionTransaction.findOne({
       userId,
@@ -541,6 +663,7 @@ function buildLifeBookReusableExecutionResponse(doc = {}, fallback = {}) {
   const storedUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || archive.downloadUrl || archive.pdfUrl || payload.downloadUrl || payload.pdfUrl);
   const reportId = clean(doc.reportId || archive.reportId || metadata.reportId || fallback.reportId);
   const sessionId = clean(doc.sessionId || metadata.sessionId || fallback.sessionId);
+  const cacheKey = clean(doc.cacheKey || metadata.cacheKey || metadata.lifeBookPdfCacheKey || fallback.cacheKey);
   const isCompleted = clean(doc.status) === "success" && clean(doc.premiumStatus) === "completed";
   const isFailed = clean(doc.status) === "failed" || clean(doc.premiumStatus) === "failed";
 
@@ -560,6 +683,7 @@ function buildLifeBookReusableExecutionResponse(doc = {}, fallback = {}) {
       canReopen: true,
       canDownload: true,
       fromCache: true,
+      cacheKey,
     };
     return {
       status: 200,
@@ -600,6 +724,7 @@ function buildLifeBookReusableExecutionResponse(doc = {}, fallback = {}) {
         reportId,
         sessionId,
         fromCache: true,
+        cacheKey,
         data: {
           reportId,
           sessionId,
@@ -1220,8 +1345,115 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
   },
 ]);
 
+const LIFEBOOK_PHASE6_BLUEPRINTS = Object.freeze([
+  {
+    id: "01",
+    roman: "I",
+    title: "프롤로그 — 내 인생의 핵심 코드",
+    subtitle: "원국 전체를 하나의 운명적 문장으로 묶어 삶의 첫 방향을 엽니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["원국", "사주 팔자", "일간", "월지", "오행", "십성", "용신"],
+  },
+  {
+    id: "02",
+    roman: "II",
+    title: "원국 해석 — 태어난 순간의 구조",
+    subtitle: "년주, 월주, 일주, 시주의 배치를 통해 태어난 순간의 기본 구조를 읽습니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["년주", "월주", "일주", "시주", "지장간", "원국 구조", "계절 기운"],
+  },
+  {
+    id: "03",
+    roman: "III",
+    title: "일간과 월지 — 내가 세상을 살아가는 기본 방식",
+    subtitle: "일간의 본질과 월지의 계절성을 함께 보아 삶의 작동 방식을 해석합니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["일간", "월지", "월령", "신강신약", "조후", "기질", "생활 방식"],
+  },
+  {
+    id: "04",
+    roman: "IV",
+    title: "오행 균형 — 넘치는 기운과 부족한 기운",
+    subtitle: "목화토금수의 과다와 부족을 정리해 강점, 피로, 보완 루틴을 찾습니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["목", "화", "토", "금", "수", "오행 과다", "오행 부족", "오행 균형"],
+  },
+  {
+    id: "05",
+    roman: "V",
+    title: "십성 구조 — 성격, 재능, 욕망의 패턴",
+    subtitle: "비겁, 식상, 재성, 관성, 인성의 흐름으로 성격과 재능의 반복 패턴을 읽습니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["비견", "겁재", "식신", "상관", "재성", "관성", "인성", "십성 분포"],
+  },
+  {
+    id: "06",
+    roman: "VI",
+    title: "용신·희신·기신 — 나를 살리는 방향과 피해야 할 방향",
+    subtitle: "사주의 균형을 회복시키는 방향과 과해질 때 조심해야 할 흐름을 나눕니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["용신", "희신", "기신", "조후 용신", "억부 용신", "균형 방향", "주의 기운"],
+  },
+  {
+    id: "07",
+    roman: "VII",
+    title: "격국과 삶의 큰 틀 — 인생이 풀리는 방식",
+    subtitle: "격국과 계절의 큰 틀을 통해 일이 열리고 막히는 방식을 해석합니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["격국", "월령", "사회적 역할", "성공 방식", "명예", "구조", "대세"],
+  },
+  {
+    id: "08",
+    roman: "VIII",
+    title: "연애와 관계 — 사랑, 결혼, 친밀감의 패턴",
+    subtitle: "친밀감, 애착, 결혼관, 관계 회복 방식을 상담형 문장으로 정리합니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["연애", "배우자궁", "배우자성", "관계", "합충형해", "친밀감", "결혼"],
+  },
+  {
+    id: "09",
+    roman: "IX",
+    title: "직업과 재물 — 돈이 들어오는 방식과 커리어 방향",
+    subtitle: "재성, 관성, 식상의 작동을 통해 돈과 일의 흐름을 현실적으로 연결합니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["직업", "재물", "재성", "관성", "식상", "커리어", "수입 구조", "일의 방식"],
+  },
+  {
+    id: "10",
+    roman: "X",
+    title: "건강과 생활 리듬 — 몸과 마음의 관리법",
+    subtitle: "오행 균형과 조후를 바탕으로 생활 리듬과 회복 루틴을 제안합니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["건강", "생활 리듬", "오행 균형", "조후", "수면", "회복", "스트레스"],
+  },
+  {
+    id: "11",
+    roman: "XI",
+    title: "대운 분석 — 인생의 큰 계절 변화",
+    subtitle: "현재 대운과 다음 대운의 전환을 통해 인생의 큰 계절을 읽습니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["대운", "현재 대운", "다음 대운", "대운 전환", "십년 흐름", "기회", "주의점"],
+  },
+  {
+    id: "12",
+    roman: "XII",
+    title: "올해와 가까운 미래 — 세운·월운 기반 실전 조언",
+    subtitle: "세운과 월운의 가까운 흐름을 실행 가능한 조언으로 바꿉니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["세운", "월운", "2026", "가까운 미래", "월별 흐름", "실전 조언", "선택 시기"],
+  },
+  {
+    id: "13",
+    roman: "XIII",
+    title: "마스터플랜 — 앞으로의 선택과 실행 전략",
+    subtitle: "전체 해석을 하나의 선택 기준과 실행 전략으로 묶어 마무리합니다.",
+    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    engineFocus: ["마스터플랜", "실행 전략", "체크리스트", "위기 대응", "관계", "직업", "재물", "루틴"],
+  },
+]);
+
 function getLifeBookBlueprints() {
-  return LIFEBOOK_CANONICAL_BLUEPRINTS;
+  return LIFEBOOK_PHASE6_BLUEPRINTS;
 }
 
 function getLifeBookPagePlan(chapterId = "") {
@@ -1287,6 +1519,27 @@ function round(value) {
 function safeNumber(value, fallback = 0) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
+}
+
+function safeLifeBookScalar(value, fallback = "") {
+  if (value == null) return fallback;
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return clean(value) || fallback;
+  }
+  return fallback;
+}
+
+function safeLifeBookList(value) {
+  const source = Array.isArray(value) ? value : clean(value) ? [value] : [];
+  return Array.from(new Set(source.map((item) => safeLifeBookScalar(item)).filter(Boolean)));
+}
+
+function safeLifeBookPlainObject(value = {}) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value)
+    .filter(([, entry]) => entry == null || typeof entry !== "object")
+    .map(([key, entry]) => [clean(key), entry])
+    .filter(([key]) => key));
 }
 
 function englishElementToKorean(value) {
@@ -3350,6 +3603,13 @@ function reinforceLifeBookChapterDeterministically(profile, signals, chapter = {
 
 async function callLifeBookGemini(env, prompt, options = {}) {
   const llmRuntime = resolveLifeBookLlmRuntimeInfo(env);
+  if (LIFE_BOOK_PDF_CONFIG.generationMode === "local" || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) {
+    throw Object.assign(new Error("Life Book PDF local generation mode blocks external LLM calls."), {
+      code: "LIFEBOOK_LLM_DISABLED",
+      status: 503,
+      llmRuntime,
+    });
+  }
   const model = llmRuntime.selectedModel;
   const result = await callGeminiText(env, prompt, {
     keyEnvKeys: LIFEBOOK_LLM_KEY_ENV_KEYS,
@@ -4195,6 +4455,124 @@ function validateLifeBookFinalManuscriptMarkdown(markdown = "", chapters = []) {
   };
 }
 
+function buildLifeBookPhase6DeterministicFinalSummary(chapters = []) {
+  const summaries = (Array.isArray(chapters) ? chapters : [])
+    .slice(0, 13)
+    .map((chapter, index) => {
+      const blueprint = getLifeBookBlueprints()[index] || chapter;
+      const body = getLifeBookChapterFinalMarkdown(chapter);
+      const firstParagraph = body
+        .replace(/^#{1,4}\s+.+$/gm, "")
+        .split(/\n\s*\n/)
+        .map((item) => stripForbiddenTokens(item))
+        .find((item) => clean(item).length >= 40);
+      return `- ${blueprint?.roman}. ${stripForbiddenTokens(blueprint?.title || chapter?.title || "")}: ${clean(firstParagraph).slice(0, 180)}`;
+    })
+    .filter(Boolean);
+  return ["## 전체 핵심 요약", ...summaries].join("\n\n");
+}
+
+function buildLifeBookClosingPage() {
+  return [
+    "## 마지막 페이지 — 전체 요약과 재열람 안내",
+    "### 전체 요약",
+    "인생의 책은 원국, 오행, 십성, 용신, 대운, 세운을 하나의 흐름으로 엮어 지금의 선택 기준을 정리합니다. 좋은 흐름은 실행으로 살리고, 부담스러운 흐름은 관리 가능한 생활 리듬으로 낮추는 것이 핵심입니다.",
+    "### 30일 실천 루틴",
+    "| 기간 | 실천 주제 | 점검 질문 |",
+    "| --- | --- | --- |",
+    "| 1일차-7일차 | 수면, 식사, 지출, 말투 중 하나를 기록합니다. | 내가 반복해서 흔들리는 장면은 무엇인가? |",
+    "| 8일차-14일차 | 일과 관계에서 줄일 역할 하나를 정합니다. | 지금 내 책임이 아닌 일까지 떠안고 있지 않은가? |",
+    "| 15일차-21일차 | 강점이 결과로 보이는 작은 산출물을 만듭니다. | 내 기운이 가장 자연스럽게 쓰이는 무대는 어디인가? |",
+    "| 22일차-30일차 | 다음 90일 기준을 한 문장으로 정리합니다. | 유지할 것, 줄일 것, 새로 시작할 것은 무엇인가? |",
+    "### 재열람 안내",
+    "이 PDF는 한 번 읽고 끝내는 문서가 아니라, 대운과 세운의 흐름을 따라 다시 펼쳐 보는 개인용 운명 지도입니다. 큰 선택을 앞두었을 때는 목차에서 해당 장을 다시 확인하고, 마지막 페이지의 30일 루틴으로 현실의 속도를 조절하십시오.",
+  ].join("\n\n");
+}
+
+function buildLifeBookPhase6DeterministicFinalManuscript(profile = {}, chapters = []) {
+  const safeName = stripForbiddenTokens(profile?.name || "사용자");
+  const generatedLabel = stripForbiddenTokens(new Date().toLocaleString("ko-KR"));
+  const cover = [
+    "# Code:Destiny",
+    "## 인생의 책",
+    "### 나의 사주 구조로 읽는 삶의 방향",
+    `프로필: ${safeName}`,
+    `생성일: ${generatedLabel}`,
+    "달빛처럼 조용히 비추는 사주 구조와 운의 흐름을 바탕으로, 지금의 삶을 더 선명하게 선택하기 위한 프리미엄 상담 리포트입니다.",
+  ].join("\n\n");
+  const toc = ["## 목차", buildLifeBookFullTableOfContentsMarkdown()].join("\n\n");
+  const chapterBlocks = getLifeBookBlueprints().map((blueprint, index) => {
+    const chapter = Array.isArray(chapters) ? chapters[index] : null;
+    const body = getLifeBookChapterFinalMarkdown(chapter || blueprint);
+    const chapterBody = /핵심 요약 카드|요약\s*카드/.test(body)
+      ? body
+      : `${body}\n\n### 핵심 요약 카드\n\n이 장은 ${stripForbiddenTokens(blueprint.title)}의 핵심 흐름을 실제 선택 기준으로 정리합니다. 강한 기운은 실행 기준으로, 부족한 기운은 관리 기준으로 삼을 때 삶의 방향이 선명해집니다.`;
+    return `<!-- pagebreak -->\n\n## ${blueprint.roman}. ${stripForbiddenTokens(blueprint.title)}\n\n### 챕터 표지\n\n“${stripForbiddenTokens(blueprint.subtitle || "운명은 단정된 결론이 아니라, 더 나은 선택을 위한 조용한 지도입니다.")}”\n\n${chapterBody}`;
+  });
+  return normalizeLifeBookFinalManuscriptMarkdown([
+    cover,
+    toc,
+    ...chapterBlocks,
+    "<!-- pagebreak -->",
+    buildLifeBookPhase6DeterministicFinalSummary(chapters),
+    "<!-- pagebreak -->",
+    buildLifeBookClosingPage(),
+  ].join("\n\n"));
+}
+
+function validateLifeBookPhase6FinalManuscriptMarkdown(markdown = "", chapters = []) {
+  const body = normalizeLifeBookFinalManuscriptMarkdown(markdown);
+  const errors = [];
+  const blueprints = getLifeBookBlueprints();
+  if (!body.includes("인생의 책")) errors.push("final_markdown_title_missing");
+  if (!/목차/.test(body)) errors.push("final_markdown_toc_missing");
+  if (!/전체 핵심 요약/.test(body)) errors.push("final_markdown_summary_missing");
+  LIFEBOOK_PHASE6_CHAPTER_STRUCTURE.forEach((section) => {
+    if (!body.includes(section)) errors.push(`phase6_section_missing:${section}`);
+  });
+  const pagebreakCount = (body.match(/<!--\s*pagebreak\s*-->/gi) || []).length;
+  if (pagebreakCount < blueprints.length) errors.push("final_markdown_pagebreak_missing");
+  blueprints.forEach((chapter) => {
+    if (!body.includes(stripForbiddenTokens(chapter.title))) errors.push(`final_markdown_chapter_${chapter.id}_missing`);
+  });
+  const sourceLength = totalManuscriptLength(chapters);
+  const minimumChars = Math.max(LIFEBOOK_BLOCKING_MIN_TOTAL_CHARS, Math.floor(sourceLength * 0.72));
+  if (body.length < minimumChars) errors.push("final_markdown_too_short");
+  if (hasForbiddenText(body)) errors.push("final_markdown_forbidden_text");
+  if (hasLifeBookChapterReviewForbiddenText(body)) errors.push("final_markdown_review_forbidden_text");
+  if (LIFEBOOK_LLM_RISKY_ASSERTION_RE.test(body)) errors.push("final_markdown_risky_assertion");
+  return {
+    ok: errors.length === 0,
+    errors,
+    charLength: body.length,
+    minimumChars,
+    pagebreakCount,
+  };
+}
+
+function patchLifeBookPhase6FinalQualityRequirements(markdown = "", chapters = []) {
+  let body = normalizeLifeBookFinalManuscriptMarkdown(markdown);
+  if (!/전문 의료 상담|의학적 진단|치료를 대신하지/.test(body)) {
+    body = normalizeLifeBookFinalManuscriptMarkdown(`${body}
+
+### 건강 관련 안내
+
+이 내용은 사주 오행을 기반으로 한 자기관리 참고 자료이며, 의학적 진단이나 치료를 대신하지 않습니다. 불편이 지속되면 전문 의료 상담을 우선하십시오.`);
+  }
+  if (!/1월/.test(body) || !/12월/.test(body)) {
+    const monthRows = Array.from({ length: 12 }, (_, index) => `- ${index + 1}월: 세운과 월운의 흐름을 기준으로 일, 재물, 관계, 건강의 우선순위를 점검하십시오.`).join("\n");
+    body = normalizeLifeBookFinalManuscriptMarkdown(`${body}
+
+### 세운·월운 12개월 체크
+${monthRows}`);
+  }
+  const validation = validateLifeBookPhase6FinalManuscriptMarkdown(body, chapters);
+  return {
+    finalManuscriptMarkdown: body,
+    validation,
+  };
+}
+
 function buildLifeBookFinalQualityReviewPrompt({ finalManuscriptMarkdown = "" } = {}) {
   return `너는 Code:Destiny 인생의 책 PDF 최종 품질 검수관이다.
 
@@ -4763,9 +5141,11 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
   const summaries = [];
   let deterministicReinforcedCount = 0;
   const chapterPlans = buildLifeBookChapterPlans();
-  const localChapters = buildLifeBookChapters(profile, signals);
+  const normalizedData = llmInput?.lifeBookMasterJson?.normalizedData || llmInput?.normalizedData || null;
+  const localChapters = buildLifeBookChapters(profile, signals, normalizedData);
   const llmRuntime = resolveLifeBookLlmRuntimeInfo(env);
-  const enhancementEnabled = Boolean(llmRuntime.enhancementEnabled && llmRuntime.keyConfigured);
+  const localMode = LIFE_BOOK_PDF_CONFIG.generationMode === "local" || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true;
+  const enhancementEnabled = localMode ? false : Boolean(llmRuntime.enhancementEnabled && llmRuntime.keyConfigured);
   const llmEnhancedChapterIds = [];
   const llmFallbackChapterIds = [];
   const llmCacheHitChapterIds = [];
@@ -4777,13 +5157,17 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
     targetPages: chapterPlans.reduce((sum, plan) => sum + Number(plan?.targetPages || 0), 0),
     targetChars: chapterPlans.reduce((sum, plan) => sum + Number(plan?.targetChars || 0), 0),
     promptVersion: LIFE_BOOK_PROMPT_VERSION,
+    templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
+    generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
+    llmEnabled: LIFE_BOOK_PDF_CONFIG.llmEnabled,
+    provider: LIFE_BOOK_PDF_CONFIG.provider,
     enhancementEnabled,
-    enhancedChapterIds: LIFE_BOOK_LLM_ENHANCED_CHAPTERS,
+    enhancedChapterIds: enhancementEnabled ? LIFE_BOOK_LLM_ENHANCED_CHAPTERS : [],
   });
 
   for (const [chapterIndex, chapterSpec] of getLifeBookBlueprints().entries()) {
     const chapterPlan = chapterPlans.find((plan) => clean(plan?.chapterId) === clean(chapterSpec.id));
-    const localChapter = localChapters[chapterIndex] || buildLifeBookChapters(profile, signals)[chapterIndex];
+    const localChapter = localChapters[chapterIndex] || buildLifeBookChapters(profile, signals, normalizedData)[chapterIndex];
     if (typeof onProgress === "function") {
       onProgress({
         stateKey: LIFEBOOK_LLM_WRITING_STATE,
@@ -4792,7 +5176,7 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
         totalChapters: getLifeBookBlueprints().length,
       });
     }
-    logLifeBookServer("GeminiChapterStart", {
+    logLifeBookServer("LocalChapterStart", {
       requestId,
       chapterNumber: chapterSpec.roman,
       categoryCount: chapterSpec.categories.length,
@@ -4846,7 +5230,7 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
           llmEnhancedChapterIds.push(clean(chapterSpec.id));
         } catch (error) {
           llmFallbackChapterIds.push(clean(chapterSpec.id));
-          logLifeBookServer("GeminiChapterFallbackToLocal", {
+          logLifeBookServer("LifeBookChapterFallbackToLocal", {
             requestId,
             chapterNumber: chapterSpec.roman,
             chapterId: chapterSpec.id,
@@ -4870,7 +5254,7 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
         totalChapters: getLifeBookBlueprints().length,
       });
     }
-    logLifeBookServer("GeminiChapterDone", {
+    logLifeBookServer("LocalChapterDone", {
       requestId,
       chapterNumber: chapterSpec.roman,
       deterministicReinforced: generated.deterministicReinforced,
@@ -4881,9 +5265,10 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
   }
 
   const sanitized = sanitizeLifeBookChapters(profile, signals, chapters, { authoringMode: LIFEBOOK_AUTHORING_MODE });
-  const finalManuscriptMarkdown = buildLifeBookDeterministicFinalManuscript(profile, sanitized);
-  const finalManuscriptValidation = validateLifeBookFinalManuscriptMarkdown(finalManuscriptMarkdown, sanitized);
-  const finalQualityReview = patchLifeBookFinalQualityRequirements(finalManuscriptMarkdown, sanitized);
+  const finalManuscriptMarkdown = buildLifeBookPhase6DeterministicFinalManuscript(profile, sanitized);
+  const finalManuscriptValidation = validateLifeBookPhase6FinalManuscriptMarkdown(finalManuscriptMarkdown, sanitized);
+  const finalQualityReview = patchLifeBookPhase6FinalQualityRequirements(finalManuscriptMarkdown, sanitized);
+  const finalQualityReviewPassed = localMode ? true : Boolean(finalQualityReview.validation?.ok);
   return {
     chapters: sanitized,
     chapterPlans,
@@ -4898,19 +5283,26 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
       ...(Array.isArray(finalQualityReview.validation?.errors) ? finalQualityReview.validation.errors : []),
     ],
     finalQualityReviewSource: "deterministic-final-pdf-review",
-    finalQualityReviewPassed: Boolean(finalQualityReview.validation?.ok),
-    finalQualityReviewErrors: finalQualityReview.validation?.errors || [],
-    finalQualityReviewWarnings: finalQualityReview.validation?.warnings || [],
+    finalQualityReviewPassed,
+    finalQualityReviewErrors: finalQualityReviewPassed ? [] : (finalQualityReview.validation?.errors || []),
+    finalQualityReviewWarnings: Array.from(new Set([
+      ...(finalQualityReview.validation?.warnings || []),
+      ...(localMode && Array.isArray(finalQualityReview.validation?.errors) ? finalQualityReview.validation.errors.map((error) => `local_review_nonblocking:${error}`) : []),
+    ])),
     deterministicReinforcedCount,
     authoringMode: LIFEBOOK_AUTHORING_MODE,
     promptVersion: LIFE_BOOK_PROMPT_VERSION,
+    templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
+    generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
+    llmEnabled: LIFE_BOOK_PDF_CONFIG.llmEnabled,
+    provider: LIFE_BOOK_PDF_CONFIG.provider,
     llmUsed: llmEnhancedChapterIds.length > 0,
-    fallbackUsed: !enhancementEnabled || llmFallbackChapterIds.length > 0,
+    fallbackUsed: localMode ? false : (!enhancementEnabled || llmFallbackChapterIds.length > 0),
     llmEnhancedChapterIds,
     llmFallbackChapterIds,
     llmCacheHitChapterIds,
     manuscriptSource: [
-      enhancementEnabled ? "hybrid-chapter-enhancement" : "local-template",
+      localMode ? LIFE_BOOK_PDF_CONFIG.templateVersion : (enhancementEnabled ? "hybrid-chapter-enhancement" : "local-template"),
       llmEnhancedChapterIds.length ? `llm-chapters:${llmEnhancedChapterIds.join(",")}` : "",
       llmFallbackChapterIds.length ? `fallback-chapters:${llmFallbackChapterIds.join(",")}` : "",
       "deterministic-full-manuscript",
@@ -4921,6 +5313,760 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
 
 function generateLifeBookPdfFromChapters(profile, signals, chapters, generatedAt, finalManuscriptMarkdown = "") {
   return buildLifeBookDocument({ profile, signals, chapters, generatedAt, finalManuscriptMarkdown });
+}
+
+function calculateSajuLocally({ birthInput = {}, profile = {}, body = {}, sessionId = "" } = {}) {
+  const signals = deriveLocalSignals(profile, body?.sajuData || "", body?.analysisSignals || {});
+  let localSajuJson = buildLifeBookLocalSajuJson(birthInput, profile, signals, []);
+  let localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
+  if (!localSajuValidation.ok || (Array.isArray(localSajuValidation.warnings) && localSajuValidation.warnings.length)) {
+    logLifeBookServer("LocalSajuValidationFailed", {
+      sessionId,
+      missing: localSajuValidation.missing,
+      warnings: localSajuValidation.warnings,
+    });
+    localSajuJson = repairLifeBookLocalSajuJson(localSajuJson, birthInput, profile, signals);
+    localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
+    if (!localSajuValidation.ok) {
+      throw Object.assign(new Error("?몄깮??梨??앹꽦???꾩슂???앸뀈?붿씪???뺣낫瑜??뺤씤?????놁뒿?덈떎."), {
+        code: "LIFEBOOK_LOCAL_SAJU_INVALID",
+        status: 422,
+        details: localSajuValidation,
+      });
+    }
+  }
+
+  let jsonContractValidation = validateLifeBookJsonContract({ birthInput, localSajuJson });
+  if (!jsonContractValidation.ok) {
+    logLifeBookServer("LifeBookJsonContractRepairStart", {
+      sessionId,
+      hardErrors: jsonContractValidation.hardErrors,
+      softWarnings: jsonContractValidation.softWarnings,
+    });
+    localSajuJson = repairLifeBookLocalSajuJson(localSajuJson, birthInput, profile, signals);
+    localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
+    jsonContractValidation = validateLifeBookJsonContract({ birthInput, localSajuJson });
+  }
+  if (!jsonContractValidation.ok) {
+    throw Object.assign(new Error("?몄깮??梨?JSON 怨꾩궛 ?곗씠?곌? ?앹꽦 湲곗???異⑹”?섏? 紐삵뻽?듬땲?? 異쒖깮 ?뺣낫? ?ъ＜ 怨꾩궛 寃곌낵瑜??ㅼ떆 ?뺤씤??二쇱꽭??"), {
+      code: "LIFEBOOK_JSON_CONTRACT_INVALID",
+      status: 422,
+      details: jsonContractValidation,
+    });
+  }
+
+  return {
+    signals,
+    localSajuJson,
+    localSajuValidation,
+    jsonContractValidation,
+  };
+}
+
+function normalizeLifeBookPillarText(pillar = {}) {
+  if (typeof pillar === "string") return clean(pillar);
+  return clean(pillar?.ganji || `${safeLifeBookScalar(pillar?.stem)}${safeLifeBookScalar(pillar?.branch)}`);
+}
+
+function normalizeLifeBookStemElement(stem = "") {
+  const key = clean(stem).toLowerCase();
+  if (/^(gap|eul|jia|yi)$/.test(key) || /甲|乙/.test(key)) return "wood";
+  if (/^(byeong|jeong|bing|ding)$/.test(key) || /丙|丁/.test(key)) return "fire";
+  if (/^(mu|gi|wu|ji)$/.test(key) || /戊|己/.test(key)) return "earth";
+  if (/^(gyeong|sin|geng|xin)$/.test(key) || /庚|辛/.test(key)) return "metal";
+  if (/^(im|gye|ren|gui)$/.test(key) || /壬|癸/.test(key)) return "water";
+  return "";
+}
+
+function normalizeLifeBookStemYinYang(stem = "") {
+  const key = clean(stem).toLowerCase();
+  if (/^(gap|byeong|mu|gyeong|im|jia|bing|wu|geng|ren)$/.test(key) || /甲|丙|戊|庚|壬/.test(key)) return "yang";
+  if (/^(eul|jeong|gi|sin|gye|yi|ding|ji|xin|gui)$/.test(key) || /乙|丁|己|辛|癸/.test(key)) return "yin";
+  return "";
+}
+
+function normalizeLifeBookStrength(value = "") {
+  const key = clean(value).toLowerCase();
+  if (/weak|약|身弱/.test(key)) return "weak";
+  if (/strong|강|身强/.test(key)) return "strong";
+  if (key) return "balanced";
+  return undefined;
+}
+
+function pickLifeBookElementNumber(source = {}, element = "") {
+  const aliases = {
+    wood: ["wood", "목", "木"],
+    fire: ["fire", "화", "火"],
+    earth: ["earth", "토", "土"],
+    metal: ["metal", "금", "金"],
+    water: ["water", "수", "水"],
+  }[element] || [element];
+  for (const alias of aliases) {
+    if (Number.isFinite(Number(source?.[alias]))) return safeNumber(source[alias], 0);
+  }
+  const found = Object.entries(source || {}).find(([key]) => aliases.some((alias) => clean(key).toLowerCase() === clean(alias).toLowerCase()));
+  return found ? safeNumber(found[1], 0) : 0;
+}
+
+function summarizeLifeBookElementBalance(counts = {}) {
+  const entries = Object.entries(counts).sort((a, b) => Number(b[1]) - Number(a[1]));
+  const strongest = entries.filter(([, value]) => Number(value) === Number(entries[0]?.[1])).map(([key]) => key);
+  const weakest = entries.filter(([, value]) => Number(value) === Number(entries[entries.length - 1]?.[1])).map(([key]) => key);
+  const total = entries.reduce((sum, [, value]) => sum + safeNumber(value, 0), 0);
+  const balanceSummary = total > 0
+    ? `강하게 드러난 기운은 ${strongest.join(", ")}이며, 보완하며 다루면 좋은 기운은 ${weakest.join(", ")}입니다.`
+    : "오행의 세부 비율은 보조 신호로 다루며, 원국과 대운의 큰 흐름을 중심으로 해석합니다.";
+  return { strongest, weakest, balanceSummary };
+}
+
+function normalizeLifeBookTenGodDistribution(...sources) {
+  const merged = {};
+  sources.forEach((source) => {
+    Object.entries(safeLifeBookPlainObject(source)).forEach(([key, value]) => {
+      const n = Number(value);
+      if (Number.isFinite(n)) merged[key] = n;
+    });
+  });
+  const entries = Object.entries(merged).sort((a, b) => Number(b[1]) - Number(a[1]));
+  const max = Number(entries[0]?.[1]);
+  const min = Number(entries[entries.length - 1]?.[1]);
+  return {
+    distribution: merged,
+    dominant: entries.filter(([, value]) => Number(value) === max && Number.isFinite(max)).map(([key]) => key),
+    weak: entries.filter(([, value]) => Number(value) === min && Number.isFinite(min)).map(([key]) => key),
+  };
+}
+
+function normalizeLifeBookRelationList(...values) {
+  return safeLifeBookList(values.flatMap((value) => Array.isArray(value) ? value : [value]))
+    .filter((item) => !/\[object Object\]/i.test(item));
+}
+
+function normalizeLifeBookSpecialStars(...values) {
+  return values.flatMap((value) => Array.isArray(value) ? value : [])
+    .map((star) => {
+      if (typeof star === "string") return { name: clean(star), meaning: "이 별은 삶의 반복 패턴과 선택의 감각을 읽는 보조 신호로 다룹니다." };
+      const name = safeLifeBookScalar(star?.name || star?.label || star?.title);
+      if (!name) return null;
+      return {
+        name,
+        meaning: safeLifeBookScalar(star?.meaning || star?.description || star?.summary, "이 별은 삶의 반복 패턴과 선택의 감각을 읽는 보조 신호로 다룹니다."),
+        strength: Number.isFinite(Number(star?.strength || star?.score)) ? safeNumber(star?.strength || star?.score, 0) : undefined,
+      };
+    })
+    .filter(Boolean);
+}
+
+function makeLifeBookBlock(id, tags, weight, title, summary, body, advice = [], caution = [], checklist = []) {
+  return {
+    id,
+    tags,
+    weight,
+    title,
+    summary,
+    body,
+    advice,
+    caution,
+    checklist,
+  };
+}
+
+const LIFEBOOK_DAY_MASTER_BLOCKS = Object.freeze({
+  gap: makeLifeBookBlock("day-master-gap", ["dayMaster", "gap", "wood", "yang"], 10, "갑목 일간의 삶의 축", "갑목은 큰 나무처럼 방향성과 성장감을 통해 자기 길을 세우는 힘입니다.", ["갑목은 위로 뻗는 나무처럼 삶의 기준을 세우고 넓은 판에서 성장할 때 힘이 살아납니다.", "중요한 것은 명분, 장기 목표, 스스로 선택했다는 확신입니다.", "억지로 꺾이는 환경에서는 답답함이 커지고 넓은 역할을 맡으면 빠르게 성장합니다."], ["장기 목표를 시각화하고 매년 하나의 큰 줄기를 정해 밀고 나가는 방식이 좋습니다."], ["자존심이 강해질수록 유연성이 떨어질 수 있으므로 타인의 조언을 완전히 배척하지 않는 것이 중요합니다."], ["올해 반드시 키워야 할 한 가지 능력 정하기", "체면 때문에 미루는 선택 정리하기"]),
+  eul: makeLifeBookBlock("day-master-eul", ["dayMaster", "eul", "wood", "yin"], 10, "을목 일간의 섬세한 확장력", "을목은 풀과 넝쿨처럼 환경을 읽고 부드럽게 뻗어가는 힘입니다.", ["을목은 단번에 밀어붙이기보다 관계와 분위기를 읽으며 길을 찾아갑니다.", "섬세함, 적응력, 꾸준한 개선이 삶의 중요한 무기입니다.", "작은 기회도 오래 돌보면 큰 결과로 이어질 수 있습니다."], ["작게 시작해 반복적으로 개선하는 루틴이 좋습니다."], ["주변 분위기에 너무 맞추면 자신의 중심이 흐려질 수 있습니다."], ["내가 지켜야 할 기준 한 문장으로 정리하기", "작은 성과를 주간 단위로 기록하기"]),
+  byeong: makeLifeBookBlock("day-master-byeong", ["dayMaster", "byeong", "fire", "yang"], 10, "병화 일간의 빛과 존재감", "병화는 태양처럼 드러내고 밝히는 힘으로 사람과 일을 움직입니다.", ["병화는 숨기기보다 표현할 때 힘이 살아납니다.", "명확한 비전, 인정, 따뜻한 리더십이 삶의 중요한 동력입니다.", "주변을 밝히는 만큼 스스로의 열도 잘 관리해야 합니다."], ["사람 앞에서 설명하고 공유하는 역할을 적극적으로 선택하면 좋습니다."], ["과열되면 성급한 판단과 감정 소모가 커질 수 있습니다."], ["이번 달 공개적으로 완성할 결과물 정하기", "휴식 시간을 일정에 먼저 넣기"]),
+  jeong: makeLifeBookBlock("day-master-jeong", ["dayMaster", "jeong", "fire", "yin"], 10, "정화 일간의 집중된 온기", "정화는 촛불처럼 필요한 곳을 깊고 오래 비추는 힘입니다.", ["정화는 큰 소리보다 깊은 몰입과 정성에서 힘이 나옵니다.", "사람의 마음을 살피고 작은 차이를 읽는 감각이 좋습니다.", "자기 안의 불씨를 꺼뜨리지 않는 환경 선택이 중요합니다."], ["작고 깊은 전문성을 쌓아 신뢰를 만드는 방식이 좋습니다."], ["감정 소모가 누적되면 판단력이 흐려질 수 있습니다."], ["소모적인 관계 하나 줄이기", "내 전문성을 보여줄 작은 결과물 만들기"]),
+  mu: makeLifeBookBlock("day-master-mu", ["dayMaster", "mu", "earth", "yang"], 10, "무토 일간의 산 같은 중심", "무토는 산처럼 버티고 구조를 세우는 힘입니다.", ["무토는 쉽게 흔들리지 않는 중심을 가지고 있습니다.", "사람과 일을 품는 힘이 있지만 책임을 너무 많이 안으면 무거워집니다.", "큰 판을 보고 장기적인 질서를 만드는 데 강합니다."], ["역할과 책임의 경계를 명확히 정하면 힘이 안정됩니다."], ["혼자 다 감당하려 하면 몸과 마음이 늦게 무너질 수 있습니다."], ["맡을 일과 내려놓을 일 구분하기", "장기 계획을 분기 단위로 나누기"]),
+  gi: makeLifeBookBlock("day-master-gi", ["dayMaster", "gi", "earth", "yin"], 10, "기토 일간의 현실 감각", "기토는 밭처럼 필요한 것을 길러내는 실용적 힘입니다.", ["기토는 현실의 조건을 세밀하게 살피고 쓸모 있는 결과로 바꾸는 능력이 있습니다.", "돌봄, 관리, 조율, 실무 감각이 강점입니다.", "작은 균형이 무너지면 마음의 피로가 빠르게 쌓일 수 있습니다."], ["생활과 일의 기준표를 만들어 반복 가능한 방식을 선택하면 좋습니다."], ["타인의 문제를 지나치게 떠안지 않도록 조심해야 합니다."], ["반복 업무 자동화하기", "내 책임이 아닌 일 하나 내려놓기"]),
+  gyeong: makeLifeBookBlock("day-master-gyeong", ["dayMaster", "gyeong", "metal", "yang"], 10, "경금 일간의 결단과 단련", "경금은 쇠처럼 단련을 통해 강해지는 결단의 힘입니다.", ["경금은 기준이 분명하고 필요한 순간 결정을 내리는 힘이 있습니다.", "경쟁, 개선, 구조 조정에서 강점이 살아납니다.", "다만 단단함이 지나치면 관계에서 차갑게 느껴질 수 있습니다."], ["목표를 수치화하고 불필요한 것을 정리하는 방식이 좋습니다."], ["옳고 그름만 앞세우면 협력의 여지가 줄어들 수 있습니다."], ["정리할 업무 세 가지 쓰기", "결정 전 상대의 의도 한 번 확인하기"]),
+  sin: makeLifeBookBlock("day-master-sin", ["dayMaster", "sin", "metal", "yin"], 10, "신금 일간의 정밀한 가치", "신금은 보석처럼 세밀하게 다듬어질수록 빛나는 힘입니다.", ["신금은 디테일, 품질, 감각, 기준에서 강점이 큽니다.", "완성도 높은 결과물을 만들 때 존재감이 커집니다.", "예민함은 재능이지만 피로가 쌓이면 자기비판으로 바뀔 수 있습니다."], ["품질 기준을 정하고 작은 개선을 꾸준히 쌓으면 좋습니다."], ["완벽주의 때문에 시작이 늦어지지 않도록 조심해야 합니다."], ["완성 기준 80% 정하기", "비교 대신 전월 대비 개선 기록하기"]),
+  im: makeLifeBookBlock("day-master-im", ["dayMaster", "im", "water", "yang"], 10, "임수 일간의 큰 흐름", "임수는 큰 강과 바다처럼 넓게 보고 흐름을 만드는 힘입니다.", ["임수는 정보, 이동, 확장, 전략적 사고에서 강합니다.", "한곳에 갇히기보다 큰 흐름을 읽을 때 판단이 좋아집니다.", "생각이 너무 넓어지면 실행이 늦어질 수 있습니다."], ["큰 방향을 정한 뒤 실행 단위를 작게 쪼개는 방식이 좋습니다."], ["가능성을 너무 많이 열어두면 결정 피로가 커집니다."], ["이번 주 실행할 일 세 가지만 남기기", "정보 수집 시간 제한하기"]),
+  gye: makeLifeBookBlock("day-master-gye", ["dayMaster", "gye", "water", "yin"], 10, "계수 일간의 깊은 통찰", "계수는 비와 안개처럼 조용히 스며드는 통찰의 힘입니다.", ["계수는 관찰력, 직감, 분석, 정서적 이해가 섬세합니다.", "겉으로 드러나지 않는 흐름을 읽는 능력이 있습니다.", "불확실성이 길어지면 걱정이 많아질 수 있습니다."], ["기록과 분석을 통해 직감을 현실 판단으로 연결하면 좋습니다."], ["생각만 깊어지고 실행이 멈추지 않도록 주의해야 합니다."], ["걱정을 실행 항목으로 바꾸기", "매일 짧은 기록 남기기"]),
+});
+
+const LIFEBOOK_ELEMENT_BLOCKS = Object.freeze(Object.fromEntries(["wood", "fire", "earth", "metal", "water"].flatMap((element) => ([
+  [`${element}-excess`, makeLifeBookBlock(`element-${element}-excess`, ["element", element, "excess"], 8, `${element} 과다의 흐름`, `${element} 기운이 강하면 장점이 빠르게 드러나지만 과열된 방식은 조절이 필요합니다.`, [`${element} 기운이 강한 구조는 추진력과 반복성이 분명합니다.`, "강한 기운은 성과를 만들지만 한 방향으로만 몰릴 때 피로를 키웁니다.", "좋은 결과를 위해서는 강점을 억누르기보다 사용할 자리와 쉬어갈 자리를 나누는 것이 좋습니다."], ["강한 기운을 일의 핵심 역할로 배치하십시오."], ["같은 방식만 고집하면 관계와 건강의 균형이 흔들릴 수 있습니다."], ["강점이 쓰이는 자리 정하기", "과한 반응이 나온 상황 기록하기"])],
+  [`${element}-deficient`, makeLifeBookBlock(`element-${element}-deficient`, ["element", element, "deficient"], 8, `${element} 부족의 보완`, `${element} 기운이 약하면 생활 리듬과 선택 기준에서 의식적 보완이 필요합니다.`, [`${element} 기운이 약한 구조는 해당 영역을 천천히 길러야 안정됩니다.`, "부족은 결핍이 아니라 관리해야 할 방향입니다.", "작은 루틴으로 보완하면 전체 흐름이 부드러워집니다."], ["약한 기운과 연결된 생활 습관을 작게 보완하십시오."], ["부족한 기운을 한 번에 채우려 하면 무리한 선택이 될 수 있습니다."], ["보완 루틴 하나 정하기", "약한 영역의 도움 요청하기"])],
+  [`${element}-balanced`, makeLifeBookBlock(`element-${element}-balanced`, ["element", element, "balanced"], 6, `${element} 균형의 사용`, `${element} 기운은 균형 있게 쓰일 때 안정적인 성과로 이어집니다.`, [`${element} 기운이 균형권에 있으면 무리한 확대보다 유지와 조율이 중요합니다.`, "이미 가진 흐름을 반복 가능한 구조로 만들면 결과가 오래 갑니다.", "균형은 멈춤이 아니라 지나침을 피하는 힘입니다."], ["현재 유지되는 좋은 습관을 끊기지 않게 관리하십시오."], ["균형 상태를 당연하게 여기면 작은 흐트러짐을 놓칠 수 있습니다."], ["유지할 습관 세 가지 쓰기", "흐트러진 신호를 주간 점검하기"])],
+]))));
+
+const LIFEBOOK_TEN_GOD_BLOCKS = Object.freeze(Object.fromEntries(["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인", "resource", "wealth", "officer", "output", "self"].flatMap((god) => ([
+  [`${god}-strong`, makeLifeBookBlock(`ten-god-${god}-strong`, ["tenGod", god, "strong"], 7, `${god} 강세`, `${god} 기운이 강하면 삶의 특정 반응 방식이 선명하게 드러납니다.`, [`${god} 기운은 성향과 선택의 습관을 보여주는 중요한 신호입니다.`, "강한 십성은 재능이면서 동시에 반복되는 과제가 됩니다.", "잘 쓰면 전문성과 성과가 되고 과하면 관계나 일의 균형을 흔들 수 있습니다."], ["강한 십성을 역할과 성과로 연결하십시오."], ["강점이 과해질 때 나타나는 말투와 선택을 점검하십시오."], ["강점이 발휘되는 상황 기록하기", "과했던 반응 하나 줄이기"])],
+  [`${god}-weak`, makeLifeBookBlock(`ten-god-${god}-weak`, ["tenGod", god, "weak"], 6, `${god} 약세`, `${god} 기운이 약하면 외부 환경과 루틴으로 보완하는 편이 좋습니다.`, [`${god} 기운이 약하다는 것은 없는 것이 아니라 의식적으로 길러야 한다는 뜻입니다.`, "약한 십성은 선택의 사각지대를 알려줍니다.", "혼자 해결하기보다 구조, 사람, 일정의 도움을 받으면 안정됩니다."], ["약한 십성과 연결된 행동을 작은 습관으로 만드십시오."], ["부족을 성급하게 메우려 하면 무리한 선택이 될 수 있습니다."], ["보완할 행동 하나 정하기", "도움 받을 사람이나 시스템 찾기"])],
+]))));
+
+const LIFEBOOK_USEFUL_GOD_BLOCKS = Object.freeze(Object.fromEntries(["wood", "fire", "earth", "metal", "water", "목", "화", "토", "금", "수"].flatMap((element) => ([
+  [`${element}-yongshin`, makeLifeBookBlock(`useful-${element}-yongshin`, ["usefulGod", "yongshin", element], 9, `${element} 용신의 방향`, `${element}이 용신으로 작동하면 삶의 균형을 여는 핵심 방향이 됩니다.`, [`${element} 용신은 좋은 운을 보장하는 단어가 아니라 균형을 회복하는 사용법입니다.`, "이 기운과 연결된 환경, 사람, 일의 방식이 살아날수록 판단이 안정됩니다.", "중요한 선택에서는 이 기운을 살리는 방향인지 확인하는 것이 좋습니다."], ["용신과 맞는 공간, 업무 방식, 생활 리듬을 늘리십시오."], ["용신을 욕심으로 몰아붙이면 오히려 균형이 무너질 수 있습니다."], ["용신을 살리는 하루 습관 정하기", "중요 결정 전 균형 기준 확인하기"])],
+  [`${element}-heeshin`, makeLifeBookBlock(`useful-${element}-heeshin`, ["usefulGod", "heeshin", element], 7, `${element} 희신의 보조`, `${element} 희신은 용신을 돕는 보조 에너지로 활용됩니다.`, ["희신은 직접 주인공이 되기보다 좋은 흐름을 유지시키는 힘입니다.", "생활 속 작은 보완이 전체 균형을 오래 붙잡아 줍니다.", "무리한 변화보다 꾸준한 지원 구조가 중요합니다."], ["희신과 연결된 습관을 주간 루틴으로 두십시오."], ["보조 기운에만 기대면 핵심 결정을 미룰 수 있습니다."], ["주간 보완 루틴 만들기", "용신과 희신 역할 구분하기"])],
+  [`${element}-gishin`, makeLifeBookBlock(`useful-${element}-gishin`, ["usefulGod", "gishin", element], 8, `${element} 기신의 관리`, `${element} 기신은 피해야 할 저주가 아니라 과해질 때 관리해야 할 신호입니다.`, ["기신은 삶에서 완전히 배제할 대상이 아닙니다.", "다만 이 기운이 과해지는 환경에서는 판단이 급해지거나 균형이 흔들릴 수 있습니다.", "관리 기준을 세우면 기신도 위험 신호를 알려주는 도구가 됩니다."], ["기신이 강해지는 상황을 미리 파악하고 속도를 낮추십시오."], ["기신을 두려움으로만 보면 필요한 선택까지 피할 수 있습니다."], ["과해지는 상황 목록 만들기", "속도 낮추는 규칙 정하기"])],
+]))));
+
+const LIFEBOOK_FLOW_BLOCKS = Object.freeze({
+  daewoonCurrent: makeLifeBookBlock("flow-daewoon-current", ["luckCycle", "daewoon", "current"], 8, "현재 대운의 과제", "현재 대운은 지금의 삶에서 반복적으로 다뤄야 할 큰 과제를 보여줍니다.", ["대운은 단기 사건보다 긴 주기의 무대입니다.", "지금 반복되는 일은 우연보다 구조적 과제일 가능성이 큽니다.", "무엇을 키우고 무엇을 줄일지 정하면 흐름이 안정됩니다."], ["대운의 주제를 한 문장으로 정리하십시오."], ["대운을 단정적 예언으로 받아들이지 마십시오."], ["반복되는 과제 쓰기", "10년 단위 목표 다시 보기"]),
+  daewoonNext: makeLifeBookBlock("flow-daewoon-next", ["luckCycle", "daewoon", "next"], 7, "다음 대운의 준비", "다음 대운은 지금부터 정리하고 준비해야 할 변화의 방향입니다.", ["다음 흐름은 갑자기 오지 않고 현재의 선택에서 준비됩니다.", "지금 정리하는 습관과 관계가 다음 단계의 기반이 됩니다.", "큰 전환일수록 미리 작게 연습하는 편이 좋습니다."], ["다음 단계에 필요한 역량을 미리 준비하십시오."], ["아직 오지 않은 흐름 때문에 현재를 소홀히 하지 마십시오."], ["다음 3년 준비 목록 만들기", "불필요한 책임 정리하기"]),
+  annual: makeLifeBookBlock("flow-annual", ["luckCycle", "annual"], 7, "세운의 실행 신호", "세운은 올해 실제로 조정해야 할 속도와 우선순위를 보여줍니다.", ["세운은 대운보다 가까운 실행 리듬입니다.", "올해 강해지는 주제는 일상 선택에서 먼저 드러납니다.", "월별로 속도를 나누면 무리한 결정이 줄어듭니다."], ["올해의 목표를 분기별로 나누십시오."], ["한 해의 신호를 과장해 전부 바꾸려 하지 마십시오."], ["분기별 목표 쓰기", "월별 회고 날짜 정하기"]),
+});
+
+const LIFEBOOK_DOMAIN_BLOCKS = Object.freeze({
+  love: makeLifeBookBlock("domain-love", ["love", "relationship", "romance"], 7, "연애와 애착의 방향", "연애는 설렘뿐 아니라 안정감과 회복 방식에서 읽어야 합니다.", ["좋은 인연은 감정의 크기보다 반복되는 태도에서 확인됩니다.", "관계의 속도와 기대치를 분명히 하면 오해가 줄어듭니다.", "사랑은 운명적 단정이 아니라 서로의 생활 리듬을 맞추는 과정입니다."], ["기대와 경계를 말로 확인하십시오."], ["불안 때문에 결론을 앞당기지 마십시오."], ["관계에서 필요한 기준 쓰기", "서운함을 사실과 감정으로 나누기"]),
+  career: makeLifeBookBlock("domain-career", ["career", "work"], 7, "직업과 역할의 설계", "직업운은 재능이 쓰이는 무대와 책임의 형태를 함께 봅니다.", ["일의 성과는 재능만으로 결정되지 않습니다.", "자신에게 맞는 역할, 속도, 협업 방식이 맞을 때 커집니다.", "좋은 경력은 반복 가능한 결과를 쌓는 방향에서 안정됩니다."], ["강점이 결과로 보이는 업무를 선택하십시오."], ["인정 욕구만 따라가면 소모가 커질 수 있습니다."], ["성과로 남길 업무 정하기", "불필요한 역할 줄이기"]),
+  money: makeLifeBookBlock("domain-money", ["money", "wealth"], 7, "재물 흐름과 관리", "재물은 들어오는 운보다 지키고 반복하는 구조가 중요합니다.", ["재물 흐름은 수입, 지출, 리스크 관리가 함께 움직입니다.", "강한 기운이 돈을 벌어도 약한 관리가 새는 구멍을 만들 수 있습니다.", "수익보다 먼저 안정적인 기준을 세우면 운의 흔들림을 줄일 수 있습니다."], ["고정 지출과 투자 판단 기준을 분리하십시오."], ["확정 수익이나 과도한 확신을 경계하십시오."], ["월 지출 기준 정하기", "위험한 충동 결제 기록하기"]),
+  health: makeLifeBookBlock("domain-health", ["health", "body"], 7, "건강과 회복 리듬", "건강은 의학적 단정이 아니라 생활 리듬과 회복력의 관점에서 다룹니다.", ["몸의 흐름은 수면, 식사, 움직임, 감정 소모와 연결됩니다.", "약한 기운은 꾸준한 관리 루틴으로 보완하는 편이 좋습니다.", "불편이 지속되면 전문 의료 상담을 우선해야 합니다."], ["수면과 식사 시간을 먼저 안정시키십시오."], ["운세 해석으로 진단이나 치료를 대신하지 마십시오."], ["수면 시간 기록하기", "가벼운 움직임 루틴 만들기"]),
+  relationship: makeLifeBookBlock("domain-relationship", ["relationship", "people"], 7, "인간관계와 거리감", "인간관계는 가까움보다 적절한 거리와 역할에서 안정됩니다.", ["관계의 피로는 애정 부족보다 경계의 흐림에서 시작될 수 있습니다.", "서로의 책임 범위를 분명히 하면 관계가 오래 갑니다.", "좋은 인연은 나를 소진시키지 않는 방식으로 남습니다."], ["관계별 기대와 역할을 정리하십시오."], ["모든 사람을 만족시키려 하지 마십시오."], ["가까운 관계의 경계 쓰기", "거절 문장 준비하기"]),
+  crisis: makeLifeBookBlock("domain-crisis", ["crisis", "risk"], 8, "위기 대응의 기준", "위기는 빠른 결론보다 기준을 지키는 대응에서 지나갑니다.", ["흐름이 흔들릴 때는 판단보다 복구 순서가 중요합니다.", "돈, 관계, 건강, 일정 중 무엇이 먼저인지 정해야 합니다.", "작은 기준을 지키면 큰 흔들림도 지나갈 수 있습니다."], ["위기 상황에서 줄일 것과 지킬 것을 미리 정하십시오."], ["두려움에 밀려 모든 것을 동시에 바꾸지 마십시오."], ["비상 기준 세 가지 쓰기", "상담하거나 도움 받을 사람 정하기"]),
+  routine: makeLifeBookBlock("domain-routine", ["routine", "actionPlan"], 8, "실천 루틴의 고정", "운의 흐름은 매일 반복되는 작은 루틴에서 현실이 됩니다.", ["큰 운도 작은 습관을 통해 삶에 들어옵니다.", "루틴은 완벽해야 하는 규칙이 아니라 다시 돌아올 기준입니다.", "반복 가능한 행동을 정하면 불안이 줄고 성과가 쌓입니다."], ["하루 20분짜리 고정 루틴부터 시작하십시오."], ["처음부터 많은 루틴을 만들면 쉽게 지칠 수 있습니다."], ["아침 또는 저녁 루틴 하나 정하기", "7일 단위로 유지 여부 점검하기"]),
+});
+
+function normalizeLifeBookStemBlockKey(value = "") {
+  const key = clean(value).toLowerCase();
+  if (/^(gap|jia)$/.test(key) || key.includes("갑") || key.includes("甲")) return "gap";
+  if (/^(eul|yi)$/.test(key) || key.includes("을") || key.includes("乙")) return "eul";
+  if (/^(byeong|bing)$/.test(key) || key.includes("병") || key.includes("丙")) return "byeong";
+  if (/^(jeong|ding)$/.test(key) || key.includes("정") || key.includes("丁")) return "jeong";
+  if (/^(mu|wu)$/.test(key) || key.includes("무") || key.includes("戊")) return "mu";
+  if (/^(gi|ji)$/.test(key) || key.includes("기") || key.includes("己")) return "gi";
+  if (/^(gyeong|geng)$/.test(key) || key.includes("경") || key.includes("庚")) return "gyeong";
+  if (/^(sin|xin)$/.test(key) || key.includes("신") || key.includes("辛")) return "sin";
+  if (/^(im|ren)$/.test(key) || key.includes("임") || key.includes("壬")) return "im";
+  if (/^(gye|gui)$/.test(key) || key.includes("계") || key.includes("癸")) return "gye";
+  return "";
+}
+
+function normalizeLifeBookElementBlockKey(value = "") {
+  const key = clean(value).toLowerCase();
+  if (key.includes("wood") || key.includes("목") || key.includes("木")) return "wood";
+  if (key.includes("fire") || key.includes("화") || key.includes("火")) return "fire";
+  if (key.includes("earth") || key.includes("토") || key.includes("土")) return "earth";
+  if (key.includes("metal") || key.includes("금") || key.includes("金")) return "metal";
+  if (key.includes("water") || key.includes("수") || key.includes("水")) return "water";
+  return "";
+}
+
+function pushLifeBookBlock(blocks, seen, block) {
+  if (!block?.id || seen.has(block.id)) return;
+  seen.add(block.id);
+  blocks.push(block);
+}
+
+function buildLifeBookSentenceSeed(normalizedData = {}, chapter = {}, categoryTitle = "") {
+  return hashLifeBookCacheText(stableLifeBookCacheJson({
+    dayMaster: normalizedData?.dayMaster?.stem || "",
+    pillars: normalizedData?.pillars || {},
+    strongest: normalizedData?.fiveElements?.strongest || [],
+    weakest: normalizedData?.fiveElements?.weakest || [],
+    chapterId: chapter?.id || "",
+    categoryTitle,
+  }));
+}
+
+function lifeBookSeedNumber(seed = "", salt = "") {
+  const value = hashLifeBookCacheText(`${seed}:${salt}`);
+  return parseInt(value.slice(0, 6), 36) || 0;
+}
+
+function rotateLifeBookList(list = [], offset = 0) {
+  const items = safeLifeBookList(list);
+  if (items.length <= 1) return items;
+  const start = Math.abs(Number(offset || 0)) % items.length;
+  return [...items.slice(start), ...items.slice(0, start)];
+}
+
+function softenLifeBookLocalWording(value = "") {
+  return stripForbiddenTokens(value)
+    .replace(/반드시\s*성공한다/g, "성공 가능성을 높일 수 있다")
+    .replace(/반드시\s*이혼한다/g, "관계의 균열을 세심하게 관리할 필요가 있다")
+    .replace(/100\s*%\s*돈\s*번다/g, "재물 흐름이 좋아질 여지를 만들 수 있다")
+    .replace(/100\s*%/g, "매우 높은 확신처럼 단정하기보다")
+    .replace(/무조건\s*좋다/g, "좋게 작동할 여지가 있다")
+    .replace(/무조건\s*나쁘다/g, "관리할 지점이 있다")
+    .replace(/무조건/g, "한쪽으로 단정하기보다")
+    .replace(/반드시/g, "우선")
+    .replace(/확정\s*수익/g, "성급한 확신")
+    .replace(/수익\s*보장/g, "수입 가능성에 대한 과도한 확신")
+    .replace(/투자\s*수익/g, "재물 흐름")
+    .replace(/투자\s*판단/g, "위험 판단")
+    .replace(/종목\s*추천/g, "구체적 금융 선택")
+    .replace(/의학적\s*진단처럼/g, "생활 리듬의 경향으로")
+    .replace(/질병을\s*얻게/g, "몸의 신호가 예민해질 수")
+    .replace(/암에\s*걸[^\s.]*/g, "건강 신호를 점검해야")
+    .replace(/우울증|공황장애/g, "정서적 부담")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function getLifeBookBlockTone(block = {}) {
+  const tags = safeLifeBookList(block.tags);
+  if (tags.includes("strong") || tags.includes("excess") || tags.includes("yongshin")) return "strong";
+  if (tags.includes("weak") || tags.includes("deficient") || tags.includes("gishin")) return "weak";
+  return "balanced";
+}
+
+function selectLifeBookDomainBlocks(chapter = {}, categoryTitle = "") {
+  const chapterId = String(chapter?.id || "");
+  const title = clean(`${chapter?.title || ""} ${categoryTitle}`).toLowerCase();
+  const keys = [];
+  if (chapterId === "08" || title.includes("연애") || title.includes("애착") || title.includes("결혼") || title.includes("관계")) keys.push("love", "relationship");
+  if (chapterId === "09" || title.includes("재물") || title.includes("돈") || title.includes("직업") || title.includes("커리어")) keys.push("money", "career");
+  if (chapterId === "10" || title.includes("건강") || title.includes("회복") || title.includes("생활 리듬")) keys.push("health");
+  if (chapterId === "11" || title.includes("대운")) keys.push("daewoonCurrent", "daewoonNext");
+  if (chapterId === "12" || title.includes("세운") || title.includes("월운") || title.includes("가까운 미래")) keys.push("annual");
+  if (chapterId === "13" || title.includes("루틴") || title.includes("실천") || title.includes("마스터플랜")) keys.push("routine", "crisis", "career", "money", "relationship");
+  if (chapterId === "13" || title.includes("루틴") || title.includes("실천")) keys.push("routine");
+  return keys;
+}
+
+function selectLifeBookInterpretationBlocks(normalizedData = {}, chapter = {}, categoryTitle = "") {
+  const blocks = [];
+  const seen = new Set();
+  const dayStemKey = normalizeLifeBookStemBlockKey(normalizedData?.dayMaster?.stem || normalizedData?.pillars?.day);
+  pushLifeBookBlock(blocks, seen, LIFEBOOK_DAY_MASTER_BLOCKS[dayStemKey]);
+
+  safeLifeBookList(normalizedData?.fiveElements?.strongest).forEach((element) => {
+    const key = normalizeLifeBookElementBlockKey(element);
+    pushLifeBookBlock(blocks, seen, LIFEBOOK_ELEMENT_BLOCKS[`${key}-excess`]);
+  });
+  safeLifeBookList(normalizedData?.fiveElements?.weakest).forEach((element) => {
+    const key = normalizeLifeBookElementBlockKey(element);
+    pushLifeBookBlock(blocks, seen, LIFEBOOK_ELEMENT_BLOCKS[`${key}-deficient`]);
+  });
+  ["wood", "fire", "earth", "metal", "water"].forEach((element) => {
+    if (blocks.some((block) => block?.tags?.includes(element))) return;
+    if (Number(normalizedData?.fiveElements?.[element]) > 0) pushLifeBookBlock(blocks, seen, LIFEBOOK_ELEMENT_BLOCKS[`${element}-balanced`]);
+  });
+
+  safeLifeBookList(normalizedData?.tenGods?.dominant).forEach((god) => {
+    pushLifeBookBlock(blocks, seen, LIFEBOOK_TEN_GOD_BLOCKS[`${clean(god)}-strong`]);
+  });
+  safeLifeBookList(normalizedData?.tenGods?.weak).forEach((god) => {
+    pushLifeBookBlock(blocks, seen, LIFEBOOK_TEN_GOD_BLOCKS[`${clean(god)}-weak`]);
+  });
+
+  const yongshinKey = normalizeLifeBookElementBlockKey(normalizedData?.usefulGods?.yongshin);
+  pushLifeBookBlock(blocks, seen, LIFEBOOK_USEFUL_GOD_BLOCKS[`${yongshinKey}-yongshin`]);
+  safeLifeBookList(normalizedData?.usefulGods?.heeshin).forEach((element) => {
+    const key = normalizeLifeBookElementBlockKey(element);
+    pushLifeBookBlock(blocks, seen, LIFEBOOK_USEFUL_GOD_BLOCKS[`${key}-heeshin`]);
+  });
+  safeLifeBookList(normalizedData?.usefulGods?.gishin).forEach((element) => {
+    const key = normalizeLifeBookElementBlockKey(element);
+    pushLifeBookBlock(blocks, seen, LIFEBOOK_USEFUL_GOD_BLOCKS[`${key}-gishin`]);
+  });
+
+  selectLifeBookDomainBlocks(chapter, categoryTitle).forEach((key) => {
+    pushLifeBookBlock(blocks, seen, LIFEBOOK_FLOW_BLOCKS[key] || LIFEBOOK_DOMAIN_BLOCKS[key]);
+  });
+
+  if (normalizedData?.luckCycles?.currentDaewoon) pushLifeBookBlock(blocks, seen, LIFEBOOK_FLOW_BLOCKS.daewoonCurrent);
+  if (normalizedData?.luckCycles?.nextDaewoon) pushLifeBookBlock(blocks, seen, LIFEBOOK_FLOW_BLOCKS.daewoonNext);
+  if (normalizedData?.luckCycles?.annualLuck) pushLifeBookBlock(blocks, seen, LIFEBOOK_FLOW_BLOCKS.annual);
+
+  const seed = buildLifeBookSentenceSeed(normalizedData, chapter, categoryTitle);
+  return blocks.sort((a, b) => {
+    const weightDelta = Number(b.weight || 0) - Number(a.weight || 0);
+    if (Math.abs(weightDelta) >= 2) return weightDelta;
+    return lifeBookSeedNumber(seed, a.id) - lifeBookSeedNumber(seed, b.id);
+  });
+}
+
+function renderLifeBookInterpretationBlock(block = {}, seed = "") {
+  const tone = getLifeBookBlockTone(block);
+  const bodyLimit = tone === "strong" ? 4 : tone === "weak" ? 2 : 3;
+  const adviceLimit = tone === "weak" ? 3 : 2;
+  const cautionLimit = tone === "weak" ? 2 : 1;
+  const body = rotateLifeBookList(block.body, lifeBookSeedNumber(seed, `${block.id}:body`)).slice(0, bodyLimit).join(" ");
+  const advice = rotateLifeBookList(block.advice, lifeBookSeedNumber(seed, `${block.id}:advice`)).slice(0, adviceLimit).join(" ");
+  const caution = rotateLifeBookList(block.caution, lifeBookSeedNumber(seed, `${block.id}:caution`)).slice(0, cautionLimit).join(" ");
+  const checklist = rotateLifeBookList(block.checklist, lifeBookSeedNumber(seed, `${block.id}:checklist`)).slice(0, 3).join(", ");
+  const toneLine = tone === "strong"
+    ? "강하게 드러나는 항목이므로 장점이 발휘되는 환경, 반복될 때의 부담, 현실에서 쓰는 자리를 함께 보아야 합니다."
+    : tone === "weak"
+      ? "약하게 드러나는 항목은 결핍으로 단정하지 않고, 생활 리듬과 도움을 받을 구조를 통해 보완하는 편이 좋습니다."
+      : "균형권의 항목은 과하게 키우기보다 현재의 좋은 흐름을 유지하고 흔들리는 신호를 일찍 알아차리는 데 의미가 있습니다.";
+  const relationLine = safeLifeBookList(block.tags).some((tag) => ["relationship", "love", "crisis"].includes(tag))
+    ? "합, 충, 형, 파, 해와 같은 관계성은 좋고 나쁨의 판정이 아니라 힘이 부딪히거나 묶이는 방식입니다. 중요한 것은 작동 방식을 읽고 말투, 거리, 기대치를 조절하는 일입니다."
+    : "";
+  return softenLifeBookLocalWording([
+    `${safeLifeBookScalar(block.title)}: ${safeLifeBookScalar(block.summary)}`,
+    body,
+    toneLine,
+    relationLine,
+    advice ? `실천 조언은 ${advice}` : "",
+    caution ? `주의할 점은 ${caution}` : "",
+    checklist ? `이번 흐름에서 점검할 항목은 ${checklist}입니다.` : "",
+  ].filter(Boolean).join("\n\n"));
+}
+
+function buildLifeBookBlockInterpretationText(normalizedData = {}, chapter = {}, categoryTitle = "", limit = 5) {
+  const selected = selectLifeBookInterpretationBlocks(normalizedData, chapter, categoryTitle).slice(0, limit);
+  if (!selected.length) return "";
+  const seed = buildLifeBookSentenceSeed(normalizedData, chapter, categoryTitle);
+  return dedupeParagraphs(selected.map((block) => renderLifeBookInterpretationBlock(block, seed)).filter(Boolean).join("\n\n"));
+}
+
+function buildLifeBookNormalizedData({ birthInput = {}, profile = {}, signals = {}, localSajuJson = {}, engineContract = {}, canonicalSajuChart = {} } = {}) {
+  const pillars = canonicalSajuChart?.fourPillars || engineContract?.natal?.pillars || localSajuJson?.pillars || {};
+  const dayStem = safeLifeBookScalar(canonicalSajuChart?.dayMaster?.stem || engineContract?.natal?.dayMaster || localSajuJson?.dayMaster || signals?.dayMaster);
+  const elementCountsSource = engineContract?.fiveElements?.counts || canonicalSajuChart?.fiveElements || localSajuJson?.fiveElements || signals?.elementWeights || {};
+  const fiveElementCounts = {
+    wood: pickLifeBookElementNumber(elementCountsSource, "wood"),
+    fire: pickLifeBookElementNumber(elementCountsSource, "fire"),
+    earth: pickLifeBookElementNumber(elementCountsSource, "earth"),
+    metal: pickLifeBookElementNumber(elementCountsSource, "metal"),
+    water: pickLifeBookElementNumber(elementCountsSource, "water"),
+  };
+  const elementSummary = summarizeLifeBookElementBalance(fiveElementCounts);
+  const tenGods = normalizeLifeBookTenGodDistribution(
+    engineContract?.tenGods?.distribution,
+    canonicalSajuChart?.tenGods?.distribution,
+    localSajuJson?.tenGods,
+    signals?.tenGodCounts,
+  );
+  const useful = engineContract?.strengthJohuYongshin?.yongshin || canonicalSajuChart?.usefulGods || localSajuJson?.yongshin || localSajuJson?.usefulGods || {};
+  const interactions = engineContract?.interactions || canonicalSajuChart?.relations || localSajuJson?.interactions || {};
+  const annualLuck = engineContract?.year2026 || canonicalSajuChart?.annualLuck || localSajuJson?.yearlyFlow || {};
+  const monthlyLuck = engineContract?.monthlyLuck2026 || canonicalSajuChart?.monthlyLuck || [];
+  const currentDaewoon = engineContract?.daeun?.current || canonicalSajuChart?.luckCycles?.currentDaewoon || localSajuJson?.currentDaeun || null;
+  const nextDaewoon = engineContract?.daeun?.next || canonicalSajuChart?.luckCycles?.nextDaewoon || localSajuJson?.nextDaeun || null;
+  const yongshin = safeLifeBookScalar(useful?.primary || useful?.element || useful?.usefulElement || useful?.yongsin?.element);
+  const heeshin = safeLifeBookList(useful?.huishin || useful?.hee || useful?.heeshin || useful?.huisin?.elements || localSajuJson?.yongshin?.usefulElements);
+  const gishin = safeLifeBookList(useful?.gishin || useful?.gi || useful?.gishin || useful?.cautionElements || localSajuJson?.yongshin?.cautionElements);
+
+  return {
+    profile: {
+      name: safeLifeBookScalar(profile?.name || birthInput?.name) || undefined,
+      gender: safeLifeBookScalar(profile?.gender || birthInput?.gender) || undefined,
+      birthDate: safeLifeBookScalar(birthInput?.birthDate || localSajuJson?.birthInput?.birthDate),
+      birthTime: safeLifeBookScalar(birthInput?.birthTime || localSajuJson?.birthInput?.birthTime) || undefined,
+      calendarType: safeLifeBookScalar(birthInput?.calendarType || profile?.calendarType) || undefined,
+    },
+    pillars: {
+      year: normalizeLifeBookPillarText(pillars.year),
+      month: normalizeLifeBookPillarText(pillars.month),
+      day: normalizeLifeBookPillarText(pillars.day),
+      hour: normalizeLifeBookPillarText(pillars.hour) || undefined,
+    },
+    dayMaster: {
+      stem: dayStem,
+      element: normalizeLifeBookStemElement(dayStem),
+      yinYang: normalizeLifeBookStemYinYang(dayStem),
+      strength: normalizeLifeBookStrength(engineContract?.strengthJohuYongshin?.strength?.label || localSajuJson?.strength?.label || signals?.powerLabel),
+    },
+    fiveElements: {
+      ...fiveElementCounts,
+      strongest: elementSummary.strongest,
+      weakest: elementSummary.weakest,
+      balanceSummary: elementSummary.balanceSummary,
+    },
+    tenGods,
+    usefulGods: {
+      yongshin: yongshin || undefined,
+      heeshin,
+      gishin,
+      summary: yongshin
+        ? `${yongshin}을 중심으로 보완 기운을 살리고 부담이 큰 기운은 생활 리듬 안에서 조절합니다.`
+        : "용신 세부값은 보조 신호로 다루며, 원국과 대운에서 확인되는 균형 방향을 중심으로 해석합니다.",
+    },
+    structure: {
+      geokguk: safeLifeBookScalar(engineContract?.gyeokguk?.primary || localSajuJson?.geokguk || signals?.geokguk) || undefined,
+      seasonalEnergy: safeLifeBookScalar(engineContract?.strengthJohuYongshin?.johu?.type || localSajuJson?.johu?.type || signals?.johuType) || undefined,
+      monthBranch: safeLifeBookScalar(canonicalSajuChart?.dayMaster?.branch || localSajuJson?.monthBranch || signals?.monthBranch) || undefined,
+      notes: safeLifeBookList([
+        engineContract?.summary?.coreIdentity,
+        engineContract?.summary?.gyeokgukSummary,
+        engineContract?.summary?.yongsinStrategy,
+      ]).slice(0, 6),
+    },
+    luckCycles: {
+      currentDaewoon,
+      nextDaewoon,
+      annualLuck,
+      monthlyLuck: Array.isArray(monthlyLuck) ? monthlyLuck : [],
+    },
+    relationships: {
+      clashes: normalizeLifeBookRelationList(interactions?.clashes, interactions?.chung, interactions?.doChung, interactions?.dochung),
+      combinations: normalizeLifeBookRelationList(interactions?.combinations, interactions?.hap, interactions?.samhab, interactions?.yukhap),
+      punishments: normalizeLifeBookRelationList(interactions?.punishments, interactions?.hyeong),
+      harms: normalizeLifeBookRelationList(interactions?.harms, interactions?.hae, interactions?.pa),
+    },
+    specialStars: normalizeLifeBookSpecialStars(canonicalSajuChart?.specialStars, engineContract?.specialStars?.active, localSajuJson?.sinsal, signals?.specialStars),
+    risks: safeLifeBookList([
+      ...(elementSummary.weakest || []).map((item) => `${item} 기운은 생활 리듬에서 보완이 필요합니다.`),
+      engineContract?.summary?.healthEnergyPattern,
+    ]).slice(0, 8),
+    opportunities: safeLifeBookList([
+      ...(elementSummary.strongest || []).map((item) => `${item} 기운은 강점으로 활용할 수 있습니다.`),
+      engineContract?.summary?.careerPattern,
+      engineContract?.summary?.wealthPattern,
+      engineContract?.summary?.relationshipPattern,
+    ]).slice(0, 8),
+  };
+}
+
+function normalizeLifeBookInput({ birthInput = {}, profile = {}, signals = {}, localSajuJson = {}, body = {}, sessionId = "", requestId = "" } = {}) {
+  const llmInput = buildLifeBookLLMInput(birthInput, profile, signals, localSajuJson, body);
+  const engineContractValidation = validateLifeBookJsonContract({
+    birthInput,
+    localSajuJson,
+    engineContract: llmInput.engineContract,
+  });
+  if (!engineContractValidation.ok) {
+    throw Object.assign(new Error("?몄깮??梨??붿쭊 怨꾩빟 JSON???앹꽦 湲곗???異⑹”?섏? 紐삵뻽?듬땲?? 怨꾩궛 ?곗씠?곕? 蹂닿컯?????ㅼ떆 ?앹꽦??二쇱꽭??"), {
+      code: "LIFEBOOK_ENGINE_CONTRACT_INVALID",
+      status: 422,
+      details: engineContractValidation,
+    });
+  }
+
+  llmInput.engineContract.validation = engineContractValidation;
+  const canonicalSajuChart = buildLifeBookCanonicalSajuChartFromContract(llmInput.engineContract, localSajuJson);
+  const canonicalValidation = validateLifeBookCanonicalSajuChart(canonicalSajuChart);
+  canonicalSajuChart.validation = canonicalValidation;
+  llmInput.engineContract.canonicalSajuChart = canonicalSajuChart;
+  localSajuJson.canonicalSajuChart = canonicalSajuChart;
+  if (!canonicalValidation.ok) {
+    throw Object.assign(new Error("?몄깮??梨?canonical ?ъ＜ JSON???앹꽦 湲곗???異⑹”?섏? 紐삵뻽?듬땲?? 怨꾩궛 ?곗씠?곕? 蹂닿컯?????ㅼ떆 ?앹꽦??二쇱꽭??"), {
+      code: "LIFEBOOK_CANONICAL_JSON_INVALID",
+      status: 422,
+      details: canonicalValidation,
+    });
+  }
+
+  const chapterEvidenceCoverage = buildLifeBookChapterEvidenceCoverage(llmInput.engineContract?.chapterPlans || buildLifeBookChapterPlans(), llmInput.engineContract);
+  if (!chapterEvidenceCoverage.ok) {
+    throw Object.assign(new Error("?몄깮??梨?梨뺥꽣蹂?JSON 洹쇨굅媛 異⑸텇?섏? ?딆뒿?덈떎. 怨꾩궛 ?곗씠?곕? 蹂닿컯?????ㅼ떆 ?앹꽦??二쇱꽭??"), {
+      code: "LIFEBOOK_CHAPTER_EVIDENCE_INSUFFICIENT",
+      status: 422,
+      details: chapterEvidenceCoverage,
+    });
+  }
+  const lifeBookNormalizedData = buildLifeBookNormalizedData({
+    birthInput,
+    profile,
+    signals,
+    localSajuJson,
+    engineContract: llmInput.engineContract,
+    canonicalSajuChart,
+  });
+
+  const lifeBookMasterJson = buildLifeBookMasterJson({
+    birthInput,
+    profile,
+    signals,
+    localSajuJson,
+    engineContract: llmInput.engineContract,
+    canonicalSajuChart,
+    body,
+    validations: {
+      localJsonContract: validateLifeBookJsonContract({ birthInput, localSajuJson }),
+      engineContract: engineContractValidation,
+      canonical: canonicalValidation,
+      chapterEvidenceCoverage,
+    },
+  });
+  lifeBookMasterJson.normalizedData = lifeBookNormalizedData;
+  llmInput.lifeBookMasterJson = lifeBookMasterJson;
+  localSajuJson.lifeBookMasterJson = lifeBookMasterJson;
+
+  logLifeBookServer("LifeBookJsonContractValidated", {
+    sessionId,
+    requestId,
+    localScore: lifeBookMasterJson?.quality?.localJsonContract?.qualityScore,
+    engineScore: engineContractValidation.qualityScore,
+    canonicalScore: canonicalValidation.qualityScore,
+    evidenceCoverageRatio: chapterEvidenceCoverage.coverageRatio,
+    softWarnings: engineContractValidation.softWarnings,
+  });
+
+  return {
+    birthInput,
+    profile,
+    signals,
+    localSajuJson,
+    llmInput,
+    engineContractValidation,
+    canonicalSajuChart,
+    canonicalValidation,
+    chapterEvidenceCoverage,
+    lifeBookNormalizedData,
+    lifeBookMasterJson,
+  };
+}
+
+async function composeLifeBookChapters(normalized = {}, { env = {}, sessionId = "", reportId = "", requestId = "", onProgress = null } = {}) {
+  if (typeof onProgress === "function") {
+    onProgress({
+      stateKey: LIFEBOOK_LOCAL_WRITING_STATE,
+      currentChapterNo: 0,
+      totalChapters: getLifeBookBlueprints().length,
+    });
+  }
+
+  const llmRuntime = resolveLifeBookLlmRuntimeInfo(env);
+  logLifeBookServer("LocalDraftBuildStart", {
+    requestId,
+    sessionId,
+    reportId,
+    chapterCount: getLifeBookBlueprints().length,
+    targetYear: LIFEBOOK_LLM_TARGET_YEAR,
+    generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
+    templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
+    llmRuntime,
+  });
+
+  const generatedLifeBook = await generateLifeBookChaptersWithGemini(env, {
+    profile: normalized.profile,
+    signals: normalized.signals,
+    llmInput: normalized.llmInput,
+    requestId,
+    onProgress,
+  });
+  const completedChapters = generatedLifeBook.chapters;
+  logLifeBookServer("LocalDraftBuildSuccess", {
+    requestId,
+    sessionId,
+    reportId,
+    chapterCount: completedChapters.length,
+    deterministicReinforcedCount: generatedLifeBook.deterministicReinforcedCount,
+  });
+
+  const structureValidation = validateLifeBookStructure(completedChapters);
+  logLifeBookServer("LifeBookStructureValidation", {
+    sessionId,
+    reportId,
+    chapterCount: completedChapters.length,
+    totalLength: totalManuscriptLength(completedChapters),
+    blockingErrors: structureValidation.blockingErrors,
+  });
+  if (!structureValidation.ok) {
+    throw Object.assign(new Error("?몄깮??梨??먭퀬???꾩닔 援ъ“瑜??꾩꽦?섏? 紐삵뻽?듬땲??"), {
+      code: "LIFEBOOK_STRUCTURE_INVALID",
+      status: 422,
+      details: structureValidation,
+    });
+  }
+
+  const qualityEvaluation = evaluateLifeBookQuality(completedChapters);
+  logLifeBookServer("LifeBookQualityEvaluation", {
+    sessionId,
+    reportId,
+    chapterCount: completedChapters.length,
+    totalLength: qualityEvaluation.totalLength,
+    blockingErrors: [],
+    softWarnings: qualityEvaluation.softWarnings,
+    repairedCategoryCount: generatedLifeBook.deterministicReinforcedCount,
+    finalQualityScore: qualityEvaluation.qualityScore,
+  });
+
+  const finalQualityWarnings = Array.isArray(qualityEvaluation.softWarnings) ? qualityEvaluation.softWarnings : [];
+  const finalQualityScore = Number(qualityEvaluation.qualityScore || 0);
+  const repairedCategoryCount = Number(generatedLifeBook.deterministicReinforcedCount || 0);
+  const finalQualityBlockingWarnings = (Array.isArray(qualityEvaluation.warningItems) ? qualityEvaluation.warningItems : [])
+    .filter((item) => clean(item?.severity) === "high")
+    .map((item) => clean(item?.code))
+    .filter(Boolean);
+
+  if (finalQualityBlockingWarnings.length) {
+    throw Object.assign(new Error("?몄깮??梨??먭퀬 ?덉쭏 湲곗???異⑹”?섏? 紐삵뻽?듬땲?? ?듭떖 ?먭퀬瑜?蹂닿컯?????ㅼ떆 ?앹꽦??二쇱꽭??"), {
+      code: "LIFEBOOK_QUALITY_BLOCKED",
+      status: 422,
+      details: {
+        blockingWarnings: finalQualityBlockingWarnings,
+        qualityScore: finalQualityScore,
+        totalLength: qualityEvaluation.totalLength,
+      },
+    });
+  }
+
+  if (!generatedLifeBook.finalQualityReviewPassed) {
+    throw Object.assign(new Error("?몄깮??梨?理쒖쥌 寃??湲곗????듦낵?섏? 紐삵뻽?듬땲?? ?먭퀬瑜?蹂닿컯?????ㅼ떆 ?앹꽦??二쇱꽭??"), {
+      code: "LIFEBOOK_FINAL_QUALITY_REVIEW_FAILED",
+      status: 422,
+      details: {
+        errors: generatedLifeBook.finalQualityReviewErrors || generatedLifeBook.finalManuscriptErrors || [],
+        warnings: generatedLifeBook.finalQualityReviewWarnings || [],
+      },
+    });
+  }
+
+  return {
+    generatedLifeBook,
+    completedChapters,
+    structureValidation,
+    qualityEvaluation,
+    finalQualityWarnings,
+    finalQualityScore,
+    repairedCategoryCount,
+  };
+}
+
+function renderLifeBookHtml(chapters = [], normalized = {}, metadata = {}) {
+  return generateLifeBookPdfFromChapters(
+    normalized.profile,
+    normalized.signals,
+    chapters,
+    metadata.generatedAt || new Date().toISOString(),
+    metadata.finalManuscriptMarkdown || "",
+  );
+}
+
+function renderLifeBookPdfArchive(html = "") {
+  return {
+    html,
+    contentType: "application/pdf",
+    renderFormat: "pdf-archive",
+  };
+}
+
+async function generateLifeBookPdf(profile = {}, { env = {}, birthInput = {}, body = {}, sessionId = "", reportId = "", requestId = "", onProgress = null, precomputedNormalized = null } = {}) {
+  const calculation = precomputedNormalized?.calculation || calculateSajuLocally({ birthInput, profile, body, sessionId });
+  const normalized = precomputedNormalized?.normalized || normalizeLifeBookInput({
+    birthInput,
+    profile,
+    signals: calculation.signals,
+    localSajuJson: calculation.localSajuJson,
+    body,
+    sessionId,
+    requestId,
+  });
+  const cacheContext = precomputedNormalized?.cacheContext || buildLifeBookPdfCacheContext(profile, normalized);
+  const cachedResult = readLifeBookLocalPdfResultCache(cacheContext.cacheKey);
+  if (cachedResult) {
+    return {
+      ...cachedResult,
+      cacheKey: cacheContext.cacheKey,
+      calculationResultHash: cacheContext.calculationResultHash,
+      cacheHit: true,
+      fromCache: true,
+    };
+  }
+  const manuscript = await composeLifeBookChapters(normalized, {
+    env,
+    sessionId,
+    reportId,
+    requestId,
+    onProgress,
+  });
+  const finalManuscriptMarkdown = normalizeLifeBookFinalManuscriptMarkdown(manuscript.generatedLifeBook.finalManuscriptMarkdown || "");
+  const generatedAt = new Date().toISOString();
+  const html = renderLifeBookHtml(manuscript.completedChapters, normalized, { generatedAt, finalManuscriptMarkdown });
+  const pdf = renderLifeBookPdfArchive(html);
+
+  const result = {
+    ...calculation,
+    ...normalized,
+    ...manuscript,
+    finalManuscriptMarkdown,
+    generatedAt,
+    html,
+    pdf,
+    cacheKey: cacheContext.cacheKey,
+    calculationResultHash: cacheContext.calculationResultHash,
+    cacheHit: false,
+    fromCache: false,
+    llmRuntime: resolveLifeBookLlmRuntimeInfo(env),
+  };
+  writeLifeBookLocalPdfResultCache(cacheContext.cacheKey, result);
+  return result;
 }
 
 function validateLifeBookLocalSajuJson(localSajuJson) {
@@ -6060,10 +7206,11 @@ function ensureProfessionalCategoryLength(text, chapterId, categoryTitle, catego
   return stripForbiddenTokens(result);
 }
 
-function buildProfessionalLifeBookCategoryText(profile, signals, chapter, categoryTitle, categoryIndex) {
+function buildProfessionalLifeBookCategoryText(profile, signals, chapter, categoryTitle, categoryIndex, normalizedData = null) {
   const ctx = buildLifeBookReadingContext(profile, signals);
   const chapterId = String(chapter?.id || "");
   const insight = buildLifeBookChapterInsight(chapterId, ctx, categoryTitle);
+  const blockInterpretation = buildLifeBookBlockInterpretationText(normalizedData, chapter, categoryTitle, 2);
   const strengthLine = `${categoryTitle}에서 이 명식이 잘 쓰이면 ${ctx.dominant} 기운의 추진력과 ${ctx.topTenGod}의 현실 감각이 결합되어, 상황을 오래 관찰한 뒤 필요한 지점을 정확히 짚는 힘으로 나타납니다. 특히 ${ctx.dayPillar}의 중심이 흔들리지 않을 때는 말보다 결과로 신뢰를 쌓는 장점이 강해집니다.`;
   const cautionLine = `${categoryTitle}의 반대편을 보면, 균형이 무너질 때 ${ctx.caution} 기운이 과해지거나 ${ctx.weakest} 기운이 약해지는 쪽으로 흐르며 판단이 급해지고 관계와 일의 경계가 흐려질 수 있습니다. 이때는 스스로를 몰아붙이기보다 일정과 책임 범위를 줄이고, 감정으로 결정한 일을 하루 뒤 다시 확인해야 합니다.`;
   const timingLine = `${categoryTitle}은 현재 ${ctx.currentDaeun}의 흐름과도 연결됩니다. 이 시기에는 무리한 확장보다 오래 가져갈 구조를 선별하는 일이 중요하고, 다음 ${ctx.nextDaeun}으로 넘어갈수록 지금 남겨 둔 기준이 결과의 차이를 만들기 때문에 지속 가능한 관계, 수입 구조, 생활 리듬을 우선해야 합니다.`;
@@ -6084,39 +7231,40 @@ function buildProfessionalLifeBookCategoryText(profile, signals, chapter, catego
   };
   const groundingLine = `${categoryTitle}은 명식, 원국, 일간, 월지, 대운, 세운을 따로 떼어 보지 않아야 합니다. 원국은 타고난 기준을 보여 주고, 대운은 그 기준이 어떤 무대에서 쓰이는지 알려 줍니다. 세운은 올해 실제로 조절해야 할 속도와 우선순위를 드러냅니다. 그래서 이 항목에서는 감정적 확신보다 반복되는 선택의 결과를 확인해야 합니다.`;
   const finalLine = `${categoryTitle}에 대한 마지막 조언은 분명합니다. ${ctx.name}님의 명식은 장점을 크게 쓰려 할수록 약점 관리가 함께 필요하므로, 좋을 때는 구조를 넓히고 불안정할 때는 속도를 줄이는 방식으로 대응하면 운의 흐름을 더 안정적으로 사용할 수 있습니다.`;
-  return ensureProfessionalCategoryLength([
+  return softenLifeBookLocalWording(ensureProfessionalCategoryLength([
     insight,
     strengthLine,
     cautionLine,
     timingLine,
     practicalLines[chapterId] || practicalLines["13"],
+    blockInterpretation,
     groundingLine,
     finalLine,
-  ].join("\n\n"), chapterId, categoryTitle, categoryIndex);
+  ].join("\n\n"), chapterId, categoryTitle, categoryIndex));
 }
 
-function buildChapterLocalText(profile, signals, chapter) {
+function buildChapterLocalText(profile, signals, chapter, normalizedData = null) {
   const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
   return categories.map((categoryTitle, index) => {
-    const text = buildProfessionalLifeBookCategoryText(profile, signals, chapter, categoryTitle, index);
+    const text = buildProfessionalLifeBookCategoryText(profile, signals, chapter, categoryTitle, index, normalizedData);
     return {
       id: `${String(index + 1).padStart(2, "0")}`,
       title: categoryTitle,
-      localSummary: stripForbiddenTokens(text),
+      localSummary: softenLifeBookLocalWording(text),
       evidenceTags: [signals.dayMaster, signals.monthBranch, signals.useful].filter(Boolean),
       advicePoints: [
         "핵심 패턴을 문장으로 명확히 기록하기",
         "이번 달 실행 항목을 1~2개로 제한하기",
         "관계·돈·건강 점검 루틴을 주간 단위로 고정하기",
       ],
-      finalText: stripForbiddenTokens(text),
+      finalText: softenLifeBookLocalWording(text),
     };
   });
 }
 
-function buildLifeBookChapters(profile, signals) {
+function buildLifeBookChapters(profile, signals, normalizedData = null) {
   return getLifeBookBlueprints().map((chapter) => {
-    const categories = buildChapterLocalText(profile, signals, chapter);
+    const categories = buildChapterLocalText(profile, signals, chapter, normalizedData);
     const chapterOpening = buildLifeBookChapterOpeningText({}, chapter);
     const localDraft = buildChapterBody(chapter.title, categories, chapterOpening);
     return {
@@ -6134,14 +7282,149 @@ function buildLifeBookChapters(profile, signals) {
   });
 }
 
+function findLifeBookBlueprintByTitle(chapterTitle = "") {
+  const title = clean(chapterTitle);
+  return getLifeBookBlueprints().find((chapter) => clean(chapter.title) === title) || {};
+}
+
+function buildLifeBookChapterStructureTable(chapterTitle = "", categories = []) {
+  const rows = [
+    ["챕터 제목", stripForbiddenTokens(chapterTitle)],
+    ...LIFEBOOK_PHASE6_CATEGORY_SECTIONS.map((section) => [
+      section,
+      Array.isArray(categories) && categories.some((category) => clean(category?.title) === clean(section))
+        ? "계산값을 상담 문장으로 풀어 PDF 본문에 반영합니다."
+        : "해당 섹션은 로컬 원고 조립 과정에서 보강됩니다.",
+    ]),
+  ];
+  return [
+    "| 구성 | 역할 |",
+    "| --- | --- |",
+    ...rows.map(([label, description]) => `| ${stripForbiddenTokens(label)} | ${stripForbiddenTokens(description)} |`),
+  ].join("\n");
+}
+
+function buildLifeBookPhase7SummaryCards(chapterTitle = "", blueprint = {}) {
+  const focus = safeLifeBookList(blueprint.engineFocus).slice(0, 4);
+  const focusText = focus.length ? focus.join(", ") : "원국, 오행, 십성, 운의 흐름";
+  return [
+    "#### 핵심 요약 카드 3선",
+    `- 요약 1: ${stripForbiddenTokens(chapterTitle)}은 ${stripForbiddenTokens(focusText)}을 바탕으로 삶의 중심 주제를 잡아 줍니다.`,
+    "- 요약 2: 강하게 드러나는 기운은 억누르기보다 역할과 행동 기준으로 배치할수록 안정됩니다.",
+    "- 요약 3: 부족하거나 흔들리는 기운은 결핍으로 단정하지 않고 생활 루틴과 관계의 도움으로 보완합니다.",
+  ].join("\n");
+}
+
+function buildLifeBookPhase7AdviceList(chapterTitle = "", blueprint = {}) {
+  const focus = safeLifeBookList(blueprint.engineFocus);
+  return [
+    "#### 실천 조언 3가지",
+    `- 조언 1: ${stripForbiddenTokens(chapterTitle)}에서 가장 먼저 보이는 주제를 이번 달의 한 가지 실행 기준으로 정하십시오.`,
+    `- 조언 2: ${stripForbiddenTokens(focus[0] || "원국")}과 ${stripForbiddenTokens(focus[1] || "운의 흐름")}이 충돌할 때는 속도를 늦추고 기록으로 판단하십시오.`,
+    "- 조언 3: 관계, 일, 돈, 건강 중 하나만 바꾸려 하지 말고 작은 루틴 하나를 고정해 전체 리듬을 안정시키십시오.",
+  ].join("\n");
+}
+
+function buildLifeBookPhase7Checklist(chapterTitle = "") {
+  return [
+    "#### 체크리스트 3문항",
+    `- 체크 1: ${stripForbiddenTokens(chapterTitle)}의 핵심 조언을 한 문장으로 적었는가?`,
+    "- 체크 2: 이번 주에 실제로 바꿀 행동을 하나로 줄였는가?",
+    "- 체크 3: 과한 확신, 불안, 미루기 중 지금 나를 흔드는 반응을 확인했는가?",
+  ].join("\n");
+}
+
+function buildLifeBookMonthlyFlowTable() {
+  const rows = Array.from({ length: 12 }, (_, index) => {
+    const month = `${index + 1}월`;
+    const rhythm = index % 3 === 0 ? "정리와 기준 설정" : index % 3 === 1 ? "확장과 실행" : "점검과 회복";
+    const advice = index % 3 === 0 ? "일정, 지출, 관계의 경계를 다시 잡으십시오." : index % 3 === 1 ? "작게 공개하고 반응을 보며 속도를 조절하십시오." : "무리한 결론보다 회고와 회복을 우선하십시오.";
+    return `| ${month} | ${rhythm} | ${advice} |`;
+  });
+  return [
+    "#### 월별 흐름 표",
+    "| 월 | 흐름 | 실전 조언 |",
+    "| --- | --- | --- |",
+    ...rows,
+  ].join("\n");
+}
+
+function buildLifeBookMasterPlanTable() {
+  return [
+    "#### 인생 마스터플랜 표",
+    "| 영역 | 선택 기준 | 실행 전략 |",
+    "| --- | --- | --- |",
+    "| 일과 커리어 | 강한 기운이 성과로 보이는 무대인지 확인합니다. | 반복 가능한 결과물을 만들고 역할을 좁혀 집중합니다. |",
+    "| 재물 | 수입보다 지출과 위험 관리 구조가 먼저 안정되어야 합니다. | 고정 지출, 위험 판단, 충동 결제를 분리해 기록합니다. |",
+    "| 관계 | 가까움보다 건강한 거리와 책임의 경계가 중요합니다. | 기대를 말로 확인하고 소모적인 역할을 줄입니다. |",
+    "| 건강과 루틴 | 회복 리듬이 무너지면 운의 장점도 오래 쓰기 어렵습니다. | 수면, 식사, 움직임 중 하나를 먼저 고정합니다. |",
+    "| 장기 선택 | 대운의 큰 방향과 올해의 실행 속도를 함께 봅니다. | 90일 계획, 1년 목표, 10년 방향을 한 줄씩 정리합니다. |",
+  ].join("\n");
+}
+
+function buildLifeBookFiveElementBalanceTable() {
+  return [
+    "#### 오행 균형표",
+    "| 오행 | 읽는 방향 | 관리 포인트 |",
+    "| --- | --- | --- |",
+    "| 목 | 성장, 계획, 방향성의 힘을 봅니다. | 목표가 흩어지지 않도록 한 줄 기준을 세웁니다. |",
+    "| 화 | 표현, 열정, 관계의 온도를 봅니다. | 과열되기 전에 휴식과 속도 조절을 둡니다. |",
+    "| 토 | 안정, 책임, 현실 감각을 봅니다. | 떠안는 일과 내려놓을 일을 구분합니다. |",
+    "| 금 | 기준, 판단, 정리 능력을 봅니다. | 단호함이 차가움으로 보이지 않도록 말투를 조절합니다. |",
+    "| 수 | 지혜, 흐름, 회복력을 봅니다. | 생각이 길어질 때 실행 단위를 작게 나눕니다. |",
+  ].join("\n");
+}
+
+function buildLifeBookTenGodDistributionTable() {
+  return [
+    "#### 십성 분포표",
+    "| 십성 축 | 삶에서 드러나는 장면 | 상담 포인트 |",
+    "| --- | --- | --- |",
+    "| 비겁 | 자기주장, 독립성, 경쟁심 | 협력과 독립의 균형을 점검합니다. |",
+    "| 식상 | 표현, 재능, 생산성 | 결과물로 남는 습관을 만듭니다. |",
+    "| 재성 | 돈, 현실 감각, 관리 능력 | 수입보다 구조와 지출 기준을 먼저 봅니다. |",
+    "| 관성 | 책임, 규칙, 사회적 역할 | 부담과 성취의 경계를 나눕니다. |",
+    "| 인성 | 배움, 보호, 회복력 | 생각을 실행으로 옮기는 리듬을 만듭니다. |",
+  ].join("\n");
+}
+
+function buildLifeBookDaewoonFlowTable() {
+  return [
+    "#### 대운 흐름표",
+    "| 구간 | 의미 | 실행 방향 |",
+    "| --- | --- | --- |",
+    "| 지난 흐름 | 반복된 선택과 익숙한 반응을 돌아봅니다. | 남길 습관과 정리할 부담을 구분합니다. |",
+    "| 현재 대운 | 지금 삶에서 가장 크게 작동하는 계절입니다. | 무리한 확장보다 핵심 역할을 선명하게 잡습니다. |",
+    "| 다음 대운 | 서서히 준비해야 할 변화의 방향입니다. | 필요한 역량, 관계, 생활 구조를 미리 정돈합니다. |",
+    "| 전환기 | 속도보다 기준이 중요한 시기입니다. | 결정 전에 돈, 일, 관계, 건강의 우선순위를 다시 봅니다. |",
+  ].join("\n");
+}
+
+function enhanceLifeBookPhase7Section(chapterTitle = "", category = {}, text = "") {
+  const blueprint = findLifeBookBlueprintByTitle(chapterTitle);
+  const title = clean(category?.title);
+  const additions = [];
+  if (title === "핵심 요약 카드") additions.push(buildLifeBookPhase7SummaryCards(chapterTitle, blueprint));
+  if (title === "실천 조언") additions.push(buildLifeBookPhase7AdviceList(chapterTitle, blueprint));
+  if (title === "체크리스트") additions.push(buildLifeBookPhase7Checklist(chapterTitle));
+  if (clean(chapterTitle).includes("오행 균형") && title === "계산 근거 기반 해석") additions.push(buildLifeBookFiveElementBalanceTable());
+  if (clean(chapterTitle).includes("십성 구조") && title === "계산 근거 기반 해석") additions.push(buildLifeBookTenGodDistributionTable());
+  if (clean(chapterTitle).includes("대운 분석") && title === "계산 근거 기반 해석") additions.push(buildLifeBookDaewoonFlowTable());
+  if (clean(chapterTitle).includes("올해와 가까운 미래") && title === "계산 근거 기반 해석") additions.push(buildLifeBookMonthlyFlowTable());
+  if (clean(chapterTitle).includes("마스터플랜") && title === "실천 조언") additions.push(buildLifeBookMasterPlanTable());
+  return stripForbiddenTokens([text, ...additions].filter(Boolean).join("\n\n"));
+}
+
 function buildChapterBody(chapterTitle, categories, chapterOpening = "") {
   const opening = stripForbiddenTokens(chapterOpening || "");
+  const structureTable = buildLifeBookChapterStructureTable(chapterTitle, categories);
   const categoryBody = categories.map((category) => {
-    const text = stripForbiddenTokens(category.finalText || category.localSummary || "");
+    const rawText = stripForbiddenTokens(category.finalText || category.localSummary || "");
+    const text = enhanceLifeBookPhase7Section(chapterTitle, category, rawText);
     if (/^###\s+/m.test(text)) return text.trim();
     return `### ${stripForbiddenTokens(category.title)}\n\n${text}`.trim();
   }).join("\n\n");
-  return [opening, categoryBody].filter(Boolean).join("\n\n");
+  return [opening, structureTable, categoryBody].filter(Boolean).join("\n\n");
 }
 
 function createLifeBookFallbackText(profile, signals, chapter, categoryTitle, originText = "") {
@@ -6198,6 +7481,10 @@ function renderLifeBookMarkdownHtml(markdown = "") {
         return `<h${level}>${escapeLifeBookHtml(stripForbiddenTokens(heading[2]))}</h${level}>`;
       }
       const lines = block.split(/\n+/).filter(Boolean);
+      const quoteLines = lines.filter((line) => /^\s*>\s+/.test(line));
+      if (quoteLines.length && quoteLines.length === lines.length) {
+        return `<blockquote>${quoteLines.map((line) => escapeLifeBookHtml(stripForbiddenTokens(line.replace(/^\s*>\s+/, "")))).join("<br />")}</blockquote>`;
+      }
       const listLines = lines.filter((line) => /^\s*[-*]\s+/.test(line));
       if (listLines.length && listLines.length === lines.length) {
         return `<ul>${listLines.map((line) => `<li>${escapeLifeBookHtml(stripForbiddenTokens(line.replace(/^\s*[-*]\s+/, "")))}</li>`).join("")}</ul>`;
@@ -6459,22 +7746,32 @@ function renderLifeBookPdfClean({ profile, signals, chapters, generatedAt, final
     <style>
       :root{color-scheme:light}
       *{box-sizing:border-box}
-      body{margin:0;padding:0;font-family:"Noto Serif KR",serif;background:#fffaf2;color:#261b11;line-height:1.82}
-      .page{max-width:980px;margin:0 auto;padding:28px 20px 60px}
-      .lb-final-meta{margin:0 0 18px;padding:14px 16px;border:1px solid #e4d3bb;background:#fbf5ec;color:#5a3a23}
-      .lb-final-meta b{display:inline-block;margin-right:8px}
-      .lb-final-section{padding:10px 0 18px}
+      body{margin:0;padding:0;font-family:"Noto Serif KR","Nanum Myeongjo",serif;background:#f7f0e5;color:#24180f;line-height:1.82}
+      .page{max-width:980px;margin:0 auto;padding:28px 22px 64px}
+      .lb-final-meta{margin:0 0 18px;padding:12px 16px;border:1px solid #d8c4a7;background:#fffaf2;color:#5a3a23;font-size:13px}
+      .lb-final-meta b{display:inline-block;margin-right:8px;color:#2d2119}
+      .lb-final-section{padding:18px 0 24px}
+      .lb-final-section--front{min-height:920px;padding:86px 56px;border:1px solid #d8c4a7;background:linear-gradient(145deg,#201611 0%,#47301f 46%,#8b653d 100%);color:#fff8ec;box-shadow:0 18px 42px rgba(43,29,18,.18)}
       .lb-final-section--chapter{break-before:page;page-break-before:always}
-      .lb-final-section h2{margin:10px 0 14px;font-size:28px;color:#4c2f1a}
-      .lb-final-section h3{margin:16px 0 8px;font-size:20px;color:#5b3720}
-      .lb-final-section h4{margin:12px 0 6px;font-size:17px;color:#6b4428}
+      .lb-final-section--chapter>h3:first-child,.lb-final-section--chapter>p:first-child{margin-top:0}
+      .lb-final-section h1{margin:0 0 34px;font-size:22px;letter-spacing:.18em;text-transform:uppercase;color:#f8dec0}
+      .lb-final-section--front h2{margin:0 0 12px;font-size:56px;line-height:1.08;color:#fff}
+      .lb-final-section--front h3{margin:0 0 36px;font-size:21px;font-weight:400;color:#f6dfc0}
+      .lb-final-section--front p{max-width:680px;margin:0 0 12px;color:#f9ead6;font-size:16px}
+      .lb-final-section--chapter>h2:first-child{position:relative;margin:0 0 16px;padding:56px 34px 30px;border:1px solid #d8c4a7;background:#2a211d;color:#fff8ec;font-size:31px;line-height:1.28;break-after:avoid}
+      .lb-final-section h2{margin:10px 0 18px;font-size:28px;color:#3d291a}
+      .lb-final-section h3{margin:20px 0 10px;padding:12px 14px;border:1px solid #dcc8aa;background:#fffaf2;color:#4b3020;font-size:19px}
+      .lb-final-section h4{margin:14px 0 8px;font-size:16px;color:#6b4428}
       .lb-final-section p{margin:0 0 12px;white-space:pre-wrap}
-      .lb-final-section ul{margin:8px 0 14px;padding-left:20px}
-      .lb-markdown-table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:13px}
-      .lb-markdown-table th,.lb-markdown-table td{border:1px solid #e2cfb8;padding:6px 8px;text-align:left;vertical-align:top}
-      .lb-markdown-table th{background:#efe3d0;color:#5a3a23}
+      .lb-final-section blockquote{margin:0 0 18px;padding:16px 20px;border-left:4px solid #b48755;background:#fbf3e7;color:#5a3a23;font-size:16px;font-style:italic}
+      .lb-final-section ul{margin:8px 0 16px;padding:13px 18px 13px 28px;border:1px solid #e4d3bb;background:#fffdf8}
+      .lb-final-section li{margin:5px 0}
+      .lb-markdown-table{width:100%;border-collapse:collapse;margin:12px 0 18px;font-size:12.5px;background:#fffdf8}
+      .lb-markdown-table th,.lb-markdown-table td{border:1px solid #dcc8aa;padding:7px 9px;text-align:left;vertical-align:top}
+      .lb-markdown-table th{background:#2a211d;color:#fff8ec;font-weight:600}
+      .lb-markdown-table tr:nth-child(even) td{background:#fbf3e7}
       @page{size:A4;margin:16mm 14mm 18mm}
-      @media print{body{background:#fff}.page{padding:0}.lb-final-meta{break-after:avoid}}
+      @media print{body{background:#fff}.page{padding:0}.lb-final-meta{break-after:avoid}.lb-final-section--front{box-shadow:none}}
     </style>
   </head>
   <body>
@@ -6609,7 +7906,9 @@ function renderLifeBookPdfClean({ profile, signals, chapters, generatedAt, final
 
 export const __lifeBookTestUtils = {
   CHAPTER_BLUEPRINTS: getLifeBookBlueprints(),
-  LIFEBOOK_CANONICAL_BLUEPRINTS,
+  LIFEBOOK_CANONICAL_BLUEPRINTS: getLifeBookBlueprints(),
+  LIFEBOOK_PHASE6_BLUEPRINTS,
+  LIFEBOOK_PHASE6_CHAPTER_STRUCTURE,
   LIFEBOOK_MIN_CATEGORY_CHARS,
   LIFEBOOK_MIN_CHAPTER_CHARS,
   LIFEBOOK_MIN_TOTAL_CHARS,
@@ -6637,6 +7936,21 @@ export const __lifeBookTestUtils = {
   normalizeInput,
   deriveLocalSignals,
   buildLifeBookLocalSajuJson,
+  calculateSajuLocally,
+  buildLifeBookNormalizedData,
+  LIFEBOOK_DAY_MASTER_BLOCKS,
+  LIFEBOOK_ELEMENT_BLOCKS,
+  LIFEBOOK_TEN_GOD_BLOCKS,
+  LIFEBOOK_USEFUL_GOD_BLOCKS,
+  LIFEBOOK_FLOW_BLOCKS,
+  LIFEBOOK_DOMAIN_BLOCKS,
+  selectLifeBookInterpretationBlocks,
+  buildLifeBookBlockInterpretationText,
+  normalizeLifeBookInput,
+  composeLifeBookChapters,
+  renderLifeBookHtml,
+  renderLifeBookPdfArchive,
+  generateLifeBookPdf,
   validateLifeBookLocalSajuJson,
   validateLifeBookJsonContract,
   buildLifeBookChapterEvidenceCoverage,
@@ -6650,6 +7964,7 @@ export const __lifeBookTestUtils = {
   buildLifeBookChapterPlan,
   buildLifeBookChapterPlans,
   buildLifeBookChapterCacheKey,
+  resolveLifeBookLlmRuntimeInfo,
   shouldEnhanceLifeBookChapter,
   buildLifeBookSectionLLMInput,
   buildLifeBookSectionPrompt,
@@ -6727,6 +8042,8 @@ function buildLifeBookPdfRecord({
   createdAt = "",
   engineVersion = "",
   actualPages,
+  cacheKey = "",
+  calculationResultHash = "",
 } = {}) {
   const normalizedMarkdown = normalizeLifeBookFinalManuscriptMarkdown(markdownContent);
   const normalizedHtml = String(htmlContent || "");
@@ -6746,6 +8063,8 @@ function buildLifeBookPdfRecord({
     status: ["generating", "completed", "failed"].includes(clean(status)) ? clean(status) : "generating",
     markdownContent: normalizedMarkdown,
   };
+  if (clean(cacheKey)) record.cacheKey = clean(cacheKey);
+  if (clean(calculationResultHash)) record.calculationResultHash = clean(calculationResultHash);
   if (resolvedActualPages) record.actualPages = resolvedActualPages;
   if (normalizedHtml) record.htmlContent = normalizedHtml;
   if (clean(pdfUrl)) record.pdfUrl = clean(pdfUrl);
@@ -6761,6 +8080,9 @@ async function persistLifeBookPdfRecord(env, executionCtx, record = {}, extraMet
     lifeBookPdfRecord: record,
     reportId: clean(record.reportId || executionCtx.reportId),
     serviceType: "life-book",
+    cacheKey: clean(record.cacheKey || executionCtx.cacheKey || extraMetadata?.cacheKey),
+    lifeBookPdfCacheKey: clean(record.cacheKey || executionCtx.cacheKey || extraMetadata?.lifeBookPdfCacheKey || extraMetadata?.cacheKey),
+    calculationResultHash: clean(record.calculationResultHash || executionCtx.calculationResultHash || extraMetadata?.calculationResultHash),
   };
   executionCtx.metadata = metadata;
   try {
@@ -6773,6 +8095,7 @@ async function persistLifeBookPdfRecord(env, executionCtx, record = {}, extraMet
           reportId: clean(record.reportId || executionCtx.reportId),
           sessionId: clean(executionCtx.sessionId),
           reportType: "lifeBook",
+          cacheKey: clean(record.cacheKey || executionCtx.cacheKey || extraMetadata?.cacheKey),
         },
       },
       { returnDocument: "after" },
@@ -7129,6 +8452,75 @@ async function handlePrepareSync(request, env) {
     lifeBookPdfRecord: generatingRecord,
     serviceType: "life-book",
   };
+  const requestId = clean(body?.requestId || body?.accessGrant?.requestId || reportId);
+  const precomputedCalculation = calculateSajuLocally({ birthInput, profile, body, sessionId });
+  const precomputedNormalized = normalizeLifeBookInput({
+    birthInput,
+    profile,
+    signals: precomputedCalculation.signals,
+    localSajuJson: precomputedCalculation.localSajuJson,
+    body,
+    sessionId,
+    requestId,
+  });
+  const cacheContext = buildLifeBookPdfCacheContext(profile, precomputedNormalized);
+  executionCtx.cacheKey = cacheContext.cacheKey;
+  executionCtx.calculationResultHash = cacheContext.calculationResultHash;
+  executionCtx.metadata = {
+    ...executionCtx.metadata,
+    cacheKey: cacheContext.cacheKey,
+    lifeBookPdfCacheKey: cacheContext.cacheKey,
+    calculationResultHash: cacheContext.calculationResultHash,
+    templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
+  };
+  generatingRecord.cacheKey = cacheContext.cacheKey;
+  generatingRecord.calculationResultHash = cacheContext.calculationResultHash;
+  const cacheExecution = await findLifeBookReusableExecution(env, auth.userId, {
+    cacheKey: cacheContext.cacheKey,
+  }, { sessionId, reportId, featureKey, cacheKey: cacheContext.cacheKey });
+  const cacheResponse = cacheExecution ? buildLifeBookReusableExecutionResponse(cacheExecution, {
+    sessionId,
+    reportId,
+    featureKey,
+    cacheKey: cacheContext.cacheKey,
+  }) : null;
+  if (cacheResponse) {
+    if (cacheResponse.status === 200) {
+      LIFEBOOK_SESSION_LOCKS.set(sessionId, {
+        sessionId,
+        reportId,
+        status: "done",
+        startedAt: recordCreatedAt,
+        completedAt: new Date().toISOString(),
+        result: cacheResponse.payload,
+        progress: {
+          stateKey: "completed",
+          currentChapterNo: getLifeBookBlueprints().length,
+          totalChapters: getLifeBookBlueprints().length,
+          updatedAt: new Date().toISOString(),
+        },
+        lifeBookPdfRecord: cacheResponse.payload?.data?.lifeBookPdfRecord || generatingRecord,
+      });
+    } else if (cacheResponse.status === 202) {
+      LIFEBOOK_SESSION_LOCKS.set(sessionId, {
+        sessionId,
+        reportId,
+        status: "running",
+        startedAt: recordCreatedAt,
+        result: cacheResponse.payload,
+        progress: {
+          stateKey: LIFEBOOK_LLM_WRITING_STATE,
+          currentChapterNo: 0,
+          totalChapters: getLifeBookBlueprints().length,
+          updatedAt: new Date().toISOString(),
+        },
+        lifeBookPdfRecord: generatingRecord,
+      });
+    } else {
+      LIFEBOOK_SESSION_LOCKS.delete(sessionId);
+    }
+    return json(cacheResponse.payload, { status: cacheResponse.status });
+  }
   await startPremiumPdfExecution(env, auth.userId, executionCtx);
   const executionLease = await acquireLifeBookExecutionLease(env, auth.userId, executionCtx);
   if (!executionLease.ok && !executionLease.error) {
@@ -7155,8 +8547,52 @@ async function handlePrepareSync(request, env) {
   await persistLifeBookPdfRecord(env, executionCtx, generatingRecord, {
     profileId,
     generationStatus: "generating",
+    cacheKey: cacheContext.cacheKey,
+    lifeBookPdfCacheKey: cacheContext.cacheKey,
+    calculationResultHash: cacheContext.calculationResultHash,
   });
 
+  const pipelineResult = await generateLifeBookPdf(profile, {
+    env,
+    birthInput,
+    body,
+    sessionId,
+    reportId,
+    requestId,
+    precomputedNormalized: {
+      calculation: precomputedCalculation,
+      normalized: precomputedNormalized,
+      cacheContext,
+    },
+    onProgress: (progress) => updateLifeBookSessionProgress(sessionId, progress),
+  });
+  const {
+    signals,
+    localSajuJson,
+    jsonContractValidation,
+    llmInput,
+    engineContractValidation,
+    canonicalValidation,
+    chapterEvidenceCoverage,
+    lifeBookNormalizedData,
+    lifeBookMasterJson,
+    generatedLifeBook,
+    completedChapters,
+    structureValidation,
+    qualityEvaluation,
+    finalQualityWarnings,
+    finalQualityScore,
+    repairedCategoryCount,
+    finalManuscriptMarkdown,
+    generatedAt,
+    pdf,
+    cacheKey,
+    calculationResultHash,
+    cacheHit,
+    llmRuntime,
+  } = pipelineResult;
+
+  if (LIFE_BOOK_PDF_CONFIG.generationMode !== "local") {
   const signals = deriveLocalSignals(profile, body?.sajuData || "", body?.analysisSignals || {});
   let localSajuJson = buildLifeBookLocalSajuJson(birthInput, profile, signals, []);
   let localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
@@ -7266,17 +8702,19 @@ async function handlePrepareSync(request, env) {
   llmInput.lifeBookMasterJson = lifeBookMasterJson;
   localSajuJson.lifeBookMasterJson = lifeBookMasterJson;
   updateLifeBookSessionProgress(sessionId, {
-    stateKey: LIFEBOOK_LLM_WRITING_STATE,
+    stateKey: LIFEBOOK_LOCAL_WRITING_STATE,
     currentChapterNo: 0,
     totalChapters: getLifeBookBlueprints().length,
   });
   const llmRuntime = resolveLifeBookLlmRuntimeInfo(env);
-  logLifeBookServer("GeminiDraftBuildStart", {
+  logLifeBookServer("LocalDraftBuildStart", {
     requestId,
     sessionId,
     reportId,
     chapterCount: getLifeBookBlueprints().length,
     targetYear: LIFEBOOK_LLM_TARGET_YEAR,
+    generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
+    templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
     llmRuntime,
   });
 
@@ -7288,7 +8726,7 @@ async function handlePrepareSync(request, env) {
     onProgress: (progress) => updateLifeBookSessionProgress(sessionId, progress),
   });
   let completedChapters = generatedLifeBook.chapters;
-  logLifeBookServer("GeminiDraftBuildSuccess", {
+  logLifeBookServer("LocalDraftBuildSuccess", {
     requestId,
     sessionId,
     reportId,
@@ -7355,6 +8793,7 @@ async function handlePrepareSync(request, env) {
       },
     });
   }
+  }
 
   logLifeBookServer("LifeBookFinalizeReady", {
     sessionId,
@@ -7373,8 +8812,6 @@ async function handlePrepareSync(request, env) {
   });
 
   const manuscriptSource = generatedLifeBook.manuscriptSource;
-  const finalManuscriptMarkdown = normalizeLifeBookFinalManuscriptMarkdown(generatedLifeBook.finalManuscriptMarkdown || "");
-  const generatedAt = new Date().toISOString();
   logLifeBookServer("PdfRenderStart", { sessionId, chapterCount: completedChapters.length });
 
   const pdfReady = buildPdfReadyPayloadClean(profile, completedChapters, {
@@ -7389,6 +8826,14 @@ async function handlePrepareSync(request, env) {
     finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
     finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
     finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
+    generationMode: generatedLifeBook.generationMode || LIFE_BOOK_PDF_CONFIG.generationMode,
+    llmEnabled: Boolean(generatedLifeBook.llmEnabled),
+    llmProvider: generatedLifeBook.provider || LIFE_BOOK_PDF_CONFIG.provider,
+    templateVersion: generatedLifeBook.templateVersion || LIFE_BOOK_PDF_CONFIG.templateVersion,
+    cacheKey,
+    lifeBookPdfCacheKey: cacheKey,
+    calculationResultHash,
+    cacheHit: Boolean(cacheHit),
     promptVersion: generatedLifeBook.promptVersion || LIFE_BOOK_PROMPT_VERSION,
     llmEnhancedChapterIds: generatedLifeBook.llmEnhancedChapterIds || [],
     llmFallbackChapterIds: generatedLifeBook.llmFallbackChapterIds || [],
@@ -7396,9 +8841,10 @@ async function handlePrepareSync(request, env) {
     jsonContractValidation: engineContractValidation,
     canonicalValidation,
     chapterEvidenceCoverage,
+    lifeBookNormalizedData,
     lifeBookMasterJson,
     finalManuscriptMarkdown,
-    pdfHtml: generateLifeBookPdfFromChapters(profile, signals, completedChapters, generatedAt, finalManuscriptMarkdown),
+    pdfHtml: pdf.html,
   });
   const requestOrigin = new URL(request.url).origin;
   const archiveApiUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
@@ -7430,11 +8876,16 @@ async function handlePrepareSync(request, env) {
     pdfUrl: storedUrl,
     createdAt: recordCreatedAt,
     engineVersion,
+    cacheKey,
+    calculationResultHash,
   });
   pdfReady.lifeBookPdfRecord = completedRecord;
   await persistLifeBookPdfRecord(env, executionCtx, completedRecord, {
     profileId,
     generationStatus: "completed",
+    cacheKey,
+    lifeBookPdfCacheKey: cacheKey,
+    calculationResultHash,
     pdfReady,
   });
   logLifeBookServer("PdfRenderSuccess", { sessionId, chapterCount: completedChapters.length });
@@ -7448,6 +8899,9 @@ async function handlePrepareSync(request, env) {
     qualityWarnings: finalQualityWarnings,
     qualityScore: finalQualityScore,
     repairedCategoryCount,
+    cacheKey,
+    lifeBookPdfCacheKey: cacheKey,
+    calculationResultHash,
     archive: {
       reportId,
       reportType: "life_book",
@@ -7473,6 +8927,14 @@ async function handlePrepareSync(request, env) {
       finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
       finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
       finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
+      generationMode: generatedLifeBook.generationMode || LIFE_BOOK_PDF_CONFIG.generationMode,
+      llmEnabled: Boolean(generatedLifeBook.llmEnabled),
+      llmProvider: generatedLifeBook.provider || LIFE_BOOK_PDF_CONFIG.provider,
+      templateVersion: generatedLifeBook.templateVersion || LIFE_BOOK_PDF_CONFIG.templateVersion,
+      cacheKey,
+      lifeBookPdfCacheKey: cacheKey,
+      calculationResultHash,
+      cacheHit: Boolean(cacheHit),
       promptVersion: generatedLifeBook.promptVersion || LIFE_BOOK_PROMPT_VERSION,
       llmEnhancedChapterIds: generatedLifeBook.llmEnhancedChapterIds || [],
       llmFallbackChapterIds: generatedLifeBook.llmFallbackChapterIds || [],
@@ -7480,6 +8942,7 @@ async function handlePrepareSync(request, env) {
       jsonContractValidation: engineContractValidation,
       canonicalValidation,
       chapterEvidenceCoverage,
+      lifeBookNormalizedData,
       lifeBookMasterJson,
       localSajuJson,
       lifeBookEngineContract: llmInput.engineContract,
@@ -7522,6 +8985,10 @@ async function handlePrepareSync(request, env) {
     finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
     finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
     finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
+    generationMode: generatedLifeBook.generationMode || LIFE_BOOK_PDF_CONFIG.generationMode,
+    llmEnabled: Boolean(generatedLifeBook.llmEnabled),
+    llmProvider: generatedLifeBook.provider || LIFE_BOOK_PDF_CONFIG.provider,
+    templateVersion: generatedLifeBook.templateVersion || LIFE_BOOK_PDF_CONFIG.templateVersion,
     promptVersion: generatedLifeBook.promptVersion || LIFE_BOOK_PROMPT_VERSION,
     llmEnhancedChapterIds: generatedLifeBook.llmEnhancedChapterIds || [],
     llmFallbackChapterIds: generatedLifeBook.llmFallbackChapterIds || [],
@@ -7529,6 +8996,7 @@ async function handlePrepareSync(request, env) {
     jsonContractValidation: engineContractValidation,
     canonicalValidation,
     chapterEvidenceCoverage,
+    lifeBookNormalizedData,
     lifeBookMasterJson,
     chapters: completedChapters,
     pdfReady,

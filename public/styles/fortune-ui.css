@@ -11444,14 +11444,33 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
       .dp-li-loc { font-size: 0.72rem; color: rgba(160,150,120,0.55); margin-top: 1px; }
-      .dp-li-del {
-        background: transparent; border: none;
-        color: rgba(255,100,100,0.5); font-size: 0.85rem;
-        padding: 6px 8px; cursor: pointer; flex-shrink: 0;
-        touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-        transition: color 0.2s;
+      .dp-li-actions {
+        display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
       }
-      .dp-li-del:active { color: rgba(255,80,80,0.9); }
+      .dp-li-view,
+      .dp-li-del {
+        min-width: 44px; min-height: 34px;
+        border: 1px solid rgba(255,215,0,0.16);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.05);
+        color: rgba(255,235,180,0.82); font-size: 0.8rem; font-weight: 800;
+        padding: 6px 9px; cursor: pointer; flex-shrink: 0;
+        touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+        transition: color 0.2s, border-color 0.2s, background 0.2s;
+      }
+      .dp-li-view:active {
+        background: rgba(255,215,0,0.14);
+        border-color: rgba(255,215,0,0.36);
+      }
+      .dp-li-del {
+        border-color: rgba(255,100,100,0.18);
+        color: rgba(255,135,135,0.76);
+      }
+      .dp-li-del:active {
+        background: rgba(255,80,80,0.12);
+        border-color: rgba(255,80,80,0.42);
+        color: rgba(255,130,130,0.95);
+      }
 
       /* ── Stardust 파티클 ── */
       .dp-stardust {

@@ -1,5 +1,11 @@
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
+export const LOVE_SECRET_PDF_CONFIG = Object.freeze({
+  generationMode: "local",
+  llmEnabled: false,
+  provider: "none",
+  templateVersion: "love-secret-local-v1",
+});
 
 type GenerateGeminiJsonInput = {
   systemPrompt: string;
@@ -184,38 +190,13 @@ export async function generateGeminiJson<T>({
   schemaName,
 }: GenerateGeminiJsonInput): Promise<T> {
   assertServerRuntime();
-
-  const keys = getGeminiKeys();
-  if (keys.length === 0) {
-    throw new Error("Gemini API keys are not configured on the server.");
-  }
-
-  const model = getGeminiModel();
-  const timeoutMs = getTimeoutMs();
-  const retryRounds = getRetryRounds();
-  let lastError: unknown = null;
-
-  for (let round = 0; round < retryRounds; round += 1) {
-    for (const key of keys) {
-      try {
-        const text = await fetchGeminiJsonOnce({
-          key,
-          model,
-          systemPrompt,
-          userPrompt,
-          requestId,
-          schemaName,
-          timeoutMs,
-        });
-        return parseGeminiJson<T>(text, schemaName);
-      } catch (error) {
-        lastError = error;
-        if ((error as { retryable?: boolean })?.retryable !== true) {
-          throw error;
-        }
-      }
-    }
-  }
-
-  throw new Error(`Gemini JSON generation failed for ${schemaName}: ${lastError instanceof Error ? lastError.message : "unknown_error"}`);
+  const error = new Error("LOVE_SECRET_LLM_DISABLED");
+  Object.assign(error, {
+    code: "LOVE_SECRET_LLM_DISABLED",
+    requestId,
+    schemaName,
+    generationMode: LOVE_SECRET_PDF_CONFIG.generationMode,
+    provider: LOVE_SECRET_PDF_CONFIG.provider,
+  });
+  throw error;
 }

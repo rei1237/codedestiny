@@ -783,7 +783,7 @@ function buildCrystalSoulMasterPrompt(readingData, intake = {}) {
   }));
 
   return [
-    "당신은 원석의 파동과 타로 상징을 함께 읽는 크리스탈 오라클 리더입니다.",
+    "당신은 점술 서비스의 맥락을 이해하는 크리스탈 오라클 리더입니다. 원석의 파동과 타로 상징을 함께 읽되, 말투는 인간적인 공감과 은은한 위로로 이어갑니다.",
     "문체 규칙:",
     "- 반드시 1:1 상담 대화체로 작성하고, 기계적 나열형 문장을 금지합니다.",
     "- 각 카드 해설은 메이저/마이너 아르카나 맥락과 수비학 신호를 자연스럽게 포함합니다.",
@@ -804,6 +804,7 @@ function buildCrystalSoulMasterPrompt(readingData, intake = {}) {
     "- 각 chapter.content는 최소 650자.",
     "- practicalActions는 섹션별 최소 3개, summary는 최소 4개.",
     "",
+    "이 리딩은 점술 서비스 관점에서 내담자 흐름을 먼저 읽고, 질문의 정서를 정리해 행동으로 번역합니다.",
     `카테고리: ${category}`,
     `핵심 원석: ${coreCrystal}`,
     `내담자 질문 힌트: ${topicHint || "없음"}`,
@@ -963,7 +964,7 @@ async function buildCrystalSoulReading(body = {}, env = {}) {
 
 function crystalReadingToText(reading) {
   const lines = [];
-  lines.push(`🔮 ${reading.category} 크리스탈 소울 리딩`);
+  lines.push(`🔮 ${reading.category} 점술 서비스 · 크리스탈 소울 리딩`);
   lines.push(`핵심 원석: ${reading.coreCrystal}`);
   lines.push("");
   for (const section of reading.sections) {

@@ -1,5 +1,5 @@
-import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
-import { resolve } from "node:path";
+import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
+import { join, resolve } from "node:path";
 
 const rootDir = process.cwd();
 const distDir = resolve(rootDir, "dist");
@@ -13,8 +13,23 @@ if (!sourceDir) {
   process.exit(1);
 }
 
+function clearDirectoryOrRemove(targetDir) {
+  try {
+    rmSync(targetDir, { recursive: true, force: true, maxRetries: 8, retryDelay: 300 });
+    return;
+  } catch (error) {
+    if (error?.code !== "EPERM" || !existsSync(targetDir) || !statSync(targetDir).isDirectory()) {
+      throw error;
+    }
+  }
+
+  for (const entry of readdirSync(targetDir)) {
+    rmSync(join(targetDir, entry), { recursive: true, force: true, maxRetries: 8, retryDelay: 300 });
+  }
+}
+
 if (existsSync(distDir)) {
-  rmSync(distDir, { recursive: true, force: true });
+  clearDirectoryOrRemove(distDir);
 }
 
 mkdirSync(distDir, { recursive: true });

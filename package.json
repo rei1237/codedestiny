@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "dev:local-auth-api": "node scripts/local-dev-auth-api.mjs",
     "api": "node server/server.js",
     "guard:privacy": "node scripts/guard-blocked-keywords.mjs",
     "cron:daily-content": "node server/jobs/daily-content-cron.js",
