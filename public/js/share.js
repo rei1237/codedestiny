@@ -474,7 +474,6 @@ function shareLoveSecretKakao() {
    ══════════════════════════════════════════════ */
 var _pwaPrompt = null;
 var _pwaInstalled = false;
-var FAVORITE_MODE_KEY = 'fortuneFavoriteModeStateV1';
 var THEME_MODE_KEY = 'fortuneThemeModeStateV1';
 var THEME_MODE_STATE_META_KEY = 'fortuneThemeModeStateMetaV1';
 var THEME_MODE_STATE_SCHEMA = '20260511-theme-state-v2';
@@ -620,114 +619,6 @@ function syncThemeLogoSources(reason) {
   logThemeLogoSync(reason, 'after', pigLogo, neoLogo);
 }
 
-function getFavoriteModeLabels() {
-  return {
-    pig: '꽃돼지 연이의 운세 꽃밭 즐겨찾기',
-    neo: '백사자 네오의 운세 플랫폼 즐겨찾기'
-  };
-}
-
-function readFavoriteModeState() {
-  try {
-    var raw = localStorage.getItem(FAVORITE_MODE_KEY);
-    var parsed = raw ? JSON.parse(raw) : null;
-    return {
-      pig: !!(parsed && parsed.pig),
-      neo: !!(parsed && parsed.neo)
-    };
-  } catch (_) {
-    return { pig: false, neo: false };
-  }
-}
-
-function writeFavoriteModeState(nextState) {
-  try {
-    localStorage.setItem(FAVORITE_MODE_KEY, JSON.stringify({
-      pig: !!(nextState && nextState.pig),
-      neo: !!(nextState && nextState.neo)
-    }));
-  } catch (_) {}
-}
-
-function updateFavoriteButtonThemeText(isNeo) {
-  var labels = getFavoriteModeLabels();
-  var txt = isNeo ? labels.neo : labels.pig;
-  var icon = isNeo ? '⭐' : '🌸';
-  var savedState = readFavoriteModeState();
-  var isSaved = isNeo ? savedState.neo : savedState.pig;
-  var renderedText = (isSaved ? '✅ ' : '') + txt;
-
-  var label = document.getElementById('favoriteLabel');
-  if (label) label.textContent = renderedText;
-  var labelHome = document.getElementById('favoriteLabelHome');
-  if (labelHome) labelHome.textContent = renderedText;
-
-  var btn = document.getElementById('btnFavorite');
-  if (btn) {
-    var iconEl = btn.querySelector('.btn-favorite-icon');
-    if (iconEl) iconEl.textContent = icon;
-  }
-  var btnHome = document.getElementById('btnFavoriteHome');
-  if (btnHome) {
-    var iconElHome = btnHome.querySelector('.btn-favorite-icon,.cd-top-install-icon');
-    if (iconElHome) iconElHome.textContent = icon;
-  }
-}
-
-function pulseFavoriteSaved() {
-  ['btnFavorite', 'btnFavoriteHome'].forEach(function(id) {
-    var btn = document.getElementById(id);
-    if (!btn) return;
-    btn.classList.add('saved');
-    setTimeout(function(){ btn.classList.remove('saved'); }, 1200);
-  });
-}
-function tryNativeFavoriteAdd(url, title) {
-  try {
-    if (window.external && typeof window.external.AddFavorite === 'function') {
-      window.external.AddFavorite(url, title);
-      return true;
-    }
-  } catch (_) {}
-
-  try {
-    if (window.sidebar && typeof window.sidebar.addPanel === 'function') {
-      window.sidebar.addPanel(title, url, '');
-      return true;
-    }
-  } catch (_) {}
-
-  return false;
-}
-
-function handleFavoriteAdd() {
-  var isNeo = (typeof NEO_MODE !== 'undefined' && NEO_MODE) || document.body.classList.contains('neo-mode');
-  var labels = getFavoriteModeLabels();
-  var modeKey = isNeo ? 'neo' : 'pig';
-  var title = isNeo ? labels.neo : labels.pig;
-  var icon = isNeo ? '⭐' : '🌸';
-  var savedState = readFavoriteModeState();
-  var alreadySaved = !!savedState[modeKey];
-
-  if (alreadySaved) {
-    showToast(icon + ' ?? ??? ??????.');
-    return;
-  }
-
-  var nativeAdded = tryNativeFavoriteAdd(window.location.href, title);
-
-  if (nativeAdded) {
-    savedState[modeKey] = true;
-    writeFavoriteModeState(savedState);
-    updateFavoriteButtonThemeText(isNeo);
-    pulseFavoriteSaved();
-    showToast(icon + ' ' + title + ' ????? ?????!');
-    return;
-  }
-
-  showToast(icon + ' ? ??????? ?? ???? ??? ???? ???. Ctrl/Cmd + D? ??? ???.');
-}
-
 // [UX FIX] PWA 팝업 조건: 30초 + 스크롤 50% AND 충족 시만 자동 표시
 var _pwaBannerCond = { timer: false, scroll: false, prompted: false };
 function _maybeTriggerPwaBanner() {
@@ -755,7 +646,6 @@ window.addEventListener('beforeinstallprompt', function(e) {
   // 이벤트를 보관해 사용자 버튼 설치 흐름에서 재사용합니다.
   _pwaPrompt = e;
   var isNeo = (typeof NEO_MODE !== 'undefined' && NEO_MODE);
-  updateFavoriteButtonThemeText(isNeo);
   var pigText = '홈 화면에 운세 앱 바로 설치';
   var neoText = '홈 화면에 네오 운세 앱 바로 설치';
   var btn = document.getElementById('btnPwaInstall');
@@ -827,7 +717,6 @@ function closeIosModal() {
 }
 
 // Ensure data-action routers can always resolve these handlers.
-window.handleFavoriteAdd = handleFavoriteAdd;
 window.handlePwaInstall = handlePwaInstall;
 window.closeIosModal = closeIosModal;
 
@@ -840,19 +729,6 @@ function bindPwaInstallButtons() {
     btn.addEventListener('click', function(ev) {
       if (ev && ev.cancelable) ev.preventDefault();
       handlePwaInstall();
-    }, { passive: false });
-  });
-}
-
-// data-action 경로 문제로 즐겨찾기 버튼이 누락되는 환경을 대비한 직접 바인딩.
-function bindFavoriteButtons() {
-  ['btnFavorite', 'btnFavoriteHome'].forEach(function(id) {
-    var btn = document.getElementById(id);
-    if (!btn || btn.dataset.favoriteBound === '1') return;
-    btn.dataset.favoriteBound = '1';
-    btn.addEventListener('click', function(ev) {
-      if (ev && ev.cancelable) ev.preventDefault();
-      handleFavoriteAdd();
     }, { passive: false });
   });
 }
@@ -1205,7 +1081,6 @@ function toggleNeoMode(nextMode){
     var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
     if(pwaLabel && !pwaLabel.textContent.includes('완료')) pwaLabel.textContent = '홈 화면에 네오 운세 앱 바로 설치';
     if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '홈 화면에 네오 운세 앱 바로 설치';
-    updateFavoriteButtonThemeText(true);
   }else{
     body.classList.remove('neo-mode');
     body.classList.remove('theme-neo');
@@ -1224,7 +1099,6 @@ function toggleNeoMode(nextMode){
     var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
     if(pwaLabel && !pwaLabel.textContent.includes('완료')) pwaLabel.textContent = '홈 화면에 운세 앱 바로 설치';
     if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '홈 화면에 운세 앱 바로 설치';
-    updateFavoriteButtonThemeText(false);
   }
   syncThemeLogoSources('toggle');
   setTimeout(function(){ syncThemeLogoSources('toggle:timeout160'); }, 160);
@@ -1377,8 +1251,6 @@ window.addEventListener('load',function(){
       tLabel.style.color = '#FFD700';
     }
   }
-  updateFavoriteButtonThemeText(NEO_MODE);
-
   // Home으로 돌아오면 토글을 다시 활성화하고 타이머를 재시작합니다.
   if(typeof window.resetApp === 'function' && !window.resetApp.__themeToggleWrapped){
     var _origResetApp = window.resetApp;
@@ -1404,7 +1276,6 @@ window.addEventListener('load',function(){
 
   enforceThemeToggleSticky();
   bindPwaInstallButtons();
-  bindFavoriteButtons();
   window.addEventListener('resize', enforceThemeToggleSticky, { passive: true });
   window.addEventListener('scroll', enforceThemeToggleSticky, { passive: true });
   window.addEventListener('touchmove', enforceThemeToggleSticky, { passive: true });

@@ -3522,13 +3522,12 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   margin:0 auto;
 }
 .quick-action-stack{display:flex;flex-direction:column;align-items:center;gap:12px}
-.quick-action-stack .btn-install,.quick-action-stack .btn-favorite{width:min(92vw,460px)}
+.quick-action-stack .btn-install{width:min(92vw,460px)}
 /* Result page: keep install CTA comfortably clear and not visually clipped */
 #resultPage #shareSection{scroll-margin-top:calc(76px + env(safe-area-inset-top, 0px))}
 #resultPage .share-section{overflow:visible}
 #resultPage .share-btns{overflow:visible}
 #resultPage .share-btns .btn-install{margin-top:30px;margin-bottom:8px;position:relative;z-index:1}
-#resultPage .share-btns .btn-favorite{margin-top:6px;margin-bottom:8px;position:relative;z-index:1}
 #resultPage #btnPwaInstall{margin-top:30px}
 #resultPage #btnPwaInstallHome{margin-top:30px}
 .btn-kakao{padding:12px 14px;background:#FEE500;color:#3B1E08;border:none;border-radius:13px;
@@ -3615,71 +3614,6 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   50%{box-shadow:0 0 0 8px rgba(255,215,0,0)}
 }
 
-/* ── 즐겨찾기 버튼 (모드별 꽃/별 컨셉) ── */
-.btn-favorite{
-  padding:14px;
-  border:2px solid rgba(125,211,252,.46);
-  border-radius:13px;
-  font-size:.92rem;
-  font-weight:700;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  font-family:inherit;
-  transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
-  grid-column:span 2;
-  position:relative;
-  overflow:hidden;
-  isolation:isolate;
-  background:linear-gradient(135deg,rgba(15,47,102,.96) 0%,rgba(21,94,117,.92) 58%,rgba(14,116,144,.88) 100%);
-  color:#effcff;
-  box-shadow:0 8px 22px rgba(14,116,144,.18);
-}
-.btn-favorite::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  z-index:-1;
-  opacity:0;
-  background:linear-gradient(135deg,rgba(186,230,253,.20),transparent 48%,rgba(103,232,249,.12));
-  transition:opacity .18s ease;
-}
-.btn-favorite:hover::before{opacity:1}
-.btn-favorite:hover{transform:translateY(-2px);border-color:rgba(186,230,253,.72);box-shadow:0 10px 24px rgba(14,116,144,.24)}
-.btn-favorite:active{transform:translateY(0)}
-
-.btn-favorite-icon{
-  font-size:1.12rem;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:1.2em;
-  animation:none!important;
-  filter:none!important;
-}
-
-body.theme-pig .btn-favorite{
-  border-color:rgba(125,211,252,.46);
-  background:linear-gradient(135deg,rgba(15,47,102,.96) 0%,rgba(21,94,117,.92) 58%,rgba(14,116,144,.88) 100%);
-  color:#effcff;
-  box-shadow:0 8px 22px rgba(14,116,144,.18);
-}
-body.theme-pig .btn-favorite .btn-favorite-icon{animation:none!important}
-
-body.theme-neo .btn-favorite{
-  border-color:rgba(125,211,252,.46);
-  background:linear-gradient(135deg,rgba(10,28,66,.96) 0%,rgba(15,74,104,.92) 58%,rgba(8,89,110,.88) 100%);
-  color:#effcff;
-  box-shadow:0 8px 22px rgba(14,116,144,.20);
-}
-body.theme-neo .btn-favorite .btn-favorite-icon{animation:none!important}
-
-.btn-favorite.saved{
-  pointer-events:none;
-  opacity:.88;
-}
 /* 이미 설치된 경우 버튼 숨기기 */
 .btn-install.installed{
   opacity:0.45;

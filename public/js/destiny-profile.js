@@ -4473,33 +4473,48 @@
     var sheet = document.getElementById('dpListSheet');
     var overlay = document.getElementById('dpListOverlay');
     var scroller = sheet ? sheet.querySelector('.dp-list-scroll') : null;
+    var container = document.getElementById('dpListInner');
     if (!sheet || !overlay) {
       console.error('[DP] list modal elements missing');
       return;
     }
 
-    // Open modal frame first so users never see only a backdrop without a container.
     sheet.classList.add('dp-sheet--open');
     overlay.classList.add('dp-sheet--open');
 
-    try {
-      renderProfileList();
-      if (scroller) scroller.scrollTop = 0;
-    } catch (err) {
-      console.error('[DP] openList render failed', err);
-      var container = document.getElementById('dpListInner');
-      if (container) {
-        container.innerHTML = '<div class="dp-list-empty">프로필 로딩 중 문제가 발생했습니다.<br><small>잠시 후 다시 시도해주세요.</small></div>';
+    function renderOpenList() {
+      try {
+        renderProfileList();
+        if (scroller) scroller.scrollTop = 0;
+      } catch (err) {
+        console.error('[DP] openList render failed', err);
+        if (container) {
+          container.innerHTML = '<div class="dp-list-empty">\uD504\uB85C\uD544 \uB85C\uB529 \uC911 \uBB38\uC81C\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.<br><small>\uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.</small></div>';
+        }
       }
-    }
 
-    if (sheet) {
-      if (!_isMobileViewport()) {
+      if (sheet && !_isMobileViewport()) {
         _bodyLocked = true;
         if (window._perf && window._perf.lockBody) window._perf.lockBody();
         else document.body.style.overflow = 'hidden';
       }
     }
+
+    if (_dpHasSessionHint()) {
+      if (container) container.innerHTML = '<div class="dp-list-empty">\uC0DD\uC131\uD55C \uD504\uB85C\uD544 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uB294 \uC911...</div>';
+      _dpLoadFromServer(function(loaded) {
+        if (!loaded) {
+          if (container) {
+            container.innerHTML = '<div class="dp-list-empty">\uC11C\uBC84\uC5D0\uC11C \uD504\uB85C\uD544 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.<br><small>\uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC5F4\uC5B4 \uC8FC\uC138\uC694.</small></div>';
+          }
+          return;
+        }
+        renderOpenList();
+      });
+      return;
+    }
+
+    renderOpenList();
   };
 
   window.dpCloseList = function() {
@@ -4527,7 +4542,23 @@
     var isSingleProfileLocked = String(access.mode || '').trim() === 'single' || access.locked === true || access.selectionRequired === true || !!lockedId;
     var maxProfiles = _dpGetMaxProfiles();
     var currentIdForPolicy = (DPStorage.current() || {}).id;
-    function activateSelectedProfile() {
+    function activateSelectedProfile(serverConfirmed) {
+      if (!serverConfirmed && _dpHasSessionHint()) {
+        _dpCommitSingleProfileSelection(id, function(ok) {
+          if (!ok) {
+            _dpLoadFromServer(function(loaded) {
+              if (!loaded) return;
+              renderMasterCard(DPStorage.current());
+              renderProfileList();
+            });
+            return;
+          }
+          _dpLoadFromServer(function() {
+            activateSelectedProfile(true);
+          });
+        });
+        return;
+      }
       DPStorage.setCurrent(id);
       var p = DPStorage.current();
       renderMasterCard(p);
@@ -4551,7 +4582,7 @@
         _dpProfileAccess.selectionRequired = false;
         _dpProfileAccess.locked = true;
         _dpProfileAccess.lockedProfileId = id;
-        activateSelectedProfile();
+        activateSelectedProfile(true);
       });
       return;
     }
@@ -4561,7 +4592,7 @@
       return;
     }
 
-    activateSelectedProfile();
+    activateSelectedProfile(false);
     return;
     /* ★ 무료 플랜: 다른 프로필 선택 불가 (프로필 1개 제한) */
     var _curId = (DPStorage.current() || {}).id;
@@ -4628,7 +4659,10 @@
       });
     }
 
-    requestDelete().then(function(result) {
+    _dpVerifyLoginSession(true).then(function(ok) {
+      if (!ok) throw new Error('AUTH_REQUIRED');
+      return requestDelete();
+    }).then(function(result) {
       var payload = result && result.data ? result.data : null;
       var code = String((payload && payload.code) || '').trim().toUpperCase();
       if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
@@ -4658,10 +4692,20 @@
       _dpUpdateSaveBtn();
       spawnStardust(document.getElementById('dpMasterCard'));
       _toast('프로필 카드가 삭제되었습니다.', 'success');
+      _dpLoadFromServer(function(loaded) {
+        if (!loaded) return;
+        var refreshed = DPStorage.current();
+        renderMasterCard(refreshed);
+        renderProfileList();
+        broadcastProfileChange(refreshed || null);
+        _dpUpdateSaveBtn();
+      });
       return null;
     }).catch(function(error) {
       _dpSetPaymentPending(false);
-      alert(String(error && error.message || '프로필 카드 삭제 중 오류가 발생했습니다.'));
+      var msg = String(error && error.message || '프로필 카드 삭제 중 오류가 발생했습니다.');
+      if (msg === 'AUTH_REQUIRED') msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
+      alert(msg);
     }).then(function() {
       if (window.__dpProfileDeleteInFlight === profileId) window.__dpProfileDeleteInFlight = '';
     });
