@@ -368,6 +368,14 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .cd-preparing-badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 8px;border-radius:999px;border:1px solid rgba(245,158,11,.42);background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(168,85,247,.16));color:#fde68a;font-size:.64rem;font-weight:900;letter-spacing:.04em;line-height:1.25;white-space:nowrap;vertical-align:middle;box-shadow:0 2px 10px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,245,200,.15)}
 .cd-preparing-badge--inline{margin-left:8px}
 .cd-preparing-badge--cta{margin-left:6px;padding:2px 7px;font-size:.6rem}
+.cd-preparing-badge--headline{
+  margin-left:12px;
+  padding:7px 12px;
+  border-radius:12px;
+  font-size:1.12rem;
+  font-weight:1000;
+  box-shadow:0 6px 16px rgba(0,0,0,.35);
+}
 .cd-user-card{position:relative;margin-top:20px;padding:28px 18px 20px;border-radius:24px;background:radial-gradient(120% 90% at 50% -8%,rgba(199,160,255,0.32) 0%,rgba(89,45,174,0.34) 30%,transparent 58%),radial-gradient(130% 120% at 50% 0%,rgba(69,41,140,0.5) 0%,rgba(18,8,44,0.98) 44%,rgba(9,4,30,0.99) 100%);border:1px solid rgba(190,150,255,0.36);box-shadow:0 0 60px rgba(90,40,180,0.22),0 18px 52px rgba(0,0,0,0.54),inset 0 1px 0 rgba(236,214,255,0.22),inset 0 -24px 40px rgba(27,12,66,0.42);display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;width:100%;overflow:hidden;transform:translateZ(0);-webkit-transform:translateZ(0)}
 .cd-user-card::before{content:'';position:absolute;top:-42%;left:50%;transform:translateX(-50%);width:300px;height:230px;border-radius:50%;background:radial-gradient(circle,rgba(159,95,255,0.32),rgba(126,66,220,0.12) 52%,transparent 76%);pointer-events:none;filter:blur(.5px)}
 .cd-user-card::after{content:'';position:absolute;bottom:-42%;left:50%;transform:translateX(-50%);width:360px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(62,153,255,0.22),rgba(43,94,202,0.08) 50%,transparent 74%);pointer-events:none}
@@ -530,7 +538,7 @@ body.neo-mode .pf-showcase{--pf-title-color:#f6f1ff;--pf-sub-color:#e1d7ff;--pf-
 #sajuLoaderOverlay {
   position: fixed;
   inset: 0;
-  z-index: 2147483200;
+  z-index: 2147483647;
   background: radial-gradient(circle at 18% 16%, rgba(13, 148, 136, 0.2), transparent 48%),
     radial-gradient(circle at 84% 72%, rgba(245, 158, 11, 0.16), transparent 54%),
     radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98));
@@ -540,6 +548,17 @@ body.neo-mode .pf-showcase{--pf-title-color:#f6f1ff;--pf-sub-color:#e1d7ff;--pf-
   padding: 20px;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+}
+#sajuLoaderOverlay.saju-loader-overlay--front {
+  z-index: 2147483647;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  isolation: isolate;
+}
+#sajuLoaderOverlay[aria-hidden="false"] .saju-loader-card {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
 }
 #sajuLoaderOverlay::before {
   content: '';
@@ -2173,7 +2192,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 </div>
 
 <!-- ═══ 사주 풀이 로딩 애니메이션 (만세력/결제) ═══ -->
-<div id="sajuLoaderOverlay" aria-live="polite" aria-hidden="true" data-mode="payment" data-marker="money-yeon-paid-wait-sprite-sheet-v20260609-slow-cut">
+<div id="sajuLoaderOverlay" aria-live="polite" aria-hidden="true" data-mode="payment" data-marker="money-yeon-paid-wait-sprite-sheet-v20260609-slow-cut desktop-paid-wait-overlay-front-v20260610">
   <div class="saju-loader-card" role="status" aria-live="assertive">
     <div class="saju-loader-visual" aria-hidden="true">
       <div class="saju-loader-payment-core"></div>
@@ -7430,7 +7449,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                    src="/fuctionassets/lifebook.webp" alt="인생의 책 — 나만을 위한 프리미엄 사주 심층 분석">
             </div>
             <div class="lifebook-tile__body">
-              <h2 class="lifebook-tile__title">📜 인생의 책</h2>
+              <h2 class="lifebook-tile__title">📜 인생의 책 <span class="cd-preparing-badge cd-preparing-badge--inline cd-preparing-badge--headline">준비중!</span></h2>
               <p class="lifebook-tile__subtitle">사주 원국으로 펼치는 생애의 지도</p>
               <p class="lifebook-tile__desc">사주 원국·대운·세운을 13개 장으로 엮어 삶의 방향과 선택의 때를 PDF 전서로 정리합니다.</p>
               <div class="lifebook-tile__features">
@@ -7484,7 +7503,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               </div>
             </div>
             <div class="lovebible-tile__body">
-              <h2 class="lovebible-tile__title">💕 연애 비책</h2>
+              <h2 class="lovebible-tile__title">💕 연애 비책 <span class="cd-preparing-badge cd-preparing-badge--inline cd-preparing-badge--headline">준비중!</span></h2>
               <p class="lovebible-tile__subtitle">사주로 읽는 사랑의 결, 인연의 방향</p>
               <p class="lovebible-tile__desc">일간·일지·월지로 반복되는 연애 흐름을 읽고, 매력·이상형·관계 안정 전략을 PDF로 정리합니다.</p>
               <div class="lovebible-tile__features">
@@ -7531,7 +7550,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
                    src="/fuctionassets/신년운세.webp" alt="사주 신년운세 프리미엄 PDF">
             </div>
             <div class="lifebook-tile__body">
-              <h2 class="lifebook-tile__title">🎊 사주 신년운세</h2>
+              <h2 class="lifebook-tile__title">🎊 사주 신년운세 <span class="cd-preparing-badge cd-preparing-badge--inline cd-preparing-badge--headline">준비중!</span></h2>
               <p class="lifebook-tile__subtitle">원국과 세운으로 읽는 올해의 10챕터 전략</p>
               <p class="lifebook-tile__desc">올해의 큰 운, 일과 재물, 관계와 마음, 12개월 흐름을 한 권의 신년 전략 PDF로 정리합니다.</p>
               <div class="lifebook-tile__features">
@@ -8543,7 +8562,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <span class="lb-header-star">✦</span>
           </div>
           <div class="lb-modal__badge">PREMIUM NEW YEAR GUIDE</div>
-          <h2 class="lb-modal__title">🎊 사주 신년운세 PDF</h2>
+          <h2 class="lb-modal__title">🎊 사주 신년운세 PDF <span class="cd-preparing-badge cd-preparing-badge--inline cd-preparing-badge--headline">준비중!</span></h2>
           <p class="lb-modal__subtitle">원국 기반 12개월 월별 전략을 10챕터로 정리합니다</p>
           <button type="button" class="lb-modal__close" data-action="closeSajuNewYearModal" aria-label="닫기">✕</button>
         </div>
@@ -8696,7 +8715,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <span class="lb-header-star">✦</span>
           </div>
           <div class="lb-modal__badge">PREMIUM SAJU ANALYSIS</div>
-          <h2 class="lb-modal__title">📜 인생의 책</h2>
+          <h2 class="lb-modal__title">📜 인생의 책 <span class="cd-preparing-badge cd-preparing-badge--inline cd-preparing-badge--headline">준비중!</span></h2>
           <p class="lb-modal__subtitle">사주 원국과 대운으로 쓰는 나만의 운명 지도</p>
           <button type="button" class="lb-modal__close" data-action="closeLifeBookModal" aria-label="닫기">✕</button>
         </div>
@@ -8866,7 +8885,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
               <p id="lbResultDate" class="lb-result-date"></p>
             </div>
             <div class="lb-result-actions">
-              <button type="button" class="lb-btn-kakao" data-action="shareLifeBookKakao">💬 공유+10코인</button>
+              <button type="button" class="lb-btn-kakao" data-action="shareLifeBookKakao">💬 공유하기</button>
               <button type="button" class="lb-btn-pdf" id="lbPdfBtn" data-action="downloadLifeBookPdf">
                 <span>⬇</span> PDF 다운로드
               </button>
@@ -8928,7 +8947,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
             <span class="ls-header-star">♡</span>
           </div>
           <div class="ls-modal__badge">PREMIUM LOVE STRATEGY</div>
-          <h2 class="ls-modal__title">💕 연애 비책</h2>
+          <h2 class="ls-modal__title">💕 연애 비책 <span class="cd-preparing-badge cd-preparing-badge--inline cd-preparing-badge--headline">준비중!</span></h2>
           <p class="ls-modal__subtitle">당신의 연애 DNA를 해독하는 솔로 10챕터 · 궁합 12챕터 완전 전략서</p>
           <button type="button" class="ls-modal__close" data-action="closeLoveSecretModal" aria-label="닫기">✕</button>
         </div>
@@ -9860,39 +9879,40 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var style = document.createElement('style');
     style.id = 'cdDirectPaymentStyles';
     style.textContent = [
-      '.cd-direct-payment-modal{position:fixed;inset:0;z-index:100260;display:none;align-items:center;justify-content:center;padding:18px;background:radial-gradient(circle at 50% 6%,rgba(245,219,154,.18),transparent 32%),radial-gradient(circle at 12% 18%,rgba(125,211,252,.14),transparent 26%),radial-gradient(circle at 86% 78%,rgba(196,181,253,.16),transparent 28%),rgba(5,8,24,.78);backdrop-filter:blur(14px);overflow:auto}',
+      '.cd-direct-payment-modal{position:fixed;inset:0;z-index:100260;display:none;align-items:center;justify-content:center;padding:16px;background:radial-gradient(circle at 50% 6%,rgba(245,219,154,.18),transparent 32%),radial-gradient(circle at 12% 18%,rgba(125,211,252,.14),transparent 26%),radial-gradient(circle at 86% 78%,rgba(196,181,253,.16),transparent 28%),rgba(5,8,24,.78);backdrop-filter:blur(14px);overflow:auto}',
       '.cd-direct-payment-modal.is-open{display:flex}',
-      '.cd-direct-payment-dialog{width:min(540px,100%);border:1px solid rgba(245,219,154,.38);border-radius:24px;background:linear-gradient(155deg,rgba(8,13,35,.98),rgba(20,26,62,.98) 48%,rgba(34,25,72,.97));color:#f8fafc;box-shadow:0 30px 80px rgba(0,0,0,.56),0 0 40px rgba(125,211,252,.16),inset 0 1px 0 rgba(255,255,255,.16);padding:22px;position:relative;overflow:hidden}',
+      '.cd-direct-payment-dialog{width:min(520px,100%);max-height:calc(100dvh - 32px);border:1px solid rgba(245,219,154,.38);border-radius:22px;background:linear-gradient(155deg,rgba(8,13,35,.98),rgba(20,26,62,.98) 48%,rgba(34,25,72,.97));color:#f8fafc;box-shadow:0 30px 80px rgba(0,0,0,.56),0 0 40px rgba(125,211,252,.16),inset 0 1px 0 rgba(255,255,255,.16);padding:18px;position:relative;overflow:auto;scrollbar-width:thin}',
       '.cd-direct-payment-dialog::before{content:"";position:absolute;right:-32px;top:-42px;width:154px;height:154px;border-radius:999px;background:radial-gradient(circle at 32% 32%,#fff8d0 0 16%,#f3dd9a 17% 34%,rgba(243,221,154,.14) 35% 62%,transparent 63%);box-shadow:0 0 34px rgba(243,221,154,.34);pointer-events:none}',
       '.cd-direct-payment-dialog::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 12% 13%,rgba(255,255,255,.86) 0 1px,transparent 2px),radial-gradient(circle at 76% 18%,rgba(186,230,253,.9) 0 1px,transparent 2px),radial-gradient(circle at 24% 88%,rgba(221,214,254,.75) 0 1px,transparent 2px),radial-gradient(circle at 88% 70%,rgba(254,243,199,.8) 0 1px,transparent 2px);pointer-events:none;opacity:.72}',
-      '.cd-direct-payment-status-sprite{position:relative;z-index:2;display:flex;justify-content:center;margin:0 auto 12px;pointer-events:none}',
-      '.cd-direct-payment-status-sprite .saju-loader-visual{position:relative;width:82px;height:123px;margin:0}',
+      '.cd-direct-payment-status-sprite{position:relative;z-index:2;display:flex;justify-content:center;margin:0 auto 8px;pointer-events:none}',
+      '.cd-direct-payment-status-sprite .saju-loader-visual{position:relative;width:58px;height:74px;margin:0;overflow:visible}',
       '.cd-direct-payment-status-sprite .saju-loader-payment-core,.cd-direct-payment-status-sprite .saju-loader-pass-moon{display:none}',
-      '.cd-direct-payment-status-sprite .saju-loader-yeon-sprite{display:block;inset:0;border-radius:22px;border-color:rgba(254,243,199,.56);background-color:#fff7ed}',
-      '.cd-direct-payment-title{position:relative;z-index:1;margin:0 0 8px;font-size:22px;font-weight:950;letter-spacing:0;color:#fff7db;text-shadow:0 0 20px rgba(245,219,154,.22)}',
-      '.cd-direct-payment-sub{position:relative;z-index:1;margin:0 0 16px;color:#dbeafe;font-size:13px;line-height:1.6}',
-      '.cd-direct-payment-choice-grid{display:grid;grid-template-columns:1fr;gap:12px;position:relative;z-index:1}',
-      '.cd-direct-payment-option{width:100%;min-height:auto;margin:0;padding:16px;border:1px solid rgba(186,230,253,.24);border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.035));color:inherit;text-align:left;cursor:pointer;position:relative;z-index:1;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 10px 26px rgba(2,6,23,.24);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,filter .18s ease}',
+      '.cd-direct-payment-status-sprite .saju-loader-yeon-sprite{display:block;inset:4px 0 0 0;width:58px;height:58px;border-radius:18px;border-color:rgba(254,243,199,.56);background-color:#fff7ed;animation:none}',
+      '.cd-direct-payment-title{position:relative;z-index:1;margin:0 0 6px;font-size:21px;font-weight:950;letter-spacing:0;color:#fff7db;text-shadow:0 0 20px rgba(245,219,154,.22)}',
+      '.cd-direct-payment-sub{position:relative;z-index:1;margin:0 0 10px;color:#dbeafe;font-size:12.5px;line-height:1.5}',
+      '.cd-direct-payment-choice-grid{display:grid;grid-template-columns:1fr;gap:10px;position:relative;z-index:1}',
+      '.cd-direct-payment-option{width:100%;min-height:auto;margin:0;padding:13px 14px;border:1px solid rgba(186,230,253,.24);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.035));color:inherit;text-align:left;cursor:pointer;position:relative;z-index:1;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 10px 26px rgba(2,6,23,.24);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,filter .18s ease}',
       '.cd-direct-payment-option::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 92% 18%,rgba(255,255,255,.12),transparent 28%);pointer-events:none}',
       '.cd-direct-payment-option:hover,.cd-direct-payment-option:focus{border-color:rgba(245,219,154,.78);outline:0;transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 16px 34px rgba(2,6,23,.34),0 0 22px rgba(245,219,154,.12)}',
       '.cd-direct-payment-option[data-mode="pass"]{border-color:rgba(245,219,154,.68);background:linear-gradient(145deg,rgba(57,43,104,.86),rgba(16,35,72,.82));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 16px 34px rgba(23,13,58,.3),0 0 24px rgba(202,184,255,.14)}',
       '.cd-direct-payment-option[data-mode="direct"]{border-color:rgba(250,204,21,.46);background:linear-gradient(145deg,rgba(52,36,18,.82),rgba(31,27,43,.82))}',
       '.cd-direct-payment-option[data-mode="monthly"]{border-color:rgba(125,211,252,.46);background:linear-gradient(145deg,rgba(12,40,67,.82),rgba(20,28,56,.82))}',
-      '.cd-direct-payment-option strong{display:block;margin:32px 0 6px;font-size:16px;line-height:1.35;color:#ffffff}',
-      '.cd-direct-payment-option span{display:block;font-size:13px;line-height:1.55;color:#e5ecff}',
-      '.cd-direct-payment-option dl{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:13px 0 0;border-top:1px solid rgba(226,232,240,.18)}',
-      '.cd-direct-payment-option div{padding:10px 0 0;border-bottom:0}',
-      '.cd-direct-payment-option dt{font-size:12px;color:#bac7dd}',
-      '.cd-direct-payment-option dd{margin:4px 0 0;font-size:14px;color:#fff7db;font-weight:900}',
-      '.cd-direct-payment-badge{position:absolute;left:14px;top:13px;display:inline-flex;align-items:center;min-height:24px;padding:0 11px;border-radius:999px;border:1px solid rgba(255,244,214,.28);background:rgba(255,255,255,.12);font-size:12px;font-weight:900;color:#fff7db;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}',
+      '.cd-direct-payment-option strong{display:block;margin:28px 0 4px;font-size:15px;line-height:1.28;color:#ffffff}',
+      '.cd-direct-payment-option span{display:block;font-size:12.5px;line-height:1.45;color:#e5ecff}',
+      '.cd-direct-payment-option br{display:none}',
+      '.cd-direct-payment-option dl{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:10px 0 0;border-top:1px solid rgba(226,232,240,.18)}',
+      '.cd-direct-payment-option div{padding:8px 0 0;border-bottom:0}',
+      '.cd-direct-payment-option dt{font-size:11px;color:#bac7dd}',
+      '.cd-direct-payment-option dd{margin:3px 0 0;font-size:13px;color:#fff7db;font-weight:900}',
+      '.cd-direct-payment-badge{position:absolute;left:14px;top:12px;display:inline-flex;align-items:center;min-height:22px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,244,214,.28);background:rgba(255,255,255,.12);font-size:11px;font-weight:900;color:#fff7db;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}',
       '.cd-direct-payment-option[disabled]{opacity:.45;cursor:not-allowed}',
       '.cd-direct-payment-option.is-loading{pointer-events:none;opacity:.72}',
-      '.cd-direct-payment-status{min-height:18px;margin:12px 0 0;color:#f3dd9a;font-size:12px;line-height:1.45;position:relative;z-index:1}',
-      '.cd-direct-payment-note{position:relative;z-index:1;margin:0 0 14px;padding:14px 15px;border-radius:18px;background:linear-gradient(135deg,rgba(10,17,42,.78),rgba(20,28,66,.62));border:1px solid rgba(186,230,253,.24);color:#dbeafe;font-size:13px;line-height:1.55;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}',
-      '.cd-direct-payment-note strong{display:block;margin-bottom:5px;color:#ffffff;font-size:16px;line-height:1.35}',
-      '.cd-direct-payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;position:relative;z-index:1}',
-      '.cd-direct-payment-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);color:#f8fafc;padding:10px 16px;cursor:pointer;font-weight:900}',
-      '@media(max-width:760px){.cd-direct-payment-modal{padding:10px}.cd-direct-payment-dialog{padding:18px 14px;width:100%;max-height:calc(100vh - 20px);overflow:auto;border-radius:22px}.cd-direct-payment-title{font-size:20px}.cd-direct-payment-sub{font-size:13px}.cd-direct-payment-note{font-size:12px}.cd-direct-payment-note strong{font-size:15px}.cd-direct-payment-option{padding:14px}.cd-direct-payment-option strong{font-size:15px}.cd-direct-payment-option span{font-size:12px}.cd-direct-payment-badge{font-size:11px}}'
+      '.cd-direct-payment-status{min-height:16px;margin:9px 0 0;color:#f3dd9a;font-size:12px;line-height:1.4;position:relative;z-index:1}',
+      '.cd-direct-payment-note{position:relative;z-index:1;margin:0 0 10px;padding:11px 13px;border-radius:16px;background:linear-gradient(135deg,rgba(10,17,42,.78),rgba(20,28,66,.62));border:1px solid rgba(186,230,253,.24);color:#dbeafe;font-size:12.5px;line-height:1.45;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}',
+      '.cd-direct-payment-note strong{display:block;margin-bottom:3px;color:#ffffff;font-size:15px;line-height:1.28}',
+      '.cd-direct-payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;position:relative;z-index:1}',
+      '.cd-direct-payment-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);color:#f8fafc;padding:9px 15px;cursor:pointer;font-weight:900}',
+      '@media(max-width:760px){.cd-direct-payment-modal{align-items:flex-start;padding:8px}.cd-direct-payment-dialog{padding:12px;width:100%;max-height:calc(100dvh - 16px);border-radius:18px}.cd-direct-payment-dialog::before{width:118px;height:118px;right:-30px;top:-42px}.cd-direct-payment-status-sprite{margin-bottom:5px}.cd-direct-payment-status-sprite .saju-loader-visual{width:50px;height:58px}.cd-direct-payment-status-sprite .saju-loader-yeon-sprite{width:50px;height:50px;border-radius:15px}.cd-direct-payment-title{font-size:19px;margin-bottom:4px}.cd-direct-payment-sub{font-size:12px;line-height:1.42;margin-bottom:8px}.cd-direct-payment-note{padding:10px 11px;font-size:12px;line-height:1.4;margin-bottom:8px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:11px 12px;border-radius:14px}.cd-direct-payment-option strong{margin-top:25px;font-size:14px}.cd-direct-payment-option span{font-size:11.5px;line-height:1.38}.cd-direct-payment-option dl{margin-top:8px}.cd-direct-payment-option div{padding-top:7px}.cd-direct-payment-option dt{font-size:10.5px}.cd-direct-payment-option dd{font-size:12px}.cd-direct-payment-badge{left:12px;top:10px;min-height:20px;padding:0 9px;font-size:10.5px}.cd-direct-payment-actions{margin-top:8px}.cd-direct-payment-cancel{padding:8px 13px;font-size:12px}}'
     ].join('');
     document.head.appendChild(style);
   }
@@ -10088,6 +10108,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       var passBusy = false;
       modal.className = 'cd-direct-payment-modal is-open';
       modal.setAttribute('data-marker', 'direct-payment-pass-store-v20260607');
+      modal.setAttribute('data-ux-marker', 'direct-payment-compact-mobile-v20260610');
       modal.setAttribute('role', 'dialog');
       modal.setAttribute('aria-modal', 'true');
       modal.setAttribute('aria-labelledby', 'cdDirectPaymentTitle');
@@ -11421,6 +11442,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var meta = document.getElementById('sajuLoaderMeta');
     if (!overlay) return;
     if (isOpen) {
+      try {
+        if (document.body && overlay.parentNode !== document.body) {
+          document.body.appendChild(overlay);
+        } else if (document.body && overlay.nextSibling) {
+          document.body.appendChild(overlay);
+        }
+      } catch (_) {}
       var copy = _cdResolvePaymentOverlayCopy(message, mode);
       if (copy.mode === 'payment-complete' || copy.mode === 'pass-applied') {
         _cdPaymentCompleteOverlayHoldUntil = Date.now() + 900;
@@ -11430,11 +11458,18 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
         _cdPaymentCompleteOverlayHoldUntil = 0;
       }
       overlay.dataset.mode = copy.mode;
+      overlay.classList.add('saju-loader-overlay--front');
       if (eyebrow) eyebrow.textContent = copy.eyebrow;
       if (title) title.textContent = copy.title;
       if (txt) txt.textContent = copy.message;
       if (meta) meta.textContent = copy.meta;
       overlay.setAttribute('aria-hidden', 'false');
+      overlay.style.position = 'fixed';
+      overlay.style.inset = '0';
+      overlay.style.zIndex = '2147483647';
+      overlay.style.visibility = 'visible';
+      overlay.style.opacity = '1';
+      overlay.style.pointerEvents = 'auto';
       overlay.style.display = 'flex';
       try {
         overlay.classList.remove('is-animating');
@@ -11458,8 +11493,12 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
       _cdPaymentCompleteOverlayHoldUntil = 0;
       overlay.setAttribute('aria-hidden', 'true');
       overlay.dataset.mode = 'payment';
-      try { overlay.classList.remove('is-animating'); } catch (_) {}
+      try { overlay.classList.remove('is-animating', 'saju-loader-overlay--front'); } catch (_) {}
       overlay.style.display = 'none';
+      overlay.style.visibility = 'hidden';
+      overlay.style.opacity = '';
+      overlay.style.pointerEvents = '';
+      overlay.style.zIndex = '';
       document.body.style.overflow = '';
     }
   }
@@ -13196,13 +13235,13 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
     var selectedPackage = getSelectedPackage();
     var selectedMonthlyCreditCost = getSubscriptionMonthlyCreditCost(selectedPackage);
     var currentMonthlyCreditBalance = _cdGetMonthlyCreditBalance();
-    var chargeButtonLabel = '월정석 ' + selectedMonthlyCreditCost.toLocaleString('ko-KR') + '개로 구매';
-    var chargeNotice = '<div class="golden-grain-modal__notice">현재 보유 월정석 ' + currentMonthlyCreditBalance.toLocaleString('ko-KR') + '개 · 선택한 이용권 필요 월정석 ' + selectedMonthlyCreditCost.toLocaleString('ko-KR') + '개</div>';
+    var chargeButtonLabel = formatWon(selectedMonthlyCreditCost * 10) + '으로 구매';
+    var chargeNotice = '<div class="golden-grain-modal__notice">현재 보유 월정석 ' + currentMonthlyCreditBalance.toLocaleString('ko-KR') + '개 · 선택한 이용권 결제 금액 ' + formatWon(selectedMonthlyCreditCost * 10) + '</div>';
     var monthlyHistoryHtml = buildGoldenMonthlyCreditHistoryHtml();
     var packageItems = goldenPackages.map(function (pkg) {
       var bestRibbon = pkg.id === 'premium' ? '<span class="golden-grain-package__best">BEST</span>' : '';
       var packageMonthlyCreditCost = getSubscriptionMonthlyCreditCost(pkg);
-      var bonusHTML = '<span class="golden-grain-package__bonus">월정석 ' + packageMonthlyCreditCost.toLocaleString('ko-KR') + '개로 구매</span>';
+      var bonusHTML = '<span class="golden-grain-package__bonus">' + formatWon(pkg.price) + '으로 구매</span>';
       return [
         '<button type="button" class="golden-grain-package' + (pkg.id === selectedPackageId ? ' is-selected' : '') + '" data-action="selectGoldenPackage" data-package-id="' + pkg.id + '">',
         bestRibbon,

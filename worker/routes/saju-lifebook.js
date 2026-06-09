@@ -5703,6 +5703,64 @@ function buildLifeBookBlockInterpretationText(normalizedData = {}, chapter = {},
   return dedupeParagraphs(selected.map((block) => renderLifeBookInterpretationBlock(block, seed)).filter(Boolean).join("\n\n"));
 }
 
+function buildLifeBookContractContextLines(normalizedData = {}, chapter = {}, categoryTitle = "") {
+  const chapterTitle = clean(categoryTitle || chapter?.title || "");
+  const lines = [];
+  const notes = safeLifeBookList(normalizedData?.structure?.notes);
+  const opportunities = safeLifeBookList(normalizedData?.opportunities);
+  const risks = safeLifeBookList(normalizedData?.risks);
+  const strongest = safeLifeBookList(normalizedData?.fiveElements?.strongest);
+  const weakest = safeLifeBookList(normalizedData?.fiveElements?.weakest);
+  const clashes = safeLifeBookList(normalizedData?.relationships?.clashes);
+  const punishments = safeLifeBookList(normalizedData?.relationships?.punishments);
+  const combinations = safeLifeBookList(normalizedData?.relationships?.combinations);
+  const monthlyLuck = safeLifeBookList(normalizedData?.luckCycles?.monthlyLuck)
+    .slice(0, 2)
+    .map((item) => clean(item?.focus || item?.label || item?.name || item?.title || item?.text || item))
+    .filter(Boolean);
+  const currentDaewoon = clean(
+    normalizedData?.luckCycles?.currentDaewoon?.label
+      || normalizedData?.luckCycles?.currentDaewoon
+      || "",
+  );
+  const nextDaewoon = clean(
+    normalizedData?.luckCycles?.nextDaewoon?.label
+      || normalizedData?.luckCycles?.nextDaewoon
+      || "",
+  );
+
+  if (notes.length) {
+    lines.push(`이번 항목의 핵심은 ${chapterTitle ? `${chapterTitle} 기준` : "현재 운세"}: ${notes[0]}`);
+  }
+  if (strongest.length || weakest.length) {
+    const strength = strongest.length ? `강점 ${strongest.join(", ")}` : "";
+    const weakness = weakest.length ? `보완 ${weakest.join(", ")}` : "";
+    lines.push([strength, weakness].filter(Boolean).join(" / "));
+  }
+  if (opportunities.length) {
+    lines.push(`기회 신호: ${opportunities.slice(0, 3).join(", ")}`);
+  }
+  if (risks.length) {
+    lines.push(`주의 신호: ${risks.slice(0, 3).join(", ")}`);
+  }
+  if (combinations.length) {
+    lines.push(`화합 포인트: ${combinations.slice(0, 2).join(", ")}`);
+  }
+  if (clashes.length) {
+    lines.push(`충돌 포인트: ${clashes.slice(0, 2).join(", ")}`);
+  }
+  if (punishments.length) {
+    lines.push(`억압/제한 포인트: ${punishments.slice(0, 2).join(", ")}`);
+  }
+  if (currentDaewoon || nextDaewoon) {
+    lines.push(`${currentDaewoon ? `현재 대운 ${currentDaewoon}` : "현재 대운"} 기준으로 다음 흐름은 ${nextDaewoon || "다음 대운"}을 봐야 합니다.`);
+  }
+  if (monthlyLuck.length) {
+    lines.push(`근접 월간 흐름: ${monthlyLuck.join(", ")}`);
+  }
+  return lines.slice(0, 4).join("\n\n");
+}
+
 function buildLifeBookNormalizedData({ birthInput = {}, profile = {}, signals = {}, localSajuJson = {}, engineContract = {}, canonicalSajuChart = {} } = {}) {
   const pillars = canonicalSajuChart?.fourPillars || engineContract?.natal?.pillars || localSajuJson?.pillars || {};
   const dayStem = safeLifeBookScalar(canonicalSajuChart?.dayMaster?.stem || engineContract?.natal?.dayMaster || localSajuJson?.dayMaster || signals?.dayMaster);
@@ -7210,7 +7268,8 @@ function buildProfessionalLifeBookCategoryText(profile, signals, chapter, catego
   const ctx = buildLifeBookReadingContext(profile, signals);
   const chapterId = String(chapter?.id || "");
   const insight = buildLifeBookChapterInsight(chapterId, ctx, categoryTitle);
-  const blockInterpretation = buildLifeBookBlockInterpretationText(normalizedData, chapter, categoryTitle, 2);
+  const blockInterpretation = buildLifeBookBlockInterpretationText(normalizedData, chapter, categoryTitle, 4);
+  const contractContext = buildLifeBookContractContextLines(normalizedData || {}, chapter, categoryTitle);
   const strengthLine = `${categoryTitle}에서 이 명식이 잘 쓰이면 ${ctx.dominant} 기운의 추진력과 ${ctx.topTenGod}의 현실 감각이 결합되어, 상황을 오래 관찰한 뒤 필요한 지점을 정확히 짚는 힘으로 나타납니다. 특히 ${ctx.dayPillar}의 중심이 흔들리지 않을 때는 말보다 결과로 신뢰를 쌓는 장점이 강해집니다.`;
   const cautionLine = `${categoryTitle}의 반대편을 보면, 균형이 무너질 때 ${ctx.caution} 기운이 과해지거나 ${ctx.weakest} 기운이 약해지는 쪽으로 흐르며 판단이 급해지고 관계와 일의 경계가 흐려질 수 있습니다. 이때는 스스로를 몰아붙이기보다 일정과 책임 범위를 줄이고, 감정으로 결정한 일을 하루 뒤 다시 확인해야 합니다.`;
   const timingLine = `${categoryTitle}은 현재 ${ctx.currentDaeun}의 흐름과도 연결됩니다. 이 시기에는 무리한 확장보다 오래 가져갈 구조를 선별하는 일이 중요하고, 다음 ${ctx.nextDaeun}으로 넘어갈수록 지금 남겨 둔 기준이 결과의 차이를 만들기 때문에 지속 가능한 관계, 수입 구조, 생활 리듬을 우선해야 합니다.`;
@@ -7236,6 +7295,7 @@ function buildProfessionalLifeBookCategoryText(profile, signals, chapter, catego
     strengthLine,
     cautionLine,
     timingLine,
+    contractContext,
     practicalLines[chapterId] || practicalLines["13"],
     blockInterpretation,
     groundingLine,

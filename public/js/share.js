@@ -426,25 +426,23 @@ function shareZiweiKakao() {
   }, 'ziwei');
 }
 function shareLifeBookKakao() {
-  shareWithReward(function () {
-    var name = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name)
-      || (window.USER_NAME || '사용자');
-    var base = window.location.href.split('?')[0];
-    var text = '📜 [인생의 책 — 나만을 위한 사주 심층 분석]\n\n'
-      + name + '님의 운명을 10가지 심층 분석으로 완전 해독했습니다.\n\n'
-      + '🔮 사주 팔자 완전 분석 · 대운 10년 흐름 · 재물·사랑·직업 종합\n\n'
-      + '나도 무료로 확인하기 👇\n' + base;
-    if (navigator.share) {
-      navigator.share({ title: '📜 인생의 책', text: text, url: base }).catch(function () {});
-      return;
-    }
-    var a = document.createElement('a');
-    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
-    a.click();
-    setTimeout(function () {
-      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
-    }, 800);
-  }, 'lifebook');
+  var name = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name)
+    || (window.USER_NAME || '사용자');
+  var base = window.location.href.split('?')[0];
+  var text = '사주 [인생의 책 결과]\n\n'
+    + name + '님의 인생의 책 결과를 공유합니다.\n\n'
+    + '매력적인 문장으로 정리한 인생의 책 요약입니다.\n\n'
+    + '아래 링크에서 확인하세요.\n' + base;
+  if (navigator.share) {
+    navigator.share({ title: '사주 인생의 책', text: text, url: base }).catch(function () {});
+    return;
+  }
+  var a = document.createElement('a');
+  a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+  a.click();
+  setTimeout(function () {
+    copyToClipboard(text, '클립보드에 복사되었습니다. PC에서는 우클릭 붙여넣기 후 공유하세요.');
+  }, 800);
 }
 
 function shareLoveSecretKakao() {

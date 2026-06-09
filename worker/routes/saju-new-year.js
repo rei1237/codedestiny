@@ -43,6 +43,27 @@ const newYearPdfLocks = new Map();
 const annualFortuneLlmCache = new Map();
 export { NEW_YEAR_CHAPTERS };
 
+function isTruthyFlag(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
+}
+
+function isProductionRuntime(env) {
+  const nodeEnv = String(env?.NODE_ENV || "").trim().toLowerCase();
+  if (nodeEnv === "production") return true;
+
+  const appEnv = String(env?.APP_ENV || env?.DEPLOY_ENV || env?.ENVIRONMENT || "").trim().toLowerCase();
+  return appEnv === "prod" || appEnv === "production";
+}
+
+function isPremiumReportPaymentBypassEnabled(env) {
+  return isTruthyFlag(env?.BYPASS_PREMIUM_REPORT_PAYMENT) || isTruthyFlag(env?.ALLOW_TEST_PREMIUM_REPORT_PAYMENT);
+}
+
+function isPremiumReportTestMode(env) {
+  return !isProductionRuntime(env) || isPremiumReportPaymentBypassEnabled(env);
+}
+
 export const YEARLY_SAJU_PDF_CONFIG = Object.freeze({
   generationMode: "local",
   llmEnabled: false,
@@ -4387,13 +4408,24 @@ async function handlePrepare(request, env) {
     const premiumAccessToken = clean(request.headers.get("x-premium-access-token") || body?.premiumAccessToken || body?._premiumAccessToken || cookieValue(request, "cd_premium_access"));
 
     console.info("[NewYearPremiumPDF][PaymentVerificationStarted]", { featureKey, userId: auth.userId });
-    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sajuNewYear", {
-      ...body,
-      featureKey,
-      reportType: "sajuNewYear",
-      premiumAccessToken: premiumAccessToken || undefined,
-      _accessRoute: "/api/saju-new-year/prepare",
-    });
+    const access = isPremiumReportTestMode(env)
+      ? {
+        ok: true,
+        status: 200,
+        accessType: "test_bypass",
+        accessMethod: "TEST_NO_PAYMENT",
+        featureKey,
+        reportType: "sajuNewYear",
+        userId: auth.userId,
+        bypass: true,
+      }
+      : await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sajuNewYear", {
+        ...body,
+        featureKey,
+        reportType: "sajuNewYear",
+        premiumAccessToken: premiumAccessToken || undefined,
+        _accessRoute: "/api/saju-new-year/prepare",
+      });
     if (!access?.ok) {
       const status = Number(access?.status || 402);
       const hasSessionId = Boolean(clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId));
