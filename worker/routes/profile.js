@@ -979,7 +979,13 @@ async function handleCreateProfile(request, auth) {
     }
 
     let createPayment = null;
-    if (!canCreateProfileWithinSubscriptionLimit(subscription, count)) {
+    if (!subscription.isActive) {
+      createPayment = await ensureProfileCreatePaymentAuthorized(auth, {
+        profileId: normalized.profileId,
+        body,
+      });
+      if (!createPayment.ok) return createPayment.response;
+    } else if (!canCreateProfileWithinSubscriptionLimit(subscription, count)) {
       createPayment = await ensureProfileCreatePaymentAuthorized(auth, {
         profileId: normalized.profileId,
         body,
@@ -1027,12 +1033,15 @@ async function handleCreateProfile(request, auth) {
       });
     }
 
+    const profiles = await listUserProfiles(auth.userId);
+
     return json({
       success: true,
       message: "PROFILE_CREATED_SUCCESSFULLY",
       data: profile,
       ok: true,
       profile,
+      profiles,
       currentId: nextCurrentId,
       subscription,
       canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, count + 1),

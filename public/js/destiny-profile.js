@@ -3009,7 +3009,9 @@
     var limit = Math.max(1, Math.floor(Number(maxProfiles || 1)));
     var remaining = Math.max(0, limit - used);
     var label = planLabel || '무료 플랜';
-    if (canUsePlanSlot) {
+    if (!_dpSubIsActive) {
+      quotaText.textContent = '무료 계정 · 프로필 카드 추가는 ' + PROFILE_CARD_MANAGE_COST + '코인 결제 후 저장됩니다.';
+    } else if (canUsePlanSlot) {
       quotaText.textContent = label + ' · 등록 가능 ' + remaining + '개 남음 (' + used + '/' + limit + ')';
     } else {
       quotaText.textContent = label + ' · 기본 한도 ' + limit + '개 사용 완료 · 추가 생성 50코인';
@@ -3022,6 +3024,7 @@
     var maxProfiles = Math.max(1, Math.floor(Number(_dpGetMaxProfiles() || 1)));
     var hasProfiles = profileCount > 0;
     var canUsePlanSlot = profileCount < maxProfiles;
+    var canCreateWithoutPayment = _dpSubIsActive && canUsePlanSlot;
     var planLabel = _dpGetTierLabel(_dpSubIsActive ? _dpSubTier : _dpGetUserPlan());
     var slotLabel = profileCount + '/' + maxProfiles;
     _dpUpdateProfileQuotaText(profileCount, maxProfiles, planLabel, canUsePlanSlot);
@@ -3036,18 +3039,18 @@
     try { document.body.classList.remove('dp-profile-editing'); } catch (_) {}
 
     btn.disabled = false;
-    if (!hasProfiles) {
+    if (!hasProfiles && canCreateWithoutPayment) {
       btn.textContent = '✦ 이 정보를 나의 운명 카드에 저장 · ' + slotLabel;
-    } else if (canUsePlanSlot) {
+    } else if (canCreateWithoutPayment) {
       btn.textContent = '✦ 프로필 카드 생성 · ' + slotLabel + ' 사용 중';
     } else {
       btn.textContent = '✦ 프로필 카드 추가 생성 · ' + PROFILE_CARD_MANAGE_COST + '코인';
     }
     btn.style.opacity = '';
     btn.style.cursor = '';
-    btn.title = canUsePlanSlot
+    btn.title = canCreateWithoutPayment
       ? planLabel + ' 한도 ' + maxProfiles + '개 중 ' + profileCount + '개를 사용 중입니다.'
-      : '한도 초과 추가 생성은 서버에서 50코인 또는 5,000원 결제를 확인합니다.';
+      : '프로필 카드 추가는 서버에서 50코인 또는 5,000원 결제를 확인한 뒤 저장됩니다.';
   }
 
   function _resolveEventElement(target) {
@@ -4209,14 +4212,15 @@
     var maxProfiles = Math.max(1, Math.floor(Number(_dpGetMaxProfiles() || 1)));
     var hasProfiles = profileCount > 0;
     var canUsePlanSlot = profileCount < maxProfiles;
+    var createRequiresPayment = !_dpSubIsActive || !canUsePlanSlot;
     var createProfileId = String(data.profileId || data.id || '').trim() || _dpBuildProfileCreateId(data && data.name);
     data.profileId = createProfileId;
     data.id = createProfileId;
     var createRequestId = _dpBuildProfileManageRequestId('create', createProfileId);
-    var createConfirm = hasProfiles && !canUsePlanSlot
+    var createConfirm = createRequiresPayment
       ? '프로필 카드를 추가 생성할까요?\n추가 생성은 서버에서 50코인 또는 5,000원 결제 확인 후 저장됩니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.'
       : '새 프로필 카드를 생성할까요?\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.';
-    if ((!hasProfiles || !canUsePlanSlot) && !confirm(createConfirm)) return;
+    if ((createRequiresPayment || !hasProfiles) && !confirm(createConfirm)) return;
     var btn = document.getElementById('dpSaveBtn');
     var savingCardVisible = false;
     function restoreCardAfterSaveAttempt() {
@@ -4242,7 +4246,16 @@
           credentials: 'include',
           cache: 'no-store',
           headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify(Object.assign({ profile: data, requestId: createRequestId }, paymentContext || {}))
+          body: JSON.stringify(Object.assign({
+            profile: data,
+            requestId: createRequestId,
+            featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+            actionType: 'create',
+            profileAction: 'create',
+            action: 'create',
+            profileId: createProfileId,
+            selectedProfileId: createProfileId
+          }, paymentContext || {}))
         });
       }
       return postProfile().then(function(result) {
@@ -4286,8 +4299,11 @@
       var created = payloadOk.profile && typeof payloadOk.profile === 'object' ? payloadOk.profile : null;
       var scope = _dpGetProfileScope();
       var list = DPStorage.list();
-      if (created && created.id) {
-        var nextId = String(created.id);
+      var nextId = created && created.id ? String(created.id) : '';
+      var currentId = String(payloadOk.currentId || nextId);
+      if (Array.isArray(payloadOk.profiles)) {
+        _dpWriteProfilesToLocal(scope, payloadOk.profiles, currentId);
+      } else if (created && created.id) {
         var replaced = false;
         for (var i = 0; i < list.length; i += 1) {
           if (String(list[i] && list[i].id || '') === nextId) {
@@ -4297,7 +4313,6 @@
           }
         }
         if (!replaced) list.push(created);
-        var currentId = String(payloadOk.currentId || nextId);
         _dpWriteProfilesToLocal(scope, list, currentId);
       }
 
