@@ -35,6 +35,7 @@ type AuthUser = {
     isActive?: boolean;
     expiresAt?: string | null;
     profileLimit?: number;
+    durationMonths?: number;
     membershipCreditBalance?: number;
     membershipCreditGranted?: number;
     membershipCreditUsed?: number;
@@ -155,10 +156,11 @@ type AdminTestTier = "off" | "standard" | "premium" | "vvip" | "family";
 
 type SubscriptionStatus = {
   tier:               SubscriptionTier;
-  source?:            "card" | "pass";
+  source?:            "card" | "pass" | "monthly_credit";
   isActive:           boolean;
   expiresAt:          string | null;
   profileLimit:       number; // 0 = unlimited
+  durationMonths?:    number;
   lowBalanceWarning?: boolean;
   cancelAtPeriodEnd?: boolean;
   cancelRequestedAt?: string | null;
@@ -358,9 +360,9 @@ const SUBSCRIPTION_BASE_PLANS = [
       "프로필 최대 3개 생성",
       "일반 유료 서비스 30코인 이하 이용권 이용",
       "PDF 생성 시 30코인 자동 할인",
-      "한도 초과 일반 서비스는 기존가 결제",
-      "30일간 유효 (기간 기반)",
-      "자동결제 없는 30일 이용권",
+      "한도 초과 일반 서비스는 코인 기준 단건 결제",
+      "선택 기간 동안 유효 (기간 기반)",
+      "자동결제 없는 기간형 이용권",
     ],
   },
   {
@@ -375,9 +377,9 @@ const SUBSCRIPTION_BASE_PLANS = [
       "프로필 최대 7개 생성",
       "일반 유료 서비스 50코인 이하 이용권 이용",
       "PDF 생성 시 50코인 자동 할인",
-      "한도 초과 일반 서비스는 기존가 결제",
-      "30일간 유효 (기간 기반)",
-      "자동결제 없는 30일 이용권",
+      "한도 초과 일반 서비스는 코인 기준 단건 결제",
+      "선택 기간 동안 유효 (기간 기반)",
+      "자동결제 없는 기간형 이용권",
     ],
     badge:        "추천",
   },
@@ -393,9 +395,9 @@ const SUBSCRIPTION_BASE_PLANS = [
       "프로필 최대 15개 생성",
       "일반 유료 서비스 100코인 이하 이용권 이용",
       "PDF 생성 시 100코인 자동 할인",
-      "한도 초과 일반 서비스는 기존가 결제",
-      "30일간 유효 (기간 기반)",
-      "자동결제 없는 30일 이용권",
+      "한도 초과 일반 서비스는 코인 기준 단건 결제",
+      "선택 기간 동안 유효 (기간 기반)",
+      "자동결제 없는 기간형 이용권",
     ],
     badge:        "VVIP",
   },
@@ -410,9 +412,9 @@ const SUBSCRIPTION_BASE_PLANS = [
     features:     [
       "프로필 수정·삭제 무료, 제한 없음",
       "PDF 포함 모든 유료 서비스 무료",
-      "일반 유료 서비스도 기존가 결제 없이 이용",
+      "일반 유료 서비스도 코인 기준 단건 결제 없이 이용",
       "월 300,000원 / 3,000코인 가치",
-      "30일 Family 이용권",
+      "선택 기간 Family 이용권",
     ],
     badge:        "Family",
   },
@@ -429,11 +431,11 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = SUBSCRIPTION_BASE_PLANS.flatMap((
     wonPrice: Math.round(base.baseWonPrice * duration.months * (1 - duration.discount)),
     badge: duration.badge || base.badge,
     features: base.features.map((feature) =>
-      feature.includes("30일간 유효")
+      feature.includes("선택 기간 동안 유효")
         ? `${duration.label} 동안 유효 (기간 기반)`
-        : feature.includes("30일 Family 이용권")
+        : feature.includes("선택 기간 Family 이용권")
           ? `${duration.label} Family 이용권`
-        : feature.includes("자동결제 없는 30일 이용권")
+        : feature.includes("자동결제 없는 기간형 이용권")
           ? `자동결제 없는 ${duration.label} 이용권`
           : feature
     ),
@@ -533,11 +535,27 @@ function formatWon(amount: number) {
 }
 
 function formatMonthlyCredits(amount: number) {
-  return `${Number(amount || 0).toLocaleString("ko-KR")} 월정석`;
+  return `${Number(amount || 0).toLocaleString("ko-KR")} 이벤트 월정석`;
 }
 
 function getSubscriptionMonthlyCreditCost(plan: Pick<SubscriptionPlan, "wonPrice">) {
   return Math.max(0, Math.ceil(Number(plan?.wonPrice || 0) / 10));
+}
+
+function normalizeSubscriptionDurationMonths(value: unknown, planIdRaw?: unknown): 1 | 3 | 6 | 12 | null {
+  const numeric = Number(value);
+  if (numeric === 1 || numeric === 3 || numeric === 6 || numeric === 12) return numeric;
+  const planId = String(planIdRaw || "").trim().toLowerCase();
+  const match = planId.match(/(?:^|[_-])(1|3|6|12)m(?:$|[_-])/);
+  if (!match) return null;
+  const months = Number(match[1]);
+  return months === 1 || months === 3 || months === 6 || months === 12 ? months : null;
+}
+
+function formatSubscriptionDurationLabel(months: unknown) {
+  const normalized = normalizeSubscriptionDurationMonths(months);
+  if (!normalized) return "선택 기간";
+  return normalized === 12 ? "1년" : `${normalized}개월`;
 }
 
 function formatSubscriptionPlanProfileLimit(plan: Pick<SubscriptionPlan, "profileLimit">) {
@@ -550,7 +568,7 @@ function formatSubscriptionPlanPolicy(plan: Pick<SubscriptionPlan, "freeUpTo">) 
 }
 
 function formatSubscriptionPlanValueLine(plan: Pick<SubscriptionPlan, "tier" | "coins" | "durationMonths">) {
-  const duration = plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`;
+  const duration = formatSubscriptionDurationLabel(plan.durationMonths);
   if (plan.tier === "family") return `Family ${plan.coins.toLocaleString("ko-KR")}코인 가치 / ${duration}`;
   return `일반 서비스 한도 ${plan.coins.toLocaleString("ko-KR")} 기준 / ${duration}`;
 }
@@ -558,12 +576,12 @@ function formatSubscriptionPlanValueLine(plan: Pick<SubscriptionPlan, "tier" | "
 function mapMonthlyCreditLedgerLabel(type: MonthlyCreditLedgerItem["type"]) {
   const normalized = String(type || "").trim().toUpperCase();
   if (normalized.includes("REFUND")) {
-    return { label: "월정석 환불", cls: "bg-cyan-100 text-cyan-800 border-cyan-300", prefix: "+" };
+    return { label: "이벤트 월정석 환불", cls: "bg-cyan-100 text-cyan-800 border-cyan-300", prefix: "+" };
   }
   if (normalized === "MONTHLY_CREDIT_SPEND") {
-    return { label: "월정석 사용", cls: "bg-rose-100 text-rose-700 border-rose-300", prefix: "-" };
+    return { label: "이벤트 월정석 사용", cls: "bg-rose-100 text-rose-700 border-rose-300", prefix: "-" };
   }
-  return { label: "월정석 지급", cls: "bg-emerald-100 text-emerald-800 border-emerald-300", prefix: "+" };
+  return { label: "이벤트 월정석 지급", cls: "bg-emerald-100 text-emerald-800 border-emerald-300", prefix: "+" };
 }
 
 function isMonthlyCreditPayment(payment: Pick<PaymentHistoryItem, "paymentMethod" | "accessType">) {
@@ -573,7 +591,7 @@ function isMonthlyCreditPayment(payment: Pick<PaymentHistoryItem, "paymentMethod
 }
 
 function formatPaymentMethodLabel(payment: PaymentHistoryItem) {
-  if (isMonthlyCreditPayment(payment)) return "월정석";
+  if (isMonthlyCreditPayment(payment)) return "이벤트 월정석";
   const method = String(payment.paymentMethodLabel || payment.paymentMethod || "").trim();
   const normalized = method.toLowerCase();
   if (!method) return "-";
@@ -588,8 +606,8 @@ function formatPaymentMonthlyCreditHint(payment: PaymentHistoryItem) {
   const cost = Math.max(0, Math.floor(Number(payment.membershipCreditCost || 0)));
   if (cost <= 0) return "";
   const amount = `${cost.toLocaleString("ko-KR")}개`;
-  if (isMonthlyCreditPayment(payment)) return `월정석 ${amount} 사용`;
-  return `월정석 기준 ${amount}`;
+  if (isMonthlyCreditPayment(payment)) return `이벤트 월정석 ${amount} 사용`;
+  return `이벤트 월정석 보너스 기준 ${amount}`;
 }
 
 function formatDateTime(raw?: string | null) {
@@ -734,6 +752,8 @@ function normalizeSubscriptionStatusFromPayload(value: unknown): SubscriptionSta
   const isActive = tier !== "free" && !explicitInactive && (isDateActive || explicitActive);
   const profileLimit = Number(value.profileLimit ?? value.maxProfiles ?? nested.profileLimit ?? nested.maxProfiles);
   const freeLimit = Number(value.freeLimit ?? value.passLimit ?? value.maxCoveredCoin ?? nested.freeLimit ?? nested.passLimit ?? nested.maxCoveredCoin);
+  const rawPlanId = value.planId ?? value.plan ?? nested.planId ?? nested.plan;
+  const durationMonths = normalizeSubscriptionDurationMonths(value.durationMonths ?? nested.durationMonths, rawPlanId);
   const cancelRequestedAt = normalizeSubscriptionDate(value.cancelRequestedAt ?? nested.cancelRequestedAt);
 
   return {
@@ -742,6 +762,7 @@ function normalizeSubscriptionStatusFromPayload(value: unknown): SubscriptionSta
     isActive,
     expiresAt,
     profileLimit: Number.isFinite(profileLimit) && profileLimit >= 0 ? Math.floor(profileLimit) : 1,
+    ...(durationMonths ? { durationMonths } : {}),
     lowBalanceWarning: !!(value.lowBalanceWarning ?? nested.lowBalanceWarning),
     cancelAtPeriodEnd: !!(value.cancelAtPeriodEnd ?? nested.cancelAtPeriodEnd),
     cancelRequestedAt,
@@ -760,6 +781,7 @@ function normalizeFirstSubscription(value: unknown): SubscriptionStatus | null {
 function mergeSubscriptionState(prev: SubscriptionStatus, next: SubscriptionStatus): SubscriptionStatus {
   return {
     ...next,
+    durationMonths: next.durationMonths ?? prev.durationMonths,
     freeLimit: next.freeLimit ?? prev.freeLimit ?? 0,
     lowBalanceWarning: next.lowBalanceWarning ?? prev.lowBalanceWarning,
   };
@@ -1048,7 +1070,7 @@ function SubscriptionSection({
   const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
   return (
     <section
-      aria-label="달빛 이용권 30일 이용권"
+      aria-label="달빛 이용권 1개월부터 12개월 이용권"
       className="overflow-hidden rounded-[24px] border border-[#d9c77c]/24 bg-[#070b1c] text-slate-100 shadow-[0_24px_70px_rgba(4,7,26,0.48)] ring-1 ring-white/10 backdrop-blur"
     >
       {/* 섹션 헤더 */}
@@ -1072,7 +1094,7 @@ function SubscriptionSection({
           </p>
           <p className="text-[12.5px] leading-relaxed text-slate-200">
             <span className="font-bold text-white">가족·연인·자녀 등 다른 생년월일</span>로 프로필을 추가해도,
-            30일 이용권 하나로 <span className="font-bold text-white">모든 프로필에서 이용권 혜택을 그대로 이용</span>할 수 있습니다.
+            선택한 기간형 이용권 하나로 <span className="font-bold text-white">모든 프로필에서 이용권 혜택을 그대로 이용</span>할 수 있습니다.
           </p>
           <p className="mt-1 text-[11.5px] text-[#cab8ff]">
             이 상품은 자동결제 상품이 아니며, 기간 종료 후 무료 플랜으로 전환됩니다.
@@ -1098,16 +1120,16 @@ function SubscriptionSection({
             <span aria-hidden="true">ℹ️</span> 이용권 운영 정책
           </p>
           <ul className="mt-1.5 space-y-1 text-[11.5px] text-slate-200">
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 이용권은 <strong>결제일로부터 30일간 유효</strong>합니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 이용권은 선택한 기간에 따라 <strong>결제일로부터 1개월·3개월·6개월·12개월 동안 유효</strong>합니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 30/50/100코인 이하일 때 이용권으로 이용할 수 있습니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>PDF 서비스는 무료 처리 대신 생성 결제 시 각 등급 한도만큼 자동 할인됩니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>한도 초과 일반 유료 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>한도 초과 일반 유료 서비스는 상품별 코인 기준 단건 결제로 이용할 수 있습니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>Code Destiny Family는 PDF 포함 모든 기능을 무료로 이용하며, 프로필 수정·삭제도 무료·무제한입니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>월정석 잔량은 신규 가입·이벤트로만 지급되며 구매하거나 충전할 수 없습니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>이용권 전용 콘텐츠 열람 시 서비스 이용이 시작되며, 7일 이내라도 이용 기록이 있으면 전액 환불이 제한될 수 있습니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>콘텐츠 진입 전 안내 팝업에서 <strong>[확인]</strong>을 누르면 서비스 개시 및 환불 제한 조건에 동의한 것으로 처리됩니다.</li>
-            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><strong>자동결제 없는 30일 이용권</strong>이며, 결제/환불 기준은 이용약관(환불정책) 조항을 따릅니다.</li>
+            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><strong>자동결제 없는 기간형 이용권</strong>이며, 결제/환불 기준은 이용약관(환불정책) 조항을 따릅니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</li>
           </ul>
         </div>
@@ -1234,12 +1256,12 @@ function SubscriptionSection({
         <div className="rounded-[14px] border border-[#f3dd9a]/40 bg-[#f3dd9a]/10 px-4 py-3.5">
           <p className="text-[12.5px] font-black text-[#f3dd9a] leading-snug mb-1.5">
             맛보기만으로도 이 정도인데,<br />
-            <span className="text-white">30일 이용권으로 얼마나 깊이 볼 수 있을까요?</span> 🌙
+            <span className="text-white">기간형 이용권으로 얼마나 깊이 볼 수 있을까요?</span> 🌙
           </p>
           <p className="text-[11.5px] text-slate-200 leading-relaxed mb-2.5">
             오늘 운세가 마음에 걸렸다면, 그건 당신의 직감이 맞는 거예요.
             <br />Honey 이용권 하나로 <strong>사주·타로·점성술의 진짜 깊이</strong>를 경험해 보세요.
-            가족과 연인의 운명까지, <strong>30일 동안 모든 프로필</strong>에 혜택이 적용됩니다.
+            가족과 연인의 운명까지, <strong>선택한 기간 동안 모든 프로필</strong>에 혜택이 적용됩니다.
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-[10.5px] font-bold text-rose-700">
@@ -1263,6 +1285,7 @@ function SubscriptionSection({
           const lowerTierBlocked = !isFlowerAdminMode && activeTierRank > 0 && planTierRank < activeTierRank;
           const ctaDisabled = isProcessing || lowerTierBlocked;
           const monthlyCreditCost = getSubscriptionMonthlyCreditCost(plan);
+          const durationLabel = formatSubscriptionDurationLabel(plan.durationMonths);
           return (
             <div
               key={plan.id}
@@ -1355,17 +1378,17 @@ function SubscriptionSection({
                 ].join(" ")}
               >
                 {isCurrentActive
-                  ? `${plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`} 이용권 연장`
+                  ? `${durationLabel} 이용권 연장`
                   : lowerTierBlocked
                     ? "상위 티어 사용 중 (구매 불가)"
                   : isHighlighted
-                    ? `${theme.icon} 이용권 구매하기`
-                    : `${theme.icon} ${plan.durationMonths === 12 ? "1년" : `${plan.durationMonths}개월`} 이용권 구매하기`}
+                    ? `${theme.icon} ${durationLabel} 이용권 구매하기`
+                    : `${theme.icon} ${durationLabel} 이용권 구매하기`}
               </button>
 
               {monthlyCredits < monthlyCreditCost && !lowerTierBlocked && (
                 <p className="mt-1 text-[11px] font-semibold text-amber-200/80">
-                  보유 월정석 {monthlyCredits.toLocaleString("ko-KR")}개
+                  이벤트 월정석 보너스 현재 {monthlyCredits.toLocaleString("ko-KR")}개
                 </p>
               )}
 
@@ -1383,7 +1406,7 @@ function SubscriptionSection({
         <div className="mx-5 mb-5 rounded-[14px] border border-violet-200 bg-violet-50/60 px-4 py-3">
           <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-violet-800">
             <span aria-hidden="true">🧭</span>
-            30일 이용권 활성화
+            {formatSubscriptionDurationLabel(subscription.durationMonths)} 이용권 활성화
           </p>
           <p className="mt-1 text-[11.5px] text-violet-700">
             {`${expires || "만료일"}까지 혜택이 유지됩니다. 이 상품은 자동결제 상품이 아니며 기간 종료 후 무료 플랜으로 전환됩니다.`}
@@ -1408,7 +1431,7 @@ function SubscriptionSection({
       )}
 
       <div className="px-5 pb-5 space-y-1">
-        <p className="text-[11px] text-[#9B7040]">✅ 결제 즉시 이용권 혜택이 활성화되며 <strong>30일간 유효</strong>합니다.</p>
+        <p className="text-[11px] text-[#9B7040]">✅ 결제 즉시 이용권 혜택이 활성화되며 <strong>선택한 기간 동안 유효</strong>합니다.</p>
         <p className="text-[11px] text-rose-600 font-bold">이 상품은 자동결제 상품이 아니며 기간 종료 후 무료 플랜으로 전환됩니다.</p>
         <p className="text-[11px] text-[#9B7040]">월정석 잔량은 이벤트 보너스이며 구매·충전할 수 없습니다.</p>
       </div>
@@ -1543,7 +1566,7 @@ function WalletCard({ name, monthlyCredits }: { name: string; monthlyCredits: nu
               </span>
             </div>
             <p className="max-w-[280px] text-[11px] text-slate-200 sm:text-right">
-              신규 가입·이벤트로 지급되는 보너스 월정석 잔량입니다. 잔량이 부족한 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.
+              신규 가입·이벤트로 지급되는 보너스 월정석 잔량입니다. 기본 결제는 상품별 코인 기준 단건 결제로 진행됩니다.
             </p>
           </div>
         </div>
@@ -1554,7 +1577,7 @@ function WalletCard({ name, monthlyCredits }: { name: string; monthlyCredits: nu
 
 /* ══════════════════════════════════════════════════════════════════
   서브 컴포넌트: 단건 결제 상품 카드
-  클릭 시 이용권 구매 방법 모달로 이동합니다.
+  클릭 시 결제 방법 모달로 이동합니다.
 ══════════════════════════════════════════════════════════════════ */
 
 function PackageCard({
@@ -1610,7 +1633,7 @@ function PackageCard({
         </span>
       </div>
       <span className="mt-2.5 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[#cab8ff] to-[#f3dd9a] px-2.5 py-1 text-[12px] font-black text-[#151832] shadow-[0_3px_10px_rgba(202,184,255,0.24)]">
-        카드 단건 결제 · 월정석 보너스 병행
+        코인 기준 결제 · 이벤트 월정석 보너스 병행
       </span>
 
       {/* 선택 체크마크 */}
@@ -1653,7 +1676,7 @@ export default function PointsPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingVariant, setProcessingVariant] = useState<PaymentLoadingVariant>("subscription");
   const [processingText, setProcessingText] = useState(
-    "달빛 이용권 결제 정보를 확인하고 있습니다.",
+    "코인 기준 달빛 이용권 결제 정보를 확인하고 있습니다.",
   );
   const {
     startProcessing: showProcessingOverlay,
@@ -1770,6 +1793,7 @@ export default function PointsPage() {
           tier: sub.tier || "free",
           isActive: !!sub.isActive,
           profileLimit: sub.profileLimit ?? 1,
+          durationMonths: sub.durationMonths,
           expiresAt: sub.expiresAt || null,
         },
       };
@@ -1777,6 +1801,7 @@ export default function PointsPage() {
         tier: sub.tier || "free",
         isActive: !!sub.isActive,
         profileLimit: sub.profileLimit ?? 1,
+        durationMonths: sub.durationMonths,
         expiresAt: sub.expiresAt || null,
       });
       persistSanitizedAuthUser(nextUser);
@@ -1832,7 +1857,7 @@ export default function PointsPage() {
         if (payloadCode === "AUTH_REFRESH_TEMPORARY_FAILURE") {
           throw new Error(mapAuthRefreshTemporaryFailureMessage());
         }
-        throw new Error(payload.message || "월정석 정보를 불러오지 못했습니다.");
+        throw new Error(payload.message || "결제 및 이벤트 월정석 정보를 불러오지 못했습니다.");
       }
 
       const normalized = normalizeMePayload(payload);
@@ -1927,7 +1952,7 @@ export default function PointsPage() {
     if (isBooting) return;
 
     fetchMyPointState().catch((error) => {
-      pushToast("error", getErrorMessage(error, "월정석 정보를 불러오지 못했습니다."));
+      pushToast("error", getErrorMessage(error, "결제 및 이벤트 월정석 정보를 불러오지 못했습니다."));
     });
   }, [fetchMyPointState, isBooting, pushToast]);
 
@@ -2141,7 +2166,7 @@ export default function PointsPage() {
   const requestCancelPayment = useCallback(
     async (payment: PaymentHistoryItem) => {
       const ok = window.confirm(
-        `${formatWon(payment.paymentAmount)} 결제를 취소할까요?\n이미 사용한 월정석 또는 이용 내역이 있으면 취소가 제한될 수 있습니다.`,
+        `${formatWon(payment.paymentAmount)} 결제를 취소할까요?\n이미 사용한 이벤트 월정석 또는 이용 내역이 있으면 취소가 제한될 수 있습니다.`,
       );
       if (!ok) return;
 
@@ -2273,6 +2298,7 @@ export default function PointsPage() {
               profileLimit: typeof data.subscription?.profileLimit === "number"
                 ? data.subscription.profileLimit
                 : 1,
+              durationMonths: normalizeSubscriptionDurationMonths(data.subscription?.durationMonths ?? pendingSub.durationMonths) ?? pendingSub.durationMonths,
               lowBalanceWarning: false,
               cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
               cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
@@ -2657,6 +2683,7 @@ export default function PointsPage() {
             profileLimit: typeof confirmData.subscription?.profileLimit === "number"
               ? confirmData.subscription.profileLimit
               : 1,
+            durationMonths: normalizeSubscriptionDurationMonths(confirmData.subscription?.durationMonths ?? plan.durationMonths) ?? plan.durationMonths,
             lowBalanceWarning: false,
             cancelAtPeriodEnd: !!confirmData.subscription?.cancelAtPeriodEnd,
             cancelRequestedAt: confirmData.subscription?.cancelRequestedAt || null,
@@ -2713,7 +2740,7 @@ export default function PointsPage() {
 
     const latestMonthlyCredits = await refreshWalletFromServer().catch(() => currentMonthlyCredits);
     if (latestMonthlyCredits < requiredMonthlyCredits) {
-      pushToast("error", `월정석이 부족합니다. 필요: ${requiredMonthlyCredits.toLocaleString("ko-KR")}개`);
+      pushToast("error", `이벤트 월정석 보너스가 부족합니다. 필요: ${requiredMonthlyCredits.toLocaleString("ko-KR")}개`);
       return;
     }
 
@@ -2723,7 +2750,7 @@ export default function PointsPage() {
 
     setPendingMonthlyCreditPlan(null);
     setIsProcessing(true);
-    setProcessingStage(`${plan.title}을 월정석으로 활성화하고 있습니다.`, "monthly");
+    setProcessingStage(`${plan.title}을 이벤트 월정석 보너스로 활성화하고 있습니다.`, "monthly");
 
     try {
       const confirmData = await confirmSubscriptionWithServer({
@@ -2747,6 +2774,7 @@ export default function PointsPage() {
           profileLimit: typeof confirmData.subscription?.profileLimit === "number"
             ? confirmData.subscription.profileLimit
             : 1,
+          durationMonths: normalizeSubscriptionDurationMonths(confirmData.subscription?.durationMonths ?? plan.durationMonths) ?? plan.durationMonths,
           lowBalanceWarning: false,
           cancelAtPeriodEnd: !!confirmData.subscription?.cancelAtPeriodEnd,
           cancelRequestedAt: confirmData.subscription?.cancelRequestedAt || null,
@@ -2762,11 +2790,11 @@ export default function PointsPage() {
       }
 
       await syncSubscriptionAppliedStage();
-      pushToast("success", confirmData.message || `${plan.title}이 월정석으로 활성화되었습니다.`);
+      pushToast("success", confirmData.message || `${plan.title}이 이벤트 월정석 보너스로 활성화되었습니다.`);
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);
     } catch (error: unknown) {
-      pushToast("error", getErrorMessage(error, "월정석 이용권 구매에 실패했습니다."));
+      pushToast("error", getErrorMessage(error, "이벤트 월정석 보너스 사용에 실패했습니다."));
     } finally {
       releasePaymentActionLock(actionLockKey);
       setIsProcessing(false);
@@ -2817,6 +2845,7 @@ export default function PointsPage() {
           isActive: !!data.subscription?.isActive,
           expiresAt: data.subscription?.expiresAt || null,
           profileLimit: typeof data.subscription?.profileLimit === "number" ? data.subscription.profileLimit : 1,
+          durationMonths: normalizeSubscriptionDurationMonths(data.subscription?.durationMonths) ?? subscription.durationMonths,
           lowBalanceWarning: false,
           cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
           cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
@@ -2902,10 +2931,10 @@ export default function PointsPage() {
         >
           <div className="w-full max-w-md rounded-[20px] border border-amber-200/35 bg-[#111832] p-5 text-slate-100 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
             <p id="subscriptionPaymentChoiceTitle" className="text-base font-black text-white">
-              달빛 이용권 구매 방식 선택
+              달빛 이용권 결제 방식 선택
             </p>
             <p className="mt-2 text-sm leading-relaxed text-slate-200">
-              {pendingSubscriptionPaymentPlan.title} · {formatWon(pendingSubscriptionPaymentPlan.wonPrice)}
+              {pendingSubscriptionPaymentPlan.title} · {formatSubscriptionPlanValueLine(pendingSubscriptionPaymentPlan)} · {formatWon(pendingSubscriptionPaymentPlan.wonPrice)}
             </p>
             <div className="mt-4 grid gap-2">
               <button
@@ -2919,8 +2948,8 @@ export default function PointsPage() {
                 }}
                 className="rounded-[14px] border border-amber-200/45 bg-amber-200 px-4 py-3 text-left text-[#151832] shadow-[0_10px_22px_rgba(243,221,154,0.18)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="block text-sm font-black">단건 결제</span>
-                <span className="mt-1 block text-[12px] font-semibold">PortOne V2 보안 결제창에서 바로 결제합니다.</span>
+                <span className="block text-sm font-black">코인 기준 단건 결제</span>
+                <span className="mt-1 block text-[12px] font-semibold">콘텐츠 가치 단위는 코인으로 표시되며 보안 결제창에서 결제합니다.</span>
               </button>
               <button
                 type="button"
@@ -2933,9 +2962,9 @@ export default function PointsPage() {
                 }}
                 className="rounded-[14px] border border-white/15 bg-white/[0.08] px-4 py-3 text-left text-slate-100 shadow transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="block text-sm font-black">보유 월정석으로 구매</span>
+                <span className="block text-sm font-black">이벤트 월정석 보너스 사용</span>
                 <span className="mt-1 block text-[12px] font-semibold text-slate-200">
-                  필요 {pendingSubscriptionPaymentMonthlyCreditCost.toLocaleString("ko-KR")}개 · 현재 {currentMonthlyCredits.toLocaleString("ko-KR")}개
+                  구매 불가 보너스 · 필요 {pendingSubscriptionPaymentMonthlyCreditCost.toLocaleString("ko-KR")}개 · 현재 {currentMonthlyCredits.toLocaleString("ko-KR")}개
                 </span>
               </button>
             </div>
@@ -2963,14 +2992,14 @@ export default function PointsPage() {
         >
           <div className="w-full max-w-sm rounded-[20px] border border-amber-200/35 bg-[#111832] p-5 text-slate-100 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
             <p id="monthlyCreditPassConfirmTitle" className="text-base font-black text-white">
-              월정석으로 달빛 이용권 구매
+              이벤트 월정석 보너스 사용
             </p>
             <p className="mt-3 text-sm leading-relaxed text-slate-200">
-              {pendingMonthlyCreditPlan.title}을 활성화하기 위해 월정석 {pendingMonthlyCreditCost.toLocaleString("ko-KR")}개를 사용합니다.
+              {pendingMonthlyCreditPlan.title} 활성화에 이벤트 월정석 보너스 {pendingMonthlyCreditCost.toLocaleString("ko-KR")}개를 사용합니다.
             </p>
             <div className="mt-4 rounded-[14px] border border-white/10 bg-white/[0.07] px-3 py-2 text-[12px] text-slate-200">
-              <p>현재 월정석 {currentMonthlyCredits.toLocaleString("ko-KR")}개</p>
-              <p>구매 후 예상 잔량 {Math.max(0, currentMonthlyCredits - pendingMonthlyCreditCost).toLocaleString("ko-KR")}개</p>
+              <p>현재 이벤트 월정석 {currentMonthlyCredits.toLocaleString("ko-KR")}개</p>
+              <p>사용 후 예상 잔량 {Math.max(0, currentMonthlyCredits - pendingMonthlyCreditCost).toLocaleString("ko-KR")}개</p>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-2">
               <button
@@ -2987,12 +3016,12 @@ export default function PointsPage() {
                 onClick={() => handleSubscribeWithMonthlyCredit(pendingMonthlyCreditPlan)}
                 className="rounded-[12px] bg-gradient-to-r from-amber-200 to-violet-200 px-3 py-2.5 text-sm font-black text-[#151832] shadow-[0_10px_22px_rgba(243,221,154,0.22)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isProcessing ? "처리 중..." : "구매하기"}
+                {isProcessing ? "처리 중..." : "보너스 사용하기"}
               </button>
             </div>
             {currentMonthlyCredits < pendingMonthlyCreditCost && (
               <p className="mt-3 text-[12px] font-bold text-rose-200">
-                월정석 잔량이 부족합니다.
+                이벤트 월정석 보너스 잔량이 부족합니다.
               </p>
             )}
           </div>
@@ -3036,7 +3065,7 @@ export default function PointsPage() {
                     달빛 이용권 상품과 보너스 월정석 잔량을 한 화면에서 확인하세요.
                   </p>
                   <p className="mt-1 text-[12px] text-[#f3dd9a]">
-                    콘텐츠 기준은 가격 산정용 내부 단위이며 실제 잔액은 월정석으로 관리됩니다.
+                    기본 결제 단위는 코인이며, 월정석은 신규 가입·이벤트 보너스로만 지급됩니다.
                   </p>
                 </div>
               </div>
@@ -3064,12 +3093,12 @@ export default function PointsPage() {
 
         <section className="rounded-[20px] border border-white/12 bg-white/[0.08] p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="font-bold text-white">월정석 사용 내역</h3>
+            <h3 className="font-bold text-white">이벤트 월정석 사용 내역</h3>
             <span className="text-[11px] font-semibold text-slate-300">지급 / 사용 / 잔액</span>
           </div>
 
           {monthlyCreditLedgers.length === 0 ? (
-            <p className="text-sm text-slate-300">아직 월정석 사용 내역이 없습니다.</p>
+            <p className="text-sm text-slate-300">아직 이벤트 월정석 사용 내역이 없습니다.</p>
           ) : (
             <div className="space-y-2.5">
               {monthlyCreditLedgers.map((entry) => {
@@ -3131,7 +3160,7 @@ export default function PointsPage() {
 
         {/* ③ 섹션 구분선 */}
         <section
-          aria-label="원화 단건 결제 안내"
+          aria-label="코인 기준 단건 결제 안내"
           className="rounded-[20px] border border-white/12 bg-white/[0.06] px-5 py-4 text-sm leading-6 text-slate-200"
         >
           일반 유료 서비스는 이용권 한도 이하일 때만 이용권으로 열립니다. PDF 서비스는 결제 시 등급 한도만큼 할인되며, Family는 PDF를 포함한 모든 기능이 무료로 처리됩니다.
@@ -3168,7 +3197,7 @@ export default function PointsPage() {
                     <div className="mt-2 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-2">
                       <p>결제시각: {formatDateTime(payment.paidAt || payment.cancelledAt)}</p>
                       <p>결제수단: {formatPaymentMethodLabel(payment)}</p>
-                      {paymentMethodHint ? <p>월정석 표시: {paymentMethodHint}</p> : null}
+                      {paymentMethodHint ? <p>이벤트 월정석 표시: {paymentMethodHint}</p> : null}
                       <p>승인번호: {payment.approvalNumber || "-"}</p>
                       <p>주문번호: {payment.merchantUid || "-"}</p>
                     </div>
@@ -3312,7 +3341,7 @@ export default function PointsPage() {
         </section>
       </div>
 
-      {/* ══ 이용권 구매 방법 모달 ══════════════════════════════════════ */}
+      {/* ══ 결제 방법 모달 ══════════════════════════════════════ */}
       {isMethodModalOpen && (
         <div
           className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(20,10,5,0.65)] px-4 backdrop-blur-sm"
@@ -3336,7 +3365,7 @@ export default function PointsPage() {
             <div className="mb-5 flex items-start justify-between gap-3">
               <div>
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-700">
-                  이용권 구매 방법 선택
+                  코인 기준 결제 방법 선택
                 </p>
                 <h4 className="mt-0.5 text-lg font-bold text-[#5C3A1E]">
                   {selectedPackage.title} · 콘텐츠 기준 {selectedPackage.points.toLocaleString("ko-KR")}
@@ -3356,7 +3385,7 @@ export default function PointsPage() {
               </button>
             </div>
 
-            {/* 이용권 구매 방법 그리드 */}
+            {/* 결제 방법 그리드 */}
             <div className="grid gap-2 sm:grid-cols-2">
               {PAYMENT_METHODS.map((method) => {
                 const sel = method.id === selectedMethod;
@@ -3389,7 +3418,7 @@ export default function PointsPage() {
               disabled={isProcessing}
               className="mt-5 w-full rounded-[16px] bg-gradient-to-r from-[#C9A84C] via-[#DFB84C] to-[#E8C060] px-4 py-4 text-base font-black text-white shadow-[0_10px_28px_rgba(160,120,20,0.45)] transition-all hover:-translate-y-0.5 hover:from-[#D4B050] hover:to-[#F0CD6A] hover:shadow-[0_14px_32px_rgba(160,120,20,0.55)] active:scale-[0.97] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isProcessing ? "🐷 연결 중..." : "이용권 결제를 진행합니다"}
+              {isProcessing ? "🐷 연결 중..." : "코인 기준 결제를 진행합니다"}
             </button>
             </div>
           </div>

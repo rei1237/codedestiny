@@ -194,43 +194,81 @@
     );
   }
 
-  function _buildArchiveFormatUrl(rawUrl, format) {
-    var url = _clean(rawUrl || '');
-    if (!url || format !== 'pdf' && format !== 'html') return url;
-    if (!/\/api\/premium\/pdf-archive\//.test(url)) return url;
-    if (/[?&]format=(pdf|html)/i.test(url)) return url;
-    return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'format=' + encodeURIComponent(format);
-  }
+function _buildArchiveFormatUrl(rawUrl, format) {
+  var url = _clean(rawUrl || '');
+  if (!url || format !== 'pdf' && format !== 'html') return url;
+  if (!/\/api\/premium\/pdf-archive\//.test(url)) return url;
+  if (/[?&]format=(pdf|html)/i.test(url)) return url;
+  return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'format=' + encodeURIComponent(format);
+}
 
-  function _getLifeBookDownloadTargets() {
-    var pdfUrl = _buildArchiveFormatUrl(_lbPendingPdfUrl || _lbPendingReportUrl || '', 'pdf');
-    var htmlUrl = _buildArchiveFormatUrl(_lbPendingHtmlUrl || _lbPendingReportUrl || '', 'html');
-    var baseUrl = _clean(_lbCurrentReportId)
+function _isElementVisible(el) {
+  if (!el) return false;
+  if (el.style && el.style.display === 'none') return false;
+  var cs = window.getComputedStyle(el);
+  if (!cs || cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') return false;
+  return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+}
+
+function _getLifeBookDownloadTargets() {
+  var rawPdf = _lbPendingPdfUrl || _lbPendingReportUrl || '';
+  var rawHtml = _lbPendingHtmlUrl || _lbPendingReportUrl || '';
+  var baseUrl = _clean(_lbCurrentReportId)
       ? '/api/premium/pdf-archive/' + encodeURIComponent(_lbCurrentReportId)
       : '';
-
-    if (!pdfUrl || /[?&]format=html/i.test(pdfUrl)) {
-      if (baseUrl) pdfUrl = baseUrl + '?format=pdf';
-    }
-    if (!htmlUrl) {
-      if (baseUrl) htmlUrl = baseUrl + '?format=html';
-    }
-    if (!pdfUrl && /[?&]format=pdf/i.test(htmlUrl) && htmlUrl) {
-      if (baseUrl) {
-        pdfUrl = baseUrl + '?format=pdf';
-      } else {
-        pdfUrl = htmlUrl.replace(/([?&])format=html/i, '$1format=pdf');
-      }
-    }
-
-    return {
-      pdfUrl: pdfUrl,
-      htmlUrl: htmlUrl,
-      html: _lbPendingPdfHtml || ''
-    };
+  var pdfUrl = _buildArchiveFormatUrl(rawPdf, 'pdf');
+  var htmlUrl = _buildArchiveFormatUrl(rawHtml, 'html');
+  if (!/\/api\/premium\/pdf-archive\//i.test(pdfUrl) && baseUrl) {
+    pdfUrl = _buildArchiveFormatUrl(baseUrl, 'pdf');
+  }
+  if (!/\/api\/premium\/pdf-archive\//i.test(htmlUrl) && baseUrl) {
+    htmlUrl = _buildArchiveFormatUrl(baseUrl, 'html');
   }
 
-  function _attemptDownloadUrl(url, filename) {
+  return {
+    pdfUrl: pdfUrl,
+    htmlUrl: htmlUrl,
+    html: _lbPendingPdfHtml || _buildLifeBookResultHtmlForDownload(),
+  };
+}
+
+function _buildLifeBookResultHtmlForDownload() {
+  if (!Array.isArray(_chapters) || !_chapters.length) return '';
+  var hasRendered = _chapters.filter(function (c) { return typeof c === 'string' && c.trim().length >= 120; }).length;
+  if (!hasRendered) return '';
+
+  var safeName = _escHtml((window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name) || '인생의 책');
+  var parts = [];
+  for (var i = 0; i < _chapters.length; i++) {
+    var title = String((window.CD_CHAPTER_TITLES && window.CD_CHAPTER_TITLES[i]) || ('Chapter ' + (i + 1))).trim();
+    var text = _md2html(String(_chapters[i] || '').trim() || '내용 준비 중...');
+    parts.push(
+      '<section style="margin:10px 0;border-top:1px solid rgba(255,255,255,.12);padding-top:10px;">' +
+      '<h2 style="margin:0 0 8px;font-size:18px;color:#f8fafc;">' + _escHtml(title) + '</h2>' +
+      '<div style="font-size:13px;line-height:1.85;color:#dce8fb;">' + text + '</div>' +
+      '</section>'
+    );
+  }
+
+  return [
+    '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">',
+    '<title>' + safeName + ' PDF 저장본</title>',
+    '<style>',
+    'body{margin:24px;background:#0f172a;color:#e2e8f0;font-family:Arial,Helvetica,sans-serif;line-height:1.8;}',
+    'h1{font-size:26px;line-height:1.3;margin:0 0 8px;}',
+    '.meta{opacity:.75;margin-bottom:16px;font-size:12px;}',
+    'section{margin-top:18px;}',
+    'h2{margin:0 0 8px;font-size:17px;}',
+    '</style></head><body><div style="max-width:860px;margin:0 auto;">',
+    '<h1>' + safeName + ' 결과</h1>',
+    '<div class="meta">생성 시각: ' + _escHtml(new Date().toLocaleString('ko-KR')) + '</div>',
+    _buildResultOverviewHtml ? _buildResultOverviewHtml() : '',
+    parts.join(''),
+    '</div></body></html>'
+  ].join('');
+}
+
+function _attemptDownloadUrl(url, filename) {
     var targetUrl = _clean(url);
     if (!targetUrl) return false;
     try {
@@ -267,29 +305,38 @@
     }
   }
 
-  function _downloadLifeBookUrlAsBlob(url, filename) {
-    var targetUrl = _clean(url);
-    if (!targetUrl) return Promise.resolve(false);
-    try {
-      var target = new URL(targetUrl, window.location.href);
-      if (target.origin === window.location.origin) {
-        return fetch(target.toString(), { credentials: 'include', cache: 'no-store' }).then(function (response) {
-          if (!response || !response.ok) return false;
-          return response.blob().then(function (blob) {
-            if (!blob || !blob.size) return false;
-            var fileType = response.headers && response.headers.get('content-type') || '';
-            return _downloadBlobContent(blob, filename, fileType) || false;
-          });
-        }).catch(function () {
-          return false;
+function _downloadLifeBookUrlAsBlob(url, filename) {
+  var targetUrl = _clean(url);
+  if (!targetUrl) return Promise.resolve(false);
+  try {
+    var target = new URL(targetUrl, window.location.href);
+    if (target.origin === window.location.origin) {
+      return fetch(target.toString(), { credentials: 'include', cache: 'no-store' }).then(function (response) {
+        if (!response || !response.ok) return false;
+        return response.blob().then(function (blob) {
+          if (!blob || !blob.size) return false;
+          var fileType = response.headers && response.headers.get('content-type') || '';
+          if (/\bpdf\b/i.test(String(filename || '')) && !/pdf|octet-stream/i.test(fileType) && /text\/html/i.test(fileType)) return false;
+          return _downloadBlobContent(blob, filename, fileType) || false;
         });
-      }
-    } catch (_) {}
-    return Promise.resolve(false);
-  }
+      }).catch(function () {
+        return false;
+      });
+    }
+  } catch (_) {}
+  return Promise.resolve(false);
+}
 
-  var _generating = false;
-  var _currentChapter = 1;
+function _downloadLifeBookUrlWithFallback(url, filename) {
+  return _downloadLifeBookUrlAsBlob(url, filename).then(function (ok) {
+    if (ok) return true;
+    return _attemptDownloadUrl(url, filename);
+  });
+}
+
+var _generating = false;
+var _lbGenerationStartedAt = 0;
+var _currentChapter = 1;
   var _mysticTimer = null;
   var _activeRequestController = null;
   var _cancelGeneration = false;
@@ -308,28 +355,40 @@
   var _lbGenerationStartAt = 0;
   var _lbPartialFetchChapter = null;
 
-  function _startLifeBookGenerationState() {
-    _lbGenerationStartAt = Date.now();
-    _lbGenerationRunId = 'lb-run-' + _lbGenerationStartAt + '-' + Math.random().toString(36).slice(2, 8);
-    _generating = true;
-    _cancelGeneration = false;
-  }
+function _startLifeBookGenerationState() {
+  _lbGenerationStartAt = Date.now();
+  _lbGenerationStartedAt = _lbGenerationStartAt;
+  _lbGenerationRunId = 'lb-run-' + _lbGenerationStartAt + '-' + Math.random().toString(36).slice(2, 8);
+  _generating = true;
+  _cancelGeneration = false;
+}
 
-  function _clearLifeBookGenerationState() {
-    _generating = false;
-    _lbGenerationRunId = '';
-    _lbGenerationStartAt = 0;
-  }
+function _clearLifeBookGenerationState() {
+  _generating = false;
+  _lbGenerationStartedAt = 0;
+  _lbGenerationRunId = '';
+  _lbGenerationStartAt = 0;
+}
 
-  function _isLifeBookGenerationBusy() {
-    if (!_generating) return false;
-    if (_lbGenerationRunId) return true;
-    if (_lbGenerationStartAt && Date.now() - _lbGenerationStartAt < 5000) return true;
-    var loading = _qs('lbLoadingScreen');
-    var loadingVisible = loading && loading.style.display !== 'none';
-    if (!loadingVisible) _clearLifeBookGenerationState();
-    return loadingVisible;
+var _LB_LIFE_BOOK_BUSY_TIMEOUT_MS = 12 * 60 * 1000;
+
+function _isLifeBookGenerationBusy() {
+  if (!_generating) return false;
+  var loading = _qs('lbLoadingScreen');
+  var loadingVisible = _isElementVisible(loading);
+  if (loadingVisible) return true;
+  if (_mysticTimer) return true;
+  if (!_lbGenerationStartAt) {
+    _clearLifeBookGenerationState();
+    return false;
   }
+  if (Date.now() - _lbGenerationStartAt < 800) return true;
+  if (Date.now() - _lbGenerationStartAt > _LB_LIFE_BOOK_BUSY_TIMEOUT_MS) {
+    _clearLifeBookGenerationState();
+    return false;
+  }
+  return true;
+}
 
   function _markPremiumAccessVerified(ttlMs) {
     var ttl = Number(ttlMs || 0);
@@ -909,42 +968,51 @@
     var profile = window.__cdActiveBirthProfile || {};
     var powerLabel = String(
       analysis.power_label
-      || ((window.G_POWER && window.G_POWER.isStrong) ? '?좉컯' : (window.G_POWER ? '?좎빟' : '?먯젙 ?湲?))
+      || ((window.G_POWER && window.G_POWER.isStrong) ? '강한 기운' : (window.G_POWER ? '약한 기운' : '기본'))
     );
     var yongshin = '';
     if (Array.isArray(analysis.yongshin_elements) && analysis.yongshin_elements.length) {
-      yongshin = analysis.yongshin_elements.join(' 쨌 ');
+      yongshin = analysis.yongshin_elements.join('·');
     } else if (window.G_POWER && Array.isArray(window.G_POWER.yongshin) && window.G_POWER.yongshin.length) {
-      yongshin = window.G_POWER.yongshin.join(' 쨌 ');
+      yongshin = window.G_POWER.yongshin.join('·');
     }
 
     var weights = analysis.elementWeights || {};
     var elemRows = [
-      { key: 'wood', label: '紐?, val: Number(weights.wood || 0) },
-      { key: 'fire', label: '??, val: Number(weights.fire || 0) },
-      { key: 'earth', label: '??, val: Number(weights.earth || 0) },
-      { key: 'metal', label: '湲?, val: Number(weights.metal || 0) },
-      { key: 'water', label: '??, val: Number(weights.water || 0) },
+      { key: 'wood', label: '목', value: Number(weights.wood || 0) },
+      { key: 'fire', label: '화', value: Number(weights.fire || 0) },
+      { key: 'earth', label: '토', value: Number(weights.earth || 0) },
+      { key: 'metal', label: '금', value: Number(weights.metal || 0) },
+      { key: 'water', label: '수', value: Number(weights.water || 0) },
     ];
-    elemRows.sort(function (a, b) { return b.val - a.val; });
-    var dominant = elemRows[0] || { label: '-', val: 0 };
+    elemRows.sort(function (a, b) { return b.value - a.value; });
+    var dominant = elemRows[0] || { label: '-', value: 0 };
     var completed = _chapters.filter(function (c) { return typeof c === 'string' && c.trim().length > 0; }).length;
     var completionPct = Math.round((completed / LIFEBOOK_TOTAL_CHAPTERS) * 100);
-    var name = String(profile.name || '?ъ슜??);
+    var name = String(profile.name || '고객님');
 
     return '' +
-      '<section style="margin-bottom:14px;padding:14px;border:1px solid rgba(167,139,250,.35);border-radius:14px;background:linear-gradient(155deg,rgba(26,14,36,.9),rgba(37,22,56,.92));">' +
-      '  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;">' +
-      '    <span style="font-size:12px;font-weight:700;letter-spacing:.08em;padding:4px 8px;border-radius:999px;background:rgba(139,92,246,.22);border:1px solid rgba(168,122,252,.55);color:#f8fafc;box-shadow:0 0 14px rgba(168,122,252,.18);">PRECISION SNAPSHOT</span>' +
-      '    <span style="font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(30,64,175,.22);border:1px solid rgba(96,165,250,.4);">' + _escHtml(name) + '</span>' +
-      '    <span style="font-size:12px;padding:4px 8px;border-radius:999px;background:rgba(22,163,74,.18);border:1px solid rgba(74,222,128,.35);">吏꾪뻾瑜?' + completionPct + '%</span>' +
+      '<section style="margin-bottom:14px;padding:14px;border:1px solid rgba(148,163,184,.35);border-radius:14px;background:linear-gradient(155deg,rgba(15,23,42,.95),rgba(30,41,59,.95));">' +
+      '  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
+      '    <span style="font-size:11px;font-weight:700;letter-spacing:.05em;padding:4px 8px;border-radius:999px;background:rgba(99,102,241,.22);border:1px solid rgba(99,102,241,.45);color:#e2e8f0;">PRECISION SNAPSHOT</span>' +
+      '    <span style="font-size:12px;opacity:.88;">' + _escHtml(name) + ' · 완료율 ' + completionPct + '%</span>' +
       '  </div>' +
-      '  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;">' +
-      '    <div style="padding:10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);"><div style="font-size:11px;opacity:.78;">?좉컯/?좎빟</div><div style="font-weight:700;">' + _escHtml(powerLabel) + '</div></div>' +
-      '    <div style="padding:10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);"><div style="font-size:11px;opacity:.78;">二쇰룄 ?ㅽ뻾</div><div style="font-weight:700;">' + _escHtml(dominant.label + ' (' + dominant.val + '%)') + '</div></div>' +
+      '  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:8px;">' +
+      '    <div style="padding:10px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);">' +
+      '      <div style="font-size:11px;opacity:.7;letter-spacing:.04em;">강약</div>' +
+      '      <div style="font-size:16px;font-weight:700;margin-top:4px;">' + _escHtml(powerLabel) + '</div>' +
+      '    </div>' +
+      '    <div style="padding:10px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);">' +
+      '      <div style="font-size:11px;opacity:.7;letter-spacing:.04em;">지배기운</div>' +
+      '      <div style="font-size:16px;font-weight:700;margin-top:4px;">' + _escHtml(dominant.label + ' (' + dominant.value + '%)') + '</div>' +
+      '    </div>' +
+      '    <div style="padding:10px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);">' +
+      '      <div style="font-size:11px;opacity:.7;letter-spacing:.04em;">용신</div>' +
+      '      <div style="font-size:16px;font-weight:700;margin-top:4px;">' + _escHtml(yongshin || '정보 없음') + '</div>' +
+      '    </div>' +
       '  </div>' +
-      '  <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px;">' +
-      '    <div style="padding:10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);"><div style="font-size:11px;opacity:.78;">?듭떖 ?⑹떊</div><div style="font-weight:700;">' + _escHtml(yongshin || '遺꾩꽍 ?곗씠??以鍮?以?) + '</div></div>' +
+      '  <div style="font-size:12px;line-height:1.6;opacity:.9;padding:8px 2px 0;border-top:1px solid rgba(255,255,255,.12);">5행성 분포: ' +
+      '    ' + _escHtml(elemRows.map(function (item) { return item.label + ' ' + item.value + '%'; }).join(' | ')) +
       '  </div>' +
       '</section>';
   }
@@ -2451,25 +2519,11 @@
     var fileBase = _lbCurrentReportId ? ('life-book-' + _lbCurrentReportId) : 'life-book';
     var pdfUrl = _clean(targets.pdfUrl);
     var htmlUrl = _clean(targets.htmlUrl);
-    if (pdfUrl) {
-      if (await _downloadLifeBookUrlAsBlob(pdfUrl, fileBase + '.pdf')) return;
-    }
-    if (pdfUrl && _attemptDownloadUrl(pdfUrl, fileBase + '.pdf')) {
-      return;
-    }
-    if (_clean(targets.pdfUrl)) {
-      window.open(targets.pdfUrl, '_blank', 'noopener,noreferrer');
+    if (await _downloadLifeBookUrlWithFallback(pdfUrl, fileBase + '.pdf')) {
       return;
     }
 
-    if (htmlUrl) {
-      if (await _downloadLifeBookUrlAsBlob(htmlUrl, fileBase + '.html')) return;
-    }
-    if (htmlUrl && _attemptDownloadUrl(htmlUrl, fileBase + '.html')) {
-      return;
-    }
-    if (_clean(targets.htmlUrl)) {
-      window.open(targets.htmlUrl, '_blank', 'noopener,noreferrer');
+    if (await _downloadLifeBookUrlWithFallback(htmlUrl, fileBase + '.html')) {
       return;
     }
 
@@ -2483,7 +2537,7 @@
       if (_attemptDownloadUrl('data:text/html;charset=utf-8,' + encodeURIComponent(targets.html), fileBase + '.html')) return;
       return;
     }
-    if (!pdfUrl && !htmlUrl && _clean(_lbPendingPdfHtml) && _attemptDownloadUrl('data:text/html;charset=utf-8,' + encodeURIComponent(_lbPendingPdfHtml), fileBase + '.html')) {
+    if (!pdfUrl && !htmlUrl && _clean(_lbPendingPdfHtml) && await _downloadLifeBookUrlWithFallback('data:text/html;charset=utf-8,' + encodeURIComponent(_lbPendingPdfHtml), fileBase + '.html')) {
       return;
     }
 
