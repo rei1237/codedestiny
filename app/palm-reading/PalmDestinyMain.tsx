@@ -207,14 +207,7 @@ const HAND_ROLE_META: Record<HandRole, { label: string; description: string }> =
   },
 };
 
-const PURPOSE_OPTIONS: Array<{ value: AnalysisPurpose; label: string }> = [
-  { value: "general", label: "전체 운세" },
-  { value: "love", label: "연애운" },
-  { value: "wealth", label: "재물운" },
-  { value: "career", label: "직업운" },
-  { value: "personality", label: "성격 분석" },
-  { value: "relationship", label: "관계 패턴" },
-];
+const DEFAULT_ANALYSIS_PURPOSE: AnalysisPurpose = "general";
 
 const PALM_BILLING_SUB_FEATURE_BY_PURPOSE: Record<AnalysisPurpose, string> = {
   general: "general",
@@ -1275,77 +1268,76 @@ function buildCategoryConsultations(input: {
   const relationshipSection = pickSection(input.interpretation, "relationship");
   const adviceSection = pickSection(input.interpretation, "advice");
 
-  const normalizeLine = (value: unknown, fallback = "") => {
-    const text = String(value || "").trim();
-    if (!text) return fallback;
-    return text.length <= 78 ? text : `${text.slice(0, 75)}...`;
-  };
-  const commonAction = normalizeLine(adviceSection?.advice, "오늘은 하루 루틴 하나만 정리해 흐름을 안정화하세요.");
-
   return [
     {
       key: "general",
       title: "🌟 전체 운세",
-      summary: normalizeLine(
-        report.summary || generalSection?.summary,
-        "전체 흐름은 안정적으로 패턴을 잡아가야 더 정확해집니다.",
-      ),
+      summary: String(report.summary || generalSection?.summary || "지금 흐름을 쉽게 정리한 손금 리딩이에요."),
       details: uniqText([
         String(report.oneLiner || ""),
         generalSection?.detail,
         String((input.interpretation?.focusSummary || "").trim()),
-      ], 1),
-      actions: uniqText([commonAction], 1),
+      ], 3),
+      actions: uniqText([
+        adviceSection?.advice,
+        "오늘은 미뤄둔 일 하나를 끝내고 흐름을 열어 보세요.",
+        "해석이 길어지면 짧게라도 확인 대화를 시작해 보세요.",
+      ], 3),
     },
     {
       key: "love",
       title: "💗 연애운",
-      summary: normalizeLine(
-        report.love || loveSection?.summary,
-        "관계는 표현의 정직함이 정확도 높은 신호를 만듭니다.",
-      ),
-      details: uniqText([loveSection?.summary, loveSection?.advice], 2),
-      actions: uniqText([loveSection?.advice, commonAction], 2),
+      summary: String(report.love || loveSection?.summary || "연애운은 안정감과 솔직한 대화가 핵심으로 보여요."),
+      details: uniqText([loveSection?.detail, loveSection?.advice], 3),
+      actions: uniqText([
+        loveSection?.advice,
+        adviceSection?.advice,
+        "관계는 상대의 반응보다 내 톤을 먼저 정돈해 보세요.",
+      ], 3),
     },
     {
       key: "wealth",
       title: "💰 재물운",
-      summary: normalizeLine(
-        report.wealth || wealthSection?.summary,
-        "수입/지출 리듬이 살아날수록 회복 속도가 살아납니다.",
-      ),
-      details: uniqText([wealthSection?.summary, wealthSection?.advice], 2),
-      actions: uniqText([wealthSection?.advice, commonAction], 2),
+      summary: String(report.wealth || wealthSection?.summary || "재물운은 꾸준히 쌓을 때 힘이 붙는 흐름이에요."),
+      details: uniqText([wealthSection?.detail, wealthSection?.advice], 3),
+      actions: uniqText([
+        wealthSection?.advice,
+        adviceSection?.advice,
+        "지출 기준선을 먼저 고치면 방향이 훨씬 빨리 선명해집니다.",
+      ], 3),
     },
     {
       key: "career",
       title: "🧭 직업운",
-      summary: normalizeLine(
-        report.career || careerSection?.summary,
-        "실행의 밀도와 일정 정리가 성과를 끌어올립니다.",
-      ),
-      details: uniqText([careerSection?.summary, careerSection?.advice], 2),
-      actions: uniqText([careerSection?.advice, commonAction], 2),
+      summary: String(report.career || careerSection?.summary || "직업운은 내 방식과 실력을 쌓을수록 강해져요."),
+      details: uniqText([careerSection?.detail, careerSection?.advice], 3),
+      actions: uniqText([
+        careerSection?.advice,
+        adviceSection?.advice,
+        "일정 단위를 짧게 쪼개서 실행 리듬을 만들면 성과가 붙습니다.",
+      ], 3),
     },
     {
       key: "personality",
       title: "✨ 성격/매력",
-      summary: normalizeLine(
-        report.personality || personalitySection?.summary,
-        "강점은 안정감 있고, 신뢰를 유지하는 방식입니다.",
-      ),
-      details: uniqText([personalitySection?.summary, personalitySection?.advice], 2),
-      actions: uniqText([personalitySection?.advice, commonAction], 2),
+      summary: String(report.personality || personalitySection?.summary || "성격과 매력을 가볍게 정리한 리딩이에요."),
+      details: uniqText([personalitySection?.detail, personalitySection?.advice], 3),
+      actions: uniqText([
+        personalitySection?.advice,
+        adviceSection?.advice,
+        "표현은 과장보다 일관성으로 가면 반응이 좋아집니다.",
+      ], 3),
     },
     {
       key: "relationship",
       title: "🤝 관계운",
-      summary: normalizeLine(
-        report.relationship || relationshipSection?.summary,
-        "관계는 편안한 소통이 가장 빠른 리셋 포인트입니다.",
-      ),
-      details: uniqText([relationshipSection?.summary, relationshipSection?.advice], 2),
-      actions: uniqText([relationshipSection?.advice, commonAction], 2),
+      summary: String(report.relationship || relationshipSection?.summary || "관계운은 편안한 소통에서 더 좋아져요."),
+      details: uniqText([relationshipSection?.detail, relationshipSection?.advice], 3),
+      actions: uniqText([
+        relationshipSection?.advice,
+        adviceSection?.advice,
+        "가장 중요한 것은 약속 하나를 지키는 패턴입니다.",
+      ], 3),
     },
   ];
 }
@@ -1356,7 +1348,7 @@ export default function PalmDestinyMain() {
   const [leftHand, setLeftHand] = useState<HandImageState>({ file: null, previewUrl: null });
   const [rightHand, setRightHand] = useState<HandImageState>({ file: null, previewUrl: null });
   const [dominantHand, setDominantHand] = useState<DominantHand | "">("");
-  const [analysisPurpose, setAnalysisPurpose] = useState<AnalysisPurpose | "">("");
+  const [analysisPurpose, setAnalysisPurpose] = useState<AnalysisPurpose>(DEFAULT_ANALYSIS_PURPOSE);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [loadingPhaseIndex, setLoadingPhaseIndex] = useState(0);
@@ -1397,11 +1389,12 @@ export default function PalmDestinyMain() {
   });
 
   const handRoles = getPalmHandRoles(dominantHand);
+  const activeAnalysisPurpose: AnalysisPurpose = analysisPurpose || DEFAULT_ANALYSIS_PURPOSE;
   const canStartAnalysis = canStartPalmAnalysis({
     leftFile: leftHand.file,
     rightFile: rightHand.file,
     dominantHand,
-    analysisPurpose,
+    analysisPurpose: activeAnalysisPurpose,
     isSubmitting,
   });
   const hasAnyPreview = Boolean(leftHand.previewUrl || rightHand.previewUrl);
@@ -1544,7 +1537,7 @@ export default function PalmDestinyMain() {
 
     if (resetSelections) {
       setDominantHand("");
-      setAnalysisPurpose("");
+      setAnalysisPurpose(DEFAULT_ANALYSIS_PURPOSE);
       setSelectedCaptureSide("right");
     }
 
@@ -1740,7 +1733,7 @@ export default function PalmDestinyMain() {
       (rightHand.file
         ? `${rightHand.file.name}|${rightHand.file.size}|${rightHand.file.lastModified}|${rightHand.file.type}`
         : "none");
-    const requestSignature = [dominantHand || "none", analysisPurpose || "none", leftSig, rightSig].join("::");
+    const requestSignature = [dominantHand || "none", activeAnalysisPurpose || "none", leftSig, rightSig].join("::");
 
     if (inFlightSignatureRef.current === requestSignature) {
       setSubmitMessage("동일 이미지 분석이 이미 진행 중입니다. 잠시만 기다려 주세요.");
@@ -1757,7 +1750,7 @@ export default function PalmDestinyMain() {
 
     submitLockedRef.current = true;
     inFlightSignatureRef.current = requestSignature;
-    const initialPurpose = (analysisPurpose || "general") as AnalysisPurpose;
+    const initialPurpose = activeAnalysisPurpose;
     const initialSubFeatureKey = PALM_BILLING_SUB_FEATURE_BY_PURPOSE[initialPurpose] || "general";
     const billingRequestId = `palm-reading:${initialSubFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
@@ -1835,7 +1828,7 @@ export default function PalmDestinyMain() {
         rightImageQuality: toApiImageQuality(qualityFeedbackBySide.right),
         uploadedHandSide: leftHand.file && rightHand.file ? "both" : leftHand.file ? "left" : rightHand.file ? "right" : "",
         dominantHand,
-        analysisPurpose,
+        analysisPurpose: activeAnalysisPurpose,
       });
 
       setSubmitMessage("손바닥의 금빛 선을 읽고 있습니다...");
@@ -1920,8 +1913,7 @@ export default function PalmDestinyMain() {
       const leftHandRoleFromPayload = toHandRole(handContextSource?.leftHandRole);
       const rightHandRoleFromPayload = toHandRole(handContextSource?.rightHandRole);
       const dominantForCanonical: DominantHand | null = dominantHandFromPayload ?? (dominantHand || null);
-      const purposeForCanonical: AnalysisPurpose =
-        analysisPurposeFromPayload ?? ((analysisPurpose || "general") as AnalysisPurpose);
+      const purposeForCanonical: AnalysisPurpose = analysisPurposeFromPayload || activeAnalysisPurpose;
 
       const imageQualityFromPayload =
         (canonicalSource?.imageQuality as ReturnType<typeof createDefaultCanonicalPalmReading>["imageQuality"] | undefined) ||
@@ -2107,7 +2099,7 @@ export default function PalmDestinyMain() {
     resetSessionForReanalysis({
       clearImages: false,
       resetSelections: true,
-      keepMessage: "다른 손 기준으로 다시 보기 위해 주로 쓰는 손과 목적을 다시 선택해 주세요.",
+      keepMessage: "다른 손 기준으로 다시 보기 위해 주로 쓰는 손을 다시 선택해 주세요.",
     });
   };
 
@@ -2689,35 +2681,10 @@ export default function PalmDestinyMain() {
                 </div>
               </fieldset>
 
-              <fieldset className="mt-6">
-                <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
-                  <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                  <legend className="text-base font-black text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>분석 목적 선택</legend>
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {PURPOSE_OPTIONS.map((option) => {
-                    const active = analysisPurpose === option.value;
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => {
-                          setAnalysisPurpose(option.value);
-                          setSubmitMessage("");
-                        }}
-                        className={`cd-select-btn min-h-[48px] rounded-lg border px-3 py-2 text-sm font-bold transition-all ${
-                          active
-                            ? "cd-select-btn--active border-[#f5d987]/80 text-[#fff5c8]"
-                            : "border-[#c8a84b]/35 bg-[#0d0808] text-[#e8d090]"
-                        }`}
-                        style={active ? { background: "linear-gradient(135deg, #4d0f0f 0%, #370a0a 50%, #4d1f1f 100%)", boxShadow: "0 0 18px rgba(180,30,30,0.4), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
-                        aria-pressed={active}
-                      >
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                </div>
+              <fieldset className="mt-6 rounded-lg border border-[#b8871f]/25 bg-[#0d0808]/80 p-4">
+                <p className="text-sm font-black text-[#f5d987]" style={{ fontFamily: "'Noto Serif KR', serif" }}>
+                  분석 목적은 전체 운세로 고정되어 있으며, 연애/재물/직업/성격/관계 카테고리를 한 번에 표시합니다.
+                </p>
               </fieldset>
             </section>
 
@@ -2768,7 +2735,7 @@ export default function PalmDestinyMain() {
               </button>
 
               <p className="mt-3 text-xs leading-6 text-[#d4b45c]/75 md:text-sm">
-                활성 조건: 왼손 또는 오른손 이미지 1개 이상 + 주로 쓰는 손 선택 + 분석 목적 선택
+                활성 조건: 왼손 또는 오른손 이미지 1개 이상 + 주로 쓰는 손 선택
               </p>
 
               {(leftHand.file || rightHand.file) && dominantHand ? (
@@ -2998,16 +2965,34 @@ export default function PalmDestinyMain() {
                     {categoryConsultations.length > 0 ? (
                       <section className="space-y-3">
                         <div className="border-b border-[#c8a84b]/20 pb-2">
-                          <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>카테고리 핵심</h3>
-                          <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">핵심만 한 줄로 바로 확인할 수 있게 정리했습니다.</p>
+                          <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>카테고리 리포트 전체</h3>
+                          <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">사랑, 재물, 직업, 성격, 관계의 흐름을 한 번에 펼쳐 읽습니다.</p>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="grid gap-3 lg:grid-cols-2">
                           {categoryConsultations.map((item) => (
                             <article key={`consult-${item.key}`} className="cd-oriental-card rounded-xl border border-[#c8a84b]/26 bg-[#0d0808]/82 p-4">
                               <h4 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>{item.title}</h4>
                               <p className="mt-2 rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2 text-xs leading-6 text-[#e8d8b0]/92 md:text-sm">{item.summary}</p>
-                              <p className="mt-1 text-xs text-[#8ade5f]">{item.actions[0] || item.details[0]}</p>
+
+                              <div className="mt-3 grid gap-3 xl:grid-cols-2">
+                                <div>
+                                  <p className="text-xs font-bold text-[#f5d987] md:text-sm">세부 흐름</p>
+                                  <ul className="mt-1 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+                                    {item.details.map((line) => (
+                                      <li key={line}>• {line}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-[#8ade5f] md:text-sm">실천 제안</p>
+                                  <ul className="mt-1 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
+                                    {item.actions.map((line) => (
+                                      <li key={line}>• {line}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
                             </article>
                           ))}
                         </div>
@@ -3016,11 +3001,18 @@ export default function PalmDestinyMain() {
 
                     {analysisResult.report ? (
                       <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>🌙 손금 핵심 리딩</h3>
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>🌙 한눈에 보는 손금 리딩</h3>
                         <div className="mt-3 grid gap-2 text-xs leading-6 text-[#e8d8b0]/90 md:grid-cols-2 md:text-sm">
                           {[
                             ["🌙 한 줄 요약", String(analysisResult.report.oneLiner || "이번 손금 흐름을 쉽고 재밌게 정리해 드렸어요.")],
-                            ["🌟 핵심 조언", String(analysisResult.report.advice || "오늘은 미뤄둔 작은 일 하나를 끝내 보세요.")],
+                            ["🌟 전체 운세", String(analysisResult.report.summary || "지금은 내 리듬을 찾을수록 운이 안정되는 시기예요.")],
+                            ["💗 연애운", String(analysisResult.report.love || "연애운은 솔직한 대화에서 더 좋아지는 흐름이에요.")],
+                            ["💰 재물운", String(analysisResult.report.wealth || "재물운은 꾸준히 쌓을 때 더 잘 살아나요.")],
+                            ["🧭 직업운", String(analysisResult.report.career || "직업운은 내 방식과 실력을 쌓을수록 강해져요.")],
+                            ["✨ 성격/매력", String(analysisResult.report.personality || "묵직한 신뢰감이 당신의 매력 포인트예요.")],
+                            ["🌱 건강/에너지", String(analysisResult.report.healthEnergy || "무리보다 리듬 관리가 운을 살려줘요.")],
+                            ["🤝 관계운", String(analysisResult.report.relationship || "관계운은 편안한 소통에서 힘이 붙어요.")],
+                            ["🔮 오늘의 조언", String(analysisResult.report.advice || "오늘은 미뤄둔 작은 일 하나를 끝내 보세요.")],
                           ].map(([label, text]) => (
                             <div key={`std-report-${label}`} className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/70 px-3 py-2">
                               <p className="text-xs font-black text-[#f5d987] md:text-sm">{label}</p>
