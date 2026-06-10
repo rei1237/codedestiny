@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    core-ui.css — Merged critical CSS
    Replaces: globals.css + browser-compat.css + main-glass.css + mobile-ux.css
    Generated: 2026-04-13
@@ -237,6 +237,27 @@
 /* Safe viewport fallback for browsers without dvh support */
 :root {
   --cd-safe-viewport-height: 100vh;
+
+  /* ── Moonlit Stellar Design System v20260610 ── */
+  --moon-night:        #03061A;
+  --moon-deep:         #060D2E;
+  --moon-mid:          #0C1A52;
+  --moon-glow:         #162560;
+  --moon-silver:       #C8D8FF;
+  --moon-pearl:        #EEF2FF;
+  --moon-gold:         #F3DD9A;
+  --moon-aurora:       rgba(99,179,255,0.18);
+  --star-bright:       #FFFFFF;
+  --star-silver:       rgba(200,216,255,0.9);
+  --star-warm:         rgba(255,238,200,0.85);
+  --lunar-glow-sm:     0 0 14px rgba(160,195,255,0.35);
+  --lunar-glow-md:     0 0 28px rgba(140,180,255,0.28), 0 0 56px rgba(90,130,220,0.16);
+  --lunar-border:      rgba(200,216,255,0.22);
+  --lunar-shimmer:     inset 0 1px 0 rgba(200,216,255,0.28);
+  --neo-moon-gold:     #F3DD9A;
+  --neo-lunar-glow:    0 0 28px rgba(243,221,154,0.3), 0 0 56px rgba(200,160,60,0.14);
+  --neo-lunar-border:  rgba(243,221,154,0.24);
+  --neo-lunar-shimmer: inset 0 1px 0 rgba(243,221,154,0.22);
 }
 
 @supports (height: 100dvh) {
