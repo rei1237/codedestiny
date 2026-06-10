@@ -97,6 +97,28 @@ const ADMIN_TEST_USER_ID = "flower-admin";
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const PAID_ACCESS_DECISION_CACHE_TTL_MS = 4000;
 const PAID_ACCESS_DECISION_CACHE_MAX_ENTRIES = 2500;
+const PAID_ACCESS_DECISION_DB_TIMEOUT_MS = 1400;
+const PAID_ACCESS_DB_ERROR_SIGNATURES = [
+  "temporarily unavailable",
+  "temporarily_unavailable",
+  "server is unavailable",
+  "database is temporarily unavailable",
+  "connection",
+  "connect",
+  "server selection",
+  "selection timeout",
+  "timed out",
+  "timeout",
+  "econnrefused",
+  "enotfound",
+  "enotconn",
+  "econnreset",
+  "etimedout",
+  "mongo",
+  "mongoose",
+  "mongodb",
+  "network",
+];
 
 const paidAccessDecisionCache = globalThis.__paidAccessDecisionCache
   || (globalThis.__paidAccessDecisionCache = {
@@ -424,11 +446,11 @@ async function resolvePaidContentAccess(env, {
   }
 
   try {
-    const [existingUnlock, userPermanentUnlock, existingPass] = await Promise.all([
+    const [existingUnlock, userPermanentUnlock, existingPass] = await withDbAccessTimeout(Promise.all([
       findActiveSajuProfileUnlock(env, { userId, profileId, featureKey }),
       hasUserScopedPermanentUnlock(env, { userId, featureKey }),
       Promise.resolve(subscriptionPass || getActiveMembershipPassForUser(env, userId)),
-    ]);
+    ]), PAID_ACCESS_DECISION_DB_TIMEOUT_MS, "UNLOCK_ACCESS_DECISION_TIMEOUT");
     if (existingUnlock || userPermanentUnlock) {
       return writePaidAccessDecisionToCache(cacheKey, buildPaidContentAccessDecision({
         accessGranted: true,
@@ -498,8 +520,24 @@ async function resolvePaidContentAccess(env, {
       paymentOptions,
     }), priceCoin);
   } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return writePaidAccessDecisionToCache(cacheKey, buildPaidContentAccessDecision({
+        reason: "payment_required",
+        shouldOpenPaymentSelector: true,
+        priceCoin,
+        paymentOptions: buildPassPaymentDecisionFallback(pricing, { membershipCreditBalance: 0 }),
+      }), priceCoin);
+    }
+
+    if (String(error?.code || "") === "MISSING_PROFILE_ID") {
+      return buildPaidContentAccessDecision({
+        reason: "invalid_profile",
+        priceCoin,
+      });
+    }
+
     return buildPaidContentAccessDecision({
-      reason: String(error?.code || "") === "MISSING_PROFILE_ID" ? "invalid_profile" : "error",
+      reason: "error",
       priceCoin,
     });
   }
@@ -1412,6 +1450,28 @@ function shouldRetryCoinConsumeException(error) {
     || message.includes("TOPOLOGY CLOSED");
 }
 
+function hasDbErrorSignature(rawText) {
+  const text = String(rawText || "").trim().toLowerCase();
+  if (!text) return false;
+  return PAID_ACCESS_DB_ERROR_SIGNATURES.some((needle) => text.includes(needle));
+}
+
+function isDatabaseUnavailableError(error) {
+  const message = String(error?.message || "").toLowerCase();
+  const code = String(error?.code || error?.name || "").toLowerCase();
+  return hasDbErrorSignature(message) || hasDbErrorSignature(code);
+}
+
+function withDbAccessTimeout(promise, timeoutMs, message) {
+  return withTimeout(promise, timeoutMs, String(message || "UNLOCK_DB_TIMEOUT"));
+}
+
+function buildPassPaymentDecisionFallback(pricing, profileSubscription = null) {
+  return buildPassPaymentDecision({}, pricing, profileSubscription || {
+    membershipCreditBalance: 0,
+  });
+}
+
 function isProductionRuntime(env) {
   const nodeEnv = String(env?.NODE_ENV || "").trim().toLowerCase();
   if (nodeEnv === "production") return true;
@@ -1887,10 +1947,30 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       freeBySubscription: false,
     }, "ADMIN_TEST_PAYMENT_BYPASS");
   }
-  const [profileId, subscriptionPassForDecision] = await Promise.all([
-    authCheck?.auth?.userId ? resolveBillingProfileId(authCheck.auth.userId, body, env) : Promise.resolve(""),
-    authCheck?.auth?.userId ? getMembershipPassForBillingRequest(request, env, authCheck.auth.userId) : Promise.resolve(null),
-  ]);
+  const profileId = authCheck?.auth?.userId ? await withDbAccessTimeout(
+    resolveBillingProfileId(authCheck.auth.userId, body, env),
+    PAID_ACCESS_DECISION_DB_TIMEOUT_MS,
+    "COIN_GATE_PROFILE_RESOLVE_TIMEOUT",
+  ).catch((error) => {
+    if (!isDatabaseUnavailableError(error)) {
+      throw error;
+    }
+    return "";
+  }) : "";
+  const subscriptionPassForDecision = authCheck?.auth?.userId ? await withDbAccessTimeout(
+    getMembershipPassForBillingRequest(
+      request,
+      env,
+      authCheck.auth.userId,
+    ),
+    PAID_ACCESS_DECISION_DB_TIMEOUT_MS,
+    "COIN_GATE_PASS_RESOLVE_TIMEOUT",
+  ).catch((error) => {
+    if (!isDatabaseUnavailableError(error)) {
+      throw error;
+    }
+    return null;
+  }) : null;
   pricing = applyPdfPassDiscountToPricing(pricing, subscriptionPassForDecision?.entitlement || {});
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
   if (persistProfileUnlockEntitlement && !profileId) {
