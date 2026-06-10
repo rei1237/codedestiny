@@ -166,23 +166,23 @@ function profileActionProductName(action: ProfileActionType) {
 
 function profileActionButtonLabel(action: ProfileActionType, freeLabel: string, coinBalance: number) {
   const label = profileActionLabel(action);
-  if (freeLabel === "VVIP") return `VVIP 臾대즺 ${profileActionLabel(action)}`;
-  if (freeLabel) return `${freeLabel} 臾대즺 ${profileActionLabel(action)}`;
-  if (coinBalance >= PROFILE_CARD_ACTION_COST_COINS) return `${label} 쨌 ${PROFILE_CARD_ACTION_COST_COINS}\uCF54\uC778`;
-  return `${label} 쨌 ${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}\uC6D0`;
+  if (freeLabel === "VVIP") return `VVIP 무료 ${profileActionLabel(action)}`;
+  if (freeLabel) return `${freeLabel} 무료 ${profileActionLabel(action)}`;
+  if (coinBalance >= PROFILE_CARD_ACTION_COST_COINS) return `${label} · ${PROFILE_CARD_ACTION_COST_COINS}\uCF54\uC778`;
+  return `${label} · ${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}\uC6D0`;
 }
 
 function profileActionPrimaryLabel(action: ProfileActionType, freeLabel: string, coinBalance: number) {
-  if (freeLabel === "VVIP") return `VVIP 臾대즺 ${profileActionLabel(action)}`;
-  if (freeLabel) return `${freeLabel} 臾대즺 ${profileActionLabel(action)}`;
+  if (freeLabel === "VVIP") return `VVIP 무료 ${profileActionLabel(action)}`;
+  if (freeLabel) return `${freeLabel} 무료 ${profileActionLabel(action)}`;
   if (coinBalance >= PROFILE_CARD_ACTION_COST_COINS) return `${PROFILE_CARD_ACTION_COST_COINS}\uCF54\uC778 \uC0AC\uC6A9`;
   return `${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}\uC6D0 \uACB0\uC81C`;
 }
 
 function profileActionProgressLabel(action: ProfileActionType, stage: ProfileActionStage) {
   if (stage === "pass") return "\uC774\uC6A9\uAD8C\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.";
-  if (stage === "payment") return "寃곗젣李쎌쓣 ?щ뒗 以묒엯?덈떎.";
-  if (stage === "coin") return "肄붿씤??李④컧?섎뒗 以묒엯?덈떎.";
+  if (stage === "payment") return "결제창을 여는 중입니다.";
+  if (stage === "coin") return "코인을 차감하는 중입니다.";
   if (stage === "saving") return action === "delete" ? "\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4." : `${profileActionLabel(action)} \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.`;
   if (stage === "deleting") return "\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.";
   return action === "edit" ? "\uC218\uC815 \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4." : "\uC0AD\uC81C \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.";
@@ -242,7 +242,7 @@ function buildPortOneCustomer(user: AuthUser | null, paymentId: string) {
   const merged = { ...((readSanitizedAuthUser() as AuthUser | null) || {}), ...(user || {}) } as AuthUser;
   const email = String(merged.email || "").trim();
   if (!/^[^@\s]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    throw new Error("寃곗젣 吏꾪뻾???꾩슂???대찓???뺣낫瑜??뺤씤??二쇱꽭??");
+    throw new Error("결제 진행에 필요한 이메일 정보를 확인해 주세요.");
   }
   return {
     customerId: String(merged.id || merged.userId || merged.uid || merged._id || paymentId).trim(),
@@ -253,7 +253,7 @@ function buildPortOneCustomer(user: AuthUser | null, paymentId: string) {
 
 function mapPaymentErrorMessage(message?: string) {
   const text = String(message || "").trim();
-  return text || "寃곗젣媛 痍⑥냼?섏뿀嫄곕굹 ?꾨즺?섏? ?딆븯?듬땲??";
+  return text || "결제가 취소되었거나 완료되지 않았습니다.";
 }
 
 function readCachedUser(): AuthUser | null {
@@ -298,7 +298,7 @@ function planLabel(tier: ProfileSubscription["tier"]) {
 function formatMonthlyStoneBalance(monthlyCredits?: number) {
   const value = Number(monthlyCredits || 0);
   const safeValue = Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
-  return `${safeValue.toLocaleString("ko-KR")} ?붿젙??;
+  return `${safeValue.toLocaleString("ko-KR")} 월정석`;
 }
 
 function fallbackSubscription(): ProfileSubscription {
@@ -317,9 +317,9 @@ function emitDestinyProfileChanged(profiles: DestinyProfile[], currentId: string
 }
 
 function formatArchiveDate(raw?: string) {
-  if (!raw) return "?좎쭨 ?놁쓬";
+  if (!raw) return "날짜 없음";
   const date = new Date(raw);
-  if (Number.isNaN(date.getTime())) return "?좎쭨 ?놁쓬";
+  if (Number.isNaN(date.getTime())) return "날짜 없음";
   return new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
     month: "2-digit",
@@ -333,9 +333,9 @@ function formatArchiveDate(raw?: string) {
 
 function modeLabel(mode?: string) {
   const token = String(mode || "").toLowerCase();
-  if (token.includes("compat") || token.includes("couple")) return "沅곹빀";
-  if (token.includes("solo")) return "媛쒖씤";
-  return "?댁꽭";
+  if (token.includes("compat") || token.includes("couple")) return "궁합";
+  if (token.includes("solo")) return "개인";
+  return "운세";
 }
 
 export default function MePage() {
@@ -377,7 +377,7 @@ export default function MePage() {
   const currentProfile = profiles.find((profile) => profile.id === currentId) || profiles[0] || null;
   const isUnlimitedProfilePlan = subscription.isActive && subscription.profileLimit === 0;
   const profileLimit = isUnlimitedProfilePlan ? Math.max(profiles.length, 1) : (subscription.profileLimit > 0 ? subscription.profileLimit : 1);
-  const profileLimitLabel = isUnlimitedProfilePlan ? "臾댁젣?? : String(profileLimit);
+  const profileLimitLabel = isUnlimitedProfilePlan ? "무제한" : String(profileLimit);
   const slotPercent = isUnlimitedProfilePlan ? 100 : Math.min(100, Math.round((profiles.length / profileLimit) * 100));
   const monthlyStoneBalance = formatMonthlyStoneBalance(membershipCreditBalance);
   const profileActionCoinBalance = Math.max(0, Math.floor(Number(membershipCreditBalance || 0) / 10));
@@ -389,14 +389,14 @@ export default function MePage() {
   const isExpiredVvipProfileAction = hasStoredVvipPass && !subscription.isActive;
   const isVvipProfileLimitExceeded = subscription.isActive && subscription.tier === "vvip" && profiles.length > profileLimit;
   const profileActionPolicyNotice = profileActionFreeLabel === "VVIP"
-    ? "VVIP ?쒗깮 ?곸슜 以?쨌 ?쒕룄 ??臾대즺 愿由?
+    ? "VVIP 혜택 적용 중 · 한도 내 무료 관리"
     : profileActionFreeLabel
-      ? "FAMILY ?댁슜沅??댁긽 ?쒗깮?쇰줈 ?꾨줈??異붽?? ??젣媛 臾대즺?낅땲??"
+      ? "FAMILY 이용권 이상 혜택으로 프로필 추가와 삭제가 무료입니다."
     : isExpiredVvipProfileAction
-      ? "?댁슜沅뚯씠 留뚮즺?섏뼱 50肄붿씤???꾩슂?⑸땲??"
+      ? "이용권이 만료되어 50코인이 필요합니다."
       : isVvipProfileLimitExceeded
-        ? "VVIP ?꾨줈???쒕룄瑜?珥덇낵????젣?먮뒗 50肄붿씤???꾩슂?⑸땲??"
-        : "?꾨줈????젣?먮뒗 50肄붿씤???꾩슂?⑸땲??";
+        ? "VVIP 프로필 한도를 초과해 삭제에는 50코인이 필요합니다."
+        : "프로필 삭제에는 50코인이 필요합니다.";
 
   useEffect(() => {
     if (!activeProfileMenuId) return;
@@ -505,7 +505,7 @@ export default function MePage() {
       const payload = await response.json().catch(() => null);
       if (!response.ok || !payload?.ok) {
         setArchiveItems([]);
-        setArchiveNotice(String(payload?.error?.message || payload?.message || "PDF 蹂닿??⑥쓣 遺덈윭?ㅼ? 紐삵뻽?듬땲??"));
+        setArchiveNotice(String(payload?.error?.message || payload?.message || "PDF 보관함을 불러오지 못했습니다."));
         return;
       }
 
@@ -524,7 +524,7 @@ export default function MePage() {
       } catch (_) {}
     } catch (_) {
       setArchiveItems([]);
-      setArchiveNotice("PDF 蹂닿??⑥쓣 遺덈윭?ㅻ뒗 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??");
+      setArchiveNotice("PDF 보관함을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
       setArchiveLoading(false);
     }
@@ -568,7 +568,7 @@ export default function MePage() {
           router.replace("/login?next=%2Fme");
           return;
         }
-        setAuthNotice("???대챸 ?곗씠?곕? 遺덈윭?ㅼ? 紐삵뻽?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??");
+        setAuthNotice("내 운명 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
       } finally {
         if (mounted) {
           setLoading(false);
@@ -585,7 +585,7 @@ export default function MePage() {
 
   const ensurePortoneSdk = useCallback(() => new Promise<void>((resolve, reject) => {
     if (typeof window === "undefined") {
-      reject(new Error("釉뚮씪?곗? ?섍꼍?먯꽌留?寃곗젣瑜?吏꾪뻾?????덉뒿?덈떎."));
+      reject(new Error("브라우저 환경에서만 결제를 진행할 수 있습니다."));
       return;
     }
     if (window.PortOne?.requestPayment) {
@@ -597,9 +597,9 @@ export default function MePage() {
     if (existingScript) {
       existingScript.addEventListener("load", () => {
         if (window.PortOne?.requestPayment) resolve();
-        else reject(new Error("PortOne V2 SDK瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??"));
+        else reject(new Error("PortOne V2 SDK를 불러오지 못했습니다."));
       }, { once: true });
-      existingScript.addEventListener("error", () => reject(new Error("寃곗젣 SDK瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??")), { once: true });
+      existingScript.addEventListener("error", () => reject(new Error("결제 SDK를 불러오지 못했습니다.")), { once: true });
       return;
     }
     const script = document.createElement("script");
@@ -608,9 +608,9 @@ export default function MePage() {
     script.async = true;
     script.onload = () => {
       if (window.PortOne?.requestPayment) resolve();
-      else reject(new Error("PortOne V2 SDK瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??"));
+      else reject(new Error("PortOne V2 SDK를 불러오지 못했습니다."));
     };
-    script.onerror = () => reject(new Error("寃곗젣 SDK瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??"));
+    script.onerror = () => reject(new Error("결제 SDK를 불러오지 못했습니다."));
     document.body.appendChild(script);
   }), []);
 
@@ -624,7 +624,7 @@ export default function MePage() {
     });
     const payload = await safeParseJson<PortOnePaymentConfig>(response);
     if (!response.ok || !payload.storeId || !payload.channelKey) {
-      throw new Error(payload.message || "PortOne V2 寃곗젣 ?ㅼ젙???뺤씤?????놁뒿?덈떎.");
+      throw new Error(payload.message || "PortOne V2 결제 설정을 확인할 수 없습니다.");
     }
     return {
       storeId: String(payload.storeId || "").trim(),
@@ -678,11 +678,11 @@ export default function MePage() {
     }>(prepareResponse);
     const order = preparePayload.order;
     if (!prepareResponse.ok || !order?.merchantUid) {
-      throw new Error(preparePayload.message || "寃곗젣 ?붿껌??以鍮꾪븯吏 紐삵뻽?듬땲??");
+      throw new Error(preparePayload.message || "결제 요청을 준비하지 못했습니다.");
     }
 
     await ensurePortoneSdk();
-    if (!window.PortOne?.requestPayment) throw new Error("PortOne V2 寃곗젣 SDK瑜??ъ슜?????놁뒿?덈떎.");
+    if (!window.PortOne?.requestPayment) throw new Error("PortOne V2 결제 SDK를 사용할 수 없습니다.");
 
     const paymentConfig = await fetchPortOnePaymentConfig();
     const redirectUrl = new URL("/me", window.location.origin);
@@ -748,7 +748,7 @@ export default function MePage() {
       apiBase,
     });
     const confirmPayload = await safeParseJson<{ accessGrant?: Record<string, unknown>; payment?: Record<string, unknown> }>(confirmResponse);
-    if (!confirmResponse.ok) throw new Error(confirmPayload.message || "寃곗젣 ?뱀씤 ?뺤씤???ㅽ뙣?덉뒿?덈떎.");
+    if (!confirmResponse.ok) throw new Error(confirmPayload.message || "결제 승인 확인에 실패했습니다.");
     return {
       accessGrant: confirmPayload.accessGrant || null,
       payment: confirmPayload.payment || null,
@@ -820,8 +820,8 @@ export default function MePage() {
       };
     }
     if (response.status === 402 || status === "payment_required" || code === "PAYMENT_REQUIRED" || code === "MEMBERSHIP_PASS_NOT_COVERED" || code === "PRICE_EXCEEDS_PASS_LIMIT" || code === "PROFILE_LIMIT_EXCEEDED") return null;
-    if (response.status === 401 || response.status === 403 || code === "AUTH_REQUIRED") throw new Error("濡쒓렇?몄씠 ?꾩슂?⑸땲??");
-    throw new Error(String(raw.message || data.message || error.message || "?댁슜沅??뺤씤???ㅽ뙣?덉뒿?덈떎."));
+    if (response.status === 401 || response.status === 403 || code === "AUTH_REQUIRED") throw new Error("로그인이 필요합니다.");
+    throw new Error(String(raw.message || data.message || error.message || "이용권 확인에 실패했습니다."));
   }, [apiBase]);
 
   const activateProfile = async (profileId: string) => {
@@ -839,7 +839,7 @@ export default function MePage() {
 
       const payload = await response.json().catch(() => null);
       if (!response.ok || !payload?.ok) {
-        setAuthNotice(String(payload?.message || "?꾨줈??移대뱶瑜??좏깮?섏? 紐삵뻽?듬땲??"));
+        setAuthNotice(String(payload?.message || "프로필 카드를 선택하지 못했습니다."));
         return;
       }
 
@@ -847,7 +847,7 @@ export default function MePage() {
       emitDestinyProfileChanged(profiles, profileId);
       setAuthNotice("");
     } catch (e) {
-      setAuthNotice("?꾨줈??移대뱶瑜??꾪솚?섎뒗 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.");
+      setAuthNotice("프로필 카드를 전환하는 중 오류가 발생했습니다.");
     } finally {
       setBusyAction("");
     }
@@ -898,7 +898,7 @@ export default function MePage() {
       apiBase,
     });
     const payload = await safeParseJson<{ profiles?: DestinyProfile[]; currentId?: string; profile?: DestinyProfile }>(response);
-    if (!response.ok || !payload?.ok) throw new Error(payload?.message || `${profileActionProductName(action)}???ㅽ뙣?덉뒿?덈떎.`);
+    if (!response.ok || !payload?.ok) throw new Error(payload?.message || `${profileActionProductName(action)}에 실패했습니다.`);
 
     if (action === "delete") {
       const nextProfiles = Array.isArray(payload.profiles) ? payload.profiles : [];
@@ -1106,7 +1106,7 @@ export default function MePage() {
     setActiveProfileMenuId("");
     const profile = profiles.find((item) => item.id === profileId);
     if (!profile) {
-      setAuthNotice("??젣???꾨줈??移대뱶瑜?李얠쓣 ???놁뒿?덈떎.");
+      setAuthNotice("삭제할 프로필 카드를 찾을 수 없습니다.");
       return;
     }
     setDeleteTarget(profile);
@@ -1174,7 +1174,7 @@ export default function MePage() {
 
         <section className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
-            <p className="text-xs text-slate-400">?꾨줈???щ’</p>
+            <p className="text-xs text-slate-400">프로필 슬롯</p>
             <p className="mt-1 text-xl font-bold text-white">{profiles.length}/{profileLimitLabel}</p>
             <div className="mt-3 h-2 rounded-full bg-slate-800">
               <div className="h-2 rounded-full bg-amber-300" style={{ width: `${slotPercent}%` }} />
@@ -1188,10 +1188,11 @@ export default function MePage() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-300">Active Card</p>
-                <h2 className="mt-2 text-2xl font-bold text-white">{currentProfile?.name || "?좏깮???꾨줈??移대뱶媛 ?놁뒿?덈떎."}</h2>
+                <h2 className="mt-2 text-2xl font-bold text-white">{currentProfile?.name || "선택된 프로필 카드가 없습니다."}</h2>
               </div>
               <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-semibold text-amber-100">
-                ????꾨줈??              </span>
+                대표 프로필
+              </span>
             </div>
 
             <div className="mt-5 overflow-hidden rounded-3xl border border-sky-200/20 bg-[linear-gradient(135deg,rgba(7,17,38,0.96),rgba(34,56,99,0.9)_48%,rgba(44,27,75,0.96))] p-4 shadow-[0_10px_34px_rgba(0,0,0,0.44),0_0_24px_rgba(56,189,248,0.14)]">
@@ -1204,9 +1205,9 @@ export default function MePage() {
                     <span className="absolute right-[26%] top-[20%] h-1 w-1 rounded-full bg-[#ddd6fe]" />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">?붿젙???붿븸</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">월정석 잔액</p>
                     <p className="mt-0.5 text-xl font-black tracking-tight text-amber-100">{monthlyStoneBalance}</p>
-                    <p className="mt-1 text-[11px] leading-5 text-slate-300">?꾨줈??移대뱶 愿由ъ? ?꾨━誘몄뾼 湲곕뒫???ъ슜?????덈뒗 ?붿븸?낅땲??</p>
+                    <p className="mt-1 text-[11px] leading-5 text-slate-300">프로필 카드 관리와 프리미엄 기능에 사용할 수 있는 잔액입니다.</p>
                   </div>
                 </div>
                 <Link href="/points" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#8b5cf6,#ec4899)] px-4 py-2 text-sm font-black text-white shadow-[0_10px_24px_rgba(139,92,246,0.34)] transition-transform hover:-translate-y-0.5">{"\uC774\uC6A9\uAD8C \uAD00\uB9AC"}</Link>
@@ -1215,25 +1216,25 @@ export default function MePage() {
             {currentProfile ? (
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-white/10 bg-black/18 p-4">
-                  <p className="text-xs text-slate-400">?앸뀈?붿씪??/p>
+                  <p className="text-xs text-slate-400">생년월일시</p>
                   <p className="mt-1 font-semibold text-white">{formatProfileBirth(currentProfile)}</p>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-black/18 p-4">
-                  <p className="text-xs text-slate-400">異쒖깮吏</p>
-                  <p className="mt-1 font-semibold text-white">{currentProfile.location?.label || "誘몄엯??}</p>
+                  <p className="text-xs text-slate-400">출생지</p>
+                  <p className="mt-1 font-semibold text-white">{currentProfile.location?.label || "미입력"}</p>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-black/18 p-4">
-                  <p className="text-xs text-slate-400">?쒓컙?</p>
+                  <p className="text-xs text-slate-400">시간대</p>
                   <p className="mt-1 font-semibold text-white">{currentProfile.location?.tz || "Asia/Seoul"}</p>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-black/18 p-4">
-                  <p className="text-xs text-slate-400">?깅퀎</p>
-                  <p className="mt-1 font-semibold text-white">{currentProfile.gender === "M" ? "?⑥꽦" : currentProfile.gender === "F" ? "?ъ꽦" : "湲고?"}</p>
+                  <p className="text-xs text-slate-400">성별</p>
+                  <p className="mt-1 font-semibold text-white">{currentProfile.gender === "M" ? "남성" : currentProfile.gender === "F" ? "여성" : "기타"}</p>
                 </div>
               </div>
             ) : (
               <p className="mt-6 rounded-lg border border-dashed border-amber-300/25 bg-black/15 p-5 text-sm text-slate-300">
-                ?꾩쭅 ?꾨줈??移대뱶媛 ?놁뒿?덈떎. ???꾨줈?꾩쓣 異붽????대챸??湲곗??먯쓣 ?몄썙 二쇱꽭??
+                아직 프로필 카드가 없습니다. 새 프로필을 추가해 운명의 기준점을 세워 주세요.
               </p>
             )}
 
@@ -1243,10 +1244,10 @@ export default function MePage() {
                 onClick={handleAddProfileClick}
                 className={`rounded-md px-4 py-2 text-sm font-bold ${canCreateMore ? "bg-amber-300 text-slate-950" : "border border-amber-300/40 bg-amber-500/10 text-amber-100"}`}
               >
-                ???꾨줈??異붽?
+                새 프로필 추가
               </button>
               <Link href="/" className="rounded-md border border-white/15 px-4 py-2 text-sm font-semibold text-slate-200">
-                硫붿씤?쇰줈 ?대룞
+                메인으로 이동
               </Link>
             </div>
           </article>
@@ -1255,21 +1256,21 @@ export default function MePage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Profile List</p>
-                <h2 className="mt-1 text-lg font-bold text-white">?꾨줈??紐⑸줉</h2>
+                <h2 className="mt-1 text-lg font-bold text-white">프로필 목록</h2>
               </div>
               <button
                 type="button"
                 onClick={openCreateProfile}
                 className="rounded-md border border-amber-300/35 px-3 py-2 text-xs font-semibold text-amber-100"
               >
-                ???꾨줈??異붽?
+                새 프로필 추가
               </button>
             </div>
 
             <div className="mt-4 space-y-2">
               {profiles.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-white/15 p-4 text-sm text-slate-300">
-                  ??λ맂 ?꾨줈??移대뱶媛 ?놁뒿?덈떎. ???꾨줈?꾩쓣 異붽???二쇱꽭??
+                  저장된 프로필 카드가 없습니다. 새 프로필을 추가해 주세요.
                 </div>
               ) : (
                 profiles.map((profile) => {
@@ -1289,12 +1290,12 @@ export default function MePage() {
                           <p className="mt-1 text-[11px] font-semibold text-amber-200">{actionHint}</p>
                         </div>
                         <div ref={menuOpen ? activeProfileMenuRef : null} className="relative z-40 flex flex-none items-start gap-2">
-                          {active ? <span className="mt-1 rounded-full bg-amber-300 px-2 py-0.5 text-[11px] font-bold text-slate-950">??</span> : null}
+                          {active ? <span className="mt-1 rounded-full bg-amber-300 px-2 py-0.5 text-[11px] font-bold text-slate-950">대표</span> : null}
                           <button
                             type="button"
                             aria-haspopup="menu"
                             aria-expanded={menuOpen}
-                            aria-label="?꾨줈??移대뱶 硫붾돱"
+                            aria-label="프로필 카드 메뉴"
                             onClick={(event) => {
                               if (busyAction) {
                                 return;
@@ -1315,7 +1316,7 @@ export default function MePage() {
                             disabled={!!busyAction}
                             className="flex min-h-[44px] min-w-[44px] touch-manipulation items-center justify-center rounded-md border border-white/15 bg-black/25 text-xl font-black leading-none text-slate-100 shadow-lg shadow-black/20 disabled:opacity-35"
                           >
-                            ??
+                            ⋯
                           </button>
                           {menuOpen ? (
                             <div
@@ -1333,7 +1334,7 @@ export default function MePage() {
                                 disabled={activating || editing || deleting || (!!busyAction && !activating)}
                                 className="flex min-h-[44px] w-full touch-manipulation items-center justify-between rounded-md px-3 py-2 text-left text-sm font-semibold text-slate-100 hover:bg-white/10 disabled:opacity-40"
                               >
-                                <span>?꾨줈??議고쉶</span>
+                                <span>프로필 조회</span>
                                 <span className="text-xs text-slate-400">{activating ? "..." : ""}</span>
                               </button>
                               <button
@@ -1346,7 +1347,7 @@ export default function MePage() {
                                 disabled={editing || deleting || activating || !!busyAction}
                                 className="flex min-h-[44px] w-full touch-manipulation items-center rounded-md px-3 py-2 text-left text-sm font-semibold text-amber-100 hover:bg-amber-300/10 disabled:opacity-40"
                               >
-                                ???꾨줈??異붽?
+                                새 프로필 추가
                               </button>
                               <button
                                 type="button"
@@ -1388,15 +1389,15 @@ export default function MePage() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-300">PDF Archive</p>
-              <h2 className="mt-1 text-xl font-bold text-white">PDF 蹂닿???/h2>
-              <p className="mt-1 text-sm text-slate-300">?꾩꽦???대챸??梨낃낵 ?꾨━誘몄뾼 由ы룷?몃? ?ㅼ떆 ?대엺?섍퀬 ?대젮諛쏆쓣 ???덉뒿?덈떎.</p>
+              <h2 className="mt-1 text-xl font-bold text-white">PDF 보관함</h2>
+              <p className="mt-1 text-sm text-slate-300">완성된 인생의 책과 프리미엄 리포트를 다시 열람하고 내려받을 수 있습니다.</p>
             </div>
             <button
               type="button"
               onClick={() => void loadPdfArchive()}
               className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200"
             >
-              ?덈줈怨좎묠
+              새로고침
             </button>
           </div>
 
@@ -1407,27 +1408,27 @@ export default function MePage() {
           ) : null}
 
           {archiveLoading ? (
-            <div className="mt-4 rounded-lg border border-dashed border-white/20 p-4 text-sm text-slate-300">PDF 蹂닿??⑥쓣 遺덈윭?ㅻ뒗 以묒엯?덈떎.</div>
+            <div className="mt-4 rounded-lg border border-dashed border-white/20 p-4 text-sm text-slate-300">PDF 보관함을 불러오는 중입니다.</div>
           ) : archiveItems.length === 0 ? (
-            <div className="mt-4 rounded-lg border border-dashed border-white/20 p-4 text-sm text-slate-300">?꾩쭅 蹂닿????꾨━誘몄뾼 PDF媛 ?놁뒿?덈떎.</div>
+            <div className="mt-4 rounded-lg border border-dashed border-white/20 p-4 text-sm text-slate-300">아직 보관된 프리미엄 PDF가 없습니다.</div>
           ) : (
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               {archiveItems.map((item) => {
-                const displayName = String(item.displayName || "?대챸 由ы룷??);
+                const displayName = String(item.displayName || "운명 리포트");
                 const title = String(item.title || displayName);
                 const subject = String(item.targetName || item.birthName || "").trim();
                 return (
                   <article key={item.reportId} className="rounded-lg border border-white/10 bg-black/15 p-4">
                     <p className="text-xs font-semibold text-amber-200">{displayName}</p>
                     <h3 className="mt-1 text-base font-bold text-white">{title}</h3>
-                    <p className="mt-2 text-xs text-slate-300">{formatArchiveDate(item.completedAt)} ?앹꽦</p>
-                    <p className="mt-1 text-xs text-slate-400">?좏삎 {modeLabel(item.mode)}{subject ? ` 쨌 ${subject}` : ""}</p>
+                    <p className="mt-2 text-xs text-slate-300">{formatArchiveDate(item.completedAt)} 생성</p>
+                    <p className="mt-1 text-xs text-slate-400">유형 {modeLabel(item.mode)}{subject ? ` · ${subject}` : ""}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Link
                         href={`/me/reports?reportId=${encodeURIComponent(item.reportId)}`}
                         className="rounded-md bg-amber-300 px-3 py-1.5 text-xs font-bold text-slate-900"
                       >
-                        ?ㅼ떆 ?닿린
+                        다시 열기
                       </Link>
                       {item.canDownload && item.pdfUrl ? (
                         <a
@@ -1436,7 +1437,7 @@ export default function MePage() {
                           rel="noreferrer"
                           className="rounded-md border border-white/20 px-3 py-1.5 text-xs font-semibold text-slate-200"
                         >
-                          PDF ?ㅼ슫濡쒕뱶
+                          PDF 다운로드
                         </a>
                       ) : null}
                     </div>
@@ -1482,13 +1483,13 @@ export default function MePage() {
       {isCreateProfileOpen ? (
         <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/75 px-0 sm:items-center sm:px-4">
           <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-amber-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
-            <h3 className="text-lg font-bold text-amber-100">???꾨줈??異붽?</h3>
+            <h3 className="text-lg font-bold text-amber-100">새 프로필 추가</h3>
             <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
-              {profileActionFreeLabel ? "FAMILY ?댁슜沅??댁긽 ?쒗깮?쇰줈 ?꾨줈??異붽?媛 媛?ν빀?덈떎." : "湲곕낯 ?뺤콉???곕씪 ?꾨줈??異붽??먮뒗 50肄붿씤???꾩슂?????덉뒿?덈떎."}
+              {profileActionFreeLabel ? "FAMILY 이용권 이상 혜택으로 프로필 추가가 가능합니다." : "기본 정책에 따라 프로필 추가에는 50코인이 필요할 수 있습니다."}
             </p>
             {busyAction === "create" ? (
               <div className="mt-3 rounded-lg border border-amber-300/35 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
-                ?꾨줈?꾩쓣 ??ν븯??以묒엯?덈떎.
+                프로필을 저장하는 중입니다.
               </div>
             ) : null}
             {authNotice ? (
@@ -1498,7 +1499,7 @@ export default function MePage() {
             ) : null}
             <div className="mt-4 grid gap-3">
               <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                ?대쫫/蹂꾩묶
+                이름/별칭
                 <input
                   value={createDraft.name}
                   onChange={(event) => setCreateDraft((prev) => ({ ...prev, name: event.target.value }))}
@@ -1507,33 +1508,33 @@ export default function MePage() {
               </label>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  ?깅퀎
+                  성별
                   <select
                     value={createDraft.gender}
                     onChange={(event) => setCreateDraft((prev) => ({ ...prev, gender: event.target.value as ProfileCreateDraft["gender"] }))}
                     className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
                   >
-                    <option value="OTHER">湲고?</option>
-                    <option value="M">?⑥꽦</option>
-                    <option value="F">?ъ꽦</option>
+                    <option value="OTHER">기타</option>
+                    <option value="M">남성</option>
+                    <option value="F">여성</option>
                   </select>
                 </label>
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  ?묐젰/?뚮젰
+                  양력/음력
                   <select
                     value={createDraft.calType}
                     onChange={(event) => setCreateDraft((prev) => ({ ...prev, calType: event.target.value as ProfileCreateDraft["calType"] }))}
                     className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
                   >
-                    <option value="solar">?묐젰</option>
-                    <option value="lunar">?뚮젰</option>
-                    <option value="lunar_leap">?ㅻ떖</option>
+                    <option value="solar">양력</option>
+                    <option value="lunar">음력</option>
+                    <option value="lunar_leap">윤달</option>
                   </select>
                 </label>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  ?앸뀈?붿씪
+                  생년월일
                   <input
                     type="date"
                     value={createDraft.birthDate}
@@ -1542,7 +1543,7 @@ export default function MePage() {
                   />
                 </label>
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  異쒖깮?쒓컙
+                  출생시간
                   <input
                     type="time"
                     value={createDraft.birthTime}
@@ -1552,17 +1553,17 @@ export default function MePage() {
                 </label>
               </div>
               <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                異쒖깮吏
+                출생지
                 <input
                   value={createDraft.locationLabel}
                   onChange={(event) => setCreateDraft((prev) => ({ ...prev, locationLabel: event.target.value }))}
-                  placeholder="??쒕?援?쨌 ?쒖슱"
+                  placeholder="대한민국 · 서울"
                   className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
                 />
               </label>
               <div className="grid gap-3 sm:grid-cols-3">
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  寃쎈룄
+                  경도
                   <input
                     inputMode="decimal"
                     value={createDraft.longitude}
@@ -1571,7 +1572,7 @@ export default function MePage() {
                   />
                 </label>
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  ?꾨룄
+                  위도
                   <input
                     inputMode="decimal"
                     value={createDraft.latitude}
@@ -1580,7 +1581,7 @@ export default function MePage() {
                   />
                 </label>
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  ?쒓컙?
+                  시간대
                   <input
                     value={createDraft.timezone}
                     onChange={(event) => setCreateDraft((prev) => ({ ...prev, timezone: event.target.value }))}
@@ -1596,7 +1597,7 @@ export default function MePage() {
                 disabled={!!busyAction}
                 className="min-h-[44px] rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200 disabled:opacity-45"
               >
-                痍⑥냼
+                취소
               </button>
               <button
                 type="button"
@@ -1604,7 +1605,7 @@ export default function MePage() {
                 disabled={!createDraft.name.trim() || !createDraft.birthDate || !createDraft.birthTime || !createDraft.locationLabel.trim() || !!busyAction}
                 className="min-h-[44px] rounded-md bg-amber-300 px-3 py-2 text-sm font-bold text-slate-900 disabled:opacity-45"
               >
-                {busyAction === "create" ? "???以? : "?꾨줈??異붽?"}
+                {busyAction === "create" ? "저장 중" : "프로필 추가"}
               </button>
             </div>
           </div>
@@ -1614,14 +1615,14 @@ export default function MePage() {
       {editTarget ? (
         <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/75 px-0 sm:items-center sm:px-4">
           <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-amber-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
-            <h3 className="text-lg font-bold text-amber-100">?꾨줈???섏젙</h3>
+            <h3 className="text-lg font-bold text-amber-100">프로필 수정</h3>
             <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
               {profileActionPolicyNotice}
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-200">
               {isVvipProfileActionFree
-                ? "蹂댁쑀 以묒씤 ?댁슜沅??쒗깮?쇰줈 臾대즺 ?섏젙?⑸땲?? 肄붿씤? 李④컧?섏? ?딆뒿?덈떎."
-                : "?꾨줈???섏젙?먮뒗 50肄붿씤???꾩슂?⑸땲?? ?쒕쾭?먯꽌 ?붿븸???뺤씤????泥섎━?⑸땲??"}
+                ? "보유 중인 이용권 혜택으로 무료 수정합니다. 코인은 차감되지 않습니다."
+                : "프로필 수정에는 50코인이 필요합니다. 서버에서 요금을 확인한 뒤 처리합니다."}
             </p>
             <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
               <p className="truncate text-sm font-semibold text-white">{editTarget.name}</p>
@@ -1639,7 +1640,7 @@ export default function MePage() {
             ) : null}
             <div className="mt-4 grid gap-3">
               <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                ?대쫫
+                이름
                 <input
                   value={editDraft.name}
                   onChange={(event) => setEditDraft((prev) => ({ ...prev, name: event.target.value }))}
@@ -1647,20 +1648,20 @@ export default function MePage() {
                 />
               </label>
               <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                ?깅퀎
+                성별
                 <select
                   value={editDraft.gender}
                   onChange={(event) => setEditDraft((prev) => ({ ...prev, gender: event.target.value as ProfileActionDraft["gender"] }))}
                   className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
                 >
-                  <option value="OTHER">湲고?</option>
-                  <option value="M">?⑥꽦</option>
-                  <option value="F">?ъ꽦</option>
+                  <option value="OTHER">기타</option>
+                  <option value="M">남성</option>
+                  <option value="F">여성</option>
                 </select>
               </label>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  ?앸뀈?붿씪
+                  생년월일
                   <input
                     type="date"
                     value={editDraft.birthDate}
@@ -1669,7 +1670,7 @@ export default function MePage() {
                   />
                 </label>
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  異쒖깮?쒓컙
+                  출생시간
                   <input type="time"
                     value={editDraft.birthTime}
                     onChange={(event) => setEditDraft((prev) => ({ ...prev, birthTime: event.target.value }))}
@@ -1685,7 +1686,7 @@ export default function MePage() {
                 disabled={!!busyAction}
                 className="min-h-[44px] rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200 disabled:opacity-45"
               >
-                痍⑥냼
+                취소
               </button>
               <button
                 type="button"
@@ -1703,17 +1704,17 @@ export default function MePage() {
       {deleteTarget ? (
         <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/75 px-0 sm:items-center sm:px-4">
           <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-rose-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
-            <h3 className="text-lg font-bold text-rose-100">?꾨줈????젣 ?뺤씤</h3>
+            <h3 className="text-lg font-bold text-rose-100">프로필 삭제 확인</h3>
             <p className="mt-2 rounded-lg border border-rose-300/25 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-100">
               {profileActionPolicyNotice}
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-200">
               {profileActionFreeLabel
-                ? "FAMILY ?댁슜沅??댁긽 ?쒗깮?쇰줈 臾대즺 ??젣?⑸땲?? 肄붿씤? 李④컧?섏? ?딆뒿?덈떎."
-                : `?꾨줈????젣?먮뒗 ${PROFILE_CARD_ACTION_COST_COINS}肄붿씤???꾩슂?⑸땲?? ?꾩옱 ?ъ슜 媛??肄붿씤? ${profileActionCoinBalance.toLocaleString("ko-KR")}肄붿씤?낅땲??`}
+                ? "FAMILY 이용권 이상 혜택으로 무료 삭제합니다. 코인은 차감되지 않습니다."
+                : `프로필 삭제에는 ${PROFILE_CARD_ACTION_COST_COINS}코인이 필요합니다. 현재 사용 가능 코인은 ${profileActionCoinBalance.toLocaleString("ko-KR")}코인입니다.`}
             </p>
             <div className="mt-4 rounded-lg border border-rose-300/20 bg-rose-500/10 px-3 py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-rose-200">??젣 ???/p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-rose-200">삭제 대상</p>
               <p className="mt-1 truncate text-base font-bold text-white">{deleteTarget.name}</p>
               <p className="mt-1 text-xs text-slate-300">{formatProfileBirth(deleteTarget)}</p>
             </div>
@@ -1734,7 +1735,7 @@ export default function MePage() {
                 disabled={!!busyAction}
                 className="min-h-[44px] rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200 disabled:opacity-45"
               >
-                痍⑥냼
+                취소
               </button>
               <button
                 type="button"
@@ -1752,9 +1753,9 @@ export default function MePage() {
       {showUpgradeModal ? (
         <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/70 px-4">
           <div className="w-full max-w-md rounded-xl border border-amber-300/35 bg-[#171a34] p-5 shadow-2xl shadow-black/40">
-            <h3 className="text-lg font-bold text-amber-100">?꾨줈???쒕룄瑜??뺤씤??二쇱꽭??/h3>
+            <h3 className="text-lg font-bold text-amber-100">프로필 한도를 확인해 주세요</h3>
             <p className="mt-3 text-sm leading-6 text-slate-200">
-              ?꾩옱 ?댁슜沅??쒕룄???곕씪 ???꾨줈??異붽?媛 ?쒗븳?????덉뒿?덈떎. 肄붿씤??異⑹쟾?섍굅???곸쐞 ?댁슜沅뚯쑝濡??꾪솚?????ㅼ떆 ?쒕룄??二쇱꽭??
+              현재 이용권 한도에 따라 새 프로필 추가가 제한될 수 있습니다. 코인을 충전하거나 상위 이용권으로 전환한 뒤 다시 시도해 주세요.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -1762,14 +1763,14 @@ export default function MePage() {
                 onClick={() => setShowUpgradeModal(false)}
                 className="rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200"
               >
-                ?リ린
+                닫기
               </button>
               <Link
                 href="/points"
                 className="rounded-md bg-amber-300 px-3 py-2 text-sm font-bold text-slate-900"
                 onClick={() => setShowUpgradeModal(false)}
               >
-                ?댁슜沅?愿由щ줈 ?대룞
+                이용권 관리로 이동
               </Link>
             </div>
           </div>

@@ -12,29 +12,29 @@ const SERVICE_KEY = "saju-lifebook";
 const FEATURE_KEY = "saju_life_book_pdf";
 
 const STEP_LABELS = [
-  "?꾨줈???뺣낫瑜??뺤씤?섎뒗 以묒엯?덈떎",
-  "?ъ＜ ?먭뎅???뺣━?섎뒗 以묒엯?덈떎",
-  "?붿옄 8湲?먯쓽 ?먮쫫???댁꽍?섎뒗 以묒엯?덈떎",
-  "??닿낵 ?몄슫?????먮쫫??諛섏쁺?섎뒗 以묒엯?덈떎",
-  "?щЪ쨌吏곸뾽쨌愿怨꾩쓽 援ъ“瑜??뺣━?섎뒗 以묒엯?덈떎",
-  "?⑹떊怨??몄깮 ?꾨왂??援ъ꽦?섎뒗 以묒엯?덈떎",
-  "?꾨즺",
+  "프로필 정보를 확인하는 중입니다",
+  "사주 원국을 정리하는 중입니다",
+  "팔자 8글자의 흐름을 해석하는 중입니다",
+  "대운과 세운의 큰 흐름을 반영하는 중입니다",
+  "재물·직업·관계의 구조를 정리하는 중입니다",
+  "용신과 인생 전략을 구성하는 중입니다",
+  "완료",
 ];
 
 const CHAPTER_ROADMAP = [
-  "I. ?ъ＜ ?먭뎅 ?꾩쟾 ?댁꽕",
-  "II. ?섏쓽 ?ㅺ퀎??,
-  "III. ?④꺼吏?臾닿린",
-  "IV. ????뺣? 遺꾩꽍",
-  "V. 寃⑷뎅怨??ы쉶???뚮챸",
-  "VI. 愿怨꾩쓽 ?꾨왂",
-  "VII. ?곗븷쨌寃고샎 ?꾩쟾 遺꾩꽍",
-  "VIII. ?щЪ쨌吏곸뾽 ?꾩쟾 遺꾩꽍",
-  "IX. 嫄닿컯쨌?ъ떊 由щ벉",
-  "X. ?좎궡쨌??씠?댁꽦쨌?? ?ъ씤??,
-  "XI. ?꾧린? 諛섏쟾 ?쒕굹由ъ삤",
-  "XII. ?섏쓽 湲?,
-  "XIII. 留덉뒪?고뵆??,
+  "I. 사주 원국 완전 해설",
+  "II. 나의 설계도",
+  "III. 숨겨진 무기",
+  "IV. 대운 정밀 분석",
+  "V. 격국과 사회적 소명",
+  "VI. 관계의 전략",
+  "VII. 연애·결혼 완전 분석",
+  "VIII. 재물·직업 완전 분석",
+  "IX. 건강·심신 리듬",
+  "X. 신살·십이운성·퀀텀 포인트",
+  "XI. 위기와 반전 시나리오",
+  "XII. 나의 길",
+  "XIII. 마스터플랜",
 ];
 
 function nowDate() {
@@ -95,19 +95,19 @@ function mapApiError(status, payload) {
   const message = String(payload?.message || payload?.error?.message || "").trim();
 
   if (status === 401 || code === "UNAUTHORIZED") {
-    return "濡쒓렇?????몄깮??梨?PDF瑜??앹꽦?????덉뒿?덈떎.";
+    return "로그인 후 인생의 책 PDF를 생성할 수 있습니다.";
   }
   if (status === 402 || code.includes("PAYMENT") || code.includes("ACCESS")) {
-    return "?꾨━誘몄뾼 PDF ?앹꽦 沅뚰븳???꾩슂?⑸땲??";
+    return "프리미엄 PDF 생성 권한이 필요합니다.";
   }
   if (status === 403 || code.includes("CHECK") || code.includes("VERIFY")) {
-    return "寃곗젣 ?뺤씤 以?臾몄젣媛 諛쒖깮?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??";
+    return "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
   }
   if (/seed|llm/i.test(message)) {
-    return "?몄깮??梨??앹꽦 以??대? ?댁꽍 ?먮쫫???딄꼈?듬땲?? ?낅젰 ?뺣낫瑜??ㅼ떆 ?뺤씤?????ъ떆?꾪빐 二쇱꽭??";
+    return "인생의 책 생성 중 내부 해석 흐름이 끊겼습니다. 입력 정보를 다시 확인한 뒤 재시도해 주세요.";
   }
   if (message) return message;
-  return "PDF ?앹꽦 以?臾몄젣媛 諛쒖깮?덉뒿?덈떎. ?낅젰 ?뺣낫瑜??뺤씤?????ㅼ떆 ?쒕룄??二쇱꽭??";
+  return "PDF 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.";
 }
 
 function normalizeClientLifeBookPillar(raw) {
@@ -249,7 +249,7 @@ function CoverImage() {
   if (!loaded) {
     return (
       <div
-        aria-label="?몄깮??梨??泥?鍮꾩＜??
+        aria-label="인생의 책 대체 비주얼"
         style={{
           width: "100%",
           aspectRatio: "16/10",
@@ -264,7 +264,7 @@ function CoverImage() {
   return (
     <img
       src="/fuctionassets/lifebook.webp"
-      alt="?ъ＜ ?몄깮??梨?
+      alt="사주 인생의 책"
       onError={() => setLoaded(false)}
       style={{
         width: "100%",
@@ -286,7 +286,7 @@ export default function SajuLifebookPage() {
     birthTimeKnown: true,
     hour: "12",
     minute: "00",
-    birthplace: "?쒖슱",
+    birthplace: "서울",
   });
 
   const [loading, setLoading] = useState(false);
@@ -345,25 +345,25 @@ export default function SajuLifebookPage() {
     const name = String(form.name || "").trim();
     console.info("[LifeBook][ModalOpen]");
     if (!name) {
-      setError("?대쫫???낅젰??二쇱꽭??");
+      setError("이름을 입력해 주세요.");
       return;
     }
 
     const birth = parseBirthDate(form.birthDate);
     if (!Number.isFinite(birth.year) || !Number.isFinite(birth.month) || !Number.isFinite(birth.day)) {
-      setError("?앸뀈?붿씪???뺥솗???낅젰??二쇱꽭??");
+      setError("생년월일을 정확히 입력해 주세요.");
       return;
     }
 
     if (!form.birthTimeKnown) {
-      setError("?몄깮??梨?PDF???쒖＜? ????먮쫫源뚯? ?뺣??섍쾶 蹂닿린 ?꾪빐 ?쒖뼱???쒓컙???꾩슂?⑸땲?? ?꾨줈??移대뱶?먯꽌 ?쒖뼱???쒓컙???낅젰??二쇱꽭??");
+      setError("인생의 책 PDF는 시주와 대운 흐름까지 정밀하게 보기 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 입력해 주세요.");
       return;
     }
 
     const hour = Number(form.hour);
     const minute = Number(form.minute);
     if (!Number.isFinite(hour) || !Number.isFinite(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-      setError("?쒖뼱???쒓컙???뺥솗???낅젰??二쇱꽭??");
+      setError("태어난 시간을 정확히 입력해 주세요.");
       return;
     }
 
@@ -375,13 +375,13 @@ export default function SajuLifebookPage() {
       }
       setEnginePreview({
         status: "ready",
-        title: String(localEngine.finalAdvancedReport?.title || localEngine.structuredAdvancedReport?.userReport?.title || "QUANTUM MYEONGRI Engine v.2 怨좉툒 遺꾩꽍 由ы룷??),
+        title: String(localEngine.finalAdvancedReport?.title || localEngine.structuredAdvancedReport?.userReport?.title || "QUANTUM MYEONGRI Engine v.2 고급 분석 리포트"),
         engineVersion: String(localEngine.structuredAdvancedReport?.metadata?.engineVersion || "QUANTUM_MYEONGRI_ENGINE_V2"),
-        summary: String(localEngine.finalAdvancedReport?.brandPhrases?.join(" 쨌 ") || "?댁쓽 ?섍낏?덊깭 쨌 泥쒓린???≪뀡 泥섎갑"),
+        summary: String(localEngine.finalAdvancedReport?.brandPhrases?.join(" · ") || "운의 환골탈태 · 천기적 액션 처방"),
       });
     } catch (engineError) {
       console.warn("[LifeBook][QuantumMyeongriV2Failed]", engineError);
-      setError("?? 紐낅━?붿쭊 v2 怨꾩궛媛믪쓣 留뚮뱾吏 紐삵뻽?듬땲?? ?앸뀈?붿씪?쒖? ?묐젰/?뚮젰 ?ㅼ젙???ㅼ떆 ?뺤씤??二쇱꽭??");
+      setError("퀀텀 명리엔진 v2 계산값을 만들지 못했습니다. 생년월일시와 양력/음력 설정을 다시 확인해 주세요.");
       return;
     }
 
@@ -406,7 +406,7 @@ export default function SajuLifebookPage() {
         categoryKey: "premium-report",
         featureKey: FEATURE_KEY,
         subFeatureKey: FEATURE_KEY,
-        reason: "?몄깮??梨??앹꽦 (13梨뺥꽣)",
+        reason: "인생의 책 생성 (13챕터)",
         requestId,
         reportId,
         sessionId: reportSessionId,
@@ -415,7 +415,7 @@ export default function SajuLifebookPage() {
       });
 
       if (!gate?.ok) {
-        throw new Error(gate?.error?.message || gate?.message || "?꾨━誘몄뾼 PDF ?앹꽦 沅뚰븳???꾩슂?⑸땲??");
+        throw new Error(gate?.error?.message || gate?.message || "프리미엄 PDF 생성 권한이 필요합니다.");
       }
 
       console.info("[LifeBook][BillingGateSuccess]", { hasAccessGrant: Boolean(gate?.data?.accessGrant) });
@@ -516,7 +516,7 @@ export default function SajuLifebookPage() {
       console.info("[LifeBook][PdfRequestSuccess]");
     } catch (submitError) {
       console.info("[LifeBook][Error]", { message: String(submitError?.message || "") });
-      setError(String(submitError?.message || "PDF ?앹꽦 以?臾몄젣媛 諛쒖깮?덉뒿?덈떎. ?낅젰 ?뺣낫瑜??뺤씤?????ㅼ떆 ?쒕룄??二쇱꽭??"));
+      setError(String(submitError?.message || "PDF 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요."));
     } finally {
       stopTicker();
       submitLockRef.current = false;
@@ -560,20 +560,20 @@ export default function SajuLifebookPage() {
     }
 
     setError("결과를 찾지 못했습니다. 다시 시도해주세요.");
-  };\r\n
+  };
   return (
     <main style={{ minHeight: "100vh", background: "linear-gradient(180deg, #0d0a08 0%, #16100b 50%, #0b0806 100%)", color: "#f7ead7" }}>
       <section style={{ maxWidth: 1160, margin: "0 auto", padding: "26px 16px 72px" }}>
         <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: 20 }}>
           <article style={{ borderRadius: 22, padding: 22, border: "1px solid rgba(245, 214, 165, .22)", background: "linear-gradient(155deg, rgba(34,24,15,.95), rgba(79,53,31,.94))" }}>
-            <h1 style={{ margin: 0, fontSize: 36, lineHeight: 1.2 }}>?ъ＜ ?몄깮??梨?/h1>
-            <p style={{ marginTop: 10, fontSize: 18, color: "#f6ddb3" }}>?붿옄 8湲?먮줈 ?쎈뒗 ?섎쭔???대챸 ?댁꽕??/p>
+            <h1 style={{ margin: 0, fontSize: 36, lineHeight: 1.2 }}>사주 인생의 책</h1>
+            <p style={{ marginTop: 10, fontSize: 18, color: "#f6ddb3" }}>팔자 8글자로 읽는 나만의 운명 해설서</p>
             <p style={{ marginTop: 12, color: "#ebd6b8", lineHeight: 1.7 }}>
-              ?먭뎅, ?쇨컙, ?붿?, ?⑹떊, ??? 愿怨? ?щЪ, 而ㅻ━?? 嫄닿컯, ?꾧린愿由? ?ㅽ뻾?꾨왂源뚯?
-              13梨뺥꽣濡?援ъ꽦???꾨━誘몄뾼 由ы룷?몃? ?앹꽦?⑸땲??
+              원국, 일간, 월지, 용신, 대운, 관계, 재물, 커리어, 건강, 위기관리, 실행전략까지
+              13챕터로 구성된 프리미엄 리포트를 생성합니다.
             </p>
             <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {["Premium PDF", "13 Chapters", "?ъ＜ ?먭뎅 湲곕컲", "理쒓퀬 ?댁꽭 ?꾨Ц媛 ?댁꽍", "?꾩꽦???곷떞臾?由ы룷??].map((tag) => (
+              {["Premium PDF", "13 Chapters", "사주 원국 기반", "최고 운세 전문가 해석", "완성형 상담문 리포트"].map((tag) => (
                 <span key={tag} style={{ borderRadius: 999, padding: "6px 12px", fontSize: 12, background: "rgba(245,214,165,.15)", border: "1px solid rgba(245,214,165,.38)" }}>{tag}</span>
               ))}
             </div>
@@ -586,7 +586,7 @@ export default function SajuLifebookPage() {
         </div>
 
         <section style={{ marginTop: 18, borderRadius: 18, padding: 16, border: "1px solid rgba(240,209,157,.22)", background: "rgba(24,17,12,.72)" }}>
-          <h2 style={{ margin: "0 0 10px" }}>13梨뺥꽣 援ъ꽦</h2>
+          <h2 style={{ margin: "0 0 10px" }}>13챕터 구성</h2>
           <div className="roadmap-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 8 }}>
             {CHAPTER_ROADMAP.map((item) => (
               <div key={item} style={{ borderRadius: 12, padding: "10px 12px", border: "1px solid rgba(240,209,157,.22)", background: "rgba(240,209,157,.06)" }}>
@@ -597,46 +597,46 @@ export default function SajuLifebookPage() {
         </section>
 
         <form onSubmit={handleSubmit} style={{ marginTop: 20, borderRadius: 20, padding: 18, border: "1px solid rgba(240,209,157,.22)", background: "rgba(21,15,11,.8)" }}>
-          <h2 style={{ margin: "0 0 12px" }}>?앹꽦 ?ㅼ젙</h2>
+          <h2 style={{ margin: "0 0 12px" }}>생성 설정</h2>
           <div className="form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 12 }}>
             <label style={{ display: "grid", gap: 6 }}>
-              <span>?대쫫</span>
+              <span>이름</span>
               <input value={form.name} onChange={(e) => updateField("name", e.target.value)} style={{ borderRadius: 10, border: "1px solid #896744", background: "#16100b", color: "#fff4e5", padding: "10px 12px" }} />
             </label>
             <label style={{ display: "grid", gap: 6 }}>
-              <span>?깅퀎</span>
+              <span>성별</span>
               <select value={form.gender} onChange={(e) => updateField("gender", e.target.value)} style={{ borderRadius: 10, border: "1px solid #896744", background: "#16100b", color: "#fff4e5", padding: "10px 12px" }}>
-                <option value="female">?ъ꽦</option>
-                <option value="male">?⑥꽦</option>
-                <option value="other">湲고?</option>
+                <option value="female">여성</option>
+                <option value="male">남성</option>
+                <option value="other">기타</option>
               </select>
             </label>
             <label style={{ display: "grid", gap: 6 }}>
-              <span>?앸뀈?붿씪</span>
+              <span>생년월일</span>
               <input type="date" value={form.birthDate} onChange={(e) => updateField("birthDate", e.target.value)} style={{ borderRadius: 10, border: "1px solid #896744", background: "#16100b", color: "#fff4e5", padding: "10px 12px" }} />
             </label>
             <label style={{ display: "grid", gap: 6 }}>
-              <span>?묐젰/?뚮젰</span>
+              <span>양력/음력</span>
               <select value={form.calendarType} onChange={(e) => updateField("calendarType", e.target.value)} style={{ borderRadius: 10, border: "1px solid #896744", background: "#16100b", color: "#fff4e5", padding: "10px 12px" }}>
-                <option value="solar">?묐젰</option>
-                <option value="lunar">?뚮젰</option>
+                <option value="solar">양력</option>
+                <option value="lunar">음력</option>
               </select>
             </label>
             <label style={{ display: "grid", gap: 6 }}>
-              <span>?쒖뼱????/span>
+              <span>태어난 시</span>
               <input type="number" min="0" max="23" value={form.hour} disabled={!form.birthTimeKnown} onChange={(e) => updateField("hour", e.target.value)} style={{ borderRadius: 10, border: "1px solid #896744", background: form.birthTimeKnown ? "#16100b" : "#271d14", color: "#fff4e5", padding: "10px 12px" }} />
             </label>
             <label style={{ display: "grid", gap: 6 }}>
-              <span>?쒖뼱??遺?/span>
+              <span>태어난 분</span>
               <input type="number" min="0" max="59" value={form.minute} disabled={!form.birthTimeKnown} onChange={(e) => updateField("minute", e.target.value)} style={{ borderRadius: 10, border: "1px solid #896744", background: form.birthTimeKnown ? "#16100b" : "#271d14", color: "#fff4e5", padding: "10px 12px" }} />
             </label>
             <label style={{ display: "grid", gap: 6 }}>
-              <span>異쒖깮吏</span>
+              <span>출생지</span>
               <input value={form.birthplace} onChange={(e) => updateField("birthplace", e.target.value)} style={{ borderRadius: 10, border: "1px solid #896744", background: "#16100b", color: "#fff4e5", padding: "10px 12px" }} />
             </label>
             <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20 }}>
               <input type="checkbox" checked={!form.birthTimeKnown} onChange={(e) => updateField("birthTimeKnown", !e.target.checked)} />
-              <span>?쒖뼱???쒓컙??紐⑤쫭?덈떎 (?쒓컙 誘몄긽 湲곗?)</span>
+              <span>태어난 시간을 모릅니다 (시간 미상 기준)</span>
             </label>
           </div>
 
@@ -644,28 +644,28 @@ export default function SajuLifebookPage() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
               <strong style={{ color: "#f5d69f" }}>QUANTUM MYEONGRI Engine v.2</strong>
               <span style={{ borderRadius: 999, padding: "4px 10px", fontSize: 12, border: "1px solid rgba(244,213,159,.38)", color: "#ffe5b8" }}>
-                {enginePreview?.status === "ready" ? "怨꾩궛媛?諛섏쁺 ?꾨즺" : "?앹꽦 ???뺣? 怨꾩궛"}
+                {enginePreview?.status === "ready" ? "계산값 반영 완료" : "생성 시 정밀 계산"}
               </span>
             </div>
             <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: "#dcc5a1" }}>
-              {enginePreview?.title || "?앹꽦 踰꾪듉???꾨Ⅴ硫??낅젰媛?湲곗??쇰줈 怨좉툒 遺꾩꽍 由ы룷?몃? 癒쇱? 怨꾩궛????PDF ?먭퀬??諛섏쁺?⑸땲??"}
+              {enginePreview?.title || "생성 버튼을 누르면 입력값 기준으로 고급 분석 리포트를 먼저 계산한 뒤 PDF 원고에 반영합니다."}
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {["?댁쓽 ?섍낏?덊깭", "泥쒓린???≪뀡 泥섎갑", enginePreview?.engineVersion || "QUANTUM_MYEONGRI_ENGINE_V2"].map((tag) => (
+              {["운의 환골탈태", "천기적 액션 처방", enginePreview?.engineVersion || "QUANTUM_MYEONGRI_ENGINE_V2"].map((tag) => (
                 <span key={tag} style={{ borderRadius: 999, padding: "4px 9px", fontSize: 11, background: "rgba(255,244,229,.08)", color: "#f7e8cf" }}>{tag}</span>
               ))}
             </div>
           </div>
 
-          <p style={{ marginTop: 10, fontSize: 13, color: "#dcc5a1" }}>濡쒓렇??諛?寃곗젣 沅뚰븳 ?뺤씤 ???앹꽦???쒖옉?⑸땲??</p>
+          <p style={{ marginTop: 10, fontSize: 13, color: "#dcc5a1" }}>로그인 및 결제 권한 확인 후 생성이 시작됩니다.</p>
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 10 }}>
             <button type="submit" disabled={loading} style={{ borderRadius: 999, border: "1px solid #e4c38a", background: loading ? "#7d6540" : "#e5c792", color: "#2e1d11", fontWeight: 800, padding: "10px 18px", cursor: loading ? "wait" : "pointer", touchAction: "manipulation" }}>
-              {loading ? "?몄깮??梨??앹꽦 以?.." : "?몄깮??梨??묒꽦 ?쒖옉"}
+              {loading ? "인생의 책 생성 중..." : "인생의 책 작성 시작"}
             </button>
             {(result?.pdfUrl || result?.downloadUrl || result?.htmlUrl || result?.pdfReady?.pdfUrl || result?.pdfReady?.downloadUrl || result?.pdfReady?.htmlUrl || result?.pdfReady?.html) ? (
               <button type="button" onClick={handlePrint} style={{ borderRadius: 999, border: "1px solid rgba(228,195,138,.7)", background: "transparent", color: "#f7e8cf", fontWeight: 700, padding: "10px 16px", cursor: "pointer", touchAction: "manipulation" }}>
-                PDF 異쒕젰/?ㅼ슫濡쒕뱶
+                PDF 출력/다운로드
               </button>
             ) : null}
           </div>
@@ -696,9 +696,9 @@ export default function SajuLifebookPage() {
         {chapters.length ? (
           <section style={{ marginTop: 20, borderRadius: 18, padding: 16, border: "1px solid rgba(240,209,157,.22)", background: "rgba(24,17,12,.72)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-              <h2 style={{ margin: 0 }}>梨뺥꽣 ?곸꽭李?/h2>
+              <h2 style={{ margin: 0 }}>챕터 상세창</h2>
               <button type="button" onClick={() => setShowDetail((prev) => !prev)} style={{ borderRadius: 999, border: "1px solid rgba(240,209,157,.4)", background: "transparent", color: "#f7e8cf", padding: "7px 14px", cursor: "pointer" }}>
-                {showDetail ? "?곸꽭李??リ린" : "?곸꽭李??닿린"}
+                {showDetail ? "상세창 닫기" : "상세창 열기"}
               </button>
             </div>
 
@@ -722,7 +722,8 @@ export default function SajuLifebookPage() {
                     touchAction: "manipulation",
                   }}
                 >
-                  {idx + 1}??                </button>
+                  {idx + 1}장
+                </button>
               ))}
             </div>
 
@@ -746,7 +747,7 @@ export default function SajuLifebookPage() {
                           cursor: "pointer",
                         }}
                       >
-                        <div style={{ fontWeight: 700 }}>{String(category.title || "?뚯＜??)}</div>
+                        <div style={{ fontWeight: 700 }}>{String(category.title || "소주제")}</div>
                         <div style={{ marginTop: 4, fontSize: 13, color: "#dfcaab" }}>{compactPreview(category.finalText || category.localSummary || "")}</div>
                       </button>
                     ))}
@@ -754,9 +755,9 @@ export default function SajuLifebookPage() {
                 </article>
 
                 <article style={{ borderRadius: 14, border: "1px solid rgba(240,209,157,.24)", background: "rgba(17,12,9,.78)", padding: 14 }}>
-                  <h3 style={{ margin: "0 0 10px" }}>{String(currentCategory?.title || "?곸꽭 蹂몃Ц")}</h3>
+                  <h3 style={{ margin: "0 0 10px" }}>{String(currentCategory?.title || "상세 본문")}</h3>
                   <div style={{ color: "#e9d8bd", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>
-                    {String(currentCategory?.finalText || currentCategory?.localSummary || "?곸꽭 ?곷떞臾몄씠 ?ш린???쒖떆?⑸땲??")}
+                    {String(currentCategory?.finalText || currentCategory?.localSummary || "상세 상담문이 여기에 표시됩니다.")}
                   </div>
                 </article>
               </div>
