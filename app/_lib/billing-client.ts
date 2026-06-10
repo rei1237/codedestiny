@@ -64,9 +64,23 @@ export type PaymentEligibility = {
   raw: Record<string, unknown>;
 };
 
+type RuntimePaidServiceGateResult = {
+  status?: string;
+  reason?: string;
+  transactionId?: string;
+  paymentId?: string;
+  purchaseId?: string;
+  requestId?: string;
+  payload?: Record<string, unknown>;
+  data?: Record<string, unknown>;
+};
+
+type PaidServiceRuntimeGate = (options: Record<string, unknown>) => Promise<RuntimePaidServiceGateResult> | RuntimePaidServiceGateResult;
+
 type RuntimeApiWindow = Window & {
   CODE_DESTINY_API_BASE_URL?: string;
   _cdSetCoinGateOverlay?: (show: boolean, message?: string, mode?: string) => void;
+  _cdOpenPaidServiceGate?: PaidServiceRuntimeGate;
   __cdPaidFeatureGate?: {
     close?: (requestId?: string) => void;
   };
@@ -121,6 +135,7 @@ type BillingCoinGatePromise = Promise<BillingResult<BillingCoinGateData>>;
 
 const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
 const BILLING_BALANCE_RECENT_TTL_MS = 650;
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-51868c3f6be7";
 
 const billingCoinGateInFlight = new Map<string, {
   requestId: string;
@@ -134,6 +149,7 @@ const billingCoinGateRecent = new Map<string, {
 let billingBalanceInFlight: Promise<BillingResult<BillingBalanceData>> | null = null;
 let billingBalanceRecent: { result: BillingResult<BillingBalanceData>; expiresAt: number } | null = null;
 let billingBalanceCacheVersion = 0;
+let paidServiceRuntimePromise: Promise<PaidServiceRuntimeGate | null> | null = null;
 
 function invalidateBillingBalanceCache() {
   billingBalanceCacheVersion += 1;
@@ -263,6 +279,242 @@ async function authFetchBilling(path: string, init: RequestInit): Promise<Respon
   }
 
   return primary;
+}
+
+function getPaidServiceRuntimeGate(): PaidServiceRuntimeGate | null {
+  if (typeof window === "undefined") return null;
+  const runtimeWindow = window as RuntimeApiWindow;
+  return typeof runtimeWindow._cdOpenPaidServiceGate === "function" ? runtimeWindow._cdOpenPaidServiceGate : null;
+}
+
+export function loadPaidServiceRuntimeGate(): Promise<PaidServiceRuntimeGate | null> {
+  const current = getPaidServiceRuntimeGate();
+  if (current) return Promise.resolve(current);
+  if (typeof document === "undefined") return Promise.resolve(null);
+  if (paidServiceRuntimePromise) return paidServiceRuntimePromise;
+
+  paidServiceRuntimePromise = new Promise((resolve) => {
+    const finish = () => resolve(getPaidServiceRuntimeGate());
+    const existing = document.querySelector<HTMLScriptElement>('script[src^="/js/destiny-profile.js"]');
+    if (existing) {
+      existing.addEventListener("load", finish, { once: true });
+      existing.addEventListener("error", () => resolve(null), { once: true });
+      window.setTimeout(finish, 1200);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = PAID_SERVICE_RUNTIME_SRC;
+    script.async = true;
+    script.dataset.cdPaymentRuntimeLoader = "1";
+    script.onload = finish;
+    script.onerror = () => resolve(null);
+    document.head.appendChild(script);
+  });
+
+  return paidServiceRuntimePromise;
+}
+
+function unwrapRuntimeGatePayload(result: RuntimePaidServiceGateResult | null | undefined) {
+  const payload = result?.payload && typeof result.payload === "object"
+    ? result.payload
+    : (result?.data && typeof result.data === "object" ? result.data : result);
+  return (payload && typeof payload === "object" ? payload : {}) as Record<string, unknown>;
+}
+
+function isRuntimeGateGranted(result: RuntimePaidServiceGateResult | null | undefined) {
+  const payload = unwrapRuntimeGatePayload(result);
+  const status = toText(result?.status || payload.status).toLowerCase();
+  return status === "granted"
+    || status === "paid"
+    || status === "success"
+    || Boolean(payload.accessGrant)
+    || Boolean(payload.premiumAccessToken)
+    || Boolean(payload.consume)
+    || Boolean(payload.payment);
+}
+
+function readRuntimeNestedObject(source: Record<string, unknown>, key: string) {
+  const value = source[key];
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function buildRuntimeMembershipCoverage(eligibility: PaymentEligibility | null) {
+  if (!eligibility) return null;
+  const raw = asRecord(eligibility.raw) || {};
+  const options = asRecord(raw.paymentOptions) || raw;
+  const passLimit = Math.max(0, Math.floor(toNumber(
+    eligibility.pass.limit
+    ?? options.passLimit
+    ?? options.freeLimit
+    ?? raw.freeLimit,
+    0,
+  )));
+  return {
+    tier: eligibility.pass.tier || toText(options.passTier || raw.subscriptionTier || "free"),
+    passTier: eligibility.pass.tier || toText(options.passTier || raw.passTier || ""),
+    hasActivePass: eligibility.pass.hasActivePass,
+    freeLimit: passLimit,
+    passLimit,
+    canUseByPass: eligibility.pass.canUse,
+    monthlyBalance: eligibility.monthly.balance,
+    passDiscount: asRecord(options.passDiscount || raw.passDiscount) || undefined,
+    source: "react-unlock-status",
+  };
+}
+
+function resolveRuntimeBillingPricing(input: Parameters<typeof runBillingCoinGate>[0], eligibility: PaymentEligibility | null, payload: Record<string, unknown>, featureId: string): BillingFeaturePricing {
+  const data = readRuntimeNestedObject(payload, "data");
+  const payloadPricing = readRuntimeNestedObject(payload, "pricing");
+  const dataPricing = readRuntimeNestedObject(data, "pricing");
+  const rawPricing = Object.keys(dataPricing).length ? dataPricing : payloadPricing;
+  const featureKey = toText(rawPricing.featureKey || input.featureKey || input.subFeatureKey || featureId);
+  const cost = Math.max(0, Math.floor(toNumber(rawPricing.coinPrice ?? rawPricing.cost ?? eligibility?.coinCost, 0)));
+  const amountKRW = Math.max(0, Math.floor(toNumber(rawPricing.amountKRW ?? rawPricing.cashPrice ?? eligibility?.priceKRW ?? cost * 100, 0)));
+
+  return {
+    categoryKey: toText(rawPricing.categoryKey || input.categoryKey || "legacy-feature"),
+    categoryLabel: toText(rawPricing.categoryLabel),
+    subFeatureKey: toText(rawPricing.subFeatureKey || input.subFeatureKey || featureKey || "default"),
+    featureKey,
+    cost,
+    coinPrice: cost,
+    displayUnit: toText(rawPricing.displayUnit || "coin"),
+    displayPrice: toText(rawPricing.displayPrice || `${cost.toLocaleString("ko-KR")}코인`),
+    reason: toText(rawPricing.reason || input.reason || featureKey),
+    currency: toText(rawPricing.currency || "KRW"),
+    cashPrice: amountKRW,
+    amountKRW,
+    membershipCreditCost: toNumber(rawPricing.membershipCreditCost, 0),
+    paymentMode: toText(rawPricing.paymentMode || "single_purchase"),
+    coinDisplayOnly: rawPricing.coinDisplayOnly === undefined ? true : Boolean(rawPricing.coinDisplayOnly),
+  };
+}
+
+async function runPaidServiceRuntimePayment(input: Parameters<typeof runBillingCoinGate>[0], context: {
+  featureId: string;
+  requestId: string;
+  eligibility: PaymentEligibility | null;
+  runtimeGate?: PaidServiceRuntimeGate | null;
+}): Promise<BillingResult<BillingCoinGateData> | null> {
+  if (typeof window === "undefined") return null;
+  if (input.forceDeduct === false) return null;
+
+  const requestedMode = toText(input.paymentMode).toUpperCase();
+  if (requestedMode === "MEMBERSHIP_PASS" || requestedMode === "MONTHLY_CREDIT" || requestedMode === "DIRECT_KRW") return null;
+
+  const runtimeGate = context.runtimeGate || await loadPaidServiceRuntimeGate();
+  if (!runtimeGate) return null;
+
+  const cost = Math.max(0, Math.floor(toNumber(context.eligibility?.coinCost, 0)));
+  const amountKRW = Math.max(0, Math.floor(toNumber(context.eligibility?.priceKRW, cost * 100)));
+  const featureKey = toText(input.featureKey || input.subFeatureKey || context.featureId);
+  const reason = toText(input.reason || featureKey);
+  const membershipCoverage = buildRuntimeMembershipCoverage(context.eligibility);
+  const passAlreadyChecked = Boolean(context.eligibility);
+
+  let runtimeResult: RuntimePaidServiceGateResult | null = null;
+  try {
+    runtimeResult = await runtimeGate({
+      categoryKey: input.categoryKey,
+      subFeatureKey: input.subFeatureKey,
+      featureKey,
+      reason,
+      title: reason,
+      cost,
+      coinPrice: cost,
+      amountKrw: amountKRW,
+      requestId: context.requestId,
+      forceDeduct: true,
+      reportId: input.reportId,
+      sessionId: input.sessionId,
+      reportSessionId: input.reportSessionId || input.sessionId,
+      membershipCoverage: membershipCoverage || undefined,
+      monthlyBalance: context.eligibility?.monthly.balance,
+      skipBalanceRefresh: passAlreadyChecked,
+      disablePassFirst: passAlreadyChecked && context.eligibility?.pass.canUse !== true,
+    });
+  } catch (error) {
+    return {
+      ok: false,
+      status: 402,
+      data: null,
+      message: error instanceof Error ? error.message : "결제창을 열지 못했습니다.",
+      error: {
+        code: "PAYMENT_REQUIRED",
+        message: error instanceof Error ? error.message : "결제창을 열지 못했습니다.",
+      },
+      raw: {},
+    };
+  }
+
+  const payload = unwrapRuntimeGatePayload(runtimeResult);
+  if (!isRuntimeGateGranted(runtimeResult)) {
+    const message = toText(runtimeResult?.reason || payload.reason || payload.message || "결제가 취소되었습니다.");
+    return {
+      ok: false,
+      status: 402,
+      data: null,
+      message,
+      error: {
+        code: "PAYMENT_CANCELLED",
+        message,
+      },
+      raw: payload,
+    };
+  }
+
+  const sourceData = readRuntimeNestedObject(payload, "data");
+  const source = Object.keys(sourceData).length ? sourceData : payload;
+  const payloadConsume = readRuntimeNestedObject(payload, "consume");
+  const dataConsume = readRuntimeNestedObject(source, "consume");
+  const consumeSource = Object.keys(dataConsume).length ? dataConsume : payloadConsume;
+  const payloadAccessGrant = readRuntimeNestedObject(payload, "accessGrant");
+  const dataAccessGrant = readRuntimeNestedObject(source, "accessGrant");
+  const accessGrant = Object.keys(dataAccessGrant).length ? dataAccessGrant : payloadAccessGrant;
+  const pricing = resolveRuntimeBillingPricing(input, context.eligibility, payload, context.featureId);
+  const transactionId = toText(
+    runtimeResult?.transactionId
+    || runtimeResult?.paymentId
+    || runtimeResult?.purchaseId
+    || runtimeResult?.requestId
+    || source.transactionId
+    || source.paymentId
+    || source.purchaseId
+    || source.requestId
+    || consumeSource.transactionId
+    || consumeSource._id
+    || accessGrant.evidenceId
+    || accessGrant.purchaseId
+    || context.requestId,
+  );
+  const consume = {
+    ...consumeSource,
+    ok: consumeSource.ok === false ? false : true,
+    transactionId,
+    featureKey: toText(consumeSource.featureKey || pricing.featureKey),
+    chargedCoins: toNumber(consumeSource.chargedCoins ?? consumeSource.cost ?? source.chargedCoins, 0),
+  };
+  const consumeAccessType = toText(consumeSource.accessType);
+  const user = readRuntimeNestedObject(source, "user");
+  const data = {
+    ...source,
+    pricing,
+    consume,
+    accessGrant,
+    balance: Number.isFinite(Number(source.balance)) ? Number(source.balance) : null,
+    user: Object.keys(user).length ? user : null,
+    freeBySubscription: source.freeBySubscription === true || consumeAccessType === "membership_pass" || consumeAccessType === "usage_pass",
+  } as BillingCoinGateData & Record<string, unknown>;
+
+  return {
+    ok: true,
+    status: 200,
+    data,
+    message: toText(source.message || payload.message || "결제가 완료되었습니다."),
+    error: null,
+    raw: payload,
+  };
 }
 
 async function parseBillingResponse<T>(response: Response): Promise<BillingResult<T>> {
@@ -778,9 +1030,18 @@ export async function runBillingCoinGate(input: {
   });
 
   const requestPromise = (async () => {
+    let paymentRequestedMarked = false;
+    const markPaymentRequestedOnce = () => {
+      if (paymentRequestedMarked) return;
+      paymentRequestedMarked = true;
+      markPaidAttemptPaymentRequested();
+    };
     const requestedMode = toText(input.paymentMode).toUpperCase();
     const explicitPassMode = requestedMode === "MEMBERSHIP_PASS";
     const explicitPaymentMode = explicitPassMode || requestedMode === "MONTHLY_CREDIT" || requestedMode === "DIRECT_KRW";
+    const runtimeGatePreload = !explicitPaymentMode && input.forceDeduct !== false && typeof window !== "undefined"
+      ? loadPaidServiceRuntimeGate().catch(() => null)
+      : null;
     const eligibilityResult = explicitPaymentMode
       ? null
       : await fetchPaymentEligibility({
@@ -809,7 +1070,92 @@ export async function runBillingCoinGate(input: {
       });
     }
 
-    markPaidAttemptPaymentRequested();
+    if (!explicitPaymentMode && !passFirstEligible && eligibility && input.forceDeduct !== false) {
+      markPaymentRequestedOnce();
+      emitPaidFeatureGate("update", {
+        featureId,
+        featureKey: featureId,
+        requestId: gateRequestId,
+        status: "readyToPay",
+        message: "결제 가능한 상품을 확인해 주세요.",
+        cost: eligibility.coinCost,
+        reason: input.reason,
+      });
+      const runtimePaymentResult = await runPaidServiceRuntimePayment(input, {
+        featureId,
+        requestId: gateRequestId,
+        eligibility,
+        runtimeGate: runtimeGatePreload ? await runtimeGatePreload : null,
+      });
+      if (runtimePaymentResult) {
+        const parsed = runtimePaymentResult;
+        if (parsed.ok && parsed.data) {
+          if (!hasVerifiedBillingAccess(parsed.data, input.featureKey || featureId)) {
+            markPaidAttemptFailed("server_access_grant_missing");
+            emitPaidFeatureGate("update", {
+              featureId,
+              featureKey: featureId,
+              requestId: gateRequestId,
+              status: "paymentFailed",
+              message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+            });
+            return {
+              ...parsed,
+              ok: false,
+              status: parsed.status || 500,
+              data: null,
+              message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+              error: {
+                code: "SERVER_ACCESS_GRANT_MISSING",
+                message: "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+              },
+            };
+          }
+          invalidateBillingBalanceCache();
+          markPaidAttemptPaymentSucceeded();
+          markPaidAttemptCallbackReturned();
+          const consume = asRecord(parsed.data.consume);
+          const accessType = toText(consume?.accessType);
+          const runtimeData = parsed.data as BillingCoinGateData & Record<string, unknown>;
+          const passApplied = runtimeData.freeBySubscription === true
+            || accessType === "membership_pass"
+            || accessType === "usage_pass"
+            || accessType === "already_unlocked";
+          const successOverlay = resolvePaymentWaitOverlay(passApplied ? "hasEntitlement" : "paymentSuccess", undefined, {
+            paymentMode: passApplied ? "MEMBERSHIP_PASS" : "DIRECT_KRW",
+            featureKey: featureId,
+            reason: input.reason,
+            accessType,
+          });
+          emitPaidFeatureGate("update", {
+            featureId,
+            featureKey: featureId,
+            requestId: gateRequestId,
+            status: passApplied ? "hasEntitlement" : "paymentSuccess",
+            message: successOverlay.message,
+            cost: parsed.data.pricing?.cost,
+            paymentMode: passApplied ? "MEMBERSHIP_PASS" : "DIRECT_KRW",
+            reason: input.reason,
+            accessType,
+          });
+        } else {
+          const runtimeCode = String(parsed.error?.code || "").toUpperCase();
+          markPaidAttemptFailed(parsed.error?.code || "payment_runtime_required");
+          emitPaidFeatureGate("update", {
+            featureId,
+            featureKey: featureId,
+            requestId: gateRequestId,
+            status: runtimeCode === "PAYMENT_CANCELLED" ? "noEntitlement" : "paymentFailed",
+            message: parsed.error?.message || parsed.message || "결제가 완료되지 않았습니다.",
+            cost: eligibility.coinCost,
+            reason: input.reason,
+          });
+        }
+        return parsed;
+      }
+    }
+
+    markPaymentRequestedOnce();
     const processingOverlay = resolvePaymentWaitOverlay("paymentProcessing", undefined, {
       paymentMode: passFirstEligible ? "MEMBERSHIP_PASS" : requestedMode,
       featureKey: featureId,

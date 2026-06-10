@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { getAuthState, refreshAuth } from "../_lib/auth-store";
 import {
+  PAID_SERVICE_RUNTIME_SRC,
   fetchBillingFeaturePricing,
   runBillingCoinGate,
 } from "../_lib/billing-client";
@@ -61,7 +62,7 @@ type RuntimePaidServiceGateWindow = Window & {
   _cdOpenPaidServiceGate?: (options: Record<string, unknown>) => Promise<RuntimePaidServiceGateResult> | RuntimePaidServiceGateResult;
 };
 
-const LEGACY_PAYMENT_RUNTIME_SRC = "/js/destiny-profile.js?v=build-dc8b1dedfe26";
+const LEGACY_PAYMENT_RUNTIME_SRC = PAID_SERVICE_RUNTIME_SRC;
 
 let legacyPaymentRuntimePromise: Promise<RuntimePaidServiceGateWindow["_cdOpenPaidServiceGate"] | null> | null = null;
 
