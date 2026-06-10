@@ -243,6 +243,9 @@
     splash.style.display = 'none';
     splash.setAttribute('aria-hidden', 'true');
     splashStarted = false;
+    if (splash.parentNode) {
+      splash.parentNode.removeChild(splash);
+    }
   }
 
   function scheduleHideSplash(sessionId, minMs, maxMs) {
