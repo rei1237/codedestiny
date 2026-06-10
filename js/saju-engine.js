@@ -8724,6 +8724,17 @@ function renderAstroInsight() {
       + '</div>'
       + '</div>';
 
+    var astroActionHubHtml = ''
+      + '<div class="astro-section astro-action-hub" id="astroActionHub" style="margin-bottom:12px;">'
+      + '<div class="astro-subhead" style="margin-bottom:7px;color:#bae6fd;">🌌 Swiss 점성술 액션 허브</div>'
+      + '<p class="astro-action-hub__lead">정밀 차트가 준비되었습니다. 질문 프롬프트, 상대 직접 입력 궁합, 유명인 시나스트리를 바로 열 수 있습니다.</p>'
+      + '<div class="astro-action-hub__grid">'
+      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroAiPromptSection" aria-controls="astroAiPromptSection"><strong>질문 프롬프트 생성</strong><span>차트 기반 상담 문장을 바로 작성합니다.</span></button>'
+      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="asDirect_name" aria-controls="asDirect_name"><strong>상대 직접 입력 궁합</strong><span>생년월일과 도시로 시나스트리를 계산합니다.</span></button>'
+      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroSynastrySection" aria-controls="astroSynastrySection"><strong>유명인 궁합 실험실</strong><span>셀럽 차트와 나의 별자리 합을 비교합니다.</span></button>'
+      + '</div>'
+      + '</div>';
+
     masterInsight = '<div class="astro-section precision-insight-card astro-neon-accent astro-neon-accent-gold" style="margin-bottom:20px;">'
       +'<div class="astro-subhead" style="color:#D4AF37;">🌌 차트 전체 요약</div>'
       +'<p class="astro-birth-lead" style="margin-bottom:8px;">당신의 차트가 말하는 핵심 분위기</p>'
@@ -8978,6 +8989,13 @@ function renderAstroInsight() {
       +'.astro-reading-mode-btn{min-height:36px;padding:7px 12px;border-radius:999px;border:1px solid rgba(251,191,36,.46);background:rgba(251,191,36,.12);color:#fef3c7;font-size:12px;font-weight:800;cursor:pointer;}'
       +'.astro-reading-mode-btn[aria-pressed="true"]{border-color:rgba(125,211,252,.55);background:rgba(14,116,144,.24);color:#cffafe;}'
       +'.astro-reading-mode-btn:focus-visible{outline:2px solid #fde68a;outline-offset:2px;}'
+      +'.astro-action-hub{border-color:rgba(125,211,252,.34)!important;background:linear-gradient(150deg,rgba(8,18,38,.96),rgba(22,15,41,.92))!important;}'
+      +'.astro-action-hub__lead{margin:0;color:#dbeafe;font-size:13px;line-height:1.65;}'
+      +'.astro-action-hub__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(156px,1fr));gap:9px;margin-top:11px;}'
+      +'.astro-action-hub__btn{min-height:74px;text-align:left;border-radius:13px;border:1px solid rgba(125,211,252,.28);background:rgba(15,23,42,.64);color:#e0f2fe;padding:11px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);}'
+      +'.astro-action-hub__btn strong{display:block;color:#fef3c7;font-size:13px;margin-bottom:5px;}'
+      +'.astro-action-hub__btn span{display:block;color:#bfdbfe;font-size:12px;line-height:1.5;}'
+      +'.astro-action-hub__btn:focus-visible{outline:2px solid #67e8f9;outline-offset:2px;}'
       +'.astro-neon-panel{position:relative;z-index:1;margin-top:10px;padding:12px;border-radius:14px;border:1px solid rgba(148,163,184,.24);background:rgba(2,6,23,.54);backdrop-filter:blur(6px);}'
       +'.astro-neon-key{font-size:14px;line-height:1.62;color:#f8fafc;margin:0 0 7px 0;}'
       +'.astro-neon-key b{color:#67e8f9;}'
@@ -9101,6 +9119,8 @@ function renderAstroInsight() {
     var html = '<div class="astro-body astro-readable cosmic-theme star-container is-easy" id="astroBodyWrap">'
       + astroNeonCss
       + precisionNoticeHtml
+      + astroActionHubHtml
+      + astroAiPromptSectionHtml
       + (natalWheel && natalWheel.cardHtml ? natalWheel.cardHtml : '')
       + astroBig3SnapshotHtml
       +'<div class="astro-section" style="margin-bottom:16px;">'
@@ -9136,7 +9156,6 @@ function renderAstroInsight() {
       + personalGuidanceSectionHtml
       + astroCanonicalSectionHtml
       + mobileScenarioSectionHtml
-      + astroAiPromptSectionHtml
 
         +'<div class="astro-section">'
         +'<div class="astro-subhead">🌟 태양궁·달궁·상승궁 한눈에 보기</div>'
@@ -9524,6 +9543,39 @@ function renderAstroInsight() {
           applyMode(nextMode);
         });
       }
+      Array.prototype.forEach.call(document.querySelectorAll('[data-astro-open-target]'), function(actionBtn){
+        if(!actionBtn || actionBtn.getAttribute('data-bound') === '1') return;
+        actionBtn.setAttribute('data-bound', '1');
+        actionBtn.addEventListener('click', function(){
+          var targetId = actionBtn.getAttribute('data-astro-open-target');
+          var target = targetId ? document.getElementById(targetId) : null;
+          if(!target) return;
+          var detailLayer = document.getElementById('astroDetailLayer');
+          if(detailLayer && detailLayer.contains(target)) applyMode(true);
+          window.setTimeout(function(){
+            var scrollTarget = target.closest && target.closest('.astro-section') ? target.closest('.astro-section') : target;
+            var scrollHost = scrollTarget ? scrollTarget.parentElement : null;
+            while(scrollHost && scrollHost !== document.body){
+              var hostStyle = window.getComputedStyle ? window.getComputedStyle(scrollHost) : null;
+              var canScroll = scrollHost.scrollHeight > scrollHost.clientHeight + 4;
+              var overflowY = hostStyle ? String(hostStyle.overflowY || hostStyle.overflow || '') : '';
+              if(canScroll && /auto|scroll/i.test(overflowY)) break;
+              scrollHost = scrollHost.parentElement;
+            }
+            if(scrollTarget && scrollHost && scrollHost !== document.body){
+              var hostRect = scrollHost.getBoundingClientRect();
+              var targetRect = scrollTarget.getBoundingClientRect();
+              var nextTop = Math.max(0, scrollHost.scrollTop + targetRect.top - hostRect.top - 14);
+              scrollHost.scrollTop = nextTop;
+            } else if(scrollTarget && typeof scrollTarget.scrollIntoView === 'function'){
+              scrollTarget.scrollIntoView({ behavior:'smooth', block:'start' });
+            }
+            if(typeof target.focus === 'function'){
+              try { target.focus({ preventScroll:true }); } catch(_) { target.focus(); }
+            }
+          }, 80);
+        });
+      });
 
       function bindTouchGuard(summaryEl){
         if(!summaryEl || summaryEl.getAttribute('data-touch-guard') === '1') return;
