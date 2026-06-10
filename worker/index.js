@@ -822,13 +822,13 @@ export default {
         return withCorsHeaders(request, env, await handleDestinyBiasRoutes(request, env));
       }
 
-      if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {
-        return withCorsHeaders(request, env, await handlePaymentRoutes(request, env));
-      }
-
-      if (url.pathname === "/api/webhooks/portone") {
+      if (url.pathname === "/api/webhooks/portone" || url.pathname === "/api/payments/portone/webhook") {
         const rewrittenRequest = rewriteRequestPath(request, "/api/payments/webhook");
         return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
+      }
+
+      if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {
+        return withCorsHeaders(request, env, await handlePaymentRoutes(request, env));
       }
 
       if (url.pathname === "/api/billing" || url.pathname.startsWith("/api/billing/")) {

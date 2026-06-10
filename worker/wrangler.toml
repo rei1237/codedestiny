@@ -2,6 +2,10 @@ name = "code-destiny-web"
 main = "index.js"
 compatibility_date = "2026-05-02"
 compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+routes = [
+  { pattern = "api.code-destiny.com", custom_domain = true },
+]
 
 # Non-secret defaults. Secrets and deployment-specific values should be set
 # with `wrangler secret put` or in the Cloudflare dashboard.

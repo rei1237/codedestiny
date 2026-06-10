@@ -326,15 +326,14 @@ function buildPortOneCustomer(user: AuthUser | null, paymentId: string): PortOne
   const merged = { ...(cachedUser || {}), ...(user || {}) } as AuthUser;
   const fullName = String(merged.name || "회원").trim();
   const email = normalizePortoneEmail(merged.email);
+  const customerId = String(merged.id || merged.userId || merged.uid || merged._id || paymentId).trim();
 
-  if (!isValidEmail(email)) {
-    throw new Error("구매자 이메일은 결제 창 호출 전 필수입니다. 계정 정보에서 확인해 주세요.");
-  }
+  const fallbackEmailId = customerId.replace(/[^a-zA-Z0-9._-]/g, "").slice(-24) || "guest";
 
   return {
-    customerId: String(merged.id || merged.userId || merged.uid || merged._id || paymentId).trim(),
+    customerId,
     fullName,
-    email,
+    email: isValidEmail(email) ? email : `buyer-${fallbackEmailId}@code-destiny.com`,
     ...(pickPhoneNumber(merged) ? { phoneNumber: pickPhoneNumber(merged) } : {}),
   };
 }
@@ -2953,7 +2952,7 @@ export default function PointsPage() {
               </button>
               <button
                 type="button"
-                disabled={isProcessing || currentMonthlyCredits < pendingSubscriptionPaymentMonthlyCreditCost}
+                disabled={isProcessing}
                 onClick={() => {
                   const plan = pendingSubscriptionPaymentPlan;
                   if (!plan) return;
@@ -3012,8 +3011,8 @@ export default function PointsPage() {
               </button>
               <button
                 type="button"
-                disabled={isProcessing || currentMonthlyCredits < pendingMonthlyCreditCost}
-                onClick={() => handleSubscribeWithMonthlyCredit(pendingMonthlyCreditPlan)}
+                disabled={isProcessing}
+                onClick={() => void handleSubscribeWithMonthlyCredit(pendingMonthlyCreditPlan)}
                 className="rounded-[12px] bg-gradient-to-r from-amber-200 to-violet-200 px-3 py-2.5 text-sm font-black text-[#151832] shadow-[0_10px_22px_rgba(243,221,154,0.22)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isProcessing ? "처리 중..." : "보너스 사용하기"}
