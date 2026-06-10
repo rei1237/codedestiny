@@ -1508,7 +1508,7 @@ export default function DestinyBiasClient() {
                 disabled={analyzing}
                 className={`flex-1 ${styles.primaryCta}`}
               >
-                {analyzing ? "운명 연결 중..." : "운명 연결 시작하기"}
+                {analyzing ? "결제 진행 중..." : "결제하기"}
               </button>
             )}
           </div>
@@ -1543,7 +1543,7 @@ export default function DestinyBiasClient() {
                 disabled={analyzing}
                 className={`px-8 ${styles.primaryCta}`}
               >
-                {analyzing ? "운명 연결 중..." : "운명 연결 시작하기"}
+                {analyzing ? "결제 진행 중..." : "결제하기"}
               </button>
             )}
           </div>
