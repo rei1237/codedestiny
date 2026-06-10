@@ -8,90 +8,90 @@
   var LIFEBOOK_TOTAL_CHAPTERS = 13;
   var LIFE_BOOK_FEATURE_KEY = 'saju_life_book_pdf';
   var LIFEBOOK_TEMPORARY_FREE = true;
-  var LIFE_BOOK_REASON = '?몄깮??梨??앹꽦 (13梨뺥꽣)';
+  var LIFE_BOOK_REASON = '인생의 책 생성 (13챕터)';
   var LIFEBOOK_API_PREPARE_PATH = '/api/premium/saju-lifebook/prepare';
   var LIFEBOOK_API_STATUS_PATH = '/api/premium/saju-lifebook/status';
 
   /* ??????????????? ?곸닔 ??????????????? */
   var CHAPTER_TITLES = [
-    '?뙆 ?ъ＜ ?먭뎅 ?꾩쟾 ?댁꽕 ???붿옄 8湲?먯쓽 鍮꾨?',
-    '?룢截??섏쓽 ?ㅺ퀎?????붿?쨌?쇨컙쨌議고썑? 湲곗쭏??肉뚮━',
-    '?뷂툘 ?④꺼吏?臾닿린 ???⑹떊쨌?ъ떊怨??섎쭔???꾩궡湲?,
-    '?? ????뺣? 遺꾩꽍 ???몄깮?????뚮룄',
-    '?몣 寃⑷뎅怨??ы쉶???뚮챸 ???섏쓽 ?깃났 諛⑹젙??,
-    '?쩃 愿怨꾩쓽 ?꾨왂 ???몄뿰??踰뺤튃怨??뚰듃?덉떗',
-    '?뮂 ?곗븷쨌寃고샎 ?꾩쟾 遺꾩꽍 ???щ옉??援ъ“',
-    '?뮥 ?щЪ怨??꾩떎 湲곕컲 ???덉씠 紐⑥씠??援ъ“',
-    '?㎛ 吏곸뾽쨌?ъ뾽쨌而ㅻ━?????몄긽?먯꽌 ?댁븘?⑤뒗 臾닿린',
-    '?㈉ 嫄닿컯쨌硫섑깉쨌?먮꼫吏 愿由???臾대꼫吏吏 ?딅뒗 紐멸낵 留덉쓬',
-    '?뵰 ?좎궡怨??뱀닔 湲곗슫 ???대챸???⑥? ?μ튂',
-    '?뱟 ?몄슫쨌?붿슫 ?쒖슜踰???媛源뚯슫 誘몃옒 ?꾨왂',
-    '?빉截?理쒖쥌 ?몄깮 濡쒕뱶留????섎떟寃??댁븘媛??踰?,
+    '사주 원국 완전 해설 - 팔자 8글자의 비밀',
+    '나의 설계도 - 오행·십성·조후와 기질의 뿌리',
+    '숨겨진 무기 - 용신·희신과 나만의 안내서',
+    '대운 정밀 분석 - 인생의 큰 파도',
+    '격국과 사회적 운명 - 나의 성공 방정식',
+    '관계의 전략 - 인연의 법칙과 파트너십',
+    '연애·결혼 완전 분석 - 사랑의 구조',
+    '재물과 현실 기반 - 돈이 모이는 구조',
+    '직업·사업·커리어 - 세상에서 살아나는 무기',
+    '건강·멘탈·에너지 관리 - 무너지지 않는 몸과 마음',
+    '내면과 특수 기운 - 운명의 숨은 위치',
+    '세운·월운 사용법 - 가까운 미래 전략',
+    '최종 인생 로드맵 - 나답게 살아가는 법',
   ];
 
   var CHAPTER_SUBTITLES = [
-    '?곗＜쨌?붿＜쨌?쇱＜쨌?쒖＜? 泥쒓컙쨌吏吏 ?곹샇?묒슜???듭떖 援ъ“',
-    '?붿?쨌?쇨컙쨌議고썑瑜?以묒떖?쇰줈 蹂?湲곗쭏怨??꾩떎 ?곸쓳 ?⑦꽩',
-    '?⑹떊쨌?ъ떊 ?댁슜踰뺢낵 諛섎났 由ъ뒪?щ? ?ㅻ（???ㅽ뻾 臾닿린',
-    '?꾩옱 ??닿낵 ?ㅼ쓬 ??댁쓽 ?꾪솚 ?ъ씤??諛??κ린 ?꾨왂',
-    '寃⑷뎅/以묒떖 援ъ“? ?ы쉶????븷쨌?깆랬 諛⑹떇???곌껐',
-    '愿怨??⑦꽩쨌媛덈벑 吏?먃룻삊??媛뺤젏??????ㅼ쟾 媛?대뱶',
-    '?곗븷 援ъ“쨌諛곗슦?먭턿쨌?대퀎 ?뚮났쨌吏???꾨왂???듯빀 遺꾩꽍',
-    '?ъ꽦 援ъ“쨌?뚮퉬/?異??ъ옄 ?깊뼢怨??ㅼ쟾 ?섏씡 ?ㅺ퀎',
-    '吏곸뾽???ъ뾽???먮떒怨??κ린 而ㅻ━???앹〈 濡쒕뱶留?,
-    '?ㅽ뻾 遺덇퇏??湲곕컲 嫄닿컯쨌硫섑깉쨌踰덉븘???뚮났 猷⑦떞',
-    '?꾪솕쨌??쭏쨌?붽컻쨌洹臾????좎궡???쒖슜怨?由ъ뒪??愿由?,
-    '?ы빐쨌?붾퀎 ?먮쫫??留욎텣 12媛쒖썡 ?ㅽ뻾 ??대컢 ?꾨왂',
-    '?듭떖 ?붿빟쨌諛섎났 ?⑦꽩 ?뺣━쨌3??5??10???ㅼ쿇 怨꾪쉷',
+    '연주·월주·일주·시주와 천간·지지 상호작용의 기본 구조',
+    '오행·십성·조후를 중심으로 본 기질과 현실 적응 패턴',
+    '용신·희신 사용법과 반복 리스크를 줄이는 실천 무기',
+    '현재 대운과 다음 대운의 전환 시그널 및 장기 전략',
+    '격국과 중심 구조, 사회적 역할과 성취 방식의 연결',
+    '관계 패턴과 갈등 지점을 읽고 강점으로 바꾸는 실전 가이드',
+    '연애 구조, 배우자궁, 이별과 회복, 지속 전략의 통합 분석',
+    '재성 구조, 소비와 저축, 투자 성향과 현실 수익 설계',
+    '직업, 사업, 판단과 결정에 필요한 커리어 생존 로드맵',
+    '생활 리듬을 기반으로 건강·멘탈·번아웃 회복을 조율하는 법',
+    '변화, 귀문, 도화, 역마 등 내면의 숨은 기운과 리스크 관리',
+    '해마다 달마다 흐름에 맞춘 12개월 실행 타이밍 전략',
+    '핵심 요약, 반복 패턴 정리, 3일·5주·10개월 실천 계획',
   ];
 
   var LOADING_MSGS = [
-    '?ъ＜ ?먭뎅 ?붿옄 8湲?먯? 湲곕뫁蹂??섎?瑜??대룆?섎뒗 以?..',
-    '?붿?쨌?쇨컙쨌議고썑쨌?좉컯?좎빟??遺꾩꽍?섎뒗 以?..',
-    '?⑹떊쨌?ъ떊쨌湲곗떊怨?泥쒖쭅 媛뺤젏???먯깋?섎뒗 以?..',
-    '????꾩껜 ?먮쫫怨??꾩옱 ??댁쓣 ?뺣? 遺꾩꽍?섎뒗 以?..',
-    '寃⑷뎅쨌?곸떊쨌?ы쉶???뚮챸???대룆?섎뒗 以?..',
-    '異㈑룻빀쨌?≪떊 愿怨???븰??留ㅽ븨?섎뒗 以?..',
-    '?곗븷쨌寃고샎 援ъ“? ?댁긽???꾨줈?뚯씪??遺꾩꽍?섎뒗 以?..',
-    '?ъ꽦쨌?앹긽쨌遺??洹몃쫯怨?吏곸뾽 ?꾨왂??怨꾩궛?섎뒗 以?..',
-    '吏곸뾽/?ъ뾽/而ㅻ━???꾪솚 ?ъ씤?몃? ?뺣━?섎뒗 以?..',
-    '?ㅽ뻾蹂?嫄닿컯 吏?꾩? ?ъ떊 ?먮꼫吏瑜?遺꾩꽍?섎뒗 以?..',
-    '?꾧린 ?⑦꽩怨??꾪솚 ?꾨왂???뺣━?섎뒗 以?..',
-    '洹?몄슫怨??⑥? 蹂듭쓽 ?쒖꽦 議곌굔???먯깋?섎뒗 以?..',
-    '理쒖쥌 ?대챸 濡쒕뱶留듭쓣 ?꾩꽦?섎뒗 以?..',
+    '사주 원국의 팔자 8글자와 기본 뼈대를 읽는 중...',
+    '오행·십성·조후와 기질의 흐름을 분석하는 중...',
+    '용신·희신과 천직 강점을 탐색하는 중...',
+    '대운의 큰 흐름과 현재 시기를 정밀 분석하는 중...',
+    '격국과 사회적 운명의 방향을 읽는 중...',
+    '궁합과 인연 관계의 법칙을 펼치는 중...',
+    '연애와 결혼 구조, 이상적 관계 패턴을 분석하는 중...',
+    '재물과 현실 기반, 수익 구조를 계산하는 중...',
+    '직업·사업·커리어 전환 시그널을 정리하는 중...',
+    '건강과 멘탈, 에너지 관리 지점을 분석하는 중...',
+    '내면의 숨은 기운과 전환 전략을 정리하는 중...',
+    '세운과 월운의 12개월 실행 조건을 탐색하는 중...',
+    '최종 인생 로드맵을 완성하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
-    '?붿옄(?ュ춻) ?щ뜜 湲???띿뿉 ?뱀떊留뚯쓽 ?곗＜媛 ?닿꺼 ?덉뒿?덈떎.',
-    '?쒖뼱???쒓컙???섎뒛 湲곗슫??吏湲덈룄 ?뱀떊 ?덉뿉???먮Ⅴ怨??덉뒿?덈떎.',
-    '泥쒓컙(鸚⒴묾)怨?吏吏(?경뵱)媛 ??뼱???대챸???ㅽ??섎? ??대깄?덈떎.',
-    '?⑹떊(?①쪥)??鍮쏆씠 ?뱀떊??媛????湲몄쓣 諛앺엳怨??덉뒿?덈떎.',
-    '???鸚㏝걢)? ?몄깮??怨꾩젅?낅땲?? 吏湲??대뒓 怨꾩젅??吏?섍퀬 ?덈뒗吏 ?쎌뒿?덈떎.',
-    '?뚯뼇(?곈쇋)??洹좏삎 ?띿뿉???뱀떊留뚯쓽 ?대떟???섑??섍퀬 ?덉뒿?덈떎.',
-    '?ㅽ뻾(雅붻죱)???먮쫫???뱀떊??嫄닿컯쨌?щЪ쨌?щ옉??寃곗젙?⑸땲??',
-    '寃⑷뎅(?쇔?)? ?섎뒛???뱀떊?먭쾶 遺?ы븳 ?ы쉶???щ챸?낅땲??',
-    '異?亦?怨????????먮━?먯꽌 ?몄뿰??踰뺤튃??諛쒓껄?⑸땲??',
-    '?ъ꽦(縕→삜)???꾩튂媛 ?뱀떊??遺(野???洹몃쫯??留먰빐以띾땲??',
-    '洹??縕답볶)???섑??섎뒗 ?쒓린? ?μ냼瑜?怨꾩궛?섍퀬 ?덉뒿?덈떎.',
-    '?띠쓽 ?뚮룄瑜??쎌뼱 ?ㅼ쭅 ?뱀떊???꾪븳 ?꾨왂?쇰줈 ??쿋?듬땲??',
-    '?좉컯?좎빟(翁ュ성翁ュ선)??寃쎄퀎?먯꽌 ?뱀떊??吏꾩쭨 媛뺤젏???쒕윭?⑸땲??',
-    '?섎뒛???④릿 泥쒓린(鸚⒵찣)瑜??쇱퀜 ?뱀떊???대쫫?쇰줈 湲곕줉?⑸땲??',
+    '팔자 여덟 글자 속에 당신만의 계절이 열리고 있습니다.',
+    '태어난 시간의 하늘 기운이 지금의 삶과 조용히 맞물립니다.',
+    '천간과 지지가 엮어 온 운명의 결을 차분히 펼칩니다.',
+    '용신의 빛이 당신의 강점과 회복의 길을 밝히고 있습니다.',
+    '대운은 인생의 계절입니다. 지금 머무는 계절의 뜻을 읽습니다.',
+    '음양의 균형 속에서 당신에게 필요한 선택의 기준을 찾습니다.',
+    '오행의 흐름은 몸과 마음, 일과 사랑의 리듬을 함께 비춥니다.',
+    '격국은 하늘이 당신에게 부여한 사회적 무대의 윤곽입니다.',
+    '관계의 자리에서 인연의 법칙과 회복의 문장을 발견합니다.',
+    '재성의 위치가 당신의 부와 현실 감각이 모이는 길을 말해줍니다.',
+    '세운이 다가오는 시기와 장소를 세밀하게 계산하고 있습니다.',
+    '삶의 파도를 읽어 오직 당신을 위한 전략으로 엮습니다.',
+    '신강과 신약의 경계에서 진짜 강점이 드러납니다.',
+    '하늘이 남긴 천기를 당신의 이름으로 기록합니다.',
   ];
 
   var CHAPTER_STRUCTURED_LABELS = {
-    1: ['?먭뎅 ?듭떖 吏꾨떒', '湲곕뫁蹂??댁꽍', '媛뺤젏 援ъ“', '二쇱쓽 ?좏샇', '?ㅽ뻾 ?ъ씤??],
-    2: ['?ㅺ퀎???붿빟', '湲곗쭏 遺꾩꽍', '?섏궗寃곗젙 ?깊뼢', '?섍꼍 ?곹빀??, '媛쒖꽑 ?꾨왂'],
-    3: ['?⑥? ?щ뒫', '由ъ뒪???붿씤', '?뚰뙆 ?덈쾭', '?깆옣 猷⑦떞', '?ㅼ쟾 ?≪뀡'],
-    4: ['????먮쫫', '?곸듅 援ш컙', '二쇱쓽 援ш컙', '?꾪솚 ?쒖젏', '?꾨왂 ?쒖븞'],
-    5: ['?뚮챸 吏꾨떒', '而ㅻ━??諛⑺뼢', '?깃낵 ?뺣?', '?묒뾽 諛⑹떇', '?꾩빟 ??대컢'],
-    6: ['愿怨??⑦꽩', '媛덈벑 ?몃━嫄?, '寃쎄퀎 ?ㅼ젙', '?뚰넻 ?꾨왂', '?뚮났 媛?대뱶'],
-    7: ['?곗븷 ?깊뼢', '寃고샎 ???ъ씤??, '愿怨??좎?', '?꾪뿕 ?좏샇', '?됰룞 泥섎갑'],
-    8: ['?щЪ 援ъ“', '吏곸뾽 ?곹빀??, '?섏엯 ?꾨왂', '吏異?愿由?, '異뺤쟻 ?뚮옖'],
-    9: ['?곸꽦 吏곸뾽援?, '?낅Т ?섍꼍 ?곹빀??, '?쇳빐????而ㅻ━???⑦꽩', '議곗쭅/?꾨━?쒖꽌/?ъ뾽???먮떒', '?κ린 而ㅻ━???ㅺ퀎'],
-    10: ['?ㅽ뻾 湲곕컲 嫄닿컯 痍⑥빟??, '?ㅽ듃?덉뒪 諛섏쓳 ?⑦꽩', '踰덉븘???좏샇? ?뚮났', '?앺솢 由щ벉 泥섎갑', '硫섑깉 ?뚮났 猷⑦떞'],
-    11: ['?꾪솕쨌??쭏쨌?붽컻쨌洹臾??댁꽍', '?띠뿉?쒖쓽 諛쒗쁽 諛⑹떇', '?μ젏?쇰줈 ?곕뒗 踰?, '?꾪뿕 援ш컙怨??몃━嫄?, '?ㅼ쟾 議곗젅踰?],
-    12: ['?ы빐 ?듭떖 ?먮쫫', '?붾퀎 二쇱쓽 ?ъ씤??, '湲고쉶媛 媛뺥븳 ?쒓린', '?쇳빐????寃곗젙 ??대컢', '12媛쒖썡 ?됰룞 ?꾨왂'],
-    13: ['?ъ＜ ?듭떖 ?붿빟', '遺숈옟?꾩빞 ??諛⑺뼢', '踰꾨젮????諛섎났 ?⑦꽩', '3?꽷??꽷?0??濡쒕뱶留?, '理쒖쥌 ?곷떞 硫붿떆吏'],
+    1: ['원국 핵심 진단', '기본 뼈대 해석', '강점 구조', '주의 신호', '실행 포인트'],
+    2: ['설계도 요약', '기질 분석', '의사결정 성향', '환경 적합도', '개선 전략'],
+    3: ['용신 가능성', '리스크 요인', '돌파 열쇠', '성장 리듬', '실전 액션'],
+    4: ['대운 흐름', '상승 구간', '주의 구간', '전환 시점', '전략 제안'],
+    5: ['소명 진단', '커리어 방향', '성과 조건', '작업 방식', '도약 타이밍'],
+    6: ['관계 패턴', '갈등 트리거', '경계 설정', '소통 전략', '회복 가이드'],
+    7: ['연애 성향', '결혼 시그널', '관계 선택', '위험 신호', '행동 처방'],
+    8: ['재물 구조', '직업 적합도', '수입 전략', '지출 관리', '축적 플랜'],
+    9: ['적성 직업군', '업무 환경 적합도', '올해 커리어 패턴', '조직·프리랜서·사업 판단', '장기 커리어 설계'],
+    10: ['생활 기반 건강 취약점', '스트레스 반응 패턴', '번아웃 신호와 회복', '생활 리듬 처방', '멘탈 회복 루틴'],
+    11: ['도화·역마·귀문 해석', '삶에서의 발현 방식', '강점으로 쓰는 법', '위험 구간과 트리거', '실전 조절법'],
+    12: ['올해 핵심 흐름', '월별 주의 포인트', '기회가 강한 시기', '올해 결정 타이밍', '12개월 행동 전략'],
+    13: ['사주 핵심 요약', '붙잡아야 할 방향', '버려야 할 반복 패턴', '3일·5주·10개월 로드맵', '최종 상담 메시지'],
   };
 
   /* ??????????????? ?곹깭 ??????????????? */
@@ -140,7 +140,7 @@
     var payload = pack && pack.json && typeof pack.json === 'object' ? pack.json : {};
     var safe = _lifeBookPayloadSafe(payload);
     var message = _clean(safe.message || fallbackMessage || ('HTTP ' + (res.status || '')));
-    var err = new Error(message || '?몄깮??梨?PDF ?붿껌??泥섎━?섏? 紐삵뻽?듬땲??');
+    var err = new Error(message || '인생의 책 PDF 요청을 처리하지 못했습니다.');
     err.status = Number(res.status || payload.status || payload.statusCode || 0) || undefined;
     err.code = _clean(safe.code) || 'LIFE_BOOK_REQUEST_FAILED';
     err.stage = _clean(safe.stage) || 'prepare';
@@ -421,7 +421,7 @@ function _isLifeBookGenerationBusy() {
       reportType: 'lifeBook',
       featureType: LIFE_BOOK_FEATURE_KEY,
       requestBody: {
-        name: String((profile && profile.name) || '?ъ슜??),
+        name: String((profile && profile.name) || '사용자'),
         gender: String((profile && profile.gender) || ''),
         year: Number(birth.year || 0),
         month: Number(birth.month || 0),
@@ -564,7 +564,7 @@ function _isLifeBookGenerationBusy() {
           resolve({
             ok: !!accessGrant,
             status: accessGrant ? 200 : 500,
-            message: accessGrant ? '' : '寃곗젣 ?묎렐 沅뚰븳???뺤씤?섏? 紐삵뻽?듬땲??',
+            message: accessGrant ? '' : '결제 접근 권한을 확인하지 못했습니다.',
             accessGrant: accessGrant,
             premiumAccessToken: issuedToken,
             requestId: requestId,
@@ -573,7 +573,7 @@ function _isLifeBookGenerationBusy() {
         function cancel() {
           if (settled) return;
           settled = true;
-          resolve({ ok: false, status: 402, message: '寃곗젣媛 痍⑥냼?섏뿀?듬땲??', requestId: requestId });
+          resolve({ ok: false, status: 402, message: '결제가 취소되었습니다.', requestId: requestId });
         }
         function fail(error) {
           if (settled) return;
@@ -581,7 +581,7 @@ function _isLifeBookGenerationBusy() {
           resolve({
             ok: false,
             status: Number(error && error.status || 0),
-            message: String(error && error.message || '寃곗젣 寃뚯씠?몃? 遺덈윭?ㅼ? 紐삵뻽?듬땲??'),
+            message: String(error && error.message || '결제 게이트를 불러오지 못했습니다.'),
             requestId: requestId,
             fallback: true,
           });
@@ -606,7 +606,7 @@ function _isLifeBookGenerationBusy() {
             if (payload === null || payload === undefined || (payload && payload.status === 'cancelled')) cancel();
             else finish(payload);
           }).catch(fail);
-          else if (!gate) fail(new Error('寃곗젣 寃뚯씠?몃? 遺덈윭?ㅼ? 紐삵뻽?듬땲??'));
+          else if (!gate) fail(new Error('결제 게이트를 불러오지 못했습니다.'));
         } catch (_) {
           fail(_);
         }
@@ -651,11 +651,11 @@ function _isLifeBookGenerationBusy() {
   function _ensurePremiumPaymentThenStart() {
     if (_hasPremiumAccessForGeneration()) return true;
     if (typeof window._cdCoinGatePerUse !== 'function') {
-      alert('寃곗젣 ?뺤씤 紐⑤뱢??遺덈윭?ㅼ? 紐삵뻽?듬땲?? ?섏씠吏瑜??덈줈怨좎묠?????ㅼ떆 ?쒕룄??二쇱꽭??');
+      alert('결제 확인 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
       return false;
     }
     _flowLog('COIN_GATE_START', { message: 'premium-check-before-generate' });
-    window._cdCoinGatePerUse(500, '?몄깮??梨??앹꽦 (13梨뺥꽣)', function () {
+    window._cdCoinGatePerUse(500, LIFE_BOOK_REASON, function () {
       _markPremiumAccessVerified(25 * 60 * 1000);
       _flowLog('COIN_GATE_SUCCESS', { message: 'coin-gate-approved' });
       window.generateLifeBook();
@@ -740,7 +740,7 @@ function _isLifeBookGenerationBusy() {
           reject(message);
           return;
         }
-        var err = new Error(message || '?몄깮??梨??붾뱶?ъ씤???몄텧???ㅽ뙣?덉뒿?덈떎.');
+        var err = new Error(message || '인생의 책 로컬 생성 요청에 실패했습니다.');
         if (meta && typeof meta === 'object') {
           err.status = Number(meta.status || 0);
           err.code = String(meta.code || '').trim();
@@ -750,7 +750,7 @@ function _isLifeBookGenerationBusy() {
 
       function runNext() {
         if (idx >= endpoints.length) {
-          doneFail(lastErr || '?몄깮??梨??붾뱶?ъ씤???몄텧???ㅽ뙣?덉뒿?덈떎.');
+          doneFail(lastErr || '인생의 책 로컬 생성 요청에 실패했습니다.');
           return;
         }
 
@@ -785,7 +785,7 @@ function _isLifeBookGenerationBusy() {
               var hardCode = String((pack.json && (pack.json.code || (pack.json.error && pack.json.error.code))) || '').trim();
               var hardMessage = String(
                 (pack.json && (pack.json.message || pack.json.reason || pack.json.code))
-                || (pack.res.status === 401 ? '濡쒓렇?몄씠 ?꾩슂?⑸땲??' : '?꾨━誘몄뾼 寃곗젣 ?뺤씤???꾩슂?⑸땲??')
+                || (pack.res.status === 401 ? '로그인이 필요합니다.' : '프리미엄 결제 확인이 필요합니다.')
               );
               doneFail(_buildLifeBookApiError(pack, hardMessage), { status: Number(pack.res.status || 0), code: hardCode });
               return;
@@ -799,7 +799,7 @@ function _isLifeBookGenerationBusy() {
           })
           .catch(function (err) {
             clearTimeout(timerId);
-            lastErr = err instanceof Error ? err : new Error(_normalizeLifeBookErrorMessage(err, '?붿껌??以묐떒?섏뿀?듬땲?? ?ㅽ듃?뚰겕 ?곹깭瑜??뺤씤?????ㅼ떆 ?쒕룄??二쇱꽭??'));
+            lastErr = err instanceof Error ? err : new Error(_normalizeLifeBookErrorMessage(err, '요청이 중단되었습니다. 네트워크 상태를 확인한 뒤 다시 시도해 주세요.'));
             runNext();
           });
       }
@@ -834,12 +834,12 @@ function _isLifeBookGenerationBusy() {
           reject(message);
           return;
         }
-        reject(new Error(message || '?몄깮??梨??곹깭 議고쉶???ㅽ뙣?덉뒿?덈떎.'));
+        reject(new Error(message || '인생의 책 생성 상태 조회에 실패했습니다.'));
       }
 
       function runNext() {
         if (idx >= endpoints.length) {
-          doneFail(lastErr || '?몄깮??梨??곹깭 議고쉶???ㅽ뙣?덉뒿?덈떎.');
+          doneFail(lastErr || '인생의 책 생성 상태 조회에 실패했습니다.');
           return;
         }
         var endpoint = endpoints[idx++];
@@ -869,7 +869,7 @@ function _isLifeBookGenerationBusy() {
               return;
             }
             if (pack && pack.res && _isAuthOrPaymentFailure(Number(pack.res.status || 0), pack.json || {})) {
-              doneFail(_buildLifeBookApiError(pack, String((pack.json && (pack.json.message || pack.json.reason || pack.json.code)) || '?몄쬆 ?먮뒗 寃곗젣 ?곹깭瑜??뺤씤??二쇱꽭??')));
+              doneFail(_buildLifeBookApiError(pack, String((pack.json && (pack.json.message || pack.json.reason || pack.json.code)) || '인증 또는 결제 상태를 확인해 주세요.')));
               return;
             }
             lastErr = _buildLifeBookApiError(pack, String(
@@ -1103,6 +1103,7 @@ function _isLifeBookGenerationBusy() {
 
   /**
    * ?ъ＜ ?곗씠???섏쭛 ??window.__destinyFlowerSajuSnapshot, __cdActiveBirthProfile ??   */
+  /*
   function _collectSajuData() {
     var profile = window.__cdActiveBirthProfile || {};
     var snap = window.__destinyFlowerSajuSnapshot || {};
@@ -1365,6 +1366,67 @@ function _isLifeBookGenerationBusy() {
 
     return lines.join('\n');
   }
+  */
+
+  function _collectSajuData() {
+    var profile = window.__cdActiveBirthProfile || {};
+    var snap = window.__destinyFlowerSajuSnapshot || {};
+    var analysis = snap.analysis || snap.saju || {};
+    var birth = profile.birth || snap.birth || {};
+    var pillars = window.G_PILLARS || {};
+    var power = window.G_POWER || {};
+    var johu = window.G_JOHU || {};
+    var daewun = window.G_DAEWUN || window.G_DAEUN || [];
+    var lines = [];
+    var name = String(profile.name || snap.name || '사용자').trim() || '사용자';
+    var gender = String(profile.gender || snap.gender || '').trim();
+
+    lines.push('인생의 책 사주 계산 근거');
+    lines.push('이름: ' + name);
+    lines.push('성별: ' + (gender === 'F' || gender === 'female' ? '여성' : gender === 'M' || gender === 'male' ? '남성' : (gender || '미상')));
+    if (birth.year) {
+      lines.push('생년월일: ' + birth.year + '년 ' + (birth.month || '') + '월 ' + (birth.day || '') + '일');
+      lines.push('출생시간: ' + (birth.hour !== undefined ? birth.hour + '시' : '미상') + (birth.minute !== undefined ? ' ' + birth.minute + '분' : ''));
+    }
+    if (profile.location && profile.location.label) lines.push('출생지: ' + profile.location.label);
+
+    if (pillars && (pillars.y || pillars.m || pillars.d || pillars.h)) {
+      lines.push('\n사주 원국');
+      if (pillars.y) lines.push('연주: ' + (pillars.y.g || '') + (pillars.y.j || '') + _formatElementPair(pillars.y));
+      if (pillars.m) lines.push('월주: ' + (pillars.m.g || '') + (pillars.m.j || '') + _formatElementPair(pillars.m));
+      if (pillars.d) lines.push('일주: ' + (pillars.d.g || '') + (pillars.d.j || '') + _formatElementPair(pillars.d));
+      if (pillars.h) lines.push('시주: ' + (pillars.h.g || '') + (pillars.h.j || '') + _formatElementPair(pillars.h));
+    }
+
+    if (analysis.elementWeights) {
+      var w = analysis.elementWeights;
+      lines.push('\n오행 분포');
+      lines.push('목 ' + (w.wood || 0) + '% | 화 ' + (w.fire || 0) + '% | 토 ' + (w.earth || 0) + '% | 금 ' + (w.metal || 0) + '% | 수 ' + (w.water || 0) + '%');
+    }
+
+    var yongshin = analysis.yongshin_elements || power.yongshin || [];
+    var kishin = analysis.kishin_elements || power.kijishin || [];
+    if (analysis.power_label) lines.push('신강/신약: ' + analysis.power_label);
+    if (analysis.dayStem) lines.push('일간: ' + analysis.dayStem);
+    if (yongshin && yongshin.length) lines.push('용신: ' + yongshin.join(', '));
+    if (kishin && kishin.length) lines.push('기신: ' + kishin.join(', '));
+    if (johu && johu.type) lines.push('조후: ' + johu.type);
+
+    if (Array.isArray(daewun) && daewun.length) {
+      lines.push('\n대운 흐름');
+      daewun.slice(0, 12).forEach(function (row) {
+        if (!row) return;
+        lines.push((row.age || row.startAge || '') + '세 대운: ' + (row.g || row.stem || '') + (row.j || row.branch || '') + (row.gE ? ' [' + row.gE + ']' : ''));
+      });
+    }
+
+    return lines.join('\n');
+  }
+
+  function _formatElementPair(pillar) {
+    if (!pillar) return '';
+    return pillar.gE || pillar.jE ? ' [' + (pillar.gE || '') + (pillar.jE ? '/' + pillar.jE : '') + ']' : '';
+  }
 
   function _lbJsonClone(value, fallback) {
     try {
@@ -1466,7 +1528,7 @@ function _isLifeBookGenerationBusy() {
         input: input,
         fourPillars: fourPillars,
         strengthAnalysis: {
-          dayMasterStrength: String(analysis.power_label || analysis.powerLabel || (power && typeof power.isStrong === 'boolean' ? (power.isStrong ? '?좉컯' : '?좎빟') : '')).trim(),
+          dayMasterStrength: String(analysis.power_label || analysis.powerLabel || (power && typeof power.isStrong === 'boolean' ? (power.isStrong ? '신강' : '신약') : '')).trim(),
           isStrong: Boolean(power && power.isStrong),
           jongName: String(analysis.jongName || jong.name || '').trim(),
         },
@@ -1594,22 +1656,22 @@ function _isLifeBookGenerationBusy() {
 
   function _normalizeLifeBookErrorMessage(error, fallback) {
     var raw = String(error && error.message ? error.message : error || '').trim();
-    var defaultMsg = String(fallback || '?붿껌 以?臾몄젣媛 諛쒖깮?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??');
+    var defaultMsg = String(fallback || '요청 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     if (!raw) return defaultMsg;
     if (/abort|aborted|AbortError|without reason/i.test(raw)) return defaultMsg;
     if (/Failed to fetch|NetworkError|Load failed/i.test(raw)) {
-      return '?ㅽ듃?뚰겕 ?곌껐??遺덉븞?뺥빀?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??';
+      return '네트워크 연결이 불안정합니다. 잠시 후 다시 시도해 주세요.';
     }
     if (/^[A-Z0-9_:-]+$/.test(raw) || /\b(LLM|SEED|JSON|PAYLOAD|SCHEMA|UNDEFINED|NULL|NAN)\b/i.test(raw)) {
-      return '?몄깮??梨??먭퀬瑜??꾩꽦?섎뒗 以?臾몄젣媛 諛쒖깮?덉뒿?덈떎. ?낅젰媛믪쓣 ?뺤씤?????ㅼ떆 ?쒕룄??二쇱꽭??';
+      return '인생의 책 원고를 완성하는 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.';
     }
     return raw;
   }
 
   function _normalizeGenderForApi(rawGender) {
     var g = String(rawGender || '').trim().toLowerCase();
-    if (g === 'f' || g === 'female' || g === 'woman' || g === '?? || g === '?ъ꽦') return 'female';
-    if (g === 'm' || g === 'male' || g === 'man' || g === '?? || g === '?⑥꽦') return 'male';
+    if (g === 'f' || g === 'female' || g === 'woman' || g === '여' || g === '여성') return 'female';
+    if (g === 'm' || g === 'male' || g === 'man' || g === '남' || g === '남성') return 'male';
     return 'unknown';
   }
 
@@ -1619,7 +1681,7 @@ function _isLifeBookGenerationBusy() {
       || (profile && profile.calendarType)
       || 'solar'
     ).trim().toLowerCase();
-    if (raw === 'lunar' || raw === '?뚮젰' || raw === 'moon') return 'lunar';
+    if (raw === 'lunar' || raw === '음력' || raw === 'moon') return 'lunar';
     return 'solar';
   }
 
@@ -1646,7 +1708,7 @@ function _isLifeBookGenerationBusy() {
       var hourEl = document.getElementById('birthHour');
       var minEl = document.getElementById('birthMinute');
       /* 異쒖깮吏: 紐⑤떖 ?꾩슜 ?좏깮湲곕? ?곗꽑, ?놁쑝硫?硫붿씤 ???좏깮湲??ъ슜 */
-      var locationData = { label: '??쒕?援?(?쒖슱)', lng: 127.0, lat: 37.6, tz: 'Asia/Seoul', tzOffset: 9, baseTzOffset: 9 };
+      var locationData = { label: '대한민국(서울)', lng: 127.0, lat: 37.6, tz: 'Asia/Seoul', tzOffset: 9, baseTzOffset: 9 };
       var countrySel = document.getElementById('lbBirthCountry') || document.getElementById('birthCountry');
       if (countrySel && countrySel.selectedIndex >= 0) {
         var opt = countrySel.options[countrySel.selectedIndex];
@@ -1662,7 +1724,7 @@ function _isLifeBookGenerationBusy() {
         }
       }
       return {
-        name: (nameEl && nameEl.value.trim()) || '?ъ슜??,
+        name: (nameEl && nameEl.value.trim()) || '사용자',
         gender: isFemale ? 'F' : 'M',
         birth: {
           year: y, month: m, day: d,
@@ -1699,7 +1761,7 @@ function _isLifeBookGenerationBusy() {
     try {
       localStorage.setItem(_lbMakeKey(profile), JSON.stringify({
         chapters: _chapters,
-        name: (profile && profile.name) || '?ъ슜??,
+        name: (profile && profile.name) || '사용자',
         birth: (profile && profile.birth) || {},
         gender: (profile && profile.gender) || '',
         savedAt: new Date().toISOString()
@@ -1721,7 +1783,7 @@ function _isLifeBookGenerationBusy() {
   function _lbHasSavedContent(saved) {
     if (!saved || !Array.isArray(saved.chapters)) return false;
     var validCount = saved.chapters.filter(function (c) {
-      return typeof c === 'string' && c.trim().length >= 500 && !/^?좑툘/.test(c.trim());
+      return typeof c === 'string' && c.trim().length >= 500 && !/^⚠️/.test(c.trim());
     }).length;
     return validCount >= 10;
   }
@@ -1737,13 +1799,13 @@ function _isLifeBookGenerationBusy() {
     _bindToc();
     var nameEl = _qs('lbResultName');
     var dateEl = _qs('lbResultDate');
-    if (nameEl) nameEl.textContent = '?뱶 ' + (saved.name || '?ъ슜??) + '?섏쓽 ?몄깮??梨?;
+    if (nameEl) nameEl.textContent = '📜 ' + (saved.name || '사용자') + '님의 인생의 책';
     if (dateEl) {
       var b = saved.birth || {};
       var savedDate = saved.savedAt ? new Date(saved.savedAt).toLocaleDateString('ko-KR') : '';
-      dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' ??쨌 '
-        + (saved.gender === 'F' ? '?ъ꽦' : saved.gender === 'M' ? '?⑥꽦' : '')
-        + (savedDate ? ' 쨌 ?뮶 ' + savedDate + ' ??? : '');
+      dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' · '
+        + (saved.gender === 'F' ? '여성' : saved.gender === 'M' ? '남성' : '')
+        + (savedDate ? ' · 저장 ' + savedDate : '');
     }
     var lbEpBannerSaved = _qs('lbEpilogueBanner');
     if (lbEpBannerSaved) lbEpBannerSaved.style.display = '';
@@ -1760,18 +1822,18 @@ function _isLifeBookGenerationBusy() {
   function _lbRegenerateChapter(chapter) {
     var idx = Number(chapter) - 1;
     if (!Number.isFinite(idx) || idx < 0 || idx >= LIFEBOOK_TOTAL_CHAPTERS) {
-      return Promise.reject(new Error('?좏슚?섏? ?딆? 梨뺥꽣?낅땲??'));
+      return Promise.reject(new Error('유효하지 않은 챕터입니다.'));
     }
     if (!_lbCurrentReportId || typeof _lbPartialFetchChapter !== 'function') {
-      return Promise.reject(new Error('?ъ깮??而⑦뀓?ㅽ듃媛 以鍮꾨릺吏 ?딆븯?듬땲??'));
+      return Promise.reject(new Error('재생성 컨텍스트가 준비되지 않았습니다.'));
     }
     var runPipeline = (typeof window.__cdRunPremiumChapterPipeline === 'function')
       ? window.__cdRunPremiumChapterPipeline
       : null;
     if (!runPipeline) {
-      return Promise.reject(new Error('怨듯넻 梨뺥꽣 ?뚯씠?꾨씪?몄쓣 李얠쓣 ???놁뒿?덈떎.'));
+      return Promise.reject(new Error('공통 챕터 파이프라인을 찾을 수 없습니다.'));
     }
-    var fallbackText = String(window.__cdPremiumChapterFallbackText || '?쇱떆?곸씤 ?묐떟 吏?곗쑝濡??댁꽍??遺덈윭?ㅼ? 紐삵뻽?듬땲?? 遺遺??ъ깮??踰꾪듉???댁슜?댁＜?몄슂.');
+    var fallbackText = String(window.__cdPremiumChapterFallbackText || '일시적인 응답 지연으로 해석을 불러오지 못했습니다. 부분 재생성 버튼을 이용해 주세요.');
     return runPipeline({
       totalChapters: 1,
       maxAttempts: 3,
@@ -1807,7 +1869,7 @@ function _isLifeBookGenerationBusy() {
     window.__cdAttachPartialRegenerateControl({
       key: 'life-book',
       mountSelector: '.lb-toc',
-      buttonLabel: '?꾩옱 梨뺥꽣 遺遺??ъ깮??,
+      buttonLabel: '현재 챕터 부분 재생성',
       getActiveChapter: _lbResolveActiveChapter,
       onRegenerate: _lbRegenerateChapter
     });
@@ -1822,7 +1884,7 @@ function _isLifeBookGenerationBusy() {
       btn.type = 'button';
       btn.id = 'lbViewSavedBtn';
       btn.className = 'lb-btn-generate lb-btn-history';
-      btn.textContent = '?뱛 吏???ъ＜ ?꾨왂???닿린';
+      btn.textContent = '📖 저장된 사주 전략 열기';
       startScreen.appendChild(btn);
       btn.addEventListener('click', function () {
         if (!_lbPendingSavedResult) return;
@@ -1835,7 +1897,7 @@ function _isLifeBookGenerationBusy() {
   window.openLifeBookModal = function () {
     var modal = _qs('lifeBookModal');
     if (!modal) {
-      console.error('[?몄깮??梨? lifeBookModal ?붿냼瑜?李얠쓣 ???놁뒿?덈떎.');
+      console.error('[인생의 책] lifeBookModal 요소를 찾을 수 없습니다.');
       return;
     }
 
@@ -1859,7 +1921,7 @@ function _isLifeBookGenerationBusy() {
       // ?낅젰 ?쇱쑝濡??ㅽ겕濡??좊룄
       var _lbFormEl = document.getElementById('birthDate') || document.getElementById('run-btn');
       if (_lbFormEl) { try { _lbFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
-      alert('?뱶 ?몄깮??梨낆쓣 ?앹꽦?섎젮硫??앸뀈?붿씪 쨌 異쒖깮 ?쒓컙???낅젰?섍퀬 "?ъ＜ 遺꾩꽍 ?쒖옉"???뚮윭二쇱꽭??');
+      alert('인생의 책을 생성하려면 생년월일과 출생 시간을 입력하고 사주 분석을 먼저 완료해 주세요.');
       return;
     }
 
@@ -1943,7 +2005,7 @@ function _isLifeBookGenerationBusy() {
     var data = _chapters[idx];
     var structured = _chapterStructured[idx];
     if (!data && !structured) {
-      content.innerHTML = '<p class="lb-ch-empty">??梨뺥꽣媛 ?꾩쭅 ?앹꽦?섏? ?딆븯?듬땲??</p>';
+      content.innerHTML = '<p class="lb-ch-empty">이 챕터는 아직 생성되지 않았습니다.</p>';
       return;
     }
     var bodyHtml = _renderStructuredChapterBody(ch, structured);
@@ -1972,7 +2034,7 @@ function _isLifeBookGenerationBusy() {
   function _getChapterMeta(idx) {
     var base = _chapterMeta[idx] || {};
     return {
-      title: String(base.title || CHAPTER_TITLES[idx] || ('??' + (idx + 1) + '??)),
+      title: String(base.title || CHAPTER_TITLES[idx] || ('제' + (idx + 1) + '장')),
       subtitle: String(base.subtitle || CHAPTER_SUBTITLES[idx] || ''),
     };
   }
@@ -1981,7 +2043,7 @@ function _isLifeBookGenerationBusy() {
     if (!data || typeof data !== 'object') return;
     var chapterMeta = data.chapterMeta && typeof data.chapterMeta === 'object' ? data.chapterMeta : null;
     _chapterMeta[idx] = {
-      title: String((chapterMeta && chapterMeta.title) || CHAPTER_TITLES[idx] || ('??' + (idx + 1) + '??)),
+      title: String((chapterMeta && chapterMeta.title) || CHAPTER_TITLES[idx] || ('제' + (idx + 1) + '장')),
       subtitle: String((chapterMeta && chapterMeta.subtitle) || CHAPTER_SUBTITLES[idx] || ''),
       isSkeleton: false,
     };
@@ -2004,7 +2066,7 @@ function _isLifeBookGenerationBusy() {
         try {
           var gate = await _runLifeBookCoinGate(gateReportId);
           if (!gate.ok || !gate.accessGrant) {
-            var failMsg = String(gate && gate.message ? gate.message : '寃곗젣 ?뺤씤???ㅽ뙣?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??');
+            var failMsg = String(gate && gate.message ? gate.message : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
             _flowLog('PAYMENT_ACCESS_CHECK', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, ok: false, status: Number(gate && gate.status || 500), message: failMsg });
             _logLifeBookError(gate || { message: failMsg }, { stage: 'billing', reportId: gateReportId });
             alert(failMsg);
@@ -2028,7 +2090,7 @@ function _isLifeBookGenerationBusy() {
             premiumAccessToken: String(gate.premiumAccessToken || '').trim(),
           });
         } catch (error) {
-          var message = String(error && error.message ? error.message : '寃곗젣 ?뺤씤 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.');
+          var message = String(error && error.message ? error.message : '결제 확인 중 오류가 발생했습니다.');
           _flowLog('PAYMENT_ACCESS_CHECK', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, ok: false, status: 500, message: message });
           _logLifeBookError(error, { stage: 'billing', reportId: gateReportId });
           alert(message);
@@ -2039,7 +2101,7 @@ function _isLifeBookGenerationBusy() {
 
     var profile = _getActiveBirthProfile();
     if (!profile) {
-      alert('?ъ＜ 怨꾩궛??癒쇱? ?꾨즺??二쇱꽭??');
+      alert('사주 계산을 먼저 완료해 주세요.');
       return;
     }
     _lifeBookLog('ProfileResolved', {
@@ -2080,11 +2142,11 @@ function _isLifeBookGenerationBusy() {
     _flowLog('GENERATE_CLICK', { message: 'generation-started' });
     try {
       _chapters = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
-    _chapterStructured = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
-    // ?ъ＜ 遺꾩꽍 ?붾㈃怨?100% ?쇱튂?섎룄濡?G_PILLARS ???꾩뿭 蹂???ш퀎??    if (typeof window.computeProfileForModal === 'function' && profile && profile.birth) {
-      try { window.computeProfileForModal(profile); } catch (_cpE) {}
-    }
-    var sajuData = _collectSajuData();
+      _chapterStructured = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
+      if (typeof window.computeProfileForModal === 'function' && profile && profile.birth) {
+        try { window.computeProfileForModal(profile); } catch (_cpE) {}
+      }
+      var sajuData = _collectSajuData();
     _lifeBookLog('BirthInputNormalized', {
       hasBirthDate: Boolean(profile && profile.birth && profile.birth.year),
       hasBirthTime: Boolean(profile && profile.birth && Number.isFinite(Number(profile.birth.hour))),
@@ -2103,7 +2165,7 @@ function _isLifeBookGenerationBusy() {
     if (!_hasBirthCore) {
       _clearLifeBookGenerationState();
       _lifeBookLog('ValidationBeforePayment', { ok: false, reason: 'missing_birth_core' });
-      alert('?앸뀈?붿씪 ?뺣낫瑜??뺤씤??二쇱꽭?? 異쒖깮 ?뺣낫媛 ?덉뼱???몄깮??梨낆쓣 ?앹꽦?????덉뒿?덈떎.');
+      alert('생년월일 정보를 확인해 주세요. 출생 정보가 있어야 인생의 책을 생성할 수 있습니다.');
       return;
     }
     if (!sajuData || sajuData.length < 30) {
@@ -2144,7 +2206,7 @@ function _isLifeBookGenerationBusy() {
       }
     }, 3600);
 
-    // 梨뺥꽣 ?꾩씠肄?珥덇린??    var chDots = document.querySelectorAll('.lb-ch-dot');
+    var chDots = document.querySelectorAll('.lb-ch-dot');
     Array.prototype.forEach.call(chDots, function (d) {
       d.classList.remove('lb-ch-dot--done', 'lb-ch-dot--active');
     });
@@ -2153,11 +2215,11 @@ function _isLifeBookGenerationBusy() {
     function _setProgress(done) {
       var pct = (done / LIFEBOOK_TOTAL_CHAPTERS) * 100;
       if (progressBar) progressBar.style.width = pct + '%';
-      if (progressText) progressText.textContent = done + ' / ' + LIFEBOOK_TOTAL_CHAPTERS + ' 梨뺥꽣 ?꾩꽦';
-      if (chapterMsg && done < LIFEBOOK_TOTAL_CHAPTERS) chapterMsg.textContent = LOADING_MSGS[done] || '遺꾩꽍 以?..';
-      if (chapterMsg && done >= LIFEBOOK_TOTAL_CHAPTERS) chapterMsg.textContent = '紐⑤뱺 梨뺥꽣媛 ?꾩꽦?섏뿀?듬땲????;
+      if (progressText) progressText.textContent = done + ' / ' + LIFEBOOK_TOTAL_CHAPTERS + ' 챕터 완성';
+      if (chapterMsg && done < LIFEBOOK_TOTAL_CHAPTERS) chapterMsg.textContent = LOADING_MSGS[done] || '분석 중...';
+      if (chapterMsg && done >= LIFEBOOK_TOTAL_CHAPTERS) chapterMsg.textContent = '모든 챕터가 완성되었습니다 ✦';
       if (chapterNumEl) {
-        chapterNumEl.textContent = done < LIFEBOOK_TOTAL_CHAPTERS ? ('??' + (done + 1) + '??) : '?꾨즺';
+        chapterNumEl.textContent = done < LIFEBOOK_TOTAL_CHAPTERS ? ('제 ' + (done + 1) + '장') : '완료';
       }
       // 梨뺥꽣 ?꾩씠肄??낅뜲?댄듃
       Array.prototype.forEach.call(chDots, function (d) {
@@ -2175,24 +2237,24 @@ function _isLifeBookGenerationBusy() {
     _setProgress(0);
 
     var _lbStateMessages = {
-      profile_check: '?꾨줈???뺣낫 ?뺤씤 以?,
-      calculating_saju: '?ъ＜ ?먭뎅 怨꾩궛 以?,
-      daewoon_calc: '??는룹꽭???먮쫫 怨꾩궛 以?,
-      local_draft: '?ъ＜ 怨꾩궛 ?꾨즺 쨌 13梨뺥꽣 ?먭퀬 援ъ꽦 ?쒖옉',
-      local_chapters_start: '?ъ＜ 怨꾩궛 ?꾨즺 쨌 13梨뺥꽣 ?먭퀬 援ъ꽦 ?쒖옉',
-      writing_local: '?몄깮??梨??먭퀬瑜??뺣━?섎뒗 以?,
-      calculation_validated: '?ъ＜ 怨꾩궛 ?꾨즺 쨌 LLM ?먭퀬 援ъ꽦 ?쒖옉',
-      llm_writing: 'LLM???몄깮??梨??먭퀬瑜??묒꽦?섎뒗 以?,
-      llm_reviewing: 'LLM ?먭퀬 寃??以?,
-      rendering_pdf: 'PDF ?몄쭛/?뚮뜑留?以?,
-      done: '?꾨즺',
-      local_reinforce: '遺議깊븳 ?μ쓣 蹂닿컯?섎뒗 以?,
+      profile_check: '프로필 정보 확인 중',
+      calculating_saju: '사주 원국 계산 중',
+      daewoon_calc: '대운과 세운의 흐름 계산 중',
+      local_draft: '로컬 명리 엔진으로 13챕터 원고 구성 시작',
+      local_chapters_start: '로컬 명리 엔진으로 13챕터 원고 구성 시작',
+      writing_local: '인생의 책 원고를 정리하는 중',
+      calculation_validated: '사주 계산 완료 · 로컬 원고 구성 시작',
+      llm_writing: '인생의 책 원고를 보강하는 중',
+      llm_reviewing: '원고 품질 검수 중',
+      rendering_pdf: 'PDF 편집과 렌더링 중',
+      done: '완료',
+      local_reinforce: '부족한 장을 보강하는 중',
     };
 
     function _setGenerationState(stateKey) {
-      var msg = _lbStateMessages[String(stateKey || '')] || '?몄깮??梨낆쓣 ?앹꽦?섍퀬 ?덉뒿?덈떎.';
+      var msg = _lbStateMessages[String(stateKey || '')] || '인생의 책을 생성하고 있습니다.';
       if (chapterMsg) chapterMsg.textContent = msg;
-      if (chapterNumEl) chapterNumEl.textContent = '吏꾪뻾 ?곹깭';
+      if (chapterNumEl) chapterNumEl.textContent = '진행 상태';
       _flowLog('GENERATION_STATE', { state: stateKey, message: msg });
     }
 
@@ -2205,9 +2267,9 @@ function _isLifeBookGenerationBusy() {
     } catch (_prepErr) {
       _clearLifeBookGenerationState();
       _showScreen('lbStartScreen');
-      _flowLog('FRONT_PIPELINE_SETUP_FAILED', { featureKey: LIFE_BOOK_FEATURE_KEY, message: String(_prepErr && _prepErr.message || '?앹꽦 以鍮?以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.') });
+      _flowLog('FRONT_PIPELINE_SETUP_FAILED', { featureKey: LIFE_BOOK_FEATURE_KEY, message: String(_prepErr && _prepErr.message || '생성 준비 중 오류가 발생했습니다.') });
       _lifeBookLog('ValidationBeforePayment', { ok: false, reason: 'generation-setup-failed' });
-      alert('?앹꽦 以鍮?以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??');
+      alert('생성 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       return;
     }
 
@@ -2278,9 +2340,9 @@ function _isLifeBookGenerationBusy() {
         serviceKey: 'saju-lifebook',
         productKey: LIFE_BOOK_FEATURE_KEY,
         featureKey: LIFE_BOOK_FEATURE_KEY,
-        generationMode: 'worker-native-hybrid',
-        calculationSource: 'worker-saju-engine',
-        authoringMode: 'hybrid',
+        generationMode: 'local',
+        calculationSource: 'local-saju-engine',
+        authoringMode: 'local',
         reportId: _lbReportId,
         sessionId: _sessionId,
         reportSessionId: _sessionId,
@@ -2302,14 +2364,14 @@ function _isLifeBookGenerationBusy() {
           reportId: _lbReportId,
         },
         reason: LIFE_BOOK_REASON,
-        name: String((profile && profile.name) || '?ъ슜??),
+        name: String((profile && profile.name) || '사용자'),
         gender: _normalizeGenderForApi(profile && profile.gender),
         calendarType: _resolveCalendarTypeForApi(profile),
         birthDate: [profile.birth.year, String(profile.birth.month).padStart(2, '0'), String(profile.birth.day).padStart(2, '0')].join('-'),
         birthTimeKnown: _birthTimeKnown,
         hour: _birthTimeKnown ? _birthHourRaw : 12,
         minute: _birthTimeKnown ? Number.isFinite(_birthMinuteRaw) ? _birthMinuteRaw : 0 : 0,
-        birthplace: String((profile && profile.location && profile.location.label) || '??쒕?援?),
+        birthplace: String((profile && profile.location && profile.location.label) || '대한민국'),
         sajuData: String(sajuData || ''),
         analysisSignals: _collectLifeBookAnalysisSignals(profile),
         quantumMyeongriJson: _collectLifeBookQuantumMyeongriJson(profile),
@@ -2325,7 +2387,7 @@ function _isLifeBookGenerationBusy() {
         var _total = Number(((_statusData.progress || {}).totalChapters) || LIFEBOOK_TOTAL_CHAPTERS);
         if (_stateKey) _setGenerationState(_stateKey);
         if (_status === 'running' || _status === 'queued' || _status === 'processing' || _status === 'generating') {
-          _setGenerationState('llm_writing');
+          _setGenerationState('writing_local');
         }
         if (Number.isFinite(_current) && _current > 0) {
           _setProgress(Math.min(LIFEBOOK_TOTAL_CHAPTERS, Math.max(0, _current)));
@@ -2355,7 +2417,7 @@ function _isLifeBookGenerationBusy() {
         var _isPaymentAccessFail = _prepareStatus === 401 || _prepareStatus === 402 || _prepareStatus === 403
           || _prepareCode.indexOf('PAYMENT') >= 0
           || _prepareCode.indexOf('PREMIUM') >= 0
-          || /寃곗젣|?꾨━誘몄뾼|沅뚰븳/.test(_prepareMsg);
+          || /결제|프리미엄|권한/.test(_prepareMsg);
         if (!_isPaymentAccessFail || !_accessGrant) throw _prepareErr;
 
         _flowLog('PAYMENT_ACCESS_RETRY', {
@@ -2400,8 +2462,8 @@ function _isLifeBookGenerationBusy() {
         ''
       );
       _lbPendingReportUrl = _resolveLifeBookStoredUrl(_data);
-      var _manuscriptSource = String((_data && _data.manuscriptSource) || ((_data && _data.pdfReady && _data.pdfReady.metadata && _data.pdfReady.metadata.manuscriptSource) || 'worker-native-llm')).trim();
-      _lifeBookLog('ManuscriptSourceResolved', { source: _manuscriptSource || 'worker-native-llm' });
+      var _manuscriptSource = String((_data && _data.manuscriptSource) || ((_data && _data.pdfReady && _data.pdfReady.metadata && _data.pdfReady.metadata.manuscriptSource) || 'life-book-local-v1')).trim();
+      _lifeBookLog('ManuscriptSourceResolved', { source: _manuscriptSource || 'life-book-local-v1' });
       var _serverChapters = Array.isArray(_data.chapters) ? _data.chapters : [];
       if (_serverChapters.length !== LIFEBOOK_TOTAL_CHAPTERS) {
         throw new Error('LIFE_BOOK_CHAPTER_COUNT_INVALID:' + _serverChapters.length);
@@ -2436,22 +2498,21 @@ function _isLifeBookGenerationBusy() {
             };
           }) } : null);
         _chapterMeta[_i] = {
-          title: String(_ch.title || CHAPTER_TITLES[_i] || ('??' + (_i + 1) + '??)),
+          title: String(_ch.title || CHAPTER_TITLES[_i] || ('제' + (_i + 1) + '장')),
           subtitle: String(_ch.subtitle || CHAPTER_SUBTITLES[_i] || ''),
           isSkeleton: false,
         };
-        if (chapterMsg) chapterMsg.textContent = 'Chapter ' + (_i + 1) + ' ?뺣━ ?꾨즺 쨌 ?ㅼ쓬 梨뺥꽣瑜?以鍮꾪븯怨??덉뒿?덈떎...';
+        if (chapterMsg) chapterMsg.textContent = '제 ' + (_i + 1) + '장 정리 완료 · 다음 챕터를 준비하고 있습니다...';
         _setProgress(_i + 1);
-        _lifeBookLog('LlmDraftProgress', { chapterDone: _i + 1, total: LIFEBOOK_TOTAL_CHAPTERS });
+        _lifeBookLog('LocalDraftProgress', { chapterDone: _i + 1, total: LIFEBOOK_TOTAL_CHAPTERS });
         await new Promise(function (r) { setTimeout(r, 90); });
       }
 
-      _setGenerationState('llm_writing');
+      _setGenerationState('writing_local');
       _flowLog('LIFE_BOOK_LLM_MANUSCRIPT_READY', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
-      _lifeBookLog('LlmManuscriptReady', { reportId: _lbReportId });
+      _lifeBookLog('LocalManuscriptReady', { reportId: _lbReportId });
       if (_data && _data.fallbackUsed) {
-        _setGenerationState('llm_reviewing');
-        _lifeBookLog('LlmOnlyUnexpectedFallbackFlag', { reportId: _lbReportId });
+        throw new Error('LIFE_BOOK_LOCAL_COMPLETION_REQUIRED');
       }
 
       _setGenerationState('rendering_pdf');
@@ -2470,10 +2531,10 @@ function _isLifeBookGenerationBusy() {
       var prof = window.__cdActiveBirthProfile || {};
       var nameEl = _qs('lbResultName');
       var dateEl = _qs('lbResultDate');
-      if (nameEl) nameEl.textContent = '?뱶 ' + (prof.name || '?ъ슜??) + '?섏쓽 ?몄깮??梨?;
+      if (nameEl) nameEl.textContent = '📜 ' + (prof.name || '사용자') + '님의 인생의 책';
       if (dateEl) {
         var b = prof.birth || {};
-        dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' ??쨌 ' + (prof.gender === 'F' ? '?ъ꽦' : prof.gender === 'M' ? '?⑥꽦' : '') + ' 쨌 ?뿎截?' + new Date().toLocaleDateString('ko-KR') + ' 諛쒗뻾';
+        dateEl.textContent = [b.year, b.month, b.day].filter(Boolean).join('. ') + ' · ' + (prof.gender === 'F' ? '여성' : prof.gender === 'M' ? '남성' : '') + ' · ' + new Date().toLocaleDateString('ko-KR') + ' 발행';
       }
 
       _lbSaveResult(prof);
@@ -2484,14 +2545,14 @@ function _isLifeBookGenerationBusy() {
       _lifeBookLog('PdfRequestSuccess', { reportId: _lbReportId });
       _flowLog('FRONT_PREVIEW_READY', { message: 'single-pass-complete', categoryCount: LIFEBOOK_TOTAL_CHAPTERS * 6 });
     })().catch(function (error) {
-      var errMsg = _normalizeLifeBookErrorMessage(error, '?ㅽ듃?뚰겕 ?붿껌??以묐떒?섏뿀?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??');
+      var errMsg = _normalizeLifeBookErrorMessage(error, '네트워크 요청이 중단되었습니다. 잠시 후 다시 시도해 주세요.');
       _flowLog('FRONT_PIPELINE_FAILED', { message: errMsg });
       _logLifeBookError(error, { stage: 'generate', reportId: _lbCurrentReportId });
       _lifeBookLog('Error', { stage: 'generate', message: errMsg });
 
       _clearLifeBookGenerationState();
       _showScreen('lbStartScreen');
-      alert('?몄깮??梨??앹꽦 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.\n\n' + errMsg + '\n\n?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??');
+      alert('인생의 책 생성 중 오류가 발생했습니다.\n\n' + errMsg + '\n\n잠시 후 다시 시도해 주세요.');
     }).finally(function () {
       if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
       if (_activeRequestController) _activeRequestController = null;
@@ -2542,11 +2603,11 @@ function _isLifeBookGenerationBusy() {
     }
 
     if (!_chapters.length) {
-      alert('由ы룷?멸? ?꾩쭅 以鍮꾨릺吏 ?딆븯?듬땲?? 癒쇱? ?앹꽦??二쇱꽭??');
+      alert('리포트가 아직 준비되지 않았습니다. 먼저 생성해 주세요.');
       return;
     }
 
-    alert('由ы룷?????URL???꾩쭅 以鍮꾨릺吏 ?딆븯?듬땲?? ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??');
+    alert('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
   };
 
   /* ??????????????? ?대깽???꾩엫 諛붿씤????????????????? */
@@ -2569,7 +2630,7 @@ function _isLifeBookGenerationBusy() {
     if (action === 'generateLifeBook') {
       // ?대? ?앹꽦 以묒씠硫?肄붿씤 李④컧 ?꾩뿉 利됱떆 李⑤떒
       if (_isLifeBookGenerationBusy()) {
-        window.alert('?몄깮??梨낆씠 ?대? ?앹꽦 以묒엯?덈떎. ?좎떆留?湲곕떎??二쇱꽭??');
+        window.alert('인생의 책이 이미 생성 중입니다. 잠시만 기다려 주세요.');
         return;
       }
       _flowLog('GENERATE_CLICK', { message: 'button-click' });

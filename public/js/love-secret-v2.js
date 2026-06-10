@@ -325,6 +325,76 @@
     return Number.isFinite(coins) && coins > 0 ? coins : 300;
   }
 
+  function _isLocalPremiumTrialMode() {
+    try {
+      if (window.__CD_LOCAL_PREMIUM_PDF_TRIAL__ === true) return true;
+      if (window.__CD_LOCAL_PREMIUM_PDF_TRIAL__ === false) return false;
+      var loc = window.location || {};
+      var host = String(loc.hostname || '').toLowerCase();
+      var search = String(loc.search || '');
+      if (/[?&](paidMode|realBilling)=1\b/.test(search)) return false;
+      if (/[?&](premiumTrial|localTrial|trialPremiumPdf)=1\b/.test(search)) return true;
+      return !host || host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]' || host.endsWith('.local');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function _buildLoveSecretLocalTrialGate(mode, reportId) {
+    var normalizedMode = _normalizeLoveSecretMode(mode);
+    var featureKey = _getLoveSecretFeatureKey(normalizedMode);
+    var normalizedReportId = String(reportId || '').trim();
+    var requestId = 'local-trial:love-secret:' + normalizedMode + ':' + Date.now().toString(36);
+    var accessGrant = {
+      ok: true,
+      featureKey: featureKey,
+      sessionId: 'love-book:' + normalizedReportId,
+      reportSessionId: 'love-book:' + normalizedReportId,
+      purchaseId: 'local-trial:' + normalizedReportId,
+      requestId: requestId,
+      reportId: normalizedReportId,
+      paidAt: new Date().toISOString(),
+      accessType: 'local_trial',
+      accessMethod: 'LOCAL_NO_PAYMENT',
+      paymentMode: 'local_trial',
+      chargedCoins: 0,
+      localTrial: true
+    };
+    return {
+      ok: true,
+      status: 200,
+      message: '로컬 체험 모드로 결제 없이 생성합니다.',
+      accessGrant: accessGrant,
+      purchaseId: accessGrant.purchaseId,
+      premiumAccessToken: '',
+      localTrial: true
+    };
+  }
+
+  function _applyLocalTrialUi() {
+    if (!_isLocalPremiumTrialMode()) return;
+    var trustBadges = document.querySelectorAll('#loveSecretModal .ls-trust-badge');
+    Array.prototype.forEach.call(trustBadges, function (badge) {
+      if (/코인/.test(String(badge.textContent || ''))) badge.textContent = '로컬 체험 무료';
+    });
+    var notice = document.querySelector('#loveSecretModal .ls-pscreen__coin-notice');
+    var startBtn = _qs('lsPsStartBtn');
+    var soloBtn = document.querySelector('#loveSecretModal [data-action="lsSkipPartner"]');
+    var coinTag = document.querySelector('#loveSecretModal .ls-pscreen__coin-tag');
+    if (notice) notice.innerHTML = '로컬 체험 모드에서는 결제 없이 궁합 PDF를 생성합니다. 상대 정보를 생략하면 솔로 PDF로 진행할 수 있습니다.';
+    if (startBtn) {
+      startBtn.setAttribute('data-local-trial', '1');
+      Array.prototype.forEach.call(startBtn.childNodes, function (node) {
+        if (node.nodeType === 3 && /코인/.test(node.nodeValue || '')) node.nodeValue = ' 결제 없이 궁합 PDF 생성하기 ';
+      });
+    }
+    if (coinTag) coinTag.textContent = '무료 체험';
+    if (soloBtn) {
+      soloBtn.setAttribute('data-local-trial', '1');
+      soloBtn.textContent = '결제 없이 솔로 PDF 생성하기';
+    }
+  }
+
   function _beginLoveSecretPaymentGate(mode, reportId) {
     if (_generating || _paymentGateInFlight) return false;
     _paymentGateInFlight = {
@@ -1996,6 +2066,7 @@
     _prepareLoveSecretUi('solo');
     var modal = _qs('loveSecretModal');
     if (!modal) return;
+    _applyLocalTrialUi();
     _ensureLoveSecretContextPanel();
     var hasData = _lsAdoptBirthProfile({ allowPrompt: true });
     if (!hasData) {
@@ -2183,6 +2254,7 @@
     _chapterStructured = _buildChapterBuffer(_getLoveSecretModeTotalChapters(_currentChapterMode));
     _chapterMeta = _buildChapterBuffer(_getLoveSecretModeTotalChapters(_currentChapterMode));
     _showScreen('lsPartnerScreen');
+    _applyLocalTrialUi();
     _bindPartnerScreen();
   };
 
@@ -2254,6 +2326,13 @@
     }
 
     try {
+      if (_isLocalPremiumTrialMode()) {
+        var trialGate = _buildLoveSecretLocalTrialGate('compatibility', reportId);
+        _setLoveBookGenerationState('payment_confirmed');
+        _logLoveSecretFlow('PaymentGateBypassedLocalTrial', { mode: 'compatibility', reportId: reportId, purchaseId: trialGate.purchaseId });
+        _startWithPartnerData(trialGate);
+        return;
+      }
       _logLoveSecretFlow('PaymentGateStart', { mode: 'compatibility', reportId: reportId });
       var gateResult = await _runLoveSecretCoinGate('compatibility', reportId);
       if (!gateResult.ok) {
@@ -2290,6 +2369,13 @@
         paidAt: new Date().toISOString()
       };
       _startGeneration(null, { ok: true, accessGrant: _tokenAccessGrant, purchaseId: 'token:' + reportId, premiumAccessToken: '' }, reportId);
+      return;
+    }
+    if (_isLocalPremiumTrialMode()) {
+      var trialGate = _buildLoveSecretLocalTrialGate('solo', reportId);
+      _setLoveBookGenerationState('payment_confirmed');
+      _logLoveSecretFlow('PaymentGateBypassedLocalTrial', { mode: 'solo', reportId: reportId, purchaseId: trialGate.purchaseId });
+      _startGeneration(null, trialGate, reportId);
       return;
     }
     if (!_beginLoveSecretPaymentGate('solo', reportId)) return;

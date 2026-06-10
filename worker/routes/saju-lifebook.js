@@ -5187,11 +5187,11 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
       chapter: {
         ...localChapter,
         chapterPlan,
-        source: "local-template",
+        source: "local-complete",
       },
       summary: summarizeLifeBookChapter(localChapter),
       deterministicReinforced: true,
-      fallbackUsed: true,
+      fallbackUsed: false,
     };
     if (enhancementEnabled && shouldEnhanceLifeBookChapter(chapterSpec)) {
       const cacheKey = buildLifeBookChapterCacheKey(llmInput, chapterSpec);

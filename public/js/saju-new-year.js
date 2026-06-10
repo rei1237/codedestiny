@@ -453,6 +453,51 @@
     return 'saju-new-year-' + targetYear + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
   }
 
+  function _isLocalPremiumTrialMode() {
+    try {
+      if (window.__CD_LOCAL_PREMIUM_PDF_TRIAL__ === true) return true;
+      if (window.__CD_LOCAL_PREMIUM_PDF_TRIAL__ === false) return false;
+      var loc = window.location || {};
+      var host = String(loc.hostname || '').toLowerCase();
+      var search = String(loc.search || '');
+      if (/[?&](paidMode|realBilling)=1\b/.test(search)) return false;
+      if (/[?&](premiumTrial|localTrial|trialPremiumPdf)=1\b/.test(search)) return true;
+      return !host || host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]' || host.endsWith('.local');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function _buildLocalTrialAccessGrant(reportId) {
+    var normalizedReportId = _clean(reportId);
+    var requestId = 'local-trial:saju-new-year:' + Date.now().toString(36);
+    return {
+      ok: true,
+      featureKey: BILLING_FEATURE_KEY,
+      sessionId: 'saju-new-year:' + normalizedReportId,
+      reportSessionId: 'saju-new-year:' + normalizedReportId,
+      purchaseId: 'local-trial:' + normalizedReportId,
+      requestId: requestId,
+      reportId: normalizedReportId,
+      paidAt: new Date().toISOString(),
+      accessType: 'local_trial',
+      accessMethod: 'LOCAL_NO_PAYMENT',
+      paymentMode: 'local_trial',
+      chargedCoins: 0,
+      localTrial: true
+    };
+  }
+
+  function _applyLocalTrialUi() {
+    if (!_isLocalPremiumTrialMode()) return;
+    var notice = document.querySelector('#sajuNewYearModal .lb-coin-label');
+    var coin = document.querySelector('#sajuNewYearModal .lb-btn-coin');
+    var btn = _qs('nyGenerateBtn');
+    if (notice) notice.innerHTML = '<strong>로컬 체험 무료</strong> · 10챕터 신년 전략서 PDF';
+    if (coin) coin.textContent = '결제 없음';
+    if (btn) btn.setAttribute('data-local-trial', '1');
+  }
+
   function _normalizeAccessGrant(raw, reportId, fallbackRequestId) {
     var data = raw && typeof raw === 'object' ? raw : {};
     var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
@@ -729,6 +774,7 @@
     _log('ModalOpen');
     var modal = _qs('sajuNewYearModal');
     if (!modal) return;
+    _applyLocalTrialUi();
     var yearEl = _qs('nyTargetYear');
     if (yearEl && !yearEl.value) yearEl.value = String(_resolveDefaultTargetYear());
     var profile = _getActiveBirthProfile();
@@ -864,6 +910,13 @@
 
     if (_hasPremiumAccessForGeneration()) {
       runAfterBilling({ ok: true, featureKey: BILLING_FEATURE_KEY, sessionId: 'saju-new-year:' + reportId, reportSessionId: 'saju-new-year:' + reportId, purchaseId: 'token:' + reportId, requestId: 'token:' + reportId, reportId: reportId }, _readPremiumAccessToken());
+      return;
+    }
+
+    if (_isLocalPremiumTrialMode()) {
+      var localTrialAccess = _buildLocalTrialAccessGrant(reportId);
+      _log('PaymentGateBypassedLocalTrial', { featureKey: BILLING_FEATURE_KEY, reportId: reportId });
+      runAfterBilling(localTrialAccess, '');
       return;
     }
 
