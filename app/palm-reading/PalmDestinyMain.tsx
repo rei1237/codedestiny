@@ -15,7 +15,7 @@ import PalmLineOverlay, {
 } from "@/app/palm-reading/PalmLineOverlay";
 import palmUiState from "@/lib/palm/palm-ui-state";
 import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
-import { fetchBillingFeaturePricing, openPaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { openPaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 
 type HandSide = "left" | "right";
 type DominantHand = PalmDominantHand;
@@ -1741,12 +1741,6 @@ export default function PalmDestinyMain() {
     const initialPurpose = (analysisPurpose || "general") as AnalysisPurpose;
     const initialSubFeatureKey = PALM_BILLING_SUB_FEATURE_BY_PURPOSE[initialPurpose] || "general";
     const billingRequestId = `palm-reading:${initialSubFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-    openPaidFeatureGate({
-      categoryKey: "palm-reading",
-      subFeatureKey: initialSubFeatureKey,
-      requestId: billingRequestId,
-      message: "이용권 확인 중",
-    });
 
     cancelInFlightRequest();
     const controller = new AbortController();
@@ -1758,6 +1752,52 @@ export default function PalmDestinyMain() {
       setIsSubmitting(true);
       setAnalysisResult(null);
       setSubmitMessage("손바닥 이미지 품질을 확인하고 있습니다...");
+
+      openPaidFeatureGate({
+        categoryKey: "palm-reading",
+        subFeatureKey: initialSubFeatureKey,
+        requestId: billingRequestId,
+        message: "이용권 확인 중",
+      });
+
+      const coinGateResult = await runBillingCoinGate({
+        categoryKey: "palm-reading",
+        subFeatureKey: initialSubFeatureKey,
+        requestId: billingRequestId,
+        forceDeduct: true,
+      });
+
+      if (!coinGateResult.ok) {
+        const coinGateCode = String(coinGateResult.error?.code || "").toUpperCase();
+        if (coinGateCode === "AUTH_REQUIRED") {
+          setSubmitMessage("로그인이 필요합니다. 로그인 후 다시 손금 분석을 시도해 주세요.");
+          if (typeof window !== "undefined") {
+            const next = encodeURIComponent(window.location.pathname + window.location.search);
+            window.setTimeout(() => {
+              window.location.href = `/login?next=${next}`;
+            }, 600);
+          }
+          return;
+        }
+
+        if (coinGateCode === "INSUFFICIENT_COINS") {
+          const serverCost = Number(coinGateResult.data?.pricing?.cost || 0);
+          setSubmitMessage(`코인이 부족합니다. ${serverCost}코인이 필요합니다.`);
+          return;
+        }
+
+        if (coinGateCode === "PRICE_NOT_FOUND") {
+          setSubmitMessage("손금 분석 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요.");
+          return;
+        }
+
+        setSubmitMessage(coinGateResult.error?.message || "코인 결제에 실패했습니다.");
+        return;
+      }
+
+      const serverCost = Number(coinGateResult.data?.pricing?.cost || 0);
+      setSubmitMessage(`결제를 확인 중입니다... (${serverCost}코인)`);
+
       const [leftPalmImage, rightPalmImage, leftVision, rightVision] = await Promise.all([
         leftHand.file ? fileToDataUrl(leftHand.file) : Promise.resolve(null),
         rightHand.file ? fileToDataUrl(rightHand.file) : Promise.resolve(null),
@@ -1930,74 +1970,6 @@ export default function PalmDestinyMain() {
           message: "손바닥 전체가 화면에 들어오지 않았습니다.",
         });
         setSubmitMessage("손바닥 전체가 화면에 들어오지 않았습니다. 손목부터 손가락 끝까지 보이게 다시 촬영해 주세요.");
-        return;
-      }
-
-      const selectedPurpose = purposeForCanonical || "general";
-      const subFeatureKey = PALM_BILLING_SUB_FEATURE_BY_PURPOSE[selectedPurpose] || "general";
-      const pricingResult = await fetchBillingFeaturePricing({
-        categoryKey: "palm-reading",
-        subFeatureKey,
-      });
-
-      if (!pricingResult.ok || !pricingResult.data?.pricing) {
-        const pricingCode = String(pricingResult.error?.code || "").toUpperCase();
-        if (pricingCode === "PRICE_NOT_FOUND") {
-          updatePaidFeatureGate({
-            categoryKey: "palm-reading",
-            subFeatureKey,
-            requestId: billingRequestId,
-            status: "error",
-            message: "손금 분석 가격표를 찾을 수 없습니다.",
-          });
-          setSubmitMessage("손금 분석 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요.");
-          return;
-        }
-        updatePaidFeatureGate({
-          categoryKey: "palm-reading",
-          subFeatureKey,
-          requestId: billingRequestId,
-          status: "error",
-          message: pricingResult.error?.message || "결제 가격표 조회에 실패했습니다.",
-        });
-        setSubmitMessage(pricingResult.error?.message || "결제 가격표 조회에 실패했습니다.");
-        return;
-      }
-
-      const serverCost = Number(pricingResult.data.pricing.cost || 0);
-      setSubmitMessage(`결제를 확인 중입니다... (${serverCost}코인)`);
-
-      const coinGateResult = await runBillingCoinGate({
-        categoryKey: "palm-reading",
-        subFeatureKey,
-        requestId: billingRequestId,
-        forceDeduct: true,
-      });
-
-      if (!coinGateResult.ok) {
-        const coinGateCode = String(coinGateResult.error?.code || "").toUpperCase();
-        if (coinGateCode === "AUTH_REQUIRED") {
-          setSubmitMessage("로그인이 필요합니다. 로그인 후 다시 손금 분석을 시도해 주세요.");
-          if (typeof window !== "undefined") {
-            const next = encodeURIComponent(window.location.pathname + window.location.search);
-            window.setTimeout(() => {
-              window.location.href = `/login?next=${next}`;
-            }, 600);
-          }
-          return;
-        }
-
-        if (coinGateCode === "INSUFFICIENT_COINS") {
-          setSubmitMessage(`코인이 부족합니다. ${serverCost}코인이 필요합니다.`);
-          return;
-        }
-
-        if (coinGateCode === "PRICE_NOT_FOUND") {
-          setSubmitMessage("손금 분석 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요.");
-          return;
-        }
-
-        setSubmitMessage(coinGateResult.error?.message || "코인 결제에 실패했습니다.");
         return;
       }
 

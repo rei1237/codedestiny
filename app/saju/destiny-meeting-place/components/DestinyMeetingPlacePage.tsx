@@ -112,12 +112,6 @@ export default function DestinyMeetingPlacePage() {
     setMeta(null);
 
     const requestId = `destiny-meeting-place:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-    openPaidFeatureGate({
-      featureKey: FEATURE_KEY,
-      requestId,
-      cost: 100,
-      message: "이용권 확인 중",
-    });
 
     setIsCharging(true);
     try {
@@ -129,6 +123,13 @@ export default function DestinyMeetingPlacePage() {
         toast.error(message);
         return;
       }
+
+      openPaidFeatureGate({
+        featureKey: FEATURE_KEY,
+        requestId,
+        cost: 100,
+        message: "이용권 확인 중",
+      });
 
       const gate = await runBillingCoinGate({
         featureKey: FEATURE_KEY,
