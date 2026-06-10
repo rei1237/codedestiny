@@ -1005,6 +1005,7 @@ function readPendingSubscriptionPass() {
 function SubscriptionSection({
   subscription,
   onSubscribe,
+  onSubscribeWithMonthlyCredit,
   onCancelSubscription,
   monthlyCredits,
   isProcessing,
@@ -1015,6 +1016,7 @@ function SubscriptionSection({
 }: {
   subscription:  SubscriptionStatus;
   onSubscribe:   (plan: SubscriptionPlan) => void;
+  onSubscribeWithMonthlyCredit: (plan: SubscriptionPlan) => void;
   onCancelSubscription: (resume: boolean) => void;
   monthlyCredits: number;
   isProcessing:  boolean;
@@ -1284,6 +1286,7 @@ function SubscriptionSection({
           const lowerTierBlocked = !isFlowerAdminMode && activeTierRank > 0 && planTierRank < activeTierRank;
           const ctaDisabled = isProcessing || lowerTierBlocked;
           const monthlyCreditCost = getSubscriptionMonthlyCreditCost(plan);
+          const canUseMonthlyCredit = monthlyCreditCost > 0 && monthlyCredits >= monthlyCreditCost;
           const durationLabel = formatSubscriptionDurationLabel(plan.durationMonths);
           return (
             <div
@@ -1384,6 +1387,23 @@ function SubscriptionSection({
                     ? `${theme.icon} ${durationLabel} 이용권 구매하기`
                     : `${theme.icon} ${durationLabel} 이용권 구매하기`}
               </button>
+
+              {!lowerTierBlocked && (
+                <button
+                  type="button"
+                  onClick={() => onSubscribeWithMonthlyCredit(plan)}
+                  disabled={ctaDisabled || !canUseMonthlyCredit}
+                  className={[
+                    "mt-2 w-full rounded-lg border px-3 py-2 text-[12px] font-black transition-all",
+                    "hover:-translate-y-0.5 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50",
+                    canUseMonthlyCredit
+                      ? "border-[#cab8ff]/45 bg-white/[0.08] text-[#f3dd9a] hover:bg-white/[0.12]"
+                      : "border-white/10 bg-white/[0.04] text-slate-400",
+                  ].join(" ")}
+                >
+                  월정석 {monthlyCreditCost.toLocaleString("ko-KR")}개로 활성화
+                </button>
+              )}
 
               {monthlyCredits < monthlyCreditCost && !lowerTierBlocked && (
                 <p className="mt-1 text-[11px] font-semibold text-amber-200/80">
@@ -3148,6 +3168,7 @@ export default function PointsPage() {
         <SubscriptionSection
           subscription={subscription}
           onSubscribe={setPendingSubscriptionPaymentPlan}
+          onSubscribeWithMonthlyCredit={setPendingMonthlyCreditPlan}
           onCancelSubscription={handleSubscriptionCancel}
           monthlyCredits={currentMonthlyCredits}
           isProcessing={isProcessing}
