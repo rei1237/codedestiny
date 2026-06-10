@@ -183,7 +183,7 @@ export default function SiteFooterHub() {
             <div className={styles.sfhBusinessDivider}>
               <p className={styles.sfhRefundTitle}>디지털 운세 서비스 환불 안내</p>
               <p className={styles.sfhBusinessEmphasis}>
-                유료 리딩과 PDF는 상품별 원화 단건 결제로 제공되며, 전자상거래 관련 법령 및 약관에 따라 미사용 주문과 미제공 주문을 기준으로 환불을 안내합니다.
+                유료 리딩과 PDF는 상품별 코인 기준 단건 결제로 제공되며, 전자상거래 관련 법령 및 약관에 따라 미사용 주문과 미제공 주문을 기준으로 환불을 안내합니다.
               </p>
               <ul className={styles.sfhRefundList}>
                 {REFUND_POLICY_ROWS.map((rule) => (

@@ -360,24 +360,24 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
   if (status === "checkingEntitlement") return { message: text || "이용권 확인 중입니다.", mode: "pass" };
   if (status === "hasEntitlement") return { message: text || "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
   if (status === "opening" || status === "loadingProducts" || status === "readyToPay") {
-    if (kind === "subscription") return { message: text || "월정석 결제 정보를 확인하고 있습니다.", mode: "subscription" };
-    if (kind === "monthly") return { message: text || "보유 월정석을 확인하고 콘텐츠 이용 권한을 여는 중입니다.", mode: "monthly" };
-    if (kind === "single") return { message: text || "단건 결제창을 여는 중입니다. 주문 금액과 인증 정보를 안전하게 맞추고 있습니다.", mode: "card" };
+    if (kind === "subscription") return { message: text || "코인 기준 이용권 결제 정보를 확인하고 있습니다.", mode: "subscription" };
+    if (kind === "monthly") return { message: text || "이벤트 월정석 보너스를 확인하고 콘텐츠 이용 권한을 여는 중입니다.", mode: "monthly" };
+    if (kind === "single") return { message: text || "코인 기준 단건 결제창을 여는 중입니다. 주문 금액과 인증 정보를 안전하게 맞추고 있습니다.", mode: "card" };
     if (kind === "unlock") return { message: text || "잠금 해제 준비 중입니다.", mode: "unlock-saving" };
     return { message: text || "결제창을 열기 전 주문 정보를 확인하고 있습니다.", mode: "checkout" };
   }
   if (status === "paymentProcessing") {
     if (kind === "pass") return { message: text || "이용권을 적용하고 있습니다.", mode: "pass" };
-    if (kind === "subscription") return { message: text || "월정석 결제 승인과 활성화를 확인하고 있습니다.", mode: "subscription" };
-    if (kind === "monthly") return { message: text || "월정석 차감과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "monthly" };
-    if (kind === "single") return { message: text || "단건 결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "confirm" };
+    if (kind === "subscription") return { message: text || "코인 기준 이용권 결제 승인과 활성화를 확인하고 있습니다.", mode: "subscription" };
+    if (kind === "monthly") return { message: text || "이벤트 월정석 보너스 차감과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "monthly" };
+    if (kind === "single") return { message: text || "코인 기준 단건 결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "confirm" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제를 반영하고 있습니다.", mode: "unlock-saving" };
     return { message: text || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: "confirm" };
   }
   if (status === "paymentSuccess") {
-    if (kind === "subscription") return { message: text || "월정석 활성화가 완료되었습니다.", mode: "payment-complete" };
-    if (kind === "monthly") return { message: text || "월정석으로 콘텐츠 이용 권한을 열었습니다.", mode: "payment-complete" };
-    if (kind === "single") return { message: text || "단건 결제와 이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
+    if (kind === "subscription") return { message: text || "코인 기준 이용권 활성화가 완료되었습니다.", mode: "payment-complete" };
+    if (kind === "monthly") return { message: text || "이벤트 월정석 보너스로 콘텐츠 이용 권한을 열었습니다.", mode: "payment-complete" };
+    if (kind === "single") return { message: text || "코인 기준 단건 결제와 이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제가 완료되었습니다.", mode: "payment-complete" };
     return { message: text || "이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
   }

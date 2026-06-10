@@ -1260,7 +1260,7 @@ function handleGuestBalance() {
 async function handleChargeSimulate(request, env, auth) {
   return json({
     ok: false,
-    message: "선불형 잔액 상품은 더 이상 판매하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
+    message: "선불형 잔액 상품은 더 이상 판매하지 않습니다. 상품별 코인 기준 단건 결제를 이용해 주세요.",
     code: "POINT_CHARGE_DISABLED",
   }, { status: 410 });
 
@@ -1567,7 +1567,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     const krwEquivalent = cost * 100;
     return json({
       ok: false,
-      message: "월정석 잔량 또는 상품별 단건 결제가 필요합니다.",
+      message: "이벤트 월정석 보너스 또는 상품별 코인 기준 단건 결제가 필요합니다.",
       code: "PAYMENT_REQUIRED",
       featureKey,
       reason,
@@ -1702,7 +1702,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   return json({
     ok: false,
-    message: "월정석 달빛 또는 상품별 원화 단건 결제가 필요합니다.",
+    message: "이벤트 월정석 보너스 또는 상품별 코인 기준 단건 결제가 필요합니다.",
     code: "PAYMENT_REQUIRED",
     featureKey,
     reason,
@@ -3403,7 +3403,7 @@ async function handleShareReward(request, auth) {
 async function handleSubscribe(request, auth) {
   return json({
     ok: false,
-    message: "이전 코인 기반 월정석 신청 방식은 종료되었습니다. 30일 이용권 원화 단건 결제를 이용해 주세요.",
+    message: "이전 월정석 신청 방식은 종료되었습니다. 1~12개월 달빛 이용권은 코인 기준 단건 결제로 이용해 주세요.",
     code: "COIN_SUBSCRIPTION_DISABLED",
   }, { status: 410 });
 }

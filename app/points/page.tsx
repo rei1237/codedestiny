@@ -1328,7 +1328,7 @@ function SubscriptionSection({
               {/* 커피 한 잔 뱃지 — freeUpTo 50 이하 플랜(스탠다드)에만 */}
               {plan.freeUpTo !== null && plan.freeUpTo <= 50 && plan.tier === "standard" && plan.durationMonths === 1 && (
                 <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#f3dd9a]/18 px-2.5 py-1 text-[11px] font-bold text-[#f3dd9a]">
-                  ☕ 커피 2잔 값으로 30일
+                  ☕ 커피 2잔 값으로 1개월
                 </div>
               )}
 

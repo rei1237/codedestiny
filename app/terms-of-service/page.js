@@ -156,9 +156,9 @@ export default function TermsOfServicePage() {
       <section id="refund-policy" style={{ ...sectionStyle, marginBottom: "14px", scrollMarginTop: "116px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 환불 및 청약철회 안내 / Refund and Withdrawal Guide</h2>
         <p style={{ lineHeight: 1.75 }}>
-          유료 리딩, PDF, 멤버십 이용권은 결제 전 표시된 상품 조건에 따라 주문 단위 원화 결제로 제공됩니다.
-          멤버십은 자동 갱신되지 않는 30일 이용권입니다.
-          Paid readings, PDFs, and membership passes are one-time KRW purchases under the terms shown before payment.
+          유료 리딩, PDF, 멤버십 이용권은 결제 전 표시된 상품 조건에 따라 상품별 코인 기준 단건 결제로 제공됩니다.
+          멤버십은 자동 갱신되지 않는 1개월·3개월·6개월·12개월 기간형 이용권입니다.
+          Paid readings, PDFs, and membership passes are one-time purchases based on coin-denominated product terms shown before payment.
         </p>
         <p style={{ lineHeight: 1.75 }}>
           콘텐츠 제공, 결과 열람, 리딩 실행, PDF 또는 AI 해석 생성이 시작되지 않은 주문은 결제일로부터 7일 이내 청약철회를 접수할 수 있습니다.

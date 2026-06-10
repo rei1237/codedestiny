@@ -86,7 +86,7 @@ export async function runCardSubscriptionBillingTask(env) {
         customerUid,
         merchantUid,
         amount: plan.wonPrice,
-        name: `${plan.name} 30일 멤버십 이용권 처리`,
+        name: `${plan.name} 기간형 멤버십 이용권 처리`,
         buyerName: String(user?.name || "회원").trim(),
         buyerEmail: String(user?.email || "").trim(),
         customData: {

@@ -502,13 +502,13 @@ export default function PointHistoryPage() {
           ))}
         </section>
 
-        {/* 월정석 흐름 내역 */}
+        {/* 이벤트 월정석 보너스 흐름 내역 */}
         <section
-          aria-label="월정석 흐름 내역"
+          aria-label="이벤트 월정석 보너스 흐름 내역"
           className="rounded-[24px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] overflow-hidden shadow-[0_8px_28px_rgba(120,80,10,0.09)]"
         >
           <div className="p-5 pb-0">
-            <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">월정석 흐름 내역</h2>
+            <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">이벤트 월정석 보너스 흐름 내역</h2>
 
             {/* 탭 */}
             <div className="flex gap-2 mb-4">
@@ -662,14 +662,14 @@ export default function PointHistoryPage() {
         <section className="rounded-[20px] border border-[#EDDBA3]/60 bg-[rgba(255,248,228,0.55)] p-5">
           <h3 className="font-bold text-[#5C3A1E] mb-2">결제/멤버십 이용 안내</h3>
           <ul className="space-y-1.5 text-sm text-[#7A5230]">
-            <li>• 월정석 잔액과 사용 내역은 서버 원장 기준으로 표시됩니다.</li>
-            <li>• 유료 상품은 원화 단건 결제로 결제되며, 결제 완료 후 해당 상품 이용 또는 결과 생성이 진행됩니다.</li>
+            <li>• 이벤트 월정석 보너스 잔액과 사용 내역은 서버 원장 기준으로 표시됩니다.</li>
+            <li>• 유료 상품은 코인 기준 단건 결제로 결제되며, 결제 완료 후 해당 상품 이용 또는 결과 생성이 진행됩니다.</li>
             <li>• 시스템 오류, 중복 결제, 결과 미제공 건은 재생성 또는 환불 처리됩니다.</li>
             <li>• 환불 처리는 <strong>결제 수단(카드)으로만</strong> 가능합니다.</li>
             <li>• 콘텐츠 생성이 시작되기 전에는 취소/환불 요청이 가능합니다.</li>
             <li>• 콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</li>
-            <li>• 멤버십 30일 이용권은 자동결제 상품이 아니며, 기간 종료 후 무료 플랜으로 전환됩니다.</li>
-            <li>• 월정석 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.</li>
+            <li>• 달빛 이용권은 1~12개월 기간형 상품이며 자동결제 상품이 아니고, 기간 종료 후 무료 플랜으로 전환됩니다.</li>
+            <li>• 이벤트 월정석 보너스 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.</li>
             <li>• 민원담당자: 박병하 (050-6664-7398) · seongbae555@gmail.com</li>
           </ul>
         </section>

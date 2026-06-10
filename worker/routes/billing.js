@@ -1632,7 +1632,7 @@ function mapCoinGateFailure(responseStatus, payload) {
     return {
       status: 402,
       code: "PAYMENT_REQUIRED",
-      message: "상품별 원화 단건 결제가 필요합니다.",
+      message: "상품별 코인 기준 단건 결제가 필요합니다.",
       debugMessage: message,
     };
   }
@@ -2168,7 +2168,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       const passFailureCode = accessDecision.reason === "profile_limit_exceeded"
         ? "PROFILE_LIMIT_EXCEEDED"
         : (accessDecision.reason === "price_exceeds_pass_limit" ? "PRICE_EXCEEDS_PASS_LIMIT" : "MEMBERSHIP_PASS_NOT_COVERED");
-      return failure(402, passFailureCode, "현재 이용권 한도 밖 서비스입니다. 월정석 또는 단건 결제로 이용해 주세요.", undefined, {
+      return failure(402, passFailureCode, "현재 이용권 한도 밖 서비스입니다. 이벤트 월정석 보너스 또는 코인 기준 단건 결제로 이용해 주세요.", undefined, {
         pricing,
         ...paymentDecision,
         paymentOptions: paymentDecision,
@@ -2345,7 +2345,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         .lean();
       const monthlyCredits = Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0)));
       const requiredMonthlyCredits = calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0));
-      return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "월정석 잔량이 부족합니다.", undefined, {
+      return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "이벤트 월정석 보너스 잔량이 부족합니다.", undefined, {
         pricing,
         ...paymentDecision,
         paymentOptions: {
@@ -2427,7 +2427,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }
   }
 
-  if (!coinPaymentRequested) return failure(402, "PAYMENT_REQUIRED", "상품별 원화 단건 결제가 필요합니다.", undefined, {
+  if (!coinPaymentRequested) return failure(402, "PAYMENT_REQUIRED", "상품별 코인 기준 단건 결제가 필요합니다.", undefined, {
     pricing,
     ...paymentDecision,
     paymentOptions: paymentDecision,

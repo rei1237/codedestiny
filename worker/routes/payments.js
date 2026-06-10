@@ -2151,7 +2151,7 @@ async function settlePaymentByImpUid({
     return {
       ok: false,
       status: 410,
-      message: "선불형 잔액 결제는 더 이상 처리하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
+      message: "선불형 잔액 결제는 더 이상 처리하지 않습니다. 상품별 코인 기준 단건 결제를 이용해 주세요.",
     };
   }
 
@@ -3028,7 +3028,7 @@ async function handlePrepare(request, env, auth) {
   }
 
   return json({
-    message: "선불형 잔액 상품은 더 이상 판매하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
+    message: "선불형 잔액 상품은 더 이상 판매하지 않습니다. 상품별 코인 기준 단건 결제를 이용해 주세요.",
     code: "POINT_CHARGE_DISABLED",
   }, { status: 410 });
 
@@ -3389,7 +3389,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
   const currentMonthlyCredits = Math.max(0, Math.floor(Number(existingUser?.profileSubscription?.membershipCreditBalance || 0)));
   if (currentMonthlyCredits < requiredMonthlyCredits) {
     return json({
-      message: "월정석 잔량이 부족합니다.",
+      message: "이벤트 월정석 보너스 잔량이 부족합니다.",
       code: "INSUFFICIENT_MONTHLY_CREDITS",
       requiredMonthlyCredits,
       currentMonthlyCredits,
@@ -3566,7 +3566,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
       incrementAttempt: true,
     }).catch(() => {});
     return json({
-      message: "월정석 잔량이 부족합니다.",
+      message: "이벤트 월정석 보너스 잔량이 부족합니다.",
       code: "INSUFFICIENT_MONTHLY_CREDITS",
       requiredMonthlyCredits,
       currentMonthlyCredits,
@@ -3651,7 +3651,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
   });
 
   return json({
-    message: "월정석으로 달빛 이용권이 활성화되었습니다.",
+    message: "이벤트 월정석 보너스로 달빛 이용권이 활성화되었습니다.",
     idempotent: false,
     payment: formatPaymentResponse(await Payment.findById(paymentRecord._id).lean()),
     subscription: {

@@ -84,12 +84,12 @@ export default function PaymentLoading({
       description: "승인 신호와 콘텐츠 이용 권한을 함께 확인하고 있습니다.",
     },
     monthly: {
-      title: "월정석 결제를 반영하고 있습니다",
-      description: "보유 월정석 잔량을 확인하고 콘텐츠 이용 권한을 여는 중입니다.",
+      title: "이벤트 월정석 보너스를 반영하고 있습니다",
+      description: "이벤트 월정석 보너스 잔량을 확인하고 콘텐츠 이용 권한을 여는 중입니다.",
     },
     subscription: {
-      title: "월정석 결제를 확인하고 있습니다",
-      description: "월정석 결제 승인과 이용 권한을 차분하게 연결하고 있습니다.",
+      title: "코인 기준 이용권 결제를 확인하고 있습니다",
+      description: "코인 기준 이용권 결제 승인과 이용 권한을 차분하게 연결하고 있습니다.",
     },
     "unlock-saving": {
       title: "이용 권한을 저장하고 있습니다",

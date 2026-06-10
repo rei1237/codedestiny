@@ -2,7 +2,7 @@
 
 /**
  * BillingCardModal.tsx
- * 30일 멤버십 이용권 결제용 카드 입력 모달
+ * 기간형 멤버십 이용권 결제용 카드 입력 모달
  * 이미지 참조: 토스페이먼츠 카드 번호 입력 → 본인인증 → 결제 정보 확인
  */
 
@@ -384,7 +384,7 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
                 <div className="px-4 py-3 space-y-2">
                   <div className="flex justify-between text-[13px]">
                     <span className="text-gray-500">상품명</span>
-                    <span className="font-semibold text-gray-800">30일 멤버십 이용권</span>
+                    <span className="font-semibold text-gray-800">기간형 멤버십 이용권</span>
                   </div>
                   <div className="flex justify-between text-[13px]">
                     <span className="text-gray-500">결제대상</span>
@@ -417,7 +417,7 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
 
               <div className="rounded-[14px] bg-sky-50 border border-sky-200 px-4 py-3">
                 <p className="text-[11.5px] text-sky-700 leading-relaxed">
-                  이 결제는 30일 이용권 단건 결제이며 반복 결제가 설정되지 않습니다.
+                  이 결제는 선택한 기간의 달빛 이용권 단건 결제이며 반복 결제가 설정되지 않습니다.
                 </p>
               </div>
 
@@ -441,7 +441,7 @@ export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess
                 <p className="text-[13px] text-gray-500">{registeredCard.cardName} · {registeredCard.cardNumber}</p>
               </div>
               <div className="rounded-[14px] bg-emerald-50 border border-emerald-200 px-4 py-3">
-                <p className="text-[12px] text-emerald-700">이용권 결제 확인 후 30일 혜택이 활성화됩니다.</p>
+                <p className="text-[12px] text-emerald-700">이용권 결제 확인 후 선택 기간 혜택이 활성화됩니다.</p>
               </div>
               <button
                 type="button"

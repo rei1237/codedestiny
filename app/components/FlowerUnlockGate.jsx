@@ -97,7 +97,7 @@ export default function FlowerUnlockGate({
         <p style={{ margin: 0, lineHeight: 1.8, color: "#dbe5ff" }}>
           이 페이지는 로그인 사용자 중 해당 콘텐츠를 해금한 경우에만 열립니다.
           <br />
-          코인은 콘텐츠 가치 표시 단위이며, 결제 페이지에서 원화 단건 결제로 해금할 수 있습니다.
+          코인은 콘텐츠 가치 표시 단위이며, 결제 페이지에서 코인 기준 단건 결제로 해금할 수 있습니다.
         </p>
 
         <div
