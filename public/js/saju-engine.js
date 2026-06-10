@@ -8727,11 +8727,11 @@ function renderAstroInsight() {
     var astroActionHubHtml = ''
       + '<div class="astro-section astro-action-hub" id="astroActionHub" style="margin-bottom:12px;">'
       + '<div class="astro-subhead" style="margin-bottom:7px;color:#bae6fd;">🌌 Swiss 점성술 액션 허브</div>'
-      + '<p class="astro-action-hub__lead">정밀 차트가 준비되었습니다. 질문 프롬프트, 상대 직접 입력 궁합, 유명인 시나스트리를 바로 열 수 있습니다.</p>'
+      + '<p class="astro-action-hub__lead">정밀 차트가 준비되었습니다. 프롬프트와 궁합 영역은 아래에 모두 펼쳐져 있으며, 궁합 계산은 실행 시 50코인 결제 후 열립니다.</p>'
       + '<div class="astro-action-hub__grid">'
       + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroAiPromptSection" aria-controls="astroAiPromptSection"><strong>질문 프롬프트 생성</strong><span>차트 기반 상담 문장을 바로 작성합니다.</span></button>'
-      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="asDirect_name" aria-controls="asDirect_name"><strong>상대 직접 입력 궁합</strong><span>생년월일과 도시로 시나스트리를 계산합니다.</span></button>'
-      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroSynastrySection" aria-controls="astroSynastrySection"><strong>유명인 궁합 실험실</strong><span>셀럽 차트와 나의 별자리 합을 비교합니다.</span></button>'
+      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="asDirect_name" aria-controls="asDirect_name"><strong>상대 직접 입력 궁합 · 50코인</strong><span>입력 폼으로 이동해 결제 후 분석합니다.</span></button>'
+      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroSynastrySection" aria-controls="astroSynastrySection"><strong>유명인 궁합 실험실 · 50코인</strong><span>셀럽 선택 영역으로 이동해 결제 후 비교합니다.</span></button>'
       + '</div>'
       + '</div>';
 
@@ -8996,6 +8996,10 @@ function renderAstroInsight() {
       +'.astro-action-hub__btn strong{display:block;color:#fef3c7;font-size:13px;margin-bottom:5px;}'
       +'.astro-action-hub__btn span{display:block;color:#bfdbfe;font-size:12px;line-height:1.5;}'
       +'.astro-action-hub__btn:focus-visible{outline:2px solid #67e8f9;outline-offset:2px;}'
+      +'.astro-paid-note{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:0 0 12px 0;padding:8px 10px;border-radius:12px;border:1px solid rgba(251,191,36,.38);background:rgba(120,53,15,.24);}'
+      +'.astro-paid-note strong{color:#fde68a;font-size:12px;}'
+      +'.astro-paid-note span{color:#fef3c7;font-size:11px;line-height:1.45;}'
+      +'.astro-paid-note--pink{border-color:rgba(244,114,182,.38);background:rgba(131,24,67,.22);}'
       +'.astro-neon-panel{position:relative;z-index:1;margin-top:10px;padding:12px;border-radius:14px;border:1px solid rgba(148,163,184,.24);background:rgba(2,6,23,.54);backdrop-filter:blur(6px);}'
       +'.astro-neon-key{font-size:14px;line-height:1.62;color:#f8fafc;margin:0 0 7px 0;}'
       +'.astro-neon-key b{color:#67e8f9;}'
@@ -9116,7 +9120,7 @@ function renderAstroInsight() {
         + '</div></div>';
     }
 
-    var html = '<div class="astro-body astro-readable cosmic-theme star-container is-easy" id="astroBodyWrap">'
+    var html = '<div class="astro-body astro-readable cosmic-theme star-container is-detail" id="astroBodyWrap">'
       + astroNeonCss
       + precisionNoticeHtml
       + astroActionHubHtml
@@ -9129,7 +9133,7 @@ function renderAstroInsight() {
       +'<div class="astro-subhead" style="margin:0;color:#a5f3fc;">✨ 오늘의 핵심 흐름</div>'
       +'<div class="astro-neon-badge">태양·달·상승궁 가이드</div>'
       +'</div>'
-      +'<div class="astro-mode-row"><button type="button" class="astro-reading-mode-btn" id="astroReadingModeToggle" aria-pressed="false">자세히 보기 열기</button></div>'
+      +'<div class="astro-mode-row"><button type="button" class="astro-reading-mode-btn" id="astroReadingModeToggle" aria-pressed="true">핵심만 보기로 줄이기</button></div>'
       +'<div class="astro-neon-panel">'
       +'<p class="astro-neon-key"><b>오늘 먼저 볼 키워드:</b> '+astroKeywordLine+'</p>'
       +'<p class="astro-neon-key"><b>하늘이 비추는 흐름:</b> '+astroMoodLine+' '+relationAxisText+'</p>'
@@ -9269,6 +9273,7 @@ function renderAstroInsight() {
         /* ── ★ 직접 입력 시나스트리 궁합 ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-amber">'
         +'<div class="astro-subhead" style="color:#f59e0b;">💫 나의 시나스트리: 상대 직접 입력</div>'
+        +'<div class="astro-paid-note"><strong>유료 궁합 분석 · 50코인</strong><span>결제 확인 후 두 사람의 시나스트리 결과가 생성됩니다.</span></div>'
         +'<div class="astro-desc">'
         +'<p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">'
         +'상대 정보만 넣으면 두 사람의 케미 지도가 즉시 오픈됩니다. 시간 미상이면 12:00(정오)로도 OK, 대화 템포 힌트까지 뽑아드려요.'
@@ -9302,7 +9307,7 @@ function renderAstroInsight() {
         +'</select>'
         +'</div>'
         +'</div>'
-        +'<button onclick="window._astroDirectSynastry()" class="astro-neon-cta">✦ 시나스트리 분석하기</button>'
+        +'<button onclick="window._astroDirectSynastry()" class="astro-neon-cta">✦ 50코인으로 시나스트리 분석하기</button>'
         +'<div id="asDirectResult" style="margin-top:14px;"></div>'
         +'</div>'
         +'</div>'
@@ -9310,6 +9315,7 @@ function renderAstroInsight() {
         /* ── ★ 점성술 유명인 시나스트리 궁합 (신규) ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-indigo" id="astroSynastrySection">'
         +'<div class="astro-subhead" style="color:#818cf8;">🌌 유명인 시나스트리 (셀럽 궁합 실험실)</div>'
+        +'<div class="astro-paid-note astro-paid-note--pink"><strong>유명인 궁합 분석 · 50코인</strong><span>셀럽을 선택하면 결제 확인 후 궁합 리포트가 열립니다.</span></div>'
         +'<div class="astro-desc">'
 
         /* ── [✨ 천상의 지도: 당신의 성좌] ── */
@@ -9521,14 +9527,14 @@ function renderAstroInsight() {
         }
         if(modeBtn){
           modeBtn.setAttribute('aria-pressed', detailMode ? 'true' : 'false');
-          modeBtn.textContent = detailMode ? '자세히 보기 ON' : '쉬운 보기 ON';
+          modeBtn.textContent = detailMode ? '전체 리딩 ON' : '핵심 요약 ON';
         }
         if(readingModeBtn){
           readingModeBtn.setAttribute('aria-pressed', detailMode ? 'true' : 'false');
-          readingModeBtn.textContent = detailMode ? '쉬운 보기로 돌아가기' : '자세히 보기 열기';
+          readingModeBtn.textContent = detailMode ? '핵심만 보기로 줄이기' : '전체 리딩 다시 펼치기';
         }
       }
-      applyMode(false);
+      applyMode(true);
 
       if(modeBtn){
         modeBtn.addEventListener('click', function(){
@@ -10053,6 +10059,7 @@ function renderAstroInsight() {
                         +'onmouseenter="this.style.background=\'rgba(52,211,153,0.2)\'" onmouseleave="this.style.background=\'rgba(52,211,153,0.08)\'">'
                         + t.flag + ' ' + t.c.name
                         +'<span style="font-size:0.6rem;color:'+tagClr+';margin-left:4px;font-weight:700;">'+tag+'</span>'
+                        +'<span style="font-size:0.6rem;color:#fde68a;margin-left:6px;font-weight:800;">50코인</span>'
                         +'</div>';
                 }).join('');
             }
@@ -10083,7 +10090,7 @@ function renderAstroInsight() {
                 var flag = (typeof COUNTRY_CONFIG !== 'undefined' && COUNTRY_CONFIG[c.nationality]) ? COUNTRY_CONFIG[c.nationality].flag + ' ' : '';
                 var btn = document.createElement('button');
                 btn.type = 'button';
-                btn.textContent = flag + c.name;
+                btn.textContent = flag + c.name + ' · 50코인';
                 btn.style.cssText = 'padding:5px 11px;border-radius:999px;font-size:0.75rem;font-weight:700;letter-spacing:.01em;border:1px solid rgba(244,114,182,0.34);background:linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78));color:#fbcfe8;cursor:pointer;transition:all 0.2s;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
                 btn.onmouseenter = function() { this.style.background='rgba(244,114,182,0.18)'; };
                 btn.onmouseleave = function() { this.style.background='linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78))'; };
