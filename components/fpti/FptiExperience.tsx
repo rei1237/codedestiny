@@ -42,10 +42,12 @@ type ProfileGender = "M" | "F" | "OTHER";
 
 type DestinyProfile = {
   id?: string;
+  profileId?: string;
   name?: string;
   gender?: string;
   birthDate?: string;
   birthTime?: string;
+  birthIso?: string;
   birthYear?: number | string;
   birthMonth?: number | string;
   birthDay?: number | string;
@@ -70,6 +72,9 @@ type DestinyProfile = {
     label?: string;
   };
 };
+
+const PROFILE_STORAGE_NS = "FORTUNE_APP_USER_PROFILES";
+const PROFILE_BRIDGE_KEYS = ["FORTUNE_APP_USER_PROFILE", "FORTUNE_APP_VEDIC_PAYLOAD", "OLYMPUS_ORACLE_PROFILE"];
 
 function safeParse<T>(raw: string | null): T | null {
   if (!raw) return null;
@@ -257,11 +262,78 @@ function normalizeTime(profile: DestinyProfile): { birthTime: string; timeUnknow
   return { birthTime: "12:00", timeUnknown: true };
 }
 
+function readStoredJson<T>(storage: Storage | undefined, key: string): T | null {
+  if (!storage) return null;
+  return safeParse<T>(storage.getItem(key));
+}
+
+function readProfileScope(): string {
+  if (typeof window === "undefined") return "guest";
+  const user = readStoredJson<Record<string, unknown>>(window.localStorage, "fortune_auth_user");
+  return String(user?.id || user?.userId || user?._id || user?.uid || "guest").trim().toLowerCase() || "guest";
+}
+
+function pickProfileFromPayload(payload: unknown, currentId = ""): DestinyProfile | null {
+  if (!payload || typeof payload !== "object") return null;
+  if (Array.isArray(payload)) {
+    const profiles = payload.filter((item): item is DestinyProfile => Boolean(item && typeof item === "object"));
+    const requested = currentId.trim();
+    if (requested) {
+      const matched = profiles.find((item) => String(item.id || item.profileId || "").trim() === requested);
+      if (matched && toFormInput(matched)) return matched;
+    }
+    return profiles.find((item) => Boolean(toFormInput(item))) || null;
+  }
+
+  const record = payload as Record<string, unknown>;
+  const nested = record.profile || record.currentProfile || record.destinyProfile || record.payload;
+  const nestedProfile = pickProfileFromPayload(nested, currentId);
+  if (nestedProfile) return nestedProfile;
+
+  const profile = payload as DestinyProfile;
+  return toFormInput(profile) ? profile : null;
+}
+
+function readStoredProfile(): DestinyProfile | null {
+  if (typeof window === "undefined") return null;
+  for (const key of PROFILE_BRIDGE_KEYS) {
+    const bridged = pickProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, key))
+      || pickProfileFromPayload(readStoredJson<unknown>(window.localStorage, key));
+    if (bridged) return bridged;
+  }
+
+  const scope = readProfileScope();
+  const currentKeys = [
+    `${PROFILE_STORAGE_NS}.current::${scope}`,
+    `${PROFILE_STORAGE_NS}.current`,
+  ];
+  const listKeys = [
+    `${PROFILE_STORAGE_NS}.list::${scope}`,
+    `${PROFILE_STORAGE_NS}.list`,
+  ];
+  const currentId = currentKeys
+    .map((key) => String(window.localStorage.getItem(key) || window.sessionStorage.getItem(key) || "").trim())
+    .find(Boolean) || "";
+
+  for (const key of listKeys) {
+    const profile = pickProfileFromPayload(readStoredJson<unknown>(window.localStorage, key), currentId)
+      || pickProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, key), currentId);
+    if (profile) return profile;
+  }
+  return null;
+}
+
 function readCurrentProfile(eventProfile?: unknown): DestinyProfile | null {
-  if (eventProfile && typeof eventProfile === "object") return eventProfile as DestinyProfile;
+  const eventResolved = pickProfileFromPayload(eventProfile);
+  if (eventResolved) return eventResolved;
   const getCurrent = (window as unknown as { __cdGetCurrentDestinyProfile?: () => DestinyProfile | null }).__cdGetCurrentDestinyProfile;
-  if (typeof getCurrent === "function") return getCurrent() || null;
-  return ((window as unknown as { __cdCurrentDestinyProfile?: DestinyProfile | null }).__cdCurrentDestinyProfile) || null;
+  if (typeof getCurrent === "function") {
+    const current = getCurrent();
+    if (current && toFormInput(current)) return current;
+  }
+  const globalProfile = ((window as unknown as { __cdCurrentDestinyProfile?: DestinyProfile | null }).__cdCurrentDestinyProfile) || null;
+  if (globalProfile && toFormInput(globalProfile)) return globalProfile;
+  return readStoredProfile();
 }
 
 function toFormInput(profile: DestinyProfile): FptiFormInput | null {
@@ -335,13 +407,23 @@ export default function FptiExperience() {
       const detail = (event as CustomEvent).detail;
       syncFormFromCurrentProfile(detail?.profile || detail);
     };
+    const onStorage = (event: StorageEvent) => {
+      if (!event.key) return;
+      if (PROFILE_BRIDGE_KEYS.includes(event.key) || event.key.startsWith(PROFILE_STORAGE_NS)) {
+        syncFormFromCurrentProfile();
+      }
+    };
     window.addEventListener("destinyProfileChanged", onProfileChanged);
+    document.addEventListener("destinyProfileChanged", onProfileChanged);
+    window.addEventListener("storage", onStorage);
     return () => {
       window.removeEventListener("destinyProfileChanged", onProfileChanged);
+      document.removeEventListener("destinyProfileChanged", onProfileChanged);
+      window.removeEventListener("storage", onStorage);
     };
   }, [syncFormFromCurrentProfile]);
 
-  const analyzeWith = useCallback(async (input: FptiFormInput, trigger: "manual" | "auto" = "manual") => {
+  const analyzeWith = useCallback(async (input: FptiFormInput, trigger: "manual" | "auto" | "profile" = "manual") => {
     const analysisInput = toAnalysisInput(input);
     if (!hasRequiredSajuFields(analysisInput)) {
       if (trigger === "manual") {
@@ -373,7 +455,7 @@ export default function FptiExperience() {
     try {
       const [analysis] = await Promise.all([
         Promise.resolve(analyzeFptiFromSajuSource(computed)),
-        sleep(trigger === "auto" ? 1300 : 2200),
+        sleep(trigger === "auto" ? 1300 : trigger === "profile" ? 700 : 2200),
       ]);
       setResult(analysis);
       setPhase("result");
@@ -414,7 +496,7 @@ export default function FptiExperience() {
       setPhase("input");
       return;
     }
-    await analyzeWith(profileForm, "manual");
+    await analyzeWith(profileForm, "profile");
   };
 
   const onAnalyze = async () => {

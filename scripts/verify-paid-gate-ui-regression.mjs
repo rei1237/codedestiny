@@ -91,7 +91,7 @@ assertContains(billingRouteSource, "consumeUsagePassIfAvailable", "pass consume 
 assertContains(billingRouteSource, 'accessMethod: "PASS"', "pass access method");
 assertContains(billingRouteSource, 'requestedPaymentMode === "monthly_credit"', "monthly mode stays separate");
 assertContains(indexSource, "paymentMode: 'DIRECT_KRW'", "direct mode stays separate");
-assertContains(indexSource, "paymentMode: perUseChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MONTHLY_CREDIT'", "membership and monthly choices stay explicit");
+assertContains(indexSource, "paymentMode: perUseChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "membership and Moonlight Stone choices stay explicit");
 assertContains(billingRouteSource, '"/api/payments/prepare"', "direct payment prepare path");
 assertContains(billingRouteSource, '"/api/payments/confirm"', "direct payment confirm path");
 assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable", '"/api/payments/prepare"', "pass checked before card prepare");

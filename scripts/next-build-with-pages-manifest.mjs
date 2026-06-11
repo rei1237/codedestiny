@@ -54,6 +54,41 @@ function collectPagesManifestEntries(dir = pagesDir, entries = {}) {
   return entries;
 }
 
+function collectAppPathsManifestEntries(dir = appDir, entries = {}) {
+  if (!existsSync(dir)) return entries;
+
+  let items = [];
+  try {
+    items = readdirSync(dir);
+  } catch (error) {
+    if (error?.code === "ENOENT") return entries;
+    throw error;
+  }
+
+  for (const item of items) {
+    const fullPath = join(dir, item);
+    let stat = null;
+    try {
+      stat = statSync(fullPath);
+    } catch (error) {
+      if (error?.code === "ENOENT") continue;
+      throw error;
+    }
+
+    if (stat.isDirectory()) {
+      collectAppPathsManifestEntries(fullPath, entries);
+      continue;
+    }
+
+    if (item !== "page.js" && item !== "route.js") continue;
+
+    const relativeFile = relative(appDir, fullPath).split(sep).join("/");
+    entries[`/${relativeFile.replace(/\.js$/, "")}`] = `app/${relativeFile}`;
+  }
+
+  return entries;
+}
+
 function ensureExport500Fallback() {
   if (!existsSync(join(pagesDir, "500.js"))) return;
   if (!existsSync(dirname(export500Path))) return;
@@ -66,9 +101,9 @@ function ensureExport500Fallback() {
   );
 }
 
-function ensurePagesManifest() {
+function ensurePagesManifest({ exportFallback = false } = {}) {
   if (readManifestKeys().length > 0) {
-    ensureExport500Fallback();
+    if (exportFallback) ensureExport500Fallback();
     return;
   }
 
@@ -80,7 +115,7 @@ function ensurePagesManifest() {
 
   try {
     writeJsonAtomic(manifestPath, entries);
-    ensureExport500Fallback();
+    if (exportFallback) ensureExport500Fallback();
   } catch (error) {
     if (error?.code === "ENOENT") return;
     throw error;
@@ -88,18 +123,21 @@ function ensurePagesManifest() {
 }
 
 function ensureAppPathsManifest() {
-  const notFoundOutputPath = join(appDir, "_not-found", "page.js");
-  if (!existsSync(notFoundOutputPath)) return;
-
   const current = readJsonObject(appManifestPath);
-  const merged = { ...current, "/_not-found/page": "app/_not-found/page.js" };
+  const entries = collectAppPathsManifestEntries();
+  const notFoundOutputPath = join(appDir, "_not-found", "page.js");
+  if (existsSync(notFoundOutputPath)) {
+    entries["/_not-found/page"] = "app/_not-found/page.js";
+  }
+  const merged = { ...current, ...entries };
+  if (Object.keys(merged).length === 0) return;
   if (JSON.stringify(current) === JSON.stringify(merged)) return;
 
   writeJsonAtomic(appManifestPath, merged);
 }
 
-function ensureBuildManifests() {
-  ensurePagesManifest();
+function ensureBuildManifests(options = {}) {
+  ensurePagesManifest(options);
   ensureAppPathsManifest();
 }
 
@@ -113,10 +151,13 @@ function seedEmptyPagesManifest() {
   writeJsonAtomic(manifestPath, {});
 }
 
-seedEmptyPagesManifest();
+function seedEmptyAppPathsManifest() {
+  if (existsSync(appManifestPath)) return;
+  writeJsonAtomic(appManifestPath, {});
+}
+
 ensureBuildDiagnostics();
 
-const timer = setInterval(ensureBuildManifests, 100);
 const child = spawn(process.execPath, [nextCli, "build"], {
   cwd: rootDir,
   stdio: "inherit",
@@ -124,13 +165,11 @@ const child = spawn(process.execPath, [nextCli, "build"], {
 });
 
 child.on("close", (code) => {
-  clearInterval(timer);
-  ensureBuildManifests();
+  if (code === 0) ensureBuildManifests({ exportFallback: true });
   process.exit(code ?? 1);
 });
 
 child.on("error", (error) => {
-  clearInterval(timer);
   console.error("[next-build-with-pages-manifest]", error);
   process.exit(1);
 });

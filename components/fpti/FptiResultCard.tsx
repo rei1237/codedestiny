@@ -117,6 +117,16 @@ function sanitizeUserText(value: unknown, fallbackText: string): string {
   return text;
 }
 
+function splitReportText(value: unknown, fallbackText: string): string[] {
+  const text = sanitizeUserText(value, fallbackText)
+    .replace(/\r\n/g, "\n")
+    .replace(/(^|\n)\s*[•]\s*/g, "\n")
+    .replace(/([.!?])\s+(?=[가-힣A-Za-z0-9])/g, "$1\n")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return text.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+}
+
 function isPlaceholderTitle(value: unknown): boolean {
   return PLACEHOLDER_TITLE_PATTERN.test(String(value || "").trim());
 }
@@ -332,6 +342,33 @@ function AxisChip({ label, value }: { label: string; value: string }) {
   );
 }
 
+function ReadableReportText({ text, fallback }: { text: unknown; fallback: string }) {
+  const lines = splitReportText(text, fallback);
+  return (
+    <div className="mt-3 space-y-2 text-[14px] leading-8 text-slate-100">
+      {lines.map((line, idx) => (
+        <p key={`${line}-${idx}`} className="rounded-xl border border-white/10 bg-white/[0.045] px-3 py-2">
+          {line}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+function ReportPillar({ label, value, tone }: { label: string; value: unknown; tone: "emerald" | "amber" | "sky" }) {
+  const toneClass = tone === "emerald"
+    ? "border-emerald-200/25 bg-emerald-500/10 text-emerald-100"
+    : tone === "amber"
+      ? "border-amber-200/25 bg-amber-500/10 text-amber-100"
+      : "border-sky-200/25 bg-sky-500/10 text-sky-100";
+  return (
+    <div className={`rounded-xl border p-3 ${toneClass}`}>
+      <p className="text-[11px] font-semibold">{label}</p>
+      <ReadableReportText text={value} fallback="핵심 행동 1개를 먼저 완료하고 주간 점검을 고정하세요." />
+    </div>
+  );
+}
+
 function CosmicRadar() {
   return (
     <svg viewBox="0 0 280 160" className="h-auto w-full" role="img" aria-label="cosmic radar">
@@ -501,14 +538,14 @@ export default function FptiResultCard({ result }: Props) {
   const [deepReport, setDeepReport] = useState<FptiDeepReport>(() => normalizeDeepReport(createInitialDeepReport(result), false));
   const unlockingRef = useRef(false);
 
-  const freeHighlights = useMemo(
+  const freeSummaryItems = useMemo(
     () => [
-      `핵심 성향: ${result.strengths[0] || result.oneLiner}`,
-      `연애 스타일: ${result.loveSummary}`,
-      `일/재능: ${result.careerMoneySummary}`,
-      `돈을 다루는 방식: ${result.careerTips[0] || "주간 지표를 먼저 정하고 실행"}`,
-      `주의 약점: ${result.weaknesses[0] || "과열 구간에서 판단 편향 주의"}`,
-      `오늘의 성장 조언: ${result.growthTips[0] || "하루 1개 핵심 행동을 완수하세요."}`,
+      { label: "핵심 성향", value: result.strengths[0] || result.oneLiner },
+      { label: "연애 스타일", value: result.loveSummary },
+      { label: "일과 재능", value: result.careerMoneySummary },
+      { label: "돈의 리듬", value: result.careerTips[0] || "주간 지표를 먼저 정하고 실행" },
+      { label: "주의 약점", value: result.weaknesses[0] || "과열 구간에서 판단 편향 주의" },
+      { label: "성장 조언", value: result.growthTips[0] || "하루 1개 핵심 행동을 완수하세요." },
     ],
     [result],
   );
@@ -724,51 +761,56 @@ export default function FptiResultCard({ result }: Props) {
             <div className="mt-2"><CosmicRadar /></div>
           </div>
           <ul className="mt-3 space-y-2 text-sm text-slate-200">
-            <li>- {result.oneLiner}</li>
-            <li>- {result.relationshipSummary}</li>
-            <li>- {result.careerMoneySummary}</li>
-            <li>- {result.strategySummary}</li>
+            {[result.oneLiner, result.relationshipSummary, result.careerMoneySummary, result.strategySummary].map((line) => (
+              <li key={line} className="rounded-xl border border-white/10 bg-white/[0.045] px-3 py-2 leading-7">
+                {line}
+              </li>
+            ))}
           </ul>
         </section>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
+        <section className="rounded-3xl border border-white/15 bg-[linear-gradient(145deg,rgba(255,255,255,0.08),rgba(14,165,233,0.08))] p-4 backdrop-blur-xl">
           <h4 className="text-sm font-semibold text-slate-100">무료 리포트 요약</h4>
-          <div className="mt-2 space-y-2 text-sm text-slate-200">
-            <p>유형: {result.typeName}</p>
-            <p>한 줄 정의: {result.oneLiner}</p>
-            {freeHighlights.map((line) => (
-              <p key={line}>{line}</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div className="rounded-2xl border border-[#f6d365]/30 bg-[#f6d365]/10 p-3 sm:col-span-2">
+              <p className="text-[11px] font-semibold text-amber-100">유형</p>
+              <p className="mt-1 text-base font-semibold text-slate-50">{result.typeName}</p>
+              <p className="mt-2 text-sm leading-7 text-slate-200">{result.oneLiner}</p>
+            </div>
+            {freeSummaryItems.map((item) => (
+              <div key={item.label} className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                <p className="text-[11px] font-semibold text-cyan-100">{item.label}</p>
+                <p className="mt-1 text-sm leading-7 text-slate-100">{item.value}</p>
+              </div>
             ))}
           </div>
         </section>
 
-        <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
+        <section className="rounded-3xl border border-white/15 bg-[linear-gradient(145deg,rgba(255,255,255,0.07),rgba(168,85,247,0.08))] p-4 backdrop-blur-xl">
           <h4 className="text-sm font-semibold text-slate-100">핵심 해석 요약</h4>
-          <div className="mt-2 space-y-2 text-sm text-slate-200">
-            <p>{result.elementSummary}</p>
-            <p>{result.behaviorSummary}</p>
-            <p>{result.relationshipSummary}</p>
-            <p>{result.strategySummary}</p>
-          </div>
+          <ReadableReportText
+            text={[result.elementSummary, result.behaviorSummary, result.relationshipSummary, result.strategySummary].join("\n")}
+            fallback="성향의 핵심 흐름을 관계, 일, 돈, 행동 전략으로 나누어 읽어야 합니다."
+          />
         </section>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
           <h4 className="text-sm font-semibold text-slate-100">핵심 성향 3가지</h4>
-          <ul className="mt-2 space-y-1 text-sm text-slate-200">
+          <ul className="mt-3 space-y-2 text-sm text-slate-200">
             {result.strengths.slice(0, 3).map((item) => (
-              <li key={item}>- {item}</li>
+              <li key={item} className="rounded-xl border border-emerald-200/20 bg-emerald-500/10 px-3 py-2 leading-7">{item}</li>
             ))}
           </ul>
         </section>
         <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
           <h4 className="text-sm font-semibold text-slate-100">주의 포인트</h4>
-          <ul className="mt-2 space-y-1 text-sm text-slate-200">
+          <ul className="mt-3 space-y-2 text-sm text-slate-200">
             {result.weaknesses.map((item) => (
-              <li key={item}>- {item}</li>
+              <li key={item} className="rounded-xl border border-amber-200/20 bg-amber-500/10 px-3 py-2 leading-7">{item}</li>
             ))}
           </ul>
         </section>
@@ -813,12 +855,14 @@ export default function FptiResultCard({ result }: Props) {
       </div>
 
       <section className={`${styles.cosmicNeonCard} rounded-3xl p-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))]`}>
-        <p className="text-xs tracking-[0.16em] text-cyan-200">FPTI DEEP REPORT</p>
-        <h4 className={`${styles.neonTextCyan} mt-1 text-lg font-semibold`}>{deepReport?.typeName || "리포트"} ({deepReport?.userTypeCode || ""})</h4>
-        <p className="mt-2 text-sm text-slate-200">{deepReport?.summary?.preview || ""}</p>
+        <div className="rounded-3xl border border-cyan-200/20 bg-[radial-gradient(circle_at_0%_0%,rgba(125,211,252,0.2),transparent_34%),linear-gradient(145deg,rgba(8,16,40,0.92),rgba(20,28,58,0.82))] p-4">
+          <p className="text-xs tracking-[0.16em] text-cyan-200">FPTI DEEP REPORT</p>
+          <h4 className={`${styles.neonTextCyan} mt-1 text-lg font-semibold`}>{deepReport?.typeName || "리포트"} ({deepReport?.userTypeCode || ""})</h4>
+          <ReadableReportText text={deepReport?.summary?.preview || ""} fallback="사주 십성 기반으로 성향, 관계, 일, 돈, 스트레스 패턴을 단계적으로 해석한 리포트입니다." />
+        </div>
 
-        <div className="mt-3 flex items-center justify-between rounded-xl border border-white/12 bg-black/20 px-3 py-2 text-xs text-slate-200">
-          <span>읽는 순서: 총론 → 내면 → 관계 → 일/재능 → 돈 → 스트레스 → 성장</span>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/12 bg-black/20 px-3 py-2 text-xs text-slate-200">
+          <span className="leading-6">읽는 순서: 총론 → 내면 → 관계 → 일/재능 → 돈 → 스트레스 → 성장</span>
           <span className="font-semibold text-cyan-100">현재 {activeChapter + 1}/{Array.isArray(deepReport?.chapters) ? deepReport.chapters.length : 7}장</span>
         </div>
 
@@ -857,14 +901,17 @@ export default function FptiResultCard({ result }: Props) {
             const open = idx === activeChapter;
             const lockedChapter = !accessState.isUnlocked && idx > 0;
             return (
-              <article key={`${chapter?.roman}-${chapter?.order}`} className={`rounded-2xl border border-white/15 bg-black/20 ${lockedChapter ? "opacity-90" : ""}`}>
+              <article key={`${chapter?.roman}-${chapter?.order}`} className={`overflow-hidden rounded-2xl border border-white/15 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(8,16,40,0.38))] ${lockedChapter ? "opacity-90" : ""}`}>
                 <button
                   type="button"
                   onClick={() => setActiveChapter(idx)}
                   className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
                 >
-                  <h5 className="text-sm font-semibold text-sky-100">{toRoman(Number(chapter?.order || idx + 1))}. {stripRomanPrefix(chapter?.title)}</h5>
-                  <span className="text-xs text-slate-300">{lockedChapter ? "잠금" : open ? "접기" : "열기"}</span>
+                  <div>
+                    <p className="text-[11px] font-semibold text-cyan-200">{toRoman(Number(chapter?.order || idx + 1))}. {CHAPTER_LENS_LABELS[idx] || "심층 해석"}</p>
+                    <h5 className="mt-1 text-sm font-semibold leading-6 text-sky-100">{stripRomanPrefix(chapter?.title)}</h5>
+                  </div>
+                  <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-slate-200">{lockedChapter ? "잠금" : open ? "접기" : "열기"}</span>
                 </button>
                 {open && (
                   <div className="border-t border-white/10 px-4 pb-4 pt-3">
@@ -885,20 +932,20 @@ export default function FptiResultCard({ result }: Props) {
                         const lens = resolveSectionLens(idx, sectionIdx, sectionMeta);
                         const triadLabels = resolveTriadLabels(idx, sectionMeta);
                         return (
-                        <article key={`${chapter.roman}-${section?.title}`} className="rounded-2xl border border-cyan-300/20 bg-cyan-500/5 p-3 transition hover:shadow-[0_0_20px_rgba(56,189,248,0.22)]">
+                        <article key={`${chapter.roman}-${section?.title}`} className="rounded-2xl border border-cyan-300/20 bg-[linear-gradient(145deg,rgba(14,165,233,0.12),rgba(15,23,42,0.46))] p-4 transition hover:shadow-[0_0_20px_rgba(56,189,248,0.22)]">
                           <div className="flex flex-wrap items-start justify-between gap-3">
-                            <h6 className="min-w-0 flex-1 text-sm font-semibold text-cyan-100">{section?.title || "제목 없음"}</h6>
+                            <h6 className="min-w-0 flex-1 text-base font-semibold leading-7 text-cyan-100">{section?.title || "제목 없음"}</h6>
                             <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
                               <span className="rounded-full border border-cyan-200/25 bg-cyan-500/10 px-2 py-0.5 text-[10px] text-cyan-100">{lens.chapter}</span>
                               <span className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-[10px] text-slate-200">{lens.section}</span>
                             </div>
                           </div>
-                          <p className="mt-2 whitespace-pre-wrap text-[14px] leading-8 text-slate-100">{sanitizeUserText((section as Record<string, unknown>)?.body || section?.interpretation, "이 섹션은 현재 성향 축과 십성 분포를 바탕으로 행동 패턴, 관계 반응, 현실 선택 전략을 균형 있게 해석한 안내입니다.")}</p>
+                          <ReadableReportText text={(section as Record<string, unknown>)?.body || section?.interpretation} fallback="이 섹션은 현재 성향 축과 십성 분포를 바탕으로 행동 패턴, 관계 반응, 현실 선택 전략을 균형 있게 해석한 안내입니다." />
                           {accessState.isUnlocked && (
                             <div className="mt-3 grid gap-2 md:grid-cols-3">
-                              <p className="rounded-lg border border-emerald-200/25 bg-emerald-500/10 p-2 text-xs text-emerald-100">{triadLabels.strength}: {section?.strength || "-"}</p>
-                              <p className="rounded-lg border border-amber-200/25 bg-amber-500/10 p-2 text-xs text-amber-100">{triadLabels.risk}: {section?.risk || "-"}</p>
-                              <p className="rounded-lg border border-sky-200/25 bg-sky-500/10 p-2 text-xs text-sky-100">{triadLabels.action}: {sanitizeUserText((section as Record<string, unknown>)?.advice || section?.action, "핵심 행동 1개를 먼저 완료하고 주간 점검을 고정하세요.")}</p>
+                              <ReportPillar label={triadLabels.strength} value={section?.strength || "-"} tone="emerald" />
+                              <ReportPillar label={triadLabels.risk} value={section?.risk || "-"} tone="amber" />
+                              <ReportPillar label={triadLabels.action} value={(section as Record<string, unknown>)?.advice || section?.action} tone="sky" />
                             </div>
                           )}
                         </article>
@@ -906,9 +953,10 @@ export default function FptiResultCard({ result }: Props) {
                       })}
                     </div>}
 
-                    <p className="mt-4 rounded-xl border border-amber-200/30 bg-amber-300/10 p-3 text-sm leading-7 text-amber-100">
-                      {sanitizeUserText(chapter?.chapterSummary, "이 챕터는 성향 축의 강점과 취약 구간을 현실 행동으로 연결하는 실행형 요약입니다.")}
-                    </p>
+                    <div className="mt-4 rounded-2xl border border-amber-200/30 bg-amber-300/10 p-3">
+                      <p className="text-[11px] font-semibold text-amber-100">챕터 요약</p>
+                      <ReadableReportText text={chapter?.chapterSummary} fallback="이 챕터는 성향 축의 강점과 취약 구간을 현실 행동으로 연결하는 실행형 요약입니다." />
+                    </div>
                   </div>
                 )}
               </article>

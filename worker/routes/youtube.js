@@ -1,21 +1,9 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
 
 const FALLBACK_PLAYLISTS = {
-  lofi: [
-    { videoId: "jfKfPfyJRdk", title: "Lofi Hip Hop Radio", channel: "Lofi Girl", thumb: "https://i.ytimg.com/vi/jfKfPfyJRdk/mqdefault.jpg", sourceTier: "backup" },
-    { videoId: "4xDzrJKXOOY", title: "Chillhop Radio", channel: "Chillhop Music", thumb: "https://i.ytimg.com/vi/4xDzrJKXOOY/mqdefault.jpg", sourceTier: "backup" },
-    { videoId: "5qap5aO4i9A", title: "LoFi Beats to Relax/Study", channel: "Lofi Girl", thumb: "https://i.ytimg.com/vi/5qap5aO4i9A/mqdefault.jpg", sourceTier: "backup" },
-  ],
-  theta: [
-    { videoId: "lE6RYpe9IT0", title: "Theta Binaural Beats Meditation", channel: "Greenred Productions", thumb: "https://i.ytimg.com/vi/lE6RYpe9IT0/mqdefault.jpg", sourceTier: "backup" },
-    { videoId: "EEObuDrwGW4", title: "Deep Theta Waves for Focus", channel: "Meditative Mind", thumb: "https://i.ytimg.com/vi/EEObuDrwGW4/mqdefault.jpg", sourceTier: "backup" },
-    { videoId: "ygEzI7nfRgE", title: "Theta Healing Meditation Music", channel: "Yellow Brick Cinema", thumb: "https://i.ytimg.com/vi/ygEzI7nfRgE/mqdefault.jpg", sourceTier: "backup" },
-  ],
-  ambient: [
-    { videoId: "IRzBQl_QDXM", title: "Space Ambient Meditation", channel: "Ambient Worlds", thumb: "https://i.ytimg.com/vi/IRzBQl_QDXM/mqdefault.jpg", sourceTier: "backup" },
-    { videoId: "n61ULEU7CO0", title: "Calm Ambient Focus Music", channel: "Soothing Relaxation", thumb: "https://i.ytimg.com/vi/n61ULEU7CO0/mqdefault.jpg", sourceTier: "backup" },
-    { videoId: "hHW1oY26kxQ", title: "Deep Ambient Relax Session", channel: "The Guild of Ambience", thumb: "https://i.ytimg.com/vi/hHW1oY26kxQ/mqdefault.jpg", sourceTier: "backup" },
-  ],
+  lofi: [],
+  theta: [],
+  ambient: [],
 };
 
 const MAX_VERIFIED_ITEMS = 6;
@@ -23,7 +11,7 @@ const MIN_DURATION_SECONDS = 180;
 const MAX_DURATION_SECONDS = 7200;
 const BLOCKED_KEYWORD_RE = /(private video|deleted video|unavailable|removed|blocked|24\/?7|live\s*radio|livestream|\blive\b|\bradio\b|\bshorts\b|#shorts|premiere|뉴스|실시간|라이브|라디오|쇼츠)/i;
 const MEDITATION_KEYWORD_RE = /(meditation|sleep|lofi|lo-fi|focus|study|relax|relaxing|ambient|theta|binaural|calm|instrumental|healing|명상|수면|집중|로파이|힐링|앰비언트|안정|휴식)/i;
-const LEGAL_NOTICE = "음악은 YouTube에서 제공되는 공개 영상 중 Creative Commons 또는 무료 사용 가능 조건을 우선으로 추천합니다. 실제 사용 조건은 각 영상과 채널의 안내를 확인해 주세요.";
+const LEGAL_NOTICE = "YouTube 공개 영상 중 Creative Commons 라이선스와 임베드 가능 상태가 확인된 명상 음악만 추천합니다.";
 
 function getFallbackItems(mode, excludeIds = new Set()) {
   return (FALLBACK_PLAYLISTS[mode] || FALLBACK_PLAYLISTS.lofi)
@@ -31,8 +19,8 @@ function getFallbackItems(mode, excludeIds = new Set()) {
     .map((item) => ({
       ...item,
       verified: false,
-      sourceTier: "backup",
-      licenseLabel: "백업 소스 · 채널 안내 확인",
+      sourceTier: "unverified",
+      licenseLabel: "검증된 트랙 없음",
     }));
 }
 
@@ -112,10 +100,10 @@ function isStableMeditationVideo(item, requireCreativeCommon) {
 
 function mapVerifiedYoutubeItems(data, options = {}) {
   const requireCreativeCommon = options.requireCreativeCommon === true;
-  const sourceTier = requireCreativeCommon ? "cc" : "backup";
+  const sourceTier = requireCreativeCommon ? "cc" : "candidate";
   const licenseLabel = requireCreativeCommon
-    ? "CC 우선 추천 · 재생 가능 확인됨"
-    : "백업 소스 · 채널 안내 확인";
+    ? "Creative Commons 확인 · 재생 가능"
+    : "무료 사용 후보 · 채널 안내 확인";
 
   return (Array.isArray(data?.items) ? data.items : [])
     .filter((item) => isStableMeditationVideo(item, requireCreativeCommon))
@@ -160,9 +148,9 @@ function mapYoutubeItems(data) {
 
 function buildQuery(mode) {
   const queryMap = {
-    lofi: "creative commons lofi meditation instrumental free to use license -live -radio -shorts",
-    theta: "creative commons theta binaural beats meditation sleep free to use license -live -radio -shorts",
-    ambient: "creative commons ambient meditation sleep focus music free to use license -live -radio -shorts",
+    lofi: "lofi meditation instrumental",
+    theta: "theta binaural beats meditation",
+    ambient: "ambient meditation sleep focus music",
   };
   return queryMap[mode] || queryMap.lofi;
 }
@@ -250,7 +238,7 @@ async function handleSearch(request, env) {
       licensePolicy: "creative-commons-priority",
       items: getFallbackItems(mode),
       message:
-        "YouTube API 키가 없어 크리에이티브 커먼즈 필터 검색을 수행하지 못했습니다. 임시 샘플 트랙을 제공하므로 사용 전 라이선스를 확인해 주세요.",
+        "YouTube API 키가 없어 Creative Commons 명상 음악을 검증할 수 없습니다.",
     });
   }
 
@@ -274,7 +262,7 @@ async function handleSearch(request, env) {
       licensePolicy: "creative-commons-priority",
       items: getFallbackItems(mode),
       message:
-        "크리에이티브 커먼즈 조건 결과가 없어 임시 샘플 트랙을 제공합니다. 사용 전 라이선스를 확인해 주세요.",
+        "Creative Commons 조건에 맞는 재생 가능 트랙을 찾지 못했습니다.",
     });
   }
 
@@ -299,11 +287,11 @@ async function handleStableSearch(request, env) {
     return json({
       ok: true,
       mode,
-      source: "fallback-backup",
-      licensePolicy: "backup-license-check-required",
+      source: "youtube-api-missing-key",
+      licensePolicy: "creative-commons-verified",
       items: getFallbackItems(mode, excludeIds),
       excludedFailedCount: excludeIds.size,
-      message: LEGAL_NOTICE,
+      message: "YouTube API 키가 없어 Creative Commons 명상 음악을 검증할 수 없습니다.",
     });
   }
 
@@ -321,28 +309,14 @@ async function handleStableSearch(request, env) {
     });
   }
 
-  // CC 결과가 부족할 때만 무료 사용 가능 조건 키워드 중심의 백업 후보를 제공한다.
-  const relaxed = await fetchVerifiedItems(mode, apiKey, true, language, excludeIds, false);
-  if (relaxed.items.length) {
-    return json({
-      ok: true,
-      mode,
-      source: "youtube-api-backup",
-      licensePolicy: "free-use-priority-needs-channel-check",
-      items: relaxed.items,
-      excludedFailedCount: excludeIds.size,
-      message: LEGAL_NOTICE,
-    });
-  }
-
   return json({
     ok: true,
     mode,
-    source: "fallback-backup",
-    licensePolicy: "backup-license-check-required",
+    source: "youtube-api-empty",
+    licensePolicy: "creative-commons-verified",
     items: getFallbackItems(mode, excludeIds),
     excludedFailedCount: excludeIds.size,
-    message: LEGAL_NOTICE,
+    message: "Creative Commons 라이선스와 재생 가능 상태가 함께 확인된 트랙을 찾지 못했습니다.",
   });
 }
 

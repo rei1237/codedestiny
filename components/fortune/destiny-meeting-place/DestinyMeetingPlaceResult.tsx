@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Copy, Heart, MapPin, Moon, Sparkles, Star, WandSparkles } from "lucide-react";
+import { Compass, Copy, Heart, Luggage, MapPin, MessageCircle, Moon, Palette, Route, ShieldAlert, Sparkles, Star, WandSparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { DestinyMeetingPlaceResult } from "./destinyMeetingPlaceTypes";
 
@@ -33,6 +33,39 @@ type SectionCardProps = {
   children: ReactNode;
 };
 
+type GlassChipProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+type ElementBadgeProps = {
+  element: string;
+  label?: string;
+};
+
+type DestinySummaryCardProps = {
+  oneLine: string;
+  chips: string[];
+  chargedCoins: number;
+  topPlace?: EnrichedPlace;
+};
+
+type TodayPlaceCardProps = {
+  place?: EnrichedPlace;
+  index: number;
+};
+
+type PromptItem = PromptPack["prompts"][number];
+
+type PromptAtelierGridProps = {
+  promptPack: PromptPack;
+  selectedPrompt: PromptItem | null;
+  copiedPromptId: string | null;
+  index: number;
+  onSelectPrompt: (id: string) => void;
+  onCopyPrompt: (id: string, text: string) => void;
+};
+
 const serifClass = "font-['Noto_Serif_KR','Cormorant_Garamond',serif]";
 const sansClass = "font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif]";
 
@@ -58,14 +91,50 @@ function elementLabel(element: string) {
 
 function elementToneClass(element: string) {
   const map: Record<string, string> = {
-    wood: "border-emerald-200/40 bg-emerald-300/15 text-emerald-100",
-    fire: "border-rose-200/45 bg-rose-300/15 text-rose-100",
-    earth: "border-amber-200/45 bg-[#D4B483]/22 text-[#f8e7ca]",
-    metal: "border-slate-200/45 bg-slate-300/20 text-slate-100",
-    water: "border-cyan-200/45 bg-cyan-300/15 text-cyan-100",
+    wood: "border-emerald-200/45 bg-emerald-300/15 text-emerald-50 shadow-[0_0_18px_rgba(110,231,183,0.12)]",
+    fire: "border-rose-200/45 bg-rose-300/15 text-rose-50 shadow-[0_0_18px_rgba(251,113,133,0.12)]",
+    earth: "border-amber-200/50 bg-[#D4B483]/20 text-[#fff1d6] shadow-[0_0_18px_rgba(248,223,166,0.14)]",
+    metal: "border-slate-100/45 bg-slate-200/15 text-slate-50 shadow-[0_0_18px_rgba(226,232,240,0.12)]",
+    water: "border-cyan-200/45 bg-cyan-300/15 text-cyan-50 shadow-[0_0_18px_rgba(103,232,249,0.12)]",
   };
   return map[element] || "border-white/30 bg-white/10 text-white";
 }
+
+function GlassChip({ children, className = "" }: GlassChipProps) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border border-white/[0.18] bg-white/10 px-3 py-1.5 text-[11px] font-bold leading-none text-[#f8f2ff] shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] backdrop-blur-md transition-all hover:border-[#f8dfa6]/45 hover:bg-white/15 ${className}`}>
+      {children}
+    </span>
+  );
+}
+
+function ElementBadge({ element, label }: ElementBadgeProps) {
+  return (
+    <GlassChip className={elementToneClass(element)}>
+      {label ? <span className="text-white/70">{label}</span> : null}
+      {elementLabel(element)}
+    </GlassChip>
+  );
+}
+
+function promptIcon(prompt: PromptItem, index: number) {
+  const text = `${prompt.category} ${prompt.title}`.toLowerCase();
+  if (text.includes("대화") || text.includes("말")) return <MessageCircle size={18} />;
+  if (text.includes("동선") || text.includes("루트")) return <Route size={18} />;
+  if (text.includes("여행") || text.includes("도시")) return <Luggage size={18} />;
+  if (text.includes("스타일") || text.includes("무드") || text.includes("색")) return <Palette size={18} />;
+  if (text.includes("주의") || text.includes("피해야")) return <ShieldAlert size={18} />;
+  return index % 2 === 0 ? <Compass size={18} /> : <MapPin size={18} />;
+}
+
+const promptAccentClasses = [
+  "from-[#f8dfa6]/20 via-[#a78bfa]/10 to-white/[0.04]",
+  "from-[#93c5fd]/20 via-[#c4b5fd]/10 to-white/[0.04]",
+  "from-[#f0abfc]/20 via-[#a78bfa]/10 to-white/[0.04]",
+  "from-[#c4b5fd]/20 via-[#93c5fd]/10 to-white/[0.04]",
+  "from-[#f8dfa6]/20 via-[#f0abfc]/10 to-white/[0.04]",
+  "from-white/15 via-[#a78bfa]/10 to-white/[0.04]",
+];
 
 function buildPromptPackText(promptPack: PromptPack) {
   return [
@@ -88,19 +157,220 @@ function SectionCard({ title, subtitle, icon, index, children }: SectionCardProp
       initial="hidden"
       animate="visible"
       transition={{ delay: index * 0.06 }}
-      className="overflow-hidden rounded-3xl border border-[#e8d7b6]/35 bg-[linear-gradient(145deg,rgba(19,22,44,0.75),rgba(26,16,38,0.72))] shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_18px_40px_rgba(5,7,24,0.52)]"
+      className="group relative isolate overflow-hidden rounded-[28px] border border-white/[0.16] bg-[radial-gradient(circle_at_12%_10%,rgba(248,223,166,0.12),transparent_34%),radial-gradient(circle_at_88%_0%,rgba(167,139,250,0.16),transparent_35%),linear-gradient(145deg,rgba(255,255,255,0.08),rgba(255,255,255,0.045))] shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_22px_52px_rgba(5,7,24,0.5)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-[#f8dfa6]/35"
     >
-      <div className="p-5 sm:p-6">
+      <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(255,255,255,0.42)_0.8px,transparent_0.8px)] [background-size:30px_30px]" />
+      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[#a78bfa]/20 blur-3xl" />
+      <div className="relative p-5 sm:p-6">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-[#f0d8b0]">{subtitle}</p>
-            <h3 className={`mt-1 text-2xl leading-tight text-[#fff4e0] ${serifClass}`}>{title}</h3>
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#f8dfa6]/80">{subtitle}</p>
+            <h3 className={`mt-1 text-2xl leading-tight text-[#fff7e8] drop-shadow-[0_0_16px_rgba(248,223,166,0.18)] ${serifClass}`}>{title}</h3>
           </div>
-          <div className="mt-1 rounded-full border border-[#f2dfbd]/40 bg-[#f1d9af]/15 p-2 text-[#f6deb2]">{icon}</div>
+          <div className="mt-1 rounded-full border border-[#f8dfa6]/35 bg-[#f8dfa6]/15 p-2.5 text-[#f8dfa6] shadow-[0_0_24px_rgba(248,223,166,0.12)]">{icon}</div>
         </div>
         {children}
       </div>
     </motion.section>
+  );
+}
+
+function DestinySummaryCard({ oneLine, chips, chargedCoins, topPlace }: DestinySummaryCardProps) {
+  return (
+    <motion.section
+      variants={fadeUpVariant}
+      initial="hidden"
+      animate="visible"
+      transition={{ delay: 0 }}
+      className="relative isolate overflow-hidden rounded-[28px] border border-white/[0.18] bg-[radial-gradient(circle_at_18%_12%,rgba(248,223,166,0.18),transparent_35%),radial-gradient(circle_at_84%_10%,rgba(240,171,252,0.14),transparent_34%),linear-gradient(150deg,rgba(255,255,255,0.1),rgba(255,255,255,0.055))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_24px_58px_rgba(6,8,28,0.54)] backdrop-blur-xl sm:p-6"
+    >
+      <div className="pointer-events-none absolute inset-0 opacity-55 [background-image:linear-gradient(115deg,transparent_0_48%,rgba(248,223,166,0.14)_48.5%,transparent_49%),radial-gradient(rgba(255,255,255,0.5)_0.8px,transparent_0.8px)] [background-size:180px_180px,34px_34px]" />
+      <div className="pointer-events-none absolute -left-16 top-1/2 h-44 w-44 rounded-full bg-[#c4b5fd]/15 blur-3xl" />
+      <div className="relative">
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#f8dfa6]/30 bg-[#f8dfa6]/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-[#f8dfa6]/85 shadow-[0_0_22px_rgba(248,223,166,0.12)]">
+              <Compass size={14} />
+              DESTINY SUMMARY
+            </div>
+            <h3 className={`mt-3 text-2xl leading-tight text-[#fff8ed] sm:text-3xl ${serifClass}`}>한 줄 요약</h3>
+          </div>
+          <div className="rounded-full border border-white/[0.16] bg-white/10 p-3 text-[#c4b5fd] shadow-[0_0_28px_rgba(196,181,253,0.18)]">
+            <Sparkles size={20} />
+          </div>
+        </div>
+        <p className={`max-w-4xl text-lg leading-8 text-[#fff5e8] sm:text-xl sm:leading-9 ${serifClass}`}>{oneLine}</p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {chips.map((chip) => (
+            <GlassChip key={chip} className="border-[#c4b5fd]/25 bg-[#c4b5fd]/15 text-[#f4efff]">
+              <Sparkles size={12} />
+              {chip}
+            </GlassChip>
+          ))}
+          <GlassChip className="border-[#f8dfa6]/35 bg-[#f8dfa6]/15 text-[#fff1cf]">분석 코인 {chargedCoins}</GlassChip>
+          {topPlace ? <GlassChip className="border-[#93c5fd]/35 bg-[#93c5fd]/15 text-[#e6f2ff]">다음 좌표 {topPlace.name}</GlassChip> : null}
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+function TodayPlaceCard({ place, index }: TodayPlaceCardProps) {
+  if (!place) return null;
+
+  return (
+    <motion.section
+      variants={fadeUpVariant}
+      initial="hidden"
+      animate="visible"
+      transition={{ delay: index * 0.06 }}
+      className="relative isolate overflow-hidden rounded-[32px] border border-[#f8dfa6]/35 bg-[radial-gradient(circle_at_18%_8%,rgba(248,223,166,0.22),transparent_34%),radial-gradient(circle_at_82%_0%,rgba(147,197,253,0.18),transparent_32%),linear-gradient(140deg,rgba(25,24,56,0.88),rgba(17,20,42,0.82)_48%,rgba(37,27,74,0.78))] shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_32px_80px_rgba(4,6,25,0.62)] backdrop-blur-xl"
+    >
+      <div className="pointer-events-none absolute inset-0 opacity-50 [background-image:radial-gradient(rgba(248,223,166,0.42)_0.8px,transparent_0.8px),linear-gradient(130deg,transparent_0_40%,rgba(196,181,253,0.13)_40.3%,transparent_41%)] [background-size:36px_36px,220px_220px]" />
+      <div className="pointer-events-none absolute -bottom-28 left-1/2 h-64 w-[34rem] -translate-x-1/2 rounded-full bg-[#7c3aed]/24 blur-3xl" />
+      <div className="relative grid gap-5 p-5 sm:p-6 lg:grid-cols-[1.12fr_0.88fr] lg:p-7">
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#f8dfa6]/35 bg-[#f8dfa6]/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-[#f8dfa6]">
+                <MapPin size={14} />
+                TODAY'S PLACE
+              </div>
+              <h3 className={`mt-3 text-3xl leading-tight text-[#fff8ed] sm:text-4xl ${serifClass}`}>{place.name}</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {place.destinyGrade ? <GlassChip className="border-[#f8dfa6]/45 bg-[#f8dfa6]/15 text-[#fff0cd]">{place.destinyGrade}</GlassChip> : null}
+              {place.categoryLabel ? <GlassChip className="border-[#f0abfc]/35 bg-[#f0abfc]/15 text-[#ffe9ff]">{place.categoryLabel}</GlassChip> : null}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <ElementBadge element={place.element} label="주기운" />
+            {place.secondaryElement ? <ElementBadge element={place.secondaryElement} label="보조기운" /> : null}
+            <GlassChip className="border-[#93c5fd]/35 bg-[#93c5fd]/15 text-[#e5f1ff]">궁합 {place.romancePotential}%</GlassChip>
+          </div>
+
+          <div className="space-y-3 text-[15px] leading-7 text-[#f0e8dc]">
+            {place.elementalProfile ? <p className="font-bold text-[#f8dfa6]">{place.elementalProfile}</p> : null}
+            {place.sceneDescription ? <p className={`text-lg leading-8 text-[#fff4e5] ${serifClass}`}>{place.sceneDescription}</p> : null}
+            <p>{place.reason}</p>
+            {place.baziInsight ? <p className="text-[#e7dcff]">{place.baziInsight}</p> : null}
+            {place.fitStrategy ? <p>{place.fitStrategy}</p> : null}
+          </div>
+
+          {place.purposeTags?.length ? (
+            <div className="flex flex-wrap gap-2">
+              {place.purposeTags.slice(0, 4).map((tag) => (
+                <GlassChip key={`${place.name}-${tag}`} className="border-white/[0.14] bg-white/10 text-[#eee8ff]">{tag}</GlassChip>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="rounded-[24px] border border-[#f8dfa6]/28 bg-[linear-gradient(135deg,rgba(248,223,166,0.14),rgba(255,255,255,0.055))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]">
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f8dfa6]">Moonlit Action</p>
+            <p className={`mt-2 text-base leading-7 text-[#fff5df] ${serifClass}`}>{place.ritual || place.actionTip}</p>
+            {place.ritual ? <p className="mt-2 text-sm leading-6 text-[#e9dfcf]">{place.actionTip}</p> : null}
+          </div>
+        </div>
+
+        <div className="relative min-h-[230px] overflow-hidden rounded-[28px] border border-white/[0.16] bg-[radial-gradient(ellipse_at_28%_26%,transparent_0_34%,rgba(248,223,166,0.24)_35%,transparent_37%),radial-gradient(ellipse_at_72%_66%,transparent_0_42%,rgba(196,181,253,0.2)_43%,transparent_45%),linear-gradient(160deg,rgba(255,255,255,0.1),rgba(255,255,255,0.04))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] lg:min-h-full">
+          <div className="absolute left-[18%] top-[24%] h-2.5 w-2.5 rounded-full bg-[#f8dfa6] shadow-[0_0_18px_rgba(248,223,166,0.8)]" />
+          <div className="absolute left-[44%] top-[38%] h-2 w-2 rounded-full bg-[#c4b5fd] shadow-[0_0_16px_rgba(196,181,253,0.7)]" />
+          <div className="absolute right-[22%] top-[22%] h-2 w-2 rounded-full bg-[#93c5fd] shadow-[0_0_16px_rgba(147,197,253,0.7)]" />
+          <div className="absolute left-[21%] top-[27%] h-px w-[31%] rotate-[20deg] bg-gradient-to-r from-[#f8dfa6]/50 to-[#c4b5fd]/35" />
+          <div className="absolute right-[24%] top-[30%] h-px w-[30%] -rotate-[18deg] bg-gradient-to-r from-[#c4b5fd]/35 to-[#93c5fd]/45" />
+          <div className="absolute bottom-0 left-0 h-28 w-full bg-[linear-gradient(180deg,rgba(36,48,86,0.26),rgba(8,10,30,0.82))]" style={{ clipPath: "polygon(0 78%, 13% 58%, 25% 68%, 39% 34%, 54% 71%, 68% 48%, 83% 64%, 100% 30%, 100% 100%, 0 100%)" }} />
+          <div className="relative flex h-full min-h-[190px] flex-col justify-between">
+            <div className="ml-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#f8dfa6]/35 bg-[#f8dfa6]/10 text-[#f8dfa6] shadow-[0_0_36px_rgba(248,223,166,0.2)]">
+              <Compass size={28} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#f8dfa6]/85">DESTINY MAP</p>
+              <p className={`mt-2 text-2xl leading-tight text-[#fff8ed] ${serifClass}`}>달빛이 머무는 좌표</p>
+              {place.bestTimeHint ? <p className="mt-3 text-sm leading-6 text-[#e9e1f8]">{place.bestTimeHint}</p> : null}
+              {place.avoidWhen ? <p className="mt-2 text-xs leading-5 text-[#ffdbe4]">피해야 할 흐름: {place.avoidWhen}</p> : null}
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+function PromptAtelierGrid({ promptPack, selectedPrompt, copiedPromptId, index, onSelectPrompt, onCopyPrompt }: PromptAtelierGridProps) {
+  return (
+    <SectionCard title="사주 프롬프트 북" subtitle="Prompt Atelier" icon={<WandSparkles size={18} />} index={index}>
+      <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="space-y-4">
+          <p className={`text-lg leading-8 text-[#fff0d6] ${serifClass}`}>{promptPack.intro}</p>
+          <div className="grid gap-3 sm:grid-cols-2" role="tablist" aria-label="사주 프롬프트 선택">
+            {promptPack.prompts.map((prompt, promptIndex) => {
+              const isActive = selectedPrompt?.id === prompt.id;
+              const accent = promptAccentClasses[promptIndex % promptAccentClasses.length];
+              return (
+                <button
+                  key={prompt.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => onSelectPrompt(prompt.id)}
+                  className={`group relative min-h-[132px] overflow-hidden rounded-[22px] border p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] transition-all duration-300 hover:-translate-y-0.5 ${isActive ? "border-[#f8dfa6]/55 bg-white/[0.12] text-[#fff8ed] shadow-[0_0_28px_rgba(248,223,166,0.16)]" : "border-white/[0.14] bg-white/[0.07] text-[#e8dece] hover:border-[#f8dfa6]/35 hover:bg-white/10"}`}
+                >
+                  <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${accent}`} />
+                  <div className="relative">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/[0.16] bg-white/10 text-[#f8dfa6] transition-transform duration-300 group-hover:scale-105">
+                        {promptIcon(prompt, promptIndex)}
+                      </span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#f8dfa6]/80">{prompt.category}</span>
+                    </div>
+                    <span className={`mt-4 block text-base leading-snug text-[#fff6e8] ${serifClass}`}>{prompt.title}</span>
+                    <span className="mt-2 block line-clamp-2 text-xs leading-5 text-[#ded4c8]">{prompt.intent}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            onClick={() => onCopyPrompt("all-prompts", buildPromptPackText(promptPack))}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[#f8dfa6]/40 bg-[#f8dfa6]/15 px-4 py-2 text-sm font-black text-[#fff1d7] shadow-[0_12px_28px_rgba(8,8,28,0.28)] transition-all hover:-translate-y-0.5 hover:bg-[#f8dfa6]/20"
+          >
+            <Copy size={15} />
+            {copiedPromptId === "all-prompts" ? "전체 세트 복사 완료" : "전체 프롬프트 세트 복사"}
+          </button>
+        </div>
+
+        {selectedPrompt ? (
+          <article className="relative overflow-hidden rounded-[28px] border border-[#f8dfa6]/30 bg-[radial-gradient(circle_at_84%_8%,rgba(248,223,166,0.16),transparent_30%),linear-gradient(150deg,rgba(32,24,55,0.74),rgba(18,24,46,0.68))] p-4 text-[#f3eadf] shadow-[inset_0_1px_0_rgba(255,255,255,0.14)] sm:p-5">
+            <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(rgba(255,255,255,0.52)_0.8px,transparent_0.8px)] [background-size:28px_28px]" />
+            <div className="relative">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#f8dfa6]">{selectedPrompt.category}</p>
+                  <h4 className={`mt-2 text-2xl leading-tight text-[#fff2de] ${serifClass}`}>{selectedPrompt.title}</h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onCopyPrompt(selectedPrompt.id, selectedPrompt.prompt)}
+                  className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/[0.18] bg-white/10 px-3 py-2 text-xs font-black text-[#fff4df] transition-all hover:bg-white/15"
+                >
+                  <Copy size={14} />
+                  {copiedPromptId === selectedPrompt.id ? "복사 완료" : "복사"}
+                </button>
+              </div>
+              <p className="mt-3 text-sm leading-7 text-[#dfd5c8]">{selectedPrompt.intent}</p>
+              {selectedPrompt.relatedPlace ? (
+                <GlassChip className="mt-3 border-[#93c5fd]/35 bg-[#93c5fd]/15 text-[#e4f1ff]">연결 장소: {selectedPrompt.relatedPlace}</GlassChip>
+              ) : null}
+              <div className="mt-4 max-h-[420px] overflow-auto rounded-[22px] border border-white/[0.14] bg-black/20 p-4 text-sm leading-7 text-[#f8efe4] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] whitespace-pre-wrap break-words">
+                {selectedPrompt.prompt}
+              </div>
+            </div>
+          </article>
+        ) : null}
+      </div>
+    </SectionCard>
   );
 }
 
@@ -111,6 +381,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
   const selectedPrompt = promptPack?.prompts.find((prompt) => prompt.id === selectedPromptId) || promptPack?.prompts[0] || null;
   const topPlace = result.recommendedPlaces[0] as EnrichedPlace | undefined;
+  const hasPromptPack = Boolean(promptPack?.prompts.length);
 
   async function copyPrompt(id: string, text: string) {
     if (!text) return;
@@ -124,106 +395,23 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
   }
 
   return (
-    <div className={`space-y-5 ${sansClass}`}>
-      <SectionCard title="한 줄 요약" subtitle="Destiny Summary" icon={<Sparkles size={18} />} index={0}>
-        <p className={`text-lg leading-relaxed text-[#f9efe1] sm:text-xl ${serifClass}`}>{result.summary.oneLine}</p>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs">
-          {majorKeywordChips.map((chip) => (
-            <span key={chip} className="rounded-full border border-[#f5e0be]/45 bg-[#f4dcb8]/14 px-3 py-1 text-[#f8ead2]">
-              {chip}
-            </span>
-          ))}
-          <span className="rounded-full border border-[#d8dbe2]/45 bg-[#d9dee8]/15 px-3 py-1 text-[#f3f4f7]">분석 코인 {chargedCoins}</span>
-        </div>
-        {topPlace ? (
-          <article className="mt-5 rounded-3xl border border-[#f0d7ad]/40 bg-[linear-gradient(140deg,rgba(244,214,164,0.18),rgba(92,124,168,0.14))] p-4 sm:p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#e6c793]">Today's Place</p>
-                <h4 className={`mt-1 text-3xl leading-tight text-[#fff4df] ${serifClass}`}>{topPlace.name}</h4>
-              </div>
-              <div className="flex flex-wrap gap-2 text-xs">
-                {topPlace.destinyGrade ? (
-                  <span className="rounded-full border border-[#ffe0a6]/55 bg-[#f2d6a6]/18 px-3 py-1 text-[#fff1d2]">{topPlace.destinyGrade}</span>
-                ) : null}
-                <span className={`rounded-full border px-3 py-1 ${elementToneClass(topPlace.element)}`}>{elementLabel(topPlace.element)}</span>
-                {topPlace.secondaryElement ? (
-                  <span className={`rounded-full border px-3 py-1 ${elementToneClass(topPlace.secondaryElement)}`}>{elementLabel(topPlace.secondaryElement)}</span>
-                ) : null}
-              </div>
-            </div>
-            {topPlace.elementalProfile ? <p className="mt-3 text-sm font-bold text-[#f4dfbb]">{topPlace.elementalProfile}</p> : null}
-            {topPlace.baziInsight ? <p className="mt-3 text-sm leading-relaxed text-[#f5eadb]">{topPlace.baziInsight}</p> : null}
-            {topPlace.ritual ? (
-              <p className={`mt-3 text-base leading-relaxed text-[#fff1d9] ${serifClass}`}>{topPlace.ritual}</p>
-            ) : null}
-          </article>
-        ) : null}
-      </SectionCard>
+    <div className={`relative isolate space-y-5 overflow-hidden py-1 ${sansClass}`}>
+      <div className="pointer-events-none absolute inset-x-[-12%] top-16 -z-10 h-96 rounded-full bg-[radial-gradient(circle_at_22%_42%,rgba(167,139,250,0.18),transparent_34%),radial-gradient(circle_at_72%_58%,rgba(147,197,253,0.14),transparent_32%),radial-gradient(circle_at_50%_92%,rgba(240,171,252,0.12),transparent_36%)] blur-2xl" />
+      <DestinySummaryCard oneLine={result.summary.oneLine} chips={majorKeywordChips} chargedCoins={chargedCoins} topPlace={topPlace} />
+      <TodayPlaceCard place={topPlace} index={1} />
 
-      {promptPack?.prompts.length ? (
-        <SectionCard title="사주 프롬프트 북" subtitle="Prompt Atelier" icon={<WandSparkles size={18} />} index={1}>
-          <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="space-y-3">
-              <p className={`text-lg leading-relaxed text-[#fff0d6] ${serifClass}`}>{promptPack.intro}</p>
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1" role="tablist" aria-label="사주 프롬프트 선택">
-                {promptPack.prompts.map((prompt) => {
-                  const isActive = selectedPrompt?.id === prompt.id;
-                  return (
-                    <button
-                      key={prompt.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={isActive}
-                      onClick={() => setSelectedPromptId(prompt.id)}
-                      className={`rounded-2xl border px-4 py-3 text-left transition-all ${isActive ? "border-[#ffe0a6]/70 bg-[#f4d6a4]/18 text-[#fff6e8] shadow-[0_0_22px_rgba(244,214,164,0.16)]" : "border-white/12 bg-white/5 text-[#dfd4c4] hover:border-[#f0d7ad]/45 hover:bg-white/8"}`}
-                    >
-                      <span className="block text-[11px] font-black uppercase tracking-[0.16em] text-[#e6c793]">{prompt.category}</span>
-                      <span className={`mt-1 block text-base leading-snug ${serifClass}`}>{prompt.title}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              <button
-                type="button"
-                onClick={() => copyPrompt("all-prompts", buildPromptPackText(promptPack))}
-                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[#f0d7ad]/45 bg-[#f0d7ad]/12 px-4 py-2 text-sm font-black text-[#fff1d7] transition-all hover:bg-[#f0d7ad]/18"
-              >
-                <Copy size={15} />
-                {copiedPromptId === "all-prompts" ? "전체 세트 복사 완료" : "전체 프롬프트 세트 복사"}
-              </button>
-            </div>
-
-            {selectedPrompt ? (
-              <article className="rounded-3xl border border-[#f1d7ad]/35 bg-[linear-gradient(150deg,rgba(32,24,45,0.7),rgba(18,24,46,0.62))] p-4 text-[#f3eadf] sm:p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#e6c793]">{selectedPrompt.category}</p>
-                    <h4 className={`mt-1 text-2xl leading-tight text-[#fff2de] ${serifClass}`}>{selectedPrompt.title}</h4>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => copyPrompt(selectedPrompt.id, selectedPrompt.prompt)}
-                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/18 bg-white/8 px-3 py-2 text-xs font-black text-[#fff4df] transition-all hover:bg-white/14"
-                  >
-                    <Copy size={14} />
-                    {copiedPromptId === selectedPrompt.id ? "복사 완료" : "복사"}
-                  </button>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-[#dfd5c8]">{selectedPrompt.intent}</p>
-                {selectedPrompt.relatedPlace ? (
-                  <p className="mt-2 text-xs font-bold text-[#f1d7ad]">연결 장소: {selectedPrompt.relatedPlace}</p>
-                ) : null}
-                <div className="mt-4 max-h-[420px] overflow-auto rounded-2xl border border-white/12 bg-black/18 p-4 text-sm leading-7 text-[#f8efe4] whitespace-pre-wrap break-words">
-                  {selectedPrompt.prompt}
-                </div>
-              </article>
-            ) : null}
-          </div>
-        </SectionCard>
+      {hasPromptPack && promptPack ? (
+        <PromptAtelierGrid
+          promptPack={promptPack}
+          selectedPrompt={selectedPrompt}
+          copiedPromptId={copiedPromptId}
+          index={2}
+          onSelectPrompt={setSelectedPromptId}
+          onCopyPrompt={copyPrompt}
+        />
       ) : null}
 
-      <SectionCard title="나의 기운" subtitle="Energy Signature" icon={<Heart size={18} />} index={2}>
+      <SectionCard title="나의 기운" subtitle="Energy Signature" icon={<Heart size={18} />} index={hasPromptPack ? 3 : 2}>
         <div className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
           <div className="space-y-2 text-[15px] leading-relaxed text-[#ece5d7]">
             <p className="text-sm text-[#f4dfbb]">일간</p>
@@ -249,7 +437,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
         </div>
       </SectionCard>
 
-      <SectionCard title="타이밍" subtitle="Timing Window" icon={<Moon size={18} />} index={3}>
+      <SectionCard title="타이밍" subtitle="Timing Window" icon={<Moon size={18} />} index={hasPromptPack ? 4 : 3}>
         <div className="grid gap-3 md:grid-cols-3">
           <article className="rounded-2xl border border-white/15 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">Season</p>
@@ -267,7 +455,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
         <p className="mt-4 text-sm leading-relaxed text-[#e5dccd]">{result.luckyTiming.explanation}</p>
       </SectionCard>
 
-      <SectionCard title="장소 TOP 5" subtitle="Where Destiny Opens" icon={<MapPin size={18} />} index={4}>
+      <SectionCard title="장소 TOP 5" subtitle="Where Destiny Opens" icon={<MapPin size={18} />} index={hasPromptPack ? 5 : 4}>
         <div className="grid gap-3 md:grid-cols-2">
           {result.recommendedPlaces.map((basePlace) => {
             const place = basePlace as EnrichedPlace;
@@ -288,18 +476,18 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
-                <span className="rounded-full border border-[#f0d7ad]/40 bg-[#f0d7ad]/12 px-2.5 py-1 text-[#f7e6c8]">궁합 {place.romancePotential}%</span>
+                <span className="rounded-full border border-[#f0d7ad]/40 bg-[#f0d7ad]/15 px-2.5 py-1 text-[#f7e6c8]">궁합 {place.romancePotential}%</span>
                 {place.elementalProfile ? (
-                  <span className="rounded-full border border-white/15 bg-white/6 px-2.5 py-1 text-[#e9dfd1]">{place.elementalProfile}</span>
+                  <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[#e9dfd1]">{place.elementalProfile}</span>
                 ) : null}
                 {place.purposeTags?.slice(0, 3).map((tag) => (
-                  <span key={`${place.name}-${tag}`} className="rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[#d9cebd]">{tag}</span>
+                  <span key={`${place.name}-${tag}`} className="rounded-full border border-white/[0.14] bg-white/5 px-2.5 py-1 text-[#d9cebd]">{tag}</span>
                 ))}
               </div>
               {place.sceneDescription ? <p className="mt-3 leading-relaxed text-[#f2e7d6]">{place.sceneDescription}</p> : null}
               <p className="mt-2 leading-relaxed text-[#e8dccb]">{place.reason}</p>
               {place.baziInsight ? (
-                <div className="mt-3 rounded-xl border border-[#f0d7ad]/25 bg-[#f0d7ad]/8 p-3">
+                <div className="mt-3 rounded-xl border border-[#f0d7ad]/25 bg-[#f0d7ad]/10 p-3">
                   <p className="text-[11px] uppercase tracking-[0.16em] text-[#e6c793]">Saju Match</p>
                   <p className="mt-1 leading-relaxed text-[#f2e7d6]">{place.baziInsight}</p>
                 </div>
@@ -314,20 +502,20 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
               ) : null}
               <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
                 {place.bestTimeHint ? (
-                  <div className="rounded-xl border border-white/12 bg-white/5 p-3">
+                  <div className="rounded-xl border border-white/[0.14] bg-white/5 p-3">
                     <p className="uppercase tracking-[0.14em] text-[#e6c793]">Time</p>
                     <p className="mt-1 text-[#f1e6d5]">{place.bestTimeHint}</p>
                   </div>
                 ) : null}
                 {place.avoidWhen ? (
-                  <div className="rounded-xl border border-rose-200/20 bg-rose-300/8 p-3">
+                  <div className="rounded-xl border border-rose-200/20 bg-rose-300/10 p-3">
                     <p className="uppercase tracking-[0.14em] text-rose-100">Avoid</p>
                     <p className="mt-1 text-[#f1dedc]">{place.avoidWhen}</p>
                   </div>
                 ) : null}
               </div>
               {place.ritual ? (
-                <p className={`mt-3 rounded-xl border border-white/12 bg-black/12 p-3 leading-relaxed text-[#fff1d8] ${serifClass}`}>{place.ritual}</p>
+                <p className={`mt-3 rounded-xl border border-white/[0.14] bg-black/15 p-3 leading-relaxed text-[#fff1d8] ${serifClass}`}>{place.ritual}</p>
               ) : null}
               <p className="mt-3 text-[#e4d5be]">{place.actionTip}</p>
             </article>
@@ -336,7 +524,7 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
         </div>
       </SectionCard>
 
-      <SectionCard title="액션 플랜" subtitle="This Week Ritual" icon={<Star size={18} />} index={5}>
+      <SectionCard title="액션 플랜" subtitle="This Week Ritual" icon={<Star size={18} />} index={hasPromptPack ? 6 : 5}>
         <div className="space-y-3 text-sm text-[#ece4d7]">
           <article className="rounded-2xl border border-white/15 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-[#e6c793]">오늘</p>

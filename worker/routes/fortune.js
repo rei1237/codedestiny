@@ -361,7 +361,7 @@ function buildAIPromptVerifiedConsumePayload({ auth, featureKey, reason, request
     ? (ctx.accessType || (evidence?.source === "admin_test" ? "admin_test" : "membership_pass"))
     : (ctx.accessType || (isDirect ? "single_purchase" : "membership_credit"));
   const accessMethod = ctx.accessMethod || (isPass ? "PASS" : (isDirect ? "CARD" : "MONTHLY"));
-  const paymentMode = ctx.paymentMode || (isPass ? "MEMBERSHIP_PASS" : (isDirect ? "DIRECT_KRW" : "MONTHLY_CREDIT"));
+  const paymentMode = ctx.paymentMode || (isPass ? "MEMBERSHIP_PASS" : (isDirect ? "DIRECT_KRW" : "MOONLIGHT_STONE"));
   const chargedCoins = isPass
     ? 0
     : Math.max(0, Math.floor(Number(
@@ -1567,7 +1567,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     const krwEquivalent = cost * 100;
     return json({
       ok: false,
-      message: "이벤트 월정석 보너스 또는 상품별 코인 기준 단건 결제가 필요합니다.",
+      message: "Moonlight Stone 보너스 또는 상품별 코인 기준 단건 결제가 필요합니다.",
       code: "PAYMENT_REQUIRED",
       featureKey,
       reason,
@@ -1702,7 +1702,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   return json({
     ok: false,
-    message: "이벤트 월정석 보너스 또는 상품별 코인 기준 단건 결제가 필요합니다.",
+    message: "Moonlight Stone 보너스 또는 상품별 코인 기준 단건 결제가 필요합니다.",
     code: "PAYMENT_REQUIRED",
     featureKey,
     reason,
@@ -3403,7 +3403,7 @@ async function handleShareReward(request, auth) {
 async function handleSubscribe(request, auth) {
   return json({
     ok: false,
-    message: "이전 월정석 신청 방식은 종료되었습니다. 1~12개월 달빛 이용권은 코인 기준 단건 결제로 이용해 주세요.",
+    message: "이전 달빛 이용권 신청 방식은 종료되었습니다. 1~12개월 달빛 이용권은 코인 기준 단건 결제로 이용해 주세요.",
     code: "COIN_SUBSCRIPTION_DISABLED",
   }, { status: 410 });
 }

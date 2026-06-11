@@ -363,7 +363,7 @@
         cost: cost,
         reason: reason,
         featureKey: featureKey,
-        paymentMode: "MONTHLY_CREDIT",
+        paymentMode: "MOONLIGHT_STONE",
         forceDeduct: true,
         requestId: requestId,
       }),

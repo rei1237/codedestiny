@@ -63,7 +63,7 @@ async function main() {
   const email = String(args.email || "").trim().toLowerCase();
   const rawAmount = Number(args.amount);
   const mode = String(args.mode || "add").trim().toLowerCase();
-  const reason = String(args.reason || args.note || "ADMID 월정석 지급");
+  const reason = String(args.reason || args.note || "ADMIN Moonlight Stone 지급");
   const requester = String(args.requester || process.env.ADMID_GRANT_REQUESTER || "admin-script");
 
   enforceGuards({ targetEmail: email, amount: rawAmount, mode });

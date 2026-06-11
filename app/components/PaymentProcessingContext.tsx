@@ -102,7 +102,7 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
   if (normalizedMode === "pass" || normalizedMode === "pass-checking" || normalizedMode === "membership") return "pass-checking";
   if (["checkout", "card", "prepare", "opening"].includes(normalizedMode)) return "checkout";
   if (["confirm", "verification", "payment-confirm"].includes(normalizedMode)) return "confirm";
-  if (["monthly", "monthly-credit", "moonstone"].includes(normalizedMode)) return "monthly";
+  if (["monthly", "monthly-credit", "monthly_credit", "membership-credit", "membership_credit", "moonstone", "moonlight-stone", "moonlight_stone", "moonlight stone"].includes(normalizedMode)) return "monthly";
   if (["subscription", "subscription-confirm", "subscription-prepare"].includes(normalizedMode)) return "subscription";
   if (["unlock-saving", "savingunlock", "saving-unlock"].includes(normalizedMode)) return "unlock-saving";
   if (normalizedMode === "refund") return "refund";
@@ -111,7 +111,7 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
   if (/이용권을 적용|이용권 확인|이용권 권한|membership_pass|pass_applied|달빛 결제 시스템/i.test(normalizedMessage)) return "pass-checking";
   if (/결제창|주문|checkout|prepare|연결|열고/i.test(normalizedMessage)) return "checkout";
   if (/결제 결과|결제 승인|카드 승인|서버 검증|검증|승인|confirm|복귀 신호/i.test(normalizedMessage)) return "confirm";
-  if (/월정석|moonstone|monthly/i.test(normalizedMessage)) return "monthly";
+  if (/moonlight[\s_-]*stone|moonstone|monthly_credit|membership_credit/i.test(normalizedMessage)) return "monthly";
   if (/이용권 결제|구독|subscription|플랜|활성화/i.test(normalizedMessage)) return "subscription";
   if (/권한 저장|저장|해금|잠금 해제|결과 화면/i.test(normalizedMessage)) return "unlock-saving";
   if (/환불|refund|복구/i.test(normalizedMessage)) return "refund";

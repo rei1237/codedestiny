@@ -170,7 +170,7 @@ export default function TermsOfServicePage() {
         </p>
         <p style={{ lineHeight: 1.75 }}>
           서비스 장애로 이용권 혜택을 정상적으로 제공받지 못한 경우 장애 내역 확인 후 이용 기간 연장,
-          코인/월정석 보상, 부분 환불 또는 전액 환불 중 적절한 방식으로 처리합니다.
+          코인/Moonlight Stone 보상, 부분 환불 또는 전액 환불 중 적절한 방식으로 처리합니다.
         </p>
         <p style={{ lineHeight: 1.75 }}>
           중복 결제 또는 결제 오류가 확인된 경우 확인 후 중복 결제분은 환불 처리합니다.

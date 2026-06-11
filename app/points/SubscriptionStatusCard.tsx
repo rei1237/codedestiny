@@ -199,7 +199,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
                 {meta.label} · {benefitLabel} / {durationLabel} · {wonValue.toLocaleString("ko-KR")}원 상당
               </p>
               <p className="mt-1 text-[11.5px] text-slate-200">
-                기본 결제 단위는 코인이며 월정석은 이벤트 보너스로만 지급됩니다.
+                기본 결제 단위는 코인이며 Moonlight Stone은 이벤트 보너스로만 지급됩니다.
               </p>
             </div>
 
@@ -249,7 +249,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
                 </div>
               )}
               <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
-                <p className="text-[10px] text-slate-300 font-bold">이벤트 월정석</p>
+                <p className="text-[10px] text-slate-300 font-bold">Moonlight Stone</p>
                 <p className="text-[14px] font-black text-white">{monthlyCreditBalance.toLocaleString("ko-KR")}개</p>
               </div>
             </div>
@@ -307,7 +307,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
               <div className="rounded-[14px] border border-white/12 bg-white/8 px-3.5 py-3">
                 <p className="text-[12.5px] text-slate-200">{meta.desc}</p>
                 <p className="mt-1 text-[11.5px] text-[#f3dd9a]">단건 결제 가능 · 콘텐츠 가치 단위 1코인 = 100원</p>
-                <p className="mt-1 text-[11.5px] font-bold text-[#cab8ff]">이벤트 월정석 {monthlyCreditBalance.toLocaleString("ko-KR")}개</p>
+                <p className="mt-1 text-[11.5px] font-bold text-[#cab8ff]">Moonlight Stone {monthlyCreditBalance.toLocaleString("ko-KR")}개</p>
               </div>
             )}
           </div>

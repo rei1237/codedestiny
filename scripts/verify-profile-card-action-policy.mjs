@@ -77,7 +77,7 @@ const cases = [
       ["profileRoute", "PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
       ["profileRoute", "\"profileSubscription.membershipCreditBalance\": -PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
       ["profileRoute", "\"profileSubscription.membershipCreditUsed\": PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
-      ["mePage", "월정석 500개"],
+      ["mePage", "Moonlight Stone 500개"],
     ],
   },
   {
@@ -107,7 +107,7 @@ const cases = [
       ["mePage", "rounded-t-2xl"],
       ["mePage", "min-h-[44px]"],
       ["mePage", "결제창을 여는 중입니다."],
-      ["mePage", "월정석을 차감하는 중입니다."],
+      ["mePage", "Moonlight Stone을 차감하는 중입니다."],
     ],
   },
 ];

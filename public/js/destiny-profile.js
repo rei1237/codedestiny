@@ -2499,7 +2499,7 @@
             if (choice === 'monthly') {
               window._cdCoinGatePerUseInFlight = true;
               window.__cdCoinGatePerUseLockAt = Date.now();
-              _dpSetPaymentPending(true, '이벤트 월정석 보너스 적용 중입니다.', 'monthly');
+              _dpSetPaymentPending(true, 'Moonlight Stone 보너스 적용 중입니다.', 'monthly');
               return _dpRunMonthlyCreditFromMainGate({
                 title: reason,
                 reason: reason,
@@ -2580,7 +2580,7 @@
           if (choice === 'monthly') {
             window._cdCoinGatePerUseInFlight = true;
             window.__cdCoinGatePerUseLockAt = Date.now();
-            _dpSetPaymentPending(true, '이벤트 월정석 보너스 적용 중입니다.', 'monthly');
+            _dpSetPaymentPending(true, 'Moonlight Stone 보너스 적용 중입니다.', 'monthly');
             return _dpRunMonthlyCreditFromMainGate({
               title: reason,
               reason: reason,
@@ -5885,7 +5885,7 @@
       window._cdCoinGatePerUseInFlight = true;
       window.__cdCoinGatePerUseLockAt = Date.now();
       var pendingLabel = String(reason || '').trim() || '유료 서비스';
-      _dpSetPaymentPending(true, pendingLabel + ' 이벤트 월정석 보너스 적용 중입니다.', 'monthly');
+      _dpSetPaymentPending(true, pendingLabel + ' Moonlight Stone 보너스 적용 중입니다.', 'monthly');
       return _dpWaitForPaymentOverlayPaint().then(function() {
         return _dpFetchJsonWithFallback('/api/billing/coin-gate', {
           method: 'POST',
@@ -5934,7 +5934,7 @@
         var rawData = (res && res.data && typeof res.data === 'object') ? res.data : {};
         var data = (rawData.data && typeof rawData.data === 'object') ? rawData.data : rawData;
         if (res.status === 402 || !res.ok || !data || data.ok === false) {
-          var failMessage = String((data && data.message) || rawData.message || '월정석이 부족합니다. 필요 월정석과 보유 월정석을 확인해 주세요.');
+          var failMessage = String((data && data.message) || rawData.message || 'Moonlight Stone이 부족합니다. 필요 Moonlight Stone과 보유 Moonlight Stone을 확인해 주세요.');
           window.alert(failMessage);
           if (typeof onCancel === 'function') onCancel();
           return;

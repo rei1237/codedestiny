@@ -486,7 +486,7 @@ function profileCardActionPaymentRequiredResponse(action, requestId, profileId =
     ok: false,
     success: false,
     code: "PAYMENT_REQUIRED",
-    message: `${reason}에는 50코인 가치가 필요합니다. 일반 이용권 혜택은 적용되지 않으며, 단건결제 또는 월정석으로만 진행할 수 있습니다.`,
+    message: `${reason}에는 50코인 가치가 필요합니다. 일반 이용권 혜택은 적용되지 않으며, 단건결제 또는 Moonlight Stone으로만 진행할 수 있습니다.`,
     policy,
     pricing: {
       featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,

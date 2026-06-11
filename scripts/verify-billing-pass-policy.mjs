@@ -291,7 +291,7 @@ assertContains(paymentsSource, 'paymentMethodHint === "monthly_credit"', "subscr
 assertContains(paymentsSource, 'type: "MONTHLY_CREDIT_SPEND"', "subscription pass monthly credit ledger");
 assertContains(pointsSource, "onSubscribeWithMonthlyCredit", "subscription pass monthly credit UI handler");
 assertContains(pointsSource, 'paymentMethod: "monthly_credit"', "subscription pass monthly credit request");
-assertContains(pointsSource, "월정석 {monthlyCreditCost.toLocaleString", "subscription pass monthly credit CTA");
+assertContains(pointsSource, "Moonlight Stone {monthlyCreditCost.toLocaleString", "subscription pass monthly credit CTA");
 assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "points page reads payments/me subscriptions");
 assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points page normalizes subscription payloads");
 assertContains(pointsSource, "mergeSubscriptionState", "points page merges server subscription state");

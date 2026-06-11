@@ -221,9 +221,9 @@ assert.equal(h.backfill({ userId: "u1", profileId: "profile-c", contentKey: SAJU
 assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-c", serviceKey: "saju", contentKey: SAJU_KEYS.DAEUN }), true, "backfill 후 unlocked");
 
 h.monthlyCreditConsume({ userId: "u1", profileId: "profile-d", contentKey: SAJU_KEYS.FULL, coinAmount: 50, monthlyAmountUsed: 500, transactionId: "monthly-full" });
-assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-d", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), false, "월정석 차감 직후 unlock 저장 실패 상태 재현");
-assert.equal(h.backfill({ userId: "u1", profileId: "profile-d", contentKey: SAJU_KEYS.FULL }), true, "월정석 차감 이력으로 unlock backfill");
-assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-d", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), true, "월정석 backfill 후 unlocked");
+assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-d", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), false, "Moonlight Stone 차감 직후 unlock 저장 실패 상태 재현");
+assert.equal(h.backfill({ userId: "u1", profileId: "profile-d", contentKey: SAJU_KEYS.FULL }), true, "Moonlight Stone 차감 이력으로 unlock backfill");
+assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-d", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), true, "Moonlight Stone backfill 후 unlocked");
 
 const alreadyUnlockedAccess = h.accessCheck({ userId: "u1", profileId: "profile-a", contentKey: SAJU_KEYS.DAEUN, priceCoin: 50 });
 assert.equal(alreadyUnlockedAccess.accessGranted, true, "phase10 already unlocked access granted");

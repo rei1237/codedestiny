@@ -727,7 +727,7 @@ export default function SignupPage() {
                     className="h-12 w-full rounded-xl border border-amber-100/30 bg-slate-950/55 px-4 text-sm font-semibold uppercase tracking-[0.08em] text-amber-50 outline-none transition placeholder:tracking-normal placeholder:text-amber-100/38 focus:border-amber-200/70 focus:ring-2 focus:ring-amber-200/25 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                   <p className="mt-2 text-[11px] leading-5 text-amber-50/78">
-                    보상은 프로필 저장 하단의 카카오 공유하기 이벤트 버튼으로 만든 링크를 통해 가입이 완료될 때만 지급됩니다. 친구 1명당 추천인에게 100 월정석, 하루 최대 500 월정석까지 적용됩니다.
+                    보상은 프로필 저장 하단의 카카오 공유하기 이벤트 버튼으로 만든 링크를 통해 가입이 완료될 때만 지급됩니다. 친구 1명당 추천인에게 100 Moonlight Stone, 하루 최대 500 Moonlight Stone까지 적용됩니다.
                   </p>
                 </div>
               </div>

@@ -459,9 +459,9 @@
     var isIOS = /iphone|ipad|ipod/.test(ua);
     var isSafari = /safari/.test(ua) && !/chrome|crios|android/.test(ua);
     if (isIOS || isSafari) {
-      return '공유 버튼을 누른 뒤 홈 화면에 추가를 선택하면 개인 다이어리처럼 열 수 있습니다.';
+      return '전용 설치 흐름은 별도 배포에서 제공합니다.';
     }
-    return '브라우저 주소창 또는 메뉴의 앱 설치/홈 화면에 추가를 선택하면 바로가기처럼 사용할 수 있습니다.';
+    return '전용 설치 흐름은 별도 배포에서 제공합니다.';
   }
 
   function updateDiaryPwaInstallUI() {
@@ -485,8 +485,8 @@
     if (actionWrap) actionWrap.style.display = unlocked ? 'flex' : 'none';
 
     if (!unlocked) {
-      if (status) status.textContent = '잠금 해제 후 개인 다이어리처럼 사용할 수 있어요.';
-      if (guide) guide.textContent = '운기·기일 다이어리를 잠금 해제하면 이 기능을 내 기기에 따로 설치해, 개인 일기장처럼 사용할 수 있습니다.';
+      if (status) status.textContent = '전용 설치 준비 중';
+      if (guide) guide.textContent = '전용 설치 흐름은 별도 배포에서 제공합니다.';
       return;
     }
     if (installed) {
@@ -496,7 +496,7 @@
     }
     if (prompt) {
       if (status) status.textContent = '설치 가능한 브라우저입니다.';
-      if (guide) guide.textContent = '운기·기일 다이어리를 잠금 해제하면 이 기능을 내 기기에 따로 설치해, 개인 일기장처럼 사용할 수 있습니다.';
+      if (guide) guide.textContent = '전용 설치 흐름은 별도 배포에서 제공합니다.';
     } else {
       if (status) status.textContent = '홈 화면에 추가 안내';
       if (guide) guide.textContent = getLsdHomeGuideText();
@@ -507,7 +507,7 @@
     // 설치 가능한 브라우저는 beforeinstallprompt를 실행하고, 지원하지 않는 환경은 홈 화면 추가 안내로 대체한다.
     // 기록 저장 위치는 그대로 로컬 저장소이며, 설치 버튼은 라우팅이나 서버 저장 정책을 변경하지 않는다.
     if (!isLuckSyncDiaryUnlocked()) {
-      showDiaryToast('잠금 해제 후 개인 다이어리처럼 사용할 수 있습니다.');
+      showDiaryToast('전용 설치 흐름은 별도 배포에서 제공합니다.');
       updateDiaryPwaInstallUI();
       return;
     }
@@ -3306,7 +3306,7 @@
       '<div class="lsd-hero-stat"><span>오늘 일진</span><b id="lsdHeaderIljin">—</b></div>',
       '<div class="lsd-hero-stat"><span>핵심 오행</span><b id="lsdHeaderElement">—</b></div>',
       '</div>',
-      '<div class="lsd-hero-line" style="margin-top:8px"><span id="lsdHeaderOneLine">오늘의 운기 문장을 준비하고 있습니다.</span><span id="lsdDeviceBadge" class="lsd-device-badge">내 기기에 저장되는 개인 다이어리</span></div>',
+      '<div class="lsd-hero-line" style="margin-top:8px"><span id="lsdHeaderOneLine">오늘의 운기 문장을 준비하고 있습니다.</span></div>',
       '</div>',
       '</div></header>',
       '<nav class="lsd-tabs" role="tablist" aria-label="운기 다이어리 탭">',
@@ -3317,19 +3317,6 @@
       '<button type="button" class="lsd-tab" role="tab" id="lsdTabHistory" data-tab="history" aria-selected="false" aria-controls="lsdPanelHistory" tabindex="-1">□ 기록장</button>',
       '</nav>',
       '<div class="lsd-scroll-area">',
-      '<div class="lsd-local-policy">',
-      '<p class="lsd-local-policy-title">로컬 저장 안내</p>',
-      '<p class="lsd-local-policy-copy">이 다이어리의 기록은 서버에 저장되지 않고, 사용자님의 기기 안에만 보관됩니다. 민감한 감정 기록도 외부로 전송되지 않으니 안심하고 사용하셔도 됩니다.<span class="lsd-local-policy-note">기기를 바꾸거나 브라우저 데이터를 삭제하면 기록이 사라질 수 있습니다.</span></p>',
-      '</div>',
-      '<div id="lsdPwaInstallCard" class="lsd-pwa-card is-locked">',
-      '<div class="lsd-pwa-head"><p class="lsd-pwa-title">개인 다이어리처럼 설치하기</p><span id="lsdPwaInstallStatus" class="lsd-pwa-status">잠금 해제 후 사용</span></div>',
-      '<p id="lsdPwaInstallGuide" class="lsd-pwa-copy">운기·기일 다이어리를 잠금 해제하면 이 기능을 내 기기에 따로 설치해, 개인 일기장처럼 사용할 수 있습니다.</p>',
-      '<p class="lsd-pwa-note">기록은 서버가 아닌 사용자님의 기기에만 저장됩니다.</p>',
-      '<div id="lsdPwaInstallActions" class="lsd-pwa-actions" style="display:none">',
-      '<button id="lsdPwaInstallBtn" type="button" class="lsd-pwa-install-btn" style="display:none">내 기기에 설치하기</button>',
-      '<button id="lsdPwaGuideBtn" type="button" class="lsd-pwa-guide-btn" style="display:none">홈 화면 추가 방법 보기</button>',
-      '</div>',
-      '</div>',
       '<section class="lsd-panel" id="lsdPanelDashboard" role="tabpanel" aria-labelledby="lsdTabDashboard" aria-hidden="false" style="display:block">',
       '<div class="lsd-panel-intro">오늘의 운기가 조용히 펼쳐집니다. 일진, 일간, 오행, 십성, 점수를 한눈에 정리하세요.</div>',
       '<div class="lsd-mini-grid" aria-label="오늘 운기 미니 카드">',
