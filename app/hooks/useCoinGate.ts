@@ -4,7 +4,6 @@ import { useCallback, useRef, useState } from "react";
 import { getAuthState, refreshAuth } from "../_lib/auth-store";
 import {
   PAID_SERVICE_RUNTIME_SRC,
-  fetchBillingFeaturePricing,
   runBillingCoinGate,
 } from "../_lib/billing-client";
 import {
@@ -169,7 +168,7 @@ export function useCoinGate() {
 
     inFlightRef.current = true;
     setIsPaying(true);
-    startPayment("결제 상태를 확인하고 있습니다...");
+    startPayment("이용권을 확인하고 있어요.", "pass-checking");
 
     let requiredCoins = 0;
 
@@ -202,46 +201,23 @@ export function useCoinGate() {
         }
       }
 
-      const pricingResult = await fetchBillingFeaturePricing({
-        categoryKey: input.categoryKey,
-        subFeatureKey: input.subFeatureKey,
-        featureKey: input.featureKey,
-        reason: input.reason,
-      });
-
-      if (!pricingResult.ok || !pricingResult.data?.pricing) {
-        const code = toText(pricingResult.error?.code || "PRICE_NOT_FOUND") || "PRICE_NOT_FOUND";
-        const message = toText(pricingResult.error?.message || pricingResult.message || "가격 정보를 불러오지 못했습니다.") || "가격 정보를 불러오지 못했습니다.";
-        return {
-          ok: false,
-          code,
-          message,
-          requiredCoins: 0,
-          chargedCoins: 0,
-          balanceAfter: 0,
-          transactionId: "",
-          refunded: false,
-        };
-      }
-
-      requiredCoins = toNumber(pricingResult.data.pricing.cost, 0);
-
-      const amountKRW = toNumber(pricingResult.data.pricing.amountKRW || pricingResult.data.pricing.cashPrice, 0);
-      setPaymentMessage(amountKRW > 0
-        ? `단건 결제를 준비하고 있습니다... (${amountKRW.toLocaleString("ko-KR")}원)`
-        : `단건 결제를 준비하고 있습니다... (${requiredCoins}코인 가치)`);
+      setPaymentMessage("이용권과 기존 잠금 해제 내역을 확인하고 있어요.");
 
       const chargeResult = await runBillingCoinGate({
         categoryKey: input.categoryKey,
         subFeatureKey: input.subFeatureKey,
-        featureKey: input.featureKey || pricingResult.data.pricing.featureKey,
-        reason: input.reason || pricingResult.data.pricing.reason,
+        featureKey: input.featureKey,
+        reason: input.reason,
         payloadHash: input.payloadHash,
         forceDeduct: input.forceDeduct,
         requestId: input.requestId,
       });
 
       if (!chargeResult.ok || !chargeResult.data) {
+        const rawData = readNestedObject(chargeResult.raw, "data");
+        const dataPricing = readNestedObject(rawData, "pricing");
+        const rawPricing = Object.keys(dataPricing).length ? dataPricing : readNestedObject(chargeResult.raw, "pricing");
+        requiredCoins = toNumber(rawPricing.cost ?? rawPricing.coinPrice ?? chargeResult.raw.requiredCoins, requiredCoins);
         const code = normalizeCode(chargeResult.error?.code || "SERVER_ERROR") || "SERVER_ERROR";
         const message = toText(chargeResult.error?.message || chargeResult.message || "단건 결제가 필요합니다.") || "단건 결제가 필요합니다.";
 
@@ -283,11 +259,13 @@ export function useCoinGate() {
         };
       }
 
+      requiredCoins = toNumber(chargeResult.data.pricing?.cost ?? chargeResult.data.pricing?.coinPrice, requiredCoins);
+      const amountKRW = toNumber(chargeResult.data.pricing?.amountKRW || chargeResult.data.pricing?.cashPrice, 0);
       const consume = (chargeResult.data.consume || {}) as Record<string, unknown>;
       const transactionId = toText(consume.transactionId || consume._id || "");
       const chargedCoins = toNumber(consume.chargedCoins ?? consume.cost, requiredCoins);
       const balanceAfter = toNumber(chargeResult.data.balance, 0);
-      const resolvedFeatureKey = toText(consume.featureKey || input.featureKey || pricingResult.data.pricing.featureKey);
+      const resolvedFeatureKey = toText(consume.featureKey || input.featureKey || chargeResult.data.pricing?.featureKey);
       const chargeData = chargeResult.data as Record<string, unknown>;
       const chargeAccessGrant = readNestedObject(chargeData, "accessGrant");
       const chargeAccessMethod = normalizeCode(chargeData.accessMethod || consume.accessMethod || consume.paymentMethod || chargeAccessGrant.accessMethod);

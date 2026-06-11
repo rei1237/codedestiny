@@ -110,7 +110,7 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
   const normalizedMessage = String(message || "");
   if (/이용권을 적용|이용권 확인|이용권 권한|membership_pass|pass_applied|달빛 결제 시스템/i.test(normalizedMessage)) return "pass-checking";
   if (/결제창|주문|checkout|prepare|연결|열고/i.test(normalizedMessage)) return "checkout";
-  if (/검증|승인|confirm|복귀 신호|확인하고 있습니다/i.test(normalizedMessage)) return "confirm";
+  if (/결제 결과|결제 승인|카드 승인|서버 검증|검증|승인|confirm|복귀 신호/i.test(normalizedMessage)) return "confirm";
   if (/월정석|moonstone|monthly/i.test(normalizedMessage)) return "monthly";
   if (/이용권 결제|구독|subscription|플랜|활성화/i.test(normalizedMessage)) return "subscription";
   if (/권한 저장|저장|해금|잠금 해제|결과 화면/i.test(normalizedMessage)) return "unlock-saving";

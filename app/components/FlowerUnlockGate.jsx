@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { purchaseFeature } from "../_lib/billing-client";
 import { usePayment } from "../hooks/usePayment";
 
 export default function FlowerUnlockGate({
@@ -30,40 +31,28 @@ export default function FlowerUnlockGate({
 
     try {
       paymentOverlayActive = true;
-      startPayment("결제를 확인 중입니다...");
-      const response = await fetch("/api/coins/spend", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cost: Number(requiredCoins || 200),
-          featureKey: String(featureKey || "flower-fc"),
-          reason: "운명의 꽃 아틀리에 전체 해금",
-          forceDeduct: true,
-          requestId:
-            "flower-unlock:" +
-            String(featureKey || "flower-fc") +
-            ":" +
-            Date.now().toString(36) +
-            "-" +
-            Math.random().toString(36).slice(2, 9),
-        }),
+      startPayment("이용권을 확인하고 있어요.", "pass-checking");
+      const purchaseResult = await purchaseFeature({
+        cost: Number(requiredCoins || 200),
+        featureKey: String(featureKey || "flower-fc"),
+        reason: "운명의 꽃 아틀리에 전체 해금",
+        forceDeduct: true,
+        requestId:
+          "flower-unlock:" +
+          String(featureKey || "flower-fc") +
+          ":" +
+          Date.now().toString(36) +
+          "-" +
+          Math.random().toString(36).slice(2, 9),
       });
 
-      const payload = await response.json().catch(() => ({}));
-
-      if (response.status === 401) {
+      if (purchaseResult.status === 401 || purchaseResult.status === 403 || purchaseResult.error?.code === "AUTH_REQUIRED") {
         router.replace(`/login?next=${encodeURIComponent(nextPath)}`);
         return;
       }
 
-      if (response.status === 402) {
-        setMessage("이 콘텐츠는 유료 결제가 필요합니다. 결제 페이지로 이동합니다.");
-        router.push("/points");
-        return;
-      }
-
-      if (!response.ok) {
-        setMessage(String(payload?.message || "해금 처리에 실패했습니다. 잠시 후 다시 시도해 주세요."));
+      if (!purchaseResult.ok) {
+        setMessage(String(purchaseResult.error?.message || purchaseResult.message || "해금 처리에 실패했습니다. 잠시 후 다시 시도해 주세요."));
         return;
       }
 
