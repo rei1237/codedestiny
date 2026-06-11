@@ -122,6 +122,11 @@ function isPaymentCompletionVariant(variant: PaymentLoadingVariant) {
   return variant === "payment-complete" || variant === "unlock-saving" || variant === "pass-applied";
 }
 
+function shouldAutoCloseCheckoutOverlay(mode?: string) {
+  const normalizedMode = String(mode || "").trim().toLowerCase();
+  return normalizedMode === "card" || normalizedMode === "checkout";
+}
+
 const PaymentProcessingContext = createContext<PaymentProcessingContextValue | undefined>(
   undefined,
 );
@@ -555,11 +560,19 @@ export function PaymentProcessingProvider({
       setPaymentLoadingVariant(nextVariant);
       setProcessingMessageState(nextMessage);
       setIsProcessing(true);
+      if (shouldAutoCloseCheckoutOverlay(nextMode)) {
+        completionCloseTimerRef.current = setTimeout(() => {
+          const current = overlayStateRef.current;
+          if (current.open && current.message === nextMessage && current.mode === nextMode) {
+            closeProcessingNow();
+          }
+        }, 1600);
+      }
       return;
     }
     if (!previous.open) return;
     stopProcessing();
-  }, [clearCompletionCloseTimer, setPaymentLoadingVariant, stopProcessing]);
+  }, [clearCompletionCloseTimer, closeProcessingNow, setPaymentLoadingVariant, stopProcessing]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

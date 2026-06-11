@@ -81,7 +81,7 @@ type RuntimePaidServiceGateResult = {
 };
 
 type PaidServiceRuntimeGate = (options: Record<string, unknown>) => Promise<RuntimePaidServiceGateResult> | RuntimePaidServiceGateResult;
-type PaymentChoiceMode = "direct" | "monthly" | "pass" | "cancel";
+type PaymentChoiceMode = "direct" | "monthly" | "pass" | "pass-store" | "cancel";
 type PaymentChoiceFunction = ((options: Record<string, unknown>) => Promise<PaymentChoiceMode> | PaymentChoiceMode) & {
   __cdSupportsPassChoice?: boolean;
   __cdReactFallback?: boolean;
@@ -263,6 +263,52 @@ function escapePaymentText(value: unknown): string {
     .replace(/'/g, "&#39;");
 }
 
+function firstFiniteMonthlyBalance(...sources: Array<Record<string, unknown> | null | undefined>): number {
+  for (const source of sources) {
+    if (!source) continue;
+    const membership = asRecord(source.membership);
+    const profileSubscription = asRecord(source.profileSubscription);
+    const candidates = [
+      source.monthlyBalance,
+      source.monthlyCredits,
+      source.membershipCreditBalance,
+      membership?.monthlyBalance,
+      membership?.monthlyCredits,
+      membership?.membershipCreditBalance,
+      profileSubscription?.monthlyBalance,
+      profileSubscription?.monthlyCredits,
+      profileSubscription?.membershipCreditBalance,
+    ];
+    for (const candidate of candidates) {
+      const value = Number(candidate);
+      if (Number.isFinite(value) && value >= 0) return Math.floor(value);
+    }
+  }
+  return 0;
+}
+
+function resolvePassStorePlan(coinPrice: number, currentTier?: string): "standard" | "premium" | "vvip" | "family" {
+  const tier = toText(currentTier).toLowerCase();
+  if (coinPrice <= 30 && tier !== "standard" && tier !== "premium" && tier !== "vvip" && tier !== "family") return "standard";
+  if (coinPrice <= 50 && tier !== "premium" && tier !== "vvip" && tier !== "family") return "premium";
+  if (coinPrice <= 100 && tier !== "vvip" && tier !== "family") return "vvip";
+  return "family";
+}
+
+function openMembershipPassStore(coinPrice: number, currentTier?: string) {
+  if (typeof window === "undefined") return;
+  const runtimeWindow = window as RuntimeApiWindow;
+  runtimeWindow._cdSetCoinGateOverlay?.(false);
+  if (typeof runtimeWindow.__cdOpenChargeModal === "function") {
+    runtimeWindow.__cdOpenChargeModal();
+    return;
+  }
+  const url = new URL("/points", window.location.origin);
+  url.searchParams.set("source", "react-payment-pass-store");
+  url.searchParams.set("plan", resolvePassStorePlan(coinPrice, currentTier));
+  window.location.assign(url.toString());
+}
+
 function ensureReactPaymentChoiceStyles() {
   if (typeof document === "undefined" || document.getElementById("cd-react-payment-choice-style")) return;
   const style = document.createElement("style");
@@ -287,7 +333,7 @@ function ensureReactPaymentChoiceStyles() {
   document.head.appendChild(style);
 }
 
-function openReactPaymentChoiceModal(options: Record<string, unknown>): Promise<PaymentChoiceMode> {
+async function openReactPaymentChoiceModal(options: Record<string, unknown>): Promise<PaymentChoiceMode> {
   if (typeof window === "undefined" || typeof document === "undefined" || !document.body) {
     return Promise.resolve("cancel");
   }
@@ -299,17 +345,14 @@ function openReactPaymentChoiceModal(options: Record<string, unknown>): Promise<
   const title = toText(opts.title || opts.reason || "유료 서비스") || "유료 서비스";
   const coinPrice = Math.max(0, Math.floor(toNumber(opts.coinPrice ?? opts.cost, 0)));
   const membershipCoverage = asRecord(opts.membershipCoverage);
+  const latestBalance = await fetchBillingBalance().catch(() => null);
+  const latestBalanceData = latestBalance?.ok ? latestBalance.data : null;
   const passDiscount = asRecord(membershipCoverage?.passDiscount);
   const discountFinalCoin = Math.max(0, Math.floor(toNumber(passDiscount?.finalCoinPrice, 0)));
   const directCoinPrice = passDiscount && discountFinalCoin > 0 ? discountFinalCoin : coinPrice;
   const rawDirectAmount = Math.max(0, Math.floor(toNumber(opts.amountKrw ?? opts.amountKRW, directCoinPrice * 100)));
   const directAmount = passDiscount && discountFinalCoin > 0 ? directCoinPrice * 100 : rawDirectAmount;
-  const monthlyBalance = Math.max(0, Math.floor(toNumber(
-    opts.monthlyBalance
-    ?? opts.membershipCreditBalance
-    ?? membershipCoverage?.monthlyBalance,
-    0,
-  )));
+  const monthlyBalance = firstFiniteMonthlyBalance(opts, membershipCoverage, latestBalanceData);
   const requiredMonthlyCredits = passDiscount && discountFinalCoin > 0
     ? directCoinPrice * 10
     : Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, directCoinPrice * 10)));
@@ -322,6 +365,10 @@ function openReactPaymentChoiceModal(options: Record<string, unknown>): Promise<
   const passHint = passLimit > 0
     ? `${passLimit.toLocaleString("ko-KR")}코인 상한을 초과해 결제가 필요합니다.`
     : "이 기능은 이용권으로 바로 열 수 없어 결제가 필요합니다.";
+  const passStoreTitle = passTier && passTier !== "free" ? "달빛 이용권 업그레이드" : "달빛 이용권 상점";
+  const passStoreHint = passTier && passTier !== "free"
+    ? "현재 이용권 한도를 넘는 기능입니다. 더 높은 달빛 이용권을 확인해 주세요."
+    : "달빛 이용권을 구매하면 한도 이하 기능은 결제창 없이 바로 열립니다.";
 
   return new Promise((resolve) => {
     let settled = false;
@@ -347,10 +394,10 @@ function openReactPaymentChoiceModal(options: Record<string, unknown>): Promise<
             <strong>월정석 ${requiredMonthlyCredits.toLocaleString("ko-KR")}개 사용</strong>
             <span>${canUseMonthly ? "보유 월정석으로 즉시 이용 권한을 저장합니다." : `월정석 잔액 부족 · 보유 ${monthlyBalance.toLocaleString("ko-KR")}개`}</span>
           </button>
-          <button type="button" class="cd-react-payment-choice-option" disabled aria-disabled="true">
+          <button type="button" class="cd-react-payment-choice-option" data-mode="pass-store">
             <span class="cd-react-payment-choice-badge">${escapePaymentText(passLabel)}</span>
-            <strong>이용권 우선 확인 완료</strong>
-            <span>${escapePaymentText(passHint)}</span>
+            <strong>${escapePaymentText(passStoreTitle)}</strong>
+            <span>${escapePaymentText(passStoreHint)} ${escapePaymentText(passHint)}</span>
           </button>
         </div>
         <div class="cd-react-payment-choice-status" data-payment-status></div>
@@ -378,7 +425,7 @@ function openReactPaymentChoiceModal(options: Record<string, unknown>): Promise<
       if (mode === "monthly") {
         runtimeWindow._cdSetCoinGateOverlay?.(true, "월정석 잔액과 이용 권한을 확인하고 있습니다.", "monthly");
       } else if (mode === "direct") {
-        runtimeWindow._cdSetCoinGateOverlay?.(true, "결제창을 준비하고 있습니다. 주문 정보를 안전하게 확인하고 있어요.", "checkout");
+        runtimeWindow._cdSetCoinGateOverlay?.(false);
       }
     };
 
@@ -391,6 +438,11 @@ function openReactPaymentChoiceModal(options: Record<string, unknown>): Promise<
         const mode = toText(button.dataset.mode) as PaymentChoiceMode;
         if (mode === "cancel") {
           close("cancel");
+          return;
+        }
+        if (mode === "pass-store") {
+          close("cancel");
+          openMembershipPassStore(coinPrice, passTier);
           return;
         }
         if (button.disabled) {
