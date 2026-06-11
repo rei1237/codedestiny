@@ -795,6 +795,15 @@ async function withAuthOpTimeout(task, timeoutMs, label) {
   }
 }
 
+async function withOptionalAuthSideEffect(task, timeoutMs, label, fallback = null) {
+  try {
+    return await withAuthOpTimeout(task, timeoutMs, label);
+  } catch (error) {
+    console.warn(`[auth/side-effect] ${label} skipped:`, error);
+    return fallback;
+  }
+}
+
 function toOAuthFeature(provider) {
   if (provider === "google") return "auth-oauth-google";
   if (provider === "naver") return "auth-oauth-naver";
@@ -1056,7 +1065,7 @@ async function fetchSocialProfile(provider, accessToken, request, env) {
   return mapped;
 }
 
-async function findOrCreateSocialUser(provider, profile) {
+async function findOrCreateSocialUser(provider, profile, env) {
   const socialField = `socialAccounts.${provider}.id`;
 
   let user = await User.findOne({ [socialField]: profile.providerId });
@@ -1113,7 +1122,7 @@ async function findOrCreateSocialUser(provider, profile) {
       },
     },
   });
-  await recordMonthlyCreditGrantLedger({
+  await withOptionalAuthSideEffect(recordMonthlyCreditGrantLedger({
     userId: createdUser._id,
     amount: SIGNUP_MONTHLY_CREDIT_GRANT,
     beforeBalance: 0,
@@ -1126,7 +1135,7 @@ async function findOrCreateSocialUser(provider, profile) {
       authMethod: "social",
       provider,
     },
-  });
+  }), Math.min(getAuthOpTimeoutMs(env), 2000), `auth_social_${provider}_signup_credit_ledger`);
   return { user: createdUser, created: true };
 }
 
@@ -1553,7 +1562,23 @@ async function handleRegister(request, env) {
       users.findOne(
         { email },
         {
-          projection: { _id: 1, localAuth: 1, socialAccounts: 1 },
+          projection: {
+            _id: 1,
+            name: 1,
+            email: 1,
+            phoneNumber: 1,
+            phone: 1,
+            birthDate: 1,
+            birthTime: 1,
+            gender: 1,
+            role: 1,
+            points: 1,
+            joinedAt: 1,
+            passwordHash: 1,
+            localAuth: 1,
+            profileSubscription: 1,
+            socialAccounts: 1,
+          },
           maxTimeMS: dbMaxTimeMs,
         },
       ),
@@ -1562,6 +1587,23 @@ async function handleRegister(request, env) {
     );
 
     if (existing) {
+      let existingPasswordOk = false;
+      if (isLocalAuthEnabled(existing) && existing.passwordHash) {
+        existingPasswordOk = await withAuthOpTimeout(
+          verifyPassword(password, existing.passwordHash),
+          timeoutMs,
+          "auth_register_existing_verify_password",
+        );
+      }
+
+      if (existingPasswordOk) {
+        return await withAuthOpTimeout(
+          createAuthSuccessResponse(request, env, existing, 200, body?.nextPath, { idempotent: true }),
+          timeoutMs,
+          "auth_register_existing_issue_session",
+        );
+      }
+
       return signupErrorResponse(
         request,
         env,
@@ -1640,7 +1682,7 @@ async function handleRegister(request, env) {
     );
   }
 
-  await recordMonthlyCreditGrantLedger({
+  await withOptionalAuthSideEffect(recordMonthlyCreditGrantLedger({
     userId: user._id,
     amount: SIGNUP_MONTHLY_CREDIT_GRANT,
     beforeBalance: 0,
@@ -1652,14 +1694,17 @@ async function handleRegister(request, env) {
       grantType: "signup",
       authMethod: "local",
     },
-  });
+  }), Math.min(timeoutMs, 2000), "auth_register_credit_grant_ledger");
 
-  const referralReward = await applyKakaoReferralReward(
-    request,
-    env,
-    user,
-    extractReferralCapture(body),
-  );
+  const referralCapture = extractReferralCapture(body);
+  const referralReward = (referralCapture.referralCode && referralCapture.referralShareToken)
+    ? await withOptionalAuthSideEffect(
+      applyKakaoReferralReward(request, env, user, referralCapture),
+      Math.min(timeoutMs, 4000),
+      "auth_register_referral_reward",
+      null,
+    )
+    : null;
 
   try {
     return await withAuthOpTimeout(
@@ -2443,7 +2488,7 @@ async function handleOAuthCallback(request, env, provider) {
       String(statePayload.redirectUri || ""),
     );
     const socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
-    const socialUser = await findOrCreateSocialUser(provider, socialProfile);
+    const socialUser = await findOrCreateSocialUser(provider, socialProfile, env);
     const user = socialUser.user;
     const grant = await signSocialGrant({
       userId: String(user._id),
@@ -2516,16 +2561,20 @@ async function handleOAuthComplete(request, env) {
 
         if (!user) return json({ message: "User not found." }, { status: 404 });
 
-        const referralReward = payload.isNewUser && sanitizeAuthFlow(payload.flow) === "signup"
-          ? await applyKakaoReferralReward(
-            request,
-            env,
-            user,
-            {
-              referralCode: payload.referralCode || body?.referralCode,
-              referralShareToken: payload.referralShareToken || body?.referralShareToken,
-              referralSource: payload.referralSource || body?.referralSource,
-            },
+        const referralCapture = {
+          referralCode: payload.referralCode || body?.referralCode,
+          referralShareToken: payload.referralShareToken || body?.referralShareToken,
+          referralSource: payload.referralSource || body?.referralSource,
+        };
+        const referralReward = payload.isNewUser
+          && sanitizeAuthFlow(payload.flow) === "signup"
+          && normalizeReferralCode(referralCapture.referralCode)
+          && normalizeReferralShareToken(referralCapture.referralShareToken)
+          ? await withOptionalAuthSideEffect(
+            applyKakaoReferralReward(request, env, user, referralCapture),
+            Math.min(timeoutMs, 4000),
+            "auth_oauth_complete_referral_reward",
+            null,
           )
           : null;
 

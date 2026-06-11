@@ -63,7 +63,7 @@ type BillingBalancePayload = BillingBalanceData & {
 
 const LOGIN_MAX_ATTEMPTS = 2;
 const LOGIN_RETRY_BASE_DELAY_MS = 180;
-const LOGIN_ATTEMPT_TIMEOUT_MS = 7000;
+const LOGIN_ATTEMPT_TIMEOUT_MS = 20000;
 const AUTH_REFRESH_COOLDOWN_MS = 1500;
 
 const IS_DEV = process.env.NODE_ENV !== "production";

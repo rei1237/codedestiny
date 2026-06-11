@@ -47,7 +47,7 @@ type ReferralCapture = {
 const REFERRAL_STORAGE_KEY = "cd_pending_referral_v1";
 
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
-const LOCAL_AUTH_TIMEOUT_MS = 20000;
+const LOCAL_AUTH_TIMEOUT_MS = 30000;
 
 function sanitizeNextPath(rawNext: string | null) {
   if (!rawNext) return null;
@@ -174,6 +174,10 @@ function readStoredReferralCapture(): ReferralCapture {
   } catch (e) {
     return { referralCode: "", referralShareToken: "", referralSource: "" };
   }
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
 }
 
 function persistReferralCapture(capture: ReferralCapture) {
@@ -351,7 +355,7 @@ export default function SignupPage() {
 
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-          const nextResponse = await fetch(socialCompleteEndpoint, {
+          const nextResponse = await fetchWithTimeout(socialCompleteEndpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -366,7 +370,9 @@ export default function SignupPage() {
           response = nextResponse;
           break;
         } catch (err) {
-          lastFetchError = err instanceof Error ? err : new Error("네트워크 오류가 발생했습니다.");
+          lastFetchError = isAbortError(err)
+            ? new Error("소셜 회원가입 요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.")
+            : err instanceof Error ? err : new Error("네트워크 오류가 발생했습니다.");
           if (attempt === 0) {
             await sleep(250);
             continue;
@@ -471,7 +477,9 @@ export default function SignupPage() {
           response = nextResponse;
           break;
         } catch (error) {
-          lastFetchError = error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
+          lastFetchError = isAbortError(error)
+            ? new Error("회원가입 요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.")
+            : error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
           if (attempt === 0) {
             await sleep(250);
             continue;
