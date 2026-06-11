@@ -15,6 +15,7 @@
   var KEY_LEGACY_OWNER = NS + '.legacyOwner';
   var KEY_LIST_PREFIX = NS + '.list::';
   var KEY_CURR_PREFIX = NS + '.current::';
+  var KEY_META_PREFIX = NS + '.meta::';
   var _dpScopedStorageReadyScope = '';
   var _dpProfileMemoryScope = '';
   var _dpProfiles = [];
@@ -169,17 +170,65 @@
     return KEY_CURR_PREFIX + String(scope || 'guest');
   }
 
+  function _dpGetScopedMetaKey(scope) {
+    return KEY_META_PREFIX + String(scope || 'guest');
+  }
+
+  function _dpGetAuthTokenCacheHint() {
+    var token = '';
+    try {
+      token = String(_dpReadStoredAuthToken() || '').trim();
+    } catch (e) {}
+    if (!token) return '';
+    return [token.length, token.slice(0, 8), token.slice(-16)].join(':');
+  }
+
+  function _dpReadStoredProfileState(scope) {
+    var safeScope = String(scope || 'guest');
+    try {
+      var metaRaw = localStorage.getItem(_dpGetScopedMetaKey(safeScope)) || '';
+      var meta = metaRaw ? JSON.parse(metaRaw) : null;
+      var tokenHint = _dpGetAuthTokenCacheHint();
+      if (safeScope !== 'guest' && meta && meta.tokenHint && tokenHint && meta.tokenHint !== tokenHint) {
+        return { profiles: [], currentId: '' };
+      }
+
+      var raw = localStorage.getItem(_dpGetScopedListKey(safeScope)) || '';
+      var profiles = raw ? _dpNormalizeProfiles(JSON.parse(raw)) : [];
+      var currentId = String(localStorage.getItem(_dpGetScopedCurrentKey(safeScope)) || '');
+      return {
+        profiles: profiles,
+        currentId: _dpResolveCurrentIdFromProfiles(profiles, currentId)
+      };
+    } catch (e) {
+      try {
+        localStorage.removeItem(_dpGetScopedListKey(safeScope));
+        localStorage.removeItem(_dpGetScopedCurrentKey(safeScope));
+        localStorage.removeItem(_dpGetScopedMetaKey(safeScope));
+      } catch (_) {}
+      return { profiles: [], currentId: '' };
+    }
+  }
+
+  function _dpWriteStoredProfileState(scope, profiles, currentId) {
+    var safeScope = String(scope || 'guest');
+    try {
+      var normalized = _dpNormalizeProfiles(profiles);
+      var resolvedCurrentId = _dpResolveCurrentIdFromProfiles(normalized, currentId);
+      localStorage.setItem(_dpGetScopedListKey(safeScope), JSON.stringify(normalized));
+      localStorage.setItem(_dpGetScopedCurrentKey(safeScope), resolvedCurrentId);
+      localStorage.setItem(_dpGetScopedMetaKey(safeScope), JSON.stringify({
+        scope: safeScope,
+        tokenHint: safeScope === 'guest' ? '' : _dpGetAuthTokenCacheHint(),
+        savedAt: Date.now()
+      }));
+    } catch (e) {}
+  }
+
   function _dpClearLegacyProfileStorage() {
     try {
       var directKeys = [KEY_LIST, KEY_CURR, KEY_SCOPE_HINT, KEY_LEGACY_OWNER];
       for (var i = 0; i < directKeys.length; i += 1) localStorage.removeItem(directKeys[i]);
-      for (var j = localStorage.length - 1; j >= 0; j -= 1) {
-        var key = localStorage.key(j);
-        if (!key) continue;
-        if (key.indexOf(KEY_LIST_PREFIX) === 0 || key.indexOf(KEY_CURR_PREFIX) === 0) {
-          localStorage.removeItem(key);
-        }
-      }
     } catch (e) {}
   }
 
@@ -311,21 +360,20 @@
     _dpProfiles = _dpNormalizeProfiles(profiles);
     _dpCurrentId = _dpResolveCurrentIdFromProfiles(_dpProfiles, currentId);
     _dpClearLegacyProfileStorage();
+    _dpWriteStoredProfileState(nextScope, _dpProfiles, _dpCurrentId);
     _dpPublishCurrentProfile();
     return true;
   }
 
   function _dpEnsureScopedStorageReady() {
     var scope = _dpGetProfileScope();
-    if (_dpScopedStorageReadyScope !== scope) {
+    if (_dpScopedStorageReadyScope !== scope || _dpProfileMemoryScope !== scope) {
       _dpScopedStorageReadyScope = scope;
-      if (!_dpProfileMemoryScope) _dpProfileMemoryScope = scope;
-      if (_dpProfileMemoryScope !== scope) {
-        _dpProfileMemoryScope = scope;
-        _dpProfiles = [];
-        _dpCurrentId = '';
-        _dpPublishCurrentProfile();
-      }
+      _dpProfileMemoryScope = scope;
+      var cached = _dpReadStoredProfileState(scope);
+      _dpProfiles = cached.profiles;
+      _dpCurrentId = cached.currentId;
+      _dpPublishCurrentProfile();
     }
     _dpClearLegacyProfileStorage();
 
@@ -355,8 +403,9 @@
     setCurrent: function(id) {
       _dpEnsureScopedStorageReady();
       try {
+        var scope = _dpEnsureScopedStorageReady();
         _dpCurrentId = _dpResolveCurrentIdFromProfiles(_dpProfiles, id || '');
-        _dpClearLegacyProfileStorage();
+        _dpWriteStoredProfileState(scope, _dpProfiles, _dpCurrentId);
         _dpPublishCurrentProfile();
         _dpSetCurrentOnServerDebounced(_dpCurrentId);
       } catch(e) {}
@@ -904,8 +953,12 @@
       if (_dpGetProfileScope() !== 'guest') return true;
     } catch (e) {}
     try {
-      return document.cookie.indexOf('fortune_auth_role=') >= 0;
-    } catch (e) {}
+      if (_dpReadStoredAuthToken()) return true;
+    } catch (e2) {}
+    try {
+      var cookieText = String(document.cookie || '');
+      return cookieText.indexOf('fortune_auth_role=') >= 0 || cookieText.indexOf('fortune_auth_token=') >= 0;
+    } catch (e3) {}
     return false;
   }
 
@@ -1049,6 +1102,7 @@
   window.__dpHasLoginSession = _dpHasLoginSession;
 
   var _dpSetCurrentTimer = null;
+  var _dpLoadFromServerPending = null;
 
   function _dpSetCurrentOnServer(currentId) {
     var nextId = String(currentId || '').trim();
@@ -1086,14 +1140,21 @@
   }
 
   function _dpLoadFromServer(callback) {
-    if (!_dpHasSessionHint()) { if (callback) callback(false); return; }
-    _dpVerifyLoginSession(false).then(function(ok) {
+    if (!_dpHasSessionHint()) {
+      if (callback) callback(false);
+      return Promise.resolve(false);
+    }
+    if (_dpLoadFromServerPending) {
+      if (callback) _dpLoadFromServerPending.then(function(loaded) { callback(loaded); }).catch(function() { callback(false); });
+      return _dpLoadFromServerPending;
+    }
+
+    _dpLoadFromServerPending = _dpVerifyLoginSession(false).then(function(ok) {
       if (!ok) {
-        if (callback) callback(false);
-        return;
+        return false;
       }
       var requestScope = _dpGetProfileScope();
-      _dpFetchJsonWithFallback('/api/profile', {
+      return _dpFetchJsonWithFallback('/api/profile', {
         credentials: 'include',
         cache: 'no-store',
         headers: _dpBuildAuthHeaders()
@@ -1103,11 +1164,10 @@
         return result.ok ? result.data : null;
       })
       .then(function(data) {
-        if (!data || !data.ok || !Array.isArray(data.profiles)) { if (callback) callback(false); return; }
+        if (!data || !data.ok || !Array.isArray(data.profiles)) return false;
         var scope = _dpGetProfileScope();
         if (scope !== requestScope || !_dpSetProfileState(scope, data.profiles, data.currentId || '')) {
-          if (callback) callback(false);
-          return;
+          return false;
         }
         _dpApplyProfileAccess(data.profileAccess);
         if (data.profileAccess && data.profileAccess.selectionRequired) {
@@ -1126,12 +1186,16 @@
           _dpWriteSubCache(tier, active, resolvedLimit, s.expiresAt || null);
           _dpUpdateSaveBtn();
         }
-        if (callback) callback(true);
-      })
-      .catch(function() { if (callback) callback(false); });
+        return true;
+      });
     }).catch(function() {
-      if (callback) callback(false);
+      return false;
+    }).finally(function() {
+      _dpLoadFromServerPending = null;
     });
+
+    if (callback) _dpLoadFromServerPending.then(function(loaded) { callback(loaded); }).catch(function() { callback(false); });
+    return _dpLoadFromServerPending;
   }
 
   function _isMobileViewport() {
@@ -3526,6 +3590,33 @@
     return ('profile-card:' + action + ':' + String(profileId || 'new') + ':' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8)).slice(0, 120);
   }
 
+  function _dpReadProfileDeleteLock() {
+    var raw = window.__dpProfileDeleteInFlight;
+    if (raw && typeof raw === 'object') {
+      return {
+        profileId: String(raw.profileId || '').trim(),
+        startedAt: Number(raw.startedAt || 0)
+      };
+    }
+    return {
+      profileId: String(raw || '').trim(),
+      startedAt: Number(window.__dpProfileDeleteInFlightAt || 0)
+    };
+  }
+
+  function _dpSetProfileDeleteLock(profileId) {
+    var startedAt = Date.now();
+    window.__dpProfileDeleteInFlight = { profileId: String(profileId || '').trim(), startedAt: startedAt };
+    window.__dpProfileDeleteInFlightAt = startedAt;
+  }
+
+  function _dpClearProfileDeleteLock(profileId) {
+    var lock = _dpReadProfileDeleteLock();
+    if (profileId && lock.profileId && lock.profileId !== String(profileId || '').trim()) return;
+    window.__dpProfileDeleteInFlight = '';
+    window.__dpProfileDeleteInFlightAt = 0;
+  }
+
   function _dpBuildProfileCreateId(seed) {
     var suffix = String(seed || 'new').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 24) || 'new';
     return ('dp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8) + '_' + suffix).slice(0, 80);
@@ -4596,11 +4687,20 @@
       }
     }
 
+    var hasCachedProfiles = false;
+    try {
+      hasCachedProfiles = DPStorage.list().length > 0;
+    } catch (e) {}
+
     if (_dpHasSessionHint()) {
-      if (container) container.innerHTML = '<div class="dp-list-empty">\uC0DD\uC131\uD55C \uD504\uB85C\uD544 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uB294 \uC911...</div>';
+      if (hasCachedProfiles) {
+        renderOpenList();
+      } else if (container) {
+        container.innerHTML = '<div class="dp-list-empty">\uC0DD\uC131\uD55C \uD504\uB85C\uD544 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uB294 \uC911...</div>';
+      }
       _dpLoadFromServer(function(loaded) {
         if (!loaded) {
-          if (container) {
+          if (!hasCachedProfiles && container) {
             container.innerHTML = '<div class="dp-list-empty">\uC11C\uBC84\uC5D0\uC11C \uD504\uB85C\uD544 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.<br><small>\uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC5F4\uC5B4 \uC8FC\uC138\uC694.</small></div>';
           }
           return;
@@ -4725,14 +4825,20 @@
       alert('삭제할 프로필 카드를 찾을 수 없습니다.');
       return;
     }
-    if (window.__dpProfileDeleteInFlight === profileId) {
-      alert('프로필 카드 삭제가 이미 진행 중입니다.');
-      return;
+    var deleteLock = _dpReadProfileDeleteLock();
+    if (deleteLock.profileId === profileId) {
+      var lockAgeMs = deleteLock.startedAt ? (Date.now() - deleteLock.startedAt) : 0;
+      if (!lockAgeMs || lockAgeMs < 1200) return;
+      if (lockAgeMs < 90000) {
+        alert('프로필 카드 삭제가 이미 진행 중입니다.');
+        return;
+      }
+      _dpClearProfileDeleteLock(profileId);
     }
     if (!confirm((profile.name || '선택한 프로필') + ' 프로필 카드를 삭제할까요?\n삭제 비용은 50코인이며, 삭제 후 복구가 어렵습니다.')) return;
 
     var requestId = _dpBuildProfileManageRequestId('delete', profileId);
-    window.__dpProfileDeleteInFlight = profileId;
+    _dpSetProfileDeleteLock(profileId);
 
     function requestDelete(paymentContext) {
       _dpSetPaymentPending(true, '프로필 카드를 삭제하는 중입니다...');
@@ -4797,7 +4903,7 @@
       if (msg === 'AUTH_REQUIRED') msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
       alert(msg);
     }).then(function() {
-      if (window.__dpProfileDeleteInFlight === profileId) window.__dpProfileDeleteInFlight = '';
+      _dpClearProfileDeleteLock(profileId);
     });
   };
 
@@ -5741,6 +5847,11 @@
       listInner.addEventListener('click', function(e) {
         var targetEl = _resolveEventElement(e.target);
         if (!targetEl) return;
+        if (listTouchState.lastHandledAt && Date.now() - listTouchState.lastHandledAt < 700) {
+          if (e.cancelable) e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         var delBtn = targetEl.closest('.dp-li-del');
         var viewBtn = targetEl.closest('.dp-li-view');
         var actionItem = targetEl.closest('[data-profile-id]');
@@ -5763,6 +5874,9 @@
           if (delPid) {
             if (e.cancelable) e.preventDefault();
             e.stopPropagation();
+            listTouchState.lastHandledAt = Date.now();
+            listTouchState.lastHandledAction = 'delete';
+            listTouchState.lastHandledProfileId = delPid;
             dpDeleteProfile(delPid);
           }
           return;
@@ -5774,6 +5888,9 @@
           if (viewPid) {
             if (e.cancelable) e.preventDefault();
             e.stopPropagation();
+            listTouchState.lastHandledAt = Date.now();
+            listTouchState.lastHandledAction = 'view';
+            listTouchState.lastHandledProfileId = viewPid;
             dpSelectProfile(viewPid);
           }
           return;
@@ -5781,7 +5898,13 @@
         var item = targetEl.closest('[data-profile-id]');
         if (item && !targetEl.closest('.dp-li-del') && !targetEl.closest('.dp-li-view')) {
           var pid = item.getAttribute('data-profile-id');
-          if (pid) { if (e.cancelable) e.preventDefault(); dpSelectProfile(pid); }
+          if (pid) {
+            if (e.cancelable) e.preventDefault();
+            listTouchState.lastHandledAt = Date.now();
+            listTouchState.lastHandledAction = 'select';
+            listTouchState.lastHandledProfileId = pid;
+            dpSelectProfile(pid);
+          }
         }
       }, { passive: false });
       listInner.addEventListener('touchcancel', function() {

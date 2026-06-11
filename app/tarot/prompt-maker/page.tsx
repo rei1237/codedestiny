@@ -57,7 +57,21 @@ const STEP_META: Array<{ id: Stage; title: string; caption: string; icon: string
   { id: "prompt", title: "오라클 문장", caption: "카드가 만든 흐름을 바로 읽을 수 있는 리딩 원고로 정리합니다.", icon: "✦" },
 ];
 
-const CARD_COUNT_FILTERS = ["all", 3, 5, 7, 10, 12, 14] as const;
+const CARD_COUNT_FILTERS = ["all", 1, 3, 5, 7, 10, 12, 14] as const;
+
+const QUESTION_CATEGORY_OPTIONS: TarotSpreadCategory[] = [
+  "love",
+  "reunion",
+  "relationship",
+  "career",
+  "money",
+  "family",
+  "self",
+  "choice",
+  "daily",
+  "future",
+  "special",
+];
 
 const CATEGORY_FILTER_OPTIONS: Array<{ id: "all" | TarotSpreadCategory; label: string }> = [
   { id: "all", label: "전체" },
@@ -152,6 +166,7 @@ export default function TarotPromptMakerPage() {
 
   const [stage, setStage] = useState<Stage>("question");
   const [question, setQuestion] = useState("");
+  const [manualCategory, setManualCategory] = useState<"auto" | TarotSpreadCategory>("auto");
   const [selectedSpreadId, setSelectedSpreadId] = useState(SPREAD_LIBRARY[0]?.id || "");
   const [allowReversed, setAllowReversed] = useState(true);
   const [usedDeckSlots, setUsedDeckSlots] = useState<number[]>([]);
@@ -167,22 +182,22 @@ export default function TarotPromptMakerPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<"all" | TarotSpreadCategory>("all");
   const [cardCountFilter, setCardCountFilter] = useState<number | "all">("all");
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
   const selectedSpread = findSpreadById(selectedSpreadId);
   const detectedCategory = detectTarotCategory(question);
+  const selectedQuestionCategory = manualCategory === "auto" ? detectedCategory : manualCategory;
 
   const effectiveQuestion = useMemo(
-    () => normalizeText(question) || DEFAULT_QUESTION_BY_CATEGORY[selectedSpread.category],
-    [question, selectedSpread.category],
+    () => normalizeText(question) || DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory],
+    [question, selectedQuestionCategory],
   );
 
   const flowLines = useMemo(() => buildFlowLines(drawnCards), [drawnCards]);
   const progressText = `${drawnCards.length} / ${selectedSpread.cardCount}`;
 
   const recommendedSpreads = useMemo(
-    () => recommendSpreads(effectiveQuestion, cardCountFilter).slice(0, 6),
-    [effectiveQuestion, cardCountFilter],
+    () => recommendSpreads(`${effectiveQuestion} ${CATEGORY_LABEL[selectedQuestionCategory]}`, cardCountFilter).slice(0, 6),
+    [effectiveQuestion, cardCountFilter, selectedQuestionCategory],
   );
 
   const filteredSpreads = useMemo(
@@ -199,11 +214,11 @@ export default function TarotPromptMakerPage() {
       const leftRecommended = recommendedSpreads.some((item) => item.id === left.id) ? 1 : 0;
       const rightRecommended = recommendedSpreads.some((item) => item.id === right.id) ? 1 : 0;
       if (rightRecommended !== leftRecommended) return rightRecommended - leftRecommended;
-      if (left.category === detectedCategory && right.category !== detectedCategory) return -1;
-      if (right.category === detectedCategory && left.category !== detectedCategory) return 1;
+      if (left.category === selectedQuestionCategory && right.category !== selectedQuestionCategory) return -1;
+      if (right.category === selectedQuestionCategory && left.category !== selectedQuestionCategory) return 1;
       return left.cardCount - right.cardCount;
     }),
-    [searchQuery, categoryFilter, cardCountFilter, recommendedSpreads, detectedCategory],
+    [searchQuery, categoryFilter, cardCountFilter, recommendedSpreads, selectedQuestionCategory],
   );
 
   const billingCoinLabel = billingSnapshot
@@ -237,7 +252,7 @@ export default function TarotPromptMakerPage() {
         const data = payload?.ok && payload?.data && typeof payload.data === "object" ? payload.data : null;
         if (!active || !data) return;
         setBillingSnapshot({ requiredCoins: Number(data.requiredCoins || 0), canAccess: Boolean(data.canAccess), freeBySubscription: Boolean(data.freeBySubscription), subscriptionTier: String(data.subscriptionTier || "free"), accessReason: String(data.accessReason || "").trim().toLowerCase() });
-      } catch (_error) {
+      } catch {
         if (!active) return;
         setBillingSnapshot(null);
       } finally {
@@ -262,6 +277,10 @@ export default function TarotPromptMakerPage() {
     setShowSpreadPicker(false);
   }
 
+  function promptSpreadForCategory() {
+    return { ...selectedSpread, category: selectedQuestionCategory };
+  }
+
   function handleQuestionChip(text: string) {
     setQuestion(text);
     setFeedback("");
@@ -278,18 +297,16 @@ export default function TarotPromptMakerPage() {
     setStage("draw");
   }
 
-  function drawCardFromDeckSlot(deckSlot: number) {
+  function addDrawnCard(picked: (typeof CARD_POOL)[number], deckSlot?: number) {
     if (stage !== "draw") return;
-    if (usedDeckSlots.includes(deckSlot)) return;
     if (drawnCards.length >= selectedSpread.cardCount) return;
-    const usedCodes = new Set(drawnCards.map((card) => card.cardCode));
-    const availableCards = CARD_POOL.filter((card) => !usedCodes.has(card.cardCode));
-    if (!availableCards.length) return;
-    const picked = availableCards[Math.floor(Math.random() * availableCards.length)];
+    if (drawnCards.some((card) => card.cardCode === picked.cardCode)) return;
     const position = selectedSpread.positions[drawnCards.length];
     if (!position) return;
     const orientation: TarotCardOrientation = allowReversed && Math.random() < 0.35 ? "reversed" : "upright";
-    setUsedDeckSlots((prev) => [...prev, deckSlot]);
+    if (typeof deckSlot === "number") {
+      setUsedDeckSlots((prev) => prev.includes(deckSlot) ? prev : [...prev, deckSlot]);
+    }
     setDrawnCards((prev) => [
       ...prev,
       {
@@ -309,6 +326,33 @@ export default function TarotPromptMakerPage() {
     setFeedback("");
   }
 
+  function drawCardFromDeckSlot(deckSlot: number) {
+    if (usedDeckSlots.includes(deckSlot)) return;
+    const usedCodes = new Set(drawnCards.map((card) => card.cardCode));
+    const availableCards = CARD_POOL.filter((card) => !usedCodes.has(card.cardCode));
+    if (!availableCards.length) return;
+    const picked = availableCards[Math.floor(Math.random() * availableCards.length)];
+    addDrawnCard(picked, deckSlot);
+  }
+
+  function drawSpecificCard(picked: (typeof CARD_POOL)[number]) {
+    const cardSlot = CARD_POOL.findIndex((card) => card.cardCode === picked.cardCode);
+    addDrawnCard(picked, cardSlot >= 0 ? cardSlot : undefined);
+  }
+
+  function toggleDrawnCardOrientation(cardIndex: number) {
+    setDrawnCards((prev) => prev.map((card, index) => {
+      if (index !== cardIndex) return card;
+      const orientation: TarotCardOrientation = card.orientation === "upright" ? "reversed" : "upright";
+      return {
+        ...card,
+        orientation,
+        orientationLabel: orientation === "reversed" ? "역방향" : "정방향",
+      };
+    }));
+    setPromptResult(null);
+  }
+
   function drawCardFromStack() {
     const availableSlots = DECK_SLOTS.filter((slot) => !usedDeckSlots.includes(slot));
     if (!availableSlots.length) return;
@@ -323,7 +367,7 @@ export default function TarotPromptMakerPage() {
       return;
     }
     const generate = () => {
-      const nextPrompt = buildOraclePrompt(selectedSpread, effectiveQuestion, drawnCards);
+      const nextPrompt = buildOraclePrompt(promptSpreadForCategory(), effectiveQuestion, drawnCards);
       setPromptResult(nextPrompt);
       setStage("prompt");
       setFeedback("");
@@ -372,23 +416,37 @@ export default function TarotPromptMakerPage() {
       await navigator.clipboard.writeText(promptResult.prompt);
       setCopied(true);
       showToast("오라클 원고가 복사되었습니다.", "success");
-    } catch (_error) {
+    } catch {
       showToast("클립보드 복사에 실패했습니다.", "error");
     }
   }
 
   function handleRegeneratePrompt() {
     if (drawnCards.length !== selectedSpread.cardCount) { setFeedback("카드 선택이 완료된 뒤 다시 생성할 수 있습니다."); return; }
-    const nextPrompt = buildOraclePrompt(selectedSpread, effectiveQuestion, drawnCards);
+    const nextPrompt = buildOraclePrompt(promptSpreadForCategory(), effectiveQuestion, drawnCards);
     setPromptResult(nextPrompt);
     setFeedback("");
     showToast("같은 카드 조합으로 오라클 원고를 다시 정리했습니다.", "success");
   }
 
+  function handleTunePrompt(label: string, instruction: string) {
+    if (!promptResult) return;
+    const marker = `[추가 톤 조율 - ${label}]`;
+    if (promptResult.prompt.includes(marker)) {
+      showToast("이미 반영된 조율입니다.", "info");
+      return;
+    }
+    setPromptResult({
+      ...promptResult,
+      prompt: `${promptResult.prompt}\n\n${marker}\n${instruction}`,
+    });
+    showToast(`${label} 지시문을 더했습니다.`, "success");
+  }
+
   function handleRedrawCards() { resetDrawState(); setStage("draw"); setFeedback(""); }
   function handleChooseAnotherSpread() { resetDrawState(); setStage("question"); setShowSpreadPicker(true); setFeedback(""); }
   function handleGoQuestion() { setStage("question"); setFeedback(""); }
-  function handleResetAll() { setQuestion(""); setSelectedSpreadId(SPREAD_LIBRARY[0]?.id || ""); setAllowReversed(true); resetDrawState(); setFeedback(""); setStage("question"); }
+  function handleResetAll() { setQuestion(""); setManualCategory("auto"); setSelectedSpreadId(SPREAD_LIBRARY[0]?.id || ""); setAllowReversed(true); resetDrawState(); setFeedback(""); setStage("question"); }
 
   return (
     <div
@@ -459,13 +517,13 @@ export default function TarotPromptMakerPage() {
 
           {/* ── Stage Content ── */}
           <div className="flex-1">
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" initial={false}>
 
               {/* ━━━ QUESTION STAGE ━━━ */}
               {stage === "question" && (
                 <motion.div
                   key="question-stage"
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -15 }}
                   transition={{ duration: 0.35, ease: "easeOut" }}
@@ -496,10 +554,41 @@ export default function TarotPromptMakerPage() {
                         value={question}
                         onChange={(e) => { setQuestion(e.target.value); setFeedback(""); }}
                         maxLength={220}
-                        placeholder="예) 이 관계가 앞으로 어떻게 변할지 알고 싶어요."
+                        placeholder="지금 가장 궁금한 질문을 적어주세요. 예: 그 사람이 다시 연락할까요?"
                         className="w-full min-h-[140px] resize-none bg-transparent text-[#f3e8ff] text-sm sm:text-base leading-relaxed outline-none placeholder:text-[#7c3aed]/50"
                       />
                       <div className="text-right text-xs text-[#6d28d9]/60 mt-1">{question.length} / 220</div>
+                    </div>
+
+                    <div
+                      className="rounded-2xl border border-[#6d28d9]/35 p-4 mb-4"
+                      style={{ background: "rgba(15,5,35,0.48)" }}
+                    >
+                      <div className="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                          <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70">질문 카테고리</div>
+                          <div className="text-xs text-[#a78bfa]/70 mt-1">자동 추정: {CATEGORY_LABEL[detectedCategory]}</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setManualCategory("auto")}
+                          className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${manualCategory === "auto" ? "border-[#f59e0b]/45 bg-[#f59e0b]/15 text-[#fde68a]" : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10"}`}
+                        >
+                          자동 추정
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {QUESTION_CATEGORY_OPTIONS.map((category) => (
+                          <button
+                            key={`question-category-${category}`}
+                            type="button"
+                            onClick={() => setManualCategory(category)}
+                            className={`px-2.5 py-1 rounded-full border text-[10px] font-semibold transition-all ${manualCategory !== "auto" && selectedQuestionCategory === category ? "border-[#c084fc]/50 bg-[#c084fc]/15 text-[#f3e8ff]" : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10"}`}
+                          >
+                            {CATEGORY_LABEL[category]}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     {/* Quick chips */}
@@ -525,7 +614,7 @@ export default function TarotPromptMakerPage() {
                         <div>
                           <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70 mb-1">선택된 스프레드</div>
                           <div className="text-[#e9d5ff] font-semibold text-base">{selectedSpread.title}</div>
-                          <div className="text-[#a78bfa]/70 text-xs mt-0.5">{selectedSpread.cardCount}장 · {DIFFICULTY_LABEL[selectedSpread.difficulty]}</div>
+                          <div className="text-[#a78bfa]/70 text-xs mt-0.5">{selectedSpread.cardCount}장 · {DIFFICULTY_LABEL[selectedSpread.difficulty]} · 상담 카테고리 {CATEGORY_LABEL[selectedQuestionCategory]}</div>
                           <div className="text-[#c4b5fd]/60 text-xs mt-1 leading-relaxed">{selectedSpread.purpose}</div>
                         </div>
                         <button
@@ -542,7 +631,7 @@ export default function TarotPromptMakerPage() {
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button
                         type="button"
-                        onClick={() => setQuestion(DEFAULT_QUESTION_BY_CATEGORY[detectedCategory])}
+                        onClick={() => setQuestion(DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory])}
                         className="flex-1 px-4 py-3 rounded-full border border-white/15 bg-white/5 text-[#c4b5fd] text-sm font-medium hover:bg-white/10 transition-all"
                       >
                         추천 질문 자동 입력
@@ -568,7 +657,7 @@ export default function TarotPromptMakerPage() {
               {stage === "draw" && (
                 <motion.div
                   key="draw-stage"
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -15 }}
                   transition={{ duration: 0.35, ease: "easeOut" }}
@@ -754,24 +843,25 @@ export default function TarotPromptMakerPage() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="mt-3 grid grid-cols-8 sm:grid-cols-10 gap-1 overflow-hidden"
+                            className="mt-3 max-h-72 overflow-y-auto pr-1 custom-scrollbar"
                           >
-                            {DECK_SLOTS.map((slot) => {
-                              const disabled = usedDeckSlots.includes(slot) || drawnCards.length >= selectedSpread.cardCount;
+                            <div className="grid grid-cols-2 gap-1.5">
+                            {CARD_POOL.map((card) => {
+                              const disabled = drawnCards.some((drawn) => drawn.cardCode === card.cardCode) || drawnCards.length >= selectedSpread.cardCount;
                               return (
                                 <button
-                                  key={slot}
+                                  key={card.cardCode}
                                   type="button"
                                   disabled={disabled}
-                                  onClick={() => drawCardFromDeckSlot(slot)}
-                                  onMouseEnter={() => setHoveredCard(slot)}
-                                  onMouseLeave={() => setHoveredCard(null)}
-                                  className={`aspect-[0.7] rounded-lg text-[9px] font-bold transition-all ${disabled ? "border border-white/5 bg-black/20 text-white/20" : "border border-[#7c3aed]/35 bg-[#2d1b69]/60 text-[#c4b5fd] hover:-translate-y-0.5 hover:border-[#c084fc]/50 hover:shadow-[0_0_8px_rgba(192,132,252,0.3)]"}`}
+                                  onClick={() => drawSpecificCard(card)}
+                                  className={`min-h-12 rounded-xl px-2 py-2 text-left transition-all ${disabled ? "border border-white/5 bg-black/20 text-white/20" : "border border-[#7c3aed]/35 bg-[#2d1b69]/60 text-[#c4b5fd] hover:-translate-y-0.5 hover:border-[#c084fc]/50 hover:shadow-[0_0_8px_rgba(192,132,252,0.3)]"}`}
                                 >
-                                  {hoveredCard === slot && !disabled ? "✦" : slot + 1}
+                                  <span className="block text-[10px] font-bold leading-tight line-clamp-1">{card.cardNameKo}</span>
+                                  <span className="block text-[8px] text-[#a78bfa]/60 leading-tight line-clamp-1">{card.keywords.slice(0, 2).join(" · ") || card.cardNameEn}</span>
                                 </button>
                               );
                             })}
+                            </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -787,9 +877,21 @@ export default function TarotPromptMakerPage() {
                             <div key={`${selectedSpread.id}-picked-${position.index}`} className="rounded-xl border border-white/8 bg-black/20 px-3 py-2">
                               <div className="text-xs font-semibold text-[#c084fc]">{position.index}. {position.label}</div>
                               {drawn ? (
-                                <div className="mt-0.5 flex items-center gap-2">
-                                  <span className="text-xs text-[#f3e8ff] font-medium">{drawn.cardNameKo}</span>
-                                  <span className="text-[10px] text-[#f472b6]">{drawn.orientationLabel}</span>
+                                <div className="mt-1 flex items-center justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-[#f3e8ff] font-medium truncate">{drawn.cardNameKo}</span>
+                                      <span className="text-[10px] text-[#f472b6] shrink-0">{drawn.orientationLabel}</span>
+                                    </div>
+                                    <div className="mt-0.5 text-[10px] text-white/40 leading-relaxed line-clamp-2">{drawn.positionDescription}</div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleDrawnCardOrientation(index)}
+                                    className="shrink-0 px-2 py-1 rounded-full border border-[#c084fc]/30 bg-[#c084fc]/10 text-[10px] font-semibold text-[#e9d5ff] hover:bg-[#c084fc]/20 transition-all"
+                                  >
+                                    방향 변경
+                                  </button>
                                 </div>
                               ) : (
                                 <div className="mt-0.5 text-[10px] text-white/30">아직 선택되지 않았어요.</div>
@@ -831,7 +933,7 @@ export default function TarotPromptMakerPage() {
               {stage === "prompt" && promptResult && (
                 <motion.div
                   key="prompt-stage"
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -15 }}
                   transition={{ duration: 0.35, ease: "easeOut" }}
@@ -928,6 +1030,15 @@ export default function TarotPromptMakerPage() {
                     <div className="grid grid-cols-2 gap-3">
                       <button type="button" onClick={handleCopyPrompt} className="col-span-2 py-3 rounded-2xl font-bold text-sm text-[#1a0533] transition-all" style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 6px 25px rgba(168,85,247,0.25)" }}>
                         {copied ? "✓ 복사 완료" : "✦ 오라클 원고 복사"}
+                      </button>
+                      <button type="button" onClick={() => handleTunePrompt("상담톤 강화", "전체 답변을 실제 상담사가 눈앞의 고객에게 말하듯 자연스럽게 이어 주세요. 카드 이름보다 고객 질문의 맥락, 포지션 의미, 카드 간 관계를 먼저 설명하고, 문장 끝마다 고객의 주도권을 회복시키는 방향으로 정리하세요.")} className="py-2.5 rounded-xl border border-[#c084fc]/30 bg-[#c084fc]/10 text-xs font-semibold text-[#e9d5ff] hover:bg-[#c084fc]/20 transition-all">
+                        상담톤 강화
+                      </button>
+                      <button type="button" onClick={() => handleTunePrompt("더 현실적으로", "상징 해석 뒤에는 반드시 현실적인 판단 기준과 행동 순서를 붙여 주세요. 법률, 의료, 투자, 임신, 합격 여부 등 민감한 주제는 참고용 조언으로만 표현하고 전문가 상담을 함께 권하세요.")} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
+                        더 현실적으로
+                      </button>
+                      <button type="button" onClick={() => handleTunePrompt("더 따뜻하게", "답변의 온도를 조금 더 부드럽게 낮추고, 불안한 고객이 숨을 고를 수 있도록 위로와 선택지를 함께 주세요. 공포를 주는 표현이나 단정적 미래 예언은 피하세요.")} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
+                        더 따뜻하게
                       </button>
                       <button type="button" onClick={handleRegeneratePrompt} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
                         ↺ 같은 카드로 다시 엮기

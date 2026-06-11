@@ -9,6 +9,25 @@ type OraclePromptResult = {
   effectiveQuestion: string;
 };
 
+type SuitCode = "W" | "C" | "S" | "P";
+
+type SpreadAnalysis = {
+  total: number;
+  majorCount: number;
+  courtCount: number;
+  suitCounts: Record<SuitCode, number>;
+  uprightCount: number;
+  reversedCount: number;
+  repeatedSuits: string[];
+  tone: string;
+  firstCard: DrawnTarotCard | null;
+  lastCard: DrawnTarotCard | null;
+  adviceCard: DrawnTarotCard | null;
+  obstacleCard: DrawnTarotCard | null;
+  outcomeCard: DrawnTarotCard | null;
+  summaryLines: string[];
+};
+
 const ORIENTATION_MEANING: Record<"upright" | "reversed", string> = {
   upright: "정방향: 에너지가 비교적 자연스럽게 발현되는 상태",
   reversed: "역방향: 지연, 과잉, 내면화, 왜곡처럼 에너지가 비틀려 나타나는 상태",
@@ -63,6 +82,30 @@ const MAJOR_EXPERT_LENS: Record<string, string> = {
   M21: "세계: 통합, 완결, 성숙한 귀결",
 };
 
+const SUIT_LABEL: Record<SuitCode, string> = {
+  W: "완드",
+  C: "컵",
+  S: "소드",
+  P: "펜타클",
+};
+
+const CATEGORY_FOCUS: Partial<Record<TarotSpread["category"], string[]>> = {
+  love: ["상대 마음", "관계 흐름", "호감의 온도", "내가 취할 태도", "피해야 할 행동"],
+  reunion: ["연락 가능성", "미련과 정리의 균형", "관계 재정의", "기다림과 행동의 속도", "회복 가능한 소통 방식"],
+  relationship: ["갈등의 핵심", "말과 행동의 불일치", "관계의 신뢰도", "조율해야 할 경계", "현실적인 대화 방식"],
+  career: ["현재 상황", "기회와 리스크", "나의 강점", "현실적 선택 기준", "다음 행동"],
+  money: ["돈의 흐름", "위험요소", "확장 가능성", "관리해야 할 부분", "현실적 조언"],
+  family: ["가족 안의 반복 패턴", "감정적 거리", "말하지 않은 요구", "내가 지킬 경계", "회복 가능한 대화"],
+  self: ["내면 감정", "반복되는 심리 패턴", "회복 포인트", "자기 보호", "작은 실천"],
+  choice: ["선택 A/B의 기준", "얻는 것과 잃는 것", "내가 감당할 수 있는 현실", "보류가 필요한 지점", "결정 후 행동"],
+  daily: ["오늘의 분위기", "주의할 말과 행동", "기회 신호", "감정 조율", "하루 마무리 조언"],
+  future: ["가까운 흐름", "준비해야 할 변화", "반복될 가능성이 있는 패턴", "내가 바꿀 수 있는 선택", "장기 조언"],
+  special: ["질문의 진짜 의도", "핵심 변수", "숨은 감정", "현실적 대응", "오늘 가능한 조정"],
+  legal: ["감정과 사실의 분리", "리스크 점검", "전문가 상담 필요성", "기록과 준비", "신중한 대응"],
+};
+
+const FORBIDDEN_PHRASES = ["반드시", "무조건", "100%", "끝났다", "절대 안 된다", "망합니다", "합격합니다", "병이 있습니다", "죽음이 보입니다"];
+
 function ensureText(value: string) {
   return String(value || "").trim().replace(/\s+/g, " ");
 }
@@ -104,69 +147,214 @@ function deriveExpertKeywords(card: DrawnTarotCard) {
   ]).slice(0, 8);
 }
 
+function isSuitCode(value: string): value is SuitCode {
+  return value === "W" || value === "C" || value === "S" || value === "P";
+}
+
+function cardLabel(card: DrawnTarotCard | null) {
+  if (!card) return "해당 카드 없음";
+  return `${card.positionLabel} 위치의 ${card.cardNameKo} ${card.orientationLabel}`;
+}
+
+function findCardByPosition(cards: DrawnTarotCard[], patterns: RegExp[]) {
+  return cards.find((card) => {
+    const text = `${card.positionLabel} ${card.positionDescription}`;
+    return patterns.some((pattern) => pattern.test(text));
+  }) || null;
+}
+
+function dominantTone(analysis: Omit<SpreadAnalysis, "tone" | "summaryLines" | "repeatedSuits">) {
+  const scores: Record<string, number> = {
+    "감정 중심": analysis.suitCounts.C,
+    "갈등 중심": analysis.suitCounts.S,
+    "현실 중심": analysis.suitCounts.P,
+    "행동 중심": analysis.suitCounts.W,
+    "전환점 중심": analysis.majorCount,
+  };
+  if (analysis.reversedCount >= Math.ceil(analysis.total / 2)) scores["내면 정체 중심"] = analysis.reversedCount;
+  return Object.entries(scores).sort((a, b) => b[1] - a[1])[0]?.[0] || "균형 조율 중심";
+}
+
+function analyzeSpreadCards(cards: DrawnTarotCard[]): SpreadAnalysis {
+  const suitCounts: Record<SuitCode, number> = { W: 0, C: 0, S: 0, P: 0 };
+  let majorCount = 0;
+  let courtCount = 0;
+  let uprightCount = 0;
+  let reversedCount = 0;
+
+  cards.forEach((card) => {
+    const { normalized, suitCode, rankCode } = cardCodeParts(card.cardCode);
+    if (normalized.startsWith("M")) majorCount += 1;
+    if (isSuitCode(suitCode)) suitCounts[suitCode] += 1;
+    if (Number(rankCode) >= 11 && Number(rankCode) <= 14) courtCount += 1;
+    if (card.orientation === "reversed") reversedCount += 1;
+    else uprightCount += 1;
+  });
+
+  const repeatedSuits = (Object.keys(suitCounts) as SuitCode[])
+    .filter((suit) => suitCounts[suit] >= 2)
+    .map((suit) => `${SUIT_LABEL[suit]} ${suitCounts[suit]}장`);
+  const base = {
+    total: cards.length,
+    majorCount,
+    courtCount,
+    suitCounts,
+    uprightCount,
+    reversedCount,
+    firstCard: cards[0] || null,
+    lastCard: cards[cards.length - 1] || null,
+    adviceCard: findCardByPosition(cards, [/조언/, /최종/, /행동/, /태도/]),
+    obstacleCard: findCardByPosition(cards, [/장애/, /위험/, /막는/, /두려움/, /병목/]),
+    outcomeCard: findCardByPosition(cards, [/결과/, /미래/, /종합/, /가능성/]),
+  };
+  const tone = dominantTone(base);
+  const summaryLines = [
+    `총 ${cards.length}장 중 메이저 아르카나가 ${majorCount}장으로, 질문자가 통제하기 어려운 전환 흐름의 강도를 함께 봅니다.`,
+    `슈트 비율은 완드 ${suitCounts.W}장, 컵 ${suitCounts.C}장, 소드 ${suitCounts.S}장, 펜타클 ${suitCounts.P}장입니다.`,
+    `정방향 ${uprightCount}장, 역방향 ${reversedCount}장으로 흐름의 개방성과 지연/내면화 가능성을 비교합니다.`,
+    `궁정 카드는 ${courtCount}장입니다. 인물, 태도, 관계 역학이 카드 배열에서 얼마나 크게 작동하는지 확인합니다.`,
+    repeatedSuits.length ? `반복되는 슈트: ${repeatedSuits.join(", ")}.` : "반복되는 슈트가 강하지 않아 카드별 포지션 관계를 더 세밀하게 봅니다.",
+    `전체 톤은 ${tone}으로 읽습니다.`,
+    `첫 카드: ${cardLabel(base.firstCard)} / 마지막 카드: ${cardLabel(base.lastCard)}.`,
+    `장애물 카드: ${cardLabel(base.obstacleCard)} / 조언 카드: ${cardLabel(base.adviceCard)} / 결과 카드: ${cardLabel(base.outcomeCard)}.`,
+  ];
+
+  return {
+    ...base,
+    repeatedSuits,
+    tone,
+    summaryLines,
+  };
+}
+
+function reframeQuestion(question: string, category: TarotSpread["category"]) {
+  const normalized = ensureText(question);
+  if (normalized.length >= 12) {
+    return `${normalized}라는 질문을 고객이 현재 무엇을 알고 싶고 어떤 태도를 선택해야 하는지 살피는 상담 질문으로 재정의합니다.`;
+  }
+  const fallback: Partial<Record<TarotSpread["category"], string>> = {
+    love: "상대의 마음과 관계 흐름을 확인하되, 내 감정과 행동 기준을 함께 세우는 질문",
+    reunion: "상대가 다시 움직일 가능성과 내가 어떤 태도로 기다리거나 움직이면 좋을지를 보는 질문",
+    career: "지금 일의 부담과 새로운 기회의 현실성을 함께 비교하는 질문",
+    money: "현재 돈의 흐름과 관리해야 할 위험요소를 현실적으로 점검하는 질문",
+    choice: "두 선택지의 장단점과 내가 감당할 수 있는 기준을 확인하는 질문",
+    self: "내 마음의 반복 패턴과 회복에 필요한 태도를 살피는 질문",
+  };
+  return fallback[category] || "짧거나 모호한 질문을 고객의 의도를 추정하되 확정하지 않고, 상담 가능한 형태로 부드럽게 넓힌 질문";
+}
+
+function relationshipSignals(cards: DrawnTarotCard[], analysis: SpreadAnalysis) {
+  const lines = [
+    `시작 카드와 마지막 카드의 흐름: ${cardLabel(analysis.firstCard)}에서 시작해 ${cardLabel(analysis.lastCard)}로 이어지므로, 첫 인상과 최종 조언의 온도 차이를 비교하세요.`,
+  ];
+  if (analysis.obstacleCard && analysis.adviceCard) {
+    lines.push(`장애물과 조언의 관계: ${cardLabel(analysis.obstacleCard)}가 막는 지점을 ${cardLabel(analysis.adviceCard)}의 태도로 조절할 수 있는지 봅니다.`);
+  }
+  if (analysis.outcomeCard && analysis.adviceCard && analysis.outcomeCard !== analysis.adviceCard) {
+    lines.push(`결과 위치와 조언 위치가 다르면 결과를 단정하지 말고, 조언을 따랐을 때 흐름이 어떻게 달라질 수 있는지 설명하세요.`);
+  }
+  if (analysis.suitCounts.C > 0 && analysis.suitCounts.P > 0) {
+    lines.push("감정 카드와 현실 카드가 함께 있으므로 마음의 온도와 실제 조건의 균형을 반드시 함께 읽습니다.");
+  }
+  if (analysis.suitCounts.S >= 2) {
+    lines.push("소드가 반복되면 말, 판단, 거리두기, 오해 가능성을 핵심 갈등 축으로 다룹니다.");
+  }
+  if (analysis.majorCount >= Math.ceil(cards.length / 2)) {
+    lines.push("메이저 아르카나 비율이 높으면 고객이 즉시 통제하기 어려운 큰 전환 흐름을 인정하되, 오늘 선택할 수 있는 작은 행동으로 내려옵니다.");
+  }
+  return lines;
+}
+
 export function buildOraclePrompt(spread: TarotSpread, question: string, drawnCards: DrawnTarotCard[]): OraclePromptResult {
   const effectiveQuestion = ensureText(question) || DEFAULT_QUESTION_BY_CATEGORY[spread.category];
-  const cardFlow = drawnCards.map((card) => `${card.cardNameKo} ${card.orientationLabel}`).join(", ");
+  const analysis = analyzeSpreadCards(drawnCards);
+  const categoryFocus = CATEGORY_FOCUS[spread.category] || CATEGORY_FOCUS.special || [];
+  const reframedQuestion = reframeQuestion(effectiveQuestion, spread.category);
+  const cardFlow = drawnCards.map((card) => `${card.positionLabel}의 ${card.cardNameKo} ${card.orientationLabel}`).join(", ");
   const cardDigest = drawnCards.map((card, index) => {
     const expertKeywords = deriveExpertKeywords(card);
-    return `${index + 1}. ${card.positionLabel} - ${card.cardNameKo} (${card.orientationLabel}) | 신탁 단서: ${expertKeywords.join(" | ")}`;
+    return [
+      `${index + 1}. ${card.positionLabel} - ${card.positionDescription}`,
+      `카드: ${card.cardNameKo}`,
+      `방향: ${card.orientationLabel}`,
+      `상담 단서: ${expertKeywords.join(" | ")}`,
+    ].join("\n");
   });
   const guidance = [
-    "먼저 질문의 숨은 정서를 짧게 짚고, 포지션 질문과 카드 상징을 한 호흡으로 연결합니다.",
-    "정방향은 자연스럽게 열리는 문, 역방향은 아직 잠겨 있거나 과해진 문으로 읽어 단정 없이 풀이합니다.",
-    "메이저 아르카나는 운명의 큰 날씨로, 마이너 아르카나는 오늘의 말·행동·선택으로 번역합니다.",
-    "완드는 행동, 컵은 감정, 소드는 생각과 경계, 펜타클은 현실 조건을 비추는 축으로 사용합니다.",
-    "랭크는 흐름의 나이와 속도입니다. 시작, 갈등, 회복, 마무리의 감각을 시간 문장으로 풀어냅니다.",
-    "속마음, 재회, 미래 질문은 확정 예언 대신 가능성 A/B와 지금 바꿀 수 있는 선택을 함께 제시합니다.",
-    "각 카드 해석은 질문자가 오늘 붙잡을 수 있는 작은 행동 하나로 닫습니다.",
-    "문체는 신비롭되 선명하게, 따뜻하되 현실적으로 유지하고 공포 유도와 운명 단정은 피합니다.",
+    "카드의 일반적인 의미보다 해당 카드가 놓인 위치의 의미를 우선합니다.",
+    "각 카드를 따로 설명하는 데서 끝내지 말고 전체 배열의 흐름을 하나의 상담 이야기로 연결합니다.",
+    "메이저 아르카나 비율, 슈트 반복, 정방향/역방향 비율, 숫자 흐름, 궁정 카드 여부를 종합합니다.",
+    "현재 위치, 장애물 위치, 숨은 원인 위치, 조언 위치, 결과 위치의 관계를 비교합니다.",
+    "연애 질문은 상대 마음을 단정하지 말고 카드가 보여주는 정서적 가능성과 관계 흐름으로 설명합니다.",
+    "직업/금전 질문은 현실 조건, 리스크, 준비도, 실행 타이밍을 함께 설명합니다.",
+    "연애운과 미래 흐름은 확정 미래가 아니라 현재 패턴과 선택에 따라 달라질 수 있는 가능성으로 설명합니다.",
+    "고객에게 공포를 주거나 운명을 단정하지 않습니다.",
+    "법률, 의료, 투자, 생명·사망, 임신, 합격 여부 등은 확정적으로 말하지 말고 참고용 조언으로만 표현합니다.",
+    `다음 단정 표현을 피합니다: ${FORBIDDEN_PHRASES.join(", ")}.`,
+    "마지막에는 고객이 오늘부터 실제로 할 수 있는 행동 조언을 2~3개 제시합니다.",
   ];
-  const summary = `${spread.title} 위에 ${cardFlow} 흐름이 놓였습니다. 이 오라클 원고는 ${CATEGORY_LABEL[spread.category]} 질문을 카드의 상징, 방향, 포지션, 현실 선택까지 이어지는 하나의 리딩 문장으로 펼칩니다.`;
-
-  const interpretationMethod = [
-    "카드별 리딩: 포지션이 묻는 질문, 카드의 원형 상징, 방향이 바꾸는 뉘앙스, 지금 가능한 행동을 순서대로 씁니다.",
-    "교차 리딩: 첫 카드가 연 문과 마지막 카드가 닫는 문이 서로 맞물리는지 먼저 봅니다.",
-    "주의 리딩: 소드와 펜타클 역방향이 강하면 말의 오해와 현실 조건의 충돌을 부드럽게 경고합니다.",
-    "기회 리딩: 컵과 완드 정방향이 강하면 마음의 회복과 행동 추진을 현실적인 속도로 제안합니다.",
-  ];
+  const summary = `${spread.title} 위에 ${cardFlow} 흐름이 놓였습니다. 이 상담 프롬프트는 ${CATEGORY_LABEL[spread.category]} 질문을 포지션 의미, 카드 방향, 카드 간 관계, 안전 표현 기준까지 묶어 실제 상담 원고로 펼칩니다.`;
+  const relationLines = relationshipSignals(drawnCards, analysis);
 
   const prompt = [
-    "당신은 카드를 과장하지 않고, 질문자의 마음을 조용히 밝혀 주는 한국어 타로 리더입니다. 상징은 신비롭게 풀되 결론은 현실의 선택으로 내려놓습니다.",
+    "당신은 실제 고객을 상담하는 전문 타로 리더입니다.",
     "",
-    "[질문]",
+    "고객의 질문은 다음과 같습니다.",
+    "",
+    "[고객 질문]",
     effectiveQuestion,
     "",
-    "[스프레드의 문]",
-    `이름: ${spread.title}`,
-    `카테고리: ${CATEGORY_LABEL[spread.category]}`,
-    `카드 수: ${spread.cardCount}`,
-    `목적: ${spread.purpose}`,
+    "이 질문은 단순히 카드 뜻을 설명하는 것이 아니라, 고객이 현재 어떤 상황에서 무엇을 알고 싶어 하는지 파악한 뒤 상담하듯이 해석해야 합니다.",
     "",
-    "[포지션과 카드]",
+    "먼저 고객의 질문을 상담 가능한 형태로 재정의하세요.",
+    "질문이 짧거나 모호하다면, 고객의 의도를 추정하되 확정하지 말고 부드럽게 표현하세요.",
+    "",
+    "[질문 재정의]",
+    reframedQuestion,
+    "",
+    "[질문 카테고리]",
+    CATEGORY_LABEL[spread.category],
+    "",
+    "[상담 초점]",
+    ...categoryFocus.map((focus) => `- ${focus}`),
+    "",
+    "[사용한 배열]",
+    `스프레드: ${spread.title}`,
+    `카드 수: ${spread.cardCount}`,
+    `배열 목적: ${spread.purpose}`,
+    "",
+    "[배열 위치와 카드]",
     ...cardDigest,
+    "",
+    "[배열 요약]",
+    ...analysis.summaryLines.map((line) => `- ${line}`),
+    "",
+    "[카드 간 관계 단서]",
+    ...relationLines.map((line) => `- ${line}`),
     "",
     "[방향 해석 기준]",
     `- ${ORIENTATION_MEANING.upright}`,
     `- ${ORIENTATION_MEANING.reversed}`,
     "",
-    "[리딩의 결]",
+    "[해석 원칙]",
     ...guidance.map((rule, index) => `${index + 1}. ${rule}`),
     "",
-    "[카드가 이어지는 방식]",
-    ...interpretationMethod.map((rule, index) => `${index + 1}. ${rule}`),
+    "[출력 형식]",
+    "아래 순서로 상담 결과를 작성하세요.",
     "",
-    "[리딩 원고]",
-    "1. 질문의 속뜻을 한 문단으로 부드럽게 엽니다.",
-    "2. 카드들이 만든 전체 흐름을 핵심 빛 2개와 조심할 그림자 1개로 정리합니다.",
-    "3. 카드별 해석: 포지션의 질문, 카드 상징, 정/역방향의 뉘앙스, 오늘의 선택을 포함합니다.",
-    "4. 핵심 카드끼리 서로 밀고 당기는 관계를 해석합니다.",
-    "5. 지금 놓치면 안 되는 진실을 한 문단으로 남깁니다.",
-    "6. 24시간, 7일, 30일 단위의 작은 선택 3가지를 제안합니다.",
-    "7. 질문자가 마음에 품고 나갈 한 문장을 건넵니다.",
+    "1. 질문의 핵심 요약",
+    "2. 전체 배열에서 보이는 큰 흐름",
+    "3. 카드별 위치 해석",
+    "4. 카드 간 관계 종합",
+    "5. 현재 가장 중요한 메시지",
+    "6. 조심해야 할 점",
+    "7. 현실적인 행동 조언",
+    "8. 마지막 한마디",
     "",
     "[목소리]",
-    "운명론적이거나 자극적인 문장을 피하고, 위로와 현실 감각을 함께 유지합니다.",
-    "질문자의 주도권을 강화하는 문장을 우선하며, 관계를 단정하는 문장은 금지합니다.",
+    "문체는 따뜻하고 신뢰감 있는 상담체로 작성하세요.",
+    "카드 이름을 기계적으로 나열하지 말고, 실제 타로 상담사가 고객 앞에서 설명하듯 자연스럽게 말하세요.",
+    "달빛과 별빛 같은 Code:Destiny의 섬세한 톤은 유지하되, 과장되거나 공포를 주는 표현은 피하세요.",
   ].join("\n");
 
   return {

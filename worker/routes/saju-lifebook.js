@@ -375,12 +375,12 @@ const LIFEBOOK_LLM_MODEL_ENV_KEYS = [
   "GEMINI_MODEL",
 ];
 export const LIFE_BOOK_PDF_CONFIG = Object.freeze({
-  generationMode: "local",
+  generationMode: "local-assembled",
   llmEnabled: false,
-  provider: "none",
-  templateVersion: "life-book-local-v1",
+  provider: "saju-assembler",
+  templateVersion: "life-book-assembled-v2",
 });
-const LIFEBOOK_AUTHORING_MODE = "local";
+const LIFEBOOK_AUTHORING_MODE = "local-assembled";
 const LIFEBOOK_LOCAL_WRITING_STATE = "local_writing";
 const LIFEBOOK_LLM_WRITING_STATE = LIFEBOOK_LOCAL_WRITING_STATE;
 
@@ -393,8 +393,13 @@ function isLifeBookLlmOnlyAuthoringMode(value) {
   return clean(value).toLowerCase() === "llm-only";
 }
 
+function isLifeBookLocalAssemblyMode(value = LIFE_BOOK_PDF_CONFIG.generationMode) {
+  const mode = clean(value).toLowerCase();
+  return ["local", "local-assembled", "assembled", "deterministic", "deterministic-assembled"].includes(mode);
+}
+
 function resolveLifeBookLlmRuntimeInfo(env = {}) {
-  if (LIFE_BOOK_PDF_CONFIG.generationMode === "local" || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) {
+  if (isLifeBookLocalAssemblyMode() || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) {
     return {
       provider: LIFE_BOOK_PDF_CONFIG.provider,
       selectedModel: "",
@@ -433,7 +438,7 @@ function resolveLifeBookLlmRuntimeInfo(env = {}) {
 }
 
 function isLifeBookLlmEnhancementEnabled(env = {}) {
-  if (LIFE_BOOK_PDF_CONFIG.generationMode === "local" || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) return false;
+  if (isLifeBookLocalAssemblyMode() || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) return false;
   const raw = clean(
     env?.LIFE_BOOK_LLM_ENHANCEMENT_ENABLED
     ?? env?.LIFEBOOK_LLM_ENHANCEMENT_ENABLED
@@ -443,7 +448,7 @@ function isLifeBookLlmEnhancementEnabled(env = {}) {
 }
 
 function shouldEnhanceLifeBookChapter(chapterSpec = {}) {
-  if (LIFE_BOOK_PDF_CONFIG.generationMode === "local" || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) return false;
+  if (isLifeBookLocalAssemblyMode() || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) return false;
   return LIFE_BOOK_LLM_ENHANCED_CHAPTERS.includes(clean(chapterSpec?.id));
 }
 
@@ -2179,7 +2184,7 @@ function sanitizeLifeBookChapters(profile, signals, chapters = [], options = {})
       localDraft: chapterText,
       finalText: chapterText,
       text: chapterText,
-      source: clean(chapter?.source) || "local-only",
+      source: clean(chapter?.source) || "assembled",
       chapterMergeSource: clean(chapter?.chapterMergeSource),
       chapterMergeErrors: Array.isArray(chapter?.chapterMergeErrors) ? chapter.chapterMergeErrors : [],
       chapterQualityReviewSource: clean(chapter?.chapterQualityReviewSource),
@@ -2433,7 +2438,7 @@ function repairLifeBookQualityIssues(profile, signals, chapters = [], qualityRep
       localDraft: chapterText,
       finalText: chapterText,
       text: chapterText,
-      source: "local-only",
+      source: "assembled",
     };
   });
 
@@ -3603,8 +3608,8 @@ function reinforceLifeBookChapterDeterministically(profile, signals, chapter = {
 
 async function callLifeBookGemini(env, prompt, options = {}) {
   const llmRuntime = resolveLifeBookLlmRuntimeInfo(env);
-  if (LIFE_BOOK_PDF_CONFIG.generationMode === "local" || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) {
-    throw Object.assign(new Error("Life Book PDF local generation mode blocks external LLM calls."), {
+  if (isLifeBookLocalAssemblyMode() || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) {
+    throw Object.assign(new Error("Life Book PDF assembled generation mode blocks external LLM calls."), {
       code: "LIFEBOOK_LLM_DISABLED",
       status: 503,
       llmRuntime,
@@ -5144,7 +5149,7 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
   const normalizedData = llmInput?.lifeBookMasterJson?.normalizedData || llmInput?.normalizedData || null;
   const localChapters = buildLifeBookChapters(profile, signals, normalizedData);
   const llmRuntime = resolveLifeBookLlmRuntimeInfo(env);
-  const localMode = LIFE_BOOK_PDF_CONFIG.generationMode === "local" || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true;
+  const localMode = isLifeBookLocalAssemblyMode() || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true;
   const enhancementEnabled = localMode ? false : Boolean(llmRuntime.enhancementEnabled && llmRuntime.keyConfigured);
   const llmEnhancedChapterIds = [];
   const llmFallbackChapterIds = [];
@@ -5187,7 +5192,7 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
       chapter: {
         ...localChapter,
         chapterPlan,
-        source: "local-complete",
+        source: "assembled-complete",
       },
       summary: summarizeLifeBookChapter(localChapter),
       deterministicReinforced: true,
@@ -5268,7 +5273,7 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
   const finalManuscriptMarkdown = buildLifeBookPhase6DeterministicFinalManuscript(profile, sanitized);
   const finalManuscriptValidation = validateLifeBookPhase6FinalManuscriptMarkdown(finalManuscriptMarkdown, sanitized);
   const finalQualityReview = patchLifeBookPhase6FinalQualityRequirements(finalManuscriptMarkdown, sanitized);
-  const finalQualityReviewPassed = localMode ? true : Boolean(finalQualityReview.validation?.ok);
+  const finalQualityReviewPassed = Boolean(finalQualityReview.validation?.ok);
   return {
     chapters: sanitized,
     chapterPlans,
@@ -5287,7 +5292,7 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
     finalQualityReviewErrors: finalQualityReviewPassed ? [] : (finalQualityReview.validation?.errors || []),
     finalQualityReviewWarnings: Array.from(new Set([
       ...(finalQualityReview.validation?.warnings || []),
-      ...(localMode && Array.isArray(finalQualityReview.validation?.errors) ? finalQualityReview.validation.errors.map((error) => `local_review_nonblocking:${error}`) : []),
+      ...(localMode && Array.isArray(finalQualityReview.validation?.errors) ? finalQualityReview.validation.errors.map((error) => `assembled_review_issue:${error}`) : []),
     ])),
     deterministicReinforcedCount,
     authoringMode: LIFEBOOK_AUTHORING_MODE,
@@ -5302,7 +5307,7 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
     llmFallbackChapterIds,
     llmCacheHitChapterIds,
     manuscriptSource: [
-      localMode ? LIFE_BOOK_PDF_CONFIG.templateVersion : (enhancementEnabled ? "hybrid-chapter-enhancement" : "local-template"),
+      localMode ? LIFE_BOOK_PDF_CONFIG.templateVersion : (enhancementEnabled ? "hybrid-chapter-enhancement" : "assembled-template"),
       llmEnhancedChapterIds.length ? `llm-chapters:${llmEnhancedChapterIds.join(",")}` : "",
       llmFallbackChapterIds.length ? `fallback-chapters:${llmFallbackChapterIds.join(",")}` : "",
       "deterministic-full-manuscript",
@@ -5328,7 +5333,7 @@ function calculateSajuLocally({ birthInput = {}, profile = {}, body = {}, sessio
     localSajuJson = repairLifeBookLocalSajuJson(localSajuJson, birthInput, profile, signals);
     localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
     if (!localSajuValidation.ok) {
-      throw Object.assign(new Error("?몄깮??梨??앹꽦???꾩슂???앸뀈?붿씪???뺣낫瑜??뺤씤?????놁뒿?덈떎."), {
+      throw Object.assign(new Error("인생의 책 생성에 필요한 생년월일시 정보를 확인할 수 없습니다."), {
         code: "LIFEBOOK_LOCAL_SAJU_INVALID",
         status: 422,
         details: localSajuValidation,
@@ -5348,7 +5353,7 @@ function calculateSajuLocally({ birthInput = {}, profile = {}, body = {}, sessio
     jsonContractValidation = validateLifeBookJsonContract({ birthInput, localSajuJson });
   }
   if (!jsonContractValidation.ok) {
-    throw Object.assign(new Error("?몄깮??梨?JSON 怨꾩궛 ?곗씠?곌? ?앹꽦 湲곗???異⑹”?섏? 紐삵뻽?듬땲?? 異쒖깮 ?뺣낫? ?ъ＜ 怨꾩궛 寃곌낵瑜??ㅼ떆 ?뺤씤??二쇱꽭??"), {
+    throw Object.assign(new Error("인생의 책 계산 데이터가 생성 기준을 충족하지 못했습니다. 출생 정보와 사주 계산 결과를 다시 확인해 주세요."), {
       code: "LIFEBOOK_JSON_CONTRACT_INVALID",
       status: 422,
       details: jsonContractValidation,
@@ -5868,7 +5873,7 @@ function normalizeLifeBookInput({ birthInput = {}, profile = {}, signals = {}, l
     engineContract: llmInput.engineContract,
   });
   if (!engineContractValidation.ok) {
-    throw Object.assign(new Error("?몄깮??梨??붿쭊 怨꾩빟 JSON???앹꽦 湲곗???異⑹”?섏? 紐삵뻽?듬땲?? 怨꾩궛 ?곗씠?곕? 蹂닿컯?????ㅼ떆 ?앹꽦??二쇱꽭??"), {
+    throw Object.assign(new Error("인생의 책 계산 계약이 생성 기준을 충족하지 못했습니다. 계산 데이터를 보강한 뒤 다시 생성해 주세요."), {
       code: "LIFEBOOK_ENGINE_CONTRACT_INVALID",
       status: 422,
       details: engineContractValidation,
@@ -5882,7 +5887,7 @@ function normalizeLifeBookInput({ birthInput = {}, profile = {}, signals = {}, l
   llmInput.engineContract.canonicalSajuChart = canonicalSajuChart;
   localSajuJson.canonicalSajuChart = canonicalSajuChart;
   if (!canonicalValidation.ok) {
-    throw Object.assign(new Error("?몄깮??梨?canonical ?ъ＜ JSON???앹꽦 湲곗???異⑹”?섏? 紐삵뻽?듬땲?? 怨꾩궛 ?곗씠?곕? 蹂닿컯?????ㅼ떆 ?앹꽦??二쇱꽭??"), {
+    throw Object.assign(new Error("인생의 책 표준 사주 구조가 생성 기준을 충족하지 못했습니다. 계산 데이터를 보강한 뒤 다시 생성해 주세요."), {
       code: "LIFEBOOK_CANONICAL_JSON_INVALID",
       status: 422,
       details: canonicalValidation,
@@ -5891,7 +5896,7 @@ function normalizeLifeBookInput({ birthInput = {}, profile = {}, signals = {}, l
 
   const chapterEvidenceCoverage = buildLifeBookChapterEvidenceCoverage(llmInput.engineContract?.chapterPlans || buildLifeBookChapterPlans(), llmInput.engineContract);
   if (!chapterEvidenceCoverage.ok) {
-    throw Object.assign(new Error("?몄깮??梨?梨뺥꽣蹂?JSON 洹쇨굅媛 異⑸텇?섏? ?딆뒿?덈떎. 怨꾩궛 ?곗씠?곕? 蹂닿컯?????ㅼ떆 ?앹꽦??二쇱꽭??"), {
+    throw Object.assign(new Error("인생의 책 챕터별 계산 근거가 충분하지 않습니다. 계산 데이터를 보강한 뒤 다시 생성해 주세요."), {
       code: "LIFEBOOK_CHAPTER_EVIDENCE_INSUFFICIENT",
       status: 422,
       details: chapterEvidenceCoverage,
@@ -5996,7 +6001,7 @@ async function composeLifeBookChapters(normalized = {}, { env = {}, sessionId = 
     blockingErrors: structureValidation.blockingErrors,
   });
   if (!structureValidation.ok) {
-    throw Object.assign(new Error("?몄깮??梨??먭퀬???꾩닔 援ъ“瑜??꾩꽦?섏? 紐삵뻽?듬땲??"), {
+    throw Object.assign(new Error("인생의 책 원고의 필수 구조를 완성하지 못했습니다."), {
       code: "LIFEBOOK_STRUCTURE_INVALID",
       status: 422,
       details: structureValidation,
@@ -6024,7 +6029,7 @@ async function composeLifeBookChapters(normalized = {}, { env = {}, sessionId = 
     .filter(Boolean);
 
   if (finalQualityBlockingWarnings.length) {
-    throw Object.assign(new Error("?몄깮??梨??먭퀬 ?덉쭏 湲곗???異⑹”?섏? 紐삵뻽?듬땲?? ?듭떖 ?먭퀬瑜?蹂닿컯?????ㅼ떆 ?앹꽦??二쇱꽭??"), {
+    throw Object.assign(new Error("인생의 책 원고 품질 기준을 충족하지 못했습니다. 핵심 원고를 보강한 뒤 다시 생성해 주세요."), {
       code: "LIFEBOOK_QUALITY_BLOCKED",
       status: 422,
       details: {
@@ -6036,7 +6041,7 @@ async function composeLifeBookChapters(normalized = {}, { env = {}, sessionId = 
   }
 
   if (!generatedLifeBook.finalQualityReviewPassed) {
-    throw Object.assign(new Error("?몄깮??梨?理쒖쥌 寃??湲곗????듦낵?섏? 紐삵뻽?듬땲?? ?먭퀬瑜?蹂닿컯?????ㅼ떆 ?앹꽦??二쇱꽭??"), {
+    throw Object.assign(new Error("인생의 책 최종 검수 기준을 통과하지 못했습니다. 원고를 보강한 뒤 다시 생성해 주세요."), {
       code: "LIFEBOOK_FINAL_QUALITY_REVIEW_FAILED",
       status: 422,
       details: {
@@ -7337,7 +7342,7 @@ function buildLifeBookChapters(profile, signals, normalizedData = null) {
       localDraft,
       finalText: localDraft,
       text: localDraft,
-      source: "local-only",
+      source: "assembled",
     };
   });
 }
@@ -7354,7 +7359,7 @@ function buildLifeBookChapterStructureTable(chapterTitle = "", categories = []) 
       section,
       Array.isArray(categories) && categories.some((category) => clean(category?.title) === clean(section))
         ? "계산값을 상담 문장으로 풀어 PDF 본문에 반영합니다."
-        : "해당 섹션은 로컬 원고 조립 과정에서 보강됩니다.",
+        : "해당 섹션은 상담 원고 구성 과정에서 보강됩니다.",
     ]),
   ];
   return [
@@ -7497,7 +7502,7 @@ function buildLifeBookFallbackChapters(profile, signals, chapters = []) {
     ...chapter,
     finalText: buildChapterBody(chapter.title, chapter.categories, chapter.chapterOpening),
     text: buildChapterBody(chapter.title, chapter.categories, chapter.chapterOpening),
-    source: "local-only",
+    source: "assembled",
   }));
 }
 
@@ -7607,7 +7612,7 @@ function ensureCompleteLifeBookChapters(profile, signals, chapters = [], options
       localDraft: chapterText,
       finalText: stripForbiddenTokens(chapterText),
       text: stripForbiddenTokens(chapterText),
-      source: clean(chapter?.source) || (llmOnly ? "gemini-section" : "local-only"),
+      source: clean(chapter?.source) || (llmOnly ? "gemini-section" : "assembled"),
       chapterMergeSource: clean(chapter?.chapterMergeSource),
       chapterMergeErrors: Array.isArray(chapter?.chapterMergeErrors) ? chapter.chapterMergeErrors : [],
       chapterQualityReviewSource: clean(chapter?.chapterQualityReviewSource),
@@ -8202,7 +8207,7 @@ function buildPdfReadyPayloadClean(profile, chapters, metadata = {}) {
       chapterQualityReviewErrors: chapter.chapterQualityReviewErrors || [],
       categories: chapter.categories,
       text: chapter.text,
-      source: chapter.source || "local-only",
+      source: chapter.source || "assembled",
     })),
   };
 }
@@ -8239,8 +8244,41 @@ function buildPdfReadyPayload(profile, chapters, metadata = {}) {
       chapterQualityReviewErrors: chapter.chapterQualityReviewErrors || [],
       categories: chapter.categories,
       text: chapter.text,
-      source: chapter.source || "local-only",
+      source: chapter.source || "assembled",
     })),
+  };
+}
+
+function validateLifeBookPdfCompletionPayload({ pdfReady = {}, chapters = [] } = {}) {
+  const errors = [];
+  const html = String(pdfReady?.html || "").trim();
+  const downloadUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || "");
+  if (!html) errors.push("pdf_html_missing");
+  if (!downloadUrl) errors.push("pdf_download_url_missing");
+
+  const structure = validateLifeBookStructure(chapters);
+  if (!structure.ok) errors.push(...structure.blockingErrors);
+
+  const quality = evaluateLifeBookQuality(chapters);
+  const blockingWarnings = (Array.isArray(quality.warningItems) ? quality.warningItems : [])
+    .filter((item) => clean(item?.severity) === "high")
+    .map((item) => clean(item?.code))
+    .filter(Boolean);
+  if (blockingWarnings.length) errors.push(...blockingWarnings);
+
+  const visibleText = html
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<[^>]+>/g, " ");
+  if (/\b(?:undefined|null|nan|fallback|llm|json|schema|debug|prompt)\b|\[object Object\]|�|\?몄깮|梨|자동\s*복구\s*생성|데이터\s*부족|로컬\s*엔진|템플릿|internal\s*server\s*error|about:blank/i.test(visibleText)) {
+    errors.push("pdf_body_forbidden_text");
+  }
+
+  return {
+    ok: errors.length === 0,
+    errors: Array.from(new Set(errors)),
+    structure,
+    quality,
   };
 }
 
@@ -8652,7 +8690,7 @@ async function handlePrepareSync(request, env) {
     llmRuntime,
   } = pipelineResult;
 
-  if (LIFE_BOOK_PDF_CONFIG.generationMode !== "local") {
+  if (!isLifeBookLocalAssemblyMode()) {
   const signals = deriveLocalSignals(profile, body?.sajuData || "", body?.analysisSignals || {});
   let localSajuJson = buildLifeBookLocalSajuJson(birthInput, profile, signals, []);
   let localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
@@ -8919,6 +8957,19 @@ async function handlePrepareSync(request, env) {
   pdfReady.contentType = "application/pdf";
   pdfReady.htmlMimeType = "text/html";
 
+  const pdfCompletionValidation = validateLifeBookPdfCompletionPayload({ pdfReady, chapters: completedChapters });
+  if (!pdfCompletionValidation.ok) {
+    throw Object.assign(new Error("인생의 책 PDF 완료 기준을 충족하지 못했습니다. 원고와 다운로드 구성을 다시 확인해 주세요."), {
+      code: "LIFEBOOK_PDF_COMPLETION_INVALID",
+      status: 422,
+      details: {
+        errors: pdfCompletionValidation.errors,
+        chapterCount: pdfCompletionValidation.structure?.chapterCount,
+        totalLength: pdfCompletionValidation.quality?.totalLength,
+      },
+    });
+  }
+
   const storedUrl = clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl);
   if (!storedUrl) {
     throw Object.assign(new Error("인생의 책 PDF 저장 URL 생성에 실패했습니다."), {
@@ -8958,6 +9009,7 @@ async function handlePrepareSync(request, env) {
     sectionCount: completedChapters.reduce((sum, chapter) => sum + (Array.isArray(chapter?.sectionResults) ? chapter.sectionResults.length : 0), 0),
     qualityWarnings: finalQualityWarnings,
     qualityScore: finalQualityScore,
+    pdfCompletionValidation,
     repairedCategoryCount,
     cacheKey,
     lifeBookPdfCacheKey: cacheKey,
@@ -8987,6 +9039,7 @@ async function handlePrepareSync(request, env) {
       finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
       finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
       finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
+      pdfCompletionValidation,
       generationMode: generatedLifeBook.generationMode || LIFE_BOOK_PDF_CONFIG.generationMode,
       llmEnabled: Boolean(generatedLifeBook.llmEnabled),
       llmProvider: generatedLifeBook.provider || LIFE_BOOK_PDF_CONFIG.provider,
@@ -9045,6 +9098,7 @@ async function handlePrepareSync(request, env) {
     finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
     finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
     finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
+    pdfCompletionValidation,
     generationMode: generatedLifeBook.generationMode || LIFE_BOOK_PDF_CONFIG.generationMode,
     llmEnabled: Boolean(generatedLifeBook.llmEnabled),
     llmProvider: generatedLifeBook.provider || LIFE_BOOK_PDF_CONFIG.provider,

@@ -1,6 +1,6 @@
 import { __lifeBookTestUtils as utils, LIFE_BOOK_PDF_CONFIG } from "../worker/routes/saju-lifebook.js";
 
-const labelPrefix = "lifebook-local-only";
+const labelPrefix = "lifebook-local-assembled";
 const blockedHosts = [
   "generativelanguage.googleapis.com",
   "vertexai.googleapis.com",
@@ -143,10 +143,10 @@ function buildSignals() {
 }
 
 async function run() {
-  assert(LIFE_BOOK_PDF_CONFIG.generationMode === "local", "generation mode must be local");
+  assert(LIFE_BOOK_PDF_CONFIG.generationMode === "local-assembled", "generation mode must be local-assembled");
   assert(LIFE_BOOK_PDF_CONFIG.llmEnabled === false, "llm must be disabled");
-  assert(LIFE_BOOK_PDF_CONFIG.provider === "none", "provider must be none");
-  assert(LIFE_BOOK_PDF_CONFIG.templateVersion === "life-book-local-v1", "template version mismatch");
+  assert(LIFE_BOOK_PDF_CONFIG.provider === "saju-assembler", "provider must be saju-assembler");
+  assert(LIFE_BOOK_PDF_CONFIG.templateVersion === "life-book-assembled-v2", "template version mismatch");
 
   const originalFetch = globalThis.fetch;
   const seenUrls = [];
@@ -156,7 +156,7 @@ async function run() {
     if (blockedHosts.some((host) => url.includes(host))) {
       throw new Error(`[${labelPrefix}] forbidden external LLM fetch: ${url}`);
     }
-    throw new Error(`[${labelPrefix}] unexpected fetch during local generation: ${url}`);
+    throw new Error(`[${labelPrefix}] unexpected fetch during local assembly: ${url}`);
   };
 
   try {
@@ -167,7 +167,7 @@ async function run() {
       LIFE_BOOK_LLM_ENHANCEMENT_ENABLED: "true",
     };
     const runtime = utils.resolveLifeBookLlmRuntimeInfo(envWithKeys);
-    assert(runtime.provider === "none", "runtime provider must remain none even when keys exist");
+    assert(runtime.provider === "saju-assembler", "runtime provider must remain saju-assembler even when keys exist");
     assert(runtime.keyConfigured === false, "runtime keyConfigured must be false");
     assert(runtime.enhancementEnabled === false, "runtime enhancement must be disabled");
     assert(utils.shouldEnhanceLifeBookChapter(utils.CHAPTER_BLUEPRINTS[0]) === false, "chapter enhancement must be disabled");
@@ -183,18 +183,18 @@ async function run() {
       profile: buildProfile(),
       signals: buildSignals(),
       llmInput: {},
-      requestId: "verify-lifebook-local-only",
+      requestId: "verify-lifebook-local-assembled",
     });
 
-    assert(Array.isArray(generated.chapters) && generated.chapters.length === 13, "local generation must return 13 chapters");
-    assert(generated.generationMode === "local", "result generation mode must be local");
+    assert(Array.isArray(generated.chapters) && generated.chapters.length === 13, "local assembly must return 13 chapters");
+    assert(generated.generationMode === "local-assembled", "result generation mode must be local-assembled");
     assert(generated.llmEnabled === false, "result llmEnabled must be false");
-    assert(generated.provider === "none", "result provider must be none");
+    assert(generated.provider === "saju-assembler", "result provider must be saju-assembler");
     assert(generated.llmUsed === false, "result llmUsed must be false");
     assert(Array.isArray(generated.llmEnhancedChapterIds) && generated.llmEnhancedChapterIds.length === 0, "no enhanced chapters allowed");
     assert(Array.isArray(generated.llmFallbackChapterIds) && generated.llmFallbackChapterIds.length === 0, "no llm fallback chapters allowed");
     assert(Array.isArray(generated.llmCacheHitChapterIds) && generated.llmCacheHitChapterIds.length === 0, "no llm cache hits allowed");
-    assert(seenUrls.length === 0, `local generation must not call fetch, got ${seenUrls.join(", ")}`);
+    assert(seenUrls.length === 0, `local assembly must not call fetch, got ${seenUrls.join(", ")}`);
 
     const generatedText = [
       generated.finalManuscriptMarkdown,
@@ -222,20 +222,20 @@ async function run() {
         birthplace: "Seoul",
       },
       body: { analysisSignals: buildSignals() },
-      sessionId: "verify-lifebook-local-only-session",
-      reportId: "verify-lifebook-local-only-report",
-      requestId: "verify-lifebook-local-only-pipeline",
+      sessionId: "verify-lifebook-local-assembled-session",
+      reportId: "verify-lifebook-local-assembled-report",
+      requestId: "verify-lifebook-local-assembled-pipeline",
     });
 
     assert(Array.isArray(pipeline.completedChapters) && pipeline.completedChapters.length === 13, "pipeline must return 13 chapters");
     expectedPhase6Titles.forEach((title, index) => {
       assert(pipeline.completedChapters[index]?.title === title, `pipeline chapter title mismatch: ${index + 1}`);
     });
-    assert(pipeline.generatedLifeBook?.generationMode === "local", "pipeline generation mode must be local");
+    assert(pipeline.generatedLifeBook?.generationMode === "local-assembled", "pipeline generation mode must be local-assembled");
     assert(pipeline.generatedLifeBook?.llmUsed === false, "pipeline llmUsed must be false");
     assert(typeof pipeline.html === "string" && pipeline.html.includes("<!doctype html>"), "pipeline must render html");
     assert(pipeline.pdf?.renderFormat === "pdf-archive", "pipeline pdf render format mismatch");
-    assert(typeof pipeline.cacheKey === "string" && pipeline.cacheKey.includes("life_book_pdf:life-book-local-v1:"), "pipeline cache key missing");
+    assert(typeof pipeline.cacheKey === "string" && pipeline.cacheKey.includes("life_book_pdf:life-book-assembled-v2:"), "pipeline cache key missing");
     assert(typeof pipeline.calculationResultHash === "string" && pipeline.calculationResultHash.length > 0, "pipeline calculation result hash missing");
     assert(pipeline.cacheHit === false, "first pipeline run must render before cache");
     const normalized = pipeline.lifeBookNormalizedData;
@@ -336,9 +336,9 @@ async function run() {
         birthplace: "Seoul",
       },
       body: { analysisSignals: buildSignals() },
-      sessionId: "verify-lifebook-local-only-session-refresh",
-      reportId: "verify-lifebook-local-only-report-refresh",
-      requestId: "verify-lifebook-local-only-pipeline-refresh",
+      sessionId: "verify-lifebook-local-assembled-session-refresh",
+      reportId: "verify-lifebook-local-assembled-report-refresh",
+      requestId: "verify-lifebook-local-assembled-pipeline-refresh",
     });
 
     assert(cachedPipeline.cacheHit === true, "second matching pipeline run must use cache");
@@ -349,7 +349,7 @@ async function run() {
     const cachedLeakedToken = forbiddenPdfText.find((token) => cachedPipeline.finalManuscriptMarkdown.includes(token));
     assert(!cachedLeakedToken, `forbidden cached manuscript text leaked: ${cachedLeakedToken}`);
     assert(!cachedPipeline.html.includes("[object Object]"), "cached pipeline html leaked object text");
-    assert(seenUrls.length === 0, `full local pipeline must not call fetch, got ${seenUrls.join(", ")}`);
+    assert(seenUrls.length === 0, `full local assembly pipeline must not call fetch, got ${seenUrls.join(", ")}`);
   } finally {
     globalThis.fetch = originalFetch;
   }

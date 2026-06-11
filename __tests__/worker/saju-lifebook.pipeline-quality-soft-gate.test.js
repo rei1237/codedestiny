@@ -75,13 +75,13 @@ beforeAll(async () => {
 });
 
 describe("saju lifebook soft quality gate pipeline", () => {
-  test("13장 78카테고리 구조를 기본 생성한다", () => {
+  test("13장 91카테고리 구조를 기본 생성한다", () => {
     const chapters = utils.buildLifeBookChapters(makeProfile(), makeSignals());
     const chapterCount = chapters.length;
     const categoryCount = chapters.reduce((acc, chapter) => acc + (Array.isArray(chapter.categories) ? chapter.categories.length : 0), 0);
 
     expect(chapterCount).toBe(13);
-    expect(categoryCount).toBe(78);
+    expect(categoryCount).toBe(91);
 
     const structure = utils.validateLifeBookStructure(chapters);
     expect(structure.ok).toBe(true);

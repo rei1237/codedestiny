@@ -206,26 +206,25 @@ function assertMode(mode, specs, expectedCount) {
   const pdfReady = loveSecret.buildLoveSecretPdfReady("https://example.test", `love_secret_${mode}_smoke`, chapters, base, mode);
   assert.equal(pdfReady.reportId, `love_secret_${mode}_smoke`, `${mode} report id`);
   assert.equal(pdfReady.mode, mode, `${mode} pdf mode`);
-  assert.equal(pdfReady.title, "연애 비책", `${mode} pdf title`);
+  assert.equal(pdfReady.title, mode === "compatibility" ? "궁합 비책" : "연애 비책", `${mode} pdf title`);
   assert.equal(pdfReady.chapterCount, expectedCount, `${mode} pdf chapter count`);
   assert.ok(Number(pdfReady.sectionCount || 0) >= expectedCount * 5, `${mode} pdf section count`);
   assert.ok(String(pdfReady.generatedAt || "").includes("T"), `${mode} generated timestamp`);
-  assert.ok(String(pdfReady.html || "").includes("<div class=\"brand\">Code</div>"), `${mode} cover brand`);
-  assert.ok(String(pdfReady.html || "").includes("<h1>연애 비책</h1>"), `${mode} cover title`);
-  assert.ok(String(pdfReady.html || "").includes("나의 사주 구조로 읽는 사랑의 패턴"), `${mode} cover subtitle`);
-  assert.ok(String(pdfReady.html || "").includes(mode === "compatibility" ? "궁합 모드" : "솔로 모드"), `${mode} cover mode`);
+  assert.ok(String(pdfReady.html || "").includes("<div class=\"brand\">Code Destiny</div>"), `${mode} cover brand`);
+  assert.ok(String(pdfReady.html || "").includes(mode === "compatibility" ? "<h1>궁합 비책</h1>" : "<h1>연애 비책</h1>"), `${mode} cover title`);
+  assert.ok(String(pdfReady.html || "").includes("사주 구조로 읽는 사랑의 흐름과 실천 전략"), `${mode} cover subtitle`);
+  assert.ok(String(pdfReady.html || "").includes(mode === "compatibility" ? "두 사람 궁합 리포트" : "개인 연애 리포트"), `${mode} cover mode`);
   assert.ok(String(pdfReady.html || "").includes("<nav class=\"toc\"><h2>목차</h2>"), `${mode} toc`);
-  assert.ok(String(pdfReady.html || "").includes("CHAPTER"), `${mode} chapter cover`);
-  assert.ok(String(pdfReady.html || "").includes("연애 성향 요약표"), `${mode} relationship summary table`);
-  assert.ok(String(pdfReady.html || "").includes("오행 기반 애정 표현표"), `${mode} element expression table`);
-  assert.ok(String(pdfReady.html || "").includes("십성 기반 관계 욕구표"), `${mode} ten god need table`);
-  assert.ok(String(pdfReady.html || "").includes("월별 연애운 표"), `${mode} monthly table`);
+  assert.ok(String(pdfReady.html || "").includes("CHAPTER"), `${mode} chapter marker`);
+  assert.ok(String(pdfReady.html || "").includes("핵심 요약 카드"), `${mode} summary section`);
+  assert.ok(String(pdfReady.html || "").includes("사주 근거 해석"), `${mode} evidence section`);
+  assert.ok(String(pdfReady.html || "").includes("실천 조언"), `${mode} action section`);
+  assert.ok(String(pdfReady.html || "").includes("시기별 연애 흐름"), `${mode} timing table`);
   assert.ok(String(pdfReady.html || "").includes("30일"), `${mode} routine table`);
   assert.ok(String(pdfReady.html || "").includes("전체 요약"), `${mode} final summary`);
-  assert.ok(String(pdfReady.html || "").includes("재열람 안내"), `${mode} revisit guide`);
-  if (mode === "compatibility") {
-    assert.ok(String(pdfReady.html || "").includes("두 사람 비교표"), `${mode} comparison table`);
-  }
+  assert.ok(String(pdfReady.html || "").includes("마지막 조언"), `${mode} final advice`);
+  const pdfCompletionValidation = loveSecret.validateLoveSecretPdfCompletionPayload({ pdfReady, chapters: loveSecret.buildLoveSecretAssembledChapters(chapters, base, mode), mode });
+  assert.equal(pdfCompletionValidation.ok, true, `${mode} assembled pdf completion validation ${JSON.stringify(pdfCompletionValidation)}`);
   assert.ok(String(pdfReady.html || "").length > 10000, `${mode} html length`);
   assert.ok(String(pdfReady.downloadUrl || "").includes("/api/premium/pdf-archive/"), `${mode} archive url`);
   assert.ok(String(pdfReady.downloadUrl || "").includes("format=pdf"), `${mode} document render url`);
@@ -499,11 +498,11 @@ function assertLoveSecretPdfCache() {
 async function assertHybridScaffold() {
   externalLlmFetchAttempts = 0;
   assert.deepEqual(loveSecret.LOVE_SECRET_PDF_CONFIG, {
-    generationMode: "local",
+    generationMode: "local-assembled",
     llmEnabled: false,
-    provider: "none",
-    templateVersion: "love-secret-local-v1",
-  }, "love secret pdf config is local-only");
+    provider: "saju-assembler",
+    templateVersion: "love-secret-assembled-v2",
+  }, "love secret pdf config is local assembled");
   assert.equal(loveSecret.isLoveSecretLlmEnhancementEnabled({
     LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "true",
     GEMINI_API_KEY: "test-key",
@@ -578,7 +577,7 @@ async function assertHybridScaffold() {
   assert.equal(loveSecret.validateLoveSecretEnhancedText("짧음", soloPlans[0]).ok, false, "short enhanced text rejected");
 
   const generated = await loveSecret.buildLoveSecretChapters({
-    LOVE_SECRET_PDF_GENERATION_MODE: "local",
+    LOVE_SECRET_PDF_GENERATION_MODE: "local-assembled",
     LOVE_SECRET_PDF_LLM_ENABLED: "false",
     LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "false",
   }, {
@@ -588,7 +587,7 @@ async function assertHybridScaffold() {
     body: { requestId: "smoke-disabled-llm" },
     requestId: "smoke-disabled-llm",
   });
-  assert.equal(generated.manuscriptSource, "local-only", "disabled llm uses local manuscript");
+  assert.equal(generated.manuscriptSource, "assembled", "disabled llm uses assembled manuscript");
   assert.equal(generated.llmEnhancement.enabled, false, "llm disabled flag honored");
   assert.equal(generated.llmEnhancement.attempted, 0, "disabled llm does not attempt enhancement");
   assert.equal(externalLlmFetchAttempts, 0, "disabled llm external fetch attempts");
@@ -602,7 +601,7 @@ async function assertHybridScaffold() {
   assert.ok(generated.loveSecretChapterPlans.every((plan) => Array.isArray(plan.lockedFacts) && plan.lockedFacts.length > 0), "chapter plans carry locked facts");
 
   const generatedWithLlmKeys = await loveSecret.buildLoveSecretChapters({
-    LOVE_SECRET_PDF_GENERATION_MODE: "local",
+    LOVE_SECRET_PDF_GENERATION_MODE: "local-assembled",
     LOVE_SECRET_PDF_LLM_ENABLED: "false",
     LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "true",
     GEMINI_API_KEY: "test-gemini-key",
@@ -616,7 +615,7 @@ async function assertHybridScaffold() {
     body: { requestId: "smoke-llm-env-forced-local" },
     requestId: "smoke-llm-env-forced-local",
   });
-  assert.equal(generatedWithLlmKeys.manuscriptSource, "local-only", "llm env keys still use local manuscript");
+  assert.equal(generatedWithLlmKeys.manuscriptSource, "assembled", "llm env keys still use assembled manuscript");
   assert.equal(generatedWithLlmKeys.fallbackUsed, false, "llm disabled path is not a failure fallback");
   assert.equal(generatedWithLlmKeys.llmEnhancement.enabled, false, "llm env enable flag is ignored");
   assert.equal(generatedWithLlmKeys.llmEnhancement.attempted, 0, "llm env keys do not attempt enhancement");
@@ -632,7 +631,7 @@ async function assertHybridScaffold() {
   assertNoUnsafeRenderedText(generatedWithLlmKeys.chapters, "llm env keys");
 
   const generatedCompatibility = await loveSecret.buildLoveSecretChapters({
-    LOVE_SECRET_PDF_GENERATION_MODE: "local",
+    LOVE_SECRET_PDF_GENERATION_MODE: "local-assembled",
     LOVE_SECRET_PDF_LLM_ENABLED: "false",
     LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "true",
     GEMINI_API_KEY: "test-gemini-key",
@@ -643,7 +642,7 @@ async function assertHybridScaffold() {
     body: { requestId: "smoke-compatibility-forced-local" },
     requestId: "smoke-compatibility-forced-local",
   });
-  assert.equal(generatedCompatibility.manuscriptSource, "local-only", "compatibility uses local manuscript");
+  assert.equal(generatedCompatibility.manuscriptSource, "assembled", "compatibility uses assembled manuscript");
   assert.equal(generatedCompatibility.llmEnhancement.enabled, false, "compatibility llm disabled");
   assert.equal(generatedCompatibility.llmEnhancement.attempted, 0, "compatibility does not attempt llm enhancement");
   assert.equal(externalLlmFetchAttempts, 0, "compatibility external fetch attempts");

@@ -221,10 +221,18 @@ function resolveSubscriptionPolicy(user) {
 }
 
 function canCreateProfileWithinSubscriptionLimit(subscription, currentCount) {
-  if (subscription?.isActive && String(subscription?.tier || "").toLowerCase() === "family") return true;
-  const limit = Math.max(1, Math.floor(Number(subscription?.profileLimit || 1)));
+  const limit = resolveProfileLimitForClient(subscription);
+  if (limit <= 0) return true;
   const count = Math.max(0, Math.floor(Number(currentCount || 0)));
   return count < limit;
+}
+
+function resolveProfileLimitForClient(subscription) {
+  const tier = String(subscription?.tier || "").trim().toLowerCase();
+  if (subscription?.isActive && tier === "family") return 0;
+  const rawLimit = Number(subscription?.profileLimit);
+  if (Number.isFinite(rawLimit) && rawLimit > 0) return Math.floor(rawLimit);
+  return 1;
 }
 
 function getRemainingProfileActionCoins(user) {
@@ -258,6 +266,7 @@ function resolveStoredSubscriptionTier(user = {}) {
       const text = String(value || "").trim().toLowerCase();
       if (!text || text === "free" || text === "none") continue;
       if (text === "gold" || text === "vvip" || text.includes("vvip") || text.includes("꿀단지")) return "vvip";
+      if (text.includes("family")) return "family";
       if (text === "silver" || text === "premium" || text.includes("premium") || text.includes("프리미엄")) return "premium";
       if (text === "bronze" || text === "standard" || text.includes("standard") || text.includes("스탠다드")) return "standard";
     }
@@ -312,7 +321,7 @@ function resolveCurrentId(rawCurrentId, profiles) {
 }
 
 function resolveSingleProfileAccess(user, profiles, subscription) {
-  const profileLimit = Number(subscription?.profileLimit || 1);
+  const profileLimit = resolveProfileLimitForClient(subscription);
   const isSingleMode = false;
   const savedCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
 
@@ -694,14 +703,10 @@ async function ensureProfileDeleteAuthorized(auth, { action, profileId, body }) 
 
   let evidence = evidenceResult.evidence || null;
   if (!evidence) {
-    const payment = await ensureProfileMutationPayment(auth, { action, profileId, requestId });
-    if (!payment.ok) {
-      return {
-        ok: false,
-        response: profileCardActionPaymentRequiredResponse(action, requestId, profileId, policy),
-      };
-    }
-    evidence = payment.evidence || null;
+    return {
+      ok: false,
+      response: profileCardActionPaymentRequiredResponse(action, requestId, profileId, policy),
+    };
   }
 
   const paidPolicy = await getProfileCardMutationPolicy(auth.userId, profileId, action, { paymentSettled: true });
@@ -1209,7 +1214,7 @@ async function handleUpdateCurrent(request, auth) {
 
   const subscription = resolveSubscriptionPolicy(user);
   const profiles = await listUserProfiles(auth.userId);
-  const profileLimit = Number(subscription.profileLimit || 1);
+  const profileLimit = resolveProfileLimitForClient(subscription);
   const isSingleMode = false;
   const lockedId = resolveCurrentId(user.destinyProfilesLockedCurrentId, profiles);
 

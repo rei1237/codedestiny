@@ -8,29 +8,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Cinzel:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --deep: #04070f;
-  --navy: #060c1e;
-  --ink: #0a1228;
-  --gold: #c9a227;
-  --gold2: #e8c84a;
-  --gold3: #f5e18a;
-  --red: #cc2020;
-  --red2: #e83030;
-  --red3: #ff5540;
-  --redfilm: #d42020;
-  --purple: #7040c0;
-  --purple2: #9060e0;
-  --teal: #1abcaa;
-  --text: #e8d9c0;
-  --text2: rgba(220,205,175,0.62);
-  --text3: rgba(200,185,155,0.38);
-  --border: rgba(200,160,50,0.22);
-  --border2: rgba(200,160,50,0.42);
-  --card: rgba(14,10,30,0.88);
+  --deep:#03050c;
+  --navy:#061128;
+  --ink:#0b1531;
+  --gold:#d5a83a;
+  --gold2:#f0ca62;
+  --gold3:#fff0a7;
+  --red:#ce241d;
+  --red2:#ec3a2f;
+  --red3:#ff7662;
+  --redfilm:#d42020;
+  --purple:#7550c8;
+  --purple2:#a782ee;
+  --teal:#34d6c7;
+  --jade:#8be1b4;
+  --text:#f3e4c8;
+  --text2:rgba(235,218,190,0.68);
+  --text3:rgba(218,200,170,0.48);
+  --border:rgba(213,168,58,0.24);
+  --border2:rgba(240,202,98,0.46);
+  --card:rgba(9,14,33,0.86);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:#000}
-body{font-family:'Noto Sans KR',sans-serif;background:radial-gradient(ellipse at 20% 10%,#0c1635 0%,#060c1e 40%,#030710 100%);color:var(--text);overscroll-behavior:none}
+body{font-family:'Noto Sans KR',sans-serif;background:radial-gradient(ellipse at 24% 8%,rgba(27,54,111,.75) 0%,rgba(6,17,40,.96) 36%,#03050c 100%);color:var(--text);overscroll-behavior:none}
 button{font-family:inherit;cursor:pointer;outline:none;border:none}
 
 /* ── STARS ────────────────────────────────────── */
@@ -41,35 +42,36 @@ button{font-family:inherit;cursor:pointer;outline:none;border:none}
 @keyframes rise{0%{transform:translateY(0) scale(1);opacity:.18}100%{transform:translateY(-120px) scale(1.4);opacity:0}}
 
 /* ── LAYOUT ───────────────────────────────────── */
-#app{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;max-width:480px;margin:0 auto}
-#header{flex:0 0 auto;padding:.55rem 1rem .3rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(200,160,50,0.1)}
-#content{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:.6rem .9rem 0;scrollbar-width:none}
+#app{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;max-width:520px;margin:0 auto;background:linear-gradient(180deg,rgba(4,8,22,.42),rgba(3,5,12,.15))}
+#header{flex:0 0 auto;padding:calc(env(safe-area-inset-top,0px) + .66rem) 1rem .48rem;display:grid;grid-template-columns:1fr auto 1fr;gap:.65rem;align-items:center;border-bottom:1px solid rgba(213,168,58,0.14);backdrop-filter:blur(12px)}
+#content{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:.65rem .9rem 0;scrollbar-width:none}
 #content::-webkit-scrollbar{display:none}
-#navbar{flex:0 0 auto;display:flex;background:rgba(4,6,16,0.97);border-top:1px solid rgba(120,90,200,0.25);padding:.4rem 0 .5rem}
+#navbar{flex:0 0 auto;display:flex;background:rgba(4,6,16,0.9);border-top:1px solid rgba(120,90,200,0.24);padding:.42rem .35rem calc(env(safe-area-inset-bottom,0px) + .55rem);backdrop-filter:blur(14px)}
 
 /* ── HEADER ───────────────────────────────────── */
-.lv-badge{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;border:2px solid;background:rgba(20,12,40,0.85);transition:all .4s}
+.lv-badge{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;border:2px solid;background:radial-gradient(circle at 35% 25%,rgba(255,255,255,.14),rgba(20,12,40,0.86));transition:all .4s;box-shadow:0 0 18px rgba(167,130,238,.18)}
 .title-area{text-align:center}
 .title-en{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.28em;color:var(--gold);opacity:.7;margin-bottom:2px}
-.title-ko{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;background:linear-gradient(90deg,var(--gold),var(--gold3),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.coin-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(20,14,4,0.8);border:1px solid rgba(200,160,40,0.45);border-radius:20px;padding:5px 11px;font-size:13px;font-weight:700;color:var(--gold2)}
+.title-ko{font-family:'Noto Serif KR',serif;font-size:18px;font-weight:800;background:linear-gradient(90deg,var(--gold),var(--gold3),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap}
+.free-badge{justify-self:end;display:inline-flex;align-items:center;gap:5px;background:rgba(12,42,50,0.72);border:1px solid rgba(52,214,199,0.42);border-radius:999px;padding:7px 11px;font-size:11px;font-weight:850;color:#bffcf2;white-space:nowrap;box-shadow:0 0 16px rgba(52,214,199,.12)}
 
 /* ── TABS ─────────────────────────────────────── */
 .tab{display:none}.tab.on{display:block}
-.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:rgba(160,140,210,0.45);font-size:9.5px;padding:.3rem 0;transition:all .2s;font-family:inherit;letter-spacing:.05em}
-.nb.on{color:var(--gold2)}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:rgba(178,160,220,0.52);font-size:10px;padding:.42rem .2rem;border-radius:14px;transition:all .2s;font-family:inherit;letter-spacing:0}
+.nb.on{color:var(--gold2);background:rgba(213,168,58,.1)}
 .nb svg{width:20px;height:20px}
 .nb.on svg{filter:drop-shadow(0 0 4px rgba(200,165,50,0.5))}
 
 /* ── CARDS ────────────────────────────────────── */
-.gc{background:linear-gradient(135deg,rgba(15,18,50,0.9),rgba(10,12,38,0.95));border:1px solid var(--border);border-radius:12px;padding:.85rem 1rem}
+.gc{background:linear-gradient(135deg,rgba(15,22,52,0.88),rgba(9,12,32,0.94));border:1px solid var(--border);border-radius:12px;padding:.85rem 1rem;box-shadow:0 12px 30px rgba(0,0,0,.18)}
 .section-title{font-family:'Noto Serif KR',serif;font-size:14.5px;font-weight:700;background:linear-gradient(90deg,var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.7rem;display:flex;align-items:center;gap:6px}
 .lbg{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin:.4rem 0}
 .lbf{height:100%;border-radius:3px;background:linear-gradient(90deg,#b8890e,#e8c040,#f5df80);transition:width 1s cubic-bezier(.34,1.4,.64,1)}
 .pill{display:inline-flex;align-items:center;gap:4px;border-radius:18px;padding:4px 11px;font-size:11px;cursor:pointer;transition:all .2s;font-weight:500}
 
 /* ── FISH AREA ────────────────────────────────── */
-#fish-stage{position:relative;width:200px;height:200px;margin:0 auto;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;touch-action:none;cursor:pointer}
+#fish-stage{position:relative;width:min(78vw,260px);height:min(78vw,260px);margin:.15rem auto .05rem;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;touch-action:none;cursor:pointer}
+#fish-stage::before{content:'';position:absolute;inset:16px;border-radius:50%;border:1px solid rgba(52,214,199,.14);background:radial-gradient(circle,rgba(255,92,70,.12),rgba(52,214,199,.05) 45%,transparent 72%);box-shadow:inset 0 0 34px rgba(255,92,70,.09),0 0 42px rgba(52,214,199,.08);pointer-events:none}
 .ring{position:absolute;border-radius:50%;border:1px solid;pointer-events:none}
 #rips{position:absolute;width:170px;height:170px;border-radius:50%;overflow:visible;pointer-events:none}
 .rip{position:absolute;border-radius:50%;border:1.5px solid rgba(220,50,30,0.45);animation:rp .9s ease-out forwards}
@@ -120,6 +122,19 @@ button{font-family:inherit;cursor:pointer;outline:none;border:none}
 
 /* dividers */
 .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(200,160,50,0.28),transparent);margin:.7rem 0}
+.fish-ritual-card{position:relative;margin:.15rem 0 .9rem;padding:.9rem .75rem 1rem;border:1px solid rgba(213,168,58,.2);border-radius:22px;background:linear-gradient(180deg,rgba(8,16,38,.78),rgba(7,10,26,.58));box-shadow:0 18px 46px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.05);overflow:hidden}
+.fish-ritual-card::before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,240,167,.78),rgba(52,214,199,.46),transparent);pointer-events:none}
+.fish-oracle-copy{text-align:center;margin:.1rem auto .7rem;display:grid;gap:.18rem}
+.fish-oracle-copy span{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.24em;color:rgba(52,214,199,.82)}
+.fish-oracle-copy strong{font-family:'Noto Serif KR',serif;font-size:16px;line-height:1.35;color:#fff0d0;font-weight:800}
+.fish-tip-row{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin:.55rem auto 0}
+.fish-soft-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(52,214,199,.22);background:rgba(5,29,39,.42);border-radius:999px;padding:5px 9px;font-size:10.5px;font-weight:750;color:rgba(191,252,242,.86)}
+@media (max-width:380px){
+  #header{grid-template-columns:auto 1fr auto;padding-left:.72rem;padding-right:.72rem}
+  .title-ko{font-size:16px}
+  .free-badge{padding:6px 8px;font-size:10px}
+  #content{padding-left:.72rem;padding-right:.72rem}
+}
 </style>
 </head>
 <body>
@@ -131,9 +146,9 @@ button{font-family:inherit;cursor:pointer;outline:none;border:none}
 
   <!-- Header -->
   <div id="header">
-    <div style="display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px;min-width:0">
       <div id="lv-badge" class="lv-badge" style="border-color:#a090d0;color:#a090d0">1</div>
-      <div>
+      <div style="min-width:0">
         <div style="font-size:9px;color:var(--text3);letter-spacing:.08em">친밀도</div>
         <div id="lv-name" style="font-size:11px;font-weight:500;color:#a090d0">새로운 친구</div>
       </div>
@@ -142,7 +157,7 @@ button{font-family:inherit;cursor:pointer;outline:none;border:none}
       <div class="title-en">FORTUNE TELLER</div>
       <div class="title-ko">포춘텔러 물고기</div>
     </div>
-    <div class="coin-badge" id="coin-display">🪙 0</div>
+    <div class="free-badge" id="fish-mode-badge">무료 리딩</div>
   </div>
 
   <!-- Content area -->
@@ -150,6 +165,11 @@ button{font-family:inherit;cursor:pointer;outline:none;border:none}
 
     <!-- ─── FORTUNE TAB ─── -->
     <div class="tab on" id="tab-fortune">
+      <div class="fish-ritual-card" data-marker="fortune-fish-free-ux-v20260611">
+        <div class="fish-oracle-copy">
+          <span>FREE ORACLE</span>
+          <strong>붉은 셀로판 물고기가 오늘의 결을 읽습니다</strong>
+        </div>
       <!-- Category pills -->
       <div id="cat-scroll" style="margin-bottom:.65rem;padding-top:.2rem">
       </div>
@@ -267,9 +287,15 @@ button{font-family:inherit;cursor:pointer;outline:none;border:none}
 
       <!-- Today count info -->
       <p id="today-info" style="text-align:center;font-size:10.5px;color:var(--text3);letter-spacing:.04em;padding-bottom:.8rem"></p>
+      <div class="fish-tip-row" aria-label="포춘텔러 물고기 무료 이용 안내">
+        <span class="fish-soft-chip">무료 리딩</span>
+        <span class="fish-soft-chip">부적 보관</span>
+        <span class="fish-soft-chip">즉시 리딩</span>
+      </div>
+      </div>
     </div>
 
-    <!-- ─── ITEMS TAB (가챠) ─── -->
+    <!-- ─── ITEMS TAB (부적) ─── -->
     <div class="tab" id="tab-items">
       <div id="gacha-ui"></div>
     </div>
@@ -282,10 +308,10 @@ button{font-family:inherit;cursor:pointer;outline:none;border:none}
       <div id="intimacy-content"></div>
     </div>
 
-    <!-- ─── REWARDS TAB ─── -->
+    <!-- ─── RECORD TAB ─── -->
     <div class="tab" id="tab-rewards">
       <div style="text-align:center;margin-bottom:.85rem;padding-top:.2rem">
-        <div class="section-title" style="justify-content:center">✦ 보상 획득</div>
+        <div class="section-title" style="justify-content:center">✦ 리딩 기록</div>
       </div>
       <div id="rewards-content"></div>
     </div>
@@ -300,7 +326,7 @@ button{font-family:inherit;cursor:pointer;outline:none;border:none}
     </button>
     <button class="nb" id="nb-items" onclick="switchTab('items')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
-      가챠
+      부적
     </button>
     <button class="nb" id="nb-intimacy" onclick="switchTab('intimacy')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
@@ -308,7 +334,7 @@ button{font-family:inherit;cursor:pointer;outline:none;border:none}
     </button>
     <button class="nb" id="nb-rewards" onclick="switchTab('rewards')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
-      보상
+      기록
     </button>
   </div>
 
@@ -350,8 +376,7 @@ const ANIM_MAP = {
 };
 const TODAY = () => new Date().toISOString().split('T')[0];
 
-// ─── 가챠 아이템 풀 ────────────────────────────
-const GACHA_COST = 5;
+// ─── 행운 부적 아이템 풀 ───────────────────────
 const GACHA_POOL = [
   // ★★★★ 레전더리 (5%)
   {grade:4,emoji:'🐉',name:'황룡 비늘',  category:'레전더리',desc:'황룡의 힘이 깃든 최강의 부적',    effect:'모든 운 대폭 상승'},
@@ -380,20 +405,19 @@ const GACHA_POOL = [
   {grade:1,emoji:'🌙',name:'달빛 돌',     category:'커먼',desc:'달의 고요한 에너지를 담은 돌',     effect:'직관 소폭 강화'},
   {grade:1,emoji:'🍵',name:'향기 녹차',   category:'커먼',desc:'마음의 평화를 주는 녹차',          effect:'스트레스 해소'},
   {grade:1,emoji:'🌿',name:'로즈마리',    category:'커먼',desc:'기억력과 집중력을 높이는 허브',    effect:'학업운 소폭 상승'},
-  {grade:1,emoji:'💐',name:'들꽃 다발',   category:'커먼',desc:'자연의 따뜻한 축복',              effect:'긍정 에너지 충전'},
+  {grade:1,emoji:'💐',name:'들꽃 다발',   category:'커먼',desc:'자연의 따뜻한 축복',              effect:'긍정 에너지 회복'},
   {grade:1,emoji:'🌱',name:'새싹 씨앗',   category:'커먼',desc:'새로운 시작의 가능성 씨앗',        effect:'성장 기운 상승'},
 ];
 const GACHA_GRADE_NAMES  = {4:'레전더리 ✦✦✦✦', 3:'에픽 ✦✦✦', 2:'레어 ✦✦', 1:'커먼 ✦'};
 const GACHA_GRADE_COLORS = {4:'#ffdd44', 3:'#c060ff', 2:'#4488ff', 1:'#88cc88'};
 
 let STATE = {
-  coins: 0, intimacy: 0, totalReadings: 0,
+  intimacy: 0, totalReadings: 0,
   checkedIn: false, checkinDate: '',
   lastFortune: null, luckyItems: null,
   cat: '전체', tab: 'fortune',
   questsDone: [],
   gachaHistory: [],
-  serverCoins: null,
 };
 
 function getLevel(pts) {
@@ -418,96 +442,6 @@ function loadState() {
       Object.assign(STATE, d);
     }
   } catch(e) {}
-}
-
-// ═══════════════════════════════════════════
-//  꽃돼지 코인 서버 연동
-// ═══════════════════════════════════════════
-function getAuthToken() {
-  const cookie = document.cookie.split(';').map(c => c.trim());
-  for (const c of cookie) {
-    if (c.startsWith('fortune_auth_token=')) {
-      try { return decodeURIComponent(c.slice('fortune_auth_token='.length)); } catch (e) { return c.slice('fortune_auth_token='.length); }
-    }
-  }
-  return localStorage.getItem('fortune_auth_token') || null;
-}
-
-function buildAuthHeaders(baseHeaders) {
-  const headers = new Headers(baseHeaders || {});
-  const token = getAuthToken();
-  if (token && !headers.has('Authorization')) {
-    headers.set('Authorization', 'Bearer ' + token);
-  }
-  return headers;
-}
-
-async function refreshAuthSessionOnce() {
-  try {
-    const refreshRes = await fetch('/api/auth/refresh', {
-      method: 'POST',
-      credentials: 'include',
-      cache: 'no-store',
-    });
-    if (!refreshRes.ok) return false;
-    const payload = await refreshRes.json().catch(() => null);
-    const accessToken = String((payload && payload.accessToken) || '').trim();
-    if (accessToken) {
-      try { localStorage.setItem('fortune_auth_token', accessToken); } catch (e) {}
-    }
-    return !!(payload && payload.ok);
-  } catch (e) {
-    return false;
-  }
-}
-
-async function authFetchWithRefresh(url, init) {
-  const requestInit = Object.assign({}, init || {});
-  requestInit.headers = buildAuthHeaders(requestInit.headers);
-  requestInit.credentials = 'include';
-  if (!requestInit.cache) requestInit.cache = 'no-store';
-
-  let response = await fetch(url, requestInit);
-  if (response.status === 401) {
-    const refreshed = await refreshAuthSessionOnce();
-    if (refreshed) {
-      const retryInit = Object.assign({}, requestInit);
-      retryInit.headers = buildAuthHeaders(requestInit.headers);
-      response = await fetch(url, retryInit);
-    }
-  }
-  return response;
-}
-
-async function syncPigCoinBalance() {
-  try {
-    const res = await authFetchWithRefresh('/api/fortune/pig-coin/balance', {
-      method: 'GET',
-    });
-    if (!res.ok) return;
-    const d = await res.json();
-    if (d.ok && typeof d.user?.points === 'number') {
-      STATE.serverCoins = d.user.points;
-      updateUI();
-    }
-  } catch(e) {}
-}
-
-async function earnCheckinCoinsServer() {
-  try {
-    const res = await authFetchWithRefresh('/api/fortune/pig-coin/earn', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reason: '포춘텔러 피쉬 일일 출석' })
-    });
-    const d = await res.json();
-    if (typeof d.user?.points === 'number') {
-      STATE.serverCoins = d.user.points;
-    }
-    return !!d.ok;
-  } catch(e) {
-    return false;
-  }
 }
 
 // ═══════════════════════════════════════════
@@ -818,77 +752,7 @@ function rollGacha() {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-function getDisplayCoins() {
-  // 로그인된 경우 꽃돼지 서버 코인 우선, 없으면 로컬 코인
-  return STATE.serverCoins !== null ? STATE.serverCoins : STATE.coins;
-}
-
-function setFortuneFishPaymentPending(show, message) {
-  const text = String(message || '').trim() || '포춘텔러 피쉬 결제를 확인하는 중입니다...';
-  try {
-    if (typeof window._cdSetCoinGateOverlay === 'function') {
-      window._cdSetCoinGateOverlay(!!show, text);
-      return;
-    }
-  } catch (_) {}
-
-  let overlay = document.getElementById('fortuneFishPayOverlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'fortuneFishPayOverlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%, rgba(4,7,15,.76), rgba(2,5,12,.92));backdrop-filter:blur(6px);padding:16px;';
-    overlay.innerHTML = '<div style="width:min(420px,100%);border-radius:16px;border:1px solid rgba(232,200,74,.34);background:linear-gradient(135deg, rgba(12,18,42,.95), rgba(20,10,30,.95));box-shadow:0 18px 46px rgba(0,0,0,.45);padding:18px;text-align:center;color:#fef3c7;"><div style="width:40px;height:40px;margin:0 auto 10px;border-radius:999px;border:3px solid rgba(232,200,74,.28);border-top-color:rgba(232,200,74,.95);animation:fortuneFishPaySpin .9s linear infinite"></div><p style="margin:0 0 6px;font-size:17px;font-weight:800;">행운 가챠 결제 확인 중</p><p id="fortuneFishPayOverlayMsg" style="margin:0;font-size:13px;color:rgba(253,230,138,.95);">포춘텔러 피쉬 결제를 확인하는 중입니다...</p></div>';
-    document.body.appendChild(overlay);
-    if (!document.getElementById('fortuneFishPayOverlayStyle')) {
-      const st = document.createElement('style');
-      st.id = 'fortuneFishPayOverlayStyle';
-      st.textContent = '@keyframes fortuneFishPaySpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
-      document.head.appendChild(st);
-    }
-  }
-
-  const msg = document.getElementById('fortuneFishPayOverlayMsg');
-  if (msg) msg.textContent = text;
-  overlay.style.display = show ? 'flex' : 'none';
-}
-
 async function doGachaRoll() {
-  const avail = getDisplayCoins();
-  if (avail < GACHA_COST) {
-    showToast(`코인이 부족해요! 출석 체크로 코인을 모아보세요 🥺`);
-    return;
-  }
-
-  if (STATE.serverCoins !== null && STATE.serverCoins >= GACHA_COST) {
-    // 서버(꽃돼지) 코인 차감
-    setFortuneFishPaymentPending(true, '포춘텔러 피쉬 행운 가챠 결제를 확인하는 중입니다...');
-    try {
-      const requestId = 'fortune-fish-gacha:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 10);
-      const res = await authFetchWithRefresh('/api/billing/coin-gate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cost: GACHA_COST, coinPrice: GACHA_COST, reason: '포춘텔러 피쉬 행운 가챠', featureKey: 'fortune-fish-gacha', serviceKey: 'fortune-fish', action: 'doGachaRoll', paymentMode: 'COIN', forceDeduct: true, requestId })
-      });
-      const d = await res.json().catch(() => ({}));
-      const data = d && d.data && typeof d.data === 'object' ? d.data : d;
-      if (!res.ok || d.ok === false) { showToast(d.message || '결제를 완료하지 못했습니다.'); return; }
-      const nextUser = data && data.user && typeof data.user.points === 'number' ? data.user : null;
-      if (nextUser) STATE.serverCoins = nextUser.points;
-    } catch(e) {
-      showToast('서버 연결 실패. 로컬 코인으로 진행합니다.');
-      if (STATE.coins < GACHA_COST) { showToast(`코인이 부족해요 🥺`); return; }
-      STATE.coins -= GACHA_COST;
-      saveState();
-    } finally {
-      setFortuneFishPaymentPending(false);
-    }
-  } else {
-    // 로컬 코인 차감
-    if (STATE.coins < GACHA_COST) { showToast(`코인이 부족해요! 출석 체크로 코인을 모아보세요 🥺`); return; }
-    STATE.coins -= GACHA_COST;
-    saveState();
-  }
-
   const result = rollGacha();
   if (!STATE.gachaHistory) STATE.gachaHistory = [];
   STATE.gachaHistory.unshift({ ...result, date: new Date().toLocaleString('ko-KR', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) });
@@ -897,6 +761,7 @@ async function doGachaRoll() {
   updateUI();
   showGachaResult(result);
   renderItemsTab();
+  showToast('행운 부적이 열렸어요 ✦');
 }
 
 function showGachaResult(it) {
@@ -928,8 +793,6 @@ function showGachaResult(it) {
 }
 
 function renderItemsTab() {
-  const avail = getDisplayCoins();
-  const isLoggedIn = STATE.serverCoins !== null;
   const history = STATE.gachaHistory || [];
 
   const gradeCount = {1:0,2:0,3:0,4:0};
@@ -937,25 +800,22 @@ function renderItemsTab() {
 
   document.getElementById('gacha-ui').innerHTML = `
     <div style="text-align:center;margin-bottom:.75rem;padding-top:.3rem">
-      <div class="section-title" style="justify-content:center">🎰 행운 아이템 가챠</div>
-      <p style="font-size:11.5px;color:var(--text3);margin-bottom:.3rem">랜덤 행운 아이템 뽑기 · 1회 <span style="color:var(--gold2);font-weight:700">🪙${GACHA_COST}코인</span></p>
-      ${isLoggedIn
-        ? `<div style="font-size:10.5px;color:rgba(100,220,100,0.7);margin-bottom:.2rem">꽃돼지 코인 잔액: <span style="color:var(--gold2);font-weight:700">🪙${STATE.serverCoins}</span></div>`
-        : `<div style="font-size:10px;color:var(--text3)">로컬 코인: 🪙${STATE.coins} · <a href="/login" style="color:rgba(160,130,240,0.7);text-decoration:none">로그인</a>하면 꽃돼지 코인과 연동돼요</div>`
-      }
+      <div class="section-title" style="justify-content:center">✦ 행운 부적 보관함</div>
+      <p style="font-size:11.5px;color:var(--text3);margin-bottom:.3rem">오늘의 리딩 기운으로 부적을 한 장 열어보세요</p>
+      <div style="font-size:10px;color:rgba(191,252,242,.72)">무료 · 바로 보관</div>
     </div>
 
-    <!-- 뽑기 버튼 -->
+    <!-- 부적 열기 -->
     <div style="text-align:center;margin-bottom:1rem">
       <div style="position:relative;width:130px;height:130px;margin:0 auto .8rem;cursor:pointer" onclick="doGachaRoll()">
         <div style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(200,160,40,0.5);background:radial-gradient(circle at 35% 30%,rgba(80,50,120,0.9),rgba(20,10,50,0.97));display:flex;align-items:center;justify-content:center;font-size:54px;box-shadow:0 0 28px rgba(150,100,255,0.35),inset 0 0 20px rgba(100,60,200,0.2);transition:all .18s" onmouseenter="this.style.boxShadow='0 0 42px rgba(200,160,50,0.6),inset 0 0 28px rgba(150,100,255,0.3)'" onmouseleave="this.style.boxShadow='0 0 28px rgba(150,100,255,0.35),inset 0 0 20px rgba(100,60,200,0.2)'">🎰</div>
       </div>
-      <button onclick="doGachaRoll()" style="padding:11px 34px;border-radius:22px;border:1.5px solid rgba(200,155,35,0.55);background:linear-gradient(135deg,rgba(80,52,8,0.75),rgba(50,30,4,0.9));color:rgba(245,210,95,.95);font-size:13.5px;font-weight:700;letter-spacing:.06em;box-shadow:0 0 16px rgba(200,150,30,0.25);transition:all .2s" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">✦ 뽑기 (🪙${GACHA_COST})</button>
+      <button onclick="doGachaRoll()" style="padding:11px 34px;border-radius:22px;border:1.5px solid rgba(200,155,35,0.55);background:linear-gradient(135deg,rgba(80,52,8,0.75),rgba(50,30,4,0.9));color:rgba(245,210,95,.95);font-size:13.5px;font-weight:700;letter-spacing:.06em;box-shadow:0 0 16px rgba(200,150,30,0.25);transition:all .2s" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">✦ 무료 부적 열기</button>
     </div>
 
     <!-- 등급 확률 -->
     <div class="gc" style="margin-bottom:.8rem;padding:.75rem .9rem">
-      <div style="font-size:9.5px;letter-spacing:.18em;color:var(--text3);margin-bottom:.6rem">✦ 등급 확률</div>
+      <div style="font-size:9.5px;letter-spacing:.18em;color:var(--text3);margin-bottom:.6rem">✦ 부적 기운</div>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px">
         ${[[4,'#ffdd44','레전더리','5%'],[3,'#c060ff','에픽','15%'],[2,'#4488ff','레어','30%'],[1,'#88cc88','커먼','50%']].map(([g,c,n,p])=>`
           <div style="display:flex;align-items:center;gap:6px;background:rgba(10,8,30,0.6);border:1px solid ${c}33;border-radius:6px;padding:.4rem .6rem">
@@ -966,11 +826,11 @@ function renderItemsTab() {
       </div>
     </div>
 
-    <!-- 뽑기 이력 -->
+    <!-- 보관 이력 -->
     <div class="gc" style="margin-bottom:.85rem;padding:.75rem .9rem">
       <div style="font-size:9.5px;letter-spacing:.18em;color:var(--text3);margin-bottom:.6rem">✦ 보관함 (최근 ${history.length}개)</div>
       ${history.length === 0
-        ? `<div style="text-align:center;padding:1.4rem;color:var(--text3);font-size:12px">뽑기 이력이 없어요<br><span style="font-size:11px;opacity:.6">첫 뽑기에 도전해보세요!</span></div>`
+        ? `<div style="text-align:center;padding:1.4rem;color:var(--text3);font-size:12px">아직 열린 부적이 없어요<br><span style="font-size:11px;opacity:.6">첫 부적을 열어보세요</span></div>`
         : history.map(h => {
             const c = GACHA_GRADE_COLORS[h.grade];
             return `<div style="display:flex;align-items:center;gap:8px;padding:.38rem 0;border-bottom:1px solid rgba(115,78,195,0.1)">
@@ -1018,7 +878,7 @@ function renderIntimacy() {
     <div class="gc" style="margin-bottom:.85rem">
       <div style="font-size:10px;letter-spacing:.15em;color:var(--text3);margin-bottom:.65rem">나의 기록</div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">
-        ${[['총 운세','#f0be38',STATE.totalReadings+'회'],['보유 코인','#a075ee','🪙'+getDisplayCoins()],['친밀도','#78c8f0',STATE.intimacy+'점']].map(([l,c,v])=>`
+        ${[['총 운세','#f0be38',STATE.totalReadings+'회'],['보관 부적','#a075ee',(STATE.gachaHistory||[]).length+'개'],['친밀도','#78c8f0',STATE.intimacy+'점']].map(([l,c,v])=>`
           <div style="text-align:center;background:rgba(10,8,32,0.7);border-radius:8px;padding:.65rem .2rem">
             <div style="font-size:18px;font-weight:700;color:${c};margin-bottom:3px">${v}</div>
             <div style="font-size:10px;color:var(--text3)">${l}</div>
@@ -1043,65 +903,52 @@ function renderIntimacy() {
 }
 
 // ═══════════════════════════════════════════
-//  REWARDS TAB — checkin once/day = 5 coins
+//  RECORD TAB
 // ═══════════════════════════════════════════
 function renderRewards() {
   const checked = STATE.checkedIn;
+  const history = STATE.gachaHistory || [];
   document.getElementById('rewards-content').innerHTML = `
     <div class="gc" style="border-color:var(--border2);text-align:center;margin-bottom:.85rem;padding:1.2rem">
-      <div style="font-size:32px;margin-bottom:.4rem">🪙</div>
-      <div style="font-size:28px;font-weight:700;color:var(--gold2);margin-bottom:4px">${getDisplayCoins()}</div>
-      <div style="font-size:10.5px;color:var(--text3)">${STATE.serverCoins !== null ? '꽃돼지 코인 잔액' : '로컬 코인 잔액'}</div>
-      ${STATE.serverCoins === null ? `<div style="font-size:10px;color:rgba(160,130,240,0.6);margin-top:3px"><a href="/login" style="color:rgba(160,130,240,0.7);text-decoration:none">로그인</a>하면 꽃돼지 코인과 연동돼요</div>` : ''}
-    </div>
-
-    <div class="gc" style="margin-bottom:.85rem">
-      <div style="font-size:10px;letter-spacing:.15em;color:var(--text3);margin-bottom:.75rem">✦ 일일 출석 체크</div>
-      <div style="text-align:center;padding:.85rem">
-        <div style="width:90px;height:90px;border-radius:50%;border:3px solid ${checked?'rgba(200,165,40,0.6)':'rgba(140,100,220,0.45)'};margin:0 auto .85rem;display:flex;align-items:center;justify-content:center;font-size:36px;background:${checked?'rgba(40,28,4,0.75)':'rgba(20,12,50,0.75)'};cursor:${checked?'default':'pointer'};transition:all .2s;${checked?'':'box-shadow:0 0 22px rgba(140,100,220,0.3)'}" onclick="${checked?'':'doCheckin()'}">
-          ${checked?'✅':'🪙'}
-        </div>
-        <div style="font-size:13.5px;font-weight:600;color:${checked?'rgba(200,165,40,0.7)':'rgba(210,190,255,0.88)'};margin-bottom:6px">
-          ${checked?'오늘 출석 완료!':'출석 체크하기'}
-        </div>
-        <div style="font-size:11.5px;color:var(--text3);margin-bottom:${checked?'0':'.75rem'}">${checked?'내일 또 찾아오세요 ✦':'매일 1회 · 🪙5 코인 지급'}</div>
-        ${!checked?`<button onclick="doCheckin()" style="padding:9px 28px;border-radius:20px;border:1px solid rgba(200,155,35,0.5);background:linear-gradient(135deg,rgba(75,50,8,0.65),rgba(55,35,4,0.8));color:rgba(245,210,95,.92);font-size:13px;transition:all .2s" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">✦ 오늘 출석하기 (+5코인)</button>`:''}
+      <div style="font-size:32px;margin-bottom:.4rem">🐟</div>
+      <div style="font-size:28px;font-weight:800;color:var(--gold2);margin-bottom:4px">${STATE.totalReadings}</div>
+      <div style="font-size:10.5px;color:var(--text3)">지금까지 물고기가 읽은 운명의 물결</div>
+      <div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:.7rem">
+        <span class="fish-soft-chip">부적 ${history.length}개</span>
+        <span class="fish-soft-chip">친밀도 ${STATE.intimacy}점</span>
       </div>
     </div>
 
     <div class="gc" style="margin-bottom:.85rem">
-      <div style="font-size:10px;letter-spacing:.15em;color:var(--text3);margin-bottom:.65rem">✦ 운세 퀘스트</div>
+      <div style="font-size:10px;letter-spacing:.15em;color:var(--text3);margin-bottom:.75rem">✦ 오늘의 의식</div>
+      <div style="text-align:center;padding:.85rem">
+        <div style="width:90px;height:90px;border-radius:50%;border:3px solid ${checked?'rgba(200,165,40,0.6)':'rgba(140,100,220,0.45)'};margin:0 auto .85rem;display:flex;align-items:center;justify-content:center;font-size:36px;background:${checked?'rgba(40,28,4,0.75)':'rgba(20,12,50,0.75)'};cursor:${checked?'default':'pointer'};transition:all .2s;${checked?'':'box-shadow:0 0 22px rgba(140,100,220,0.3)'}" onclick="${checked?'':'doCheckin()'}">
+          ${checked?'✅':'✦'}
+        </div>
+        <div style="font-size:13.5px;font-weight:600;color:${checked?'rgba(200,165,40,0.7)':'rgba(210,190,255,0.88)'};margin-bottom:6px">
+          ${checked?'오늘의 인사 완료':'물고기에게 인사하기'}
+        </div>
+        <div style="font-size:11.5px;color:var(--text3);margin-bottom:${checked?'0':'.75rem'}">${checked?'내일 또 다른 물결로 만나요':'하루 한 번 친밀도가 조용히 깊어집니다'}</div>
+        ${!checked?`<button onclick="doCheckin()" style="padding:9px 28px;border-radius:20px;border:1px solid rgba(200,155,35,0.5);background:linear-gradient(135deg,rgba(75,50,8,0.65),rgba(55,35,4,0.8));color:rgba(245,210,95,.92);font-size:13px;transition:all .2s" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">✦ 오늘의 인사 남기기</button>`:''}
+      </div>
+    </div>
+
+    <div class="gc" style="margin-bottom:.85rem">
+      <div style="font-size:10px;letter-spacing:.15em;color:var(--text3);margin-bottom:.65rem">✦ 리딩 성취</div>
       ${[
-        {ico:'🔮',name:'첫 번째 운세',done:STATE.totalReadings>=1,coins:10,cond:'운세 1회 완료'},
-        {ico:'⭐',name:'운세 5회 달성',done:STATE.totalReadings>=5,coins:25,cond:'운세 5회 완료'},
-        {ico:'💫',name:'운세 10회 달성',done:STATE.totalReadings>=10,coins:50,cond:'운세 10회 완료'},
-        {ico:'💜',name:'소울메이트 달성',done:STATE.intimacy>=180,coins:40,cond:'친밀도 Lv.3'},
-        {ico:'👑',name:'운명의 파트너',done:STATE.intimacy>=360,coins:80,cond:'친밀도 Lv.4'},
+        {ico:'🔮',name:'첫 번째 물결',done:STATE.totalReadings>=1,cond:'운세 1회 완료'},
+        {ico:'⭐',name:'다섯 번의 예감',done:STATE.totalReadings>=5,cond:'운세 5회 완료'},
+        {ico:'💫',name:'열 번의 조짐',done:STATE.totalReadings>=10,cond:'운세 10회 완료'},
+        {ico:'💜',name:'소울메이트 달성',done:STATE.intimacy>=180,cond:'친밀도 Lv.3'},
+        {ico:'👑',name:'운명의 파트너',done:STATE.intimacy>=360,cond:'친밀도 Lv.4'},
       ].map(q=>`
         <div style="display:flex;align-items:center;gap:10px;padding:.52rem 0;border-bottom:1px solid rgba(115,78,195,0.1)">
           <div style="font-size:22px">${q.ico}</div>
           <div style="flex:1">
             <div style="font-size:12px;font-weight:600;color:rgba(215,195,250,0.82);${q.done?'':'opacity:.55'}">${q.name}</div>
-            <div style="font-size:10.5px;color:var(--text3)">${q.cond} → 🪙${q.coins} 획득</div>
+            <div style="font-size:10.5px;color:var(--text3)">${q.cond}</div>
           </div>
           <div style="font-size:15px">${q.done?'✅':'🔒'}</div>
-        </div>`).join('')}
-    </div>
-
-    <div class="gc" style="margin-bottom:.85rem">
-      <div style="font-size:10px;letter-spacing:.15em;color:var(--text3);margin-bottom:.65rem">✦ 코인 사용처</div>
-      ${[
-        {e:'🔮',n:'프리미엄 운세',c:20,d:'더 깊고 풍부한 심층 운세'},
-        {e:'💎',n:'레어 행운 아이템',c:15,d:'특별한 행운 아이템 추천'},
-        {e:'🎴',n:'특별 카드 테마',c:10,d:'결과 카드 프리미엄 테마'},
-      ].map(it=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:.52rem 0;border-bottom:1px solid rgba(115,78,195,0.1)">
-          <div style="font-size:22px">${it.e}</div>
-          <div style="flex:1">
-            <div style="font-size:12px;font-weight:600;color:rgba(215,195,250,0.78)">${it.n}</div>
-            <div style="font-size:10.5px;color:var(--text3)">${it.d}</div>
-          </div>
-          <button onclick="spendCoins(${it.c})" style="padding:5px 11px;border-radius:10px;border:1px solid ${STATE.coins>=it.c?'rgba(200,155,38,.42)':'rgba(100,80,155,0.25)'};background:${STATE.coins>=it.c?'rgba(50,34,6,.6)':'rgba(18,12,38,.5)'};color:${STATE.coins>=it.c?'rgba(240,200,82,.8)':'rgba(105,85,150,.38)'};font-size:10.5px;cursor:${STATE.coins>=it.c?'pointer':'default'};font-family:inherit">🪙${it.c}</button>
         </div>`).join('')}
     </div>
     <div style="padding-bottom:.8rem"></div>
@@ -1112,41 +959,22 @@ function doCheckin() {
   if (STATE.checkedIn) return;
   STATE.checkedIn = true;
   STATE.checkinDate = TODAY();
-  STATE.coins = (STATE.coins||0) + GACHA_COST;
   STATE.intimacy = (STATE.intimacy||0) + 5;
   saveState();
   updateUI();
   renderRewards();
-  showToast('🪙 +5 코인! 꽃돼지 코인과 연동 중... ✦');
-
-  // 서버(꽃돼지 코인) 반영
-  earnCheckinCoinsServer().then(ok => {
-    if (ok) {
-      updateUI();
-      showToast('🪙 +5 꽃돼지 코인 지급 완료! ✦');
-    }
-    renderRewards();
-  });
-}
-
-function spendCoins(c) {
-  if (STATE.coins < c) { showToast('코인이 부족해요 🥺'); return; }
-  STATE.coins -= c;
-  saveState();
-  updateUI();
-  renderRewards();
-  showToast('✨ 구매 완료!');
+  showToast('친밀도가 깊어졌어요 ✦');
 }
 
 // ═══════════════════════════════════════════
 //  UI UPDATE
 // ═══════════════════════════════════════════
 function updateUI() {
-  const disp = getDisplayCoins();
-  document.getElementById('coin-display').textContent = '🪙 ' + disp;
-  document.getElementById('coin-display').title = STATE.serverCoins !== null
-    ? `꽃돼지 코인: ${STATE.serverCoins}`
-    : `로컬 코인: ${STATE.coins}`;
+  const modeBadge = document.getElementById('fish-mode-badge');
+  if (modeBadge) {
+    modeBadge.textContent = '무료 리딩';
+    modeBadge.title = '포춘텔러 물고기는 무료로 이용할 수 있습니다.';
+  }
   const lv = getLevel(STATE.intimacy);
   const badge = document.getElementById('lv-badge');
   badge.textContent = lv.lv;
@@ -1189,8 +1017,6 @@ function showToast(msg) {
 loadState();
 renderCats();
 updateUI();
-// 꽃돼지 코인 서버 잔액 동기화 (로그인 시)
-syncPigCoinBalance();
 </script>
 </body>
 </html>

@@ -1,24 +1,20 @@
 "use client";
 
 import { useMemo } from "react";
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 import { motion } from "framer-motion";
-import { Cookie, Gamepad2, Loader2, Moon, Sparkles } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { buildDetailedInterpretation } from "../lib/animalInterpretation";
-import { getFourPillarStageItems } from "../lib/twelveStages";
-import type { FourPillarStageItem } from "../lib/twelveStages";
-import DestinyIcon from "@/app/components/icons/DestinyIcon";
-import AnimalCompatibilityPanel from "@/components/fortune/animal-twelve/AnimalCompatibilityPanel";
-import AnimalCharacterSvg from "@/components/fortune/animal-twelve/AnimalCharacterSvg";
-import type { AnimalDestinyData, AnimalDestinyInput, PartnerResult, SajuEngineResult, TwelveStagePillars } from "../lib/types";
+import { AlertTriangle, Download, HeartHandshake, Share2, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  analyzeGuardianSaju,
+  formatGuardianBasisLine,
+  getAnimalDisplayData,
+  getElementLabel,
+  getGuardianAnimalProfile,
+  getTenGodLabel,
+  type GuardianAnimalProfile,
+} from "../lib/animalMapping";
+import type { AnimalDestinyData, AnimalDestinyInput, AnimalId, PartnerResult, SajuEngineResult, TwelveStagePillars } from "../lib/types";
 import type { TamagotchiCareAction, TamagotchiPetState } from "../store/useAnimalDestinyStore";
-import { resolveTwelveGrowthAnimalResult } from "../lib/twelveGrowthAnimalResults";
-import TwelveAnimalAdviceCard from "./TwelveAnimalAdviceCard";
-import TwelveAnimalDexGrid from "./TwelveAnimalDexGrid";
-import TwelveAnimalResultCard from "./TwelveAnimalResultCard";
-import TwelveAnimalShareCard from "./TwelveAnimalShareCard";
-import TwelveAnimalTabs from "./TwelveAnimalTabs";
 
 type Props = {
   animal: AnimalDestinyData;
@@ -38,260 +34,85 @@ type Props = {
   onCareTamagotchi: (action: TamagotchiCareAction) => Promise<void>;
 };
 
-type PillarKey = "year" | "month" | "day" | "hour";
-type StageRhythmKey = "expand" | "refine" | "renew";
-
-const PILLAR_ORDER: PillarKey[] = ["year", "month", "day", "hour"];
-const DETAILED_REPORT_SECTIONS = [
-  { key: "personality", title: "본질 성격" },
-  { key: "love", title: "연애 흐름" },
-  { key: "career", title: "일과 진로" },
-  { key: "wealth", title: "재물 감각" },
-  { key: "relationship", title: "관계 방식" },
-  { key: "today", title: "오늘의 개운" },
+const PROFILE_ROWS = [
+  { label: "수호동물", key: "name" },
+  { label: "가디언 타입", key: "guardianType" },
+  { label: "행운 키워드", key: "keywords" },
+  { label: "주의 키워드", key: "cautionKeywords" },
 ] as const;
 
-type TamagotchiStatKey = "hunger" | "mood" | "bond" | "luck" | "energy" | "growth";
-
-const TAMAGOTCHI_STAT_LABELS: Array<{ key: TamagotchiStatKey; label: string }> = [
-  { key: "hunger", label: "배부름" },
-  { key: "mood", label: "기분" },
-  { key: "bond", label: "유대감" },
-  { key: "luck", label: "행운" },
-  { key: "energy", label: "활력" },
-  { key: "growth", label: "성장" },
-];
-
-const TAMAGOTCHI_ACTIONS: Array<{ key: TamagotchiCareAction; label: string; Icon: LucideIcon }> = [
-  { key: "feed", label: "밥 주기", Icon: Cookie },
-  { key: "play", label: "놀아주기", Icon: Gamepad2 },
-  { key: "rest", label: "쉬게 하기", Icon: Moon },
-  { key: "fortune", label: "운세 듣기", Icon: Sparkles },
-];
-
-// Legacy static-test markers: buildAnimalNarrativeInsights, buildDetailedInterpretation, TAB_LABELS
-// 네 기둥 십이운성 카드 / 오늘의 대표 동물 프로필 / 사주 근거 요약
-
-const PILLAR_META: Record<PillarKey, { label: string; title: string; meaning: string; focus: string }> = {
-  year: {
-    label: "연주",
-    title: "바깥 인상",
-    meaning: "사회적 첫인상, 어린 시절의 분위기, 넓은 인간관계",
-    focus: "처음 만나는 사람 앞에서 어떤 에너지로 기억되는지 보여줍니다.",
-  },
-  month: {
-    label: "월주",
-    title: "사회 운영",
-    meaning: "직업성, 성장 환경, 실무 감각, 현실 대응 방식",
-    focus: "일과 책임을 맡을 때 어떤 방식으로 성과를 만드는지 보여줍니다.",
-  },
-  day: {
-    label: "일주",
-    title: "본질과 친밀감",
-    meaning: "나의 본질, 연애 방식, 배우자궁, 가까운 관계",
-    focus: "대표 동물을 정하는 핵심 축이며, 마음을 여는 방식과 가장 깊게 연결됩니다.",
-  },
-  hour: {
-    label: "시주",
-    title: "잠재력",
-    meaning: "미래 방향, 창의성, 후반 운, 깊은 욕망",
-    focus: "시간 정보가 있을 때 숨은 재능과 후반부 성장 방향을 보완합니다.",
-  },
-};
-
-const STAGE_RHYTHM_ORDER: StageRhythmKey[] = ["expand", "refine", "renew"];
-const STAGE_RHYTHM_META: Record<StageRhythmKey, { label: string; title: string; stages: string; message: string }> = {
-  expand: {
-    label: "피어나는 운",
-    title: "기회와 표현",
-    stages: "장생·목욕·관대·건록·제왕",
-    message: "밖으로 나가 말하고 보여 줄수록 운이 선명해지는 축입니다.",
-  },
-  refine: {
-    label: "다듬는 운",
-    title: "정리와 회복",
-    stages: "쇠·병·사·묘",
-    message: "속도를 낮추고 기준을 세울수록 실속과 회복력이 커지는 축입니다.",
-  },
-  renew: {
-    label: "새로 여는 운",
-    title: "전환과 양육",
-    stages: "절·태·양",
-    message: "비우고 준비하고 돌보는 과정을 통해 다음 가능성이 열리는 축입니다.",
-  },
-};
-
-function stageRhythmKey(stage?: string): StageRhythmKey | null {
-  if (!stage) return null;
-  if (["장생", "목욕", "관대", "건록", "제왕"].includes(stage)) return "expand";
-  if (["쇠", "병", "사", "묘"].includes(stage)) return "refine";
-  return "renew";
+function compactName(profile: GuardianAnimalProfile | null) {
+  return profile?.name.replace(/\s*가디언|\s*기사/g, "") || "수호동물";
 }
 
-function buildStageRhythm(pillarItems: Record<PillarKey, FourPillarStageItem>, timeUnknown?: boolean) {
-  const counts: Record<StageRhythmKey, number> = { expand: 0, refine: 0, renew: 0 };
-  const evidence: Record<StageRhythmKey, string[]> = { expand: [], refine: [], renew: [] };
-
-  PILLAR_ORDER.forEach((pillarKey) => {
-    const item = pillarItems[pillarKey];
-    const rhythmKey = stageRhythmKey(item.stage);
-    if (!rhythmKey || !item.stage) return;
-    counts[rhythmKey] += 1;
-    evidence[rhythmKey].push(`${PILLAR_META[pillarKey].label} ${item.stage}`);
-  });
-
-  const dominant = [...STAGE_RHYTHM_ORDER].sort((left, right) => counts[right] - counts[left])[0];
-  const dominantMeta = STAGE_RHYTHM_META[dominant];
-  const balance = STAGE_RHYTHM_ORDER
-    .filter((key) => counts[key] > 0)
-    .map((key) => `${STAGE_RHYTHM_META[key].label} ${counts[key]}`)
-    .join(" · ");
-  const summary = counts[dominant] > 0
-    ? `${dominantMeta.label}이 가장 두드러집니다. ${dominantMeta.message}`
-    : "입력된 기둥 정보가 부족해 운성 리듬은 보조 해석으로만 참고합니다.";
-
-  return {
-    balance: balance || "운성 정보 보완 필요",
-    summary,
-    timeNote: timeUnknown ? "태어난 시간을 모르면 시주의 잠재력 해석은 부드럽게 참고해 주세요." : "",
-    cards: STAGE_RHYTHM_ORDER.map((key) => ({
-      key,
-      ...STAGE_RHYTHM_META[key],
-      count: counts[key],
-      evidence: evidence[key].join(" · ") || "해당 기둥 없음",
-    })),
-  };
+function getGuardianList(ids: AnimalId[]) {
+  return ids
+    .map((id) => getGuardianAnimalProfile(id))
+    .filter((profile): profile is GuardianAnimalProfile => Boolean(profile));
 }
 
-function stageGuide(stage?: string) {
-  if (!stage) return "입력 정보가 부족해 이 축은 보조 해석에서 제외했습니다.";
-  if (["장생", "목욕", "관대", "건록", "제왕"].includes(stage)) {
-    return "확장성이 강하므로 기회를 열고 사람 앞에 드러날수록 운이 선명해집니다.";
-  }
-  if (["쇠", "병", "사", "묘"].includes(stage)) {
-    return "정비력이 강하므로 속도를 줄이고 기준을 세울수록 실속이 커집니다.";
-  }
-  return "전환성이 강하므로 낡은 방식을 비우고 새 리듬을 실험할수록 길이 열립니다.";
-}
-
-function cleanReportText(text: string) {
-  return text.replace(/\s+/g, " ").trim();
-}
-
-function TamagotchiCarePanel({
-  animal,
-  tamagotchi,
-  status,
-  message,
-  isLoggedIn,
-  onCare,
-}: {
-  animal: AnimalDestinyData;
-  tamagotchi: TamagotchiPetState | null;
-  status: Props["tamagotchiStatus"];
-  message: string;
-  isLoggedIn: boolean;
-  onCare: (action: TamagotchiCareAction) => Promise<void>;
-}) {
-  const isBusy = status === "syncing" || status === "saving";
-  const averageMood = tamagotchi
-    ? Math.round((tamagotchi.mood + tamagotchi.bond + tamagotchi.luck + tamagotchi.energy) / 4)
-    : 0;
-  const moodLine = averageMood >= 82
-    ? "반짝반짝 기운 충전 중"
-    : averageMood >= 64
-    ? "기분이 몽글몽글 좋아요"
-    : "조용한 돌봄을 기다려요";
-
+function GuardianMascot({ profile }: { profile: GuardianAnimalProfile }) {
   return (
-    <section className="relative overflow-hidden rounded-[2rem] border border-white/65 bg-[linear-gradient(145deg,rgba(44,31,75,0.92),rgba(91,63,126,0.86)_48%,rgba(247,206,146,0.78))] p-4 text-white shadow-[0_22px_52px_rgba(53,33,83,0.28)] sm:p-6">
-      <div className="pointer-events-none absolute inset-0 opacity-45 [background-image:radial-gradient(circle_at_18%_24%,rgba(255,255,255,0.24)_0_2px,transparent_3px),radial-gradient(circle_at_78%_18%,rgba(255,255,255,0.2)_0_1px,transparent_2px),radial-gradient(circle_at_70%_74%,rgba(255,255,255,0.18)_0_2px,transparent_3px)]" />
-      <div className="relative z-10 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.25fr)] lg:items-center">
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="rounded-full border border-white/25 bg-white/12 px-3 py-1 text-[11px] font-black tracking-[0.18em] text-[#fff6d6]">
-              운세 다마고치
-            </span>
-            <span className="rounded-full border border-white/20 bg-white/12 px-3 py-1 text-xs font-bold text-white/90">
-              {isLoggedIn ? "로그인 계정 저장" : "체험 모드"}
-            </span>
-          </div>
-          <div>
-            <h3 className="text-2xl font-black leading-tight sm:text-3xl">{animal.animal_ko}와 오늘의 운을 키우는 중</h3>
-            <p className="mt-2 text-sm font-semibold leading-relaxed text-white/82">
-              {animal.tamagotchi.growth_message}
-            </p>
-          </div>
-          <div className="rounded-3xl border border-white/18 bg-white/12 p-4 backdrop-blur-xl">
-            <p className="text-xs font-black text-[#ffe9a8]">오늘의 전언</p>
-            <p className="mt-2 text-sm font-semibold leading-relaxed text-white/90">
-              {tamagotchi?.todayFortune || animal.today.support_message}
-            </p>
-          </div>
-        </div>
+    <svg viewBox="0 0 320 320" role="img" aria-label={`${profile.name} 2D 수호동물 카드`} className="h-full w-full">
+      <defs>
+        <radialGradient id={`guardian-orb-${profile.assetKey}`} cx="50%" cy="38%" r="62%">
+          <stop offset="0%" stopColor={profile.palette.secondary} stopOpacity="0.95" />
+          <stop offset="54%" stopColor={profile.palette.primary} stopOpacity="0.78" />
+          <stop offset="100%" stopColor={profile.palette.background} stopOpacity="0.98" />
+        </radialGradient>
+        <linearGradient id={`guardian-ring-${profile.assetKey}`} x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stopColor={profile.palette.accent} />
+          <stop offset="100%" stopColor={profile.palette.secondary} />
+        </linearGradient>
+      </defs>
+      <rect width="320" height="320" rx="54" fill={`url(#guardian-orb-${profile.assetKey})`} />
+      <circle cx="160" cy="154" r="106" fill="rgba(255,255,255,0.12)" />
+      <circle cx="160" cy="154" r="118" fill="none" stroke={`url(#guardian-ring-${profile.assetKey})`} strokeWidth="4" strokeDasharray="12 10" opacity="0.78" />
+      <g opacity="0.78" fill={profile.palette.accent}>
+        <circle cx="62" cy="78" r="4" />
+        <circle cx="258" cy="68" r="3" />
+        <circle cx="279" cy="226" r="4" />
+        <circle cx="44" cy="238" r="3" />
+        <path d="M88 42l5 11 12 2-9 8 2 12-10-6-11 6 2-12-9-8 12-2z" />
+        <path d="M244 112l4 8 9 2-7 6 2 9-8-5-8 5 2-9-7-6 9-2z" />
+      </g>
+      <g transform="translate(66 58)">
+        <path d="M94 28c48 0 86 37 86 86 0 55-38 96-86 96S8 169 8 114C8 65 46 28 94 28z" fill="rgba(255,255,255,0.82)" />
+        <path d="M44 76c-8-28 1-48 18-62 10 14 14 30 10 48" fill="rgba(255,255,255,0.74)" stroke={profile.palette.accent} strokeWidth="5" strokeLinecap="round" />
+        <path d="M144 76c8-28-1-48-18-62-10 14-14 30-10 48" fill="rgba(255,255,255,0.74)" stroke={profile.palette.accent} strokeWidth="5" strokeLinecap="round" />
+        <circle cx="66" cy="112" r="7" fill={profile.palette.background} />
+        <circle cx="122" cy="112" r="7" fill={profile.palette.background} />
+        <path d="M82 140c10 9 24 9 34 0" fill="none" stroke={profile.palette.background} strokeWidth="6" strokeLinecap="round" />
+        <text x="94" y="104" textAnchor="middle" dominantBaseline="middle" fontSize="70">
+          {profile.symbol}
+        </text>
+      </g>
+      <path d="M78 266c48 21 119 21 168 0" fill="none" stroke={profile.palette.accent} strokeWidth="7" strokeLinecap="round" opacity="0.68" />
+    </svg>
+  );
+}
 
-        <div className="grid gap-4 md:grid-cols-[minmax(168px,0.8fr)_minmax(0,1fr)] md:items-center">
-          <div className="mx-auto w-full max-w-[240px]">
-            <div className="relative aspect-square rounded-[2rem] border border-white/20 bg-white/16 p-4 shadow-[inset_0_0_34px_rgba(255,255,255,0.12)] backdrop-blur-xl">
-              <div className="absolute inset-4 rounded-full border border-white/20" />
-              <motion.div
-                animate={{ y: [0, -8, 0], scale: [1, 1.025, 1] }}
-                transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
-                className="relative z-10 flex h-full w-full items-center justify-center"
-              >
-                <AnimalCharacterSvg animal={animal} className="h-full w-full drop-shadow-[0_18px_24px_rgba(21,14,42,0.24)]" />
-              </motion.div>
-            </div>
-            <p className="mt-3 text-center text-sm font-black text-[#fff5cc]">{moodLine}</p>
-          </div>
-
-          <div className="space-y-3">
-            <div className="grid gap-2 sm:grid-cols-2">
-              {TAMAGOTCHI_STAT_LABELS.map((item) => {
-                const value = tamagotchi ? tamagotchi[item.key] : 0;
-                return (
-                  <div key={item.key} className="rounded-2xl border border-white/16 bg-white/12 p-3">
-                    <div className="flex items-center justify-between gap-2 text-xs font-black text-white/86">
-                      <span>{item.label}</span>
-                      <span>{value}%</span>
-                    </div>
-                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/18">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${value}%` }}
-                        transition={{ duration: 0.7 }}
-                        className="h-full rounded-full bg-[linear-gradient(90deg,#ffe08a,#ff9f7d,#bff7e8)]"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              {TAMAGOTCHI_ACTIONS.map(({ key, label, Icon }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => void onCare(key)}
-                  disabled={!tamagotchi || isBusy}
-                  aria-label={`다마고치 ${label}`}
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/18 bg-white/14 px-3 py-3 text-sm font-black text-white transition hover:bg-white/22 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55"
-                >
-                  <Icon size={17} aria-hidden="true" />
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            <div className="min-h-10 rounded-2xl border border-white/14 bg-black/12 px-3 py-2 text-xs font-semibold leading-relaxed text-white/78">
-              {isBusy ? <Loader2 size={14} className="mr-2 inline animate-spin" aria-hidden="true" /> : null}
-              {message || "돌봄 기록이 준비되었습니다."}
-            </div>
-          </div>
-        </div>
+function CardShell({
+  title,
+  icon,
+  children,
+  className = "",
+}: {
+  title: string;
+  icon: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <article className={`rounded-[2rem] border border-white/16 bg-white/10 p-5 shadow-[0_18px_48px_rgba(6,8,30,0.24)] backdrop-blur-2xl ${className}`}>
+      <div className="mb-4 flex items-center gap-2">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/12 text-[#7ef1de]">
+          {icon}
+        </span>
+        <h3 className="text-lg font-black text-white">{title}</h3>
       </div>
-    </section>
+      {children}
+    </article>
   );
 }
 
@@ -302,206 +123,224 @@ export default function AnimalResultScreen({
   timeUnknown,
   partner,
   shareCardRef,
-  onSubmitPartner,
   onSaveCard,
   onShareCard,
   isExporting,
-  tamagotchi,
-  tamagotchiStatus,
-  tamagotchiMessage,
-  tamagotchiIsLoggedIn,
-  onCareTamagotchi,
 }: Props) {
-  const refined = useMemo(() => resolveTwelveGrowthAnimalResult(animal), [animal]);
-
-  const pillarItems = useMemo<Record<"year" | "month" | "day" | "hour", FourPillarStageItem>>(() => {
-    if (sajuResult) return getFourPillarStageItems(sajuResult);
-    return {
-      year: { pillar: "year", stem: null, branch: null, stage: twelveStages.year },
-      month: { pillar: "month", stem: null, branch: null, stage: twelveStages.month },
-      day: { pillar: "day", stem: null, branch: null, stage: twelveStages.day || twelveStages.primary },
-      hour: { pillar: "hour", stem: null, branch: null, stage: twelveStages.hour },
-    };
-  }, [sajuResult, twelveStages]);
-
-  const detailedReport = useMemo(() => buildDetailedInterpretation({
-    animal,
-    pillars: pillarItems,
-  }), [animal, pillarItems]);
-  const stageRhythm = useMemo(() => buildStageRhythm(pillarItems, timeUnknown), [pillarItems, timeUnknown]);
-
+  const guardian = getGuardianAnimalProfile(animal.id) || getGuardianAnimalProfile("cheetah")!;
+  const basis = useMemo(() => analyzeGuardianSaju(sajuResult), [sajuResult]);
+  const basisLine = useMemo(() => formatGuardianBasisLine(basis), [basis]);
+  const compatibleGuardians = useMemo(() => getGuardianList(guardian.goodMatches), [guardian.goodMatches]);
+  const cautionGuardians = useMemo(() => getGuardianList(guardian.cautionMatches), [guardian.cautionMatches]);
   const representativeStage = twelveStages.day || twelveStages.primary || animal.saju_stage;
-  const representativeItem = pillarItems.day.stage
-    ? pillarItems.day
-    : pillarItems.month.stage
-    ? pillarItems.month
-    : pillarItems.year.stage
-    ? pillarItems.year
-    : pillarItems.hour;
-  const representativeMeta = PILLAR_META[representativeItem.pillar];
+  const elementSpread = Object.entries(basis.elementCounts)
+    .map(([key, value]) => `${getElementLabel(key as keyof typeof basis.elementCounts)} ${value}`)
+    .join(" · ");
 
   return (
-    <section className="mx-auto w-full max-w-5xl space-y-6 pb-20">
-      <TwelveAnimalResultCard
-        animal={animal}
-        result={refined}
-        representativeStage={representativeStage}
-      />
-
-      <TamagotchiCarePanel
-        animal={animal}
-        tamagotchi={tamagotchi}
-        status={tamagotchiStatus}
-        message={tamagotchiMessage}
-        isLoggedIn={tamagotchiIsLoggedIn}
-        onCare={onCareTamagotchi}
-      />
-
-      <div className="rounded-[30px] border border-[#d9ccab] bg-[linear-gradient(165deg,rgba(255,253,246,0.94),rgba(245,250,255,0.88))] p-5 shadow-[0_12px_34px_rgba(25,46,76,0.14)] backdrop-blur-sm sm:p-6">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-black text-[#203c5d]">사주 기둥별 십이운성 근거</h3>
-            <p className="mt-1 text-xs font-semibold leading-relaxed text-[#5c6f84]">
-              일간을 기준으로 네 지지의 운성 흐름을 대조해 대표 동물과 생활 영역별 조언을 구성했습니다.
-            </p>
+    <section className="mx-auto w-full max-w-6xl space-y-5 pb-8">
+      <motion.section
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className="relative overflow-hidden rounded-[2.4rem] border border-white/16 bg-white/10 p-5 shadow-[0_28px_80px_rgba(5,8,28,0.35)] backdrop-blur-2xl sm:p-7"
+      >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_16%,rgba(126,241,222,0.18),transparent_32%),radial-gradient(circle_at_86%_14%,rgba(255,211,108,0.18),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.12),transparent_48%)]" />
+        <div className="relative z-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.72fr)] lg:items-center">
+          <div className="space-y-5">
+            <div className="inline-flex rounded-full border border-[#7ef1de]/30 bg-[#7ef1de]/12 px-3 py-1 text-xs font-black tracking-[0.2em] text-[#bffff5]">
+              FIXED 2D GUARDIAN CARD
+            </div>
+            <div>
+              <p className="text-sm font-black text-[#ffd36c]">당신의 사주 가디언은</p>
+              <h1 className="mt-2 text-balance text-4xl font-black leading-tight text-white sm:text-6xl">
+                {guardian.name}
+              </h1>
+              <p className="mt-4 max-w-2xl text-base font-semibold leading-relaxed text-white/76">
+                {guardian.intro}
+              </p>
+            </div>
+            <div className="rounded-[1.6rem] border border-white/14 bg-white/10 p-4">
+              <p className="text-sm font-black leading-relaxed text-[#fff2b8]">{guardian.oneLine}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {guardian.keywords.map((keyword) => (
+                <span key={keyword} className="rounded-full border border-white/16 bg-white/12 px-3 py-1 text-xs font-black text-white/86">
+                  #{keyword}
+                </span>
+              ))}
+            </div>
           </div>
-          <span className="rounded-full border border-[#d7c48a] bg-[#fff7df] px-3 py-1 text-xs font-black text-[#8a6b2f]">
-            대표 근거: {representativeMeta.label} · {representativeStage}
-          </span>
+
+          <motion.div
+            initial={{ rotateY: 180, opacity: 0.4 }}
+            animate={{ rotateY: 0, opacity: 1 }}
+            transition={{ duration: 0.75, ease: "easeOut" }}
+            className="mx-auto aspect-square w-full max-w-[360px] [transform-style:preserve-3d]"
+          >
+            <GuardianMascot profile={guardian} />
+          </motion.div>
         </div>
-        <article className="mb-4 rounded-2xl border border-[#d8e0ef] bg-white/86 p-4">
-          <p className="text-xs font-black text-[#5f7b9c]">왜 {animal.animal_ko}인가요?</p>
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-[#294b6b]">
-            {representativeMeta.label}의 {representativeStage} 기운이 가장 중심에 놓여 {animal.animal_ko}의 성향으로 읽힙니다.
-            {representativeMeta.focus} {stageGuide(representativeStage)}
-          </p>
-        </article>
-        <article className="mb-4 rounded-2xl border border-[#d9d3a2] bg-[#fff9e8] p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs font-black text-[#806e2e]">내 십이운성 리듬</p>
-            <span className="rounded-full bg-white/85 px-3 py-1 text-[11px] font-black text-[#806e2e]">{stageRhythm.balance}</span>
-          </div>
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-[#5f5026]">{stageRhythm.summary}</p>
-          {stageRhythm.timeNote ? (
-            <p className="mt-2 text-[11px] font-semibold leading-relaxed text-[#8a7437]">{stageRhythm.timeNote}</p>
-          ) : null}
-        </article>
-        <div className="mb-4 grid gap-3 md:grid-cols-3">
-          {stageRhythm.cards.map((card) => (
-            <article key={card.key} className="rounded-2xl border border-[#d8e0ef] bg-white/88 p-3 shadow-[0_6px_16px_rgba(35,62,96,0.08)]">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-xs font-black text-[#2f5b7d]">{card.label}</p>
-                  <p className="mt-1 text-[11px] font-semibold text-[#6b7e92]">{card.title}</p>
+      </motion.section>
+
+      <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+        <CardShell title="수호동물 프로필" icon={<Sparkles className="h-5 w-5" />}>
+          <div className="grid gap-3">
+            {PROFILE_ROWS.map((row) => {
+              const value =
+                row.key === "name"
+                  ? guardian.name
+                  : row.key === "guardianType"
+                  ? guardian.guardianType
+                  : row.key === "keywords"
+                  ? guardian.keywords.join(", ")
+                  : guardian.cautionKeywords.join(", ");
+              return (
+                <div key={row.label} className="rounded-2xl border border-white/12 bg-white/10 p-3">
+                  <p className="text-xs font-black text-[#7ef1de]">{row.label}</p>
+                  <p className="mt-1 text-sm font-bold leading-relaxed text-white/88">{value}</p>
                 </div>
-                <span className="rounded-full bg-[#f4f8fc] px-2 py-1 text-[11px] font-black text-[#3d607f]">{card.count}개</span>
-              </div>
-              <p className="mt-2 text-[11px] font-semibold text-[#7a8795]">{card.stages}</p>
-              <p className="mt-2 text-xs font-semibold leading-relaxed text-[#3d607f]">{card.message}</p>
-              <p className="mt-2 rounded-xl bg-[#f4f8fc] p-2 text-[11px] font-semibold leading-relaxed text-[#5a7188]">{card.evidence}</p>
-            </article>
-          ))}
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {PILLAR_ORDER.map((pillarKey) => {
-            const item = pillarItems[pillarKey];
-            const meta = PILLAR_META[pillarKey];
-            return (
-              <article key={pillarKey} className="rounded-2xl border border-[#d8e0ef] bg-white/88 p-3 shadow-[0_6px_16px_rgba(35,62,96,0.08)]">
-                <p className="text-[11px] font-black tracking-[0.14em] text-[#5f7b9c]">{meta.label}</p>
-                <p className="mt-2 text-lg font-black text-[#203c5d]">{item.stage || "미상"}</p>
-                <p className="mt-1 text-[11px] font-semibold text-[#5c6f84]">
-                  {item.stem && item.branch ? `${item.stem}${item.branch}` : "정보 보완"}
-                </p>
-                <p className="mt-2 text-xs font-black text-[#2f5b7d]">{meta.title}</p>
-                <p className="mt-1 text-[11px] leading-relaxed text-[#667b91]">{meta.meaning}</p>
-                <p className="mt-2 rounded-xl bg-[#f4f8fc] p-2 text-[11px] font-semibold leading-relaxed text-[#3d607f]">
-                  {stageGuide(item.stage)}
-                </p>
-              </article>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </CardShell>
+
+        <CardShell title="왜 이 동물이 나왔나요?" icon={<ShieldCheck className="h-5 w-5" />}>
+          <p className="text-sm font-semibold leading-[1.85] text-white/82">
+            당신의 명식에서는 {guardian.basisTone} 특히 일간의 성향과 월지의 분위기, 부족한 오행을 함께 보았을 때
+            {` ${guardian.name}`}이 가장 필요한 수호 에너지로 배정되었습니다.
+          </p>
+          <details className="mt-4 rounded-2xl border border-white/12 bg-white/10 p-4">
+            <summary className="cursor-pointer text-sm font-black text-[#fff2b8]">사주 근거 보기</summary>
+            <div className="mt-3 space-y-2 text-sm font-semibold leading-relaxed text-white/78">
+              <p>- {basisLine.dayLine}</p>
+              <p>- {basisLine.monthLine}</p>
+              <p>- {basisLine.weakLine}</p>
+              <p>- {basisLine.tenGodLine}</p>
+              <p>- 대표 운성: {representativeStage || "보조 계산"} / 오행 분포: {elementSpread}</p>
+              {timeUnknown ? <p>- 출생 시간이 비어 있어 시주는 보조 참고값으로만 반영했습니다.</p> : null}
+            </div>
+          </details>
+        </CardShell>
       </div>
 
-      <TwelveAnimalTabs result={refined} />
+      <div className="grid gap-5 lg:grid-cols-3">
+        <CardShell title="수호력이 강해지는 순간" icon={<ShieldCheck className="h-5 w-5" />} className="lg:col-span-1">
+          <p className="text-sm font-semibold leading-[1.85] text-white/82">{guardian.power}</p>
+        </CardShell>
 
-      <section className="rounded-[30px] border border-[#c7dceb] bg-[linear-gradient(160deg,#fbfeff_0%,#f6fbff_58%,#fff8ea_100%)] p-5 shadow-[0_14px_34px_rgba(42,83,121,0.13)] sm:p-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-black text-[#224c70]">십이운성 심층 리포트</h3>
-            <p className="mt-1 text-xs font-semibold leading-relaxed text-[#557b9a]">
-              대표 동물의 상징을 성격, 연애, 일, 재물, 관계, 오늘의 운으로 나누어 현실 조언으로 풀었습니다.
-            </p>
-          </div>
-          <span className="rounded-full border border-[#c9deef] bg-white px-3 py-1 text-xs font-black text-[#426d90]">
-            {animal.animal_ko} · {representativeStage}
-          </span>
-        </div>
+        <CardShell title="가디언 경고" icon={<AlertTriangle className="h-5 w-5" />} className="lg:col-span-1">
+          <p className="text-sm font-semibold leading-[1.85] text-white/82">{guardian.warning}</p>
+        </CardShell>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {DETAILED_REPORT_SECTIONS.map((section) => (
-            <article key={section.key} className="rounded-2xl border border-[#c8def0] bg-white/88 p-4">
-              <p className="text-xs font-black text-[#3e6d93]">{section.title}</p>
-              <p className="mt-2 text-sm font-semibold leading-[1.85] text-[#315d82]">
-                {cleanReportText(detailedReport[section.key])}
-              </p>
-            </article>
-          ))}
-        </div>
+        <CardShell title="오늘의 수호 메시지" icon={<Sparkles className="h-5 w-5" />} className="lg:col-span-1">
+          <blockquote className="text-lg font-black leading-relaxed text-[#fff2b8]">
+            “{guardian.todayMessage}”
+          </blockquote>
+        </CardShell>
+      </div>
 
-        <article className="mt-3 rounded-2xl border border-[#d9d3a2] bg-[#fff9e8] p-4">
-          <p className="text-xs font-black text-[#806e2e]">운을 여는 성장 루틴</p>
-          <div className="mt-2 grid gap-2 md:grid-cols-3">
-            {detailedReport.growthMissions.map((mission, index) => (
-              <p key={`${index}-${mission}`} className="rounded-xl bg-white/85 p-3 text-xs font-semibold leading-relaxed text-[#6a5425]">
-                <span className="mr-1 font-black">{index + 1}.</span>{mission}
+      <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+        <CardShell title="나 이런 사람임" icon={<Sparkles className="h-5 w-5" />}>
+          <div className="space-y-2">
+            {guardian.memeLines.map((line) => (
+              <p key={line} className="rounded-2xl border border-white/12 bg-white/10 p-3 text-sm font-bold leading-relaxed text-white/84">
+                {line}
               </p>
             ))}
           </div>
-        </article>
-      </section>
+        </CardShell>
 
-      <TwelveAnimalDexGrid currentAnimal={animal} />
-
-      <TwelveAnimalAdviceCard result={refined} />
-
-      <AnimalCompatibilityPanel
-        animal={animal}
-        partner={partner}
-        onAnalyze={onSubmitPartner}
-      />
-
-      <div className="space-y-4 rounded-[2.5rem] border border-[#d9ccab] bg-white/90 p-6 shadow-[0_20px_46px_rgba(20,42,72,0.14)]">
-        <h3 className="text-xl font-black text-[#203c5d]">결과 요약 카드</h3>
-        <div className="overflow-hidden rounded-3xl border-2 border-[#c8def0] shadow-inner">
-          <TwelveAnimalShareCard ref={shareCardRef} result={refined} />
-        </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <button
-            onClick={onSaveCard}
-            disabled={isExporting}
-            className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(130deg,#1d5c74,#1f4566)] font-black text-white shadow-lg transition-transform active:scale-95 disabled:opacity-50"
-          >
-            <DestinyIcon name="animalPaw" size={20} />
-            이미지로 저장하기
-          </button>
-          <button
-            onClick={onShareCard}
-            disabled={isExporting}
-            className="flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-[#1f4566] font-black text-[#1f4566] transition-transform active:scale-95 disabled:opacity-50"
-          >
-            결과 공유하기
-          </button>
-        </div>
+        <CardShell title="나와 잘 맞는 수호동물 궁합" icon={<HeartHandshake className="h-5 w-5" />}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-[#7ef1de]/22 bg-[#7ef1de]/10 p-4">
+              <p className="text-xs font-black text-[#bffff5]">잘 맞는 수호동물</p>
+              <ol className="mt-3 space-y-2">
+                {compatibleGuardians.map((match, index) => (
+                  <li key={match.id} className="flex items-center justify-between gap-2 rounded-xl bg-white/10 px-3 py-2 text-sm font-black text-white">
+                    <span>{index + 1}위 {compactName(match)}</span>
+                    <span>{match.symbol}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="rounded-2xl border border-[#ffd36c]/24 bg-[#ffd36c]/10 p-4">
+              <p className="text-xs font-black text-[#fff2b8]">주의가 필요한 수호동물</p>
+              <ol className="mt-3 space-y-2">
+                {cautionGuardians.map((match, index) => (
+                  <li key={match.id} className="flex items-center justify-between gap-2 rounded-xl bg-white/10 px-3 py-2 text-sm font-black text-white">
+                    <span>{index + 1}위 {compactName(match)}</span>
+                    <span>{match.symbol}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+          {partner.summary && partner.animalData ? (
+            <div className="mt-3 rounded-2xl border border-white/12 bg-white/10 p-4">
+              <p className="text-xs font-black text-[#7ef1de]">최근 비교 결과</p>
+              <p className="mt-2 text-sm font-semibold leading-relaxed text-white/82">
+                {animal.animal_ko}와 {getAnimalDisplayData(partner.animalId)?.animal_ko || partner.animalData.animal_ko}: {partner.summary}
+              </p>
+            </div>
+          ) : null}
+        </CardShell>
       </div>
 
-      <div className="text-center">
-        <p className="text-xs font-bold text-[#5f7590]">사주 팔자와 십이운성의 흐름을 바탕으로 분석된 결과입니다.</p>
-        {timeUnknown ? (
-          <p className="mt-1 text-[11px] font-semibold text-[#7388a1]">태어난 시간이 비어 있어 연·월·일 중심으로 해석했습니다.</p>
-        ) : null}
-      </div>
+      <CardShell title="공유용 한 장 카드" icon={<Share2 className="h-5 w-5" />}>
+        <div className="grid gap-4 lg:grid-cols-[minmax(280px,0.8fr)_1fr] lg:items-center">
+          <div
+            ref={shareCardRef}
+            className="relative mx-auto aspect-[4/5] w-full max-w-[390px] overflow-hidden rounded-[2rem] border border-white/18 p-5 shadow-[0_24px_60px_rgba(0,0,0,0.26)]"
+            style={{ background: `linear-gradient(145deg, ${guardian.palette.background}, ${guardian.palette.primary})` }}
+          >
+            <div className="absolute inset-0 opacity-60 [background-image:radial-gradient(circle_at_18%_16%,rgba(255,255,255,0.4)_0_1px,transparent_2px),radial-gradient(circle_at_80%_22%,rgba(255,255,255,0.32)_0_1px,transparent_2px),radial-gradient(circle_at_70%_78%,rgba(255,255,255,0.28)_0_1px,transparent_2px)]" />
+            <div className="relative z-10 flex h-full flex-col justify-between">
+              <div>
+                <p className="text-xs font-black tracking-[0.18em]" style={{ color: guardian.palette.accent }}>SAJU GUARDIAN</p>
+                <h4 className="mt-3 text-3xl font-black leading-tight text-white">내 사주 가디언은<br />{compactName(guardian)}</h4>
+              </div>
+              <div className="mx-auto h-44 w-44">
+                <GuardianMascot profile={guardian} />
+              </div>
+              <div>
+                <p className="text-base font-black leading-relaxed text-white">“{guardian.shareLine}”</p>
+                <p className="mt-3 text-xs font-bold text-white/70">#사주가디언 #{guardian.name.replace(/\s+/g, "")} #수호동물</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-sm font-semibold leading-relaxed text-white/78">
+              저장하면 바로 공유하기 좋은 한 장 카드로 남습니다. 동물 이미지는 새로 생성하지 않고, 배정된 고정 2D 가디언 카드와 문구만 조합합니다.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={onSaveCard}
+                disabled={isExporting}
+                className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(125deg,#7c5cff,#37d2c5)] px-4 py-3 text-sm font-black text-white shadow-[0_16px_34px_rgba(55,210,197,0.2)] transition hover:brightness-110 disabled:opacity-50"
+              >
+                <Download className="h-4 w-4" />
+                카드 저장
+              </button>
+              <button
+                type="button"
+                onClick={onShareCard}
+                disabled={isExporting}
+                className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-white/18 bg-white/12 px-4 py-3 text-sm font-black text-white transition hover:bg-white/18 disabled:opacity-50"
+              >
+                <Share2 className="h-4 w-4" />
+                결과 공유
+              </button>
+            </div>
+          </div>
+        </div>
+      </CardShell>
+
+      <p className="text-center text-xs font-semibold text-white/48">
+        사주 계산값 기반의 수호동물 테스트 결과입니다. 실제 선택과 행동의 주도권은 언제나 본인에게 있습니다.
+      </p>
     </section>
   );
 }

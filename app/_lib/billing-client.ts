@@ -155,6 +155,7 @@ type BillingCoinGateData = {
 
 type BillingBalanceData = {
   authenticated: boolean;
+  degraded?: boolean;
   balance: number;
   legacyCoinBalance?: number;
   membershipCreditBalance?: number;
@@ -218,6 +219,10 @@ function invalidateBillingBalanceCache() {
   billingBalanceCacheVersion += 1;
   billingBalanceRecent = null;
   billingBalanceInFlight = null;
+}
+
+function waitForBillingRetry(ms: number) {
+  return new Promise((resolve) => globalThis.setTimeout(resolve, ms));
 }
 
 export type ServiceExecutionStatus = "pending" | "success" | "failed" | "refunded" | "cancelled";
@@ -348,6 +353,21 @@ function readBillingMonthlyBalance(source: Record<string, unknown> | null | unde
   );
 }
 
+async function fetchFreshBillingBalanceForPayment(): Promise<BillingResult<BillingBalanceData> | null> {
+  const retryDelays = [0, 180, 420];
+  for (let index = 0; index < retryDelays.length; index += 1) {
+    if (retryDelays[index] > 0) await waitForBillingRetry(retryDelays[index]);
+    const result = await fetchBillingBalance({ force: true, emit: false }).catch(() => null);
+    const data = result?.ok ? result.data : null;
+    const monthlyBalance = readBillingMonthlyBalance(data as Record<string, unknown> | null);
+    if (result?.ok && data && data.authenticated !== false && data.degraded !== true && monthlyBalance !== null) {
+      emitBillingBalanceUpdated(data as BillingBalanceData & Record<string, unknown>, "payment-balance-fresh");
+      return result;
+    }
+  }
+  return null;
+}
+
 function normalizeBillingBalanceFields(source: Record<string, unknown> | null | undefined) {
   if (!source) return;
   const user = asRecord(source.user);
@@ -404,31 +424,49 @@ function ensureReactPaymentChoiceStyles() {
   const style = document.createElement("style");
   style.id = "cd-react-payment-choice-style";
   style.textContent = `
-    .cd-react-payment-choice-backdrop{position:fixed;inset:0;z-index:2147483004;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 4%,rgba(243,221,154,.22),transparent 30%),radial-gradient(circle at 12% 20%,rgba(125,211,252,.14),transparent 28%),rgba(4,7,22,.84);padding:18px;backdrop-filter:blur(16px) saturate(130%)}
-    .cd-react-payment-choice-dialog{position:relative;isolation:isolate;width:min(440px,100%);border:1px solid rgba(243,221,154,.42);border-radius:24px;background:linear-gradient(155deg,rgba(7,12,34,.98),rgba(18,26,64,.97) 48%,rgba(36,25,74,.96));box-shadow:0 30px 82px rgba(0,0,0,.56),0 0 42px rgba(125,211,252,.14),inset 0 1px 0 rgba(255,255,255,.16);padding:20px;color:#f8fafc;overflow:hidden}
-    .cd-react-payment-choice-dialog::before{content:"";position:absolute;right:-34px;top:-48px;width:160px;height:160px;border-radius:999px;background:radial-gradient(circle at 32% 32%,#fff8d0 0 17%,#f3dd9a 18% 36%,rgba(243,221,154,.14) 37% 64%,transparent 65%);box-shadow:0 0 38px rgba(243,221,154,.36);pointer-events:none;z-index:-1}
-    .cd-react-payment-choice-dialog::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 12% 13%,rgba(255,255,255,.86) 0 1px,transparent 2px),radial-gradient(circle at 76% 18%,rgba(186,230,253,.86) 0 1px,transparent 2px),radial-gradient(circle at 26% 88%,rgba(221,214,254,.72) 0 1px,transparent 2px),radial-gradient(circle at 88% 72%,rgba(254,243,199,.8) 0 1px,transparent 2px);pointer-events:none;opacity:.68;z-index:-1}
-    .cd-react-payment-choice-visual{position:relative;width:82px;height:82px;margin:0 auto 14px;border-radius:999px;border:1px solid rgba(186,230,253,.22);background:rgba(186,230,253,.07);box-shadow:0 0 32px rgba(125,211,252,.16)}
-    .cd-react-payment-choice-visual::before{content:"";position:absolute;inset:16px;border-radius:999px;background:radial-gradient(circle at 34% 28%,#fff8d0 0%,#f3dd9a 42%,#a78bfa 100%);box-shadow:0 0 30px rgba(243,221,154,.42),inset -13px 5px 0 rgba(8,13,35,.34)}
-    .cd-react-payment-choice-visual::after{content:"";position:absolute;right:27px;top:23px;width:28px;height:28px;border-radius:999px;background:#080d23;box-shadow:-23px 0 0 -12px rgba(186,230,253,.9),25px 29px 0 -12px rgba(254,243,199,.9)}
+    .cd-react-payment-choice-backdrop{position:fixed;inset:0;z-index:2147483004;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 2%,rgba(250,230,160,.2),transparent 30%),radial-gradient(circle at 16% 18%,rgba(147,197,253,.14),transparent 28%),radial-gradient(circle at 88% 74%,rgba(196,181,253,.16),transparent 30%),linear-gradient(145deg,rgba(7,11,34,.86),rgba(13,18,52,.88) 48%,rgba(21,16,42,.9));padding:18px;backdrop-filter:blur(16px) saturate(130%)}
+    .cd-react-payment-choice-dialog{position:relative;isolation:isolate;width:min(440px,100%);max-height:calc(100dvh - 36px);border:1px solid rgba(255,242,184,.34);border-radius:24px;background:radial-gradient(circle at 50% -8%,rgba(250,230,160,.16),transparent 34%),radial-gradient(circle at 18% 20%,rgba(147,197,253,.1),transparent 32%),linear-gradient(155deg,rgba(7,12,34,.98),rgba(14,22,56,.985) 48%,rgba(33,24,64,.97));box-shadow:0 30px 82px rgba(0,0,0,.56),0 0 46px rgba(147,197,253,.14),0 0 34px rgba(250,230,160,.1),inset 0 1px 0 rgba(255,255,255,.16);padding:18px 20px 20px;color:#f8fafc;overflow:auto;overflow-x:hidden;scrollbar-width:thin}
+    .cd-react-payment-choice-dialog>*{position:relative;z-index:1}
+    .cd-react-payment-choice-dialog::before{content:"";position:absolute;right:-38px;top:-50px;width:166px;height:166px;border-radius:999px;background:radial-gradient(circle at 64% 35%,rgba(8,12,32,.96) 0 33%,transparent 34%),radial-gradient(circle at 38% 32%,rgba(255,242,184,.66) 0 18%,rgba(247,215,122,.28) 19% 38%,rgba(219,234,254,.09) 39% 66%,transparent 68%);filter:blur(.3px);opacity:.7;box-shadow:0 0 42px rgba(250,230,160,.16),0 0 70px rgba(147,197,253,.08);pointer-events:none;z-index:0}
+    .cd-react-payment-choice-dialog::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 12% 13%,rgba(255,255,255,.8) 0 1px,transparent 2px),radial-gradient(circle at 76% 18%,rgba(186,230,253,.72) 0 1px,transparent 2px),radial-gradient(circle at 20% 58%,rgba(221,214,254,.58) 0 1px,transparent 2px),radial-gradient(circle at 88% 70%,rgba(254,243,199,.62) 0 1px,transparent 2px),radial-gradient(circle at 44% 3%,rgba(255,242,184,.16),transparent 24%);pointer-events:none;opacity:.78;z-index:0}
+    .cd-react-payment-choice-visual{position:relative;width:112px;height:96px;margin:0 auto 8px;pointer-events:none;animation:cdReactPaymentMoonFloat 6.8s ease-in-out infinite}
+    .cd-react-payment-choice-aura,.cd-react-payment-choice-glass,.cd-react-payment-choice-crescent,.cd-react-payment-choice-stars,.cd-react-payment-choice-reflect{position:absolute;pointer-events:none}
+    .cd-react-payment-choice-aura{border-radius:999px;left:50%;top:50%;transform:translate(-50%,-50%);border:1px solid rgba(219,234,254,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 24px rgba(147,197,253,.1)}
+    .cd-react-payment-choice-aura--outer{width:94px;height:94px;background:radial-gradient(circle,rgba(219,234,254,.05),rgba(196,181,253,.06) 48%,transparent 70%)}
+    .cd-react-payment-choice-aura--inner{width:72px;height:72px;border-color:rgba(255,242,184,.24);background:radial-gradient(circle,rgba(250,230,160,.08),transparent 64%);box-shadow:0 0 30px rgba(250,230,160,.14)}
+    .cd-react-payment-choice-glass{left:16px;top:8px;width:80px;height:80px;border-radius:999px;background:radial-gradient(circle at 35% 26%,rgba(255,255,255,.18),transparent 24%),linear-gradient(145deg,rgba(219,234,254,.09),rgba(196,181,253,.04));border:1px solid rgba(219,234,254,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.14);backdrop-filter:blur(3px)}
+    .cd-react-payment-choice-crescent{left:32px;top:22px;width:50px;height:50px;border-radius:999px;background:radial-gradient(circle at 32% 28%,#fff7d6 0 20%,#fff2b8 21% 42%,#f7d77a 58%,#dbeafe 100%);box-shadow:0 0 22px rgba(250,230,160,.32),0 0 40px rgba(147,197,253,.13),inset -7px -5px 12px rgba(196,181,253,.18)}
+    .cd-react-payment-choice-crescent::before{content:"";position:absolute;left:19px;top:3px;width:48px;height:48px;border-radius:999px;background:linear-gradient(145deg,rgba(7,11,34,.96),rgba(24,21,56,.92));box-shadow:-8px 3px 14px rgba(7,11,34,.22),inset 7px 0 16px rgba(147,197,253,.06)}
+    .cd-react-payment-choice-crescent::after{content:"";position:absolute;left:10px;top:11px;width:4px;height:4px;border-radius:999px;background:rgba(255,255,255,.78);box-shadow:14px 25px 0 rgba(255,242,184,.54),22px 7px 0 rgba(219,234,254,.4);opacity:.72}
+    .cd-react-payment-choice-stars{left:22px;top:20px;width:3px;height:3px;border-radius:999px;background:rgba(219,234,254,.92);box-shadow:52px -6px 0 rgba(255,242,184,.78),70px 23px 0 rgba(196,181,253,.66),8px 46px 0 rgba(255,255,255,.54),58px 54px 0 rgba(186,230,253,.55)}
+    .cd-react-payment-choice-reflect{left:27px;right:27px;bottom:3px;height:12px;border-radius:999px;background:radial-gradient(ellipse,rgba(250,230,160,.18),rgba(147,197,253,.08) 48%,transparent 72%);filter:blur(3px)}
+    @keyframes cdReactPaymentMoonFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-5px,0)}}
     .cd-react-payment-choice-title{position:relative;margin:0;font-size:22px;line-height:1.25;font-weight:900;letter-spacing:0;color:#fff7db;text-shadow:0 0 22px rgba(243,221,154,.24)}
     .cd-react-payment-choice-sub{position:relative;margin:8px 0 16px;color:rgba(219,234,254,.78);font-size:14px;line-height:1.6}
-    .cd-react-payment-choice-note{position:relative;margin:0 0 14px;border:1px solid rgba(186,230,253,.24);border-radius:16px;background:linear-gradient(135deg,rgba(10,17,42,.78),rgba(20,28,66,.62));padding:12px 13px;font-size:13px;line-height:1.55;color:#dbeafe;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+    .cd-react-payment-choice-note{position:relative;margin:0 0 14px;border:1px solid rgba(219,234,254,.22);border-radius:16px;background:linear-gradient(135deg,rgba(10,17,42,.76),rgba(20,28,66,.6));padding:12px 13px;font-size:13px;line-height:1.55;color:#dbeafe;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 22px rgba(147,197,253,.06)}
+    .cd-react-payment-choice-balance{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;border:1px solid rgba(147,197,253,.26);border-radius:14px;background:linear-gradient(135deg,rgba(8,47,73,.42),rgba(30,27,75,.34));padding:10px 11px;color:#dbeafe;font-size:12.5px;font-weight:800;line-height:1.45}
+    .cd-react-payment-choice-balance[data-state="fresh"]{border-color:rgba(110,231,183,.36);color:#d1fae5;background:linear-gradient(135deg,rgba(6,78,59,.34),rgba(30,41,59,.32))}
+    .cd-react-payment-choice-balance[data-state="error"]{border-color:rgba(248,113,113,.36);color:#fee2e2;background:linear-gradient(135deg,rgba(127,29,29,.34),rgba(30,41,59,.34))}
+    .cd-react-payment-choice-refresh{flex:0 0 auto;border:1px solid rgba(255,242,184,.38);border-radius:999px;background:rgba(255,255,255,.1);padding:7px 10px;color:#fff7db;font-size:12px;font-weight:900;cursor:pointer}
+    .cd-react-payment-choice-refresh:disabled{cursor:wait;opacity:.62}
     .cd-react-payment-choice-grid{display:grid;gap:10px}
-    .cd-react-payment-choice-option{position:relative;width:100%;border:1px solid rgba(186,230,253,.26);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.035));padding:13px 14px;color:#f8fafc;text-align:left;cursor:pointer;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 12px 28px rgba(2,6,23,.24);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
-    .cd-react-payment-choice-option::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 92% 18%,rgba(255,255,255,.12),transparent 28%);pointer-events:none}
-    .cd-react-payment-choice-option:hover{border-color:rgba(243,221,154,.78);background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.055));transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 16px 34px rgba(2,6,23,.34),0 0 22px rgba(243,221,154,.12)}
-    .cd-react-payment-choice-option[data-mode="pass-store"]{border-color:rgba(243,221,154,.58);background:linear-gradient(145deg,rgba(57,43,104,.84),rgba(16,35,72,.82))}
-    .cd-react-payment-choice-option[data-mode="direct"]{border-color:rgba(250,204,21,.44)}
-    .cd-react-payment-choice-option[data-mode="monthly"]{border-color:rgba(125,211,252,.44)}
+    .cd-react-payment-choice-option{position:relative;width:100%;border:1px solid rgba(219,234,254,.22);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.03));padding:13px 14px;color:#f8fafc;text-align:left;cursor:pointer;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 12px 28px rgba(2,6,23,.24);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+    .cd-react-payment-choice-option::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 92% 16%,rgba(255,242,184,.1),transparent 30%),linear-gradient(135deg,rgba(255,255,255,.06),transparent 42%);pointer-events:none}
+    .cd-react-payment-choice-option:hover{border-color:rgba(255,242,184,.64);transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 16px 34px rgba(2,6,23,.34),0 0 24px rgba(250,230,160,.12)}
+    .cd-react-payment-choice-option:focus{outline:0}
+    .cd-react-payment-choice-option:focus-visible{outline:2px solid rgba(255,242,184,.84);outline-offset:3px;border-color:rgba(255,242,184,.78);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 0 5px rgba(250,230,160,.1),0 0 24px rgba(147,197,253,.14)}
+    .cd-react-payment-choice-option[data-mode="pass-store"]{border-color:rgba(255,242,184,.66);background:linear-gradient(145deg,rgba(46,42,30,.84),rgba(28,32,66,.82))}
+    .cd-react-payment-choice-option[data-mode="direct"]{border-color:rgba(247,215,122,.42);background:linear-gradient(145deg,rgba(45,37,30,.82),rgba(31,27,43,.82))}
+    .cd-react-payment-choice-option[data-mode="monthly"]{border-color:rgba(147,197,253,.42);background:linear-gradient(145deg,rgba(12,40,67,.82),rgba(22,27,58,.82))}
     .cd-react-payment-choice-option:disabled{cursor:not-allowed;opacity:.52}
     .cd-react-payment-choice-option strong{position:relative;display:block;margin-top:5px;font-size:15px;line-height:1.35;color:#fff}
     .cd-react-payment-choice-option span{position:relative;display:block;color:rgba(229,236,255,.78);font-size:12px;line-height:1.5}
-    .cd-react-payment-choice-badge{display:inline-flex!important;width:auto;border:1px solid rgba(255,244,214,.28);border-radius:999px;background:rgba(255,255,255,.12);padding:3px 9px;color:#fff7db!important;font-size:11px!important;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+    .cd-react-payment-choice-badge{display:inline-flex!important;width:auto;border:1px solid rgba(255,242,184,.28);border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(219,234,254,.07));backdrop-filter:blur(8px);padding:3px 9px;color:#fff7db!important;font-size:11px!important;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 18px rgba(250,230,160,.08)}
     .cd-react-payment-choice-status{min-height:18px;margin-top:12px;color:#f3dd9a;font-size:13px;line-height:1.45}
     .cd-react-payment-choice-actions{display:flex;justify-content:flex-end;margin-top:14px}
     .cd-react-payment-choice-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);padding:9px 15px;color:#f8fafc;cursor:pointer;font-weight:900}
-    @media(max-width:640px){.cd-react-payment-choice-backdrop{align-items:flex-start;padding:10px}.cd-react-payment-choice-dialog{width:100%;max-height:calc(100dvh - 20px);overflow:auto;border-radius:20px;padding:16px}.cd-react-payment-choice-visual{width:68px;height:68px;margin-bottom:10px}.cd-react-payment-choice-visual::before{inset:13px}.cd-react-payment-choice-visual::after{right:23px;top:20px;width:23px;height:23px}.cd-react-payment-choice-title{font-size:20px}.cd-react-payment-choice-sub{font-size:12.5px;line-height:1.5}.cd-react-payment-choice-option{padding:12px 13px}.cd-react-payment-choice-option strong{font-size:14px}.cd-react-payment-choice-option span{font-size:11.5px}}
+    @media(max-width:640px){.cd-react-payment-choice-backdrop{align-items:flex-start;padding:10px}.cd-react-payment-choice-dialog{width:100%;max-height:calc(100dvh - 20px);border-radius:20px;padding:12px}.cd-react-payment-choice-dialog::before{width:118px;height:118px;right:-30px;top:-42px;opacity:.58}.cd-react-payment-choice-visual{width:94px;height:78px;margin-bottom:6px}.cd-react-payment-choice-aura--outer{width:78px;height:78px}.cd-react-payment-choice-aura--inner{width:60px;height:60px}.cd-react-payment-choice-glass{left:15px;top:7px;width:64px;height:64px}.cd-react-payment-choice-crescent{left:29px;top:20px;width:39px;height:39px}.cd-react-payment-choice-crescent::before{left:15px;top:2px;width:38px;height:38px}.cd-react-payment-choice-title{font-size:20px}.cd-react-payment-choice-sub{font-size:12.5px;line-height:1.5}.cd-react-payment-choice-option{padding:12px 13px}.cd-react-payment-choice-option strong{font-size:14px}.cd-react-payment-choice-option span{font-size:11.5px}}
+    @media(prefers-reduced-motion:reduce){.cd-react-payment-choice-visual{animation:none!important}.cd-react-payment-choice-option{transition:none}.cd-react-payment-choice-option:hover{transform:none}}
   `;
   document.head.appendChild(style);
 }
@@ -484,20 +522,30 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     coverageProfileSubscription?.monthlyCredits,
     coverageProfileSubscription?.membershipCreditBalance,
   );
-  const latestBalance = knownMonthlyBalance === null
-    ? await fetchBillingBalance({ emit: false }).catch(() => null)
-    : null;
-  const latestBalanceData = latestBalance?.ok ? latestBalance.data : null;
+  let latestBalance = await fetchFreshBillingBalanceForPayment();
+  let latestBalanceData = latestBalance?.ok ? latestBalance.data : null;
+  let monthlyBalanceConfirmed = Boolean(latestBalanceData);
   const passDiscount = asRecord(membershipCoverage?.passDiscount);
   const discountFinalCoin = Math.max(0, Math.floor(toNumber(passDiscount?.finalCoinPrice, 0)));
   const directCoinPrice = passDiscount && discountFinalCoin > 0 ? discountFinalCoin : coinPrice;
   const rawDirectAmount = Math.max(0, Math.floor(toNumber(opts.amountKrw ?? opts.amountKRW, directCoinPrice * 100)));
   const directAmount = passDiscount && discountFinalCoin > 0 ? directCoinPrice * 100 : rawDirectAmount;
-  const monthlyBalance = knownMonthlyBalance ?? firstFiniteMonthlyBalance(latestBalanceData);
+  let monthlyBalance = monthlyBalanceConfirmed
+    ? firstFiniteMonthlyBalance(latestBalanceData)
+    : Math.max(0, Math.floor(Number(knownMonthlyBalance || 0)));
   const requiredMonthlyCredits = passDiscount && discountFinalCoin > 0
     ? directCoinPrice * 10
     : Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, directCoinPrice * 10)));
-  const canUseMonthly = requiredMonthlyCredits > 0 && monthlyBalance >= requiredMonthlyCredits;
+  let canUseMonthly = monthlyBalanceConfirmed && requiredMonthlyCredits > 0 && monthlyBalance >= requiredMonthlyCredits;
+  const resolveMonthlyOptionHint = () => monthlyBalanceConfirmed
+    ? (canUseMonthly
+      ? "보유 Moonlight Stone으로 즉시 이용 권한을 저장합니다."
+      : `Moonlight Stone 잔량 부족 · 보유 ${monthlyBalance.toLocaleString("ko-KR")}개`)
+    : "Moonlight Stone 최신 잔량을 확인하지 못했습니다. 아래 버튼으로 다시 조회해 주세요.";
+  const resolveMonthlyBalanceText = () => monthlyBalanceConfirmed
+    ? `Moonlight Stone 잔량 확인 완료 · 현재 ${monthlyBalance.toLocaleString("ko-KR")}개`
+    : "Moonlight Stone 최신 잔량 확인이 필요합니다.";
+  let monthlyOptionHint = resolveMonthlyOptionHint();
   const passTier = toText(membershipCoverage?.tier || membershipCoverage?.passTier || "");
   const passLimit = Math.max(0, Math.floor(toNumber(membershipCoverage?.passLimit ?? membershipCoverage?.freeLimit, 0)));
   const passLabel = passTier
@@ -521,20 +569,31 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     modal.setAttribute("aria-modal", "true");
     modal.innerHTML = `
       <div class="cd-react-payment-choice-dialog">
-        <div class="cd-react-payment-choice-visual" aria-hidden="true"></div>
+        <div class="cd-react-payment-choice-visual" data-marker="react-payment-luxury-moon-v20260611" aria-hidden="true">
+          <span class="cd-react-payment-choice-aura cd-react-payment-choice-aura--outer"></span>
+          <span class="cd-react-payment-choice-aura cd-react-payment-choice-aura--inner"></span>
+          <span class="cd-react-payment-choice-glass"></span>
+          <span class="cd-react-payment-choice-crescent"></span>
+          <span class="cd-react-payment-choice-stars"></span>
+          <span class="cd-react-payment-choice-reflect"></span>
+        </div>
         <h2 class="cd-react-payment-choice-title">달빛 결제 방식 선택</h2>
         <p class="cd-react-payment-choice-sub">이용권 확인이 끝났습니다. 달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.</p>
         <p class="cd-react-payment-choice-note"><strong>${escapePaymentText(title)}</strong><br>${coinPrice.toLocaleString("ko-KR")}코인 기준 · ${formatPaymentWon(directAmount)}</p>
+        <div class="cd-react-payment-choice-balance" data-monthly-balance-status data-state="${monthlyBalanceConfirmed ? "fresh" : "error"}">
+          <span data-monthly-balance-text>${escapePaymentText(resolveMonthlyBalanceText())}</span>
+          <button type="button" class="cd-react-payment-choice-refresh" data-refresh-monthly-balance>잔량 다시 조회</button>
+        </div>
         <div class="cd-react-payment-choice-grid">
           <button type="button" class="cd-react-payment-choice-option" data-mode="direct">
             <span class="cd-react-payment-choice-badge">PortOne V2 · KG이니시스</span>
             <strong>단건 결제 · ${formatPaymentWon(directAmount)}</strong>
             <span>카드 또는 간편결제로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.</span>
           </button>
-          <button type="button" class="cd-react-payment-choice-option" data-mode="monthly"${canUseMonthly ? "" : " disabled aria-disabled=\"true\""}>
+          <button type="button" class="cd-react-payment-choice-option" data-mode="monthly" data-monthly-option${canUseMonthly ? "" : " disabled aria-disabled=\"true\""}>
             <span class="cd-react-payment-choice-badge">Moonlight Stone</span>
             <strong>Moonlight Stone ${requiredMonthlyCredits.toLocaleString("ko-KR")}개 사용</strong>
-            <span>${canUseMonthly ? "보유 Moonlight Stone으로 즉시 이용 권한을 저장합니다." : `Moonlight Stone 잔량 부족 · 보유 ${monthlyBalance.toLocaleString("ko-KR")}개`}</span>
+            <span data-monthly-hint>${escapePaymentText(monthlyOptionHint)}</span>
           </button>
           <button type="button" class="cd-react-payment-choice-option" data-mode="pass-store">
             <span class="cd-react-payment-choice-badge">${escapePaymentText(passLabel)}</span>
@@ -562,6 +621,42 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       statusNode.textContent = message;
       statusNode.style.color = error ? "#fca5a5" : "#fde68a";
     };
+    const applyMonthlyBalanceUi = () => {
+      monthlyOptionHint = resolveMonthlyOptionHint();
+      const monthlyButton = modal.querySelector<HTMLButtonElement>("[data-monthly-option]");
+      const monthlyHint = modal.querySelector<HTMLElement>("[data-monthly-hint]");
+      const balanceStatus = modal.querySelector<HTMLElement>("[data-monthly-balance-status]");
+      const balanceText = modal.querySelector<HTMLElement>("[data-monthly-balance-text]");
+      if (monthlyButton) {
+        monthlyButton.disabled = !canUseMonthly;
+        if (canUseMonthly) monthlyButton.removeAttribute("aria-disabled");
+        else monthlyButton.setAttribute("aria-disabled", "true");
+      }
+      if (monthlyHint) monthlyHint.textContent = monthlyOptionHint;
+      if (balanceStatus) balanceStatus.dataset.state = monthlyBalanceConfirmed ? "fresh" : "error";
+      if (balanceText) balanceText.textContent = resolveMonthlyBalanceText();
+    };
+    const refreshMonthlyBalance = async () => {
+      if (settled) return;
+      const refreshButton = modal.querySelector<HTMLButtonElement>("[data-refresh-monthly-balance]");
+      if (refreshButton) refreshButton.disabled = true;
+      setStatus("Moonlight Stone 잔량을 다시 조회하고 있습니다.");
+      latestBalance = await fetchFreshBillingBalanceForPayment();
+      latestBalanceData = latestBalance?.ok ? latestBalance.data : null;
+      monthlyBalanceConfirmed = Boolean(latestBalanceData);
+      monthlyBalance = monthlyBalanceConfirmed
+        ? firstFiniteMonthlyBalance(latestBalanceData)
+        : Math.max(0, Math.floor(Number(knownMonthlyBalance || 0)));
+      canUseMonthly = monthlyBalanceConfirmed && requiredMonthlyCredits > 0 && monthlyBalance >= requiredMonthlyCredits;
+      applyMonthlyBalanceUi();
+      setStatus(
+        monthlyBalanceConfirmed
+          ? `Moonlight Stone 잔량을 다시 확인했습니다. 현재 ${monthlyBalance.toLocaleString("ko-KR")}개입니다.`
+          : "Moonlight Stone 잔량 조회에 실패했습니다. 다시 시도해 주세요.",
+        !monthlyBalanceConfirmed,
+      );
+      if (refreshButton) refreshButton.disabled = false;
+    };
     const showWaitOverlay = (mode: PaymentChoiceMode) => {
       const runtimeWindow = window as RuntimeApiWindow;
       if (mode === "monthly") {
@@ -574,6 +669,11 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     document.body.style.overflow = "hidden";
     modal.addEventListener("click", (event) => {
       if (event.target === modal) close("cancel");
+    });
+    modal.querySelector<HTMLButtonElement>("[data-refresh-monthly-balance]")?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      void refreshMonthlyBalance();
     });
     modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -588,7 +688,14 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           return;
         }
         if (button.disabled) {
-          if (mode === "monthly") setStatus("Moonlight Stone 잔량이 부족합니다. 단건 결제를 선택해 주세요.", true);
+          if (mode === "monthly") {
+            setStatus(
+              monthlyBalanceConfirmed
+                ? "Moonlight Stone 잔량이 부족합니다. 단건 결제를 선택해 주세요."
+                : "Moonlight Stone 최신 잔량을 확인하지 못했습니다. 다시 열어 주세요.",
+              true,
+            );
+          }
           return;
         }
         modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((node) => {
@@ -1764,6 +1871,7 @@ export async function purchaseFeature(input: {
 
 export async function fetchBillingBalance(options: { force?: boolean; emit?: boolean } = {}): Promise<BillingResult<{
   authenticated: boolean;
+  degraded?: boolean;
   balance: number;
   membershipCreditBalance?: number;
   monthlyCredits?: number;
@@ -1793,8 +1901,9 @@ export async function fetchBillingBalance(options: { force?: boolean; emit?: boo
       normalizeBillingBalanceFields(parsed.data as BillingBalanceData & Record<string, unknown>);
       parsed.data.membershipCreditBalance = toNumber(parsed.data.membershipCreditBalance, 0);
       parsed.data.monthlyCredits = toNumber(parsed.data.monthlyCredits ?? parsed.data.membershipCreditBalance, 0);
-      if (options.emit !== false) emitBillingBalanceUpdated(parsed.data as BillingBalanceData & Record<string, unknown>, "balance");
-      if (cacheVersion === billingBalanceCacheVersion) {
+      const cacheableBalance = parsed.data.authenticated !== false && parsed.data.degraded !== true;
+      if (cacheableBalance && options.emit !== false) emitBillingBalanceUpdated(parsed.data as BillingBalanceData & Record<string, unknown>, "balance");
+      if (cacheableBalance && cacheVersion === billingBalanceCacheVersion) {
         billingBalanceRecent = {
           result: parsed,
           expiresAt: Date.now() + BILLING_BALANCE_RECENT_TTL_MS,

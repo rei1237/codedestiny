@@ -8,7 +8,7 @@ type SpreadBlueprint = {
   cardCount: number;
   difficulty: TarotDifficulty;
   purpose: string;
-  positions?: string[];
+  positions?: Array<string | { name: string; meaning: string; interpretationHint: string }>;
 };
 
 export const CATEGORY_LABEL: Record<TarotSpreadCategory, string> = {
@@ -38,12 +38,12 @@ export const DIFFICULTY_LABEL: Record<TarotDifficulty, string> = {
 };
 
 export const CATEGORY_KEYWORD_MAP: Record<TarotSpreadCategory, string[]> = {
-  love: ["좋아", "썸", "호감", "나를 어떻게", "마음", "연애"],
-  reunion: ["재회", "전애인", "헤어진", "다시", "이별", "미련", "잠수"],
+  love: ["좋아", "썸", "호감", "나를 어떻게", "마음", "연애", "그 사람", "상대"],
+  reunion: ["재회", "전애인", "전 애인", "헤어진", "다시", "연락", "이별", "미련", "잠수"],
   third_party: ["다른 여자", "다른 남자", "제3자", "경쟁자", "삼각관계"],
   daily: ["오늘", "내일", "하루", "운세"],
   choice: ["선택", "고민", "할까", "말까", "A", "B"],
-  career: ["이직", "직장", "사업", "성공", "일", "프로젝트"],
+  career: ["이직", "퇴사", "그만두", "버텨", "직장", "회사", "사업", "성공", "일", "프로젝트"],
   money: ["돈", "수익", "재물", "투자", "지출", "금전"],
   relationship: ["인간관계", "갈등", "오해", "신뢰", "관계"],
   self: ["자존감", "불안", "내면", "심리", "나 자신"],
@@ -118,6 +118,82 @@ const SPECIAL_POSITIONS: Record<string, string[]> = {
 };
 
 const BLUEPRINTS: SpreadBlueprint[] = [
+  {
+    id: "three-card-flow",
+    title: "3장 흐름 배열",
+    category: "special",
+    cardCount: 3,
+    difficulty: "easy",
+    purpose: "현재 상황, 숨은 흐름, 조언 또는 가까운 미래를 보는 기본 상담 배열.",
+    positions: [
+      { name: "현재 상황", meaning: "지금 질문자가 실제로 놓여 있는 상황과 겉으로 드러난 사건", interpretationHint: "카드의 일반 의미보다 현재 맥락과 질문자의 체감 상태를 먼저 읽습니다." },
+      { name: "숨은 흐름", meaning: "겉으로 보이지 않지만 영향을 주는 감정, 생각, 배경", interpretationHint: "상대 마음, 내면 심리, 말하지 않은 문제를 단정 없이 조심스럽게 해석합니다." },
+      { name: "조언", meaning: "현재 흐름에서 가장 현명한 태도와 다음 행동", interpretationHint: "결과 단정이 아니라 오늘부터 조절할 수 있는 행동 조언으로 읽습니다." },
+    ],
+  },
+  {
+    id: "one-card-core",
+    title: "1장 핵심 메시지 배열",
+    category: "special",
+    cardCount: 1,
+    difficulty: "easy",
+    purpose: "질문의 핵심 메시지와 지금 가장 중요한 조언을 빠르게 정리하는 배열.",
+    positions: [
+      { name: "핵심 메시지", meaning: "지금 질문에서 가장 먼저 바라봐야 할 중심 신호", interpretationHint: "예언보다 질문자가 오늘 붙잡을 수 있는 태도와 기준으로 해석합니다." },
+    ],
+  },
+  {
+    id: "five-card-consult",
+    title: "5장 상담 배열",
+    category: "special",
+    cardCount: 5,
+    difficulty: "normal",
+    purpose: "현재, 장애물, 내 마음, 외부 흐름, 조언을 연결해 실제 상담처럼 읽는 배열.",
+    positions: [
+      { name: "현재 상황", meaning: "질문자의 현재 조건과 지금 가장 크게 작동하는 흐름", interpretationHint: "상황의 표면과 질문자의 체감 현실을 함께 봅니다." },
+      { name: "장애물", meaning: "흐름을 막거나 왜곡하는 핵심 변수", interpretationHint: "카드를 부정적으로 단정하지 말고 다루어야 할 병목으로 읽습니다." },
+      { name: "내 마음", meaning: "질문자 안에서 실제로 움직이는 감정과 욕구", interpretationHint: "감정의 정당성과 과잉 해석 가능성을 균형 있게 봅니다." },
+      { name: "상대 또는 외부 흐름", meaning: "상대방, 환경, 시장, 주변 조건처럼 나 밖에서 움직이는 영향", interpretationHint: "타인의 마음은 확정하지 않고 관찰되는 가능성으로 표현합니다." },
+      { name: "조언/결과", meaning: "현재 흐름에서 가장 현실적인 조언과 가까운 결과의 방향", interpretationHint: "결과 예언이 아니라 선택을 조정했을 때 바뀔 수 있는 흐름으로 읽습니다." },
+    ],
+  },
+  {
+    id: "seven-card-depth",
+    title: "7장 심층 상담 배열",
+    category: "special",
+    cardCount: 7,
+    difficulty: "deep",
+    purpose: "질문의 핵심부터 숨은 원인, 위험요소, 최종 조언까지 연결하는 심층 배열.",
+    positions: [
+      { name: "질문의 핵심", meaning: "고객이 실제로 알고 싶어 하는 중심 주제", interpretationHint: "질문 원문 아래의 진짜 의도를 먼저 정리합니다." },
+      { name: "현재 에너지", meaning: "지금 상황을 움직이는 기본 분위기와 속도", interpretationHint: "정방향/역방향의 비율과 함께 흐름의 개방성을 봅니다." },
+      { name: "숨은 원인", meaning: "겉으로 드러나지 않았지만 반복되는 심리나 배경", interpretationHint: "무의식, 과거 패턴, 말하지 않은 조건을 조심스럽게 연결합니다." },
+      { name: "상대/환경", meaning: "상대방의 반응이나 주변 조건이 주는 영향", interpretationHint: "상대 마음은 가능성으로만 다루고 행동 단서와 분리합니다." },
+      { name: "가까운 미래", meaning: "현재 흐름이 그대로 갈 때 가까이 나타날 수 있는 변화", interpretationHint: "확정 미래가 아니라 현 상태의 연장선으로 표현합니다." },
+      { name: "위험요소", meaning: "과잉 기대, 회피, 충동처럼 조심해야 할 지점", interpretationHint: "불안을 키우지 말고 예방 가능한 리스크로 번역합니다." },
+      { name: "최종 조언", meaning: "질문자가 주도권을 회복하기 위해 선택할 태도와 행동", interpretationHint: "오늘부터 실행할 수 있는 2~3가지 행동으로 마무리합니다." },
+    ],
+  },
+  {
+    id: "celtic-cross-ten",
+    title: "켈틱 크로스 10장 배열",
+    category: "special",
+    cardCount: 10,
+    difficulty: "premium",
+    purpose: "현재, 장애물, 의식과 무의식, 과거 영향, 가까운 미래, 태도, 환경, 희망과 두려움, 종합 결과를 읽는 고전 배열.",
+    positions: [
+      { name: "현재 상황", meaning: "질문자가 지금 서 있는 현실과 중심 사건", interpretationHint: "전체 배열의 출발점으로 이후 카드의 기준점이 됩니다." },
+      { name: "장애물", meaning: "현재 흐름을 가로막거나 시험하는 핵심 변수", interpretationHint: "문제를 단정하지 말고 해결해야 할 구조로 읽습니다." },
+      { name: "의식적 목표", meaning: "질문자가 스스로 알고 있는 목표와 바람", interpretationHint: "표면 욕구와 실제 행동 기준이 맞는지 봅니다." },
+      { name: "무의식적 원인", meaning: "질문자가 덜 의식하지만 상황에 영향을 주는 심리적 뿌리", interpretationHint: "투사, 불안, 회피, 미련을 부드럽게 해석합니다." },
+      { name: "과거 영향", meaning: "현재 문제를 만든 이전 경험과 반복 패턴", interpretationHint: "과거를 탓하기보다 지금 반복되는 방식을 찾습니다." },
+      { name: "가까운 미래", meaning: "현재 흐름이 이어질 때 가까이 드러날 가능성", interpretationHint: "확정 결과가 아니라 가까운 흐름의 방향으로 말합니다." },
+      { name: "나의 태도", meaning: "질문자가 이 상황을 대하는 방식과 조절 가능한 선택", interpretationHint: "주도권을 회복할 수 있는 행동 기준을 제안합니다." },
+      { name: "주변 환경", meaning: "상대, 가족, 직장, 시장 등 외부 조건의 영향", interpretationHint: "내가 통제할 수 없는 변수와 대응 가능한 부분을 구분합니다." },
+      { name: "희망과 두려움", meaning: "원하지만 동시에 불안해하는 내면의 양가감정", interpretationHint: "기대와 불안을 함께 인정하되 과장하지 않습니다." },
+      { name: "종합 결과", meaning: "전체 배열이 모이는 핵심 방향과 현실적 조언", interpretationHint: "미래 확정이 아니라 현재 선택을 기준으로 한 종합 흐름으로 읽습니다." },
+    ],
+  },
   { id: "heart-mirror", title: "상대의 마음 거울 스프레드", category: "love", cardCount: 5, difficulty: "normal", purpose: "상대방이 나를 어떻게 보고 있는지 확인하는 기본 연애 스프레드." },
   { id: "true-heart", title: "그 사람의 진심 스프레드", category: "love", cardCount: 7, difficulty: "deep", purpose: "상대의 말과 행동이 헷갈릴 때 사용하는 진심 해석 스프레드." },
   { id: "will-contact", title: "연락이 올까 스프레드", category: "love", cardCount: 6, difficulty: "normal", purpose: "연락 가능성과 연락을 막는 요인을 함께 보는 스프레드." },
@@ -256,7 +332,11 @@ function categoryRitual(category: TarotSpreadCategory) {
 }
 
 function buildSpread(blueprint: SpreadBlueprint): TarotSpread {
-  const labels = blueprint.positions || SPECIAL_POSITIONS[blueprint.id] || createFallbackPositions(blueprint.cardCount);
+  const rawPositions = blueprint.positions || SPECIAL_POSITIONS[blueprint.id] || createFallbackPositions(blueprint.cardCount);
+  const positionDetails = rawPositions.map((item) => typeof item === "string"
+    ? { name: item, meaning: item, interpretationHint: categoryMood(blueprint.category) }
+    : item);
+  const labels = positionDetails.map((position) => position.name);
   return {
     id: blueprint.id,
     title: blueprint.title,
@@ -264,7 +344,11 @@ function buildSpread(blueprint: SpreadBlueprint): TarotSpread {
     cardCount: blueprint.cardCount,
     difficulty: blueprint.difficulty,
     purpose: blueprint.purpose,
-    positions: layoutSpreadPositions(labels),
+    positions: layoutSpreadPositions(labels).map((position, index) => ({
+      ...position,
+      description: positionDetails[index]?.meaning || position.description,
+      interpretationHint: positionDetails[index]?.interpretationHint || categoryMood(blueprint.category),
+    })),
     interpretationGuide: [
       "카드 의미보다 먼저 포지션의 질문을 읽습니다.",
       "정방향과 역방향은 감정의 흐름 차이로 설명합니다.",

@@ -468,10 +468,8 @@ function shareLoveSecretKakao() {
 }
 
 /* ══════════════════════════════════════════════
-   PWA 설치 비술 (홈 화면 부적 설치)
+   테마 에셋 동기화
    ══════════════════════════════════════════════ */
-var _pwaPrompt = null;
-var _pwaInstalled = false;
 var THEME_MODE_KEY = 'fortuneThemeModeStateV1';
 var THEME_MODE_STATE_META_KEY = 'fortuneThemeModeStateMetaV1';
 var THEME_MODE_STATE_SCHEMA = '20260511-theme-state-v2';
@@ -615,120 +613,6 @@ function syncThemeLogoSources(reason) {
   }
 
   logThemeLogoSync(reason, 'after', pigLogo, neoLogo);
-}
-
-// [UX FIX] PWA 팝업 조건: 30초 + 스크롤 50% AND 충족 시만 자동 표시
-var _pwaBannerCond = { timer: false, scroll: false, prompted: false };
-function _maybeTriggerPwaBanner() {
-  if (_pwaBannerCond.prompted || !_pwaBannerCond.timer || !_pwaBannerCond.scroll) return;
-  if (!_pwaPrompt || _pwaInstalled) return;
-  _pwaBannerCond.prompted = true;
-  var banner = document.getElementById('pwa-auto-banner');
-  if (banner) banner.classList.add('pwa-auto-banner--visible');
-}
-setTimeout(function() {
-  _pwaBannerCond.timer = true;
-  _maybeTriggerPwaBanner();
-}, 30000);
-window.addEventListener('scroll', function _pwaScrollCheck() {
-  var scrolled = window.scrollY + window.innerHeight;
-  var total = document.documentElement.scrollHeight;
-  if (total > 0 && scrolled / total >= 0.5) {
-    _pwaBannerCond.scroll = true;
-    _maybeTriggerPwaBanner();
-    window.removeEventListener('scroll', _pwaScrollCheck);
-  }
-}, { passive: true });
-
-window.addEventListener('beforeinstallprompt', function(e) {
-  // 이벤트를 보관해 사용자 버튼 설치 흐름에서 재사용합니다.
-  _pwaPrompt = e;
-  var isNeo = (typeof NEO_MODE !== 'undefined' && NEO_MODE);
-  var pigText = '홈 화면에 운세 앱 바로 설치';
-  var neoText = '홈 화면에 네오 운세 앱 바로 설치';
-  var btn = document.getElementById('btnPwaInstall');
-  if (btn) {
-    btn.classList.remove('installed');
-    document.getElementById('pwaInstallLabel').textContent = isNeo ? neoText : pigText;
-  }
-  var btnHome = document.getElementById('btnPwaInstallHome');
-  if (btnHome) {
-    btnHome.classList.remove('installed');
-    document.getElementById('pwaInstallLabelHome').textContent = isNeo ? neoText : pigText;
-  }
-});
-
-window.addEventListener('appinstalled', function() {
-  _pwaInstalled = true;
-  _pwaPrompt = null;
-  var btn = document.getElementById('btnPwaInstall');
-  if (btn) {
-    btn.classList.add('installed');
-    document.getElementById('pwaInstallLabel').textContent = '✅ 앱 설치 완료';
-  }
-  var btnHome = document.getElementById('btnPwaInstallHome');
-  if (btnHome) {
-    btnHome.classList.add('installed');
-    document.getElementById('pwaInstallLabelHome').textContent = '✅ 앱 설치 완료';
-  }
-  showToast('🌌 홈 화면에 운세 앱이 설치되었어요!');
-});
-
-if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-  _pwaInstalled = true;
-}
-
-async function handlePwaInstall() {
-  if (_pwaInstalled) {
-    showToast('✅ 이미 홈 화면에 설치되어 있어요!');
-    return;
-  }
-
-  if (_pwaPrompt) {
-    // beforeinstallprompt 이벤트는 1회성입니다.
-    // prompt() 호출 전에 참조를 분리해 재진입/중복 호출 문제를 방지합니다.
-    var deferredPrompt = _pwaPrompt;
-    _pwaPrompt = null;
-
-    try {
-      deferredPrompt.prompt();
-      var result = await deferredPrompt.userChoice;
-      if (result && result.outcome === 'accepted') {
-        _pwaInstalled = true;
-        showToast('🌌 홈 화면에 앱을 설치하는 중이에요!');
-      } else {
-        showToast('설치를 취소했어요. 언제든 다시 설치할 수 있어요 ✨');
-      }
-    } catch (_) {
-      showToast('설치 창을 열지 못했어요. 잠시 후 다시 시도해 주세요.');
-    }
-    return;
-  }
-
-  var modal = document.getElementById('ios-install-modal');
-  if (modal) modal.classList.add('open');
-}
-
-function closeIosModal() {
-  var modal = document.getElementById('ios-install-modal');
-  if (modal) modal.classList.remove('open');
-}
-
-// Ensure data-action routers can always resolve these handlers.
-window.handlePwaInstall = handlePwaInstall;
-window.closeIosModal = closeIosModal;
-
-// data-action 경로 문제로 설치 버튼이 누락되는 환경을 대비한 직접 바인딩.
-function bindPwaInstallButtons() {
-  ['btnPwaInstall', 'btnPwaInstallHome'].forEach(function(id) {
-    var btn = document.getElementById(id);
-    if (!btn || btn.dataset.pwaInstallBound === '1') return;
-    btn.dataset.pwaInstallBound = '1';
-    btn.addEventListener('click', function(ev) {
-      if (ev && ev.cancelable) ev.preventDefault();
-      handlePwaInstall();
-    }, { passive: false });
-  });
 }
 
 function retireServiceWorkers() {
@@ -1072,13 +956,7 @@ function toggleNeoMode(nextMode){
       tLabel.innerText = '🦁 팩폭 사자 네오 모드';
       tLabel.style.color = '#FFD700';
     }
-    /* 사자모드 manifest + 아이콘 교체 */
     applyPwaThemeAssets(true);
-    /* PWA 설치 텍스트 변경 */
-    var pwaLabel = document.getElementById('pwaInstallLabel');
-    var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
-    if(pwaLabel && !pwaLabel.textContent.includes('완료')) pwaLabel.textContent = '홈 화면에 네오 운세 앱 바로 설치';
-    if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '홈 화면에 네오 운세 앱 바로 설치';
   }else{
     body.classList.remove('neo-mode');
     body.classList.remove('theme-neo');
@@ -1090,13 +968,7 @@ function toggleNeoMode(nextMode){
       tLabel.innerText = '🌸 꽃돼지 연이 모드';
       tLabel.style.color = '#FF8BA7';
     }
-    /* 연이모드 manifest + 아이콘 복원 */
     applyPwaThemeAssets(false);
-    /* PWA 설치 텍스트 복원 */
-    var pwaLabel = document.getElementById('pwaInstallLabel');
-    var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
-    if(pwaLabel && !pwaLabel.textContent.includes('완료')) pwaLabel.textContent = '홈 화면에 운세 앱 바로 설치';
-    if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '홈 화면에 운세 앱 바로 설치';
   }
   syncThemeLogoSources('toggle');
   setTimeout(function(){ syncThemeLogoSources('toggle:timeout160'); }, 160);
@@ -1238,12 +1110,8 @@ window.addEventListener('load',function(){
   applyPwaThemeAssets(NEO_MODE);
   syncThemeLogoSources('boot');
   setTimeout(function(){ syncThemeLogoSources('boot:timeout900'); }, 900);
-  var pwaLabel = document.getElementById('pwaInstallLabel');
-  var pwaLabelHome = document.getElementById('pwaInstallLabelHome');
   var tLabel = document.getElementById('themeToggleLabel');
   if(NEO_MODE){
-    if(pwaLabel && !pwaLabel.textContent.includes('완료')) pwaLabel.textContent = '팩폭 사자 운세 서비스 앱 설치하기';
-    if(pwaLabelHome && !pwaLabelHome.textContent.includes('완료')) pwaLabelHome.textContent = '팩폭 사자 운세 서비스 앱 설치하기';
     if(tLabel) {
       tLabel.innerText = '🦁 팩폭 사자 네오 모드';
       tLabel.style.color = '#FFD700';
@@ -1273,7 +1141,6 @@ window.addEventListener('load',function(){
   else scheduleThemeToggleAutoDisable();
 
   enforceThemeToggleSticky();
-  bindPwaInstallButtons();
   window.addEventListener('resize', enforceThemeToggleSticky, { passive: true });
   window.addEventListener('scroll', enforceThemeToggleSticky, { passive: true });
   window.addEventListener('touchmove', enforceThemeToggleSticky, { passive: true });

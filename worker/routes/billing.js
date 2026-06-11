@@ -3180,6 +3180,22 @@ async function handleBalance(request, env) {
 
 async function handleBillingSnapshotBalance(request, env) {
   const snapshot = await readBillingSnapshot(request, env);
+  if (snapshot?.degraded === true) {
+    return failure(
+      503,
+      "BALANCE_SNAPSHOT_UNAVAILABLE",
+      "Moonlight Stone 잔량을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      undefined,
+      {
+        status: "error",
+        degraded: true,
+        membershipCreditBalance: 0,
+        monthlyCredits: 0,
+        monthlyCreditsAsCoins: 0,
+      },
+      snapshot?.error?.details,
+    );
+  }
   return success({
     ...snapshot,
     raw: {
@@ -3432,6 +3448,22 @@ async function handleUnlockStatus(request, env) {
   }
 
   const data = await readBillingSnapshot(request, env);
+  if (data?.degraded === true) {
+    return failure(
+      503,
+      "BALANCE_SNAPSHOT_UNAVAILABLE",
+      "Moonlight Stone 잔량을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      undefined,
+      {
+        status: "error",
+        degraded: true,
+        membershipCreditBalance: 0,
+        monthlyCredits: 0,
+        monthlyCreditsAsCoins: 0,
+      },
+      data?.error?.errorDetails || data?.error?.details,
+    );
+  }
   const unlockMap = data.unlockMap && typeof data.unlockMap === "object" ? data.unlockMap : {};
   let pricing = pricingResult.pricing;
   let unlocked = Boolean(unlockMap[pricing.featureKey]);
