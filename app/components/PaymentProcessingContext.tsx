@@ -41,7 +41,9 @@ type PaidFeatureGateStatus =
   | "paymentProcessing"
   | "paymentSuccess"
   | "paymentFailed"
-  | "error";
+  | "error"
+  | "paymentPreparing"
+  | "paymentWindowOpen";
 
 type PaidFeatureGateDetail = {
   featureId?: string;
@@ -87,6 +89,8 @@ const PAID_GATE_COPY: Record<PaidFeatureGateStatus, { label: string; title: stri
   paymentSuccess: { label: "완료", title: "이용 권한 저장 완료", message: "잠시 후 결과 화면으로 이어집니다." },
   paymentFailed: { label: "실패", title: "결제 확인 실패", message: "결제를 완료하지 못했습니다." },
   error: { label: "오류", title: "확인 실패", message: "네트워크 상태를 확인한 뒤 다시 시도해 주세요." },
+  paymentPreparing: { label: "결제 준비", title: "단건 결제창 준비 중", message: "단건 결제창을 여는 중입니다. 주문 정보를 안전하게 맞추고 있습니다." },
+  paymentWindowOpen: { label: "결제 진행", title: "결제 진행 중", message: "열린 결제창에서 카드 인증을 완료해 주세요." },
 };
 
 const PaidFeatureGateContext = createContext<PaidFeatureGateContextValue | undefined>(undefined);
@@ -136,6 +140,8 @@ function paymentLoadingOwnsPaidFeatureStatus(status: PaidFeatureGateStatus) {
     "loadingProducts",
     "paymentProcessing",
     "paymentSuccess",
+    "paymentPreparing",
+    "paymentWindowOpen",
   ].includes(status);
 }
 

@@ -45,6 +45,11 @@ export type PaymentEligibility = {
   loading?: boolean;
   coinCost: number;
   priceKRW: number;
+  access: {
+    canAccess: boolean;
+    alreadyUnlocked: boolean;
+    reason: string;
+  };
   pass: {
     hasActivePass: boolean;
     tier: "standard" | "premium" | "vvip" | "family" | null;
@@ -215,6 +220,15 @@ function hasVerifiedBillingAccess(data: unknown, expectedFeatureKey: unknown): b
   const record = asRecord(data);
   if (!record) return false;
   const expectedFeature = toText(expectedFeatureKey);
+  const pricing = asRecord(record.pricing);
+  const pricingFeature = toText(pricing?.featureKey);
+  const accessDecision = asRecord(record.accessDecision);
+  if (
+    (record.canAccess === true || record.unlocked === true || accessDecision?.accessGranted === true)
+    && (!expectedFeature || !pricingFeature || pricingFeature === expectedFeature)
+  ) {
+    return true;
+  }
   const accessGrant = asRecord(record.accessGrant);
   if (accessGrant && accessGrant.ok !== false) {
     const evidenceId = toText(
@@ -433,6 +447,7 @@ async function runPaidServiceRuntimePayment(input: Parameters<typeof runBillingC
       monthlyBalance: context.eligibility?.monthly.balance,
       skipBalanceRefresh: passAlreadyChecked,
       disablePassFirst: passAlreadyChecked && context.eligibility?.pass.canUse !== true,
+      internalMainGate: true,
     });
   } catch (error) {
     return {
@@ -573,6 +588,8 @@ function paymentLoadingOwnsPaidFeatureStatus(status: string) {
     "loadingProducts",
     "paymentProcessing",
     "paymentSuccess",
+    "paymentPreparing",
+    "paymentWindowOpen",
   ].includes(status);
 }
 
@@ -611,6 +628,8 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
 
   if (status === "checkingEntitlement") return { message: text || "이용권 확인 중입니다.", mode: "pass" };
   if (status === "hasEntitlement") return { message: text || "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
+  if (status === "paymentPreparing") return { message: text || "단건 결제창을 여는 중입니다. 주문 금액과 인증 정보를 안전하게 맞추고 있습니다.", mode: "card" };
+  if (status === "paymentWindowOpen") return { message: text || "열린 결제창에서 카드 인증을 진행해 주세요. 인증이 끝나면 권한을 확인합니다.", mode: "card" };
   if (status === "opening" || status === "loadingProducts" || status === "readyToPay") {
     if (kind === "subscription") return { message: text || "코인 기준 이용권 결제 정보를 확인하고 있습니다.", mode: "subscription" };
     if (kind === "monthly") return { message: text || "이벤트 월정석 보너스를 확인하고 콘텐츠 이용 권한을 여는 중입니다.", mode: "monthly" };
@@ -865,10 +884,18 @@ export async function fetchPaymentEligibility(input: {
   const monthlyCost = Math.max(0, Math.floor(toNumber(options.membershipCreditCost ?? data.membershipCreditCost ?? pricing.membershipCreditCost, coinCost * 10)));
   const passTier = normalizePassTier(options.passTier ?? data.passTier ?? data.subscriptionTier);
   const passLimit = toNumber(options.passLimit ?? data.passLimit ?? data.freeLimit, NaN);
+  const accessDecision = asRecord(data.accessDecision);
+  const accessReason = toText(accessDecision?.reason || data.accessReason || data.decisionReason);
+  const canAccess = Boolean(data.canAccess === true || data.unlocked === true || accessDecision?.accessGranted === true);
   const eligibility: PaymentEligibility = {
     loading: false,
     coinCost,
     priceKRW,
+    access: {
+      canAccess,
+      alreadyUnlocked: Boolean(data.unlocked === true || accessReason === "already_unlocked"),
+      reason: accessReason,
+    },
     pass: {
       hasActivePass: Boolean(options.hasActivePass ?? data.hasActivePass),
       tier: passTier,
@@ -976,10 +1003,11 @@ export async function runBillingCoinGate(input: {
         reason: input.reason,
       }).catch(() => null);
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
-    const passFirstEligible = explicitPassMode || eligibility?.pass.canUse === true;
+    const accessAlreadyGranted = eligibility?.access.canAccess === true;
+    const passFirstEligible = explicitPassMode || accessAlreadyGranted || eligibility?.pass.canUse === true;
     if (eligibility) {
       const eligibilityOverlay = resolvePaymentWaitOverlay(
-        eligibility.pass.canUse ? "checkingEntitlement" : "loadingProducts",
+        accessAlreadyGranted || eligibility.pass.canUse ? "checkingEntitlement" : "loadingProducts",
         undefined,
         { paymentMode: requestedMode, featureKey: featureId, reason: input.reason },
       );
@@ -987,8 +1015,10 @@ export async function runBillingCoinGate(input: {
         featureId,
         featureKey: featureId,
         requestId: gateRequestId,
-        status: eligibility.pass.canUse ? "checkingEntitlement" : "loadingProducts",
-        message: eligibilityOverlay.message,
+        status: accessAlreadyGranted || eligibility.pass.canUse ? "checkingEntitlement" : "loadingProducts",
+        message: accessAlreadyGranted
+          ? (eligibility.access.alreadyUnlocked ? "이미 저장된 이용 권한을 확인하고 있습니다." : "서버에 저장된 이용 권한을 확인하고 있습니다.")
+          : eligibilityOverlay.message,
         cost: eligibility.coinCost,
         paymentMode: requestedMode,
         reason: input.reason,

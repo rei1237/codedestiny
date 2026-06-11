@@ -259,129 +259,6 @@ export function useCoinGate() {
         }
 
         if (chargeResult.status === 402 || code === "PAYMENT_REQUIRED") {
-          const runtimeGate = await loadRuntimePaidServiceGate();
-          if (runtimeGate) {
-            const runtimeRequestId = toText(input.requestId || `paid-gate:${toText(input.featureKey || pricingResult.data.pricing.featureKey)}:${Date.now()}`);
-            try {
-              setPaymentMessage("결제창을 여는 중입니다...");
-              const runtimeResult = await runtimeGate({
-                categoryKey: input.categoryKey,
-                subFeatureKey: input.subFeatureKey,
-                featureKey: input.featureKey || pricingResult.data.pricing.featureKey,
-                reason: input.reason || pricingResult.data.pricing.reason,
-                title: input.reason || pricingResult.data.pricing.reason,
-                cost: requiredCoins,
-                coinPrice: requiredCoins,
-                amountKrw: amountKRW,
-                requestId: runtimeRequestId,
-                forceDeduct: input.forceDeduct !== false,
-              });
-
-              if (isRuntimeGateGranted(runtimeResult)) {
-                const payload = unwrapRuntimeGatePayload(runtimeResult);
-                const data = readNestedObject(payload, "data");
-                const consume = readNestedObject(payload, "consume");
-                const dataConsume = readNestedObject(data, "consume");
-                const resolvedConsume = Object.keys(consume).length ? consume : dataConsume;
-                const payloadAccessGrant = readNestedObject(payload, "accessGrant");
-                const dataAccessGrant = readNestedObject(data, "accessGrant");
-                const accessGrant = Object.keys(payloadAccessGrant).length ? payloadAccessGrant : dataAccessGrant;
-                const transactionId = toText(
-                  runtimeResult?.transactionId
-                  || runtimeResult?.paymentId
-                  || runtimeResult?.purchaseId
-                  || runtimeResult?.requestId
-                  || payload.transactionId
-                  || payload.paymentId
-                  || payload.purchaseId
-                  || payload.requestId
-                  || resolvedConsume.transactionId
-                  || resolvedConsume._id
-                  || runtimeRequestId,
-                );
-                const chargedCoins = toNumber(
-                  resolvedConsume.chargedCoins
-                  ?? resolvedConsume.cost
-                  ?? payload.chargedCoins
-                  ?? data.chargedCoins,
-                  requiredCoins,
-                );
-                const balanceAfter = toNumber(
-                  payload.balance
-                  ?? data.balance
-                  ?? resolvedConsume.balanceAfter
-                  ?? resolvedConsume.afterBalance,
-                  0,
-                );
-                const resolvedFeatureKey = toText(resolvedConsume.featureKey || input.featureKey || pricingResult.data.pricing.featureKey);
-                const accessMethod = normalizeCode(payload.accessMethod || data.accessMethod || resolvedConsume.accessMethod || resolvedConsume.paymentMethod || accessGrant.accessMethod);
-                const accessType = toText(payload.accessType || data.accessType || resolvedConsume.accessType || resolvedConsume.transactionType || accessGrant.accessType).toLowerCase();
-                const passGranted = Boolean(payload.freeBySubscription === true || data.freeBySubscription === true || accessMethod === "PASS" || accessType === "membership_pass" || accessType === "usage_pass");
-
-                if (typeof input.onPaid === "function") {
-                  setPaymentMessage("결제가 완료되었습니다. 결과를 생성하고 있습니다...");
-                  markPaidAttemptGenerationStarted("runtime_paid_gate_callback_start");
-                  try {
-                    await input.onPaid({
-                      transactionId,
-                      chargedCoins,
-                      requiredCoins,
-                      amountKRW,
-                      balanceAfter,
-                      featureKey: resolvedFeatureKey,
-                    });
-                    markPaidAttemptGenerationCompleted();
-                  } catch (error) {
-                    markPaidAttemptFailed("feature_execution_failed");
-                    return {
-                      ok: false,
-                      code: "FEATURE_EXECUTION_FAILED",
-                      message: error instanceof Error ? error.message : "유료 기능 실행에 실패했습니다.",
-                      requiredCoins,
-                      chargedCoins,
-                      balanceAfter,
-                      transactionId,
-                      refunded: false,
-                    };
-                  }
-                }
-
-                return {
-                  ok: true,
-                  code: passGranted ? "PASS_FREE" : "OK",
-                  message: "결제가 완료되었습니다.",
-                  requiredCoins,
-                  chargedCoins,
-                  balanceAfter,
-                  transactionId,
-                  refunded: false,
-                };
-              }
-
-              return {
-                ok: false,
-                code: "PAYMENT_CANCELLED",
-                message: toText(runtimeResult?.reason || "결제가 취소되었습니다."),
-                requiredCoins,
-                chargedCoins: 0,
-                balanceAfter: 0,
-                transactionId: "",
-                refunded: false,
-              };
-            } catch (error) {
-              return {
-                ok: false,
-                code: "PAYMENT_REQUIRED",
-                message: error instanceof Error ? error.message : message,
-                requiredCoins,
-                chargedCoins: 0,
-                balanceAfter: 0,
-                transactionId: "",
-                refunded: false,
-              };
-            }
-          }
-
           return {
             ok: false,
             code: "PAYMENT_REQUIRED",
@@ -444,6 +321,8 @@ export function useCoinGate() {
           };
         }
       }
+
+      refreshAuth({ force: true, silent: true }).catch(() => {});
 
       return {
         ok: true,
