@@ -69,7 +69,7 @@ var LOVE_CODE_FEATURE = {
 };
 
 var REPORT_CARDS = [
-  { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:'✨ 매력 분석 자세히 보기',     accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:30  },
+  { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:'✨ 매력 분석 자세히 보기', thumb:'meryok-new.webp', accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:30  },
   { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:'퀀텀 명리 엔진',        desc:'합화 우선 분석으로 나만의 천기 지도를 제공합니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체를 계속 확인할 수 있습니다.', cta:'⚡ 퀀텀 명리 전체 열기',          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'100코인 · 영구 해금'  },
   { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:'명리 헬스 리포트',      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:'💚 건강 리포트 확인하기',      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:50  },
   { id:'sajuprompt', thumb:'사주 프롬프트.webp', label:'사주 AI 프롬프트',      desc:'물상·아바타·이상형 얼굴 등 무료 AI 이미지 프롬프트를 받아보세요.', note:'내 사주의 분위기를 다양한 컨셉의 이미지 프롬프트로 바로 가져갈 수 있습니다.', cta:'🤖 무료 프롬프트 보기',    accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard',       coinCost:0 },
@@ -77,7 +77,7 @@ var REPORT_CARDS = [
   { id:'tbal',       thumb:'극T테스트.webp', label:'극T 테스트',            desc:'The Frozen Logic, 내 논리 온도를 분석합니다.',          note:'감정보다 이성이 먼저 반응하는 순간, 당신의 판단 패턴을 콕 집어드립니다.', cta:'🧊 극T 테스트 결과 보기',      accent:'#67e8f9', glow:'rgba(103,232,249,.55)', target:'tTestCard',          coinCost:0   },
   { id:'tetoegen',   thumb:'테토VS에겐.webp', label:'테토 vs 에겐',          desc:'사주 기반으로 나의 매력 에너지 결을 분석합니다.',       note:'강하게 끌어당기는 타입인지, 부드럽게 스며드는 타입인지 매력 결을 보여드립니다.', cta:'❤️ 테토/에겐 분석 보기',      accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section',coinCost:0  },
   { id:'trip',       thumb:'사주로 보는 여행지.webp', label:'사주로 보는 여행지',     desc:'사주 오행 균형 기준으로 지금 맞는 여행지를 안내합니다.', note:'국내/해외 추천 좌표와 방향 포인트를 함께 확인해 이동 운을 끌어올려보세요.', cta:'🗺️ 여행지 리포트 보기',         accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard',    coinCost:50  },
-  { id:'vilun',      label:'빌런 블랙리스트',        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:'⚠️ 빌런 리포트 열기',          accent:'#f87171', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
+  { id:'vilun',      label:'빌런 블랙리스트',        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:'⚠️ 빌런 리포트 열기',          accent:'#f87171', thumb:'vilun-new.webp', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
   { id:'lotto',      thumb:'사주 로또.webp', label:'퀀텀 로또 리포트',       desc:'사주 오행과 수리 상징으로 만든 재미용 번호를 제공합니다.',          note:'오늘 운의 파동과 맞는 상징 번호와 행운 루틴을 가볍게 확인합니다.', cta:'퀀텀 로또 리포트 보기',          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard',          coinCost:0   },
   { id:'godlife',    thumb:'사주 다이어리.webp', label:'사주 다이어리',          desc:'갓생 지수 · 럭키 비키 아이템 · 야간회고를 한 번에 관리해보세요.', note:'오늘 운세 실천부터 내일 일진 대비 포인트까지 이어서 기록하면, 운의 패턴이 더 선명해집니다.', cta:'📔 사주 다이어리 열기',       accent:'#818cf8', glow:'rgba(129,140,248,.55)', target:'luckSyncDiaryEntryCard', action:'openLuckSyncDiary', coinCost:100 },
   { id:'4CUT',       thumb:'사주 네컷.webp', label:'사주네컷 : 운명 필터',   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:'📸 사주네컷 열기',            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
@@ -1045,7 +1045,7 @@ function renderReportDashboard() {
         shortTitle: c.shortTitle || '',
         badge: c.badge || '',
         tags: Array.isArray(c.tags) ? c.tags.slice(0, 5) : [],
-        lockKey: c.lockKey || '',
+        lockKey: c.lockKey || (c.target ? ('rpt_' + c.target) : ''),
         coinCost: Number(c.coinCost || 0)
       };
       blocks.push(seenTargets[c.target]);
@@ -1065,7 +1065,7 @@ function renderReportDashboard() {
     b.images.forEach(function(img) {
       var rawThumb = String(img.thumb || (img.id + '.webp'));
       var thumbSrc = '/fuctionassets/' + encodeURIComponent(rawThumb).replace(/%2F/g, '/');
-      var tilePriceText = (b.coinCost > 0) ? (b.target === 'quantumCard' ? ('🔒 ' + b.coinCost + '코인 · 영구 해금') : ('🪙 ' + b.coinCost + '코인')) : '무료';
+      var tilePriceText = (b.coinCost > 0) ? ('🔒 ' + b.coinCost + '코인 · 잠금 콘텐츠') : '무료';
       var tilePriceClass = (b.coinCost > 0) ? 'rpt-v2-price-badge' : 'rpt-v2-price-badge is-free';
       gridHtml += '<div class="rpt-v2-img-wrap">';
       gridHtml += '<img class="rpt-v2-img" src="' + thumbSrc + '" alt="' + img.label + '" loading="lazy" '
@@ -1089,7 +1089,7 @@ function renderReportDashboard() {
     }
     gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요.') + '</p>';
     var lockKey = b.lockKey || ('rpt_' + b.target);
-    var shouldAttachTileLock = (b.coinCost > 0) && (b.action !== 'openDestinyMeetingPlaceRoute');
+    var shouldAttachTileLock = b.coinCost > 0;
     var coinAttrs = shouldAttachTileLock ? (' data-tile-lock-key="' + lockKey + '" data-tile-lock-cost="' + b.coinCost + '"') : '';
     if (_rptIsDirectAction(b.action)) {
       gridHtml += '<button class="rpt-v2-toggle-btn" type="button" data-action="' + b.action + '"' + coinAttrs + ' aria-label="' + b.cta + '">';
@@ -1115,6 +1115,9 @@ function renderReportDashboard() {
   });
   gridHtml += '</div>';
   container.innerHTML = gridHtml;
+  if (typeof window.applyTileLockVisuals === 'function') {
+    try { window.applyTileLockVisuals(); } catch (lockVisualErr) {}
+  }
 
   /* ── 기존 섹션을 슬롯 안으로 이동 ── */
   var pendingTargets = [];

@@ -125,8 +125,8 @@
         safe.profileSubscription.maxCoveredCoin = Math.floor(passLimit);
       }
       if (user.profileSubscription.passTier) safe.profileSubscription.passTier = String(user.profileSubscription.passTier);
-      var profileLimit = Number(user.profileSubscription.profileLimit || user.profileSubscription.maxProfileLimit || user.profileSubscription.profileCardLimit || user.profileSubscription.maxProfiles);
-      if (Number.isFinite(profileLimit) && profileLimit > 0) safe.profileSubscription.profileLimit = Math.floor(profileLimit);
+      var profileLimit = _dpReadProfileLimitValue(user.profileSubscription);
+      if (Number.isFinite(profileLimit) && profileLimit >= 0) safe.profileSubscription.profileLimit = Math.floor(profileLimit);
       if (user.profileSubscription.plan) safe.profileSubscription.plan = String(user.profileSubscription.plan);
       if (user.profileSubscription.planId) safe.profileSubscription.planId = String(user.profileSubscription.planId);
       if (user.profileSubscription.productId) safe.profileSubscription.productId = String(user.profileSubscription.productId);
@@ -151,6 +151,9 @@
 
   function _dpResolveProfileScope(user) {
     var scope = _dpResolveIdScope(user);
+    if (!scope && typeof _dpSessionVerify !== 'undefined' && _dpSessionVerify && _dpSessionVerify.ok && _dpSessionVerify.userId) {
+      scope = String(_dpSessionVerify.userId).trim().toLowerCase();
+    }
     return scope || 'guest';
   }
 
@@ -1114,8 +1117,8 @@
           var s = data.subscription;
           var tier = _dpNormalizeTier(s.tier);
           var active = !!s.isActive && tier !== 'free';
-          var rawLimit = Number(s.profileLimit);
-          var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
+          var rawLimit = _dpReadProfileLimitValue(s);
+          var resolvedLimit = _dpResolveProfileLimit(tier, rawLimit);
           _dpSubTier = tier;
           _dpSubIsActive = active;
           _dpSubProfileLimit = active ? resolvedLimit : 1;
@@ -2762,7 +2765,8 @@
     if (tier === 'unlimited') tier = 'vvip';
     if (tier === 'pro') tier = 'premium';
     if (tier === 'basic') tier = 'standard';
-    if (tier !== 'standard' && tier !== 'premium' && tier !== 'vvip') tier = 'free';
+    if (tier.indexOf('family') >= 0) tier = 'family';
+    if (tier !== 'standard' && tier !== 'premium' && tier !== 'vvip' && tier !== 'family') tier = 'free';
     return tier;
   }
 
@@ -2771,6 +2775,7 @@
     if (tier === 'standard') return 3;
     if (tier === 'premium') return 7;
     if (tier === 'vvip') return 15;
+    if (tier === 'family') return 0;
     return 1;
   }
 
@@ -2779,6 +2784,7 @@
     if (tier === 'standard') return '스탠다드';
     if (tier === 'premium') return '프리미엄';
     if (tier === 'vvip') return 'VVIP';
+    if (tier === 'family') return '패밀리';
     return '무료';
   }
 
@@ -2787,6 +2793,7 @@
     if (tier === 'free') return 'standard';
     if (tier === 'standard') return 'premium';
     if (tier === 'premium') return 'vvip';
+    if (tier === 'vvip') return 'family';
     return '';
   }
 
@@ -2794,6 +2801,46 @@
     var n = Number(limit);
     if (!isFinite(n) || n <= 0) return '무제한';
     return String(Math.floor(n)) + '개';
+  }
+
+  function _dpReadProfileLimitValue(source) {
+    if (!source || typeof source !== 'object') return NaN;
+    var keys = ['profileLimit', 'maxProfileLimit', 'profileCardLimit', 'maxProfiles'];
+    for (var i = 0; i < keys.length; i += 1) {
+      if (!Object.prototype.hasOwnProperty.call(source, keys[i])) continue;
+      var n = Number(source[keys[i]]);
+      if (isFinite(n) && n >= 0) return Math.floor(n);
+    }
+    return NaN;
+  }
+
+  function _dpResolveProfileLimit(tierRaw, valueRaw) {
+    var tier = _dpNormalizeTier(tierRaw);
+    if (tier === 'family') return 0;
+    var n = Number(valueRaw);
+    if (isFinite(n) && n > 0) return Math.floor(n);
+    return _dpGetTierProfileLimit(tier);
+  }
+
+  function _dpIsUnlimitedProfileLimit(maxProfiles) {
+    var n = Number(maxProfiles);
+    return isFinite(n) && n <= 0;
+  }
+
+  function _dpGetPositiveProfileLimit(maxProfiles) {
+    var n = Number(maxProfiles);
+    return (isFinite(n) && n > 0) ? Math.max(1, Math.floor(n)) : 1;
+  }
+
+  function _dpCanUseProfileSlot(profileCount, maxProfiles) {
+    if (_dpIsUnlimitedProfileLimit(maxProfiles)) return true;
+    var count = Math.max(0, Math.floor(Number(profileCount || 0)));
+    return count < _dpGetPositiveProfileLimit(maxProfiles);
+  }
+
+  function _dpGetProfileLimitSlotLabel(profileCount, maxProfiles) {
+    var count = Math.max(0, Math.floor(Number(profileCount || 0)));
+    return count + '/' + (_dpIsUnlimitedProfileLimit(maxProfiles) ? '무제한' : _dpGetPositiveProfileLimit(maxProfiles));
   }
 
   /**
@@ -3007,12 +3054,12 @@
       || _dpIsActiveMembershipStatusValue(sub.membershipStatus)
       || _dpHasFutureMembershipExpiry(sub.expiresAt)
     );
-    var rawLimit = Number(sub.profileLimit || sub.maxProfileLimit || sub.profileCardLimit || sub.maxProfiles);
-    var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
+    var rawLimit = _dpReadProfileLimitValue(sub);
+    var resolvedLimit = _dpResolveProfileLimit(tier, rawLimit);
     return {
       tier: tier,
       isActive: active,
-      profileLimit: active ? Math.max(1, Math.floor(resolvedLimit || 1)) : 1,
+      profileLimit: active ? resolvedLimit : 1,
       expiresAt: sub.expiresAt || null
     };
   }
@@ -3048,9 +3095,9 @@
       var c = JSON.parse(raw);
       var tier = _dpNormalizeTier(c && c.tier);
       var active = !!(c && c.isActive) && tier !== 'free';
-      var rawLimit = Number(c && c.profileLimit);
-      var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
-      if (authSnapshot && authSnapshot.isActive && (!active || authSnapshot.profileLimit >= resolvedLimit)) {
+      var rawLimit = _dpReadProfileLimitValue(c);
+      var resolvedLimit = _dpResolveProfileLimit(tier, rawLimit);
+      if (authSnapshot && authSnapshot.isActive) {
         tier = authSnapshot.tier;
         active = true;
         resolvedLimit = authSnapshot.profileLimit;
@@ -3096,8 +3143,8 @@
         if (!d) return;
         var tier = _dpNormalizeTier(d.tier);
         var active = !!d.isActive && tier !== 'free';
-        var rawLimit = Number(d.profileLimit);
-        var resolvedLimit = (isFinite(rawLimit) && rawLimit > 0) ? rawLimit : _dpGetTierProfileLimit(tier);
+        var rawLimit = _dpReadProfileLimitValue(d);
+        var resolvedLimit = _dpResolveProfileLimit(tier, rawLimit);
 
         _dpSubTier         = tier;
         _dpSubIsActive     = active;
@@ -3128,12 +3175,14 @@
 
   function _dpApplyProfileAccess(access) {
     if (!access || typeof access !== 'object') return;
+    var profileLimit = _dpReadProfileLimitValue(access);
+    if (!Number.isFinite(profileLimit)) profileLimit = 1;
     _dpProfileAccess = {
       mode: String(access.mode || 'subscription'),
       selectionRequired: !!access.selectionRequired,
       locked: !!access.locked,
       lockedProfileId: String(access.lockedProfileId || '').trim(),
-      profileLimit: Math.max(1, Math.floor(Number(access.profileLimit || 1)))
+      profileLimit: profileLimit
     };
   }
 
@@ -3172,27 +3221,29 @@
     var quotaText = document.getElementById('dpProfileQuotaText');
     if (!quotaText) return;
     var used = Math.max(0, Math.floor(Number(profileCount || 0)));
-    var limit = Math.max(1, Math.floor(Number(maxProfiles || 1)));
-    var remaining = Math.max(0, limit - used);
+    var unlimited = _dpIsUnlimitedProfileLimit(maxProfiles);
+    var limit = _dpGetPositiveProfileLimit(maxProfiles);
+    var remaining = unlimited ? '무제한' : String(Math.max(0, limit - used));
+    var limitLabel = unlimited ? '무제한' : String(limit);
     var label = planLabel || '무료 플랜';
-    if (!_dpSubIsActive) {
-      quotaText.textContent = '무료 계정 · 프로필 카드 추가는 ' + PROFILE_CARD_MANAGE_COST + '코인 결제 후 저장됩니다.';
-    } else if (canUsePlanSlot) {
-      quotaText.textContent = label + ' · 등록 가능 ' + remaining + '개 남음 (' + used + '/' + limit + ')';
+    if (canUsePlanSlot) {
+      quotaText.textContent = label + ' · 기본 제공 프로필 카드 ' + remaining + (unlimited ? '' : '개') + ' 저장 가능 (' + used + '/' + limitLabel + ')';
+    } else if (!_dpSubIsActive) {
+      quotaText.textContent = '무료 계정 · 기본 프로필 카드 1개 사용 완료 · 추가 생성 ' + PROFILE_CARD_MANAGE_COST + '코인';
     } else {
-      quotaText.textContent = label + ' · 기본 한도 ' + limit + '개 사용 완료 · 추가 생성 50코인';
+      quotaText.textContent = label + ' · 기본 한도 ' + limitLabel + '개 사용 완료 · 추가 생성 50코인';
     }
   }
 
   function _dpUpdateSaveBtn() {
     var btn = document.getElementById('dpSaveBtn');
     var profileCount = DPStorage.list().length;
-    var maxProfiles = Math.max(1, Math.floor(Number(_dpGetMaxProfiles() || 1)));
+    var maxProfiles = _dpGetMaxProfiles();
     var hasProfiles = profileCount > 0;
-    var canUsePlanSlot = profileCount < maxProfiles;
-    var canCreateWithoutPayment = _dpSubIsActive && canUsePlanSlot;
+    var canUsePlanSlot = _dpCanUseProfileSlot(profileCount, maxProfiles);
+    var canCreateWithoutPayment = canUsePlanSlot;
     var planLabel = _dpGetTierLabel(_dpSubIsActive ? _dpSubTier : _dpGetUserPlan());
-    var slotLabel = profileCount + '/' + maxProfiles;
+    var slotLabel = _dpGetProfileLimitSlotLabel(profileCount, maxProfiles);
     _dpUpdateProfileQuotaText(profileCount, maxProfiles, planLabel, canUsePlanSlot);
     if (!btn) return;
 
@@ -3207,7 +3258,7 @@
     btn.style.opacity = '';
     btn.style.cursor = '';
     btn.title = canCreateWithoutPayment
-      ? planLabel + ' 한도 ' + maxProfiles + '개 중 ' + profileCount + '개를 사용 중입니다.'
+      ? planLabel + ' 한도 ' + _dpFormatLimitLabel(maxProfiles) + ' 중 ' + profileCount + '개를 사용 중입니다.'
       : '프로필 카드 추가는 서버에서 50코인 또는 5,000원 결제를 확인한 뒤 저장됩니다.';
   }
 
@@ -3619,15 +3670,22 @@
         var data = (payload && typeof payload === 'object') ? payload : {};
         var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
         var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
+        var paymentId = String(transactionId || data.transactionId || data.paymentId || data.purchaseId || requestId);
         resolve({
           requestId: requestId,
-          transactionId: String(transactionId || data.transactionId || data.paymentId || data.purchaseId || requestId),
+          transactionId: paymentId,
+          paymentId: paymentId,
+          purchaseId: paymentId,
+          paymentSettled: true,
           payment: data,
           accessGrant: accessGrant,
           consume: consume,
           _paymentContext: {
             requestId: requestId,
-            transactionId: String(transactionId || data.transactionId || data.paymentId || data.purchaseId || requestId),
+            transactionId: paymentId,
+            paymentId: paymentId,
+            purchaseId: paymentId,
+            paymentSettled: true,
             featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
             profileId: profileId || '',
             actionType: serviceKey,
@@ -3644,7 +3702,7 @@
         selectedProfileId: profileId || '',
         serviceKey: serviceKey,
         reportType: serviceKey,
-        actionType: normalizedAction,
+        actionType: serviceKey,
         profileAction: normalizedAction,
         action: normalizedAction
       });
@@ -4191,7 +4249,8 @@
 
     requestAnimationFrame(function() {
       try {
-        var isFreeUser = _dpGetMaxProfiles() <= 1;
+        var listMaxProfiles = _dpGetMaxProfiles();
+        var isFreeUser = !_dpIsUnlimitedProfileLimit(listMaxProfiles) && _dpGetPositiveProfileLimit(listMaxProfiles) <= 1;
         var access = _dpProfileAccess || {};
         var selectionRequired = !!access.selectionRequired;
         var lockedProfileId = String(access.lockedProfileId || '').trim();
@@ -4345,10 +4404,10 @@
       return;
     }
     var profileCount = DPStorage.list().length;
-    var maxProfiles = Math.max(1, Math.floor(Number(_dpGetMaxProfiles() || 1)));
+    var maxProfiles = _dpGetMaxProfiles();
     var hasProfiles = profileCount > 0;
-    var canUsePlanSlot = profileCount < maxProfiles;
-    var createRequiresPayment = !_dpSubIsActive || !canUsePlanSlot;
+    var canUsePlanSlot = _dpCanUseProfileSlot(profileCount, maxProfiles);
+    var createRequiresPayment = !canUsePlanSlot;
     var createProfileId = String(data.profileId || data.id || '').trim() || _dpBuildProfileCreateId(data && data.name);
     data.profileId = createProfileId;
     data.id = createProfileId;
@@ -4578,6 +4637,7 @@
     var lockedId = String(access.lockedProfileId || '').trim();
     var isSingleProfileLocked = String(access.mode || '').trim() === 'single' || access.locked === true || access.selectionRequired === true || !!lockedId;
     var maxProfiles = _dpGetMaxProfiles();
+    var singleProfilePlan = !_dpIsUnlimitedProfileLimit(maxProfiles) && _dpGetPositiveProfileLimit(maxProfiles) <= 1;
     var currentIdForPolicy = (DPStorage.current() || {}).id;
     function activateSelectedProfile(serverConfirmed) {
       if (!serverConfirmed && _dpHasSessionHint()) {
@@ -4605,12 +4665,12 @@
       _toast('✨ ' + (p ? _esc(p.name) : '') + ' · 프로필 활성화', 'success');
     }
 
-    if (isSingleProfileLocked && maxProfiles <= 1 && lockedId && id !== lockedId) {
+    if (isSingleProfileLocked && singleProfilePlan && lockedId && id !== lockedId) {
       alert('이용권 혜택 종료 후 확정한 프로필 카드만 사용할 수 있습니다.\n/points 페이지에서 이용권을 결제하면 다시 여러 프로필을 이용할 수 있습니다.');
       return;
     }
 
-    if (isSingleProfileLocked && maxProfiles <= 1 && access.selectionRequired) {
+    if (isSingleProfileLocked && singleProfilePlan && access.selectionRequired) {
       var selected = (DPStorage.list() || []).find(function(profile) { return profile && profile.id === id; });
       var profileName = selected && selected.name ? selected.name : '선택한 프로필';
       if (!confirm(profileName + ' 프로필 카드로 확정할까요?\n확정 후 추가 이용권 결제 전까지 이 카드만 사용할 수 있습니다.')) return;
@@ -4624,7 +4684,7 @@
       return;
     }
 
-    if (isSingleProfileLocked && maxProfiles <= 1 && id !== currentIdForPolicy) {
+    if (isSingleProfileLocked && singleProfilePlan && id !== currentIdForPolicy) {
       alert('무료 플랜은 프로필 1개만 사용할 수 있습니다.\n/points 페이지에서 이용권을 결제하면 여러 프로필을 이용할 수 있습니다.');
       return;
     }
@@ -4633,7 +4693,7 @@
     return;
     /* ★ 무료 플랜: 다른 프로필 선택 불가 (프로필 1개 제한) */
     var _curId = (DPStorage.current() || {}).id;
-    if (_dpGetMaxProfiles() <= 1 && id !== _curId) {
+    if (!_dpIsUnlimitedProfileLimit(_dpGetMaxProfiles()) && _dpGetPositiveProfileLimit(_dpGetMaxProfiles()) <= 1 && id !== _curId) {
       alert('무료 플랜은 프로필 1개만 사용할 수 있습니다.\n/points 페이지에서 구독을 업그레이드하면 여러 프로필을 이용할 수 있습니다.');
       return;
     }
@@ -4698,18 +4758,11 @@
 
     _dpVerifyLoginSession(true).then(function(ok) {
       if (!ok) throw new Error('AUTH_REQUIRED');
-      return requestDelete();
-    }).then(function(result) {
-      var payload = result && result.data ? result.data : null;
-      var code = String((payload && payload.code) || '').trim().toUpperCase();
-      if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
-        _dpSetPaymentPending(false);
-        return _dpRunProfileManageGate('delete', profileId, requestId).then(function(paymentContext) {
-          if (!paymentContext) return null;
-          return requestDelete(paymentContext);
-        });
-      }
-      return result;
+      _dpSetPaymentPending(false);
+      return _dpRunProfileManageGate('delete', profileId, requestId).then(function(paymentContext) {
+        if (!paymentContext) return null;
+        return requestDelete(paymentContext);
+      });
     }).then(function(result) {
       _dpSetPaymentPending(false);
       if (!result) return;
@@ -4972,6 +5025,17 @@
 
   window.dpLoadProfile = function() {
     var p = DPStorage.current();
+    if (!p && _dpHasSessionHint()) {
+      _dpLoadFromServer(function(loaded) {
+        var refreshed = loaded ? DPStorage.current() : null;
+        if (refreshed) {
+          window.dpLoadProfile();
+          return;
+        }
+        _toast('⚠️ 불러올 프로필이 없습니다', 'warn');
+      });
+      return;
+    }
     if (!p) { _toast('⚠️ 불러올 프로필이 없습니다', 'warn'); return; }
 
     var card = document.getElementById('dpMasterCard');
