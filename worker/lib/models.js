@@ -64,7 +64,7 @@ const userSchema = new mongoose.Schema({
   adminLastActivityAt: { type: Date, default: null },
   profileSubscription: {
     tier: { type: String, enum: ["free", "standard", "premium", "vvip"], default: "free" },
-    source: { type: String, enum: ["coin", "card", "pass"], default: "coin" },
+    source: { type: String, enum: ["coin", "card", "pass", "event"], default: "coin" },
     membershipCreditBalance: { type: Number, default: 0, min: 0 },
     membershipCreditGranted: { type: Number, default: 0, min: 0 },
     membershipCreditUsed: { type: Number, default: 0, min: 0 },

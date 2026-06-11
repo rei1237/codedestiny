@@ -12,6 +12,7 @@ try {
       name: "QA User",
       email,
       password: pass,
+      phoneNumber: "01012345678",
       birthDate: "1992-06-15",
       birthTime: "12:30",
       gender: "OTHER",
