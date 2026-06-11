@@ -200,117 +200,6 @@ body .wrap { position: relative; z-index: 1; }
 	50% { opacity: 1; }
 }
 
-/* 꽃돼지 카드 내부 — 별빛이 내리는 애니메이션 (한 패턴 높이만 이동해 무한 루프) */
-@keyframes starfall {
-	0% { transform: translateY(0); }
-	100% { transform: translateY(33.333%); }
-}
-
-/* ─── 꽃돼지 모드: 로고 영역 — 참조 사이트처럼 밝은 글래스 + 꽃/벚꽃 포인트 ─── */
-/* 카드 안쪽만 그라데이션 밤하늘 + 핑크 포인트 */
-body:not(.neo-mode) .logo-area {
-	position: relative;
-	overflow: clip;
-	background: linear-gradient(165deg,
-		#1e1a32 0%,
-		#252040 25%,
-		#2a2545 50%,
-		#1f1b35 75%,
-		#18142a 100%) !important;
-	border: 1px solid rgba(255, 182, 193, 0.45) !important;
-	box-shadow:
-		0 12px 40px rgba(30, 26, 48, 0.25),
-		0 0 0 1px rgba(255, 182, 193, 0.2) inset !important;
-}
-body:not(.neo-mode) .logo-area::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 8%;
-	right: 8%;
-	height: 1px;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(255, 182, 193, 0.6),
-		rgba(255, 192, 203, 0.5),
-		rgba(255, 182, 193, 0.6),
-		transparent
-	);
-	pointer-events: none;
-	z-index: 2;
-}
-body:not(.neo-mode) .logo-cosmos::before {
-	display: none;
-}
-body:not(.neo-mode) .logo-area h1 {
-	color: #fce4ec !important;
-	font-weight: 800 !important;
-	text-shadow: 0 0 24px rgba(255, 182, 193, 0.5), 0 0 12px rgba(255, 192, 203, 0.4) !important;
-	-webkit-text-fill-color: #fce4ec !important;
-	background: none !important;
-}
-body:not(.neo-mode) .logo-area p {
-	color: rgba(255, 224, 235, 0.95) !important;
-	text-shadow: 0 0 12px rgba(255, 182, 193, 0.3);
-}
-body:not(.neo-mode) .logo-area .logo-star {
-	display: none;
-}
-
-/* 카드 내부 별빛 내리는 레이어 (꽃돼지 전용) */
-body:not(.neo-mode) .logo-area::after {
-	content: '';
-	position: absolute;
-	left: 0;
-	right: 0;
-	top: -100%;
-	width: 100%;
-	height: 300%;
-	pointer-events: none;
-	z-index: 0;
-	background-image:
-		radial-gradient(1.5px 1.5px at 8% 2%, rgba(255,255,255,0.9), transparent),
-		radial-gradient(1px 1px at 22% 8%, rgba(255,230,250,0.85), transparent),
-		radial-gradient(1.5px 1.5px at 38% 4%, rgba(255,240,255,0.8), transparent),
-		radial-gradient(1px 1px at 55% 12%, rgba(255,255,255,0.75), transparent),
-		radial-gradient(1.5px 1.5px at 72% 3%, rgba(255,220,245,0.9), transparent),
-		radial-gradient(1px 1px at 88% 10%, rgba(255,255,255,0.8), transparent),
-		radial-gradient(1px 1px at 15% 18%, rgba(255,240,250,0.7), transparent),
-		radial-gradient(1.5px 1.5px at 45% 22%, rgba(255,255,255,0.85), transparent),
-		radial-gradient(1px 1px at 68% 16%, rgba(255,228,248,0.75), transparent),
-		radial-gradient(1.5px 1.5px at 92% 24%, rgba(255,255,255,0.8), transparent),
-		radial-gradient(1px 1px at 5% 28%, rgba(255,235,252,0.7), transparent),
-		radial-gradient(1.5px 1.5px at 28% 32%, rgba(255,255,255,0.9), transparent),
-		radial-gradient(1px 1px at 58% 26%, rgba(255,230,250,0.8), transparent),
-		radial-gradient(1px 1px at 82% 30%, rgba(255,245,255,0.75), transparent),
-		radial-gradient(1.5px 1.5px at 12% 38%, rgba(255,255,255,0.8), transparent),
-		radial-gradient(1px 1px at 48% 42%, rgba(255,220,245,0.85), transparent),
-		radial-gradient(1px 1px at 75% 36%, rgba(255,255,255,0.75), transparent),
-		radial-gradient(1.5px 1.5px at 35% 48%, rgba(255,240,255,0.8), transparent),
-		radial-gradient(1px 1px at 65% 52%, rgba(255,255,255,0.85), transparent),
-		radial-gradient(1px 1px at 18% 58%, rgba(255,230,250,0.7), transparent),
-		radial-gradient(1.5px 1.5px at 52% 62%, rgba(255,245,255,0.8), transparent),
-		radial-gradient(1px 1px at 85% 56%, rgba(255,255,255,0.75), transparent);
-	background-size: 100% 33.333%;
-	background-repeat: repeat-y;
-	will-change: transform;
-	animation: starfall 12s linear infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-	body:not(.neo-mode) .logo-area::after {
-		animation: none;
-		opacity: 0.6;
-	}
-}
-body:not(.neo-mode) .logo-area .logo-cosmos,
-body:not(.neo-mode) .logo-area .normal-logo,
-body:not(.neo-mode) .logo-area .neo-logo,
-body:not(.neo-mode) .logo-area .auth-quick-links {
-	position: relative;
-	z-index: 1;
-}
-
 /* ─── Zone 1: 로고/히어로 — 백사자 스타일 다크+골드 (neo 전용) ─── */
 body.neo-mode .logo-area {
 	position: relative;
@@ -1086,28 +975,6 @@ body.neo-mode .logo-cosmos .logo-nebula--2 {
 	will-change: opacity, transform;
 }
 
-/* 개별 별 (logo-star) — 달빛 버전 (꽃돼지 모드) */
-body:not(.neo-mode) .logo-area .logo-star {
-	display: block !important;
-	position: absolute;
-	border-radius: 50%;
-	background: rgba(200,216,255,0.92);
-	box-shadow: 0 0 5px 1px rgba(160,195,255,0.6), 0 0 10px 2px rgba(120,160,240,0.28);
-	will-change: transform, opacity;
-}
-body:not(.neo-mode) .logo-area .logo-star--1  { width:3px;height:3px;top:12%;left:7%;   animation:starTwinkleA 3.2s ease-in-out 0s infinite; }
-body:not(.neo-mode) .logo-area .logo-star--2  { width:2px;height:2px;top:18%;left:24%;  animation:starTwinkleB 2.8s ease-in-out .4s infinite; }
-body:not(.neo-mode) .logo-area .logo-star--3  { width:3px;height:3px;top:8%;left:42%;   animation:starTwinkleC 3.6s ease-in-out .8s infinite; }
-body:not(.neo-mode) .logo-area .logo-star--4  { width:2px;height:2px;top:22%;left:66%;  animation:starTwinkleA 2.6s ease-in-out 1.2s infinite; }
-body:not(.neo-mode) .logo-area .logo-star--5  { width:4px;height:4px;top:10%;left:80%;  animation:starTwinkleB 4.0s ease-in-out 1.6s infinite;box-shadow:0 0 8px 2px rgba(160,195,255,0.75),0 0 16px 4px rgba(120,160,240,0.38); }
-body:not(.neo-mode) .logo-area .logo-star--6  { width:2px;height:2px;top:35%;left:14%;  animation:starTwinkleC 3.0s ease-in-out 0.2s infinite; }
-body:not(.neo-mode) .logo-area .logo-star--7  { width:3px;height:3px;top:42%;left:52%;  animation:starTwinkleA 3.4s ease-in-out 0.6s infinite; }
-body:not(.neo-mode) .logo-area .logo-star--8  { width:2px;height:2px;top:28%;left:90%;  animation:starTwinkleB 2.9s ease-in-out 1.0s infinite; }
-body:not(.neo-mode) .logo-area .logo-star--9  { width:3px;height:3px;top:58%;left:36%;  animation:starTwinkleC 3.8s ease-in-out 1.4s infinite; }
-body:not(.neo-mode) .logo-area .logo-star--10 { width:2px;height:2px;top:65%;left:72%;  animation:starTwinkleA 3.1s ease-in-out 1.8s infinite; }
-body:not(.neo-mode) .logo-area .logo-star--11 { width:4px;height:4px;top:20%;left:38%;  animation:starTwinkleB 3.7s ease-in-out 0.5s infinite;box-shadow:0 0 8px 2px rgba(180,210,255,0.7),0 0 16px 4px rgba(140,175,240,0.35); }
-body:not(.neo-mode) .logo-area .logo-star--12 { width:2px;height:2px;top:75%;left:18%;  animation:starTwinkleC 2.7s ease-in-out 1.1s infinite; }
-
 /* 개별 별 — 네오 모드 (골드 톤) */
 body.neo-mode .logo-area .logo-star {
 	background: rgba(243,221,154,0.9) !important;
@@ -1119,16 +986,6 @@ body.neo-mode .logo-area .logo-star--5 {
 }
 body.neo-mode .logo-area .logo-star--11 {
 	box-shadow: 0 0 8px 2px rgba(255,236,180,0.70), 0 0 16px 4px rgba(240,200,80,0.35) !important;
-}
-
-/* ── 로고 섹션 상단 shimmer 라인 (달빛 반사) ── */
-body:not(.neo-mode) .logo-area::before {
-	background: linear-gradient(90deg,
-		transparent,
-		rgba(140,180,255,0.5),
-		rgba(180,210,255,0.42),
-		rgba(140,180,255,0.5),
-		transparent) !important;
 }
 
 /* ── 전역 body 배경 달빛 보강 (꽃돼지 모드는 흰 배경이므로 제외) ── */
@@ -1171,7 +1028,6 @@ body.neo-mode {
 .cd-mobile-lite .moon-hero__moon::before {
 	display: none !important;
 }
-/* 데스크톱에서 starfall 애니메이션 비활성화 (기존 규칙 유지) */
 @media (min-width: 1025px) {
 	.moon-hero__moon {
 		animation-duration: 10s;
