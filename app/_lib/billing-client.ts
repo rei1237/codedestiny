@@ -314,21 +314,31 @@ function ensureReactPaymentChoiceStyles() {
   const style = document.createElement("style");
   style.id = "cd-react-payment-choice-style";
   style.textContent = `
-    .cd-react-payment-choice-backdrop{position:fixed;inset:0;z-index:2147483004;display:flex;align-items:center;justify-content:center;background:rgba(5,5,16,.82);padding:18px;backdrop-filter:blur(12px)}
-    .cd-react-payment-choice-dialog{width:min(420px,100%);border:1px solid rgba(253,230,138,.34);border-radius:20px;background:linear-gradient(180deg,rgba(24,19,34,.98),rgba(7,10,20,.99));box-shadow:0 24px 70px rgba(0,0,0,.45);padding:20px;color:#f8fafc}
-    .cd-react-payment-choice-title{margin:0;font-size:22px;line-height:1.25;font-weight:800;letter-spacing:0}
-    .cd-react-payment-choice-sub{margin:8px 0 16px;color:rgba(219,234,254,.76);font-size:14px;line-height:1.6}
-    .cd-react-payment-choice-note{margin:0 0 14px;border:1px solid rgba(148,163,184,.24);border-radius:14px;background:rgba(15,23,42,.48);padding:12px;font-size:13px;line-height:1.55;color:#dbeafe}
+    .cd-react-payment-choice-backdrop{position:fixed;inset:0;z-index:2147483004;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 4%,rgba(243,221,154,.22),transparent 30%),radial-gradient(circle at 12% 20%,rgba(125,211,252,.14),transparent 28%),rgba(4,7,22,.84);padding:18px;backdrop-filter:blur(16px) saturate(130%)}
+    .cd-react-payment-choice-dialog{position:relative;isolation:isolate;width:min(440px,100%);border:1px solid rgba(243,221,154,.42);border-radius:24px;background:linear-gradient(155deg,rgba(7,12,34,.98),rgba(18,26,64,.97) 48%,rgba(36,25,74,.96));box-shadow:0 30px 82px rgba(0,0,0,.56),0 0 42px rgba(125,211,252,.14),inset 0 1px 0 rgba(255,255,255,.16);padding:20px;color:#f8fafc;overflow:hidden}
+    .cd-react-payment-choice-dialog::before{content:"";position:absolute;right:-34px;top:-48px;width:160px;height:160px;border-radius:999px;background:radial-gradient(circle at 32% 32%,#fff8d0 0 17%,#f3dd9a 18% 36%,rgba(243,221,154,.14) 37% 64%,transparent 65%);box-shadow:0 0 38px rgba(243,221,154,.36);pointer-events:none;z-index:-1}
+    .cd-react-payment-choice-dialog::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 12% 13%,rgba(255,255,255,.86) 0 1px,transparent 2px),radial-gradient(circle at 76% 18%,rgba(186,230,253,.86) 0 1px,transparent 2px),radial-gradient(circle at 26% 88%,rgba(221,214,254,.72) 0 1px,transparent 2px),radial-gradient(circle at 88% 72%,rgba(254,243,199,.8) 0 1px,transparent 2px);pointer-events:none;opacity:.68;z-index:-1}
+    .cd-react-payment-choice-visual{position:relative;width:82px;height:82px;margin:0 auto 14px;border-radius:999px;border:1px solid rgba(186,230,253,.22);background:rgba(186,230,253,.07);box-shadow:0 0 32px rgba(125,211,252,.16)}
+    .cd-react-payment-choice-visual::before{content:"";position:absolute;inset:16px;border-radius:999px;background:radial-gradient(circle at 34% 28%,#fff8d0 0%,#f3dd9a 42%,#a78bfa 100%);box-shadow:0 0 30px rgba(243,221,154,.42),inset -13px 5px 0 rgba(8,13,35,.34)}
+    .cd-react-payment-choice-visual::after{content:"";position:absolute;right:27px;top:23px;width:28px;height:28px;border-radius:999px;background:#080d23;box-shadow:-23px 0 0 -12px rgba(186,230,253,.9),25px 29px 0 -12px rgba(254,243,199,.9)}
+    .cd-react-payment-choice-title{position:relative;margin:0;font-size:22px;line-height:1.25;font-weight:900;letter-spacing:0;color:#fff7db;text-shadow:0 0 22px rgba(243,221,154,.24)}
+    .cd-react-payment-choice-sub{position:relative;margin:8px 0 16px;color:rgba(219,234,254,.78);font-size:14px;line-height:1.6}
+    .cd-react-payment-choice-note{position:relative;margin:0 0 14px;border:1px solid rgba(186,230,253,.24);border-radius:16px;background:linear-gradient(135deg,rgba(10,17,42,.78),rgba(20,28,66,.62));padding:12px 13px;font-size:13px;line-height:1.55;color:#dbeafe;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
     .cd-react-payment-choice-grid{display:grid;gap:10px}
-    .cd-react-payment-choice-option{width:100%;border:1px solid rgba(125,211,252,.28);border-radius:14px;background:rgba(15,23,42,.7);padding:13px 14px;color:#f8fafc;text-align:left;cursor:pointer}
-    .cd-react-payment-choice-option:hover{border-color:rgba(251,191,36,.62);background:rgba(30,41,59,.84)}
+    .cd-react-payment-choice-option{position:relative;width:100%;border:1px solid rgba(186,230,253,.26);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.035));padding:13px 14px;color:#f8fafc;text-align:left;cursor:pointer;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 12px 28px rgba(2,6,23,.24);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+    .cd-react-payment-choice-option::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 92% 18%,rgba(255,255,255,.12),transparent 28%);pointer-events:none}
+    .cd-react-payment-choice-option:hover{border-color:rgba(243,221,154,.78);background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.055));transform:translateY(-1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 16px 34px rgba(2,6,23,.34),0 0 22px rgba(243,221,154,.12)}
+    .cd-react-payment-choice-option[data-mode="pass-store"]{border-color:rgba(243,221,154,.58);background:linear-gradient(145deg,rgba(57,43,104,.84),rgba(16,35,72,.82))}
+    .cd-react-payment-choice-option[data-mode="direct"]{border-color:rgba(250,204,21,.44)}
+    .cd-react-payment-choice-option[data-mode="monthly"]{border-color:rgba(125,211,252,.44)}
     .cd-react-payment-choice-option:disabled{cursor:not-allowed;opacity:.52}
-    .cd-react-payment-choice-option strong{display:block;margin-top:4px;font-size:15px;line-height:1.35}
-    .cd-react-payment-choice-option span{display:block;color:rgba(219,234,254,.72);font-size:12px;line-height:1.5}
-    .cd-react-payment-choice-badge{display:inline-flex!important;width:auto;border-radius:999px;background:rgba(14,165,233,.14);padding:3px 8px;color:#bae6fd!important;font-size:11px!important;font-weight:800}
-    .cd-react-payment-choice-status{min-height:18px;margin-top:12px;color:#fde68a;font-size:13px;line-height:1.45}
+    .cd-react-payment-choice-option strong{position:relative;display:block;margin-top:5px;font-size:15px;line-height:1.35;color:#fff}
+    .cd-react-payment-choice-option span{position:relative;display:block;color:rgba(229,236,255,.78);font-size:12px;line-height:1.5}
+    .cd-react-payment-choice-badge{display:inline-flex!important;width:auto;border:1px solid rgba(255,244,214,.28);border-radius:999px;background:rgba(255,255,255,.12);padding:3px 9px;color:#fff7db!important;font-size:11px!important;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+    .cd-react-payment-choice-status{min-height:18px;margin-top:12px;color:#f3dd9a;font-size:13px;line-height:1.45}
     .cd-react-payment-choice-actions{display:flex;justify-content:flex-end;margin-top:14px}
-    .cd-react-payment-choice-cancel{border:1px solid rgba(148,163,184,.28);border-radius:12px;background:rgba(15,23,42,.62);padding:9px 12px;color:#e2e8f0;cursor:pointer;font-weight:700}
+    .cd-react-payment-choice-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);padding:9px 15px;color:#f8fafc;cursor:pointer;font-weight:900}
+    @media(max-width:640px){.cd-react-payment-choice-backdrop{align-items:flex-start;padding:10px}.cd-react-payment-choice-dialog{width:100%;max-height:calc(100dvh - 20px);overflow:auto;border-radius:20px;padding:16px}.cd-react-payment-choice-visual{width:68px;height:68px;margin-bottom:10px}.cd-react-payment-choice-visual::before{inset:13px}.cd-react-payment-choice-visual::after{right:23px;top:20px;width:23px;height:23px}.cd-react-payment-choice-title{font-size:20px}.cd-react-payment-choice-sub{font-size:12.5px;line-height:1.5}.cd-react-payment-choice-option{padding:12px 13px}.cd-react-payment-choice-option strong{font-size:14px}.cd-react-payment-choice-option span{font-size:11.5px}}
   `;
   document.head.appendChild(style);
 }
@@ -380,8 +390,9 @@ async function openReactPaymentChoiceModal(options: Record<string, unknown>): Pr
     modal.setAttribute("aria-modal", "true");
     modal.innerHTML = `
       <div class="cd-react-payment-choice-dialog">
-        <h2 class="cd-react-payment-choice-title">결제 방식 선택</h2>
-        <p class="cd-react-payment-choice-sub">이용권 확인이 끝났습니다. 이용 가능한 결제 방식으로 콘텐츠를 열어주세요.</p>
+        <div class="cd-react-payment-choice-visual" aria-hidden="true"></div>
+        <h2 class="cd-react-payment-choice-title">달빛 결제 방식 선택</h2>
+        <p class="cd-react-payment-choice-sub">이용권 확인이 끝났습니다. 달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.</p>
         <p class="cd-react-payment-choice-note"><strong>${escapePaymentText(title)}</strong><br>${coinPrice.toLocaleString("ko-KR")}코인 기준 · ${formatPaymentWon(directAmount)}</p>
         <div class="cd-react-payment-choice-grid">
           <button type="button" class="cd-react-payment-choice-option" data-mode="direct">
