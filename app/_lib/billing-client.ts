@@ -81,11 +81,20 @@ type RuntimePaidServiceGateResult = {
 };
 
 type PaidServiceRuntimeGate = (options: Record<string, unknown>) => Promise<RuntimePaidServiceGateResult> | RuntimePaidServiceGateResult;
+type PaymentChoiceMode = "direct" | "monthly" | "pass" | "cancel";
+type PaymentChoiceFunction = ((options: Record<string, unknown>) => Promise<PaymentChoiceMode> | PaymentChoiceMode) & {
+  __cdSupportsPassChoice?: boolean;
+  __cdReactFallback?: boolean;
+};
 
 type RuntimeApiWindow = Window & {
   CODE_DESTINY_API_BASE_URL?: string;
   _cdSetCoinGateOverlay?: (show: boolean, message?: string, mode?: string) => void;
+  _cdChooseServicePaymentMode?: PaymentChoiceFunction;
   _cdOpenPaidServiceGate?: PaidServiceRuntimeGate;
+  __cdChooseServicePaymentModeCanonical?: PaymentChoiceFunction;
+  __cdOpenChargeModal?: () => void;
+  __cdRestoreCanonicalPaymentMode?: () => unknown;
   __cdPaidFeatureGate?: {
     close?: (requestId?: string) => void;
   };
@@ -165,7 +174,7 @@ type BillingCoinGateInput = {
 
 const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
 const BILLING_BALANCE_RECENT_TTL_MS = 650;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-51868c3f6be7";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-20260611-react-payment-choice";
 
 const billingCoinGateInFlight = new Map<string, {
   requestId: string;
@@ -239,6 +248,180 @@ function toNumber(value: unknown, fallback = 0): number {
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function formatPaymentWon(amount: number): string {
+  return `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString("ko-KR")}원`;
+}
+
+function escapePaymentText(value: unknown): string {
+  return toText(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function ensureReactPaymentChoiceStyles() {
+  if (typeof document === "undefined" || document.getElementById("cd-react-payment-choice-style")) return;
+  const style = document.createElement("style");
+  style.id = "cd-react-payment-choice-style";
+  style.textContent = `
+    .cd-react-payment-choice-backdrop{position:fixed;inset:0;z-index:2147483004;display:flex;align-items:center;justify-content:center;background:rgba(5,5,16,.82);padding:18px;backdrop-filter:blur(12px)}
+    .cd-react-payment-choice-dialog{width:min(420px,100%);border:1px solid rgba(253,230,138,.34);border-radius:20px;background:linear-gradient(180deg,rgba(24,19,34,.98),rgba(7,10,20,.99));box-shadow:0 24px 70px rgba(0,0,0,.45);padding:20px;color:#f8fafc}
+    .cd-react-payment-choice-title{margin:0;font-size:22px;line-height:1.25;font-weight:800;letter-spacing:0}
+    .cd-react-payment-choice-sub{margin:8px 0 16px;color:rgba(219,234,254,.76);font-size:14px;line-height:1.6}
+    .cd-react-payment-choice-note{margin:0 0 14px;border:1px solid rgba(148,163,184,.24);border-radius:14px;background:rgba(15,23,42,.48);padding:12px;font-size:13px;line-height:1.55;color:#dbeafe}
+    .cd-react-payment-choice-grid{display:grid;gap:10px}
+    .cd-react-payment-choice-option{width:100%;border:1px solid rgba(125,211,252,.28);border-radius:14px;background:rgba(15,23,42,.7);padding:13px 14px;color:#f8fafc;text-align:left;cursor:pointer}
+    .cd-react-payment-choice-option:hover{border-color:rgba(251,191,36,.62);background:rgba(30,41,59,.84)}
+    .cd-react-payment-choice-option:disabled{cursor:not-allowed;opacity:.52}
+    .cd-react-payment-choice-option strong{display:block;margin-top:4px;font-size:15px;line-height:1.35}
+    .cd-react-payment-choice-option span{display:block;color:rgba(219,234,254,.72);font-size:12px;line-height:1.5}
+    .cd-react-payment-choice-badge{display:inline-flex!important;width:auto;border-radius:999px;background:rgba(14,165,233,.14);padding:3px 8px;color:#bae6fd!important;font-size:11px!important;font-weight:800}
+    .cd-react-payment-choice-status{min-height:18px;margin-top:12px;color:#fde68a;font-size:13px;line-height:1.45}
+    .cd-react-payment-choice-actions{display:flex;justify-content:flex-end;margin-top:14px}
+    .cd-react-payment-choice-cancel{border:1px solid rgba(148,163,184,.28);border-radius:12px;background:rgba(15,23,42,.62);padding:9px 12px;color:#e2e8f0;cursor:pointer;font-weight:700}
+  `;
+  document.head.appendChild(style);
+}
+
+function openReactPaymentChoiceModal(options: Record<string, unknown>): Promise<PaymentChoiceMode> {
+  if (typeof window === "undefined" || typeof document === "undefined" || !document.body) {
+    return Promise.resolve("cancel");
+  }
+
+  ensureReactPaymentChoiceStyles();
+  document.querySelectorAll("[data-cd-react-payment-choice]").forEach((node) => node.parentNode?.removeChild(node));
+
+  const opts = options || {};
+  const title = toText(opts.title || opts.reason || "유료 서비스") || "유료 서비스";
+  const coinPrice = Math.max(0, Math.floor(toNumber(opts.coinPrice ?? opts.cost, 0)));
+  const membershipCoverage = asRecord(opts.membershipCoverage);
+  const passDiscount = asRecord(membershipCoverage?.passDiscount);
+  const discountFinalCoin = Math.max(0, Math.floor(toNumber(passDiscount?.finalCoinPrice, 0)));
+  const directCoinPrice = passDiscount && discountFinalCoin > 0 ? discountFinalCoin : coinPrice;
+  const rawDirectAmount = Math.max(0, Math.floor(toNumber(opts.amountKrw ?? opts.amountKRW, directCoinPrice * 100)));
+  const directAmount = passDiscount && discountFinalCoin > 0 ? directCoinPrice * 100 : rawDirectAmount;
+  const monthlyBalance = Math.max(0, Math.floor(toNumber(
+    opts.monthlyBalance
+    ?? opts.membershipCreditBalance
+    ?? membershipCoverage?.monthlyBalance,
+    0,
+  )));
+  const requiredMonthlyCredits = passDiscount && discountFinalCoin > 0
+    ? directCoinPrice * 10
+    : Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, directCoinPrice * 10)));
+  const canUseMonthly = requiredMonthlyCredits > 0 && monthlyBalance >= requiredMonthlyCredits;
+  const passTier = toText(membershipCoverage?.tier || membershipCoverage?.passTier || "");
+  const passLimit = Math.max(0, Math.floor(toNumber(membershipCoverage?.passLimit ?? membershipCoverage?.freeLimit, 0)));
+  const passLabel = passTier
+    ? `${passTier.toUpperCase()} 이용권`
+    : "이용권 확인 완료";
+  const passHint = passLimit > 0
+    ? `${passLimit.toLocaleString("ko-KR")}코인 상한을 초과해 결제가 필요합니다.`
+    : "이 기능은 이용권으로 바로 열 수 없어 결제가 필요합니다.";
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const previousOverflow = document.body.style.overflow;
+    const modal = document.createElement("div");
+    modal.className = "cd-react-payment-choice-backdrop";
+    modal.dataset.cdReactPaymentChoice = "1";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.innerHTML = `
+      <div class="cd-react-payment-choice-dialog">
+        <h2 class="cd-react-payment-choice-title">결제 방식 선택</h2>
+        <p class="cd-react-payment-choice-sub">이용권 확인이 끝났습니다. 이용 가능한 결제 방식으로 콘텐츠를 열어주세요.</p>
+        <p class="cd-react-payment-choice-note"><strong>${escapePaymentText(title)}</strong><br>${coinPrice.toLocaleString("ko-KR")}코인 기준 · ${formatPaymentWon(directAmount)}</p>
+        <div class="cd-react-payment-choice-grid">
+          <button type="button" class="cd-react-payment-choice-option" data-mode="direct">
+            <span class="cd-react-payment-choice-badge">PortOne V2 · KG이니시스</span>
+            <strong>단건 결제 · ${formatPaymentWon(directAmount)}</strong>
+            <span>카드 또는 간편결제로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.</span>
+          </button>
+          <button type="button" class="cd-react-payment-choice-option" data-mode="monthly"${canUseMonthly ? "" : " disabled aria-disabled=\"true\""}>
+            <span class="cd-react-payment-choice-badge">월정석</span>
+            <strong>월정석 ${requiredMonthlyCredits.toLocaleString("ko-KR")}개 사용</strong>
+            <span>${canUseMonthly ? "보유 월정석으로 즉시 이용 권한을 저장합니다." : `월정석 잔액 부족 · 보유 ${monthlyBalance.toLocaleString("ko-KR")}개`}</span>
+          </button>
+          <button type="button" class="cd-react-payment-choice-option" disabled aria-disabled="true">
+            <span class="cd-react-payment-choice-badge">${escapePaymentText(passLabel)}</span>
+            <strong>이용권 우선 확인 완료</strong>
+            <span>${escapePaymentText(passHint)}</span>
+          </button>
+        </div>
+        <div class="cd-react-payment-choice-status" data-payment-status></div>
+        <div class="cd-react-payment-choice-actions">
+          <button type="button" class="cd-react-payment-choice-cancel" data-mode="cancel">취소</button>
+        </div>
+      </div>
+    `;
+
+    const close = (mode: PaymentChoiceMode) => {
+      if (settled) return;
+      settled = true;
+      document.body.style.overflow = previousOverflow;
+      modal.parentNode?.removeChild(modal);
+      resolve(mode);
+    };
+    const setStatus = (message: string, error = false) => {
+      const statusNode = modal.querySelector<HTMLElement>("[data-payment-status]");
+      if (!statusNode) return;
+      statusNode.textContent = message;
+      statusNode.style.color = error ? "#fca5a5" : "#fde68a";
+    };
+    const showWaitOverlay = (mode: PaymentChoiceMode) => {
+      const runtimeWindow = window as RuntimeApiWindow;
+      if (mode === "monthly") {
+        runtimeWindow._cdSetCoinGateOverlay?.(true, "월정석 잔액과 이용 권한을 확인하고 있습니다.", "monthly");
+      } else if (mode === "direct") {
+        runtimeWindow._cdSetCoinGateOverlay?.(true, "결제창을 준비하고 있습니다. 주문 정보를 안전하게 확인하고 있어요.", "checkout");
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) close("cancel");
+    });
+    modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const mode = toText(button.dataset.mode) as PaymentChoiceMode;
+        if (mode === "cancel") {
+          close("cancel");
+          return;
+        }
+        if (button.disabled) {
+          if (mode === "monthly") setStatus("월정석 잔액이 부족합니다. 단건 결제를 선택해 주세요.", true);
+          return;
+        }
+        modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((node) => {
+          node.disabled = true;
+        });
+        setStatus(mode === "monthly" ? "월정석 결제를 확인하고 있습니다." : "단건 결제창을 준비하고 있습니다.");
+        showWaitOverlay(mode);
+        close(mode);
+      });
+    });
+    document.body.appendChild(modal);
+    modal.querySelector<HTMLButtonElement>('[data-mode="direct"]')?.focus();
+  });
+}
+
+function installReactPaymentChoiceBridge() {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const runtimeWindow = window as RuntimeApiWindow;
+  const canonical = runtimeWindow.__cdChooseServicePaymentModeCanonical;
+  if (typeof canonical === "function" && canonical.__cdSupportsPassChoice === true && canonical.__cdReactFallback !== true) return;
+  if (runtimeWindow._cdChooseServicePaymentMode?.__cdReactFallback === true) return;
+
+  const choiceBridge: PaymentChoiceFunction = (options) => openReactPaymentChoiceModal(options || {});
+  choiceBridge.__cdSupportsPassChoice = true;
+  choiceBridge.__cdReactFallback = true;
+  runtimeWindow.__cdChooseServicePaymentModeCanonical = choiceBridge;
+  runtimeWindow._cdChooseServicePaymentMode = choiceBridge;
 }
 
 function hasVerifiedBillingAccess(data: unknown, expectedFeatureKey: unknown): boolean {
@@ -327,13 +510,17 @@ function getPaidServiceRuntimeGate(): PaidServiceRuntimeGate | null {
 }
 
 export function loadPaidServiceRuntimeGate(): Promise<PaidServiceRuntimeGate | null> {
+  installReactPaymentChoiceBridge();
   const current = getPaidServiceRuntimeGate();
   if (current) return Promise.resolve(current);
   if (typeof document === "undefined") return Promise.resolve(null);
   if (paidServiceRuntimePromise) return paidServiceRuntimePromise;
 
   paidServiceRuntimePromise = new Promise((resolve) => {
-    const finish = () => resolve(getPaidServiceRuntimeGate());
+    const finish = () => {
+      installReactPaymentChoiceBridge();
+      resolve(getPaidServiceRuntimeGate());
+    };
     const existing = document.querySelector<HTMLScriptElement>('script[src^="/js/destiny-profile.js"]');
     if (existing) {
       existing.addEventListener("load", finish, { once: true });
