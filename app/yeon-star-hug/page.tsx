@@ -22,7 +22,7 @@ import {
   type YeonHeartStarReading,
   validateYeonHeartStarReading,
 } from "@/lib/yeon/heartStarReading";
-import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
+import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
 
 type EmotionKey = "happy" | "calm" | "tired" | "worried" | "flutter" | "blue";
 type ZodiacSign =
@@ -113,21 +113,6 @@ type ConsultationResult = {
   moon: MoonSnapshot;
   aspect: AspectSnapshot;
   dayRuler: DayRulerSnapshot;
-};
-
-type StoredProfile = {
-  id?: string;
-  name?: string;
-  birth?: {
-    year?: number;
-    month?: number;
-    day?: number;
-    hour?: number;
-    minute?: number;
-  };
-  birthDate?: string;
-  birthIso?: string;
-  birthTime?: string;
 };
 
 type ProfileSeed = {
@@ -515,8 +500,6 @@ const STAR_DOTS = [
   { left: "86%", top: "82%", delay: 1.25 },
 ];
 
-const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
-
 const HEART_SYMBOL_LIBRARY: Record<HeartSymbolId, HeartSymbol> = {
   clover: {
     id: "clover",
@@ -705,20 +688,6 @@ function toScore(value: number) {
   return Math.round(clamp(value, 1, 5));
 }
 
-function toPaddedNumber(value: unknown, length: number) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return "";
-  return String(Math.trunc(n)).padStart(length, "0");
-}
-
-function buildBirthDateInput(birth: StoredProfile["birth"]) {
-  const year = toPaddedNumber(birth?.year, 4);
-  const month = toPaddedNumber(birth?.month, 2);
-  const day = toPaddedNumber(birth?.day, 2);
-  if (!year || !month || !day) return "";
-  return `${year}${month}${day}`;
-}
-
 function normalizeBirthDateText(value: unknown) {
   const digits = String(value || "").replace(/\D/g, "");
   if (digits.length !== 8) return "";
@@ -729,14 +698,6 @@ function normalizeBirthTimeText(value: unknown) {
   const digits = String(value || "").replace(/\D/g, "");
   if (digits.length === 4) return digits;
   return "";
-}
-
-function buildBirthDateInputFromText(profile: StoredProfile) {
-  return normalizeBirthDateText(profile.birthDate || profile.birthIso || "");
-}
-
-function buildBirthTimeInputFromText(profile: StoredProfile) {
-  return normalizeBirthTimeText(profile.birthTime || profile.birthIso || "");
 }
 
 function formatBirthDateInput(value: string) {
@@ -770,39 +731,15 @@ function readProfileSeedFromStorage(): ProfileSeed {
 
   try {
     const user = readSanitizedAuthUser();
-    const scope = resolveAuthScopeFromUser(user) || "guest";
     const fallbackName = String(user?.name || "").trim();
     const fallbackBirthDateInput = normalizeBirthDateText((user as { birthDate?: string } | null)?.birthDate);
     const fallbackBirthTimeInput = normalizeBirthTimeText((user as { birthTime?: string } | null)?.birthTime);
 
-    const listRaw =
-      window.localStorage.getItem(`${PROFILE_NS}.list::${scope}`) ||
-      window.localStorage.getItem(`${PROFILE_NS}.list`) ||
-      "[]";
-    const currentId =
-      window.localStorage.getItem(`${PROFILE_NS}.current::${scope}`) ||
-      window.localStorage.getItem(`${PROFILE_NS}.current`) ||
-      "";
-
-    const list = JSON.parse(listRaw) as StoredProfile[];
-    if (!Array.isArray(list) || list.length === 0) {
-      return {
-        name: fallbackName,
-        birthDateInput: fallbackBirthDateInput,
-        birthTimeInput: fallbackBirthTimeInput,
-        source: fallbackBirthDateInput ? "auth" : "none",
-      };
-    }
-
-    const profile = (currentId ? list.find((item) => item?.id === currentId) : undefined) || list[0] || {};
-    const profileBirthDateInput = buildBirthDateInput(profile.birth) || buildBirthDateInputFromText(profile) || fallbackBirthDateInput;
-    const profileBirthTimeInput = buildBirthTimeInputFromText(profile) || fallbackBirthTimeInput;
-
     return {
-      name: String(profile.name || fallbackName).trim(),
-      birthDateInput: profileBirthDateInput,
-      birthTimeInput: profileBirthTimeInput,
-      source: profileBirthDateInput ? "profile" : fallbackBirthDateInput ? "auth" : "none",
+      name: fallbackName,
+      birthDateInput: fallbackBirthDateInput,
+      birthTimeInput: fallbackBirthTimeInput,
+      source: fallbackBirthDateInput ? "auth" : "none",
     };
   } catch (_error) {
     return { name: "", birthDateInput: "", birthTimeInput: "", source: "none" };

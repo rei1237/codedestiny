@@ -53,7 +53,15 @@ const cosmicImageRequests: Record<PexelsImageSectionKey, { query: string; fallba
 };
 
 function getPexelsApiKey() {
-  return process.env.PEXELS_API_KEY || process.env.PEXELS_APIKEY || process.env.PEXES_APIKEY || "";
+  return (
+    process.env.PEXELS_API_KEY ||
+    process.env.NEXT_PUBLIC_PEXELS_API_KEY ||
+    process.env.REACT_APP_PEXELS_API_KEY ||
+    process.env.VITE_PEXELS_API_KEY ||
+    process.env.PEXELS_APIKEY ||
+    process.env.PEXES_APIKEY ||
+    ""
+  ).trim();
 }
 
 function getFailureStatus(status: number): PexelsSectionImage["status"] {
@@ -141,7 +149,7 @@ export async function getPexelsSectionImage(query: string, section: PexelsImageS
     const response = await fetch(url, {
       headers: { Authorization: apiKey },
       next: { revalidate: 60 * 60 * 24 * 7 },
-    });
+    } as RequestInit & { next?: { revalidate: number } });
     if (!response.ok) return { ...fallback, status: getFailureStatus(response.status) };
     const data = await response.json().catch(() => null) as { photos?: PexelsPhoto[] } | null;
     const photos = Array.isArray(data?.photos) ? data.photos : [];

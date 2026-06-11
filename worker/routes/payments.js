@@ -334,17 +334,14 @@ async function grantUsagePassToUser({ userId, product, paymentId, paidAt, sessio
 }
 
 const SUBSCRIPTION_BASE_PLANS = {
-  standard: { tier: "standard", name: "스탠다드 달빛 이용권", monthlyWonPrice: 9900, profileLimit: 3, membershipCreditGrant: 0 },
-  premium: { tier: "premium", name: "프리미엄 달빛 이용권", monthlyWonPrice: 29900, profileLimit: 7, membershipCreditGrant: 0 },
-  vvip: { tier: "vvip", name: "VVIP 달빛 이용권", monthlyWonPrice: 59000, profileLimit: 15, membershipCreditGrant: 0 },
-  family: { tier: "family", name: "Code Destiny Family", monthlyWonPrice: 300000, profileLimit: 0, membershipCreditGrant: 0 },
+  standard: { tier: "standard", name: "스탠다드 꿀 30일", monthlyWonPrice: 9900, profileLimit: 3, membershipCreditGrant: 0 },
+  premium: { tier: "premium", name: "프리미엄 꿀 30일", monthlyWonPrice: 29900, profileLimit: 7, membershipCreditGrant: 0 },
+  vvip: { tier: "vvip", name: "VVIP 꿀단지 30일", monthlyWonPrice: 59000, profileLimit: 15, membershipCreditGrant: 0 },
+  family: { tier: "family", name: "Code Destiny Family 30일", monthlyWonPrice: 300000, profileLimit: 0, membershipCreditGrant: 0 },
 };
 
 const SUBSCRIPTION_DURATION_DISCOUNTS = Object.freeze({
   1: 0,
-  3: 0.05,
-  6: 0.10,
-  12: 0.30,
 });
 
 const SUBSCRIPTION_TIER_RANK = Object.freeze({
@@ -370,6 +367,14 @@ function resolveSubscriptionPlan(tierRaw, durationMonthsRaw = 1) {
     wonPrice: Math.round(base.monthlyWonPrice * durationMonths * (1 - discount)),
     productType: "membership_pass",
   };
+}
+
+function validateNewSubscriptionDuration(durationMonthsRaw, durationDaysRaw) {
+  const durationMonths = Number(durationMonthsRaw || 1);
+  const durationDays = durationDaysRaw === undefined || durationDaysRaw === null || durationDaysRaw === ""
+    ? 30
+    : Number(durationDaysRaw);
+  return durationMonths === 1 && durationDays === 30;
 }
 
 function buildSubscriptionMerchantUid(userId, tier, durationMonths = 1) {
@@ -683,8 +688,9 @@ function sanitizeCustomerEmail(value, userId) {
 
 function sanitizeCustomerPhone(value) {
   const digits = String(value || "").replace(/\D/g, "");
-  if (digits.length >= 8 && digits.length <= 15) return digits;
-  return "01000000000";
+  const localDigits = digits.startsWith("82") && /^821\d{8,9}$/.test(digits) ? `0${digits.slice(2)}` : digits;
+  if (/^01\d{8,9}$/.test(localDigits)) return localDigits;
+  return "";
 }
 
 function buildSinglePaymentCustomer(user, userId) {
@@ -3169,6 +3175,12 @@ async function handleSubscriptionPrepare(request, auth) {
   const productType = String(body?.productType || "membership_pass").trim().toLowerCase();
   const requestedAmount = body?.amount === undefined ? null : Number(body.amount);
   const requestedCurrency = String(body?.currency || "KRW").trim().toUpperCase();
+  if (!validateNewSubscriptionDuration(durationMonths, body?.durationDays)) {
+    return json({
+      message: "Only 30-day membership passes are available for new purchase.",
+      code: "INVALID_SUBSCRIPTION_DURATION",
+    }, { status: 400 });
+  }
   const plan = resolveSubscriptionPlan(tier, durationMonths);
   if (!plan) {
     return json({ message: "Unsupported subscription plan.", code: "INVALID_SUBSCRIPTION_TIER" }, { status: 400 });
@@ -3225,7 +3237,7 @@ async function handleSubscriptionPrepare(request, auth) {
           planId: plan.planId,
           durationMonths: plan.durationMonths,
           paymentAmount: existingAmount,
-          productName: `${plan.name} ${plan.durationMonths}개월`,
+          productName: plan.name,
           productType: plan.productType,
           profileLimit: plan.profileLimit,
           durationDays: plan.durationDays,
@@ -3256,6 +3268,7 @@ async function handleSubscriptionPrepare(request, auth) {
       metadata: {
         planId: plan.planId,
         durationMonths: plan.durationMonths,
+        durationDays: plan.durationDays,
         productType: plan.productType,
         currency: "KRW",
       },
@@ -3293,7 +3306,7 @@ async function handleSubscriptionPrepare(request, auth) {
         planId: plan.planId,
         durationMonths: plan.durationMonths,
         paymentAmount: existingAmount,
-        productName: `${plan.name} ${plan.durationMonths}개월`,
+        productName: plan.name,
         productType: plan.productType,
         profileLimit: plan.profileLimit,
         durationDays: plan.durationDays,
@@ -3313,7 +3326,7 @@ async function handleSubscriptionPrepare(request, auth) {
       planId: plan.planId,
       durationMonths: plan.durationMonths,
       paymentAmount: plan.wonPrice,
-      productName: `${plan.name} ${plan.durationMonths}개월`,
+      productName: plan.name,
       productType: plan.productType,
       profileLimit: plan.profileLimit,
       durationDays: plan.durationDays,
@@ -3433,6 +3446,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
         metadata: {
           planId: plan.planId,
           durationMonths: plan.durationMonths,
+          durationDays: plan.durationDays,
           productType: plan.productType,
           currency: "MONTHLY_CREDIT",
           requiredMonthlyCredits,
@@ -3636,6 +3650,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
         ...(paymentRecord.metadata || {}),
         planId: plan.planId,
         durationMonths: plan.durationMonths,
+        durationDays: plan.durationDays,
         productType: plan.productType,
         currency: "MONTHLY_CREDIT",
         verifiedAmount: plan.wonPrice,
@@ -3711,6 +3726,12 @@ async function handleSubscriptionConfirm(request, env, auth) {
   const customerUidFromClient = String(body?.customerUid || "").trim();
   const merchantUidHint = String(body?.merchantUid || body?.merchant_uid || "").trim();
   const paymentMethodHint = normalizePaymentMethod(body?.paymentMethod || "card");
+  if (!validateNewSubscriptionDuration(durationMonths, body?.durationDays)) {
+    return json({
+      message: "Only 30-day membership passes are available for new purchase.",
+      code: "INVALID_SUBSCRIPTION_DURATION",
+    }, { status: 400 });
+  }
   const plan = resolveSubscriptionPlan(tier, durationMonths);
 
   if (!plan) {
@@ -3873,6 +3894,7 @@ async function handleSubscriptionConfirm(request, env, auth) {
         ...(paymentRecord.metadata || {}),
         planId: plan.planId,
         durationMonths: plan.durationMonths,
+        durationDays: plan.durationDays,
         productType: plan.productType,
         currency: "KRW",
         verifiedAmount: plan.wonPrice,
@@ -4594,6 +4616,7 @@ function buildSubscriptionSummary(profileSubscription) {
     expiresAt: validExpiresAt,
     profileLimit: Number.isFinite(Number(entitlement.maxProfiles)) ? Math.max(0, Math.floor(Number(entitlement.maxProfiles))) : 1,
     freeLimit: Number(entitlement.maxCoveredCoin || 0),
+    startedAt: toIsoOrNull(sub.startedAt || sub.firstSubAt),
     membershipCreditBalance: Number(sub.membershipCreditBalance || 0),
     membershipCreditGranted: Number(sub.membershipCreditGranted || 0),
     membershipCreditUsed: Number(sub.membershipCreditUsed || 0),

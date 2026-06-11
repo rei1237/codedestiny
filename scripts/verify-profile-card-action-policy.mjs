@@ -15,168 +15,99 @@ const files = {
 const texts = Object.fromEntries(
   Object.entries(files).map(([key, relPath]) => {
     const filePath = path.join(root, relPath);
-    if (!fs.existsSync(filePath)) {
-      return [key, ""];
-    }
-    return [key, fs.readFileSync(filePath, "utf8").replace(/\r\n/g, "\n").replace(/\r/g, "\n")];
+    return [key, fs.existsSync(filePath) ? fs.readFileSync(filePath, "utf8").replace(/\r\n/g, "\n").replace(/\r/g, "\n") : ""];
   }),
 );
 
 const cases = [
   {
-    name: "이용권 등급별 프로필 생성 한도 내에서는 추가 생성 결제 불필요",
-    checks: [
-      ["profileRoute", "function canCreateProfileWithinSubscriptionLimit(subscription, currentCount)"],
-      ["profileRoute", "if (!canCreateProfileWithinSubscriptionLimit(subscription, count))"],
-      ["profileRoute", "canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, count + 1)"],
-      ["profileRoute", "canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length)"],
+    name: "profile view is free and owner-scoped",
+    includes: [
+      ["profileRoute", "async function handleGetProfileDetail"],
+      ["profileRoute", "ProfileCard.findOne({ userId: auth.userId, profileId })"],
+      ["profileRoute", "if (profileMatch && method === \"GET\")"],
+      ["mePage", "/api/profile/${encodeURIComponent(profile.id)}"],
     ],
   },
   {
-    name: "일반 이용자 수정 시 결제/코인 차감 전에는 수정 불가",
-    checks: [
-      ["policy", "PROFILE_CARD_EDIT_PAYMENT_REQUIRED"],
-      ["profileRoute", "ensureProfileEditDeleteAuthorized(auth, {"],
-      ["profileRoute", "profileEditDeletePaymentRequiredResponse(action, requestId, profileId, policy)"],
-      ["profileRoute", "if (profileMatch && method === \"PATCH\")"],
-    ],
-  },
-  {
-    name: "일반 이용자 삭제 시 결제/코인 차감 전에는 삭제 불가",
-    checks: [
+    name: "profile delete requires profile-card payment policy",
+    includes: [
       ["policy", "PROFILE_CARD_DELETE_PAYMENT_REQUIRED"],
+      ["policy", "PROFILE_CARD_PAYMENT_BYPASS"],
       ["profileRoute", "ensureProfileEditDeleteAuthorized(auth, {"],
-      ["profileRoute", "profileEditDeletePaymentRequiredResponse(action, requestId, profileId, policy)"],
-      ["profileRoute", "if (profileMatch && method === \"DELETE\")"],
+      ["profileRoute", "profileCardActionPaymentRequiredResponse(action, requestId, profileId, policy)"],
+      ["profileRoute", "if (profileCount <= 1)"],
+    ],
+    excludes: [
+      ["policy", "VVIP_PROFILE_LIMIT_INCLUDED"],
+      ["policy", "PASS_PROFILE_LIMIT_INCLUDED"],
+      ["mePage", "VVIP 무료"],
     ],
   },
   {
-    name: "일반 이용자 50코인 보유 시 수정 1회 후 코인 50 차감",
-    checks: [
-      ["profileRoute", "PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
-      ["profileRoute", "\"profileSubscription.membershipCreditBalance\": -PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
-      ["profileRoute", "actionType: \"profile_card_edit\""],
-      ["mePage", "PROFILE_CARD_ACTION_COST_COINS = 50"],
+    name: "extra profile add uses slot limit, not content pass coin limit",
+    includes: [
+      ["policy", "resolveProfileCardActionAccess"],
+      ["policy", "PROFILE_CARD_SLOT_AVAILABLE"],
+      ["policy", "PROFILE_CARD_ADD_EXTRA_PAYMENT_REQUIRED"],
+      ["profileRoute", "const createPolicy = await resolveProfileCardActionAccess"],
+      ["mePage", "const canCreateWithinProfileLimit"],
+      ["mePage", "const createRequiresProfileActionPayment"],
+    ],
+    excludes: [
+      ["mePage", "runProfileActionPassGate"],
+      ["mePage", "/api/billing/coin-gate"],
     ],
   },
   {
-    name: "일반 이용자 50코인 보유 시 삭제 1회 후 코인 50 차감",
-    checks: [
-      ["profileRoute", "PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
-      ["profileRoute", "\"profileSubscription.membershipCreditBalance\": -PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
-      ["profileRoute", "actionType: \"profile_card_delete\""],
-      ["mePage", "PROFILE_CARD_ACTION_COST_COINS = 50"],
-    ],
-  },
-  {
-    name: "일반 이용자 코인 부족 시 5,000원 결제 플로우 진입",
-    checks: [
-      ["mePage", "PROFILE_CARD_ACTION_COST_KRW = 5000"],
-      ["mePage", "runProfileActionCardPayment(action, profile, requestId)"],
-      ["mePage", "/api/payments/prepare"],
-      ["mePage", "/api/payments/confirm"],
-    ],
-  },
-  {
-    name: "결제 성공 검증 전에는 수정/삭제 불가",
-    checks: [
-      ["profileRoute", "findProfileMutationPaymentEvidence(auth, { action, profileId, requestId, body })"],
-      ["profileRoute", "evidenceProfileMatches"],
-      ["profileRoute", "PAYMENT_REQUIRED"],
+    name: "single payment products are profile-card specific",
+    includes: [
+      ["mePage", "profile_card_delete_50c"],
+      ["mePage", "profile_card_add_extra_50c"],
+      ["mePage", "profile_card_delete"],
+      ["mePage", "profile_card_add_extra"],
+      ["paymentsRoute", "createDigitalContentAccessEvidence"],
       ["paymentsRoute", "fetchPortOnePayment(env, impUid)"],
     ],
   },
   {
-    name: "결제 성공 검증 후 수정/삭제 가능",
-    checks: [
-      ["paymentsRoute", "createDigitalContentAccessEvidence"],
-      ["paymentsRoute", "productType"],
-      ["mePage", "profile_card_action"],
-      ["profileRoute", "paymentSettled: true"],
-      ["policy", "PAID_PROFILE_CARD_MUTATION"],
+    name: "monthly stones cost is fixed at 500 and recorded atomically",
+    includes: [
+      ["policy", "PROFILE_CARD_EDIT_DELETE_COST_MONTHLY_STONES = 500"],
+      ["profileRoute", "PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
+      ["profileRoute", "\"profileSubscription.membershipCreditBalance\": -PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
+      ["profileRoute", "\"profileSubscription.membershipCreditUsed\": PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
+      ["mePage", "월정석 500개"],
     ],
   },
   {
-    name: "같은 결제건으로 중복 수정/삭제 또는 중복 차감 불가",
-    checks: [
+    name: "payment evidence cannot be reused across action/profile/cost",
+    includes: [
+      ["profileRoute", "evidenceProfileMatches"],
+      ["profileRoute", "evidenceActionMatches"],
+      ["profileRoute", "evidenceCostMatches"],
       ["profileRoute", "metadata.profileMutationCompleted"],
       ["profileRoute", "metadata.profileMutationInProgress"],
       ["profileRoute", "claimProfileMutationEvidence"],
       ["profileRoute", "recordProfileMutationCompleted"],
-      ["paymentsRoute", "idempotencyKey"],
     ],
   },
   {
-    name: "VVIP 활성 + 한도 내 카드 수정 무료",
-    checks: [
-      ["policy", "VVIP_PROFILE_LIMIT_INCLUDED"],
-      ["policy", "currentProfileCardCount <= vvipLimit"],
-      ["mePage", "VVIP 혜택 적용 중 · 한도 내 무료 관리"],
-      ["mePage", "return `VVIP 무료 ${profileActionLabel(action)}`"],
-    ],
-  },
-  {
-    name: "VVIP 활성 + 한도 내 카드 삭제 무료",
-    checks: [
-      ["policy", "VVIP_PROFILE_LIMIT_INCLUDED"],
-      ["policy", "currentProfileCardCount <= vvipLimit"],
-      ["mePage", "VVIP 혜택 적용 중 · 한도 내 무료 관리"],
-      ["mePage", "return `VVIP 무료 ${profileActionLabel(action)}`"],
-    ],
-  },
-  {
-    name: "VVIP 만료 시 무료 불가",
-    checks: [
-      ["policy", "VVIP_EXPIRED_PAYMENT_REQUIRED"],
-      ["profileRoute", "rawTier"],
-      ["mePage", "이용권이 만료되어 50코인이 필요합니다."],
-      ["mePage", "isExpiredVvipProfileAction"],
-    ],
-  },
-  {
-    name: "다른 사용자의 profileCardId로 수정/삭제 시도 시 차단",
-    checks: [
-      ["policy", "ProfileCard.findOne({ userId: normalizedUserId, profileId: normalizedProfileCardId })"],
-      ["policy", "PROFILE_CARD_NOT_FOUND_OR_NOT_OWNED"],
-      ["profileRoute", "{ userId: auth.userId, profileId }"],
-      ["profileRoute", "ProfileCard.findOneAndDelete({ userId: auth.userId, profileId }"],
-    ],
-  },
-  {
-    name: "대표 프로필 삭제 후 관련 진입 화면이 깨지지 않도록 currentId 재지정",
-    checks: [
-      ["profileRoute", "resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || \"\""],
+    name: "delete refreshes active profile safely",
+    includes: [
+      ["profileRoute", "const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || \"\""],
       ["profileRoute", "destinyProfilesCurrentId: nextCurrentId"],
-      ["mePage", "const nextCurrentId = typeof payload.currentId === \"string\" ? payload.currentId : (nextProfiles[0]?.id || \"\")"],
       ["mePage", "emitDestinyProfileChanged(nextProfiles, nextCurrentId)"],
     ],
   },
   {
-    name: "삭제 실패 시 카드가 그대로 남아 있음",
-    checks: [
-      ["profileRoute", "const deleted = await ProfileCard.findOneAndDelete({ userId: auth.userId, profileId }).lean()"],
-      ["profileRoute", "if (!deleted) {"],
-      ["profileRoute", "refundProfileMutationCreditIfNeeded(auth, {"],
-      ["mePage", "if (action === \"delete\") {"],
-    ],
-  },
-  {
-    name: "수정 실패 시 기존 카드 정보가 유지됨",
-    checks: [
-      ["profileRoute", "const updated = await ProfileCard.findOneAndUpdate("],
-      ["profileRoute", "if (!updated) {"],
-      ["profileRoute", "refundProfileMutationCreditIfNeeded(auth, {"],
-      ["mePage", "if (action === \"delete\") {"],
-    ],
-  },
-  {
-    name: "모바일에서 모달, 결제창, 로딩 UI가 정상 표시됨",
-    checks: [
+    name: "mobile modal and loading UI remain available",
+    includes: [
       ["mePage", "sm:items-center"],
       ["mePage", "rounded-t-2xl"],
       ["mePage", "min-h-[44px]"],
       ["mePage", "결제창을 여는 중입니다."],
-      ["mePage", "코인을 차감하는 중입니다."],
+      ["mePage", "월정석을 차감하는 중입니다."],
     ],
   },
 ];
@@ -191,12 +122,17 @@ for (const [key, relPath] of Object.entries(files)) {
 }
 
 for (const testCase of cases) {
-  const missing = testCase.checks.filter(([fileKey, marker]) => !texts[fileKey]?.includes(marker));
-  if (missing.length > 0) {
+  const missing = (testCase.includes || []).filter(([fileKey, marker]) => !texts[fileKey]?.includes(marker));
+  const presentButForbidden = (testCase.excludes || []).filter(([fileKey, marker]) => texts[fileKey]?.includes(marker));
+
+  if (missing.length > 0 || presentButForbidden.length > 0) {
     failed = true;
     console.error(`\n[verify-profile-card-action-policy] FAIL: ${testCase.name}`);
     for (const [fileKey, marker] of missing) {
       console.error(`  - ${files[fileKey]} missing marker: ${marker}`);
+    }
+    for (const [fileKey, marker] of presentButForbidden) {
+      console.error(`  - ${files[fileKey]} contains forbidden marker: ${marker}`);
     }
   } else {
     console.log(`[verify-profile-card-action-policy] OK: ${testCase.name}`);

@@ -204,6 +204,7 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
     const tier = resolveTier(source);
     if (!tier || !HONEY_PASS_POLICY[tier]) continue;
 
+    const startedAt = readDate(source.startedAt || source.firstSubAt || source.currentPeriodStart || source.startsAt || source.startAt || source.validFrom);
     const expiresAt = readDate(source.expiresAt || source.currentPeriodEnd || source.endsAt || source.endAt || source.validUntil);
     const status = source.status || source.subscriptionStatus || source.membershipStatus || source.lastBillingStatus;
     const activeByStatus = isActiveStatus(status);
@@ -232,6 +233,7 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
       maxCoveredCoin: HONEY_PASS_POLICY[tier].maxCoveredCoin,
       maxProfiles: HONEY_PASS_POLICY[tier].maxProfiles,
       source: entry.source,
+      startedAt: startedAt ? startedAt.toISOString() : null,
       expiresAt: expiresAt ? expiresAt.toISOString() : null,
     };
 
@@ -248,6 +250,7 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
     maxCoveredCoin: 0,
     maxProfiles: 1,
     source: "none",
+    startedAt: null,
     expiresAt: null,
   };
 }

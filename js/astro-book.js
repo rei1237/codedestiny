@@ -336,10 +336,9 @@
     var fromDom = _recoverBirthFromDOM();
     if (fromDom) return fromDom;
     try {
-      var ns = 'FORTUNE_APP_USER_PROFILES';
-      var list = JSON.parse(localStorage.getItem(ns + '.list') || '[]');
-      var currId = localStorage.getItem(ns + '.current');
-      var match = (currId && list.find(function (it) { return it.id === currId; })) || list[0];
+      var match = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+        || window.__cdCurrentDestinyProfile
+        || null;
       if (match && match.birth && match.birth.year) return match;
     } catch (_) {}
     return null;
@@ -1173,10 +1172,9 @@
     var profile = _getActiveBirthProfile();
     if (!profile || !profile.birth || !profile.birth.year) {
       try {
-        var _dpNs = 'FORTUNE_APP_USER_PROFILES';
-        var _dpList = JSON.parse(localStorage.getItem(_dpNs + '.list') || '[]');
-        var _dpCurrId = localStorage.getItem(_dpNs + '.current');
-        var _dpMatch = (_dpCurrId && _dpList.find(function (p) { return p.id === _dpCurrId; })) || (_dpList.length && _dpList[0]) || null;
+        var _dpMatch = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+          || window.__cdCurrentDestinyProfile
+          || null;
         if (_dpMatch && _dpMatch.birth && _dpMatch.birth.year) {
           window.__cdActiveBirthProfile = _dpMatch;
           profile = _dpMatch;

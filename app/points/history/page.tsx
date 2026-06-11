@@ -55,6 +55,7 @@ type SubscriptionStatusResponse = {
   tier?: string;
   label?: string;
   isActive?: boolean;
+  startedAt?: string | null;
   expiresAt?: string | null;
   source?: string;
   profileLimit?: number;
@@ -136,10 +137,15 @@ function normalizePaymentPayload(payload: MeResponse) {
 function buildSubscriptionSummaryText(data?: SubscriptionStatusResponse | null) {
   const tier = String(data?.tier || "free").toLowerCase();
   const isActive = !!data?.isActive;
+  const startedAt = data?.startedAt ? formatDateTime(data.startedAt) : "-";
   const expiresAt = data?.expiresAt ? formatDateTime(data.expiresAt) : "-";
+  const expiresDate = data?.expiresAt ? new Date(data.expiresAt) : null;
+  const daysLeft = expiresDate && Number.isFinite(expiresDate.getTime())
+    ? Math.max(0, Math.ceil((expiresDate.getTime() - Date.now()) / 86_400_000))
+    : null;
   const tierLabel = tier === "free" ? "무료" : (data?.label || tier.toUpperCase());
   const activeLabel = isActive ? "활성" : "비활성";
-  return `${tierLabel} · ${activeLabel} · 만료 ${expiresAt}`;
+  return `${tierLabel} · ${activeLabel} · 시작 ${startedAt} · 만료 ${expiresAt}${daysLeft !== null ? ` · ${daysLeft}일 남음` : ""}`;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -668,7 +674,8 @@ export default function PointHistoryPage() {
             <li>• 환불 처리는 <strong>결제 수단(카드)으로만</strong> 가능합니다.</li>
             <li>• 콘텐츠 생성이 시작되기 전에는 취소/환불 요청이 가능합니다.</li>
             <li>• 콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</li>
-            <li>• 달빛 이용권은 1~12개월 기간형 상품이며 자동결제 상품이 아니고, 기간 종료 후 무료 플랜으로 전환됩니다.</li>
+            <li>• 달빛 이용권은 30일 상품이며 자동결제 상품이 아니고, 만료 후 다시 구매해야 합니다.</li>
+            <li>• 이용권 결제 후 유료 기능을 이용하지 않은 경우 결제일로부터 7일 이내 환불 요청이 가능하며, 이용이 시작된 뒤에는 환불이 제한될 수 있습니다.</li>
             <li>• 이벤트 월정석 보너스 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.</li>
             <li>• 민원담당자: 박병하 (050-6664-7398) · seongbae555@gmail.com</li>
           </ul>

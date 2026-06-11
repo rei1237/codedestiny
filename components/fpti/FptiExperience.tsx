@@ -38,8 +38,6 @@ const DEFAULT_FORM: FptiFormInput = {
   birthRegion: "",
 };
 
-const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
-
 type ProfileGender = "M" | "F" | "OTHER";
 
 type DestinyProfile = {
@@ -259,30 +257,11 @@ function normalizeTime(profile: DestinyProfile): { birthTime: string; timeUnknow
   return { birthTime: "12:00", timeUnknown: true };
 }
 
-function resolveScope() {
-  const authRaw = localStorage.getItem("fortune_auth_user");
-  const auth = safeParse<Record<string, unknown>>(authRaw);
-  const scopedId = String(auth?.id || auth?.userId || auth?._id || auth?.uid || "").trim().toLowerCase();
-  return scopedId || "guest";
-}
-
-function readCurrentProfile(): DestinyProfile | null {
-  const scope = resolveScope();
-  const scopedListKey = `${PROFILE_NS}.list::${scope}`;
-  const scopedCurrentKey = `${PROFILE_NS}.current::${scope}`;
-
-  const list = safeParse<DestinyProfile[]>(localStorage.getItem(scopedListKey))
-    || safeParse<DestinyProfile[]>(localStorage.getItem(`${PROFILE_NS}.list`))
-    || [];
-
-  if (!Array.isArray(list) || list.length === 0) return null;
-
-  const currentId = localStorage.getItem(scopedCurrentKey)
-    || localStorage.getItem(`${PROFILE_NS}.current`)
-    || "";
-
-  if (!currentId) return list[0] || null;
-  return list.find((profile) => profile?.id === currentId) || list[0] || null;
+function readCurrentProfile(eventProfile?: unknown): DestinyProfile | null {
+  if (eventProfile && typeof eventProfile === "object") return eventProfile as DestinyProfile;
+  const getCurrent = (window as unknown as { __cdGetCurrentDestinyProfile?: () => DestinyProfile | null }).__cdGetCurrentDestinyProfile;
+  if (typeof getCurrent === "function") return getCurrent() || null;
+  return ((window as unknown as { __cdCurrentDestinyProfile?: DestinyProfile | null }).__cdCurrentDestinyProfile) || null;
 }
 
 function toFormInput(profile: DestinyProfile): FptiFormInput | null {
@@ -331,9 +310,9 @@ export default function FptiExperience() {
     };
   }, [linkedProfileName]);
 
-  const syncFormFromCurrentProfile = useCallback(() => {
+  const syncFormFromCurrentProfile = useCallback((eventProfile?: unknown) => {
     if (typeof window === "undefined") return null;
-    const currentProfile = readCurrentProfile();
+    const currentProfile = readCurrentProfile(eventProfile);
     if (!currentProfile) return null;
     const profileForm = toFormInput(currentProfile);
     if (!profileForm) return null;
@@ -352,8 +331,9 @@ export default function FptiExperience() {
 
   useEffect(() => {
     syncFormFromCurrentProfile();
-    const onProfileChanged = () => {
-      syncFormFromCurrentProfile();
+    const onProfileChanged = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      syncFormFromCurrentProfile(detail?.profile || detail);
     };
     window.addEventListener("destinyProfileChanged", onProfileChanged);
     return () => {

@@ -8,6 +8,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 const MAX_SYNC_PROFILES = 30;
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
+const MAX_TAMAGOTCHI_TEXT_LEN = 180;
 const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
 const PROFILE_CARD_MANAGE_COST = 50;
 const PROFILE_CARD_MANAGE_AMOUNT_KRW = 5000;
@@ -48,6 +49,47 @@ function sanitizeProfileId(value) {
 
 function sanitizeName(value) {
   return sanitizeString(value, MAX_NAME_LEN) || "이름 없음";
+}
+
+function sanitizeTamagotchiText(value, fallback = "") {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  return (text || fallback).slice(0, MAX_TAMAGOTCHI_TEXT_LEN);
+}
+
+function clampPercent(value, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(0, Math.min(100, Math.round(n)));
+}
+
+function sanitizeTamagotchiAction(value) {
+  const action = String(value || "").trim();
+  if (action === "feed" || action === "play" || action === "rest" || action === "fortune") return action;
+  return null;
+}
+
+function normalizeTamagotchi(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const source = raw;
+  const now = new Date().toISOString();
+  const animalId = sanitizeTamagotchiText(source.animalId, "").replace(/[^a-z0-9-]/gi, "").slice(0, 60);
+  return {
+    animalId: animalId || null,
+    animalName: sanitizeTamagotchiText(source.animalName, "운명의 알"),
+    stage: sanitizeTamagotchiText(source.stage, ""),
+    hunger: clampPercent(source.hunger, 70),
+    mood: clampPercent(source.mood, 70),
+    bond: clampPercent(source.bond, 45),
+    luck: clampPercent(source.luck, 70),
+    energy: clampPercent(source.energy, 70),
+    growth: clampPercent(source.growth, 30),
+    todayFortune: sanitizeTamagotchiText(source.todayFortune, "오늘은 작은 돌봄 하나가 운의 문을 부드럽게 엽니다."),
+    lastAction: sanitizeTamagotchiAction(source.lastAction),
+    lastActionAt: sanitizeTamagotchiText(source.lastActionAt, "") || null,
+    createdAt: sanitizeTamagotchiText(source.createdAt, now),
+    updatedAt: now,
+    ownerScope: "account",
+  };
 }
 
 function sanitizeGender(value) {
@@ -139,6 +181,7 @@ function resolveSubscriptionPolicy(user) {
     freeLimit: entitlement.maxCoveredCoin,
     profileLimit: entitlement.maxProfiles,
     source: entitlement.source,
+    startedAt: entitlement.startedAt || null,
     expiresAt: entitlement.expiresAt,
   };
 }
@@ -531,10 +574,88 @@ async function handleSyncDestinyProfiles(request, auth) {
   });
 }
 
+async function handleGetTamagotchi(auth) {
+  const user = await User.findById(auth.userId).select("tamagotchi").lean();
+  if (!user) {
+    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  return json({
+    ok: true,
+    tamagotchi: normalizeTamagotchi(user.tamagotchi),
+  });
+}
+
+async function handlePutTamagotchi(request, auth) {
+  const body = await readJson(request);
+  const tamagotchi = normalizeTamagotchi(body?.tamagotchi || body);
+  if (!tamagotchi?.animalId) {
+    return json({ ok: false, message: "다마고치 캐릭터 정보가 필요합니다." }, { status: 400 });
+  }
+
+  const updated = await User.findByIdAndUpdate(
+    auth.userId,
+    { $set: { tamagotchi } },
+    { returnDocument: "after", projection: { tamagotchi: 1 } },
+  ).lean();
+
+  if (!updated) {
+    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  return json({
+    ok: true,
+    tamagotchi: normalizeTamagotchi(updated.tamagotchi),
+  });
+}
+
 export async function handleUserRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/user");
+
+    if (method === "GET" && path === "/tamagotchi") {
+      const auth = await getOptionalUserFromRequest(request, env);
+      if (!auth) {
+        return json({ ok: false, code: "AUTH_REQUIRED", message: "로그인이 필요합니다." }, { status: 401 });
+      }
+      try {
+        await connectDb(env);
+      } catch (error) {
+        logUserRouteError("connect-db-get-tamagotchi", error, request, {
+          userId: String(auth?.userId || ""),
+        });
+        return json({
+          ok: false,
+          degraded: true,
+          code: "DB_FALLBACK",
+          message: "다마고치 동기화 서버가 일시적으로 불안정합니다.",
+          debugMessage: String(error?.message || ""),
+          errorDetails: buildErrorDetails("connect-db-get-tamagotchi", error),
+        }, { status: 200 });
+      }
+      return await handleGetTamagotchi(auth);
+    }
+
+    if ((method === "PUT" || method === "POST") && path === "/tamagotchi") {
+      const auth = await requireUserFromRequest(request, env);
+      try {
+        await connectDb(env);
+      } catch (error) {
+        logUserRouteError("connect-db-put-tamagotchi", error, request, {
+          userId: String(auth?.userId || ""),
+        });
+        return json({
+          ok: false,
+          degraded: true,
+          code: "DB_FALLBACK",
+          message: "다마고치 동기화 서버가 일시적으로 불안정합니다.",
+          debugMessage: String(error?.message || ""),
+          errorDetails: buildErrorDetails("connect-db-put-tamagotchi", error),
+        }, { status: 202 });
+      }
+      return await handlePutTamagotchi(request, auth);
+    }
 
     if (method === "GET" && path === "/destiny-profiles") {
       const auth = await getOptionalUserFromRequest(request, env);
@@ -579,7 +700,7 @@ export async function handleUserRoutes(request, env) {
       return await handleSyncDestinyProfiles(request, auth);
     }
 
-    if (["GET", "POST"].includes(method)) return notFound();
+    if (["GET", "POST", "PUT"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
     logUserRouteError("handle-user-routes", error, request);

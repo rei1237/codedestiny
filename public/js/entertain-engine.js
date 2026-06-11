@@ -647,13 +647,10 @@
     } catch (e) {}
     if (profileId) return profileId;
     try {
-      profileId = String(localStorage.getItem('FORTUNE_APP_USER_PROFILES.current') || '').trim();
-      if (profileId) return profileId;
-      var list = JSON.parse(localStorage.getItem('FORTUNE_APP_USER_PROFILES.list') || '[]');
-      if (Array.isArray(list) && list.length) {
-        var current = list.find(function (item) { return item && (item.current || item.isCurrent); }) || list[0];
-        profileId = String((current && (current.profileId || current.id)) || '').trim();
-      }
+      var current = (typeof w.__cdGetCurrentDestinyProfile === 'function' && w.__cdGetCurrentDestinyProfile())
+        || w.__cdCurrentDestinyProfile
+        || null;
+      profileId = String((current && (current.profileId || current.id)) || '').trim();
     } catch (e2) {}
     return profileId;
   }

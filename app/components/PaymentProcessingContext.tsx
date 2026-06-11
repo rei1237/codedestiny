@@ -175,7 +175,7 @@ function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, message?
     return { message: "이용권을 적용하고 있습니다.", mode: "pass" };
   }
   if (status === "hasEntitlement") {
-    return { message: "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
+    return { message: message || "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
   }
   if (status === "paymentSuccess") {
     const text = String(message || "");
@@ -265,7 +265,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       });
       emitCoinGateOverlay(true, overlay.message, overlay.mode);
       if (status === "hasEntitlement" || status === "paymentSuccess") {
-        window.setTimeout(() => emitCoinGateOverlay(false), 900);
+        window.setTimeout(() => emitCoinGateOverlay(false), status === "hasEntitlement" ? 1600 : 1100);
       }
       return seq;
     }
@@ -323,7 +323,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       });
       emitCoinGateOverlay(true, overlay.message, overlay.mode);
       if (requestedStatus === "hasEntitlement" || requestedStatus === "paymentSuccess") {
-        window.setTimeout(() => emitCoinGateOverlay(false), 900);
+        window.setTimeout(() => emitCoinGateOverlay(false), requestedStatus === "hasEntitlement" ? 1600 : 1100);
       }
       return;
     }
@@ -364,7 +364,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   useEffect(() => {
     if (!state.open) return;
     if (!["hasEntitlement", "paymentSuccess"].includes(state.status)) return;
-    closeTimerRef.current = setTimeout(() => close(state.requestId), 900);
+    closeTimerRef.current = setTimeout(() => close(state.requestId), state.status === "hasEntitlement" ? 1600 : 1100);
     return () => {
       if (closeTimerRef.current) {
         clearTimeout(closeTimerRef.current);
@@ -527,7 +527,7 @@ export function PaymentProcessingProvider({
       clearCompletionCloseTimer();
       completionCloseTimerRef.current = setTimeout(() => {
         closeProcessingNow();
-      }, 900);
+      }, processingVariantRef.current === "pass-applied" ? 1600 : 1100);
       return;
     }
     closeProcessingNow();

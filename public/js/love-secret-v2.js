@@ -1999,10 +1999,9 @@
     } catch (_) {}
 
     try {
-      var ns = 'FORTUNE_APP_USER_PROFILES';
-      var list = JSON.parse(localStorage.getItem(ns + '.list') || '[]');
-      var curId = localStorage.getItem(ns + '.current');
-      var pick = (curId && Array.isArray(list) && list.find(function (x) { return x && x.id === curId; })) || (Array.isArray(list) ? list[0] : null);
+      var pick = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+        || window.__cdCurrentDestinyProfile
+        || null;
       if (pick) candidates.push(pick);
     } catch (_) {}
 

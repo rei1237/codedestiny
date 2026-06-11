@@ -156,35 +156,31 @@ export default function TermsOfServicePage() {
       <section id="refund-policy" style={{ ...sectionStyle, marginBottom: "14px", scrollMarginTop: "116px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 환불 및 청약철회 안내 / Refund and Withdrawal Guide</h2>
         <p style={{ lineHeight: 1.75 }}>
-          유료 리딩, PDF, 멤버십 이용권은 결제 전 표시된 상품 조건에 따라 상품별 코인 기준 단건 결제로 제공됩니다.
-          멤버십은 자동 갱신되지 않는 1개월·3개월·6개월·12개월 기간형 이용권입니다.
-          Paid readings, PDFs, and membership passes are one-time purchases based on coin-denominated product terms shown before payment.
+          Code Destiny의 30일 이용권은 결제 완료 즉시 계정에 활성화되는 디지털 이용권이며,
+          서버 결제 검증 성공 시각부터 30일 동안 유지됩니다.
+          Paid readings, PDFs, and 30-day passes are one-time purchases based on product terms shown before payment.
         </p>
         <p style={{ lineHeight: 1.75 }}>
-          콘텐츠 제공, 결과 열람, 리딩 실행, PDF 또는 AI 해석 생성이 시작되지 않은 주문은 결제일로부터 7일 이내 청약철회를 접수할 수 있습니다.
-          Unused orders may be submitted for withdrawal within 7 days of payment.
+          이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 사용자가 직접 다시 구매해야 합니다.
+          This pass does not renew automatically.
         </p>
         <p style={{ lineHeight: 1.75 }}>
-          결과 열람, 리딩 실행, PDF 또는 AI 해석 생성, 멤버십 전용 콘텐츠 진입 등으로 디지털 콘텐츠 제공이 시작된 경우,
-          해당 제공분은 전자상거래 등에서의 소비자보호에 관한 법률상 청약철회가 제한될 수 있습니다.
-          Once digital content delivery starts, withdrawal may be limited under applicable law.
+          이용권 결제 후 아직 유료 기능을 이용하지 않은 경우 결제일로부터 7일 이내 고객센터를 통해 환불을 요청할 수 있습니다.
+          이용권으로 유료 기능을 1회 이상 이용한 경우 디지털 콘텐츠 또는 유료 기능 이용이 시작된 것으로 보아 환불이 제한될 수 있습니다.
         </p>
         <p style={{ lineHeight: 1.75 }}>
-          시스템 오류, 중복 결제, 결과 미제공처럼 서비스 제공이 정상 완료되지 않은 주문은 재생성 또는 환불로 처리합니다.
-          Failed, duplicated, or undelivered orders are handled by regeneration or refund.
+          서비스 장애로 이용권 혜택을 정상적으로 제공받지 못한 경우 장애 내역 확인 후 이용 기간 연장,
+          코인/월정석 보상, 부분 환불 또는 전액 환불 중 적절한 방식으로 처리합니다.
         </p>
         <p style={{ lineHeight: 1.75 }}>
-          부분 환불이 가능한 경우에는 이용 횟수, 이용 기간, 제공된 혜택, 결제대행 수수료 등 합리적 기준을 반영한 잔여분만 환불됩니다.
-          실제 환불 금액과 시점은 관계 법령, 결제대행사 정책, 카드사 또는 플랫폼 정산 주기에 따릅니다.
-          Refund amount and timing may vary based on legal requirements and payment processor settlement rules.
+          중복 결제 또는 결제 오류가 확인된 경우 확인 후 중복 결제분은 환불 처리합니다.
         </p>
         <p style={{ lineHeight: 1.75 }}>
           코인은 콘텐츠 가격을 안내하기 위한 가치 단위이며, 1코인은 100원 상당으로 환산됩니다. 현재 선불 충전 또는 잔액 적립 상품은 제공하지 않습니다.
         </p>
         <p style={{ lineHeight: 1.75 }}>
-          유료 또는 멤버십 전용 콘텐츠 진입 전 표시되는 안내에서 확인 버튼을 누르면,
-          서비스 제공 시작과 환불 조건을 확인한 것으로 처리됩니다.
-          Pressing Confirm in the notice popup records consent to content delivery and refund terms.
+          환불 요청은 결제자 본인 확인 후 처리하며, 처리 기간은 결제수단과 결제대행사 정책에 따라 통상 영업일 3~10일이 소요될 수 있습니다.
+          환불 문의: {SUPPORT_EMAIL}
         </p>
         <p style={{ lineHeight: 1.75 }}>
           회사는 분쟁 예방과 법령 준수를 위해 확인 시각, 콘텐츠 식별 정보, 계정 식별자, 접속 기록 등 필요한 범위의 로그를 보관할 수 있습니다.
@@ -199,7 +195,7 @@ export default function TermsOfServicePage() {
           If service use starts during the free trial, withdrawal for the same digital content or paid pass may be restricted.
         </p>
         <p style={{ lineHeight: 1.75 }}>
-          이용권 종류, 이용 기간, 결제 금액, 만료일 등 핵심 조건은 결제/구독 화면에 고지되며,
+          이용권 종류, 30일 이용 기간, 결제 금액, 만료일, 자동결제 여부와 환불 조건은 결제 화면에 고지되며,
           이용자는 결제 완료 전 이를 확인할 책임이 있습니다.
         </p>
         <p style={{ lineHeight: 1.75 }}>

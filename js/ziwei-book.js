@@ -619,10 +619,9 @@
 
   function readStorageProfile(){
     try {
-      var ns = 'FORTUNE_APP_USER_PROFILES';
-      var list = JSON.parse(localStorage.getItem(ns + '.list') || '[]');
-      var currentId = localStorage.getItem(ns + '.current');
-      var selected = (currentId && list.find(function(p){ return p && (p.id === currentId || p.profileId === currentId); })) || list[0] || null;
+      var selected = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+        || window.__cdCurrentDestinyProfile
+        || null;
       if(selected) return profileFromObject(selected, 'storageProfile');
     } catch(_) {}
     try {
@@ -1496,10 +1495,9 @@
     var profile = profileFromObject(window.__cdActiveBirthProfile || window._cdCurrentProfile || window.currentProfile || window._currentProfile || {}, 'activeProfile');
     if (!profile || !profile.year || !profile.month) {
       try {
-        var _dpNs = 'FORTUNE_APP_USER_PROFILES';
-        var _dpList = JSON.parse(localStorage.getItem(_dpNs + '.list') || '[]');
-        var _dpCurrId = localStorage.getItem(_dpNs + '.current');
-        var _dpMatch = (_dpCurrId && _dpList.find(function(p){return p.id===_dpCurrId;})) || (_dpList.length && _dpList[0]) || null;
+        var _dpMatch = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+          || window.__cdCurrentDestinyProfile
+          || null;
         if (_dpMatch && _dpMatch.birth && _dpMatch.birth.year) {
           window.__cdActiveBirthProfile = _dpMatch;
           profile = profileFromObject(_dpMatch, 'activeProfile');

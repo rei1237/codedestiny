@@ -4352,10 +4352,6 @@ function lottoProfileId(){
       if(pid) return pid.replace(/\s+/g,'_').slice(0,80);
     }
   }catch(_e2){}
-  try{
-    var stored=String(localStorage.getItem('FORTUNE_APP_USER_PROFILES.current')||'').trim();
-    if(stored) return stored.replace(/\s+/g,'_').slice(0,80);
-  }catch(_e3){}
   return 'local-profile';
 }
 

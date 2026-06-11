@@ -54,6 +54,7 @@ const userSchema = new mongoose.Schema({
   destinyProfilesCurrentId: { type: String, default: "" },
   destinyProfilesLockedCurrentId: { type: String, default: "" },
   destinyProfilesLockedAt: { type: Date, default: null },
+  tamagotchi: { type: mongoose.Schema.Types.Mixed, default: null },
   twoFA: {
     enabled: { type: Boolean, default: false, index: true },
     totpSecret: { type: String, default: "" },
@@ -193,7 +194,7 @@ const paymentSchema = new mongoose.Schema({
   },
   subscriptionTier: {
     type: String,
-    enum: ["standard", "premium", "vvip", ""],
+    enum: ["standard", "premium", "vvip", "family", ""],
     default: "",
   },
   rawPortOne: { type: mongoose.Schema.Types.Mixed },

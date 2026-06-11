@@ -379,6 +379,10 @@ async function runServerTests() {
 
 function runClientStaticTests() {
   assertContains(clientPaymentSource, "window._cdCoinGatePerUseInFlight", "duplicate click guard");
+  assertContains(indexSource, "__cdDirectKrwCheckoutInFlight", "main shell direct checkout single-flight guard");
+  assertContains(indexSource, "__cdPaidServiceGateInFlight", "main shell paid service gate single-flight guard");
+  assertContains(destinyProfileSource, "__cdDirectKrwCheckoutInFlight", "runtime direct checkout single-flight guard");
+  assertContains(destinyProfileSource, "__cdSinglePaymentGuard", "runtime payment guard marker");
   assertContains(clientPaymentSource, "window.PortOne.requestPayment(requestData)", "PortOne payment window call");
   assertContains(indexSource, "function _cdNormalizeKoreanPhoneNumber", "Inicis checkout phone normalizer");
   assertContains(indexSource, "_cdPromptDirectCheckoutPhoneNumber", "Inicis checkout phone prompt");
@@ -388,7 +392,7 @@ function runClientStaticTests() {
   assertContains(clientPaymentSource, "paymentFailed", "failure UI state");
   assertContains(clientPaymentSource, "paymentSuccess", "success UI state");
   assertContains(indexSource, "if (status === 'checkingEntitlement') return { title: '이용권 확인 중'", "checking entitlement UI state");
-  assertContains(indexSource, "status === 'opening' || status === 'loadingProducts' || status === 'readyToPay'", "ready-to-pay UI state");
+  assertContains(indexSource, "status === 'opening' || status === 'loadingProducts' || status === 'generationPreparing' || status === 'readyToPay'", "ready-to-pay UI state");
   assertContains(indexSource, "if (status === 'paymentProcessing')", "payment processing UI state");
   assertContains(indexSource, "if (status === 'savingUnlock') return { title: '잠금 해제 저장 중'", "unlock saving UI state");
   assertContains(indexSource, "redirectUrl.searchParams.set('portone_redirect', '1')", "mobile redirect marker");

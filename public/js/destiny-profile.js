@@ -16,6 +16,9 @@
   var KEY_LIST_PREFIX = NS + '.list::';
   var KEY_CURR_PREFIX = NS + '.current::';
   var _dpScopedStorageReadyScope = '';
+  var _dpProfileMemoryScope = '';
+  var _dpProfiles = [];
+  var _dpCurrentId = '';
   var PROFILE_CARD_MANAGE_FEATURE_KEY = 'profile-card-manage';
   var PROFILE_CARD_MANAGE_COST = 50;
   var _dpProfileMenuLastTouchAt = 0;
@@ -164,70 +167,69 @@
     return KEY_CURR_PREFIX + String(scope || 'guest');
   }
 
-  function _dpReadListByKey(key) {
+  function _dpClearLegacyProfileStorage() {
     try {
-      return JSON.parse(localStorage.getItem(key) || '[]');
-    } catch (e) {
-      return [];
+      var directKeys = [KEY_LIST, KEY_CURR, KEY_SCOPE_HINT, KEY_LEGACY_OWNER];
+      for (var i = 0; i < directKeys.length; i += 1) localStorage.removeItem(directKeys[i]);
+      for (var j = localStorage.length - 1; j >= 0; j -= 1) {
+        var key = localStorage.key(j);
+        if (!key) continue;
+        if (key.indexOf(KEY_LIST_PREFIX) === 0 || key.indexOf(KEY_CURR_PREFIX) === 0) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch (e) {}
+  }
+
+  function _dpNormalizeProfiles(profiles) {
+    if (!Array.isArray(profiles)) return [];
+    return profiles.filter(function(profile) {
+      return profile && typeof profile === 'object';
+    }).map(function(profile) {
+      var id = String(profile.id || profile.profileId || '').trim();
+      return id && profile.id !== id ? Object.assign({}, profile, { id: id }) : profile;
+    });
+  }
+
+  function _dpResolveCurrentIdFromProfiles(profiles, currentId) {
+    var requested = String(currentId || '').trim();
+    if (requested) {
+      for (var i = 0; i < profiles.length; i += 1) {
+        var rowId = String((profiles[i] && (profiles[i].id || profiles[i].profileId)) || '').trim();
+        if (rowId === requested) return rowId;
+      }
     }
+    return profiles.length ? String(profiles[0].id || profiles[0].profileId || '').trim() : '';
   }
 
-  function _dpWriteProfilesToLocal(scope, profiles, currentId) {
-    var safeScope = String(scope || 'guest');
-    var listKey = _dpGetScopedListKey(safeScope);
-    var currKey = _dpGetScopedCurrentKey(safeScope);
+  function _dpPublishCurrentProfile() {
     try {
-      localStorage.setItem(listKey, JSON.stringify(Array.isArray(profiles) ? profiles : []));
-      if (currentId) localStorage.setItem(currKey, String(currentId));
-      else localStorage.removeItem(currKey);
-      _dpMirrorScopedToLegacy(safeScope);
+      window.__cdCurrentDestinyProfile = DPStorage.current();
     } catch (e) {}
   }
 
-  function _dpMirrorScopedToLegacy(scope) {
-    try {
-      var safeScope = String(scope || 'guest');
-      var listKey = _dpGetScopedListKey(safeScope);
-      var currKey = _dpGetScopedCurrentKey(safeScope);
-      var scopedListRaw = localStorage.getItem(listKey);
-      localStorage.setItem(KEY_LIST, scopedListRaw || '[]');
-      var currId = localStorage.getItem(currKey) || '';
-      if (currId) localStorage.setItem(KEY_CURR, currId);
-      else localStorage.removeItem(KEY_CURR);
-      localStorage.setItem(KEY_SCOPE_HINT, safeScope);
-      localStorage.setItem(KEY_LEGACY_OWNER, safeScope);
-    } catch (e) {}
+  function _dpSetProfileState(scope, profiles, currentId) {
+    _dpProfileMemoryScope = String(scope || 'guest');
+    _dpProfiles = _dpNormalizeProfiles(profiles);
+    _dpCurrentId = _dpResolveCurrentIdFromProfiles(_dpProfiles, currentId);
+    _dpClearLegacyProfileStorage();
+    _dpPublishCurrentProfile();
   }
 
   function _dpEnsureScopedStorageReady() {
     var scope = _dpGetProfileScope();
-    if (_dpScopedStorageReadyScope === scope) return scope;
-
-    try {
-      var listKey = _dpGetScopedListKey(scope);
-      var currKey = _dpGetScopedCurrentKey(scope);
-      var scopedListRaw = localStorage.getItem(listKey);
-
-      if (scopedListRaw == null) {
-        var legacyRaw = localStorage.getItem(KEY_LIST);
-        if (legacyRaw) {
-          var legacyOwner = String(localStorage.getItem(KEY_LEGACY_OWNER) || localStorage.getItem(KEY_SCOPE_HINT) || '').trim().toLowerCase();
-          var canMigrate = (scope === 'guest') || !legacyOwner || legacyOwner === scope;
-          if (canMigrate) {
-            localStorage.setItem(listKey, legacyRaw);
-            var legacyCurr = localStorage.getItem(KEY_CURR) || '';
-            if (legacyCurr) localStorage.setItem(currKey, legacyCurr);
-          }
-        }
+    if (_dpScopedStorageReadyScope !== scope) {
+      _dpScopedStorageReadyScope = scope;
+      if (!_dpProfileMemoryScope) _dpProfileMemoryScope = scope;
+      if (_dpProfileMemoryScope !== scope) {
+        _dpProfileMemoryScope = scope;
+        _dpProfiles = [];
+        _dpCurrentId = '';
+        _dpPublishCurrentProfile();
       }
+    }
+    _dpClearLegacyProfileStorage();
 
-      if (localStorage.getItem(listKey) == null) {
-        localStorage.setItem(listKey, '[]');
-      }
-      _dpMirrorScopedToLegacy(scope);
-    } catch (e) {}
-
-    _dpScopedStorageReadyScope = scope;
     return scope;
   }
 
@@ -236,30 +238,28 @@
   ────────────────────────────────────────── */
   var DPStorage = {
     list: function() {
-      var scope = _dpEnsureScopedStorageReady();
-      return _dpReadListByKey(_dpGetScopedListKey(scope));
+      _dpEnsureScopedStorageReady();
+      return _dpProfiles.slice();
     },
     save: function(profiles) {
       var scope = _dpEnsureScopedStorageReady();
-      try {
-        var currentId = localStorage.getItem(_dpGetScopedCurrentKey(scope)) || '';
-        _dpWriteProfilesToLocal(scope, profiles, currentId);
-      } catch (e) {}
+      _dpSetProfileState(scope, profiles, _dpCurrentId);
     },
     current: function() {
       try {
-        var scope = _dpEnsureScopedStorageReady();
-        var id = localStorage.getItem(_dpGetScopedCurrentKey(scope));
+        _dpEnsureScopedStorageReady();
+        var id = String(_dpCurrentId || '').trim();
         if (!id) return null;
-        return DPStorage.list().find(function(p) { return p.id === id; }) || null;
+        return _dpProfiles.find(function(p) { return String(p && (p.id || p.profileId) || '').trim() === id; }) || null;
       } catch(e) { return null; }
     },
     setCurrent: function(id) {
-      var scope = _dpEnsureScopedStorageReady();
+      _dpEnsureScopedStorageReady();
       try {
-        localStorage.setItem(_dpGetScopedCurrentKey(scope), id || '');
-        _dpMirrorScopedToLegacy(scope);
-        _dpSetCurrentOnServerDebounced(id || '');
+        _dpCurrentId = _dpResolveCurrentIdFromProfiles(_dpProfiles, id || '');
+        _dpClearLegacyProfileStorage();
+        _dpPublishCurrentProfile();
+        _dpSetCurrentOnServerDebounced(_dpCurrentId);
       } catch(e) {}
     },
     add: function(profile) {
@@ -276,16 +276,14 @@
     remove: function(id) {
       var scope = _dpEnsureScopedStorageReady();
       var list = DPStorage.list().filter(function(p) { return p.id !== id; });
-      DPStorage.save(list);
-      if (localStorage.getItem(_dpGetScopedCurrentKey(scope)) === id) {
-        DPStorage.setCurrent(list.length ? list[0].id : '');
-      }
+      _dpSetProfileState(scope, list, _dpCurrentId === id ? (list.length ? list[0].id : '') : _dpCurrentId);
     },
     update: function(id, patch) {
+      var scope = _dpEnsureScopedStorageReady();
       var list = DPStorage.list().map(function(p) {
         return p.id === id ? Object.assign({}, p, patch) : p;
       });
-      DPStorage.save(list);
+      _dpSetProfileState(scope, list, _dpCurrentId || id);
     }
   };
 
@@ -1003,7 +1001,7 @@
       .then(function(data) {
         if (!data || !data.ok || !Array.isArray(data.profiles)) { if (callback) callback(false); return; }
         var scope = _dpGetProfileScope();
-        _dpWriteProfilesToLocal(scope, data.profiles, data.currentId || '');
+        _dpSetProfileState(scope, data.profiles, data.currentId || '');
         _dpApplyProfileAccess(data.profileAccess);
         if (data.profileAccess && data.profileAccess.selectionRequired) {
           _toast('이용권 혜택이 종료되어 사용할 프로필 카드 1개를 선택해야 합니다.', 'warn');
@@ -1794,6 +1792,34 @@
     return [featureKey, reason, cost].join('|');
   }
 
+  function _dpBuildPaidServiceSingleFlightKey(options, title, coinPrice, amountKrw) {
+    var opts = options || {};
+    var feature = String(opts.featureKey || opts.subFeatureKey || opts.categoryKey || opts.contentKey || opts.productId || opts.serviceKey || opts.reportType || opts.actionType || opts.action || title || opts.reason || 'paid-service').trim().toLowerCase();
+    var label = String(title || opts.reason || opts.title || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    var cost = Math.max(0, Math.floor(Number(coinPrice || opts.coinPrice || opts.cost || 0)));
+    var amount = Math.max(0, Math.floor(Number(amountKrw || opts.amountKrw || opts.amountKRW || opts.paymentAmount || opts.amount || (cost * 100) || 0)));
+    var profile = String(opts.profileId || opts.selectedProfileId || '').trim().toLowerCase();
+    return [feature || 'paid-service', label, cost, amount, profile].join('|');
+  }
+
+  function _dpJoinPaidServiceSingleFlight(slotName, key, ttlMs, producer) {
+    var now = Date.now();
+    var active = window[slotName];
+    if (active && active.promise && active.key === key && now - Number(active.startedAt || 0) < ttlMs) {
+      return active.promise;
+    }
+    var promise = Promise.resolve().then(producer);
+    window[slotName] = { key: key, startedAt: now, promise: promise };
+    var clear = function() {
+      window.setTimeout(function() {
+        var current = window[slotName];
+        if (current && current.promise === promise) window[slotName] = null;
+      }, 1800);
+    };
+    promise.then(clear, clear);
+    return promise;
+  }
+
   function _dpIsGenericPaidGateFeatureKey(value) {
     var key = String(value || '').trim().toLowerCase();
     return !key || key === 'coin-gate-per-use' || key === 'paid-service' || key === 'paid_service' || key === 'default' || key === 'service';
@@ -1895,7 +1921,7 @@
       reason: String(opts.reason || title),
       featureKey: _dpResolvePaidGateFeatureKey(opts, title) || undefined,
       paymentMode: paymentMode,
-      forceDeduct: true,
+      forceDeduct: paymentMode === 'MEMBERSHIP_PASS' ? false : true,
       requestId: requestId,
       categoryKey: opts.categoryKey || undefined,
       subFeatureKey: opts.subFeatureKey || undefined,
@@ -1930,6 +1956,10 @@
       try {
         if (result.status === 'pass_applied') {
           if (typeof window._cdShowMembershipFreeNotice === 'function') window._cdShowMembershipFreeNotice({ title: title, coinPrice: coinPrice, payload: payload });
+          else if (typeof window._cdSetCoinGateOverlay === 'function') {
+            window._cdSetCoinGateOverlay(true, '이용권이 적용되었어요 🌙\n꽃돼지가 꿀단지를 열어드렸어요.\n이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.\n코인 차감 없이 바로 열어드릴게요.', 'pass-applied');
+            window.setTimeout(function() { window._cdSetCoinGateOverlay(false); }, 1600);
+          }
           else if (typeof window._cdShowSubscriptionShieldNotice === 'function') window._cdShowSubscriptionShieldNotice({ message: '\uC774\uC6A9\uAD8C\uC73C\uB85C \uCF54\uC778 \uCC28\uAC10 \uC5C6\uC774 \uC774\uC6A9\uD569\uB2C8\uB2E4.', requiredCoins: coinPrice });
         }
       } catch (_) {}
@@ -2188,6 +2218,38 @@
       await _dpWaitForPaymentOverlayPaint();
       return confirmRes.payload;
     };
+  }
+
+  if (typeof window._cdRunDirectKrwCheckout === 'function' && window._cdRunDirectKrwCheckout.__cdSinglePaymentGuard !== true) {
+    var _dpRunDirectKrwCheckoutCore = window._cdRunDirectKrwCheckout;
+    var _dpRunDirectKrwCheckoutGuarded = function(options) {
+      var opts = options || {};
+      var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
+      var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || opts.amount || (coinPrice * 100))));
+      var title = String(opts.title || opts.reason || '').trim();
+      var key = _dpBuildPaidServiceSingleFlightKey(opts, title, coinPrice, amountKrw);
+      return _dpJoinPaidServiceSingleFlight('__cdDirectKrwCheckoutInFlight', key, 60000, function() {
+        return _dpRunDirectKrwCheckoutCore(opts);
+      });
+    };
+    _dpRunDirectKrwCheckoutGuarded.__cdSinglePaymentGuard = true;
+    window._cdRunDirectKrwCheckout = _dpRunDirectKrwCheckoutGuarded;
+  }
+
+  if (typeof window._cdOpenPaidServiceGate === 'function' && window._cdOpenPaidServiceGate.__cdSinglePaymentGuard !== true) {
+    var _dpOpenPaidServiceGateCore = window._cdOpenPaidServiceGate;
+    var _dpOpenPaidServiceGateGuarded = function(options) {
+      var opts = options || {};
+      var title = String(opts.title || opts.reason || '').trim();
+      var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
+      var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || opts.amount || (coinPrice * 100))));
+      var key = _dpBuildPaidServiceSingleFlightKey(opts, title, coinPrice, amountKrw);
+      return _dpJoinPaidServiceSingleFlight('__cdPaidServiceGateInFlight', key, 45000, function() {
+        return _dpOpenPaidServiceGateCore(opts);
+      });
+    };
+    _dpOpenPaidServiceGateGuarded.__cdSinglePaymentGuard = true;
+    window._cdOpenPaidServiceGate = _dpOpenPaidServiceGateGuarded;
   }
 
   window._cdCoinGatePerUse = function(cost, reason, cb, onCancel, options) {
@@ -4315,7 +4377,7 @@
       var nextId = created && created.id ? String(created.id) : '';
       var currentId = String(payloadOk.currentId || nextId);
       if (Array.isArray(payloadOk.profiles)) {
-        _dpWriteProfilesToLocal(scope, payloadOk.profiles, currentId);
+        _dpSetProfileState(scope, payloadOk.profiles, currentId);
       } else if (created && created.id) {
         var replaced = false;
         for (var i = 0; i < list.length; i += 1) {
@@ -4326,7 +4388,7 @@
           }
         }
         if (!replaced) list.push(created);
-        _dpWriteProfilesToLocal(scope, list, currentId);
+        _dpSetProfileState(scope, list, currentId);
       }
 
       // 저장 성공 직후에는 로컬 상태를 즉시 렌더링해 체감 반응 속도를 우선한다.
@@ -4694,7 +4756,7 @@
       }
       var payload = result.data || {};
       if (Array.isArray(payload.profiles)) {
-        _dpWriteProfilesToLocal(_dpGetProfileScope(), payload.profiles, payload.currentId || '');
+        _dpSetProfileState(_dpGetProfileScope(), payload.profiles, payload.currentId || '');
       } else {
         DPStorage.remove(profileId);
       }
@@ -5727,6 +5789,12 @@
     calcTrueSolarOffset: calcTrueSolarOffset,
     resolveTimezoneOffset: resolveTimezoneOffset,
     getTimeZoneOffsetHoursForDate: getTimeZoneOffsetHoursForDate
+  };
+  window.__cdGetCurrentDestinyProfile = function() {
+    return DPStorage.current();
+  };
+  window.__cdListDestinyProfiles = function() {
+    return DPStorage.list();
   };
 
   window.generateGuardianAvatar = window.dpGenerateGuardianAvatar;

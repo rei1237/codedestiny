@@ -10,6 +10,7 @@ type SubscriptionTier = "free" | "standard" | "premium" | "vvip" | "family";
 type SubscriptionStatus = {
   tier: SubscriptionTier;
   isActive: boolean;
+  startedAt?: string | null;
   expiresAt: string | null;
   profileLimit: number;
   durationMonths?: number;
@@ -51,7 +52,7 @@ const TIER_META: Record<SubscriptionTier, {
   },
   standard: {
     icon: "🌔",
-    label: "스탠다드 달빛 이용권",
+    label: "스탠다드 꿀 30일",
     coinValue: 115,
     bg: "from-[#111936]/95 via-[#27305d]/92 to-[#4a3a72]/90",
     border: "border-[#e9d18a]/45",
@@ -64,7 +65,7 @@ const TIER_META: Record<SubscriptionTier, {
   },
   premium: {
     icon: "🌕",
-    label: "프리미엄 달빛 이용권",
+    label: "프리미엄 꿀 30일",
     coinValue: 360,
     bg: "from-[#101832]/95 via-[#352553]/92 to-[#604f88]/90",
     border: "border-[#cab8ff]/45",
@@ -77,7 +78,7 @@ const TIER_META: Record<SubscriptionTier, {
   },
   vvip: {
     icon: "🌌",
-    label: "VVIP 달빛 이용권",
+    label: "VVIP 꿀단지 30일",
     coinValue: 700,
     bg: "from-[#091126]/95 via-[#24164d]/92 to-[#42306f]/90",
     border: "border-[#f3dd9a]/55",
@@ -90,7 +91,7 @@ const TIER_META: Record<SubscriptionTier, {
   },
   family: {
     icon: "∞",
-    label: "Code Destiny Family",
+    label: "Code Destiny Family 30일",
     coinValue: 3000,
     bg: "from-[#07150f]/95 via-[#123a2c]/92 to-[#374b2b]/90",
     border: "border-emerald-200/55",
@@ -105,9 +106,8 @@ const TIER_META: Record<SubscriptionTier, {
 
 function formatSubscriptionDurationLabel(months: unknown) {
   const numeric = Number(months);
-  if (numeric === 12) return "1년";
-  if (numeric === 1 || numeric === 3 || numeric === 6) return `${numeric}개월`;
-  return "선택 기간";
+  if (numeric === 1) return "30일";
+  return "30일";
 }
 
 export default function SubscriptionStatusCard({ subscription, monthlyCredits = 0 }: Props) {
@@ -128,6 +128,14 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
   };
 
   const validExpiresDate = toValidDate(subscription.expiresAt);
+  const validStartedDate = toValidDate(subscription.startedAt);
+  const startedDate = validStartedDate
+    ? validStartedDate.toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : null;
   const expiresDate = validExpiresDate
     ? validExpiresDate.toLocaleDateString("ko-KR", {
         year: "numeric",
@@ -144,6 +152,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
   const isExpired = daysLeft === 0 && subscription.isActive === false;
   const isActivePass = subscription.isActive && effectiveTier !== "free";
   const wonValue = meta.coinValue * 100;
+  const benefitLabel = meta.freeUpTo || "단건 결제 가능";
   const singlePaymentCopy = effectiveTier === "family"
     ? "Family 이용권으로 모든 서비스가 무료 처리됩니다."
     : "일반 한도 초과 서비스는 기존가 결제, PDF는 할인 후 잔액 결제됩니다.";
@@ -182,19 +191,25 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
             {/* 활성 상태 표시 */}
             <div className="flex items-center gap-2">
               <span className={`h-2 w-2 rounded-full ${meta.dot} animate-pulse`} />
-              <span className="text-[12.5px] font-bold text-[#f3dd9a]">현재 {meta.label} 이용 중 · 다음 갱신 전까지 이용 가능</span>
+              <span className="text-[12.5px] font-bold text-[#f3dd9a]">현재 {meta.label} 이용 중 · 만료일까지 이용 가능</span>
             </div>
 
             <div className="rounded-[14px] border border-white/12 bg-white/8 px-3.5 py-3">
               <p className="text-[13px] font-black text-white">
-                {meta.label} · {meta.coinValue.toLocaleString("ko-KR")}코인 기준 / {durationLabel} · {wonValue.toLocaleString("ko-KR")}원 상당
+                {meta.label} · {benefitLabel} / {durationLabel} · {wonValue.toLocaleString("ko-KR")}원 상당
               </p>
               <p className="mt-1 text-[11.5px] text-slate-200">
                 기본 결제 단위는 코인이며 월정석은 이벤트 보너스로만 지급됩니다.
               </p>
             </div>
 
-            {/* 만료일 / 잔여일 */}
+            {startedDate && (
+              <div className="rounded-[12px] bg-white/8 border border-white/12 px-3.5 py-2.5">
+                <p className="text-[10.5px] font-bold text-slate-300">시작일</p>
+                <p className="text-[13px] font-black text-white">{startedDate}</p>
+              </div>
+            )}
+
             {expiresDate && (
               <div
                 className={`rounded-[12px] px-3.5 py-2.5 flex items-center justify-between gap-2 ${
@@ -204,7 +219,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
                 }`}
               >
                 <div>
-                  <p className="text-[10.5px] font-bold text-slate-300">갱신/만료일</p>
+                  <p className="text-[10.5px] font-bold text-slate-300">만료일</p>
                   <p className={`text-[13px] font-black ${isExpiringSoon ? "text-orange-100" : "text-white"}`}>
                     {expiresDate}
                   </p>
@@ -244,6 +259,14 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
               <p className="text-[12px] font-black text-white">{singlePaymentCopy}</p>
             </div>
 
+            <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
+              <p className="text-[10px] text-slate-300 font-bold">자동결제 여부</p>
+              <p className="text-[12px] font-black text-white">자동결제 아님 · 만료 후 직접 재구매</p>
+              <a href="/terms#refund-policy" className="mt-1 inline-flex text-[11.5px] font-black text-[#cab8ff] underline">
+                환불 요청 안내 보기
+              </a>
+            </div>
+
             {/* 이용권 혜택 범위 안내 */}
             {subscription.lowBalanceWarning && (
               <div className="rounded-[12px] border border-orange-300/50 bg-orange-400/12 px-3.5 py-2.5 flex items-start gap-2">
@@ -259,7 +282,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
               <div className="rounded-[12px] border border-orange-300/50 bg-orange-400/12 px-3.5 py-2.5 flex items-start gap-2">
                 <span className="text-orange-500 flex-shrink-0 mt-0.5">⏰</span>
                 <p className="text-[11.5px] text-orange-100">
-                  이용권이 <strong>{daysLeft}일 후</strong> 만료됩니다. 계속 이용하려면 새 기간형 이용권을 결제해 주세요.
+                  이용권이 <strong>{daysLeft}일 후</strong> 만료됩니다. 계속 이용하려면 30일 이용권을 다시 결제해 주세요.
                 </p>
               </div>
             )}
@@ -278,7 +301,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
             {isExpired ? (
               <div className="rounded-[12px] border border-rose-300/50 bg-rose-400/12 px-3.5 py-2.5 flex items-center gap-2">
                 <span className="text-rose-500">⚠️</span>
-                <p className="text-[12px] text-rose-100 font-bold">이용권이 만료되었습니다. 새 기간형 이용권을 결제해 주세요.</p>
+                <p className="text-[12px] text-rose-100 font-bold">이용권이 만료되었습니다. 30일 이용권을 다시 결제해 주세요.</p>
               </div>
             ) : (
               <div className="rounded-[14px] border border-white/12 bg-white/8 px-3.5 py-3">

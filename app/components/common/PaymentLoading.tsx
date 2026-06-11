@@ -24,6 +24,7 @@ const DEFAULT_TITLE = "운명을 읽어오는 중입니다...";
 const DEFAULT_DESCRIPTION = "결제가 진행 중입니다. 잠시만 기다려 주세요.";
 const YEON_SPRITE_URL =
   "/fuctionassets/%EB%8F%88%EB%B0%9D%ED%9E%88%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=20260607-unified-payment";
+const PASS_PIG_URL = "/fuctionassets/membership-honey-kkulkkul.webp?v=20260611-license-pass";
 const UNIFIED_PAYMENT_MARKER = "cd-money-yeon-unified-payment-ui-v20260611-slow-sprite";
 
 export default function PaymentLoading({
@@ -40,6 +41,9 @@ export default function PaymentLoading({
     const img = new window.Image();
     img.decoding = "async";
     img.src = YEON_SPRITE_URL;
+    const passImg = new window.Image();
+    passImg.decoding = "async";
+    passImg.src = PASS_PIG_URL;
   }, []);
 
   useEffect(() => {
@@ -70,6 +74,7 @@ export default function PaymentLoading({
   if (!open) return null;
 
   const isPaymentComplete = variant === "payment-complete" || variant === "unlock-saving" || variant === "pass-applied";
+  const isPassAppliedVariant = variant === "pass-applied";
   const copyMap: Record<NonNullable<PaymentLoadingProps["variant"]>, { title: string; description: string; status?: string }> = {
     payment: {
       title: "결제 상태를 안전하게 확인하고 있습니다",
@@ -110,19 +115,28 @@ export default function PaymentLoading({
       status: "이용권 적용 여부를 확인하고 있습니다.",
     },
     "pass-applied": {
-      title: "이용권 적용 완료",
-      description: "연이가 이용 권한을 반짝 열어두었습니다.",
-      status: "잠시 후 콘텐츠로 이어집니다.",
+      title: "이용권이 적용되었어요 🌙",
+      description: "꽃돼지가 꿀단지를 열어드렸어요.\n이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.\n코인 차감 없이 바로 열어드릴게요.",
+      status: "달빛 문을 여는 중입니다.",
     },
   };
   const copy = copyMap[variant] || copyMap.payment;
-  const resolvedTitle = title || copy.title || DEFAULT_TITLE;
-  const resolvedDescription = description || copy.description || DEFAULT_DESCRIPTION;
   const cleanedStatus = String(statusMessage || "").trim();
+  const passLines = isPassAppliedVariant && !description && cleanedStatus
+    ? cleanedStatus.split(/\n+/).map((line) => line.trim()).filter(Boolean)
+    : [];
+  const resolvedTitle = title || (passLines.length > 1 ? passLines[0] : "") || copy.title || DEFAULT_TITLE;
+  const resolvedDescription = description
+    || (passLines.length > 1 ? passLines.slice(1).join("\n") : "")
+    || copy.description
+    || DEFAULT_DESCRIPTION;
+  const isFamilyPassVariant = isPassAppliedVariant && [resolvedTitle, resolvedDescription, cleanedStatus].join(" ").toUpperCase().includes("FAMILY");
   const resolvedStatus = elapsedMs >= 20000
     ? "확인이 길어지고 있습니다. 같은 창에서 계속 안전하게 재확인 중입니다."
     : elapsedMs >= 8000
       ? "결제 확인이 조금 지연되고 있습니다. 곧 자동으로 이어집니다."
+      : isPassAppliedVariant
+        ? copy.status
       : cleanedStatus && cleanedStatus !== resolvedDescription
         ? cleanedStatus
         : copy.status;
@@ -130,33 +144,56 @@ export default function PaymentLoading({
 
   return (
     <div
-      role="alertdialog"
+      role={isPassAppliedVariant ? "dialog" : "alertdialog"}
       aria-modal="true"
-      aria-live="assertive"
+      aria-live={isPassAppliedVariant ? "polite" : "assertive"}
       data-payment-loading-variant={variant}
       data-payment-loading-marker={UNIFIED_PAYMENT_MARKER}
-      className="fixed inset-0 z-[2147483003] flex items-center justify-center bg-[#050510]/78 px-4 backdrop-blur-md"
+      className={`fixed inset-0 z-[2147483003] flex items-center justify-center px-4 ${
+        isPassAppliedVariant
+          ? "bg-slate-950/70 backdrop-blur-xl"
+          : "bg-[#050510]/78 backdrop-blur-md"
+      }`}
     >
-      <div className="relative w-full max-w-[360px] overflow-hidden rounded-[1.5rem] border border-amber-100/35 bg-[linear-gradient(180deg,rgba(24,19,34,0.96),rgba(8,9,20,0.97))] p-5 text-center shadow-[0_20px_54px_rgba(0,0,0,0.38)] sm:p-6">
+      <div className={`relative w-full max-w-[360px] overflow-hidden border p-5 text-center shadow-[0_20px_54px_rgba(0,0,0,0.38)] sm:p-6 ${
+        isPassAppliedVariant
+          ? `rounded-[2rem] border-white/15 bg-white/10 shadow-2xl ${isFamilyPassVariant ? "ring-1 ring-amber-200/30" : ""}`
+          : "rounded-[1.5rem] border-amber-100/35 bg-[linear-gradient(180deg,rgba(24,19,34,0.96),rgba(8,9,20,0.97))]"
+      }`}>
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-100/70 to-transparent" />
-        <div className="pointer-events-none absolute inset-x-8 top-0 h-28 bg-gradient-to-b from-amber-200/12 to-transparent" />
+        <div className={`pointer-events-none absolute inset-x-8 top-0 h-28 bg-gradient-to-b ${isPassAppliedVariant ? "from-amber-100/18" : "from-amber-200/12"} to-transparent`} />
+        {isPassAppliedVariant ? (
+          <div className="pointer-events-none absolute inset-0 opacity-80">
+            <span className="absolute left-[18%] top-[18%] h-1 w-1 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,.8)]" />
+            <span className="absolute right-[22%] top-[24%] h-1.5 w-1.5 rounded-full bg-amber-100 shadow-[0_0_14px_rgba(253,230,138,.82)]" />
+            <span className="absolute bottom-[26%] left-[24%] h-1 w-1 rounded-full bg-cyan-100 shadow-[0_0_12px_rgba(207,250,254,.75)]" />
+            <span className="absolute bottom-[30%] right-[18%] h-1 w-1 rounded-full bg-fuchsia-100 shadow-[0_0_12px_rgba(250,232,255,.7)]" />
+          </div>
+        ) : null}
 
         <div className="relative mx-auto mb-5 flex h-[142px] w-[104px] items-center justify-center">
-          <span className="absolute -inset-2 rounded-[1.5rem] border border-amber-100/18 bg-amber-100/5 shadow-[0_0_24px_rgba(251,191,36,0.18)]" />
-          <div className="relative h-[132px] w-[88px] overflow-hidden rounded-[1.25rem] border border-amber-100/45 bg-[#fff7ed] shadow-[0_10px_24px_rgba(251,191,36,0.2)] [contain:paint]">
-            <div
-              className="absolute left-0 top-0 h-[200%] w-[400%]"
-              style={{
-                animation: "cdYeonPaymentSprite 3.6s steps(1, end) infinite",
-                backgroundImage: `url("${YEON_SPRITE_URL}")`,
-                backgroundRepeat: "no-repeat",
-                backgroundSize: "100% 100%",
-                imageRendering: "auto",
-                transform: "translate3d(0, 0, 0)",
-                willChange: "transform",
-              }}
-            />
-          </div>
+          <span className={`absolute -inset-2 rounded-[1.5rem] border border-amber-100/18 bg-amber-100/5 shadow-[0_0_24px_rgba(251,191,36,0.18)] ${isFamilyPassVariant ? "scale-110 shadow-[0_0_38px_rgba(251,191,36,0.32)]" : ""}`} />
+          {isPassAppliedVariant ? (
+            <div className="relative grid h-[128px] w-[128px] place-items-center rounded-[2rem] border border-amber-100/45 bg-[radial-gradient(circle_at_50%_12%,rgba(255,251,235,.98),rgba(250,232,255,.82))] shadow-[0_16px_36px_rgba(0,0,0,.28),0_0_34px_rgba(251,191,36,.24)]">
+              <span className={`absolute inset-3 rounded-full border border-amber-200/35 ${isFamilyPassVariant ? "motion-safe:animate-pulse" : ""}`} />
+              <img src={PASS_PIG_URL} alt="" aria-hidden="true" decoding="async" className="relative h-[104px] w-[104px] object-contain drop-shadow-[0_12px_18px_rgba(120,53,15,.24)]" />
+            </div>
+          ) : (
+            <div className="relative h-[132px] w-[88px] overflow-hidden rounded-[1.25rem] border border-amber-100/45 bg-[#fff7ed] shadow-[0_10px_24px_rgba(251,191,36,0.2)] [contain:paint]">
+              <div
+                className="absolute left-0 top-0 h-[200%] w-[400%]"
+                style={{
+                  animation: "cdYeonPaymentSprite 3.6s steps(1, end) infinite",
+                  backgroundImage: `url("${YEON_SPRITE_URL}")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "auto",
+                  transform: "translate3d(0, 0, 0)",
+                  willChange: "transform",
+                }}
+              />
+            </div>
+          )}
         </div>
 
         <p className={`text-xl font-bold tracking-tight text-transparent bg-clip-text sm:text-2xl ${
@@ -164,7 +201,7 @@ export default function PaymentLoading({
             ? "bg-gradient-to-r from-amber-100 via-fuchsia-100 to-cyan-100"
             : "bg-gradient-to-r from-cyan-200 via-indigo-200 to-violet-300"
         }`}>{resolvedTitle}</p>
-        <p className="mt-3 text-sm leading-relaxed text-indigo-100/76">{resolvedDescription}</p>
+        <p className={`mt-3 whitespace-pre-line text-sm leading-relaxed ${isPassAppliedVariant ? "text-slate-100/86" : "text-indigo-100/76"}`}>{resolvedDescription}</p>
 
         {resolvedStatus ? (
           <div className="mt-6 flex justify-center">

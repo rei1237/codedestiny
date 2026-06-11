@@ -161,6 +161,20 @@ describe("Worker API status normalization", () => {
     expect(payload.degraded).toBe(true);
   });
 
+  test("로그인 상태 + DB 바인딩 누락 /api/fortune/pig-coin/profile-subscription/status 는 안정 free로 확정하지 않는다", async () => {
+    const request = await buildAuthRequest("https://example.com/api/fortune/pig-coin/profile-subscription/status", "GET");
+
+    const response = await handleFortuneRoutes(request, {});
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload.ok).toBe(false);
+    expect(payload.code).toBe("DB_FALLBACK");
+    expect(payload.degraded).toBe(true);
+    expect(payload.tier).toBe("free");
+    expect(payload.isActive).toBe(false);
+  });
+
   test("로그인 상태 + DB 바인딩 누락 /api/user/destiny-profiles 는 200 DB_FALLBACK", async () => {
     const request = await buildAuthRequest("https://example.com/api/user/destiny-profiles", "GET");
 

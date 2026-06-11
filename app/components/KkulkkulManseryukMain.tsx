@@ -426,11 +426,75 @@ function redirectToLoginWithNext(nextPath: string = '/'): void {
   window.location.href = `/login?next=${encodeURIComponent(nextPath)}`;
 }
 
-function saveUserPoints(points: number) {
+function readRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function firstFiniteNonNegative(...values: unknown[]): number | null {
+  for (const value of values) {
+    if (value === null || value === undefined || value === "") continue;
+    const numberValue = Number(value);
+    if (Number.isFinite(numberValue) && numberValue >= 0) return Math.floor(numberValue);
+  }
+  return null;
+}
+
+function extractBillingSnapshot(payload: any) {
+  const normalized = unwrapBillingPayload(payload);
+  const consume = readRecord(normalized?.consume);
+  const user = readRecord(normalized?.user);
+  const membership = readRecord(normalized?.membership);
+  const profileSubscription = readRecord(user?.profileSubscription);
+  const balance = firstFiniteNonNegative(normalized?.balance, consume?.balance, user?.points);
+  const monthlyCredits = normalized?.authenticated === false ? 0 : firstFiniteNonNegative(
+    consume?.remainingMembershipCredit,
+    consume?.monthlyCredits,
+    consume?.membershipCreditBalance,
+    normalized?.membershipCreditBalance,
+    normalized?.monthlyCredits,
+    normalized?.monthlyBalance,
+    membership?.membershipCreditBalance,
+    membership?.monthlyCredits,
+    user?.monthlyCredits,
+    profileSubscription?.membershipCreditBalance,
+  );
+  return { normalized, balance, monthlyCredits };
+}
+
+function isCoinSpendPayload(payload: any): boolean {
+  const normalized = unwrapBillingPayload(payload);
+  const consume = readRecord(normalized?.consume) || readRecord(normalized) || {};
+  const accessType = String(consume.accessType || normalized?.accessType || "").trim().toLowerCase();
+  const accessMethod = String(consume.accessMethod || normalized?.accessMethod || "").trim().toUpperCase();
+  const paymentMethod = String(consume.paymentMethod || normalized?.paymentMethod || "").trim().toUpperCase();
+  const transactionType = String(consume.transactionType || normalized?.transactionType || "").trim().toLowerCase();
+  return accessType === "coin" || accessMethod === "COIN" || paymentMethod === "COIN" || transactionType === "coin";
+}
+
+function isMonthlyCreditPayload(payload: any): boolean {
+  const normalized = unwrapBillingPayload(payload);
+  const consume = readRecord(normalized?.consume) || readRecord(normalized) || {};
+  const accessType = String(consume.accessType || normalized?.accessType || "").trim().toLowerCase();
+  const accessMethod = String(consume.accessMethod || normalized?.accessMethod || "").trim().toUpperCase();
+  const paymentMethod = String(consume.paymentMethod || normalized?.paymentMethod || "").trim().toUpperCase();
+  return accessType === "membership_credit" || accessMethod === "MONTHLY" || paymentMethod === "MONTHLY";
+}
+
+function saveUserBillingSnapshot(points: number | null | undefined, monthlyCredits: number | null | undefined) {
   try {
     const raw = localStorage.getItem('fortune_auth_user');
     const user = raw ? JSON.parse(raw) : {};
-    user.points = points;
+    if (points !== null && points !== undefined && Number.isFinite(Number(points)) && Number(points) >= 0) {
+      user.points = Math.floor(Number(points));
+    }
+    if (monthlyCredits !== null && monthlyCredits !== undefined && Number.isFinite(Number(monthlyCredits)) && Number(monthlyCredits) >= 0) {
+      const credits = Math.floor(Number(monthlyCredits));
+      user.monthlyCredits = credits;
+      user.profileSubscription = {
+        ...(user.profileSubscription && typeof user.profileSubscription === "object" ? user.profileSubscription : {}),
+        membershipCreditBalance: credits,
+      };
+    }
     persistSanitizedAuthUser(user);
   } catch (_) {}
 }
@@ -502,6 +566,16 @@ function notifyCoinDeducted(cost: number, points: number, label: string) {
 function notifyCoinResult(data: any, fallbackCost: number, points: number, label: string) {
   const normalized = extractCoinLikePayload(data);
   const chargedCoins = Number(normalized?.chargedCoins ?? fallbackCost);
+  if (isMonthlyCreditPayload(normalized)) {
+    const snapshot = extractBillingSnapshot(normalized);
+    const usedCredits = firstFiniteNonNegative(normalized?.membershipCreditCost, normalized?.requiredMonthlyCredits);
+    const details = [
+      usedCredits !== null ? `${usedCredits.toLocaleString("ko-KR")}개 사용` : "",
+      snapshot.monthlyCredits !== null ? `남은 월정석: ${snapshot.monthlyCredits.toLocaleString("ko-KR")}개` : "",
+    ].filter(Boolean);
+    showToast(`${label} 월정석 보너스로 열렸습니다.${details.length ? ` ${details.join(" · ")}` : ""}`, "info");
+    return;
+  }
   if (isSubscriptionIncludedResponse(normalized, chargedCoins)) {
     showSubscriptionIncludedNotice({
       message: String(normalized?.message || data?.message || "이벤트 월정석 보너스 범위에 포함되어 바로 이용할 수 있습니다."),
@@ -523,6 +597,7 @@ function redirectPerUseFeature(key: PerUseKey) {
 export default function KkulkkulManseryukMain() {
   const { isPaymentLoading, startPayment, endPayment, setPaymentMessage } = usePayment();
   const [currentCoins, setCurrentCoins] = useState(0);
+  const [currentMonthlyCredits, setCurrentMonthlyCredits] = useState(0);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [globalRuntimeError, setGlobalRuntimeError] = useState("");
   const [showRechargeModal, setShowRechargeModal] = useState(false);
@@ -566,6 +641,34 @@ export default function KkulkkulManseryukMain() {
     }
   }
 
+  const applyBillingSnapshot = (payload: any, options: { fallbackCoins?: number; updateUnlocks?: boolean } = {}) => {
+    const snapshot = extractBillingSnapshot(payload);
+    const fallbackCoins = Number(options.fallbackCoins);
+    const nextCoins = snapshot.balance !== null
+      ? snapshot.balance
+      : (Number.isFinite(fallbackCoins) && fallbackCoins >= 0 ? Math.floor(fallbackCoins) : null);
+    if (nextCoins !== null) {
+      setCurrentCoins(nextCoins);
+      saveUserBillingSnapshot(nextCoins, snapshot.monthlyCredits);
+    } else if (snapshot.monthlyCredits !== null) {
+      saveUserBillingSnapshot(null, snapshot.monthlyCredits);
+    }
+    if (snapshot.monthlyCredits !== null) {
+      setCurrentMonthlyCredits(snapshot.monthlyCredits);
+    }
+    if (options.updateUnlocks === true) {
+      const restored = buildUnlockStateFromPayload(snapshot.normalized);
+      setUnlockedFeatures((prev) => ({
+        ...prev,
+        ...restored,
+      }));
+    }
+    return {
+      ...snapshot,
+      points: nextCoins,
+    };
+  };
+
   const unlockByCoins = async (key: UnlockKey, cost: number, alsoUnlock?: UnlockKey[]) => {
     if (unlockedFeatures[key]) return;
     if (isPaymentLoading || unlockingRef.current) return;
@@ -589,7 +692,11 @@ export default function KkulkkulManseryukMain() {
         redirectToLoginWithNext('/');
         return;
       }
-      if (!purchaseResult.ok && purchaseResult.status === 402) { setShowRechargeModal(true); return; }
+      if (!purchaseResult.ok && purchaseResult.status === 402) {
+        applyBillingSnapshot(purchaseResult.raw, { fallbackCoins: currentCoins });
+        setShowRechargeModal(true);
+        return;
+      }
       if (!purchaseResult.ok) { alert(purchaseResult.error?.message || purchaseResult.message || '이용권 확인 실패'); return; }
 
       const normalized: Record<string, unknown> & {
@@ -600,12 +707,17 @@ export default function KkulkkulManseryukMain() {
         ...(purchaseResult.data?.consume && typeof purchaseResult.data.consume === 'object' ? purchaseResult.data.consume : {}),
         user: purchaseResult.data?.user || null,
         balance: purchaseResult.data?.balance,
+        membershipCreditBalance: purchaseResult.data?.membershipCreditBalance,
+        monthlyCredits: purchaseResult.data?.monthlyCredits,
       };
-      const newPoints = normalized?.user?.points !== undefined
-        ? Number(normalized.user.points)
-        : (Number.isFinite(Number(normalized?.balance)) ? Number(normalized.balance) : Math.max(0, currentCoins - cost));
-      setCurrentCoins(newPoints);
-      saveUserPoints(newPoints);
+      const fallbackCoins = isCoinSpendPayload(normalized) ? Math.max(0, currentCoins - cost) : currentCoins;
+      const snapshot = applyBillingSnapshot({
+        ...(purchaseResult.data || {}),
+        consume: normalized,
+        user: normalized.user,
+        balance: normalized.balance,
+      }, { fallbackCoins });
+      const newPoints = snapshot.points ?? currentCoins;
       notifyCoinResult(normalized, cost, newPoints, key);
       setUnlockedFeatures((prev) => {
         const next = { ...prev, [key]: true };
@@ -649,7 +761,11 @@ export default function KkulkkulManseryukMain() {
         redirectToLoginWithNext('/');
         return;
       }
-      if (!purchaseResult.ok && purchaseResult.status === 402) { setShowRechargeModal(true); return; }
+      if (!purchaseResult.ok && purchaseResult.status === 402) {
+        applyBillingSnapshot(purchaseResult.raw, { fallbackCoins: currentCoins });
+        setShowRechargeModal(true);
+        return;
+      }
       if (!purchaseResult.ok) { alert(purchaseResult.error?.message || purchaseResult.message || '이용권 확인 실패'); return; }
 
       const normalized: Record<string, unknown> & {
@@ -660,12 +776,17 @@ export default function KkulkkulManseryukMain() {
         ...(purchaseResult.data?.consume && typeof purchaseResult.data.consume === 'object' ? purchaseResult.data.consume : {}),
         user: purchaseResult.data?.user || null,
         balance: purchaseResult.data?.balance,
+        membershipCreditBalance: purchaseResult.data?.membershipCreditBalance,
+        monthlyCredits: purchaseResult.data?.monthlyCredits,
       };
-      const newPoints = normalized?.user?.points !== undefined
-        ? Number(normalized.user.points)
-        : (Number.isFinite(Number(normalized?.balance)) ? Number(normalized.balance) : Math.max(0, currentCoins - cost));
-      setCurrentCoins(newPoints);
-      saveUserPoints(newPoints);
+      const fallbackCoins = isCoinSpendPayload(normalized) ? Math.max(0, currentCoins - cost) : currentCoins;
+      const snapshot = applyBillingSnapshot({
+        ...(purchaseResult.data || {}),
+        consume: normalized,
+        user: normalized.user,
+        balance: normalized.balance,
+      }, { fallbackCoins });
+      const newPoints = snapshot.points ?? currentCoins;
       notifyCoinResult(normalized, cost, newPoints, key);
       setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
       setSparkleTarget(key);
@@ -683,7 +804,7 @@ export default function KkulkkulManseryukMain() {
   const runPremiumIntroGate = async (service: PremiumServiceKey): Promise<PremiumGateResult> => {
     const authHeaders = buildClientAuthHeaders();
     try {
-      const { res, data } = await fetchJsonWithTimeout('/api/billing/me', {
+      const { res, data } = await fetchJsonWithTimeout('/api/billing/balance', {
         method: 'GET',
         headers: { ...authHeaders },
       });
@@ -695,9 +816,10 @@ export default function KkulkkulManseryukMain() {
       }
 
       const normalized = unwrapBillingPayload(data);
-      const points = Number(normalized?.balance ?? normalized?.user?.points ?? currentCoins ?? 0);
-      setCurrentCoins(points);
-      saveUserPoints(points);
+      if (normalized?.authenticated === false && !isAdminSessionClient()) {
+        return { ok: false, reason: 'login-required', message: '로그인이 필요합니다.' };
+      }
+      applyBillingSnapshot(normalized, { fallbackCoins: currentCoins, updateUnlocks: true });
 
       return { ok: true };
     } catch (error) {
@@ -814,6 +936,7 @@ export default function KkulkkulManseryukMain() {
         return;
       }
       if (!purchaseResult.ok && purchaseResult.status === 402) {
+        applyBillingSnapshot(purchaseResult.raw, { fallbackCoins: currentCoins });
         if (service === 'veda') {
           setVedaFlowState('payment_required');
           setVedaFlowError(purchaseResult.error?.message || '단건 결제가 필요합니다.');
@@ -856,16 +979,21 @@ export default function KkulkkulManseryukMain() {
         ...(consumePayload || {}),
         user: purchaseResult.data?.user || null,
         balance: purchaseResult.data?.balance,
+        membershipCreditBalance: purchaseResult.data?.membershipCreditBalance,
+        monthlyCredits: purchaseResult.data?.monthlyCredits,
       };
       const txId = normalized?.transactionId || purchaseResult.raw?.transactionId;
       if (txId) {
         try { sessionStorage.setItem(`cd_premium_tx_${service}`, String(txId)); } catch (_) {}
       }
-      const newPoints = normalized?.user?.points !== undefined
-        ? Number(normalized.user.points)
-        : (Number.isFinite(Number(normalized?.balance)) ? Number(normalized.balance) : Math.max(0, currentCoins - cost));
-      setCurrentCoins(newPoints);
-      saveUserPoints(newPoints);
+      const fallbackCoins = isCoinSpendPayload(normalized) ? Math.max(0, currentCoins - cost) : currentCoins;
+      const snapshot = applyBillingSnapshot({
+        ...(purchaseResult.data || {}),
+        consume: normalized,
+        user: normalized.user,
+        balance: normalized.balance,
+      }, { fallbackCoins });
+      const newPoints = snapshot.points ?? currentCoins;
       notifyCoinResult(normalized, cost, newPoints, PREMIUM_SERVICE_LABEL[service]);
       if (service === "ziwei") {
         markZiweiPremiumUnlockedClient();
@@ -950,7 +1078,7 @@ export default function KkulkkulManseryukMain() {
       bootstrapBalanceSyncInFlight.current = true;
 
       const authHeaders = buildClientAuthHeaders();
-      authFetch('/api/billing/me', {
+      authFetch('/api/billing/balance', {
         method: 'GET',
         cache: 'no-store',
         headers: { ...authHeaders },
@@ -968,17 +1096,7 @@ export default function KkulkkulManseryukMain() {
         .then((d) => {
           if (!d) return;
           const normalized = unwrapBillingPayload(d);
-          const points = Number(normalized?.balance ?? normalized?.user?.points ?? NaN);
-          if (Number.isFinite(points)) {
-            const pts = Number(points);
-            setCurrentCoins(pts);
-            saveUserPoints(pts);
-          }
-          const restored = buildUnlockStateFromPayload(normalized);
-          setUnlockedFeatures((prev) => ({
-            ...prev,
-            ...restored,
-          }));
+          applyBillingSnapshot(normalized, { updateUnlocks: true });
         })
         .catch(() => {})
         .finally(() => {
@@ -1013,7 +1131,12 @@ export default function KkulkkulManseryukMain() {
         syncBalanceFromSession();
       }
     };
+    const onBillingBalanceUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<Record<string, unknown>>).detail || {};
+      applyBillingSnapshot(detail, { updateUnlocks: true });
+    };
     window.addEventListener('cd:auth-changed', onAuthChanged as EventListener);
+    window.addEventListener('cd:billing-balance-updated', onBillingBalanceUpdated as EventListener);
     window.addEventListener('storage', onStorage);
     document.addEventListener('visibilitychange', onVisibilityChange);
 
@@ -1033,6 +1156,7 @@ export default function KkulkkulManseryukMain() {
 
     return () => {
       window.removeEventListener('cd:auth-changed', onAuthChanged as EventListener);
+      window.removeEventListener('cd:billing-balance-updated', onBillingBalanceUpdated as EventListener);
       window.removeEventListener('storage', onStorage);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       channel?.close();
@@ -1064,6 +1188,10 @@ export default function KkulkkulManseryukMain() {
                 <span aria-hidden="true">🌙</span>
                 <span>1코인 = 100원 상당</span>
               </p>
+              <div className="mt-2 grid gap-1 text-xs font-bold text-amber-900/80">
+                <span>보유 코인: {currentCoins.toLocaleString("ko-KR")}코인</span>
+                <span>월정석 잔량: {currentMonthlyCredits.toLocaleString("ko-KR")}개</span>
+              </div>
             </div>
           </div>
         </header>

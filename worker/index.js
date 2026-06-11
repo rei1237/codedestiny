@@ -797,6 +797,11 @@ export default {
         return withCorsHeaders(request, env, await handleAuthRoutes(request, env));
       }
 
+      if (url.pathname === "/api/me/payment-phone") {
+        const rewrittenRequest = rewriteRequestPath(request, "/api/auth/me/payment-phone");
+        return withCorsHeaders(request, env, await handleAuthRoutes(rewrittenRequest, env));
+      }
+
       if (url.pathname === "/api/session") {
         const rewrittenRequest = rewriteRequestPath(request, "/api/auth/session");
         return withCorsHeaders(request, env, await handleAuthRoutes(rewrittenRequest, env));

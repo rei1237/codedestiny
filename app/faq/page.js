@@ -6,8 +6,8 @@ export function generateMetadata() {
     path: "/faq",
     title: "무료 사주 · 자미두수 운세 분석 FAQ | 꿀꿀 만세력",
     description:
-      "꿀꿀 만세력 사용 전 꾸르는 충문 해소! 무료여부, 회원가입 필요 여부, 개인정보 보호, 사주 결과 신뢰도, 오류 문의 방법까지 상세히 안내합니다.",
-    keywords: ["FAQ", "자주 묻는 질문", "무료 운세 사용법", "Code Destiny", "꿀꿀 만세력"],
+      "꿀꿀 만세력 사용 전 궁금한 무료 여부, 회원가입, 개인정보 보호, 사주 결과 신뢰도, 30일 이용권 환불 기준, 오류 문의 방법을 안내합니다.",
+    keywords: ["FAQ", "자주 묻는 질문", "무료 운세 사용법", "30일 이용권 환불", "Code Destiny", "꿀꿀 만세력"],
   });
 }
 
@@ -75,6 +75,15 @@ export default function FaqPage() {
       ))}
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "10px", color: "#f8fafc" }}>30일 이용권 환불은 어떻게 처리되나요?</h2>
+        <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
+          30일 이용권은 결제 완료 즉시 계정에 활성화되며 자동결제 상품이 아닙니다.
+          아직 유료 기능을 이용하지 않았다면 결제일로부터 7일 이내 고객센터로 환불을 요청할 수 있습니다.
+          이용권으로 유료 기능을 1회 이상 이용한 경우 환불이 제한될 수 있으며, 서비스 장애·중복 결제·결제 오류는 확인 후 기간 연장, 코인/월정석 보상, 부분 환불 또는 전액 환불 중 적절한 방식으로 처리합니다.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>관련 문서 / Related pages</h2>
         <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
           <a href="/privacy-policy" style={{ color: "#93c5fd", textDecoration: "underline" }}>
@@ -93,4 +102,3 @@ export default function FaqPage() {
     </main>
   );
 }
-

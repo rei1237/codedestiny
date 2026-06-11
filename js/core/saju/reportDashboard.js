@@ -1319,13 +1319,9 @@ function _sajuFunGetCurrentProfile() {
   } catch (e) {}
 
   try {
-    var ns = 'FORTUNE_APP_USER_PROFILES';
-    var list = JSON.parse(localStorage.getItem(ns + '.list') || '[]');
-    var id = localStorage.getItem(ns + '.current');
-    if (!Array.isArray(list) || !id) return null;
-    for (var i = 0; i < list.length; i++) {
-      if (list[i] && list[i].id === id) return list[i];
-    }
+    return (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+      || window.__cdCurrentDestinyProfile
+      || null;
   } catch (e2) {}
 
   return null;

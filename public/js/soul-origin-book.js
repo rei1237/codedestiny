@@ -332,10 +332,9 @@
 
   function readStorageProfile() {
     try {
-      var namespace = 'FORTUNE_APP_USER_PROFILES';
-      var list = JSON.parse(localStorage.getItem(namespace + '.list') || '[]');
-      var currentId = localStorage.getItem(namespace + '.current');
-      var selected = (currentId && list.find(function (item) { return item && (item.id === currentId || item.profileId === currentId); })) || list[0] || null;
+      var selected = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+        || window.__cdCurrentDestinyProfile
+        || null;
       if (!selected) return null;
       var birth = selected.birth || {};
       return {

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { fetchBillingBalance, openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
-import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
+import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import BiasDestinyHero from "./components/BiasDestinyHero";
@@ -39,7 +39,6 @@ import { downloadSvg } from "./utils/downloadSvg";
 import { buildPngBlobFromDestinyBiasCard, downloadPngFromSvg } from "./utils/downloadPngFromSvg";
 
 const DEFAULT_ANALYZE_COST = 50;
-const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
 const MAX_BIAS_IMAGE_SIZE_MB = 12;
 
 const BIAS_MOODS = ["청량", "카리스마", "몽환", "러블리", "시크", "힐링"] as const;
@@ -60,22 +59,6 @@ const INITIAL_BIAS: PersonInputState = {
 
 const FEATURED_CELEB_PRESET_COUNT = 8;
 
-type StoredProfile = {
-  id?: string;
-  name?: string;
-  gender?: string;
-  birthDate?: string;
-  birthTime?: string;
-  birthIso?: string;
-  birth?: {
-    year?: number;
-    month?: number;
-    day?: number;
-    hour?: number;
-    minute?: number;
-  };
-};
-
 type ProfileSeed = {
   name: string;
   birthDateInput: string;
@@ -91,53 +74,6 @@ type StoredAuthUser = {
 };
 
 type UiStep = 0 | 1 | 2 | 3 | 4 | 5;
-
-function toPaddedNumber(value: unknown, length: number) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return "";
-  return String(Math.trunc(parsed)).padStart(length, "0");
-}
-
-function buildBirthDateInput(birth: StoredProfile["birth"]) {
-  const year = toPaddedNumber(birth?.year, 4);
-  const month = toPaddedNumber(birth?.month, 2);
-  const day = toPaddedNumber(birth?.day, 2);
-  if (!year || !month || !day) return "";
-  return `${year}${month}${day}`;
-}
-
-function normalizeBirthDateDigits(value: unknown) {
-  const digits = String(value || "").replace(/\D/g, "");
-  if (digits.length === 8) return digits;
-  if (digits.length === 6) return `${digits.slice(0, 4)}01${digits.slice(4)}`;
-  return "";
-}
-
-function buildBirthDateInputFromText(profile: StoredProfile) {
-  const candidates = [profile.birthDate, profile.birthIso, profile.birth?.year ? `${profile.birth.year}-${profile.birth.month}-${profile.birth.day}` : ""];
-  for (const candidate of candidates) {
-    const digits = normalizeBirthDateDigits(candidate);
-    if (digits) return digits;
-  }
-  return "";
-}
-
-function buildBirthTimeInputFromText(profile: StoredProfile) {
-  const candidates = [profile.birthTime, profile.birthIso, profile.birth?.hour !== undefined && profile.birth?.minute !== undefined ? `${profile.birth.hour}:${profile.birth.minute}` : ""];
-  for (const candidate of candidates) {
-    const digits = String(candidate || "").replace(/\D/g, "");
-    if (digits.length === 4) return digits;
-    if (digits.length === 2) return `${digits}00`;
-  }
-  return "";
-}
-
-function buildBirthTimeInput(birth: StoredProfile["birth"]) {
-  const hour = toPaddedNumber(birth?.hour, 2);
-  const minute = toPaddedNumber(birth?.minute, 2);
-  if (!hour || !minute) return "";
-  return `${hour}${minute}`;
-}
 
 function normalizeBirthDateText(value: unknown) {
   const digits = String(value || "").replace(/\D/g, "");
@@ -185,36 +121,16 @@ function readCurrentProfileSeed(): ProfileSeed {
   }
   try {
     const user = readSanitizedAuthUser() as StoredAuthUser | null;
-    const scope = resolveAuthScopeFromUser(user) || "guest";
-    const listRaw = localStorage.getItem(`${PROFILE_NS}.list::${scope}`) || localStorage.getItem(`${PROFILE_NS}.list`) || "[]";
-    const currentId =
-      localStorage.getItem(`${PROFILE_NS}.current::${scope}`) ||
-      localStorage.getItem(`${PROFILE_NS}.current`) ||
-      "";
-    const list = JSON.parse(listRaw) as StoredProfile[];
     const fallbackName = String(user?.name || "").trim();
     const fallbackBirthDateInput = normalizeBirthDateText(user?.birthDate);
     const fallbackBirthTimeInput = normalizeBirthTimeText(user?.birthTime);
     const fallbackGender = normalizeGenderOption(user?.gender);
 
-    if (!Array.isArray(list) || list.length === 0) {
-      return {
-        name: fallbackName,
-        birthDateInput: fallbackBirthDateInput,
-        birthTimeInput: fallbackBirthTimeInput,
-        gender: fallbackGender,
-      };
-    }
-    const profile = (currentId ? list.find((item) => item?.id === currentId) : undefined) || list[0];
-    const profileBirthDateInput = buildBirthDateInput(profile?.birth);
-    const profileBirthTimeInput = buildBirthTimeInput(profile?.birth);
-    const profileBirthDateTextInput = buildBirthDateInputFromText(profile || {});
-    const profileBirthTimeTextInput = buildBirthTimeInputFromText(profile || {});
     return {
-      name: String(profile?.name || fallbackName).trim(),
-      birthDateInput: profileBirthDateInput || profileBirthDateTextInput || fallbackBirthDateInput,
-      birthTimeInput: profileBirthTimeInput || profileBirthTimeTextInput || fallbackBirthTimeInput,
-      gender: normalizeGenderOption(profile?.gender) || fallbackGender,
+      name: fallbackName,
+      birthDateInput: fallbackBirthDateInput,
+      birthTimeInput: fallbackBirthTimeInput,
+      gender: fallbackGender,
     };
   } catch {
     return {

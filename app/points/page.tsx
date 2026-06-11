@@ -158,6 +158,7 @@ type SubscriptionStatus = {
   tier:               SubscriptionTier;
   source?:            "card" | "pass" | "monthly_credit";
   isActive:           boolean;
+  startedAt?:         string | null;
   expiresAt:          string | null;
   profileLimit:       number; // 0 = unlimited
   durationMonths?:    number;
@@ -174,7 +175,7 @@ type SubscriptionPlan = {
   title:        string;
   wonPrice:     number;
   baseWonPrice: number;
-  durationMonths: 1 | 3 | 6 | 12;
+  durationMonths: 1;
   productType:  "membership_pass";
   coins:        number;
   profileLimit: number | null; // null = unlimited
@@ -339,16 +340,13 @@ function buildPortOneCustomer(user: AuthUser | null, paymentId: string): PortOne
 }
 
 const SUBSCRIPTION_DURATION_OPTIONS = [
-  { months: 1, label: "1개월", discount: 0, badge: "" },
-  { months: 3, label: "3개월", discount: 0.05, badge: "5% 절약" },
-  { months: 6, label: "6개월", discount: 0.10, badge: "10% 절약" },
-  { months: 12, label: "1년", discount: 0.30, badge: "30% 절약" },
+  { months: 1, label: "30일", discount: 0, badge: "" },
 ] as const;
 
 const SUBSCRIPTION_BASE_PLANS = [
   {
     tier:         "standard",
-    title:        "스탠다드 달빛 이용권",
+    title:        "스탠다드 꿀 30일",
     baseWonPrice: 9900,
     coins:        115,
     profileLimit: 3,
@@ -357,16 +355,16 @@ const SUBSCRIPTION_BASE_PLANS = [
     badge:        "",
     features:     [
       "프로필 최대 3개 생성",
-      "일반 유료 서비스 30코인 이하 이용권 이용",
+      "30코인 이하 유료 기능 이용 가능",
       "PDF 생성 시 30코인 자동 할인",
-      "한도 초과 일반 서비스는 코인 기준 단건 결제",
-      "선택 기간 동안 유효 (기간 기반)",
-      "자동결제 없는 기간형 이용권",
+      "30코인 초과 기능은 단건 결제 또는 월정석/코인 결제",
+      "결제 즉시 30일 이용권 활성화",
+      "자동결제 상품 아님",
     ],
   },
   {
     tier:         "premium",
-    title:        "프리미엄 달빛 이용권",
+    title:        "프리미엄 꿀 30일",
     baseWonPrice: 29900,
     coins:        360,
     profileLimit: 7,
@@ -374,17 +372,17 @@ const SUBSCRIPTION_BASE_PLANS = [
     theme:        "rose",
     features:     [
       "프로필 최대 7개 생성",
-      "일반 유료 서비스 50코인 이하 이용권 이용",
+      "50코인 이하 유료 기능 이용 가능",
       "PDF 생성 시 50코인 자동 할인",
-      "한도 초과 일반 서비스는 코인 기준 단건 결제",
-      "선택 기간 동안 유효 (기간 기반)",
-      "자동결제 없는 기간형 이용권",
+      "50코인 초과 기능은 단건 결제 또는 월정석/코인 결제",
+      "결제 즉시 30일 이용권 활성화",
+      "자동결제 상품 아님",
     ],
     badge:        "추천",
   },
   {
     tier:         "vvip",
-    title:        "VVIP 달빛 이용권",
+    title:        "VVIP 꿀단지 30일",
     baseWonPrice: 59000,
     coins:        700,
     profileLimit: 15,
@@ -392,28 +390,28 @@ const SUBSCRIPTION_BASE_PLANS = [
     theme:        "purple",
     features:     [
       "프로필 최대 15개 생성",
-      "일반 유료 서비스 100코인 이하 이용권 이용",
+      "100코인 이하 유료 기능 이용 가능",
       "PDF 생성 시 100코인 자동 할인",
-      "한도 초과 일반 서비스는 코인 기준 단건 결제",
-      "선택 기간 동안 유효 (기간 기반)",
-      "자동결제 없는 기간형 이용권",
+      "100코인 초과 기능은 단건 결제 또는 월정석/코인 결제",
+      "결제 즉시 30일 이용권 활성화",
+      "자동결제 상품 아님",
     ],
     badge:        "VVIP",
   },
   {
     tier:         "family",
-    title:        "Code Destiny Family",
+    title:        "Code Destiny Family 30일",
     baseWonPrice: 300000,
     coins:        3000,
     profileLimit: null,
     freeUpTo:     null,
     theme:        "purple",
     features:     [
-      "프로필 수정·삭제 무료, 제한 없음",
-      "PDF 포함 모든 유료 서비스 무료",
-      "일반 유료 서비스도 코인 기준 단건 결제 없이 이용",
-      "월 300,000원 / 3,000코인 가치",
-      "선택 기간 Family 이용권",
+      "프로필 추가·수정·삭제 무료, 제한 없음",
+      "PDF 포함 모든 유료 기능 이용 가능",
+      "코인 기준 단건 결제 없이 Family 혜택 적용",
+      "결제 즉시 30일 이용권 활성화",
+      "자동결제 상품 아님",
     ],
     badge:        "Family",
   },
@@ -430,13 +428,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = SUBSCRIPTION_BASE_PLANS.flatMap((
     wonPrice: Math.round(base.baseWonPrice * duration.months * (1 - duration.discount)),
     badge: duration.badge || base.badge,
     features: base.features.map((feature) =>
-      feature.includes("선택 기간 동안 유효")
-        ? `${duration.label} 동안 유효 (기간 기반)`
-        : feature.includes("선택 기간 Family 이용권")
-          ? `${duration.label} Family 이용권`
-        : feature.includes("자동결제 없는 기간형 이용권")
-          ? `자동결제 없는 ${duration.label} 이용권`
-          : feature
+      feature
     ),
   }))
 );
@@ -553,8 +545,9 @@ function normalizeSubscriptionDurationMonths(value: unknown, planIdRaw?: unknown
 
 function formatSubscriptionDurationLabel(months: unknown) {
   const normalized = normalizeSubscriptionDurationMonths(months);
-  if (!normalized) return "선택 기간";
-  return normalized === 12 ? "1년" : `${normalized}개월`;
+  if (!normalized) return "30일";
+  if (normalized === 1) return "30일";
+  return "보유 이용권";
 }
 
 function formatSubscriptionPlanProfileLimit(plan: Pick<SubscriptionPlan, "profileLimit">) {
@@ -566,10 +559,10 @@ function formatSubscriptionPlanPolicy(plan: Pick<SubscriptionPlan, "freeUpTo">) 
   return `일반 ${plan.freeUpTo}코인 이하 이용 · PDF ${plan.freeUpTo}코인 할인`;
 }
 
-function formatSubscriptionPlanValueLine(plan: Pick<SubscriptionPlan, "tier" | "coins" | "durationMonths">) {
+function formatSubscriptionPlanValueLine(plan: Pick<SubscriptionPlan, "tier" | "freeUpTo" | "durationMonths">) {
   const duration = formatSubscriptionDurationLabel(plan.durationMonths);
-  if (plan.tier === "family") return `Family ${plan.coins.toLocaleString("ko-KR")}코인 가치 / ${duration}`;
-  return `일반 서비스 한도 ${plan.coins.toLocaleString("ko-KR")} 기준 / ${duration}`;
+  if (plan.tier === "family") return `Family 전체 혜택 / ${duration}`;
+  return `${Number(plan.freeUpTo || 0).toLocaleString("ko-KR")}코인 이하 기능 / ${duration}`;
 }
 
 function mapMonthlyCreditLedgerLabel(type: MonthlyCreditLedgerItem["type"]) {
@@ -732,6 +725,14 @@ function normalizeSubscriptionStatusFromPayload(value: unknown): SubscriptionSta
       ?? nested.endsAt
       ?? nested.validUntil,
   );
+  const startedAt = normalizeSubscriptionDate(
+    value.startedAt
+      ?? value.activatedAt
+      ?? value.currentPeriodStart
+      ?? nested.startedAt
+      ?? nested.activatedAt
+      ?? nested.currentPeriodStart,
+  );
   const expiresDate = expiresAt ? new Date(expiresAt) : null;
   const isDateActive = !!expiresDate && Number.isFinite(expiresDate.getTime()) && expiresDate.getTime() > Date.now();
   const rawStatus = value.status ?? value.subscriptionStatus ?? value.membershipStatus ?? nested.status ?? nested.subscriptionStatus ?? nested.membershipStatus;
@@ -759,6 +760,7 @@ function normalizeSubscriptionStatusFromPayload(value: unknown): SubscriptionSta
     tier,
     source: normalizeSubscriptionSource(value.source ?? nested.source),
     isActive,
+    startedAt,
     expiresAt,
     profileLimit: Number.isFinite(profileLimit) && profileLimit >= 0 ? Math.floor(profileLimit) : 1,
     ...(durationMonths ? { durationMonths } : {}),
@@ -780,6 +782,7 @@ function normalizeFirstSubscription(value: unknown): SubscriptionStatus | null {
 function mergeSubscriptionState(prev: SubscriptionStatus, next: SubscriptionStatus): SubscriptionStatus {
   return {
     ...next,
+    startedAt: next.startedAt ?? prev.startedAt ?? null,
     durationMonths: next.durationMonths ?? prev.durationMonths,
     freeLimit: next.freeLimit ?? prev.freeLimit ?? 0,
     lowBalanceWarning: next.lowBalanceWarning ?? prev.lowBalanceWarning,
@@ -1071,7 +1074,7 @@ function SubscriptionSection({
   const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
   return (
     <section
-      aria-label="달빛 이용권 1개월부터 12개월 이용권"
+      aria-label="달빛 30일 이용권"
       className="overflow-hidden rounded-[24px] border border-[#d9c77c]/24 bg-[#070b1c] text-slate-100 shadow-[0_24px_70px_rgba(4,7,26,0.48)] ring-1 ring-white/10 backdrop-blur"
     >
       {/* 섹션 헤더 */}
@@ -1084,7 +1087,7 @@ function SubscriptionSection({
           <p className="text-[11px] font-bold uppercase tracking-widest text-[#cab8ff]">연이의 달빛 이용권 상점</p>
           <h2 className="mt-0.5 text-xl font-bold text-white">연이의 달빛 이용권 상점</h2>
           <p className="mt-1 text-sm text-slate-200">
-            달빛 이용권 상품과 이벤트 월정석 잔량을 함께 확인하세요.
+            30일 이용권 상품과 이벤트 월정석 잔량을 함께 확인하세요.
           </p>
         </div>
 
@@ -1095,10 +1098,10 @@ function SubscriptionSection({
           </p>
           <p className="text-[12.5px] leading-relaxed text-slate-200">
             <span className="font-bold text-white">가족·연인·자녀 등 다른 생년월일</span>로 프로필을 추가해도,
-            선택한 기간형 이용권 하나로 <span className="font-bold text-white">모든 프로필에서 이용권 혜택을 그대로 이용</span>할 수 있습니다.
+            30일 이용권 하나로 <span className="font-bold text-white">모든 프로필에서 이용권 혜택을 그대로 이용</span>할 수 있습니다.
           </p>
           <p className="mt-1 text-[11.5px] text-[#cab8ff]">
-            이 상품은 자동결제 상품이 아니며, 기간 종료 후 무료 플랜으로 전환됩니다.
+            이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.
           </p>
         </div>
 
@@ -1121,16 +1124,15 @@ function SubscriptionSection({
             <span aria-hidden="true">ℹ️</span> 이용권 운영 정책
           </p>
           <ul className="mt-1.5 space-y-1 text-[11.5px] text-slate-200">
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 이용권은 선택한 기간에 따라 <strong>결제일로부터 1개월·3개월·6개월·12개월 동안 유효</strong>합니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 신규 판매 이용권은 <strong>결제 검증 성공 시점부터 30일 동안 유효</strong>합니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 30/50/100코인 이하일 때 이용권으로 이용할 수 있습니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>PDF 서비스는 무료 처리 대신 생성 결제 시 각 등급 한도만큼 자동 할인됩니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>Code Destiny Family는 프로필 카드 제한 없이 모든 유료 기능을 이용할 수 있습니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>스탠다드·프리미엄·VVIP의 PDF 서비스는 생성 결제 시 각 등급 한도만큼 자동 할인되며, Family는 PDF 포함 모든 유료 기능이 무료 처리됩니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>한도 초과 일반 유료 서비스는 상품별 코인 기준 단건 결제로 이용할 수 있습니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>Code Destiny Family는 PDF 포함 모든 기능을 무료로 이용하며, 프로필 수정·삭제도 무료·무제한입니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>월정석 잔량은 신규 가입·이벤트로만 지급되며 구매하거나 충전할 수 없습니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>이용권 전용 콘텐츠 열람 시 서비스 이용이 시작되며, 7일 이내라도 이용 기록이 있으면 전액 환불이 제한될 수 있습니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>콘텐츠 진입 전 안내 팝업에서 <strong>[확인]</strong>을 누르면 서비스 개시 및 환불 제한 조건에 동의한 것으로 처리됩니다.</li>
-            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><strong>자동결제 없는 기간형 이용권</strong>이며, 결제/환불 기준은 이용약관(환불정책) 조항을 따릅니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>이용권 결제 후 유료 기능을 1회 이상 이용하면 환불이 제한될 수 있습니다.</li>
+            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><strong>자동결제가 아닌 30일 이용권</strong>이며, 결제 전 환불 규정 동의가 필요합니다.</li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</li>
           </ul>
         </div>
@@ -1257,12 +1259,12 @@ function SubscriptionSection({
         <div className="rounded-[14px] border border-[#f3dd9a]/40 bg-[#f3dd9a]/10 px-4 py-3.5">
           <p className="text-[12.5px] font-black text-[#f3dd9a] leading-snug mb-1.5">
             맛보기만으로도 이 정도인데,<br />
-            <span className="text-white">기간형 이용권으로 얼마나 깊이 볼 수 있을까요?</span> 🌙
+            <span className="text-white">30일 이용권으로 얼마나 깊이 볼 수 있을까요?</span> 🌙
           </p>
           <p className="text-[11.5px] text-slate-200 leading-relaxed mb-2.5">
             오늘 운세가 마음에 걸렸다면, 그건 당신의 직감이 맞는 거예요.
             <br />Honey 이용권 하나로 <strong>사주·타로·점성술의 진짜 깊이</strong>를 경험해 보세요.
-            가족과 연인의 운명까지, <strong>선택한 기간 동안 모든 프로필</strong>에 혜택이 적용됩니다.
+            가족과 연인의 운명까지, <strong>30일 동안 모든 프로필</strong>에 혜택이 적용됩니다.
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-[10.5px] font-bold text-rose-700">
@@ -1287,7 +1289,6 @@ function SubscriptionSection({
           const ctaDisabled = isProcessing || lowerTierBlocked;
           const monthlyCreditCost = getSubscriptionMonthlyCreditCost(plan);
           const canUseMonthlyCredit = monthlyCreditCost > 0 && monthlyCredits >= monthlyCreditCost;
-          const durationLabel = formatSubscriptionDurationLabel(plan.durationMonths);
           return (
             <div
               key={plan.id}
@@ -1323,14 +1324,13 @@ function SubscriptionSection({
                 {formatSubscriptionPlanValueLine(plan)}
               </p>
               <p className="text-[11px] text-slate-300">
-                월 단가 {formatWon(Math.round(plan.wonPrice / plan.durationMonths))} · 결제 금액 {formatWon(plan.wonPrice)}
-                {plan.wonPrice < plan.baseWonPrice * plan.durationMonths ? ` · ${formatWon(plan.baseWonPrice * plan.durationMonths - plan.wonPrice)} 절약` : ""}
+                이용 기간 30일 · 결제 금액 {formatWon(plan.wonPrice)}
               </p>
 
               {/* 커피 한 잔 뱃지 — freeUpTo 50 이하 플랜(스탠다드)에만 */}
               {plan.freeUpTo !== null && plan.freeUpTo <= 50 && plan.tier === "standard" && plan.durationMonths === 1 && (
                 <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#f3dd9a]/18 px-2.5 py-1 text-[11px] font-bold text-[#f3dd9a]">
-                  ☕ 커피 2잔 값으로 1개월
+                  ☕ 커피 2잔 값으로 30일
                 </div>
               )}
 
@@ -1380,12 +1380,12 @@ function SubscriptionSection({
                 ].join(" ")}
               >
                 {isCurrentActive
-                  ? `${durationLabel} 이용권 연장`
+                  ? `30일 이용권 연장`
                   : lowerTierBlocked
                     ? "상위 티어 사용 중 (구매 불가)"
                   : isHighlighted
-                    ? `${theme.icon} ${durationLabel} 이용권 구매하기`
-                    : `${theme.icon} ${durationLabel} 이용권 구매하기`}
+                    ? `${theme.icon} 30일 이용권 구매하기`
+                    : `${theme.icon} 30일 이용권 구매하기`}
               </button>
 
               {!lowerTierBlocked && (
@@ -1425,10 +1425,10 @@ function SubscriptionSection({
         <div className="mx-5 mb-5 rounded-[14px] border border-violet-200 bg-violet-50/60 px-4 py-3">
           <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-violet-800">
             <span aria-hidden="true">🧭</span>
-            {formatSubscriptionDurationLabel(subscription.durationMonths)} 이용권 활성화
+            30일 이용권 활성화
           </p>
           <p className="mt-1 text-[11.5px] text-violet-700">
-            {`${expires || "만료일"}까지 혜택이 유지됩니다. 이 상품은 자동결제 상품이 아니며 기간 종료 후 무료 플랜으로 전환됩니다.`}
+            {`${expires || "만료일"}까지 혜택이 유지됩니다. 이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.`}
           </p>
           <div className="mt-2.5 flex justify-end">
             <button
@@ -1450,8 +1450,8 @@ function SubscriptionSection({
       )}
 
       <div className="px-5 pb-5 space-y-1">
-        <p className="text-[11px] text-[#9B7040]">✅ 결제 즉시 이용권 혜택이 활성화되며 <strong>선택한 기간 동안 유효</strong>합니다.</p>
-        <p className="text-[11px] text-rose-600 font-bold">이 상품은 자동결제 상품이 아니며 기간 종료 후 무료 플랜으로 전환됩니다.</p>
+        <p className="text-[11px] text-[#9B7040]">✅ 결제 즉시 이용권 혜택이 활성화되며 <strong>30일 동안 유효</strong>합니다.</p>
+        <p className="text-[11px] text-rose-600 font-bold">이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.</p>
         <p className="text-[11px] text-[#9B7040]">월정석 잔량은 이벤트 보너스이며 구매·충전할 수 없습니다.</p>
       </div>
     </section>
@@ -1711,6 +1711,8 @@ export default function PointsPage() {
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [pendingSubscriptionPaymentPlan, setPendingSubscriptionPaymentPlan] = useState<SubscriptionPlan | null>(null);
   const [pendingMonthlyCreditPlan, setPendingMonthlyCreditPlan] = useState<SubscriptionPlan | null>(null);
+  const [isSubscriptionRefundAgreed, setIsSubscriptionRefundAgreed] = useState(false);
+  const [isMonthlyCreditRefundAgreed, setIsMonthlyCreditRefundAgreed] = useState(false);
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     tier:         "free",
     isActive:     false,
@@ -1729,6 +1731,14 @@ export default function PointsPage() {
   const pendingSubscriptionPaymentMonthlyCreditCost = pendingSubscriptionPaymentPlan
     ? getSubscriptionMonthlyCreditCost(pendingSubscriptionPaymentPlan)
     : 0;
+
+  useEffect(() => {
+    setIsSubscriptionRefundAgreed(false);
+  }, [pendingSubscriptionPaymentPlan?.id]);
+
+  useEffect(() => {
+    setIsMonthlyCreditRefundAgreed(false);
+  }, [pendingMonthlyCreditPlan?.id]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1812,6 +1822,7 @@ export default function PointsPage() {
           tier: sub.tier || "free",
           isActive: !!sub.isActive,
           profileLimit: sub.profileLimit ?? 1,
+          startedAt: sub.startedAt || null,
           durationMonths: sub.durationMonths,
           expiresAt: sub.expiresAt || null,
         },
@@ -1820,6 +1831,7 @@ export default function PointsPage() {
         tier: sub.tier || "free",
         isActive: !!sub.isActive,
         profileLimit: sub.profileLimit ?? 1,
+        startedAt: sub.startedAt || null,
         durationMonths: sub.durationMonths,
         expiresAt: sub.expiresAt || null,
       });
@@ -2102,6 +2114,7 @@ export default function PointsPage() {
       tier: string;
       planId?: string;
       durationMonths: number;
+      durationDays?: number;
       amount?: number;
       currency?: string;
       productType: string;
@@ -2306,6 +2319,7 @@ export default function PointsPage() {
           productType: "membership_pass",
           customerUid: pendingSub.customerUid,
           paymentMethod: pendingSub.paymentMethod,
+          durationDays: 30,
       })
         .then(async (data) => {
           if (data.subscription) {
@@ -2313,6 +2327,7 @@ export default function PointsPage() {
               tier: data.subscription?.tier || "free",
               source: data.subscription?.source || "card",
               isActive: !!data.subscription?.isActive,
+              startedAt: data.subscription?.startedAt || null,
               expiresAt: data.subscription?.expiresAt || null,
               profileLimit: typeof data.subscription?.profileLimit === "number"
                 ? data.subscription.profileLimit
@@ -2567,6 +2582,11 @@ export default function PointsPage() {
       return;
     }
 
+    if (plan.durationMonths !== 1) {
+      pushToast("error", "현재 신규 판매 이용권은 30일권만 선택할 수 있습니다.");
+      return;
+    }
+
     if (!isFlowerAdmin && activeTierRank > requestedTierRank) {
       pushToast("info", "현재 상위 티어 이용권이 활성화되어 하위 플랜은 신청할 수 없습니다.");
       return;
@@ -2590,6 +2610,7 @@ export default function PointsPage() {
           tier: plan.tier,
           planId: plan.planId,
           durationMonths: plan.durationMonths,
+          durationDays: 30,
           amount: plan.wonPrice,
           currency: "KRW",
           productType: plan.productType,
@@ -2641,6 +2662,7 @@ export default function PointsPage() {
           subscriptionTier: plan.tier,
           planId: plan.planId,
           durationMonths: plan.durationMonths,
+          durationDays: 30,
           productType: plan.productType,
           subscriptionSource: "pass",
           paymentMethod: selectedMethod || "card_general",
@@ -2686,6 +2708,7 @@ export default function PointsPage() {
           tier: plan.tier,
           planId: plan.planId,
           durationMonths: plan.durationMonths,
+          durationDays: 30,
           amount: order.paymentAmount,
           currency: "KRW",
           productType: plan.productType,
@@ -2698,6 +2721,7 @@ export default function PointsPage() {
             tier: confirmData.subscription?.tier || "free",
             source: confirmData.subscription?.source || "pass",
             isActive: !!confirmData.subscription?.isActive,
+            startedAt: confirmData.subscription?.startedAt || null,
             expiresAt: confirmData.subscription?.expiresAt || null,
             profileLimit: typeof confirmData.subscription?.profileLimit === "number"
               ? confirmData.subscription.profileLimit
@@ -2777,6 +2801,7 @@ export default function PointsPage() {
         tier: plan.tier,
         planId: plan.planId,
         durationMonths: plan.durationMonths,
+        durationDays: 30,
         amount: plan.wonPrice,
         currency: "KRW",
         productType: plan.productType,
@@ -2789,6 +2814,7 @@ export default function PointsPage() {
           tier: confirmData.subscription?.tier || "free",
           source: confirmData.subscription?.source || "pass",
           isActive: !!confirmData.subscription?.isActive,
+          startedAt: confirmData.subscription?.startedAt || null,
           expiresAt: confirmData.subscription?.expiresAt || null,
           profileLimit: typeof confirmData.subscription?.profileLimit === "number"
             ? confirmData.subscription.profileLimit
@@ -2862,6 +2888,7 @@ export default function PointsPage() {
           tier: data.subscription?.tier || "free",
           source: data.subscription?.source || subscription.source,
           isActive: !!data.subscription?.isActive,
+          startedAt: data.subscription?.startedAt || subscription.startedAt || null,
           expiresAt: data.subscription?.expiresAt || null,
           profileLimit: typeof data.subscription?.profileLimit === "number" ? data.subscription.profileLimit : 1,
           durationMonths: normalizeSubscriptionDurationMonths(data.subscription?.durationMonths) ?? subscription.durationMonths,
@@ -2955,10 +2982,28 @@ export default function PointsPage() {
             <p className="mt-2 text-sm leading-relaxed text-slate-200">
               {pendingSubscriptionPaymentPlan.title} · {formatSubscriptionPlanValueLine(pendingSubscriptionPaymentPlan)} · {formatWon(pendingSubscriptionPaymentPlan.wonPrice)}
             </p>
+            <div className="mt-4 rounded-[14px] border border-white/12 bg-white/[0.07] px-3.5 py-3 text-[12px] leading-relaxed text-slate-200">
+              <p className="font-black text-white">30일 이용권 조건</p>
+              <p className="mt-1">결제 완료 즉시 계정에 활성화되며, 서버 결제 검증 성공 시각부터 30일간 유지됩니다.</p>
+              <p className="mt-1 font-bold text-[#f3dd9a]">이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.</p>
+              <p className="mt-1">유료 기능 이용 전에는 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권으로 유료 기능을 1회 이상 이용한 뒤에는 환불이 제한될 수 있습니다.</p>
+              <a href="/terms#refund-policy" target="_blank" rel="noreferrer" className="mt-2 inline-flex font-black text-[#cab8ff] underline">
+                자세한 환불 규정 보기
+              </a>
+            </div>
+            <label className="mt-3 flex items-start gap-2 rounded-[14px] border border-amber-200/35 bg-amber-200/10 px-3.5 py-3 text-[12px] font-bold text-amber-100">
+              <input
+                type="checkbox"
+                checked={isSubscriptionRefundAgreed}
+                onChange={(event) => setIsSubscriptionRefundAgreed(event.currentTarget.checked)}
+                className="mt-0.5 h-4 w-4 flex-shrink-0 accent-amber-300"
+              />
+              <span>30일 이용권은 결제 즉시 활성화되며, 유료 기능 이용 시작 후에는 환불이 제한될 수 있음을 확인했습니다.</span>
+            </label>
             <div className="mt-4 grid gap-2">
               <button
                 type="button"
-                disabled={isProcessing}
+                disabled={isProcessing || !isSubscriptionRefundAgreed}
                 onClick={() => {
                   const plan = pendingSubscriptionPaymentPlan;
                   if (!plan) return;
@@ -2972,7 +3017,7 @@ export default function PointsPage() {
               </button>
               <button
                 type="button"
-                disabled={isProcessing}
+                disabled={isProcessing || !isSubscriptionRefundAgreed}
                 onClick={() => {
                   const plan = pendingSubscriptionPaymentPlan;
                   if (!plan) return;
@@ -3019,7 +3064,17 @@ export default function PointsPage() {
             <div className="mt-4 rounded-[14px] border border-white/10 bg-white/[0.07] px-3 py-2 text-[12px] text-slate-200">
               <p>현재 이벤트 월정석 {currentMonthlyCredits.toLocaleString("ko-KR")}개</p>
               <p>사용 후 예상 잔량 {Math.max(0, currentMonthlyCredits - pendingMonthlyCreditCost).toLocaleString("ko-KR")}개</p>
+              <p className="mt-2 font-bold text-[#f3dd9a]">30일 동안 활성화되며 자동결제 상품이 아닙니다.</p>
             </div>
+            <label className="mt-3 flex items-start gap-2 rounded-[14px] border border-amber-200/35 bg-amber-200/10 px-3.5 py-3 text-[12px] font-bold text-amber-100">
+              <input
+                type="checkbox"
+                checked={isMonthlyCreditRefundAgreed}
+                onChange={(event) => setIsMonthlyCreditRefundAgreed(event.currentTarget.checked)}
+                className="mt-0.5 h-4 w-4 flex-shrink-0 accent-amber-300"
+              />
+              <span>30일 이용권은 활성화 즉시 이용이 시작되며, 유료 기능 이용 후에는 환불 또는 보너스 복구가 제한될 수 있음을 확인했습니다.</span>
+            </label>
             <div className="mt-5 grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -3031,7 +3086,7 @@ export default function PointsPage() {
               </button>
               <button
                 type="button"
-                disabled={isProcessing}
+                disabled={isProcessing || !isMonthlyCreditRefundAgreed || currentMonthlyCredits < pendingMonthlyCreditCost}
                 onClick={() => void handleSubscribeWithMonthlyCredit(pendingMonthlyCreditPlan)}
                 className="rounded-[12px] bg-gradient-to-r from-amber-200 to-violet-200 px-3 py-2.5 text-sm font-black text-[#151832] shadow-[0_10px_22px_rgba(243,221,154,0.22)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
               >

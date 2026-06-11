@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { useAnimalCardExport } from "../hooks/useAnimalCardExport";
 import type { AnimalDestinyInput } from "../lib/types";
@@ -25,9 +25,15 @@ export default function AnimalDestinyPage() {
     sajuResult,
     animalData,
     twelveStages,
+    tamagotchi,
+    tamagotchiStatus,
+    tamagotchiMessage,
+    tamagotchiIsLoggedIn,
     partner,
     error,
     setInput,
+    hydrateTamagotchi,
+    careTamagotchi,
     calculate,
     calculateCompatibility,
     reset,
@@ -40,6 +46,17 @@ export default function AnimalDestinyPage() {
   const handleSubmit = useCallback(async () => {
     await calculate();
   }, [calculate]);
+
+  useEffect(() => {
+    void hydrateTamagotchi();
+    const handleAuthChanged = () => {
+      void hydrateTamagotchi();
+    };
+    window.addEventListener("cd:auth-changed", handleAuthChanged);
+    return () => {
+      window.removeEventListener("cd:auth-changed", handleAuthChanged);
+    };
+  }, [hydrateTamagotchi]);
 
   const handlePartnerSubmit = useCallback(async (partnerInput: AnimalDestinyInput) => {
     await calculateCompatibility(partnerInput);
@@ -160,6 +177,11 @@ export default function AnimalDestinyPage() {
                 onSaveCard={handleSaveCard}
                 onShareCard={handleShareCard}
                 isExporting={isExporting}
+                tamagotchi={tamagotchi}
+                tamagotchiStatus={tamagotchiStatus}
+                tamagotchiMessage={tamagotchiMessage}
+                tamagotchiIsLoggedIn={tamagotchiIsLoggedIn}
+                onCareTamagotchi={careTamagotchi}
               />
             ) : null}
           </div>

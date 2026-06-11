@@ -7,9 +7,10 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import {
   PROFILE_CARD_EDIT_DELETE_COST_COINS,
   PROFILE_CARD_EDIT_DELETE_COST_KRW,
+  PROFILE_CARD_EDIT_DELETE_COST_MONTHLY_STONES,
   PROFILE_CARD_MUTATION_ACTIONS,
-  canAddProfile,
   getProfileCardMutationPolicy,
+  resolveProfileCardActionAccess,
 } from "../lib/profile-card-mutation-policy.js";
 
 const MAX_PROFILE_ID_LEN = 80;
@@ -17,7 +18,7 @@ const MAX_NAME_LEN = 80;
 const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
 const PROFILE_CARD_MANAGE_COST = PROFILE_CARD_EDIT_DELETE_COST_COINS;
 const PROFILE_CARD_MANAGE_AMOUNT_KRW = PROFILE_CARD_EDIT_DELETE_COST_KRW;
-const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = calculateMembershipCreditCost(PROFILE_CARD_MANAGE_COST);
+const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = PROFILE_CARD_EDIT_DELETE_COST_MONTHLY_STONES || calculateMembershipCreditCost(PROFILE_CARD_MANAGE_COST);
 
 function sanitizeString(value, maxLen) {
   return String(value || "").trim().slice(0, maxLen);
@@ -214,6 +215,7 @@ function resolveSubscriptionPolicy(user) {
     freeLimit: entitlement.maxCoveredCoin,
     profileLimit: entitlement.maxProfiles,
     source: entitlement.source,
+    startedAt: entitlement.startedAt || null,
     expiresAt: entitlement.expiresAt,
   };
 }
@@ -415,7 +417,7 @@ function profilePaymentRequiredResponse(action, requestId) {
 function resolveProfileMutationActionType(action) {
   if (action === PROFILE_CARD_MUTATION_ACTIONS.EDIT) return "profile_card_edit";
   if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) return "profile_card_delete";
-  return "profile_card_create";
+  return "profile_card_add_extra";
 }
 
 function resolveProfileMutationReason(action) {
@@ -449,6 +451,44 @@ function profileEditDeletePaymentRequiredResponse(action, requestId, profileId, 
     success: false,
     code: "PAYMENT_REQUIRED",
     message: `${reason}은 50코인 또는 5,000원 결제 후 진행할 수 있습니다.`,
+    policy,
+    pricing: {
+      featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+      reason,
+      actionType,
+      cost: PROFILE_CARD_MANAGE_COST,
+      coinPrice: PROFILE_CARD_MANAGE_COST,
+      membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+      amountKRW: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+      cashPrice: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+      forceDeduct: true,
+    },
+    checkout: {
+      endpoint: "/api/billing/checkout",
+      payload: {
+        paymentType: "digital_content",
+        featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+        reason,
+        paymentAmount: PROFILE_CARD_MANAGE_AMOUNT_KRW,
+        coinPrice: PROFILE_CARD_MANAGE_COST,
+        membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
+        requestId,
+        profileId,
+        selectedProfileId: profileId,
+        actionType,
+      },
+    },
+  }, { status: 402 });
+}
+
+function profileCardActionPaymentRequiredResponse(action, requestId, profileId = "", policy = {}) {
+  const reason = resolveProfileMutationReason(action);
+  const actionType = resolveProfileMutationActionType(action);
+  return json({
+    ok: false,
+    success: false,
+    code: "PAYMENT_REQUIRED",
+    message: `${reason}에는 50코인 가치가 필요합니다. 일반 이용권 혜택은 적용되지 않으며, 단건결제 또는 월정석으로만 진행할 수 있습니다.`,
     policy,
     pricing: {
       featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
@@ -539,8 +579,30 @@ function buildProfileMutationEvidenceClauses({ requestId, body, profileId }) {
 
 function evidenceProfileMatches(evidence, profileId) {
   const metadata = evidence?.metadata || {};
-  const evidenceProfileId = sanitizeProfileId(metadata.profileId || metadata.selectedProfileId);
+  const evidenceProfileId = sanitizeProfileId(metadata.profileCardId || metadata.profileId || metadata.selectedProfileId);
   return !evidenceProfileId || evidenceProfileId === profileId;
+}
+
+function evidenceActionMatches(evidence, action) {
+  const metadata = evidence?.metadata || {};
+  const expectedActionType = resolveProfileMutationActionType(action);
+  const rawActionType = String(metadata.actionType || "").trim().toLowerCase();
+  const rawProfileAction = String(metadata.profileAction || "").trim().toLowerCase();
+  return rawActionType === expectedActionType || rawProfileAction === String(action || "").trim().toLowerCase();
+}
+
+function evidenceCostMatches(evidence) {
+  const metadata = evidence?.metadata || {};
+  const accessType = String(metadata.accessType || "").trim().toLowerCase();
+  const coinPrice = Math.max(0, Math.floor(Number(metadata.coinPrice || metadata.costCoins || Math.abs(Number(evidence?.delta || 0)))));
+  const monthlyCreditCost = Math.max(0, Math.floor(Number(metadata.membershipCreditCost || 0)));
+  const paidAmount = Math.max(0, Math.floor(Number(metadata.paidAmount || metadata.amountKrw || 0)));
+
+  if (accessType === "membership_credit") return monthlyCreditCost >= PROFILE_CARD_MANAGE_MEMBERSHIP_COST;
+  if (accessType === "single_purchase") {
+    return coinPrice >= PROFILE_CARD_MANAGE_COST && paidAmount >= PROFILE_CARD_MANAGE_AMOUNT_KRW;
+  }
+  return false;
 }
 
 async function findProfileMutationPaymentEvidence(auth, { action, profileId, requestId, body }) {
@@ -588,6 +650,15 @@ async function findProfileMutationPaymentEvidence(auth, { action, profileId, req
       }),
     };
   }
+  if (!evidenceActionMatches(evidence, action) || !evidenceCostMatches(evidence)) {
+    return {
+      ok: false,
+      response: profileMutationConflictResponse("프로필 카드 결제 증거가 현재 작업과 일치하지 않습니다.", {
+        actionType,
+        requestId,
+      }),
+    };
+  }
 
   return { ok: true, evidence };
 }
@@ -629,7 +700,7 @@ async function ensureProfileEditDeleteAuthorized(auth, { action, profileId, body
     if (!payment.ok) {
       return {
         ok: false,
-        response: profileEditDeletePaymentRequiredResponse(action, requestId, profileId, policy),
+        response: profileCardActionPaymentRequiredResponse(action, requestId, profileId, policy),
       };
     }
     evidence = payment.evidence || null;
@@ -752,7 +823,7 @@ async function recordProfileMutationCompleted(auth, { action, profileId, request
       profileAction: action,
       profileId,
       selectedProfileId: profileId,
-      policyReason: policy?.reason || "VVIP_PROFILE_LIMIT_INCLUDED",
+      policyReason: policy?.reason || "PROFILE_CARD_PAYMENT_BYPASS",
       passType: policy?.passType || "",
       limit: Number(policy?.limit || 0),
       currentProfileCardCount: Number(policy?.currentProfileCardCount || 0),
@@ -883,7 +954,7 @@ async function ensureProfileMutationPayment(auth, { action, profileId, requestId
     { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
   ).lean();
   if (!updatedUser) {
-    return { ok: false, response: profilePaymentRequiredResponse(action, paymentRequestId) };
+    return { ok: false, response: profileCardActionPaymentRequiredResponse(action, paymentRequestId, profileId) };
   }
 
   const history = await PointHistory.create({
@@ -901,8 +972,11 @@ async function ensureProfileMutationPayment(auth, { action, profileId, requestId
       forceDeduct: true,
       requestId: paymentRequestId,
       profilePaymentKey: paymentRequestId,
+      actionType: resolveProfileMutationActionType(action),
       profileAction: action,
       profileId,
+      selectedProfileId: profileId,
+      profileCardId: profileId,
       coinPrice: PROFILE_CARD_MANAGE_COST,
       membershipCreditCost: PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
       remainingMembershipCredit: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
@@ -954,6 +1028,29 @@ async function handleGetProfiles(auth) {
   });
 }
 
+async function handleGetProfileDetail(auth, profileIdRaw) {
+  const profileId = sanitizeProfileId(profileIdRaw);
+  if (!profileId) return json({ ok: false, code: "PROFILE_ID_REQUIRED", message: "조회할 프로필 카드 ID가 필요합니다." }, { status: 400 });
+
+  const [profile, user] = await Promise.all([
+    ProfileCard.findOne({ userId: auth.userId, profileId }).lean(),
+    User.findById(auth.userId).select("destinyProfilesCurrentId").lean(),
+  ]);
+
+  if (!profile) {
+    return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  const clientProfile = toClientProfile(profile);
+  return json({
+    ok: true,
+    profile: {
+      ...clientProfile,
+      isActive: String(user?.destinyProfilesCurrentId || "") === String(clientProfile.id || ""),
+    },
+  });
+}
+
 async function handleCreateProfile(request, auth) {
   try {
     const user = await User.findById(auth.userId)
@@ -986,22 +1083,26 @@ async function handleCreateProfile(request, auth) {
       return json({ ok: false, success: false, message: "이미 존재하는 프로필 ID입니다." }, { status: 409 });
     }
 
-    const createPolicy = subscription.isActive
-      ? canAddProfile(user, count)
-      : { allowed: false, reason: "PROFILE_CREATE_PAYMENT_REQUIRED", limit: 1 };
+    const createPolicy = await resolveProfileCardActionAccess({
+      userId: auth.userId,
+      action: PROFILE_CARD_MUTATION_ACTIONS.CREATE,
+      currentProfileCount: count,
+    });
     let createPayment = null;
-    if (!canCreateProfileWithinSubscriptionLimit(subscription, count)) {
+    if (createPolicy.requiresPayment) {
       createPayment = await ensureProfileCreatePaymentAuthorized(auth, {
         profileId: normalized.profileId,
         body,
       });
       if (!createPayment.ok) return createPayment.response;
     } else if (!createPolicy.allowed) {
-      createPayment = await ensureProfileCreatePaymentAuthorized(auth, {
-        profileId: normalized.profileId,
-        body,
-      });
-      if (!createPayment.ok) return createPayment.response;
+      return json({
+        ok: false,
+        success: false,
+        code: createPolicy.reason || "PROFILE_CREATE_NOT_ALLOWED",
+        message: "프로필 카드를 추가할 수 없습니다.",
+        policy: createPolicy,
+      }, { status: 403 });
     }
 
     let created;
@@ -1225,6 +1326,16 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
   const existingProfile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
   if (!existingProfile) return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
 
+  const profileCount = await ProfileCard.countDocuments({ userId: auth.userId });
+  if (profileCount <= 1) {
+    return json({
+      ok: false,
+      success: false,
+      code: "LAST_PROFILE_DELETE_BLOCKED",
+      message: "서비스 이용에 필요한 최소 1개의 프로필 카드는 남겨야 합니다.",
+    }, { status: 409 });
+  }
+
   const body = await readJson(request).catch(() => ({}));
   const authorization = await ensureProfileEditDeleteAuthorized(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
@@ -1263,9 +1374,10 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
 
   const profiles = await listUserProfiles(auth.userId);
   const user = await User.findById(auth.userId)
-    .select("destinyProfilesCurrentId points profileSubscription")
+    .select("destinyProfilesCurrentId points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
     .lean();
   const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
+  const subscription = resolveSubscriptionPolicy(user || {});
 
   await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
   const chargedCoins = Math.max(0, Math.floor(Number(authorization.policy?.costCoins || 0)));
@@ -1281,7 +1393,7 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
     profiles,
     currentId: nextCurrentId,
     currentProfile: profiles.find((profile) => String(profile?.id || "") === nextCurrentId) || null,
-    canCreateMore: true,
+    canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
     actionType: "profile_card_delete",
     policy: authorization.policy,
   });
@@ -1300,6 +1412,9 @@ export async function handleProfileRoutes(request, env) {
     if (method === "PATCH" && path === "/current") return await handleUpdateCurrent(request, auth);
 
     const profileMatch = path.match(/^\/([^/]+)$/);
+    if (profileMatch && method === "GET") {
+      return await handleGetProfileDetail(auth, profileMatch[1]);
+    }
     if (profileMatch && method === "PATCH") {
       return await handlePatchProfile(request, auth, profileMatch[1]);
     }

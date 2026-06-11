@@ -80,7 +80,7 @@ export default function YeonStarHugPage() {
 
     const onProfileEvent = () => syncProfileSeed(false);
     const onStorage = (event: StorageEvent) => {
-      if (!event.key || event.key.startsWith("FORTUNE_APP_USER_PROFILES") || event.key === "fortune_auth_user") {
+      if (!event.key || event.key === "fortune_auth_user") {
         syncProfileSeed(false);
       }
     };

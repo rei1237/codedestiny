@@ -1,25 +1,48 @@
 import { ProfileCard, User } from "./models.js";
-import { canUseByPass, normalizeHoneyPassEntitlement, PROFILE_LIMIT_BY_TIER } from "./profile-limits.js";
+import { normalizeHoneyPassEntitlement, PROFILE_LIMIT_BY_TIER } from "./profile-limits.js";
 
 export const PROFILE_CARD_EDIT_DELETE_COST_COINS = 50;
 export const PROFILE_CARD_EDIT_DELETE_COST_KRW = 5000;
+export const PROFILE_CARD_EDIT_DELETE_COST_MONTHLY_STONES = 500;
 export const PROFILE_DELETE_COST_COINS = PROFILE_CARD_EDIT_DELETE_COST_COINS;
 export const FAMILY_OR_ABOVE_FREE_PROFILE_DELETE = true;
 export const FAMILY_OR_ABOVE_CAN_ADD_PROFILE = true;
 
 export const PROFILE_CARD_MUTATION_ACTIONS = Object.freeze({
+  CREATE: "create",
   EDIT: "edit",
   DELETE: "delete",
 });
 
-const VALID_PROFILE_CARD_MUTATION_ACTIONS = new Set(Object.values(PROFILE_CARD_MUTATION_ACTIONS));
+export const PROFILE_CARD_PAID_ACTIONS = Object.freeze({
+  DELETE: "profile_card_delete",
+  ADD_EXTRA: "profile_card_add_extra",
+});
+
+const VALID_PROFILE_CARD_MUTATION_ACTIONS = new Set([
+  PROFILE_CARD_MUTATION_ACTIONS.EDIT,
+  PROFILE_CARD_MUTATION_ACTIONS.DELETE,
+]);
+
+const USER_PROFILE_POLICY_SELECT = "profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt";
 
 function normalizeProfileCardMutationAction(actionType) {
-  return String(actionType || "").trim().toLowerCase();
+  const text = String(actionType || "").trim().toLowerCase();
+  if (text === PROFILE_CARD_PAID_ACTIONS.DELETE) return PROFILE_CARD_MUTATION_ACTIONS.DELETE;
+  if (text === PROFILE_CARD_PAID_ACTIONS.ADD_EXTRA) return PROFILE_CARD_MUTATION_ACTIONS.CREATE;
+  return text;
 }
 
 function normalizeProfileCardId(profileCardId) {
   return String(profileCardId || "").trim().slice(0, 80).replace(/\s+/g, "_");
+}
+
+function resolveProfileCardSlotLimit(entitlement) {
+  const tier = String(entitlement?.tier || entitlement?.passTier || "").trim().toLowerCase();
+  const entitlementLimit = Number(entitlement?.maxProfiles || 0);
+  if (Number.isInteger(entitlementLimit) && entitlementLimit >= 0) return entitlementLimit;
+  if (tier && Object.prototype.hasOwnProperty.call(PROFILE_LIMIT_BY_TIER, tier)) return Number(PROFILE_LIMIT_BY_TIER[tier] || 0);
+  return 1;
 }
 
 function buildProfileCardMutationPolicyResult(overrides = {}) {
@@ -28,30 +51,13 @@ function buildProfileCardMutationPolicyResult(overrides = {}) {
     requiresPayment: true,
     costCoins: PROFILE_CARD_EDIT_DELETE_COST_COINS,
     costKrw: PROFILE_CARD_EDIT_DELETE_COST_KRW,
+    monthlyStones: PROFILE_CARD_EDIT_DELETE_COST_MONTHLY_STONES,
     reason: "PAYMENT_REQUIRED",
     passType: undefined,
     limit: undefined,
     currentProfileCardCount: undefined,
     ...overrides,
   };
-}
-
-function isActiveVvipEntitlement(entitlement) {
-  return Boolean(entitlement?.isActive === true && String(entitlement?.tier || "").toLowerCase() === "vvip");
-}
-
-function resolveVvipProfileCardLimit(entitlement) {
-  const entitlementLimit = Number(entitlement?.maxProfiles || 0);
-  if (isActiveVvipEntitlement(entitlement) && Number.isInteger(entitlementLimit) && entitlementLimit > 0) return entitlementLimit;
-  return Number(PROFILE_LIMIT_BY_TIER.vvip || 0);
-}
-
-function resolveProfileCardPassLimit(entitlement) {
-  const tier = String(entitlement?.tier || entitlement?.passTier || "").trim().toLowerCase();
-  const entitlementLimit = Number(entitlement?.maxProfiles || 0);
-  if (Number.isInteger(entitlementLimit) && entitlementLimit > 0) return entitlementLimit;
-  if (tier && Object.prototype.hasOwnProperty.call(PROFILE_LIMIT_BY_TIER, tier)) return Number(PROFILE_LIMIT_BY_TIER[tier] || 0);
-  return 1;
 }
 
 export function isFamilyOrAbove(userMembership) {
@@ -65,7 +71,7 @@ export function canAddProfile(userMembership, currentProfileCount) {
   }
 
   const entitlement = normalizeHoneyPassEntitlement(userMembership || {});
-  const limit = Number(entitlement?.maxProfiles ?? PROFILE_LIMIT_BY_TIER[entitlement?.tier] ?? 1);
+  const limit = resolveProfileCardSlotLimit(entitlement);
   const safeLimit = Number.isInteger(limit) && limit > 0 ? limit : 1;
   const count = Math.max(0, Math.floor(Number(currentProfileCount || 0)));
   return {
@@ -81,43 +87,6 @@ export function getProfileDeletePrice(userMembership) {
     : PROFILE_DELETE_COST_COINS;
 }
 
-function isStoredVvipToken(value) {
-  const text = String(value || "").trim().toLowerCase();
-  return Boolean(text && (
-    text === "vvip"
-    || text === "honey_vvip"
-    || text === "gold"
-    || text.includes("vvip")
-    || text.includes("꿀단지")
-  ));
-}
-
-function hasStoredVvipTier(user = {}) {
-  const sources = [
-    user?.profileSubscription,
-    user?.subscription,
-    user?.membership,
-    user?.pass,
-    user?.entitlement,
-    user,
-  ].filter((source) => source && typeof source === "object");
-
-  return sources.some((source) => [
-    source.tier,
-    source.plan,
-    source.planId,
-    source.productId,
-    source.subscriptionTier,
-    source.membershipTier,
-    source.passTier,
-    source.label,
-  ].some(isStoredVvipToken));
-}
-
-/**
- * 프로필 카드 수정/삭제 정책만 판정한다.
- * 실제 결제 생성, 코인 차감, 카드 수정/삭제 실행은 API 레이어에서 이 결과를 기준으로 별도 처리한다.
- */
 export async function getProfileCardMutationPolicy(userId, profileCardId, actionType, options = {}) {
   const normalizedUserId = String(userId || "").trim();
   const normalizedProfileCardId = normalizeProfileCardId(profileCardId);
@@ -146,9 +115,7 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
   }
 
   const [user, profileCard, currentProfileCardCount] = await Promise.all([
-    User.findById(normalizedUserId)
-      .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
-      .lean(),
+    User.findById(normalizedUserId).select(USER_PROFILE_POLICY_SELECT).lean(),
     ProfileCard.findOne({ userId: normalizedUserId, profileId: normalizedProfileCardId }).lean(),
     ProfileCard.countDocuments({ userId: normalizedUserId }),
   ]);
@@ -170,57 +137,18 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
   }
 
   const entitlement = normalizeHoneyPassEntitlement(user);
-  const familyOrAbove = isFamilyOrAbove(user);
-  const passProfileLimit = resolveProfileCardPassLimit(entitlement);
-  const vvipLimit = resolveVvipProfileCardLimit(entitlement);
-  const isActivePass = entitlement?.isActive === true;
-  const isActiveVvip = isActiveVvipEntitlement(entitlement);
-  const wasVvipTier = isActiveVvip || hasStoredVvipTier(user);
-  const passWithinLimit = passProfileLimit === 0 || currentProfileCardCount <= passProfileLimit;
-  const isVvipFreeAllowed = isActiveVvip
-    && Number.isInteger(vvipLimit)
-    && vvipLimit > 0
-    && currentProfileCardCount <= vvipLimit;
-  const isPassFreeAllowed = isActivePass
-    && canUseByPass(entitlement, PROFILE_CARD_EDIT_DELETE_COST_COINS)
-    && Number.isInteger(passProfileLimit)
-    && passWithinLimit;
+  const slotLimit = resolveProfileCardSlotLimit(entitlement);
 
-  if (familyOrAbove) {
+  if (isFamilyOrAbove(user)) {
     return buildProfileCardMutationPolicyResult({
       allowed: true,
       requiresPayment: false,
       costCoins: 0,
       costKrw: 0,
-      reason: "FAMILY_OR_ABOVE_FREE_PROFILE_DELETE",
+      monthlyStones: 0,
+      reason: "PROFILE_CARD_PAYMENT_BYPASS",
       passType: String(entitlement.passTier || entitlement.tier || "family"),
       limit: 0,
-      currentProfileCardCount,
-    });
-  }
-
-  if (isVvipFreeAllowed) {
-    return buildProfileCardMutationPolicyResult({
-      allowed: true,
-      requiresPayment: false,
-      costCoins: 0,
-      costKrw: 0,
-      reason: "VVIP_PROFILE_LIMIT_INCLUDED",
-      passType: String(entitlement.passTier || entitlement.tier || "vvip"),
-      limit: vvipLimit,
-      currentProfileCardCount,
-    });
-  }
-
-  if (isPassFreeAllowed) {
-    return buildProfileCardMutationPolicyResult({
-      allowed: true,
-      requiresPayment: false,
-      costCoins: 0,
-      costKrw: 0,
-      reason: "PASS_PROFILE_LIMIT_INCLUDED",
-      passType: String(entitlement.passTier || entitlement.tier || ""),
-      limit: passProfileLimit,
       currentProfileCardCount,
     });
   }
@@ -231,29 +159,115 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
       requiresPayment: false,
       reason: "PAID_PROFILE_CARD_MUTATION",
       passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
-      limit: isActiveVvip ? vvipLimit : undefined,
+      limit: slotLimit,
       currentProfileCardCount,
     });
   }
 
-  const paymentRequiredReason = isActivePass && currentProfileCardCount > passProfileLimit
-    ? "PROFILE_LIMIT_EXCEEDED"
-    : isActivePass && !canUseByPass(entitlement, PROFILE_CARD_EDIT_DELETE_COST_COINS)
-      ? "PRICE_EXCEEDS_PASS_LIMIT"
-    : isActiveVvip && currentProfileCardCount > vvipLimit
-      ? "VVIP_PROFILE_LIMIT_EXCEEDED_PAYMENT_REQUIRED"
-    : wasVvipTier && !isActiveVvip
-      ? "VVIP_EXPIRED_PAYMENT_REQUIRED"
-      : normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE
-        ? "PROFILE_CARD_DELETE_PAYMENT_REQUIRED"
-        : "PROFILE_CARD_EDIT_PAYMENT_REQUIRED";
-
   return buildProfileCardMutationPolicyResult({
     allowed: false,
     requiresPayment: true,
-    reason: paymentRequiredReason,
-    passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : (wasVvipTier ? "vvip" : undefined),
-    limit: isActivePass ? passProfileLimit : (wasVvipTier ? vvipLimit : undefined),
+    reason: normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE
+      ? "PROFILE_CARD_DELETE_PAYMENT_REQUIRED"
+      : "PROFILE_CARD_EDIT_PAYMENT_REQUIRED",
+    passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
+    limit: slotLimit,
     currentProfileCardCount,
+  });
+}
+
+export async function resolveProfileCardActionAccess({
+  userId,
+  action,
+  currentProfileCount,
+  targetProfileId,
+} = {}) {
+  const normalizedUserId = String(userId || "").trim();
+  const normalizedAction = normalizeProfileCardMutationAction(action);
+  const normalizedTargetProfileId = normalizeProfileCardId(targetProfileId);
+  const count = Math.max(0, Math.floor(Number(currentProfileCount || 0)));
+
+  if (!normalizedUserId) {
+    return buildProfileCardMutationPolicyResult({
+      requiresPayment: false,
+      reason: "AUTH_REQUIRED",
+      currentProfileCardCount: count,
+    });
+  }
+
+  if (normalizedAction === "profile_card_view" || normalizedAction === "view") {
+    return buildProfileCardMutationPolicyResult({
+      allowed: true,
+      requiresPayment: false,
+      costCoins: 0,
+      costKrw: 0,
+      monthlyStones: 0,
+      reason: "PROFILE_CARD_VIEW_FREE",
+      currentProfileCardCount: count,
+    });
+  }
+
+  const user = await User.findById(normalizedUserId).select(USER_PROFILE_POLICY_SELECT).lean();
+  if (!user) {
+    return buildProfileCardMutationPolicyResult({
+      requiresPayment: false,
+      reason: "USER_NOT_FOUND",
+      currentProfileCardCount: count,
+    });
+  }
+
+  const entitlement = normalizeHoneyPassEntitlement(user);
+  if (isFamilyOrAbove(user)) {
+    return buildProfileCardMutationPolicyResult({
+      allowed: true,
+      requiresPayment: false,
+      costCoins: 0,
+      costKrw: 0,
+      monthlyStones: 0,
+      reason: "PROFILE_CARD_PAYMENT_BYPASS",
+      passType: String(entitlement.passTier || entitlement.tier || "family"),
+      limit: 0,
+      currentProfileCardCount: count,
+    });
+  }
+
+  if (normalizedAction === PROFILE_CARD_MUTATION_ACTIONS.DELETE) {
+    if (!normalizedTargetProfileId) {
+      return buildProfileCardMutationPolicyResult({
+        requiresPayment: false,
+        reason: "PROFILE_CARD_ID_REQUIRED",
+        currentProfileCardCount: count,
+      });
+    }
+
+    return buildProfileCardMutationPolicyResult({
+      allowed: false,
+      requiresPayment: true,
+      reason: "PROFILE_CARD_DELETE_PAYMENT_REQUIRED",
+      passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
+      limit: resolveProfileCardSlotLimit(entitlement),
+      currentProfileCardCount: count,
+    });
+  }
+
+  if (normalizedAction === PROFILE_CARD_MUTATION_ACTIONS.CREATE) {
+    const slot = canAddProfile(user, count);
+    return buildProfileCardMutationPolicyResult({
+      allowed: slot.allowed,
+      requiresPayment: !slot.allowed,
+      reason: slot.allowed ? "PROFILE_CARD_SLOT_AVAILABLE" : "PROFILE_CARD_ADD_EXTRA_PAYMENT_REQUIRED",
+      passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
+      limit: slot.limit,
+      currentProfileCardCount: count,
+      costCoins: slot.allowed ? 0 : PROFILE_CARD_EDIT_DELETE_COST_COINS,
+      costKrw: slot.allowed ? 0 : PROFILE_CARD_EDIT_DELETE_COST_KRW,
+      monthlyStones: slot.allowed ? 0 : PROFILE_CARD_EDIT_DELETE_COST_MONTHLY_STONES,
+    });
+  }
+
+  return buildProfileCardMutationPolicyResult({
+    requiresPayment: false,
+    reason: "INVALID_ACTION_TYPE",
+    currentProfileCardCount: count,
   });
 }

@@ -23,6 +23,16 @@ type BillingResult<T> = {
   raw: Record<string, unknown>;
 };
 
+type LicenseTier = "STANDARD" | "PREMIUM" | "VVIP" | "FAMILY";
+
+type AccessGateResult = {
+  status: "license_passed" | "payment_required" | "already_unlocked" | "blocked";
+  licenseTier?: LicenseTier;
+  coveredCoinPrice?: number;
+  contentTitle?: string;
+  reason?: "license_coin_limit" | "family_all_access" | "profile_limit_benefit" | string;
+};
+
 type BillingFeaturePricing = {
   categoryKey: string;
   categoryLabel?: string;
@@ -124,13 +134,22 @@ type PaidFeatureGateRuntimeDetail = {
   paymentMode?: string;
   reason?: string;
   accessType?: string;
+  licenseTier?: string;
+  licenseReason?: string;
   startedAt?: number;
 };
 
 type BillingCoinGateData = {
   pricing: BillingFeaturePricing;
   consume: Record<string, unknown>;
+  accessGateResult?: AccessGateResult | null;
+  licensePass?: AccessGateResult | null;
+  membershipPass?: Record<string, unknown> | null;
+  freeBySubscription?: boolean;
   balance: number | null;
+  membershipCreditBalance?: number;
+  monthlyCredits?: number;
+  monthlyCreditsAsCoins?: number;
   user: Record<string, unknown> | null;
 };
 
@@ -139,6 +158,8 @@ type BillingBalanceData = {
   balance: number;
   legacyCoinBalance?: number;
   membershipCreditBalance?: number;
+  monthlyCredits?: number;
+  monthlyCreditsAsCoins?: number;
   membership?: Record<string, unknown> | null;
   user: Record<string, unknown> | null;
   unlockedFeatures: string[];
@@ -174,7 +195,9 @@ type BillingCoinGateInput = {
 
 const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
 const BILLING_BALANCE_RECENT_TTL_MS = 650;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-20260611-react-payment-choice";
+const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
+const PAYMENT_CHOICE_RECENT_TTL_MS = 1800;
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=20260611-license-pass";
 
 const billingCoinGateInFlight = new Map<string, {
   requestId: string;
@@ -189,6 +212,7 @@ let billingBalanceInFlight: Promise<BillingResult<BillingBalanceData>> | null = 
 let billingBalanceRecent: { result: BillingResult<BillingBalanceData>; expiresAt: number } | null = null;
 let billingBalanceCacheVersion = 0;
 let paidServiceRuntimePromise: Promise<PaidServiceRuntimeGate | null> | null = null;
+let reactPaymentChoiceInFlight: { promise: Promise<PaymentChoiceMode>; startedAt: number } | null = null;
 
 function invalidateBillingBalanceCache() {
   billingBalanceCacheVersion += 1;
@@ -287,6 +311,66 @@ function firstFiniteMonthlyBalance(...sources: Array<Record<string, unknown> | n
   return 0;
 }
 
+function firstFiniteNonNegativeNumber(...candidates: unknown[]): number | null {
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined || candidate === "") continue;
+    const value = Number(candidate);
+    if (Number.isFinite(value) && value >= 0) return Math.floor(value);
+  }
+  return null;
+}
+
+function readBillingMonthlyBalance(source: Record<string, unknown> | null | undefined): number | null {
+  if (!source) return null;
+  const consume = asRecord(source.consume);
+  const membership = asRecord(source.membership);
+  const user = asRecord(source.user);
+  const profileSubscription = asRecord(user?.profileSubscription);
+  const paymentOptions = asRecord(source.paymentOptions);
+  return firstFiniteNonNegativeNumber(
+    consume?.remainingMembershipCredit,
+    consume?.monthlyCredits,
+    consume?.membershipCreditBalance,
+    source.membershipCreditBalance,
+    source.monthlyCredits,
+    source.monthlyBalance,
+    paymentOptions?.monthlyBalance,
+    membership?.membershipCreditBalance,
+    membership?.monthlyCredits,
+    user?.monthlyCredits,
+    profileSubscription?.membershipCreditBalance,
+  );
+}
+
+function normalizeBillingBalanceFields(source: Record<string, unknown> | null | undefined) {
+  if (!source) return;
+  const user = asRecord(source.user);
+  const balance = firstFiniteNonNegativeNumber(source.balance, user?.points);
+  const monthlyBalance = readBillingMonthlyBalance(source);
+  if (balance !== null) source.balance = balance;
+  if (monthlyBalance !== null) {
+    source.membershipCreditBalance = monthlyBalance;
+    source.monthlyCredits = monthlyBalance;
+  }
+}
+
+function emitBillingBalanceUpdated(source: Record<string, unknown> | null | undefined, eventSource: string) {
+  if (typeof window === "undefined" || !source) return;
+  const user = asRecord(source.user);
+  const balance = firstFiniteNonNegativeNumber(source.balance, user?.points);
+  const monthlyBalance = readBillingMonthlyBalance(source);
+  const detail: Record<string, unknown> = { source: eventSource };
+  if (balance !== null) detail.balance = balance;
+  if (monthlyBalance !== null) {
+    detail.membershipCreditBalance = monthlyBalance;
+    detail.monthlyCredits = monthlyBalance;
+  }
+  if (source.user) detail.user = source.user;
+  if (Array.isArray(source.unlockedFeatures)) detail.unlockedFeatures = source.unlockedFeatures;
+  if (source.unlockMap && typeof source.unlockMap === "object") detail.unlockMap = source.unlockMap;
+  window.dispatchEvent(new CustomEvent("cd:billing-balance-updated", { detail }));
+}
+
 function resolvePassStorePlan(coinPrice: number, currentTier?: string): "standard" | "premium" | "vvip" | "family" {
   const tier = toText(currentTier).toLowerCase();
   if (coinPrice <= 30 && tier !== "standard" && tier !== "premium" && tier !== "vvip" && tier !== "family") return "standard";
@@ -344,6 +428,21 @@ function ensureReactPaymentChoiceStyles() {
 }
 
 async function openReactPaymentChoiceModal(options: Record<string, unknown>): Promise<PaymentChoiceMode> {
+  const now = Date.now();
+  if (reactPaymentChoiceInFlight && now - reactPaymentChoiceInFlight.startedAt < PAYMENT_CHOICE_IN_FLIGHT_TTL_MS) {
+    return reactPaymentChoiceInFlight.promise;
+  }
+
+  const promise = openReactPaymentChoiceModalInner(options || {});
+  reactPaymentChoiceInFlight = { promise, startedAt: now };
+  return promise.finally(() => {
+    globalThis.setTimeout(() => {
+      if (reactPaymentChoiceInFlight?.promise === promise) reactPaymentChoiceInFlight = null;
+    }, PAYMENT_CHOICE_RECENT_TTL_MS);
+  });
+}
+
+async function openReactPaymentChoiceModalInner(options: Record<string, unknown>): Promise<PaymentChoiceMode> {
   if (typeof window === "undefined" || typeof document === "undefined" || !document.body) {
     return Promise.resolve("cancel");
   }
@@ -823,6 +922,7 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
     user: Object.keys(user).length ? user : null,
     freeBySubscription: source.freeBySubscription === true || consumeAccessType === "membership_pass" || consumeAccessType === "usage_pass",
   } as BillingCoinGateData & Record<string, unknown>;
+  normalizeBillingBalanceFields(data);
 
   return {
     ok: true,
@@ -915,6 +1015,64 @@ function resolvePaymentWaitKind(input: {
   if (/subscription|구독|플랜|달빛 이용권 결제|이용권 결제/.test(haystack)) return "subscription";
   if (/unlock|잠금|해제|권한|premium|pdf|리포트/.test(haystack)) return "unlock";
   return "payment";
+}
+
+function normalizeLicenseTier(value: unknown): LicenseTier | null {
+  const text = toText(value).toUpperCase();
+  if (text.includes("FAMILY")) return "FAMILY";
+  if (text.includes("VVIP")) return "VVIP";
+  if (text.includes("PREMIUM") || text.includes("프리미엄")) return "PREMIUM";
+  if (text.includes("STANDARD") || text.includes("스탠다드")) return "STANDARD";
+  return null;
+}
+
+function extractLicenseGateResult(data: BillingCoinGateData & Record<string, unknown>): AccessGateResult | null {
+  const pricing = asRecord(data.pricing) || {};
+  if (toText(pricing.featureKey) === "profile-card-manage") return null;
+  const explicit = asRecord(data.accessGateResult) || asRecord(data.licensePass);
+  const membershipPass = asRecord(data.membershipPass);
+  const licenseTier = normalizeLicenseTier(
+    explicit?.licenseTier
+      || explicit?.tier
+      || explicit?.passTier
+      || membershipPass?.tier
+      || membershipPass?.passTier,
+  );
+  if (!licenseTier) return null;
+  return {
+    status: "license_passed",
+    licenseTier,
+    coveredCoinPrice: Math.max(0, Math.floor(toNumber(explicit?.coveredCoinPrice ?? pricing.coinPrice ?? pricing.cost, 0))),
+    contentTitle: toText(explicit?.contentTitle || pricing.reason || pricing.categoryLabel || pricing.featureKey),
+    reason: toText(explicit?.reason) || (licenseTier === "FAMILY" ? "family_all_access" : "license_coin_limit"),
+  };
+}
+
+function buildLicensePassOverlayMessage(data: BillingCoinGateData & Record<string, unknown>) {
+  const gate = extractLicenseGateResult(data);
+  if (!gate) return "";
+  if (gate.licenseTier === "FAMILY" || gate.reason === "family_all_access") {
+    return [
+      "FAMILY 꿀단지 혜택이 적용되었어요 ✨",
+      "꽃돼지가 온 가족의 달빛 문을 활짝 열어드렸어요.",
+      "이 콘텐츠는 FAMILY 이용권으로 무료 이용됩니다.",
+      "코인 차감 없이 모든 유료 서비스를 이용할 수 있어요.",
+    ].join("\n");
+  }
+  if (gate.licenseTier === "VVIP") {
+    return [
+      "VVIP 꿀단지 혜택이 적용되었어요 ✨",
+      "꽃돼지가 가장 빛나는 달빛 문을 열어드렸어요.",
+      "이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.",
+      "코인 차감 없이 바로 열어드릴게요.",
+    ].join("\n");
+  }
+  return [
+    "이용권이 적용되었어요 🌙",
+    "꽃돼지가 꿀단지를 열어드렸어요.",
+    "이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.",
+    "코인 차감 없이 바로 열어드릴게요.",
+  ].join("\n");
 }
 
 function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Record<string, unknown>) {
@@ -1016,7 +1174,7 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
     if (status === "hasEntitlement" || status === "paymentSuccess") {
       window.setTimeout(() => {
         emitPaymentLoadingState(false);
-      }, 900);
+      }, status === "hasEntitlement" ? 1600 : 1100);
     }
     return;
   }
@@ -1223,12 +1381,7 @@ export async function fetchPaymentEligibility(input: {
   };
 }
 
-export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<BillingResult<{
-  pricing: BillingFeaturePricing;
-  consume: Record<string, unknown>;
-  balance: number | null;
-  user: Record<string, unknown> | null;
-}>> {
+export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<BillingResult<BillingCoinGateData>> {
   const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate");
   const inFlightKey = resolvePaidFeatureInFlightKey(input);
   const now = Date.now();
@@ -1364,20 +1517,26 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
             };
           }
           invalidateBillingBalanceCache();
+          normalizeBillingBalanceFields(parsed.data as BillingCoinGateData & Record<string, unknown>);
+          emitBillingBalanceUpdated(parsed.data as BillingCoinGateData & Record<string, unknown>, "coin-gate-runtime");
           markPaidAttemptPaymentSucceeded();
           markPaidAttemptCallbackReturned();
           const consume = asRecord(parsed.data.consume);
           const accessType = toText(consume?.accessType);
           const runtimeData = parsed.data as BillingCoinGateData & Record<string, unknown>;
+          const licenseGate = extractLicenseGateResult(runtimeData);
+          const licenseMessage = buildLicensePassOverlayMessage(runtimeData);
           const passApplied = runtimeData.freeBySubscription === true
             || accessType === "membership_pass"
             || accessType === "usage_pass"
             || accessType === "already_unlocked";
-          const successOverlay = resolvePaymentWaitOverlay(passApplied ? "hasEntitlement" : "paymentSuccess", undefined, {
+          const successOverlay = resolvePaymentWaitOverlay(passApplied ? "hasEntitlement" : "paymentSuccess", licenseMessage || undefined, {
             paymentMode: passApplied ? "MEMBERSHIP_PASS" : "DIRECT_KRW",
             featureKey: featureId,
             reason: input.reason,
             accessType,
+            licenseTier: licenseGate?.licenseTier,
+            licenseReason: licenseGate?.reason,
           });
           emitPaidFeatureGate("update", {
             featureId,
@@ -1389,6 +1548,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
             paymentMode: passApplied ? "MEMBERSHIP_PASS" : "DIRECT_KRW",
             reason: input.reason,
             accessType,
+            licenseTier: licenseGate?.licenseTier,
+            licenseReason: licenseGate?.reason,
           });
         } else {
           const runtimeCode = String(parsed.error?.code || "").toUpperCase();
@@ -1457,12 +1618,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       }),
     });
 
-    const parsed = await parseBillingResponse<{
-      pricing: BillingFeaturePricing;
-      consume: Record<string, unknown>;
-      balance: number | null;
-      user: Record<string, unknown> | null;
-    }>(response);
+    const parsed = await parseBillingResponse<BillingCoinGateData>(response);
 
     if (parsed.ok && parsed.data) {
       if (!hasVerifiedBillingAccess(parsed.data, input.featureKey || featureId)) {
@@ -1489,16 +1645,22 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       const normalizedBalance = toNumber(parsed.data.balance, NaN);
       parsed.data.balance = Number.isFinite(normalizedBalance) ? normalizedBalance : null;
       invalidateBillingBalanceCache();
+      normalizeBillingBalanceFields(parsed.data as BillingCoinGateData & Record<string, unknown>);
+      emitBillingBalanceUpdated(parsed.data as BillingCoinGateData & Record<string, unknown>, "coin-gate");
       markPaidAttemptPaymentSucceeded();
       markPaidAttemptCallbackReturned();
       const consume = asRecord(parsed.data.consume);
       const accessType = toText(consume?.accessType);
+      const licenseGate = extractLicenseGateResult(parsed.data as BillingCoinGateData & Record<string, unknown>);
+      const licenseMessage = buildLicensePassOverlayMessage(parsed.data as BillingCoinGateData & Record<string, unknown>);
       const passApplied = passFirstEligible || accessType === "membership_pass" || accessType === "already_unlocked";
-      const successOverlay = resolvePaymentWaitOverlay(passApplied ? "hasEntitlement" : "paymentSuccess", undefined, {
+      const successOverlay = resolvePaymentWaitOverlay(passApplied ? "hasEntitlement" : "paymentSuccess", licenseMessage || undefined, {
         paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
         featureKey: featureId,
         reason: input.reason,
         accessType,
+        licenseTier: licenseGate?.licenseTier,
+        licenseReason: licenseGate?.reason,
       });
       emitPaidFeatureGate("update", {
         featureId,
@@ -1510,6 +1672,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
         reason: input.reason,
         accessType,
+        licenseTier: licenseGate?.licenseTier,
+        licenseReason: licenseGate?.reason,
       });
     } else {
       const code = String(parsed.error?.code || "").toUpperCase();
@@ -1551,9 +1715,14 @@ export async function purchaseFeature(input: {
   reason?: string;
   requestId?: string;
   forceDeduct?: boolean;
+  paymentMode?: string;
   payloadHash?: string;
   productId?: string;
+  productType?: string;
+  serviceType?: string;
   cost?: number;
+  coinPrice?: number;
+  membershipCreditCost?: number;
   reportId?: string;
   sessionId?: string;
   reportSessionId?: string;
@@ -1561,15 +1730,19 @@ export async function purchaseFeature(input: {
   return runBillingCoinGate(input as Parameters<typeof runBillingCoinGate>[0]);
 }
 
-export async function fetchBillingBalance(): Promise<BillingResult<{
+export async function fetchBillingBalance(options: { force?: boolean; emit?: boolean } = {}): Promise<BillingResult<{
   authenticated: boolean;
   balance: number;
+  membershipCreditBalance?: number;
+  monthlyCredits?: number;
   user: Record<string, unknown> | null;
   unlockedFeatures: string[];
   unlockMap: Record<string, boolean>;
 }>> {
+  if (options.force === true) invalidateBillingBalanceCache();
   const now = Date.now();
   if (billingBalanceRecent && billingBalanceRecent.expiresAt > now) {
+    if (options.emit !== false) emitBillingBalanceUpdated(billingBalanceRecent.result.data as Record<string, unknown> | null, "balance-cache");
     return billingBalanceRecent.result;
   }
   if (billingBalanceInFlight) return billingBalanceInFlight;
@@ -1585,7 +1758,10 @@ export async function fetchBillingBalance(): Promise<BillingResult<{
       if (!parsed.data.unlockMap || typeof parsed.data.unlockMap !== "object") {
         parsed.data.unlockMap = {};
       }
+      normalizeBillingBalanceFields(parsed.data as BillingBalanceData & Record<string, unknown>);
       parsed.data.membershipCreditBalance = toNumber(parsed.data.membershipCreditBalance, 0);
+      parsed.data.monthlyCredits = toNumber(parsed.data.monthlyCredits ?? parsed.data.membershipCreditBalance, 0);
+      if (options.emit !== false) emitBillingBalanceUpdated(parsed.data as BillingBalanceData & Record<string, unknown>, "balance");
       if (cacheVersion === billingBalanceCacheVersion) {
         billingBalanceRecent = {
           result: parsed,

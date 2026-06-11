@@ -3183,7 +3183,7 @@ function buildDbFallbackSubscriptionStatus(auth, error) {
   const points = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;
   const policy = getPlanPolicy(null);
   return json({
-    ok: true,
+    ok: false,
     authenticated: true,
     degraded: true,
     source: "auth_snapshot",
@@ -3219,7 +3219,7 @@ function buildDbFallbackSubscriptionStatus(auth, error) {
       code: error?.code || "DB_FALLBACK",
       message: String(error?.message || "Unknown DB error"),
     },
-  });
+  }, { status: 503 });
 }
 
 function handlePigCoinPrices() {

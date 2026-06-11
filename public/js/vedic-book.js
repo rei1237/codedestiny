@@ -300,10 +300,9 @@
 
   function _readBirthProfileFromStorage() {
     try {
-      var namespace = 'FORTUNE_APP_USER_PROFILES';
-      var list = JSON.parse(localStorage.getItem(namespace + '.list') || '[]');
-      var currentId = localStorage.getItem(namespace + '.current');
-      var match = (currentId && list.find(function (item) { return item.id === currentId; })) || list[0] || null;
+      var match = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+        || window.__cdCurrentDestinyProfile
+        || null;
       if (_hasValidBirthProfile(match)) return match;
     } catch (_) {}
 

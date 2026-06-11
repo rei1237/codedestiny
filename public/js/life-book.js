@@ -1904,13 +1904,11 @@ function _isLifeBookGenerationBusy() {
     _flowLog('DETAIL_POPUP_OPEN', { message: 'open-only' });
     _lifeBookLog('ModalOpen', {});
     var profile = _getActiveBirthProfile();
-    // ???꾨줈???놁쑝硫?localStorage ?대챸 移대뱶(Destiny Profile)?먯꽌 蹂듦뎄 ?쒕룄
     if (!profile) {
       try {
-        var _dpNs = 'FORTUNE_APP_USER_PROFILES';
-        var _dpList = JSON.parse(localStorage.getItem(_dpNs + '.list') || '[]');
-        var _dpCurrId = localStorage.getItem(_dpNs + '.current');
-        var _dpMatch = (_dpCurrId && _dpList.find(function(p){return p.id===_dpCurrId;})) || (_dpList.length && _dpList[0]) || null;
+        var _dpMatch = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+          || window.__cdCurrentDestinyProfile
+          || null;
         if (_dpMatch && _dpMatch.birth && _dpMatch.birth.year) {
           window.__cdActiveBirthProfile = _dpMatch;
           profile = _dpMatch;

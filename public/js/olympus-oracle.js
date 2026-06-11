@@ -1,6 +1,5 @@
 (function() {
   var STORAGE_KEY = 'OLYMPUS_ORACLE_PROFILE';
-  var NS = 'FORTUNE_APP_USER_PROFILES';
 
   function getLocalTimezoneHours() {
     var offset = -new Date().getTimezoneOffset() / 60;
@@ -87,13 +86,9 @@
 
   function getCurrentProfileFromStorage() {
     try {
-      var currentId = localStorage.getItem(NS + '.current');
-      if (!currentId) return null;
-      var list = JSON.parse(localStorage.getItem(NS + '.list') || '[]');
-      if (!Array.isArray(list)) return null;
-      for (var i = 0; i < list.length; i++) {
-        if (list[i] && list[i].id === currentId) return list[i];
-      }
+      return (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+        || window.__cdCurrentDestinyProfile
+        || null;
     } catch (e) {}
     return null;
   }

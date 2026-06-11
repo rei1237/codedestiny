@@ -368,6 +368,43 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   };
 }
 
+function toAccessGateLicenseTier(value) {
+  const tier = normalizePassTier(value);
+  return tier ? String(tier).toUpperCase() : "";
+}
+
+function buildLicensePassAccessGateResult({
+  pricing = {},
+  paymentOptions = {},
+  membershipPass = {},
+  accessDecision = {},
+} = {}) {
+  const featureKey = String(pricing?.featureKey || "").trim();
+  if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY) return null;
+  const licenseTier = toAccessGateLicenseTier(
+    paymentOptions?.passTier
+      || membershipPass?.passTier
+      || membershipPass?.tier
+      || accessDecision?.membershipPass?.passTier
+      || accessDecision?.membershipPass?.tier,
+  );
+  if (!licenseTier) return null;
+  const coveredCoinPrice = Math.max(0, Math.floor(Number(
+    pricing?.coinPrice
+      || pricing?.cost
+      || paymentOptions?.coinCost
+      || accessDecision?.priceCoin
+      || 0,
+  )));
+  return {
+    status: "license_passed",
+    licenseTier,
+    coveredCoinPrice,
+    contentTitle: String(pricing?.reason || pricing?.categoryLabel || pricing?.featureKey || "").trim() || undefined,
+    reason: licenseTier === "FAMILY" ? "family_all_access" : "license_coin_limit",
+  };
+}
+
 function buildPaidContentAccessDecision({
   accessGranted = false,
   reason = "payment_required",
@@ -376,6 +413,7 @@ function buildPaidContentAccessDecision({
   unlockId = "",
   priceCoin = 0,
   paymentOptions = null,
+  accessGateResult = null,
 } = {}) {
   return {
     accessGranted: Boolean(accessGranted),
@@ -385,6 +423,7 @@ function buildPaidContentAccessDecision({
     ...(unlockId ? { unlockId: String(unlockId) } : {}),
     priceCoin: Math.max(0, Math.floor(Number(priceCoin || 0))),
     ...(paymentOptions ? { paymentOptions } : {}),
+    ...(accessGateResult ? { accessGateResult } : {}),
   };
 }
 
@@ -510,6 +549,11 @@ async function resolvePaidContentAccess(env, {
         unlockId: unlockEntitlement?._id,
         priceCoin,
         paymentOptions,
+        accessGateResult: buildLicensePassAccessGateResult({
+          pricing,
+          paymentOptions,
+          membershipPass: activePass,
+        }),
       }), priceCoin);
     }
 
@@ -1147,6 +1191,19 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
   const monthlyStoneCharged = String(consume?.accessType || "").toLowerCase() === "membership_credit"
     ? Number(consume?.membershipCreditCost || 0)
     : 0;
+  const normalizedAccessType = String(consume?.accessType || data?.accessGrant?.accessType || "").toLowerCase();
+  const normalizedTransactionType = String(consume?.transactionType || data?.accessGrant?.transactionType || "").toLowerCase();
+  const membershipPassApplied = normalizedAccessType === "membership_pass" || normalizedTransactionType === "membership_pass";
+  const accessGateResult = data?.accessGateResult
+    || data?.accessDecision?.accessGateResult
+    || (membershipPassApplied
+      ? buildLicensePassAccessGateResult({
+        pricing,
+        paymentOptions: data?.paymentOptions || data,
+        membershipPass: data?.membershipPass || {},
+        accessDecision: data?.accessDecision || {},
+      })
+      : null);
   return success({
     ...data,
     status: accessStatus,
@@ -1162,6 +1219,7 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
     profileId: profileId || undefined,
     unlockedFeatures,
     unlockMap,
+    ...(accessGateResult ? { accessGateResult, licensePass: accessGateResult } : {}),
   }, message, premiumAccessToken ? { headers: responseHeaders } : {});
 }
 
@@ -3236,6 +3294,8 @@ async function handleUnlockStatus(request, env) {
     subscriptionTier: subscription.tier,
     freeLimit: Number(subscription.freeLimit || 0),
     freeBySubscription: accessDecision.reason === "pass_covered",
+    accessGateResult: accessDecision.accessGateResult || null,
+    licensePass: accessDecision.accessGateResult || null,
     currentBalance,
     requiredCoins: accessDecision.accessGranted ? 0 : Number(pricing.cost || 0),
     shouldOpenPaymentSelector: accessDecision.shouldOpenPaymentSelector,

@@ -16,6 +16,7 @@ const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "u
 const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
+const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
 const pointsSource = readFileSync(resolve(root, "app/points/page.tsx"), "utf8");
 const statusCardSource = readFileSync(resolve(root, "app/points/SubscriptionStatusCard.tsx"), "utf8");
 const headersSource = readFileSync(resolve(root, "_headers"), "utf8");
@@ -258,6 +259,9 @@ assertContains(billingSource, 'accessMethod: "PASS"', "PASS access method respon
 assertContains(billingSource, "charged: 0", "PASS charged zero response");
 assertContains(billingSource, 'paymentMethod: "PASS"', "PASS usage log marker");
 assertContains(billingSource, "recordPassAccessIfNeeded", "PASS usage evidence");
+assertContains(billingSource, 'status: "license_passed"', "server returns license_passed access gate result");
+assertContains(billingSource, '"family_all_access" : "license_coin_limit"', "family all-access gate reason");
+assertContains(billingSource, "if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY) return null;", "profile card actions do not emit license pass UI result");
 assertNotContains(billingSource, "if (!singleOrMonthlyOnly)", "monthly choice must not block PASS coverage");
 assertContains(billingSource, "consumeMembershipCreditIfAvailable", "monthly deduction path remains");
 assertContains(billingSource, 'accessMethod: "MONTHLY"', "monthly access method remains");
@@ -293,7 +297,7 @@ assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points p
 assertContains(pointsSource, "mergeSubscriptionState", "points page merges server subscription state");
 assertContains(pointsSource, "<SubscriptionStatusCard subscription={subscription} monthlyCredits={currentMonthlyCredits} />", "points page passes monthly credits to status card");
 assertContains(pointsSource, "PDF 생성 시 30코인 자동 할인", "standard pass PDF discount UI");
-assertContains(pointsSource, "프로필 수정·삭제 무료, 제한 없음", "family profile unlimited UI");
+assertContains(pointsSource, "프로필 추가·수정·삭제 무료, 제한 없음", "family profile unlimited UI");
 assertContains(pointsSource, "formatSubscriptionPlanPolicy", "subscription pass policy formatter");
 assertContains(statusCardSource, "Family 이용권으로 모든 서비스가 무료 처리됩니다.", "family status card policy");
 assertContains(statusCardSource, "일반 한도 초과 서비스는 기존가 결제, PDF는 할인 후 잔액 결제됩니다.", "non-family paid service/PDF status policy");
@@ -310,8 +314,11 @@ assertContains(indexSource, "var monthlyButtonHtml", "monthly payment CTA");
 assertContains(indexSource, 'data-mode="monthly"', "monthly payment mode marker");
 assertContains(indexSource, 'data-mode="pass"', "payment modal shows pass apply option");
 assertContains(indexSource, "\\uC774\\uC6A9\\uAD8C \\uC801\\uC6A9", "payment modal pass apply label");
-assertContains(indexSource, "statusTier === 'family' ? 999999999", "main shell family policy pass limit");
-assertContains(indexSource, "Code Destiny Family\\uB85C \\uBAA8\\uB4E0", "main shell family payment modal copy");
+assertContains(indexSource, "FAMILY 꿀단지 혜택이 적용되었어요", "static family license pass success copy");
+assertContains(indexSource, "membership-honey-kkulkkul.webp", "static license pass reuses honey pig asset");
+assertContains(indexSource, "forceDeduct: false", "static membership pass probe never deducts coins");
+assertContains(indexSource, "_subTier === 'family' ? 999999999", "main shell family policy pass limit");
+assertContains(indexSource, "Code Destiny Family 30일", "main shell family payment modal copy");
 assertContains(indexSource, "PDF \\uD560\\uC778 \\uC790\\uB3D9 \\uC801\\uC6A9", "main shell PDF discount modal copy");
 assertContains(indexSource, "directCoinLabel", "payment modal displays discounted coin basis");
 assertContains(indexSource, "membershipCoverage: (passFirstAccess && passFirstAccess.membershipCoverage)", "pass-first coverage feeds payment modal");
@@ -335,6 +342,8 @@ assertContains(fortuneSource, "membership: 1", "subscription status reads legacy
 assertContains(fortuneSource, "pass: 1", "subscription status reads legacy pass field");
 assertContains(fortuneSource, "entitlement: 1", "subscription status reads legacy entitlement field");
 assertContains(fortuneSource, "membershipCreditBalance", "subscription status returns monthly credit balance");
+assertContains(billingClientSource, "buildLicensePassOverlayMessage", "React billing client builds license pass overlay copy");
+assertContains(billingClientSource, "FAMILY 꿀단지 혜택이 적용되었어요", "React family license pass success copy");
 assertContains(headersSource, "https://pagead2.googlesyndication.com", "AdSense script domain allowed by CSP");
 
 console.log("billing pass policy regression checks passed");

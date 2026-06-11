@@ -74,7 +74,6 @@ type ProfileSeed = {
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => hour);
 const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, minute) => minute);
 const MIN_PLAYABLE_SCENES = 10;
-const PROFILE_NS = "FORTUNE_APP_USER_PROFILES";
 const LOVE_CODE_HERO_ASSET = "/fuctionassets/love code.webp";
 
 const KO_ELEMENT_TO_CODE: Record<string, LoveCharacter["element"]> = {
@@ -328,32 +327,21 @@ function normalizeProfileGender(value: unknown): "남" | "여" {
 function readCurrentProfileSeed(): ProfileSeed | null {
   if (typeof window === "undefined") return null;
   const authUser = readJsonObject<StoredAuthUser>("fortune_auth_user");
-  const scopes = Array.from(new Set([authUser?.id, authUser?.email, authUser?.name, "guest"].map((item) => String(item || "").trim()).filter(Boolean)));
-  const listRaw =
-    scopes.map((scope) => window.localStorage.getItem(`${PROFILE_NS}.list::${scope}`)).find(Boolean) ||
-    window.localStorage.getItem(`${PROFILE_NS}.list`) ||
-    "[]";
-  const currentId =
-    scopes.map((scope) => window.localStorage.getItem(`${PROFILE_NS}.current::${scope}`)).find(Boolean) ||
-    window.localStorage.getItem(`${PROFILE_NS}.current`) ||
-    "";
 
   try {
-    const list = JSON.parse(listRaw) as StoredProfile[];
-    const profile = Array.isArray(list) ? (currentId ? list.find((item) => item?.id === currentId) : list[0]) || list[0] : null;
-    const birthDate = normalizeBirthDateFromProfile(profile) || normalizeBirthDate(authUser?.birthDate);
+    const birthDate = normalizeBirthDate(authUser?.birthDate);
     if (!birthDate) return null;
-    const profileCalendarType = profile?.birth?.calendarType || profile?.birth?.calType || profile?.calendarType || profile?.calType || authUser?.calendarType || authUser?.calType;
+    const profileCalendarType = authUser?.calendarType || authUser?.calType;
 
     return {
       birthDate,
-      gender: normalizeProfileGender(profile?.gender || authUser?.gender),
-      hour: normalizeBirthHourFromProfile(profile, authUser),
-      minute: normalizeBirthMinuteFromProfile(profile, authUser),
-      hasTime: hasKnownBirthTime(profile, authUser),
+      gender: normalizeProfileGender(authUser?.gender),
+      hour: normalizeBirthHourFromProfile(null, authUser),
+      minute: normalizeBirthMinuteFromProfile(null, authUser),
+      hasTime: hasKnownBirthTime(null, authUser),
       calendarType: normalizeProfileCalendarType(profileCalendarType),
-      timezone: String(profile?.birth?.timezone || profile?.timezone || profile?.country || authUser?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
-      name: String(profile?.name || authUser?.name || "나").trim(),
+      timezone: String(authUser?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
+      name: String(authUser?.name || "나").trim(),
     };
   } catch {
     const birthDate = normalizeBirthDate(authUser?.birthDate);

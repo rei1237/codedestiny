@@ -108,7 +108,7 @@ type ImageSectionKey = "default" | "career" | "love" | "wealth";
 type FamousSajuCalculationStatus = "calculated" | "needs_review";
 type FamousSajuReliabilityLevel = "높음" | "보통" | "제한";
 const FAMOUS_SAJU_PUBLISHED_AT = "2026-06-04T00:00:00+09:00";
-const FAMOUS_SAJU_UPDATED_AT = "2026-06-05T09:00:00+09:00";
+const FAMOUS_SAJU_UPDATED_AT = "2026-06-11T00:00:00+09:00";
 const FAMOUS_SAJU_OG_IMAGE = "/fuctionassets/%EC%9C%A0%EB%AA%85%EC%9D%B8%20%EC%82%AC%EC%A3%BC%20%EB%B6%84%EC%84%9D.webp";
 
 type FamousSajuNatalAnalysis = {
@@ -860,6 +860,26 @@ function sentence(value: string) {
   return /[.!?。]$/.test(trimmed) ? trimmed : `${trimmed}.`;
 }
 
+function softSentence(value: string) {
+  return sentence(value)
+    .replace(/한다\./g, "합니다.")
+    .replace(/된다\./g, "됩니다.")
+    .replace(/이다\./g, "입니다.");
+}
+
+function ensureMandatoryDaewoonSection(primarySections: FamousSajuArticleSection[] | undefined, generatedSections: FamousSajuArticleSection[]) {
+  const sections = Array.isArray(primarySections) && primarySections.length ? primarySections : generatedSections;
+  const hasDaewoon = sections.some((section) => /대운|10년/.test(`${section.title} ${section.body}`));
+  if (hasDaewoon) return sections;
+
+  const daewoonSection = generatedSections.find((section) => /대운|10년/.test(`${section.title} ${section.body}`));
+  if (!daewoonSection) return sections;
+
+  const closingIndex = sections.findIndex((section) => /운명의 한 문장|결론|마지막/.test(section.title));
+  if (closingIndex < 0) return [...sections, daewoonSection];
+  return [...sections.slice(0, closingIndex), daewoonSection, ...sections.slice(closingIndex)];
+}
+
 function toEngineElementKo(value: string) {
   return engineElementLabel[value] || value;
 }
@@ -1220,13 +1240,16 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
   const daewoonHealthChange = recordString(daewoonAnalysis, "healthPsychologyChange") || recordString(daewoonRequired, "healthPsychologyChange") || "몸과 마음은 강한 기운을 오래 담을 수 있는 리듬을 필요로 합니다.";
   const daewoonHowToUse = recordString(daewoonAnalysis, "howToUse")
     || recordString(daewoonRequired, "howToUse")
-    || `용신 후보 ${usefulText}가 살아나는 선택은 길게 가져가고, 과한 기운은 정리와 휴식으로 덜어내는 것이 좋습니다.`;
+    || `${subjectParticle(`용신 후보 ${usefulText}`)} 살아나는 선택은 길게 가져가고, 과한 기운은 정리와 휴식으로 덜어내는 것이 좋습니다.`;
   const bestYearRows = recordRows(daewoonAnalysis, "bestYears").length ? recordRows(daewoonAnalysis, "bestYears") : recordRows(daewoonRequired, "bestYears");
   const cautionYearRows = recordRows(daewoonAnalysis, "cautionYears").length ? recordRows(daewoonAnalysis, "cautionYears") : recordRows(daewoonRequired, "cautionYears");
   const bestYearText = formatRecordHighlights(bestYearRows, ["label", "reason"], "용신 후보가 살아나는 해에는 장기 기회와 신뢰를 키우는 쪽으로 운을 씁니다.", 3);
   const cautionYearText = formatRecordHighlights(cautionYearRows, ["label", "reason"], "기신이 과해지는 해에는 확장보다 정리, 건강, 관계 경계를 먼저 살핍니다.", 3);
   const annualLabel = firstRecordText(luckAnnualTrigger, ["label", "ganji"])
     || formatRecordHighlights(annualRows, ["label", "ganji"], "세운 흐름 확인 필요", 1);
+  const annualSummaryFocus = annualLabel === "세운 흐름 확인 필요"
+    ? "특정 세운을 단정하기보다 대운 위에 얹히는 사건성"
+    : `${annualLabel}의 사건성`;
   const annualClassification = recordString(luckAnnualTrigger, "finalClassification")
     || firstRecordText(luckIntegratedReading, ["annualEvent"])
     || "세운은 대운 위에 얹히는 사건의 기운으로, 원국의 용신과 기신을 어떻게 건드리는지에 따라 달라집니다.";
@@ -1249,47 +1272,47 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
   const quantumAxis = `${dayMasterLabel} · ${monthElement} 월령 · ${finalGyeokguk} · 용신 후보 ${usefulText}`;
   const analysisBadge = saju.timeUnknown ? "퀀텀 명리 엔진 · 출생 시간 미상 / 삼주 분석" : "퀀텀 명리 엔진 · 시주 포함";
   const coreKeywords = uniqueKeywords([dayMasterLabel, `${dayElement} 일간`, `${elementProfile.dominantElement} 기운`, finalGyeokguk, ...person.tags]).slice(0, 5);
-  const heroCopy = `${person.nameKo}의 명식은 ${dayElement} 일간이 ${monthElement} 월령을 통과하며 ${elementProfile.dominantElement}의 빛을 크게 드러내는 구조입니다. 퀀텀 명리 엔진은 이 흐름을 ${finalGyeokguk}과 용신 후보 ${usefulText}의 축으로 읽습니다.`;
-  const conclusion = `${person.nameKo}의 사주는 ${elementProfile.dominantElement}의 큰 물결 위에 ${dayElement} 일간의 기준이 서고, ${finalGyeokguk}의 문이 ${person.tags.slice(0, 2).join("·") || person.category}의 상징과 맞물리는 명식입니다.`;
+  const heroCopy = `${person.nameKo}의 명식을 천천히 펴 보면 ${dayElement} 일간이 ${monthElement} 월령을 지나며 ${elementProfile.dominantElement}의 색을 크게 띠는 흐름이 먼저 보입니다. 여기에 ${finalGyeokguk}의 결, 용신 후보 ${usefulText}가 맞물리니 겉으로 드러난 재능 뒤에 꽤 또렷한 운의 리듬이 있다고 해석해 볼 수 있습니다.`;
+  const conclusion = `${person.nameKo}의 사주는 ${elementProfile.dominantElement}의 큰 물결 위에 ${dayElement} 일간의 기준이 서고, ${finalGyeokguk}의 문이 ${person.tags.slice(0, 2).join("·") || person.category}의 상징과 맞물리는 명식입니다. 결국 이 명식은 재능만으로 반짝이는 구조라기보다, 자기 흐름을 오래 붙잡을수록 깊이가 살아나는 팔자라고 볼 수 있습니다.`;
 
-  const summary = `${person.nameKo} 사주 분석의 핵심은 ${quantumAxis}입니다. 공개 생년월일 기준으로 보면 ${elementProfile.dominantElement} 기운이 가장 선명하고, 일간 강약은 ${dayStrength}${strengthIndex !== null ? `, 지수 ${strengthIndex}` : ""}로 정리됩니다. 대운은 ${daewoonLabel} 축에서 ${daewoonChange}로 움직이며, 세운은 ${annualLabel}의 사건성을 중심으로 읽습니다. 이 흐름을 십성 ${topTenGods}, 구조 신호 ${structureText}와 함께 읽으면 대중 앞에서 드러난 재능과 운의 결이 한층 또렷해집니다. ${timeNotice}`;
+  const summary = `${person.nameKo} 사주를 한 문장으로 줄이면 ${quantumAxis}의 흐름입니다. 공개 생년월일 기준으로는 ${elementProfile.dominantElement} 기운이 먼저 눈에 들어오고, 일간 강약은 ${dayStrength}${strengthIndex !== null ? `, 지수 ${strengthIndex}` : ""}로 볼 수 있습니다. 대운은 ${daewoonLabel} 축을 중심으로 보며, 큰 판정은 ${daewoonChange}입니다. 이런 흐름이군요. 세운은 ${annualSummaryFocus}을 중심으로 읽되, 십성 ${topTenGods}와 구조 신호 ${objectParticle(structureText)} 함께 놓고 보아야 대중 앞에서 드러난 재능의 결이 자연스럽게 풀립니다. ${timeNotice}`;
   const sections: FamousSajuArticleSection[] = [
     {
       title: "명식의 첫 인상",
       imageQuery: getFamousSajuImageMood(person),
       imageSection: "default",
-      body: `${objectParticle(person.nameKo)} 명리적으로 보면 먼저 ${dayMasterLabel}의 결이 눈에 들어옵니다. ${dayStem} 일간은 ${stemTone[dayStem] || "자기만의 결을 따라 움직이는 힘이 있습니다."} 이 기운이 ${monthElement} 월령을 지나며 ${elementProfile.dominantElement}의 색을 크게 띠기 때문에, 대중 앞에서는 ${person.tags.slice(0, 3).join("·") || person.category}의 상징이 선명하게 남습니다. 상담에서 이 명식은 재능이 흩어지는 팔자라기보다, 한 번 잡은 방향을 오래 밀고 가며 자기 이름의 결을 남기는 구조로 읽습니다.`,
+      body: `${objectParticle(person.nameKo)} 명리적으로 보면 먼저 ${dayMasterLabel}의 결이 눈에 들어옵니다. ${dayStem} 일간은 ${stemTone[dayStem] || "자기만의 결을 따라 움직이는 힘이 있습니다."} 이 기운이 ${monthElement} 월령을 지나며 ${elementProfile.dominantElement}의 색을 크게 띠니, 대중 앞에서는 ${person.tags.slice(0, 3).join("·") || person.category}의 이미지가 자연스럽게 선명해집니다. 이런 명식은 재능이 여기저기 흩어지는 팔자라기보다, 한 번 잡은 방향을 오래 밀고 가며 자기 이름의 결을 남기는 구조로 해석해 볼 수 있습니다.`,
     },
     {
       title: "퀀텀 명리 핵심장",
       imageQuery: "mystical astrology stars cosmic sky five elements",
       imageSection: "default",
-      body: `${saju.pillars.month.ganji} 월주는 ${monthSeason} 흐름과 ${monthElement} 기운을 품습니다. ${sentence(monthPriority.replace(/근거$/, "중심으로 작동합니다"))} 퀀텀 명리 엔진은 이 월령 위에 일간 강약, 오행 세력, 십성의 표면 리듬, 용신 후보를 겹쳐 한 장의 운명 지도로 읽습니다. 오행 순위는 ${elementRanking || "확인 필요"}이며, 십성 흐름은 ${topTenGods} 순서가 두드러집니다. 이 배열은 타고난 성향만 말하지 않고, 어떤 환경에서 빛이 커지고 어떤 과잉에서 스스로 지치는지를 함께 보여 줍니다.`,
+      body: `${saju.pillars.month.ganji} 월주는 ${monthSeason} 흐름과 ${monthElement} 기운을 품고 있습니다. ${sentence(monthPriority.replace(/근거$/, "중심으로 작동합니다"))} 여기에 일간 강약, 오행 세력, 십성의 표면 리듬, 용신 후보를 겹쳐 보면 한 사람의 운명 지도가 조금씩 입체적으로 살아납니다. 오행 순위는 ${elementRanking || "확인 필요"}이고, 십성 흐름은 ${topTenGods} 순서가 두드러집니다. 그래서 이 배열은 성향만 말하는 것이 아니라, 어떤 환경에서 빛이 커지고 어떤 과잉에서 스스로 지치는지까지 함께 보여 줍니다.`,
     },
     {
       title: "격국과 용신 후보",
       imageQuery: "purple galaxy stars destiny chart mystical",
       imageSection: "default",
-      body: `격국 후보는 ${finalGyeokguk}로 읽힙니다. 그 흐름은 ${gyeokReason}로 설명되고, 용신 후보 ${usefulText}는 ${yongshinReason}의 축에서 조심스럽게 잡힙니다. 좋은 운과 나쁜 운은 단순히 복불복처럼 갈리지 않습니다. 이 명식에서는 어떤 기운이 들어올 때 재능이 맑아지고, 어떤 기운이 과해질 때 관계와 선택의 속도가 흔들리는지를 구분하는 것이 훨씬 중요합니다.`,
+      body: `격국 후보는 ${finalGyeokguk}로 읽힙니다. 그 이유는 ${gyeokReason}로 볼 수 있고, 용신 후보 ${usefulText}는 ${yongshinReason}의 축에서 조심스럽게 잡힙니다. 명리에서 좋은 운과 나쁜 운은 복불복처럼 칼로 자르듯 나뉘지 않습니다. 이 명식에서는 어떤 기운이 들어올 때 재능이 맑아지고, 어떤 기운이 과해질 때 관계와 선택의 속도가 흔들리는지를 구분하는 일이 훨씬 중요합니다.`,
     },
     {
       title: "재능과 커리어 코드",
       imageQuery: "cosmic stage spotlight stars destiny",
       imageSection: "career",
-      body: `${person.category} 분야에서 읽히는 재능의 코드는 ${person.tags.join(", ")}입니다. ${elementTone[elementProfile.dominantElement] || ""} 여기에 ${finalGyeokguk}의 결이 더해지면 재능은 단순한 인기보다 역할, 기준, 반복되는 선택의 방식으로 드러납니다. 대운에서 직업 흐름은 ${daewoonCareerChange} 쪽으로 움직이기 쉬우며, 재물 흐름은 ${daewoonWealthChange}의 태도가 필요합니다. 살아있는 인물에 대해서는 직업운을 단정하지 않고, 공개 활동에서 드러난 상징적 강점으로만 풀이합니다.`,
+      body: `${person.category} 분야에서 읽히는 재능의 코드는 ${person.tags.join(", ")}입니다. ${elementTone[elementProfile.dominantElement] || ""} 여기에 ${finalGyeokguk}의 결이 더해지면 재능은 단순한 인기보다 역할, 기준, 반복되는 선택의 방식으로 드러납니다. 대운에서 직업 흐름은 ${sentence(daewoonCareerChange)} 재물 흐름은 ${sentence(daewoonWealthChange)} 살아있는 인물에 대해서는 직업운을 단정하지 않고, 공개 활동에서 드러난 상징적 강점만 조심스럽게 풀이합니다.`,
     },
     {
       title: "관계성과 인간관계 패턴",
       imageQuery: "mystical stars soft light cosmic love",
       imageSection: "love",
-      body: `관계성은 ${elementProfile.dominantElement}의 강한 흐름과 ${elementProfile.weakElement}의 보완 지점 사이에서 읽을 수 있습니다. 강한 기운은 사람들에게 선명한 인상을 남기고, 약한 기운은 관계의 속도와 거리감을 조절하는 숙제로 나타날 수 있습니다. 대운 속 관계 흐름은 ${daewoonLoveChange}로 읽히며, 구조 신호는 ${structureText}로 정리됩니다. 개인의 사적인 영역을 단정하지 않고 명식이 보여주는 관계 리듬만 조심스럽게 읽습니다.`,
+      body: `관계성은 ${elementProfile.dominantElement}의 강한 흐름과 ${elementProfile.weakElement}의 보완 지점 사이에서 읽을 수 있습니다. 강한 기운은 사람들에게 선명한 인상을 남기지만, 약한 기운은 관계의 속도와 거리감을 조절하는 숙제로 나타나기 쉽습니다. 대운 속 관계 흐름은 ${daewoonLoveChange}로 해석해 볼 수 있고, 구조 신호는 ${structureText}로 정리됩니다. 사적인 영역을 단정하기보다, 명식이 보여주는 관계 리듬만 조심스럽게 읽는 것이 맞습니다.`,
     },
     {
       title: "대운의 문이 열리는 방식",
       imageQuery: "night sky stars cosmic road destiny",
       imageSection: "default",
       body: daewoonStartAge !== null
-        ? `대운의 방향과 시작값은 ${daewoonText}입니다. 현재 대운 축은 ${daewoonLabel}로 읽히며, 큰 판정은 ${daewoonChange}입니다. ${daewoonSummary} ${daewoonFoundationText} 전반의 문은 ${daewoonFirstHalf} 후반의 문은 ${daewoonSecondHalf} 이 흐름에서 중요한 것은 좋은 운을 급하게 소비하는 것이 아니라, 용신 후보 ${usefulText}가 살아나는 선택을 오래 갈 수 있는 구조로 만드는 일입니다. 건강과 심리의 리듬은 ${sentence(daewoonHealthChange)}`
+        ? `대운은 10년 단위로 삶의 배경을 바꾸는 큰 흐름입니다. 이 명식의 대운 방향과 시작값은 ${daewoonText}이고, 현재 대운 축은 ${daewoonLabel}로 읽힙니다. 큰 판정은 ${daewoonChange}입니다. ${softSentence(daewoonSummary)} ${softSentence(daewoonFoundationText)} ${softSentence(daewoonFirstHalf)} ${softSentence(daewoonSecondHalf)} 여기서 중요한 것은 좋은 운을 급하게 소비하는 것이 아니라, ${subjectParticle(`용신 후보 ${usefulText}`)} 살아나는 선택을 오래 갈 수 있는 구조로 만드는 일입니다. 건강과 심리의 리듬은 ${softSentence(daewoonHealthChange)} 향후 조언으로는 확장할 때도 루틴, 회복, 관계의 경계를 함께 세우는 쪽이 좋습니다.`
         : `대운 시작값은 현재 공개 기준에서 확정하기 어렵습니다. 그래서 이 명식의 대운은 특정 연령대를 단정하기보다 원국의 강한 ${elementProfile.dominantElement} 기운과 용신 후보 ${usefulText}가 어떤 선택에서 살아나는지를 중심으로 읽습니다. 대운의 세부 흐름은 ${luckStatusText} 상태이므로, 장기 운은 속도보다 방향과 균형의 감각으로 보아야 합니다. 특히 과한 기운이 반복될 때는 확장보다 정리, 건강, 관계 경계를 먼저 살피는 것이 상담의 핵심입니다.`,
     },
     {
@@ -1297,14 +1320,14 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
       imageQuery: "constellation calendar stars yearly fortune",
       imageSection: "default",
       body: annualRows.length
-        ? `세운은 대운 위에 얹히는 한 해의 사건 기운입니다. 현재 세운 축은 ${annualLabel}로 읽히고, 핵심 분류는 ${annualClassification}입니다. ${annualScoreReason} 특히 좋은 해의 문은 ${bestYearText}로 열리고, 조심해야 할 해의 경계는 ${cautionYearText}로 나타납니다. ${transformationText} 월운은 더 짧은 호흡의 신호이므로 ${monthlyText} 이 흐름에서는 한 해를 한 단어로 길흉 단정하기보다, 직업·돈·관계·몸의 어느 영역이 먼저 움직이는지 차례대로 보는 것이 좋습니다.`
+        ? `세운은 대운 위에 얹히는 한 해의 사건 기운입니다. 현재 세운 축은 ${annualLabel}로 읽히고, 핵심 분류는 ${annualClassification}입니다. ${annualScoreReason} 좋은 해의 문은 ${bestYearText}로 열리고, 조심해야 할 해의 경계는 ${cautionYearText}로 나타납니다. ${transformationText} 월운은 더 짧은 호흡의 신호이므로 ${monthlyText} 이 흐름에서는 한 해를 한 단어로 길흉 단정하기보다, 직업·돈·관계·몸 중 어느 영역이 먼저 움직이는지 차례대로 보는 것이 좋습니다.`
         : `세운은 대운 위에 얹히는 한 해의 사건 기운입니다. 현재 연도별 흐름이 충분하지 않을 때는 특정 해를 꾸며 말하지 않고, 원국의 강한 기운과 용신 후보 ${usefulText}, 그리고 대운의 ${daewoonChange} 흐름이 만나는 방식을 먼저 봅니다. ${annualPrescription} 좋은 해는 용신 후보가 현실 선택으로 살아나는 해이고, 부담이 큰 해는 과한 기운이 건강·관계·계약의 균형을 흔드는 해입니다. 그래서 세운 상담은 올해의 운을 맞히는 말보다, 들어오는 사건을 어떤 순서로 다루면 덜 흔들리는지를 잡아 주는 쪽이 더 정확합니다.`,
     },
     {
       title: "상담식 조언",
       imageQuery: "mystical candle stars consultation destiny",
       imageSection: "default",
-      body: `${subjectParticle(person.nameKo)} 가진 명식은 강한 기운을 숨기기보다 좋은 그릇에 담을수록 빛이 커집니다. 지금 필요한 조언은 ${daewoonHowToUse}입니다. ${annualPrescription} 상담자의 눈으로 보면 이 사주는 빠르게 증명하려는 마음보다, 오래 반복해도 탁해지지 않는 루틴과 관계의 경계를 세울 때 훨씬 맑아집니다. 대운은 삶의 배경을 바꾸고, 세운은 그 배경 위에 사건을 올립니다. 그러니 큰 선택은 대운의 방향으로, 당장의 대응은 세운의 신호로 나누어 보면 운을 쓰는 손이 훨씬 부드러워집니다.`,
+      body: `${subjectParticle(person.nameKo)} 가진 명식은 강한 기운을 숨기기보다 좋은 그릇에 담을수록 빛이 커집니다. 지금 필요한 조언은 분명합니다. ${softSentence(daewoonHowToUse)} ${softSentence(annualPrescription)} 상담자의 눈으로 보면 이 사주는 빠르게 증명하려는 마음보다, 오래 반복해도 탁해지지 않는 루틴과 관계의 경계를 세울 때 훨씬 맑아집니다. 대운은 삶의 배경을 바꾸고, 세운은 그 배경 위에 사건을 올립니다. 그러니 큰 선택은 대운의 방향으로, 당장의 대응은 세운의 신호로 나누어 보면 운을 쓰는 손이 훨씬 부드러워집니다.`,
     },
     {
       title: "운명의 한 문장",
@@ -1324,6 +1347,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
   ];
   const seoKeywords = uniqueKeywords([...person.seoKeywords, `${person.nameKo} 사주`, `${dayElement} 일간`, dayMasterLabel, `${person.nameKo} 유명인 사주`, saju.timeUnknown ? "삼주 기반 분석" : "사주팔자 분석"]);
   const craftedArticle = craftedFamousSajuArticles[person.slug];
+  const articleSections = ensureMandatoryDaewoonSection(craftedArticle?.sections, sections);
 
   return {
     celebrity: person,
@@ -1341,7 +1365,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
     analysisBadge,
     timeNotice,
     summary: craftedArticle?.summary || summary,
-    sections: craftedArticle?.sections || sections,
+    sections: articleSections,
     insightCards,
     reliabilityNotes: calculatedChart.reliabilityNotes,
     conclusion: craftedArticle?.conclusion || conclusion,

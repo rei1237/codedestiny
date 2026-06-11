@@ -7,7 +7,6 @@
   'use strict';
 
   /* ── 상수 ── */
-  var NS = 'FORTUNE_APP_USER_PROFILES';
   var SIBYL_REPORT_CACHE_VERSION = '20260522-local-dominator-v1';
   var SIBYL_REPORT_CACHE_NS = 'cd_sibyl_report_cache';
   var SIBYL_FEATURE_KEY = 'premium-sibyl-dominator';
@@ -271,9 +270,9 @@
   /* 현재 프로필 읽기 */
   function _getCurrentProfile() {
     try {
-      var list = JSON.parse(localStorage.getItem(NS + '.list') || '[]');
-      var curr = localStorage.getItem(NS + '.current');
-      var p = (curr && list.find(function(x){return x.id===curr;})) || list[0] || null;
+      var p = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+        || window.__cdCurrentDestinyProfile
+        || null;
       if (p && (!p.birth || !p.birth.year)) p = null;
       return p;
     } catch(e) { return null; }

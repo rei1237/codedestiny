@@ -1259,6 +1259,21 @@ function normalizeKoreanPhoneNumber(value) {
   return localDigits;
 }
 
+function maskKoreanPhoneNumber(value) {
+  const phoneNumber = normalizeKoreanPhoneNumber(value);
+  if (!phoneNumber) return "";
+  return `${phoneNumber.slice(0, 3)}-****-${phoneNumber.slice(-4)}`;
+}
+
+function buildPaymentPhoneResponse(user, extra = {}) {
+  const phoneNumber = normalizeKoreanPhoneNumber(user?.phoneNumber || user?.phone);
+  return {
+    ...extra,
+    hasPhone: Boolean(phoneNumber),
+    maskedPhone: phoneNumber ? maskKoreanPhoneNumber(phoneNumber) : "",
+  };
+}
+
 function normalizeAuthUserResponse(user) {
   const normalized = normalizeUserResponse(user);
   const phoneNumber = normalizeKoreanPhoneNumber(user?.phoneNumber || user?.phone);
@@ -1890,7 +1905,37 @@ async function handleMe(request, env) {
   }
 }
 
-async function handleUpdatePhoneNumber(request, env) {
+async function handlePaymentPhoneStatus(request, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
+  const auth = await requireAuth(request, env);
+  const userId = String(auth.userId || "");
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return json({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
+  }
+
+  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_phone_connect_db");
+  const user = await withAuthOpTimeout(
+    User.findById(userId)
+      .select("phoneNumber phone")
+      .maxTimeMS(dbMaxTimeMs)
+      .lean(),
+    timeoutMs,
+    "auth_payment_phone_find_user",
+  );
+
+  if (!user) {
+    return json({ ok: false, code: "user_not_found", message: "User not found." }, { status: 404 });
+  }
+
+  return json({
+    ok: true,
+    ...buildPaymentPhoneResponse(user),
+  });
+}
+
+async function handleSavePaymentPhoneNumber(request, env) {
   const timeoutMs = getAuthOpTimeoutMs(env);
   const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
   const auth = await requireAuth(request, env);
@@ -1901,7 +1946,7 @@ async function handleUpdatePhoneNumber(request, env) {
     return json({
       ok: false,
       code: "invalid_phone_number",
-      message: "Phone number is required for payment customer information.",
+      message: "휴대폰 번호를 정확히 입력해 주세요.",
     }, { status: 400 });
   }
 
@@ -1911,26 +1956,38 @@ async function handleUpdatePhoneNumber(request, env) {
   }
 
   await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_phone_connect_db");
+  const currentUser = await withAuthOpTimeout(
+    User.findById(userId)
+      .select("phoneNumber phone")
+      .maxTimeMS(dbMaxTimeMs)
+      .lean(),
+    timeoutMs,
+    "auth_payment_phone_find_current",
+  );
+
+  if (!currentUser) {
+    return json({ ok: false, code: "user_not_found", message: "User not found." }, { status: 404 });
+  }
+
+  const currentPhoneNumber = normalizeKoreanPhoneNumber(currentUser?.phoneNumber || currentUser?.phone);
+  if (currentPhoneNumber) {
+    return json({
+      ok: true,
+      updated: false,
+      ...buildPaymentPhoneResponse(currentUser),
+    });
+  }
+
   const updatedResult = await withAuthOpTimeout(
     User.collection.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(userId) },
-      { $set: { phoneNumber } },
+      { $set: { phoneNumber, phoneUpdatedAt: new Date() } },
       {
         returnDocument: "after",
         projection: {
           _id: 1,
-          name: 1,
-          email: 1,
           phoneNumber: 1,
           phone: 1,
-          birthDate: 1,
-          birthTime: 1,
-          gender: 1,
-          role: 1,
-          points: 1,
-          joinedAt: 1,
-          profileSubscription: 1,
-          localAuth: 1,
         },
         maxTimeMS: dbMaxTimeMs,
       },
@@ -1946,13 +2003,13 @@ async function handleUpdatePhoneNumber(request, env) {
 
   return json({
     ok: true,
-    message: "Phone number updated.",
-    phoneNumber,
-    user: {
-      ...normalizeAuthUserResponse(user),
-      hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
-    },
+    updated: true,
+    ...buildPaymentPhoneResponse(user),
   });
+}
+
+async function handleUpdatePhoneNumber(request, env) {
+  return await handleSavePaymentPhoneNumber(request, env);
 }
 
 async function handleRefresh(request, env) {
@@ -2570,6 +2627,7 @@ export async function handleAuthRoutes(request, env) {
       || path === "/oauth/complete"
       || path === "/referral/kakao-share"
       || path === "/me/phone-number"
+      || path === "/me/payment-phone"
     ) {
       if (!isLocalDevAuthRoute(request, env, method, path)) {
         const configError = configMismatchResponse("auth-basic", env);
@@ -2589,6 +2647,8 @@ export async function handleAuthRoutes(request, env) {
     if (method === "POST" && path === "/login") return await handleLogin(request, env);
     if (method === "POST" && path === "/refresh") return await handleRefresh(request, env);
     if (method === "GET" && path === "/me") return await handleMe(request, env);
+    if (method === "GET" && path === "/me/payment-phone") return await handlePaymentPhoneStatus(request, env);
+    if ((method === "PATCH" || method === "POST") && path === "/me/payment-phone") return await handleSavePaymentPhoneNumber(request, env);
     if ((method === "PATCH" || method === "POST") && path === "/me/phone-number") return await handleUpdatePhoneNumber(request, env);
     if (method === "GET" && path === "/withdraw") return await handleWithdrawCsrfIssue(request, env);
     if (method === "POST" && path === "/withdraw") return await handleWithdraw(request, env);

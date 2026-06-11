@@ -360,10 +360,9 @@
     var fromDom = _recoverBirthFromDOM();
     if (fromDom) return fromDom;
     try {
-      var namespace = 'FORTUNE_APP_USER_PROFILES';
-      var list = JSON.parse(localStorage.getItem(namespace + '.list') || '[]');
-      var currentId = localStorage.getItem(namespace + '.current');
-      var match = (currentId && list.find(function (item) { return item.id === currentId; })) || list[0];
+      var match = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+        || window.__cdCurrentDestinyProfile
+        || null;
       if (match && match.birth && match.birth.year) return match;
     } catch (_) {}
     return null;
@@ -1591,10 +1590,9 @@
     var profile = _getActiveBirthProfile();
     if (!profile || !profile.birth || !profile.birth.year) {
       try {
-        var ns = 'FORTUNE_APP_USER_PROFILES';
-        var list = JSON.parse(localStorage.getItem(ns + '.list') || '[]');
-        var current = localStorage.getItem(ns + '.current');
-        var pick = (current && list.find(function (item) { return item.id === current; })) || list[0] || null;
+        var pick = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+          || window.__cdCurrentDestinyProfile
+          || null;
         if (pick && pick.birth && pick.birth.year) {
           window.__cdActiveBirthProfile = pick;
           profile = pick;

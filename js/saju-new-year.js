@@ -265,10 +265,9 @@
 
   function _recoverBirthFromStorage() {
     try {
-      var ns = 'FORTUNE_APP_USER_PROFILES';
-      var list = JSON.parse(localStorage.getItem(ns + '.list') || '[]');
-      var currId = localStorage.getItem(ns + '.current');
-      return (currId && list.find(function (item) { return item.id === currId; })) || list[0] || null;
+      return (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
+        || window.__cdCurrentDestinyProfile
+        || null;
     } catch (_) {
       return null;
     }

@@ -2,12 +2,17 @@
 
 import { useMemo } from "react";
 import type { RefObject } from "react";
+import { motion } from "framer-motion";
+import { Cookie, Gamepad2, Loader2, Moon, Sparkles } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { buildDetailedInterpretation } from "../lib/animalInterpretation";
 import { getFourPillarStageItems } from "../lib/twelveStages";
 import type { FourPillarStageItem } from "../lib/twelveStages";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import AnimalCompatibilityPanel from "@/components/fortune/animal-twelve/AnimalCompatibilityPanel";
+import AnimalCharacterSvg from "@/components/fortune/animal-twelve/AnimalCharacterSvg";
 import type { AnimalDestinyData, AnimalDestinyInput, PartnerResult, SajuEngineResult, TwelveStagePillars } from "../lib/types";
+import type { TamagotchiCareAction, TamagotchiPetState } from "../store/useAnimalDestinyStore";
 import { resolveTwelveGrowthAnimalResult } from "../lib/twelveGrowthAnimalResults";
 import TwelveAnimalAdviceCard from "./TwelveAnimalAdviceCard";
 import TwelveAnimalDexGrid from "./TwelveAnimalDexGrid";
@@ -26,6 +31,11 @@ type Props = {
   onSaveCard: () => void;
   onShareCard: () => void;
   isExporting: boolean;
+  tamagotchi: TamagotchiPetState | null;
+  tamagotchiStatus: "idle" | "syncing" | "saving" | "error";
+  tamagotchiMessage: string;
+  tamagotchiIsLoggedIn: boolean;
+  onCareTamagotchi: (action: TamagotchiCareAction) => Promise<void>;
 };
 
 type PillarKey = "year" | "month" | "day" | "hour";
@@ -40,6 +50,24 @@ const DETAILED_REPORT_SECTIONS = [
   { key: "relationship", title: "관계 방식" },
   { key: "today", title: "오늘의 개운" },
 ] as const;
+
+type TamagotchiStatKey = "hunger" | "mood" | "bond" | "luck" | "energy" | "growth";
+
+const TAMAGOTCHI_STAT_LABELS: Array<{ key: TamagotchiStatKey; label: string }> = [
+  { key: "hunger", label: "배부름" },
+  { key: "mood", label: "기분" },
+  { key: "bond", label: "유대감" },
+  { key: "luck", label: "행운" },
+  { key: "energy", label: "활력" },
+  { key: "growth", label: "성장" },
+];
+
+const TAMAGOTCHI_ACTIONS: Array<{ key: TamagotchiCareAction; label: string; Icon: LucideIcon }> = [
+  { key: "feed", label: "밥 주기", Icon: Cookie },
+  { key: "play", label: "놀아주기", Icon: Gamepad2 },
+  { key: "rest", label: "쉬게 하기", Icon: Moon },
+  { key: "fortune", label: "운세 듣기", Icon: Sparkles },
+];
 
 // Legacy static-test markers: buildAnimalNarrativeInsights, buildDetailedInterpretation, TAB_LABELS
 // 네 기둥 십이운성 카드 / 오늘의 대표 동물 프로필 / 사주 근거 요약
@@ -150,6 +178,123 @@ function cleanReportText(text: string) {
   return text.replace(/\s+/g, " ").trim();
 }
 
+function TamagotchiCarePanel({
+  animal,
+  tamagotchi,
+  status,
+  message,
+  isLoggedIn,
+  onCare,
+}: {
+  animal: AnimalDestinyData;
+  tamagotchi: TamagotchiPetState | null;
+  status: Props["tamagotchiStatus"];
+  message: string;
+  isLoggedIn: boolean;
+  onCare: (action: TamagotchiCareAction) => Promise<void>;
+}) {
+  const isBusy = status === "syncing" || status === "saving";
+  const averageMood = tamagotchi
+    ? Math.round((tamagotchi.mood + tamagotchi.bond + tamagotchi.luck + tamagotchi.energy) / 4)
+    : 0;
+  const moodLine = averageMood >= 82
+    ? "반짝반짝 기운 충전 중"
+    : averageMood >= 64
+    ? "기분이 몽글몽글 좋아요"
+    : "조용한 돌봄을 기다려요";
+
+  return (
+    <section className="relative overflow-hidden rounded-[2rem] border border-white/65 bg-[linear-gradient(145deg,rgba(44,31,75,0.92),rgba(91,63,126,0.86)_48%,rgba(247,206,146,0.78))] p-4 text-white shadow-[0_22px_52px_rgba(53,33,83,0.28)] sm:p-6">
+      <div className="pointer-events-none absolute inset-0 opacity-45 [background-image:radial-gradient(circle_at_18%_24%,rgba(255,255,255,0.24)_0_2px,transparent_3px),radial-gradient(circle_at_78%_18%,rgba(255,255,255,0.2)_0_1px,transparent_2px),radial-gradient(circle_at_70%_74%,rgba(255,255,255,0.18)_0_2px,transparent_3px)]" />
+      <div className="relative z-10 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.25fr)] lg:items-center">
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="rounded-full border border-white/25 bg-white/12 px-3 py-1 text-[11px] font-black tracking-[0.18em] text-[#fff6d6]">
+              운세 다마고치
+            </span>
+            <span className="rounded-full border border-white/20 bg-white/12 px-3 py-1 text-xs font-bold text-white/90">
+              {isLoggedIn ? "로그인 계정 저장" : "체험 모드"}
+            </span>
+          </div>
+          <div>
+            <h3 className="text-2xl font-black leading-tight sm:text-3xl">{animal.animal_ko}와 오늘의 운을 키우는 중</h3>
+            <p className="mt-2 text-sm font-semibold leading-relaxed text-white/82">
+              {animal.tamagotchi.growth_message}
+            </p>
+          </div>
+          <div className="rounded-3xl border border-white/18 bg-white/12 p-4 backdrop-blur-xl">
+            <p className="text-xs font-black text-[#ffe9a8]">오늘의 전언</p>
+            <p className="mt-2 text-sm font-semibold leading-relaxed text-white/90">
+              {tamagotchi?.todayFortune || animal.today.support_message}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-[minmax(168px,0.8fr)_minmax(0,1fr)] md:items-center">
+          <div className="mx-auto w-full max-w-[240px]">
+            <div className="relative aspect-square rounded-[2rem] border border-white/20 bg-white/16 p-4 shadow-[inset_0_0_34px_rgba(255,255,255,0.12)] backdrop-blur-xl">
+              <div className="absolute inset-4 rounded-full border border-white/20" />
+              <motion.div
+                animate={{ y: [0, -8, 0], scale: [1, 1.025, 1] }}
+                transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
+                className="relative z-10 flex h-full w-full items-center justify-center"
+              >
+                <AnimalCharacterSvg animal={animal} className="h-full w-full drop-shadow-[0_18px_24px_rgba(21,14,42,0.24)]" />
+              </motion.div>
+            </div>
+            <p className="mt-3 text-center text-sm font-black text-[#fff5cc]">{moodLine}</p>
+          </div>
+
+          <div className="space-y-3">
+            <div className="grid gap-2 sm:grid-cols-2">
+              {TAMAGOTCHI_STAT_LABELS.map((item) => {
+                const value = tamagotchi ? tamagotchi[item.key] : 0;
+                return (
+                  <div key={item.key} className="rounded-2xl border border-white/16 bg-white/12 p-3">
+                    <div className="flex items-center justify-between gap-2 text-xs font-black text-white/86">
+                      <span>{item.label}</span>
+                      <span>{value}%</span>
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/18">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${value}%` }}
+                        transition={{ duration: 0.7 }}
+                        className="h-full rounded-full bg-[linear-gradient(90deg,#ffe08a,#ff9f7d,#bff7e8)]"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {TAMAGOTCHI_ACTIONS.map(({ key, label, Icon }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => void onCare(key)}
+                  disabled={!tamagotchi || isBusy}
+                  aria-label={`다마고치 ${label}`}
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/18 bg-white/14 px-3 py-3 text-sm font-black text-white transition hover:bg-white/22 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55"
+                >
+                  <Icon size={17} aria-hidden="true" />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="min-h-10 rounded-2xl border border-white/14 bg-black/12 px-3 py-2 text-xs font-semibold leading-relaxed text-white/78">
+              {isBusy ? <Loader2 size={14} className="mr-2 inline animate-spin" aria-hidden="true" /> : null}
+              {message || "돌봄 기록이 준비되었습니다."}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function AnimalResultScreen({
   animal,
   twelveStages,
@@ -161,6 +306,11 @@ export default function AnimalResultScreen({
   onSaveCard,
   onShareCard,
   isExporting,
+  tamagotchi,
+  tamagotchiStatus,
+  tamagotchiMessage,
+  tamagotchiIsLoggedIn,
+  onCareTamagotchi,
 }: Props) {
   const refined = useMemo(() => resolveTwelveGrowthAnimalResult(animal), [animal]);
 
@@ -196,6 +346,15 @@ export default function AnimalResultScreen({
         animal={animal}
         result={refined}
         representativeStage={representativeStage}
+      />
+
+      <TamagotchiCarePanel
+        animal={animal}
+        tamagotchi={tamagotchi}
+        status={tamagotchiStatus}
+        message={tamagotchiMessage}
+        isLoggedIn={tamagotchiIsLoggedIn}
+        onCare={onCareTamagotchi}
       />
 
       <div className="rounded-[30px] border border-[#d9ccab] bg-[linear-gradient(165deg,rgba(255,253,246,0.94),rgba(245,250,255,0.88))] p-5 shadow-[0_12px_34px_rgba(25,46,76,0.14)] backdrop-blur-sm sm:p-6">

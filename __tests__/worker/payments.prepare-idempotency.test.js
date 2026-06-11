@@ -188,4 +188,55 @@ describe("Payments prepare idempotency", () => {
     expect(payload.code).toBe("IDEMPOTENCY_CONFLICT");
     expect(Payment.create).not.toHaveBeenCalled();
   });
+
+  test("subscription prepare: 신규 판매는 30일권이 아니면 거부해야 한다", async () => {
+    Payment.create = jest.fn();
+    User.findById = jest.fn();
+
+    const req = new Request("https://example.com/api/payments/subscription/prepare", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        tier: "standard",
+        durationMonths: 12,
+        durationDays: 365,
+        paymentMethod: "card_general",
+      }),
+    });
+
+    const response = await testUtils.handleSubscriptionPrepare(req, auth);
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(400);
+    expect(payload.code).toBe("INVALID_SUBSCRIPTION_DURATION");
+    expect(User.findById).not.toHaveBeenCalled();
+    expect(Payment.create).not.toHaveBeenCalled();
+  });
+
+  test("subscription prepare: 연간 planId 직접 요청도 거부해야 한다", async () => {
+    Payment.create = jest.fn();
+    User.findById = jest.fn();
+
+    const req = new Request("https://example.com/api/payments/subscription/prepare", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        tier: "standard",
+        planId: "standard_12m",
+        paymentMethod: "card_general",
+      }),
+    });
+
+    const response = await testUtils.handleSubscriptionPrepare(req, auth);
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(400);
+    expect(payload.code).toBe("SUBSCRIPTION_PLAN_MISMATCH");
+    expect(User.findById).not.toHaveBeenCalled();
+    expect(Payment.create).not.toHaveBeenCalled();
+  });
 });
