@@ -3962,6 +3962,26 @@
       + '</div>';
   }
 
+  function renderProfileLoadingCard() {
+    var el = document.getElementById('dpMasterCard');
+    if (!el) return;
+    _dpEnsureSavingCardStyles();
+    el.className = 'dp-master-card dp-master-card--saving';
+    el.innerHTML =
+      '<div class="dp-saving-sky" aria-hidden="true"></div>'
+      + '<div class="dp-saving-inner" role="status" aria-live="polite">'
+        + '<div class="dp-saving-orbit" aria-hidden="true">'
+          + '<div class="dp-saving-moon"></div>'
+          + '<span class="dp-saving-star dp-saving-star--a"></span>'
+          + '<span class="dp-saving-star dp-saving-star--b"></span>'
+          + '<span class="dp-saving-star dp-saving-star--c"></span>'
+        + '</div>'
+        + '<div class="dp-saving-title">\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uBD88\uB7EC\uC624\uB294 \uC911\uC785\uB2C8\uB2E4.</div>'
+        + '<div class="dp-saving-desc">\uACC4\uC815\uC5D0 \uC800\uC7A5\uB41C \uC6B4\uBA85 \uCE74\uB4DC\uB97C \uD655\uC778\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.</div>'
+        + '<div class="dp-saving-bar" aria-hidden="true"></div>'
+      + '</div>';
+  }
+
   function _zodiacEmoji(year) {
     var animals = ['🐀','🐂','🐅','🐇','🐉','🐍','🐎','🐑','🐒','🐓','🐕','🐖'];
     return animals[(year - 4 + 120) % 12];
@@ -5547,7 +5567,11 @@
 
     _dpEnsureScopedStorageReady();
 
-    renderMasterCard(DPStorage.current());
+    var initialProfile = DPStorage.current();
+    var shouldShowProfileLoading = !initialProfile && _dpHasSessionHint();
+    if (initialProfile) renderMasterCard(initialProfile);
+    else if (shouldShowProfileLoading) renderProfileLoadingCard();
+    else renderMasterCard(null);
 
     /* ★ 구독 플랜 기반 저장 버튼 초기화 */
     _dpLoadSubCache();
@@ -5555,12 +5579,17 @@
 
     // 초기 진입 시에는 인증 상태를 먼저 확인한 뒤에만 결제/구독/프로필 API를 호출한다.
     _dpVerifyLoginSession(false).then(function(ok) {
-      if (!ok) return;
+      if (!ok) {
+        if (shouldShowProfileLoading) renderMasterCard(DPStorage.current());
+        return;
+      }
 
       _dpLoadFromServer(function(loaded) {
         if (loaded) {
           renderMasterCard(DPStorage.current());
           renderProfileList();
+        } else if (shouldShowProfileLoading) {
+          renderMasterCard(DPStorage.current());
         }
       });
 
