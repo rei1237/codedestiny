@@ -126,9 +126,29 @@ const PaymentProcessingContext = createContext<PaymentProcessingContextValue | u
   undefined,
 );
 
+type PaymentOverlayWindow = Window & {
+  _cdSetCoinGateOverlay?: (show: boolean, overlayMessage?: string, mode?: string) => void;
+  __CD_REACT_PAYMENT_OVERLAY_OWNER__?: boolean;
+};
+
+function closeStaticPaymentOverlay() {
+  if (typeof document === "undefined") return;
+  const overlay = document.getElementById("sajuLoaderOverlay");
+  if (!overlay) return;
+  const staticOverlayOpen = overlay.getAttribute("aria-hidden") !== "true" || overlay.style.display === "flex";
+  overlay.setAttribute("aria-hidden", "true");
+  overlay.classList.remove("is-animating", "saju-loader-overlay--front");
+  overlay.style.display = "none";
+  overlay.style.visibility = "hidden";
+  overlay.style.opacity = "";
+  overlay.style.pointerEvents = "";
+  overlay.style.zIndex = "";
+  if (staticOverlayOpen && document.body) document.body.style.overflow = "";
+}
+
 function emitCoinGateOverlay(open: boolean, message?: string, mode?: string) {
   if (typeof window === "undefined") return;
-  const overlayWindow = window as Window & { _cdSetCoinGateOverlay?: (show: boolean, overlayMessage?: string, mode?: string) => void };
+  const overlayWindow = window as PaymentOverlayWindow;
   overlayWindow._cdSetCoinGateOverlay?.(open, message, mode);
 }
 
@@ -462,6 +482,7 @@ export function PaymentProcessingProvider({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingVariant, setProcessingVariant] = useState<PaymentLoadingVariant>("payment");
   const processingVariantRef = useRef<PaymentLoadingVariant>("payment");
+  const overlayStateRef = useRef({ open: false, message: "", mode: "" });
   const completionCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [processingMessage, setProcessingMessageState] = useState(
     DEFAULT_PROCESSING_MESSAGE,
@@ -481,6 +502,7 @@ export function PaymentProcessingProvider({
 
   const closeProcessingNow = useCallback(() => {
     clearCompletionCloseTimer();
+    overlayStateRef.current = { open: false, message: "", mode: "" };
     setIsProcessing(false);
     setPaymentLoadingVariant("payment");
     setProcessingMessageState(DEFAULT_PROCESSING_MESSAGE);
@@ -521,31 +543,43 @@ export function PaymentProcessingProvider({
   }, [clearCompletionCloseTimer]);
 
   const applyReactPaymentOverlay = useCallback((show: boolean, message?: string, mode?: string) => {
+    const nextMessage = String(message || "").trim() || DEFAULT_PROCESSING_MESSAGE;
+    const nextMode = String(mode || "").trim();
+    const previous = overlayStateRef.current;
     if (show) {
+      if (previous.open && previous.message === nextMessage && previous.mode === nextMode) return;
+      overlayStateRef.current = { open: true, message: nextMessage, mode: nextMode };
+      closeStaticPaymentOverlay();
       clearCompletionCloseTimer();
-      const nextVariant = resolvePaymentLoadingVariant(message, mode);
+      const nextVariant = resolvePaymentLoadingVariant(nextMessage, nextMode);
       setPaymentLoadingVariant(nextVariant);
-      setProcessingMessageState(String(message || "").trim() || DEFAULT_PROCESSING_MESSAGE);
+      setProcessingMessageState(nextMessage);
       setIsProcessing(true);
       return;
     }
+    if (!previous.open) return;
     stopProcessing();
   }, [clearCompletionCloseTimer, setPaymentLoadingVariant, stopProcessing]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const overlayWindow = window as Window & { _cdSetCoinGateOverlay?: (show: boolean, message?: string, mode?: string) => void };
+    const overlayWindow = window as PaymentOverlayWindow;
     const previousOverlay = overlayWindow._cdSetCoinGateOverlay;
     const onPaymentLoadingState = (event: Event) => {
       const detail = (event as CustomEvent<{ open?: boolean; message?: string; mode?: string }>).detail || {};
       applyReactPaymentOverlay(Boolean(detail.open), detail.message, detail.mode);
     };
+    overlayWindow.__CD_REACT_PAYMENT_OVERLAY_OWNER__ = true;
+    closeStaticPaymentOverlay();
     overlayWindow._cdSetCoinGateOverlay = applyReactPaymentOverlay;
     window.addEventListener("cd:payment-loading-state", onPaymentLoadingState);
     return () => {
       window.removeEventListener("cd:payment-loading-state", onPaymentLoadingState);
       if (overlayWindow._cdSetCoinGateOverlay === applyReactPaymentOverlay) {
         overlayWindow._cdSetCoinGateOverlay = previousOverlay;
+      }
+      if (overlayWindow.__CD_REACT_PAYMENT_OVERLAY_OWNER__) {
+        delete overlayWindow.__CD_REACT_PAYMENT_OVERLAY_OWNER__;
       }
     };
   }, [applyReactPaymentOverlay]);

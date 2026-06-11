@@ -24,7 +24,7 @@ const DEFAULT_TITLE = "운명을 읽어오는 중입니다...";
 const DEFAULT_DESCRIPTION = "결제가 진행 중입니다. 잠시만 기다려 주세요.";
 const YEON_SPRITE_URL =
   "/fuctionassets/%EB%8F%88%EB%B0%9D%ED%9E%88%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=20260607-unified-payment";
-const UNIFIED_PAYMENT_MARKER = "cd-money-yeon-unified-payment-ui-v20260607";
+const UNIFIED_PAYMENT_MARKER = "cd-money-yeon-unified-payment-ui-v20260611-slow-sprite";
 
 export default function PaymentLoading({
   open,
@@ -145,8 +145,9 @@ export default function PaymentLoading({
           <span className="absolute -inset-2 rounded-[1.5rem] border border-amber-100/18 bg-amber-100/5 shadow-[0_0_24px_rgba(251,191,36,0.18)]" />
           <div className="relative h-[132px] w-[88px] overflow-hidden rounded-[1.25rem] border border-amber-100/45 bg-[#fff7ed] shadow-[0_10px_24px_rgba(251,191,36,0.2)] [contain:paint]">
             <div
-              className="absolute left-0 top-0 h-[200%] w-[400%] animate-[cdYeonPaymentSprite_1.12s_linear_infinite]"
+              className="absolute left-0 top-0 h-[200%] w-[400%]"
               style={{
+                animation: "cdYeonPaymentSprite 3.6s steps(1, end) infinite",
                 backgroundImage: `url("${YEON_SPRITE_URL}")`,
                 backgroundRepeat: "no-repeat",
                 backgroundSize: "100% 100%",
@@ -184,6 +185,11 @@ export default function PaymentLoading({
             62.5%, 74.99% { transform: translate3d(-25%, -50%, 0); }
             75%, 87.49% { transform: translate3d(-50%, -50%, 0); }
             87.5%, 100% { transform: translate3d(-75%, -50%, 0); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            [data-payment-loading-marker="${UNIFIED_PAYMENT_MARKER}"] [style*="cdYeonPaymentSprite"] {
+              animation-duration: 6.4s !important;
+            }
           }
         `}</style>
       </div>
