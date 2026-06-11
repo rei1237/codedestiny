@@ -46,8 +46,14 @@ export default function FlowerUnlockGate({
           Math.random().toString(36).slice(2, 9),
       });
 
-      if (purchaseResult.status === 401 || purchaseResult.status === 403 || purchaseResult.error?.code === "AUTH_REQUIRED") {
+      const purchaseErrorCode = String(purchaseResult.error?.code || purchaseResult.code || "").trim().toUpperCase();
+      if (purchaseResult.status === 401 || purchaseErrorCode === "AUTH_REQUIRED" || purchaseErrorCode === "NOT_LOGGED_IN" || purchaseErrorCode === "TOKEN_EXPIRED") {
         router.replace(`/login?next=${encodeURIComponent(nextPath)}`);
+        return;
+      }
+
+      if (purchaseResult.status === 403 && (purchaseErrorCode === "MISSING_PROFILE_ID" || purchaseErrorCode === "PROFILE_REQUIRED" || purchaseErrorCode === "INVALID_PROFILE")) {
+        setMessage(String(purchaseResult.error?.message || purchaseResult.message || "\uD504\uB85C\uD544\uC744 \uBA3C\uC800 \uC120\uD0DD\uD55C \uB4A4 \uB2E4\uC2DC \uC9C4\uD589\uD574 \uC8FC\uC138\uC694."));
         return;
       }
 

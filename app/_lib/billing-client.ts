@@ -194,10 +194,10 @@ type BillingCoinGateInput = {
 };
 
 const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
-const BILLING_BALANCE_RECENT_TTL_MS = 650;
+const BILLING_BALANCE_RECENT_TTL_MS = 5000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
 const PAYMENT_CHOICE_RECENT_TTL_MS = 1800;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=20260611-license-pass";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-05360bb67a23";
 
 const billingCoinGateInFlight = new Map<string, {
   requestId: string;
@@ -263,6 +263,12 @@ export type ServiceExecutionData = {
 
 function toText(value: unknown): string {
   return String(value || "").trim();
+}
+
+function normalizePaymentMode(value: unknown): string {
+  const mode = toText(value).toUpperCase().replace(/[\s-]+/g, "_");
+  if (mode === "MONTHLY_CREDIT" || mode === "MEMBERSHIP_CREDIT" || mode === "MOONLIGHTSTONE") return "MOONLIGHT_STONE";
+  return mode;
 }
 
 function toNumber(value: unknown, fallback = 0): number {
@@ -454,14 +460,40 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const title = toText(opts.title || opts.reason || "유료 서비스") || "유료 서비스";
   const coinPrice = Math.max(0, Math.floor(toNumber(opts.coinPrice ?? opts.cost, 0)));
   const membershipCoverage = asRecord(opts.membershipCoverage);
-  const latestBalance = await fetchBillingBalance().catch(() => null);
+  const optsMembership = asRecord(opts.membership);
+  const optsProfileSubscription = asRecord(opts.profileSubscription);
+  const coverageMembership = asRecord(membershipCoverage?.membership);
+  const coverageProfileSubscription = asRecord(membershipCoverage?.profileSubscription);
+  const knownMonthlyBalance = firstFiniteNonNegativeNumber(
+    opts.monthlyBalance,
+    opts.monthlyCredits,
+    opts.membershipCreditBalance,
+    optsMembership?.monthlyBalance,
+    optsMembership?.monthlyCredits,
+    optsMembership?.membershipCreditBalance,
+    optsProfileSubscription?.monthlyBalance,
+    optsProfileSubscription?.monthlyCredits,
+    optsProfileSubscription?.membershipCreditBalance,
+    membershipCoverage?.monthlyBalance,
+    membershipCoverage?.monthlyCredits,
+    membershipCoverage?.membershipCreditBalance,
+    coverageMembership?.monthlyBalance,
+    coverageMembership?.monthlyCredits,
+    coverageMembership?.membershipCreditBalance,
+    coverageProfileSubscription?.monthlyBalance,
+    coverageProfileSubscription?.monthlyCredits,
+    coverageProfileSubscription?.membershipCreditBalance,
+  );
+  const latestBalance = knownMonthlyBalance === null
+    ? await fetchBillingBalance({ emit: false }).catch(() => null)
+    : null;
   const latestBalanceData = latestBalance?.ok ? latestBalance.data : null;
   const passDiscount = asRecord(membershipCoverage?.passDiscount);
   const discountFinalCoin = Math.max(0, Math.floor(toNumber(passDiscount?.finalCoinPrice, 0)));
   const directCoinPrice = passDiscount && discountFinalCoin > 0 ? discountFinalCoin : coinPrice;
   const rawDirectAmount = Math.max(0, Math.floor(toNumber(opts.amountKrw ?? opts.amountKRW, directCoinPrice * 100)));
   const directAmount = passDiscount && discountFinalCoin > 0 ? directCoinPrice * 100 : rawDirectAmount;
-  const monthlyBalance = firstFiniteMonthlyBalance(opts, membershipCoverage, latestBalanceData);
+  const monthlyBalance = knownMonthlyBalance ?? firstFiniteMonthlyBalance(latestBalanceData);
   const requiredMonthlyCredits = passDiscount && discountFinalCoin > 0
     ? directCoinPrice * 10
     : Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, directCoinPrice * 10)));
@@ -500,9 +532,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             <span>카드 또는 간편결제로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.</span>
           </button>
           <button type="button" class="cd-react-payment-choice-option" data-mode="monthly"${canUseMonthly ? "" : " disabled aria-disabled=\"true\""}>
-            <span class="cd-react-payment-choice-badge">월정석</span>
-            <strong>월정석 ${requiredMonthlyCredits.toLocaleString("ko-KR")}개 사용</strong>
-            <span>${canUseMonthly ? "보유 월정석으로 즉시 이용 권한을 저장합니다." : `월정석 잔액 부족 · 보유 ${monthlyBalance.toLocaleString("ko-KR")}개`}</span>
+            <span class="cd-react-payment-choice-badge">Moonlight Stone</span>
+            <strong>Moonlight Stone ${requiredMonthlyCredits.toLocaleString("ko-KR")}개 사용</strong>
+            <span>${canUseMonthly ? "보유 Moonlight Stone으로 즉시 이용 권한을 저장합니다." : `Moonlight Stone 잔량 부족 · 보유 ${monthlyBalance.toLocaleString("ko-KR")}개`}</span>
           </button>
           <button type="button" class="cd-react-payment-choice-option" data-mode="pass-store">
             <span class="cd-react-payment-choice-badge">${escapePaymentText(passLabel)}</span>
@@ -533,7 +565,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     const showWaitOverlay = (mode: PaymentChoiceMode) => {
       const runtimeWindow = window as RuntimeApiWindow;
       if (mode === "monthly") {
-        runtimeWindow._cdSetCoinGateOverlay?.(true, "월정석 잔액과 이용 권한을 확인하고 있습니다.", "monthly");
+        runtimeWindow._cdSetCoinGateOverlay?.(true, "Moonlight Stone 보너스 적용 중입니다. 보너스 잔량과 이용 권한을 확인하고 있습니다.", "monthly");
       } else if (mode === "direct") {
         runtimeWindow._cdSetCoinGateOverlay?.(false);
       }
@@ -556,13 +588,13 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           return;
         }
         if (button.disabled) {
-          if (mode === "monthly") setStatus("월정석 잔액이 부족합니다. 단건 결제를 선택해 주세요.", true);
+          if (mode === "monthly") setStatus("Moonlight Stone 잔량이 부족합니다. 단건 결제를 선택해 주세요.", true);
           return;
         }
         modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((node) => {
           node.disabled = true;
         });
-        setStatus(mode === "monthly" ? "월정석 결제를 확인하고 있습니다." : "단건 결제창을 준비하고 있습니다.");
+        setStatus(mode === "monthly" ? "Moonlight Stone 보너스를 적용하고 있습니다." : "단건 결제를 진행하고 있습니다.");
         showWaitOverlay(mode);
         close(mode);
       });
@@ -810,8 +842,8 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
   if (typeof window === "undefined") return null;
   if (input.forceDeduct === false) return null;
 
-  const requestedMode = toText(input.paymentMode).toUpperCase();
-  if (requestedMode === "MEMBERSHIP_PASS" || requestedMode === "MONTHLY_CREDIT" || requestedMode === "DIRECT_KRW") return null;
+  const requestedMode = normalizePaymentMode(input.paymentMode);
+  if (requestedMode === "MEMBERSHIP_PASS" || requestedMode === "MOONLIGHT_STONE" || requestedMode === "DIRECT_KRW") return null;
 
   const runtimeGate = context.runtimeGate || await loadPaidServiceRuntimeGate();
   if (!runtimeGate) return null;
@@ -1003,14 +1035,14 @@ function resolvePaymentWaitKind(input: {
   reason?: string;
   accessType?: string;
 }) {
-  const mode = toText(input.paymentMode).toUpperCase();
+  const mode = normalizePaymentMode(input.paymentMode);
   const haystack = [input.status, input.message, input.paymentMode, input.featureKey, input.reason, input.accessType]
     .map((value) => toText(value).toLowerCase())
     .filter(Boolean)
     .join(" ");
 
   if (mode === "MEMBERSHIP_PASS" || /membership_pass|pass_applied|이용권 확인|이용권 적용|이용권으로|membership/.test(haystack)) return "pass";
-  if (mode === "MONTHLY_CREDIT" || /monthly_credit|monthly|moonstone|월정석/.test(haystack)) return "monthly";
+  if (mode === "MOONLIGHT_STONE" || /\bmonthly_credit\b|membership_credit|moonlight_stone/.test(haystack)) return "monthly";
   if (mode === "DIRECT_KRW" || /direct_krw|one[-_ ]?time|single|단건|원화|카드|checkout/.test(haystack)) return "single";
   if (/subscription|구독|플랜|달빛 이용권 결제|이용권 결제/.test(haystack)) return "subscription";
   if (/unlock|잠금|해제|권한|premium|pdf|리포트/.test(haystack)) return "unlock";
@@ -1092,7 +1124,7 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
   if (status === "paymentWindowOpen") return { message: text || "열린 결제창에서 카드 인증을 진행해 주세요. 인증이 끝나면 권한을 확인합니다.", mode: "card" };
   if (status === "opening" || status === "loadingProducts" || status === "readyToPay") {
     if (kind === "subscription") return { message: text || "코인 기준 이용권 결제 정보를 확인하고 있습니다.", mode: "subscription" };
-    if (kind === "monthly") return { message: text || "이벤트 월정석 보너스를 확인하고 콘텐츠 이용 권한을 여는 중입니다.", mode: "monthly" };
+    if (kind === "monthly") return { message: text || "Moonlight Stone 보너스 적용을 준비하고 있습니다.", mode: "monthly" };
     if (kind === "single") return { message: text || "코인 기준 단건 결제창을 여는 중입니다. 주문 금액과 인증 정보를 안전하게 맞추고 있습니다.", mode: "card" };
     if (kind === "unlock") return { message: text || "잠금 해제 준비 중입니다.", mode: "unlock-saving" };
     return { message: text || "결제창을 열기 전 주문 정보를 확인하고 있습니다.", mode: "checkout" };
@@ -1100,14 +1132,14 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
   if (status === "paymentProcessing") {
     if (kind === "pass") return { message: text || "이용권을 적용하고 있습니다.", mode: "pass" };
     if (kind === "subscription") return { message: text || "코인 기준 이용권 결제 승인과 활성화를 확인하고 있습니다.", mode: "subscription" };
-    if (kind === "monthly") return { message: text || "이벤트 월정석 보너스 차감과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "monthly" };
+    if (kind === "monthly") return { message: text || "Moonlight Stone 보너스 적용 중입니다. 보너스 잔량과 이용 권한을 확인하고 있습니다.", mode: "monthly" };
     if (kind === "single") return { message: text || "코인 기준 단건 결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "confirm" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제를 반영하고 있습니다.", mode: "unlock-saving" };
     return { message: text || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: "confirm" };
   }
   if (status === "paymentSuccess") {
     if (kind === "subscription") return { message: text || "코인 기준 이용권 활성화가 완료되었습니다.", mode: "payment-complete" };
-    if (kind === "monthly") return { message: text || "이벤트 월정석 보너스로 콘텐츠 이용 권한을 열었습니다.", mode: "payment-complete" };
+    if (kind === "monthly") return { message: text || "Moonlight Stone 보너스로 콘텐츠 이용 권한을 열었습니다.", mode: "payment-complete" };
     if (kind === "single") return { message: text || "코인 기준 단건 결제와 이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제가 완료되었습니다.", mode: "payment-complete" };
     return { message: text || "이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
@@ -1150,7 +1182,7 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
   const status = String(payload.status || "checkingEntitlement");
   const copyFromStatus: Record<PaidFeatureGateRuntimeStatus, string> = {
     opening: "결제 가능한 수단을 확인하고 있습니다.",
-    checkingEntitlement: "이용권을 적용하고 있습니다.",
+    checkingEntitlement: "이용권 확인 중입니다.",
     hasEntitlement: "이용권 적용이 완료되었습니다.",
     noEntitlement: "결제가 필요합니다. 결제 페이지로 이동해 주세요.",
     loadingProducts: "결제 상품 정보를 확인하고 있습니다.",
@@ -1431,9 +1463,9 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       paymentRequestedMarked = true;
       markPaidAttemptPaymentRequested();
     };
-    const requestedMode = toText(input.paymentMode).toUpperCase();
+    const requestedMode = normalizePaymentMode(input.paymentMode);
     const explicitPassMode = requestedMode === "MEMBERSHIP_PASS";
-    const explicitPaymentMode = explicitPassMode || requestedMode === "MONTHLY_CREDIT" || requestedMode === "DIRECT_KRW";
+    const explicitPaymentMode = explicitPassMode || requestedMode === "MOONLIGHT_STONE" || requestedMode === "DIRECT_KRW";
     const runtimeGatePreload = !explicitPaymentMode && input.forceDeduct !== false && typeof window !== "undefined"
       ? loadPaidServiceRuntimeGate().catch(() => null)
       : null;
@@ -1612,7 +1644,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       },
       body: JSON.stringify({
         ...(input || {}),
-        paymentMode: passFirstEligible ? "MEMBERSHIP_PASS" : input.paymentMode,
+        paymentMode: passFirstEligible ? "MEMBERSHIP_PASS" : (requestedMode || input.paymentMode),
         forceDeduct: passFirstEligible ? false : input.forceDeduct,
         attemptId: activeAttempt.attemptId,
       }),

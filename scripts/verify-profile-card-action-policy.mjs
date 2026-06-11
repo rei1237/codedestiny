@@ -34,7 +34,7 @@ const cases = [
     includes: [
       ["policy", "PROFILE_CARD_DELETE_PAYMENT_REQUIRED"],
       ["policy", "PROFILE_CARD_PAYMENT_BYPASS"],
-      ["profileRoute", "ensureProfileEditDeleteAuthorized(auth, {"],
+      ["profileRoute", "ensureProfileDeleteAuthorized(auth, {"],
       ["profileRoute", "profileCardActionPaymentRequiredResponse(action, requestId, profileId, policy)"],
       ["profileRoute", "if (profileCount <= 1)"],
     ],
@@ -73,7 +73,7 @@ const cases = [
   {
     name: "monthly stones cost is fixed at 500 and recorded atomically",
     includes: [
-      ["policy", "PROFILE_CARD_EDIT_DELETE_COST_MONTHLY_STONES = 500"],
+      ["policy", "PROFILE_CARD_DELETE_COST_MONTHLY_STONES = 500"],
       ["profileRoute", "PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
       ["profileRoute", "\"profileSubscription.membershipCreditBalance\": -PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
       ["profileRoute", "\"profileSubscription.membershipCreditUsed\": PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],

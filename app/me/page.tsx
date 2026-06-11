@@ -77,7 +77,7 @@ type PremiumPdfArchiveItem = {
   pdfUrl?: string;
 };
 
-type ProfileActionType = "create" | "edit" | "delete";
+type ProfileActionType = "create" | "delete";
 
 type ProfileActionStage = "" | "payment" | "coin" | "saving" | "deleting";
 type ProfileActionPaymentMethod = "card" | "monthly_stones";
@@ -158,11 +158,6 @@ const PROFILE_CARD_ACTION_PRODUCTS = {
     actionType: "profile_card_add_extra",
     orderName: "프로필 카드 추가",
   },
-  edit: {
-    productId: "profile_card_edit_50c",
-    actionType: "profile_card_edit",
-    orderName: "프로필 카드 수정",
-  },
 } as const;
 
 async function safeParseJson<T>(response: Response): Promise<T & { message?: string; ok?: boolean }> {
@@ -174,7 +169,7 @@ async function safeParseJson<T>(response: Response): Promise<T & { message?: str
 }
 
 function profileActionLabel(action: ProfileActionType) {
-  return action === "edit" ? "\uC218\uC815" : action === "create" ? "\uCD94\uAC00" : "\uC0AD\uC81C";
+  return action === "create" ? "\uCD94\uAC00" : "\uC0AD\uC81C";
 }
 
 function profileActionProductName(action: ProfileActionType) {
@@ -184,8 +179,7 @@ function profileActionProductName(action: ProfileActionType) {
 function profileActionButtonLabel(action: ProfileActionType) {
   const label = profileActionLabel(action);
   if (action === "delete") return `${label} · 50코인 가치`;
-  if (action === "create") return label;
-  return `${label} · 50코인 가치`;
+  return label;
 }
 
 function profileActionPrimaryLabel(action: ProfileActionType, method?: ProfileActionPaymentMethod) {
@@ -199,7 +193,7 @@ function profileActionProgressLabel(action: ProfileActionType, stage: ProfileAct
   if (stage === "coin") return "월정석을 차감하는 중입니다.";
   if (stage === "saving") return action === "delete" ? "\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4." : `${profileActionLabel(action)} \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.`;
   if (stage === "deleting") return "\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.";
-  return action === "edit" ? "\uC218\uC815 \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4." : "\uC0AD\uC81C \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.";
+  return action === "create" ? "\uCD94\uAC00 \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4." : "\uC0AD\uC81C \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.";
 }
 
 
@@ -231,15 +225,6 @@ function getProfileBirthTime(profile: DestinyProfile) {
   if (match) return match[1];
   const birth = profile.birth || {};
   return `${String(Number(birth.hour || 0)).padStart(2, "0")}:${String(Number(birth.minute || 0)).padStart(2, "0")}`;
-}
-
-function buildEditDraft(profile: DestinyProfile): ProfileActionDraft {
-  return {
-    name: String(profile.name || "").trim(),
-    gender: profile.gender || "OTHER",
-    birthDate: getProfileBirthDate(profile),
-    birthTime: getProfileBirthTime(profile),
-  };
 }
 
 function buildCreateDraft(): ProfileCreateDraft {
@@ -404,13 +389,6 @@ export default function MePage() {
   const [archiveLoading, setArchiveLoading] = useState(false);
   const [archiveNotice, setArchiveNotice] = useState("");
   const [membershipCreditBalance, setMembershipCreditBalance] = useState(0);
-  const [editTarget, setEditTarget] = useState<DestinyProfile | null>(null);
-  const [editDraft, setEditDraft] = useState<ProfileActionDraft>({
-    name: "",
-    gender: "OTHER",
-    birthDate: "",
-    birthTime: "00:00",
-  });
   const [isCreateProfileOpen, setIsCreateProfileOpen] = useState(false);
   const [createDraft, setCreateDraft] = useState<ProfileCreateDraft>(buildCreateDraft());
   const [viewingProfile, setViewingProfile] = useState<DestinyProfile | null>(null);
@@ -834,11 +812,10 @@ export default function MePage() {
   };
 
   const executeProfileAction = useCallback(async (
-    action: ProfileActionType,
+    action: "delete",
     profile: DestinyProfile,
     requestId: string,
     paymentContext: Record<string, unknown> | null,
-    draft?: ProfileActionDraft,
   ) => {
     const body: Record<string, unknown> = {
       requestId,
@@ -853,15 +830,8 @@ export default function MePage() {
       amountKrw: PROFILE_CARD_ACTION_COST_KRW,
       ...(paymentContext || {}),
     };
-    if (action === "edit" && draft) {
-      body.name = draft.name;
-      body.gender = draft.gender;
-      body.birthDate = draft.birthDate;
-      body.birthTime = draft.birthTime;
-    }
-
     const response = await authFetch(`${apiBase}/api/profile/${encodeURIComponent(profile.id)}`, {
-      method: action === "edit" ? "PATCH" : "DELETE",
+      method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }, {
@@ -871,20 +841,14 @@ export default function MePage() {
     const payload = await safeParseJson<{ profiles?: DestinyProfile[]; currentId?: string; profile?: DestinyProfile }>(response);
     if (!response.ok || !payload?.ok) throw new Error(payload?.message || `${profileActionProductName(action)}에 실패했습니다.`);
 
-    if (action === "delete") {
-      const nextProfiles = Array.isArray(payload.profiles) ? payload.profiles : [];
-      const nextCurrentId = typeof payload.currentId === "string" ? payload.currentId : (nextProfiles[0]?.id || "");
-      setProfiles(nextProfiles);
-      setCurrentId(nextCurrentId);
-      setCanCreateMore(true);
-      emitDestinyProfileChanged(nextProfiles, nextCurrentId);
-    } else if (payload.profile) {
-      const nextProfiles = profiles.map((item) => item.id === profile.id ? payload.profile as DestinyProfile : item);
-      setProfiles(nextProfiles);
-      if (profile.id === currentId) emitDestinyProfileChanged(nextProfiles, currentId);
-    }
+    const nextProfiles = Array.isArray(payload.profiles) ? payload.profiles : [];
+    const nextCurrentId = typeof payload.currentId === "string" ? payload.currentId : (nextProfiles[0]?.id || "");
+    setProfiles(nextProfiles);
+    setCurrentId(nextCurrentId);
+    setCanCreateMore(true);
+    emitDestinyProfileChanged(nextProfiles, nextCurrentId);
     await refreshProfileActionBalance();
-  }, [apiBase, currentId, profiles, refreshProfileActionBalance]);
+  }, [apiBase, refreshProfileActionBalance]);
 
   const executeProfileCreateAction = useCallback(async (
     requestId: string,
@@ -943,7 +907,7 @@ export default function MePage() {
     setCreateDraft(buildCreateDraft());
   }, [apiBase, applyProfilePayload, refreshProfileActionBalance]);
 
-  const runProfileActionFlow = useCallback(async (action: ProfileActionType, profile: DestinyProfile, draft?: ProfileActionDraft, paymentMethod?: ProfileActionPaymentMethod) => {
+  const runProfileActionFlow = useCallback(async (action: "delete", profile: DestinyProfile, paymentMethod?: ProfileActionPaymentMethod) => {
     if (busyAction) return;
     const requestId = buildProfileActionRequestId(action, profile.id);
     const selectedPaymentMethod = paymentMethod || (hasEnoughMonthlyStonesForProfileAction ? "monthly_stones" : "card");
@@ -971,9 +935,8 @@ export default function MePage() {
         setProfileActionStage("coin");
       }
       setProfileActionStage(action === "delete" ? "deleting" : "saving");
-      await executeProfileAction(action, profile, requestId, paymentContext, draft);
+      await executeProfileAction(action, profile, requestId, paymentContext);
       setAuthNotice(action === "delete" ? "프로필 카드가 삭제되었습니다." : `${profileActionProductName(action)}이 완료되었습니다.`);
-      if (action === "edit") setEditTarget(null);
       if (action === "delete") setDeleteTarget(null);
     } catch (error) {
       setAuthNotice(error instanceof Error ? error.message : `${profileActionProductName(action)} \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.`);
@@ -1038,13 +1001,6 @@ export default function MePage() {
       setProfileActionStage("");
     }
   }, [busyAction, canCreateWithinProfileLimit, createDraft, executeProfileCreateAction, hasEnoughMonthlyStonesForProfileAction, isProfileActionPaymentBypass, runProfileActionCardPayment]);
-  const openEditProfile = (profile: DestinyProfile) => {
-    setActiveProfileMenuId("");
-    setEditTarget(profile);
-    setEditDraft(buildEditDraft(profile));
-    setAuthNotice("");
-  };
-
   const deleteProfile = async (profileId: string) => {
     setActiveProfileMenuId("");
     const profile = profiles.find((item) => item.id === profileId);
@@ -1241,7 +1197,6 @@ export default function MePage() {
                   const active = profile.id === currentId;
                   const activating = busyAction === `activate:${profile.id}`;
                   const viewing = viewingProfileLoadingId === profile.id;
-                  const editing = busyAction === `edit:${profile.id}`;
                   const deleting = busyAction === `delete:${profile.id}`;
                   const actionHint = profileActionPolicyNotice;
                   const menuOpen = activeProfileMenuId === profile.id;
@@ -1296,7 +1251,7 @@ export default function MePage() {
                                   event.stopPropagation();
                                   void viewProfile(profile);
                                 }}
-                                disabled={viewing || activating || editing || deleting || (!!busyAction && !activating)}
+                                disabled={viewing || activating || deleting || (!!busyAction && !activating)}
                                 className="flex min-h-[44px] w-full touch-manipulation items-center justify-between rounded-md px-3 py-2 text-left text-sm font-semibold text-slate-100 hover:bg-white/10 disabled:opacity-40"
                               >
                                 <span>프로필 조회</span>
@@ -1309,7 +1264,7 @@ export default function MePage() {
                                   event.stopPropagation();
                                   openCreateProfile();
                                 }}
-                                disabled={editing || deleting || activating || !!busyAction}
+                                disabled={deleting || activating || !!busyAction}
                                 className="flex min-h-[44px] w-full touch-manipulation items-center rounded-md px-3 py-2 text-left text-sm font-semibold text-amber-100 hover:bg-amber-300/10 disabled:opacity-40"
                               >
                                 새 프로필 추가
@@ -1319,21 +1274,9 @@ export default function MePage() {
                                 role="menuitem"
                                 onClick={(event) => {
                                   event.stopPropagation();
-                                  openEditProfile(profile);
-                                }}
-                                disabled={editing || deleting || activating || !!busyAction}
-                                className="flex min-h-[44px] w-full touch-manipulation items-center rounded-md px-3 py-2 text-left text-sm font-semibold text-slate-100 hover:bg-white/10 disabled:opacity-40"
-                              >
-                                {editing ? profileActionProgressLabel("edit", profileActionStage) : profileActionButtonLabel("edit")}
-                              </button>
-                              <button
-                                type="button"
-                                role="menuitem"
-                                onClick={(event) => {
-                                  event.stopPropagation();
                                   void deleteProfile(profile.id);
                                 }}
-                                disabled={deleting || editing || activating || !!busyAction}
+                                disabled={deleting || activating || !!busyAction}
                                 className="flex min-h-[44px] w-full touch-manipulation items-center rounded-md px-3 py-2 text-left text-sm font-bold text-rose-100 hover:bg-rose-500/15 disabled:opacity-40"
                               >
                                 {deleting ? profileActionProgressLabel("delete", profileActionStage) : profileActionButtonLabel("delete")}
@@ -1608,95 +1551,6 @@ export default function MePage() {
         </div>
       ) : null}
 
-      {editTarget ? (
-        <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/75 px-0 sm:items-center sm:px-4">
-          <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-amber-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
-            <h3 className="text-lg font-bold text-amber-100">프로필 수정</h3>
-            <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
-              {profileActionPolicyNotice}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-slate-200">
-              {isProfileActionPaymentBypass
-                ? "FAMILY 권한으로 수정합니다."
-                : "프로필 수정에는 50코인 가치가 필요합니다. 서버에서 요금을 확인한 뒤 처리합니다."}
-            </p>
-            <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
-              <p className="truncate text-sm font-semibold text-white">{editTarget.name}</p>
-              <p className="mt-1 text-xs text-slate-400">{formatProfileBirth(editTarget)}</p>
-            </div>
-            {busyAction === `edit:${editTarget.id}` ? (
-              <div className="mt-3 rounded-lg border border-amber-300/35 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
-                {profileActionProgressLabel("edit", profileActionStage)}
-              </div>
-            ) : null}
-            {authNotice ? (
-              <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm leading-6 text-slate-200">
-                {authNotice}
-              </div>
-            ) : null}
-            <div className="mt-4 grid gap-3">
-              <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                이름
-                <input
-                  value={editDraft.name}
-                  onChange={(event) => setEditDraft((prev) => ({ ...prev, name: event.target.value }))}
-                  className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
-                />
-              </label>
-              <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                성별
-                <select
-                  value={editDraft.gender}
-                  onChange={(event) => setEditDraft((prev) => ({ ...prev, gender: event.target.value as ProfileActionDraft["gender"] }))}
-                  className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
-                >
-                  <option value="OTHER">기타</option>
-                  <option value="M">남성</option>
-                  <option value="F">여성</option>
-                </select>
-              </label>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  생년월일
-                  <input
-                    type="date"
-                    value={editDraft.birthDate}
-                    onChange={(event) => setEditDraft((prev) => ({ ...prev, birthDate: event.target.value }))}
-                    className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
-                  />
-                </label>
-                <label className="grid gap-1 text-xs font-semibold text-slate-300">
-                  출생시간
-                  <input type="time"
-                    value={editDraft.birthTime}
-                    onChange={(event) => setEditDraft((prev) => ({ ...prev, birthTime: event.target.value }))}
-                    className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
-                  />
-                </label>
-              </div>
-            </div>
-            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => setEditTarget(null)}
-                disabled={!!busyAction}
-                className="min-h-[44px] rounded-md border border-white/20 px-3 py-2 text-sm font-semibold text-slate-200 disabled:opacity-45"
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                onClick={() => editTarget && void runProfileActionFlow("edit", editTarget, editDraft)}
-                disabled={!editDraft.name.trim() || !editDraft.birthDate || !editDraft.birthTime || !!busyAction}
-                className="min-h-[44px] rounded-md bg-amber-300 px-3 py-2 text-sm font-bold text-slate-900 disabled:opacity-45"
-              >
-                {busyAction === `edit:${editTarget.id}` ? profileActionProgressLabel("edit", profileActionStage) : profileActionPrimaryLabel("edit")}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
       {deleteTarget ? (
         <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/75 px-0 sm:items-center sm:px-4">
           <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-rose-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
@@ -1748,7 +1602,7 @@ export default function MePage() {
                 <>
                   <button
                     type="button"
-                    onClick={() => void runProfileActionFlow("delete", deleteTarget, undefined, "monthly_stones")}
+                    onClick={() => void runProfileActionFlow("delete", deleteTarget, "monthly_stones")}
                     disabled={!!busyAction}
                     className="min-h-[44px] rounded-md border border-rose-300/45 px-3 py-2 text-sm font-bold text-rose-100 disabled:opacity-45"
                   >
@@ -1756,7 +1610,7 @@ export default function MePage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => void runProfileActionFlow("delete", deleteTarget, undefined, "card")}
+                    onClick={() => void runProfileActionFlow("delete", deleteTarget, "card")}
                     disabled={!!busyAction}
                     className="min-h-[44px] rounded-md bg-rose-400 px-3 py-2 text-sm font-bold text-slate-950 shadow-lg shadow-rose-950/30 disabled:opacity-45"
                   >

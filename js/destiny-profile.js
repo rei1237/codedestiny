@@ -24,7 +24,6 @@
   var _dpProfileMenuLastTouchAt = 0;
   var _dpProfileMenuPointerHandledAt = 0;
   var _dpProfileMenuSyntheticEvent = false;
-  var _dpProfileEditTargetId = '';
 
   function _dpReadAuthUser() {
     try {
@@ -181,13 +180,97 @@
     } catch (e) {}
   }
 
+  function _dpToProfileInt(value, fallback) {
+    var n = parseInt(value, 10);
+    return isFinite(n) ? n : fallback;
+  }
+
+  function _dpHasValidProfileDate(year, month, day) {
+    if (!isFinite(year) || !isFinite(month) || !isFinite(day)) return false;
+    var dt = new Date(Date.UTC(year, month - 1, day));
+    return dt.getUTCFullYear() === year && dt.getUTCMonth() + 1 === month && dt.getUTCDate() === day;
+  }
+
+  function _dpNormalizeProfile(profile) {
+    if (!profile || typeof profile !== 'object') return null;
+    var next = Object.assign({}, profile);
+    var id = String(next.id || next.profileId || '').trim();
+    if (id) {
+      next.id = id;
+      next.profileId = id;
+    }
+
+    var birth = next.birth && typeof next.birth === 'object' ? Object.assign({}, next.birth) : {};
+    var dateText = typeof next.birthDate === 'string' ? next.birthDate : '';
+    if (!dateText && typeof next.birthIso === 'string') dateText = String(next.birthIso).split(/[T\s]/)[0] || '';
+    var parsedDate = null;
+    if (dateText) {
+      var dateParts = dateText.indexOf('-') >= 0 || dateText.indexOf('/') >= 0
+        ? dateText.split(/[-/]/)
+        : [dateText.slice(0, 4), dateText.slice(4, 6), dateText.slice(6, 8)];
+      if (dateParts.length >= 3) {
+        parsedDate = {
+          year: _dpToProfileInt(dateParts[0], NaN),
+          month: _dpToProfileInt(dateParts[1], NaN),
+          day: _dpToProfileInt(dateParts[2], NaN)
+        };
+      }
+    }
+
+    var timeText = typeof next.birthTime === 'string' ? next.birthTime : '';
+    if (!timeText && typeof next.birthIso === 'string') {
+      var isoTime = String(next.birthIso).split(/[T\s]/)[1] || '';
+      if (isoTime) timeText = isoTime;
+    }
+    var parsedTime = null;
+    if (timeText) {
+      var timeParts = timeText.split(':');
+      if (timeParts.length >= 2) {
+        parsedTime = {
+          hour: _dpToProfileInt(timeParts[0], NaN),
+          minute: _dpToProfileInt(timeParts[1], NaN)
+        };
+      }
+    }
+
+    var year = _dpToProfileInt(birth.year != null ? birth.year : (next.birthYear != null ? next.birthYear : parsedDate && parsedDate.year), NaN);
+    var month = _dpToProfileInt(birth.month != null ? birth.month : (next.birthMonth != null ? next.birthMonth : parsedDate && parsedDate.month), NaN);
+    var day = _dpToProfileInt(birth.day != null ? birth.day : (next.birthDay != null ? next.birthDay : parsedDate && parsedDate.day), NaN);
+
+    if (_dpHasValidProfileDate(year, month, day)) {
+      var hour = _dpToProfileInt(birth.hour != null ? birth.hour : (next.birthHour != null ? next.birthHour : parsedTime && parsedTime.hour), 12);
+      var minute = _dpToProfileInt(birth.minute != null ? birth.minute : (next.birthMinute != null ? next.birthMinute : parsedTime && parsedTime.minute), 0);
+      if (hour < 0 || hour > 23) hour = 12;
+      if (minute < 0 || minute > 59) minute = 0;
+      var calType = String(birth.calType || next.calType || next.calendarType || 'solar').trim();
+      if (calType !== 'lunar' && calType !== 'lunar_leap') calType = 'solar';
+
+      next.birth = Object.assign({}, birth, {
+        year: year,
+        month: month,
+        day: day,
+        hour: hour,
+        minute: minute,
+        calType: calType
+      });
+      next.birthYear = year;
+      next.birthMonth = month;
+      next.birthDay = day;
+      next.birthHour = hour;
+      next.birthMinute = minute;
+      next.calType = calType;
+      next.birthDate = year + '-' + _dpPad2(month) + '-' + _dpPad2(day);
+      next.birthTime = _dpPad2(hour) + ':' + _dpPad2(minute);
+      next.birthIso = next.birthDate + ' ' + next.birthTime;
+    }
+
+    return next;
+  }
+
   function _dpNormalizeProfiles(profiles) {
     if (!Array.isArray(profiles)) return [];
-    return profiles.filter(function(profile) {
+    return profiles.map(_dpNormalizeProfile).filter(function(profile) {
       return profile && typeof profile === 'object';
-    }).map(function(profile) {
-      var id = String(profile.id || profile.profileId || '').trim();
-      return id && profile.id !== id ? Object.assign({}, profile, { id: id }) : profile;
     });
   }
 
@@ -209,11 +292,24 @@
   }
 
   function _dpSetProfileState(scope, profiles, currentId) {
-    _dpProfileMemoryScope = String(scope || 'guest');
+    var nextScope = String(scope || 'guest');
+    var activeScope = _dpGetProfileScope();
+    if (nextScope !== activeScope) {
+      if (_dpProfileMemoryScope !== activeScope) {
+        _dpProfileMemoryScope = activeScope;
+        _dpProfiles = [];
+        _dpCurrentId = '';
+        _dpPublishCurrentProfile();
+      }
+      _dpClearLegacyProfileStorage();
+      return false;
+    }
+    _dpProfileMemoryScope = nextScope;
     _dpProfiles = _dpNormalizeProfiles(profiles);
     _dpCurrentId = _dpResolveCurrentIdFromProfiles(_dpProfiles, currentId);
     _dpClearLegacyProfileStorage();
     _dpPublishCurrentProfile();
+    return true;
   }
 
   function _dpEnsureScopedStorageReady() {
@@ -275,13 +371,17 @@
     },
     remove: function(id) {
       var scope = _dpEnsureScopedStorageReady();
-      var list = DPStorage.list().filter(function(p) { return p.id !== id; });
+      var targetId = String(id || '').trim();
+      var list = DPStorage.list().filter(function(p) {
+        return String((p && (p.id || p.profileId)) || '').trim() !== targetId;
+      });
       _dpSetProfileState(scope, list, _dpCurrentId === id ? (list.length ? list[0].id : '') : _dpCurrentId);
     },
     update: function(id, patch) {
       var scope = _dpEnsureScopedStorageReady();
+      var targetId = String(id || '').trim();
       var list = DPStorage.list().map(function(p) {
-        return p.id === id ? Object.assign({}, p, patch) : p;
+        return String((p && (p.id || p.profileId)) || '').trim() === targetId ? Object.assign({}, p, patch) : p;
       });
       _dpSetProfileState(scope, list, _dpCurrentId || id);
     }
@@ -989,6 +1089,7 @@
         if (callback) callback(false);
         return;
       }
+      var requestScope = _dpGetProfileScope();
       _dpFetchJsonWithFallback('/api/profile', {
         credentials: 'include',
         cache: 'no-store',
@@ -1001,7 +1102,10 @@
       .then(function(data) {
         if (!data || !data.ok || !Array.isArray(data.profiles)) { if (callback) callback(false); return; }
         var scope = _dpGetProfileScope();
-        _dpSetProfileState(scope, data.profiles, data.currentId || '');
+        if (scope !== requestScope || !_dpSetProfileState(scope, data.profiles, data.currentId || '')) {
+          if (callback) callback(false);
+          return;
+        }
         _dpApplyProfileAccess(data.profileAccess);
         if (data.profileAccess && data.profileAccess.selectionRequired) {
           _toast('이용권 혜택이 종료되어 사용할 프로필 카드 1개를 선택해야 합니다.', 'warn');
@@ -1844,7 +1948,6 @@
     '숙요점 유명인 궁합': 'compat-sukuyo-compatibility',
     '숙요점 궁합 분석': 'compat-sukuyo-compatibility',
     '프로필 카드 추가': 'profile-card-manage',
-    '프로필 카드 수정': 'profile-card-manage',
     '프로필 카드 삭제': 'profile-card-manage'
   };
 
@@ -1975,7 +2078,7 @@
     var title = String(opts.title || opts.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4').trim();
     var featureKey = _dpResolvePaidGateFeatureKey(opts, title);
     var requestId = String(opts.requestId || '').trim() || ('monthly-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
-    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MONTHLY_CREDIT')) });
+    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MOONLIGHT_STONE')) });
     if (!res || !res.ok) throw new Error(_dpReadBillingMessage(res && res.payload, '\uC6D4\uC815\uC11D \uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.'));
     return res.payload || res;
   }
@@ -2396,7 +2499,7 @@
             if (choice === 'monthly') {
               window._cdCoinGatePerUseInFlight = true;
               window.__cdCoinGatePerUseLockAt = Date.now();
-              _dpSetPaymentPending(true, String(reason || '').trim() + ' 월정석 결제를 준비하는 중입니다...');
+              _dpSetPaymentPending(true, 'Moonlight Stone 보너스 적용 중입니다.', 'monthly');
               return _dpRunMonthlyCreditFromMainGate({
                 title: reason,
                 reason: reason,
@@ -2419,7 +2522,7 @@
             }
             window._cdCoinGatePerUseInFlight = true;
             window.__cdCoinGatePerUseLockAt = Date.now();
-            _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 준비하는 중입니다...');
+            _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 진행 중입니다.', 'card');
             return window._cdRunDirectKrwCheckout({
               coinPrice: cost,
               cost: cost,
@@ -2477,7 +2580,7 @@
           if (choice === 'monthly') {
             window._cdCoinGatePerUseInFlight = true;
             window.__cdCoinGatePerUseLockAt = Date.now();
-            _dpSetPaymentPending(true, String(reason || '').trim() + ' 월정석 결제를 준비하는 중입니다...');
+            _dpSetPaymentPending(true, 'Moonlight Stone 보너스 적용 중입니다.', 'monthly');
             return _dpRunMonthlyCreditFromMainGate({
               title: reason,
               reason: reason,
@@ -2500,7 +2603,7 @@
           }
           window._cdCoinGatePerUseInFlight = true;
           window.__cdCoinGatePerUseLockAt = Date.now();
-          _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 준비하는 중입니다...');
+          _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 진행 중입니다.', 'card');
           return window._cdRunDirectKrwCheckout({
             coinPrice: cost,
             cost: cost,
@@ -3093,14 +3196,6 @@
     _dpUpdateProfileQuotaText(profileCount, maxProfiles, planLabel, canUsePlanSlot);
     if (!btn) return;
 
-    if (_dpProfileEditTargetId) {
-      btn.disabled = false;
-      btn.textContent = '프로필 수정 확정 · ' + PROFILE_CARD_MANAGE_COST + '코인';
-      try { document.body.classList.add('dp-profile-editing'); } catch (_) {}
-      return;
-    }
-    try { document.body.classList.remove('dp-profile-editing'); } catch (_) {}
-
     btn.disabled = false;
     if (!hasProfiles && canCreateWithoutPayment) {
       btn.textContent = '✦ 이 정보를 나의 운명 카드에 저장 · ' + slotLabel;
@@ -3400,7 +3495,6 @@
       + '.dp-mc-action-menu__item:active{transform:translateY(1px);}'
       + '.dp-mc-action-menu__item--danger{border-color:rgba(251,113,133,.42);background:rgba(127,29,29,.24);color:#fecdd3;}'
       + '.dp-mc-action-menu__item--danger span{color:#fbbf24;}'
-      + '.dp-profile-editing #dpSaveBtn{background:linear-gradient(135deg,#fbbf24,#f97316)!important;color:#180b02!important;}'
       + '@media(max-width:768px){.dp-mc-action-wrap{z-index:220}.dp-mc-action-menu{top:calc(100% + 8px);width:min(284px,calc(100vw - 24px));padding:10px}.dp-mc-action-menu__item{min-height:54px;font-size:.88rem;}.dp-master-card,.dp-mc-inner,.dp-mc-header{overflow:visible!important;}}';
     document.head.appendChild(style);
   }
@@ -3456,13 +3550,9 @@
     if (!_dpProfileMenuSyntheticEvent && event && event.type === 'click' && (Date.now() - _dpProfileMenuLastTouchAt < 700 || _dpWasProfileMenuPointerRecentlyHandled(btn))) return;
     if (!_dpProfileMenuSyntheticEvent && event && event.type === 'touchend' && _dpWasProfileMenuPointerRecentlyHandled(btn)) return;
     if (source === 'touch') _dpProfileMenuLastTouchAt = Date.now();
-    var wrap = btn && btn.closest ? btn.closest('.dp-mc-action-wrap') : null;
-    if (!wrap) return;
-    var willOpen = !wrap.classList.contains('is-open');
     _dpCloseProfileMenu();
-    wrap.classList.toggle('is-open', willOpen);
-    btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-    if (willOpen) _dpPositionProfileMenu(btn, wrap);
+    if (btn && btn.setAttribute) btn.setAttribute('aria-expanded', 'false');
+    if (typeof window.dpOpenList === 'function') window.dpOpenList();
   }
 
   function _dpRunProfileMenuActionNode(node, event) {
@@ -3475,12 +3565,10 @@
     var profileId = String(item.getAttribute('data-profile-id') || '').trim();
     _dpCloseProfileMenu();
     if (action === 'view' || action === 'list') {
-      _dpClearProfileEditMode();
       window.dpOpenList();
       return;
     }
     if (action === 'delete' && profileId) {
-      if (_dpProfileEditTargetId === profileId) _dpClearProfileEditMode();
       window.dpDeleteProfile(profileId);
     }
   }
@@ -3524,9 +3612,9 @@
         reject(new Error('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'));
         return;
       }
-      var normalizedAction = action === 'delete' ? 'delete' : (action === 'edit' ? 'edit' : 'create');
-      var serviceKey = normalizedAction === 'delete' ? 'profile_card_delete' : (normalizedAction === 'edit' ? 'profile_card_edit' : 'profile_card_create');
-      var reason = normalizedAction === 'delete' ? '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C' : (normalizedAction === 'edit' ? '\uD504\uB85C\uD544 \uCE74\uB4DC \uC218\uC815' : '\uD504\uB85C\uD544 \uCE74\uB4DC \uCD94\uAC00');
+      var normalizedAction = action === 'delete' ? 'delete' : 'create';
+      var serviceKey = normalizedAction === 'delete' ? 'profile_card_delete' : 'profile_card_create';
+      var reason = normalizedAction === 'delete' ? '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C' : '\uD504\uB85C\uD544 \uCE74\uB4DC \uCD94\uAC00';
       window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST, reason, function(transactionId, payload) {
         var data = (payload && typeof payload === 'object') ? payload : {};
         var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
@@ -3624,13 +3712,9 @@
             + '</div>'
           + '</div>'
           + '<div class="dp-mc-action-wrap">'
-            + '<button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="프로필 카드 메뉴" aria-expanded="false" data-profile-menu-marker="profile-card-menu-read-delete-v20260606" style="touch-action:manipulation">'
+            + '<button type="button" class="dp-mc-list-btn dp-mc-menu-btn" aria-label="프로필 목록 열기" aria-expanded="false" aria-controls="dpListSheet" data-profile-menu-marker="profile-card-hamburger-list-delete-v20260611" style="touch-action:manipulation">'
               + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>'
             + '</button>'
-            + '<div class="dp-mc-action-menu" role="menu" aria-label="프로필 카드 관리">'
-              + '<button type="button" class="dp-mc-action-menu__item" role="menuitem" data-dp-menu-action="view" data-profile-id="' + _esc(profile.id) + '">추가 프로필 조회<span>목록</span></button>'
-              + '<button type="button" class="dp-mc-action-menu__item dp-mc-action-menu__item--danger" role="menuitem" data-dp-menu-action="delete" data-profile-id="' + _esc(profile.id) + '">프로필 카드 삭제<span>' + PROFILE_CARD_MANAGE_COST + '코인</span></button>'
-            + '</div>'
           + '</div>'
         + '</div>'
         + '<div class="dp-mc-divider"></div>'
@@ -4171,7 +4255,7 @@
             + '</div>'
             + '<div class="dp-li-actions" aria-label="프로필 카드 관리">'
               + '<button type="button" class="dp-li-view" aria-label="프로필 카드 조회">조회</button>'
-              + '<button type="button" class="dp-li-del" aria-label="프로필 카드 삭제">삭제</button>'
+              + '<button type="button" class="dp-li-del" aria-label="프로필 카드 삭제" data-profile-delete-marker="profile-list-delete-50coin-v20260611">삭제 · ' + PROFILE_CARD_MANAGE_COST + '코인</button>'
             + '</div>'
             + '</div>';
         }).join('') + lockedNotice;
@@ -4254,33 +4338,10 @@
     window._gender = profile.gender || 'F';
   }
 
-  function _dpClearProfileEditMode() {
-    _dpProfileEditTargetId = '';
-    try { document.body.classList.remove('dp-profile-editing'); } catch (_) {}
-    _dpUpdateSaveBtn();
-  }
-
-  function _dpPatchProfile(profileId, data, requestId, paymentContext) {
-    return _dpFetchJsonWithFallback('/api/profile/' + encodeURIComponent(profileId), {
-      method: 'PATCH',
-      credentials: 'include',
-      cache: 'no-store',
-      headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify(Object.assign({ profile: data, requestId: requestId }, data || {}, paymentContext || {}))
-    }, {
-      retryOn401: true,
-      timeoutMs: _DP_FETCH_TIMEOUT_MS
-    });
-  }
-
   window.dpSaveProfile = function() {
     var data = readFormData();
     if (!data) {
       alert('이름과 생년월일을 입력해주세요.');
-      return;
-    }
-    if (_dpProfileEditTargetId) {
-      dpConfirmEditProfile(_dpProfileEditTargetId, data);
       return;
     }
     var profileCount = DPStorage.list().length;
@@ -4292,6 +4353,7 @@
     data.profileId = createProfileId;
     data.id = createProfileId;
     var createRequestId = _dpBuildProfileManageRequestId('create', createProfileId);
+    var createScope = '';
     var createConfirm = createRequiresPayment
       ? '프로필 카드를 추가 생성할까요?\n추가 생성은 서버에서 50코인 또는 5,000원 결제 확인 후 저장됩니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.'
       : '새 프로필 카드를 생성할까요?\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.';
@@ -4315,6 +4377,7 @@
       if (!ok) {
         throw new Error('AUTH_REQUIRED');
       }
+      createScope = _dpGetProfileScope();
       function postProfile(paymentContext) {
         return _dpFetchJsonWithFallback('/api/profile', {
           method: 'POST',
@@ -4373,6 +4436,16 @@
       var payloadOk = result.data && typeof result.data === 'object' ? result.data : {};
       var created = payloadOk.profile && typeof payloadOk.profile === 'object' ? payloadOk.profile : null;
       var scope = _dpGetProfileScope();
+      if (createScope && scope !== createScope) {
+        restoreCardAfterSaveAttempt();
+        _dpLoadFromServer(function(loaded) {
+          if (!loaded) return;
+          renderMasterCard(DPStorage.current());
+          renderProfileList();
+          _dpUpdateSaveBtn();
+        });
+        return null;
+      }
       var list = DPStorage.list();
       var nextId = created && created.id ? String(created.id) : '';
       var currentId = String(payloadOk.currentId || nextId);
@@ -4430,117 +4503,6 @@
         btn.style.opacity = '';
         btn.style.cursor = '';
       }
-    });
-  };
-
-  window.dpStartEditProfile = function(id) {
-    var profileId = String(id || '').trim();
-    var list = DPStorage.list();
-    var profile = list.find(function(item) { return item && String(item.id || '') === profileId; });
-    if (!profile) {
-      alert('수정할 프로필 카드를 찾을 수 없습니다.');
-      return;
-    }
-    DPStorage.setCurrent(profileId);
-    _dpProfileEditTargetId = profileId;
-    try { document.body.classList.add('dp-profile-editing'); } catch (_) {}
-    _dpApplyProfileToForm(profile);
-    renderMasterCard(profile);
-    broadcastProfileChange(profile);
-    _dpUpdateSaveBtn();
-    var formEl = document.querySelector('.input-section') || document.getElementById('destinyCardForm');
-    if (formEl) {
-      try { formEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) { formEl.scrollIntoView(); }
-    }
-    _toast('프로필 정보를 수정한 뒤 수정 확정 버튼을 눌러주세요.', 'success');
-  };
-
-  window.dpConfirmEditProfile = function(id, data) {
-    var profileId = String(id || '').trim();
-    var profile = DPStorage.list().find(function(item) { return item && String(item.id || '') === profileId; });
-    if (!profile || !profileId) {
-      alert('수정할 프로필 카드를 찾을 수 없습니다.');
-      _dpClearProfileEditMode();
-      return;
-    }
-    if (!data) {
-      alert('이름과 생년월일을 입력해주세요.');
-      return;
-    }
-    if (window.__dpProfileEditInFlight === profileId) {
-      alert('프로필 카드 수정이 이미 진행 중입니다.');
-      return;
-    }
-    if (!confirm((profile.name || '선택한 프로필') + ' 프로필 카드를 수정할까요?\n수정 비용은 50코인이며, 서버 확인 후 저장됩니다.')) return;
-
-    var requestId = _dpBuildProfileManageRequestId('edit', profileId);
-    var btn = document.getElementById('dpSaveBtn');
-    window.__dpProfileEditInFlight = profileId;
-    if (btn) {
-      btn.disabled = true;
-      btn.style.opacity = '0.65';
-      btn.style.cursor = 'not-allowed';
-      btn.textContent = '프로필 수정 중...';
-    }
-
-    function requestEdit(paymentContext) {
-      _dpSetPaymentPending(true, '프로필 카드를 수정하는 중입니다...');
-      return _dpPatchProfile(profileId, data, requestId, paymentContext);
-    }
-
-    _dpVerifyLoginSession(true).then(function(ok) {
-      if (!ok) throw new Error('AUTH_REQUIRED');
-      return requestEdit();
-    }).then(function(result) {
-      var payload = result && result.data ? result.data : null;
-      var code = String((payload && payload.code) || '').trim().toUpperCase();
-      if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
-        _dpSetPaymentPending(false);
-        return _dpRunProfileManageGate('edit', profileId, requestId).then(function(paymentContext) {
-          if (!paymentContext) return null;
-          return requestEdit(paymentContext);
-        });
-      }
-      return result;
-    }).then(function(result) {
-      _dpSetPaymentPending(false);
-      if (!result) return null;
-      if (!result.ok || !result.data || result.data.ok === false) {
-        throw new Error((result.data && result.data.message) || '프로필 카드 수정에 실패했습니다.');
-      }
-      var payload = result.data || {};
-      var updated = payload.profile && typeof payload.profile === 'object' ? payload.profile : Object.assign({}, profile, data, { id: profileId });
-      DPStorage.update(profileId, updated);
-      DPStorage.setCurrent(profileId);
-      _dpClearProfileEditMode();
-      var current = DPStorage.current() || updated;
-      renderMasterCard(current);
-      renderProfileList();
-      broadcastProfileChange(current);
-      spawnStardust(document.getElementById('dpMasterCard'));
-      _toast('프로필 카드가 수정되었습니다.', 'success');
-      _dpLoadFromServer(function(loaded) {
-        if (!loaded) return;
-        var refreshed = DPStorage.current();
-        renderMasterCard(refreshed || current);
-        renderProfileList();
-        broadcastProfileChange(refreshed || current);
-        _dpUpdateSaveBtn();
-      });
-      return null;
-    }).catch(function(error) {
-      _dpSetPaymentPending(false);
-      var msg = String(error && error.message || '프로필 카드 수정 중 오류가 발생했습니다.');
-      if (msg === 'AUTH_REQUIRED') msg = '로그인 상태를 확인한 뒤 다시 시도해 주세요.';
-      alert(msg);
-    }).then(function() {
-      if (window.__dpProfileEditInFlight === profileId) window.__dpProfileEditInFlight = '';
-      if (btn) {
-        btn.disabled = false;
-        btn.style.opacity = '';
-        btn.style.cursor = '';
-      }
-      _dpUpdateSaveBtn();
     });
   };
 
@@ -4628,8 +4590,8 @@
             });
             return;
           }
-          _dpLoadFromServer(function() {
-            activateSelectedProfile(true);
+          _dpLoadFromServer(function(loaded) {
+            if (loaded) activateSelectedProfile(true);
           });
         });
         return;
@@ -5923,7 +5885,7 @@
       window._cdCoinGatePerUseInFlight = true;
       window.__cdCoinGatePerUseLockAt = Date.now();
       var pendingLabel = String(reason || '').trim() || '유료 서비스';
-      _dpSetPaymentPending(true, pendingLabel + ' 월정석 결제를 확인하는 중입니다...');
+      _dpSetPaymentPending(true, pendingLabel + ' Moonlight Stone 보너스 적용 중입니다.', 'monthly');
       return _dpWaitForPaymentOverlayPaint().then(function() {
         return _dpFetchJsonWithFallback('/api/billing/coin-gate', {
           method: 'POST',
@@ -5945,7 +5907,7 @@
             action: optionBag.action,
             profileId: optionBag.profileId,
             selectedProfileId: optionBag.selectedProfileId,
-            paymentMode: 'MONTHLY_CREDIT',
+            paymentMode: 'MOONLIGHT_STONE',
             forceDeduct: true,
             requestId: requestId
           })
@@ -5972,7 +5934,7 @@
         var rawData = (res && res.data && typeof res.data === 'object') ? res.data : {};
         var data = (rawData.data && typeof rawData.data === 'object') ? rawData.data : rawData;
         if (res.status === 402 || !res.ok || !data || data.ok === false) {
-          var failMessage = String((data && data.message) || rawData.message || '월정석이 부족합니다. 필요 월정석과 보유 월정석을 확인해 주세요.');
+          var failMessage = String((data && data.message) || rawData.message || 'Moonlight Stone이 부족합니다. 필요 Moonlight Stone과 보유 Moonlight Stone을 확인해 주세요.');
           window.alert(failMessage);
           if (typeof onCancel === 'function') onCancel();
           return;
@@ -6002,7 +5964,7 @@
       }
       window._cdCoinGatePerUseInFlight = true;
       window.__cdCoinGatePerUseLockAt = Date.now();
-      _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 준비하는 중입니다...');
+      _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 진행 중입니다.', 'card');
       return window._cdRunDirectKrwCheckout({
         coinPrice: cost,
         cost: cost,

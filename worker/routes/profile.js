@@ -5,9 +5,9 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import {
-  PROFILE_CARD_EDIT_DELETE_COST_COINS,
-  PROFILE_CARD_EDIT_DELETE_COST_KRW,
-  PROFILE_CARD_EDIT_DELETE_COST_MONTHLY_STONES,
+  PROFILE_CARD_DELETE_COST_COINS,
+  PROFILE_CARD_DELETE_COST_KRW,
+  PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
   PROFILE_CARD_MUTATION_ACTIONS,
   getProfileCardMutationPolicy,
   resolveProfileCardActionAccess,
@@ -16,9 +16,9 @@ import {
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
 const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
-const PROFILE_CARD_MANAGE_COST = PROFILE_CARD_EDIT_DELETE_COST_COINS;
-const PROFILE_CARD_MANAGE_AMOUNT_KRW = PROFILE_CARD_EDIT_DELETE_COST_KRW;
-const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = PROFILE_CARD_EDIT_DELETE_COST_MONTHLY_STONES || calculateMembershipCreditCost(PROFILE_CARD_MANAGE_COST);
+const PROFILE_CARD_MANAGE_COST = PROFILE_CARD_DELETE_COST_COINS;
+const PROFILE_CARD_MANAGE_AMOUNT_KRW = PROFILE_CARD_DELETE_COST_KRW;
+const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = PROFILE_CARD_DELETE_COST_MONTHLY_STONES || calculateMembershipCreditCost(PROFILE_CARD_MANAGE_COST);
 
 function sanitizeString(value, maxLen) {
   return String(value || "").trim().slice(0, maxLen);
@@ -156,7 +156,7 @@ function validateRequiredBirth(rawProfile) {
       day,
       hour,
       minute,
-      calType: sanitizeCalType(birth.calType),
+      calType: sanitizeCalType(birth.calType || source.calType || source.calendarType),
     },
   };
 }
@@ -192,7 +192,7 @@ function normalizeIncomingProfile(raw, index) {
       day: sanitizeInt(birth.day ?? parsedDate?.day, 1, 31, 1),
       hour: sanitizeInt(birth.hour ?? parsedTime?.hour, 0, 23, 0),
       minute: sanitizeInt(birth.minute ?? parsedTime?.minute, 0, 59, 0),
-      calType: sanitizeCalType(birth.calType),
+      calType: sanitizeCalType(birth.calType || source.calType || source.calendarType),
     },
     location: {
       label: sanitizeString(location.label, 120),
@@ -415,13 +415,11 @@ function profilePaymentRequiredResponse(action, requestId) {
 }
 
 function resolveProfileMutationActionType(action) {
-  if (action === PROFILE_CARD_MUTATION_ACTIONS.EDIT) return "profile_card_edit";
   if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) return "profile_card_delete";
   return "profile_card_add_extra";
 }
 
 function resolveProfileMutationReason(action) {
-  if (action === PROFILE_CARD_MUTATION_ACTIONS.EDIT) return "프로필 카드 수정";
   if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) return "프로필 카드 삭제";
   return "프로필 카드 추가";
 }
@@ -437,13 +435,13 @@ function readProfileMutationRequestId(body, action, profileId) {
     120,
   );
   if (explicitRequestId) return explicitRequestId;
-  if (action === PROFILE_CARD_MUTATION_ACTIONS.EDIT || action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) {
+  if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) {
     return `profile-card:${action}:${sanitizeProfileId(profileId)}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`.slice(0, 120);
   }
   return buildProfilePaymentRequestId(action, profileId);
 }
 
-function profileEditDeletePaymentRequiredResponse(action, requestId, profileId, policy = {}) {
+function profileDeletePaymentRequiredResponse(action, requestId, profileId, policy = {}) {
   const reason = resolveProfileMutationReason(action);
   const actionType = resolveProfileMutationActionType(action);
   return json({
@@ -670,7 +668,7 @@ function policyFailureStatus(reason) {
   return 403;
 }
 
-async function ensureProfileEditDeleteAuthorized(auth, { action, profileId, body }) {
+async function ensureProfileDeleteAuthorized(auth, { action, profileId, body }) {
   const requestId = readProfileMutationRequestId(body, action, profileId);
   const policy = await getProfileCardMutationPolicy(auth.userId, profileId, action);
 
@@ -1255,70 +1253,6 @@ async function handleUpdateCurrent(request, auth) {
   });
 }
 
-async function handlePatchProfile(request, auth, profileIdRaw) {
-  const profileId = sanitizeProfileId(profileIdRaw);
-  if (!profileId) return json({ ok: false, message: "유효한 profileId가 필요합니다." }, { status: 400 });
-
-  const body = await readJson(request);
-  const normalized = normalizeIncomingProfile({
-    ...body,
-    profileId,
-  }, 0);
-
-  const authorization = await ensureProfileEditDeleteAuthorized(auth, {
-    action: PROFILE_CARD_MUTATION_ACTIONS.EDIT,
-    profileId,
-    body,
-  });
-  if (!authorization.ok) return authorization.response;
-
-  const claim = await claimProfileMutationEvidence(auth, {
-    action: PROFILE_CARD_MUTATION_ACTIONS.EDIT,
-    profileId,
-    requestId: authorization.requestId,
-    evidence: authorization.evidence,
-  });
-  if (!claim.ok) return claim.response;
-
-  const updated = await ProfileCard.findOneAndUpdate(
-    { userId: auth.userId, profileId },
-    {
-      $set: {
-        name: normalized.name,
-        gender: normalized.gender,
-        birth: normalized.birth,
-        location: normalized.location,
-      },
-    },
-    { returnDocument: "after" },
-  ).lean();
-
-  if (!updated) {
-    await refundProfileMutationCreditIfNeeded(auth, {
-      action: PROFILE_CARD_MUTATION_ACTIONS.EDIT,
-      profileId,
-      requestId: authorization.requestId,
-      evidence: authorization.evidence,
-      reason: "프로필 카드 수정 실패 환불",
-    });
-    return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
-  }
-  await recordProfileMutationCompleted(auth, {
-    action: PROFILE_CARD_MUTATION_ACTIONS.EDIT,
-    profileId,
-    requestId: authorization.requestId,
-    policy: authorization.policy,
-    evidence: authorization.evidence,
-  });
-
-  return json({
-    ok: true,
-    profile: toClientProfile(updated),
-    actionType: "profile_card_edit",
-    policy: authorization.policy,
-  });
-}
-
 async function handleDeleteProfile(request, auth, profileIdRaw) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, message: "유효한 profileId가 필요합니다." }, { status: 400 });
@@ -1337,7 +1271,7 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
   }
 
   const body = await readJson(request).catch(() => ({}));
-  const authorization = await ensureProfileEditDeleteAuthorized(auth, {
+  const authorization = await ensureProfileDeleteAuthorized(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
     profileId,
     body,
@@ -1414,9 +1348,6 @@ export async function handleProfileRoutes(request, env) {
     const profileMatch = path.match(/^\/([^/]+)$/);
     if (profileMatch && method === "GET") {
       return await handleGetProfileDetail(auth, profileMatch[1]);
-    }
-    if (profileMatch && method === "PATCH") {
-      return await handlePatchProfile(request, auth, profileMatch[1]);
     }
     if (profileMatch && method === "DELETE") {
       return await handleDeleteProfile(request, auth, profileMatch[1]);

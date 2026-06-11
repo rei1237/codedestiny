@@ -359,8 +359,8 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     monthlyBalance,
     canUseByMonthly: monthlyCovered,
     canUseByCard: true,
-    recommendedMethod: passCovered ? "PASS" : (monthlyCovered ? "MONTHLY_CREDIT" : "DIRECT_KRW"),
-    hiddenMethods: passCovered ? ["DIRECT_KRW", "MONTHLY_CREDIT", "COIN"] : [],
+    recommendedMethod: passCovered ? "PASS" : (monthlyCovered ? "MOONLIGHT_STONE" : "DIRECT_KRW"),
+    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : [],
     decisionReason: passCovered
       ? "PASS_COVERED"
       : (pdfDiscountRequiresPayment ? "PDF_PASS_DISCOUNT_APPLIED" : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED")),
@@ -430,7 +430,7 @@ function buildPaidContentAccessDecision({
 function resolveProfileCardActionType(value) {
   const text = String(value || "").trim().toLowerCase();
   if (text.includes("delete") || text.includes("remove")) return PROFILE_CARD_MUTATION_ACTIONS.DELETE;
-  return PROFILE_CARD_MUTATION_ACTIONS.EDIT;
+  return "";
 }
 
 async function assertProfileCardPassPolicyIfNeeded({ userId, profileId, pricing, body = {} }) {
@@ -1097,7 +1097,8 @@ async function resolveBillingProfileId(authUserId, body = {}, env = {}) {
 
 function isProfileScopedUnlockKey(featureKey) {
   const key = String(featureKey || "").trim();
-  return Boolean(key && isUnlockPaidFeatureKey(key));
+  if (!key || !isUnlockPaidFeatureKey(key)) return false;
+  return Boolean(resolveSajuProfileUnlockContentKey(key) || key === LOTTO_RITUAL_REPORT_FEATURE_KEY);
 }
 
 async function resolveProfileScopedUnlocks(authUserId, profileId) {
@@ -1922,7 +1923,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const membershipPassOnly = requestedPaymentMode === "membership_pass" || requestedPaymentMode === "membership";
   const monthlyBalanceRequested = requestedPaymentMode === "monthly_credit"
     || requestedPaymentMode === "monthly"
-    || requestedPaymentMode === "membership_credit";
+    || requestedPaymentMode === "membership_credit"
+    || requestedPaymentMode === "moonlight_stone"
+    || requestedPaymentMode === "moonlight stone"
+    || requestedPaymentMode === "moonlightstone";
   const directPaymentRequested = shouldCreateDirectPortOneOrder(body);
   const coinPaymentRequested = requestedPaymentMode === "coin"
     || requestedPaymentMode === "coins"
@@ -2306,7 +2310,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       const passFailureCode = accessDecision.reason === "profile_limit_exceeded"
         ? "PROFILE_LIMIT_EXCEEDED"
         : (accessDecision.reason === "price_exceeds_pass_limit" ? "PRICE_EXCEEDS_PASS_LIMIT" : "MEMBERSHIP_PASS_NOT_COVERED");
-      return failure(402, passFailureCode, "현재 이용권 한도 밖 서비스입니다. 이벤트 월정석 보너스 또는 코인 기준 단건 결제로 이용해 주세요.", undefined, {
+      return failure(402, passFailureCode, "현재 이용권 한도 밖 서비스입니다. Moonlight Stone 보너스 또는 코인 기준 단건 결제로 이용해 주세요.", undefined, {
         pricing,
         ...paymentDecision,
         paymentOptions: paymentDecision,
@@ -2461,7 +2465,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           monthlyCredits: membershipConsume.monthlyCredits,
           monthlyCreditsAsCoins: membershipConsume.monthlyCreditsAsCoins,
           user: membershipConsume.user,
-        }, "월정석 크레딧으로 콘텐츠 이용 권한을 발급했습니다.");
+        }, "Moonlight Stone으로 콘텐츠 이용 권한을 발급했습니다.");
       }
     } catch (error) {
       logBillingRouteError("membership-credit-consume", error, request, {
@@ -2471,7 +2475,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       return failure(
         500,
         "MEMBERSHIP_CREDIT_CONSUME_FAILED",
-        "월정석 크레딧 처리 중 오류가 발생했습니다.",
+        "Moonlight Stone 처리 중 오류가 발생했습니다.",
         String(error?.message || ""),
       );
     }
@@ -2483,7 +2487,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         .lean();
       const monthlyCredits = Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0)));
       const requiredMonthlyCredits = calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0));
-      return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "이벤트 월정석 보너스 잔량이 부족합니다.", undefined, {
+      return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "Moonlight Stone 보너스 잔량이 부족합니다.", undefined, {
         pricing,
         ...paymentDecision,
         paymentOptions: {
@@ -2617,6 +2621,12 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           .select("points profileSubscription")
           .lean();
         const currentBalance = Math.max(0, Math.floor(Number(currentUser?.points || existingCoinSpend.balanceAfter || 0)));
+        if (isUnlockPaidFeatureKey(coinFeatureKey) && !isProfileScopedUnlockKey(coinFeatureKey)) {
+          await User.updateOne(
+            { _id: authCheck.auth.userId },
+            { $addToSet: { unlockedFeatures: coinFeatureKey } },
+          );
+        }
         return success({
           pricing,
           accessMethod: "COIN",
@@ -2848,7 +2858,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       },
     };
 
-    if (isPdfGenerationService) {
+    if (isPdfGenerationService || isUnlockPaidFeatureKey(coinFeatureKey)) {
       return await successWithPremiumAccess(env, authCheck.auth.userId, coinSuccessPayload, "코인으로 콘텐츠 이용 권한을 발급했습니다.");
     }
 
@@ -3168,6 +3178,17 @@ async function handleBalance(request, env) {
   }, "이용 가능 혜택을 조회했습니다.");
 }
 
+async function handleBillingSnapshotBalance(request, env) {
+  const snapshot = await readBillingSnapshot(request, env);
+  return success({
+    ...snapshot,
+    raw: {
+      source: "billing_snapshot",
+      degraded: Boolean(snapshot.degraded),
+    },
+  }, "Billing balance loaded.");
+}
+
 async function readSubscriptionStatusSnapshot(request, env) {
   try {
     const auth = await getOptionalUserFromRequest(request, env);
@@ -3220,6 +3241,184 @@ async function readSubscriptionStatusSnapshot(request, env) {
   }
 }
 
+function buildBillingSubscriptionSnapshot(user = {}) {
+  const sub = user?.profileSubscription || {};
+  const entitlement = normalizeHoneyPassEntitlement(user || {});
+  return {
+    isActive: entitlement.isActive,
+    isSubscribed: Boolean(user?.isSubscribed || sub?.isSubscribed || entitlement.isActive),
+    active: entitlement.isActive,
+    enabled: entitlement.isActive,
+    valid: entitlement.isActive,
+    registered: entitlement.isActive,
+    tier: entitlement.isActive ? entitlement.tier : String(sub?.tier || "free"),
+    plan: user?.plan || sub?.plan || null,
+    passTier: entitlement.passTier || sub?.passTier || null,
+    status: user?.status || user?.subscriptionStatus || user?.membershipStatus || sub?.status || null,
+    subscriptionStatus: user?.subscriptionStatus || sub?.subscriptionStatus || null,
+    membershipStatus: user?.membershipStatus || sub?.membershipStatus || null,
+    expiresAt: entitlement.expiresAt || sub?.expiresAt || user?.expiresAt || null,
+    freeLimit: Number(entitlement.maxCoveredCoin || 0),
+    source: entitlement.source || "billing_snapshot",
+    subscription: sub,
+    entitlement,
+  };
+}
+
+function buildBillingSnapshotUser(auth, user, balance, unlockedFeatures, monthlyCredits, membership) {
+  return {
+    id: String(auth?.userId || user?._id || ""),
+    points: Number(balance || 0),
+    monthlyCredits,
+    membershipCreditBalance: monthlyCredits,
+    profileSubscriptionTier: membership?.tier || "free",
+    subscriptionTier: membership?.tier || "free",
+    profileSubscription: user?.profileSubscription || null,
+    unlockedFeatures,
+  };
+}
+
+function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
+  if (!snapshot?.authenticated) return null;
+  const subscription = snapshot.subscription && typeof snapshot.subscription === "object" ? snapshot.subscription : {};
+  const subscriptionRecord = subscription.subscription && typeof subscription.subscription === "object" ? subscription.subscription : {};
+  const profileSubscription = {
+    ...subscriptionRecord,
+    membershipCreditBalance: Math.max(0, Math.floor(Number(snapshot.membershipCreditBalance || 0))),
+  };
+  const entitlement = subscription.entitlement && typeof subscription.entitlement === "object"
+    ? subscription.entitlement
+    : normalizeHoneyPassEntitlement({ profileSubscription });
+  return {
+    isActive: Boolean(subscription.isActive),
+    tier: String(subscription.tier || entitlement.tier || "free"),
+    passTier: subscription.passTier || entitlement.passTier || null,
+    freeLimit: Number(subscription.freeLimit || entitlement.maxCoveredCoin || 0),
+    profileSubscription,
+    entitlement,
+  };
+}
+
+async function readBillingSnapshot(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth?.userId) {
+    return {
+      authenticated: false,
+      authUserId: "",
+      balance: 0,
+      membershipCreditBalance: 0,
+      monthlyCredits: 0,
+      monthlyCreditsAsCoins: 0,
+      membership: null,
+      subscription: { isActive: false, tier: "free", passTier: null, freeLimit: 0 },
+      currentProfileId: "",
+      user: null,
+      unlockedFeatures: [],
+      unlockMap: {},
+      degraded: false,
+    };
+  }
+
+  try {
+    await connectDb(env);
+    const seededUser = await seedMembershipCreditForExistingPassIfNeeded(auth.userId);
+    const user = await User.findById(auth.userId)
+      .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId unlockedFeatures")
+      .lean();
+    const effectiveUser = seededUser ? { ...(user || {}), ...seededUser } : user;
+    const sub = effectiveUser?.profileSubscription || {};
+    const entitlement = normalizeHoneyPassEntitlement(effectiveUser || {});
+    const scopedProfileId = cleanProfileId(effectiveUser?.destinyProfilesCurrentId);
+    const scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId);
+    const userScopedUnlockedFeatures = Array.isArray(effectiveUser?.unlockedFeatures)
+      ? effectiveUser.unlockedFeatures
+        .map((key) => String(key || "").trim())
+        .filter((key) => key && isUnlockPaidFeatureKey(key) && !resolveSajuProfileUnlockContentKey(key) && key !== LOTTO_RITUAL_REPORT_FEATURE_KEY)
+      : [];
+    const unlockedFeatures = Array.from(new Set([
+      ...userScopedUnlockedFeatures,
+      ...scopedUnlocks.unlockedFeatures,
+    ]));
+    const unlockMap = {
+      ...userScopedUnlockedFeatures.reduce((acc, key) => {
+        acc[key] = true;
+        return acc;
+      }, {}),
+      ...scopedUnlocks.unlockMap,
+    };
+    const balance = Number(effectiveUser?.points || 0);
+    const membershipCreditBalance = Math.max(0, Math.floor(Number(sub?.membershipCreditBalance || 0)));
+    const membership = {
+      tier: entitlement.isActive ? entitlement.tier : String(sub?.tier || "free"),
+      passTier: entitlement.passTier || null,
+      passLabel: entitlement.passLabel || entitlement.label,
+      passColorTone: entitlement.passColorTone || null,
+      label: entitlement.label,
+      isActive: entitlement.isActive,
+      freeLimit: entitlement.maxCoveredCoin,
+      profileLimit: entitlement.maxProfiles,
+      source: entitlement.source,
+      expiresAt: entitlement.expiresAt || sub?.expiresAt || null,
+      membershipCreditBalance,
+      membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
+      membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
+      legacyCoinCreditSeeded: Boolean(sub?.legacyCoinCreditSeeded),
+      legacyCoinCreditSeededPoints: Number(sub?.legacyCoinCreditSeededPoints || 0),
+      legacyCoinBalance: balance,
+    };
+    const subscription = buildBillingSubscriptionSnapshot(effectiveUser || {});
+
+    return {
+      authenticated: true,
+      authUserId: String(auth.userId || ""),
+      balance: Number.isFinite(balance) ? balance : 0,
+      legacyCoinBalance: Number.isFinite(balance) ? balance : 0,
+      coins: Number.isFinite(balance) ? balance : 0,
+      membershipCreditBalance,
+      monthlyCredits: membershipCreditBalance,
+      monthlyCreditsAsCoins: membershipCreditBalance / MEMBERSHIP_CREDIT_PER_COIN,
+      membership,
+      subscription,
+      currentProfileId: scopedProfileId || undefined,
+      user: buildBillingSnapshotUser(auth, effectiveUser, balance, unlockedFeatures, membershipCreditBalance, membership),
+      unlockedFeatures,
+      unlockMap,
+      degraded: false,
+    };
+  } catch (error) {
+    logBillingRouteError("billing-snapshot", error, request);
+    const fallbackBalance = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;
+    return {
+      authenticated: true,
+      authUserId: String(auth.userId || ""),
+      balance: fallbackBalance,
+      legacyCoinBalance: fallbackBalance,
+      coins: fallbackBalance,
+      membershipCreditBalance: 0,
+      monthlyCredits: 0,
+      monthlyCreditsAsCoins: 0,
+      membership: null,
+      subscription: { isActive: false, tier: "free", passTier: null, freeLimit: 0 },
+      currentProfileId: undefined,
+      user: {
+        id: String(auth.userId || ""),
+        points: fallbackBalance,
+        monthlyCredits: 0,
+        membershipCreditBalance: 0,
+        unlockedFeatures: [],
+      },
+      unlockedFeatures: [],
+      unlockMap: {},
+      degraded: true,
+      error: {
+        code: "DB_FALLBACK",
+        message: "Billing snapshot fallback applied.",
+        errorDetails: buildBillingErrorDetails("billing-snapshot", error),
+      },
+    };
+  }
+}
+
 async function handleUnlockStatus(request, env) {
   const url = new URL(request.url);
   const categoryKey = String(url.searchParams.get("categoryKey") || "").trim();
@@ -3232,19 +3431,12 @@ async function handleUnlockStatus(request, env) {
     return failure(404, "PRICE_NOT_FOUND", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
   }
 
-  const balanceResponse = await handleBalance(request, env);
-  const balancePayload = await readPayloadSafe(balanceResponse);
-
-  if (!balancePayload?.ok) {
-    return balanceResponse;
-  }
-
-  const data = balancePayload.data || {};
+  const data = await readBillingSnapshot(request, env);
   const unlockMap = data.unlockMap && typeof data.unlockMap === "object" ? data.unlockMap : {};
   let pricing = pricingResult.pricing;
   let unlocked = Boolean(unlockMap[pricing.featureKey]);
   const currentBalance = Number(data.balance || 0);
-  const subscription = await readSubscriptionStatusSnapshot(request, env);
+  const subscription = data.subscription || { isActive: false, tier: "free", passTier: null, freeLimit: 0 };
   const subscriptionEntitlement = {
     isActive: subscription.isActive,
     tier: subscription.tier,
@@ -3257,13 +3449,14 @@ async function handleUnlockStatus(request, env) {
     membershipCreditBalance: Number(data.membershipCreditBalance ?? data.membership?.membershipCreditBalance ?? 0),
   });
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const subscriptionPass = buildMembershipPassFromBillingSnapshot(data);
   const accessDecision = await resolvePaidContentAccess(env, {
-    userId: auth?.userId || "",
+    userId: String(data.authUserId || ""),
     profileId: cleanProfileId(url.searchParams.get("profileId") || data.currentProfileId || ""),
     pricing,
     requestId: String(url.searchParams.get("requestId") || "").trim(),
     allowPassAutoUnlock: shouldPersistProfileUnlockEntitlement(pricing),
+    subscriptionPass,
     body: {
       actionType: String(url.searchParams.get("actionType") || "").trim(),
     },
@@ -3733,8 +3926,9 @@ async function handleConfirm(request, env) {
   }
   let premiumAccessOptions = null;
   if (!isSubscription && hasPaymentVerificationPayload && pricingResult?.ok) {
-    const reportType = resolvePremiumAccessReportType(delegatedPricing?.featureKey, delegatedPricing?.reason);
-    if (reportType) {
+    const delegatedFeatureKey = String(delegatedPricing?.featureKey || "").trim();
+    const reportType = resolvePremiumAccessReportType(delegatedFeatureKey, delegatedPricing?.reason);
+    if (reportType || isUnlockPaidFeatureKey(delegatedFeatureKey)) {
       const authCheck = await requireBillingAuth(request, env, delegatedPricing);
       if (!authCheck.ok) return authCheck.response;
       premiumAccessOptions = {
@@ -3815,7 +4009,7 @@ export async function handleBillingRoutes(request, env) {
 
   try {
     if (method === "GET" && path === "/features") return await handleFeatures(request);
-    if (method === "GET" && path === "/balance") return await handleBalance(request, env);
+    if (method === "GET" && path === "/balance") return await handleBillingSnapshotBalance(request, env);
     if (method === "GET" && path === "/unlock-status") return await handleUnlockStatus(request, env);
 
     if (method === "POST" && path === "/coin-gate") return await handleCoinGate(request, env);

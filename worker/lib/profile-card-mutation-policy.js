@@ -1,16 +1,14 @@
 import { ProfileCard, User } from "./models.js";
 import { normalizeHoneyPassEntitlement, PROFILE_LIMIT_BY_TIER } from "./profile-limits.js";
 
-export const PROFILE_CARD_EDIT_DELETE_COST_COINS = 50;
-export const PROFILE_CARD_EDIT_DELETE_COST_KRW = 5000;
-export const PROFILE_CARD_EDIT_DELETE_COST_MONTHLY_STONES = 500;
-export const PROFILE_DELETE_COST_COINS = PROFILE_CARD_EDIT_DELETE_COST_COINS;
+export const PROFILE_CARD_DELETE_COST_COINS = 50;
+export const PROFILE_CARD_DELETE_COST_KRW = 5000;
+export const PROFILE_CARD_DELETE_COST_MONTHLY_STONES = 500;
 export const FAMILY_OR_ABOVE_FREE_PROFILE_DELETE = true;
 export const FAMILY_OR_ABOVE_CAN_ADD_PROFILE = true;
 
 export const PROFILE_CARD_MUTATION_ACTIONS = Object.freeze({
   CREATE: "create",
-  EDIT: "edit",
   DELETE: "delete",
 });
 
@@ -20,7 +18,6 @@ export const PROFILE_CARD_PAID_ACTIONS = Object.freeze({
 });
 
 const VALID_PROFILE_CARD_MUTATION_ACTIONS = new Set([
-  PROFILE_CARD_MUTATION_ACTIONS.EDIT,
   PROFILE_CARD_MUTATION_ACTIONS.DELETE,
 ]);
 
@@ -49,9 +46,9 @@ function buildProfileCardMutationPolicyResult(overrides = {}) {
   return {
     allowed: false,
     requiresPayment: true,
-    costCoins: PROFILE_CARD_EDIT_DELETE_COST_COINS,
-    costKrw: PROFILE_CARD_EDIT_DELETE_COST_KRW,
-    monthlyStones: PROFILE_CARD_EDIT_DELETE_COST_MONTHLY_STONES,
+    costCoins: PROFILE_CARD_DELETE_COST_COINS,
+    costKrw: PROFILE_CARD_DELETE_COST_KRW,
+    monthlyStones: PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
     reason: "PAYMENT_REQUIRED",
     passType: undefined,
     limit: undefined,
@@ -84,7 +81,7 @@ export function canAddProfile(userMembership, currentProfileCount) {
 export function getProfileDeletePrice(userMembership) {
   return FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && isFamilyOrAbove(userMembership)
     ? 0
-    : PROFILE_DELETE_COST_COINS;
+    : PROFILE_CARD_DELETE_COST_COINS;
 }
 
 export async function getProfileCardMutationPolicy(userId, profileCardId, actionType, options = {}) {
@@ -167,9 +164,7 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
   return buildProfileCardMutationPolicyResult({
     allowed: false,
     requiresPayment: true,
-    reason: normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE
-      ? "PROFILE_CARD_DELETE_PAYMENT_REQUIRED"
-      : "PROFILE_CARD_EDIT_PAYMENT_REQUIRED",
+    reason: "PROFILE_CARD_DELETE_PAYMENT_REQUIRED",
     passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
     limit: slotLimit,
     currentProfileCardCount,
@@ -259,9 +254,9 @@ export async function resolveProfileCardActionAccess({
       passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
       limit: slot.limit,
       currentProfileCardCount: count,
-      costCoins: slot.allowed ? 0 : PROFILE_CARD_EDIT_DELETE_COST_COINS,
-      costKrw: slot.allowed ? 0 : PROFILE_CARD_EDIT_DELETE_COST_KRW,
-      monthlyStones: slot.allowed ? 0 : PROFILE_CARD_EDIT_DELETE_COST_MONTHLY_STONES,
+      costCoins: slot.allowed ? 0 : PROFILE_CARD_DELETE_COST_COINS,
+      costKrw: slot.allowed ? 0 : PROFILE_CARD_DELETE_COST_KRW,
+      monthlyStones: slot.allowed ? 0 : PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
     });
   }
 
