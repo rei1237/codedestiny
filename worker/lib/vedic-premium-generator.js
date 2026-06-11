@@ -10,7 +10,13 @@ const MIN_SECTION_CHARS = 900;
 const MIN_CHAPTER_CHARS = 4000;
 const MIN_TOTAL_CHARS = Math.max(Number(VEDIC_SOLO_TARGET_CHARS || 0), 40000);
 const VEDIC_MASTER_JSON_SCHEMA_VERSION = "vedic-premium-master-json.v1";
-export const VEDIC_ASTROLOGY_PROMPT_VERSION = "vedic-astrology-hybrid-v1";
+export const VEDIC_PDF_CONFIG = Object.freeze({
+  generationMode: "local-assembled",
+  llmEnabled: false,
+  provider: "vedic-local-assembler",
+  templateVersion: "vedic-premium-assembled-v1",
+});
+export const VEDIC_ASTROLOGY_PROMPT_VERSION = VEDIC_PDF_CONFIG.templateVersion;
 export const VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS = Object.freeze([
   "vedic_soul_map",
   "vedic_lagna",
@@ -1607,6 +1613,15 @@ function cleanForbidden(text) {
     .trim();
 }
 
+function hasVedicBrokenText(value) {
+  const body = clean(value);
+  return /[\uFFFD\uF900-\uFAFF]/.test(body)
+    || /\?{2,}/.test(body)
+    || /\?[가-힣]/.test(body)
+    || /(?:Ã.|Â.|â[€€™€œ]|[ìíêë][\u0080-\u02FF]{1,3}){2,}/.test(body)
+    || /[ㄱ-ㅎㅏ-ㅣ]{2,}/.test(body);
+}
+
 function readVedicFlag(env, key, fallback = false) {
   const value = clean(getEnv(env, key));
   if (!value) return Boolean(fallback);
@@ -2028,7 +2043,7 @@ export function buildVedicMasterJson(localVedicChartJson = {}, rawInput = {}) {
     serviceKey: "vedic-premium",
     featureKey: "premium_pdf_vedic",
     reportType: "vedicPremium",
-    generationMode: "worker-native-hybrid",
+    generationMode: VEDIC_PDF_CONFIG.generationMode,
     promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
     calculationSource: clean(localVedicChartJson?.calculationMode || rawInput?.calculationMode || "worker-swiss-vedic-chart"),
     birthProfile: {
@@ -2102,7 +2117,7 @@ export function validateVedicMasterJson(masterJson = {}) {
   const chapterSpecs = safeArray(masterJson?.chapterSpecs);
   requireField(clean(masterJson?.schemaVersion) === VEDIC_MASTER_JSON_SCHEMA_VERSION, "schemaVersion");
   requireField(clean(masterJson?.serviceKey) === "vedic-premium", "serviceKey");
-  requireField(["worker-native-hybrid", "worker-native-llm"].includes(clean(masterJson?.generationMode)), "generationMode");
+  requireField(["worker-native-hybrid", "worker-native-llm", VEDIC_PDF_CONFIG.generationMode].includes(clean(masterJson?.generationMode)), "generationMode");
   requireField(clean(birth.birthDate), "birthProfile.birthDate");
   requireField(Number.isFinite(Number(birth.birthHour)), "birthProfile.birthHour");
   requireField(clean(birth.timezone), "birthProfile.timezone");
@@ -3432,6 +3447,60 @@ main{max-width:980px;margin:0 auto;padding:34px 26px 64px}
   };
 }
 
+export function validateVedicPdfCompletionPayload({ pdfReady = {}, chapters = [], payload = {}, requireDownloadUrl = false } = {}) {
+  const issues = [];
+  const normalizedChapters = safeArray(chapters).map((chapter, index) => ({
+    ...chapter,
+    id: clean(chapter?.id || chapter?.key || VEDIC_PREMIUM_CHAPTERS[index]?.id),
+    key: clean(chapter?.key || chapter?.id || VEDIC_PREMIUM_CHAPTERS[index]?.id),
+    chapterNo: Number(chapter?.chapterNo || chapter?.order || index + 1),
+    title: clean(chapter?.title || VEDIC_PREMIUM_CHAPTERS[index]?.title),
+    sections: safeArray(chapter?.sections).length > 0
+      ? safeArray(chapter.sections)
+      : safeArray(chapter?.categories).map((category) => ({
+        id: clean(category?.id),
+        title: clean(category?.title),
+        body: clean(category?.body || category?.text || category?.localSummary),
+        usedSignalIds: safeArray(category?.usedSignalIds),
+      })),
+  }));
+  const manuscript = validateVedicFinalManuscript({
+    birthInput: payload?.birthInput,
+    localVedicChartJson: payload,
+    chapters: normalizedChapters,
+    requireSignalIds: true,
+    allowFallback: true,
+  });
+  if (!manuscript.ok) issues.push(...manuscript.issues.map((issue) => `manuscript.${issue}`));
+
+  const html = clean(pdfReady?.html);
+  if (!html) issues.push("html.missing");
+  if (html && !/<!doctype html>/i.test(html)) issues.push("html.doctype");
+  if (html && !/<meta\s+charset=["']?UTF-8["']?/i.test(html)) issues.push("html.charset");
+
+  const downloadUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
+  if (requireDownloadUrl && !downloadUrl) issues.push("download_url.missing");
+
+  const manuscriptText = normalizedChapters
+    .flatMap((chapter) => [
+      chapter.title,
+      ...safeArray(chapter.sections).flatMap((section) => [section.title, section.body]),
+    ])
+    .join("\n");
+  if (hasVedicBrokenText(`${html}\n${manuscriptText}`)) issues.push("text.broken");
+
+  return {
+    ok: issues.length === 0,
+    issues: [...new Set(issues)],
+    chapterCount: normalizedChapters.length,
+    expectedChapterCount: VEDIC_PREMIUM_CHAPTERS.length,
+    totalLength: manuscript?.stats?.totalLength || allTextLength(normalizedChapters),
+    htmlLength: html.length,
+    hasDownloadUrl: Boolean(downloadUrl),
+    manuscript,
+  };
+}
+
 function toLegacyChapterShape(chapterDraft) {
   return {
     id: chapterDraft.id,
@@ -3579,76 +3648,35 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     throw error;
   }
 
-  log("LLMManuscriptBuildStart", {
+  log("LocalAssembledManuscriptReady", {
     chapterCount: VEDIC_PREMIUM_CHAPTERS.length,
-    enhancedChapterIds: VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS,
+    manuscriptSource: VEDIC_PDF_CONFIG.generationMode,
     promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
+    llmEnabled: false,
+    enhancedChapterIds: [],
   });
 
-  let llmDraft = null;
-  try {
-    llmDraft = await enhanceVedicPremiumManuscriptWithLLM(env, localDraft, localVedicChartJson, {
-      requestId: clean(options?.requestId || rawInput?.reportId || rawInput?.sessionId),
-      masterJson: vedicMasterJson,
-      facts: vedicAstrologyFacts,
-      chapterPlans: vedicAstrologyChapterPlans,
-      rawInput,
-      onChapterDone: (meta) => {
-        log("LLMManuscriptChapterDone", {
-          chapterNo: Number(meta?.chapterNo || 0),
-          chapterId: clean(meta?.chapterId),
-          chapterTitle: clean(meta?.chapterTitle),
-          completed: Number(meta?.completed || 0),
-          total: Number(meta?.total || VEDIC_PREMIUM_CHAPTERS.length),
-          attempts: Number(meta?.attempts || 1),
-          source: clean(meta?.source),
-        });
-      },
-    });
-  } catch (error) {
-    const llmError = error instanceof Error ? error : new Error(clean(error || "VEDIC_LLM_MANUSCRIPT_FAILED"));
-    const llmFailureClass = classifyVedicLlmFailure(llmError);
-    log("LLMManuscriptFailed", {
-      code: clean(llmError?.code || "VEDIC_LLM_MANUSCRIPT_FAILED"),
-      failureClass: llmFailureClass,
-      status: Number(llmError?.status || 0) || null,
-      reason: clean(llmError?.message || llmError),
-    });
-    llmError.code = clean(llmError?.code || "VEDIC_LLM_MANUSCRIPT_FAILED");
-    llmError.status = Number(llmError?.status || 502);
-    llmError.reasonClass = llmFailureClass;
-    llmError.details = {
-      ...(llmError?.details && typeof llmError.details === "object" ? llmError.details : {}),
-      reason: clean(llmError?.message || llmError),
-      failureClass: llmFailureClass,
-    };
-    llmDraft = {
-      chapters: localFallbackChapters,
-      llmFailed: true,
-      fallbackUsed: true,
-      reason: "LOCAL_FALLBACK_AFTER_LLM_FAILURE",
-      error: normalizeManuscriptError(llmError),
-      attempts: [],
-      model: "",
-      failures: [{
-        failureClass: llmFailureClass,
-        code: clean(llmError?.code || "VEDIC_LLM_MANUSCRIPT_FAILED"),
-        message: clean(llmError?.message || llmError),
-      }],
-      failureClass: llmFailureClass,
-      llmChapterCount: 0,
-      localTemplateChapterCount: localFallbackChapters.length,
-      fallbackChapterCount: localFallbackChapters.length,
-      enhancedChapterIds: VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS,
-      promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
-      llmEnabled: readVedicFlag(env, "VEDIC_ASTROLOGY_LLM_ENHANCEMENT_ENABLED", true),
-    };
-  }
+  const llmDraft = {
+    chapters: localFallbackChapters,
+    llmFailed: false,
+    fallbackUsed: false,
+    reason: "LOCAL_ASSEMBLED_NO_LLM",
+    error: null,
+    attempts: [],
+    model: "",
+    failures: [],
+    failureClass: "",
+    llmChapterCount: 0,
+    localTemplateChapterCount: localFallbackChapters.length,
+    fallbackChapterCount: 0,
+    enhancedChapterIds: [],
+    promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
+    llmEnabled: false,
+  };
 
-  log("LLMManuscriptBuildSuccess", {
+  log("LocalAssembledManuscriptSuccess", {
     chapterCount: safeArray(llmDraft?.chapters).length,
     totalLength: allTextLength(llmDraft?.chapters),
-    model: clean(llmDraft?.model),
     llmChapterCount: Number(llmDraft?.llmChapterCount || 0),
     fallbackChapterCount: Number(llmDraft?.fallbackChapterCount || 0),
     reason: clean(llmDraft?.reason),
@@ -3656,7 +3684,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
 
   const finalChapters = safeArray(llmDraft?.chapters);
   const fallbackUsed = Boolean(llmDraft?.fallbackUsed);
-  const manuscriptSource = Number(llmDraft?.llmChapterCount || 0) > 0 ? "hybrid-llm-local" : "local-template";
+  const manuscriptSource = VEDIC_PDF_CONFIG.generationMode;
 
   const finalValidation = validateVedicFinalManuscript({
     birthInput,
@@ -3708,11 +3736,25 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
   }));
   const legacyChapters = chapterDrafts.map((chapter) => toLegacyChapterShape(chapter));
   const pdfReady = renderVedicPremiumPdf(chapterDrafts, localVedicChartJson);
+  const pdfCompletionValidation = validateVedicPdfCompletionPayload({
+    pdfReady,
+    chapters: chapterDrafts,
+    payload: localVedicChartJson,
+    requireDownloadUrl: false,
+  });
+  if (!pdfCompletionValidation.ok) {
+    const error = new Error("베다점 PDF 완료 검증에 실패했습니다.");
+    error.code = "VEDIC_PDF_COMPLETION_VALIDATION_FAILED";
+    error.status = 500;
+    error.issues = pdfCompletionValidation.issues;
+    throw error;
+  }
 
   log("PdfRenderSuccess", {
     chapterCount: chapterDrafts.length,
     totalLength: finalValidation.stats.totalLength,
     manuscriptSource,
+    pdfCompletionValidation: pdfCompletionValidation.ok,
   });
 
   return {
@@ -3729,12 +3771,16 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     chapterCount: VEDIC_PREMIUM_CHAPTERS.length,
     fallbackUsed,
     manuscriptSource,
+    generationMode: VEDIC_PDF_CONFIG.generationMode,
+    provider: VEDIC_PDF_CONFIG.provider,
+    writingPipeline: "local-calculation-to-local-assembled-pdf",
     llmChapterCount: Number(llmDraft?.llmChapterCount || 0),
     fallbackChapterCount: Number(llmDraft?.fallbackChapterCount || 0),
     llmFallbackReason: clean(llmDraft?.failureClass || llmDraft?.error?.failureClass || ""),
     localDraftChapterCount: Number(llmDraft?.localTemplateChapterCount || 0),
     calculationFallbackUsed: false,
     pdfReady,
+    pdfCompletionValidation,
     quality: {
       ...finalValidation.stats,
       evidenceAuditOk: evidenceAudit.ok,
@@ -3761,6 +3807,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
         enabled: Boolean(llmDraft?.llmEnabled),
       },
       manuscript: finalValidation,
+      pdfCompletionValidation,
       evidence: evidenceAudit,
       masterJson: masterJsonValidation,
     },

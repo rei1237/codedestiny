@@ -449,16 +449,17 @@
     var fallbackUsed = data.fallbackUsed === true;
     var fallbackChapterCount = Number(data.fallbackChapterCount || 0);
     var localAuthoringUsed = data.localAuthoringUsed === true;
+    var llmEnhancementUsed = data.llmEnhancementUsed === true;
     var hasReportId = !!clean(data.reportId);
     var hasStoredUrl = !!resolveReportUrl(data);
     var isCompleted = (!status && !serverStatus) || status === 'completed' || serverStatus === 'completed';
     var hasExpectedChapters = chapters.length >= EXPECTED_CHAPTER_COUNT || reportedCount >= EXPECTED_CHAPTER_COUNT;
     var hasPassedQuality = !qualityStatus || qualityStatus === 'passed';
-    var hasAcceptedManuscript = !manuscriptSource || manuscriptSource === 'llm-only' || manuscriptSource === 'local-calculation' || manuscriptSource === 'local-calculation+llm-enhanced';
-    var hasAcceptedChapters = !chapterAuthoringSource || chapterAuthoringSource === 'llm-only' || chapterAuthoringSource === 'local-calculation' || chapterAuthoringSource === 'local-calculation+llm-enhanced';
-    var hasLocalSummary = !summarySource || summarySource === 'local-calculation';
-    var hasUsableFallback = !fallbackUsed || fallbackChapterCount <= EXPECTED_CHAPTER_COUNT;
-    var hasAcceptedAuthoring = localAuthoringUsed || manuscriptSource === 'llm-only' || !manuscriptSource;
+    var hasAcceptedManuscript = !manuscriptSource || manuscriptSource === 'local-assembled';
+    var hasAcceptedChapters = !chapterAuthoringSource || chapterAuthoringSource === 'local-assembled';
+    var hasLocalSummary = !summarySource || summarySource === 'local-assembled';
+    var hasUsableFallback = !fallbackUsed && fallbackChapterCount === 0;
+    var hasAcceptedAuthoring = localAuthoringUsed && !llmEnhancementUsed;
     return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted && hasAcceptedManuscript && hasAcceptedChapters && hasLocalSummary && hasUsableFallback && hasAcceptedAuthoring;
   }
 

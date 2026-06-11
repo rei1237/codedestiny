@@ -249,14 +249,22 @@ async function main() {
   const masterSchema = clean(payload?.astroMasterJson?.schemaVersion);
   const masterValidationOk = Boolean(payload?.masterJsonValidation?.ok);
   const validationOk = Boolean(payload?.validation?.ok);
+  const llmChapterCount = Number(payload?.llmChapterCount || 0);
+  const expectedLlmChapterCount = Number(payload?.expectedLlmChapterCount || 0);
+  const fallbackUsed = Boolean(payload?.fallbackUsed);
+  const pdfCompletionValidationOk = Boolean(payload?.pdfCompletionValidation?.ok || payload?.pdfReady?.pdfCompletionValidation?.ok);
 
   printKeyValue("PREPARE_OK", Boolean(payload.ok));
   printKeyValue("CHAPTERS", chapters.length);
   printKeyValue("MANUSCRIPT_SOURCE", manuscriptSource);
+  printKeyValue("LLM_CHAPTERS", llmChapterCount);
+  printKeyValue("EXPECTED_LLM_CHAPTERS", expectedLlmChapterCount);
+  printKeyValue("FALLBACK_USED", fallbackUsed);
   printKeyValue("SEED_CALC_MODE", calcMode);
   printKeyValue("MASTER_SCHEMA", masterSchema);
   printKeyValue("MASTER_VALIDATION_OK", masterValidationOk);
   printKeyValue("VALIDATION_OK", validationOk);
+  printKeyValue("PDF_COMPLETION_VALIDATION_OK", pdfCompletionValidationOk);
   printKeyValue("HAS_PDF_HTML", hasPdfHtml);
   printKeyValue("PDF_URL", pdfUrl);
   printKeyValue("HTML_URL", htmlUrl);
@@ -265,11 +273,15 @@ async function main() {
 
   ensure(prepareResult.ok && payload.ok, "점성술 prepare 실패", payload);
   ensure(chapters.length === 12, "챕터 수가 12가 아님", { chapterCount: chapters.length, payload });
-  ensure(["llm-only", "llm-local-hybrid"].includes(manuscriptSource), "허용되지 않은 원고 소스", { manuscriptSource, payload });
+  ensure(manuscriptSource === "local-assembled", "ASTRO manuscript source is not local-assembled", { manuscriptSource, payload });
+  ensure(llmChapterCount === 0, "ASTRO LLM chapter count must be zero", { llmChapterCount, payload });
+  ensure(expectedLlmChapterCount === 0, "ASTRO expected LLM chapter count must be zero", { expectedLlmChapterCount, payload });
+  ensure(fallbackUsed === false, "ASTRO fallback must not be used", { fallbackUsed, payload });
   ensure(calcMode === "full", "Swiss 기반 full 계산 seed 아님", { calcMode, payload });
   ensure(masterSchema === "astro-premium-master-json.v1", "점성술 마스터 JSON 스키마 누락", payload?.astroMasterJson || payload);
   ensure(masterValidationOk, "점성술 마스터 JSON 검증 실패", payload?.masterJsonValidation || payload);
   ensure(validationOk, "최종 원고 검증 실패", payload?.validation || payload);
+  ensure(pdfCompletionValidationOk, "ASTRO PDF completion validation failed", payload?.pdfCompletionValidation || payload?.pdfReady?.pdfCompletionValidation || payload);
   ensure(hasPdfHtml, "PDF html 누락", payload?.pdfReady || payload);
   ensure(/\/api\/premium\/pdf-archive\/.+[?&]format=pdf/i.test(pdfUrl), "PDF archive URL 형식 오류", payload?.pdfReady || payload);
   ensure(/\/api\/premium\/pdf-archive\/.+[?&]format=html/i.test(htmlUrl), "HTML archive URL 형식 오류", payload?.pdfReady || payload);

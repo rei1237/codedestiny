@@ -36,11 +36,11 @@ for (const [label, source] of [
   expectContains(source, "toneProfile: {", `${label} tone profile payload`);
   expectContains(source, "qualityStatus === 'passed'", `${label} quality readiness`);
   expectContains(source, "hasExpectedChapters", `${label} chapter readiness`);
-  expectContains(source, "manuscriptSource === 'local-calculation+llm-enhanced'", `${label} local plus LLM manuscript readiness`);
-  expectContains(source, "chapterAuthoringSource === 'local-calculation+llm-enhanced'", `${label} local plus LLM chapter readiness`);
-  expectContains(source, "summarySource === 'local-calculation'", `${label} local summary readiness`);
-  expectContains(source, "fallbackChapterCount <= EXPECTED_CHAPTER_COUNT", `${label} local fallback readiness`);
-  expectContains(source, "localAuthoringUsed || manuscriptSource === 'llm-only'", `${label} local authoring readiness`);
+  expectContains(source, "manuscriptSource === 'local-assembled'", `${label} local assembled manuscript readiness`);
+  expectContains(source, "chapterAuthoringSource === 'local-assembled'", `${label} local assembled chapter readiness`);
+  expectContains(source, "summarySource === 'local-assembled'", `${label} local assembled summary readiness`);
+  expectContains(source, "fallbackChapterCount === 0", `${label} no fallback readiness`);
+  expectContains(source, "localAuthoringUsed && !llmEnhancementUsed", `${label} local authoring readiness`);
 }
 
 expectContains(worker, 'import { getServiceExecution } from "../lib/service-execution-task.js"', "worker execution status import");
@@ -52,16 +52,19 @@ expectContains(worker, "loadSoulOriginReportPayload", "worker report payload hel
 expectContains(worker, 'status: "running"', "worker running state");
 expectContains(worker, 'qualityStatus: "passed"', "worker quality status");
 expectContains(worker, 'const localChapters = buildSoulOriginLocalChapters(localSeed, { requestId })', "worker local chapter authoring");
-expectContains(worker, 'const manuscriptSource = llmEnhancementUsed ? "local-calculation+llm-enhanced" : "local-calculation"', "worker local plus LLM manuscript source");
-expectContains(worker, 'summarySource: "local-calculation"', "worker local summary source");
+expectContains(worker, 'const manuscriptSource = SOUL_ORIGIN_PDF_CONFIG.generationMode', "worker local assembled manuscript source");
+expectContains(worker, "summarySource: SOUL_ORIGIN_PDF_CONFIG.generationMode", "worker local assembled summary source");
 expectContains(worker, "const summary = summarizeSignal(localSeed)", "worker local summary generation");
 expectContains(worker, "calculationOnly: true", "worker calculation-only prompt seed");
 expectContains(worker, "fallbackUsed,", "worker fallback flag");
 expectContains(worker, "fallbackChapterCount,", "worker fallback chapter count");
 expectContains(worker, "localAuthoringUsed: true", "worker local authoring flag");
 expectContains(worker, "llmEnhancementUsed", "worker LLM enhancement metadata");
+expectContains(worker, "validateSoulOriginPdfCompletionPayload", "worker PDF completion validation");
+expectContains(worker, 'provider: "soul-origin-local-assembler"', "worker local assembler provider");
 expectContains(worker, "chapterCount: CHAPTER_BLUEPRINTS.length", "worker chapter count");
 expectContains(worker, "pdfReady", "worker pdf ready payload");
+expectNotContains(worker, "chapters = await generateSoulOriginChaptersByLLM", "worker LLM chapter call");
 expectNotContains(worker, "const summary = await generateSoulOriginSummaryByLLM", "worker LLM summary call");
 
 expectContains(accessToken, '"premium_pdf_soul_origin": "soulOriginKarma"', "premium token feature mapping");

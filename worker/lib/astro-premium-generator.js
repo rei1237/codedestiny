@@ -5,7 +5,13 @@ const MIN_SECTION_LENGTH = 900;
 const MIN_CHAPTER_LENGTH = 4000;
 const MIN_TOTAL_LENGTH_FLOOR = 50000;
 const ASTRO_MASTER_JSON_SCHEMA_VERSION = "astro-premium-master-json.v1";
-export const WESTERN_ASTROLOGY_PROMPT_VERSION = "western-astrology-hybrid-v1";
+export const ASTRO_PDF_CONFIG = Object.freeze({
+  generationMode: "local-assembled",
+  llmEnabled: false,
+  provider: "western-astrology-local-assembler",
+  templateVersion: "western-astrology-assembled-v1",
+});
+export const WESTERN_ASTROLOGY_PROMPT_VERSION = ASTRO_PDF_CONFIG.templateVersion;
 export const ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS = [
   "astro_cosmic_summary",
   "astro_sun",
@@ -148,6 +154,14 @@ const PLANET_KO = {
 
 function clean(value) {
   return String(value || "").trim();
+}
+
+function hasAstroBrokenText(value) {
+  const body = clean(value);
+  return /[\uFFFD\uF900-\uFAFF]/.test(body)
+    || /(?:\?[\uAC00-\uD7AF]|[\uAC00-\uD7AF]\?){2,}/.test(body)
+    || /(?:\u00C3.|\u00C2.|\u00E2[\u0080-\u02FF]{1,3}|[\u00EC\u00ED\u00EA\u00EB][\u0080-\u02FF]{1,3}){2,}/.test(body)
+    || /[\u3131-\u318E]{2,}/.test(body);
 }
 
 function readAstroFlag(env, key, fallback = false) {
@@ -1640,7 +1654,7 @@ export function buildAstroMasterJson(localAstroChartJson = {}, rawInput = {}) {
     serviceKey: "astro-premium",
     featureKey: "premium-astrology-report",
     reportType: "westernAstrologyPremium",
-    generationMode: "worker-native-hybrid",
+    generationMode: ASTRO_PDF_CONFIG.generationMode,
     promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
     calculationSource: clean(localAstroChartJson?.calculationMode || rawInput?.calculationMode || "worker-swiss-western-chart"),
     birthProfile: {
@@ -1728,7 +1742,7 @@ export function validateAstroMasterJson(masterJson = {}) {
   const chapterSpecs = safeArray(masterJson?.chapterSpecs);
   requireField(clean(masterJson?.schemaVersion) === ASTRO_MASTER_JSON_SCHEMA_VERSION, "schemaVersion");
   requireField(clean(masterJson?.serviceKey) === "astro-premium", "serviceKey");
-  requireField(["worker-native-hybrid", "worker-native-llm"].includes(clean(masterJson?.generationMode)), "generationMode");
+  requireField(["worker-native-hybrid", "worker-native-llm", ASTRO_PDF_CONFIG.generationMode].includes(clean(masterJson?.generationMode)), "generationMode");
   requireField(clean(birth.birthDate), "birthProfile.birthDate");
   requireField(Number.isFinite(Number(birth.birthHour)), "birthProfile.birthHour");
   requireField(clean(birth.timezone), "birthProfile.timezone");
@@ -2537,6 +2551,70 @@ function renderAstroPremiumPdfFromDrafts(chapterDrafts, payload) {
   };
 }
 
+export function validateAstroPdfCompletionPayload({ pdfReady = {}, chapters = [], payload = {}, requireDownloadUrl = false } = {}) {
+  const issues = [];
+  const normalizedChapters = safeArray(chapters).map((chapter, index) => ({
+    ...chapter,
+    chapterNo: Number(chapter?.chapterNo || chapter?.order || index + 1),
+    title: clean(chapter?.title || ASTRO_PREMIUM_CHAPTERS[index]?.title),
+    sections: safeArray(chapter?.sections).length > 0
+      ? safeArray(chapter.sections).map((section, sectionIndex) => {
+        const qualityFlags = asObject(section?.qualityFlags);
+        return {
+          ...section,
+          title: clean(section?.title || ASTRO_PREMIUM_CHAPTERS[index]?.categories?.[sectionIndex]?.title),
+          body: clean(section?.body || section?.text || section?.localSummary),
+          evidenceSignals: safeArray(section?.evidenceSignals || section?.usedSignalIds),
+          source: clean(section?.source || ASTRO_MANUSCRIPT_SOURCE.LOCAL_COMPLETED),
+          qualityFlags: {
+            ...qualityFlags,
+            source: clean(qualityFlags.source || ASTRO_MANUSCRIPT_SOURCE.LOCAL_COMPLETED),
+          },
+        };
+      })
+      : safeArray(chapter?.categories).map((category, sectionIndex) => ({
+        title: clean(category?.title || ASTRO_PREMIUM_CHAPTERS[index]?.categories?.[sectionIndex]?.title),
+        body: clean(category?.body || category?.text || category?.localSummary),
+        evidenceSignals: safeArray(category?.evidenceSignals || category?.usedSignalIds),
+        source: ASTRO_MANUSCRIPT_SOURCE.LOCAL_COMPLETED,
+        qualityFlags: {
+          ...asObject(category?.qualityFlags),
+          source: ASTRO_MANUSCRIPT_SOURCE.LOCAL_COMPLETED,
+        },
+      })),
+    source: clean(chapter?.source || ASTRO_MANUSCRIPT_SOURCE.LOCAL_COMPLETED),
+  }));
+  const manuscript = validateFinalManuscript(payload, normalizedChapters, { allowFallback: true });
+  if (!manuscript.ok) issues.push(...manuscript.issues.map((issue) => `manuscript.${issue}`));
+
+  const html = clean(pdfReady?.html);
+  if (!html) issues.push("html.missing");
+  if (html && !/<!doctype html>/i.test(html)) issues.push("html.doctype");
+  if (html && !/<meta\s+charset=["']?UTF-8["']?/i.test(html)) issues.push("html.charset");
+
+  const downloadUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
+  if (requireDownloadUrl && !downloadUrl) issues.push("download_url.missing");
+
+  const manuscriptText = normalizedChapters
+    .flatMap((chapter) => [
+      chapter.title,
+      ...safeArray(chapter.sections).flatMap((section) => [section.title, section.body]),
+    ])
+    .join("\n");
+  if (hasAstroBrokenText(`${html}\n${manuscriptText}`)) issues.push("text.broken");
+
+  return {
+    ok: issues.length === 0,
+    issues: [...new Set(issues)],
+    chapterCount: normalizedChapters.length,
+    expectedChapterCount: ASTRO_PREMIUM_CHAPTERS.length,
+    totalLength: manuscript?.stats?.totalChars || totalLength(normalizedChapters),
+    htmlLength: html.length,
+    hasDownloadUrl: Boolean(downloadUrl),
+    manuscript,
+  };
+}
+
 export async function generateAstroPremiumReport(env, rawInput = {}, options = {}) {
   const emit = typeof options.log === "function"
     ? options.log
@@ -2608,57 +2686,40 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     calculationMode: clean(localAstroChartJson?.calculationMode) || "strict-local",
   });
 
-  emit("LLMSeedPrepared", {
-    signalOnly: true,
+  emit("LocalAssembledManuscriptReady", {
     chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-    localDraftChapterCount: localFallbackChapters.length,
-    enhancedChapterIds: ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS,
+    manuscriptSource: ASTRO_PDF_CONFIG.generationMode,
     promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
+    llmEnabled: false,
+    enhancedChapterIds: [],
   });
 
-  emit("LLMManuscriptBuildStart", {
-    chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-    enhancedChapterIds: ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS,
+  const enhanced = {
+    chapters: localFallbackChapters,
+    fallbackUsed: false,
+    llmChapterCount: 0,
+    fallbackChapterCount: 0,
+    localDraftChapterCount: localFallbackChapters.length,
+    source: ASTRO_PDF_CONFIG.generationMode,
+    enhancedChapterIds: [],
+    expectedLlmChapterCount: 0,
     promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
+    llmEnabled: false,
+    llmAvailable: false,
+    stopLlmReason: "",
+    failures: [],
+    attempts: [],
+    model: "",
+  };
+
+  emit("LocalAssembledManuscriptSuccess", {
+    chapterCount: localFallbackChapters.length,
+    totalLength: totalLength(localFallbackChapters),
+    llmChapterCount: 0,
+    fallbackChapterCount: 0,
+    reason: "LOCAL_ASSEMBLED_NO_LLM",
   });
-  let enhanced = null;
-  try {
-    enhanced = await enhanceAstroPremiumChaptersWithLLM(env, { chapters: localFallbackChapters }, localAstroChartJson, {
-      log: emit,
-      requestId: clean(rawInput?.reportId || options?.requestId),
-      masterJson: astroMasterJson,
-      facts: westernAstrologyFacts,
-      chapterPlans: westernAstrologyChapterPlans,
-      rawInput,
-      llmChapterGenerator: options?.llmChapterGenerator,
-    });
-  } catch (error) {
-    const failureReason = clean(error?.code || error?.message || "ASTRO_LLM_MANUSCRIPT_FAILED");
-    emit("LLMManuscriptFailed", {
-      reason: failureReason,
-      chapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-    });
-    enhanced = {
-      chapters: localFallbackChapters,
-      fallbackUsed: true,
-      llmChapterCount: 0,
-      fallbackChapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-      localDraftChapterCount: localFallbackChapters.length,
-      source: "local-template",
-      enhancedChapterIds: ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS,
-      expectedLlmChapterCount: ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS.length,
-      promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
-      llmEnabled: readAstroFlag(env, "WESTERN_ASTROLOGY_LLM_ENHANCEMENT_ENABLED", true),
-      stopLlmReason: failureReason,
-      failures: [{
-        failureClass: classifyAstroLlmFailure(error),
-        code: clean(error?.code || "ASTRO_LLM_MANUSCRIPT_FAILED"),
-        message: clean(error?.message || error),
-      }],
-      attempts: [],
-      model: "",
-    };
-  }
+
   const finalDrafts = safeArray(enhanced.chapters);
   const validated = validateFinalManuscript(localAstroChartJson, finalDrafts, {
     allowFallback: true,
@@ -2683,10 +2744,27 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
   emit("PdfRenderStart", { chapterCount: finalDrafts.length });
   const payload = toLegacyPayload(localAstroChartJson);
   const pdfReady = renderAstroPremiumPdfFromDrafts(finalDrafts, payload);
-  emit("PdfRenderSuccess", { chapterCount: finalDrafts.length });
+  const pdfCompletionValidation = validateAstroPdfCompletionPayload({
+    pdfReady,
+    chapters: finalDrafts,
+    payload: localAstroChartJson,
+    requireDownloadUrl: false,
+  });
+  if (!pdfCompletionValidation.ok) {
+    const error = new Error("점성술 PDF 완료 검증에 실패했습니다.");
+    error.code = "ASTRO_PDF_COMPLETION_VALIDATION_FAILED";
+    error.status = 500;
+    error.issues = pdfCompletionValidation.issues;
+    throw error;
+  }
+  emit("PdfRenderSuccess", {
+    chapterCount: finalDrafts.length,
+    manuscriptSource: ASTRO_PDF_CONFIG.generationMode,
+    pdfCompletionValidation: pdfCompletionValidation.ok,
+  });
 
   const chapters = toLegacyChapters(finalDrafts);
-  const manuscriptSource = clean(enhanced.source || "local-template");
+  const manuscriptSource = ASTRO_PDF_CONFIG.generationMode;
   const llmChapterCount = Number(enhanced.llmChapterCount || 0);
   const fallbackChapterCount = Number(enhanced.fallbackChapterCount || 0);
   const localDraftChapterCount = Number(enhanced.localDraftChapterCount || 0);
@@ -2702,10 +2780,14 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     llmFallbackReason: clean(enhanced.stopLlmReason || enhanced.failures?.[0]?.failureClass || ""),
     localDraftChapterCount,
     enhancedChapterIds: safeArray(enhanced.enhancedChapterIds),
-    expectedLlmChapterCount: Number(enhanced.expectedLlmChapterCount || ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS.length),
+    expectedLlmChapterCount: Number(enhanced.expectedLlmChapterCount ?? 0),
     promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
+    generationMode: ASTRO_PDF_CONFIG.generationMode,
+    provider: ASTRO_PDF_CONFIG.provider,
+    writingPipeline: "local-calculation-to-local-assembled-pdf",
     totalLength: totalLength(finalDrafts),
     pdfReady,
+    pdfCompletionValidation,
     localAstroChartJson,
     astroMasterJson,
     westernAstrologyFacts,
@@ -2715,10 +2797,10 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
     validation: validated,
     validationWarning: !validated.ok,
     diagnostics: {
-      generationMode: "western-astrology-hybrid",
+      generationMode: ASTRO_PDF_CONFIG.generationMode,
       promptVersion: WESTERN_ASTROLOGY_PROMPT_VERSION,
       enhancedChapterIds: safeArray(enhanced.enhancedChapterIds),
-      expectedLlmChapterCount: Number(enhanced.expectedLlmChapterCount || ASTROLOGY_PERSONAL_LLM_ENHANCED_CHAPTERS.length),
+      expectedLlmChapterCount: Number(enhanced.expectedLlmChapterCount ?? 0),
       llmEnabled: Boolean(enhanced.llmEnabled),
       llmAvailable: Boolean(enhanced.llmAvailable),
       llmAttempts: safeArray(enhanced.attempts),
@@ -2726,6 +2808,7 @@ export async function generateAstroPremiumReport(env, rawInput = {}, options = {
       llmModel: clean(enhanced.model),
       fallbackReason: clean(enhanced.stopLlmReason || enhanced.failures?.[0]?.failureClass || ""),
       factsMode: clean(westernAstrologyFacts.mode),
+      pdfCompletionValidation,
     },
     quality: {
       ok: validated.ok,

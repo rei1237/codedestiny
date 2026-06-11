@@ -1,8 +1,9 @@
 import {
+  SUKYO_PDF_CONFIG,
   SUKYO_PDF_CHAPTER_COUNT,
-  SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT,
   buildSukyoPdfSeed,
   generateSukyoPremiumReport,
+  validateSukyoPdfCompletionPayload,
   validateSukyoCompatibilityPdfQuality,
 } from "../worker/lib/sukyo-pdf.js";
 
@@ -70,6 +71,13 @@ function assertReadyReport(label, report) {
 
   const quality = validateSukyoCompatibilityPdfQuality(chapters, report.payload || {});
   assert(quality.ok === true, `${label}: manuscript quality failed`, quality);
+  const completion = validateSukyoPdfCompletionPayload({
+    pdfReady: report.pdfReady,
+    chapters,
+    seed: report.payload || {},
+    requireDownloadUrl: false,
+  });
+  assert(completion.ok === true, `${label}: pdf completion validation failed`, completion);
 
   const body = mergedBody(chapters).toLowerCase();
   const forbidden = ["fallback", "debug", "payload", "json", "localdraft", "internal server error", "about:blank", "undefined", "null", "nan"];
@@ -84,11 +92,12 @@ async function runLocalOnlyCase() {
     { llmEnhancementEnabled: false },
   );
   assertReadyReport("local-only", report);
-  assert(report.manuscriptSource === "local", "local-only: source mismatch", report);
+  assert(report.manuscriptSource === SUKYO_PDF_CONFIG.generationMode, "local-only: source mismatch", report);
   assert(report.llmChapterCount === 0, "local-only: llmChapterCount mismatch", report);
-  assert(report.targetLlmChapterCount === SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT, "local-only: target count mismatch", report);
+  assert(report.targetLlmChapterCount === 0, "local-only: target count mismatch", report);
   assert(report.localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT, "local-only: localDraftChapterCount mismatch", report);
   assert(report.fallbackChapterCount === 0, "local-only: fallbackChapterCount mismatch", report);
+  assert(report.fallbackUsed === false, "local-only: fallbackUsed mismatch", report);
   return report;
 }
 
@@ -106,12 +115,12 @@ async function runLlmFailureCase() {
     },
   );
   assertReadyReport("llm-failure", report);
-  assert(report.manuscriptSource === "local", "llm-failure: source mismatch", report);
-  assert(report.fallbackUsed === true, "llm-failure: fallbackUsed mismatch", report);
+  assert(report.manuscriptSource === SUKYO_PDF_CONFIG.generationMode, "llm-failure: source mismatch", report);
+  assert(report.fallbackUsed === false, "llm-failure: fallbackUsed mismatch", report);
   assert(report.llmChapterCount === 0, "llm-failure: llmChapterCount mismatch", report);
-  assert(report.targetLlmChapterCount === SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT, "llm-failure: target count mismatch", report);
+  assert(report.targetLlmChapterCount === 0, "llm-failure: target count mismatch", report);
   assert(report.localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT, "llm-failure: localDraftChapterCount mismatch", report);
-  assert(report.fallbackChapterCount === SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT, "llm-failure: fallbackChapterCount mismatch", report);
+  assert(report.fallbackChapterCount === 0, "llm-failure: fallbackChapterCount mismatch", report);
   return report;
 }
 

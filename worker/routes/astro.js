@@ -4,18 +4,22 @@ import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { ASTRO_PREMIUM_CHAPTERS, ASTRO_PREMIUM_FEATURE_KEY } from "../lib/astro-premium-chapters.js";
 import {
+  ASTRO_PDF_CONFIG,
   buildAstroLocalChartJson,
   generateAstroPremiumReport,
   hasUsableSwissAstroChart,
   normalizeAstroPremiumBirthInput,
+  validateAstroPdfCompletionPayload,
   validateAstroPayloadForApi,
 } from "../lib/astro-premium-generator.js";
 import { VEDIC_PREMIUM_CHAPTERS, VEDIC_PREMIUM_FEATURE_KEY } from "../lib/vedic-premium-chapters.js";
 import {
+  VEDIC_PDF_CONFIG,
   buildVedicLocalChartJson,
   generateVedicPremiumReport,
   normalizeVedicError,
   normalizeVedicPremiumBirthInput,
+  validateVedicPdfCompletionPayload,
   validateVedicBirthInput,
 } from "../lib/vedic-premium-generator.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
@@ -586,6 +590,10 @@ function buildAstroProgressPatch(stage, payload = {}) {
   switch (stage) {
     case "LocalCalculationJsonPrepared":
       return { stateKey: "local_calculation", currentChapterNo: 0, totalChapters, currentChapterTitle: "출생 차트 근거 정리" };
+    case "LocalAssembledManuscriptReady":
+      return { stateKey: "writing_seed", currentChapterNo: 0, totalChapters, currentChapterTitle: "원고 작성 신호 구성" };
+    case "LocalAssembledManuscriptSuccess":
+      return { stateKey: "writing_local", currentChapterNo: totalChapters, totalChapters, currentChapterTitle: "원고 로컬 조립 완료" };
     case "LLMSeedPrepared":
     case "LLMManuscriptBuildStart":
       return { stateKey: "writing_seed", currentChapterNo: 0, totalChapters, currentChapterTitle: "원고 작성 신호 구성" };
@@ -651,11 +659,13 @@ function buildAstroPdfQualityGate(generated = {}) {
   const expectedLlmChapterCount = Number(generated?.expectedLlmChapterCount || generated?.diagnostics?.expectedLlmChapterCount || 0);
   const manuscriptSource = clean(generated?.manuscriptSource || quality?.manuscriptSource);
   const totalLength = Number(generated?.totalLength || 0);
-  const allowedSources = new Set(["llm-only", "llm-local-hybrid", "hybrid-llm-local", "local-template", "local-rule-completed"]);
+  const allowedSources = new Set(["llm-only", "llm-local-hybrid", "hybrid-llm-local", "local-template", "local-rule-completed", ASTRO_PDF_CONFIG.generationMode, VEDIC_PDF_CONFIG.generationMode]);
   const issues = [];
   if (!allowedSources.has(manuscriptSource)) issues.push("manuscript_source");
   if (expectedLlmChapterCount > 0 && llmChapterCount > expectedLlmChapterCount) issues.push("llm_chapter_over_limit");
   if (llmChapterCount > totalChapters) issues.push("llm_chapter_count");
+  if (Boolean(generated?.fallbackUsed)) issues.push("fallback_used");
+  if (manuscriptSource === ASTRO_PDF_CONFIG.generationMode && (llmChapterCount !== 0 || expectedLlmChapterCount !== 0)) issues.push("local_assembled_llm_count");
   if (validation.ok !== true) issues.push("validation_failed");
   if (quality.ok !== true) issues.push("quality_failed");
   if (Number(stats.geminiChapterCount || 0) > totalChapters) issues.push("gemini_chapter_count");
@@ -1080,15 +1090,30 @@ async function handleAstroPremiumPrepare(request, env) {
       renderFormat: "pdf-archive",
     };
     const storedUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
+    const pdfCompletionValidation = validateAstroPdfCompletionPayload({
+      pdfReady,
+      chapters: generated.finalManuscript,
+      payload: generated.localAstroChartJson || generated.payload,
+      requireDownloadUrl: true,
+    });
+    if (!pdfCompletionValidation.ok) {
+      const error = new Error("점성술 PDF 완료 검증에 실패했습니다.");
+      error.code = "ASTRO_REPORT_COMPLETION_INVALID";
+      error.status = 500;
+      error.issues = pdfCompletionValidation.issues;
+      throw error;
+    }
+    pdfReady.pdfCompletionValidation = pdfCompletionValidation;
 
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
-      manuscriptSource: generated.manuscriptSource,
+      manuscriptSource: generated.manuscriptSource || ASTRO_PDF_CONFIG.generationMode,
       llmChapterCount: Number(generated?.llmChapterCount || 0),
       fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
       fallbackUsed: Boolean(generated?.fallbackUsed),
       llmFallbackReason: clean(generated?.llmFallbackReason),
       pdfQuality,
+      pdfCompletionValidation,
       archive: {
         reportId,
         reportType: "western_astrology_book",
@@ -1102,7 +1127,10 @@ async function handleAstroPremiumPrepare(request, env) {
         downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
         chapters: generated.chapters,
         chapterDrafts: generated.finalManuscript,
-        manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
+        manuscriptSource: clean(generated?.manuscriptSource || ASTRO_PDF_CONFIG.generationMode),
+        generationMode: clean(generated?.generationMode || ASTRO_PDF_CONFIG.generationMode),
+        provider: clean(generated?.provider || ASTRO_PDF_CONFIG.provider),
+        writingPipeline: clean(generated?.writingPipeline || "local-calculation-to-local-assembled-pdf"),
         llmChapterCount: Number(generated?.llmChapterCount || 0),
         expectedLlmChapterCount: Number(generated?.expectedLlmChapterCount || 0),
         enhancedChapterIds: Array.isArray(generated?.enhancedChapterIds) ? generated.enhancedChapterIds : [],
@@ -1117,6 +1145,7 @@ async function handleAstroPremiumPrepare(request, env) {
         masterJsonValidation: generated.masterJsonValidation,
         pdfReady,
         pdfQuality,
+        pdfCompletionValidation,
         diagnostics: generated.diagnostics,
         canReopen: true,
         canDownload: Boolean(storedUrl),
@@ -1135,9 +1164,13 @@ async function handleAstroPremiumPrepare(request, env) {
       expectedLlmChapterCount: Number(generated?.expectedLlmChapterCount || 0),
       enhancedChapterIds: Array.isArray(generated?.enhancedChapterIds) ? generated.enhancedChapterIds : [],
       promptVersion: clean(generated?.promptVersion),
+      generationMode: clean(generated?.generationMode || ASTRO_PDF_CONFIG.generationMode),
+      provider: clean(generated?.provider || ASTRO_PDF_CONFIG.provider),
+      writingPipeline: clean(generated?.writingPipeline || "local-calculation-to-local-assembled-pdf"),
       fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
       llmFallbackReason: clean(generated?.llmFallbackReason),
       pdfQuality,
+      pdfCompletionValidation,
       reportId,
       chapters: generated.chapters,
       chapterDrafts: generated.finalManuscript,
@@ -1153,7 +1186,7 @@ async function handleAstroPremiumPrepare(request, env) {
       masterJsonValidation: generated.masterJsonValidation,
       validation: generated.validation,
       validationWarning: Boolean(generated?.validationWarning),
-      manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
+      manuscriptSource: clean(generated?.manuscriptSource || ASTRO_PDF_CONFIG.generationMode),
       quality: generated.quality,
       finalManuscript: generated.finalManuscript,
       totalLength: generated.totalLength,
@@ -1164,7 +1197,7 @@ async function handleAstroPremiumPrepare(request, env) {
         currentChapterNo: ASTRO_PREMIUM_CHAPTERS.length,
         totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
         currentChapterTitle: "완료",
-        manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
+        manuscriptSource: clean(generated?.manuscriptSource || ASTRO_PDF_CONFIG.generationMode),
       },
     };
 
@@ -1422,18 +1455,11 @@ async function handleVedicPremiumPrepare(request, env) {
       error.status = 422;
       throw error;
     }
-    if (
-      generated?.fallbackUsed
-      || generated?.diagnostics?.llm?.failed
-      || clean(generated?.manuscriptSource) !== "hybrid-llm-local"
-      || Number(generated?.llmChapterCount || 0) < 1
-    ) {
-      console.warn("[VedicPremiumPDF][HybridFallbackUsed]", {
+    if (clean(generated?.manuscriptSource) !== VEDIC_PDF_CONFIG.generationMode) {
+      console.warn("[VedicPremiumPDF][UnexpectedManuscriptSource]", {
         manuscriptSource: clean(generated?.manuscriptSource),
         llmChapterCount: Number(generated?.llmChapterCount || 0),
         fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
-        fallbackReason: clean(generated?.llmFallbackReason),
-        llmFailed: Boolean(generated?.diagnostics?.llm?.failed),
       });
     }
     const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
@@ -1454,14 +1480,29 @@ async function handleVedicPremiumPrepare(request, env) {
       renderFormat: "pdf-archive",
     };
     const storedUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
+    const pdfCompletionValidation = validateVedicPdfCompletionPayload({
+      pdfReady,
+      chapters: generated.chapterDrafts,
+      payload: generated.localVedicChartJson || generated.payload,
+      requireDownloadUrl: true,
+    });
+    if (!pdfCompletionValidation.ok) {
+      const error = new Error("베다점 PDF 완료 검증에 실패했습니다.");
+      error.code = "VEDIC_REPORT_COMPLETION_INVALID";
+      error.status = 500;
+      error.issues = pdfCompletionValidation.issues;
+      throw error;
+    }
+    pdfReady.pdfCompletionValidation = pdfCompletionValidation;
 
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
-      manuscriptSource: generated.manuscriptSource,
+      manuscriptSource: generated.manuscriptSource || VEDIC_PDF_CONFIG.generationMode,
       llmChapterCount: Number(generated?.llmChapterCount || 0),
       fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
       fallbackUsed: Boolean(generated?.fallbackUsed),
       llmFallbackReason: clean(generated?.llmFallbackReason),
+      pdfCompletionValidation,
       archive: {
         reportId,
         reportType: "vedic_book",
@@ -1475,7 +1516,10 @@ async function handleVedicPremiumPrepare(request, env) {
         downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
         chapters: generated.chapters,
         chapterDrafts: generated.chapterDrafts,
-        manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
+        manuscriptSource: clean(generated?.manuscriptSource || VEDIC_PDF_CONFIG.generationMode),
+        generationMode: clean(generated?.generationMode || VEDIC_PDF_CONFIG.generationMode),
+        provider: clean(generated?.provider || VEDIC_PDF_CONFIG.provider),
+        writingPipeline: clean(generated?.writingPipeline || "local-calculation-to-local-assembled-pdf"),
         llmChapterCount: Number(generated?.llmChapterCount || 0),
         fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
         localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
@@ -1491,6 +1535,7 @@ async function handleVedicPremiumPrepare(request, env) {
         vedicMasterJson: generated.vedicMasterJson,
         masterJsonValidation: generated.masterJsonValidation,
         pdfReady,
+        pdfCompletionValidation,
         canReopen: true,
         canDownload: Boolean(storedUrl),
       },
@@ -1508,6 +1553,9 @@ async function handleVedicPremiumPrepare(request, env) {
       fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
       llmFallbackReason: clean(generated?.llmFallbackReason),
       llmFailureClass: clean(generated?.diagnostics?.llm?.failureClass),
+      generationMode: clean(generated?.generationMode || VEDIC_PDF_CONFIG.generationMode),
+      provider: clean(generated?.provider || VEDIC_PDF_CONFIG.provider),
+      writingPipeline: clean(generated?.writingPipeline || "local-calculation-to-local-assembled-pdf"),
       reportId,
       chapters: generated.chapters,
       chapterDrafts: generated.chapterDrafts,
@@ -1516,6 +1564,7 @@ async function handleVedicPremiumPrepare(request, env) {
       vedicMasterJson: generated.vedicMasterJson,
       masterJsonValidation: generated.masterJsonValidation,
       pdfReady,
+      pdfCompletionValidation,
       diagnostics: generated.diagnostics,
       llmModel: clean(generated?.diagnostics?.llm?.model),
       llmAttempts: Array.isArray(generated?.diagnostics?.llm?.attempts) ? generated.diagnostics.llm.attempts : [],
@@ -1525,7 +1574,7 @@ async function handleVedicPremiumPrepare(request, env) {
       canReopen: true,
       canDownload: Boolean(storedUrl),
       quality: generated.quality,
-      manuscriptSource: clean(generated?.manuscriptSource || "llm-only"),
+      manuscriptSource: clean(generated?.manuscriptSource || VEDIC_PDF_CONFIG.generationMode),
       localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
       finalChapterCount: Array.isArray(generated?.chapters) ? generated.chapters.length : 0,
     };

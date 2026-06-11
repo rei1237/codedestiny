@@ -20,12 +20,21 @@ export type PaymentLoadingProps = {
   statusMessage?: string;
 };
 
-const DEFAULT_TITLE = "운명을 읽어오는 중입니다...";
-const DEFAULT_DESCRIPTION = "결제가 진행 중입니다. 잠시만 기다려 주세요.";
+const DEFAULT_TITLE = "결제 상태를 확인하고 있습니다";
+const DEFAULT_DESCRIPTION = "결제와 이용 권한을 안전하게 확인하고 있습니다. 잠시만 기다려 주세요.";
 const YEON_SPRITE_URL =
-  "/fuctionassets/%EB%8F%88%EB%B0%9D%ED%9E%88%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=20260607-unified-payment";
-const PASS_PIG_URL = "/fuctionassets/membership-honey-kkulkkul.webp?v=20260611-license-pass";
-const UNIFIED_PAYMENT_MARKER = "cd-money-yeon-unified-payment-ui-v20260611-slow-sprite";
+  "/fuctionassets/%EB%8F%88%EB%8F%85%EC%98%A4%EB%A5%B8%20%EC%97%B0%EC%9D%B4.webp?v=20260612-clean-cut";
+const UNIFIED_PAYMENT_MARKER = "cd-money-yeon-unified-payment-ui-v20260612-clean-cut";
+
+function resolveYeonSpriteAnimation(variant: NonNullable<PaymentLoadingProps["variant"]>) {
+  if (variant === "checkout") return "cdYeonPaymentSpriteCheckout 2.8s steps(1, end) infinite";
+  if (variant === "confirm") return "cdYeonPaymentSpriteConfirm 2.8s steps(1, end) infinite";
+  if (variant === "monthly" || variant === "subscription") return "cdYeonPaymentSpriteBalance 3.2s steps(1, end) infinite";
+  if (variant === "unlock-saving") return "cdYeonPaymentSpriteUnlock 3s steps(1, end) infinite";
+  if (variant === "payment-complete" || variant === "pass-applied") return "cdYeonPaymentSpriteComplete 2.6s steps(1, end) infinite";
+  if (variant === "refund") return "cdYeonPaymentSpriteCalm 3s steps(1, end) infinite";
+  return "cdYeonPaymentSpriteCheck 3s steps(1, end) infinite";
+}
 
 export default function PaymentLoading({
   open,
@@ -41,9 +50,6 @@ export default function PaymentLoading({
     const img = new window.Image();
     img.decoding = "async";
     img.src = YEON_SPRITE_URL;
-    const passImg = new window.Image();
-    passImg.decoding = "async";
-    passImg.src = PASS_PIG_URL;
   }, []);
 
   useEffect(() => {
@@ -77,47 +83,47 @@ export default function PaymentLoading({
   const isPassAppliedVariant = variant === "pass-applied";
   const copyMap: Record<NonNullable<PaymentLoadingProps["variant"]>, { title: string; description: string; status?: string }> = {
     payment: {
-      title: "결제 상태를 안전하게 확인하고 있습니다",
-      description: "연이가 주문 정보와 이용 권한을 차례로 맞춰보고 있습니다.",
+      title: "이용 권한 확인 중",
+      description: "주문 정보와 이용 권한을 차분히 맞춰 보고 있습니다.",
     },
     checkout: {
-      title: "단건 결제창을 열고 있습니다",
-      description: "주문 금액과 인증 정보를 맞춰 안전한 결제창으로 이어갑니다.",
+      title: "결제창 준비 중",
+      description: "결제창을 열기 전 주문 금액과 인증 정보를 확인하고 있습니다.",
     },
     confirm: {
-      title: "단건 결제 승인을 확인하고 있습니다",
+      title: "결제 승인 확인 중",
       description: "승인 신호와 콘텐츠 이용 권한을 함께 확인하고 있습니다.",
     },
     monthly: {
-      title: "Moonlight Stone 보너스 적용 중입니다",
-      description: "Moonlight Stone 보너스 잔량을 확인하고 콘텐츠 이용 권한을 여는 중입니다.",
+      title: "Moonlight Stone 적용 중",
+      description: "보너스 잔량과 콘텐츠 이용 권한을 확인하고 있습니다.",
     },
     subscription: {
-      title: "코인 기준 이용권 결제를 확인하고 있습니다",
-      description: "코인 기준 이용권 결제 승인과 이용 권한을 차분하게 연결하고 있습니다.",
+      title: "이용권 결제 확인 중",
+      description: "이용권 결제 승인과 서비스 이용 권한을 연결하고 있습니다.",
     },
     "unlock-saving": {
-      title: "이용 권한을 저장하고 있습니다",
+      title: "잠금 해제 저장 중",
       description: "결과 화면으로 이어지도록 권한 기록을 정리하고 있습니다.",
     },
     "payment-complete": {
       title: "결제 확인 완료",
-      description: "연이가 이용 권한을 반짝 열어두었습니다.",
+      description: "이용 권한이 정상적으로 열렸습니다.",
       status: "잠시 후 콘텐츠로 이어집니다.",
     },
     refund: {
-      title: "환불을 안전하게 처리하고 있습니다",
-      description: "결제 내역과 이용 권한을 차례로 확인하고 있습니다.",
+      title: "환불 상태 확인 중",
+      description: "결제 내역과 이용 권한을 안전하게 다시 확인하고 있습니다.",
     },
     "pass-checking": {
-      title: "이용권을 확인하고 있습니다",
-      description: "연이가 이용권 범위와 프로필 권한을 맞춰보고 있습니다.",
+      title: "이용권 확인 중",
+      description: "보유한 이용권 범위와 현재 콘텐츠 권한을 확인하고 있습니다.",
       status: "이용권 적용 여부를 확인하고 있습니다.",
     },
     "pass-applied": {
-      title: "이용권이 적용되었어요 🌙",
-      description: "꽃돼지가 꿀단지를 열어드렸어요.\n이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.\n코인 차감 없이 바로 열어드릴게요.",
-      status: "달빛 문을 여는 중입니다.",
+      title: "이용권 적용 완료",
+      description: "보유한 이용권으로 이번 콘텐츠가 열렸습니다.\n코인 차감 없이 바로 이어집니다.",
+      status: "콘텐츠 문을 여는 중입니다.",
     },
   };
   const copy = copyMap[variant] || copyMap.payment;
@@ -141,6 +147,7 @@ export default function PaymentLoading({
         ? cleanedStatus
         : copy.status;
   const isWarmVariant = ["pass-checking", "pass-applied", "subscription", "monthly"].includes(variant) || isPaymentComplete;
+  const spriteAnimation = resolveYeonSpriteAnimation(variant);
 
   return (
     <div
@@ -173,27 +180,20 @@ export default function PaymentLoading({
 
         <div className="relative mx-auto mb-5 flex h-[142px] w-[104px] items-center justify-center">
           <span className={`absolute -inset-2 rounded-[1.5rem] border border-amber-100/18 bg-amber-100/5 shadow-[0_0_24px_rgba(251,191,36,0.18)] ${isFamilyPassVariant ? "scale-110 shadow-[0_0_38px_rgba(251,191,36,0.32)]" : ""}`} />
-          {isPassAppliedVariant ? (
-            <div className="relative grid h-[128px] w-[128px] place-items-center rounded-[2rem] border border-amber-100/45 bg-[radial-gradient(circle_at_50%_12%,rgba(255,251,235,.98),rgba(250,232,255,.82))] shadow-[0_16px_36px_rgba(0,0,0,.28),0_0_34px_rgba(251,191,36,.24)]">
-              <span className={`absolute inset-3 rounded-full border border-amber-200/35 ${isFamilyPassVariant ? "motion-safe:animate-pulse" : ""}`} />
-              <img src={PASS_PIG_URL} alt="" aria-hidden="true" decoding="async" className="relative h-[104px] w-[104px] object-contain drop-shadow-[0_12px_18px_rgba(120,53,15,.24)]" />
-            </div>
-          ) : (
-            <div className="relative h-[132px] w-[88px] overflow-hidden rounded-[1.25rem] border border-amber-100/45 bg-[#fff7ed] shadow-[0_10px_24px_rgba(251,191,36,0.2)] [contain:paint]">
-              <div
-                className="absolute left-0 top-0 h-[200%] w-[400%]"
-                style={{
-                  animation: "cdYeonPaymentSprite 3.6s steps(1, end) infinite",
-                  backgroundImage: `url("${YEON_SPRITE_URL}")`,
-                  backgroundRepeat: "no-repeat",
-                  backgroundSize: "100% 100%",
-                  imageRendering: "auto",
-                  transform: "translate3d(0, 0, 0)",
-                  willChange: "transform",
-                }}
-              />
-            </div>
-          )}
+          <div className="relative h-[132px] w-[88px] overflow-hidden rounded-[1.25rem] border border-amber-100/45 bg-[#fff7ed] shadow-[0_10px_24px_rgba(251,191,36,0.2)] [contain:paint]">
+            <div
+              className="absolute left-0 top-0 h-[200%] w-[400%]"
+              style={{
+                animation: spriteAnimation,
+                backgroundImage: `url("${YEON_SPRITE_URL}")`,
+                backgroundRepeat: "no-repeat",
+                backgroundSize: "100% 100%",
+                imageRendering: "auto",
+                transform: "translate3d(0, 0, 0)",
+                willChange: "transform",
+              }}
+            />
+          </div>
         </div>
 
         <p className={`text-xl font-bold tracking-tight text-transparent bg-clip-text sm:text-2xl ${
@@ -213,15 +213,32 @@ export default function PaymentLoading({
         ) : null}
 
         <style jsx global>{`
-          @keyframes cdYeonPaymentSprite {
-            0%, 12.49% { transform: translate3d(0%, 0%, 0); }
-            12.5%, 24.99% { transform: translate3d(-25%, 0%, 0); }
-            25%, 37.49% { transform: translate3d(-50%, 0%, 0); }
-            37.5%, 49.99% { transform: translate3d(-75%, 0%, 0); }
-            50%, 62.49% { transform: translate3d(0%, -50%, 0); }
-            62.5%, 74.99% { transform: translate3d(-25%, -50%, 0); }
-            75%, 87.49% { transform: translate3d(-50%, -50%, 0); }
-            87.5%, 100% { transform: translate3d(-75%, -50%, 0); }
+          @keyframes cdYeonPaymentSpriteCheck {
+            0%, 49.99% { transform: translate3d(0%, 0%, 0); }
+            50%, 100% { transform: translate3d(-25%, 0%, 0); }
+          }
+          @keyframes cdYeonPaymentSpriteCheckout {
+            0%, 49.99% { transform: translate3d(-50%, 0%, 0); }
+            50%, 100% { transform: translate3d(-25%, -50%, 0); }
+          }
+          @keyframes cdYeonPaymentSpriteConfirm {
+            0%, 49.99% { transform: translate3d(-25%, -50%, 0); }
+            50%, 100% { transform: translate3d(-50%, -50%, 0); }
+          }
+          @keyframes cdYeonPaymentSpriteBalance {
+            0%, 49.99% { transform: translate3d(-50%, -50%, 0); }
+            50%, 100% { transform: translate3d(-75%, -50%, 0); }
+          }
+          @keyframes cdYeonPaymentSpriteUnlock {
+            0%, 49.99% { transform: translate3d(0%, -50%, 0); }
+            50%, 100% { transform: translate3d(-50%, -50%, 0); }
+          }
+          @keyframes cdYeonPaymentSpriteComplete {
+            0%, 49.99% { transform: translate3d(-75%, 0%, 0); }
+            50%, 100% { transform: translate3d(-75%, -50%, 0); }
+          }
+          @keyframes cdYeonPaymentSpriteCalm {
+            0%, 100% { transform: translate3d(0%, 0%, 0); }
           }
           @media (prefers-reduced-motion: reduce) {
             [data-payment-loading-marker="${UNIFIED_PAYMENT_MARKER}"] [style*="cdYeonPaymentSprite"] {

@@ -1141,7 +1141,7 @@ async function resolveProfileScopedUnlocks(authUserId, profileId) {
   return { unlockedFeatures, unlockMap };
 }
 
-async function successWithPremiumAccess(env, authUserId, data, message = "요청이 성공했습니다.") {
+async function successWithPremiumAccess(env, authUserId, data, message = "요청이 성공했습니다.", init = {}) {
   const pricing = data?.pricing || {};
   const consume = data?.consume || {};
   const featureKey = String(pricing?.featureKey || consume?.featureKey || data?.accessGrant?.featureKey || "").trim();
@@ -1166,7 +1166,7 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
       freeBySubscription: data?.freeBySubscription === true || consume?.accessType === "membership_pass",
     })
     : "";
-  const responseHeaders = new Headers();
+  const responseHeaders = new Headers(init?.headers || {});
   if (premiumAccessToken) {
     responseHeaders.append("Set-Cookie", buildPremiumAccessCookie(premiumAccessToken, isProductionRuntime(env)));
   }
@@ -1205,6 +1205,7 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
         accessDecision: data?.accessDecision || {},
       })
       : null);
+  const hasResponseHeaders = Array.from(responseHeaders.keys()).length > 0;
   return success({
     ...data,
     status: accessStatus,
@@ -1221,7 +1222,7 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
     unlockedFeatures,
     unlockMap,
     ...(accessGateResult ? { accessGateResult, licensePass: accessGateResult } : {}),
-  }, message, premiumAccessToken ? { headers: responseHeaders } : {});
+  }, message, hasResponseHeaders ? { ...init, headers: responseHeaders } : init);
 }
 
 function cleanText(value, max = 240) {
@@ -3002,12 +3003,14 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     accessGrant.paymentMethod = "COIN";
   }
 
-  return success({
+  const delegatedSuccessPayload = {
     pricing,
     accessMethod: "COIN",
     paymentMode: "COIN",
     consume: {
       ...(payload && typeof payload === "object" ? payload : {}),
+      transactionId: purchaseId || payload?.transactionId || payload?.data?.transactionId || undefined,
+      featureKey: requestedFeatureKey,
       accessType: "coin",
       accessMethod: "COIN",
       paymentMethod: "COIN",
@@ -3017,7 +3020,23 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     accessGrant,
     balance: Number.isFinite(balance) ? balance : null,
     user: payload?.user || null,
-  }, toMessage(payload, "이용권 확인이 완료되었습니다."), {
+  };
+
+  if (
+    requestedFeatureIsPdfGeneration
+    || isUnlockPaidFeatureKey(requestedFeatureKey)
+    || resolvePremiumAccessReportType(requestedFeatureKey, String(pricing?.reason || ""))
+  ) {
+    return await successWithPremiumAccess(
+      env,
+      authCheck.auth.userId,
+      delegatedSuccessPayload,
+      toMessage(payload, "이용권 확인이 완료되었습니다."),
+      { headers: responseHeaders },
+    );
+  }
+
+  return success(delegatedSuccessPayload, toMessage(payload, "이용권 확인이 완료되었습니다."), {
     headers: responseHeaders,
   });
 }

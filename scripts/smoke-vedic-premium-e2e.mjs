@@ -3,12 +3,14 @@
 import assert from "node:assert/strict";
 import {
   VEDIC_ASTROLOGY_PROMPT_VERSION,
+  VEDIC_PDF_CONFIG,
   VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS,
   buildVedicAstrologyFacts,
   buildVedicAstrologyLlmCacheKey,
   buildVedicLocalChartJson,
   buildVedicMasterJson,
   generateVedicPremiumReport,
+  validateVedicPdfCompletionPayload,
   validateVedicMasterJson,
 } from "../worker/lib/vedic-premium-generator.js";
 
@@ -116,7 +118,7 @@ const changedAyanamsaKey = buildVedicAstrologyLlmCacheKey({
 const changedChapterKey = buildVedicAstrologyLlmCacheKey(facts, "vedic_lagna");
 assert.notEqual(cacheKey, changedAyanamsaKey, "cache key changes by ayanamsa");
 assert.notEqual(cacheKey, changedChapterKey, "cache key changes by chapter");
-assert.equal(VEDIC_ASTROLOGY_PROMPT_VERSION, "vedic-astrology-hybrid-v1", "prompt version");
+assert.equal(VEDIC_ASTROLOGY_PROMPT_VERSION, VEDIC_PDF_CONFIG.templateVersion, "template version");
 assert.ok(VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS.includes("vedic_dasha_flow"), "personal enhanced chapters");
 
 const generated = await generateVedicPremiumReport({}, rawInput, {
@@ -125,13 +127,16 @@ const generated = await generateVedicPremiumReport({}, rawInput, {
 });
 
 assert.equal(generated.diagnostics.manuscript.ok, true, "fallback manuscript validation");
-assert.equal(generated.manuscriptSource, "local-template", "no-key source falls back to local");
+assert.equal(generated.manuscriptSource, VEDIC_PDF_CONFIG.generationMode, "local assembled source");
 assert.equal(generated.llmChapterCount, 0, "no-key llm chapter count");
-assert.equal(generated.diagnostics.llm.failed, true, "no-key llm failure recorded");
-assert.equal(generated.diagnostics.llm.failureClass, "missing_key", "no-key llm failure class");
+assert.equal(generated.fallbackUsed, false, "local assembled does not use fallback");
+assert.equal(generated.fallbackChapterCount, 0, "local assembled fallback chapter count");
+assert.equal(generated.diagnostics.llm.enabled, false, "llm disabled");
+assert.equal(generated.diagnostics.llm.failed, false, "no llm failure recorded");
 assert.equal(generated.chapterDrafts.length, 12, "chapter draft count");
 assert.equal(generated.chapterDrafts.every((chapter) => chapter.sections.every((section) => String(section.body || "").trim().length > 0)), true, "no empty sections");
 assert.ok(String(generated.pdfReady?.html || "").includes("베다점 프리미엄 PDF"), "pdf html rendered");
+assert.equal(generated.pdfCompletionValidation.ok, true, "pdf completion validation");
 
 const archiveUrl = "https://example.test/api/premium/pdf-archive/smoke_vedic_premium_report";
 const pdfReady = {
@@ -151,7 +156,13 @@ assert.equal(pdfReady.mimeType, "application/pdf", "mime type");
 assert.equal(pdfReady.contentType, "application/pdf", "content type");
 assert.equal(pdfReady.renderFormat, "pdf-archive", "render format");
 assert.ok(/\.pdf$/i.test(pdfReady.filename), "pdf filename");
+assert.equal(validateVedicPdfCompletionPayload({
+  pdfReady: { ...generated.pdfReady, ...pdfReady },
+  chapters: generated.chapterDrafts,
+  payload: generated.localVedicChartJson,
+  requireDownloadUrl: true,
+}).ok, true, "archive pdf completion validation");
 
 console.log("SMOKE_VEDIC_PREMIUM_MASTER_JSON=ok");
-console.log("SMOKE_VEDIC_PREMIUM_HYBRID_FALLBACK=ok");
+console.log("SMOKE_VEDIC_PREMIUM_LOCAL_ASSEMBLED=ok");
 console.log("SMOKE_VEDIC_PREMIUM_ARCHIVE=ok");

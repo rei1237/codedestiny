@@ -13,6 +13,12 @@ import {
 } from "@/lib/fpti/fpti-adapter";
 import { FPTI_CURATED_TYPES } from "@/lib/fpti/fpti-copy";
 import type { FptiAnalysisResult, FptiFormInput, FptiSourceData } from "@/lib/fpti/fpti-types";
+import {
+  fetchCurrentDestinyProfile,
+  isDestinyProfileStorageKey,
+  readCurrentDestinyProfile,
+  type DestinyProfileCard,
+} from "@/app/_lib/profile-card-storage";
 
 const LOADING_STEPS = [
   "별자리 성향 좌표를 정렬하는 중...",
@@ -72,18 +78,6 @@ type DestinyProfile = {
     label?: string;
   };
 };
-
-const PROFILE_STORAGE_NS = "FORTUNE_APP_USER_PROFILES";
-const PROFILE_BRIDGE_KEYS = ["FORTUNE_APP_USER_PROFILE", "FORTUNE_APP_VEDIC_PAYLOAD", "OLYMPUS_ORACLE_PROFILE"];
-
-function safeParse<T>(raw: string | null): T | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as T;
-  } catch (e) {
-    return null;
-  }
-}
 
 function toTwoDigits(value: number) {
   return String(value).padStart(2, "0");
@@ -262,80 +256,6 @@ function normalizeTime(profile: DestinyProfile): { birthTime: string; timeUnknow
   return { birthTime: "12:00", timeUnknown: true };
 }
 
-function readStoredJson<T>(storage: Storage | undefined, key: string): T | null {
-  if (!storage) return null;
-  return safeParse<T>(storage.getItem(key));
-}
-
-function readProfileScope(): string {
-  if (typeof window === "undefined") return "guest";
-  const user = readStoredJson<Record<string, unknown>>(window.localStorage, "fortune_auth_user");
-  return String(user?.id || user?.userId || user?._id || user?.uid || "guest").trim().toLowerCase() || "guest";
-}
-
-function pickProfileFromPayload(payload: unknown, currentId = ""): DestinyProfile | null {
-  if (!payload || typeof payload !== "object") return null;
-  if (Array.isArray(payload)) {
-    const profiles = payload.filter((item): item is DestinyProfile => Boolean(item && typeof item === "object"));
-    const requested = currentId.trim();
-    if (requested) {
-      const matched = profiles.find((item) => String(item.id || item.profileId || "").trim() === requested);
-      if (matched && toFormInput(matched)) return matched;
-    }
-    return profiles.find((item) => Boolean(toFormInput(item))) || null;
-  }
-
-  const record = payload as Record<string, unknown>;
-  const nested = record.profile || record.currentProfile || record.destinyProfile || record.payload;
-  const nestedProfile = pickProfileFromPayload(nested, currentId);
-  if (nestedProfile) return nestedProfile;
-
-  const profile = payload as DestinyProfile;
-  return toFormInput(profile) ? profile : null;
-}
-
-function readStoredProfile(): DestinyProfile | null {
-  if (typeof window === "undefined") return null;
-  for (const key of PROFILE_BRIDGE_KEYS) {
-    const bridged = pickProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, key))
-      || pickProfileFromPayload(readStoredJson<unknown>(window.localStorage, key));
-    if (bridged) return bridged;
-  }
-
-  const scope = readProfileScope();
-  const currentKeys = [
-    `${PROFILE_STORAGE_NS}.current::${scope}`,
-    `${PROFILE_STORAGE_NS}.current`,
-  ];
-  const listKeys = [
-    `${PROFILE_STORAGE_NS}.list::${scope}`,
-    `${PROFILE_STORAGE_NS}.list`,
-  ];
-  const currentId = currentKeys
-    .map((key) => String(window.localStorage.getItem(key) || window.sessionStorage.getItem(key) || "").trim())
-    .find(Boolean) || "";
-
-  for (const key of listKeys) {
-    const profile = pickProfileFromPayload(readStoredJson<unknown>(window.localStorage, key), currentId)
-      || pickProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, key), currentId);
-    if (profile) return profile;
-  }
-  return null;
-}
-
-function readCurrentProfile(eventProfile?: unknown): DestinyProfile | null {
-  const eventResolved = pickProfileFromPayload(eventProfile);
-  if (eventResolved) return eventResolved;
-  const getCurrent = (window as unknown as { __cdGetCurrentDestinyProfile?: () => DestinyProfile | null }).__cdGetCurrentDestinyProfile;
-  if (typeof getCurrent === "function") {
-    const current = getCurrent();
-    if (current && toFormInput(current)) return current;
-  }
-  const globalProfile = ((window as unknown as { __cdCurrentDestinyProfile?: DestinyProfile | null }).__cdCurrentDestinyProfile) || null;
-  if (globalProfile && toFormInput(globalProfile)) return globalProfile;
-  return readStoredProfile();
-}
-
 function toFormInput(profile: DestinyProfile): FptiFormInput | null {
   const birthDate = normalizeDate(profile);
   if (!birthDate) return null;
@@ -349,6 +269,10 @@ function toFormInput(profile: DestinyProfile): FptiFormInput | null {
     timeUnknown: time.timeUnknown,
     birthRegion: String(profile.location?.label || profile.birthRegion || "").trim(),
   };
+}
+
+function hasFptiProfileInput(profile: DestinyProfileCard): boolean {
+  return Boolean(toFormInput(profile));
 }
 
 function buildAutoSignature(input: FptiFormInput): string {
@@ -384,7 +308,7 @@ export default function FptiExperience() {
 
   const syncFormFromCurrentProfile = useCallback((eventProfile?: unknown) => {
     if (typeof window === "undefined") return null;
-    const currentProfile = readCurrentProfile(eventProfile);
+    const currentProfile = readCurrentDestinyProfile(eventProfile, hasFptiProfileInput);
     if (!currentProfile) return null;
     const profileForm = toFormInput(currentProfile);
     if (!profileForm) return null;
@@ -401,16 +325,40 @@ export default function FptiExperience() {
     };
   }, []);
 
+  const syncFormFromCurrentProfileAsync = useCallback(async (eventProfile?: unknown) => {
+    const synced = syncFormFromCurrentProfile(eventProfile);
+    if (synced) return synced;
+    const currentProfile = await fetchCurrentDestinyProfile(hasFptiProfileInput);
+    if (!currentProfile) return null;
+    const profileForm = toFormInput(currentProfile);
+    if (!profileForm) return null;
+
+    const fallbackName = profileForm.name || "프로필 사용자";
+    setForm((prev) => ({
+      ...prev,
+      ...profileForm,
+      name: profileForm.name || prev.name || fallbackName,
+    }));
+    setLinkedProfileName(profileForm.name || "현재 프로필");
+    return {
+      ...profileForm,
+      name: fallbackName,
+    };
+  }, [syncFormFromCurrentProfile]);
+
   useEffect(() => {
     syncFormFromCurrentProfile();
+    void syncFormFromCurrentProfileAsync();
     const onProfileChanged = (event: Event) => {
       const detail = (event as CustomEvent).detail;
-      syncFormFromCurrentProfile(detail?.profile || detail);
+      const synced = syncFormFromCurrentProfile(detail?.profile || detail);
+      if (!synced) void syncFormFromCurrentProfileAsync(detail?.profile || detail);
     };
     const onStorage = (event: StorageEvent) => {
       if (!event.key) return;
-      if (PROFILE_BRIDGE_KEYS.includes(event.key) || event.key.startsWith(PROFILE_STORAGE_NS)) {
+      if (isDestinyProfileStorageKey(event.key)) {
         syncFormFromCurrentProfile();
+        void syncFormFromCurrentProfileAsync();
       }
     };
     window.addEventListener("destinyProfileChanged", onProfileChanged);
@@ -421,7 +369,7 @@ export default function FptiExperience() {
       document.removeEventListener("destinyProfileChanged", onProfileChanged);
       window.removeEventListener("storage", onStorage);
     };
-  }, [syncFormFromCurrentProfile]);
+  }, [syncFormFromCurrentProfile, syncFormFromCurrentProfileAsync]);
 
   const analyzeWith = useCallback(async (input: FptiFormInput, trigger: "manual" | "auto" | "profile" = "manual") => {
     const analysisInput = toAnalysisInput(input);
@@ -437,7 +385,7 @@ export default function FptiExperience() {
       // 입력값을 사주 원천 데이터로 먼저 계산해 FPTI 상태와 동기화합니다.
       computed = calculateSajuSourceFromBirth(analysisInput);
       setSajuSource(computed);
-    } catch (e) {
+    } catch {
       setError("사주 계산에 필요한 입력값이 올바르지 않습니다. 날짜/시간 형식을 확인해 주세요.");
       setPhase("input");
       return false;
@@ -467,7 +415,7 @@ export default function FptiExperience() {
         });
       }
       return true;
-    } catch (e) {
+    } catch {
       setError("분석 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
       setPhase("input");
       return false;
@@ -481,6 +429,7 @@ export default function FptiExperience() {
     setPhase("input");
     setError("");
     syncFormFromCurrentProfile();
+    void syncFormFromCurrentProfileAsync();
     if (typeof window !== "undefined") {
       window.requestAnimationFrame(() => {
         const target = document.getElementById("fpti-input");
@@ -490,7 +439,7 @@ export default function FptiExperience() {
   };
 
   const analyzeCurrentProfile = async () => {
-    const profileForm = syncFormFromCurrentProfile();
+    const profileForm = syncFormFromCurrentProfile() || await syncFormFromCurrentProfileAsync();
     if (!profileForm) {
       setError("현재 선택된 프로필의 생년월일 데이터를 찾을 수 없습니다. 프로필 카드를 먼저 확인해 주세요.");
       setPhase("input");

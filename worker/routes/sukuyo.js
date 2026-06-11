@@ -8,10 +8,11 @@ import {
   SUKYO_PDF_ALIAS_FEATURE_KEY,
   SUKYO_PDF_CHAPTER_COUNT,
   SUKYO_PDF_CHAPTERS,
+  SUKYO_PDF_CONFIG,
   SUKYO_PDF_FEATURE_KEY,
-  SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT,
   buildSukyoPdfSeed,
   generateSukyoPremiumReport,
+  validateSukyoPdfCompletionPayload,
   validateSukyoPdfInput,
 } from "../lib/sukyo-pdf.js";
 import { buildCanonicalSukuyoCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
@@ -415,12 +416,16 @@ function buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId) {
     payload: generated.payload,
     localSukuyoCompatibilityJson: generated?.payload?.localSukuyoCompatibilityJson || generated?.payload,
     pdfReady,
-    manuscriptSource: generated.manuscriptSource || "hybrid",
+    manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
     llmChapterCount: Number(generated.llmChapterCount || 0),
-    targetLlmChapterCount: Number(generated.targetLlmChapterCount || generated?.payload?.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT),
+    targetLlmChapterCount: Number(generated.targetLlmChapterCount ?? generated?.payload?.targetLlmChapterCount ?? 0),
     fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
     localDraftChapterCount: Number(generated.localDraftChapterCount || 0),
     fallbackUsed: Boolean(generated.fallbackUsed),
+    generationMode: generated.generationMode || SUKYO_PDF_CONFIG.generationMode,
+    provider: generated.provider || SUKYO_PDF_CONFIG.provider,
+    writingPipeline: generated.writingPipeline || "local-calculation-to-local-assembled-pdf",
+    pdfCompletionValidation: generated.pdfCompletionValidation,
     canReopen: true,
     canDownload: true,
   };
@@ -443,7 +448,7 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
   const hasUrl = Boolean(clean(payload?.downloadUrl || payload?.pdfUrl || payload?.htmlUrl || ready?.downloadUrl || ready?.pdfUrl || ready?.htmlUrl));
   const manuscriptSource = clean(payload?.manuscriptSource || ready?.manuscriptSource);
   const llmChapterCount = Number(payload?.llmChapterCount || 0);
-  const targetLlmChapterCount = Number(payload?.targetLlmChapterCount || ready?.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT);
+  const targetLlmChapterCount = Number(payload?.targetLlmChapterCount ?? ready?.targetLlmChapterCount ?? 0);
   const fallbackChapterCount = Number(payload?.fallbackChapterCount || 0);
   const localDraftChapterCount = Number(payload?.localDraftChapterCount || 0);
   const countContractOk = Number.isFinite(llmChapterCount)
@@ -465,7 +470,7 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
     && hasCompleteSukuyoChapters(chapters)
     && clean(payload?.serverStatus) === "completed"
     && clean(payload?.qualityStatus) === "passed"
-    && ["gemini-only", "hybrid", "hybrid-fallback", "local"].includes(manuscriptSource)
+    && ["gemini-only", "hybrid", "hybrid-fallback", "local", SUKYO_PDF_CONFIG.generationMode].includes(manuscriptSource)
     && countContractOk
   );
 }
@@ -687,8 +692,8 @@ async function handleSukuyoPremiumPrepare(request, env) {
       mimeType: "application/pdf",
       contentType: "application/pdf",
       renderFormat: "pdf-archive",
-      manuscriptSource: clean(generated?.manuscriptSource || generated?.payload?.manuscriptSource || "hybrid"),
-      targetLlmChapterCount: Number(generated?.targetLlmChapterCount || generated?.payload?.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT),
+      manuscriptSource: clean(generated?.manuscriptSource || generated?.payload?.manuscriptSource || SUKYO_PDF_CONFIG.generationMode),
+      targetLlmChapterCount: Number(generated?.targetLlmChapterCount ?? generated?.payload?.targetLlmChapterCount ?? 0),
     };
 
     if (!clean(pdfReady?.html) || !clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)) {
@@ -697,6 +702,20 @@ async function handleSukuyoPremiumPrepare(request, env) {
         code: "SUKUYO_REPORT_URL_MISSING",
       });
     }
+    const pdfCompletionValidation = validateSukyoPdfCompletionPayload({
+      pdfReady,
+      chapters: generated.chapters,
+      seed: dryRunSeed,
+      requireDownloadUrl: true,
+    });
+    if (!pdfCompletionValidation.ok) {
+      throw Object.assign(new Error("숙요점 PDF 완료 검증에 실패했습니다."), {
+        status: 500,
+        code: "SUKUYO_REPORT_COMPLETION_INVALID",
+        issues: pdfCompletionValidation.issues,
+      });
+    }
+    pdfReady.pdfCompletionValidation = pdfCompletionValidation;
 
     const archiveMetadata = buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId);
     let archiveStatus = "completed";
@@ -707,10 +726,11 @@ async function handleSukuyoPremiumPrepare(request, env) {
     try {
       completedExecution = await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
         chapterCount: generated.chapterCount,
-        manuscriptSource: generated.manuscriptSource || "hybrid",
+        manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
         llmChapterCount: Number(generated.llmChapterCount || 0),
         fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
         fallbackUsed: Boolean(generated.fallbackUsed),
+        pdfCompletionValidation,
         archive: archiveMetadata,
       });
       if (!completedExecution?.ok) {
@@ -753,10 +773,14 @@ async function handleSukuyoPremiumPrepare(request, env) {
       chapterCount: generated.chapterCount,
       localDraftChapterCount: Number(generated.localDraftChapterCount || 0),
       llmChapterCount: Number(generated.llmChapterCount || 0),
-      targetLlmChapterCount: Number(generated.targetLlmChapterCount || generated?.payload?.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT),
+      targetLlmChapterCount: Number(generated.targetLlmChapterCount ?? generated?.payload?.targetLlmChapterCount ?? 0),
       fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
       fallbackUsed: Boolean(generated.fallbackUsed),
-      manuscriptSource: generated.manuscriptSource || "hybrid",
+      manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
+      generationMode: generated.generationMode || SUKYO_PDF_CONFIG.generationMode,
+      provider: generated.provider || SUKYO_PDF_CONFIG.provider,
+      writingPipeline: generated.writingPipeline || "local-calculation-to-local-assembled-pdf",
+      pdfCompletionValidation,
       archiveStatus,
       archivePending: archiveStatus !== "completed",
       archiveErrorCode: archiveErrorCode || undefined,

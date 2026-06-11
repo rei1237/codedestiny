@@ -43,7 +43,10 @@ type PaidFeatureGateStatus =
   | "paymentFailed"
   | "error"
   | "paymentPreparing"
-  | "paymentWindowOpen";
+  | "paymentWindowOpen"
+  | "savingUnlock"
+  | "unlockSaving"
+  | "cancelled";
 
 type PaidFeatureGateDetail = {
   featureId?: string;
@@ -84,14 +87,29 @@ const PAID_GATE_COPY: Record<PaidFeatureGateStatus, { label: string; title: stri
   hasEntitlement: { label: "이용 가능", title: "이용권 적용 완료", message: "이용권으로 바로 이용할 수 있습니다." },
   noEntitlement: { label: "결제 필요", title: PAID_GATE_DEFAULT_TITLE, message: "이용 가능한 이용권을 찾지 못했습니다." },
   loadingProducts: { label: "상품 조회", title: "결제 수단 확인", message: "결제 가능한 상품을 확인하고 있습니다." },
-  readyToPay: { label: "결제 가능", title: "결제 가능", message: "결제 후 바로 이용할 수 있습니다." },
+  readyToPay: { label: "선택 대기", title: "결제 수단 선택", message: "이 콘텐츠를 열 수 있는 결제 수단을 선택해 주세요." },
   paymentProcessing: { label: "처리 중", title: "결제 승인 확인", message: "결제 승인과 이용 권한을 확인하고 있습니다." },
   paymentSuccess: { label: "완료", title: "이용 권한 저장 완료", message: "잠시 후 결과 화면으로 이어집니다." },
   paymentFailed: { label: "실패", title: "결제 확인 실패", message: "결제를 완료하지 못했습니다." },
   error: { label: "오류", title: "확인 실패", message: "네트워크 상태를 확인한 뒤 다시 시도해 주세요." },
   paymentPreparing: { label: "결제 준비", title: "단건 결제창 준비 중", message: "단건 결제창을 여는 중입니다. 주문 정보를 안전하게 맞추고 있습니다." },
   paymentWindowOpen: { label: "결제 진행", title: "결제 진행 중", message: "열린 결제창에서 카드 인증을 완료해 주세요." },
+  savingUnlock: { label: "저장 중", title: "잠금 해제 저장 중", message: "결과 화면으로 이어지도록 이용 권한 기록을 저장하고 있습니다." },
+  unlockSaving: { label: "저장 중", title: "잠금 해제 저장 중", message: "결과 화면으로 이어지도록 이용 권한 기록을 저장하고 있습니다." },
+  cancelled: { label: "취소됨", title: "결제 선택 취소", message: "결제 선택이 취소되었습니다. 필요할 때 다시 진행할 수 있습니다." },
 };
+
+const YEON_PAYMENT_SPRITE_URL =
+  "/fuctionassets/%EB%8F%88%EB%8F%85%EC%98%A4%EB%A5%B8%20%EC%97%B0%EC%9D%B4.webp?v=20260612-clean-cut";
+
+function resolvePaidGateSpriteTransform(status: PaidFeatureGateStatus) {
+  if (status === "readyToPay" || status === "paymentPreparing" || status === "paymentWindowOpen") return "translate3d(-50%, 0%, 0)";
+  if (status === "paymentProcessing") return "translate3d(-25%, -50%, 0)";
+  if (status === "savingUnlock" || status === "unlockSaving") return "translate3d(0%, -50%, 0)";
+  if (status === "hasEntitlement" || status === "paymentSuccess") return "translate3d(-75%, -50%, 0)";
+  if (status === "paymentFailed" || status === "error" || status === "cancelled" || status === "noEntitlement") return "translate3d(0%, 0%, 0)";
+  return "translate3d(-25%, 0%, 0)";
+}
 
 const PaidFeatureGateContext = createContext<PaidFeatureGateContextValue | undefined>(undefined);
 
@@ -119,12 +137,7 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
 }
 
 function isPaymentCompletionVariant(variant: PaymentLoadingVariant) {
-  return variant === "payment-complete" || variant === "unlock-saving" || variant === "pass-applied";
-}
-
-function shouldAutoCloseCheckoutOverlay(mode?: string) {
-  const normalizedMode = String(mode || "").trim().toLowerCase();
-  return normalizedMode === "card" || normalizedMode === "checkout";
+  return variant === "payment-complete" || variant === "pass-applied";
 }
 
 const PaymentProcessingContext = createContext<PaymentProcessingContextValue | undefined>(
@@ -167,6 +180,8 @@ function paymentLoadingOwnsPaidFeatureStatus(status: PaidFeatureGateStatus) {
     "paymentSuccess",
     "paymentPreparing",
     "paymentWindowOpen",
+    "savingUnlock",
+    "unlockSaving",
   ].includes(status);
 }
 
@@ -189,6 +204,15 @@ function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, message?
   }
   if (status === "paymentProcessing") {
     return { message: message || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: resolvePaymentLoadingVariant(message, "confirm") };
+  }
+  if (status === "paymentPreparing") {
+    return { message: message || "결제창을 열기 전 주문 정보를 확인하고 있습니다.", mode: "checkout" };
+  }
+  if (status === "paymentWindowOpen") {
+    return { message: message || "열린 결제창에서 인증을 완료해 주세요. 완료 후 권한을 확인합니다.", mode: "checkout" };
+  }
+  if (status === "savingUnlock" || status === "unlockSaving") {
+    return { message: message || "잠금 해제 권한을 저장하고 있습니다.", mode: "unlock-saving" };
   }
   return { message, mode: resolvePaymentLoadingVariant(message) };
 }
@@ -420,8 +444,9 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
 
   const contextValue = useMemo(() => ({ state, open, update, close, preload }), [close, open, preload, state, update]);
   const copy = resolvePaidGateCopy(state);
-  const showSkeleton = ["opening", "checkingEntitlement", "loadingProducts", "paymentProcessing"].includes(state.status);
-  const showPayAction = state.status === "readyToPay" || state.status === "noEntitlement" || state.status === "paymentFailed";
+  const showSkeleton = ["opening", "checkingEntitlement", "loadingProducts", "paymentPreparing", "paymentWindowOpen", "paymentProcessing", "savingUnlock", "unlockSaving"].includes(state.status);
+  const showPayAction = state.status === "readyToPay" || state.status === "noEntitlement" || state.status === "paymentFailed" || state.status === "cancelled";
+  const spriteTransform = resolvePaidGateSpriteTransform(state.status);
 
   return (
     <PaidFeatureGateContext.Provider value={contextValue}>
@@ -436,6 +461,18 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
         >
           <div className="w-full rounded-t-[1.75rem] border border-white/15 bg-[#10131f] p-5 text-white shadow-[0_-22px_80px_rgba(0,0,0,0.35)] sm:max-w-md sm:rounded-[1.5rem] sm:p-6">
             <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20 sm:hidden" />
+            <div className="mx-auto mb-4 h-[104px] w-[72px] overflow-hidden rounded-[1rem] border border-amber-100/35 bg-[#fff7ed] shadow-[0_10px_24px_rgba(251,191,36,0.18)] [contain:paint]">
+              <div
+                className="h-[200%] w-[400%]"
+                style={{
+                  backgroundImage: `url("${YEON_PAYMENT_SPRITE_URL}")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundSize: "100% 100%",
+                  imageRendering: "auto",
+                  transform: spriteTransform,
+                }}
+              />
+            </div>
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-200/80">{copy.label}</p>
@@ -560,19 +597,11 @@ export function PaymentProcessingProvider({
       setPaymentLoadingVariant(nextVariant);
       setProcessingMessageState(nextMessage);
       setIsProcessing(true);
-      if (shouldAutoCloseCheckoutOverlay(nextMode)) {
-        completionCloseTimerRef.current = setTimeout(() => {
-          const current = overlayStateRef.current;
-          if (current.open && current.message === nextMessage && current.mode === nextMode) {
-            closeProcessingNow();
-          }
-        }, 1600);
-      }
       return;
     }
     if (!previous.open) return;
     stopProcessing();
-  }, [clearCompletionCloseTimer, closeProcessingNow, setPaymentLoadingVariant, stopProcessing]);
+  }, [clearCompletionCloseTimer, setPaymentLoadingVariant, stopProcessing]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

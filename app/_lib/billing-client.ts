@@ -192,13 +192,61 @@ type BillingCoinGateInput = {
   reportId?: string;
   sessionId?: string;
   reportSessionId?: string;
+  profileId?: string;
+  selectedProfileId?: string;
+  contentKey?: string;
+  purchaseId?: string;
+  idempotencyKey?: string;
+  orderId?: string;
 };
 
 const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
 const BILLING_BALANCE_RECENT_TTL_MS = 5000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
 const PAYMENT_CHOICE_RECENT_TTL_MS = 1800;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-05360bb67a23";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-4c7c95b72cf6";
+
+const BILLING_FEATURE_KEY_ALIASES: Record<string, string> = {
+  saju_life_book_pdf: "premium-lifebook-report",
+  saju_lifebook_pdf: "premium-lifebook-report",
+  "premium-lifebook-report": "premium-lifebook-report",
+  generatelifebook: "premium-lifebook-report",
+  opensajulifebookbuilder: "premium-lifebook-report",
+  premium_pdf_ziwei: "premium-ziwei-report",
+  premium_pdf_ziwei_compat: "premium-ziwei-report-compat",
+  "premium-pdf-ziwei": "premium-ziwei-report",
+  premiumziweipdf: "premium-ziwei-report",
+  gotoziweipremium: "premium-ziwei-report",
+  premium_pdf_western_astrology: "premium-astrology-report",
+  premium_pdf_western_astrology_compat: "premium-astrology-report-compat",
+  gotoastrologypremium: "premium-astrology-report",
+  premium_pdf_sukyo: "premium-sukuyo-report",
+  premium_pdf_sukyo_compat: "premium-sukuyo-report-compat",
+  gotosukuyopremium: "premium-sukuyo-report",
+  premium_pdf_vedic: "premium-vedic-report",
+  premium_pdf_vedic_compat: "premium-vedic-report-compat",
+  gotovedicpremium: "premium-vedic-report",
+  premium_pdf_saju_life_book: "premium-lifebook-report",
+  "premium-saju-newyear-report": "saju_new_year_pdf",
+  "premium-saju-newyear-report-compat": "saju_new_year_pdf",
+  premium_pdf_saju_new_year: "saju_new_year_pdf",
+  premium_pdf_saju_yearly: "saju_new_year_pdf",
+  opensajunewyearmodal: "saju_new_year_pdf",
+  generatesajunewyear: "saju_new_year_pdf",
+  saju_love_book_pdf: "premium-love-secret-solo",
+  sajulovebookpdf: "premium-love-secret-solo",
+  premium_pdf_saju_love_secret: "premium-love-secret-solo",
+  premium_pdf_saju_love_secret_compat: "premium-love-secret-couple",
+  "premium-soul-origin-report": "premium_pdf_soul_origin",
+  souloriginkarma: "premium_pdf_soul_origin",
+  soul_origin_book: "premium_pdf_soul_origin",
+  destiny_prayer_book: "premium_pdf_soul_origin",
+  opensouloriginmodal: "premium_pdf_soul_origin",
+  gotosouloriginpremium: "premium_pdf_soul_origin",
+  premium_fpti_report: "premium-fpti-report",
+  generatefptideepreport: "premium-fpti-report",
+  openfptideepreport: "premium-fpti-report",
+};
 
 const billingCoinGateInFlight = new Map<string, {
   requestId: string;
@@ -268,6 +316,11 @@ export type ServiceExecutionData = {
 
 function toText(value: unknown): string {
   return String(value || "").trim();
+}
+
+function normalizeBillingFeatureKey(value: unknown): string {
+  const key = toText(value).toLowerCase();
+  return BILLING_FEATURE_KEY_ALIASES[key] || key;
 }
 
 function normalizePaymentMode(value: unknown): string {
@@ -728,9 +781,9 @@ function installReactPaymentChoiceBridge() {
 function hasVerifiedBillingAccess(data: unknown, expectedFeatureKey: unknown): boolean {
   const record = asRecord(data);
   if (!record) return false;
-  const expectedFeature = toText(expectedFeatureKey);
+  const expectedFeature = normalizeBillingFeatureKey(expectedFeatureKey);
   const pricing = asRecord(record.pricing);
-  const pricingFeature = toText(pricing?.featureKey);
+  const pricingFeature = normalizeBillingFeatureKey(pricing?.featureKey);
   const accessDecision = asRecord(record.accessDecision);
   if (
     (record.canAccess === true || record.unlocked === true || accessDecision?.accessGranted === true)
@@ -747,7 +800,7 @@ function hasVerifiedBillingAccess(data: unknown, expectedFeatureKey: unknown): b
       || accessGrant.merchantUid
       || accessGrant.requestId,
     );
-    const grantFeature = toText(accessGrant.featureKey);
+    const grantFeature = normalizeBillingFeatureKey(accessGrant.featureKey);
     if (evidenceId && (!expectedFeature || !grantFeature || grantFeature === expectedFeature)) return true;
   }
   const consume = asRecord(record.consume);
@@ -759,13 +812,18 @@ function hasVerifiedBillingAccess(data: unknown, expectedFeatureKey: unknown): b
       || consume._id
       || consume.id,
     );
-    const consumeFeature = toText(consume.featureKey);
+    const consumeFeature = normalizeBillingFeatureKey(consume.featureKey);
     if (transactionId && (!expectedFeature || !consumeFeature || consumeFeature === expectedFeature)) return true;
     if ((consume.accessType === "membership_pass" || consume.accessType === "already_unlocked") && (!expectedFeature || !consumeFeature || consumeFeature === expectedFeature)) return true;
   }
   const unlockMap = asRecord(record.unlockMap);
-  if (expectedFeature && unlockMap && unlockMap[expectedFeature] === true) return true;
-  const unlockedFeatures = Array.isArray(record.unlockedFeatures) ? record.unlockedFeatures.map(toText) : [];
+  if (expectedFeature && unlockMap) {
+    const normalizedUnlockMap = Object.fromEntries(
+      Object.entries(unlockMap).map(([key, value]) => [normalizeBillingFeatureKey(key), value]),
+    );
+    if (normalizedUnlockMap[expectedFeature] === true) return true;
+  }
+  const unlockedFeatures = Array.isArray(record.unlockedFeatures) ? record.unlockedFeatures.map(normalizeBillingFeatureKey) : [];
   return Boolean(expectedFeature && unlockedFeatures.includes(expectedFeature));
 }
 
@@ -1335,9 +1393,37 @@ function resolvePaidFeatureInFlightKey(input: {
   reportId?: string;
   sessionId?: string;
   reportSessionId?: string;
+  profileId?: string;
+  selectedProfileId?: string;
+  contentKey?: string;
+  purchaseId?: string;
+  idempotencyKey?: string;
+  orderId?: string;
+  payloadHash?: string;
+  paymentMode?: string;
+  productId?: string;
+  serviceType?: string;
 }) {
-  const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate");
-  return featureId;
+  const featureId = normalizeBillingFeatureKey(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate");
+  const parts = [
+    ["mode", normalizePaymentMode(input.paymentMode)],
+    ["request", input.requestId],
+    ["report", input.reportId],
+    ["session", input.sessionId || input.reportSessionId],
+    ["profile", input.profileId || input.selectedProfileId],
+    ["content", input.contentKey],
+    ["purchase", input.purchaseId || input.idempotencyKey || input.orderId],
+    ["payload", input.payloadHash],
+    ["product", input.productId],
+    ["service", input.serviceType],
+  ]
+    .map(([key, value]) => {
+      const text = toText(value);
+      return text ? `${key}:${text}` : "";
+    })
+    .filter(Boolean)
+    .join("|");
+  return parts ? `${featureId}|${parts}` : featureId;
 }
 
 export function openPaidFeatureGate(input: {

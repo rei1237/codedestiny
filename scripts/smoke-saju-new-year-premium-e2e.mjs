@@ -44,31 +44,32 @@ assert.equal(masterJson.quantumMyeongri.monthlyQuantum.length, 12);
 const specs = newYear.buildSajuNewYearChapterSpecs(2026);
 assert.deepEqual(seed.chapters, []);
 const expectedChapterTitles = [
-  "프롤로그 — 올해 내 운의 전체 분위기",
-  "올해의 핵심 키워드 — 세운이 나에게 주는 메시지",
-  "대운과 세운의 만남 — 큰 흐름 속 올해의 위치",
-  "일과 커리어 — 성취, 역할, 방향 전환의 운",
-  "재물과 소비 — 돈이 들어오고 나가는 구조",
-  "연애와 인간관계 — 가까워질 사람과 멀어질 사람",
-  "건강과 생활 리듬 — 무리하기 쉬운 지점과 회복법",
-  "위험 신호와 기회 신호 — 조심할 시기와 잡아야 할 시기",
-  "12개월 월별 운세 — 매달의 흐름과 실천 조언",
-  "올해의 마스터플랜 — 1년을 잘 쓰는 실행 전략",
+  "2026년 총운과 세운의 문",
+  "2026년 일과 커리어의 방향",
+  "2026년 재물과 소비의 흐름",
+  "2026년 인간관계와 귀인운",
+  "2026년 연애와 가정운",
+  "2026년 건강과 생활 리듬",
+  "2026년 분기별 의사결정",
+  "2026년 위험 신호와 반전 전략",
+  "2026년 12개월 월별 운세",
+  "2026년 최종 신년 로드맵",
 ];
 const expectedChapterSections = [
   "핵심 요약 카드",
   "상담형 본문",
-  "계산 근거 기반 해석",
+  "사주 근거 해석",
   "주의할 점",
   "실천 조언",
   "체크리스트",
-  "챕터 마무리 문장",
+  "마무리 문장",
 ];
 assert.deepEqual(specs.map((spec) => spec.title), expectedChapterTitles);
 assert.equal(specs.length, 10);
 assert.ok(specs.every((spec) => spec.categories.length === expectedChapterSections.length));
 assert.ok(specs.every((spec) => JSON.stringify(spec.categories) === JSON.stringify(expectedChapterSections)));
-const paymentCheckIndex = handlePrepareSource.indexOf("const access = await requirePremiumReportAccess");
+const paymentCheckIndex = handlePrepareSource.indexOf("const access = isPremiumReportTestMode(env)");
+const requireAccessIndex = handlePrepareSource.indexOf("await requirePremiumReportAccess", paymentCheckIndex);
 const cacheNormalizeIndex = handlePrepareSource.indexOf("const cacheNormalized = normalizeYearlySajuInput");
 const cacheLookupIndex = handlePrepareSource.indexOf("const cachedPdfExecution = await findNewYearReusableExecution");
 const startExecutionIndex = handlePrepareSource.indexOf("await startPremiumPdfExecution");
@@ -76,6 +77,7 @@ const generatePdfIndex = handlePrepareSource.indexOf("const pipelineResult = gen
 const completeExecutionIndex = handlePrepareSource.indexOf("await completePremiumPdfExecution");
 const failExecutionIndex = handlePrepareSource.indexOf("await failPremiumPdfExecution");
 assert.ok(paymentCheckIndex > -1, "premium access check exists");
+assert.ok(requireAccessIndex > paymentCheckIndex, "premium report access resolver exists after test-mode branch");
 assert.ok(cacheNormalizeIndex > paymentCheckIndex, "calculation cache normalization happens after payment access");
 assert.ok(cacheLookupIndex > paymentCheckIndex, "calculation-result cache lookup happens after payment access");
 assert.ok(startExecutionIndex > cacheLookupIndex, "premium execution starts after cache lookup");
@@ -83,14 +85,14 @@ assert.ok(generatePdfIndex > startExecutionIndex, "PDF generation starts after p
 assert.ok(completeExecutionIndex > generatePdfIndex, "premium execution completes after PDF generation");
 assert.ok(failExecutionIndex > completeExecutionIndex, "failure settlement path remains in catch block");
 assert.equal(handlePrepareSource.slice(0, paymentCheckIndex).includes("generateYearlySajuPdf("), false, "no PDF generation before payment access");
-assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.generationMode, "local");
+assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.generationMode, "local-assembled");
 assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.llmEnabled, false);
-assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.provider, "none");
-assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.templateVersion, "yearly-saju-local-v2");
+assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.provider, "saju-assembler");
+assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.templateVersion, "yearly-saju-assembled-v3");
 const localModeEnv = {
-  YEARLY_SAJU_PDF_GENERATION_MODE: "local",
+  YEARLY_SAJU_PDF_GENERATION_MODE: "local-assembled",
   YEARLY_SAJU_PDF_LLM_ENABLED: "false",
-  YEARLY_SAJU_LLM_PROVIDER: "none",
+  YEARLY_SAJU_LLM_PROVIDER: "saju-assembler",
   GEMINI_API_KEY: "present-in-env",
   PREMIUM_GEMINI_API_KEY1: "present-in-env",
   PREMIUM_SAJU_NEW_YEAR_GEMINI_API_KEY1: "present-in-env",
@@ -204,7 +206,7 @@ try {
   assert.equal(cacheCtx.executionKey, cacheKeyA);
   assert.equal(cacheCtx.idempotencyKey, cacheKeyA);
   assert.equal(cacheCtx.metadata.cacheKind, "yearly-saju-pdf");
-  assert.equal(cacheCtx.metadata.templateVersion, "yearly-saju-local-v2");
+  assert.equal(cacheCtx.metadata.templateVersion, "yearly-saju-assembled-v3");
   const pipelineResult = newYear.generateYearlySajuPdf(profile, 2026, {
     body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
     metadata: { reportType: "sajuNewYear", sessionId: "smoke-local-pipeline" },
@@ -213,32 +215,31 @@ try {
   assert.equal(pipelineResult.hybridStats.llmEnabled, false);
   assert.equal(pipelineResult.hybridStats.llmAttempted, 0);
   assert.equal(pipelineResult.hybridStats.llmSucceeded, 0);
-  assert.equal(pipelineResult.hybridStats.provider, "none");
+  assert.equal(pipelineResult.hybridStats.provider, "saju-assembler");
   assert.equal(pipelineResult.chapters.length, specs.length);
   assert.ok(Array.isArray(pipelineResult.monthlyFortuneSections));
   assert.equal(pipelineResult.monthlyFortuneSections.length, 12);
-  assert.equal(pipelineResult.pdfReady.metadata.writingPipeline, "yearly-saju-local-v2");
+  assert.equal(pipelineResult.pdfReady.metadata.writingPipeline, "yearly-saju-assembled-v3");
   assert.ok(Array.isArray(pipelineResult.pdfReady.metadata.interpretationBlockIds));
   assert.ok(pipelineResult.pdfReady.metadata.interpretationBlockIds.length >= 10);
   assert.equal(pipelineResult.normalizedData.service, "yearly-saju");
   assert.ok(pipelineResult.chapters.some((chapter) => Array.isArray(chapter.interpretationBlockIds) && chapter.interpretationBlockIds.length > 0));
-  assert.ok(pipelineResult.chapters.some((chapter) => String(chapter.text || "").includes("실천 체크")));
+  assert.ok(pipelineResult.chapters.some((chapter) => (chapter.sections || []).some((section) => Array.isArray(section.checklist) && section.checklist.length >= 3)));
   for (const chapter of pipelineResult.chapters) {
     const chapterText = String(chapter.text || "");
     const sectionTitles = Array.isArray(chapter.sections) ? chapter.sections.map((section) => String(section.title || "")) : [];
     assert.equal(typeof chapter.title, "string", `chapter ${chapter.no} title`);
     assert.ok(chapter.title.length > 0, `chapter ${chapter.no} title empty`);
-    assert.ok(sectionTitles.some((title) => title.includes("핵심 요약")), `chapter ${chapter.no} summary section`);
-    assert.ok(sectionTitles.some((title) => title.includes("상담형 본문")), `chapter ${chapter.no} body section`);
-    assert.ok(sectionTitles.some((title) => title.includes("실천 조언")), `chapter ${chapter.no} advice section`);
-    assert.ok(sectionTitles.some((title) => title.includes("체크리스트")), `chapter ${chapter.no} checklist section`);
+    for (const sectionName of expectedChapterSections) {
+      assert.ok(sectionTitles.includes(sectionName), `chapter ${chapter.no} section ${sectionName}`);
+    }
     assert.ok(chapterText.length >= 1800, `chapter ${chapter.no} length ${chapterText.length}`);
-    assert.ok((chapterText.match(/핵심 요약\s*\d\./g) || []).length >= 3, `chapter ${chapter.no} summary count`);
-    assert.ok((chapterText.match(/실천 조언\s*\d\./g) || []).length >= 3, `chapter ${chapter.no} advice count`);
-    assert.ok((chapterText.match(/체크리스트\s*\d\./g) || []).length >= 3, `chapter ${chapter.no} checklist count`);
+    assert.ok(chapter.sections.every((section) => Array.isArray(section.actionGuide) && section.actionGuide.length >= 3), `chapter ${chapter.no} action guide count`);
+    assert.ok(chapter.sections.every((section) => Array.isArray(section.checklist) && section.checklist.length >= 3), `chapter ${chapter.no} checklist count`);
+    assert.ok(chapter.sections.every((section) => Array.isArray(section.sajuEvidence) && section.sajuEvidence.length >= 3), `chapter ${chapter.no} evidence count`);
     assert.equal(assertiveForbiddenRe.test(chapterText), false, `chapter ${chapter.no} assertive marker`);
   }
-  assert.ok(pipelineResult.chapters.every((chapter) => chapter.source === "local-rule-completed"));
+  assert.ok(pipelineResult.chapters.every((chapter) => chapter.source === "assembled"));
   await assert.rejects(
     () => newYear.generateNewYearChapterWithGemini({
       GEMINI_API_KEY: "present-in-env",
@@ -257,30 +258,16 @@ try {
   assert.equal(/\b(?:undefined|null|NaN)\b|\[object Object\]|준비중|생성 실패|스켈레톤/i.test(String(localPdfReady.html || "")), false);
   assert.equal(assertiveForbiddenRe.test(String(localPdfReady.html || "")), false);
   assert.equal(String(localPdfReady.html || "").includes('"service":"yearly-saju"'), false);
-  assert.ok((String(localPdfReady.html || "").match(/class="metric-card"/g) || []).length >= 10);
-  assert.ok(String(localPdfReady.html || "").includes('class="monthly"'));
-  assert.ok((String(localPdfReady.html || "").match(/class="monthly-fortune-card"/g) || []).length >= 12);
-  assert.ok(String(localPdfReady.html || "").includes("12개월 월별 운세 카드"));
-  assert.ok(String(localPdfReady.html || "").includes("<span class=\"badge\">Code</span>"));
-  assert.ok(String(localPdfReady.html || "").includes("<h1>사주 신년운세</h1>"));
-  assert.ok(String(localPdfReady.html || "").includes("나의 사주 구조로 읽는 1년의 흐름"));
-  assert.ok(String(localPdfReady.html || "").includes("대상 연도"));
-  assert.ok(String(localPdfReady.html || "").includes("생성일"));
-  assert.ok(String(localPdfReady.html || "").includes("원국 요약표"));
-  assert.ok(String(localPdfReady.html || "").includes("세운 요약표"));
-  assert.ok(String(localPdfReady.html || "").includes("대운·세운 관계표"));
-  assert.ok((String(localPdfReady.html || "").match(/class="chapter-cover page-break"/g) || []).length >= 10);
-  assert.ok(String(localPdfReady.html || "").includes("마지막 정리"));
-  assert.ok(String(localPdfReady.html || "").includes("12개월 실행 루틴"));
-  assert.ok(String(localPdfReady.html || "").includes("재열람 안내"));
-  assert.ok(String(localPdfReady.html || "").includes("핵심 키워드:"));
-  assert.ok(String(localPdfReady.html || "").includes("이번 달 실천:"));
-  assert.ok(String(localPdfReady.html || "").includes("일/커리어:"));
-  assert.ok(String(localPdfReady.html || "").includes("돈/소비:"));
-  assert.ok(String(localPdfReady.html || "").includes("건강/리듬:"));
-  assert.ok(String(localPdfReady.html || "").includes("기회 시기 TOP 3"));
-  assert.ok(String(localPdfReady.html || "").includes("주의 시기 TOP 3"));
-  assert.ok(String(localPdfReady.html || "").includes('class="masterplan-table"'));
+  assert.ok(String(localPdfReady.html || "").includes("<div class=\"brand\">Code Destiny</div>"));
+  assert.ok(String(localPdfReady.html || "").includes("<h1>2026년 신년운세</h1>"));
+  assert.ok(String(localPdfReady.html || "").includes("사주 구조로 읽는 한 해의 흐름과 실천 로드맵"));
+  assert.ok(String(localPdfReady.html || "").includes("핵심 요약 카드"));
+  assert.ok(String(localPdfReady.html || "").includes("사주 근거 해석"));
+  assert.ok(String(localPdfReady.html || "").includes("12개월 월별 운세"));
+  assert.ok(String(localPdfReady.html || "").includes("연간 실행 로드맵"));
+  assert.ok(String(localPdfReady.html || "").includes("마지막 조언"));
+  const completionValidation = newYear.validateSajuNewYearPdfCompletionPayload({ pdfReady: localPdfReady, chapters: pipelineResult.chapters });
+  assert.equal(completionValidation.ok, true, `completion validation ${JSON.stringify(completionValidation)}`);
   assert.equal(externalLlmFetchCount, 0);
   const reusableCached = newYear.buildNewYearReusableExecutionResponse({
     status: "success",
@@ -357,16 +344,17 @@ assert.ok(archiveUrls.pdfUrl.includes("format=pdf"));
 assert.ok(archiveUrls.htmlUrl.includes("format=html"));
 
 const pdfReady = newYear.buildPdfReadyPayload(seed, llmChapters, {
-  manuscriptSource: "worker-native-llm",
+  manuscriptSource: "assembled",
   localDraftChapterCount: 0,
-  writingPipeline: "local-calculation-json-llm-writing-only",
+  writingPipeline: "yearly-saju-assembled-v3",
 });
 pdfReady.pdfUrl = archiveUrls.pdfUrl;
 pdfReady.downloadUrl = archiveUrls.pdfUrl;
 pdfReady.htmlUrl = archiveUrls.htmlUrl;
 pdfReady.mimeType = "application/pdf";
 pdfReady.contentType = "application/pdf";
-assert.ok(String(pdfReady.html || "").includes("사주 신년운세"));
+assert.ok(String(pdfReady.html || "").includes("신년운세"));
+assert.equal(newYear.validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters: newYear.buildSajuNewYearAssembledChapters(seed, llmChapters), requireDownloadUrl: true }).ok, true);
 assert.equal(pdfReady.mimeType, "application/pdf");
 assert.ok(pdfReady.downloadUrl.includes("format=pdf"));
 assert.ok(pdfReady.htmlUrl.includes("format=html"));

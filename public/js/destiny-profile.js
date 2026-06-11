@@ -186,13 +186,6 @@
   function _dpReadStoredProfileState(scope) {
     var safeScope = String(scope || 'guest');
     try {
-      var metaRaw = localStorage.getItem(_dpGetScopedMetaKey(safeScope)) || '';
-      var meta = metaRaw ? JSON.parse(metaRaw) : null;
-      var tokenHint = _dpGetAuthTokenCacheHint();
-      if (safeScope !== 'guest' && meta && meta.tokenHint && tokenHint && meta.tokenHint !== tokenHint) {
-        return { profiles: [], currentId: '' };
-      }
-
       var raw = localStorage.getItem(_dpGetScopedListKey(safeScope)) || '';
       var profiles = raw ? _dpNormalizeProfiles(JSON.parse(raw)) : [];
       var currentId = String(localStorage.getItem(_dpGetScopedCurrentKey(safeScope)) || '');
@@ -1069,13 +1062,13 @@
       var user = payload && payload.user ? payload.user : null;
       var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
       var ok = !!userId;
-      _dpMarkSessionVerify(ok, userId);
       if (ok) {
         if (payload && payload.accessToken) {
           try { localStorage.setItem('fortune_auth_token', String(payload.accessToken)); } catch (_) {}
         }
         _dpPersistSessionUser(user);
       }
+      _dpMarkSessionVerify(ok, userId);
       return ok;
     }).catch(function() {
       _dpMarkSessionVerify(false, '');
@@ -3816,6 +3809,15 @@
 
     var b = profile.birth;
     var l = profile.location || {};
+    var locationLabel = String(
+      l.label
+      || l.name
+      || profile.locationLabel
+      || [profile.countryName || profile.country, profile.cityName || profile.city].filter(Boolean).join(' · ')
+      || '\uB300\uD55C\uBBFC\uAD6D \u00B7 \uC11C\uC6B8'
+    );
+    var genderKey = String(profile.gender || profile.sex || '').trim().toLowerCase();
+    var isMale = genderKey === 'm' || genderKey === 'male' || genderKey === '\uB0A8\uC131';
     var profileLng = (l.lng !== undefined && l.lng !== null && !isNaN(Number(l.lng)))
       ? Number(l.lng)
       : ((l.lon !== undefined && l.lon !== null && !isNaN(Number(l.lon))) ? Number(l.lon) : null);
@@ -3855,7 +3857,7 @@
               + String(b.hour).padStart(2,'0') + ':' + String(b.minute).padStart(2,'0')
             + '</div>'
             + '<div style="margin-top:4px;">'
-              + (profile.gender === 'M'
+              + (isMale
                 ? '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(96,165,250,0.18);border:1px solid rgba(96,165,250,0.45);color:#93c5fd;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9794; 남성</span>'
                 : '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(244,114,182,0.18);border:1px solid rgba(244,114,182,0.45);color:#f9a8d4;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.5px;">&#9792; 여성</span>')
             + '</div>'
@@ -3873,7 +3875,7 @@
               + '<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'
               + '출생지'
             + '</span>'
-            + '<span class="dp-mc-info-val">' + _esc(l.label) + '</span>'
+            + '<span class="dp-mc-info-val">' + _esc(locationLabel) + '</span>'
           + '</div>'
           + '<div class="dp-mc-info-item">'
             + '<span class="dp-mc-info-label">'
@@ -3890,7 +3892,7 @@
               + '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>'
               + '경도'
             + '</span>'
-            + '<span class="dp-mc-info-val">' + l.lng.toFixed(1) + '°</span>'
+            + '<span class="dp-mc-info-val">' + safeLng.toFixed(1) + '°</span>'
           + '</div>'
         + '</div>'
         + '<button class="dp-mc-load-btn" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
@@ -5559,6 +5561,15 @@
   /* ──────────────────────────────────────────
      10. 초기화
   ────────────────────────────────────────── */
+  function _dpRenderCachedProfileNow() {
+    _dpEnsureScopedStorageReady();
+    var cachedProfile = DPStorage.current();
+    if (!cachedProfile) return false;
+    renderMasterCard(cachedProfile);
+    renderProfileList();
+    return true;
+  }
+
   function init() {
     /* 모바일 브라우저(BFCache/세션 복원)에서 시트 열린 상태가 남는 문제 방지 */
     dpCloseList();
@@ -5580,9 +5591,14 @@
     // 초기 진입 시에는 인증 상태를 먼저 확인한 뒤에만 결제/구독/프로필 API를 호출한다.
     _dpVerifyLoginSession(false).then(function(ok) {
       if (!ok) {
-        if (shouldShowProfileLoading) renderMasterCard(DPStorage.current());
+        if (shouldShowProfileLoading || initialProfile) {
+          renderMasterCard(DPStorage.current());
+          renderProfileList();
+        }
         return;
       }
+
+      _dpRenderCachedProfileNow();
 
       _dpLoadFromServer(function(loaded) {
         if (loaded) {

@@ -23,6 +23,12 @@ import {
   validateYeonHeartStarReading,
 } from "@/lib/yeon/heartStarReading";
 import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
+import {
+  fetchCurrentDestinyProfile,
+  isDestinyProfileStorageKey,
+  readCurrentDestinyProfile,
+  type DestinyProfileCard,
+} from "@/app/_lib/profile-card-storage";
 
 type EmotionKey = "happy" | "calm" | "tired" | "worried" | "flutter" | "blue";
 type ZodiacSign =
@@ -696,7 +702,7 @@ function normalizeBirthDateText(value: unknown) {
 
 function normalizeBirthTimeText(value: unknown) {
   const digits = String(value || "").replace(/\D/g, "");
-  if (digits.length === 4) return digits;
+  if (digits.length >= 4) return digits.slice(0, 4);
   return "";
 }
 
@@ -724,16 +730,76 @@ function parseSignFromBirthDateInput(value: string): ZodiacSign | null {
   return getSignByMonthDay(month, day);
 }
 
+function toProfileInt(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.trunc(parsed);
+}
+
+function padProfile2(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function readProfileBirthDateInput(profile: DestinyProfileCard | null): string {
+  if (!profile) return "";
+  const birth = profile.birth || {};
+  const year = toProfileInt(birth.year ?? profile.birthYear);
+  const month = toProfileInt(birth.month ?? profile.birthMonth);
+  const day = toProfileInt(birth.day ?? profile.birthDay);
+  if (year && month && day && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+    return `${year}${padProfile2(month)}${padProfile2(day)}`;
+  }
+
+  const dateText = String(profile.birthDate || "").trim()
+    || String(profile.birthIso || "").split(/[T\s]/)[0]
+    || "";
+  return normalizeBirthDateText(dateText);
+}
+
+function readProfileBirthTimeInput(profile: DestinyProfileCard | null): string {
+  if (!profile) return "";
+  const birth = profile.birth || {};
+  const hour = toProfileInt(birth.hour ?? profile.birthHour);
+  const minute = toProfileInt(birth.minute ?? profile.birthMinute);
+  if (hour !== null && hour >= 0 && hour <= 23) {
+    const safeMinute = minute !== null && minute >= 0 && minute <= 59 ? minute : 0;
+    return `${padProfile2(hour)}${padProfile2(safeMinute)}`;
+  }
+
+  const timeText = String(profile.birthTime || "").trim()
+    || String(profile.birthIso || "").split(/[T\s]/)[1]
+    || "";
+  return normalizeBirthTimeText(timeText);
+}
+
+function hasYeonProfileBirth(profile: DestinyProfileCard) {
+  return Boolean(readProfileBirthDateInput(profile));
+}
+
+function buildProfileSeed(profile: DestinyProfileCard, source: ProfileSeed["source"]): ProfileSeed {
+  return {
+    name: String(profile.name || "").trim(),
+    birthDateInput: readProfileBirthDateInput(profile),
+    birthTimeInput: readProfileBirthTimeInput(profile),
+    source,
+  };
+}
+
 function readProfileSeedFromStorage(): ProfileSeed {
   if (typeof window === "undefined") {
     return { name: "", birthDateInput: "", birthTimeInput: "", source: "none" };
   }
 
   try {
+    const profile = readCurrentDestinyProfile(undefined, hasYeonProfileBirth);
+    if (profile) return buildProfileSeed(profile, "profile");
+
     const user = readSanitizedAuthUser();
     const fallbackName = String(user?.name || "").trim();
-    const fallbackBirthDateInput = normalizeBirthDateText((user as { birthDate?: string } | null)?.birthDate);
-    const fallbackBirthTimeInput = normalizeBirthTimeText((user as { birthTime?: string } | null)?.birthTime);
+    const userBirth = user as ({ birthDate?: string; birthTime?: string } | null);
+    const fallbackBirthDateInput = normalizeBirthDateText(userBirth?.birthDate);
+    const fallbackBirthTimeInput = normalizeBirthTimeText(userBirth?.birthTime);
 
     return {
       name: fallbackName,
@@ -741,7 +807,7 @@ function readProfileSeedFromStorage(): ProfileSeed {
       birthTimeInput: fallbackBirthTimeInput,
       source: fallbackBirthDateInput ? "auth" : "none",
     };
-  } catch (_error) {
+  } catch {
     return { name: "", birthDateInput: "", birthTimeInput: "", source: "none" };
   }
 }
@@ -1014,6 +1080,7 @@ function buildKeywordSupportLines(
     scores: { overall: number; love: number; money: number };
   }
 ) {
+  void _context;
   const keywords = collectConcernKeywords(concern).slice(0, 3);
 
   if (keywords.length === 0) {
@@ -1585,9 +1652,39 @@ export default function YeonStarHugPage() {
     applyProfileSeed();
     if (typeof window === "undefined") return;
 
+    let cancelled = false;
+    const applyProfileSeedFromApi = () => {
+      void fetchCurrentDestinyProfile(hasYeonProfileBirth).then((profile) => {
+        if (cancelled || !profile) return;
+        const nextSeed = buildProfileSeed(profile, "profile");
+        setProfileSeed(nextSeed);
+        setProfileNameInput(nextSeed.name || "");
+        setBirthDateInput(normalizeBirthDateText(nextSeed.birthDateInput));
+        setBirthTimeInput(normalizeBirthTimeText(nextSeed.birthTimeInput));
+
+        const signByProfile = parseSignFromBirthDateInput(nextSeed.birthDateInput);
+        if (signByProfile) {
+          setSelectedSign(signByProfile);
+          setProfileSyncNote(`프로필 카드 생년월일(${formatBirthDateInput(nextSeed.birthDateInput)}) 기준으로 ${signByProfile}를 적용했어요.`);
+        }
+      });
+    };
+
+    const handleProfileStorage = (event: StorageEvent) => {
+      if (event.key && !isDestinyProfileStorageKey(event.key) && event.key !== "fortune_auth_user") return;
+      applyProfileSeed();
+      applyProfileSeedFromApi();
+    };
+
+    applyProfileSeedFromApi();
     window.addEventListener("destinyProfileChanged", applyProfileSeed);
+    document.addEventListener("destinyProfileChanged", applyProfileSeed);
+    window.addEventListener("storage", handleProfileStorage);
     return () => {
+      cancelled = true;
       window.removeEventListener("destinyProfileChanged", applyProfileSeed);
+      document.removeEventListener("destinyProfileChanged", applyProfileSeed);
+      window.removeEventListener("storage", handleProfileStorage);
     };
   }, []);
 
@@ -1604,6 +1701,19 @@ export default function YeonStarHugPage() {
       return;
     }
     setProfileSyncNote("프로필 카드에 생년월일이 없어 별자리를 자동 계산하지 못했어요.");
+    void fetchCurrentDestinyProfile(hasYeonProfileBirth).then((profile) => {
+      if (!profile) return;
+      const nextSeedFromApi = buildProfileSeed(profile, "profile");
+      setProfileSeed(nextSeedFromApi);
+      setProfileNameInput(nextSeedFromApi.name || "");
+      setBirthDateInput(normalizeBirthDateText(nextSeedFromApi.birthDateInput));
+      setBirthTimeInput(normalizeBirthTimeText(nextSeedFromApi.birthTimeInput));
+      const signByProfileFromApi = parseSignFromBirthDateInput(nextSeedFromApi.birthDateInput);
+      if (signByProfileFromApi) {
+        setSelectedSign(signByProfileFromApi);
+        setProfileSyncNote(`프로필 카드 생년월일(${formatBirthDateInput(nextSeedFromApi.birthDateInput)}) 기준으로 ${signByProfileFromApi}를 적용했어요.`);
+      }
+    });
   };
 
   const handleBirthDateInputChange = (value: string) => {
@@ -1716,7 +1826,7 @@ export default function YeonStarHugPage() {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(`${shareText}\n${window.location.href}`);
       }
-    } catch (e) {
+    } catch {
       setShareFeedback("공유 중 문제가 발생했어요. 다시 눌러볼까요?");
     } finally {
       setIsExporting(false);

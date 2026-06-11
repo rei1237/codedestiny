@@ -5,7 +5,13 @@ import { SUKUYO_MANSIONS } from "./sukuyo-premium.js";
 export const SUKYO_PDF_FEATURE_KEY = "premium-sukuyo-report-compat";
 export const SUKYO_PDF_ALIAS_FEATURE_KEY = "premium_pdf_sukyo_compat";
 export const SUKYO_PDF_CHAPTER_COUNT = 15;
-export const SUKUYO_PROMPT_VERSION = "sukuyo-hybrid-v1";
+export const SUKYO_PDF_CONFIG = Object.freeze({
+  generationMode: "local-assembled",
+  llmEnabled: false,
+  provider: "sukuyo-assembler",
+  templateVersion: "sukuyo-premium-assembled-v1",
+});
+export const SUKUYO_PROMPT_VERSION = SUKYO_PDF_CONFIG.templateVersion;
 export const SUKUYO_PERSONAL_LLM_ENHANCED_CHAPTERS = Object.freeze([
   "mansion_overview",
   "emotional_rhythm",
@@ -35,7 +41,7 @@ const SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS = Object.freeze([
   "chapter-15-final",
 ]);
 export const SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT = SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS.length;
-const SUKUYO_LLM_ENHANCEMENT_ENABLED_DEFAULT = true;
+const SUKUYO_LLM_ENHANCEMENT_ENABLED_DEFAULT = false;
 const SUKUYO_TIMING_LLM_ENHANCEMENT_ENABLED_DEFAULT = false;
 const SUKUYO_LLM_CACHE_MAX = 240;
 const sukuyoLlmTextCache = new Map();
@@ -548,6 +554,23 @@ export function sanitizeSukyoPremiumText(value) {
   }
 
   return out;
+}
+
+function hasSukyoBrokenText(value) {
+  const body = text(value);
+  return /[\uFFFD\uF900-\uFAFF]/.test(body)
+    || /\?{2,}/.test(body)
+    || /\?[가-힣]/.test(body)
+    || /(?:Ã.|Â.|â[€€™€œ]|[ìíîïðñòóôõöøùúûüýþÿ][\u0080-\uFFFF]){2,}/.test(body)
+    || /[ÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ][\u0080-\uFFFF]{1,2}/.test(body)
+    || /[ㄱ-ㅎㅏ-ㅣ]{2,}/.test(body);
+}
+
+function safeSukyoDisplayText(value, fallback = "") {
+  const out = sanitizeSukyoPremiumText(value);
+  if (!out || /^\?+$/.test(out) || hasSukyoBrokenText(out)) return fallback;
+  INTERNAL_TOKEN_RE.lastIndex = 0;
+  return INTERNAL_TOKEN_RE.test(out) ? fallback : out;
 }
 
 function splitMeaningfulSentences(value) {
@@ -2395,23 +2418,13 @@ function extractLlmChapterPrescription(chapter = {}) {
   return "";
 }
 
-function requireLlmOnlyRenderText(value, field) {
-  const out = sanitizeSukyoPremiumText(value);
-  if (out) return out;
-  const error = new Error(`SUKYO_LLM_RENDER_TEXT_MISSING:${field}`);
-  error.code = "SUKYO_LLM_RENDER_TEXT_MISSING";
-  error.status = 502;
-  error.field = field;
-  throw error;
-}
-
 export function renderSukyoPremiumPdf(chapters, seed) {
-  const safeName = sanitizeSukyoPremiumText(seed?.userProfile?.name) || "사용자";
-  const partnerName = sanitizeSukyoPremiumText(seed?.partnerProfile?.name) || "상대방";
-  const rel = sanitizeSukyoPremiumText(seed?.compatibility?.relationType) || "관계";
-  const distance = sanitizeSukyoPremiumText(seed?.compatibility?.distanceLabel || seed?.compatibility?.distance) || "거리";
-  const userHost = `${sanitizeSukyoPremiumText(seed?.userSukyo?.nameKo) || "?"}宿`;
-  const partnerHost = `${sanitizeSukyoPremiumText(seed?.partnerSukyo?.nameKo) || "?"}宿`;
+  const safeName = safeSukyoDisplayText(seed?.userProfile?.name, "사용자");
+  const partnerName = safeSukyoDisplayText(seed?.partnerProfile?.name, "상대방");
+  const rel = safeSukyoDisplayText(seed?.compatibility?.relationType, "관계");
+  const distance = safeSukyoDisplayText(seed?.compatibility?.distanceLabel || seed?.compatibility?.distance, "거리");
+  const userHost = `${safeSukyoDisplayText(seed?.userSukyo?.nameKo, "본명")}宿`;
+  const partnerHost = `${safeSukyoDisplayText(seed?.partnerSukyo?.nameKo, "상대")}宿`;
 
   const relationSummary = sanitizeSukyoPremiumText(seed?.localSukuyoCompatibilityJson?.relation?.relationTheme)
     || `${escapeHtml(rel)} 관계는 강한 끌림과 운영 규칙의 균형이 핵심입니다.`;
@@ -2419,16 +2432,27 @@ export function renderSukyoPremiumPdf(chapters, seed) {
     || `${escapeHtml(distance)} 흐름에서는 감정 체온과 거리 조절이 동시에 중요합니다.`;
   const strengthSummary = sanitizeSukyoPremiumText(seed?.localSukuyoCompatibilityJson?.relation?.strengthShadowMap?.complementSummary)
     || `${escapeHtml(userHost)}과 ${escapeHtml(partnerHost)}의 강점은 상호 보완적이며 회복 규칙이 안정성을 높입니다.`;
+  const finalPrescription = sanitizeSukyoPremiumText(seed?.localSukuyoCompatibilityJson?.relation?.roleActionGuide?.resetLine)
+    || "갈등 직후 감정-사실-합의 순서로 대화를 재개하는 규칙을 유지하세요.";
 
-  const llmRelationSummary = requireLlmOnlyRenderText(extractChapterSummary(chapters[3] || chapters[0], rel), "relationSummary");
-  const llmDistanceSummary = requireLlmOnlyRenderText(extractChapterSummary(chapters[4] || chapters[0], rel), "distanceSummary");
-  const llmStrengthSummary = requireLlmOnlyRenderText(extractChapterSummary(chapters[0] || chapters[1], rel), "strengthSummary");
-  const llmFinalPrescription = requireLlmOnlyRenderText(extractChapterPrescription(chapters[14] || chapters[chapters.length - 1]), "finalPrescription");
+  const renderedRelationSummary = safeSukyoDisplayText(extractChapterSummary(chapters[3] || chapters[0], rel), relationSummary);
+  const renderedDistanceSummary = safeSukyoDisplayText(extractChapterSummary(chapters[4] || chapters[0], rel), distanceSummary);
+  const renderedStrengthSummary = safeSukyoDisplayText(extractChapterSummary(chapters[0] || chapters[1], rel), strengthSummary);
+  const renderedFinalPrescription = safeSukyoDisplayText(
+    extractChapterPrescription(chapters[14] || chapters[chapters.length - 1]),
+    finalPrescription,
+  );
 
   const toc = chapters.map((chapter) => `<li><span>제${chapter.order}장</span>${escapeHtml(chapter.title)}</li>`).join("");
   const chapterHtml = chapters.map((chapter) => {
-    const chapterSummary = requireLlmOnlyRenderText(extractChapterSummary(chapter, rel), `chapter.${chapter.order}.summary`);
-    const chapterPrescription = requireLlmOnlyRenderText(extractChapterPrescription(chapter), `chapter.${chapter.order}.prescription`);
+    const chapterSummary = safeSukyoDisplayText(
+      extractChapterSummary(chapter, rel),
+      `${rel} 관계의 핵심 흐름을 실제 선택과 대화의 리듬으로 정리합니다.`,
+    );
+    const chapterPrescription = safeSukyoDisplayText(
+      extractChapterPrescription(chapter),
+      "감정이 커지는 순간에는 판단을 늦추고, 확인된 사실과 합의 가능한 행동부터 차례로 맞추십시오.",
+    );
     const sections = chapter.sections.map((section) => `
       <section class="section-card">
         <h3>${escapeHtml(section.heading)}</h3>
@@ -2447,9 +2471,6 @@ export function renderSukyoPremiumPdf(chapters, seed) {
         </aside>
       </section>`;
   }).join("");
-
-  const finalPrescription = sanitizeSukyoPremiumText(seed?.localSukuyoCompatibilityJson?.relation?.roleActionGuide?.resetLine)
-    || "갈등 직후 감정-사실-합의 순서로 대화를 재개하는 규칙을 유지하세요.";
 
   const html = `<!DOCTYPE html>
 <html lang="ko">
@@ -2476,13 +2497,13 @@ export function renderSukyoPremiumPdf(chapters, seed) {
     <p class="notice">이 문서는 두 사람의 숙요 계산 결과를 기반으로 한 관계 운영 상담 리포트입니다.</p>
   </section>
   <section class="intro"><h2>해석 원칙</h2><p>본 리포트는 두 사람의 생년월일을 바탕으로 산출된 27숙 궁합 흐름을 관계 상담의 언어로 풀어낸 문서입니다. 모든 문장은 실제 관계에서 적용 가능한 선택과 행동을 중심으로 구성했습니다.</p></section>
-  <section class="bridge-card"><h2>관계 유형 요약</h2><p>${escapeHtml(llmRelationSummary)}</p></section>
-  <section class="bridge-card"><h2>거리와 인연 강도 요약</h2><p>${escapeHtml(llmDistanceSummary)} ${escapeHtml(llmStrengthSummary)}</p></section>
+  <section class="bridge-card"><h2>관계 유형 요약</h2><p>${escapeHtml(renderedRelationSummary)}</p></section>
+  <section class="bridge-card"><h2>거리와 인연 강도 요약</h2><p>${escapeHtml(renderedDistanceSummary)} ${escapeHtml(renderedStrengthSummary)}</p></section>
   <section class="toc"><h2>15챕터 목차</h2><ol>${toc}</ol></section>
   ${chapterHtml}
   <section class="bridge-card final-prescription">
     <h2>최종 관계 처방 카드</h2>
-    <p>${escapeHtml(llmFinalPrescription)}</p>
+    <p>${escapeHtml(renderedFinalPrescription)}</p>
   </section>
 </main>
 </body>
@@ -2495,11 +2516,48 @@ export function renderSukyoPremiumPdf(chapters, seed) {
   };
 }
 
+export function validateSukyoPdfCompletionPayload({ pdfReady = {}, chapters = [], seed = {}, requireDownloadUrl = false } = {}) {
+  const issues = [];
+  const normalizedChapters = chapterArrayToRendererInput(chapters);
+  const manuscript = validateRenderedManuscript(seed, normalizedChapters);
+  if (!manuscript.ok) issues.push(...manuscript.issues.map((issue) => `manuscript.${issue}`));
+
+  const html = text(pdfReady?.html);
+  if (!html) issues.push("html.missing");
+  if (html && !/<!doctype html>/i.test(html)) issues.push("html.doctype");
+  if (html && !/<meta\s+charset=["']?UTF-8["']?/i.test(html)) issues.push("html.charset");
+
+  const downloadUrl = text(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
+  if (requireDownloadUrl && !downloadUrl) issues.push("download_url.missing");
+
+  const manuscriptText = normalizedChapters
+    .flatMap((chapter) => [
+      chapter.title,
+      ...chapter.sections.flatMap((section) => [section.heading, section.body]),
+    ])
+    .join("\n");
+  if (hasSukyoBrokenText(`${html}\n${manuscriptText}`)) issues.push("text.broken");
+
+  return {
+    ok: issues.length === 0,
+    issues: [...new Set(issues)],
+    chapterCount: normalizedChapters.length,
+    expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
+    totalLength: manuscript.totalLength,
+    htmlLength: html.length,
+    hasDownloadUrl: Boolean(downloadUrl),
+    manuscript,
+  };
+}
+
 export function buildSukyoPdfSeed(input = {}) {
   const canonical = input.canonical || {};
   const personA = canonical.personA || {};
   const personB = canonical.personB || {};
-  const compatibility = canonical.compatibility || input.compatibility || {};
+  const canonicalCompatibility = canonical.compatibility && Object.keys(canonical.compatibility).length > 0
+    ? canonical.compatibility
+    : null;
+  const compatibility = canonicalCompatibility || input.compatibility || {};
   const userProfile = normalizePersonInput(input.userProfile || input.user || input.self || personA || {}, "사용자");
   const partnerProfile = normalizePersonInput(input.partnerProfile || input.partner || input.partnerInput || personB || {}, "상대방");
   const userSukuyo = normalizeSukuyoStar(input.userSukyo || personA?.sukuyo || {}, userProfile);
@@ -2594,36 +2652,26 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     repetitionScore: localBaseline.validation.repetitionScore,
   });
 
-  console.log("[SukuyoPremiumPDF][LLMGenerationStart]", {
+  console.log("[SukuyoPremiumPDF][LocalAssembledManuscriptReady]", {
     chapterCount: SUKYO_PDF_CHAPTER_COUNT,
-    manuscriptSource: "hybrid",
+    manuscriptSource: SUKYO_PDF_CONFIG.generationMode,
     promptVersion: SUKUYO_PROMPT_VERSION,
-    llmEnabled: isSukuyoLlmEnhancementEnabled(env, options),
-    timingLlmEnabled: isSukuyoTimingLlmEnhancementEnabled(env, options),
-    llmEnhancedChapterKeys: SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS,
+    llmEnabled: false,
+    timingLlmEnabled: false,
+    llmEnhancedChapterKeys: [],
   });
-  const enhanced = await enhanceSukyoChaptersWithLLM(env, seed, SUKYO_PDF_CHAPTERS, options);
-  let chapters = chapterArrayToRendererInput(enhanced.chapters);
-  let finalCheck = validateRenderedManuscript(seed, chapters);
-  if (!finalCheck.ok) {
-    console.error("[SukuyoPremiumPDF][LLMValidationFailed]", {
-      issues: finalCheck.issues,
-      stats: finalCheck.stats,
-      chapterMetrics: (Array.isArray(chapters) ? chapters : []).map((chapter) => ({
-        order: safeNumber(chapter?.order || chapter?.chapterNo, 0),
-        title: text(chapter?.title),
-        sectionCount: Array.isArray(chapter?.sections) ? chapter.sections.length : 0,
-        chars: (Array.isArray(chapter?.sections) ? chapter.sections : []).reduce((sum, section) => sum + text(section?.body).length, 0),
-      })),
-    });
-    chapters = localBaseline.chapters;
-    finalCheck = localBaseline.validation;
-    enhanced.source = "local";
-    enhanced.fallbackUsed = true;
-    enhanced.llmChapterCount = 0;
-    enhanced.fallbackChapterCount = SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS.length;
-    enhanced.localDraftChapterCount = chapters.length;
-  }
+  const enhanced = {
+    chapters: localBaseline.chapters,
+    source: SUKYO_PDF_CONFIG.generationMode,
+    fallbackUsed: false,
+    llmChapterCount: 0,
+    targetLlmChapterCount: 0,
+    fallbackChapterCount: 0,
+    localDraftChapterCount: localBaseline.chapters.length,
+    llmEnhancedChapterKeys: [],
+  };
+  const chapters = localBaseline.chapters;
+  const finalCheck = localBaseline.validation;
 
   assertSukyoCompatibilityPdfComplete({
     chapters,
@@ -2639,7 +2687,7 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     totalLength: finalCheck.totalLength,
     forbiddenTermsCount: finalCheck.forbiddenTermsCount,
     repetitionScore: finalCheck.repetitionScore,
-    manuscriptSource: text(enhanced.source || "local"),
+    manuscriptSource: text(enhanced.source || SUKYO_PDF_CONFIG.generationMode),
     llmChapterCount: Number(enhanced.llmChapterCount || 0),
     fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
     localDraftChapterCount: Number(enhanced.localDraftChapterCount || 0),
@@ -2653,12 +2701,26 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     error.status = 500;
     throw error;
   }
+  const pdfCompletionValidation = validateSukyoPdfCompletionPayload({
+    pdfReady,
+    chapters,
+    seed,
+    requireDownloadUrl: false,
+  });
+  if (!pdfCompletionValidation.ok) {
+    const error = new Error("숙요점 PDF 완료 검증에 실패했습니다.");
+    error.code = "SUKYO_PDF_COMPLETION_VALIDATION_FAILED";
+    error.status = 500;
+    error.issues = pdfCompletionValidation.issues;
+    throw error;
+  }
   console.log("[SukuyoPremiumPDF][PdfRenderSuccess]", {
     chapterCount: chapters.length,
     totalLength: finalCheck.totalLength,
-    manuscriptSource: text(enhanced.source || "local"),
+    manuscriptSource: text(enhanced.source || SUKYO_PDF_CONFIG.generationMode),
+    pdfCompletionValidation: pdfCompletionValidation.ok,
   });
-  const manuscriptSource = text(enhanced.source || "local");
+  const manuscriptSource = text(enhanced.source || SUKYO_PDF_CONFIG.generationMode);
 
   return {
     ok: true,
@@ -2669,14 +2731,18 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
       sukuyoFacts,
       sukuyoChapterPlans: chapterPlans,
       promptVersion: SUKUYO_PROMPT_VERSION,
-      llmEnhancedChapterKeys: SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS,
+      llmEnhancedChapterKeys: [],
       chapters,
       manuscriptValidation: finalCheck,
       manuscriptSource,
+      generationMode: SUKYO_PDF_CONFIG.generationMode,
+      provider: SUKYO_PDF_CONFIG.provider,
+      writingPipeline: "local-calculation-to-local-assembled-pdf",
+      pdfCompletionValidation,
       localQualityStatus: "passed",
       localBaselineChapterCount: localBaseline.chapters.length,
       llmChapterCount: Number(enhanced.llmChapterCount || 0),
-      targetLlmChapterCount: Number(enhanced.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT),
+      targetLlmChapterCount: Number(enhanced.targetLlmChapterCount || 0),
       fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
       localDraftChapterCount: Number(enhanced.localDraftChapterCount || 0),
       qualityStatus: "passed",
@@ -2688,13 +2754,17 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     localBaselineChapterCount: localBaseline.chapters.length,
     localDraftChapterCount: Number(enhanced.localDraftChapterCount || 0),
     llmChapterCount: Number(enhanced.llmChapterCount || 0),
-    targetLlmChapterCount: Number(enhanced.targetLlmChapterCount || SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT),
+    targetLlmChapterCount: Number(enhanced.targetLlmChapterCount || 0),
     fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
     manuscriptSource,
     promptVersion: SUKUYO_PROMPT_VERSION,
+    generationMode: SUKYO_PDF_CONFIG.generationMode,
+    provider: SUKYO_PDF_CONFIG.provider,
+    writingPipeline: "local-calculation-to-local-assembled-pdf",
+    pdfCompletionValidation,
     sukuyoFacts,
     sukuyoChapterPlans: chapterPlans,
-    llmEnhancedChapterKeys: SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS,
+    llmEnhancedChapterKeys: [],
     qualityStatus: "passed",
     serverStatus: "completed",
     pdfReady: {

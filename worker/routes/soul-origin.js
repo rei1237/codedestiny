@@ -24,6 +24,12 @@ const SOUL_ORIGIN_DISPLAY_NAME = "운명의 업";
 const SOUL_ORIGIN_TITLE = "운명의 업 프리미엄 상담서";
 const SOUL_ORIGIN_REPORT_TYPE = "soulOriginKarma";
 const SOUL_ORIGIN_ARCHIVE_REPORT_TYPE = "soul_origin_karma";
+const SOUL_ORIGIN_PDF_CONFIG = Object.freeze({
+  generationMode: "local-assembled",
+  llmEnabled: false,
+  provider: "soul-origin-local-assembler",
+  templateVersion: "soul-origin-assembled-v1",
+});
 const SOUL_ORIGIN_REPORT_TYPE_ALIASES = [
   "premium_pdf_soul_origin",
   SOUL_ORIGIN_REPORT_TYPE,
@@ -445,6 +451,14 @@ const ZHI_LIST = ["자", "축", "인", "묘", "진", "사", "오", "미", "신",
 
 function clean(value) {
   return String(value == null ? "" : value).trim();
+}
+
+function hasSoulOriginBrokenText(value) {
+  const body = clean(value);
+  return /[\uFFFD\uF900-\uFAFF]/.test(body)
+    || /(?:\?[\uAC00-\uD7AF]|[\uAC00-\uD7AF]\?){2,}/.test(body)
+    || /(?:\u00C3.|\u00C2.|\u00E2[\u0080-\u02FF]{1,3}|[\u00EC\u00ED\u00EA\u00EB][\u0080-\u02FF]{1,3}){2,}/.test(body)
+    || /[\u3131-\u318E]{2,}/.test(body);
 }
 
 function safeNumber(value, fallback = 0) {
@@ -1973,6 +1987,45 @@ function renderSoulOriginPdf({ birthInput, chapters, summary, generatedAt }) {
   </html>`;
 }
 
+function validateSoulOriginPdfCompletionPayload({ pdfReady = {}, chapters = [], summary = "", requireDownloadUrl = false } = {}) {
+  const issues = [];
+  const manuscript = validateFinalManuscript(chapters);
+  if (!manuscript.ok) issues.push(...manuscript.errors.map((issue) => `manuscript.${issue}`));
+
+  const summaryValidation = validateSoulOriginSummary(summary);
+  if (!summaryValidation.ok) issues.push(...summaryValidation.errors.map((issue) => `summary.${issue}`));
+
+  const html = clean(pdfReady?.html);
+  if (!html) issues.push("html.missing");
+  if (html && !/<!doctype html>/i.test(html)) issues.push("html.doctype");
+  if (html && !/<meta\s+charset=["']?UTF-8["']?/i.test(html)) issues.push("html.charset");
+
+  const downloadUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
+  if (requireDownloadUrl && !downloadUrl) issues.push("download_url.missing");
+
+  const manuscriptText = [
+    summary,
+    ...((Array.isArray(chapters) ? chapters : []).flatMap((chapter) => [
+      chapter?.title,
+      chapter?.subtitle,
+      ...((Array.isArray(chapter?.sections) ? chapter.sections : []).flatMap((section) => [section?.title, section?.body])),
+    ])),
+  ].join("\n");
+  if (hasSoulOriginBrokenText(`${html}\n${manuscriptText}`)) issues.push("text.broken");
+
+  return {
+    ok: issues.length === 0,
+    issues: [...new Set(issues)],
+    chapterCount: Array.isArray(chapters) ? chapters.length : 0,
+    expectedChapterCount: CHAPTER_BLUEPRINTS.length,
+    totalLength: manuscript.totalChars,
+    htmlLength: html.length,
+    hasDownloadUrl: Boolean(downloadUrl),
+    manuscript,
+    summary: summaryValidation,
+  };
+}
+
 function buildArchiveUrl(request, reportId) {
   const requestUrl = new URL(request.url);
   return `${requestUrl.origin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
@@ -2141,56 +2194,45 @@ async function handlePrepare(request, env) {
       toneWeights: body?.toneWeights || body?.tone?.weights || body?.toneProfile?.weights,
     });
 
-    let chapters = localChapters;
-    let llmEnhancementErrorCode = "";
-    logFlow("LLMEnhancementStart", { requestId, sessionId, reportId, stage: "llm-generation" });
-    try {
-      chapters = await generateSoulOriginChaptersByLLM(env, {
-        localSeed,
-        toneProfile,
-        requestId,
-        localChapters,
-      });
-      logFlow("LLMEnhancementSuccess", {
-        requestId,
-        sessionId,
-        reportId,
-        stage: "llm-generation",
-        chapterCount: Number(chapters?.length || 0),
-      });
-    } catch (error) {
-      llmEnhancementErrorCode = clean(error?.code || error?.message || "SOUL_ORIGIN_LLM_ENHANCEMENT_FAILED");
-      chapters = localChapters.map((chapter) => buildSoulOriginLocalChapterFallback(chapter, {
-        code: llmEnhancementErrorCode,
-      }));
-      logFlow("LLMEnhancementLocalFallback", {
-        requestId,
-        sessionId,
-        reportId,
-        errorCode: llmEnhancementErrorCode,
-        stage: "llm-generation",
-      });
-    }
-
-    const llmEnhancedChapterCount = chapters.filter((chapter) => chapter?.llmEnhancementUsed === true || clean(chapter?.source) === "local-calculation+llm-enhanced").length;
-    const fallbackChapterCount = chapters.filter((chapter) => clean(chapter?.source) === "local-calculation").length;
-    const fallbackUsed = fallbackChapterCount > 0;
-    const llmEnhancementUsed = llmEnhancedChapterCount > 0;
-    const manuscriptSource = llmEnhancementUsed ? "local-calculation+llm-enhanced" : "local-calculation";
-    const chapterAuthoringSource = manuscriptSource;
+    logFlow("LocalAssembledManuscriptReady", { requestId, sessionId, reportId, stage: "local-assembled" });
+    const chapters = localChapters.map((chapter) => ({
+      ...chapter,
+      source: SOUL_ORIGIN_PDF_CONFIG.generationMode,
+      localAuthoringSource: "local-calculation",
+      llmEnhancementUsed: false,
+      llmEnhancementStatus: "not-requested",
+    }));
+    const llmEnhancementErrorCode = "";
+    const llmEnhancedChapterCount = 0;
+    const fallbackChapterCount = 0;
+    const fallbackUsed = false;
+    const llmEnhancementUsed = false;
+    const manuscriptSource = SOUL_ORIGIN_PDF_CONFIG.generationMode;
+    const chapterAuthoringSource = SOUL_ORIGIN_PDF_CONFIG.generationMode;
+    logFlow("LocalAssembledManuscriptSuccess", {
+      requestId,
+      sessionId,
+      reportId,
+      stage: "local-assembled",
+      chapterCount: Number(chapters.length || 0),
+    });
 
     const summary = summarizeSignal(localSeed);
     const generatedAt = new Date().toISOString();
 
     logFlow("PDFCreateStart", { requestId, sessionId, reportId });
     const archiveUrl = buildArchiveUrl(request, reportId);
+    const archivePdfUrl = `${archiveUrl}?format=pdf`;
+    const archiveHtmlUrl = `${archiveUrl}?format=html`;
     const pdfHtml = renderSoulOriginPdf({ birthInput, chapters, summary, generatedAt });
     const pdfReady = {
       html: pdfHtml,
-      mimeType: "text/html",
-      pdfUrl: archiveUrl,
-      htmlUrl: archiveUrl,
-      downloadUrl: archiveUrl,
+      mimeType: "application/pdf",
+      contentType: "application/pdf",
+      renderFormat: "pdf-archive",
+      pdfUrl: archivePdfUrl,
+      htmlUrl: archiveHtmlUrl,
+      downloadUrl: archivePdfUrl,
       storageKey: `premium-archive:soul-origin:${reportId}`,
     };
 
@@ -2200,6 +2242,20 @@ async function handlePrepare(request, env) {
       err.status = 500;
       throw err;
     }
+    const pdfCompletionValidation = validateSoulOriginPdfCompletionPayload({
+      pdfReady,
+      chapters,
+      summary,
+      requireDownloadUrl: true,
+    });
+    if (!pdfCompletionValidation.ok) {
+      const err = new Error("운명의 업 PDF 완료 검증에 실패했습니다.");
+      err.code = "SOUL_ORIGIN_PDF_COMPLETION_VALIDATION_FAILED";
+      err.status = 500;
+      err.issues = pdfCompletionValidation.issues;
+      throw err;
+    }
+    pdfReady.pdfCompletionValidation = pdfCompletionValidation;
 
     const responseBody = {
       ok: true,
@@ -2208,12 +2264,17 @@ async function handlePrepare(request, env) {
       qualityStatus: "passed",
       manuscriptSource,
       chapterAuthoringSource,
-      summarySource: "local-calculation",
+      summarySource: SOUL_ORIGIN_PDF_CONFIG.generationMode,
+      generationMode: SOUL_ORIGIN_PDF_CONFIG.generationMode,
+      provider: SOUL_ORIGIN_PDF_CONFIG.provider,
+      writingPipeline: "local-calculation-to-local-assembled-pdf",
       fallbackUsed,
       fallbackChapterCount,
       localAuthoringUsed: true,
       llmEnhancementUsed,
       llmEnhancedChapterCount,
+      llmChapterCount: 0,
+      expectedLlmChapterCount: 0,
       llmEnhancementErrorCode: llmEnhancementErrorCode || undefined,
       serviceKey: SOUL_ORIGIN_SERVICE_KEY,
       featureKey,
@@ -2234,6 +2295,7 @@ async function handlePrepare(request, env) {
         weights: toneProfile.weights,
       },
       pdfReady,
+      pdfCompletionValidation,
       downloadUrl: clean(pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
       pdfUrl: clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl),
       htmlUrl: clean(pdfReady.htmlUrl || pdfReady.pdfUrl || pdfReady.downloadUrl),
@@ -2245,14 +2307,20 @@ async function handlePrepare(request, env) {
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       manuscriptSource,
       chapterAuthoringSource,
-      summarySource: "local-calculation",
+      summarySource: SOUL_ORIGIN_PDF_CONFIG.generationMode,
+      generationMode: SOUL_ORIGIN_PDF_CONFIG.generationMode,
+      provider: SOUL_ORIGIN_PDF_CONFIG.provider,
+      writingPipeline: "local-calculation-to-local-assembled-pdf",
       chapterCount: chapters.length,
       fallbackUsed,
       fallbackChapterCount,
       localAuthoringUsed: true,
       llmEnhancementUsed,
       llmEnhancedChapterCount,
+      llmChapterCount: 0,
+      expectedLlmChapterCount: 0,
       llmEnhancementErrorCode: llmEnhancementErrorCode || undefined,
+      pdfCompletionValidation,
       archive: {
         reportId,
         reportType: SOUL_ORIGIN_REPORT_TYPE,
@@ -2261,12 +2329,17 @@ async function handlePrepare(request, env) {
         qualityStatus: "passed",
         manuscriptSource,
         chapterAuthoringSource,
-        summarySource: "local-calculation",
+        summarySource: SOUL_ORIGIN_PDF_CONFIG.generationMode,
+        generationMode: SOUL_ORIGIN_PDF_CONFIG.generationMode,
+        provider: SOUL_ORIGIN_PDF_CONFIG.provider,
+        writingPipeline: "local-calculation-to-local-assembled-pdf",
         fallbackUsed,
         fallbackChapterCount,
         localAuthoringUsed: true,
         llmEnhancementUsed,
         llmEnhancedChapterCount,
+        llmChapterCount: 0,
+        expectedLlmChapterCount: 0,
         llmEnhancementErrorCode: llmEnhancementErrorCode || undefined,
         displayName: SOUL_ORIGIN_DISPLAY_NAME,
         title: SOUL_ORIGIN_TITLE,
@@ -2277,6 +2350,7 @@ async function handlePrepare(request, env) {
         chapters,
         localSeed,
         pdfReady,
+        pdfCompletionValidation,
         toneProfile: {
           preset: toneProfile.preset,
           presetLabel: toneProfile.presetLabel,
@@ -2374,7 +2448,7 @@ async function handlePrepare(request, env) {
         reportId,
         sessionId,
         stage: error?.code?.includes("LLM") ? "llm-generation" : "soul-origin-generation",
-        manuscriptSource: "local-calculation",
+        manuscriptSource: SOUL_ORIGIN_PDF_CONFIG.generationMode,
       },
     }, { status: Number(error?.status || 500) });
   }
@@ -2410,14 +2484,19 @@ async function loadSoulOriginReportPayload(env, auth, reportId) {
     status: "completed",
     serverStatus: "completed",
     qualityStatus: clean(archive.qualityStatus || "passed") || "passed",
-    manuscriptSource: clean(archive.manuscriptSource || "llm-only") || "llm-only",
-    chapterAuthoringSource: clean(archive.chapterAuthoringSource || "llm-only") || "llm-only",
-    summarySource: clean(archive.summarySource || "local-calculation") || "local-calculation",
+    manuscriptSource: clean(archive.manuscriptSource || SOUL_ORIGIN_PDF_CONFIG.generationMode) || SOUL_ORIGIN_PDF_CONFIG.generationMode,
+    chapterAuthoringSource: clean(archive.chapterAuthoringSource || SOUL_ORIGIN_PDF_CONFIG.generationMode) || SOUL_ORIGIN_PDF_CONFIG.generationMode,
+    summarySource: clean(archive.summarySource || SOUL_ORIGIN_PDF_CONFIG.generationMode) || SOUL_ORIGIN_PDF_CONFIG.generationMode,
+    generationMode: clean(archive.generationMode || SOUL_ORIGIN_PDF_CONFIG.generationMode) || SOUL_ORIGIN_PDF_CONFIG.generationMode,
+    provider: clean(archive.provider || SOUL_ORIGIN_PDF_CONFIG.provider) || SOUL_ORIGIN_PDF_CONFIG.provider,
+    writingPipeline: clean(archive.writingPipeline || "local-calculation-to-local-assembled-pdf") || "local-calculation-to-local-assembled-pdf",
     fallbackUsed: Boolean(archive.fallbackUsed === true),
     fallbackChapterCount: Number(archive.fallbackChapterCount || 0),
     localAuthoringUsed: Boolean(archive.localAuthoringUsed === true),
     llmEnhancementUsed: Boolean(archive.llmEnhancementUsed === true),
     llmEnhancedChapterCount: Number(archive.llmEnhancedChapterCount || 0),
+    llmChapterCount: Number(archive.llmChapterCount || 0),
+    expectedLlmChapterCount: Number(archive.expectedLlmChapterCount || 0),
     llmEnhancementErrorCode: clean(archive.llmEnhancementErrorCode || "") || undefined,
     serviceKey: SOUL_ORIGIN_SERVICE_KEY,
     featureKey: clean(archive.featureKey || SOUL_ORIGIN_FEATURE_KEY) || SOUL_ORIGIN_FEATURE_KEY,
@@ -2432,6 +2511,7 @@ async function loadSoulOriginReportPayload(env, auth, reportId) {
     chapters: Array.isArray(archive.chapters) ? archive.chapters : [],
     toneProfile: archive?.toneProfile && typeof archive.toneProfile === "object" ? archive.toneProfile : undefined,
     pdfReady,
+    pdfCompletionValidation: archive.pdfCompletionValidation || pdfReady.pdfCompletionValidation || null,
     downloadUrl: clean(archive.downloadUrl || pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
     pdfUrl: clean(archive.pdfUrl || pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl),
     htmlUrl: clean(archive.htmlUrl || pdfReady.htmlUrl || pdfReady.pdfUrl || pdfReady.downloadUrl),
