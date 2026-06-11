@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
-import { Compass, Copy, Heart, Luggage, MapPin, MessageCircle, Moon, Palette, Route, ShieldAlert, Sparkles, Star, WandSparkles } from "lucide-react";
+import { ChevronDown, Compass, Copy, Heart, Luggage, MapPin, MessageCircle, Moon, Palette, Route, ShieldAlert, Sparkles, Star, WandSparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import type { DestinyMeetingPlaceResult } from "./destinyMeetingPlaceTypes";
+import type { DestinyMeetingPlaceResult, DestinyPlaceType } from "./destinyMeetingPlaceTypes";
 
 type Props = {
   result: DestinyMeetingPlaceResult;
@@ -136,6 +136,49 @@ const promptAccentClasses = [
   "from-white/15 via-[#a78bfa]/10 to-white/[0.04]",
 ];
 
+const PREVIEW_DESTINATION_COUNT = 2;
+const PLACE_TYPE_ORDER: (DestinyPlaceType | "other")[] = [
+  "city",
+  "nature",
+  "cafe",
+  "culture",
+  "travel",
+  "spiritual",
+  "water",
+  "mountain",
+  "night",
+  "daily",
+  "other",
+];
+const placeTypeLabel: Record<string, string> = {
+  city: "도시",
+  nature: "자연",
+  cafe: "카페",
+  culture: "문화",
+  travel: "여행",
+  spiritual: "정신",
+  water: "바다",
+  mountain: "산",
+  night: "야간",
+  daily: "일상",
+  other: "기타",
+};
+const placeTypeIcon: Record<string, string> = {
+  city: "도시",
+  nature: "정원",
+  cafe: "찻잔",
+  culture: "전시",
+  travel: "여정",
+  spiritual: "성소",
+  water: "물결",
+  mountain: "산길",
+  night: "야경",
+  daily: "일상",
+  other: "좌표",
+};
+
+type PlaceTypeGroup = DestinyPlaceType | "other";
+
 function buildPromptPackText(promptPack: PromptPack) {
   return [
     promptPack.title,
@@ -148,6 +191,15 @@ function buildPromptPackText(promptPack: PromptPack) {
       prompt.prompt,
     ].filter(Boolean).join("\n")),
   ].join("\n\n");
+}
+
+function normalizePlaceType(type?: string): PlaceTypeGroup {
+  if (!type) return "other";
+  return Object.prototype.hasOwnProperty.call(placeTypeLabel, type) ? (type as PlaceTypeGroup) : "other";
+}
+
+function placeCategoryLabel(type: PlaceTypeGroup) {
+  return `${placeTypeIcon[type]} · ${placeTypeLabel[type] || "기타"}`;
 }
 
 function SectionCard({ title, subtitle, icon, index, children }: SectionCardProps) {
@@ -379,9 +431,24 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
   const promptPack = result.promptPack;
   const [selectedPromptId, setSelectedPromptId] = useState(() => promptPack?.prompts[0]?.id || "");
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
+  const [expandedPlaceGroups, setExpandedPlaceGroups] = useState<Record<string, boolean>>({});
   const selectedPrompt = promptPack?.prompts.find((prompt) => prompt.id === selectedPromptId) || promptPack?.prompts[0] || null;
   const topPlace = result.recommendedPlaces[0] as EnrichedPlace | undefined;
   const hasPromptPack = Boolean(promptPack?.prompts.length);
+  const placeGroups = result.recommendedPlaces.reduce<Record<string, EnrichedPlace[]>>((acc, basePlace) => {
+    const place = basePlace as EnrichedPlace;
+    const type = normalizePlaceType(place.type);
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(place);
+    return acc;
+  }, {});
+  const orderedPlaceGroups = PLACE_TYPE_ORDER.map((type) => ({ type, places: placeGroups[type] || [] }))
+    .concat(
+      Object.entries(placeGroups)
+        .filter(([type]) => !PLACE_TYPE_ORDER.includes(type as PlaceTypeGroup))
+        .map(([type, places]) => ({ type: (type as PlaceTypeGroup) || "other", places }))
+    )
+    .filter((group) => group.places.length > 0);
 
   async function copyPrompt(id: string, text: string) {
     if (!text) return;
@@ -392,6 +459,10 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
     } catch {
       setCopiedPromptId(null);
     }
+  }
+
+  function togglePlaceGroup(type: string) {
+    setExpandedPlaceGroups((prev) => ({ ...prev, [type]: !prev[type] }));
   }
 
   return (
@@ -456,69 +527,101 @@ export default function DestinyMeetingPlaceResult({ result, chargedCoins }: Prop
       </SectionCard>
 
       <SectionCard title="장소 TOP 5" subtitle="Where Destiny Opens" icon={<MapPin size={18} />} index={hasPromptPack ? 5 : 4}>
-        <div className="grid gap-3 md:grid-cols-2">
-          {result.recommendedPlaces.map((basePlace) => {
-            const place = basePlace as EnrichedPlace;
+        <div className="space-y-4">
+          {orderedPlaceGroups.map((group) => {
+            const isExpanded = !!expandedPlaceGroups[group.type];
+            const visiblePlaces = isExpanded ? group.places : group.places.slice(0, PREVIEW_DESTINATION_COUNT);
+            const hasMore = group.places.length > PREVIEW_DESTINATION_COUNT;
+
             return (
-            <article key={place.name} className="rounded-2xl border border-[#efd8b4]/35 bg-[linear-gradient(150deg,rgba(26,31,48,0.58),rgba(33,24,44,0.5))] p-4 text-sm text-[#efe7d9]">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#e6c793]">
-                    #{place.rank} {place.destinyGrade || place.categoryLabel || "길지"}
-                  </p>
-                  <p className={`mt-1 text-xl text-[#fff2df] ${serifClass}`}>{place.name}</p>
+              <section key={group.type} className="rounded-[22px] border border-white/20 bg-white/5">
+                <button
+                  type="button"
+                  onClick={() => togglePlaceGroup(group.type)}
+                  className="flex w-full items-center justify-between gap-3 rounded-[22px] px-4 py-3 text-left transition hover:bg-white/10"
+                >
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#f8df9f]">{placeCategoryLabel(group.type)}</p>
+                    <p className="mt-1 text-sm text-[#f2dfbf]">
+                      TOP {group.places.length}곳 • 대표 {Math.min(PREVIEW_DESTINATION_COUNT, group.places.length)}곳 미리보기
+                    </p>
+                  </div>
+                  <ChevronDown size={16} className={`shrink-0 text-[#f8df9f] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                </button>
+                <div className="grid gap-3 p-3 pt-0 md:grid-cols-2">
+                  {visiblePlaces.map((basePlace) => {
+                    const place = basePlace as EnrichedPlace;
+                    return (
+                      <article key={place.name} className="rounded-2xl border border-[#efd8b4]/35 bg-[linear-gradient(150deg,rgba(27,34,57,0.45),rgba(34,27,50,0.44))] p-4 text-sm text-[#e8ddca]">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#e8b16e]">
+                              #{place.rank} {place.destinyGrade || place.categoryLabel || "길지"}
+                            </p>
+                            <p className={`mt-1 text-xl text-[#f7e5cc] ${serifClass}`}>{place.name}</p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className={`rounded-full border px-2 py-0.5 text-[11px] ${elementToneClass(place.element)}`}>{elementLabel(place.element)}</span>
+                            {place.secondaryElement ? (
+                              <span className={`rounded-full border px-2 py-0.5 text-[11px] ${elementToneClass(place.secondaryElement)}`}>{elementLabel(place.secondaryElement)}</span>
+                            ) : null}
+                          </div>
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+                          <span className="rounded-full border border-[#f0d7ad]/40 bg-[#f0d7ad]/15 px-2.5 py-1 text-[#ead4ab]">궁합 {place.romancePotential}%</span>
+                          {place.elementalProfile ? (
+                            <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[#ddd0bd]">{place.elementalProfile}</span>
+                          ) : null}
+                          {place.purposeTags?.slice(0, 3).map((tag) => (
+                            <span key={`${place.name}-${tag}`} className="rounded-full border border-white/[0.14] bg-white/5 px-2.5 py-1 text-[#d3c8b7]">{tag}</span>
+                          ))}
+                        </div>
+                        {place.sceneDescription ? <p className="mt-3 leading-relaxed text-[#e8dabf]">{place.sceneDescription}</p> : null}
+                        <p className="mt-2 leading-relaxed text-[#deccba]">{place.reason}</p>
+                        {place.baziInsight ? (
+                          <div className="mt-3 rounded-xl border border-[#f0d7ad]/25 bg-[#f0d7ad]/10 p-3">
+                            <p className="text-[11px] uppercase tracking-[0.16em] text-[#e6c793]">Saju Match</p>
+                            <p className="mt-1 leading-relaxed text-[#efdcc1]">{place.baziInsight}</p>
+                          </div>
+                        ) : null}
+                        {place.fitStrategy ? <p className="mt-3 text-[#e7dcc4]">{place.fitStrategy}</p> : null}
+                        {place.emotionalHook ? <p className="mt-2 text-[#d7c8b4]">{place.emotionalHook}</p> : null}
+                        {place.conversationOpener ? (
+                          <div className="mt-3 rounded-xl border border-white/15 bg-white/5 p-3">
+                            <p className="text-[11px] uppercase tracking-[0.14em] text-[#e6c793]">Conversation Cue</p>
+                            <p className="mt-1 text-[#ede2cf]">{place.conversationOpener}</p>
+                          </div>
+                        ) : null}
+                        <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+                          {place.bestTimeHint ? (
+                            <div className="rounded-xl border border-white/[0.14] bg-white/5 p-3">
+                              <p className="uppercase tracking-[0.14em] text-[#e6c793]">Time</p>
+                              <p className="mt-1 text-[#e9dcc5]">{place.bestTimeHint}</p>
+                            </div>
+                          ) : null}
+                          {place.avoidWhen ? (
+                            <div className="rounded-xl border border-rose-200/20 bg-rose-300/10 p-3">
+                              <p className="uppercase tracking-[0.14em] text-rose-100">Avoid</p>
+                              <p className="mt-1 text-[#edddd9]">{place.avoidWhen}</p>
+                            </div>
+                          ) : null}
+                        </div>
+                        {place.ritual ? (
+                          <p className={`mt-3 rounded-xl border border-white/[0.14] bg-black/15 p-3 leading-relaxed text-[#f4e2c5] ${serifClass}`}>{place.ritual}</p>
+                        ) : null}
+                        <p className="mt-3 text-[#dbc9b1]">{place.actionTip}</p>
+                      </article>
+                    );
+                  })}
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <span className={`rounded-full border px-2 py-0.5 text-[11px] ${elementToneClass(place.element)}`}>{elementLabel(place.element)}</span>
-                  {place.secondaryElement ? (
-                    <span className={`rounded-full border px-2 py-0.5 text-[11px] ${elementToneClass(place.secondaryElement)}`}>{elementLabel(place.secondaryElement)}</span>
-                  ) : null}
-                </div>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
-                <span className="rounded-full border border-[#f0d7ad]/40 bg-[#f0d7ad]/15 px-2.5 py-1 text-[#f7e6c8]">궁합 {place.romancePotential}%</span>
-                {place.elementalProfile ? (
-                  <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[#e9dfd1]">{place.elementalProfile}</span>
-                ) : null}
-                {place.purposeTags?.slice(0, 3).map((tag) => (
-                  <span key={`${place.name}-${tag}`} className="rounded-full border border-white/[0.14] bg-white/5 px-2.5 py-1 text-[#d9cebd]">{tag}</span>
-                ))}
-              </div>
-              {place.sceneDescription ? <p className="mt-3 leading-relaxed text-[#f2e7d6]">{place.sceneDescription}</p> : null}
-              <p className="mt-2 leading-relaxed text-[#e8dccb]">{place.reason}</p>
-              {place.baziInsight ? (
-                <div className="mt-3 rounded-xl border border-[#f0d7ad]/25 bg-[#f0d7ad]/10 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-[#e6c793]">Saju Match</p>
-                  <p className="mt-1 leading-relaxed text-[#f2e7d6]">{place.baziInsight}</p>
-                </div>
-              ) : null}
-              {place.fitStrategy ? <p className="mt-3 text-[#e7dbc9]">{place.fitStrategy}</p> : null}
-              {place.emotionalHook ? <p className="mt-2 text-[#d8cbb8]">{place.emotionalHook}</p> : null}
-              {place.conversationOpener ? (
-                <div className="mt-3 rounded-xl border border-white/15 bg-white/5 p-3">
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-[#e6c793]">Conversation Cue</p>
-                  <p className="mt-1 text-[#f3eadf]">{place.conversationOpener}</p>
-                </div>
-              ) : null}
-              <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
-                {place.bestTimeHint ? (
-                  <div className="rounded-xl border border-white/[0.14] bg-white/5 p-3">
-                    <p className="uppercase tracking-[0.14em] text-[#e6c793]">Time</p>
-                    <p className="mt-1 text-[#f1e6d5]">{place.bestTimeHint}</p>
+                {hasMore ? (
+                  <div className="px-4 pb-3">
+                    <p className="text-xs text-[#b8a78d]">
+                      나머지 {group.places.length - PREVIEW_DESTINATION_COUNT}곳은 접기/펼치기로 확인
+                    </p>
                   </div>
                 ) : null}
-                {place.avoidWhen ? (
-                  <div className="rounded-xl border border-rose-200/20 bg-rose-300/10 p-3">
-                    <p className="uppercase tracking-[0.14em] text-rose-100">Avoid</p>
-                    <p className="mt-1 text-[#f1dedc]">{place.avoidWhen}</p>
-                  </div>
-                ) : null}
-              </div>
-              {place.ritual ? (
-                <p className={`mt-3 rounded-xl border border-white/[0.14] bg-black/15 p-3 leading-relaxed text-[#fff1d8] ${serifClass}`}>{place.ritual}</p>
-              ) : null}
-              <p className="mt-3 text-[#e4d5be]">{place.actionTip}</p>
-            </article>
+              </section>
             );
           })}
         </div>

@@ -3602,6 +3602,7 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .rpt-v2-img{width:100%;height:100%;display:block;object-fit:contain;max-height:280px;background:rgba(255,255,255,.02)}
 .rpt-v2-price-badge{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;justify-content:center;padding:5px 11px;border-radius:999px;background:linear-gradient(135deg,rgba(253,186,116,.95) 0%,rgba(251,113,133,.95) 100%);color:#fff;font-size:.74rem;font-weight:900;letter-spacing:.01em;box-shadow:0 10px 20px rgba(190,24,93,.28);border:1px solid rgba(255,255,255,.36);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:2;white-space:nowrap}
 .rpt-v2-price-badge.is-free{background:linear-gradient(135deg,rgba(45,212,191,.96) 0%,rgba(16,185,129,.96) 100%);box-shadow:0 10px 20px rgba(5,150,105,.26)}
+.rpt-v2-price-badge.is-per-use{background:linear-gradient(135deg,rgba(91,33,182,.94),rgba(217,70,239,.94),rgba(251,191,36,.94));border-color:rgba(255,255,255,.48);color:#fff7d6;box-shadow:0 12px 24px rgba(124,58,237,.28),0 0 18px rgba(251,191,36,.22)}
 .rpt-v2-head{padding:14px 16px 12px;display:flex;flex-direction:column;gap:8px}
 .rpt-v2-title{margin:0;font-size:1.02rem;line-height:1.35;font-weight:900;color:#f8fafc;word-break:keep-all}
 .rpt-v2-preview{margin:0;font-size:.83rem;line-height:1.6;color:#a9b4c8;word-break:keep-all}
@@ -3934,8 +3935,32 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
   font-weight:800;color:#60a5fa;flex-shrink:0;margin-top:1px}
 .qm-action-text{font-size:.8rem;color:#9ec8f0;line-height:1.72}
 .qm-action-text b{color:#60a5fa}
+.qm-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:11px}
+.qm-oracle-card,.qm-mini-panel,.qm-pillar-card,.qm-element-card,.qm-luck-card{min-width:0;background:rgba(2,10,24,.62);border:1px solid rgba(148,163,184,.14);border-radius:12px;padding:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.qm-oracle-label,.qm-mini-title,.qm-pillar-label,.qm-luck-label{font-size:.68rem;color:#7dd3fc;font-weight:800;margin-bottom:6px}
+.qm-oracle-value{font-size:.92rem;color:#e0f2fe;font-weight:900;line-height:1.35;word-break:keep-all}
+.qm-oracle-meta{font-size:.74rem;color:#87a7b9;line-height:1.55;margin-top:6px}
+.qm-dual-grid,.qm-luck-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.qm-pillar-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.qm-pillar-gz{display:flex;align-items:center;gap:6px;margin-bottom:9px}
+.qm-pillar-gz span{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.16);color:#d0fbe8;font-size:1.05rem;font-weight:900;font-family:serif}
+.qm-pillar-roles,.qm-luck-chips{display:flex;flex-wrap:wrap;gap:5px}
+.qm-element-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.qm-element-card--good{border-color:rgba(0,255,136,.22);background:rgba(0,255,136,.045)}
+.qm-element-card--bad{border-color:rgba(255,77,109,.2);background:rgba(255,77,109,.045)}
+.qm-element-card--neutral{border-color:rgba(148,163,184,.15)}
+.qm-element-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.qm-element-name{font-size:.84rem;color:#e2f8ff;font-weight:900;white-space:nowrap}
+.qm-element-meta{min-height:42px;font-size:.72rem;color:#8fb2c4;line-height:1.45}
+.qm-element-count{margin-top:9px;font-size:.68rem;color:#6b8fa1}
+.qm-element-count i{display:block;height:5px;border-radius:999px;background:rgba(148,163,184,.16);overflow:hidden;margin-top:5px}
+.qm-element-count b{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#38bdf8,#00ff88)}
+.qm-luck-gz{font-size:1.14rem;color:#e0f2fe;font-weight:950;margin-bottom:8px;font-family:serif}
+.qm-luck-note{font-size:.72rem;color:#94a3b8;margin-top:9px}
 /* NEO mode override */
 body.neo-mode .qm-wrap{border-color:rgba(255,215,0,.18)!important;box-shadow:0 8px 40px rgba(0,0,0,.9),0 0 30px rgba(255,215,0,.04)!important}
+@media(max-width:900px){.qm-summary-grid,.qm-element-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.qm-pillar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.qm-summary-grid,.qm-dual-grid,.qm-pillar-grid,.qm-element-grid,.qm-luck-grid{grid-template-columns:1fr}.qm-wrap{padding:18px 14px}.qm-transform{flex-wrap:wrap}.qm-element-meta{min-height:0}}
 
 /* ─── 일운/월운 섹션 ─── */
 .fortune-tab-wrap{display:flex;gap:0;background:linear-gradient(135deg,#F3E5F5 0%,#FCE4EC 100%);border-radius:14px;padding:4px;margin-bottom:16px;box-shadow:0 4px 16px rgba(233,30,99,.1),inset 0 1px 0 rgba(255,255,255,.6)}
@@ -14914,7 +14939,13 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
 }
 .lotto-machine-container.active { display: block; }
 .lotto-machine-title {
-  font-size: 1.1rem; color: #333; font-weight: 700; margin-bottom: 15px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 8px 16px; border-radius: 999px;
+  background: rgba(255,255,255,0.86); color: #25113f;
+  border: 1px solid rgba(124,58,237,0.22);
+  box-shadow: 0 8px 24px rgba(37,17,63,0.14);
+  font-size: 1.1rem; font-weight: 900; margin-bottom: 15px;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.72);
 }
 .lotto-draw-balls {
   display: flex; justify-content: center; gap: 10px; min-height: 118px; align-items: center; flex-wrap: wrap;

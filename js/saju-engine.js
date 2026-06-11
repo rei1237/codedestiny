@@ -6474,101 +6474,120 @@ var ILJU_INNATE_DB = {
 };
 
 /* ─── 인생 스킬 트리 RPG ─── */
+function _ensureSkillTreeRpgStyle(){
+  if(document.getElementById('cd-skilltree-rpg-style-v20260612'))return;
+  var style=document.createElement('style');
+  style.id='cd-skilltree-rpg-style-v20260612';
+  style.textContent=[
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260612"],.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260612"] *{box-sizing:border-box;letter-spacing:0}',
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260612"]{padding:18px;border-radius:8px;background:linear-gradient(135deg,#14100b 0%,#18241f 36%,#111827 67%,#1f1511 100%);border:1px solid rgba(255,226,166,.22);box-shadow:0 20px 60px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.08);color:#f8f3e8}',
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260612"]::before{background:linear-gradient(120deg,rgba(255,226,166,.07) 0,transparent 23%,rgba(72,187,120,.05) 48%,transparent 74%,rgba(248,113,113,.05) 100%);opacity:1}',
+    '.sk-rpg-hero{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) 116px;gap:16px;align-items:center;margin-bottom:14px;padding:16px;border-radius:8px;background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}',
+    '.sk-game-badge{display:inline-flex;align-items:center;min-height:24px;margin:0 0 8px 0;border-radius:6px;padding:4px 9px;background:rgba(255,216,112,.13);border:1px solid rgba(255,216,112,.30);color:#ffe7a8;font-size:.66rem;font-weight:900}',
+    '.sk-main-title{font-size:1.24rem;line-height:1.18;color:#fff7db;text-shadow:0 0 18px rgba(255,216,112,.20)}',
+    '.sk-sub-title{margin-top:5px;color:rgba(238,231,214,.68);font-size:.72rem;text-transform:none}',
+    '.sk-rpg-command-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}',
+    '.sk-rpg-chip{display:inline-flex;align-items:center;min-height:28px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);color:#f7e7bc;font-size:.7rem;font-weight:850}',
+    '.sk-hero-wrap{width:116px;height:136px;justify-self:end;filter:drop-shadow(0 18px 28px rgba(0,0,0,.28))}',
+    '.sk-hero-glow{inset:auto;left:8px;bottom:6px;width:96px;height:22px;border-radius:50%;opacity:.55;filter:blur(14px)}',
+    '.sk-hero-svg{width:116px;height:136px;animation:skHeroBob 3.2s ease-in-out infinite}',
+    '.sk-rpg-sheet{position:relative;z-index:1;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:14px;padding:14px;border-radius:8px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10)}',
+    '.sk-class-label,.sk-stat-title,.sk-tree-label,.sk-innate-label,.sk-levelup-title{color:#f6d47b;font-size:.68rem;font-weight:900;text-transform:none;border-color:rgba(246,212,123,.16)}',
+    '.sk-class-name{font-size:1rem;color:#fff;line-height:1.45}',
+    '.sk-lv-badge{display:inline-flex;align-items:baseline;gap:5px;color:#fbd46d;font-size:.8rem}',
+    '.sk-lv-badge span{font-size:1.35rem}',
+    '.sk-exp-wrap,.sk-stat-bar-wrap{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08)}',
+    '.sk-exp-wrap{height:10px}',
+    '.sk-exp-bar{background:linear-gradient(90deg,#f7d56b,#49d6a4,#65c7ff);box-shadow:0 0 18px rgba(247,213,107,.32)}',
+    '.sk-exp-label,.sk-day-badge{color:rgba(248,243,232,.76)}',
+    '.sk-day-badge{border-radius:6px;background:rgba(0,0,0,.18);border-color:rgba(255,255,255,.10)}',
+    '.sk-stat-row{gap:8px;margin-bottom:9px;min-height:24px}',
+    '.sk-stat-label{width:72px;color:rgba(248,243,232,.82);font-weight:800}',
+    '.sk-stat-bar-fill{width:var(--sk-stat,0%);background:linear-gradient(90deg,var(--sk-el-color),rgba(255,255,255,.82));box-shadow:0 0 12px var(--sk-el-color)}',
+    '.sk-stat-val{width:36px;color:#f7e7bc;font-variant-numeric:tabular-nums}',
+    '.sk-tree-wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr 1fr 1fr;gap:12px;margin-bottom:14px}',
+    '.sk-tree-section{position:relative;overflow:hidden;border-radius:8px;padding:12px;background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.028));border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}',
+    '.sk-tree-section::before{content:"";position:absolute;left:14px;right:14px;top:44px;height:1px;background:linear-gradient(90deg,rgba(247,213,107,.42),transparent);pointer-events:none}',
+    '.sk-node{position:relative;display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;align-items:flex-start;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18);min-height:76px}',
+    '.sk-node:last-child{margin-bottom:0}',
+    '.sk-node-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.12);font-size:1.25rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.10)}',
+    '.sk-name{font-size:.86rem;color:#fff;font-weight:900;line-height:1.35}',
+    '.sk-desc{margin-top:4px;color:rgba(238,231,214,.72);font-size:.74rem;line-height:1.55}',
+    '.sk-node--master{background:linear-gradient(135deg,rgba(255,216,112,.18),rgba(72,187,120,.08));border-color:rgba(255,216,112,.34);box-shadow:0 0 22px rgba(255,216,112,.12),inset 0 1px 0 rgba(255,255,255,.08)}',
+    '.sk-node--owned{border-color:rgba(73,214,164,.24);background:linear-gradient(135deg,rgba(73,214,164,.12),rgba(255,255,255,.03))}',
+    '.sk-node--locked{border-style:dashed;border-color:rgba(214,199,168,.18);background:rgba(255,255,255,.035);opacity:.82}',
+    '.sk-type-badge,.sk-innate-type{display:inline-flex;align-items:center;min-height:18px;margin-left:5px;padding:2px 6px;border-radius:5px;background:rgba(255,216,112,.18);color:#ffe7a8;font-size:.56rem;font-weight:900}',
+    '.sk-empty{padding:10px;border-radius:8px;border:1px dashed rgba(255,255,255,.14);color:rgba(238,231,214,.52);font-size:.76rem;line-height:1.5}',
+    '.sk-innate-section,.sk-levelup{position:relative;z-index:1;border-radius:8px;background:linear-gradient(135deg,rgba(73,214,164,.12),rgba(255,216,112,.07));border:1px solid rgba(73,214,164,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}',
+    '.sk-innate-item{border-radius:8px;background:rgba(0,0,0,.14);border-color:rgba(255,255,255,.10)}',
+    '.sk-innate-name{color:#c9ffe7;text-shadow:0 0 14px rgba(73,214,164,.24)}',
+    '.sk-innate-sub,.sk-innate-desc{color:rgba(238,231,214,.74)}',
+    '.sk-levelup{padding:15px;background:linear-gradient(135deg,rgba(255,216,112,.13),rgba(248,113,113,.08),rgba(73,214,164,.08));border-color:rgba(255,216,112,.25)}',
+    '.sk-levelup-text{color:rgba(248,243,232,.86);font-size:.85rem;line-height:1.75}',
+    '.sk-hl{background:rgba(73,214,164,.18);color:#cbffe8;border-radius:5px}',
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260612"]+.ent-rpg-shell{margin-top:14px}',
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260612"]+.ent-rpg-shell .ent-rpg-card{border-radius:8px;border-color:rgba(255,216,112,.18);background:linear-gradient(135deg,rgba(20,16,11,.94),rgba(20,33,28,.94),rgba(17,24,39,.96))}',
+    '@media(max-width:768px){.sk-rpg-hero{grid-template-columns:1fr;align-items:start}.sk-hero-wrap{justify-self:center}.sk-rpg-sheet,.sk-tree-wrap{grid-template-columns:1fr}.sk-stat-label{width:68px}.sk-main-title{font-size:1.12rem}}'
+  ].join('');
+  document.head.appendChild(style);
+}
+
 function _buildHeroSVG(elColor){
-  var c={wood:'#4CAF50',fire:'#FF5722',earth:'#8D6E63',metal:'#78909C',water:'#1E88E5'}[elColor]||'#7B1FA2';
-  var c2={wood:'#81C784',fire:'#FF8A65',earth:'#BCAAA4',metal:'#B0BEC5',water:'#64B5F6'}[elColor]||'#CE93D8';
-  var c3={wood:'#2E7D32',fire:'#BF360C',earth:'#4E342E',metal:'#37474F',water:'#0D47A1'}[elColor]||'#4A148C';
+  var palette={
+    wood:{c:'#2fb36d',c2:'#9be67d',c3:'#145c3b',gem:'#d9ff9f',cloak:'#1f6b4c'},
+    fire:{c:'#e24a2e',c2:'#ffb15f',c3:'#752312',gem:'#ffe08a',cloak:'#7d2d1d'},
+    earth:{c:'#a07445',c2:'#e0bd77',c3:'#4d3723',gem:'#fff0ae',cloak:'#5f4931'},
+    metal:{c:'#8fa5b5',c2:'#e5eef7',c3:'#34444e',gem:'#dff7ff',cloak:'#42515b'},
+    water:{c:'#2e83d9',c2:'#7de3ff',c3:'#123c6d',gem:'#c8fbff',cloak:'#183d73'}
+  }[elColor]||{c:'#8b5cf6',c2:'#f0abfc',c3:'#3b2269',gem:'#ffe7a8',cloak:'#38245f'};
+  var c=palette.c,c2=palette.c2,c3=palette.c3,gem=palette.gem,cloak=palette.cloak;
+  var id='skHero'+String(elColor||'void').replace(/[^a-z0-9]/gi,'');
   return '<div class="sk-hero-wrap">'
     +'<div class="sk-hero-glow" style="background:'+c+'"></div>'
-    +'<svg class="sk-hero-svg" viewBox="0 0 64 80" xmlns="http://www.w3.org/2000/svg">'
-
-    /* ── 바닥 그림자 ── */
-    +'<ellipse cx="30" cy="76" rx="16" ry="3" fill="rgba(0,0,0,.15)"/>'
-
-    /* ── 방패 (왼쪽, 뒷레이어) ── */
-    +'<ellipse cx="8" cy="46" rx="7" ry="8.5" fill="'+c3+'"/>'
-    +'<ellipse cx="8" cy="46" rx="5.5" ry="7" fill="'+c2+'"/>'
-    +'<polygon points="8,40 11.5,46 8,52 4.5,46" fill="#FFD700" opacity=".7"/>'
-    +'<circle cx="8" cy="46" r="1.5" fill="#FFD700"/>'
-
-    /* ── 왼팔 ── */
-    +'<rect x="11" y="40" width="9" height="6" rx="3" fill="#FFD596"/>'
-
-    /* ── 검 (오른쪽, 뒷레이어) ── */
-    +'<rect x="49" y="8" width="4" height="30" rx="2" fill="#B0BEC5"/>'
-    +'<rect x="49" y="8" width="2" height="30" rx="1" fill="#E0E0E0" opacity=".5"/>'
-    +'<rect x="46" y="36" width="10" height="3" rx="1.5" fill="#FFD700"/>'
-    +'<rect x="50" y="39" width="2" height="5" rx="1" fill="#8D6E63"/>'
-    +'<ellipse cx="51" cy="7" rx="2.5" ry="2" fill="'+c2+'"/>'
-    +'<circle cx="55" cy="5" r="1.5" fill="#FFD700" opacity=".8"/>'
-    +'<circle cx="48" cy="3" r="1" fill="#fff" opacity=".6"/>'
-    +'<circle cx="57" cy="11" r="1" fill="'+c2+'" opacity=".6"/>'
-
-    /* ── 오른팔 + 손 ── */
-    +'<rect x="42" y="40" width="9" height="6" rx="3" fill="#FFD596"/>'
-    +'<circle cx="50" cy="42" r="3" fill="#FFD596"/>'
-
-    /* ── 다리 ── */
-    +'<rect x="22" y="56" width="8" height="12" rx="3" fill="'+c3+'"/>'
-    +'<rect x="32" y="56" width="8" height="12" rx="3" fill="'+c3+'"/>'
-
-    /* ── 부츠 ── */
-    +'<rect x="20" y="66" width="11" height="7" rx="3.5" fill="#4E342E"/>'
-    +'<rect x="31" y="66" width="11" height="7" rx="3.5" fill="#4E342E"/>'
-    +'<rect x="20" y="66" width="11" height="2.5" rx="1" fill="#6D4C41"/>'
-    +'<rect x="31" y="66" width="11" height="2.5" rx="1" fill="#6D4C41"/>'
-
-    /* ── 몸통 (튜닉) ── */
-    +'<rect x="18" y="34" width="26" height="24" rx="4" fill="'+c+'"/>'
-    +'<polygon points="31,37 35,48 27,48" fill="'+c2+'" opacity=".45"/>'
-    +'<rect x="25" y="34" width="12" height="3" rx="1.5" fill="'+c2+'"/>'
-    +'<rect x="17" y="54" width="28" height="4" rx="2" fill="#5D4037"/>'
-    +'<rect x="28" y="54" width="6" height="4" fill="#FFD700"/>'
-
-    /* ── 목 ── */
-    +'<rect x="27" y="31" width="8" height="5" rx="2" fill="#FFD596"/>'
-
-    /* ── 머리카락 (모자 아래) ── */
-    +'<ellipse cx="31" cy="14" rx="12" ry="5" fill="'+c+'"/>'
-
-    /* ── 얼굴 ── */
-    +'<ellipse cx="31" cy="20" rx="12" ry="12" fill="#FFD596"/>'
-
-    /* ── 엘프 귀 ── */
-    +'<polygon points="17,19 10,14 18,24" fill="#FFD596"/>'
-    +'<polygon points="45,19 52,14 44,24" fill="#FFD596"/>'
-    +'<line x1="13" y1="16" x2="18" y2="22" stroke="#FFCC80" stroke-width=".7" opacity=".6"/>'
-    +'<line x1="49" y1="16" x2="44" y2="22" stroke="#FFCC80" stroke-width=".7" opacity=".6"/>'
-
-    /* ── 모자 (젤다 스타일 뾰족 캡) ── */
-    +'<polygon points="19,14 31,1 43,14" fill="'+c+'"/>'
-    +'<polygon points="31,1 29,3 19,14 21,14" fill="'+c2+'" opacity=".3"/>'
-    +'<polygon points="19,14 13,6 7,10 15,15" fill="'+c+'"/>'
-    +'<circle cx="7" cy="10" r="2.5" fill="'+c2+'"/>'
-    +'<rect x="18" y="13" width="26" height="3" rx="1.5" fill="'+c2+'"/>'
-
-    /* ── 눈 (커다란 치비 눈) ── */
-    +'<ellipse cx="25" cy="20" rx="3.5" ry="4" fill="#1A237E"/>'
-    +'<ellipse cx="37" cy="20" rx="3.5" ry="4" fill="#1A237E"/>'
-    +'<circle cx="24" cy="19" r="1.5" fill="#fff"/>'
-    +'<circle cx="36" cy="19" r="1.5" fill="#fff"/>'
-    +'<circle cx="26" cy="21" r=".7" fill="rgba(255,255,255,.4)"/>'
-    +'<circle cx="38" cy="21" r=".7" fill="rgba(255,255,255,.4)"/>'
-
-    /* ── 눈썹 ── */
-    +'<rect x="22" y="15" width="7" height="1.2" rx=".6" fill="#333" opacity=".6"/>'
-    +'<rect x="34" y="15" width="7" height="1.2" rx=".6" fill="#333" opacity=".6"/>'
-
-    /* ── 코 ── */
-    +'<ellipse cx="31" cy="23" rx="1" ry=".7" fill="rgba(0,0,0,.08)"/>'
-
-    /* ── 미소 ── */
-    +'<path d="M27,26 Q31,29 35,26" stroke="rgba(0,0,0,.18)" stroke-width="1" fill="none" stroke-linecap="round"/>'
-
-    /* ── 볼터치 ── */
-    +'<ellipse cx="22" cy="24" rx="3" ry="1.5" fill="rgba(255,100,100,.15)"/>'
-    +'<ellipse cx="40" cy="24" rx="3" ry="1.5" fill="rgba(255,100,100,.15)"/>'
-
+    +'<svg class="sk-hero-svg" viewBox="0 0 96 112" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="오행 RPG 아바타">'
+    +'<defs>'
+    +'<linearGradient id="'+id+'Armor" x1="22" y1="22" x2="78" y2="82"><stop offset="0" stop-color="'+c2+'"/><stop offset=".45" stop-color="'+c+'"/><stop offset="1" stop-color="'+c3+'"/></linearGradient>'
+    +'<linearGradient id="'+id+'Steel" x1="64" y1="6" x2="82" y2="70"><stop offset="0" stop-color="#ffffff"/><stop offset=".42" stop-color="#c8d6df"/><stop offset="1" stop-color="#596b76"/></linearGradient>'
+    +'<radialGradient id="'+id+'Gem" cx="50%" cy="38%" r="62%"><stop offset="0" stop-color="#ffffff"/><stop offset=".42" stop-color="'+gem+'"/><stop offset="1" stop-color="'+c+'"/></radialGradient>'
+    +'<filter id="'+id+'Glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2" result="b"/><feColorMatrix in="b" type="matrix" values="0 0 0 0 1 0 0 0 0 .78 0 0 0 0 .32 0 0 0 .72 0"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+    +'</defs>'
+    +'<ellipse cx="48" cy="103" rx="28" ry="6" fill="rgba(0,0,0,.28)"/>'
+    +'<path d="M15 50 C12 30 28 14 48 14 C68 14 84 30 81 50 C79 67 70 83 48 93 C26 83 17 67 15 50Z" fill="'+cloak+'" opacity=".32"/>'
+    +'<path d="M70 15 L78 12 L61 72 L54 69Z" fill="url(#'+id+'Steel)" stroke="#fff8d6" stroke-opacity=".28" stroke-width="1"/>'
+    +'<rect x="55" y="68" width="20" height="5" rx="2.5" fill="#d8a84f"/>'
+    +'<rect x="61" y="72" width="5" height="14" rx="2.5" fill="#68472d"/>'
+    +'<path d="M18 58 C19 47 25 40 35 38 C38 48 37 62 27 74 C22 70 19 64 18 58Z" fill="'+c3+'" stroke="'+c2+'" stroke-opacity=".55" stroke-width="2"/>'
+    +'<path d="M27 45 L33 58 L27 70 L21 58Z" fill="url(#'+id+'Gem)" opacity=".92"/>'
+    +'<path d="M30 49 C26 50 23 56 22 62" fill="none" stroke="#fff8d6" stroke-opacity=".35" stroke-width="1.3" stroke-linecap="round"/>'
+    +'<rect x="33" y="74" width="10" height="20" rx="4" fill="'+c3+'"/>'
+    +'<rect x="52" y="74" width="10" height="20" rx="4" fill="'+c3+'"/>'
+    +'<path d="M27 92 H45 V99 H28 C25 99 24 96 27 92Z" fill="#3a2a1d"/>'
+    +'<path d="M51 92 H69 C72 96 71 99 68 99 H51Z" fill="#3a2a1d"/>'
+    +'<path d="M28 44 C31 35 39 29 48 29 C57 29 65 35 68 44 L64 74 C58 78 38 78 32 74Z" fill="url(#'+id+'Armor)" stroke="#fff8d6" stroke-opacity=".18" stroke-width="1"/>'
+    +'<path d="M34 45 H62 L58 58 L48 67 L38 58Z" fill="rgba(255,255,255,.12)"/>'
+    +'<path d="M48 42 L55 58 H41Z" fill="url(#'+id+'Gem)" filter="url(#'+id+'Glow)"/>'
+    +'<path d="M29 64 H67 V70 H29Z" fill="#3b2a1c"/>'
+    +'<rect x="44" y="63" width="8" height="8" rx="2" fill="#f7d56b"/>'
+    +'<path d="M31 48 C24 49 21 54 21 60" fill="none" stroke="#f4cfa4" stroke-width="6" stroke-linecap="round"/>'
+    +'<path d="M65 48 C72 49 75 54 75 60" fill="none" stroke="#f4cfa4" stroke-width="6" stroke-linecap="round"/>'
+    +'<rect x="43" y="35" width="10" height="8" rx="3" fill="#f4cfa4"/>'
+    +'<path d="M32 28 C34 18 40 12 48 12 C56 12 62 18 64 28 C66 39 59 48 48 48 C37 48 30 39 32 28Z" fill="#f4cfa4"/>'
+    +'<path d="M31 29 L21 23 L31 37Z" fill="#f4cfa4"/>'
+    +'<path d="M65 29 L75 23 L65 37Z" fill="#f4cfa4"/>'
+    +'<path d="M31 28 C33 14 42 7 53 9 C62 11 67 18 67 29 C62 23 56 22 50 25 C43 19 36 22 31 28Z" fill="'+cloak+'"/>'
+    +'<path d="M38 18 C43 4 56 3 68 11 C59 11 55 16 53 25Z" fill="'+c+'" opacity=".9"/>'
+    +'<path d="M49 10 C43 5 34 8 29 15 C36 12 42 14 47 21Z" fill="'+c2+'" opacity=".72"/>'
+    +'<ellipse cx="41" cy="31" rx="4" ry="5" fill="#172033"/>'
+    +'<ellipse cx="55" cy="31" rx="4" ry="5" fill="#172033"/>'
+    +'<circle cx="40" cy="29" r="1.4" fill="#fff"/>'
+    +'<circle cx="54" cy="29" r="1.4" fill="#fff"/>'
+    +'<path d="M41 40 C45 43 51 43 55 40" fill="none" stroke="rgba(56,32,18,.45)" stroke-width="1.4" stroke-linecap="round"/>'
+    +'<path d="M28 15 L21 8 L17 14 L25 20Z" fill="'+c+'" opacity=".9"/>'
+    +'<circle cx="17" cy="14" r="3" fill="url(#'+id+'Gem)" filter="url(#'+id+'Glow)"/>'
+    +'<path d="M17 9 V3 M13 13 H7 M21 13 H27" stroke="'+gem+'" stroke-opacity=".8" stroke-width="1.2" stroke-linecap="round"/>'
+    +'<circle cx="77" cy="10" r="2.2" fill="'+gem+'" opacity=".85"/>'
+    +'<circle cx="84" cy="27" r="1.4" fill="'+c2+'" opacity=".7"/>'
+    +'<circle cx="14" cy="36" r="1.3" fill="'+gem+'" opacity=".6"/>'
     +'</svg>'
     +'</div>';
 }
@@ -6576,6 +6595,13 @@ function _buildHeroSVG(elColor){
 function renderSkillTree(p, natal){
   var area=document.getElementById('skillTreeSection');
   if(!area)return;
+  _ensureSkillTreeRpgStyle();
+  var card=document.getElementById('skillTreeCard');
+  if(card){
+    card.style.display='';
+    card.setAttribute('data-skilltree-ui-marker','skilltree-rpg-v20260612');
+  }
+  area.setAttribute('data-skilltree-ui-marker','skilltree-rpg-v20260612');
   var dg=p.d.g;
   var pw=G_POWER, jg=G_JONG;
   var dayEl=(GAN[dg]&&GAN[dg].e)||'earth';
@@ -6608,6 +6634,8 @@ function renderSkillTree(p, natal){
   var sufMap={bija:'독립 영웅',sik:'창조 마에스트로',jae:'황금 군주',gwan:'규율의 지배자',inp:'위대한 현자'};
   var cls=clsMap[dg]||{base:'신비의 모험가',emoji:'⚡'};
   var coreClass=cls.emoji+' '+cls.base+' / '+sufMap[topGrp];
+  var groupName={bija:'자아',sik:'창조',jae:'자원',gwan:'질서',inp:'지혜'}[topGrp]||'운명';
+  var rank=topVal>=3?'S+':(topVal>=2?'S':'A');
   var lv=Math.min(99,Math.max(1,CURRENT_AGE-1));
   var expPct=(lv%10)*10;
   var elColor={wood:'#4CAF50',fire:'#FF5722',earth:'#A1887F',metal:'#78909C',water:'#1E88E5'};
@@ -6618,7 +6646,7 @@ function renderSkillTree(p, natal){
     var pct=Math.round(natal.ratios[el]||0);
     statBars+='<div class="sk-stat-row">'
       +'<div class="sk-stat-label">'+elIcon[el]+' '+elName[el]+'</div>'
-      +'<div class="sk-stat-bar-wrap"><div class="sk-stat-bar-fill" style="width:'+pct+'%;background:'+elColor[el]+'"></div></div>'
+      +'<div class="sk-stat-bar-wrap"><div class="sk-stat-bar-fill" style="--sk-stat:'+pct+'%;--sk-el-color:'+elColor[el]+'"></div></div>'
       +'<div class="sk-stat-val">'+pct+'%</div>'
       +'</div>';
   });
@@ -6641,18 +6669,18 @@ function renderSkillTree(p, natal){
   for(var gok in grp){
     if(gok!==topGrp&&grp[gok]>=1){
       var osk=skillDB[gok].o;
-      ownedHtml+='<div class="sk-item sk-owned"><span class="sk-icon">'+osk.i+'</span><div><div class="sk-name">'+osk.n+'</div><div class="sk-desc">'+osk.d+'</div></div></div>';
+      ownedHtml+='<div class="sk-item sk-owned sk-node sk-node--owned sk-node--'+gok+'"><span class="sk-icon sk-node-icon">'+osk.i+'</span><div><div class="sk-name">'+osk.n+'</div><div class="sk-desc">'+osk.d+'</div></div></div>';
     }
   }
-  if(!ownedHtml)ownedHtml='<div style="font-size:.75rem;color:rgba(255,255,255,.3);padding:6px 0">추가 보유 스킬 없음</div>';
+  if(!ownedHtml)ownedHtml='<div class="sk-empty">추가 보유 스킬 없음</div>';
   var lockedHtml='';
   for(var glk in grp){
     if(grp[glk]===0){
       var lsk=lockedDB[glk];
-      lockedHtml+='<div class="sk-item sk-locked"><span class="sk-icon">🔒</span><div><div class="sk-name">'+lsk.n+' <span style="font-size:.62rem;color:rgba(255,255,255,.3);font-weight:400">[잠김]</span></div><div class="sk-desc">'+lsk.d+'</div></div></div>';
+      lockedHtml+='<div class="sk-item sk-locked sk-node sk-node--locked sk-node--'+glk+'"><span class="sk-icon sk-node-icon">🔒</span><div><div class="sk-name">'+lsk.n+' <span class="sk-type-badge">LOCKED</span></div><div class="sk-desc">'+lsk.d+'</div></div></div>';
     }
   }
-  if(!lockedHtml)lockedHtml='<div style="font-size:.75rem;color:rgba(255,255,255,.3);padding:6px 0">잠긴 스킬 없음 🎉</div>';
+  if(!lockedHtml)lockedHtml='<div class="sk-empty">잠긴 스킬 없음 🎉</div>';
   var yongshinList=(pw&&pw.yongshin)||[];
   var isSeGood=yongshinList.indexOf('fire')>=0||(jg&&jg.isJong&&jg.dominant==='fire');
   var levelUpText=isSeGood
@@ -6676,16 +6704,22 @@ function renderSkillTree(p, natal){
       +'</div>'
       +'</div>';
   }
-  area.innerHTML='<div class="skill-wrap">'
-    +'<div class="sk-header">'
-    +'<div>'
+  area.innerHTML='<div class="skill-wrap" data-skilltree-ui-marker="skilltree-rpg-v20260612">'
+    +'<div class="sk-header sk-rpg-hero">'
+    +'<div class="sk-rpg-copy">'
     +'<div class="sk-game-badge">⚡ SAJU RPG SYSTEM</div>'
     +'<div class="sk-main-title">인생 스킬 트리</div>'
     +'<div class="sk-sub-title">運命 SKILL TREE · 사주 기반 캐릭터 시트</div>'
+    +'<div class="sk-rpg-command-row">'
+    +'<span class="sk-rpg-chip">RANK '+rank+'</span>'
+    +'<span class="sk-rpg-chip">MAIN '+groupName+'</span>'
+    +'<span class="sk-rpg-chip">'+(pw&&pw.isStrong?'신강형':'신약형')+'</span>'
+    +(jg&&jg.isJong?'<span class="sk-rpg-chip">종격 모드</span>':'')
+    +'</div>'
     +'</div>'
     +heroSVG
     +'</div>'
-    +'<div class="sk-sheet">'
+    +'<div class="sk-sheet sk-rpg-sheet">'
     +'<div>'
     +'<div class="sk-class-label">CORE CLASS</div>'
     +'<div class="sk-class-name">'+coreClass+'</div>'
@@ -6702,17 +6736,17 @@ function renderSkillTree(p, natal){
     +'</div>'
     +'</div>'
     +innateHtml
-    +'<div class="sk-tree-wrap">'
-    +'<div class="sk-tree-section">'
-    +'<div class="sk-tree-label">⭐ MASTER SKILL</div>'
-    +'<div class="sk-item sk-master"><span class="sk-icon">'+masterSk.i+'</span><div><div class="sk-name">'+masterSk.n+' <span class="sk-type-badge">'+(masterSk.tp||'ACTIVE')+'</span></div><div class="sk-desc">'+masterSk.d+'</div></div></div>'
+    +'<div class="sk-tree-wrap" aria-label="인생 스킬 노드맵">'
+    +'<div class="sk-tree-section sk-tree-section--master">'
+    +'<div class="sk-tree-label">⭐ MASTER NODE</div>'
+    +'<div class="sk-item sk-master sk-node sk-node--master"><span class="sk-icon sk-node-icon">'+masterSk.i+'</span><div><div class="sk-name">'+masterSk.n+' <span class="sk-type-badge">'+(masterSk.tp||'ACTIVE')+'</span></div><div class="sk-desc">'+masterSk.d+'</div></div></div>'
     +'</div>'
-    +'<div class="sk-tree-section">'
-    +'<div class="sk-tree-label">✅ OWNED SKILLS</div>'
+    +'<div class="sk-tree-section sk-tree-section--owned">'
+    +'<div class="sk-tree-label">✅ OWNED NODES</div>'
     +ownedHtml
     +'</div>'
-    +'<div class="sk-tree-section">'
-    +'<div class="sk-tree-label">🔒 LOCKED SKILLS</div>'
+    +'<div class="sk-tree-section sk-tree-section--locked">'
+    +'<div class="sk-tree-label">🔒 LOCKED NODES</div>'
     +lockedHtml
     +'</div>'
     +'</div>'
@@ -24230,6 +24264,7 @@ function buildSajuVillainBlacklist(input) {
     var activatedBy = [];
     var rule = _sajuVillainRuleFor(blueprint.id);
     var risk = _sajuVillainScoreProfile(ctx, blueprint, activatedBy);
+    var comicMeta = _sajuVillainComicMeta(blueprint.id);
     if (!activatedBy.length) activatedBy.push('현재 데이터에서는 강한 위험 신호보다 기본 관계 점검 유형으로 관찰');
 
     return {
@@ -24237,6 +24272,12 @@ function buildSajuVillainBlacklist(input) {
       rank: _sajuVillainRiskRank(risk),
       codeName: blueprint.codeName,
       koreanName: blueprint.koreanName,
+      comicAlias: comicMeta.alias,
+      comicBadge: comicMeta.badge,
+      comicTagline: comicMeta.tagline,
+      comicSignal: comicMeta.signal,
+      comicCounter: comicMeta.counter,
+      silhouetteVariant: comicMeta.variant,
       subtitle: blueprint.subtitle,
       riskScore: risk,
       activatedBy: _sajuVillainUnique(activatedBy),
@@ -24278,6 +24319,104 @@ function buildSajuVillainBlacklist(input) {
 }
 
 window.buildSajuVillainBlacklist = buildSajuVillainBlacklist;
+
+function _sajuVillainComicMeta(id) {
+  var map = {
+    'profit-drain': {
+      alias:'정산 잠수 빌런',
+      badge:'계좌 앞에서만 수(水)둔술',
+      tagline:'빌릴 때는 번개, 갚을 때는 동굴 수련. "내일 보낼게"가 사주상 장기 프로젝트로 변합니다.',
+      signal:'정산 얘기만 나오면 갑자기 와이파이가 약해집니다.',
+      counter:'금액·날짜·계좌를 한 문장으로 남기면 도술이 풀립니다.',
+      variant:'ghost'
+    },
+    'emotional-pressure': {
+      alias:'가스라이팅 빌런',
+      badge:'내 기억을 남의 대본으로 바꿈',
+      tagline:'분명 내 마음이었는데 대화가 끝나면 "내가 너무 예민했나?"라는 자막이 떠오릅니다.',
+      signal:'사과는 없고 분위기만 안개처럼 진해집니다.',
+      counter:'감정 설명보다 사실 기록을 먼저 세우세요.',
+      variant:'spiral'
+    },
+    'verbal-confuser': {
+      alias:'팩폭 빌런',
+      badge:'팩트인 척 날아오는 말발 폭죽',
+      tagline:'조언이라고 말하지만 착지점은 자존감입니다. 말은 빠르고 책임은 느립니다.',
+      signal:'질문 하나 했는데 TED 강연이 시작됩니다.',
+      counter:'핵심 질문 하나만 반복하면 말풍선이 줄어듭니다.',
+      variant:'bolt'
+    },
+    'dependency-drain': {
+      alias:'읽씹 금지령 빌런',
+      badge:'답장 3분 지연 시 서운함 자동 발사',
+      tagline:'읽씹을 용서하지 않는 마음의 알림센터. 돌봄 버튼을 누르면 배터리가 먼저 닳습니다.',
+      signal:'잠깐 쉬었을 뿐인데 부재중 감정 청구서가 도착합니다.',
+      counter:'응답 가능한 시간과 불가능한 시간을 선명하게 나누세요.',
+      variant:'chat'
+    },
+    'competition-theft': {
+      alias:'성과 스틸 빌런',
+      badge:'우리 아이디어가 갑자기 내 아이디어',
+      tagline:'칭찬은 같이 받고 출처는 혼자 지우는 타입. 친근한 미소 뒤에 캡처 본능이 숨어 있습니다.',
+      signal:'회의 후 내 문장이 상대 발표 자료에 입주합니다.',
+      counter:'역할·출처·결과물을 시작부터 문서로 고정하세요.',
+      variant:'mirror'
+    },
+    'romance-chaos': {
+      alias:'썸 잠수 빌런',
+      badge:'설렘은 풀충전, 약속은 저전력 모드',
+      tagline:'분위기는 영화 예고편인데 본편 개봉일이 없습니다. 달달함과 읽씹이 교대로 뜹니다.',
+      signal:'가까워졌다가 사라지는 속도가 달의 위상보다 빠릅니다.',
+      counter:'감정보다 약속 이행률을 보며 속도를 낮추세요.',
+      variant:'moon'
+    },
+    'authority-control': {
+      alias:'갑질 프레임 빌런',
+      badge:'규칙 책갈피가 늘 자기 쪽',
+      tagline:'원칙을 말하지만 적용 기준은 회전문입니다. 말투가 커질수록 문서가 필요합니다.',
+      signal:'요청은 개인적이고 책임은 공식처럼 포장됩니다.',
+      counter:'공식 채널, 권한 범위, 기한을 문장으로 잠그세요.',
+      variant:'crown'
+    }
+  };
+  return map[id] || {
+    alias:'관계 경보 빌런',
+    badge:'레이더에 살짝 걸린 수상한 그림자',
+    tagline:'아직 확정은 아니지만 반복되면 피곤해지는 관계 신호가 보입니다.',
+    signal:'편안함보다 찜찜함이 오래 남습니다.',
+    counter:'기록, 거리, 기준을 차분히 세우세요.',
+    variant:'shadow'
+  };
+}
+
+function _sajuVillainSilhouetteSvg(profile) {
+  var variant = profile.silhouetteVariant || 'shadow';
+  var mark = {
+    ghost:'<path d="M117 31c12 0 21 8 21 19 0 14-15 18-15 29 0 4 2 7 5 10-18-2-30-15-30-31 0-15 8-27 19-27z" fill="#7dd3fc" opacity=".28"/><circle cx="119" cy="48" r="3" fill="#fef3c7"/><circle cx="130" cy="48" r="3" fill="#fef3c7"/><path d="M114 64c5 4 12 4 17 0" stroke="#fef3c7" stroke-width="3" stroke-linecap="round" fill="none"/>',
+    spiral:'<path d="M121 31c19 4 25 27 9 39-13 10-30 0-25-14 4-11 19-10 20-2 .6 5-5 8-9 5" stroke="#c084fc" stroke-width="6" stroke-linecap="round" fill="none"/><circle cx="122" cy="53" r="34" fill="#a855f7" opacity=".1"/>',
+    bolt:'<path d="M116 24 96 67h17l-9 34 35-51h-18l14-26z" fill="#facc15"/><path d="M115 24 96 67h17" stroke="#fff7ed" stroke-width="3" stroke-linejoin="round" fill="none" opacity=".72"/>',
+    chat:'<rect x="98" y="28" width="47" height="34" rx="12" fill="#f472b6" opacity=".72"/><path d="m113 61-10 13 20-10" fill="#f472b6" opacity=".72"/><path d="M110 46h24M110 55h15" stroke="#fff7ed" stroke-width="4" stroke-linecap="round"/>',
+    mirror:'<path d="M114 23h23l9 12v43l-16 13-16-13z" fill="#38bdf8" opacity=".3"/><path d="M119 31h15l6 8v32l-10 8-10-8z" fill="none" stroke="#bae6fd" stroke-width="4"/><path d="M126 39 118 63M138 45l-11 31" stroke="#fff7ed" stroke-width="3" stroke-linecap="round" opacity=".72"/>',
+    moon:'<path d="M133 28c-13 5-20 18-18 31 2 15 14 26 29 27-7 7-17 11-28 9-21-3-35-23-32-43s24-33 44-25c2 .3 4 .8 5 1z" fill="#fde68a"/><circle cx="130" cy="56" r="3" fill="#7c2d12"/>',
+    crown:'<path d="M101 69 108 31l18 25 18-25 7 38z" fill="#f59e0b"/><path d="M103 75h46" stroke="#fef3c7" stroke-width="6" stroke-linecap="round"/><circle cx="108" cy="31" r="5" fill="#fef3c7"/><circle cx="126" cy="53" r="5" fill="#fef3c7"/><circle cx="144" cy="31" r="5" fill="#fef3c7"/>',
+    shadow:'<circle cx="124" cy="55" r="27" fill="#c084fc" opacity=".3"/>'
+  }[variant] || '';
+
+  return '<svg class="villain-silhouette-svg villain-silhouette-svg--' + _sajuVillainEscapeHtml(variant) + '" viewBox="0 0 160 160" role="img" aria-label="' + _sajuVillainEscapeHtml(profile.comicAlias || profile.koreanName) + ' 실루엣">'
+    + '<circle cx="78" cy="80" r="68" fill="#2e1065" opacity=".78"/>'
+    + '<circle cx="78" cy="80" r="54" fill="none" stroke="#facc15" stroke-width="2" stroke-dasharray="3 8" opacity=".45"/>'
+    + '<path d="M26 118c12-30 31-45 54-45s42 15 54 45c5 12-2 24-16 24H42c-14 0-21-12-16-24z" fill="#13091f"/>'
+    + '<circle cx="80" cy="59" r="30" fill="#15091f"/>'
+    + '<path d="M49 57c3-24 22-38 43-32 17 5 27 19 25 37-11-11-21-14-32-11-13 4-23 2-36 6z" fill="#050713"/>'
+    + '<path d="M61 56c-8 12-9 23-2 33-10-7-17-16-16-29z" fill="#050713"/>'
+    + '<ellipse cx="69" cy="63" rx="4" ry="3" fill="#fef3c7"/>'
+    + '<ellipse cx="93" cy="63" rx="4" ry="3" fill="#fef3c7"/>'
+    + '<path d="M70 83c7 5 15 5 22 0" stroke="#f472b6" stroke-width="4" stroke-linecap="round" fill="none" opacity=".62"/>'
+    + '<path d="M48 121c15 6 49 7 68 0" stroke="#a855f7" stroke-width="7" stroke-linecap="round" opacity=".42"/>'
+    + '<circle cx="33" cy="36" r="3" fill="#fef3c7"/><circle cx="44" cy="25" r="2" fill="#f472b6"/><circle cx="56" cy="36" r="2" fill="#facc15"/><circle cx="137" cy="112" r="3" fill="#fef3c7"/>'
+    + mark
+    + '</svg>';
+}
 
 function _sajuVillainEscapeHtml(value) {
   return String(value == null ? '' : value)
@@ -24356,7 +24495,7 @@ function _sajuVillainBuildSummary(profiles, ctx) {
       : '강한 위험 십성 없음');
 
   return {
-    topName: top ? top.koreanName + ' / ' + top.codeName : '관계 방어 점검',
+    topName: top ? (top.comicAlias || top.koreanName) + ' / ' + top.codeName : '관계 방어 점검',
     topRisk: top ? top.riskScore : 0,
     topRank: top ? top.rank : '관찰',
     weakAxis: weakAxis,
@@ -24375,70 +24514,80 @@ function _sajuVillainSummaryHtml(summary, profiles) {
     return '<span class="villain-summary-badge ' + _sajuVillainRankClass(rank) + '">' + _sajuVillainRankLabel(rank) + ' ' + rankCounts[rank] + '</span>';
   }).join('');
 
-  return '<div class="villain-case-header bg-slate-950 text-red-100 border-red-400/30" data-villain-ui-marker="villain-radar-dossier-v20260608">'
-    + '<div class="villain-case-eyebrow">RELATION RISK DOSSIER</div>'
+  return '<div class="villain-case-header bg-slate-950 text-red-100 border-red-400/30" data-villain-ui-marker="villain-silhouette-dossier-v20260612">'
+    + '<div class="villain-case-eyebrow">SAJU VILLAIN POKÉDEX</div>'
     + '<div class="villain-case-title-row">'
-    + '  <div><h3>요주의 빌런 블랙리스트</h3><p>반복되는 관계 피로 신호를 짧게 확인하고, 대응 기준을 세웁니다.</p></div>'
+    + '  <div><h3>사주로 보는 빌런리스트</h3><p>내 주변 인간관계의 웃픈 빌런 기운을 사주 신호로 포착하고, 퇴치 주문까지 챙깁니다.</p></div>'
     + '  <div class="villain-risk-badges">' + badges + '</div>'
     + '</div>'
     + '<div class="villain-summary-grid">'
-    + '  <div class="villain-summary-card is-top"><span>최우선 감지</span><strong>' + _sajuVillainEscapeHtml(summary.topName) + '</strong><em>' + _sajuVillainRankLabel(summary.topRank) + ' · 위험도 ' + summary.topRisk + '</em></div>'
-    + '  <div class="villain-summary-card"><span>취약 축</span><strong>' + _sajuVillainEscapeHtml(summary.weakAxis) + '</strong><em>' + _sajuVillainEscapeHtml(summary.activeTenGods) + '</em></div>'
-    + '  <div class="villain-summary-card is-keyword"><span>방어 키워드</span><strong>' + _sajuVillainEscapeHtml(summary.defenseKeyword) + '</strong><em>' + _sajuVillainEscapeHtml(summary.riskAreas) + '</em></div>'
+    + '  <div class="villain-summary-card is-top"><span>오늘의 최종 보스</span><strong>' + _sajuVillainEscapeHtml(summary.topName) + '</strong><em>' + _sajuVillainRankLabel(summary.topRank) + ' · 빌런력 ' + summary.topRisk + '</em></div>'
+    + '  <div class="villain-summary-card"><span>내 사주의 취약 버튼</span><strong>' + _sajuVillainEscapeHtml(summary.weakAxis) + '</strong><em>' + _sajuVillainEscapeHtml(summary.activeTenGods) + '</em></div>'
+    + '  <div class="villain-summary-card is-keyword"><span>생존 주문</span><strong>' + _sajuVillainEscapeHtml(summary.defenseKeyword) + '</strong><em>' + _sajuVillainEscapeHtml(summary.riskAreas) + '</em></div>'
     + '</div>';
 }
 
 function _sajuVillainEmergencyHtml(profile) {
   return '<div class="villain-emergency-panel">'
-    + '<div class="villain-section-title">긴급 차단 멘트 3개</div>'
+    + '<div class="villain-section-title">긴급 퇴치 멘트 3개</div>'
     + '<div class="villain-emergency-lines">'
     + profile.emergencyLines.map(function(line) { return '<p>"' + _sajuVillainEscapeHtml(line) + '"</p>'; }).join('')
     + '</div>'
-    + '<button type="button" class="villain-copy-btn" data-villain-copy="1" data-copy-text="' + _sajuVillainEscapeHtml(profile.emergencyLines.join('\n')) + '">긴급 멘트 복사</button>'
+    + '<button type="button" class="villain-copy-btn" data-villain-copy="1" data-copy-text="' + _sajuVillainEscapeHtml(profile.emergencyLines.join('\n')) + '">퇴치 멘트 복사</button>'
     + '</div>';
 }
 
 function _sajuVillainEnsureDossierStyles() {
-  if (typeof document === 'undefined' || document.getElementById('villainDossierStyleV20260608')) return;
+  if (typeof document === 'undefined' || document.getElementById('villainDossierStyleV20260612')) return;
   var style = document.createElement('style');
-  style.id = 'villainDossierStyleV20260608';
+  style.id = 'villainDossierStyleV20260612';
   style.textContent = [
-    '.villain-blacklist-v2{gap:16px;}',
-    '.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"]{border-color:rgba(248,113,113,.28);border-radius:8px;padding:18px;background:linear-gradient(135deg,rgba(15,23,42,.98),rgba(39,39,42,.94) 58%,rgba(69,10,10,.82)),radial-gradient(circle at 100% 0,rgba(251,191,36,.14),transparent 38%);box-shadow:0 18px 44px rgba(2,6,23,.42),inset 0 1px 0 rgba(255,255,255,.08);}',
-    '.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"]::before{background:linear-gradient(90deg,transparent,rgba(248,113,113,.12),transparent);opacity:.22;}',
-    '.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"] .villain-case-eyebrow,.villain-summary-card span,.villain-quick-grid span{color:rgba(253,230,138,.82);}',
-    '.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"] .villain-case-title-row h3{font-size:1.42rem;line-height:1.24;}',
-    '.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"] .villain-summary-grid{grid-template-columns:minmax(0,1.35fr) repeat(2,minmax(0,1fr));margin-top:16px;}',
+    '.villain-blacklist-v2{gap:16px;color:#fdf2f8;}',
+    '.villain-case-header[data-villain-ui-marker="villain-silhouette-dossier-v20260612"]{border-color:rgba(250,204,21,.34);border-radius:8px;padding:18px;background:radial-gradient(circle at 18% 6%,rgba(250,204,21,.24),transparent 34%),radial-gradient(circle at 88% 12%,rgba(244,114,182,.2),transparent 28%),linear-gradient(145deg,rgba(18,8,42,.98),rgba(58,15,116,.92) 56%,rgba(111,18,91,.82));box-shadow:0 20px 48px rgba(88,28,135,.42),inset 0 1px 0 rgba(255,255,255,.12);}',
+    '.villain-case-header[data-villain-ui-marker="villain-silhouette-dossier-v20260612"]::before{background:linear-gradient(90deg,rgba(250,204,21,.16) 1px,transparent 1px),linear-gradient(180deg,rgba(244,114,182,.1) 1px,transparent 1px);background-size:34px 34px;opacity:.32;}',
+    '.villain-case-header[data-villain-ui-marker="villain-silhouette-dossier-v20260612"]::after{content:"";position:absolute;right:14px;top:12px;width:86px;height:86px;border:1px solid rgba(250,204,21,.22);border-radius:999px;background:conic-gradient(from 18deg,rgba(250,204,21,.32),transparent 18%,rgba(244,114,182,.2),transparent 56%,rgba(125,211,252,.18),transparent);pointer-events:none;}',
+    '.villain-case-header[data-villain-ui-marker="villain-silhouette-dossier-v20260612"] .villain-case-eyebrow,.villain-summary-card span,.villain-quick-grid span{color:#fde68a;}',
+    '.villain-case-header[data-villain-ui-marker="villain-silhouette-dossier-v20260612"] .villain-case-title-row h3{font-size:1.48rem;line-height:1.18;color:#fff7ed;text-shadow:0 2px 18px rgba(244,114,182,.38);}',
+    '.villain-case-header[data-villain-ui-marker="villain-silhouette-dossier-v20260612"] .villain-case-title-row p{max-width:620px;color:rgba(255,228,230,.84);}',
+    '.villain-case-header[data-villain-ui-marker="villain-silhouette-dossier-v20260612"] .villain-summary-grid{grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr));margin-top:16px;}',
     '.villain-summary-card,.villain-profile-card,.villain-safety-note,.villain-v2-section,.villain-profile-card .villain-checklist-wrap,.villain-emergency-panel,.villain-profile-card .villain-quotes,.villain-zone-card,.villain-profile-card .villain-quote{border-radius:8px;}',
-    '.villain-summary-card{padding:12px;background:rgba(2,6,23,.38);}',
-    '.villain-summary-card strong{font-size:.95rem;line-height:1.34;}',
-    '.villain-summary-card em{color:rgba(186,230,253,.84);font-size:.78rem;line-height:1.35;}',
-    '.villain-card-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:14px;}',
-    '.villain-profile-card{padding:16px;background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(39,39,42,.9) 62%,rgba(69,10,10,.5));box-shadow:0 16px 42px rgba(2,6,23,.38),inset 0 1px 0 rgba(255,255,255,.07);}',
-    '.villain-profile-card.is-rank-s{box-shadow:0 18px 46px rgba(127,29,29,.34),inset 0 1px 0 rgba(255,255,255,.08);}',
-    '.villain-radar-mark{flex-basis:44px;width:44px;height:44px;background:rgba(127,29,29,.36);}',
-    '.villain-radar-mark::after{animation:none;inset:auto 9px auto 9px;top:50%;height:1px;transform:none;background:rgba(253,230,138,.5);}',
-    '.villain-radar-mark span{inset:0;display:flex;align-items:center;justify-content:center;color:#fee2e2;font-size:.82rem;font-weight:900;line-height:1;background:transparent;box-shadow:none;}',
-    '.villain-risk-score{color:#fef3c7;}',
+    '.villain-summary-card{padding:12px;border-color:rgba(250,204,21,.22);background:rgba(24,10,51,.52);}',
+    '.villain-summary-card strong{font-size:.96rem;line-height:1.34;color:#fff7ed;}',
+    '.villain-summary-card em{color:#f9a8d4;font-size:.78rem;line-height:1.35;}',
+    '.villain-card-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:14px;}',
+    '.villain-profile-card{padding:16px;background:radial-gradient(circle at 22% 0,rgba(250,204,21,.12),transparent 36%),linear-gradient(145deg,rgba(24,10,51,.97),rgba(47,17,95,.92) 58%,rgba(88,28,135,.68));box-shadow:0 18px 46px rgba(30,0,70,.38),inset 0 1px 0 rgba(255,255,255,.1);}',
+    '.villain-profile-card::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 22%,transparent 72%,rgba(244,114,182,.11));pointer-events:none;}',
+    '.villain-profile-card>*{position:relative;z-index:1;}',
+    '.villain-profile-card.is-rank-s{box-shadow:0 18px 52px rgba(190,24,93,.34),inset 0 1px 0 rgba(255,255,255,.12);}',
+    '.villain-profile-top{align-items:stretch;gap:12px;}',
+    '.villain-silhouette-card{position:relative;flex:0 0 112px;min-height:142px;border:1px solid rgba(250,204,21,.28);border-radius:8px;padding:8px;background:linear-gradient(180deg,rgba(47,17,95,.88),rgba(9,9,22,.92));box-shadow:inset 0 0 24px rgba(250,204,21,.08),0 10px 26px rgba(0,0,0,.26);overflow:hidden;}',
+    '.villain-silhouette-card::before{content:"";position:absolute;inset:8px;border:1px dashed rgba(250,204,21,.22);border-radius:999px;opacity:.68;}',
+    '.villain-silhouette-svg{position:relative;z-index:1;display:block;width:100%;height:118px;filter:drop-shadow(0 12px 18px rgba(0,0,0,.44));}',
+    '.villain-silhouette-rank{position:absolute;z-index:2;left:8px;top:8px;min-width:28px;height:24px;border-radius:999px;border:1px solid rgba(250,204,21,.46);background:rgba(15,23,42,.72);color:#fde68a;font-size:.72rem;font-weight:900;display:inline-flex;align-items:center;justify-content:center;}',
+    '.villain-comic-badge{display:inline-flex;width:max-content;max-width:100%;margin:0 0 7px;border:1px solid rgba(244,114,182,.38);border-radius:999px;padding:5px 8px;background:rgba(157,23,77,.28);color:#fce7f3;font-size:.72rem;font-weight:900;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere;}',
+    '.villain-risk-score{color:#fde68a;}',
     '.villain-progress{height:7px;margin:9px 0 11px;}',
-    '.villain-progress span{background:linear-gradient(90deg,#f43f5e,#f59e0b);box-shadow:0 0 14px rgba(248,113,113,.5);}',
-    '.villain-one-line{margin-bottom:0;line-height:1.5;}',
+    '.villain-progress span{background:linear-gradient(90deg,#f472b6,#facc15);box-shadow:0 0 16px rgba(250,204,21,.48);}',
+    '.villain-code-name{color:#c4b5fd;font-size:.72rem;}',
+    '.villain-profile-card h4{color:#fff7ed;font-size:1.18rem;line-height:1.25;text-shadow:0 2px 14px rgba(244,114,182,.24);}',
+    '.villain-one-line{margin:7px 0 0;color:rgba(255,228,230,.88);line-height:1.5;}',
     '.villain-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:14px 0 10px;}',
-    '.villain-quick-grid div{min-width:0;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;background:rgba(2,6,23,.34);}',
-    '.villain-quick-grid span{display:block;margin-bottom:5px;font-size:.72rem;font-weight:900;}',
-    '.villain-quick-grid strong{display:block;color:rgba(226,232,240,.9);font-size:.84rem;line-height:1.45;word-break:keep-all;overflow-wrap:anywhere;}',
+    '.villain-quick-grid div{min-width:0;border:1px solid rgba(250,204,21,.18);border-radius:8px;padding:10px;background:rgba(15,23,42,.34);}',
+    '.villain-quick-grid strong{display:block;color:rgba(248,250,252,.92);font-size:.84rem;line-height:1.45;word-break:keep-all;overflow-wrap:anywhere;}',
     '.villain-accordion{margin-top:12px;}',
     '.villain-accordion summary,.villain-copy-btn,.villain-profile-card .villain-submit-btn,.villain-profile-card .villain-check-item,.villain-emergency-lines p{border-radius:8px;}',
-    '.villain-accordion summary b,.villain-profile-card .villain-section-title{color:#fef3c7;}',
+    '.villain-accordion summary{border-color:rgba(250,204,21,.28);background:rgba(88,28,135,.3);}',
+    '.villain-accordion summary b,.villain-profile-card .villain-section-title{color:#fde68a;}',
     '.villain-v2-section,.villain-profile-card .villain-checklist-wrap,.villain-emergency-panel,.villain-profile-card .villain-quotes{padding:12px;}',
     '.villain-v2-section p,.villain-zone-card p,.villain-v2-list li{font-size:.86rem;line-height:1.5;}',
+    '.villain-v2-section.is-comic{border-color:rgba(244,114,182,.32);background:rgba(131,24,67,.18);}',
     '.villain-v2-section.is-defense{border-color:rgba(45,212,191,.28);background:rgba(19,78,74,.16);}',
     '.villain-zone-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;}',
     '.villain-zone-card{padding:10px;}',
-    '.villain-copy-btn,.villain-profile-card .villain-submit-btn{background:linear-gradient(135deg,rgba(225,29,72,.92),rgba(180,83,9,.86));}',
+    '.villain-copy-btn,.villain-profile-card .villain-submit-btn{background:linear-gradient(135deg,rgba(219,39,119,.94),rgba(126,34,206,.9) 58%,rgba(234,179,8,.88));}',
     '.villain-copy-btn.is-copied{border-color:rgba(45,212,191,.55);background:linear-gradient(135deg,rgba(13,148,136,.95),rgba(20,83,45,.84));}',
-    '@media (max-width:980px){.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"] .villain-summary-grid,.villain-zone-grid{grid-template-columns:1fr;}}',
-    '@media (max-width:720px){.villain-case-header[data-villain-ui-marker="villain-radar-dossier-v20260608"],.villain-profile-card{border-radius:8px;padding:14px;}.villain-quick-grid{grid-template-columns:1fr;}.villain-radar-mark{flex-basis:40px;width:40px;height:40px;}}'
+    '@media (max-width:980px){.villain-case-header[data-villain-ui-marker="villain-silhouette-dossier-v20260612"] .villain-summary-grid,.villain-zone-grid{grid-template-columns:1fr;}}',
+    '@media (max-width:720px){.villain-case-header[data-villain-ui-marker="villain-silhouette-dossier-v20260612"],.villain-profile-card{border-radius:8px;padding:14px;}.villain-case-title-row{flex-direction:column;}.villain-profile-top{flex-direction:column;}.villain-silhouette-card{flex-basis:auto;width:100%;min-height:126px;}.villain-silhouette-svg{height:108px;}.villain-quick-grid{grid-template-columns:1fr;}.villain-comic-badge{width:100%;justify-content:center;text-align:center;}}'
   ].join('\n');
   document.head.appendChild(style);
 }
@@ -24455,27 +24604,34 @@ function _sajuVillainRenderProfile(profile, idx) {
   var progressWidth = _sajuVillainClamp(profile.riskScore, 0, 100);
   var firstSignal = profile.redFlags && profile.redFlags.length ? _sajuVillainShortText(profile.redFlags[0], 76) : _sajuVillainShortText(profile.sajuReasonSummary, 76);
   var firstDefense = profile.defenseGuide && profile.defenseGuide.length ? _sajuVillainShortText(profile.defenseGuide[0], 76) : profile.defenseKeyword;
+  var displaySignal = profile.comicSignal || firstSignal;
+  var displayDefense = profile.comicCounter || firstDefense;
 
   return ''
-    + '<article class="villain-profile-card bg-white/5 backdrop-blur-xl rounded-3xl shadow-[0_0_40px_rgba(239,68,68,0.18)] ' + rankClass + '" data-villain-rank="' + _sajuVillainEscapeHtml(profile.rank) + '">'
+    + '<article class="villain-profile-card bg-white/5 backdrop-blur-xl rounded-3xl shadow-[0_0_40px_rgba(239,68,68,0.18)] ' + rankClass + '" data-villain-rank="' + _sajuVillainEscapeHtml(profile.rank) + '" data-villain-type="' + _sajuVillainEscapeHtml(profile.silhouetteVariant || 'shadow') + '">'
     + '  <div class="villain-profile-top">'
-    + '    <div class="villain-radar-mark"><span>' + (idx + 1) + '</span></div>'
+    + '    <div class="villain-silhouette-card">'
+    + '      <span class="villain-silhouette-rank">#' + (idx + 1) + '</span>'
+    +        _sajuVillainSilhouetteSvg(profile)
+    + '    </div>'
     + '    <div class="villain-profile-main">'
-    + '      <div class="villain-grade-row"><span class="villain-rank-badge">' + _sajuVillainRankLabel(profile.rank) + '</span><span class="villain-risk-score">위험도 ' + progressWidth + '/100</span></div>'
+    + '      <div class="villain-grade-row"><span class="villain-rank-badge">' + _sajuVillainRankLabel(profile.rank) + '</span><span class="villain-risk-score">빌런력 ' + progressWidth + '/100</span></div>'
     + '      <div class="villain-progress"><span style="width:' + progressWidth + '%"></span></div>'
-    + '      <p class="villain-code-name">코드네임 ' + _sajuVillainEscapeHtml(profile.codeName) + '</p>'
-    + '      <h4>' + _sajuVillainEscapeHtml(profile.koreanName) + '</h4>'
-    + '      <p class="villain-one-line">' + _sajuVillainEscapeHtml(_sajuVillainShortText(profile.subtitle, 82)) + '</p>'
+    + '      <p class="villain-comic-badge">' + _sajuVillainEscapeHtml(profile.comicBadge) + '</p>'
+    + '      <h4>' + _sajuVillainEscapeHtml(profile.comicAlias || profile.koreanName) + '</h4>'
+    + '      <p class="villain-code-name">원형 ' + _sajuVillainEscapeHtml(profile.koreanName) + ' · ' + _sajuVillainEscapeHtml(profile.codeName) + '</p>'
+    + '      <p class="villain-one-line">' + _sajuVillainEscapeHtml(_sajuVillainShortText(profile.comicTagline || profile.subtitle, 96)) + '</p>'
     + '    </div>'
     + '  </div>'
     + '  <div class="villain-quick-grid">'
-    + '    <div><span>감지 신호</span><strong>' + _sajuVillainEscapeHtml(firstSignal) + '</strong></div>'
-    + '    <div><span>대응 기준</span><strong>' + _sajuVillainEscapeHtml(firstDefense) + '</strong></div>'
+    + '    <div><span>빌런 징후</span><strong>' + _sajuVillainEscapeHtml(displaySignal) + '</strong></div>'
+    + '    <div><span>퇴치 주문</span><strong>' + _sajuVillainEscapeHtml(displayDefense) + '</strong></div>'
     + '  </div>'
     + '  ' + _sajuVillainChipHtml(profile.activatedBy.slice(0, 3), 'villain-signal-chips')
     + '  <details class="villain-accordion">'
-    + '    <summary><span>대응 가이드 보기</span><b>상세 열기</b></summary>'
+    + '    <summary><span>빌런 도감 펼치기</span><b>상세 열기</b></summary>'
     + '    <div class="villain-detail-grid">'
+    + '      <div class="villain-v2-section is-comic"><div class="villain-section-title">웃픈 관전 포인트</div><p>' + _sajuVillainEscapeHtml(_sajuVillainShortText(profile.comicTagline || profile.subtitle, 118)) + '</p></div>'
     + '      <div class="villain-v2-section is-reason"><div class="villain-section-title">사주 감지 이유</div><p>' + _sajuVillainEscapeHtml(_sajuVillainShortText(profile.sajuReasonSummary, 118)) + '</p></div>'
     + '      <div class="villain-v2-section"><div class="villain-section-title">접근 패턴</div><p>' + _sajuVillainEscapeHtml(_sajuVillainShortText(profile.approachPattern, 118)) + '</p></div>'
     + '      <div class="villain-v2-section is-red"><div class="villain-section-title">핵심 레드 플래그</div>' + _sajuVillainListHtml(profile.redFlags, 'villain-red-flags', 3) + '</div>'
@@ -24535,7 +24691,7 @@ function renderVillain(p, power) {
     + '<div class="villain-card-grid">'
     + profiles.map(function(profile, idx) { return _sajuVillainRenderProfile(profile, idx); }).join('')
     + '</div>'
-    + '<p class="villain-safety-note">실제 사람을 단정하기보다 반복 행동, 기록, 내 컨디션을 함께 보며 관계 경계선을 점검하세요.</p>'
+    + '<p class="villain-safety-note">빌런명은 웃자고 붙인 별명입니다. 실제 사람을 단정하기보다 반복 행동, 기록, 내 컨디션을 함께 보며 관계 경계선을 점검하세요.</p>'
     + '</section>';
 
   resultArea.querySelectorAll('[data-villain-copy]').forEach(function(copyBtn) {

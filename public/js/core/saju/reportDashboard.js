@@ -37,11 +37,12 @@ var DESTINY_MEETING_PLACE_FEATURE = {
   tags: ['인연운', '오행여행', '용신장소', '로맨스시기', '운명의아이템'],
   badge: 'NEW',
   enabled: true,
-  requiresLogin: true,
-  requiresProfile: true,
+  requiresLogin: false,
+  requiresProfile: false,
   cta: '💞 내 인연의 장소 열기',
   lockKey: 'destiny_meeting_place',
   coinCost: 100,
+  mainLock: false,
   thumb: '사주로보는 인연의 장소.webp',
   action: 'openDestinyMeetingPlaceRoute',
   target: 'destinyMeetingPlaceEntryCard'
@@ -83,7 +84,7 @@ var REPORT_CARDS = [
   { id:'4CUT',       thumb:'사주 네컷.webp', label:'사주네컷 : 운명 필터',   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:'📸 사주네컷 열기',            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
   { id:'secretHouse', thumb:'시크릿 하우스.webp', label:'시크릿 하우스 : 연애 시뮬', desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:'🏠 시크릿 하우스 입장', accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
   { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group },
-  { id: DESTINY_MEETING_PLACE_FEATURE.id, thumb: DESTINY_MEETING_PLACE_FEATURE.thumb, label: DESTINY_MEETING_PLACE_FEATURE.title, shortTitle: DESTINY_MEETING_PLACE_FEATURE.shortTitle, desc: DESTINY_MEETING_PLACE_FEATURE.description, note:'이 페이지 단독으로 생년월일 입력부터 분석까지 실행하며, 인연 장소 TOP5·국가/도시·만남 타이밍·아이템·실천 플랜을 한 번에 제시합니다.', cta: DESTINY_MEETING_PLACE_FEATURE.cta, accent:'#c084fc', glow:'rgba(192,132,252,.45)', target: DESTINY_MEETING_PLACE_FEATURE.target, action: DESTINY_MEETING_PLACE_FEATURE.action, lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey, coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost, badge: DESTINY_MEETING_PLACE_FEATURE.badge, tags: DESTINY_MEETING_PLACE_FEATURE.tags, group: DESTINY_MEETING_PLACE_FEATURE.group },
+  { id: DESTINY_MEETING_PLACE_FEATURE.id, thumb: DESTINY_MEETING_PLACE_FEATURE.thumb, label: DESTINY_MEETING_PLACE_FEATURE.title, shortTitle: DESTINY_MEETING_PLACE_FEATURE.shortTitle, desc: DESTINY_MEETING_PLACE_FEATURE.description, note:'이 페이지 단독으로 생년월일 입력부터 분석까지 실행하며, 인연 장소 TOP5·국가/도시·만남 타이밍·아이템·실천 플랜을 한 번에 제시합니다.', cta: DESTINY_MEETING_PLACE_FEATURE.cta, accent:'#c084fc', glow:'rgba(192,132,252,.45)', target: DESTINY_MEETING_PLACE_FEATURE.target, action: DESTINY_MEETING_PLACE_FEATURE.action, lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey, coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost, mainLock: DESTINY_MEETING_PLACE_FEATURE.mainLock, badge: DESTINY_MEETING_PLACE_FEATURE.badge, tags: DESTINY_MEETING_PLACE_FEATURE.tags, group: DESTINY_MEETING_PLACE_FEATURE.group },
   { id: LOVE_CODE_FEATURE.id, thumb: LOVE_CODE_FEATURE.thumb, label: LOVE_CODE_FEATURE.title, shortTitle: LOVE_CODE_FEATURE.shortTitle, desc: LOVE_CODE_FEATURE.description, note:'상대의 생년월일시를 입력하면 사주 오행·일간 흐름으로 가장 닮은 러브 코드 캐릭터를 찾고, 선택에 따라 관계 온도가 달라지는 가상 데이트를 엽니다.', cta: LOVE_CODE_FEATURE.cta, accent:'#f472b6', glow:'rgba(244,114,182,.48)', target: LOVE_CODE_FEATURE.target, action: LOVE_CODE_FEATURE.action, lockKey: LOVE_CODE_FEATURE.lockKey, coinCost: LOVE_CODE_FEATURE.coinCost, badge: LOVE_CODE_FEATURE.badge, tags: LOVE_CODE_FEATURE.tags, group: LOVE_CODE_FEATURE.group }
 ];
 
@@ -147,6 +148,7 @@ var REPORT_CARDS = [
       action: DESTINY_MEETING_PLACE_FEATURE.action,
       lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey,
       coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost,
+      mainLock: DESTINY_MEETING_PLACE_FEATURE.mainLock,
       badge: DESTINY_MEETING_PLACE_FEATURE.badge,
       tags: DESTINY_MEETING_PLACE_FEATURE.tags,
       group: DESTINY_MEETING_PLACE_FEATURE.group
@@ -1046,7 +1048,8 @@ function renderReportDashboard() {
         badge: c.badge || '',
         tags: Array.isArray(c.tags) ? c.tags.slice(0, 5) : [],
         lockKey: c.lockKey || (c.target ? ('rpt_' + c.target) : ''),
-        coinCost: Number(c.coinCost || 0)
+        coinCost: Number(c.coinCost || 0),
+        mainLock: c.mainLock !== false
       };
       blocks.push(seenTargets[c.target]);
     }
@@ -1065,8 +1068,8 @@ function renderReportDashboard() {
     b.images.forEach(function(img) {
       var rawThumb = String(img.thumb || (img.id + '.webp'));
       var thumbSrc = '/fuctionassets/' + encodeURIComponent(rawThumb).replace(/%2F/g, '/');
-      var tilePriceText = (b.coinCost > 0) ? ('🔒 ' + b.coinCost + '코인 · 잠금 콘텐츠') : '무료';
-      var tilePriceClass = (b.coinCost > 0) ? 'rpt-v2-price-badge' : 'rpt-v2-price-badge is-free';
+      var tilePriceText = (b.coinCost > 0) ? (b.mainLock === false ? ('1회 ' + b.coinCost + '코인') : ('🔒 ' + b.coinCost + '코인 · 잠금 콘텐츠')) : '무료';
+      var tilePriceClass = (b.coinCost > 0) ? (b.mainLock === false ? 'rpt-v2-price-badge is-per-use' : 'rpt-v2-price-badge') : 'rpt-v2-price-badge is-free';
       gridHtml += '<div class="rpt-v2-img-wrap">';
       gridHtml += '<img class="rpt-v2-img" src="' + thumbSrc + '" alt="' + img.label + '" loading="lazy" '
         + 'decoding="async" onerror="handleReportThumbError(this)">';
@@ -1089,7 +1092,7 @@ function renderReportDashboard() {
     }
     gridHtml += '<p class="rpt-v2-note">' + (b.note || '지금 내 흐름과 맞는 인사이트를 펼쳐 확인해보세요.') + '</p>';
     var lockKey = b.lockKey || ('rpt_' + b.target);
-    var shouldAttachTileLock = b.coinCost > 0;
+    var shouldAttachTileLock = b.coinCost > 0 && b.mainLock !== false;
     var coinAttrs = shouldAttachTileLock ? (' data-tile-lock-key="' + lockKey + '" data-tile-lock-cost="' + b.coinCost + '"') : '';
     if (_rptIsDirectAction(b.action)) {
       gridHtml += '<button class="rpt-v2-toggle-btn" type="button" data-action="' + b.action + '"' + coinAttrs + ' aria-label="' + b.cta + '">';

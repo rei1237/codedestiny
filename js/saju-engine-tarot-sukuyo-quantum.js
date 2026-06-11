@@ -11624,6 +11624,57 @@ function renderQuantumStrategy(p, natal, bazi){
 
   var facts=buildFacts();
   var actions=buildActions();
+  function qEsc(value){
+    return String(value==null?'':value).replace(/[&<>"']/g,function(ch){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+    });
+  }
+  function qArr(list){
+    return Array.isArray(list)?list.filter(Boolean):[];
+  }
+  function qUnique(list){
+    var out=[], seen={};
+    qArr(list).forEach(function(item){
+      if(!item||seen[item])return;
+      seen[item]=1; out.push(item);
+    });
+    return out;
+  }
+  function qElLabel(el){
+    return (EL_E[el]||'')+' '+(EL_K[el]||el||'미확인');
+  }
+  function qTypeLabel(type){
+    return {good:'용신권',bad:'기신권',neutral:'중립권'}[type]||'중립권';
+  }
+  function qTypeClass(type){
+    return {good:'qm-chip-good',bad:'qm-chip-bad',neutral:'qm-chip-neutral'}[type]||'qm-chip-neutral';
+  }
+  function qElementChip(el,type){
+    var t=type||elType(el);
+    return '<span class="qm-el-chip '+qTypeClass(t)+'">'+qEsc(qElLabel(el))+' · '+qEsc(qTypeLabel(t))+'</span>';
+  }
+  function qSourceText(el,type){
+    var sources=[];
+    if(jg&&jg.isJong){
+      if(el===jg.dominant)sources.push('종격 주도 오행');
+      if(el===jg.parEl)sources.push('종격 보조 오행');
+      if(el===whoControls(jg.dominant))sources.push('종격 역행 기운');
+    }
+    if(pw){
+      if(qArr(pw.yongshin).indexOf(el)>=0)sources.push('억부·조후 통합 용신');
+      if(qArr(pw.kijishin).indexOf(el)>=0)sources.push('억부·조후 통합 기신');
+      if(qArr(pw.johuYongshin).indexOf(el)>=0)sources.push('조후 보강');
+      if(qArr(pw.johuKijishin).indexOf(el)>=0)sources.push('조후 과열/냉각 주의');
+    }
+    if(!sources.length)sources.push(type==='good'?'보강 가치':'중립 관찰');
+    return qUnique(sources).join(' · ');
+  }
+  var qElements=['wood','fire','earth','metal','water'];
+  var qElementCounts={wood:0,fire:0,earth:0,metal:0,water:0};
+  origGans.concat(origZhis).forEach(function(ch){
+    var el=(GAN[ch]&&GAN[ch].e)||(JI[ch]&&JI[ch].e);
+    if(el&&qElementCounts[el]!=null)qElementCounts[el]+=1;
+  });
 
   /* ── 명식 구조 섹션 ── */
   var yongList=(jg&&jg.isJong)?[jg.dominant,jg.parEl].filter(Boolean):(pw?pw.yongshin:[]);
@@ -11633,9 +11684,75 @@ function renderQuantumStrategy(p, natal, bazi){
 
   var dwLabel=(dg||dz)?('현재 대운 · '+(dg||'')+(dz?(' '+dz):'')):'대운 불명';
   var seLabel=(sg||sz)?('현재 세운 · '+(sg||'')+(sz?(' '+sz):'')):'세운 불명';
-
-  /* 결과 전역 저장 — renderDaewun/showDwDetail에서 참조 가능 */
-  window.G_QUANTUM={keyEvents:keyEvents,facts:facts,actions:actions};
+  var dayEl=(GAN[p.d.g]&&GAN[p.d.g].e)||'';
+  var monthEl=(JI[p.m.j]&&JI[p.m.j].e)||'';
+  var dayMasterName=(GAN[p.d.g]&&GAN[p.d.g].n)||p.d.g||'';
+  var johuLabel=G_JOHU
+    ? [G_JOHU.badgeTxt||'',G_JOHU.type||'',G_JOHU.moistType||''].filter(Boolean).join(' · ')
+    : '조후 미확인';
+  var powerLabel=pw?(pw.isStrong?'신강':'신약'):'강약 미확인';
+  var yongHtml=qUnique(yongList).length?qUnique(yongList).map(function(el){return qElementChip(el,'good');}).join(''):'<span class="qm-el-chip qm-chip-neutral">용신 미확인</span>';
+  var kiHtml=qUnique(kiList).length?qUnique(kiList).map(function(el){return qElementChip(el,'bad');}).join(''):'<span class="qm-el-chip qm-chip-neutral">기신 미확인</span>';
+  var elementMatrix=qElements.map(function(el){
+    var type=elType(el);
+    return {element:el,label:qElLabel(el),type:type,typeLabel:qTypeLabel(type),count:qElementCounts[el]||0,source:qSourceText(el,type)};
+  });
+  var elementMatrixHtml=elementMatrix.map(function(item){
+    var width=Math.max(12,Math.min(100,item.count*18));
+    return '<div class="qm-element-card qm-element-card--'+qEsc(item.type)+'">'+
+      '<div class="qm-element-top"><span class="qm-element-name">'+qEsc(item.label)+'</span><span class="qm-hap-badge '+qTypeClass(item.type)+'">'+qEsc(item.typeLabel)+'</span></div>'+
+      '<div class="qm-element-meta">'+qEsc(item.source)+'</div>'+
+      '<div class="qm-element-count"><span>원국 출현 '+item.count+'회</span><i><b style="width:'+width+'%"></b></i></div>'+
+    '</div>';
+  }).join('');
+  var pillarMatrix=[
+    {key:'y',label:'년주'},
+    {key:'m',label:'월주'},
+    {key:'d',label:'일주'},
+    {key:'h',label:'시주'}
+  ].map(function(meta){
+    var item=p[meta.key]||{};
+    var g=item.g||'', j=item.j||'';
+    var gEl=(GAN[g]&&GAN[g].e)||'', jEl=(JI[j]&&JI[j].e)||'';
+    return {label:meta.label,gan:g,zhi:j,ganEl:gEl,zhiEl:jEl,ganRole:elType(gEl),zhiRole:elType(jEl)};
+  });
+  var pillarMatrixHtml=pillarMatrix.map(function(item){
+    return '<div class="qm-pillar-card">'+
+      '<div class="qm-pillar-label">'+qEsc(item.label)+'</div>'+
+      '<div class="qm-pillar-gz"><span>'+qEsc(item.gan||'-')+'</span><span>'+qEsc(item.zhi||'-')+'</span></div>'+
+      '<div class="qm-pillar-roles">'+
+        (item.ganEl?qElementChip(item.ganEl,item.ganRole):'<span class="qm-el-chip qm-chip-neutral">천간 없음</span>')+
+        (item.zhiEl?qElementChip(item.zhiEl,item.zhiRole):'<span class="qm-el-chip qm-chip-neutral">지지 없음</span>')+
+      '</div>'+
+    '</div>';
+  }).join('');
+  function qLuckRow(label,gan,zhi,results){
+    var gEl=(GAN[gan]&&GAN[gan].e)||'', zEl=(JI[zhi]&&JI[zhi].e)||'';
+    var hitCount=qArr(results).filter(function(r){return r.changed||r.isChung;}).length;
+    return {label:label,gan:gan,zhi:zhi,ganEl:gEl,zhiEl:zEl,ganRole:elType(gEl),zhiRole:elType(zEl),hitCount:hitCount};
+  }
+  var luckRows=[qLuckRow('현재 대운',dg,dz,dwResults),qLuckRow('현재 세운',sg,sz,seResults)];
+  var luckOverviewHtml=luckRows.map(function(item){
+    return '<div class="qm-luck-card">'+
+      '<div class="qm-luck-label">'+qEsc(item.label)+'</div>'+
+      '<div class="qm-luck-gz">'+qEsc((item.gan||'')+(item.zhi||'')||'미확인')+'</div>'+
+      '<div class="qm-luck-chips">'+
+        (item.ganEl?qElementChip(item.ganEl,item.ganRole):'')+
+        (item.zhiEl?qElementChip(item.zhiEl,item.zhiRole):'')+
+      '</div>'+
+      '<div class="qm-luck-note">합화·충 핵심 신호 '+item.hitCount+'개</div>'+
+    '</div>';
+  }).join('');
+  var structureHtml=
+    '<div class="qm-summary-grid">'+
+      '<div class="qm-oracle-card"><div class="qm-oracle-label">명식 구조</div><div class="qm-oracle-value"><span class="qm-tag '+structTagCls+'">'+qEsc(structType)+'</span></div><div class="qm-oracle-meta">'+qEsc(powerLabel)+' · '+qEsc(johuLabel)+'</div></div>'+
+      '<div class="qm-oracle-card"><div class="qm-oracle-label">일간 중심</div><div class="qm-oracle-value">'+qEsc((p.d.g||'-')+' '+dayMasterName)+'</div><div class="qm-oracle-meta">'+qEsc(qElLabel(dayEl))+' 기운을 중심축으로 해석합니다.</div></div>'+
+      '<div class="qm-oracle-card"><div class="qm-oracle-label">월령 좌표</div><div class="qm-oracle-value">'+qEsc((p.m.j||'-')+' 월령')+'</div><div class="qm-oracle-meta">'+qEsc(qElLabel(monthEl))+' 계절성이 조후 판단의 바탕입니다.</div></div>'+
+    '</div>'+
+    '<div class="qm-dual-grid">'+
+      '<div class="qm-mini-panel"><div class="qm-mini-title">용신 라인</div><div class="qm-yong-list">'+yongHtml+'</div></div>'+
+      '<div class="qm-mini-panel"><div class="qm-mini-title">기신 라인</div><div class="qm-yong-list">'+kiHtml+'</div></div>'+
+    '</div>';
 
   /* ── 신살(神殺) 계산 ── */
   var _qSS_day = p.d.g + p.d.j;
@@ -11664,6 +11781,21 @@ function renderQuantumStrategy(p, natal, bazi){
   var qSinsalHtml = _qSS_items.length>0
     ? _qSS_items.map(function(s){return '<div class="qm-action-item"><div class="qm-action-num">★</div><div class="qm-action-text" style="font-size:.84rem;line-height:1.75">'+s+'</div></div>';}).join('')
     : '<div class="qm-action-item"><div class="qm-action-num">—</div><div class="qm-action-text">주요 신살 해당 없음 — 순수 오행 에너지로 매력이 발현됩니다.</div></div>';
+  var quantumDetails={
+    structure:{type:structType,power:powerLabel,johu:johuLabel,dayMaster:p.d.g||'',dayMasterName:dayMasterName,dayElement:dayEl,monthBranch:p.m.j||'',monthElement:monthEl,yongshin:qUnique(yongList),kijishin:qUnique(kiList)},
+    elements:elementMatrix,
+    pillars:pillarMatrix,
+    luck:luckRows,
+    sinsalItems:_qSS_items.slice()
+  };
+  window.G_QUANTUM={
+    keyEvents:keyEvents,
+    dwResults:dwResults,
+    seResults:seResults,
+    facts:facts,
+    actions:actions,
+    details:quantumDetails
+  };
 
   var quantumEngineVersion = 'v.2';
   window.__cdQuantumMyeongriEngineVersion = quantumEngineVersion;
@@ -11676,6 +11808,34 @@ function renderQuantumStrategy(p, natal, bazi){
           '<h3>QUANTUM MYEONGRI Engine '+quantumEngineVersion+'</h3>'+
           '<p>// 현재 대운·세운 합화 및 충(沖) 변이 분석 · 억부+조후+종격 통합 엔진</p>'+
         '</div>'+
+      '</div>'+
+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">✦</span><span class="qm-sec-title s1">명식 구조와 용신 매트릭스</span></div>'+
+        '<div class="qm-panel">'+
+          structureHtml+
+        '</div>'+
+      '</div>'+
+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">◈</span><span class="qm-sec-title s2">원국 4주 오행 좌표</span></div>'+
+        '<div class="qm-panel"><div class="qm-pillar-grid">'+
+          pillarMatrixHtml+
+        '</div></div>'+
+      '</div>'+
+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">◇</span><span class="qm-sec-title s4">오행별 퀀텀 판정</span></div>'+
+        '<div class="qm-panel"><div class="qm-element-grid">'+
+          elementMatrixHtml+
+        '</div></div>'+
+      '</div>'+
+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">☽</span><span class="qm-sec-title s1">대운·세운 운행 요약</span></div>'+
+        '<div class="qm-panel"><div class="qm-luck-grid">'+
+          luckOverviewHtml+
+        '</div></div>'+
       '</div>'+
 
       '<div class="qm-section">'+

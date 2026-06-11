@@ -66,11 +66,9 @@ export default function TwelveAnimalInputCard({ input, onChange, onSubmit, isBus
         <label className="space-y-2 text-sm font-bold text-[#2b5376]">
           출생일 <span className="text-rose-600">*</span>
           <input
-            type="text"
-            inputMode="numeric"
+            type="date"
             value={input.birthDate}
-            onChange={(e) => onChange({ birthDate: e.target.value.replace(/[^\d-]/g, "").slice(0, 10) })}
-            placeholder="YYYY-MM-DD"
+            onChange={(e) => onChange({ birthDate: e.target.value })}
             className="min-h-[46px] w-full rounded-2xl border border-[#bfd8eb] bg-white px-4 py-3 text-base text-[#315c7f] focus:border-[#4f8fbe] focus:outline-none"
           />
         </label>

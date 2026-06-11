@@ -4446,7 +4446,7 @@
               + '</div>'
             + '</div>'
             + '<div class="dp-li-actions" aria-label="프로필 카드 관리">'
-              + '<button type="button" class="dp-li-del" aria-label="프로필 카드 삭제" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">삭제 · ' + PROFILE_CARD_MANAGE_COST + '코인</button>'
+              + '<button type="button" class="dp-li-del" aria-label="\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C, \uB2E8\uAC74 \uACB0\uC81C \uB610\uB294 \uC6D4\uC815\uC11D \uC804\uC6A9" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C \u00B7 ' + PROFILE_CARD_MANAGE_COST + '\uCF54\uC778/\uC6D4\uC815\uC11D</button>'
             + '</div>'
             + '</div>';
         }).join('') + lockedNotice;
@@ -4487,7 +4487,10 @@
     var b = profile.birth;
     var l = profile.location || {};
     var nameEl = document.getElementById('nameInput');
-    if (nameEl) nameEl.value = profile.name || '';
+    if (nameEl) {
+      nameEl.value = profile.name || '';
+      _dpDispatchProfileFieldRefresh(nameEl);
+    }
     var bdEl = document.getElementById('birthDate');
     if (bdEl) {
       bdEl.value = b.year + '-' + String(b.month).padStart(2,'0') + '-' + String(b.day).padStart(2,'0');
@@ -4500,8 +4503,14 @@
     });
     var hourEl = document.getElementById('birthHour');
     var minEl = document.getElementById('birthMinute');
-    if (hourEl) hourEl.value = (b.hour !== undefined && b.hour !== null) ? b.hour : 12;
-    if (minEl) minEl.value = (b.minute !== undefined && b.minute !== null) ? b.minute : 0;
+    if (hourEl) {
+      hourEl.value = (b.hour !== undefined && b.hour !== null) ? b.hour : 12;
+      _dpDispatchProfileFieldRefresh(hourEl);
+    }
+    if (minEl) {
+      minEl.value = (b.minute !== undefined && b.minute !== null) ? b.minute : 0;
+      _dpDispatchProfileFieldRefresh(minEl);
+    }
     var countrySel = document.getElementById('birthCountry');
     if (countrySel && l.tz) {
       var lng = (l.lng !== undefined && l.lng !== null) ? Number(l.lng) : Number(l.lon);
@@ -4527,6 +4536,49 @@
     }
     if (window.setGender) window.setGender(profile.gender || 'F');
     window._gender = profile.gender || 'F';
+    if (window.updateLunarPreview) window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
+    if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
+  }
+
+  function _dpDispatchProfileFieldRefresh(el) {
+    if (!el) return;
+    try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
+    try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+  }
+
+  function _dpSetProfileFieldValue(id, value) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.value = value == null ? '' : String(value);
+    _dpDispatchProfileFieldRefresh(el);
+  }
+
+  function _dpClearProfileForm() {
+    _dpSetProfileFieldValue('nameInput', '');
+    _dpSetProfileFieldValue('birthDate', '');
+    _dpSetProfileFieldValue('birthHour', '');
+    _dpSetProfileFieldValue('birthMinute', '');
+    var calBtns = document.querySelectorAll('input[name="calType"]');
+    calBtns.forEach(function(btn) {
+      btn.checked = btn.value === 'solar';
+      _dpDispatchProfileFieldRefresh(btn);
+    });
+    if (window.setGender) window.setGender('F');
+    window._gender = 'F';
+    var btnF = document.getElementById('btnF');
+    var btnM = document.getElementById('btnM');
+    if (btnF) {
+      btnF.classList.add('selected');
+      btnF.classList.add('on');
+      btnF.setAttribute('aria-pressed', 'true');
+    }
+    if (btnM) {
+      btnM.classList.remove('selected');
+      btnM.classList.remove('on');
+      btnM.setAttribute('aria-pressed', 'false');
+    }
+    if (window.updateLunarPreview) window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
+    if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
   }
 
   window.dpSaveProfile = function() {
@@ -4861,11 +4913,24 @@
   window.dpDeleteProfile = function(id) {
     var profileId = String(id || '').trim();
     var list = DPStorage.list();
-    var profile = list.find(function(item) { return item && String(item.id || '') === profileId; });
+    var profile = list.find(function(item) { return item && String((item.id || item.profileId) || '').trim() === profileId; });
     if (!profile) {
       alert('삭제할 프로필 카드를 찾을 수 없습니다.');
       return;
     }
+    var currentBeforeDelete = DPStorage.current();
+    var currentBeforeDeleteId = String((currentBeforeDelete && (currentBeforeDelete.id || currentBeforeDelete.profileId)) || '').trim();
+    var wasCurrentProfile = currentBeforeDeleteId === profileId;
+    var deletedBirth = profile.birth || {};
+    var hasDeletedBirthDate = deletedBirth.year != null && deletedBirth.month != null && deletedBirth.day != null;
+    var deletedBirthDate = hasDeletedBirthDate
+      ? deletedBirth.year + '-' + String(deletedBirth.month).padStart(2, '0') + '-' + String(deletedBirth.day).padStart(2, '0')
+      : '';
+    var formBirthDate = String((document.getElementById('birthDate') || {}).value || '').trim();
+    var formName = String((document.getElementById('nameInput') || {}).value || '').trim();
+    var wasLoadedFormProfile = !!deletedBirthDate
+      && formBirthDate === deletedBirthDate
+      && (!formName || !profile.name || formName === String(profile.name).trim());
     var deleteLock = _dpReadProfileDeleteLock();
     if (deleteLock.profileId === profileId) {
       var lockAgeMs = deleteLock.startedAt ? (Date.now() - deleteLock.startedAt) : 0;
@@ -4873,13 +4938,19 @@
       if (lockAgeMs < 45000) return;
       _dpClearProfileDeleteLock(profileId);
     }
-    if (!confirm((profile.name || '선택한 프로필') + ' 프로필 카드를 삭제할까요?\n삭제 비용은 50코인이며, 삭제 후 복구가 어렵습니다.')) return;
+    var deleteConfirmMessage = (profile.name || '\uC120\uD0DD\uD55C \uD504\uB85C\uD544')
+      + ' \uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD560\uAE4C\uC694?'
+      + '\n\uC0AD\uC81C\uB294 \uC624\uC9C1 \uB2E8\uAC74 \uACB0\uC81C \uB610\uB294 Moonlight Stone \uC6D4\uC815\uC11D \uACB0\uC81C\uB85C\uB9CC \uC9C4\uD589\uB429\uB2C8\uB2E4.'
+      + '\n\uC774\uC6A9\uAD8C \uBB34\uB8CC \uD1B5\uACFC\uB294 \uC801\uC6A9\uB418\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.'
+      + '\n\uBE44\uC6A9: \uB2E8\uAC74 \uACB0\uC81C ' + PROFILE_CARD_MANAGE_COST + '\uCF54\uC778 \uAE30\uC900(' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0) \uB610\uB294 Moonlight Stone ' + (PROFILE_CARD_MANAGE_COST * 10) + '\uAC1C'
+      + '\n\uACB0\uC81C \uD655\uC778 \uD6C4 \uC11C\uBC84\uC640 \uB85C\uCEEC\uC5D0\uC11C \uC989\uC2DC \uC0AD\uC81C\uB418\uBA70, \uC0AD\uC81C \uD6C4 \uBCF5\uAD6C\uAC00 \uC5B4\uB835\uC2B5\uB2C8\uB2E4.';
+    if (!confirm(deleteConfirmMessage)) return;
 
     var requestId = _dpBuildProfileManageRequestId('delete', profileId);
     _dpSetProfileDeleteLock(profileId);
 
     function requestDelete(paymentContext) {
-      _dpSetPaymentPending(true, '프로필 카드를 삭제하는 중입니다...');
+      _dpSetPaymentPending(true, '\uACB0\uC81C \uD655\uC778 \uD6C4 \uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...');
       return _dpFetchJsonWithFallback('/api/profile/' + encodeURIComponent(profileId), {
         method: 'DELETE',
         credentials: 'include',
@@ -4902,17 +4973,10 @@
 
     _dpVerifyLoginSession(true).then(function(ok) {
       if (!ok) throw new Error('AUTH_REQUIRED');
-      return requestDelete().then(function(result) {
-        var payload = result && result.data ? result.data : null;
-        var code = String((payload && payload.code) || '').trim().toUpperCase();
-        if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
-          _dpSetPaymentPending(false);
-          return _dpRunProfileManageGate('delete', profileId, requestId).then(function(paymentContext) {
-            if (!paymentContext) return null;
-            return requestDelete(paymentContext);
-          });
-        }
-        return result;
+      _dpSetPaymentPending(false);
+      return _dpRunProfileManageGate('delete', profileId, requestId).then(function(paymentContext) {
+        if (!paymentContext) return null;
+        return requestDelete(paymentContext);
       });
     }).then(function(result) {
       _dpSetPaymentPending(false);
@@ -4931,6 +4995,10 @@
         DPStorage.remove(profileId);
       }
       var current = DPStorage.current();
+      if (wasCurrentProfile || wasLoadedFormProfile) {
+        if (current && current.birth) _dpApplyProfileToForm(current);
+        else _dpClearProfileForm();
+      }
       renderMasterCard(current);
       renderProfileList();
       broadcastProfileChange(current || null);
@@ -4940,6 +5008,10 @@
       _dpLoadFromServer(function(loaded) {
         if (!loaded) return;
         var refreshed = DPStorage.current();
+        if (wasCurrentProfile || wasLoadedFormProfile) {
+          if (refreshed && refreshed.birth) _dpApplyProfileToForm(refreshed);
+          else _dpClearProfileForm();
+        }
         renderMasterCard(refreshed);
         renderProfileList();
         broadcastProfileChange(refreshed || null);

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import AnimalDestinyPage from "./components/AnimalDestinyPage";
 
 export const metadata: Metadata = {
-  title: "사주 가디언 아트 | 내 사주 수호동물 테스트 | Code Destiny",
-  description: "사주 오행, 일간, 월지, 십성 흐름으로 나를 지켜주는 수호동물과 운명 방어 타입을 확인하는 사주 가디언 테스트입니다.",
+  title: "운명의 동물 도감 | 십이운성 동물점 | Code Destiny",
+  description: "태어난 사주의 십이운성 흐름으로 나만의 운명 동물을 찾는 동물 운명록. 핵심 성향, 관계, 일과 재물 감각, 성장 미션까지 한눈에 확인하세요.",
 };
 
 export default function Page() {

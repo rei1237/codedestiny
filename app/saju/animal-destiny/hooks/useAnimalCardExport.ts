@@ -55,8 +55,8 @@ export function useAnimalCardExport() {
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
-          title: "Code:Destiny 사주 가디언 아트",
-          text: "내 사주 수호동물 결과 카드야!",
+          title: "Code:Destiny 십이운성 동물점",
+          text: "내 사주 동물점 결과 카드야!",
           files: [file],
         });
         toast.success("공유를 완료했어요.");

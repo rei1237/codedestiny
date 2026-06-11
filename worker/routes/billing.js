@@ -207,7 +207,7 @@ async function findActiveSajuProfileUnlock(env, { userId, profileId, featureKey 
 
 async function hasUserScopedPermanentUnlock(env, { userId, featureKey }) {
   const key = String(featureKey || "").trim();
-  if (!userId || !key || !isUnlockPaidFeatureKey(key) || resolveSajuProfileUnlockContentKey(key) || key === LOTTO_RITUAL_REPORT_FEATURE_KEY) {
+  if (!userId || !key || !isUnlockPaidFeatureKey(key) || resolveSajuProfileUnlockContentKey(key)) {
     return false;
   }
   await connectDb(env);
@@ -477,7 +477,7 @@ async function resolvePaidContentAccess(env, {
     });
   }
 
-  if ((resolveSajuProfileUnlockContentKey(featureKey) || featureKey === LOTTO_RITUAL_REPORT_FEATURE_KEY) && !profileId) {
+  if (resolveSajuProfileUnlockContentKey(featureKey) && !profileId) {
     return buildPaidContentAccessDecision({
       reason: "invalid_profile",
       priceCoin,
@@ -1098,7 +1098,7 @@ async function resolveBillingProfileId(authUserId, body = {}, env = {}) {
 function isProfileScopedUnlockKey(featureKey) {
   const key = String(featureKey || "").trim();
   if (!key || !isUnlockPaidFeatureKey(key)) return false;
-  return Boolean(resolveSajuProfileUnlockContentKey(key) || key === LOTTO_RITUAL_REPORT_FEATURE_KEY);
+  return Boolean(resolveSajuProfileUnlockContentKey(key));
 }
 
 async function resolveProfileScopedUnlocks(authUserId, profileId) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +14,8 @@ import type { DestinyMeetingPlaceResult as MeetingResult } from "./destinyMeetin
 
 const FEATURE_KEY = "destiny_meeting_place";
 const FEATURE_REASON = "사주로 보는 인연의 장소 1회 분석";
+const FEATURE_COST = 100;
+const FEATURE_MEMBERSHIP_CREDIT_COST = FEATURE_COST * 10;
 const HERO_IMAGE = "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp";
 
 type Props = {
@@ -20,6 +23,7 @@ type Props = {
 };
 
 export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isCharging, setIsCharging] = useState(false);
@@ -29,12 +33,20 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
 
   const previewLine = useMemo(() => {
     if (!hasSajuResult) {
-      return "먼저 십이운성 동물 테스트 분석을 완료하면 인연의 장소 리포트를 열 수 있습니다.";
+      return "출생 정보를 입력하면 인연이 열리는 장소와 시기를 바로 분석할 수 있습니다.";
     }
     const stem = String((sajuResult as Record<string, unknown>)?.dayStem || "").trim();
     if (stem) return `${stem} 일간의 감정 리듬으로 인연 좌표를 정밀 추천합니다.`;
     return "사주 에너지 기반으로 인연이 열리는 장소와 시기를 추천합니다.";
   }, [hasSajuResult, sajuResult]);
+
+  const handleOpen = useCallback(() => {
+    if (!hasSajuResult) {
+      router.push("/saju/destiny-meeting-place");
+      return;
+    }
+    setOpen(true);
+  }, [hasSajuResult, router]);
 
   const runAnalysis = useCallback(async () => {
     if (isLoading || isCharging) return;
@@ -49,7 +61,8 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
       openPaidFeatureGate({
         featureKey: FEATURE_KEY,
         requestId,
-        cost: 100,
+        cost: FEATURE_COST,
+        paymentMode: "pass",
         message: "이용권 확인 중",
       });
 
@@ -58,6 +71,9 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
         reason: FEATURE_REASON,
         forceDeduct: true,
         requestId,
+        cost: FEATURE_COST,
+        coinPrice: FEATURE_COST,
+        membershipCreditCost: FEATURE_MEMBERSHIP_CREDIT_COST,
       });
 
       if (!gate.ok) {
@@ -74,9 +90,10 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
         return;
       }
 
-      const pricingCost = Number(gate.data?.pricing?.cost || 100);
-      const charged = Number((gate.data?.consume as Record<string, unknown> | undefined)?.cost ?? pricingCost);
-      setChargedCoins(Number.isFinite(charged) ? charged : pricingCost);
+      const consume = gate.data?.consume as Record<string, unknown> | undefined;
+      const pricingCost = Number(gate.data?.pricing?.coinPrice ?? gate.data?.pricing?.cost ?? FEATURE_COST);
+      const charged = Number(consume?.chargedCoins ?? consume?.cost ?? consume?.coinPrice ?? pricingCost);
+      setChargedCoins(Number.isFinite(charged) && charged > 0 ? charged : pricingCost);
 
       setIsLoading(true);
       const next = generateDestinyMeetingPlaceResult(sajuResult);
@@ -106,16 +123,15 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
         </div>
         <p className="mt-2 text-xs text-[#5f6f84]">{previewLine}</p>
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-          <span className="rounded-full bg-[#fff0cf] px-3 py-1 font-black text-[#8b6116]">1회 100코인</span>
-          <span className="rounded-full bg-[#e6f0ff] px-3 py-1 font-bold text-[#214a77]">구독자는 서버 정책에 따라 차감 없이 이용</span>
+          <span className="rounded-full bg-[#fff0cf] px-3 py-1 font-black text-[#8b6116]">1회 {FEATURE_COST}코인</span>
+          <span className="rounded-full bg-[#e6f0ff] px-3 py-1 font-bold text-[#214a77]">이용권 확인 후 단건/월정석 결제 지원</span>
         </div>
         <button
           type="button"
-          onClick={() => setOpen(true)}
-          disabled={!hasSajuResult}
+          onClick={handleOpen}
           className="mt-4 rounded-2xl bg-[linear-gradient(90deg,#8b5cf6,#ff8bd8)] px-5 py-3 text-sm font-black text-white shadow-xl transition-transform hover:scale-[1.02] active:scale-95"
         >
-          {hasSajuResult ? "인연의 장소 찾기" : "먼저 동물 테스트 분석하기"}
+          인연의 장소 찾기
         </button>
       </section>
 
@@ -152,7 +168,7 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
                   disabled={isCharging || isLoading}
                   className="rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  100코인으로 다시 분석하기
+                  {FEATURE_COST}코인으로 다시 분석하기
                 </button>
                 <button
                   type="button"

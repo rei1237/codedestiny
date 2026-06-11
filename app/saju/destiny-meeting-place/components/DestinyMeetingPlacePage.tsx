@@ -17,6 +17,8 @@ import type { DestinyMeetingPlaceResult as MeetingResult } from "@/components/fo
 
 const FEATURE_KEY = "destiny_meeting_place";
 const FEATURE_REASON = "사주로 보는 인연의 장소 1회 분석";
+const FEATURE_COST = 100;
+const FEATURE_MEMBERSHIP_CREDIT_COST = FEATURE_COST * 10;
 const HERO_IMAGE = "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp";
 const PREFILL_KEY = "cd.destinyMeetingPlace.prefill.v1";
 
@@ -127,7 +129,8 @@ export default function DestinyMeetingPlacePage() {
       openPaidFeatureGate({
         featureKey: FEATURE_KEY,
         requestId,
-        cost: 100,
+        cost: FEATURE_COST,
+        paymentMode: "pass",
         message: "이용권 확인 중",
       });
 
@@ -136,6 +139,9 @@ export default function DestinyMeetingPlacePage() {
         reason: FEATURE_REASON,
         forceDeduct: true,
         requestId,
+        cost: FEATURE_COST,
+        coinPrice: FEATURE_COST,
+        membershipCreditCost: FEATURE_MEMBERSHIP_CREDIT_COST,
       });
 
       if (!gate.ok) {
@@ -152,9 +158,10 @@ export default function DestinyMeetingPlacePage() {
         return;
       }
 
-      const pricingCost = Number(gate.data?.pricing?.cost || 100);
-      const charged = Number((gate.data?.consume as Record<string, unknown> | undefined)?.cost ?? pricingCost);
-      setChargedCoins(Number.isFinite(charged) ? charged : pricingCost);
+      const consume = gate.data?.consume as Record<string, unknown> | undefined;
+      const pricingCost = Number(gate.data?.pricing?.coinPrice ?? gate.data?.pricing?.cost ?? FEATURE_COST);
+      const charged = Number(consume?.chargedCoins ?? consume?.cost ?? consume?.coinPrice ?? pricingCost);
+      setChargedCoins(Number.isFinite(charged) && charged > 0 ? charged : pricingCost);
 
       setIsLoading(true);
       await new Promise((resolve) => setTimeout(resolve, 900));
@@ -303,8 +310,11 @@ export default function DestinyMeetingPlacePage() {
               decoding="async"
             />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,7,24,0.08)_20%,rgba(6,7,24,0.82)_100%)]" />
-            <div className="absolute right-4 top-4 rounded-full border border-[#bce6ff]/45 bg-[#0b122f]/65 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-[#cff0ff] [text-shadow:0_0_10px_rgba(161,230,255,0.8)]">
-              Cosmic Neon Read
+            <div className="absolute left-4 top-4 rounded-full border border-[#ffd88a]/70 bg-[#160b2f]/82 px-4 py-2 text-xs font-black text-[#fff4d6] shadow-[0_12px_28px_rgba(0,0,0,0.34),0_0_24px_rgba(255,216,138,0.2)] backdrop-blur-md">
+              1회 {FEATURE_COST}코인
+            </div>
+            <div className="absolute right-4 top-4 hidden rounded-full border border-[#bce6ff]/45 bg-[#0b122f]/65 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-[#cff0ff] [text-shadow:0_0_10px_rgba(161,230,255,0.8)] sm:block">
+              Pass · Single · Moonlight
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
               <div className="max-w-3xl rounded-2xl border border-white/20 bg-[linear-gradient(140deg,rgba(6,10,32,0.9),rgba(17,19,48,0.7))] p-4 shadow-[0_18px_40px_rgba(4,6,20,0.62)] backdrop-blur-[2px] sm:p-5">
@@ -321,7 +331,8 @@ export default function DestinyMeetingPlacePage() {
 
         <section className="rounded-[2rem] border border-[#ffd4a5]/45 bg-[linear-gradient(160deg,rgba(20,15,56,0.92),rgba(26,16,64,0.9))] p-5 shadow-[0_20px_48px_rgba(8,9,32,0.5)] sm:p-8">
           <div className="mb-5 flex flex-wrap items-center gap-2 text-xs font-bold">
-            <span className="rounded-full border border-[#ffd88a]/45 bg-[#ffd88a]/15 px-3 py-1 text-[#ffe9bb]">1회 100코인</span>
+            <span className="rounded-full border border-[#ffd88a]/45 bg-[#ffd88a]/15 px-3 py-1 text-[#ffe9bb]">1회 {FEATURE_COST}코인</span>
+            <span className="rounded-full border border-[#c8f7dc]/45 bg-[#6ee7a7]/14 px-3 py-1 text-[#ddffe9]">이용권 확인 후 단건/월정석 결제</span>
             <span className="rounded-full border border-[#ffb4e6]/45 bg-[#ff9dd9]/15 px-3 py-1 text-[#ffd6ef]">별빛/야경 인연 무드 추천</span>
             <span className="rounded-full border border-[#9fd0ff]/45 bg-[#81bbff]/14 px-3 py-1 text-[#d6ebff]">장소 + 시기 + 국가 + 스타일</span>
             {!isLoggedIn ? <span className="rounded-full border border-rose-200/40 bg-rose-400/15 px-3 py-1 text-rose-100">로그인 후 분석 가능</span> : null}
@@ -422,7 +433,7 @@ export default function DestinyMeetingPlacePage() {
             disabled={!canSubmit || isLoading || isCharging}
             className="mt-6 w-full rounded-2xl bg-[linear-gradient(92deg,#ff9dd9,#8a6bff,#66b4ff)] px-5 py-4 text-base font-black text-white shadow-[0_0_18px_rgba(151,211,255,0.6),0_18px_30px_rgba(8,7,28,0.45)] transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55"
           >
-            {isCharging ? "코인 결제 확인 중..." : isLoading ? "별빛 지도를 분석하는 중..." : "인연의 장소 분석 시작"}
+            {isCharging ? "이용권 확인 중..." : isLoading ? "별빛 지도를 분석하는 중..." : "인연의 장소 분석 시작"}
           </button>
           <p className="mt-3 text-center text-xs leading-relaxed text-[#ddd7f2]">
             결과는 오락 및 자기이해 참고용입니다. 중요한 재무/법률/의료 판단은 반드시 전문 상담을 함께 진행해 주세요.

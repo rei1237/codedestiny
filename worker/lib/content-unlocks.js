@@ -111,7 +111,6 @@ export function resolvePaidContentUnlockTarget({
   const rawFeatureKey = cleanKey(featureKey || contentKey || productKey, 160);
   const profileContentKey = PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[rawFeatureKey] || "";
   const explicitContentKey = canonicalizeContentKey(contentKey);
-  const isLottoRitualReport = rawFeatureKey === "fun.quantumLotto.ritualReport";
   const normalizedContentKey = cleanKey(
     explicitContentKey
       || profileContentKey
@@ -121,7 +120,7 @@ export function resolvePaidContentUnlockTarget({
     160,
   );
   const resolvedServiceKey = cleanKey(serviceKey || resolvePaidContentServiceKey(rawFeatureKey || normalizedContentKey), 80);
-  const requiresProfile = Boolean(profileContentKey) || isLottoRitualReport;
+  const requiresProfile = Boolean(profileContentKey);
   const normalizedScope = cleanKey(scope, 20)
     || (requiresProfile || profileId ? CONTENT_ENTITLEMENT_SCOPES.PROFILE : CONTENT_ENTITLEMENT_SCOPES.USER);
   const normalizedProfileId = cleanKey(profileId || (normalizedScope === CONTENT_ENTITLEMENT_SCOPES.USER ? USER_SCOPE_PROFILE_ID : ""), 100);

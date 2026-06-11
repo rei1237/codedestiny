@@ -8,10 +8,10 @@ interface Props {
 export default function TamagotchiDeviceFrame({ children }: Props) {
   return (
     <div className="relative mx-auto w-full max-w-5xl overflow-hidden rounded-[2.2rem] border border-cyan-100/30 bg-[radial-gradient(circle_at_8%_12%,rgba(104,180,255,0.34),transparent_36%),radial-gradient(circle_at_86%_8%,rgba(245,182,255,0.28),transparent_34%),linear-gradient(160deg,#060b1f_0%,#101639_45%,#0a1a3b_100%)] p-4 shadow-[0_32px_90px_rgba(3,10,30,0.62)] md:p-6">
-      <div className="pointer-events-none absolute -right-20 -top-24 h-[360px] w-[360px] opacity-50">
+      <div className="pointer-events-none absolute -right-20 -top-24 h-[360px] w-[360px] opacity-55">
         <CosmicSigil className="h-full w-full" />
       </div>
-      <div className="pointer-events-none absolute -bottom-24 -left-24 h-[320px] w-[320px] rotate-12 opacity-30">
+      <div className="pointer-events-none absolute -bottom-24 -left-24 h-[320px] w-[320px] rotate-12 opacity-35">
         <CosmicSigil className="h-full w-full" />
       </div>
 
