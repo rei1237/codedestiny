@@ -119,7 +119,8 @@ const changedChapterKey = buildVedicAstrologyLlmCacheKey(facts, "vedic_lagna");
 assert.notEqual(cacheKey, changedAyanamsaKey, "cache key changes by ayanamsa");
 assert.notEqual(cacheKey, changedChapterKey, "cache key changes by chapter");
 assert.equal(VEDIC_ASTROLOGY_PROMPT_VERSION, VEDIC_PDF_CONFIG.templateVersion, "template version");
-assert.ok(VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS.includes("vedic_dasha_flow"), "personal enhanced chapters");
+assert.equal(VEDIC_PDF_CONFIG.templateVersion, "vedic-premium-local-assembled-v2", "local assembled template version");
+assert.equal(VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS.length, 0, "external llm enhanced chapters disabled");
 
 const generated = await generateVedicPremiumReport({}, rawInput, {
   requestId: "smoke-vedic-premium",
@@ -131,8 +132,14 @@ assert.equal(generated.manuscriptSource, VEDIC_PDF_CONFIG.generationMode, "local
 assert.equal(generated.llmChapterCount, 0, "no-key llm chapter count");
 assert.equal(generated.fallbackUsed, false, "local assembled does not use fallback");
 assert.equal(generated.fallbackChapterCount, 0, "local assembled fallback chapter count");
+assert.equal(generated.localAssemblyOnly, true, "local assembly only");
+assert.equal(generated.externalCallsAllowed, false, "external calls blocked");
+assert.equal(generated.pdfReady.localAssemblyOnly, true, "pdfReady local assembly only");
+assert.equal(generated.pdfReady.externalCallsAllowed, false, "pdfReady external calls blocked");
 assert.equal(generated.diagnostics.llm.enabled, false, "llm disabled");
 assert.equal(generated.diagnostics.llm.failed, false, "no llm failure recorded");
+assert.equal(generated.diagnostics.llm.localAssemblyOnly, true, "diagnostics local assembly only");
+assert.equal(generated.diagnostics.llm.externalCallsAllowed, false, "diagnostics external calls blocked");
 assert.equal(generated.chapterDrafts.length, 12, "chapter draft count");
 assert.equal(generated.chapterDrafts.every((chapter) => chapter.sections.every((section) => String(section.body || "").trim().length > 0)), true, "no empty sections");
 assert.ok(String(generated.pdfReady?.html || "").includes("베다점 프리미엄 PDF"), "pdf html rendered");

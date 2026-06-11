@@ -12,7 +12,6 @@ import {
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
-import { callGeminiText } from "../lib/gemini.js";
 
 const CHAPTER_BLUEPRINTS = [
   {
@@ -288,7 +287,7 @@ const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
   "premium-lifebook-report",
 ]);
 const LIFEBOOK_TEMPORARY_PAYMENT_BYPASS = true;
-const LIFE_BOOK_PROMPT_VERSION = "life-book-hybrid-v1";
+const LIFE_BOOK_PROMPT_VERSION = "life-book-local-assembler-v3";
 const LIFE_BOOK_LLM_ENHANCED_CHAPTERS = Object.freeze([
   "01",
   "02",
@@ -378,7 +377,7 @@ export const LIFE_BOOK_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
   llmEnabled: false,
   provider: "saju-assembler",
-  templateVersion: "life-book-assembled-v2",
+  templateVersion: "life-book-local-assembled-v3",
 });
 const LIFEBOOK_AUTHORING_MODE = "local-assembled";
 const LIFEBOOK_LOCAL_WRITING_STATE = "local_writing";
@@ -399,41 +398,20 @@ function isLifeBookLocalAssemblyMode(value = LIFE_BOOK_PDF_CONFIG.generationMode
 }
 
 function resolveLifeBookLlmRuntimeInfo(env = {}) {
-  if (isLifeBookLocalAssemblyMode() || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) {
-    return {
-      provider: LIFE_BOOK_PDF_CONFIG.provider,
-      selectedModel: "",
-      keyConfigured: false,
-      configuredKeyCount: 0,
-      enhancementEnabled: false,
-      promptVersion: LIFE_BOOK_PROMPT_VERSION,
-      templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
-      enhancedChapterIds: [],
-      timeoutMs: 0,
-      totalTimeoutMs: 0,
-      retries: 0,
-    };
-  }
-  const selectedModel = clean(
-    env?.PREMIUM_SAJU_LIFEBOOK_GEMINI_MODEL
-      || env?.PREMIUM_GEMINI_MODEL
-      || env?.GEMINI_MODEL
-      || "gemini-2.5-flash",
-  );
-  const configuredKeyCount = LIFEBOOK_LLM_KEY_ENV_KEYS.reduce((count, key) => (
-    clean(env?.[key]) ? count + 1 : count
-  ), 0);
   return {
-    provider: "gemini",
-    selectedModel,
-    keyConfigured: configuredKeyCount > 0,
-    configuredKeyCount,
-    enhancementEnabled: isLifeBookLlmEnhancementEnabled(env),
+    provider: LIFE_BOOK_PDF_CONFIG.provider,
+    selectedModel: "",
+    keyConfigured: false,
+    configuredKeyCount: 0,
+    enhancementEnabled: false,
     promptVersion: LIFE_BOOK_PROMPT_VERSION,
-    enhancedChapterIds: LIFE_BOOK_LLM_ENHANCED_CHAPTERS,
-    timeoutMs: Number(env?.LIFEBOOK_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
-    totalTimeoutMs: Number(env?.LIFEBOOK_GEMINI_TOTAL_TIMEOUT_MS || 0),
-    retries: Number(env?.LIFEBOOK_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1),
+    templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
+    enhancedChapterIds: [],
+    timeoutMs: 0,
+    totalTimeoutMs: 0,
+    retries: 0,
+    externalCallsAllowed: false,
+    runtime: "local-assembled",
   };
 }
 
@@ -3608,38 +3586,13 @@ function reinforceLifeBookChapterDeterministically(profile, signals, chapter = {
 
 async function callLifeBookGemini(env, prompt, options = {}) {
   const llmRuntime = resolveLifeBookLlmRuntimeInfo(env);
-  if (isLifeBookLocalAssemblyMode() || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) {
-    throw Object.assign(new Error("Life Book PDF assembled generation mode blocks external LLM calls."), {
-      code: "LIFEBOOK_LLM_DISABLED",
-      status: 503,
-      llmRuntime,
-    });
-  }
-  const model = llmRuntime.selectedModel;
-  const result = await callGeminiText(env, prompt, {
-    keyEnvKeys: LIFEBOOK_LLM_KEY_ENV_KEYS,
-    modelEnvKeys: LIFEBOOK_LLM_MODEL_ENV_KEYS,
-    models: [model],
-    temperature: Number(env?.LIFEBOOK_GEMINI_TEMPERATURE || 0.35),
-    topP: Number(env?.LIFEBOOK_GEMINI_TOP_P || 0.9),
-    maxOutputTokens: Number(env?.LIFEBOOK_GEMINI_MAX_OUTPUT_TOKENS || 8192),
-    timeoutMs: Number(env?.LIFEBOOK_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
-    totalTimeoutMs: Number(env?.LIFEBOOK_GEMINI_TOTAL_TIMEOUT_MS || 0),
-    maxAttemptsPerPair: Number(env?.LIFEBOOK_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1),
-    disableVertexFallback: env?.LIFEBOOK_GEMINI_DISABLE_VERTEX_FALLBACK ?? env?.GEMINI_DISABLE_VERTEX_FALLBACK,
-    metadata: {
-      requestId: clean(options?.requestId),
-      chapterNumber: clean(options?.chapterNumber),
-    },
+  throw Object.assign(new Error("Life Book PDF uses local assembly only."), {
+    code: "LIFEBOOK_EXTERNAL_LLM_DISABLED",
+    status: 503,
+    llmRuntime,
+    requestId: clean(options?.requestId),
+    chapterNumber: clean(options?.chapterNumber),
   });
-  if (!result?.ok || !clean(result?.text)) {
-    throw Object.assign(new Error(clean(result?.message || "Gemini 원고 생성에 실패했습니다.")), {
-      code: clean(result?.error || "LIFEBOOK_GEMINI_GENERATION_FAILED"),
-      status: Number(result?.status || 502),
-      llmRuntime,
-    });
-  }
-  return clean(result.text);
 }
 
 function summarizeLifeBookChapter(chapter = {}) {
@@ -5141,16 +5094,15 @@ async function generateLifeBookChapterWithGemini(env, { profile, signals, llmInp
   });
 }
 
-async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmInput, requestId, onProgress = null }) {
+async function assembleLifeBookChaptersLocally(env, { profile, signals, llmInput, requestId, onProgress = null }) {
   const chapters = [];
   const summaries = [];
   let deterministicReinforcedCount = 0;
   const chapterPlans = buildLifeBookChapterPlans();
   const normalizedData = llmInput?.lifeBookMasterJson?.normalizedData || llmInput?.normalizedData || null;
   const localChapters = buildLifeBookChapters(profile, signals, normalizedData);
-  const llmRuntime = resolveLifeBookLlmRuntimeInfo(env);
-  const localMode = isLifeBookLocalAssemblyMode() || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true;
-  const enhancementEnabled = localMode ? false : Boolean(llmRuntime.enhancementEnabled && llmRuntime.keyConfigured);
+  const runtime = resolveLifeBookLlmRuntimeInfo(env);
+  const enhancementEnabled = false;
   const llmEnhancedChapterIds = [];
   const llmFallbackChapterIds = [];
   const llmCacheHitChapterIds = [];
@@ -5166,8 +5118,9 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
     generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
     llmEnabled: LIFE_BOOK_PDF_CONFIG.llmEnabled,
     provider: LIFE_BOOK_PDF_CONFIG.provider,
+    runtime,
     enhancementEnabled,
-    enhancedChapterIds: enhancementEnabled ? LIFE_BOOK_LLM_ENHANCED_CHAPTERS : [],
+    enhancedChapterIds: [],
   });
 
   for (const [chapterIndex, chapterSpec] of getLifeBookBlueprints().entries()) {
@@ -5198,52 +5151,6 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
       deterministicReinforced: true,
       fallbackUsed: false,
     };
-    if (enhancementEnabled && shouldEnhanceLifeBookChapter(chapterSpec)) {
-      const cacheKey = buildLifeBookChapterCacheKey(llmInput, chapterSpec);
-      const cachedChapter = readLifeBookChapterCache(cacheKey);
-      if (cachedChapter) {
-        generated = {
-          chapter: {
-            ...cachedChapter,
-            chapterPlan,
-            source: clean(cachedChapter?.source || "gemini-section+cache"),
-            llmPromptVersion: LIFE_BOOK_PROMPT_VERSION,
-          },
-          summary: summarizeLifeBookChapter(cachedChapter),
-          deterministicReinforced: false,
-          fallbackUsed: false,
-          cacheHit: true,
-        };
-        llmEnhancedChapterIds.push(clean(chapterSpec.id));
-        llmCacheHitChapterIds.push(clean(chapterSpec.id));
-      } else {
-        try {
-          generated = await generateLifeBookChapterWithGemini(env, {
-            profile,
-            signals,
-            llmInput,
-            chapterSpec,
-            previousSummaries: summaries,
-            requestId,
-          });
-          generated.chapter = {
-            ...generated.chapter,
-            chapterPlan,
-            llmPromptVersion: LIFE_BOOK_PROMPT_VERSION,
-          };
-          writeLifeBookChapterCache(cacheKey, generated.chapter);
-          llmEnhancedChapterIds.push(clean(chapterSpec.id));
-        } catch (error) {
-          llmFallbackChapterIds.push(clean(chapterSpec.id));
-          logLifeBookServer("LifeBookChapterFallbackToLocal", {
-            requestId,
-            chapterNumber: chapterSpec.roman,
-            chapterId: chapterSpec.id,
-            reason: clean(error?.code || error?.message || "chapter_enhancement_failed"),
-          });
-        }
-      }
-    }
     chapters.push(generated.chapter);
     summaries.push({
       chapterNumber: chapterSpec.roman,
@@ -5292,7 +5199,7 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
     finalQualityReviewErrors: finalQualityReviewPassed ? [] : (finalQualityReview.validation?.errors || []),
     finalQualityReviewWarnings: Array.from(new Set([
       ...(finalQualityReview.validation?.warnings || []),
-      ...(localMode && Array.isArray(finalQualityReview.validation?.errors) ? finalQualityReview.validation.errors.map((error) => `assembled_review_issue:${error}`) : []),
+      ...(Array.isArray(finalQualityReview.validation?.errors) ? finalQualityReview.validation.errors.map((error) => `assembled_review_issue:${error}`) : []),
     ])),
     deterministicReinforcedCount,
     authoringMode: LIFEBOOK_AUTHORING_MODE,
@@ -5301,15 +5208,14 @@ async function generateLifeBookChaptersWithGemini(env, { profile, signals, llmIn
     generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
     llmEnabled: LIFE_BOOK_PDF_CONFIG.llmEnabled,
     provider: LIFE_BOOK_PDF_CONFIG.provider,
-    llmUsed: llmEnhancedChapterIds.length > 0,
-    fallbackUsed: localMode ? false : (!enhancementEnabled || llmFallbackChapterIds.length > 0),
+    llmUsed: false,
+    fallbackUsed: false,
     llmEnhancedChapterIds,
     llmFallbackChapterIds,
     llmCacheHitChapterIds,
     manuscriptSource: [
-      localMode ? LIFE_BOOK_PDF_CONFIG.templateVersion : (enhancementEnabled ? "hybrid-chapter-enhancement" : "assembled-template"),
-      llmEnhancedChapterIds.length ? `llm-chapters:${llmEnhancedChapterIds.join(",")}` : "",
-      llmFallbackChapterIds.length ? `fallback-chapters:${llmFallbackChapterIds.join(",")}` : "",
+      LIFE_BOOK_PDF_CONFIG.templateVersion,
+      "local-chapter-assembly",
       "deterministic-full-manuscript",
       "deterministic-final-pdf-review",
     ].filter(Boolean).join("+"),
@@ -5976,7 +5882,7 @@ async function composeLifeBookChapters(normalized = {}, { env = {}, sessionId = 
     llmRuntime,
   });
 
-  const generatedLifeBook = await generateLifeBookChaptersWithGemini(env, {
+  const generatedLifeBook = await assembleLifeBookChaptersLocally(env, {
     profile: normalized.profile,
     signals: normalized.signals,
     llmInput: normalized.llmInput,
@@ -8059,8 +7965,7 @@ export const __lifeBookTestUtils = {
   convertLifeBookSectionToCategory,
   validateLifeBookGeneratedChapter,
   reinforceLifeBookChapterDeterministically,
-  generateLifeBookChapterWithGemini,
-  generateLifeBookChaptersWithGemini,
+  assembleLifeBookChaptersLocally,
   buildLifeBookPdfRecord,
   buildPdfReadyPayload: buildPdfReadyPayloadClean,
 };
@@ -8816,7 +8721,7 @@ async function handlePrepareSync(request, env) {
     llmRuntime,
   });
 
-  const generatedLifeBook = await generateLifeBookChaptersWithGemini(env, {
+  const generatedLifeBook = await assembleLifeBookChaptersLocally(env, {
     profile,
     signals,
     llmInput,

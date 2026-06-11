@@ -2,7 +2,6 @@ import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, re
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
-import { callGeminiText } from "../lib/gemini.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
@@ -68,7 +67,7 @@ export const YEARLY_SAJU_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
   llmEnabled: false,
   provider: "saju-assembler",
-  templateVersion: "yearly-saju-assembled-v3",
+  templateVersion: "yearly-saju-local-assembled-v4",
 });
 
 const ANNUAL_FORTUNE_PRODUCT_ID = "saju_annual_fortune";
@@ -138,9 +137,9 @@ const ANNUAL_FORTUNE_RISK_REPLACEMENTS = Object.freeze([
 ]);
 const NEW_YEAR_LOCAL_FORBIDDEN_RE = /\b(?:json|payload|debug|schema|engine|prompt|llm|api|undefined|null|nan|object|todo|fixme|placeholder)\b|\[object Object\]/gi;
 const NEW_YEAR_MANUSCRIPT_SOURCE = Object.freeze({
-  LLM: "worker-native-llm",
-  HYBRID: "annual-fortune-hybrid",
-  LOCAL: "assembled",
+  LLM: "external-llm-disabled",
+  HYBRID: "local-assembled",
+  LOCAL: "local-assembled",
 });
 const NEW_YEAR_LLM_KEY_ENV_KEYS = Object.freeze([
   "PREMIUM_SAJU_NEW_YEAR_GEMINI_API_KEY1",
@@ -2402,34 +2401,14 @@ function parseNewYearGeminiJson(text, schemaName) {
 }
 
 async function generateNewYearGeminiJson(env, { systemPrompt, userPrompt, requestId, schemaName }) {
-  if (!annualFortuneLlmEnabled(env)) {
-    throw Object.assign(new Error("SAJU_NEW_YEAR_LLM_DISABLED"), {
-      code: "SAJU_NEW_YEAR_LLM_DISABLED",
-      status: 503,
-      provider: YEARLY_SAJU_PDF_CONFIG.provider,
-    });
-  }
-  const result = await callGeminiText(env, `${systemPrompt}\n\n${userPrompt}`, {
-    keyEnvKeys: NEW_YEAR_LLM_KEY_ENV_KEYS,
-    modelEnvKeys: NEW_YEAR_LLM_MODEL_ENV_KEYS,
-    models: pickNewYearGeminiModels(env),
-    temperature: Number(env?.SAJU_NEW_YEAR_GEMINI_TEMPERATURE || env?.PREMIUM_GEMINI_TEMPERATURE || 0.35),
-    topP: Number(env?.SAJU_NEW_YEAR_GEMINI_TOP_P || env?.PREMIUM_GEMINI_TOP_P || 0.9),
-    maxOutputTokens: Number(env?.SAJU_NEW_YEAR_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 8192),
-    timeoutMs: Number(env?.SAJU_NEW_YEAR_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
-    totalTimeoutMs: Number(env?.SAJU_NEW_YEAR_GEMINI_TOTAL_TIMEOUT_MS || 0),
-    maxAttemptsPerPair: Math.min(1, Number(env?.SAJU_NEW_YEAR_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1)),
-    useSdk: false,
-    disableVertexFallback: true,
-    metadata: { requestId, schemaName },
+  throw Object.assign(new Error("SAJU_NEW_YEAR_LLM_DISABLED"), {
+    code: "SAJU_NEW_YEAR_LLM_DISABLED",
+    status: 409,
+    provider: YEARLY_SAJU_PDF_CONFIG.provider,
+    generationMode: YEARLY_SAJU_PDF_CONFIG.generationMode,
+    requestId: clean(requestId),
+    schemaName: clean(schemaName),
   });
-  if (!result?.ok) {
-    throw Object.assign(new Error(clean(result?.message || "신년운세 원고 생성에 실패했습니다.")), {
-      code: clean(result?.error || "SAJU_NEW_YEAR_LLM_GENERATION_FAILED"),
-      status: Number(result?.status || 0) || null,
-    });
-  }
-  return parseNewYearGeminiJson(result.text, schemaName);
 }
 
 function normalizeNewYearGeneratedChapter(parsed = {}, chapterSpec = {}, seed = {}) {
@@ -4463,6 +4442,8 @@ function composeYearlySajuChapters(normalized = {}) {
     llmSkipped: expectedChapters.length,
     localFallback: 0,
     fallbackSections: 0,
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
     cacheKeys: [],
     enhancedChapterIds: [],
     skippedChapterIds: expectedChapters.map((chapterSpec) => getAnnualFortuneChapterId(chapterSpec)),
@@ -4485,6 +4466,7 @@ function composeYearlySajuChapters(normalized = {}) {
 
   let fallbackUsed = false;
   let llmFallbackReason = "";
+  let localNormalizationReason = "";
   let validation = validateSajuNewYearPdfQuality({
     chapters,
     expectedChapters,
@@ -4500,8 +4482,7 @@ function composeYearlySajuChapters(normalized = {}) {
       expectedChapters,
       errors: validation.errors,
     }).map((chapter) => enforceYearlySajuChapterMinimums(enrichChapterWithInterpretationBlocks(chapter, normalized.interpretationBlocks, seed), seed));
-    fallbackUsed = true;
-    llmFallbackReason = `local_quality_repaired:${beforeRepair.join(",")}`;
+    localNormalizationReason = `local_quality_normalized:${beforeRepair.join(",")}`;
     validation = validateSajuNewYearPdfQuality({
       chapters,
       expectedChapters,
@@ -4517,6 +4498,7 @@ function composeYearlySajuChapters(normalized = {}) {
     manuscriptSource: NEW_YEAR_MANUSCRIPT_SOURCE.LOCAL,
     fallbackUsed,
     llmFallbackReason,
+    localNormalizationReason,
     hybridStats: stats,
     monthlyTable: composeMonthlyFortuneTable(normalized),
   };
@@ -4555,6 +4537,7 @@ function generateYearlySajuPdf(profile, targetYear, options = {}) {
       ...(options.metadata || {}),
       fallbackUsed: chapterResult.fallbackUsed,
       llmFallbackReason: chapterResult.llmFallbackReason,
+      localNormalizationReason: chapterResult.localNormalizationReason,
       manuscriptSource: NEW_YEAR_MANUSCRIPT_SOURCE.LOCAL,
       localDraftChapterCount: assembledChapters.length,
       writingPipeline: YEARLY_SAJU_PDF_CONFIG.templateVersion,
@@ -4966,6 +4949,7 @@ async function handlePrepare(request, env) {
     const manuscriptSource = pipelineResult.manuscriptSource;
     const fallbackUsed = pipelineResult.fallbackUsed;
     const llmFallbackReason = pipelineResult.llmFallbackReason;
+    const localNormalizationReason = pipelineResult.localNormalizationReason;
     const hybridStats = pipelineResult.hybridStats;
     const monthlyFortuneSections = pipelineResult.monthlyFortuneSections;
     let pdfCompletionValidation = pipelineResult.pdfCompletionValidation;
@@ -4977,6 +4961,7 @@ async function handlePrepare(request, env) {
       totalChars: finalTotalChars,
       manuscriptSource,
       fallbackUsed,
+      localNormalizationReason,
       hybridStats,
       validationOk: validation.ok,
     });
@@ -5066,6 +5051,7 @@ async function handlePrepare(request, env) {
       cacheHit: false,
       fallbackUsed,
       llmFallbackReason,
+      localNormalizationReason,
       hybridStats,
       chapters,
       seed: { ...localYearSajuJson, chapters: undefined },

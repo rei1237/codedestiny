@@ -146,7 +146,7 @@ async function run() {
   assert(LIFE_BOOK_PDF_CONFIG.generationMode === "local-assembled", "generation mode must be local-assembled");
   assert(LIFE_BOOK_PDF_CONFIG.llmEnabled === false, "llm must be disabled");
   assert(LIFE_BOOK_PDF_CONFIG.provider === "saju-assembler", "provider must be saju-assembler");
-  assert(LIFE_BOOK_PDF_CONFIG.templateVersion === "life-book-assembled-v2", "template version mismatch");
+  assert(LIFE_BOOK_PDF_CONFIG.templateVersion === "life-book-local-assembled-v3", "template version mismatch");
 
   const originalFetch = globalThis.fetch;
   const seenUrls = [];
@@ -179,7 +179,7 @@ async function run() {
       });
     });
 
-    const generated = await utils.generateLifeBookChaptersWithGemini(envWithKeys, {
+    const generated = await utils.assembleLifeBookChaptersLocally(envWithKeys, {
       profile: buildProfile(),
       signals: buildSignals(),
       llmInput: {},
@@ -235,7 +235,7 @@ async function run() {
     assert(pipeline.generatedLifeBook?.llmUsed === false, "pipeline llmUsed must be false");
     assert(typeof pipeline.html === "string" && pipeline.html.includes("<!doctype html>"), "pipeline must render html");
     assert(pipeline.pdf?.renderFormat === "pdf-archive", "pipeline pdf render format mismatch");
-    assert(typeof pipeline.cacheKey === "string" && pipeline.cacheKey.includes("life_book_pdf:life-book-assembled-v2:"), "pipeline cache key missing");
+    assert(typeof pipeline.cacheKey === "string" && pipeline.cacheKey.includes("life_book_pdf:life-book-local-assembled-v3:"), "pipeline cache key missing");
     assert(typeof pipeline.calculationResultHash === "string" && pipeline.calculationResultHash.length > 0, "pipeline calculation result hash missing");
     assert(pipeline.cacheHit === false, "first pipeline run must render before cache");
     const normalized = pipeline.lifeBookNormalizedData;

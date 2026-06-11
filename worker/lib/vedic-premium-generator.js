@@ -3,7 +3,6 @@ import {
   VEDIC_SOLO_TARGET_CHARS,
   sanitizeVedicPremiumText,
 } from "./vedic-premium-chapters.js";
-import { callGeminiText } from "./gemini.js";
 import { getEnv } from "./env.js";
 
 const MIN_SECTION_CHARS = 900;
@@ -14,18 +13,10 @@ export const VEDIC_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
   llmEnabled: false,
   provider: "vedic-local-assembler",
-  templateVersion: "vedic-premium-assembled-v1",
+  templateVersion: "vedic-premium-local-assembled-v2",
 });
 export const VEDIC_ASTROLOGY_PROMPT_VERSION = VEDIC_PDF_CONFIG.templateVersion;
-export const VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS = Object.freeze([
-  "vedic_soul_map",
-  "vedic_lagna",
-  "vedic_moon_nakshatra",
-  "vedic_career_success",
-  "vedic_love_partnership",
-  "vedic_dasha_flow",
-  "vedic_master_plan",
-]);
+export const VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS = Object.freeze([]);
 const FORBIDDEN_TEXT_RE = /\b(?:fallback|safe-local|seed|skeleton|payload|json|debug|local|localdraft|engine|validation|retry|llm|api|wasm|swiss\s*wasm|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|preflightfailed|chart\s*seed\s*failed)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|로컬\s*기반|계산\s*시그니처|데이터\s*정규화|품질\s*검증|재생성|내부\s*데이터|템플릿/gi;
 const VEDIC_ASTROLOGY_LLM_CACHE_MAX = 200;
 const vedicAstrologyLlmCache = new Map();
@@ -2608,31 +2599,17 @@ function validateVedicLlmChapterDraft(chapterDraft = {}, chapterSpec = {}, evide
 }
 
 async function callVedicPremiumLlm(env, prompt, meta = {}) {
-  const result = await callGeminiText(env, prompt, {
-    keyEnvKeys: VEDIC_LLM_KEY_ENV_KEYS,
-    modelEnvKeys: VEDIC_LLM_MODEL_ENV_KEYS,
-    temperature: Number(env?.VEDIC_PREMIUM_GEMINI_TEMPERATURE || env?.PREMIUM_GEMINI_TEMPERATURE || 0.35),
-    topP: Number(env?.VEDIC_PREMIUM_GEMINI_TOP_P || env?.PREMIUM_GEMINI_TOP_P || 0.9),
-    maxOutputTokens: Number(env?.VEDIC_PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 8192),
-    timeoutMs: Number(env?.VEDIC_PREMIUM_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
-    totalTimeoutMs: Number(env?.VEDIC_PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 0),
-    maxAttemptsPerPair: Number(env?.VEDIC_PREMIUM_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1),
-    disableVertexFallback: env?.VEDIC_PREMIUM_GEMINI_DISABLE_VERTEX_FALLBACK ?? env?.GEMINI_DISABLE_VERTEX_FALLBACK,
-    metadata: meta,
+  const error = Object.assign(new Error("Vedic premium PDF external LLM generation is disabled."), {
+    code: "VEDIC_EXTERNAL_LLM_DISABLED",
+    status: 501,
+    details: {
+      meta,
+      promptLength: String(prompt || "").length,
+      externalCallsAllowed: false,
+    },
   });
-  if (!result?.ok || !clean(result?.text)) {
-    const error = Object.assign(new Error(clean(result?.message || "베다점 원고 생성에 실패했습니다.")), {
-      code: clean(result?.error || "VEDIC_LLM_GENERATION_FAILED"),
-      status: Number(result?.status || 502),
-      details: result || null,
-    });
-    error.reasonClass = classifyVedicLlmFailure(error);
-    throw error;
-  }
-  return {
-    text: clean(result.text),
-    model: clean(result.model),
-  };
+  error.reasonClass = "external_llm_disabled";
+  throw error;
 }
 
 function summarizeVedicLlmChapter(chapter = {}) {
@@ -2707,11 +2684,6 @@ async function generateVedicLlmChapter(env, chartJson, chapter, previousSummarie
 }
 
 export async function enhanceVedicPremiumManuscriptWithLLM(env, localManuscript, localVedicChartJson, options = {}) {
-  const previousSummaries = [];
-  const chapters = [];
-  const attempts = [];
-  const models = new Set();
-  const failures = [];
   const facts = options?.facts || buildVedicAstrologyFacts(localVedicChartJson, options?.rawInput || {});
   const localFallbackChapters = normalizeVedicLocalFallbackManuscript(
     localManuscript && safeArray(localManuscript?.chapters).length
@@ -2720,101 +2692,33 @@ export async function enhanceVedicPremiumManuscriptWithLLM(env, localManuscript,
     localVedicChartJson,
   );
   const chapterPlans = options?.chapterPlans || buildVedicAstrologyChapterPlans({ chapters: localFallbackChapters }, facts, localVedicChartJson);
-  const chapterPlanById = new Map(chapterPlans.map((plan) => [clean(plan.chapterId), plan]));
-  const enhancedChapterIds = new Set(VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS);
-  const llmEnabled = readVedicFlag(env, "VEDIC_ASTROLOGY_LLM_ENHANCEMENT_ENABLED", true);
-  const onChapterDone = typeof options?.onChapterDone === "function" ? options.onChapterDone : () => {};
-  let stopLlmReason = "";
-
-  for (const [index, chapter] of VEDIC_PREMIUM_CHAPTERS.entries()) {
-    const localChapter = localFallbackChapters[index] || localFallbackChapters.find((item) => clean(item.id) === clean(chapter.id)) || {};
-    const chapterPlan = chapterPlanById.get(clean(chapter.id)) || {};
-    const shouldEnhance = llmEnabled && enhancedChapterIds.has(clean(chapter.id)) && !stopLlmReason;
-    let finalChapter = localChapter;
-    let source = llmEnabled ? "local-template" : "llm-disabled-local-template";
-    let chapterAttempts = 0;
-    let model = "";
-
-    if (shouldEnhance) {
-      const cacheKey = buildVedicAstrologyLlmCacheKey(facts, chapter.id);
-      const cached = readVedicLlmCache(cacheKey);
-      if (cached?.chapter) {
-        finalChapter = cached.chapter;
-        source = "llm-cache";
-        model = clean(cached.model || "cache");
-      } else {
-        try {
-          const generated = await generateVedicLlmChapter(env, localVedicChartJson, chapter, previousSummaries, {
-            requestId: clean(options?.requestId),
-            masterJson: options?.masterJson,
-            chapterPlan,
-          });
-          finalChapter = generated.chapter;
-          source = "llm-enhanced";
-          chapterAttempts = Number(generated.attempts || 1);
-          model = clean(generated.model);
-          writeVedicLlmCache(cacheKey, {
-            chapter: generated.chapter,
-            summary: generated.summary,
-            model,
-          });
-        } catch (error) {
-          const failureClass = classifyVedicLlmFailure(error);
-          failures.push({
-            chapterId: chapter.id,
-            chapterNo: Number(chapter.order),
-            failureClass,
-            code: clean(error?.code || "VEDIC_LLM_CHAPTER_FAILED"),
-            message: clean(error?.message || error),
-          });
-          source = "local-fallback-after-llm-failure";
-          if (["missing_key", "rate_limited", "timeout"].includes(failureClass)) {
-            stopLlmReason = failureClass;
-          }
-        }
-      }
-    }
-
-    chapters.push(finalChapter);
-    previousSummaries.push(summarizeVedicLlmChapter(finalChapter));
-    attempts.push({
-      chapterId: chapter.id,
-      chapterNo: Number(chapter.order),
-      attempts: chapterAttempts,
-      model,
-      source,
-    });
-    if (model && model !== "cache") models.add(model);
-    onChapterDone({
-      chapterNo: Number(chapter.order),
-      chapterId: chapter.id,
-      chapterTitle: chapter.title,
-      completed: chapters.length,
-      total: VEDIC_PREMIUM_CHAPTERS.length,
-      attempts: chapterAttempts,
-      source,
-    });
-  }
-
-  const llmChapterCount = attempts.filter((item) => item.source === "llm-enhanced" || item.source === "llm-cache").length;
-  const fallbackChapterCount = attempts.filter((item) => item.source === "local-fallback-after-llm-failure").length;
-
+  const attempts = localFallbackChapters.map((chapter, index) => ({
+    chapterId: clean(chapter?.id || VEDIC_PREMIUM_CHAPTERS[index]?.id),
+    chapterNo: Number(chapter?.order || VEDIC_PREMIUM_CHAPTERS[index]?.order || index + 1),
+    attempts: 0,
+    model: "",
+    source: VEDIC_PDF_CONFIG.generationMode,
+  }));
   return {
-    chapters,
-    llmFailed: failures.length > 0,
-    fallbackUsed: fallbackChapterCount > 0 || !llmEnabled || llmChapterCount === 0,
-    reason: llmEnabled ? "HYBRID_LLM_LOCAL" : "LLM_DISABLED_LOCAL_TEMPLATE",
-    error: failures[0] || null,
+    chapters: localFallbackChapters,
+    llmFailed: false,
+    fallbackUsed: false,
+    reason: "LOCAL_ASSEMBLED_NO_LLM",
+    error: null,
     attempts,
-    model: Array.from(models).join(", "),
-    failures,
-    failureClass: clean(failures[0]?.failureClass || stopLlmReason),
-    llmChapterCount,
-    localTemplateChapterCount: attempts.filter((item) => item.source === "local-template" || item.source === "llm-disabled-local-template").length,
-    fallbackChapterCount,
-    enhancedChapterIds: Array.from(enhancedChapterIds),
+    model: "",
+    failures: [],
+    failureClass: "",
+    llmChapterCount: 0,
+    localTemplateChapterCount: localFallbackChapters.length,
+    fallbackChapterCount: 0,
+    enhancedChapterIds: [],
     promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
-    llmEnabled,
+    llmEnabled: false,
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
+    facts,
+    chapterPlans,
   };
 }
 
@@ -3654,6 +3558,8 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
     llmEnabled: false,
     enhancedChapterIds: [],
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
   });
 
   const llmDraft = {
@@ -3672,6 +3578,8 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     enhancedChapterIds: [],
     promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
     llmEnabled: false,
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
   };
 
   log("LocalAssembledManuscriptSuccess", {
@@ -3680,6 +3588,8 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     llmChapterCount: Number(llmDraft?.llmChapterCount || 0),
     fallbackChapterCount: Number(llmDraft?.fallbackChapterCount || 0),
     reason: clean(llmDraft?.reason),
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
   });
 
   const finalChapters = safeArray(llmDraft?.chapters);
@@ -3723,11 +3633,15 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     hasMoonSign: finalValidation.stats.hasMoonSign,
     hasNakshatra: finalValidation.stats.hasNakshatra,
     manuscriptSource,
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
   });
 
   log("PdfRenderStart", {
     chapterCount: finalChapters.length,
     manuscriptSource,
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
   });
 
   const chapterDrafts = finalChapters.map((chapter) => ({
@@ -3754,6 +3668,8 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     chapterCount: chapterDrafts.length,
     totalLength: finalValidation.stats.totalLength,
     manuscriptSource,
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
     pdfCompletionValidation: pdfCompletionValidation.ok,
   });
 
@@ -3774,12 +3690,22 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     generationMode: VEDIC_PDF_CONFIG.generationMode,
     provider: VEDIC_PDF_CONFIG.provider,
     writingPipeline: "local-calculation-to-local-assembled-pdf",
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
     llmChapterCount: Number(llmDraft?.llmChapterCount || 0),
     fallbackChapterCount: Number(llmDraft?.fallbackChapterCount || 0),
     llmFallbackReason: clean(llmDraft?.failureClass || llmDraft?.error?.failureClass || ""),
     localDraftChapterCount: Number(llmDraft?.localTemplateChapterCount || 0),
     calculationFallbackUsed: false,
-    pdfReady,
+    pdfReady: {
+      ...pdfReady,
+      manuscriptSource,
+      localAssemblyOnly: true,
+      externalCallsAllowed: false,
+      llmChapterCount: 0,
+      fallbackChapterCount: 0,
+      localDraftChapterCount: Number(llmDraft?.localTemplateChapterCount || 0),
+    },
     pdfCompletionValidation,
     quality: {
       ...finalValidation.stats,
@@ -3789,6 +3715,10 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
       evidenceMissingRequiredCount: evidenceAudit.missingRequiredCount,
       evidenceInvalidSignalCount: evidenceAudit.invalidSignalCount,
       evidenceUnsupportedClaimCount: evidenceAudit.unsupportedClaimCount,
+      writingPipeline: "local-calculation-to-local-assembled-pdf",
+      manuscriptSource,
+      localAssemblyOnly: true,
+      externalCallsAllowed: false,
     },
     diagnostics: {
       llm: {
@@ -3805,6 +3735,8 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
         enhancedChapterIds: safeArray(llmDraft?.enhancedChapterIds),
         promptVersion: clean(llmDraft?.promptVersion || VEDIC_ASTROLOGY_PROMPT_VERSION),
         enabled: Boolean(llmDraft?.llmEnabled),
+        localAssemblyOnly: true,
+        externalCallsAllowed: false,
       },
       manuscript: finalValidation,
       pdfCompletionValidation,

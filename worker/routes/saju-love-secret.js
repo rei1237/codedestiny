@@ -47,16 +47,16 @@ const LOVE_SECRET_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
   llmEnabled: false,
   provider: "saju-assembler",
-  templateVersion: "love-secret-assembled-v2",
+  templateVersion: "love-secret-local-assembled-v3",
 });
 const LOVE_SECRET_FORBIDDEN_RE = /\b(?:fallback|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|계산\s*시그니처|내부\s*데이터|엔진\s*결과|데이터\s*정규화|품질\s*검증|재생성/gi;
 const LOVE_SECRET_MANUSCRIPT_SOURCE = Object.freeze({
-  LOCAL: "assembled",
-  LLM: "gemini",
-  HYBRID: "hybrid-gemini",
+  LOCAL: "local-assembled",
+  LLM: "external-llm-disabled",
+  HYBRID: "local-assembled",
 });
 const LOVE_SECRET_PRODUCT_ID = "love_secret";
-const LOVE_SECRET_PROMPT_VERSION = "love-secret-hybrid-v1";
+const LOVE_SECRET_PROMPT_VERSION = "love-secret-local-assembler-v3";
 const LOVE_SECRET_ENGINE_VERSION = "worker-saju-engine.v1";
 const LOVE_SECRET_LLM_ENHANCEMENT_CACHE = new Map();
 const LOVE_SECRET_LLM_ENHANCEMENT_CACHE_MAX = 240;
@@ -1260,7 +1260,9 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
       loveSecretFacts,
       loveSecretChapterPlans: [],
       llmEnhancement: {
-        enabled: isLoveSecretLlmEnhancementEnabled(env),
+        enabled: false,
+        localAssemblyOnly: true,
+        externalCallsAllowed: false,
         attempted: 0,
         enhancedChapterIds: [],
         fallbackChapterIds: [],
@@ -1272,7 +1274,6 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
   }
 
   const chapters = new Array(totalChapters);
-  let fallbackUsed = false;
   let completed = 0;
 
   console.info("[LoveBook][Flow] SKELETON_READY", { mode, chapterCount: totalChapters });
@@ -1283,29 +1284,17 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
     try {
       generated = await generateLoveSecretChapter(env, base, mode, config, chapterNo);
     } catch (error) {
-      const chapterMeta = getLoveSecretChapterMeta(config, chapterNo);
-      const title = stripUnsafeText(chapterMeta.title || `연애 비책 ${chapterNo}장`);
-      const subtitle = stripUnsafeText(chapterMeta.subtitle || "");
-      const sectionTitles = getChapterSpecificSections({}, chapterNo, mode);
-      const local = buildLocalChapter(base, title, subtitle, sectionTitles, mode, chapterNo);
-      generated = {
-        fallbackUsed: true,
-        chapter: {
-          chapter: chapterNo,
-          title,
-          subtitle,
-          text: stripUnsafeText(local.finalText) || local.finalText,
-          sections: Array.isArray(local.sections) ? local.sections : [],
-        },
-      };
       console.error("[LoveBook][ChapterError]", {
         chapterIndex: chapterNo,
-        chapterTitle: title,
         message: clean(error?.message || error) || "unknown_error",
+      });
+      throw Object.assign(new Error(`LOVE_SECRET_LOCAL_CHAPTER_FAILED:${chapterNo}`), {
+        cause: error,
+        code: "LOVE_SECRET_LOCAL_CHAPTER_FAILED",
+        status: 422,
       });
     }
 
-    if (generated?.fallbackUsed) fallbackUsed = true;
     chapters[current] = generated?.chapter || null;
     completed += 1;
 
@@ -1328,47 +1317,42 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
     chapters,
     loveSecretFacts,
   });
-  const llmEnhancement = await enhanceLoveSecretLocalChapters(env, {
-    chapters,
-    mode: normalizedMode,
-    plans: loveSecretChapterPlans,
-    loveSecretFacts,
-    requestId: clean(requestId || normalizedBody?.requestId || `love-secret-hybrid:${Date.now().toString(36)}`),
-  });
+  const llmEnhancement = {
+    chapters: chapters.map((chapter) => markLoveSecretLocalChapter(chapter)),
+    enabled: false,
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
+    attempted: 0,
+    enhancedChapterIds: [],
+    fallbackChapterIds: [],
+    cacheHits: [],
+    promptVersion: LOVE_SECRET_PROMPT_VERSION,
+    engineVersion: LOVE_SECRET_ENGINE_VERSION,
+  };
   let finalChapters = llmEnhancement.chapters;
-  let llmFallbackUsed = llmEnhancement.enabled && llmEnhancement.attempted > llmEnhancement.enhancedChapterIds.length;
-  let recoveredToLocal = false;
-  const preparedHybrid = prepareLoveSecretFinalChapters({
+  let normalizedToLocal = false;
+  const preparedLocal = prepareLoveSecretFinalChapters({
     candidateChapters: finalChapters,
     localChapters: chapters,
     mode: normalizedMode,
     config,
     base,
   });
-  if (preparedHybrid.validation.ok) {
-    finalChapters = preparedHybrid.chapters;
-    if (preparedHybrid.recovered) {
-      recoveredToLocal = true;
-      llmFallbackUsed = true;
-      llmEnhancement.fallbackChapterIds = Array.from(new Set([
-        ...(Array.isArray(llmEnhancement.fallbackChapterIds) ? llmEnhancement.fallbackChapterIds : []),
-        "final-validation:local-recovery",
-      ]));
-      llmEnhancement.enhancedChapterIds = [];
-    }
+  if (preparedLocal.validation.ok) {
+    finalChapters = preparedLocal.chapters;
+    normalizedToLocal = Boolean(preparedLocal.recovered);
   }
   console.info("[LoveBook][Flow] ALL_CHAPTERS_DONE", {
     expected: totalChapters,
     actual: finalChapters.length,
-    llmEnhanced: llmEnhancement.enhancedChapterIds.length,
-    llmFallback: llmEnhancement.fallbackChapterIds.length,
-    recoveredToLocal,
+    localAssemblyOnly: true,
+    normalizedToLocal,
   });
   return {
     chapters: finalChapters,
-    fallbackUsed: fallbackUsed || llmFallbackUsed,
+    fallbackUsed: false,
     totalChapters: finalChapters.length,
-    manuscriptSource: !recoveredToLocal && llmEnhancement.enhancedChapterIds.length > 0 ? LOVE_SECRET_MANUSCRIPT_SOURCE.HYBRID : LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
+    manuscriptSource: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
     loveSecretMasterJson,
     masterJsonValidation,
     loveSecretFacts,
@@ -3353,48 +3337,12 @@ function buildLoveSecretEnhancementPrompt(plan = {}) {
 
 async function generateLoveSecretEnhancedText(env, { plan, loveSecretFacts, requestId }) {
   const cacheKey = buildLoveSecretEnhancementCacheKey({ loveSecretFacts, plan });
-  if (!isLoveSecretLlmEnhancementEnabled(env)) {
-    return {
-      ok: false,
-      enhancedText: "",
-      cacheKey,
-      cacheHit: false,
-      fallbackReason: "LOVE_SECRET_LLM_DISABLED",
-    };
-  }
-  const cached = getLoveSecretEnhancementCache(cacheKey);
-  if (cached?.enhancedText) {
-    return { ok: true, enhancedText: cached.enhancedText, cacheKey, cacheHit: true, fallbackReason: "" };
-  }
-  const { systemPrompt, userPrompt } = buildLoveSecretEnhancementPrompt(plan);
-  const result = await callLoveSecretDisabledLlmProvider(env, `${systemPrompt}\n\n${userPrompt}`, {
-    keyEnvKeys: LOVE_SECRET_LLM_KEY_ENV_KEYS,
-    modelEnvKeys: LOVE_SECRET_LLM_MODEL_ENV_KEYS,
-    models: pickLoveSecretGeminiModels(env),
-    temperature: Number(env?.LOVE_SECRET_LLM_ENHANCEMENT_TEMPERATURE || 0.32),
-    topP: Number(env?.LOVE_SECRET_LLM_ENHANCEMENT_TOP_P || 0.88),
-    maxOutputTokens: Number(env?.LOVE_SECRET_LLM_ENHANCEMENT_MAX_OUTPUT_TOKENS || 2200),
-    timeoutMs: Number(env?.LOVE_SECRET_LLM_ENHANCEMENT_TIMEOUT_MS || 30000),
-    totalTimeoutMs: Number(env?.LOVE_SECRET_LLM_ENHANCEMENT_TOTAL_TIMEOUT_MS || 0),
-    maxAttemptsPerPair: Math.max(1, Math.min(1, Number(env?.LOVE_SECRET_LLM_ENHANCEMENT_RETRIES || 1))),
-    useSdk: false,
-    disableVertexFallback: true,
-    metadata: { requestId, schemaName: `LoveSecretEnhancement:${clean(plan?.chapterId)}`, promptVersion: LOVE_SECRET_PROMPT_VERSION },
-  });
-  if (!result?.ok) {
-    return { ok: false, enhancedText: "", cacheKey, cacheHit: false, fallbackReason: clean(result?.error || result?.message || "llm_failed") };
-  }
-  const validation = validateLoveSecretEnhancedText(result.text, plan);
-  if (validation.ok) {
-    setLoveSecretEnhancementCache(cacheKey, { enhancedText: validation.text });
-    return { ok: true, enhancedText: validation.text, cacheKey, cacheHit: false, fallbackReason: "" };
-  }
   return {
     ok: false,
-    enhancedText: validation.partialText,
+    enhancedText: "",
     cacheKey,
     cacheHit: false,
-    fallbackReason: validation.reason,
+    fallbackReason: "LOVE_SECRET_EXTERNAL_LLM_DISABLED",
   };
 }
 
@@ -5472,9 +5420,8 @@ async function runLoveSecretJob(env, jobId) {
       throw new Error("FINAL_MANUSCRIPT_INVALID");
     }
     if (preparedFinal.recovered) {
-      fallbackUsed = true;
       manuscriptSource = LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
-      console.warn("[LoveBookPremiumPDF][FinalLocalRecoveryUsed]", {
+      console.info("[LoveBookPremiumPDF][FinalLocalAssemblyNormalized]", {
         mode,
         reason: preparedFinal.recoveryReason,
         previousIssues: preparedFinal.previousValidation?.topicCoverageIssues || preparedFinal.previousValidation?.tooShortChapterIndexes || [],
@@ -5890,9 +5837,8 @@ async function handlePrepare(request, env) {
     });
   }
   if (preparedFinal.recovered) {
-    fallbackUsed = true;
     manuscriptSource = LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
-    console.warn("[LoveBookPremiumPDF][FinalLocalRecoveryUsed]", {
+    console.info("[LoveBookPremiumPDF][FinalLocalAssemblyNormalized]", {
       mode,
       reason: preparedFinal.recoveryReason,
     });

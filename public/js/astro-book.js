@@ -386,26 +386,34 @@
     var hasStoredUrl = !!_resolveAstroStoredUrl(payload);
     var completed = _clean(payload.status || '').toLowerCase();
     var chapterComplete = chapters.length >= total;
-    return hasReportId && hasStoredUrl && chapterComplete && completed === 'completed' && _hasAstroLlmReady(payload, total);
+    return hasReportId && hasStoredUrl && chapterComplete && completed === 'completed' && _hasAstroLocalReady(payload, total);
   }
 
-  function _hasAstroLlmReady(payload, totalOverride) {
+  function _hasAstroLocalReady(payload, totalOverride) {
     var p = payload || {};
+    var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
     var total = Number(totalOverride || _getTotalChapters() || ASTRO_TOTAL_CHAPTERS || 12);
-    var llmChapterCount = Number(p.llmChapterCount || 0);
-    var expectedLlmChapterCount = Number(p.expectedLlmChapterCount || (Array.isArray(p.enhancedChapterIds) ? p.enhancedChapterIds.length : 0) || 0);
+    var llmChapterCount = Number(p.llmChapterCount || ready.llmChapterCount || 0);
+    var expectedLlmChapterCount = Number(p.expectedLlmChapterCount || ready.expectedLlmChapterCount || 0);
+    var fallbackChapterCount = Number(p.fallbackChapterCount || ready.fallbackChapterCount || 0);
+    var localDraftChapterCount = Number(p.localDraftChapterCount || ready.localDraftChapterCount || 0);
     var quality = p.quality && typeof p.quality === 'object' ? p.quality : {};
     var pdfQuality = p.pdfQuality && typeof p.pdfQuality === 'object' ? p.pdfQuality : {};
     var validation = p.validation && typeof p.validation === 'object' ? p.validation : {};
-    var source = _clean(p.manuscriptSource || quality.manuscriptSource).toLowerCase();
+    var source = _clean(p.manuscriptSource || ready.manuscriptSource || quality.manuscriptSource).toLowerCase();
     var qualityOk = quality.ok !== false && pdfQuality.ok !== false && validation.ok !== false;
-    var allowedSource = source === 'llm-only'
-      || source === 'llm-local-hybrid'
-      || source === 'hybrid-llm-local'
-      || source === 'local-template'
-      || source === 'local-rule-completed';
-    var llmWithinLimit = !expectedLlmChapterCount || llmChapterCount <= expectedLlmChapterCount;
-    return allowedSource && llmWithinLimit && llmChapterCount <= total && qualityOk;
+    var localAssemblyOnly = p.localAssemblyOnly !== false && ready.localAssemblyOnly !== false && quality.localAssemblyOnly !== false && pdfQuality.localAssemblyOnly !== false;
+    var externalCallsAllowed = p.externalCallsAllowed === true || ready.externalCallsAllowed === true || quality.externalCallsAllowed === true || pdfQuality.externalCallsAllowed === true;
+    return source === 'local-assembled'
+      && !/gemini|llm|hybrid|fallback/.test(source)
+      && llmChapterCount === 0
+      && expectedLlmChapterCount === 0
+      && fallbackChapterCount === 0
+      && localDraftChapterCount === total
+      && p.fallbackUsed !== true
+      && qualityOk
+      && localAssemblyOnly
+      && !externalCallsAllowed;
   }
 
   function _setStartBusy(isBusy) {

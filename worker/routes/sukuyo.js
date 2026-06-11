@@ -425,6 +425,8 @@ function buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId) {
     generationMode: generated.generationMode || SUKYO_PDF_CONFIG.generationMode,
     provider: generated.provider || SUKYO_PDF_CONFIG.provider,
     writingPipeline: generated.writingPipeline || "local-calculation-to-local-assembled-pdf",
+    localAssemblyOnly: generated.localAssemblyOnly !== false,
+    externalCallsAllowed: generated.externalCallsAllowed === true,
     pdfCompletionValidation: generated.pdfCompletionValidation,
     canReopen: true,
     canDownload: true,
@@ -451,6 +453,11 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
   const targetLlmChapterCount = Number(payload?.targetLlmChapterCount ?? ready?.targetLlmChapterCount ?? 0);
   const fallbackChapterCount = Number(payload?.fallbackChapterCount || 0);
   const localDraftChapterCount = Number(payload?.localDraftChapterCount || 0);
+  const fallbackUsed = payload?.fallbackUsed === true || ready?.fallbackUsed === true;
+  const localAssemblyOnly = payload?.localAssemblyOnly !== false && ready?.localAssemblyOnly !== false;
+  const externalCallsAllowed = payload?.externalCallsAllowed === true || ready?.externalCallsAllowed === true;
+  const sourceIsLocal = ["local", SUKYO_PDF_CONFIG.generationMode].includes(manuscriptSource);
+  const sourceHasExternalSignal = /\b(?:gemini|llm|hybrid|fallback)\b/i.test(manuscriptSource);
   const countContractOk = Number.isFinite(llmChapterCount)
     && Number.isFinite(targetLlmChapterCount)
     && Number.isFinite(fallbackChapterCount)
@@ -463,6 +470,10 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
     && fallbackChapterCount <= targetLlmChapterCount
     && localDraftChapterCount >= 0
     && localDraftChapterCount <= SUKYO_PDF_CHAPTER_COUNT
+    && llmChapterCount === 0
+    && targetLlmChapterCount === 0
+    && fallbackChapterCount === 0
+    && localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT
     && llmChapterCount + localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT;
   return Boolean(
     clean(payload?.reportId)
@@ -470,7 +481,11 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
     && hasCompleteSukuyoChapters(chapters)
     && clean(payload?.serverStatus) === "completed"
     && clean(payload?.qualityStatus) === "passed"
-    && ["local", SUKYO_PDF_CONFIG.generationMode].includes(manuscriptSource)
+    && sourceIsLocal
+    && !sourceHasExternalSignal
+    && !fallbackUsed
+    && localAssemblyOnly
+    && !externalCallsAllowed
     && countContractOk
   );
 }
@@ -693,7 +708,12 @@ async function handleSukuyoPremiumPrepare(request, env) {
       contentType: "application/pdf",
       renderFormat: "pdf-archive",
       manuscriptSource: clean(generated?.manuscriptSource || generated?.payload?.manuscriptSource || SUKYO_PDF_CONFIG.generationMode),
+      localAssemblyOnly: true,
+      externalCallsAllowed: false,
+      llmChapterCount: 0,
       targetLlmChapterCount: Number(generated?.targetLlmChapterCount ?? generated?.payload?.targetLlmChapterCount ?? 0),
+      fallbackChapterCount: 0,
+      localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
     };
 
     if (!clean(pdfReady?.html) || !clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)) {
@@ -730,6 +750,8 @@ async function handleSukuyoPremiumPrepare(request, env) {
         llmChapterCount: Number(generated.llmChapterCount || 0),
         fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
         fallbackUsed: Boolean(generated.fallbackUsed),
+        localAssemblyOnly: generated.localAssemblyOnly !== false,
+        externalCallsAllowed: generated.externalCallsAllowed === true,
         pdfCompletionValidation,
         archive: archiveMetadata,
       });
@@ -780,6 +802,8 @@ async function handleSukuyoPremiumPrepare(request, env) {
       generationMode: generated.generationMode || SUKYO_PDF_CONFIG.generationMode,
       provider: generated.provider || SUKYO_PDF_CONFIG.provider,
       writingPipeline: generated.writingPipeline || "local-calculation-to-local-assembled-pdf",
+      localAssemblyOnly: generated.localAssemblyOnly !== false,
+      externalCallsAllowed: generated.externalCallsAllowed === true,
       pdfCompletionValidation,
       archiveStatus,
       archivePending: archiveStatus !== "completed",

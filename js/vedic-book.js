@@ -12,6 +12,7 @@
   var VEDIC_PLANETS_API = '/api/vedic/planets';
   var VEDIC_TOTAL_CHAPTERS = 12;
   var VEDIC_COIN_COST = 390;
+  var VEDIC_LOCAL_MANUSCRIPT_SOURCE = 'local-assembled';
   var VEDIC_CLIENT_EVIDENCE_SCHEMA_VERSION = 'vedic-premium-client-evidence.v1';
   var VEDIC_STATUS_MAX_ATTEMPTS = 150;
   var VEDIC_STATUS_POLL_MS = 4000;
@@ -617,18 +618,36 @@
 
   function _isCompletedReportReady(response) {
     var payload = response || {};
+    var ready = payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
     var chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
     var total = Number(VEDIC_TOTAL_CHAPTERS || 0) || 12;
     var completed = _clean(payload.status || '').toLowerCase();
     var hasReportId = !!_clean(payload.reportId);
-    var hasPdfHtml = !!_clean(payload && payload.pdfReady && payload.pdfReady.html);
+    var hasPdfHtml = !!_clean(ready.html);
     var hasStoredUrl = !!_clean(
       payload.pdfUrl
       || payload.htmlUrl
       || payload.downloadUrl
-      || (payload.pdfReady && (payload.pdfReady.pdfUrl || payload.pdfReady.htmlUrl || payload.pdfReady.downloadUrl))
+      || ready.pdfUrl
+      || ready.htmlUrl
+      || ready.downloadUrl
     );
-    return hasReportId && hasPdfHtml && hasStoredUrl && chapters.length >= total && (!completed || completed === 'completed');
+    var manuscriptSource = _clean(payload.manuscriptSource || ready.manuscriptSource).toLowerCase();
+    var llmChapterCount = Number(payload.llmChapterCount || ready.llmChapterCount || 0);
+    var fallbackChapterCount = Number(payload.fallbackChapterCount || ready.fallbackChapterCount || 0);
+    var localDraftChapterCount = Number(payload.localDraftChapterCount || ready.localDraftChapterCount || 0);
+    var fallbackUsed = payload.fallbackUsed === true || ready.fallbackUsed === true;
+    var localAssemblyOnly = payload.localAssemblyOnly !== false && ready.localAssemblyOnly !== false;
+    var externalCallsAllowed = payload.externalCallsAllowed === true || ready.externalCallsAllowed === true;
+    var localContractOk = manuscriptSource === VEDIC_LOCAL_MANUSCRIPT_SOURCE
+      && !/gemini|llm|hybrid|fallback/.test(manuscriptSource)
+      && llmChapterCount === 0
+      && fallbackChapterCount === 0
+      && localDraftChapterCount === total
+      && !fallbackUsed
+      && localAssemblyOnly
+      && !externalCallsAllowed;
+    return hasReportId && hasPdfHtml && hasStoredUrl && chapters.length >= total && (!completed || completed === 'completed') && localContractOk;
   }
 
   function _isRunningReport(response) {

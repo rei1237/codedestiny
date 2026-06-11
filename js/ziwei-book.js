@@ -1667,6 +1667,10 @@
         RESULT = data;
         throw buildRetryableError('결제는 확인되었습니다. 로컬 명반 결과를 아직 PDF로 확정하지 못했습니다. 결제 내역으로 다시 생성 버튼을 눌러 이어받아 주세요.', 202, 'ZIWEI_REPORT_RECOVERY_REQUIRED', 'generation');
       }
+      var manuscriptSource = text(data && data.manuscriptSource).toLowerCase();
+      if((data && data.fallbackUsed) || Number(data && data.llmChapterCount || 0) > 0 || /gemini|llm|hybrid|fallback/.test(manuscriptSource)){
+        throw buildRetryableError('자미두수 PDF가 로컬 조립 검증을 통과하지 못했습니다. 결제 내역으로 다시 생성 버튼을 눌러 이어받아 주세요.', 422, 'ZIWEI_LOCAL_ASSEMBLY_REQUIRED', 'generation');
+      }
       logFlow('SessionCreateSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,
         qualityStatus: text(data && data.qualityStatus)

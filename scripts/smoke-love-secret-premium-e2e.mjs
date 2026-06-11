@@ -501,7 +501,7 @@ async function assertHybridScaffold() {
     generationMode: "local-assembled",
     llmEnabled: false,
     provider: "saju-assembler",
-    templateVersion: "love-secret-assembled-v2",
+    templateVersion: "love-secret-local-assembled-v3",
   }, "love secret pdf config is local assembled");
   assert.equal(loveSecret.isLoveSecretLlmEnhancementEnabled({
     LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "true",
@@ -587,8 +587,10 @@ async function assertHybridScaffold() {
     body: { requestId: "smoke-disabled-llm" },
     requestId: "smoke-disabled-llm",
   });
-  assert.equal(generated.manuscriptSource, "assembled", "disabled llm uses assembled manuscript");
+  assert.equal(generated.manuscriptSource, "local-assembled", "disabled llm uses local assembled manuscript");
   assert.equal(generated.llmEnhancement.enabled, false, "llm disabled flag honored");
+  assert.equal(generated.llmEnhancement.localAssemblyOnly, true, "local assembly only flag honored");
+  assert.equal(generated.llmEnhancement.externalCallsAllowed, false, "external calls are blocked");
   assert.equal(generated.llmEnhancement.attempted, 0, "disabled llm does not attempt enhancement");
   assert.equal(externalLlmFetchAttempts, 0, "disabled llm external fetch attempts");
   assert.equal(generated.chapters.length, 10, "disabled llm generated chapter count");
@@ -615,9 +617,11 @@ async function assertHybridScaffold() {
     body: { requestId: "smoke-llm-env-forced-local" },
     requestId: "smoke-llm-env-forced-local",
   });
-  assert.equal(generatedWithLlmKeys.manuscriptSource, "assembled", "llm env keys still use assembled manuscript");
+  assert.equal(generatedWithLlmKeys.manuscriptSource, "local-assembled", "llm env keys still use local assembled manuscript");
   assert.equal(generatedWithLlmKeys.fallbackUsed, false, "llm disabled path is not a failure fallback");
   assert.equal(generatedWithLlmKeys.llmEnhancement.enabled, false, "llm env enable flag is ignored");
+  assert.equal(generatedWithLlmKeys.llmEnhancement.localAssemblyOnly, true, "llm env keys stay local assembly only");
+  assert.equal(generatedWithLlmKeys.llmEnhancement.externalCallsAllowed, false, "llm env keys cannot allow external calls");
   assert.equal(generatedWithLlmKeys.llmEnhancement.attempted, 0, "llm env keys do not attempt enhancement");
   assert.equal(externalLlmFetchAttempts, 0, "llm env keys external fetch attempts");
   assert.equal(generatedWithLlmKeys.llmEnhancement.enhancedChapterIds.length, 0, "llm env keys have no enhanced chapters");
@@ -642,8 +646,10 @@ async function assertHybridScaffold() {
     body: { requestId: "smoke-compatibility-forced-local" },
     requestId: "smoke-compatibility-forced-local",
   });
-  assert.equal(generatedCompatibility.manuscriptSource, "assembled", "compatibility uses assembled manuscript");
+  assert.equal(generatedCompatibility.manuscriptSource, "local-assembled", "compatibility uses local assembled manuscript");
   assert.equal(generatedCompatibility.llmEnhancement.enabled, false, "compatibility llm disabled");
+  assert.equal(generatedCompatibility.llmEnhancement.localAssemblyOnly, true, "compatibility local assembly only");
+  assert.equal(generatedCompatibility.llmEnhancement.externalCallsAllowed, false, "compatibility external calls blocked");
   assert.equal(generatedCompatibility.llmEnhancement.attempted, 0, "compatibility does not attempt llm enhancement");
   assert.equal(externalLlmFetchAttempts, 0, "compatibility external fetch attempts");
   assert.equal(generatedCompatibility.chapters.length, 10, "compatibility generated chapter count");

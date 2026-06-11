@@ -55,6 +55,9 @@
     var value = _clean(source);
     return value === SUKYO_LOCAL_MANUSCRIPT_SOURCE || value === 'local';
   }
+  function _hasExternalManuscriptSignal(source) {
+    return /\b(?:gemini|llm|hybrid|fallback)\b/i.test(_clean(source));
+  }
   function _resolveTargetLlmChapterCount(payload, ready, manuscriptSource) {
     return _firstFiniteNumber(_isLocalManuscriptSource(manuscriptSource) ? 0 : 7, payload && payload.targetLlmChapterCount, ready && ready.targetLlmChapterCount);
   }
@@ -170,6 +173,8 @@
       llmChapterCount: Number(p.llmChapterCount || 0),
       fallbackChapterCount: Number(p.fallbackChapterCount || 0),
       localDraftChapterCount: Number(p.localDraftChapterCount || 0),
+      localAssemblyOnly: p.localAssemblyOnly !== false && ready.localAssemblyOnly !== false,
+      externalCallsAllowed: p.externalCallsAllowed === true || ready.externalCallsAllowed === true,
       hasPdfUrl: !!_clean(p.downloadUrl || p.pdfUrl || p.storedUrl || p.reportUrl || p.fileUrl || p.storageUrl || ready.downloadUrl || ready.pdfUrl),
       keys: Object.keys(p).slice(0, 30),
     };
@@ -185,8 +190,14 @@
     var targetLlmChapterCount = _resolveTargetLlmChapterCount(p, ready, manuscriptSource);
     var fallbackChapterCount = _firstFiniteNumber(0, p.fallbackChapterCount, ready.fallbackChapterCount);
     var localDraftChapterCount = _firstFiniteNumber(0, p.localDraftChapterCount, ready.localDraftChapterCount);
+    var fallbackUsed = p.fallbackUsed === true || ready.fallbackUsed === true;
+    var localAssemblyOnly = p.localAssemblyOnly !== false && ready.localAssemblyOnly !== false;
+    var externalCallsAllowed = p.externalCallsAllowed === true || ready.externalCallsAllowed === true;
     var countContractOk = llmChapterCount + localDraftChapterCount === SUKYO_TOTAL_CHAPTERS
-      && fallbackChapterCount <= targetLlmChapterCount;
+      && llmChapterCount === 0
+      && targetLlmChapterCount === 0
+      && fallbackChapterCount === 0
+      && localDraftChapterCount === SUKYO_TOTAL_CHAPTERS;
     var checks = {
       hasReportId: !!_clean(p.reportId),
       hasStoredUrl: !!_resolveSukuyoStoredUrl(p),
@@ -194,9 +205,13 @@
       serverCompleted: _clean(p.serverStatus) === 'completed',
       qualityPassed: _clean(p.qualityStatus) === 'passed',
       sourceAccepted: _isAcceptedManuscriptSource(manuscriptSource),
-      noFallback: p.fallbackUsed !== true,
+      sourceLocalOnly: _isLocalManuscriptSource(manuscriptSource) && !_hasExternalManuscriptSignal(manuscriptSource),
+      noFallback: !fallbackUsed,
+      noLlmChapters: llmChapterCount === 0 && targetLlmChapterCount === 0,
       chapterCountContract: countContractOk,
-      noFallbackChapters: Number(p.fallbackChapterCount || 0) === 0,
+      noFallbackChapters: fallbackChapterCount === 0,
+      localAssemblyOnly: localAssemblyOnly,
+      externalCallsBlocked: !externalCallsAllowed,
     };
     summary.failedChecks = Object.keys(checks).filter(function (key) { return !checks[key]; });
     summary.checks = checks;
@@ -843,6 +858,10 @@
     var fallbackChapterCount = _firstFiniteNumber(0, p.fallbackChapterCount, ready.fallbackChapterCount);
     var localDraftChapterCount = _firstFiniteNumber(0, p.localDraftChapterCount, ready.localDraftChapterCount);
     var sourceOk = _isAcceptedManuscriptSource(manuscriptSource);
+    var sourceLocalOnly = _isLocalManuscriptSource(manuscriptSource) && !_hasExternalManuscriptSignal(manuscriptSource);
+    var fallbackUsed = p.fallbackUsed === true || ready.fallbackUsed === true;
+    var localAssemblyOnly = p.localAssemblyOnly !== false && ready.localAssemblyOnly !== false;
+    var externalCallsAllowed = p.externalCallsAllowed === true || ready.externalCallsAllowed === true;
     var countContractOk = Number.isFinite(llmChapterCount)
       && Number.isFinite(targetLlmChapterCount)
       && Number.isFinite(fallbackChapterCount)
@@ -855,6 +874,10 @@
       && fallbackChapterCount <= targetLlmChapterCount
       && localDraftChapterCount >= 0
       && localDraftChapterCount <= SUKYO_TOTAL_CHAPTERS
+      && llmChapterCount === 0
+      && targetLlmChapterCount === 0
+      && fallbackChapterCount === 0
+      && localDraftChapterCount === SUKYO_TOTAL_CHAPTERS
       && llmChapterCount + localDraftChapterCount === SUKYO_TOTAL_CHAPTERS;
     var chapterShapeOk = chapters.length === SUKYO_TOTAL_CHAPTERS
       && chapters.every(function (chapter) {
@@ -869,6 +892,10 @@
       && _clean(p.serverStatus) === 'completed'
       && _clean(p.qualityStatus) === 'passed'
       && sourceOk
+      && sourceLocalOnly
+      && !fallbackUsed
+      && localAssemblyOnly
+      && !externalCallsAllowed
       && countContractOk;
   }
 
@@ -1355,6 +1382,8 @@
     var fallbackChapterCount = _firstFiniteNumber(0, safeReport.fallbackChapterCount, payload.fallbackChapterCount, ready.fallbackChapterCount);
     var localDraftChapterCount = _firstFiniteNumber(NaN, safeReport.localDraftChapterCount, payload.localDraftChapterCount, ready.localDraftChapterCount);
     if (!Number.isFinite(localDraftChapterCount)) localDraftChapterCount = Math.max(0, chapters.length - llmChapterCount);
+    var localAssemblyOnly = safeReport.localAssemblyOnly !== false && payload.localAssemblyOnly !== false && ready.localAssemblyOnly !== false;
+    var externalCallsAllowed = safeReport.externalCallsAllowed === true || payload.externalCallsAllowed === true || ready.externalCallsAllowed === true;
     return {
       ok: true,
       serviceKey: 'sukuyo-premium',
@@ -1375,6 +1404,8 @@
       fallbackChapterCount: fallbackChapterCount,
       fallbackUsed: safeReport.fallbackUsed === true || payload.fallbackUsed === true,
       manuscriptSource: manuscriptSource,
+      localAssemblyOnly: localAssemblyOnly,
+      externalCallsAllowed: externalCallsAllowed,
       chapters: chapters,
       payload: payload,
       pdfReady: {
@@ -1388,7 +1419,12 @@
         contentType: 'application/pdf',
         renderFormat: 'pdf-archive',
         manuscriptSource: manuscriptSource,
+        localAssemblyOnly: localAssemblyOnly,
+        externalCallsAllowed: externalCallsAllowed,
+        llmChapterCount: llmChapterCount,
         targetLlmChapterCount: targetLlmChapterCount,
+        fallbackChapterCount: fallbackChapterCount,
+        localDraftChapterCount: localDraftChapterCount,
       },
       pdfUrl: pdfUrl,
       htmlUrl: htmlUrl,

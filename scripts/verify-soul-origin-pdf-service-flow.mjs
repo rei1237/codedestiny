@@ -40,12 +40,16 @@ for (const [label, source] of [
   expectContains(source, "chapterAuthoringSource === 'local-assembled'", `${label} local assembled chapter readiness`);
   expectContains(source, "summarySource === 'local-assembled'", `${label} local assembled summary readiness`);
   expectContains(source, "fallbackChapterCount === 0", `${label} no fallback readiness`);
+  expectContains(source, "llmChapterCount === 0", `${label} no llm chapter readiness`);
+  expectContains(source, "localAssemblyOnly", `${label} local assembly readiness`);
+  expectContains(source, "externalCallsAllowed", `${label} external call readiness`);
   expectContains(source, "localAuthoringUsed && !llmEnhancementUsed", `${label} local authoring readiness`);
 }
 
 expectContains(worker, 'import { getServiceExecution } from "../lib/service-execution-task.js"', "worker execution status import");
 expectContains(worker, 'const SOUL_ORIGIN_REPORT_TYPE = "soulOriginKarma"', "worker canonical report type");
 expectContains(worker, 'const SOUL_ORIGIN_ARCHIVE_REPORT_TYPE = "soul_origin_karma"', "worker archive report type");
+expectContains(worker, 'templateVersion: "soul-origin-local-assembled-v2"', "worker local assembled template version");
 expectContains(worker, "async function handleStatus", "worker status handler");
 expectContains(worker, 'if (path === "/status")', "worker status route");
 expectContains(worker, "loadSoulOriginReportPayload", "worker report payload helper");
@@ -60,12 +64,17 @@ expectContains(worker, "fallbackUsed,", "worker fallback flag");
 expectContains(worker, "fallbackChapterCount,", "worker fallback chapter count");
 expectContains(worker, "localAuthoringUsed: true", "worker local authoring flag");
 expectContains(worker, "llmEnhancementUsed", "worker LLM enhancement metadata");
+expectContains(worker, "localAssemblyOnly: true", "worker local assembly flag");
+expectContains(worker, "externalCallsAllowed: false", "worker external calls blocked");
+expectContains(worker, "SOUL_ORIGIN_EXTERNAL_LLM_DISABLED", "worker external llm disabled code");
 expectContains(worker, "validateSoulOriginPdfCompletionPayload", "worker PDF completion validation");
 expectContains(worker, 'provider: "soul-origin-local-assembler"', "worker local assembler provider");
 expectContains(worker, "chapterCount: CHAPTER_BLUEPRINTS.length", "worker chapter count");
 expectContains(worker, "pdfReady", "worker pdf ready payload");
 expectNotContains(worker, "chapters = await generateSoulOriginChaptersByLLM", "worker LLM chapter call");
 expectNotContains(worker, "const summary = await generateSoulOriginSummaryByLLM", "worker LLM summary call");
+expectNotContains(worker, 'import { callGeminiText } from "../lib/gemini.js"', "worker Gemini import");
+expectNotContains(worker, "callGeminiText(", "worker Gemini text call");
 
 expectContains(accessToken, '"premium_pdf_soul_origin": "soulOriginKarma"', "premium token feature mapping");
 expectContains(accessToken, '"premium-soul-origin-report": "soulOriginKarma"', "premium token legacy mapping");

@@ -7,7 +7,7 @@ export const SUKYO_PDF_CHAPTER_COUNT = 15;
 export const SUKYO_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
   provider: "sukuyo-assembler",
-  templateVersion: "sukuyo-premium-assembled-v1",
+  templateVersion: "sukuyo-premium-local-assembled-v2",
 });
 export const SUKUYO_PROMPT_VERSION = SUKYO_PDF_CONFIG.templateVersion;
 
@@ -2165,11 +2165,15 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     chapterCount: SUKYO_PDF_CHAPTER_COUNT,
     manuscriptSource: SUKYO_PDF_CONFIG.generationMode,
     promptVersion: SUKUYO_PROMPT_VERSION,
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
   });
   const enhanced = {
     chapters: localBaseline.chapters,
     source: SUKYO_PDF_CONFIG.generationMode,
     fallbackUsed: false,
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
     llmChapterCount: 0,
     targetLlmChapterCount: 0,
     fallbackChapterCount: 0,
@@ -2193,6 +2197,8 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     forbiddenTermsCount: finalCheck.forbiddenTermsCount,
     repetitionScore: finalCheck.repetitionScore,
     manuscriptSource: text(enhanced.source || SUKYO_PDF_CONFIG.generationMode),
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
     llmChapterCount: Number(enhanced.llmChapterCount || 0),
     fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
     localDraftChapterCount: Number(enhanced.localDraftChapterCount || 0),
@@ -2223,6 +2229,8 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     chapterCount: chapters.length,
     totalLength: finalCheck.totalLength,
     manuscriptSource: text(enhanced.source || SUKYO_PDF_CONFIG.generationMode),
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
     pdfCompletionValidation: pdfCompletionValidation.ok,
   });
   const manuscriptSource = text(enhanced.source || SUKYO_PDF_CONFIG.generationMode);
@@ -2242,6 +2250,8 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
       generationMode: SUKYO_PDF_CONFIG.generationMode,
       provider: SUKYO_PDF_CONFIG.provider,
       writingPipeline: "local-calculation-to-local-assembled-pdf",
+      localAssemblyOnly: true,
+      externalCallsAllowed: false,
       pdfCompletionValidation,
       localQualityStatus: "passed",
       localBaselineChapterCount: localBaseline.chapters.length,
@@ -2265,6 +2275,8 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     generationMode: SUKYO_PDF_CONFIG.generationMode,
     provider: SUKYO_PDF_CONFIG.provider,
     writingPipeline: "local-calculation-to-local-assembled-pdf",
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
     pdfCompletionValidation,
     sukuyoFacts,
     sukuyoChapterPlans: chapterPlans,
@@ -2277,6 +2289,13 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
       downloadUrl: text(pdfReady?.downloadUrl),
       storageKey: text(pdfReady?.storageKey),
       mimeType: text(pdfReady?.mimeType, "text/html"),
+      manuscriptSource,
+      localAssemblyOnly: true,
+      externalCallsAllowed: false,
+      llmChapterCount: 0,
+      targetLlmChapterCount: 0,
+      fallbackChapterCount: 0,
+      localDraftChapterCount: Number(enhanced.localDraftChapterCount || 0),
     },
   };
 }

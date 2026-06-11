@@ -438,29 +438,36 @@
 
   function isSoulOriginReportReady(payload) {
     var data = payload && typeof payload === 'object' ? payload : {};
+    var pdfReady = data.pdfReady && typeof data.pdfReady === 'object' ? data.pdfReady : {};
     var chapters = Array.isArray(data.chapters) ? data.chapters : [];
     var reportedCount = Number(data.chapterCount || 0);
     var status = clean(data.status).toLowerCase();
     var serverStatus = clean(data.serverStatus).toLowerCase();
     var qualityStatus = clean(data.qualityStatus).toLowerCase();
-    var manuscriptSource = clean(data.manuscriptSource).toLowerCase();
+    var manuscriptSource = clean(data.manuscriptSource || pdfReady.manuscriptSource).toLowerCase();
     var chapterAuthoringSource = clean(data.chapterAuthoringSource).toLowerCase();
     var summarySource = clean(data.summarySource).toLowerCase();
-    var fallbackUsed = data.fallbackUsed === true;
-    var fallbackChapterCount = Number(data.fallbackChapterCount || 0);
+    var fallbackUsed = data.fallbackUsed === true || pdfReady.fallbackUsed === true;
+    var fallbackChapterCount = Number(data.fallbackChapterCount || pdfReady.fallbackChapterCount || 0);
+    var llmChapterCount = Number(data.llmChapterCount || pdfReady.llmChapterCount || 0);
+    var expectedLlmChapterCount = Number(data.expectedLlmChapterCount || pdfReady.expectedLlmChapterCount || 0);
+    var llmEnhancedChapterCount = Number(data.llmEnhancedChapterCount || 0);
     var localAuthoringUsed = data.localAuthoringUsed === true;
-    var llmEnhancementUsed = data.llmEnhancementUsed === true;
+    var llmEnhancementUsed = data.llmEnhancementUsed === true || pdfReady.llmEnhancementUsed === true;
+    var localAssemblyOnly = data.localAssemblyOnly !== false && pdfReady.localAssemblyOnly !== false;
+    var externalCallsAllowed = data.externalCallsAllowed === true || pdfReady.externalCallsAllowed === true;
     var hasReportId = !!clean(data.reportId);
     var hasStoredUrl = !!resolveReportUrl(data);
     var isCompleted = (!status && !serverStatus) || status === 'completed' || serverStatus === 'completed';
     var hasExpectedChapters = chapters.length >= EXPECTED_CHAPTER_COUNT || reportedCount >= EXPECTED_CHAPTER_COUNT;
     var hasPassedQuality = !qualityStatus || qualityStatus === 'passed';
-    var hasAcceptedManuscript = !manuscriptSource || manuscriptSource === 'local-assembled';
-    var hasAcceptedChapters = !chapterAuthoringSource || chapterAuthoringSource === 'local-assembled';
-    var hasLocalSummary = !summarySource || summarySource === 'local-assembled';
+    var hasAcceptedManuscript = manuscriptSource === 'local-assembled' && !/gemini|llm|hybrid|fallback/.test(manuscriptSource);
+    var hasAcceptedChapters = chapterAuthoringSource === 'local-assembled';
+    var hasLocalSummary = summarySource === 'local-assembled';
     var hasUsableFallback = !fallbackUsed && fallbackChapterCount === 0;
-    var hasAcceptedAuthoring = localAuthoringUsed && !llmEnhancementUsed;
-    return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted && hasAcceptedManuscript && hasAcceptedChapters && hasLocalSummary && hasUsableFallback && hasAcceptedAuthoring;
+    var hasNoLlmChapters = llmChapterCount === 0 && expectedLlmChapterCount === 0 && llmEnhancedChapterCount === 0;
+    var hasAcceptedAuthoring = localAuthoringUsed && !llmEnhancementUsed && localAssemblyOnly && !externalCallsAllowed;
+    return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted && hasAcceptedManuscript && hasAcceptedChapters && hasLocalSummary && hasUsableFallback && hasNoLlmChapters && hasAcceptedAuthoring;
   }
 
   function isSoulOriginRunning(payload) {

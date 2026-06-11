@@ -658,14 +658,20 @@ function buildAstroPdfQualityGate(generated = {}) {
   const llmChapterCount = Number(generated?.llmChapterCount || 0);
   const expectedLlmChapterCount = Number(generated?.expectedLlmChapterCount || generated?.diagnostics?.expectedLlmChapterCount || 0);
   const manuscriptSource = clean(generated?.manuscriptSource || quality?.manuscriptSource);
+  const localDraftChapterCount = Number(generated?.localDraftChapterCount || 0);
+  const localAssemblyOnly = generated?.localAssemblyOnly === true && quality?.localAssemblyOnly !== false;
+  const externalCallsAllowed = generated?.externalCallsAllowed === true || quality?.externalCallsAllowed === true;
   const totalLength = Number(generated?.totalLength || 0);
-  const allowedSources = new Set(["llm-only", "llm-local-hybrid", "hybrid-llm-local", "local-template", "local-rule-completed", ASTRO_PDF_CONFIG.generationMode, VEDIC_PDF_CONFIG.generationMode]);
   const issues = [];
-  if (!allowedSources.has(manuscriptSource)) issues.push("manuscript_source");
-  if (expectedLlmChapterCount > 0 && llmChapterCount > expectedLlmChapterCount) issues.push("llm_chapter_over_limit");
-  if (llmChapterCount > totalChapters) issues.push("llm_chapter_count");
+  if (manuscriptSource !== ASTRO_PDF_CONFIG.generationMode) issues.push("manuscript_source");
+  if (/gemini|llm|hybrid|fallback/i.test(manuscriptSource)) issues.push("external_source_signal");
+  if (llmChapterCount !== 0) issues.push("llm_chapter_count");
+  if (expectedLlmChapterCount !== 0) issues.push("expected_llm_chapter_count");
+  if (localDraftChapterCount !== totalChapters) issues.push("local_draft_chapter_count");
   if (Boolean(generated?.fallbackUsed)) issues.push("fallback_used");
-  if (manuscriptSource === ASTRO_PDF_CONFIG.generationMode && (llmChapterCount !== 0 || expectedLlmChapterCount !== 0)) issues.push("local_assembled_llm_count");
+  if (Number(generated?.fallbackChapterCount || 0) !== 0) issues.push("fallback_chapter_count");
+  if (!localAssemblyOnly) issues.push("local_assembly_only");
+  if (externalCallsAllowed) issues.push("external_calls_allowed");
   if (validation.ok !== true) issues.push("validation_failed");
   if (quality.ok !== true) issues.push("quality_failed");
   if (Number(stats.geminiChapterCount || 0) > totalChapters) issues.push("gemini_chapter_count");
@@ -679,9 +685,12 @@ function buildAstroPdfQualityGate(generated = {}) {
     totalChapters,
     llmChapterCount,
     expectedLlmChapterCount,
+    localDraftChapterCount,
     manuscriptSource,
     totalLength,
     fallbackUsed: Boolean(generated?.fallbackUsed),
+    localAssemblyOnly,
+    externalCallsAllowed,
     llmFallbackReason: clean(generated?.llmFallbackReason),
     stats,
   };
@@ -725,6 +734,9 @@ function buildVedicStatusPayloadFromArchive(doc = {}, sessionId = "", reportId =
   const resolvedReportId = clean(archive.reportId || doc.reportId || metadata.reportId || reportId);
   const resolvedSessionId = clean(archive.sessionId || doc.sessionId || metadata.sessionId || sessionId);
   const chapters = Array.isArray(archive.chapters) ? archive.chapters : [];
+  const manuscriptSource = clean(archive.manuscriptSource || pdfReady.manuscriptSource || VEDIC_PDF_CONFIG.generationMode);
+  const localAssemblyOnly = archive.localAssemblyOnly !== false && pdfReady.localAssemblyOnly !== false;
+  const externalCallsAllowed = archive.externalCallsAllowed === true || pdfReady.externalCallsAllowed === true;
   return {
     ok: true,
     serviceKey: "vedic-premium",
@@ -735,6 +747,8 @@ function buildVedicStatusPayloadFromArchive(doc = {}, sessionId = "", reportId =
     fallbackUsed: Boolean(archive.fallbackUsed),
     llmChapterCount: Number(archive.llmChapterCount || 0),
     fallbackChapterCount: Number(archive.fallbackChapterCount || 0),
+    localAssemblyOnly,
+    externalCallsAllowed,
     llmFallbackReason: clean(archive.llmFallbackReason),
     reportId: resolvedReportId,
     chapters,
@@ -758,7 +772,7 @@ function buildVedicStatusPayloadFromArchive(doc = {}, sessionId = "", reportId =
     canReopen: archive.canReopen !== false,
     canDownload: Boolean(archive.canDownload || pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
     quality: archive.quality || null,
-    manuscriptSource: clean(archive.manuscriptSource || "llm-only"),
+    manuscriptSource,
     localDraftChapterCount: Number(archive.localDraftChapterCount || 0),
     finalChapterCount: chapters.length,
   };
@@ -1088,6 +1102,13 @@ async function handleAstroPremiumPrepare(request, env) {
       mimeType: "application/pdf",
       contentType: "application/pdf",
       renderFormat: "pdf-archive",
+      manuscriptSource: clean(generated?.manuscriptSource || ASTRO_PDF_CONFIG.generationMode),
+      localAssemblyOnly: true,
+      externalCallsAllowed: false,
+      llmChapterCount: 0,
+      expectedLlmChapterCount: 0,
+      fallbackChapterCount: 0,
+      localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
     };
     const storedUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
     const pdfCompletionValidation = validateAstroPdfCompletionPayload({
@@ -1111,6 +1132,8 @@ async function handleAstroPremiumPrepare(request, env) {
       llmChapterCount: Number(generated?.llmChapterCount || 0),
       fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
       fallbackUsed: Boolean(generated?.fallbackUsed),
+      localAssemblyOnly: generated?.localAssemblyOnly === true,
+      externalCallsAllowed: generated?.externalCallsAllowed === true,
       llmFallbackReason: clean(generated?.llmFallbackReason),
       pdfQuality,
       pdfCompletionValidation,
@@ -1138,6 +1161,8 @@ async function handleAstroPremiumPrepare(request, env) {
         fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
         localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
         fallbackUsed: Boolean(generated?.fallbackUsed),
+        localAssemblyOnly: generated?.localAssemblyOnly === true,
+        externalCallsAllowed: generated?.externalCallsAllowed === true,
         llmFallbackReason: clean(generated?.llmFallbackReason),
         payload: generated.payload,
         localAstroChartJson: generated.localAstroChartJson,
@@ -1168,6 +1193,8 @@ async function handleAstroPremiumPrepare(request, env) {
       provider: clean(generated?.provider || ASTRO_PDF_CONFIG.provider),
       writingPipeline: clean(generated?.writingPipeline || "local-calculation-to-local-assembled-pdf"),
       fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
+      localAssemblyOnly: generated?.localAssemblyOnly === true,
+      externalCallsAllowed: generated?.externalCallsAllowed === true,
       llmFallbackReason: clean(generated?.llmFallbackReason),
       pdfQuality,
       pdfCompletionValidation,
@@ -1455,12 +1482,27 @@ async function handleVedicPremiumPrepare(request, env) {
       error.status = 422;
       throw error;
     }
-    if (clean(generated?.manuscriptSource) !== VEDIC_PDF_CONFIG.generationMode) {
-      console.warn("[VedicPremiumPDF][UnexpectedManuscriptSource]", {
+    const vedicLocalContractOk = clean(generated?.manuscriptSource) === VEDIC_PDF_CONFIG.generationMode
+      && generated?.localAssemblyOnly === true
+      && generated?.externalCallsAllowed !== true
+      && Number(generated?.llmChapterCount || 0) === 0
+      && Number(generated?.fallbackChapterCount || 0) === 0
+      && Number(generated?.localDraftChapterCount || 0) === VEDIC_PREMIUM_CHAPTERS.length
+      && generated?.fallbackUsed !== true;
+    if (!vedicLocalContractOk) {
+      const error = new Error("Vedic premium PDF local assembly contract failed.");
+      error.code = "VEDIC_LOCAL_ASSEMBLY_CONTRACT_FAILED";
+      error.status = 500;
+      error.details = {
         manuscriptSource: clean(generated?.manuscriptSource),
         llmChapterCount: Number(generated?.llmChapterCount || 0),
         fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
-      });
+        localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
+        fallbackUsed: Boolean(generated?.fallbackUsed),
+        localAssemblyOnly: generated?.localAssemblyOnly === true,
+        externalCallsAllowed: generated?.externalCallsAllowed === true,
+      };
+      throw error;
     }
     const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
     const requestOrigin = new URL(request.url).origin;
@@ -1478,6 +1520,12 @@ async function handleVedicPremiumPrepare(request, env) {
       mimeType: "application/pdf",
       contentType: "application/pdf",
       renderFormat: "pdf-archive",
+      manuscriptSource: clean(generated?.manuscriptSource || VEDIC_PDF_CONFIG.generationMode),
+      localAssemblyOnly: true,
+      externalCallsAllowed: false,
+      llmChapterCount: 0,
+      fallbackChapterCount: 0,
+      localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
     };
     const storedUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
     const pdfCompletionValidation = validateVedicPdfCompletionPayload({
@@ -1501,6 +1549,8 @@ async function handleVedicPremiumPrepare(request, env) {
       llmChapterCount: Number(generated?.llmChapterCount || 0),
       fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
       fallbackUsed: Boolean(generated?.fallbackUsed),
+      localAssemblyOnly: generated?.localAssemblyOnly === true,
+      externalCallsAllowed: generated?.externalCallsAllowed === true,
       llmFallbackReason: clean(generated?.llmFallbackReason),
       pdfCompletionValidation,
       archive: {
@@ -1524,6 +1574,8 @@ async function handleVedicPremiumPrepare(request, env) {
         fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
         localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
         fallbackUsed: Boolean(generated?.fallbackUsed),
+        localAssemblyOnly: generated?.localAssemblyOnly === true,
+        externalCallsAllowed: generated?.externalCallsAllowed === true,
         llmFallbackReason: clean(generated?.llmFallbackReason),
         llmFailureClass: clean(generated?.diagnostics?.llm?.failureClass),
         diagnostics: generated.diagnostics,
@@ -1551,6 +1603,8 @@ async function handleVedicPremiumPrepare(request, env) {
       fallbackUsed: Boolean(generated?.fallbackUsed),
       llmChapterCount: Number(generated?.llmChapterCount || 0),
       fallbackChapterCount: Number(generated?.fallbackChapterCount || 0),
+      localAssemblyOnly: generated?.localAssemblyOnly === true,
+      externalCallsAllowed: generated?.externalCallsAllowed === true,
       llmFallbackReason: clean(generated?.llmFallbackReason),
       llmFailureClass: clean(generated?.diagnostics?.llm?.failureClass),
       generationMode: clean(generated?.generationMode || VEDIC_PDF_CONFIG.generationMode),

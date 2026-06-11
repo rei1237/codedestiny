@@ -9,7 +9,6 @@ import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, no
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
-import { callGeminiText } from "../lib/gemini.js";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
@@ -28,7 +27,7 @@ const SOUL_ORIGIN_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
   llmEnabled: false,
   provider: "soul-origin-local-assembler",
-  templateVersion: "soul-origin-assembled-v1",
+  templateVersion: "soul-origin-local-assembled-v2",
 });
 const SOUL_ORIGIN_REPORT_TYPE_ALIASES = [
   "premium_pdf_soul_origin",
@@ -1312,25 +1311,17 @@ function buildSoulOriginChapterPrompt({ chapter, blueprint = {}, localSeed = {},
 }
 
 async function callSoulOriginGemini(env, prompt, options = {}) {
-  const result = await callGeminiText(env, prompt, {
-    keyEnvKeys: SOUL_ORIGIN_LLM_KEY_ENV_KEYS,
-    modelEnvKeys: SOUL_ORIGIN_LLM_MODEL_ENV_KEYS,
-    temperature: Number(env?.SOUL_ORIGIN_GEMINI_TEMPERATURE || env?.PREMIUM_GEMINI_TEMPERATURE || 0.35),
-    topP: Number(env?.SOUL_ORIGIN_GEMINI_TOP_P || env?.PREMIUM_GEMINI_TOP_P || 0.9),
-    maxOutputTokens: Number(env?.SOUL_ORIGIN_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 24576),
-    timeoutMs: Number(env?.SOUL_ORIGIN_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
-    totalTimeoutMs: Number(env?.SOUL_ORIGIN_GEMINI_TOTAL_TIMEOUT_MS || env?.PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 0),
-    maxAttemptsPerPair: Number(env?.SOUL_ORIGIN_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 2),
-    metadata: options?.metadata || {},
+  const error = Object.assign(new Error("Soul origin premium PDF external LLM generation is disabled."), {
+    code: "SOUL_ORIGIN_EXTERNAL_LLM_DISABLED",
+    status: 501,
+    details: {
+      metadata: options?.metadata || {},
+      promptLength: String(prompt || "").length,
+      externalCallsAllowed: false,
+    },
   });
-  if (!result?.ok || !clean(result?.text)) {
-    throw Object.assign(new Error(clean(result?.message || "운명의 업 챕터 LLM 호출 실패.")), {
-      code: clean(result?.error || "SOUL_ORIGIN_LLM_GENERATION_FAILED"),
-      status: Number(result?.status || 502),
-      details: { ...(result?.status ? { status: result.status } : {}) },
-    });
-  }
-  return clean(result.text);
+  error.stage = "local-assembly";
+  throw error;
 }
 
 function normalizeSoulOriginLlmChapter(parsed = {}, blueprint = {}) {
@@ -1357,7 +1348,7 @@ function normalizeSoulOriginLlmChapter(parsed = {}, blueprint = {}) {
     subtitle: clean(expected.subtitle || ""),
     sections,
     text: chapterText,
-    source: "llm-only",
+    source: SOUL_ORIGIN_PDF_CONFIG.generationMode,
   };
 }
 
@@ -1373,10 +1364,10 @@ function buildSoulOriginLocalChapterFallback(localChapter = {}, error = null) {
     subtitle: clean(localChapter.subtitle || ""),
     sections,
     text: sections.map((section) => `${section.title}\n\n${section.body}`).join("\n\n"),
-    source: "local-calculation",
+    source: SOUL_ORIGIN_PDF_CONFIG.generationMode,
     localAuthoringSource: "local-calculation",
     llmEnhancementUsed: false,
-    llmEnhancementStatus: "fallback",
+    llmEnhancementStatus: "not-requested",
     llmEnhancementErrorCode: clean(error?.code || error?.message || ""),
   };
 }
@@ -1506,142 +1497,17 @@ function validateSoulOriginGeneratedChapter(chapter = {}, blueprint = {}) {
   };
 }
 
-async function generateSoulOriginChaptersByLLM(env, { localSeed, toneProfile = {}, requestId = "", localChapters = [] }) {
-  const chapters = [];
-  for (let index = 0; index < CHAPTER_BLUEPRINTS.length; index += 1) {
-    const blueprint = CHAPTER_BLUEPRINTS[index];
-    const chapterId = String(blueprint?.id || "").padStart(2, "0");
-    const localChapter = Array.isArray(localChapters) ? localChapters[index] : null;
-    logFlow("LLMChapterStart", {
-      requestId,
-      chapterId,
-      chapterIndex: index + 1,
-      totalChapters: CHAPTER_BLUEPRINTS.length,
-      stage: "llm-generation",
-      enhancementMode: localChapter ? "local-draft" : "llm-only",
-    });
-
-    const prompt = buildSoulOriginChapterPrompt({
-      chapter: blueprint,
-      blueprint,
-      localSeed,
-      toneProfile,
-      localChapter,
-    });
-
-    let text;
-    try {
-      text = await callSoulOriginGemini(env, prompt, {
-        metadata: { requestId, chapterNumber: chapterId, stage: "soul-origin-l1" },
-      });
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error("운명의 업 챕터 LLM 호출에 실패했습니다.");
-      err.code = clean(err.code || "SOUL_ORIGIN_LLM_GENERATION_FAILED");
-      err.status = Number(err.status || 502);
-      err.chapter = chapterId;
-      err.stage = "llm-generation";
-      err.step = "call";
-      logFlow("LLMChapterFailed", {
-        requestId,
-        chapterId,
-        chapterIndex: index + 1,
-        errorCode: clean(err.code),
-        stage: "llm-generation",
-      });
-      if (localChapter) {
-        logFlow("LLMChapterLocalFallback", {
-          requestId,
-          chapterId,
-          chapterIndex: index + 1,
-          errorCode: clean(err.code),
-          stage: "llm-generation",
-        });
-        chapters.push(buildSoulOriginLocalChapterFallback(localChapter, err));
-        continue;
-      }
-      throw err;
-    }
-
-    const parsed = extractSoulOriginJsonObject(text);
-    const chapter = normalizeSoulOriginLlmChapter(parsed, blueprint);
-    const validation = validateSoulOriginGeneratedChapter(chapter, blueprint);
-    if (!validation.ok) {
-      const err = new Error(`챕터 ${blueprint?.id} LLM 생성 검증 실패.`);
-      err.code = "SOUL_ORIGIN_LLM_CHAPTER_VALIDATION_FAILED";
-      err.status = 502;
-      err.details = validation;
-      err.chapter = blueprint?.id;
-      err.stage = "llm-generation";
-      logFlow("LLMChapterValidationFailed", {
-        requestId,
-        chapterId,
-        chapterIndex: index + 1,
-        errorCode: "SOUL_ORIGIN_LLM_CHAPTER_VALIDATION_FAILED",
-        errorCount: Number(Array.isArray(validation?.errors) ? validation.errors.length : 0),
-        stage: "llm-generation",
-      });
-      if (localChapter) {
-        logFlow("LLMChapterLocalFallback", {
-          requestId,
-          chapterId,
-          chapterIndex: index + 1,
-          errorCode: "SOUL_ORIGIN_LLM_CHAPTER_VALIDATION_FAILED",
-          stage: "llm-generation",
-        });
-        chapters.push(buildSoulOriginLocalChapterFallback(localChapter, err));
-        continue;
-      }
-      throw err;
-    }
-    chapter.source = localChapter ? "local-calculation+llm-enhanced" : "llm-only";
-    chapter.localAuthoringSource = localChapter ? "local-calculation" : "";
-    chapter.llmEnhancementUsed = Boolean(localChapter);
-    chapter.llmEnhancementStatus = localChapter ? "enhanced" : "generated";
-    logFlow("LLMChapterSuccess", {
-      requestId,
-      chapterId,
-      chapterIndex: index + 1,
-      sectionCount: Number(Array.isArray(chapter?.sections) ? chapter.sections.length : 0),
-      totalChars: Number((chapter?.text || "").length || 0),
-      stage: "llm-generation",
-    });
-    chapters.push(chapter);
-  }
-  const finalValidation = validateFinalManuscript(chapters);
-  if (!finalValidation.ok) {
-    if (Array.isArray(localChapters) && localChapters.length === CHAPTER_BLUEPRINTS.length) {
-      const localValidation = validateFinalManuscript(localChapters);
-      if (localValidation.ok) {
-        logFlow("LLMManuscriptLocalFallback", {
-          requestId,
-          errorCode: "SOUL_ORIGIN_LLM_MANUSCRIPT_VALIDATION_FAILED",
-          errorCount: Number(Array.isArray(finalValidation?.errors) ? finalValidation.errors.length : 0),
-          stage: "llm-generation",
-        });
-        return localChapters.map((chapter) => buildSoulOriginLocalChapterFallback(chapter, {
-          code: "SOUL_ORIGIN_LLM_MANUSCRIPT_VALIDATION_FAILED",
-        }));
-      }
-    }
-    const err = new Error("운명의 업 전체 챕터 검증 실패.");
-    err.code = "SOUL_ORIGIN_LLM_MANUSCRIPT_VALIDATION_FAILED";
-    err.status = 502;
-    err.details = finalValidation;
-    err.stage = "llm-generation";
-    logFlow("LLMManuscriptValidationFailed", {
-      requestId,
-      errorCode: "SOUL_ORIGIN_LLM_MANUSCRIPT_VALIDATION_FAILED",
-      errorCount: Number(Array.isArray(finalValidation?.errors) ? finalValidation.errors.length : 0),
-      stage: "llm-generation",
-    });
-    throw err;
-  }
-  logFlow("LLMGenerationComplete", {
+async function generateSoulOriginChaptersByLLM(env, { requestId = "" } = {}) {
+  logFlow("ExternalLlmDisabled", {
     requestId,
-    chapterCount: Number(chapters.length || 0),
-    stage: "llm-generation",
+    errorCode: "SOUL_ORIGIN_EXTERNAL_LLM_DISABLED",
+    stage: "local-assembly",
   });
-  return chapters;
+  const error = new Error("Soul origin premium PDF external LLM chapter generation is disabled.");
+  error.code = "SOUL_ORIGIN_EXTERNAL_LLM_DISABLED";
+  error.status = 501;
+  error.stage = "local-assembly";
+  throw error;
 }
 
 function buildSoulOriginSummaryPrompt({ localSeed = {}, chapters = [], toneProfile = {} }) {
@@ -1695,43 +1561,19 @@ function buildSoulOriginStaticSummary({ localSeed = {}, toneProfile = {} } = {})
   );
 }
 
-async function generateSoulOriginSummaryByLLM(env, { localSeed, chapters, toneProfile = {}, requestId = "" }) {
-  if (env?.SOUL_ORIGIN_STATIC_SUMMARY_TEMPLATE !== "0") {
-    logFlow("StaticSummaryStart", { requestId, stage: "static-template-summary" });
-    const summary = buildSoulOriginStaticSummary({ localSeed, toneProfile });
-    const validation = validateSoulOriginSummary(summary);
-    if (validation.ok) {
-      logFlow("StaticSummarySuccess", { requestId, stage: "static-template-summary" });
-      return validation.summary;
-    }
-    logFlow("StaticSummaryFallback", {
-      requestId,
-      errorCount: Number(validation.errors.length || 0),
-      stage: "static-template-summary",
-    });
-  }
-  logFlow("LLMSummaryStart", { requestId, stage: "llm-generation" });
-  const prompt = buildSoulOriginSummaryPrompt({ localSeed, chapters, toneProfile });
-  const text = await callSoulOriginGemini(env, prompt, {
-    metadata: { requestId, stage: "soul-origin-summary" },
-  });
-  const parsed = extractSoulOriginJsonObject(text);
-  const validation = validateSoulOriginSummary(clean(parsed?.summary || ""));
+async function generateSoulOriginSummaryByLLM(env, { localSeed, toneProfile = {}, requestId = "" }) {
+  logFlow("StaticSummaryStart", { requestId, stage: "static-template-summary" });
+  const summary = buildSoulOriginStaticSummary({ localSeed, toneProfile });
+  const validation = validateSoulOriginSummary(summary);
   if (!validation.ok) {
-    const err = new Error("운명의 업 LLM 요약 검증에 실패했습니다.");
-    err.code = "SOUL_ORIGIN_LLM_SUMMARY_VALIDATION_FAILED";
-    err.status = 502;
+    const err = new Error("Soul origin local summary validation failed.");
+    err.code = "SOUL_ORIGIN_LOCAL_SUMMARY_VALIDATION_FAILED";
+    err.status = 500;
     err.details = validation;
-    err.stage = "llm-generation";
-    logFlow("LLMSummaryValidationFailed", {
-      requestId,
-      errorCode: err.code,
-      errorCount: Number(validation.errors.length || 0),
-      stage: "llm-generation",
-    });
+    err.stage = "local-assembly";
     throw err;
   }
-  logFlow("LLMSummarySuccess", { requestId, stage: "llm-generation" });
+  logFlow("StaticSummarySuccess", { requestId, stage: "static-template-summary" });
   return validation.summary;
 }
 
@@ -2234,6 +2076,14 @@ async function handlePrepare(request, env) {
       htmlUrl: archiveHtmlUrl,
       downloadUrl: archivePdfUrl,
       storageKey: `premium-archive:soul-origin:${reportId}`,
+      manuscriptSource: SOUL_ORIGIN_PDF_CONFIG.generationMode,
+      localAssemblyOnly: true,
+      externalCallsAllowed: false,
+      fallbackUsed: false,
+      fallbackChapterCount: 0,
+      llmEnhancementUsed: false,
+      llmChapterCount: 0,
+      expectedLlmChapterCount: 0,
     };
 
     if (!clean(pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl)) {
@@ -2268,6 +2118,8 @@ async function handlePrepare(request, env) {
       generationMode: SOUL_ORIGIN_PDF_CONFIG.generationMode,
       provider: SOUL_ORIGIN_PDF_CONFIG.provider,
       writingPipeline: "local-calculation-to-local-assembled-pdf",
+      localAssemblyOnly: true,
+      externalCallsAllowed: false,
       fallbackUsed,
       fallbackChapterCount,
       localAuthoringUsed: true,
@@ -2311,6 +2163,8 @@ async function handlePrepare(request, env) {
       generationMode: SOUL_ORIGIN_PDF_CONFIG.generationMode,
       provider: SOUL_ORIGIN_PDF_CONFIG.provider,
       writingPipeline: "local-calculation-to-local-assembled-pdf",
+      localAssemblyOnly: true,
+      externalCallsAllowed: false,
       chapterCount: chapters.length,
       fallbackUsed,
       fallbackChapterCount,
@@ -2333,6 +2187,8 @@ async function handlePrepare(request, env) {
         generationMode: SOUL_ORIGIN_PDF_CONFIG.generationMode,
         provider: SOUL_ORIGIN_PDF_CONFIG.provider,
         writingPipeline: "local-calculation-to-local-assembled-pdf",
+        localAssemblyOnly: true,
+        externalCallsAllowed: false,
         fallbackUsed,
         fallbackChapterCount,
         localAuthoringUsed: true,
@@ -2490,6 +2346,8 @@ async function loadSoulOriginReportPayload(env, auth, reportId) {
     generationMode: clean(archive.generationMode || SOUL_ORIGIN_PDF_CONFIG.generationMode) || SOUL_ORIGIN_PDF_CONFIG.generationMode,
     provider: clean(archive.provider || SOUL_ORIGIN_PDF_CONFIG.provider) || SOUL_ORIGIN_PDF_CONFIG.provider,
     writingPipeline: clean(archive.writingPipeline || "local-calculation-to-local-assembled-pdf") || "local-calculation-to-local-assembled-pdf",
+    localAssemblyOnly: archive.localAssemblyOnly !== false && pdfReady.localAssemblyOnly !== false,
+    externalCallsAllowed: archive.externalCallsAllowed === true || pdfReady.externalCallsAllowed === true,
     fallbackUsed: Boolean(archive.fallbackUsed === true),
     fallbackChapterCount: Number(archive.fallbackChapterCount || 0),
     localAuthoringUsed: Boolean(archive.localAuthoringUsed === true),

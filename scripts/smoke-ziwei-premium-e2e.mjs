@@ -284,6 +284,8 @@ async function main() {
   const reportId = String(prepareJson?.reportId || "").trim();
   const pdfHtml = String(prepareJson?.pdfReady?.html || "").trim();
   const fallbackUsed = Boolean(prepareJson?.fallbackUsed);
+  const manuscriptSource = String(prepareJson?.manuscriptSource || "").trim();
+  const llmChapterCount = Number(prepareJson?.llmChapterCount || 0);
   const ziweiJsonV2 = prepareJson?.ziweiJsonV2 || prepareJson?.payload?.ziweiJsonV2 || prepareJson?.ziweiPayload?.ziweiJsonV2;
   const ziweiMasterJson = prepareJson?.ziweiMasterJson || prepareJson?.payload?.ziweiMasterJson || prepareJson?.ziweiPayload?.ziweiMasterJson;
   const masterJsonValidation = prepareJson?.masterJsonValidation || prepareJson?.payload?.masterJsonValidation || prepareJson?.ziweiPayload?.masterJsonValidation;
@@ -293,10 +295,18 @@ async function main() {
   if (!reportId) throw new Error("reportId가 비어 있습니다.");
   if (chapters.length < 15) throw new Error(`챕터 수가 부족합니다: ${chapters.length}`);
   if (pdfHtml.length < 5000) throw new Error(`pdfReady.html 길이가 비정상적으로 짧습니다: ${pdfHtml.length}`);
+  if (fallbackUsed) throw new Error("ziwei fallbackUsed must be false");
+  if (llmChapterCount !== 0) throw new Error(`ziwei llmChapterCount must be 0: ${llmChapterCount}`);
+  if (manuscriptSource !== "local-assembled") throw new Error(`ziwei manuscriptSource must be local-assembled: ${manuscriptSource}`);
+  if (prepareJson?.localAssemblyOnly !== true) throw new Error("ziwei localAssemblyOnly missing");
+  if (prepareJson?.externalCallsAllowed !== false) throw new Error("ziwei externalCallsAllowed must be false");
   if (ziweiJsonV2?.schemaVersion !== "ziwei-pdf-v2") throw new Error("ziweiJsonV2 schemaVersion missing");
   if (ziweiMasterJson?.schemaVersion !== "ziwei-premium-master-json.v1") throw new Error("ziweiMasterJson schemaVersion missing");
   if (masterJsonValidation?.ok !== true) throw new Error(`ziweiMasterJson validation failed: ${JSON.stringify(masterJsonValidation)}`);
   if (evidenceMap.length < 15) throw new Error(`ziweiJsonV2 evidence map too small: ${evidenceMap.length}`);
+  if (ziweiJsonV2?.quality?.writingPipeline !== "ziwei-premium-local-assembled-v4") throw new Error(`ziwei writingPipeline mismatch: ${ziweiJsonV2?.quality?.writingPipeline || ""}`);
+  if (ziweiJsonV2?.quality?.localAssemblyOnly !== true) throw new Error("ziweiJsonV2 localAssemblyOnly missing");
+  if (ziweiJsonV2?.quality?.externalCallsAllowed !== false) throw new Error("ziweiJsonV2 externalCallsAllowed must be false");
   if (!String(pdfReady?.downloadUrl || "").includes("/api/premium/pdf-archive/") || !String(pdfReady?.downloadUrl || "").includes("format=pdf")) {
     throw new Error(`pdfReady.downloadUrl is not premium archive pdf: ${pdfReady?.downloadUrl || ""}`);
   }
@@ -324,6 +334,8 @@ async function main() {
   console.log(`  - ziweiMasterJson: ${ziweiMasterJson.schemaVersion}`);
   console.log(`  - evidenceMap: ${evidenceMap.length}`);
   console.log(`  - fallbackUsed: ${fallbackUsed}`);
+  console.log(`  - manuscriptSource: ${manuscriptSource}`);
+  console.log(`  - llmChapterCount: ${llmChapterCount}`);
   console.log(`  - htmlLength: ${pdfHtml.length}`);
   console.log(`  - outFile: ${path.relative(process.cwd(), OUT_FILE)}`);
 }

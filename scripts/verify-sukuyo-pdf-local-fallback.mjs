@@ -60,6 +60,7 @@ function mergedBody(chapters) {
 
 function assertReadyReport(label, report) {
   const chapters = Array.isArray(report.chapters) ? report.chapters : [];
+  assert(SUKYO_PDF_CONFIG.templateVersion === "sukuyo-premium-local-assembled-v2", `${label}: templateVersion mismatch`, SUKYO_PDF_CONFIG);
   assert(report.ok === true, `${label}: report not ok`, report);
   assert(report.qualityStatus === "passed", `${label}: qualityStatus mismatch`, report);
   assert(report.chapterCount === SUKYO_PDF_CHAPTER_COUNT, `${label}: chapterCount mismatch`, report);
@@ -98,45 +99,55 @@ async function runLocalOnlyCase() {
   assert(report.localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT, "local-only: localDraftChapterCount mismatch", report);
   assert(report.fallbackChapterCount === 0, "local-only: fallbackChapterCount mismatch", report);
   assert(report.fallbackUsed === false, "local-only: fallbackUsed mismatch", report);
+  assert(report.localAssemblyOnly === true, "local-only: localAssemblyOnly mismatch", report);
+  assert(report.externalCallsAllowed === false, "local-only: externalCallsAllowed mismatch", report);
+  assert(report.payload?.localAssemblyOnly === true, "local-only: payload localAssemblyOnly mismatch", report.payload);
+  assert(report.payload?.externalCallsAllowed === false, "local-only: payload externalCallsAllowed mismatch", report.payload);
+  assert(report.pdfReady?.localAssemblyOnly === true, "local-only: pdfReady localAssemblyOnly mismatch", report.pdfReady);
+  assert(report.pdfReady?.externalCallsAllowed === false, "local-only: pdfReady externalCallsAllowed mismatch", report.pdfReady);
   return report;
 }
 
-async function runLlmFailureCase() {
+async function runExternalDisabledCase() {
   const report = await generateSukyoPremiumReport(
     { SUKUYO_LLM_ENHANCEMENT_ENABLED: "true" },
-    buildSeed("llm-failure"),
+    buildSeed("external-disabled"),
     {
       llmEnhancementEnabled: true,
       llmChapterGenerator() {
-        const error = new Error("forced llm failure");
-        error.code = "VERIFY_FORCED_LLM_FAILURE";
+        const error = new Error("external generator must stay unused");
+        error.code = "VERIFY_EXTERNAL_GENERATOR_UNUSED";
         throw error;
       },
     },
   );
-  assertReadyReport("llm-failure", report);
-  assert(report.manuscriptSource === SUKYO_PDF_CONFIG.generationMode, "llm-failure: source mismatch", report);
-  assert(report.fallbackUsed === false, "llm-failure: fallbackUsed mismatch", report);
-  assert(report.llmChapterCount === 0, "llm-failure: llmChapterCount mismatch", report);
-  assert(report.targetLlmChapterCount === 0, "llm-failure: target count mismatch", report);
-  assert(report.localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT, "llm-failure: localDraftChapterCount mismatch", report);
-  assert(report.fallbackChapterCount === 0, "llm-failure: fallbackChapterCount mismatch", report);
+  assertReadyReport("external-disabled", report);
+  assert(report.manuscriptSource === SUKYO_PDF_CONFIG.generationMode, "external-disabled: source mismatch", report);
+  assert(report.fallbackUsed === false, "external-disabled: fallbackUsed mismatch", report);
+  assert(report.llmChapterCount === 0, "external-disabled: llmChapterCount mismatch", report);
+  assert(report.targetLlmChapterCount === 0, "external-disabled: target count mismatch", report);
+  assert(report.localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT, "external-disabled: localDraftChapterCount mismatch", report);
+  assert(report.fallbackChapterCount === 0, "external-disabled: fallbackChapterCount mismatch", report);
+  assert(report.localAssemblyOnly === true, "external-disabled: localAssemblyOnly mismatch", report);
+  assert(report.externalCallsAllowed === false, "external-disabled: externalCallsAllowed mismatch", report);
   return report;
 }
 
 const localOnly = await runLocalOnlyCase();
-const llmFailure = await runLlmFailureCase();
+const externalDisabled = await runExternalDisabledCase();
 
 console.log("[verify-sukuyo-pdf-local-fallback] PASS", {
   localOnly: {
     chapterCount: localOnly.chapterCount,
     source: localOnly.manuscriptSource,
+    templateVersion: SUKYO_PDF_CONFIG.templateVersion,
     htmlReady: Boolean(localOnly.pdfReady?.html),
   },
-  llmFailure: {
-    chapterCount: llmFailure.chapterCount,
-    source: llmFailure.manuscriptSource,
-    fallbackChapterCount: llmFailure.fallbackChapterCount,
-    htmlReady: Boolean(llmFailure.pdfReady?.html),
+  externalDisabled: {
+    chapterCount: externalDisabled.chapterCount,
+    source: externalDisabled.manuscriptSource,
+    fallbackChapterCount: externalDisabled.fallbackChapterCount,
+    externalCallsAllowed: externalDisabled.externalCallsAllowed,
+    htmlReady: Boolean(externalDisabled.pdfReady?.html),
   },
 });

@@ -885,6 +885,10 @@
           _setProgress(TOTAL_CHAPTERS, '동일 세션 생성이 진행 중입니다. 잠시 후 결과를 확인합니다.');
           return;
         }
+        var manuscriptSource = _clean(payload && payload.manuscriptSource).toLowerCase();
+        if ((payload && payload.fallbackUsed) || /gemini|llm|hybrid|fallback/.test(manuscriptSource)) {
+          throw _buildPdfApiError(payload, 422, '신년운세 PDF가 로컬 조립 검증을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+        }
         _markPremiumVerified(25 * 60 * 1000);
         _log('LocalChapterDraftCompleted', { chapterCount: Number(payload && payload.localDraftChapterCount || TOTAL_CHAPTERS) });
         _log('LocalQualityValidationPassed', { chapterCount: Number(payload && payload.localDraftChapterCount || TOTAL_CHAPTERS) });
@@ -893,9 +897,6 @@
         _setProgress(TOTAL_CHAPTERS, '신년운세 프리미엄 PDF를 완성하는 중입니다');
         _renderResult(payload, profile, targetYear);
         _log('PDFRenderCompleted', { chapterCount: _chapters.length, source: _clean(payload && payload.manuscriptSource) });
-        if (payload && payload.fallbackUsed && payload.llmFallbackReason) {
-          _setProgress(TOTAL_CHAPTERS, '일부 상담문 보강이 지연되어 기본 원고로 안전하게 완료했습니다');
-        }
         _showScreen('nyResultScreen');
       }).catch(function (error) {
         _logError(error, { stage: 'generate' });

@@ -2240,10 +2240,11 @@ function _isLifeBookGenerationBusy() {
       daewoon_calc: '대운과 세운의 흐름 계산 중',
       local_draft: '로컬 명리 엔진으로 13챕터 원고 구성 시작',
       local_chapters_start: '로컬 명리 엔진으로 13챕터 원고 구성 시작',
+      local_writing: '인생의 책 원고를 정리하는 중',
       writing_local: '인생의 책 원고를 정리하는 중',
       calculation_validated: '사주 계산 완료 · 로컬 원고 구성 시작',
-      llm_writing: '인생의 책 원고를 보강하는 중',
-      llm_reviewing: '원고 품질 검수 중',
+      llm_writing: '인생의 책 원고를 정리하는 중',
+      llm_reviewing: '최종 원고 품질 검수 중',
       rendering_pdf: 'PDF 편집과 렌더링 중',
       done: '완료',
       local_reinforce: '부족한 장을 보강하는 중',
@@ -2338,9 +2339,9 @@ function _isLifeBookGenerationBusy() {
         serviceKey: 'saju-lifebook',
         productKey: LIFE_BOOK_FEATURE_KEY,
         featureKey: LIFE_BOOK_FEATURE_KEY,
-        generationMode: 'local',
+        generationMode: 'local-assembled',
         calculationSource: 'local-saju-engine',
-        authoringMode: 'local',
+        authoringMode: 'local-assembled',
         reportId: _lbReportId,
         sessionId: _sessionId,
         reportSessionId: _sessionId,
@@ -2438,7 +2439,7 @@ function _isLifeBookGenerationBusy() {
     _data = _normalizeLifeBookDoneData(_data);
       if (_isLifeBookRunningData(_data) && _extractLifeBookChaptersFromData(_data).length !== LIFEBOOK_TOTAL_CHAPTERS) {
         _flowLog('LIFE_BOOK_BACKGROUND_STATUS_WAIT', { reportId: _lbReportId, sessionId: _sessionId });
-        _setGenerationState('llm_writing');
+        _setGenerationState('local_writing');
         _data = await _waitLifeBookStatusDone(
           _sessionId,
           _headers,
@@ -2507,10 +2508,13 @@ function _isLifeBookGenerationBusy() {
       }
 
       _setGenerationState('writing_local');
-      _flowLog('LIFE_BOOK_LLM_MANUSCRIPT_READY', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
+      _flowLog('LIFE_BOOK_LOCAL_ASSEMBLED_MANUSCRIPT_READY', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
       _lifeBookLog('LocalManuscriptReady', { reportId: _lbReportId });
       if (_data && _data.fallbackUsed) {
         throw new Error('LIFE_BOOK_LOCAL_COMPLETION_REQUIRED');
+      }
+      if (_data && (_data.llmUsed || _data.llmEnabled || /gemini|llm/i.test(_manuscriptSource))) {
+        throw new Error('LIFE_BOOK_LOCAL_ASSEMBLY_REQUIRED');
       }
 
       _setGenerationState('rendering_pdf');

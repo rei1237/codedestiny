@@ -19,7 +19,7 @@ const ZIWEI_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
   llmEnabled: false,
   provider: "ziwei-assembler",
-  templateVersion: "ziwei-premium-assembled-v3",
+  templateVersion: "ziwei-premium-local-assembled-v4",
 });
 const CHAPTER_MIN_CHARS = 3200;
 const SECTION_MIN_CHARS = 700;
@@ -2993,6 +2993,8 @@ function buildZiweiJsonV2(profile = {}, seed = {}, chapters = [], metadata = {})
       manuscriptSource: clean(metadata?.manuscriptSource || metadata?.source),
       llmChapterCount: Number(metadata?.llmChapterCount || 0),
       fallbackChapterCount: Number(metadata?.fallbackChapterCount || 0),
+      localAssemblyOnly: metadata?.localAssemblyOnly === true,
+      externalCallsAllowed: metadata?.externalCallsAllowed === true,
       generationMode: clean(metadata?.generationMode || ZIWEI_PDF_CONFIG.generationMode),
       provider: clean(metadata?.provider || ZIWEI_PDF_CONFIG.provider),
       writingPipeline: clean(metadata?.writingPipeline || ZIWEI_PDF_CONFIG.templateVersion),
@@ -3512,6 +3514,8 @@ async function handlePrepare(request, env) {
     llmChapterCount: 0,
     source: "local-assembled",
     llmFallbackReason: "",
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
   };
   const completedChapters = localChapters;
   const duplicateRate = localDuplicateRate;
@@ -3537,6 +3541,8 @@ async function handlePrepare(request, env) {
     llmChapterCount: Number(enhanced.llmChapterCount || 0),
     fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
     llmFallbackReason: clean(enhanced.llmFallbackReason),
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
     generationMode: ZIWEI_PDF_CONFIG.generationMode,
     provider: ZIWEI_PDF_CONFIG.provider,
     writingPipeline: ZIWEI_PDF_CONFIG.templateVersion,
@@ -3548,6 +3554,8 @@ async function handlePrepare(request, env) {
     reportType: "ziweiPremium",
     qualityStatus: "passed",
     manuscriptSource: clean(enhanced.source || "local-assembled"),
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
     generationMode: ZIWEI_PDF_CONFIG.generationMode,
     provider: ZIWEI_PDF_CONFIG.provider,
     writingPipeline: ZIWEI_PDF_CONFIG.templateVersion,
@@ -3581,6 +3589,8 @@ async function handlePrepare(request, env) {
     chapterCount: completedChapters.length,
     llmChapterCount: Number(enhanced.llmChapterCount || 0),
     fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
     archive: {
       reportId,
       reportType: "ziwei_book",
@@ -3636,6 +3646,8 @@ async function handlePrepare(request, env) {
     fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
     fallbackUsed: Boolean(enhanced.fallbackUsed),
     llmFallbackReason: clean(enhanced.llmFallbackReason),
+    localAssemblyOnly: true,
+    externalCallsAllowed: false,
     diagnostics: {
       masterJson: masterJsonValidation,
       manuscript: finalBundleValidation,

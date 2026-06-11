@@ -88,7 +88,7 @@ assert.equal(handlePrepareSource.slice(0, paymentCheckIndex).includes("generateY
 assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.generationMode, "local-assembled");
 assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.llmEnabled, false);
 assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.provider, "saju-assembler");
-assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.templateVersion, "yearly-saju-assembled-v3");
+assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.templateVersion, "yearly-saju-local-assembled-v4");
 const localModeEnv = {
   YEARLY_SAJU_PDF_GENERATION_MODE: "local-assembled",
   YEARLY_SAJU_PDF_LLM_ENABLED: "false",
@@ -206,7 +206,7 @@ try {
   assert.equal(cacheCtx.executionKey, cacheKeyA);
   assert.equal(cacheCtx.idempotencyKey, cacheKeyA);
   assert.equal(cacheCtx.metadata.cacheKind, "yearly-saju-pdf");
-  assert.equal(cacheCtx.metadata.templateVersion, "yearly-saju-assembled-v3");
+  assert.equal(cacheCtx.metadata.templateVersion, "yearly-saju-local-assembled-v4");
   const pipelineResult = newYear.generateYearlySajuPdf(profile, 2026, {
     body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
     metadata: { reportType: "sajuNewYear", sessionId: "smoke-local-pipeline" },
@@ -216,10 +216,15 @@ try {
   assert.equal(pipelineResult.hybridStats.llmAttempted, 0);
   assert.equal(pipelineResult.hybridStats.llmSucceeded, 0);
   assert.equal(pipelineResult.hybridStats.provider, "saju-assembler");
+  assert.equal(pipelineResult.hybridStats.localAssemblyOnly, true);
+  assert.equal(pipelineResult.hybridStats.externalCallsAllowed, false);
+  assert.equal(pipelineResult.fallbackUsed, false);
+  assert.equal(pipelineResult.llmFallbackReason, "");
+  assert.equal(pipelineResult.manuscriptSource, "local-assembled");
   assert.equal(pipelineResult.chapters.length, specs.length);
   assert.ok(Array.isArray(pipelineResult.monthlyFortuneSections));
   assert.equal(pipelineResult.monthlyFortuneSections.length, 12);
-  assert.equal(pipelineResult.pdfReady.metadata.writingPipeline, "yearly-saju-assembled-v3");
+  assert.equal(pipelineResult.pdfReady.metadata.writingPipeline, "yearly-saju-local-assembled-v4");
   assert.ok(Array.isArray(pipelineResult.pdfReady.metadata.interpretationBlockIds));
   assert.ok(pipelineResult.pdfReady.metadata.interpretationBlockIds.length >= 10);
   assert.equal(pipelineResult.normalizedData.service, "yearly-saju");
@@ -239,7 +244,7 @@ try {
     assert.ok(chapter.sections.every((section) => Array.isArray(section.sajuEvidence) && section.sajuEvidence.length >= 3), `chapter ${chapter.no} evidence count`);
     assert.equal(assertiveForbiddenRe.test(chapterText), false, `chapter ${chapter.no} assertive marker`);
   }
-  assert.ok(pipelineResult.chapters.every((chapter) => chapter.source === "assembled"));
+  assert.ok(pipelineResult.chapters.every((chapter) => chapter.source === "local-assembled"));
   await assert.rejects(
     () => newYear.generateNewYearChapterWithGemini({
       GEMINI_API_KEY: "present-in-env",
@@ -315,7 +320,7 @@ try {
   globalThis.fetch = originalFetch;
 }
 
-const llmChapters = specs.map((spec) => newYear.normalizeNewYearGeneratedChapter({
+const normalizedGeneratedChapters = specs.map((spec) => newYear.normalizeNewYearGeneratedChapter({
   sections: spec.categories.map((title, index) => ({
     title,
     body: longBody(seed, title, index),
@@ -326,27 +331,27 @@ const llmChapters = specs.map((spec) => newYear.normalizeNewYearGeneratedChapter
   })),
   masterAdvice: "운을 기다리기보다 흐름에 맞게 움직이는 해입니다.",
 }, spec, seed));
-const llmValidation = newYear.validateSajuNewYearPdfQuality({
-  chapters: llmChapters,
+const generatedValidation = newYear.validateSajuNewYearPdfQuality({
+  chapters: normalizedGeneratedChapters,
   expectedChapters: specs,
   minChapterLength: 4000,
   minSectionLength: 920,
 });
-assert.equal(llmValidation.ok, true, `llm quality validation ${JSON.stringify(llmValidation)}`);
+assert.equal(generatedValidation.ok, true, `generated quality validation ${JSON.stringify(generatedValidation)}`);
 
-const llmChapter = llmChapters[0];
-assert.equal(llmChapter.source, "worker-native-llm");
-assert.equal(llmChapter.categories.length, specs[0].categories.length);
-assert.ok(llmChapter.categories[0].finalText.length >= 920);
+const generatedChapter = normalizedGeneratedChapters[0];
+assert.equal(generatedChapter.source, "external-llm-disabled");
+assert.equal(generatedChapter.categories.length, specs[0].categories.length);
+assert.ok(generatedChapter.categories[0].finalText.length >= 920);
 
 const archiveUrls = newYear.buildNewYearArchiveUrls("https://example.test", "new-year-smoke");
 assert.ok(archiveUrls.pdfUrl.includes("format=pdf"));
 assert.ok(archiveUrls.htmlUrl.includes("format=html"));
 
-const pdfReady = newYear.buildPdfReadyPayload(seed, llmChapters, {
-  manuscriptSource: "assembled",
+const pdfReady = newYear.buildPdfReadyPayload(seed, normalizedGeneratedChapters, {
+  manuscriptSource: "local-assembled",
   localDraftChapterCount: 0,
-  writingPipeline: "yearly-saju-assembled-v3",
+  writingPipeline: "yearly-saju-local-assembled-v4",
 });
 pdfReady.pdfUrl = archiveUrls.pdfUrl;
 pdfReady.downloadUrl = archiveUrls.pdfUrl;
@@ -354,7 +359,7 @@ pdfReady.htmlUrl = archiveUrls.htmlUrl;
 pdfReady.mimeType = "application/pdf";
 pdfReady.contentType = "application/pdf";
 assert.ok(String(pdfReady.html || "").includes("신년운세"));
-assert.equal(newYear.validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters: newYear.buildSajuNewYearAssembledChapters(seed, llmChapters), requireDownloadUrl: true }).ok, true);
+assert.equal(newYear.validateSajuNewYearPdfCompletionPayload({ pdfReady, chapters: newYear.buildSajuNewYearAssembledChapters(seed, normalizedGeneratedChapters), requireDownloadUrl: true }).ok, true);
 assert.equal(pdfReady.mimeType, "application/pdf");
 assert.ok(pdfReady.downloadUrl.includes("format=pdf"));
 assert.ok(pdfReady.htmlUrl.includes("format=html"));
