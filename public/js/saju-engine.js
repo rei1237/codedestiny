@@ -4725,7 +4725,7 @@ function _cdAIPromptGate(input) {
     };
   }
   if (typeof window._cdOpenPaidServiceGate === 'function') {
-    return window._cdOpenPaidServiceGate({
+    return Promise.resolve(window._cdOpenPaidServiceGate({
       title: reason,
       reason: reason,
       featureKey: featureKey,
@@ -4734,7 +4734,7 @@ function _cdAIPromptGate(input) {
       coinPrice: cost,
       cost: cost,
       requestId: requestId
-    }).then(function(openResult) {
+    })).then(function(openResult) {
       if (openResult && openResult.status === 'granted') {
         return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
       }
@@ -4743,7 +4743,7 @@ function _cdAIPromptGate(input) {
         status: 402,
         payload: {
           code: 'PAYMENT_REQUIRED',
-          message: '결제 후 프롬프트를 생성할 수 있습니다.',
+          message: '이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.',
           requiredCoins: cost
         }
       });
@@ -4753,7 +4753,7 @@ function _cdAIPromptGate(input) {
         status: Number(error && error.status) || 402,
         payload: {
           code: String(error && error.code || 'PAYMENT_REQUIRED'),
-          message: String(error && error.message || '결제 후 프롬프트를 생성할 수 있습니다.'),
+          message: String(error && error.message || '이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.'),
           requiredCoins: cost
         }
       });
@@ -4773,7 +4773,7 @@ function _cdAIPromptGate(input) {
     var gate = normalize(result);
     if (gate.ok) return gate;
     gate.code = gate.code || 'PAYMENT_REQUIRED';
-    gate.message = gate.message || '결제 후 프롬프트를 생성할 수 있습니다.';
+    gate.message = gate.message || '이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.';
     return gate;
   });
 }
@@ -4810,7 +4810,7 @@ function _cdAIPromptFailureResult(gateResult) {
     payload: {
       ok: false,
       code: code || 'PAYMENT_REQUIRED',
-      message: gate.message || '결제 후 프롬프트를 생성할 수 있습니다.',
+      message: gate.message || '이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.',
       requiredCoins: gate.requiredCoins || 0
     }
   };
@@ -8700,13 +8700,13 @@ function renderAstroInsight() {
 
     var astroAiPromptSectionHtml = ''
       + '<div class="astro-section astro-prompt-panel" id="astroAiPromptSection" style="border:1px solid rgba(125,211,252,0.35);background:linear-gradient(145deg,rgba(2,6,23,.96),rgba(10,20,42,.94));box-shadow:0 24px 54px rgba(15,23,42,0.45), inset 0 1px 0 rgba(255,255,255,0.08);border-radius:16px;">'
-      + '<div class="astro-section-title-row"><div><div class="astro-section-kicker">Cosmic Prompt Forge</div><div class="astro-subhead" style="margin-bottom:8px;color:#bae6fd;">🌌 점성술 질문 문장 만들기</div></div><span class="astro-price-pill astro-price-pill--prompt">'+ASTROLOGY_AI_PROMPT_COST+'코인</span></div>'
+      + '<div class="astro-section-title-row"><div><div class="astro-section-kicker">Cosmic Prompt Forge</div><div class="astro-subhead" style="margin-bottom:8px;color:#bae6fd;">🌌 점성술 질문 문장 만들기</div></div><span class="astro-price-pill astro-price-pill--prompt">유료 생성</span></div>'
       + '<p class="astro-birth-lead" style="margin-bottom:9px;color:#e2e8f0;">'
       + '현재 차트 해석을 바탕으로 질문 맞춤 상담 프롬프트를 생성합니다. 궁합 질문은 관련 분석 결과가 있으면 함께 반영됩니다.'
       + '</p>'
       + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">'
-      + '  <span style="font-size:11px;color:#93c5fd;border:1px solid rgba(125,211,252,.28);padding:3px 8px;border-radius:999px;background:rgba(14,116,144,.2);">1회 '+ASTROLOGY_AI_PROMPT_COST+'코인</span>'
-      + '  <span id="astroAiPromptCoinBalance" style="font-size:11px;color:#bae6fd;">코인 잔액 확인 중...</span>'
+      + '  <span style="font-size:11px;color:#93c5fd;border:1px solid rgba(125,211,252,.28);padding:3px 8px;border-radius:999px;background:rgba(14,116,144,.2);">이용권 · 단건결제 · 월정석 보너스</span>'
+      + '  <span id="astroAiPromptCoinBalance" style="font-size:11px;color:#bae6fd;">결제 수단 확인 후 생성</span>'
       + '</div>'
       + '<textarea id="astroAiPromptQuestionInput" maxlength="'+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'" placeholder="예) 올해 이직 시기와 연봉 협상 전략을 점성술 근거로 알려주세요." style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(125,211,252,0.34);background:rgba(3,10,29,.78);color:#e2e8f0;padding:11px;line-height:1.65;font-size:0.84rem;box-sizing:border-box;resize:vertical;"></textarea>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;">'
@@ -8714,7 +8714,7 @@ function renderAstroInsight() {
       + '  <span style="font-size:11px;color:#93c5fd;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
       + '</div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">'
-      + '  <button id="astroAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#0ea5e9,#2563eb 62%,#4f46e5);color:#fff;border:1px solid rgba(125,211,252,.45);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(37,99,235,.38);">'+ASTROLOGY_AI_PROMPT_COST+'코인으로 생성</button>'
+      + '  <button id="astroAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#0ea5e9,#2563eb 62%,#4f46e5);color:#fff;border:1px solid rgba(125,211,252,.45);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(37,99,235,.38);">유료 프롬프트 생성</button>'
       + '  <button id="astroAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border:1px solid rgba(125,211,252,.42);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '</div>'
       + '<div id="astroAiPromptStatus" style="margin-top:8px;font-size:12px;color:#cbd5e1;line-height:1.6;"></div>'
@@ -9782,22 +9782,7 @@ function renderAstroInsight() {
 
     function _astroSetCoinBalanceText(node, points) {
       if (!node) return;
-      var n = Number(points);
-      if (Number.isFinite(n)) {
-        node.textContent = '현재 코인 ' + n.toLocaleString('ko-KR');
-        return;
-      }
-
-      try {
-        var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
-        var p = Number(user && user.points);
-        if (Number.isFinite(p)) {
-          node.textContent = '현재 코인 ' + p.toLocaleString('ko-KR');
-          return;
-        }
-      } catch (_) {}
-
-      node.textContent = '현재 코인 확인 불가';
+      node.textContent = '이용권 또는 단건결제 확인 후 생성';
     }
 
     function _astroBuildPromptHeaders() {
@@ -9871,7 +9856,7 @@ function renderAstroInsight() {
         generateBtn.disabled = inFlight;
         inputEl.disabled = inFlight;
         generateBtn.style.opacity = inFlight ? '0.72' : '1';
-        generateBtn.textContent = inFlight ? '생성 중...' : (ASTROLOGY_AI_PROMPT_COST + '코인으로 생성');
+        generateBtn.textContent = inFlight ? '생성 중...' : '유료 프롬프트 생성';
       }
 
       function updateCount() {
@@ -9894,7 +9879,7 @@ function renderAstroInsight() {
 
         var context = _astroBuildPromptContext();
         setLoading(true);
-        _astroSetPromptStatus(statusEl, '질문 맞춤 프롬프트를 생성하고 있습니다...', 'info');
+        _astroSetPromptStatus(statusEl, '이용권과 결제 수단을 확인하고 프롬프트를 생성하고 있습니다...', 'info');
 
         _astroRequestAIPrompt({
           question: question,
@@ -9911,20 +9896,15 @@ function renderAstroInsight() {
             var qType = String(payload.questionType || 'general');
             typeEl.textContent = '질문 유형: ' + _astroQuestionTypeLabel(qType);
 
-            var charged = Math.max(0, Number(payload.chargedCoins || 0));
             var balanceAfter = Number(payload.balanceAfter);
             if (Number.isFinite(balanceAfter)) {
               _applySajuAIPromptBalance(balanceAfter);
-              _astroSetCoinBalanceText(balanceEl, balanceAfter);
-            } else {
-              _astroSetCoinBalanceText(balanceEl);
             }
+            _astroSetCoinBalanceText(balanceEl);
 
             _astroSetPromptStatus(
               statusEl,
-              charged > 0
-                ? ('프롬프트 생성 완료. ' + charged + '코인이 차감되었습니다.')
-                : '프롬프트 생성 완료.',
+              '결제 확인이 완료되어 프롬프트가 생성되었습니다.',
               'success'
             );
             return;
@@ -9943,8 +9923,8 @@ function renderAstroInsight() {
           }
 
           if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
-            _astroSetPromptStatus(statusEl, message, 'error');
-            _openSajuPaidPaymentMode(ASTROLOGY_AI_PROMPT_COST, '점성술 질문 프롬프트', 'astrology-ai-prompt');
+            _astroSetPromptStatus(statusEl, '이용권, 단건결제, 월정석 보너스 중 하나로 결제 확인이 필요합니다.', 'error');
+            _openSajuPaidPaymentMode(ASTROLOGY_AI_PROMPT_COST, '점성술 질문 프롬프트', 'astrology_ai_prompt_generator');
             return;
           }
 

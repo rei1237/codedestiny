@@ -1,5 +1,4 @@
 import { Solar } from "lunar-javascript";
-import { callGeminiText } from "./gemini.js";
 import { SUKUYO_MANSIONS } from "./sukuyo-premium.js";
 
 export const SUKYO_PDF_FEATURE_KEY = "premium-sukuyo-report-compat";
@@ -7,84 +6,14 @@ export const SUKYO_PDF_ALIAS_FEATURE_KEY = "premium_pdf_sukyo_compat";
 export const SUKYO_PDF_CHAPTER_COUNT = 15;
 export const SUKYO_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
-  llmEnabled: false,
   provider: "sukuyo-assembler",
   templateVersion: "sukuyo-premium-assembled-v1",
 });
 export const SUKUYO_PROMPT_VERSION = SUKYO_PDF_CONFIG.templateVersion;
-export const SUKUYO_PERSONAL_LLM_ENHANCED_CHAPTERS = Object.freeze([
-  "mansion_overview",
-  "emotional_rhythm",
-  "love_pattern",
-  "career_talent",
-  "shadow_pattern",
-  "caution_strategy",
-  "personal_master_plan",
-]);
-export const SUKUYO_COMPATIBILITY_LLM_ENHANCED_CHAPTERS = Object.freeze([
-  "compatibility_overview",
-  "relation_type",
-  "distance_attraction",
-  "communication_pattern",
-  "conflict_pattern",
-  "long_term_potential",
-  "compatibility_master_plan",
-]);
-
-const SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS = Object.freeze([
-  "chapter-01-core-map",
-  "chapter-04-relation-type",
-  "chapter-05-distance",
-  "chapter-07-emotion",
-  "chapter-09-conflict",
-  "chapter-11-marriage",
-  "chapter-15-final",
-]);
-export const SUKYO_PDF_LLM_TARGET_CHAPTER_COUNT = SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS.length;
-const SUKUYO_LLM_ENHANCEMENT_ENABLED_DEFAULT = false;
-const SUKUYO_TIMING_LLM_ENHANCEMENT_ENABLED_DEFAULT = false;
-const SUKUYO_LLM_CACHE_MAX = 240;
-const sukuyoLlmTextCache = new Map();
 
 const MIN_CHAPTER_LENGTH = 2800;
 const MIN_SECTION_LENGTH = 700;
 const MIN_TOTAL_LENGTH = 45000;
-const SUKYO_LLM_KEY_ENV_KEYS = Object.freeze([
-  "SUKYO_GEMINI_API_KEY1",
-  "SUKYO_GEMINI_API_KEY2",
-  "SUKYO_GEMINI_API_KEY3",
-  "SUKYO_GEMINI_API_KEY4",
-  "SUKYO_GEMINI_API_KEY5",
-  "SUKUYO_GEMINI_API_KEY1",
-  "SUKUYO_GEMINI_API_KEY2",
-  "SUKUYO_GEMINI_API_KEY3",
-  "SUKUYO_GEMINI_API_KEY4",
-  "SUKUYO_GEMINI_API_KEY5",
-  "SUKYO_PREMIUM_GEMINI_API_KEY1",
-  "SUKYO_PREMIUM_GEMINI_API_KEY2",
-  "SUKYO_PREMIUM_GEMINI_API_KEY3",
-  "SUKYO_PREMIUM_GEMINI_API_KEY4",
-  "SUKYO_PREMIUM_GEMINI_API_KEY5",
-  "SUKUYO_PREMIUM_GEMINI_API_KEY1",
-  "SUKUYO_PREMIUM_GEMINI_API_KEY2",
-  "SUKUYO_PREMIUM_GEMINI_API_KEY3",
-  "SUKUYO_PREMIUM_GEMINI_API_KEY4",
-  "SUKUYO_PREMIUM_GEMINI_API_KEY5",
-  "PREMIUM_GEMINI_API_KEY1",
-  "PREMIUM_GEMINI_API_KEY2",
-  "PREMIUM_GEMINI_API_KEY3",
-  "PREMIUM_GEMINI_API_KEY4",
-  "PREMIUM_GEMINI_API_KEY5",
-]);
-const SUKYO_LLM_MODEL_ENV_KEYS = Object.freeze([
-  "SUKYO_GEMINI_MODEL",
-  "SUKUYO_GEMINI_MODEL",
-  "SUKYO_PREMIUM_GEMINI_MODEL",
-  "SUKUYO_PREMIUM_GEMINI_MODEL",
-  "PREMIUM_GEMINI_MODEL",
-  "GEMINI_MODEL",
-]);
-const SUKYO_LLM_RISKY_ASSERTION_RE = /(100\s*%|확정|무조건|반드시\s*(결혼|이별|재회|파국|성공|실패)|죽음|사망|파산|질병|암|우울증|공황장애|투자\s*수익|수익\s*보장|대박)/i;
 const SUKYO_MONTH_START = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
 
 const INTERNAL_TOKEN_RE = /\b(?:payload|debug|engine|api|json|llm|fallback|localdraft|about:blank|internal\s+server\s+error|chapter\s*\d+|a\(안\)|b\(괴\)|near-triad(?:-[a-z0-9]+)?|\bd\d+\b|triad|자동\s*복구\s*생성|undefined|null|nan)\b/gi;
@@ -1505,45 +1434,6 @@ export function assertSukyoCompatibilityPdfComplete({ chapters = [], expectedCha
   return { ok: true };
 }
 
-function safeJsonForSukyoPrompt(value) {
-  try {
-    return JSON.stringify(value, (key, item) => {
-      if (typeof item === "number" && !Number.isFinite(item)) return null;
-      if (typeof item === "string") return item.slice(0, 2400);
-      return item;
-    }, 2)
-      .replace(/</g, "\\u003c")
-      .replace(/>/g, "\\u003e")
-      .replace(/&/g, "\\u0026");
-  } catch (_) {
-    return "{}";
-  }
-}
-
-function isFalseLike(value) {
-  const token = text(value).toLowerCase();
-  return token === "0" || token === "false" || token === "no" || token === "off" || token === "disabled";
-}
-
-function isTrueLike(value) {
-  const token = text(value).toLowerCase();
-  return token === "1" || token === "true" || token === "yes" || token === "on" || token === "enabled";
-}
-
-export function isSukuyoLlmEnhancementEnabled(env = {}, options = {}) {
-  if (options?.llmEnhancementEnabled != null) return !isFalseLike(options.llmEnhancementEnabled);
-  const raw = env?.SUKUYO_LLM_ENHANCEMENT_ENABLED ?? env?.SUKYO_LLM_ENHANCEMENT_ENABLED;
-  if (raw == null || raw === "") return SUKUYO_LLM_ENHANCEMENT_ENABLED_DEFAULT;
-  return isTrueLike(raw);
-}
-
-export function isSukuyoTimingLlmEnhancementEnabled(env = {}, options = {}) {
-  if (options?.timingLlmEnhancementEnabled != null) return !isFalseLike(options.timingLlmEnhancementEnabled);
-  const raw = env?.SUKUYO_TIMING_LLM_ENHANCEMENT_ENABLED ?? env?.SUKYO_TIMING_LLM_ENHANCEMENT_ENABLED;
-  if (raw == null || raw === "") return SUKUYO_TIMING_LLM_ENHANCEMENT_ENABLED_DEFAULT;
-  return isTrueLike(raw);
-}
-
 function stableStringify(value) {
   if (value == null) return "null";
   if (typeof value !== "object") return JSON.stringify(value);
@@ -1559,31 +1449,6 @@ function hashStable(value) {
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0).toString(36);
-}
-
-function readSukuyoLlmCache(key) {
-  if (!key) return "";
-  const item = sukuyoLlmTextCache.get(key);
-  if (!item) return "";
-  if (Number.isFinite(item.expiresAt) && item.expiresAt <= Date.now()) {
-    sukuyoLlmTextCache.delete(key);
-    return "";
-  }
-  return text(item.text);
-}
-
-function writeSukuyoLlmCache(key, value, ttlMs = 1000 * 60 * 60 * 24) {
-  const body = text(value);
-  if (!key || !body) return;
-  sukuyoLlmTextCache.set(key, {
-    text: body,
-    expiresAt: Date.now() + Math.max(1000, Number(ttlMs) || 1000),
-  });
-  while (sukuyoLlmTextCache.size > SUKUYO_LLM_CACHE_MAX) {
-    const oldest = sukuyoLlmTextCache.keys().next().value;
-    if (!oldest) break;
-    sukuyoLlmTextCache.delete(oldest);
-  }
 }
 
 function mansionFacts(star = {}) {
@@ -1738,52 +1603,6 @@ export function buildSukuyoChapterPlans(seed = {}, localJson = null, localChapte
   });
 }
 
-export function buildSukuyoLlmCacheKey(facts = {}, chapterId = "", targetPeriod = "") {
-  const keyData = {
-    productId: "sukuyo",
-    mode: text(facts?.mode || "compatibility"),
-    birthInfoHash: hashStable(facts?.birthInfo || {}),
-    partnerBirthInfoHash: facts?.mode === "compatibility" ? hashStable(facts?.partnerBirthInfo || {}) : "",
-    calendarBasisHash: hashStable(facts?.calendarBasis || {}),
-    mansionSystem: text(facts?.calendarBasis?.mansionSystem || "27"),
-    engineVersion: text(facts?.engineVersion || facts?.calendarBasis?.algorithmVersion || "sukyo-premium-compat-v2"),
-    promptVersion: SUKUYO_PROMPT_VERSION,
-    chapterId: text(chapterId),
-    targetPeriod: text(targetPeriod),
-  };
-  return `sukuyo-llm:${hashStable(keyData)}`;
-}
-
-function extractSukyoLlmJsonObject(value = "") {
-  const raw = text(value)
-    .replace(/^\s*```(?:json|javascript|js)?\s*/i, "")
-    .replace(/\s*```\s*$/i, "")
-    .trim();
-  try {
-    return JSON.parse(raw);
-  } catch (_) {}
-
-  const candidates = [
-    raw.match(/```json\s*([\s\S]*?)\s*```/i)?.[1],
-    raw.match(/```\s*([\s\S]*?)\s*```/i)?.[1],
-  ].filter(Boolean);
-
-  const start = raw.indexOf("{");
-  const end = raw.lastIndexOf("}");
-  if (start >= 0 && end > start) candidates.push(raw.slice(start, end + 1));
-
-  for (const candidate of candidates) {
-    try {
-      return JSON.parse(String(candidate || "").trim());
-    } catch (_) {}
-  }
-
-  const error = new Error("숙요점 LLM 원고 응답을 JSON으로 해석하지 못했습니다.");
-  error.code = "SUKYO_LLM_JSON_PARSE_FAILED";
-  error.status = 502;
-  throw error;
-}
-
 function buildSukyoCategoryCompatibility(localJson = {}) {
   const selfGroup = text(localJson?.self?.group, "미상");
   const partnerGroup = text(localJson?.partner?.group, "미상");
@@ -1905,15 +1724,12 @@ function buildSukyoGenerationJson(seed = {}, localJson = {}) {
       featureKey: text(seed?.featureKey),
     },
     generationPolicy: {
-      manuscriptSource: "hybrid",
-      localUsage: "calculation-and-template",
+      manuscriptSource: SUKYO_PDF_CONFIG.generationMode,
+      localUsage: "calculation-and-local-manuscript",
       localCalculationOnly: true,
-      proseAuthoring: "selected-chapter-enhancement",
+      proseAuthoring: "local-assembled",
       rejectLocalDraft: false,
-      rejectFallbackDraft: false,
-      renderOnlyLlmChapters: false,
-      llmEnhancedChapterKeys: SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS,
-      timingLlmEnhancementEnabled: false,
+      rejectFallbackDraft: true,
       forbidden: ["새 숙요 계산", "본명숙 변경", "관계 유형 변경", "거리 판정 변경", "확정적 예언", "공포 마케팅", "사주 용어 혼입"],
       requiredTone: "전문적이고 신비로운 관계 상담문",
     },
@@ -1942,7 +1758,7 @@ function buildSukyoGenerationJson(seed = {}, localJson = {}) {
       sections: chapter.sections,
       evidence: chapterEvidenceMap.find((item) => item.key === chapter.key) || null,
       plan: chapterPlans.find((item) => item.chapterId === chapter.key) || null,
-      llmEnhanced: SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS.includes(chapter.key),
+      localAssembled: true,
     })),
     qualityContract: {
       chapterCount: SUKYO_PDF_CHAPTER_COUNT,
@@ -1958,313 +1774,6 @@ function buildSukyoGenerationJson(seed = {}, localJson = {}) {
         "categoryCompatibility.elementPairKey",
       ],
     },
-  };
-}
-
-function buildSukyoChapterPrompt(input = {}) {
-  return `너는 숙요 계산자가 아니다.
-너는 본명숙이나 관계궁을 새로 산출하는 사람이 아니다.
-아래 제공되는 숙요 계산 결과는 이미 확정된 값이다.
-본명숙, 상대 본명숙, 관계 유형, 거리, 방향, 궁합 판정, 월운, 일운, 음력 변환 기준을 절대 변경하지 마라.
-새로운 숙요 계산을 하지 마라.
-27숙/28숙 기준을 임의로 바꾸지 마라.
-제공되지 않은 정보를 단정하지 마라.
-lockedFacts는 반드시 반영해라.
-로컬 계산 결과와 모순되는 문장을 쓰지 마라.
-독자의 불안감을 과도하게 자극하지 마라.
-“반드시 헤어진다”, “파멸한다”, “절대 만나면 안 된다”, “불행해진다”, “배신당한다” 같은 단정적이고 공포를 조장하는 표현을 피하라.
-안괴, 위성, 우쇠 같은 강한 관계 유형도 자극적으로 표현하지 말고 현실적인 조율 포인트로 설명하라.
-관계, 결혼, 이별, 감정 의존 같은 민감한 주제는 부드럽고 실천 가능한 조언으로 표현하라.
-숙요 상담문처럼 자연스럽고 깊이 있게 작성하라.
-반복 문장을 줄이고, 챕터마다 다른 관점으로 설명하라.
-한국어로 작성하라.
-최종 PDF 독자가 돈을 내고 읽는 프리미엄 숙요 리포트처럼 느껴지게 작성하라.
-사주 용어인 일간, 십성, 용신, 기신, 대운 등을 숙요 해석에 임의로 섞지 마라.
-
-정적 템플릿 정책:
-1. 챕터 key, order, title, section heading, 표지, 목차, 공통 안내문은 코드 템플릿에서 이미 생성된다.
-2. 제목을 새로 만들지 말고, 입력된 section 순서에 맞춰 body만 작성한다.
-3. 각 section.body는 ${MIN_SECTION_LENGTH}자 이상이며, 두 사람의 본명숙, 관계 유형, 거리, 카테고리 조합, 오행 조합 중 최소 3개 근거를 자연스럽게 포함한다.
-4. JSON, API, LLM, fallback, debug, payload, schema, internal, localdraft 같은 내부 용어를 본문에 쓰지 않는다.
-5. 응답은 JSON 객체 하나만 반환한다.
-
-응답 형식:
-{
-  "sections": [
-    {
-      "body": "완성된 개인화 상담문"
-    }
-  ]
-}
-
-아래는 이미 계산 완료된 숙요점 챕터 데이터다.
-계산 결과를 바꾸거나 새로 해석하지 말고, 주어진 사실과 해석 포인트를 자연스럽고 깊이 있는 문장으로 확장하라.
-
-입력:
-${safeJsonForSukyoPrompt(input)}`;
-}
-async function callSukyoGemini(env, prompt, options = {}) {
-  const model = text(env?.SUKYO_GEMINI_MODEL || env?.SUKUYO_GEMINI_MODEL || env?.SUKYO_PREMIUM_GEMINI_MODEL || env?.SUKUYO_PREMIUM_GEMINI_MODEL || env?.PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "gemini-2.5-flash");
-  const result = await callGeminiText(env, prompt, {
-    keyEnvKeys: SUKYO_LLM_KEY_ENV_KEYS,
-    modelEnvKeys: SUKYO_LLM_MODEL_ENV_KEYS,
-    models: [model],
-    temperature: Number(env?.SUKYO_GEMINI_TEMPERATURE || env?.SUKUYO_GEMINI_TEMPERATURE || env?.SUKYO_PREMIUM_GEMINI_TEMPERATURE || env?.SUKUYO_PREMIUM_GEMINI_TEMPERATURE || env?.PREMIUM_GEMINI_TEMPERATURE || 0.35),
-    topP: Number(env?.SUKYO_GEMINI_TOP_P || env?.SUKUYO_GEMINI_TOP_P || env?.SUKYO_PREMIUM_GEMINI_TOP_P || env?.SUKUYO_PREMIUM_GEMINI_TOP_P || env?.PREMIUM_GEMINI_TOP_P || 0.9),
-    maxOutputTokens: Number(env?.SUKYO_GEMINI_MAX_OUTPUT_TOKENS || env?.SUKUYO_GEMINI_MAX_OUTPUT_TOKENS || env?.SUKYO_PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || env?.SUKUYO_PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 8192),
-    timeoutMs: Number(env?.SUKYO_GEMINI_TIMEOUT_MS || env?.SUKUYO_GEMINI_TIMEOUT_MS || env?.SUKYO_PREMIUM_GEMINI_TIMEOUT_MS || env?.SUKUYO_PREMIUM_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 30000),
-    totalTimeoutMs: Number(env?.SUKYO_GEMINI_TOTAL_TIMEOUT_MS || env?.SUKUYO_GEMINI_TOTAL_TIMEOUT_MS || env?.SUKYO_PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || env?.SUKUYO_PREMIUM_GEMINI_TOTAL_TIMEOUT_MS || 0),
-    maxAttemptsPerPair: Number(env?.SUKYO_GEMINI_RETRIES || env?.SUKUYO_GEMINI_RETRIES || env?.SUKYO_PREMIUM_GEMINI_RETRIES || env?.SUKUYO_PREMIUM_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1),
-    disableVertexFallback: env?.SUKYO_GEMINI_DISABLE_VERTEX_FALLBACK ?? env?.SUKUYO_GEMINI_DISABLE_VERTEX_FALLBACK ?? env?.GEMINI_DISABLE_VERTEX_FALLBACK,
-    metadata: {
-      requestId: text(options?.requestId),
-      chapterNo: String(options?.chapterNo || ""),
-    },
-  });
-  if (!result?.ok || !text(result?.text)) {
-    const error = new Error(text(result?.message || "숙요점 LLM 원고 생성에 실패했습니다."));
-    error.code = text(result?.error || "SUKYO_LLM_GENERATION_FAILED");
-    error.status = Number(result?.status || 502);
-    throw error;
-  }
-  return text(result.text);
-}
-
-async function callConfiguredSukuyoLlm(env, prompt, options = {}) {
-  if (typeof options?.llmChapterGenerator === "function") {
-    const generated = await options.llmChapterGenerator({
-      env,
-      prompt,
-      chapterSpec: options.chapterSpec,
-      generationJson: options.generationJson,
-      chapterPlan: options.chapterPlan,
-      sukuyoFacts: options.sukuyoFacts,
-      requestId: options.requestId,
-    });
-    if (typeof generated === "string") return generated;
-    if (generated?.ok === false) {
-      const error = new Error(text(generated?.message || generated?.error || "SUKUYO_CUSTOM_LLM_FAILED"));
-      error.code = text(generated?.error || "SUKUYO_CUSTOM_LLM_FAILED");
-      throw error;
-    }
-    return text(generated?.text || generated?.body || JSON.stringify(generated || {}));
-  }
-  return callSukyoGemini(env, prompt, options);
-}
-
-function toSukyoGeneratedChapter(parsed = {}, spec = {}) {
-  const raw = parsed?.chapter && typeof parsed.chapter === "object" ? parsed.chapter : parsed;
-  const rawSections = Array.isArray(raw?.sections) ? raw.sections : [];
-  return {
-    key: text(spec?.key || raw?.key),
-    order: safeNumber(spec?.order || raw?.order || raw?.chapterNo, 0),
-    title: text(spec?.title || raw?.title),
-    sections: (Array.isArray(spec?.sections) ? spec.sections : rawSections.map((section) => text(section?.heading || section?.title))).map((heading, index) => {
-      const source = rawSections[index] || {};
-      return {
-        heading: text(heading || source?.heading || source?.title),
-        body: sanitizeSukyoPremiumText(source?.body || source?.text || ""),
-      };
-    }),
-  };
-}
-function validateSukyoGeneratedChapter(chapter = {}, spec = {}, generationJson = {}) {
-  const issues = [];
-  const localJson = generationJson?.calculationTruth || generationJson || {};
-  const evidenceMap = Array.isArray(generationJson?.chapterEvidenceMap) ? generationJson.chapterEvidenceMap : [];
-  const chapterEvidence = evidenceMap.find((item) => text(item?.key) === text(spec?.key))
-    || evidenceMap.find((item) => safeNumber(item?.order, 0) === safeNumber(spec?.order, 0))
-    || {};
-  if (text(chapter?.key) !== text(spec?.key)) issues.push("chapter.key");
-  if (safeNumber(chapter?.order, 0) !== safeNumber(spec?.order, 0)) issues.push("chapter.order");
-  if (text(chapter?.title) !== text(spec?.title)) issues.push("chapter.title");
-  const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
-  if (sections.length !== spec.sections.length) issues.push("section.count");
-
-  const evidenceTokens = [
-    localJson?.self?.sukuyoStar,
-    localJson?.partner?.sukuyoStar,
-    localJson?.relation?.typeKo,
-    localJson?.relation?.type,
-    localJson?.relation?.distanceLabel,
-    localJson?.self?.group,
-    localJson?.partner?.group,
-    localJson?.self?.element,
-    localJson?.partner?.element,
-    generationJson?.categoryCompatibility?.pairKey,
-    generationJson?.categoryCompatibility?.elementPairKey,
-    generationJson?.categoryCompatibility?.compatibilityFocus,
-    generationJson?.categoryCompatibility?.elementFocus,
-    generationJson?.categoryCompatibility?.strengthBridge,
-    ...safeArray(chapterEvidence?.requiredSignals),
-  ].map((item) => text(item).toLowerCase()).filter(Boolean);
-
-  for (let index = 0; index < spec.sections.length; index += 1) {
-    const section = sections[index] || {};
-    const body = text(section?.body);
-    const evidenceSections = Array.isArray(chapterEvidence?.sections) ? chapterEvidence.sections : [];
-    const sectionEvidence = evidenceSections.find((item) => text(item?.heading) === text(spec.sections[index]))
-      || evidenceSections[index]
-      || {};
-    const sectionTokens = uniqueSukyoStrings([
-      ...evidenceTokens,
-      ...safeArray(sectionEvidence?.requiredSignals),
-    ]).map((item) => text(item).toLowerCase()).filter(Boolean);
-    if (text(section?.heading) !== text(spec.sections[index])) issues.push(`section.${index + 1}.heading`);
-    if (body.length < MIN_SECTION_LENGTH) issues.push(`section.${index + 1}.length`);
-    if (countForbiddenTerms(body) > 0 || hasForbiddenFallbackText([{ sections: [section] }])) issues.push(`section.${index + 1}.forbidden`);
-    if (SUKYO_LLM_RISKY_ASSERTION_RE.test(body)) issues.push(`section.${index + 1}.risky`);
-    const lowered = body.toLowerCase();
-    const hitCount = sectionTokens.reduce((count, token) => (token && lowered.includes(token) ? count + 1 : count), 0);
-    if (hitCount < 3) issues.push(`section.${index + 1}.evidence`);
-  }
-
-  return { ok: issues.length === 0, issues };
-}
-
-async function generateSukyoChapterWithLLM(env, generationJson, chapterSpec, options = {}) {
-  let lastErrors = [];
-  const cacheKey = text(options?.cacheKey);
-  const cached = readSukuyoLlmCache(cacheKey);
-  if (cached) {
-    const parsed = extractSukyoLlmJsonObject(cached);
-    const cachedChapter = toSukyoGeneratedChapter(parsed, chapterSpec);
-    const cachedValidation = validateSukyoGeneratedChapter(cachedChapter, chapterSpec, generationJson);
-    if (cachedValidation.ok) return cachedChapter;
-  }
-
-  const maxAttempts = Math.max(1, Math.min(2, Number(env?.SUKYO_GEMINI_CHAPTER_RETRIES || env?.SUKUYO_GEMINI_CHAPTER_RETRIES || env?.SUKYO_PREMIUM_GEMINI_CHAPTER_RETRIES || env?.SUKUYO_PREMIUM_GEMINI_CHAPTER_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1)));
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const chapterPlan = (Array.isArray(generationJson?.chapterPlans) ? generationJson.chapterPlans : [])
-      .find((item) => text(item?.chapterId) === text(chapterSpec.key)) || null;
-    const prompt = buildSukyoChapterPrompt({
-      mode: "compatibility",
-      promptVersion: SUKUYO_PROMPT_VERSION,
-      sukuyoFacts: generationJson?.sukuyoFacts,
-      calendarBasis: generationJson?.sukuyoFacts?.calendarBasis,
-      currentChapter: {
-        key: chapterSpec.key,
-        order: chapterSpec.order,
-        title: chapterSpec.title,
-        sections: chapterSpec.sections,
-      },
-      chapterPlan,
-      lockedFacts: chapterPlan?.lockedFacts || [],
-      interpretationPoints: chapterPlan?.interpretationPoints || [],
-      warnings: chapterPlan?.warnings || [],
-      recommendedTone: chapterPlan?.recommendedTone || "전문적이고 신비로운 숙요 상담문",
-      localDraft: chapterPlan?.localDraft || "",
-      previousChapterSummaries: safeArray(options?.previousSummaries).slice(-4),
-      repairRequest: { attempt, lastErrors },
-    });
-    const rawText = await callConfiguredSukuyoLlm(env, prompt, {
-      requestId: options?.requestId,
-      chapterNo: chapterSpec.order,
-      chapterSpec,
-      generationJson,
-      chapterPlan,
-      sukuyoFacts: generationJson?.sukuyoFacts,
-      llmChapterGenerator: options?.llmChapterGenerator,
-    });
-    const parsed = extractSukyoLlmJsonObject(rawText);
-    const chapter = toSukyoGeneratedChapter(parsed, chapterSpec);
-    const validation = validateSukyoGeneratedChapter(chapter, chapterSpec, generationJson);
-    if (validation.ok) {
-      writeSukuyoLlmCache(cacheKey, JSON.stringify({ chapter }), options?.cacheTtlMs);
-      return chapter;
-    }
-    lastErrors = validation.issues;
-  }
-
-  const error = new Error(`숙요점 LLM 챕터 검수에 실패했습니다: ${chapterSpec.order}`);
-  error.code = "SUKYO_LLM_QUALITY_FAILED";
-  error.status = 502;
-  error.issues = lastErrors;
-  throw error;
-}
-
-export async function enhanceSukyoChaptersWithLLM(env, seed, skeleton, options = {}) {
-  const localJson = seed?.localSukuyoCompatibilityJson || buildLocalCompatibilityJson(seed);
-  const generationJson = buildSukyoGenerationJson(seed, localJson);
-  const chapterSpecs = Array.isArray(skeleton) && skeleton.length === SUKYO_PDF_CHAPTER_COUNT
-    ? skeleton.map((chapter, index) => ({
-      key: text(chapter?.key || SUKYO_PDF_CHAPTERS[index]?.key),
-      order: safeNumber(chapter?.order || chapter?.chapterNo || index + 1, index + 1),
-      title: text(chapter?.title || SUKYO_PDF_CHAPTERS[index]?.title),
-      sections: Array.isArray(chapter?.sections) && chapter.sections.length
-        ? chapter.sections.map((section, sectionIndex) => text(section?.heading || section?.title || SUKYO_PDF_CHAPTERS[index]?.sections?.[sectionIndex]))
-        : SUKYO_PDF_CHAPTERS[index]?.sections || [],
-    }))
-    : SUKYO_PDF_CHAPTERS;
-  const localFallback = buildSukyoFallbackChapters(seed, chapterSpecs);
-  const localByKey = new Map(localFallback.map((chapter) => [text(chapter.key), chapter]));
-  const facts = generationJson.sukuyoFacts || buildSukuyoFacts(seed, localJson);
-  const enhancementEnabled = isSukuyoLlmEnhancementEnabled(env, options);
-  const targetKeys = new Set(
-    safeArray(options?.llmEnhancedChapterKeys).length
-      ? safeArray(options.llmEnhancedChapterKeys)
-      : SUKUYO_COMPATIBILITY_LLM_CHAPTER_KEYS,
-  );
-  const chapters = [];
-  const previousSummaries = [];
-  let llmChapterCount = 0;
-  let fallbackChapterCount = 0;
-
-  for (const chapterSpec of chapterSpecs) {
-    const localChapter = localByKey.get(text(chapterSpec.key)) || localFallback[chapterSpec.order - 1];
-    if (!enhancementEnabled || !targetKeys.has(text(chapterSpec.key))) {
-      chapters.push(localChapter);
-      previousSummaries.push({
-        order: localChapter.order,
-        title: localChapter.title,
-        summary: text(localChapter.sections?.[0]?.body).slice(0, 240),
-      });
-      continue;
-    }
-
-    let chapter = localChapter;
-    try {
-      chapter = await generateSukyoChapterWithLLM(env, generationJson, chapterSpec, {
-        requestId: seed?.reportId || seed?.sessionId || "",
-        previousSummaries,
-        llmChapterGenerator: options?.llmChapterGenerator,
-        cacheKey: buildSukuyoLlmCacheKey(facts, chapterSpec.key, options?.targetPeriod || ""),
-        cacheTtlMs: Number(env?.SUKUYO_LLM_CACHE_TTL_MS || env?.SUKYO_LLM_CACHE_TTL_MS || 1000 * 60 * 60 * 24),
-      });
-      llmChapterCount += 1;
-    } catch (error) {
-      fallbackChapterCount += 1;
-      if (typeof options?.log === "function") {
-        options.log("SukuyoLLMChapterFallback", {
-          chapterId: chapterSpec.key,
-          reason: text(error?.code || error?.message || "SUKUYO_LLM_FAILED"),
-        });
-      } else {
-        console.warn("[SukuyoPremiumPDF][LLMChapterFallback]", {
-          chapterId: chapterSpec.key,
-          reason: text(error?.code || error?.message || "SUKUYO_LLM_FAILED"),
-        });
-      }
-    }
-    chapters.push(chapter);
-    previousSummaries.push({
-      order: chapter.order,
-      title: chapter.title,
-      summary: text(chapter.sections?.[0]?.body).slice(0, 240),
-    });
-  }
-
-  return {
-    chapters,
-    fallbackUsed: fallbackChapterCount > 0,
-    enhancedChapterCount: llmChapterCount,
-    llmChapterCount,
-    targetLlmChapterCount: targetKeys.size,
-    fallbackChapterCount,
-    localDraftChapterCount: chapters.length - llmChapterCount,
-    source: llmChapterCount > 0 ? (fallbackChapterCount > 0 ? "hybrid-fallback" : "hybrid") : "local",
-    promptVersion: SUKUYO_PROMPT_VERSION,
-    llmEnhancedChapterKeys: Array.from(targetKeys),
   };
 }
 
@@ -2656,9 +2165,6 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     chapterCount: SUKYO_PDF_CHAPTER_COUNT,
     manuscriptSource: SUKYO_PDF_CONFIG.generationMode,
     promptVersion: SUKUYO_PROMPT_VERSION,
-    llmEnabled: false,
-    timingLlmEnabled: false,
-    llmEnhancedChapterKeys: [],
   });
   const enhanced = {
     chapters: localBaseline.chapters,
@@ -2668,7 +2174,6 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     targetLlmChapterCount: 0,
     fallbackChapterCount: 0,
     localDraftChapterCount: localBaseline.chapters.length,
-    llmEnhancedChapterKeys: [],
   };
   const chapters = localBaseline.chapters;
   const finalCheck = localBaseline.validation;
@@ -2731,7 +2236,6 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
       sukuyoFacts,
       sukuyoChapterPlans: chapterPlans,
       promptVersion: SUKUYO_PROMPT_VERSION,
-      llmEnhancedChapterKeys: [],
       chapters,
       manuscriptValidation: finalCheck,
       manuscriptSource,
@@ -2764,7 +2268,6 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     pdfCompletionValidation,
     sukuyoFacts,
     sukuyoChapterPlans: chapterPlans,
-    llmEnhancedChapterKeys: [],
     qualityStatus: "passed",
     serverStatus: "completed",
     pdfReady: {

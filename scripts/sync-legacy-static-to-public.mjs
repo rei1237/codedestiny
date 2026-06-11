@@ -45,6 +45,7 @@ const staticTargets = [
   "royal-tea-oracle.html",
   "emoi_omikuji_v2.html",
   "blood-type-app.html",
+  "tadagochi.html",
   "AnalysisEngine.js",
   "PhysiognomyUI.js",
   "HwatuFortune.js",
@@ -62,7 +63,25 @@ const staticTargets = [
   "sudda",
 ];
 
+const staleTadagochiPwaTargets = [
+  "manifest-tadagochi.json",
+  "tadagochi-sw.js",
+];
+
 syncSwissEphVendor();
+
+function removeStaleTadagochiPwaAssets() {
+  const removed = [];
+  for (const target of staleTadagochiPwaTargets) {
+    const targetPath = resolve(publicDir, target);
+    if (!existsSync(targetPath)) continue;
+    rmSync(targetPath, { force: true });
+    removed.push(target);
+  }
+  if (removed.length) {
+    console.log(`[sync-legacy-static-to-public] Removed stale Fortune Tama PWA assets: ${removed.join(", ")}`);
+  }
+}
 
 /**
  * Safe per-file sync for the styles/ directory.
@@ -421,6 +440,8 @@ for (const target of staticTargets) {
 
   cpSync(sourcePath, destinationPath, { recursive: true, force: true });
 }
+
+removeStaleTadagochiPwaAssets();
 
 // Some legacy source HTML files can carry BOM from manual edits.
 // Strip BOM from public HTML artifacts before any downstream locale propagation.

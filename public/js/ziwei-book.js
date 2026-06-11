@@ -353,15 +353,15 @@
   function getZiweiDownloadUrl(data){
     var ready = data && data.pdfReady && typeof data.pdfReady === 'object' ? data.pdfReady : {};
     return text(
-      ready.directDownloadUrl
-      || ready.downloadUrl
+      ready.downloadUrl
       || ready.pdfUrl
       || ready.storedUrl
-      || data.directDownloadUrl
       || data.downloadUrl
       || data.pdfUrl
       || data.storedUrl
       || data.reportUrl
+      || data.directDownloadUrl
+      || ready.directDownloadUrl
     );
   }
 
@@ -1061,34 +1061,58 @@
     return context;
   }
 
-  async function ensurePaymentOrRestore(birthInput){
+  async function ensurePaymentOrRestore(birthInput, options){
+    var reuseOnly = Boolean(options && options.reuseOnly);
     var birthHash = makeBirthHash(birthInput || {});
     var saved = readPaidSession();
     if(isSamePaidSessionTarget(saved, birthHash)){
       var verified = await verifyPaidSessionAccess(saved);
-      logFlow('PaymentReuse', {
+      if(verified){
+        logFlow('PaymentReuse', {
+          birthHash: birthHash,
+          hasToken: Boolean(text(saved && saved.premiumAccessToken)),
+          palaceCount: Number((LAST_SEED && LAST_SEED.diagnostics && LAST_SEED.diagnostics.palaceCount) || 0),
+          verified: true
+        });
+        return Object.assign({}, saved, {
+          ok: true,
+          reused: true,
+          verified: true,
+          sessionId: text(saved.sessionId) || buildSessionId(birthHash),
+          premiumAccessToken: text(saved.premiumAccessToken) || getPremiumToken(),
+          birthHash: birthHash
+        });
+      }
+      clearPaidSession();
+      logFlow('PaymentReuseRejected', {
         birthHash: birthHash,
-        hasToken: Boolean(text(saved && saved.premiumAccessToken)),
-        palaceCount: Number((LAST_SEED && LAST_SEED.diagnostics && LAST_SEED.diagnostics.palaceCount) || 0),
-        verified: verified
+        hasToken: Boolean(text(saved && saved.premiumAccessToken))
       });
-      return Object.assign({}, saved, {
-        ok: true,
-        reused: true,
-        verified: verified,
-        sessionId: text(saved.sessionId) || buildSessionId(birthHash),
-        premiumAccessToken: text(saved.premiumAccessToken) || getPremiumToken(),
-        birthHash: birthHash
-      });
+      if(reuseOnly){
+        throw buildRetryableError('결제 내역을 확인하지 못했습니다. 생성 버튼에서 결제를 다시 확인해 주세요.', 402, 'PAYMENT_REUSE_UNVERIFIED', 'payment');
+      }
     }
 
     if(typeof window._cdCoinGatePerUse !== 'function'){
       var existingToken = getPremiumToken();
       if(existingToken){
-        var fallback = writePaidSession({
+        var tokenContext = {
           featureKey: FEATURE_KEY,
           reportType: 'ziweiPremium',
           sessionId: buildSessionId(birthHash),
+          premiumAccessToken: existingToken,
+          birthHash: birthHash,
+          status: 'paid'
+        };
+        var tokenVerified = await verifyPaidSessionAccess(tokenContext);
+        if(!tokenVerified){
+          clearPaidSession();
+          throw buildRetryableError('결제 권한을 확인하지 못했습니다. 로그인 상태와 결제 내역을 확인해 주세요.', 402, 'PAYMENT_TOKEN_UNVERIFIED', 'payment');
+        }
+        var fallback = writePaidSession({
+          featureKey: FEATURE_KEY,
+          reportType: 'ziweiPremium',
+          sessionId: tokenContext.sessionId,
           premiumAccessToken: existingToken,
           transactionId: '',
           paidAt: new Date().toISOString(),
@@ -1221,7 +1245,7 @@
     var latest = initial;
     for(var attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt++){
       var percent = Math.min(92, 56 + Math.round((attempt / Math.max(1, RESULT_POLL_MAX_ATTEMPTS - 1)) * 34));
-      updateProgress(percent, 'LLM 원고와 PDF 저장 상태를 확인하는 중입니다.');
+      updateProgress(percent, '로컬 명반 원고와 PDF 저장 상태를 확인하는 중입니다.');
       var recovered = await fetchZiweiResult(baseSession, baseReport);
       if(recovered){
         latest = recovered;
@@ -1460,7 +1484,7 @@
       return '결제 또는 이용권 확인이 필요합니다. 로그인 상태와 결제 내역을 확인해 주세요.';
     }
     if(code === 'ZIWEI_PROCESSING' || code === 'ZIWEI_REPORT_RECOVERY_REQUIRED'){
-      return text(error && error.message) || '결제는 확인되었습니다. LLM 원고와 PDF 저장이 아직 진행 중입니다. 결제 내역으로 다시 생성해 이어받아 주세요.';
+      return text(error && error.message) || '결제는 확인되었습니다. 로컬 명반 원고와 PDF 저장이 아직 진행 중입니다. 결제 내역으로 다시 생성해 이어받아 주세요.';
     }
     if(status === 422){
       return '명반 계산 또는 입력값 검증 단계에서 오류가 발생했습니다. 프로필 정보를 확인한 뒤 다시 시도해 주세요.';
@@ -1598,7 +1622,7 @@
       logFlow('PaymentGateStart', { featureKey: FEATURE_KEY, coinCost: COIN_COST });
       updateProgress(30, '프리미엄 이용권을 확인하는 중입니다.');
       updateZiweiGenerationState({ status: 'paymentChecking' });
-      var payment = await ensurePaymentOrRestore(resolved.birthInput);
+      var payment = await ensurePaymentOrRestore(resolved.birthInput, { reuseOnly: usePaidSessionOnly === true });
       if(usePaidSessionOnly === true && !payment.reused){
         throw buildRetryableError('결제 내역을 찾지 못했습니다. 먼저 결제를 완료해 주세요.', 402, 'PAYMENT_REUSE_MISSING', 'payment');
       }
@@ -1634,14 +1658,14 @@
             sessionId: text(recoveredData.sessionId || sessionId)
           });
           RESULT = recoveredData;
-          throw buildRetryableError('결제는 확인되었습니다. LLM 원고와 PDF 저장이 아직 진행 중입니다. 결제 내역으로 다시 생성 버튼을 눌러 이어받아 주세요.', 202, 'ZIWEI_PROCESSING', 'generation');
+          throw buildRetryableError('결제는 확인되었습니다. 로컬 명반 원고와 PDF 저장이 아직 진행 중입니다. 결제 내역으로 다시 생성 버튼을 눌러 이어받아 주세요.', 202, 'ZIWEI_PROCESSING', 'generation');
         }
         data = recoveredData;
       }
       if(!isZiweiReportReady(data)){
         writePaidSession({ status: 'failed_retryable', reportId: text(data && data.reportId), sessionId: text(data && data.sessionId) || sessionId });
         RESULT = data;
-        throw buildRetryableError('결제는 확인되었습니다. LLM 결과를 아직 PDF로 확정하지 못했습니다. 결제 내역으로 다시 생성 버튼을 눌러 이어받아 주세요.', 202, 'ZIWEI_REPORT_RECOVERY_REQUIRED', 'generation');
+        throw buildRetryableError('결제는 확인되었습니다. 로컬 명반 결과를 아직 PDF로 확정하지 못했습니다. 결제 내역으로 다시 생성 버튼을 눌러 이어받아 주세요.', 202, 'ZIWEI_REPORT_RECOVERY_REQUIRED', 'generation');
       }
       logFlow('SessionCreateSuccess', {
         chapterCount: Array.isArray(data && data.chapters) ? data.chapters.length : 0,

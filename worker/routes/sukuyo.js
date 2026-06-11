@@ -470,7 +470,7 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
     && hasCompleteSukuyoChapters(chapters)
     && clean(payload?.serverStatus) === "completed"
     && clean(payload?.qualityStatus) === "passed"
-    && ["gemini-only", "hybrid", "hybrid-fallback", "local", SUKYO_PDF_CONFIG.generationMode].includes(manuscriptSource)
+    && ["local", SUKYO_PDF_CONFIG.generationMode].includes(manuscriptSource)
     && countContractOk
   );
 }

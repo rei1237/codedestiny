@@ -4,7 +4,7 @@ import { normalizeHoneyPassEntitlement, PROFILE_LIMIT_BY_TIER } from "./profile-
 export const PROFILE_CARD_DELETE_COST_COINS = 50;
 export const PROFILE_CARD_DELETE_COST_KRW = 5000;
 export const PROFILE_CARD_DELETE_COST_MONTHLY_STONES = 500;
-export const FAMILY_OR_ABOVE_FREE_PROFILE_DELETE = true;
+export const FAMILY_OR_ABOVE_FREE_PROFILE_DELETE = false;
 export const FAMILY_OR_ABOVE_CAN_ADD_PROFILE = true;
 
 export const PROFILE_CARD_MUTATION_ACTIONS = Object.freeze({
@@ -136,7 +136,7 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
   const entitlement = normalizeHoneyPassEntitlement(user);
   const slotLimit = resolveProfileCardSlotLimit(entitlement);
 
-  if (isFamilyOrAbove(user)) {
+  if (FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && isFamilyOrAbove(user)) {
     return buildProfileCardMutationPolicyResult({
       allowed: true,
       requiresPayment: false,
@@ -212,7 +212,7 @@ export async function resolveProfileCardActionAccess({
   }
 
   const entitlement = normalizeHoneyPassEntitlement(user);
-  if (isFamilyOrAbove(user)) {
+  if (FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && normalizedAction === PROFILE_CARD_MUTATION_ACTIONS.DELETE && isFamilyOrAbove(user)) {
     return buildProfileCardMutationPolicyResult({
       allowed: true,
       requiresPayment: false,

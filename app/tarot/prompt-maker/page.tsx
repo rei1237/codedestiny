@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { showToast } from "../../components/Toast";
-import { showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
+import { getSubscriptionTierLabel, showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { buildImageCandidates, TAROT_CARDS } from "../../../lib/tarot/tarot-cards.mjs";
 import {
@@ -221,12 +221,16 @@ export default function TarotPromptMakerPage() {
     [searchQuery, categoryFilter, cardCountFilter, recommendedSpreads, selectedQuestionCategory],
   );
 
+  const billingSubscriptionLabel = billingSnapshot?.freeBySubscription
+    ? getSubscriptionTierLabel(billingSnapshot.subscriptionTier)
+    : "";
+
   const billingCoinLabel = billingSnapshot
-    ? (billingSnapshot.requiredCoins > 0 ? `${billingSnapshot.requiredCoins}코인` : "무료")
+    ? (billingSnapshot.freeBySubscription ? `${billingSubscriptionLabel} 월정석` : billingSnapshot.requiredCoins > 0 ? `${billingSnapshot.requiredCoins}코인` : "무료")
     : "1회 50코인";
 
   const billingStateLabel = billingSnapshot
-    ? (billingSnapshot.freeBySubscription ? "구독 포함" : billingSnapshot.canAccess ? "즉시 이용" : "결제 필요")
+    ? (billingSnapshot.freeBySubscription ? "월정석 포함" : billingSnapshot.canAccess ? "즉시 이용" : "결제 필요")
     : (billingLoading ? "확인 중" : "미연동");
 
   useEffect(() => {
@@ -379,13 +383,23 @@ export default function TarotPromptMakerPage() {
         reason: "타로 프롬프트 라이브러리",
         forceDeduct: !Boolean(billingSnapshot?.canAccess),
         requestId: `tarot-prompt-library:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        onPaid: ({ chargedCoins, requiredCoins, balanceAfter }) => {
+        onPaid: ({ chargedCoins, requiredCoins, balanceAfter, accessSource, subscriptionTier, monthlyCreditsSpent, monthlyBalanceAfter }) => {
           generate();
-          if (chargedCoins <= 0 && requiredCoins > 0) {
-            showSubscriptionIncludedNotice({ message: "구독 혜택으로 이번 프롬프트 생성은 코인이 차감되지 않았습니다.", reason: "타로 프롬프트 라이브러리" });
+          if (accessSource === "subscription" || (chargedCoins <= 0 && requiredCoins > 0 && billingSnapshot?.freeBySubscription)) {
+            showSubscriptionIncludedNotice({
+              message: "월정석 혜택으로 타로 프롬프트 라이브러리가 열렸습니다. 달빛의 흐름 안에서 오라클 원고가 안전하게 완성되었습니다.",
+              reason: "타로 프롬프트 라이브러리",
+              tier: subscriptionTier || billingSnapshot?.subscriptionTier,
+            });
             return;
           }
-          if (chargedCoins > 0) showToast(`타로 프롬프트 라이브러리 이용으로 ${chargedCoins}코인이 차감되었습니다. 남은 코인: ${balanceAfter.toLocaleString("ko-KR")}`, "info");
+          if (accessSource === "moonlight_stone") {
+            const spentText = monthlyCreditsSpent > 0 ? `${monthlyCreditsSpent.toLocaleString("ko-KR")}개` : "보유";
+            const balanceText = typeof monthlyBalanceAfter === "number" ? ` 남은 Moonlight Stone: ${monthlyBalanceAfter.toLocaleString("ko-KR")}개` : "";
+            showToast(`Moonlight Stone ${spentText}로 타로 프롬프트 라이브러리가 열렸습니다.${balanceText}`, "info");
+            return;
+          }
+          if (chargedCoins > 0) showToast(`타로 프롬프트 라이브러리 이용이 승인되었습니다. 남은 잔량: ${balanceAfter.toLocaleString("ko-KR")}`, "info");
         },
       });
       if (!paymentResult.ok) {

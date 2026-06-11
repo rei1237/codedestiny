@@ -21,6 +21,12 @@ type CoinGateContext = {
   amountKRW?: number;
   balanceAfter: number;
   featureKey: string;
+  accessSource: "subscription" | "moonlight_stone" | "coin" | "payment";
+  accessType: string;
+  paymentMode: string;
+  subscriptionTier: string;
+  monthlyCreditsSpent: number;
+  monthlyBalanceAfter: number | null;
 };
 
 type EnsurePaidAccessInput = {
@@ -72,6 +78,15 @@ function toText(value: unknown): string {
 function toNumber(value: unknown, fallback = 0): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function firstFiniteNonNegativeNumber(...candidates: unknown[]): number | null {
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined || candidate === "") continue;
+    const value = Number(candidate);
+    if (Number.isFinite(value) && value >= 0) return Math.floor(value);
+  }
+  return null;
 }
 
 function normalizeCode(value: unknown): string {
@@ -263,14 +278,49 @@ export function useCoinGate() {
       const amountKRW = toNumber(chargeResult.data.pricing?.amountKRW || chargeResult.data.pricing?.cashPrice, 0);
       const consume = (chargeResult.data.consume || {}) as Record<string, unknown>;
       const transactionId = toText(consume.transactionId || consume._id || "");
-      const chargedCoins = toNumber(consume.chargedCoins ?? consume.cost, requiredCoins);
       const balanceAfter = toNumber(chargeResult.data.balance, 0);
       const resolvedFeatureKey = toText(consume.featureKey || input.featureKey || chargeResult.data.pricing?.featureKey);
       const chargeData = chargeResult.data as Record<string, unknown>;
+      const chargePricing = readNestedObject(chargeData, "pricing");
       const chargeAccessGrant = readNestedObject(chargeData, "accessGrant");
       const chargeAccessMethod = normalizeCode(chargeData.accessMethod || consume.accessMethod || consume.paymentMethod || chargeAccessGrant.accessMethod);
+      const chargePaymentMode = normalizeCode(chargeData.paymentMode || consume.paymentMode || consume.paymentMethod || chargeAccessGrant.paymentMode || chargeAccessGrant.paymentMethod);
+      const chargeCurrency = normalizeCode(chargeData.currency || consume.currency || chargePricing.currency || chargeAccessGrant.currency);
       const chargeAccessType = toText(chargeData.accessType || consume.accessType || consume.transactionType || chargeAccessGrant.accessType).toLowerCase();
-      const chargePassGranted = Boolean(chargeData.freeBySubscription === true || chargeAccessMethod === "PASS" || chargeAccessType === "membership_pass" || chargeAccessType === "usage_pass");
+      const chargeAccessSignal = `${chargeAccessType}|${chargeAccessMethod}|${chargePaymentMode}|${chargeCurrency}`.toLowerCase();
+      const chargePassGranted = Boolean(
+        chargeData.freeBySubscription === true
+          || chargeAccessMethod === "PASS"
+          || chargeAccessSignal.includes("membership_pass")
+          || chargeAccessSignal.includes("usage_pass")
+      );
+      const chargeMonthlyGranted = /membership_credit|monthly_credit|moonlight_stone/.test(chargeAccessSignal);
+      const chargeAlreadyGranted = chargeAccessType === "already_unlocked";
+      const monthlyCreditsSpent = chargeMonthlyGranted
+        ? Math.max(0, Math.floor(toNumber(consume.monthlyCreditsSpent ?? consume.membershipCreditCost ?? consume.cost ?? chargeData.membershipCreditCost ?? chargePricing.membershipCreditCost, requiredCoins * 10)))
+        : 0;
+      const monthlyBalanceAfter = chargeMonthlyGranted
+        ? firstFiniteNonNegativeNumber(
+          consume.remainingMembershipCredit,
+          consume.membershipCreditBalance,
+          consume.monthlyCredits,
+          chargeData.membershipCreditBalance,
+          chargeData.monthlyCredits,
+          chargeAccessGrant.membershipCreditBalance,
+          chargeAccessGrant.monthlyCredits,
+        )
+        : null;
+      const chargedCoins = (chargePassGranted || chargeMonthlyGranted || chargeAlreadyGranted)
+        ? 0
+        : toNumber(consume.chargedCoins ?? consume.cost, requiredCoins);
+      const accessSource = chargePassGranted
+        ? "subscription"
+        : chargeMonthlyGranted
+          ? "moonlight_stone"
+          : chargedCoins > 0
+            ? "coin"
+            : "payment";
+      const subscriptionTier = toText(chargeData.subscriptionTier || chargeData.passTier || consume.subscriptionTier || consume.passTier || chargeAccessGrant.subscriptionTier || chargeAccessGrant.passTier);
 
       if (typeof input.onPaid === "function") {
         setPaymentMessage("결제가 완료되었습니다. 결과를 생성하고 있습니다...");
@@ -283,6 +333,12 @@ export function useCoinGate() {
             amountKRW,
             balanceAfter,
             featureKey: resolvedFeatureKey,
+            accessSource,
+            accessType: chargeAccessType,
+            paymentMode: chargePaymentMode,
+            subscriptionTier,
+            monthlyCreditsSpent,
+            monthlyBalanceAfter,
           });
           markPaidAttemptGenerationCompleted();
         } catch (error) {
@@ -304,7 +360,7 @@ export function useCoinGate() {
 
       return {
         ok: true,
-        code: chargePassGranted ? "PASS_FREE" : "OK",
+        code: chargePassGranted ? "PASS_FREE" : chargeMonthlyGranted ? "MOONLIGHT_STONE" : "OK",
         message: "결제가 완료되었습니다.",
         requiredCoins,
         chargedCoins,

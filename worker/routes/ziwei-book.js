@@ -4,7 +4,6 @@ import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
-import { callGeminiText } from "../lib/gemini.js";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
@@ -2370,30 +2369,10 @@ function buildZiweiChapterPrompt(input = {}) {
 ${safeJsonForPrompt(input)}`;
 }
 async function callZiweiGemini(env, prompt, options = {}) {
-  const model = clean(env?.ZIWEI_GEMINI_MODEL || env?.PREMIUM_GEMINI_MODEL || env?.GEMINI_MODEL || "gemini-2.5-flash");
-  const result = await callGeminiText(env, prompt, {
-    keyEnvKeys: ZIWEI_LLM_KEY_ENV_KEYS,
-    modelEnvKeys: ZIWEI_LLM_MODEL_ENV_KEYS,
-    models: [model],
-    temperature: Number(env?.ZIWEI_GEMINI_TEMPERATURE || env?.PREMIUM_GEMINI_TEMPERATURE || 0.35),
-    topP: Number(env?.ZIWEI_GEMINI_TOP_P || env?.PREMIUM_GEMINI_TOP_P || 0.9),
-    maxOutputTokens: Number(env?.ZIWEI_GEMINI_MAX_OUTPUT_TOKENS || env?.PREMIUM_GEMINI_MAX_OUTPUT_TOKENS || 16384),
-    timeoutMs: Number(env?.ZIWEI_GEMINI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
-    totalTimeoutMs: Number(env?.ZIWEI_GEMINI_TOTAL_TIMEOUT_MS || 0),
-    maxAttemptsPerPair: Number(env?.ZIWEI_GEMINI_RETRIES || env?.PREMIUM_GEMINI_RETRIES || 1),
-    disableVertexFallback: env?.ZIWEI_GEMINI_DISABLE_VERTEX_FALLBACK ?? env?.GEMINI_DISABLE_VERTEX_FALLBACK,
-    metadata: {
-      requestId: clean(options?.requestId),
-      chapterNumber: clean(options?.chapterNumber),
-    },
+  throw Object.assign(new Error("자미두수 PDF는 로컬 명반 조립 방식으로만 생성됩니다."), {
+    code: "ZIWEI_EXTERNAL_GENERATION_DISABLED",
+    status: 500,
   });
-  if (!result?.ok || !clean(result?.text)) {
-    throw Object.assign(new Error(clean(result?.message || "자미두수 원고 생성에 실패했습니다.")), {
-      code: clean(result?.error || "ZIWEI_LLM_GENERATION_FAILED"),
-      status: Number(result?.status || 502),
-    });
-  }
-  return clean(result.text);
 }
 
 function normalizeZiweiEvidenceAnchors(anchors = [], text = "", seed = {}) {

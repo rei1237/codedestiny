@@ -2478,6 +2478,11 @@
         action: optionBag.action,
         profileId: optionBag.profileId,
         selectedProfileId: optionBag.selectedProfileId,
+        amountKrw: optionBag.amountKrw,
+        membershipCreditCost: optionBag.membershipCreditCost,
+        allowedPaymentModes: optionBag.allowedPaymentModes,
+        disablePassFirst: optionBag.disablePassFirst,
+        disablePassChoice: optionBag.disablePassChoice,
         onGranted: function(transactionId, payload) {
           if (typeof cb === 'function') cb(String(transactionId || requestId), payload || {});
         },
@@ -2508,7 +2513,7 @@
     var balanceLabel = hasBalanceSnapshot ? (Number(balance).toLocaleString('ko-KR') + '코인') : '알 수 없음';
     var membershipCoverage = _dpReadActiveMembershipCoverage(cost);
     if (!membershipCoverage) {
-      if (typeof window._cdResolvePaidContentAccess === 'function') {
+      if (typeof window._cdResolvePaidContentAccess === 'function' && optionBag.disablePassFirst !== true && optionBag.disablePassChoice !== true) {
         return window._cdResolvePaidContentAccess({
           title: reason,
           reason: reason,
@@ -2550,9 +2555,14 @@
             profileAction: optionBag.profileAction,
             action: optionBag.action,
             profileId: optionBag.profileId,
-            selectedProfileId: optionBag.selectedProfileId
+            selectedProfileId: optionBag.selectedProfileId,
+            amountKrw: optionBag.amountKrw,
+            membershipCreditCost: optionBag.membershipCreditCost,
+            allowedPaymentModes: optionBag.allowedPaymentModes,
+            disablePassFirst: optionBag.disablePassFirst,
+            disablePassChoice: optionBag.disablePassChoice
           }).then(function(choice) {
-            if (choice === 'pass') {
+            if (choice === 'pass' && optionBag.disablePassChoice !== true) {
               if (typeof cb === 'function') cb(requestId, { __cdPassGateResolved: true, requestId: requestId });
               return { __cdPassGateResolved: true, requestId: requestId };
             }
@@ -2632,8 +2642,12 @@
           amountKrw: Number(cost || 0) * 100,
           reason: reason,
           featureKey: normalizedFeatureKey || undefined,
+          membershipCreditCost: optionBag.membershipCreditCost,
+          allowedPaymentModes: optionBag.allowedPaymentModes,
+          disablePassFirst: optionBag.disablePassFirst,
+          disablePassChoice: optionBag.disablePassChoice,
           }).then(function(choice) {
-          if (choice === 'pass') {
+          if (choice === 'pass' && optionBag.disablePassChoice !== true) {
             if (typeof cb === 'function') cb(String(optionBag.requestId || ''), { __cdPassGateResolved: true });
             return null;
           }
@@ -3750,6 +3764,7 @@
       var normalizedAction = action === 'delete' ? 'delete' : 'create';
       var serviceKey = normalizedAction === 'delete' ? 'profile_card_delete' : 'profile_card_create';
       var reason = normalizedAction === 'delete' ? '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C' : '\uD504\uB85C\uD544 \uCE74\uB4DC \uCD94\uAC00';
+      var isDeleteAction = normalizedAction === 'delete';
       window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST, reason, function(transactionId, payload) {
         var data = (payload && typeof payload === 'object') ? payload : {};
         var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
@@ -3788,7 +3803,12 @@
         reportType: serviceKey,
         actionType: serviceKey,
         profileAction: normalizedAction,
-        action: normalizedAction
+        action: normalizedAction,
+        amountKrw: PROFILE_CARD_MANAGE_COST * 100,
+        membershipCreditCost: PROFILE_CARD_MANAGE_COST * 10,
+        allowedPaymentModes: isDeleteAction ? ['direct', 'monthly'] : undefined,
+        disablePassFirst: isDeleteAction,
+        disablePassChoice: isDeleteAction
       });
     });
   }
@@ -4426,8 +4446,7 @@
               + '</div>'
             + '</div>'
             + '<div class="dp-li-actions" aria-label="프로필 카드 관리">'
-              + '<button type="button" class="dp-li-view" aria-label="프로필 카드 조회">조회</button>'
-              + '<button type="button" class="dp-li-del" aria-label="프로필 카드 삭제" data-profile-delete-marker="profile-list-delete-50coin-v20260611">삭제 · ' + PROFILE_CARD_MANAGE_COST + '코인</button>'
+              + '<button type="button" class="dp-li-del" aria-label="프로필 카드 삭제" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">삭제 · ' + PROFILE_CARD_MANAGE_COST + '코인</button>'
             + '</div>'
             + '</div>';
         }).join('') + lockedNotice;
@@ -4851,10 +4870,7 @@
     if (deleteLock.profileId === profileId) {
       var lockAgeMs = deleteLock.startedAt ? (Date.now() - deleteLock.startedAt) : 0;
       if (!lockAgeMs || lockAgeMs < 1200) return;
-      if (lockAgeMs < 90000) {
-        alert('프로필 카드 삭제가 이미 진행 중입니다.');
-        return;
-      }
+      if (lockAgeMs < 45000) return;
       _dpClearProfileDeleteLock(profileId);
     }
     if (!confirm((profile.name || '선택한 프로필') + ' 프로필 카드를 삭제할까요?\n삭제 비용은 50코인이며, 삭제 후 복구가 어렵습니다.')) return;
@@ -4886,10 +4902,17 @@
 
     _dpVerifyLoginSession(true).then(function(ok) {
       if (!ok) throw new Error('AUTH_REQUIRED');
-      _dpSetPaymentPending(false);
-      return _dpRunProfileManageGate('delete', profileId, requestId).then(function(paymentContext) {
-        if (!paymentContext) return null;
-        return requestDelete(paymentContext);
+      return requestDelete().then(function(result) {
+        var payload = result && result.data ? result.data : null;
+        var code = String((payload && payload.code) || '').trim().toUpperCase();
+        if (result && result.status === 402 && code === 'PAYMENT_REQUIRED') {
+          _dpSetPaymentPending(false);
+          return _dpRunProfileManageGate('delete', profileId, requestId).then(function(paymentContext) {
+            if (!paymentContext) return null;
+            return requestDelete(paymentContext);
+          });
+        }
+        return result;
       });
     }).then(function(result) {
       _dpSetPaymentPending(false);
@@ -4899,7 +4922,11 @@
       }
       var payload = result.data || {};
       if (Array.isArray(payload.profiles)) {
-        _dpSetProfileState(_dpGetProfileScope(), payload.profiles, payload.currentId || '');
+        var nextProfiles = payload.profiles.filter(function(item) {
+          return String((item && (item.id || item.profileId)) || '').trim() !== profileId;
+        });
+        var stateSynced = _dpSetProfileState(_dpGetProfileScope(), nextProfiles, payload.currentId || '');
+        if (!stateSynced) DPStorage.remove(profileId);
       } else {
         DPStorage.remove(profileId);
       }
@@ -5898,14 +5925,16 @@
           return;
         }
         var delBtn = targetEl.closest('.dp-li-del');
-        var viewBtn = targetEl.closest('.dp-li-view');
         var actionItem = targetEl.closest('[data-profile-id]');
         var actionPid = actionItem ? actionItem.getAttribute('data-profile-id') : '';
         if (!actionPid) return;
         if (e.cancelable) e.preventDefault();
         e.stopPropagation();
+        listTouchState.lastHandledAt = Date.now();
+        listTouchState.lastHandledAction = delBtn ? 'delete' : 'select';
+        listTouchState.lastHandledProfileId = actionPid;
         if (delBtn) dpDeleteProfile(actionPid);
-        else if (viewBtn || actionItem) dpSelectProfile(actionPid);
+        else dpSelectProfile(actionPid);
       }, true);
       listInner.addEventListener('touchend', function(e) {
         /* 스크롤이 아닌 탭만 처리 (이동 10px 미만) */
@@ -5926,22 +5955,8 @@
           }
           return;
         }
-        var viewBtn = targetEl.closest('.dp-li-view');
-        if (viewBtn) {
-          var viewItem = targetEl.closest('[data-profile-id]');
-          var viewPid = viewItem ? viewItem.getAttribute('data-profile-id') : '';
-          if (viewPid) {
-            if (e.cancelable) e.preventDefault();
-            e.stopPropagation();
-            listTouchState.lastHandledAt = Date.now();
-            listTouchState.lastHandledAction = 'view';
-            listTouchState.lastHandledProfileId = viewPid;
-            dpSelectProfile(viewPid);
-          }
-          return;
-        }
         var item = targetEl.closest('[data-profile-id]');
-        if (item && !targetEl.closest('.dp-li-del') && !targetEl.closest('.dp-li-view')) {
+        if (item && !targetEl.closest('.dp-li-del')) {
           var pid = item.getAttribute('data-profile-id');
           if (pid) {
             if (e.cancelable) e.preventDefault();
@@ -6080,6 +6095,11 @@
         action: optionBag.action,
         profileId: optionBag.profileId,
         selectedProfileId: optionBag.selectedProfileId,
+        amountKrw: optionBag.amountKrw,
+        membershipCreditCost: optionBag.membershipCreditCost,
+        allowedPaymentModes: optionBag.allowedPaymentModes,
+        disablePassFirst: optionBag.disablePassFirst,
+        disablePassChoice: optionBag.disablePassChoice,
         onGranted: function(transactionId, payload) {
           if (typeof cb === 'function') cb(String(transactionId || requestId), payload || {});
         },
@@ -6097,7 +6117,7 @@
       });
     }
 
-    if (typeof window._cdResolvePaidContentAccess === 'function') {
+    if (typeof window._cdResolvePaidContentAccess === 'function' && optionBag.disablePassFirst !== true && optionBag.disablePassChoice !== true) {
       return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, categoryKey: optionBag.categoryKey, subFeatureKey: optionBag.subFeatureKey, contentKey: optionBag.contentKey, productId: optionBag.productId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, reportId: optionBag.reportId, sessionId: optionBag.sessionId, reportSessionId: optionBag.reportSessionId || optionBag.sessionId, purchaseId: optionBag.purchaseId, actionType: optionBag.actionType, profileAction: optionBag.profileAction, action: optionBag.action, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId }).then(function(access) {
         if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
           var passPayload = access.payload || access.rawPayload || {};
@@ -6106,7 +6126,7 @@
           return passPayload;
         }
         if (access && access.status === 'error') { window.alert(access.message || '\uC774\uC6A9\uAD8C \uD655\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.'); if (typeof onCancel === 'function') onCancel(access); return null; }
-        if (typeof window._cdChooseServicePaymentMode === 'function') { return window._cdChooseServicePaymentMode({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey || undefined }).then(function(choice) { if (choice === 'direct') return runDirectCheckout(); if (choice === 'monthly') return runMonthlyCreditGate(); if (choice === 'pass') { if (typeof cb === 'function') cb(); return null; } if (typeof onCancel === 'function') onCancel(); return null; }); }
+        if (typeof window._cdChooseServicePaymentMode === 'function') { return window._cdChooseServicePaymentMode({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey || undefined, amountKrw: optionBag.amountKrw, membershipCreditCost: optionBag.membershipCreditCost, allowedPaymentModes: optionBag.allowedPaymentModes, disablePassFirst: optionBag.disablePassFirst, disablePassChoice: optionBag.disablePassChoice }).then(function(choice) { if (choice === 'direct') return runDirectCheckout(); if (choice === 'monthly') return runMonthlyCreditGate(); if (choice === 'pass' && optionBag.disablePassChoice !== true) { if (typeof cb === 'function') cb(); return null; } if (typeof onCancel === 'function') onCancel(); return null; }); }
         return runMonthlyCreditGate();
       }).catch(function(error) { window.alert(String(error && error.message || '\uC774\uC6A9\uAD8C \uD655\uC778 \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.')); if (typeof onCancel === 'function') onCancel(error); return null; });
     }
@@ -6255,11 +6275,16 @@
         profileAction: optionBag.profileAction,
         action: optionBag.action,
         profileId: optionBag.profileId,
-        selectedProfileId: optionBag.selectedProfileId
+        selectedProfileId: optionBag.selectedProfileId,
+        amountKrw: optionBag.amountKrw,
+        membershipCreditCost: optionBag.membershipCreditCost,
+        allowedPaymentModes: optionBag.allowedPaymentModes,
+        disablePassFirst: optionBag.disablePassFirst,
+        disablePassChoice: optionBag.disablePassChoice
       }).then(function(choice) {
         if (choice === 'direct') return runDirectCheckout();
         if (choice === 'monthly') return runMonthlyCreditGate();
-        if (choice === 'pass') { if (typeof cb === 'function') cb(); return null; }
+        if (choice === 'pass' && optionBag.disablePassChoice !== true) { if (typeof cb === 'function') cb(); return null; }
         if (typeof onCancel === 'function') onCancel();
       });
     }
