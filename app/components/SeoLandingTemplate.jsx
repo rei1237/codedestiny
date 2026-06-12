@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import ShareWidget from "./ShareWidget";
 import {
   buildBreadcrumbJsonLd,
@@ -43,6 +44,26 @@ function buildLearningPoints(page) {
     `관련 서비스와 인사이트를 조합해 해석 정확도를 높이는 내부 링크 동선`,
     `과장 예언을 피하고 안전하게 결과를 활용하는 면책 및 실천 원칙`,
   ];
+}
+
+function getRelatedServiceLabel(href) {
+  const labels = {
+    "/saju": "무료 사주풀이 보기",
+    "/manse": "꿀꿀 만세력 확인하기",
+    "/daily-fortune": "오늘의 운세 확인하기",
+    "/compatibility": "사주 궁합 분석하기",
+    "/tarot": "명리학 타로 시작하기",
+    "/ziwei": "자미두수 명반 보기",
+    "/astrology": "점성술 출생차트 보기",
+    "/sukuyo": "숙요점 27숙 궁합 확인하기",
+    "/vedic": "베다점성술 리포트 보기",
+    "/dream": "꿈해몽 결과 확인하기",
+    "/physiognomy": "동물관상 분석하기",
+    "/sukuyo/compatibility": "숙요점 궁합 바로 보기",
+    "/premium": "프리미엄 운세 리포트 보기",
+    "/insights": "운세 인사이트 전체 보기",
+  };
+  return labels[href] || "서비스 바로가기";
 }
 
 export default function SeoLandingTemplate({ page }) {
@@ -97,6 +118,181 @@ export default function SeoLandingTemplate({ page }) {
   });
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(breadcrumb);
   const faqJsonLd = buildFaqPageJsonLd(faqs);
+  const isManseLanding = page.path === "/manse";
+
+  if (isManseLanding) {
+    return (
+      <main className="relative isolate mx-auto w-full max-w-6xl overflow-hidden px-4 py-7 text-slate-100 md:px-6 md:py-10">
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_75%_8%,rgba(244,231,189,0.18),transparent_28%),radial-gradient(circle_at_18%_16%,rgba(159,216,255,0.16),transparent_30%),linear-gradient(180deg,#06101d_0%,#0c1426_54%,#111827_100%)]" />
+        <div className="pointer-events-none absolute left-6 top-20 -z-10 h-40 w-40 rounded-full bg-sky-200/10 blur-3xl" />
+
+        <Link
+          href="/index.html"
+          aria-label="메인 화면으로 이동"
+          className="fixed bottom-4 right-4 z-50 flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border border-amber-100/50 bg-[#08111f]/90 px-3 py-2 text-xs font-semibold text-amber-50 shadow-[0_18px_48px_rgba(0,0,0,0.42)] ring-1 ring-white/10 transition hover:-translate-y-1 hover:border-amber-100/75 hover:bg-[#101b2e] md:bottom-6 md:right-6 md:gap-3 md:px-4 md:py-3"
+          data-manse-home-guide="yeoni-moon-v20260612"
+        >
+          <Image
+            src="/fuctionassets/yeon.webp"
+            alt="연이"
+            width={52}
+            height={68}
+            className="h-12 w-10 object-contain drop-shadow-[0_10px_14px_rgba(0,0,0,0.35)] md:h-16 md:w-12"
+          />
+          <span className="hidden leading-5 md:block">연이와 메인으로</span>
+          <span className="md:hidden">메인</span>
+        </Link>
+
+        <nav aria-label="Breadcrumb" className="mb-4 text-xs text-slate-300">
+          {breadcrumb.map((item, idx) => (
+            <span key={item.path}>
+              {idx > 0 ? " > " : ""}
+              <Link href={item.path} className="hover:text-amber-100">{item.name}</Link>
+            </span>
+          ))}
+        </nav>
+
+        <header className="relative min-h-[560px] overflow-hidden rounded-[2rem] border border-amber-100/20 bg-[linear-gradient(135deg,rgba(5,12,28,0.96),rgba(12,27,50,0.94)_48%,rgba(16,24,45,0.98))] px-5 py-7 shadow-[0_28px_80px_rgba(0,0,0,0.38)] md:grid md:grid-cols-[minmax(0,1fr)_420px] md:gap-8 md:px-9 md:py-10">
+          <div className="pointer-events-none absolute right-[-70px] top-[-80px] h-72 w-72 rounded-full bg-[radial-gradient(circle,#fff4c7_0%,#f4e7bd_32%,rgba(244,231,189,0.2)_58%,transparent_70%)] blur-[1px] md:h-96 md:w-96" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_22%,rgba(215,236,255,0.16),transparent_2px),radial-gradient(circle_at_54%_16%,rgba(255,255,255,0.22),transparent_1px),radial-gradient(circle_at_86%_54%,rgba(215,236,255,0.18),transparent_2px),radial-gradient(circle_at_36%_72%,rgba(255,255,255,0.16),transparent_1px)]" />
+
+          <div className="relative z-10 flex min-h-[440px] flex-col justify-center">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-100/80">Moonlit Manse</p>
+            <h1 className="mt-4 max-w-2xl text-4xl font-semibold leading-tight text-slate-50 md:text-6xl">달빛 만세력</h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-slate-100 md:text-lg">
+              태어난 순간의 하늘을 달빛처럼 펼쳐, 사주 흐름과 오늘의 선택을 고요하게 정리합니다.
+            </p>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">{page.intro}</p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link href="/saju" className="inline-flex min-h-12 items-center justify-center rounded-full bg-amber-100 px-6 text-sm font-semibold text-slate-950 shadow-[0_14px_32px_rgba(244,231,189,0.24)] transition hover:-translate-y-0.5 hover:bg-amber-50">
+                무료 사주풀이 보기
+              </Link>
+              <Link href="/daily-fortune" className="inline-flex min-h-12 items-center justify-center rounded-full border border-sky-100/30 bg-white/10 px-6 text-sm font-semibold text-slate-50 transition hover:-translate-y-0.5 hover:bg-white/20">
+                오늘의 운세 확인하기
+              </Link>
+            </div>
+          </div>
+
+          <div className="relative z-10 mt-6 min-h-[300px] md:mt-0">
+            <div className="absolute inset-x-6 bottom-8 h-40 rounded-[50%] bg-sky-200/10 blur-2xl" />
+            <div className="absolute right-4 top-8 h-52 w-52 rounded-full border border-amber-100/30 bg-[radial-gradient(circle,#fff6cf_0%,#f3dfaa_46%,rgba(244,231,189,0.1)_70%)] shadow-[0_0_70px_rgba(244,231,189,0.34)] md:right-8 md:top-12 md:h-64 md:w-64" />
+            <div className="absolute bottom-8 left-3 w-44 rotate-[-7deg] rounded-2xl border border-amber-100/30 bg-[#101b2e]/86 p-4 shadow-[0_22px_50px_rgba(0,0,0,0.36)] backdrop-blur md:w-52">
+              <p className="text-xs font-semibold tracking-[0.2em] text-amber-100/80">FOUR PILLARS</p>
+              <div className="mt-4 grid grid-cols-4 gap-2">
+                {["年", "月", "日", "時"].map((pillar) => (
+                  <span key={pillar} className="flex h-14 items-center justify-center rounded-xl border border-sky-100/20 bg-slate-950/50 text-lg text-sky-100">
+                    {pillar}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <Image
+              src="/fuctionassets/자는 연이.png"
+              alt="달빛 아래 잠든 연이"
+              width={256}
+              height={256}
+              className="absolute bottom-6 right-4 h-28 w-28 object-contain drop-shadow-[0_22px_22px_rgba(0,0,0,0.35)] md:bottom-10 md:right-8 md:h-36 md:w-36"
+            />
+          </div>
+        </header>
+
+        <section className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-4">
+          {learningPoints.map((point) => (
+            <article key={point} className="rounded-2xl border border-sky-100/20 bg-white/[0.06] px-4 py-4 shadow-[0_16px_42px_rgba(0,0,0,0.22)]">
+              <p className="text-sm leading-7 text-slate-100">{point}</p>
+            </article>
+          ))}
+        </section>
+
+        <section className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+          {[
+            ["질문을 맑게", "기간과 영역을 정하면 만세력의 신호가 더 선명하게 드러납니다."],
+            ["반복 신호 확인", "오행과 십성의 반복 흐름을 찾아 현재의 균형을 읽습니다."],
+            ["오늘의 선택", "해석을 하루 안에 실행할 수 있는 한 줄의 행동으로 정리합니다."],
+          ].map(([title, body]) => (
+            <article key={title} className="rounded-2xl border border-amber-100/20 bg-slate-950/50 px-5 py-5">
+              <h2 className="text-lg font-semibold text-amber-100">{title}</h2>
+              <p className="mt-3 text-sm leading-7 text-slate-200">{body}</p>
+            </article>
+          ))}
+        </section>
+
+        <section className="mt-6 rounded-3xl border border-sky-100/20 bg-[#08111f]/80 px-5 py-6 md:px-8 md:py-8">
+          <h2 className="text-xl font-semibold text-sky-100">고급 해석 포인트</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-200">
+            Code Destiny는 무료 운세 서비스 허브와 장문 인사이트를 연결해 한 번의 방문이 학습과 실행으로 이어지도록 설계했습니다.
+            만세력은 길흉을 단정하기보다 강점, 주의, 보완의 흐름을 함께 비추는 달빛 지도처럼 활용하는 것이 좋습니다.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {page.keywords.map((keyword) => (
+              <span key={keyword} className="rounded-full border border-amber-100/25 bg-amber-100/10 px-3 py-1 text-xs text-amber-50">
+                #{keyword}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-3xl border border-amber-100/20 bg-slate-950/60 px-5 py-6 md:px-8 md:py-8">
+          <h2 className="text-xl font-semibold text-amber-100">관련 기능 바로가기</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-200">
+            무료 기능으로 흐름을 먼저 확인한 뒤, 필요할 때 프리미엄 리포트로 해석을 넓힐 수 있습니다.
+          </p>
+          <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2">
+            {page.relatedServices.map((href) => (
+              <Link key={href} href={href} className="rounded-2xl border border-sky-100/20 bg-white/[0.06] px-4 py-3 text-sm text-slate-100 transition hover:-translate-y-0.5 hover:border-amber-100/40 hover:bg-white/[0.09]">
+                {getRelatedServiceLabel(href)}
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-3xl border border-sky-100/20 bg-[#08111f]/70 px-5 py-6 md:px-8 md:py-8">
+          <h2 className="text-xl font-semibold text-sky-100">관련 인사이트</h2>
+          <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+            {relatedInsights.map((article) => (
+              <Link
+                key={article.slug}
+                href={`/insights/${article.slug}`}
+                className="rounded-2xl border border-sky-100/20 bg-slate-950/40 px-4 py-3 transition hover:-translate-y-0.5 hover:border-sky-100/30 hover:bg-slate-900/70"
+              >
+                <p className="text-xs text-amber-100/80">{article.category}</p>
+                <h3 className="mt-1 text-sm font-semibold leading-6 text-slate-50">{article.title}</h3>
+                <p className="mt-2 text-xs leading-6 text-slate-200 line-clamp-2">{article.excerpt}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-3xl border border-amber-100/20 bg-slate-950/60 px-5 py-6 md:px-8 md:py-8">
+          <h2 className="text-xl font-semibold text-amber-100">자주 묻는 질문</h2>
+          <div className="mt-4 space-y-3">
+            {faqs.map((faq) => (
+              <details key={faq.question} className="group rounded-2xl border border-sky-100/20 bg-white/[0.05] px-4 py-3">
+                <summary className="cursor-pointer text-sm font-semibold text-slate-50 marker:text-amber-100">{faq.question}</summary>
+                <p className="mt-2 text-sm leading-7 text-slate-200">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <ShareWidget
+          title={page.title}
+          description={page.description}
+          path={page.path}
+          image={page.ogImage}
+          contentType="software"
+          contentId={page.path}
+        />
+
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+        {Array.isArray(faqs) && faqs.length > 0 ? (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+        ) : null}
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 text-slate-100 md:px-6 md:py-10">
