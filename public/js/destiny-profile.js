@@ -22,6 +22,9 @@
   var _dpCurrentId = '';
   var PROFILE_CARD_MANAGE_FEATURE_KEY = 'profile-card-manage';
   var PROFILE_CARD_MANAGE_COST = 50;
+  var PROFILE_CARD_MANAGE_MONTHLY_COST = 50;
+  var DP_PROFILE_DELETE_GATE_MARKER = 'profile-delete-dedicated-gate-v20260613';
+  var DP_PROFILE_DELETE_GATE_SPRITE_URL = '/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp';
   var _dpProfileMenuLastTouchAt = 0;
   var _dpProfileMenuPointerHandledAt = 0;
   var _dpProfileMenuSyntheticEvent = false;
@@ -3850,6 +3853,264 @@
     }
   }
 
+  function _dpBuildProfileDeletePaymentBase(profileId, requestId) {
+    var title = '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C';
+    var normalizedProfileId = String(profileId || '').trim();
+    return {
+      title: title,
+      reason: title,
+      featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+      coinPrice: PROFILE_CARD_MANAGE_COST,
+      cost: PROFILE_CARD_MANAGE_COST,
+      amountKrw: PROFILE_CARD_MANAGE_COST * 100,
+      amountKRW: PROFILE_CARD_MANAGE_COST * 100,
+      cashPrice: PROFILE_CARD_MANAGE_COST * 100,
+      membershipCreditCost: PROFILE_CARD_MANAGE_MONTHLY_COST,
+      requiredMonthlyCredits: PROFILE_CARD_MANAGE_MONTHLY_COST,
+      requestId: requestId,
+      profileId: normalizedProfileId,
+      selectedProfileId: normalizedProfileId,
+      profileCardId: normalizedProfileId,
+      serviceKey: 'profile_card_delete',
+      reportType: 'profile_card_delete',
+      actionType: 'profile_card_delete',
+      profileAction: 'delete',
+      action: 'delete',
+      allowedPaymentModes: ['direct', 'monthly'],
+      disablePassFirst: true,
+      disablePassChoice: true,
+      skipPassProbe: true,
+      forceDeduct: true
+    };
+  }
+
+  function _dpNormalizeProfileDeletePaymentContext(payload, profileId, requestId, paymentMode) {
+    var data = _dpExtractBillingData(payload || {});
+    if (!data || typeof data !== 'object') data = {};
+    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
+    var paymentId = String(_dpPaidPassPayloadTransactionId(data, requestId) || requestId || '');
+    var normalizedProfileId = String(profileId || '').trim();
+    return {
+      requestId: requestId,
+      transactionId: paymentId,
+      paymentId: paymentId,
+      purchaseId: paymentId,
+      paymentSettled: true,
+      paymentMode: paymentMode,
+      payment: data,
+      accessGrant: accessGrant,
+      consume: consume,
+      _paymentContext: {
+        requestId: requestId,
+        transactionId: paymentId,
+        paymentId: paymentId,
+        purchaseId: paymentId,
+        paymentSettled: true,
+        paymentMode: paymentMode,
+        featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+        profileId: normalizedProfileId,
+        selectedProfileId: normalizedProfileId,
+        profileCardId: normalizedProfileId,
+        actionType: 'profile_card_delete',
+        profileAction: 'delete',
+        action: 'delete'
+      }
+    };
+  }
+
+  function _dpEnsureProfileDeleteGateStyles() {
+    if (document.getElementById('dpProfileDeleteGateStyles')) return;
+    var style = document.createElement('style');
+    style.id = 'dpProfileDeleteGateStyles';
+    style.textContent = ''
+      + '.dp-delete-gate{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,8,18,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}'
+      + '.dp-delete-gate__panel{width:min(520px,calc(100vw - 28px));border-radius:8px;border:1px solid rgba(255,215,0,.42);background:linear-gradient(145deg,rgba(10,15,32,.98),rgba(37,29,78,.97) 52%,rgba(20,26,45,.98));box-shadow:0 28px 80px rgba(0,0,0,.58),0 0 28px rgba(255,215,0,.14);color:#fff7d6;overflow:hidden;}'
+      + '.dp-delete-gate__head{display:grid;grid-template-columns:82px 1fr;gap:14px;align-items:center;padding:18px 18px 12px;border-bottom:1px solid rgba(255,215,0,.18);}'
+      + '.dp-delete-gate__sprite-wrap{width:82px;height:82px;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.26);background:rgba(255,255,255,.08);box-shadow:inset 0 0 18px rgba(255,255,255,.10);}'
+      + '.dp-delete-gate__sprite{width:100%;height:100%;background-image:url("' + DP_PROFILE_DELETE_GATE_SPRITE_URL + '");background-repeat:no-repeat;background-size:400% 300%;background-position:0% 0%;image-rendering:auto;}'
+      + '.dp-delete-gate__eyebrow{margin:0 0 5px;font-size:11px;font-weight:800;letter-spacing:0;color:#ffd700;}'
+      + '.dp-delete-gate__title{margin:0;font-size:20px;line-height:1.26;font-weight:900;letter-spacing:0;color:#fff8dc;}'
+      + '.dp-delete-gate__name{margin:6px 0 0;font-size:13px;line-height:1.45;color:rgba(255,248,220,.78);word-break:break-word;}'
+      + '.dp-delete-gate__body{padding:14px 18px 18px;}'
+      + '.dp-delete-gate__copy{margin:0 0 12px;font-size:13px;line-height:1.58;color:rgba(255,248,220,.86);}'
+      + '.dp-delete-gate__options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 10px;}'
+      + '.dp-delete-gate__option{min-height:68px;border-radius:8px;border:1px solid rgba(255,215,0,.24);background:rgba(255,255,255,.07);color:#fff8dc;text-align:left;padding:11px 12px;cursor:pointer;transition:transform .16s ease,border-color .16s ease,background .16s ease;}'
+      + '.dp-delete-gate__option:hover{transform:translateY(-1px);border-color:rgba(255,215,0,.58);background:rgba(255,215,0,.10);}'
+      + '.dp-delete-gate__option:disabled{opacity:.55;cursor:wait;transform:none;}'
+      + '.dp-delete-gate__option strong{display:block;font-size:14px;line-height:1.25;letter-spacing:0;}'
+      + '.dp-delete-gate__option span{display:block;margin-top:5px;font-size:12px;line-height:1.35;color:rgba(255,248,220,.72);}'
+      + '.dp-delete-gate__foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;}'
+      + '.dp-delete-gate__status{min-height:20px;font-size:12px;line-height:1.35;color:rgba(255,248,220,.72);}'
+      + '.dp-delete-gate__cancel{min-height:38px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#e5e7eb;padding:0 14px;cursor:pointer;}'
+      + '.dp-delete-gate__cancel:hover{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.10);}'
+      + '@media(max-width:520px){.dp-delete-gate{align-items:flex-end;padding:12px}.dp-delete-gate__panel{width:100%;}.dp-delete-gate__head{grid-template-columns:70px 1fr;padding:16px 14px 12px}.dp-delete-gate__sprite-wrap{width:70px;height:70px}.dp-delete-gate__title{font-size:18px}.dp-delete-gate__body{padding:13px 14px 16px}.dp-delete-gate__options{grid-template-columns:1fr}.dp-delete-gate__foot{align-items:stretch;flex-direction:column}.dp-delete-gate__cancel{width:100%;}}';
+    document.head.appendChild(style);
+  }
+
+  function _dpOpenProfileDeleteGate(profile, profileId, requestId) {
+    return new Promise(function(resolve) {
+      _dpEnsureProfileDeleteGateStyles();
+      var previous = document.getElementById('dpProfileDeleteGate');
+      if (previous && typeof previous.__dpClose === 'function') previous.__dpClose(null);
+      var overlay = document.createElement('div');
+      overlay.id = 'dpProfileDeleteGate';
+      overlay.className = 'dp-delete-gate';
+      overlay.setAttribute('data-marker', DP_PROFILE_DELETE_GATE_MARKER);
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-labelledby', 'dpProfileDeleteGateTitle');
+
+      var panel = document.createElement('div');
+      panel.className = 'dp-delete-gate__panel';
+      var head = document.createElement('div');
+      head.className = 'dp-delete-gate__head';
+      var spriteWrap = document.createElement('div');
+      spriteWrap.className = 'dp-delete-gate__sprite-wrap';
+      spriteWrap.setAttribute('aria-hidden', 'true');
+      var sprite = document.createElement('div');
+      sprite.className = 'dp-delete-gate__sprite';
+      spriteWrap.appendChild(sprite);
+      var titleWrap = document.createElement('div');
+      var eyebrow = document.createElement('p');
+      eyebrow.className = 'dp-delete-gate__eyebrow';
+      eyebrow.textContent = 'PROFILE DELETE';
+      var title = document.createElement('h2');
+      title.id = 'dpProfileDeleteGateTitle';
+      title.className = 'dp-delete-gate__title';
+      title.textContent = '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C';
+      var name = document.createElement('p');
+      name.className = 'dp-delete-gate__name';
+      name.textContent = String((profile && profile.name) || '\uC120\uD0DD\uD55C \uD504\uB85C\uD544') + ' \u00B7 ' + String(profileId || requestId || '');
+      titleWrap.appendChild(eyebrow);
+      titleWrap.appendChild(title);
+      titleWrap.appendChild(name);
+      head.appendChild(spriteWrap);
+      head.appendChild(titleWrap);
+
+      var body = document.createElement('div');
+      body.className = 'dp-delete-gate__body';
+      var copy = document.createElement('p');
+      copy.className = 'dp-delete-gate__copy';
+      copy.textContent = '\uC0AD\uC81C \uD6C4 \uBCF5\uAD6C\uAC00 \uC5B4\uB835\uC2B5\uB2C8\uB2E4. \uBB34\uB8CC \uD1B5\uACFC \uC5C6\uC774 \uB2E8\uAC74\uACB0\uC81C\uC640 Moonlight Stone\uB9CC \uC0AC\uC6A9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.';
+      var options = document.createElement('div');
+      options.className = 'dp-delete-gate__options';
+
+      function buildOption(mode, label, detail) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'dp-delete-gate__option dp-delete-gate__option--' + mode;
+        btn.setAttribute('data-mode', mode);
+        var strong = document.createElement('strong');
+        strong.textContent = label;
+        var span = document.createElement('span');
+        span.textContent = detail;
+        btn.appendChild(strong);
+        btn.appendChild(span);
+        return btn;
+      }
+
+      var directBtn = buildOption('direct', '\uB2E8\uAC74\uACB0\uC81C ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0', '\uC0AD\uC81C \uC804\uC6A9 1\uD68C \uACB0\uC81C');
+      var monthlyBtn = buildOption('monthly', 'Moonlight Stone ' + PROFILE_CARD_MANAGE_MONTHLY_COST + '\uAC1C', '\uC6D4\uC815\uC11D \uC794\uC561\uC73C\uB85C \uC0AD\uC81C');
+      options.appendChild(directBtn);
+      options.appendChild(monthlyBtn);
+
+      var foot = document.createElement('div');
+      foot.className = 'dp-delete-gate__foot';
+      var status = document.createElement('div');
+      status.className = 'dp-delete-gate__status';
+      status.textContent = '\uC0AD\uC81C\uD560 \uACB0\uC81C \uBC29\uC2DD\uC744 \uC120\uD0DD\uD574 \uC8FC\uC138\uC694.';
+      var cancel = document.createElement('button');
+      cancel.type = 'button';
+      cancel.className = 'dp-delete-gate__cancel';
+      cancel.textContent = '\uCDE8\uC18C';
+      foot.appendChild(status);
+      foot.appendChild(cancel);
+      body.appendChild(copy);
+      body.appendChild(options);
+      body.appendChild(foot);
+      panel.appendChild(head);
+      panel.appendChild(body);
+      overlay.appendChild(panel);
+
+      var frame = 0;
+      var frames = [0, 1, 2, 3, 7, 6, 5, 4];
+      function applyFrame() {
+        var safe = frames[frame % frames.length];
+        var col = safe % 4;
+        var row = Math.floor(safe / 4);
+        sprite.style.backgroundPosition = (col * 100 / 3) + '% ' + (row * 100 / 2) + '%';
+        frame += 1;
+      }
+      applyFrame();
+      var timer = setInterval(applyFrame, 140);
+      var settled = false;
+      function done(value) {
+        if (settled) return;
+        settled = true;
+        clearInterval(timer);
+        document.removeEventListener('keydown', onKey);
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        resolve(value || null);
+      }
+      function onKey(event) {
+        if (event && event.key === 'Escape') done(null);
+      }
+      function pick(mode) {
+        status.textContent = '\uACB0\uC81C \uC120\uD0DD\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.';
+        directBtn.disabled = true;
+        monthlyBtn.disabled = true;
+        cancel.disabled = true;
+        done(mode);
+      }
+      overlay.__dpClose = done;
+      overlay.addEventListener('click', function(event) {
+        if (event && event.target === overlay) done(null);
+      });
+      directBtn.addEventListener('click', function() { pick('direct'); });
+      monthlyBtn.addEventListener('click', function() { pick('monthly'); });
+      cancel.addEventListener('click', function() { done(null); });
+      document.addEventListener('keydown', onKey);
+      document.body.appendChild(overlay);
+      directBtn.focus({ preventScroll: true });
+    });
+  }
+
+  async function _dpRunProfileDeleteGate(profile, profileId, requestId) {
+    var choice = await _dpOpenProfileDeleteGate(profile, profileId, requestId);
+    if (!choice) return null;
+    var base = _dpBuildProfileDeletePaymentBase(profileId, requestId);
+    if (choice === 'monthly') {
+      _dpSetPaymentPending(true, 'Moonlight Stone\uB85C \uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C \uACB0\uC81C\uB97C \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...', 'monthly');
+      var monthlyPayload = await _dpRunMonthlyCreditFromMainGate(Object.assign({}, base, {
+        paymentMode: 'MOONLIGHT_STONE',
+        accessMode: 'moonlight_stone'
+      }));
+      return _dpNormalizeProfileDeletePaymentContext(monthlyPayload, profileId, requestId, 'MOONLIGHT_STONE');
+    }
+    if (typeof window._cdRunDirectKrwCheckout !== 'function') {
+      throw new Error('\uB2E8\uAC74\uACB0\uC81C \uBAA8\uB4C8\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. \uD398\uC774\uC9C0\uB97C \uC0C8\uB85C\uACE0\uCE68 \uD55C \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.');
+    }
+    _dpSetPaymentPending(true, '\uB2E8\uAC74\uACB0\uC81C\uB85C \uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C \uACB0\uC81C\uB97C \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...', 'checkout');
+    var directPayload = await window._cdRunDirectKrwCheckout(Object.assign({}, base, {
+      forceDirectPayment: true,
+      internalMainGate: true,
+      __cdPaymentGateAuthorized: true,
+      checkoutPayload: Object.assign({}, base, {
+        paymentType: 'digital_content',
+        paymentMode: 'DIRECT_KRW',
+        provider: 'PORTONE_V2',
+        paymentAmount: base.amountKrw,
+        amountKrw: base.amountKrw,
+        amountKRW: base.amountKrw,
+        cashPrice: base.amountKrw,
+        idempotencyKey: requestId,
+        orderId: requestId
+      })
+    }));
+    return _dpNormalizeProfileDeletePaymentContext(directPayload, profileId, requestId, 'DIRECT_KRW');
+  }
+
   function _dpRunProfileManageGate(action, profileId, requestId) {
     return new Promise(function(resolve, reject) {
       if (typeof window._cdCoinGatePerUse !== 'function') {
@@ -3900,7 +4161,7 @@
         profileAction: normalizedAction,
         action: normalizedAction,
         amountKrw: PROFILE_CARD_MANAGE_COST * 100,
-        membershipCreditCost: PROFILE_CARD_MANAGE_COST * 10,
+        membershipCreditCost: isDeleteAction ? PROFILE_CARD_MANAGE_MONTHLY_COST : PROFILE_CARD_MANAGE_COST * 10,
         allowedPaymentModes: isDeleteAction ? ['direct', 'monthly'] : undefined,
         disablePassFirst: isDeleteAction,
         disablePassChoice: isDeleteAction
@@ -5046,14 +5307,6 @@
       if (lockAgeMs < 45000) return;
       _dpClearProfileDeleteLock(profileId);
     }
-    var deleteConfirmMessage = (profile.name || '\uC120\uD0DD\uD55C \uD504\uB85C\uD544')
-      + ' \uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD560\uAE4C\uC694?'
-      + '\n\uC0AD\uC81C\uB294 \uC624\uC9C1 \uB2E8\uAC74 \uACB0\uC81C \uB610\uB294 Moonlight Stone \uC6D4\uC815\uC11D \uACB0\uC81C\uB85C\uB9CC \uC9C4\uD589\uB429\uB2C8\uB2E4.'
-      + '\n\uC774\uC6A9\uAD8C \uBB34\uB8CC \uD1B5\uACFC\uB294 \uC801\uC6A9\uB418\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.'
-      + '\n\uBE44\uC6A9: \uB2E8\uAC74 \uACB0\uC81C ' + PROFILE_CARD_MANAGE_COST + '\uCF54\uC778 \uAE30\uC900(' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0) \uB610\uB294 Moonlight Stone ' + (PROFILE_CARD_MANAGE_COST * 10) + '\uAC1C'
-      + '\n\uACB0\uC81C \uD655\uC778 \uD6C4 \uC11C\uBC84\uC640 \uB85C\uCEEC\uC5D0\uC11C \uC989\uC2DC \uC0AD\uC81C\uB418\uBA70, \uC0AD\uC81C \uD6C4 \uBCF5\uAD6C\uAC00 \uC5B4\uB835\uC2B5\uB2C8\uB2E4.';
-    if (!confirm(deleteConfirmMessage)) return;
-
     var requestId = _dpBuildProfileManageRequestId('delete', profileId);
     _dpSetProfileDeleteLock(profileId);
 
@@ -5082,7 +5335,7 @@
     _dpVerifyLoginSession(true).then(function(ok) {
       if (!ok) throw new Error('AUTH_REQUIRED');
       _dpSetPaymentPending(false);
-      return _dpRunProfileManageGate('delete', profileId, requestId).then(function(paymentContext) {
+      return _dpRunProfileDeleteGate(profile, profileId, requestId).then(function(paymentContext) {
         if (!paymentContext) return null;
         return requestDelete(paymentContext);
       });

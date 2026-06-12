@@ -51,6 +51,7 @@ import {
 } from "../lib/profile-limits.js";
 import {
   getProfileCardMutationPolicy,
+  PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
   PROFILE_CARD_MUTATION_ACTIONS,
 } from "../lib/profile-card-mutation-policy.js";
 
@@ -433,6 +434,26 @@ function resolveProfileCardActionType(value) {
   return "";
 }
 
+function buildProfileCardMutationMetadata(body = {}) {
+  const actionType = resolveProfileCardActionType(body?.actionType || body?.profileAction || body?.action);
+  if (actionType !== PROFILE_CARD_MUTATION_ACTIONS.DELETE) return {};
+  return {
+    actionType: "profile_card_delete",
+    profileAction: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
+    action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
+  };
+}
+
+function resolveMonthlyCreditCostForBilling(pricing, body = {}) {
+  const coinPrice = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
+  const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
+  const actionType = resolveProfileCardActionType(body?.actionType || body?.profileAction || body?.action);
+  if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && actionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE) {
+    return Math.max(0, Math.floor(Number(PROFILE_CARD_DELETE_COST_MONTHLY_STONES || 0)));
+  }
+  return calculateMembershipCreditCost(coinPrice);
+}
+
 async function assertProfileCardPassPolicyIfNeeded({ userId, profileId, pricing, body = {} }) {
   const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
   if (featureKey !== PROFILE_CARD_MANAGE_FEATURE_KEY) return { ok: true, policy: null };
@@ -723,8 +744,9 @@ async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
 
 async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requestId, body = {}) {
   const coinPrice = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
-  const requiredCredit = calculateMembershipCreditCost(coinPrice);
+  const requiredCredit = resolveMonthlyCreditCostForBilling(pricing, body);
   if (!Number.isInteger(requiredCredit) || requiredCredit <= 0) return null;
+  const profileMutationMetadata = buildProfileCardMutationMetadata(body);
 
   await connectDb(env);
   await seedMembershipCreditForExistingPassIfNeeded(authUserId);
@@ -855,6 +877,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       accessType: "membership_credit",
       accessMethod: "MONTHLY",
       paymentMethod: "MONTHLY",
+      ...profileMutationMetadata,
       requestId: normalizedRequestId,
       purchaseId,
       idempotencyKey: String(body?.idempotencyKey || purchaseId || "").trim().slice(0, 160),
@@ -896,6 +919,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     profileId,
     metadata: {
       pointHistoryId: String(history?._id || ""),
+      ...profileMutationMetadata,
       requestId: normalizedRequestId,
       purchaseId,
       idempotencyKey: String(body?.idempotencyKey || purchaseId || "").trim().slice(0, 160),
@@ -936,6 +960,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     accessType: "membership_credit",
     accessMethod: "MONTHLY",
     paymentMethod: "MONTHLY",
+    ...profileMutationMetadata,
     featureKey,
     coinPrice,
     membershipCreditCost: requiredCredit,
@@ -2743,6 +2768,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           accessMethod: "COIN",
           paymentMethod: "COIN",
           transactionType: "coin",
+          ...buildProfileCardMutationMetadata(body),
           requestId,
           purchaseId: coinPurchaseId,
           idempotencyKey: String(body?.idempotencyKey || coinPurchaseId || "").trim().slice(0, 160),
