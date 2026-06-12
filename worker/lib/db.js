@@ -67,6 +67,13 @@ function clampInt(rawValue, fallback, min, max) {
   return Math.max(min, Math.min(max, normalized));
 }
 
+function clampTimeoutMs(rawValue, fallback, min, max) {
+  const value = Number(rawValue);
+  if (!Number.isFinite(value)) return fallback;
+  const normalized = Math.floor(value);
+  return Math.max(min, Math.min(max, normalized));
+}
+
 function isTruthyLike(value) {
   const normalized = String(value || "").trim().toLowerCase();
   return normalized === "1" || normalized === "true" || normalized === "on" || normalized === "yes";
@@ -83,15 +90,15 @@ function sleep(ms) {
 export async function connectDb(env = {}) {
   installProcessEnv(env);
 
-  const guardTimeoutMS = Number(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", "8000"));
-  const serverSelectionTimeoutMS = Number(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "5000"));
-  const connectTimeoutMS = Number(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "5000"));
-  const socketTimeoutMS = Number(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "15000"));
+  const guardTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", "10000"), 10000, 3000, 20000);
+  const serverSelectionTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"), 8000, 2000, 15000);
+  const connectTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "8000"), 8000, 2000, 15000);
+  const socketTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "20000"), 20000, 5000, 45000);
   const retryCount = clampInt(getEnv(env, "MONGO_WORKER_CONNECT_RETRIES", "2"), 2, 0, 4);
   const retryBaseDelayMS = clampInt(getEnv(env, "MONGO_WORKER_RETRY_DELAY_MS", "220"), 220, 0, 2000);
 
   if (mongoose.connection.readyState === 1) {
-    const pingTimeoutMS = Number(getEnv(env, "MONGO_PING_TIMEOUT_MS", "2500"));
+    const pingTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_PING_TIMEOUT_MS", "3500"), 3500, 1000, 10000);
     try {
       await withTimeout(
         mongoose.connection.db.command({ ping: 1 }),

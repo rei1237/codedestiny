@@ -902,6 +902,26 @@ var TAROT_ORIENTATION_LABEL_KO = {
   reversed: '역행(逆行)'
 };
 
+function getKoreanFinalIndex(text) {
+  var chars = Array.from(String(text || '').trim());
+  for (var i = chars.length - 1; i >= 0; i--) {
+    var code = chars[i].charCodeAt(0);
+    if (code >= 0xac00 && code <= 0xd7a3) return (code - 0xac00) % 28;
+  }
+  return 0;
+}
+
+function withKoreanJosa(text, batchimJosa, noBatchimJosa) {
+  var value = String(text || '').trim();
+  return value + (getKoreanFinalIndex(value) ? batchimJosa : noBatchimJosa);
+}
+
+function withEuroRo(text) {
+  var value = String(text || '').trim();
+  var finalIndex = getKoreanFinalIndex(value);
+  return value + (finalIndex && finalIndex !== 8 ? '으로' : '로');
+}
+
 var MYEONGRI_TEN_GODS = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'];
 
 var TEN_GOD_GROUPS = {
@@ -921,16 +941,16 @@ var SUIT_TEN_GOD_AFFINITY = {
 };
 
 var TEN_GOD_DETAILS = {
-  '비견': { group: 'self', label: '비견', meaning: '자기주장, 독립성, 동등한 관계를 다루는 기운입니다.', shadow: '고집과 경쟁심으로 혼자 버티려는 경향이 커질 수 있습니다.' },
-  '겁재': { group: 'self', label: '겁재', meaning: '경쟁과 돌파, 생존 본능을 활성화하는 기운입니다.', shadow: '불안정한 욕심과 비교심으로 손실을 키울 수 있습니다.' },
-  '식신': { group: 'output', label: '식신', meaning: '표현, 창작, 결과물, 꾸준한 생산성을 보여줍니다.', shadow: '안일함과 미루기로 실행력이 분산될 수 있습니다.' },
-  '상관': { group: 'output', label: '상관', meaning: '말과 개성, 창의적 돌파를 이끄는 기운입니다.', shadow: '말실수와 충돌, 권위와의 마찰이 생기기 쉽습니다.' },
-  '편재': { group: 'wealth', label: '편재', meaning: '기회, 확장, 사람과 돈의 흐름을 다룹니다.', shadow: '산만함과 과욕, 관계의 거래화로 흐를 수 있습니다.' },
-  '정재': { group: 'wealth', label: '정재', meaning: '안정, 계획, 관리, 꾸준한 수익을 의미합니다.', shadow: '계산적 태도와 과도한 안정 집착이 생길 수 있습니다.' },
-  '편관': { group: 'officer', label: '편관', meaning: '압박 속 책임, 위기 대응, 승부 본능을 뜻합니다.', shadow: '불안과 강박, 과긴장으로 소진될 수 있습니다.' },
-  '정관': { group: 'officer', label: '정관', meaning: '질서, 평판, 직업 구조, 신뢰를 다룹니다.', shadow: '경직, 눈치, 자기 억압이 강해질 수 있습니다.' },
-  '편인': { group: 'resource', label: '편인', meaning: '직관, 연구, 고독, 비주류 감각을 살립니다.', shadow: '의심과 고립, 현실 회피로 흐를 수 있습니다.' },
-  '정인': { group: 'resource', label: '정인', meaning: '회복, 학습, 보호, 내면의 안전감을 줍니다.', shadow: '의존, 미루기, 수동성으로 에너지가 가라앉을 수 있습니다.' }
+  '비견': { group: 'self', label: '비견', meaning: '자기주장, 독립성, 동등한 관계', shadow: '고집과 경쟁심으로 혼자 버티려는 경향이 커질 수 있습니다.' },
+  '겁재': { group: 'self', label: '겁재', meaning: '경쟁, 돌파, 생존 본능', shadow: '불안정한 욕심과 비교심으로 손실을 키울 수 있습니다.' },
+  '식신': { group: 'output', label: '식신', meaning: '표현, 창작, 결과물, 꾸준한 생산성', shadow: '안일함과 미루기로 실행력이 분산될 수 있습니다.' },
+  '상관': { group: 'output', label: '상관', meaning: '말, 개성, 창의적 돌파', shadow: '말실수와 충돌, 권위와의 마찰이 생기기 쉽습니다.' },
+  '편재': { group: 'wealth', label: '편재', meaning: '기회, 확장, 사람과 돈의 흐름', shadow: '산만함과 과욕, 관계의 거래화로 흐를 수 있습니다.' },
+  '정재': { group: 'wealth', label: '정재', meaning: '안정, 계획, 관리, 꾸준한 수익', shadow: '계산적 태도와 과도한 안정 집착이 생길 수 있습니다.' },
+  '편관': { group: 'officer', label: '편관', meaning: '압박 속 책임, 위기 대응, 승부 본능', shadow: '불안과 강박, 과긴장으로 소진될 수 있습니다.' },
+  '정관': { group: 'officer', label: '정관', meaning: '질서, 평판, 직업 구조, 신뢰', shadow: '경직, 눈치, 자기 억압이 강해질 수 있습니다.' },
+  '편인': { group: 'resource', label: '편인', meaning: '직관, 연구, 고독, 비주류 감각', shadow: '의심과 고립, 현실 회피로 흐를 수 있습니다.' },
+  '정인': { group: 'resource', label: '정인', meaning: '회복, 학습, 보호, 내면의 안전감', shadow: '의존, 미루기, 수동성으로 에너지가 가라앉을 수 있습니다.' }
 };
 
 var TEN_GOD_REALITY_TEMPLATES = {
@@ -1115,9 +1135,9 @@ function resolveCardBridge(cardName, tenGod, orientation) {
   var work = profile.work || '실행 방식';
   var action = profile.action || '오늘의 실천';
   if (orientation === 'reversed') {
-    return cardText + '은(는) ' + focus + '이 과열될 때 현실이 흔들립니다. ' + profile.risk + ' 그래서 지금은 ' + action + '를 먼저 고정해야 합니다.';
+    return withKoreanJosa(cardText, '은', '는') + ' 겉으로 큰 변화를 일으키기보다 ' + focus + ' 쪽의 긴장을 안쪽에서 흔들고 있습니다. ' + profile.risk + ' 그래서 오늘은 큰 결론보다 바로 붙잡을 기준 하나가 필요합니다.';
   }
-  return cardText + '은(는) ' + focus + '에서 가장 선명하게 작동합니다. ' + profile.reality + ' 특히 ' + work + ' 쪽으로 연결될 때 운이 현실로 바뀝니다.';
+  return withKoreanJosa(cardText, '은', '는') + ' ' + withKoreanJosa(focus, '을', '를') + ' 현실 위로 또렷하게 올려놓습니다. ' + profile.reality + ' 특히 ' + withEuroRo(work) + ' 이어질 때 오늘의 운이 실제 선택으로 바뀝니다.';
 }
 
 function removeRepeatedMyeongriTarotPhrases(text) {
@@ -1133,7 +1153,7 @@ function ensureTenGodConsistency(reading) {
   var out = Object.assign({}, reading || {});
   if (!out.tenGod || !out.tenGod.main) return out;
   var main = out.tenGod.main;
-  var fields = ['opening', 'cardMeaning', 'tenGodInterpretation', 'combinedReading', 'shadowWarning', 'practicalAdvice', 'oracleMessage', 'currentSituation', 'whyThisHappens', 'biggestRisk', 'bestChoice', 'actionAdvice', 'oneLineConclusion'];
+  var fields = ['opening', 'cardMeaning', 'tenGodInterpretation', 'combinedReading', 'shadowWarning', 'practicalAdvice', 'sealSentence', 'oracleMessage', 'currentSituation', 'whyThisHappens', 'biggestRisk', 'bestChoice', 'actionAdvice', 'oneLineConclusion'];
   fields.forEach(function(field) {
     var text = String(out[field] || '');
     MYEONGRI_TEN_GODS.forEach(function(tg) {
@@ -1165,6 +1185,7 @@ function validateMyeongriTarotReading(reading) {
     reading && reading.combinedReading,
     reading && reading.shadowWarning,
     reading && reading.practicalAdvice,
+    reading && reading.sealSentence,
     reading && reading.oracleMessage
   ].join(' ');
 
@@ -1189,6 +1210,37 @@ function validateMyeongriTarotReading(reading) {
   };
 }
 
+function buildMyeongriMysticOracle(cardName, tenGod, orientation) {
+  var reversed = {
+    '비견': '이름 없는 흔들림이 당신의 중심을 다시 부릅니다.',
+    '겁재': '빼앗긴 듯한 자리에서 숨은 균형이 돌아옵니다.',
+    '식신': '말하지 않은 결실이 가장 깊은 곳에서 익어갑니다.',
+    '상관': '어긋난 파동 끝에서 새로운 언어가 깨어납니다.',
+    '편재': '멀어진 기회가 다른 얼굴로 돌아설 준비를 합니다.',
+    '정재': '흐트러진 질서가 보이지 않는 중심으로 모입니다.',
+    '편관': '눌린 긴장 속에서 방향을 바꾸는 힘이 깨어납니다.',
+    '정관': '멈춘 책임 아래 묵은 약속의 진심이 드러납니다.',
+    '편인': '길 잃은 직감이 침묵 속에서 다시 눈을 뜹니다.',
+    '정인': '늦어진 보호가 보이지 않는 곳에서 당신을 감쌉니다.'
+  };
+  var upright = {
+    '비견': '당신의 이름이 흐름의 중심에서 조용히 선명해집니다.',
+    '겁재': '마주 선 기운 속에서 숨은 편이 모습을 보입니다.',
+    '식신': '작은 결실이 오래 머물 운의 숨을 얻습니다.',
+    '상관': '금지된 감각이 새 흐름의 언어로 깨어납니다.',
+    '편재': '움직이는 기회가 당신의 손끝을 먼저 알아봅니다.',
+    '정재': '쌓아온 질서가 오늘의 무게로 응답합니다.',
+    '편관': '두려움의 뒤편에서 돌파의 기척이 살아납니다.',
+    '정관': '정해진 자리 위로 새로운 이름의 울림이 번집니다.',
+    '편인': '읽히지 않은 감각이 먼저 당신을 읽습니다.',
+    '정인': '보이지 않는 도움은 이미 가까이 숨을 맞춥니다.'
+  };
+  var pool = orientation === 'reversed' ? reversed : upright;
+  return pool[tenGod] || (orientation === 'reversed'
+    ? '숨은 흐름이 낮게 접히며 다른 응답을 준비합니다.'
+    : '조용한 징조가 오늘의 결을 한쪽으로 기울입니다.');
+}
+
 function combineTarotAndTenGod(card, tenGod, category, orientation) {
   var cardName = String((card && card.name_kr) || '타로 카드');
   var cardEn = String((card && card.name) || 'Tarot Card');
@@ -1203,42 +1255,44 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
   var tenProfile = getTenGodRealityProfile(mainTenGod);
   var comboArchetype = buildTarotComboArchetype(cardName, mainTenGod, profile, tenProfile);
 
-  var opening = cardName + '은(는) ' + catKo + ' 질문에서 ' + comboArchetype + ' 흐름으로 읽힙니다.';
-  var cardMeaning = dir === 'reversed'
-    ? cardName + '의 역행은 카드 의미가 지연되거나 내면으로 가라앉는 상태를 뜻합니다. ' + profile.shadow + ' 지금은 좋은 말보다 실질적인 회복 루틴이 필요합니다.'
-    : cardName + '의 순행은 카드의 본래 힘이 비교적 자연스럽게 발현되는 상태입니다. ' + profile.core + ' ' + profile.psych;
+  var cardSubject = cardName + ' ' + (dir === 'reversed' ? '역행' : '순행');
   var bridge = resolveCardBridge(cardName, mainTenGod, dir);
-  var tenGodInterpretation = mainTenGod + '은(는) ' + tenMeta.meaning + ' 이 조합은 ' + comboArchetype + '의 성격을 띱니다. ' + (dir === 'reversed' ? tenProfile.risk : tenProfile.reality) + ' ' + (dir === 'reversed' ? '지금은 분석보다 손실 관리와 속도 조절이 먼저입니다.' : '이 흐름을 현실 결과로 바꾸려면 ' + tenProfile.work + ' 쪽으로 연결하세요.');
+  var opening = '오늘 ' + catKo + '의 자리에는 ' + withKoreanJosa(cardSubject, '과', '와') + ' ' + mainTenGod + '의 결이 함께 들어와 있습니다.';
+  var cardMeaning = dir === 'reversed'
+    ? cardName + '의 역행이 들어온 오늘은 겉으로 밀어붙일수록 마음의 압력이 커질 수 있습니다. ' + profile.shadow + ' 그래서 지금 필요한 것은 더 큰 결심보다 작은 회복 루틴입니다.'
+    : cardName + '의 순행이 들어온 오늘은 이미 품고 있던 힘을 현실로 꺼내기 좋습니다. ' + profile.psych + ' 다만 기세가 좋을수록 선택의 기준은 더 단단해야 합니다.';
+  var tenGodInterpretation = mainTenGod + '의 결은 ' + tenMeta.meaning + '을 오늘의 현실 감각으로 끌어올립니다. ' + (dir === 'reversed' ? tenProfile.risk + ' 그래서 분석을 늘리기보다 속도를 낮추고 손실을 줄이는 쪽이 먼저입니다.' : tenProfile.reality + ' 이 흐름은 ' + withEuroRo(tenProfile.work) + ' 옮길 때 가장 안정적으로 살아납니다.');
 
-  var combinedReading = cardName + ' + ' + mainTenGod + ' = ' + comboArchetype + '. ' +
-    bridge + ' 특히 ' + tenProfile.work + '으로 번역될 때 직업운과 현실 결정이 선명해집니다.';
+  var combinedReading = cardSubject + '의 상징이 ' + mainTenGod + '의 기운과 맞물리며 ' + comboArchetype + '의 흐름을 만듭니다. ' +
+    bridge + ' 오늘은 이 감각을 ' + withEuroRo(tenProfile.work) + ' 작게 옮길수록 판단이 선명해집니다.';
 
   var shadowWarning = dir === 'reversed'
-    ? cardName + '은(는) ' + tenProfile.risk + ' 그래서 ' + mainTenGod + '의 힘을 감정이 아니라 구조로 관리해야 합니다.'
-    : cardName + '은(는) ' + tenProfile.action + '을 밀어붙일 때 강해집니다. ' + mainTenGod + '의 장점이 과열되면 ' + tenProfile.risk + '가 함께 커질 수 있습니다.';
+    ? '압박이 커질수록 감정으로 바로 반응하기보다 구조를 먼저 세워야 합니다. ' + tenProfile.risk
+    : '흐름이 열려 있어도 무리하게 속도를 올릴 필요는 없습니다. ' + tenProfile.risk + ' 오늘은 힘을 증명하기보다 오래 갈 리듬을 잡는 편이 좋습니다.';
   var practicalAdvice = dir === 'reversed'
-    ? '지금은 결과를 서두르지 말고 ' + tenProfile.action + '를 먼저 멈추거나 조정하세요. ' + tenProfile.risk
-    : '지금은 ' + tenProfile.work + '으로 이미 있는 흐름을 옮기세요. ' + tenProfile.reality + ' 그래서 오늘의 행동은 ' + tenProfile.action + '입니다.';
+    ? '지금 겪는 지연이나 압박을 실패로 단정하지 마세요. 일정과 기준을 다시 줄이고, ' + tenProfile.action + ' 큰 문제는 한 번에 해결하려 하지 말고 오늘 처리할 수 있는 단위로 나누는 것이 좋습니다.'
+    : '오늘은 마음속 결심을 바깥 행동으로 옮겨도 좋습니다. ' + tenProfile.action + ' 특히 ' + withEuroRo(tenProfile.work) + ' 이어지는 작은 실행 하나가 다음 흐름을 열어줍니다.';
 
-  var oracleMessage = dir === 'reversed'
-    ? '🧙 명리 타로 봉인 문장: 지금은 ' + tenProfile.work + '을 더 억지로 밀기보다 구조를 다시 잡아야 할 때입니다. ' + tenProfile.risk + ' 이번 리딩은 준비를 늘리는 흐름이 아니라 멈춤과 재정렬의 흐름을 말합니다.'
-    : '🧙 명리 타로 봉인 문장: 지금은 새로운 공부를 더하기보다 이미 가진 힘을 세상에 보여주는 쪽으로 기운이 열립니다. 특히 이번 리딩은 ' + comboArchetype + ' 흐름으로 이어지기 때문에 ' + tenProfile.work + '에서 먼저 길이 드러납니다. 가장 경계해야 할 것은 ' + (mainTenGod === '편인' ? '완벽주의' : tenProfile.risk) + '입니다. 이번 리딩은 준비의 끝이 아니라 출발의 시작을 말합니다.';
-  var currentSituation = '현재는 ' + comboArchetype + '의 국면입니다. ' + bridge;
+  var oracleMessage = buildMyeongriMysticOracle(cardName, mainTenGod, dir);
+  var sealSentence = dir === 'reversed'
+    ? '오늘은 흔들림을 이기려 애쓰기보다, 기준을 낮춰 다시 숨 쉴 자리를 만드세요.'
+    : '작게라도 밖으로 내보낸 행동 하나가 오늘의 운을 현실 쪽으로 돌려놓습니다.';
+  var currentSituation = opening + ' ' + combinedReading;
   var whyThisHappens = dir === 'reversed'
-    ? '왜 이런 일이 생겼는가: ' + cardName + '의 힘이 안으로 접히며 ' + tenProfile.focus + '가 과열되거나 지연되고 있습니다.'
-    : '왜 이런 일이 생겼는가: ' + cardName + '의 본래 힘이 ' + tenProfile.work + '과 만나 현실 결과로 바뀔 준비가 되었기 때문입니다.';
+    ? cardName + '의 힘이 안으로 접히며 ' + tenProfile.focus + '가 과열되거나 지연되고 있습니다.'
+    : cardName + '의 본래 힘이 ' + withEuroRo(tenProfile.work) + ' 이어질 준비가 되었습니다.';
   var biggestRisk = dir === 'reversed'
-    ? '지금 가장 위험한 선택: 계속 생각만 하며 ' + tenProfile.action + '를 미루는 것.'
-    : '지금 가장 위험한 선택: ' + tenProfile.risk + '.';
+    ? '계속 생각만 하며 ' + tenProfile.action + '를 미루는 것.'
+    : tenProfile.risk;
   var bestChoice = dir === 'reversed'
-    ? '지금 가장 좋은 선택: 속도를 줄이고 ' + tenProfile.action + '를 아주 작게 다시 여는 것.'
-    : '지금 가장 좋은 선택: ' + tenProfile.work + '으로 바로 옮기는 것.';
+    ? '속도를 줄이고 ' + tenProfile.action + '를 아주 작게 다시 여는 것.'
+    : withEuroRo(tenProfile.work) + ' 바로 옮기는 것.';
   var actionAdvice = dir === 'reversed'
-    ? '실제 행동 조언: 일정 축소, 정리, 삭제, 재검토를 먼저 하세요.'
-    : '실제 행동 조언: 공개, 신청, 제안, 출시처럼 바깥으로 내보내는 행동을 선택하세요.';
+    ? '일정 축소, 정리, 삭제, 재검토를 먼저 하세요.'
+    : '공개, 신청, 제안, 출시처럼 바깥으로 내보내는 행동을 선택하세요.';
   var oneLineConclusion = dir === 'reversed'
-    ? '한줄 결론: 지금은 버티기보다 방향을 다시 세우는 시기입니다.'
-    : '한줄 결론: 지금은 준비를 늘리는 것보다 공개와 실행이 운을 움직입니다.';
+    ? '지금은 버티기보다 방향을 다시 세우는 시기입니다.'
+    : '지금은 준비를 늘리는 것보다 공개와 실행이 운을 움직입니다.';
   var reading = {
     category: catKo,
     card: {
@@ -1260,6 +1314,7 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
     combinedReading: combinedReading,
     shadowWarning: shadowWarning,
     practicalAdvice: practicalAdvice,
+    sealSentence: sealSentence,
     oracleMessage: oracleMessage,
     currentSituation: currentSituation,
     whyThisHappens: whyThisHappens,
@@ -1274,30 +1329,23 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
 }
 
 function buildMyeongriTarotReadingHtml(reading, slotLabel) {
-  var valid = validateMyeongriTarotReading(reading);
-  var qualityTag = valid.ok ? '' : '<div style="margin-top:8px;color:#fca5a5;font-size:.84rem;">※ 해석 점검: ' + escapeTarotHtml(valid.issues.join(' / ')) + '</div>';
   var orientationLabel = TAROT_ORIENTATION_LABEL_KO[reading.card.orientation] || '순행(順行)';
-  var cardKw = (reading.card.keywords || []).slice(0, 5).join(' · ');
 
   return '' +
     '<div style="margin-bottom:18px;padding:14px;border:1px solid rgba(255,255,255,0.14);border-radius:12px;background:rgba(17,24,39,0.34);">' +
       '<b style="color:#ffd700;font-size:1.02rem">' + escapeTarotHtml(slotLabel || '핵심 카드') + ' — ' + escapeTarotHtml(reading.card.nameKo) + ' (' + escapeTarotHtml(orientationLabel) + ')</b>' +
-      '<div style="margin-top:8px;line-height:1.85;color:#e5e7eb;">' +
-        '<b style="color:#a7f3d0;">질문의 자리:</b> ' + escapeTarotHtml(reading.category) + '<br>' +
-        '<b style="color:#c4b5fd;">오늘의 카드 이름:</b> ' + escapeTarotHtml(reading.title) + '<br>' +
-        '<b style="color:#fde68a;">카드가 남긴 단서:</b> ' + escapeTarotHtml(cardKw) + '<br>' +
-        '<b style="color:#93c5fd;">십성이 비추는 결:</b> ' + escapeTarotHtml(reading.tenGod.main + ' · ' + reading.tenGod.group + ' · ' + reading.tenGod.meaning) +
+      '<div style="margin-top:12px;line-height:1.9;color:#e5e7eb;">' +
+        '<b style="color:#c4b5fd;">🌙 오늘의 기운</b><br>' +
+        '<span>' + escapeTarotHtml(reading.currentSituation) + '</span>' +
       '</div>' +
-      '<div style="margin-top:10px;line-height:1.85;"><b style="color:#c4b5fd;">카드의 전언:</b> ' + escapeTarotHtml(reading.cardMeaning) + '</div>' +
-      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#93c5fd;">십성의 조율:</b> ' + escapeTarotHtml(reading.tenGodInterpretation) + '</div>' +
-      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#86efac;">카드와 십성이 만난 해석:</b> ' + escapeTarotHtml(reading.combinedReading) + '</div>' +
-      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#fca5a5;">그림자가 건네는 주의:</b> ' + escapeTarotHtml(reading.shadowWarning) + '</div>' +
-      '<div style="margin-top:8px;line-height:1.85;"><b style="color:#fcd34d;">오늘의 조율:</b> ' + escapeTarotHtml(reading.practicalAdvice) + '</div>' +
+      '<div style="margin-top:12px;line-height:1.9;color:#fef3c7;">' +
+        '<b style="color:#fcd34d;">⚖️ 운명의 조율</b><br>' +
+        '<span>' + escapeTarotHtml(reading.practicalAdvice) + '</span>' +
+      '</div>' +
       '<div style="margin-top:10px;padding:13px 14px;border:1px solid rgba(253,230,138,0.24);border-radius:12px;background:rgba(2,6,23,0.38);">' +
         '<b style="color:#fde68a;font-size:1em">🧙 명리 타로 봉인 문장</b><br><br>' +
-        '<span style="line-height:1.9;color:#fef3c7;">' + escapeTarotHtml(reading.oracleMessage || reading.oneLineConclusion || '') + '</span>' +
+        '<span style="line-height:1.9;color:#fef3c7;">' + escapeTarotHtml(reading.sealSentence || reading.oneLineConclusion || '') + '</span>' +
       '</div>' +
-      qualityTag +
     '</div>';
 }
 
@@ -1353,7 +1401,7 @@ function buildTarotRealityPlan(cardsData, category, labels, readings) {
     : (futReading.oneLineConclusion || '이번 리딩의 핵심은 생각을 끝내고 현실 행동으로 옮기는 것입니다.') + ' 특히 ' + tenGodFlow + ' 흐름을 한 줄로 묶어 읽을 때 방향이 선명합니다.';
   var pastStory = '흘러온 결의 ' + escapeTarotHtml((past.card && past.card.name_kr) || l1) + '는 ' + escapeTarotHtml(pastReading.comboArchetype || pastReading.tenGod.main) + '를 쌓아온 시간을 비춥니다. ' + escapeTarotHtml(pastReading.cardMeaning);
   var nowStory = '지금의 결에 놓인 ' + escapeTarotHtml((now.card && now.card.name_kr) || l2) + '는 ' + escapeTarotHtml(nowReading.comboArchetype || nowReading.tenGod.main) + '의 다음 수를 고르는 순간을 말합니다. ' + escapeTarotHtml(nowReading.practicalAdvice);
-  var futureStory = '다가오는 결의 ' + escapeTarotHtml(futureCard) + '는 ' + escapeTarotHtml(futReading.comboArchetype || futReading.tenGod.main) + '가 어떤 선택을 통해 드러날 수 있는지 보여줍니다. ' + escapeTarotHtml(futReading.oracleMessage);
+  var futureStory = '다가오는 결의 ' + escapeTarotHtml(futureCard) + '는 ' + escapeTarotHtml(futReading.comboArchetype || futReading.tenGod.main) + '가 어떤 선택을 통해 드러날 수 있는지 보여줍니다. ' + escapeTarotHtml(futReading.oneLineConclusion || futReading.bestChoice || '');
 
   return '' +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(196,181,253,0.4);border-radius:12px;background:rgba(76,29,149,0.16);">' +
@@ -1512,14 +1560,14 @@ function _runShowTarotFinalInterpretation() {
   var realityPlan = buildTarotRealityPlan(cardsData, curTarotCat, labels, readings);
   var dominantTenGod = summarizeDominantSipsin(cardsData);
   var advice = removeRepeatedMyeongriTarotPhrases(
-    '질문 카테고리 ' + mapCategoryToMyeongriCategory(curTarotCat) + '에서는 ' +
+    '오늘 ' + mapCategoryToMyeongriCategory(curTarotCat) + '에서는 ' +
     cardsData.map(function(d) { return d.card.name_kr; }).join(' -> ') +
-    '의 흐름을 ' + dominantTenGod + ' 관점으로 연결해 읽을 때 선택의 방향이 선명해집니다.'
+    '의 순서가 마음을 차분히 정리하게 합니다. ' + dominantTenGod + '의 결이 강하니, 큰 결론보다 지금 지킬 기준 하나와 바로 옮길 행동 하나에 집중하세요.'
   );
   var oracle = (readings[readings.length - 1] && readings[readings.length - 1].oracleMessage) || '';
   var interpretation = '' +
     '<b style="color:#c4b5fd;font-size:1.02em">🔮 명리학 타로 세 장의 흐름</b><br>' +
-    '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">카드의 상징과 십성의 기운을 오늘의 선택 문장으로 엮은 리딩입니다.</span><br><br>' +
+    '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">흩어진 마음을 세 장의 흐름 안에서 차분히 정리해 드릴게요.</span><br><br>' +
     parts +
     realityPlan +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(167,243,208,0.35);border-radius:12px;background:rgba(5,150,105,0.10);">' +
@@ -1632,7 +1680,7 @@ function _runStartTarotReading() {
     var resultEl = document.getElementById('tarotResultContainer');
     if (resultEl) resultEl.classList.remove('is-empty');
     var interpretation = '<b style="color:#ddd6fe;font-size:1.02em">🌙 명리학 타로 한 장 리딩</b><br>' +
-      '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">타로의 상징과 십성의 기운을 오늘의 선택으로 연결합니다.</span><br><br>' +
+      '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">지금 필요한 선택을 차분히 정리해 드릴게요.</span><br><br>' +
       buildMyeongriTarotReadingHtml(reading, '오늘');
     streamRitualHtmlTyped(interpretation, 'destinyFortune', function() {
       if (token !== tarotLifecycleToken) return;
@@ -10995,7 +11043,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           _styleEl.textContent = [
             '@keyframes fadeUpSy{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}',
             '@keyframes glowPulse{0%,100%{box-shadow:0 0 14px ' + th.glowColor + '44}50%{box-shadow:0 0 28px ' + th.glowColor + '88}}',
-            '.sy-report{animation:fadeUpSy 0.55s ease;position:relative}',
+            '.sy-report{animation:fadeUpSy 0.55s ease;position:relative;word-break:keep-all;overflow-wrap:break-word}',
             '.sy-report::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 88% 4%,rgba(255,255,255,.12),transparent 18%),radial-gradient(circle at 12% 18%,rgba(125,211,252,.08),transparent 24%)}',
             '.sy-sec{margin-bottom:14px;padding:15px 16px;border-radius:14px;font-size:0.92rem;line-height:1.68;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
             '.sy-sec-title{font-weight:900;font-size:0.82rem;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;text-shadow:0 0 12px rgba(196,181,253,.2)}',
@@ -11043,7 +11091,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-compat-year-node::before{content:"";position:absolute;right:-20px;top:-22px;width:70px;height:70px;border-radius:999px;background:radial-gradient(circle at 35% 30%,rgba(248,250,252,.58),rgba(147,197,253,.16) 48%,transparent 70%);opacity:.42}',
             '.sy-compat-year-node-head{position:relative;display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:6px}.sy-compat-year-node-head strong{display:flex;align-items:center;gap:7px;color:#bfdbfe}.sy-compat-year-node-head span{width:26px;height:26px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fff,#f8e7b7 50%,#93c5fd);color:#0f172a}.sy-compat-year-node-head em{font-style:normal;font-weight:900;white-space:nowrap}',
             '.sy-compat-year-bar{position:relative;margin-bottom:7px}.sy-compat-year-node p{position:relative;margin:0 0 7px;color:#dbeafe}.sy-compat-year-node ul{position:relative;list-style:none;margin:0;padding:0;display:grid;gap:4px}.sy-compat-year-node li{color:#e0e7ff}.sy-compat-year-node li b{color:#f8e7b7;margin-right:6px}',
-            '@media(max-width:760px){.sy-compat-moon-hero,.sy-compat-yearly-head{grid-template-columns:1fr}.sy-compat-orbit-stage{min-height:132px}.sy-compat-metric-grid,.sy-compat-yearly-views,.sy-compat-yearline{grid-template-columns:1fr}.sy-compat-indicator-grid{grid-template-columns:1fr}.sy-compat-indicator--full{grid-column:auto;display:block}.sy-report [style*="grid-template-columns:repeat(2"]{grid-template-columns:1fr!important}.sy-report [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}}'
+            '@media(max-width:760px){.sy-compat-moon-hero,.sy-compat-yearly-head{grid-template-columns:1fr}.sy-compat-orbit-stage{min-height:132px}.sy-compat-metric-grid,.sy-compat-yearly-views,.sy-compat-yearline{grid-template-columns:1fr}.sy-compat-indicator-grid{grid-template-columns:1fr}.sy-compat-indicator--full{grid-column:auto;display:block}.sy-report [style*="grid-template-columns:repeat(2"],.sy-report [style*="grid-template-columns:repeat(3"],.sy-report [style*="grid-template-columns:repeat(4"],.sy-report [style*="grid-template-columns:repeat(7"],.sy-report [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}}'
           ].join('');
 
           // ── 안·괴 포지션 배지 ──
@@ -11069,21 +11117,122 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <div style="font-size:0.9rem; line-height:1.65; color:#dfe6e9;">${p}</div>
             </div>`).join('');
 
+          const compactKeywordChips = (enhanced.keywords3 || []).slice(0, 3).map(function(k) {
+            return '<span style="background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.36);padding:4px 9px;border-radius:999px;font-size:0.74rem;color:#bfdbfe;">#' + syCanonicalEsc(k) + '</span>';
+          }).join('');
+          const compactBestCategory = (enhanced.relationshipCategoryReadings || []).slice().sort(function(a, b) { return b.score - a.score; })[0] || null;
+          const compactWeakCategory = (enhanced.relationshipCategoryReadings || []).slice().sort(function(a, b) { return a.score - b.score; })[0] || null;
+          const compactRiskItems = ((enhanced.relationshipRiskRoutines && enhanced.relationshipRiskRoutines.redFlags) || []).slice(0, 2);
+          const compactRecoveryItems = ((enhanced.relationshipRiskRoutines && enhanced.relationshipRiskRoutines.recoveryRoutine) || []).filter(function(_item, idx) {
+            return idx === 0 || idx === 2 || idx === 3;
+          });
+          const compactScripts = ((enhanced.relationshipPrescriptions && enhanced.relationshipPrescriptions.scripts) || []).slice(0, 2);
+          const compactAdvantages = (rel.advantages || []).slice(0, 2).map(function(a) {
+            return '<article style="background:' + th.bg + ';border:1px solid ' + th.border + ';border-radius:11px;padding:11px 12px;">'
+              + '<strong style="display:block;color:' + th.color1 + ';font-size:0.8rem;margin-bottom:5px;">' + syCanonicalEsc(a.label || '인연의 빛') + '</strong>'
+              + '<p style="margin:0;color:#dfe6e9;font-size:0.84rem;line-height:1.68;">' + syCanonicalEsc(a.text || '') + '</p>'
+              + '</article>';
+          }).join('');
+          const compactRxItems = (rel.prescription || []).slice(0, 2).map(function(p) {
+            return '<p style="margin:0;color:#dbeafe;font-size:0.84rem;line-height:1.7;">' + syCanonicalEsc(p) + '</p>';
+          }).join('');
+          const compactSummarySection = `
+            <section data-sy-compat-compact="20260613-compact-natural-ko" style="background:radial-gradient(circle at 92% 0%,rgba(224,231,255,0.12),transparent 32%),rgba(2,6,23,0.58);border:1px solid rgba(196,181,253,0.42);border-radius:16px;padding:15px 15px 13px;margin-bottom:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);">
+              <div style="font-size:0.74rem;color:#c4b5fd;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">인연 요약</div>
+              <div style="font-size:1.02rem;font-weight:900;color:#f8fafc;line-height:1.5;margin-bottom:7px;">${syCanonicalEsc(enhanced.relationshipName)} · ${syCanonicalEsc(enhanced.oneLine)}</div>
+              <p style="margin:0 0 10px;color:#eef2ff;font-size:0.84rem;line-height:1.78;">${syCanonicalEsc(enhanced.expertFinal.summary)} ${syCanonicalEsc(enhanced.expertFinal.distanceNote)}</p>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:9px;">
+                <div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e2e8f0;">관계 타입 <strong style="color:#fef08a;">${syCanonicalEsc(enhanced.relationTypeKo)}</strong></div>
+                <div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e2e8f0;">거리감 <strong style="color:#fde68a;">${syCanonicalEsc(enhanced.distanceKo)}</strong></div>
+                <div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e2e8f0;">나의 숙 <strong>${syCanonicalEsc(myMansionName || '미상')}</strong></div>
+                <div style="background:rgba(15,23,42,0.58);border:1px solid rgba(148,163,184,0.25);border-radius:10px;padding:8px 9px;font-size:0.8rem;color:#e2e8f0;">상대 숙 <strong>${syCanonicalEsc(tData.mansion || '미상')}</strong></div>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">${compactKeywordChips}</div>
+            </section>`;
+          const compactMetricSection = `
+            <section style="background:rgba(15,23,42,0.5);border:1px solid rgba(147,197,253,0.28);border-radius:14px;padding:12px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#93c5fd;text-transform:uppercase;font-weight:900;margin-bottom:9px;">핵심 지표</div>
+              <div class="sy-compat-metric-grid" data-sy-compat-indicators-ui="20260613-compact-natural-ko">
+                <article class="sy-compat-metric-card"><div class="sy-compat-metric-label">궁합 지수</div><div class="sy-compat-metric-value" style="color:${compatIndexColor};">${compatibilityIndex}</div><p class="sy-compat-metric-note">${syCanonicalEsc(compatibilityIndexNote)}</p></article>
+                <article class="sy-compat-metric-card"><div class="sy-compat-metric-label">인연 온도</div><div class="sy-compat-metric-value" style="color:${tempInfo.color};">${rel.temperature}</div><p class="sy-compat-metric-note">${syCanonicalEsc(syMetricNote('temperature', rel.temperature))}</p></article>
+                <article class="sy-compat-metric-card"><div class="sy-compat-metric-label">끌림</div><div class="sy-compat-metric-value" style="color:${th.color1};">${mgVal}</div><p class="sy-compat-metric-note">${syCanonicalEsc(syMetricNote('magnetism', mgVal))}</p></article>
+              </div>
+            </section>`;
+          const compactJudgementSection = `
+            <section data-sy-compat-final="20260613-compact-natural-ko" style="background:linear-gradient(145deg,rgba(88,28,135,0.44),rgba(15,23,42,0.7));border:1px solid rgba(250,204,21,0.34);border-radius:16px;padding:15px 15px 13px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#fde68a;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">전문가 종합판정</div>
+              <div style="display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,1.4fr);gap:10px;margin-bottom:9px;">
+                <article style="background:rgba(2,6,23,0.46);border:1px solid rgba(250,204,21,0.24);border-radius:12px;padding:11px;">
+                  <div style="font-size:0.78rem;color:#fde68a;font-weight:900;margin-bottom:5px;">${syCanonicalEsc(enhanced.expertFinal.title)}</div>
+                  <div style="font-size:1.28rem;color:#fef3c7;font-weight:900;line-height:1.25;margin-bottom:7px;">${syCanonicalEsc(enhanced.expertFinal.level)}</div>
+                  ${syBar(enhanced.expertFinal.score)}
+                </article>
+                <article style="background:rgba(2,6,23,0.42);border:1px solid rgba(216,180,254,0.22);border-radius:12px;padding:11px;font-size:0.84rem;color:#f5f3ff;line-height:1.78;">
+                  <p style="margin:0 0 7px;">${syCanonicalEsc(enhanced.expertFinal.core)}</p>
+                  <p style="margin:0;color:#bfdbfe;">${syCanonicalEsc(enhanced.expertFinal.priority)}</p>
+                </article>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:0.8rem;line-height:1.7;color:#fef3c7;">
+                <article style="background:rgba(2,6,23,0.42);border:1px solid rgba(134,239,172,0.2);border-radius:10px;padding:9px;"><strong style="color:#bbf7d0;">잘 열리는 장면</strong><p style="margin:5px 0 0;">${syCanonicalEsc(compactBestCategory ? compactBestCategory.title + ' · ' + compactBestCategory.band : enhanced.expertFinal.bestCategory)}</p></article>
+                <article style="background:rgba(2,6,23,0.42);border:1px solid rgba(253,186,116,0.2);border-radius:10px;padding:9px;"><strong style="color:#fed7aa;">조심할 장면</strong><p style="margin:5px 0 0;">${syCanonicalEsc(compactWeakCategory ? compactWeakCategory.title + ' · ' + compactWeakCategory.band : enhanced.expertFinal.weakestCategory)}</p></article>
+              </div>
+            </section>`;
+          const compactActionSection = `
+            <section data-sy-compat-action="20260613-compact-natural-ko" style="background:linear-gradient(145deg,rgba(76,29,149,0.48),rgba(15,23,42,0.66));border:1px solid rgba(216,180,254,0.34);border-radius:16px;padding:15px 15px 13px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#d8b4fe;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">바로 쓸 관계 처방</div>
+              <p style="margin:0 0 9px;color:#ede9fe;font-size:0.84rem;line-height:1.75;">${syCanonicalEsc(enhanced.relationshipPrescriptions.tone)} ${syCanonicalEsc(enhanced.relationshipPrescriptions.close)}</p>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:9px;">
+                ${compactScripts.map(function(item) {
+                  return '<article style="background:rgba(2,6,23,0.46);border:1px solid rgba(216,180,254,0.22);border-radius:10px;padding:10px;font-size:0.8rem;line-height:1.7;color:#f3e8ff;">'
+                    + '<strong style="display:block;color:#e9d5ff;margin-bottom:5px;">' + syCanonicalEsc(item.title) + '</strong>'
+                    + '<div style="background:rgba(88,28,135,0.22);border:1px solid rgba(216,180,254,0.18);border-radius:9px;padding:8px 9px;color:#f5f3ff;margin-bottom:7px;">“' + syCanonicalEsc(item.say) + '”</div>'
+                    + '<p style="margin:0;color:#bfdbfe;">' + syCanonicalEsc(item.action) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;">
+                ${compactRecoveryItems.map(function(item) {
+                  return '<article style="background:rgba(2,6,23,0.45);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:9px;font-size:0.78rem;line-height:1.66;color:#fee2e2;">'
+                    + '<strong style="display:block;color:#fecaca;margin-bottom:4px;">' + syCanonicalEsc(item.step) + '</strong>'
+                    + '<p style="margin:0;color:#ddd6fe;">' + syCanonicalEsc(item.line) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+            </section>`;
+          const compactRiskSection = `
+            <section data-sy-compat-risk="20260613-compact-natural-ko" style="background:linear-gradient(145deg,rgba(127,29,29,0.34),rgba(15,23,42,0.68));border:1px solid rgba(252,165,165,0.28);border-radius:16px;padding:15px 15px 13px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#fca5a5;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">주의 신호</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
+                ${compactRiskItems.map(function(item) {
+                  return '<article style="background:rgba(2,6,23,0.46);border:1px solid rgba(252,165,165,0.2);border-radius:10px;padding:10px;font-size:0.8rem;line-height:1.72;color:#fee2e2;">'
+                    + '<strong style="display:block;color:#fecaca;margin-bottom:5px;">' + syCanonicalEsc(item.title) + '</strong>'
+                    + '<p style="margin:0 0 6px;">' + syCanonicalEsc(item.body) + '</p>'
+                    + '<p style="margin:0;color:#bfdbfe;">회복 · ' + syCanonicalEsc(item.remedy) + '</p>'
+                    + '</article>';
+                }).join('')}
+              </div>
+            </section>`;
+          const compactLightSection = `
+            <section data-sy-compat-light="20260613-compact-natural-ko" style="background:rgba(15,23,42,0.52);border:1px solid rgba(196,181,253,0.3);border-radius:14px;padding:14px 14px 12px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#ddd6fe;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">인연의 빛과 현실 처방</div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:9px;">${compactAdvantages}</div>
+              <div style="display:grid;gap:7px;background:rgba(2,6,23,0.38);border:1px solid rgba(147,197,253,0.18);border-radius:10px;padding:10px;">${compactRxItems}</div>
+            </section>`;
+
           rd.innerHTML = `
           <div class="sy-report" data-sy-compat-moonlight="20260603" data-sy-compat-moon-ui="20260606-sukuyo-compat-moon" style="background:radial-gradient(circle at 88% 0%,rgba(255,255,255,0.12),transparent 24%),radial-gradient(circle at 12% 28%,rgba(125,211,252,0.08),transparent 30%),linear-gradient(155deg,rgba(6,9,24,0.98),rgba(17,20,48,0.96) 54%,rgba(30,23,62,0.94)); border-radius:20px; overflow:hidden; border:1px solid rgba(196,181,253,0.38); box-shadow:0 22px 60px rgba(0,0,0,0.64),0 0 36px rgba(147,197,253,0.12); font-family:'Gowun Dodum',sans-serif;">
 
             <!-- ══ HEADER ══ -->
             <div class="sy-compat-moon-hero">
               <div class="sy-compat-moon-copy">
-                <div class="sy-compat-moon-kicker">27宿 인연 深層 리포트</div>
+                <div class="sy-compat-moon-kicker">숙요 인연 리포트</div>
                 <div class="sy-compat-moon-title">${rel.typeLabel || rel.type}</div>
-                <div class="sy-compat-moon-sub">인연의 낙인: <strong>${rel.stamp || rel.type}</strong></div>
+                <div class="sy-compat-moon-sub">인연의 결: <strong>${rel.stamp || rel.type}</strong></div>
                 <div class="sy-compat-badges">
                   <span>상대방 별: <strong>${tData.mansion}</strong></span>
                   <span>상대 성별: ${partnerGenderLabel}</span>
                   <span>${relationStory.distanceBadge}</span>
                   <span>${relationStory.relationBadge}</span>
-                  ${relationVariant ? '<span>' + relationVariant + '</span>' : ''}
                 </div>
               </div>
               <div class="sy-compat-orbit-stage" aria-hidden="true">
@@ -11096,149 +11245,19 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
             <div style="padding:20px 16px;">
 
-              ${enhancedSummarySection}
+              ${compactSummarySection}
 
-              ${relationStructureSection}
+              ${compactMetricSection}
 
-              ${purposeCompatibilitySection}
+              ${compactJudgementSection}
 
-              ${distanceDeepSection}
+              ${compactActionSection}
 
-              <section class="mb-4 rounded-2xl border border-violet-300/30 bg-slate-900/45 p-4" style="background:rgba(15,23,42,0.45);border:1px solid rgba(196,181,253,0.3);border-radius:14px;padding:14px 14px 12px;margin-bottom:16px;">
-                <div class="text-xs font-extrabold tracking-[0.15em] uppercase mb-2" style="color:#c4b5fd;letter-spacing:1.2px;font-size:0.75rem;font-weight:800;margin-bottom:8px;">관계 해석 로드맵</div>
-                <p class="text-sm leading-7 text-slate-200" style="margin:0 0 12px;color:#dfe6e9;font-size:0.9rem;line-height:1.86;">${relationStory.lead}</p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3" style="display:grid;grid-template-columns:1fr;gap:10px;">
-                  ${relationStageCards}
-                </div>
-              </section>
+              ${compactRiskSection}
 
-              ${enhancedFlowSection}
+              ${compactLightSection}
 
-              <!-- ── 3종 수치 대시보드 ── -->
-              <div class="sy-compat-metric-grid" data-sy-compat-indicators-ui="20260606-sukuyo-compat-indicators">
-                <div class="sy-compat-metric-card">
-                  <div class="sy-compat-metric-label">카르마 점수</div>
-                  <div class="sy-compat-metric-value" style="color:${scoreColor};">${rel.score}</div>
-                  <div class="sy-compat-metric-sub">/ 100</div>
-                  <p class="sy-compat-metric-note">${syMetricNote('karma', rel.score)}</p>
-                </div>
-                <div class="sy-compat-metric-card">
-                  <div class="sy-compat-metric-label">인연 온도</div>
-                  <div class="sy-compat-metric-value" style="color:${tempInfo.color};">${rel.temperature}</div>
-                  <div class="sy-compat-metric-sub">° / 100</div>
-                  <p class="sy-compat-metric-note">${syMetricNote('temperature', rel.temperature)}</p>
-                </div>
-                <div class="sy-compat-metric-card" style="animation:glowPulse 3s infinite;">
-                  <div class="sy-compat-metric-label">자력(磁力)</div>
-                  <div class="sy-compat-metric-value" style="color:${th.color1};">${mgVal}</div>
-                  <div class="sy-compat-metric-sub">Magnetism</div>
-                  <p class="sy-compat-metric-note">${syMetricNote('magnetism', mgVal)}</p>
-                </div>
-              </div>
-
-              <div class="sy-compat-indicators">
-                <div class="sy-compat-indicators-title">정밀 궁합 확장 지표</div>
-                <div class="sy-compat-indicator-grid">
-                  <div class="sy-compat-indicator sy-compat-indicator--full">
-                    <span>궁합 지수</span>
-                    <strong style="font-size:1.05rem;color:${compatIndexColor};">${compatibilityIndex}</strong>
-                  </div>
-                  <div class="sy-compat-indicator" style="color:#d1fae5;">
-                    ${compatibilityIndexNote}
-                  </div>
-                  <div class="sy-compat-indicator">
-                    📏 거리 정밀값: A→B ${distanceMetrics.forwardDistance} / B→A ${distanceMetrics.reverseDistance} / 최단 ${distanceMetrics.shortestDistance} · ${distanceMetrics.tensionBand || ''} ${distanceMetrics.resonanceCode ? '(' + distanceMetrics.resonanceCode + ')' : ''}
-                  </div>
-                  <div class="sy-compat-indicator" style="color:#e9d5ff;">
-                    🧭 역할 액션: ${roleGuide.meAction || '나의 역할 문장을 먼저 합의하세요.'}<br>${roleGuide.otherAction || '상대의 역할 반응을 확인하세요.'}
-                  </div>
-                  <div class="sy-compat-indicator" style="color:#fde68a;">
-                    🧪 오행 합: ${elementHarmony.summary || '오행 조합 데이터를 계산 중입니다.'}
-                  </div>
-                  <div class="sy-compat-indicator" style="color:#fecaca;">
-                    🧩 강점-그림자 보완: ${strengthShadowMap.complementSummary || '장점과 그림자 보완 포인트를 설정해 보세요.'}
-                  </div>
-                </div>
-              </div>
-
-              <!-- 온도 바 -->
-              <div style="margin-bottom:16px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                  <span style="font-size:0.75rem; color:#888;">인연의 온도 · ${tempInfo.text} · ${enhanced.tempBand}</span>
-                  <span style="font-size:0.75rem; color:${tempInfo.color}; font-weight:700;">${rel.temperature}°</span>
-                </div>
-                <div style="height:6px; background:rgba(255,255,255,0.07); border-radius:6px; overflow:hidden;">
-                  <div style="height:100%; width:0%; background:${gradColor}; border-radius:6px; transition:width 1.8s cubic-bezier(0.4,0,0.2,1);"></div>
-                </div>
-              </div>
-
-              ${chemistrySection}
-
-              ${emotionalIndicatorSection}
-
-              ${relationshipTimingSection}
-
-              ${relationshipPrescriptionSection}
-
-              ${relationshipRiskSection}
-
-              ${relationshipCategoriesSection}
-
-              ${expertFinalSection}
-
-              ${yearlyRelationshipSection}
-
-              ${roleSection}
-
-              ${guideSection}
-
-              ${detailCardsSection}
-
-              <!-- 안·괴 배지 -->
               ${ankaiBadge}
-
-              <!-- ══ SECTION 1: 영혼의 결속 (Visual Image) ══ -->
-              <div class="sy-sec" style="background:${th.bg}; border:1px solid ${th.border}; position:relative; overflow:hidden;">
-                <div style="position:absolute; right:-8px; bottom:-8px; font-size:5rem; opacity:0.06; pointer-events:none;">${rel.icon}</div>
-                <div class="sy-sec-title" style="color:${th.color1};">🎨 Section 1 · 영혼의 결속 (Visual Image)</div>
-                <div style="font-size:0.78rem; font-weight:700; color:${th.color2}; margin-bottom:8px; letter-spacing:0.5px;">[ ${th.label} ]</div>
-                <div style="font-size:0.9rem; color:#d0d8e8; line-height:1.7; font-style:italic;">&ldquo;${th.concept}&rdquo;</div>
-              </div>
-
-              <!-- ══ SECTION 2: 인연의 빛 (Advantages) ══ -->
-              <div style="margin-bottom:14px;">
-                <div style="font-size:0.82rem; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:#ffd700; margin-bottom:10px; display:flex; align-items:center; gap:6px;">✨ Section 2 · 인연의 빛 — 3가지 영혼 시너지</div>
-                ${advantageCards}
-              </div>
-
-              <!-- ══ SECTION 3: 전생의 아카이브 ══ -->
-              <div class="sy-sec" style="background:rgba(108,92,231,0.1); border:1px solid rgba(108,92,231,0.28);">
-                <div class="sy-sec-title" style="color:#a29bfe;">📜 Section 3 · 전생의 아카이브</div>
-                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
-                  <span style="background:rgba(162,155,254,0.2); color:#a29bfe; padding:3px 9px; border-radius:20px; font-size:0.75rem; font-weight:700;">${enhanced.pastLife.title}</span>
-                  <span style="background:rgba(162,155,254,0.1); color:#b2bec3; padding:3px 9px; border-radius:20px; font-size:0.75rem;">${enhanced.pastLife.subtitle}</span>
-                </div>
-                <div style="font-size:0.88rem; color:#cdd3e0; line-height:1.82; margin-bottom:12px; font-style:italic; border-left:2px solid rgba(162,155,254,0.5); padding-left:12px;">&ldquo;${enhanced.pastLife.story}&rdquo;</div>
-                <div style="background:rgba(0,0,0,0.2); border-radius:8px; padding:11px 13px; font-size:0.85rem; color:#b2bec3; line-height:1.65;">
-                  <span style="color:#a29bfe; font-weight:700;">🌠 현생의 과제: </span>${enhanced.pastLife.currentTask}
-                </div>
-                <div style="margin-top:9px;background:rgba(15,23,42,0.48);border:1px solid rgba(196,181,253,0.2);border-radius:8px;padding:9px 11px;font-size:0.82rem;color:#e9d5ff;line-height:1.68;">
-                  이 해석은 두 사람의 반복되는 감정 패턴을 상징 언어로 읽은 것입니다. 현실에서는 같은 갈등을 반복하지 않기 위한 대화 순서와 경계선 합의로 활용하는 것이 가장 좋습니다.
-                </div>
-              </div>
-
-              <!-- ═══ 카르마의 그림자 ══ -->
-              <div class="sy-sec" style="background:rgba(255,71,87,0.07); border:1px solid rgba(255,71,87,0.25);">
-                <div class="sy-sec-title" style="color:#ff4757;">⚡ 카르마의 그림자</div>
-                <div style="font-size:0.9rem; color:#dfe6e9;">${rel.shadow || ''}</div>
-              </div>
-
-              <!-- ══ SECTION 4: 개운의 처방전 ══ -->
-              <div class="sy-sec" style="background:rgba(116,185,255,0.07); border:1px solid rgba(116,185,255,0.25);">
-                <div class="sy-sec-title" style="color:#74b9ff;">💊 Section 4 · 개운(開運)의 처방전 — 신의 한 수</div>
-                ${rxItems}
-                <div style="margin-top:8px;color:#dbeafe;font-size:0.84rem;line-height:1.7;background:rgba(2,6,23,0.38);border:1px solid rgba(147,197,253,0.18);border-radius:8px;padding:9px 11px;">처방전의 핵심은 운을 기다리는 것이 아니라 관계가 덜 흔들리는 환경을 만드는 것입니다. 오늘 바로 할 수 있는 작은 합의 하나가 두 사람의 흐름을 바꿉니다.</div>
-              </div>
 
               <div class="sy-sec" id="syCompatAiPromptCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.2), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.35); box-shadow:0 20px 44px rgba(76,29,149,0.34); border-radius:14px;">
                 <div class="sy-sec-title" style="color:#ddd6fe;">💫 궁합 전용 AI 질문 프롬프트</div>
@@ -11781,7 +11800,57 @@ function renderQuantumStrategy(p, natal, bazi){
   var qSinsalHtml = _qSS_items.length>0
     ? _qSS_items.map(function(s){return '<div class="qm-action-item"><div class="qm-action-num">★</div><div class="qm-action-text" style="font-size:.84rem;line-height:1.75">'+s+'</div></div>';}).join('')
     : '<div class="qm-action-item"><div class="qm-action-num">—</div><div class="qm-action-text">주요 신살 해당 없음 — 순수 오행 에너지로 매력이 발현됩니다.</div></div>';
+  function qElementNames(list){
+    var names=qUnique(list).map(function(el){return qElLabel(el);}).join(' · ');
+    return names||'중립';
+  }
+  function qElementChipList(list,type,fallback){
+    var unique=qUnique(list);
+    return unique.length?unique.map(function(el){return qElementChip(el,type);}).join(''):'<span class="qm-el-chip qm-chip-neutral">'+qEsc(fallback||'관찰 필요')+'</span>';
+  }
+  function qSafeHtmlList(list,emptyText,cls){
+    var rows=qArr(list).slice(0,4);
+    if(!rows.length)rows=[emptyText||'지금은 운의 결이 크게 흔들리지 않습니다. 기본 루틴을 지키며 다음 변화를 기다리면 좋습니다.'];
+    return rows.map(function(item,i){
+      return '<div class="qm-action-item"><div class="qm-action-num">'+(i+1)+'</div><div class="'+(cls||'qm-action-text')+'">'+item+'</div></div>';
+    }).join('');
+  }
+  var favorableElements=qUnique(elementMatrix.filter(function(item){return item.type==='good';}).map(function(item){return item.element;}));
+  var cautionElements=qUnique(elementMatrix.filter(function(item){return item.type==='bad';}).map(function(item){return item.element;}));
+  var neutralElements=qUnique(elementMatrix.filter(function(item){return item.type==='neutral';}).map(function(item){return item.element;}));
+  var qGoodShiftCount=keyEvents.filter(function(r){return r.isSpecialChung || r.orgType==='bad' || r.newType==='good';}).length;
+  var qRiskShiftCount=keyEvents.filter(function(r){return r.isSinDing || (r.orgType==='good' && (r.isChung || r.newType==='bad'));}).length;
+  var qHapCount=keyEvents.filter(function(r){return !r.isChung;}).length;
+  var qChungCount=keyEvents.filter(function(r){return r.isChung;}).length;
+  var qDecision=qRiskShiftCount>qGoodShiftCount?'수성 우선':(qGoodShiftCount>0?'확장 가능':'균형 관찰');
+  var qDecisionTone=qDecision==='수성 우선'
+    ? '운의 겉모양보다 흔들리는 기반을 먼저 지키는 흐름입니다.'
+    : (qDecision==='확장 가능'
+      ? '합화와 충의 변이가 막힌 기운을 열어 실전 기회로 바꾸는 흐름입니다.'
+      : '큰 변환보다 원국의 중심을 안정적으로 다듬는 흐름입니다.');
+  var qProfessionalSummary='이 명식은 '+structType+'을 바탕으로 '+qElementNames(favorableElements.concat(qUnique(yongList)))+' 기운을 살리고, '+qElementNames(cautionElements.concat(qUnique(kiList)))+' 기운은 조절해야 합니다. '+qDecisionTone;
+  var qEvidenceHtml=
+    '<div class="qm-summary-grid">'+
+      '<div class="qm-oracle-card"><div class="qm-oracle-label">최종 판정</div><div class="qm-oracle-value">'+qEsc(qDecision)+'</div><div class="qm-oracle-meta">합화 '+qHapCount+'건 · 충 '+qChungCount+'건 · 핵심 변이 '+keyEvents.length+'건</div></div>'+
+      '<div class="qm-oracle-card"><div class="qm-oracle-label">유리 오행</div><div class="qm-yong-list">'+qElementChipList(favorableElements.concat(qUnique(yongList)),'good','유리 오행 중립')+'</div></div>'+
+      '<div class="qm-oracle-card"><div class="qm-oracle-label">주의 오행</div><div class="qm-yong-list">'+qElementChipList(cautionElements.concat(qUnique(kiList)),'bad','주의 오행 중립')+'</div></div>'+
+    '</div>'+
+    '<div class="qm-dual-grid">'+
+      '<div class="qm-mini-panel"><div class="qm-mini-title">반영된 v.2 판단축</div><div class="qm-yong-list">'+
+        '<span class="qm-el-chip qm-chip-good">합화 우선</span>'+
+        '<span class="qm-el-chip qm-chip-good">충 변이</span>'+
+        '<span class="qm-el-chip qm-chip-good">억부·조후 통합</span>'+
+        '<span class="qm-el-chip qm-chip-good">종격 보정</span>'+
+        '<span class="qm-el-chip qm-chip-good">신살 신호</span>'+
+      '</div></div>'+
+      '<div class="qm-mini-panel"><div class="qm-mini-title">전문 요약</div><div class="qm-oracle-meta" style="font-size:.82rem;line-height:1.75;color:#d0e8d0">'+qEsc(qProfessionalSummary)+'</div></div>'+
+    '</div>';
   var quantumDetails={
+    decision:qDecision,
+    professionalSummary:qProfessionalSummary,
+    favorableElements:favorableElements,
+    cautionElements:cautionElements,
+    neutralElements:neutralElements,
     structure:{type:structType,power:powerLabel,johu:johuLabel,dayMaster:p.d.g||'',dayMasterName:dayMasterName,dayElement:dayEl,monthBranch:p.m.j||'',monthElement:monthEl,yongshin:qUnique(yongList),kijishin:qUnique(kiList)},
     elements:elementMatrix,
     pillars:pillarMatrix,
@@ -11789,6 +11858,11 @@ function renderQuantumStrategy(p, natal, bazi){
     sinsalItems:_qSS_items.slice()
   };
   window.G_QUANTUM={
+    version:'QUANTUM_MYEONGRI_ENGINE_V2',
+    decision:qDecision,
+    professionalSummary:qProfessionalSummary,
+    favorableElements:favorableElements,
+    cautionElements:cautionElements,
     keyEvents:keyEvents,
     dwResults:dwResults,
     seResults:seResults,
@@ -11796,6 +11870,7 @@ function renderQuantumStrategy(p, natal, bazi){
     actions:actions,
     details:quantumDetails
   };
+  window.__cdQuantumMyeongriReportV2=window.G_QUANTUM;
 
   var quantumEngineVersion = 'v.2';
   window.__cdQuantumMyeongriEngineVersion = quantumEngineVersion;
@@ -11807,6 +11882,13 @@ function renderQuantumStrategy(p, natal, bazi){
         '<div class="qm-title-wrap">'+
           '<h3>QUANTUM MYEONGRI Engine '+quantumEngineVersion+'</h3>'+
           '<p>// 현재 대운·세운 합화 및 충(沖) 변이 분석 · 억부+조후+종격 통합 엔진</p>'+
+        '</div>'+
+      '</div>'+
+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">✧</span><span class="qm-sec-title s2">퀀텀 v.2 전문 판정</span></div>'+
+        '<div class="qm-panel">'+
+          qEvidenceHtml+
         '</div>'+
       '</div>'+
 
@@ -11859,16 +11941,16 @@ function renderQuantumStrategy(p, natal, bazi){
       '</div>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">💥🔥</span><span class="qm-sec-title s3">팩트 폭행</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">◆</span><span class="qm-sec-title s3">핵심 운세 판정</span></div>'+
         '<div class="qm-panel">'+
-          facts.map(function(f){return '<div class="qm-fact-item"><span class="qm-fact-bullet">▸</span><div class="qm-fact-text">'+f+'</div></div>';}).join('')+
+          qSafeHtmlList(facts,'원국의 중심이 크게 흔들리지 않습니다. 용신 루틴을 유지하며 세운의 작은 변화를 관찰하세요.','qm-fact-text')+
         '</div>'+
       '</div>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">🎯</span><span class="qm-sec-title s4">천기적 액션 처방</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">✺</span><span class="qm-sec-title s4">천기 실행 처방</span></div>'+
         '<div class="qm-panel">'+
-          actions.map(function(a,i){return '<div class="qm-action-item"><div class="qm-action-num">'+(i+1)+'</div><div class="qm-action-text">'+a+'</div></div>';}).join('')+
+          qSafeHtmlList(actions,'이번 주기는 확장보다 정돈이 먼저입니다. 일정, 계약, 돈의 흐름을 차분히 정리하세요.','qm-action-text')+
         '</div>'+
       '</div>'+
 

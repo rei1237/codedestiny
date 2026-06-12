@@ -6475,59 +6475,68 @@ var ILJU_INNATE_DB = {
 
 /* ─── 인생 스킬 트리 RPG ─── */
 function _ensureSkillTreeRpgStyle(){
-  if(document.getElementById('cd-skilltree-rpg-style-v20260612'))return;
+  if(document.getElementById('cd-skilltree-rpg-style-v20260613'))return;
   var style=document.createElement('style');
-  style.id='cd-skilltree-rpg-style-v20260612';
+  style.id='cd-skilltree-rpg-style-v20260613';
   style.textContent=[
-    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260612"],.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260612"] *{box-sizing:border-box;letter-spacing:0}',
-    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260612"]{padding:18px;border-radius:8px;background:linear-gradient(135deg,#14100b 0%,#18241f 36%,#111827 67%,#1f1511 100%);border:1px solid rgba(255,226,166,.22);box-shadow:0 20px 60px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.08);color:#f8f3e8}',
-    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260612"]::before{background:linear-gradient(120deg,rgba(255,226,166,.07) 0,transparent 23%,rgba(72,187,120,.05) 48%,transparent 74%,rgba(248,113,113,.05) 100%);opacity:1}',
+    '#resultPage #skillTreeCard[data-skilltree-ui-marker="skilltree-rpg-v20260613"]{content-visibility:visible;contain-intrinsic-size:none;overflow:visible;scroll-margin-bottom:260px}',
+    '#skillTreeSection[data-skilltree-ui-marker="skilltree-rpg-v20260613"]{overflow:visible}',
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"],.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"] *{box-sizing:border-box;letter-spacing:0}',
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]{position:relative;isolation:isolate;overflow:visible;padding:18px;border-radius:8px;background:radial-gradient(circle at 20% 16%,rgba(255,255,255,.38),transparent 16%),radial-gradient(circle at 82% 18%,rgba(255,216,112,.24),transparent 18%),linear-gradient(135deg,#7759c7 0%,#cc7dc3 30%,#ffd18d 62%,#7dd6df 100%);border:1px solid rgba(255,247,214,.72);box-shadow:0 22px 62px rgba(113,83,190,.34),inset 0 1px 0 rgba(255,255,255,.48);color:#2d2148}',
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]::before{background:radial-gradient(circle at 12% 26%,rgba(255,255,255,.72) 0 1px,transparent 2px),radial-gradient(circle at 76% 28%,rgba(255,246,189,.82) 0 1px,transparent 2px),radial-gradient(circle at 44% 68%,rgba(255,255,255,.64) 0 1px,transparent 2px),linear-gradient(120deg,rgba(255,255,255,.18),transparent 28%,rgba(125,214,223,.12) 52%,transparent 74%,rgba(255,216,112,.16));opacity:1;border-radius:inherit}',
     '.sk-rpg-hero{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) 116px;gap:16px;align-items:center;margin-bottom:14px;padding:16px;border-radius:8px;background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}',
-    '.sk-game-badge{display:inline-flex;align-items:center;min-height:24px;margin:0 0 8px 0;border-radius:6px;padding:4px 9px;background:rgba(255,216,112,.13);border:1px solid rgba(255,216,112,.30);color:#ffe7a8;font-size:.66rem;font-weight:900}',
-    '.sk-main-title{font-size:1.24rem;line-height:1.18;color:#fff7db;text-shadow:0 0 18px rgba(255,216,112,.20)}',
-    '.sk-sub-title{margin-top:5px;color:rgba(238,231,214,.68);font-size:.72rem;text-transform:none}',
+    '.sk-game-badge{display:inline-flex;align-items:center;min-height:24px;margin:0 0 8px 0;border-radius:6px;padding:4px 9px;background:rgba(255,255,255,.52);border:1px solid rgba(255,216,112,.72);color:#5b3a91;font-size:.66rem;font-weight:900;box-shadow:0 8px 18px rgba(91,58,145,.12)}',
+    '.sk-main-title{font-size:1.34rem;line-height:1.16;color:#4f2b91;text-shadow:0 2px 0 rgba(255,255,255,.72),0 0 18px rgba(255,255,255,.42)}',
+    '.sk-sub-title{margin-top:5px;color:rgba(68,45,111,.74);font-size:.72rem;text-transform:none;font-weight:800}',
     '.sk-rpg-command-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}',
-    '.sk-rpg-chip{display:inline-flex;align-items:center;min-height:28px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);color:#f7e7bc;font-size:.7rem;font-weight:850}',
+    '.sk-rpg-chip{display:inline-flex;align-items:center;min-height:28px;padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.72);color:#4f2b91;font-size:.7rem;font-weight:850;box-shadow:0 8px 16px rgba(91,58,145,.10)}',
     '.sk-hero-wrap{width:116px;height:136px;justify-self:end;filter:drop-shadow(0 18px 28px rgba(0,0,0,.28))}',
     '.sk-hero-glow{inset:auto;left:8px;bottom:6px;width:96px;height:22px;border-radius:50%;opacity:.55;filter:blur(14px)}',
     '.sk-hero-svg{width:116px;height:136px;animation:skHeroBob 3.2s ease-in-out infinite}',
     '.sk-rpg-sheet{position:relative;z-index:1;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:14px;padding:14px;border-radius:8px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10)}',
-    '.sk-class-label,.sk-stat-title,.sk-tree-label,.sk-innate-label,.sk-levelup-title{color:#f6d47b;font-size:.68rem;font-weight:900;text-transform:none;border-color:rgba(246,212,123,.16)}',
-    '.sk-class-name{font-size:1rem;color:#fff;line-height:1.45}',
-    '.sk-lv-badge{display:inline-flex;align-items:baseline;gap:5px;color:#fbd46d;font-size:.8rem}',
+    '.sk-class-label,.sk-stat-title,.sk-tree-label,.sk-innate-label,.sk-levelup-title{color:#6f3bb3;font-size:.68rem;font-weight:900;text-transform:none;border-color:rgba(111,59,179,.14)}',
+    '.sk-class-name{font-size:1rem;color:#33204f;line-height:1.45}',
+    '.sk-lv-badge{display:inline-flex;align-items:baseline;gap:5px;color:#d8469a;font-size:.8rem}',
     '.sk-lv-badge span{font-size:1.35rem}',
-    '.sk-exp-wrap,.sk-stat-bar-wrap{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08)}',
+    '.sk-exp-wrap,.sk-stat-bar-wrap{background:rgba(255,255,255,.54);border:1px solid rgba(111,59,179,.16)}',
     '.sk-exp-wrap{height:10px}',
     '.sk-exp-bar{background:linear-gradient(90deg,#f7d56b,#49d6a4,#65c7ff);box-shadow:0 0 18px rgba(247,213,107,.32)}',
-    '.sk-exp-label,.sk-day-badge{color:rgba(248,243,232,.76)}',
-    '.sk-day-badge{border-radius:6px;background:rgba(0,0,0,.18);border-color:rgba(255,255,255,.10)}',
+    '.sk-exp-label,.sk-day-badge{color:rgba(50,32,79,.76);font-weight:800}',
+    '.sk-day-badge{border-radius:6px;background:rgba(255,255,255,.58);border-color:rgba(111,59,179,.16)}',
     '.sk-stat-row{gap:8px;margin-bottom:9px;min-height:24px}',
-    '.sk-stat-label{width:72px;color:rgba(248,243,232,.82);font-weight:800}',
+    '.sk-stat-label{width:72px;color:rgba(50,32,79,.84);font-weight:800}',
     '.sk-stat-bar-fill{width:var(--sk-stat,0%);background:linear-gradient(90deg,var(--sk-el-color),rgba(255,255,255,.82));box-shadow:0 0 12px var(--sk-el-color)}',
-    '.sk-stat-val{width:36px;color:#f7e7bc;font-variant-numeric:tabular-nums}',
+    '.sk-stat-val{width:36px;color:#6f3bb3;font-variant-numeric:tabular-nums}',
+    '.sk-orbit-map{position:relative;z-index:1;min-height:242px;margin:0 0 14px;border-radius:8px;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.82) 0 12%,rgba(255,255,255,.36) 13% 14%,transparent 15%),radial-gradient(circle at 50% 50%,transparent 0 35%,rgba(255,255,255,.42) 36% 37%,transparent 38%),linear-gradient(135deg,rgba(255,255,255,.54),rgba(255,255,255,.22));border:1px solid rgba(255,255,255,.64);box-shadow:inset 0 1px 0 rgba(255,255,255,.52),0 16px 34px rgba(91,58,145,.16);overflow:hidden}',
+    '.sk-orbit-map::before{content:"";position:absolute;inset:28px;border-radius:50%;border:1px dashed rgba(111,59,179,.28)}',
+    '.sk-orbit-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:76px;height:76px;border-radius:50%;display:grid;place-items:center;text-align:center;background:radial-gradient(circle,#fff8bf,#f7c948 54%,#e879b9);border:3px solid rgba(255,255,255,.82);box-shadow:0 0 34px rgba(255,216,112,.66);color:#5b2e91;font-size:.72rem;font-weight:950;line-height:1.15}',
+    '.sk-orbit-node{position:absolute;width:62px;height:62px;border-radius:50%;display:grid;place-items:center;text-align:center;background:rgba(255,255,255,.76);border:2px solid var(--sk-orbit-color);box-shadow:0 10px 22px rgba(91,58,145,.16);color:#34214f;font-weight:950;font-size:.74rem;line-height:1.12}',
+    '.sk-orbit-node b{display:block;font-size:1.15rem;line-height:1}',
+    '.sk-orbit-node span{display:block;margin-top:2px;font-size:.62rem;color:rgba(50,32,79,.68)}',
+    '.sk-orbit-node--wood{left:18%;top:38%}.sk-orbit-node--fire{left:42%;bottom:9%}.sk-orbit-node--earth{right:18%;bottom:25%}.sk-orbit-node--metal{left:47%;top:9%}.sk-orbit-node--water{right:17%;top:35%}',
     '.sk-tree-wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr 1fr 1fr;gap:12px;margin-bottom:14px}',
-    '.sk-tree-section{position:relative;overflow:hidden;border-radius:8px;padding:12px;background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.028));border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}',
+    '.sk-tree-section{position:relative;overflow:hidden;border-radius:8px;padding:12px;background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,.34));border:1px solid rgba(255,255,255,.70);box-shadow:inset 0 1px 0 rgba(255,255,255,.52),0 12px 24px rgba(91,58,145,.12)}',
     '.sk-tree-section::before{content:"";position:absolute;left:14px;right:14px;top:44px;height:1px;background:linear-gradient(90deg,rgba(247,213,107,.42),transparent);pointer-events:none}',
-    '.sk-node{position:relative;display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;align-items:flex-start;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18);min-height:76px}',
+    '.sk-node{position:relative;display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;align-items:flex-start;margin-bottom:8px;padding:10px;border-radius:8px;border:1px solid rgba(111,59,179,.12);background:rgba(255,255,255,.54);min-height:76px}',
     '.sk-node:last-child{margin-bottom:0}',
     '.sk-node-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.12);font-size:1.25rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.10)}',
-    '.sk-name{font-size:.86rem;color:#fff;font-weight:900;line-height:1.35}',
-    '.sk-desc{margin-top:4px;color:rgba(238,231,214,.72);font-size:.74rem;line-height:1.55}',
+    '.sk-name{font-size:.86rem;color:#33204f;font-weight:900;line-height:1.35}',
+    '.sk-desc{margin-top:4px;color:rgba(50,32,79,.68);font-size:.74rem;line-height:1.55}',
     '.sk-node--master{background:linear-gradient(135deg,rgba(255,216,112,.18),rgba(72,187,120,.08));border-color:rgba(255,216,112,.34);box-shadow:0 0 22px rgba(255,216,112,.12),inset 0 1px 0 rgba(255,255,255,.08)}',
     '.sk-node--owned{border-color:rgba(73,214,164,.24);background:linear-gradient(135deg,rgba(73,214,164,.12),rgba(255,255,255,.03))}',
     '.sk-node--locked{border-style:dashed;border-color:rgba(214,199,168,.18);background:rgba(255,255,255,.035);opacity:.82}',
     '.sk-type-badge,.sk-innate-type{display:inline-flex;align-items:center;min-height:18px;margin-left:5px;padding:2px 6px;border-radius:5px;background:rgba(255,216,112,.18);color:#ffe7a8;font-size:.56rem;font-weight:900}',
-    '.sk-empty{padding:10px;border-radius:8px;border:1px dashed rgba(255,255,255,.14);color:rgba(238,231,214,.52);font-size:.76rem;line-height:1.5}',
-    '.sk-innate-section,.sk-levelup{position:relative;z-index:1;border-radius:8px;background:linear-gradient(135deg,rgba(73,214,164,.12),rgba(255,216,112,.07));border:1px solid rgba(73,214,164,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}',
-    '.sk-innate-item{border-radius:8px;background:rgba(0,0,0,.14);border-color:rgba(255,255,255,.10)}',
-    '.sk-innate-name{color:#c9ffe7;text-shadow:0 0 14px rgba(73,214,164,.24)}',
-    '.sk-innate-sub,.sk-innate-desc{color:rgba(238,231,214,.74)}',
-    '.sk-levelup{padding:15px;background:linear-gradient(135deg,rgba(255,216,112,.13),rgba(248,113,113,.08),rgba(73,214,164,.08));border-color:rgba(255,216,112,.25)}',
-    '.sk-levelup-text{color:rgba(248,243,232,.86);font-size:.85rem;line-height:1.75}',
+    '.sk-empty{padding:10px;border-radius:8px;border:1px dashed rgba(111,59,179,.22);color:rgba(50,32,79,.58);font-size:.76rem;line-height:1.5}',
+    '.sk-innate-section,.sk-levelup{position:relative;z-index:1;border-radius:8px;background:linear-gradient(135deg,rgba(255,255,255,.66),rgba(255,233,170,.38),rgba(125,214,223,.28));border:1px solid rgba(255,255,255,.70);box-shadow:inset 0 1px 0 rgba(255,255,255,.58),0 14px 30px rgba(91,58,145,.12)}',
+    '.sk-innate-item{border-radius:8px;background:rgba(255,255,255,.42);border-color:rgba(111,59,179,.14)}',
+    '.sk-innate-name{color:#0f766e;text-shadow:0 1px 0 rgba(255,255,255,.72)}',
+    '.sk-innate-sub,.sk-innate-desc{color:rgba(50,32,79,.74)}',
+    '.sk-levelup{padding:15px;background:linear-gradient(135deg,rgba(255,255,255,.70),rgba(255,216,112,.34),rgba(232,121,185,.20));border-color:rgba(255,216,112,.55);margin-bottom:10px}',
+    '.sk-levelup-text{color:rgba(50,32,79,.86);font-size:.85rem;line-height:1.75}',
     '.sk-hl{background:rgba(73,214,164,.18);color:#cbffe8;border-radius:5px}',
-    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260612"]+.ent-rpg-shell{margin-top:14px}',
-    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260612"]+.ent-rpg-shell .ent-rpg-card{border-radius:8px;border-color:rgba(255,216,112,.18);background:linear-gradient(135deg,rgba(20,16,11,.94),rgba(20,33,28,.94),rgba(17,24,39,.96))}',
-    '@media(max-width:768px){.sk-rpg-hero{grid-template-columns:1fr;align-items:start}.sk-hero-wrap{justify-self:center}.sk-rpg-sheet,.sk-tree-wrap{grid-template-columns:1fr}.sk-stat-label{width:68px}.sk-main-title{font-size:1.12rem}}'
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]+.ent-rpg-shell{margin-top:14px}',
+    '.skill-wrap[data-skilltree-ui-marker="skilltree-rpg-v20260613"]+.ent-rpg-shell .ent-rpg-card{border-radius:8px;border-color:rgba(255,216,112,.26);background:linear-gradient(135deg,rgba(54,36,95,.96),rgba(25,78,96,.94),rgba(103,55,119,.92))}',
+    '@media(max-width:768px){.sk-rpg-hero{grid-template-columns:1fr;align-items:start}.sk-hero-wrap{justify-self:center}.sk-rpg-sheet,.sk-tree-wrap{grid-template-columns:1fr}.sk-stat-label{width:68px}.sk-main-title{font-size:1.12rem}.sk-orbit-map{min-height:222px}.sk-orbit-node{width:54px;height:54px;font-size:.66rem}.sk-orbit-node b{font-size:1rem}}'
   ].join('');
   document.head.appendChild(style);
 }
@@ -6599,9 +6608,9 @@ function renderSkillTree(p, natal){
   var card=document.getElementById('skillTreeCard');
   if(card){
     card.style.display='';
-    card.setAttribute('data-skilltree-ui-marker','skilltree-rpg-v20260612');
+    card.setAttribute('data-skilltree-ui-marker','skilltree-rpg-v20260613');
   }
-  area.setAttribute('data-skilltree-ui-marker','skilltree-rpg-v20260612');
+  area.setAttribute('data-skilltree-ui-marker','skilltree-rpg-v20260613');
   var dg=p.d.g;
   var pw=G_POWER, jg=G_JONG;
   var dayEl=(GAN[dg]&&GAN[dg].e)||'earth';
@@ -6650,6 +6659,13 @@ function renderSkillTree(p, natal){
       +'<div class="sk-stat-val">'+pct+'%</div>'
       +'</div>';
   });
+  var orbitHtml='<div class="sk-orbit-map" aria-label="운명 스킬 별자리">'
+    +'<div class="sk-orbit-core">운명의<br>힘</div>'
+    +['metal','wood','water','fire','earth'].map(function(el){
+      var pct=Math.round(natal.ratios[el]||0);
+      return '<div class="sk-orbit-node sk-orbit-node--'+el+'" style="--sk-orbit-color:'+elColor[el]+'"><b>'+elIcon[el]+'</b>'+elName[el]+'<span>'+pct+'%</span></div>';
+    }).join('')
+    +'</div>';
   var skillDB={
     bija:{m:{i:'⚔️',n:'자아 결집',d:'홀로서기의 전투 기술. 독립 의지와 경쟁 에너지를 극한으로 끌어올린다.',tp:'ACTIVE'},o:{i:'🛡️',n:'자아회복',d:'쓰러져도 다시 일어서는 끈질긴 생명력 패시브.'}},
     sik:{m:{i:'🎨',n:'표현의 연금술',d:'아이디어를 황금으로 변환하는 창조 마법. 말·글·예술이 최강 무기가 된다.',tp:'ACTIVE'},o:{i:'💡',n:'창조적 폭발',d:'식상 에너지가 정점에 달할 때 폭발적 혁신이 터진다.'}},
@@ -6704,7 +6720,7 @@ function renderSkillTree(p, natal){
       +'</div>'
       +'</div>';
   }
-  area.innerHTML='<div class="skill-wrap" data-skilltree-ui-marker="skilltree-rpg-v20260612">'
+  area.innerHTML='<div class="skill-wrap" data-skilltree-ui-marker="skilltree-rpg-v20260613">'
     +'<div class="sk-header sk-rpg-hero">'
     +'<div class="sk-rpg-copy">'
     +'<div class="sk-game-badge">⚡ SAJU RPG SYSTEM</div>'
@@ -6735,6 +6751,7 @@ function renderSkillTree(p, natal){
     +statBars
     +'</div>'
     +'</div>'
+    +orbitHtml
     +innateHtml
     +'<div class="sk-tree-wrap" aria-label="인생 스킬 노드맵">'
     +'<div class="sk-tree-section sk-tree-section--master">'
@@ -24038,6 +24055,65 @@ function _sajuVillainGetDominantElement(natal, ratios) {
   return winner;
 }
 
+function _sajuVillainBuildDominantTenGodGroups(distribution) {
+  var rows = ['비겁','식상','재성','관성','인성'].map(function(group) {
+    var n = Number(distribution && distribution[group] != null ? distribution[group] : 0);
+    return { group:group, value:isFinite(n) ? n : 0 };
+  });
+  var max = rows.reduce(function(best, row) { return Math.max(best, row.value); }, 0);
+  if (!max) return [];
+  var threshold = max >= 10 ? Math.max(20, max * 0.78) : (max >= 3 ? max - 1 : 2);
+  return rows.filter(function(row) {
+    return row.value >= threshold;
+  }).map(function(row) {
+    return row.group;
+  });
+}
+
+function _sajuVillainBuildWeakElements(ratios) {
+  var rows = ['wood','fire','earth','metal','water'].map(function(element) {
+    var n = Number(ratios && ratios[element] != null ? ratios[element] : 0);
+    return { element:element, value:isFinite(n) ? n : 0 };
+  }).filter(function(row) {
+    return row.value > 0;
+  });
+  if (!rows.length) return [];
+  var min = rows.reduce(function(best, row) { return Math.min(best, row.value); }, rows[0].value);
+  return rows.filter(function(row) {
+    return row.value <= min || row.value <= 10;
+  }).map(function(row) {
+    return row.element;
+  });
+}
+
+function _sajuVillainHashText(text) {
+  var hash = 0;
+  var source = String(text || '');
+  for (var i = 0; i < source.length; i += 1) {
+    hash = ((hash << 5) - hash) + source.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function _sajuVillainContextSeed(ctx) {
+  if (!ctx) return 'villain';
+  return [
+    ctx.dominantElement || '',
+    _sajuVillainToArray(ctx.dominantTenGodGroups).join('|'),
+    _sajuVillainToArray(ctx.harmfulGods).join('|'),
+    _sajuVillainToArray(ctx.weakElements).join('|'),
+    ctx.isStrong === null ? '' : (ctx.isStrong ? 'strong' : 'weak')
+  ].join('::');
+}
+
+function _sajuVillainRotateList(items, ctx, salt) {
+  var list = _sajuVillainToArray(items);
+  if (list.length <= 1) return list.slice();
+  var offset = _sajuVillainHashText(_sajuVillainContextSeed(ctx) + '::' + salt) % list.length;
+  return list.slice(offset).concat(list.slice(0, offset));
+}
+
 function _sajuVillainBuildTenGodDistribution(p) {
   var dayGan = p && p.d && p.d.g;
   var slots = [
@@ -24173,6 +24249,7 @@ function _sajuVillainBuildContext(input) {
   input = input || {};
   var p = input.pillars || input.p || {};
   var power = input.power || {};
+  var jong = input.jong || input.jongguk || {};
   var natal = input.natal || input.fiveElementsDistribution || {};
   var ratios = _sajuVillainNormalizeElements(natal);
   var tenGods = input.tenGodsDistribution || _sajuVillainBuildTenGodDistribution(p);
@@ -24184,8 +24261,12 @@ function _sajuVillainBuildContext(input) {
     .concat(_sajuVillainToArray(input.gisin))
     .concat(_sajuVillainToArray(input.gishin))
     .concat(_sajuVillainToArray(input.gushin))
-    .concat(_sajuVillainToArray(power.kijishin)));
-  var usefulGods = _sajuVillainToArray(input.usefulGods || input.yongshin || power.yongshin);
+    .concat(_sajuVillainToArray(input.badElements))
+    .concat(_sajuVillainToArray(input.avoidElements))
+    .concat(_sajuVillainToArray(power.kijishin))
+    .concat(jong && jong.isJong ? _sajuVillainToArray(whoControls(jong.dominant)) : []));
+  var usefulGods = _sajuVillainToArray(input.usefulGods || input.yongshin || power.yongshin)
+    .concat(jong && jong.isJong ? _sajuVillainToArray([jong.dominant, jong.parEl]) : []);
   var harmfulTenGodGroups = _sajuVillainUnique(harmfulGods.map(function(element) {
     return _sajuVillainTenGodGroupFromElement(dayElement, element);
   }).filter(Boolean));
@@ -24193,13 +24274,17 @@ function _sajuVillainBuildContext(input) {
   var majorSinsal = _sajuVillainToArray(input.majorSinsal || _sajuVillainExtractMajorSinsal(p));
   var conflictRelations = _sajuVillainToArray(input.conflictRelations || relationData.conflictRelations);
   var wonjinRelations = _sajuVillainToArray(input.wonjinRelations || relationData.wonjinRelations);
+  var tenGodGroups = tenGods.groups || tenGods;
+  var dominantElement = _sajuVillainGetDominantElement(natal, ratios);
 
   return {
     pillars: p,
-    tenGodsDistribution: tenGods.groups || tenGods,
+    tenGodsDistribution: tenGodGroups,
     exactTenGodsDistribution: tenGods.exact || {},
     fiveElementsDistribution: ratios,
-    dominantElement: _sajuVillainGetDominantElement(natal, ratios),
+    dominantElement: dominantElement,
+    dominantTenGodGroups: _sajuVillainBuildDominantTenGodGroups(tenGodGroups),
+    weakElements: _sajuVillainBuildWeakElements(ratios),
     dayMasterStrength: input.dayMasterStrength || (typeof power.isStrong === 'boolean' ? (power.isStrong ? '신강' : '신약') : ''),
     hasStrengthData: typeof power.isStrong === 'boolean',
     isStrong: typeof power.isStrong === 'boolean' ? !!power.isStrong : null,
@@ -24302,6 +24387,38 @@ var SAJU_VILLAIN_SCORE_RULES = {
     luckTenGodGroups:['관성'],
     riskAreas:['직장/사업','가족','돈'],
     defenseKeyword:'권한 확인 · 공식 채널'
+  },
+  'responsibility-dodge': {
+    tenGodGroups:['식상','재성'],
+    weakDefenseGroups:['관성'],
+    elements:['earth','water'],
+    elementPair:['earth','water'],
+    conflictTypes:['파','해','원진'],
+    sinsals:['yeokma'],
+    luckTenGodGroups:['식상','재성'],
+    riskAreas:['직장/사업','친구','돈'],
+    defenseKeyword:'책임 범위 · 마감 · 승인 기록'
+  },
+  'boundary-invasion': {
+    tenGodGroups:['비겁','인성'],
+    weakDefenseGroups:['관성'],
+    elements:['earth','water'],
+    conflictTypes:['형','원진','해'],
+    sinsals:['hwagae'],
+    luckTenGodGroups:['비겁','인성'],
+    riskAreas:['가족','친구','연애'],
+    defenseKeyword:'사생활 선 긋기 · 시간표 제한'
+  },
+  'cold-silence': {
+    tenGodGroups:['관성','인성'],
+    weakDefenseGroups:['식상'],
+    elements:['metal','water'],
+    elementPair:['metal','water'],
+    conflictTypes:['원진','해','충'],
+    sinsals:['hwagae'],
+    luckTenGodGroups:['관성','인성'],
+    riskAreas:['연애','가족','직장/사업'],
+    defenseKeyword:'침묵 해석 금지 · 확인 기한'
   }
 };
 
@@ -24405,6 +24522,7 @@ function _sajuVillainScoreProfile(ctx, blueprint, activatedBy) {
   // 사주 엔진에서 실제로 확인된 값만 점수에 더한다. 십성·오행·대운 데이터가 없으면 해당 항목은 0점으로 둔다.
   function add(condition, label, point) {
     if (!condition) return;
+    if (String(label || '').indexOf('신약') >= 0 && !(ctx && ctx.hasStrengthData)) return;
     var safePoint = Number(point || 0);
     if (!isFinite(safePoint) || safePoint <= 0) return;
     score += safePoint;
@@ -24412,18 +24530,37 @@ function _sajuVillainScoreProfile(ctx, blueprint, activatedBy) {
   }
 
   var hasTenGodData = _sajuVillainHasTenGodData(ctx);
+  var hasElementData = _sajuVillainHasElementData(ctx);
+  var dominantTenGodMatch = _sajuVillainMatchedItems(rule.tenGodGroups, ctx && ctx.dominantTenGodGroups);
+  add(hasTenGodData && dominantTenGodMatch.length > 0, '강한 십성 직접 일치 ' + dominantTenGodMatch.join('·'), 24);
+
   var harmfulMatch = _sajuVillainMatchedItems(rule.tenGodGroups, ctx && ctx.harmfulTenGodGroups);
-  add(hasTenGodData && harmfulMatch.length > 0, '기신/구신 십성 ' + harmfulMatch.join('·'), 20);
+  add(harmfulMatch.length > 0, '기신/구신 십성 ' + harmfulMatch.join('·'), 26);
+
+  var harmfulElementMatch = _sajuVillainMatchedItems(rule.elements, ctx && ctx.harmfulGods);
+  add(hasElementData && harmfulElementMatch.length > 0, '기신/구신 오행 직접 일치 ' + harmfulElementMatch.map(_sajuVillainElementFull).join('·'), 24);
+
+  var dominantElementMatch = hasElementData && rule.elements && rule.elements.indexOf(ctx.dominantElement) >= 0 ? [ctx.dominantElement] : [];
+  add(dominantElementMatch.length > 0, '강한 오행 직접 일치 ' + dominantElementMatch.map(_sajuVillainElementFull).join('·'), 14);
+
+  add(
+    dominantTenGodMatch.length > 0 && (harmfulElementMatch.length > 0 || dominantElementMatch.length > 0),
+    '십성·오행 조합 최상위 일치',
+    22
+  );
 
   var excessiveGroups = _sajuVillainToArray(rule.tenGodGroups).filter(function(group) {
     return _sajuVillainCountTenGod(ctx, group) >= 2;
   });
-  add(hasTenGodData && excessiveGroups.length > 0, '과다 십성 ' + excessiveGroups.join('·'), 15);
+  add(hasTenGodData && excessiveGroups.length > 0, '과다 십성 ' + excessiveGroups.join('·'), 12);
 
   var weakDefense = _sajuVillainToArray(rule.weakDefenseGroups).filter(function(group) {
     return _sajuVillainCountTenGod(ctx, group) <= 0;
   });
   add(hasTenGodData && weakDefense.length > 0, '방어축 부족 ' + weakDefense.join('·'), 10);
+
+  var weakElementMatch = _sajuVillainMatchedItems(rule.elements, ctx && ctx.weakElements);
+  add(hasElementData && weakElementMatch.length > 0, '약한 오행 자극 ' + weakElementMatch.map(_sajuVillainElementFull).join('·'), 8);
 
   var elementSignal = _sajuVillainElementSignal(ctx, rule);
   add(!!elementSignal, '오행 충돌 ' + elementSignal, 10);
@@ -24439,6 +24576,14 @@ function _sajuVillainScoreProfile(ctx, blueprint, activatedBy) {
   var luckSignal = _sajuVillainLuckSignal(ctx, rule);
   add(!!luckSignal, '현재 대운 흐름 ' + luckSignal, 10);
 
+  if (blueprint && typeof blueprint.score === 'function') {
+    var base = Number(blueprint.score(ctx, add) || 0);
+    if (isFinite(base) && base > 0) {
+      score += base;
+      activatedBy.push('빌런 원형 적합도 +' + base);
+    }
+  }
+
   return _sajuVillainClamp(Math.round(score), 0, 100);
 }
 
@@ -24447,6 +24592,38 @@ function _sajuVillainReason(profileName, blueprint, ctx, activatedBy) {
   var harmful = ctx.harmfulGods.length ? ctx.harmfulGods.map(_sajuVillainElementFull).join('·') : '뚜렷하게 확인된 기신 오행 없음';
   var useful = ctx.usefulGods.length ? ctx.usefulGods.map(_sajuVillainElementFull).join('·') : '현재 화면 데이터 기준 미확인';
   return profileName + '님의 사주 데이터에서 ' + signals + '가 감지됩니다. 용신 흐름은 ' + useful + ', 기신 흐름은 ' + harmful + '로 잡혀 있으므로 ' + blueprint.koreanName + ' 패턴을 만날 때는 초반부터 기준을 부드럽지만 분명하게 세우는 편이 좋습니다.';
+}
+
+var SAJU_VILLAIN_EXACT_TYPE_POOL = {
+  'profit-drain':['손익착취형 빌런','정산잠수형 빌런','호의채굴형 빌런'],
+  'emotional-pressure':['감정착취형 빌런','죄책감압박형 빌런','관계심문형 빌런'],
+  'verbal-confuser':['말로 압박하는 빌런','논점흐림형 빌런','팩트폭격형 빌런'],
+  'dependency-drain':['의존소모형 빌런','돌봄강요형 빌런','감정청구형 빌런'],
+  'competition-theft':['경쟁집착형 빌런','성과가로채기형 빌런','비교자극형 빌런'],
+  'romance-chaos':['애매함중독형 빌런','밀당잠수형 빌런','관계회피형 빌런'],
+  'authority-control':['통제형 빌런','권위압박형 빌런','규칙독점형 빌런'],
+  'responsibility-dodge':['책임전가형 빌런','마감회피형 빌런','핑퐁지시형 빌런'],
+  'boundary-invasion':['경계침범형 빌런','사생활잠식형 빌런','과잉간섭형 빌런'],
+  'cold-silence':['침묵처벌형 빌런','냉폭잠수형 빌런','정서차단형 빌런']
+};
+
+function _sajuVillainExactType(id, ctx, index) {
+  var list = SAJU_VILLAIN_EXACT_TYPE_POOL[id] || ['관계경보형 빌런'];
+  var rule = _sajuVillainRuleFor(id);
+  if (_sajuVillainMatchedItems(rule.tenGodGroups, ctx && ctx.harmfulTenGodGroups).length) return list[0];
+  if (_sajuVillainMatchedItems(rule.tenGodGroups, ctx && ctx.dominantTenGodGroups).length) return list[0];
+  var offset = _sajuVillainHashText(_sajuVillainContextSeed(ctx) + '::' + id + '::' + index) % list.length;
+  return list[offset];
+}
+
+function _sajuVillainMatchPriority(ctx, rule) {
+  var priority = 0;
+  if (_sajuVillainMatchedItems(rule.tenGodGroups, ctx && ctx.harmfulTenGodGroups).length) priority += 40;
+  if (_sajuVillainMatchedItems(rule.tenGodGroups, ctx && ctx.dominantTenGodGroups).length) priority += 34;
+  if (_sajuVillainMatchedItems(rule.elements, ctx && ctx.harmfulGods).length) priority += 30;
+  if (ctx && rule.elements && rule.elements.indexOf(ctx.dominantElement) >= 0) priority += 18;
+  if (_sajuVillainMatchedItems(rule.elements, ctx && ctx.weakElements).length) priority += 8;
+  return priority;
 }
 
 var SAJU_VILLAIN_BLUEPRINTS = [
@@ -24619,6 +24796,78 @@ var SAJU_VILLAIN_BLUEPRINTS = [
       add(ctx.currentLuckFlow.tenGodGroups.indexOf('관성') >= 0, '현재 대운 흐름에서 관성 자극', 10);
       return 22;
     }
+  },
+  {
+    id:'responsibility-dodge',
+    codeName:'PINGPONG SHADOW',
+    koreanName:'책임 전가형',
+    subtitle:'일의 무게는 넘기고 성과의 빛만 가져가는 회피 교란 패턴',
+    montage:'처음에는 유연한 협업처럼 보이지만, 중요한 순간마다 책임의 화살표가 조용히 당신 쪽으로 돌아옵니다. 말은 가볍고 결과는 무거워지는 흐름입니다.',
+    approachPattern:'이 유형은 “일단 같이 해보자”는 말로 시작해 역할과 마감을 흐립니다. 사주에서 식상·재성의 흐름이 기신으로 눌릴 때 특히 말과 실무의 무게가 어긋나기 쉽습니다.',
+    redFlags:['결정은 같이 했다고 말하면서 실패 책임은 내 쪽으로 둡니다.','마감 직전에 역할 설명이 바뀝니다.','승인받지 않은 일을 이미 합의된 것처럼 말합니다.','성과가 보이면 앞에 서고 문제가 생기면 사라집니다.','자료 출처와 결정권자를 흐리게 말합니다.'],
+    conflictTrigger:['마감 전날','공동 의사결정 후 결과가 나오는 순간','지출 승인과 업무 승인 기준이 섞이는 회의','수·토 기운이 무겁게 정체되는 시기'],
+    relationshipZones:{ money:'공동 비용은 승인자와 사용 목적을 먼저 남기세요. “나중에 맞추자”는 말이 손실의 입구가 될 수 있습니다.', romance:'관계 문제를 늘 당신의 예민함으로 돌리면 멈추세요. 둘의 일은 둘의 책임이어야 합니다.', work:'담당자, 승인자, 마감일을 한 줄로 고정하세요. 책임이 문장 밖에 있으면 나중에 당신에게 붙습니다.', family:'가족 부탁도 “누가, 언제, 어디까지”를 말해야 합니다. 정이 책임 전가의 통로가 되면 오래 지칩니다.', friendship:'친구 사이 공동 계획은 가볍게 보여도 역할을 나누세요. 즐거운 약속일수록 기준이 흐려지기 쉽습니다.' },
+    defenseGuide:['역할과 승인자를 문장으로 남깁니다.','마감 변경은 기록된 채널에서만 받습니다.','공동 결정과 개인 책임을 분리합니다.','성과 공유 기준을 시작 전에 정합니다.','말이 바뀌면 원래 합의문으로 되돌립니다.'],
+    emergencyLines:['그 부분은 제 단독 책임으로 진행한 일이 아닙니다.','역할과 마감 기준을 다시 문서로 확인하겠습니다.','승인되지 않은 내용은 지금 확정할 수 없습니다.'],
+    checklist:['공동 업무의 담당자와 승인자를 따로 적어둔다.','마감 변경은 말이 아니라 기록으로 받는다.','성과와 책임의 기준을 시작 전에 확인한다.','상대가 말을 바꾸면 원래 합의로 돌아갈 수 있다.','부탁과 업무를 구분해서 판단한다.'],
+    yeoniAdvice:'당신이 성실하다고 해서 모든 빈칸을 메워야 하는 건 아니에요. 사주의 흙이 무거워질수록 책임의 경계선을 먼저 세워야 마음의 숨이 트입니다.',
+    neoAdvice:'같이 한 일인데 혼자 책임지면 구조가 틀린 거다. 역할표부터 꺼내.',
+    score:function(ctx, add) {
+      add(ctx.tenGodsDistribution.식상 >= 2, '식상 표현 축이 과열됨', 20);
+      add(ctx.harmfulTenGodGroups.indexOf('식상') >= 0 || ctx.harmfulTenGodGroups.indexOf('재성') >= 0, '식상·재성 중 하나가 기신으로 작동', 24);
+      add(ctx.fiveElementsDistribution.earth >= 30 || ctx.fiveElementsDistribution.water >= 30, '수·토 기운 정체 신호', 12);
+      add(ctx.tenGodsDistribution.관성 <= 0, '책임 기준을 잡는 관성 방어축이 약함', 10);
+      add(ctx.currentLuckFlow.tenGodGroups.indexOf('식상') >= 0 || ctx.currentLuckFlow.tenGodGroups.indexOf('재성') >= 0, '현재 대운 흐름에서 말과 손익 이슈 자극', 10);
+      return 21;
+    }
+  },
+  {
+    id:'boundary-invasion',
+    codeName:'BORDER RAID',
+    koreanName:'경계 침범형',
+    subtitle:'관심과 간섭의 경계를 지우며 생활 리듬을 잠식하는 과잉 접근 패턴',
+    montage:'처음에는 걱정과 친밀감처럼 다가오지만, 어느새 당신의 시간표와 사생활이 상대의 확인 대상이 됩니다. 친절의 얼굴을 한 침범입니다.',
+    approachPattern:'비겁·인성의 기운이 과하거나 기신으로 흐를 때, 가까운 사람이라는 명분이 경계선을 약하게 만듭니다. 묻지 않은 조언과 확인 요구를 초반부터 구분해야 합니다.',
+    redFlags:['일정, 연락, 만남을 지나치게 확인하려 합니다.','거절하면 서운함보다 배신감을 크게 말합니다.','내 선택을 걱정이라는 이름으로 계속 수정하려 합니다.','개인 공간과 물건을 가볍게 넘나듭니다.','친밀함을 이유로 비밀 공유를 강요합니다.'],
+    conflictTrigger:['가족·친구 모임 직후','연락 빈도가 갑자기 늘어나는 시기','인성 기운이 무겁게 쌓이는 날','원진 관계가 사소한 간섭으로 터지는 순간'],
+    relationshipZones:{ money:'돈을 빌려주는 것보다 생활 전체를 설명해야 하는 상황을 조심하세요. 사생활 보고는 지원의 조건이 아닙니다.', romance:'사랑이라는 이름의 위치 확인과 일정 검열은 애정이 아니라 통제 신호입니다.', work:'상사가 아닌 사람의 과잉 확인은 업무 협조와 다릅니다. 채널과 범위를 정하세요.', family:'가족의 걱정도 내 삶의 문을 무제한으로 여는 열쇠는 아닙니다. 알려줄 범위를 먼저 정하세요.', friendship:'친한 친구라도 모든 감정과 일정을 공유할 필요는 없습니다. 비밀이 아니라 경계입니다.' },
+    defenseGuide:['공유 가능한 정보와 아닌 정보를 나눕니다.','연락 가능한 시간대를 정합니다.','묻지 않은 조언에는 짧게 감사 후 종료합니다.','개인 공간과 물건의 기준을 말합니다.','반복 간섭은 답변 빈도를 낮춥니다.'],
+    emergencyLines:['그 부분은 제 개인 기준 안에서 결정하겠습니다.','지금은 일정과 사생활을 더 자세히 공유하지 않겠습니다.','걱정은 고맙지만 이 선택은 제가 책임질게요.'],
+    checklist:['내 일정 중 공유하지 않아도 되는 영역을 정해두었다.','연락 가능한 시간과 쉬는 시간을 구분한다.','걱정과 간섭을 구분해서 들을 수 있다.','가까운 사람에게도 사생활 기준을 말할 수 있다.','비밀 공유를 강요받을 때 거절할 문장이 있다.'],
+    yeoniAdvice:'가까운 인연일수록 문이 필요해요. 문이 있어야 따뜻한 사람이 들어오고, 지치게 하는 기운은 밖에 머물 수 있습니다.',
+    neoAdvice:'걱정이란 말로 침범하면 선 긋자. 네 시간표는 공개 게시판이 아니다.',
+    score:function(ctx, add) {
+      add(ctx.tenGodsDistribution.인성 >= 2 || ctx.tenGodsDistribution.비겁 >= 2, '인성·비겁 밀착 축이 강함', 22);
+      add(ctx.harmfulTenGodGroups.indexOf('인성') >= 0 || ctx.harmfulTenGodGroups.indexOf('비겁') >= 0, '인성·비겁 중 하나가 기신으로 작동', 24);
+      add(ctx.tenGodsDistribution.관성 <= 0, '경계 규칙을 세우는 관성 방어축이 약함', 10);
+      add(ctx.wonjinRelations.length > 0, '원진 관계 간섭 피로 감지', 10);
+      add(ctx.currentLuckFlow.tenGodGroups.indexOf('인성') >= 0 || ctx.currentLuckFlow.tenGodGroups.indexOf('비겁') >= 0, '현재 대운 흐름에서 밀착 관계 자극', 10);
+      return 21;
+    }
+  },
+  {
+    id:'cold-silence',
+    codeName:'FROST LOCK',
+    koreanName:'침묵 처벌형',
+    subtitle:'말을 끊고 온도를 낮춰 상대가 먼저 굽히게 만드는 냉각 압박 패턴',
+    montage:'대화가 필요할수록 공기가 차가워지고, 답 없는 침묵이 벌처럼 내려앉습니다. 문제를 푸는 대신 당신이 먼저 불안해지도록 만드는 방식입니다.',
+    approachPattern:'금·수 기운이 기신으로 차갑게 흐르거나 관성·인성이 과하면 감정 표현보다 차단이 먼저 나옵니다. 침묵을 해석하려 애쓰기보다 확인 기한을 정해야 합니다.',
+    redFlags:['중요한 대화 직후 갑자기 연락을 끊습니다.','무슨 일인지 묻는 순간 더 차가워집니다.','침묵 뒤에 먼저 사과하길 기다립니다.','답을 주지 않으면서 관계 주도권은 놓지 않습니다.','대화를 피한 뒤 아무 일 없었다는 듯 돌아옵니다.'],
+    conflictTrigger:['갈등 직후 첫 24시간','금·수 기운이 강하게 식는 시기','원진·해 관계가 누적된 만남','사과와 책임을 확인해야 하는 대화'],
+    relationshipZones:{ money:'돈 문제에서 답을 미루는 침묵은 위험합니다. 확인 기한을 넘기면 다음 절차로 넘어가세요.', romance:'잠수와 냉담을 사랑의 시험으로 받아들이지 마세요. 관계는 불안을 키워 증명하는 곳이 아닙니다.', work:'업무 확인을 침묵으로 미루면 기한을 명시하고 공식 채널에 남기세요.', family:'가족의 침묵이 오래 이어지면 내 일상을 멈추지 마세요. 감정의 날씨를 전부 책임질 수는 없습니다.', friendship:'친구의 냉담을 계속 해석하다 보면 내 에너지가 먼저 얼어붙습니다. 확인 후 거리를 두세요.' },
+    defenseGuide:['침묵을 해석하지 않고 확인 기한을 정합니다.','답이 없으면 다음 행동 기준을 실행합니다.','사과와 책임을 분리해서 묻습니다.','감정 불안을 메시지 폭주로 풀지 않습니다.','반복 잠수는 관계 속도를 낮춥니다.'],
+    emergencyLines:['오늘 안에 답이 없으면 이 기준으로 진행하겠습니다.','침묵을 제가 임의로 해석하지 않겠습니다. 필요한 말은 직접 해주세요.','대화를 피하는 방식이 반복되면 거리를 두겠습니다.'],
+    checklist:['연락이 끊겨도 메시지를 연속으로 보내지 않는다.','확인 기한과 다음 행동 기준을 정해둔다.','침묵을 내 잘못으로 자동 해석하지 않는다.','문제 해결과 감정 달래기를 구분한다.','반복 잠수 관계에서는 속도를 낮춘다.'],
+    yeoniAdvice:'차가운 침묵 앞에서 당신의 마음까지 얼릴 필요는 없어요. 기다릴 시간은 정하되, 그 시간을 넘긴 뒤에는 나를 보호하는 쪽으로 걸어가세요.',
+    neoAdvice:'답 없는 침묵은 답이다. 기한 주고, 넘기면 네 기준대로 움직여.',
+    score:function(ctx, add) {
+      add(ctx.tenGodsDistribution.관성 >= 2 || ctx.tenGodsDistribution.인성 >= 2, '관성·인성 냉각 축이 강함', 22);
+      add(ctx.harmfulTenGodGroups.indexOf('관성') >= 0 || ctx.harmfulTenGodGroups.indexOf('인성') >= 0, '관성·인성 중 하나가 기신으로 작동', 24);
+      add(ctx.fiveElementsDistribution.metal >= 26 && ctx.fiveElementsDistribution.water >= 26, '금·수 기운 동시 냉각', 12);
+      add(ctx.tenGodsDistribution.식상 <= 0, '표현 방어축 식상이 약함', 10);
+      add(ctx.wonjinRelations.length > 0 || ctx.conflictRelations.some(function(row){return row.type === '해';}), '원진·해 관계 침묵 피로 감지', 10);
+      return 21;
+    }
   }
 ];
 
@@ -24638,6 +24887,7 @@ function buildSajuVillainBlacklist(input) {
       rank: _sajuVillainRiskRank(risk),
       codeName: blueprint.codeName,
       koreanName: blueprint.koreanName,
+      villainType: _sajuVillainExactType(blueprint.id, ctx, blueprintIndex),
       comicAlias: comicMeta.alias,
       comicBadge: comicMeta.badge,
       comicTagline: comicMeta.tagline,
@@ -24652,8 +24902,8 @@ function buildSajuVillainBlacklist(input) {
       defenseKeyword: rule.defenseKeyword,
       montage: blueprint.montage,
       approachPattern: blueprint.approachPattern,
-      redFlags: blueprint.redFlags.slice(0, 5),
-      conflictTrigger: blueprint.conflictTrigger.slice(0, 5),
+      redFlags: _sajuVillainRotateList(blueprint.redFlags, ctx, blueprint.id + ':red').slice(0, 5),
+      conflictTrigger: _sajuVillainRotateList(blueprint.conflictTrigger, ctx, blueprint.id + ':trigger').slice(0, 5),
       relationshipZones: {
         money: blueprint.relationshipZones.money,
         romance: blueprint.relationshipZones.romance,
@@ -24661,24 +24911,30 @@ function buildSajuVillainBlacklist(input) {
         family: blueprint.relationshipZones.family,
         friendship: blueprint.relationshipZones.friendship
       },
-      defenseGuide: blueprint.defenseGuide.slice(0, 5),
-      emergencyLine: blueprint.emergencyLines[0],
-      emergencyLines: blueprint.emergencyLines.slice(0, 3),
-      checklist: blueprint.checklist.slice(0, 5),
+      defenseGuide: _sajuVillainRotateList(blueprint.defenseGuide, ctx, blueprint.id + ':defense').slice(0, 5),
+      emergencyLine: _sajuVillainRotateList(blueprint.emergencyLines, ctx, blueprint.id + ':line')[0],
+      emergencyLines: _sajuVillainRotateList(blueprint.emergencyLines, ctx, blueprint.id + ':line').slice(0, 3),
+      checklist: _sajuVillainRotateList(blueprint.checklist, ctx, blueprint.id + ':check').slice(0, 5),
       yeoniAdvice: blueprint.yeoniAdvice,
       neoAdvice: blueprint.neoAdvice,
+      _matchPriority: _sajuVillainMatchPriority(ctx, rule),
+      _varietyScore: _sajuVillainHashText(_sajuVillainContextSeed(ctx) + '::' + blueprint.id) % 7,
       _sortIndex: blueprintIndex
     };
   });
 
   profiles.sort(function(a, b) {
     if (b.riskScore !== a.riskScore) return b.riskScore - a.riskScore;
+    if (b._matchPriority !== a._matchPriority) return b._matchPriority - a._matchPriority;
+    if (b._varietyScore !== a._varietyScore) return b._varietyScore - a._varietyScore;
     return a._sortIndex - b._sortIndex;
   });
 
   var hasActionableSignal = profiles.some(function(profile) { return profile.riskScore >= 40; });
-  var displayCount = hasActionableSignal ? 5 : 3;
+  var displayCount = Math.min(profiles.length, hasActionableSignal ? 7 : 5);
   return profiles.slice(0, displayCount).map(function(profile) {
+    delete profile._matchPriority;
+    delete profile._varietyScore;
     delete profile._sortIndex;
     return profile;
   });
@@ -24743,6 +24999,30 @@ function _sajuVillainComicMeta(id) {
       signal:'요청은 개인적이고 책임은 공식처럼 포장됩니다.',
       counter:'공식 채널, 권한 범위, 기한을 문장으로 잠그세요.',
       variant:'crown'
+    },
+    'responsibility-dodge': {
+      alias:'책임 핑퐁 빌런',
+      badge:'공은 넘기고 점수판만 봄',
+      tagline:'“같이 한 거잖아”가 주문처럼 날아오지만, 막상 무게는 내 책상 위에 착지합니다.',
+      signal:'마감 직전마다 역할표가 흐릿해집니다.',
+      counter:'담당자·승인자·마감일을 한 줄로 고정하세요.',
+      variant:'mirror'
+    },
+    'boundary-invasion': {
+      alias:'TMI 압수수색 빌런',
+      badge:'걱정이라는 이름의 문고리 돌리기',
+      tagline:'친하다는 이유로 마음의 현관문을 벌컥 엽니다. 다정함과 검문 사이의 선을 확인해야 합니다.',
+      signal:'내 일정이 어느새 상대의 관찰 대상이 됩니다.',
+      counter:'공유할 것과 공유하지 않을 것을 먼저 나누세요.',
+      variant:'chat'
+    },
+    'cold-silence': {
+      alias:'냉폭 잠수 빌런',
+      badge:'읽음 표시 뒤에 내리는 한파주의보',
+      tagline:'말 대신 온도를 낮춰 상대가 먼저 흔들리게 합니다. 침묵을 점괘처럼 해석하지 않는 게 핵심입니다.',
+      signal:'중요한 말이 필요할수록 답장이 얼어붙습니다.',
+      counter:'확인 기한을 정하고, 넘기면 내 기준대로 움직이세요.',
+      variant:'ghost'
     }
   };
   return map[id] || {
@@ -24985,7 +25265,7 @@ function _sajuVillainRenderProfile(profile, idx) {
     + '      <div class="villain-progress"><span style="width:' + progressWidth + '%"></span></div>'
     + '      <p class="villain-comic-badge">' + _sajuVillainEscapeHtml(profile.comicBadge) + '</p>'
     + '      <h4>' + _sajuVillainEscapeHtml(profile.comicAlias || profile.koreanName) + '</h4>'
-    + '      <p class="villain-code-name">원형 ' + _sajuVillainEscapeHtml(profile.koreanName) + ' · ' + _sajuVillainEscapeHtml(profile.codeName) + '</p>'
+    + '      <p class="villain-code-name">원형 ' + _sajuVillainEscapeHtml(profile.koreanName) + ' · ' + _sajuVillainEscapeHtml(profile.villainType || '관계경보형 빌런') + ' · ' + _sajuVillainEscapeHtml(profile.codeName) + '</p>'
     + '      <p class="villain-one-line">' + _sajuVillainEscapeHtml(_sajuVillainShortText(profile.comicTagline || profile.subtitle, 96)) + '</p>'
     + '    </div>'
     + '  </div>'

@@ -323,11 +323,15 @@
     var requested = String(currentId || '').trim();
     if (requested) {
       for (var i = 0; i < profiles.length; i += 1) {
-        var rowId = String((profiles[i] && (profiles[i].id || profiles[i].profileId)) || '').trim();
+        var rowId = _dpGetProfileId(profiles[i]);
         if (rowId === requested) return rowId;
       }
     }
-    return profiles.length ? String(profiles[0].id || profiles[0].profileId || '').trim() : '';
+    return profiles.length ? _dpGetProfileId(profiles[0]) : '';
+  }
+
+  function _dpGetProfileId(profile) {
+    return String((profile && (profile.id || profile.profileId)) || '').trim();
   }
 
   function _dpPublishCurrentProfile() {
@@ -390,7 +394,7 @@
         _dpEnsureScopedStorageReady();
         var id = String(_dpCurrentId || '').trim();
         if (!id) return null;
-        return _dpProfiles.find(function(p) { return String(p && (p.id || p.profileId) || '').trim() === id; }) || null;
+        return _dpProfiles.find(function(p) { return _dpGetProfileId(p) === id; }) || null;
       } catch(e) { return null; }
     },
     setCurrent: function(id) {
@@ -398,6 +402,7 @@
       try {
         var scope = _dpEnsureScopedStorageReady();
         _dpCurrentId = _dpResolveCurrentIdFromProfiles(_dpProfiles, id || '');
+        if (_dpCurrentId) _dpMarkPendingCurrentProfile(_dpCurrentId);
         _dpWriteStoredProfileState(scope, _dpProfiles, _dpCurrentId);
         _dpPublishCurrentProfile();
         _dpSetCurrentOnServerDebounced(_dpCurrentId);
@@ -418,9 +423,9 @@
       var scope = _dpEnsureScopedStorageReady();
       var targetId = String(id || '').trim();
       var list = DPStorage.list().filter(function(p) {
-        return String((p && (p.id || p.profileId)) || '').trim() !== targetId;
+        return _dpGetProfileId(p) !== targetId;
       });
-      _dpSetProfileState(scope, list, _dpCurrentId === id ? (list.length ? list[0].id : '') : _dpCurrentId);
+      _dpSetProfileState(scope, list, _dpCurrentId === targetId ? (list.length ? _dpGetProfileId(list[0]) : '') : _dpCurrentId);
     },
     update: function(id, patch) {
       var scope = _dpEnsureScopedStorageReady();
@@ -1097,6 +1102,45 @@
   var _dpSetCurrentTimer = null;
   var _dpLoadFromServerPending = null;
   var _dpProfileServerReadyNotified = false;
+  var _dpPendingCurrentProfileId = '';
+  var _dpPendingCurrentProfileUntil = 0;
+
+  function _dpFindProfileById(profiles, id) {
+    var targetId = String(id || '').trim();
+    if (!targetId || !Array.isArray(profiles)) return null;
+    for (var i = 0; i < profiles.length; i += 1) {
+      if (_dpGetProfileId(profiles[i]) === targetId) return profiles[i];
+    }
+    return null;
+  }
+
+  function _dpMarkPendingCurrentProfile(id) {
+    var nextId = String(id || '').trim();
+    if (!nextId) return;
+    _dpPendingCurrentProfileId = nextId;
+    _dpPendingCurrentProfileUntil = Date.now() + 12000;
+  }
+
+  function _dpClearPendingCurrentProfile(id) {
+    var targetId = String(id || '').trim();
+    if (!targetId || _dpPendingCurrentProfileId === targetId) {
+      _dpPendingCurrentProfileId = '';
+      _dpPendingCurrentProfileUntil = 0;
+    }
+  }
+
+  function _dpResolveServerCurrentId(currentId, profiles) {
+    if (_dpPendingCurrentProfileId) {
+      if (Date.now() > _dpPendingCurrentProfileUntil) {
+        _dpClearPendingCurrentProfile();
+      } else if (_dpFindProfileById(profiles, _dpPendingCurrentProfileId)) {
+        return _dpPendingCurrentProfileId;
+      } else {
+        _dpClearPendingCurrentProfile();
+      }
+    }
+    return currentId || '';
+  }
 
   function _dpNotifyProfileServerReady(detail) {
     if (_dpProfileServerReadyNotified) return;
@@ -1127,15 +1171,27 @@
         body: JSON.stringify({ currentId: nextId })
       }).then(function(res) {
         var data = res && res.data ? res.data : null;
-        if (data && data.profileAccess) _dpApplyProfileAccess(data.profileAccess);
         if (res && res.status === 403 && data && data.code === 'PROFILE_SINGLE_LOCKED') {
+          _dpClearPendingCurrentProfile(nextId);
           alert(data.message || '확정된 프로필 카드만 사용할 수 있습니다.');
           _dpLoadFromServer(function(loaded) {
             if (!loaded) return;
             renderMasterCard(DPStorage.current());
             renderProfileList();
           });
+          return;
         }
+        if (!res || !res.ok || (data && data.ok === false)) {
+          _dpClearPendingCurrentProfile(nextId);
+          _dpLoadFromServer(function(loaded) {
+            if (!loaded) return;
+            renderMasterCard(DPStorage.current());
+            renderProfileList();
+          });
+          return;
+        }
+        if (data && data.profileAccess) _dpApplyProfileAccess(data.profileAccess);
+        if (String((data && data.currentId) || nextId || '').trim() === nextId) _dpClearPendingCurrentProfile(nextId);
       }).catch(function() {});
     }).catch(function() {});
   }
@@ -1177,7 +1233,8 @@
       .then(function(data) {
         if (!data || !data.ok || !Array.isArray(data.profiles)) return false;
         var scope = _dpGetProfileScope();
-        if (scope !== requestScope || !_dpSetProfileState(scope, data.profiles, data.currentId || '')) {
+        var serverCurrentId = _dpResolveServerCurrentId(data.currentId || '', data.profiles);
+        if (scope !== requestScope || !_dpSetProfileState(scope, data.profiles, serverCurrentId)) {
           return false;
         }
         _dpApplyProfileAccess(data.profileAccess);
@@ -3343,13 +3400,26 @@
     _dpUpdateProfileQuotaText(profileCount, maxProfiles, planLabel, canUsePlanSlot);
     if (!btn) return;
 
+    function setSaveButtonContent(label, badge) {
+      btn.innerHTML = '<span class="moon-submit-btn__star" aria-hidden="true">✦</span><span class="moon-submit-btn__text"></span><span class="moon-submit-btn__coin"></span>';
+      var textNode = btn.querySelector('.moon-submit-btn__text');
+      var coinNode = btn.querySelector('.moon-submit-btn__coin');
+      if (textNode) textNode.textContent = label;
+      if (coinNode) {
+        coinNode.textContent = badge;
+        coinNode.hidden = !badge;
+        coinNode.style.display = badge ? 'inline-flex' : 'none';
+      }
+      btn.setAttribute('aria-label', badge ? (label + ', ' + badge) : label);
+    }
+
     btn.disabled = false;
     if (!hasProfiles && canCreateWithoutPayment) {
-      btn.textContent = '✦ 이 정보를 나의 운명 카드에 저장 · ' + slotLabel;
+      setSaveButtonContent('이 정보를 나의 운명 카드에 저장', slotLabel);
     } else if (canCreateWithoutPayment) {
-      btn.textContent = '✦ 프로필 카드 생성 · ' + slotLabel + ' 사용 중';
+      setSaveButtonContent('프로필 카드 생성', slotLabel + ' 사용 중');
     } else {
-      btn.textContent = '✦ 프로필 카드 추가 생성 · ' + PROFILE_CARD_MANAGE_COST + '코인';
+      setSaveButtonContent('프로필 카드 추가 생성', PROFILE_CARD_MANAGE_COST + '코인');
     }
     btn.style.opacity = '';
     btn.style.cursor = '';
@@ -4606,6 +4676,11 @@
     if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
   }
 
+  function _dpSyncProfileFormToCurrent(profile) {
+    if (profile && profile.birth) _dpApplyProfileToForm(profile);
+    else _dpClearProfileForm();
+  }
+
   window.dpSaveProfile = function() {
     var data = readFormData();
     if (!data) {
@@ -4851,77 +4926,76 @@
   };
 
   window.dpSelectProfile = function(id) {
+    var profileId = String(id || '').trim();
+    var selectedProfile = _dpFindProfileById(DPStorage.list(), profileId);
+    if (!selectedProfile) {
+      alert('선택한 프로필 카드를 찾을 수 없습니다.');
+      renderProfileList();
+      return;
+    }
     var access = _dpProfileAccess || {};
     var lockedId = String(access.lockedProfileId || '').trim();
-    var isSingleProfileLocked = String(access.mode || '').trim() === 'single' || access.locked === true || access.selectionRequired === true || !!lockedId;
-    var maxProfiles = _dpGetMaxProfiles();
-    var singleProfilePlan = !_dpIsUnlimitedProfileLimit(maxProfiles) && _dpGetPositiveProfileLimit(maxProfiles) <= 1;
-    var currentIdForPolicy = (DPStorage.current() || {}).id;
+    var isServerLocked = String(access.mode || '').trim() === 'single' || access.locked === true || !!lockedId;
     function activateSelectedProfile(serverConfirmed) {
-      if (!serverConfirmed && _dpHasSessionHint()) {
-        _dpCommitSingleProfileSelection(id, function(ok) {
-          if (!ok) {
-            _dpLoadFromServer(function(loaded) {
-              if (!loaded) return;
-              renderMasterCard(DPStorage.current());
-              renderProfileList();
-            });
-            return;
-          }
-          _dpLoadFromServer(function(loaded) {
-            if (loaded) activateSelectedProfile(true);
-          });
-        });
-        return;
-      }
-      DPStorage.setCurrent(id);
-      var p = DPStorage.current();
+      DPStorage.setCurrent(profileId);
+      var p = DPStorage.current() || selectedProfile;
+      _dpSyncProfileFormToCurrent(p);
       renderMasterCard(p);
+      renderProfileList();
       broadcastProfileChange(p);
+      _dpUpdateSaveBtn();
       dpCloseList();
       spawnStardust(document.getElementById('dpMasterCard'));
       _toast('✨ ' + (p ? _esc(p.name) : '') + ' · 프로필 활성화', 'success');
+      if (!serverConfirmed && _dpHasSessionHint()) {
+        _dpCommitSingleProfileSelection(profileId, function(ok) {
+          if (ok) return;
+          _dpClearPendingCurrentProfile(profileId);
+          _dpLoadFromServer(function(loaded) {
+            if (!loaded) return;
+            var restored = DPStorage.current();
+            _dpSyncProfileFormToCurrent(restored);
+            renderMasterCard(restored);
+            renderProfileList();
+            broadcastProfileChange(restored || null);
+            _dpUpdateSaveBtn();
+          });
+        });
+      }
     }
 
-    if (isSingleProfileLocked && singleProfilePlan && lockedId && id !== lockedId) {
+    if (isServerLocked && lockedId && profileId !== lockedId) {
       alert('이용권 혜택 종료 후 확정한 프로필 카드만 사용할 수 있습니다.\n/points 페이지에서 이용권을 결제하면 다시 여러 프로필을 이용할 수 있습니다.');
       return;
     }
 
-    if (isSingleProfileLocked && singleProfilePlan && access.selectionRequired) {
-      var selected = (DPStorage.list() || []).find(function(profile) { return profile && profile.id === id; });
-      var profileName = selected && selected.name ? selected.name : '선택한 프로필';
+    if (access.selectionRequired === true) {
+      var profileName = selectedProfile && selectedProfile.name ? selectedProfile.name : '선택한 프로필';
       if (!confirm(profileName + ' 프로필 카드로 확정할까요?\n확정 후 추가 이용권 결제 전까지 이 카드만 사용할 수 있습니다.')) return;
-      _dpCommitSingleProfileSelection(id, function(ok) {
-        if (!ok) return;
+      _dpCommitSingleProfileSelection(profileId, function(ok) {
+        if (!ok) {
+          _dpClearPendingCurrentProfile(profileId);
+          _dpLoadFromServer(function(loaded) {
+            if (!loaded) return;
+            var restored = DPStorage.current();
+            _dpSyncProfileFormToCurrent(restored);
+            renderMasterCard(restored);
+            renderProfileList();
+            broadcastProfileChange(restored || null);
+            _dpUpdateSaveBtn();
+          });
+          return;
+        }
         _dpProfileAccess.selectionRequired = false;
         _dpProfileAccess.locked = true;
-        _dpProfileAccess.lockedProfileId = id;
+        _dpProfileAccess.lockedProfileId = profileId;
         activateSelectedProfile(true);
       });
       return;
     }
 
-    if (isSingleProfileLocked && singleProfilePlan && id !== currentIdForPolicy) {
-      alert('무료 플랜은 프로필 1개만 사용할 수 있습니다.\n/points 페이지에서 이용권을 결제하면 여러 프로필을 이용할 수 있습니다.');
-      return;
-    }
-
     activateSelectedProfile(false);
     return;
-    /* ★ 무료 플랜: 다른 프로필 선택 불가 (프로필 1개 제한) */
-    var _curId = (DPStorage.current() || {}).id;
-    if (!_dpIsUnlimitedProfileLimit(_dpGetMaxProfiles()) && _dpGetPositiveProfileLimit(_dpGetMaxProfiles()) <= 1 && id !== _curId) {
-      alert('무료 플랜은 프로필 1개만 사용할 수 있습니다.\n/points 페이지에서 구독을 업그레이드하면 여러 프로필을 이용할 수 있습니다.');
-      return;
-    }
-    DPStorage.setCurrent(id);
-    var p = DPStorage.current();
-    renderMasterCard(p);
-    broadcastProfileChange(p);
-    dpCloseList();
-    spawnStardust(document.getElementById('dpMasterCard'));
-    _toast('✦ ' + (p ? _esc(p.name) : '') + ' · 프로필 활성화', 'success');
   };
 
   window.dpToggleProfileMenu = function(event) {
@@ -4951,10 +5025,19 @@
     var deletedBirthDate = hasDeletedBirthDate
       ? deletedBirth.year + '-' + String(deletedBirth.month).padStart(2, '0') + '-' + String(deletedBirth.day).padStart(2, '0')
       : '';
+    var deletedBirthTime = deletedBirth.hour != null && deletedBirth.minute != null
+      ? String(deletedBirth.hour).padStart(2, '0') + ':' + String(deletedBirth.minute).padStart(2, '0')
+      : '';
     var formBirthDate = String((document.getElementById('birthDate') || {}).value || '').trim();
+    var rawFormHour = String((document.getElementById('birthHour') || {}).value || '').trim();
+    var rawFormMinute = String((document.getElementById('birthMinute') || {}).value || '').trim();
+    var formBirthTime = rawFormHour !== '' && rawFormMinute !== ''
+      ? rawFormHour.padStart(2, '0') + ':' + rawFormMinute.padStart(2, '0')
+      : '';
     var formName = String((document.getElementById('nameInput') || {}).value || '').trim();
     var wasLoadedFormProfile = !!deletedBirthDate
       && formBirthDate === deletedBirthDate
+      && (!deletedBirthTime || formBirthTime === deletedBirthTime)
       && (!formName || !profile.name || formName === String(profile.name).trim());
     var deleteLock = _dpReadProfileDeleteLock();
     if (deleteLock.profileId === profileId) {
@@ -5010,9 +5093,10 @@
         throw new Error((result.data && result.data.message) || '프로필 카드 삭제에 실패했습니다.');
       }
       var payload = result.data || {};
+      _dpClearPendingCurrentProfile(profileId);
       if (Array.isArray(payload.profiles)) {
         var nextProfiles = payload.profiles.filter(function(item) {
-          return String((item && (item.id || item.profileId)) || '').trim() !== profileId;
+          return _dpGetProfileId(item) !== profileId;
         });
         var stateSynced = _dpSetProfileState(_dpGetProfileScope(), nextProfiles, payload.currentId || '');
         if (!stateSynced) DPStorage.remove(profileId);
@@ -5021,8 +5105,7 @@
       }
       var current = DPStorage.current();
       if (wasCurrentProfile || wasLoadedFormProfile) {
-        if (current && current.birth) _dpApplyProfileToForm(current);
-        else _dpClearProfileForm();
+        _dpSyncProfileFormToCurrent(current);
       }
       renderMasterCard(current);
       renderProfileList();
@@ -5034,8 +5117,7 @@
         if (!loaded) return;
         var refreshed = DPStorage.current();
         if (wasCurrentProfile || wasLoadedFormProfile) {
-          if (refreshed && refreshed.birth) _dpApplyProfileToForm(refreshed);
-          else _dpClearProfileForm();
+          _dpSyncProfileFormToCurrent(refreshed);
         }
         renderMasterCard(refreshed);
         renderProfileList();

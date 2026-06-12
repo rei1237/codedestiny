@@ -533,6 +533,7 @@
       '.ent-rpg-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}',
       '.ent-rpg-card{grid-column:span 12;position:relative;overflow:hidden;border-radius:22px;padding:16px 15px 15px;background:radial-gradient(125% 120% at 50% 0%,rgba(122,76,224,.22) 0%,rgba(25,12,52,.95) 42%,rgba(7,4,20,.98) 100%);border:1px solid rgba(201,160,255,.18);box-shadow:0 18px 42px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.05)}',
       '.ent-rpg-card::before{content:"";position:absolute;inset:-1px;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 18%,transparent 78%,rgba(255,255,255,.02));pointer-events:none;opacity:.75}',
+      '.ent-rpg-card--quests{overflow:visible}',
       '.ent-rpg-card__eyebrow{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(224,197,255,.72);font-weight:900}',
       '.ent-rpg-card__title{margin-top:4px;font-size:1.05rem;font-weight:900;color:#fff;letter-spacing:-.01em;line-height:1.25}',
       '.ent-rpg-card__sub{margin-top:6px;font-size:.76rem;line-height:1.6;color:rgba(208,190,234,.82)}',
@@ -562,9 +563,21 @@
       '.ent-rpg-chip{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#f4ebff;font-size:.72rem;font-weight:800;line-height:1.3}',
       '.ent-rpg-chip.is-secret{border-color:rgba(246,200,96,.24);color:#ffefbe;background:linear-gradient(135deg,rgba(80,50,14,.72),rgba(37,20,7,.66))}',
       '.ent-rpg-chip.is-lock{border-style:dashed;color:rgba(226,208,255,.72)}',
+      '.ent-rpg-today-skill{position:relative;display:grid;grid-template-columns:54px minmax(0,1fr);gap:12px;margin-top:14px;padding:13px;border-radius:18px;background:radial-gradient(circle at 12% 18%,rgba(255,255,255,.22),transparent 30%),linear-gradient(135deg,rgba(255,232,166,.18),rgba(236,72,153,.11),rgba(56,189,248,.10));border:1px solid rgba(255,232,166,.28);box-shadow:0 16px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.10);overflow:hidden}',
+      '.ent-rpg-today-skill::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 86% 18%,rgba(255,255,255,.34) 0 1px,transparent 2px),radial-gradient(circle at 72% 72%,rgba(255,232,166,.48) 0 1px,transparent 2px);pointer-events:none}',
+      '.ent-rpg-today-skill.is-complete{border-color:rgba(74,222,128,.32);background:linear-gradient(135deg,rgba(34,197,94,.16),rgba(255,232,166,.12),rgba(56,189,248,.09))}',
+      '.ent-rpg-today-skill__orb{position:relative;z-index:1;width:54px;height:54px;border-radius:18px;display:grid;place-items:center;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.32),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.14);box-shadow:0 12px 22px rgba(0,0,0,.24);font-size:1.25rem}',
+      '.ent-rpg-today-skill__body{position:relative;z-index:1;min-width:0}',
+      '.ent-rpg-today-skill__kicker{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#ffe8a3;font-size:.66rem;font-weight:950;letter-spacing:.12em;text-transform:uppercase}',
+      '.ent-rpg-today-skill__name{margin-top:5px;color:#fff;font-size:1.02rem;font-weight:950;line-height:1.28}',
+      '.ent-rpg-today-skill__copy{margin-top:5px;color:rgba(241,231,255,.86);font-size:.76rem;line-height:1.58}',
+      '.ent-rpg-today-skill__meter{margin-top:10px;height:8px;border-radius:999px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.08);overflow:hidden}',
+      '.ent-rpg-today-skill__meter span{display:block;height:100%;width:var(--rpg-skill-progress,0%);border-radius:inherit;background:linear-gradient(90deg,#f7d878,#ec4899,#38bdf8);box-shadow:0 0 16px rgba(247,216,120,.34)}',
+      '.ent-rpg-today-skill__reward{display:inline-flex;align-items:center;gap:5px;min-height:24px;margin-top:9px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);color:#fff7cf;font-size:.68rem;font-weight:900}',
       '.ent-rpg-quest-grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:12px;margin-top:14px}',
       '.ent-rpg-quest-card{position:relative;overflow:hidden;padding:14px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.06);box-shadow:0 14px 28px rgba(0,0,0,.2);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}',
       '.ent-rpg-quest-card:hover{transform:translateY(-1px);border-color:rgba(246,205,121,.24);box-shadow:0 18px 34px rgba(0,0,0,.24)}',
+      '.ent-rpg-quest-card.is-today-skill{border-color:rgba(255,232,166,.34);box-shadow:0 16px 32px rgba(0,0,0,.22),0 0 0 1px rgba(255,232,166,.08)}',
       '.ent-rpg-quest-card.is-complete{border-color:rgba(74,222,128,.2);background:linear-gradient(180deg,rgba(34,197,94,.09),rgba(255,255,255,.025))}',
       '.ent-rpg-quest-card.is-just-completed{animation:cdRpgQuestPop .75s ease}',
       '@keyframes cdRpgQuestPop{0%{transform:scale(.98)}40%{transform:scale(1.02)}100%{transform:scale(1)}}',
@@ -574,6 +587,7 @@
       '.ent-rpg-quest-badge{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(244,235,255,.86);font-size:.62rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}',
       '.ent-rpg-quest-title{margin-top:8px;font-size:.95rem;font-weight:900;color:#fff;line-height:1.45}',
       '.ent-rpg-quest-desc{margin-top:7px;font-size:.78rem;line-height:1.55;color:rgba(215,199,236,.84)}',
+      '.ent-rpg-quest-skill{display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:5px 9px;border-radius:999px;background:rgba(255,232,166,.10);border:1px solid rgba(255,232,166,.18);color:#fff1b8;font-size:.68rem;font-weight:900}',
       '.ent-rpg-quest-reason{margin-top:10px;padding:9px 10px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:.72rem;line-height:1.5;color:rgba(238,230,255,.82)}',
       '.ent-rpg-quest-reason strong{color:#ffd86e}',
       '.ent-rpg-quest-after{margin-top:10px;padding:10px 11px;border-radius:14px;background:linear-gradient(135deg,rgba(247,216,120,.09),rgba(255,255,255,.03));border:1px solid rgba(247,214,120,.12);font-size:.74rem;line-height:1.7;color:#fff1c6}',
@@ -664,6 +678,43 @@
     var meta = RPG_ELEMENT_META[element] || RPG_ELEMENT_META.earth;
     var suffix = tier === 'core' ? '✦' : (tier === 'normal' ? '✧' : '•');
     return meta.icon + ' ' + suffix;
+  }
+
+  function buildTodayRpgSkill(quests, completedSet, profileDayEl, completedCount, questCount) {
+    var focusQuest = null;
+    for (var i = 0; i < quests.length; i += 1) {
+      if (!completedSet.has(String(quests[i].questId || ''))) {
+        focusQuest = quests[i];
+        break;
+      }
+    }
+    if (!focusQuest && quests.length) focusQuest = quests[quests.length - 1];
+    var element = String((focusQuest && focusQuest.element) || profileDayEl || 'earth');
+    if (!RPG_ELEMENT_META[element]) element = 'earth';
+    var meta = RPG_ELEMENT_META[element] || RPG_ELEMENT_META.earth;
+    var tier = String((focusQuest && focusQuest.tier) || '').trim();
+    var tierName = tier === 'core' ? '마스터 스킬' : (tier === 'normal' ? '집중 스킬' : '기초 스킬');
+    var nameMap = {
+      wood: '성장 루트 개방',
+      fire: '운명 점화',
+      earth: '기반 강화',
+      metal: '결정타 정렬',
+      water: '직관 집중'
+    };
+    var progressPct = questCount ? Math.round((completedCount / questCount) * 100) : 0;
+    var done = !!(focusQuest && completedSet.has(String(focusQuest.questId || '')));
+    if (done && completedCount >= questCount) progressPct = 100;
+    return {
+      quest: focusQuest || null,
+      done: done || completedCount >= questCount,
+      icon: getQuestIcon(element, tier),
+      title: meta.label + ' · ' + (nameMap[element] || '운명 정렬'),
+      tierName: tierName,
+      copy: focusQuest ? (focusQuest.text || focusQuest.description || '오늘의 성장을 완성할 차례입니다.') : '오늘의 체크리스트가 모두 닫히면 성장 메시지가 열립니다.',
+      expReward: focusQuest ? toRpgNumber(focusQuest.expReward, 0) : 0,
+      questId: focusQuest ? String(focusQuest.questId || '') : '',
+      progressPct: Math.max(0, Math.min(100, progressPct))
+    };
   }
 
   function getElementGrowthCue(element, state, quests, completedSet) {
@@ -851,6 +902,17 @@
     var classElementLabel = String(dayMaster.elementKo || '').trim();
     var coreClass = (classLabel || classElementLabel) ? (classLabel ? (classLabel + ' · ' + classElementLabel) : classElementLabel) : '운명 코어';
     var heroSub = '다음 레벨까지 ' + expRemain + ' EXP · 오늘 ' + todayEarnedExp + ' / ' + todayMaxExp + ' EXP · 연속 ' + streakDays + '일';
+    var todaySkill = buildTodayRpgSkill(quests, completedSet, profileDayEl, completedCount, questCount);
+    var todaySkillHtml = '<div class="ent-rpg-today-skill' + (todaySkill.done ? ' is-complete' : '') + '" data-today-skill="' + escapeRpgHtml(todaySkill.questId) + '">'
+      + '<div class="ent-rpg-today-skill__orb">' + escapeRpgHtml(todaySkill.icon) + '</div>'
+      + '<div class="ent-rpg-today-skill__body">'
+      +   '<div class="ent-rpg-today-skill__kicker"><span>TODAY\'S SKILL</span><span>' + escapeRpgHtml(todaySkill.tierName) + '</span></div>'
+      +   '<div class="ent-rpg-today-skill__name">' + escapeRpgHtml(todaySkill.title) + '</div>'
+      +   '<div class="ent-rpg-today-skill__copy">' + escapeRpgHtml(todaySkill.copy) + '</div>'
+      +   '<div class="ent-rpg-today-skill__meter"><span style="--rpg-skill-progress:' + todaySkill.progressPct + '%"></span></div>'
+      +   '<div class="ent-rpg-today-skill__reward">' + escapeRpgHtml(todaySkill.done ? '오늘의 스킬 각성 완료' : ('완료 보상 +' + todaySkill.expReward + ' EXP')) + '</div>'
+      + '</div>'
+      + '</div>';
     var elementScores = {};
     var rawScores = fiveElements.scores && typeof fiveElements.scores === 'object' ? fiveElements.scores : {};
     var scoreTotal = 0;
@@ -906,13 +968,16 @@
       var tier = String(quest.tier || '').trim() || 'normal';
       var icon = getQuestIcon(String(quest.element || 'earth'), tier);
       var btnLabel = done ? '완료됨' : '완료';
-      return '<article class="ent-rpg-quest-card' + (done ? ' is-complete' : '') + (justCompleted ? ' is-just-completed' : '') + '" data-quest-id="' + escapeRpgHtml(quest.questId) + '">'
+      var isTodaySkill = String(todaySkill.questId || '') && String(todaySkill.questId || '') === String(quest.questId || '');
+      var questSkillLabel = isTodaySkill ? '오늘의 스킬' : '스킬 체크';
+      return '<article class="ent-rpg-quest-card' + (done ? ' is-complete' : '') + (justCompleted ? ' is-just-completed' : '') + (isTodaySkill ? ' is-today-skill' : '') + '" data-quest-id="' + escapeRpgHtml(quest.questId) + '">'
         + '<div class="ent-rpg-quest-top">'
         +   '<div class="ent-rpg-quest-icon">' + escapeRpgHtml(icon) + '</div>'
         +   '<div class="ent-rpg-quest-body">'
         +     '<div class="ent-rpg-quest-badge">' + escapeRpgHtml(String(quest.questType || tier).toUpperCase()) + '</div>'
         +     '<div class="ent-rpg-quest-title">' + escapeRpgHtml(quest.text || '') + '</div>'
         +     '<div class="ent-rpg-quest-desc">' + escapeRpgHtml(quest.description || '사주 구조에 맞춰 오늘의 운을 움직이는 행동입니다.') + '</div>'
+        +     '<div class="ent-rpg-quest-skill">' + escapeRpgHtml(questSkillLabel + ' · ' + ((RPG_ELEMENT_META[quest.element] && RPG_ELEMENT_META[quest.element].label) || quest.element || '운명')) + '</div>'
         +     '<div class="ent-rpg-quest-reason"><strong>사주 이유:</strong> ' + escapeRpgHtml(quest.reason || '오늘의 기운을 맞추는 미션입니다.') + '</div>'
         +     (done ? '<div class="ent-rpg-quest-after"><strong>완료 후 해석:</strong> ' + escapeRpgHtml(quest.afterCompleteMessage || '오늘의 행동은 운의 흐름을 바로잡는 작은 전환점이 됩니다.') + '</div>' : '')
         +   '</div>'
@@ -977,7 +1042,7 @@
     var loadingBlock = isLoading
       ? '<div class="ent-rpg-loading">오늘의 사주 기반 퀘스트를 불러오는 중입니다.</div>'
       : (errText && state.errorState ? '<div class="ent-rpg-empty">서버 응답을 불러오지 못했습니다.<br>' + escapeRpgHtml(errText) + '</div>' : '');
-    return '<section class="ent-rpg-shell ent-reveal" id="entRpgSection" data-marker="rpg-character-sheet-fallback-v20260607" data-dayel="' + escapeRpgHtml(profileDayEl) + '" data-state="' + escapeRpgHtml(state.errorState ? 'error' : (isLoading ? 'loading' : 'ready')) + '" data-profile-id="' + escapeRpgHtml(state.profileId || '') + '" data-quest-date="' + escapeRpgHtml(state.questDateKst || '') + '">'
+    return '<section class="ent-rpg-shell ent-reveal" id="entRpgSection" data-marker="rpg-character-sheet-today-skill-v20260613" data-dayel="' + escapeRpgHtml(profileDayEl) + '" data-state="' + escapeRpgHtml(state.errorState ? 'error' : (isLoading ? 'loading' : 'ready')) + '" data-profile-id="' + escapeRpgHtml(state.profileId || '') + '" data-quest-date="' + escapeRpgHtml(state.questDateKst || '') + '">'
       + '<div class="ent-rpg-topline">'
       +   '<div>'
       +     '<div class="ent-quest-tag">⚡ DAILY QUEST SYSTEM</div>'
@@ -1033,6 +1098,7 @@
       +     '<div class="ent-rpg-card__sub">퀘스트를 완료할수록 서버에 EXP가 누적되고, 레벨업과 내부 보상이 해금됩니다.</div>'
       +     loadingBlock
       +     previewBlock
+      +     todaySkillHtml
       +     '<div class="ent-rpg-summary" style="margin-top:12px">'
       +       '<span>완료 <strong>' + escapeRpgHtml(completedCount) + ' / ' + escapeRpgHtml(questCount) + '</strong></span>'
       +       '<span>오늘 EXP <strong>' + escapeRpgHtml(todayEarnedExp) + ' / ' + escapeRpgHtml(todayMaxExp) + '</strong></span>'
