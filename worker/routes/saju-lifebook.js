@@ -286,7 +286,7 @@ const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
   "premium_pdf_saju_life_book",
   "premium-lifebook-report",
 ]);
-const LIFEBOOK_TEMPORARY_PAYMENT_BYPASS = true;
+const LIFEBOOK_TEMPORARY_PAYMENT_BYPASS = false;
 const LIFE_BOOK_PROMPT_VERSION = "life-book-local-assembler-v3";
 const LIFE_BOOK_LLM_ENHANCED_CHAPTERS = Object.freeze([
   "01",

@@ -7,7 +7,7 @@
 
   var LIFEBOOK_TOTAL_CHAPTERS = 13;
   var LIFE_BOOK_FEATURE_KEY = 'saju_life_book_pdf';
-  var LIFEBOOK_TEMPORARY_FREE = true;
+  var LIFEBOOK_TEMPORARY_FREE = false;
   var LIFE_BOOK_REASON = '인생의 책 생성 (13챕터)';
   var LIFEBOOK_API_PREPARE_PATH = '/api/premium/saju-lifebook/prepare';
   var LIFEBOOK_API_STATUS_PATH = '/api/premium/saju-lifebook/status';
@@ -2047,6 +2047,22 @@ function _isLifeBookGenerationBusy() {
     };
   }
 
+  var _lbStateMessages = {
+    profile_check: '프로필 정보 확인 중',
+    calculating_saju: '사주 원국 계산 중',
+    daewoon_calc: '대운과 세운의 흐름 계산 중',
+    local_draft: '로컬 명리 엔진으로 13챕터 원고 구성 시작',
+    local_chapters_start: '로컬 명리 엔진으로 13챕터 원고 구성 시작',
+    local_writing: '인생의 책 원고를 정리하는 중',
+    writing_local: '인생의 책 원고를 정리하는 중',
+    calculation_validated: '사주 계산 완료 · 로컬 원고 구성 시작',
+    llm_writing: '인생의 책 원고를 정리하는 중',
+    llm_reviewing: '최종 원고 품질 검수 중',
+    rendering_pdf: 'PDF 편집과 렌더링 중',
+    done: '완료',
+    local_reinforce: '부족한 장을 보강하는 중',
+  };
+
   /* ??????????????? ?앹꽦 濡쒖쭅 ??????????????? */
   window.generateLifeBook = function (options) {
     if (_isLifeBookGenerationBusy()) return;
@@ -2234,28 +2250,12 @@ function _isLifeBookGenerationBusy() {
 
     _setProgress(0);
 
-    var _lbStateMessages = {
-      profile_check: '프로필 정보 확인 중',
-      calculating_saju: '사주 원국 계산 중',
-      daewoon_calc: '대운과 세운의 흐름 계산 중',
-      local_draft: '로컬 명리 엔진으로 13챕터 원고 구성 시작',
-      local_chapters_start: '로컬 명리 엔진으로 13챕터 원고 구성 시작',
-      local_writing: '인생의 책 원고를 정리하는 중',
-      writing_local: '인생의 책 원고를 정리하는 중',
-      calculation_validated: '사주 계산 완료 · 로컬 원고 구성 시작',
-      llm_writing: '인생의 책 원고를 정리하는 중',
-      llm_reviewing: '최종 원고 품질 검수 중',
-      rendering_pdf: 'PDF 편집과 렌더링 중',
-      done: '완료',
-      local_reinforce: '부족한 장을 보강하는 중',
-    };
-
-    function _setGenerationState(stateKey) {
+    var _setGenerationState = function (stateKey) {
       var msg = _lbStateMessages[String(stateKey || '')] || '인생의 책을 생성하고 있습니다.';
       if (chapterMsg) chapterMsg.textContent = msg;
       if (chapterNumEl) chapterNumEl.textContent = '진행 상태';
       _flowLog('GENERATION_STATE', { state: stateKey, message: msg });
-    }
+    };
 
     _flowLog('LIFE_BOOK_FLOW_START', {
       featureKey: LIFE_BOOK_FEATURE_KEY,
@@ -2666,4 +2666,3 @@ function _isLifeBookGenerationBusy() {
   }
 
 })();
-
