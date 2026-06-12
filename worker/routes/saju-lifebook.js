@@ -287,15 +287,7 @@ const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
   "premium-lifebook-report",
 ]);
 const LIFE_BOOK_PROMPT_VERSION = "life-book-local-assembler-v3";
-const LIFE_BOOK_LLM_ENHANCED_CHAPTERS = Object.freeze([
-  "01",
-  "02",
-  "03",
-  "04",
-  "07",
-  "08",
-  "13",
-]);
+
 
 const LIFEBOOK_MIN_CATEGORY_CHARS = 850;
 const LIFEBOOK_MIN_CHAPTER_CHARS = 3600;
@@ -304,7 +296,7 @@ const LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS = 250;
 const LIFEBOOK_BLOCKING_MIN_CHAPTER_CHARS = 2600;
 const LIFEBOOK_BLOCKING_MIN_TOTAL_CHARS = 70000;
 const LIFEBOOK_QUALITY_REPAIR_MAX_ROUNDS = 3;
-const LIFEBOOK_LLM_TARGET_YEAR = 2026;
+const LIFEBOOK_LOCAL_TARGET_YEAR = 2026;
 const LIFEBOOK_A4_CHAR_RANGE = Object.freeze({ min: 850, target: 950, max: 1100 });
 const LIFEBOOK_A4_TOTAL_TARGET = Object.freeze({ pages: 100, minChars: 85000, targetChars: 95000, maxChars: 110000 });
 const LIFEBOOK_CHAPTER_PAGE_TARGETS = Object.freeze({
@@ -348,86 +340,34 @@ const LIFEBOOK_PHASE6_CHAPTER_STRUCTURE = Object.freeze([
 
 const LIFEBOOK_PHASE6_CATEGORY_SECTIONS = Object.freeze(LIFEBOOK_PHASE6_CHAPTER_STRUCTURE.slice(1));
 
-const LIFEBOOK_LLM_KEY_ENV_KEYS = [
-  "GEMINIF_API_KEY1",
-  "GEMINIF_API_KEY2",
-  "GEMINIF_API_KEY3",
-  "GEMINIF_API_KEY4",
-  "GEMINIF_API_KEY5",
-  "GEMINIF_API_KEY6",
-  "GEMINIF_API_KEY7",
-  "GEMINIF_API_KEY8",
-  "PREMIUM_GEMINI_API_KEY1",
-  "PREMIUM_GEMINI_API_KEY2",
-  "PREMIUM_GEMINI_API_KEY3",
-  "PREMIUM_GEMINI_API_KEY4",
-  "PREMIUM_GEMINI_API_KEY5",
-  "GEMINI_API_KEY",
-  "GOOGLE_GEMINI_API_KEY",
-  "GOOGLE_GENERATIVE_AI_API_KEY",
-  "GOOGLE_API_KEY",
-];
-const LIFEBOOK_LLM_MODEL_ENV_KEYS = [
-  "PREMIUM_SAJU_LIFEBOOK_GEMINI_MODEL",
-  "PREMIUM_GEMINI_MODEL",
-  "GEMINI_MODEL",
-];
+
+
 export const LIFE_BOOK_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
-  llmEnabled: false,
   provider: "saju-assembler",
   templateVersion: "life-book-local-assembled-v3",
 });
 const LIFEBOOK_AUTHORING_MODE = "local-assembled";
 const LIFEBOOK_LOCAL_WRITING_STATE = "local_writing";
-const LIFEBOOK_LLM_WRITING_STATE = LIFEBOOK_LOCAL_WRITING_STATE;
-
-const LIFEBOOK_LLM_CHAPTER_CACHE = globalThis.__LIFEBOOK_LLM_CHAPTER_CACHE || new Map();
-if (!globalThis.__LIFEBOOK_LLM_CHAPTER_CACHE) {
-  globalThis.__LIFEBOOK_LLM_CHAPTER_CACHE = LIFEBOOK_LLM_CHAPTER_CACHE;
-}
-
-function isLifeBookLlmOnlyAuthoringMode(value) {
-  return clean(value).toLowerCase() === "llm-only";
-}
+const LIFEBOOK_WRITING_STATE = LIFEBOOK_LOCAL_WRITING_STATE;
 
 function isLifeBookLocalAssemblyMode(value = LIFE_BOOK_PDF_CONFIG.generationMode) {
   const mode = clean(value).toLowerCase();
   return ["local", "local-assembled", "assembled", "deterministic", "deterministic-assembled"].includes(mode);
 }
 
-function resolveLifeBookLlmRuntimeInfo(env = {}) {
+function resolveLifeBookAssemblyRuntimeInfo(env = {}) {
   return {
     provider: LIFE_BOOK_PDF_CONFIG.provider,
-    selectedModel: "",
-    keyConfigured: false,
-    configuredKeyCount: 0,
-    enhancementEnabled: false,
-    promptVersion: LIFE_BOOK_PROMPT_VERSION,
     templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
-    enhancedChapterIds: [],
-    timeoutMs: 0,
-    totalTimeoutMs: 0,
-    retries: 0,
     externalCallsAllowed: false,
     runtime: "local-assembled",
   };
 }
 
-function isLifeBookLlmEnhancementEnabled(env = {}) {
-  if (isLifeBookLocalAssemblyMode() || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) return false;
-  const raw = clean(
-    env?.LIFE_BOOK_LLM_ENHANCEMENT_ENABLED
-    ?? env?.LIFEBOOK_LLM_ENHANCEMENT_ENABLED
-    ?? "true",
-  ).toLowerCase();
-  return !["0", "false", "off", "no", "disabled"].includes(raw);
-}
 
-function shouldEnhanceLifeBookChapter(chapterSpec = {}) {
-  if (isLifeBookLocalAssemblyMode() || LIFE_BOOK_PDF_CONFIG.llmEnabled !== true) return false;
-  return LIFE_BOOK_LLM_ENHANCED_CHAPTERS.includes(clean(chapterSpec?.id));
-}
+
+
 
 function stableLifeBookCacheJson(value) {
   if (value == null || typeof value !== "object") return JSON.stringify(value);
@@ -522,34 +462,11 @@ function writeLifeBookLocalPdfResultCache(cacheKey = "", result = {}) {
   LIFEBOOK_LOCAL_PDF_RESULT_CACHE.set(key, JSON.stringify(result));
 }
 
-function buildLifeBookChapterCacheKey(llmInput = {}, chapterSpec = {}) {
-  const engineContract = llmInput?.engineContract || {};
-  const seed = stableLifeBookCacheJson({
-    serviceType: "life_book",
-    birthInfo: engineContract?.userInfo || llmInput?.profile || {},
-    natal: engineContract?.natal || llmInput?.saju || {},
-    engineVersion: clean(engineContract?.version || engineContract?.source || "life-book-engine-contract"),
-    promptVersion: LIFE_BOOK_PROMPT_VERSION,
-    chapterId: clean(chapterSpec?.id),
-  });
-  return `life_book:${hashLifeBookCacheText(seed)}:${LIFE_BOOK_PROMPT_VERSION}:${clean(chapterSpec?.id)}`;
-}
 
-function readLifeBookChapterCache(cacheKey = "") {
-  const key = clean(cacheKey);
-  if (!key || !LIFEBOOK_LLM_CHAPTER_CACHE.has(key)) return null;
-  return cloneLifeBookData(LIFEBOOK_LLM_CHAPTER_CACHE.get(key));
-}
 
-function writeLifeBookChapterCache(cacheKey = "", chapter = {}) {
-  const key = clean(cacheKey);
-  if (!key || !chapter || typeof chapter !== "object") return;
-  if (LIFEBOOK_LLM_CHAPTER_CACHE.size > 80) {
-    const firstKey = LIFEBOOK_LLM_CHAPTER_CACHE.keys().next().value;
-    if (firstKey) LIFEBOOK_LLM_CHAPTER_CACHE.delete(firstKey);
-  }
-  LIFEBOOK_LLM_CHAPTER_CACHE.set(key, cloneLifeBookData(chapter));
-}
+
+
+
 
 const LIFEBOOK_SESSION_LOCKS = globalThis.__LIFEBOOK_SESSION_LOCKS || new Map();
 if (!globalThis.__LIFEBOOK_SESSION_LOCKS) {
@@ -588,7 +505,7 @@ function buildLifeBookStatusPayload(lock = {}, fallback = {}) {
       completedAt: clean(fallback.completedAt || data?.completedAt),
       failedAt: clean(fallback.failedAt),
       progress: {
-        stateKey: clean(progress.stateKey || (status === "done" ? "completed" : status === "failed" ? "failed" : LIFEBOOK_LLM_WRITING_STATE)),
+        stateKey: clean(progress.stateKey || (status === "done" ? "completed" : status === "failed" ? "failed" : LIFEBOOK_WRITING_STATE)),
         currentChapterNo: Math.max(0, Math.min(totalChapters, Number(progress.currentChapterNo || (status === "done" ? totalChapters : 0)) || 0)),
         totalChapters,
         currentChapterTitle: clean(progress.currentChapterTitle),
@@ -712,7 +629,7 @@ function buildLifeBookReusableExecutionResponse(doc = {}, fallback = {}) {
           sessionId,
           status: "running",
           progress: {
-            stateKey: LIFEBOOK_LLM_WRITING_STATE,
+            stateKey: LIFEBOOK_WRITING_STATE,
             currentChapterNo: 0,
             totalChapters: getLifeBookBlueprints().length,
           },
@@ -2116,23 +2033,14 @@ function sanitizeCategoryText(text = "", chapterId = "", categoryTitle = "", cat
 }
 
 function sanitizeLifeBookChapters(profile, signals, chapters = [], options = {}) {
-  const llmOnly = isLifeBookLlmOnlyAuthoringMode(options?.authoringMode);
   const normalized = ensureCompleteLifeBookChapters(profile, signals, Array.isArray(chapters) ? chapters : [], options);
   return normalized.map((chapter, chapterIndex) => {
     const blueprint = getLifeBookBlueprints()[chapterIndex] || chapter;
     const categories = (Array.isArray(chapter?.categories) ? chapter.categories : []).map((category, categoryIndex) => {
       const expectedTitle = blueprint?.categories?.[categoryIndex] || category?.title || `카테고리 ${categoryIndex + 1}`;
-      const fallbackText = llmOnly ? "" : buildProfessionalLifeBookCategoryText(profile, signals, blueprint, expectedTitle, categoryIndex);
+      const fallbackText = buildProfessionalLifeBookCategoryText(profile, signals, blueprint, expectedTitle, categoryIndex);
       const rawText = clean(category?.finalText || category?.text || category?.localSummary || fallbackText);
-      const sanitized = llmOnly
-        ? dedupeParagraphs(stripForbiddenTokens(rawText))
-        : sanitizeCategoryText(rawText || fallbackText, blueprint?.id || chapter?.id || "", expectedTitle, categoryIndex);
-      if (llmOnly && !sanitized) {
-        throw Object.assign(new Error(`LifeBook LLM-only chapter text is missing: ${blueprint?.roman || chapterIndex + 1}/${categoryIndex + 1}`), {
-          code: "LIFEBOOK_LLM_ONLY_TEXT_MISSING",
-          status: 502,
-        });
-      }
+      const sanitized = sanitizeCategoryText(rawText || fallbackText, blueprint?.id || chapter?.id || "", expectedTitle, categoryIndex);
       return {
         ...category,
         id: String(category?.id || `${categoryIndex + 1}`),
@@ -2659,43 +2567,9 @@ function buildLifeBookLocalSajuJson(birthInput, profile, signals, chapters = [])
   };
 }
 
-const LIFEBOOK_LLM_SYSTEM_PROMPT = `
-당신은 40년 이상 명리학, 자평명리, 격국론, 용신론, 조후론, 십성론, 대운·세운 분석, 신살론, 12운성 해석에 정통한 최고 수준의 사주 해석가입니다.
 
-당신의 임무는 사용자의 사주 엔진 계산 결과를 바탕으로 "인생의 책 PDF"에 들어갈 고품질 장문 원고를 작성하는 것입니다.
 
-절대 규칙:
-1. 사주 계산은 하지 않습니다. 이미 제공된 사주 엔진 결과만 사용합니다.
-2. 원국, 일간, 월지, 대운, 세운, 용신, 희신, 기신, 격국, 신살, 12운성, 합충형해파는 반드시 입력 데이터에 있는 값을 기준으로 해석합니다.
-3. 입력 데이터에 없는 값을 임의로 추측하지 않습니다.
-4. 입력 데이터가 부족하면 "제공된 계산값 기준으로는 확인이 어렵습니다"라고 표현합니다.
-5. 모든 해석은 사용자의 실제 사주 구조와 연결해야 합니다.
-6. 누구에게나 해당되는 일반론, 막연한 위로, 흔한 운세 문구를 피합니다.
-7. 같은 문장 패턴을 반복하지 않습니다.
-8. 공포를 조장하지 않습니다.
-9. 운명을 단정하지 않습니다. 사주는 고정된 판결이 아니라 경향, 리듬, 선택 전략을 읽는 도구로 설명합니다.
-10. 건강 내용은 의학적 진단처럼 쓰지 않습니다. "사주적 경향", "생활 관리 관점"으로 작성합니다.
-11. 재물과 투자는 수익 보장처럼 쓰지 않습니다. "성향", "주의점", "전략" 중심으로 작성합니다.
-12. 연애와 결혼은 특정 결과를 확정하지 않습니다. 관계 패턴과 선택 전략으로 설명합니다.
-13. 문체는 깊이 있고 품격 있는 전문가 상담문이어야 합니다.
-14. 독자가 돈을 내고 받은 PDF라고 느낄 정도로 구체적이고 풍부해야 합니다.
-15. 각 챕터는 독립적으로 읽혀도 완성도가 있어야 하며, 동시에 전체 책의 흐름과도 연결되어야 합니다.
-
-작성 방식:
-- 한국어 존댓말로 작성합니다.
-- 명리학 용어를 사용하되 독자가 이해할 수 있도록 자연스럽게 풀어씁니다.
-- 각 분석은 반드시 "사주 근거 → 성향 해석 → 현실 적용 → 주의점 → 실천 전략" 흐름을 갖습니다.
-- 단순히 좋다/나쁘다가 아니라 어떤 조건에서 좋아지고 어떤 조건에서 흔들리는지 설명합니다.
-- 각 section.body는 최소 2문단 이상 작성합니다.
-- sections 배열은 반드시 전달받은 세부 카테고리 개수와 같은 길이로 작성하고, 각 section.heading은 해당 카테고리 제목을 그대로 사용합니다.
-
-출력 형식:
-반드시 유효한 JSON만 출력합니다.
-마크다운 코드블록을 사용하지 않습니다.
-JSON 앞뒤에 설명 문장을 붙이지 않습니다.
-`.trim();
-
-const LIFEBOOK_LLM_RISKY_ASSERTION_RE = /(반드시\s*(결혼|이혼|성공|실패|큰돈|수익)|100\s*%|확정|무조건|질병을\s*얻게|암에\s*걸|우울증|공황장애|투자\s*수익|수익\s*보장|대박|파산|죽음|사망)/i;
+const LIFEBOOK_RISKY_ASSERTION_RE = /(반드시\s*(결혼|이혼|성공|실패|큰돈|수익)|100\s*%|확정|무조건|질병을\s*얻게|암에\s*걸|우울증|공황장애|투자\s*수익|수익\s*보장|대박|파산|죽음|사망)/i;
 
 function safeJsonForPrompt(value) {
   return JSON.stringify(value ?? {}, null, 2);
@@ -2707,7 +2581,7 @@ function compactStringList(value) {
   return single ? [single] : [];
 }
 
-function normalizeLifeBookPillarForLLM(pillar = {}, tenGodStem = "") {
+function normalizeLifeBookPillarForAssembly(pillar = {}, tenGodStem = "") {
   return {
     stem: clean(pillar?.stem),
     branch: clean(pillar?.branch),
@@ -2717,7 +2591,7 @@ function normalizeLifeBookPillarForLLM(pillar = {}, tenGodStem = "") {
   };
 }
 
-function normalizeLifeBookSpecialStarsForLLM(stars = []) {
+function normalizeLifeBookSpecialStarsForAssembly(stars = []) {
   return (Array.isArray(stars) ? stars : []).map((item) => {
     if (typeof item === "string") return { name: clean(item) };
     return {
@@ -2728,7 +2602,7 @@ function normalizeLifeBookSpecialStarsForLLM(stars = []) {
   }).filter((item) => item.name);
 }
 
-function normalizeLifeBookTwelveStagesForLLM(stages = []) {
+function normalizeLifeBookTwelveStagesForAssembly(stages = []) {
   return (Array.isArray(stages) ? stages : []).map((item) => ({
     pillar: clean(item?.pillar || item?.position),
     stage: clean(item?.stage || item?.name),
@@ -2736,7 +2610,7 @@ function normalizeLifeBookTwelveStagesForLLM(stages = []) {
   })).filter((item) => item.stage);
 }
 
-function normalizeLifeBookLuckCycleForLLM(cycle = {}) {
+function normalizeLifeBookLuckCycleForAssembly(cycle = {}) {
   const label = clean(cycle?.label || cycle?.ganji || cycle?.pillar);
   const stem = clean(cycle?.stem || label.slice(0, 1));
   const branch = clean(cycle?.branch || label.slice(1, 2));
@@ -2886,7 +2760,7 @@ function buildLifeBookDaeunContract(signals = {}, localSajuJson = {}, structured
 
 function buildLifeBookSpecialStarContract(localSajuJson = {}, signals = {}, structured = {}) {
   const rawStars = [
-    ...normalizeLifeBookSpecialStarsForLLM(localSajuJson?.sinsal || signals?.specialStars),
+    ...normalizeLifeBookSpecialStarsForAssembly(localSajuJson?.sinsal || signals?.specialStars),
     ...rowsOf(structured?.specialStars).map((item) => ({
       name: firstClean(item?.name, item?.shinsalName),
       position: firstClean(item?.position, item?.pillar),
@@ -3052,15 +2926,15 @@ function buildLifeBookEngineContract({ birthInput = {}, profile = {}, signals = 
     monthlyLuck2026: buildLifeBookMonthlyLuckContract(body, structured),
     specialStars: buildLifeBookSpecialStarContract(localSajuJson, signals, structured),
     twelveStages: {
-      byPillar: normalizeLifeBookTwelveStagesForLLM(localSajuJson?.twelveGrowthStages || signals?.twelveGrowthStages),
+      byPillar: normalizeLifeBookTwelveStagesForAssembly(localSajuJson?.twelveGrowthStages || signals?.twelveGrowthStages),
       summary: firstClean(structured?.userReport?.sections?.find?.((section) => clean(section?.title).includes("12운성"))?.summary),
     },
     summary,
   };
 }
 
-function buildLifeBookLLMInput(birthInput, profile, signals, localSajuJson, body = {}) {
-  const targetYear = Number(body?.targetYear || LIFEBOOK_LLM_TARGET_YEAR) || LIFEBOOK_LLM_TARGET_YEAR;
+function buildLifeBookAssemblyInput(birthInput, profile, signals, localSajuJson, body = {}) {
+  const targetYear = Number(body?.targetYear || LIFEBOOK_LOCAL_TARGET_YEAR) || LIFEBOOK_LOCAL_TARGET_YEAR;
   const pillars = localSajuJson?.pillars || {};
   const tenGodsByPillar = localSajuJson?.tenGodsByPillar || {};
   const elementCounts = localSajuJson?.fiveElements || signals?.elementWeights || {};
@@ -3087,10 +2961,10 @@ function buildLifeBookLLMInput(birthInput, profile, signals, localSajuJson, body
     },
     saju: {
       pillars: {
-        year: normalizeLifeBookPillarForLLM(pillars.year, tenGodsByPillar.year),
-        month: normalizeLifeBookPillarForLLM(pillars.month, tenGodsByPillar.month),
-        day: normalizeLifeBookPillarForLLM(pillars.day, tenGodsByPillar.day),
-        hour: normalizeLifeBookPillarForLLM(pillars.hour, tenGodsByPillar.hour),
+        year: normalizeLifeBookPillarForAssembly(pillars.year, tenGodsByPillar.year),
+        month: normalizeLifeBookPillarForAssembly(pillars.month, tenGodsByPillar.month),
+        day: normalizeLifeBookPillarForAssembly(pillars.day, tenGodsByPillar.day),
+        hour: normalizeLifeBookPillarForAssembly(pillars.hour, tenGodsByPillar.hour),
       },
       dayMaster: clean(localSajuJson?.dayMaster || signals?.dayMaster),
       dayBranch: clean(localSajuJson?.dayBranch || signals?.dayBranch),
@@ -3164,16 +3038,16 @@ function buildLifeBookLLMInput(birthInput, profile, signals, localSajuJson, body
       wonjin: compactStringList(localSajuJson?.interactions?.wonjin),
       gwimun: compactStringList(localSajuJson?.interactions?.gwimun),
     },
-    specialStars: normalizeLifeBookSpecialStarsForLLM(localSajuJson?.sinsal || signals?.specialStars),
-    twelveStages: normalizeLifeBookTwelveStagesForLLM(localSajuJson?.twelveGrowthStages || signals?.twelveGrowthStages),
+    specialStars: normalizeLifeBookSpecialStarsForAssembly(localSajuJson?.sinsal || signals?.specialStars),
+    twelveStages: normalizeLifeBookTwelveStagesForAssembly(localSajuJson?.twelveGrowthStages || signals?.twelveGrowthStages),
     luckCycles: {
       startAge: Number(signals?.daewunStartAge || 0) || undefined,
       direction: clean(signals?.daewunDirection || body?.daewunDirection),
-      cycles: daeunCycles.map(normalizeLifeBookLuckCycleForLLM),
-      currentCycle: currentCycle ? normalizeLifeBookLuckCycleForLLM(currentCycle) : undefined,
+      cycles: daeunCycles.map(normalizeLifeBookLuckCycleForAssembly),
+      currentCycle: currentCycle ? normalizeLifeBookLuckCycleForAssembly(currentCycle) : undefined,
     },
     yearlyLuck2026: {
-      year: LIFEBOOK_LLM_TARGET_YEAR,
+      year: LIFEBOOK_LOCAL_TARGET_YEAR,
       stem: "丙",
       branch: "午",
       ganji: "丙午",
@@ -3191,224 +3065,13 @@ function buildLifeBookLLMInput(birthInput, profile, signals, localSajuJson, body
   };
 }
 
-function buildLifeBookChapterPrompt(llmInput, chapterSpec, previousSummaries = []) {
-  return `${LIFEBOOK_LLM_SYSTEM_PROMPT}
 
-다음은 사용자의 사주 엔진 계산 결과와 서비스 입력값입니다.
 
-[사용자 기본 정보]
-${safeJsonForPrompt(llmInput.userProfile)}
 
-[사주 엔진 계산 결과]
-${safeJsonForPrompt({
-  normalizedEngineContract: llmInput.engineContract,
-  summaryForWritingOnly: llmInput.engineSummary,
-  saju: llmInput.saju,
-  fiveElements: llmInput.fiveElements,
-  tenGods: llmInput.tenGods,
-  structure: llmInput.structure,
-  interactions: llmInput.interactions,
-  specialStars: llmInput.specialStars,
-  twelveStages: llmInput.twelveStages,
-  luckCycles: llmInput.luckCycles,
-  yearlyLuck2026: llmInput.yearlyLuck2026,
-})}
 
-[서비스 입력값]
-${safeJsonForPrompt(llmInput.serviceContext)}
 
-[이전 챕터 요약]
-${safeJsonForPrompt(previousSummaries)}
 
-이제 아래 챕터를 작성하십시오.
 
-[작성할 챕터]
-챕터 번호: ${chapterSpec.roman}
-챕터 제목: ${chapterSpec.title}
-${chapterSpec.isPart ? `파트: ${chapterSpec.partIndex} / ${chapterSpec.partCount}` : ""}
-
-[A4 분량 설계]
-${safeJsonForPrompt(chapterSpec.pagePlan || getLifeBookPagePlan(chapterSpec.id))}
-
-[공통 챕터 구조]
-${safeJsonForPrompt(LIFEBOOK_CHAPTER_COMMON_STRUCTURE)}
-
-[이 챕터의 계산 반영 항목]
-${safeJsonForPrompt(chapterSpec.engineFocus || [])}
-
-[챕터별 필수 작성 조건]
-${safeJsonForPrompt(chapterSpec.writingRequirements || [])}
-
-[챕터별 필수 안내문]
-${safeJsonForPrompt(chapterSpec.requiredNotice || "")}
-
-[반드시 포함할 세부 카테고리]
-${safeJsonForPrompt(chapterSpec.categories)}
-
-작성 지침:
-1. 이 챕터는 "인생의 책 PDF"에 그대로 들어갈 최종 원고입니다.
-2. 입력된 사주 엔진 결과를 최우선 근거로 사용하십시오.
-3. 일간, 월지, 오행, 십성, 용신, 희신, 기신, 격국, 대운, 세운, 신살, 12운성 등은 제공된 값과 모순되면 안 됩니다.
-4. 입력값에 없는 정보를 임의로 만들어내지 마십시오.
-5. 각 세부 카테고리를 빠짐없이 다루십시오.
-6. 단순 설명이 아니라 왜 그렇게 해석되는지 명리학적 근거를 제시하십시오.
-7. 직업, 관계, 돈, 건강, 습관, 의사결정 전략으로 연결하십시오.
-8. 문체는 품격 있는 전문가 상담문으로 작성하십시오.
-9. 각 section.body는 최소 2문단 이상 작성하십시오.
-10. 핵심 포인트와 실천 가이드는 구체적인 행동 문장으로 작성하십시오.
-11. 과장된 예언, 공포 조장, 절대적 단정, 의학적 진단, 투자 수익 보장 표현은 금지합니다.
-12. sections 배열 길이는 반드시 ${chapterSpec.categories.length}개여야 합니다.
-13. sections 각 항목의 heading은 위 세부 카테고리 제목을 순서대로 그대로 사용하십시오.
-14. ${chapterSpec.isPart ? "현재 파트에 배정된 세부 카테고리만 작성하고, 다른 파트의 카테고리는 작성하지 마십시오." : "챕터 전체를 파트별 흐름이 살아나도록 구성하십시오."}
-15. 각 section에는 요약, 상담형 본문, 표처럼 읽히는 정리, 체크리스트, 실전 조언이 모두 자연스럽게 포함되어야 합니다.
-16. 내부 입력값을 가리키는 JSON, payload, debug, engine, prompt, schema, api, llm 같은 용어는 본문에 쓰지 마십시오.
-
-출력 JSON 구조:
-{
-  "chapterNumber": "${chapterSpec.roman}",
-  "chapterTitle": "${chapterSpec.title}",
-  "coverPhrase": "챕터 표지에 어울리는 짧은 상담형 문구",
-  "coreMessage": "한 줄 핵심 메시지",
-  "keyQuestions": ["이 장에서 다룰 핵심 질문 1", "이 장에서 다룰 핵심 질문 2", "이 장에서 다룰 핵심 질문 3"],
-  "myeongriStructureSummary": "명리 구조 요약",
-  "plainLanguageReading": "쉬운 현실 언어 해석",
-  "chapterSummary": "이 챕터의 핵심 요약",
-  "sections": [
-    {
-      "heading": "${chapterSpec.categories[0] || "섹션 제목"}",
-      "body": "PDF 본문에 들어갈 상세 해석. 최소 2문단 이상.",
-      "keyPoints": ["핵심 포인트 1", "핵심 포인트 2", "핵심 포인트 3"],
-      "actionGuide": ["실천 조언 1", "실천 조언 2", "실천 조언 3"]
-    }
-  ],
-  "strengthAnalysis": "강점 분석",
-  "cautionAnalysis": "주의점 분석",
-  "practicalStrategy": "실전 전략",
-  "actionChecklist": ["행동 체크리스트 1", "행동 체크리스트 2", "행동 체크리스트 3"],
-  "summaryBox": "장 요약 박스",
-  "nextChapterBridge": "다음 장으로 연결되는 문장",
-  "masterAdvice": "해당 챕터를 마무리하는 최고 전문가의 조언"
-}`;
-}
-
-function buildLifeBookRefinePrompt(llmInput, chapterSpec, draft, errors = []) {
-  return `${LIFEBOOK_LLM_SYSTEM_PROMPT}
-
-다음은 Gemini가 생성한 "인생의 책 PDF" 챕터 초안입니다.
-
-[사주 엔진 원본 데이터]
-${safeJsonForPrompt({
-  normalizedEngineContract: llmInput.engineContract,
-  summaryForWritingOnly: llmInput.engineSummary,
-  saju: llmInput.saju,
-  fiveElements: llmInput.fiveElements,
-  tenGods: llmInput.tenGods,
-  structure: llmInput.structure,
-  interactions: llmInput.interactions,
-  specialStars: llmInput.specialStars,
-  twelveStages: llmInput.twelveStages,
-  luckCycles: llmInput.luckCycles,
-  yearlyLuck2026: llmInput.yearlyLuck2026,
-})}
-
-[서비스 입력값]
-${safeJsonForPrompt(llmInput.serviceContext)}
-
-[챕터 명세]
-${safeJsonForPrompt({
-  number: chapterSpec.roman,
-  title: chapterSpec.title,
-  partIndex: chapterSpec.partIndex,
-  partCount: chapterSpec.partCount,
-  pagePlan: chapterSpec.pagePlan || getLifeBookPagePlan(chapterSpec.id),
-  commonStructure: LIFEBOOK_CHAPTER_COMMON_STRUCTURE,
-  engineFocus: chapterSpec.engineFocus || [],
-  writingRequirements: chapterSpec.writingRequirements || [],
-  requiredNotice: chapterSpec.requiredNotice || "",
-  categories: chapterSpec.categories,
-})}
-
-[검수 실패 항목]
-${safeJsonForPrompt(errors)}
-
-[초안]
-${safeJsonForPrompt(draft)}
-
-이 초안을 유료 PDF 상품 수준으로 개선하십시오.
-세부 카테고리 누락, 짧은 본문, 일반론, 원국 데이터와 모순되는 문장, 단정적 표현을 모두 고치십시오.
-최종 결과는 반드시 동일 JSON 스키마의 유효한 JSON만 출력하십시오.`;
-}
-
-function extractLifeBookJsonObject(text = "") {
-  const raw = clean(text)
-    .replace(/^\s*```(?:json)?\s*/i, "")
-    .replace(/\s*```\s*$/i, "")
-    .trim();
-  try {
-    return JSON.parse(raw);
-  } catch (_) {}
-
-  const candidates = [
-    raw.match(/```json\s*([\s\S]*?)\s*```/i)?.[1],
-    raw.match(/```\s*([\s\S]*?)\s*```/i)?.[1],
-  ].filter(Boolean);
-
-  const start = raw.indexOf("{");
-  if (start >= 0) {
-    let depth = 0;
-    let inString = false;
-    let escaped = false;
-    for (let index = start; index < raw.length; index += 1) {
-      const char = raw[index];
-      if (escaped) {
-        escaped = false;
-        continue;
-      }
-      if (char === "\\") {
-        escaped = true;
-        continue;
-      }
-      if (char === "\"") {
-        inString = !inString;
-        continue;
-      }
-      if (inString) continue;
-      if (char === "{") depth += 1;
-      if (char === "}") depth -= 1;
-      if (depth === 0) {
-        candidates.push(raw.slice(start, index + 1));
-        break;
-      }
-    }
-  }
-
-  for (const candidate of candidates) {
-    try {
-      return JSON.parse(clean(candidate));
-    } catch (_) {}
-  }
-  throw Object.assign(new Error("Gemini 응답 JSON 파싱에 실패했습니다."), {
-    code: "LIFEBOOK_GEMINI_JSON_PARSE_FAILED",
-    status: 502,
-  });
-}
-
-function validateLifeBookGeminiJson(parsed = {}, chapterSpec = {}) {
-  const errors = [];
-  const sections = Array.isArray(parsed?.sections) ? parsed.sections : [];
-  if (!sections.length) errors.push("sections_missing");
-
-  sections.forEach((section, index) => {
-    if (!section || typeof section !== "object") errors.push(`section_${index + 1}_invalid`);
-  });
-
-  if (LIFEBOOK_LLM_RISKY_ASSERTION_RE.test(clean(parsed?.masterAdvice))) errors.push("master_advice_risky_assertion");
-
-  return {
-    ok: errors.length === 0,
-    errors,
-  };
-}
 
 function buildLifeBookSectionFinalText(section = {}) {
   const body = dedupeParagraphs(stripForbiddenTokens(section?.body || ""));
@@ -3474,125 +3137,13 @@ function buildLifeBookChapterOpeningText(parsed = {}, chapterSpec = {}) {
   return dedupeParagraphs(blocks.join("\n\n"));
 }
 
-function convertGeminiChapterToLifeBookChapter(parsed = {}, chapterSpec = {}) {
-  const sections = Array.isArray(parsed?.sections) ? parsed.sections : [];
-  const categories = chapterSpec.categories.map((categoryTitle, index) => {
-    const section = sections[index] || {};
-    const finalText = buildLifeBookSectionFinalText(section);
-    return {
-      id: `${String(index + 1).padStart(2, "0")}`,
-      title: categoryTitle,
-      localSummary: finalText,
-      evidenceTags: [categoryTitle, chapterSpec.roman].filter(Boolean),
-      advicePoints: Array.isArray(section?.actionGuide) ? section.actionGuide.map((item) => stripForbiddenTokens(item)).filter(Boolean).slice(0, 3) : [],
-      finalText,
-      order: index + 1,
-    };
-  });
-  const masterAdvice = stripForbiddenTokens(parsed?.masterAdvice || "");
-  if (masterAdvice && categories.length) {
-    const last = categories[categories.length - 1];
-    last.finalText = dedupeParagraphs(`${last.finalText}\n\n거장의 조언\n${masterAdvice}`);
-    last.localSummary = last.finalText;
-  }
-  const chapterOpening = buildLifeBookChapterOpeningText(parsed, chapterSpec);
-  const chapterText = buildChapterBody(chapterSpec.title, categories, chapterOpening);
-  return {
-    id: chapterSpec.id,
-    roman: chapterSpec.roman,
-    title: chapterSpec.title,
-    subtitle: chapterSpec.subtitle,
-    chapterSummary: stripForbiddenTokens(parsed?.chapterSummary || ""),
-    chapterOpening,
-    categories,
-    localDraft: chapterText,
-    finalText: chapterText,
-    text: chapterText,
-    source: "gemini",
-  };
-}
 
-function validateLifeBookGeneratedChapter(chapter = {}, chapterSpec = {}) {
-  const errors = [];
-  if (clean(chapter?.title) !== clean(chapterSpec?.title)) errors.push("chapter_title_mismatch");
-  const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
-  if (categories.length !== chapterSpec.categories.length) errors.push("category_count_mismatch");
-  chapterSpec.categories.forEach((categoryTitle, index) => {
-    const category = categories[index];
-    if (!category) {
-      errors.push(`category_${index + 1}_missing`);
-      return;
-    }
-    if (clean(category?.title) !== clean(categoryTitle)) errors.push(`category_${index + 1}_title_mismatch`);
-    const body = clean(category?.finalText || category?.localSummary || "");
-    if (body.length < LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS) errors.push(`category_${index + 1}_too_short`);
-    if (hasForbiddenText(body)) errors.push(`category_${index + 1}_forbidden_text`);
-    if (LIFEBOOK_LLM_RISKY_ASSERTION_RE.test(body)) errors.push(`category_${index + 1}_risky_assertion`);
-  });
-  return {
-    ok: errors.length === 0,
-    errors,
-  };
-}
 
-function reinforceLifeBookChapterDeterministically(profile, signals, chapter = {}, chapterSpec = {}) {
-  const categories = chapterSpec.categories.map((categoryTitle, index) => {
-    const current = Array.isArray(chapter?.categories) ? chapter.categories[index] : null;
-    const currentText = clean(current?.finalText || current?.localSummary || "");
-    const currentHasForbidden = hasForbiddenText(currentText);
-    const currentHasRiskyAssertion = LIFEBOOK_LLM_RISKY_ASSERTION_RE.test(currentText);
-    const needsReinforcement = currentText.length < LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS
-      || currentHasForbidden
-      || currentHasRiskyAssertion;
-    const reinforcement = needsReinforcement
-      ? buildProfessionalLifeBookCategoryText(profile, signals, chapterSpec, categoryTitle, index)
-      : "";
-    const finalText = needsReinforcement
-      ? sanitizeCategoryText(
-        (currentHasForbidden || currentHasRiskyAssertion)
-          ? reinforcement
-          : [currentText, reinforcement].filter(Boolean).join("\n\n"),
-        chapterSpec.id,
-        categoryTitle,
-        index,
-      )
-      : currentText;
-    return {
-      ...(current || {}),
-      id: `${String(index + 1).padStart(2, "0")}`,
-      title: categoryTitle,
-      localSummary: finalText,
-      finalText,
-      order: index + 1,
-    };
-  });
-  const chapterOpening = buildLifeBookChapterOpeningText(chapter, chapterSpec);
-  const chapterText = buildChapterBody(chapterSpec.title, categories, chapterOpening);
-  return {
-    ...chapter,
-    id: chapterSpec.id,
-    roman: chapterSpec.roman,
-    title: chapterSpec.title,
-    subtitle: chapterSpec.subtitle,
-    chapterOpening,
-    categories,
-    localDraft: chapterText,
-    finalText: chapterText,
-    text: chapterText,
-    source: "gemini+deterministic-reinforcement",
-  };
-}
 
-async function callLifeBookGemini(env, prompt, options = {}) {
-  const llmRuntime = resolveLifeBookLlmRuntimeInfo(env);
-  throw Object.assign(new Error("Life Book PDF uses local assembly only."), {
-    code: "LIFEBOOK_EXTERNAL_LLM_DISABLED",
-    status: 503,
-    llmRuntime,
-    requestId: clean(options?.requestId),
-    chapterNumber: clean(options?.chapterNumber),
-  });
-}
+
+
+
+
 
 function summarizeLifeBookChapter(chapter = {}) {
   const fromModel = clean(chapter?.chapterSummary);
@@ -3643,18 +3194,6 @@ function buildLifeBookSectionRequiredEngineFields(chapterSpec = {}, sectionTitle
   return Array.from(new Set(fields.map((item) => clean(item)).filter(Boolean)));
 }
 
-function buildLifeBookSectionPlanPrompt(chapterSpec = {}, sectionTitle = "", index = 0) {
-  const requirements = Array.isArray(chapterSpec?.writingRequirements) && chapterSpec.writingRequirements.length
-    ? `\n필수 조건: ${chapterSpec.writingRequirements.join(" / ")}`
-    : "";
-  return [
-    `${chapterSpec.roman}장 "${chapterSpec.title}"의 ${index + 1}번째 섹션 "${sectionTitle}"을 작성한다.`,
-    "해당 섹션에 필요한 계산값만 근거로 사용하고, 제공되지 않은 명리 요소는 만들지 않는다.",
-    "본문은 상담문처럼 따뜻하게 쓰되, 마지막에는 독자가 바로 실행할 수 있는 행동 기준을 남긴다.",
-    requirements,
-  ].filter(Boolean).join("\n");
-}
-
 function buildLifeBookChapterPlan(chapterSpec = {}) {
   const pagePlan = getLifeBookPagePlan(chapterSpec?.id);
   const categories = Array.isArray(chapterSpec?.categories) ? chapterSpec.categories : [];
@@ -3664,7 +3203,6 @@ function buildLifeBookChapterPlan(chapterSpec = {}) {
     title,
     targetChars: sectionTargetChars,
     requiredEngineFields: buildLifeBookSectionRequiredEngineFields(chapterSpec, title),
-    prompt: buildLifeBookSectionPlanPrompt(chapterSpec, title, index),
   }));
   return {
     chapterId: clean(chapterSpec.id),
@@ -3690,152 +3228,11 @@ function cloneLifeBookData(value) {
   }
 }
 
-function pickLifeBookRelevantEngineData(llmInput = {}, requiredFields = []) {
-  const fields = (Array.isArray(requiredFields) ? requiredFields : []).map((field) => clean(field)).filter(Boolean);
-  const has = (pattern) => fields.some((field) => pattern.test(field));
-  const relevant = {
-    common: {
-      natalCore: cloneLifeBookData(llmInput.saju),
-      usefulGods: cloneLifeBookData(llmInput.structure?.usefulGods),
-      currentDaeun: cloneLifeBookData(llmInput.luckCycles?.currentCycle),
-      year2026Theme: cloneLifeBookData(llmInput.engineContract?.summary?.year2026Theme || llmInput.yearlyLuck2026?.elementEffect),
-    },
-  };
-  if (has(/원국|천간|지지|지장간|공망|일간|월지|월령|통근|생조|극설|강약|계절|배우자궁|일지/)) {
-    relevant.natal = cloneLifeBookData({
-      saju: llmInput.saju,
-      structure: {
-        dayMasterStrength: llmInput.structure?.dayMasterStrength,
-        hasSeason: llmInput.structure?.hasSeason,
-        hasRoot: llmInput.structure?.hasRoot,
-        hasSupport: llmInput.structure?.hasSupport,
-      },
-    });
-  }
-  if (has(/오행|조후|화기|수기|습도|건조|온도|용신|희신|기신|구신|한신/)) {
-    relevant.elementsAndUsefulGods = cloneLifeBookData({
-      fiveElements: llmInput.fiveElements,
-      usefulGods: llmInput.structure?.usefulGods,
-      strengthJohuYongshin: llmInput.engineContract?.strengthJohuYongshin,
-    });
-  }
-  if (has(/십성|비겁|식상|재성|관성|인성|배우자성|돈|재물|직업|관계|연애|사랑/)) {
-    relevant.tenGods = cloneLifeBookData(llmInput.tenGods);
-  }
-  if (has(/격국|성격|파격|사회적 역할|브랜드|명예|성공/)) {
-    relevant.gyeokguk = cloneLifeBookData({
-      structure: llmInput.structure?.gyeokguk,
-      contract: llmInput.engineContract?.gyeokguk,
-    });
-  }
-  if (has(/합충|형파해|충|형|원진|귀문|도충|특수|상호작용/)) {
-    relevant.interactions = cloneLifeBookData({
-      interactions: llmInput.interactions,
-      contract: llmInput.engineContract?.interactions,
-    });
-  }
-  if (has(/대운|10년|초년|청년|중년|장년|말년/)) {
-    relevant.daeun = cloneLifeBookData({
-      luckCycles: llmInput.luckCycles,
-      contract: llmInput.engineContract?.daeun,
-    });
-  }
-  if (has(/2026|병오|세운|월운|월별/)) {
-    relevant.year2026 = cloneLifeBookData({
-      yearlyLuck2026: llmInput.yearlyLuck2026,
-      contract: llmInput.engineContract?.year2026,
-      monthlyLuck2026: llmInput.engineContract?.monthlyLuck2026,
-    });
-  }
-  if (has(/신살|도화|홍염|역마|화개|귀인|귀문|원진/)) {
-    relevant.specialStars = cloneLifeBookData({
-      specialStars: llmInput.specialStars,
-      contract: llmInput.engineContract?.specialStars,
-    });
-  }
-  if (has(/12운성|십이운성|운성/)) {
-    relevant.twelveStages = cloneLifeBookData({
-      twelveStages: llmInput.twelveStages,
-      contract: llmInput.engineContract?.twelveStages,
-    });
-  }
-  return relevant;
-}
 
-function buildLifeBookSectionLLMInput(llmInput = {}, chapterSpec = {}, chapterPlan = {}, sectionPlan = {}, previousSectionSummary = "") {
-  return {
-    userProfile: cloneLifeBookData(llmInput.userProfile),
-    engineSummary: cloneLifeBookData(llmInput.engineSummary),
-    lifeBookMasterJson: cloneLifeBookData(llmInput.lifeBookMasterJson),
-    chapterPlan: cloneLifeBookData(chapterPlan),
-    sectionPlan: cloneLifeBookData(sectionPlan),
-    relevantEngineData: pickLifeBookRelevantEngineData(llmInput, sectionPlan?.requiredEngineFields),
-    previousSectionSummary: clean(previousSectionSummary) || undefined,
-    forbiddenTerms: Array.from(new Set(FORBIDDEN_TEXT.map((item) => clean(item)).filter(Boolean))),
-    styleGuide: buildLifeBookStyleGuide(chapterSpec),
-  };
-}
 
-function buildLifeBookSectionPrompt(sectionInput = {}) {
-  const chapterTitle = clean(sectionInput?.chapterPlan?.title);
-  const sectionTitle = clean(sectionInput?.sectionPlan?.title);
-  const targetChars = Number(sectionInput?.sectionPlan?.targetChars || 0) || 0;
-  return `너는 최상위 명리학자이자 프리미엄 사주 PDF 작가다.
 
-너의 역할:
-퀀텀 명리엔진이 계산한 데이터를 바탕으로, 인생의 책 PDF의 특정 섹션 원고를 작성한다.
 
-절대 규칙:
-1. 사주 계산을 새로 하지 않는다.
-2. 입력 데이터에 없는 내용은 추측하지 않는다.
-3. 엔진 데이터와 충돌하는 해석을 하지 않는다.
-4. JSON, payload, debug, engine, prompt, schema, api, llm 같은 내부 용어를 본문에 쓰지 않는다.
-5. 사용자가 읽을 완성형 상담문만 작성한다.
-6. 단정적 예언이 아니라 경향성, 가능성, 전략으로 표현한다.
-7. 불안감을 조장하지 않는다.
-8. 건강, 투자, 법률은 참고 조언으로만 표현한다.
 
-PDF 정보:
-- 전체 서비스명: 인생의 책
-- 전체 목표: A4 약 200페이지
-- 현재 챕터: ${chapterTitle}
-- 현재 섹션: ${sectionTitle}
-- 현재 섹션 목표 글자 수: ${targetChars}
-
-사용자 정보:
-${safeJsonForPrompt(sectionInput?.userProfile)}
-
-이 섹션에 필요한 명리 데이터:
-${safeJsonForPrompt(sectionInput?.relevantEngineData)}
-
-전체 핵심 요약:
-${safeJsonForPrompt(sectionInput?.engineSummary)}
-
-이전 섹션 요약:
-${clean(sectionInput?.previousSectionSummary) || "없음"}
-
-섹션별 작성 조건:
-${safeJsonForPrompt({
-  sectionPrompt: sectionInput?.sectionPlan?.prompt,
-  requiredEngineFields: sectionInput?.sectionPlan?.requiredEngineFields,
-  forbiddenTerms: sectionInput?.forbiddenTerms,
-  styleGuide: sectionInput?.styleGuide,
-})}
-
-작성 방식:
-- 제목은 H3로 시작한다.
-- 도입문은 몰입감 있게 작성한다.
-- 명리 용어를 사용할 때는 반드시 쉬운 설명을 붙인다.
-- 사용자의 구조를 개인화해서 해석한다.
-- 이론 설명 30%, 개인 해석 45%, 실전 전략 25% 비율로 작성한다.
-- 마지막에는 3~5개의 행동 지침을 포함한다.
-- 중복 문장을 피한다.
-- 분량을 충분히 채운다.
-- 표가 필요한 경우 Markdown 표를 사용한다.
-
-출력:
-현재 섹션의 PDF 본문만 출력하라.`;
-}
 
 function normalizeLifeBookSectionBody(text = "") {
   const raw = clean(text)
@@ -3875,188 +3272,17 @@ function extractLifeBookActionPointsFromText(text = "") {
     .map((line) => stripForbiddenTokens(line));
 }
 
-function validateLifeBookSectionResult(text = "", sectionPlan = {}) {
-  const errors = [];
-  const body = normalizeLifeBookSectionBody(text);
-  if (body.length < LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS) errors.push("section_body_too_short");
-  if (hasForbiddenText(body)) errors.push("section_forbidden_text");
-  if (LIFEBOOK_LLM_RISKY_ASSERTION_RE.test(body)) errors.push("section_risky_assertion");
-  return {
-    ok: errors.length === 0,
-    errors,
-  };
-}
 
-function convertLifeBookSectionToCategory(text = "", sectionPlan = {}, index = 0) {
-  const finalText = ensureLifeBookSectionH3(text, sectionPlan?.title);
-  return {
-    id: `${String(index + 1).padStart(2, "0")}`,
-    sectionId: clean(sectionPlan?.sectionId),
-    title: clean(sectionPlan?.title),
-    localSummary: finalText,
-    evidenceTags: Array.isArray(sectionPlan?.requiredEngineFields) ? sectionPlan.requiredEngineFields.slice(0, 6) : [],
-    advicePoints: extractLifeBookActionPointsFromText(finalText).slice(0, 5),
-    finalText,
-    sectionSummary: summarizeLifeBookSectionBody(finalText, sectionPlan?.title),
-    order: index + 1,
-  };
-}
 
-async function generateLifeBookSectionWithGemini(env, { profile, signals, llmInput, chapterSpec, chapterPlan, sectionPlan, sectionIndex, previousSectionSummary, requestId }) {
-  let lastErrors = [];
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
-    const input = buildLifeBookSectionLLMInput(
-      llmInput,
-      chapterSpec,
-      chapterPlan,
-      attempt === 1
-        ? sectionPlan
-        : {
-          ...sectionPlan,
-          prompt: `${sectionPlan.prompt}\n재작성 조건: ${lastErrors.join(", ")}`,
-        },
-      previousSectionSummary,
-    );
-    const prompt = buildLifeBookSectionPrompt(input);
-    const text = await callLifeBookGemini(env, prompt, {
-      requestId,
-      chapterNumber: `${chapterSpec.roman}-${sectionIndex + 1}`,
-    });
-    const body = normalizeLifeBookSectionBody(text);
-    const validation = validateLifeBookSectionResult(body, sectionPlan);
-    if (validation.ok) {
-      const category = convertLifeBookSectionToCategory(body, sectionPlan, sectionIndex);
-      return {
-        category,
-        summary: category.sectionSummary,
-        source: "gemini-section",
-      };
-    }
-    lastErrors = validation.errors;
-    logLifeBookServer("GeminiSectionValidationFailed", {
-      requestId,
-      chapterNumber: chapterSpec.roman,
-      sectionId: sectionPlan.sectionId,
-      attempt,
-      errors: lastErrors,
-    });
-  }
 
-  throw Object.assign(new Error(`Gemini section generation failed validation: ${chapterSpec?.roman || chapterSpec?.id || ""}/${sectionPlan?.sectionId || sectionIndex + 1}`), {
-    code: "LIFEBOOK_GEMINI_SECTION_INVALID",
-    status: 502,
-    details: {
-      chapterNumber: chapterSpec?.roman,
-      sectionId: clean(sectionPlan?.sectionId),
-      errors: lastErrors,
-    },
-  });
-  const fallbackText = buildProfessionalLifeBookCategoryText(profile, signals, chapterSpec, sectionPlan.title, sectionIndex);
-  return {
-    category: {
-      id: `${String(sectionIndex + 1).padStart(2, "0")}`,
-      sectionId: clean(sectionPlan?.sectionId),
-      title: clean(sectionPlan?.title),
-      localSummary: fallbackText,
-      evidenceTags: Array.isArray(sectionPlan?.requiredEngineFields) ? sectionPlan.requiredEngineFields.slice(0, 6) : [],
-      advicePoints: [
-        "핵심 패턴을 한 문장으로 정리하기",
-        "이번 달 실행 기준을 하나만 고르기",
-        "관계·일·돈의 우선순위를 분리해 판단하기",
-      ],
-      finalText: fallbackText,
-      sectionSummary: `${sectionPlan.title}: 보강 원고로 작성되었습니다.`,
-      order: sectionIndex + 1,
-    },
-    summary: `${sectionPlan.title}: 보강 원고로 작성되었습니다.`,
-    source: "deterministic-section-reinforcement",
-    deterministicReinforced: true,
-  };
-}
 
-function combineLifeBookSectionChapters(chapterSpec = {}, chapterPlan = {}, sectionResults = []) {
-  const categories = (Array.isArray(sectionResults) ? sectionResults : [])
-    .map((result) => result?.category)
-    .filter(Boolean)
-    .map((category, index) => ({
-      ...category,
-      id: `${String(index + 1).padStart(2, "0")}`,
-      order: index + 1,
-    }));
-  const chapterSummary = (Array.isArray(sectionResults) ? sectionResults : [])
-    .map((result) => clean(result?.summary))
-    .filter(Boolean)
-    .join(" ");
-  const chapterOpening = buildLifeBookChapterOpeningText({ chapterSummary }, chapterSpec);
-  const chapterText = buildChapterBody(chapterSpec.title, categories, chapterOpening);
-  return {
-    id: chapterSpec.id,
-    roman: chapterSpec.roman,
-    title: chapterSpec.title,
-    subtitle: chapterSpec.subtitle,
-    chapterSummary,
-    chapterOpening,
-    categories,
-    sectionResults: sectionResults.map((result, index) => ({
-      sectionId: clean(chapterPlan?.sections?.[index]?.sectionId),
-      title: clean(chapterPlan?.sections?.[index]?.title),
-      source: clean(result?.source),
-      summary: stripForbiddenTokens(result?.summary || ""),
-      charLength: clean(result?.category?.finalText).length,
-    })),
-    chapterPlan,
-    localDraft: chapterText,
-    finalText: chapterText,
-    text: chapterText,
-    source: sectionResults.some((result) => result?.deterministicReinforced) ? "gemini-section+deterministic-reinforcement" : "gemini-section",
-    pagePlan: getLifeBookPagePlan(chapterSpec.id),
-  };
-}
 
-function buildLifeBookSectionDraftsForMerge(sectionResults = []) {
-  return (Array.isArray(sectionResults) ? sectionResults : [])
-    .map((result, index) => {
-      const title = stripForbiddenTokens(result?.category?.title || result?.title || `Section ${index + 1}`);
-      const body = normalizeLifeBookSectionBody(result?.category?.finalText || result?.text || "");
-      return [`## ${index + 1}. ${title}`, body].filter(Boolean).join("\n\n");
-    })
-    .filter(Boolean)
-    .join("\n\n---\n\n");
-}
 
-function buildLifeBookChapterMergePrompt({ chapterSpec = {}, chapterPlan = {}, sectionResults = [], engineSummary = {} } = {}) {
-  const chapterTitle = clean(chapterSpec?.title || chapterPlan?.title);
-  const targetPages = Number(chapterPlan?.targetPages || getLifeBookPagePlan(chapterSpec?.id).targetPages || 0) || "";
-  const sectionDrafts = buildLifeBookSectionDraftsForMerge(sectionResults);
-  return `너는 프리미엄 사주 PDF의 챕터 편집자다.
 
-아래 섹션 원고들을 하나의 완성된 챕터로 편집하라.
 
-목표:
-1. 문체를 통일한다.
-2. 중복 설명을 줄인다.
-3. 섹션 사이 연결 문장을 자연스럽게 만든다.
-4. 챕터 시작부에 한 줄 핵심 메시지를 추가한다.
-5. 챕터 끝에 요약 박스와 행동 체크리스트를 추가한다.
-6. 엔진 데이터와 충돌하는 문장을 제거한다.
-7. 내부 용어는 제거한다.
-8. PDF에 바로 들어갈 수 있는 Markdown 형식으로 정리한다.
 
-현재 챕터:
-${chapterTitle}
 
-목표 페이지:
-${targetPages}
 
-섹션 원고:
-${sectionDrafts}
-
-엔진 요약:
-${safeJsonForPrompt(engineSummary)}
-
-출력:
-완성된 챕터 원고만 작성하라.`;
-}
 
 function normalizeLifeBookChapterMarkdown(text = "") {
   const raw = clean(text)
@@ -4072,140 +3298,17 @@ function normalizeLifeBookChapterMarkdown(text = "") {
   return dedupeParagraphs(stripForbiddenTokens(raw));
 }
 
-function validateLifeBookMergedChapterMarkdown(markdown = "", chapterSpec = {}, chapterPlan = {}) {
-  const errors = [];
-  const body = normalizeLifeBookChapterMarkdown(markdown);
-  const targetChars = Number(chapterPlan?.targetChars || getLifeBookPagePlan(chapterSpec?.id).targetChars || 0) || 0;
-  const minimumChars = Math.max(LIFEBOOK_BLOCKING_MIN_CHAPTER_CHARS, Math.floor(targetChars * 0.45));
-  if (body.length < minimumChars) errors.push("merged_chapter_too_short");
-  if (hasForbiddenText(body)) errors.push("merged_chapter_forbidden_text");
-  if (hasLifeBookChapterReviewForbiddenText(body)) errors.push("merged_chapter_review_forbidden_text");
-  if (LIFEBOOK_LLM_RISKY_ASSERTION_RE.test(body)) errors.push("merged_chapter_risky_assertion");
-  if (!/^#{1,3}\s+/m.test(body)) errors.push("merged_chapter_markdown_heading_missing");
-  return {
-    ok: errors.length === 0,
-    errors,
-    charLength: body.length,
-    minimumChars,
-  };
-}
 
-function buildLifeBookChapterReviewFields(chapterSpec = {}, chapterPlan = {}) {
-  const sectionFields = (Array.isArray(chapterPlan?.sections) ? chapterPlan.sections : [])
-    .flatMap((section) => Array.isArray(section?.requiredEngineFields) ? section.requiredEngineFields : []);
-  return Array.from(new Set([
-    "natal_core",
-    "day_master",
-    "yongsin",
-    "huisin",
-    "gisin",
-    "current_daeun",
-    "year_2026_summary",
-    ...(Array.isArray(chapterSpec?.engineFocus) ? chapterSpec.engineFocus : []),
-    ...sectionFields,
-  ].map((field) => clean(field)).filter(Boolean)));
-}
 
-function buildLifeBookChapterReviewPrompt({ chapterDraft = "", engineSummary = {}, relevantEngineData = {} } = {}) {
-  return `너는 명리 PDF 품질 검수관이다.
 
-아래 챕터 원고를 검수하고, 문제가 있으면 수정하라.
 
-검수 기준:
-1. 입력 데이터에 없는 계산값을 임의 생성했는가?
-2. 사주 구조와 충돌하는 해석이 있는가?
-3. 용신/희신/기신 해석이 뒤바뀐 부분이 있는가?
-4. 대운/세운/월운이 잘못 연결된 부분이 있는가?
-5. 도충, 합충형파해, 신살을 과장하거나 공포스럽게 표현했는가?
-6. 건강, 재물, 관계에서 위험한 단정 표현이 있는가?
-7. 내부 용어가 노출되었는가?
-8. 목차의 주제와 맞지 않는 내용이 있는가?
-9. 분량이 목표에 비해 지나치게 짧은가?
-10. PDF 상품으로 판매 가능한 상담체인가?
 
-금지 표현:
-- 무조건
-- 반드시 망한다
-- 죽는다
-- 이혼한다
-- 파멸
-- 절대 실패
-- 병에 걸린다
-- 투자하면 오른다
-- 운명상 피할 수 없다
-- JSON
-- payload
-- debug
-- engine
-- schema
-- api
-- llm
-- prompt
 
-입력:
-챕터 원고:
-${normalizeLifeBookChapterMarkdown(chapterDraft)}
 
-엔진 요약:
-${safeJsonForPrompt(engineSummary)}
 
-관련 엔진 데이터:
-${safeJsonForPrompt(relevantEngineData)}
 
-출력:
-1. 검수 결과
-2. 수정 필요 사항
-3. 수정된 최종 챕터 원고`;
-}
 
-function extractLifeBookReviewedChapterMarkdown(reviewText = "") {
-  const raw = clean(reviewText)
-    .replace(/^\s*```(?:markdown|md|html|json)?\s*/i, "")
-    .replace(/\s*```\s*$/i, "")
-    .trim();
-  try {
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object") {
-      return normalizeLifeBookChapterMarkdown(parsed.finalChapter || parsed.finalText || parsed.revisedChapter || parsed.chapter || parsed.text || parsed.content || "");
-    }
-  } catch (_) {}
-  const match = raw.match(/(?:^|\n)\s*(?:#{1,4}\s*)?(?:3[.)]\s*)?수정(?:된)?\s*최종\s*챕터\s*원고\s*[:：]?\s*\n([\s\S]+)$/i);
-  if (match?.[1]) return normalizeLifeBookChapterMarkdown(match[1]);
-  return normalizeLifeBookChapterMarkdown(raw);
-}
 
-function validateLifeBookReviewedChapterMarkdown(markdown = "", chapterSpec = {}, chapterPlan = {}) {
-  const result = validateLifeBookMergedChapterMarkdown(markdown, chapterSpec, chapterPlan);
-  const body = normalizeLifeBookChapterMarkdown(markdown);
-  const errors = [...result.errors];
-  if (hasLifeBookChapterReviewForbiddenText(body) && !errors.includes("reviewed_chapter_forbidden_expression")) {
-    errors.push("reviewed_chapter_forbidden_expression");
-  }
-  return {
-    ok: errors.length === 0,
-    errors,
-    charLength: body.length,
-    minimumChars: result.minimumChars,
-  };
-}
-
-function applyLifeBookReviewedChapter(chapter = {}, markdown = "", reviewMeta = {}) {
-  const reviewedMarkdown = normalizeLifeBookChapterMarkdown(markdown);
-  const source = clean(chapter?.source || "gemini-section");
-  const nextSource = source.includes("chapter-review") ? source : `${source}+chapter-review`;
-  return {
-    ...chapter,
-    reviewedMarkdown,
-    editedMarkdown: reviewedMarkdown,
-    mergedMarkdown: reviewedMarkdown,
-    localDraft: reviewedMarkdown,
-    finalText: reviewedMarkdown,
-    text: reviewedMarkdown,
-    source: nextSource,
-    chapterQualityReviewSource: clean(reviewMeta?.source || "gemini-chapter-review"),
-    chapterQualityReviewErrors: Array.isArray(reviewMeta?.errors) ? reviewMeta.errors : [],
-  };
-}
 
 function reviewLifeBookChapterDeterministically(chapter = {}) {
   const markdown = normalizeLifeBookChapterMarkdown(chapter?.reviewedMarkdown || chapter?.editedMarkdown || chapter?.mergedMarkdown || chapter?.finalText || chapter?.text || "");
@@ -4215,64 +3318,7 @@ function reviewLifeBookChapterDeterministically(chapter = {}) {
   });
 }
 
-async function reviewLifeBookChapterWithGemini(env, { llmInput, chapterSpec, chapterPlan, chapter, requestId }) {
-  const requiredFields = buildLifeBookChapterReviewFields(chapterSpec, chapterPlan);
-  const relevantEngineData = pickLifeBookRelevantEngineData(llmInput, requiredFields);
-  const chapterDraft = normalizeLifeBookChapterMarkdown(chapter?.reviewedMarkdown || chapter?.editedMarkdown || chapter?.mergedMarkdown || chapter?.finalText || chapter?.text || "");
-  let lastErrors = [];
 
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
-    const prompt = buildLifeBookChapterReviewPrompt({
-      chapterDraft,
-      engineSummary: llmInput?.engineSummary,
-      relevantEngineData,
-    });
-    let text = "";
-    try {
-      text = await callLifeBookGemini(env, prompt, {
-        requestId,
-        chapterNumber: `${chapterSpec?.roman || chapterSpec?.id || ""}-review`,
-      });
-    } catch (error) {
-      lastErrors = [clean(error?.code || error?.message || "chapter_review_generation_failed")];
-      logLifeBookServer("GeminiChapterReviewFailed", {
-        requestId,
-        chapterNumber: chapterSpec?.roman,
-        attempt,
-        reason: lastErrors[0],
-      });
-      continue;
-    }
-
-    const reviewedMarkdown = extractLifeBookReviewedChapterMarkdown(text);
-    const validation = validateLifeBookReviewedChapterMarkdown(reviewedMarkdown, chapterSpec, chapterPlan);
-    if (validation.ok) {
-      logLifeBookServer("GeminiChapterReviewDone", {
-        requestId,
-        chapterNumber: chapterSpec?.roman,
-        attempt,
-        charLength: validation.charLength,
-      });
-      return applyLifeBookReviewedChapter(chapter, reviewedMarkdown, { source: "gemini-chapter-review" });
-    }
-
-    lastErrors = validation.errors;
-    logLifeBookServer("GeminiChapterReviewValidationFailed", {
-      requestId,
-      chapterNumber: chapterSpec?.roman,
-      attempt,
-      errorCount: lastErrors.length,
-      charLength: validation.charLength,
-      minimumChars: validation.minimumChars,
-    });
-  }
-
-  throw Object.assign(new Error(`Gemini chapter review failed validation: ${chapterSpec?.roman || chapterSpec?.id || ""}`), {
-    code: "LIFEBOOK_GEMINI_CHAPTER_REVIEW_INVALID",
-    status: 502,
-    details: { chapterNumber: chapterSpec?.roman, errors: lastErrors },
-  });
-}
 
 function getLifeBookChapterFinalMarkdown(chapter = {}) {
   return normalizeLifeBookChapterMarkdown(
@@ -4304,38 +3350,7 @@ function buildLifeBookFullTableOfContentsMarkdown() {
     .join("\n");
 }
 
-function buildLifeBookFullManuscriptMergePrompt({ chapters = [] } = {}) {
-  const allChapters = buildLifeBookFullManuscriptChapterInput(chapters);
-  return `너는 프리미엄 사주 PDF 원고의 최종 편집자다.
 
-아래 13개 챕터를 하나의 완성된 “인생의 책” PDF 원고로 통합하라.
-
-목표:
-1. 기존 목차 순서를 유지한다.
-2. 전체 문체를 고급스럽고 일관되게 만든다.
-3. 챕터 간 중복을 줄인다.
-4. 앞 장에서 설명한 개념은 뒤 장에서 자연스럽게 이어받는다.
-5. 각 장의 결론이 서로 충돌하지 않게 정리한다.
-6. PDF 최상단에 표지 문구를 추가한다.
-7. 목차 페이지를 추가한다.
-8. 각 장 앞에 pagebreak를 넣는다.
-9. 각 장 끝에 요약 박스를 유지한다.
-10. 마지막에 전체 핵심 요약을 추가한다.
-11. 내부 계산 근거성 용어를 제거한다.
-12. 사용자가 읽는 완성형 상담문만 남긴다.
-
-PDF 제목:
-인생의 책 — 나의 운명 사용 설명서
-
-목차:
-${buildLifeBookFullTableOfContentsMarkdown()}
-
-입력:
-${allChapters}
-
-출력:
-PDF 렌더링에 바로 사용할 수 있는 최종 Markdown 원고.`;
-}
 
 function normalizeLifeBookFinalManuscriptMarkdown(text = "") {
   return normalizeLifeBookChapterMarkdown(text)
@@ -4402,7 +3417,7 @@ function validateLifeBookFinalManuscriptMarkdown(markdown = "", chapters = []) {
   if (body.length < minimumChars) errors.push("final_markdown_too_short");
   if (hasForbiddenText(body)) errors.push("final_markdown_forbidden_text");
   if (hasLifeBookChapterReviewForbiddenText(body)) errors.push("final_markdown_review_forbidden_text");
-  if (LIFEBOOK_LLM_RISKY_ASSERTION_RE.test(body)) errors.push("final_markdown_risky_assertion");
+  if (LIFEBOOK_RISKY_ASSERTION_RE.test(body)) errors.push("final_markdown_risky_assertion");
   return {
     ok: errors.length === 0,
     errors,
@@ -4497,7 +3512,7 @@ function validateLifeBookPhase6FinalManuscriptMarkdown(markdown = "", chapters =
   if (body.length < minimumChars) errors.push("final_markdown_too_short");
   if (hasForbiddenText(body)) errors.push("final_markdown_forbidden_text");
   if (hasLifeBookChapterReviewForbiddenText(body)) errors.push("final_markdown_review_forbidden_text");
-  if (LIFEBOOK_LLM_RISKY_ASSERTION_RE.test(body)) errors.push("final_markdown_risky_assertion");
+  if (LIFEBOOK_RISKY_ASSERTION_RE.test(body)) errors.push("final_markdown_risky_assertion");
   return {
     ok: errors.length === 0,
     errors,
@@ -4530,581 +3545,37 @@ ${monthRows}`);
   };
 }
 
-function buildLifeBookFinalQualityReviewPrompt({ finalManuscriptMarkdown = "" } = {}) {
-  return `너는 Code:Destiny 인생의 책 PDF 최종 품질 검수관이다.
 
-아래 전체 PDF 원고를 검수하라.
 
-검수 항목:
-1. 13개 목차가 모두 있는가?
-2. 목차 순서가 정확한가?
-3. 각 장의 분량이 목표에 맞는가?
-4. 내부 용어가 노출되었는가?
-5. 엔진 데이터와 충돌하는 해석이 있는가?
-6. 같은 문장이 반복되는가?
-7. 각 장의 세부 카테고리명이 서로 충분히 다른가?
-8. 2026년 월별 로드맵이 12개월 모두 있는가?
-9. 대운 분석이 현재 대운 중심으로 충분히 깊은가?
-10. 용신/희신/기신 전략이 현실적으로 번역되었는가?
-11. 건강 관련 면책 문구가 포함되어 있는가?
-12. 재물 관련 위험한 투자 조언이 없는가?
-13. 연애·결혼에서 단정적 불행 예언이 없는가?
-14. PDF 상품으로 판매 가능한 완성도인가?
 
-전체 PDF 원고:
-${normalizeLifeBookFinalManuscriptMarkdown(finalManuscriptMarkdown)}
 
-출력:
-- 통과 여부
-- 수정 필요 사항
-- 최종 수정본`;
-}
 
-function extractLifeBookFinalQualityReviewedMarkdown(reviewText = "") {
-  const raw = clean(reviewText)
-    .replace(/^\s*```(?:markdown|md|html|json)?\s*/i, "")
-    .replace(/\s*```\s*$/i, "")
-    .trim();
-  try {
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object") {
-      return normalizeLifeBookFinalManuscriptMarkdown(parsed.finalRevision || parsed.finalManuscript || parsed.finalText || parsed.revisedText || parsed.text || parsed.content || "");
-    }
-  } catch (_) {}
-  const match = raw.match(/(?:^|\n)\s*(?:#{1,4}\s*)?(?:[-*]\s*)?최종\s*수정본\s*[:：]?\s*\n([\s\S]+)$/i);
-  if (match?.[1]) return normalizeLifeBookFinalManuscriptMarkdown(match[1]);
-  return normalizeLifeBookFinalManuscriptMarkdown(raw);
-}
 
-function validateLifeBookFinalQualityReviewMarkdown(markdown = "", chapters = []) {
-  const base = validateLifeBookFinalManuscriptMarkdown(markdown, chapters);
-  const body = normalizeLifeBookFinalManuscriptMarkdown(markdown);
-  const errors = [...base.errors];
-  const warnings = [];
-  const blueprints = getLifeBookBlueprints();
-  let lastIndex = -1;
 
-  blueprints.forEach((chapter) => {
-    const title = stripForbiddenTokens(chapter.title);
-    const currentIndex = body.indexOf(title);
-    if (currentIndex < 0) {
-      if (!errors.includes(`final_markdown_chapter_${chapter.id}_missing`)) errors.push(`final_review_chapter_${chapter.id}_missing`);
-      return;
-    }
-    if (currentIndex < lastIndex) errors.push(`final_review_chapter_${chapter.id}_order`);
-    lastIndex = currentIndex;
-  });
 
-  const monthMissing = Array.from({ length: 12 }, (_, index) => `${index + 1}월`).filter((label) => !body.includes(label));
-  if (monthMissing.length) warnings.push(`final_review_2026_months_missing:${monthMissing.join(",")}`);
-  if (!/(의학적\s*진단|치료를\s*대체하지|의료\s*전문가)/.test(body)) errors.push("final_review_health_notice_missing");
-  if (/(투자하면\s*오른다|수익\s*확정|원금\s*보장|종목\s*추천)/.test(body)) errors.push("final_review_investment_risk");
-  if (/(반드시\s*이혼|이혼한다|사별한다|외도한다|불행해진다)/.test(body)) errors.push("final_review_love_fatalism");
 
-  const categoryTitles = (Array.isArray(chapters) ? chapters : [])
-    .flatMap((chapter) => Array.isArray(chapter?.categories) ? chapter.categories : [])
-    .map((category) => clean(category?.title))
-    .filter(Boolean);
-  const duplicateCategoryCount = categoryTitles.length - new Set(categoryTitles).size;
-  if (duplicateCategoryCount > 2) warnings.push(`final_review_category_title_duplication:${duplicateCategoryCount}`);
 
-  return {
-    ok: errors.length === 0,
-    errors,
-    warnings,
-    charLength: body.length,
-    minimumChars: base.minimumChars,
-    pagebreakCount: base.pagebreakCount,
-  };
-}
 
-function patchLifeBookFinalQualityRequirements(markdown = "", chapters = []) {
-  let body = normalizeLifeBookFinalManuscriptMarkdown(markdown);
-  if (!/(의학적\s*진단|치료를\s*대체하지|의료\s*전문가)/.test(body)) {
-    body = normalizeLifeBookFinalManuscriptMarkdown(`${body}
 
-### 건강 관련 안내
 
-이 내용은 사주 오행에 기반한 자기관리 참고 자료이며, 의학적 진단이나 치료를 대체하지 않습니다. 지속적인 증상이나 불편감이 있다면 의료 전문가와 상담하는 것이 좋습니다.`);
-  }
-  const monthMissing = Array.from({ length: 12 }, (_, index) => `${index + 1}월`).filter((label) => !body.includes(label));
-  if (monthMissing.length) {
-    const monthRows = Array.from({ length: 12 }, (_, index) => `- ${index + 1}월: XI장의 2026년 월별 로드맵을 기준으로 일, 재물, 관계, 건강의 실행 우선순위를 점검합니다.`).join("\n");
-    body = normalizeLifeBookFinalManuscriptMarkdown(`${body}
 
-### 2026년 12개월 실행 확인표
 
-${monthRows}`);
-  }
-  const validation = validateLifeBookFinalQualityReviewMarkdown(body, chapters);
-  return {
-    finalManuscriptMarkdown: body,
-    validation,
-  };
-}
 
-async function reviewLifeBookFinalPdfWithGemini(env, { profile, chapters, finalManuscriptMarkdown, requestId }) {
-  const fallbackMarkdown = normalizeLifeBookFinalManuscriptMarkdown(finalManuscriptMarkdown || buildLifeBookDeterministicFinalManuscript(profile, chapters));
-  const shouldUseStaticFinalReview = env?.LIFEBOOK_STATIC_FINAL_TEMPLATE !== "0";
-  if (shouldUseStaticFinalReview) {
-    const patched = patchLifeBookFinalQualityRequirements(fallbackMarkdown, chapters);
-    logLifeBookServer("StaticFinalPdfReviewDone", {
-      requestId,
-      charLength: patched.validation.charLength,
-      pagebreakCount: patched.validation.pagebreakCount,
-      errorCount: patched.validation.errors.length,
-      warningCount: patched.validation.warnings.length,
-    });
-    return {
-      finalManuscriptMarkdown: patched.finalManuscriptMarkdown,
-      finalQualityReviewSource: "static-template-final-pdf-review",
-      finalQualityReviewPassed: patched.validation.ok,
-      finalQualityReviewErrors: patched.validation.errors,
-      finalQualityReviewWarnings: patched.validation.warnings,
-    };
-  }
-  const prompt = buildLifeBookFinalQualityReviewPrompt({ finalManuscriptMarkdown: fallbackMarkdown });
-  try {
-    const text = await callLifeBookGemini(env, prompt, {
-      requestId,
-      chapterNumber: "full-pdf-review",
-    });
-    const reviewedMarkdown = extractLifeBookFinalQualityReviewedMarkdown(text);
-    const validation = validateLifeBookFinalQualityReviewMarkdown(reviewedMarkdown, chapters);
-    if (validation.ok) {
-      logLifeBookServer("GeminiFinalPdfReviewDone", {
-        requestId,
-        charLength: validation.charLength,
-        pagebreakCount: validation.pagebreakCount,
-        warningCount: validation.warnings.length,
-      });
-      return {
-        finalManuscriptMarkdown: reviewedMarkdown,
-        finalQualityReviewSource: "gemini-final-pdf-review",
-        finalQualityReviewPassed: true,
-        finalQualityReviewErrors: [],
-        finalQualityReviewWarnings: validation.warnings,
-      };
-    }
-    const patched = patchLifeBookFinalQualityRequirements(fallbackMarkdown, chapters);
-    logLifeBookServer("GeminiFinalPdfReviewValidationFailed", {
-      requestId,
-      errorCount: validation.errors.length,
-      warningCount: validation.warnings.length,
-      fallbackErrorCount: patched.validation.errors.length,
-    });
-    throw Object.assign(new Error("Gemini final PDF review failed validation."), {
-      code: "LIFEBOOK_GEMINI_FINAL_REVIEW_INVALID",
-      status: 502,
-      details: { errors: validation.errors, warnings: validation.warnings },
-    });
-    return {
-      finalManuscriptMarkdown: patched.finalManuscriptMarkdown,
-      finalQualityReviewSource: "deterministic-final-pdf-review",
-      finalQualityReviewPassed: patched.validation.ok,
-      finalQualityReviewErrors: validation.errors,
-      finalQualityReviewWarnings: Array.from(new Set([...validation.warnings, ...patched.validation.warnings])),
-    };
-  } catch (error) {
-    logLifeBookServer("GeminiFinalPdfReviewFailed", {
-      requestId,
-      reason: clean(error?.code || error?.message || "final_pdf_review_generation_failed"),
-    });
-    throw Object.assign(error instanceof Error ? error : new Error(clean(error?.message || "Gemini final PDF review failed.")), {
-      code: clean(error?.code || "LIFEBOOK_GEMINI_FINAL_REVIEW_FAILED"),
-      status: Number(error?.status || 502),
-      llmRuntime: error?.llmRuntime,
-    });
-    const patched = patchLifeBookFinalQualityRequirements(fallbackMarkdown, chapters);
-    logLifeBookServer("GeminiFinalPdfReviewFailed", {
-      requestId,
-      reason: clean(error?.code || error?.message || "final_pdf_review_generation_failed"),
-      fallbackErrorCount: patched.validation.errors.length,
-    });
-    return {
-      finalManuscriptMarkdown: patched.finalManuscriptMarkdown,
-      finalQualityReviewSource: "deterministic-final-pdf-review",
-      finalQualityReviewPassed: patched.validation.ok,
-      finalQualityReviewErrors: [clean(error?.code || error?.message || "final_pdf_review_generation_failed"), ...patched.validation.errors],
-      finalQualityReviewWarnings: patched.validation.warnings,
-    };
-  }
-}
 
-async function mergeLifeBookFullManuscriptWithGemini(env, { profile, chapters, requestId }) {
-  const fallbackMarkdown = buildLifeBookDeterministicFinalManuscript(profile, chapters);
-  const shouldUseStaticFinalManuscript = env?.LIFEBOOK_STATIC_FINAL_TEMPLATE !== "0";
-  if (shouldUseStaticFinalManuscript) {
-    const validation = validateLifeBookFinalManuscriptMarkdown(fallbackMarkdown, chapters);
-    logLifeBookServer("StaticFullManuscriptMergeDone", {
-      requestId,
-      charLength: validation.charLength,
-      pagebreakCount: validation.pagebreakCount,
-      errorCount: validation.errors.length,
-    });
-    return {
-      finalManuscriptMarkdown: fallbackMarkdown,
-      finalManuscriptSource: "static-template-full-manuscript",
-      finalManuscriptErrors: validation.errors,
-    };
-  }
-  const prompt = buildLifeBookFullManuscriptMergePrompt({ chapters });
-  try {
-    const text = await callLifeBookGemini(env, prompt, {
-      requestId,
-      chapterNumber: "full-manuscript",
-    });
-    const markdown = normalizeLifeBookFinalManuscriptMarkdown(text);
-    const validation = validateLifeBookFinalManuscriptMarkdown(markdown, chapters);
-    if (validation.ok) {
-      logLifeBookServer("GeminiFullManuscriptMergeDone", {
-        requestId,
-        charLength: validation.charLength,
-        pagebreakCount: validation.pagebreakCount,
-      });
-      return {
-        finalManuscriptMarkdown: markdown,
-        finalManuscriptSource: "gemini-full-manuscript",
-        finalManuscriptErrors: [],
-      };
-    }
-    logLifeBookServer("GeminiFullManuscriptMergeValidationFailed", {
-      requestId,
-      errorCount: validation.errors.length,
-      charLength: validation.charLength,
-      minimumChars: validation.minimumChars,
-      pagebreakCount: validation.pagebreakCount,
-    });
-    throw Object.assign(new Error("Gemini full manuscript merge failed validation."), {
-      code: "LIFEBOOK_GEMINI_FULL_MANUSCRIPT_INVALID",
-      status: 502,
-      details: { errors: validation.errors },
-    });
-    return {
-      finalManuscriptMarkdown: fallbackMarkdown,
-      finalManuscriptSource: "deterministic-full-manuscript",
-      finalManuscriptErrors: validation.errors,
-    };
-  } catch (error) {
-    logLifeBookServer("GeminiFullManuscriptMergeFailed", {
-      requestId,
-      reason: clean(error?.code || error?.message || "full_manuscript_generation_failed"),
-    });
-    throw Object.assign(error instanceof Error ? error : new Error(clean(error?.message || "Gemini full manuscript merge failed.")), {
-      code: clean(error?.code || "LIFEBOOK_GEMINI_FULL_MANUSCRIPT_FAILED"),
-      status: Number(error?.status || 502),
-      llmRuntime: error?.llmRuntime,
-    });
-    logLifeBookServer("GeminiFullManuscriptMergeFailed", {
-      requestId,
-      reason: clean(error?.code || error?.message || "full_manuscript_generation_failed"),
-    });
-    return {
-      finalManuscriptMarkdown: fallbackMarkdown,
-      finalManuscriptSource: "deterministic-full-manuscript",
-      finalManuscriptErrors: [clean(error?.code || error?.message || "full_manuscript_generation_failed")],
-    };
-  }
-}
 
-function applyLifeBookMergedChapter(chapter = {}, markdown = "", sourceSuffix = "chapter-merge") {
-  const mergedMarkdown = normalizeLifeBookChapterMarkdown(markdown);
-  const source = clean(chapter?.source || "gemini-section");
-  const nextSource = source.includes(sourceSuffix) ? source : `${source}+${sourceSuffix}`;
-  return {
-    ...chapter,
-    editedMarkdown: mergedMarkdown,
-    mergedMarkdown,
-    localDraft: mergedMarkdown,
-    finalText: mergedMarkdown,
-    text: mergedMarkdown,
-    source: nextSource,
-    chapterMergeSource: sourceSuffix,
-  };
-}
 
-async function mergeLifeBookChapterWithGemini(env, { llmInput, chapterSpec, chapterPlan, sectionResults, combined, requestId }) {
-  let lastErrors = [];
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
-    const prompt = buildLifeBookChapterMergePrompt({
-      chapterSpec,
-      chapterPlan,
-      sectionResults,
-      engineSummary: llmInput?.engineSummary,
-    });
-    let text = "";
-    try {
-      text = await callLifeBookGemini(env, prompt, {
-        requestId,
-        chapterNumber: `${chapterSpec?.roman || chapterSpec?.id || ""}-merge`,
-      });
-    } catch (error) {
-      lastErrors = [clean(error?.code || error?.message || "merged_chapter_generation_failed")];
-      logLifeBookServer("GeminiChapterMergeFailed", {
-        requestId,
-        chapterNumber: chapterSpec?.roman,
-        attempt,
-        reason: lastErrors[0],
-      });
-      continue;
-    }
-    const mergedMarkdown = normalizeLifeBookChapterMarkdown(text);
-    const validation = validateLifeBookMergedChapterMarkdown(mergedMarkdown, chapterSpec, chapterPlan);
-    if (validation.ok) {
-      logLifeBookServer("GeminiChapterMergeDone", {
-        requestId,
-        chapterNumber: chapterSpec?.roman,
-        attempt,
-        charLength: validation.charLength,
-      });
-      return applyLifeBookMergedChapter(combined, mergedMarkdown, "chapter-merge");
-    }
-    lastErrors = validation.errors;
-    logLifeBookServer("GeminiChapterMergeValidationFailed", {
-      requestId,
-      chapterNumber: chapterSpec?.roman,
-      attempt,
-      errorCount: lastErrors.length,
-      charLength: validation.charLength,
-      minimumChars: validation.minimumChars,
-    });
-  }
-  throw Object.assign(new Error(`Gemini chapter merge failed validation: ${chapterSpec?.roman || chapterSpec?.id || ""}`), {
-    code: "LIFEBOOK_GEMINI_CHAPTER_MERGE_INVALID",
-    status: 502,
-    details: { chapterNumber: chapterSpec?.roman, errors: lastErrors },
-  });
-}
 
-async function generateLifeBookChapterSpecWithGemini(env, { profile, signals, llmInput, chapterSpec, previousSummaries, requestId }) {
-  let lastDraft = null;
-  let lastErrors = [];
-  let lastChapter = null;
 
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
-    const prompt = attempt === 1
-      ? buildLifeBookChapterPrompt(llmInput, chapterSpec, previousSummaries)
-      : buildLifeBookRefinePrompt(llmInput, chapterSpec, lastDraft, lastErrors);
-    const text = await callLifeBookGemini(env, prompt, { requestId, chapterNumber: chapterSpec.roman });
-    let parsed = null;
-    try {
-      parsed = extractLifeBookJsonObject(text);
-    } catch (error) {
-      lastDraft = { rawText: clean(text).slice(0, 12000) };
-      lastErrors = [clean(error?.code || "LIFEBOOK_GEMINI_JSON_PARSE_FAILED")];
-      logLifeBookServer("GeminiChapterJsonParseFailed", {
-        requestId,
-        chapterNumber: chapterSpec.roman,
-        attempt,
-        responseLength: clean(text).length,
-      });
-      continue;
-    }
-    lastDraft = parsed;
 
-    const jsonValidation = validateLifeBookGeminiJson(parsed, chapterSpec);
-    if (!jsonValidation.ok) {
-      lastErrors = jsonValidation.errors;
-      logLifeBookServer("GeminiChapterValidationFailed", {
-        requestId,
-        chapterNumber: chapterSpec.roman,
-        errorCount: lastErrors.length,
-      });
-      continue;
-    }
-
-    const chapter = convertGeminiChapterToLifeBookChapter(parsed, chapterSpec);
-    const chapterValidation = validateLifeBookGeneratedChapter(chapter, chapterSpec);
-    if (chapterValidation.ok) {
-      return {
-        chapter,
-        summary: summarizeLifeBookChapter(chapter),
-        deterministicReinforced: false,
-      };
-    }
-
-    lastChapter = chapter;
-    lastErrors = chapterValidation.errors;
-    logLifeBookServer("GeminiChapterQualityFailed", {
-      requestId,
-      chapterNumber: chapterSpec.roman,
-      errorCount: lastErrors.length,
-    });
-  }
-
-  if (lastChapter) {
-    lastErrors = lastErrors.length ? lastErrors : validateLifeBookGeneratedChapter(lastChapter, chapterSpec).errors;
-  }
-
-  throw Object.assign(new Error(`Gemini 챕터 생성 검수에 실패했습니다: ${chapterSpec.roman}`), {
-    code: "LIFEBOOK_GEMINI_CHAPTER_INVALID",
-    status: 502,
-    details: { chapterNumber: chapterSpec.roman, errors: lastErrors },
-  });
-}
-
-function combineLifeBookPartChapters(chapterSpec = {}, partChapters = []) {
-  const categoryByTitle = new Map();
-  partChapters.forEach((partChapter) => {
-    (Array.isArray(partChapter?.categories) ? partChapter.categories : []).forEach((category) => {
-      const title = clean(category?.title);
-      if (title && !categoryByTitle.has(title)) categoryByTitle.set(title, category);
-    });
-  });
-
-  const categories = (Array.isArray(chapterSpec?.categories) ? chapterSpec.categories : []).map((categoryTitle, index) => {
-    const found = categoryByTitle.get(clean(categoryTitle));
-    if (found) return { ...found, order: index + 1 };
-    return {
-      id: `${String(index + 1).padStart(2, "0")}`,
-      title: categoryTitle,
-      localSummary: "",
-      evidenceTags: [categoryTitle, chapterSpec.roman].filter(Boolean),
-      advicePoints: [],
-      finalText: "",
-      order: index + 1,
-    };
-  });
-  const chapterSummary = partChapters.map((chapter) => clean(chapter?.chapterSummary)).filter(Boolean).join(" ");
-  const chapterOpening = buildLifeBookChapterOpeningText({ chapterSummary }, chapterSpec);
-  const chapterText = buildChapterBody(chapterSpec.title, categories, chapterOpening);
-  return {
-    id: chapterSpec.id,
-    roman: chapterSpec.roman,
-    title: chapterSpec.title,
-    subtitle: chapterSpec.subtitle,
-    chapterSummary,
-    chapterOpening,
-    categories,
-    localDraft: chapterText,
-    finalText: chapterText,
-    text: chapterText,
-    source: "gemini-parted",
-    pagePlan: getLifeBookPagePlan(chapterSpec.id),
-    partCount: partChapters.length,
-  };
-}
-
-async function generateLifeBookChapterWithGemini(env, { profile, signals, llmInput, chapterSpec, previousSummaries, requestId }) {
-  const chapterPlan = buildLifeBookChapterPlan(chapterSpec);
-  const sectionResults = [];
-  let previousSectionSummary = "";
-
-  logLifeBookServer("LifeBookChapterPlanCreated", {
-    requestId,
-    chapterNumber: chapterSpec.roman,
-    sectionCount: chapterPlan.sections.length,
-    targetPages: chapterPlan.targetPages,
-    targetChars: chapterPlan.targetChars,
-  });
-
-  for (let sectionIndex = 0; sectionIndex < chapterPlan.sections.length; sectionIndex += 1) {
-    const sectionPlan = chapterPlan.sections[sectionIndex];
-    logLifeBookServer("GeminiSectionStart", {
-      requestId,
-      chapterNumber: chapterSpec.roman,
-      sectionId: sectionPlan.sectionId,
-      sectionIndex: sectionIndex + 1,
-      sectionCount: chapterPlan.sections.length,
-      targetChars: sectionPlan.targetChars,
-      requiredEngineFieldCount: sectionPlan.requiredEngineFields.length,
-    });
-    const generated = await generateLifeBookSectionWithGemini(env, {
-      profile,
-      signals,
-      llmInput,
-      chapterSpec,
-      chapterPlan,
-      sectionPlan,
-      sectionIndex,
-      previousSectionSummary,
-      requestId,
-    });
-    sectionResults.push(generated);
-    previousSectionSummary = generated.summary;
-    logLifeBookServer("GeminiSectionDone", {
-      requestId,
-      chapterNumber: chapterSpec.roman,
-      sectionId: sectionPlan.sectionId,
-      source: generated.source,
-      charLength: clean(generated.category?.finalText).length,
-    });
-  }
-
-  const combined = combineLifeBookSectionChapters(chapterSpec, chapterPlan, sectionResults);
-  const validation = validateLifeBookGeneratedChapter(combined, chapterSpec);
-  if (validation.ok) {
-    const merged = await mergeLifeBookChapterWithGemini(env, {
-      llmInput,
-      chapterSpec,
-      chapterPlan,
-      sectionResults,
-      combined,
-      requestId,
-    });
-    const reviewed = await reviewLifeBookChapterWithGemini(env, {
-      llmInput,
-      chapterSpec,
-      chapterPlan,
-      chapter: merged,
-      requestId,
-    });
-    return {
-      chapter: reviewed,
-      summary: summarizeLifeBookChapter(reviewed),
-      deterministicReinforced: sectionResults.some((result) => result?.deterministicReinforced),
-    };
-  }
-
-  throw Object.assign(new Error(`Gemini section chapter failed validation: ${chapterSpec?.roman || chapterSpec?.id || ""}`), {
-    code: "LIFEBOOK_GEMINI_SECTION_CHAPTER_INVALID",
-    status: 502,
-    details: { chapterNumber: chapterSpec?.roman, errors: validation.errors },
-  });
-  const reinforced = reinforceLifeBookChapterDeterministically(profile, signals, combined, chapterSpec);
-  const reinforcedValidation = validateLifeBookGeneratedChapter(reinforced, chapterSpec);
-  if (reinforcedValidation.ok) {
-    const merged = await mergeLifeBookChapterWithGemini(env, {
-      llmInput,
-      chapterSpec,
-      chapterPlan,
-      sectionResults,
-      combined: reinforced,
-      requestId,
-    });
-    const reviewed = await reviewLifeBookChapterWithGemini(env, {
-      llmInput,
-      chapterSpec,
-      chapterPlan,
-      chapter: merged,
-      requestId,
-    });
-    return {
-      chapter: reviewed,
-      summary: summarizeLifeBookChapter(reviewed),
-      deterministicReinforced: true,
-    };
-  }
-
-  throw Object.assign(new Error(`Gemini 섹션 생성 검수에 실패했습니다: ${chapterSpec.roman}`), {
-    code: "LIFEBOOK_GEMINI_SECTION_CHAPTER_INVALID",
-    status: 502,
-    details: { chapterNumber: chapterSpec.roman, errors: validation.errors },
-  });
-}
-
-async function assembleLifeBookChaptersLocally(env, { profile, signals, llmInput, requestId, onProgress = null }) {
+async function assembleLifeBookChaptersLocally(env, { profile, signals, assemblyInput, requestId, onProgress = null }) {
   const chapters = [];
   const summaries = [];
   let deterministicReinforcedCount = 0;
   const chapterPlans = buildLifeBookChapterPlans();
-  const normalizedData = llmInput?.lifeBookMasterJson?.normalizedData || llmInput?.normalizedData || null;
+  const normalizedData = assemblyInput?.lifeBookMasterJson?.normalizedData || assemblyInput?.normalizedData || null;
   const localChapters = buildLifeBookChapters(profile, signals, normalizedData);
-  const runtime = resolveLifeBookLlmRuntimeInfo(env);
+  const runtime = resolveLifeBookAssemblyRuntimeInfo(env);
   const enhancementEnabled = false;
-  const llmEnhancedChapterIds = [];
-  const llmFallbackChapterIds = [];
-  const llmCacheHitChapterIds = [];
 
   logLifeBookServer("LifeBookChapterPlansCreated", {
     requestId,
@@ -5112,14 +3583,11 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, llmInput
     sectionCount: chapterPlans.reduce((sum, plan) => sum + (Array.isArray(plan?.sections) ? plan.sections.length : 0), 0),
     targetPages: chapterPlans.reduce((sum, plan) => sum + Number(plan?.targetPages || 0), 0),
     targetChars: chapterPlans.reduce((sum, plan) => sum + Number(plan?.targetChars || 0), 0),
-    promptVersion: LIFE_BOOK_PROMPT_VERSION,
     templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
     generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
-    llmEnabled: LIFE_BOOK_PDF_CONFIG.llmEnabled,
     provider: LIFE_BOOK_PDF_CONFIG.provider,
     runtime,
     enhancementEnabled,
-    enhancedChapterIds: [],
   });
 
   for (const [chapterIndex, chapterSpec] of getLifeBookBlueprints().entries()) {
@@ -5127,7 +3595,7 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, llmInput
     const localChapter = localChapters[chapterIndex] || buildLifeBookChapters(profile, signals, normalizedData)[chapterIndex];
     if (typeof onProgress === "function") {
       onProgress({
-        stateKey: LIFEBOOK_LLM_WRITING_STATE,
+        stateKey: LIFEBOOK_WRITING_STATE,
         currentChapterNo: chapterIndex,
         currentChapterTitle: clean(chapterSpec.title),
         totalChapters: getLifeBookBlueprints().length,
@@ -5148,7 +3616,6 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, llmInput
       },
       summary: summarizeLifeBookChapter(localChapter),
       deterministicReinforced: true,
-      fallbackUsed: false,
     };
     chapters.push(generated.chapter);
     summaries.push({
@@ -5159,7 +3626,7 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, llmInput
     if (generated.deterministicReinforced) deterministicReinforcedCount += 1;
     if (typeof onProgress === "function") {
       onProgress({
-        stateKey: LIFEBOOK_LLM_WRITING_STATE,
+        stateKey: LIFEBOOK_WRITING_STATE,
         currentChapterNo: chapterIndex + 1,
         currentChapterTitle: clean(chapterSpec.title),
         totalChapters: getLifeBookBlueprints().length,
@@ -5169,7 +3636,6 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, llmInput
       requestId,
       chapterNumber: chapterSpec.roman,
       deterministicReinforced: generated.deterministicReinforced,
-      fallbackUsed: Boolean(generated.fallbackUsed),
       cacheHit: Boolean(generated.cacheHit),
       charLength: chapterTextLength(generated.chapter),
     });
@@ -5202,16 +3668,9 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, llmInput
     ])),
     deterministicReinforcedCount,
     authoringMode: LIFEBOOK_AUTHORING_MODE,
-    promptVersion: LIFE_BOOK_PROMPT_VERSION,
     templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
     generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
-    llmEnabled: LIFE_BOOK_PDF_CONFIG.llmEnabled,
     provider: LIFE_BOOK_PDF_CONFIG.provider,
-    llmUsed: false,
-    fallbackUsed: false,
-    llmEnhancedChapterIds,
-    llmFallbackChapterIds,
-    llmCacheHitChapterIds,
     manuscriptSource: [
       LIFE_BOOK_PDF_CONFIG.templateVersion,
       "local-chapter-assembly",
@@ -5771,11 +4230,11 @@ function buildLifeBookNormalizedData({ birthInput = {}, profile = {}, signals = 
 }
 
 function normalizeLifeBookInput({ birthInput = {}, profile = {}, signals = {}, localSajuJson = {}, body = {}, sessionId = "", requestId = "" } = {}) {
-  const llmInput = buildLifeBookLLMInput(birthInput, profile, signals, localSajuJson, body);
+  const assemblyInput = buildLifeBookAssemblyInput(birthInput, profile, signals, localSajuJson, body);
   const engineContractValidation = validateLifeBookJsonContract({
     birthInput,
     localSajuJson,
-    engineContract: llmInput.engineContract,
+    engineContract: assemblyInput.engineContract,
   });
   if (!engineContractValidation.ok) {
     throw Object.assign(new Error("인생의 책 계산 계약이 생성 기준을 충족하지 못했습니다. 계산 데이터를 보강한 뒤 다시 생성해 주세요."), {
@@ -5785,11 +4244,11 @@ function normalizeLifeBookInput({ birthInput = {}, profile = {}, signals = {}, l
     });
   }
 
-  llmInput.engineContract.validation = engineContractValidation;
-  const canonicalSajuChart = buildLifeBookCanonicalSajuChartFromContract(llmInput.engineContract, localSajuJson);
+  assemblyInput.engineContract.validation = engineContractValidation;
+  const canonicalSajuChart = buildLifeBookCanonicalSajuChartFromContract(assemblyInput.engineContract, localSajuJson);
   const canonicalValidation = validateLifeBookCanonicalSajuChart(canonicalSajuChart);
   canonicalSajuChart.validation = canonicalValidation;
-  llmInput.engineContract.canonicalSajuChart = canonicalSajuChart;
+  assemblyInput.engineContract.canonicalSajuChart = canonicalSajuChart;
   localSajuJson.canonicalSajuChart = canonicalSajuChart;
   if (!canonicalValidation.ok) {
     throw Object.assign(new Error("인생의 책 표준 사주 구조가 생성 기준을 충족하지 못했습니다. 계산 데이터를 보강한 뒤 다시 생성해 주세요."), {
@@ -5799,7 +4258,7 @@ function normalizeLifeBookInput({ birthInput = {}, profile = {}, signals = {}, l
     });
   }
 
-  const chapterEvidenceCoverage = buildLifeBookChapterEvidenceCoverage(llmInput.engineContract?.chapterPlans || buildLifeBookChapterPlans(), llmInput.engineContract);
+  const chapterEvidenceCoverage = buildLifeBookChapterEvidenceCoverage(assemblyInput.engineContract?.chapterPlans || buildLifeBookChapterPlans(), assemblyInput.engineContract);
   if (!chapterEvidenceCoverage.ok) {
     throw Object.assign(new Error("인생의 책 챕터별 계산 근거가 충분하지 않습니다. 계산 데이터를 보강한 뒤 다시 생성해 주세요."), {
       code: "LIFEBOOK_CHAPTER_EVIDENCE_INSUFFICIENT",
@@ -5812,7 +4271,7 @@ function normalizeLifeBookInput({ birthInput = {}, profile = {}, signals = {}, l
     profile,
     signals,
     localSajuJson,
-    engineContract: llmInput.engineContract,
+    engineContract: assemblyInput.engineContract,
     canonicalSajuChart,
   });
 
@@ -5821,7 +4280,7 @@ function normalizeLifeBookInput({ birthInput = {}, profile = {}, signals = {}, l
     profile,
     signals,
     localSajuJson,
-    engineContract: llmInput.engineContract,
+    engineContract: assemblyInput.engineContract,
     canonicalSajuChart,
     body,
     validations: {
@@ -5832,7 +4291,7 @@ function normalizeLifeBookInput({ birthInput = {}, profile = {}, signals = {}, l
     },
   });
   lifeBookMasterJson.normalizedData = lifeBookNormalizedData;
-  llmInput.lifeBookMasterJson = lifeBookMasterJson;
+  assemblyInput.lifeBookMasterJson = lifeBookMasterJson;
   localSajuJson.lifeBookMasterJson = lifeBookMasterJson;
 
   logLifeBookServer("LifeBookJsonContractValidated", {
@@ -5850,7 +4309,7 @@ function normalizeLifeBookInput({ birthInput = {}, profile = {}, signals = {}, l
     profile,
     signals,
     localSajuJson,
-    llmInput,
+    assemblyInput,
     engineContractValidation,
     canonicalSajuChart,
     canonicalValidation,
@@ -5869,22 +4328,22 @@ async function composeLifeBookChapters(normalized = {}, { env = {}, sessionId = 
     });
   }
 
-  const llmRuntime = resolveLifeBookLlmRuntimeInfo(env);
+  const assemblyRuntime = resolveLifeBookAssemblyRuntimeInfo(env);
   logLifeBookServer("LocalDraftBuildStart", {
     requestId,
     sessionId,
     reportId,
     chapterCount: getLifeBookBlueprints().length,
-    targetYear: LIFEBOOK_LLM_TARGET_YEAR,
+    targetYear: LIFEBOOK_LOCAL_TARGET_YEAR,
     generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
     templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
-    llmRuntime,
+    assemblyRuntime,
   });
 
   const generatedLifeBook = await assembleLifeBookChaptersLocally(env, {
     profile: normalized.profile,
     signals: normalized.signals,
-    llmInput: normalized.llmInput,
+    assemblyInput: normalized.assemblyInput,
     requestId,
     onProgress,
   });
@@ -6031,7 +4490,7 @@ async function generateLifeBookPdf(profile = {}, { env = {}, birthInput = {}, bo
     calculationResultHash: cacheContext.calculationResultHash,
     cacheHit: false,
     fromCache: false,
-    llmRuntime: resolveLifeBookLlmRuntimeInfo(env),
+    assemblyRuntime: resolveLifeBookAssemblyRuntimeInfo(env),
   };
   writeLifeBookLocalPdfResultCache(cacheContext.cacheKey, result);
   return result;
@@ -7477,7 +5936,6 @@ function renderLifeBookFinalMarkdownHtml(markdown = "") {
 }
 
 function ensureCompleteLifeBookChapters(profile, signals, chapters = [], options = {}) {
-  const llmOnly = isLifeBookLlmOnlyAuthoringMode(options?.authoringMode);
   const chapterMap = new Map((Array.isArray(chapters) ? chapters : []).map((item) => [String(item?.id || ""), item]));
 
   return getLifeBookBlueprints().map((blueprint) => {
@@ -7487,14 +5945,14 @@ function ensureCompleteLifeBookChapters(profile, signals, chapters = [], options
 
     const categories = fallbackCategories.map((fallbackCategory, index) => {
       const existing = categoryMap.get(String(fallbackCategory.title)) || categoryMap.get(String(fallbackCategory.id));
-      const nextText = stripForbiddenTokens(existing?.finalText || existing?.localSummary || (llmOnly ? "" : fallbackCategory.localSummary));
+      const nextText = stripForbiddenTokens(existing?.finalText || existing?.localSummary || fallbackCategory.localSummary);
       return {
         id: fallbackCategory.id,
         title: fallbackCategory.title,
         localSummary: nextText,
         evidenceTags: Array.isArray(existing?.evidenceTags) && existing.evidenceTags.length ? existing.evidenceTags : fallbackCategory.evidenceTags,
         advicePoints: Array.isArray(existing?.advicePoints) && existing.advicePoints.length ? existing.advicePoints : fallbackCategory.advicePoints,
-        finalText: nextText || (llmOnly ? "" : createLifeBookFallbackText(profile, signals, blueprint, fallbackCategory.title, fallbackCategory.localSummary)),
+        finalText: nextText || createLifeBookFallbackText(profile, signals, blueprint, fallbackCategory.title, fallbackCategory.localSummary),
         order: index + 1,
       };
     });
@@ -7517,7 +5975,7 @@ function ensureCompleteLifeBookChapters(profile, signals, chapters = [], options
       localDraft: chapterText,
       finalText: stripForbiddenTokens(chapterText),
       text: stripForbiddenTokens(chapterText),
-      source: clean(chapter?.source) || (llmOnly ? "gemini-section" : "assembled"),
+      source: clean(chapter?.source) || "assembled",
       chapterMergeSource: clean(chapter?.chapterMergeSource),
       chapterMergeErrors: Array.isArray(chapter?.chapterMergeErrors) ? chapter.chapterMergeErrors : [],
       chapterQualityReviewSource: clean(chapter?.chapterQualityReviewSource),
@@ -7535,6 +5993,26 @@ function validateLifeBookChapters(chapters = []) {
     warnings: quality.softWarnings,
     qualityScore: quality.qualityScore,
     chapterMetrics: quality.chapterMetrics,
+  };
+}
+
+function validateLifeBookGeneratedChapter(chapter = {}, chapterSpec = {}) {
+  const errors = [];
+  const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+  const expectedCategories = Array.isArray(chapterSpec?.categories) ? chapterSpec.categories : [];
+  if (clean(chapter?.id) !== clean(chapterSpec?.id)) errors.push("chapter_id_mismatch");
+  if (categories.length !== expectedCategories.length) errors.push("category_count_mismatch");
+  expectedCategories.forEach((title, index) => {
+    const category = categories[index] || {};
+    if (clean(category?.title) !== clean(title)) errors.push(`category_${index + 1}_title_mismatch`);
+    if (clean(category?.finalText || category?.localSummary || category?.text).length < LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS) {
+      errors.push(`category_${index + 1}_too_short`);
+    }
+  });
+  if (chapterTextLength(chapter) < LIFEBOOK_BLOCKING_MIN_CHAPTER_CHARS) errors.push("chapter_too_short");
+  return {
+    ok: errors.length === 0,
+    errors,
   };
 }
 
@@ -7884,7 +6362,6 @@ export const __lifeBookTestUtils = {
   LIFEBOOK_MIN_TOTAL_CHARS,
   LIFEBOOK_A4_TOTAL_TARGET,
   LIFE_BOOK_PROMPT_VERSION,
-  LIFE_BOOK_LLM_ENHANCED_CHAPTERS,
   LIFEBOOK_CHAPTER_PAGE_TARGETS,
   LIFEBOOK_CHAPTER_COMMON_STRUCTURE,
   LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS,
@@ -7902,6 +6379,7 @@ export const __lifeBookTestUtils = {
   finalizeLifeBookManuscript,
   validateLifeBookFinalManuscript,
   validateLifeBookChapters,
+  validateLifeBookGeneratedChapter,
   buildLifeBookDocument,
   normalizeInput,
   deriveLocalSignals,
@@ -7927,43 +6405,21 @@ export const __lifeBookTestUtils = {
   buildLifeBookCanonicalSajuChartFromContract,
   validateLifeBookCanonicalSajuChart,
   buildLifeBookMasterJson,
-  buildLifeBookLLMInput,
+  buildLifeBookAssemblyInput,
   buildLifeBookEngineContract,
   buildLifeBookEngineSummary,
   buildLifeBookChapterOpeningText,
   buildLifeBookChapterPlan,
   buildLifeBookChapterPlans,
-  buildLifeBookChapterCacheKey,
-  resolveLifeBookLlmRuntimeInfo,
-  shouldEnhanceLifeBookChapter,
-  buildLifeBookSectionLLMInput,
-  buildLifeBookSectionPrompt,
-  buildLifeBookChapterMergePrompt,
-  buildLifeBookChapterReviewFields,
-  buildLifeBookChapterReviewPrompt,
-  buildLifeBookFullManuscriptMergePrompt,
-  buildLifeBookFinalQualityReviewPrompt,
+  resolveLifeBookAssemblyRuntimeInfo,
   buildLifeBookDeterministicFinalManuscript,
-  pickLifeBookRelevantEngineData,
   normalizeLifeBookSectionBody,
   normalizeLifeBookChapterMarkdown,
   normalizeLifeBookFinalManuscriptMarkdown,
-  extractLifeBookReviewedChapterMarkdown,
-  extractLifeBookFinalQualityReviewedMarkdown,
   ensureLifeBookSectionH3,
   getLifeBookPagePlan,
   splitLifeBookChapterParts,
-  extractLifeBookJsonObject,
-  validateLifeBookGeminiJson,
-  validateLifeBookSectionResult,
-  validateLifeBookMergedChapterMarkdown,
-  validateLifeBookReviewedChapterMarkdown,
   validateLifeBookFinalManuscriptMarkdown,
-  validateLifeBookFinalQualityReviewMarkdown,
-  convertGeminiChapterToLifeBookChapter,
-  convertLifeBookSectionToCategory,
-  validateLifeBookGeneratedChapter,
-  reinforceLifeBookChapterDeterministically,
   assembleLifeBookChaptersLocally,
   buildLifeBookPdfRecord,
   buildPdfReadyPayload: buildPdfReadyPayloadClean,
@@ -8174,7 +6630,7 @@ function validateLifeBookPdfCompletionPayload({ pdfReady = {}, chapters = [] } =
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<[^>]+>/g, " ");
-  if (/\b(?:undefined|null|nan|fallback|llm|json|schema|debug|prompt)\b|\[object Object\]|�|\?몄깮|梨|자동\s*복구\s*생성|데이터\s*부족|로컬\s*엔진|템플릿|internal\s*server\s*error|about:blank/i.test(visibleText)) {
+  if (/\b(?:undefined|null|nan|fallback|llm|json|schema|debug|prompt)\b|\[object Object\]|자동\s*복구\s*생성|데이터\s*부족|로컬\s*엔진|템플릿|internal\s*server\s*error|about:blank/i.test(visibleText)) {
     errors.push("pdf_body_forbidden_text");
   }
 
@@ -8256,7 +6712,7 @@ async function handleStatus(request, env) {
     status,
     startedAt: doc.generationStartedAt || doc.createdAt,
     progress: {
-      stateKey: status === "done" ? "completed" : status === "failed" ? "failed" : LIFEBOOK_LLM_WRITING_STATE,
+      stateKey: status === "done" ? "completed" : status === "failed" ? "failed" : LIFEBOOK_WRITING_STATE,
       currentChapterNo: status === "done" ? getLifeBookBlueprints().length : 0,
       totalChapters: getLifeBookBlueprints().length,
     },
@@ -8503,7 +6959,7 @@ async function handlePrepareSync(request, env) {
         startedAt: recordCreatedAt,
         result: cacheResponse.payload,
         progress: {
-          stateKey: LIFEBOOK_LLM_WRITING_STATE,
+          stateKey: LIFEBOOK_WRITING_STATE,
           currentChapterNo: 0,
           totalChapters: getLifeBookBlueprints().length,
           updatedAt: new Date().toISOString(),
@@ -8531,7 +6987,7 @@ async function handlePrepareSync(request, env) {
         sessionId,
         status: "running",
         progress: {
-          stateKey: LIFEBOOK_LLM_WRITING_STATE,
+          stateKey: LIFEBOOK_WRITING_STATE,
           currentChapterNo: 0,
           totalChapters: getLifeBookBlueprints().length,
         },
@@ -8563,8 +7019,7 @@ async function handlePrepareSync(request, env) {
   const {
     signals,
     localSajuJson,
-    jsonContractValidation,
-    llmInput,
+    assemblyInput,
     engineContractValidation,
     canonicalValidation,
     chapterEvidenceCoverage,
@@ -8583,211 +7038,7 @@ async function handlePrepareSync(request, env) {
     cacheKey,
     calculationResultHash,
     cacheHit,
-    llmRuntime,
   } = pipelineResult;
-
-  if (!isLifeBookLocalAssemblyMode()) {
-  const signals = deriveLocalSignals(profile, body?.sajuData || "", body?.analysisSignals || {});
-  let localSajuJson = buildLifeBookLocalSajuJson(birthInput, profile, signals, []);
-  let localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
-  if (!localSajuValidation.ok || (Array.isArray(localSajuValidation.warnings) && localSajuValidation.warnings.length)) {
-    logLifeBookServer("LocalSajuValidationFailed", {
-      sessionId,
-      missing: localSajuValidation.missing,
-      warnings: localSajuValidation.warnings,
-    });
-    localSajuJson = repairLifeBookLocalSajuJson(localSajuJson, birthInput, profile, signals);
-    localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
-    if (!localSajuValidation.ok) {
-      throw Object.assign(new Error("인생의 책 생성에 필요한 생년월일시 정보를 확인할 수 없습니다."), {
-        code: "LIFEBOOK_LOCAL_SAJU_INVALID",
-        status: 422,
-        details: localSajuValidation,
-      });
-    }
-  }
-  let jsonContractValidation = validateLifeBookJsonContract({ birthInput, localSajuJson });
-  if (!jsonContractValidation.ok) {
-    logLifeBookServer("LifeBookJsonContractRepairStart", {
-      sessionId,
-      hardErrors: jsonContractValidation.hardErrors,
-      softWarnings: jsonContractValidation.softWarnings,
-    });
-    localSajuJson = repairLifeBookLocalSajuJson(localSajuJson, birthInput, profile, signals);
-    localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
-    jsonContractValidation = validateLifeBookJsonContract({ birthInput, localSajuJson });
-  }
-  if (!jsonContractValidation.ok) {
-    throw Object.assign(new Error("인생의 책 JSON 계산 데이터가 생성 기준을 충족하지 못했습니다. 출생 정보와 사주 계산 결과를 다시 확인해 주세요."), {
-      code: "LIFEBOOK_JSON_CONTRACT_INVALID",
-      status: 422,
-      details: jsonContractValidation,
-    });
-  }
-  logLifeBookServer("LocalCalculationSuccess", {
-    sessionId,
-    dayMasterResolved: Boolean(localSajuJson?.dayMaster),
-    pillarCount: Number(Boolean(localSajuJson?.pillars?.year?.ganji)) + Number(Boolean(localSajuJson?.pillars?.month?.ganji)) + Number(Boolean(localSajuJson?.pillars?.day?.ganji)) + Number(Boolean(localSajuJson?.pillars?.hour?.ganji)),
-    daewoonResolved: Boolean(localSajuJson?.currentDaeun?.label),
-    yearlyLuckResolved: Boolean(localSajuJson?.yearlyFlow?.year),
-    jsonContractScore: jsonContractValidation.qualityScore,
-    jsonContractWarnings: jsonContractValidation.softWarnings,
-  });
-
-  const requestId = clean(body?.requestId || body?.accessGrant?.requestId || reportId);
-  const llmInput = buildLifeBookLLMInput(birthInput, profile, signals, localSajuJson, body);
-  const engineContractValidation = validateLifeBookJsonContract({
-    birthInput,
-    localSajuJson,
-    engineContract: llmInput.engineContract,
-  });
-  if (!engineContractValidation.ok) {
-    throw Object.assign(new Error("인생의 책 엔진 계약 JSON이 생성 기준을 충족하지 못했습니다. 계산 데이터를 보강한 뒤 다시 생성해 주세요."), {
-      code: "LIFEBOOK_ENGINE_CONTRACT_INVALID",
-      status: 422,
-      details: engineContractValidation,
-    });
-  }
-  llmInput.engineContract.validation = engineContractValidation;
-  const canonicalSajuChart = buildLifeBookCanonicalSajuChartFromContract(llmInput.engineContract, localSajuJson);
-  const canonicalValidation = validateLifeBookCanonicalSajuChart(canonicalSajuChart);
-  canonicalSajuChart.validation = canonicalValidation;
-  llmInput.engineContract.canonicalSajuChart = canonicalSajuChart;
-  localSajuJson.canonicalSajuChart = canonicalSajuChart;
-  if (!canonicalValidation.ok) {
-    throw Object.assign(new Error("인생의 책 canonical 사주 JSON이 생성 기준을 충족하지 못했습니다. 계산 데이터를 보강한 뒤 다시 생성해 주세요."), {
-      code: "LIFEBOOK_CANONICAL_JSON_INVALID",
-      status: 422,
-      details: canonicalValidation,
-    });
-  }
-  const chapterEvidenceCoverage = buildLifeBookChapterEvidenceCoverage(llmInput.engineContract?.chapterPlans || buildLifeBookChapterPlans(), llmInput.engineContract);
-  if (!chapterEvidenceCoverage.ok) {
-    throw Object.assign(new Error("인생의 책 챕터별 JSON 근거가 충분하지 않습니다. 계산 데이터를 보강한 뒤 다시 생성해 주세요."), {
-      code: "LIFEBOOK_CHAPTER_EVIDENCE_INSUFFICIENT",
-      status: 422,
-      details: chapterEvidenceCoverage,
-    });
-  }
-  logLifeBookServer("LifeBookJsonContractValidated", {
-    sessionId,
-    requestId,
-    localScore: jsonContractValidation.qualityScore,
-    engineScore: engineContractValidation.qualityScore,
-    canonicalScore: canonicalValidation.qualityScore,
-    evidenceCoverageRatio: chapterEvidenceCoverage.coverageRatio,
-    softWarnings: engineContractValidation.softWarnings,
-  });
-  const lifeBookMasterJson = buildLifeBookMasterJson({
-    birthInput,
-    profile,
-    signals,
-    localSajuJson,
-    engineContract: llmInput.engineContract,
-    canonicalSajuChart,
-    body,
-    validations: {
-      localJsonContract: jsonContractValidation,
-      engineContract: engineContractValidation,
-      canonical: canonicalValidation,
-      chapterEvidenceCoverage,
-    },
-  });
-  llmInput.lifeBookMasterJson = lifeBookMasterJson;
-  localSajuJson.lifeBookMasterJson = lifeBookMasterJson;
-  updateLifeBookSessionProgress(sessionId, {
-    stateKey: LIFEBOOK_LOCAL_WRITING_STATE,
-    currentChapterNo: 0,
-    totalChapters: getLifeBookBlueprints().length,
-  });
-  const llmRuntime = resolveLifeBookLlmRuntimeInfo(env);
-  logLifeBookServer("LocalDraftBuildStart", {
-    requestId,
-    sessionId,
-    reportId,
-    chapterCount: getLifeBookBlueprints().length,
-    targetYear: LIFEBOOK_LLM_TARGET_YEAR,
-    generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
-    templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
-    llmRuntime,
-  });
-
-  const generatedLifeBook = await assembleLifeBookChaptersLocally(env, {
-    profile,
-    signals,
-    llmInput,
-    requestId,
-    onProgress: (progress) => updateLifeBookSessionProgress(sessionId, progress),
-  });
-  let completedChapters = generatedLifeBook.chapters;
-  logLifeBookServer("LocalDraftBuildSuccess", {
-    requestId,
-    sessionId,
-    reportId,
-    chapterCount: completedChapters.length,
-    deterministicReinforcedCount: generatedLifeBook.deterministicReinforcedCount,
-  });
-
-  let structureValidation = validateLifeBookStructure(completedChapters);
-  logLifeBookServer("LifeBookStructureValidation", {
-    sessionId,
-    reportId,
-    chapterCount: completedChapters.length,
-    totalLength: totalManuscriptLength(completedChapters),
-    blockingErrors: structureValidation.blockingErrors,
-  });
-
-  if (!structureValidation.ok) {
-    throw Object.assign(new Error("인생의 책 원고의 필수 구조를 완성하지 못했습니다."), {
-      code: "LIFEBOOK_STRUCTURE_INVALID",
-      status: 422,
-      details: structureValidation,
-    });
-  }
-
-  let qualityEvaluation = evaluateLifeBookQuality(completedChapters);
-  logLifeBookServer("LifeBookQualityEvaluation", {
-    sessionId,
-    reportId,
-    chapterCount: completedChapters.length,
-    totalLength: qualityEvaluation.totalLength,
-    blockingErrors: [],
-    softWarnings: qualityEvaluation.softWarnings,
-    repairedCategoryCount: generatedLifeBook.deterministicReinforcedCount,
-    finalQualityScore: qualityEvaluation.qualityScore,
-  });
-
-  const finalQualityWarnings = Array.isArray(qualityEvaluation.softWarnings) ? qualityEvaluation.softWarnings : [];
-  const finalQualityScore = Number(qualityEvaluation.qualityScore || 0);
-  const repairedCategoryCount = Number(generatedLifeBook.deterministicReinforcedCount || 0);
-  const finalQualityBlockingWarnings = (Array.isArray(qualityEvaluation.warningItems) ? qualityEvaluation.warningItems : [])
-    .filter((item) => clean(item?.severity) === "high")
-    .map((item) => clean(item?.code))
-    .filter(Boolean);
-
-  if (finalQualityBlockingWarnings.length) {
-    throw Object.assign(new Error("인생의 책 원고 품질 기준을 충족하지 못했습니다. 핵심 원고를 보강한 뒤 다시 생성해 주세요."), {
-      code: "LIFEBOOK_QUALITY_BLOCKED",
-      status: 422,
-      details: {
-        blockingWarnings: finalQualityBlockingWarnings,
-        qualityScore: finalQualityScore,
-        totalLength: qualityEvaluation.totalLength,
-      },
-    });
-  }
-
-  if (!generatedLifeBook.finalQualityReviewPassed) {
-    throw Object.assign(new Error("인생의 책 최종 검수 기준을 통과하지 못했습니다. 원고를 보강한 뒤 다시 생성해 주세요."), {
-      code: "LIFEBOOK_FINAL_QUALITY_REVIEW_FAILED",
-      status: 422,
-      details: {
-        errors: generatedLifeBook.finalQualityReviewErrors || generatedLifeBook.finalManuscriptErrors || [],
-        warnings: generatedLifeBook.finalQualityReviewWarnings || [],
-      },
-    });
-  }
-  }
 
   logLifeBookServer("LifeBookFinalizeReady", {
     sessionId,
@@ -8821,18 +7072,12 @@ async function handlePrepareSync(request, env) {
     finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
     finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
     generationMode: generatedLifeBook.generationMode || LIFE_BOOK_PDF_CONFIG.generationMode,
-    llmEnabled: Boolean(generatedLifeBook.llmEnabled),
-    llmProvider: generatedLifeBook.provider || LIFE_BOOK_PDF_CONFIG.provider,
     templateVersion: generatedLifeBook.templateVersion || LIFE_BOOK_PDF_CONFIG.templateVersion,
     cacheKey,
     lifeBookPdfCacheKey: cacheKey,
     calculationResultHash,
     cacheHit: Boolean(cacheHit),
-    promptVersion: generatedLifeBook.promptVersion || LIFE_BOOK_PROMPT_VERSION,
-    llmEnhancedChapterIds: generatedLifeBook.llmEnhancedChapterIds || [],
-    llmFallbackChapterIds: generatedLifeBook.llmFallbackChapterIds || [],
-    llmCacheHitChapterIds: generatedLifeBook.llmCacheHitChapterIds || [],
-    jsonContractValidation: engineContractValidation,
+    calculationContractValidation: engineContractValidation,
     canonicalValidation,
     chapterEvidenceCoverage,
     lifeBookNormalizedData,
@@ -8937,24 +7182,18 @@ async function handlePrepareSync(request, env) {
       finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
       pdfCompletionValidation,
       generationMode: generatedLifeBook.generationMode || LIFE_BOOK_PDF_CONFIG.generationMode,
-      llmEnabled: Boolean(generatedLifeBook.llmEnabled),
-      llmProvider: generatedLifeBook.provider || LIFE_BOOK_PDF_CONFIG.provider,
       templateVersion: generatedLifeBook.templateVersion || LIFE_BOOK_PDF_CONFIG.templateVersion,
       cacheKey,
       lifeBookPdfCacheKey: cacheKey,
       calculationResultHash,
       cacheHit: Boolean(cacheHit),
-      promptVersion: generatedLifeBook.promptVersion || LIFE_BOOK_PROMPT_VERSION,
-      llmEnhancedChapterIds: generatedLifeBook.llmEnhancedChapterIds || [],
-      llmFallbackChapterIds: generatedLifeBook.llmFallbackChapterIds || [],
-      llmCacheHitChapterIds: generatedLifeBook.llmCacheHitChapterIds || [],
-      jsonContractValidation: engineContractValidation,
+      calculationContractValidation: engineContractValidation,
       canonicalValidation,
       chapterEvidenceCoverage,
       lifeBookNormalizedData,
       lifeBookMasterJson,
       localSajuJson,
-      lifeBookEngineContract: llmInput.engineContract,
+      lifeBookEngineContract: assemblyInput.engineContract,
       pdfReady,
       canReopen: true,
       canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
@@ -8984,7 +7223,7 @@ async function handlePrepareSync(request, env) {
     birthInput,
     manuscriptSource,
     localSajuJson,
-    lifeBookEngineContract: llmInput.engineContract,
+    lifeBookEngineContract: assemblyInput.engineContract,
     chapterPlans: generatedLifeBook.chapterPlans || [],
     lifeBookPdfRecord: completedRecord,
     finalManuscriptMarkdown,
@@ -8996,14 +7235,8 @@ async function handlePrepareSync(request, env) {
     finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
     pdfCompletionValidation,
     generationMode: generatedLifeBook.generationMode || LIFE_BOOK_PDF_CONFIG.generationMode,
-    llmEnabled: Boolean(generatedLifeBook.llmEnabled),
-    llmProvider: generatedLifeBook.provider || LIFE_BOOK_PDF_CONFIG.provider,
     templateVersion: generatedLifeBook.templateVersion || LIFE_BOOK_PDF_CONFIG.templateVersion,
-    promptVersion: generatedLifeBook.promptVersion || LIFE_BOOK_PROMPT_VERSION,
-    llmEnhancedChapterIds: generatedLifeBook.llmEnhancedChapterIds || [],
-    llmFallbackChapterIds: generatedLifeBook.llmFallbackChapterIds || [],
-    llmCacheHitChapterIds: generatedLifeBook.llmCacheHitChapterIds || [],
-    jsonContractValidation: engineContractValidation,
+    calculationContractValidation: engineContractValidation,
     canonicalValidation,
     chapterEvidenceCoverage,
     lifeBookNormalizedData,
@@ -9014,9 +7247,6 @@ async function handlePrepareSync(request, env) {
     htmlUrl: clean(pdfReady?.htmlUrl),
     canReopen: true,
     canDownload: Boolean(clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)),
-    fallbackUsed: Boolean(generatedLifeBook.fallbackUsed),
-    llmUsed: Boolean(generatedLifeBook.llmUsed),
-    llmRuntime,
   };
 
 
@@ -9126,8 +7356,6 @@ async function handlePrepareSync(request, env) {
       ? "생년월일 정보를 확인할 수 없습니다. 정확한 생년월일시를 입력해 주세요."
       : rawMessage.includes("엔진")
       ? "사주 계산에 일시적 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
-      : rawMessage.includes("Gemini") || rawMessage.includes("API")
-      ? "원고 생성 AI 호출에 일시적 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."
       : rawMessage.includes("원고") || rawMessage.includes("품질")
       ? "생성된 내용이 품질 검증에 실패했습니다. 입력 정보를 다시 확인한 뒤 시도해 주세요."
       : "인생의 책 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
@@ -9137,14 +7365,14 @@ async function handlePrepareSync(request, env) {
       code: error?.code || "LIFEBOOK_GENERATION_FAILED",
       message: userFacingMessage,
       debugSafe: {
-        stage: "gemini-generation",
+        stage: "local-assembly",
         reportId,
         sessionId,
         lifeBookPdfRecord: failedRecord,
         originalCode: error?.code,
         authoringMode: LIFEBOOK_AUTHORING_MODE,
         retryable: Number(error?.status || 500) >= 500,
-        llmRuntime: error?.llmRuntime || resolveLifeBookLlmRuntimeInfo(env),
+        assemblyRuntime: resolveLifeBookAssemblyRuntimeInfo(env),
       },
     }, { status: Number(error?.status || 500) });
   }

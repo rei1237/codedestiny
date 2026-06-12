@@ -144,7 +144,7 @@ declare global {
 
 const PROFILE_CARD_ACTION_COST_COINS = 50;
 const PROFILE_CARD_ACTION_COST_KRW = 5000;
-const PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST = PROFILE_CARD_ACTION_COST_COINS * 10;
+const PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST = PROFILE_CARD_ACTION_COST_COINS;
 const PROFILE_CARD_ACTION_FEATURE_KEY = "profile-card-manage";
 const PROFILE_CARD_ACTION_SERVICE_TYPE = "profile_card_action";
 const PROFILE_CARD_ACTION_PRODUCTS = {
@@ -412,9 +412,7 @@ export default function MePage() {
   const hasEnoughMonthlyStonesForProfileAction = membershipCreditBalance >= PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST;
   const canCreateWithinProfileLimit = isUnlimitedProfilePlan || profiles.length < profileLimit;
   const createRequiresProfileActionPayment = !canCreateWithinProfileLimit && !isProfileActionPaymentBypass;
-  const profileActionPolicyNotice = profileActionFreeLabel
-    ? "FAMILY 권한으로 프로필 카드 작업을 진행할 수 있습니다."
-    : "프로필 카드 삭제와 한도 초과 추가에는 50코인 가치가 필요하며, 일반 이용권 혜택은 적용되지 않습니다.";
+  const profileActionPolicyNotice = "프로필 카드 삭제에는 50코인 기준 결제가 필요합니다.";
   const subscriptionStartedAtLabel = formatProfileSubscriptionDate(subscription.startedAt);
   const subscriptionExpiresAtLabel = formatProfileSubscriptionDate(subscription.expiresAt);
   const subscriptionDaysLeftLabel = formatProfileSubscriptionDaysLeft(subscription.expiresAt);
@@ -910,19 +908,19 @@ export default function MePage() {
   const runProfileActionFlow = useCallback(async (action: "delete", profile: DestinyProfile, paymentMethod?: ProfileActionPaymentMethod) => {
     if (busyAction) return;
     const requestId = buildProfileActionRequestId(action, profile.id);
-    const selectedPaymentMethod = paymentMethod || (hasEnoughMonthlyStonesForProfileAction ? "monthly_stones" : "card");
+    const selectedPaymentMethod = paymentMethod || "card";
     if (action === "delete" && profiles.length <= 1) {
       setAuthNotice("서비스 이용에 필요한 최소 1개의 프로필 카드는 남겨야 합니다.");
       return;
     }
-    if (!isProfileActionPaymentBypass && selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
-      setAuthNotice("Moonlight Stone이 부족합니다. 프로필 카드 작업에는 Moonlight Stone 500개가 필요합니다. 단건결제로 진행하거나 Moonlight Stone을 확보한 뒤 다시 시도해주세요.");
+    if (selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
+      setAuthNotice("Moonlight Stone이 부족합니다. 프로필 카드 삭제에는 Moonlight Stone 50개가 필요합니다. 단건결제로 진행하거나 Moonlight Stone을 확보한 뒤 다시 시도해주세요.");
       return;
     }
     setBusyAction(`${action}:${profile.id}`);
     try {
       let paymentContext: Record<string, unknown> | null = null;
-      if (!isProfileActionPaymentBypass && selectedPaymentMethod === "card") {
+      if (selectedPaymentMethod === "card") {
         setProfileActionStage("payment");
         const payment = await runProfileActionCardPayment(action, profile, requestId);
         paymentContext = {
@@ -931,7 +929,7 @@ export default function MePage() {
           merchantUid: payment.merchantUid,
           paymentId: payment.paymentId,
         };
-      } else if (!isProfileActionPaymentBypass) {
+      } else {
         setProfileActionStage("coin");
       }
       setProfileActionStage(action === "delete" ? "deleting" : "saving");
@@ -944,7 +942,7 @@ export default function MePage() {
       setBusyAction("");
       setProfileActionStage("");
     }
-  }, [busyAction, executeProfileAction, hasEnoughMonthlyStonesForProfileAction, isProfileActionPaymentBypass, profiles.length, runProfileActionCardPayment]);
+  }, [busyAction, executeProfileAction, hasEnoughMonthlyStonesForProfileAction, profiles.length, runProfileActionCardPayment]);
 
   const openCreateProfile = () => {
     setActiveProfileMenuId("");
@@ -968,7 +966,7 @@ export default function MePage() {
     const selectedPaymentMethod = paymentMethod || (hasEnoughMonthlyStonesForProfileAction ? "monthly_stones" : "card");
 
     if (requiresPayment && selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
-      setAuthNotice("Moonlight Stone이 부족합니다. 프로필 카드 작업에는 Moonlight Stone 500개가 필요합니다. 단건결제로 진행하거나 Moonlight Stone을 확보한 뒤 다시 시도해주세요.");
+      setAuthNotice("Moonlight Stone이 부족합니다. 프로필 카드 작업에는 Moonlight Stone 50개가 필요합니다. 단건결제로 진행하거나 Moonlight Stone을 확보한 뒤 다시 시도해주세요.");
       return;
     }
 
@@ -1556,12 +1554,12 @@ export default function MePage() {
           <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-rose-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
             <h3 className="text-lg font-bold text-rose-100">프로필 삭제 확인</h3>
             <p className="mt-2 rounded-lg border border-rose-300/25 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-100">
-              {profileActionPolicyNotice}
+              프로필 카드 삭제는 50코인 기준 결제로 진행됩니다.
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-200">
               프로필 카드를 삭제할까요?
               <br />
-              삭제에는 50코인 가치가 필요합니다. 이 작업에는 일반 이용권 혜택이 적용되지 않으며, 단건결제 또는 Moonlight Stone으로만 진행할 수 있습니다.
+              단건결제 또는 Moonlight Stone 50개 사용 중 하나를 선택해 주세요.
               <br />
               삭제 후에는 해당 프로필 카드의 저장 정보가 사라집니다.
             </p>
@@ -1589,35 +1587,24 @@ export default function MePage() {
               >
                 취소
               </button>
-              {isProfileActionPaymentBypass ? (
+              <>
                 <button
                   type="button"
-                  onClick={() => void runProfileActionFlow("delete", deleteTarget)}
+                  onClick={() => void runProfileActionFlow("delete", deleteTarget, "monthly_stones")}
+                  disabled={!!busyAction}
+                  className="min-h-[44px] rounded-md border border-rose-300/45 px-3 py-2 text-sm font-bold text-rose-100 disabled:opacity-45"
+                >
+                  {busyAction === `delete:${deleteTarget.id}` && profileActionStage === "coin" ? profileActionProgressLabel("delete", profileActionStage) : profileActionPrimaryLabel("delete", "monthly_stones")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void runProfileActionFlow("delete", deleteTarget, "card")}
                   disabled={!!busyAction}
                   className="min-h-[44px] rounded-md bg-rose-400 px-3 py-2 text-sm font-bold text-slate-950 shadow-lg shadow-rose-950/30 disabled:opacity-45"
                 >
-                  {busyAction === `delete:${deleteTarget.id}` ? profileActionProgressLabel("delete", profileActionStage) : "삭제"}
+                  {busyAction === `delete:${deleteTarget.id}` && profileActionStage === "payment" ? profileActionProgressLabel("delete", profileActionStage) : profileActionPrimaryLabel("delete", "card")}
                 </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => void runProfileActionFlow("delete", deleteTarget, "monthly_stones")}
-                    disabled={!!busyAction}
-                    className="min-h-[44px] rounded-md border border-rose-300/45 px-3 py-2 text-sm font-bold text-rose-100 disabled:opacity-45"
-                  >
-                    {busyAction === `delete:${deleteTarget.id}` && profileActionStage === "coin" ? profileActionProgressLabel("delete", profileActionStage) : profileActionPrimaryLabel("delete", "monthly_stones")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void runProfileActionFlow("delete", deleteTarget, "card")}
-                    disabled={!!busyAction}
-                    className="min-h-[44px] rounded-md bg-rose-400 px-3 py-2 text-sm font-bold text-slate-950 shadow-lg shadow-rose-950/30 disabled:opacity-45"
-                  >
-                    {busyAction === `delete:${deleteTarget.id}` && profileActionStage === "payment" ? profileActionProgressLabel("delete", profileActionStage) : profileActionPrimaryLabel("delete", "card")}
-                  </button>
-                </>
-              )}
+              </>
             </div>
           </div>
         </div>

@@ -201,22 +201,22 @@ function run() {
   const localSajuJson = utils.buildLifeBookLocalSajuJson(birthInput, profile, signals, []);
   const localContract = utils.validateLifeBookJsonContract({ birthInput, localSajuJson });
   assert(localContract.ok, `[lifebook-required-coverage] local json contract failed: ${JSON.stringify(localContract.hardErrors || [])}`);
-  const llmInput = utils.buildLifeBookLLMInput(birthInput, profile, signals, localSajuJson, {});
-  assert(llmInput.engineContract?.version === "life-book-engine-contract-v2", "[lifebook-required-coverage] engine contract v2 missing");
-  assert(llmInput.engineContract?.calculationPolicy?.hourPillarTimePolicy === "TRUE_SOLAR_TIME", "[lifebook-required-coverage] calculation policy missing");
-  assert(llmInput.engineContract?.sourceTrace?.route === "worker.routes.saju-lifebook", "[lifebook-required-coverage] source trace missing");
+  const assemblyInput = utils.buildLifeBookAssemblyInput(birthInput, profile, signals, localSajuJson, {});
+  assert(assemblyInput.engineContract?.version === "life-book-engine-contract-v2", "[lifebook-required-coverage] engine contract v2 missing");
+  assert(assemblyInput.engineContract?.calculationPolicy?.hourPillarTimePolicy === "TRUE_SOLAR_TIME", "[lifebook-required-coverage] calculation policy missing");
+  assert(assemblyInput.engineContract?.sourceTrace?.route === "worker.routes.saju-lifebook", "[lifebook-required-coverage] source trace missing");
   const engineContract = utils.validateLifeBookJsonContract({
     birthInput,
     localSajuJson,
-    engineContract: llmInput.engineContract,
+    engineContract: assemblyInput.engineContract,
   });
   assert(engineContract.ok, `[lifebook-required-coverage] engine json contract failed: ${JSON.stringify(engineContract.hardErrors || [])}`);
-  llmInput.engineContract.validation = engineContract;
-  const canonicalSajuChart = utils.buildLifeBookCanonicalSajuChartFromContract(llmInput.engineContract, localSajuJson);
+  assemblyInput.engineContract.validation = engineContract;
+  const canonicalSajuChart = utils.buildLifeBookCanonicalSajuChartFromContract(assemblyInput.engineContract, localSajuJson);
   const canonicalValidation = utils.validateLifeBookCanonicalSajuChart(canonicalSajuChart);
   assert(canonicalValidation.ok, `[lifebook-required-coverage] canonical json failed: ${JSON.stringify(canonicalValidation.missing || [])}`);
-  llmInput.engineContract.canonicalSajuChart = { ...canonicalSajuChart, validation: canonicalValidation };
-  const evidenceCoverage = utils.buildLifeBookChapterEvidenceCoverage(utils.buildLifeBookChapterPlans(), llmInput.engineContract);
+  assemblyInput.engineContract.canonicalSajuChart = { ...canonicalSajuChart, validation: canonicalValidation };
+  const evidenceCoverage = utils.buildLifeBookChapterEvidenceCoverage(utils.buildLifeBookChapterPlans(), assemblyInput.engineContract);
   assert(evidenceCoverage.ok, `[lifebook-required-coverage] chapter evidence coverage failed: ${JSON.stringify(evidenceCoverage.lowCoverageChapters || [])}`);
 
   const html = utils.buildLifeBookDocument({

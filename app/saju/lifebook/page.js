@@ -375,8 +375,7 @@ export default function SajuLifebookPage() {
       }
       setEnginePreview({
         status: "ready",
-        title: String(localEngine.finalAdvancedReport?.title || localEngine.structuredAdvancedReport?.userReport?.title || "QUANTUM MYEONGRI Engine v.2 고급 분석 리포트"),
-        engineVersion: String(localEngine.structuredAdvancedReport?.metadata?.engineVersion || "QUANTUM_MYEONGRI_ENGINE_V2"),
+        title: "사주 원국과 대운 흐름이 인생의 책 원고에 반영됩니다.",
         summary: String(localEngine.finalAdvancedReport?.brandPhrases?.join(" · ") || "운의 환골탈태 · 천기적 액션 처방"),
       });
     } catch (engineError) {
@@ -642,16 +641,16 @@ export default function SajuLifebookPage() {
 
           <div style={{ marginTop: 12, borderRadius: 14, padding: 12, border: "1px solid rgba(244,213,159,.28)", background: "rgba(244,213,159,.07)", display: "grid", gap: 7 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-              <strong style={{ color: "#f5d69f" }}>QUANTUM MYEONGRI Engine v.2</strong>
+              <strong style={{ color: "#f5d69f" }}>정밀 사주 계산</strong>
               <span style={{ borderRadius: 999, padding: "4px 10px", fontSize: 12, border: "1px solid rgba(244,213,159,.38)", color: "#ffe5b8" }}>
                 {enginePreview?.status === "ready" ? "계산값 반영 완료" : "생성 시 정밀 계산"}
               </span>
             </div>
             <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: "#dcc5a1" }}>
-              {enginePreview?.title || "생성 버튼을 누르면 입력값 기준으로 고급 분석 리포트를 먼저 계산한 뒤 PDF 원고에 반영합니다."}
+              {enginePreview?.title || "생성 버튼을 누르면 입력값 기준으로 사주 원국과 운의 흐름을 계산한 뒤 PDF 원고에 반영합니다."}
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {["운의 환골탈태", "천기적 액션 처방", enginePreview?.engineVersion || "QUANTUM_MYEONGRI_ENGINE_V2"].map((tag) => (
+              {["원국 분석", "대운 흐름", "생애 전략"].map((tag) => (
                 <span key={tag} style={{ borderRadius: 999, padding: "4px 9px", fontSize: 11, background: "rgba(255,244,229,.08)", color: "#f7e8cf" }}>{tag}</span>
               ))}
             </div>

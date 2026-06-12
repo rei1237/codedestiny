@@ -140,11 +140,6 @@ type PerUseKey = "turtleIChing" | "egyptOracle" | "geomancy" | "stonehengeRunes"
 type PremiumServiceKey = "ziwei" | "astrology" | "sukuyo" | "veda" | "naming";
 type PremiumFlowStage = "intro" | "generate";
 type VedaPaymentFlowState = "idle" | "checking_access" | "access_granted" | "payment_required" | "generating_report" | "success" | "error";
-type PremiumGateResult = {
-  ok: boolean;
-  reason?: "login-required" | "payment-required" | "error";
-  message?: string;
-};
 
 const PREMIUM_SERVICE_COST: Record<PremiumServiceKey, number> = {
   ziwei: 590,
@@ -625,22 +620,6 @@ export default function KkulkkulManseryukMain() {
 
   const unlockingRef = useRef(false);
 
-  async function fetchJsonWithTimeout(url: string, init: RequestInit, timeoutMs = 15000) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const res = await authFetch(url, {
-        ...init,
-        credentials: init.credentials || 'include',
-        signal: controller.signal,
-      });
-      const data = await res.json().catch(() => ({}));
-      return { res, data };
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
   const applyBillingSnapshot = (payload: any, options: { fallbackCoins?: number; updateUnlocks?: boolean } = {}) => {
     const snapshot = extractBillingSnapshot(payload);
     const fallbackCoins = Number(options.fallbackCoins);
@@ -801,35 +780,6 @@ export default function KkulkkulManseryukMain() {
     }
   };
 
-  const runPremiumIntroGate = async (service: PremiumServiceKey): Promise<PremiumGateResult> => {
-    const authHeaders = buildClientAuthHeaders();
-    try {
-      const { res, data } = await fetchJsonWithTimeout('/api/billing/balance', {
-        method: 'GET',
-        headers: { ...authHeaders },
-      });
-      if (isLoginRequiredResponse(res.status, data)) {
-        return { ok: false, reason: 'login-required', message: '로그인이 필요합니다.' };
-      }
-      if (!res.ok) {
-        throw new Error(data?.message || '이용권 확인에 실패했습니다.');
-      }
-
-      const normalized = unwrapBillingPayload(data);
-      if (normalized?.authenticated === false && !isAdminSessionClient()) {
-        return { ok: false, reason: 'login-required', message: '로그인이 필요합니다.' };
-      }
-      applyBillingSnapshot(normalized, { fallbackCoins: currentCoins, updateUnlocks: true });
-
-      return { ok: true };
-    } catch (error) {
-      console.error('[runPremiumIntroGate]', error);
-      const message = '이용권 권한 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-      setPremiumGateError(message);
-      return { ok: false, reason: 'error', message };
-    }
-  };
-
   const [isScrolling, setIsScrolling] = useState(false);
   const touchStartPos = useRef({ x: 0, y: 0 });
 
@@ -895,30 +845,6 @@ export default function KkulkkulManseryukMain() {
       cost,
       message: "이용권 확인 중",
     });
-    const gate = await runPremiumIntroGate(service);
-    if (!gate.ok) {
-      if (gate.reason === 'payment-required') {
-        if (service === 'veda') {
-          setVedaFlowState('payment_required');
-          setVedaFlowError(gate.message || '단건 결제가 필요합니다.');
-        } else {
-          setShowRechargeModal(true);
-        }
-      } else if (gate.reason === 'error') {
-        if (service === 'veda') {
-          setVedaFlowState('error');
-          setVedaFlowError(gate.message || '이용권 권한 확인 중 오류가 발생했습니다.');
-        }
-      } else if (service === 'veda') {
-        setVedaFlowState('idle');
-      }
-      return;
-    }
-
-    if (service === 'veda') {
-      setVedaFlowState('access_granted');
-    }
-
     setPremiumGateLoading(service);
     try {
       const purchaseResult = await purchaseFeature({

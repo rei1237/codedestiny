@@ -71,13 +71,13 @@ const cases = [
     ],
   },
   {
-    name: "monthly stones cost is fixed at 500 and recorded atomically",
+    name: "monthly stones cost is fixed at 50 and recorded atomically",
     includes: [
-      ["policy", "PROFILE_CARD_DELETE_COST_MONTHLY_STONES = 500"],
+      ["policy", "PROFILE_CARD_DELETE_COST_MONTHLY_STONES = 50"],
       ["profileRoute", "PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
       ["profileRoute", "\"profileSubscription.membershipCreditBalance\": -PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
       ["profileRoute", "\"profileSubscription.membershipCreditUsed\": PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
-      ["mePage", "Moonlight Stone 500개"],
+      ["mePage", "Moonlight Stone 50개"],
     ],
   },
   {
