@@ -116,6 +116,7 @@ const BUSINESS_INFO_ROWS = [
   { label: "상호명", value: "코드 데스티니 (Code Destiny)" },
   { label: "대표자", value: "박병하" },
   { label: "사업자등록번호", value: "372-23-02329" },
+  { label: "통신판매업 신고번호", value: "제 2026-화성호-0264 호" },
   { label: "연락처", value: "050-6664-7398" },
   { label: "이메일", value: "seongbae555@gmail.com" },
   { label: "사업장 주소", value: "경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호" },
