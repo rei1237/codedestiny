@@ -39,11 +39,10 @@ for (const [label, source] of [
   expectContains(source, "manuscriptSource === 'local-assembled'", `${label} local assembled manuscript readiness`);
   expectContains(source, "chapterAuthoringSource === 'local-assembled'", `${label} local assembled chapter readiness`);
   expectContains(source, "summarySource === 'local-assembled'", `${label} local assembled summary readiness`);
-  expectContains(source, "fallbackChapterCount === 0", `${label} no fallback readiness`);
-  expectContains(source, "llmChapterCount === 0", `${label} no llm chapter readiness`);
-  expectContains(source, "localAssemblyOnly", `${label} local assembly readiness`);
-  expectContains(source, "externalCallsAllowed", `${label} external call readiness`);
-  expectContains(source, "localAuthoringUsed && !llmEnhancementUsed", `${label} local authoring readiness`);
+  expectContains(source, "localAssembly.externalGeneration === false", `${label} local assembly external guard`);
+  expectContains(source, "localAssembly.externalCallsAllowed === false", `${label} local assembly external call guard`);
+  expectContains(source, "localAssembly.templateVersion", `${label} local assembly template readiness`);
+  expectContains(source, "localAuthoringUsed && hasLocalAssembly", `${label} local authoring readiness`);
 }
 
 expectContains(worker, 'import { getServiceExecution } from "../lib/service-execution-task.js"', "worker execution status import");
@@ -59,18 +58,15 @@ expectContains(worker, 'const localChapters = buildSoulOriginLocalChapters(local
 expectContains(worker, 'const manuscriptSource = SOUL_ORIGIN_PDF_CONFIG.generationMode', "worker local assembled manuscript source");
 expectContains(worker, "summarySource: SOUL_ORIGIN_PDF_CONFIG.generationMode", "worker local assembled summary source");
 expectContains(worker, "const summary = summarizeSignal(localSeed)", "worker local summary generation");
-expectContains(worker, "calculationOnly: true", "worker calculation-only prompt seed");
-expectContains(worker, "fallbackUsed,", "worker fallback flag");
-expectContains(worker, "fallbackChapterCount,", "worker fallback chapter count");
 expectContains(worker, "localAuthoringUsed: true", "worker local authoring flag");
-expectContains(worker, "llmEnhancementUsed", "worker LLM enhancement metadata");
-expectContains(worker, "localAssemblyOnly: true", "worker local assembly flag");
+expectContains(worker, "localAssembly,", "worker local assembly payload");
+expectContains(worker, "externalGeneration: false", "worker external generation blocked");
 expectContains(worker, "externalCallsAllowed: false", "worker external calls blocked");
-expectContains(worker, "SOUL_ORIGIN_EXTERNAL_LLM_DISABLED", "worker external llm disabled code");
 expectContains(worker, "validateSoulOriginPdfCompletionPayload", "worker PDF completion validation");
 expectContains(worker, 'provider: "soul-origin-local-assembler"', "worker local assembler provider");
 expectContains(worker, "chapterCount: CHAPTER_BLUEPRINTS.length", "worker chapter count");
 expectContains(worker, "pdfReady", "worker pdf ready payload");
+expectNotContains(worker, "SOUL_ORIGIN_EXTERNAL_LLM_DISABLED", "worker external llm disabled code removed");
 expectNotContains(worker, "chapters = await generateSoulOriginChaptersByLLM", "worker LLM chapter call");
 expectNotContains(worker, "const summary = await generateSoulOriginSummaryByLLM", "worker LLM summary call");
 expectNotContains(worker, 'import { callGeminiText } from "../lib/gemini.js"', "worker Gemini import");

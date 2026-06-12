@@ -3,6 +3,7 @@
 export type DestinyProfileCard = {
   id?: string;
   profileId?: string;
+  userId?: string;
   name?: string;
   gender?: string;
   birthDate?: string;
@@ -11,8 +12,8 @@ export type DestinyProfileCard = {
   birthYear?: number | string;
   birthMonth?: number | string;
   birthDay?: number | string;
-  birthHour?: number | string;
-  birthMinute?: number | string;
+  birthHour?: number | string | null;
+  birthMinute?: number | string | null;
   calType?: string;
   calendarType?: string;
   timeUnknown?: boolean;
@@ -40,6 +41,25 @@ type ProfilePredicate = (profile: DestinyProfileCard) => boolean;
 
 const PROFILE_STORAGE_NS = "FORTUNE_APP_USER_PROFILES";
 const PROFILE_BRIDGE_KEYS = ["FORTUNE_APP_USER_PROFILE", "FORTUNE_APP_VEDIC_PAYLOAD", "OLYMPUS_ORACLE_PROFILE"];
+export const ACTIVE_PROFILE_ID_KEY = "code-destiny.activeProfileId";
+export const ACTIVE_PROFILE_CACHE_KEY = "code-destiny.activeProfileCache.v1";
+const LEGACY_PROFILE_KEYS = [
+  "birthData",
+  "selectedBirthData",
+  "fptiProfile",
+  "yeoniProfile",
+  "sajuProfile",
+  "fortuneProfile",
+  "currentProfile",
+  "profileCard",
+  "profileCache",
+  "selectedProfile",
+  "selectedProfileId",
+  "oldActiveProfile",
+  "mockProfile",
+  "defaultProfile",
+  "sampleProfile",
+];
 
 function hasAnyBirthDate(profile: DestinyProfileCard): boolean {
   const birth = profile.birth || {};
@@ -170,12 +190,70 @@ export function readCurrentDestinyProfile(
   return null;
 }
 
-function publishDestinyProfileBridge(profile: DestinyProfileCard) {
+export function clearLegacyProfileSelectionKeys(deletedProfileId = "") {
+  if (typeof window === "undefined") return;
+  const stores = [window.localStorage, window.sessionStorage];
+  for (const store of stores) {
+    for (const key of LEGACY_PROFILE_KEYS) {
+      try {
+        store.removeItem(key);
+      } catch {}
+    }
+  }
+}
+
+export function publishDestinyProfileBridge(profile: DestinyProfileCard) {
   if (typeof window === "undefined") return;
   try {
     (window as unknown as { __cdCurrentDestinyProfile?: DestinyProfileCard }).__cdCurrentDestinyProfile = profile;
-    window.sessionStorage.setItem("FORTUNE_APP_USER_PROFILE", JSON.stringify(profile));
-    window.localStorage.setItem("FORTUNE_APP_USER_PROFILE", JSON.stringify(profile));
+    const payload = JSON.stringify(profile);
+    const profileId = String(profile.id || profile.profileId || "").trim();
+    window.localStorage.setItem(ACTIVE_PROFILE_ID_KEY, profileId);
+    window.localStorage.setItem(ACTIVE_PROFILE_CACHE_KEY, payload);
+    window.sessionStorage.setItem("FORTUNE_APP_USER_PROFILE", payload);
+    window.localStorage.setItem("FORTUNE_APP_USER_PROFILE", payload);
+  } catch {}
+}
+
+export function publishDestinyProfileList(profiles: DestinyProfileCard[], currentId = "") {
+  if (typeof window === "undefined") return;
+  const scope = readProfileScope();
+  const safeProfiles = profiles.filter((profile) => Boolean(profile && (profile.id || profile.profileId)));
+  const nextCurrentId = String(currentId || safeProfiles[0]?.id || safeProfiles[0]?.profileId || "").trim();
+  const active = safeProfiles.find((profile) => String(profile.id || profile.profileId || "").trim() === nextCurrentId)
+    || safeProfiles[0]
+    || null;
+
+  try {
+    const payload = JSON.stringify(safeProfiles);
+    for (const store of [window.localStorage, window.sessionStorage]) {
+      store.setItem(`${PROFILE_STORAGE_NS}.list::${scope}`, payload);
+      store.setItem(`${PROFILE_STORAGE_NS}.list`, payload);
+      store.setItem(`${PROFILE_STORAGE_NS}.current::${scope}`, nextCurrentId);
+      store.setItem(`${PROFILE_STORAGE_NS}.current`, nextCurrentId);
+    }
+    if (active) {
+      publishDestinyProfileBridge(active);
+    } else {
+      clearActiveDestinyProfileCache();
+    }
+  } catch {}
+}
+
+export function clearActiveDestinyProfileCache(deletedProfileId = "") {
+  if (typeof window === "undefined") return;
+  try {
+    const activeId = String(window.localStorage.getItem(ACTIVE_PROFILE_ID_KEY) || "").trim();
+    const currentProfile = (window as unknown as { __cdCurrentDestinyProfile?: DestinyProfileCard }).__cdCurrentDestinyProfile;
+    const currentId = String(currentProfile?.id || currentProfile?.profileId || "").trim();
+    if (!deletedProfileId || activeId === deletedProfileId || currentId === deletedProfileId) {
+      delete (window as unknown as { __cdCurrentDestinyProfile?: DestinyProfileCard }).__cdCurrentDestinyProfile;
+      window.localStorage.removeItem(ACTIVE_PROFILE_ID_KEY);
+      window.localStorage.removeItem(ACTIVE_PROFILE_CACHE_KEY);
+      window.localStorage.removeItem("FORTUNE_APP_USER_PROFILE");
+      window.sessionStorage.removeItem("FORTUNE_APP_USER_PROFILE");
+    }
+    clearLegacyProfileSelectionKeys(deletedProfileId);
   } catch {}
 }
 
@@ -183,9 +261,6 @@ export async function fetchCurrentDestinyProfile(
   predicate: ProfilePredicate = hasAnyBirthDate,
 ): Promise<DestinyProfileCard | null> {
   if (typeof window === "undefined") return null;
-
-  const local = readCurrentDestinyProfile(undefined, predicate);
-  if (local) return local;
 
   try {
     const headers = new Headers({ Accept: "application/json" });
@@ -201,7 +276,17 @@ export async function fetchCurrentDestinyProfile(
     if (!response.ok) return null;
 
     const payload = await response.json();
-    const profile = pickDestinyProfileFromPayload(payload, "", predicate);
+    const currentId = String(payload?.currentId || "").trim();
+    const localProfileId = String(window.localStorage.getItem(ACTIVE_PROFILE_ID_KEY) || "").trim();
+    if (localProfileId && currentId && localProfileId !== currentId) {
+      console.warn("[ProfileSync] local profile mismatch. Server profile will be used.", {
+        serverProfileId: currentId,
+        localProfileId,
+        fields: ["profileId"],
+      });
+    }
+    if (Array.isArray(payload?.profiles)) publishDestinyProfileList(payload.profiles, currentId);
+    const profile = pickDestinyProfileFromPayload(payload, currentId, predicate);
     if (profile) publishDestinyProfileBridge(profile);
     return profile;
   } catch {
@@ -211,5 +296,9 @@ export async function fetchCurrentDestinyProfile(
 
 export function isDestinyProfileStorageKey(key: string | null): boolean {
   if (!key) return false;
-  return PROFILE_BRIDGE_KEYS.includes(key) || key.startsWith(PROFILE_STORAGE_NS);
+  return key === ACTIVE_PROFILE_ID_KEY
+    || key === ACTIVE_PROFILE_CACHE_KEY
+    || PROFILE_BRIDGE_KEYS.includes(key)
+    || LEGACY_PROFILE_KEYS.includes(key)
+    || key.startsWith(PROFILE_STORAGE_NS);
 }

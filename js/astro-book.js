@@ -393,27 +393,24 @@
     var p = payload || {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
     var total = Number(totalOverride || _getTotalChapters() || ASTRO_TOTAL_CHAPTERS || 12);
-    var llmChapterCount = Number(p.llmChapterCount || ready.llmChapterCount || 0);
-    var expectedLlmChapterCount = Number(p.expectedLlmChapterCount || ready.expectedLlmChapterCount || 0);
-    var fallbackChapterCount = Number(p.fallbackChapterCount || ready.fallbackChapterCount || 0);
     var localDraftChapterCount = Number(p.localDraftChapterCount || ready.localDraftChapterCount || 0);
+    var localAssembly = p.localAssembly && typeof p.localAssembly === 'object'
+      ? p.localAssembly
+      : (ready.localAssembly && typeof ready.localAssembly === 'object' ? ready.localAssembly : {});
     var quality = p.quality && typeof p.quality === 'object' ? p.quality : {};
     var pdfQuality = p.pdfQuality && typeof p.pdfQuality === 'object' ? p.pdfQuality : {};
     var validation = p.validation && typeof p.validation === 'object' ? p.validation : {};
     var source = _clean(p.manuscriptSource || ready.manuscriptSource || quality.manuscriptSource).toLowerCase();
     var qualityOk = quality.ok !== false && pdfQuality.ok !== false && validation.ok !== false;
-    var localAssemblyOnly = p.localAssemblyOnly !== false && ready.localAssemblyOnly !== false && quality.localAssemblyOnly !== false && pdfQuality.localAssemblyOnly !== false;
-    var externalCallsAllowed = p.externalCallsAllowed === true || ready.externalCallsAllowed === true || quality.externalCallsAllowed === true || pdfQuality.externalCallsAllowed === true;
     return source === 'local-assembled'
       && !/gemini|llm|hybrid|fallback/.test(source)
-      && llmChapterCount === 0
-      && expectedLlmChapterCount === 0
-      && fallbackChapterCount === 0
       && localDraftChapterCount === total
-      && p.fallbackUsed !== true
       && qualityOk
-      && localAssemblyOnly
-      && !externalCallsAllowed;
+      && localAssembly.enabled === true
+      && localAssembly.externalGeneration === false
+      && Number(localAssembly.chapterCount || 0) === total
+      && Number(localAssembly.expectedChapterCount || 0) === total
+      && _clean(localAssembly.templateVersion);
   }
 
   function _setStartBusy(isBusy) {
@@ -1068,11 +1065,11 @@
     var title = _clean(progress && progress.currentChapterTitle);
     if (state === 'local_calculation') return '출생 차트와 하우스 근거를 정리하는 중입니다';
     if (state === 'writing_seed') return '차트 근거를 프리미엄 원고 신호로 정리하는 중입니다';
-    if (state === 'writing_llm') return title ? (title + ' 원고를 작성하는 중입니다') : '프리미엄 원고를 장별로 작성하는 중입니다';
+    if (state === 'writing_local') return title ? title : '프리미엄 원고를 로컬 조립하는 중입니다';
     if (state === 'manuscript_validated') return '프리미엄 원고 검수를 완료하는 중입니다';
     if (state === 'pdf_rendering') return 'PDF 편집/렌더링 중';
     if (state === 'pdf_rendered') return 'PDF 저장 정보를 확인하는 중입니다';
-    if (state === 'local_fallback' || state === 'llm_failed' || state === 'failed') return '프리미엄 원고 작성이 완료되지 않았습니다';
+    if (state === 'failed') return '프리미엄 원고 작성이 완료되지 않았습니다';
     if (state === 'completed' || state === 'done') return '완료';
     return title || '점성술 코즈믹 차트 PDF를 준비하는 중입니다';
   }
@@ -1081,7 +1078,7 @@
     var data = _statusData(statusPayload);
     var progress = data.progress && typeof data.progress === 'object' ? data.progress : {};
     var total = Number(progress.totalChapters || data.chapterCount || ASTRO_TOTAL_CHAPTERS || 12);
-    var current = Number(progress.currentChapterNo || data.llmChapterCount || 0);
+    var current = Number(progress.currentChapterNo || data.localAssembly && data.localAssembly.chapterCount || 0);
     var state = _clean(progress.stateKey || data.status);
     if (Number.isFinite(total) && total > 0) ASTRO_TOTAL_CHAPTERS = Math.trunc(total);
     _setLoadingProgress(
@@ -1329,7 +1326,7 @@
         _setLoadingProgress(total, total, 'PDF 편집/렌더링 중');
         _renderResult(_chapters, response.payload || {});
         _setLoadingProgress(total, total, '완료', true);
-        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
+        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, localAssembly: response.localAssembly || null });
         _showScreen('abResultScreen');
       })
       .catch(function (err) {

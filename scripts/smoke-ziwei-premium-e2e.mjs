@@ -6,7 +6,7 @@ import { dbConnect } from "../app/_lib/dbConnect.js";
 import { getUserModel } from "../app/_lib/models/UserModel.js";
 import { signAuthToken } from "../worker/lib/auth.js";
 import { handleBillingRoutes } from "../worker/routes/billing.js";
-import { handleZiweiBookRoutes } from "../worker/routes/ziwei-book.js";
+import { handleZiweiBookRoutes, __ziweiBookTestUtils as ziweiBook } from "../worker/routes/ziwei-book.js";
 
 for (const fileName of [".env.local", ".env"]) {
   const envPath = path.join(process.cwd(), fileName);
@@ -283,9 +283,8 @@ async function main() {
   const chapters = Array.isArray(prepareJson?.chapters) ? prepareJson.chapters : [];
   const reportId = String(prepareJson?.reportId || "").trim();
   const pdfHtml = String(prepareJson?.pdfReady?.html || "").trim();
-  const fallbackUsed = Boolean(prepareJson?.fallbackUsed);
   const manuscriptSource = String(prepareJson?.manuscriptSource || "").trim();
-  const llmChapterCount = Number(prepareJson?.llmChapterCount || 0);
+  const localAssembly = prepareJson?.localAssembly && typeof prepareJson.localAssembly === "object" ? prepareJson.localAssembly : {};
   const ziweiJsonV2 = prepareJson?.ziweiJsonV2 || prepareJson?.payload?.ziweiJsonV2 || prepareJson?.ziweiPayload?.ziweiJsonV2;
   const ziweiMasterJson = prepareJson?.ziweiMasterJson || prepareJson?.payload?.ziweiMasterJson || prepareJson?.ziweiPayload?.ziweiMasterJson;
   const masterJsonValidation = prepareJson?.masterJsonValidation || prepareJson?.payload?.masterJsonValidation || prepareJson?.ziweiPayload?.masterJsonValidation;
@@ -295,11 +294,12 @@ async function main() {
   if (!reportId) throw new Error("reportId가 비어 있습니다.");
   if (chapters.length < 15) throw new Error(`챕터 수가 부족합니다: ${chapters.length}`);
   if (pdfHtml.length < 5000) throw new Error(`pdfReady.html 길이가 비정상적으로 짧습니다: ${pdfHtml.length}`);
-  if (fallbackUsed) throw new Error("ziwei fallbackUsed must be false");
-  if (llmChapterCount !== 0) throw new Error(`ziwei llmChapterCount must be 0: ${llmChapterCount}`);
   if (manuscriptSource !== "local-assembled") throw new Error(`ziwei manuscriptSource must be local-assembled: ${manuscriptSource}`);
   if (prepareJson?.localAssemblyOnly !== true) throw new Error("ziwei localAssemblyOnly missing");
   if (prepareJson?.externalCallsAllowed !== false) throw new Error("ziwei externalCallsAllowed must be false");
+  if (localAssembly.enabled !== true) throw new Error("ziwei localAssembly.enabled missing");
+  if (localAssembly.externalCallsAllowed !== false) throw new Error("ziwei localAssembly.externalCallsAllowed must be false");
+  if (Number(localAssembly.chapterCount || 0) < 15) throw new Error(`ziwei localAssembly chapterCount invalid: ${localAssembly.chapterCount}`);
   if (ziweiJsonV2?.schemaVersion !== "ziwei-pdf-v2") throw new Error("ziweiJsonV2 schemaVersion missing");
   if (ziweiMasterJson?.schemaVersion !== "ziwei-premium-master-json.v1") throw new Error("ziweiMasterJson schemaVersion missing");
   if (masterJsonValidation?.ok !== true) throw new Error(`ziweiMasterJson validation failed: ${JSON.stringify(masterJsonValidation)}`);
@@ -307,6 +307,7 @@ async function main() {
   if (ziweiJsonV2?.quality?.writingPipeline !== "ziwei-premium-local-assembled-v4") throw new Error(`ziwei writingPipeline mismatch: ${ziweiJsonV2?.quality?.writingPipeline || ""}`);
   if (ziweiJsonV2?.quality?.localAssemblyOnly !== true) throw new Error("ziweiJsonV2 localAssemblyOnly missing");
   if (ziweiJsonV2?.quality?.externalCallsAllowed !== false) throw new Error("ziweiJsonV2 externalCallsAllowed must be false");
+  if (ziweiJsonV2?.quality?.localAssembly?.enabled !== true) throw new Error("ziweiJsonV2 localAssembly missing");
   if (!String(pdfReady?.downloadUrl || "").includes("/api/premium/pdf-archive/") || !String(pdfReady?.downloadUrl || "").includes("format=pdf")) {
     throw new Error(`pdfReady.downloadUrl is not premium archive pdf: ${pdfReady?.downloadUrl || ""}`);
   }
@@ -315,6 +316,36 @@ async function main() {
   }
   if (pdfReady?.contentType !== "application/pdf" || pdfReady?.renderFormat !== "pdf-archive") {
     throw new Error(`pdfReady contract invalid: ${JSON.stringify({ contentType: pdfReady?.contentType, renderFormat: pdfReady?.renderFormat })}`);
+  }
+
+  const variantProfile = {
+    ...birthProfile,
+    name: "자미 변형",
+    gender: "female",
+    birthIso: "1988-11-22 18:30",
+    year: 1988,
+    month: 11,
+    day: 22,
+    hour: 18,
+    minute: 30,
+  };
+  const baseSeed = ziweiBook.buildZiweiPdfSeed(birthProfile, buildMockZiweiBase());
+  const variantBase = buildMockZiweiBase();
+  variantBase.chartMeta = { ...variantBase.chartMeta, mingGong: "오", shenGong: "자", yearStem: "경", yearBranch: "신" };
+  variantBase.palaces = variantBase.palaces.map((palace, index) => ({
+    ...palace,
+    branch: index % 2 === 0 ? "오" : palace.branch,
+    mainStars: [{ name: index % 2 === 0 ? "무곡" : "태양", strengthName: index % 2 === 0 ? "왕" : "평", strengthSymbol: index % 2 === 0 ? "O" : "△" }],
+    stars: [{ name: index % 2 === 0 ? "무곡" : "태양", strengthName: index % 2 === 0 ? "왕" : "평", strengthSymbol: index % 2 === 0 ? "O" : "△" }],
+  }));
+  const variantSeed = ziweiBook.buildZiweiPdfSeed(variantProfile, variantBase);
+  const baseLocalChapters = ziweiBook.buildZiweiLocalAssembledChapters(birthProfile, baseSeed);
+  const variantLocalChapters = ziweiBook.buildZiweiLocalAssembledChapters(variantProfile, variantSeed);
+  if (JSON.stringify(baseSeed.chart?.palaces?.[0]?.mainStars || []) === JSON.stringify(variantSeed.chart?.palaces?.[0]?.mainStars || [])) {
+    throw new Error("ziwei local chart json must vary by input");
+  }
+  if (String(baseLocalChapters?.chapters?.[0]?.text || "") === String(variantLocalChapters?.chapters?.[0]?.text || "")) {
+    throw new Error("ziwei local assembled chapter text must vary by input");
   }
 
   fs.writeFileSync(OUT_FILE, pdfHtml, "utf8");
@@ -333,9 +364,8 @@ async function main() {
   console.log(`  - ziweiJsonV2: ${ziweiJsonV2.schemaVersion}`);
   console.log(`  - ziweiMasterJson: ${ziweiMasterJson.schemaVersion}`);
   console.log(`  - evidenceMap: ${evidenceMap.length}`);
-  console.log(`  - fallbackUsed: ${fallbackUsed}`);
   console.log(`  - manuscriptSource: ${manuscriptSource}`);
-  console.log(`  - llmChapterCount: ${llmChapterCount}`);
+  console.log(`  - localAssembly: ${localAssembly.chapterCount || 0} chapters`);
   console.log(`  - htmlLength: ${pdfHtml.length}`);
   console.log(`  - outFile: ${path.relative(process.cwd(), OUT_FILE)}`);
 }

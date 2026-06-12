@@ -11,15 +11,11 @@ const MIN_TOTAL_CHARS = Math.max(Number(VEDIC_SOLO_TARGET_CHARS || 0), 40000);
 const VEDIC_MASTER_JSON_SCHEMA_VERSION = "vedic-premium-master-json.v1";
 export const VEDIC_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
-  llmEnabled: false,
   provider: "vedic-local-assembler",
   templateVersion: "vedic-premium-local-assembled-v2",
 });
-export const VEDIC_ASTROLOGY_PROMPT_VERSION = VEDIC_PDF_CONFIG.templateVersion;
-export const VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS = Object.freeze([]);
+export const VEDIC_ASTROLOGY_ASSEMBLY_VERSION = VEDIC_PDF_CONFIG.templateVersion;
 const FORBIDDEN_TEXT_RE = /\b(?:fallback|safe-local|seed|skeleton|payload|json|debug|local|localdraft|engine|validation|retry|llm|api|wasm|swiss\s*wasm|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|preflightfailed|chart\s*seed\s*failed)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|로컬\s*기반|계산\s*시그니처|데이터\s*정규화|품질\s*검증|재생성|내부\s*데이터|템플릿/gi;
-const VEDIC_ASTROLOGY_LLM_CACHE_MAX = 200;
-const vedicAstrologyLlmCache = new Map();
 const VEDIC_SAFETY_REPLACEMENTS = Object.freeze([
   [/반드시\s*이혼한다/gi, "관계에서 현실적인 책임과 감정 소통을 꾸준히 조율해야 하는 흐름이다"],
   [/결혼하면\s*불행하다/gi, "장기 관계로 갈수록 기대치, 역할 분담, 생활 리듬을 명확히 맞추는 것이 중요하다"],
@@ -37,40 +33,7 @@ const VEDIC_SAFETY_REPLACEMENTS = Object.freeze([
   [/이\s*차트는\s*나쁘다/gi, "이 차트는 관리해야 할 과제와 성장 포인트가 분명하다"],
   [/전생\s*업보\s*때문에\s*불행하다/gi, "반복되는 선택 패턴을 의식적으로 바꿀 기회가 있는 흐름이다"],
 ]);
-const VEDIC_LLM_KEY_ENV_KEYS = Object.freeze([
-  "VEDIC_PREMIUM_GEMINI_API_KEY1",
-  "VEDIC_PREMIUM_GEMINI_API_KEY2",
-  "VEDIC_PREMIUM_GEMINI_API_KEY3",
-  "VEDIC_PREMIUM_GEMINI_API_KEY4",
-  "VEDIC_PREMIUM_GEMINI_API_KEY5",
-  "PREMIUM_GEMINI_API_KEY1",
-  "PREMIUM_GEMINI_API_KEY2",
-  "PREMIUM_GEMINI_API_KEY3",
-  "PREMIUM_GEMINI_API_KEY4",
-  "PREMIUM_GEMINI_API_KEY5",
-  "GEMINIF_API_KEY1",
-  "GEMINIF_API_KEY2",
-  "GEMINIF_API_KEY3",
-  "GEMINIF_API_KEY4",
-  "GEMINIF_API_KEY5",
-  "GEMINIF_API_KEY6",
-  "GEMINIF_API_KEY7",
-  "GEMINIF_API_KEY8",
-  "GEMINI_API_KEY1",
-  "GEMINI_API_KEY2",
-  "GEMINI_API_KEY3",
-  "GEMINI_API_KEY4",
-  "GEMINI_API_KEY5",
-  "GEMINI_API_KEY6",
-  "GEMINI_API_KEY7",
-  "GEMINI_API_KEY8",
-  "GEMINI_API_KEY",
-  "GOOGLE_GEMINI_API_KEY",
-  "GOOGLE_GENERATIVE_AI_API_KEY",
-  "GOOGLE_API_KEY",
-]);
-const VEDIC_LLM_MODEL_ENV_KEYS = Object.freeze(["VEDIC_PREMIUM_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"]);
-const VEDIC_LLM_REQUIRED_SIGNAL_HINTS = Object.freeze({
+const VEDIC_LOCAL_REQUIRED_SIGNAL_HINTS = Object.freeze({
   vedic_soul_map: ["라그나", "문", "달", "태양", "아트마카라카", "나크샤트라"],
   vedic_lagna: ["라그나", "1하우스", "1바바", "라그나 로드"],
   vedic_moon_nakshatra: ["문", "달", "나크샤트라", "파다", "나크샤트라 로드"],
@@ -84,7 +47,7 @@ const VEDIC_LLM_REQUIRED_SIGNAL_HINTS = Object.freeze({
   vedic_karma_growth: ["라후", "케투", "8하우스", "9하우스", "12하우스"],
   vedic_master_plan: ["라그나", "문", "다샤", "라후", "케투", "아트마카라카"],
 });
-const VEDIC_LLM_REQUIRED_SIGNAL_IDS_BY_SECTION = Object.freeze({
+const VEDIC_LOCAL_REQUIRED_SIGNAL_IDS_BY_SECTION = Object.freeze({
   soul_1: ["core.lagna.sign", "core.moon.sign", "core.sun.sign", "karaka.atmakaraka"],
   soul_2: ["core.lagna.sign", "core.lagna.lord", "house.1.sign"],
   soul_3: ["core.moon.sign", "core.moon.nakshatra.name", "planet.Moon.house"],
@@ -1667,7 +1630,7 @@ export function buildVedicAstrologyFacts(localVedicChartJson = {}, rawInput = {}
     productId: "vedic_astrology",
     serviceKey: "vedic-premium",
     mode: "personal",
-    promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
+    assemblyVersion: VEDIC_ASTROLOGY_ASSEMBLY_VERSION,
     birthInfo: {
       name: clean(birthInput.name),
       gender: clean(birthInput.gender),
@@ -1773,45 +1736,6 @@ export function buildVedicAstrologyFacts(localVedicChartJson = {}, rawInput = {}
       ? ["출생 시간이 불명확하므로 라그나와 하우스 기반 해석은 단정하지 않는다."]
       : [],
   };
-}
-
-export function buildVedicAstrologyLlmCacheKey(facts = {}, chapterId = "") {
-  const basis = safeObject(facts?.calculationBasis);
-  return [
-    "vedic-astrology-llm",
-    VEDIC_ASTROLOGY_PROMPT_VERSION,
-    clean(facts?.productId || "vedic_astrology"),
-    clean(facts?.mode || "personal"),
-    clean(chapterId),
-    clean(basis.zodiacType),
-    clean(basis.ayanamsa),
-    clean(basis.houseSystem),
-    clean(basis.dashaSystem),
-    clean(basis.ephemerisVersion || basis.algorithmVersion),
-    hashStableValue(facts?.birthInfo || {}),
-    hashStableValue(facts?.partnerBirthInfo || {}),
-    hashStableValue(facts?.targetPeriod || {}),
-    hashStableValue(basis),
-  ].join(":");
-}
-
-function readVedicLlmCache(key) {
-  const token = clean(key);
-  if (!token || !vedicAstrologyLlmCache.has(token)) return null;
-  const value = vedicAstrologyLlmCache.get(token);
-  vedicAstrologyLlmCache.delete(token);
-  vedicAstrologyLlmCache.set(token, value);
-  return value;
-}
-
-function writeVedicLlmCache(key, value) {
-  const token = clean(key);
-  if (!token || !value) return;
-  vedicAstrologyLlmCache.set(token, value);
-  while (vedicAstrologyLlmCache.size > VEDIC_ASTROLOGY_LLM_CACHE_MAX) {
-    const oldest = vedicAstrologyLlmCache.keys().next().value;
-    vedicAstrologyLlmCache.delete(oldest);
-  }
 }
 
 export function buildVedicAstrologyChapterPlans(localManuscript = {}, facts = {}, chartJson = {}) {
@@ -1959,11 +1883,11 @@ function buildVedicEvidencePack(chartJson = {}, chapter = {}) {
 
   const signalIds = new Set(signals.map((signal) => signal.id));
   const requiredSignalIdsBySection = Object.fromEntries(safeArray(chapter?.categories).map((category) => {
-    const required = safeArray(VEDIC_LLM_REQUIRED_SIGNAL_IDS_BY_SECTION[clean(category?.id)]);
+    const required = safeArray(VEDIC_LOCAL_REQUIRED_SIGNAL_IDS_BY_SECTION[clean(category?.id)]);
     return [category.id, required.filter((id) => signalIds.has(id))];
   }));
   const unavailableRequiredSignalIdsBySection = Object.fromEntries(safeArray(chapter?.categories).map((category) => {
-    const required = safeArray(VEDIC_LLM_REQUIRED_SIGNAL_IDS_BY_SECTION[clean(category?.id)]);
+    const required = safeArray(VEDIC_LOCAL_REQUIRED_SIGNAL_IDS_BY_SECTION[clean(category?.id)]);
     return [category.id, required.filter((id) => !signalIds.has(id))];
   }));
 
@@ -2035,7 +1959,7 @@ export function buildVedicMasterJson(localVedicChartJson = {}, rawInput = {}) {
     featureKey: "premium_pdf_vedic",
     reportType: "vedicPremium",
     generationMode: VEDIC_PDF_CONFIG.generationMode,
-    promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
+    assemblyVersion: VEDIC_ASTROLOGY_ASSEMBLY_VERSION,
     calculationSource: clean(localVedicChartJson?.calculationMode || rawInput?.calculationMode || "worker-swiss-vedic-chart"),
     birthProfile: {
       name: clean(birthInput.name) || "사용자",
@@ -2108,7 +2032,7 @@ export function validateVedicMasterJson(masterJson = {}) {
   const chapterSpecs = safeArray(masterJson?.chapterSpecs);
   requireField(clean(masterJson?.schemaVersion) === VEDIC_MASTER_JSON_SCHEMA_VERSION, "schemaVersion");
   requireField(clean(masterJson?.serviceKey) === "vedic-premium", "serviceKey");
-  requireField(["worker-native-hybrid", "worker-native-llm", VEDIC_PDF_CONFIG.generationMode].includes(clean(masterJson?.generationMode)), "generationMode");
+  requireField(clean(masterJson?.generationMode) === VEDIC_PDF_CONFIG.generationMode, "generationMode");
   requireField(clean(birth.birthDate), "birthProfile.birthDate");
   requireField(Number.isFinite(Number(birth.birthHour)), "birthProfile.birthHour");
   requireField(clean(birth.timezone), "birthProfile.timezone");
@@ -2183,542 +2107,8 @@ function buildVedicLlmSignalPack(chartJson = {}, chapter = {}) {
     drishti: safeArray(chart?.insights?.drishti || chartJson?.insights?.drishti).slice(0, 12),
     insightCards: safeArray(chartJson?.insights?.cards || chart?.insights?.cards).slice(0, 8),
     derived: context?.derived || {},
-    chapterSignalHints: safeArray(VEDIC_LLM_REQUIRED_SIGNAL_HINTS[clean(chapter?.id)]),
+    chapterSignalHints: safeArray(VEDIC_LOCAL_REQUIRED_SIGNAL_HINTS[clean(chapter?.id)]),
     evidencePack,
-  };
-}
-
-function buildVedicLlmChapterPrompt({ chapter, chapterPlan = {}, chartJson, masterJson = {}, previousSummaries = [], lastDraft = null, lastErrors = [] } = {}) {
-  const signalPack = buildVedicLlmSignalPack(chartJson, chapter);
-  const categories = safeArray(chapter?.categories).map((category, index) => ({
-    order: index + 1,
-    id: category.id,
-    title: category.title,
-    requiredSignalIds: safeArray(signalPack?.evidencePack?.requiredSignalIdsBySection?.[category.id]),
-  }));
-  const repairBlock = lastErrors.length
-    ? `이전 응답의 문제: ${lastErrors.map((item) => clean(item)).filter(Boolean).join(", ")}\n이전 초안 일부: ${JSON.stringify(lastDraft || {}).slice(0, 7000)}`
-    : "";
-
-  return [
-    "당신은 베다 점성술 프리미엄 PDF의 개인화 본문만 작성하는 전문 상담가입니다.",
-    "너는 베다점 계산자가 아니며 라그나, 나크샤트라, 다샤, 행성 위치, 하우스 배치를 새로 산출하지 않습니다.",
-    "아래 제공되는 베다점 계산 결과는 이미 확정된 값입니다.",
-    "라그나, 라시 차트, 나바암샤, 나크샤트라, 파다, 문 사인, 선 사인, 행성 위치, 하우스 배치, 요가, 도샤, 다샤, 고차라, 아야남샤를 절대 변경하지 마세요.",
-    "새로운 베다 차트 계산, 사이드리얼/트로피컬 기준 변경, 27 나크샤트라·12 라시·12 하우스·다샤 기간 임의 생성을 금지합니다.",
-    "lockedFacts는 반드시 반영하고, 로컬 계산 결과와 모순되는 문장을 쓰지 마세요.",
-    "사주 용어인 일간, 십성, 용신, 기신, 대운을 베다점 해석에 임의로 섞지 마세요.",
-    "서양 점성술의 트로피컬 기준이나 별자리 해석을 베다점 계산 결과처럼 섞지 마세요.",
-    "Manglik Dosha, Sade Sati, Rahu/Ketu, Saturn transit, debilitated planet 같은 강한 요소도 공포가 아니라 현실적인 관리 포인트로 설명하세요.",
-    "건강, 사고, 금전 손실, 이혼, 사망, 소송 같은 민감한 주제는 가능성, 주의점, 생활 관리, 선택 전략 중심으로 표현하세요.",
-    "표지, 목차, 챕터 제목, 섹션 제목, 공통 안내문은 코드 템플릿에서 이미 생성됩니다.",
-    "LLM은 제목을 새로 만들지 말고, 입력된 섹션 순서에 맞춰 body, evidenceSignals, advice, cautions만 작성합니다.",
-    "출력은 순수 JSON 객체 하나만 허용합니다. 코드블록, 설명문, 마크다운, 내부 용어를 쓰지 마세요.",
-    "최종 본문에는 JSON, API, LLM, local, engine, debug, retry, fallback, template, 데이터 부족 같은 구현 용어를 절대 쓰지 마세요.",
-    "모든 해석은 제공된 차트 신호만 근거로 삼고, 의료·법률·투자 보장처럼 확정적인 약속은 하지 마세요.",
-    "각 카테고리 body는 한국어 950~1300자입니다. evidenceSignals는 3~6개, advice와 cautions는 각각 1~2문장입니다.",
-    "각 섹션 usedSignalIds는 evidencePack.allowedSignalIds 안에서만 고르고, 해당 섹션 requiredSignalIds를 반드시 포함하세요.",
-    "라시, 하우스, 행성 위치, 다샤, 나크샤트라, 카라카는 evidencePack.signals에 있는 값만 사용하세요.",
-    "행성-사인, 행성-하우스, 하우스-사인, 현재 다샤 조합은 evidencePack 값과 다르면 안 됩니다.",
-    JSON.stringify({
-      chapterContract: {
-        chapterId: chapter.id,
-        chapterNo: chapter.order,
-        roman: chapter.roman,
-        title: chapter.title,
-        subtitle: chapter.subtitle,
-        categories,
-      },
-      staticTemplatePolicy: {
-        chapterTitleIsFixed: chapter.title,
-        sectionTitlesAreFixedInThisOrder: categories.map((category) => category.title),
-        doNotGenerate: ["표지", "목차", "챕터 제목", "섹션 제목", "공통 안내문", "다운로드 안내"],
-      },
-      requiredOutputShape: {
-        chapterId: chapter.id,
-        chapterNo: chapter.order,
-        title: chapter.title,
-        sections: categories.map((category) => ({
-          id: category.id,
-          title: category.title,
-          usedSignalIds: category.requiredSignalIds,
-          body: "한국어 950~1300자 개인화 본문",
-          evidenceSignals: ["차트 근거 1", "차트 근거 2", "차트 근거 3"],
-          advice: "현실 조언",
-          cautions: "주의 흐름",
-        })),
-      },
-      currentChartSignals: signalPack,
-      verifiedVedicMasterJson: masterJson,
-      vedicAstrologyPromptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
-      chapterPlan: {
-        chapterId: clean(chapterPlan?.chapterId || chapter.id),
-        chapterTitle: clean(chapterPlan?.chapterTitle || chapter.title),
-        mode: clean(chapterPlan?.mode || "personal"),
-        purpose: clean(chapterPlan?.purpose || chapter.subtitle),
-        lockedFacts: safeArray(chapterPlan?.lockedFacts).slice(0, 14),
-        interpretationPoints: safeArray(chapterPlan?.interpretationPoints).slice(0, 12),
-        warnings: safeArray(chapterPlan?.warnings).slice(0, 8),
-        recommendedTone: clean(chapterPlan?.recommendedTone || "전문적이고 신비로운 한국어 베다점 상담문"),
-        localDraft: clean(chapterPlan?.localDraft).slice(0, 9000),
-      },
-      previousSummaries: safeArray(previousSummaries).slice(-4),
-      repairBlock,
-    }),
-  ].join("\n\n");
-}
-function normalizeUsedSignalIds(ids = [], evidencePack = {}) {
-  const evidenceIndex = buildVedicEvidenceIndex(evidencePack);
-  return Array.from(new Set(safeArray(ids).map((id) => clean(id)).filter((id) => id && evidenceIndex.has(id))));
-}
-
-function escapeVedicRegex(value) {
-  return clean(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function planetClaimAliases(planetName) {
-  const en = normalizePlanetName(planetName);
-  if (!en) return [];
-  return Array.from(new Set([PLANET_KO[en], en].map((item) => clean(item)).filter(Boolean)));
-}
-
-function evidenceSignalValue(evidencePack = {}, id = "") {
-  const signal = buildVedicEvidenceIndex(evidencePack).get(clean(id));
-  return clean(signal?.value);
-}
-
-function hasDirectPlanetSignClaim(text, planetAliases = [], sign) {
-  const aliases = safeArray(planetAliases).map(escapeVedicRegex).filter(Boolean);
-  const signToken = escapeVedicRegex(sign);
-  if (!aliases.length || !signToken) return false;
-  const planetPattern = aliases.join("|");
-  return new RegExp(`(?:${planetPattern})(?:은|는|이|가|의)?\\s*${signToken}`).test(text)
-    || new RegExp(`(?:${planetPattern})[^\\n,.。]{0,14}${signToken}`).test(text)
-    || new RegExp(`${signToken}(?:의|에\\s*있는|에\\s*자리한)?\\s*(?:${planetPattern})`).test(text);
-}
-
-function hasLiteralPlanetSignClaim(text, planetAliases = [], sign) {
-  const body = clean(text);
-  const signText = clean(sign);
-  if (!body || !signText) return false;
-  return safeArray(planetAliases).some((alias) => {
-    const token = clean(alias);
-    if (!token) return false;
-    return body.includes(`${token}은 ${signText}`)
-      || body.includes(`${token}는 ${signText}`)
-      || body.includes(`${token}이 ${signText}`)
-      || body.includes(`${token}가 ${signText}`)
-      || body.includes(`${token} ${signText}`)
-      || body.includes(`${signText}의 ${token}`);
-  });
-}
-
-function hasDirectPlanetHouseClaim(text, planetAliases = [], houseNumber) {
-  const aliases = safeArray(planetAliases).map(escapeVedicRegex).filter(Boolean);
-  const house = Number(houseNumber);
-  if (!aliases.length || !Number.isFinite(house)) return false;
-  const planetPattern = aliases.join("|");
-  const housePattern = `${house}\\s*하우스`;
-  return new RegExp(`(?:${planetPattern})(?:은|는|이|가|의)?\\s*(?:${housePattern})`).test(text)
-    || new RegExp(`(?:${planetPattern})[^\\n,.。]{0,14}(?:${housePattern})`).test(text)
-    || new RegExp(`(?:${housePattern})(?:의|에\\s*있는|에\\s*자리한)\\s*(?:${planetPattern})`).test(text);
-}
-
-function hasDirectHouseSignClaim(text, houseNumber, sign) {
-  const house = Number(houseNumber);
-  const signToken = escapeVedicRegex(sign);
-  if (!Number.isFinite(house) || !signToken) return false;
-  const housePattern = `${house}\\s*하우스`;
-  return new RegExp(`(?:${housePattern})(?:은|는|이|가)?\\s*${signToken}`).test(text)
-    || new RegExp(`${signToken}\\s*(?:${housePattern})`).test(text);
-}
-
-function detectVedicUnsupportedClaims(text = "", evidencePack = {}) {
-  const body = clean(text);
-  if (!body) return [];
-  const issues = [];
-  const signs = SIGN_KO.filter(Boolean);
-
-  ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"].forEach((planet) => {
-    const aliases = planetClaimAliases(planet);
-    const expectedSign = evidenceSignalValue(evidencePack, `planet.${planet}.sign`);
-    const expectedHouse = Number((evidenceSignalValue(evidencePack, `planet.${planet}.house`).match(/\d+/) || [])[0]);
-    signs.forEach((sign) => {
-      if (expectedSign && sign !== expectedSign && (hasDirectPlanetSignClaim(body, aliases, sign) || hasLiteralPlanetSignClaim(body, aliases, sign))) {
-        issues.push(`planet:${planet}:wrong-sign:${sign}`);
-      }
-    });
-    for (let house = 1; house <= 12; house += 1) {
-      if (Number.isFinite(expectedHouse) && house !== expectedHouse && hasDirectPlanetHouseClaim(body, aliases, house)) {
-        issues.push(`planet:${planet}:wrong-house:${house}`);
-      }
-    }
-  });
-
-  for (let house = 1; house <= 12; house += 1) {
-    const expectedSign = evidenceSignalValue(evidencePack, `house.${house}.sign`);
-    signs.forEach((sign) => {
-      if (expectedSign && sign !== expectedSign && hasDirectHouseSignClaim(body, house, sign)) {
-        issues.push(`house:${house}:wrong-sign:${sign}`);
-      }
-    });
-  }
-
-  const activeDasha = normalizePlanetName(evidenceSignalValue(evidencePack, "dasha.current.maha"));
-  if (activeDasha) {
-    ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"].forEach((planet) => {
-      if (planet === activeDasha) return;
-      const wrongAliases = planetClaimAliases(planet).map(escapeVedicRegex).filter(Boolean);
-      if (!wrongAliases.length) return;
-      const wrongPattern = wrongAliases.join("|");
-      if (new RegExp(`(?:현재|지금|이번\\s*시기)[^\\n.。]{0,18}(?:${wrongPattern})\\s*다샤`).test(body)) {
-        issues.push(`dasha:current:wrong-maha:${planet}`);
-      }
-    });
-  }
-
-  return Array.from(new Set(issues));
-}
-
-function detectVedicChartUnsupportedClaims(text = "", chartJson = {}) {
-  const body = clean(text);
-  if (!body) return [];
-  const issues = [];
-  const signs = SIGN_KO.filter(Boolean);
-  const chart = chartJson?.chart || {};
-  safeArray(chart?.planets).forEach((planet) => {
-    const planetName = normalizePlanetName(planet?.name || planet?.graha);
-    if (!planetName) return;
-    const aliases = planetClaimAliases(planetName);
-    const expectedSign = clean(planet?.sign || planet?.signKo);
-    const expectedHouse = Number(planet?.house);
-    signs.forEach((sign) => {
-      if (expectedSign && sign !== expectedSign && (hasDirectPlanetSignClaim(body, aliases, sign) || hasLiteralPlanetSignClaim(body, aliases, sign))) {
-        issues.push(`chart:planet:${planetName}:wrong-sign:${sign}`);
-      }
-    });
-    for (let house = 1; house <= 12; house += 1) {
-      if (Number.isFinite(expectedHouse) && house !== expectedHouse && hasDirectPlanetHouseClaim(body, aliases, house)) {
-        issues.push(`chart:planet:${planetName}:wrong-house:${house}`);
-      }
-    }
-  });
-  safeArray(chart?.houses).forEach((house) => {
-    const houseNumber = Number(house?.house || house?.number);
-    const expectedSign = clean(house?.sign || house?.rashiKo);
-    if (!Number.isFinite(houseNumber) || !expectedSign) return;
-    signs.forEach((sign) => {
-      if (sign !== expectedSign && hasDirectHouseSignClaim(body, houseNumber, sign)) {
-        issues.push(`chart:house:${houseNumber}:wrong-sign:${sign}`);
-      }
-    });
-  });
-  const activeDasha = normalizePlanetName(chart?.dashas?.currentMahaDasha);
-  if (activeDasha) {
-    ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"].forEach((planet) => {
-      if (planet === activeDasha) return;
-      const wrongAliases = planetClaimAliases(planet).map(escapeVedicRegex).filter(Boolean);
-      if (!wrongAliases.length) return;
-      const wrongPattern = wrongAliases.join("|");
-      if (new RegExp(`(?:현재|지금|이번\\s*시기)[^\\n.。]{0,18}(?:${wrongPattern})\\s*다샤`).test(body)) {
-        issues.push(`chart:dasha:current:wrong-maha:${planet}`);
-      }
-    });
-  }
-  return Array.from(new Set(issues));
-}
-
-function detectVedicAllUnsupportedClaims(text = "", evidencePack = {}, chartJson = {}) {
-  return Array.from(new Set([
-    ...detectVedicUnsupportedClaims(text, evidencePack),
-    ...detectVedicChartUnsupportedClaims(text, chartJson),
-  ]));
-}
-
-function detectVedicLiteralChartContradictions(text = "", chartJson = {}) {
-  const body = clean(text);
-  const issues = [];
-  if (!body) return issues;
-  const chart = chartJson?.chart || {};
-  [
-    { key: "moon", aliases: ["달", "문", "Moon"], expectedSign: clean(chart?.moonSign) },
-    { key: "sun", aliases: ["태양", "Sun"], expectedSign: clean(chart?.sunSign) },
-    { key: "lagna", aliases: ["라그나", "Lagna"], expectedSign: clean(chart?.lagnaSign) },
-  ].forEach((item) => {
-    if (!item.expectedSign) return;
-    SIGN_KO.filter((sign) => sign && sign !== item.expectedSign).forEach((sign) => {
-      const found = item.aliases.some((alias) => {
-        const token = clean(alias);
-        return token && (
-          body.includes(`${token}은 ${sign}`)
-          || body.includes(`${token}는 ${sign}`)
-          || body.includes(`${token}이 ${sign}`)
-          || body.includes(`${token}가 ${sign}`)
-          || body.includes(`${token} ${sign}`)
-        );
-      });
-      if (found) issues.push(`literal:core:${item.key}:wrong-sign:${sign}`);
-    });
-  });
-  safeArray(chart?.planets).forEach((planet) => {
-    const planetName = normalizePlanetName(planet?.name || planet?.graha);
-    if (!planetName) return;
-    const aliases = planetClaimAliases(planetName);
-    const expectedSign = clean(planet?.sign || planet?.signKo);
-    if (!expectedSign) return;
-    SIGN_KO.filter((sign) => sign && sign !== expectedSign).forEach((sign) => {
-      const found = aliases.some((alias) => {
-        const token = clean(alias);
-        return token && (
-          body.includes(`${token}은 ${sign}`)
-          || body.includes(`${token}는 ${sign}`)
-          || body.includes(`${token}이 ${sign}`)
-          || body.includes(`${token}가 ${sign}`)
-          || body.includes(`${token} ${sign}`)
-        );
-      });
-      if (found) issues.push(`literal:planet:${planetName}:wrong-sign:${sign}`);
-    });
-  });
-  return Array.from(new Set(issues));
-}
-
-function validateVedicLlmChapterJson(parsed = {}, chapter = {}, evidencePack = {}, chartJson = {}) {
-  const errors = [];
-  const expectedSections = safeArray(chapter?.categories);
-  const sections = safeArray(parsed?.sections);
-  const evidenceIndex = buildVedicEvidenceIndex(evidencePack);
-  if (clean(parsed?.chapterId) !== clean(chapter?.id)) errors.push("chapter_id_mismatch");
-  if (Number(parsed?.chapterNo) !== Number(chapter?.order)) errors.push("chapter_no_mismatch");
-  if (clean(parsed?.title) !== clean(chapter?.title)) errors.push("chapter_title_mismatch");
-  if (sections.length !== expectedSections.length) errors.push("section_count_mismatch");
-
-  expectedSections.forEach((expected, index) => {
-    const section = sections[index] || {};
-    if (clean(section?.id) !== clean(expected.id)) errors.push(`section_${index + 1}_id_mismatch`);
-    if (clean(section?.title) !== clean(expected.title)) errors.push(`section_${index + 1}_title_mismatch`);
-    const body = clean(section?.body);
-    const evidence = safeArray(section?.evidenceSignals).map((item) => clean(item)).filter(Boolean);
-    const usedSignalIds = safeArray(section?.usedSignalIds).map((id) => clean(id)).filter(Boolean);
-    const invalidSignalIds = usedSignalIds.filter((id) => !evidenceIndex.has(id));
-    const requiredSignalIds = safeArray(evidencePack?.requiredSignalIdsBySection?.[expected.id]);
-    const missingRequiredIds = requiredSignalIds.filter((id) => !usedSignalIds.includes(id));
-    const unsupportedClaims = [
-      ...detectVedicAllUnsupportedClaims([body, evidence.join(" "), section?.advice, section?.cautions].join(" "), evidencePack, chartJson),
-      ...detectVedicLiteralChartContradictions([body, evidence.join(" "), section?.advice, section?.cautions].join(" "), chartJson),
-    ];
-    if (body.length < 800) errors.push(`section_${index + 1}_body_too_short`);
-    if (evidence.length < 3) errors.push(`section_${index + 1}_evidence_too_light`);
-    if (usedSignalIds.length < Math.min(3, Math.max(1, requiredSignalIds.length))) errors.push(`section_${index + 1}_used_signals_too_light`);
-    if (invalidSignalIds.length) errors.push(`section_${index + 1}_invalid_signal_ids:${invalidSignalIds.join("|")}`);
-    if (missingRequiredIds.length) errors.push(`section_${index + 1}_missing_required_signal_ids:${missingRequiredIds.join("|")}`);
-    if (unsupportedClaims.length) errors.push(`section_${index + 1}_unsupported_claims:${unsupportedClaims.slice(0, 4).join("|")}`);
-    if (hasForbiddenText([body, evidence.join(" "), section?.advice, section?.cautions].join(" "))) {
-      errors.push(`section_${index + 1}_forbidden_text`);
-    }
-  });
-
-  return {
-    ok: errors.length === 0,
-    errors,
-  };
-}
-
-function convertVedicLlmChapterToDraft(parsed = {}, chapter = {}, evidencePack = {}) {
-  const parsedSections = safeArray(parsed?.sections);
-  const evidenceIndex = buildVedicEvidenceIndex(evidencePack);
-  const sections = safeArray(chapter?.categories).map((category, index) => {
-    const source = parsedSections[index] || {};
-    const usedSignalIds = normalizeUsedSignalIds(source?.usedSignalIds, evidencePack).slice(0, 8);
-    const exactEvidenceSignals = usedSignalIds
-      .map((id) => evidenceIndex.get(id))
-      .filter(Boolean)
-      .map((signal) => cleanForbidden(`${signal.label}: ${signal.value}`));
-    const modelEvidenceSignals = safeArray(source?.evidenceSignals).map((item) => cleanForbidden(item)).filter(Boolean);
-    const evidenceSignals = Array.from(new Set([...exactEvidenceSignals, ...modelEvidenceSignals])).slice(0, 6);
-    const advice = cleanForbidden(source?.advice);
-    const cautions = cleanForbidden(source?.cautions);
-    const bodyParts = [cleanForbidden(source?.body)];
-    if (evidenceSignals.length) bodyParts.push(`차트 근거\n\n${evidenceSignals.map((item) => `- ${item}`).join("\n")}`);
-    if (advice) bodyParts.push(`현실 조언\n\n${advice}`);
-    if (cautions) bodyParts.push(`주의할 흐름\n\n${cautions}`);
-    return {
-      id: category.id,
-      title: category.title,
-      body: cleanForbidden(bodyParts.join("\n\n")),
-      bullets: evidenceSignals,
-      usedSignalIds,
-    };
-  });
-
-  return {
-    chapterNo: Number(chapter.order),
-    id: chapter.id,
-    key: chapter.key,
-    roman: chapter.roman,
-    title: chapter.title,
-    subtitle: chapter.subtitle,
-    sections,
-    llmQuality: {
-      sectionCount: sections.length,
-      totalLength: sections.reduce((sum, section) => sum + clean(section.body).length, 0),
-    },
-  };
-}
-
-function validateVedicLlmChapterDraft(chapterDraft = {}, chapterSpec = {}, evidencePack = {}, chartJson = {}) {
-  const issues = [
-    ...validateChapterSchema([chapterDraft]),
-    ...validateSections([chapterDraft]),
-  ];
-  const evidenceIndex = buildVedicEvidenceIndex(evidencePack);
-  const mergedText = safeArray(chapterDraft?.sections).map((section) => clean(section?.body)).join("\n");
-  const hints = safeArray(VEDIC_LLM_REQUIRED_SIGNAL_HINTS[clean(chapterSpec?.id)]);
-  const hitCount = hints.filter((hint) => mergedText.includes(hint)).length;
-  if (hints.length && hitCount < Math.min(2, hints.length)) {
-    issues.push(`chapter:${chapterSpec.id}:required-signal-missing`);
-  }
-  safeArray(chapterSpec?.categories).forEach((category, index) => {
-    const section = safeArray(chapterDraft?.sections)[index] || {};
-    const usedSignalIds = safeArray(section?.usedSignalIds).map((id) => clean(id)).filter(Boolean);
-    const requiredSignalIds = safeArray(evidencePack?.requiredSignalIdsBySection?.[category.id]);
-    const invalidSignalIds = usedSignalIds.filter((id) => !evidenceIndex.has(id));
-    const missingRequiredIds = requiredSignalIds.filter((id) => !usedSignalIds.includes(id));
-    const unsupportedClaims = [
-      ...detectVedicAllUnsupportedClaims(section?.body, evidencePack, chartJson),
-      ...detectVedicLiteralChartContradictions(section?.body, chartJson),
-    ];
-    if (invalidSignalIds.length) issues.push(`chapter:${chapterSpec.id}:section:${category.id}:invalid-signal-ids`);
-    if (missingRequiredIds.length) issues.push(`chapter:${chapterSpec.id}:section:${category.id}:missing-required-signal-ids`);
-    if (unsupportedClaims.length) issues.push(`chapter:${chapterSpec.id}:section:${category.id}:unsupported-claims`);
-  });
-  return {
-    ok: issues.length === 0,
-    issues,
-  };
-}
-
-async function callVedicPremiumLlm(env, prompt, meta = {}) {
-  const error = Object.assign(new Error("Vedic premium PDF external LLM generation is disabled."), {
-    code: "VEDIC_EXTERNAL_LLM_DISABLED",
-    status: 501,
-    details: {
-      meta,
-      promptLength: String(prompt || "").length,
-      externalCallsAllowed: false,
-    },
-  });
-  error.reasonClass = "external_llm_disabled";
-  throw error;
-}
-
-function summarizeVedicLlmChapter(chapter = {}) {
-  return safeArray(chapter?.sections)
-    .slice(0, 2)
-    .map((section) => `${clean(section?.title)}: ${clean(section?.body).slice(0, 140)}`)
-    .join(" ");
-}
-
-async function generateVedicLlmChapter(env, chartJson, chapter, previousSummaries = [], options = {}) {
-  let lastDraft = null;
-  let lastErrors = [];
-  const maxAttempts = Math.max(1, Math.min(2, Number(env?.VEDIC_PREMIUM_CHAPTER_REPAIRS || 1)));
-  const evidencePack = buildVedicEvidencePack(chartJson, chapter);
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const prompt = buildVedicLlmChapterPrompt({
-      chapter,
-      chapterPlan: options?.chapterPlan,
-      chartJson,
-      masterJson: options?.masterJson,
-      previousSummaries,
-      lastDraft,
-      lastErrors,
-    });
-    const result = await callVedicPremiumLlm(env, prompt, {
-      requestId: clean(options?.requestId),
-      chapterId: chapter.id,
-      chapterNo: String(chapter.order),
-      attempt,
-    });
-
-    let parsed = null;
-    try {
-      parsed = extractVedicLlmJsonObject(result.text);
-    } catch (error) {
-      lastDraft = { rawText: result.text.slice(0, 9000) };
-      lastErrors = [clean(error?.code || "VEDIC_LLM_JSON_PARSE_FAILED")];
-      continue;
-    }
-
-    const jsonValidation = validateVedicLlmChapterJson(parsed, chapter, evidencePack, chartJson);
-    if (!jsonValidation.ok) {
-      lastDraft = parsed;
-      lastErrors = jsonValidation.errors;
-      continue;
-    }
-
-    const chapterDraft = convertVedicLlmChapterToDraft(parsed, chapter, evidencePack);
-    const draftValidation = validateVedicLlmChapterDraft(chapterDraft, chapter, evidencePack, chartJson);
-    if (draftValidation.ok) {
-      return {
-        chapter: chapterDraft,
-        summary: summarizeVedicLlmChapter(chapterDraft),
-        attempts: attempt,
-        model: result.model,
-      };
-    }
-
-    lastDraft = parsed;
-    lastErrors = draftValidation.issues;
-  }
-
-  throw Object.assign(new Error(`베다점 챕터 원고 생성 검수에 실패했습니다: ${chapter.roman}`), {
-    code: "VEDIC_LLM_CHAPTER_INVALID",
-    status: 502,
-    details: {
-      chapterId: chapter.id,
-      chapterNo: chapter.order,
-      errors: lastErrors,
-    },
-  });
-}
-
-export async function enhanceVedicPremiumManuscriptWithLLM(env, localManuscript, localVedicChartJson, options = {}) {
-  const facts = options?.facts || buildVedicAstrologyFacts(localVedicChartJson, options?.rawInput || {});
-  const localFallbackChapters = normalizeVedicLocalFallbackManuscript(
-    localManuscript && safeArray(localManuscript?.chapters).length
-      ? localManuscript
-      : buildVedicLocalPremiumManuscript(localVedicChartJson),
-    localVedicChartJson,
-  );
-  const chapterPlans = options?.chapterPlans || buildVedicAstrologyChapterPlans({ chapters: localFallbackChapters }, facts, localVedicChartJson);
-  const attempts = localFallbackChapters.map((chapter, index) => ({
-    chapterId: clean(chapter?.id || VEDIC_PREMIUM_CHAPTERS[index]?.id),
-    chapterNo: Number(chapter?.order || VEDIC_PREMIUM_CHAPTERS[index]?.order || index + 1),
-    attempts: 0,
-    model: "",
-    source: VEDIC_PDF_CONFIG.generationMode,
-  }));
-  return {
-    chapters: localFallbackChapters,
-    llmFailed: false,
-    fallbackUsed: false,
-    reason: "LOCAL_ASSEMBLED_NO_LLM",
-    error: null,
-    attempts,
-    model: "",
-    failures: [],
-    failureClass: "",
-    llmChapterCount: 0,
-    localTemplateChapterCount: localFallbackChapters.length,
-    fallbackChapterCount: 0,
-    enhancedChapterIds: [],
-    promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
-    llmEnabled: false,
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
-    facts,
-    chapterPlans,
   };
 }
 
@@ -3053,6 +2443,222 @@ export function validateVedicPremiumChartSignals(chartJson = {}) {
     ok: issues.length === 0 && safeArray(context?.missingSignals).length === 0,
     issues: Array.from(new Set([...issues, ...safeArray(context?.missingSignals)])),
   };
+}
+
+function normalizeUsedSignalIds(ids = [], evidencePack = {}) {
+  const evidenceIndex = buildVedicEvidenceIndex(evidencePack);
+  return Array.from(new Set(safeArray(ids).map((id) => clean(id)).filter((id) => id && evidenceIndex.has(id))));
+}
+
+function escapeVedicRegex(value) {
+  return clean(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function planetClaimAliases(planetName) {
+  const en = normalizePlanetName(planetName);
+  if (!en) return [];
+  return Array.from(new Set([PLANET_KO[en], en].map((item) => clean(item)).filter(Boolean)));
+}
+
+function evidenceSignalValue(evidencePack = {}, id = "") {
+  const signal = buildVedicEvidenceIndex(evidencePack).get(clean(id));
+  return clean(signal?.value);
+}
+
+function hasDirectPlanetSignClaim(text, planetAliases = [], sign) {
+  const aliases = safeArray(planetAliases).map(escapeVedicRegex).filter(Boolean);
+  const signToken = escapeVedicRegex(sign);
+  if (!aliases.length || !signToken) return false;
+  const planetPattern = aliases.join("|");
+  return new RegExp(`(?:${planetPattern})(?:은|는|이|가|의)?\\s*${signToken}`).test(text)
+    || new RegExp(`(?:${planetPattern})[^\\n,.。]{0,14}${signToken}`).test(text)
+    || new RegExp(`${signToken}(?:의|에\\s*있는|에\\s*자리한)?\\s*(?:${planetPattern})`).test(text);
+}
+
+function hasLiteralPlanetSignClaim(text, planetAliases = [], sign) {
+  const body = clean(text);
+  const signText = clean(sign);
+  if (!body || !signText) return false;
+  return safeArray(planetAliases).some((alias) => {
+    const token = clean(alias);
+    if (!token) return false;
+    return body.includes(`${token}은 ${signText}`)
+      || body.includes(`${token}는 ${signText}`)
+      || body.includes(`${token}이 ${signText}`)
+      || body.includes(`${token}가 ${signText}`)
+      || body.includes(`${token} ${signText}`)
+      || body.includes(`${signText}의 ${token}`);
+  });
+}
+
+function hasDirectPlanetHouseClaim(text, planetAliases = [], houseNumber) {
+  const aliases = safeArray(planetAliases).map(escapeVedicRegex).filter(Boolean);
+  const house = Number(houseNumber);
+  if (!aliases.length || !Number.isFinite(house)) return false;
+  const planetPattern = aliases.join("|");
+  const housePattern = `${house}\\s*하우스`;
+  return new RegExp(`(?:${planetPattern})(?:은|는|이|가|의)?\\s*(?:${housePattern})`).test(text)
+    || new RegExp(`(?:${planetPattern})[^\\n,.。]{0,14}(?:${housePattern})`).test(text)
+    || new RegExp(`(?:${housePattern})(?:의|에\\s*있는|에\\s*자리한)\\s*(?:${planetPattern})`).test(text);
+}
+
+function hasDirectHouseSignClaim(text, houseNumber, sign) {
+  const house = Number(houseNumber);
+  const signToken = escapeVedicRegex(sign);
+  if (!Number.isFinite(house) || !signToken) return false;
+  const housePattern = `${house}\\s*하우스`;
+  return new RegExp(`(?:${housePattern})(?:은|는|이|가)?\\s*${signToken}`).test(text)
+    || new RegExp(`${signToken}\\s*(?:${housePattern})`).test(text);
+}
+
+function detectVedicUnsupportedClaims(text = "", evidencePack = {}) {
+  const body = clean(text);
+  if (!body) return [];
+  const issues = [];
+  const signs = SIGN_KO.filter(Boolean);
+
+  ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"].forEach((planet) => {
+    const aliases = planetClaimAliases(planet);
+    const expectedSign = evidenceSignalValue(evidencePack, `planet.${planet}.sign`);
+    const expectedHouse = Number((evidenceSignalValue(evidencePack, `planet.${planet}.house`).match(/\d+/) || [])[0]);
+    signs.forEach((sign) => {
+      if (expectedSign && sign !== expectedSign && (hasDirectPlanetSignClaim(body, aliases, sign) || hasLiteralPlanetSignClaim(body, aliases, sign))) {
+        issues.push(`planet:${planet}:wrong-sign:${sign}`);
+      }
+    });
+    for (let house = 1; house <= 12; house += 1) {
+      if (Number.isFinite(expectedHouse) && house !== expectedHouse && hasDirectPlanetHouseClaim(body, aliases, house)) {
+        issues.push(`planet:${planet}:wrong-house:${house}`);
+      }
+    }
+  });
+
+  for (let house = 1; house <= 12; house += 1) {
+    const expectedSign = evidenceSignalValue(evidencePack, `house.${house}.sign`);
+    signs.forEach((sign) => {
+      if (expectedSign && sign !== expectedSign && hasDirectHouseSignClaim(body, house, sign)) {
+        issues.push(`house:${house}:wrong-sign:${sign}`);
+      }
+    });
+  }
+
+  const activeDasha = normalizePlanetName(evidenceSignalValue(evidencePack, "dasha.current.maha"));
+  if (activeDasha) {
+    ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"].forEach((planet) => {
+      if (planet === activeDasha) return;
+      const wrongAliases = planetClaimAliases(planet).map(escapeVedicRegex).filter(Boolean);
+      if (!wrongAliases.length) return;
+      const wrongPattern = wrongAliases.join("|");
+      if (new RegExp(`(?:현재|지금|이번\\s*시기)[^\\n.。]{0,18}(?:${wrongPattern})\\s*다샤`).test(body)) {
+        issues.push(`dasha:current:wrong-maha:${planet}`);
+      }
+    });
+  }
+
+  return Array.from(new Set(issues));
+}
+
+function detectVedicChartUnsupportedClaims(text = "", chartJson = {}) {
+  const body = clean(text);
+  if (!body) return [];
+  const issues = [];
+  const signs = SIGN_KO.filter(Boolean);
+  const chart = chartJson?.chart || {};
+  safeArray(chart?.planets).forEach((planet) => {
+    const planetName = normalizePlanetName(planet?.name || planet?.graha);
+    if (!planetName) return;
+    const aliases = planetClaimAliases(planetName);
+    const expectedSign = clean(planet?.sign || planet?.signKo);
+    const expectedHouse = Number(planet?.house);
+    signs.forEach((sign) => {
+      if (expectedSign && sign !== expectedSign && (hasDirectPlanetSignClaim(body, aliases, sign) || hasLiteralPlanetSignClaim(body, aliases, sign))) {
+        issues.push(`chart:planet:${planetName}:wrong-sign:${sign}`);
+      }
+    });
+    for (let house = 1; house <= 12; house += 1) {
+      if (Number.isFinite(expectedHouse) && house !== expectedHouse && hasDirectPlanetHouseClaim(body, aliases, house)) {
+        issues.push(`chart:planet:${planetName}:wrong-house:${house}`);
+      }
+    }
+  });
+  safeArray(chart?.houses).forEach((house) => {
+    const houseNumber = Number(house?.house || house?.number);
+    const expectedSign = clean(house?.sign || house?.rashiKo);
+    if (!Number.isFinite(houseNumber) || !expectedSign) return;
+    signs.forEach((sign) => {
+      if (sign !== expectedSign && hasDirectHouseSignClaim(body, houseNumber, sign)) {
+        issues.push(`chart:house:${houseNumber}:wrong-sign:${sign}`);
+      }
+    });
+  });
+  const activeDasha = normalizePlanetName(chart?.dashas?.currentMahaDasha);
+  if (activeDasha) {
+    ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"].forEach((planet) => {
+      if (planet === activeDasha) return;
+      const wrongAliases = planetClaimAliases(planet).map(escapeVedicRegex).filter(Boolean);
+      if (!wrongAliases.length) return;
+      const wrongPattern = wrongAliases.join("|");
+      if (new RegExp(`(?:현재|지금|이번\\s*시기)[^\\n.。]{0,18}(?:${wrongPattern})\\s*다샤`).test(body)) {
+        issues.push(`chart:dasha:current:wrong-maha:${planet}`);
+      }
+    });
+  }
+  return Array.from(new Set(issues));
+}
+
+function detectVedicAllUnsupportedClaims(text = "", evidencePack = {}, chartJson = {}) {
+  return Array.from(new Set([
+    ...detectVedicUnsupportedClaims(text, evidencePack),
+    ...detectVedicChartUnsupportedClaims(text, chartJson),
+  ]));
+}
+
+function detectVedicLiteralChartContradictions(text = "", chartJson = {}) {
+  const body = clean(text);
+  const issues = [];
+  if (!body) return issues;
+  const chart = chartJson?.chart || {};
+  [
+    { key: "moon", aliases: ["달", "문", "Moon"], expectedSign: clean(chart?.moonSign) },
+    { key: "sun", aliases: ["태양", "Sun"], expectedSign: clean(chart?.sunSign) },
+    { key: "lagna", aliases: ["라그나", "Lagna"], expectedSign: clean(chart?.lagnaSign) },
+  ].forEach((item) => {
+    if (!item.expectedSign) return;
+    SIGN_KO.filter((sign) => sign && sign !== item.expectedSign).forEach((sign) => {
+      const found = item.aliases.some((alias) => {
+        const token = clean(alias);
+        return token && (
+          body.includes(`${token}은 ${sign}`)
+          || body.includes(`${token}는 ${sign}`)
+          || body.includes(`${token}이 ${sign}`)
+          || body.includes(`${token}가 ${sign}`)
+          || body.includes(`${token} ${sign}`)
+        );
+      });
+      if (found) issues.push(`literal:core:${item.key}:wrong-sign:${sign}`);
+    });
+  });
+  safeArray(chart?.planets).forEach((planet) => {
+    const planetName = normalizePlanetName(planet?.name || planet?.graha);
+    if (!planetName) return;
+    const aliases = planetClaimAliases(planetName);
+    const expectedSign = clean(planet?.sign || planet?.signKo);
+    if (!expectedSign) return;
+    SIGN_KO.filter((sign) => sign && sign !== expectedSign).forEach((sign) => {
+      const found = aliases.some((alias) => {
+        const token = clean(alias);
+        return token && (
+          body.includes(`${token}은 ${sign}`)
+          || body.includes(`${token}는 ${sign}`)
+          || body.includes(`${token}이 ${sign}`)
+          || body.includes(`${token}가 ${sign}`)
+          || body.includes(`${token} ${sign}`)
+        );
+      });
+      if (found) issues.push(`literal:planet:${planetName}:wrong-sign:${sign}`);
+    });
+  });
+  return Array.from(new Set(issues));
 }
 
 function validateVedicFinalSignalUsage(chapters = [], chartJson = {}) {
@@ -3532,7 +3138,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
   log("LocalManuscriptBuildSuccess", {
     chapterCount: localFallbackChapters.length,
     totalLength: allTextLength(localFallbackChapters),
-    promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
+    assemblyVersion: VEDIC_ASTROLOGY_ASSEMBLY_VERSION,
   });
 
   const vedicMasterJson = buildVedicMasterJson(localVedicChartJson, rawInput);
@@ -3552,48 +3158,30 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     throw error;
   }
 
+  const localAssembly = {
+    enabled: true,
+    source: VEDIC_PDF_CONFIG.generationMode,
+    provider: VEDIC_PDF_CONFIG.provider,
+    templateVersion: VEDIC_PDF_CONFIG.templateVersion,
+    chapterCount: localFallbackChapters.length,
+    expectedChapterCount: VEDIC_PREMIUM_CHAPTERS.length,
+    externalGeneration: false,
+    externalCallsAllowed: false,
+  };
   log("LocalAssembledManuscriptReady", {
     chapterCount: VEDIC_PREMIUM_CHAPTERS.length,
     manuscriptSource: VEDIC_PDF_CONFIG.generationMode,
-    promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
-    llmEnabled: false,
-    enhancedChapterIds: [],
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
+    assemblyVersion: VEDIC_ASTROLOGY_ASSEMBLY_VERSION,
+    localAssembly,
   });
-
-  const llmDraft = {
-    chapters: localFallbackChapters,
-    llmFailed: false,
-    fallbackUsed: false,
-    reason: "LOCAL_ASSEMBLED_NO_LLM",
-    error: null,
-    attempts: [],
-    model: "",
-    failures: [],
-    failureClass: "",
-    llmChapterCount: 0,
-    localTemplateChapterCount: localFallbackChapters.length,
-    fallbackChapterCount: 0,
-    enhancedChapterIds: [],
-    promptVersion: VEDIC_ASTROLOGY_PROMPT_VERSION,
-    llmEnabled: false,
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
-  };
 
   log("LocalAssembledManuscriptSuccess", {
-    chapterCount: safeArray(llmDraft?.chapters).length,
-    totalLength: allTextLength(llmDraft?.chapters),
-    llmChapterCount: Number(llmDraft?.llmChapterCount || 0),
-    fallbackChapterCount: Number(llmDraft?.fallbackChapterCount || 0),
-    reason: clean(llmDraft?.reason),
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
+    chapterCount: localFallbackChapters.length,
+    totalLength: allTextLength(localFallbackChapters),
+    localAssembly,
   });
 
-  const finalChapters = safeArray(llmDraft?.chapters);
-  const fallbackUsed = Boolean(llmDraft?.fallbackUsed);
+  const finalChapters = safeArray(localFallbackChapters);
   const manuscriptSource = VEDIC_PDF_CONFIG.generationMode;
 
   const finalValidation = validateVedicFinalManuscript({
@@ -3633,15 +3221,13 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     hasMoonSign: finalValidation.stats.hasMoonSign,
     hasNakshatra: finalValidation.stats.hasNakshatra,
     manuscriptSource,
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
+    localAssembly,
   });
 
   log("PdfRenderStart", {
     chapterCount: finalChapters.length,
     manuscriptSource,
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
+    localAssembly,
   });
 
   const chapterDrafts = finalChapters.map((chapter) => ({
@@ -3668,8 +3254,7 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     chapterCount: chapterDrafts.length,
     totalLength: finalValidation.stats.totalLength,
     manuscriptSource,
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
+    localAssembly,
     pdfCompletionValidation: pdfCompletionValidation.ok,
   });
 
@@ -3685,26 +3270,16 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
     chapters: legacyChapters,
     chapterDrafts,
     chapterCount: VEDIC_PREMIUM_CHAPTERS.length,
-    fallbackUsed,
     manuscriptSource,
     generationMode: VEDIC_PDF_CONFIG.generationMode,
     provider: VEDIC_PDF_CONFIG.provider,
     writingPipeline: "local-calculation-to-local-assembled-pdf",
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
-    llmChapterCount: Number(llmDraft?.llmChapterCount || 0),
-    fallbackChapterCount: Number(llmDraft?.fallbackChapterCount || 0),
-    llmFallbackReason: clean(llmDraft?.failureClass || llmDraft?.error?.failureClass || ""),
-    localDraftChapterCount: Number(llmDraft?.localTemplateChapterCount || 0),
+    localAssembly,
     calculationFallbackUsed: false,
     pdfReady: {
       ...pdfReady,
       manuscriptSource,
-      localAssemblyOnly: true,
-      externalCallsAllowed: false,
-      llmChapterCount: 0,
-      fallbackChapterCount: 0,
-      localDraftChapterCount: Number(llmDraft?.localTemplateChapterCount || 0),
+      localAssembly,
     },
     pdfCompletionValidation,
     quality: {
@@ -3717,27 +3292,10 @@ export async function generateVedicPremiumReport(env, rawInput = {}, options = {
       evidenceUnsupportedClaimCount: evidenceAudit.unsupportedClaimCount,
       writingPipeline: "local-calculation-to-local-assembled-pdf",
       manuscriptSource,
-      localAssemblyOnly: true,
-      externalCallsAllowed: false,
+      localAssembly,
     },
     diagnostics: {
-      llm: {
-        reason: clean(llmDraft?.reason || "HYBRID_LLM_LOCAL"),
-        failed: Boolean(llmDraft?.llmFailed),
-        failureClass: clean(llmDraft?.failureClass || ""),
-        fallbackReason: clean(llmDraft?.failureClass || llmDraft?.error?.failureClass || ""),
-        model: clean(llmDraft?.model),
-        attempts: safeArray(llmDraft?.attempts),
-        failures: safeArray(llmDraft?.failures),
-        llmChapterCount: Number(llmDraft?.llmChapterCount || 0),
-        localTemplateChapterCount: Number(llmDraft?.localTemplateChapterCount || 0),
-        fallbackChapterCount: Number(llmDraft?.fallbackChapterCount || 0),
-        enhancedChapterIds: safeArray(llmDraft?.enhancedChapterIds),
-        promptVersion: clean(llmDraft?.promptVersion || VEDIC_ASTROLOGY_PROMPT_VERSION),
-        enabled: Boolean(llmDraft?.llmEnabled),
-        localAssemblyOnly: true,
-        externalCallsAllowed: false,
-      },
+      localAssembly,
       manuscript: finalValidation,
       pdfCompletionValidation,
       evidence: evidenceAudit,

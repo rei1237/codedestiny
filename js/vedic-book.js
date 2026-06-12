@@ -633,20 +633,17 @@
       || ready.downloadUrl
     );
     var manuscriptSource = _clean(payload.manuscriptSource || ready.manuscriptSource).toLowerCase();
-    var llmChapterCount = Number(payload.llmChapterCount || ready.llmChapterCount || 0);
-    var fallbackChapterCount = Number(payload.fallbackChapterCount || ready.fallbackChapterCount || 0);
-    var localDraftChapterCount = Number(payload.localDraftChapterCount || ready.localDraftChapterCount || 0);
-    var fallbackUsed = payload.fallbackUsed === true || ready.fallbackUsed === true;
-    var localAssemblyOnly = payload.localAssemblyOnly !== false && ready.localAssemblyOnly !== false;
-    var externalCallsAllowed = payload.externalCallsAllowed === true || ready.externalCallsAllowed === true;
+    var localAssembly = payload.localAssembly && typeof payload.localAssembly === 'object'
+      ? payload.localAssembly
+      : (ready.localAssembly && typeof ready.localAssembly === 'object' ? ready.localAssembly : {});
     var localContractOk = manuscriptSource === VEDIC_LOCAL_MANUSCRIPT_SOURCE
       && !/gemini|llm|hybrid|fallback/.test(manuscriptSource)
-      && llmChapterCount === 0
-      && fallbackChapterCount === 0
-      && localDraftChapterCount === total
-      && !fallbackUsed
-      && localAssemblyOnly
-      && !externalCallsAllowed;
+      && localAssembly.enabled === true
+      && localAssembly.externalGeneration === false
+      && localAssembly.externalCallsAllowed === false
+      && Number(localAssembly.chapterCount || 0) >= total
+      && Number(localAssembly.expectedChapterCount || 0) === total
+      && _clean(localAssembly.templateVersion) === 'vedic-premium-local-assembled-v2';
     return hasReportId && hasPdfHtml && hasStoredUrl && chapters.length >= total && (!completed || completed === 'completed') && localContractOk;
   }
 
@@ -1076,7 +1073,7 @@
         }).then(function (data) {
           _logStage('SessionCreateSuccess', {
             chapterCount: Number(data && data.chapterCount || 0),
-            fallbackUsed: Boolean(data && data.fallbackUsed),
+            localAssembly: Boolean(data && data.localAssembly && data.localAssembly.enabled === true),
           });
           _logStage('PdfRequestStart', {
             chapterCount: Number(data && data.chapterCount || 0),
@@ -1111,7 +1108,7 @@
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'PDF 편집/렌더링 중');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '완료');
   _renderResult(_chapters, response.payload || {});
-        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, fallbackUsed: !!response.fallbackUsed });
+        _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, localAssembly: Boolean(response.localAssembly && response.localAssembly.enabled === true) });
 
         _showScreen('vdResultScreen');
       })

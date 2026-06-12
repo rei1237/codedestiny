@@ -2,11 +2,9 @@
 
 import assert from "node:assert/strict";
 import {
-  VEDIC_ASTROLOGY_PROMPT_VERSION,
+  VEDIC_ASTROLOGY_ASSEMBLY_VERSION,
   VEDIC_PDF_CONFIG,
-  VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS,
   buildVedicAstrologyFacts,
-  buildVedicAstrologyLlmCacheKey,
   buildVedicLocalChartJson,
   buildVedicMasterJson,
   generateVedicPremiumReport,
@@ -110,36 +108,26 @@ assert.equal(facts.calculationBasis.ayanamsa, "Lahiri", "ayanamsa basis");
 assert.equal(facts.calculationBasis.houseSystem, "whole-sign", "house basis");
 assert.equal(facts.calculationBasis.dashaSystem, "vimshottari", "dasha basis");
 
-const cacheKey = buildVedicAstrologyLlmCacheKey(facts, "vedic_soul_map");
-const changedAyanamsaKey = buildVedicAstrologyLlmCacheKey({
-  ...facts,
-  calculationBasis: { ...facts.calculationBasis, ayanamsa: "Raman" },
-}, "vedic_soul_map");
-const changedChapterKey = buildVedicAstrologyLlmCacheKey(facts, "vedic_lagna");
-assert.notEqual(cacheKey, changedAyanamsaKey, "cache key changes by ayanamsa");
-assert.notEqual(cacheKey, changedChapterKey, "cache key changes by chapter");
-assert.equal(VEDIC_ASTROLOGY_PROMPT_VERSION, VEDIC_PDF_CONFIG.templateVersion, "template version");
+assert.equal(VEDIC_ASTROLOGY_ASSEMBLY_VERSION, VEDIC_PDF_CONFIG.templateVersion, "assembly version");
 assert.equal(VEDIC_PDF_CONFIG.templateVersion, "vedic-premium-local-assembled-v2", "local assembled template version");
-assert.equal(VEDIC_PERSONAL_LLM_ENHANCED_CHAPTERS.length, 0, "external llm enhanced chapters disabled");
 
 const generated = await generateVedicPremiumReport({}, rawInput, {
   requestId: "smoke-vedic-premium",
   log: () => {},
 });
 
-assert.equal(generated.diagnostics.manuscript.ok, true, "fallback manuscript validation");
+assert.equal(generated.diagnostics.manuscript.ok, true, "local manuscript validation");
 assert.equal(generated.manuscriptSource, VEDIC_PDF_CONFIG.generationMode, "local assembled source");
-assert.equal(generated.llmChapterCount, 0, "no-key llm chapter count");
-assert.equal(generated.fallbackUsed, false, "local assembled does not use fallback");
-assert.equal(generated.fallbackChapterCount, 0, "local assembled fallback chapter count");
-assert.equal(generated.localAssemblyOnly, true, "local assembly only");
-assert.equal(generated.externalCallsAllowed, false, "external calls blocked");
-assert.equal(generated.pdfReady.localAssemblyOnly, true, "pdfReady local assembly only");
-assert.equal(generated.pdfReady.externalCallsAllowed, false, "pdfReady external calls blocked");
-assert.equal(generated.diagnostics.llm.enabled, false, "llm disabled");
-assert.equal(generated.diagnostics.llm.failed, false, "no llm failure recorded");
-assert.equal(generated.diagnostics.llm.localAssemblyOnly, true, "diagnostics local assembly only");
-assert.equal(generated.diagnostics.llm.externalCallsAllowed, false, "diagnostics external calls blocked");
+assert.equal(generated.localAssembly.enabled, true, "local assembly enabled");
+assert.equal(generated.localAssembly.externalGeneration, false, "external generation blocked");
+assert.equal(generated.localAssembly.externalCallsAllowed, false, "external calls blocked");
+assert.equal(generated.localAssembly.chapterCount, 12, "local assembly chapter count");
+assert.equal(generated.localAssembly.expectedChapterCount, 12, "local assembly expected chapter count");
+assert.equal(generated.localAssembly.templateVersion, VEDIC_PDF_CONFIG.templateVersion, "local assembly template version");
+assert.equal(generated.pdfReady.localAssembly.externalGeneration, false, "pdfReady external generation blocked");
+assert.equal(generated.pdfReady.localAssembly.externalCallsAllowed, false, "pdfReady external calls blocked");
+assert.equal(generated.diagnostics.localAssembly.externalGeneration, false, "diagnostics external generation blocked");
+assert.equal(generated.diagnostics.localAssembly.externalCallsAllowed, false, "diagnostics external calls blocked");
 assert.equal(generated.chapterDrafts.length, 12, "chapter draft count");
 assert.equal(generated.chapterDrafts.every((chapter) => chapter.sections.every((section) => String(section.body || "").trim().length > 0)), true, "no empty sections");
 assert.ok(String(generated.pdfReady?.html || "").includes("베다점 프리미엄 PDF"), "pdf html rendered");
@@ -169,6 +157,61 @@ assert.equal(validateVedicPdfCompletionPayload({
   payload: generated.localVedicChartJson,
   requireDownloadUrl: true,
 }).ok, true, "archive pdf completion validation");
+
+const variantRawInput = {
+  ...rawInput,
+  birthDate: "1993-07-14",
+  birthYear: 1993,
+  birthMonth: 7,
+  birthDay: 14,
+  birthInput: {
+    ...rawInput.birthInput,
+    birthDate: "1993-07-14",
+    birthYear: 1993,
+    birthMonth: 7,
+    birthDay: 14,
+  },
+  chart: {
+    ...chart,
+    ascendantSidereal: 118.2,
+    planets: {
+      ...chart.planets,
+      Moon: 203.4,
+      Sun: 112.8,
+      Jupiter: 266.1,
+    },
+  },
+  vedicBase: {
+    ...rawInput.vedicBase,
+    chart: {
+      ...chart,
+      ascendantSidereal: 118.2,
+      planets: {
+        ...chart.planets,
+        Moon: 203.4,
+        Sun: 112.8,
+        Jupiter: 266.1,
+      },
+    },
+  },
+};
+const variant = await generateVedicPremiumReport({}, variantRawInput, {
+  requestId: "smoke-vedic-premium-variant",
+  log: () => {},
+});
+assert.notEqual(
+  [
+    generated.localVedicChartJson?.chart?.lagnaSign,
+    generated.localVedicChartJson?.chart?.moonSign,
+    generated.chapterDrafts?.[0]?.sections?.[0]?.body,
+  ].join("|"),
+  [
+    variant.localVedicChartJson?.chart?.lagnaSign,
+    variant.localVedicChartJson?.chart?.moonSign,
+    variant.chapterDrafts?.[0]?.sections?.[0]?.body,
+  ].join("|"),
+  "local assembly changes by input",
+);
 
 console.log("SMOKE_VEDIC_PREMIUM_MASTER_JSON=ok");
 console.log("SMOKE_VEDIC_PREMIUM_LOCAL_ASSEMBLED=ok");

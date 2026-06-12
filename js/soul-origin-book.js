@@ -447,15 +447,10 @@
     var manuscriptSource = clean(data.manuscriptSource || pdfReady.manuscriptSource).toLowerCase();
     var chapterAuthoringSource = clean(data.chapterAuthoringSource).toLowerCase();
     var summarySource = clean(data.summarySource).toLowerCase();
-    var fallbackUsed = data.fallbackUsed === true || pdfReady.fallbackUsed === true;
-    var fallbackChapterCount = Number(data.fallbackChapterCount || pdfReady.fallbackChapterCount || 0);
-    var llmChapterCount = Number(data.llmChapterCount || pdfReady.llmChapterCount || 0);
-    var expectedLlmChapterCount = Number(data.expectedLlmChapterCount || pdfReady.expectedLlmChapterCount || 0);
-    var llmEnhancedChapterCount = Number(data.llmEnhancedChapterCount || 0);
     var localAuthoringUsed = data.localAuthoringUsed === true;
-    var llmEnhancementUsed = data.llmEnhancementUsed === true || pdfReady.llmEnhancementUsed === true;
-    var localAssemblyOnly = data.localAssemblyOnly !== false && pdfReady.localAssemblyOnly !== false;
-    var externalCallsAllowed = data.externalCallsAllowed === true || pdfReady.externalCallsAllowed === true;
+    var localAssembly = data.localAssembly && typeof data.localAssembly === 'object'
+      ? data.localAssembly
+      : (pdfReady.localAssembly && typeof pdfReady.localAssembly === 'object' ? pdfReady.localAssembly : {});
     var hasReportId = !!clean(data.reportId);
     var hasStoredUrl = !!resolveReportUrl(data);
     var isCompleted = (!status && !serverStatus) || status === 'completed' || serverStatus === 'completed';
@@ -464,10 +459,14 @@
     var hasAcceptedManuscript = manuscriptSource === 'local-assembled' && !/gemini|llm|hybrid|fallback/.test(manuscriptSource);
     var hasAcceptedChapters = chapterAuthoringSource === 'local-assembled';
     var hasLocalSummary = summarySource === 'local-assembled';
-    var hasUsableFallback = !fallbackUsed && fallbackChapterCount === 0;
-    var hasNoLlmChapters = llmChapterCount === 0 && expectedLlmChapterCount === 0 && llmEnhancedChapterCount === 0;
-    var hasAcceptedAuthoring = localAuthoringUsed && !llmEnhancementUsed && localAssemblyOnly && !externalCallsAllowed;
-    return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted && hasAcceptedManuscript && hasAcceptedChapters && hasLocalSummary && hasUsableFallback && hasNoLlmChapters && hasAcceptedAuthoring;
+    var hasLocalAssembly = localAssembly.enabled === true
+      && localAssembly.externalGeneration === false
+      && localAssembly.externalCallsAllowed === false
+      && Number(localAssembly.chapterCount || 0) >= EXPECTED_CHAPTER_COUNT
+      && Number(localAssembly.expectedChapterCount || 0) === EXPECTED_CHAPTER_COUNT
+      && clean(localAssembly.templateVersion) === 'soul-origin-local-assembled-v2';
+    var hasAcceptedAuthoring = localAuthoringUsed && hasLocalAssembly;
+    return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted && hasAcceptedManuscript && hasAcceptedChapters && hasLocalSummary && hasAcceptedAuthoring;
   }
 
   function isSoulOriginRunning(payload) {
@@ -810,30 +809,15 @@
     if (code.indexOf('SOUL_ORIGIN_STATUS_TIMEOUT') >= 0) {
       return '운명의 업 PDF 생성이 오래 걸리고 있습니다. 잠시 후 reportId로 다시 불러와 주세요.';
     }
-    if (stage === 'LLM-GENERATION' || stage === 'LLM_GENERATION') {
+    if (stage === 'LOCAL-ASSEMBLY' || stage === 'LOCAL_ASSEMBLY') {
       return '상담 문장 생성 단계에서 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
     }
-    if (code.indexOf('SOUL_ORIGIN_LLM_CHAPTER_FAILED') >= 0
-      || code.indexOf('SOUL_ORIGIN_LLM_DISABLED') >= 0
-      || code.indexOf('LLM_ONLY') >= 0
-    ) {
-      return '운명의 상담 문장을 생성하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
-    }
-    if (code.indexOf('SOUL_ORIGIN_LLM_GENERATION_FAILED') >= 0
-      || code.indexOf('SOUL_ORIGIN_LLM_JSON_PARSE_FAILED') >= 0
-      || code.indexOf('SOUL_ORIGIN_LLM_CHAPTER_VALIDATION_FAILED') >= 0
-      || code.indexOf('SOUL_ORIGIN_LLM_MANUSCRIPT_VALIDATION_FAILED') >= 0
+    if (code.indexOf('SOUL_ORIGIN_LOCAL_CHAPTER_VALIDATION_FAILED') >= 0
+      || code.indexOf('SOUL_ORIGIN_LOCAL_MANUSCRIPT_VALIDATION_FAILED') >= 0
       || code.indexOf('SOUL_ORIGIN_GENERATION_FAILED') >= 0
       || code.indexOf('SOUL_ORIGIN_MANUSCRIPT_INVALID') >= 0
     ) {
       return '운명의 업 상담서 생성 중 문제가 발생했습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.';
-    }
-    if (code.indexOf('GEMINI_KEYS_MISSING') >= 0
-      || code.indexOf('GEMINI_KEYS_UNUSABLE') >= 0
-      || code.indexOf('GEMINI_EXHAUSTED') >= 0
-      || code.indexOf('GEMINI_SDK') >= 0
-    ) {
-      return '상담 엔진 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
     }
     if (code.indexOf('SOUL_ORIGIN_ARCHIVE_URL_MISSING') >= 0) {
       return '상담 원고가 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.';
@@ -1296,7 +1280,7 @@
 
       logStage('SessionCreateStart', { requestId: requestId, sessionId: sessionId });
       logStage('ServerLocalCalcStart', { requestId: requestId, sessionId: sessionId });
-      logStage('LLMGenerationStart', { requestId: requestId, sessionId: sessionId, expectedChapterCount: EXPECTED_CHAPTER_COUNT });
+      logStage('LocalAssemblyStart', { requestId: requestId, sessionId: sessionId, expectedChapterCount: EXPECTED_CHAPTER_COUNT });
       logStage('PDFRenderStart', { requestId: requestId, sessionId: sessionId });
       var statusContext = {
         reportId: reportId,
@@ -1327,7 +1311,7 @@
         throw readyError;
       }
       logStage('ServerLocalCalcSuccess', { requestId: requestId, sessionId: clean(data && data.sessionId) || sessionId });
-      logStage('LLMGenerationSuccess', {
+      logStage('LocalAssemblySuccess', {
         requestId: requestId,
         sessionId: clean(data && data.sessionId) || sessionId,
         chapterCount: Number(data && data.chapterCount || 0),

@@ -16,7 +16,6 @@ import type { FptiAnalysisResult, FptiFormInput, FptiSourceData } from "@/lib/fp
 import {
   fetchCurrentDestinyProfile,
   isDestinyProfileStorageKey,
-  readCurrentDestinyProfile,
   type DestinyProfileCard,
 } from "@/app/_lib/profile-card-storage";
 
@@ -57,8 +56,8 @@ type DestinyProfile = {
   birthYear?: number | string;
   birthMonth?: number | string;
   birthDay?: number | string;
-  birthHour?: number | string;
-  birthMinute?: number | string;
+  birthHour?: number | string | null;
+  birthMinute?: number | string | null;
   calType?: string;
   calendarType?: string;
   timeUnknown?: boolean;
@@ -69,8 +68,8 @@ type DestinyProfile = {
     year?: number | string;
     month?: number | string;
     day?: number | string;
-    hour?: number | string;
-    minute?: number | string;
+    hour?: number | string | null;
+    minute?: number | string | null;
     calType?: string;
     timeUnknown?: boolean;
   };
@@ -308,8 +307,9 @@ export default function FptiExperience() {
 
   const syncFormFromCurrentProfile = useCallback((eventProfile?: unknown) => {
     if (typeof window === "undefined") return null;
-    const currentProfile = readCurrentDestinyProfile(eventProfile, hasFptiProfileInput);
+    const currentProfile = eventProfile as DestinyProfileCard | null | undefined;
     if (!currentProfile) return null;
+    if (!hasFptiProfileInput(currentProfile)) return null;
     const profileForm = toFormInput(currentProfile);
     if (!profileForm) return null;
 
@@ -326,10 +326,8 @@ export default function FptiExperience() {
   }, []);
 
   const syncFormFromCurrentProfileAsync = useCallback(async (eventProfile?: unknown) => {
-    const synced = syncFormFromCurrentProfile(eventProfile);
-    if (synced) return synced;
     const currentProfile = await fetchCurrentDestinyProfile(hasFptiProfileInput);
-    if (!currentProfile) return null;
+    if (!currentProfile) return eventProfile ? syncFormFromCurrentProfile(eventProfile) : null;
     const profileForm = toFormInput(currentProfile);
     if (!profileForm) return null;
 
@@ -347,17 +345,14 @@ export default function FptiExperience() {
   }, [syncFormFromCurrentProfile]);
 
   useEffect(() => {
-    syncFormFromCurrentProfile();
     void syncFormFromCurrentProfileAsync();
     const onProfileChanged = (event: Event) => {
       const detail = (event as CustomEvent).detail;
-      const synced = syncFormFromCurrentProfile(detail?.profile || detail);
-      if (!synced) void syncFormFromCurrentProfileAsync(detail?.profile || detail);
+      void syncFormFromCurrentProfileAsync(detail?.profile || detail);
     };
     const onStorage = (event: StorageEvent) => {
       if (!event.key) return;
       if (isDestinyProfileStorageKey(event.key)) {
-        syncFormFromCurrentProfile();
         void syncFormFromCurrentProfileAsync();
       }
     };

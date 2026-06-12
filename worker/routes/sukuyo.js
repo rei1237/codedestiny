@@ -417,16 +417,19 @@ function buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId) {
     localSukuyoCompatibilityJson: generated?.payload?.localSukuyoCompatibilityJson || generated?.payload,
     pdfReady,
     manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
-    llmChapterCount: Number(generated.llmChapterCount || 0),
-    targetLlmChapterCount: Number(generated.targetLlmChapterCount ?? generated?.payload?.targetLlmChapterCount ?? 0),
-    fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
-    localDraftChapterCount: Number(generated.localDraftChapterCount || 0),
-    fallbackUsed: Boolean(generated.fallbackUsed),
     generationMode: generated.generationMode || SUKYO_PDF_CONFIG.generationMode,
     provider: generated.provider || SUKYO_PDF_CONFIG.provider,
     writingPipeline: generated.writingPipeline || "local-calculation-to-local-assembled-pdf",
-    localAssemblyOnly: generated.localAssemblyOnly !== false,
-    externalCallsAllowed: generated.externalCallsAllowed === true,
+    localAssembly: generated.localAssembly || generated?.payload?.localAssembly || {
+      enabled: true,
+      source: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
+      provider: generated.provider || SUKYO_PDF_CONFIG.provider,
+      templateVersion: SUKYO_PDF_CONFIG.templateVersion,
+      chapterCount: Array.isArray(generated.chapters) ? generated.chapters.length : SUKYO_PDF_CHAPTER_COUNT,
+      expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
+      externalGeneration: false,
+      externalCallsAllowed: false,
+    },
     pdfCompletionValidation: generated.pdfCompletionValidation,
     canReopen: true,
     canDownload: true,
@@ -449,32 +452,25 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
   const ready = payload?.pdfReady && typeof payload.pdfReady === "object" ? payload.pdfReady : {};
   const hasUrl = Boolean(clean(payload?.downloadUrl || payload?.pdfUrl || payload?.htmlUrl || ready?.downloadUrl || ready?.pdfUrl || ready?.htmlUrl));
   const manuscriptSource = clean(payload?.manuscriptSource || ready?.manuscriptSource);
-  const llmChapterCount = Number(payload?.llmChapterCount || 0);
-  const targetLlmChapterCount = Number(payload?.targetLlmChapterCount ?? ready?.targetLlmChapterCount ?? 0);
-  const fallbackChapterCount = Number(payload?.fallbackChapterCount || 0);
-  const localDraftChapterCount = Number(payload?.localDraftChapterCount || 0);
-  const fallbackUsed = payload?.fallbackUsed === true || ready?.fallbackUsed === true;
-  const localAssemblyOnly = payload?.localAssemblyOnly !== false && ready?.localAssemblyOnly !== false;
-  const externalCallsAllowed = payload?.externalCallsAllowed === true || ready?.externalCallsAllowed === true;
+  const localAssembly = payload?.localAssembly && typeof payload.localAssembly === "object"
+    ? payload.localAssembly
+    : ready?.localAssembly && typeof ready.localAssembly === "object"
+      ? ready.localAssembly
+      : {};
   const sourceIsLocal = ["local", SUKYO_PDF_CONFIG.generationMode].includes(manuscriptSource);
   const sourceHasExternalSignal = /\b(?:gemini|llm|hybrid|fallback)\b/i.test(manuscriptSource);
-  const countContractOk = Number.isFinite(llmChapterCount)
-    && Number.isFinite(targetLlmChapterCount)
-    && Number.isFinite(fallbackChapterCount)
-    && Number.isFinite(localDraftChapterCount)
-    && llmChapterCount >= 0
-    && llmChapterCount <= SUKYO_PDF_CHAPTER_COUNT
-    && targetLlmChapterCount >= 0
-    && targetLlmChapterCount <= SUKYO_PDF_CHAPTER_COUNT
-    && fallbackChapterCount >= 0
-    && fallbackChapterCount <= targetLlmChapterCount
-    && localDraftChapterCount >= 0
-    && localDraftChapterCount <= SUKYO_PDF_CHAPTER_COUNT
-    && llmChapterCount === 0
-    && targetLlmChapterCount === 0
-    && fallbackChapterCount === 0
-    && localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT
-    && llmChapterCount + localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT;
+  const localAssemblyOk = localAssembly.enabled === true
+    && localAssembly.externalGeneration === false
+    && localAssembly.externalCallsAllowed === false
+    && Number(localAssembly.chapterCount || 0) === SUKYO_PDF_CHAPTER_COUNT
+    && Number(localAssembly.expectedChapterCount || 0) === SUKYO_PDF_CHAPTER_COUNT
+    && clean(localAssembly.templateVersion) === SUKYO_PDF_CONFIG.templateVersion;
+  const chapterQuality = payload?.chapterQuality && typeof payload.chapterQuality === "object"
+    ? payload.chapterQuality
+    : payload?.payload?.chapterQuality && typeof payload.payload.chapterQuality === "object"
+      ? payload.payload.chapterQuality
+      : null;
+  const chapterQualityOk = !chapterQuality || chapterQuality.ok === true;
   return Boolean(
     clean(payload?.reportId)
     && hasUrl
@@ -483,10 +479,8 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
     && clean(payload?.qualityStatus) === "passed"
     && sourceIsLocal
     && !sourceHasExternalSignal
-    && !fallbackUsed
-    && localAssemblyOnly
-    && !externalCallsAllowed
-    && countContractOk
+    && localAssemblyOk
+    && chapterQualityOk
   );
 }
 
@@ -708,12 +702,16 @@ async function handleSukuyoPremiumPrepare(request, env) {
       contentType: "application/pdf",
       renderFormat: "pdf-archive",
       manuscriptSource: clean(generated?.manuscriptSource || generated?.payload?.manuscriptSource || SUKYO_PDF_CONFIG.generationMode),
-      localAssemblyOnly: true,
-      externalCallsAllowed: false,
-      llmChapterCount: 0,
-      targetLlmChapterCount: Number(generated?.targetLlmChapterCount ?? generated?.payload?.targetLlmChapterCount ?? 0),
-      fallbackChapterCount: 0,
-      localDraftChapterCount: Number(generated?.localDraftChapterCount || 0),
+      localAssembly: generated?.localAssembly || generated?.payload?.localAssembly || {
+        enabled: true,
+        source: clean(generated?.manuscriptSource || generated?.payload?.manuscriptSource || SUKYO_PDF_CONFIG.generationMode),
+        provider: clean(generated?.provider || generated?.payload?.provider || SUKYO_PDF_CONFIG.provider),
+        templateVersion: SUKYO_PDF_CONFIG.templateVersion,
+        chapterCount: Number(generated?.chapterCount || SUKYO_PDF_CHAPTER_COUNT),
+        expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
+        externalGeneration: false,
+        externalCallsAllowed: false,
+      },
     };
 
     if (!clean(pdfReady?.html) || !clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl)) {
@@ -747,11 +745,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
       completedExecution = await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
         chapterCount: generated.chapterCount,
         manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
-        llmChapterCount: Number(generated.llmChapterCount || 0),
-        fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
-        fallbackUsed: Boolean(generated.fallbackUsed),
-        localAssemblyOnly: generated.localAssemblyOnly !== false,
-        externalCallsAllowed: generated.externalCallsAllowed === true,
+        localAssembly: generated.localAssembly || generated?.payload?.localAssembly || pdfReady.localAssembly,
         pdfCompletionValidation,
         archive: archiveMetadata,
       });
@@ -793,17 +787,11 @@ async function handleSukuyoPremiumPrepare(request, env) {
       canonicalReportType: "sookyoPremium",
       aliasReportTypes: ["sukyoPremium", "sukyo_book"],
       chapterCount: generated.chapterCount,
-      localDraftChapterCount: Number(generated.localDraftChapterCount || 0),
-      llmChapterCount: Number(generated.llmChapterCount || 0),
-      targetLlmChapterCount: Number(generated.targetLlmChapterCount ?? generated?.payload?.targetLlmChapterCount ?? 0),
-      fallbackChapterCount: Number(generated.fallbackChapterCount || 0),
-      fallbackUsed: Boolean(generated.fallbackUsed),
       manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
       generationMode: generated.generationMode || SUKYO_PDF_CONFIG.generationMode,
       provider: generated.provider || SUKYO_PDF_CONFIG.provider,
       writingPipeline: generated.writingPipeline || "local-calculation-to-local-assembled-pdf",
-      localAssemblyOnly: generated.localAssemblyOnly !== false,
-      externalCallsAllowed: generated.externalCallsAllowed === true,
+      localAssembly: generated.localAssembly || generated?.payload?.localAssembly || pdfReady.localAssembly,
       pdfCompletionValidation,
       archiveStatus,
       archivePending: archiveStatus !== "completed",

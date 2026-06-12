@@ -144,7 +144,6 @@ function buildSignals() {
 
 async function run() {
   assert(LIFE_BOOK_PDF_CONFIG.generationMode === "local-assembled", "generation mode must be local-assembled");
-  assert(LIFE_BOOK_PDF_CONFIG.llmEnabled === false, "llm must be disabled");
   assert(LIFE_BOOK_PDF_CONFIG.provider === "saju-assembler", "provider must be saju-assembler");
   assert(LIFE_BOOK_PDF_CONFIG.templateVersion === "life-book-local-assembled-v3", "template version mismatch");
 
@@ -166,11 +165,10 @@ async function run() {
       PREMIUM_GEMINI_MODEL: "gemini-2.5-flash",
       LIFE_BOOK_LLM_ENHANCEMENT_ENABLED: "true",
     };
-    const runtime = utils.resolveLifeBookLlmRuntimeInfo(envWithKeys);
+    const runtime = utils.resolveLifeBookAssemblyRuntimeInfo(envWithKeys);
     assert(runtime.provider === "saju-assembler", "runtime provider must remain saju-assembler even when keys exist");
-    assert(runtime.keyConfigured === false, "runtime keyConfigured must be false");
-    assert(runtime.enhancementEnabled === false, "runtime enhancement must be disabled");
-    assert(utils.shouldEnhanceLifeBookChapter(utils.CHAPTER_BLUEPRINTS[0]) === false, "chapter enhancement must be disabled");
+    assert(runtime.runtime === "local-assembled", "runtime must remain local-assembled even when keys exist");
+    assert(runtime.externalCallsAllowed === false, "runtime external calls must be disabled");
     assert(utils.CHAPTER_BLUEPRINTS.length === 13, "phase6 must keep 13 fixed chapters");
     expectedPhase6Titles.forEach((title, index) => {
       assert(utils.CHAPTER_BLUEPRINTS[index]?.title === title, `phase6 chapter title mismatch: ${index + 1}`);
@@ -188,12 +186,13 @@ async function run() {
 
     assert(Array.isArray(generated.chapters) && generated.chapters.length === 13, "local assembly must return 13 chapters");
     assert(generated.generationMode === "local-assembled", "result generation mode must be local-assembled");
-    assert(generated.llmEnabled === false, "result llmEnabled must be false");
     assert(generated.provider === "saju-assembler", "result provider must be saju-assembler");
-    assert(generated.llmUsed === false, "result llmUsed must be false");
-    assert(Array.isArray(generated.llmEnhancedChapterIds) && generated.llmEnhancedChapterIds.length === 0, "no enhanced chapters allowed");
-    assert(Array.isArray(generated.llmFallbackChapterIds) && generated.llmFallbackChapterIds.length === 0, "no llm fallback chapters allowed");
-    assert(Array.isArray(generated.llmCacheHitChapterIds) && generated.llmCacheHitChapterIds.length === 0, "no llm cache hits allowed");
+    assert(generated.localAssembly?.enabled === true, "result local assembly must be enabled");
+    assert(generated.localAssembly?.externalGeneration === false, "result external generation must be disabled");
+    assert(generated.localAssembly?.externalCallsAllowed === false, "result external calls must be disabled");
+    assert(generated.localAssembly?.chapterCount === 13, "result local assembly chapter count mismatch");
+    assert(generated.localAssembly?.expectedChapterCount === 13, "result expected chapter count mismatch");
+    assert(generated.localAssembly?.templateVersion === LIFE_BOOK_PDF_CONFIG.templateVersion, "result template version mismatch");
     assert(seenUrls.length === 0, `local assembly must not call fetch, got ${seenUrls.join(", ")}`);
 
     const generatedText = [
@@ -232,7 +231,9 @@ async function run() {
       assert(pipeline.completedChapters[index]?.title === title, `pipeline chapter title mismatch: ${index + 1}`);
     });
     assert(pipeline.generatedLifeBook?.generationMode === "local-assembled", "pipeline generation mode must be local-assembled");
-    assert(pipeline.generatedLifeBook?.llmUsed === false, "pipeline llmUsed must be false");
+    assert(pipeline.generatedLifeBook?.localAssembly?.enabled === true, "pipeline local assembly must be enabled");
+    assert(pipeline.generatedLifeBook?.localAssembly?.externalGeneration === false, "pipeline external generation must be disabled");
+    assert(pipeline.generatedLifeBook?.localAssembly?.chapterCount === 13, "pipeline local assembly chapter count mismatch");
     assert(typeof pipeline.html === "string" && pipeline.html.includes("<!doctype html>"), "pipeline must render html");
     assert(pipeline.pdf?.renderFormat === "pdf-archive", "pipeline pdf render format mismatch");
     assert(typeof pipeline.cacheKey === "string" && pipeline.cacheKey.includes("life_book_pdf:life-book-local-assembled-v3:"), "pipeline cache key missing");

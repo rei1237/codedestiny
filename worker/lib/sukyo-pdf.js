@@ -9,7 +9,6 @@ export const SUKYO_PDF_CONFIG = Object.freeze({
   provider: "sukuyo-assembler",
   templateVersion: "sukuyo-premium-local-assembled-v2",
 });
-export const SUKUYO_PROMPT_VERSION = SUKYO_PDF_CONFIG.templateVersion;
 
 const MIN_CHAPTER_LENGTH = 2800;
 const MIN_SECTION_LENGTH = 700;
@@ -1256,7 +1255,6 @@ export function sanitizeSukyoChapterJson(chapter = {}, source = {}, seed = {}) {
   const sections = (Array.isArray(chapter.sections) ? chapter.sections : []).map((section, index) => ({
     heading: text(section.heading || section.title || chapterSpec?.sections?.[index] || `세부 섹션 ${index + 1}`),
     body: sanitizeSukyoPremiumText(text(section.body || section.text || "")),
-    fallbackUsed: false,
   }));
 
   return {
@@ -1266,7 +1264,6 @@ export function sanitizeSukyoChapterJson(chapter = {}, source = {}, seed = {}) {
     summary: sanitizeSukyoPremiumText(source.summary || ""),
     coreReading: sanitizeSukyoPremiumText(source.coreReading || ""),
     sections,
-    fallbackUsed: false,
     seed,
   };
 }
@@ -1400,6 +1397,69 @@ export function validateSukyoCompatibilityPdfQuality(chapters = [], seed = {}) {
     chapters,
     { requireSeedSignals: strictSeed },
   );
+}
+
+export function buildSukyoChapterQualityReport(seed = {}, chapters = []) {
+  const compatibilityJson = seed?.localSukuyoCompatibilityJson || buildLocalCompatibilityJson(seed);
+  const relationToken = text(compatibilityJson?.relation?.typeKo || compatibilityJson?.compatibility?.relationType).toLowerCase();
+  const selfStarToken = text(compatibilityJson?.self?.sukuyoStar || compatibilityJson?.userSukyo?.nameKo).toLowerCase();
+  const partnerStarToken = text(compatibilityJson?.partner?.sukuyoStar || compatibilityJson?.partnerSukyo?.nameKo).toLowerCase();
+  const chapterResults = [];
+  const issues = [];
+
+  for (let index = 0; index < SUKYO_PDF_CHAPTER_COUNT; index += 1) {
+    const chapterNo = index + 1;
+    const spec = SUKYO_PDF_CHAPTERS[index];
+    const chapter = (Array.isArray(chapters) ? chapters : []).find((item) => safeNumber(item.order || item.chapterNo, 0) === chapterNo) || {};
+    const sections = Array.isArray(chapter.sections) ? chapter.sections : [];
+    const sectionBodies = sections.map((section) => text(section.body));
+    const chapterText = sectionBodies.join("\n\n");
+    const sectionCountOk = sections.length === (spec?.sections?.length || 0);
+    const sectionLengthOk = sections.every((section) => text(section.body).length >= MIN_SECTION_LENGTH);
+    const chapterLengthOk = chapterText.length >= MIN_CHAPTER_LENGTH;
+    const forbiddenTermsCount = countForbiddenTerms(chapterText);
+    const repetitionScore = computeRepetitionScore(chapterText);
+    const domainSignalOk = sectionBodies.every((body) => {
+      const normalized = body.toLowerCase();
+      return Boolean(
+        (relationToken && normalized.includes(relationToken))
+        || (selfStarToken && normalized.includes(selfStarToken))
+        || (partnerStarToken && normalized.includes(partnerStarToken))
+      );
+    });
+    const keywordOk = !CHAPTER_REQUIRED_KEYWORDS[chapterNo] || chapterIncludesKeywords(chapter, CHAPTER_REQUIRED_KEYWORDS[chapterNo]);
+    const ok = Boolean(sectionCountOk && sectionLengthOk && chapterLengthOk && forbiddenTermsCount === 0 && domainSignalOk && keywordOk);
+    const result = {
+      chapterNo,
+      key: text(spec?.key || chapter.key),
+      ok,
+      sectionCount: sections.length,
+      expectedSectionCount: spec?.sections?.length || 0,
+      minSectionLength: sectionBodies.length ? Math.min(...sectionBodies.map((body) => body.length)) : 0,
+      chapterLength: chapterText.length,
+      forbiddenTermsCount,
+      repetitionScore,
+      domainSignalOk,
+      keywordOk,
+    };
+    if (!ok) {
+      if (!sectionCountOk) issues.push(`chapter.${chapterNo}.section_count`);
+      if (!sectionLengthOk) issues.push(`chapter.${chapterNo}.section_length`);
+      if (!chapterLengthOk) issues.push(`chapter.${chapterNo}.length`);
+      if (forbiddenTermsCount > 0) issues.push(`chapter.${chapterNo}.forbidden`);
+      if (!domainSignalOk) issues.push(`chapter.${chapterNo}.domain_signal`);
+      if (!keywordOk) issues.push(`chapter.${chapterNo}.keywords`);
+    }
+    chapterResults.push(result);
+  }
+
+  return {
+    ok: chapterResults.length === SUKYO_PDF_CHAPTER_COUNT && issues.length === 0,
+    issues,
+    chapterCount: chapterResults.length,
+    expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
+    chapters: chapterResults,
+  };
 }
 
 export function assertSukyoCompatibilityPdfComplete({ chapters = [], expectedChapterCount = SUKYO_PDF_CHAPTER_COUNT, expectedSectionsByChapter = SUKYO_PDF_CHAPTERS } = {}) {
@@ -1716,7 +1776,7 @@ function buildSukyoGenerationJson(seed = {}, localJson = {}) {
   const chapterPlans = buildSukuyoChapterPlans(seed, localJson, localChapters);
   return {
     serviceName: "숙요점 프리미엄 궁합 PDF",
-    promptVersion: SUKUYO_PROMPT_VERSION,
+    assemblyVersion: SUKYO_PDF_CONFIG.templateVersion,
     requestContext: {
       sessionId: text(seed?.sessionId),
       reportId: text(seed?.reportId),
@@ -1777,7 +1837,7 @@ function buildSukyoGenerationJson(seed = {}, localJson = {}) {
   };
 }
 
-export function buildSukyoFallbackChapters(seed, skeleton) {
+export function buildSukyoLocalAssemblyChapters(seed, skeleton) {
   const localJson = seed?.localSukuyoCompatibilityJson || buildLocalCompatibilityJson(seed);
   const built = enforceManuscriptLength(buildSukuyoCompatibilityLocalManuscript(localJson)).chapters;
   const specs = Array.isArray(skeleton) && skeleton.length ? skeleton : SUKYO_PDF_CHAPTERS;
@@ -1802,7 +1862,7 @@ export function buildSukyoFallbackChapters(seed, skeleton) {
 }
 
 function buildValidatedSukyoLocalChapters(seed) {
-  const chapters = chapterArrayToRendererInput(buildSukyoFallbackChapters(seed, SUKYO_PDF_CHAPTERS));
+  const chapters = chapterArrayToRendererInput(buildSukyoLocalAssemblyChapters(seed, SUKYO_PDF_CHAPTERS));
   const validation = validateRenderedManuscript(seed, chapters);
   if (!validation.ok) {
     const error = new Error("숙요점 로컬 원고가 품질 검증을 통과하지 못했습니다.");
@@ -2030,6 +2090,18 @@ export function validateSukyoPdfCompletionPayload({ pdfReady = {}, chapters = []
   const normalizedChapters = chapterArrayToRendererInput(chapters);
   const manuscript = validateRenderedManuscript(seed, normalizedChapters);
   if (!manuscript.ok) issues.push(...manuscript.issues.map((issue) => `manuscript.${issue}`));
+  const chapterQuality = buildSukyoChapterQualityReport(seed, normalizedChapters);
+  if (!chapterQuality.ok) issues.push(...chapterQuality.issues.map((issue) => `quality.${issue}`));
+
+  const localAssembly = pdfReady?.localAssembly && typeof pdfReady.localAssembly === "object" ? pdfReady.localAssembly : {};
+  if (localAssembly.enabled !== true) issues.push("localAssembly.enabled");
+  if (text(localAssembly.source || pdfReady?.manuscriptSource || SUKYO_PDF_CONFIG.generationMode) !== SUKYO_PDF_CONFIG.generationMode) issues.push("localAssembly.source");
+  if (text(localAssembly.provider || SUKYO_PDF_CONFIG.provider) !== SUKYO_PDF_CONFIG.provider) issues.push("localAssembly.provider");
+  if (text(localAssembly.templateVersion) !== SUKYO_PDF_CONFIG.templateVersion) issues.push("localAssembly.templateVersion");
+  if (Number(localAssembly.chapterCount || 0) !== SUKYO_PDF_CHAPTER_COUNT) issues.push("localAssembly.chapterCount");
+  if (Number(localAssembly.expectedChapterCount || 0) !== SUKYO_PDF_CHAPTER_COUNT) issues.push("localAssembly.expectedChapterCount");
+  if (localAssembly.externalGeneration !== false) issues.push("localAssembly.externalGeneration");
+  if (localAssembly.externalCallsAllowed !== false) issues.push("localAssembly.externalCallsAllowed");
 
   const html = text(pdfReady?.html);
   if (!html) issues.push("html.missing");
@@ -2056,6 +2128,7 @@ export function validateSukyoPdfCompletionPayload({ pdfReady = {}, chapters = []
     htmlLength: html.length,
     hasDownloadUrl: Boolean(downloadUrl),
     manuscript,
+    chapterQuality,
   };
 }
 
@@ -2164,23 +2237,34 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
   console.log("[SukuyoPremiumPDF][LocalAssembledManuscriptReady]", {
     chapterCount: SUKYO_PDF_CHAPTER_COUNT,
     manuscriptSource: SUKYO_PDF_CONFIG.generationMode,
-    promptVersion: SUKUYO_PROMPT_VERSION,
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
+    localAssembly: {
+      enabled: true,
+      externalGeneration: false,
+      externalCallsAllowed: false,
+      chapterCount: localBaseline.chapters.length,
+      templateVersion: SUKYO_PDF_CONFIG.templateVersion,
+    },
   });
-  const enhanced = {
-    chapters: localBaseline.chapters,
+  const localAssembly = {
+    enabled: true,
     source: SUKYO_PDF_CONFIG.generationMode,
-    fallbackUsed: false,
-    localAssemblyOnly: true,
+    provider: SUKYO_PDF_CONFIG.provider,
+    templateVersion: SUKYO_PDF_CONFIG.templateVersion,
+    chapterCount: localBaseline.chapters.length,
+    expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
+    externalGeneration: false,
     externalCallsAllowed: false,
-    llmChapterCount: 0,
-    targetLlmChapterCount: 0,
-    fallbackChapterCount: 0,
-    localDraftChapterCount: localBaseline.chapters.length,
   };
   const chapters = localBaseline.chapters;
   const finalCheck = localBaseline.validation;
+  const chapterQuality = buildSukyoChapterQualityReport(seed, chapters);
+  if (!chapterQuality.ok) {
+    const error = new Error("SUKUYO_CHAPTER_QUALITY_VALIDATION_FAILED");
+    error.code = "SUKUYO_CHAPTER_QUALITY_VALIDATION_FAILED";
+    error.status = 500;
+    error.issues = chapterQuality.issues;
+    throw error;
+  }
 
   assertSukyoCompatibilityPdfComplete({
     chapters,
@@ -2196,16 +2280,16 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
     totalLength: finalCheck.totalLength,
     forbiddenTermsCount: finalCheck.forbiddenTermsCount,
     repetitionScore: finalCheck.repetitionScore,
-    manuscriptSource: text(enhanced.source || SUKYO_PDF_CONFIG.generationMode),
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
-    llmChapterCount: Number(enhanced.llmChapterCount || 0),
-    fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
-    localDraftChapterCount: Number(enhanced.localDraftChapterCount || 0),
+    chapterQualityPassed: chapterQuality.ok,
+    manuscriptSource: text(localAssembly.source || SUKYO_PDF_CONFIG.generationMode),
+    localAssembly,
   });
 
+  const manuscriptSource = text(localAssembly.source || SUKYO_PDF_CONFIG.generationMode);
   console.log("[SukuyoPremiumPDF][PdfRenderStart]");
   const pdfReady = renderSukyoPremiumPdf(chapters, seed);
+  pdfReady.manuscriptSource = manuscriptSource;
+  pdfReady.localAssembly = localAssembly;
   if (!text(pdfReady?.html)) {
     const error = new Error("숙요점 PDF 렌더링 결과가 비어 있습니다.");
     error.code = "SUKYO_PDF_RENDER_EMPTY";
@@ -2228,13 +2312,10 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
   console.log("[SukuyoPremiumPDF][PdfRenderSuccess]", {
     chapterCount: chapters.length,
     totalLength: finalCheck.totalLength,
-    manuscriptSource: text(enhanced.source || SUKYO_PDF_CONFIG.generationMode),
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
+    manuscriptSource: text(localAssembly.source || SUKYO_PDF_CONFIG.generationMode),
+    localAssembly,
     pdfCompletionValidation: pdfCompletionValidation.ok,
   });
-  const manuscriptSource = text(enhanced.source || SUKYO_PDF_CONFIG.generationMode);
-
   return {
     ok: true,
     payload: {
@@ -2243,41 +2324,32 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
       localSukuyoCompatibilityJson: localJson,
       sukuyoFacts,
       sukuyoChapterPlans: chapterPlans,
-      promptVersion: SUKUYO_PROMPT_VERSION,
+      assemblyVersion: SUKYO_PDF_CONFIG.templateVersion,
       chapters,
       manuscriptValidation: finalCheck,
       manuscriptSource,
       generationMode: SUKYO_PDF_CONFIG.generationMode,
       provider: SUKYO_PDF_CONFIG.provider,
       writingPipeline: "local-calculation-to-local-assembled-pdf",
-      localAssemblyOnly: true,
-      externalCallsAllowed: false,
+      localAssembly,
       pdfCompletionValidation,
+      chapterQuality,
       localQualityStatus: "passed",
       localBaselineChapterCount: localBaseline.chapters.length,
-      llmChapterCount: Number(enhanced.llmChapterCount || 0),
-      targetLlmChapterCount: Number(enhanced.targetLlmChapterCount || 0),
-      fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
-      localDraftChapterCount: Number(enhanced.localDraftChapterCount || 0),
       qualityStatus: "passed",
     },
     chapters,
     chapterCount: SUKYO_PDF_CHAPTER_COUNT,
-    fallbackUsed: Boolean(enhanced.fallbackUsed),
     localQualityStatus: "passed",
     localBaselineChapterCount: localBaseline.chapters.length,
-    localDraftChapterCount: Number(enhanced.localDraftChapterCount || 0),
-    llmChapterCount: Number(enhanced.llmChapterCount || 0),
-    targetLlmChapterCount: Number(enhanced.targetLlmChapterCount || 0),
-    fallbackChapterCount: Number(enhanced.fallbackChapterCount || 0),
     manuscriptSource,
-    promptVersion: SUKUYO_PROMPT_VERSION,
+    assemblyVersion: SUKYO_PDF_CONFIG.templateVersion,
     generationMode: SUKYO_PDF_CONFIG.generationMode,
     provider: SUKYO_PDF_CONFIG.provider,
     writingPipeline: "local-calculation-to-local-assembled-pdf",
-    localAssemblyOnly: true,
-    externalCallsAllowed: false,
+    localAssembly,
     pdfCompletionValidation,
+    chapterQuality,
     sukuyoFacts,
     sukuyoChapterPlans: chapterPlans,
     qualityStatus: "passed",
@@ -2290,12 +2362,7 @@ export async function generateSukyoPremiumReport(env, seed, options = {}) {
       storageKey: text(pdfReady?.storageKey),
       mimeType: text(pdfReady?.mimeType, "text/html"),
       manuscriptSource,
-      localAssemblyOnly: true,
-      externalCallsAllowed: false,
-      llmChapterCount: 0,
-      targetLlmChapterCount: 0,
-      fallbackChapterCount: 0,
-      localDraftChapterCount: Number(enhanced.localDraftChapterCount || 0),
+      localAssembly,
     },
   };
 }

@@ -22,13 +22,19 @@ import {
   type YeonHeartStarReading,
   validateYeonHeartStarReading,
 } from "@/lib/yeon/heartStarReading";
-import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
 import {
   fetchCurrentDestinyProfile,
   isDestinyProfileStorageKey,
-  readCurrentDestinyProfile,
   type DestinyProfileCard,
 } from "@/app/_lib/profile-card-storage";
+import { authFetch } from "@/app/_lib/auth-client";
+import {
+  buildYeonAstroRequestFromProfile,
+  buildYeonAstroSignal,
+  isYeonZodiacSign,
+  type YeonAstroSignal,
+} from "@/lib/yeon/astroSignal";
+import { getYeonSpriteFrame } from "@/lib/yeon/yeonSpriteMood";
 
 type EmotionKey = "happy" | "calm" | "tired" | "worried" | "flutter" | "blue";
 type ZodiacSign =
@@ -119,6 +125,7 @@ type ConsultationResult = {
   moon: MoonSnapshot;
   aspect: AspectSnapshot;
   dayRuler: DayRulerSnapshot;
+  astroSignal?: YeonAstroSignal | null;
 };
 
 type ProfileSeed = {
@@ -434,15 +441,6 @@ const ACTION_PLAN_BY_DOMAIN: Record<ConcernDomain, string[]> = {
   legal: ["사실관계와 일정표를 먼저 정리해 상황을 명료하게 보기", "핵심 증빙 3개부터 우선 확보해 대응 근거 만들기", "전문가 상담 전에 확인할 질문을 정리해 주도적으로 진행하기"],
 };
 
-const EMOTION_INDEX: Record<EmotionKey, number> = {
-  happy: 0,
-  calm: 1,
-  tired: 2,
-  worried: 3,
-  flutter: 4,
-  blue: 5,
-};
-
 const CATEGORY_INDEX: Record<ConcernCategory, number> = {
   love: 0,
   work: 1,
@@ -463,15 +461,6 @@ const DOMAIN_INDEX: Record<ConcernDomain, number> = {
   wellness: 6,
   growth: 7,
   legal: 8,
-};
-
-const SPRITE_VARIANTS_BY_EMOTION: Record<EmotionKey, number[]> = {
-  happy: [0, 2, 3, 9],
-  calm: [1, 10, 11],
-  tired: [7, 5, 4],
-  worried: [4, 5, 8],
-  flutter: [6, 9, 11],
-  blue: [7, 1, 5],
 };
 
 const WEEKDAY_RULER: Array<{ label: string; summary: string; scoreBias: { overall: number; love: number; money: number } }> = [
@@ -786,32 +775,6 @@ function buildProfileSeed(profile: DestinyProfileCard, source: ProfileSeed["sour
   };
 }
 
-function readProfileSeedFromStorage(): ProfileSeed {
-  if (typeof window === "undefined") {
-    return { name: "", birthDateInput: "", birthTimeInput: "", source: "none" };
-  }
-
-  try {
-    const profile = readCurrentDestinyProfile(undefined, hasYeonProfileBirth);
-    if (profile) return buildProfileSeed(profile, "profile");
-
-    const user = readSanitizedAuthUser();
-    const fallbackName = String(user?.name || "").trim();
-    const userBirth = user as ({ birthDate?: string; birthTime?: string } | null);
-    const fallbackBirthDateInput = normalizeBirthDateText(userBirth?.birthDate);
-    const fallbackBirthTimeInput = normalizeBirthTimeText(userBirth?.birthTime);
-
-    return {
-      name: fallbackName,
-      birthDateInput: fallbackBirthDateInput,
-      birthTimeInput: fallbackBirthTimeInput,
-      source: fallbackBirthDateInput ? "auth" : "none",
-    };
-  } catch {
-    return { name: "", birthDateInput: "", birthTimeInput: "", source: "none" };
-  }
-}
-
 function getSignByMonthDay(month: number, day: number): ZodiacSign {
   const mmdd = month * 100 + day;
   if (mmdd >= 321 && mmdd <= 419) return "양자리";
@@ -1007,14 +970,20 @@ function extractConcernAnalysis(concernText: string): ConcernAnalysis {
   };
 }
 
-function getCardSpriteFrame(sign: ZodiacSign, emotion: EmotionKey, category: ConcernCategory, domain: ConcernDomain) {
-  const pool = SPRITE_VARIANTS_BY_EMOTION[emotion] ?? [0];
-  const seed =
-    ZODIAC_INDEX[sign] * 31 +
-    EMOTION_INDEX[emotion] * 17 +
-    CATEGORY_INDEX[category] * 13 +
-    DOMAIN_INDEX[domain] * 7;
-  return pool[Math.abs(seed) % pool.length];
+function getCardSpriteFrame(
+  sign: ZodiacSign,
+  emotion: EmotionKey,
+  category: ConcernCategory,
+  domain: ConcernDomain,
+  astroSignal?: YeonAstroSignal | null
+) {
+  return getYeonSpriteFrame({
+    signIndex: ZODIAC_INDEX[sign] ?? 0,
+    emotion,
+    categoryIndex: CATEGORY_INDEX[category] ?? 0,
+    domainIndex: DOMAIN_INDEX[domain] ?? 0,
+    astroSignal,
+  });
 }
 
 function getElementRelation(
@@ -1102,8 +1071,9 @@ function buildDetailedForecast(args: {
   dayRuler: DayRulerSnapshot;
   elementRelation: { label: string; scoreBias: number; detail: string };
   scores: { overall: number; love: number; money: number };
+  astroSignal?: YeonAstroSignal | null;
 }) {
-  const { concern, selectedSign, todaySunSign, moon, aspect, dayRuler, elementRelation, scores } = args;
+  const { concern, selectedSign, todaySunSign, moon, aspect, dayRuler, elementRelation, scores, astroSignal } = args;
   const moonPct = Math.round(moon.illumination * 100);
   const dominantTrackLabel =
     scores.love >= scores.money && scores.love >= scores.overall
@@ -1138,8 +1108,9 @@ function buildWarmLetterMessage(args: {
   moon: MoonSnapshot;
   aspect: AspectSnapshot;
   dayRuler: DayRulerSnapshot;
+  astroSignal?: YeonAstroSignal | null;
 }) {
-  const { recipientName, selectedEmotion, concern, selectedSign, todaySunSign, moon, aspect, dayRuler } = args;
+  const { recipientName, selectedEmotion, concern, selectedSign, todaySunSign, moon, aspect, dayRuler, astroSignal } = args;
 
   const recipientLabel = formatRecipientLabel(recipientName);
   const moonPct = Math.round(moon.illumination * 100);
@@ -1159,6 +1130,7 @@ function buildWarmLetterMessage(args: {
   const priorityDomain = DOMAIN_LABEL[concern.topDomain];
   const firstKeyword = concern.domainKeywords[0] ?? concern.topKeywords[0] ?? CATEGORY_LABEL[concern.topCategory];
   const safeKeyword = String(firstKeyword).replace(/\s+/g, "");
+  const astroCare = astroSignal ? `정밀 별빛으로는 ${astroSignal.heartTone} ${astroSignal.actionTone}` : "";
 
   return [
     `${recipientLabel}께,`,
@@ -1166,6 +1138,7 @@ function buildWarmLetterMessage(args: {
     `점성술 흐름을 보면 ${selectedSign} 기준 오늘 태양 ${todaySunSign}과 ${aspect.label} 각도가 형성되어 ${priorityDomain} 이슈에서 체감이 커지기 쉬운 날입니다.`,
     `달의 조도는 ${moonPct}%(${moon.label})이고, 요일 행성은 ${dayRuler.label}입니다. 그래서 결론을 서두르기보다 확인 가능한 사실부터 정리하시면 훨씬 안정적입니다.`,
     `${emotionCare}`,
+    ...(astroCare ? [astroCare] : []),
     `오늘의 실전 권장 순서는 "${priorityDomain} → ${CATEGORY_LABEL[concern.topCategory]}"입니다. 작은 실행 하나를 먼저 완료해 주세요.`,
     `응원 키워드: #${safeKeyword} #${priorityDomain.replace(/\//g, "")} #연이응원`,
     closing,
@@ -1180,12 +1153,15 @@ function buildConcernReasoning(args: {
   moon: MoonSnapshot;
   aspect: AspectSnapshot;
   dayRuler: DayRulerSnapshot;
+  astroSignal?: YeonAstroSignal | null;
 }) {
-  const { concern, selectedSign, todaySunSign, moon, aspect, dayRuler } = args;
+  const { concern, selectedSign, todaySunSign, moon, aspect, dayRuler, astroSignal } = args;
   const moonPct = Math.round(moon.illumination * 100);
   const keyLabel = concern.domainKeywords[0] || concern.topKeywords[0] || CATEGORY_LABEL[concern.topCategory];
+  const astroReasoning = astroSignal ? `프로필 차트의 핵심은 ${astroSignal.heartTone} ${astroSignal.relationTone}` : "";
 
   return [
+    ...(astroReasoning ? [astroReasoning] : []),
     `${selectedSign}인 너와 오늘 태양 ${todaySunSign}의 ${aspect.label} 각도(${aspect.summary})가 맞물리면서, ${DOMAIN_LABEL[concern.topDomain]} 고민에서 감정 반응이 예민해지기 쉬운 흐름이야.`,
     `${moon.label} (조도 ${moonPct}%) 구간이라 마음의 체감 강도가 커져서 '${keyLabel}' 이슈가 평소보다 더 크게 느껴질 수 있어.`,
     `${dayRuler.label} 리듬(${dayRuler.summary})까지 겹쳐서 생각이 반복되기 쉬운 날이지만, 이건 네가 약해서가 아니라 중요한 것을 지키려는 정상 반응이야.`,
@@ -1197,7 +1173,8 @@ function buildConsultation(
   selectedEmotion: EmotionKey,
   concernText: string,
   recipientName: string,
-  date: Date
+  date: Date,
+  astroSignal: YeonAstroSignal | null = null
 ): ConsultationResult {
   const todaySunSign = getSignByMonthDay(date.getMonth() + 1, date.getDate());
   const moon = getMoonSnapshot(date);
@@ -1211,6 +1188,11 @@ function buildConsultation(
   const moonIlluminationPct = Math.round(moon.illumination * 100);
   const zodiacDegree = aspect.distance * 30;
   const modalityBias = userProfile.modality === sunProfile.modality ? 0.12 : -0.05;
+  const astroSoftBias = astroSignal?.majorAspects.filter((item) => item.tone === "soft").length ?? 0;
+  const astroTensionBias = astroSignal?.majorAspects.filter((item) => item.tone === "tension").length ?? 0;
+  const astroEmotionBias = astroSignal?.dominantElement === "water" ? 0.18 : astroSignal?.dominantElement === "earth" ? 0.1 : 0;
+  const astroRelationBias = astroSignal?.venusSign ? 0.16 : 0;
+  const astroActionBias = astroSignal?.marsSign ? 0.12 : 0;
 
   const focusBias = {
     overall: concern.weights.self * 0.2 + concern.weights.health * 0.25 + concern.weights.legal * 0.18,
@@ -1226,7 +1208,10 @@ function buildConsultation(
       aspect.scoreBias * 0.45 +
       focusBias.overall * 0.2 +
       elementRelation.scoreBias * 0.5 +
-      modalityBias
+      modalityBias +
+      astroEmotionBias +
+      astroSoftBias * 0.08 -
+      astroTensionBias * 0.06
   );
   const love = toScore(
     3 +
@@ -1236,7 +1221,10 @@ function buildConsultation(
       aspect.scoreBias * 0.4 +
       focusBias.love * 0.25 +
       elementRelation.scoreBias * 0.35 +
-      modalityBias * 0.5
+      modalityBias * 0.5 +
+      astroRelationBias +
+      astroSoftBias * 0.1 -
+      astroTensionBias * 0.05
   );
   const money = toScore(
     3 +
@@ -1246,7 +1234,10 @@ function buildConsultation(
       aspect.scoreBias * 0.3 +
       focusBias.money * 0.22 +
       elementRelation.scoreBias * 0.25 +
-      modalityBias * 0.35
+      modalityBias * 0.35 +
+      astroActionBias +
+      astroSoftBias * 0.05 -
+      astroTensionBias * 0.04
   );
 
   const luckyItem = pickLuckyItem(concern.topCategory, `${selectedSign}-${selectedEmotion}-${date.toDateString()}-${concernText}`);
@@ -1255,6 +1246,7 @@ function buildConsultation(
   const practicalTip = `${CATEGORY_LABEL[concern.topCategory]} · ${DOMAIN_LABEL[concern.topDomain]} 고민은 "작게 쪼개서 실행"할수록 정확도가 올라가. ${DOMAIN_TIP[concern.topDomain]}`;
 
   const astroEvidence = [
+    ...(astroSignal?.evidence || []).map((line) => `정밀 별자리 신호: ${line}`),
     `입력 기준: 감정=${EMOTION_LABEL[selectedEmotion]} · 고민 카테고리=${CATEGORY_LABEL[concern.topCategory]} · 도메인=${DOMAIN_LABEL[concern.topDomain]}`,
     `태양 기준값: ${todaySunSign} (${sunProfile.element} 원소 · ${sunProfile.modality} 성질 · 주관 ${sunProfile.ruler})`,
     `사용자 기준값: ${selectedSign} (${userProfile.element} 원소 · ${userProfile.modality} 성질 · 주관 ${userProfile.ruler})`,
@@ -1286,7 +1278,11 @@ function buildConsultation(
     dayRuler,
     elementRelation,
     scores: { overall, love, money },
+    astroSignal,
   });
+  if (astroSignal) {
+    detailedForecast.push(`프로필 차트 신호: ${astroSignal.healingTone} ${astroSignal.relationTone}`);
+  }
 
   const warmMessage = buildWarmLetterMessage({
     recipientName,
@@ -1297,6 +1293,7 @@ function buildConsultation(
     moon,
     aspect,
     dayRuler,
+    astroSignal,
   });
   const concernReasoning = buildConcernReasoning({
     concern,
@@ -1305,6 +1302,7 @@ function buildConsultation(
     moon,
     aspect,
     dayRuler,
+    astroSignal,
   });
 
   const signInfo = ZODIAC_SIGNS.find((item) => item.sign === selectedSign) ?? ZODIAC_SIGNS[0];
@@ -1334,6 +1332,7 @@ function buildConsultation(
     moon,
     aspect,
     dayRuler,
+    astroSignal,
   };
 }
 
@@ -1346,6 +1345,7 @@ function buildReadingFromConsultation(
   const userProfile = ZODIAC_PROFILE[consultation.sign];
   const sunProfile = ZODIAC_PROFILE[consultation.todaySunSign];
   const elementRelation = getElementRelation(userProfile.element, sunProfile.element);
+  const astroSignal = consultation.astroSignal;
   const symbol = pickHeartSymbols(consultation, selectedEmotion)[0] ?? HEART_SYMBOL_LIBRARY.moonStar;
   const letterLine = consultation.warmMessage
     .split(/\n+/)
@@ -1377,11 +1377,11 @@ function buildReadingFromConsultation(
       },
     },
     {
-      sunSign: consultation.todaySunSign,
-      moonPhase: consultation.moon.label,
+      sunSign: astroSignal?.sunSign || consultation.todaySunSign,
+      moonPhase: astroSignal?.moonSign ? `달 ${astroSignal.moonSign}` : consultation.moon.label,
       weekdayPlanet: consultation.dayRuler.label,
-      zodiacAspect: consultation.aspect.label,
-      elementResonance: elementRelation.label,
+      zodiacAspect: astroSignal?.majorAspects[0]?.label || consultation.aspect.label,
+      elementResonance: astroSignal?.healingTone || elementRelation.label,
       modalityTone: userProfile.modality === sunProfile.modality ? "리듬이 잘 맞는" : "속도를 조절하면 편안해지는",
     }
   );
@@ -1631,88 +1631,96 @@ export default function YeonStarHugPage() {
   const [birthTimeInput, setBirthTimeInput] = useState("");
   const [consultation, setConsultation] = useState<ConsultationResult | null>(null);
   const [reading, setReading] = useState<YeonHeartStarReading | null>(null);
+  const [astroSignal, setAstroSignal] = useState<YeonAstroSignal | null>(null);
+  const [astroLoading, setAstroLoading] = useState(false);
+  const [astroError, setAstroError] = useState("");
+
+  const applyProfileAndAstro = async (profile: DestinyProfileCard, isCancelled: () => boolean) => {
+    if (isCancelled()) return;
+    const nextSeed = buildProfileSeed(profile, "profile");
+    setProfileSeed(nextSeed);
+    setProfileNameInput(nextSeed.name || "");
+    setBirthDateInput(normalizeBirthDateText(nextSeed.birthDateInput));
+    setBirthTimeInput(normalizeBirthTimeText(nextSeed.birthTimeInput));
+
+    const signByProfile = parseSignFromBirthDateInput(nextSeed.birthDateInput);
+    if (signByProfile) {
+      setSelectedSign(signByProfile);
+      setProfileSyncNote(`프로필 카드 생년월일(${formatBirthDateInput(nextSeed.birthDateInput)}) 기준으로 ${signByProfile}를 적용했어요.`);
+    }
+
+    const astroRequest = buildYeonAstroRequestFromProfile(profile);
+    if (!astroRequest) {
+      setAstroSignal(null);
+      setAstroError("프로필 카드의 생년월일, 출생시간, 시간대를 확인하면 더 정밀한 별자리 위로를 받을 수 있어요.");
+      return;
+    }
+
+    setAstroLoading(true);
+    setAstroError("");
+    try {
+      const response = await authFetch("/api/astro/western-chart", {
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(astroRequest),
+      }, { retryOn401: true });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload?.ok) throw new Error(String(payload?.message || "astro_chart_failed"));
+      const nextSignal = buildYeonAstroSignal(payload);
+      if (isCancelled()) return;
+      if (!nextSignal) throw new Error("astro_signal_empty");
+      setAstroSignal(nextSignal);
+      if (nextSignal.sunSign && isYeonZodiacSign(nextSignal.sunSign)) {
+        setSelectedSign(nextSignal.sunSign as ZodiacSign);
+      }
+      setProfileSyncNote(`프로필 카드와 정밀 별자리 차트를 연결했어요. 달 ${nextSignal.moonSign || "신호"}의 마음 결까지 함께 읽을게요.`);
+    } catch {
+      if (isCancelled()) return;
+      setAstroSignal(null);
+      setAstroError("정밀 별자리 계산을 잠시 불러오지 못했어요. 프로필 기준 별자리로 먼저 따뜻하게 읽어볼게요.");
+    } finally {
+      if (!isCancelled()) setAstroLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const applyProfileSeed = () => {
-      const nextSeed = readProfileSeedFromStorage();
-      setProfileSeed(nextSeed);
-      setProfileNameInput(nextSeed.name || "");
-      setBirthDateInput(normalizeBirthDateText(nextSeed.birthDateInput));
-      setBirthTimeInput(normalizeBirthTimeText(nextSeed.birthTimeInput));
-
-      const signByProfile = parseSignFromBirthDateInput(nextSeed.birthDateInput);
-      if (signByProfile) {
-        setSelectedSign(signByProfile);
-        setProfileSyncNote(`프로필 카드 기준 별자리 ${signByProfile}로 자동 동기화했어요.`);
-      } else {
-        setProfileSyncNote("프로필 카드 생년월일을 찾지 못해 현재 별자리를 유지하고 있어요.");
-      }
-    };
-
-    applyProfileSeed();
     if (typeof window === "undefined") return;
 
     let cancelled = false;
     const applyProfileSeedFromApi = () => {
       void fetchCurrentDestinyProfile(hasYeonProfileBirth).then((profile) => {
         if (cancelled || !profile) return;
-        const nextSeed = buildProfileSeed(profile, "profile");
-        setProfileSeed(nextSeed);
-        setProfileNameInput(nextSeed.name || "");
-        setBirthDateInput(normalizeBirthDateText(nextSeed.birthDateInput));
-        setBirthTimeInput(normalizeBirthTimeText(nextSeed.birthTimeInput));
-
-        const signByProfile = parseSignFromBirthDateInput(nextSeed.birthDateInput);
-        if (signByProfile) {
-          setSelectedSign(signByProfile);
-          setProfileSyncNote(`프로필 카드 생년월일(${formatBirthDateInput(nextSeed.birthDateInput)}) 기준으로 ${signByProfile}를 적용했어요.`);
-        }
+        void applyProfileAndAstro(profile, () => cancelled);
       });
     };
 
     const handleProfileStorage = (event: StorageEvent) => {
       if (event.key && !isDestinyProfileStorageKey(event.key) && event.key !== "fortune_auth_user") return;
-      applyProfileSeed();
       applyProfileSeedFromApi();
     };
+    const handleProfileChanged = () => applyProfileSeedFromApi();
 
     applyProfileSeedFromApi();
-    window.addEventListener("destinyProfileChanged", applyProfileSeed);
-    document.addEventListener("destinyProfileChanged", applyProfileSeed);
+    window.addEventListener("destinyProfileChanged", handleProfileChanged);
+    document.addEventListener("destinyProfileChanged", handleProfileChanged);
     window.addEventListener("storage", handleProfileStorage);
     return () => {
       cancelled = true;
-      window.removeEventListener("destinyProfileChanged", applyProfileSeed);
-      document.removeEventListener("destinyProfileChanged", applyProfileSeed);
+      window.removeEventListener("destinyProfileChanged", handleProfileChanged);
+      document.removeEventListener("destinyProfileChanged", handleProfileChanged);
       window.removeEventListener("storage", handleProfileStorage);
     };
   }, []);
 
   const syncSignFromProfile = () => {
-    const nextSeed = readProfileSeedFromStorage();
-    setProfileSeed(nextSeed);
-    setProfileNameInput(nextSeed.name || "");
-    setBirthDateInput(normalizeBirthDateText(nextSeed.birthDateInput));
-    setBirthTimeInput(normalizeBirthTimeText(nextSeed.birthTimeInput));
-    const signByProfile = parseSignFromBirthDateInput(nextSeed.birthDateInput);
-    if (signByProfile) {
-      setSelectedSign(signByProfile);
-      setProfileSyncNote(`프로필 카드 생년월일(${formatBirthDateInput(nextSeed.birthDateInput)}) 기준으로 ${signByProfile}를 적용했어요.`);
-      return;
-    }
-    setProfileSyncNote("프로필 카드에 생년월일이 없어 별자리를 자동 계산하지 못했어요.");
     void fetchCurrentDestinyProfile(hasYeonProfileBirth).then((profile) => {
       if (!profile) return;
-      const nextSeedFromApi = buildProfileSeed(profile, "profile");
-      setProfileSeed(nextSeedFromApi);
-      setProfileNameInput(nextSeedFromApi.name || "");
-      setBirthDateInput(normalizeBirthDateText(nextSeedFromApi.birthDateInput));
-      setBirthTimeInput(normalizeBirthTimeText(nextSeedFromApi.birthTimeInput));
-      const signByProfileFromApi = parseSignFromBirthDateInput(nextSeedFromApi.birthDateInput);
-      if (signByProfileFromApi) {
-        setSelectedSign(signByProfileFromApi);
-        setProfileSyncNote(`프로필 카드 생년월일(${formatBirthDateInput(nextSeedFromApi.birthDateInput)}) 기준으로 ${signByProfileFromApi}를 적용했어요.`);
-      }
+      void applyProfileAndAstro(profile, () => false);
     });
   };
 
@@ -1745,16 +1753,16 @@ export default function YeonStarHugPage() {
         selectedEmotion,
         activeEmotion.label,
         consultation,
-        getCardSpriteFrame(selectedSign, selectedEmotion, consultation.concernCategory, consultation.concernDomain)
+        getCardSpriteFrame(consultation.sign, selectedEmotion, consultation.concernCategory, consultation.concernDomain, consultation.astroSignal)
       );
     },
-    [today, activeEmotion.label, consultation, selectedSign, selectedEmotion]
+    [today, activeEmotion.label, consultation, selectedEmotion]
   );
 
   const speechSpriteFrame = useMemo(() => {
     if (!consultation) return 0;
-    return getCardSpriteFrame(selectedSign, selectedEmotion, consultation.concernCategory, consultation.concernDomain);
-  }, [consultation, selectedSign, selectedEmotion]);
+    return getCardSpriteFrame(consultation.sign, selectedEmotion, consultation.concernCategory, consultation.concernDomain, consultation.astroSignal);
+  }, [consultation, selectedEmotion]);
 
   const displayWarmMessage = useMemo(() => {
     if (!consultation) return "";
@@ -1765,7 +1773,8 @@ export default function YeonStarHugPage() {
     if (isGenerating) return;
     setIsGenerating(true);
     window.setTimeout(() => {
-      const matchedSign = parseSignFromBirthDateInput(birthDateInput) || selectedSign;
+      const swissSign = astroSignal?.sunSign && isYeonZodiacSign(astroSignal.sunSign) ? astroSignal.sunSign as ZodiacSign : null;
+      const matchedSign = swissSign || parseSignFromBirthDateInput(birthDateInput) || selectedSign;
       const recipientName = String(profileSeed.name || profileNameInput || "").trim();
       const recipientLabel = formatRecipientLabel(recipientName);
       const normalizedConcernText = concernText.trim() || `${recipientLabel}의 오늘 마음 흐름이 궁금해요.`;
@@ -1773,8 +1782,8 @@ export default function YeonStarHugPage() {
         setSelectedSign(matchedSign);
       }
 
-      const next = buildConsultation(matchedSign, selectedEmotion, normalizedConcernText, recipientName, new Date());
-      const spriteFrame = getCardSpriteFrame(matchedSign, selectedEmotion, next.concernCategory, next.concernDomain);
+      const next = buildConsultation(matchedSign, selectedEmotion, normalizedConcernText, recipientName, new Date(), astroSignal);
+      const spriteFrame = getCardSpriteFrame(matchedSign, selectedEmotion, next.concernCategory, next.concernDomain, next.astroSignal);
       const nextReading = buildReadingFromConsultation(next, selectedEmotion, activeEmotion.label, spriteFrame);
       setConsultation(next);
       setReading(nextReading);
@@ -1917,6 +1926,13 @@ export default function YeonStarHugPage() {
               <p className="mt-1 text-xs text-amber-800/90">이름: {profileSeed.name || "미연결"} · 생년월일: {formatBirthDateInput(profileSeed.birthDateInput)}</p>
               <p className="mt-1 text-xs text-amber-800/90">출생시간: {formatBirthTimeInput(profileSeed.birthTimeInput)} · 소스: {profileSeed.source === "profile" ? "프로필 카드" : profileSeed.source === "auth" ? "계정 정보" : "미연결"}</p>
               <p className="mt-1 text-[11px] text-amber-700">{profileSyncNote}</p>
+              <p className="mt-1 text-[11px] text-amber-700">
+                {astroLoading
+                  ? "연이가 정밀 별자리 차트를 읽고 있어요."
+                  : astroSignal
+                    ? `정밀 신호: 태양 ${astroSignal.sunSign || "-"} · 달 ${astroSignal.moonSign || "-"} · 상승궁 ${astroSignal.ascendantSign || "-"}`
+                    : astroError}
+              </p>
               <button
                 type="button"
                 onClick={syncSignFromProfile}

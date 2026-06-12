@@ -1,6 +1,7 @@
 import {
   SUKYO_PDF_CONFIG,
   SUKYO_PDF_CHAPTER_COUNT,
+  buildSukyoChapterQualityReport,
   buildSukyoPdfSeed,
   generateSukyoPremiumReport,
   validateSukyoPdfCompletionPayload,
@@ -14,7 +15,7 @@ function assert(condition, message, details = null) {
   throw error;
 }
 
-function buildSeed(label) {
+function buildSeed(label, overrides = {}) {
   const seed = buildSukyoPdfSeed({
     self: {
       name: "User",
@@ -23,6 +24,7 @@ function buildSeed(label) {
       birthDate: "1991-02-20",
       birthTime: "08:40",
       timezone: "Asia/Seoul",
+      ...(overrides.self || {}),
     },
     partner: {
       name: "Partner",
@@ -31,6 +33,7 @@ function buildSeed(label) {
       birthDate: "1995-05-10",
       birthTime: "",
       timezone: "Asia/Seoul",
+      ...(overrides.partner || {}),
     },
     compatibility: {
       relationType: "安壞",
@@ -60,11 +63,18 @@ function mergedBody(chapters) {
 
 function assertReadyReport(label, report) {
   const chapters = Array.isArray(report.chapters) ? report.chapters : [];
+  const localAssembly = report.localAssembly || report.payload?.localAssembly || report.pdfReady?.localAssembly || {};
   assert(SUKYO_PDF_CONFIG.templateVersion === "sukuyo-premium-local-assembled-v2", `${label}: templateVersion mismatch`, SUKYO_PDF_CONFIG);
   assert(report.ok === true, `${label}: report not ok`, report);
   assert(report.qualityStatus === "passed", `${label}: qualityStatus mismatch`, report);
   assert(report.chapterCount === SUKYO_PDF_CHAPTER_COUNT, `${label}: chapterCount mismatch`, report);
   assert(chapters.length === SUKYO_PDF_CHAPTER_COUNT, `${label}: chapters length mismatch`, report);
+  assert(localAssembly.enabled === true, `${label}: localAssembly enabled mismatch`, localAssembly);
+  assert(localAssembly.externalGeneration === false, `${label}: localAssembly externalGeneration mismatch`, localAssembly);
+  assert(localAssembly.externalCallsAllowed === false, `${label}: localAssembly externalCallsAllowed mismatch`, localAssembly);
+  assert(localAssembly.chapterCount === SUKYO_PDF_CHAPTER_COUNT, `${label}: localAssembly chapterCount mismatch`, localAssembly);
+  assert(localAssembly.expectedChapterCount === SUKYO_PDF_CHAPTER_COUNT, `${label}: localAssembly expectedChapterCount mismatch`, localAssembly);
+  assert(localAssembly.templateVersion === SUKYO_PDF_CONFIG.templateVersion, `${label}: localAssembly templateVersion mismatch`, localAssembly);
   assert(chapters.every((chapter) => Array.isArray(chapter.sections) && chapter.sections.length === 5), `${label}: section count mismatch`, report);
   assert(chapters.every((chapter) => chapter.sections.every((section) => String(section.body || "").length >= 700)), `${label}: section too short`, report);
   assert(Boolean(String(report.pdfReady?.html || "")), `${label}: pdf html missing`, report);
@@ -72,6 +82,10 @@ function assertReadyReport(label, report) {
 
   const quality = validateSukyoCompatibilityPdfQuality(chapters, report.payload || {});
   assert(quality.ok === true, `${label}: manuscript quality failed`, quality);
+  const chapterQuality = report.chapterQuality || report.payload?.chapterQuality || buildSukyoChapterQualityReport(report.payload || {}, chapters);
+  assert(chapterQuality.ok === true, `${label}: chapter quality failed`, chapterQuality);
+  assert(chapterQuality.chapters?.length === SUKYO_PDF_CHAPTER_COUNT, `${label}: chapter quality count mismatch`, chapterQuality);
+  assert(chapterQuality.chapters.every((chapter) => chapter.ok === true), `${label}: chapter quality item failed`, chapterQuality);
   const completion = validateSukyoPdfCompletionPayload({
     pdfReady: report.pdfReady,
     chapters,
@@ -87,67 +101,82 @@ function assertReadyReport(label, report) {
 }
 
 async function runLocalOnlyCase() {
-  const report = await generateSukyoPremiumReport(
-    { SUKUYO_LLM_ENHANCEMENT_ENABLED: "false" },
-    buildSeed("local-only"),
-    { llmEnhancementEnabled: false },
-  );
+  const report = await generateSukyoPremiumReport({}, buildSeed("local-only"));
   assertReadyReport("local-only", report);
   assert(report.manuscriptSource === SUKYO_PDF_CONFIG.generationMode, "local-only: source mismatch", report);
-  assert(report.llmChapterCount === 0, "local-only: llmChapterCount mismatch", report);
-  assert(report.targetLlmChapterCount === 0, "local-only: target count mismatch", report);
-  assert(report.localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT, "local-only: localDraftChapterCount mismatch", report);
-  assert(report.fallbackChapterCount === 0, "local-only: fallbackChapterCount mismatch", report);
-  assert(report.fallbackUsed === false, "local-only: fallbackUsed mismatch", report);
-  assert(report.localAssemblyOnly === true, "local-only: localAssemblyOnly mismatch", report);
-  assert(report.externalCallsAllowed === false, "local-only: externalCallsAllowed mismatch", report);
-  assert(report.payload?.localAssemblyOnly === true, "local-only: payload localAssemblyOnly mismatch", report.payload);
-  assert(report.payload?.externalCallsAllowed === false, "local-only: payload externalCallsAllowed mismatch", report.payload);
-  assert(report.pdfReady?.localAssemblyOnly === true, "local-only: pdfReady localAssemblyOnly mismatch", report.pdfReady);
-  assert(report.pdfReady?.externalCallsAllowed === false, "local-only: pdfReady externalCallsAllowed mismatch", report.pdfReady);
   return report;
 }
 
-async function runExternalDisabledCase() {
+async function runExternalGuardCase() {
+  let externalGeneratorCalled = false;
   const report = await generateSukyoPremiumReport(
-    { SUKUYO_LLM_ENHANCEMENT_ENABLED: "true" },
-    buildSeed("external-disabled"),
+    { SUKUYO_EXTERNAL_GENERATION_ENABLED: "true" },
+    buildSeed("external-guard"),
     {
-      llmEnhancementEnabled: true,
-      llmChapterGenerator() {
-        const error = new Error("external generator must stay unused");
-        error.code = "VERIFY_EXTERNAL_GENERATOR_UNUSED";
-        throw error;
+      externalGenerator() {
+        externalGeneratorCalled = true;
+        throw new Error("external generator must stay unused");
       },
     },
   );
-  assertReadyReport("external-disabled", report);
-  assert(report.manuscriptSource === SUKYO_PDF_CONFIG.generationMode, "external-disabled: source mismatch", report);
-  assert(report.fallbackUsed === false, "external-disabled: fallbackUsed mismatch", report);
-  assert(report.llmChapterCount === 0, "external-disabled: llmChapterCount mismatch", report);
-  assert(report.targetLlmChapterCount === 0, "external-disabled: target count mismatch", report);
-  assert(report.localDraftChapterCount === SUKYO_PDF_CHAPTER_COUNT, "external-disabled: localDraftChapterCount mismatch", report);
-  assert(report.fallbackChapterCount === 0, "external-disabled: fallbackChapterCount mismatch", report);
-  assert(report.localAssemblyOnly === true, "external-disabled: localAssemblyOnly mismatch", report);
-  assert(report.externalCallsAllowed === false, "external-disabled: externalCallsAllowed mismatch", report);
+  assertReadyReport("external-guard", report);
+  assert(externalGeneratorCalled === false, "external-guard: external generator was called", report);
+  assert(report.manuscriptSource === SUKYO_PDF_CONFIG.generationMode, "external-guard: source mismatch", report);
   return report;
 }
 
-const localOnly = await runLocalOnlyCase();
-const externalDisabled = await runExternalDisabledCase();
+async function runDiversityCase(localOnly) {
+  const variantSeed = buildSeed("diversity", {
+    partner: {
+      birthDate: "1998-11-25",
+    },
+  });
+  const variant = await generateSukyoPremiumReport({}, variantSeed);
+  assertReadyReport("diversity", variant);
 
-console.log("[verify-sukuyo-pdf-local-fallback] PASS", {
+  const baseJson = localOnly.payload?.localSukuyoCompatibilityJson || {};
+  const variantJson = variant.payload?.localSukuyoCompatibilityJson || {};
+  const baseSignature = [
+    baseJson?.self?.sukuyoStar,
+    baseJson?.partner?.sukuyoStar,
+    baseJson?.relation?.typeKo,
+    baseJson?.relation?.distanceLabel,
+    localOnly.chapters?.[0]?.sections?.[0]?.body,
+  ].join("|");
+  const variantSignature = [
+    variantJson?.self?.sukuyoStar,
+    variantJson?.partner?.sukuyoStar,
+    variantJson?.relation?.typeKo,
+    variantJson?.relation?.distanceLabel,
+    variant.chapters?.[0]?.sections?.[0]?.body,
+  ].join("|");
+  assert(baseSignature !== variantSignature, "diversity: local result did not change by input", {
+    baseSignature,
+    variantSignature,
+  });
+  return variant;
+}
+
+const localOnly = await runLocalOnlyCase();
+const externalGuard = await runExternalGuardCase();
+const diversity = await runDiversityCase(localOnly);
+
+console.log("[verify-sukuyo-pdf-local-assembly] PASS", {
   localOnly: {
     chapterCount: localOnly.chapterCount,
     source: localOnly.manuscriptSource,
     templateVersion: SUKYO_PDF_CONFIG.templateVersion,
     htmlReady: Boolean(localOnly.pdfReady?.html),
   },
-  externalDisabled: {
-    chapterCount: externalDisabled.chapterCount,
-    source: externalDisabled.manuscriptSource,
-    fallbackChapterCount: externalDisabled.fallbackChapterCount,
-    externalCallsAllowed: externalDisabled.externalCallsAllowed,
-    htmlReady: Boolean(externalDisabled.pdfReady?.html),
+  externalGuard: {
+    chapterCount: externalGuard.chapterCount,
+    source: externalGuard.manuscriptSource,
+    externalGeneration: externalGuard.localAssembly?.externalGeneration,
+    htmlReady: Boolean(externalGuard.pdfReady?.html),
+  },
+  diversity: {
+    chapterCount: diversity.chapterCount,
+    source: diversity.manuscriptSource,
+    htmlReady: Boolean(diversity.pdfReady?.html),
   },
 });

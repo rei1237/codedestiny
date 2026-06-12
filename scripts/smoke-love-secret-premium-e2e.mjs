@@ -79,20 +79,20 @@ const base = {
 };
 base.loveSecretReference = buildLoveSecretReference(base);
 
-const blockedLlmHosts = [
+const blockedExternalGenerationHosts = [
   "generativelanguage.googleapis.com",
   "vertexai.googleapis.com",
   "api.openai.com",
 ];
-let externalLlmFetchAttempts = 0;
+let externalGenerationFetchAttempts = 0;
 
-function installLoveSecretNoLlmFetchGuard() {
+function installLoveSecretExternalFetchGuard() {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (input, init) => {
     const url = typeof input === "string" ? input : String(input?.url || "");
-    if (blockedLlmHosts.some((host) => url.includes(host))) {
-      externalLlmFetchAttempts += 1;
-      throw new Error(`LOVE_SECRET_EXTERNAL_LLM_FETCH_BLOCKED:${url}`);
+    if (blockedExternalGenerationHosts.some((host) => url.includes(host))) {
+      externalGenerationFetchAttempts += 1;
+      throw new Error(`LOVE_SECRET_EXTERNAL_GENERATION_FETCH_BLOCKED:${url}`);
     }
     if (typeof originalFetch === "function") return originalFetch(input, init);
     throw new Error(`UNEXPECTED_FETCH:${url}`);
@@ -495,171 +495,130 @@ function assertLoveSecretPdfCache() {
   });
 }
 
-async function assertHybridScaffold() {
-  externalLlmFetchAttempts = 0;
+async function assertLocalAssemblyScaffold() {
+  externalGenerationFetchAttempts = 0;
   assert.deepEqual(loveSecret.LOVE_SECRET_PDF_CONFIG, {
     generationMode: "local-assembled",
-    llmEnabled: false,
     provider: "saju-assembler",
     templateVersion: "love-secret-local-assembled-v3",
   }, "love secret pdf config is local assembled");
-  assert.equal(loveSecret.isLoveSecretLlmEnhancementEnabled({
-    LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "true",
-    GEMINI_API_KEY: "test-key",
-  }), false, "love secret ignores llm enable env");
 
-  const restoreFetch = installLoveSecretNoLlmFetchGuard();
-  const soloConfig = loveSecret.safeModeChapterConfig("solo");
-  const coupleConfig = loveSecret.safeModeChapterConfig("compatibility");
-  const soloMasterA = loveSecret.buildLoveSecretMasterJson({ base, mode: "solo", targetYear: 2026 });
-  const soloMasterB = loveSecret.buildLoveSecretMasterJson({ base, mode: "solo", targetYear: 2026 });
-  const coupleMasterA = loveSecret.buildLoveSecretMasterJson({ base, mode: "compatibility", targetYear: 2026 });
-  const coupleMasterB = loveSecret.buildLoveSecretMasterJson({ base, mode: "compatibility", targetYear: 2026 });
-  const soloFactsA = loveSecret.buildLoveSecretFacts(soloMasterA);
-  const soloFactsB = loveSecret.buildLoveSecretFacts(soloMasterB);
-  const coupleFactsA = loveSecret.buildLoveSecretFacts(coupleMasterA);
-  const coupleFactsB = loveSecret.buildLoveSecretFacts(coupleMasterB);
+  const restoreFetch = installLoveSecretExternalFetchGuard();
+  try {
+    const soloConfig = loveSecret.safeModeChapterConfig("solo");
+    const coupleConfig = loveSecret.safeModeChapterConfig("compatibility");
+    const soloMasterA = loveSecret.buildLoveSecretMasterJson({ base, mode: "solo", targetYear: 2026 });
+    const soloMasterB = loveSecret.buildLoveSecretMasterJson({ base, mode: "solo", targetYear: 2026 });
+    const coupleMasterA = loveSecret.buildLoveSecretMasterJson({ base, mode: "compatibility", targetYear: 2026 });
+    const coupleMasterB = loveSecret.buildLoveSecretMasterJson({ base, mode: "compatibility", targetYear: 2026 });
+    const soloFactsA = loveSecret.buildLoveSecretFacts(soloMasterA);
+    const soloFactsB = loveSecret.buildLoveSecretFacts(soloMasterB);
+    const coupleFactsA = loveSecret.buildLoveSecretFacts(coupleMasterA);
+    const coupleFactsB = loveSecret.buildLoveSecretFacts(coupleMasterB);
 
-  assert.deepEqual(soloFactsA, soloFactsB, "solo facts deterministic");
-  assert.deepEqual(coupleFactsA, coupleFactsB, "couple facts deterministic");
-  assert.equal(soloFactsA.productId, "love_secret", "solo facts product id");
-  assert.equal(soloFactsA.mode, "solo", "solo facts mode");
-  assert.equal(coupleFactsA.mode, "couple", "couple facts mode");
-  assert.ok(coupleFactsA.partnerDayMaster, "couple partner day master");
+    assert.deepEqual(soloFactsA, soloFactsB, "solo facts deterministic");
+    assert.deepEqual(coupleFactsA, coupleFactsB, "couple facts deterministic");
+    assert.equal(soloFactsA.productId, "love_secret", "solo facts product id");
+    assert.equal(soloFactsA.mode, "solo", "solo facts mode");
+    assert.equal(coupleFactsA.mode, "couple", "couple facts mode");
+    assert.ok(coupleFactsA.partnerDayMaster, "couple partner day master");
 
-  const soloPlans = loveSecret.buildLoveSecretChapterPlans({
-    mode: "solo",
-    config: soloConfig,
-    chapters: buildChapters("solo", loveSecret.SOLO_LOVE_CHAPTER_SPECS),
-    loveSecretFacts: soloFactsA,
-  });
-  const couplePlans = loveSecret.buildLoveSecretChapterPlans({
-    mode: "compatibility",
-    config: coupleConfig,
-    chapters: buildChapters("compatibility", loveSecret.LOVE_SECRET_PHASE7_COMPAT_CHAPTERS),
-    loveSecretFacts: coupleFactsA,
-  });
-  assert.equal(soloPlans.length, 10, "solo chapter plan count");
-  assert.equal(couplePlans.length, 10, "couple chapter plan count");
-  assert.deepEqual(loveSecret.LOVE_SECRET_SOLO_LLM_ENHANCED_CHAPTERS, [
-    "love_overview",
-    "attraction_pattern",
-    "relationship_pattern",
-    "love_expression",
-    "love_risk_pattern",
-    "ideal_partner_gap",
-    "breakup_risk",
-    "intimacy_pattern",
-    "love_luck_cycles",
-    "love_master_plan",
-  ], "solo enhanced chapter ids");
-  assert.deepEqual(loveSecret.LOVE_SECRET_COUPLE_LLM_ENHANCED_CHAPTERS, [
-    "couple_code",
-    "first_attraction",
-    "emotional_match",
-    "communication_match",
-    "conflict_match",
-    "reconciliation_match",
-    "reality_match",
-    "long_term_relation",
-    "current_year_flow",
-    "couple_master_plan",
-  ], "couple enhanced chapter ids");
+    const soloPlans = loveSecret.buildLoveSecretChapterPlans({
+      mode: "solo",
+      config: soloConfig,
+      chapters: buildChapters("solo", loveSecret.SOLO_LOVE_CHAPTER_SPECS),
+      loveSecretFacts: soloFactsA,
+    });
+    const couplePlans = loveSecret.buildLoveSecretChapterPlans({
+      mode: "compatibility",
+      config: coupleConfig,
+      chapters: buildChapters("compatibility", loveSecret.LOVE_SECRET_PHASE7_COMPAT_CHAPTERS),
+      loveSecretFacts: coupleFactsA,
+    });
+    assert.equal(soloPlans.length, 10, "solo chapter plan count");
+    assert.equal(couplePlans.length, 10, "couple chapter plan count");
+    assert.ok(soloPlans.every((plan) => Array.isArray(plan.lockedFacts) && plan.lockedFacts.length > 0), "solo plans carry locked facts");
+    assert.ok(couplePlans.every((plan) => Array.isArray(plan.lockedFacts) && plan.lockedFacts.length > 0), "couple plans carry locked facts");
 
-  const softened = loveSecret.softenLoveSecretSensitiveText("반드시 헤어진다. 집착이 심하다. 결혼하면 불행하다.");
-  assert.ok(!softened.includes("반드시 헤어진다"), "hard breakup phrase softened");
-  assert.ok(!softened.includes("집착이 심하다"), "labeling phrase softened");
-  assert.ok(!softened.includes("결혼하면 불행하다"), "marriage fear phrase softened");
+    const generated = await loveSecret.buildLoveSecretChapters({
+      LOVE_SECRET_PDF_GENERATION_MODE: "local-assembled",
+      LOVE_SECRET_EXTERNAL_GENERATION_ENABLED: "true",
+    }, {
+      base,
+      mode: "solo",
+      config: soloConfig,
+      body: { requestId: "smoke-local-assembly-solo" },
+      requestId: "smoke-local-assembly-solo",
+    });
+    assert.equal(generated.manuscriptSource, "local-assembled", "solo uses local assembled manuscript");
+    assert.equal(generated.localAssembly.enabled, true, "solo local assembly enabled");
+    assert.equal(generated.localAssembly.externalCallsAllowed, false, "solo external generation calls blocked");
+    assert.equal(generated.localAssembly.externalGeneration, false, "solo external generation blocked");
+    assert.equal(generated.localAssembly.templateVersion, "love-secret-local-assembled-v3", "solo local assembly template version");
+    assert.equal(generated.localAssembly.chapterCount, 10, "solo local assembly chapter count");
+    assert.equal(generated.localAssembly.expectedChapterCount, 10, "solo local assembly expected chapter count");
+    assert.equal(externalGenerationFetchAttempts, 0, "solo external generation fetch attempts");
+    assert.equal(generated.chapters.length, 10, "solo generated chapter count");
+    assert.ok(generated.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "solo has no empty chapter");
+    assertChapterRequiredFields(generated.chapters, "solo local assembly");
+    assertPhase6SoloChapterStructure(generated.chapters, "solo local assembly");
+    assertPhase8ContentStandards(generated.chapters, "solo local assembly");
+    assertPhase9SentenceRules(generated.chapters, "solo local assembly");
+    assertNoUnsafeRenderedText(generated.chapters, "solo local assembly");
+    assert.ok(generated.loveSecretChapterPlans.every((plan) => Array.isArray(plan.lockedFacts) && plan.lockedFacts.length > 0), "generated chapter plans carry locked facts");
 
-  const sampleEnhancedText = `본인 일간 ${soloFactsA.dayMaster}과 본인 일간 강약 ${soloFactsA.dayMasterStrength}을 바탕으로 사랑의 기질을 차분히 정리합니다. 본인 우세 오행 wood, 본인 보완 오행 water, 배우자성 관성(정관·편관)은 이미 확정된 근거로만 다루며, 독자가 관계에서 바로 적용할 수 있도록 말의 온도와 선택 기준을 부드럽게 안내합니다. 이 장은 새로운 계산 없이 로컬 초안의 핵심을 프리미엄 상담문으로 확장합니다. 흔들리는 지점은 불안이 아니라 조율이 필요한 신호로 읽고, 좋은 인연을 알아보는 기준을 현실적인 행동으로 연결합니다. 특히 관계가 시작되는 순간에는 감정의 속도보다 반복되는 태도가 중요하므로, 독자가 자신의 매력을 과장 없이 받아들이고 상대에게 필요한 안정감을 차분히 확인하도록 돕습니다. 또한 연애의 방향을 단정하지 않고, 이미 드러난 사주 근거를 토대로 지금 선택할 수 있는 대화, 거리감, 약속의 방식을 구체적으로 정리합니다. `.repeat(2);
-  const enhancedValidation = loveSecret.validateLoveSecretEnhancedText(sampleEnhancedText, soloPlans[0]);
-  assert.equal(enhancedValidation.ok, true, "enhanced text validation passes with locked facts");
-  assert.equal(loveSecret.validateLoveSecretEnhancedText("짧음", soloPlans[0]).ok, false, "short enhanced text rejected");
+    const variantBase = structuredClone(base);
+    variantBase.user = { ...variantBase.user, name: "Variant User", birthDate: "1988-11-22", birthTime: "18:30" };
+    variantBase.core = { ...variantBase.core, dayMaster: "VariantMetal", dayBranch: "VariantBranch", monthBranch: "VariantMonth" };
+    variantBase.elementBalance = {
+      dominant: "fire",
+      deficient: "metal",
+      balanceScore: 42,
+      counts: { wood: 1, fire: 4, earth: 1, metal: 0, water: 2 },
+    };
+    variantBase.yongshin = { usefulElements: ["metal", "water"], cautionElements: ["fire"] };
+    variantBase.specialStars = { tao: 10, yeokma: 75, hwa: 40, gwimun: true };
+    variantBase.loveSecretReference = buildLoveSecretReference(variantBase);
+    const variantGenerated = await loveSecret.buildLoveSecretChapters({
+      LOVE_SECRET_PDF_GENERATION_MODE: "local-assembled",
+    }, {
+      base: variantBase,
+      mode: "solo",
+      config: soloConfig,
+      body: { requestId: "smoke-local-assembly-variant" },
+      requestId: "smoke-local-assembly-variant",
+    });
+    assert.notDeepEqual(generated.loveSecretFacts, variantGenerated.loveSecretFacts, "different local inputs produce distinct facts");
+    assert.notEqual(generated.chapters[0].text, variantGenerated.chapters[0].text, "different local inputs produce distinct chapter text");
 
-  const generated = await loveSecret.buildLoveSecretChapters({
-    LOVE_SECRET_PDF_GENERATION_MODE: "local-assembled",
-    LOVE_SECRET_PDF_LLM_ENABLED: "false",
-    LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "false",
-  }, {
-    base,
-    mode: "solo",
-    config: soloConfig,
-    body: { requestId: "smoke-disabled-llm" },
-    requestId: "smoke-disabled-llm",
-  });
-  assert.equal(generated.manuscriptSource, "local-assembled", "disabled llm uses local assembled manuscript");
-  assert.equal(generated.llmEnhancement.enabled, false, "llm disabled flag honored");
-  assert.equal(generated.llmEnhancement.localAssemblyOnly, true, "local assembly only flag honored");
-  assert.equal(generated.llmEnhancement.externalCallsAllowed, false, "external calls are blocked");
-  assert.equal(generated.llmEnhancement.attempted, 0, "disabled llm does not attempt enhancement");
-  assert.equal(externalLlmFetchAttempts, 0, "disabled llm external fetch attempts");
-  assert.equal(generated.chapters.length, 10, "disabled llm generated chapter count");
-  assert.ok(generated.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "disabled llm has no empty chapter");
-  assertChapterRequiredFields(generated.chapters, "disabled llm");
-  assertPhase6SoloChapterStructure(generated.chapters, "disabled llm");
-  assertPhase8ContentStandards(generated.chapters, "disabled llm");
-  assertPhase9SentenceRules(generated.chapters, "disabled llm");
-  assertNoUnsafeRenderedText(generated.chapters, "disabled llm");
-  assert.ok(generated.loveSecretChapterPlans.every((plan) => Array.isArray(plan.lockedFacts) && plan.lockedFacts.length > 0), "chapter plans carry locked facts");
-
-  const generatedWithLlmKeys = await loveSecret.buildLoveSecretChapters({
-    LOVE_SECRET_PDF_GENERATION_MODE: "local-assembled",
-    LOVE_SECRET_PDF_LLM_ENABLED: "false",
-    LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "true",
-    GEMINI_API_KEY: "test-gemini-key",
-    GEMINI_KEYS: "test-gemini-key",
-    PREMIUM_GEMINI_API_KEY: "test-premium-key",
-    PREMIUM_GEMINI_KEYS: "test-premium-key",
-  }, {
-    base,
-    mode: "solo",
-    config: soloConfig,
-    body: { requestId: "smoke-llm-env-forced-local" },
-    requestId: "smoke-llm-env-forced-local",
-  });
-  assert.equal(generatedWithLlmKeys.manuscriptSource, "local-assembled", "llm env keys still use local assembled manuscript");
-  assert.equal(generatedWithLlmKeys.fallbackUsed, false, "llm disabled path is not a failure fallback");
-  assert.equal(generatedWithLlmKeys.llmEnhancement.enabled, false, "llm env enable flag is ignored");
-  assert.equal(generatedWithLlmKeys.llmEnhancement.localAssemblyOnly, true, "llm env keys stay local assembly only");
-  assert.equal(generatedWithLlmKeys.llmEnhancement.externalCallsAllowed, false, "llm env keys cannot allow external calls");
-  assert.equal(generatedWithLlmKeys.llmEnhancement.attempted, 0, "llm env keys do not attempt enhancement");
-  assert.equal(externalLlmFetchAttempts, 0, "llm env keys external fetch attempts");
-  assert.equal(generatedWithLlmKeys.llmEnhancement.enhancedChapterIds.length, 0, "llm env keys have no enhanced chapters");
-  assert.equal(generatedWithLlmKeys.llmEnhancement.fallbackChapterIds.length, 0, "llm env keys do not create fallback chapters");
-  assert.equal(generatedWithLlmKeys.chapters.length, 10, "llm env keys generated chapter count");
-  assert.ok(generatedWithLlmKeys.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "llm env keys have no empty chapter");
-  assertChapterRequiredFields(generatedWithLlmKeys.chapters, "llm env keys");
-  assertPhase6SoloChapterStructure(generatedWithLlmKeys.chapters, "llm env keys");
-  assertPhase8ContentStandards(generatedWithLlmKeys.chapters, "llm env keys");
-  assertPhase9SentenceRules(generatedWithLlmKeys.chapters, "llm env keys");
-  assertNoUnsafeRenderedText(generatedWithLlmKeys.chapters, "llm env keys");
-
-  const generatedCompatibility = await loveSecret.buildLoveSecretChapters({
-    LOVE_SECRET_PDF_GENERATION_MODE: "local-assembled",
-    LOVE_SECRET_PDF_LLM_ENABLED: "false",
-    LOVE_SECRET_LLM_ENHANCEMENT_ENABLED: "true",
-    GEMINI_API_KEY: "test-gemini-key",
-  }, {
-    base,
-    mode: "compatibility",
-    config: coupleConfig,
-    body: { requestId: "smoke-compatibility-forced-local" },
-    requestId: "smoke-compatibility-forced-local",
-  });
-  assert.equal(generatedCompatibility.manuscriptSource, "local-assembled", "compatibility uses local assembled manuscript");
-  assert.equal(generatedCompatibility.llmEnhancement.enabled, false, "compatibility llm disabled");
-  assert.equal(generatedCompatibility.llmEnhancement.localAssemblyOnly, true, "compatibility local assembly only");
-  assert.equal(generatedCompatibility.llmEnhancement.externalCallsAllowed, false, "compatibility external calls blocked");
-  assert.equal(generatedCompatibility.llmEnhancement.attempted, 0, "compatibility does not attempt llm enhancement");
-  assert.equal(externalLlmFetchAttempts, 0, "compatibility external fetch attempts");
-  assert.equal(generatedCompatibility.chapters.length, 10, "compatibility generated chapter count");
-  assert.ok(generatedCompatibility.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "compatibility has no empty chapter");
-  assertChapterRequiredFields(generatedCompatibility.chapters, "compatibility");
-  assertPhase7CompatibilityChapterStructure(generatedCompatibility.chapters, "compatibility");
-  assertPhase8ContentStandards(generatedCompatibility.chapters, "compatibility");
-  assertPhase9SentenceRules(generatedCompatibility.chapters, "compatibility");
-  assertNoUnsafeRenderedText(generatedCompatibility.chapters, "compatibility");
-  restoreFetch();
+    const generatedCompatibility = await loveSecret.buildLoveSecretChapters({
+      LOVE_SECRET_PDF_GENERATION_MODE: "local-assembled",
+      LOVE_SECRET_EXTERNAL_GENERATION_ENABLED: "true",
+    }, {
+      base,
+      mode: "compatibility",
+      config: coupleConfig,
+      body: { requestId: "smoke-local-assembly-compatibility" },
+      requestId: "smoke-local-assembly-compatibility",
+    });
+    assert.equal(generatedCompatibility.manuscriptSource, "local-assembled", "compatibility uses local assembled manuscript");
+    assert.equal(generatedCompatibility.localAssembly.enabled, true, "compatibility local assembly enabled");
+    assert.equal(generatedCompatibility.localAssembly.externalCallsAllowed, false, "compatibility external generation calls blocked");
+    assert.equal(generatedCompatibility.localAssembly.externalGeneration, false, "compatibility external generation blocked");
+    assert.equal(generatedCompatibility.localAssembly.templateVersion, "love-secret-local-assembled-v3", "compatibility local assembly template version");
+    assert.equal(generatedCompatibility.localAssembly.chapterCount, 10, "compatibility local assembly chapter count");
+    assert.equal(generatedCompatibility.localAssembly.expectedChapterCount, 10, "compatibility local assembly expected chapter count");
+    assert.equal(externalGenerationFetchAttempts, 0, "compatibility external generation fetch attempts");
+    assert.equal(generatedCompatibility.chapters.length, 10, "compatibility generated chapter count");
+    assert.ok(generatedCompatibility.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "compatibility has no empty chapter");
+    assertChapterRequiredFields(generatedCompatibility.chapters, "compatibility local assembly");
+    assertPhase7CompatibilityChapterStructure(generatedCompatibility.chapters, "compatibility local assembly");
+    assertPhase8ContentStandards(generatedCompatibility.chapters, "compatibility local assembly");
+    assertPhase9SentenceRules(generatedCompatibility.chapters, "compatibility local assembly");
+    assertNoUnsafeRenderedText(generatedCompatibility.chapters, "compatibility local assembly");
+  } finally {
+    restoreFetch();
+  }
 }
 
 assert.ok(base.loveSecretReference.compatibility, "compatibility reference should exist");
@@ -672,6 +631,6 @@ assertPaymentFlowGuards();
 assertMode("solo", loveSecret.LOVE_SECRET_PHASE6_SOLO_CHAPTERS, 10);
 assertMode("compatibility", loveSecret.LOVE_SECRET_PHASE7_COMPAT_CHAPTERS, 10);
 assertNormalizedData();
-await assertHybridScaffold();
+await assertLocalAssemblyScaffold();
 
 console.log("[smoke-love-secret-premium-e2e] ok");

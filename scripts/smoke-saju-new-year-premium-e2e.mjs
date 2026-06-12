@@ -68,7 +68,7 @@ assert.deepEqual(specs.map((spec) => spec.title), expectedChapterTitles);
 assert.equal(specs.length, 10);
 assert.ok(specs.every((spec) => spec.categories.length === expectedChapterSections.length));
 assert.ok(specs.every((spec) => JSON.stringify(spec.categories) === JSON.stringify(expectedChapterSections)));
-const paymentCheckIndex = handlePrepareSource.indexOf("const access = isPremiumReportTestMode(env)");
+const paymentCheckIndex = handlePrepareSource.indexOf("const premiumAccessToken = clean");
 const requireAccessIndex = handlePrepareSource.indexOf("await requirePremiumReportAccess", paymentCheckIndex);
 const cacheNormalizeIndex = handlePrepareSource.indexOf("const cacheNormalized = normalizeYearlySajuInput");
 const cacheLookupIndex = handlePrepareSource.indexOf("const cachedPdfExecution = await findNewYearReusableExecution");
@@ -86,26 +86,8 @@ assert.ok(completeExecutionIndex > generatePdfIndex, "premium execution complete
 assert.ok(failExecutionIndex > completeExecutionIndex, "failure settlement path remains in catch block");
 assert.equal(handlePrepareSource.slice(0, paymentCheckIndex).includes("generateYearlySajuPdf("), false, "no PDF generation before payment access");
 assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.generationMode, "local-assembled");
-assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.llmEnabled, false);
 assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.provider, "saju-assembler");
 assert.equal(newYear.YEARLY_SAJU_PDF_CONFIG.templateVersion, "yearly-saju-local-assembled-v4");
-const localModeEnv = {
-  YEARLY_SAJU_PDF_GENERATION_MODE: "local-assembled",
-  YEARLY_SAJU_PDF_LLM_ENABLED: "false",
-  YEARLY_SAJU_LLM_PROVIDER: "saju-assembler",
-  GEMINI_API_KEY: "present-in-env",
-  PREMIUM_GEMINI_API_KEY1: "present-in-env",
-  PREMIUM_SAJU_NEW_YEAR_GEMINI_API_KEY1: "present-in-env",
-  OPENAI_API_KEY: "present-in-env",
-  VERTEX_AI_API_KEY: "present-in-env",
-  ANNUAL_FORTUNE_LLM_ENHANCEMENT_ENABLED: "true",
-};
-assert.equal(newYear.annualFortuneLlmEnabled({
-  GEMINI_API_KEY: "present-in-env",
-  PREMIUM_GEMINI_API_KEY1: "present-in-env",
-  ANNUAL_FORTUNE_LLM_ENHANCEMENT_ENABLED: "true",
-}), false);
-assert.equal(newYear.annualFortuneLlmEnabled(localModeEnv), false);
 
 const originalFetch = globalThis.fetch;
 const forbiddenHosts = [
@@ -113,13 +95,13 @@ const forbiddenHosts = [
   "vertexai.googleapis.com",
   "api.openai.com",
 ];
-let externalLlmFetchCount = 0;
+let externalGenerationFetchCount = 0;
 const assertiveForbiddenRe = /반드시\s*성공한다|무조건\s*성공한다|100\s*%\s*돈\s*번다|무조건\s*이별한다|사고가\s*난다|송사|관재|의료\s*진단|투자\s*조언/i;
 globalThis.fetch = async (input, init) => {
   const url = String(typeof input === "string" ? input : input?.url || "");
   if (forbiddenHosts.some((host) => url.includes(host))) {
-    externalLlmFetchCount += 1;
-    throw new Error(`Forbidden LLM request during saju new year local generation: ${url}`);
+    externalGenerationFetchCount += 1;
+    throw new Error(`Forbidden external generation request during saju new year local generation: ${url}`);
   }
   if (typeof originalFetch === "function") return originalFetch(input, init);
   throw new Error(`Unexpected fetch during saju new year local generation: ${url}`);
@@ -212,14 +194,14 @@ try {
     metadata: { reportType: "sajuNewYear", sessionId: "smoke-local-pipeline" },
   });
   assert.equal(pipelineResult.validation.ok, true, `pipeline validation ${JSON.stringify(pipelineResult.validation)}`);
-  assert.equal(pipelineResult.hybridStats.llmEnabled, false);
-  assert.equal(pipelineResult.hybridStats.llmAttempted, 0);
-  assert.equal(pipelineResult.hybridStats.llmSucceeded, 0);
-  assert.equal(pipelineResult.hybridStats.provider, "saju-assembler");
-  assert.equal(pipelineResult.hybridStats.localAssemblyOnly, true);
-  assert.equal(pipelineResult.hybridStats.externalCallsAllowed, false);
-  assert.equal(pipelineResult.fallbackUsed, false);
-  assert.equal(pipelineResult.llmFallbackReason, "");
+  assert.equal(pipelineResult.localAssembly.enabled, true);
+  assert.equal(pipelineResult.localAssembly.provider, "saju-assembler");
+  assert.equal(pipelineResult.localAssembly.localAssemblyOnly, true);
+  assert.equal(pipelineResult.localAssembly.externalCallsAllowed, false);
+  assert.equal(pipelineResult.localAssembly.externalGeneration, false);
+  assert.equal(pipelineResult.localAssembly.templateVersion, "yearly-saju-local-assembled-v4");
+  assert.equal(pipelineResult.localAssembly.chapterCount, specs.length);
+  assert.equal(pipelineResult.localAssembly.expectedChapterCount, specs.length);
   assert.equal(pipelineResult.manuscriptSource, "local-assembled");
   assert.equal(pipelineResult.chapters.length, specs.length);
   assert.ok(Array.isArray(pipelineResult.monthlyFortuneSections));
@@ -228,6 +210,23 @@ try {
   assert.ok(Array.isArray(pipelineResult.pdfReady.metadata.interpretationBlockIds));
   assert.ok(pipelineResult.pdfReady.metadata.interpretationBlockIds.length >= 10);
   assert.equal(pipelineResult.normalizedData.service, "yearly-saju");
+  const variantProfile = structuredClone(profile);
+  variantProfile.name = "Variant User";
+  variantProfile.gender = "M";
+  variantProfile.birth = {
+    ...variantProfile.birth,
+    year: 1988,
+    month: 11,
+    day: 22,
+    hour: 18,
+    minute: 30,
+  };
+  const variantPipelineResult = newYear.generateYearlySajuPdf(variantProfile, 2027, {
+    body: { quantumMyeongriJson: { schemaVersion: "smoke-client-evidence.v1" } },
+    metadata: { reportType: "sajuNewYear", sessionId: "smoke-local-pipeline-variant" },
+  });
+  assert.notDeepEqual(pipelineResult.normalizedData.annual, variantPipelineResult.normalizedData.annual, "different local inputs produce distinct annual data");
+  assert.notEqual(pipelineResult.chapters[0].text, variantPipelineResult.chapters[0].text, "different local inputs produce distinct chapter text");
   assert.ok(pipelineResult.chapters.some((chapter) => Array.isArray(chapter.interpretationBlockIds) && chapter.interpretationBlockIds.length > 0));
   assert.ok(pipelineResult.chapters.some((chapter) => (chapter.sections || []).some((section) => Array.isArray(section.checklist) && section.checklist.length >= 3)));
   for (const chapter of pipelineResult.chapters) {
@@ -245,20 +244,6 @@ try {
     assert.equal(assertiveForbiddenRe.test(chapterText), false, `chapter ${chapter.no} assertive marker`);
   }
   assert.ok(pipelineResult.chapters.every((chapter) => chapter.source === "local-assembled"));
-  await assert.rejects(
-    () => newYear.generateNewYearChapterWithGemini({
-      GEMINI_API_KEY: "present-in-env",
-      PREMIUM_GEMINI_API_KEY1: "present-in-env",
-      ANNUAL_FORTUNE_LLM_ENHANCEMENT_ENABLED: "true",
-    }, {
-      masterJson,
-      seed,
-      chapterSpec: specs[0],
-      chapterPlan: seed.annualFortuneChapterPlans[0],
-      requestId: "smoke-disabled-llm",
-    }),
-    /SAJU_NEW_YEAR_LLM_DISABLED/,
-  );
   const localPdfReady = pipelineResult.pdfReady;
   assert.equal(/\b(?:undefined|null|NaN)\b|\[object Object\]|준비중|생성 실패|스켈레톤/i.test(String(localPdfReady.html || "")), false);
   assert.equal(assertiveForbiddenRe.test(String(localPdfReady.html || "")), false);
@@ -273,7 +258,7 @@ try {
   assert.ok(String(localPdfReady.html || "").includes("마지막 조언"));
   const completionValidation = newYear.validateSajuNewYearPdfCompletionPayload({ pdfReady: localPdfReady, chapters: pipelineResult.chapters });
   assert.equal(completionValidation.ok, true, `completion validation ${JSON.stringify(completionValidation)}`);
-  assert.equal(externalLlmFetchCount, 0);
+  assert.equal(externalGenerationFetchCount, 0);
   const reusableCached = newYear.buildNewYearReusableExecutionResponse({
     status: "success",
     premiumStatus: "completed",
@@ -320,17 +305,7 @@ try {
   globalThis.fetch = originalFetch;
 }
 
-const normalizedGeneratedChapters = specs.map((spec) => newYear.normalizeNewYearGeneratedChapter({
-  sections: spec.categories.map((title, index) => ({
-    title,
-    body: longBody(seed, title, index),
-    sajuEvidence: ["세운 십성", "월운 점수", "퀀텀 판정"],
-    actionGuide: ["실행 달에 제안하기", "주의 달에는 큰 결정을 늦추기"],
-    monthlyStrategy: ["1분기 정비", "2분기 확장", "3분기 조율", "4분기 정리"],
-    caution: ["결과를 단정하지 않기"],
-  })),
-  masterAdvice: "운을 기다리기보다 흐름에 맞게 움직이는 해입니다.",
-}, spec, seed));
+const normalizedGeneratedChapters = specs.map((spec) => newYear.buildDeterministicChapterFromSpec(seed, spec, "smoke-local-assembled"));
 const generatedValidation = newYear.validateSajuNewYearPdfQuality({
   chapters: normalizedGeneratedChapters,
   expectedChapters: specs,
@@ -340,9 +315,9 @@ const generatedValidation = newYear.validateSajuNewYearPdfQuality({
 assert.equal(generatedValidation.ok, true, `generated quality validation ${JSON.stringify(generatedValidation)}`);
 
 const generatedChapter = normalizedGeneratedChapters[0];
-assert.equal(generatedChapter.source, "external-llm-disabled");
-assert.equal(generatedChapter.categories.length, specs[0].categories.length);
-assert.ok(generatedChapter.categories[0].finalText.length >= 920);
+assert.equal(generatedChapter.source, "local-reinforced");
+assert.equal(generatedChapter.sections.length, specs[0].categories.length);
+assert.ok(generatedChapter.sections[0].body.length >= 920);
 
 const archiveUrls = newYear.buildNewYearArchiveUrls("https://example.test", "new-year-smoke");
 assert.ok(archiveUrls.pdfUrl.includes("format=pdf"));

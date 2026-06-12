@@ -13374,150 +13374,170 @@ function renderZiwei(p, natal, targetId) {
     .zw-pivot-section {
       position: relative;
       overflow: hidden;
-      background:
-        radial-gradient(circle at 14% 20%, rgba(96, 165, 250, 0.18), transparent 34%),
-        radial-gradient(circle at 86% 78%, rgba(192, 132, 252, 0.2), transparent 42%),
-        linear-gradient(155deg, rgba(8, 16, 42, 0.95), rgba(20, 28, 63, 0.92) 52%, rgba(13, 22, 49, 0.92));
+      background: linear-gradient(180deg, rgba(18, 16, 23, 0.98), rgba(11, 12, 17, 0.98));
       padding: 18px;
-      border-radius: 12px;
+      border-radius: 8px;
       margin-bottom: 20px;
-      border: 1px solid rgba(125, 211, 252, 0.35);
-      box-shadow: inset 0 0 0 1px rgba(196, 181, 253, 0.12), 0 14px 28px rgba(2, 6, 23, 0.38);
-    }
-    .zw-pivot-section::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background-image:
-        radial-gradient(circle at 12% 24%, rgba(255,255,255,0.46) 0 1px, transparent 1.5px),
-        radial-gradient(circle at 28% 76%, rgba(255,255,255,0.38) 0 1px, transparent 1.5px),
-        radial-gradient(circle at 58% 18%, rgba(255,255,255,0.42) 0 1px, transparent 1.5px),
-        radial-gradient(circle at 74% 62%, rgba(255,255,255,0.34) 0 1px, transparent 1.4px),
-        radial-gradient(circle at 90% 34%, rgba(255,255,255,0.32) 0 1px, transparent 1.4px);
-      opacity: 0.68;
+      border: 1px solid rgba(212, 175, 55, 0.22);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 18px 34px rgba(0,0,0,0.34);
     }
     .zw-pivot-title {
       position: relative;
       z-index: 1;
-      color: #f8b4ff;
-      font-size: 1.2rem;
-      margin-top: 0;
-      border-bottom: 1px solid rgba(196, 181, 253, 0.4);
+      color: #f6d77a;
+      font-size: 1.16rem;
+      margin: 0 0 6px;
       padding-bottom: 8px;
+      border-bottom: 1px solid rgba(246, 215, 122, 0.22);
+      letter-spacing: 0;
     }
     .zw-pivot-sub {
       position: relative;
       z-index: 1;
-      font-size: 0.78rem;
-      color: #bfdbfe;
-      margin: 0 0 10px;
-      line-height: 1.6;
+      font-size: 0.8rem;
+      color: #c9c3d5;
+      margin: 0 0 14px;
+      line-height: 1.68;
+    }
+    .zw-pivot-axis {
+      position: relative;
+      z-index: 1;
+      margin: 8px 0 16px;
+      padding: 0 8px;
+    }
+    .zw-pivot-axis-track {
+      height: 5px;
+      border-radius: 999px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      background: rgba(255,255,255,0.14);
+    }
+    .zw-pivot-axis-track span:nth-child(1) { background: linear-gradient(90deg, rgba(52,211,153,0.7), rgba(139,92,246,0.66)); }
+    .zw-pivot-axis-track span:nth-child(2) { background: linear-gradient(90deg, rgba(139,92,246,0.66), rgba(245,158,11,0.72)); }
+    .zw-pivot-axis-track span:nth-child(3) { background: linear-gradient(90deg, rgba(245,158,11,0.72), rgba(255,255,255,0.28)); }
+    .zw-pivot-axis-points {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      margin-top: -11px;
+    }
+    .zw-pivot-axis-point {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-width: 0;
+      color: rgba(var(--pivot-rgb, 245,158,11), 1);
+      font-size: 0.68rem;
+      font-weight: 800;
+    }
+    .zw-pivot-axis-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(var(--pivot-rgb, 245,158,11), 1);
+      border: 2px solid #17141d;
+      box-shadow: 0 0 0 2px rgba(var(--pivot-rgb, 245,158,11), 0.22);
     }
     .zw-pivot-deck {
       position: relative;
       z-index: 1;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
     .zw-pivot-card {
       position: relative;
-      border-radius: 12px;
-      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.45);
-      background:
-        radial-gradient(circle at 14% 16%, rgba(var(--pivot-rgb, 167,139,250), 0.3), transparent 36%),
-        radial-gradient(circle at 86% 82%, rgba(125, 211, 252, 0.14), transparent 42%),
-        linear-gradient(162deg, rgba(10, 20, 49, 0.94), rgba(21, 33, 73, 0.9));
+      border-radius: 8px;
+      border: 1px solid rgba(185, 180, 198, 0.28);
+      background: linear-gradient(180deg, rgba(24, 22, 30, 0.98), rgba(17, 15, 22, 0.98));
       overflow: hidden;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 10px 22px rgba(2,6,23,0.34);
-      transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+      box-shadow: inset 4px 0 0 rgba(var(--pivot-rgb, 245,158,11), 0.86), 0 10px 24px rgba(0,0,0,0.28);
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
     }
     .zw-pivot-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(var(--pivot-rgb, 167,139,250), 0.78);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 10px 24px rgba(0,0,0,0.32);
+      transform: translateY(-1px);
+      border-color: rgba(var(--pivot-rgb, 245,158,11), 0.55);
     }
     .zw-pivot-card.is-open {
-      border-color: rgba(var(--pivot-rgb, 167,139,250), 0.92);
-      box-shadow: 0 12px 28px rgba(0,0,0,0.34), 0 0 0 1px rgba(var(--pivot-rgb, 167,139,250), 0.4);
+      border-color: rgba(var(--pivot-rgb, 245,158,11), 0.75);
+      box-shadow: inset 4px 0 0 rgba(var(--pivot-rgb, 245,158,11), 1), 0 16px 32px rgba(0,0,0,0.34);
     }
     .zw-pivot-toggle {
       width: 100%;
       text-align: left;
       border: none;
       background: transparent;
-      padding: 13px 14px 11px;
-      min-height: 54px;
+      padding: 16px 18px 12px;
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      color: #e2e8f0;
+      gap: 11px;
+      color: #ece7f6;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
-    .zw-pv-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      width: 100%;
-    }
-    .zw-pv-top-right {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
+    .zw-pv-card-head {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) minmax(120px, 170px);
+      gap: 12px;
+      align-items: start;
     }
     .zw-pv-num-badge {
-      flex-shrink: 0;
-      width: 24px;
-      height: 24px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      background: rgba(var(--pivot-rgb, 167,139,250), 0.22);
-      border: 1.5px solid rgba(var(--pivot-rgb, 167,139,250), 0.6);
-      color: rgba(var(--pivot-rgb, 167,139,250), 1);
-      font-size: 0.78rem;
+      background: rgba(var(--pivot-rgb, 245,158,11), 0.16);
+      border: 1px solid rgba(var(--pivot-rgb, 245,158,11), 0.44);
+      color: rgba(var(--pivot-rgb, 245,158,11), 1);
+      font-size: 0.84rem;
       font-weight: 900;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       line-height: 1;
     }
-    .zw-pv-tap-hint {
-      flex-shrink: 0;
-      font-size: 0.62rem;
-      color: rgba(var(--pivot-rgb, 167,139,250), 0.55);
-      font-weight: 700;
-      margin-left: auto;
-      white-space: nowrap;
-      transition: opacity .2s;
-    }
-    .zw-pivot-card.is-open .zw-pv-tap-hint {
-      opacity: 0;
-      pointer-events: none;
+    .zw-pv-heading {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
     }
     .zw-pivot-chip {
-      font-size: 0.67rem;
-      color: rgba(var(--pivot-rgb, 167,139,250), 1);
-      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.58);
-      background: rgba(var(--pivot-rgb, 167,139,250), 0.14);
-      padding: 2px 8px;
-      border-radius: 999px;
+      font-size: 0.72rem;
+      color: #b9b4c6;
       font-weight: 800;
-      white-space: nowrap;
-      width: max-content;
+      line-height: 1.35;
     }
-    .zw-pivot-age-range {
-      font-size: 0.7rem;
-      color: rgba(var(--pivot-rgb, 167,139,250), 0.95);
+    .zw-pivot-palace-label {
+      font-size: 1.02rem;
+      font-weight: 900;
+      color: #f7f1ff;
+      line-height: 1.34;
+      overflow-wrap: anywhere;
+      word-break: keep-all;
+    }
+    .zw-pivot-type-tag {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #cfc7df;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    .zw-pv-power {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      align-items: center;
+      gap: 6px;
+      color: #a9a3b7;
+      font-size: 0.68rem;
       font-weight: 800;
-      background: rgba(var(--pivot-rgb, 167,139,250), 0.11);
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.34);
       white-space: nowrap;
+      padding-top: 2px;
+    }
+    .zw-pv-power b {
+      color: #d9d2e8;
+      font-size: 0.72rem;
     }
     .zw-pivot-chevron {
       width: 20px;
@@ -13526,147 +13546,143 @@ function renderZiwei(p, natal, targetId) {
       align-items: center;
       justify-content: center;
       border-radius: 50%;
-      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.58);
-      color: rgba(var(--pivot-rgb, 167,139,250), 1);
-      background: rgba(15, 23, 42, 0.55);
-      font-size: 0.6rem;
+      border: 1px solid rgba(var(--pivot-rgb, 245,158,11), 0.4);
+      color: rgba(var(--pivot-rgb, 245,158,11), 1);
+      background: rgba(255,255,255,0.04);
+      font-size: 0.58rem;
       line-height: 1;
       transform: rotate(0deg);
-      transition: transform .2s ease, color .2s ease, border-color .2s ease, background .2s ease;
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
       flex-shrink: 0;
-    }
-    .zw-pv-main {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-    }
-    .zw-pivot-icon-wrap {
-      flex-shrink: 0;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      background: rgba(var(--pivot-rgb, 167,139,250), 0.18);
-      border: 1.5px solid rgba(var(--pivot-rgb, 167,139,250), 0.45);
-      box-shadow: 0 0 16px rgba(var(--pivot-rgb, 167,139,250), 0.26);
-    }
-    .zw-pivot-title-stack {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .zw-pivot-palace-label {
-      font-size: 0.96rem;
-      font-weight: 900;
-      color: rgba(var(--pivot-rgb, 167,139,250), 1);
-      line-height: 1.3;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-    }
-    .zw-pivot-type-tag {
-      display: inline-flex;
-      align-items: center;
-      font-size: 0.63rem;
-      font-weight: 800;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.38);
-      background: rgba(var(--pivot-rgb, 167,139,250), 0.12);
-      color: rgba(var(--pivot-rgb, 167,139,250), 0.9);
-      width: max-content;
     }
     .zw-pivot-card.is-open .zw-pivot-chevron {
       transform: rotate(180deg);
-      color: #fef3c7;
-      border-color: rgba(251, 191, 36, 0.64);
-      background: rgba(126, 34, 206, 0.35);
+      border-color: rgba(var(--pivot-rgb, 245,158,11), 0.8);
+      background: rgba(var(--pivot-rgb, 245,158,11), 0.12);
     }
     .zw-pivot-body {
       display: none !important;
-      padding: 0 14px 16px;
-      color: #e2e8f0;
-      font-size: 0.84rem;
-      line-height: 1.72;
+      padding: 0 18px 18px;
+      color: #e6e0ee;
+      font-size: 0.85rem;
+      line-height: 1.74;
     }
     .zw-pivot-card.is-open .zw-pivot-body {
       display: block !important;
-      animation: zwPivotBodyIn .32s cubic-bezier(.22,1,.36,1) both;
+      animation: zwPivotBodyIn .28s cubic-bezier(.22,1,.36,1) both;
     }
     @keyframes zwPivotBodyIn {
-      from { opacity: 0; transform: translateY(-10px); }
+      from { opacity: 0; transform: translateY(-8px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     .zw-pv-section {
-      background: rgba(255,255,255,0.038);
-      border-radius: 9px;
-      padding: 9px 11px;
-      margin-bottom: 8px;
-      border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.035);
+      border-radius: 8px;
+      padding: 11px 12px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,0.075);
     }
     .zw-pv-section-title {
-      font-size: 0.72rem;
-      font-weight: 800;
-      color: rgba(var(--pivot-rgb, 167,139,250), 0.94);
-      margin-bottom: 7px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      letter-spacing: 0.01em;
+      font-size: 0.73rem;
+      font-weight: 900;
+      color: #d7c36d;
+      margin-bottom: 8px;
+      letter-spacing: 0;
     }
     .zw-pv-phase-rail {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 5px;
-      margin: 8px 0 0;
+      gap: 7px;
+      margin: 3px 0 0;
     }
     .zw-pv-phase-step {
       border-radius: 8px;
-      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.32);
-      background: rgba(15,23,42,0.42);
-      padding: 6px 5px;
-      color: #dbeafe;
+      border: 1px solid rgba(var(--pivot-rgb, 245,158,11), 0.25);
+      background: rgba(9, 9, 13, 0.44);
+      padding: 8px 6px;
+      color: #cfc7df;
       font-size: 0.68rem;
-      line-height: 1.42;
+      line-height: 1.45;
       text-align: center;
       min-width: 0;
     }
     .zw-pv-phase-step b {
       display: block;
-      color: rgba(var(--pivot-rgb, 167,139,250), 1);
-      font-size: 0.7rem;
-      margin-bottom: 2px;
+      color: rgba(var(--pivot-rgb, 245,158,11), 1);
+      font-size: 0.72rem;
+      margin-bottom: 3px;
+    }
+    .zw-pv-phase-step span {
+      display: block;
+      overflow-wrap: anywhere;
     }
     .zw-pv-star-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
-      margin-bottom: 5px;
+      gap: 6px;
+      margin-bottom: 2px;
     }
     .zw-pv-star-tag {
-      font-size: 0.67rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 6px;
-      background: rgba(167,139,250,0.15);
-      border: 1px solid rgba(167,139,250,0.3);
-      color: #e9d5ff;
-      line-height: 1.45;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(156, 163, 175, 0.12);
+      border: 1px solid rgba(156, 163, 175, 0.24);
+      color: #d6d3dc;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
     }
-    .zw-pv-star-tag.chance {
-      background: rgba(74,222,128,0.13);
-      border-color: rgba(74,222,128,0.36);
-      color: #bbf7d0;
+    .zw-pv-star-tag.good {
+      background: rgba(52,211,153,0.12);
+      border-color: rgba(52,211,153,0.3);
+      color: #a7f3d0;
     }
-    .zw-pv-star-tag.crisis {
-      background: rgba(248,113,113,0.13);
-      border-color: rgba(248,113,113,0.36);
-      color: #fecaca;
+    .zw-pv-star-tag.risk {
+      background: rgba(251,113,133,0.13);
+      border-color: rgba(251,113,133,0.32);
+      color: #fecdd3;
+    }
+    .zw-pv-star-tag.support {
+      background: rgba(139,92,246,0.13);
+      border-color: rgba(139,92,246,0.3);
+      color: #ddd6fe;
+    }
+    .zw-pv-star-tag.muted {
+      background: rgba(148,163,184,0.09);
+      border-color: rgba(148,163,184,0.18);
+      color: #b9b4c6;
+    }
+    .zw-pv-borrowed,
+    .zw-pv-why {
+      font-size: 0.8rem;
+      color: #d9d2e8;
+      line-height: 1.72;
+    }
+    .zw-pv-two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .zw-pv-mini {
+      border-radius: 8px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.075);
+      padding: 11px 12px;
+      min-width: 0;
+    }
+    .zw-pv-mini b {
+      display: block;
+      color: #f6d77a;
+      font-size: 0.74rem;
+      margin-bottom: 6px;
+    }
+    .zw-pv-mini span {
+      display: block;
+      color: #ded7e8;
+      font-size: 0.8rem;
+      line-height: 1.7;
     }
     .zw-pv-strategy-list {
       list-style: none;
@@ -13674,24 +13690,24 @@ function renderZiwei(p, natal, targetId) {
       margin: 0;
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 8px;
     }
     .zw-pv-strategy-item {
       display: flex;
       gap: 8px;
       align-items: flex-start;
       font-size: 0.8rem;
-      line-height: 1.65;
-      color: #cbd5e1;
+      line-height: 1.68;
+      color: #ded7e8;
     }
     .zw-pv-strategy-num {
       flex-shrink: 0;
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: rgba(var(--pivot-rgb, 167,139,250), 0.22);
-      border: 1px solid rgba(var(--pivot-rgb, 167,139,250), 0.5);
-      color: rgba(var(--pivot-rgb, 167,139,250), 1);
+      background: rgba(var(--pivot-rgb, 245,158,11), 0.17);
+      border: 1px solid rgba(var(--pivot-rgb, 245,158,11), 0.38);
+      color: rgba(var(--pivot-rgb, 245,158,11), 1);
       font-size: 0.65rem;
       font-weight: 900;
       display: flex;
@@ -13699,70 +13715,49 @@ function renderZiwei(p, natal, targetId) {
       justify-content: center;
       margin-top: 3px;
     }
-    .zw-pv-risk {
-      background: rgba(248,113,113,0.07);
-      border: 1px solid rgba(248,113,113,0.28);
-      border-radius: 9px;
-      padding: 9px 11px;
-      margin-bottom: 8px;
-    }
-    .zw-pv-risk-title {
-      font-size: 0.71rem;
-      font-weight: 800;
-      color: #fca5a5;
-      margin-bottom: 5px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .zw-pv-risk-text {
-      font-size: 0.79rem;
-      color: #fecaca;
-      line-height: 1.62;
-    }
-    .zw-pv-protocol {
-      font-size: 0.77rem;
-      color: #f3e8ff;
-      line-height: 1.6;
-      margin-top: 5px;
-      padding-top: 5px;
-      border-top: 1px solid rgba(248,113,113,0.18);
-    }
     .zw-pv-oneline {
-      background: linear-gradient(135deg, rgba(var(--pivot-rgb, 167,139,250), 0.12), rgba(var(--pivot-rgb, 167,139,250), 0.06));
-      border-left: 3px solid rgba(var(--pivot-rgb, 167,139,250), 0.7);
-      border-radius: 0 9px 9px 0;
-      padding: 9px 11px;
-      font-size: 0.83rem;
-      color: #f0f9ff;
+      background: rgba(246, 215, 122, 0.075);
+      border-left: 3px solid rgba(var(--pivot-rgb, 245,158,11), 0.82);
+      border-radius: 0 8px 8px 0;
+      padding: 12px 13px;
+      margin-bottom: 10px;
+      font-size: 0.84rem;
+      color: #f5efe2;
       font-style: italic;
-      line-height: 1.55;
+      line-height: 1.6;
       font-weight: 700;
     }
-    .zw-pv-score-bar-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 6px;
+    .zw-pv-risk {
+      background: rgba(251,113,133,0.08);
+      border: 1px solid rgba(251,113,133,0.26);
+      border-radius: 8px;
+      padding: 11px 12px;
+      margin-bottom: 0;
+    }
+    .zw-pv-risk-title {
+      font-size: 0.73rem;
+      font-weight: 900;
+      color: #fda4af;
+      margin-bottom: 7px;
+    }
+    .zw-pv-warning-line {
+      font-size: 0.79rem;
+      color: #fecdd3;
+      line-height: 1.62;
+      margin-top: 4px;
     }
     .zw-pv-score-bar {
-      flex: 1;
       height: 5px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.12);
       overflow: hidden;
+      min-width: 48px;
     }
     .zw-pv-score-fill {
       height: 100%;
       border-radius: 999px;
-      background: linear-gradient(90deg, rgba(var(--pivot-rgb, 167,139,250), 0.7), rgba(var(--pivot-rgb, 167,139,250), 1));
-      transition: width 0.6s ease;
-    }
-    .zw-pv-score-val {
-      font-size: 0.68rem;
-      color: rgba(var(--pivot-rgb, 167,139,250), 1);
-      font-weight: 800;
-      white-space: nowrap;
+      background: linear-gradient(90deg, rgba(var(--pivot-rgb, 245,158,11), 0.56), rgba(var(--pivot-rgb, 245,158,11), 1));
+      transition: width 0.55s ease;
     }
     @media (min-width: 1100px) {
       .zw-dashboard {
@@ -13954,6 +13949,22 @@ function renderZiwei(p, natal, targetId) {
       .ziwei-report-container .zw-pivot-body,
       .ziwei-report-container .zw-compat-ref-content {
         overflow-x: hidden;
+      }
+      .zw-pv-card-head {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+      .zw-pv-power {
+        grid-column: 1 / -1;
+        grid-template-columns: auto minmax(80px, 1fr) auto auto;
+      }
+      .zw-pivot-toggle {
+        padding: 14px 13px 11px;
+      }
+      .zw-pivot-body {
+        padding: 0 13px 14px;
+      }
+      .zw-pv-two-col {
+        grid-template-columns: 1fr;
       }
       .zw-pv-phase-rail {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -19100,66 +19111,430 @@ function renderZiwei(p, natal, targetId) {
           '복덕궁':{icon:'🍀',kw:'정신적 풍요·행복감·내면 성장의 시기'},
           '부모궁':{icon:'👪',kw:'부모 덕·윗사람 후원·문서 운이 집중'}
         };
+        var ZW_DAHAN_TIMELINE_MARKER = 'ziwei-daehan-timeline-expanded-v20260612';
+        var ZW_DAHAN_GANS = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+        var ZW_DAHAN_GAN_LABEL = {
+          '甲':'갑(甲)', '乙':'을(乙)', '丙':'병(丙)', '丁':'정(丁)', '戊':'무(戊)',
+          '己':'기(己)', '庚':'경(庚)', '辛':'신(辛)', '壬':'임(壬)', '癸':'계(癸)'
+        };
+        var ZW_DAHAN_GRADE_COLOR = { 'A+':'#F4C842', 'A':'#F4C842', 'B+':'#9CA3AF', 'B':'#9CA3AF', 'C+':'#A78BFA', 'C':'#A78BFA', 'D':'#F87171' };
+        var ZW_DAHAN_GILSEONG = ['천괴','천월','좌보','우필','문창','문곡','녹존','화록'];
+        var ZW_DAHAN_HYUNGSEONG = ['경양','타라','화성','영성','지공','지겁','화기'];
+        function zwDahanPalaceStars(idx) {
+          return (pd.stars && pd.stars[idx]) || { main:[], aux:[], bad:[] };
+        }
+        function zwDahanGan(dh) {
+          var base = ZW_DAHAN_GANS.indexOf(pd.yearGan);
+          if (base < 0) base = 0;
+          return ZW_DAHAN_GANS[(base + Number(dh.order || 0)) % 10];
+        }
+        function zwDahanStarSet(idx) {
+          var stars = zwDahanPalaceStars(idx);
+          return uniqueList(extractMains(stars).concat(extractAux(stars), extractBad(stars)));
+        }
+        function zwDahanFindStarPalace(starName) {
+          for (var i = 0; i < 12; i += 1) {
+            if (zwDahanStarSet(i).indexOf(starName) >= 0) {
+              return { idx:i, palaceName:zwFlowPalaceName(i) };
+            }
+          }
+          return { idx:-1, palaceName:'미배치 궁' };
+        }
+        function zwDahanBuildSihua(gan) {
+          var byStar = ZW_FLOW_SIHUA_BY_GAN[gan] || {};
+          var byType = { '화록':null, '화권':null, '화과':null, '화기':null };
+          Object.keys(byStar).forEach(function(starName) {
+            var type = byStar[starName];
+            var target = zwDahanFindStarPalace(starName);
+            byType[type] = { star:starName, type:type, palaceName:target.palaceName, palaceIdx:target.idx };
+          });
+          return byType;
+        }
+        function zwDahanSihuaText(entry) {
+          if (!entry) return '해당 별 미배치';
+          return entry.star + ' → ' + entry.palaceName;
+        }
+        function zwDahanSihuaTags(byType) {
+          return ['화록','화권','화과','화기'].map(function(type) {
+            var entry = byType[type];
+            var col = sihuaColors[type] || '#e5e7eb';
+            return '<span style="display:inline-flex;margin:2px 5px 2px 0;padding:4px 8px;border-radius:999px;border:1px solid '+col+'66;background:'+col+'18;color:'+col+';font-size:0.72rem;font-weight:900;">'+zwFlowEsc(type)+' → '+zwFlowEsc(entry ? entry.palaceName : '미배치')+'</span>';
+          }).join('');
+        }
+        function zwDahanSambangSajeong(idx, sihuaByType) {
+          var scanIdx = uniqueList([idx, (idx + 4) % 12, (idx + 8) % 12, (idx + 6) % 12, (idx + 10) % 12]);
+          var names = [];
+          scanIdx.forEach(function(pi) { names = names.concat(zwDahanStarSet(pi)); });
+          ['화록','화권','화과','화기'].forEach(function(type) {
+            var entry = sihuaByType[type];
+            if (entry && scanIdx.indexOf(entry.palaceIdx) >= 0) names.push(type);
+          });
+          var gil = names.filter(function(name) { return ZW_DAHAN_GILSEONG.indexOf(name) >= 0; }).length;
+          var hyung = names.filter(function(name) { return ZW_DAHAN_HYUNGSEONG.indexOf(name) >= 0; }).length;
+          var luck = gil >= hyung + 3 ? '상 (길성 우세)' : (gil >= hyung + 1 ? '중상 (길성 우세)' : (hyung >= gil + 2 ? '주의 (흉성 압박)' : '중립 (균형권)'));
+          var keyActivation = uniqueList(scanIdx.map(function(pi) { return zwFlowPalaceName(pi); })).slice(0, 4).join('·') + ' 활성화';
+          return { gil:gil, hyung:hyung, luck:luck, keyActivation:keyActivation };
+        }
+        function zwDahanGrade(score, hasHwagi, hyung) {
+          if (hasHwagi && hyung >= 3) return 'D';
+          if (score >= 8) return 'A+';
+          if (score >= 5) return 'A';
+          if (score >= 2) return 'B+';
+          if (score >= 0) return 'B';
+          if (score >= -2) return 'C+';
+          return 'C';
+        }
+        function zwDahanBar(grade) {
+          var fill = grade === 'A+' || grade === 'A' ? 5 : (grade === 'B+' || grade === 'B' ? 4 : (grade === 'D' ? 2 : 3));
+          return '<span style="letter-spacing:1px;color:#facc15;">'+('█████'.slice(0, fill))+'</span><span style="letter-spacing:1px;color:#475569;">'+('█████'.slice(0, 5 - fill))+'</span>';
+        }
+        function zwDahanListText(list, fallback) {
+          return (list && list.length) ? list.slice(0, 5).join('·') : fallback;
+        }
+        function zwDahanSectionCard(title, body) {
+          return '<div style="background:rgba(15,23,42,0.55);border:1px solid rgba(148,163,184,0.18);border-radius:9px;padding:10px 11px;min-width:0;">'
+            +'<div style="color:#fde68a;font-size:0.78rem;font-weight:900;margin-bottom:5px;">'+title+'</div>'
+            +'<div style="color:#dbeafe;font-size:0.77rem;line-height:1.66;">'+body+'</div>'
+          +'</div>';
+        }
+        function zwDahanBuildSections(ctx) {
+          var mainText = zwDahanListText(ctx.main, '공궁');
+          var auxText = zwDahanListText(ctx.aux, '보조성 약함');
+          var badText = zwDahanListText(ctx.bad, '강한 흉성 압박 약함');
+          var hwarok = ctx.sihua['화록'];
+          var hwagi = ctx.sihua['화기'];
+          var palaceFocus = (ZW_FLOW_PALACE_THEME[ctx.dh.palaceName] || {}).focus || ctx.theme.kw;
+          return {
+            overview: ctx.dh.startAge+'~'+ctx.dh.endAge+'세 '+ctx.dh.palaceName+' 대한은 '+mainText+' 주성이 '+ctx.theme.kw+' 흐름을 열어 주는 10년입니다. 궁간 '+ZW_DAHAN_GAN_LABEL[ctx.gan]+'의 사화는 화록 '+zwDahanSihuaText(hwarok)+', 화기 '+zwDahanSihuaText(hwagi)+'로 드러나며, '+ctx.sambang.keyActivation+'가 삶의 실제 무대를 강하게 움직입니다. 이 시기는 단순한 길흉보다 무엇을 확장하고 무엇을 보호할지 분명히 정할수록 운의 밀도가 깊어집니다.',
+            career_study: '직업·학업에서는 '+palaceFocus+'이 핵심 주제입니다. 주성 '+mainText+'은 역할의 방향을, 보조성 '+auxText+'은 귀인과 협업의 통로를 뜻합니다. 화권·화과가 닿은 궁은 발표, 시험, 직책, 평판 관리에 유리하므로 결과물을 기록으로 남기는 전략이 좋습니다.',
+            wealth: '재물 흐름은 화록의 도착 궁인 '+(hwarok ? hwarok.palaceName : '미배치 궁')+'을 중심으로 열립니다. 재백궁·관록궁·전택궁이 함께 자극되면 수입, 성과, 고정자산을 한 묶음으로 관리해야 복이 남습니다. 흉성 '+badText+'가 보이면 큰 지출보다 현금흐름 방어가 먼저입니다.',
+            relationship: '관계와 파트너십은 '+ctx.dh.palaceName+'의 성격을 통해 드러납니다. '+ctx.theme.kw+'가 강해지는 동안 약속, 역할, 감정 경계를 선명하게 정해야 합니다. 화기가 '+(hwagi ? hwagi.palaceName : '미배치 궁')+'으로 들어가므로 계약, 동업, 가까운 관계의 오해는 기록과 확인을 거쳐 풀어야 합니다.',
+            health: '건강은 흉성 '+badText+'와 화기의 위치를 함께 봅니다. 과로, 수면 부족, 감정 누적이 먼저 신호로 오기 쉽고, 질액궁이나 복덕궁이 압박되면 회복 루틴을 앞당겨야 합니다. 일정에 휴식 여백을 고정하면 대한의 부담이 크게 낮아집니다.',
+            turning_point: '전환점은 대한 중반과 후반에 강해집니다. '+ctx.keyYears[0].label+'에는 '+ctx.keyYears[0].event+' 흐름이 열리고, '+ctx.keyYears[1].label+'에는 '+ctx.keyYears[1].event+' 흐름이 누적됩니다. 이 두 시점은 확장과 정리를 동시에 판단해야 하는 분기점입니다.',
+            strategy: ['핵심 궁 '+ctx.dh.palaceName+'의 주제를 3년 단위 목표로 나누고 결과물을 숫자와 문서로 남기세요.', '화록이 닿은 '+(hwarok ? hwarok.palaceName : '궁')+' 영역은 반복 수익·평판·관계 자산으로 전환하세요.', '삼방사정에서 강한 궁을 우선순위로 두고 약한 궁은 지출·관계·건강 방어선부터 세우세요.'],
+            caution: ['화기가 닿은 '+(hwagi ? hwagi.palaceName : '궁')+' 문제를 감정적으로 밀어붙이면 손실이 커질 수 있습니다.', '흉성 '+badText+'가 강한 시기에는 무리한 확장, 불투명한 계약, 충동 지출을 피하세요.', '좋은 흐름이 와도 검증 없는 동업·보증·과속 투자로 복을 흩뜨리지 마세요.']
+          };
+        }
         var dahanTimelineHtml = '';
         if (pd.daHanList && pd.daHanList.length > 0) {
-          pd.daHanList.forEach(function(dh) {
+          pd.daHanList.forEach(function(dh, dhIdx) {
             var dhRawStars = pd.stars[dh.idx];
             var dhMain = extractMains(dhRawStars);
             var dhAux = extractAux(dhRawStars);
             var dhBad  = extractBad(dhRawStars);
             var dhTheme = PALACE_DAHAN_THEME[dh.palaceName] || {icon:'🔮',kw:'고유한 운명 흐름의 구간'};
-            var starKw = dhMain.length > 0 ? (STAR_DAHAN_KW[dhMain[0]] ? dhMain[0]+' — '+STAR_DAHAN_KW[dhMain[0]].split(' ')[0]+' 운' : dhMain[0]) : '공궁(유연한 변화)';
-            var dhSihua = [];
-            if (pd.sihuaData) {
-              for (var shS in pd.sihuaData) {
-                if (pd.sihuaData[shS].palaceIdx === dh.idx) dhSihua.push({star:shS, info:pd.sihuaData[shS]});
-              }
-            }
-            var hasHwagi  = dhSihua.some(function(s){return s.info.type==='화기';});
-            var hasHwaroc = dhSihua.some(function(s){return s.info.type==='화록';});
-            var borderCol = hasHwagi ? 'rgba(248,113,113,0.6)' : (hasHwaroc ? 'rgba(74,222,128,0.6)' : 'rgba(139,92,246,0.25)');
-            var bgCol     = hasHwagi ? 'rgba(248,113,113,0.07)' : (hasHwaroc ? 'rgba(74,222,128,0.07)' : 'rgba(255,255,255,0.02)');
-            var dhSihuaTypeCnt = { '화록':0, '화권':0, '화과':0, '화기':0 };
-            dhSihua.forEach(function(s) {
-              if (dhSihuaTypeCnt.hasOwnProperty(s.info.type)) dhSihuaTypeCnt[s.info.type] += 1;
+            var dahanGan = zwDahanGan(dh);
+            var dahanSihua = zwDahanBuildSihua(dahanGan);
+            var sambang = zwDahanSambangSajeong(dh.idx, dahanSihua);
+            var hasHwagi = !!(dahanSihua['화기'] && dahanSihua['화기'].palaceIdx >= 0);
+            var hasHwaroc = !!(dahanSihua['화록'] && dahanSihua['화록'].palaceIdx >= 0);
+            var momentumScore = (dhMain.length * 2) + (dhAux.length) + (hasHwaroc ? 3 : 0) + sambang.gil - (dhBad.length * 2) - (hasHwagi ? 3 : 0) - sambang.hyung;
+            var grade = zwDahanGrade(momentumScore, hasHwagi, dhBad.length + sambang.hyung);
+            var borderCol = ZW_DAHAN_GRADE_COLOR[grade] || '#A78BFA';
+            var bgCol = grade === 'D' ? 'rgba(248,113,113,0.08)' : (grade === 'A+' || grade === 'A' ? 'rgba(244,200,66,0.08)' : 'rgba(255,255,255,0.025)');
+            var isCurrentDahan = currentKoreanAge > 0 && currentKoreanAge >= Number(dh.startAge) && currentKoreanAge <= Number(dh.endAge);
+            var headline = dhTheme.icon+' '+dh.palaceName+' 대한, '+(dhMain[0] || '공궁')+'이 여는 '+dhTheme.kw;
+            var keyYears = [
+              { label:'대한 3년차', event:(dahanSihua['화록'] ? dahanSihua['화록'].palaceName+' 화록이 기회와 수입 채널을 여는 시점입니다.' : '초기 기반이 잡히며 방향을 선명하게 정하는 시점입니다.') },
+              { label:'대한 7년차', event:(dahanSihua['화기'] ? dahanSihua['화기'].palaceName+' 화기의 누적 과제를 정리해야 하는 시점입니다.' : '성과와 관계 구조를 재정렬해 다음 구간을 준비하는 시점입니다.') }
+            ];
+            var sections = zwDahanBuildSections({
+              dh:dh,
+              gan:dahanGan,
+              main:dhMain,
+              aux:dhAux,
+              bad:dhBad,
+              theme:dhTheme,
+              sihua:dahanSihua,
+              sambang:sambang,
+              keyYears:keyYears
             });
-            var momentumScore = (dhMain.length * 2) + (dhAux.length) + (dhSihuaTypeCnt['화록'] * 2) + (dhSihuaTypeCnt['화권']) + (dhSihuaTypeCnt['화과']) - (dhBad.length * 2) - (dhSihuaTypeCnt['화기'] * 3);
-            var momentumLabel = momentumScore >= 4 ? '상승 국면' : (momentumScore <= -2 ? '조정 국면' : '전환 국면');
-            var riskLabel = dhSihuaTypeCnt['화기'] > 0 || dhBad.length >= 2 ? '높음' : ((dhBad.length === 1 || dhSihuaTypeCnt['화권'] > 0) ? '보통' : '낮음');
-            var phaseAction = momentumLabel === '상승 국면'
-              ? '핵심 프로젝트 1~2개를 집중 확장하고, 성과 회수 기준을 숫자로 고정하세요.'
-              : (momentumLabel === '조정 국면'
-                ? '새 확장보다 기존 구조 점검과 손실 통제(지출·관계·일정)를 우선하세요.'
-                : '역할 재배치와 우선순위 재설계로 다음 10년 진입 비용을 낮추는 것이 유리합니다.');
-            var badges = dhSihua.map(function(s){
-              var bc = sihuaColors[s.info.type]||'#fff';
-              return '<span style="background:'+bc+'22;color:'+bc+';border:1px solid '+bc+'55;padding:1px 5px;border-radius:4px;font-size:0.68rem;font-weight:700;margin-left:4px;">'+s.info.type+'</span>';
-            }).join('');
+            var strategyHtml = sections.strategy.map(function(item){ return '<li>'+zwFlowEsc(item)+'</li>'; }).join('');
+            var cautionHtml = sections.caution.map(function(item){ return '<li>'+zwFlowEsc(item)+'</li>'; }).join('');
             dahanTimelineHtml +=
-              '<div style="padding:9px 12px;border-left:3px solid '+borderCol+';background:'+bgCol+';border-radius:0 6px 6px 0;margin-bottom:5px;">'
-                +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-                  +'<div><span style="color:#fbbf24;font-size:0.82rem;font-weight:700;">'+dh.startAge+'~'+dh.endAge+'세</span>'
-                  +'<span style="color:#a78bfa;font-size:0.82rem;margin-left:8px;">│ '+dhTheme.icon+' '+dh.palaceName+'</span>'+badges+'</div>'
-                  +'<span style="color:#94a3b8;font-size:0.73rem;">'+dh.zhi+'</span>'
+              '<details '+(isCurrentDahan ? 'open ' : '')+'style="padding:0;border-left:4px solid '+borderCol+';background:'+bgCol+';border-radius:0 10px 10px 0;margin-bottom:10px;overflow:hidden;box-shadow:0 10px 22px rgba(0,0,0,0.18);" data-daehan-index="'+(dhIdx + 1)+'" data-current="'+(isCurrentDahan ? 'true' : 'false')+'">'
+                +'<summary style="list-style:none;cursor:pointer;padding:13px 14px;">'
+                  +'<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;">'
+                    +'<div style="min-width:0;">'
+                      +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:6px;">'
+                        +'<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:'+borderCol+'22;border:1px solid '+borderCol+'88;color:'+borderCol+';font-size:0.72rem;font-weight:900;">'+grade+'</span>'
+                        +'<span style="color:#fbbf24;font-size:0.84rem;font-weight:900;">'+(dhIdx + 1)+'대한 · '+dh.startAge+'~'+dh.endAge+'세</span>'
+                        +(isCurrentDahan ? '<span style="color:#86efac;font-size:0.72rem;font-weight:900;">현재 대한</span>' : '')
+                      +'</div>'
+                      +'<div style="color:#f8fafc;font-size:0.96rem;font-weight:900;line-height:1.45;">📌 '+zwFlowEsc(headline)+'</div>'
+                      +'<div style="color:#c4b5fd;font-size:0.76rem;line-height:1.65;margin-top:6px;">🔑 궁간: '+zwFlowEsc(ZW_DAHAN_GAN_LABEL[dahanGan] || dahanGan)+' · 주성: '+zwFlowEsc(zwDahanListText(dhMain, '공궁'))+' · 지지: '+zwFlowEsc(dh.zhi || '-')+'</div>'
+                      +'<div style="color:#dbeafe;font-size:0.76rem;line-height:1.65;margin-top:5px;">⭐ 길흉 지수: '+zwDahanBar(grade)+' '+zwFlowEsc(sambang.luck)+' · '+zwFlowEsc(sambang.keyActivation)+'</div>'
+                    +'</div>'
+                    +'<span style="color:#93c5fd;font-size:0.72rem;font-weight:900;padding-top:3px;">자세히 보기</span>'
+                  +'</div>'
+                +'</summary>'
+                +'<div style="padding:0 14px 14px;">'
+                  +'<div style="border-top:1px solid rgba(148,163,184,0.18);padding-top:11px;margin-top:-2px;">'
+                    +'<div style="color:#fde68a;font-size:0.8rem;font-weight:900;margin-bottom:6px;">사화 흐름</div>'
+                    +'<div style="margin-bottom:9px;">'+zwDahanSihuaTags(dahanSihua)+'</div>'
+                    +'<p style="font-size:0.79rem;color:#e2e8f0;line-height:1.72;margin:0 0 10px;">'+zwFlowEsc(sections.overview)+'</p>'
+                    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:9px;margin-bottom:10px;">'
+                      +zwDahanSectionCard('💼 직업/학업', zwFlowEsc(sections.career_study))
+                      +zwDahanSectionCard('💰 재물', zwFlowEsc(sections.wealth))
+                      +zwDahanSectionCard('🤝 관계', zwFlowEsc(sections.relationship))
+                      +zwDahanSectionCard('❤️ 건강', zwFlowEsc(sections.health))
+                      +zwDahanSectionCard('🔀 전환점', zwFlowEsc(sections.turning_point))
+                      +zwDahanSectionCard('🎯 핵심 전략', '<ol style="margin:0;padding-left:17px;">'+strategyHtml+'</ol>')
+                      +zwDahanSectionCard('⚠️ 주의', '<ol style="margin:0;padding-left:17px;">'+cautionHtml+'</ol>')
+                    +'</div>'
+                    +'<div style="background:rgba(2,6,23,0.35);border:1px solid rgba(125,211,252,0.18);border-radius:9px;padding:10px 11px;">'
+                      +'<div style="color:#93c5fd;font-size:0.78rem;font-weight:900;margin-bottom:5px;">🗓 주목할 시점</div>'
+                      +'<div style="font-size:0.76rem;color:#dbeafe;line-height:1.66;">· '+zwFlowEsc(keyYears[0].label)+': '+zwFlowEsc(keyYears[0].event)+'<br>· '+zwFlowEsc(keyYears[1].label)+': '+zwFlowEsc(keyYears[1].event)+'</div>'
+                    +'</div>'
+                  +'</div>'
                 +'</div>'
-                +'<div style="font-size:0.8rem;color:#cbd5e1;margin-top:3px;"><span style="color:#6ee7b7;">'+starKw+'</span> · '+dhTheme.kw+'</div>'
-                +'<div style="font-size:0.77rem;color:#e2e8f0;margin-top:4px;line-height:1.62;">'
-                  +'<b style="color:#c4b5fd;">계산 요약:</b> 주성 '+dhMain.length+' · 보조성 '+dhAux.length+' · 흉성 '+dhBad.length+' · 사화(록/권/과/기) '+dhSihuaTypeCnt['화록']+'/'+dhSihuaTypeCnt['화권']+'/'+dhSihuaTypeCnt['화과']+'/'+dhSihuaTypeCnt['화기']+' → <b style="color:#fcd34d;">'+momentumLabel+'</b> (리스크 '+riskLabel+')'
-                +'</div>'
-                +'<div style="font-size:0.76rem;color:#bae6fd;margin-top:3px;line-height:1.58;">'
-                  +'<b>실행 포인트:</b> '+phaseAction
-                +'</div>'
-              +'</div>';
+              +'</details>';
           });
         }
-        var sec_dahan = '<div style="background:rgba(15,15,30,0.8);padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.25);">'
+        function zwDahanResolveProfileId() {
+          var resolved = '';
+          try {
+            if (typeof window._cdResolveCurrentProfileIdForAccess === 'function') resolved = window._cdResolveCurrentProfileIdForAccess();
+          } catch (_) {}
+          if (!resolved) {
+            var currentProfile = window.__cdCurrentProfile || window.currentDestinyProfile || window.selectedDestinyProfile || null;
+            resolved = String((currentProfile && (currentProfile.profileId || currentProfile.id)) || window.__cdCurrentProfileId || window.currentProfileId || window.selectedProfileId || '').trim();
+          }
+          return String(resolved || '').trim().slice(0, 80).replace(/\s+/g, '_');
+        }
+        function zwDahanPremiumRequest(path, init) {
+          return _cdAIPromptRequestJson(path, init || {}).then(function(result) {
+            if (result && result.payload) return result;
+            return {
+              ok: !!(result && (result.ok || result.success)),
+              status: Number((result && result.status) || 0),
+              payload: result || {}
+            };
+          });
+        }
+        function zwDahanSetGateMessage(shell, message, tone) {
+          var msg = shell && shell.querySelector('.zw-daehan-lock-message');
+          if (!msg) return;
+          msg.textContent = message || '';
+          msg.style.color = tone === 'error' ? '#fca5a5' : (tone === 'success' ? '#86efac' : '#c4b5fd');
+        }
+        function zwDahanRefreshCoinBadges(coins) {
+          var n = Math.max(0, Math.floor(Number(coins || 0)));
+          ['#userCoinBalance','#cdUserCoinBalance','#currentCoinBalance','[data-user-points]','[data-coin-balance]'].forEach(function(sel) {
+            try {
+              document.querySelectorAll(sel).forEach(function(node) {
+                if (node) node.textContent = String(n);
+              });
+            } catch (_) {}
+          });
+          try { window.dispatchEvent(new CustomEvent('code-destiny:coins-updated', { detail:{ points:n, balance:n } })); } catch (_) {}
+        }
+        function zwDahanSetGateUnlocked(shell, unlocked) {
+          if (!shell) return;
+          shell.classList.toggle('cd-section-gate--unlocked', !!unlocked);
+          shell.classList.toggle('cd-section-gate--checking', false);
+          shell.classList.toggle('cd-section-gate--error', false);
+          var btn = shell.querySelector('[data-action="unlockZiweiDaehanTimeline"]');
+          if (btn) {
+            btn.disabled = !!unlocked;
+            btn.textContent = unlocked ? '해금 완료' : '🪙 200코인으로 평생 해금하기';
+          }
+        }
+        function zwDahanSetGateCoins(shell, coins, required) {
+          var coinEl = shell && shell.querySelector('.zw-daehan-current-coins');
+          if (coinEl) coinEl.textContent = Number.isFinite(Number(coins)) ? String(Math.max(0, Math.floor(Number(coins)))) : '-';
+          var btn = shell && shell.querySelector('[data-action="unlockZiweiDaehanTimeline"]');
+          var charge = shell && shell.querySelector('.zw-daehan-charge-link');
+          var enough = Number(coins || 0) >= Number(required || 200);
+          if (btn && !shell.classList.contains('cd-section-gate--unlocked')) btn.disabled = !enough;
+          if (charge) charge.style.display = enough ? 'none' : 'inline-flex';
+          if (!enough) zwDahanSetGateMessage(shell, '코인이 부족합니다. 충전 후 다시 열어 주세요.', 'error');
+        }
+        function zwDahanPremiumShellHtml(bodyHtml) {
+          var profileId = zwDahanResolveProfileId();
+          return '<div class="cd-section-gate cd-ziwei-daehan-premium" id="ziweiDaehanPremiumShell" data-profile-id="'+zwFlowEsc(profileId)+'" data-required-coins="200" style="position:relative;min-height:430px;max-height:none;border-radius:12px;overflow:hidden;">'
+            +'<div class="cd-section-gate__overlay" style="justify-content:flex-start;gap:10px;padding:24px 18px;background:linear-gradient(180deg,rgba(7,3,25,0.88),rgba(8,4,26,0.96));">'
+              +'<div class="cd-section-gate__icon">🔒</div>'
+              +'<p class="cd-section-gate__title" style="font-size:1.12rem;">⏳ 대한(大限) 인생 타임라인</p>'
+              +'<p class="cd-section-gate__desc" style="max-width:420px;-webkit-line-clamp:unset;">당신의 10년 단위 운명 전체 지도</p>'
+              +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:7px;width:min(100%,520px);margin:4px auto 2px;text-align:left;color:#e9d5ff;font-size:0.76rem;line-height:1.55;">'
+                +'<span>✦ 12대한 × 8섹션 완전 분석</span>'
+                +'<span>✦ 대한별 사화 흐름 추적</span>'
+                +'<span>✦ 삼방사정 길흉 지수</span>'
+                +'<span>✦ 주목할 연도별 이벤트</span>'
+                +'<span>✦ 실전 전략과 주의사항</span>'
+              +'</div>'
+              +'<span class="cd-section-gate__badge">한 번 구매 시 영구 열람</span>'
+              +'<button type="button" class="cd-section-gate__btn" data-action="unlockZiweiDaehanTimeline">🪙 200코인으로 평생 해금하기</button>'
+              +'<div class="zw-daehan-lock-message" style="min-height:18px;color:#c4b5fd;font-size:0.74rem;font-weight:800;"></div>'
+              +'<a class="zw-daehan-charge-link" href="/points" style="display:none;align-items:center;justify-content:center;border:1px solid rgba(196,181,253,0.35);border-radius:999px;padding:7px 12px;color:#fef3c7;background:rgba(15,23,42,0.65);font-size:0.74rem;font-weight:900;text-decoration:none;">코인 충전하기</a>'
+              +'<div style="color:#cbd5e1;font-size:0.72rem;">현재 보유 코인: <b class="zw-daehan-current-coins">-</b>코인</div>'
+            +'</div>'
+            +'<div class="cd-section-gate__body" style="max-height:none;">'+bodyHtml+'</div>'
+          +'</div>';
+        }
+        function zwDahanBindPremiumGate(root) {
+          var shell = root && root.querySelector('#ziweiDaehanPremiumShell');
+          if (!shell || shell.getAttribute('data-bound') === 'true') return;
+          shell.setAttribute('data-bound', 'true');
+          var btn = shell.querySelector('[data-action="unlockZiweiDaehanTimeline"]');
+          var profileId = String(shell.getAttribute('data-profile-id') || '').trim();
+          var required = Number(shell.getAttribute('data-required-coins') || 200);
+          function refreshStatus() {
+            if (!profileId) {
+              if (btn) btn.disabled = true;
+              zwDahanSetGateMessage(shell, '프로필을 먼저 선택해 주세요.', 'error');
+              return Promise.resolve();
+            }
+            shell.classList.add('cd-section-gate--checking');
+            return zwDahanPremiumRequest('/api/ziwei/daehan/status?profileId=' + encodeURIComponent(profileId), { method:'GET' }).then(function(result) {
+              var payload = (result && result.payload) || {};
+              shell.classList.remove('cd-section-gate--checking');
+              if (!(result && result.ok) && payload.error) {
+                shell.classList.add('cd-section-gate--error');
+                if (btn) btn.disabled = true;
+                zwDahanSetGateMessage(shell, payload.error === 'UNAUTHORIZED' ? '로그인 후 대한 타임라인을 열 수 있습니다.' : (payload.message || '구매 상태를 확인하지 못했습니다.'), 'error');
+                return;
+              }
+              if (payload.isPurchased) {
+                zwDahanSetGateUnlocked(shell, true);
+                zwDahanSetGateMessage(shell, '대한 타임라인이 열렸습니다.', 'success');
+                zwDahanSetGateCoins(shell, payload.userCoins, required);
+                return;
+              }
+              zwDahanSetGateUnlocked(shell, false);
+              zwDahanSetGateCoins(shell, payload.userCoins, payload.required || required);
+              if (!payload.userCoins && payload.userCoins !== 0) zwDahanSetGateMessage(shell, '대한 타임라인 해금을 준비하고 있습니다.', 'info');
+            }).catch(function() {
+              shell.classList.remove('cd-section-gate--checking');
+              shell.classList.add('cd-section-gate--error');
+              zwDahanSetGateMessage(shell, '구매 상태를 확인하지 못했습니다. 다시 시도해 주세요.', 'error');
+            });
+          }
+          if (btn) {
+            btn.addEventListener('click', function(event) {
+              event.preventDefault();
+              event.stopPropagation();
+              if (btn.disabled || shell.classList.contains('cd-section-gate--unlocked')) return;
+              if (!profileId) {
+                zwDahanSetGateMessage(shell, '프로필을 먼저 선택해 주세요.', 'error');
+                return;
+              }
+              if (!window.confirm('대한 타임라인 해금\n\n200코인을 사용하여 인생 전체 운명 지도를 여시겠습니까?\n\n구매 후 영구 열람 가능합니다.')) return;
+              shell.classList.add('cd-section-gate--checking');
+              btn.disabled = true;
+              btn.textContent = '별의 흐름을 여는 중...';
+              var requestId = 'ziwei-daehan:' + profileId + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+              zwDahanPremiumRequest('/api/ziwei/daehan', {
+                method:'POST',
+                body:JSON.stringify({ profileId:profileId, selectedProfileId:profileId, requestId:requestId })
+              }).then(function(result) {
+                var payload = (result && result.payload) || {};
+                shell.classList.remove('cd-section-gate--checking');
+                if (payload.isPurchased || payload.alreadyPurchased || payload.chargedCoins) {
+                  zwDahanSetGateUnlocked(shell, true);
+                  zwDahanSetGateCoins(shell, payload.userCoins || payload.balanceAfter, required);
+                  zwDahanRefreshCoinBadges(payload.userCoins || payload.balanceAfter);
+                  zwDahanSetGateMessage(shell, '대한 타임라인이 열렸습니다.', 'success');
+                  return;
+                }
+                shell.classList.add('cd-section-gate--error');
+                btn.disabled = false;
+                btn.textContent = '🪙 200코인으로 평생 해금하기';
+                if (payload.error === 'INSUFFICIENT_COINS') zwDahanSetGateCoins(shell, payload.current || payload.userCoins || 0, required);
+                zwDahanSetGateMessage(shell, payload.message || '해금에 실패했습니다. 다시 시도해 주세요.', 'error');
+              }).catch(function() {
+                shell.classList.remove('cd-section-gate--checking');
+                shell.classList.add('cd-section-gate--error');
+                btn.disabled = false;
+                btn.textContent = '🪙 200코인으로 평생 해금하기';
+                zwDahanSetGateMessage(shell, '해금 요청 중 오류가 발생했습니다. 다시 시도해 주세요.', 'error');
+              });
+            });
+          }
+          refreshStatus();
+        }
+        var sec_dahan = '<div data-cd-marker="'+ZW_DAHAN_TIMELINE_MARKER+'" style="background:rgba(15,15,30,0.8);padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.25);">'
           +'<h2 style="color:#6EE7B7;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(110,231,183,0.3);padding-bottom:8px;">⏳ 대한(大限) 12단계 타임라인</h2>'
-          +'<p style="font-size:0.78rem;color:#94a3b8;margin:0 0 10px;">각 대한은 약 10년 주기. <span style="color:#4ade80;">■</span>=화록(길기), <span style="color:#f87171;">■</span>=화기(흉기) 시기.</p>'
-          +dahanTimelineHtml
+          +'<p style="font-size:0.78rem;color:#94a3b8;margin:0 0 12px;line-height:1.65;">각 대한은 약 10년 주기입니다. 궁간 사화, 삼방사정 길흉 지수, 8개 실전 섹션을 함께 펼쳐 현재 대한은 자동으로 열립니다.</p>'
+          +zwDahanPremiumShellHtml(dahanTimelineHtml)
         +'</div>';
 
-        // ── 인생의 3대 변곡점 (항상 3개 산출) ──
+        // ── 인생의 3대 변곡점 (항상 3개 산출): 대한궁·성계·사화·차성을 함께 계량 ──
         var pivotCandidates = [];
+        var zwPivotPalaceWeight = { '명궁':8, '관록궁':8, '재백궁':8, '부처궁':7, '천이궁':7, '전택궁':6, '복덕궁':5, '질액궁':5, '노복궁':5, '자녀궁':4, '부모궁':4, '형제궁':4 };
+        var zwPivotPalaceFocus = {
+          '명궁':'자기 정체성, 이름값, 삶의 방향을 새로 세우는 자리',
+          '부모궁':'윗사람, 제도, 문서, 보호 구조와의 관계가 재편되는 자리',
+          '복덕궁':'마음의 그릇, 회복력, 장기 루틴과 내면의 평안이 운을 좌우하는 자리',
+          '전택궁':'주거, 부동산, 가족 기반, 장기 자산의 뿌리를 조정하는 자리',
+          '관록궁':'직업 권한, 성취, 조직 내 위치와 사회적 책임이 응축되는 자리',
+          '노복궁':'팀, 고객, 동료, 협업망과 인맥의 질이 운세를 가르는 자리',
+          '천이궁':'이동, 외부 무대, 해외, 시장 확장과 대외 평판이 열리는 자리',
+          '질액궁':'몸의 신호, 소진, 생활 리듬, 위기 대응력이 드러나는 자리',
+          '재백궁':'수입 경로, 현금흐름, 투자와 지출의 구조가 바뀌는 자리',
+          '자녀궁':'창작물, 후배, 프로젝트 산출물, 다음 세대와의 연결이 살아나는 자리',
+          '부처궁':'배우자, 동업자, 계약, 일대일 관계의 약속이 시험받는 자리',
+          '형제궁':'형제, 가까운 동료, 경쟁자, 초기 네트워크와 역할 경계가 재정리되는 자리'
+        };
+        var zwPivotCareerMap = {
+          '명궁':'개인 브랜드와 대표 역할을 분명히 세우십시오. 이름을 걸고 나설 일과 뒤에서 도울 일을 구분하면 명예가 오래 갑니다.',
+          '부모궁':'문서, 심사, 자격, 윗선 승인 흐름이 성패를 좌우합니다. 근거 자료를 정돈하고 공식 절차를 먼저 통과시키는 편이 유리합니다.',
+          '복덕궁':'과로로 밀어붙이기보다 집중 가능한 생활 리듬을 만드는 것이 성취의 열쇠입니다. 오래 가는 루틴이 곧 실력으로 굳어집니다.',
+          '전택궁':'고정 기반을 안정시키는 선택이 직업운까지 받쳐줍니다. 사무공간, 거주지, 장비, 장기 계약을 현실적으로 점검하십시오.',
+          '관록궁':'직함보다 실제 권한과 책임 범위를 명확히 해야 합니다. 승진, 독립, 직무 전환은 성과 지표와 역할 경계를 함께 확정할 때 길합니다.',
+          '노복궁':'혼자 해결하려는 습관을 줄이고 핵심 협력자를 선별하십시오. 팀의 수준을 높이면 본인의 사회적 위치도 함께 상승합니다.',
+          '천이궁':'외부 발표, 강의, 영업, 해외·온라인 채널이 살아납니다. 익숙한 울타리 밖에서 이름을 알릴수록 판이 커집니다.',
+          '질액궁':'무리한 속도는 성취를 깎습니다. 건강 루틴과 업무 강도를 함께 설계해야 긴 경주에서 밀리지 않습니다.',
+          '재백궁':'수익 모델을 한 줄로 설명할 수 있어야 합니다. 돈이 들어오는 경로와 회수 시점을 명확히 잡으면 일이 곧 자산이 됩니다.',
+          '자녀궁':'콘텐츠, 상품, 후배 양성, 신규 프로젝트가 성취의 씨앗입니다. 작게 시작해도 완성도와 반복성이 중요합니다.',
+          '부처궁':'파트너십, 동업, 고객 계약에서 성취가 열립니다. 단, 역할 분담과 책임 조항을 문서로 남겨야 관계가 운을 돕습니다.',
+          '형제궁':'가까운 동료와의 경쟁·협력이 동시에 강해집니다. 초기 네트워크의 기대치를 조율하면 기회가 분산되지 않습니다.'
+        };
+        var zwPivotWealthMap = {
+          '명궁':'평판과 신뢰가 재물의 입구입니다. 자기 이름으로 받는 일은 단가를 낮추지 말고, 과시 지출은 줄이십시오.',
+          '부모궁':'지원금, 보조금, 상속성 자원, 제도권 혜택을 점검할 때입니다. 서류 누락과 세무 리스크를 특히 조심해야 합니다.',
+          '복덕궁':'재물은 급등보다 안정적 축적에 가깝습니다. 스트레스성 소비를 줄이고 자동 저축·보험·회복 예산을 분리하십시오.',
+          '전택궁':'부동산, 보증금, 가족 자산, 장기 거주 비용이 핵심입니다. 큰 계약은 감정가보다 유지비와 현금흐름을 먼저 보십시오.',
+          '관록궁':'직업 성과가 곧 수입으로 이어지는 구간입니다. 성과급, 승진, 계약 단가를 협상하되 책임 증가분도 함께 계산하십시오.',
+          '노복궁':'인맥을 통한 수입이 열리지만 공동 비용도 늘어납니다. 정산 기준과 수익 배분표가 없으면 좋은 인연도 부담이 됩니다.',
+          '천이궁':'외부 시장, 이동, 해외, 플랫폼 수익이 살아납니다. 확장 비용은 단계별로 투입하고 환율·물류·계약 조건을 확인하십시오.',
+          '질액궁':'건강 비용과 업무 손실 비용을 동시에 줄여야 합니다. 예방 지출은 아끼지 말고, 고위험 투자는 보류가 좋습니다.',
+          '재백궁':'현금흐름이 가장 직접적으로 움직입니다. 수입원 다변화는 길하지만 단기 차입과 무리한 레버리지는 삼가십시오.',
+          '자녀궁':'작품, 상품, 교육, 후배·자녀 관련 지출입이 커집니다. 초기 투자는 작게, 반복 판매 구조를 만들 때 재물이 붙습니다.',
+          '부처궁':'공동 자금, 배우자·동업자 재정, 계약금이 민감합니다. 함께 버는 돈일수록 권한과 책임을 분리해야 안전합니다.',
+          '형제궁':'가까운 사람과 돈거래가 생기기 쉽습니다. 소액이라도 조건을 남기고, 경쟁적 소비를 경계하십시오.'
+        };
+        var zwPivotPhaseCopy = {
+          chance:{ name:'도약', icon:'✦', tone:'chance', typeText:'도약 국면', accent:'#34d399', rgb:'52,211,153' },
+          crisis:{ name:'수호', icon:'△', tone:'crisis', typeText:'수호 국면', accent:'#fb7185', rgb:'251,113,133' },
+          turn:{ name:'재정렬', icon:'◇', tone:'turn', typeText:'재정렬 국면', accent:'#f59e0b', rgb:'245,158,11' }
+        };
+        function zwPivotJoin(list, fallback) {
+          return list && list.length ? list.join(' · ') : fallback;
+        }
+        function zwPivotFamily(mainStars) {
+          var names = mainStars || [];
+          if (names.some(function(n){ return ['칠살','파군','탐랑'].indexOf(n) >= 0; })) return { name:'살파랑 계열', desc:'낡은 구조를 깨고 새 길을 여는 변혁성' };
+          if (names.some(function(n){ return ['자미','천부','무곡','염정'].indexOf(n) >= 0; })) return { name:'자부염무 계열', desc:'권한, 조직, 재정, 책임을 다루는 통치성' };
+          if (names.some(function(n){ return ['천기','태음','천동','천량'].indexOf(n) >= 0; })) return { name:'기월동량 계열', desc:'지혜, 조정, 보호, 내면 설계를 중시하는 안정성' };
+          if (names.some(function(n){ return ['태양','거문','문창','문곡'].indexOf(n) >= 0; })) return { name:'명성·언어 계열', desc:'말, 문서, 발표, 평판으로 판을 움직이는 표현성' };
+          return { name:'복합 성계', desc:'주성보다 보조성, 사화, 궁위의 상호작용이 운을 결정하는 구조' };
+        }
+        function zwPivotAgeStage(age) {
+          if (age < 20) return { short:'10대 · 기초 형성', detail:'학업, 보호자, 자아 발견의 흐름이 이후 선택의 밑바탕을 만듭니다.' };
+          if (age < 30) return { short:'20대 · 진입과 실험', detail:'첫 사회 진입, 독립, 인연, 방향 선택이 겹치며 운명의 결을 시험합니다.' };
+          if (age < 40) return { short:'30대 · 기반 확립', detail:'직업 기반, 파트너십, 자산의 뼈대가 자리 잡아 이후 10년의 무게를 정합니다.' };
+          if (age < 50) return { short:'40대 · 전성기와 재조정', detail:'성과와 책임이 동시에 커지며, 오래 끌고 갈 구조와 버릴 구조가 갈립니다.' };
+          if (age < 60) return { short:'50대 · 결실과 재배치', detail:'축적한 성취를 안정 자산과 후반 인생의 기반으로 옮기는 시기입니다.' };
+          if (age < 70) return { short:'60대 · 수확과 전수', detail:'역할을 나누고 경험을 전수하며, 삶의 의미와 자산을 정돈하는 흐름입니다.' };
+          return { short:'70대+ · 완성과 유산', detail:'관계, 지식, 자산, 정신적 유산을 맑게 남기는 일이 중심 과제가 됩니다.' };
+        }
+        function zwPivotTypeFromSignals(hwagiList, hwarokList, hwakwonList, hwakwaList, badList, auxList) {
+          if (hwagiList.length || badList.length >= 2) return 'crisis';
+          if (hwarokList.length || hwakwonList.length || hwakwaList.length || auxList.length >= 2) return 'chance';
+          return 'turn';
+        }
         if (pd.daHanList && pd.daHanList.length) {
           pd.daHanList.forEach(function(dh, dhOrderIdx) {
             var dhStars = pd.stars[dh.idx] || {main:[],aux:[],bad:[],borrowedMain:[]};
@@ -19180,136 +19555,131 @@ function renderZiwei(p, natal, targetId) {
             var hwakwonList = dhSihua.filter(function(s){ return s.info.type === '화권'; });
             var hwakwaList = dhSihua.filter(function(s){ return s.info.type === '화과'; });
 
-            var impactScore = 0;
-            impactScore += hwagiList.length * 8;
-            impactScore += hwarokList.length * 6;
-            impactScore += hwakwonList.length * 5;
-            impactScore += hwakwaList.length * 4;
-            impactScore += dhBad.length * 2;
-            impactScore += dhAux.length;
-            impactScore += dhBorrowed.length * 2;
-            if (['명궁','관록궁','재백궁','부처궁','천이궁'].indexOf(dh.palaceName) >= 0) impactScore += 2;
+            var palaceWeight = zwPivotPalaceWeight[dh.palaceName] || 3;
+            var starFamily = zwPivotFamily(dhMain);
+            var pivotType = zwPivotTypeFromSignals(hwagiList, hwarokList, hwakwonList, hwakwaList, dhBad, dhAux);
+            var phaseMeta = zwPivotPhaseCopy[pivotType] || zwPivotPhaseCopy.turn;
+            var mainLabel = zwPivotJoin(dhMain, '공궁(空宮)');
+            var borrowedLabel = dhBorrowed.length ? ('차성 보정: '+dhBorrowed.join(' · ')) : '차성 보정: 원성 중심';
+            var sihuaLabel = dhSihua.length ? dhSihua.map(function(s){ return s.star+' '+s.info.type; }).join(' · ') : '사화 직접 작용 약함';
+            var goodSignalCount = hwarokList.length + hwakwonList.length + hwakwaList.length + Math.min(3, dhAux.length);
+            var riskSignalCount = hwagiList.length + dhBad.length;
+            var impactScore = 18 + palaceWeight * 2;
+            impactScore += hwagiList.length * 12;
+            impactScore += hwarokList.length * 10;
+            impactScore += hwakwonList.length * 9;
+            impactScore += hwakwaList.length * 7;
+            impactScore += dhBad.length * 4;
+            impactScore += dhAux.length * 2;
+            impactScore += dhBorrowed.length * 4;
+            impactScore += starFamily.name === '살파랑 계열' ? 8 : 0;
+            impactScore += starFamily.name === '자부염무 계열' ? 6 : 0;
+            impactScore += starFamily.name === '기월동량 계열' ? 5 : 0;
 
-            var pivotType = 'turn';
-            var icon = '🔀';
-            if (hwagiList.length > 0 || dhBad.length >= 2) {
-              pivotType = 'crisis';
-              icon = '⚠️';
-            } else if (hwarokList.length > 0 || hwakwonList.length > 0 || hwakwaList.length > 0 || dhAux.length >= 2) {
-              pivotType = 'chance';
-              icon = '⭐';
-            }
+            var activationPercent = Math.max(38, Math.min(92, Math.round(impactScore)));
+            var lifeStageInfo = zwPivotAgeStage(dh.startAge);
+            var midAge = Math.round((Number(dh.startAge || 0) + Number(dh.endAge || dh.startAge || 0)) / 2);
+            var lifeStageLabel = lifeStageInfo.short+' · '+midAge+'세 전후';
+            var palaceFocus = zwPivotPalaceFocus[dh.palaceName] || '삶의 한 축을 새로 조정하는 자리';
+            var phaseHeadline = pivotType === 'chance'
+              ? '길성이 문을 여는 상승 전환'
+              : (pivotType === 'crisis' ? '화기와 흉성을 다스리는 수호 전환' : '방향을 다시 세우는 재정렬 전환');
+            var headline = dh.palaceName+' '+phaseMeta.name+' - '+phaseHeadline;
+            var subline = starFamily.name+' · '+mainLabel+' · '+sihuaLabel;
+            var whyText = lifeStageInfo.detail+' 이 대한은 '+dh.palaceName+'을 중심으로 '+palaceFocus+'입니다. '+starFamily.desc+'이 '+mainLabel+' 성계로 드러나고, '+sihuaLabel+' 신호가 겹치므로 작은 선택도 이후의 직업, 재물, 관계 구조에 길게 남습니다.';
+            if (dhBorrowed.length) whyText += ' 특히 '+dhBorrowed.join(' · ')+' 차성이 원궁의 빈 곳을 채워, 겉으로 보이는 사건보다 배후의 조정력과 보정력이 강하게 작동합니다.';
+            if (hwagiList.length) whyText += ' '+hwagiList.map(function(s){ return s.star; }).join(' · ')+' 화기는 집착과 손실의 문을 함께 열 수 있으니, 빠른 결론보다 검증된 절차가 운을 지킵니다.';
+            if (hwarokList.length || hwakwonList.length || hwakwaList.length) whyText += ' 반대로 '+[hwarokList.length?'화록':'' , hwakwonList.length?'화권':'' , hwakwaList.length?'화과':''].filter(Boolean).join('·')+'은 기회를 현실 성과로 굳히는 힘입니다.';
 
-            var mainLabel = dhMain.length ? dhMain.join(' · ') : '공궁(空宮)';
-            var borrowedLabel = dhBorrowed.length
-              ? ('차성 반영: '+dhBorrowed.join(' · '))
-              : '차성 반영: 없음(원성 중심)';
-            var sihuaLabel = dhSihua.length
-              ? dhSihua.map(function(s){ return s.star+' '+s.info.type; }).join(' · ')
-              : '사화 직접 작용 약함';
-            var phaseDirective = pivotType === 'crisis'
-              ? '거문 봉인'
-              : (pivotType === 'chance' ? '확장' : '전환');
-
-            var focusMap = {
-              '명궁':'브랜딩/핵심 역할 재정의',
-              '관록궁':'직무 권한/핵심 프로젝트',
-              '재백궁':'수익 모델/현금흐름 구조',
-              '부처궁':'동반자 협업/의사결정 룰',
-              '전택궁':'자산 배치/주거-재무 정렬',
-              '천이궁':'이동/해외/채널 확장',
-              '복덕궁':'멘탈 회복력/고품질 루틴',
-              '노복궁':'팀 빌드/핵심 인재 배치'
-            };
-            var leverageMap = {
-              '명궁':'평판 자산과 개인 브랜드',
-              '관록궁':'권한 위임과 실행 인력',
-              '재백궁':'현금/계약/회수 사이클',
-              '부처궁':'파트너 신뢰와 역할 분담표',
-              '전택궁':'고정자산과 방어 자금',
-              '천이궁':'외부 네트워크와 신규 시장',
-              '복덕궁':'휴식 루틴과 컨디션 수호',
-              '노복궁':'협업 체계와 운영 절차'
-            };
-
-            var step1 = (phaseDirective === '확장'
-              ? '상승 탄력이 붙는 '+(focusMap[dh.palaceName] || '핵심 과제')+' 분야에 자원을 집중하세요. 리소스 분산 금지, 1개 트랙 집중이 승률을 높입니다.'
-              : (phaseDirective === '거문 봉인'
-                ? '손실 확률이 큰 영역부터 먼저 잠그세요. '+(focusMap[dh.palaceName] || '핵심 과제')+' 관련 의사결정은 사전 성문 점검표 없이는 실행하지 않는 룰이 필요합니다.'
-                : '구조 전환이 필요한 구간입니다. '+(focusMap[dh.palaceName] || '핵심 과제')+'를 중심으로 역할/우선순위를 재설계하세요.'));
-            var step2 = (phaseDirective === '확장'
-              ? '레버리지는 '+(leverageMap[dh.palaceName] || '핵심 자산')+'입니다. 사람/자산 중 성과 변환율이 높은 한 축에 예산과 시간을 몰아주세요.'
-              : (phaseDirective === '거문 봉인'
-                ? '리소스 운용은 보수적으로 전환하세요. 코드 리뷰하듯 계약·투자·인사 의사결정을 2인 검증 체계로 통과시키는 방식이 안전합니다.'
-                : '리소스는 병행보다 직렬 처리로 전환하세요. 중복 프로젝트를 줄이고 핵심 실행선 1~2개만 유지해야 전환비용이 감소합니다.'));
-            var step3 = (phaseDirective === '확장'
-              ? '성과 회수 시점은 영험 지표가 2회 연속 목표치를 달성한 직후입니다. 이익 일부를 회수해 방어 자산으로 이동하면 상승장의 변동성을 흡수할 수 있습니다.'
-              : (phaseDirective === '거문 봉인'
-                ? '성과 회수 기준을 숫자로 고정하세요. 손실 임계치 도달 시 즉시 중단(Stop-Loss), 감정 개입 없이 수호 절차대로 마무리합니다.'
-                : '성과 회수는 재배치 완료 후 1분기 단위로 진행하세요. 전환기에는 속도보다 구조 안정화가 최우선입니다.'));
-
-            var criticalIssue = '';
-            if (hwagiList.length > 0) {
-              criticalIssue = '화기 개입으로 오판/갈등이 누적될 수 있습니다. 빠른 결론 강요와 즉흥 결정은 손실 확률을 키웁니다.';
-            } else if (dhBad.length >= 2) {
-              criticalIssue = '흉성 압력으로 일정 지연·관계 마찰·비용 초과가 동시 발생할 수 있습니다. 특히 책임 경계가 모호하면 문제가 확대됩니다.';
+            var actionItems = [];
+            if (pivotType === 'chance') {
+              actionItems = [
+                (zwPivotPalaceFocus[dh.palaceName] || '핵심 과제')+'에 자원과 시간을 집중하고, 동시에 벌인 일을 줄여 상승 탄력을 한곳에 모으십시오.',
+                '화록·화권·화과가 비추는 기회는 문서, 일정, 수익 구조로 즉시 고정하십시오. 말로 끝난 약속은 운의 그릇이 되지 못합니다.',
+                '성과가 보일 때 일부는 방어 자산으로 돌려놓으십시오. 확장은 회수 장치가 있을 때 오래 갑니다.'
+              ];
+            } else if (pivotType === 'crisis') {
+              actionItems = [
+                '중요 계약, 투자, 이직, 동업 결정은 최소 하루를 재우고 다시 보십시오. 화기와 흉성은 서두름 속에서 틈을 만듭니다.',
+                '관계와 돈이 섞이는 일은 역할, 책임, 종료 조건을 글로 남기십시오. 선명한 경계가 이 시기의 부적입니다.',
+                '피로와 감정이 올라오는 날에는 큰 결정을 미루십시오. 컨디션이 무너진 판단은 실제보다 손실을 키웁니다.'
+              ];
             } else {
-              criticalIssue = '대형 리스크는 낮지만 과신으로 인한 수호 누락이 위험 포인트입니다. 잘될수록 기준을 느슨하게 만들지 마세요.';
+              actionItems = [
+                '지난 3년간 반복된 선택을 정리하고, 남길 역할과 내려놓을 역할을 구분하십시오.',
+                '새 방향은 크게 외치기보다 작은 고정 루틴으로 먼저 시험하십시오. 루틴이 자리 잡으면 운도 따라 안정됩니다.',
+                '가까운 사람의 기대보다 자신의 명반이 요구하는 중심축을 우선하십시오. 흔들림을 줄이는 것이 첫 승리입니다.'
+              ];
             }
 
-            var protocol1 = hwagiList.length > 0
-              ? '중요 의사결정은 24시간 냉각 후 재검토하고, 계약·금전 항목은 최소 2회 교차 검증합니다.'
-              : '우선순위 3개를 고정하고, 범위 밖 요청은 다음 스프린트로 이관합니다.';
-            var protocol2 = dhBad.length >= 2
-              ? '갈등 조짐(말투/지연/회피) 발생 시 즉시 사실-감정 분리 회의를 열어 문제를 로그화합니다.'
-              : '주간 리뷰에서 영험 지표 달성률과 거문 지표를 함께 점검해, 이상 징후를 조기 봉합합니다.';
+            var warningTitle = hwagiList.length
+              ? hwagiList.map(function(s){ return s.star; }).join(' · ')+' 화기 경고'
+              : (dhBad.length ? dhBad.slice(0,2).join(' · ')+' 흉성 압력 경고' : '과신과 느슨함 경계');
+            var warnings = [];
+            if (hwagiList.length) warnings.push('화기가 걸린 주제는 손실보다 집착이 먼저 옵니다. 이미 마음이 급해진 결정은 반드시 제삼자의 확인을 받으십시오.');
+            if (dhBad.length) warnings.push(dhBad.slice(0,2).join(' · ')+' 압력으로 지연, 충돌, 비용 증가가 생길 수 있습니다. 무리한 일정과 즉흥 지출을 피하십시오.');
+            if (!warnings.length) warnings.push('운이 안정적일수록 기준을 낮추기 쉽습니다. 작은 약속, 작은 지출, 작은 피로를 가볍게 넘기지 마십시오.');
+            if (dh.palaceName === '부처궁') warnings.push('파트너십과 계약은 반드시 조건을 문서화하십시오. 감정적 신뢰만으로 결정하면 후반에 균열이 생깁니다.');
+            if (dh.palaceName === '재백궁') warnings.push('수익이 늘어나는 만큼 새 지출도 따라붙습니다. 들어온 돈의 일부는 바로 방어 자금으로 분리하십시오.');
+            if (dh.palaceName === '천이궁') warnings.push('이동, 해외, 외부 확장은 좋으나 낯선 규칙을 가볍게 보면 손실이 생깁니다. 계약과 현지 조건을 확인하십시오.');
 
-            var oneLineAdvice = phaseDirective === '확장'
-              ? '"지금은 속도전이 아니라 회수 설계까지 포함한 확장전이다."'
-              : (phaseDirective === '거문 봉인'
-                ? '"감정이 아니라 수호 의식이 당신의 자산을 지킨다."'
-                : '"전환기의 승자는 빠른 사람이 아니라 구조를 먼저 고친 사람이다."');
+            var tags = [];
+            dhSihua.forEach(function(s){
+              tags.push({ label:s.star+' '+s.info.type+' → '+dh.palaceName, tone:s.info.type === '화기' ? 'risk' : 'good' });
+            });
+            if (!dhSihua.length) tags.push({ label:'사화 직접 작용 약함', tone:'muted' });
+            if (dhBorrowed.length) tags.push({ label:'차성 '+dhBorrowed.slice(0,2).join(' · ')+' 보정', tone:'support' });
+            if (dhAux.length) tags.push({ label:'보조성 '+dhAux.slice(0,2).join(' · ')+' 가세', tone:'support' });
+            if (dhBad.length) tags.push({ label:'흉성 '+dhBad.slice(0,2).join(' · ')+' 압박', tone:'risk' });
 
-            var title = dh.startAge+'~'+dh.endAge+'세 대한: '+dh.palaceName+' 변곡점';
-
-            // 라이프스테이지 맥락 계산
-            var _lsAge = dh.startAge;
-            var _lifeStageInfo = _lsAge < 20
-              ? { stage: '10대 · 청소년기 기초 형성', ctx: '진학·기초역량·자아 발견이 핵심 과제입니다.' }
-              : (_lsAge < 30
-                ? { stage: '20대 · 진입과 실험기', ctx: '첫 직장·연애·독립·자기 정체성 구축이 활발합니다.' }
-                : (_lsAge < 40
-                  ? { stage: '30대 · 기반 확립기', ctx: '커리어 발전·파트너십·자산 기반 형성의 전환점입니다.' }
-                  : (_lsAge < 50
-                    ? { stage: '40대 · 전성기와 재조정', ctx: '역할 정점·최대 책임·번아웃 주의·구조 재편이 필요합니다.' }
-                    : (_lsAge < 60
-                      ? { stage: '50대 · 리밸런싱기', ctx: '축적 결실·하향 선택·2막 설계·관계 재구성이 이뤄집니다.' }
-                      : (_lsAge < 70
-                        ? { stage: '60대 · 수확과 전수기', ctx: '성과 수확·역할 이양·레거시 설계·의미 중심 전환입니다.' }
-                        : { stage: '70대+ · 완성과 유산기', ctx: '삶의 완성·관계 정리·정신적 유산 전승이 중심 과제입니다.' })))));
+            var flowSteps = [
+              { key:'전조기', text:dh.palaceName+' 주제가 서서히 의식 위로 떠오름' },
+              { key:'개문기', text:mainLabel+' 성계가 실제 사건으로 문을 엶' },
+              { key:'충돌기', text:(hwagiList.length ? '화기 압박과 선택 부담이 겹침' : '새 선택과 기존 책임이 맞부딪힘') },
+              { key:'결실기', text:(pivotType === 'chance' ? '성과와 평판을 회수' : pivotType === 'crisis' ? '손실을 줄이며 구조를 수습' : '새 기준을 확정') },
+              { key:'정리기', text:'다음 10년으로 가져갈 인연과 자산을 선별' }
+            ];
 
             pivotCandidates.push({
               key: String(dh.idx)+'_'+String(dhOrderIdx),
               type: pivotType,
-              icon: icon,
+              icon: phaseMeta.icon,
               age: dh.startAge+'~'+dh.endAge,
               period: dh.startAge+'-'+dh.endAge,
-              title: title,
+              title: dh.startAge+'~'+dh.endAge+'세 대한: '+dh.palaceName+' 변곡점',
+              palaceName: dh.palaceName,
+              headline: headline,
+              subline: subline,
+              lifeStageLabel: lifeStageLabel,
               coreStars: mainLabel,
               borrowedLabel: borrowedLabel,
               sihuaLabel: sihuaLabel,
-              phaseTheme: phaseDirective,
-              step1: step1,
-              step2: step2,
-              step3: step3,
-              criticalIssue: criticalIssue,
-              protocol1: protocol1,
-              protocol2: protocol2,
-              oneLineAdvice: oneLineAdvice,
+              phaseTheme: phaseMeta.name,
+              phaseTypeText: phaseMeta.typeText,
+              phaseTone: phaseMeta.tone,
+              accent: phaseMeta.accent,
+              rgb: phaseMeta.rgb,
+              activationPercent: activationPercent,
+              tags: tags,
+              flowSteps: flowSteps,
+              whyText: whyText,
+              careerStrategy: zwPivotCareerMap[dh.palaceName] || '핵심 역할을 분명히 하고 책임 범위를 정돈하면 성취가 안정됩니다.',
+              wealthFlow: zwPivotWealthMap[dh.palaceName] || '돈의 흐름은 큰 승부보다 구조 정리에 달려 있습니다. 수입과 지출의 길목을 분리하십시오.',
+              actionItems: actionItems,
+              warningTitle: warningTitle,
+              warnings: warnings.slice(0,3),
+              quote: pivotType === 'chance'
+                ? '지금 들어오는 복은 우연이 아니라 준비된 그릇에 내려앉는 별빛입니다. 넓히되, 회수할 길을 먼저 열어두십시오.'
+                : (pivotType === 'crisis'
+                  ? '위험은 길을 막는 벽이 아니라 경계를 세우라는 천명의 신호입니다. 서두르지 않으면 손실도 지혜가 됩니다.'
+                  : '전환기는 크게 외치는 시간이 아니라 중심축을 다시 박는 시간입니다. 조용히 바로잡은 질서가 다음 운을 부릅니다.'),
               score: impactScore,
+              palaceWeight: palaceWeight,
+              goodSignalCount: goodSignalCount,
+              riskSignalCount: riskSignalCount,
               order: dhOrderIdx,
-              lifeStage: _lifeStageInfo.stage,
-              lifeCtx: _lifeStageInfo.ctx
+              lifeStage: lifeStageInfo.short,
+              lifeCtx: lifeStageInfo.detail
             });
           });
         }
@@ -19323,6 +19693,8 @@ function renderZiwei(p, natal, targetId) {
             if (s >= e) continue;
             var bucket = pivotCandidates.slice(s, e).sort(function(a,b){
               if (b.score !== a.score) return b.score - a.score;
+              if (b.palaceWeight !== a.palaceWeight) return b.palaceWeight - a.palaceWeight;
+              if (b.riskSignalCount !== a.riskSignalCount) return b.riskSignalCount - a.riskSignalCount;
               return a.order - b.order;
             });
             if (bucket.length) selectedPivots.push(bucket[0]);
@@ -19334,6 +19706,7 @@ function renderZiwei(p, natal, targetId) {
               .slice()
               .sort(function(a,b){
                 if (b.score !== a.score) return b.score - a.score;
+                if (b.palaceWeight !== a.palaceWeight) return b.palaceWeight - a.palaceWeight;
                 return a.order - b.order;
               })
               .forEach(function(c){
@@ -19346,6 +19719,7 @@ function renderZiwei(p, natal, targetId) {
           while (selectedPivots.length < 3 && pivotCandidates.length) {
             selectedPivots.push(pivotCandidates[Math.min(selectedPivots.length, pivotCandidates.length - 1)]);
           }
+          selectedPivots.sort(function(a,b){ return a.order - b.order; });
         }
 
         // 토글 함수: 재정의 허용(accordion 갱신 위해 매번 업데이트)
@@ -19372,112 +19746,103 @@ function renderZiwei(p, natal, targetId) {
           }
         };
 
+        function zwPivotTagHtml(tag) {
+          var tone = tag && tag.tone ? String(tag.tone) : 'muted';
+          if (['good','risk','support','muted','turn'].indexOf(tone) < 0) tone = 'muted';
+          return '<span class="zw-pv-star-tag '+tone+'">'+zwFlowEsc(tag && tag.label ? tag.label : '')+'</span>';
+        }
+        var pivotAxisHtml = '';
+        if (selectedPivots.length) {
+          pivotAxisHtml = '<div class="zw-pivot-axis" aria-label="인생 3대 변곡점 나이 흐름">'
+            +'<div class="zw-pivot-axis-track"><span></span><span></span><span></span></div>'
+            +'<div class="zw-pivot-axis-points">';
+          selectedPivots.slice(0,3).forEach(function(p, i){
+            pivotAxisHtml += '<div class="zw-pivot-axis-point" style="--pivot-accent:'+p.accent+';--pivot-rgb:'+p.rgb+';">'
+              +'<span class="zw-pivot-axis-dot"></span>'
+              +'<b>'+zwFlowEsc(String(Math.round((Number(p.age.split('~')[0]) + Number(p.age.split('~')[1] || p.age.split('~')[0])) / 2)))+'세</b>'
+            +'</div>';
+          });
+          pivotAxisHtml += '</div></div>';
+        }
         var pivotHtml = '';
-        var pivotStageLabels = ['초년 변곡점', '중년 변곡점', '후년 변곡점'];
-        var pivotStageEmoji = ['🌱', '🌿', '🌳'];
-        var pivotStageNums = ['①', '②', '③'];
+        var pivotStageLabels = ['초년 전환', '중년 전환', '후년 전환'];
+        var pivotStageNums = ['1', '2', '3'];
         selectedPivots.slice(0,3).forEach(function(p, i){
           var isDefaultOpen = (i === 0);
-          var bc = p.type==='crisis' ? '#f87171' : (p.type==='chance' ? '#4ade80' : '#a78bfa');
-          var bcRgb = p.type==='crisis' ? '248,113,113' : (p.type==='chance' ? '74,222,128' : '167,139,250');
+          var bc = p.accent || '#f59e0b';
+          var bcRgb = p.rgb || '245,158,11';
           var stageLabel = pivotStageLabels[i] || ('변곡점 '+(i+1));
-          var stageEmoji = pivotStageEmoji[i] || '✦';
           var stageNum = pivotStageNums[i] || (i+1)+'';
           var cardId = 'zwPivotCard_'+p.key;
-          // 궁 이름만 추출 (예: '23~32세 대한: 부처궁 변곡점' → '부처궁')
-          var palaceLabel = p.title.replace(/\d+~\d+세 대한:\s*/, '').replace(/\s*변곡점$/, '');
-          // 단계 유형 아이콘 텍스트
-          var phaseTypeText = p.phaseTheme === '확장' ? '🚀 도약 & 확장 국면' : (p.phaseTheme === '거문 봉인' ? '🛡️ 수호 & 방어 국면' : '🔄 전환 & 재설계 국면');
-          // 강도 백분율 (0~100)
-          var scoreWidth = Math.min(100, Math.round((p.score / 30) * 100));
-          // 주성 태그들
+          var scoreWidth = p.activationPercent || Math.min(100, Math.round((p.score / 30) * 100));
           var coreStarTags = p.coreStars !== '공궁(空宮)'
-            ? p.coreStars.split(' · ').map(function(s){ return '<span class="zw-pv-star-tag">★ '+s+'</span>'; }).join('')
-            : '<span class="zw-pv-star-tag" style="opacity:0.6;">공궁(空宮)</span>';
-          // 사화 태그들
-          var sihuaTags = '';
-          if (p.sihuaLabel && p.sihuaLabel !== '사화 직접 작용 약함') {
-            p.sihuaLabel.split(' · ').forEach(function(sh){
-              var isHwagi = sh.indexOf('화기') >= 0;
-              sihuaTags += '<span class="zw-pv-star-tag '+(isHwagi ? 'crisis' : 'chance')+'">'+sh+'</span>';
-            });
-          } else {
-            sihuaTags = '<span style="font-size:0.72rem;color:#64748b;">사화 직접 작용 약함</span>';
-          }
+            ? p.coreStars.split(' · ').map(function(s){ return '<span class="zw-pv-star-tag support">★ '+zwFlowEsc(s)+'</span>'; }).join('')
+            : '<span class="zw-pv-star-tag muted">공궁(空宮)</span>';
+          var sihuaTags = (p.tags || []).map(zwPivotTagHtml).join('');
           var phaseRailHtml = '<div class="zw-pv-phase-rail" aria-label="변곡점 발동 흐름">'
-            +'<div class="zw-pv-phase-step"><b>전조기</b>기운의 방향이 바뀌기 시작</div>'
-            +'<div class="zw-pv-phase-step"><b>개문기</b>'+p.phaseTheme+' 과제가 표면화</div>'
-            +'<div class="zw-pv-phase-step"><b>충돌기</b>선택과 책임의 압축</div>'
-            +'<div class="zw-pv-phase-step"><b>결실기</b>새 구조의 성과 회수</div>'
-            +'<div class="zw-pv-phase-step"><b>정리기</b>남길 것과 끊을 것 분리</div>'
+            +(p.flowSteps || []).map(function(step){
+              return '<div class="zw-pv-phase-step"><b>'+zwFlowEsc(step.key)+'</b><span>'+zwFlowEsc(step.text)+'</span></div>';
+            }).join('')
           +'</div>';
-          var pivotEvidence = p.lifeStage+'입니다. '+p.lifeCtx+' 핵심 성계 '+p.coreStars+'와 '+p.sihuaLabel+' 신호가 겹치며, 변곡 강도 '+scoreWidth+'%로 발동합니다.';
+          var actionHtml = (p.actionItems || []).map(function(item, idx){
+            return '<li class="zw-pv-strategy-item"><span class="zw-pv-strategy-num">'+(idx+1)+'</span><span>'+zwFlowEsc(item)+'</span></li>';
+          }).join('');
+          var warningHtml = (p.warnings || []).map(function(item){
+            return '<div class="zw-pv-warning-line">○ '+zwFlowEsc(item)+'</div>';
+          }).join('');
           pivotHtml += '<div class="zw-pivot-card'+(isDefaultOpen ? ' is-open' : '')+'" style="--pivot-accent:'+bc+';--pivot-rgb:'+bcRgb+';">'
             +'<button type="button" class="zw-pivot-toggle" aria-expanded="'+(isDefaultOpen ? 'true' : 'false')+'" onclick="window._toggleZwPivotCard(this, \''+cardId+'\')">'
-              // 상단 줄: 순번 + 단계 뱃지 + 나이 범위 + 화살표
-              +'<div class="zw-pv-top">'
-                +'<div style="display:flex;align-items:center;gap:7px;">'
-                  +'<span class="zw-pv-num-badge">'+stageNum+'</span>'
-                  +'<span class="zw-pivot-chip">'+stageEmoji+' '+stageLabel+'</span>'
+              +'<div class="zw-pv-card-head">'
+                +'<span class="zw-pv-num-badge">'+stageNum+'</span>'
+                +'<div class="zw-pv-heading">'
+                  +'<span class="zw-pivot-chip">'+zwFlowEsc(stageLabel)+' · '+zwFlowEsc(p.lifeStageLabel)+'</span>'
+                  +'<span class="zw-pivot-palace-label">'+zwFlowEsc(p.headline)+'</span>'
+                  +'<span class="zw-pivot-type-tag">'+zwFlowEsc(p.subline)+'</span>'
                 +'</div>'
-                +'<div class="zw-pv-top-right">'
-                  +'<span class="zw-pivot-age-range">'+p.age+'세</span>'
+                +'<div class="zw-pv-power">'
+                  +'<span>발동강도</span>'
+                  +'<div class="zw-pv-score-bar"><div class="zw-pv-score-fill" style="width:'+scoreWidth+'%"></div></div>'
+                  +'<b>'+scoreWidth+'%</b>'
                   +'<span class="zw-pivot-chevron" aria-hidden="true">▼</span>'
                 +'</div>'
               +'</div>'
-              // 메인 줄: 아이콘 + 궁 이름 + 유형 태그
-              +'<div class="zw-pv-main">'
-                +'<div class="zw-pivot-icon-wrap">'+p.icon+'</div>'
-                +'<div class="zw-pivot-title-stack">'
-                  +'<span class="zw-pivot-palace-label">'+palaceLabel+'</span>'
-                  +'<span class="zw-pivot-type-tag">'+phaseTypeText+'</span>'
-                +'</div>'
-                +'<span class="zw-pv-tap-hint" aria-hidden="true">클릭해서 펼치기</span>'
-              +'</div>'
-              // 강도 게이지
-              +'<div class="zw-pv-score-bar-wrap">'
-                +'<div class="zw-pv-score-bar"><div class="zw-pv-score-fill" style="width:'+scoreWidth+'%"></div></div>'
-                +'<span class="zw-pv-score-val">변곡 강도 '+scoreWidth+'%</span>'
-              +'</div>'
+              +'<div class="zw-pv-star-tags">'+sihuaTags+'</div>'
             +'</button>'
             +'<div id="'+cardId+'" class="zw-pivot-body">'
-              // 섹션 1: 핵심 성계 구성
               +'<div class="zw-pv-section">'
-                +'<div class="zw-pv-section-title">🌟 핵심 성계 구성</div>'
+                +'<div class="zw-pv-section-title">핵심 성계와 보정</div>'
                 +'<div class="zw-pv-star-tags">'+coreStarTags+'</div>'
-                +'<div class="zw-pv-star-tags">'+sihuaTags+'</div>'
-                +'<div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">'+p.borrowedLabel+'</div>'
+                +'<div class="zw-pv-borrowed">'+zwFlowEsc(p.borrowedLabel)+'</div>'
               +'</div>'
               +'<div class="zw-pv-section">'
-                +'<div class="zw-pv-section-title">🕯️ 인생 단계와 발동 흐름</div>'
-                +'<div style="font-size:0.78rem;color:#dbeafe;line-height:1.65;">'+pivotEvidence+'</div>'
+                +'<div class="zw-pv-section-title">발동 흐름</div>'
                 +phaseRailHtml
               +'</div>'
-              // 섹션 2: 전략 조언
               +'<div class="zw-pv-section">'
-                +'<div class="zw-pv-section-title">⚡ '+p.phaseTheme+' 단계 핵심 전략</div>'
-                +'<ul class="zw-pv-strategy-list">'
-                  +'<li class="zw-pv-strategy-item"><span class="zw-pv-strategy-num">1</span><span>'+p.step1+'</span></li>'
-                  +'<li class="zw-pv-strategy-item"><span class="zw-pv-strategy-num">2</span><span>'+p.step2+'</span></li>'
-                  +'<li class="zw-pv-strategy-item"><span class="zw-pv-strategy-num">3</span><span>'+p.step3+'</span></li>'
-                +'</ul>'
+                +'<div class="zw-pv-section-title">왜 이 시기가 변곡점인가</div>'
+                +'<div class="zw-pv-why">'+zwFlowEsc(p.whyText)+'</div>'
               +'</div>'
-              // 섹션 3: 리스크 경고
+              +'<div class="zw-pv-two-col">'
+                +'<div class="zw-pv-mini"><b>직업·성취 전략</b><span>'+zwFlowEsc(p.careerStrategy)+'</span></div>'
+                +'<div class="zw-pv-mini"><b>재물 흐름</b><span>'+zwFlowEsc(p.wealthFlow)+'</span></div>'
+              +'</div>'
+              +'<div class="zw-pv-section">'
+                +'<div class="zw-pv-section-title">'+zwFlowEsc(p.phaseTheme)+' 실행 전략 3가지</div>'
+                +'<ul class="zw-pv-strategy-list">'+actionHtml+'</ul>'
+              +'</div>'
+              +'<div class="zw-pv-oneline">“'+zwFlowEsc(p.quote)+'”</div>'
               +'<div class="zw-pv-risk">'
-                +'<div class="zw-pv-risk-title">⚠️ 거문 파동 — 이 시기 주의 조언</div>'
-                +'<div class="zw-pv-risk-text">'+p.criticalIssue+'</div>'
-                +'<div class="zw-pv-protocol">🛡️ 대응 1: '+p.protocol1+'</div>'
-                +'<div class="zw-pv-protocol" style="border-top:none;padding-top:3px;margin-top:2px;">🛡️ 대응 2: '+p.protocol2+'</div>'
+                +'<div class="zw-pv-risk-title">△ '+zwFlowEsc(p.warningTitle)+'</div>'
+                +warningHtml
               +'</div>'
-              // 섹션 4: 한 줄 조언
-              +'<div class="zw-pv-oneline">💬 '+p.oneLineAdvice+'</div>'
             +'</div>'
           +'</div>';
         });
 
         var sec_pivot = '<div class="zw-pivot-section">'
           +'<h2 class="zw-pivot-title">🔱 인생의 3대 변곡점</h2>'
-          +'<p class="zw-pivot-sub">사화(四化), 주성/보조성/흉성, 차성(대궁 차용)을 통합해 전조기·개문기·충돌기·결실기·정리기의 흐름으로 풀이합니다. 카드를 눌러 왜 이 시기가 변곡점인지와 실행 전략을 확인하세요.</p>'
+          +'<p class="zw-pivot-sub">사화(四化), 주성, 보조성, 흉성, 차성 교차 분석으로 도출한 삶의 3대 전환 시점입니다. 각 카드는 발동 원리, 직업·재물 전략, 주의할 결정을 함께 보여줍니다.</p>'
+          + pivotAxisHtml
           +'<div class="zw-pivot-deck">'
           + pivotHtml
           +'</div>'
@@ -19535,6 +19900,7 @@ function renderZiwei(p, natal, targetId) {
         var wrapper = document.getElementById(targetPanelId);
         if (!wrapper) return;
         wrapper.innerHTML = panelHtml;
+        zwDahanBindPremiumGate(wrapper);
 
         // 첫 번째 변곡점 카드 자동 오픈 (UX: 내용이 있음을 즉시 인지)
         setTimeout(function() {

@@ -7,6 +7,7 @@ import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { getAuthState, logout, refreshAuth } from "../_lib/auth-store";
 import { persistSanitizedAuthUser, readSanitizedAuthUser } from "../_lib/auth-storage";
+import { clearActiveDestinyProfileCache, publishDestinyProfileList } from "../_lib/profile-card-storage";
 import WithdrawModal from "../components/WithdrawModal";
 
 type AuthUser = {
@@ -161,11 +162,23 @@ const PROFILE_CARD_ACTION_PRODUCTS = {
 } as const;
 
 async function safeParseJson<T>(response: Response): Promise<T & { message?: string; ok?: boolean }> {
-  try {
-    return await response.json();
-  } catch (_) {
-    return {} as T & { message?: string; ok?: boolean };
+  const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+  if (contentType.includes("application/json")) {
+    try {
+      return await response.json();
+    } catch (_) {
+      return {
+        ok: false,
+        message: "서버 JSON 응답을 해석하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      } as T & { message?: string; ok?: boolean };
+    }
   }
+
+  const text = await response.text().catch(() => "");
+  return {
+    ok: response.ok,
+    message: text.trim() || (response.ok ? "" : "서버 응답 형식이 올바르지 않습니다. 잠시 후 다시 시도해 주세요."),
+  } as T & { message?: string; ok?: boolean };
 }
 
 function profileActionLabel(action: ProfileActionType) {
@@ -459,6 +472,7 @@ export default function MePage() {
     setCurrentId(nextCurrentId);
     setSubscription(nextSubscription);
     setCanCreateMore(payload.canCreateMore !== false);
+    publishDestinyProfileList(nextProfiles, nextCurrentId);
     emitDestinyProfileChanged(nextProfiles, nextCurrentId);
   }, []);
 
@@ -502,7 +516,7 @@ export default function MePage() {
       apiBase,
     });
 
-    const payload = await response.json().catch(() => null);
+    const payload = await safeParseJson<ProfileStatePayload>(response);
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
         throw new Error("auth_invalid");
@@ -841,6 +855,8 @@ export default function MePage() {
 
     const nextProfiles = Array.isArray(payload.profiles) ? payload.profiles : [];
     const nextCurrentId = typeof payload.currentId === "string" ? payload.currentId : (nextProfiles[0]?.id || "");
+    clearActiveDestinyProfileCache(profile.id);
+    publishDestinyProfileList(nextProfiles, nextCurrentId);
     setProfiles(nextProfiles);
     setCurrentId(nextCurrentId);
     setCanCreateMore(true);

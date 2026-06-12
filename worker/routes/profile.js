@@ -1325,6 +1325,7 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
   return json({
     ok: true,
     success: true,
+    deletedId: profileId,
     deletedProfileId: profileId,
     chargedCoins,
     freeByMembership,

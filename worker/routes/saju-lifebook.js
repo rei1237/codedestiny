@@ -3646,6 +3646,16 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, assembly
   const finalManuscriptValidation = validateLifeBookPhase6FinalManuscriptMarkdown(finalManuscriptMarkdown, sanitized);
   const finalQualityReview = patchLifeBookPhase6FinalQualityRequirements(finalManuscriptMarkdown, sanitized);
   const finalQualityReviewPassed = Boolean(finalQualityReview.validation?.ok);
+  const localAssembly = {
+    enabled: true,
+    source: LIFE_BOOK_PDF_CONFIG.generationMode,
+    provider: LIFE_BOOK_PDF_CONFIG.provider,
+    templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
+    chapterCount: sanitized.length,
+    expectedChapterCount: getLifeBookBlueprints().length,
+    externalGeneration: false,
+    externalCallsAllowed: false,
+  };
   return {
     chapters: sanitized,
     chapterPlans,
@@ -3671,6 +3681,7 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, assembly
     templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
     generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
     provider: LIFE_BOOK_PDF_CONFIG.provider,
+    localAssembly,
     manuscriptSource: [
       LIFE_BOOK_PDF_CONFIG.templateVersion,
       "local-chapter-assembly",
@@ -7057,6 +7068,16 @@ async function handlePrepareSync(request, env) {
   });
 
   const manuscriptSource = generatedLifeBook.manuscriptSource;
+  const localAssembly = generatedLifeBook.localAssembly || {
+    enabled: true,
+    source: LIFE_BOOK_PDF_CONFIG.generationMode,
+    provider: LIFE_BOOK_PDF_CONFIG.provider,
+    templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
+    chapterCount: completedChapters.length,
+    expectedChapterCount: getLifeBookBlueprints().length,
+    externalGeneration: false,
+    externalCallsAllowed: false,
+  };
   logLifeBookServer("PdfRenderStart", { sessionId, chapterCount: completedChapters.length });
 
   const pdfReady = buildPdfReadyPayloadClean(profile, completedChapters, {
@@ -7073,6 +7094,7 @@ async function handlePrepareSync(request, env) {
     finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
     generationMode: generatedLifeBook.generationMode || LIFE_BOOK_PDF_CONFIG.generationMode,
     templateVersion: generatedLifeBook.templateVersion || LIFE_BOOK_PDF_CONFIG.templateVersion,
+    localAssembly,
     cacheKey,
     lifeBookPdfCacheKey: cacheKey,
     calculationResultHash,
@@ -7097,6 +7119,7 @@ async function handlePrepareSync(request, env) {
   pdfReady.mimeType = "application/pdf";
   pdfReady.contentType = "application/pdf";
   pdfReady.htmlMimeType = "text/html";
+  pdfReady.localAssembly = localAssembly;
 
   const pdfCompletionValidation = validateLifeBookPdfCompletionPayload({ pdfReady, chapters: completedChapters });
   if (!pdfCompletionValidation.ok) {
@@ -7145,6 +7168,7 @@ async function handlePrepareSync(request, env) {
   await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
     manuscriptSource,
     authoringMode: LIFEBOOK_AUTHORING_MODE,
+    localAssembly,
     lifeBookPdfRecord: completedRecord,
     chapterCount: completedChapters.length,
     sectionCount: completedChapters.reduce((sum, chapter) => sum + (Array.isArray(chapter?.sectionResults) ? chapter.sectionResults.length : 0), 0),
@@ -7175,6 +7199,7 @@ async function handlePrepareSync(request, env) {
       finalManuscriptMarkdown,
       finalManuscriptSource: generatedLifeBook.finalManuscriptSource || "",
       authoringMode: LIFEBOOK_AUTHORING_MODE,
+      localAssembly,
       finalManuscriptErrors: generatedLifeBook.finalManuscriptErrors || [],
       finalQualityReviewSource: generatedLifeBook.finalQualityReviewSource || "",
       finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
@@ -7222,6 +7247,7 @@ async function handlePrepareSync(request, env) {
     profile,
     birthInput,
     manuscriptSource,
+    localAssembly,
     localSajuJson,
     lifeBookEngineContract: assemblyInput.engineContract,
     chapterPlans: generatedLifeBook.chapterPlans || [],

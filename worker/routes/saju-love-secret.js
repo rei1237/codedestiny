@@ -25,21 +25,18 @@ const LOVE_SECRET_LOCK_TTL_MS = 1000 * 60 * 20;
 const LOVE_SECRET_GENERATION_LOCKS = new Map();
 const LOVE_SECRET_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
-  llmEnabled: false,
   provider: "saju-assembler",
   templateVersion: "love-secret-local-assembled-v3",
 });
 const LOVE_SECRET_FORBIDDEN_RE = /\b(?:fallback|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|계산\s*시그니처|내부\s*데이터|엔진\s*결과|데이터\s*정규화|품질\s*검증|재생성/gi;
 const LOVE_SECRET_MANUSCRIPT_SOURCE = Object.freeze({
   LOCAL: "local-assembled",
-  LLM: "external-llm-disabled",
-  HYBRID: "local-assembled",
 });
 const LOVE_SECRET_PRODUCT_ID = "love_secret";
-const LOVE_SECRET_PROMPT_VERSION = "love-secret-local-assembler-v3";
+
 const LOVE_SECRET_ENGINE_VERSION = "worker-saju-engine.v1";
-const LOVE_SECRET_LLM_ENHANCEMENT_CACHE = new Map();
-const LOVE_SECRET_LLM_ENHANCEMENT_CACHE_MAX = 240;
+
+
 const LOVE_SECRET_PDF_CACHE = new Map();
 const LOVE_SECRET_PDF_CACHE_MAX = 120;
 const LOVE_SECRET_SOLO_CHAPTER_IDS = Object.freeze([
@@ -66,8 +63,8 @@ const LOVE_SECRET_COMPATIBILITY_CHAPTER_IDS = Object.freeze([
   "current_year_flow",
   "couple_master_plan",
 ]);
-const LOVE_SECRET_SOLO_LLM_ENHANCED_CHAPTERS = LOVE_SECRET_SOLO_CHAPTER_IDS;
-const LOVE_SECRET_COUPLE_LLM_ENHANCED_CHAPTERS = LOVE_SECRET_COMPATIBILITY_CHAPTER_IDS;
+
+
 const LOVE_SECRET_SENSITIVE_EXPRESSION_REPLACEMENTS = Object.freeze([
   Object.freeze([/반드시\s*결혼한다/g, "장기 관계로 이어질 가능성을 차분히 살펴볼 수 있다"]),
   Object.freeze([/무조건\s*헤어진다/g, "관계가 흔들리기 쉬운 지점이 있어 조율이 필요하다"]),
@@ -1106,7 +1103,6 @@ async function generateLoveSecretChapter(env, base, mode, config, chapterNo) {
   const sectionTitles = getChapterSpecificSections({}, chapterNo, mode);
   const local = buildLocalChapter(base, title, subtitle, sectionTitles, mode, chapterNo);
   return {
-    fallbackUsed: false,
     chapter: {
       chapter: chapterNo,
       title,
@@ -1174,7 +1170,7 @@ function normalizeLoveSecretGenerationBody(body = {}, mode = "solo", base = {}) 
     chapterCount: normalizedMode === "compatibility" ? 15 : 10,
     selfName,
     partnerName: isCompatibility ? partnerName : "",
-    llmContract: "love-secret-master-json.v1",
+    assemblyContract: "love-secret-master-json.v1",
     ...(raw.clientFlow && typeof raw.clientFlow === "object" ? raw.clientFlow : {}),
   };
   const marriageEnabled = source.wantsMarriageAnalysis !== false && source.includeMarriageAnalysis !== false;
@@ -1232,22 +1228,20 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
   if (!Number.isFinite(totalChapters) || totalChapters <= 0) {
     return {
       chapters: [],
-      fallbackUsed: false,
       totalChapters: 0,
       manuscriptSource: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
       loveSecretMasterJson,
       masterJsonValidation,
       loveSecretFacts,
       loveSecretChapterPlans: [],
-      llmEnhancement: {
-        enabled: false,
-        localAssemblyOnly: true,
+      localAssembly: {
+        enabled: true,
         externalCallsAllowed: false,
-        attempted: 0,
-        enhancedChapterIds: [],
-        fallbackChapterIds: [],
-        cacheHits: [],
-        promptVersion: LOVE_SECRET_PROMPT_VERSION,
+        externalGeneration: false,
+        provider: LOVE_SECRET_PDF_CONFIG.provider,
+        templateVersion: LOVE_SECRET_PDF_CONFIG.templateVersion,
+        chapterCount: 0,
+        expectedChapterCount: 0,
         engineVersion: LOVE_SECRET_ENGINE_VERSION,
       },
     };
@@ -1284,7 +1278,6 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
 
     console.info("[LoveBook][Chapter] LOCAL_DONE", {
       index: chapterNo,
-      fallbackUsed: Boolean(generated?.fallbackUsed),
     });
   }
 
@@ -1297,19 +1290,17 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
     chapters,
     loveSecretFacts,
   });
-  const llmEnhancement = {
-    chapters: chapters.map((chapter) => markLoveSecretLocalChapter(chapter)),
-    enabled: false,
-    localAssemblyOnly: true,
+  const localAssembly = {
+    enabled: true,
     externalCallsAllowed: false,
-    attempted: 0,
-    enhancedChapterIds: [],
-    fallbackChapterIds: [],
-    cacheHits: [],
-    promptVersion: LOVE_SECRET_PROMPT_VERSION,
+    externalGeneration: false,
+    provider: LOVE_SECRET_PDF_CONFIG.provider,
+    templateVersion: LOVE_SECRET_PDF_CONFIG.templateVersion,
+    chapterCount: chapters.length,
+    expectedChapterCount: totalChapters,
     engineVersion: LOVE_SECRET_ENGINE_VERSION,
   };
-  let finalChapters = llmEnhancement.chapters;
+  let finalChapters = chapters.map((chapter) => markLoveSecretLocalChapter(chapter));
   let normalizedToLocal = false;
   const preparedLocal = prepareLoveSecretFinalChapters({
     candidateChapters: finalChapters,
@@ -1330,14 +1321,13 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
   });
   return {
     chapters: finalChapters,
-    fallbackUsed: false,
     totalChapters: finalChapters.length,
     manuscriptSource: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
     loveSecretMasterJson,
     masterJsonValidation,
     loveSecretFacts,
     loveSecretChapterPlans,
-    llmEnhancement,
+    localAssembly,
   };
 }
 
@@ -1796,40 +1786,16 @@ function validatePartnerMinimumSaju(base, mode) {
   return { ok: missing.length === 0, missing };
 }
 
-const LOVE_SECRET_LLM_KEY_ENV_KEYS = Object.freeze([
-  "GEMINIF_API_KEY1",
-  "GEMINIF_API_KEY2",
-  "GEMINIF_API_KEY3",
-  "GEMINIF_API_KEY4",
-  "GEMINIF_API_KEY5",
-  "GEMINIF_API_KEY6",
-  "GEMINIF_API_KEY7",
-  "GEMINIF_API_KEY8",
-]);
-const LOVE_SECRET_LLM_MODEL_ENV_KEYS = Object.freeze(["LOVE_SECRET_GEMINI_MODEL", "PREMIUM_GEMINI_MODEL", "GEMINI_MODEL"]);
-const LOVE_SECRET_LLM_DEVELOPER_RE = /\b(?:json|schema|prompt|api|gemini|payload|debug|fallback|null|undefined|nan)\b|개발|스키마|프롬프트|제미나이|내부\s*데이터|엔진\s*결과|데이터\s*정규화/gi;
+
+
+
 const LOVE_SECRET_ASSERTIVE_RE = /(무조건|반드시\s*결혼|반드시\s*헤어|반드시\s*재회|100\s*%|운명의\s*상대다|확정|필연적으로|절대\s*헤어지지|반드시\s*만난다|절대\s*안\s*맞는다)/i;
 const LOVE_SECRET_EXPLICIT_INTIMACY_RE = /(성행위|섹스|삽입|성기|노골적|음란|애무|체위|오르가즘|자위)/i;
 const LOVE_SECRET_PARTNER_BLAME_RE = /(집착이\s*심하다|바람기가\s*있다|배신할\s*사람|문제\s*있는\s*상대|위험한\s*사람|나쁜\s*상대|피해야\s*할\s*인간)/i;
 
-async function callLoveSecretDisabledLlmProvider() {
-  return {
-    ok: false,
-    error: "LOVE_SECRET_LLM_DISABLED",
-    message: "LOVE_SECRET_LLM_DISABLED",
-    provider: LOVE_SECRET_PDF_CONFIG.provider,
-  };
-}
 
-function pickLoveSecretGeminiModels(env = {}) {
-  const models = [
-    env?.LOVE_SECRET_GEMINI_MODEL,
-    env?.PREMIUM_GEMINI_MODEL,
-    env?.GEMINI_MODEL,
-    "gemini-2.5-flash",
-  ].map((model) => clean(model)).filter(Boolean);
-  return Array.from(new Set(models));
-}
+
+
 
 function compactLoveSecretObject(value) {
   if (Array.isArray(value)) {
@@ -2636,13 +2602,9 @@ function loveSecretChapterIdsForMode(mode) {
   return normalizeMode(mode) === "compatibility" ? LOVE_SECRET_COMPATIBILITY_CHAPTER_IDS : LOVE_SECRET_SOLO_CHAPTER_IDS;
 }
 
-function loveSecretEnhancedChapterSet(mode) {
-  return new Set(normalizeMode(mode) === "compatibility" ? LOVE_SECRET_COUPLE_LLM_ENHANCED_CHAPTERS : LOVE_SECRET_SOLO_LLM_ENHANCED_CHAPTERS);
-}
 
-function isLoveSecretEnhancedChapter(mode, chapterId) {
-  return loveSecretEnhancedChapterSet(mode).has(clean(chapterId));
-}
+
+
 
 function buildLoveSecretLockedFacts(facts = {}, chapterId = "", mode = "solo") {
   const compatibility = facts?.coupleCompatibility && typeof facts.coupleCompatibility === "object" ? facts.coupleCompatibility : {};
@@ -2796,158 +2758,9 @@ function validateLoveSecretMasterJson(masterJson = {}) {
   return { ok: errors.length === 0, errors };
 }
 
-function buildSoloLoveLLMInput({ userProfile = {}, sajuEngineResult = {}, serviceContext = {}, targetYear = 2026 } = {}) {
-  const profile = userProfile && typeof userProfile === "object" ? userProfile : {};
-  const base = sajuEngineResult && typeof sajuEngineResult === "object" ? sajuEngineResult : {};
-  const engine = safeLoveSecretClone(base.engineResult || base.rawEngineResult || {});
-  const birthDate = clean(profile.birthDate || base?.user?.birthDate || serviceContext?.birthInput?.birthDate);
-  const age = loveSecretAgeAtYear(birthDate, targetYear);
-  const pillars = base?.pillars && typeof base.pillars === "object" ? base.pillars : engine?.pillars || {};
-  const eightCharacters = ["year", "month", "day", "hour"].map((key) => loveSecretPillarRaw(pillars?.[key])).filter(Boolean).join(" ");
-  const currentDaeun = base?.timing?.currentDaeun || engine?.currentDaeun || (Array.isArray(base?.timing?.daeun) ? base.timing.daeun[0] : undefined);
-  const nextDaeun = base?.timing?.nextDaeun || engine?.nextDaeun || (Array.isArray(base?.timing?.daeun) ? base.timing.daeun[1] : undefined);
 
-  return compactLoveSecretObject({
-    mode: "solo",
-    user: {
-      displayName: clean(profile.name || base?.user?.name || serviceContext?.profile?.name || "의뢰인"),
-      gender: clean(profile.gender || base?.user?.gender || serviceContext?.profile?.gender),
-      birthDate,
-      birthTime: clean(profile.birthTime || base?.user?.birthTime || serviceContext?.birthInput?.birthTime),
-      calendarType: clean(profile.calendarType || base?.user?.calendarType || serviceContext?.birthInput?.calendarType),
-      isLeapMonth: Boolean(profile.isLeapMonth || serviceContext?.birthInput?.isLeapMonth || serviceContext?.birthInput?.calendarType === "lunar_leap"),
-      birthPlace: clean(profile.birthPlace || serviceContext?.birthInput?.birthPlace),
-      timezone: clean(profile.timezone || serviceContext?.birthInput?.timezone || "Asia/Seoul"),
-      location: compactLoveSecretObject({
-        latitude: profile.latitude ?? serviceContext?.birthInput?.latitude,
-        longitude: profile.longitude ?? serviceContext?.birthInput?.longitude,
-      }),
-      timeCorrection: compactLoveSecretObject({
-        policy: clean(engine?.timeCorrection?.policy || "TRUE_SOLAR_TIME"),
-        timezone: clean(profile.timezone || serviceContext?.birthInput?.timezone || "Asia/Seoul"),
-      }),
-      currentAge: age,
-      isAdult: typeof age === "number" ? age >= 19 : undefined,
-    },
-    analysis: {
-      targetYear,
-    },
-    sajuOriginalChart: {
-      pillars: {
-        year: pillars?.year,
-        month: pillars?.month,
-        day: pillars?.day,
-        hour: pillars?.hour,
-      },
-      dayMaster: clean(base?.core?.dayMaster || engine?.dayMaster?.stemKo || engine?.dayMaster?.stem),
-      dayBranch: clean(base?.core?.dayBranch || pillars?.day?.zhi || pillars?.day?.branch),
-      monthBranch: clean(base?.core?.monthBranch || pillars?.month?.zhi || pillars?.month?.branch),
-      eightCharacters,
-      hiddenStems: engine?.hiddenStems || engine?.jijanggan || base?.hiddenStems,
-      voidBranches: engine?.gongmang || engine?.voidBranches || base?.gongmang,
-    },
-    fiveElements: {
-      counts: base?.elementBalance?.counts || engine?.fiveElements?.counts || engine?.fiveElements?.percentages,
-      excessive: base?.elementBalance?.dominant || engine?.fiveElements?.excessive || engine?.dominantElement,
-      deficient: base?.elementBalance?.deficient || engine?.fiveElements?.deficient || engine?.deficientElement,
-      seasonalStrength: clean(engine?.seasonalStrength || engine?.season || base?.core?.season),
-      balanceSummary: clean(engine?.fiveElements?.summary || base?.elementBalance?.summary),
-      balanceScore: base?.elementBalance?.balanceScore,
-    },
-    johu: {
-      coldHot: engine?.johu?.coldHot || engine?.johu?.temperature || base?.johu?.temperature,
-      dryWet: engine?.johu?.dryWet || engine?.johu?.moisture || base?.johu?.moisture,
-      temperatureScore: engine?.johu?.temperatureScore || base?.johu?.temperatureScore,
-      moistureScore: engine?.johu?.moistureScore || base?.johu?.moistureScore,
-      summary: clean(engine?.johu?.summary || base?.johu?.summary || base?.johu?.type),
-      favorableEnvironment: engine?.johu?.favorableEnvironment || base?.johu?.favorableEnvironment,
-      unfavorableEnvironment: engine?.johu?.unfavorableEnvironment || base?.johu?.unfavorableEnvironment,
-    },
-    tenGods: {
-      distribution: base?.tenGods?.counts || engine?.tenGods?.counts,
-      byStemBranch: engine?.tenGods?.byPillar || engine?.tenGods?.byStemBranch || base?.tenGods?.byStemBranch,
-      spouseStar: clean(engine?.tenGods?.spouseStar || base?.tenGods?.spouseStar || resolveSpouseStarLabel(base?.user?.gender)),
-      wealthStar: engine?.tenGods?.wealth || engine?.tenGods?.jaesung,
-      officerStar: engine?.tenGods?.officer || engine?.tenGods?.gwanseong,
-      outputStar: engine?.tenGods?.output || engine?.tenGods?.siksang,
-      resourceStar: engine?.tenGods?.resource || engine?.tenGods?.inseong,
-      peerStar: engine?.tenGods?.peer || engine?.tenGods?.bigeop,
-      lovePatternSummary: clean(engine?.tenGods?.lovePatternSummary || base?.tenGods?.lovePatternSummary),
-    },
-    structure: {
-      strength: base?.strength,
-      deukryeong: engine?.structure?.deukryeong || engine?.deukryeong,
-      deukji: engine?.structure?.deukji || engine?.deukji,
-      deukse: engine?.structure?.deukse || engine?.deukse,
-      geokguk: engine?.geokguk || engine?.structure?.geokguk || base?.geokguk,
-      yongshin: base?.yongshin?.usefulElements || engine?.usefulGods?.yong,
-      heeshin: engine?.usefulGods?.hee || base?.yongshin?.supportElements,
-      gishin: base?.yongshin?.cautionElements || engine?.usefulGods?.gi,
-      yongshinReason: clean(engine?.usefulGods?.summary || base?.strength?.reason),
-    },
-    relations: {
-      stemCombinations: engine?.relations?.stemCombinations || engine?.cheonganHap,
-      stemClashes: engine?.relations?.stemClashes || engine?.cheonganChung,
-      branchCombinations: engine?.relations?.branchCombinations || engine?.jijiHap,
-      trines: engine?.relations?.trines || engine?.samhap,
-      sixCombinations: engine?.relations?.sixCombinations || engine?.yukhab,
-      clashes: engine?.relations?.clashes || engine?.chung,
-      punishments: engine?.relations?.punishments || engine?.hyeong,
-      harms: engine?.relations?.harms || engine?.hae,
-      breaks: engine?.relations?.breaks || engine?.pa,
-      wonjin: engine?.relations?.wonjin || engine?.wonjin,
-      gwimun: engine?.relations?.gwimun || engine?.gwimun,
-    },
-    specialStars: {
-      peachBlossom: engine?.specialStars?.dohwa || base?.specialStars?.dohwa,
-      hongyeom: engine?.specialStars?.hongyeom || base?.specialStars?.hongyeom,
-      cheoneul: engine?.specialStars?.cheoneul || base?.specialStars?.cheoneul,
-      moonchang: engine?.specialStars?.moonchang || base?.specialStars?.moonchang,
-      yeokma: engine?.specialStars?.yeokma || base?.specialStars?.yeokma,
-      hwagae: engine?.specialStars?.hwagae || base?.specialStars?.hwagae,
-      all: engine?.specialStars || base?.specialStars,
-    },
-    twelveStages: engine?.twelveGrowthStages || engine?.twelveStages || base?.twelveStages,
-    luckFlow: {
-      currentDaeun,
-      nextDaeun,
-      annualLuck2026: engine?.annualLuck2026 || engine?.annualLuck?.["2026"] || base?.annualLuck2026,
-      monthlyLuck2026: engine?.monthlyLuck2026 || base?.monthlyLuck2026,
-    },
-    serviceInput: {
-      loveStatus: clean(serviceContext?.loveStatus || serviceContext?.relationshipStatus || serviceContext?.currentLoveStatus),
-      currentConcern: clean(serviceContext?.currentConcern || serviceContext?.concern || serviceContext?.question),
-      idealType: clean(serviceContext?.idealType || serviceContext?.preferredPartner),
-      pastLovePattern: clean(serviceContext?.pastLovePattern || serviceContext?.relationshipPattern),
-      wantsMarriageAnalysis: Boolean(serviceContext?.wantsMarriageAnalysis || serviceContext?.includeMarriageAnalysis),
-      wantsReunionAnalysis: Boolean(serviceContext?.wantsReunionAnalysis || serviceContext?.includeReunionAnalysis),
-      tone: clean(serviceContext?.tone || serviceContext?.writingStyle || "professional-mystical"),
-      productTier: clean(serviceContext?.productTier || serviceContext?.tier || "premium"),
-    },
-  });
-}
 
-function normalizeCompatibilityPerson(profile = {}, sajuResult = {}, targetYear = 2026) {
-  const normalized = buildSoloLoveLLMInput({
-    userProfile: profile,
-    sajuEngineResult: sajuResult,
-    serviceContext: {},
-    targetYear,
-  });
-  return {
-    user: normalized.user,
-    sajuOriginalChart: normalized.sajuOriginalChart,
-    fiveElements: normalized.fiveElements,
-    johu: normalized.johu,
-    tenGods: normalized.tenGods,
-    structure: normalized.structure,
-    relations: normalized.relations,
-    specialStars: normalized.specialStars,
-    twelveStages: normalized.twelveStages,
-    luckFlow: normalized.luckFlow,
-    loveSecretReference: safeLoveSecretClone(sajuResult?.loveSecretReference),
-  };
-}
+
 
 function branchRelationType(a, b) {
   const first = clean(a);
@@ -3055,119 +2868,13 @@ function buildJohuIntimacyData(personA, personB) {
   });
 }
 
-function buildCompatibilityLoveLLMInput({
-  personAProfile = {},
-  personBProfile = {},
-  personASajuResult = {},
-  personBSajuResult = {},
-  relationshipContext = {},
-  targetYear = 2026,
-} = {}) {
-  const personA = normalizeCompatibilityPerson(personAProfile, personASajuResult, targetYear);
-  const personB = normalizeCompatibilityPerson(personBProfile, personBSajuResult, targetYear);
-  const aChart = personA.sajuOriginalChart || {};
-  const bChart = personB.sajuOriginalChart || {};
 
-  return compactLoveSecretObject({
-    mode: "compatibility",
-    analysis: { targetYear },
-    personA,
-    personB,
-    comparison: {
-      romanticNarrative: compactLoveSecretObject({
-        appealFocus: personASajuResult?.loveSecretReference?.compatibility?.feminineAppealFocus,
-        emotionalMood: personASajuResult?.loveSecretReference?.compatibility?.emotionalMood,
-        tensionPoint: personASajuResult?.loveSecretReference?.compatibility?.tensionPoint,
-        strategyLine: personASajuResult?.loveSecretReference?.compatibility?.strategyLine,
-      }),
-      dayMasterRelation: {
-        personA: aChart.dayMaster,
-        personB: bChart.dayMaster,
-      },
-      spousePalaceRelation: {
-        personA: aChart.dayBranch,
-        personB: bChart.dayBranch,
-        relationType: branchRelationType(aChart.dayBranch, bChart.dayBranch),
-      },
-      monthBranchLifeRhythm: {
-        personA: aChart.monthBranch,
-        personB: bChart.monthBranch,
-        relationType: branchRelationType(aChart.monthBranch, bChart.monthBranch),
-      },
-      fiveElementComplement: elementComplement(personA, personB),
-      tenGodRelation: {
-        personA: personA.tenGods,
-        personB: personB.tenGods,
-      },
-      usefulGodComplement: {
-        personA: personA.structure,
-        personB: personB.structure,
-      },
-      relations: {
-        dayBranch: branchRelationType(aChart.dayBranch, bChart.dayBranch),
-        monthBranch: branchRelationType(aChart.monthBranch, bChart.monthBranch),
-        personAOriginal: personA.relations,
-        personBOriginal: personB.relations,
-      },
-      specialStarOverlap: {
-        sharedKeys: sharedKeys(personA?.specialStars?.all, personB?.specialStars?.all),
-        personA: personA.specialStars,
-        personB: personB.specialStars,
-      },
-      luckTiming: {
-        personA: personA.luckFlow,
-        personB: personB.luckFlow,
-        targetYear,
-      },
-      johuIntimacy: buildJohuIntimacyData(personA, personB),
-    },
-    relationshipContext: {
-      relationshipType: clean(relationshipContext?.relationshipType || relationshipContext?.status),
-      currentConcern: clean(relationshipContext?.currentConcern || relationshipContext?.concern || relationshipContext?.question),
-      desiredOutcome: clean(relationshipContext?.desiredOutcome),
-      tone: clean(relationshipContext?.tone || "professional-mystical"),
-      productTier: clean(relationshipContext?.productTier || "premium"),
-    },
-    writingDirection: {
-      readerMood: "여성 독자가 감정적으로 몰입할 수 있도록 섬세하고 우아한 연애 상담체로 작성합니다.",
-      mustInclude: ["사주 근거", "상대가 나에게 끌리는 지점", "내가 사랑받는 방식", "관계를 지키는 현실적 행동"],
-      avoid: ["불안 조장", "상대를 조종하는 표현", "결혼·이별·재회 단정", "노골적 성적 표현"],
-    },
-  });
-}
 
-function parseLoveGeminiJson(text, schemaName) {
-  const raw = clean(text).replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
-  const candidates = [
-    raw,
-    raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1),
-  ].filter((candidate) => clean(candidate).length > 1);
-  for (const candidate of candidates) {
-    try {
-      return JSON.parse(candidate);
-    } catch {
-      continue;
-    }
-  }
-  throw new Error(`LOVE_SECRET_LLM_JSON_PARSE_FAILED:${schemaName}`);
-}
 
-async function generateLoveGeminiJson(env, { systemPrompt, userPrompt, requestId, schemaName }) {
-  throw Object.assign(new Error("LOVE_SECRET_LLM_DISABLED"), {
-    code: "LOVE_SECRET_LLM_DISABLED",
-    status: 409,
-    detail: {
-      requestId: clean(requestId),
-      schemaName: clean(schemaName),
-      generationMode: LOVE_SECRET_PDF_CONFIG.generationMode,
-      provider: LOVE_SECRET_PDF_CONFIG.provider,
-    },
-  });
-}
 
-function isLoveSecretLlmEnhancementEnabled(env = {}) {
-  return Boolean(LOVE_SECRET_PDF_CONFIG.llmEnabled);
-}
+
+
+
 
 function softenLoveSecretSensitiveText(value) {
   let text = stripUnsafeText(value);
@@ -3187,7 +2894,7 @@ function stripLoveSecretHallucinatedCalculations(value, plan = {}) {
   const locked = clean((plan?.lockedFacts || []).join(" "));
   const sentences = clean(value).split(/(?<=[.!?。]|다\.|요\.)\s+/).map((line) => line.trim()).filter(Boolean);
   const filtered = sentences.filter((sentence) => {
-    if (/새로\s*계산|다시\s*계산|제가\s*계산|내가\s*계산|LLM|Gemini|JSON|API|스키마|프롬프트/i.test(sentence)) return false;
+    if (/새로\s*계산|다시\s*계산|제가\s*계산|내가\s*계산|JSON|API|스키마|프롬프트/i.test(sentence)) return false;
     if (/궁합\s*점수|궁합\s*등급|점\s*입니다|점으로\s*보입니다/.test(sentence) && !/궁합\s*점수|궁합\s*판정|점/.test(locked)) return false;
     return true;
   });
@@ -3209,258 +2916,34 @@ function extractLoveSecretFactKeywords(lockedFacts = []) {
   return keywords;
 }
 
-function validateLoveSecretEnhancedText(rawText, plan = {}) {
-  const safeText = softenLoveSecretSensitiveText(stripLoveSecretHallucinatedCalculations(rawText, plan));
-  if (safeText.length < 700) {
-    return { ok: false, reason: "enhanced_text_too_short", text: "", partialText: safeText.length >= 180 ? safeText : "" };
-  }
-  const keywords = extractLoveSecretFactKeywords(plan?.lockedFacts);
-  const hitCount = keywords.filter((keyword) => safeText.includes(keyword)).length;
-  if (keywords.length >= 3 && hitCount < 2) {
-    return { ok: false, reason: "locked_facts_underused", text: "", partialText: safeText };
-  }
-  if (/(무조건|반드시\s*결혼|100\s*%|필연적으로|반드시\s*재회|절대\s*헤어지지|반드시\s*만난다)/i.test(safeText) || LOVE_SECRET_EXPLICIT_INTIMACY_RE.test(safeText)) {
-    return { ok: false, reason: "risky_expression_remaining", text: "", partialText: softenLoveSecretSensitiveText(safeText) };
-  }
-  return { ok: true, reason: "", text: safeText, partialText: "" };
-}
 
-function buildLoveSecretEnhancementCacheKey({ loveSecretFacts, plan }) {
-  return [
-    LOVE_SECRET_PRODUCT_ID,
-    clean(plan?.mode),
-    loveSecretHashValue(loveSecretFacts?.birthInfo || {}),
-    clean(plan?.mode) === "couple" ? loveSecretHashValue(loveSecretFacts?.partnerBirthInfo || {}) : "solo",
-    LOVE_SECRET_ENGINE_VERSION,
-    LOVE_SECRET_PROMPT_VERSION,
-    clean(plan?.chapterId),
-  ].join(":");
-}
 
-function getLoveSecretEnhancementCache(key) {
-  if (!key || !LOVE_SECRET_LLM_ENHANCEMENT_CACHE.has(key)) return null;
-  const cached = LOVE_SECRET_LLM_ENHANCEMENT_CACHE.get(key);
-  LOVE_SECRET_LLM_ENHANCEMENT_CACHE.delete(key);
-  LOVE_SECRET_LLM_ENHANCEMENT_CACHE.set(key, cached);
-  return cached;
-}
 
-function setLoveSecretEnhancementCache(key, value) {
-  if (!key || !value) return;
-  LOVE_SECRET_LLM_ENHANCEMENT_CACHE.set(key, {
-    enhancedText: clean(value.enhancedText),
-    promptVersion: LOVE_SECRET_PROMPT_VERSION,
-    cachedAt: new Date().toISOString(),
-  });
-  while (LOVE_SECRET_LLM_ENHANCEMENT_CACHE.size > LOVE_SECRET_LLM_ENHANCEMENT_CACHE_MAX) {
-    const firstKey = LOVE_SECRET_LLM_ENHANCEMENT_CACHE.keys().next().value;
-    LOVE_SECRET_LLM_ENHANCEMENT_CACHE.delete(firstKey);
-  }
-}
 
-function buildLoveSecretEnhancementPrompt(plan = {}) {
-  const systemPrompt = [
-    "너는 사주 계산자가 아니다.",
-    "너는 궁합 점수를 새로 만드는 사람이 아니다.",
-    "아래 제공되는 연애 비책 계산 결과는 이미 확정된 값이다.",
-    "일간, 일간 강약, 오행 분포, 십성, 배우자성, 연애 신살, 대운, 세운, 궁합 판정을 절대 변경하지 마라.",
-    "새로운 사주 계산이나 궁합 계산을 하지 마라.",
-    "제공되지 않은 정보를 단정하지 마라.",
-    "lockedFacts는 반드시 반영해라.",
-    "로컬 계산 결과와 모순되는 문장을 쓰지 마라.",
-    "독자의 불안감을 과도하게 자극하지 마라.",
-    "절대 결혼하면 안 된다, 반드시 헤어진다, 평생 외롭다, 상대가 바람을 피운다 같은 단정적이고 공포를 조장하는 표현을 피하라.",
-    "이별, 집착, 불륜, 결혼 실패 같은 민감한 주제는 부드럽고 현실적인 조언으로 표현하라.",
-    "연애 상담문처럼 자연스럽고 깊이 있게 작성하라.",
-    "반복 문장을 줄이고, 챕터마다 다른 관점으로 설명하라.",
-    "한국어로 작성하라.",
-    "최종 PDF 독자가 돈을 내고 읽는 프리미엄 연애 리포트처럼 느껴지게 작성하라.",
-  ].join("\n");
-  const userPrompt = [
-    "아래는 이미 계산 완료된 연애 비책 챕터 데이터다.",
-    "너는 이 내용을 바탕으로 연애 상담문을 작성한다.",
-    "계산 결과를 바꾸거나 새로 해석하지 말고, 주어진 사실과 해석 포인트를 자연스럽고 깊이 있는 문장으로 확장하라.",
-    "",
-    "[리포트 모드]",
-    `mode: ${clean(plan?.mode)}`,
-    "",
-    "[챕터 정보]",
-    `chapterTitle: ${clean(plan?.chapterTitle)}`,
-    `purpose: ${clean(plan?.purpose)}`,
-    `recommendedTone: ${clean(plan?.recommendedTone)}`,
-    "",
-    "[반드시 반영할 확정 사실]",
-    JSON.stringify(plan?.lockedFacts || [], null, 2),
-    "",
-    "[해석 포인트]",
-    JSON.stringify(plan?.interpretationPoints || [], null, 2),
-    "",
-    "[주의할 표현]",
-    JSON.stringify(plan?.warnings || [], null, 2),
-    "",
-    "[로컬 초안]",
-    clean(plan?.localDraft).slice(0, 9000),
-    "",
-    "[출력 조건]",
-    "- 한국어",
-    "- 프리미엄 연애 상담문 스타일",
-    "- 독자에게 직접 말하는 문체",
-    "- 불필요한 반복 금지",
-    "- 계산 결과 변경 금지",
-    "- lockedFacts 누락 금지",
-    "- 과장, 공포 마케팅 금지",
-    "- 상대방을 악마화하거나 단정하지 말 것",
-    "- 1개 챕터 본문으로 바로 PDF에 넣을 수 있게 작성",
-  ].join("\n");
-  return { systemPrompt, userPrompt };
-}
 
-async function generateLoveSecretEnhancedText(env, { plan, loveSecretFacts, requestId }) {
-  const cacheKey = buildLoveSecretEnhancementCacheKey({ loveSecretFacts, plan });
-  return {
-    ok: false,
-    enhancedText: "",
-    cacheKey,
-    cacheHit: false,
-    fallbackReason: "LOVE_SECRET_EXTERNAL_LLM_DISABLED",
-  };
-}
 
-function mergeLoveSecretEnhancedPartial(localDraft, partialText) {
-  const partial = softenLoveSecretSensitiveText(partialText);
-  const local = softenLoveSecretSensitiveText(localDraft);
-  if (!partial) return local;
-  if (!local) return partial;
-  return `${partial}\n\n${local}`.trim();
-}
 
-function applyLoveSecretEnhancedTextToChapter(chapter = {}, enhancedText = "", source = LOVE_SECRET_MANUSCRIPT_SOURCE.HYBRID) {
-  const sections = (Array.isArray(chapter?.sections) ? chapter.sections : []).map((section) => ({ ...section }));
-  if (!sections.length) {
-    sections.push({ title: "프리미엄 상담문", body: "" });
-  }
-  sections[0].body = softenLoveSecretSensitiveText(enhancedText || sections[0].body || "");
-  const text = sections.map((section) => `## ${section.title}\n\n${section.body}`).join("\n\n");
-  return {
-    ...chapter,
-    sections,
-    text,
-    source,
-    llmEnhanced: source === LOVE_SECRET_MANUSCRIPT_SOURCE.HYBRID,
-    promptVersion: source === LOVE_SECRET_MANUSCRIPT_SOURCE.HYBRID ? LOVE_SECRET_PROMPT_VERSION : undefined,
-  };
-}
+
+
+
+
+
+
+
+
 
 function markLoveSecretLocalChapter(chapter = {}) {
   return {
     ...chapter,
     sections: (Array.isArray(chapter?.sections) ? chapter.sections : []).map((section) => ({ ...section })),
     source: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
-    llmEnhanced: false,
-    promptVersion: undefined,
   };
 }
 
-async function enhanceLoveSecretLocalChapters(env, { chapters, mode, plans, loveSecretFacts, requestId = "" } = {}) {
-  const enabled = isLoveSecretLlmEnhancementEnabled(env);
-  const enhancedChapters = [];
-  const enhancedChapterIds = [];
-  const fallbackChapterIds = [];
-  const cacheHits = [];
-  let attempted = 0;
 
-  for (let index = 0; index < (Array.isArray(chapters) ? chapters.length : 0); index += 1) {
-    const chapter = chapters[index];
-    const plan = plans?.[index] || {};
-    const chapterId = clean(plan?.chapterId);
-    if (!enabled || !isLoveSecretEnhancedChapter(mode, chapterId)) {
-      enhancedChapters.push(markLoveSecretLocalChapter(chapter));
-      continue;
-    }
-    attempted += 1;
-    try {
-      const result = await generateLoveSecretEnhancedText(env, {
-        plan,
-        loveSecretFacts,
-        requestId: `${requestId || "love-secret-hybrid"}:${chapterId}`,
-      });
-      if (result.ok && result.enhancedText) {
-        enhancedChapters.push(applyLoveSecretEnhancedTextToChapter(chapter, result.enhancedText, LOVE_SECRET_MANUSCRIPT_SOURCE.HYBRID));
-        enhancedChapterIds.push(chapterId);
-        if (result.cacheHit) cacheHits.push(chapterId);
-        continue;
-      }
-      if (result.enhancedText) {
-        const firstLocalBody = clean(chapter?.sections?.[0]?.body || plan?.localDraft || chapter?.text);
-        enhancedChapters.push(applyLoveSecretEnhancedTextToChapter(chapter, mergeLoveSecretEnhancedPartial(firstLocalBody, result.enhancedText), LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL));
-      } else {
-        enhancedChapters.push(markLoveSecretLocalChapter(chapter));
-      }
-      fallbackChapterIds.push(`${chapterId}:${clean(result.fallbackReason || "fallback")}`);
-    } catch (error) {
-      enhancedChapters.push(markLoveSecretLocalChapter(chapter));
-      fallbackChapterIds.push(`${chapterId}:${clean(error?.code || error?.message || "exception")}`);
-    }
-  }
 
-  return {
-    chapters: enhancedChapters,
-    enabled,
-    attempted,
-    enhancedChapterIds,
-    fallbackChapterIds,
-    cacheHits,
-    promptVersion: LOVE_SECRET_PROMPT_VERSION,
-    engineVersion: LOVE_SECRET_ENGINE_VERSION,
-  };
-}
 
-function normalizeLoveGeneratedChapter(parsed = {}, chapterSpec = {}) {
-  const sourceSections = Array.isArray(parsed?.sections) ? parsed.sections : [];
-  const fixedSectionTitles = Array.isArray(chapterSpec?.categories) ? chapterSpec.categories : [];
-  const sectionTitles = fixedSectionTitles.length
-    ? fixedSectionTitles
-    : sourceSections.map((section, index) => clean(section?.heading || section?.title || `연애 항목 ${index + 1}`));
-  const sections = sectionTitles.map((title, index) => {
-    const source = sourceSections[index] || {};
-    return {
-      heading: clean(title),
-      title: clean(title),
-      body: stripUnsafeText(source.body || source.text || ""),
-      sajuEvidence: loveSecretCleanList(source.sajuEvidence, 8),
-      keyPoints: loveSecretCleanList(source.keyPoints, 8),
-      actionGuide: loveSecretCleanList(source.actionGuide, 8),
-      caution: loveSecretCleanList(source.caution, 8),
-    };
-  });
-  return {
-    mode: normalizeMode(parsed?.mode || chapterSpec?.mode || "solo"),
-    chapterNumber: clean(chapterSpec?.number || parsed?.chapterNumber),
-    chapterTitle: clean(chapterSpec?.title || parsed?.chapterTitle),
-    title: clean(chapterSpec?.title || parsed?.chapterTitle),
-    subtitle: clean(chapterSpec?.subtitle || parsed?.chapterSubtitle || ""),
-    chapterSummary: stripUnsafeText(parsed?.chapterSummary || parsed?.summary || ""),
-    sections,
-    text: sections.map((section) => `## ${section.title}\n\n${section.body}`).join("\n\n"),
-    masterAdvice: stripUnsafeText(parsed?.masterAdvice || ""),
-    source: LOVE_SECRET_MANUSCRIPT_SOURCE.LLM,
-  };
-}
-function normalizeCompatibilityLoveGeneratedChapter(parsed, chapterSpec) {
-  const base = normalizeLoveGeneratedChapter(parsed, chapterSpec);
-  const rawSections = Array.isArray(parsed?.sections) ? parsed.sections : [];
-  return {
-    ...base,
-    mode: "compatibility",
-    sections: base.sections.map((section, index) => ({
-      ...section,
-      personAView: clean(rawSections[index]?.personAView),
-      personBView: clean(rawSections[index]?.personBView),
-      relationshipDynamic: clean(rawSections[index]?.relationshipDynamic),
-      compatibilityStrategy: clean(rawSections[index]?.compatibilityStrategy),
-    })),
-  };
-}
+
 
 function loveSecretCategoryCovered(category, text) {
   const haystack = clean(text).replace(/\s+/g, "");
@@ -3468,312 +2951,6 @@ function loveSecretCategoryCovered(category, text) {
   if (compactCategory && haystack.includes(compactCategory)) return true;
   const tokens = clean(category).split(/[\s,·]+/).map((token) => token.replace(/[^\w가-힣]/g, "")).filter((token) => token.length >= 2);
   return tokens.some((token) => haystack.includes(token));
-}
-
-function validateLoveChapter({ chapter, chapterSpec, mode }) {
-  const errors = [];
-  const warnings = [];
-  const normalizedMode = normalizeMode(mode);
-  const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
-  const allText = `${clean(chapter?.chapterSummary)}\n${sections.map((section) => `${clean(section?.heading)}\n${clean(section?.body)}\n${clean(section?.personAView)}\n${clean(section?.personBView)}\n${clean(section?.relationshipDynamic)}\n${clean(section?.compatibilityStrategy)}\n${loveSecretCleanList(section?.sajuEvidence).join(" ")}\n${loveSecretCleanList(section?.keyPoints).join(" ")}\n${loveSecretCleanList(section?.actionGuide).join(" ")}\n${loveSecretCleanList(section?.caution).join(" ")}`).join("\n")}\n${clean(chapter?.masterAdvice)}`;
-
-  if (normalizeMode(chapter?.mode) !== normalizedMode) errors.push("mode_mismatch");
-  if (clean(chapter?.chapterNumber) !== clean(chapterSpec?.number)) errors.push("chapter_number_mismatch");
-  if (clean(chapter?.chapterTitle) !== clean(chapterSpec?.title)) errors.push("chapter_title_mismatch");
-  if (clean(chapter?.chapterSummary).length < 30) errors.push("chapter_summary_missing");
-  if (!sections.length) errors.push("sections_missing");
-  if (sections.length < Math.min(5, Number(chapterSpec?.categories?.length || 0) || 5)) errors.push("sections_too_few");
-
-  sections.forEach((section, index) => {
-    if (!clean(section?.heading)) errors.push(`section_${index + 1}_heading_missing`);
-    if (clean(section?.body).length < 120) errors.push(`section_${index + 1}_body_too_short`);
-    if (!loveSecretCleanList(section?.sajuEvidence).length) errors.push(`section_${index + 1}_saju_evidence_missing`);
-    if (!loveSecretCleanList(section?.keyPoints).length) errors.push(`section_${index + 1}_key_points_missing`);
-    if (!loveSecretCleanList(section?.actionGuide).length) errors.push(`section_${index + 1}_action_guide_missing`);
-    if (!loveSecretCleanList(section?.caution).length) errors.push(`section_${index + 1}_caution_missing`);
-  });
-
-  if (clean(chapter?.masterAdvice).length < 40) errors.push("master_advice_missing");
-  const categories = Array.isArray(chapterSpec?.categories) ? chapterSpec.categories : [];
-  const covered = categories.filter((category) => loveSecretCategoryCovered(category, allText));
-  if (categories.length && covered.length < Math.min(5, categories.length)) errors.push("category_coverage_low");
-  if (categories.length && covered.length < categories.length) warnings.push(`category_coverage_partial:${covered.length}/${categories.length}`);
-  if (LOVE_SECRET_ASSERTIVE_RE.test(allText)) warnings.push("risky_assertive_expression");
-  if (new RegExp(LOVE_SECRET_LLM_DEVELOPER_RE.source, "i").test(allText)) errors.push("developer_terms_exposed");
-  if (["VIII", "XI"].includes(clean(chapterSpec?.number)) && LOVE_SECRET_EXPLICIT_INTIMACY_RE.test(allText)) errors.push("explicit_intimacy_expression");
-
-  return { ok: errors.length === 0, errors, warnings };
-}
-
-function validateCompatibilityLoveChapter({ chapter, chapterSpec }) {
-  const validation = validateLoveChapter({ chapter, chapterSpec, mode: "compatibility" });
-  const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
-  const hasAView = sections.some((section) => clean(section?.personAView).length >= 20);
-  const hasBView = sections.some((section) => clean(section?.personBView).length >= 20);
-  const hasDynamic = sections.some((section) => clean(section?.relationshipDynamic).length >= 20);
-  const hasStrategy = sections.some((section) => clean(section?.compatibilityStrategy).length >= 20);
-  if (!hasAView) validation.errors.push("person_a_view_missing");
-  if (!hasBView) validation.errors.push("person_b_view_missing");
-  if (!hasDynamic) validation.errors.push("relationship_dynamic_missing");
-  if (!hasStrategy) validation.errors.push("compatibility_strategy_missing");
-  if (sections.length && !sections.every((section) => loveSecretCleanList(section?.sajuEvidence).length > 0)) {
-    validation.errors.push("compatibility_saju_evidence_missing");
-  }
-  validation.ok = validation.errors.length === 0;
-  return validation;
-}
-
-function buildSoloLoveChapterPrompt({ input, chapterSpec, previousSummaries = [], validationFeedback = "" }) {
-  const chapterQualityGuide = getSoloLoveChapterQualityGuide(chapterSpec);
-  const systemPrompt = [
-    "당신은 사주 원국을 바탕으로 연애 비책 PDF의 개인화 본문만 쓰는 전문 상담가입니다.",
-    "챕터 제목, 섹션 제목, 표지, 목차, 공통 안내문은 코드 템플릿으로 이미 준비되어 있으므로 생성하지 마세요.",
-    "제공된 사주 계산값과 연애 상담 근거만 사용하고, 없는 값은 만들지 마세요.",
-    "확정적 예언, 불안 조장, 노골적 성적 표현, 의료적 진단처럼 들리는 표현은 금지합니다.",
-    "본문에는 JSON, prompt, schema, API, Gemini, LLM, 엔진 같은 개발 용어를 절대 쓰지 마세요.",
-    "출력은 순수 JSON 객체 하나만 허용합니다. 코드블록과 설명문은 쓰지 마세요.",
-  ].join("\n");
-  const userPrompt = JSON.stringify({
-    task: "연애 비책 PDF 솔로 모드 개인화 본문 생성",
-    requiredOutputShape: {
-      mode: "solo",
-      chapterNumber: chapterSpec.number,
-      chapterSummary: "string",
-      sections: [
-        {
-          body: "string",
-          sajuEvidence: ["string"],
-          keyPoints: ["string"],
-          actionGuide: ["string"],
-          caution: ["string"],
-        },
-      ],
-      masterAdvice: "string",
-    },
-    staticTemplatePolicy: {
-      chapterTitleIsFixed: chapterSpec.title,
-      sectionTitlesAreFixedInThisOrder: chapterSpec.categories,
-      doNotGenerate: ["표지", "목차", "챕터 제목", "섹션 제목", "공통 안내문", "다운로드 안내"],
-    },
-    sectionRules: {
-      categories: chapterSpec.categories,
-      oneSectionPerCategory: true,
-      minimumBodyLengthPerSection: 650,
-      eachSectionMustInclude: ["사주 근거", "연애 패턴 해석", "현실 적용", "주의점", "실천 조언"],
-      tone: "전문적이고 신비로운 연애 상담체",
-    },
-    chapterQualityGuide,
-    previousSummaries,
-    validationFeedback: clean(validationFeedback),
-    input,
-  });
-  return { systemPrompt, userPrompt };
-}
-async function generateSoloLoveChapter({ env, input, chapterSpec, previousSummaries = [], requestId, validationFeedback = "" }) {
-  const { systemPrompt, userPrompt } = buildSoloLoveChapterPrompt({ input, chapterSpec, previousSummaries, validationFeedback });
-  const parsed = await generateLoveGeminiJson(env, {
-    systemPrompt,
-    userPrompt,
-    requestId,
-    schemaName: `SoloLoveChapter${chapterSpec.number}`,
-  });
-  return normalizeLoveGeneratedChapter(parsed, chapterSpec);
-}
-
-function buildCompatibilityLoveChapterPrompt({ input, chapterSpec, previousSummaries = [], validationFeedback = "" }) {
-  const isJohuIntimacyChapter = clean(chapterSpec?.number) === "VIII";
-  const systemPrompt = [
-    "당신은 두 사람의 사주 궁합을 바탕으로 연애 비책 PDF의 개인화 본문만 쓰는 전문 상담가입니다.",
-    "챕터 제목, 섹션 제목, 표지, 목차, 공통 안내문은 코드 템플릿으로 이미 준비되어 있으므로 생성하지 마세요.",
-    "제공된 두 사람의 계산값과 궁합 근거만 사용하고, 없는 값은 만들지 마세요.",
-    "궁합을 성공/실패로 단정하지 말고 관계 역학, 조율 전략, 주의점으로 표현하세요.",
-    "노골적 성적 표현, 불안 조장, 의료적 진단처럼 들리는 표현은 금지합니다.",
-    "본문에는 JSON, prompt, schema, API, Gemini, LLM, 엔진 같은 개발 용어를 절대 쓰지 마세요.",
-    "출력은 순수 JSON 객체 하나만 허용합니다. 코드블록과 설명문은 쓰지 마세요.",
-  ].join("\n");
-  const userPrompt = JSON.stringify({
-    task: "연애 비책 PDF 궁합 모드 개인화 본문 생성",
-    requiredOutputShape: {
-      mode: "compatibility",
-      chapterNumber: chapterSpec.number,
-      chapterSummary: "string",
-      sections: [
-        {
-          body: "string",
-          personAView: "string",
-          personBView: "string",
-          relationshipDynamic: "string",
-          compatibilityStrategy: "string",
-          sajuEvidence: ["string"],
-          keyPoints: ["string"],
-          actionGuide: ["string"],
-          caution: ["string"],
-        },
-      ],
-      masterAdvice: "string",
-    },
-    staticTemplatePolicy: {
-      chapterTitleIsFixed: chapterSpec.title,
-      sectionTitlesAreFixedInThisOrder: chapterSpec.categories,
-      doNotGenerate: ["표지", "목차", "챕터 제목", "섹션 제목", "공통 안내문", "다운로드 안내"],
-    },
-    sectionRules: {
-      categories: chapterSpec.categories,
-      oneSectionPerCategory: true,
-      minimumBodyLengthPerSection: 700,
-      eachSectionMustInclude: ["두 사람의 사주 근거", "관계 역학", "현실 조율", "주의점", "실천 전략"],
-      tone: "전문적이고 신비로운 궁합 상담체",
-      chapterScope: isJohuIntimacyChapter
-        ? "친밀감은 조후와 정서 온도 중심으로만 표현하고 노골적 성적 묘사는 피합니다."
-        : "관계의 선택과 조율 전략 중심으로 작성합니다.",
-    },
-    previousSummaries,
-    validationFeedback: clean(validationFeedback),
-    input,
-  });
-  return { systemPrompt, userPrompt };
-}
-async function generateCompatibilityLoveChapter({ env, input, chapterSpec, previousSummaries = [], requestId, validationFeedback = "" }) {
-  const { systemPrompt, userPrompt } = buildCompatibilityLoveChapterPrompt({ input, chapterSpec, previousSummaries, validationFeedback });
-  const parsed = await generateLoveGeminiJson(env, {
-    systemPrompt,
-    userPrompt,
-    requestId,
-    schemaName: `CompatibilityLoveChapter${chapterSpec.number}`,
-  });
-  return normalizeCompatibilityLoveGeneratedChapter(parsed, chapterSpec);
-}
-
-async function generateLoveChapter({ env, mode, input, chapterSpec, previousSummaries = [], requestId, validationFeedback = "" }) {
-  if (normalizeMode(mode) === "compatibility") {
-    return generateCompatibilityLoveChapter({ env, input, chapterSpec, previousSummaries, requestId, validationFeedback });
-  }
-  return generateSoloLoveChapter({ env, input, chapterSpec, previousSummaries, requestId, validationFeedback });
-}
-
-async function generateCompatibilityLoveChapters({ env, input, requestId, onProgress = null }) {
-  const previousSummaries = [];
-  const chapters = [];
-  for (let index = 0; index < COMPATIBILITY_LOVE_CHAPTER_SPECS.length; index += 1) {
-    const chapterSpec = COMPATIBILITY_LOVE_CHAPTER_SPECS[index];
-    let lastValidation = null;
-    let accepted = null;
-    for (let attempt = 1; attempt <= 2; attempt += 1) {
-      try {
-        const chapter = await generateCompatibilityLoveChapter({
-          env,
-          input,
-          chapterSpec,
-          previousSummaries,
-          requestId: `${requestId || "love-secret-compatibility"}:${chapterSpec.number}:a${attempt}`,
-          validationFeedback: lastValidation ? `previous validation errors: ${lastValidation.errors.join(", ")} / warnings: ${lastValidation.warnings.join(", ")}` : "",
-        });
-        const validation = validateCompatibilityLoveChapter({ chapter, chapterSpec });
-        if (validation.ok) {
-          accepted = chapter;
-          break;
-        }
-        lastValidation = validation;
-      } catch (error) {
-        lastValidation = {
-          ok: false,
-          errors: [clean(error?.code || error?.message || "compatibility_chapter_generation_failed")],
-          warnings: [],
-        };
-      }
-    }
-    if (!accepted) {
-      throw new Error(`LOVE_SECRET_COMPATIBILITY_CHAPTER_INVALID:${chapterSpec.number}:${(lastValidation?.errors || []).join(",")}`);
-    }
-    chapters.push(convertLoveGeneratedChapterToPdfChapter(accepted, chapterSpec, index));
-    previousSummaries.push(`${chapterSpec.number}. ${accepted.chapterTitle}: ${accepted.chapterSummary}`);
-    if (typeof onProgress === "function") {
-      await onProgress({ completed: chapters.length, chapterNo: index + 1, totalChapters: COMPATIBILITY_LOVE_CHAPTER_SPECS.length });
-    }
-  }
-  return chapters;
-}
-
-function convertLoveGeneratedChapterToPdfChapter(chapter, chapterSpec, chapterIndex) {
-  const sections = (Array.isArray(chapter?.sections) ? chapter.sections : []).map((section) => ({
-    title: stripUnsafeText(section?.heading || "연애 항목"),
-    body: stripUnsafeText(section?.body || ""),
-    personAView: stripUnsafeText(section?.personAView || ""),
-    personBView: stripUnsafeText(section?.personBView || ""),
-    relationshipDynamic: stripUnsafeText(section?.relationshipDynamic || ""),
-    compatibilityStrategy: stripUnsafeText(section?.compatibilityStrategy || ""),
-    sajuEvidence: loveSecretCleanList(section?.sajuEvidence, 8),
-    keyPoints: loveSecretCleanList(section?.keyPoints, 8),
-    actionGuide: loveSecretCleanList(section?.actionGuide, 8),
-    caution: loveSecretCleanList(section?.caution, 8),
-  }));
-  const masterAdvice = stripUnsafeText(chapter?.masterAdvice || "");
-  if (masterAdvice) {
-    sections.push({
-      title: "마스터 조언",
-      body: masterAdvice,
-      personAView: "",
-      personBView: "",
-      relationshipDynamic: "",
-      compatibilityStrategy: "",
-      sajuEvidence: [],
-      keyPoints: [],
-      actionGuide: [],
-      caution: [],
-    });
-  }
-  return {
-    chapter: chapterIndex + 1,
-    chapterNumber: clean(chapterSpec?.number),
-    title: stripUnsafeText(chapterSpec?.title || chapter?.chapterTitle || `연애 비책 ${chapterIndex + 1}장`),
-    subtitle: stripUnsafeText(chapter?.chapterSummary || ""),
-    sections,
-    text: sections.map((section) => `## ${section.title}\n\n${section.body}`).join("\n\n"),
-    source: LOVE_SECRET_MANUSCRIPT_SOURCE.LLM,
-  };
-}
-
-async function generateSoloLoveChapters({ env, input, requestId, onProgress = null }) {
-  const previousSummaries = [];
-  const chapters = [];
-  for (let index = 0; index < SOLO_LOVE_CHAPTER_SPECS.length; index += 1) {
-    const chapterSpec = SOLO_LOVE_CHAPTER_SPECS[index];
-    let lastValidation = null;
-    let accepted = null;
-    for (let attempt = 1; attempt <= 2; attempt += 1) {
-      try {
-        const chapter = await generateSoloLoveChapter({
-          env,
-          input,
-          chapterSpec,
-          previousSummaries,
-          requestId: `${requestId || "love-secret"}:${chapterSpec.number}:a${attempt}`,
-          validationFeedback: lastValidation ? `이전 결과 오류: ${lastValidation.errors.join(", ")} / 경고: ${lastValidation.warnings.join(", ")}` : "",
-        });
-        const validation = validateLoveChapter({ chapter, chapterSpec, mode: "solo" });
-        if (validation.ok) {
-          accepted = chapter;
-          break;
-        }
-        lastValidation = validation;
-      } catch (error) {
-        lastValidation = {
-          ok: false,
-          errors: [clean(error?.code || error?.message || "chapter_generation_failed")],
-          warnings: [],
-        };
-      }
-    }
-    if (!accepted) {
-      throw new Error(`LOVE_SECRET_CHAPTER_INVALID:${chapterSpec.number}:${(lastValidation?.errors || []).join(",")}`);
-    }
-    chapters.push(convertLoveGeneratedChapterToPdfChapter(accepted, chapterSpec, index));
-    previousSummaries.push(`${chapterSpec.number}. ${accepted.chapterTitle}: ${accepted.chapterSummary}`);
-    if (typeof onProgress === "function") {
-      await onProgress({ completed: chapters.length, chapterNo: index + 1, totalChapters: SOLO_LOVE_CHAPTER_SPECS.length });
-    }
-  }
-  return chapters;
 }
 
 function safeModeChapterConfig(mode) {
@@ -4283,7 +3460,6 @@ function buildLocalChapter(base, chapterTitle, chapterSubtitle, sectionTitles, m
     sections,
     localDraft: text,
     finalText: text,
-    fallbackUsed: false,
   };
 }
 
@@ -4373,8 +3549,6 @@ function prepareLoveSecretFinalChapters({ candidateChapters = [], localChapters 
     (Array.isArray(localChapters) ? localChapters : []).map((chapter) => ({
       ...chapter,
       source: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
-      llmEnhanced: false,
-      promptVersion: undefined,
     })),
     mode,
     config,
@@ -4448,7 +3622,7 @@ const LOVE_SECRET_ASSEMBLED_SECTIONS = Object.freeze([
 ]);
 
 const LOVE_SECRET_ASSEMBLED_MOJIBAKE_RE = /[\uFFFD\uF900-\uFAFF]|[?][\uAC00-\uD7A3]|[\u3131-\u318E]{2,}|[怨沅諛藥鶯耶渦訝雅野蹂濡]/;
-const LOVE_SECRET_ASSEMBLED_FORBIDDEN_RE = /\b(?:undefined|null|nan|fallback|llm|json|schema|debug|prompt|raw|payload|object)\b|\[object Object\]|자동\s*복구\s*생성|데이터\s*부족|로컬\s*엔진|템플릿|internal\s*server\s*error|about:blank/i;
+const LOVE_SECRET_ASSEMBLED_FORBIDDEN_RE = /\b(?:undefined|null|nan|json|schema|debug|prompt|raw|payload|object)\b|\[object Object\]|자동\s*복구\s*생성|데이터\s*부족|템플릿|internal\s*server\s*error|about:blank/i;
 
 function loveSecretSafeDisplayText(value, fallback = "") {
   const text = clean(value).replace(/\s+/g, " ").trim();
@@ -4651,8 +3825,6 @@ function buildLoveSecretAssembledChapter(spec, index, mode, base) {
     sections,
     text,
     source: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
-    llmEnhanced: false,
-    promptVersion: undefined,
   };
 }
 
@@ -4868,7 +4040,7 @@ function renderLoveSecretHtmlClean(chapters = [], meta = {}) {
   }).join("");
   const finalSummary = loveSecretCleanList(chapterList.flatMap((chapter) => chapter?.summaryCards || []), 5);
   const finalRoutineRows = routineTable.rows && routineTable.rows.length ? routineTable.rows : [];
-  const finalPage = `<section class="final-page"><h2>전체 요약</h2><div class="final-grid">${finalSummary.map((item) => `<div><strong>요약</strong><p>${escapeLoveSecretHtml(item)}</p></div>`).join("")}</div>${premiumTable("30일 실천 루틴", routineTable.headers.length ? routineTable.headers : ["기간", "주제", "실천법"], finalRoutineRows)}<div class="revisit"><strong>재열람 안내</strong><p>결제 완료 후 생성된 연애 비책 PDF는 보관된 다운로드 링크와 재열람 화면에서 다시 확인할 수 있습니다. 저장된 원고는 같은 사주 계산값을 기준으로 하며, 다시 열람해도 외부 LLM 호출 없이 제공됩니다.</p></div></section>`;
+  const finalPage = `<section class="final-page"><h2>전체 요약</h2><div class="final-grid">${finalSummary.map((item) => `<div><strong>요약</strong><p>${escapeLoveSecretHtml(item)}</p></div>`).join("")}</div>${premiumTable("30일 실천 루틴", routineTable.headers.length ? routineTable.headers : ["기간", "주제", "실천법"], finalRoutineRows)}<div class="revisit"><strong>재열람 안내</strong><p>결제 완료 후 생성된 연애 비책 PDF는 보관된 다운로드 링크와 재열람 화면에서 다시 확인할 수 있습니다. 저장된 원고는 같은 사주 계산값을 기준으로 다시 제공됩니다.</p></div></section>`;
 
   return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${escapeLoveSecretHtml(`${coverName}님의 ${coverTitle}`)}</title><style>@page{size:A4;margin:14mm;}*{box-sizing:border-box;}body{font-family:"Noto Serif KR","Malgun Gothic",serif;margin:0;color:#2a1724;background:#fff9fc;}main{padding:42px 48px;background:#fff;}header.cover{min-height:760px;box-sizing:border-box;padding:70px 56px;text-align:center;background:radial-gradient(circle at 50% 12%,rgba(255,239,196,.34),transparent 18%),linear-gradient(145deg,#1c0714,#5e1539 58%,#1c0714);color:#fff;page-break-after:always;}header.cover .brand{font-size:20px;letter-spacing:.04em;font-weight:700;}header.cover .service{margin-top:68px;font-size:13px;letter-spacing:.28em;color:#f8d9e8;}header.cover h1{margin:14px 0 14px;font-size:50px;font-weight:700;letter-spacing:0;}header.cover .subtitle{font-size:18px;line-height:1.8;color:#ffeaf3;}header.cover .mode{display:inline-block;margin-top:28px;border:1px solid rgba(255,255,255,.42);border-radius:999px;padding:8px 18px;font-size:13px;background:rgba(255,255,255,.1);}header.cover .person{margin-top:54px;font-size:21px;}header.cover .birth,header.cover .generated,header.cover .eight{font-size:13px;color:#f6d9e5;margin-top:8px;}nav.toc{page-break-after:always;padding:54px 48px;background:#fff;}nav.toc h2,.premium-table h2,.final-page h2{margin:0 0 22px;color:#64123b;font-size:28px;}nav.toc ol{list-style:none;margin:0;padding:0;}nav.toc li{display:grid;grid-template-columns:44px 1fr;gap:12px;border-bottom:1px solid #efd0dc;padding:12px 0;font-size:14px;}nav.toc span{color:#be185d;font-weight:700;}nav.toc em{grid-column:2;color:#8b6275;font-style:normal;font-size:12px;line-height:1.5;}.overview{page-break-after:always;background:#fff;padding:42px 48px;}.premium-table{page-break-inside:avoid;margin:0 0 24px;}.premium-table h2{font-size:20px;margin-bottom:10px;}article.chapter{padding:0 0 24px;}article.chapter header{border-bottom:1px solid #efc2d7;margin:28px 0 20px;padding-bottom:16px;}article.chapter h2{margin:8px 0;color:#64123b;font-size:25px;}article.chapter header p{margin:0;color:#7b4d65;font-size:14px;}.chapter-cover{min-height:420px;page-break-after:always;padding:86px 54px;background:linear-gradient(145deg,#fff7fb,#f9e7ef);border:1px solid #f0cbda;text-align:center;}.chapter-cover .moon-mark{margin:0 auto 48px;width:76px;height:76px;border-radius:50%;border:1px solid #c894a8;display:flex;align-items:center;justify-content:center;color:#64123b;background:#fff;}.chapter-cover span{font-size:12px;letter-spacing:.24em;color:#be185d;}.chapter-cover h2{font-size:31px;margin:18px 0 22px;color:#64123b;}.chapter-cover blockquote{margin:0 auto;max-width:520px;color:#765064;font-size:16px;line-height:1.8;}.chapter-summary,.final-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 22px;}.chapter-summary div,.final-grid div{border:1px solid #f1c9db;background:#fff7fb;border-radius:6px;padding:12px;}.chapter-summary strong,.final-grid strong{display:block;color:#8b1d52;font-size:12px;margin-bottom:6px;}.chapter-summary p,.final-grid p{font-size:12px;line-height:1.6;margin:0;}article.chapter h3{margin:0 0 10px;color:#8b1d52;font-size:17px;}article.chapter p{line-height:1.88;margin:0 0 13px;font-size:14px;}span.chapter-no{color:#be185d;font-size:12px;letter-spacing:.16em;}.body-card{border:1px solid #f1c9db;background:#fffdfd;border-radius:8px;padding:16px 18px;margin:16px 0 20px;page-break-inside:avoid;}.notes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 4px;page-break-inside:avoid;}.note,.table-card{border:1px solid #f1c9db;background:#fff7fb;padding:11px 12px;border-radius:6px;}.note strong,.table-card strong{display:block;margin-bottom:6px;color:#7a1748;font-size:12px;}.note ul{margin:0;padding-left:16px;}.note li{font-size:12px;line-height:1.6;margin:0 0 4px;}.table-card{margin:16px 0;page-break-inside:avoid;}table{width:100%;border-collapse:collapse;background:#fff;}th,td{border:1px solid #e8c5d4;padding:7px 8px;text-align:left;font-size:11px;line-height:1.45;}th{background:#fde8f1;color:#7a1748;}.final-page{page-break-before:always;padding:54px 48px;background:#fff;}.revisit{margin-top:20px;border:1px solid #e8c5d4;background:#fff7fb;border-radius:8px;padding:16px;}.revisit strong{color:#64123b;}.revisit p{font-size:13px;line-height:1.8;margin:8px 0 0;}</style></head><body><header class="cover"><div class="brand">Code</div><div class="service">PREMIUM LOVE READING</div><h1>${escapeLoveSecretHtml(coverTitle)}</h1><div class="subtitle">나의 사주 구조로 읽는 사랑의 패턴</div><div class="mode">${escapeLoveSecretHtml(modeLabel)}</div><div class="person">${escapeLoveSecretHtml(coverName)}</div><div class="birth">${escapeLoveSecretHtml(coverBirth || "익명 프로필")}</div><div class="generated">생성일 ${escapeLoveSecretHtml(generatedAt)}</div>${eightCharacters ? `<div class="eight">${escapeLoveSecretHtml(eightCharacters)}</div>` : ""}</header><nav class="toc"><h2>목차</h2><ol>${tocHtml}</ol></nav><section class="overview">${overviewHtml}</section><main>${chapterHtml}</main>${finalPage}</body></html>`;
 }
@@ -4976,7 +4148,7 @@ function buildLoveSecretPdfReadyAssembled(requestOrOrigin, reportId, chapters, b
   };
 }
 
-function buildLoveSecretSuccessPayload({ featureKey, mode, sessionId, reportId, chapterCount, fallbackUsed, manuscriptSource, chapters, pdfReady, pdfCompletionValidation, loveSecretMasterJson, masterJsonValidation, loveSecretFacts, loveSecretChapterPlans, llmEnhancement }) {
+function buildLoveSecretSuccessPayload({ featureKey, mode, sessionId, reportId, chapterCount, manuscriptSource, chapters, pdfReady, pdfCompletionValidation, loveSecretMasterJson, masterJsonValidation, loveSecretFacts, loveSecretChapterPlans, localAssembly }) {
   const storedUrl = clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl);
   if (!storedUrl) {
     const error = new Error("LOVE_SECRET_REPORT_URL_MISSING");
@@ -4994,7 +4166,6 @@ function buildLoveSecretSuccessPayload({ featureKey, mode, sessionId, reportId, 
     reportId,
     sessionId: clean(sessionId || ""),
     chapterCount,
-    fallbackUsed: Boolean(fallbackUsed),
     manuscriptSource,
     pdfReady,
     pdfCompletionValidation: pdfCompletionValidation && typeof pdfCompletionValidation === "object" ? pdfCompletionValidation : undefined,
@@ -5002,7 +4173,7 @@ function buildLoveSecretSuccessPayload({ featureKey, mode, sessionId, reportId, 
     masterJsonValidation: masterJsonValidation && typeof masterJsonValidation === "object" ? masterJsonValidation : undefined,
     loveSecretFacts: loveSecretFacts && typeof loveSecretFacts === "object" ? loveSecretFacts : undefined,
     loveSecretChapterPlans: summarizeLoveSecretChapterPlans(loveSecretChapterPlans),
-    llmEnhancement: llmEnhancement && typeof llmEnhancement === "object" ? llmEnhancement : undefined,
+    localAssembly: localAssembly && typeof localAssembly === "object" ? localAssembly : undefined,
     pdfUrl: storedUrl,
     htmlUrl: clean(pdfReady?.htmlUrl || storedUrl),
     downloadUrl: clean(pdfReady?.downloadUrl || storedUrl),
@@ -5118,7 +4289,6 @@ function buildLoveSecretReusableExecutionResponse(doc = {}, fallback = {}) {
         sessionId,
         reportId,
         chapterCount: Number(archive.chapterCount || payload.chapterCount || (Array.isArray(archive.chapters) ? archive.chapters.length : 0)),
-        fallbackUsed: Boolean(archive.fallbackUsed || payload.fallbackUsed),
         manuscriptSource: clean(archive.manuscriptSource || metadata.manuscriptSource || fallback.manuscriptSource || LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL),
         chapters: Array.isArray(archive.chapters) ? archive.chapters : [],
         pdfReady: effectivePdfReady,
@@ -5126,7 +4296,7 @@ function buildLoveSecretReusableExecutionResponse(doc = {}, fallback = {}) {
         masterJsonValidation: payload.masterJsonValidation,
         loveSecretFacts: payload.loveSecretFacts,
         loveSecretChapterPlans: payload.loveSecretChapterPlans,
-        llmEnhancement: payload.llmEnhancement,
+        localAssembly: archive.localAssembly || payload.localAssembly,
       }),
     };
   }
@@ -5316,7 +4486,7 @@ async function runLoveSecretJob(env, jobId) {
       masterJsonValidation,
       loveSecretFacts,
       loveSecretChapterPlans,
-      llmEnhancement,
+      localAssembly,
     } = await buildLoveSecretChapters(env, {
       base,
       mode,
@@ -5381,7 +4551,6 @@ async function runLoveSecretJob(env, jobId) {
       },
     );
 
-    let fallbackUsed = false;
     let manuscriptSource = clean(generatedSource) || LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
     const preparedFinal = prepareLoveSecretFinalChapters({
       candidateChapters: localChapters.map((chapter) => ({ ...chapter, source: manuscriptSource })),
@@ -5416,7 +4585,7 @@ async function runLoveSecretJob(env, jobId) {
       manuscriptSource,
     });
 
-    console.info("[LoveBookPremiumPDF][PdfRenderStart]", { chapterCount: finalChapters.length, fallbackUsed, manuscriptSource });
+    console.info("[LoveBookPremiumPDF][PdfRenderStart]", { chapterCount: finalChapters.length, manuscriptSource });
 
     const reportId = clean(job?.reportId || executionCtx.reportId || `love-secret-${Date.now().toString(36)}`);
     finalChapters = buildLoveSecretAssembledChapters(finalChapters, base, mode);
@@ -5436,7 +4605,6 @@ async function runLoveSecretJob(env, jobId) {
       sessionId,
       reportId,
       chapterCount: totalChapters,
-      fallbackUsed,
       manuscriptSource,
       chapters: finalChapters,
       pdfReady,
@@ -5445,7 +4613,7 @@ async function runLoveSecretJob(env, jobId) {
       masterJsonValidation,
       loveSecretFacts,
       loveSecretChapterPlans,
-      llmEnhancement,
+      localAssembly,
     });
 
     await coll.updateOne(
@@ -5458,7 +4626,7 @@ async function runLoveSecretJob(env, jobId) {
           stage: "completed",
           message: "연애 비책 PDF가 준비되었습니다.",
           completedChapters: totalChapters,
-          fallbackUsed,
+          localAssembly,
           manuscriptSource,
           result: successResult,
           completedAt: new Date(),
@@ -5467,7 +4635,7 @@ async function runLoveSecretJob(env, jobId) {
       },
     );
     setLoveSecretPdfMemoryCache(pdfCacheKey, { payload: successResult });
-    console.info("[LoveBookPremiumPDF][PdfRenderSuccess]", { chapterCount: totalChapters, fallbackUsed, manuscriptSource });
+    console.info("[LoveBookPremiumPDF][PdfRenderSuccess]", { chapterCount: totalChapters, manuscriptSource });
     await completePremiumPdfExecution(
       env,
       String(job?.userId || ""),
@@ -5488,7 +4656,7 @@ async function runLoveSecretJob(env, jobId) {
           htmlUrl: clean(pdfReady?.htmlUrl),
           downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
           chapters: finalChapters,
-          payload: { mode, chapterCount: totalChapters, pdfReady, pdfCompletionValidation, loveSecretMasterJson, masterJsonValidation, loveSecretFacts, loveSecretChapterPlans: summarizeLoveSecretChapterPlans(loveSecretChapterPlans), llmEnhancement },
+          payload: { mode, chapterCount: totalChapters, pdfReady, pdfCompletionValidation, loveSecretMasterJson, masterJsonValidation, loveSecretFacts, loveSecretChapterPlans: summarizeLoveSecretChapterPlans(loveSecretChapterPlans), localAssembly },
           pdfReady,
           canReopen: true,
           canDownload: true,
@@ -5649,7 +4817,6 @@ async function handleGenerateChapter(request, env) {
     chapter: chapterNo,
     chapterCount: totalChapters,
     chapterMeta: { title, subtitle },
-    fallbackUsed: false,
     manuscriptSource: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
     text: finalText,
     sections: Array.isArray(local.sections) ? local.sections : [],
@@ -5747,7 +4914,7 @@ async function handlePrepare(request, env) {
     masterJsonValidation,
     loveSecretFacts,
     loveSecretChapterPlans,
-    llmEnhancement,
+    localAssembly,
   } = await buildLoveSecretChapters(env, {
     base,
     mode,
@@ -5776,7 +4943,6 @@ async function handlePrepare(request, env) {
     repetitionScore: localValidation.repetitionScore,
   });
 
-  let fallbackUsed = false;
   let manuscriptSource = clean(generatedSource) || LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
   const preparedFinal = prepareLoveSecretFinalChapters({
     candidateChapters: localChapters.map((chapter) => ({ ...chapter, source: manuscriptSource })),
@@ -5808,8 +4974,8 @@ async function handlePrepare(request, env) {
     chapterCount: finalChapters.length,
     manuscriptSource,
   });
-  console.info("[LoveBookPremiumPDF][PdfRenderStart]", { chapterCount: finalChapters.length, fallbackUsed, manuscriptSource });
-  console.info("[LoveBookPremiumPDF][PdfRenderSuccess]", { chapterCount: finalChapters.length, fallbackUsed, manuscriptSource });
+  console.info("[LoveBookPremiumPDF][PdfRenderStart]", { chapterCount: finalChapters.length, manuscriptSource });
+  console.info("[LoveBookPremiumPDF][PdfRenderSuccess]", { chapterCount: finalChapters.length, manuscriptSource });
 
   const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `love-secret-${Date.now().toString(36)}`);
   finalChapters = buildLoveSecretAssembledChapters(finalChapters, base, mode);
@@ -5828,7 +4994,6 @@ async function handlePrepare(request, env) {
     sessionId,
     reportId,
     chapterCount: totalChapters,
-    fallbackUsed,
     manuscriptSource,
     chapters: finalChapters,
     pdfReady,
@@ -5837,7 +5002,7 @@ async function handlePrepare(request, env) {
     masterJsonValidation,
     loveSecretFacts,
     loveSecretChapterPlans,
-    llmEnhancement,
+    localAssembly,
   });
   await completePremiumPdfExecution(env, authz?.auth?.userId, executionCtx, reportId, {
     manuscriptSource,
@@ -5854,7 +5019,7 @@ async function handlePrepare(request, env) {
       htmlUrl: clean(pdfReady?.htmlUrl),
       downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
       chapters: finalChapters,
-      payload: { mode, chapterCount: totalChapters, pdfReady, pdfCompletionValidation, loveSecretMasterJson, masterJsonValidation, loveSecretFacts, loveSecretChapterPlans: summarizeLoveSecretChapterPlans(loveSecretChapterPlans), llmEnhancement },
+      payload: { mode, chapterCount: totalChapters, pdfReady, pdfCompletionValidation, loveSecretMasterJson, masterJsonValidation, loveSecretFacts, loveSecretChapterPlans: summarizeLoveSecretChapterPlans(loveSecretChapterPlans), localAssembly },
       pdfReady,
       canReopen: true,
       canDownload: true,
@@ -6101,14 +5266,13 @@ async function handlePrepareAsync(request, env, ctx) {
     try {
     const {
       chapters,
-      fallbackUsed,
       totalChapters: directChapterCount,
       manuscriptSource: directManuscriptSource,
       loveSecretMasterJson,
       masterJsonValidation,
       loveSecretFacts,
       loveSecretChapterPlans,
-      llmEnhancement,
+      localAssembly,
     } = await buildLoveSecretChapters(env, {
       base,
       mode,
@@ -6142,7 +5306,6 @@ async function handlePrepareAsync(request, env, ctx) {
       sessionId,
       reportId,
       chapterCount: directChapterCount,
-      fallbackUsed,
       manuscriptSource,
       chapters: finalChapters,
       pdfReady,
@@ -6151,7 +5314,7 @@ async function handlePrepareAsync(request, env, ctx) {
       masterJsonValidation,
       loveSecretFacts,
       loveSecretChapterPlans,
-      llmEnhancement,
+      localAssembly,
     });
 
     resolveLoveSecretLock(sessionId, "done", "");
@@ -6177,7 +5340,7 @@ async function handlePrepareAsync(request, env, ctx) {
           htmlUrl: clean(pdfReady?.htmlUrl),
           downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
           chapters: finalChapters,
-          payload: { mode, chapterCount: directChapterCount, pdfReady, pdfCompletionValidation, loveSecretMasterJson, masterJsonValidation, loveSecretFacts, loveSecretChapterPlans: summarizeLoveSecretChapterPlans(loveSecretChapterPlans), llmEnhancement },
+          payload: { mode, chapterCount: directChapterCount, pdfReady, pdfCompletionValidation, loveSecretMasterJson, masterJsonValidation, loveSecretFacts, loveSecretChapterPlans: summarizeLoveSecretChapterPlans(loveSecretChapterPlans), localAssembly },
           pdfReady,
           canReopen: true,
           canDownload: true,
@@ -6259,8 +5422,6 @@ export const __loveSecretTestUtils = Object.freeze({
   buildLoveSecretChapters,
   reinforceLoveSecretChapters,
   validateLoveSecretManuscript,
-  buildSoloLoveLLMInput,
-  buildCompatibilityLoveLLMInput,
   buildLoveSecretMasterJson,
   normalizeSoloLoveSecretData,
   normalizeCompatibilityLoveSecretData,
@@ -6273,23 +5434,7 @@ export const __loveSecretTestUtils = Object.freeze({
   buildLoveSecretFacts,
   buildLoveSecretChapterPlans,
   summarizeLoveSecretChapterPlans,
-  validateLoveSecretEnhancedText,
   softenLoveSecretSensitiveText,
-  isLoveSecretLlmEnhancementEnabled,
-  enhanceLoveSecretLocalChapters,
-  LOVE_SECRET_PROMPT_VERSION,
-  LOVE_SECRET_SOLO_LLM_ENHANCED_CHAPTERS,
-  LOVE_SECRET_COUPLE_LLM_ENHANCED_CHAPTERS,
-  generateSoloLoveChapter,
-  generateSoloLoveChapters,
-  generateCompatibilityLoveChapter,
-  generateCompatibilityLoveChapters,
-  generateLoveChapter,
-  validateLoveChapter,
-  validateCompatibilityLoveChapter,
-  normalizeLoveGeneratedChapter,
-  normalizeCompatibilityLoveGeneratedChapter,
-  convertLoveGeneratedChapterToPdfChapter,
   SOLO_LOVE_CHAPTER_SPECS,
   SOLO_LOVE_CHAPTER_QUALITY_GUIDES,
   getSoloLoveChapterQualityGuide,

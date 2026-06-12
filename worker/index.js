@@ -196,6 +196,7 @@ const handleSajuLifebookRoutes = createLazyRouteHandler("./routes/saju-lifebook.
 const handleSajuLoveSecretRoutes = createLazyRouteHandler("./routes/saju-love-secret.js", () => import("./routes/saju-love-secret.js"), "handleSajuLoveSecretRoutes");
 const handleSajuNewYearRoutes = createLazyRouteHandler("./routes/saju-new-year.js", () => import("./routes/saju-new-year.js"), "handleSajuNewYearRoutes");
 const handleZiweiBookRoutes = createLazyRouteHandler("./routes/ziwei-book.js", () => import("./routes/ziwei-book.js"), "handleZiweiBookRoutes");
+const handleZiweiDaehanRoutes = createLazyRouteHandler("./routes/ziwei-daehan.js", () => import("./routes/ziwei-daehan.js"), "handleZiweiDaehanRoutes");
 const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => import("./routes/dream.js"), "handleDreamRoutes");
 const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => import("./routes/debug.js"), "handleDebugRoutes");
 const handleYogaGuruRoutes = createLazyRouteHandler("./routes/yoga-guru.js", () => import("./routes/yoga-guru.js"), "handleYogaGuruRoutes");
@@ -950,6 +951,10 @@ export default {
         return withCorsHeaders(request, env, await handleZiweiBookRoutes(request, env));
       }
 
+      if (url.pathname === "/api/ziwei/daehan" || url.pathname.startsWith("/api/ziwei/daehan/")) {
+        return withCorsHeaders(request, env, await handleZiweiDaehanRoutes(request, env));
+      }
+
       if (url.pathname === "/api/ziwei" || url.pathname.startsWith("/api/ziwei/")) {
         return runWithRouteMetrics("api/ziwei", env, () => jsonResponse(request, env, {
           ok: false,
@@ -1058,6 +1063,11 @@ export default {
 
       if (url.pathname === "/api/user" || url.pathname.startsWith("/api/user/")) {
         return withCorsHeaders(request, env, await handleUserRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/profiles" || url.pathname.startsWith("/api/profiles/")) {
+        const rewrittenRequest = rewriteRequestPath(request, url.pathname.replace("/api/profiles", "/api/profile"));
+        return withCorsHeaders(request, env, await handleProfileRoutes(rewrittenRequest, env));
       }
 
       if (url.pathname === "/api/profile" || url.pathname.startsWith("/api/profile/")) {

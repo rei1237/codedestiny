@@ -2420,10 +2420,17 @@ function _isLifeBookGenerationBusy() {
       _setGenerationState('writing_local');
       _flowLog('LIFE_BOOK_LOCAL_ASSEMBLED_MANUSCRIPT_READY', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId });
       _lifeBookLog('LocalManuscriptReady', { reportId: _lbReportId });
-      if (_data && _data.fallbackUsed) {
-        throw new Error('LIFE_BOOK_LOCAL_COMPLETION_REQUIRED');
-      }
-      if (_data && (_data.llmUsed || _data.llmEnabled || /gemini|llm/i.test(_manuscriptSource))) {
+      var _localAssembly = (_data && _data.localAssembly && typeof _data.localAssembly === 'object')
+        ? _data.localAssembly
+        : ((_data && _data.pdfReady && _data.pdfReady.localAssembly && typeof _data.pdfReady.localAssembly === 'object') ? _data.pdfReady.localAssembly : {});
+      if (
+        !/local-assembled/i.test(_manuscriptSource)
+        || /gemini|llm|hybrid|fallback/i.test(_manuscriptSource)
+        || _localAssembly.enabled !== true
+        || _localAssembly.externalGeneration !== false
+        || Number(_localAssembly.chapterCount || 0) !== LIFEBOOK_TOTAL_CHAPTERS
+        || Number(_localAssembly.expectedChapterCount || 0) !== LIFEBOOK_TOTAL_CHAPTERS
+      ) {
         throw new Error('LIFE_BOOK_LOCAL_ASSEMBLY_REQUIRED');
       }
 

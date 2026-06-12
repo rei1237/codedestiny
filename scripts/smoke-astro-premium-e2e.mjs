@@ -249,25 +249,22 @@ async function main() {
   const masterSchema = clean(payload?.astroMasterJson?.schemaVersion);
   const masterValidationOk = Boolean(payload?.masterJsonValidation?.ok);
   const validationOk = Boolean(payload?.validation?.ok);
-  const llmChapterCount = Number(payload?.llmChapterCount || 0);
-  const expectedLlmChapterCount = Number(payload?.expectedLlmChapterCount || 0);
-  const fallbackUsed = Boolean(payload?.fallbackUsed);
-  const fallbackChapterCount = Number(payload?.fallbackChapterCount || 0);
   const localDraftChapterCount = Number(payload?.localDraftChapterCount || 0);
-  const localAssemblyOnly = payload?.localAssemblyOnly === true && payload?.pdfReady?.localAssemblyOnly === true;
-  const externalCallsAllowed = payload?.externalCallsAllowed === true || payload?.pdfReady?.externalCallsAllowed === true;
+  const localAssembly = payload?.localAssembly && typeof payload.localAssembly === "object"
+    ? payload.localAssembly
+    : {};
+  const pdfLocalAssembly = payload?.pdfReady?.localAssembly && typeof payload.pdfReady.localAssembly === "object"
+    ? payload.pdfReady.localAssembly
+    : {};
   const pdfCompletionValidationOk = Boolean(payload?.pdfCompletionValidation?.ok || payload?.pdfReady?.pdfCompletionValidation?.ok);
 
   printKeyValue("PREPARE_OK", Boolean(payload.ok));
   printKeyValue("CHAPTERS", chapters.length);
   printKeyValue("MANUSCRIPT_SOURCE", manuscriptSource);
-  printKeyValue("LLM_CHAPTERS", llmChapterCount);
-  printKeyValue("EXPECTED_LLM_CHAPTERS", expectedLlmChapterCount);
-  printKeyValue("FALLBACK_USED", fallbackUsed);
-  printKeyValue("FALLBACK_CHAPTERS", fallbackChapterCount);
   printKeyValue("LOCAL_DRAFT_CHAPTERS", localDraftChapterCount);
-  printKeyValue("LOCAL_ASSEMBLY_ONLY", localAssemblyOnly);
-  printKeyValue("EXTERNAL_CALLS_ALLOWED", externalCallsAllowed);
+  printKeyValue("LOCAL_ASSEMBLY_ENABLED", localAssembly.enabled === true);
+  printKeyValue("LOCAL_ASSEMBLY_CHAPTERS", Number(localAssembly.chapterCount || 0));
+  printKeyValue("LOCAL_ASSEMBLY_EXTERNAL_GENERATION", localAssembly.externalGeneration === true);
   printKeyValue("SEED_CALC_MODE", calcMode);
   printKeyValue("MASTER_SCHEMA", masterSchema);
   printKeyValue("MASTER_VALIDATION_OK", masterValidationOk);
@@ -282,13 +279,14 @@ async function main() {
   ensure(prepareResult.ok && payload.ok, "점성술 prepare 실패", payload);
   ensure(chapters.length === 12, "챕터 수가 12가 아님", { chapterCount: chapters.length, payload });
   ensure(manuscriptSource === "local-assembled", "ASTRO manuscript source is not local-assembled", { manuscriptSource, payload });
-  ensure(llmChapterCount === 0, "ASTRO LLM chapter count must be zero", { llmChapterCount, payload });
-  ensure(expectedLlmChapterCount === 0, "ASTRO expected LLM chapter count must be zero", { expectedLlmChapterCount, payload });
-  ensure(fallbackUsed === false, "ASTRO fallback must not be used", { fallbackUsed, payload });
-  ensure(fallbackChapterCount === 0, "ASTRO fallback chapter count must be zero", { fallbackChapterCount, payload });
   ensure(localDraftChapterCount === 12, "ASTRO local draft chapter count must be 12", { localDraftChapterCount, payload });
-  ensure(localAssemblyOnly === true, "ASTRO local assembly flag missing", { localAssemblyOnly, payload });
-  ensure(externalCallsAllowed === false, "ASTRO external calls must be blocked", { externalCallsAllowed, payload });
+  ensure(localAssembly.enabled === true, "ASTRO local assembly flag missing", { localAssembly, payload });
+  ensure(localAssembly.externalGeneration === false, "ASTRO external generation must be blocked", { localAssembly, payload });
+  ensure(Number(localAssembly.chapterCount || 0) === 12, "ASTRO local assembly chapter count must be 12", { localAssembly, payload });
+  ensure(Number(localAssembly.expectedChapterCount || 0) === 12, "ASTRO local assembly expected chapter count must be 12", { localAssembly, payload });
+  ensure(clean(localAssembly.templateVersion), "ASTRO local assembly template version missing", { localAssembly, payload });
+  ensure(pdfLocalAssembly.enabled === true, "ASTRO pdfReady local assembly flag missing", { pdfLocalAssembly, payload });
+  ensure(pdfLocalAssembly.externalGeneration === false, "ASTRO pdfReady external generation must be blocked", { pdfLocalAssembly, payload });
   ensure(calcMode === "full", "Swiss 기반 full 계산 seed 아님", { calcMode, payload });
   ensure(masterSchema === "astro-premium-master-json.v1", "점성술 마스터 JSON 스키마 누락", payload?.astroMasterJson || payload);
   ensure(masterValidationOk, "점성술 마스터 JSON 검증 실패", payload?.masterJsonValidation || payload);
