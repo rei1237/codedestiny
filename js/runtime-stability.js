@@ -42,13 +42,18 @@
     }
   }
 
+  function shouldKeepSplashForProfile() {
+    return window.__cdMainSplashWaitingForProfile === true
+      && window.__cdDestinyProfileServerReady !== true;
+  }
+
   function stopBlockingOverlays(reason) {
     if (window._perf && typeof window._perf.unlockBody === 'function') {
       window._perf.unlockBody();
     }
 
     var splash = document.getElementById('codeSplash');
-    if (splash) {
+    if (splash && !shouldKeepSplashForProfile()) {
       splash.style.display = 'none';
       if (splash.parentNode) splash.parentNode.removeChild(splash);
     }

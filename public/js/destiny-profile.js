@@ -1096,6 +1096,23 @@
 
   var _dpSetCurrentTimer = null;
   var _dpLoadFromServerPending = null;
+  var _dpProfileServerReadyNotified = false;
+
+  function _dpNotifyProfileServerReady(detail) {
+    if (_dpProfileServerReadyNotified) return;
+    _dpProfileServerReadyNotified = true;
+    var payload = Object.assign({
+      ok: false,
+      loaded: false,
+      reason: 'unknown',
+      at: Date.now()
+    }, detail || {});
+    window.__cdDestinyProfileServerReady = true;
+    window.__cdDestinyProfileServerReadyDetail = payload;
+    try {
+      window.dispatchEvent(new CustomEvent('cd:destiny-profile-server-ready', { detail: payload }));
+    } catch (_) {}
+  }
 
   function _dpSetCurrentOnServer(currentId) {
     var nextId = String(currentId || '').trim();
@@ -1134,6 +1151,7 @@
 
   function _dpLoadFromServer(callback) {
     if (!_dpHasSessionHint()) {
+      _dpNotifyProfileServerReady({ ok: false, loaded: false, reason: 'no-session-hint' });
       if (callback) callback(false);
       return Promise.resolve(false);
     }
@@ -1183,6 +1201,13 @@
       });
     }).catch(function() {
       return false;
+    }).then(function(loaded) {
+      _dpNotifyProfileServerReady({
+        ok: !!loaded,
+        loaded: !!loaded,
+        reason: loaded ? 'server-profile-loaded' : 'server-profile-unavailable'
+      });
+      return loaded;
     }).finally(function() {
       _dpLoadFromServerPending = null;
     });
@@ -5694,6 +5719,7 @@
           renderMasterCard(DPStorage.current());
           renderProfileList();
         }
+        _dpNotifyProfileServerReady({ ok: false, loaded: false, reason: 'auth-session-not-ready' });
         return;
       }
 
@@ -5709,7 +5735,9 @@
       });
 
       _fetchSubscription();
-    }).catch(function() {});
+    }).catch(function() {
+      _dpNotifyProfileServerReady({ ok: false, loaded: false, reason: 'profile-bootstrap-error' });
+    });
 
     /* ESC 키로 시트 닫기 */
     document.addEventListener('keydown', function(e) {

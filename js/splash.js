@@ -3,6 +3,7 @@
   var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var MIN_VISIBLE_MS = isMobile ? (prefersReduced ? 180 : 360) : (prefersReduced ? 450 : 1800);
   var MAX_VISIBLE_MS = isMobile ? 2500 : 5000;
+  var PROFILE_READY_TIMEOUT_MS = isMobile ? 14000 : 18000;
   var STABLE_READY_TIMEOUT_MS = 4500;
   var STABLE_FRAME_GUARD_COUNT = 3;
   var MAIN_SPLASH_SESSION_KEY = '__cd_main_splash_seen';
@@ -19,6 +20,7 @@
   var stars = null;
   var msgIdx = 0;
   var splashStarted = false;
+  var mainSplashGateStarted = false;
 
   function hasMainSplashBeenSeenThisSession() {
     if (typeof sessionStorage === 'undefined') return false;
@@ -43,6 +45,15 @@
     '잠시 후 바로 이용하실 수 있습니다.',
     '달빛 카드와 주요 운세를 여는 중입니다.',
     '코드 데스티니 메인 화면으로 안내합니다.'
+  ];
+
+  msgs = [
+    '프로필 별자리를 서버에서 불러오는 중입니다.',
+    '오늘의 운세 흐름을 차분히 맞추고 있습니다.',
+    '달빛 도서관의 첫 장을 펼치는 중입니다.',
+    '저장된 운명 카드를 확인하고 있습니다.',
+    '사주와 타로의 주요 실마리를 정렬하고 있습니다.',
+    'Code Destiny 메인 화면으로 안내합니다.'
   ];
 
   function isMainServiceLoadRoute() {
@@ -107,6 +118,48 @@
     return function () {
       clearTimeout(fallback);
     };
+  }
+
+  function waitForProfileServerReady(callback) {
+    var settled = false;
+    var fallback = null;
+    var done = function () {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener('cd:destiny-profile-server-ready', done);
+      clearTimeout(fallback);
+      callback();
+    };
+    if (window.__cdDestinyProfileServerReady === true) {
+      done();
+      return function () {};
+    }
+    window.addEventListener('cd:destiny-profile-server-ready', done);
+    fallback = setTimeout(done, PROFILE_READY_TIMEOUT_MS);
+    return function () {
+      clearTimeout(fallback);
+      window.removeEventListener('cd:destiny-profile-server-ready', done);
+    };
+  }
+
+  function waitForMainSplashGate(sessionId) {
+    if (mainSplashGateStarted) return;
+    mainSplashGateStarted = true;
+    var domReady = false;
+    var profileReady = false;
+    function maybeHide() {
+      if (sessionId !== activeSession) return;
+      if (!domReady || !profileReady) return;
+      scheduleHideSplash(sessionId, MIN_VISIBLE_MS);
+    }
+    waitForStableDomAndCss(function () {
+      domReady = true;
+      maybeHide();
+    });
+    waitForProfileServerReady(function () {
+      profileReady = true;
+      maybeHide();
+    });
   }
 
   var initSplash = document.getElementById('codeSplash');
@@ -239,6 +292,7 @@
     if (!force && !splashStarted) return;
     clearTimers();
     stopStarLoop();
+    window.__cdMainSplashWaitingForProfile = false;
     if (bar) bar.style.width = '100%';
     splash.style.display = 'none';
     splash.setAttribute('aria-hidden', 'true');
@@ -277,6 +331,9 @@
     activeSession += 1;
     splashStartedAt = Date.now();
     splashStarted = true;
+    if (options.waitForProfile === true) {
+      window.__cdMainSplashWaitingForProfile = true;
+    }
 
     clearTimers();
     stopStarLoop();
@@ -350,14 +407,13 @@
     var shown = showSplash(msgs[0], {
       forceMobile: true,
       autoHide: false,
+      waitForProfile: true,
       minMs: MIN_VISIBLE_MS,
       maxMs: MAX_VISIBLE_MS
     });
     if (shown) {
       setMainSplashSeenThisSession();
-      waitForStableDomAndCss(function () {
-        scheduleHideSplash(activeSession, MIN_VISIBLE_MS, MAX_VISIBLE_MS);
-      });
+      waitForMainSplashGate(activeSession);
     }
   } else {
     var mobileSplash = getNodes().splash;
@@ -368,6 +424,6 @@
 
   window.addEventListener('pageshow', function () {
     if (!splashStarted) return;
-    scheduleHideSplash(activeSession, MIN_VISIBLE_MS, MAX_VISIBLE_MS);
+    waitForMainSplashGate(activeSession);
   }, { once: true });
 })();
