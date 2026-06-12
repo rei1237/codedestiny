@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
 const rootDir = process.cwd();
@@ -10,12 +10,29 @@ const npmCmd = isWindows ? "npm.cmd" : "npm";
 const openNextDir = resolve(rootDir, ".open-next");
 const workerBundle = resolve(openNextDir, "worker.js");
 const workerAssetsDir = resolve(openNextDir, "assets");
+const sourceShell = resolve(rootDir, "index.html");
+const outputShell = resolve(workerAssetsDir, "index.html");
+
+function isOutputOlderThanSource(outputPath, sourcePath) {
+  if (!existsSync(outputPath) || !existsSync(sourcePath)) return true;
+  return statSync(outputPath).mtimeMs < statSync(sourcePath).mtimeMs;
+}
+
+function outputShellMissingCurrentMarker() {
+  if (!existsSync(outputShell) || !existsSync(sourceShell)) return true;
+  const sourceText = readFileSync(sourceShell, "utf8");
+  const outputText = readFileSync(outputShell, "utf8");
+  const markerMatch = sourceText.match(/data-marker="([^"]*premium-constellation-library[^"]*)"/);
+  return Boolean(markerMatch && !outputText.includes(markerMatch[0]));
+}
 
 const needsBuild =
   !existsSync(openNextDir) ||
   !existsSync(workerBundle) ||
   !existsSync(workerAssetsDir) ||
-  !existsSync(resolve(workerAssetsDir, "index.html"));
+  !existsSync(outputShell) ||
+  isOutputOlderThanSource(outputShell, sourceShell) ||
+  outputShellMissingCurrentMarker();
 
 if (needsBuild) {
   console.log(
