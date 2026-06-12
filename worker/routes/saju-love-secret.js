@@ -20,26 +20,6 @@ const LOVE_SECRET_FEATURE_KEY_BY_MODE = Object.freeze({
 });
 const LOVE_SECRET_JOB_COLLECTION = "premium_report_jobs";
 
-function isTruthyFlag(value) {
-  const normalized = String(value || "").trim().toLowerCase();
-  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
-}
-
-function isProductionRuntime(env) {
-  const nodeEnv = String(env?.NODE_ENV || "").trim().toLowerCase();
-  if (nodeEnv === "production") return true;
-
-  const appEnv = String(env?.APP_ENV || env?.DEPLOY_ENV || env?.ENVIRONMENT || "").trim().toLowerCase();
-  return appEnv === "prod" || appEnv === "production";
-}
-
-function isPremiumReportPaymentBypassEnabled(env) {
-  return isTruthyFlag(env?.BYPASS_PREMIUM_REPORT_PAYMENT) || isTruthyFlag(env?.ALLOW_TEST_PREMIUM_REPORT_PAYMENT);
-}
-
-function isPremiumReportTestMode(env) {
-  return !isProductionRuntime(env) || isPremiumReportPaymentBypassEnabled(env);
-}
 const LOVE_SECRET_JOB_POLL_AFTER_MS = 4000;
 const LOVE_SECRET_LOCK_TTL_MS = 1000 * 60 * 20;
 const LOVE_SECRET_GENERATION_LOCKS = new Map();
@@ -5579,25 +5559,6 @@ async function authorizeLoveSecret(request, env, body, mode) {
   const reportId = clean(body?.reportId);
   const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.chapterSessionId);
   const purchaseId = clean(body?.purchaseId || body?.reportPurchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId || body?._paymentContext?.purchaseId);
-
-  if (isPremiumReportTestMode(env)) {
-    return {
-      ok: true,
-      auth,
-      featureKey,
-      access: {
-        ok: true,
-        status: 200,
-        accessType: "test_bypass",
-        accessMethod: "TEST_NO_PAYMENT",
-        featureKey,
-        reportType: "loveSecret",
-        mode,
-        userId: auth.userId,
-        bypass: true,
-      },
-    };
-  }
 
   const access = await requirePremiumReportAccess(getLoveSecretFastDbEnv(env), auth.userId, "loveSecret", {
     ...body,

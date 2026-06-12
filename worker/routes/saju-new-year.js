@@ -42,27 +42,6 @@ const newYearPdfLocks = new Map();
 const annualFortuneLlmCache = new Map();
 export { NEW_YEAR_CHAPTERS };
 
-function isTruthyFlag(value) {
-  const normalized = String(value || "").trim().toLowerCase();
-  return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
-}
-
-function isProductionRuntime(env) {
-  const nodeEnv = String(env?.NODE_ENV || "").trim().toLowerCase();
-  if (nodeEnv === "production") return true;
-
-  const appEnv = String(env?.APP_ENV || env?.DEPLOY_ENV || env?.ENVIRONMENT || "").trim().toLowerCase();
-  return appEnv === "prod" || appEnv === "production";
-}
-
-function isPremiumReportPaymentBypassEnabled(env) {
-  return isTruthyFlag(env?.BYPASS_PREMIUM_REPORT_PAYMENT) || isTruthyFlag(env?.ALLOW_TEST_PREMIUM_REPORT_PAYMENT);
-}
-
-function isPremiumReportTestMode(env) {
-  return !isProductionRuntime(env) || isPremiumReportPaymentBypassEnabled(env);
-}
-
 export const YEARLY_SAJU_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
   llmEnabled: false,
@@ -4819,24 +4798,13 @@ async function handlePrepare(request, env) {
     const premiumAccessToken = clean(request.headers.get("x-premium-access-token") || body?.premiumAccessToken || body?._premiumAccessToken || cookieValue(request, "cd_premium_access"));
 
     console.info("[NewYearPremiumPDF][PaymentVerificationStarted]", { featureKey, userId: auth.userId });
-    const access = isPremiumReportTestMode(env)
-      ? {
-        ok: true,
-        status: 200,
-        accessType: "test_bypass",
-        accessMethod: "TEST_NO_PAYMENT",
-        featureKey,
-        reportType: "sajuNewYear",
-        userId: auth.userId,
-        bypass: true,
-      }
-      : await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sajuNewYear", {
-        ...body,
-        featureKey,
-        reportType: "sajuNewYear",
-        premiumAccessToken: premiumAccessToken || undefined,
-        _accessRoute: "/api/saju-new-year/prepare",
-      });
+    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "sajuNewYear", {
+      ...body,
+      featureKey,
+      reportType: "sajuNewYear",
+      premiumAccessToken: premiumAccessToken || undefined,
+      _accessRoute: "/api/saju-new-year/prepare",
+    });
     if (!access?.ok) {
       const status = Number(access?.status || 402);
       const hasSessionId = Boolean(clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId));
@@ -4850,12 +4818,12 @@ async function handlePrepare(request, env) {
         serviceKey: SERVICE_KEY,
         code: paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : (access?.code || (status === 401 ? "UNAUTHORIZED" : "PAYMENT_REQUIRED")),
         message: status === 401
-          ? "신년운세 PDF 생성을 위해 먼저 로그인해 주세요."
+          ? "\uB85C\uADF8\uC778 \uD6C4 \uC2E0\uB144\uC6B4\uC138 PDF\uB97C \uC0DD\uC131\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
           : paymentConfirmedButMissing
-            ? "결제는 확인되었지만 생성 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요."
+            ? "\uACB0\uC81C\uB294 \uD655\uC778\uB418\uC5C8\uC9C0\uB9CC \uC0DD\uC131 \uAD8C\uD55C \uC5F0\uACB0\uC774 \uC644\uB8CC\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694."
             : status === 402
-            ? "프리미엄 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다."
-            : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+            ? "\uD504\uB9AC\uBBF8\uC5C4 PDF \uC0DD\uC131 \uAD8C\uD55C\uC774 \uD544\uC694\uD569\uB2C8\uB2E4."
+            : "\uACB0\uC81C \uD655\uC778 \uC911 \uBB38\uC81C\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.",
         debugSafe: {
           featureKey,
           hasSessionId,

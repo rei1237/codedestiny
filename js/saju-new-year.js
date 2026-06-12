@@ -19,7 +19,6 @@
   var _resultPayload = null;
   var _activeChapter = 1;
   var _progressTimer = null;
-  var _premiumVerifiedUntil = 0;
 
   var LOADING_MESSAGES = [
     '사주 원국과 대상 연도를 검증하는 중입니다',
@@ -202,36 +201,6 @@
       if (found) return found;
     }
     return _extractPremiumToken(payload.data) || _extractPremiumToken(payload.payload);
-  }
-
-  function _premiumTokenMatches() {
-    var token = _readPremiumAccessToken();
-    if (!token || typeof atob !== 'function') return false;
-    try {
-      var body = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-      var reportType = _clean(body.reportType).toLowerCase().replace(/[^a-z0-9]/g, '');
-      var featureKey = _clean(body.featureKey || body.productKey).toLowerCase();
-      var exp = Number(body.exp || 0);
-      var typeOk = reportType === 'sajunewyear' || featureKey.indexOf('saju_new_year') >= 0 || featureKey.indexOf('saju-newyear') >= 0;
-      return typeOk && (!Number.isFinite(exp) || exp * 1000 > Date.now() + 5000);
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function _markPremiumVerified(ttlMs) {
-    var ttl = Number(ttlMs || 0);
-    if (!Number.isFinite(ttl) || ttl <= 0) ttl = 25 * 60 * 1000;
-    _premiumVerifiedUntil = Math.max(_premiumVerifiedUntil, Date.now() + ttl);
-  }
-
-  function _hasPremiumAccessForGeneration() {
-    if (Date.now() < _premiumVerifiedUntil) return true;
-    if (_premiumTokenMatches()) {
-      _markPremiumVerified(25 * 60 * 1000);
-      return true;
-    }
-    return false;
   }
 
   function _recoverBirthFromDom() {
@@ -450,51 +419,6 @@
 
   function _buildReportId(targetYear) {
     return 'saju-new-year-' + targetYear + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
-  }
-
-  function _isLocalPremiumTrialMode() {
-    try {
-      if (window.__CD_LOCAL_PREMIUM_PDF_TRIAL__ === true) return true;
-      if (window.__CD_LOCAL_PREMIUM_PDF_TRIAL__ === false) return false;
-      var loc = window.location || {};
-      var host = String(loc.hostname || '').toLowerCase();
-      var search = String(loc.search || '');
-      if (/[?&](paidMode|realBilling)=1\b/.test(search)) return false;
-      if (/[?&](premiumTrial|localTrial|trialPremiumPdf)=1\b/.test(search)) return true;
-      return !host || host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]' || host.endsWith('.local');
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function _buildLocalTrialAccessGrant(reportId) {
-    var normalizedReportId = _clean(reportId);
-    var requestId = 'local-trial:saju-new-year:' + Date.now().toString(36);
-    return {
-      ok: true,
-      featureKey: BILLING_FEATURE_KEY,
-      sessionId: 'saju-new-year:' + normalizedReportId,
-      reportSessionId: 'saju-new-year:' + normalizedReportId,
-      purchaseId: 'local-trial:' + normalizedReportId,
-      requestId: requestId,
-      reportId: normalizedReportId,
-      paidAt: new Date().toISOString(),
-      accessType: 'local_trial',
-      accessMethod: 'LOCAL_NO_PAYMENT',
-      paymentMode: 'local_trial',
-      chargedCoins: 0,
-      localTrial: true
-    };
-  }
-
-  function _applyLocalTrialUi() {
-    if (!_isLocalPremiumTrialMode()) return;
-    var notice = document.querySelector('#sajuNewYearModal .lb-coin-label');
-    var coin = document.querySelector('#sajuNewYearModal .lb-btn-coin');
-    var btn = _qs('nyGenerateBtn');
-    if (notice) notice.innerHTML = '<strong>로컬 체험 무료</strong> · 10챕터 신년 전략서 PDF';
-    if (coin) coin.textContent = '결제 없음';
-    if (btn) btn.setAttribute('data-local-trial', '1');
   }
 
   function _normalizeAccessGrant(raw, reportId, fallbackRequestId) {
@@ -773,7 +697,6 @@
     _log('ModalOpen');
     var modal = _qs('sajuNewYearModal');
     if (!modal) return;
-    _applyLocalTrialUi();
     var yearEl = _qs('nyTargetYear');
     if (yearEl && !yearEl.value) yearEl.value = String(_resolveDefaultTargetYear());
     var profile = _getActiveBirthProfile();
@@ -889,7 +812,6 @@
         if ((payload && payload.fallbackUsed) || /gemini|llm|hybrid|fallback/.test(manuscriptSource)) {
           throw _buildPdfApiError(payload, 422, '신년운세 PDF가 로컬 조립 검증을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요.');
         }
-        _markPremiumVerified(25 * 60 * 1000);
         _log('LocalChapterDraftCompleted', { chapterCount: Number(payload && payload.localDraftChapterCount || TOTAL_CHAPTERS) });
         _log('LocalQualityValidationPassed', { chapterCount: Number(payload && payload.localDraftChapterCount || TOTAL_CHAPTERS) });
         _log('FinalValidationPassed', { chapterCount: payload && payload.chapterCount || TOTAL_CHAPTERS });
@@ -907,19 +829,6 @@
         _stopProgressAnimation();
       });
     };
-
-    if (_hasPremiumAccessForGeneration()) {
-      runAfterBilling({ ok: true, featureKey: BILLING_FEATURE_KEY, sessionId: 'saju-new-year:' + reportId, reportSessionId: 'saju-new-year:' + reportId, purchaseId: 'token:' + reportId, requestId: 'token:' + reportId, reportId: reportId }, _readPremiumAccessToken());
-      return;
-    }
-
-    if (_isLocalPremiumTrialMode()) {
-      var localTrialAccess = _buildLocalTrialAccessGrant(reportId);
-      _log('PaymentGateBypassedLocalTrial', { featureKey: BILLING_FEATURE_KEY, reportId: reportId });
-      runAfterBilling(localTrialAccess, '');
-      return;
-    }
-
     _runCoinGate(reportId).then(function (gate) {
       if (!gate.ok) {
         _logError(gate, { stage: 'billing', reportId: reportId });
@@ -927,7 +836,6 @@
         window.alert(gate.message || '프리미엄 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.');
         return;
       }
-      _markPremiumVerified(25 * 60 * 1000);
       runAfterBilling(gate.accessGrant, gate.premiumAccessToken);
     }).catch(function (error) {
       _logError(error, { stage: 'billing' });
