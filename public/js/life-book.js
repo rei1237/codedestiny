@@ -7,7 +7,6 @@
 
   var LIFEBOOK_TOTAL_CHAPTERS = 13;
   var LIFE_BOOK_FEATURE_KEY = 'saju_life_book_pdf';
-  var LIFEBOOK_TEMPORARY_FREE = false;
   var LIFE_BOOK_REASON = '인생의 책 생성 (13챕터)';
   var LIFEBOOK_API_PREPARE_PATH = '/api/premium/saju-lifebook/prepare';
   var LIFEBOOK_API_STATUS_PATH = '/api/premium/saju-lifebook/status';
@@ -340,8 +339,6 @@ var _currentChapter = 1;
   var _mysticTimer = null;
   var _activeRequestController = null;
   var _cancelGeneration = false;
-  var _premiumPaidUntil = 0;
-  var _premiumAccessVerifiedUntil = 0;
   var _lbPendingSavedResult = null;
   var _lbPendingPdfUrl = '';
   var _lbPendingHtmlUrl = '';
@@ -389,24 +386,6 @@ function _isLifeBookGenerationBusy() {
   }
   return true;
 }
-
-  function _markPremiumAccessVerified(ttlMs) {
-    var ttl = Number(ttlMs || 0);
-    if (!Number.isFinite(ttl) || ttl <= 0) ttl = 25 * 60 * 1000;
-    var until = Date.now() + ttl;
-    if (until > _premiumAccessVerifiedUntil) _premiumAccessVerifiedUntil = until;
-    if (until > _premiumPaidUntil) _premiumPaidUntil = until;
-  }
-
-  function _hasPremiumAccessForGeneration() {
-    if (LIFEBOOK_TEMPORARY_FREE) return true;
-    if (Date.now() < _premiumAccessVerifiedUntil) return true;
-    if (_premiumTokenMatches('lifeBook', 500) || Date.now() < _premiumPaidUntil) {
-      _markPremiumAccessVerified(25 * 60 * 1000);
-      return true;
-    }
-    return false;
-  }
 
   function _lbGetJobClient() {
     return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
@@ -457,40 +436,6 @@ function _isLifeBookGenerationBusy() {
     return token;
   }
 
-  function _premiumTokenMatches(reportType, minCoins) {
-    var token = _readPremiumTokenForReport();
-    if (!token || typeof atob !== 'function') return false;
-    try {
-      var payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-      var tokenReportType = String(payload && payload.reportType || '').trim();
-      var expected = String(reportType || '').trim();
-      var aliases = {
-        lifeBook: ['lifebook', 'saju_lifebook', 'sajulifebook'],
-        loveSecret: ['lovesecret', 'saju_love_secret', 'saju-love-secret'],
-      };
-      var normalizedExpected = expected.toLowerCase().replace(/[^a-z0-9]/g, '');
-      var normalizedActual = tokenReportType.toLowerCase().replace(/[^a-z0-9]/g, '');
-      var expectedAliases = aliases[expected] || [];
-      var reportTypeMatched = normalizedActual === normalizedExpected;
-      if (!reportTypeMatched) {
-        for (var ai = 0; ai < expectedAliases.length; ai++) {
-          if (normalizedActual === String(expectedAliases[ai]).toLowerCase().replace(/[^a-z0-9]/g, '')) {
-            reportTypeMatched = true;
-            break;
-          }
-        }
-      }
-      var exp = Number(payload && payload.exp);
-      var charged = Number(payload && payload.chargedCoins || 0);
-      var coinMatched = !Number.isFinite(Number(minCoins)) || charged >= Number(minCoins);
-      return reportTypeMatched
-        && (!Number.isFinite(exp) || exp * 1000 > Date.now() + 5000)
-        && coinMatched;
-    } catch (_) {
-      return false;
-    }
-  }
-
   function _persistPremiumAccessToken(token) {
     var value = String(token || '').trim();
     if (!value) return;
@@ -526,22 +471,6 @@ function _isLifeBookGenerationBusy() {
 
   async function _runLifeBookCoinGate(reportId) {
     var requestId = 'life-book:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
-    if (LIFEBOOK_TEMPORARY_FREE) {
-      var freeGrant = _normalizeLifeBookAccessGrant({
-        reportId: String(reportId || '').trim(),
-        reportSessionId: String(reportId || '').trim() ? ('life-book:' + String(reportId).trim()) : undefined,
-        requestId: requestId,
-        accessType: 'temporary_free',
-      }, reportId, requestId);
-      return {
-        ok: true,
-        status: 200,
-        message: '',
-        accessGrant: freeGrant,
-        premiumAccessToken: '',
-        requestId: requestId,
-      };
-    }
     var premiumToken = _readPremiumTokenForReport();
     var headers = { 'Content-Type': 'application/json' };
     if (premiumToken) headers['x-premium-access-token'] = premiumToken;
@@ -646,24 +575,6 @@ function _isLifeBookGenerationBusy() {
       premiumAccessToken: issuedToken,
       requestId: requestId,
     };
-  }
-
-  function _ensurePremiumPaymentThenStart() {
-    if (_hasPremiumAccessForGeneration()) return true;
-    if (typeof window._cdCoinGatePerUse !== 'function') {
-      alert('결제 확인 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
-      return false;
-    }
-    _flowLog('COIN_GATE_START', { message: 'premium-check-before-generate' });
-    window._cdCoinGatePerUse(500, LIFE_BOOK_REASON, function () {
-      _markPremiumAccessVerified(25 * 60 * 1000);
-      _flowLog('COIN_GATE_SUCCESS', { message: 'coin-gate-approved' });
-      window.generateLifeBook();
-    }, null, {
-      featureKey: LIFE_BOOK_FEATURE_KEY,
-      requestId: LIFE_BOOK_FEATURE_KEY + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
-    });
-    return false;
   }
 
   function _abortActiveRequest() {
@@ -2086,7 +1997,6 @@ function _isLifeBookGenerationBusy() {
             alert(failMsg);
             return;
           }
-          _markPremiumAccessVerified(25 * 60 * 1000);
           _flowLog('PAYMENT_CONFIRMED', {
             featureKey: LIFE_BOOK_FEATURE_KEY,
             reportId: gateReportId,

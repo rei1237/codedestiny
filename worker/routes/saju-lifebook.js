@@ -286,7 +286,6 @@ const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
   "premium_pdf_saju_life_book",
   "premium-lifebook-report",
 ]);
-const LIFEBOOK_TEMPORARY_PAYMENT_BYPASS = false;
 const LIFE_BOOK_PROMPT_VERSION = "life-book-local-assembler-v3";
 const LIFE_BOOK_LLM_ENHANCED_CHAPTERS = Object.freeze([
   "01",
@@ -8381,15 +8380,7 @@ async function handlePrepareSync(request, env) {
   });
 
   try {
-  const access = LIFEBOOK_TEMPORARY_PAYMENT_BYPASS
-    ? {
-      ok: true,
-      accessType: "temporary_free",
-      accessMethod: "TEMP_FREE",
-      reportType: "lifeBook",
-      featureKey: billingFeatureKey,
-    }
-    : await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "lifeBook", {
+    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "lifeBook", {
       ...body,
       featureKey: billingFeatureKey,
       reportType: "lifeBook",
@@ -8397,37 +8388,37 @@ async function handlePrepareSync(request, env) {
       _accessRoute: "/api/premium/saju-lifebook/prepare",
     });
 
-  if (!access?.ok) {
-    const status = Number(access?.status || 402);
-    const hasSessionId = Boolean(clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId));
-    const hasPurchaseId = Boolean(clean(body?.purchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId));
-    const hasRequestId = Boolean(clean(body?.requestId || body?.accessGrant?.requestId || body?.payment?.requestId || body?._paymentContext?.requestId));
-    const hasPaymentToken = Boolean(premiumAccessToken);
-    const paymentConfirmedButMissing = status === 402 && (hasSessionId || hasPurchaseId || hasRequestId || hasPaymentToken);
-    const message = status === 401
-      ? "로그인 후 인생의 책 PDF를 생성할 수 있습니다."
-      : paymentConfirmedButMissing
-        ? "결제는 확인되었지만 생성 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요."
-        : status === 402
-        ? "프리미엄 PDF 생성 권한이 필요합니다."
-        : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+    if (!access?.ok) {
+      const status = Number(access?.status || 402);
+      const hasSessionId = Boolean(clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId));
+      const hasPurchaseId = Boolean(clean(body?.purchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId));
+      const hasRequestId = Boolean(clean(body?.requestId || body?.accessGrant?.requestId || body?.payment?.requestId || body?._paymentContext?.requestId));
+      const hasPaymentToken = Boolean(premiumAccessToken);
+      const paymentConfirmedButMissing = status === 402 && (hasSessionId || hasPurchaseId || hasRequestId || hasPaymentToken);
 
-    LIFEBOOK_SESSION_LOCKS.delete(sessionId);
-    return json({
-      ok: false,
-      serviceKey: LIFEBOOK_SERVICE_KEY,
-      message,
-      code: paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : "LIFEBOOK_ACCESS_DENIED",
-      debugSafe: {
-        featureKey,
-        hasSessionId,
-        hasPurchaseId,
-        hasRequestId,
-        hasPaymentToken,
-      },
-    }, { status });
-  }
+      const message = status === 401
+        ? "로그인 후 인생의 책 PDF를 생성할 수 있습니다."
+        : paymentConfirmedButMissing
+          ? "결제는 확인되었지만 생성 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요."
+          : status === 402
+          ? "프리미엄 PDF 생성 권한이 필요합니다."
+          : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
 
+      LIFEBOOK_SESSION_LOCKS.delete(sessionId);
+      return json({
+        ok: false,
+        serviceKey: LIFEBOOK_SERVICE_KEY,
+        message,
+        code: paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : "LIFEBOOK_ACCESS_DENIED",
+        debugSafe: {
+          featureKey,
+          hasSessionId,
+          hasPurchaseId,
+          hasRequestId,
+          hasPaymentToken,
+        },
+      }, { status });
+    }
   logLifeBookServer("PaymentVerificationPassed", {
     featureKey,
     accessType: clean(access?.accessType || ""),
