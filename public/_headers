@@ -1,18 +1,21 @@
-# Cloudflare Pages cache policy
-# ══════════════════════════════════════════════════════════════
-# 원칙:
-#   - HTML, SW, manifest, version.json → 절대 캐시 금지
-#   - 해시 기반 Next.js 빌드 assets(_next/static/) → 장기 캐시
-#   - 그 외 고정 파일명 JS/CSS/assets → 캐시 금지
-# ══════════════════════════════════════════════════════════════
+﻿# Cloudflare Pages cache policy
+# ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+# ?먯튃:
+#   - HTML, SW, manifest, version.json ???덈? 罹먯떆 湲덉?
+#   - ?댁떆 湲곕컲 Next.js 鍮뚮뱶 assets(_next/static/) ???κ린 罹먯떆
+#   - 洹???怨좎젙 ?뚯씪紐?JS/CSS/assets ??罹먯떆 湲덉?
+# ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
 
-# ── 보안 헤더(전체 응답) ─────────────────────────────────────────
+# ?? 蹂댁븞 ?ㅻ뜑(?꾩껜 ?묐떟) ?????????????????????????????????????????
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://cdn.portone.io https://t1.kakaocdn.net https://cdnjs.cloudflare.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://cdn.jsdelivr.net; script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://cdn.portone.io https://t1.kakaocdn.net https://cdnjs.cloudflare.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://cdn.jsdelivr.net; connect-src 'self' https://code-destiny.com https://www.code-destiny.com https://code-destiny-web.bulegyung.workers.dev https://cdn.portone.io https://checkout-service.prod.iamport.co https://tx-gateway-service.prod.iamport.co https://t1.kakaocdn.net https://*.kakao.com https://*.kakaocdn.net https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com; media-src 'self' https://music.code-destiny.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com https://www.gstatic.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://checkout-service.prod.iamport.co https://tx-gateway-service.prod.iamport.co https://translate.google.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self' https://tx-gateway-service.prod.iamport.co; frame-ancestors 'self'; manifest-src 'self'; upgrade-insecure-requests
 
-# ── HTML 진입점: 절대 캐시 금지 ──────────────────────────────────
+# ?? HTML 吏꾩엯?? ?덈? 罹먯떆 湲덉? ??????????????????????????????????
+/music*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://cdn.portone.io https://t1.kakaocdn.net https://cdnjs.cloudflare.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://cdn.jsdelivr.net; script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://cdn.portone.io https://t1.kakaocdn.net https://cdnjs.cloudflare.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://cdn.jsdelivr.net; connect-src 'self' https://code-destiny.com https://www.code-destiny.com https://code-destiny-web.bulegyung.workers.dev https://cdn.portone.io https://checkout-service.prod.iamport.co https://tx-gateway-service.prod.iamport.co https://t1.kakaocdn.net https://*.kakao.com https://*.kakaocdn.net https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com; media-src 'self' https://music.code-destiny.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com https://www.gstatic.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://translate.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://checkout-service.prod.iamport.co https://tx-gateway-service.prod.iamport.co https://translate.google.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self' https://tx-gateway-service.prod.iamport.co; frame-ancestors 'self'; manifest-src 'self'; upgrade-insecure-requests
+
 /
   Content-Type: text/html; charset=utf-8
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
@@ -100,13 +103,13 @@
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
-# ── API: 절대 캐시 금지 ──────────────────────────────────────────
+# ?? API: ?덈? 罹먯떆 湲덉? ??????????????????????????????????????????
 /api/*
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
-# ── 버전/상태 파일: 절대 캐시 금지 ──────────────────────────────
+# ?? 踰꾩쟾/?곹깭 ?뚯씪: ?덈? 罹먯떆 湲덉? ??????????????????????????????
 /version.json
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
@@ -119,7 +122,7 @@
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
-# ── Service Worker: 절대 캐시 금지 ──────────────────────────────
+# ?? Service Worker: ?덈? 罹먯떆 湲덉? ??????????????????????????????
 /service-worker.js
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
@@ -137,7 +140,7 @@
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
-# ── Manifest: 절대 캐시 금지 (PWA 설치 상태에서 구버전 앱 방지) ──
+# ?? Manifest: ?덈? 罹먯떆 湲덉? (PWA ?ㅼ튂 ?곹깭?먯꽌 援щ쾭????諛⑹?) ??
 /manifest.json
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
@@ -153,7 +156,7 @@
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
-# ── 고정 파일명 JS/CSS (해시 없음): 항상 재검증 ────────────────
+# ?? 怨좎젙 ?뚯씪紐?JS/CSS (?댁떆 ?놁쓬): ??긽 ?ш?利?????????????????
 /*.js
   Cache-Control: no-cache, max-age=0, must-revalidate
   CDN-Cache-Control: no-cache, max-age=0, must-revalidate
@@ -184,38 +187,38 @@
   CDN-Cache-Control: no-cache, max-age=0, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
-# ── 고정 파일명 assets: 항상 재검증 (동일 파일명 교체 대응) ──────
+# ?? 怨좎젙 ?뚯씪紐?assets: ??긽 ?ш?利?(?숈씪 ?뚯씪紐?援먯껜 ??? ??????
 /icons/*
   Cache-Control: no-cache, max-age=0, must-revalidate
   CDN-Cache-Control: no-cache, max-age=0, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
-/icons/꿀꿀 운세 로고.webp
+/icons/轅轅 ?댁꽭 濡쒓퀬.webp
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
-/icons/꿀꿀 운세 로고.webp
+/icons/轅轅 ?댁꽭 濡쒓퀬.webp
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
-/icons/꿀꿀 운세 로고.webp
+/icons/轅轅 ?댁꽭 濡쒓퀬.webp
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
-/icons/꿀꿀 운세 로고.webp
+/icons/轅轅 ?댁꽭 濡쒓퀬.webp
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
-/icons/꿀꿀 운세 로고.webp
+/icons/轅轅 ?댁꽭 濡쒓퀬.webp
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
-/icons/꿀꿀 운세 로고.webp
+/icons/轅轅 ?댁꽭 濡쒓퀬.webp
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
@@ -230,7 +233,7 @@
   CDN-Cache-Control: no-cache, max-age=0, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
-# ── AdSense 및 광고 관련 설정 파일 ─────────────────────────────
+# ?? AdSense 諛?愿묎퀬 愿???ㅼ젙 ?뚯씪 ?????????????????????????????
 /ads.txt
   Content-Type: text/plain; charset=utf-8
   Cache-Control: public, max-age=86400
@@ -258,8 +261,8 @@
   CDN-Cache-Control: no-cache, max-age=0, must-revalidate
   Cloudflare-CDN-Cache-Control: no-cache, max-age=0, must-revalidate
 
-# ── Next.js 해시 기반 빌드 assets: 장기 캐시 허용 ───────────────
-# _next/static/ 하위 파일은 content hash가 파일명에 포함됨
-# 파일이 변경되면 자동으로 새 해시 URL이 생성됨
+# ?? Next.js ?댁떆 湲곕컲 鍮뚮뱶 assets: ?κ린 罹먯떆 ?덉슜 ???????????????
+# _next/static/ ?섏쐞 ?뚯씪? content hash媛 ?뚯씪紐낆뿉 ?ы븿??
+# ?뚯씪??蹂寃쎈릺硫??먮룞?쇰줈 ???댁떆 URL???앹꽦??
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
