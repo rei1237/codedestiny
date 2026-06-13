@@ -4,15 +4,14 @@ const CANONICAL_HOST = "code-destiny.com";
 const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny.pages.dev"]);
 
 /**
- * Accept-Language → locale slug 매핑
- * 브라우저 언어 감지 후 해당 경로로 자동 리다이렉트
- */
+ * Accept-Language ??locale slug 留ㅽ븨
+ * 釉뚮씪?곗? ?몄뼱 媛먯? ???대떦 寃쎈줈濡??먮룞 由щ떎?대젆?? */
 const ACCEPT_LANG_MAP = [
   { prefix: "ja", slug: "/ja" },
   { prefix: "zh", slug: "/zh" },
   { prefix: "en", slug: "/en" },
 ];
-/** 이미 로케일 prefix 하에 있는 경로인지 확인 */
+/** ?대? 濡쒖???prefix ?섏뿉 ?덈뒗 寃쎈줈?몄? ?뺤씤 */
 const LEGACY_LOCALE_SLUGS = ["/en-us", "/ja-jp", "/zh-cn"];
 const LOCALE_SLUGS = new Set([...ACCEPT_LANG_MAP.map((l) => l.slug), ...LEGACY_LOCALE_SLUGS]);
 const LEGACY_LOCALE_REDIRECTS = new Map([
@@ -22,14 +21,13 @@ const LEGACY_LOCALE_REDIRECTS = new Map([
 ]);
 function getLocaleSlugFromAcceptLang(acceptLang) {
   if (!acceptLang) return null;
-  // e.g. "ja-JP,ja;q=0.9,en;q=0.8" → ["ja-JP","ja","en"]
+  // e.g. "ja-JP,ja;q=0.9,en;q=0.8" ??["ja-JP","ja","en"]
   const langs = acceptLang
     .split(",")
     .map((s) => s.split(";")[0].trim().toLowerCase())
     .filter(Boolean);
   for (const lang of langs) {
-    // ko → 한국어이면 리다이렉트 불필요
-    if (lang.startsWith("ko")) return null;
+    // ko ???쒓뎅?댁씠硫?由щ떎?대젆??遺덊븘??    if (lang.startsWith("ko")) return null;
     for (const entry of ACCEPT_LANG_MAP) {
       if (lang.startsWith(entry.prefix)) return entry.slug;
     }
@@ -185,6 +183,43 @@ function isUsableAuthToken(token) {
 
   const nowSec = Math.floor(Date.now() / 1000);
   return exp > nowSec + 5;
+}
+
+function mergeMusicCspForAudio(cspHeader) {
+  const cspValue = String(cspHeader || "").trim();
+  const mediaDomain = "https://music.code-destiny.com";
+  const mediaDirective = `media-src 'self' ${mediaDomain}`;
+
+  if (!cspValue) {
+    return `default-src 'self'; ${mediaDirective}`;
+  }
+
+  const directives = cspValue.split(";").map((part) => part.trim()).filter(Boolean);
+  let mediaDirectiveFound = false;
+
+  const merged = directives.map((directive) => {
+    if (!/^media-src\b/i.test(directive)) return directive;
+
+    mediaDirectiveFound = true;
+    const values = directive
+      .replace(/^media-src\b/i, "")
+      .trim()
+      .split(/\s+/)
+      .filter((v) => v.length > 0);
+
+    const sourceSet = new Set(values);
+    sourceSet.add("'self'");
+    sourceSet.add(mediaDomain);
+    const ordered = ["'self'"];
+    const mediaSources = Array.from(sourceSet).filter((value) => value !== "'self'");
+    return `media-src ${ordered.concat(mediaSources).join(" ")}`;
+  });
+
+  if (!mediaDirectiveFound) {
+    merged.push(mediaDirective);
+  }
+
+  return merged.join("; ");
 }
 
 function hasAuthSessionCookie(request) {
@@ -365,10 +400,10 @@ export function middleware(request) {
   // Locale roots: app/{locale}/page.js. Nested /{locale}/* : next.config.mjs beforeFiles rewrites.
 
   /**
-   * Accept-Language 자동 리다이렉트:
-   * 루트(/) 방문 시 브라우저 언어가 비한국어이면 해당 로케일 경로로 301 리다이렉트.
-   * - 이미 로케일 경로 하에 있으면 스킵 (무한루프 방지)
-   * - 쿠키 `cd_locale_ack=1` 이 있으면 스킵 (사용자가 언어 선택했을 때 세팅)
+   * Accept-Language ?먮룞 由щ떎?대젆??
+   * 猷⑦듃(/) 諛⑸Ц ??釉뚮씪?곗? ?몄뼱媛 鍮꾪븳援?뼱?대㈃ ?대떦 濡쒖???寃쎈줈濡?301 由щ떎?대젆??
+   * - ?대? 濡쒖???寃쎈줈 ?섏뿉 ?덉쑝硫??ㅽ궢 (臾댄븳猷⑦봽 諛⑹?)
+   * - 荑좏궎 `cd_locale_ack=1` ???덉쑝硫??ㅽ궢 (?ъ슜?먭? ?몄뼱 ?좏깮?덉쓣 ???명똿)
    */
   const isLocaleRoot = LOCALE_SLUGS.has(rawPath.replace(/\/$/, "")) ||
     [...LOCALE_SLUGS].some((s) => rawPath.startsWith(s + "/"));
@@ -380,8 +415,7 @@ export function middleware(request) {
       if (targetSlug) {
         const redirectUrl = request.nextUrl.clone();
         redirectUrl.pathname = targetSlug;
-        // 307 Temporary: SEO 관점에서 한국어가 기본 canonical이므로 임시 리다이렉트
-        return NextResponse.redirect(redirectUrl, 307);
+        // 307 Temporary: SEO 愿?먯뿉???쒓뎅?닿? 湲곕낯 canonical?대?濡??꾩떆 由щ떎?대젆??        return NextResponse.redirect(redirectUrl, 307);
       }
     }
   }
@@ -397,11 +431,19 @@ export function middleware(request) {
     requestHeaders.set("x-pathname", pathForLocale);
   }
 
-    return NextResponse.next({
+    const response = NextResponse.next({
       request: {
         headers: requestHeaders,
       },
     });
+
+    const musicPath = request.nextUrl.pathname || "/";
+    if (musicPath.startsWith("/music") || /^\/(?:en|ja|zh)\/music(?:\/|$)/.test(musicPath)) {
+      const cspHeader = response.headers.get("Content-Security-Policy");
+      response.headers.set("Content-Security-Policy", mergeMusicCspForAudio(cspHeader));
+    }
+
+    return response;
   } catch (error) {
     logMiddlewareError(request, error);
     // Fail-open for auth middleware errors so OAuth/login pages remain reachable.

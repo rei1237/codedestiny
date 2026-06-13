@@ -1,4 +1,5 @@
 .playerShell {
+  --moon-banner-cover-fallback: url('/music-covers/yeoni-1st-album.webp');
   --moon-ink: #f7fbff;
   --moon-muted: rgba(232, 242, 255, 0.72);
   --moon-line: rgba(234, 242, 255, 0.2);
@@ -521,7 +522,8 @@
   background:
     radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.26), transparent 28%),
     radial-gradient(circle at 64% 68%, rgba(126, 224, 255, 0.18), transparent 32%),
-    linear-gradient(145deg, #182038, #4c6680 52%, #f0d8ba);
+    linear-gradient(145deg, #182038, #4c6680 52%, #f0d8ba),
+    var(--moon-banner-cover-fallback) center / cover no-repeat;
   box-shadow:
     0 28px 70px rgba(0, 0, 0, 0.46),
     0 0 68px rgba(224, 242, 255, 0.18);
@@ -533,7 +535,8 @@
   background:
     radial-gradient(circle at 34% 22%, rgba(255, 246, 251, 0.28), transparent 26%),
     radial-gradient(circle at 66% 70%, rgba(255, 150, 205, 0.2), transparent 34%),
-    linear-gradient(145deg, #2a0d25, #7b315c 54%, #ffd5e7);
+    linear-gradient(145deg, #2a0d25, #7b315c 54%, #ffd5e7),
+    var(--moon-banner-cover-fallback) center / cover no-repeat;
   box-shadow:
     0 28px 70px rgba(34, 4, 26, 0.46),
     0 0 68px rgba(255, 159, 207, 0.24);
@@ -1405,3 +1408,110 @@
     animation: none;
   }
 }
+
+.bannerGlowLeft,
+.bannerGlowRight {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bannerGlowLeft {
+  top: 5%;
+  left: -70px;
+  width: 260px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(130, 100, 255, 0.13), transparent 72%);
+}
+
+.bannerGlowRight {
+  right: -74px;
+  bottom: 2%;
+  width: 200px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(200, 160, 255, 0.09), transparent 72%);
+}
+
+.bannerStars {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bannerStar {
+  animation: twinkle 5s ease-in-out infinite;
+  animation-delay: 0s;
+  opacity: 0.15;
+}
+
+.bannerCrescent {
+  position: absolute;
+  top: 8%;
+  right: 12%;
+  width: 22px;
+  height: 22px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.82;
+}
+
+.bannerCrescent path {
+  fill: rgba(196, 181, 253, 0.35);
+}
+
+.playerHero {
+  margin-bottom: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.playerHeroKicker {
+  color: rgba(200, 185, 255, 0.65);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.playerHeroTitle {
+  margin: 0;
+  color: #f4f1ff;
+  font-size: clamp(1.5rem, 3.8vw, 2.1rem);
+  line-height: 1.08;
+}
+
+.playerHeroText {
+  margin: 0;
+  color: rgba(228, 221, 255, 0.72);
+  font-size: 0.94rem;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bannerStar,
+  .bannerStars circle {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .bannerGlowLeft,
+  .bannerGlowRight,
+  .bannerCrescent {
+    display: none;
+  }
+}
+
