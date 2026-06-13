@@ -3404,7 +3404,7 @@
     if (!btn) return;
 
     function setSaveButtonContent(label, badge) {
-      btn.innerHTML = '<span class="moon-submit-btn__star" aria-hidden="true">✦</span><span class="moon-submit-btn__text"></span><span class="moon-submit-btn__coin"></span>';
+      btn.innerHTML = '<span class="moon-submit-btn__star lotus-icon" aria-hidden="true">✦</span><span class="moon-submit-btn__text main-txt"></span><span class="moon-submit-btn__coin coin-pill"></span>';
       var textNode = btn.querySelector('.moon-submit-btn__text');
       var coinNode = btn.querySelector('.moon-submit-btn__coin');
       if (textNode) textNode.textContent = label;
