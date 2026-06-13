@@ -681,22 +681,26 @@
 }
 
 .lyricsBodyOpen {
-  max-height: min(46svh, 420px);
+  max-height: min(54svh, 520px);
   opacity: 1;
   margin-top: 10px;
   padding-bottom: 14px;
 }
 
 .lyricsText {
+  width: 100%;
   margin: 0;
-  padding: 12px 0 2px;
-  max-height: 100%;
-  overflow: auto;
+  padding: 12px 8px 2px 0;
+  max-height: min(42svh, 420px);
+  overflow-x: hidden;
+  overflow-y: auto;
   color: var(--moon-muted);
   white-space: pre-wrap;
   font-size: 0.84rem;
   line-height: 1.72;
   letter-spacing: 0;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: rgba(238, 247, 255, 0.26) transparent;
 }

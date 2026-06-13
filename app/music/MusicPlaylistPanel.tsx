@@ -17,9 +17,9 @@ type MusicPlaylistPanelProps = {
 };
 
 const PLAYLIST_TABS: Array<{ key: PlaylistTab; label: string }> = [
-  { key: "all", label: "All" },
-  { key: "neo", label: "Neo" },
   { key: "yeoni", label: "Yeoni" },
+  { key: "neo", label: "Neo" },
+  { key: "all", label: "All" },
 ];
 
 function formatDuration(seconds?: number) {
@@ -42,7 +42,7 @@ export default function MusicPlaylistPanel({
   onCoverError,
   onSelectTrack,
 }: MusicPlaylistPanelProps) {
-  const [activeTab, setActiveTab] = useState<PlaylistTab>("all");
+  const [activeTab, setActiveTab] = useState<PlaylistTab>("yeoni");
   const [query, setQuery] = useState("");
   const normalizedQuery = normalizeSearchText(query);
 
