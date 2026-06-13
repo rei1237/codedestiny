@@ -32,8 +32,11 @@ export function buildR2PublicUrl(baseUrl: string | undefined, objectKey: string,
 }
 
 export function buildMusicPublicUrl(objectKey: string) {
+  const defaultMusicBaseUrl = process.env.NEXT_PUBLIC_ASSETS_BASE_URL
+    ? `${process.env.NEXT_PUBLIC_ASSETS_BASE_URL}/music`
+    : "https://music.code-destiny.com";
   return buildR2PublicUrl(
-    process.env.NEXT_PUBLIC_MUSIC_BASE_URL,
+    process.env.NEXT_PUBLIC_MUSIC_BASE_URL || defaultMusicBaseUrl,
     objectKey,
     "NEXT_PUBLIC_MUSIC_BASE_URL",
   );
