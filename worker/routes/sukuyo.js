@@ -23,6 +23,7 @@ import {
   failPremiumPdfExecution,
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
+import { generateSukuyoLocalPdf } from "../pdf-v2/sukuyo-local-pdf.js";
 
 const SUKUYO_SESSION_LOCK_TTL_MS = 20 * 60 * 1000;
 const SUKYO_COMPAT_TOKEN_MIN_COINS = 490;
@@ -458,7 +459,6 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
       ? ready.localAssembly
       : {};
   const sourceIsLocal = ["local", SUKYO_PDF_CONFIG.generationMode].includes(manuscriptSource);
-  const sourceHasExternalSignal = /\b(?:gemini|llm|hybrid|fallback)\b/i.test(manuscriptSource);
   const localAssemblyOk = localAssembly.enabled === true
     && localAssembly.externalGeneration === false
     && localAssembly.externalCallsAllowed === false
@@ -478,7 +478,6 @@ function isSukuyoCompletedPayloadReady(payload = {}) {
     && clean(payload?.serverStatus) === "completed"
     && clean(payload?.qualityStatus) === "passed"
     && sourceIsLocal
-    && !sourceHasExternalSignal
     && localAssemblyOk
     && chapterQualityOk
   );
@@ -734,6 +733,24 @@ async function handleSukuyoPremiumPrepare(request, env) {
       });
     }
     pdfReady.pdfCompletionValidation = pdfCompletionValidation;
+    const localPdfResult = await generateSukuyoLocalPdf({
+      reportId,
+      sessionId,
+      featureKey,
+      chapterCount: generated.chapterCount,
+      manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
+      chapters: generated.chapters,
+      localAssembly: generated.localAssembly || generated?.payload?.localAssembly || pdfReady.localAssembly,
+      pdfReady,
+      pdfCompletionValidation,
+      pdfUrl: pdfReady.pdfUrl,
+      htmlUrl: pdfReady.htmlUrl,
+      downloadUrl: pdfReady.downloadUrl,
+    }, {
+      config: SUKYO_PDF_CONFIG,
+      expectedChapterCount: SUKYO_PDF_CHAPTER_COUNT,
+      buildLocalPdf: (payload) => payload,
+    });
 
     const archiveMetadata = buildSukuyoArchiveMetadata(input, generated, pdfReady, reportId);
     let archiveStatus = "completed";
@@ -792,6 +809,8 @@ async function handleSukuyoPremiumPrepare(request, env) {
       provider: generated.provider || SUKYO_PDF_CONFIG.provider,
       writingPipeline: generated.writingPipeline || "local-calculation-to-local-assembled-pdf",
       localAssembly: generated.localAssembly || generated?.payload?.localAssembly || pdfReady.localAssembly,
+      localOnly: localPdfResult.localOnly,
+      localContract: localPdfResult.localContract,
       pdfCompletionValidation,
       archiveStatus,
       archivePending: archiveStatus !== "completed",

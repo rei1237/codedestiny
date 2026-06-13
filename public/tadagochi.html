@@ -14,11 +14,10 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 
-<script src="https://cdn.tailwindcss.com"></script>
-
 <script>
 
-if(window.tailwind){tailwind.config={theme:{extend:{
+window.tailwind = window.tailwind || {};
+window.tailwind.config={theme:{extend:{
 
   fontFamily:{g:['Gaegu','cursive'],n:['Noto Sans KR','sans-serif']},
 
@@ -118,7 +117,7 @@ if(window.tailwind){tailwind.config={theme:{extend:{
 
   }
 
-}}}}
+}}};
 
 </script>
 

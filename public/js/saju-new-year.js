@@ -809,7 +809,8 @@
           return;
         }
         var manuscriptSource = _clean(payload && payload.manuscriptSource).toLowerCase();
-        if ((payload && payload.fallbackUsed) || /gemini|llm|hybrid|fallback/.test(manuscriptSource)) {
+        var localAssembly = payload && payload.localAssembly && typeof payload.localAssembly === 'object' ? payload.localAssembly : {};
+        if ((payload && payload.fallbackUsed) || manuscriptSource !== 'local-assembled' || localAssembly.enabled !== true || localAssembly.externalGeneration !== false) {
           throw _buildPdfApiError(payload, 422, '신년운세 PDF가 로컬 조립 검증을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요.');
         }
         _log('LocalChapterDraftCompleted', { chapterCount: Number(payload && payload.localDraftChapterCount || TOTAL_CHAPTERS) });

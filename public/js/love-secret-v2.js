@@ -2446,8 +2446,7 @@
         mode: normalizedMode,
         chapterCount: _getLoveSecretModeTotalChapters(normalizedMode),
         selfName: selfName,
-        partnerName: isCompatibility ? partnerName : '',
-        llmContract: 'love-secret-master-json.v1'
+        partnerName: isCompatibility ? partnerName : ''
       };
       var baseContext = {
         mode: normalizedMode,
@@ -2692,7 +2691,8 @@
       var payload = resultPayload && typeof resultPayload === 'object' ? resultPayload : {};
       _lsResultPayload = payload;
       var manuscriptSource = String(payload.manuscriptSource || '').toLowerCase();
-      if (payload.fallbackUsed || /gemini|llm|hybrid|fallback|local-only/.test(manuscriptSource)) {
+      var localAssembly = payload.localAssembly && typeof payload.localAssembly === 'object' ? payload.localAssembly : {};
+      if (payload.fallbackUsed || manuscriptSource !== 'local-assembled' || localAssembly.enabled !== true || localAssembly.externalGeneration !== false) {
         throw _buildLoveSecretApiError({ body: payload, status: 422 }, '연애 비책 PDF가 로컬 조립 검증을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요.', {
           stage: 'local-assembled-result',
           mode: _currentChapterMode,

@@ -1573,7 +1573,7 @@ function _isLifeBookGenerationBusy() {
     if (/Failed to fetch|NetworkError|Load failed/i.test(raw)) {
       return '네트워크 연결이 불안정합니다. 잠시 후 다시 시도해 주세요.';
     }
-    if (/^[A-Z0-9_:-]+$/.test(raw) || /\b(LLM|SEED|JSON|PAYLOAD|SCHEMA|UNDEFINED|NULL|NAN)\b/i.test(raw)) {
+    if (/^[A-Z0-9_:-]+$/.test(raw) || /\b(SEED|JSON|PAYLOAD|SCHEMA|UNDEFINED|NULL|NAN)\b/i.test(raw)) {
       return '인생의 책 원고를 완성하는 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.';
     }
     return raw;
@@ -1967,8 +1967,6 @@ function _isLifeBookGenerationBusy() {
     local_writing: '인생의 책 원고를 정리하는 중',
     writing_local: '인생의 책 원고를 정리하는 중',
     calculation_validated: '사주 계산 완료 · 로컬 원고 구성 시작',
-    llm_writing: '인생의 책 원고를 정리하는 중',
-    llm_reviewing: '최종 원고 품질 검수 중',
     rendering_pdf: 'PDF 편집과 렌더링 중',
     done: '완료',
     local_reinforce: '부족한 장을 보강하는 중',
@@ -2425,7 +2423,6 @@ function _isLifeBookGenerationBusy() {
         : ((_data && _data.pdfReady && _data.pdfReady.localAssembly && typeof _data.pdfReady.localAssembly === 'object') ? _data.pdfReady.localAssembly : {});
       if (
         !/local-assembled/i.test(_manuscriptSource)
-        || /gemini|llm|hybrid|fallback/i.test(_manuscriptSource)
         || _localAssembly.enabled !== true
         || _localAssembly.externalGeneration !== false
         || Number(_localAssembly.chapterCount || 0) !== LIFEBOOK_TOTAL_CHAPTERS

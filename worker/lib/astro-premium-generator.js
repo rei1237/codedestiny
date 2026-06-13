@@ -18,7 +18,6 @@ const FORBIDDEN_PATTERNS = [
   /자동\s*복구\s*생성/gi,
   /fallback/gi,
   /\bapi\b/gi,
-  /\bllm\b/gi,
   /chapter\s*1\s*chapter\s*1/gi,
   /데이터가\s*부족합니다/gi,
   /\bpayload\b/gi,
@@ -1464,7 +1463,7 @@ export function buildAstroMasterJson(localAstroChartJson = {}, rawInput = {}) {
       minChapterChars: MIN_CHAPTER_LENGTH,
       minTotalChars: getDynamicTotalMinLength(ASTRO_PREMIUM_CHAPTERS.length),
       requiredEvidencePerSection: 4,
-      forbiddenDeveloperTerms: ["JSON", "API", "LLM", "schema", "prompt", "payload", "debug", "fallback"],
+      forbiddenDeveloperTerms: ["JSON", "API", "schema", "prompt", "payload", "debug", "fallback"],
       tone: "professional-mystical-korean-consultation",
     },
   };

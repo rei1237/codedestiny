@@ -1010,6 +1010,7 @@ function buildPaymentRequiredResult(reportType, requiredRules = [], requestBody 
 
 export async function requirePremiumReportAccess(env, userId, reportType, requestBody = {}) {
   const normalizedReportType = String(reportType || "").trim();
+  const isPerUsePdfReportType = normalizedReportType === "ziweiPremium" || normalizedReportType === "sookyoPremium";
   const unlockPolicy = uniqueStrings(PREMIUM_UNLOCK_POLICY[normalizedReportType] || []);
   const alternativeRules = buildAlternativePaymentRules(normalizedReportType, requestBody);
   const requiredRules = buildRequiredPaymentRules(normalizedReportType, requestBody);
@@ -1250,7 +1251,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     requiredRules,
     receivedFeatureKey,
   });
-  const entitlementUnlock = await findPremiumContentEntitlement({
+  const entitlementUnlock = isPerUsePdfReportType ? null : await findPremiumContentEntitlement({
     userId: user._id,
     profileId,
     candidateKeys: entitlementCandidateKeys,
@@ -1321,12 +1322,14 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 
   const tokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules);
   if (tokenEvidence) {
-    await upsertPremiumContentEntitlementFromEvidence({
-      userId: user._id,
-      profileId,
-      featureKey: String(tokenEvidence?.featureKey || receivedFeatureKey || alternativeRules[0]?.featureKey || ""),
-      evidence: tokenEvidence,
-    });
+    if (!isPerUsePdfReportType) {
+      await upsertPremiumContentEntitlementFromEvidence({
+        userId: user._id,
+        profileId,
+        featureKey: String(tokenEvidence?.featureKey || receivedFeatureKey || alternativeRules[0]?.featureKey || ""),
+        evidence: tokenEvidence,
+      });
+    }
     logPremiumAccessDecision({
       route: requestBody?._accessRoute,
       userId,

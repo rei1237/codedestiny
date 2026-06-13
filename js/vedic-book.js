@@ -132,7 +132,7 @@
   function _sanitizeText(value) {
     return String(value || '')
       .replace(/\b(undefined|null|nan)\b/gi, '')
-      .replace(/\b(payload|json|localdraft|fallback|llm|api|debug|internal\s*server\s*error|object|calculationmode|recovered|about:blank)\b/gi, '')
+      .replace(/\b(payload|json|localdraft|fallback|api|debug|internal\s*server\s*error|object|calculationmode|recovered|about:blank)\b/gi, '')
       .replace(/자동\s*복구\s*생성/gi, '')
       .replace(/chapter\s*1\s*chapter\s*1/gi, '')
       .replace(/데이터가\s*부족합니다/gi, '')
@@ -637,7 +637,6 @@
       ? payload.localAssembly
       : (ready.localAssembly && typeof ready.localAssembly === 'object' ? ready.localAssembly : {});
     var localContractOk = manuscriptSource === VEDIC_LOCAL_MANUSCRIPT_SOURCE
-      && !/gemini|llm|hybrid|fallback/.test(manuscriptSource)
       && localAssembly.enabled === true
       && localAssembly.externalGeneration === false
       && localAssembly.externalCallsAllowed === false

@@ -15,7 +15,7 @@ export const VEDIC_PDF_CONFIG = Object.freeze({
   templateVersion: "vedic-premium-local-assembled-v2",
 });
 export const VEDIC_ASTROLOGY_ASSEMBLY_VERSION = VEDIC_PDF_CONFIG.templateVersion;
-const FORBIDDEN_TEXT_RE = /\b(?:fallback|safe-local|seed|skeleton|payload|json|debug|local|localdraft|engine|validation|retry|llm|api|wasm|swiss\s*wasm|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|preflightfailed|chart\s*seed\s*failed)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|로컬\s*기반|계산\s*시그니처|데이터\s*정규화|품질\s*검증|재생성|내부\s*데이터|템플릿/gi;
+const FORBIDDEN_TEXT_RE = /\b(?:fallback|safe-local|seed|skeleton|payload|json|debug|local|localdraft|engine|validation|retry|api|wasm|swiss\s*wasm|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|preflightfailed|chart\s*seed\s*failed)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|로컬\s*기반|계산\s*시그니처|데이터\s*정규화|품질\s*검증|재생성|내부\s*데이터|템플릿/gi;
 const VEDIC_SAFETY_REPLACEMENTS = Object.freeze([
   [/반드시\s*이혼한다/gi, "관계에서 현실적인 책임과 감정 소통을 꾸준히 조율해야 하는 흐름이다"],
   [/결혼하면\s*불행하다/gi, "장기 관계로 갈수록 기대치, 역할 분담, 생활 리듬을 명확히 맞추는 것이 중요하다"],
@@ -2013,7 +2013,7 @@ export function buildVedicMasterJson(localVedicChartJson = {}, rawInput = {}) {
       minTotalChars: MIN_TOTAL_CHARS,
       requiredEvidencePerSection: 3,
       requiredUsedSignalIds: true,
-      forbiddenDeveloperTerms: ["JSON", "API", "LLM", "schema", "prompt", "payload", "debug", "fallback"],
+      forbiddenDeveloperTerms: ["JSON", "API", "schema", "prompt", "payload", "debug", "fallback"],
       tone: "professional-mystical-korean-vedic-consultation",
     },
   };

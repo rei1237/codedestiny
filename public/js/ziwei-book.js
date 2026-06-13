@@ -209,7 +209,7 @@
 
   function isReusablePaidStatus(status){
     var s = text(status);
-    return s === 'paid' || s === 'generating' || s === 'failed_retryable';
+    return s === 'generating' || s === 'failed_retryable';
   }
 
   function isZiweiFeatureKey(value){
@@ -241,21 +241,12 @@
   }
 
   async function verifyPaidSessionAccess(saved){
-    var token = text(saved && saved.premiumAccessToken);
-    if(!token) return false;
-    try {
-      var res = await fetch('/api/billing/unlock-status?featureKey=' + encodeURIComponent(FEATURE_KEY), {
-        method: 'GET',
-        credentials: 'include',
-        headers: { 'x-premium-access-token': token }
-      });
-      if(!res.ok) return false;
-      var json = await res.json().catch(function(){ return {}; });
-      var data = json && json.data && typeof json.data === 'object' ? json.data : json;
-      return Boolean(data && (data.canAccess || data.unlocked));
-    } catch(_) {
-      return false;
-    }
+    return Boolean(
+      saved
+      && isReusablePaidStatus(saved.status)
+      && text(saved.sessionId)
+      && (text(saved.premiumAccessToken) || text(saved.transactionId) || text(saved.purchaseId))
+    );
   }
 
   function buildSessionId(birthHash){
@@ -1065,7 +1056,7 @@
     var reuseOnly = Boolean(options && options.reuseOnly);
     var birthHash = makeBirthHash(birthInput || {});
     var saved = readPaidSession();
-    if(isSamePaidSessionTarget(saved, birthHash)){
+    if(reuseOnly && isSamePaidSessionTarget(saved, birthHash)){
       var verified = await verifyPaidSessionAccess(saved);
       if(verified){
         logFlow('PaymentReuse', {
@@ -1091,38 +1082,12 @@
       if(reuseOnly){
         throw buildRetryableError('결제 내역을 확인하지 못했습니다. 생성 버튼에서 결제를 다시 확인해 주세요.', 402, 'PAYMENT_REUSE_UNVERIFIED', 'payment');
       }
+    } else if(saved && isZiweiFeatureKey(saved.featureKey) && reuseOnly !== true) {
+      clearPaidSession();
     }
 
     if(typeof window._cdCoinGatePerUse !== 'function'){
-      var existingToken = getPremiumToken();
-      if(existingToken){
-        var tokenContext = {
-          featureKey: FEATURE_KEY,
-          reportType: 'ziweiPremium',
-          sessionId: buildSessionId(birthHash),
-          premiumAccessToken: existingToken,
-          birthHash: birthHash,
-          status: 'paid'
-        };
-        var tokenVerified = await verifyPaidSessionAccess(tokenContext);
-        if(!tokenVerified){
-          clearPaidSession();
-          throw buildRetryableError('결제 권한을 확인하지 못했습니다. 로그인 상태와 결제 내역을 확인해 주세요.', 402, 'PAYMENT_TOKEN_UNVERIFIED', 'payment');
-        }
-        var fallback = writePaidSession({
-          featureKey: FEATURE_KEY,
-          reportType: 'ziweiPremium',
-          sessionId: tokenContext.sessionId,
-          premiumAccessToken: existingToken,
-          transactionId: '',
-          paidAt: new Date().toISOString(),
-          birthHash: birthHash,
-          status: 'paid'
-        });
-        logFlow('PaymentReuse', { birthHash: birthHash, hasToken: true, palaceCount: Number((LAST_SEED && LAST_SEED.diagnostics && LAST_SEED.diagnostics.palaceCount) || 0) });
-        return Object.assign({ ok: true, reused: true }, fallback);
-      }
-      throw new Error('결제 권한을 확인할 수 없습니다. 로그인 상태와 결제 수단을 확인해 주세요.');
+      throw new Error('결제 모듈을 찾을 수 없습니다. 로그인 상태와 결제 수단을 확인해 주세요.');
     }
 
     return new Promise(function(resolve, reject){
@@ -1672,7 +1637,6 @@
       var localAssemblyChapterCount = Number(localAssembly.chapterCount || 0);
       if(
         manuscriptSource !== 'local-assembled'
-        || /gemini|llm|hybrid|fallback/.test(manuscriptSource)
         || localAssembly.enabled !== true
         || localAssembly.externalCallsAllowed !== false
         || localAssemblyChapterCount < TOTAL_CHAPTERS

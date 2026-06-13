@@ -12,6 +12,7 @@ import {
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
+import { generateLifeBookLocalPdf } from "../pdf-v2/lifebook-local-pdf.js";
 
 const CHAPTER_BLUEPRINTS = [
   {
@@ -240,7 +241,6 @@ const FORBIDDEN_TEXT = [
   "테스트 문구",
   "데이터가 부족합니다",
   "about:blank",
-  "llm",
   "api",
   "schema",
   "raw",
@@ -257,7 +257,7 @@ const FORBIDDEN_TEXT = [
   "재생성",
 ];
 
-const LIFEBOOK_FORBIDDEN_RE = /\b(?:fallback|seed|skeleton|local|engine|validation|retry|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|llm|api|prompt)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|데이터\s*부족|로컬\s*엔진|로컬\s*기반|템플릿|계산\s*시그니처|내부\s*데이터|엔진\s*결과|데이터\s*정규화|품질\s*검증|재생성/gi;
+const LIFEBOOK_FORBIDDEN_RE = /\b(?:fallback|seed|skeleton|local|engine|validation|retry|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw|api|prompt)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|데이터\s*부족|로컬\s*엔진|로컬\s*기반|템플릿|계산\s*시그니처|내부\s*데이터|엔진\s*결과|데이터\s*정규화|품질\s*검증|재생성/gi;
 
 const LIFEBOOK_CHAPTER_REVIEW_FORBIDDEN_TERMS = Object.freeze([
   "무조건",
@@ -275,7 +275,6 @@ const LIFEBOOK_CHAPTER_REVIEW_FORBIDDEN_TERMS = Object.freeze([
   "engine",
   "schema",
   "api",
-  "llm",
   "prompt",
 ]);
 
@@ -753,7 +752,6 @@ function stripForbiddenTokens(value) {
     .replace(/json/gi, "")
     .replace(/schema/gi, "")
     .replace(/raw/gi, "")
-    .replace(/llm/gi, "")
     .replace(/프롬프트/gi, "")
     .replace(/로컬\s*엔진/gi, "")
     .replace(/로컬\s*기반/gi, "")
@@ -3314,7 +3312,7 @@ function reviewLifeBookChapterDeterministically(chapter = {}) {
   const markdown = normalizeLifeBookChapterMarkdown(chapter?.reviewedMarkdown || chapter?.editedMarkdown || chapter?.mergedMarkdown || chapter?.finalText || chapter?.text || "");
   return applyLifeBookReviewedChapter(chapter, markdown, {
     source: "deterministic-chapter-review",
-    errors: ["gemini_chapter_review_fallback"],
+    errors: ["chapter_review_local_repair"],
   });
 }
 
@@ -6641,7 +6639,7 @@ function validateLifeBookPdfCompletionPayload({ pdfReady = {}, chapters = [] } =
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<[^>]+>/g, " ");
-  if (/\b(?:undefined|null|nan|fallback|llm|json|schema|debug|prompt)\b|\[object Object\]|자동\s*복구\s*생성|데이터\s*부족|로컬\s*엔진|템플릿|internal\s*server\s*error|about:blank/i.test(visibleText)) {
+  if (/\b(?:undefined|null|nan|fallback|json|schema|debug|prompt)\b|\[object Object\]|자동\s*복구\s*생성|데이터\s*부족|로컬\s*엔진|템플릿|internal\s*server\s*error|about:blank/i.test(visibleText)) {
     errors.push("pdf_body_forbidden_text");
   }
 
@@ -7013,19 +7011,33 @@ async function handlePrepareSync(request, env) {
     calculationResultHash: cacheContext.calculationResultHash,
   });
 
-  const pipelineResult = await generateLifeBookPdf(profile, {
-    env,
+  const pipelineResult = await generateLifeBookLocalPdf({
+    profile,
     birthInput,
     body,
     sessionId,
     reportId,
     requestId,
+    env,
     precomputedNormalized: {
       calculation: precomputedCalculation,
       normalized: precomputedNormalized,
       cacheContext,
     },
     onProgress: (progress) => updateLifeBookSessionProgress(sessionId, progress),
+  }, {
+    config: LIFE_BOOK_PDF_CONFIG,
+    expectedChapterCount: getLifeBookBlueprints().length,
+    buildLocalPdf: (input) => generateLifeBookPdf(input.profile, {
+      env: input.env,
+      birthInput: input.birthInput,
+      body: input.body,
+      sessionId: input.sessionId,
+      reportId: input.reportId,
+      requestId: input.requestId,
+      precomputedNormalized: input.precomputedNormalized,
+      onProgress: input.onProgress,
+    }),
   });
   const {
     signals,

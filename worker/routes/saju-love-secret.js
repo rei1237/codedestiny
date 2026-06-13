@@ -12,6 +12,7 @@ import {
   failPremiumPdfExecution,
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
+import { generateLoveSecretLocalPdf } from "../pdf-v2/love-secret-local-pdf.js";
 
 const LOVE_SECRET_SERVICE_KEY = "saju-love-secret";
 const LOVE_SECRET_FEATURE_KEY_BY_MODE = Object.freeze({
@@ -4599,7 +4600,7 @@ async function runLoveSecretJob(env, jobId) {
       });
     }
     const pdfCacheKey = clean(job?.cacheKey) || buildLoveSecretPdfCacheKey(base, mode, job?.requestBody || {});
-    const successResult = buildLoveSecretSuccessPayload({
+    const successResult = await generateLoveSecretLocalPdf({
       featureKey: clean(job?.featureKey) || toFeatureKey(mode),
       mode,
       sessionId,
@@ -4614,6 +4615,10 @@ async function runLoveSecretJob(env, jobId) {
       loveSecretFacts,
       loveSecretChapterPlans,
       localAssembly,
+    }, {
+      config: LOVE_SECRET_PDF_CONFIG,
+      expectedChapterCount: totalChapters,
+      buildLocalPdf: (payload) => buildLoveSecretSuccessPayload(payload),
     });
 
     await coll.updateOne(
@@ -4988,7 +4993,7 @@ async function handlePrepare(request, env) {
       status: 422,
     });
   }
-  const responsePayload = buildLoveSecretSuccessPayload({
+  const responsePayload = await generateLoveSecretLocalPdf({
     featureKey: authz.featureKey,
     mode,
     sessionId,
@@ -5003,6 +5008,10 @@ async function handlePrepare(request, env) {
     loveSecretFacts,
     loveSecretChapterPlans,
     localAssembly,
+  }, {
+    config: LOVE_SECRET_PDF_CONFIG,
+    expectedChapterCount: totalChapters,
+    buildLocalPdf: (payload) => buildLoveSecretSuccessPayload(payload),
   });
   await completePremiumPdfExecution(env, authz?.auth?.userId, executionCtx, reportId, {
     manuscriptSource,
@@ -5300,7 +5309,7 @@ async function handlePrepareAsync(request, env, ctx) {
       });
     }
     const pdfCacheKey = buildLoveSecretPdfCacheKey(base, mode, body);
-    const directResponse = buildLoveSecretSuccessPayload({
+    const directResponse = await generateLoveSecretLocalPdf({
       featureKey: authz.featureKey,
       mode,
       sessionId,
@@ -5315,6 +5324,10 @@ async function handlePrepareAsync(request, env, ctx) {
       loveSecretFacts,
       loveSecretChapterPlans,
       localAssembly,
+    }, {
+      config: LOVE_SECRET_PDF_CONFIG,
+      expectedChapterCount: directChapterCount,
+      buildLocalPdf: (payload) => buildLoveSecretSuccessPayload(payload),
     });
 
     resolveLoveSecretLock(sessionId, "done", "");

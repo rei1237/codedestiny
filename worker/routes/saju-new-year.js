@@ -37,6 +37,7 @@ import {
   STEM_YINYANG,
   STEMS,
 } from "../lib/saju-new-year-constants.js";
+import { generateNewYearLocalPdf } from "../pdf-v2/new-year-local-pdf.js";
 
 const newYearPdfLocks = new Map();
 export { NEW_YEAR_CHAPTERS };
@@ -4480,6 +4481,25 @@ async function handlePrepare(request, env) {
         status: 500,
       });
     }
+    const localPdfResult = await generateNewYearLocalPdf({
+      reportId,
+      featureKey,
+      sessionId: sessionKey,
+      targetYear: localYearSajuJson.targetYear,
+      chapterCount: chapters.length,
+      manuscriptSource,
+      chapters,
+      localAssembly,
+      pdfReady,
+      pdfCompletionValidation,
+      pdfUrl: storedUrl,
+      htmlUrl: clean(pdfReady.htmlUrl),
+      downloadUrl: clean(pdfReady.downloadUrl || storedUrl),
+    }, {
+      config: YEARLY_SAJU_PDF_CONFIG,
+      expectedChapterCount: chapters.length,
+      buildLocalPdf: (payload) => payload,
+    });
 
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       manuscriptSource,
@@ -4533,6 +4553,8 @@ async function handlePrepare(request, env) {
       cacheHit: false,
       localNormalizationReason,
       localAssembly,
+      localOnly: localPdfResult.localOnly,
+      localContract: localPdfResult.localContract,
       chapters,
       seed: { ...localYearSajuJson, chapters: undefined },
       newYearPayload: localYearSajuJson,

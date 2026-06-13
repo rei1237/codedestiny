@@ -145,7 +145,7 @@ declare global {
 
 const PROFILE_CARD_ACTION_COST_COINS = 50;
 const PROFILE_CARD_ACTION_COST_KRW = 5000;
-const PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST = PROFILE_CARD_ACTION_COST_COINS;
+const PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST = PROFILE_CARD_ACTION_COST_COINS * 10;
 const PROFILE_CARD_ACTION_FEATURE_KEY = "profile-card-manage";
 const PROFILE_CARD_ACTION_SERVICE_TYPE = "profile_card_action";
 const PROFILE_CARD_ACTION_PRODUCTS = {
@@ -925,12 +925,8 @@ export default function MePage() {
     if (busyAction) return;
     const requestId = buildProfileActionRequestId(action, profile.id);
     const selectedPaymentMethod = paymentMethod || "card";
-    if (action === "delete" && profiles.length <= 1) {
-      setAuthNotice("서비스 이용에 필요한 최소 1개의 프로필 카드는 남겨야 합니다.");
-      return;
-    }
     if (selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
-      setAuthNotice("Moonlight Stone이 부족합니다. 프로필 카드 삭제에는 Moonlight Stone 50개가 필요합니다. 단건결제로 진행하거나 Moonlight Stone을 확보한 뒤 다시 시도해주세요.");
+      setAuthNotice(`Moonlight Stone이 부족합니다. 프로필 카드 삭제에는 Moonlight Stone ${PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST}개가 필요합니다. 단건결제로 진행하거나 Moonlight Stone을 확보한 뒤 다시 시도해주세요.`);
       return;
     }
     setBusyAction(`${action}:${profile.id}`);
@@ -982,7 +978,7 @@ export default function MePage() {
     const selectedPaymentMethod = paymentMethod || (hasEnoughMonthlyStonesForProfileAction ? "monthly_stones" : "card");
 
     if (requiresPayment && selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
-      setAuthNotice("Moonlight Stone이 부족합니다. 프로필 카드 작업에는 Moonlight Stone 50개가 필요합니다. 단건결제로 진행하거나 Moonlight Stone을 확보한 뒤 다시 시도해주세요.");
+      setAuthNotice(`Moonlight Stone이 부족합니다. 프로필 카드 작업에는 Moonlight Stone ${PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST}개가 필요합니다. 단건결제로 진행하거나 Moonlight Stone을 확보한 뒤 다시 시도해주세요.`);
       return;
     }
 
@@ -1575,7 +1571,7 @@ export default function MePage() {
             <p className="mt-2 text-sm leading-6 text-slate-200">
               프로필 카드를 삭제할까요?
               <br />
-              단건결제 또는 Moonlight Stone 50개 사용 중 하나를 선택해 주세요.
+              단건결제 또는 Moonlight Stone {PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST}개 사용 중 하나를 선택해 주세요.
               <br />
               삭제 후에는 해당 프로필 카드의 저장 정보가 사라집니다.
             </p>

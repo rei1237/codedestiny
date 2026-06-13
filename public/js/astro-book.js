@@ -163,7 +163,7 @@
   function _sanitizeText(v) {
     return String(v || '')
       .replace(/\b(undefined|null|nan)\b/gi, '')
-      .replace(/\b(payload|json|localdraft|fallback|llm|api|debug|object|recovered|calculationmode|swiss_required|astro_chart_seed_failed)\b/gi, '')
+      .replace(/\b(payload|json|localdraft|fallback|api|debug|object|recovered|calculationmode|swiss_required|astro_chart_seed_failed)\b/gi, '')
       .replace(/chapter\s*1/gi, '')
       .replace(/자동\s*복구\s*생성/gi, '')
       .replace(/internal\s*server\s*error/gi, '')
@@ -186,7 +186,7 @@
     var src = String(text || '')
       .replace(/\r/g, '')
       .replace(/\b(undefined|null|nan)\b/gi, '')
-      .replace(/\b(payload|json|localdraft|fallback|llm|api|debug|object|recovered|calculationmode|swiss_required|astro_chart_seed_failed)\b/gi, '')
+      .replace(/\b(payload|json|localdraft|fallback|api|debug|object|recovered|calculationmode|swiss_required|astro_chart_seed_failed)\b/gi, '')
       .replace(/internal\s*server\s*error/gi, '')
       .replace(/데이터\s*부족/gi, '')
       .replace(/자동\s*복구\s*생성/gi, '')
@@ -403,7 +403,6 @@
     var source = _clean(p.manuscriptSource || ready.manuscriptSource || quality.manuscriptSource).toLowerCase();
     var qualityOk = quality.ok !== false && pdfQuality.ok !== false && validation.ok !== false;
     return source === 'local-assembled'
-      && !/gemini|llm|hybrid|fallback/.test(source)
       && localDraftChapterCount === total
       && qualityOk
       && localAssembly.enabled === true
@@ -1309,7 +1308,7 @@
       .then(function (response) {
         if (response && response.result && response.status === 'done') response = response.result;
         total = _getTotalChapters();
-        if (response && !_hasAstroLlmReady(response, total)) {
+        if (response && !_hasAstroLocalReady(response, total)) {
           throw new Error('점성술 프리미엄 원고 검증이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.');
         }
         if (!_isCompletedReportReady(response)) {

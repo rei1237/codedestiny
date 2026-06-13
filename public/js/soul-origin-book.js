@@ -456,7 +456,7 @@
     var isCompleted = (!status && !serverStatus) || status === 'completed' || serverStatus === 'completed';
     var hasExpectedChapters = chapters.length >= EXPECTED_CHAPTER_COUNT || reportedCount >= EXPECTED_CHAPTER_COUNT;
     var hasPassedQuality = !qualityStatus || qualityStatus === 'passed';
-    var hasAcceptedManuscript = manuscriptSource === 'local-assembled' && !/gemini|llm|hybrid|fallback/.test(manuscriptSource);
+    var hasAcceptedManuscript = manuscriptSource === 'local-assembled';
     var hasAcceptedChapters = chapterAuthoringSource === 'local-assembled';
     var hasLocalSummary = summarySource === 'local-assembled';
     var hasLocalAssembly = localAssembly.enabled === true

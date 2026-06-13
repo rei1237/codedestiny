@@ -1,4 +1,4 @@
-import { connectDb } from "../lib/db.js";
+﻿import { connectDb } from "../lib/db.js";
 import { requireUserFromRequest } from "../lib/auth.js";
 import { PointHistory, ProfileCard, User } from "../lib/models.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -29,7 +29,7 @@ function sanitizeProfileId(value) {
 }
 
 function sanitizeName(value) {
-  return sanitizeString(value, MAX_NAME_LEN) || "이름 없음";
+  return sanitizeString(value, MAX_NAME_LEN) || "?대쫫 ?놁쓬";
 }
 
 function sanitizeGender(value) {
@@ -128,10 +128,10 @@ function validateRequiredBirth(rawProfile) {
   const hasTimeParts = birth.hour !== undefined && birth.minute !== undefined;
 
   if (!hasDateParts && !parsedDate) {
-    return { ok: false, message: "생년월일은 필수입니다. (YYYY-MM-DD)" };
+    return { ok: false, message: "?앸뀈?붿씪? ?꾩닔?낅땲?? (YYYY-MM-DD)" };
   }
   if (!hasTimeParts && !parsedTime) {
-    return { ok: false, message: "태어난 시간은 필수입니다. (HH:mm)" };
+    return { ok: false, message: "?쒖뼱???쒓컙? ?꾩닔?낅땲?? (HH:mm)" };
   }
 
   const year = Number(hasDateParts ? birth.year : parsedDate?.year);
@@ -139,13 +139,13 @@ function validateRequiredBirth(rawProfile) {
   const day = Number(hasDateParts ? birth.day : parsedDate?.day);
 
   if (!isValidBirthDateParts(year, month, day)) {
-    return { ok: false, message: "생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)" };
+    return { ok: false, message: "?앸뀈?붿씪 ?뺤떇???щ컮瑜댁? ?딆뒿?덈떎. (YYYY-MM-DD)" };
   }
 
   const hour = Number(hasTimeParts ? birth.hour : parsedTime?.hour);
   const minute = Number(hasTimeParts ? birth.minute : parsedTime?.minute);
   if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) {
-    return { ok: false, message: "태어난 시간 형식이 올바르지 않습니다. (HH:mm)" };
+    return { ok: false, message: "?쒖뼱???쒓컙 ?뺤떇???щ컮瑜댁? ?딆뒿?덈떎. (HH:mm)" };
   }
 
   return {
@@ -265,10 +265,10 @@ function resolveStoredSubscriptionTier(user = {}) {
     for (const value of values) {
       const text = String(value || "").trim().toLowerCase();
       if (!text || text === "free" || text === "none") continue;
-      if (text === "gold" || text === "vvip" || text.includes("vvip") || text.includes("꿀단지")) return "vvip";
+      if (text === "gold" || text === "vvip" || text.includes("vvip") || text.includes("轅?⑥?")) return "vvip";
       if (text.includes("family")) return "family";
-      if (text === "silver" || text === "premium" || text.includes("premium") || text.includes("프리미엄")) return "premium";
-      if (text === "bronze" || text === "standard" || text.includes("standard") || text.includes("스탠다드")) return "standard";
+      if (text === "silver" || text === "premium" || text.includes("premium") || text.includes("?꾨━誘몄뾼")) return "premium";
+      if (text === "bronze" || text === "standard" || text.includes("standard") || text.includes("?ㅽ깲?ㅻ뱶")) return "standard";
     }
   }
 
@@ -287,7 +287,7 @@ function toClientProfile(doc) {
   return {
     id: String(doc.profileId || ""),
     profileId: String(doc.profileId || ""),
-    name: String(doc.name || "이름 없음"),
+    name: String(doc.name || "?대쫫 ?놁쓬"),
     gender: sanitizeGender(doc.gender),
     birthDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
     birthTime: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
@@ -392,12 +392,12 @@ function buildProfilePaymentRequestId(action, profileId) {
 }
 
 function profilePaymentRequiredResponse(action, requestId) {
-  const reason = action === "delete" ? "프로필 카드 삭제" : "프로필 카드 추가";
+  const reason = action === "delete" ? "?꾨줈??移대뱶 ??젣" : "?꾨줈??移대뱶 異붽?";
   return json({
     ok: false,
     success: false,
     code: "PAYMENT_REQUIRED",
-    message: "프로필 카드 추가/삭제는 50코인 또는 5,000원 결제 후 가능합니다.",
+    message: "?꾨줈??移대뱶 異붽?/??젣??50肄붿씤 ?먮뒗 5,000??寃곗젣 ??媛?ν빀?덈떎.",
     pricing: {
       featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
       reason,
@@ -429,8 +429,8 @@ function resolveProfileMutationActionType(action) {
 }
 
 function resolveProfileMutationReason(action) {
-  if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) return "프로필 카드 삭제";
-  return "프로필 카드 추가";
+  if (action === PROFILE_CARD_MUTATION_ACTIONS.DELETE) return "?꾨줈??移대뱶 ??젣";
+  return "?꾨줈??移대뱶 異붽?";
 }
 
 function readProfileMutationRequestId(body, action, profileId) {
@@ -457,7 +457,7 @@ function profileDeletePaymentRequiredResponse(action, requestId, profileId, poli
     ok: false,
     success: false,
     code: "PAYMENT_REQUIRED",
-    message: `${reason}은 50코인 또는 5,000원 결제 후 진행할 수 있습니다.`,
+    message: `${reason}? 50肄붿씤 ?먮뒗 5,000??寃곗젣 ??吏꾪뻾?????덉뒿?덈떎.`,
     policy,
     pricing: {
       featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
@@ -639,7 +639,7 @@ async function findProfileMutationPaymentEvidence(auth, { action, profileId, req
   if (used) {
     return {
       ok: false,
-      response: profileMutationConflictResponse("이미 사용 완료된 프로필 카드 결제 건입니다.", {
+      response: profileMutationConflictResponse("?대? ?ъ슜 ?꾨즺???꾨줈??移대뱶 寃곗젣 嫄댁엯?덈떎.", {
         actionType: used?.metadata?.actionType || actionType,
         requestId,
       }),
@@ -651,7 +651,7 @@ async function findProfileMutationPaymentEvidence(auth, { action, profileId, req
   if (!evidenceProfileMatches(evidence, profileId)) {
     return {
       ok: false,
-      response: profileMutationConflictResponse("결제 대상 프로필 카드가 현재 요청과 일치하지 않습니다.", {
+      response: profileMutationConflictResponse("寃곗젣 ????꾨줈??移대뱶媛 ?꾩옱 ?붿껌怨??쇱튂?섏? ?딆뒿?덈떎.", {
         actionType,
         requestId,
       }),
@@ -660,7 +660,7 @@ async function findProfileMutationPaymentEvidence(auth, { action, profileId, req
   if (!evidenceActionMatches(evidence, action) || !evidenceCostMatches(evidence)) {
     return {
       ok: false,
-      response: profileMutationConflictResponse("프로필 카드 결제 증거가 현재 작업과 일치하지 않습니다.", {
+      response: profileMutationConflictResponse("?꾨줈??移대뱶 寃곗젣 利앷굅媛 ?꾩옱 ?묒뾽怨??쇱튂?섏? ?딆뒿?덈떎.", {
         actionType,
         requestId,
       }),
@@ -770,7 +770,7 @@ async function claimProfileMutationEvidence(auth, { action, profileId, requestId
   if (Number(result?.modifiedCount || 0) > 0) return { ok: true };
   return {
     ok: false,
-    response: profileMutationConflictResponse("이미 처리 중이거나 사용 완료된 프로필 카드 결제 건입니다.", {
+    response: profileMutationConflictResponse("?대? 泥섎━ 以묒씠嫄곕굹 ?ъ슜 ?꾨즺???꾨줈??移대뱶 寃곗젣 嫄댁엯?덈떎.", {
       actionType: resolveProfileMutationActionType(action),
       requestId,
     }),
@@ -872,7 +872,7 @@ async function refundProfileMutationCreditIfNeeded(auth, { action, profileId, re
     kind: "refund",
     delta: coins,
     balanceAfter: Number(updatedUser?.points || 0),
-    reason: reason || `${resolveProfileMutationReason(action)} 실패 환불`,
+    reason: reason || `${resolveProfileMutationReason(action)} ?ㅽ뙣 ?섎텋`,
     featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
     metadata: {
       source: "profile_mutation_failure",
@@ -928,7 +928,7 @@ async function seedProfileLegacyCreditIfNeeded(authUserId) {
 
 async function ensureProfileMutationPayment(auth, { action, profileId, requestId }) {
   const paymentRequestId = sanitizeString(requestId, 120) || buildProfilePaymentRequestId(action, profileId);
-  const reason = action === "delete" ? "프로필 카드 삭제" : "프로필 카드 추가";
+  const reason = action === "delete" ? "?꾨줈??移대뱶 ??젣" : "?꾨줈??移대뱶 異붽?";
 
   const existing = await PointHistory.findOne({
     userId: auth.userId,
@@ -996,7 +996,7 @@ async function handleGetProfiles(auth) {
     .lean();
 
   if (!user) {
-    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+    return json({ ok: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
   }
 
   const subscription = resolveSubscriptionPolicy(user);
@@ -1033,7 +1033,7 @@ async function handleGetProfiles(auth) {
 
 async function handleGetProfileDetail(auth, profileIdRaw) {
   const profileId = sanitizeProfileId(profileIdRaw);
-  if (!profileId) return json({ ok: false, code: "PROFILE_ID_REQUIRED", message: "조회할 프로필 카드 ID가 필요합니다." }, { status: 400 });
+  if (!profileId) return json({ ok: false, code: "PROFILE_ID_REQUIRED", message: "議고쉶???꾨줈??移대뱶 ID媛 ?꾩슂?⑸땲??" }, { status: 400 });
 
   const [profile, user] = await Promise.all([
     ProfileCard.findOne({ userId: auth.userId, profileId }).lean(),
@@ -1041,7 +1041,7 @@ async function handleGetProfileDetail(auth, profileIdRaw) {
   ]);
 
   if (!profile) {
-    return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+    return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "?꾨줈??移대뱶瑜?李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
   }
 
   const clientProfile = toClientProfile(profile);
@@ -1061,7 +1061,7 @@ async function handleCreateProfile(request, auth) {
       .lean();
 
     if (!user) {
-      return json({ ok: false, success: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+      return json({ ok: false, success: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
     }
 
     const subscription = resolveSubscriptionPolicy(user);
@@ -1083,7 +1083,7 @@ async function handleCreateProfile(request, auth) {
 
     const duplicated = await ProfileCard.findOne({ userId: auth.userId, profileId: normalized.profileId }).lean();
     if (duplicated) {
-      return json({ ok: false, success: false, message: "이미 존재하는 프로필 ID입니다." }, { status: 409 });
+      return json({ ok: false, success: false, message: "?대? 議댁옱?섎뒗 ?꾨줈??ID?낅땲??" }, { status: 409 });
     }
 
     const createPolicy = await resolveProfileCardActionAccess({
@@ -1103,7 +1103,7 @@ async function handleCreateProfile(request, auth) {
         ok: false,
         success: false,
         code: createPolicy.reason || "PROFILE_CREATE_NOT_ALLOWED",
-        message: "프로필 카드를 추가할 수 없습니다.",
+        message: "?꾨줈??移대뱶瑜?異붽??????놁뒿?덈떎.",
         policy: createPolicy,
       }, { status: 403 });
     }
@@ -1125,7 +1125,7 @@ async function handleCreateProfile(request, auth) {
           profileId: normalized.profileId,
           requestId: createPayment.requestId,
           evidence: createPayment.evidence,
-          reason: "프로필 카드 생성 실패 환불",
+          reason: "?꾨줈??移대뱶 ?앹꽦 ?ㅽ뙣 ?섎텋",
         });
       }
       throw error;
@@ -1175,7 +1175,7 @@ async function handleCreateProfile(request, auth) {
       return json({
         ok: false,
         success: false,
-        message: "이미 존재하는 프로필 ID입니다.",
+        message: "?대? 議댁옱?섎뒗 ?꾨줈??ID?낅땲??",
       }, { status: 409 });
     }
 
@@ -1197,19 +1197,19 @@ async function handleUpdateCurrent(request, auth) {
   const body = await readJson(request);
   const requestedCurrentId = sanitizeProfileId(body?.currentId);
   if (!requestedCurrentId) {
-    return json({ ok: false, message: "currentId가 필요합니다." }, { status: 400 });
+    return json({ ok: false, message: "currentId媛 ?꾩슂?⑸땲??" }, { status: 400 });
   }
 
   const exists = await ProfileCard.findOne({ userId: auth.userId, profileId: requestedCurrentId }).lean();
   if (!exists) {
-    return json({ ok: false, message: "선택한 프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+    return json({ ok: false, message: "?좏깮???꾨줈??移대뱶瑜?李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
   }
 
   const user = await User.findById(auth.userId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
     .lean();
   if (!user) {
-    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+    return json({ ok: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
   }
 
   const subscription = resolveSubscriptionPolicy(user);
@@ -1222,7 +1222,7 @@ async function handleUpdateCurrent(request, auth) {
     return json({
       ok: false,
       code: "PROFILE_SINGLE_LOCKED",
-      message: "이용권 혜택 종료 후 확정한 프로필 카드만 사용할 수 있습니다.",
+      message: "?댁슜沅??쒗깮 醫낅즺 ???뺤젙???꾨줈??移대뱶留??ъ슜?????덉뒿?덈떎.",
       currentId: lockedId,
       lockedProfileId: lockedId,
       profileAccess: {
@@ -1260,20 +1260,11 @@ async function handleUpdateCurrent(request, auth) {
 
 async function handleDeleteProfile(request, auth, profileIdRaw) {
   const profileId = sanitizeProfileId(profileIdRaw);
-  if (!profileId) return json({ ok: false, message: "유효한 profileId가 필요합니다." }, { status: 400 });
+  if (!profileId) return json({ ok: false, message: "?좏슚??profileId媛 ?꾩슂?⑸땲??" }, { status: 400 });
 
   const existingProfile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
-  if (!existingProfile) return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+  if (!existingProfile) return json({ ok: false, message: "?꾨줈??移대뱶瑜?李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
 
-  const profileCount = await ProfileCard.countDocuments({ userId: auth.userId });
-  if (profileCount <= 1) {
-    return json({
-      ok: false,
-      success: false,
-      code: "LAST_PROFILE_DELETE_BLOCKED",
-      message: "서비스 이용에 필요한 최소 1개의 프로필 카드는 남겨야 합니다.",
-    }, { status: 409 });
-  }
 
   const body = await readJson(request).catch(() => ({}));
   const authorization = await ensureProfileDeleteAuthorized(auth, {
@@ -1298,9 +1289,9 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
       profileId,
       requestId: authorization.requestId,
       evidence: authorization.evidence,
-      reason: "프로필 카드 삭제 실패 환불",
+      reason: "?꾨줈??移대뱶 ??젣 ?ㅽ뙣 ?섎텋",
     });
-    return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+    return json({ ok: false, message: "?꾨줈??移대뱶瑜?李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
   }
 
   await recordProfileMutationCompleted(auth, {
@@ -1372,3 +1363,4 @@ export async function handleProfileRoutes(request, env) {
     });
   }
 }
+

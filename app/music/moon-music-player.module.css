@@ -1,0 +1,1407 @@
+.playerShell {
+  --moon-ink: #f7fbff;
+  --moon-muted: rgba(232, 242, 255, 0.72);
+  --moon-line: rgba(234, 242, 255, 0.2);
+  --moon-glass: rgba(8, 13, 30, 0.46);
+  --moon-cyan: rgba(126, 224, 255, 0.3);
+  --moon-rose: rgba(255, 177, 213, 0.2);
+  --album-frame-width: min(94%, 372px);
+  --album-frame-aspect: 16 / 9;
+  --album-frame-padding: 10px;
+  --album-frame-bg: linear-gradient(145deg, rgba(232, 244, 255, 0.13), rgba(10, 18, 34, 0.72));
+  --album-frame-shadow: 0 28px 70px rgba(0, 0, 0, 0.46), 0 0 74px rgba(224, 242, 255, 0.2);
+  --cover-fit: contain;
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: grid;
+  place-items: center;
+  padding: 48px 20px;
+  color: var(--moon-ink);
+  background:
+    radial-gradient(circle at 18% 16%, rgba(248, 242, 206, 0.22), transparent 15rem),
+    radial-gradient(circle at 80% 20%, rgba(133, 228, 255, 0.16), transparent 18rem),
+    radial-gradient(circle at 52% 88%, rgba(255, 158, 201, 0.12), transparent 20rem),
+    linear-gradient(145deg, #050711 0%, #10112a 46%, #101d2b 100%);
+}
+
+.listeningOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  overflow-y: auto;
+}
+
+.closeListeningMode {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 4;
+  appearance: none;
+  border: 1px solid var(--moon-line);
+  border-radius: 999px;
+  padding: 10px 15px;
+  color: var(--moon-ink);
+  background: rgba(8, 13, 30, 0.5);
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+}
+
+.neoMode {
+  --album-frame-width: min(94%, 372px);
+  --album-frame-aspect: 16 / 9;
+  --album-frame-padding: 10px;
+  --album-frame-bg: linear-gradient(145deg, rgba(232, 244, 255, 0.13), rgba(10, 18, 34, 0.72));
+  --album-frame-shadow: 0 28px 70px rgba(0, 0, 0, 0.46), 0 0 74px rgba(224, 242, 255, 0.2);
+  --cover-fit: contain;
+}
+
+.yeoniMode {
+  --moon-ink: #fff8fc;
+  --moon-muted: rgba(255, 232, 244, 0.76);
+  --moon-line: rgba(255, 196, 226, 0.28);
+  --moon-glass: rgba(44, 10, 34, 0.48);
+  --moon-cyan: rgba(255, 187, 221, 0.34);
+  --moon-rose: rgba(255, 150, 205, 0.34);
+  --album-frame-width: min(82%, 314px);
+  --album-frame-aspect: 1;
+  --album-frame-padding: 12px;
+  --album-frame-bg: linear-gradient(145deg, rgba(255, 239, 247, 0.2), rgba(44, 10, 34, 0.76));
+  --album-frame-shadow: 0 30px 76px rgba(34, 4, 26, 0.52), 0 0 82px rgba(255, 159, 207, 0.28);
+  --cover-fit: contain;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 230, 243, 0.26), transparent 15rem),
+    radial-gradient(circle at 80% 20%, rgba(255, 155, 203, 0.18), transparent 18rem),
+    radial-gradient(circle at 54% 86%, rgba(255, 211, 230, 0.16), transparent 20rem),
+    linear-gradient(145deg, #120512 0%, #2a0d2a 48%, #3a1632 100%);
+}
+
+.miniPlayerShell {
+  --moon-ink: #f7fbff;
+  --moon-muted: rgba(232, 242, 255, 0.72);
+  --moon-line: rgba(234, 242, 255, 0.2);
+  --moon-glass: rgba(8, 13, 30, 0.46);
+  --moon-cyan: rgba(126, 224, 255, 0.3);
+  --moon-rose: rgba(255, 177, 213, 0.2);
+  --cover-width: 82%;
+  --cover-aspect: 1;
+  --cover-fit: contain;
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid var(--moon-line);
+  border-radius: 8px;
+  color: var(--moon-ink);
+  background:
+    linear-gradient(rgba(6, 9, 20, 0.5), rgba(6, 9, 20, 0.58)),
+    var(--cover-image),
+    radial-gradient(circle at 18% 16%, rgba(248, 242, 206, 0.2), transparent 14rem),
+    linear-gradient(145deg, #050711, #10112a 52%, #101d2b);
+  background-size: cover;
+  background-position: center;
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.miniPlayerShell::before {
+  content: "";
+  position: absolute;
+  inset: -18%;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(238, 247, 255, 0.18), transparent 16rem),
+    radial-gradient(circle at 84% 34%, var(--moon-rose), transparent 18rem);
+  filter: blur(18px);
+}
+
+.miniCoverWrap {
+  position: relative;
+  width: 68px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.2), transparent 28%),
+    linear-gradient(145deg, #182038, #4c6680 52%, #f0d8ba);
+}
+
+.miniCover,
+.miniCoverFallback {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.miniCover {
+  object-fit: var(--cover-fit);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.miniCover[data-hidden="true"],
+.coverFallback .miniCover {
+  opacity: 0;
+}
+
+.miniCoverFallback {
+  opacity: 0;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.24), transparent 30%),
+    radial-gradient(circle at 66% 70%, var(--moon-cyan), transparent 34%),
+    linear-gradient(145deg, #182038, #4c6680 52%, #f0d8ba);
+}
+
+.coverFallback .miniCoverFallback,
+.miniCover[data-hidden="true"] + .miniCoverFallback {
+  opacity: 1;
+}
+
+.miniTrackMeta {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.miniTrackMeta span {
+  color: var(--moon-muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.miniTrackMeta strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--moon-ink);
+  font-size: 1rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miniControls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.listenModeButton {
+  appearance: none;
+  min-height: 42px;
+  border: 1px solid rgba(238, 247, 255, 0.24);
+  border-radius: 999px;
+  padding: 0 14px;
+  color: var(--moon-ink);
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.82rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.assetAmbient,
+.coverAmbient,
+.moon,
+.moonbeam,
+.stars,
+.mist {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.assetAmbient {
+  z-index: -5;
+  background-image: var(--asset-ambient-image);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.18;
+  filter: blur(12px) saturate(1.08);
+  transform: scale(1.04);
+}
+
+.coverAmbient {
+  z-index: -4;
+  background:
+    linear-gradient(rgba(6, 9, 20, 0.48), rgba(6, 9, 20, 0.7)),
+    var(--cover-image),
+    radial-gradient(circle at 50% 40%, rgba(155, 216, 255, 0.18), transparent 23rem);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.56;
+  filter: blur(42px) saturate(1.18);
+  transform: scale(1.22);
+  transition: opacity 480ms ease, filter 480ms ease;
+  will-change: opacity, transform;
+}
+
+.yeoniMode .coverAmbient {
+  background:
+    linear-gradient(rgba(32, 6, 27, 0.46), rgba(32, 6, 27, 0.72)),
+    var(--cover-image),
+    radial-gradient(circle at 50% 40%, rgba(255, 198, 225, 0.24), transparent 23rem);
+  opacity: 0.62;
+  filter: blur(44px) saturate(1.28);
+}
+
+.coverFallback .coverAmbient {
+  background:
+    radial-gradient(circle at 44% 32%, rgba(246, 240, 207, 0.2), transparent 13rem),
+    radial-gradient(circle at 58% 54%, rgba(115, 215, 244, 0.15), transparent 18rem),
+    linear-gradient(145deg, #060917, #10132f 54%, #172735);
+  filter: blur(28px);
+}
+
+.moon {
+  z-index: -3;
+}
+
+.moonbeam {
+  z-index: -3;
+  opacity: 0.46;
+  background:
+    linear-gradient(118deg, transparent 0 18%, rgba(238, 248, 255, 0.13) 28%, transparent 46%),
+    linear-gradient(132deg, transparent 0 48%, rgba(245, 227, 174, 0.08) 57%, transparent 70%);
+  filter: blur(10px);
+  transform: translate3d(0, 0, 0);
+}
+
+.yeoniMode .moonbeam {
+  opacity: 0.5;
+  background:
+    linear-gradient(118deg, transparent 0 18%, rgba(255, 223, 239, 0.18) 28%, transparent 46%),
+    linear-gradient(132deg, transparent 0 48%, rgba(255, 151, 205, 0.12) 57%, transparent 70%);
+}
+
+.moon::before {
+  content: "";
+  position: absolute;
+  top: 7%;
+  right: 12%;
+  width: 128px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, #fffef5 0 16%, #e8f4ff 38%, #aac3dc 70%, rgba(170, 195, 220, 0) 72%),
+    #eff8ff;
+  box-shadow:
+    0 0 42px rgba(239, 248, 255, 0.42),
+    0 0 120px rgba(126, 224, 255, 0.18);
+}
+
+.yeoniMode .moon::before {
+  background:
+    radial-gradient(circle at 34% 28%, #fff7fb 0 16%, #ffe0ef 38%, #d987b5 70%, rgba(217, 135, 181, 0) 72%),
+    #fff2f8;
+  box-shadow:
+    0 0 42px rgba(255, 222, 239, 0.5),
+    0 0 120px rgba(255, 145, 204, 0.24);
+}
+
+.moon::after {
+  content: "";
+  position: absolute;
+  top: 11%;
+  right: 16%;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: rgba(8, 13, 30, 0.16);
+  filter: blur(16px);
+}
+
+.stars {
+  z-index: -2;
+  opacity: 0.72;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.86) 0 1px, transparent 1.6px),
+    radial-gradient(circle, rgba(168, 224, 255, 0.8) 0 1px, transparent 1.4px),
+    radial-gradient(circle, rgba(255, 209, 232, 0.62) 0 1px, transparent 1.5px);
+  background-position: 18px 24px, 88px 126px, 152px 72px;
+  background-size: 170px 180px, 230px 250px, 310px 280px;
+  mask-image: linear-gradient(to bottom, black 0%, black 70%, transparent 100%);
+}
+
+.yeoniMode .stars {
+  opacity: 0.76;
+  background-image:
+    radial-gradient(ellipse at center, rgba(255, 227, 239, 0.92) 0 1.2px, transparent 2px),
+    radial-gradient(ellipse at center, rgba(255, 169, 211, 0.82) 0 1px, transparent 1.8px),
+    radial-gradient(circle, rgba(255, 245, 250, 0.78) 0 1px, transparent 1.5px);
+  background-position: 18px 24px, 88px 126px, 152px 72px;
+}
+
+.mist {
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 18% 76%, rgba(240, 250, 255, 0.14), transparent 24rem),
+    radial-gradient(ellipse at 84% 82%, rgba(255, 196, 225, 0.11), transparent 23rem),
+    linear-gradient(to top, rgba(232, 244, 255, 0.11), transparent 44%);
+  filter: blur(8px);
+}
+
+.yeoniMode .mist {
+  background:
+    radial-gradient(ellipse at 18% 76%, rgba(255, 236, 246, 0.16), transparent 24rem),
+    radial-gradient(ellipse at 84% 82%, rgba(255, 160, 209, 0.14), transparent 23rem),
+    linear-gradient(to top, rgba(255, 218, 237, 0.12), transparent 44%);
+}
+
+.playerFrame {
+  width: min(100%, 1040px);
+  display: grid;
+  grid-template-columns: minmax(0, 560px) minmax(310px, 360px);
+  align-items: stretch;
+  gap: 18px;
+  padding: 26px;
+  border: 1px solid var(--moon-line);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.035)),
+    var(--moon-glass);
+  box-shadow:
+    0 24px 90px rgba(0, 0, 0, 0.44),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+}
+
+.playerMain {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 22px;
+}
+
+.albumStage {
+  position: relative;
+  width: min(78vw, 372px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.albumAura {
+  position: absolute;
+  inset: 9%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(246, 251, 255, 0.18), rgba(126, 224, 255, 0.08) 36%, transparent 68%);
+  box-shadow:
+    0 0 58px rgba(232, 244, 255, 0.34),
+    0 0 128px rgba(126, 224, 255, 0.18),
+    0 0 210px rgba(255, 177, 213, 0.13);
+}
+
+.yeoniMode .albumAura {
+  background:
+    radial-gradient(circle, rgba(255, 244, 249, 0.24), rgba(255, 152, 205, 0.12) 38%, transparent 68%);
+  box-shadow:
+    0 0 58px rgba(255, 224, 239, 0.36),
+    0 0 132px rgba(255, 143, 199, 0.24),
+    0 0 210px rgba(255, 205, 229, 0.14);
+}
+
+.albumHalo {
+  position: absolute;
+  inset: 1%;
+  border-radius: 50%;
+  background:
+    conic-gradient(from 180deg, rgba(255, 255, 255, 0.04), rgba(236, 246, 255, 0.42), rgba(126, 224, 255, 0.12), rgba(255, 177, 213, 0.2), rgba(255, 255, 255, 0.04));
+  filter: blur(9px);
+  opacity: 0.82;
+  will-change: opacity, transform;
+}
+
+.yeoniMode .albumHalo {
+  background:
+    conic-gradient(from 180deg, rgba(255, 255, 255, 0.04), rgba(255, 232, 244, 0.46), rgba(255, 153, 205, 0.18), rgba(255, 210, 232, 0.28), rgba(255, 255, 255, 0.04));
+}
+
+.albumMoonRing {
+  position: absolute;
+  inset: 5.5%;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 250, 255, 0.26);
+  box-shadow:
+    inset 0 0 26px rgba(234, 247, 255, 0.1),
+    0 0 34px rgba(234, 247, 255, 0.12);
+  opacity: 0.78;
+}
+
+.yeoniMode .albumMoonRing {
+  border-color: rgba(255, 224, 239, 0.34);
+  box-shadow:
+    inset 0 0 26px rgba(255, 224, 239, 0.12),
+    0 0 34px rgba(255, 161, 209, 0.16);
+}
+
+.albumFrame {
+  position: relative;
+  z-index: 1;
+  width: var(--album-frame-width);
+  aspect-ratio: var(--album-frame-aspect);
+  display: grid;
+  place-items: center;
+  padding: var(--album-frame-padding);
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--album-frame-bg);
+  box-shadow: var(--album-frame-shadow);
+}
+
+.albumFrame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 16% 18%, rgba(255, 255, 255, 0.18), transparent 28%);
+  opacity: 0.76;
+}
+
+.yeoniMode .albumFrame {
+  border-color: rgba(255, 224, 239, 0.38);
+}
+
+.yeoniMode .albumFrame::before {
+  background:
+    radial-gradient(circle at 24% 18%, rgba(255, 246, 251, 0.28), transparent 24%),
+    radial-gradient(circle at 78% 84%, rgba(255, 150, 205, 0.2), transparent 34%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.14), transparent 38%);
+}
+
+.coverImage {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: var(--cover-fit);
+  object-position: center;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.035);
+  transition: opacity 220ms ease, transform 420ms ease;
+}
+
+.coverFallback .coverImage,
+.coverImage[data-hidden="true"] {
+  opacity: 0;
+}
+
+.coverFallbackArt {
+  grid-area: 1 / 1;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.26), transparent 28%),
+    radial-gradient(circle at 64% 68%, rgba(126, 224, 255, 0.18), transparent 32%),
+    linear-gradient(145deg, #182038, #4c6680 52%, #f0d8ba);
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.46),
+    0 0 68px rgba(224, 242, 255, 0.18);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.yeoniMode .coverFallbackArt {
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 246, 251, 0.28), transparent 26%),
+    radial-gradient(circle at 66% 70%, rgba(255, 150, 205, 0.2), transparent 34%),
+    linear-gradient(145deg, #2a0d25, #7b315c 54%, #ffd5e7);
+  box-shadow:
+    0 28px 70px rgba(34, 4, 26, 0.46),
+    0 0 68px rgba(255, 159, 207, 0.24);
+}
+
+.coverFallback .coverFallbackArt,
+.coverImage[data-hidden="true"] + .coverFallbackArt {
+  opacity: 1;
+}
+
+.albumReflection {
+  position: absolute;
+  z-index: 0;
+  bottom: 2%;
+  width: 62%;
+  height: 18%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(238, 247, 255, 0.16), transparent 70%);
+  filter: blur(14px);
+  opacity: 0.64;
+  transform: translateY(28px) scaleX(1.1);
+  will-change: opacity, transform;
+}
+
+.isPlaying .albumStage {
+  animation: moonFloat 9.6s ease-in-out infinite;
+}
+
+.isPlaying .albumHalo {
+  animation: haloBreathe 8.8s ease-in-out infinite;
+}
+
+.isPlaying .albumAura,
+.isPlaying .albumReflection {
+  animation: lightBreathe 10.5s ease-in-out infinite;
+}
+
+.isPaused .albumStage {
+  animation: moonFloat 18s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+.isPaused .albumHalo {
+  opacity: 0.58;
+}
+
+.isPaused .albumAura,
+.isPaused .albumReflection {
+  opacity: 0.42;
+}
+
+.trackMeta {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  text-align: center;
+}
+
+.artistName {
+  color: rgba(245, 227, 174, 0.84);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.trackMeta h2 {
+  margin: 0;
+  max-width: 100%;
+  font-size: 2rem;
+  line-height: 1.08;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.trackMeta p {
+  margin: 0;
+  color: var(--moon-muted);
+  font-size: 0.95rem;
+}
+
+.controlRow,
+.secondaryControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lyricsPanel {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(238, 247, 255, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.03)),
+    rgba(7, 10, 22, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 12px 34px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(14px);
+}
+
+.lyricsToggle {
+  appearance: none;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 0;
+  border-bottom: 1px solid rgba(238, 247, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--moon-ink);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.lyricsToggleIcon {
+  color: var(--moon-muted);
+  transition: transform 200ms ease;
+}
+
+.lyricsToggleIconOpen {
+  transform: rotate(180deg);
+}
+
+.lyricsBody {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+  padding: 0 14px 0;
+  overflow: hidden;
+  transition: max-height 280ms ease, opacity 200ms ease, margin-top 280ms ease, padding 280ms ease;
+}
+
+.lyricsBodyOpen {
+  max-height: min(46svh, 420px);
+  opacity: 1;
+  margin-top: 10px;
+  padding-bottom: 14px;
+}
+
+.lyricsText {
+  margin: 0;
+  padding: 12px 0 2px;
+  max-height: 100%;
+  overflow: auto;
+  color: var(--moon-muted);
+  white-space: pre-wrap;
+  font-size: 0.84rem;
+  line-height: 1.72;
+  letter-spacing: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(238, 247, 255, 0.26) transparent;
+}
+
+.lyricsEmpty {
+  margin: 0;
+  padding: 12px 0 2px;
+  color: rgba(232, 242, 255, 0.7);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.lyricsText::-webkit-scrollbar {
+  width: 8px;
+}
+
+.lyricsText::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.lyricsText::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(238, 247, 255, 0.26);
+}
+
+.iconButton,
+.playButton,
+.smallButton,
+.trackButton,
+.playlistHeaderButton,
+.playlistTab,
+.playlistTrack,
+.listenModeButton {
+  appearance: none;
+  border: 1px solid rgba(238, 247, 255, 0.2);
+  color: var(--moon-ink);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.iconButton,
+.smallButton {
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+}
+
+.playButton {
+  width: 62px;
+  height: 62px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.44), transparent 34%),
+    linear-gradient(145deg, rgba(238, 247, 255, 0.24), rgba(126, 224, 255, 0.14));
+  box-shadow: 0 0 34px rgba(232, 244, 255, 0.2);
+}
+
+.smallButton[data-active="true"] {
+  border-color: rgba(245, 227, 174, 0.54);
+  background: rgba(245, 227, 174, 0.14);
+}
+
+.iconButton:hover,
+.playButton:hover,
+.smallButton:hover,
+.trackButton:hover,
+.playlistHeaderButton:hover,
+.playlistTab:hover,
+.playlistTrack:hover,
+.listenModeButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(238, 247, 255, 0.42);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.progressArea {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 10px;
+  color: var(--moon-muted);
+  font-size: 0.78rem;
+}
+
+.progressInput,
+.volumeInput {
+  width: 100%;
+  accent-color: #eaf6ff;
+}
+
+.volumeControl {
+  width: min(170px, 100%);
+  display: grid;
+  gap: 5px;
+  color: var(--moon-muted);
+  font-size: 0.74rem;
+}
+
+.trackList {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.trackButton {
+  min-height: 58px;
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.trackButton[aria-current="true"] {
+  border-color: rgba(126, 224, 255, 0.46);
+  background: rgba(126, 224, 255, 0.14);
+}
+
+.trackButton span,
+.trackButton small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trackButton span {
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.trackButton small {
+  color: var(--moon-muted);
+  font-size: 0.72rem;
+}
+
+.statusLine {
+  color: rgba(232, 242, 255, 0.6);
+  font-size: 0.76rem;
+}
+
+.errorText {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 177, 213, 0.3);
+  border-radius: 8px;
+  color: #ffe4ef;
+  background: rgba(74, 17, 42, 0.34);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.playlistPanel {
+  min-width: 0;
+  align-self: start;
+  padding: 16px;
+  border: 1px solid rgba(238, 247, 255, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.028)),
+    rgba(5, 9, 22, 0.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 42px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(14px);
+}
+
+.playlistDetails {
+  min-width: 0;
+}
+
+.playlistHeaderButton {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  text-align: left;
+  background: transparent;
+  list-style: none;
+}
+
+.playlistHeaderButton::-webkit-details-marker {
+  display: none;
+}
+
+.playlistBody {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.playlistDetails:not([open]) .playlistBody {
+  display: none;
+}
+
+.playlistHeaderText {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.playlistTitle {
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.playlistKicker {
+  color: rgba(245, 227, 174, 0.78);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.yeoniMode .playlistKicker {
+  color: rgba(255, 205, 229, 0.84);
+}
+
+.playlistHeaderMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.playlistCount {
+  min-width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(238, 247, 255, 0.18);
+  border-radius: 999px;
+  color: rgba(232, 242, 255, 0.78);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.playlistToggleIcon {
+  color: var(--moon-muted);
+  transition: transform 180ms ease;
+}
+
+.playlistDetails[open] .playlistToggleIcon {
+  transform: rotate(180deg);
+}
+
+.playlistTabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgba(238, 247, 255, 0.13);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.playlistTab {
+  min-height: 34px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.playlistTab[aria-selected="true"] {
+  border-color: rgba(245, 227, 174, 0.42);
+  color: #fff9dc;
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.22), transparent 38%),
+    rgba(245, 227, 174, 0.14);
+  box-shadow: 0 0 22px rgba(245, 227, 174, 0.12);
+}
+
+.playlistSearch {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(238, 247, 255, 0.16);
+  border-radius: 8px;
+  color: rgba(232, 242, 255, 0.62);
+  background: rgba(3, 6, 16, 0.28);
+}
+
+.playlistSearch input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: var(--moon-ink);
+  background: transparent;
+  font: inherit;
+  font-size: 0.86rem;
+}
+
+.playlistSearch input::placeholder {
+  color: rgba(232, 242, 255, 0.48);
+}
+
+.playlistScroll {
+  min-height: 0;
+  max-height: 516px;
+  overflow: auto;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(238, 247, 255, 0.26) rgba(255, 255, 255, 0.045);
+}
+
+.playlistScroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.playlistScroll::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.playlistScroll::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(5, 9, 22, 0.7);
+  border-radius: 999px;
+  background: rgba(238, 247, 255, 0.26);
+}
+
+.playlistTrack {
+  position: relative;
+  min-width: 0;
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.playlistTrack::before {
+  content: "";
+  position: absolute;
+  inset: 8px auto 8px 0;
+  width: 2px;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.playlistTrack[aria-current="true"] {
+  border-color: rgba(238, 247, 255, 0.32);
+  background:
+    linear-gradient(90deg, rgba(238, 247, 255, 0.12), rgba(126, 224, 255, 0.055)),
+    rgba(255, 255, 255, 0.085);
+  box-shadow:
+    0 0 26px rgba(126, 224, 255, 0.11),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.playlistTrack[aria-current="true"]::before {
+  background: linear-gradient(to bottom, transparent, #f5e3ae, #dff6ff, transparent);
+  box-shadow: 0 0 16px rgba(232, 244, 255, 0.46);
+}
+
+.playlistTrack:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.playlistTrack:disabled:hover {
+  transform: none;
+  border-color: rgba(238, 247, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.playlistThumb {
+  position: relative;
+  width: 52px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid rgba(238, 247, 255, 0.16);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.22), transparent 28%),
+    linear-gradient(145deg, #182038, #4c6680 52%, #f0d8ba);
+  box-shadow: 0 0 22px rgba(232, 244, 255, 0.08);
+}
+
+.playlistThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.playlistThumb[data-fallback="true"] img {
+  display: none;
+}
+
+.playlistTrackText {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.playlistTrackTitle,
+.playlistTrackArtist {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlistTrackTitle {
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+.playlistTrackArtist {
+  color: var(--moon-muted);
+  font-size: 0.76rem;
+}
+
+.playlistTrackMeta {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  color: rgba(232, 242, 255, 0.62);
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.equalizerIcon {
+  height: 16px;
+  display: inline-flex;
+  align-items: end;
+  gap: 3px;
+}
+
+.equalizerIcon i {
+  width: 3px;
+  height: 9px;
+  border-radius: 999px;
+  background: linear-gradient(to top, #f5e3ae, #eaf6ff);
+  box-shadow: 0 0 8px rgba(238, 247, 255, 0.42);
+  transform-origin: bottom;
+  will-change: opacity, transform;
+}
+
+.playlistTrack[data-playing="true"] .equalizerIcon i:nth-child(1) {
+  animation: equalizerPulse 920ms ease-in-out infinite;
+}
+
+.playlistTrack[data-playing="true"] .equalizerIcon i:nth-child(2) {
+  animation: equalizerPulse 780ms ease-in-out infinite;
+  animation-delay: 120ms;
+}
+
+.playlistTrack[data-playing="true"] .equalizerIcon i:nth-child(3) {
+  animation: equalizerPulse 1040ms ease-in-out infinite;
+  animation-delay: 220ms;
+}
+
+.playlistEmpty {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  padding: 20px;
+  border: 1px dashed rgba(238, 247, 255, 0.18);
+  border-radius: 8px;
+  color: rgba(232, 242, 255, 0.72);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.playlistEmpty strong {
+  color: var(--moon-ink);
+}
+
+.playlistEmpty span {
+  font-size: 0.82rem;
+}
+
+@keyframes moonFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.012);
+  }
+}
+
+@keyframes haloBreathe {
+  0%,
+  100% {
+    opacity: 0.64;
+    transform: scale(0.99);
+  }
+  50% {
+    opacity: 0.96;
+    transform: scale(1.025);
+  }
+}
+
+@keyframes lightBreathe {
+  0%,
+  100% {
+    opacity: 0.46;
+    transform: scale(0.99);
+  }
+  50% {
+    opacity: 0.82;
+    transform: scale(1.035);
+  }
+}
+
+@keyframes equalizerPulse {
+  0%,
+  100% {
+    transform: scaleY(0.46);
+    opacity: 0.58;
+  }
+  50% {
+    transform: scaleY(1.25);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 980px) {
+  .playerShell {
+    align-items: start;
+    padding: 36px 16px;
+  }
+
+  .playerFrame {
+    width: min(100%, 720px);
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .playlistPanel {
+    width: 100%;
+  }
+
+  .playlistScroll {
+    max-height: 420px;
+  }
+}
+
+@media (max-width: 640px) {
+  .miniPlayerShell {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .miniCoverWrap {
+    width: 56px;
+  }
+
+  .miniControls {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+
+  .miniControls .smallButton {
+    flex: 0 0 44px;
+  }
+
+  .listenModeButton {
+    flex: 1 1 150px;
+  }
+
+  .closeListeningMode {
+    top: 12px;
+    right: 12px;
+  }
+
+  .playerShell {
+    padding: 22px 12px;
+    background:
+      radial-gradient(circle at 18% 16%, rgba(248, 242, 206, 0.16), transparent 12rem),
+      linear-gradient(145deg, #050711 0%, #10112a 54%, #101d2b 100%);
+  }
+
+  .assetAmbient {
+    display: none;
+  }
+
+  .coverAmbient {
+    opacity: 0.24;
+    filter: blur(20px) saturate(1.02);
+    transform: scale(1.08);
+  }
+
+  .moonbeam {
+    opacity: 0.16;
+    filter: none;
+  }
+
+  .moon::before {
+    width: 82px;
+    top: 5%;
+    right: 8%;
+  }
+
+  .stars {
+    opacity: 0.48;
+    background-size: 180px 190px, 260px 270px, 340px 300px;
+  }
+
+  .mist {
+    opacity: 0.58;
+    filter: none;
+  }
+
+  .playerFrame {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 18px;
+  }
+
+  .playerMain {
+    gap: 18px;
+  }
+
+  .albumStage {
+    width: min(84vw, 286px);
+  }
+
+  .albumReflection {
+    width: 58%;
+    filter: blur(10px);
+    opacity: 0.42;
+  }
+
+  .trackMeta h2 {
+    font-size: 1.55rem;
+  }
+
+  .trackList {
+    grid-template-columns: 1fr;
+  }
+
+  .playlistPanel {
+    width: 100%;
+    padding: 14px;
+  }
+
+  .playlistScroll {
+    max-height: 360px;
+  }
+
+  .playlistTrack {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    min-height: 66px;
+  }
+
+  .playlistThumb {
+    width: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .isPlaying .albumStage,
+  .isPlaying .albumHalo,
+  .isPlaying .albumAura,
+  .isPlaying .albumReflection,
+  .isPaused .albumStage,
+  .miniPlayerShell::before {
+    animation: none;
+  }
+
+  .iconButton,
+  .playButton,
+  .smallButton,
+  .trackButton,
+  .playlistHeaderButton,
+  .playlistTab,
+  .playlistTrack,
+  .listenModeButton,
+  .coverImage,
+  .coverFallbackArt {
+    transition: none;
+  }
+
+  .playlistTrack[data-playing="true"] .equalizerIcon i {
+    animation: none;
+  }
+}

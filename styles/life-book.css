@@ -2002,8 +2002,8 @@ body.lb-modal-open {
 #sukuyoBookModal .sk-partner-radio-row label:focus-within,
 #sukuyoBookModal .sk-help-check:focus-within {
   outline: none;
-  border-color: #facc15 !important;
-  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.24);
+  border-color: rgba(180,160,255,0.45) !important;
+  box-shadow: none;
 }
 
 #sukuyoBookModal .sk-partner-field .tog-btn {
@@ -2015,7 +2015,7 @@ body.lb-modal-open {
 
 #sukuyoBookModal .sk-partner-field .tog-btn.on {
   background: linear-gradient(180deg, rgba(181, 133, 255, 0.36), rgba(130, 88, 230, 0.34));
-  border-color: rgba(250, 204, 21, 0.92);
+  border-color: rgba(167,139,250,0.5);
   color: #ffffff;
 }
 
@@ -2040,7 +2040,7 @@ body.lb-modal-open {
 #sukuyoBookModal .sk-partner-radio-row input[type="radio"] {
   inline-size: 16px;
   block-size: 16px;
-  accent-color: #facc15;
+  accent-color: #c4b5fd;
 }
 
 #sukuyoBookModal .sk-help-check {
@@ -2053,7 +2053,7 @@ body.lb-modal-open {
 #sukuyoBookModal .sk-help-check input[type="checkbox"] {
   inline-size: 15px;
   block-size: 15px;
-  accent-color: #facc15;
+  accent-color: #a78bfa;
 }
 
 #sukuyoBookModal .sk-help-text {
@@ -2084,6 +2084,293 @@ body.lb-modal-open {
   #sukuyoBookModal .sk-partner-radio-row label {
     min-height: 38px;
     font-size: 0.88rem;
+  }
+}
+
+#sukuyoBookModal .lb-modal__panel {
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  background: linear-gradient(180deg, #13102a 0%, #0a0818 100%);
+}
+
+#sukuyoBookModal .lb-modal__header {
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(90deg, transparent, rgba(167,139,250,0.25), transparent) 1;
+}
+
+#sukuyoBookModal .sk-title-moon {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  color: #c4b5fd;
+  opacity: 0.7;
+  vertical-align: -4px;
+}
+
+#sukuyoBookModal .sk-title-moon svg {
+  width: 100%;
+  height: 100%;
+}
+
+#sukuyoBookModal .lb-start__partner-box {
+  position: relative;
+  overflow: hidden;
+  padding: 20px 22px !important;
+  border: 1px solid rgba(180,160,255,0.18) !important;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04) !important;
+  box-shadow: none;
+}
+
+#sukuyoBookModal .lb-start__partner-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% -20%, rgba(167,139,250,0.12), transparent 65%);
+  pointer-events: none;
+}
+
+#sukuyoBookModal .lb-start__partner-box::after {
+  content: "";
+  position: absolute;
+  top: 22%;
+  right: 12%;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  box-shadow: -84px 118px 0 rgba(255,255,255,0.28), 48px 196px 0 rgba(255,255,255,0.34);
+  animation: skMoonStars 4s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+#sukuyoBookModal .lb-start__partner-box > * {
+  position: relative;
+  z-index: 1;
+}
+
+#sukuyoBookModal .lb-start__partner-box .lb-start__profile-label {
+  color: rgba(196,181,253,0.86);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: 16px;
+}
+
+#sukuyoBookModal .lb-start__partner-box .lb-start__profile-label::after {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-top: 10px;
+  background: linear-gradient(90deg, transparent, #a78bfa, transparent);
+  opacity: 0.7;
+}
+
+#sukuyoBookModal .lb-start__partner-fields {
+  gap: 18px;
+  margin-top: 0;
+}
+
+#sukuyoBookModal .sk-partner-field .form-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #c4b5fd !important;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  margin-bottom: 8px;
+}
+
+#sukuyoBookModal .sk-label-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: rgba(196,181,253,0.86);
+  font-size: 12px;
+  line-height: 1;
+}
+
+#sukuyoBookModal .sk-label-icon::before {
+  content: attr(data-icon);
+}
+
+#sukuyoBookModal .sk-partner-inp {
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid rgba(180,160,255,0.18) !important;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.05) !important;
+  color: rgba(220,210,255,0.85) !important;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  box-shadow: none !important;
+}
+
+#sukuyoBookModal .sk-partner-inp::placeholder {
+  color: rgba(180,165,230,0.5);
+}
+
+#sukuyoBookModal .sk-partner-inp:focus,
+#sukuyoBookModal .sk-partner-field .tog-btn:focus-visible {
+  outline: none;
+  border-color: rgba(180,160,255,0.45) !important;
+  box-shadow: none !important;
+}
+
+#sukuyoBookModal .sk-partner-field .toggle-wrap {
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+#sukuyoBookModal .sk-partner-field .tog-btn {
+  flex: 1 1 0;
+  min-height: 46px;
+  border: 1px solid rgba(180,160,255,0.18);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.05);
+  color: rgba(200,190,245,0.55);
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: none;
+  transition: all 0.18s ease;
+}
+
+#sukuyoBookModal .sk-partner-field .tog-btn.on {
+  border-color: rgba(167,139,250,0.5);
+  background: rgba(167,139,250,0.2);
+  color: #c4b5fd;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(167,139,250,0.15);
+}
+
+#sukuyoBookModal .sk-partner-radio-row {
+  gap: 16px;
+  margin-top: 10px !important;
+}
+
+#sukuyoBookModal .sk-partner-radio-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(210,200,255,0.75);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+#sukuyoBookModal .sk-partner-radio-row input[type="radio"] {
+  appearance: none;
+  inline-size: 16px;
+  block-size: 16px;
+  margin: 0;
+  border: 1.5px solid rgba(180,160,255,0.3);
+  border-radius: 50%;
+  background: transparent;
+  display: inline-grid;
+  place-content: center;
+}
+
+#sukuyoBookModal .sk-partner-radio-row input[type="radio"]::before {
+  content: "";
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: #c4b5fd;
+  transform: scale(0);
+  transition: transform 0.18s ease;
+}
+
+#sukuyoBookModal .sk-partner-radio-row input[type="radio"]:checked::before {
+  transform: scale(1);
+}
+
+#sukuyoBookModal .sk-partner-radio-row label:has(input[type="radio"]:checked) {
+  color: rgba(220,210,255,0.95);
+  font-weight: 500;
+}
+
+#sukuyoBookModal .sk-partner-radio-row label:focus-within,
+#sukuyoBookModal .sk-help-check:focus-within {
+  outline: none;
+}
+
+#sukuyoBookModal .sk-help-check {
+  margin-top: 10px;
+  color: rgba(180,165,230,0.55);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+#sukuyoBookModal .sk-help-check input[type="checkbox"] {
+  appearance: none;
+  inline-size: 14px;
+  block-size: 14px;
+  margin: 0;
+  border: 1px solid rgba(180,160,255,0.3);
+  border-radius: 3px;
+  background: rgba(255,255,255,0.04);
+  display: inline-grid;
+  place-content: center;
+}
+
+#sukuyoBookModal .sk-help-check input[type="checkbox"]::before {
+  content: "";
+  inline-size: 8px;
+  block-size: 8px;
+  transform: scale(0);
+  background: #a78bfa;
+  clip-path: polygon(14% 44%, 0 59%, 39% 100%, 100% 18%, 84% 5%, 36% 68%);
+  transition: transform 0.18s ease;
+}
+
+#sukuyoBookModal .sk-help-check input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
+#sukuyoBookModal .sk-help-text {
+  margin-top: 5px;
+  color: rgba(180,165,230,0.55);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+#sukuyoBookModal .sk-partner-field .row2 {
+  gap: 10px;
+  margin-top: 8px;
+}
+
+#sukuyoBookModal .sk-partner-field .row2 .sk-partner-inp {
+  text-align: left;
+}
+
+@keyframes skMoonStars {
+  from { opacity: 0.28; }
+  to { opacity: 0.55; }
+}
+
+@media (max-width: 768px) {
+  #sukuyoBookModal .lb-start__partner-box {
+    padding: 18px 16px !important;
+  }
+
+  #sukuyoBookModal .sk-partner-inp {
+    min-height: 46px;
+    font-size: 0.92rem;
+  }
+
+  #sukuyoBookModal .sk-partner-field .tog-btn {
+    min-height: 44px;
+    font-size: 0.88rem;
+  }
+
+  #sukuyoBookModal .sk-partner-radio-row {
+    gap: 12px;
   }
 }
 

@@ -16,6 +16,7 @@ import {
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
 import { getServiceExecution } from "../lib/service-execution-task.js";
+import { generateSoulOriginLocalPdf } from "../pdf-v2/soul-origin-local-pdf.js";
 
 const SOUL_ORIGIN_FEATURE_KEY = "premium_pdf_soul_origin";
 const SOUL_ORIGIN_SERVICE_KEY = "soul-origin";
@@ -259,7 +260,7 @@ const CHAPTER_BLUEPRINTS = [
 ];
 
 const FORBIDDEN_TOKENS = [
-  "json", "payload", "seed", "fallback", "skeleton", "local", "llm", "api", "engine", "validation", "retry", "debug",
+  "json", "payload", "seed", "fallback", "skeleton", "local", "api", "engine", "validation", "retry", "debug",
   "calculation signature", "데이터 부족", "자동 생성", "템플릿", "계산 시그니처", "내부 데이터", "로컬 기반", "생성 로직", "챕터 생성기", "카테고리 렌더러",
   "이 장에서는", "이 카테고리에서는", "구조이", "기준 세 가지를", "전생의 죄", "업보 때문에 어쩔 수", "반드시 불행", "무조건 성공",
   "운명이 정해져 있다", "운명은 정해져 있다",
@@ -1823,6 +1824,13 @@ async function handlePrepare(request, env) {
       canDownload: true,
       createdAt: generatedAt,
     };
+    const localPdfResult = await generateSoulOriginLocalPdf(responseBody, {
+      config: SOUL_ORIGIN_PDF_CONFIG,
+      expectedChapterCount: CHAPTER_BLUEPRINTS.length,
+      buildLocalPdf: (payload) => payload,
+    });
+    responseBody.localOnly = localPdfResult.localOnly;
+    responseBody.localContract = localPdfResult.localContract;
 
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       manuscriptSource,
@@ -1832,6 +1840,8 @@ async function handlePrepare(request, env) {
       provider: SOUL_ORIGIN_PDF_CONFIG.provider,
       writingPipeline: "local-calculation-to-local-assembled-pdf",
       localAssembly,
+      localOnly: localPdfResult.localOnly,
+      localContract: localPdfResult.localContract,
       chapterCount: chapters.length,
       localAuthoringUsed: true,
       pdfCompletionValidation,
@@ -1849,6 +1859,8 @@ async function handlePrepare(request, env) {
         writingPipeline: "local-calculation-to-local-assembled-pdf",
         localAuthoringUsed: true,
         localAssembly,
+        localOnly: localPdfResult.localOnly,
+        localContract: localPdfResult.localContract,
         displayName: SOUL_ORIGIN_DISPLAY_NAME,
         title: SOUL_ORIGIN_TITLE,
         summary,

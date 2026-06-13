@@ -10,6 +10,7 @@ import {
   failPremiumPdfExecution,
   startPremiumPdfExecution,
 } from "../lib/premium-pdf-execution.js";
+import { generateZiweiLocalPdf } from "../pdf-v2/ziwei-local-pdf.js";
 
 const ZIWEI_SERVICE_KEY = "ziwei-book";
 const ZIWEI_FEATURE_KEY = "premium-ziwei-report";
@@ -3161,6 +3162,26 @@ async function handlePrepare(request, env) {
     });
   }
   console.info("[ZiweiPremiumPDF][PdfRenderSuccess]", { chapterCount: completedChapters.length });
+  const localPdfResult = await generateZiweiLocalPdf({
+    reportId,
+    featureKey,
+    sessionId,
+    birthHash,
+    chapterCount: completedChapters.length,
+    manuscriptSource: "local-assembled",
+    chapters: completedChapters,
+    localAssembly,
+    pdfReady,
+    pdfCompletionValidation,
+    downloadUrl,
+    pdfUrl: downloadUrl,
+    storedUrl: downloadUrl,
+    htmlUrl: archiveHtmlUrl,
+  }, {
+    config: ZIWEI_PDF_CONFIG,
+    expectedChapterCount: CHAPTER_BLUEPRINTS.length,
+    buildLocalPdf: (payload) => payload,
+  });
 
   await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
     manuscriptSource: "local-assembled",
@@ -3190,6 +3211,8 @@ async function handlePrepare(request, env) {
         quality: finalValidation,
         pdfCompletion: pdfCompletionValidation,
       },
+      localOnly: localPdfResult.localOnly,
+      localContract: localPdfResult.localContract,
       pdfReady,
       canReopen: true,
       canDownload: true,
@@ -3222,6 +3245,8 @@ async function handlePrepare(request, env) {
     localAssemblyOnly: true,
     externalCallsAllowed: false,
     localAssembly,
+    localOnly: localPdfResult.localOnly,
+    localContract: localPdfResult.localContract,
     diagnostics: {
       masterJson: masterJsonValidation,
       manuscript: finalBundleValidation,

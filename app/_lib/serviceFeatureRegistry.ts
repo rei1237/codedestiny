@@ -1,4 +1,5 @@
 import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "../../worker/lib/paid-feature-registry.js";
+import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 
 export type FeatureAccessType = "free" | "login_required" | "paid" | "premium_report";
 
@@ -47,6 +48,8 @@ export type ServiceFeature = {
 
 export const DEFAULT_SERVICE_IMAGE = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
 
+const stableServiceAsset = (publicPath: string) => getAssetUrlFromPublicPath(publicPath);
+
 type PriceSpec = { cost?: number };
 
 function lookupServerCoinPrice(featureKey?: string): number | undefined {
@@ -79,7 +82,7 @@ const FEATURES: ServiceFeature[] = ([
     description:
       "생년월일과 태어난 시간을 기반으로 사주팔자 구조를 계산하고, 성격/연애/진로/재물 흐름을 이해하기 쉽게 정리합니다.",
     category: "saju",
-    image: "/fuctionassets/saju.webp",
+    image: stableServiceAsset("/fuctionassets/saju.webp"),
     heroImageAlt: "사주 정밀 분석 대표 이미지",
     detailRoute: "/services/saju",
     launchRoute: "/saju/basic/play",
@@ -111,7 +114,7 @@ const FEATURES: ServiceFeature[] = ([
     description:
       "자미두수의 12궁 구조와 주요 성군 조합을 기반으로 인생 테마, 관계 패턴, 진로 흐름을 입체적으로 분석합니다.",
     category: "ziwei",
-    image: "/fuctionassets/jami.webp",
+    image: stableServiceAsset("/fuctionassets/jami.webp"),
     heroImageAlt: "자미두수 명반 분석 대표 이미지",
     detailRoute: "/services/ziwei",
     launchRoute: "/index.html?action=openZiweiModal",
@@ -142,7 +145,7 @@ const FEATURES: ServiceFeature[] = ([
     description:
       "숙요 27수 체계를 바탕으로 성향, 인연, 운의 주기를 해석하고 관계 흐름을 이해하기 쉬운 형태로 제공합니다.",
     category: "astrology",
-    image: "/fuctionassets/sukyo.webp",
+    image: stableServiceAsset("/fuctionassets/sukyo.webp"),
     heroImageAlt: "숙요점 27숙 분석 대표 이미지",
     detailRoute: "/services/sukyo",
     launchRoute: "/index.html?action=openSukuyoModal",
@@ -173,7 +176,7 @@ const FEATURES: ServiceFeature[] = ([
     description:
       "인도 전통 조티쉬(Jyotish) 체계를 기반으로 라그나/나크샤트라/다샤를 해석해 인생의 장기 흐름을 읽습니다.",
     category: "astrology",
-    image: "/fuctionassets/veda.webp",
+    image: stableServiceAsset("/fuctionassets/veda.webp"),
     heroImageAlt: "베다 점성술 분석 대표 이미지",
     detailRoute: "/services/vedic",
     launchRoute: "/index.html?action=navigateToVedic",
@@ -204,7 +207,7 @@ const FEATURES: ServiceFeature[] = ([
     description:
       "태양궁, 달궁, 상승궁과 하우스 구조를 중심으로 성향과 시기 흐름을 읽는 서양 점성술 분석 서비스입니다.",
     category: "astrology",
-    image: "/fuctionassets/jumsung.webp",
+    image: stableServiceAsset("/fuctionassets/jumsung.webp"),
     heroImageAlt: "서양 점성술 차트 분석 대표 이미지",
     detailRoute: "/services/astrology",
     launchRoute: "/index.html?action=openAstroModal",
@@ -357,7 +360,7 @@ const FEATURES: ServiceFeature[] = ([
     description:
       "사주 기반 에너지 지표를 활용해 최애와의 공명 포인트를 시각적으로 제시하는 팬덤 특화 운세 콘텐츠입니다.",
     category: "love",
-    image: "/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
+    image: stableServiceAsset("/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp"),
     heroImageAlt: "최애운명 대표 이미지",
     detailRoute: "/services/bias-destiny",
     launchRoute: "/saju/destiny-bias",
@@ -388,7 +391,7 @@ const FEATURES: ServiceFeature[] = ([
     description:
       "상대의 생년월일 정보를 바탕으로 연애 페르소나를 구성하고, 시뮬레이션형으로 관계 흐름을 체험하는 기능입니다.",
     category: "love",
-    image: "/fuctionassets/love code.webp",
+    image: stableServiceAsset("/fuctionassets/love code.webp"),
     heroImageAlt: "러브 코드 대표 이미지",
     detailRoute: "/services/love-code",
     launchRoute: "/index.html?action=openLoveSimulation",
@@ -511,7 +514,7 @@ const FEATURES: ServiceFeature[] = ([
     description:
       "출생 정보를 기반으로 로컬 사주 계산 결과를 먼저 정리한 뒤, 13개 챕터 구조로 확장해 PDF 저장에 적합한 리포트를 생성합니다.",
     category: "premium",
-    image: "/fuctionassets/lifebook.webp",
+    image: stableServiceAsset("/fuctionassets/lifebook.webp"),
     heroImageAlt: "사주 인생의 책 PDF 대표 이미지",
     detailRoute: "/services/saju-lifebook",
     launchRoute: "/premium/saju-lifebook",

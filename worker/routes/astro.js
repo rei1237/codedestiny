@@ -6,12 +6,13 @@ import { ASTRO_PREMIUM_CHAPTERS, ASTRO_PREMIUM_FEATURE_KEY } from "../lib/astro-
 import {
   ASTRO_PDF_CONFIG,
   buildAstroLocalChartJson,
-  generateAstroPremiumReport,
   hasUsableSwissAstroChart,
   normalizeAstroPremiumBirthInput,
   validateAstroPdfCompletionPayload,
   validateAstroPayloadForApi,
 } from "../lib/astro-premium-generator.js";
+import { generateAstrologyLocalPdf } from "../pdf-v2/astrology-local-pdf.js";
+import { generateVedicLocalPdf } from "../pdf-v2/vedic-local-pdf.js";
 import { VEDIC_PREMIUM_CHAPTERS, VEDIC_PREMIUM_FEATURE_KEY } from "../lib/vedic-premium-chapters.js";
 import {
   VEDIC_PDF_CONFIG,
@@ -654,7 +655,7 @@ function buildAstroPdfQualityGate(generated = {}) {
   const totalLength = Number(generated?.totalLength || 0);
   const issues = [];
   if (manuscriptSource !== ASTRO_PDF_CONFIG.generationMode) issues.push("manuscript_source");
-  if (/gemini|llm|hybrid|fallback/i.test(manuscriptSource)) issues.push("external_source_signal");
+  if (manuscriptSource !== ASTRO_PDF_CONFIG.generationMode) issues.push("non_local_manuscript_source");
   if (localDraftChapterCount !== totalChapters) issues.push("local_draft_chapter_count");
   if (localAssembly.enabled !== true) issues.push("local_assembly");
   if (localAssembly.externalGeneration !== false) issues.push("external_generation");
@@ -1027,7 +1028,7 @@ async function handleAstroPremiumPrepare(request, env) {
       currentChapterTitle: "출생 차트 계산",
     });
 
-    const generated = await generateAstroPremiumReport(env, {
+    const generated = await generateAstrologyLocalPdf({
       ...body,
       sessionId,
       birthInput,
@@ -1476,6 +1477,7 @@ async function handleVedicPremiumPrepare(request, env) {
         chapterCount: Number(generated?.chapterCount || VEDIC_PREMIUM_CHAPTERS.length),
         expectedChapterCount: VEDIC_PREMIUM_CHAPTERS.length,
         externalGeneration: false,
+        externalCallsAllowed: false,
       },
     };
     const storedUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
@@ -1493,6 +1495,25 @@ async function handleVedicPremiumPrepare(request, env) {
       throw error;
     }
     pdfReady.pdfCompletionValidation = pdfCompletionValidation;
+    const localPdfResult = await generateVedicLocalPdf({
+      reportId,
+      featureKey,
+      sessionId: vedicSessionId,
+      chapterCount: generated.chapterCount,
+      manuscriptSource: generated.manuscriptSource || VEDIC_PDF_CONFIG.generationMode,
+      chapters: generated.chapters,
+      chapterDrafts: generated.chapterDrafts,
+      localAssembly: generated?.localAssembly || pdfReady.localAssembly,
+      pdfReady,
+      pdfCompletionValidation,
+      pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
+      htmlUrl: clean(pdfReady?.htmlUrl),
+      downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
+    }, {
+      config: VEDIC_PDF_CONFIG,
+      expectedChapterCount: VEDIC_PREMIUM_CHAPTERS.length,
+      buildLocalPdf: (payload) => payload,
+    });
 
     await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
@@ -1517,6 +1538,8 @@ async function handleVedicPremiumPrepare(request, env) {
         provider: clean(generated?.provider || VEDIC_PDF_CONFIG.provider),
         writingPipeline: clean(generated?.writingPipeline || "local-calculation-to-local-assembled-pdf"),
         localAssembly: generated?.localAssembly || pdfReady.localAssembly,
+        localOnly: localPdfResult.localOnly,
+        localContract: localPdfResult.localContract,
         diagnostics: generated.diagnostics,
         quality: generated.quality,
         payload: generated.payload,
@@ -1538,6 +1561,8 @@ async function handleVedicPremiumPrepare(request, env) {
       sessionId: vedicSessionId,
       chapterCount: generated.chapterCount,
       localAssembly: generated?.localAssembly || pdfReady.localAssembly,
+      localOnly: localPdfResult.localOnly,
+      localContract: localPdfResult.localContract,
       generationMode: clean(generated?.generationMode || VEDIC_PDF_CONFIG.generationMode),
       provider: clean(generated?.provider || VEDIC_PDF_CONFIG.provider),
       writingPipeline: clean(generated?.writingPipeline || "local-calculation-to-local-assembled-pdf"),

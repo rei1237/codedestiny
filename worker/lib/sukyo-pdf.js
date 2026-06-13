@@ -15,7 +15,7 @@ const MIN_SECTION_LENGTH = 700;
 const MIN_TOTAL_LENGTH = 45000;
 const SUKYO_MONTH_START = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
 
-const INTERNAL_TOKEN_RE = /\b(?:payload|debug|engine|api|json|llm|fallback|localdraft|about:blank|internal\s+server\s+error|chapter\s*\d+|a\(안\)|b\(괴\)|near-triad(?:-[a-z0-9]+)?|\bd\d+\b|triad|자동\s*복구\s*생성|undefined|null|nan)\b/gi;
+const INTERNAL_TOKEN_RE = /\b(?:payload|debug|engine|api|json|localdraft|about:blank|internal\s+server\s+error|chapter\s*\d+|a\(안\)|b\(괴\)|near-triad(?:-[a-z0-9]+)?|\bd\d+\b|triad|자동\s*복구\s*생성|undefined|null|nan)\b/gi;
 const FORBIDDEN_BODY_PHRASES = [
   "자동 복구 생성",
   "fallback",

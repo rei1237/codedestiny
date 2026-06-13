@@ -55,12 +55,6 @@
     var value = _clean(source);
     return value === SUKYO_LOCAL_MANUSCRIPT_SOURCE || value === 'local';
   }
-  function _hasExternalManuscriptSignal(source) {
-    return /\b(?:gemini|llm|hybrid|fallback)\b/i.test(_clean(source));
-  }
-  function _resolveTargetLlmChapterCount(payload, ready, manuscriptSource) {
-    return _firstFiniteNumber(_isLocalManuscriptSource(manuscriptSource) ? 0 : 7, payload && payload.targetLlmChapterCount, ready && ready.targetLlmChapterCount);
-  }
 
   function normalizeSukuyoError(error) {
     if (error instanceof Error) {
@@ -169,9 +163,6 @@
       expectedChapterCount: SUKYO_TOTAL_CHAPTERS,
       qualityStatus: _clean(p.qualityStatus),
       manuscriptSource: _clean(p.manuscriptSource),
-      fallbackUsed: p.fallbackUsed === true,
-      llmChapterCount: Number(p.llmChapterCount || 0),
-      fallbackChapterCount: Number(p.fallbackChapterCount || 0),
       localDraftChapterCount: Number(p.localDraftChapterCount || 0),
       localAssemblyOnly: p.localAssemblyOnly !== false && ready.localAssemblyOnly !== false,
       externalCallsAllowed: p.externalCallsAllowed === true || ready.externalCallsAllowed === true,
@@ -186,18 +177,10 @@
     var chapters = Array.isArray(p.chapters) ? p.chapters : [];
     var summary = _summarizeSukuyoPayload(p);
     var manuscriptSource = _clean(p.manuscriptSource || ready.manuscriptSource);
-    var llmChapterCount = _firstFiniteNumber(0, p.llmChapterCount, ready.llmChapterCount);
-    var targetLlmChapterCount = _resolveTargetLlmChapterCount(p, ready, manuscriptSource);
-    var fallbackChapterCount = _firstFiniteNumber(0, p.fallbackChapterCount, ready.fallbackChapterCount);
     var localDraftChapterCount = _firstFiniteNumber(0, p.localDraftChapterCount, ready.localDraftChapterCount);
-    var fallbackUsed = p.fallbackUsed === true || ready.fallbackUsed === true;
     var localAssemblyOnly = p.localAssemblyOnly !== false && ready.localAssemblyOnly !== false;
     var externalCallsAllowed = p.externalCallsAllowed === true || ready.externalCallsAllowed === true;
-    var countContractOk = llmChapterCount + localDraftChapterCount === SUKYO_TOTAL_CHAPTERS
-      && llmChapterCount === 0
-      && targetLlmChapterCount === 0
-      && fallbackChapterCount === 0
-      && localDraftChapterCount === SUKYO_TOTAL_CHAPTERS;
+    var countContractOk = localDraftChapterCount === SUKYO_TOTAL_CHAPTERS;
     var checks = {
       hasReportId: !!_clean(p.reportId),
       hasStoredUrl: !!_resolveSukuyoStoredUrl(p),
@@ -205,11 +188,8 @@
       serverCompleted: _clean(p.serverStatus) === 'completed',
       qualityPassed: _clean(p.qualityStatus) === 'passed',
       sourceAccepted: _isAcceptedManuscriptSource(manuscriptSource),
-      sourceLocalOnly: _isLocalManuscriptSource(manuscriptSource) && !_hasExternalManuscriptSignal(manuscriptSource),
-      noFallback: !fallbackUsed,
-      noLlmChapters: llmChapterCount === 0 && targetLlmChapterCount === 0,
+      sourceLocalOnly: _isLocalManuscriptSource(manuscriptSource),
       chapterCountContract: countContractOk,
-      noFallbackChapters: fallbackChapterCount === 0,
       localAssemblyOnly: localAssemblyOnly,
       externalCallsBlocked: !externalCallsAllowed,
     };
@@ -221,7 +201,7 @@
   function _sanitizeText(value) {
     return String(value || '')
       .replace(/\b(undefined|null|nan)\b/gi, '')
-      .replace(/\b(payload|json|localdraft|fallback|llm|api|debug|engine|about:blank)\b/gi, '')
+      .replace(/\b(payload|json|localdraft|api|debug|engine|about:blank)\b/gi, '')
       .replace(/\bchapter\s*\d+\b/gi, '')
       .replace(/\b(a\(안\)|b\(괴\)|near-triad|triad|d\d+)\b/gi, '')
       .replace(/\b(internal\s+server\s+error)\b/gi, '')
@@ -331,7 +311,23 @@
     }
   }
 
+  function _hasActivePaymentEvidence() {
+    var paymentContext = _lastPremiumPayment && typeof _lastPremiumPayment === 'object' ? _lastPremiumPayment : null;
+    if (!paymentContext) return false;
+    var sessionId = _clean(paymentContext.reportSessionId || paymentContext.sessionId);
+    if (sessionId && _activeSessionId && sessionId !== _activeSessionId) return false;
+    var grant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
+    return Boolean(
+      _extractPremiumToken(paymentContext)
+      || _clean(paymentContext.transactionId)
+      || _clean(paymentContext.purchaseId)
+      || _clean(paymentContext.requestId)
+      || _clean(grant && (grant.evidenceId || grant.paymentId || grant.purchaseId || grant.transactionId || grant.merchantUid))
+    );
+  }
+
   function _hasPremiumAccessForGeneration() {
+    if (!_hasActivePaymentEvidence()) return false;
     if (Date.now() < _premiumAccessVerifiedUntil) return true;
     if (_premiumTokenMatches() || Date.now() < _premiumPaidUntil) {
       _markPremiumAccessVerified(25 * 60 * 1000);
@@ -853,32 +849,15 @@
     var hasReportId = !!_clean(p.reportId);
     var hasStoredUrl = !!_resolveSukuyoStoredUrl(p);
     var manuscriptSource = _clean(p.manuscriptSource || ready.manuscriptSource);
-    var llmChapterCount = _firstFiniteNumber(0, p.llmChapterCount, ready.llmChapterCount);
-    var targetLlmChapterCount = _resolveTargetLlmChapterCount(p, ready, manuscriptSource);
-    var fallbackChapterCount = _firstFiniteNumber(0, p.fallbackChapterCount, ready.fallbackChapterCount);
     var localDraftChapterCount = _firstFiniteNumber(0, p.localDraftChapterCount, ready.localDraftChapterCount);
     var sourceOk = _isAcceptedManuscriptSource(manuscriptSource);
-    var sourceLocalOnly = _isLocalManuscriptSource(manuscriptSource) && !_hasExternalManuscriptSignal(manuscriptSource);
-    var fallbackUsed = p.fallbackUsed === true || ready.fallbackUsed === true;
+    var sourceLocalOnly = _isLocalManuscriptSource(manuscriptSource);
     var localAssemblyOnly = p.localAssemblyOnly !== false && ready.localAssemblyOnly !== false;
     var externalCallsAllowed = p.externalCallsAllowed === true || ready.externalCallsAllowed === true;
-    var countContractOk = Number.isFinite(llmChapterCount)
-      && Number.isFinite(targetLlmChapterCount)
-      && Number.isFinite(fallbackChapterCount)
-      && Number.isFinite(localDraftChapterCount)
-      && llmChapterCount >= 0
-      && llmChapterCount <= SUKYO_TOTAL_CHAPTERS
-      && targetLlmChapterCount >= 0
-      && targetLlmChapterCount <= SUKYO_TOTAL_CHAPTERS
-      && fallbackChapterCount >= 0
-      && fallbackChapterCount <= targetLlmChapterCount
+    var countContractOk = Number.isFinite(localDraftChapterCount)
       && localDraftChapterCount >= 0
       && localDraftChapterCount <= SUKYO_TOTAL_CHAPTERS
-      && llmChapterCount === 0
-      && targetLlmChapterCount === 0
-      && fallbackChapterCount === 0
-      && localDraftChapterCount === SUKYO_TOTAL_CHAPTERS
-      && llmChapterCount + localDraftChapterCount === SUKYO_TOTAL_CHAPTERS;
+      && localDraftChapterCount === SUKYO_TOTAL_CHAPTERS;
     var chapterShapeOk = chapters.length === SUKYO_TOTAL_CHAPTERS
       && chapters.every(function (chapter) {
         var sections = Array.isArray(chapter && chapter.sections) ? chapter.sections : [];
@@ -893,7 +872,6 @@
       && _clean(p.qualityStatus) === 'passed'
       && sourceOk
       && sourceLocalOnly
-      && !fallbackUsed
       && localAssemblyOnly
       && !externalCallsAllowed
       && countContractOk;
@@ -1377,11 +1355,8 @@
     var pdfUrl = _withSukuyoArchiveFormat(_clean(safeReport.pdfUrl || ready.pdfUrl || safeReport.downloadUrl || ready.downloadUrl) || _buildSukuyoArchiveUrl(reportId, 'pdf'), 'pdf');
     var htmlUrl = _withSukuyoArchiveFormat(_clean(safeReport.htmlUrl || ready.htmlUrl) || _buildSukuyoArchiveUrl(reportId, 'html'), 'html');
     var manuscriptSource = _clean(safeReport.manuscriptSource || payload.manuscriptSource || ready.manuscriptSource || SUKYO_LOCAL_MANUSCRIPT_SOURCE);
-    var llmChapterCount = _firstFiniteNumber(0, safeReport.llmChapterCount, payload.llmChapterCount, ready.llmChapterCount);
-    var targetLlmChapterCount = _firstFiniteNumber(_isLocalManuscriptSource(manuscriptSource) ? 0 : 7, safeReport.targetLlmChapterCount, payload.targetLlmChapterCount, ready.targetLlmChapterCount);
-    var fallbackChapterCount = _firstFiniteNumber(0, safeReport.fallbackChapterCount, payload.fallbackChapterCount, ready.fallbackChapterCount);
     var localDraftChapterCount = _firstFiniteNumber(NaN, safeReport.localDraftChapterCount, payload.localDraftChapterCount, ready.localDraftChapterCount);
-    if (!Number.isFinite(localDraftChapterCount)) localDraftChapterCount = Math.max(0, chapters.length - llmChapterCount);
+    if (!Number.isFinite(localDraftChapterCount)) localDraftChapterCount = chapters.length;
     var localAssemblyOnly = safeReport.localAssemblyOnly !== false && payload.localAssemblyOnly !== false && ready.localAssemblyOnly !== false;
     var externalCallsAllowed = safeReport.externalCallsAllowed === true || payload.externalCallsAllowed === true || ready.externalCallsAllowed === true;
     return {
@@ -1399,10 +1374,6 @@
       reportId: reportId,
       chapterCount: chapters.length,
       localDraftChapterCount: localDraftChapterCount,
-      llmChapterCount: llmChapterCount,
-      targetLlmChapterCount: targetLlmChapterCount,
-      fallbackChapterCount: fallbackChapterCount,
-      fallbackUsed: safeReport.fallbackUsed === true || payload.fallbackUsed === true,
       manuscriptSource: manuscriptSource,
       localAssemblyOnly: localAssemblyOnly,
       externalCallsAllowed: externalCallsAllowed,
@@ -1421,9 +1392,6 @@
         manuscriptSource: manuscriptSource,
         localAssemblyOnly: localAssemblyOnly,
         externalCallsAllowed: externalCallsAllowed,
-        llmChapterCount: llmChapterCount,
-        targetLlmChapterCount: targetLlmChapterCount,
-        fallbackChapterCount: fallbackChapterCount,
         localDraftChapterCount: localDraftChapterCount,
       },
       pdfUrl: pdfUrl,
@@ -1642,7 +1610,6 @@
 
       _log('[SukuyoBook][PdfRequestSuccess]', {
         chapterCount: _chapters.length,
-        fallbackUsed: !!response.fallbackUsed,
         manuscriptSource: response.manuscriptSource || 'unknown',
         sessionId: _activeSessionId,
       });

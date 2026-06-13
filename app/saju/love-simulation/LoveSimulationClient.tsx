@@ -7,6 +7,7 @@ import {
   openPaidFeatureGate,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
+import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 
 const LoveSimulationEngine = dynamic(
   () => import("./_components/LoveSimulationEngine").then((mod) => mod.LoveSimulationEngine),
@@ -90,12 +91,13 @@ export default function LoveSimulationClient() {
 
   if (status !== "unlocked") {
     const isBusy = status === "checking" || status === "unlocking";
+    const loveCodeBackgroundUrl = getAssetUrlFromPublicPath("/fuctionassets/love code.webp");
 
     return (
       <main className="relative min-h-screen overflow-hidden bg-[#120714] text-white">
         <div className="absolute inset-0">
           <img
-            src="/fuctionassets/love code.webp"
+            src={loveCodeBackgroundUrl}
             alt=""
             className="h-full w-full object-cover opacity-55"
           />

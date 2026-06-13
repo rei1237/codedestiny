@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 
 export type PaymentLoadingProps = {
   open: boolean;
@@ -22,8 +23,9 @@ export type PaymentLoadingProps = {
 
 const DEFAULT_TITLE = "결제 상태를 확인하고 있습니다";
 const DEFAULT_DESCRIPTION = "결제와 이용 권한을 안전하게 확인하고 있습니다. 잠시만 기다려 주세요.";
-const YEON_SPRITE_URL =
+const YEON_SPRITE_PUBLIC_PATH =
   "/fuctionassets/%EB%8F%88%EB%8F%85%EC%98%A4%EB%A5%B8%20%EC%97%B0%EC%9D%B4.webp?v=20260612-clean-cut";
+const YEON_SPRITE_URL = getAssetUrlFromPublicPath(YEON_SPRITE_PUBLIC_PATH);
 const UNIFIED_PAYMENT_MARKER = "cd-money-yeon-unified-payment-ui-v20260612-clean-cut";
 
 function resolveYeonSpriteAnimation(variant: NonNullable<PaymentLoadingProps["variant"]>) {
@@ -46,11 +48,12 @@ export default function PaymentLoading({
   const [elapsedMs, setElapsedMs] = useState(0);
 
   useEffect(() => {
+    if (!open) return;
     if (typeof window === "undefined") return;
     const img = new window.Image();
     img.decoding = "async";
     img.src = YEON_SPRITE_URL;
-  }, []);
+  }, [open]);
 
   useEffect(() => {
     if (!open || typeof document === "undefined") return;
