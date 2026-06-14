@@ -4,8 +4,8 @@ import { categoryToSlug, famousSajuCategories, publishedCelebritySajuSeeds } fro
 
 export const metadata = generatePageMetadata({
   path: "/insights/famous-saju",
-  title: "유명인 사주 분석 | 운세 인사이트 허브 | Code Destiny",
-  description: "공개 생년월일과 기존 사주 엔진 계산값을 바탕으로 유명인의 일간, 오행, 삼주 흐름을 블로그 글처럼 읽는 유명인 사주 분석 아카이브입니다.",
+  title: "유명인 사주 분석 | 운세 인사이트 허브",
+  description: "공개 생년월일과 Code Destiny 명식 기준을 바탕으로 유명인의 일간, 오행, 삼주 흐름을 이야기형 사주 인사이트로 정리한 아카이브입니다.",
   keywords: ["유명인 사주", "연예인 사주", "이순신 사주", "아이유 사주", "BTS RM 사주", "운세 인사이트"],
 });
 
@@ -89,7 +89,7 @@ export default function FamousSajuInsightIndexPage() {
           <p className="mt-5 text-sm font-semibold text-amber-100/80">Famous Saju Insights</p>
           <h1 className="mt-3 text-3xl font-bold tracking-normal text-white sm:text-5xl">유명인 사주 분석</h1>
           <p className="mt-5 text-base leading-8 text-slate-300">
-            기존 사주 엔진으로 계산한 연주·월주·일주·시주 정보를 바탕으로, 유명인의 공개 생년월일을 문화/엔터테인먼트 목적의 사주 콘텐츠로 정리했습니다.
+            출생 시간이 확인된 경우 시주까지, 그렇지 않은 경우 연주·월주·일주 중심으로 유명인의 명식 흐름을 조심스럽게 정리했습니다.
           </p>
         </div>
 
@@ -151,7 +151,7 @@ export default function FamousSajuInsightIndexPage() {
                   <p className="text-xs text-amber-100/70">{item.category}</p>
                   <h2 className="mt-1 text-lg font-semibold text-white">{item.nameKo}</h2>
                   <p className="mt-1 text-sm text-slate-400">
-                    {item.birthDate?.slice(0, 4)}년생 · {item.isBirthTimeKnown ? "사주 기반 분석" : "삼주 기반 분석"}
+                    {item.birthDate?.slice(0, 4)}년생 · {item.isBirthTimeKnown ? "시주 포함 분석" : "출생 시간 미상 분석"}
                   </p>
                 </div>
                 <span className="rounded-full border border-amber-200/30 px-2.5 py-1 text-xs text-amber-100">{categoryToSlug(item.category)}</span>

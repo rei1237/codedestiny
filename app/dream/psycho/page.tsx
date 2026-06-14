@@ -3,7 +3,7 @@ import { buildFortuneJsonLd, generatePageMetadata } from "../../../lib/generate-
 
 const META = {
   path: "/dream/psycho",
-  title: "정신분석 해몽 - Freud Study | Code Destiny",
+  title: "정신분석 해몽 - Freud Study",
   description: "프로이트 관점의 상징 분석으로 꿈에 담긴 무의식 신호와 관계 패턴을 읽는 심층 꿈해몽 가이드입니다.",
   keywords: ["정신분석 해몽", "프로이트", "무의식", "꿈 분석", "dream psycho"],
   image: "https://code-destiny.com/fuctionassets/phydream.webp",

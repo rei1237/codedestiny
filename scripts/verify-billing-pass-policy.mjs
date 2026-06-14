@@ -314,7 +314,7 @@ assertContains(indexSource, "var monthlyButtonHtml", "monthly payment CTA");
 assertContains(indexSource, 'data-mode="monthly"', "monthly payment mode marker");
 assertContains(indexSource, 'data-mode="pass"', "payment modal shows pass apply option");
 assertContains(indexSource, "\\uC774\\uC6A9\\uAD8C \\uC801\\uC6A9", "payment modal pass apply label");
-assertContains(indexSource, "FAMILY 꿀단지 혜택이 적용되었어요", "static family license pass success copy");
+assertContains(indexSource, "FAMILY 이용권이 적용되었습니다.", "static family license pass success copy");
 assertContains(indexSource, "membership-honey-kkulkkul.webp", "static license pass reuses honey pig asset");
 assertContains(indexSource, "forceDeduct: false", "static membership pass probe never deducts coins");
 assertContains(indexSource, "_subTier === 'family' ? 999999999", "main shell family policy pass limit");
@@ -342,8 +342,17 @@ assertContains(fortuneSource, "membership: 1", "subscription status reads legacy
 assertContains(fortuneSource, "pass: 1", "subscription status reads legacy pass field");
 assertContains(fortuneSource, "entitlement: 1", "subscription status reads legacy entitlement field");
 assertContains(fortuneSource, "membershipCreditBalance", "subscription status returns monthly credit balance");
+assertContains(billingSource, "const shouldAutoConsumeUsagePass = !membershipPassOnly", "usage pass auto consume is gated");
+assertContains(billingSource, "&& !monthlyBalanceRequested", "usage pass auto consume skips monthly payment");
+assertContains(billingSource, "&& !directPaymentRequested", "usage pass auto consume skips direct payment");
+assertContains(billingSource, "&& !coinPaymentRequested", "usage pass auto consume skips coin payment");
+assertContains(billingSource, "accessType: \"usage_pass\"", "usage pass responses carry explicit access type");
+assertContains(billingSource, "freeBySubscription: false", "usage pass responses are not reported as subscription free");
 assertContains(billingClientSource, "buildLicensePassOverlayMessage", "React billing client builds license pass overlay copy");
-assertContains(billingClientSource, "FAMILY 꿀단지 혜택이 적용되었어요", "React family license pass success copy");
+assertContains(billingClientSource, "FAMILY 이용권이 적용되었습니다.", "React family license pass success copy");
+assertContains(billingClientSource, "deniedStatuses.has(status)", "runtime gate rejects failure statuses");
+assertContains(billingClientSource, "isPositiveObject(payload.consume)", "runtime gate validates consume object");
+assertNotContains(billingClientSource, "|| Boolean(payload.consume)", "runtime gate must not accept consume object alone");
 assertContains(headersSource, "https://pagead2.googlesyndication.com", "AdSense script domain allowed by CSP");
 
 console.log("billing pass policy regression checks passed");

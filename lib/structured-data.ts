@@ -1,5 +1,5 @@
-import { SEO_SITE_URL, toAbsoluteUrl } from "./seo";
-import { SEO_SITE_CONFIG } from "./seo/siteConfig";
+import { toAbsoluteUrl } from "./seo";
+import { siteSeo } from "./seo/siteSeo";
 
 type FaqItem = {
   question: string;
@@ -10,19 +10,23 @@ export function buildOrganizationJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": `${SEO_SITE_URL}/#organization`,
-    name: SEO_SITE_CONFIG.brandName,
-    alternateName: SEO_SITE_CONFIG.alternateNames,
-    url: SEO_SITE_URL,
+    "@id": `${siteSeo.siteUrl}/#organization`,
+    name: siteSeo.organization.name,
+    alternateName: siteSeo.alternateName,
+    url: siteSeo.siteUrl,
     logo: {
       "@type": "ImageObject",
-      url: SEO_SITE_CONFIG.defaultOgImage,
+      url: siteSeo.organization.logo,
+      width: 1200,
+      height: 630,
     },
-    sameAs: [
-      `${SEO_SITE_URL}/insights`,
-      `${SEO_SITE_URL}/about`,
-      `${SEO_SITE_URL}/contact`,
-    ],
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: siteSeo.contact.email,
+      contactType: siteSeo.contact.contactType,
+      availableLanguage: siteSeo.contact.availableLanguage,
+    },
+    sameAs: siteSeo.sameAs,
   };
 }
 
@@ -30,19 +34,21 @@ export function buildWebsiteJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": `${SEO_SITE_URL}/#website`,
-    url: SEO_SITE_URL,
-    name: SEO_SITE_CONFIG.brandName,
-    alternateName: SEO_SITE_CONFIG.alternateNames,
+    "@id": `${siteSeo.siteUrl}/#website`,
+    url: siteSeo.siteUrl,
+    name: siteSeo.siteName,
+    alternateName: siteSeo.alternateName,
+    inLanguage: "ko-KR",
+    publisher: { "@id": `${siteSeo.siteUrl}/#organization` },
     potentialAction: {
       "@type": "SearchAction",
-      target: `${SEO_SITE_URL}/insights?q={search_term_string}`,
+      target: `${siteSeo.siteUrl}/insights?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   };
 }
 
-export function buildBreadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
+export function buildBreadcrumbJsonLd(items: Array<{ name: string; path?: string; url?: string }>) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -50,7 +56,7 @@ export function buildBreadcrumbJsonLd(items: Array<{ name: string; path: string 
       "@type": "ListItem",
       position: index + 1,
       name: item.name,
-      item: toAbsoluteUrl(item.path),
+      item: item.url || toAbsoluteUrl(item.path || "/"),
     })),
   };
 }
@@ -60,14 +66,28 @@ export function buildWebPageJsonLd(input: {
   description: string;
   path: string;
 }) {
+  const url = toAbsoluteUrl(input.path);
   return {
     "@context": "https://schema.org",
     "@type": "WebPage",
+    "@id": `${url}#webpage`,
     name: input.title,
     description: input.description,
-    url: toAbsoluteUrl(input.path),
-    isPartOf: { "@id": `${SEO_SITE_URL}/#website` },
-    about: { "@id": `${SEO_SITE_URL}/#organization` },
+    url,
+    inLanguage: "ko-KR",
+    isPartOf: { "@id": `${siteSeo.siteUrl}/#website` },
+    about: { "@id": `${siteSeo.siteUrl}/#organization` },
+  };
+}
+
+export function buildAboutPageJsonLd(input: {
+  title: string;
+  description: string;
+  path: string;
+}) {
+  return {
+    ...buildWebPageJsonLd(input),
+    "@type": "AboutPage",
   };
 }
 
@@ -77,13 +97,8 @@ export function buildCollectionPageJsonLd(input: {
   path: string;
 }) {
   return {
-    "@context": "https://schema.org",
+    ...buildWebPageJsonLd(input),
     "@type": "CollectionPage",
-    name: input.title,
-    description: input.description,
-    url: toAbsoluteUrl(input.path),
-    isPartOf: { "@id": `${SEO_SITE_URL}/#website` },
-    about: { "@id": `${SEO_SITE_URL}/#organization` },
   };
 }
 
@@ -101,18 +116,16 @@ export function buildServiceJsonLd(input: {
     description: input.description,
     provider: {
       "@type": "Organization",
-      "@id": `${SEO_SITE_URL}/#organization`,
-      name: SEO_SITE_CONFIG.brandName,
+      "@id": `${siteSeo.siteUrl}/#organization`,
+      name: siteSeo.siteName,
     },
-    areaServed: SEO_SITE_CONFIG.targetMarkets.map((name) => ({
+    areaServed: {
       "@type": "Country",
-      name,
-    })),
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "KRW",
-      url: toAbsoluteUrl(input.path),
+      name: "KR",
+    },
+    audience: {
+      "@type": "Audience",
+      audienceType: "Korean fortune and self-reflection readers",
     },
     url: toAbsoluteUrl(input.path),
   };
@@ -144,25 +157,32 @@ export function buildArticleJsonLd(input: {
   datePublished?: string;
   dateModified?: string;
 }) {
+  const url = toAbsoluteUrl(input.path);
   return {
     "@context": "https://schema.org",
-    "@type": "BlogPosting",
+    "@type": "Article",
+    "@id": `${url}#article`,
     headline: input.title,
     description: input.description,
-    image: toAbsoluteUrl(input.image || "/og/code-destiny-og.png"),
+    image: toAbsoluteUrl(input.image || siteSeo.defaultOgImage),
     author: {
-      "@type": "Person",
-      name: input.author || "Code Destiny Editorial Team",
+      "@type": "Organization",
+      name: input.author || siteSeo.siteName,
     },
     publisher: {
       "@type": "Organization",
-      "@id": `${SEO_SITE_URL}/#organization`,
-      name: SEO_SITE_CONFIG.brandName,
+      "@id": `${siteSeo.siteUrl}/#organization`,
+      name: siteSeo.siteName,
+      logo: {
+        "@type": "ImageObject",
+        url: siteSeo.organization.logo,
+      },
     },
     articleSection: input.category || "운세 인사이트",
     keywords: (input.keywords || []).join(", "),
-    mainEntityOfPage: toAbsoluteUrl(input.path),
+    mainEntityOfPage: url,
     datePublished: input.datePublished,
     dateModified: input.dateModified || input.datePublished,
+    inLanguage: "ko-KR",
   };
 }

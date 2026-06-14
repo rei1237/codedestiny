@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { INSIGHT_SEED_ARTICLES, getInsightSeedBySlug, getInsightSeedRelated } from "../seed-articles";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/structured-data";
+import { getPexelsInsightImage } from "../../../lib/server/pexels";
 
 export const dynamicParams = false;
 
@@ -71,7 +72,7 @@ export async function generateMetadata({ params }) {
     });
   }
 
-  const image = getStaticInsightImage(article);
+  const image = await getPexelsInsightImage(article).catch(() => getStaticInsightImage(article));
   return buildSeoMetadata({
     path: `/insights/${article.slug}`,
     title: `${article.title} | 운세 인사이트`,
@@ -101,16 +102,23 @@ function relatedArticles(article) {
   return getInsightSeedRelated(article.slug, 6);
 }
 
+function normalizeContentHtml(html) {
+  return String(html || "")
+    .trim()
+    .replace(/<h1(\s[^>]*)?>/gi, (_match, attrs = "") => `<h2${attrs}>`)
+    .replace(/<\/h1>/gi, "</h2>");
+}
+
 export default async function InsightArticlePage({ params }) {
   const slug = String(params?.slug || "");
   const article = getInsightSeedBySlug(slug);
   if (!article) notFound();
 
   const sections = normalizeSections(article);
-  const contentHtml = String(article.contentHtml || "").trim();
+  const contentHtml = normalizeContentHtml(article.contentHtml);
   if (sections.length === 0 && !contentHtml) notFound();
 
-  const image = getStaticInsightImage(article);
+  const image = await getPexelsInsightImage(article).catch(() => getStaticInsightImage(article));
   const description = articleDescription(article);
   const related = relatedArticles(article);
   const articleJsonLd = buildArticleJsonLd({

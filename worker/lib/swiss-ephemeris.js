@@ -77,6 +77,21 @@ function toBool(value) {
   return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
 }
 
+function requiresStrictSwissWestern(env, options = {}) {
+  return options?.strictSwiss === true
+    || options?.allowFallback === false
+    || options?.premium === true
+    || toBool(getEnv(env, "ASTRO_SWISS_STRICT_ONLY"));
+}
+
+function createSwissWesternUnavailableError(error) {
+  const wrapped = new Error("Swiss ephemeris engine is required for premium astrology PDF generation.");
+  wrapped.code = "ASTRO_SWISS_ENGINE_UNAVAILABLE";
+  wrapped.status = 503;
+  wrapped.cause = error;
+  return wrapped;
+}
+
 function summarizeChartInput(input) {
   return {
     year: Number(input?.year),
@@ -195,6 +210,8 @@ function normalizeExternalWesternPayload(payload = {}) {
     houseSystem: "placidus",
     aspects: aspects.length ? aspects : calcAspects(planets),
     source: String(payload?.source || "external-swiss-api"),
+    engineQuality: "swiss",
+    fallbackUsed: false,
   };
 }
 
@@ -519,6 +536,8 @@ function buildAstronomyFallbackWesternChart(input) {
     houseSystem: "equal",
     aspects,
     source: "astronomy-engine-fallback",
+    engineQuality: "fallback",
+    fallbackUsed: true,
   };
 }
 
@@ -786,10 +805,13 @@ export async function getSwissWesternChart(env, payload, options = {}) {
       houseSystem: "placidus",
       aspects,
       source: "swiss-wasm-local",
+      engineQuality: "swiss",
+      fallbackUsed: false,
     };
   } catch (error) {
-    const strictSwissOnly = toBool(getEnv(env, "ASTRO_SWISS_STRICT_ONLY"));
-    if (strictSwissOnly) throw error;
+    if (requiresStrictSwissWestern(env, options)) {
+      throw createSwissWesternUnavailableError(error);
+    }
 
     try {
       console.warn("[astro-western-fallback]", JSON.stringify({

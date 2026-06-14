@@ -334,5 +334,5 @@ export const ZIWEI_SECTIONS: Array<{ id: ZiweiSectionId; title: string; palaceId
   { id: "property", title: "전택궁", palaceId: "property" },
   { id: "fortune", title: "복덕궁", palaceId: "fortune" },
   { id: "parents", title: "부모궁", palaceId: "parents" },
-  { id: "master", title: "사화·대운·운용 전략" },
+  { id: "master", title: "사화·대한·운용 전략" },
 ];

@@ -4,5 +4,5 @@ import { renderZiweiChapterBlock } from "./chapterRenderer";
 type Props = { chapter: ZiweiChapterVII | null | undefined };
 
 export default function Chapter7_RelationshipFamily({ chapter }: Props) {
-  return renderZiweiChapterBlock({ chapter, fallbackTitle: "VII. 부처궁과 자녀궁" });
+  return renderZiweiChapterBlock({ chapter, fallbackTitle: "VII. 부부궁과 자녀궁" });
 }

@@ -2671,6 +2671,22 @@ async function handleZiweiAIPrompt(request, auth, env) {
     return buildZiweiAIPromptError("MISSING_CHART_RESULT", "기본 자미두수 명반 결과가 필요합니다.", 400);
   }
 
+  const preflightRequestId = String(body?.requestId || "").trim().slice(0, 120);
+  const preflightAccess = await findAIPromptPaidAccessEvidence({
+    auth,
+    featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
+    body,
+    requestId: preflightRequestId,
+    cost: ZIWEI_AI_PROMPT_PRICE,
+  });
+  if (!preflightAccess) {
+    return buildZiweiAIPromptError(
+      "PAYMENT_REQUIRED",
+      `단건 결제가 필요합니다. ${ZIWEI_AI_PROMPT_PRICE}코인 가치의 상품입니다.`,
+      402,
+    );
+  }
+
   let builtPrompt = null;
   try {
     builtPrompt = domain

@@ -33,7 +33,7 @@ const __lazyActionLoaders = {
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
   openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js'),
-  openDreamModal: () => __loadScriptOnce('/lib/ai-engine.js').then(() => __loadScriptOnce('/js/dream-ledger.js?v=build-67a1087e7971')),
+  openDreamModal: () => __loadScriptOnce('/lib/ai-engine.js').then(() => __loadScriptOnce('/js/dream-ledger.js?v=build-2839f43ff90f')),
   openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
@@ -42,47 +42,51 @@ const __lazyActionLoaders = {
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-picture')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-67a1087e7971'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-67a1087e7971'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-2839f43ff90f'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-2839f43ff90f'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-67a1087e7971'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-67a1087e7971'),
-  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-67a1087e7971'),
-  closeLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-67a1087e7971'),
-  generateLifeBook: () => __loadScriptOnce('/js/life-book.js?v=build-67a1087e7971'),
-  openZiweiBookModal: () => __loadScriptOnce('/js/ziwei-book.js?v=build-67a1087e7971'),
-  closeZiweiBookModal: () => __loadScriptOnce('/js/ziwei-book.js?v=build-67a1087e7971'),
-  generateZiweiBook: () => __loadScriptOnce('/js/ziwei-book.js?v=build-67a1087e7971'),
-  downloadZiweiBookPdf: () => __loadScriptOnce('/js/ziwei-book.js?v=build-67a1087e7971'),
-    gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=build-67a1087e7971'),
-  gotoZiweiPremium: () => __loadScriptOnce('/js/ziwei-book.js?v=build-67a1087e7971'),
-  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-67a1087e7971'),
-  closeSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-67a1087e7971'),
-  generateSajuNewYear: () => __loadScriptOnce('/js/saju-new-year.js?v=build-67a1087e7971'),
-  downloadSajuNewYearPdf: () => __loadScriptOnce('/js/saju-new-year.js?v=build-67a1087e7971'),
-  openVedicBookModal: () => __loadScriptOnce('/js/vedic-book.js?v=build-67a1087e7971'),
-  closeVedicBookModal: () => __loadScriptOnce('/js/vedic-book.js?v=build-67a1087e7971'),
-  generateVedicBook: () => __loadScriptOnce('/js/vedic-book.js?v=build-67a1087e7971'),
-  downloadVedicBookPdf: () => __loadScriptOnce('/js/vedic-book.js?v=build-67a1087e7971'),
-  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=build-67a1087e7971'),
-  openSukuyoBookModal: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-67a1087e7971'),
-  closeSukuyoBookModal: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-67a1087e7971'),
-  generateSukuyoBook: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-67a1087e7971'),
-  downloadSukuyoBookPdf: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-67a1087e7971'),
-  gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-67a1087e7971'),
-  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-67a1087e7971'),
-  closeLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-67a1087e7971'),
-  generateLoveSecret: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-67a1087e7971'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-2839f43ff90f'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-2839f43ff90f'),
+  openLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-2839f43ff90f'),
+  closeLifeBookModal: () => __loadScriptOnce('/js/life-book.js?v=build-2839f43ff90f'),
+  generateLifeBook: () => __loadScriptOnce('/js/life-book.js?v=build-2839f43ff90f'),
+  openAstroBookModal: () => __loadScriptOnce('/js/astro-book.js?v=build-2839f43ff90f'),
+  closeAstroBookModal: () => __loadScriptOnce('/js/astro-book.js?v=build-2839f43ff90f'),
+  generateAstroBook: () => __loadScriptOnce('/js/astro-book.js?v=build-2839f43ff90f'),
+  downloadAstroBookPdf: () => __loadScriptOnce('/js/astro-book.js?v=build-2839f43ff90f'),
+  gotoAstrologyPremium: () => __loadScriptOnce('/js/astro-book.js?v=build-2839f43ff90f'),
+  openZiweiBookModal: () => __loadScriptOnce('/js/ziwei-book.js?v=build-2839f43ff90f'),
+  closeZiweiBookModal: () => __loadScriptOnce('/js/ziwei-book.js?v=build-2839f43ff90f'),
+  generateZiweiBook: () => __loadScriptOnce('/js/ziwei-book.js?v=build-2839f43ff90f'),
+  downloadZiweiBookPdf: () => __loadScriptOnce('/js/ziwei-book.js?v=build-2839f43ff90f'),
+  gotoZiweiPremium: () => __loadScriptOnce('/js/ziwei-book.js?v=build-2839f43ff90f'),
+  openSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-2839f43ff90f'),
+  closeSajuNewYearModal: () => __loadScriptOnce('/js/saju-new-year.js?v=build-2839f43ff90f'),
+  generateSajuNewYear: () => __loadScriptOnce('/js/saju-new-year.js?v=build-2839f43ff90f'),
+  downloadSajuNewYearPdf: () => __loadScriptOnce('/js/saju-new-year.js?v=build-2839f43ff90f'),
+  openVedicBookModal: () => __loadScriptOnce('/js/vedic-book.js?v=build-2839f43ff90f'),
+  closeVedicBookModal: () => __loadScriptOnce('/js/vedic-book.js?v=build-2839f43ff90f'),
+  generateVedicBook: () => __loadScriptOnce('/js/vedic-book.js?v=build-2839f43ff90f'),
+  downloadVedicBookPdf: () => __loadScriptOnce('/js/vedic-book.js?v=build-2839f43ff90f'),
+  gotoVedicPremium: () => __loadScriptOnce('/js/vedic-book.js?v=build-2839f43ff90f'),
+  openSukuyoBookModal: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-2839f43ff90f'),
+  closeSukuyoBookModal: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-2839f43ff90f'),
+  generateSukuyoBook: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-2839f43ff90f'),
+  downloadSukuyoBookPdf: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-2839f43ff90f'),
+  gotoSukuyoPremium: () => __loadScriptOnce('/js/sukuyo-book.js?v=build-2839f43ff90f'),
+  openLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-2839f43ff90f'),
+  closeLoveSecretModal: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-2839f43ff90f'),
+  generateLoveSecret: () => __loadScriptOnce('/js/love-secret-v2.js?v=build-2839f43ff90f'),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-67a1087e7971').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-2839f43ff90f').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-67a1087e7971')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-2839f43ff90f')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
@@ -198,11 +202,27 @@ function __callActionWithConfig(action, actionEl, event, args) {
   return callGlobal(action);
 }
 
+function __scheduleAfterActionScroll(actionEl) {
+  if (!actionEl || !actionEl.getAttribute) return;
+  const targetId = actionEl.getAttribute('data-after-action-scroll-target');
+  if (!targetId) return;
+  window.setTimeout(() => {
+    const focusTarget = document.getElementById(targetId);
+    if (!focusTarget || typeof focusTarget.scrollIntoView !== 'function') return;
+    focusTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const firstInput = focusTarget.querySelector('input, select, textarea, button');
+    if (firstInput && typeof firstInput.focus === 'function') {
+      try { firstInput.focus({ preventScroll: true }); } catch (_) { firstInput.focus(); }
+    }
+  }, 220);
+}
+
 function __invokeAction(action, actionEl, event) {
   const args = parseArgs(actionEl.getAttribute('data-action-args'));
 
   const run = () => {
     const out = __callActionWithConfig(action, actionEl, event, args);
+    __scheduleAfterActionScroll(actionEl);
 
     const loader = __lazyActionLoaders[action];
     if (!loader) return;

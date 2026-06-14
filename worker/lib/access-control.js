@@ -416,12 +416,6 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     return [
       ...baseRules,
       {
-        featureKey: "premium-sukuyo-compat-extra",
-        reason: "숙요점 궁합 확장 분석 추가",
-        minCost: 300,
-        windowMinutes: 240,
-      },
-      {
         featureKey: "premium_pdf_sukyo_compat",
         reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
         minCost: 490,
@@ -469,37 +463,37 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     return [
       {
         featureKey: "premium_pdf_soul_origin",
-        reason: "운명의 기원서 생성",
+        reason: "운명의 업 생성",
         minCost: 690,
         windowMinutes: 120,
       },
       {
         featureKey: "soulOriginKarma",
-        reason: "운명의 기원서 생성",
+        reason: "운명의 업 생성",
         minCost: 690,
         windowMinutes: 120,
       },
       {
         featureKey: "soul_origin_karma",
-        reason: "운명의 기원서 생성",
+        reason: "운명의 업 생성",
         minCost: 690,
         windowMinutes: 120,
       },
       {
         featureKey: "soul-origin",
-        reason: "운명의 기원서 생성",
+        reason: "운명의 업 생성",
         minCost: 690,
         windowMinutes: 120,
       },
       {
         featureKey: "premium-soul-origin-report",
-        reason: "운명의 기원서 생성",
+        reason: "운명의 업 생성",
         minCost: 690,
         windowMinutes: 120,
       },
       {
         featureKey: "coin-gate-per-use",
-        reason: "운명의 기원서 생성",
+        reason: "운명의 업 생성",
         minCost: 690,
         windowMinutes: 120,
       },
@@ -776,6 +770,22 @@ function buildBindingClause(binding = {}) {
   return clauses;
 }
 
+function buildContextBindingClause(binding = {}) {
+  const clauses = [];
+  if (binding.requestId) clauses.push({ "metadata.requestId": binding.requestId });
+  if (binding.profileId) {
+    clauses.push({ "metadata.profileId": binding.profileId });
+    clauses.push({ "metadata.selectedProfileId": binding.profileId });
+  }
+  if (binding.reportId) clauses.push({ "metadata.reportId": binding.reportId });
+  if (binding.sessionId) {
+    clauses.push({ "metadata.sessionId": binding.sessionId });
+    clauses.push({ "metadata.reportSessionId": binding.sessionId });
+  }
+  if (binding.purchaseId) clauses.push({ "metadata.purchaseId": binding.purchaseId });
+  return clauses;
+}
+
 function paymentEvidenceMatchesRule(evidence = {}, rule = {}) {
   const rawFeatureKey = String(evidence?.featureKey || "").trim();
   const rawRuleKey = String(rule?.featureKey || "").trim();
@@ -796,12 +806,20 @@ function paymentEvidenceMatchesRule(evidence = {}, rule = {}) {
 }
 
 function premiumTokenMatchesCurrentAccessRules(tokenPayload = {}, alternativeRules = [], requiredRules = []) {
-  if (tokenPayload?.freeBySubscription === true) return true;
-
-  const rules = uniqueStrings([]).length
-    ? []
-    : [...(Array.isArray(requiredRules) ? requiredRules : []), ...(Array.isArray(alternativeRules) ? alternativeRules : [])];
+  const rules = [...(Array.isArray(requiredRules) ? requiredRules : []), ...(Array.isArray(alternativeRules) ? alternativeRules : [])];
   if (!rules.length) return true;
+
+  if (tokenPayload?.freeBySubscription === true) {
+    const tokenFeatureKey = normalizePaidFeatureKey(tokenPayload?.featureKey);
+    const tokenReason = String(tokenPayload?.reason || "").trim();
+    return rules.some((rule) => {
+      const ruleFeatureKey = normalizePaidFeatureKey(rule?.featureKey);
+      if (ruleFeatureKey && (!tokenFeatureKey || tokenFeatureKey !== ruleFeatureKey)) return false;
+      const strictReason = String(rule?.reason || "").trim();
+      if (strictReason && tokenReason && !paymentReasonRoughlyMatches(strictReason, tokenReason)) return false;
+      return true;
+    });
+  }
 
   const evidence = {
     featureKey: tokenPayload?.featureKey,
@@ -811,6 +829,30 @@ function premiumTokenMatchesCurrentAccessRules(tokenPayload = {}, alternativeRul
   };
 
   return rules.some((rule) => paymentEvidenceMatchesRule(evidence, rule));
+}
+
+function premiumTokenMatchesRequestBinding(tokenPayload = {}, binding = {}) {
+  const tokenBinding = {
+    reportId: String(tokenPayload?.reportId || "").trim(),
+    sessionId: String(tokenPayload?.sessionId || tokenPayload?.reportSessionId || "").trim(),
+    requestId: String(tokenPayload?.requestId || "").trim(),
+    purchaseId: String(tokenPayload?.purchaseId || "").trim(),
+  };
+  const requestBinding = {
+    reportId: String(binding?.reportId || "").trim(),
+    sessionId: String(binding?.sessionId || "").trim(),
+    requestId: String(binding?.requestId || "").trim(),
+    purchaseId: String(binding?.purchaseId || "").trim(),
+  };
+  const pairs = [
+    [tokenBinding.reportId, requestBinding.reportId],
+    [tokenBinding.sessionId, requestBinding.sessionId],
+    [tokenBinding.requestId, requestBinding.requestId],
+    [tokenBinding.purchaseId, requestBinding.purchaseId],
+  ];
+  if (!pairs.some(([tokenValue]) => Boolean(tokenValue))) return false;
+  if (!pairs.some(([, requestValue]) => Boolean(requestValue))) return false;
+  return pairs.some(([tokenValue, requestValue]) => tokenValue && requestValue && tokenValue === requestValue);
 }
 
 async function findLoveSecretBasePlusCompatibilityEvidence(userId, requestBody = {}) {
@@ -864,10 +906,12 @@ async function findLoveSecretBasePlusCompatibilityEvidence(userId, requestBody =
   return { baseEvidence, addonEvidence };
 }
 
-async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = []) {
+async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = [], options = {}) {
   const tokens = extractPaymentLookupTokens(requestBody);
   const binding = extractAccessBindingHints(requestBody);
-  const bindingClauses = buildBindingClause(binding);
+  const requireContextBinding = options?.requireContextBinding === true;
+  const bindingClauses = requireContextBinding ? buildContextBindingClause(binding) : buildBindingClause(binding);
+  if (requireContextBinding && !bindingClauses.length) return null;
   if (!tokens.transactionId && !tokens.requestId && !tokens.receiptId && !tokens.orderId && !bindingClauses.length) return null;
 
   const featureKeys = uniqueStrings(
@@ -1010,7 +1054,7 @@ function buildPaymentRequiredResult(reportType, requiredRules = [], requestBody 
 
 export async function requirePremiumReportAccess(env, userId, reportType, requestBody = {}) {
   const normalizedReportType = String(reportType || "").trim();
-  const isPerUsePdfReportType = normalizedReportType === "ziweiPremium" || normalizedReportType === "sookyoPremium";
+  const isPerUsePdfReportType = normalizedReportType === "ziweiPremium" || normalizedReportType === "sookyoPremium" || normalizedReportType === "vedicPremium";
   const unlockPolicy = uniqueStrings(PREMIUM_UNLOCK_POLICY[normalizedReportType] || []);
   const alternativeRules = buildAlternativePaymentRules(normalizedReportType, requestBody);
   const requiredRules = buildRequiredPaymentRules(normalizedReportType, requestBody);
@@ -1052,6 +1096,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
   const isAdminTestUser = String(userId || "").trim() === ADMIN_TEST_USER_ID;
   const hasRequestedAdminBypass = hasAdminTestAccessContext(requestBody);
   const hasAccessPolicy = Boolean(normalizedReportType && (unlockPolicy.length || alternativeRules.length || requiredRules.length));
+  const requiresContextBoundPaymentEvidence = normalizedReportType === "vedicPremium";
 
   if (isAdminTestUser && hasAccessPolicy) {
     const allowed = {
@@ -1144,7 +1189,10 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       logSajuAccessResolved(allowed);
       return allowed;
     }
-    if (tokenCheck.ok && premiumTokenMatchesCurrentAccessRules(tokenCheck.payload, alternativeRules, requiredRules)) {
+    const tokenBindingOk = normalizedReportType === "vedicPremium"
+      ? premiumTokenMatchesRequestBinding(tokenCheck.payload, accessBinding)
+      : true;
+    if (tokenCheck.ok && tokenBindingOk && premiumTokenMatchesCurrentAccessRules(tokenCheck.payload, alternativeRules, requiredRules)) {
       const tokenPayload = tokenCheck.payload || {};
       const tokenTransactionId = String(tokenPayload.transactionId || requestBody?.sourceTransactionId || requestBody?.transactionId || "").trim();
       const tokenFeatureKey = String(tokenPayload.featureKey || requestBody?.featureKey || "").trim();
@@ -1174,7 +1222,11 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
         featureKey: String(requestBody?.featureKey || tokenPayload.featureKey || "").trim(),
       };
 
-      const tokenBoundEvidence = await findEvidenceByPaymentTokens(userId, tokenEvidenceRequest, alternativeRules);
+      const tokenBoundEvidence = tokenBindingOk || !requiresContextBoundPaymentEvidence
+        ? await findEvidenceByPaymentTokens(userId, tokenEvidenceRequest, alternativeRules, {
+          requireContextBinding: requiresContextBoundPaymentEvidence,
+        })
+        : null;
       if (tokenBoundEvidence) {
         logPremiumAccessDecision({
           route: requestBody?._accessRoute,
@@ -1278,7 +1330,9 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
 
   if (requiredRules.length) {
     for (let i = 0; i < requiredRules.length; i += 1) {
-      const evidence = await findEvidenceByPaymentTokens(user._id, requestBody, [requiredRules[i]]);
+      const evidence = await findEvidenceByPaymentTokens(user._id, requestBody, [requiredRules[i]], {
+        requireContextBinding: requiresContextBoundPaymentEvidence,
+      });
       if (!evidence) {
         logPremiumAccessDecision({
           route: requestBody?._accessRoute,
@@ -1320,7 +1374,9 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     return allowed;
   }
 
-  const tokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules);
+  const tokenEvidence = await findEvidenceByPaymentTokens(user._id, requestBody, alternativeRules, {
+    requireContextBinding: requiresContextBoundPaymentEvidence,
+  });
   if (tokenEvidence) {
     if (!isPerUsePdfReportType) {
       await upsertPremiumContentEntitlementFromEvidence({

@@ -1,14 +1,276 @@
 {
   "_comment": "Code Destiny — Japanese premium localization (ja.json)",
   "_version": "1.0.0",
-
   "brand": {
     "name": "Code Destiny",
     "tagline": "東洋の叡智 × AI解析",
     "subtitle": "3000年の命理学を現代AIで解読する",
     "trustBadge": "世界80カ国以上、10万人以上が利用する運命解析プラットフォーム"
   },
-
+  "home": {
+    "hero": {
+      "eyebrow": "Code Destiny / ハニーピッグ占い",
+      "brandLine": "星々の運命コレクション",
+      "titleLine1": "無料の四柱推命・タロット",
+      "titleAccent": "今日の運勢",
+      "titleLine3": "統合プラットフォーム",
+      "lead": "四柱推命、タロット、紫微斗数、占星術、宿曜、相性、今日の運勢をひとつの場所で静かに確認できます。生年月日や質問をもとに、今の流れと次の選択の糸口を丁寧に読み解きます。",
+      "primaryCta": "無料の四柱推命を始める",
+      "tarotCta": "タロットカードを引く",
+      "todayCta": "今日の運勢を見る"
+    },
+    "nav": {
+      "home": "ホーム",
+      "saju": "四柱推命",
+      "tarot": "タロット",
+      "astrology": "占星術",
+      "sukuyo": "宿曜",
+      "ziwei": "紫微斗数",
+      "vedic": "ヴェーダ",
+      "flowerDream": "花・夢占い",
+      "vvip": "VVIP書庫",
+      "oracle": "神託",
+      "brandAlias": "ハニーピッグ占い"
+    },
+    "previewCards": {
+      "tarotName": "タロット",
+      "tarotMeta": "カードリーディング",
+      "oracleName": "神託",
+      "oracleMeta": "オラクル解釈",
+      "astrologyName": "占星術",
+      "astrologyMeta": "星のチャート",
+      "ziweiName": "紫微斗数",
+      "ziweiMeta": "十二宮命盤",
+      "vedicName": "ヴェーダ",
+      "vedicMeta": "カルマ鑑定",
+      "ichingName": "易占",
+      "ichingMeta": "64卦の神託",
+      "yeonStarHugName": "ヨニのこころ星座",
+      "yeonStarHugMeta": "感情の星明かり習慣",
+      "nevilleName": "ネヴィル瞑想",
+      "nevilleMeta": "現実創造ルーティン"
+    },
+    "music": {
+      "title": "月明かりの下、花豚1stプレイリスト",
+      "desc": "ネオと花豚1stの感性ボイスが混ざる月光リズムへ移動してみましょう。",
+      "hint": "✦ 月光プレイリスト"
+    },
+    "mapIntro": {
+      "title": "月光の地図に置かれた運命の扉を開く",
+      "desc": "タロット、神託、運命の花と夢占い、瞑想、プレミアムレポートまで。今必要な徴がカードの質感の中で静かに光ります。",
+      "chipTarot": "タロット",
+      "chipOracle": "神託",
+      "chipFlower": "花・夢占い",
+      "chipPremium": "プレミアムレポート"
+    },
+    "input": {
+      "title": "四柱推命分析を始める",
+      "desc": "名前と出生時間を開くと、命式、五行、十星の流れが順番に展開されます。",
+      "nameLabel": "名前",
+      "nameHint": "分析結果に表示する名前を入力してください。",
+      "birthDateLabel": "生年月日",
+      "birthDateHint": "生まれた日を選ぶと、四柱命式の最初の基準が開きます。",
+      "solar": "新暦",
+      "lunar": "旧暦",
+      "lunarLeap": "旧暦うるう月",
+      "birthTimeLabel": "出生時間",
+      "birthTimeUnknown": "出生時間が不明な場合は、正午を基準に控えめに分析します。",
+      "birthCountryLabel": "出生国・場所",
+      "birthCountryHint": "夏時間と経度補正を自動適用",
+      "birthPlaceLoading": "出生地を読み込み中...",
+      "timePreview": "時間補正プレビュー",
+      "genderLabel": "性別",
+      "female": "女性",
+      "male": "男性",
+      "submit": "無料の四柱推命分析を始める",
+      "saveProfile": "プロフィールカードを保存",
+      "saveOptional": "任意",
+      "kakaoEvent": "Kakao共有イベント",
+      "kakaoEventSub": "友だち招待完了で100 Moonlight Stone",
+      "referralNote": "月光招待リンクから友だちの登録が完了すると紹介報酬が支給されます。1日の支給上限は500 Moonlight Stoneです。"
+    },
+    "startSection": {
+      "kicker": "TODAY CARDS",
+      "title": "今日ひらく無料の運命カード",
+      "lead": "初めての方も気軽に、月明かりの下でいちばん軽やかなカードから開いてみてください。"
+    },
+    "startCards": {
+      "ziweiBadge": "Collection No. 01 · おすすめ",
+      "ziweiTitle": "紫微斗数",
+      "ziweiDesc": "十二宮命盤で基本性格、仕事、お金、人間関係の軸を読み解きます。",
+      "ziweiCta": "命盤を見る",
+      "vedicBadge": "Collection No. 02 · おすすめ",
+      "vedicTitle": "ヴェーダ占星術",
+      "vedicDesc": "ジョーティシュの星座とカルマの流れから、今日の進む道を読みます。",
+      "vedicCta": "ヴェーダを見る",
+      "astrologyBadge": "Collection No. 03 · おすすめ",
+      "astrologyTitle": "占星術",
+      "astrologyDesc": "太陽星座、月星座、上昇宮、MCから基本の出生チャートを読みます。",
+      "astrologyCta": "チャートを見る",
+      "sukuyoBadge": "Collection No. 04 · おすすめ",
+      "sukuyoTitle": "宿曜",
+      "sukuyoDesc": "本命宿、気質、今日の参考リズムをまず確認します。",
+      "sukuyoCta": "無料宿曜を見る"
+    },
+    "collectionHeaders": {
+      "animal": {
+        "title": "動物・観相コレクション",
+        "subtitle": "あなたの中に眠る野生の本質を目覚めさせる",
+        "lede": "顔立ち、性格、四柱推命のサインを重ね、直感的なキャラクターと関係エネルギーを映し出します。",
+        "featureline": "AI動物観相 · MBTI動物相性 · アニマルトーテム · 六十干支ガーディアン"
+      },
+      "meditation": {
+        "title": "瞑想コレクション",
+        "subtitle": "想像力と潜在意識で今日のエネルギーを整える",
+        "lede": "ネヴィル・ゴダード式の想像瞑想で感情を落ち着かせ、望む現実へ意識を向けます。",
+        "featureline": "ネヴィル瞑想 · 集中呼吸 · 自己暗示 · 現実化ビジュアライゼーション"
+      },
+      "tarot": {
+        "title": "タロットリーディングコレクション",
+        "subtitle": "必要なタロットを選び、今すぐリーディングを始める",
+        "lede": "関係、癒し、自信、再会、年間運、選択の基準まで、質問に合うスプレッドで深く読み解きます。",
+        "featureline": "関係6カード · 癒し4カード · 自己信頼回復 · 再会運 · 十二支年運 · 命理タロット"
+      },
+      "oracle": {
+        "title": "神託・占術コレクション",
+        "subtitle": "古代の知恵が今日のあなたに語りかける",
+        "lede": "ひとつの問いを置くと、東西の象徴解釈を重ねて今日の答えを明確に整えます。",
+        "featureline": "花札占い · エジプト神託 · IFÀ · 易経64卦 · ルーン · ジオマンシー · 紅茶占い · デスティニーポーカー"
+      },
+      "cosmic": {
+        "title": "コズミック・星座コレクション",
+        "subtitle": "星々が刻んだあなたの宇宙的な運命地図",
+        "lede": "惑星、星座、ハウスをつなぎ、性質とタイミングを天体の流れとして読み解きます。",
+        "featureline": "西洋占星術 · 紫微斗数 · ヴェーダ占星術 · オリンポス星座神託"
+      },
+      "flower": {
+        "title": "運命の花・夢占いコレクション",
+        "subtitle": "宇宙の言葉で咲く、あなただけの運命",
+        "lede": "四柱推命、占星術、紫微斗数、宿曜の結果を花の象徴に編み、詩的な運命レポートへ導きます。",
+        "featureline": "運命の花アトリエ · 占星術の花 · 紫微斗数の花 · 宿曜の花 · ドリームタロット · 精神分析夢占い"
+      },
+      "vvip": {
+        "title": "VVIP運命書庫",
+        "subtitle": "あなたの星、四柱推命、縁の記録を一冊の秘密文書にまとめます。",
+        "lede": "人生、愛、お金、関係、転機を深く開いて読むプレミアム解釈コレクションです。",
+        "featureline": "紫微斗数 · 宿曜 · 占星術 · ヴェーダ · 魂のカルマ"
+      },
+      "misc": {
+        "title": "その他の占術コレクション",
+        "subtitle": "心理テストから四柱FPTIまで一度に探索",
+        "lede": "心理テスト、AIおみくじ、血液型テスト、推し運命、四柱FPTIをカードコレクションとして自然につなぎます。",
+        "featureline": "心理テストハブ · AIおみくじ · 血液型テスト · 推し運命 · 四柱FPTI"
+      }
+    },
+    "tiles": {
+      "animalFaceTitle": "🎭 AI動物観相",
+      "animalFaceDesc": "自撮りで見る観相分析",
+      "animalMbtiTitle": "🦁 MBTI動物相性",
+      "animalMbtiDesc": "16種類のトーテム相性",
+      "animalTotemTitle": "🧸 アニマルトーテム",
+      "animalTotemDesc": "守護動物カードリーディング",
+      "sajuGuardianTitle": "🐲 四柱ガーディアン召喚陣",
+      "sajuGuardianDesc": "日柱・五行・六十干支の守護印と7日ミッション",
+      "destinyEggTitle": "🥚 運命の卵",
+      "destinyEggDesc": "あなただけの運勢たまごっち",
+      "fortuneFishTitle": "🐟 フォーチュンテラー魚",
+      "fortuneFishDesc": "無料の魚リーディングと幸運のお守り保管庫",
+      "palmMapTitle": "🖐 手相マップ",
+      "palmMapDesc": "手のひらに刻まれた愛、金運、仕事の流れを読みます。",
+      "nevillePracticeTitle": "🧘 ネヴィル瞑想実践",
+      "nevillePracticeDesc": "想像創造の集中ガイド",
+      "divyaYogaTitle": "🪷 Divya Yoga",
+      "divyaYogaDesc": "あなただけの瞑想ヨガルーティン",
+      "cosmicSoulMeditationTitle": "🌌 コズミックソウル瞑想",
+      "cosmicSoulMeditationDesc": "現実レンダリング30・60分プロトコル",
+      "tarotLoveTitle": "💕 私たちはどんな関係？",
+      "tarotLoveDesc": "言葉と行動のあいだに残る温度",
+      "tarotHealingTitle": "☀ あたたかな太陽回復タロット",
+      "tarotHealingDesc": "心が疲れた場所と今日の光",
+      "tarotSelfEsteemTitle": "✨ 自分軸回復タロット",
+      "tarotSelfEsteemDesc": "5カードの心中心リーディング",
+      "tarotReunionTitle": "🌊 再会運灯台タロット",
+      "tarotReunionDesc": "残る温もりと安全な距離",
+      "tarotPromptMakerTitle": "💘 タロットプロンプトライブラリ",
+      "tarotPromptMakerDesc": "スプレッド選択・カード展開・リーディング文完成",
+      "tarotYearTitle": "🐉 十二支天運タロット",
+      "tarotYearDesc": "十二か月の守護運",
+      "tarotNumerologyTitle": "🔢 数秘タロット",
+      "tarotNumerologyDesc": "ライフナンバーと今日数の5カードリーディング",
+      "tarotCareerMoveTitle": "💼 転職運命カード",
+      "tarotCareerMoveDesc": "残す基準と移る方向を読む7カード",
+      "tarotMindscanTitle": "🔮 言葉と行動のあいだ",
+      "tarotMindscanDesc": "心の温度を読む10カード",
+      "tarotCrystalSoulTitle": "💎 原石ソウルタロット",
+      "tarotCrystalSoulDesc": "クリスタルエネルギーリーディング",
+      "celestialHarmonyTitle": "✨ 天体のハーモニー",
+      "celestialHarmonyDesc": "11惑星の声を編むタロット",
+      "sajuTarotTitle": "🔮 命理タロット",
+      "sajuTarotDesc": "カードと十星で読む選択基準",
+      "hwatuTitle": "🎴 花札占い",
+      "hwatuDesc": "12か月の花札で見る運勢",
+      "egyptOracleTitle": "𓂀 エジプト神託",
+      "egyptOracleDesc": "ケメトのオラクル運勢",
+      "ifaOracleTitle": "🪬 IFÀオラクル",
+      "ifaOracleDesc": "ヨルバ256オドゥ神託",
+      "ichingTurtleTitle": "☯️ 易経亀占い",
+      "ichingTurtleDesc": "64卦と3000年の知恵",
+      "runeOracleTitle": "ᚠ ストーンヘンジ・ルーンオラクル",
+      "runeOracleDesc": "古代ルーン象徴リーディング",
+      "geomancyTitle": "⟁ ジオマンシー土占い",
+      "geomancyDesc": "大地の徴を読む16行神託",
+      "sikojenTitle": "🐷 フィンランドの豚の錫占い",
+      "sikojenDesc": "ヨニと錫の影で見るかわいい新年神託",
+      "royalTeaTitle": "🫖 英国紅茶占い",
+      "royalTeaDesc": "王室タセオグラフィーの茶葉リーディング",
+      "destinyPokerTitle": "🃏 デスティニーポーカー",
+      "destinyPokerDesc": "神々と競う運命のカード対決",
+      "westernAstrologyTitle": "✨ 西洋占星術基本チャート",
+      "westernAstrologyDesc": "基本出生チャート無料 · シナストリー相性50コイン",
+      "ziweiBasicTitle": "🌌 紫微斗数",
+      "ziweiBasicDesc": "基本命盤無料 · 相性は選択拡張50コイン",
+      "ziweiAdvancedTitle": "🌟 紫微斗数深掘り",
+      "ziweiAdvancedDesc": "十二宮人生戦略 · 命宮深層分析",
+      "vedicAstrologyTitle": "🪐 ヴェーダ占星術",
+      "vedicAstrologyDesc": "基本命盤無料 · 相性50コイン",
+      "olympusOracleTitle": "⚡ オリンポス神託",
+      "olympusOracleDesc": "12神と星座の運命判読",
+      "destinyFlowerTitle": "🌸 運命の花",
+      "destinyFlowerDesc": "四柱から咲くあなたの花",
+      "astrologyFlowerTitle": "✨ 占星術の花",
+      "astrologyFlowerDesc": "Sun · Rising · Moon",
+      "ziweiFlowerTitle": "🌺 紫微斗数の花",
+      "ziweiFlowerDesc": "命宮主星 · 星の明るさ",
+      "sukuyoFlowerTitle": "🌙 宿曜の花",
+      "sukuyoFlowerDesc": "27宿 · 月の位相",
+      "dreamTarotTitle": "🌙 ドリームタロット",
+      "dreamTarotDesc": "夢の余韻を読む3カードリーディング",
+      "psychoDreamTitle": "🕯️ 精神分析夢占い",
+      "psychoDreamDesc": "Freud · British Study",
+      "sukuyoPremiumTitle": "宿曜プレミアム相性",
+      "sukuyoPremiumDesc": "基本相性と精密拡張とは別に、15章の相談PDFを生成します。",
+      "ziweiPremiumTitle": "紫微斗数プレミアムPDF",
+      "ziweiPremiumDesc": "命宮と十二宮に刻まれた人生の宮位を読み解きます。",
+      "astroReportTitle": "占星術コズミックレポート",
+      "astroReportDesc": "太陽、月、上昇宮に土星、ノード、トランジット、ハウスの流れを重ねて転機を読みます。",
+      "vedicPremiumTitle": "ヴェーダ占星術プレミアムPDF",
+      "vedicPremiumDesc": "ラグナとナクシャトラが語る魂の方向を開きます。",
+      "soulKarmaTitle": "運命の業",
+      "soulKarmaDesc": "あなたはどこから来て、この人生で何をほどくために到着したのでしょうか。",
+      "psychotestHubTitle": "🧠 心理テストハブ",
+      "psychotestHubDesc": "14種類のテーマテスト",
+      "aiOmikujiTitle": "🤖 AIエモイおみくじ",
+      "aiOmikujiDesc": "感性神託リーディング",
+      "yeonStarHugTileTitle": "🌸 ヨニのこころ星座",
+      "yeonStarHugTileDesc": "今日の心をそっと抱きしめます",
+      "bloodTypeTitle": "🩸 血液型テスト",
+      "bloodTypeDesc": "性格 · 相性 · コーチング",
+      "favoriteDestinyTitle": "✨ 推し運命",
+      "favoriteDestinyDesc": "フォトカードムードリーディング",
+      "sajuFptiTitle": "🔮 四柱FPTIテスト",
+      "sajuFptiDesc": "五行と十星の4軸性格分析"
+    }
+  },
   "terms": {
     "사주": "四柱推命",
     "사주팔자": "四柱八字",
@@ -45,7 +307,6 @@
     "술토": "守護の岩盤（戌土·犬）",
     "해수": "根源の泉（亥水·猪）"
   },
-
   "premium": {
     "reportTitle": "あなたの命運ブループリント",
     "reportSubtitle": "東洋命理学×AIが解読するプレミアム人生分析",
@@ -64,21 +325,47 @@
     },
     "cta": "完全版 命運ブループリントを解錠する",
     "priceDisplay": "¥3,900〜",
-    "guarantee": "30日間満足保証"
+    "guarantee": "30日間満足保証",
+    "compatibility": {
+      "label": "宇宙的相性分析",
+      "description": "本当の相性は性格診断を超えます。宇宙的相性分析は、二つの命式に流れる五行の相互作用を読み取り、互いを強める場所、摩擦が生まれやすい場所、関係を美しく整える方法を明らかにします。"
+    }
   },
-
   "trust": {
     "headline": "10万人以上が信頼する理由",
     "badges": [
-      { "icon": "🌍", "label": "グローバルコミュニティ", "value": "80カ国以上・10万人以上" },
-      { "icon": "🔒", "label": "SSL暗号化", "value": "256bit暗号化・安全決済" },
-      { "icon": "⭐", "label": "満足度", "value": "平均評価 4.9/5" },
-      { "icon": "🌐", "label": "多言語対応", "value": "10言語・常時利用可能" },
-      { "icon": "💳", "label": "安全決済", "value": "Stripe認証・主要カード対応" },
-      { "icon": "🔄", "label": "保証", "value": "30日間返金保証" }
+      {
+        "icon": "🌍",
+        "label": "グローバルコミュニティ",
+        "value": "80カ国以上・10万人以上"
+      },
+      {
+        "icon": "🔒",
+        "label": "SSL暗号化",
+        "value": "256bit暗号化・安全決済"
+      },
+      {
+        "icon": "⭐",
+        "label": "満足度",
+        "value": "平均評価 4.9/5"
+      },
+      {
+        "icon": "🌐",
+        "label": "多言語対応",
+        "value": "10言語・常時利用可能"
+      },
+      {
+        "icon": "💳",
+        "label": "安全決済",
+        "value": "Stripe認証・主要カード対応"
+      },
+      {
+        "icon": "🔄",
+        "label": "保証",
+        "value": "30日間返金保証"
+      }
     ]
   },
-
   "footer": {
     "tagline": "古代の叡智、現代の精度。",
     "about": "Code Destinyは、3000年以上の東洋命理学システムと最新AIを融合した運命分析プラットフォームです。10言語対応、基本機能は無料でご利用いただけます。",
@@ -91,6 +378,193 @@
       "contact": "お問い合わせ"
     },
     "refundPolicy": "プレミアムコイン（デジタルクレジット）は購入後14日以内かつ未使用の場合、消費者保護法に基づき返金対応いたします。使用済みクレジットは対象外です。",
-    "copyright": "© 2025 Code Destiny. All rights reserved. 本サービスはエンターテインメント・自己内省目的です。専門的アドバイスの代替ではありません。"
+    "copyright": "© 2025 Code Destiny. All rights reserved. 本サービスはエンターテインメント・自己内省目的です。専門的アドバイスの代替ではありません。",
+    "sections": {
+      "services": "サービス",
+      "resources": "リソース",
+      "legal": "法務",
+      "support": "サポート"
+    }
+  },
+  "branches": {
+    "자수": {
+      "label": "真夜中の深淵",
+      "animal": "鼠・水（子水）",
+      "essence": "鼠は最も暗い水脈を、鋭い直感で進みます。真夜中の深淵は、見えない情報を読み取り、資源を集め、誰も道を見つけられない場所に流れを作る知恵を象徴します。"
+    },
+    "축토": {
+      "label": "鉄の岩盤",
+      "animal": "牛・土（丑土）",
+      "essence": "牛は、他者が耐えられない重さを静かに受け止めます。鉄の岩盤は、揺るがぬ忍耐、積み重ねによる力、派手さではなく継続で人生を築く人の気品を表します。"
+    },
+    "인목": {
+      "label": "王者の萌芽",
+      "animal": "虎・木（寅木）",
+      "essence": "虎は原初の森を統べる存在です。王者の萌芽は、自然に湧き上がる統率力、守るべきものへの強い本能、抑え込めない成長の勢いを示します。"
+    },
+    "묘목": {
+      "label": "夜明けの天蓋",
+      "animal": "兎・木（卯木）",
+      "essence": "兎は最初の光のように、柔らかく、それでいて抗えない生命力を持ちます。夜明けの天蓋は、社交性、芸術的感受性、力ではなく優しさで花開く才能を意味します。"
+    },
+    "진토": {
+      "label": "天上の玉座",
+      "animal": "龍・土（辰土）",
+      "essence": "龍は十二支で唯一の神話的存在です。天上の玉座は、変容を起こす器、場を動かす存在感、本人が意識せずとも周囲に特別な印象を残す運命の重みを表します。"
+    },
+    "사화": {
+      "label": "秘めた熾火",
+      "animal": "蛇・火（巳火）",
+      "essence": "蛇は自らを声高に語りません。秘めた熾火は、沈黙の中で蓄えられた叡智、ゆっくり燃える集中力、すべてを明かさずに深く見抜く神秘的な知性を象徴します。"
+    },
+    "오화": {
+      "label": "太陽の炎",
+      "animal": "馬・火（午火）",
+      "essence": "馬は正午の太陽のような存在です。太陽の炎は、明るさ、速度、自由への渇望、愛するものへ向かって走るときに最も輝く磁力を意味します。"
+    },
+    "미토": {
+      "label": "牧歌の聖域",
+      "animal": "羊・土（未土）",
+      "essence": "羊は攻撃性を伴わない豊かさを運びます。牧歌の聖域は、育む力、調和、美しいものを長く残す創造性、周囲が安心して息をつける場づくりを表します。"
+    },
+    "신금": {
+      "label": "水銀の刃",
+      "animal": "猿・金（申金）",
+      "essence": "猿は十二支の知的なトリックスターです。水銀の刃は、機転、複雑な状況を遊ぶ知性、変化に合わせて戦略を組み替える柔軟な才能を示します。"
+    },
+    "유금": {
+      "label": "三日月の鋼",
+      "animal": "鶏・金（酉金）",
+      "essence": "鶏は精密さの化身であり、夜明けを告げる存在です。三日月の鋼は、規律、洗練された判断力、本当に価値あるものを見抜く鋭い審美眼を象徴します。"
+    },
+    "술토": {
+      "label": "守護の門",
+      "animal": "犬・土（戌土）",
+      "essence": "犬は門を守る神聖な役目を担います。守護の門は、信頼、忠誠、守るべきものへの強さ、揺らがない道徳感覚を表します。"
+    },
+    "해수": {
+      "label": "原初の泉",
+      "animal": "猪・水（亥水）",
+      "essence": "猪は大きく寛やかな水の流れです。原初の泉は、率直さ、豊かな生命力、純粋さを失わない人に尽きることなく湧く深い力を意味します。"
+    }
+  },
+  "services": {
+    "saju": {
+      "name": "四柱推命",
+      "short": "四柱推命鑑定",
+      "description": "東洋メタ心理学の原点。生年月日には、四つの柱と八つの文字からなる精密な宇宙的署名が刻まれています。",
+      "badge": "人気"
+    },
+    "tarot": {
+      "name": "AIタロットガイダンス",
+      "short": "AIタロット",
+      "description": "古代の象徴体系をAIで増幅したリーディング。カードは、いまのあなたのエネルギー場を映し出します。"
+    },
+    "ziwei": {
+      "name": "紫微斗数",
+      "short": "星の命盤",
+      "description": "古代中国の帝王学的な星読み。144の宮と108の星から、人生全体の流れを立体的に読み解きます。",
+      "badge": "深掘り"
+    },
+    "astrology": {
+      "name": "コズミック占星術",
+      "short": "インド・西洋占星術",
+      "description": "インド占星術と西洋占星術を融合し、複数の伝統から惑星配置の意味を読み解きます。"
+    },
+    "destinyFlower": {
+      "name": "運命の花アーキタイプ",
+      "short": "運命の花",
+      "description": "魂がどのように咲くのかを、五行の署名から詩的かつ精密に描き出すアーキタイプです。"
+    },
+    "compatibility": {
+      "name": "宇宙的相性",
+      "short": "相性分析",
+      "description": "MBTIを超えて、五行の相互作用から二人の深いエネルギー契約を読み解きます。"
+    }
+  },
+  "pricing": {
+    "currencies": {
+      "KRW": {
+        "symbol": "₩",
+        "rate": 1,
+        "format": "₩{amount}"
+      },
+      "USD": {
+        "symbol": "$",
+        "rate": 0.00074,
+        "format": "${amount}"
+      },
+      "EUR": {
+        "symbol": "€",
+        "rate": 0.00068,
+        "format": "€{amount}"
+      },
+      "JPY": {
+        "symbol": "¥",
+        "rate": 0.11,
+        "format": "¥{amount}"
+      },
+      "CNY": {
+        "symbol": "¥",
+        "rate": 0.0053,
+        "format": "¥{amount}"
+      },
+      "GBP": {
+        "symbol": "£",
+        "rate": 0.00058,
+        "format": "£{amount}"
+      },
+      "AUD": {
+        "symbol": "A$",
+        "rate": 0.0012,
+        "format": "A${amount}"
+      },
+      "CAD": {
+        "symbol": "C$",
+        "rate": 0.001,
+        "format": "C${amount}"
+      },
+      "INR": {
+        "symbol": "₹",
+        "rate": 0.062,
+        "format": "₹{amount}"
+      },
+      "SGD": {
+        "symbol": "S$",
+        "rate": 0.00099,
+        "format": "S${amount}"
+      },
+      "MYR": {
+        "symbol": "RM",
+        "rate": 0.0035,
+        "format": "RM{amount}"
+      }
+    },
+    "tiers": [
+      {
+        "id": "starter",
+        "name": "スターター",
+        "krwPrice": 9900,
+        "coins": 10,
+        "description": "プレミアム鑑定10回分",
+        "popular": false
+      },
+      {
+        "id": "standard",
+        "name": "スタンダード",
+        "krwPrice": 29000,
+        "coins": 35,
+        "description": "プレミアム鑑定35回分 + 総合運命レポート",
+        "popular": true
+      },
+      {
+        "id": "premium",
+        "name": "プレミアム",
+        "krwPrice": 59000,
+        "coins": 80,
+        "description": "鑑定80回分 + 生涯アクセス機能",
+        "popular": false
+      }
+    ]
   }
 }

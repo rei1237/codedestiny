@@ -57,7 +57,7 @@ const SLUG_CFG: Record<string, SlugCfg> = {
   "/saju/love-secret":  { icon:"💕", badge:"LOVE SECRET",   tag:"사주 기반 연애 전략 · 이상형 분석", particles:["💕","🌹","☯","✦","🌸"] },
   "/saju/love-bible":   { icon:"💕", badge:"LOVE SECRET",   tag:"사주 기반 연애 전략 · 이상형 분석", particles:["💕","🌹","☯","✦","🌸"] },
   "/saju/love-simulation": { icon:"💕", badge:"LOVE CODE",  tag:"사주 연애 시뮬레이션",            particles:["💕","🎲","☯","🌸","✦"] },
-  "/ziwei/chart":       { icon:"☸",  badge:"ZIWEI",          tag:"12궁 자미두수 명반 분석",   particles:["☸","✦","⭐","🌙","🌟"] },
+  "/ziwei/chart":       { icon:"☸",  badge:"ZIWEI",          tag:"12궁·사화·대한 심화 상담", particles:["☸","✦","⭐","🌙","🌟"] },
   "/astrology/cosmic":  { icon:"🌌", badge:"COSMIC CHART",   tag:"태양·달·상승궁 분석",       particles:["🌌","⭐","✦","🌙","🌟"] },
   "/oracle/hwatu-life": { icon:"🀄", badge:"HWATU LIFE",     tag:"7문항 화투 인생 패 테스트", particles:["🀄","🌸","🍁","🌊","🎴"] },
   "/oracle/sikojen-povailu": { icon:"🐷", badge:"TIN ORACLE", tag:"핀란드 주석 납점 오라클",  particles:["🐷","✦","❄️","🌊","⭐"] },
@@ -229,7 +229,6 @@ const ACTION_MAP: Record<string, string> = {
   "/saju/basic":"checkPrivacyAndCalculate",
   "/saju/sibyl":"openSibylModal",
   "/saju/love-simulation":"openLoveSimulation",
-  "/ziwei/chart":"openZiweiModal",
   "/astrology/cosmic":"openAstroModal",
   "/oracle/hwatu-life":"openHwatuModal",
   "/oracle/ifa":"openIfaOracle",
@@ -314,6 +313,8 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
     ? "/oracle/sikojen-povailu"
     : basePath === "/oracle/rune"
     ? "/oracle/rune"
+    : basePath === "/ziwei/chart"
+    ? "/ziwei/chart"
     : action
     ? `/index.html?action=${encodeURIComponent(action)}`
     : "/index.html";
@@ -674,7 +675,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
                 display:"block",
                 fontSize:"0.73rem", color:"rgba(120,60,60,0.68)",
                 marginTop:"3px", lineHeight:1.4,
-              }}>사주·타로·점성술·자미두수 무료 통합 플랫폼</span>
+              }}>사주·타로·점성술·자미두수 통합 플랫폼</span>
             </span>
 
             <span style={{

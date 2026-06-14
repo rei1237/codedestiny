@@ -12,7 +12,7 @@ const SERVICE = {
 };
 
 export const metadata = withUniqueRouteMetadata("/oracle/royal-tea", {
-  title: "타세오그래피 찻잎 점 - 런던 로열 컵 문양 리딩 | Code Destiny",
+  title: "타세오그래피 찻잎 점 - 런던 로열 컵 문양 리딩",
   description:
     "런던 로열 컵 문양을 기반으로 찻잎 패턴의 상징을 해석하는 영국 전통 홍차 점 오라클.",
 });

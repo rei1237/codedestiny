@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
-import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
 
-export const metadata: Metadata = withUniqueRouteMetadata("/points/history", {
-  title: "결제/멤버십 이력 | Code Destiny",
-  description: "코드 데스티니 유료 콘텐츠 단건 결제, 멤버십 이용권, 환불 이력을 조회하는 페이지입니다.",
-});
+export const metadata: Metadata = {
+  title: "결제 및 이용권 내역",
+  description: "Code Destiny 결제, 이용권, 주문 상태를 확인하는 개인 페이지입니다.",
+  alternates: {
+    canonical: "/points/history/",
+  },
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+};
 
 export default function PointsHistoryLayout({ children }: { children: React.ReactNode }) {
   return children;

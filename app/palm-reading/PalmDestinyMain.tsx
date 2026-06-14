@@ -87,6 +87,11 @@ type PalmClientLineCandidate = {
   branches: number;
   breaks: number;
   confidence: number;
+  evidenceScore?: number;
+  edgeConsistency?: number;
+  continuity?: number;
+  guideDistance?: number;
+  sourceKind?: "clientGuide";
 };
 
 type PalmClientVisionPayload = {
@@ -487,10 +492,10 @@ async function analyzeImageQuality(file: File): Promise<PalmImageQualityFeedback
 
     const summary =
       confidence === "높음"
-        ? "분석 신뢰도 높음"
+        ? "분석 확신도 높음"
         : confidence === "보통"
-        ? "분석 신뢰도 보통"
-        : "분석 신뢰도 낮음: 사진이 어둡거나 손금이 흐려 일부 결과는 참고용입니다.";
+        ? "분석 확신도 보통"
+        : "분석 확신도 낮음: 사진의 빛이나 초점이 약해 일부 흐름은 참고용으로 읽습니다.";
 
     return {
       confidence,
@@ -705,23 +710,27 @@ async function extractPalmVisionPayload(file: File, side: HandSide): Promise<Pal
           }
         }
       }
+      const offset = Math.hypot(best.x - baseX, best.y - baseY) / Math.max(1, radius);
       return {
         point: {
           x: Number(((best.x / sampleWidth) * width).toFixed(2)),
           y: Number(((best.y / sampleHeight) * height).toFixed(2)),
         },
         darkness: best.darkness,
+        offset: Number(Math.min(1, offset).toFixed(4)),
       };
     };
 
     const guides: Array<{
       id: string;
+      kind: "major" | "minor";
       points: Array<{ x: number; y: number }>;
       branches?: number;
       radius?: number;
     }> = [
       {
         id: "client-life",
+        kind: "major",
         points: [
           { x: 0.36, y: 0.24 },
           { x: 0.29, y: 0.38 },
@@ -734,6 +743,7 @@ async function extractPalmVisionPayload(file: File, side: HandSide): Promise<Pal
       },
       {
         id: "client-head",
+        kind: "major",
         points: [
           { x: 0.35, y: 0.4 },
           { x: 0.28, y: 0.43 },
@@ -744,6 +754,7 @@ async function extractPalmVisionPayload(file: File, side: HandSide): Promise<Pal
       },
       {
         id: "client-heart",
+        kind: "major",
         points: [
           { x: 0.82, y: 0.27 },
           { x: 0.68, y: 0.24 },
@@ -756,6 +767,7 @@ async function extractPalmVisionPayload(file: File, side: HandSide): Promise<Pal
       },
       {
         id: "client-fate",
+        kind: "major",
         points: [
           { x: 0.5, y: 0.88 },
           { x: 0.5, y: 0.72 },
@@ -767,6 +779,7 @@ async function extractPalmVisionPayload(file: File, side: HandSide): Promise<Pal
       },
       {
         id: "client-money",
+        kind: "minor",
         points: [
           { x: 0.64, y: 0.74 },
           { x: 0.72, y: 0.6 },
@@ -778,6 +791,7 @@ async function extractPalmVisionPayload(file: File, side: HandSide): Promise<Pal
       },
       {
         id: "client-marriage",
+        kind: "minor",
         points: [
           { x: 0.86, y: 0.36 },
           { x: 0.8, y: 0.36 },
@@ -791,22 +805,51 @@ async function extractPalmVisionPayload(file: File, side: HandSide): Promise<Pal
       .map((guide) => {
         const sampled = guide.points.map((point) => searchDarkPoint(point.x, point.y, guide.radius || 10));
         const avgDarkness = sampled.reduce((sum, item) => sum + item.darkness, 0) / Math.max(1, sampled.length);
+        const edgeConsistency = sampled.filter((item) => item.darkness >= 8).length / Math.max(1, sampled.length);
+        const continuity =
+          sampled.length <= 1
+            ? edgeConsistency
+            : sampled
+                .slice(1)
+                .filter((item, index) => item.darkness >= 8 && sampled[index].darkness >= 8).length /
+              Math.max(1, sampled.length - 1);
+        const guideDistance = sampled.reduce((sum, item) => sum + item.offset, 0) / Math.max(1, sampled.length);
         const boundsBonus = palmBounds ? Math.min(0.08, palmBounds.confidence * 0.6) : -0.04;
-        const confidence = Math.max(0.34, Math.min(0.9, 0.42 + avgDarkness / 80 + boundsBonus));
+        const evidenceScore = Math.max(
+          0,
+          Math.min(0.95, 0.28 + avgDarkness / 70 + edgeConsistency * 0.22 + continuity * 0.16 - guideDistance * 0.12 + boundsBonus),
+        );
+        const confidence = Math.max(0.2, Math.min(0.92, evidenceScore));
         const path = sampled.map((item) => item.point);
         return {
           id: guide.id,
           path,
           startPoint: path[0],
           endPoint: path[path.length - 1],
-          depthScore: Math.max(0.32, Math.min(0.9, 0.38 + avgDarkness / 75 + boundsBonus)),
+          depthScore: Math.max(0.2, Math.min(0.92, 0.26 + avgDarkness / 85 + edgeConsistency * 0.18 + boundsBonus)),
           boundingBox: buildCandidateBox(path),
           branches: guide.branches || 0,
-          breaks: avgDarkness < 8 ? 1 : 0,
+          breaks: continuity < 0.45 ? 1 : 0,
           confidence,
+          evidenceScore,
+          edgeConsistency,
+          continuity,
+          guideDistance,
+          sourceKind: "clientGuide" as const,
         };
       })
-      .filter((candidate) => candidate.path.length >= 3 && candidate.confidence >= 0.4);
+      .filter((candidate) => {
+        const isMinor = candidate.id === "client-money" || candidate.id === "client-marriage";
+        const requiredEvidence = isMinor ? 0.58 : 0.48;
+        const requiredEdge = isMinor ? 0.55 : 0.45;
+        const requiredContinuity = isMinor ? 0.45 : 0.35;
+        return (
+          candidate.path.length >= 3 &&
+          candidate.evidenceScore >= requiredEvidence &&
+          candidate.edgeConsistency >= requiredEdge &&
+          candidate.continuity >= requiredContinuity
+        );
+      });
 
     canvas.width = 0;
     canvas.height = 0;
@@ -966,6 +1009,58 @@ function normalizeInterpretation(payload: unknown): PalmInterpretationPayload | 
     ...(sections.length > 0 ? { sections } : {}),
     ...(report ? { report } : {}),
     cards,
+  };
+}
+
+function normalizeEngineResultSections(payload: unknown): Array<{ key: string; title: string; summary: string; detail: string; advice: string }> {
+  if (!Array.isArray(payload)) return [];
+  const keyMap: Record<string, string> = {
+    comprehensive: "overall",
+    heart: "love",
+    fate: "career",
+    "sun-money": "wealth",
+    role: "personality",
+    "love-marriage": "relationship",
+    advice: "advice",
+  };
+
+  return payload
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Record<string, unknown>;
+      const sourceKey = String(row.key || "").trim();
+      const key = keyMap[sourceKey] || sourceKey;
+      const title = String(row.title || "").replace(/^\d+(?:-\d+)?\.\s*/, "").trim();
+      const detail = String(row.content || row.detail || "").trim();
+      if (!key || !title || !detail) return null;
+      const summary = detail.split(/\s+/).slice(0, 28).join(" ").trim() || detail;
+      return {
+        key,
+        title,
+        summary,
+        detail,
+        advice: sourceKey === "advice" ? detail : "",
+      };
+    })
+    .filter((item): item is { key: string; title: string; summary: string; detail: string; advice: string } => Boolean(item));
+}
+
+function mergeInterpretationSections(
+  base: PalmInterpretationPayload,
+  engineSections: Array<{ key: string; title: string; summary: string; detail: string; advice: string }>,
+): PalmInterpretationPayload {
+  if (engineSections.length === 0) return base;
+  const byKey = new Map<string, { key: string; title: string; summary: string; detail: string; advice: string }>();
+  for (const section of base.sections || []) {
+    byKey.set(section.key, section);
+  }
+  for (const section of engineSections) {
+    byKey.set(section.key, section);
+  }
+  return {
+    ...base,
+    focusSummary: engineSections.find((section) => section.key === "overall")?.summary || base.focusSummary,
+    sections: Array.from(byKey.values()),
   };
 }
 
@@ -1237,10 +1332,13 @@ function resultModeLabel(mode: AnalysisResultState["mode"]): string {
 function buildInterpretationWithFallback(
   canonical: ReturnType<typeof createDefaultCanonicalPalmReading>,
   payload: unknown,
+  resultSectionsPayload?: unknown,
 ): PalmInterpretationPayload | null {
   const normalized = normalizeInterpretation(payload);
-  if (normalized?.cards?.length) return normalized;
-  return normalizeInterpretation(buildPalmInterpretationReport(canonical));
+  const engineSections = normalizeEngineResultSections(resultSectionsPayload);
+  if (normalized?.cards?.length) return mergeInterpretationSections(normalized, engineSections);
+  const fallback = normalizeInterpretation(buildPalmInterpretationReport(canonical));
+  return fallback ? mergeInterpretationSections(fallback, engineSections) : null;
 }
 
 function pickSection(
@@ -1344,7 +1442,7 @@ function buildCategoryConsultations(input: {
 
 export default function PalmDestinyMain() {
   const router = useRouter();
-  const [isImmersiveView] = useState(true);
+  const [isImmersiveView, setIsImmersiveView] = useState(true);
   const [leftHand, setLeftHand] = useState<HandImageState>({ file: null, previewUrl: null });
   const [rightHand, setRightHand] = useState<HandImageState>({ file: null, previewUrl: null });
   const [dominantHand, setDominantHand] = useState<DominantHand | "">("");
@@ -1753,6 +1851,38 @@ export default function PalmDestinyMain() {
     const initialPurpose = activeAnalysisPurpose;
     const initialSubFeatureKey = PALM_BILLING_SUB_FEATURE_BY_PURPOSE[initialPurpose] || "general";
     const billingRequestId = `palm-reading:${initialSubFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    const billingCheckRequestId = `${billingRequestId}:check`;
+    const billingChargeRequestId = `${billingRequestId}:charge`;
+    let activeBillingGateRequestId = billingCheckRequestId;
+
+    const handleCoinGateFailure = (coinGateResult: Awaited<ReturnType<typeof runBillingCoinGate>>, requestIdForGate: string) => {
+      const coinGateCode = String(coinGateResult.error?.code || "").toUpperCase();
+      const serverCost = Number(coinGateResult.data?.pricing?.cost || 0);
+      const message =
+        coinGateCode === "AUTH_REQUIRED"
+          ? "로그인이 필요합니다. 로그인 후 다시 손금 분석을 시도해 주세요."
+          : coinGateCode === "INSUFFICIENT_COINS"
+          ? `코인이 부족합니다. ${serverCost}코인이 필요합니다.`
+          : coinGateCode === "PRICE_NOT_FOUND"
+          ? "손금 분석 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요."
+          : coinGateResult.error?.message || "코인 결제에 실패했습니다.";
+
+      updatePaidFeatureGate({
+        categoryKey: "palm-reading",
+        subFeatureKey: initialSubFeatureKey,
+        requestId: requestIdForGate,
+        status: "error",
+        message,
+      });
+      setSubmitMessage(message);
+
+      if (coinGateCode === "AUTH_REQUIRED" && typeof window !== "undefined") {
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
+        window.setTimeout(() => {
+          window.location.href = `/login?next=${next}`;
+        }, 600);
+      }
+    };
 
     cancelInFlightRequest();
     const controller = new AbortController();
@@ -1768,47 +1898,25 @@ export default function PalmDestinyMain() {
       openPaidFeatureGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
-        requestId: billingRequestId,
+        requestId: billingCheckRequestId,
         message: "이용권 확인 중",
       });
 
-      const coinGateResult = await runBillingCoinGate({
+      const entitlementCheckResult = await runBillingCoinGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
-        requestId: billingRequestId,
-        forceDeduct: true,
+        requestId: billingCheckRequestId,
+        payloadHash: `${requestSignature}:check`,
+        forceDeduct: false,
       });
 
-      if (!coinGateResult.ok) {
-        const coinGateCode = String(coinGateResult.error?.code || "").toUpperCase();
-        if (coinGateCode === "AUTH_REQUIRED") {
-          setSubmitMessage("로그인이 필요합니다. 로그인 후 다시 손금 분석을 시도해 주세요.");
-          if (typeof window !== "undefined") {
-            const next = encodeURIComponent(window.location.pathname + window.location.search);
-            window.setTimeout(() => {
-              window.location.href = `/login?next=${next}`;
-            }, 600);
-          }
-          return;
-        }
-
-        if (coinGateCode === "INSUFFICIENT_COINS") {
-          const serverCost = Number(coinGateResult.data?.pricing?.cost || 0);
-          setSubmitMessage(`코인이 부족합니다. ${serverCost}코인이 필요합니다.`);
-          return;
-        }
-
-        if (coinGateCode === "PRICE_NOT_FOUND") {
-          setSubmitMessage("손금 분석 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요.");
-          return;
-        }
-
-        setSubmitMessage(coinGateResult.error?.message || "코인 결제에 실패했습니다.");
+      if (!entitlementCheckResult.ok) {
+        handleCoinGateFailure(entitlementCheckResult, billingCheckRequestId);
         return;
       }
 
-      const serverCost = Number(coinGateResult.data?.pricing?.cost || 0);
-      setSubmitMessage(`결제를 확인 중입니다... (${serverCost}코인)`);
+      const serverCost = Number(entitlementCheckResult.data?.pricing?.cost || 0);
+      setSubmitMessage(`이용권 확인이 끝났습니다. 사진을 분석합니다... (${serverCost}코인)`);
 
       const [leftPalmImage, rightPalmImage, leftVision, rightVision] = await Promise.all([
         leftHand.file ? fileToDataUrl(leftHand.file) : Promise.resolve(null),
@@ -1889,7 +1997,7 @@ export default function PalmDestinyMain() {
         updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
-          requestId: billingRequestId,
+          requestId: activeBillingGateRequestId,
           status: "error",
           message: mapPalmAnalyzeError({ status: response.status, code, reasonCode, message }),
         });
@@ -1949,7 +2057,7 @@ export default function PalmDestinyMain() {
         purposeAnalysis: purposeAnalysisFromPayload,
       });
 
-      const interpretation = buildInterpretationWithFallback(canonical, payloadRoot?.interpretation);
+      const interpretation = buildInterpretationWithFallback(canonical, payloadRoot?.interpretation, payloadRoot?.resultSections);
       const overlayPaths = extractOverlayPaths(payloadRoot?.overlayPaths ?? payloadRoot);
       const overlayPathsBySide = extractOverlayPathsBySide(payloadRoot);
       const modeFromPayload =
@@ -1976,11 +2084,26 @@ export default function PalmDestinyMain() {
         updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
-          requestId: billingRequestId,
+          requestId: activeBillingGateRequestId,
           status: "error",
           message: "손바닥 전체가 화면에 들어오지 않았습니다.",
         });
         setSubmitMessage("손바닥 전체가 화면에 들어오지 않았습니다. 손목부터 손가락 끝까지 보이게 다시 촬영해 주세요.");
+        return;
+      }
+
+      activeBillingGateRequestId = billingChargeRequestId;
+      setSubmitMessage(`분석 결과를 확인했습니다. 이용권을 확정하고 있습니다... (${serverCost}코인)`);
+      const coinGateResult = await runBillingCoinGate({
+        categoryKey: "palm-reading",
+        subFeatureKey: initialSubFeatureKey,
+        requestId: billingChargeRequestId,
+        payloadHash: `${requestSignature}:charge`,
+        forceDeduct: true,
+      });
+
+      if (!coinGateResult.ok) {
+        handleCoinGateFailure(coinGateResult, billingChargeRequestId);
         return;
       }
 
@@ -2043,7 +2166,7 @@ export default function PalmDestinyMain() {
         updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
-          requestId: billingRequestId,
+          requestId: activeBillingGateRequestId,
           status: "error",
           message: "요청이 취소되었습니다.",
         });
@@ -2055,7 +2178,7 @@ export default function PalmDestinyMain() {
         updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
-          requestId: billingRequestId,
+          requestId: activeBillingGateRequestId,
           status: "error",
           message: "네트워크/API 오류로 분석 요청에 실패했습니다.",
         });
@@ -2066,7 +2189,7 @@ export default function PalmDestinyMain() {
       updatePaidFeatureGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
-        requestId: billingRequestId,
+        requestId: activeBillingGateRequestId,
         status: "error",
         message: `분석 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "unknown"}`,
       });
@@ -2455,6 +2578,14 @@ export default function PalmDestinyMain() {
               className="absolute right-6 top-6 h-20 w-20 rounded-full opacity-20"
               style={{ border: "1.5px solid #d4b45c", boxShadow: "0 0 16px rgba(212,176,92,0.5)" }}
             />
+            <button
+              type="button"
+              onClick={() => setIsImmersiveView((value) => !value)}
+              aria-label={isImmersiveView ? "기본 화면으로 보기" : "전체화면으로 보기"}
+              className="absolute left-4 top-4 rounded-lg border border-[#c8a84b]/35 bg-[#0d0808]/80 px-3 py-2 text-[11px] font-bold text-[#f5d987] transition hover:border-[#f5d987]/70 md:left-6 md:top-6"
+            >
+              {isImmersiveView ? "기본 화면" : "전체화면"}
+            </button>
 
             <div className="flex items-center gap-3">
               <div aria-hidden className="h-px flex-1 opacity-50" style={{ background: "linear-gradient(90deg, transparent, #c8a84b)" }} />

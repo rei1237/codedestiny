@@ -1,5 +1,5 @@
 /**
- * 타로로 성장하는 자존감! — 5-Card Level-Up Quest Spread
+ * 자기 기준 회복 타로 — 5-Card Self-Trust Spread
  * API: POST /api/tarot/draw (spreadType: self_esteem_levelup_five_card)
  *      POST /api/tarot/reading (category: general, spreadType: self_esteem_levelup_five_card, cards)
  */
@@ -9,8 +9,8 @@
   var POSITION_LABELS = {
     past_debuff: "내가 남의 눈치를 살피게 된 이유",
     inner_monster: "왜 나는 거절을 어려워 할까",
-    current_damage: "눈치 보는 습관이 내게 주는 피해",
-    mind_shield: "타인의 실망을 견뎌내는 방법",
+    current_damage: "눈치 보는 습관이 내 마음을 소모시키는 지점",
+    mind_shield: "타인의 실망 앞에서도 내 기준을 지키는 방법",
     levelup_mastery: "내 마음을 1순위로 챙기는 방법",
   };
 
@@ -641,7 +641,7 @@
     if (!guide) return;
     var idx = state.revealedCount;
     if (idx >= 5) {
-      guide.textContent = "모든 카드를 열었습니다! Level Up! 🎉";
+      guide.textContent = "모든 카드를 열었습니다. 마음의 힘이 한 칸 더 밝아졌습니다.";
     } else {
       guide.textContent = GUIDE_LABELS[idx] || "카드를 뒤집어 주세요.";
     }
@@ -736,7 +736,7 @@
 
   function buildFallbackReading() {
     var r = {
-      opening: "타로로 성장하는 자존감! 5장의 카드가 당신의 내면을 단계별로 점검하고 성장의 빛을 찾아갑니다. 어두운 터널을 지나 빛을 만나는 여정처럼, 5장의 카드가 당신의 자존감 레벨업 로드맵을 그려드립니다.",
+      opening: "다섯 장의 카드는 눈치 보기의 뿌리와 마음을 지키는 기준을 차례로 비춥니다. 어두운 터널 끝의 작은 빛처럼, 지금의 마음이 다시 자기 편으로 돌아오는 길을 보여드립니다.",
       pastDebuff: "",
       innerMonster: "",
       currentDamage: "",
@@ -756,7 +756,7 @@
       else if (c.position === "mind_shield") r.mindShield = msg;
       else if (c.position === "levelup_mastery") r.levelupMastery = msg;
     });
-    r.levelupGuidance = "✨ Level Up! 5장의 카드를 모두 열었습니다. 당신의 자존감은 이미 한 단계 올라갔어요. 이제 이 통찰을 실천으로 옮겨, 매일 작은 레벨업을 누적해 보세요.";
+    r.levelupGuidance = "✨ 다섯 장의 카드가 모두 열렸습니다. 당신의 자존감은 거창한 결심보다 작은 선택을 지킬 때 단단해집니다. 오늘 얻은 통찰을 하나의 행동으로 옮기며, 마음의 기준을 천천히 회복해 보세요.";
     r.actionPlan = ["오늘 하루 'NO'라고 말해도 괜찮은 상황 한 가지를 찾아 실행해 보세요.", "타인의 시선 대신 '내가 진짜 원하는 것'을 한 문장으로 적어보세요.", "눈치 보느라 참았던 감정이 있다면, 안전한 사람에게 한 번 말해 보세요.", "매일 아침 거울을 보며 '나는 충분히 가치 있어'라고 3번 말해 보세요.", "이 리딩에서 가장 마음에 와닿은 카드 한 장의 메시지를 메모해 두고, 힘들 때 꺼내 읽어 보세요."];
     return r;
   }
@@ -979,7 +979,7 @@
     };
 
     var out = {
-      opening: src.story || "5장의 카드가 당신의 자존감 레벨업 여정을 안내합니다.",
+      opening: src.story || "다섯 장의 카드가 당신의 자기 기준 회복 흐름을 안내합니다.",
       pastDebuff: "",
       innerMonster: "",
       currentDamage: "",
@@ -1022,7 +1022,7 @@
       out.actionPlan = ["오늘 하루 한 가지, 나를 위한 선택을 하기", "타인의 기대보다 내 감정을 먼저 확인하기"];
     }
     out.topSummary = {
-      flowLine: String(out.levelupGuidance || out.opening || "자존감 레벨업 여정입니다."),
+      flowLine: String(out.levelupGuidance || out.opening || "자기 기준을 회복하는 흐름입니다."),
       corePattern: String(out.pastDebuff || "상대 반응을 먼저 읽는 습관이 반복됩니다."),
       rootCause: String(out.opening || "관계 분위기를 내 책임처럼 느껴 온 경험이 시작점입니다."),
       mainDamage: String(out.currentDamage || "과잉 해석과 자기검열이 에너지를 소모시킵니다."),
@@ -1231,10 +1231,10 @@
     if (r.mindShield) sections.push({ title: "4. " + POSITION_LABELS.mind_shield, text: r.mindShield });
     if (r.levelupMastery) sections.push({ title: "5. " + POSITION_LABELS.levelup_mastery, text: r.levelupMastery });
     if (r.levelupGuidance) {
-      sections.push({ title: "🎮 Level Up 가이드", text: r.levelupGuidance, highlight: true });
+      sections.push({ title: "✨ 자기 기준 회복 가이드", text: r.levelupGuidance, highlight: true });
     }
     if (Array.isArray(r.actionPlan) && r.actionPlan.length) {
-      sections.push({ title: "⚔️ 오늘의 레벨업 퀘스트", listItems: r.actionPlan });
+      sections.push({ title: "✨ 오늘의 회복 실천", listItems: r.actionPlan });
     }
     return sections;
   }
@@ -1314,19 +1314,19 @@
       var ts = r.topSummary;
       var summaryFlow = cleanReadingText(ts.flowLine || ts.flow);
       var summaryItems = [
-        ["핵심 패턴", ts.corePattern],
-        ["상처의 뿌리", ts.rootCause],
+        ["핵심 흐름", ts.corePattern],
+        ["마음이 흔들린 시작점", ts.rootCause],
         ["가장 크게 소모되는 지점", ts.mainDamage],
-        ["회복 키워드", ts.recoveryKey],
-        ["자동 사고", ts.automaticThought],
-        ["오늘의 대표 회복 액션", ts.todayAction],
+        ["회복의 열쇠", ts.recoveryKey],
+        ["조심할 마음의 결론", ts.automaticThought],
+        ["오늘의 회복 행동", ts.todayAction],
       ].filter(function (row) { return cleanReadingText(row[1]); });
       if (summaryFlow || summaryItems.length) {
         var summaryCard = document.createElement("div");
         summaryCard.className = "tse-levelup-card tse-levelup-card--summary";
         summaryCard.innerHTML =
-          '<p class="tse-levelup-title">상단 요약</p>' +
-          (summaryFlow ? '<p class="tse-levelup-body"><strong>5장 흐름:</strong> ' + escapeHtml(summaryFlow) + '</p>' : '') +
+          '<p class="tse-levelup-title">오늘의 자기 기준 요약</p>' +
+          (summaryFlow ? '<p class="tse-levelup-body"><strong>다섯 장의 흐름:</strong> ' + escapeHtml(summaryFlow) + '</p>' : '') +
           (summaryItems.length ? '<ul class="tse-levelup-list">' + summaryItems.map(function (row) {
             return '<li class="tse-levelup-item"><strong>' + escapeHtml(row[0]) + ':</strong> ' + escapeHtml(cleanReadingText(row[1])) + '</li>';
           }).join("") + '</ul>' : '');
@@ -1388,11 +1388,11 @@
         { title: "한눈에 보는 답", value: item.easyAnswer },
         { title: "왜 이런 패턴이 생겼을까", value: item.whyThisHappens },
         { title: "실제 생활에서는 이렇게 나타나요", value: item.realLifeExample },
-        { title: "이 카드가 보여주는 상처의 패턴", value: item.woundPattern },
-        { title: "자존감에 주는 영향", value: item.selfEsteemImpact },
-        { title: "회복 관점", value: item.recoveryReframe },
+        { title: "이 카드가 비추는 반복 신호", value: item.woundPattern },
+        { title: "내 마음에 남기는 영향", value: item.selfEsteemImpact },
+        { title: "회복 방향", value: item.recoveryReframe },
         { title: "오늘의 연습", value: item.actionPractice },
-        { title: "조심할 자동 사고", value: item.caution },
+        { title: "조심할 마음의 결론", value: item.caution },
         { title: "내면 문장", value: item.innerSentence },
         { title: "회복 문장", value: item.healingSentence },
       ].forEach(function (field) {
@@ -1425,17 +1425,17 @@
     if (r.levelupGuide && typeof r.levelupGuide === "object") {
       var lvCard = document.createElement("div");
       lvCard.className = "tse-levelup-card";
-      lvCard.innerHTML = '<p class="tse-levelup-title">🎮 Level Up 가이드</p>';
+      lvCard.innerHTML = '<p class="tse-levelup-title">✨ 자기 기준 회복 가이드</p>';
       var guideFieldCount = 0;
-      if (addField(lvCard, "5장 흐름", r.levelupGuide.flow)) guideFieldCount += 1;
-      if (addField(lvCard, "상처의 뿌리", r.levelupGuide.rootPattern)) guideFieldCount += 1;
-      if (addField(lvCard, "반복 상처 이야기", r.levelupGuide.woundStory)) guideFieldCount += 1;
-      if (addField(lvCard, "회복 경로", r.levelupGuide.recoveryPath)) guideFieldCount += 1;
-      if (addField(lvCard, "경계선 연습", r.levelupGuide.boundaryPractice)) guideFieldCount += 1;
+      if (addField(lvCard, "다섯 장의 흐름", r.levelupGuide.flow)) guideFieldCount += 1;
+      if (addField(lvCard, "마음이 흔들린 시작점", r.levelupGuide.rootPattern)) guideFieldCount += 1;
+      if (addField(lvCard, "반복되는 마음 이야기", r.levelupGuide.woundStory)) guideFieldCount += 1;
+      if (addField(lvCard, "회복 순서", r.levelupGuide.recoveryPath)) guideFieldCount += 1;
+      if (addField(lvCard, "자기 기준 연습", r.levelupGuide.boundaryPractice)) guideFieldCount += 1;
       if (Array.isArray(r.levelupGuide.sevenDayQuest) && r.levelupGuide.sevenDayQuest.length) {
         var questTitle = document.createElement("p");
         questTitle.className = "tse-self-esteem-field-title";
-        questTitle.textContent = "7일 퀘스트";
+        questTitle.textContent = "7일 회복 연습";
         lvCard.appendChild(questTitle);
         var questList = document.createElement("ul");
         questList.className = "tse-levelup-list";
@@ -1457,19 +1457,20 @@
       questCard.className = "tse-action-card";
       var questTitle = document.createElement("p");
       questTitle.className = "tse-action-title";
-      questTitle.textContent = "⚔️ 오늘의 레벨업 퀘스트";
+      questTitle.textContent = "✨ 오늘의 회복 실천";
       var questUl = document.createElement("ul");
       questUl.className = "tse-quest-list";
+      var difficultyLabel = { easy: "가볍게", normal: "차분히", hard: "깊게" };
       r.levelupQuests.slice(0, 3).forEach(function (quest, i) {
         var li = document.createElement("li");
         li.className = "tse-quest-item";
         li.innerHTML =
           '<span class="tse-quest-num">' + String(i + 1) + '</span>' +
-          '<span><strong>' + escapeHtml(String(quest.title || "퀘스트")) + '</strong>' +
-          '<br><small>난이도: ' + escapeHtml(String(quest.difficulty || "normal")) + '</small>' +
+          '<span><strong>' + escapeHtml(String(quest.title || "회복 실천")) + '</strong>' +
+          '<br><small>실천 강도: ' + escapeHtml(difficultyLabel[String(quest.difficulty || "normal")] || "차분히") + '</small>' +
           '<br><small>목적: ' + escapeHtml(String(quest.purpose || "")) + '</small>' +
           '<br><small>행동: ' + escapeHtml(String(quest.action || "")) + '</small>' +
-          '<br><small>완료 확인: ' + escapeHtml(String(quest.completionCheck || "")) + '</small></span>';
+          '<br><small>마무리 확인: ' + escapeHtml(String(quest.completionCheck || "")) + '</small></span>';
         questUl.appendChild(li);
       });
       questCard.appendChild(questTitle);
@@ -1482,7 +1483,7 @@
       actionCard.className = "tse-action-card";
       var actionTitle = document.createElement("p");
       actionTitle.className = "tse-action-title";
-      actionTitle.textContent = "⚔️ 오늘의 레벨업 퀘스트";
+      actionTitle.textContent = "✨ 오늘의 회복 실천";
       var ul = document.createElement("ul");
       ul.className = "tse-quest-list";
       r.actionPlan.forEach(function (itemText, i) {
@@ -1508,14 +1509,14 @@
   function shareTarotSelfEsteemResult() {
     var r = state.reading;
     if (!r) return;
-    var text = "✨ [타로로 성장하는 자존감!] ✨\n\n";
+    var text = "✨ [자기 기준 회복 타로] ✨\n\n";
     if (r.opening) text += "🕊️ " + r.opening + "\n\n";
-    if (r.levelupMastery) text += "🎮 " + r.levelupMastery + "\n\n";
-    text += "👉 무료 타로 보러가기: https://code-destiny.com";
+    if (r.levelupMastery) text += "🕯️ " + r.levelupMastery + "\n\n";
+    text += "👉 자기 기준 회복 타로 보기: https://code-destiny.com";
 
     if (navigator.share) {
       navigator.share({
-        title: "✨ 타로로 성장하는 자존감!",
+        title: "✨ 자기 기준 회복 타로",
         text: text,
         url: "https://code-destiny.com",
       }).catch(function () {});

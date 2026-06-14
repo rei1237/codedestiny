@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search, Share2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { ArtistKey, Track } from "./_data/musicManifest";
 import styles from "./moon-music-player.module.css";
@@ -34,6 +34,35 @@ function normalizeSearchText(value: string) {
   return value.trim().toLowerCase();
 }
 
+function buildShareUrl(path: string) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://code-destiny.com";
+  return new URL(path, origin).toString();
+}
+
+function buildTrackShareUrl(trackId: string) {
+  const url = new URL(buildShareUrl("/music"));
+  url.searchParams.set("track", trackId);
+  url.searchParams.set("from", "share");
+  return url.toString();
+}
+
+async function copyShareText(text: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textarea);
+}
+
 export default function MusicPlaylistPanel({
   tracks,
   currentTrackId,
@@ -44,6 +73,7 @@ export default function MusicPlaylistPanel({
 }: MusicPlaylistPanelProps) {
   const [activeTab, setActiveTab] = useState<PlaylistTab>("yeoni");
   const [query, setQuery] = useState("");
+  const [sharedTrackId, setSharedTrackId] = useState("");
   const normalizedQuery = normalizeSearchText(query);
 
   const filteredTracks = useMemo(() => {
@@ -57,6 +87,37 @@ export default function MusicPlaylistPanel({
         .includes(normalizedQuery);
     });
   }, [activeTab, normalizedQuery, tracks]);
+
+  async function handleShareTrack(track: Track) {
+    const trackTitle = track.title || "Untitled track";
+    const artistName = track.artistName || "Code Destiny";
+    const trackUrl = buildTrackShareUrl(track.id);
+    const mainUrl = buildShareUrl("/");
+    const text = [
+      `${artistName} - ${trackTitle}`,
+      "Listen inside the Code Destiny moon library.",
+      `Code Destiny main: ${mainUrl}`,
+    ].join("\n");
+    const copiedText = `${text}\n${trackUrl}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Code Destiny Music - ${trackTitle}`,
+          text,
+          url: trackUrl,
+        });
+      } else {
+        await copyShareText(copiedText);
+      }
+
+      setSharedTrackId(track.id);
+      window.setTimeout(() => {
+        setSharedTrackId((current) => current === track.id ? "" : current);
+      }, 1800);
+    } catch {
+    }
+  }
 
   return (
     <aside className={styles.playlistPanel} aria-label="Music playlist">
@@ -107,43 +168,66 @@ export default function MusicPlaylistPanel({
                 const isPlayable = Boolean(track.audioUrl);
 
                 return (
-                  <button
+                  <div
                     key={track.id}
                     className={styles.playlistTrack}
-                    type="button"
-                    onClick={() => onSelectTrack(track.id)}
+                    role="group"
                     aria-current={isCurrent ? "true" : undefined}
-                    disabled={!isPlayable}
+                    data-disabled={!isPlayable ? "true" : "false"}
                     data-playing={isCurrent && isPlaying ? "true" : "false"}
                   >
-                    <span className={styles.playlistThumb} data-fallback={coverUnavailable ? "true" : "false"}>
-                      {track.coverUrl ? (
-                        <img
-                          src={track.coverUrl}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                          onError={() => onCoverError(track.id)}
-                        />
-                      ) : null}
-                    </span>
+                    <button
+                      className={styles.playlistTrackButton}
+                      type="button"
+                      onClick={() => onSelectTrack(track.id)}
+                      disabled={!isPlayable}
+                    >
+                      <span className={styles.playlistThumb} data-fallback={coverUnavailable ? "true" : "false"}>
+                        {track.coverUrl ? (
+                          <img
+                            src={track.coverUrl}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                            onError={() => onCoverError(track.id)}
+                          />
+                        ) : null}
+                      </span>
 
-                    <span className={styles.playlistTrackText}>
-                      <span className={styles.playlistTrackTitle}>{track.title || "Untitled track"}</span>
-                      <span className={styles.playlistTrackArtist}>{track.artistName || "Unknown artist"}</span>
-                    </span>
-
-                    <span className={styles.playlistTrackMeta}>
-                      {isCurrent ? (
-                        <span className={styles.equalizerIcon} aria-label={isPlaying ? "Playing" : "Selected"}>
-                          <i />
-                          <i />
-                          <i />
+                      <span className={styles.playlistTrackText}>
+                        <span className={styles.playlistTrackTitle}>{track.title || "Untitled track"}</span>
+                        <span className={styles.playlistTrackSubline}>
+                          <span className={styles.playlistTrackArtist}>{track.artistName || "Unknown artist"}</span>
+                          {track.mood ? <span className={styles.playlistTrackMood}>{track.mood}</span> : null}
                         </span>
-                      ) : null}
-                      {durationLabel ? <span>{durationLabel}</span> : null}
-                    </span>
-                  </button>
+                      </span>
+
+                      <span className={styles.playlistTrackMeta}>
+                        {isCurrent ? (
+                          <span className={styles.equalizerIcon} aria-label={isPlaying ? "Playing" : "Selected"}>
+                            <i />
+                            <i />
+                            <i />
+                          </span>
+                        ) : null}
+                        {durationLabel ? <span>{durationLabel}</span> : null}
+                        {sharedTrackId === track.id ? <span className={styles.playlistShareStatus}>Copied</span> : null}
+                      </span>
+                    </button>
+
+                    <button
+                      className={styles.playlistShareButton}
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleShareTrack(track);
+                      }}
+                      aria-label={`Share ${track.title || "track"}`}
+                      data-shared={sharedTrackId === track.id ? "true" : "false"}
+                    >
+                      <Share2 size={16} aria-hidden />
+                    </button>
+                  </div>
                 );
               })
             ) : (

@@ -105,7 +105,7 @@ function normalizePost(raw) {
     coverImage: normalizeText(raw?.coverImage || raw?.featuredImage?.url || raw?.thumbnailUrl, 1200),
     coverImageAlt: normalizeText(raw?.featuredImage?.alt || title || "운세 인사이트 이미지", 280),
     serviceLink,
-    ctaLabel: normalizeText(raw?.ctaLabel || raw?.cta?.title || "관련 운세 서비스로 이동", 100),
+    ctaLabel: normalizeText(raw?.ctaLabel || raw?.cta?.title || "관련 운세 보기", 100),
     seoTitle: normalizeText(raw?.seoTitle || raw?.metaTitle || raw?.seo?.metaTitle || title, 240),
     seoDescription: normalizeText(raw?.seoDescription || raw?.metaDescription || raw?.seo?.metaDescription || excerpt, 320),
     isPublished: raw?.isPublished === undefined ? String(raw?.status || "published") === "published" : Boolean(raw?.isPublished),
@@ -187,10 +187,40 @@ function formatDate(value) {
 function buildCardImage(item) {
   const url = String(item?.coverImage || item?.featuredImage?.url || "").trim();
   const alt = String(item?.coverImageAlt || item?.featuredImage?.alt || item?.title || "인사이트 대표 이미지").trim();
+  const fallbackUrl = resolveCardFallbackImage(item);
   return {
-    url,
+    url: url || fallbackUrl,
     alt,
+    fallbackUrl,
   };
+}
+
+function resolveCardFallbackImage(item) {
+  const bag = [
+    item?.slug,
+    item?.title,
+    item?.category,
+    item?.categoryLabel,
+    Array.isArray(item?.tags) ? item.tags.join(" ") : "",
+  ].join(" ").toLowerCase();
+  if (/famous-saju|유명인/.test(bag)) return "/fuctionassets/유명인 사주 분석.webp";
+  if (/자미|ziwei|명궁|궁위|사화/.test(bag)) return "/fuctionassets/jami.webp";
+  if (/숙요|sukuyo|27숙|영친|안괴|업태/.test(bag)) return "/fuctionassets/sukyo.webp";
+  if (/타로|tarot|arcana|카드|스프레드/.test(bag)) return "/fuctionassets/tarolove.webp";
+  if (/베다|vedic|라그나|나크샤트라/.test(bag)) return "/fuctionassets/veda.webp";
+  if (/점성|astrology|zodiac|태양궁|달궁|상승궁/.test(bag)) return "/fuctionassets/jumsung.webp";
+  if (/꿈|dream|해몽/.test(bag)) return "/fuctionassets/heamong.webp";
+  if (/재물|wealth|돈|금전|수입/.test(bag)) return "/fuctionassets/돈밝히는 연이.webp";
+  if (/건강|health|회복|명상/.test(bag)) return "/fuctionassets/meditation.webp";
+  if (/사주|명리|오행|십성|대운|일간|만세력|manseoryeok/.test(bag)) return "/fuctionassets/saju.webp";
+  return "/fuctionassets/premiumstar.webp";
+}
+
+function handleCardImageError(event) {
+  const fallbackUrl = event.currentTarget.getAttribute("data-fallback-src") || "";
+  if (!fallbackUrl || event.currentTarget.dataset.fallbackApplied === "true") return;
+  event.currentTarget.dataset.fallbackApplied = "true";
+  event.currentTarget.src = fallbackUrl;
 }
 
 function sortTagLabel(sort) {
@@ -248,7 +278,7 @@ export default function InsightsCosmicClient({
         const source = Array.isArray(mod?.INSIGHT_SEED_ARTICLES) ? mod.INSIGHT_SEED_ARTICLES : [];
         const normalized = source.map(normalizePost).filter((item) => item.slug && item.title && item.isPublished);
         if (!cancelled && normalized.length > 0) setLazySeedPool(normalized);
-      } catch (e) {
+      } catch {
         if (!cancelled) setLazySeedPool([]);
       }
     }
@@ -414,12 +444,12 @@ export default function InsightsCosmicClient({
           <p className="text-xs tracking-[0.18em] text-amber-200/80">FORTUNE INSIGHTS</p>
           <h1 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-amber-50">운세 인사이트 허브</h1>
           <p className="mt-3 text-sm md:text-base text-slate-200 leading-7">
-            막연하게 "운세가 궁금하다"에서 끝나지 않도록,
-            실제 질문 장면에서 바로 써먹을 수 있는 해석 포인트와 읽는 순서를 차근히 모았습니다.
+            흩어진 질문이 조용히 한 줄로 모이도록,
+            사주와 타로, 별의 언어를 차분한 해석 순서로 정리했습니다.
           </p>
           <p className="mt-2 text-sm text-slate-300 leading-7">
-            사주, 자미두수, 숙요점, 타로, 점성술까지 한 흐름으로 연결해 보세요.
-            글을 읽다가 바로 관련 운세 서비스로 넘어가 실전 적용까지 이어갈 수 있습니다.
+            사주, 자미두수, 숙요점, 타로, 점성술의 결을 함께 살피며
+            지금 필요한 선택의 감각을 천천히 비춰볼 수 있습니다.
           </p>
           <p className="mt-3 text-xs text-slate-400">총 {activeTotalCount.toLocaleString("ko-KR")}개 글</p>
         </header>
@@ -456,7 +486,7 @@ export default function InsightsCosmicClient({
                   <p className="text-xs font-semibold tracking-[0.18em] text-amber-200/80">FAMOUS SAJU MAGAZINE</p>
                   <h2 className="mt-2 text-2xl font-semibold leading-tight text-white">유명인 사주 분석</h2>
                   <p className="mt-3 text-sm leading-7 text-slate-300">
-                    공개 생년월일과 사주 엔진 계산값을 바탕으로, 역사 인물과 대중문화 인물의 일간·오행·삼주 흐름을 블로그처럼 읽습니다.
+                    공개 자료로 확인 가능한 생년월일만 조심스럽게 놓고, 역사 인물과 대중문화 인물의 선택과 상징을 사주 언어로 읽습니다.
                   </p>
                 </div>
                 <div>
@@ -500,6 +530,8 @@ export default function InsightsCosmicClient({
                           width={640}
                           height={360}
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          data-fallback-src={image.fallbackUrl}
+                          onError={handleCardImageError}
                           className="h-36 w-full object-cover sm:h-32"
                         />
                       ) : (
@@ -594,6 +626,8 @@ export default function InsightsCosmicClient({
                         width={640}
                         height={400}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        data-fallback-src={image.fallbackUrl}
+                        onError={handleCardImageError}
                         className="h-40 w-full object-cover"
                       />
                     ) : (
@@ -637,7 +671,7 @@ export default function InsightsCosmicClient({
                 {activeItems.map((item) => {
                   const image = buildCardImage(item);
                   const serviceLink = normalizeText(item.serviceLink, 240);
-                  const ctaLabel = normalizeText(item.ctaLabel, 80) || "관련 운세 서비스로 이동";
+                  const ctaLabel = normalizeText(item.ctaLabel, 80) || "관련 운세 보기";
                   return (
                     <article key={item.slug} className="group rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden hover:border-amber-300/40 hover:bg-white/[0.05] transition">
                       {image.url ? (
@@ -649,6 +683,8 @@ export default function InsightsCosmicClient({
                           width={704}
                           height={440}
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          data-fallback-src={image.fallbackUrl}
+                          onError={handleCardImageError}
                           className="h-44 w-full object-cover"
                         />
                       ) : (

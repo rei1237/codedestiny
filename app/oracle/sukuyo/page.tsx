@@ -3,7 +3,7 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const META = {
   path: "/oracle/sukuyo",
-  title: "숙요점 - 27수 별자리 운명 분석 | Code Destiny",
+  title: "숙요점 - 27수 별자리 운명 분석",
   description: "27수 체계로 성향, 관계 리듬, 생활 템포를 읽는 숙요점 가이드와 실행형 해석을 제공합니다.",
   keywords: ["숙요점", "27수", "숙요 궁합", "달 위치 점성술", "sukuyo"],
   image: "https://code-destiny.com/fuctionassets/sukyo.webp",

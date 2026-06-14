@@ -44,11 +44,11 @@ const SUKUYO_CORE_ANGLES = Object.freeze([
 
 const SUKUYO_COMPATIBILITY_ANGLES = Object.freeze([
   "나/상대 본명숙의 상호작용을 분리해 해석하고 충돌 지점을 특정",
-  "관계 유형(relationType)과 거리(distanceLabel/shortestDistance)의 체감 강도 분석",
-  "관계 역할(aRole/bRole 또는 myRole/partnerRole)의 비대칭성과 기대 충돌 구조 파악",
+  "관계 유형과 거리감의 체감 강도 분석",
+  "관계 역할의 비대칭성과 기대 충돌 구조 파악",
   "카르마 점수·인연 온도·자력(磁力)을 끌림/안정/긴장 축으로 재해석",
-  "감정 패턴(emotionalPattern)·갈등 패턴(conflictPattern)·회복 루틴을 연결 분석",
-  "장기 가능성(longTermPotential)과 소통 난이도(communicationScore) 기반 실행 전략 제시",
+  "감정 패턴·갈등 패턴·회복 루틴을 연결 분석",
+  "장기 가능성과 소통 난이도 기반 실행 전략 제시",
   "관계 외 주제 확장은 배제하고 궁합 질문 맥락에만 집중",
 ]);
 
@@ -74,6 +74,42 @@ function firstFiniteNumber(...values) {
   return null;
 }
 
+function firstOptionalText(...values) {
+  for (let i = 0; i < values.length; i += 1) {
+    const text = toOptionalText(values[i]);
+    if (text) return text;
+  }
+  return "";
+}
+
+function normalizeSukuyoDisplayIndex(mansionIdx, displayIndex) {
+  const shown = toSafeNumber(displayIndex, null);
+  if (shown !== null && shown >= 1 && shown <= 27) return shown;
+  const idx = toSafeNumber(mansionIdx, null);
+  if (idx === null) return null;
+  if (idx >= 0 && idx <= 26) return idx + 1;
+  if (idx >= 1 && idx <= 27) return idx;
+  return idx;
+}
+
+function formatMetric(value, suffix = "") {
+  const n = Number(value);
+  if (Number.isFinite(n)) return `${Math.round(n)}${suffix}`;
+  return DEFAULT_TEXT;
+}
+
+function formatScoreOrText(value) {
+  const text = toOptionalText(value);
+  const n = Number(text);
+  if (Number.isFinite(n)) return `${Math.round(n)}/100`;
+  return text || DEFAULT_TEXT;
+}
+
+function formatMansionLine(result) {
+  const displayIndex = normalizeSukuyoDisplayIndex(result?.mansionIdx, result?.displayIndex);
+  return displayIndex ? `${result.mansion} · ${displayIndex}/27` : result.mansion;
+}
+
 function ensureValidQuestion(question) {
   const normalized = String(question || "").trim();
   if (!normalized || normalized.length < 5 || normalized.length > 1000) {
@@ -96,6 +132,31 @@ function classifyQuestionType(question) {
   }
 
   return "general";
+}
+
+function questionTypeFromDomain(domain) {
+  switch (String(domain || "").trim()) {
+    case "compatibility":
+    case "reconciliation":
+    case "breakup":
+      return "compatibility";
+    case "love":
+      return "love";
+    case "career":
+      return "career";
+    case "money":
+      return "money";
+    case "relationship":
+      return "relationship";
+    case "health":
+      return "health";
+    case "life_direction":
+      return "life_direction";
+    case "personality":
+      return "personality";
+    default:
+      return "";
+  }
 }
 
 function normalizeTraits(rawTraits) {
@@ -125,6 +186,7 @@ function normalizeBasicResult(raw) {
   return {
     mansion,
     mansionIdx,
+    displayIndex: normalizeSukuyoDisplayIndex(mansionIdx, raw.displayIndex),
     icon: toText(raw.icon),
     talent: toSafeNumber(raw.talent, null),
     traits: normalizeTraits(raw.traits),
@@ -146,30 +208,38 @@ function normalizeCompatibilityResult(raw, basicResult) {
   }
 
   const partnerProfile = raw?.partner && typeof raw.partner === "object" ? raw.partner : (raw?.personB && typeof raw.personB === "object" ? raw.personB : {});
+  const distanceMetrics = raw?.distanceMetrics && typeof raw.distanceMetrics === "object" ? raw.distanceMetrics : {};
+  const roleActionGuide = raw?.roleActionGuide && typeof raw.roleActionGuide === "object" ? raw.roleActionGuide : {};
+  const elementHarmony = raw?.elementHarmony && typeof raw.elementHarmony === "object" ? raw.elementHarmony : {};
+  const strengthShadowMap = raw?.strengthShadowMap && typeof raw.strengthShadowMap === "object" ? raw.strengthShadowMap : {};
+  const enhanced = raw?.enhanced && typeof raw.enhanced === "object" ? raw.enhanced : {};
+  const enhancedChemistry = enhanced?.chemistry && typeof enhanced.chemistry === "object" ? enhanced.chemistry : {};
+  const relationStory = raw?.relationStory && typeof raw.relationStory === "object" ? raw.relationStory : {};
 
   return {
     myIdx,
     partnerIdx,
+    partnerDisplayIndex: normalizeSukuyoDisplayIndex(partnerIdx, raw.partnerDisplayIndex || partnerProfile?.displayIndex),
     partnerMansion: toText(raw.partnerMansion || partnerProfile?.mansion || partnerProfile?.nameKo || partnerProfile?.name),
-    relationType: toText(raw.relationType),
+    relationType: toText(raw.relationType || raw.relationTypeKo || enhanced.relationTypeKo),
     relationTypeHan: toOptionalText(raw.relationTypeHan),
-    distanceLabel: toText(raw.distanceLabel),
-    shortestDistance: firstFiniteNumber(raw.shortestDistance, raw.distance),
-    myRole: toOptionalText(raw.myRole || raw.aRole),
-    partnerRole: toOptionalText(raw.partnerRole || raw.bRole),
-    directionFromAToB: toOptionalText(raw.directionFromAToB || raw.forwardDirection),
-    directionFromBToA: toOptionalText(raw.directionFromBToA || raw.reverseDirection),
+    distanceLabel: toText(raw.distanceLabel || enhanced.distanceKo),
+    shortestDistance: firstFiniteNumber(raw.shortestDistance, raw.distance, distanceMetrics.shortestDistance),
+    myRole: firstOptionalText(raw.myRole, raw.aRole, roleActionGuide.myRole, roleActionGuide.aRole, roleActionGuide.roleA, raw?.ankaiRole?.me, enhanced.roleA),
+    partnerRole: firstOptionalText(raw.partnerRole, raw.bRole, roleActionGuide.partnerRole, roleActionGuide.bRole, roleActionGuide.roleB, raw?.ankaiRole?.other, enhanced.roleB),
+    directionFromAToB: firstOptionalText(raw.directionFromAToB, raw.forwardDirection, distanceMetrics.forwardDirection, distanceMetrics.forwardDistance),
+    directionFromBToA: firstOptionalText(raw.directionFromBToA, raw.reverseDirection, distanceMetrics.reverseDirection, distanceMetrics.reverseDistance),
     temperature: toSafeNumber(raw.temperature, null),
     score: toSafeNumber(raw.score, null),
     magnetism: toSafeNumber(raw.magnetism, null),
-    communicationScore: toSafeNumber(raw.communicationScore, null),
-    stabilityScore: toSafeNumber(raw.stabilityScore, null),
-    growthScore: toSafeNumber(raw.growthScore, null),
-    conflictScore: toSafeNumber(raw.conflictScore, null),
-    emotionalPattern: toOptionalText(raw.emotionalPattern || raw.emotionalCompatibility),
-    conflictPattern: toOptionalText(raw.conflictPattern),
-    longTermPotential: toOptionalText(raw.longTermPotential),
-    summary: toOptionalText(raw.summary || raw.relationSummary),
+    communicationScore: firstFiniteNumber(raw.communicationScore, raw.communicationChemistry, enhanced.communicationChemistry, enhancedChemistry.communication),
+    stabilityScore: firstFiniteNumber(raw.stabilityScore, raw.dailyLifeChemistry, enhanced.dailyLifeChemistry, enhancedChemistry.dailyLife),
+    growthScore: firstFiniteNumber(raw.growthScore, raw.recoveryPotential, enhanced.recoveryPotential, enhancedChemistry.recoveryPotential),
+    conflictScore: firstFiniteNumber(raw.conflictScore, raw.conflictRisk, enhanced.conflictRisk, enhancedChemistry.conflictRisk),
+    emotionalPattern: firstOptionalText(raw.emotionalPattern, raw.emotionalCompatibility, strengthShadowMap.emotionalPattern, strengthShadowMap.complementSummary, enhanced.tempBand),
+    conflictPattern: firstOptionalText(raw.conflictPattern, roleActionGuide.warningLine, roleActionGuide.avoidLine, roleActionGuide.cautionLine, strengthShadowMap.shadowSummary, enhanced.difficulty),
+    longTermPotential: firstOptionalText(raw.longTermPotential, enhanced.longTermPotential, enhancedChemistry.longTermPotential),
+    summary: firstOptionalText(raw.summary, raw.relationSummary, raw.oneLine, relationStory.lead, strengthShadowMap.complementSummary, elementHarmony.summary, roleActionGuide.resetLine),
     stamp: toText(raw.stamp),
     partnerGender: toText(raw.partnerGender || partnerProfile?.gender),
     partnerName: toOptionalText(raw.partnerName || partnerProfile?.name),
@@ -177,6 +247,11 @@ function normalizeCompatibilityResult(raw, basicResult) {
     partnerHidden: toOptionalText(raw?.partnerTraits?.hidden || partnerProfile?.traits?.hidden || partnerProfile?.hidden),
     partnerLove: toOptionalText(raw?.partnerTraits?.love || partnerProfile?.traits?.love || partnerProfile?.love),
     partnerMoonTone: toOptionalText(raw?.partnerTraits?.moonTone || partnerProfile?.moonTone || partnerProfile?.moonLabel),
+    relationVariant: firstOptionalText(raw.relationVariant, enhanced.relationshipName),
+    distanceResonance: firstOptionalText(distanceMetrics.resonanceCode, distanceMetrics.tensionBand),
+    roleGuideText: firstOptionalText(roleActionGuide.resetLine, roleActionGuide.actionLine, roleActionGuide.summary, roleActionGuide.advice),
+    elementHarmonyText: firstOptionalText(elementHarmony.summary, elementHarmony.harmony, elementHarmony.advice),
+    strengthShadowText: firstOptionalText(strengthShadowMap.complementSummary, strengthShadowMap.strengthSummary, strengthShadowMap.shadowSummary),
   };
 }
 
@@ -334,10 +409,107 @@ function buildPromptBody({ question, questionType, basicResult, compatibilityRes
   return lines.join("\n");
 }
 
+function buildSukuyoExpertPrompt({
+  question,
+  questionType,
+  domainLabel,
+  basicResult,
+  compatibilityResult,
+  compatibilityHint,
+  analysisAngles,
+  recommendedFollowUpQuestions,
+  caution,
+}) {
+  const typeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;
+  const lines = [
+    "당신은 숙요점 27숙과 관계 심리의 결을 함께 읽는 전문 상담가입니다.",
+    "아래의 본명숙과 궁합 흐름은 이미 계산된 결과이므로 다시 계산하지 말고, 해석과 조율에 집중해 주세요.",
+    "",
+    "[사용자 질문]",
+    question,
+    "",
+    "[상담 초점]",
+    `- 주제: ${domainLabel}`,
+    `- 질문 결: ${typeLabel}`,
+    "",
+    "[본명숙 자료]",
+    `- 본인 본명숙: ${formatMansionLine(basicResult)}`,
+    `- 핵심 성향: ${basicResult.traits.core}`,
+    `- 그림자 패턴: ${basicResult.traits.hidden}`,
+    `- 연애 리듬: ${basicResult.traits.love}`,
+    `- 일의 리듬: ${basicResult.traits.work}`,
+    `- 재물 리듬: ${basicResult.traits.wealth}`,
+    `- 카르마 키워드: ${basicResult.traits.karma}`,
+    `- 오늘의 달빛: ${basicResult.moonTone}`,
+    `- 오늘의 신호: ${basicResult.moonInsight}`,
+    "",
+    "[궁합 자료]",
+  ];
+
+  if (compatibilityResult) {
+    const partnerDisplayIndex = normalizeSukuyoDisplayIndex(compatibilityResult.partnerIdx, compatibilityResult.partnerDisplayIndex);
+    lines.push(
+      `- 상대 본명숙: ${compatibilityResult.partnerMansion}${partnerDisplayIndex ? ` · ${partnerDisplayIndex}/27` : ""}`,
+      `- 관계 유형: ${compatibilityResult.relationType}${compatibilityResult.relationTypeHan ? `(${compatibilityResult.relationTypeHan})` : ""}`,
+      `- 관계 거리: ${compatibilityResult.distanceLabel}${compatibilityResult.shortestDistance != null ? ` · 최단 거리 ${compatibilityResult.shortestDistance}` : ""}`,
+      `- 역할 흐름: 본인 ${compatibilityResult.myRole || DEFAULT_TEXT} / 상대 ${compatibilityResult.partnerRole || DEFAULT_TEXT}`,
+      `- 방향 흐름: 본인에서 상대 ${compatibilityResult.directionFromAToB || DEFAULT_TEXT} / 상대에서 본인 ${compatibilityResult.directionFromBToA || DEFAULT_TEXT}`,
+      `- 관계 지표: 카르마 ${formatMetric(compatibilityResult.score, "/100")}, 온도 ${formatMetric(compatibilityResult.temperature, "/100")}, 끌림 ${formatMetric(compatibilityResult.magnetism, "/100")}`,
+      `- 조율 지표: 소통 ${formatMetric(compatibilityResult.communicationScore, "/100")}, 안정 ${formatMetric(compatibilityResult.stabilityScore, "/100")}, 회복 ${formatMetric(compatibilityResult.growthScore, "/100")}, 갈등 ${formatMetric(compatibilityResult.conflictScore, "/100")}`,
+      `- 감정 흐름: ${compatibilityResult.emotionalPattern || DEFAULT_TEXT}`,
+      `- 갈등 흐름: ${compatibilityResult.conflictPattern || DEFAULT_TEXT}`,
+      `- 장기 흐름: ${formatScoreOrText(compatibilityResult.longTermPotential)}`,
+      `- 관계 한 줄: ${compatibilityResult.summary || DEFAULT_TEXT}`,
+      `- 역할 조율문: ${compatibilityResult.roleGuideText || DEFAULT_TEXT}`,
+      `- 오행/상성 보조: ${compatibilityResult.elementHarmonyText || DEFAULT_TEXT}`,
+      `- 강점과 그림자: ${compatibilityResult.strengthShadowText || DEFAULT_TEXT}`,
+    );
+  } else {
+    lines.push(`- ${compatibilityHint}`);
+  }
+
+  lines.push(
+    "",
+    "[정밀 해석 축]",
+    ...(Array.isArray(analysisAngles) && analysisAngles.length
+      ? analysisAngles.map((angle) => `- ${angle}`)
+      : ["- 본명숙의 기질, 그림자, 관계 리듬을 질문과 직접 연결해 주세요."]),
+    "",
+    "[답변 원칙]",
+    "1. 첫 문장에서 질문의 진짜 초점을 한 문장으로 정리해 주세요.",
+    "2. 본명숙의 강점과 그림자를 분리해 읽고, 질문과 직접 연결해 주세요.",
+    "3. 궁합 자료가 있을 때는 관계 유형, 거리, 역할 흐름을 먼저 해석해 주세요.",
+    "4. 불안이나 공포를 키우지 말고, 가능성과 위험을 균형 있게 말해 주세요.",
+    "5. 마지막에는 오늘 바로 실행할 수 있는 말, 행동, 거리 조절 기준을 제시해 주세요.",
+    "",
+    "[답변 구성]",
+    "1. 질문의 핵심",
+    "2. 숙요 근거 해석",
+    "3. 관계 또는 현실 상황의 강점",
+    "4. 반복되는 위험 패턴",
+    "5. 2주 실행 조율법",
+    "6. 한 줄 결론",
+  );
+
+  if (Array.isArray(recommendedFollowUpQuestions) && recommendedFollowUpQuestions.length) {
+    lines.push(
+      "",
+      "[후속 질문 제안]",
+      ...recommendedFollowUpQuestions.map((followUp) => `- ${followUp}`),
+    );
+  }
+
+  if (toOptionalText(caution)) {
+    lines.push("", `[주의] ${toOptionalText(caution)}`);
+  }
+
+  return lines.join("\n");
+}
+
 export function buildSukuyoAIPromptWithDomain({ question, basicResult, compatibilityResult, domain }) {
   const normalizedQuestion = ensureValidQuestion(question);
-  const normalizedType = classifyQuestionType(normalizedQuestion);
   const resolvedDomain = String(domain || "").trim() || classifyQuestionToSukuyoDomain(normalizedQuestion);
+  const normalizedType = questionTypeFromDomain(resolvedDomain) || classifyQuestionType(normalizedQuestion);
   const domainTemplate = getSukuyoPromptTemplate(resolvedDomain);
   if (!domainTemplate) {
     throw new Error("UNKNOWN_SUKUYO_DOMAIN");
@@ -355,14 +527,6 @@ export function buildSukuyoAIPromptWithDomain({ question, basicResult, compatibi
   const compatibilityHint = normalizedCompat
     ? "궁합 데이터가 제공되어 관계 상호작용까지 반영합니다."
     : "상대 데이터가 없어 본인 숙요 리듬 중심으로 답합니다. 궁합 질문이면 상대 생년월일/시간을 추가하면 정확도가 높아집니다.";
-
-  const legacyPrompt = buildPromptBody({
-    question: normalizedQuestion,
-    questionType: normalizedType,
-    basicResult: normalizedBasic,
-    compatibilityResult: normalizedCompat,
-    compatibilityHint,
-  });
 
   const domainDataLines = compatibilityFocus
     ? [
@@ -393,7 +557,6 @@ export function buildSukuyoAIPromptWithDomain({ question, basicResult, compatibi
         partnerMansion: normalizedCompat?.partnerMansion,
         relationType: normalizedCompat?.relationType,
       })).join(" | ")}`,
-      `레거시 초안(참고): ${legacyPrompt.slice(0, 220)}...`,
     ]
     : [
       `요청 도메인: ${domainTemplate.domainKo} (${resolvedDomain})`,
@@ -407,8 +570,32 @@ export function buildSukuyoAIPromptWithDomain({ question, basicResult, compatibi
         ? `궁합: ${normalizedCompat.partnerMansion}, 관계유형 ${normalizedCompat.relationType}, 점수 ${normalizedCompat.score != null ? normalizedCompat.score : DEFAULT_TEXT}`
         : `궁합 데이터 없음: ${compatibilityHint}`,
       `상황별 후속 질문 템플릿: ${(domainTemplate.questionPatterns || []).join(" | ")}`,
-      `레거시 프롬프트 초안: ${legacyPrompt.slice(0, 420)}...`,
     ];
+
+  const analysisAngles = [
+    ...buildSukuyoAngles(normalizedType, Boolean(normalizedCompat)),
+    ...(Array.isArray(domainTemplate.analysisAngles) ? domainTemplate.analysisAngles : []),
+  ];
+  const recommendedFollowUpQuestions = [
+    ...buildSukuyoFollowUps(normalizedType),
+    ...((domainTemplate.questionPatterns || []).map((p) => fillPatternVariables(p, {
+      myMansion: normalizedBasic.mansion,
+      partnerMansion: normalizedCompat?.partnerMansion,
+      relationType: normalizedCompat?.relationType,
+    }))),
+  ];
+  const caution = buildSukuyoPromptCaution(normalizedType, Boolean(normalizedCompat));
+  const expertPrompt = buildSukuyoExpertPrompt({
+    question: normalizedQuestion,
+    questionType: normalizedType,
+    domainLabel: domainTemplate.domainKo,
+    basicResult: normalizedBasic,
+    compatibilityResult: normalizedCompat,
+    compatibilityHint,
+    analysisAngles,
+    recommendedFollowUpQuestions,
+    caution,
+  });
 
   const promptPackage = buildFortuneQuestionPromptPackage({
     fortuneType: "sukyo",
@@ -436,20 +623,11 @@ export function buildSukuyoAIPromptWithDomain({ question, basicResult, compatibi
       ? "compatibility"
       : (normalizedType === "love" && normalizedCompat ? "compatibility" : (normalizedType === "love" ? "love" : "personal")),
     questionTypeLabel: QUESTION_TYPE_LABELS[normalizedType] || QUESTION_TYPE_LABELS.general,
-    analysisAngles: [
-      ...buildSukuyoAngles(normalizedType, Boolean(normalizedCompat)),
-      ...(Array.isArray(domainTemplate.analysisAngles) ? domainTemplate.analysisAngles : []),
-    ],
-    recommendedFollowUpQuestions: [
-      ...buildSukuyoFollowUps(normalizedType),
-      ...((domainTemplate.questionPatterns || []).map((p) => fillPatternVariables(p, {
-        myMansion: normalizedBasic.mansion,
-        partnerMansion: normalizedCompat?.partnerMansion,
-        relationType: normalizedCompat?.relationType,
-      }))),
-    ],
-    caution: buildSukuyoPromptCaution(normalizedType, Boolean(normalizedCompat)),
+    analysisAngles,
+    recommendedFollowUpQuestions,
+    caution,
     domainDataLines,
+    customPrompt: expertPrompt,
     minPromptLength: 1600,
   });
 

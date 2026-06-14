@@ -469,7 +469,8 @@
   height: 88px;
 }
 .ty-draw-card--month .ty-draw-card-name {
-  font-size: 0.6rem;
+  font-size: 0.66rem;
+  line-height: 1.25;
   margin-top: 4px;
 }
 .ty-draw-slot {
@@ -793,8 +794,8 @@
   text-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
 }
 .ty-result-card-guide {
-  font-size: 0.66rem;
-  letter-spacing: 0.12em;
+  font-size: 0.72rem;
+  letter-spacing: 0;
   color: rgba(255, 240, 210, 0.88);
   text-transform: uppercase;
 }
@@ -1244,7 +1245,7 @@
   .ty-draw-grid--twelve { gap: 10px; }
   .ty-draw-card--month { width: 58px; height: 96px; }
   .ty-draw-card--month .ty-draw-card-img { height: 68px; }
-  .ty-draw-card--month .ty-draw-card-name { font-size: 0.5rem; }
+  .ty-draw-card--month .ty-draw-card-name { font-size: 0.64rem; line-height: 1.25; }
   .ty-draw-slot-label { font-size: 0.7rem; }
   .ty-result-card-wrap { width: 95px; }
   .ty-result-card-wrap--month { width: 72px; min-height: 102px; }
@@ -1363,8 +1364,8 @@
     font-size: 1.05rem;
   }
   .ty-result-card-guide {
-    font-size: 0.58rem;
-    letter-spacing: 0.08em;
+    font-size: 0.66rem;
+    letter-spacing: 0;
   }
   .ty-month-detail-panel {
     margin-bottom: 16px;
@@ -1411,7 +1412,8 @@
     border-radius: 10px;
   }
   .ty-month-spread-name {
-    font-size: 0.62rem;
+    font-size: 0.68rem;
+    line-height: 1.25;
   }
   .ty-month-category-tabs {
     display: flex;

@@ -282,6 +282,39 @@ function fillPatternVariables(pattern, context) {
     .replace(/\{\{\s*questionType\s*\}\}/g, String(context?.questionTypeLabel || "질문 주제"));
 }
 
+function buildSajuPromptQualityChecks(prompt) {
+  const text = String(prompt || "");
+  const basisCount = ["일간", "월지", "십성", "오행", "조후"].reduce((count, token) => (
+    text.includes(token) ? count + 1 : count
+  ), 0);
+  return {
+    hasUserQuestion: text.includes("[사용자 질문]"),
+    hasAnswerFormat: text.includes("[답변 형식]"),
+    hasSajuBasis: basisCount >= 2,
+    hasNoCertaintyRule: text.includes("단정") || text.includes("확정"),
+    hasPrivacyRule: text.includes("개인정보") || text.includes("이름, 생년월일, 출생시간"),
+    hasExternalAiPurpose: text.includes("외부 AI") || text.includes("붙여넣"),
+  };
+}
+
+function ensureSajuPromptQuality(prompt) {
+  const checks = buildSajuPromptQualityChecks(prompt);
+  const additions = [];
+  if (!checks.hasUserQuestion) additions.push("- 사용자의 원질문을 먼저 밝힌 뒤 질문문을 구성해 주세요.");
+  if (!checks.hasAnswerFormat) additions.push("- 원하는 답변 형식을 번호 목록으로 분리해 주세요.");
+  if (!checks.hasSajuBasis) additions.push("- 일간·월지·십성·오행·조후 중 최소 2개 근거를 질문문에 포함해 주세요.");
+  if (!checks.hasNoCertaintyRule) additions.push("- 결혼, 이별, 투자, 법률, 의료 같은 고위험 결론은 확정하지 말고 확인 질문으로 바꿔 주세요.");
+  if (!checks.hasPrivacyRule) additions.push("- 이름, 생년월일, 출생시간 같은 개인정보 원문은 반복하지 말고 명식 정보만 간결하게 사용해 주세요.");
+  if (!checks.hasExternalAiPurpose) additions.push("- 외부 AI에 그대로 붙여넣을 질문문이라는 목적을 마지막에 분명히 남겨 주세요.");
+
+  if (!additions.length) return { prompt, checks };
+  const enhancedPrompt = `${prompt}\n\n[최종 품질 점검]\n${additions.join("\n")}`;
+  return {
+    prompt: enhancedPrompt,
+    checks: buildSajuPromptQualityChecks(enhancedPrompt),
+  };
+}
+
 export function buildSajuAIPromptWithDomain({
   question,
   sajuResult,
@@ -348,6 +381,9 @@ export function buildSajuAIPromptWithDomain({
     minPromptLength: 1800,
   });
 
+  const qualityResult = ensureSajuPromptQuality(promptPackage.generatedPrompt);
+  const generatedPrompt = qualityResult.prompt;
+
   const digestSource = [
     normalizedQuestion,
     resolvedDomain,
@@ -376,11 +412,12 @@ export function buildSajuAIPromptWithDomain({
     toText(jong.name, ""),
     promptPackage.summaryIntent,
     promptPackage.analysisAngles.join("|"),
+    generatedPrompt,
   ].join("\n");
 
   return {
-    prompt: promptPackage.generatedPrompt,
-    generatedPrompt: promptPackage.generatedPrompt,
+    prompt: generatedPrompt,
+    generatedPrompt,
     title: promptPackage.title,
     summaryIntent: promptPackage.summaryIntent,
     analysisAngles: promptPackage.analysisAngles,
@@ -390,6 +427,7 @@ export function buildSajuAIPromptWithDomain({
     domain: resolvedDomain,
     domainLabel: template.domainKo,
     keywordWeights: template.keywordWeights,
+    qualityChecks: qualityResult.checks,
     digestSource,
   };
 }

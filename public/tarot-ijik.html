@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>이직 운명의 카드 — 일의 문턱을 읽는 7카드 타로</title>
-<meta name="description" content="현재 일에서 남길 기준, 옮겨야 할 방향, 다음 행동을 7장의 카드로 읽는 커리어 전환 타로 리딩입니다.">
+<title>이직 운명의 카드 — 일의 기준을 읽는 7카드 타로</title>
+<meta name="description" content="지금 일에서 남길 기준, 옮길 방향, 다음 한 걸음을 7장의 카드로 차분히 읽는 커리어 전환 타로 리딩입니다.">
 <script src="/js/destiny-profile.js?v=build-dc8b1dedfe26"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
@@ -506,8 +506,8 @@ body {
 }
 
 .card-wrap {
-  width: 82px;
-  height: 124px;
+  width: 96px;
+  height: 144px;
   perspective: 1000px;
   cursor: pointer;
   flex-shrink: 0;
@@ -628,7 +628,7 @@ body {
 
 .card-face-image {
   width: 100%;
-  height: 58px;
+  height: 72px;
   object-fit: cover;
   border-radius: 4px;
   border: 1px solid rgba(120, 85, 30, 0.2);
@@ -642,7 +642,7 @@ body {
 }
 
 .card-face-name {
-  font-size: 8.5px;
+  font-size: 10px;
   font-weight: 700;
   color: #5a3a10;
   text-align: center;
@@ -652,13 +652,13 @@ body {
 
 .card-face-en {
   font-family: 'Cinzel', serif;
-  font-size: 6.5px;
+  font-size: 7.5px;
   color: rgba(120,85,30,0.65);
   text-align: center;
 }
 
 .card-reversed-badge {
-  font-size: 7.5px;
+  font-size: 8.5px;
   color: #8b2020;
   font-weight: 600;
   background: rgba(139,32,32,0.1);
@@ -667,12 +667,12 @@ body {
 }
 
 .card-label-below {
-  font-size: 9.5px;
+  font-size: 10.5px;
   color: rgba(212,160,23,0.65);
   text-align: center;
-  max-width: 86px;
+  max-width: 104px;
   line-height: 1.4;
-  min-height: 14px;
+  min-height: 28px;
   word-break: keep-all;
 }
 
@@ -709,8 +709,10 @@ body {
   color: rgba(200, 185, 220, 0.65);
   text-align: center;
   letter-spacing: 0.5px;
+  line-height: 1.6;
   min-height: 20px;
   transition: color 0.3s;
+  word-break: keep-all;
 }
 
 .status-msg.ready { color: #e8c44a; }
@@ -726,7 +728,7 @@ body {
   padding: 14px 40px;
   border-radius: 50px;
   cursor: pointer;
-  letter-spacing: 2px;
+  letter-spacing: 0;
   transition: all 0.3s;
   box-shadow: 0 4px 24px rgba(212,160,23,0.3);
   display: flex;
@@ -754,7 +756,7 @@ body {
   padding: 8px 24px;
   border-radius: 30px;
   cursor: pointer;
-  letter-spacing: 1px;
+  letter-spacing: 0;
   transition: all 0.3s;
 }
 
@@ -834,7 +836,7 @@ body {
   border: 1px solid rgba(124,58,237,0.25);
   border-radius: 6px;
   padding: 4px 10px;
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(200,185,240,0.8);
 }
 
@@ -846,9 +848,9 @@ body {
 }
 
 .reading-text {
-  font-size: 13.5px;
+  font-size: 14.5px;
   color: rgba(228, 215, 250, 0.9);
-  line-height: 2.1;
+  line-height: 1.9;
   white-space: pre-wrap;
   word-break: keep-all;
   min-height: 40px;
@@ -896,7 +898,13 @@ body {
     width: 100%;
     text-align: center;
   }
-  .card-wrap { width: 70px; height: 106px; }
+  .card-wrap { width: 86px; height: 130px; }
+  .card-face-image { height: 62px; }
+  .card-face-name { font-size: 9.5px; }
+  .card-face-en { display: none; }
+  .card-label-below { max-width: 94px; font-size: 10px; }
+  .reading-body { padding: 20px; }
+  .reading-text { font-size: 14px; line-height: 1.85; }
   .oracle-ring { width: 140px; height: 140px; }
   .oracle-symbol { font-size: 48px; }
 }
@@ -961,8 +969,8 @@ body {
 
   <p style="font-size:13px;color:rgba(200,185,220,0.6);line-height:2;max-width:420px;margin-bottom:36px;text-align:center;word-break:keep-all;">
     일의 문턱 앞에서 오래 망설인 마음에게<br>
-    7장의 카드가 남길 기준, 옮겨야 할 방향, 다음 한 걸음을 비춥니다.<br>
-    <span style="color:rgba(212,160,23,0.7);">카드를 뽑고 지금 일의 결을 조용히 읽어보세요.</span>
+    7장의 카드가 남길 기준, 옮길 방향, 다음 한 걸음을 비춥니다.<br>
+    <span style="color:rgba(212,160,23,0.7);">카드를 열고 지금 일의 기준을 조용히 읽어보세요.</span>
   </p>
 
   <div class="card-intro-grid">
@@ -988,11 +996,11 @@ body {
   </button>
 
   <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;">
-    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.4);border-radius:20px;padding:5px 14px;font-size:11.5px;color:#e8c44a;font-weight:600;letter-spacing:0.5px;">🪙 심층 리딩 1회 · 50코인</span>
+    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.4);border-radius:20px;padding:5px 14px;font-size:11.5px;color:#e8c44a;font-weight:600;letter-spacing:0.5px;">🪙 7카드 커리어 전환 리딩 · 50코인</span>
   </div>
 
   <p style="margin-top:12px;font-size:11px;color:rgba(200,185,220,0.3);letter-spacing:1px;">
-    카드를 한 장씩 열어 일의 결을 확인하세요
+    일곱 장을 차례로 열어 남길 기준과 옮길 방향을 확인하세요
   </p>
 </section>
 
@@ -1004,8 +1012,8 @@ body {
     <div>
       <span class="spread-tag">✦ TAROT SPREAD ✦</span>
     </div>
-    <div class="spread-title">일의 문턱을 건너기 전 (7카드)</div>
-    <div class="spread-desc">카드를 한 장씩 뒤집어 보세요. 7장 모두 공개되면 남길 기준과 옮길 방향이 열립니다.</div>
+    <div class="spread-title">일의 문턱 앞 7카드</div>
+    <div class="spread-desc">카드를 한 장씩 열어보세요. 7장 모두 열리면 남길 기준과 옮길 방향이 드러납니다.</div>
   </div>
 
   <!-- Progress -->
@@ -1013,7 +1021,7 @@ body {
     <div class="progress-track">
       <div class="progress-bar" id="progressBar" style="width:0%"></div>
     </div>
-    <div class="progress-text" id="progressText">0 / 7 공개됨</div>
+    <div class="progress-text" id="progressText">0 / 7 열림</div>
   </div>
 
   <!-- ── STAGE 1 ── -->
@@ -1185,12 +1193,12 @@ body {
 
   <!-- Action -->
   <div class="action-area">
-    <div class="status-msg" id="statusMsg">카드를 한 장씩 열어 일의 결을 확인하세요 ✦</div>
+    <div class="status-msg" id="statusMsg">카드를 한 장씩 열어 일의 기준을 확인하세요 ✦</div>
     <button class="btn-read" id="readBtn" onclick="getReading()" disabled>
-      <div>✦ &nbsp; 심층 타로 리딩 받기 &nbsp; ✦</div>
-      <div style="font-size:11px;font-weight:600;background:rgba(0,0,0,0.2);border-radius:12px;padding:2px 12px;margin-top:5px;letter-spacing:0.5px;">🪙 50코인 차감</div>
+      <div>✦ &nbsp; 50코인으로 커리어 리딩 열기 &nbsp; ✦</div>
+      <div style="font-size:11px;font-weight:600;background:rgba(0,0,0,0.2);border-radius:12px;padding:2px 12px;margin-top:5px;letter-spacing:0.5px;">리딩이 열리지 않으면 자동 환불</div>
     </button>
-    <button class="btn-reset" onclick="resetSpread()">↺ &nbsp; 카드 다시 뽑기</button>
+    <button class="btn-reset" onclick="resetSpread()">↺ &nbsp; 카드 다시 정렬하기</button>
     <button class="btn-reset" onclick="goToLanding()" style="border-color:rgba(124,58,237,0.2);color:rgba(124,58,237,0.5);">
       ← &nbsp; 처음으로
     </button>
@@ -1202,7 +1210,7 @@ body {
       <div class="reading-header-icon">🔮</div>
       <div>
         <div class="reading-header-title">ORACLE READING</div>
-        <div class="reading-header-sub">일의 문턱에서 건네는 커리어 문장</div>
+        <div class="reading-header-sub">일의 문턱에서 건네는 다음 한 걸음</div>
       </div>
     </div>
     <div class="reading-body">
@@ -1227,7 +1235,7 @@ const IJIK_COIN_COST = 50;
 let _ijikLastCoinTx = '';
 
 function setIjikPaymentPending(show, message) {
-  var text = String(message || '').trim() || '결제가 진행 중입니다.';
+  var text = String(message || '').trim() || '50코인 사용을 확인하는 중입니다.';
   try {
     if (typeof window._cdSetCoinGateOverlay === 'function') {
       window._cdSetCoinGateOverlay(!!show, text);
@@ -1240,7 +1248,7 @@ function setIjikPaymentPending(show, message) {
     overlay = document.createElement('div');
     overlay.id = 'cdStandalonePaymentOverlay';
     overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%, rgba(15,23,42,.78), rgba(2,6,23,.92));backdrop-filter:blur(8px);padding:16px;';
-    overlay.innerHTML = '<div style="width:min(420px,100%);border-radius:20px;border:1px solid rgba(125,211,252,.42);background:linear-gradient(135deg, rgba(15,23,42,.92), rgba(30,41,59,.94));box-shadow:0 24px 54px rgba(2,6,23,.5);padding:22px 18px;color:rgba(226,232,240,.98);text-align:center;"><div style="width:44px;height:44px;margin:0 auto 12px;border-radius:999px;border:3px solid rgba(125,211,252,.22);border-top-color:rgba(125,211,252,.96);animation:cdStandalonePaymentSpin .9s linear infinite"></div><p style="margin:0;font-size:19px;font-weight:800;color:rgba(224,242,254,.98)">은하 결제망 동기화 중...</p><p style="margin:9px 0 0;font-size:14px;color:rgba(186,230,253,.95)">별빛 회로로 결제 정보를 안전하게 확인하고 있습니다.</p><p id="cdStandalonePaymentOverlayStatus" style="margin:13px 0 0;border-radius:12px;border:1px solid rgba(167,243,208,.3);background:linear-gradient(135deg, rgba(15,23,42,.44), rgba(6,78,59,.3));padding:8px 10px;color:rgba(220,252,231,.98);font-size:13px;font-weight:600">결제가 진행 중입니다.</p></div>';
+    overlay.innerHTML = '<div style="width:min(420px,100%);border-radius:20px;border:1px solid rgba(125,211,252,.42);background:linear-gradient(135deg, rgba(15,23,42,.92), rgba(30,41,59,.94));box-shadow:0 24px 54px rgba(2,6,23,.5);padding:22px 18px;color:rgba(226,232,240,.98);text-align:center;"><div style="width:44px;height:44px;margin:0 auto 12px;border-radius:999px;border:3px solid rgba(125,211,252,.22);border-top-color:rgba(125,211,252,.96);animation:cdStandalonePaymentSpin .9s linear infinite"></div><p style="margin:0;font-size:19px;font-weight:800;color:rgba(224,242,254,.98)">50코인 사용 확인 중...</p><p style="margin:9px 0 0;font-size:14px;color:rgba(186,230,253,.95)">리딩 권한과 잔액을 안전하게 확인하고 있습니다.</p><p id="cdStandalonePaymentOverlayStatus" style="margin:13px 0 0;border-radius:12px;border:1px solid rgba(167,243,208,.3);background:linear-gradient(135deg, rgba(15,23,42,.44), rgba(6,78,59,.3));padding:8px 10px;color:rgba(220,252,231,.98);font-size:13px;font-weight:600">50코인 사용을 확인하는 중입니다.</p></div>';
     document.body.appendChild(overlay);
     if (!document.getElementById('cdStandalonePaymentOverlayStyle')) {
       var style = document.createElement('style');
@@ -1269,8 +1277,8 @@ const POSITIONS = [
   {label:'일이 부르는 자리', q:'지금 내 일이 어느 방향으로 나를 부르고 있는가?'},
   {label:'내가 빛나는 환경', q:'나는 어떤 환경에서 가장 선명하게 일할 수 있는가?'},
   {label:'마음의 소명', q:'내 안의 소명은 어떤 언어로 말하고 있는가?'},
-  {label:'문턱 너머의 변화', q:'이직 이후 내 삶의 결은 어떻게 달라질까?'},
-  {label:'현실로 여는 첫 행동', q:'이직을 현실로 열기 위해 지금 무엇을 시작해야 할까?'},
+  {label:'문턱 너머의 변화', q:'새로운 일의 흐름은 내 삶의 결을 어떻게 바꿀까?'},
+  {label:'현실로 여는 첫 행동', q:'커리어 전환을 현실로 열기 위해 지금 무엇을 시작해야 할까?'},
   {label:'놓아야 할 낡은 기준', q:'새 길을 위해 무엇을 내려놓아야 할까?'},
   {label:'일의 길잡이', q:'카드들이 함께 전하는 최종 조언은 무엇인가?'},
 ];
@@ -1463,50 +1471,96 @@ function pickLocalJobChangeCards() {
   return out;
 }
 
-function createLocalJobChangeReading(cards) {
-  const TABLE = [
-    { // 0: 나의 천직
-      up: '이 카드는 오래 억눌러 두었던 일의 불씨가 다시 살아나는 시기를 비춥니다. 지금의 고민은 단순한 권태가 아니라, 더 넓은 역할을 맡고 싶다는 내면의 신호에 가깝습니다. 어린 시절부터 자연스럽게 몰입했던 활동, 부탁받지 않아도 반복하게 되는 능력, 피곤해도 자존감이 회복되는 업무를 먼저 떠올려 보세요. 그 안에 다음 직무의 씨앗이 있습니다. 이번 주에는 관심 직무 공고 세 개를 모아 공통 역량을 표시하고, 그중 이미 가진 힘과 새로 익혀야 할 힘을 나눠 적어보세요. 카드가 말하는 전환은 갑작스러운 도약보다 조용한 탐색에서 시작됩니다.',
-      re: '역방향의 카드는 지금의 길이 당신의 본래 리듬과 조금씩 어긋나고 있음을 보여줍니다. 돈, 인정, 주변 기대가 선택의 기준을 너무 크게 차지하면 마음의 소리는 점점 작아집니다. 지금 바로 사표를 쓰라는 뜻이 아니라, 무엇이 나를 마르게 하고 무엇이 나를 살아나게 하는지 분리하라는 신호입니다. 오늘 20분만 시간을 내어 일에서 빛나는 순간과 기운이 꺼지는 순간을 각각 세 줄로 적어보세요. 그 차이가 전환의 방향을 알려줍니다. 작은 불편을 계속 무시하면 새 직장에서도 같은 갈증이 반복될 수 있으니, 먼저 기준을 맑게 세우는 것이 필요합니다.',
-    },
-    { // 1: 행복한 직업의 방향
-      up: '이 카드는 당신이 혼자 버티는 자리보다 아이디어와 책임이 건강하게 오가는 환경에서 더 밝게 빛난다고 말합니다. 보상이 중요하지 않다는 뜻은 아니지만, 지금은 급여 숫자만큼이나 일하는 방식, 의사결정 속도, 성장 기회가 핵심 기준이 됩니다. 개인의 의견을 존중하는 문화, 역할의 경계가 투명한 팀, 배울 수 있는 선배나 동료가 있는 곳을 우선순위에 올려보세요. 현재 직장의 불만 다섯 가지를 적고, 그 반대 조건을 채용 공고와 조직 후기로 확인하면 방향이 선명해집니다. 좋은 이직은 멀리 도망가는 일이 아니라, 내 힘이 덜 낭비되는 자리를 찾는 일입니다.',
-      re: '역방향의 카드는 지금 그리는 이상적 직장이 실제 조건보다 아름답게 포장되어 있을 가능성을 보여줍니다. 막연히 편한 곳, 더 인정받는 곳, 완전히 다른 삶을 기대하고 있다면 먼저 구체적인 업무 장면으로 내려와야 합니다. 하루의 회의량, 보고 방식, 성과 기준, 함께 일할 사람의 스타일을 확인하지 않으면 새 자리에서도 같은 피로가 찾아올 수 있습니다. 이번 주에는 관심 기업 한 곳을 정해 직무 설명과 후기를 나란히 읽어보세요. 기대와 현실의 간격을 보는 눈이 생기면, 선택은 더 차분하고 강해집니다.',
-    },
-    { // 2: 내면의 소명
-      up: '이 카드는 직업명이 아니라 당신이 세상과 맺고 싶은 방식에 초점을 맞추라고 말합니다. 어떤 문제를 풀 때 마음이 맑아지는지, 누구에게 도움이 되었을 때 하루가 의미 있어지는지, 어떤 가치를 지키고 싶을 때 힘이 나는지 살펴보세요. 소명은 거창한 선언보다 반복되는 끌림 속에서 드러납니다. 매일 저녁 "오늘 내가 지키고 싶었던 가치는 무엇이었나"를 한 줄로 남기면 내면의 방향이 조금씩 선명해집니다. 직무 선택은 그다음입니다. 먼저 내가 어떤 사람이 되고 싶은지 정하면, 맞는 일은 자연스럽게 좁혀집니다.',
-      re: '역방향의 카드는 소명감이 흐려진 상태에서 이직을 결정하려는 조급함을 비춥니다. 지금의 공허감이 회사의 문제인지, 역할의 문제인지, 혹은 오래 돌보지 못한 마음의 문제인지 먼저 구분해야 합니다. 새 환경은 활력을 줄 수 있지만, 방향이 비어 있으면 같은 허전함이 따라올 수 있습니다. 작은 사이드 프로젝트, 짧은 교육, 낯선 커뮤니티 참여처럼 부담이 적은 실험으로 잃어버린 관심사를 깨워보세요. 결정이 늦어지는 것이 실패는 아닙니다. 지금은 길을 멈춘 것이 아니라 나침반을 다시 맞추는 시간입니다.',
-    },
-    { // 3: 이직 이후의 삶
-      up: '문턱 너머의 삶은 낯설지만, 당신을 다시 움직이게 하는 바람을 품고 있습니다. 첫 90일은 배울 것이 많아 몸과 마음이 바빠질 수 있으나, 작은 약속을 꾸준히 지키면 신뢰가 빠르게 쌓입니다. 처음부터 증명하려 애쓰기보다 관찰하고 질문하며 새 조직의 언어를 익히는 것이 좋습니다. 이 카드는 전환 이후의 당신이 더 넓은 역할을 맡고 자신감을 회복할 가능성을 보여줍니다. 새 환경은 완벽한 낙원이 아니라, 잠들어 있던 힘을 다시 꺼내 쓰게 하는 시험대에 가깝습니다.',
-      re: '역방향의 카드는 이직 이후의 삶을 지나치게 밝게만 상상하지 말라고 말합니다. 새 직장은 새로운 가능성과 함께 낯선 피로, 관계 적응, 성과 압박도 함께 데려옵니다. 지금의 이직 동기가 도피에 가까울수록 같은 불만이 형태만 바꾸어 반복될 수 있습니다. 떠나기 전에 현재 자리에서 해결 가능한 문제와 구조적으로 바꿀 수 없는 문제를 분리해 보세요. 이 구분이 선명할수록 새 길은 덜 흔들립니다. 기대보다 준비가 당신을 안전하게 건너가게 합니다.',
-    },
-    { // 4: 현실화를 위한 행동
-      up: '이 카드는 결심을 현실로 내리는 가장 작은 행동을 요구합니다. 오늘 해야 할 일은 큰 결단이 아니라 문을 여는 첫 손짓입니다. 관심 공고 다섯 개를 모아 반복되는 역량 키워드를 표시하고, 이미 가진 것과 세 달 안에 보완할 것을 나누어 보세요. 이력서는 완벽해진 뒤 쓰는 문서가 아니라, 쓰면서 방향이 드러나는 지도입니다. 프로필 한 줄 수정, 포트폴리오 한 항목 정리, 관심 기업 담당자에게 조용히 메시지 보내기 같은 작은 행동이 흐름을 만듭니다. 시작의 크기보다 반복의 리듬이 중요합니다.',
-      re: '역방향의 카드는 행동해야 한다는 것을 알면서도 계속 문 앞에서 멈춰 있는 모습을 비춥니다. 완벽한 타이밍을 기다리는 말 뒤에 두려움, 정보 부족, 에너지 고갈이 숨어 있을 수 있습니다. 지금 필요한 것은 자신을 몰아붙이는 일이 아니라 막힘의 이름을 정확히 붙이는 일입니다. 이번 주에는 단 하나만 실행해 보세요. 이력서 파일을 열어 날짜 하나를 고치거나, 관심 공고 하나를 저장하는 정도면 충분합니다. 작은 시작은 결정을 대신하지 않지만, 멈춘 운을 다시 흐르게 합니다.',
-    },
-    { // 5: 포기해야 할 것
-      up: '이 카드는 "완벽히 준비되면 움직이겠다"는 오래된 기준을 내려놓으라고 말합니다. 준비는 필요하지만, 완벽주의가 두려움을 감추는 장막이 되면 길은 계속 멀어집니다. 익숙한 루틴, 편한 관계, 이미 아는 방식에 기대는 마음도 부드럽게 점검해야 합니다. 불안을 없애야 움직일 수 있는 것이 아니라, 불안이 있어도 작은 선택을 해낼 때 전환은 시작됩니다. 내려놓음은 손실이 아니라 새 가능성이 들어올 자리를 비우는 일입니다. 지금의 나로도 첫 걸음은 충분하다는 믿음을 먼저 선택하세요.',
-      re: '역방향의 카드는 놓아야 할 것을 알면서도 계속 붙잡고 있는 상태를 보여줍니다. 안정감, 오래 쌓은 관계, 편한 자리의 이름으로 스스로를 오래 묶어두었을 수 있습니다. 변화가 두려운 것은 자연스럽지만, 그 두려움이 성장을 막는다면 이제는 마주 보아야 합니다. 지금 놓지 못하는 것들을 적고, 5년 후에도 정말 가치가 남을지 차분히 바라보세요. 모든 것을 버리라는 뜻은 아닙니다. 다만 새 길에 필요 없는 짐은 더 이상 운명의 가방에 넣지 않아도 됩니다.',
-    },
-    { // 6: 전체적인 조언
-      up: '일곱 장의 카드는 이 전환이 도망이 아니라 선택이 되어야 한다고 말합니다. 이미 마음은 많은 것을 알고 있지만, 아직 현실의 언어로 정리되지 않았습니다. 앞으로 30일 안에 실행할 행동 세 가지를 오늘 캘린더에 올려보세요. 직무 탐색, 이력서 정비, 사람을 통한 정보 확인, 이 세 축이 함께 움직이면 길은 훨씬 선명해집니다. 운명의 카드는 문을 가리킬 수 있지만 문고리를 잡는 것은 당신의 손입니다. 오늘의 작은 결단이 내일의 큰 이동을 준비합니다.',
-      re: '역방향의 카드는 확신이 흔들리는 시간을 나쁘게만 보지 말라고 말합니다. 지금의 흔들림은 실패가 아니라 더 정확한 선택을 위한 정지 신호일 수 있습니다. 감정적으로 소진된 상태라면 이직 결정보다 회복과 관찰이 먼저입니다. 현재 직무 안에서 작은 변화를 시도해 보고, 그래도 같은 갈증이 남는다면 그것 자체가 전환의 근거가 됩니다. 서두르지 않는 것이 때로는 가장 빠른 길입니다. 지금 필요한 것은 결론을 밀어붙이는 힘보다, 마음과 현실을 동시에 보는 맑은 시야입니다.',
-    },
-  ];
+const CARD_SIGNAL_BY_ID = {
+  M00: { up: '바보는 아직 이름 붙지 않은 길을 향한 첫 숨을 비춥니다.', re: '바보의 역방향은 설렘보다 충동이 앞서지 않는지 묻습니다.' },
+  M01: { up: '마법사는 이미 손안에 있는 도구를 현실의 성과로 바꾸는 힘을 보여줍니다.', re: '마법사의 역방향은 능력은 있으나 초점이 흩어진 상태를 비춥니다.' },
+  M02: { up: '여사제는 조용한 직감과 보이지 않는 정보를 먼저 읽으라고 말합니다.', re: '여사제의 역방향은 감을 믿기 전에 사실을 다시 확인하라는 신호입니다.' },
+  M03: { up: '여황제는 성장, 돌봄, 창작성이 살아나는 환경을 가리킵니다.', re: '여황제의 역방향은 너무 많이 주고도 정작 자신은 마르는 흐름을 경계합니다.' },
+  M04: { up: '황제는 질서와 책임, 명확한 권한이 있는 자리를 비춥니다.', re: '황제의 역방향은 통제와 안정에 묶여 새 선택이 좁아진 상태를 보여줍니다.' },
+  M05: { up: '교황은 배울 체계와 믿을 만한 기준을 통해 길이 열림을 알립니다.', re: '교황의 역방향은 남의 정답을 그대로 따를수록 자기 길이 흐려진다고 말합니다.' },
+  M06: { up: '연인은 가치와 선택이 만나는 지점에서 일의 방향이 선명해짐을 보여줍니다.', re: '연인의 역방향은 마음과 조건이 서로 다른 말을 하고 있음을 비춥니다.' },
+  M07: { up: '전차는 방향을 정하면 빠르게 움직일 수 있는 추진력을 줍니다.', re: '전차의 역방향은 속도보다 조향이 먼저라는 메시지를 전합니다.' },
+  M08: { up: '힘은 조용한 끈기와 자기 신뢰가 다음 문을 연다고 말합니다.', re: '힘의 역방향은 버티는 힘이 소진으로 변하기 전에 회복이 필요함을 알립니다.' },
+  M09: { up: '은둔자는 잠시 물러서서 자신의 기준을 정교하게 다듬는 시간을 비춥니다.', re: '은둔자의 역방향은 혼자만의 고민이 길어져 현실 확인이 늦어지는 흐름을 경계합니다.' },
+  M10: { up: '운명의 수레바퀴는 흐름이 바뀌는 시점과 예상 밖의 기회를 가리킵니다.', re: '운명의 수레바퀴 역방향은 변화가 오더라도 준비 없는 선택은 반복을 만든다고 말합니다.' },
+  M11: { up: '정의는 조건, 계약, 보상, 책임을 공정하게 따져야 함을 보여줍니다.', re: '정의의 역방향은 감정적 판단이나 불균형한 조건을 다시 살피라는 신호입니다.' },
+  M14: { up: '절제는 급한 이동보다 균형 잡힌 전환이 길을 오래 지킨다고 말합니다.', re: '절제의 역방향은 일과 회복, 기대와 현실의 비율이 어긋났음을 비춥니다.' },
+  M16: { up: '탑은 더는 유지하기 어려운 구조가 드러나며 새 기준이 필요함을 알립니다.', re: '탑의 역방향은 피하고 있던 변화가 작게라도 문을 두드리고 있음을 보여줍니다.' },
+  M17: { up: '별은 멀리 보이는 가능성이 다시 마음의 방향을 밝혀주는 카드입니다.', re: '별의 역방향은 희망이 흐려졌을 때 작은 회복부터 다시 시작하라고 말합니다.' },
+  M19: { up: '태양은 재능이 드러나고 인정받는 밝은 무대를 비춥니다.', re: '태양의 역방향은 보여지는 성취보다 실제 만족을 먼저 확인하라는 메시지입니다.' },
+};
 
+const JOB_CHANGE_READING_BY_POSITION = [
+  {
+    up: '지금의 고민은 단순한 권태보다 더 넓은 역할을 향한 부름에 가깝습니다. 오래 몰입했던 활동과 피곤해도 자존감이 회복되는 업무를 함께 떠올리면 다음 직무의 씨앗이 보입니다.',
+    re: '현재의 길이 본래 리듬과 조금 어긋나 있습니다. 돈, 인정, 주변 기대가 선택의 기준을 지나치게 키우고 있다면 먼저 자신을 살아나게 하는 일을 분리해야 합니다.',
+    actionUp: '관심 직무 공고 세 개를 모아 공통 역량을 표시하세요.',
+    actionRe: '일에서 기운이 켜지는 순간과 꺼지는 순간을 각각 세 줄로 적어보세요.',
+  },
+  {
+    up: '행복한 일터는 조건만 좋은 곳이 아니라 힘이 덜 새고 배움이 순환되는 자리입니다. 의사결정 방식, 역할의 경계, 성장 기회를 급여만큼 중요한 기준으로 올려두세요.',
+    re: '이상적인 직장을 너무 아름답게 상상하고 있을 수 있습니다. 회의량, 보고 방식, 성과 기준처럼 하루를 실제로 바꾸는 조건을 확인해야 같은 피로를 반복하지 않습니다.',
+    actionUp: '현재 직장의 불만 다섯 가지를 적고 그 반대 조건을 채용 공고에서 확인하세요.',
+    actionRe: '관심 기업 한 곳의 직무 설명과 실제 후기를 나란히 읽어보세요.',
+  },
+  {
+    up: '소명은 직업명보다 세상과 맺고 싶은 방식에서 먼저 드러납니다. 어떤 문제를 풀 때 마음이 맑아지는지, 어떤 가치를 지킬 때 힘이 나는지 살펴보세요.',
+    re: '소명감이 흐려진 상태에서 결론을 서두르고 있습니다. 회사의 문제인지, 역할의 문제인지, 오래 돌보지 못한 마음의 문제인지 먼저 나누어 보아야 합니다.',
+    actionUp: '오늘 지키고 싶었던 가치를 한 줄로 남기세요.',
+    actionRe: '작은 교육, 사이드 프로젝트, 커뮤니티 참여 중 하나로 관심사를 다시 깨워보세요.',
+  },
+  {
+    up: '문턱 너머에는 새 역할과 낯선 리듬이 함께 있습니다. 처음부터 증명하려 애쓰기보다 관찰하고 질문하며 새 조직의 언어를 익힐 때 신뢰가 빠르게 쌓입니다.',
+    re: '새 직장을 지나치게 밝게만 상상하면 같은 불만이 형태를 바꾸어 돌아올 수 있습니다. 떠나기 전, 해결 가능한 문제와 구조적으로 바꿀 수 없는 문제를 분리하세요.',
+    actionUp: '전환 후 첫 90일 동안 익혀야 할 사람, 규칙, 업무 언어를 적어보세요.',
+    actionRe: '현재 자리에서 바꿀 수 있는 것과 바꿀 수 없는 것을 두 칸으로 나누세요.',
+  },
+  {
+    up: '결심은 큰 선언보다 작은 실행으로 현실이 됩니다. 이력서는 완벽해진 뒤 쓰는 문서가 아니라, 쓰면서 방향이 드러나는 지도입니다.',
+    re: '움직여야 함을 알면서도 문 앞에서 멈춰 있습니다. 자신을 몰아붙이기보다 두려움, 정보 부족, 에너지 고갈 중 무엇이 막고 있는지 이름 붙이세요.',
+    actionUp: '프로필 한 줄을 고치거나 포트폴리오 한 항목을 정리하세요.',
+    actionRe: '이력서 파일을 열어 날짜 하나만 고쳐도 충분합니다.',
+  },
+  {
+    up: '내려놓아야 할 것은 준비가 아니라 완벽해야만 움직일 수 있다는 오래된 기준입니다. 불안이 있어도 작은 선택을 해낼 때 전환은 시작됩니다.',
+    re: '안정감, 오래 쌓은 관계, 익숙한 방식이 새 길의 짐이 되었을 수 있습니다. 모든 것을 버리라는 뜻이 아니라 더 이상 필요 없는 기준을 가볍게 하라는 뜻입니다.',
+    actionUp: '완벽하지 않아도 시작할 수 있는 행동 하나를 오늘 정하세요.',
+    actionRe: '놓지 못하는 것 세 가지를 적고 5년 뒤에도 가치가 남는지 확인하세요.',
+  },
+  {
+    up: '이번 전환은 도망이 아니라 선택이 되어야 힘을 얻습니다. 마음이 이미 알고 있는 것을 현실의 언어로 정리하면 길은 훨씬 선명해집니다.',
+    re: '확신이 흔들리는 시간은 실패가 아니라 더 정확한 선택을 위한 정지 신호입니다. 소진된 상태라면 결론보다 회복과 관찰이 먼저입니다.',
+    actionUp: '30일 안에 실행할 직무 탐색, 이력서 정비, 정보 확인 일정을 캘린더에 올리세요.',
+    actionRe: '이번 주에는 결론을 미루고 회복, 관찰, 정보 확인만 진행하세요.',
+  },
+];
+
+function createLocalJobChangeReading(cards) {
   const sections = [];
+  const actionItems = [];
+  const reversedCount = cards.filter((card) => card && card.orientation === 'reversed').length;
+  const flowText = reversedCount >= 4
+    ? '역방향의 기운이 강합니다. 지금은 빠른 결론보다 기준을 맑히고 손실을 줄이는 선택이 먼저입니다.'
+    : '정방향의 기운이 우세합니다. 지금의 고민은 다음 자리로 옮겨 갈 준비를 현실로 다듬으라는 신호입니다.';
+
+  sections.push(`✦ 핵심 흐름\n${flowText}`);
+
   for (let i = 0; i < POSITIONS.length; i++) {
     const pos = POSITIONS[i];
     const card = cards[i] || {};
     const cardName = card.nameKr || card.name || `카드 ${i + 1}`;
     const isReversed = card.orientation === 'reversed';
-    const entry = TABLE[i] || TABLE[0];
-    const interp = isReversed ? entry.re : entry.up;
-    sections.push(`✦ 카드 ${i + 1} · ${pos.label}\n『${cardName}${isReversed ? ' (역방향)' : ' (정방향)'}』\n\n${interp}`);
+    const directionLabel = isReversed ? '역방향' : '정방향';
+    const cardSignal = CARD_SIGNAL_BY_ID[card.cardId] || { up: '이 카드는 지금의 선택을 다시 바라보게 합니다.', re: '이 카드는 선택 앞의 망설임을 차분히 살피라고 말합니다.' };
+    const entry = JOB_CHANGE_READING_BY_POSITION[i] || JOB_CHANGE_READING_BY_POSITION[0];
+    const signal = isReversed ? cardSignal.re : cardSignal.up;
+    const body = isReversed ? entry.re : entry.up;
+    const action = isReversed ? entry.actionRe : entry.actionUp;
+    actionItems.push(`${i + 1}. ${action}`);
+    sections.push(`✦ 카드 ${i + 1} · ${pos.label}\n『${cardName} · ${directionLabel}』\n${signal}\n${body}\n작은 실천: ${action}`);
   }
 
-  sections.push('━━━━━━━━━━━━━━━━\n✦ 종합 메시지\n이번 7카드 리딩은 이직을 단번에 맞히는 예언이 아니라, 당신이 어떤 기준으로 움직여야 안전하게 전환할 수 있는지 보여주는 지도입니다. 오늘 확인한 카드들의 조언을 30일 실행 계획으로 내려보세요. 탐색할 직무, 보완할 역량, 연락해 볼 사람을 각각 하나씩 정하면 막연한 고민은 현실의 길로 바뀌기 시작합니다.');
+  sections.push(`━━━━━━━━━━━━━━━━\n✦ 앞으로 30일의 선택 기준\n${actionItems.slice(0, 3).join('\n')}\n\n이번 리딩은 퇴사와 합격을 단번에 맞히는 예언이 아니라, 안전하게 움직이기 위한 작은 나침반입니다. 오늘 나온 조언 중 하나만 일정에 올리면 막연한 고민이 현실의 길로 바뀌기 시작합니다.`);
   return sections.join('\n\n');
 }
 
@@ -1560,11 +1614,11 @@ async function initDeckFromApi() {
   try {
     drawnCards = pickLocalJobChangeCards();
     isDeckReady = drawnCards.length === 7;
-    msg.textContent = '카드를 한 장씩 열어 일의 징조를 확인하세요 ✦';
+    msg.textContent = '카드를 한 장씩 열어 일의 기준을 확인하세요 ✦';
   } catch (error) {
     console.error('[tarot-ijik] local draw failed', error);
     if (isDeckReady) {
-      msg.textContent = '카드를 한 장씩 열어 일의 징조를 확인하세요 ✦';
+      msg.textContent = '카드를 한 장씩 열어 일의 기준을 확인하세요 ✦';
     } else {
       msg.textContent = '카드의 흐름이 잠시 흐려졌습니다. 다시 뽑기를 눌러 주세요.';
     }
@@ -1601,7 +1655,7 @@ async function ijikCoinGate(cost, reason) {
     } catch(_) {}
   }
   if (isAdminLike) return true;
-  var title = String(reason || '이직 타로 리딩').trim() || '이직 타로 리딩';
+  var title = String(reason || '커리어 전환 타로 리딩').trim() || '커리어 전환 타로 리딩';
   var requestId = 'tarot-ijik:req:' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
   var granted = false;
   var grantTxId = '';
@@ -1774,19 +1828,19 @@ function goToLanding() {
 async function shareIjikResult() {
   const text = (document.getElementById('readingText')?.textContent || '').trim();
   if (!text) {
-    window.alert('먼저 해석 결과를 생성해 주세요.');
+    window.alert('먼저 리딩 결과를 열어 주세요.');
     return;
   }
 
   const cardNames = drawnCards
     .map((c) => `${c.nameKr || c.name || '카드'}${c.orientation === 'reversed' ? '(역)' : ''}`)
     .join(', ');
-  const shareText = `[이직 타로 결과]\n카드: ${cardNames}\n\n${text}\n\n- Code Destiny`;
+  const shareText = `[커리어 전환 타로 결과]\n카드: ${cardNames}\n\n${text}\n\n- Code Destiny`;
 
   try {
     if (navigator.share && navigator.canShare && navigator.canShare({ text: shareText })) {
       await navigator.share({
-        title: '이직 타로 결과',
+        title: '커리어 전환 타로 결과',
         text: shareText,
         url: window.location.href,
       });
@@ -1836,15 +1890,15 @@ function flipCard(n) {
 function updateUI() {
   const pct = (flippedCount / 7 * 100).toFixed(0);
   document.getElementById('progressBar').style.width = pct + '%';
-  document.getElementById('progressText').textContent = `${flippedCount} / 7 공개됨`;
+  document.getElementById('progressText').textContent = `${flippedCount} / 7 열림`;
   const msg = document.getElementById('statusMsg');
   const btn = document.getElementById('readBtn');
   if (flippedCount === 7) {
-    msg.textContent = '✦ 일곱 장의 길이 열렸습니다. 심층 리딩을 받아보세요.';
+    msg.textContent = '✦ 일곱 장의 흐름이 열렸습니다. 리딩을 확인해 보세요.';
     msg.classList.add('ready');
     btn.disabled = false;
   } else {
-    msg.textContent = `${7 - flippedCount}장의 카드가 아직 문 뒤에 있습니다. 계속 열어보세요.`;
+    msg.textContent = `${7 - flippedCount}장의 카드가 아직 닫혀 있습니다. 차례로 열어보세요.`;
   }
 }
 
@@ -1860,8 +1914,8 @@ async function resetSpread() {
     document.getElementById('lbl' + i).textContent = '';
   }
   document.getElementById('progressBar').style.width = '0%';
-  document.getElementById('progressText').textContent = '0 / 7 공개됨';
-  document.getElementById('statusMsg').textContent = '카드를 한 장씩 열어 일의 징조를 확인하세요 ✦';
+  document.getElementById('progressText').textContent = '0 / 7 열림';
+  document.getElementById('statusMsg').textContent = '카드를 한 장씩 열어 일의 기준을 확인하세요 ✦';
   document.getElementById('statusMsg').classList.remove('ready');
   document.getElementById('readBtn').disabled = true;
   document.getElementById('readingSection').classList.remove('visible');
@@ -1875,13 +1929,13 @@ async function getReading() {
   const btn = document.getElementById('readBtn');
   btn.disabled = true;
 
-  const gateOk = await ijikCoinGate(IJIK_COIN_COST, '이직 타로 리딩');
+  const gateOk = await ijikCoinGate(IJIK_COIN_COST, '커리어 전환 타로 리딩');
   if (!gateOk) {
     btn.disabled = false;
     return;
   }
 
-  btn.innerHTML = '<div>카드의 문장을 엮는 중...</div>';
+  btn.innerHTML = '<div>7장의 메시지를 정리하는 중...</div>';
 
   const section = document.getElementById('readingSection');
   const textEl = document.getElementById('readingText');

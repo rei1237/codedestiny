@@ -170,17 +170,143 @@ export function getAvailableSajuDomains() {
 export function classifyQuestionToSajuDomain(question) {
   const text = String(question || "").toLowerCase();
   const domainKeywords = {
-    litigation: ["송사", "재판", "법", "분쟁", "고소", "법정", "증거"],
-    love: ["연애", "결혼", "재회", "썸", "배우자", "궁합", "이별"],
-    career: ["직업", "진로", "이직", "커리어", "회사", "승진", "창업"],
-    money: ["돈", "재물", "수익", "매출", "투자", "자산", "부자"],
-    relationship: ["인간관계", "가족", "친구", "동료", "소통", "갈등"],
-    health: ["건강", "몸", "멘탈", "불안", "스트레스", "수면", "회복"],
-    life_direction: ["인생", "방향", "운명", "미래", "목표", "전환"],
+    litigation: [
+      ["송사", 5],
+      ["재판", 5],
+      ["고소", 5],
+      ["소송", 5],
+      ["분쟁", 4],
+      ["법정", 4],
+      ["법률", 4],
+      ["법적", 3],
+      ["증거", 3],
+      ["계약 문제", 3],
+      ["lawsuit", 5],
+      ["legal", 4],
+      ["dispute", 4],
+      ["裁判", 5],
+      ["法律", 4],
+      ["诉讼", 5],
+      ["纠纷", 4],
+    ],
+    love: [
+      ["연애", 4],
+      ["결혼", 4],
+      ["재회", 4],
+      ["썸", 3],
+      ["배우자", 3],
+      ["궁합", 3],
+      ["이별", 3],
+      ["상대 마음", 3],
+      ["love", 3],
+      ["marriage", 4],
+      ["relationship", 3],
+      ["恋愛", 4],
+      ["結婚", 4],
+      ["相性", 3],
+      ["恋爱", 4],
+      ["婚姻", 4],
+    ],
+    career: [
+      ["직업", 4],
+      ["진로", 4],
+      ["이직", 4],
+      ["커리어", 4],
+      ["회사", 3],
+      ["승진", 3],
+      ["창업", 3],
+      ["퇴사", 3],
+      ["career", 4],
+      ["job", 3],
+      ["promotion", 3],
+      ["仕事", 4],
+      ["転職", 4],
+      ["職業", 4],
+      ["事业", 4],
+      ["跳槽", 4],
+    ],
+    money: [
+      ["재물", 4],
+      ["수익", 4],
+      ["매출", 4],
+      ["투자", 4],
+      ["자산", 3],
+      ["부자", 3],
+      ["현금흐름", 3],
+      ["돈", 2],
+      ["money", 4],
+      ["income", 4],
+      ["investment", 4],
+      ["お金", 4],
+      ["財運", 4],
+      ["投資", 4],
+      ["财运", 4],
+      ["投资", 4],
+    ],
+    relationship: [
+      ["인간관계", 4],
+      ["가족", 3],
+      ["친구", 3],
+      ["동료", 3],
+      ["소통", 3],
+      ["갈등", 3],
+      ["신뢰", 2],
+      ["family", 3],
+      ["friend", 3],
+      ["communication", 3],
+      ["人間関係", 4],
+      ["家族", 3],
+      ["対人", 3],
+      ["人际关系", 4],
+      ["沟通", 3],
+    ],
+    health: [
+      ["건강", 4],
+      ["멘탈", 4],
+      ["불안", 3],
+      ["스트레스", 3],
+      ["수면", 3],
+      ["회복", 3],
+      ["몸", 2],
+      ["과로", 2],
+      ["health", 4],
+      ["stress", 3],
+      ["sleep", 3],
+      ["健康", 4],
+      ["ストレス", 3],
+      ["睡眠", 3],
+      ["压力", 3],
+    ],
+    life_direction: [
+      ["인생", 3],
+      ["방향", 3],
+      ["운명", 3],
+      ["미래", 3],
+      ["목표", 3],
+      ["전환", 3],
+      ["선택", 2],
+      ["life", 3],
+      ["future", 3],
+      ["goal", 3],
+      ["人生", 3],
+      ["未来", 3],
+      ["目標", 3],
+    ],
   };
 
+  let bestDomain = "life_direction";
+  let bestScore = 0;
+
   for (const [domain, keywords] of Object.entries(domainKeywords)) {
-    if (keywords.some((kw) => text.includes(kw))) return domain;
+    let score = 0;
+    for (const [keyword, weight] of keywords) {
+      if (text.includes(keyword)) score += weight;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestDomain = domain;
+    }
   }
-  return "life_direction";
+
+  return bestScore > 0 ? bestDomain : "life_direction";
 }

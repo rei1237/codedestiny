@@ -358,25 +358,102 @@ function buildAssignments(coreGemId, cardsLength) {
   return assignments;
 }
 
+const LOCAL_CRYSTAL_TOPIC_LENSES = {
+  overall: {
+    axis: "오늘 가장 먼저 정리할 기준",
+    risk: "여러 신호를 모두 붙잡으려는 마음",
+    action: "가장 먼저 끝낼 일 하나를 정하기",
+    oracle: "흐린 감각을 작은 결단으로 바꾸는 날입니다.",
+  },
+  wealth: {
+    axis: "돈이 들어오고 나가는 조건",
+    risk: "기대 수익만 보고 비용과 책임을 흐리는 태도",
+    action: "지킬 돈과 움직일 돈을 분리하기",
+    oracle: "재물의 문은 감이 아니라 조건을 밝히는 손끝에서 열립니다.",
+  },
+  love: {
+    axis: "마음의 온도와 표현의 속도",
+    risk: "감정을 증명하려는 조급함",
+    action: "서운함을 비난이 아닌 요청으로 바꾸기",
+    oracle: "사랑의 문은 강한 말보다 안전한 온도에서 열립니다.",
+  },
+  reunion: {
+    axis: "남은 감정과 다시 만날 조건의 차이",
+    risk: "변하지 않은 방식으로 다시 시작하려는 마음",
+    action: "그리움과 실제 회복 조건을 나누어 적기",
+    oracle: "다시 이어질 인연은 달라진 태도를 먼저 알아봅니다.",
+  },
+  move: {
+    axis: "움직임의 욕구와 도착 이후의 현실 조건",
+    risk: "준비되지 않은 변화에 기대를 모두 실어 버리는 태도",
+    action: "이동 뒤에도 지킬 루틴 하나를 정하기",
+    oracle: "좋은 변화는 도착한 뒤의 생활에서 증명됩니다.",
+  },
+  career: {
+    axis: "역할, 실력, 평가 기준이 만나는 지점",
+    risk: "비교와 불안 때문에 자신의 기준을 잃는 태도",
+    action: "강점이 실제 성과로 이어지는 지점을 적기",
+    oracle: "진로의 문은 오늘 끝낸 하나의 증거로 열립니다.",
+  },
+  health: {
+    axis: "몸의 신호와 마음의 피로가 만나는 지점",
+    risk: "무리를 정상으로 착각하고 피로를 미루는 태도",
+    action: "오늘의 피로를 키우는 행동 하나를 멈추기",
+    oracle: "회복의 문은 몸이 보낸 작은 신호를 존중할 때 열립니다.",
+  },
+  relation: {
+    axis: "신뢰와 경계가 균형을 찾는 자리",
+    risk: "모든 사람을 살피느라 자신의 선을 잃는 태도",
+    action: "지켜야 할 경계와 건넬 수 있는 호의를 따로 정하기",
+    oracle: "좋은 인연은 나를 잃지 않는 선 위에서 오래 머뭅니다.",
+  },
+};
+
+function getLocalCrystalTopicLens(topicId) {
+  return LOCAL_CRYSTAL_TOPIC_LENSES[topicId] || LOCAL_CRYSTAL_TOPIC_LENSES.overall;
+}
+
+function getLocalCardTone(cardName) {
+  if (/Wands/i.test(cardName)) return "완드의 불빛은 의지와 행동의 속도를 묻습니다.";
+  if (/Cups/i.test(cardName)) return "컵의 물결은 감정의 진심과 관계의 온도를 비춥니다.";
+  if (/Swords/i.test(cardName)) return "소드의 바람은 말, 판단, 거리 두기의 기준을 세웁니다.";
+  if (/Pentacles/i.test(cardName)) return "펜타클의 흙은 돈, 몸, 일상의 증거를 확인하게 합니다.";
+  return "메이저 아르카나의 빛은 지금 흐름이 인생의 큰 축과 닿아 있음을 알립니다.";
+}
+
+function getLocalPositionRole(order) {
+  const roles = {
+    1: "현재 파동을 읽는 입구",
+    2: "가능성이 열리는 통로",
+    3: "반복 패턴을 드러내는 그림자",
+    4: "현실 조언이 내려오는 손",
+    5: "흐름이 향하는 마지막 문",
+  };
+  return roles[order] || roles[1];
+}
+
 function buildLocalFallback(topic, coreGem, cards) {
+  const lens = getLocalCrystalTopicLens(topic.id);
   const lines = [];
   lines.push(`${topic.title} 크리스탈 소울 리딩`);
   lines.push(`핵심 원석: ${coreGem.name}`);
+  lines.push(`상담 축: ${lens.axis}`);
   lines.push("");
   cards.forEach((card, idx) => {
     const spread = topic.spread[idx];
     const cardLabel = CARD_KR[card] || card;
+    const positionRole = getLocalPositionRole(spread.order);
     lines.push(`${idx + 1}. ${spread.title}`);
     lines.push(`카드: ${cardLabel}`);
     lines.push(`질문: ${spread.question}`);
-    lines.push(`${coreGem.name}의 기운은 ${topic.title} 안에서 ${coreGem.keywords.slice(0, 2).join("과 ")} 중심을 다시 잡도록 돕습니다.`);
-    lines.push(`${cardLabel} 카드는 지금의 질문에 ${topic.title} 특유의 현실적인 선택 기준을 더해 줍니다.`);
-    lines.push("오늘은 결론을 서두르기보다, 확인 가능한 기준 1개와 실행 1개를 분리해 적어 보세요.");
-    lines.push(`오늘의 의식: ${spread.title}와 연결된 작은 행동을 오늘 한 가지만 끝내고, 끝낸 뒤의 감각을 메모로 남기세요.`);
+    lines.push(`${positionRole}에 놓인 ${cardLabel}는 ${lens.axis}을 다시 보라고 말합니다. ${getLocalCardTone(card)}`);
+    lines.push(`${coreGem.name}의 ${coreGem.keywords.slice(0, 2).join(" · ")} 기운은 ${coreGem.meaning}입니다. 이 원석은 ${lens.risk}이 올라올 때 감정을 낮추고 판단의 손잡이를 되찾게 합니다.`);
+    lines.push(`오늘의 조언은 ${lens.action}입니다. 결론을 서두르기보다, 확인 가능한 기준 1개와 실제 행동 1개를 분리해 적어 보세요.`);
+    lines.push(`오늘의 의식: ${spread.title}와 연결된 작은 행동을 하나 끝내고, 끝낸 뒤의 감각을 메모로 남기세요.`);
     lines.push("");
   });
   lines.push("종합 조언");
-  lines.push(`지금의 흐름은 막힘이 아니라 재정렬의 신호입니다. ${coreGem.name}가 보여 주는 핵심은 '${coreGem.meaning}'이며, ${topic.title}에서는 추상적 기대보다 오늘 바로 확인할 수 있는 행동을 하나 남기는 쪽이 더 강하게 작동합니다.`);
+  lines.push(`지금의 흐름은 막힘이 아니라 재정렬의 신호입니다. ${topic.title}에서는 ${lens.axis}이 가장 중요하고, ${coreGem.name}가 보여 주는 핵심은 "${coreGem.meaning}"입니다. ${lens.oracle} 추상적 기대보다 오늘 바로 확인할 수 있는 행동을 하나 남기는 쪽이 더 강하게 작동합니다.`);
   return lines.join("\n");
 }
 

@@ -51,7 +51,7 @@ export function generateMetadata({ params }: PageProps) {
   if (!reading) {
     return generatePageMetadata({
       path: "/insights/famous-saju",
-      title: "유명인 사주 분석 | 운세 인사이트 허브 | Code Destiny",
+      title: "유명인 사주 분석 | 운세 인사이트 허브",
       description: "유명인 사주 분석 글을 찾지 못했습니다. 운세 인사이트 허브에서 공개 생년월일 기반 유명인 사주 글을 확인할 수 있습니다.",
       keywords: ["유명인 사주", "운세 인사이트", "사주 분석"],
     });
@@ -183,7 +183,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
           <div>
             <p className="text-sm font-semibold text-amber-100/80">{celebrity.category}</p>
             <h1 className="mt-3 text-3xl font-bold tracking-normal text-white sm:text-5xl">
-              {celebrity.nameKo} 사주 분석: {dayMasterLabel}과 오행 흐름
+              {celebrity.nameKo} 사주 분석: {dayMasterLabel}와 오행 흐름
             </h1>
             <p className="mt-5 text-lg leading-8 text-slate-200">{heroCopy}</p>
             <p className="mt-4 inline-flex rounded-full border border-amber-200/30 bg-amber-100/10 px-3 py-1.5 text-sm font-semibold text-amber-50">

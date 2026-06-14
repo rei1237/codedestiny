@@ -20,6 +20,7 @@ import {
   generateVedicPremiumReport,
   normalizeVedicError,
   normalizeVedicPremiumBirthInput,
+  validateVedicPremiumChartSourceQuality,
   validateVedicPdfCompletionPayload,
   validateVedicBirthInput,
 } from "../lib/vedic-premium-generator.js";
@@ -33,7 +34,8 @@ import {
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
 
-const ASTRO_PREMIUM_LOCK_TTL_MS = 10 * 60 * 1000;
+const ASTRO_PREMIUM_LOCK_TTL_MS = 15 * 60 * 1000;
+const ASTRO_STATUS_RETRY_AFTER_MS = 4000;
 const astroPremiumGenerationLocks = new Map();
 const VEDIC_PREMIUM_LOCK_TTL_MS = 10 * 60 * 1000;
 const VEDIC_STATUS_RETRY_AFTER_MS = 4000;
@@ -640,8 +642,68 @@ function buildAstroStatusPayload(lock = {}, fallback = {}) {
       pdfReady: result?.pdfReady || null,
       canDownload: Boolean(result?.canDownload || clean(result?.pdfUrl || result?.downloadUrl || result?.htmlUrl || result?.pdfReady?.pdfUrl || result?.pdfReady?.downloadUrl)),
       error: lock.error || fallback.error || null,
+      retryAfterMs: status === "running" ? ASTRO_STATUS_RETRY_AFTER_MS : undefined,
     },
   };
+}
+
+function buildAstroStatusPayloadFromArchive(doc = {}, sessionId = "", reportId = "") {
+  const metadata = doc?.metadata && typeof doc.metadata === "object" ? doc.metadata : {};
+  const archive = metadata?.archive && typeof metadata.archive === "object" ? metadata.archive : null;
+  if (!archive) return null;
+  const pdfReady = archive?.pdfReady && typeof archive.pdfReady === "object" ? archive.pdfReady : {};
+  const resolvedReportId = clean(archive.reportId || doc.reportId || metadata.reportId || reportId);
+  const resolvedSessionId = clean(archive.sessionId || doc.sessionId || metadata.sessionId || sessionId);
+  const chapters = Array.isArray(archive.chapters) ? archive.chapters : [];
+  const manuscriptSource = clean(archive.manuscriptSource || pdfReady.manuscriptSource || ASTRO_PDF_CONFIG.generationMode);
+  const localAssembly = archive.localAssembly || pdfReady.localAssembly || null;
+  const chapterCount = Number(archive.chapterCount || chapters.length || ASTRO_PREMIUM_CHAPTERS.length);
+  const result = {
+    ok: true,
+    serviceKey: "astro-premium",
+    featureKey: ASTRO_PREMIUM_FEATURE_KEY,
+    status: "completed",
+    sessionId: resolvedSessionId,
+    reportId: resolvedReportId,
+    chapterCount,
+    chapters,
+    chapterDrafts: Array.isArray(archive.chapterDrafts) ? archive.chapterDrafts : [],
+    payload: archive.payload || archive.localAstroChartJson || null,
+    localAstroChartJson: archive.localAstroChartJson || archive.payload || null,
+    astroMasterJson: archive.astroMasterJson || null,
+    masterJsonValidation: archive.masterJsonValidation || null,
+    pdfReady,
+    diagnostics: archive.diagnostics || metadata.diagnostics || null,
+    pdfUrl: clean(archive.pdfUrl || pdfReady.pdfUrl || pdfReady.downloadUrl || pdfReady.htmlUrl),
+    htmlUrl: clean(archive.htmlUrl || pdfReady.htmlUrl),
+    downloadUrl: clean(archive.downloadUrl || pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
+    canReopen: archive.canReopen !== false,
+    canDownload: Boolean(archive.canDownload || pdfReady.downloadUrl || pdfReady.pdfUrl || pdfReady.htmlUrl),
+    quality: archive.quality || null,
+    pdfQuality: archive.pdfQuality || null,
+    pdfCompletionValidation: archive.pdfCompletionValidation || pdfReady.pdfCompletionValidation || null,
+    validation: archive.validation || null,
+    manuscriptSource,
+    localAssembly,
+    localDraftChapterCount: Number(archive.localDraftChapterCount || pdfReady.localDraftChapterCount || 0),
+    finalChapterCount: chapters.length,
+    progress: {
+      stateKey: "completed",
+      currentChapterNo: ASTRO_PREMIUM_CHAPTERS.length,
+      totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
+      currentChapterTitle: "완료",
+      manuscriptSource,
+    },
+  };
+
+  return buildAstroStatusPayload({
+    sessionId: resolvedSessionId,
+    reportId: resolvedReportId,
+    status: "done",
+    completedAt: doc.completedAt || doc.updatedAt || archive.completedAt,
+    progress: result.progress,
+    result,
+  }, { sessionId, reportId });
 }
 
 function buildAstroPdfQualityGate(generated = {}) {
@@ -649,6 +711,17 @@ function buildAstroPdfQualityGate(generated = {}) {
   const quality = generated?.quality && typeof generated.quality === "object" ? generated.quality : {};
   const stats = quality?.stats && typeof quality.stats === "object" ? quality.stats : {};
   const validation = generated?.validation && typeof generated.validation === "object" ? generated.validation : {};
+  const localAstroChartJson = generated?.localAstroChartJson && typeof generated.localAstroChartJson === "object" ? generated.localAstroChartJson : {};
+  const chart = localAstroChartJson?.chart && typeof localAstroChartJson.chart === "object" ? localAstroChartJson.chart : {};
+  const timingInsights = localAstroChartJson?.timingInsights && typeof localAstroChartJson.timingInsights === "object" ? localAstroChartJson.timingInsights : {};
+  const transitValidation = generated?.transitValidation && typeof generated.transitValidation === "object" ? generated.transitValidation : {};
+  const chartSource = clean(localAstroChartJson.chartSource || localAstroChartJson.calculationSource || chart.chartSource || chart.source);
+  const engineQuality = clean(localAstroChartJson.engineQuality || chart.engineQuality).toLowerCase();
+  const houseSystem = clean(localAstroChartJson.houseSystem || chart.houseSystem).toLowerCase();
+  const fallbackUsed = localAstroChartJson.fallbackUsed === true
+    || chart.fallbackUsed === true
+    || engineQuality === "fallback"
+    || /fallback/i.test(chartSource);
   const manuscriptSource = clean(generated?.manuscriptSource || quality?.manuscriptSource);
   const localDraftChapterCount = Number(generated?.localDraftChapterCount || 0);
   const localAssembly = generated?.localAssembly && typeof generated.localAssembly === "object" ? generated.localAssembly : {};
@@ -670,6 +743,14 @@ function buildAstroPdfQualityGate(generated = {}) {
   if (Number(stats.flaggedRiskySections || 0) > 0) issues.push("risky_sections");
   if (Number(stats.flaggedRepetitionSections || 0) > 0) issues.push("repetition_sections");
   if (totalLength < 50000) issues.push("total_length");
+  if (!["swiss-wasm-local", "external-swiss-api"].includes(chartSource)) issues.push("non_swiss_chart_source");
+  if (engineQuality !== "swiss") issues.push("non_swiss_engine_quality");
+  if (houseSystem !== "placidus") issues.push("non_placidus_house_system");
+  if (fallbackUsed) issues.push("fallback_chart_source");
+  if (clean(timingInsights.source) !== "western-transit-swiss") issues.push("non_swiss_transit_source");
+  if (clean(timingInsights.engineQuality) !== "swiss-transit") issues.push("non_swiss_transit_engine");
+  if (timingInsights.fallbackUsed === true) issues.push("fallback_transit_source");
+  if (transitValidation.ok !== true) issues.push("transit_validation_failed");
   return {
     ok: issues.length === 0,
     issues,
@@ -679,6 +760,11 @@ function buildAstroPdfQualityGate(generated = {}) {
     totalLength,
     localAssembly,
     stats,
+    chartSource,
+    engineQuality,
+    houseSystem,
+    fallbackUsed,
+    transitValidation,
   };
 }
 
@@ -686,13 +772,91 @@ async function handleAstroPremiumStatus(request, env) {
   const auth = await requireAuth(request, env);
   const url = new URL(request.url);
   const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId") || url.searchParams.get("generationId"));
+  const reportId = clean(url.searchParams.get("reportId"));
   compactAstroPremiumLocks();
-  const lock = sessionId ? astroPremiumGenerationLocks.get(sessionId) : null;
+  const lock = sessionId
+    ? astroPremiumGenerationLocks.get(sessionId)
+    : Array.from(astroPremiumGenerationLocks.values()).find((state) => clean(state?.result?.reportId || state?.reportId) === reportId);
   if (!lock || (lock.userId && lock.userId !== auth.userId)) {
-    return json(buildAstroStatusPayload({}, {
-      sessionId,
-      status: "not_found",
-    }));
+    if (!sessionId && !reportId) {
+      return json(buildAstroStatusPayload({}, {
+        sessionId,
+        reportId,
+        status: "not_found",
+      }));
+    }
+
+    await connectDb(withPdfFastDbEnv(env));
+    const doc = await ServiceExecutionTransaction.findOne({
+      userId: auth.userId,
+      ...(sessionId ? { sessionId } : { reportId }),
+      $or: [
+        { reportType: "westernAstrologyPremium" },
+        { "metadata.reportType": "westernAstrologyPremium" },
+        { "metadata.serviceKey": "astro-premium" },
+        { "metadata.archive.reportType": "western_astrology_book" },
+      ],
+    }).sort({ completedAt: -1, updatedAt: -1, createdAt: -1 }).lean();
+
+    if (!doc) {
+      return json(buildAstroStatusPayload({
+        sessionId,
+        reportId,
+        status: "failed",
+        failedAt: new Date().toISOString(),
+        progress: {
+          stateKey: "failed",
+          currentChapterNo: 0,
+          totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
+          currentChapterTitle: "PDF 생성 세션을 찾지 못했습니다",
+        },
+        error: {
+          code: "ASTRO_PREMIUM_SESSION_NOT_FOUND",
+          message: "점성술 PDF 생성 세션이 시작되지 않았습니다. 결제 상태를 확인한 뒤 다시 시도해 주세요.",
+        },
+      }, { sessionId, reportId }));
+    }
+
+    if (String(doc.status || "") === "success" && String(doc.premiumStatus || "") === "completed") {
+      const payload = buildAstroStatusPayloadFromArchive(doc, sessionId, reportId);
+      if (payload) return json(payload);
+    }
+
+    if (String(doc.status || "") === "failed" || String(doc.premiumStatus || "") === "failed") {
+      return json(buildAstroStatusPayload({
+        sessionId: clean(doc.sessionId || sessionId),
+        reportId: clean(doc.reportId || reportId),
+        status: "failed",
+        failedAt: doc.generationFailedAt || doc.updatedAt,
+        progress: {
+          stateKey: "failed",
+          currentChapterNo: 0,
+          totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
+          currentChapterTitle: "PDF 생성에 실패했습니다",
+        },
+        error: {
+          code: clean(doc.reasonCode || "ASTRO_PREMIUM_GENERATION_FAILED"),
+          message: clean(doc.reasonMessage || "점성술 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요."),
+        },
+      }, { sessionId, reportId }));
+    }
+
+    return json({
+      ok: true,
+      serviceKey: "astro-premium",
+      data: {
+        sessionId: clean(doc.sessionId || sessionId),
+        reportId: clean(doc.reportId || reportId),
+        status: "running",
+        progress: {
+          stateKey: clean(doc.premiumStatus || "generating"),
+          currentChapterNo: 0,
+          totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
+          currentChapterTitle: "PDF 결과를 확인하는 중입니다",
+        },
+        retryAfterMs: ASTRO_STATUS_RETRY_AFTER_MS,
+      },
+    }, { status: 202 });
   }
   return json(buildAstroStatusPayload(lock));
 }
@@ -710,6 +874,87 @@ function compactVedicPremiumLocks(now = Date.now()) {
       vedicPremiumGenerationLocks.delete(sessionId);
     }
   }
+}
+
+function clampVedicChapterNo(value, total) {
+  const n = Number(value || 0);
+  const max = Math.max(1, Number(total || VEDIC_PREMIUM_CHAPTERS.length || 12));
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(max, Math.trunc(n)));
+}
+
+function updateVedicSessionProgress(sessionId, progress = {}) {
+  const key = clean(sessionId);
+  if (!key || !vedicPremiumGenerationLocks.has(key)) return;
+  const lock = vedicPremiumGenerationLocks.get(key) || {};
+  vedicPremiumGenerationLocks.set(key, {
+    ...lock,
+    progress: {
+      ...(lock.progress || {}),
+      ...progress,
+      totalChapters: Number(progress.totalChapters || lock.progress?.totalChapters || VEDIC_PREMIUM_CHAPTERS.length),
+      updatedAt: new Date().toISOString(),
+    },
+  });
+}
+
+function buildVedicProgressPatch(stage, payload = {}) {
+  const totalChapters = VEDIC_PREMIUM_CHAPTERS.length;
+  const chapterNo = clampVedicChapterNo(payload?.chapterNo || payload?.chapter || payload?.completed, totalChapters);
+  switch (stage) {
+    case "LocalCalculationJsonPrepared":
+      return { stateKey: "local_calculation", currentChapterNo: 0, totalChapters, currentChapterTitle: "베다 차트 근거 정리" };
+    case "LocalAssembledManuscriptReady":
+      return { stateKey: "writing_seed", currentChapterNo: 0, totalChapters, currentChapterTitle: "상담 원고 신호 구성" };
+    case "LocalAssembledManuscriptSuccess":
+      return { stateKey: "writing_local", currentChapterNo: totalChapters, totalChapters, currentChapterTitle: "상담 원고 조립 완료" };
+    case "LocalAssembledManuscriptFailed":
+      return { stateKey: "failed", currentChapterNo: chapterNo, totalChapters, currentChapterTitle: "상담 원고 작성 실패" };
+    case "FinalManuscriptValidated":
+      return { stateKey: "manuscript_validated", currentChapterNo: totalChapters, totalChapters, currentChapterTitle: "상담 원고 검수 완료" };
+    case "PdfRenderStart":
+      return { stateKey: "pdf_rendering", currentChapterNo: totalChapters, totalChapters, currentChapterTitle: "PDF 편집/렌더링" };
+    case "PdfRenderSuccess":
+      return { stateKey: "pdf_rendered", currentChapterNo: totalChapters, totalChapters, currentChapterTitle: "PDF 렌더링 완료" };
+    default:
+      return null;
+  }
+}
+
+function buildVedicStatusPayload(lock = {}, fallback = {}) {
+  const result = lock.result && typeof lock.result === "object" ? lock.result : null;
+  const progress = lock.progress && typeof lock.progress === "object" ? lock.progress : {};
+  const rawStatus = clean(lock.status || fallback.status || "");
+  const status = rawStatus === "done" ? "done" : rawStatus === "failed" ? "failed" : rawStatus || "running";
+  const totalChapters = Number(progress.totalChapters || result?.chapterCount || VEDIC_PREMIUM_CHAPTERS.length);
+  const currentChapterNo = clampVedicChapterNo(
+    progress.currentChapterNo || (status === "done" ? totalChapters : 0),
+    totalChapters,
+  );
+  return {
+    ok: true,
+    serviceKey: "vedic-premium",
+    data: {
+      sessionId: clean(lock.sessionId || fallback.sessionId),
+      reportId: clean(lock.reportId || fallback.reportId || result?.reportId),
+      status,
+      startedAt: clean(lock.startedAt || fallback.startedAt),
+      completedAt: clean(lock.completedAt || result?.completedAt),
+      failedAt: clean(lock.failedAt || fallback.failedAt),
+      progress: {
+        stateKey: clean(progress.stateKey || (status === "done" ? "completed" : status === "failed" ? "failed" : status === "not_found" ? "not_found" : "writing_seed")),
+        currentChapterNo,
+        totalChapters,
+        currentChapterTitle: clean(progress.currentChapterTitle),
+        manuscriptSource: clean(progress.manuscriptSource || result?.manuscriptSource),
+        updatedAt: clean(progress.updatedAt),
+      },
+      result: status === "done" ? result : null,
+      pdfReady: result?.pdfReady || null,
+      canDownload: Boolean(result?.canDownload || clean(result?.pdfUrl || result?.downloadUrl || result?.htmlUrl || result?.pdfReady?.pdfUrl || result?.pdfReady?.downloadUrl)),
+      error: lock.error || fallback.error || null,
+    },
+  };
 }
 
 function buildVedicStatusPayloadFromArchive(doc = {}, sessionId = "", reportId = "") {
@@ -748,6 +993,13 @@ function buildVedicStatusPayloadFromArchive(doc = {}, sessionId = "", reportId =
     manuscriptSource,
     localDraftChapterCount: Number(archive.localDraftChapterCount || 0),
     finalChapterCount: chapters.length,
+    progress: {
+      stateKey: "completed",
+      currentChapterNo: VEDIC_PREMIUM_CHAPTERS.length,
+      totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+      currentChapterTitle: "완료",
+      manuscriptSource,
+    },
   };
 }
 
@@ -791,16 +1043,23 @@ function normalizeVedicChartSourceForPdf(chartSource = {}) {
     ascendantSidereal: Number.isFinite(Number(chartSource?.ascendantSidereal ?? chartSource?.ascendant ?? chartSource?.lagnaLongitude))
       ? Number(chartSource?.ascendantSidereal ?? chartSource?.ascendant ?? chartSource?.lagnaLongitude)
       : null,
-    source: clean(chartSource?.source || "server-local"),
+    source: clean(chartSource?.source || chartSource?.calculationSource || ""),
+    engineQuality: clean(chartSource?.engineQuality || ""),
+    fallbackUsed: chartSource?.fallbackUsed === true,
   };
 }
 
 function hasUsableVedicChartSource(chartSource = {}) {
   const source = normalizeVedicChartSourceForPdf(chartSource);
-  const requiredPlanets = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu", "Ketu"];
-  const hasAllPlanets = requiredPlanets.every((planet) => Number.isFinite(Number(source?.planets?.[planet])));
-  const hasAsc = Number.isFinite(Number(source?.ascendantSidereal));
-  return hasAllPlanets && hasAsc;
+  return validateVedicPremiumChartSourceQuality({
+    chartSource: source,
+    requireTrustedSource: true,
+  }).ok;
+}
+
+function allowProvidedVedicPremiumChartSource(env = {}) {
+  const raw = clean(env?.VEDIC_PREMIUM_ALLOW_PROVIDED_CHART);
+  return /^(1|true|yes)$/i.test(raw);
 }
 
 function extractProvidedVedicBase(rawInput = {}) {
@@ -834,26 +1093,36 @@ function toSwissVedicInputFromBirthInput(birthInput = {}) {
 }
 
 async function resolveVedicChartForPremiumPdf(rawInput, birthInput, env, requestUrl) {
-  const provided = extractProvidedVedicBase(rawInput);
-  if (provided && hasUsableVedicChartSource(provided)) {
-    return {
-      source: "provided",
-      chartSource: normalizeVedicChartSourceForPdf(provided),
-    };
-  }
-
   try {
     const calculated = await getSwissVedicPlanets(env, toSwissVedicInputFromBirthInput(birthInput), { requestUrl });
     if (hasUsableVedicChartSource(calculated)) {
+      const chartSource = normalizeVedicChartSourceForPdf(calculated);
       return {
-        source: "server-local",
-        chartSource: normalizeVedicChartSourceForPdf(calculated),
+        source: clean(chartSource.source || "swiss-wasm-local"),
+        chartSource,
+        chartSourceQuality: validateVedicPremiumChartSourceQuality({
+          chartSource,
+          requireTrustedSource: true,
+        }),
       };
     }
   } catch (error) {
     console.warn("[VedicPremiumPDF][SwissChartUnavailable]", {
       reason: clean(error?.message || error),
     });
+  }
+
+  const provided = extractProvidedVedicBase(rawInput);
+  if (allowProvidedVedicPremiumChartSource(env) && provided && hasUsableVedicChartSource(provided)) {
+    const chartSource = normalizeVedicChartSourceForPdf(provided);
+    return {
+      source: clean(chartSource.source || "provided-trusted-chart"),
+      chartSource,
+      chartSourceQuality: validateVedicPremiumChartSourceQuality({
+        chartSource,
+        requireTrustedSource: true,
+      }),
+    };
   }
 
   const error = new Error("베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.");
@@ -866,6 +1135,7 @@ async function handleAstroPremiumPrepare(request, env) {
   let auth = null;
   let body = {};
   let sessionId = "";
+  const pdfDbEnv = withPdfFastDbEnv(env);
   try {
     auth = await requireAuth(request, env);
     body = await readJson(request);
@@ -928,6 +1198,8 @@ async function handleAstroPremiumPrepare(request, env) {
     const validation = validateAstroPayloadForApi({ birthInput });
     if (!validation.ok) {
       const missingTime = validation.missing.includes("birthHour");
+      const missingLocation = ["birthPlace", "latitude", "longitude"].some((key) => validation.missing.includes(key));
+      const missingTimezone = ["timezone", "timezoneOffsetHours"].some((key) => validation.missing.includes(key));
       astroPremiumGenerationLocks.set(sessionId, {
         sessionId,
         reportId,
@@ -949,6 +1221,10 @@ async function handleAstroPremiumPrepare(request, env) {
         code: "MISSING_ASTRO_DATA",
         message: missingTime
           ? "점성술 PDF는 상승궁과 하우스 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요."
+          : missingLocation
+            ? "점성술 PDF는 상승궁·하우스·천정점 계산을 위해 출생지와 좌표가 필요합니다. 프로필 카드에서 태어난 지역을 먼저 선택해주세요."
+            : missingTimezone
+              ? "점성술 PDF는 정확한 하우스 계산을 위해 출생지 시간대가 필요합니다. 프로필 카드에서 태어난 지역을 다시 선택해주세요."
           : "점성술 계산 데이터가 부족합니다. 생년월일/출생정보를 먼저 확인해 주세요.",
         missing: validation.missing,
       }, { status: 422 });
@@ -957,7 +1233,7 @@ async function handleAstroPremiumPrepare(request, env) {
     console.info("[AstroPremiumPDF][BirthInputValidated]", toSafeBirthLog(birthInput, ASTRO_PREMIUM_CHAPTERS.length));
     console.info("[AstroPremiumPDF][LocalCalculationStart]", toSafeBirthLog(birthInput));
 
-    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "westernAstrologyPremium", {
+    const access = await requirePremiumReportAccess(pdfDbEnv, auth.userId, "westernAstrologyPremium", {
       ...body,
       reportType: "westernAstrologyPremium",
       featureKey,
@@ -979,6 +1255,13 @@ async function handleAstroPremiumPrepare(request, env) {
           : status === 402
             ? "프리미엄 PDF 생성 권한이 필요합니다."
             : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+      const accessError = {
+        code: paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : (access?.code || "PAYMENT_REQUIRED"),
+        message,
+        retryable: paymentConfirmedButMissing,
+        compensationEligible: paymentConfirmedButMissing,
+        recoveryAction: paymentConfirmedButMissing ? "retry_without_duplicate_payment" : "",
+      };
       astroPremiumGenerationLocks.set(sessionId, {
         sessionId,
         reportId,
@@ -994,11 +1277,15 @@ async function handleAstroPremiumPrepare(request, env) {
           currentChapterTitle: "결제 권한 확인 실패",
           updatedAt: new Date().toISOString(),
         },
+        error: accessError,
       });
       return json({
         ok: false,
-        code: paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : (access?.code || "PAYMENT_REQUIRED"),
+        code: accessError.code,
         message,
+        retryable: accessError.retryable,
+        compensationEligible: accessError.compensationEligible,
+        recoveryAction: accessError.recoveryAction,
         debugSafe: {
           featureKey,
           hasSessionId,
@@ -1020,7 +1307,7 @@ async function handleAstroPremiumPrepare(request, env) {
       body,
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
-    await startPremiumPdfExecution(env, auth.userId, executionCtx);
+    await startPremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx);
     updateAstroSessionProgress(sessionId, {
       stateKey: "local_calculation",
       currentChapterNo: 0,
@@ -1099,7 +1386,7 @@ async function handleAstroPremiumPrepare(request, env) {
     }
     pdfReady.pdfCompletionValidation = pdfCompletionValidation;
 
-    await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+    await completePremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
       manuscriptSource: generated.manuscriptSource || ASTRO_PDF_CONFIG.generationMode,
       localAssembly: generated?.localAssembly || pdfReady.localAssembly,
@@ -1205,7 +1492,7 @@ async function handleAstroPremiumPrepare(request, env) {
   } catch (error) {
     try {
       await failPremiumPdfExecution(
-        env,
+        pdfDbEnv,
         auth?.userId,
         buildPremiumExecutionContext({
           serviceKey: "astro-premium",
@@ -1283,12 +1570,15 @@ async function handleVedicPremiumPrepare(request, env) {
   let birthInput = {};
   let executionCtx = null;
   let vedicSessionId = "";
+  let reportId = "";
+  const pdfDbEnv = withPdfFastDbEnv(env);
   try {
     auth = await requireAuth(request, env);
     body = await readJson(request);
     vedicSessionId = getVedicSessionId(body);
+    reportId = clean(body?.reportId || body?.accessGrant?.reportId || `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
     const premiumAccessToken = readPremiumAccessToken(request, body);
-    const featureKey = String(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY);
+    const featureKey = clean(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY) || VEDIC_PREMIUM_FEATURE_KEY;
     birthInput = normalizeVedicPremiumBirthInput(body);
 
     compactVedicPremiumLocks();
@@ -1299,9 +1589,10 @@ async function handleVedicPremiumPrepare(request, env) {
         deduped: true,
         status: "running",
         sessionId: vedicSessionId,
-        reportId: clean(existingLock.reportId || body?.reportId || body?.accessGrant?.reportId),
+        reportId: clean(existingLock.reportId || reportId),
         startedAt: existingLock.startedAt,
         stage: clean(existingLock.stage || "running"),
+        progress: buildVedicStatusPayload(existingLock).data.progress,
         retryAfterMs: VEDIC_STATUS_RETRY_AFTER_MS,
       }, { status: 202 });
     }
@@ -1311,16 +1602,25 @@ async function handleVedicPremiumPrepare(request, env) {
         deduped: true,
         status: "completed",
         sessionId: vedicSessionId,
+        progress: buildVedicStatusPayload(existingLock).data.progress,
       });
     }
 
     vedicPremiumGenerationLocks.set(vedicSessionId, {
       sessionId: vedicSessionId,
-      reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+      reportId,
+      userId: auth.userId,
       status: "running",
       startedAt: new Date().toISOString(),
       startedAtMs: Date.now(),
       stage: "request-received",
+      progress: {
+        stateKey: "payment_verification",
+        currentChapterNo: 0,
+        totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+        currentChapterTitle: "결제 및 세션 확인",
+        updatedAt: new Date().toISOString(),
+      },
     });
 
     console.info("[VedicPremiumPDF][RequestReceived]", {
@@ -1333,10 +1633,19 @@ async function handleVedicPremiumPrepare(request, env) {
     if (!birthValidation.ok) {
       vedicPremiumGenerationLocks.set(vedicSessionId, {
         sessionId: vedicSessionId,
+        reportId,
+        userId: auth.userId,
         status: "failed",
         startedAt: new Date().toISOString(),
         startedAtMs: Date.now(),
         stage: "birth-input-invalid",
+        progress: {
+          stateKey: "failed",
+          currentChapterNo: 0,
+          totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+          currentChapterTitle: "출생 정보 확인 실패",
+          updatedAt: new Date().toISOString(),
+        },
         error: {
           code: "BIRTH_INPUT_INVALID",
           message: clean(birthValidation?.message || "베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요."),
@@ -1357,7 +1666,7 @@ async function handleVedicPremiumPrepare(request, env) {
 
     console.info("[VedicPremiumPDF][BirthInputValidated]", toSafeVedicBirthLog(birthInput, VEDIC_PREMIUM_CHAPTERS.length));
 
-    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "vedicPremium", {
+    const access = await requirePremiumReportAccess(pdfDbEnv, auth.userId, "vedicPremium", {
       ...body,
       reportType: "vedicPremium",
       featureKey,
@@ -1366,27 +1675,56 @@ async function handleVedicPremiumPrepare(request, env) {
     });
 
     if (!access?.ok) {
+      const status = Number(access?.status || 402);
+      const hasSessionId = Boolean(clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId));
+      const hasPurchaseId = Boolean(clean(body?.purchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId));
+      const hasRequestId = Boolean(clean(body?.requestId || body?.accessGrant?.requestId || body?.payment?.requestId || body?._paymentContext?.requestId));
+      const hasPaymentToken = Boolean(premiumAccessToken);
+      const paymentConfirmedButMissing = status === 402 && (hasSessionId || hasPurchaseId || hasRequestId || hasPaymentToken);
+      const message = status === 401
+        ? "로그인 후 베다점 PDF를 생성할 수 있습니다."
+        : paymentConfirmedButMissing
+          ? "결제는 확인되었지만 베다점 생성 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요."
+          : status === 402
+            ? "베다점 프리미엄 PDF 생성 권한이 필요합니다."
+            : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
       vedicPremiumGenerationLocks.set(vedicSessionId, {
         sessionId: vedicSessionId,
+        reportId,
+        userId: auth.userId,
         status: "failed",
         startedAt: new Date().toISOString(),
         startedAtMs: Date.now(),
         stage: "access-denied",
+        progress: {
+          stateKey: "failed",
+          currentChapterNo: 0,
+          totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+          currentChapterTitle: "결제 권한 확인 실패",
+          updatedAt: new Date().toISOString(),
+        },
         error: {
-          code: clean(access?.code || "UNAUTHORIZED"),
-          message: clean(access?.message || "베다점 프리미엄 PDF 접근 권한이 필요합니다."),
+          code: clean(paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : (access?.code || "PAYMENT_REQUIRED")),
+          message,
         },
       });
       console.error("[VedicPremiumPDF][Error]", {
-        code: String(access?.code || "UNAUTHORIZED"),
-        message: String(access?.message || "베다점 프리미엄 PDF 접근 권한이 필요합니다."),
+        code: paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : String(access?.code || "PAYMENT_REQUIRED"),
+        message,
         ...toSafeVedicBirthLog(birthInput, VEDIC_PREMIUM_CHAPTERS.length),
       });
       return json({
         ok: false,
-        code: access?.code || "UNAUTHORIZED",
-        message: access?.message || "베다점 프리미엄 PDF 접근 권한이 필요합니다.",
-      }, { status: Number(access?.status) || 403 });
+        code: paymentConfirmedButMissing ? "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING" : (access?.code || "PAYMENT_REQUIRED"),
+        message,
+        debugSafe: {
+          featureKey,
+          hasSessionId,
+          hasPurchaseId,
+          hasRequestId,
+          hasPaymentToken,
+        },
+      }, { status });
     }
 
     executionCtx = buildPremiumExecutionContext({
@@ -1395,18 +1733,31 @@ async function handleVedicPremiumPrepare(request, env) {
       userId: auth.userId,
       featureKey,
       sessionId: vedicSessionId,
-      reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+      reportId,
       access,
       body,
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
-    await startPremiumPdfExecution(env, auth.userId, executionCtx);
+    await startPremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx);
+    updateVedicSessionProgress(vedicSessionId, {
+      stateKey: "local_calculation",
+      currentChapterNo: 0,
+      totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+      currentChapterTitle: "베다 차트 계산",
+    });
 
     const resolved = await resolveVedicChartForPremiumPdf(body, birthInput, env, request.url);
     if (!hasUsableVedicChartSource(resolved?.chartSource)) {
       const error = new Error("베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.");
       error.code = "VEDIC_CHART_SOURCE_INVALID";
       error.status = 422;
+      throw error;
+    }
+    if (resolved?.chartSourceQuality?.ok !== true) {
+      const error = new Error("베다점 PDF에 필요한 고품질 차트 계산을 완료하지 못했습니다.");
+      error.code = "VEDIC_CHART_SOURCE_QUALITY_INVALID";
+      error.status = 422;
+      error.details = resolved?.chartSourceQuality || null;
       throw error;
     }
 
@@ -1418,11 +1769,14 @@ async function handleVedicPremiumPrepare(request, env) {
         birthInput,
         chart: resolved.chartSource,
       },
+      chartSourceQuality: resolved.chartSourceQuality,
     };
 
     const generated = await generateVedicPremiumReport(env, preparedPayload, {
       log: (stage, payload) => {
         const tag = `[VedicPremiumPDF][${stage}]`;
+        const progressPatch = buildVedicProgressPatch(stage, payload || {});
+        if (progressPatch) updateVedicSessionProgress(vedicSessionId, progressPatch);
         if (stage === "LocalManuscriptFailed") {
           console.warn(tag, payload || {});
           return;
@@ -1436,12 +1790,20 @@ async function handleVedicPremiumPrepare(request, env) {
       error.status = 422;
       throw error;
     }
+    if (generated?.quality?.chartSourceQualityOk !== true) {
+      const error = new Error("베다점 PDF 고품질 차트 계약 검증에 실패했습니다.");
+      error.code = "VEDIC_CHART_SOURCE_QUALITY_INVALID";
+      error.status = 422;
+      error.details = generated?.quality?.chartSourceQuality || null;
+      throw error;
+    }
     const vedicLocalContractOk = clean(generated?.manuscriptSource) === VEDIC_PDF_CONFIG.generationMode
       && generated?.localAssembly?.enabled === true
       && generated?.localAssembly?.externalGeneration === false
       && Number(generated?.localAssembly?.chapterCount || 0) === VEDIC_PREMIUM_CHAPTERS.length
       && Number(generated?.localAssembly?.expectedChapterCount || 0) === VEDIC_PREMIUM_CHAPTERS.length
-      && clean(generated?.localAssembly?.templateVersion) === VEDIC_PDF_CONFIG.templateVersion;
+      && clean(generated?.localAssembly?.templateVersion) === VEDIC_PDF_CONFIG.templateVersion
+      && generated?.quality?.chartSourceQualityOk === true;
     if (!vedicLocalContractOk) {
       const error = new Error("Vedic premium PDF local assembly contract failed.");
       error.code = "VEDIC_LOCAL_ASSEMBLY_CONTRACT_FAILED";
@@ -1452,7 +1814,6 @@ async function handleVedicPremiumPrepare(request, env) {
       };
       throw error;
     }
-    const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `vedic-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
     const requestOrigin = new URL(request.url).origin;
     const archiveUrl = `${requestOrigin}/api/premium/pdf-archive/${encodeURIComponent(reportId)}`;
     const archiveHtmlUrl = `${archiveUrl}?format=html`;
@@ -1479,8 +1840,12 @@ async function handleVedicPremiumPrepare(request, env) {
         externalGeneration: false,
         externalCallsAllowed: false,
       },
+      chartSourceQuality: generated?.quality?.chartSourceQuality || null,
     };
     const storedUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
+    pdfReady.canDownload = Boolean(storedUrl);
+    pdfReady.canReopen = true;
+    pdfReady.writingPipeline = clean(generated?.writingPipeline || "local-calculation-to-local-assembled-pdf");
     const pdfCompletionValidation = validateVedicPdfCompletionPayload({
       pdfReady,
       chapters: generated.chapterDrafts,
@@ -1509,13 +1874,16 @@ async function handleVedicPremiumPrepare(request, env) {
       pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
       htmlUrl: clean(pdfReady?.htmlUrl),
       downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
+      canDownload: Boolean(storedUrl),
+      canReopen: true,
+      writingPipeline: clean(generated?.writingPipeline || "local-calculation-to-local-assembled-pdf"),
     }, {
       config: VEDIC_PDF_CONFIG,
       expectedChapterCount: VEDIC_PREMIUM_CHAPTERS.length,
       buildLocalPdf: (payload) => payload,
     });
 
-    await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+    await completePremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx, reportId, {
       chapterCount: generated.chapterCount,
       manuscriptSource: generated.manuscriptSource || VEDIC_PDF_CONFIG.generationMode,
       localAssembly: generated?.localAssembly || pdfReady.localAssembly,
@@ -1542,6 +1910,7 @@ async function handleVedicPremiumPrepare(request, env) {
         localContract: localPdfResult.localContract,
         diagnostics: generated.diagnostics,
         quality: generated.quality,
+        chartSourceQuality: generated?.quality?.chartSourceQuality || null,
         payload: generated.payload,
         localVedicChartJson: generated.localVedicChartJson,
         vedicMasterJson: generated.vedicMasterJson,
@@ -1576,6 +1945,7 @@ async function handleVedicPremiumPrepare(request, env) {
       pdfReady,
       pdfCompletionValidation,
       diagnostics: generated.diagnostics,
+      chartSourceQuality: generated?.quality?.chartSourceQuality || null,
       pdfUrl: clean(pdfReady?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.htmlUrl),
       htmlUrl: clean(pdfReady?.htmlUrl),
       downloadUrl: clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl),
@@ -1584,37 +1954,60 @@ async function handleVedicPremiumPrepare(request, env) {
       quality: generated.quality,
       manuscriptSource: clean(generated?.manuscriptSource || VEDIC_PDF_CONFIG.generationMode),
       finalChapterCount: Array.isArray(generated?.chapters) ? generated.chapters.length : 0,
+      progress: {
+        stateKey: "completed",
+        currentChapterNo: VEDIC_PREMIUM_CHAPTERS.length,
+        totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+        currentChapterTitle: "완료",
+        manuscriptSource: clean(generated?.manuscriptSource || VEDIC_PDF_CONFIG.generationMode),
+      },
     };
 
+    const previousLock = vedicPremiumGenerationLocks.get(vedicSessionId) || {};
     vedicPremiumGenerationLocks.set(vedicSessionId, {
+      ...previousLock,
       sessionId: vedicSessionId,
+      reportId,
+      userId: auth.userId,
       status: "done",
-      startedAt: new Date().toISOString(),
-      startedAtMs: Date.now(),
+      startedAt: previousLock.startedAt || new Date().toISOString(),
+      startedAtMs: previousLock.startedAtMs || Date.now(),
+      completedAt: new Date().toISOString(),
       stage: "done",
+      progress: {
+        ...(previousLock.progress || {}),
+        ...responsePayload.progress,
+        updatedAt: new Date().toISOString(),
+      },
       result: responsePayload,
     });
 
     return json(responsePayload);
   } catch (error) {
-    await failPremiumPdfExecution(
-      env,
-      auth?.userId,
-      executionCtx || buildPremiumExecutionContext({
-        serviceKey: "vedic-premium",
-        reportType: "vedicPremium",
-        userId: auth?.userId,
-        featureKey: String(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY),
-        sessionId: vedicSessionId || clean(body?.sessionId || body?.reportSessionId || body?.generationId),
-        reportId: clean(body?.reportId || body?.accessGrant?.reportId),
-        access: null,
-        body,
-        timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
-      }),
-      "vedic_generation_failed",
-      clean(error?.message || "베다점 프리미엄 PDF 생성에 실패했습니다."),
-      "vedic-generation",
-    );
+    try {
+      await failPremiumPdfExecution(
+        pdfDbEnv,
+        auth?.userId,
+        executionCtx || buildPremiumExecutionContext({
+          serviceKey: "vedic-premium",
+          reportType: "vedicPremium",
+          userId: auth?.userId,
+          featureKey: String(body?.featureKey || VEDIC_PREMIUM_FEATURE_KEY),
+          sessionId: vedicSessionId || clean(body?.sessionId || body?.reportSessionId || body?.generationId),
+          reportId: reportId || clean(body?.reportId || body?.accessGrant?.reportId),
+          access: null,
+          body,
+          timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+        }),
+        "vedic_generation_failed",
+        clean(error?.message || "베다점 프리미엄 PDF 생성에 실패했습니다."),
+        "vedic-generation",
+      );
+    } catch (failErr) {
+      console.error("[VedicPremiumPDF][ErrorFailPdfExecution]", {
+        reason: clean(failErr?.message || failErr),
+      });
+    }
     console.error("[VedicPremiumPDF][Error]", {
       code: String(error?.code || "VEDIC_PREMIUM_GENERATION_FAILED"),
       message: String(error?.message || "베다점 프리미엄 PDF 생성에 실패했습니다."),
@@ -1622,12 +2015,23 @@ async function handleVedicPremiumPrepare(request, env) {
       details: normalizeVedicError(error),
     });
     if (vedicSessionId) {
+      const previousLock = vedicPremiumGenerationLocks.get(vedicSessionId) || {};
       vedicPremiumGenerationLocks.set(vedicSessionId, {
+        ...previousLock,
         sessionId: vedicSessionId,
+        reportId: reportId || clean(body?.reportId || body?.accessGrant?.reportId),
+        userId: auth?.userId,
         status: "failed",
-        startedAt: new Date().toISOString(),
-        startedAtMs: Date.now(),
+        startedAt: previousLock.startedAt || new Date().toISOString(),
+        startedAtMs: previousLock.startedAtMs || Date.now(),
+        failedAt: new Date().toISOString(),
         stage: "error",
+        progress: {
+          ...(previousLock.progress || {}),
+          stateKey: "failed",
+          currentChapterTitle: "생성 오류",
+          updatedAt: new Date().toISOString(),
+        },
         error: {
           code: clean(error?.code || "VEDIC_PREMIUM_GENERATION_FAILED"),
           reasonClass: clean(error?.reasonClass),
@@ -1636,7 +2040,25 @@ async function handleVedicPremiumPrepare(request, env) {
         },
       });
     }
-    throw error;
+    const rawMessage = clean(error?.message || "베다점 프리미엄 PDF 생성에 실패했습니다.");
+    const userFacingMessage = rawMessage.includes("출생") || rawMessage.includes("birth")
+      ? "베다점 PDF 생성에 필요한 출생 정보가 부족합니다. 생년월일, 태어난 시간, 지역 정보를 확인해 주세요."
+      : rawMessage.includes("차트") || rawMessage.includes("Swiss")
+        ? "베다 차트 계산 중 일시적 오류가 발생했습니다. 출생 정보와 지역 정보를 확인한 뒤 다시 시도해 주세요."
+        : rawMessage.includes("원고") || rawMessage.includes("검증") || rawMessage.includes("contract")
+          ? "생성된 베다점 상담 원고가 품질 기준을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요."
+          : "베다점 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+    return json({
+      ok: false,
+      code: error?.code || "VEDIC_PREMIUM_GENERATION_FAILED",
+      message: userFacingMessage,
+      debugSafe: {
+        stage: "vedic-generation",
+        sessionId: vedicSessionId,
+        reportId: reportId || clean(body?.reportId || body?.accessGrant?.reportId),
+        originalCode: error?.code || null,
+      },
+    }, { status: Number(error?.status || 500) });
   }
 }
 
@@ -1654,19 +2076,13 @@ async function handleVedicPremiumStatus(request, env) {
   }
 
   compactVedicPremiumLocks();
-  const lock = sessionId
+  let lock = sessionId
     ? vedicPremiumGenerationLocks.get(sessionId)
     : Array.from(vedicPremiumGenerationLocks.values()).find((state) => clean(state?.result?.reportId) === reportId);
+  if (lock?.userId && lock.userId !== auth.userId) lock = null;
   if (lock?.status === "running") {
     return json({
-      ok: true,
-      serviceKey: "vedic-premium",
-      featureKey: VEDIC_PREMIUM_FEATURE_KEY,
-      status: "running",
-      sessionId: clean(lock.sessionId || sessionId),
-      reportId,
-      startedAt: lock.startedAt,
-      stage: clean(lock.stage || "running"),
+      ...buildVedicStatusPayload(lock, { sessionId, reportId }),
       retryAfterMs: VEDIC_STATUS_RETRY_AFTER_MS,
     }, { status: 202 });
   }
@@ -1676,25 +2092,27 @@ async function handleVedicPremiumStatus(request, env) {
       deduped: true,
       status: "completed",
       sessionId: clean(lock.sessionId || lock.result.sessionId || sessionId),
+      progress: buildVedicStatusPayload(lock, { sessionId, reportId }).data.progress,
     });
   }
   if (lock?.status === "failed") {
+    const payload = buildVedicStatusPayload(lock, { sessionId, reportId });
     return json({
       ok: false,
       serviceKey: "vedic-premium",
       featureKey: VEDIC_PREMIUM_FEATURE_KEY,
       status: "failed",
-      sessionId: clean(lock.sessionId || sessionId),
-      reportId,
+      sessionId: payload.data.sessionId,
+      reportId: payload.data.reportId,
+      progress: payload.data.progress,
       code: clean(lock?.error?.code || "VEDIC_PREMIUM_GENERATION_FAILED"),
       reasonClass: clean(lock?.error?.reasonClass),
-      details: lock?.error?.details || null,
       failureStage: clean(lock.stage || "generation"),
       message: clean(lock?.error?.message || "베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요."),
     });
   }
 
-  await connectDb(env);
+  await connectDb(withPdfFastDbEnv(env));
   const query = {
     userId: auth.userId,
     ...(sessionId ? { sessionId } : { reportId }),
@@ -1705,18 +2123,25 @@ async function handleVedicPremiumStatus(request, env) {
       { "metadata.archive.reportType": "vedic_book" },
     ],
   };
-  const doc = await ServiceExecutionTransaction.findOne(query).sort({ createdAt: -1 }).lean();
+  const doc = await ServiceExecutionTransaction.findOne(query).sort({ completedAt: -1, updatedAt: -1, createdAt: -1 }).lean();
   if (!doc) {
     return json({
-      ok: true,
+      ok: false,
       serviceKey: "vedic-premium",
       featureKey: VEDIC_PREMIUM_FEATURE_KEY,
-      status: "running",
+      status: "not_found",
       sessionId,
       reportId,
-      stage: "waiting-for-result",
-      retryAfterMs: VEDIC_STATUS_RETRY_AFTER_MS,
-    }, { status: 202 });
+      stage: "result-not-found",
+      code: "VEDIC_RESULT_NOT_FOUND",
+      message: "베다점 PDF 결과를 찾지 못했습니다. 결제 완료 후 다시 생성해 주세요.",
+      progress: {
+        stateKey: "not_found",
+        currentChapterNo: 0,
+        totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+        currentChapterTitle: "PDF 결과를 찾지 못했습니다",
+      },
+    }, { status: 404 });
   }
 
   if (String(doc.status || "") === "success" && String(doc.premiumStatus || "") === "completed") {
@@ -1734,6 +2159,12 @@ async function handleVedicPremiumStatus(request, env) {
       reportId: clean(doc.reportId || reportId),
       code: clean(doc.reasonCode || "VEDIC_PREMIUM_GENERATION_FAILED"),
       failureStage: clean(doc.failureStage || doc.reasonCode || "generation"),
+      progress: {
+        stateKey: "failed",
+        currentChapterNo: 0,
+        totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+        currentChapterTitle: "PDF 생성에 실패했습니다",
+      },
       message: clean(doc.reasonMessage || "베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요."),
     });
   }
@@ -1746,6 +2177,12 @@ async function handleVedicPremiumStatus(request, env) {
     sessionId: clean(doc.sessionId || sessionId),
     reportId: clean(doc.reportId || reportId),
     stage: clean(doc.premiumStatus || "generating"),
+    progress: {
+      stateKey: clean(doc.premiumStatus || "generating"),
+      currentChapterNo: 0,
+      totalChapters: VEDIC_PREMIUM_CHAPTERS.length,
+      currentChapterTitle: "PDF 결과를 확인하는 중입니다",
+    },
     retryAfterMs: VEDIC_STATUS_RETRY_AFTER_MS,
   }, { status: 202 });
 }

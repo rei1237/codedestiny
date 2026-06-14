@@ -1,3 +1,4 @@
+import { TAROT_CARDS } from "../../../../lib/tarot/tarot-cards.mjs";
 import { CATEGORY_LABEL, DEFAULT_QUESTION_BY_CATEGORY } from "../data/tarotSpreadLibrary";
 import type { DrawnTarotCard, TarotSpread } from "../types";
 
@@ -10,6 +11,28 @@ type OraclePromptResult = {
 };
 
 type SuitCode = "W" | "C" | "S" | "P";
+
+type OraclePromptOptions = {
+  questionCategory?: TarotSpread["category"];
+};
+
+type TarotMeaning = {
+  core?: string[];
+  shadow?: string[];
+  advice?: string[];
+  shadowText?: string;
+  adviceText?: string;
+  boundaryPattern?: string[];
+  recoveryAdvice?: string[];
+  caution?: string[];
+  [key: string]: unknown;
+};
+
+type TarotCardWithMeanings = {
+  code?: string;
+  upright?: TarotMeaning;
+  reversed?: TarotMeaning;
+};
 
 type SpreadAnalysis = {
   total: number;
@@ -89,9 +112,10 @@ const SUIT_LABEL: Record<SuitCode, string> = {
   P: "펜타클",
 };
 
-const CATEGORY_FOCUS: Partial<Record<TarotSpread["category"], string[]>> = {
+const CATEGORY_FOCUS: Record<TarotSpread["category"], string[]> = {
   love: ["상대 마음", "관계 흐름", "호감의 온도", "내가 취할 태도", "피해야 할 행동"],
   reunion: ["연락 가능성", "미련과 정리의 균형", "관계 재정의", "기다림과 행동의 속도", "회복 가능한 소통 방식"],
+  third_party: ["제3자의 실제 영향력", "불안과 사실의 분리", "경쟁 구도에서의 내 경계", "상대의 행동 단서", "관계 보호 전략"],
   relationship: ["갈등의 핵심", "말과 행동의 불일치", "관계의 신뢰도", "조율해야 할 경계", "현실적인 대화 방식"],
   career: ["현재 상황", "기회와 리스크", "나의 강점", "현실적 선택 기준", "다음 행동"],
   money: ["돈의 흐름", "위험요소", "확장 가능성", "관리해야 할 부분", "현실적 조언"],
@@ -99,12 +123,73 @@ const CATEGORY_FOCUS: Partial<Record<TarotSpread["category"], string[]>> = {
   self: ["내면 감정", "반복되는 심리 패턴", "회복 포인트", "자기 보호", "작은 실천"],
   choice: ["선택 A/B의 기준", "얻는 것과 잃는 것", "내가 감당할 수 있는 현실", "보류가 필요한 지점", "결정 후 행동"],
   daily: ["오늘의 분위기", "주의할 말과 행동", "기회 신호", "감정 조율", "하루 마무리 조언"],
+  crisis: ["문제의 표면과 본질", "즉시 피해야 할 충동", "통제 가능한 변수", "외부 도움 필요성", "첫 번째 현실 행동"],
   future: ["가까운 흐름", "준비해야 할 변화", "반복될 가능성이 있는 패턴", "내가 바꿀 수 있는 선택", "장기 조언"],
+  spiritual: ["반복되는 직관 신호", "내면의 상징 언어", "현실과 영감의 균형", "받아들일 메시지", "오늘의 의식적 선택"],
+  power: ["영향력의 방향", "성공 욕구와 책임", "리더십의 그림자", "조직 안의 균형", "지속 가능한 야망"],
   special: ["질문의 진짜 의도", "핵심 변수", "숨은 감정", "현실적 대응", "오늘 가능한 조정"],
   legal: ["감정과 사실의 분리", "리스크 점검", "전문가 상담 필요성", "기록과 준비", "신중한 대응"],
 };
 
+const CATEGORY_EXPRESSION_GUIDE: Record<TarotSpread["category"], string> = {
+  love: "상대의 마음은 확정하지 말고, 카드가 보여주는 가능성과 행동 단서로 말합니다.",
+  reunion: "재회 가능성은 단정하지 말고, 미련·현실 조건·연락 타이밍을 분리합니다.",
+  third_party: "제3자 문제는 불안을 키우지 말고, 확인된 행동과 추정되는 감정을 구분합니다.",
+  daily: "오늘의 흐름은 하루 안에 실천 가능한 조언으로 짧고 선명하게 정리합니다.",
+  choice: "선택 질문은 정답을 대신 정하지 말고, 얻는 것과 잃는 것을 비교해 기준을 세웁니다.",
+  career: "커리어 질문은 감정적 만족, 현실 조건, 준비도를 함께 봅니다.",
+  money: "금전 질문은 투자 확답이나 수익 보장을 피하고, 관리·점검·보수적 선택 기준으로 안내합니다.",
+  relationship: "인간관계 질문은 책임 소재를 단정하지 말고, 대화 순서와 경계선을 제안합니다.",
+  self: "심리 질문은 진단처럼 쓰지 말고, 감정 이름 붙이기와 회복 행동으로 낮춥니다.",
+  crisis: "위기 질문은 공포를 키우지 말고, 멈출 행동·바로 할 행동·도움을 청할 지점을 분리합니다.",
+  future: "미래 질문은 예언보다 현재 패턴이 이어질 때의 가능성으로 말합니다.",
+  spiritual: "영적 메시지는 현실을 회피하게 만들지 말고, 상징을 오늘의 선택으로 번역합니다.",
+  family: "가족 질문은 오래된 패턴을 다루되, 죄책감보다 경계와 회복 가능성을 우선합니다.",
+  power: "성공과 권력 질문은 욕망을 부정하지 말고, 책임과 균형의 그림자를 함께 읽습니다.",
+  legal: "법률 질문은 승패나 판결을 예언하지 말고, 기록 정리와 전문가 상담을 권하는 참고용 상징 해석으로 제한합니다.",
+  special: "특별 상황은 질문자의 의도를 먼저 재정리하고, 핵심 변수와 오늘 가능한 조정을 중심으로 말합니다.",
+};
+
+const CATEGORY_SAFETY_GUIDE: Partial<Record<TarotSpread["category"], string[]>> = {
+  crisis: [
+    "긴급한 위험, 폭력, 자해 가능성이 보이면 타로 판단을 멈추고 즉시 주변 도움이나 전문기관 연결을 권합니다.",
+    "불안을 증폭하는 예언 대신 지금 멈출 행동, 확인할 사실, 요청할 도움을 순서대로 제시합니다.",
+  ],
+  legal: [
+    "판결, 승패, 고소 성공 여부를 확정하지 않고 기록 정리와 전문가 상담을 우선 안내합니다.",
+    "감정적 해석과 법적 사실을 분리해 참고용 상징 해석으로만 표현합니다.",
+  ],
+  money: [
+    "수익, 투자 성공, 손실 회복을 보장하지 않고 위험 신호와 보수적 관리 기준으로 안내합니다.",
+  ],
+  self: [
+    "진단명처럼 말하지 않고 감정의 이름, 회복 행동, 도움을 청할 수 있는 선택지로 낮춥니다.",
+  ],
+};
+
+const CONSULTATION_PROTOCOL = [
+  "질문자가 진짜 알고 싶어 하는 의도를 먼저 한 문장으로 밝힙니다.",
+  "스프레드의 목적과 각 포지션의 역할을 질문 맥락에 맞게 연결합니다.",
+  "카드별 해석은 카드 이름보다 포지션, 방향, 질문 맥락을 우선합니다.",
+  "카드 간 긴장과 조화를 읽어 전체 이야기를 하나의 흐름으로 엮습니다.",
+  "결론은 운명 선언이 아니라 질문자가 회복할 수 있는 선택지로 마무리합니다.",
+];
+
+const PROMPT_COMPLETION_CHECKLIST = [
+  "질문 재정의가 원문 반복에 그치지 않고 질문자의 실제 의도를 드러냈는지 확인합니다.",
+  "모든 포지션 해석에 카드 방향, 포지션 의미, 질문 맥락이 함께 들어갔는지 확인합니다.",
+  "카드 간 관계를 최소 한 번 이상 연결해 전체 흐름을 하나의 이야기로 묶었는지 확인합니다.",
+  "민감 주제에서 확정 표현, 공포 표현, 전문가 판단 대체 표현이 없는지 확인합니다.",
+  "마지막 조언이 오늘 실행 가능한 행동과 마음가짐으로 끝나는지 확인합니다.",
+];
+
 const FORBIDDEN_PHRASES = ["반드시", "무조건", "100%", "끝났다", "절대 안 된다", "망합니다", "합격합니다", "병이 있습니다", "죽음이 보입니다"];
+
+const CARD_MEANING_MAP = new Map(
+  (TAROT_CARDS as TarotCardWithMeanings[])
+    .filter((card) => card?.code)
+    .map((card) => [String(card.code).toUpperCase(), card]),
+);
 
 function ensureText(value: string) {
   return String(value || "").trim().replace(/\s+/g, " ");
@@ -129,7 +214,34 @@ function cardCodeParts(cardCode: string) {
   return { normalized, suitCode, rankCode };
 }
 
-function deriveExpertKeywords(card: DrawnTarotCard) {
+function toTextArray(value: unknown) {
+  if (Array.isArray(value)) return value.map((item) => ensureText(String(item))).filter(Boolean);
+  const text = ensureText(String(value || ""));
+  return text ? [text] : [];
+}
+
+function resolveCardMeaning(card: DrawnTarotCard) {
+  const source = CARD_MEANING_MAP.get(card.cardCode.toUpperCase());
+  return source?.[card.orientation] || null;
+}
+
+function deriveCardMeaningClues(card: DrawnTarotCard, category: TarotSpread["category"]) {
+  const meaning = resolveCardMeaning(card);
+  if (!meaning) return [];
+  return toUnique([
+    ...toTextArray(meaning[category]).map((line) => `상황별 해석: ${line}`),
+    ...toTextArray(meaning.core).map((line) => `핵심: ${line}`),
+    ...toTextArray(meaning.shadow).map((line) => `그림자: ${line}`),
+    ...toTextArray(meaning.shadowText).map((line) => `주의: ${line}`),
+    ...toTextArray(meaning.advice).map((line) => `조언: ${line}`),
+    ...toTextArray(meaning.adviceText).map((line) => `실행: ${line}`),
+    ...toTextArray(meaning.boundaryPattern).map((line) => `경계 패턴: ${line}`),
+    ...toTextArray(meaning.recoveryAdvice).map((line) => `회복 조언: ${line}`),
+    ...toTextArray(meaning.caution).map((line) => `주의점: ${line}`),
+  ]).slice(0, 6);
+}
+
+function deriveExpertKeywords(card: DrawnTarotCard, category: TarotSpread["category"]) {
   const { normalized, suitCode, rankCode } = cardCodeParts(card.cardCode);
   const orientationLens = card.orientation === "reversed"
     ? ["에너지 역전", "지연/과잉", "내면 갈등"]
@@ -144,7 +256,18 @@ function deriveExpertKeywords(card: DrawnTarotCard) {
     ...majorLens,
     ...suitLens,
     ...rankLens,
-  ]).slice(0, 8);
+    ...deriveCardMeaningClues(card, category),
+  ]).slice(0, 12);
+}
+
+function buildQuestionClarityGuide(question: string) {
+  const text = ensureText(question);
+  if (text.length < 12) return "질문이 짧으므로 대상, 현재 상황, 질문자가 원하는 결론을 해석 안에서 부드럽게 보완합니다.";
+  if (text.length > 170) return "질문이 길기 때문에 사건의 핵심, 감정의 핵심, 실제로 알고 싶은 결론을 먼저 정리한 뒤 해석합니다.";
+  if (!/(어떻게|무엇|뭐|왜|언제|가능성|마음|흐름|조언|선택|해야|될까|일까|할까|괜찮|가능|타이밍|결과|주의)/u.test(text)) {
+    return "질문 방향이 넓으므로 카드 해석 전에 질문자가 확인하고 싶은 초점을 한 문장으로 좁힙니다.";
+  }
+  return "질문 초점이 충분하므로 카드와 포지션을 질문자의 실제 상황에 바로 연결합니다.";
 }
 
 function isSuitCode(value: string): value is SuitCode {
@@ -265,14 +388,18 @@ function relationshipSignals(cards: DrawnTarotCard[], analysis: SpreadAnalysis) 
   return lines;
 }
 
-export function buildOraclePrompt(spread: TarotSpread, question: string, drawnCards: DrawnTarotCard[]): OraclePromptResult {
-  const effectiveQuestion = ensureText(question) || DEFAULT_QUESTION_BY_CATEGORY[spread.category];
+export function buildOraclePrompt(spread: TarotSpread, question: string, drawnCards: DrawnTarotCard[], options: OraclePromptOptions = {}): OraclePromptResult {
+  const questionCategory = options.questionCategory || spread.category;
+  const effectiveQuestion = ensureText(question) || DEFAULT_QUESTION_BY_CATEGORY[questionCategory];
   const analysis = analyzeSpreadCards(drawnCards);
-  const categoryFocus = CATEGORY_FOCUS[spread.category] || CATEGORY_FOCUS.special || [];
-  const reframedQuestion = reframeQuestion(effectiveQuestion, spread.category);
+  const categoryFocus = CATEGORY_FOCUS[questionCategory];
+  const categoryExpressionGuide = CATEGORY_EXPRESSION_GUIDE[questionCategory];
+  const categorySafetyGuide = CATEGORY_SAFETY_GUIDE[questionCategory] || [];
+  const reframedQuestion = reframeQuestion(effectiveQuestion, questionCategory);
+  const questionClarityGuide = buildQuestionClarityGuide(effectiveQuestion);
   const cardFlow = drawnCards.map((card) => `${card.positionLabel}의 ${card.cardNameKo} ${card.orientationLabel}`).join(", ");
   const cardDigest = drawnCards.map((card, index) => {
-    const expertKeywords = deriveExpertKeywords(card);
+    const expertKeywords = deriveExpertKeywords(card, questionCategory);
     return [
       `${index + 1}. ${card.positionLabel} - ${card.positionDescription}`,
       `카드: ${card.cardNameKo}`,
@@ -282,6 +409,7 @@ export function buildOraclePrompt(spread: TarotSpread, question: string, drawnCa
   });
   const guidance = [
     "카드의 일반적인 의미보다 해당 카드가 놓인 위치의 의미를 우선합니다.",
+    "포지션의 역할, 카드 방향, 카드별 상황 해석 단서를 한 문장 안에서 함께 엮습니다.",
     "각 카드를 따로 설명하는 데서 끝내지 말고 전체 배열의 흐름을 하나의 상담 이야기로 연결합니다.",
     "메이저 아르카나 비율, 슈트 반복, 정방향/역방향 비율, 숫자 흐름, 궁정 카드 여부를 종합합니다.",
     "현재 위치, 장애물 위치, 숨은 원인 위치, 조언 위치, 결과 위치의 관계를 비교합니다.",
@@ -292,8 +420,9 @@ export function buildOraclePrompt(spread: TarotSpread, question: string, drawnCa
     "법률, 의료, 투자, 생명·사망, 임신, 합격 여부 등은 확정적으로 말하지 말고 참고용 조언으로만 표현합니다.",
     `다음 단정 표현을 피합니다: ${FORBIDDEN_PHRASES.join(", ")}.`,
     "마지막에는 고객이 오늘부터 실제로 할 수 있는 행동 조언을 2~3개 제시합니다.",
+    ...categorySafetyGuide,
   ];
-  const summary = `${spread.title} 위에 ${cardFlow} 흐름이 놓였습니다. 이 상담 프롬프트는 ${CATEGORY_LABEL[spread.category]} 질문을 포지션 의미, 카드 방향, 카드 간 관계, 안전 표현 기준까지 묶어 실제 상담 원고로 펼칩니다.`;
+  const summary = `${spread.title} 위에 ${cardFlow} 흐름이 놓였습니다. 이 AI 상담 프롬프트는 ${CATEGORY_LABEL[questionCategory]} 질문을 포지션 의미, 카드 방향, 카드 간 관계, 안전 표현 기준까지 묶어 실제 상담 원고로 펼칩니다.`;
   const relationLines = relationshipSignals(drawnCards, analysis);
 
   const prompt = [
@@ -313,13 +442,32 @@ export function buildOraclePrompt(spread: TarotSpread, question: string, drawnCa
     reframedQuestion,
     "",
     "[질문 카테고리]",
-    CATEGORY_LABEL[spread.category],
+    CATEGORY_LABEL[questionCategory],
+    "",
+    "[질문 선명도 보정]",
+    questionClarityGuide,
     "",
     "[상담 초점]",
     ...categoryFocus.map((focus) => `- ${focus}`),
     "",
+    "[카테고리 표현 기준]",
+    categoryExpressionGuide,
+    "",
+    ...(categorySafetyGuide.length ? [
+      "[민감 질문 안전 기준]",
+      ...categorySafetyGuide.map((rule) => `- ${rule}`),
+      "",
+    ] : []),
+    "[상담 프로토콜]",
+    ...CONSULTATION_PROTOCOL.map((rule, index) => `${index + 1}. ${rule}`),
+    "",
+    "[완성도 점검]",
+    ...PROMPT_COMPLETION_CHECKLIST.map((rule, index) => `${index + 1}. ${rule}`),
+    "",
     "[사용한 배열]",
     `스프레드: ${spread.title}`,
+    `스프레드 원래 분류: ${CATEGORY_LABEL[spread.category]}`,
+    `질문 상담 카테고리: ${CATEGORY_LABEL[questionCategory]}`,
     `카드 수: ${spread.cardCount}`,
     `배열 목적: ${spread.purpose}`,
     "",
@@ -340,19 +488,19 @@ export function buildOraclePrompt(spread: TarotSpread, question: string, drawnCa
     ...guidance.map((rule, index) => `${index + 1}. ${rule}`),
     "",
     "[출력 형식]",
-    "아래 순서로 상담 결과를 작성하세요.",
+    "아래 순서로 실제 상담 결과를 작성하세요.",
     "",
-    "1. 질문의 핵심 요약",
-    "2. 전체 배열에서 보이는 큰 흐름",
-    "3. 카드별 위치 해석",
-    "4. 카드 간 관계 종합",
-    "5. 현재 가장 중요한 메시지",
-    "6. 조심해야 할 점",
-    "7. 현실적인 행동 조언",
-    "8. 마지막 한마디",
+    "1. 질문자가 지금 묻고 있는 진짜 주제",
+    "2. 스프레드 전체에서 먼저 보이는 큰 흐름",
+    "3. 포지션별 카드 해석",
+    "4. 카드들이 서로 만드는 긴장과 조화",
+    "5. 질문자가 조심해야 할 착각 또는 과잉 기대",
+    "6. 오늘부터 가능한 현실 행동 2~3가지",
+    "7. 마음을 정리하는 마지막 한마디",
     "",
     "[목소리]",
     "문체는 따뜻하고 신뢰감 있는 상담체로 작성하세요.",
+    "단순한 해설문이 아니라 질문자가 실제로 상담을 받은 느낌이 들도록, 불안을 낮추고 판단 기준을 선명하게 제시하세요.",
     "카드 이름을 기계적으로 나열하지 말고, 실제 타로 상담사가 고객 앞에서 설명하듯 자연스럽게 말하세요.",
     "달빛과 별빛 같은 Code:Destiny의 섬세한 톤은 유지하되, 과장되거나 공포를 주는 표현은 피하세요.",
   ].join("\n");

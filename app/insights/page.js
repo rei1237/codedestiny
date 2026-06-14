@@ -3,6 +3,7 @@ import { INSIGHT_SEED_ARTICLES } from "./seed-articles";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-data";
 import { publishedCelebritySajuSeeds } from "../../lib/famous-saju/celebrity-saju-service";
+import { getPexelsSectionImage, resolvePexelsInsightImageRequest } from "../../lib/server/pexels";
 
 const pageTitle = "운세 인사이트 허브 | 사주·자미두수·숙요점·타로 가이드 | Code Destiny";
 const pageDescription =
@@ -80,7 +81,6 @@ function buildFamousSajuInsightItems() {
 }
 
 async function enrichInsightImageItems(items) {
-  return items;
   const imageByKey = new Map();
 
   for (const item of items) {

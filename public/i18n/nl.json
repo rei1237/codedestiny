@@ -1,14 +1,276 @@
 {
   "_comment": "Code Destiny — Dutch premium localization (nl.json)",
   "_version": "1.0.0",
-
   "brand": {
     "name": "Code Destiny",
     "tagline": "Oosterse Wijsheid × AI-Analyse",
     "subtitle": "3.000 jaar Chinese numerologie, ontcijferd door moderne AI",
     "trustBadge": "Meer dan 100.000 zoekers in 80+ landen vertrouwen ons"
   },
-
+  "home": {
+    "hero": {
+      "eyebrow": "Code Destiny / Honey Pig Fortune",
+      "brandLine": "Hemelse collectie voor je lot",
+      "titleLine1": "Gratis Saju & Tarot",
+      "titleAccent": "Je dagorakel",
+      "titleLine3": "op één platform",
+      "lead": "Ontdek Saju, tarot, Zi Wei Dou Shu, astrologie, Sukuyo, compatibiliteit en je dagorakel in één rustige omgeving. Vul je geboortegegevens of vraag in en krijg een reading die het moment voor je volgende keuze helder maakt.",
+      "primaryCta": "Start gratis Saju-reading",
+      "tarotCta": "Trek tarotkaarten",
+      "todayCta": "Bekijk je dagorakel"
+    },
+    "nav": {
+      "home": "Start",
+      "saju": "Saju",
+      "tarot": "Tarot",
+      "astrology": "Astrologie",
+      "sukuyo": "Sukuyo",
+      "ziwei": "Zi Wei",
+      "vedic": "Vedisch",
+      "flowerDream": "Bloemen & dromen",
+      "vvip": "VVIP-bibliotheek",
+      "oracle": "Orakels",
+      "brandAlias": "Honey Pig Fortune"
+    },
+    "previewCards": {
+      "tarotName": "Tarot",
+      "tarotMeta": "Kaartreading",
+      "oracleName": "Orakels",
+      "oracleMeta": "Heilige signalen",
+      "astrologyName": "Astrologie",
+      "astrologyMeta": "Kosmische kaart",
+      "ziweiName": "Zi Wei",
+      "ziweiMeta": "12-paleizenkaart",
+      "vedicName": "Vedisch",
+      "vedicMeta": "Karma-reading",
+      "ichingName": "I Tjing",
+      "ichingMeta": "64 hexagrammen",
+      "yeonStarHugName": "Yeons sterrenknuffel",
+      "yeonStarHugMeta": "Emotionele sterrenroutine",
+      "nevilleName": "Neville-meditatie",
+      "nevilleMeta": "Routine voor realiteitscreatie"
+    },
+    "music": {
+      "title": "Onder maanlicht, Flower Pig Vol. 1 playlist",
+      "desc": "Stap in een maanritme waarin Neo en Flower Pig Vol. 1 hun gevoelige stemmen mengen.",
+      "hint": "✦ Maanlichtplaylist"
+    },
+    "mapIntro": {
+      "title": "Open de lotsdeuren op de maanlichtkaart",
+      "desc": "Tarot, orakels, lotsbloemen, droomlezing, meditatie en premiumrapporten. Het teken dat je nu nodig hebt glanst zacht in elke kaart.",
+      "chipTarot": "Tarot",
+      "chipOracle": "Orakels",
+      "chipFlower": "Bloemen & dromen",
+      "chipPremium": "Premiumrapporten"
+    },
+    "input": {
+      "title": "Start Saju-analyse",
+      "desc": "Vul je naam en geboortetijd in om chart, elementen en Tien Goden stap voor stap te openen.",
+      "nameLabel": "Naam",
+      "nameHint": "Vul de naam in die in je reading moet verschijnen.",
+      "birthDateLabel": "Geboortedatum",
+      "birthDateHint": "Kies je geboortedatum om de eerste basis van je Saju-chart te openen.",
+      "solar": "Zonnekalender",
+      "lunar": "Maankalender",
+      "lunarLeap": "Lunaire schrikkelmaand",
+      "birthTimeLabel": "Geboortetijd",
+      "birthTimeUnknown": "Weet je je geboortetijd niet, dan analyseren we voorzichtig vanaf 12:00 uur.",
+      "birthCountryLabel": "Geboorteland/-plaats",
+      "birthCountryHint": "Zomertijd en lengtegraad automatisch gecorrigeerd",
+      "birthPlaceLoading": "Geboorteplaats laden...",
+      "timePreview": "Voorbeeld tijdcorrectie",
+      "genderLabel": "Geslacht",
+      "female": "Vrouw",
+      "male": "Man",
+      "submit": "Start gratis Saju-analyse",
+      "saveProfile": "Profielkaart opslaan",
+      "saveOptional": "Optioneel",
+      "kakaoEvent": "Kakao-deelevent",
+      "kakaoEventSub": "Nodig een vriend uit en ontvang 100 Moonlight Stone",
+      "referralNote": "Beloningen worden toegekend wanneer een vriend zich via je maanlichtlink registreert. De dagelijkse limiet is 500 Moonlight Stone."
+    },
+    "startSection": {
+      "kicker": "TODAY CARDS",
+      "title": "Gratis lotskaarten om vandaag te openen",
+      "lead": "Ook bij je eerste bezoek kun je licht beginnen met de zachtste kaarten onder het maanlicht."
+    },
+    "startCards": {
+      "ziweiBadge": "Collection No. 01 · Aanbevolen",
+      "ziweiTitle": "Zi Wei Dou Shu",
+      "ziweiDesc": "Lees je aard, werk, geld en relaties via een lotskaart met 12 paleizen.",
+      "ziweiCta": "Bekijk kaart",
+      "vedicBadge": "Collection No. 02 · Aanbevolen",
+      "vedicTitle": "Vedische astrologie",
+      "vedicDesc": "Volg de weg van vandaag via Jyotish-sterren en de stille stroom van karma.",
+      "vedicCta": "Bekijk Vedische reading",
+      "astrologyBadge": "Collection No. 03 · Aanbevolen",
+      "astrologyTitle": "Astrologie",
+      "astrologyDesc": "Lees je geboortehoroscoop via Zon, Maan, Ascendant en Midhemel.",
+      "astrologyCta": "Bekijk kaart",
+      "sukuyoBadge": "Collection No. 04 · Aanbevolen",
+      "sukuyoTitle": "Sukuyo",
+      "sukuyoDesc": "Bekijk eerst je maanwoning, temperament en het ritme van vandaag.",
+      "sukuyoCta": "Bekijk gratis Sukuyo"
+    },
+    "collectionHeaders": {
+      "animal": {
+        "title": "Dieren- en gezichtslezing",
+        "subtitle": "Wek het wilde instinct dat in jou slaapt",
+        "lede": "Gezichtsvorm, persoonlijkheid en Saju-signalen tonen samen je instinctieve karakter en relatie-energie.",
+        "featureline": "AI-dierengezicht · MBTI-dierenmatch · Dierentotem · 60-Gapja beschermzegel"
+      },
+      "meditation": {
+        "title": "Meditatiecollectie",
+        "subtitle": "Orden de energie van vandaag met verbeelding en onderbewustzijn",
+        "lede": "Neville Goddard geïnspireerde visualisaties brengen emotie tot rust en richten je op de werkelijkheid die je wilt belichamen.",
+        "featureline": "Neville-meditatie · Gerichte ademhaling · Autosuggestie · Realiteitsvisualisatie"
+      },
+      "tarot": {
+        "title": "Tarotreadingcollectie",
+        "subtitle": "Kies de tarot die je nodig hebt en begin nu",
+        "lede": "Relaties, heling, zelfvertrouwen, hereniging, jaarenergie en keuzes worden gelezen met gerichte kaartleggingen.",
+        "featureline": "Relatie 6 kaarten · Heling 4 kaarten · Zelfvertrouwen · Hereniging · Dierenriemjaar · Saju-tarot"
+      },
+      "oracle": {
+        "title": "Orakel- en waarzegcollectie",
+        "subtitle": "Oude wijsheid spreekt vandaag tot jou",
+        "lede": "Leg één vraag neer en ontvang een heldere conclusie via oosterse en westerse symbolen.",
+        "featureline": "Hwatu · Egyptisch orakel · IFÀ · I Tjing 64 hexagrammen · Runen · Geomantie · Theebladeren · Destiny Poker"
+      },
+      "cosmic": {
+        "title": "Kosmische en dierenriemcollectie",
+        "subtitle": "Je lotkaart geschreven in de sterren",
+        "lede": "Planeten, tekens en huizen verbinden zich tot een hemelse reading van karakter en timing.",
+        "featureline": "Westerse astrologie · Zi Wei Dou Shu · Vedische astrologie · Olympus dierenriemorakel"
+      },
+      "flower": {
+        "title": "Lotsbloem- en droomcollectie",
+        "subtitle": "Je persoonlijke lot bloeit in de taal van de kosmos",
+        "lede": "Saju, astrologie, Zi Wei en Sukuyo worden via bloemensymboliek geweven tot poëtische lotsrapporten.",
+        "featureline": "Lotsbloematelier · Astrologiebloem · Zi Wei-bloem · Sukuyo-bloem · Droomtarot · Psychoanalytische droomlezing"
+      },
+      "vvip": {
+        "title": "VVIP lotsarchief",
+        "subtitle": "Je sterren, Saju en verbindingen worden één geheim document.",
+        "lede": "Een premiumcollectie die leven, liefde, geld, relaties en keerpunten diep opent.",
+        "featureline": "Zi Wei · Sukuyo · Astrologie · Vedisch · Zielskarma"
+      },
+      "misc": {
+        "title": "Andere waarzegcollectie",
+        "subtitle": "Ontdek alles van psychotests tot Saju FPTI",
+        "lede": "Psychotests, AI omikuji, bloedgroeptests, favoriete-persoon lot en Saju FPTI komen samen als kaartcollectie.",
+        "featureline": "Psychologiehub · AI Omikuji · Bloedgroeptest · Favoriet lot · Saju FPTI"
+      }
+    },
+    "tiles": {
+      "animalFaceTitle": "🎭 AI-dierengezichtlezing",
+      "animalFaceDesc": "Gezichtslezing vanuit je selfie",
+      "animalMbtiTitle": "🦁 MBTI-dierenmatch",
+      "animalMbtiDesc": "16 totemmatches",
+      "animalTotemTitle": "🧸 Dierentotem",
+      "animalTotemDesc": "Kaartreading van je beschermdier",
+      "sajuGuardianTitle": "🐲 Saju guardian-oproep",
+      "sajuGuardianDesc": "Dagpijler, elementen, beschermzegel en 7-daagse missie",
+      "destinyEggTitle": "🥚 Lotsei",
+      "destinyEggDesc": "Je persoonlijke fortuinmaatje",
+      "fortuneFishTitle": "🐟 Waarzegvis",
+      "fortuneFishDesc": "Gratis visreading en gelukscharm-kluis",
+      "palmMapTitle": "🖐 Handlijnkaart",
+      "palmMapDesc": "Lees liefde, geld en werkstromen in je handpalm.",
+      "nevillePracticeTitle": "🧘 Neville-meditatiepraktijk",
+      "nevillePracticeDesc": "Focusgids voor scheppende verbeelding",
+      "divyaYogaTitle": "🪷 Divya Yoga",
+      "divyaYogaDesc": "Persoonlijke meditatie- en yogaroutine",
+      "cosmicSoulMeditationTitle": "🌌 Kosmische zielmeditatie",
+      "cosmicSoulMeditationDesc": "30- en 60-minuten protocol voor realiteitsrendering",
+      "tarotLoveTitle": "💕 Wat zijn wij?",
+      "tarotLoveDesc": "De temperatuur tussen woorden en daden",
+      "tarotHealingTitle": "☀ Warme zon-helingstarot",
+      "tarotHealingDesc": "Waar het hart moe is en het licht van vandaag",
+      "tarotSelfEsteemTitle": "✨ Tarot voor herstel van je eigen maat",
+      "tarotSelfEsteemDesc": "5-kaarten reading vanuit het hart",
+      "tarotReunionTitle": "🌊 Hereniging vuurtorentarot",
+      "tarotReunionDesc": "Resterende warmte en veilige afstand",
+      "tarotPromptMakerTitle": "💘 Tarot promptbibliotheek",
+      "tarotPromptMakerDesc": "Kies een legging, open kaarten, voltooi de readingtekst",
+      "tarotYearTitle": "🐉 Dierenriem jaartarot",
+      "tarotYearDesc": "Twaalf maanden beschermende maandenergie",
+      "tarotNumerologyTitle": "🔢 Numerologietarot",
+      "tarotNumerologyDesc": "5-kaarten reading met levensgetal en daggetal",
+      "tarotCareerMoveTitle": "💼 Carrièrewisselkaarten",
+      "tarotCareerMoveDesc": "7 kaarten voor wat blijft en waarheen je beweegt",
+      "tarotMindscanTitle": "🔮 Tussen woorden en daden",
+      "tarotMindscanDesc": "10 kaarten voor de temperatuur van het hart",
+      "tarotCrystalSoulTitle": "💎 Kristallen zieltarot",
+      "tarotCrystalSoulDesc": "Kristalenergie-reading",
+      "celestialHarmonyTitle": "✨ Hemelse harmonie",
+      "celestialHarmonyDesc": "Tarot geweven uit de stemmen van 11 planeten",
+      "sajuTarotTitle": "🔮 Saju-tarot",
+      "sajuTarotDesc": "Keuzecriteria via kaarten en Tien Goden",
+      "hwatuTitle": "🎴 Hwatu-fortuin",
+      "hwatuDesc": "Fortuin via 12 maanden bloemenkaarten",
+      "egyptOracleTitle": "𓂀 Egyptisch orakel",
+      "egyptOracleDesc": "Kemet-orakelfortuin",
+      "ifaOracleTitle": "🪬 IFÀ-orakel",
+      "ifaOracleDesc": "Yoruba-orakel van 256 Odu",
+      "ichingTurtleTitle": "☯️ I Tjing schildpadorakel",
+      "ichingTurtleDesc": "64 hexagrammen en 3000 jaar wijsheid",
+      "runeOracleTitle": "ᚠ Stonehenge runenorakel",
+      "runeOracleDesc": "Lezing van oude runensymbolen",
+      "geomancyTitle": "⟁ Geomantie aardorakel",
+      "geomancyDesc": "16 lijnen van aardse tekens",
+      "sikojenTitle": "🐷 Fins tinnen varkensorakel",
+      "sikojenDesc": "Een lief nieuwjaarsorakel met Yeoni en tinnen schaduwen",
+      "royalTeaTitle": "🫖 Koninklijke theelezing",
+      "royalTeaDesc": "Koninklijke tasseografie met theebladeren",
+      "destinyPokerTitle": "🃏 Destiny Poker",
+      "destinyPokerDesc": "Een lotkaartduel met de goden",
+      "westernAstrologyTitle": "✨ Basiskaart westerse astrologie",
+      "westernAstrologyDesc": "Gratis geboortehoroscoop · Synastrie 50 coins",
+      "ziweiBasicTitle": "🌌 Zi Wei Dou Shu",
+      "ziweiBasicDesc": "Gratis basiskaart · compatibiliteit optioneel 50 coins",
+      "ziweiAdvancedTitle": "🌟 Gevorderde Zi Wei",
+      "ziweiAdvancedDesc": "12-paleizen levensstrategie · diepe Ming-paleisanalyse",
+      "vedicAstrologyTitle": "🪐 Vedische astrologie",
+      "vedicAstrologyDesc": "Gratis basiskaart · compatibiliteit 50 coins",
+      "olympusOracleTitle": "⚡ Olympus-orakel",
+      "olympusOracleDesc": "12 goden en dierenriemlotslezing",
+      "destinyFlowerTitle": "🌸 Lotsbloem",
+      "destinyFlowerDesc": "De bloem die uit je Saju bloeit",
+      "astrologyFlowerTitle": "✨ Astrologiebloem",
+      "astrologyFlowerDesc": "Sun · Rising · Moon",
+      "ziweiFlowerTitle": "🌺 Zi Wei-bloem",
+      "ziweiFlowerDesc": "Ming-paleis hoofdster · sterrenhelderheid",
+      "sukuyoFlowerTitle": "🌙 Sukuyo-bloem",
+      "sukuyoFlowerDesc": "27 maanhuizen · maanfase",
+      "dreamTarotTitle": "🌙 Droomtarot",
+      "dreamTarotDesc": "3-kaarten reading van droomnagloed",
+      "psychoDreamTitle": "🕯️ Psychoanalytische droomlezing",
+      "psychoDreamDesc": "Freud · British Study",
+      "sukuyoPremiumTitle": "Premium Sukuyo-compatibiliteit",
+      "sukuyoPremiumDesc": "Maakt een 15-hoofdstukken advies-PDF, los van basiscompatibiliteit en detailuitbreiding.",
+      "ziweiPremiumTitle": "Zi Wei Premium PDF",
+      "ziweiPremiumDesc": "Duidt de levenspaleizen in je Ming-paleis en 12 paleizen.",
+      "astroReportTitle": "Astrologie Cosmic Report",
+      "astroReportDesc": "Leest keerpunten door Saturnus, knopen, transits en huizenstroom over Zon, Maan en Ascendant te leggen.",
+      "vedicPremiumTitle": "Vedische Premium PDF",
+      "vedicPremiumDesc": "Opent de zielrichting die Lagna en Nakshatra uitspreken.",
+      "soulKarmaTitle": "Zielskarma",
+      "soulKarmaDesc": "Waar kom je vandaan, en wat kwam je in dit leven oplossen?",
+      "psychotestHubTitle": "🧠 Psychotesthub",
+      "psychotestHubDesc": "14 thematests",
+      "aiOmikujiTitle": "🤖 AI Emoi Omikuji",
+      "aiOmikujiDesc": "Emotionele orakelreading",
+      "yeonStarHugTileTitle": "🌸 Yeons hartconstellatie",
+      "yeonStarHugTileDesc": "Een zachte omhelzing voor het hart van vandaag",
+      "bloodTypeTitle": "🩸 Bloedgroeptest",
+      "bloodTypeDesc": "Eigenschappen · compatibiliteit · coaching",
+      "favoriteDestinyTitle": "✨ Favoriete-persoon lot",
+      "favoriteDestinyDesc": "Photocard moodreading",
+      "sajuFptiTitle": "🔮 Saju FPTI-test",
+      "sajuFptiDesc": "4-assige persoonlijkheidsanalyse via elementen en Tien Goden"
+    }
+  },
   "terms": {
     "사주": "Vier Pijlers van het Lot",
     "사주팔자": "Vier Pijlers (Ba Zi)",
@@ -39,30 +301,71 @@
     "신금": "Kwikzilveren Lemmet (Aap·Metaal)",
     "유금": "Dageraadstaal (Haan·Metaal)",
     "술토": "Bewakersdrempel (Hond·Aarde)",
-    "해수": "Oerbron (Varken·Water)"
+    "해수": "Oerbron (Varken·Water)",
+    "일주": "Dagpijler (kernzelf)",
+    "월주": "Maandpijler (potentieel)",
+    "년주": "Jaarpijler (afkomst)",
+    "시주": "Uurpijler (nalatenschap)"
   },
-
   "premium": {
     "reportTitle": "Jouw Lotsplan",
     "reportSubtitle": "Een Premium Levensanalyse aangedreven door Oosterse Meta-Psychologie en AI",
     "intro": "Dit rapport is geen simpele voorspelling van je toekomst - het is een nauwkeurig, data-gedreven blauwdruk van de energetische architectuur die jouw bestaan vormgeeft. Met meer dan 3.000 jaar oosterse kosmologische wijsheid en geavanceerde AI worden jouw Vier Pijlers van het Lot ontcijferd om de onzichtbare krachten te onthullen die jouw sterke punten, schaduwen en meest lumineuze potentieel regeren. Dit is jouw persoonlijke handboek om de Decennium Lotscycli te navigeren met helderheid en intentie.",
     "cta": "Ontgrendel Je Volledige Lotsplan",
     "priceDisplay": "Vanaf €2,90",
-    "guarantee": "30 Dagen Tevredenheidsgarantie"
+    "guarantee": "30 Dagen Tevredenheidsgarantie",
+    "dominantElement": {
+      "label": "Je dominante element (balanspunt)",
+      "description": "Het Dominante Element is de energetische sleutel die je hele lotsstructuur balanceert en activeert. Wanneer omgeving, relaties en keuzes hiermee in lijn komen, beweegt je kaart natuurlijker en krachtiger."
+    },
+    "coreArchetype": {
+      "label": "Je centrale levensarchetype",
+      "description": "Het centrale levensarchetype is de structurele signatuur van je lot. Het laat zien hoe je energie vorm krijgt in de wereld, waar je kracht vanzelf werkt en onder welke omstandigheden je talenten helder worden."
+    },
+    "decadeCycle": {
+      "label": "Decenniumcyclus van het lot",
+      "description": "De Decenniumcyclus beschrijft de energetische klimaten van tien jaar waar je doorheen beweegt. Het is geen simpel oordeel van geluk of pech, maar een kaart van kansen die opengaan en lessen die geïntegreerd willen worden."
+    },
+    "compatibility": {
+      "label": "Kosmische compatibiliteitsanalyse",
+      "description": "Ware compatibiliteit gaat dieper dan persoonlijkheidstypes. Deze lezing onderzoekt de dynamiek van de Vijf Elementen tussen twee kaarten en toont waar jullie elkaar versterken, waar wrijving ontstaat en hoe verbinding waardig kan stromen."
+    }
   },
-
   "trust": {
     "headline": "Waarom Meer dan 100.000 Mensen Code Destiny Vertrouwen",
     "badges": [
-      { "icon": "🌍", "label": "Mondiale Community", "value": "+100.000 gebruikers in 80+ landen" },
-      { "icon": "🔒", "label": "SSL-Beveiligd", "value": "256-bits encryptie · Veilige betalingen" },
-      { "icon": "⭐", "label": "Beoordeling", "value": "4,9/5 gemiddeld" },
-      { "icon": "🌐", "label": "Talen", "value": "10 talen beschikbaar" },
-      { "icon": "💳", "label": "Veilige Betaling", "value": "Stripe-gecertificeerd · Alle kaarten" },
-      { "icon": "🔄", "label": "Garantie", "value": "30-Daagse Terugbetaling" }
+      {
+        "icon": "🌍",
+        "label": "Mondiale Community",
+        "value": "+100.000 gebruikers in 80+ landen"
+      },
+      {
+        "icon": "🔒",
+        "label": "SSL-Beveiligd",
+        "value": "256-bits encryptie · Veilige betalingen"
+      },
+      {
+        "icon": "⭐",
+        "label": "Beoordeling",
+        "value": "4,9/5 gemiddeld"
+      },
+      {
+        "icon": "🌐",
+        "label": "Talen",
+        "value": "10 talen beschikbaar"
+      },
+      {
+        "icon": "💳",
+        "label": "Veilige Betaling",
+        "value": "Stripe-gecertificeerd · Alle kaarten"
+      },
+      {
+        "icon": "🔄",
+        "label": "Garantie",
+        "value": "30-Daagse Terugbetaling"
+      }
     ]
   },
-
   "footer": {
     "tagline": "Oude wijsheid, moderne precisie.",
     "about": "Code Destiny is een AI-aangedreven lotsanalyseplatform dat meer dan 3.000 jaar oosterse kosmologische systemen combineert met moderne kunstmatige intelligentie. Beschikbaar in 10 talen, gratis te gebruiken.",
@@ -75,6 +378,193 @@
       "contact": "Contact"
     },
     "refundPolicy": "Premium Munten (digitale tegoeden) zijn terugbetaalbaar binnen 14 dagen na aankoop als ze ongebruikt zijn, conform de consumentenbeschermingswet.",
-    "copyright": "© 2025 Code Destiny. Alle rechten voorbehouden. Uitsluitend voor entertainment en zelfreflectie, geen vervanging voor professioneel advies."
+    "copyright": "© 2025 Code Destiny. Alle rechten voorbehouden. Uitsluitend voor entertainment en zelfreflectie, geen vervanging voor professioneel advies.",
+    "sections": {
+      "services": "Diensten",
+      "resources": "Bronnen",
+      "legal": "Juridisch",
+      "support": "Support"
+    }
+  },
+  "branches": {
+    "자수": {
+      "label": "Middernachtelijke Diepte",
+      "animal": "Rat・Water (子水)",
+      "essence": "De Rat beweegt door het donkerste water met fijn instinct. Middernachtelijke Diepte staat voor verborgen intelligentie, vindingrijke omgang met middelen en het vermogen een pad te vinden waar anderen niets zien."
+    },
+    "축토": {
+      "label": "IJzeren Grondslag",
+      "animal": "Os・Aarde (丑土)",
+      "essence": "De Os draagt wat anderen niet kunnen dragen. IJzeren Grondslag belichaamt onverzettelijk geduld, langzaam opgebouwde kracht en de stille waardigheid van een leven dat door volharding wordt gevormd."
+    },
+    "인목": {
+      "label": "Soevereine Opkomst",
+      "animal": "Tijger・Hout (寅木)",
+      "essence": "De Tijger heerst over het oerbos. Soevereine Opkomst beschrijft natuurlijke autoriteit, beschermende kracht en een groei die niet lang tegengehouden kan worden."
+    },
+    "묘목": {
+      "label": "Baldakijn van de Dageraad",
+      "animal": "Konijn・Hout (卯木)",
+      "essence": "Het Konijn draagt de eerste lichtkracht van de ochtend: zacht en toch onweerstaanbaar. Dit staat voor sociale gratie, artistieke gevoeligheid en bloei door zachtheid."
+    },
+    "진토": {
+      "label": "Hemelse Troon",
+      "animal": "Draak・Aarde (辰土)",
+      "essence": "De Draak is het mythische wezen van de twaalf takken. Hemelse Troon staat voor transformatiekracht, sacrale aanwezigheid en een lotskwaliteit die anderen als bijzonder ervaren."
+    },
+    "사화": {
+      "label": "Verborgen Gloed",
+      "animal": "Slang・Vuur (巳火)",
+      "essence": "De Slang kondigt zichzelf niet luid aan. Verborgen Gloed is wijsheid die in stilte rijpt, langzaam brandende intensiteit en de macht om meer te weten dan wordt uitgesproken."
+    },
+    "오화": {
+      "label": "Zonnevlam",
+      "animal": "Paard・Vuur (午火)",
+      "essence": "Het Paard draagt de energie van de middagzon: glans, beweging en gepassioneerde vrijheid. Zonnevlam is het sterkst wanneer zij rent naar wat zij liefheeft."
+    },
+    "미토": {
+      "label": "Pastoraal Heiligdom",
+      "animal": "Geit・Aarde (未土)",
+      "essence": "De Geit brengt overvloed zonder agressie. Pastoraal Heiligdom staat voor zorg, harmonie, diepe creativiteit en ruimtes waarin anderen zich veilig voelen."
+    },
+    "신금": {
+      "label": "Mercuriale Snede",
+      "animal": "Aap・Metaal (申金)",
+      "essence": "De Aap is de slimme strateeg van de dierenriem. Mercuriale Snede staat voor vindingrijkheid, aanpassing, innovatie en flexibele strategie in complexe situaties."
+    },
+    "유금": {
+      "label": "Sikkelstaal",
+      "animal": "Haan・Metaal (酉金)",
+      "essence": "De Haan belichaamt precisie en kondigt de dageraad aan. Sikkelstaal betekent discipline, verfijnd oordeel en het zeldzame vermogen echte waarde te herkennen."
+    },
+    "술토": {
+      "label": "Wachtersdrempel",
+      "animal": "Hond・Aarde (戌土)",
+      "essence": "De Hond bewaakt de heilige poort. Wachtersdrempel staat voor vertrouwen, trouw, bescherming van het wezenlijke en een moreel centrum dat niet snel wankelt."
+    },
+    "해수": {
+      "label": "Oerbron",
+      "animal": "Zwijn・Water (亥水)",
+      "essence": "Het Zwijn is een grote, oprechte stroom. Oerbron staat voor vitaliteit, vrijgevigheid, zuiverheid en een diepte die niet opdroogt zolang het hart waarachtig blijft."
+    }
+  },
+  "services": {
+    "saju": {
+      "name": "Vier Pijlers van het Lot",
+      "short": "Saju-lezing",
+      "description": "Het oorspronkelijke systeem van oosterse meta-psychologie. Je geboortedatum draagt een precieze kosmische signatuur: vier pijlers, acht tekens en diepe resonantie.",
+      "badge": "Populair"
+    },
+    "tarot": {
+      "name": "AI-tarotbegeleiding",
+      "short": "AI-tarot",
+      "description": "Oude archetypische wijsheid, versterkt door kunstmatige intelligentie. Elke lezing weerspiegelt je huidige energieveld."
+    },
+    "ziwei": {
+      "name": "Zi Wei Dou Shu",
+      "short": "Sterrenkaart",
+      "description": "Het keizerlijke sterrenkaartsysteem van het oude China: 144 levenspaleizen en 108 sterren als panorama van het lot.",
+      "badge": "Diepgaand"
+    },
+    "astrology": {
+      "name": "Kosmische astrologie",
+      "short": "Vedisch & westers",
+      "description": "Een verbinding van Vedische Jyotish en westerse astrologie voor gelaagde planeetduiding."
+    },
+    "destinyFlower": {
+      "name": "Lotsbloem-archetype",
+      "short": "Lotsbloem",
+      "description": "Het bloeipatroon van de ziel, poëtisch en precies gelezen uit je elementaire lotssignatuur."
+    },
+    "compatibility": {
+      "name": "Kosmische compatibiliteit",
+      "short": "Compatibiliteit",
+      "description": "Voorbij persoonlijkheidstests leest dit de diepe energetische overeenkomst tussen jou en een ander via de Vijf Elementen."
+    }
+  },
+  "pricing": {
+    "currencies": {
+      "KRW": {
+        "symbol": "₩",
+        "rate": 1,
+        "format": "₩{amount}"
+      },
+      "USD": {
+        "symbol": "$",
+        "rate": 0.00074,
+        "format": "${amount}"
+      },
+      "EUR": {
+        "symbol": "€",
+        "rate": 0.00068,
+        "format": "€{amount}"
+      },
+      "JPY": {
+        "symbol": "¥",
+        "rate": 0.11,
+        "format": "¥{amount}"
+      },
+      "CNY": {
+        "symbol": "¥",
+        "rate": 0.0053,
+        "format": "¥{amount}"
+      },
+      "GBP": {
+        "symbol": "£",
+        "rate": 0.00058,
+        "format": "£{amount}"
+      },
+      "AUD": {
+        "symbol": "A$",
+        "rate": 0.0012,
+        "format": "A${amount}"
+      },
+      "CAD": {
+        "symbol": "C$",
+        "rate": 0.001,
+        "format": "C${amount}"
+      },
+      "INR": {
+        "symbol": "₹",
+        "rate": 0.062,
+        "format": "₹{amount}"
+      },
+      "SGD": {
+        "symbol": "S$",
+        "rate": 0.00099,
+        "format": "S${amount}"
+      },
+      "MYR": {
+        "symbol": "RM",
+        "rate": 0.0035,
+        "format": "RM{amount}"
+      }
+    },
+    "tiers": [
+      {
+        "id": "starter",
+        "name": "Starter",
+        "krwPrice": 9900,
+        "coins": 10,
+        "description": "10 premium lezingen",
+        "popular": false
+      },
+      {
+        "id": "standard",
+        "name": "Standaard",
+        "krwPrice": 29000,
+        "coins": 35,
+        "description": "35 premium lezingen + volledig lotsrapport",
+        "popular": true
+      },
+      {
+        "id": "premium",
+        "name": "Premium",
+        "krwPrice": 59000,
+        "coins": 80,
+        "description": "80 lezingen + levenslange toegang tot functies",
+        "popular": false
+      }
+    ]
   }
 }

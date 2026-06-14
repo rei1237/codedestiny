@@ -1124,16 +1124,16 @@ function SubscriptionSection({
             <span aria-hidden="true">ℹ️</span> 이용권 운영 정책
           </p>
           <ul className="mt-1.5 space-y-1 text-[11.5px] text-slate-200">
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>모든 신규 판매 이용권은 <strong>결제 검증 성공 시점부터 30일 동안 유효</strong>합니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 30/50/100코인 이하일 때 이용권으로 이용할 수 있습니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>Code Destiny Family는 프로필 카드 제한 없이 모든 유료 기능을 이용할 수 있습니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>스탠다드·프리미엄·VVIP의 PDF 서비스는 생성 결제 시 각 등급 한도만큼 자동 할인되며, Family는 PDF 포함 모든 유료 기능이 무료 처리됩니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>한도 초과 일반 유료 서비스는 상품별 코인 기준 단건 결제로 이용할 수 있습니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>Moonlight Stone 잔량은 신규 가입·이벤트로만 지급되며 구매하거나 충전할 수 없습니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>이용권 결제 후 유료 기능을 1회 이상 이용하면 환불이 제한될 수 있습니다.</li>
-            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><strong>자동결제가 아닌 30일 이용권</strong>이며, 결제 전 환불 규정 동의가 필요합니다.</li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span>콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">모든 신규 판매 이용권은 <strong>결제 검증 성공 시점부터 30일 동안 유효</strong>합니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 30/50/100코인 이하일 때 이용권으로 이용할 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Code Destiny Family는 프로필 카드 제한 없이 모든 유료 기능을 이용할 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP의 PDF 서비스는 생성 결제 시 각 등급 한도만큼 자동 할인되며, Family는 PDF 포함 모든 유료 기능이 무료 처리됩니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">한도 초과 일반 유료 서비스는 상품별 코인 기준 단건 결제로 이용할 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Moonlight Stone 잔량은 신규 가입·이벤트로만 지급되며 구매하거나 충전할 수 없습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">이용권 결제 후 유료 기능을 1회 이상 이용하면 환불이 제한될 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0"><strong>자동결제가 아닌 30일 이용권</strong>이며, 결제 전 환불 규정 동의가 필요합니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</span></li>
           </ul>
         </div>
 
@@ -1538,7 +1538,17 @@ function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg" |
   콘텐츠 기준은 가격 산정용 내부 단위로만 안내합니다.
 ══════════════════════════════════════════════════════════════════ */
 
-function WalletCard({ name, monthlyCredits }: { name: string; monthlyCredits: number }) {
+function WalletCard({
+  name,
+  monthlyCredits,
+  onRefreshMonthlyCredits,
+  isRefreshingMonthlyCredits,
+}: {
+  name: string;
+  monthlyCredits: number;
+  onRefreshMonthlyCredits: () => void;
+  isRefreshingMonthlyCredits: boolean;
+}) {
   const monthlyStoneBalance = Math.max(0, Math.floor(Number(monthlyCredits || 0)));
 
   return (
@@ -1583,6 +1593,14 @@ function WalletCard({ name, monthlyCredits }: { name: string; monthlyCredits: nu
               <span className="text-[22px] font-black leading-none text-white">
                 {monthlyStoneBalance.toLocaleString("ko-KR")}
               </span>
+              <button
+                type="button"
+                onClick={onRefreshMonthlyCredits}
+                disabled={isRefreshingMonthlyCredits}
+                className="rounded-full border border-[#cab8ff]/45 bg-white/[0.08] px-3 py-1.5 text-[11px] font-black text-[#f3dd9a] transition hover:bg-white/[0.14] disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                {isRefreshingMonthlyCredits ? "확인 중..." : "월정석 잔량 확인"}
+              </button>
             </div>
             <p className="max-w-[280px] text-[11px] text-slate-200 sm:text-right">
               신규 가입·이벤트로 지급되는 Moonlight Stone 보너스 잔량입니다. 기본 결제는 상품별 코인 기준 단건 결제로 진행됩니다.
@@ -1704,6 +1722,7 @@ export default function PointsPage() {
   const [showStarBurst, setShowStarBurst] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
   const [monthlyCreditLedgers, setMonthlyCreditLedgers] = useState<MonthlyCreditLedgerItem[]>([]);
+  const [isRefreshingMonthlyCredits, setIsRefreshingMonthlyCredits] = useState(false);
   const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
   const [adminTestTier, setAdminTestTier] = useState<AdminTestTier>("off");
   const isFlowerAdminMode = authUser?.role === "admin" && isFlowerAdminSessionClient();
@@ -1811,6 +1830,19 @@ export default function PointsPage() {
     return normalizedMonthlyCredits;
   }, []);
 
+  const handleRefreshMonthlyCredits = useCallback(async () => {
+    if (isRefreshingMonthlyCredits) return;
+    setIsRefreshingMonthlyCredits(true);
+    try {
+      const latestMonthlyCredits = await refreshWalletFromServer();
+      pushToast("success", `Moonlight Stone 잔량을 확인했습니다. 현재 ${latestMonthlyCredits.toLocaleString("ko-KR")}개입니다.`);
+    } catch (error: unknown) {
+      pushToast("error", getErrorMessage(error, "Moonlight Stone 잔량 확인에 실패했습니다."));
+    } finally {
+      setIsRefreshingMonthlyCredits(false);
+    }
+  }, [isRefreshingMonthlyCredits, pushToast, refreshWalletFromServer]);
+
   /** 이용권 성공 후 legacy destiny-profile.js가 읽는 localStorage 캐시를 갱신합니다. */
   const persistSubscriptionCache = useCallback((sub: SubscriptionStatus) => {
     try {
@@ -1893,10 +1925,8 @@ export default function PointsPage() {
 
       const normalized = normalizeMePayload(payload);
       const nextUser = normalized.user;
-      const refreshedMonthlyCredits = await refreshWalletFromServer().catch(() => null);
-      if (!Number.isFinite(Number(refreshedMonthlyCredits))) {
-        setCurrentMonthlyCredits(Math.max(0, Math.floor(Number(normalized.monthlyCredits || 0))));
-      }
+      setCurrentMonthlyCredits(Math.max(0, Math.floor(Number(normalized.monthlyCredits || 0))));
+      void refreshWalletFromServer().catch(() => null);
       if (normalized.subscription) {
         setSubscription((prev) => {
           const nextSubscription = mergeSubscriptionState(prev, normalized.subscription as SubscriptionStatus);
@@ -3163,7 +3193,12 @@ export default function PointsPage() {
         </header>
 
         {/* ② 잔액 카드 */}
-        <WalletCard name={authUser?.name || "사용자"} monthlyCredits={currentMonthlyCredits} />
+        <WalletCard
+          name={authUser?.name || "사용자"}
+          monthlyCredits={currentMonthlyCredits}
+          onRefreshMonthlyCredits={handleRefreshMonthlyCredits}
+          isRefreshingMonthlyCredits={isRefreshingMonthlyCredits}
+        />
 
         <section className="rounded-[20px] border border-white/12 bg-white/[0.08] p-5">
           <div className="mb-3 flex items-center justify-between gap-3">

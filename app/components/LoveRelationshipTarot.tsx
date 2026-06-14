@@ -341,10 +341,10 @@ export default function LoveRelationshipTarot() {
 
         {readingRaw ? (
           <section className="rounded-2xl border border-emerald-600/35 bg-emerald-950/20 p-5">
-            <h2 className="mb-3 text-lg font-semibold">연애 관계 리딩 결과</h2>
+            <h2 className="mb-3 text-lg font-semibold">관계 온도 리딩 결과</h2>
             <div className="space-y-3 text-sm leading-7 text-slate-100">
               <article className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
-                <h3 className="mb-2 text-sm font-semibold text-emerald-300">🌙 타로 마스터의 시선</h3>
+                <h3 className="mb-2 text-sm font-semibold text-emerald-300">🌙 관계의 현재 온도</h3>
                 {readingRaw?.overallVibe ? <p className="text-sm text-slate-100">{String(readingRaw.overallVibe)}</p> : null}
                 {readingRaw?.relationshipMatrix?.sequenceFlow ? (
                   <p className="mt-2 text-sm text-slate-100"><strong>6장 흐름:</strong> {String(readingRaw.relationshipMatrix.sequenceFlow)}</p>
@@ -357,24 +357,24 @@ export default function LoveRelationshipTarot() {
               </article>
 
               <article className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
-                <h3 className="mb-2 text-sm font-semibold text-emerald-300">🔍 마음의 해부학</h3>
+                <h3 className="mb-2 text-sm font-semibold text-emerald-300">🔍 마음이 엇갈리는 지점</h3>
                 {readingRaw?.deepReading ? <p className="text-sm text-slate-100">{String(readingRaw.deepReading)}</p> : null}
                 {readingRaw?.relationshipMatrix?.projectionGap ? (
-                  <p className="mt-2 text-sm text-slate-100"><strong>Projection Gap:</strong> {String(readingRaw.relationshipMatrix.projectionGap)}</p>
+                  <p className="mt-2 text-sm text-slate-100"><strong>기대와 감정의 간격:</strong> {String(readingRaw.relationshipMatrix.projectionGap)}</p>
                 ) : null}
                 {readingRaw?.relationshipMatrix?.relationshipFrame ? (
-                  <p className="mt-2 text-sm text-slate-100"><strong>Relationship Frame:</strong> {String(readingRaw.relationshipMatrix.relationshipFrame)}</p>
+                  <p className="mt-2 text-sm text-slate-100"><strong>관계의 속도 기준:</strong> {String(readingRaw.relationshipMatrix.relationshipFrame)}</p>
                 ) : null}
               </article>
 
               <article className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
-                <h3 className="mb-2 text-sm font-semibold text-emerald-300">🚧 현실과 다가올 내일</h3>
+                <h3 className="mb-2 text-sm font-semibold text-emerald-300">🧭 현실 흐름과 다음 선택</h3>
                 {readingRaw?.realityAndFuture ? <p className="text-sm text-slate-100">{String(readingRaw.realityAndFuture)}</p> : null}
                 {readingRaw?.relationshipMatrix?.blockToOutcome ? (
-                  <p className="mt-2 text-sm text-slate-100"><strong>Block → Outcome:</strong> {String(readingRaw.relationshipMatrix.blockToOutcome)}</p>
+                  <p className="mt-2 text-sm text-slate-100"><strong>막힘과 가까운 흐름:</strong> {String(readingRaw.relationshipMatrix.blockToOutcome)}</p>
                 ) : null}
                 {readingRaw?.finalAdvice?.nextSevenDays ? (
-                  <p className="mt-2 text-sm text-slate-100"><strong>Next 7 Days:</strong> {String(readingRaw.finalAdvice.nextSevenDays)}</p>
+                  <p className="mt-2 text-sm text-slate-100"><strong>7일의 리듬:</strong> {String(readingRaw.finalAdvice.nextSevenDays)}</p>
                 ) : null}
               </article>
 
@@ -389,11 +389,11 @@ export default function LoveRelationshipTarot() {
                         {Array.isArray(row.keywords) && row.keywords.length ? (
                           <p className="mt-1 text-xs text-slate-300"><strong>핵심 키워드:</strong> {row.keywords.join(" · ")}</p>
                         ) : null}
-                        {(row.headline || row.summary) ? <p className="mt-1 text-sm text-slate-100"><strong>한 줄 핵심:</strong> {row.headline || row.summary}</p> : null}
-                        {row.detail ? <p className="mt-1 text-sm text-slate-100"><strong>상세 해석:</strong> {row.detail}</p> : null}
-                        {row.relationshipInsight ? <p className="mt-1 text-sm text-slate-100"><strong>상대/관계 심리:</strong> {row.relationshipInsight}</p> : null}
-                        {row.advice ? <p className="mt-1 text-sm text-slate-100"><strong>조언:</strong> {row.advice}</p> : null}
-                        {row.caution ? <p className="mt-1 text-sm text-slate-100"><strong>주의할 점:</strong> {row.caution}</p> : null}
+                        {(row.headline || row.summary) ? <p className="mt-1 text-sm text-slate-100"><strong>핵심 신호:</strong> {row.headline || row.summary}</p> : null}
+                        {row.detail ? <p className="mt-1 text-sm text-slate-100"><strong>관계 해석:</strong> {row.detail}</p> : null}
+                        {row.relationshipInsight ? <p className="mt-1 text-sm text-slate-100"><strong>관계 심리:</strong> {row.relationshipInsight}</p> : null}
+                        {row.advice ? <p className="mt-1 text-sm text-slate-100"><strong>오늘의 선택:</strong> {row.advice}</p> : null}
+                        {row.caution ? <p className="mt-1 text-sm text-slate-100"><strong>조심할 흐름:</strong> {row.caution}</p> : null}
                         {row.orderConnection ? <p className="mt-1 text-sm text-slate-100"><strong>흐름 연결:</strong> {row.orderConnection}</p> : null}
                       </div>
                     ))}
@@ -403,12 +403,12 @@ export default function LoveRelationshipTarot() {
 
               {isFinalAdvice(readingRaw?.finalAdvice) ? (
                 <article className="rounded-lg border border-emerald-800/50 bg-slate-900/40 p-3">
-                  <h3 className="mb-2 text-sm font-semibold text-emerald-300">🧭 마지막 조언</h3>
+                  <h3 className="mb-2 text-sm font-semibold text-emerald-300">🧭 지금 지킬 선택</h3>
                   <div className="space-y-2 text-sm text-slate-100">
-                    {readingRaw.finalAdvice.instantMission ? <p><strong>⚡ 지금 당장 할 1가지:</strong> {readingRaw.finalAdvice.instantMission}</p> : null}
-                    {readingRaw.finalAdvice.conversationTip ? <p><strong>💬 대화 팁:</strong> {readingRaw.finalAdvice.conversationTip}</p> : null}
+                    {readingRaw.finalAdvice.instantMission ? <p><strong>⚡ 오늘 남길 한 문장:</strong> {readingRaw.finalAdvice.instantMission}</p> : null}
+                    {readingRaw.finalAdvice.conversationTip ? <p><strong>💬 대화의 온도:</strong> {readingRaw.finalAdvice.conversationTip}</p> : null}
                     {readingRaw.finalAdvice.relationshipBoundary ? <p><strong>🛡️ 내가 지킬 선:</strong> {readingRaw.finalAdvice.relationshipBoundary}</p> : null}
-                    {readingRaw.finalAdvice.nextSevenDays ? <p><strong>🌙 앞으로 7일:</strong> {readingRaw.finalAdvice.nextSevenDays}</p> : null}
+                    {readingRaw.finalAdvice.nextSevenDays ? <p><strong>🌙 7일의 리듬:</strong> {readingRaw.finalAdvice.nextSevenDays}</p> : null}
                     {Array.isArray(readingRaw.finalAdvice.checklist) && readingRaw.finalAdvice.checklist.length ? (
                       <div>
                         <p><strong>✅ 실전 체크리스트:</strong></p>

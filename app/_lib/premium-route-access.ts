@@ -161,12 +161,6 @@ function buildAlternativePaymentRules(reportType: string, requestBody: Record<st
     return [
       ...baseRules,
       {
-        featureKey: "premium-sukuyo-compat-extra",
-        reason: "숙요점 궁합 확장 분석 추가",
-        minCost: 300,
-        windowMinutes: 240,
-      },
-      {
         featureKey: "premium_pdf_sukyo_compat",
         reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
         minCost: 490,
@@ -215,19 +209,19 @@ function buildAlternativePaymentRules(reportType: string, requestBody: Record<st
     return [
       {
         featureKey: "premium_pdf_soul_origin",
-        reason: "운명의 기원서 생성",
+        reason: "운명의 업 생성",
         minCost: 690,
         windowMinutes: 120,
       },
       {
         featureKey: "premium-soul-origin-report",
-        reason: "운명의 기원서 생성",
+        reason: "운명의 업 생성",
         minCost: 690,
         windowMinutes: 120,
       },
       {
         featureKey: "coin-gate-per-use",
-        reason: "운명의 기원서 생성",
+        reason: "운명의 업 생성",
         minCost: 690,
         windowMinutes: 120,
       },

@@ -1,519 +1,399 @@
-#!/usr/bin/env node
+import fs from "node:fs/promises";
+import path from "node:path";
 
-import fs from "node:fs";
+const baseUrl = (process.env.SEO_AUDIT_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+const outJson = path.resolve("seo-audit-report.json");
+const outMd = path.resolve("seo-audit-report.md");
+const crawlSitemap = process.argv.includes("--crawl-sitemap");
 
-const args = process.argv.slice(2);
-
-function readArg(name, fallback = "") {
-  const idx = args.indexOf(name);
-  if (idx >= 0 && idx + 1 < args.length) return String(args[idx + 1]);
-  return fallback;
-}
-
-const BASE_URL = String(readArg("--base", process.env.SEO_AUDIT_BASE || "https://code-destiny.com")).replace(/\/+$/, "");
-const REQUEST_TIMEOUT_MS = Number(readArg("--timeout", process.env.SEO_AUDIT_TIMEOUT || "15000"));
-const CONCURRENCY = Math.max(1, Number(readArg("--concurrency", process.env.SEO_AUDIT_CONCURRENCY || "8")));
-const baseHostname = (() => {
-  try {
-    return new URL(BASE_URL).hostname.toLowerCase();
-  } catch (e) {
-    return "";
-  }
-})();
-const IS_LOCAL_BASE = /^(localhost|127\.0\.0\.1)$/i.test(baseHostname);
-const FETCH_RETRIES = Math.max(
-  0,
-  Number(readArg("--retries", process.env.SEO_AUDIT_RETRIES || (IS_LOCAL_BASE ? "0" : "2"))),
-);
-
-const REQUIRED_URLS = [
+const indexablePaths = [
   "/",
-  "/saju",
-  "/ziwei",
-  "/ziwei/chart",
-  "/sukuyo",
-  "/sukuyo/compatibility",
-  "/astrology",
-  "/vedic",
+  "/about",
+  "/faq",
+  "/methodology",
+  "/manse",
+  "/saju/basic",
+  "/saju/compatibility",
   "/tarot",
-  "/compatibility",
+  "/tarot/reunion",
+  "/tarot/mindscan",
+  "/ziwei",
+  "/astrology",
+  "/sukuyo",
+  "/vedic",
   "/dream",
-  "/physiognomy",
-  "/insights",
-  "/insights/ziwei",
-  "/insights/sukuyo",
-  "/insights/saju",
-  "/insights/tarot",
-  "/insights/astrology",
-  "/insights/vedic",
-  "/insights/dream",
-  "/insights/compatibility",
+  "/today",
+  "/love",
+  "/premium-reports",
+  "/pdf/life-book",
+  "/pdf/love-report",
+  "/pdf/new-year",
+  "/high-value",
+  "/high-value/complete-guide-to-saju",
+  "/high-value/how-tarot-actually-works",
+  "/high-value/understanding-your-destiny",
+  "/high-value/what-your-birth-date-says-about-you",
+  "/high-value/top-10-signs-of-compatibility",
+  "/high-value/common-user-questions-faq",
 ];
 
-const TITLE_H1_EXPECTATIONS = {
-  "/saju": {
-    title: "무료 사주풀이 · 사주팔자 만세력 분석 | 꿀꿀 운세",
-    h1: "무료 사주풀이와 사주팔자 만세력 분석",
-  },
-  "/ziwei": {
-    title: "자미두수 무료 명반 · 紫微斗數 12궁 분석 | 꿀꿀 운세",
-    h1: "자미두수 무료 명반과 12궁 운명 분석",
-  },
-  "/ziwei/chart": {
-    title: "자미두수 명반 보기 · 명궁·재백궁·관록궁 해석 | Code Destiny",
-    h1: "자미두수 명반으로 보는 내 인생의 12궁",
-  },
-  "/sukuyo": {
-    title: "숙요점 무료 궁합 · 宿曜占星術 27숙 분석 | 꿀꿀 운세",
-    h1: "숙요점으로 보는 27숙 궁합과 관계의 흐름",
-  },
-  "/sukuyo/compatibility": {
-    title: "숙요점 궁합 보기 · 영친·업태·안괴 관계 해석 | Code Destiny",
-    h1: "숙요점 궁합으로 보는 두 사람의 관계 패턴",
-  },
-  "/astrology": {
-    title: "무료 점성술 차트 · 별자리·출생차트 해석 | 꿀꿀 운세",
-    h1: "무료 점성술 차트와 나의 별자리 지도",
-  },
-  "/vedic": {
-    title: "베다점성술 무료 분석 · 라그나와 카르마 차트 | 꿀꿀 운세",
-    h1: "베다점성술로 보는 라그나와 카르마 블루프린트",
-  },
-  "/tarot": {
-    title: "무료 타로 리딩 · 연애운·재회운·상대방 속마음 | 꿀꿀 운세",
-    h1: "무료 타로 리딩으로 보는 지금의 마음과 선택",
-  },
-  "/compatibility": {
-    title: "무료 궁합 보기 · 사주궁합·연애운 관계 분석 | 꿀꿀 운세",
-    h1: "무료 궁합 보기와 두 사람의 관계 분석",
-  },
-  "/dream": {
-    title: "무료 꿈해몽 · 꿈풀이·심리 꿈 해석 | 꿀꿀 운세",
-    h1: "무료 꿈해몽으로 보는 무의식의 메시지",
-  },
-  "/physiognomy": {
-    title: "동물관상 · AI 관상·얼굴 운세 분석 | 꿀꿀 운세",
-    h1: "동물관상으로 보는 나의 인상과 성향",
-  },
-  "/insights": {
-    title: "운세 인사이트 허브 · 사주·자미두수·숙요점·타로 가이드 | Code Destiny",
-    h1: "운세 인사이트 허브",
-  },
-};
+const noindexPaths = [
+  "/login",
+  "/signup",
+  "/profile",
+  "/payment",
+  "/checkout",
+  "/success",
+  "/fail",
+  "/points",
+  "/admin",
+  "/api-hello-test",
+  "/en",
+  "/ja",
+  "/zh",
+];
 
-const PRIVATE_PATHS = ["/admin", "/me", "/mypage/private"];
-const INSIGHTS_CATEGORY_SLUGS = new Set(["ziwei", "sukuyo", "saju", "tarot", "astrology", "vedic", "dream", "compatibility"]);
+const seedPathsToAudit = [...new Set([...indexablePaths, ...noindexPaths])];
 
-function absolute(path) {
-  return new URL(path, `${BASE_URL}/`).toString();
+function normalizePathname(pathname) {
+  const cleanPath = pathname.replace(/\/+$/, "");
+  return cleanPath || "/";
 }
 
-function stripTags(value) {
-  return String(value || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+function absoluteUrl(inputPath) {
+  return new URL(inputPath, `${baseUrl}/`).toString();
 }
 
-function decodeEntities(value) {
-  return String(value || "")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ");
+function productionUrl(inputPath) {
+  const cleanPath = inputPath === "/" ? "/" : `${normalizePathname(inputPath)}/`;
+  return new URL(cleanPath, "https://code-destiny.com").toString();
 }
 
-async function fetchWithTimeout(url, init = {}) {
-  const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);
-
-  const isRetryableError = (error) => {
-    const bag = `${error?.name || ""} ${error?.message || ""}`.toLowerCase();
-    return /abort|timed?out|fetch failed|econnreset|eai_again|enotfound|socket hang up/.test(bag);
-  };
-
-  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  let lastNetworkError = null;
-  let lastHttpResult = null;
-
-  for (let attempt = 0; attempt <= FETCH_RETRIES; attempt += 1) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
-    try {
-      const response = await fetch(url, {
-        redirect: "follow",
-        ...init,
-        signal: controller.signal,
-        headers: {
-          "user-agent": "CodeDestiny-SEO-Audit/1.0",
-          accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-          ...(init.headers || {}),
-        },
-      });
-
-      const text = await response.text();
-      const current = { ok: true, response, text, attempts: attempt + 1 };
-      lastHttpResult = current;
-
-      if (RETRYABLE_STATUS.has(response.status) && attempt < FETCH_RETRIES) {
-        await wait(Math.min(2000, 250 * (attempt + 1)));
-        continue;
-      }
-
-      return current;
-    } catch (error) {
-      lastNetworkError = error;
-      if (attempt < FETCH_RETRIES && isRetryableError(error)) {
-        await wait(Math.min(2000, 250 * (attempt + 1)));
-        continue;
-      }
-      return { ok: false, error, attempts: attempt + 1 };
-    } finally {
-      clearTimeout(timeout);
-    }
-  }
-
-  if (lastHttpResult) return lastHttpResult;
-  return { ok: false, error: lastNetworkError, attempts: FETCH_RETRIES + 1 };
-}
-
-function parseTitle(html) {
-  const m = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  return decodeEntities(stripTags(m?.[1] || ""));
-}
-
-function parseMetaContent(html, matcher) {
-  const metaRegex = /<meta\b[^>]*>/gi;
-  const tags = html.match(metaRegex) || [];
-  for (const tag of tags) {
-    if (!matcher(tag)) continue;
-    const m = tag.match(/content\s*=\s*(["'])([\s\S]*?)\1/i);
-    if (m?.[2]) return decodeEntities(m[2].trim());
-  }
-  return "";
-}
-
-function parseCanonical(html) {
-  const links = html.match(/<link\b[^>]*>/gi) || [];
-  for (const tag of links) {
-    if (!/rel\s*=\s*(["'])canonical\1/i.test(tag)) continue;
-    const m = tag.match(/href\s*=\s*(["'])([\s\S]*?)\1/i);
-    if (m?.[2]) return m[2].trim();
-  }
-  return "";
-}
-
-function parseH1(html) {
-  const all = [];
-  const regex = /<h1\b[^>]*>([\s\S]*?)<\/h1>/gi;
-  let m;
-  while ((m = regex.exec(html))) {
-    const text = decodeEntities(stripTags(m[1]));
-    if (text) all.push(text);
-  }
-  return all;
-}
-
-function hasJsonLd(html) {
-  return /<script[^>]*type\s*=\s*(["'])application\/ld\+json\1[^>]*>[\s\S]*?<\/script>/i.test(html);
-}
-
-function parseRobotsMeta(html) {
-  const content = parseMetaContent(
-    html,
-    (tag) => /name\s*=\s*(["'])robots\1/i.test(tag) || /name\s*=\s*(["'])googlebot\1/i.test(tag),
-  ).toLowerCase();
-  return content;
-}
-
-async function checkHtmlPage(path, issues, checks) {
-  const url = absolute(path);
-  const r = await fetchWithTimeout(url);
-
-  if (!r.ok) {
-    issues.push({ level: "error", msg: `${path}: 요청 실패 (${String(r.error)})` });
-    return null;
-  }
-
-  if (r.response.status !== 200) {
-    issues.push({ level: "error", msg: `${path}: 상태 코드 ${r.response.status} (200 필요)` });
-  }
-
-  const html = r.text || "";
-  const title = parseTitle(html);
-  const description = parseMetaContent(html, (tag) => /name\s*=\s*(["'])description\1/i.test(tag));
-  const canonical = parseCanonical(html);
-  const h1List = parseH1(html);
-  const ogTitle = parseMetaContent(html, (tag) => /property\s*=\s*(["'])og:title\1/i.test(tag));
-  const ogDescription = parseMetaContent(html, (tag) => /property\s*=\s*(["'])og:description\1/i.test(tag));
-  const robots = parseRobotsMeta(html);
-
-  if (!title) issues.push({ level: "error", msg: `${path}: <title> 누락` });
-  if (!description) issues.push({ level: "error", msg: `${path}: meta description 누락` });
-  if (!canonical) {
-    issues.push({ level: "error", msg: `${path}: canonical 누락` });
-  } else {
-    const canonicalUrl = new URL(canonical, `${BASE_URL}/`).toString();
-    const isExpectedHost = canonicalUrl.startsWith(`${BASE_URL}/`) || canonicalUrl === BASE_URL;
-    const isLocalCanonical = IS_LOCAL_BASE && canonicalUrl.startsWith("https://code-destiny.com/");
-    if (!isExpectedHost && !isLocalCanonical) {
-      issues.push({ level: "error", msg: `${path}: canonical이 사이트 외부를 가리킴 (${canonicalUrl})` });
-    }
-  }
-
-  if (h1List.length === 0) issues.push({ level: "error", msg: `${path}: H1 누락` });
-  if (!ogTitle || !ogDescription) issues.push({ level: "error", msg: `${path}: og:title 또는 og:description 누락` });
-  if (!hasJsonLd(html)) issues.push({ level: "error", msg: `${path}: JSON-LD 누락` });
-
-  if (!checks.allowNoindex && /noindex/.test(robots)) {
-    issues.push({ level: "error", msg: `${path}: 공개 페이지인데 noindex 메타가 존재` });
-  }
-
-  const expectation = TITLE_H1_EXPECTATIONS[path];
-  if (expectation) {
-    if (!title.includes(expectation.title)) {
-      issues.push({ level: "error", msg: `${path}: title 불일치 (기대 포함값: ${expectation.title})` });
-    }
-    const hasExpectedH1 = h1List.some((text) => text.includes(expectation.h1));
-    if (!hasExpectedH1) {
-      issues.push({ level: "error", msg: `${path}: H1 불일치 (기대 포함값: ${expectation.h1})` });
-    }
-  }
-
-  return { path, html, title, description, canonical, h1List, robots };
-}
-
-function parseSitemapUrls(xmlText) {
-  const urls = [];
-  const regex = /<loc>([\s\S]*?)<\/loc>/gi;
-  let m;
-  while ((m = regex.exec(xmlText))) {
-    const raw = String(m[1] || "").trim();
-    if (!raw) continue;
-    urls.push(raw);
-  }
-  return urls;
-}
-
-function safePathname(urlLike) {
+async function readSitemapPaths() {
   try {
-    return new URL(urlLike).pathname.replace(/\/+$/, "") || "/";
-  } catch (e) {
-    return "";
-  }
-}
-
-function toAuditUrl(urlLike) {
-  if (!IS_LOCAL_BASE) return urlLike;
-  try {
-    const u = new URL(urlLike);
-    return new URL(`${u.pathname}${u.search}${u.hash}`, `${BASE_URL}/`).toString();
-  } catch (e) {
-    return urlLike;
-  }
-}
-
-async function asyncPool(items, limit, worker) {
-  const executing = new Set();
-  const results = [];
-
-  for (const item of items) {
-    const p = Promise.resolve().then(() => worker(item));
-    results.push(p);
-    executing.add(p);
-
-    const remove = () => executing.delete(p);
-    p.then(remove, remove);
-
-    if (executing.size >= limit) {
-      await Promise.race(executing);
-    }
-  }
-
-  return Promise.all(results);
-}
-
-function tryReadSeoGrowthSlugs() {
-  try {
-    const text = fs.readFileSync(new URL("../app/insights/seo-growth-articles.js", import.meta.url), "utf8");
-    const matches = Array.from(text.matchAll(/slug:\s*"([^"]+)"/g));
-    return matches.map((m) => m[1]).filter(Boolean);
-  } catch (e) {
+    const { response, text } = await fetchText(absoluteUrl("/sitemap.xml"));
+    if (response.status !== 200) return [];
+    return [...text.matchAll(/<loc>([^<]+)<\/loc>/gi)]
+      .map((match) => decodeHtml(match[1]))
+      .map((href) => {
+        try {
+          return normalizePathname(new URL(href).pathname);
+        } catch {
+          return "";
+        }
+      })
+      .filter(Boolean);
+  } catch {
     return [];
   }
 }
 
-async function main() {
-  const issues = [];
-  const notes = [];
-
-  const robotsUrl = absolute("/robots.txt");
-  const sitemapUrl = absolute("/sitemap.xml");
-
-  let robotsRes = await fetchWithTimeout(robotsUrl);
-  let sitemapRes = await fetchWithTimeout(sitemapUrl);
-
-  if ((!robotsRes.ok || robotsRes.response.status !== 200) && IS_LOCAL_BASE) {
-    try {
-      const robotsText = fs.readFileSync(new URL("../robots.txt", import.meta.url), "utf8");
-      robotsRes = { ok: true, response: { status: 200 }, text: robotsText };
-      notes.push("로컬 모드: robots.txt를 파일 시스템에서 대체 로드");
-    } catch (e) {
-      // ignore fallback failure
-    }
-  }
-
-  if ((!sitemapRes.ok || sitemapRes.response.status !== 200) && IS_LOCAL_BASE) {
-    try {
-      const sitemapText = fs.readFileSync(new URL("../sitemap.xml", import.meta.url), "utf8");
-      sitemapRes = { ok: true, response: { status: 200 }, text: sitemapText };
-      notes.push("로컬 모드: sitemap.xml을 파일 시스템에서 대체 로드");
-    } catch (e) {
-      // ignore fallback failure
-    }
-  }
-
-  if (!robotsRes.ok || robotsRes.response.status !== 200) {
-    issues.push({ level: "error", msg: `robots.txt 접근 실패 (${robotsUrl})` });
-  }
-
-  if (!sitemapRes.ok || sitemapRes.response.status !== 200) {
-    issues.push({ level: "error", msg: `sitemap.xml 접근 실패 (${sitemapUrl})` });
-  }
-
-  const sitemapUrls = sitemapRes.ok ? parseSitemapUrls(sitemapRes.text || "") : [];
-  const sitemapPathSet = new Set(sitemapUrls.map(safePathname).filter(Boolean));
-  if (sitemapUrls.length === 0) {
-    issues.push({ level: "error", msg: "sitemap.xml URL 목록이 비어 있음" });
-  }
-
-  for (const path of REQUIRED_URLS) {
-    const normalizedPath = safePathname(absolute(path));
-    if (!sitemapPathSet.has(normalizedPath)) {
-      issues.push({ level: "error", msg: `필수 URL 누락: ${path} (sitemap 미포함)` });
-    }
-  }
-
-  await asyncPool(REQUIRED_URLS, CONCURRENCY, async (path) => {
-    await checkHtmlPage(path, issues, { allowNoindex: false });
-  });
-
-  await checkHtmlPage("/astrology/cosmic", issues, { allowNoindex: false });
-
-  if (robotsRes.ok) {
-    const robotsText = robotsRes.text || "";
-    const requiredDisallow = ["/admin/", "/me/", "/mypage/private/"];
-    for (const disallowPath of requiredDisallow) {
-      if (!robotsText.includes(`Disallow: ${disallowPath}`)) {
-        issues.push({ level: "error", msg: `robots.txt 누락: Disallow: ${disallowPath}` });
-      }
-    }
-  }
-
-  if (IS_LOCAL_BASE) {
-    notes.push("로컬 모드: 비공개 경로 noindex 강제 검사를 건너뜀");
-  } else {
-    await asyncPool(PRIVATE_PATHS, CONCURRENCY, async (path) => {
-      const r = await fetchWithTimeout(absolute(path));
-      if (!r.ok) {
-        notes.push(`${path}: 접근 실패(인증/차단 가능)`);
-        return;
-      }
-
-      if ([401, 403, 404].includes(r.response.status)) {
-        notes.push(`${path}: ${r.response.status} (비공개 경로로 허용)`);
-        return;
-      }
-
-      if (r.response.status === 200) {
-        const robots = parseRobotsMeta(r.text || "");
-        if (!/noindex/.test(robots)) {
-          issues.push({ level: "error", msg: `${path}: 비공개 경로인데 noindex 없음` });
-        }
-      }
-    });
-  }
-
-  const insightsPage = await checkHtmlPage("/insights", issues, { allowNoindex: false });
-  if (insightsPage?.html) {
-    const matches = Array.from(insightsPage.html.matchAll(/href\s*=\s*(["'])\/insights\/([^"'#?\/]+)\1/gi));
-    const articleSlugs = new Set(matches.map((m) => String(m[2] || "").trim()).filter(Boolean));
-    if (articleSlugs.size === 0) {
-      if (IS_LOCAL_BASE) {
-        notes.push("로컬 모드: /insights 초기 HTML에서 링크를 찾지 못했지만 런타임 렌더 가능성 있음");
-      } else {
-        issues.push({ level: "error", msg: "/insights 아카이브가 0건으로 감지됨" });
-      }
-    } else {
-      notes.push(`/insights 렌더 글 수(중복 제거): ${articleSlugs.size}`);
-    }
-  }
-
-  const insightSitemapUrls = sitemapUrls.filter((u) => {
-    try {
-      const pathname = new URL(u).pathname.replace(/\/+$/, "");
-      if (!pathname.startsWith("/insights/")) return false;
-      const parts = pathname.split("/").filter(Boolean);
-      if (parts.length !== 2) return false;
-      return !INSIGHTS_CATEGORY_SLUGS.has(parts[1]);
-    } catch (e) {
-      return false;
-    }
-  });
-
-  if (insightSitemapUrls.length === 0) {
-    issues.push({ level: "error", msg: "sitemap 내 인사이트 상세 URL이 0건" });
-  } else {
-    notes.push(`sitemap 인사이트 상세 URL 수: ${insightSitemapUrls.length}`);
-  }
-
-  const growthSlugs = tryReadSeoGrowthSlugs();
-  if (growthSlugs.length > 0) {
-    const missingGrowth = growthSlugs.filter((slug) => !sitemapPathSet.has(`/insights/${slug}`));
-    if (missingGrowth.length > 0) {
-      issues.push({ level: "error", msg: `신규 SEO 인사이트 slug 누락(${missingGrowth.length}건): ${missingGrowth.slice(0, 10).join(", ")}` });
-    }
-  }
-
-  const sitemapStatusChecks = await asyncPool(sitemapUrls, CONCURRENCY, async (url) => {
-    const checkUrl = toAuditUrl(url);
-    const r = await fetchWithTimeout(checkUrl, { method: "GET" });
-    if (!r.ok) return { url, ok: false, reason: String(r.error) };
-    return { url, ok: r.response.status === 200, status: r.response.status };
-  });
-
-  const sitemapFailures = sitemapStatusChecks.filter((item) => !item.ok);
-  if (sitemapFailures.length > 0) {
-    const preview = sitemapFailures
-      .slice(0, 15)
-      .map((x) => `${x.url} (${x.status || x.reason})`)
-      .join(" | ");
-    issues.push({ level: "error", msg: `sitemap URL 상태코드 실패 ${sitemapFailures.length}건: ${preview}` });
-  }
-
-  const elapsedSec = ((Date.now() - globalThis.__seoAuditStart) / 1000).toFixed(1);
-
-  console.log("\n[SEO AUDIT]", BASE_URL);
-  console.log(`검사 대상 URL: ${sitemapUrls.length}개, 동시성 ${CONCURRENCY}, 타임아웃 ${REQUEST_TIMEOUT_MS}ms`);
-  if (notes.length > 0) {
-    for (const note of notes) {
-      console.log(`- NOTE: ${note}`);
-    }
-  }
-
-  if (issues.length > 0) {
-    console.log(`\n실패 ${issues.length}건`);
-    for (const issue of issues) {
-      console.log(`- ${issue.level.toUpperCase()}: ${issue.msg}`);
-    }
-    console.log(`\n완료 시간: ${elapsedSec}s`);
-    process.exitCode = 1;
-    return;
-  }
-
-  console.log("\n모든 SEO 감사 항목 통과");
-  console.log(`완료 시간: ${elapsedSec}s`);
+function stripTags(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-globalThis.__seoAuditStart = Date.now();
-main();
+function decodeHtml(value = "") {
+  return value
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, " ")
+    .trim();
+}
+
+function getTagContent(html, selector) {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`<meta\\s+[^>]*(?:name|property)=["']${escaped}["'][^>]*content=["']([^"']*)["'][^>]*>`, "i");
+  const match = html.match(pattern);
+  return decodeHtml(match?.[1] || "");
+}
+
+function getTitle(html) {
+  return decodeHtml(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || "");
+}
+
+function getCanonical(html) {
+  return decodeHtml(html.match(/<link\s+[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["'][^>]*>/i)?.[1] || "");
+}
+
+function getLang(html) {
+  return decodeHtml(html.match(/<html\s+[^>]*lang=["']([^"']+)["'][^>]*>/i)?.[1] || "");
+}
+
+function getHreflang(html) {
+  const links = [];
+  const pattern = /<link\s+[^>]*rel=["']alternate["'][^>]*>/gi;
+  for (const tag of html.match(pattern) || []) {
+    const lang = tag.match(/hreflang=["']([^"']+)["']/i)?.[1];
+    const href = tag.match(/href=["']([^"']+)["']/i)?.[1];
+    if (lang && href) links.push({ lang, href });
+  }
+  return links;
+}
+
+function getH1s(html) {
+  return [...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)].map((match) => stripTags(match[1]));
+}
+
+function getJsonLd(html) {
+  const blocks = [...html.matchAll(/<script\s+[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  return blocks.map((match) => {
+    const raw = match[1].trim();
+    try {
+      return { valid: true, raw, parsed: JSON.parse(raw) };
+    } catch (error) {
+      return { valid: false, raw, error: error.message };
+    }
+  });
+}
+
+function getImagesMissingAlt(html) {
+  const images = [...html.matchAll(/<img\b[^>]*>/gi)].map((match) => match[0]);
+  return images.filter((tag) => !/\salt=["'][^"']*["']/i.test(tag)).length;
+}
+
+function getInternalLinks(html) {
+  const links = new Set();
+  for (const match of html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>/gi)) {
+    const href = match[1];
+    if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) continue;
+    try {
+      const url = new URL(href, `${baseUrl}/`);
+      if (url.origin === baseUrl) links.add(url.pathname);
+    } catch {}
+  }
+  return [...links];
+}
+
+function hasNoindex(html) {
+  const robots = [getTagContent(html, "robots"), getTagContent(html, "googlebot")].join(",").toLowerCase();
+  return robots.includes("noindex");
+}
+
+async function fetchText(url) {
+  const response = await fetch(url, { redirect: "follow" });
+  const text = await response.text().catch(() => "");
+  return { response, text };
+}
+
+async function auditPath(inputPath, sitemapIndexablePaths = new Set()) {
+  const url = absoluteUrl(inputPath);
+  const normalizedPath = normalizePathname(inputPath);
+  const shouldBeIndexed = indexablePaths.includes(normalizedPath) || sitemapIndexablePaths.has(normalizedPath);
+  const shouldBeNoindex = noindexPaths.includes(normalizedPath);
+  try {
+    let { response, text } = await fetchText(url);
+    if (response.status === 404 && inputPath !== "/" && !inputPath.endsWith("/")) {
+      const retry = await fetchText(absoluteUrl(`${inputPath}/`));
+      if (retry.response.status < 400) {
+        response = retry.response;
+        text = retry.text;
+      }
+    }
+    const jsonLd = getJsonLd(text);
+    const h1s = getH1s(text);
+    const bodyText = stripTags(text);
+    return {
+      url,
+      path: inputPath,
+      httpStatus: response.status,
+      robots: hasNoindex(text) ? "noindex" : "index",
+      canonicalUrl: getCanonical(text),
+      title: getTitle(text),
+      metaDescription: getTagContent(text, "description"),
+      h1Count: h1s.length,
+      h1Text: h1s,
+      ogTitle: getTagContent(text, "og:title"),
+      ogDescription: getTagContent(text, "og:description"),
+      ogImage: getTagContent(text, "og:image"),
+      twitterCard: getTagContent(text, "twitter:card"),
+      lang: getLang(text),
+      hreflang: getHreflang(text),
+      hasStructuredData: jsonLd.length > 0,
+      jsonLdValid: jsonLd.every((item) => item.valid),
+      jsonLdErrors: jsonLd.filter((item) => !item.valid).map((item) => item.error),
+      missingImageAltCount: getImagesMissingAlt(text),
+      bodyTextLength: bodyText.length,
+      internalLinkCount: getInternalLinks(text).length,
+      shouldBeIndexed,
+      shouldBeNoindex,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      url,
+      path: inputPath,
+      httpStatus: 0,
+      robots: "unknown",
+      canonicalUrl: "",
+      title: "",
+      metaDescription: "",
+      h1Count: 0,
+      h1Text: [],
+      ogTitle: "",
+      ogDescription: "",
+      ogImage: "",
+      twitterCard: "",
+      lang: "",
+      hreflang: [],
+      hasStructuredData: false,
+      jsonLdValid: false,
+      jsonLdErrors: [error.message],
+      missingImageAltCount: 0,
+      bodyTextLength: 0,
+      internalLinkCount: 0,
+      shouldBeIndexed,
+      shouldBeNoindex,
+      error: error.message,
+    };
+  }
+}
+
+function duplicateMap(rows, key) {
+  const map = new Map();
+  for (const row of rows) {
+    const value = row[key];
+    if (!value) continue;
+    const bucket = map.get(value) || [];
+    bucket.push(row.path);
+    map.set(value, bucket);
+  }
+  return [...map.entries()]
+    .filter(([, paths]) => paths.length > 1)
+    .map(([value, paths]) => ({ value, paths }));
+}
+
+async function auditSitemapAndRobots(rows) {
+  const sitemapUrl = absoluteUrl("/sitemap.xml");
+  const robotsUrl = absoluteUrl("/robots.txt");
+  const sitemap = { url: sitemapUrl, status: 0, urls: [], errors: [] };
+  const robots = { url: robotsUrl, status: 0, hasSitemap: false, disallows: [], errors: [] };
+
+  try {
+    const { response, text } = await fetchText(sitemapUrl);
+    sitemap.status = response.status;
+    sitemap.urls = [...text.matchAll(/<loc>([^<]+)<\/loc>/gi)].map((match) => decodeHtml(match[1]));
+  } catch (error) {
+    sitemap.errors.push(error.message);
+  }
+
+  try {
+    const { response, text } = await fetchText(robotsUrl);
+    robots.status = response.status;
+    robots.hasSitemap = /sitemap:\s*https?:\/\/\S+\/sitemap\.xml/i.test(text);
+    robots.disallows = [...text.matchAll(/^disallow:\s*(.+)$/gim)].map((match) => match[1].trim());
+  } catch (error) {
+    robots.errors.push(error.message);
+  }
+
+  const noindexInSitemap = rows
+    .filter((row) => row.robots === "noindex")
+    .filter((row) => sitemap.urls.includes(productionUrl(row.path)))
+    .map((row) => row.path);
+
+  const canonicalMismatch = rows
+    .filter((row) => row.shouldBeIndexed && row.httpStatus === 200)
+    .filter((row) => row.canonicalUrl && !sitemap.urls.includes(row.canonicalUrl))
+    .map((row) => ({ path: row.path, canonicalUrl: row.canonicalUrl }));
+
+  return { sitemap, robots, noindexInSitemap, canonicalMismatch };
+}
+
+function buildIssues(rows, support) {
+  const issues = [];
+  for (const row of rows) {
+    if (row.error) issues.push(`${row.path}: fetch failed (${row.error})`);
+    if (row.shouldBeIndexed && row.httpStatus !== 200) issues.push(`${row.path}: indexable page is not 200`);
+    if (row.shouldBeIndexed && row.robots === "noindex") issues.push(`${row.path}: indexable page has noindex`);
+    if (row.shouldBeNoindex && row.httpStatus === 200 && row.robots !== "noindex") issues.push(`${row.path}: private/test page is missing noindex`);
+    if (row.shouldBeIndexed && !row.title) issues.push(`${row.path}: missing title`);
+    if (row.shouldBeIndexed && !row.metaDescription) issues.push(`${row.path}: missing meta description`);
+    if (row.shouldBeIndexed && row.h1Count !== 1) issues.push(`${row.path}: expected exactly one H1, found ${row.h1Count}`);
+    if (row.shouldBeIndexed && !row.canonicalUrl) issues.push(`${row.path}: missing canonical`);
+    if (row.shouldBeIndexed && !row.ogImage) issues.push(`${row.path}: missing OG image`);
+    if (row.hasStructuredData && !row.jsonLdValid) issues.push(`${row.path}: invalid JSON-LD`);
+  }
+  if (support.sitemap.status !== 200) issues.push("/sitemap.xml: not 200");
+  if (support.robots.status !== 200) issues.push("/robots.txt: not 200");
+  if (!support.robots.hasSitemap) issues.push("/robots.txt: missing sitemap directive");
+  if (support.noindexInSitemap.length > 0) issues.push(`sitemap includes noindex paths: ${support.noindexInSitemap.join(", ")}`);
+  if (support.canonicalMismatch.length > 0) issues.push(`canonical URL missing from sitemap: ${support.canonicalMismatch.map((item) => item.path).join(", ")}`);
+  return issues;
+}
+
+function mdEscape(value) {
+  return String(value || "").replace(/\|/g, "\\|").replace(/\n/g, " ");
+}
+
+function buildMarkdown(report) {
+  const lines = [];
+  lines.push(`# SEO Audit Report`);
+  lines.push("");
+  lines.push(`- Base URL: ${report.baseUrl}`);
+  lines.push(`- Generated: ${report.generatedAt}`);
+  lines.push(`- Sitemap URLs: ${report.support.sitemap.urls.length}`);
+  lines.push(`- Issues: ${report.issues.length}`);
+  lines.push("");
+  lines.push("## Route Matrix");
+  lines.push("| URL | Status | Robots | Canonical | Title | Description | H1 | OG Image | Lang | Hreflang | JSON-LD | Missing Alt | Text Length | Links | Index Target | Duplicates |");
+  lines.push("|---|---:|---|---|---|---|---|---|---|---:|---|---:|---:|---:|---|---|");
+  for (const row of report.routes) {
+    const duplicateFlags = [
+      report.duplicates.titles.some((item) => item.paths.includes(row.path)) ? "title" : "",
+      report.duplicates.descriptions.some((item) => item.paths.includes(row.path)) ? "description" : "",
+    ].filter(Boolean).join(", ");
+    lines.push(`| ${mdEscape(row.url)} | ${row.httpStatus} | ${row.robots} | ${mdEscape(row.canonicalUrl)} | ${mdEscape(row.title)} | ${mdEscape(row.metaDescription)} | ${mdEscape(row.h1Text.join(" / "))} | ${row.ogImage ? "yes" : "no"} | ${mdEscape(row.lang)} | ${row.hreflang.length} | ${row.hasStructuredData ? (row.jsonLdValid ? "valid" : "invalid") : "none"} | ${row.missingImageAltCount} | ${row.bodyTextLength} | ${row.internalLinkCount} | ${row.shouldBeIndexed ? "index" : row.shouldBeNoindex ? "noindex" : "review"} | ${duplicateFlags || "-"} |`);
+  }
+  lines.push("");
+  lines.push("## Issues");
+  if (report.issues.length === 0) {
+    lines.push("- No blocking SEO issues detected by the automated audit.");
+  } else {
+    for (const issue of report.issues) lines.push(`- ${issue}`);
+  }
+  lines.push("");
+  lines.push("## Sitemap URLs");
+  for (const url of report.support.sitemap.urls) lines.push(`- ${url}`);
+  return `${lines.join("\n")}\n`;
+}
+
+const sitemapPaths = crawlSitemap ? await readSitemapPaths() : [];
+const sitemapIndexablePaths = new Set(sitemapPaths);
+const pathsToAudit = [...new Set([...seedPathsToAudit, ...sitemapPaths])];
+
+const routes = [];
+for (const inputPath of pathsToAudit) {
+  routes.push(await auditPath(inputPath, sitemapIndexablePaths));
+}
+
+const duplicates = {
+  titles: duplicateMap(routes.filter((row) => row.shouldBeIndexed), "title"),
+  descriptions: duplicateMap(routes.filter((row) => row.shouldBeIndexed), "metaDescription"),
+};
+const support = await auditSitemapAndRobots(routes);
+const report = {
+  baseUrl,
+  generatedAt: new Date().toISOString(),
+  routes,
+  duplicates,
+  support,
+  issues: [],
+};
+report.issues = buildIssues(routes, support);
+
+await fs.writeFile(outJson, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+await fs.writeFile(outMd, buildMarkdown(report), "utf8");
+
+console.log(`SEO audit complete: ${outJson}`);
+console.log(`SEO audit markdown: ${outMd}`);
+console.log(`Issues: ${report.issues.length}`);
+if (report.issues.length) {
+  for (const issue of report.issues.slice(0, 20)) console.log(`- ${issue}`);
+  process.exitCode = 1;
+}

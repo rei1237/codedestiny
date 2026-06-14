@@ -1,104 +1,72 @@
-﻿import { generatePageMetadata } from "../../lib/generate-page-metadata";
-import { FAQ_PAGE_COPY, FAQ_PAGE_ITEMS } from "../_content/seo-copy";
+import Link from "next/link";
+import { buildSeoMetadata } from "../../lib/seo";
+import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../lib/structured-data";
+import { publicSeoPages } from "../../lib/seo/siteSeo";
 
-export function generateMetadata() {
-  return generatePageMetadata({
-    path: "/faq",
-    title: "무료 사주 · 자미두수 운세 분석 FAQ | 꿀꿀 만세력",
-    description:
-      "꿀꿀 만세력 사용 전 궁금한 무료 여부, 회원가입, 개인정보 보호, 사주 결과 신뢰도, 30일 이용권 환불 기준, 오류 문의 방법을 안내합니다.",
-    keywords: ["FAQ", "자주 묻는 질문", "무료 운세 사용법", "30일 이용권 환불", "Code Destiny", "꿀꿀 만세력"],
-  });
-}
+const seo = publicSeoPages.faq;
 
-const sectionStyle = {
-  background:
-    "linear-gradient(145deg, rgba(12, 18, 48, 0.88), rgba(22, 11, 44, 0.76))",
-  border: "1px solid rgba(167, 139, 250, 0.24)",
-  borderRadius: "16px",
-  padding: "18px",
-  boxShadow: "0 14px 34px rgba(2, 6, 23, 0.4), inset 0 0 0 1px rgba(255,255,255,0.03)",
-  backdropFilter: "blur(8px)",
-};
+const faqs = [
+  {
+    question: "Code Destiny의 기본 운세 기능은 무료인가요?",
+    answer: "사주, 타로, 오늘의 운세 등 주요 기능은 무료로 시작할 수 있습니다. 일부 심층 리포트나 PDF 상품은 별도 이용권 또는 결제가 필요할 수 있습니다.",
+  },
+  {
+    question: "운세 결과는 확정된 미래를 의미하나요?",
+    answer: "아닙니다. 모든 해석은 오락과 자기성찰을 위한 참고 자료이며, 법률, 의료, 투자, 금융 판단을 대신하지 않습니다.",
+  },
+  {
+    question: "생년월일과 개인정보는 어떻게 다루나요?",
+    answer: "운세 계산에 필요한 입력값은 기능 제공 목적에 맞춰 처리됩니다. 자세한 내용은 개인정보처리방침에서 확인할 수 있습니다.",
+  },
+  {
+    question: "로그인이나 결제 페이지가 검색에 노출되나요?",
+    answer: "로그인, 결제, 프로필, 개인화 결과 페이지는 검색 색인 대상이 아니며 noindex 정책을 적용합니다.",
+  },
+  {
+    question: "사주와 타로 결과가 다르게 나오면 어떻게 보나요?",
+    answer: "서로 다른 해석 체계를 사용하므로 결과를 하나의 정답으로 합치기보다 현재 상황을 여러 관점에서 점검하는 참고 자료로 보는 것이 좋습니다.",
+  },
+];
+
+export const metadata = buildSeoMetadata(seo);
+
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    buildBreadcrumbJsonLd([
+      { name: "홈", path: "/" },
+      { name: "자주 묻는 질문", path: "/faq" },
+    ]),
+    buildFaqPageJsonLd(faqs),
+  ],
+});
 
 export default function FaqPage() {
-  const faqJsonLd = JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: FAQ_PAGE_ITEMS.map((item) => ({
-      "@type": "Question",
-      name: item.q.split(" / ")[0].trim(),
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.a.split(" / ")[0].trim(),
-      },
-    })),
-  });
-
   return (
-    <main
-      style={{
-        maxWidth: "920px",
-        margin: "0 auto",
-        padding: "28px 16px 42px",
-        color: "#e2e8f0",
-        background:
-          "radial-gradient(640px 280px at 12% 2%, rgba(124,58,237,.2), transparent 60%), radial-gradient(520px 260px at 86% 8%, rgba(78,205,196,.16), transparent 64%)",
-      }}
-    >
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: faqJsonLd }} />
-      <h1
-        style={{
-          fontSize: "clamp(1.8rem, 4vw, 2.2rem)",
-          fontWeight: 800,
-          marginBottom: "8px",
-          lineHeight: 1.28,
-          letterSpacing: "0.01em",
-          color: "#f8fafc",
-          textShadow: "0 0 18px rgba(244, 206, 120, 0.2)",
-        }}
-      >
-        무료 사주 · 자미두수 운세 분석 자주 묻는 질문 (FAQ)
-      </h1>
-      <p style={{ opacity: 0.92, lineHeight: 1.82, marginBottom: "20px", color: "#dbe5ff", wordBreak: "keep-all" }}>
-        {FAQ_PAGE_COPY.introKo}
-      </p>
-      <p style={{ opacity: 0.88, lineHeight: 1.82, marginBottom: "22px", color: "#dbe5ff", wordBreak: "keep-all" }}>
-        {FAQ_PAGE_COPY.introEn}
-      </p>
-
-      {FAQ_PAGE_ITEMS.map((item, idx) => (
-        <section key={idx} style={{ ...sectionStyle, marginBottom: "14px" }}>
-          <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "10px", color: "#f8fafc" }}>{item.q}</h2>
-          <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>{item.a}</p>
-        </section>
-      ))}
-
-      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "10px", color: "#f8fafc" }}>30일 이용권 환불은 어떻게 처리되나요?</h2>
-        <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
-          30일 이용권은 결제 완료 즉시 계정에 활성화되며 자동결제 상품이 아닙니다.
-          아직 유료 기능을 이용하지 않았다면 결제일로부터 7일 이내 고객센터로 환불을 요청할 수 있습니다.
-          이용권으로 유료 기능을 1회 이상 이용한 경우 환불이 제한될 수 있으며, 서비스 장애·중복 결제·결제 오류는 확인 후 기간 연장, 코인/Moonlight Stone 보상, 부분 환불 또는 전액 환불 중 적절한 방식으로 처리합니다.
+    <main className="cd-main-shell">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      <header className="cd-main-header">
+        <h1 className="cd-main-title">Code Destiny 자주 묻는 질문</h1>
+        <p className="cd-main-intro">
+          무료 사주, 만세력, 타로, 오늘의 운세, 궁합, 결제와 개인정보 처리에 관해 자주 묻는 질문을 정리했습니다.
         </p>
+      </header>
+
+      <section className="cd-card-grid">
+        {faqs.map((item) => (
+          <article key={item.question} className="cd-card">
+            <h2>{item.question}</h2>
+            <p>{item.answer}</p>
+          </article>
+        ))}
       </section>
 
-      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>관련 문서 / Related pages</h2>
-        <p style={{ lineHeight: 1.82, color: "#dbe5ff", wordBreak: "keep-all" }}>
-          <a href="/privacy-policy" style={{ color: "#93c5fd", textDecoration: "underline" }}>
-            개인정보처리방침 (Privacy Policy)
-          </a>
-          {" · "}
-          <a href="/terms-of-service" style={{ color: "#93c5fd", textDecoration: "underline" }}>
-            이용약관 (Terms of Service)
-          </a>
-          {" · "}
-          <a href="/contact-us" style={{ color: "#93c5fd", textDecoration: "underline" }}>
-            문의하기 (Contact Us)
-          </a>
-        </p>
-      </section>
+      <nav className="cd-chip-wrap" aria-label="FAQ 관련 문서">
+        <Link href="/about" className="cd-chip">서비스 소개</Link>
+        <Link href="/methodology" className="cd-chip">운세 콘텐츠 방법론</Link>
+        <Link href="/privacy" className="cd-chip">개인정보처리방침</Link>
+        <Link href="/terms" className="cd-chip">이용약관</Link>
+      </nav>
     </main>
   );
 }

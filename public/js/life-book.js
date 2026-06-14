@@ -1,5 +1,5 @@
-﻿/**
- * ?몄깮??梨?(Life Book) ???꾨━誘몄뾼 ?ъ＜ ?ъ링 遺꾩꽍 + PDF ?ㅼ슫濡쒕뱶
+/**
+ * 인생의 책(Life Book) 프리미엄 사주 심층 분석 + PDF 다운로드
  * CODE-DESTINY v1.0
  */
 (function () {
@@ -10,46 +10,47 @@
   var LIFE_BOOK_REASON = '인생의 책 생성 (13챕터)';
   var LIFEBOOK_API_PREPARE_PATH = '/api/premium/saju-lifebook/prepare';
   var LIFEBOOK_API_STATUS_PATH = '/api/premium/saju-lifebook/status';
+  var LIFEBOOK_TARGET_YEAR_MIN = 1900;
+  var LIFEBOOK_TARGET_YEAR_MAX = 2099;
 
-  /* ??????????????? ?곸닔 ??????????????? */
   var CHAPTER_TITLES = [
-    '사주 원국 완전 해설 - 팔자 8글자의 비밀',
-    '나의 설계도 - 오행·십성·조후와 기질의 뿌리',
-    '숨겨진 무기 - 용신·희신과 나만의 안내서',
-    '대운 정밀 분석 - 인생의 큰 파도',
-    '격국과 사회적 운명 - 나의 성공 방정식',
-    '관계의 전략 - 인연의 법칙과 파트너십',
-    '연애·결혼 완전 분석 - 사랑의 구조',
-    '재물과 현실 기반 - 돈이 모이는 구조',
-    '직업·사업·커리어 - 세상에서 살아나는 무기',
-    '건강·멘탈·에너지 관리 - 무너지지 않는 몸과 마음',
-    '내면과 특수 기운 - 운명의 숨은 위치',
-    '세운·월운 사용법 - 가까운 미래 전략',
-    '최종 인생 로드맵 - 나답게 살아가는 법',
+    '프롤로그 - 내 인생의 핵심 코드',
+    '원국 해석 - 태어난 순간의 구조',
+    '일간과 월지 - 내가 세상을 살아가는 기본 방식',
+    '오행 균형 - 넘치는 기운과 부족한 기운',
+    '십성 구조 - 성격, 재능, 욕망의 패턴',
+    '용신·희신·기신 - 나를 살리는 방향과 피해야 할 방향',
+    '격국과 삶의 큰 틀 - 인생이 풀리는 방식',
+    '연애와 관계 - 사랑, 결혼, 친밀감의 패턴',
+    '직업과 재물 - 돈이 들어오는 방식과 커리어 방향',
+    '건강과 생활 리듬 - 몸과 마음의 관리법',
+    '대운 분석 - 인생의 큰 계절 변화',
+    '선택 연도와 가까운 미래 - 세운·월운 기반 실전 조언',
+    '마스터플랜 - 앞으로의 선택과 실행 전략',
   ];
 
   var CHAPTER_SUBTITLES = [
-    '연주·월주·일주·시주와 천간·지지 상호작용의 기본 구조',
-    '오행·십성·조후를 중심으로 본 기질과 현실 적응 패턴',
-    '용신·희신 사용법과 반복 리스크를 줄이는 실천 무기',
-    '현재 대운과 다음 대운의 전환 시그널 및 장기 전략',
-    '격국과 중심 구조, 사회적 역할과 성취 방식의 연결',
-    '관계 패턴과 갈등 지점을 읽고 강점으로 바꾸는 실전 가이드',
-    '연애 구조, 배우자궁, 이별과 회복, 지속 전략의 통합 분석',
-    '재성 구조, 소비와 저축, 투자 성향과 현실 수익 설계',
-    '직업, 사업, 판단과 결정에 필요한 커리어 생존 로드맵',
-    '생활 리듬을 기반으로 건강·멘탈·번아웃 회복을 조율하는 법',
-    '변화, 귀문, 도화, 역마 등 내면의 숨은 기운과 리스크 관리',
-    '해마다 달마다 흐름에 맞춘 12개월 실행 타이밍 전략',
-    '핵심 요약, 반복 패턴 정리, 3일·5주·10개월 실천 계획',
+    '원국 전체를 하나의 핵심 문장으로 묶어 삶의 첫 방향을 엽니다.',
+    '년주, 월주, 일주, 시주의 배치를 통해 태어난 순간의 구조를 읽습니다.',
+    '일간의 본질과 월지의 계절성을 함께 보아 삶의 작동 방식을 해석합니다.',
+    '목화토금수의 과다와 부족을 정리해 강점, 피로, 보완 루틴을 찾습니다.',
+    '비겁, 식상, 재성, 관성, 인성의 흐름으로 반복 패턴을 읽습니다.',
+    '사주의 균형을 회복시키는 방향과 조심해야 할 흐름을 나눕니다.',
+    '격국과 계절의 큰 틀을 통해 일이 열리고 막히는 방식을 해석합니다.',
+    '친밀감, 애착, 결혼관, 관계 회복 방식을 상담형 문장으로 정리합니다.',
+    '재성, 관성, 식상의 작동을 통해 돈과 일의 흐름을 현실적으로 연결합니다.',
+    '오행 균형과 조후를 바탕으로 생활 리듬과 회복 루틴을 제안합니다.',
+    '현재 대운과 다음 대운의 전환을 통해 인생의 큰 계절을 읽습니다.',
+    '세운과 월운의 가까운 흐름을 실행 가능한 조언으로 바꿉니다.',
+    '전체 해석을 하나의 선택 기준과 실행 전략으로 묶어 마무리합니다.',
   ];
 
   var LOADING_MSGS = [
     '사주 원국의 팔자 8글자와 기본 뼈대를 읽는 중...',
     '오행·십성·조후와 기질의 흐름을 분석하는 중...',
-    '용신·희신과 천직 강점을 탐색하는 중...',
+    '용신·희신·기신의 균형 기준을 정리하는 중...',
     '대운의 큰 흐름과 현재 시기를 정밀 분석하는 중...',
-    '격국과 사회적 운명의 방향을 읽는 중...',
+    '격국과 사회적 역할의 방향을 읽는 중...',
     '궁합과 인연 관계의 법칙을 펼치는 중...',
     '연애와 결혼 구조, 이상적 관계 패턴을 분석하는 중...',
     '재물과 현실 기반, 수익 구조를 계산하는 중...',
@@ -57,7 +58,7 @@
     '건강과 멘탈, 에너지 관리 지점을 분석하는 중...',
     '내면의 숨은 기운과 전환 전략을 정리하는 중...',
     '세운과 월운의 12개월 실행 조건을 탐색하는 중...',
-    '최종 인생 로드맵을 완성하는 중...',
+    '최종 선택 기준을 완성하는 중...',
   ];
 
   var MYSTIC_QUOTES = [
@@ -74,7 +75,7 @@
     '세운이 다가오는 시기와 장소를 세밀하게 계산하고 있습니다.',
     '삶의 파도를 읽어 오직 당신을 위한 전략으로 엮습니다.',
     '신강과 신약의 경계에서 진짜 강점이 드러납니다.',
-    '하늘이 남긴 천기를 당신의 이름으로 기록합니다.',
+    '타고난 구조와 지금의 흐름을 당신의 언어로 기록합니다.',
   ];
 
   var CHAPTER_STRUCTURED_LABELS = {
@@ -86,14 +87,13 @@
     6: ['관계 패턴', '갈등 트리거', '경계 설정', '소통 전략', '회복 가이드'],
     7: ['연애 성향', '결혼 시그널', '관계 선택', '위험 신호', '행동 처방'],
     8: ['재물 구조', '직업 적합도', '수입 전략', '지출 관리', '축적 플랜'],
-    9: ['적성 직업군', '업무 환경 적합도', '올해 커리어 패턴', '조직·프리랜서·사업 판단', '장기 커리어 설계'],
+    9: ['적성 직업군', '업무 환경 적합도', '선택 연도 커리어 패턴', '조직·프리랜서·사업 판단', '장기 커리어 설계'],
     10: ['생활 기반 건강 취약점', '스트레스 반응 패턴', '번아웃 신호와 회복', '생활 리듬 처방', '멘탈 회복 루틴'],
     11: ['도화·역마·귀문 해석', '삶에서의 발현 방식', '강점으로 쓰는 법', '위험 구간과 트리거', '실전 조절법'],
-    12: ['올해 핵심 흐름', '월별 주의 포인트', '기회가 강한 시기', '올해 결정 타이밍', '12개월 행동 전략'],
+    12: ['선택 연도 핵심 흐름', '월별 주의 포인트', '기회가 강한 시기', '선택 연도 결정 타이밍', '12개월 행동 전략'],
     13: ['사주 핵심 요약', '붙잡아야 할 방향', '버려야 할 반복 패턴', '3일·5주·10개월 로드맵', '최종 상담 메시지'],
   };
 
-  /* ??????????????? ?곹깭 ??????????????? */
   var _chapters = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
   var _chapterStructured = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
   var _chapterMeta = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
@@ -231,6 +231,22 @@ function _getLifeBookDownloadTargets() {
   };
 }
 
+function _syncLifeBookDownloadButtons() {
+  var targets = _getLifeBookDownloadTargets();
+  var hasPdf = !!_clean(targets.pdfUrl);
+  var hasHtml = !!(_clean(targets.htmlUrl) || _clean(targets.html));
+  var pdfBtn = document.getElementById('lbPdfBtn');
+  var htmlBtn = document.getElementById('lbHtmlBtn');
+  if (pdfBtn) {
+    pdfBtn.style.display = hasPdf ? '' : 'none';
+    pdfBtn.disabled = !hasPdf;
+  }
+  if (htmlBtn) {
+    htmlBtn.style.display = hasHtml ? '' : 'none';
+    htmlBtn.disabled = !hasHtml;
+  }
+}
+
 function _buildLifeBookResultHtmlForDownload() {
   if (!Array.isArray(_chapters) || !_chapters.length) return '';
   var hasRendered = _chapters.filter(function (c) { return typeof c === 'string' && c.trim().length >= 120; }).length;
@@ -348,6 +364,8 @@ var _currentChapter = 1;
   var _lbCurrentReportId = '';
   var _lbCurrentAccessGrant = null;
   var _lbCurrentPremiumToken = '';
+  var _lbCurrentTargetYear = new Date().getFullYear();
+  var _lbLastRequestContext = {};
   var _lbGenerationRunId = '';
   var _lbGenerationStartAt = 0;
   var _lbPartialFetchChapter = null;
@@ -391,7 +409,18 @@ function _isLifeBookGenerationBusy() {
     return (typeof window !== 'undefined' && window.CDPremiumPdfJobClient) ? window.CDPremiumPdfJobClient : null;
   }
 
-  function _lbStartPremiumJob(profile) {
+  function _resolveLifeBookTargetYear(rawYear) {
+    var input = document.getElementById('lbTargetYear');
+    var raw = rawYear !== undefined && rawYear !== null && String(rawYear).trim() !== '' ? Number(rawYear) : (input ? Number(input.value) : NaN);
+    var fallback = new Date().getFullYear();
+    var year = Number.isFinite(raw) ? Math.trunc(raw) : fallback;
+    if (year < LIFEBOOK_TARGET_YEAR_MIN) year = LIFEBOOK_TARGET_YEAR_MIN;
+    if (year > LIFEBOOK_TARGET_YEAR_MAX) year = LIFEBOOK_TARGET_YEAR_MAX;
+    if (input) input.value = String(year);
+    return year;
+  }
+
+  function _lbStartPremiumJob(profile, targetYear) {
     var client = _lbGetJobClient();
     if (!client) return;
     var birth = (profile && profile.birth) ? profile.birth : {};
@@ -407,6 +436,7 @@ function _isLifeBookGenerationBusy() {
         day: Number(birth.day || 0),
         hour: Number(birth.hour || 12),
         minute: Number(birth.minute || 0),
+        targetYear: Number(targetYear || new Date().getFullYear()),
       },
     }).catch(function () {});
   }
@@ -444,6 +474,53 @@ function _isLifeBookGenerationBusy() {
     try { localStorage.setItem('cd_premium_access_token', value); } catch (_) {}
   }
 
+  function _clearPremiumAccessToken(expectedToken) {
+    var expected = String(expectedToken || '').trim();
+    try {
+      if (!expected || String(window.__cdPremiumAccessToken || '').trim() === expected) window.__cdPremiumAccessToken = '';
+    } catch (_) {}
+    try {
+      if (!expected || String(sessionStorage.getItem('cd_premium_access_token') || '').trim() === expected) sessionStorage.removeItem('cd_premium_access_token');
+    } catch (_) {}
+    try {
+      if (!expected || String(localStorage.getItem('cd_premium_access_token') || '').trim() === expected) localStorage.removeItem('cd_premium_access_token');
+    } catch (_) {}
+  }
+
+  function _persistLifeBookAccessGrant(accessGrant, premiumToken, profileKey) {
+    if (!accessGrant || typeof accessGrant !== 'object') return;
+    var record = {
+      accessGrant: accessGrant,
+      premiumAccessToken: String(premiumToken || '').trim(),
+      profileKey: _clean(profileKey),
+      savedAt: new Date().toISOString()
+    };
+    try { sessionStorage.setItem('cd_lifebook_access_grant', JSON.stringify(record)); } catch (_) {}
+    try { localStorage.setItem('cd_lifebook_access_grant', JSON.stringify(record)); } catch (_) {}
+  }
+
+  function _readLifeBookAccessGrant(expectedProfileKey) {
+    var raw = '';
+    try { raw = sessionStorage.getItem('cd_lifebook_access_grant') || ''; } catch (_) { raw = ''; }
+    if (!raw) { try { raw = localStorage.getItem('cd_lifebook_access_grant') || ''; } catch (_) { raw = ''; } }
+    if (!raw) return null;
+    try {
+      var record = JSON.parse(raw);
+      var savedAt = record && record.savedAt ? Date.parse(record.savedAt) : 0;
+      if (!record || !record.accessGrant || !Number.isFinite(savedAt) || Date.now() - savedAt > 30 * 60 * 1000) return null;
+      var expected = _clean(expectedProfileKey);
+      if (expected && _clean(record.profileKey) !== expected) return null;
+      return record;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function _clearLifeBookAccessGrant() {
+    try { sessionStorage.removeItem('cd_lifebook_access_grant'); } catch (_) {}
+    try { localStorage.removeItem('cd_lifebook_access_grant'); } catch (_) {}
+  }
+
   function _normalizeLifeBookAccessGrant(raw, reportId, fallbackRequestId) {
     var data = raw && typeof raw === 'object' ? raw : {};
     var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
@@ -469,7 +546,7 @@ function _isLifeBookGenerationBusy() {
     };
   }
 
-  async function _runLifeBookCoinGate(reportId) {
+  async function _runLifeBookCoinGate(reportId, profileKey) {
     var requestId = 'life-book:' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8);
     var premiumToken = _readPremiumTokenForReport();
     var headers = { 'Content-Type': 'application/json' };
@@ -490,6 +567,7 @@ function _isLifeBookGenerationBusy() {
           var issuedToken = String(data.premiumAccessToken || raw.premiumAccessToken || '').trim();
           if (issuedToken) _persistPremiumAccessToken(issuedToken);
           var accessGrant = _normalizeLifeBookAccessGrant(data, reportId, requestId);
+          if (accessGrant) _persistLifeBookAccessGrant(accessGrant, issuedToken, profileKey);
           resolve({
             ok: !!accessGrant,
             status: accessGrant ? 200 : 500,
@@ -567,6 +645,7 @@ function _isLifeBookGenerationBusy() {
     if (issuedToken) _persistPremiumAccessToken(issuedToken);
 
     var accessGrant = _normalizeLifeBookAccessGrant(data, reportId, requestId);
+    if (accessGrant) _persistLifeBookAccessGrant(accessGrant, issuedToken, profileKey);
     return {
       ok: !!response.ok && !!(payload && payload.ok !== false) && !!accessGrant,
       status: Number(response.status || 0),
@@ -584,7 +663,6 @@ function _isLifeBookGenerationBusy() {
     }
   }
 
-  /* ??????????????? ?좏떥 ??????????????? */
   function _qs(id) { return document.getElementById(id); }
   function _clean(value) { return String(value || '').trim(); }
 
@@ -791,7 +869,7 @@ function _isLifeBookGenerationBusy() {
           })
           .catch(function (err) {
             clearTimeout(timerId);
-            lastErr = err instanceof Error ? err : new Error(_normalizeLifeBookErrorMessage(err, '?곹깭 議고쉶 ?붿껌??以묐떒?섏뿀?듬땲??'));
+            lastErr = err instanceof Error ? err : new Error(_normalizeLifeBookErrorMessage(err, '상태 조회 요청이 중단되었습니다.'));
             runNext();
           });
       }
@@ -809,7 +887,6 @@ function _isLifeBookGenerationBusy() {
         var data = await _fetchLifeBookStatus(_sid, headers);
         if (data && typeof onProgress === 'function') onProgress(data);
       } catch (_) {
-        // ?곹깭 議고쉶 ?ㅽ뙣??理쒖쥌 prepare ?묐떟?쇰줈 蹂듦뎄 媛?ν븯誘濡??대쭅? 吏?랁븳??
       }
       if (typeof shouldStop === 'function' && shouldStop()) return;
       await new Promise(function (r) { setTimeout(r, 1800); });
@@ -927,357 +1004,6 @@ function _isLifeBookGenerationBusy() {
       '  </div>' +
       '</section>';
   }
-
-  /**
-   * Markdown ?띿뒪?몃? 媛꾨떒?섍쾶 HTML濡?蹂??   */
-  function _md2html(text) {
-    if (!text) return '';
-    // escape HTML first
-    var h = text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-
-    // blockquote (must run before > is treated as escaped)
-    h = h.replace(/^&gt; (.+)$/gm, '<blockquote class="lb-md-blockquote">$1</blockquote>');
-    // merge consecutive blockquotes
-    h = h.replace(/<\/blockquote>\n<blockquote class="lb-md-blockquote">/g, '<br>');
-
-    // headings
-    h = h.replace(/^#### (.+)$/gm, '<h4 class="lb-md-h4">$1</h4>');
-    h = h.replace(/^### (.+)$/gm, '<h3 class="lb-md-h3">$1</h3>');
-    h = h.replace(/^## (.+)$/gm, '<h2 class="lb-md-h2">$1</h2>');
-    h = h.replace(/^# (.+)$/gm, '<h1 class="lb-md-h1">$1</h1>');
-
-    // bold/italic
-    h = h.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-    h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    h = h.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-    // horizontal rule
-    h = h.replace(/^---+$/gm, '<hr class="lb-md-hr">');
-
-    // unordered lists
-    h = h.replace(/^[*-] (.+)$/gm, '<li class="lb-md-li">$1</li>');
-    h = h.replace(/(<li[\s\S]*?<\/li>(\n|$))+/g, function(m) {
-      return '<ul class="lb-md-ul">' + m + '</ul>';
-    });
-
-    // ordered lists
-    h = h.replace(/^\d+\. (.+)$/gm, '<li class="lb-md-li lb-md-oli">$1</li>');
-
-    // paragraphs
-    h = h.replace(/\n\n+/g, '\n\n');
-    var lines = h.split('\n');
-    var result = [];
-    for (var i = 0; i < lines.length; i++) {
-      var line = lines[i].trim();
-      if (!line) {
-        result.push('');
-        continue;
-      }
-      if (/^<(h[1-4]|ul|li|hr|blockquote)/.test(line) || /<\/(h[1-4]|ul|li|hr|blockquote)>$/.test(line)) {
-        result.push(line);
-      } else {
-        result.push('<p class="lb-md-p">' + line + '</p>');
-      }
-    }
-    return result.join('\n');
-  }
-
-  function _deriveTextFromChapterJson(chapterJson) {
-    if (!chapterJson || !Array.isArray(chapterJson.sections)) return '';
-    return chapterJson.sections
-      .filter(function (row) { return row && String(row.body || row.content || '').trim(); })
-      .map(function (row) {
-        var body = String(row.body || row.content || '').trim();
-        var title = String(row.title || row.label || '').trim();
-        return title ? ('## ' + title + '\n' + body) : body;
-      })
-      .join('\n\n');
-  }
-
-  function _renderStructuredChapterBody(chapter, chapterJson) {
-    if (!chapterJson || !Array.isArray(chapterJson.sections) || !chapterJson.sections.length) return '';
-    var labels = CHAPTER_STRUCTURED_LABELS[Number(chapter)] || [];
-    var out = [];
-    for (var i = 0; i < chapterJson.sections.length; i++) {
-      var row = chapterJson.sections[i] || {};
-      var body = String(row.body || row.content || '').trim();
-      if (!body) continue;
-      var title = String(row.title || row.label || labels[i] || ('?듭떖 ??ぉ ' + (i + 1)));
-      out.push('<section class="lb-result-article__section"><h4 class="lb-result-article__section-title">' + _escHtml(title) + '</h4><div class="lb-result-article__section-body">' + _md2html(body) + '</div></section>');
-    }
-    if (!out.length) return '';
-    return '<div class="lb-result-article__structured">' + out.join('') + '</div>';
-  }
-
-  /**
-   * ?ъ＜ ?곗씠???섏쭛 ??window.__destinyFlowerSajuSnapshot, __cdActiveBirthProfile ??   */
-  /*
-  function _collectSajuData() {
-    var profile = window.__cdActiveBirthProfile || {};
-    var snap = window.__destinyFlowerSajuSnapshot || {};
-
-    var name = profile.name || snap.name || '?ъ슜??;
-    var gender = profile.gender || snap.gender || '';
-    var birth = profile.birth || snap.birth || {};
-
-    var lines = [];
-    lines.push('?먮텇??????뺣낫??);
-    lines.push('?대쫫: ' + name);
-    lines.push('?깅퀎: ' + (gender === 'F' ? '?ъ꽦' : gender === 'M' ? '?⑥꽦' : gender || '誘몄긽'));
-
-    if (birth.year) {
-      lines.push('?앸뀈?붿씪: ' + birth.year + '??' + (birth.month || '') + '??' + (birth.day || '') + '??);
-      lines.push('異쒖깮 ?쒓컖: ' + (birth.hour !== undefined ? birth.hour + '??' : '') + (birth.minute !== undefined ? birth.minute + '遺? : ''));
-    }
-
-    if (profile.location && profile.location.label) {
-      lines.push('異쒖깮吏: ' + profile.location.label);
-    }
-
-    // ?먭뎅 ?ъ＜ 湲곕뫁
-    var G = window.G_PILLARS;
-    if (G) {
-      lines.push('\n?먯궗二??먭뎅(?쎿윶)??);
-      if (G.y) lines.push('?꾩＜(亮닸윶): ' + (G.y.g || '') + (G.y.j || '') + (G.y.gE ? ' [' + G.y.gE + '/' + G.y.jE + ']' : ''));
-      if (G.m) lines.push('?붿＜(?덃윶): ' + (G.m.g || '') + (G.m.j || '') + (G.m.gE ? ' [' + G.m.gE + '/' + G.m.jE + ']' : ''));
-      if (G.d) lines.push('?쇱＜(?ζ윶): ' + (G.d.g || '') + (G.d.j || '') + (G.d.gE ? ' [' + G.d.gE + '/' + G.d.jE + ']' : ''));
-      if (G.h) lines.push('?쒖＜(?귝윶): ' + (G.h.g || '') + (G.h.j || '') + (G.h.gE ? ' [' + G.h.gE + '/' + G.h.jE + ']' : ''));
-    }
-
-    // ?? ?ㅽ뻾 遺꾪룷
-    var analysis = snap.analysis || snap.saju || {};
-    if (analysis.elementWeights) {
-      var w = analysis.elementWeights;
-      lines.push('\n?먯삤??雅붻죱) 遺꾪룷 ???? 紐낅━ ?붿쭊??);
-      lines.push('紐???: ' + (w.wood || 0) + '% | ????: ' + (w.fire || 0) + '% | ????: ' + (w.earth || 0) + '% | 湲???: ' + (w.metal || 0) + '% | ??麗?: ' + (w.water || 0) + '%');
-      // 理쒓컯/理쒖빟 ?ㅽ뻾
-      var elArr = [['紐???',w.wood||0],['????',w.fire||0],['????',w.earth||0],['湲???',w.metal||0],['??麗?',w.water||0]];
-      elArr.sort(function(a,b){return b[1]-a[1];});
-      lines.push('理쒓컯 ?ㅽ뻾: ' + elArr[0][0] + ' (' + elArr[0][1] + '%) ??怨쇰떎 ??湲곗떊 ?묒슜 二쇱쓽');
-      lines.push('理쒖빟 ?ㅽ뻾: ' + elArr[4][0] + ' (' + elArr[4][1] + '%) ??寃고븤 湲곗슫, ?⑹떊 ?꾨낫');
-    }
-
-    // ?? [1遺 ?섏쓽 ?ㅺ퀎?? ?붿?쨌?쇨컙쨌吏吏 ?ы솕
-    var G_PILLARS_R = window.G_PILLARS;
-    if (G_PILLARS_R) {
-      lines.push('\n??遺. ?섏쓽 ?ㅺ퀎?????붿?쨌?쇨컙쨌吏吏 ?뺣? 遺꾩꽍??);
-      if (G_PILLARS_R.m && G_PILLARS_R.m.j) {
-        lines.push('?붿?(?덃뵱): ' + G_PILLARS_R.m.j + (G_PILLARS_R.m.jE ? ' [' + G_PILLARS_R.m.jE + ']' : '') + ' ???쒖뼱??怨꾩젅쨌?섍꼍??湲곗슫. ?띠쓽 臾대?? ?쒖씠?꾨? 寃곗젙');
-      }
-      if (G_PILLARS_R.d) {
-        lines.push('?쇨컙(?ε묾): ' + (G_PILLARS_R.d.g||'') + (G_PILLARS_R.d.gE ? ' [' + G_PILLARS_R.d.gE + ']' : '') + ' ???섏쓽 ?듭떖 ?뺤껜?? 二쇰룄??vs ?묒“??湲곗쭏??洹쇱썝');
-        lines.push('?쇱?(?ζ뵱): ' + (G_PILLARS_R.d.j||'') + (G_PILLARS_R.d.jE ? ' [' + G_PILLARS_R.d.jE + ']' : '') + ' ???섏쓽 ?대㈃ ?ъ꽦, 諛곗슦?먭턿, 媛먯젙??寃?);
-      }
-      // 吏吏 4媛??????몄깮 諛섎났 ?⑦꽩
-      var zhiList = [];
-      ['y','m','d','h'].forEach(function(k){
-        if (G_PILLARS_R[k] && G_PILLARS_R[k].j) zhiList.push(G_PILLARS_R[k].j + (G_PILLARS_R[k].jE ? '['+G_PILLARS_R[k].jE+']' : ''));
-      });
-      if (zhiList.length) lines.push('吏吏(?경뵱) ?꾩껜: ' + zhiList.join(' 쨌 ') + ' ???띠뿉 諛섎났 異쒗쁽?섎뒗 ?곹솴 ?⑦꽩');
-      // 怨꾩젅(議고썑)
-      var johuType = (window.G_JOHU && window.G_JOHU.type) ? window.G_JOHU.type : (analysis.johuType || analysis.johu_type || '');
-      if (johuType) lines.push('議고썑(沃욕? ?먯젙: ' + johuType + (johuType==='hot'?' ???④굅???щ쫫 ?ъ＜, 麗는룬뇫 ?섍꼍?먯꽌 ?λ젰 理쒕???:johuType==='cold'?' ??李④???寃⑥슱 ?ъ＜, ?ヂ룡쑉 ?섍꼍?먯꽌 ?λ젰 理쒕???:johuType==='warm'?' ???곕쑜??遊??щ쫫 ?ъ＜':johuType==='cool'?' ???좎꽑??媛??寃⑥슱 ?ъ＜':''));
-    }
-
-    // ?? [2遺 ?④꺼吏?臾닿린] ?⑹떊쨌?ъ떊쨌Specialist vs Generalist
-    var G_POWER = window.G_POWER;
-    var G_JOHU = window.G_JOHU;
-    lines.push('\n??遺. ?④꺼吏?臾닿린 ???⑹떊쨌?ъ떊쨌泥쒖쭅 ?뱀꽦 遺꾩꽍??);
-    if (analysis.yongshin_elements && analysis.yongshin_elements.length) {
-      lines.push('?⑹떊(?①쪥): ' + analysis.yongshin_elements.join(', ') + ' ???닿? 媛?????????덈뒗 ?꾩궡湲??ㅽ뻾');
-    }
-    if (analysis.kishin_elements && analysis.kishin_elements.length) {
-      lines.push('湲곗떊(恙뚨쪥): ' + analysis.kishin_elements.join(', ') + ' ???먮꼫吏瑜??뚯쭊?쒗궎???μ븷 ?ㅽ뻾');
-    }
-    if (G_POWER) {
-      if (G_POWER.yongshin) lines.push('?⑹떊 ?곸꽭: ' + (Array.isArray(G_POWER.yongshin) ? G_POWER.yongshin.join(', ') : G_POWER.yongshin));
-      if (G_POWER.kijishin && G_POWER.kijishin.length) lines.push('湲곗떊 ?곸꽭: ' + G_POWER.kijishin.join(', '));
-    }
-    // ?쇨컙/?좉컯?좎빟
-    if (analysis.dayStem) lines.push('?쇨컙(?ε묾): ' + analysis.dayStem);
-    if (analysis.power_label) lines.push('?좉컯/?좎빟: ' + analysis.power_label + (analysis.power_label==='?좉컯'?' ???먭린 二쇰룄??媛? ?먮꼫吏 怨쇰떎 二쇱쓽. ?곴?쨌?앹떊?쇰줈 諛쒖궛 沅뚯옣':' ??吏吏 湲곕컲 ?꾩슂. ?몄꽦쨌鍮꾧쾪 ?댁뿉??鍮꾩빟???깆옣'));
-    if (analysis.isJong) lines.push('寃??먯젙: ' + (analysis.jongName || '醫낃꺽') + ' ??醫낃꺽? ?⑹떊???곕Ⅴ??諛⑺뼢?쇰줈 嫄곗뒪瑜댁? 留?寃?);
-
-    // Specialist vs Generalist ?먮퀎
-    // G_POWER.groups??calcPower() 諛섑솚媛믪뿉 ?놁쑝誘濡?G_PILLARS 湲곕컲?쇰줈 吏곸젒 怨꾩궛
-    var _tgGroups = null;
-    if (G_PILLARS_R && G_PILLARS_R.d && G_PILLARS_R.d.g && typeof window.getTenGod === 'function') {
-      var _dg = G_PILLARS_R.d.g;
-      _tgGroups = {};
-      [
-        G_PILLARS_R.y && G_PILLARS_R.y.g, G_PILLARS_R.y && G_PILLARS_R.y.j,
-        G_PILLARS_R.m && G_PILLARS_R.m.g, G_PILLARS_R.m && G_PILLARS_R.m.j,
-        G_PILLARS_R.d && G_PILLARS_R.d.j,
-        G_PILLARS_R.h && G_PILLARS_R.h.g, G_PILLARS_R.h && G_PILLARS_R.h.j
-      ].forEach(function (c) {
-        if (!c) return;
-        var t = window.getTenGod(_dg, c);
-        if (t && t !== '?' && t !== '?쇨컙') _tgGroups[t] = (_tgGroups[t] || 0) + 1;
-      });
-    } else if (G_POWER && G_POWER.groups) {
-      _tgGroups = G_POWER.groups;
-    }
-    if (_tgGroups && Object.keys(_tgGroups).length > 0) {
-      lines.push('\n?먯떗???곫삜) 遺꾪룷 ??Specialist/Generalist ?먮퀎 湲곕컲??);
-      var gk = Object.keys(_tgGroups);
-      for (var gi = 0; gi < gk.length; gi++) {
-        lines.push(gk[gi] + ': ' + _tgGroups[gk[gi]]);
-      }
-      // Specialist: 愿??媛뺥븯怨?鍮꾧쾪 ??/ Generalist: ?앹긽 媛뺥븯怨??ъ꽦 諛쒕떖
-      var grp = _tgGroups;
-      var hasStrongKwan = (grp['?뺢?']||0) + (grp['?멸?']||0) > 2;
-      var hasStrongSik = (grp['?앹떊']||0) + (grp['?곴?']||0) > 2;
-      var hasStrongJae = (grp['?뺤옱']||0) + (grp['?몄옱']||0) > 2;
-      lines.push('泥쒖쭅 湲곗쭏: ' + (hasStrongKwan && !hasStrongSik ? 'Specialist??????遺꾩빞???꾨Ц ?μ씤, 泥닿퀎쨌洹쒕쾾쨌議곗쭅 ?덉뿉??鍮쏅궓' : hasStrongSik && hasStrongJae ? 'Generalist(李쎌뾽媛)?????꾩씠?붿뼱瑜??덉쑝濡??꾪솚, ?먯쓣 ?볧엳???ъ뾽媛' : '洹좏삎?????꾨Ц?깃낵 ?좎뿰?깆쓣 ?④퍡 諛쒗쐶'));
-    }
-
-    // ?? [3遺 愿怨꾩쓽 ?꾨왂] ?곸땐쨌?㈑룹쑁??    lines.push('\n??遺. 愿怨꾩쓽 ?꾨왂 ???곸땐쨌?㈑룹쑁??遺꾩꽍??);
-    if (G_PILLARS_R) {
-      // 泥쒓컙???먯깋
-      var GAN_PAIRS = [['??,'藥?],['阿?,'佯?],['訝?,'渦?],['訝?,'鶯?],['??,'??]];
-      var GAN_PAIR_EL = ['????','湲???','??麗?','紐???','????'];
-      var ganList = ['y','m','d','h'].map(function(k){ return G_PILLARS_R[k] && G_PILLARS_R[k].g || ''; });
-      var hapFound = [];
-      GAN_PAIRS.forEach(function(p,i){
-        var cnt0 = ganList.filter(function(g){return g===p[0];}).length;
-        var cnt1 = ganList.filter(function(g){return g===p[1];}).length;
-        if (cnt0 > 0 && cnt1 > 0) hapFound.push(p[0]+'쨌'+p[1]+' 泥쒓컙????'+GAN_PAIR_EL[i]+' ?뷀빀, ?꾨왂???뚰듃?덉떗 湲곗슫');
-      });
-      if (hapFound.length) lines.push('泥쒓컙??鸚⒴묾??: ' + hapFound.join(' / '));
-      // 吏吏異??먯깋
-      var JI_CHUNG = [['耶?,'??],['訝?,'??],['野?,'??],['??,'??],['渦?,'??],['藥?,'雅?]];
-      var jiList = ['y','m','d','h'].map(function(k){ return G_PILLARS_R[k] && G_PILLARS_R[k].j || ''; });
-      var chungFound = [];
-      JI_CHUNG.forEach(function(p){
-        var c0 = jiList.filter(function(j){return j===p[0];}).length;
-        var c1 = jiList.filter(function(j){return j===p[1];}).length;
-        if (c0>0 && c1>0) chungFound.push(p[0]+'쨌'+p[1]+' 異?亦?');
-      });
-      if (chungFound.length) lines.push('吏吏異??경뵱亦?: ' + chungFound.join(' / ') + ' ??蹂?붿쓽 ?먭레, ?깆옣 ?몃━嫄곗씠???덇린移?紐삵븳 蹂???좏샇');
-      else lines.push('吏吏異? ?먭뎅 ??二쇱슂 異??놁쓬 ??鍮꾧탳???덉젙???먮쫫');
-      // ?쇳빀/?≫빀 ?먯깋
-      var YUKHAP = [['耶?,'訝?],['野?,'雅?],['??,'??],['渦?,'??],['藥?,'??],['??,'??]];
-      var yukFound = [];
-      YUKHAP.forEach(function(p){
-        if (jiList.indexOf(p[0])>=0 && jiList.indexOf(p[1])>=0) yukFound.push(p[0]+'쨌'+p[1]+' ?≫빀(??릦)');
-      });
-      if (yukFound.length) lines.push('?≫빀(??릦): ' + yukFound.join(' / ') + ' ???뚰듃?덉떗쨌?쒗쑕?먯꽌 媛뺣젰???쒕꼫吏');
-    }
-    // ?≪떊(??쪥) ????몄씠 蹂대뒗 ??vs ?닿? 諛붾씪蹂대뒗 ?몄긽
-    if (_tgGroups && Object.keys(_tgGroups).length > 0) {
-      var g = _tgGroups;
-      var topStar = '';
-      var topVal = 0;
-      Object.keys(g).forEach(function(k){ if((g[k]||0)>topVal){topVal=g[k];topStar=k;} });
-      var starDesc = {
-        '?뺢?': '????됯?: 梨낆엫媛??덇퀬 ?좊ː?????덈뒗 ?щ엺. ?닿? 諛붾씪蹂대뒗 ?몄긽: 洹쒕쾾쨌吏덉꽌쨌紐낆삁媛 理쒖슦??,
-        '?멸?': '????됯?: 媛뺣젹?섍퀬 移대━?ㅻ쭏 ?덈뒗 ?щ엺. ?닿? 諛붾씪蹂대뒗 ?몄긽: ?꾩쟾쨌洹밸났쨌由щ뜑??씠 ?띠쓽 ?댁쑀',
-        '?뺤옱': '????됯?: ?깆떎?섍퀬 誘우쓬吏곹븳 ?щ엺. ?닿? 諛붾씪蹂대뒗 ?몄긽: ?덉젙???먯궛怨??꾩떎 寃곌낵媛 媛??以묒슂',
-        '?몄옱': '????됯?: 留ㅻ젰?곸씠怨??ш탳?곸씤 ?щ엺. ?닿? 諛붾씪蹂대뒗 ?몄긽: 湲고쉶쨌?뺤옣쨌?먯쑀濡쒖슫 ?щЪ ?먮쫫',
-        '?앹떊': '????됯?: ?⑦솕?섍퀬 ?щ뒫 ?덈뒗 ?щ엺. ?닿? 諛붾씪蹂대뒗 ?몄긽: ?쒗쁽쨌李쎌“쨌利먭굅????띠쓽 ?듭떖',
-        '?곴?': '????됯?: 媛쒖꽦 媛뺥븯怨??낆갹?곸씤 ?щ엺. ?닿? 諛붾씪蹂대뒗 ?몄긽: 湲곗〈 ???源⑤뒗 ?곸떊怨??먯쑀',
-        '鍮꾧껄': '????됯?: 二쇨?쨌?낅┰?ъ씠 媛뺥븳 ?щ엺. ?닿? 諛붾씪蹂대뒗 ?몄긽: 寃쎌웳怨??먮┰???깆옣???먮룞??,
-        '寃곸옱': '????됯?: ?꾩쟾?곸씠怨?異붿쭊???덈뒗 ?щ엺. ?닿? 諛붾씪蹂대뒗 ?몄긽: ?밸?쨌?곸랬쨌??룞??蹂??,
-        '?뺤씤': '????됯?: 吏?깆쟻?닿퀬 諛곕젮 源딆? ?щ엺. ?닿? 諛붾씪蹂대뒗 ?몄긽: ?숇Ц쨌諛곗?쨌?대㈃ ?깆닕???띠쓽 紐⑹쟻',
-        '?몄씤': '????됯?: ?좊퉬濡?퀬 ?낇듅???щ엺. ?닿? 諛붾씪蹂대뒗 ?몄긽: 吏곴?쨌?곸쟻 ?듭같쨌鍮꾩＜瑜섏쟻 媛移?
-      };
-      if (topStar && starDesc[topStar]) {
-        lines.push('二쇰룄 ??꽦(?≪떊): ' + topStar + ' ??' + starDesc[topStar]);
-      }
-    }
-
-    // ?? [4遺 ?ы쉶???뚮챸] 寃⑷뎅쨌?곸떊쨌援ъ떊
-    lines.push('\n??遺. ?ы쉶???뚮챸 ??寃⑷뎅쨌?곸떊쨌援ъ떊 遺꾩꽍??);
-    if (snap.saju && snap.saju.notes && snap.saju.notes.length) {
-      lines.push('寃??먯젙 ?명듃: ' + snap.saju.notes.join(' / '));
-    }
-    if (johuType) lines.push('議고썑(沃욕?: ' + johuType);
-    // 寃⑷뎅 異붾줎 (?붿? 湲곕컲)
-    if (G_PILLARS_R && G_PILLARS_R.m) {
-      var monthG = G_PILLARS_R.m.g || '';
-      var monthJ = G_PILLARS_R.m.j || '';
-      lines.push('寃⑷뎅 湲곕컲 ?붿＜: ' + monthG + monthJ + ' ?????붿＜媛 寃⑷뎅(?쇔?)怨?吏곸뾽?곸꽦쨌?ы쉶??洹몃쫯?????寃곗젙');
-    }
-    lines.push('?곸떊(?며쪥): ?⑹떊???뺣뒗 議곕젰 ?ㅽ뻾 = ' + (analysis.yongshin_elements ? analysis.yongshin_elements.join(' 怨꾩뿴') + ' 愿???몃㎘쨌?섍꼍쨌吏곸뾽' : '?ъ＜ ?곸꽭 遺꾩꽍 ?꾩슂'));
-    lines.push('援ъ떊(餓뉒쪥): 湲곗떊(恙뚨쪥) ' + (analysis.kishin_elements ? analysis.kishin_elements.join(', ') : '') + ' ??怨좊궃 ?앹뿉 寃곌뎅 ??寃껋씠 ?섎뒗 ??꽕??寃곌낵 ?ㅽ뻾 ??洹밸났 ??理쒕? 臾닿린濡??꾪솚');
-
-    // ?? [5遺 遺? ?щ옉] ?щЪ?는룹븷?뺤슫쨌嫄닿컯??    lines.push('\n??遺. 遺? ?щ옉 ???щЪ?는룹븷?뺤슫쨌嫄닿컯?담?);
-    if (_tgGroups && Object.keys(_tgGroups).length > 0) {
-      var gg = _tgGroups;
-      var jaeTotal = (gg['?뺤옱']||0) + (gg['?몄옱']||0);
-      var gwanTotal = (gg['?뺢?']||0) + (gg['?멸?']||0);
-      var sikTotal = (gg['?앹떊']||0) + (gg['?곴?']||0);
-      lines.push('?щЪ 洹몃쫯(?ъ꽦 珥앸웾): ' + jaeTotal + '媛???' + (jaeTotal >= 3 ? '?ъ꽦 ?띾?. ?? 寃곸옱媛 媛뺥븯硫??щЪ ?좎텧 二쇱쓽' : jaeTotal >= 1 ? '?곸젙 ?щЪ 湲곗슫. ?앹긽 ?쒖꽦?????щЪ???곕쫫' : '?ъ꽦 ?? ?꾨Ц 湲곗닠(?앹긽)??癒쇱? ?ㅼ썙???щЪ???대┝'));
-      lines.push('?덇렇由?紐⑥뼇: ' + (gg['?몄옱']||0 > gg['?뺤옱']||0 ? '?몄옱????怨듦꺽???ъ옄?? ?ъ뾽쨌二쇱떇쨌遺?숈궛 ??蹂?숈꽦 ?먯궛??媛뺤젏' : '?뺤옱?????덉젙???異뺥삎, 袁몄????섏엯쨌?덉쟾 ?먯궛 ?좏샇'));
-      lines.push('?좎젙 援ъ“: ' + (gwanTotal > 0 ? '愿??諛쒕떖 ??梨낆엫 湲곕컲 ?곗븷, 吏꾩???愿怨?吏?? : sikTotal > 2 ? '?앹긽 媛???留ㅻ젰쨌?쒗쁽???섏튂???곗븷, ?먯쑀濡쒖슫 媛먯젙 ?쒗쁽' : '鍮꾧쾪 媛????낅┰??媛뺥빐 二쇱껜???곗븷, ?곷?諛?議댁쨷??愿怨꾩쓽 ?댁뇿'));
-    }
-    if (analysis.elementWeights) {
-      var hw = analysis.elementWeights;
-      var weakEl = '';
-      var minV = 999;
-      [['紐???',hw.wood||0],['????',hw.fire||0],['????',hw.earth||0],['湲???',hw.metal||0],['??麗?',hw.water||0]].forEach(function(e){ if(e[1]<minV){minV=e[1];weakEl=e[0];} });
-      lines.push('嫄닿컯 痍⑥빟 ?ㅽ뻾: ' + weakEl + ' ??' + {'紐???':'媛꽷룸떞쨌洹쇱쑁쨌??怨꾩뿴 二쇱쓽, ?ㅽ듃?덉뒪 ?댁냼 ?꾩닔', '????':'?ъ옣쨌?뚯옣쨌?덇?쨌?뺤떊 ?먮꼫吏 ?뚯쭊 二쇱쓽', '????':'?뚰솕湲걔룸퉬?꽷룹톸?? 怨쇱떇쨌遺덇퇋移??앹궗 二쇱쓽', '湲???':'?먃룸??Β룻뵾遺쨌?명씉湲?二쇱쓽, ?섏젅湲?嫄닿컯 愿由?, '??麗?':'?좎옣쨌諛⑷킅쨌?앹떇湲걔룸펷 二쇱쓽, ?섎텇 蹂댁땐 以묒슂'}[weakEl]);
-      lines.push('?怨좊궃 ?먮꼫吏 珥앸웾: ' + (analysis.power_label === '?좉컯' ? '?좉컯(翁ュ성) ???먮꼫吏媛 ?섏퀜 怨쇰줈쨌踰덉븘??二쇱쓽. ?뺢린???대룞怨??댁셿 ?꾩닔' : '?좎빟(翁ュ선) ???먮꼫吏 ?⑥쑉??遺꾨같 ?꾩슂. 臾대━???ㅼ쨷 ??븷蹂대떎 ?좏깮怨?吏묒쨷??嫄닿컯???듭떖'));
-    }
-
-    // ?? [6遺 2026 ?ㅼ쟾 濡쒕뱶留?
-    lines.push('\n??遺. 2026 訝쇿뜄 ?ㅼ쟾 濡쒕뱶留????좊뀈 ?됰룞 吏移ⓦ?);
-    lines.push('2026???몄슫(閭꿴걢): 訝쇿뜄亮???泥쒓컙 訝?蹂???쨌吏吏 ??????. ???? 湲곗슫??泥쒖?瑜??ㅻ뜮????);
-    // ?⑹떊/湲곗떊???곕Ⅸ 2026 ?먮떒
-    var yong = analysis.yongshin_elements || [];
-    var ki = analysis.kishin_elements || [];
-    var is2026Good = yong.indexOf('??) >= 0 || yong.indexOf('??) >= 0 || yong.indexOf('fire') >= 0;
-    var is2026Bad = ki.indexOf('??) >= 0 || ki.indexOf('??) >= 0 || ki.indexOf('fire') >= 0;
-    lines.push('2026 ?⑹떊/湲곗떊 ?먯젙: ' + (is2026Good ? '?뵦 訝쇿뜄 ??湲곗슫???⑹떊 ??2026?꾩? ?곴레 ?됰룞???? Go ?쒖쫵' : is2026Bad ? '?좑툘 訝쇿뜄 ??湲곗슫??湲곗떊 ??2026?꾩? ?댁떎 媛뺥솕???? Stop?믩궡怨?異뺤쟻' : '?? 以묐┰ ??2026?꾩? ?꾨왂???좊퀎 ?됰룞????));
-    lines.push('??대컢 ?꾨왂(Go/Stop): ' + (is2026Good ? '遊?1~3?? ?⑥븮 ?ш린 ???щ쫫(5~7?? ??컻 ?깆옣 ??媛??9~10?? ?섑솗. 臾대━???뺤옣蹂대떎 ?듭떖 1媛??밸?' : '?곷컲湲?議곗떖(異⑸룎쨌怨쇱냼鍮?湲덉?), ?섎컲湲?2027 以鍮?湲곌컙. 訝쇿뜄異??먭뎅 ?덉쑝硫??섍꼍 蹂???鍮?));
-    lines.push('2026???듭떖 ?ㅼ썙?? ' + (is2026Good ? '媛?쒖꽦쨌?꾩쟾쨌?ы쉶???몄젙쨌愿怨??뺤옣' : is2026Bad ? '?댁떎쨌?덉젣쨌?꾨Ц???ы솕쨌?ъ젙 ?덉젙' : '洹좏삎쨌?좏깮怨?吏묒쨷쨌愿怨??뺣━쨌?듭떖 ??웾'));
-    // ?붾퀎 ?뺣낫 湲곕컲 (?꾩옱 ?곕룄/??
-    var nowMonth = new Date().getMonth() + 1; // 1~12
-    lines.push('?꾩옱 ??2026??' + nowMonth + '?? 湲곗슫: ?ы빐 媛??二쇱쓽??????湲곗떊 ?ㅽ뻾??媛뺥빐吏??????????寃곗젙 ?먯젣, ?⑹떊 ?ъ뿉 ?밸?');
-
-    // ?? ???    var G_DAEWUN = window.G_DAEWUN || window.G_DAEUN;
-    if (G_DAEWUN && Array.isArray(G_DAEWUN) && G_DAEWUN.length) {
-      lines.push('\n?먮???鸚㏝걢) ?꾩껜 ?먮쫫 ???앹븷 留덉뒪?고뵆??湲곕컲??);
-      for (var di = 0; di < Math.min(G_DAEWUN.length, 12); di++) {
-        var dw = G_DAEWUN[di];
-        if (dw) {
-          lines.push((dw.age || '') + '????? ' + (dw.g || '') + (dw.j || '') + (dw.gE ? ' [' + dw.gE + ']' : '') + (dw.jE ? '/' + dw.jE : ''));
-        }
-      }
-    }
-
-    // ?? ?꾩옱 ?섏씠 + ?꾩옱 ???鸚㏝걢) ?앸퀎
-    if (birth.year) {
-      var currentAge = new Date().getFullYear() - birth.year + 1;
-      lines.push('\n?꾩옱 ?섏씠: ' + currentAge + '??(留?' + (currentAge - 1) + '??');
-      lines.push('?꾩옱 湲곗?亮? 2026??訝쇿뜄亮?);
-      // ?꾩옱 吏꾪뻾 以묒씤 ????앸퀎
-      if (G_DAEWUN && Array.isArray(G_DAEWUN) && G_DAEWUN.length) {
-        var currentDw = null;
-        for (var cdi = 0; cdi < G_DAEWUN.length - 1; cdi++) {
-          var dwCur = G_DAEWUN[cdi];
-          var dwNext = G_DAEWUN[cdi + 1];
-          if (dwCur && dwNext && dwCur.age <= currentAge && currentAge < dwNext.age) {
-            currentDw = dwCur;
-            break;
-          }
-        }
-        if (!currentDw && G_DAEWUN.length > 0) currentDw = G_DAEWUN[G_DAEWUN.length - 1];
-        if (currentDw) {
-          lines.push('\n?먥춴 ?꾩옱 吏꾪뻾 以묒씤 ???鸚㏝걢) ???듭떖 遺꾩꽍 ??곥?);
-          lines.push('?꾩옱 ??? ' + (currentDw.g || '') + (currentDw.j || '') +
-            (currentDw.gE ? ' [' + currentDw.gE + '/' + currentDw.jE + ']' : ''));
-          lines.push('???吏꾩엯 ?섏씠: ' + currentDw.age + '?????꾩옱 ?섏씠 ' + currentAge + '??(???寃쎄낵: ' + (currentAge - currentDw.age) + '??');
-        }
-      }
-    }
-
-    return lines.join('\n');
-  }
-  */
 
   function _collectSajuData() {
     var profile = window.__cdActiveBirthProfile || {};
@@ -1596,16 +1322,51 @@ function _isLifeBookGenerationBusy() {
     return 'solar';
   }
 
-  /* ??????????????? 紐⑤떖 ?쒖뼱 ??????????????? */
+  /* 모달 화면 제어 */
   function _showScreen(id) {
     var screens = ['lbStartScreen', 'lbLoadingScreen', 'lbResultScreen', 'lbErrorScreen'];
     for (var i = 0; i < screens.length; i++) {
       var el = _qs(screens[i]);
       if (el) el.style.display = (screens[i] === id) ? '' : 'none';
     }
+    if (id === 'lbResultScreen') {
+      setTimeout(_syncLifeBookDownloadButtons, 0);
+    }
   }
 
-  /** DOM ?낅젰媛믪뿉???앸뀈?붿씪 蹂듦뎄 */
+  function _mergeLifeBookRequestContext(context) {
+    if (!context || typeof context !== 'object') return _lbLastRequestContext || {};
+    _lbLastRequestContext = Object.assign({}, _lbLastRequestContext || {}, context);
+    if (_clean(context.reportId)) _lbCurrentReportId = _clean(context.reportId);
+    return _lbLastRequestContext;
+  }
+
+  function _formatLifeBookRequestContext(context) {
+    var ctx = context && typeof context === 'object' ? context : (_lbLastRequestContext || {});
+    var parts = [];
+    if (_clean(ctx.reportId || _lbCurrentReportId)) parts.push('reportId ' + _clean(ctx.reportId || _lbCurrentReportId));
+    if (_clean(ctx.sessionId)) parts.push('sessionId ' + _clean(ctx.sessionId));
+    if (_clean(ctx.requestId)) parts.push('requestId ' + _clean(ctx.requestId));
+    return parts.join(' · ');
+  }
+
+  function _showLifeBookError(message, context) {
+    var ctx = _mergeLifeBookRequestContext(context);
+    var msgEl = _qs('lbErrorMsg');
+    if (msgEl) {
+      msgEl.textContent = String(message || '인생의 책 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.').trim();
+      msgEl.style.whiteSpace = 'pre-line';
+    }
+    var detailEl = _qs('lbErrorDetail');
+    if (detailEl) {
+      var detail = _formatLifeBookRequestContext(ctx);
+      detailEl.textContent = detail ? detail : '';
+      detailEl.style.display = detail ? '' : 'none';
+    }
+    _showScreen('lbErrorScreen');
+  }
+
+  /** DOM 입력값에서 생년월일 복구 */
   function _recoverBirthFromDOM() {
     try {
       var dateEl = document.getElementById('birthDate');
@@ -1618,7 +1379,7 @@ function _isLifeBookGenerationBusy() {
       if (!y || !m || !d) return null;
       var hourEl = document.getElementById('birthHour');
       var minEl = document.getElementById('birthMinute');
-      /* 異쒖깮吏: 紐⑤떖 ?꾩슜 ?좏깮湲곕? ?곗꽑, ?놁쑝硫?硫붿씤 ???좏깮湲??ъ슜 */
+      /* 출생지는 모달 전용 선택기를 우선 사용하고 없으면 기본값을 사용 */
       var locationData = { label: '대한민국(서울)', lng: 127.0, lat: 37.6, tz: 'Asia/Seoul', tzOffset: 9, baseTzOffset: 9 };
       var countrySel = document.getElementById('lbBirthCountry') || document.getElementById('birthCountry');
       if (countrySel && countrySel.selectedIndex >= 0) {
@@ -1647,34 +1408,114 @@ function _isLifeBookGenerationBusy() {
     } catch (_) { return null; }
   }
 
-  /** ?ъ＜ ?곗씠???좏슚???뺤씤 (?щ윭 ?뚯뒪 ?쒖꽌?濡?泥댄겕) */
+  /** 사주 데이터 유효성 확인 */
   function _getActiveBirthProfile() {
-    // 1?쒖쐞: window.__cdActiveBirthProfile (?ъ＜ 怨꾩궛 ???ㅼ젙)
     var p = window.__cdActiveBirthProfile;
     if (p && p.birth && p.birth.year) return p;
-    // 2?쒖쐞: destiny flower ?ㅻ깄??    var snap = window.__destinyFlowerSajuSnapshot;
+    var snap = window.__destinyFlowerSajuSnapshot;
     if (snap && snap.birth && snap.birth.year) return snap;
-    // 3?쒖쐞: DOM ?낅젰媛?吏곸젒 ?쎄린
     var fromDom = _recoverBirthFromDOM();
     if (fromDom) return fromDom;
     return null;
   }
 
-  /* ?? localStorage ???蹂듭썝 ?? */
-  var _LB_STORE_VER = 'lb_v1_';
+  function _isLifeBookUnknownBirthTimeProfile(profile) {
+    var birth = (profile && profile.birth) || {};
+    if (birth.birthTimeKnown === false || birth.timeKnown === false || birth.timeUnknown === true || birth.isTimeUnknown === true) return true;
+    if (profile && (profile.birthTimeKnown === false || profile.timeUnknown === true || profile.isTimeUnknown === true)) return true;
+    try {
+      var hourEl = document.getElementById('birthHour');
+      var minuteEl = document.getElementById('birthMinute');
+      var hour = Number(birth.hour);
+      var domHour = hourEl ? Number(hourEl.value) : NaN;
+      var markedUnknown = window.__cdBirthTimeUnknown === true
+        || (hourEl && hourEl.getAttribute('data-cd-time-unknown') === '1')
+        || (minuteEl && minuteEl.getAttribute('data-cd-time-unknown') === '1');
+      return markedUnknown && Number.isFinite(hour) && hour === 12 && (!Number.isFinite(domHour) || domHour === 12);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function _validateLifeBookProfileForGeneration(profile) {
+    if (!profile) {
+      return { ok: false, message: '사주 계산을 먼저 완료해 주세요.' };
+    }
+    var birth = (profile && profile.birth) || {};
+    if (!birth.year || !birth.month || !birth.day) {
+      return { ok: false, message: '생년월일 정보를 확인해 주세요. 출생 정보가 있어야 인생의 책을 생성할 수 있습니다.' };
+    }
+    if (_isLifeBookUnknownBirthTimeProfile(profile)) {
+      return {
+        ok: false,
+        code: 'BIRTH_TIME_REQUIRED',
+        message: '인생의 책 PDF는 정확한 태어난 시·분이 필요합니다. 낮 12시 보수 계산 또는 출생시간 모름 상태로는 생성할 수 없습니다.'
+      };
+    }
+    var hour = Number(birth.hour);
+    if (!Number.isFinite(hour) || hour < 0 || hour > 23) {
+      return {
+        ok: false,
+        code: 'BIRTH_TIME_REQUIRED',
+        message: '인생의 책 PDF는 시주와 대운 흐름까지 정밀하게 보기 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 입력해 주세요.'
+      };
+    }
+    return { ok: true };
+  }
+
+  var _LB_STORE_VER = 'lb_v2_';
+
+  function _lbStoreKeyPart(value) {
+    var text = _clean(value);
+    return encodeURIComponent(text || '0').replace(/%/g, '~');
+  }
+
+  function _lbResolveProfileLocationKey(profile) {
+    var location = profile && profile.location && typeof profile.location === 'object' ? profile.location : {};
+    return _clean(location.label || location.name || location.city || profile && (profile.birthplace || profile.birthPlace || profile.locationLabel));
+  }
+
+  function _lbBuildProfileCacheKey(profile) {
+    var p = profile && typeof profile === 'object' ? profile : {};
+    var b = (p.birth && typeof p.birth === 'object') ? p.birth : {};
+    var hour = b.hour;
+    if (hour === undefined || hour === null || hour === '') hour = p.birthHour;
+    if (hour === undefined || hour === null || hour === '') hour = p.hour;
+    var minute = b.minute;
+    if (minute === undefined || minute === null || minute === '') minute = b.minutes;
+    if (minute === undefined || minute === null || minute === '') minute = p.birthMinute;
+    if (minute === undefined || minute === null || minute === '') minute = p.minute;
+    var calendarType = b.calendarType || p.calendarType || p.lunarSolar || 'solar';
+    return [
+      b.year || p.year || '0',
+      b.month || p.month || '0',
+      b.day || p.day || '0',
+      hour === undefined || hour === null || hour === '' ? 'unknownHour' : hour,
+      minute === undefined || minute === null || minute === '' ? 'unknownMinute' : minute,
+      calendarType,
+      p.gender || 'u',
+      _lbResolveProfileLocationKey(p) || 'unknownPlace',
+      _lbCurrentTargetYear || new Date().getFullYear()
+    ].map(_lbStoreKeyPart).join('_');
+  }
 
   function _lbMakeKey(profile) {
-    var b = (profile && profile.birth) || {};
-    return _LB_STORE_VER + (b.year || '0') + '_' + (b.month || '0') + '_' + (b.day || '0') + '_' + ((profile && profile.gender) || 'u');
+    return _LB_STORE_VER + _lbBuildProfileCacheKey(profile);
   }
 
   function _lbSaveResult(profile) {
     try {
       localStorage.setItem(_lbMakeKey(profile), JSON.stringify({
         chapters: _chapters,
+        reportId: _lbCurrentReportId || '',
+        pdfUrl: _lbPendingPdfUrl || '',
+        htmlUrl: _lbPendingHtmlUrl || '',
+        reportUrl: _lbPendingReportUrl || '',
+        pdfHtml: _lbPendingPdfHtml || '',
         name: (profile && profile.name) || '사용자',
         birth: (profile && profile.birth) || {},
         gender: (profile && profile.gender) || '',
+        targetYear: _lbCurrentTargetYear || new Date().getFullYear(),
         savedAt: new Date().toISOString()
       }));
     } catch (e) { /* ?⑸웾 珥덇낵 ?먮뒗 釉뚮씪?곗? ?쒗븳 */ }
@@ -1703,6 +1544,11 @@ function _isLifeBookGenerationBusy() {
     if (!saved || !modal) return;
     _chapters = Array.isArray(saved.chapters) ? saved.chapters : Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
     _chapterMeta = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
+    _lbCurrentReportId = String(saved.reportId || '').trim();
+    _lbPendingPdfUrl = String(saved.pdfUrl || '').trim();
+    _lbPendingHtmlUrl = String(saved.htmlUrl || '').trim();
+    _lbPendingReportUrl = String(saved.reportUrl || '').trim();
+    _lbPendingPdfHtml = String(saved.pdfHtml || '').trim();
     _currentChapter = 1;
     _showScreen('lbResultScreen');
     _updateTocState();
@@ -1811,6 +1657,11 @@ function _isLifeBookGenerationBusy() {
       console.error('[인생의 책] lifeBookModal 요소를 찾을 수 없습니다.');
       return;
     }
+    var targetYearInput = document.getElementById('lbTargetYear');
+    if (targetYearInput && !String(targetYearInput.value || '').trim()) {
+      targetYearInput.value = String(new Date().getFullYear());
+    }
+    _lbCurrentTargetYear = _resolveLifeBookTargetYear();
 
     _flowLog('DETAIL_POPUP_OPEN', { message: 'open-only' });
     _lifeBookLog('ModalOpen', {});
@@ -1867,10 +1718,10 @@ function _isLifeBookGenerationBusy() {
     document.body.style.overflow = 'hidden';
     _lbEnsureHistoryButton(modal);
 
-    /* 異쒖깮吏 ?좏깮湲?珥덇린??*/
+    /* 출생지 선택기 초기화 */
     if (typeof window.populateCountrySelectById === 'function') {
       var locLabel = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.location && window.__cdActiveBirthProfile.location.label)
-        ? window.__cdActiveBirthProfile.location.label : '??쒕?援?(?쒖슱)';
+        ? window.__cdActiveBirthProfile.location.label : '대한민국(서울)';
       window.populateCountrySelectById('lbBirthCountry', locLabel);
     }
 
@@ -1890,7 +1741,6 @@ function _isLifeBookGenerationBusy() {
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
   };
 
-  /* ??????????????? TOC ?ㅻ퉬寃뚯씠????????????????? */
   function _bindToc() {
     var nav = document.querySelector('.lb-toc');
     if (!nav) return;
@@ -1924,7 +1774,7 @@ function _isLifeBookGenerationBusy() {
       '<div class="lb-chapter-wrap">' +
       _buildResultOverviewHtml() +
       '<div class="lb-chapter-header">' +
-      '<span class="lb-chapter-num">??' + ch + '??/span>' +
+      '<span class="lb-chapter-num">제 ' + ch + '장</span>' +
       '<h2 class="lb-chapter-title">' + _escHtml(_getChapterMeta(idx).title) + '</h2>' +
       '<p class="lb-chapter-sub">' + _escHtml(_getChapterMeta(idx).subtitle) + '</p>' +
       '</div>' +
@@ -1972,7 +1822,6 @@ function _isLifeBookGenerationBusy() {
     local_reinforce: '부족한 장을 보강하는 중',
   };
 
-  /* ??????????????? ?앹꽦 濡쒖쭅 ??????????????? */
   window.generateLifeBook = function (options) {
     if (_isLifeBookGenerationBusy()) return;
 
@@ -1980,21 +1829,50 @@ function _isLifeBookGenerationBusy() {
     var inputReportId = String(opts.reportId || '').trim();
     var inputAccessGrant = (opts.accessGrant && typeof opts.accessGrant === 'object') ? opts.accessGrant : null;
     var inputPremiumToken = String(opts.premiumAccessToken || '').trim();
+    var targetYear = _resolveLifeBookTargetYear(opts.targetYear);
+    _lbCurrentTargetYear = targetYear;
+    var profile = _getActiveBirthProfile();
+    var profileCheck = _validateLifeBookProfileForGeneration(profile);
+    if (!profileCheck.ok) {
+      _showLifeBookError(profileCheck.message || '사주 계산 정보를 확인해 주세요.');
+      return;
+    }
+    var profileCacheKey = _lbBuildProfileCacheKey(profile);
+    _mergeLifeBookRequestContext({ profileKey: profileCacheKey, targetYear: targetYear });
 
     if (!inputAccessGrant) {
       var gateReportId = inputReportId || ('lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8));
+      var gateSessionId = 'life-book:' + gateReportId;
+      _mergeLifeBookRequestContext({ reportId: gateReportId, sessionId: gateSessionId, profileKey: profileCacheKey, targetYear: targetYear });
+      var savedGrant = _readLifeBookAccessGrant(profileCacheKey);
+      if (savedGrant && savedGrant.accessGrant) {
+        window.generateLifeBook({
+          reportId: String(savedGrant.accessGrant.reportId || gateReportId),
+          accessGrant: savedGrant.accessGrant,
+          premiumAccessToken: String(savedGrant.premiumAccessToken || '').trim(),
+          targetYear: targetYear,
+        });
+        return;
+      }
       _flowLog('COIN_GATE_START', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, message: 'lifebook-gate-start' });
       _lifeBookLog('PaymentGateStart', { reportId: gateReportId });
       (async function runLifeBookGateThenGenerate() {
         try {
-          var gate = await _runLifeBookCoinGate(gateReportId);
+          var gate = await _runLifeBookCoinGate(gateReportId, profileCacheKey);
           if (!gate.ok || !gate.accessGrant) {
-            var failMsg = String(gate && gate.message ? gate.message : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+            var failMsg = String(gate && gate.message ? gate.message : '결제 또는 이용권 확인이 완료되지 않았습니다. 결제창을 닫았다면 다시 생성 버튼을 눌러 주세요. 이미 결제되었다면 결제 내역 확인 후 문의해 주세요.');
             _flowLog('PAYMENT_ACCESS_CHECK', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, ok: false, status: Number(gate && gate.status || 500), message: failMsg });
             _logLifeBookError(gate || { message: failMsg }, { stage: 'billing', reportId: gateReportId });
-            alert(failMsg);
+            _showLifeBookError(failMsg, { reportId: gateReportId, sessionId: gateSessionId, requestId: String(gate && gate.requestId || ''), profileKey: profileCacheKey });
             return;
           }
+          _mergeLifeBookRequestContext({
+            reportId: String(gate.accessGrant.reportId || gateReportId),
+            sessionId: String(gate.accessGrant.sessionId || gateSessionId),
+            purchaseId: String(gate.accessGrant.purchaseId || ''),
+            requestId: String(gate.accessGrant.requestId || gate.requestId || ''),
+            profileKey: profileCacheKey,
+          });
           _flowLog('PAYMENT_CONFIRMED', {
             featureKey: LIFE_BOOK_FEATURE_KEY,
             reportId: gateReportId,
@@ -2010,33 +1888,29 @@ function _isLifeBookGenerationBusy() {
             reportId: String(gate.accessGrant.reportId || gateReportId),
             accessGrant: gate.accessGrant,
             premiumAccessToken: String(gate.premiumAccessToken || '').trim(),
+            targetYear: targetYear,
           });
         } catch (error) {
           var message = String(error && error.message ? error.message : '결제 확인 중 오류가 발생했습니다.');
           _flowLog('PAYMENT_ACCESS_CHECK', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: gateReportId, ok: false, status: 500, message: message });
           _logLifeBookError(error, { stage: 'billing', reportId: gateReportId });
-          alert(message);
+          _showLifeBookError(message + ' 결제 내역을 확인한 뒤 다시 시도해 주세요.', { reportId: gateReportId, sessionId: gateSessionId, profileKey: profileCacheKey });
         }
       })();
       return;
     }
 
-    var profile = _getActiveBirthProfile();
-    if (!profile) {
-      alert('사주 계산을 먼저 완료해 주세요.');
-      return;
-    }
     _lifeBookLog('ProfileResolved', {
       hasBirthDate: Boolean(profile && profile.birth && profile.birth.year),
       hasBirthTime: Boolean(profile && profile.birth && Number.isFinite(Number(profile.birth.hour))),
       gender: String((profile && profile.gender) || ''),
     });
-    // 蹂듦뎄???꾨줈??二쇱엯
+    // 복구한 프로필 주입
     if (!window.__cdActiveBirthProfile || !window.__cdActiveBirthProfile.birth) {
       window.__cdActiveBirthProfile = profile;
     }
 
-    /* 紐⑤떖 異쒖깮吏 ?좏깮湲?媛믪쑝濡??꾩튂 ?ъ꽕??*/
+    /* 모달 출생지 선택기 값으로 위치 재설정 */
     var lbCountrySel = document.getElementById('lbBirthCountry');
     if (lbCountrySel && lbCountrySel.selectedIndex >= 0) {
       var _selOpt = lbCountrySel.options[lbCountrySel.selectedIndex];
@@ -2061,6 +1935,15 @@ function _isLifeBookGenerationBusy() {
     _startLifeBookGenerationState();
     _lbCurrentAccessGrant = inputAccessGrant;
     _lbCurrentPremiumToken = inputPremiumToken;
+    _persistLifeBookAccessGrant(inputAccessGrant, inputPremiumToken, profileCacheKey);
+    _mergeLifeBookRequestContext({
+      reportId: String(inputAccessGrant.reportId || inputReportId || ''),
+      sessionId: String(inputAccessGrant.sessionId || ''),
+      purchaseId: String(inputAccessGrant.purchaseId || ''),
+      requestId: String(inputAccessGrant.requestId || ''),
+      profileKey: profileCacheKey,
+    });
+    _lbStartPremiumJob(profile, targetYear);
     _flowLog('GENERATE_CLICK', { message: 'generation-started' });
     try {
       _chapters = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
@@ -2075,6 +1958,7 @@ function _isLifeBookGenerationBusy() {
       birthHour: Number(profile && profile.birth ? profile.birth.hour : NaN),
       gender: String(profile && profile.gender || ''),
       calendarType: 'solar',
+      targetYear: targetYear,
     });
     _flowLog('SAJU_DATA_READY', {
       featureKey: LIFE_BOOK_FEATURE_KEY,
@@ -2082,12 +1966,12 @@ function _isLifeBookGenerationBusy() {
       hasAccessGrant: Boolean(_lbCurrentAccessGrant),
     });
 
-    // ?듭떖 異쒖깮 ?뺣낫留??좏슚?섎㈃ ?쒕쾭 濡쒖뺄 怨꾩궛 seed(JSON)濡??앹꽦??吏꾪뻾?쒕떎.
+    // 핵심 출생 정보가 유효할 때만 서버 로컬 계산 seed(JSON)로 생성 진행
     var _hasBirthCore = Boolean(profile && profile.birth && profile.birth.year && profile.birth.month && profile.birth.day);
     if (!_hasBirthCore) {
       _clearLifeBookGenerationState();
       _lifeBookLog('ValidationBeforePayment', { ok: false, reason: 'missing_birth_core' });
-      alert('생년월일 정보를 확인해 주세요. 출생 정보가 있어야 인생의 책을 생성할 수 있습니다.');
+      _showLifeBookError('생년월일 정보를 확인해 주세요. 출생 정보가 있어야 인생의 책을 생성할 수 있습니다.');
       return;
     }
     if (!sajuData || sajuData.length < 30) {
@@ -2157,6 +2041,7 @@ function _isLifeBookGenerationBusy() {
     }
 
     _setProgress(0);
+    _lbRunPremiumJob(LIFEBOOK_TOTAL_CHAPTERS);
 
     var _setGenerationState = function (stateKey) {
       var msg = _lbStateMessages[String(stateKey || '')] || '인생의 책을 생성하고 있습니다.';
@@ -2173,16 +2058,16 @@ function _isLifeBookGenerationBusy() {
     _lifeBookLog('SessionCreateStart', {});
     } catch (_prepErr) {
       _clearLifeBookGenerationState();
-      _showScreen('lbStartScreen');
       _flowLog('FRONT_PIPELINE_SETUP_FAILED', { featureKey: LIFE_BOOK_FEATURE_KEY, message: String(_prepErr && _prepErr.message || '생성 준비 중 오류가 발생했습니다.') });
       _lifeBookLog('ValidationBeforePayment', { ok: false, reason: 'generation-setup-failed' });
-      alert('생성 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      _showLifeBookError('생성 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       return;
     }
 
     (async function runLifeBookSinglePass() {
       var _lbReportId = inputReportId || 'lifebook_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
       _lbCurrentReportId = _lbReportId;
+      _mergeLifeBookRequestContext({ reportId: _lbReportId, profileKey: profileCacheKey });
 
       var _lbAuthToken = '';
       try { _lbAuthToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
@@ -2242,7 +2127,7 @@ function _isLifeBookGenerationBusy() {
 
       var _birthHourRaw = Number(profile && profile.birth ? profile.birth.hour : NaN);
       var _birthMinuteRaw = Number(profile && profile.birth ? profile.birth.minute : NaN);
-      var _birthTimeKnown = Number.isFinite(_birthHourRaw) && _birthHourRaw >= 0 && _birthHourRaw <= 23;
+      var _birthTimeKnown = Number.isFinite(_birthHourRaw) && _birthHourRaw >= 0 && _birthHourRaw <= 23 && !_isLifeBookUnknownBirthTimeProfile(profile);
       var _payload = {
         serviceKey: 'saju-lifebook',
         productKey: LIFE_BOOK_FEATURE_KEY,
@@ -2276,6 +2161,8 @@ function _isLifeBookGenerationBusy() {
         calendarType: _resolveCalendarTypeForApi(profile),
         birthDate: [profile.birth.year, String(profile.birth.month).padStart(2, '0'), String(profile.birth.day).padStart(2, '0')].join('-'),
         birthTimeKnown: _birthTimeKnown,
+        targetYear: targetYear,
+        analysisYear: targetYear,
         hour: _birthTimeKnown ? _birthHourRaw : 12,
         minute: _birthTimeKnown ? Number.isFinite(_birthMinuteRaw) ? _birthMinuteRaw : 0 : 0,
         birthplace: String((profile && profile.location && profile.location.label) || '대한민국'),
@@ -2335,7 +2222,13 @@ function _isLifeBookGenerationBusy() {
           message: _prepareMsg,
         });
         await new Promise(function (r) { setTimeout(r, 600); });
-        _prepare = await _postLifeBookPrepare(_payload, _headers);
+        try {
+          _prepare = await _postLifeBookPrepare(_payload, _headers);
+        } catch (_retryErr) {
+          _clearLifeBookAccessGrant();
+          _clearPremiumAccessToken(_lbPremiumToken);
+          throw _retryErr;
+        }
       } finally {
         _statusPollingStop = true;
         await _statusPollingPromise.catch(function () {});
@@ -2376,6 +2269,11 @@ function _isLifeBookGenerationBusy() {
         throw new Error('LIFE_BOOK_CHAPTER_COUNT_INVALID:' + _serverChapters.length);
       }
       _flowLog('LIFE_BOOK_CHAPTERS_BUILT', { featureKey: LIFE_BOOK_FEATURE_KEY, reportId: _lbReportId, chapterCount: _serverChapters.length });
+      _mergeLifeBookRequestContext({
+        reportId: _lbReportId,
+        sessionId: _clean(_data && (_data.sessionId || _data.reportSessionId)),
+        profileKey: profileCacheKey,
+      });
 
       _chapters = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
       _chapterStructured = Array(LIFEBOOK_TOTAL_CHAPTERS).fill(null);
@@ -2467,8 +2365,10 @@ function _isLifeBookGenerationBusy() {
       _lifeBookLog('Error', { stage: 'generate', message: errMsg });
 
       _clearLifeBookGenerationState();
-      _showScreen('lbStartScreen');
-      alert('인생의 책 생성 중 오류가 발생했습니다.\n\n' + errMsg + '\n\n잠시 후 다시 시도해 주세요.');
+      _showLifeBookError('인생의 책 생성 중 오류가 발생했습니다.\n\n' + errMsg + '\n\n잠시 후 다시 시도해 주세요.', {
+        reportId: _lbCurrentReportId,
+        profileKey: profileCacheKey,
+      });
     }).finally(function () {
       if (_mysticTimer) { clearInterval(_mysticTimer); _mysticTimer = null; }
       if (_activeRequestController) _activeRequestController = null;
@@ -2490,19 +2390,81 @@ function _isLifeBookGenerationBusy() {
     });
   }
 
-  /* ??????????????? PDF ?ㅼ슫濡쒕뱶 ??????????????? */
+  function _lifeBookContextParams() {
+    var ctx = _lbLastRequestContext || {};
+    var params = new URLSearchParams();
+    params.set('service', 'saju-lifebook');
+    params.set('feature', LIFE_BOOK_FEATURE_KEY);
+    if (_clean(ctx.reportId || _lbCurrentReportId)) params.set('reportId', _clean(ctx.reportId || _lbCurrentReportId));
+    if (_clean(ctx.sessionId)) params.set('sessionId', _clean(ctx.sessionId));
+    if (_clean(ctx.requestId)) params.set('requestId', _clean(ctx.requestId));
+    return params;
+  }
+
+  function _copyLifeBookText(text) {
+    var value = _clean(text);
+    if (!value) return Promise.resolve(false);
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      return navigator.clipboard.writeText(value).then(function () { return true; }).catch(function () { return false; });
+    }
+    try {
+      var area = document.createElement('textarea');
+      area.value = value;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.left = '-9999px';
+      document.body.appendChild(area);
+      area.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(area);
+      return Promise.resolve(!!ok);
+    } catch (_) {
+      return Promise.resolve(false);
+    }
+  }
+
+  window.openLifeBookBillingHistory = function () {
+    window.location.href = '/points/history?' + _lifeBookContextParams().toString();
+  };
+
+  window.openLifeBookCharge = function () {
+    var chargeBtn = document.querySelector('[data-action="openGoldenGrainCharge"]');
+    if (chargeBtn && typeof chargeBtn.click === 'function') {
+      chargeBtn.click();
+      return;
+    }
+    window.location.href = '/points?service=saju-lifebook';
+  };
+
+  window.openLifeBookSupport = function () {
+    window.location.href = '/contact-us?' + _lifeBookContextParams().toString();
+  };
+
+  window.copyLifeBookReportId = function () {
+    var ctxText = _formatLifeBookRequestContext(_lbLastRequestContext);
+    _copyLifeBookText(ctxText).then(function (ok) {
+      alert(ok ? '인생의 책 요청 정보가 복사되었습니다.' : '복사할 요청 정보가 아직 없습니다.');
+    });
+  };
+
   window.downloadLifeBookPdf = async function () {
     var targets = _getLifeBookDownloadTargets();
     var fileBase = _lbCurrentReportId ? ('life-book-' + _lbCurrentReportId) : 'life-book';
     var pdfUrl = _clean(targets.pdfUrl);
-    var htmlUrl = _clean(targets.htmlUrl);
     if (await _downloadLifeBookUrlWithFallback(pdfUrl, fileBase + '.pdf')) {
       return;
     }
 
-    if (await _downloadLifeBookUrlWithFallback(htmlUrl, fileBase + '.html')) {
-      return;
-    }
+    alert(pdfUrl
+      ? 'PDF 파일 다운로드가 아직 준비되지 않았습니다. HTML 열람본 저장 버튼으로 먼저 보관할 수 있습니다.'
+      : 'PDF 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+  };
+
+  window.downloadLifeBookHtml = async function () {
+    var targets = _getLifeBookDownloadTargets();
+    var fileBase = _lbCurrentReportId ? ('life-book-' + _lbCurrentReportId) : 'life-book';
+    var htmlUrl = _clean(targets.htmlUrl);
+    if (await _downloadLifeBookUrlWithFallback(htmlUrl, fileBase + '.html')) return;
 
     if (_clean(targets.html)) {
       var ok = _downloadBlobContent(
@@ -2514,7 +2476,7 @@ function _isLifeBookGenerationBusy() {
       if (_attemptDownloadUrl('data:text/html;charset=utf-8,' + encodeURIComponent(targets.html), fileBase + '.html')) return;
       return;
     }
-    if (!pdfUrl && !htmlUrl && _clean(_lbPendingPdfHtml) && await _downloadLifeBookUrlWithFallback('data:text/html;charset=utf-8,' + encodeURIComponent(_lbPendingPdfHtml), fileBase + '.html')) {
+    if (!htmlUrl && _clean(_lbPendingPdfHtml) && await _downloadLifeBookUrlWithFallback('data:text/html;charset=utf-8,' + encodeURIComponent(_lbPendingPdfHtml), fileBase + '.html')) {
       return;
     }
 
@@ -2523,10 +2485,9 @@ function _isLifeBookGenerationBusy() {
       return;
     }
 
-    alert('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+    alert('HTML 열람본이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
   };
 
-  /* ??????????????? ?대깽???꾩엫 諛붿씤????????????????? */
   document.addEventListener('click', function (e) {
     var target = e.target;
     if (!(target instanceof Element)) return;
@@ -2535,7 +2496,7 @@ function _isLifeBookGenerationBusy() {
     var action = btn.getAttribute('data-action');
 
     if (action === 'openLifeBookModal') {
-      // 肄붿씤 寃뚯씠???놁씠 ????대┃ ??吏곸젒 紐⑤떖 ?ㅽ뵂 (寃곗젣???앹꽦?섍린 踰꾪듉?먯꽌 泥섎━)
+      // 코인 게이트 없이 타일 클릭 시 직접 모달 열기
       window.openLifeBookModal();
       return;
     }
@@ -2544,7 +2505,7 @@ function _isLifeBookGenerationBusy() {
       return;
     }
     if (action === 'generateLifeBook') {
-      // ?대? ?앹꽦 以묒씠硫?肄붿씤 李④컧 ?꾩뿉 利됱떆 李⑤떒
+      // 이미 생성 중이면 코인 차감 전에 즉시 차단
       if (_isLifeBookGenerationBusy()) {
         window.alert('인생의 책이 이미 생성 중입니다. 잠시만 기다려 주세요.');
         return;
@@ -2557,13 +2518,33 @@ function _isLifeBookGenerationBusy() {
       window.downloadLifeBookPdf();
       return;
     }
+    if (action === 'downloadLifeBookHtml') {
+      window.downloadLifeBookHtml();
+      return;
+    }
+    if (action === 'openLifeBookBillingHistory') {
+      window.openLifeBookBillingHistory();
+      return;
+    }
+    if (action === 'openLifeBookCharge') {
+      window.openLifeBookCharge();
+      return;
+    }
+    if (action === 'copyLifeBookReportId') {
+      window.copyLifeBookReportId();
+      return;
+    }
+    if (action === 'openLifeBookSupport') {
+      window.openLifeBookSupport();
+      return;
+    }
     if (action === 'shareLifeBookKakao') {
       if (typeof window.shareLifeBookKakao === 'function') window.shareLifeBookKakao();
       return;
     }
   }, false);
 
-  // ESC ?ㅻ줈 紐⑤떖 ?リ린
+  // ESC 키로 모달 닫기
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       var modal = _qs('lifeBookModal');
@@ -2573,7 +2554,7 @@ function _isLifeBookGenerationBusy() {
     }
   });
 
-  // 紐⑤떖 ?ㅻ쾭?덉씠 ?대┃?쇰줈 ?リ린 (?대? data-action?쇰줈 泥섎━?섏?留?蹂댄뿕??
+  // 모달 오버레이 클릭으로 닫기
   var _overlay = document.querySelector('#lifeBookModal .lb-modal__overlay');
   if (_overlay) {
     _overlay.addEventListener('click', function () { window.closeLifeBookModal(); });

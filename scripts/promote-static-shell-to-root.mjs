@@ -6,9 +6,13 @@ const publicDir = resolve(rootDir, "public");
 const publicIndexPath = resolve(rootDir, "public", "index.html");
 const publicStaticIndexPath = resolve(rootDir, "public", "static", "index.html");
 const generatedSitemapPath = resolve(rootDir, "out", "sitemap.xml");
+const generatedOutDir = resolve(rootDir, "out");
 const distIndexPath = resolve(rootDir, "dist", "index.html");
 const distSitemapPath = resolve(rootDir, "dist", "sitemap.xml");
 const distStaticIndexPath = resolve(rootDir, "dist", "static", "index.html");
+const generatedRouteHtmlFiles = [
+  "insights/index.html",
+];
 
 function stripLeadingBom(buffer) {
   let offset = 0;
@@ -57,12 +61,24 @@ function writeHtml(sourcePath, destinationPath, label, options = {}) {
   console.log(`[promote-static-shell] ${label}: ${sourcePath} -> ${destinationPath}`);
 }
 
+function restoreGeneratedRouteHtml() {
+  for (const routeFile of generatedRouteHtmlFiles) {
+    const sourcePath = resolve(generatedOutDir, routeFile);
+    if (!existsSync(sourcePath)) continue;
+    const destinationPath = resolve(rootDir, "dist", routeFile);
+    mkdirSync(dirname(destinationPath), { recursive: true });
+    copyFileSync(sourcePath, destinationPath);
+    console.log(`[promote-static-shell] app route: ${sourcePath} -> ${destinationPath}`);
+  }
+}
+
 if (!existsSync(resolve(rootDir, "dist"))) {
   throw new Error("[promote-static-shell] dist/ does not exist. Run this after next build.");
 }
 
 if (existsSync(publicDir)) {
   cpSync(publicDir, resolve(rootDir, "dist"), { recursive: true, force: true });
+  restoreGeneratedRouteHtml();
   console.log(`[promote-static-shell] public assets: ${publicDir} -> ${resolve(rootDir, "dist")}`);
 
   if (existsSync(generatedSitemapPath)) {

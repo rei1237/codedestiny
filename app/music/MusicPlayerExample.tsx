@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
 
@@ -9,6 +9,7 @@ import {
   Play,
   Repeat,
   Repeat1,
+  Share2,
   Shuffle,
   SkipBack,
   SkipForward,
@@ -81,16 +82,64 @@ function getNextRepeatMode(repeat: RepeatMode): RepeatMode {
   return "off";
 }
 
+function buildMusicShareUrl(trackId: string) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://code-destiny.com";
+  const url = new URL("/music", origin);
+  url.searchParams.set("track", trackId);
+  url.searchParams.set("from", "share");
+  return url.toString();
+}
+
+async function copyMusicShareText(text: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textarea);
+}
+
+function getListeningStatusLabel(isLoading: boolean, canPlay: boolean, isPlaying: boolean) {
+  if (isLoading) return "달빛을 불러오는 중";
+  if (!canPlay) return "달빛이 열리기를 기다리는 중";
+  return isPlaying ? "지금 흐르는 달빛" : "달빛이 잠시 머무는 중";
+}
+
 export default function MusicPlayerExample({ ambientAssetKey, presentation = "full" }: MusicPlayerExampleProps) {
   const player = useMusicPlayer(allTracks, { initialVolume: 0.85 });
+  const selectTrack = player.selectTrack;
+  const hasAppliedSharedTrackRef = useRef(false);
   const progressMax = player.duration || 0;
   const [failedCoverIds, setFailedCoverIds] = useState<Record<string, boolean>>({});
   const [isListeningModeOpen, setIsListeningModeOpen] = useState(presentation === "full");
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
+  const [nowPlayingShared, setNowPlayingShared] = useState(false);
   const currentTrackId = player.currentTrack?.id || "";
   const coverFailed = Boolean(!player.currentTrack?.coverUrl || (currentTrackId && failedCoverIds[currentTrackId]));
   const artistThemeClass = player.currentTrack?.artistKey === "yeoni" ? styles.yeoniMode : styles.neoMode;
   const isCompact = presentation === "compact";
+  const hasCurrentTrack = Boolean(player.currentTrack);
+
+  useEffect(() => {
+    if (hasAppliedSharedTrackRef.current || typeof window === "undefined") return;
+
+    const sharedTrackId = new URLSearchParams(window.location.search).get("track");
+    const hasSharedTrack = Boolean(sharedTrackId && allTracks.some((track) => track.id === sharedTrackId));
+    hasAppliedSharedTrackRef.current = true;
+
+    if (hasSharedTrack && sharedTrackId) {
+      selectTrack(sharedTrackId);
+    }
+  }, [selectTrack]);
+
   const ambientAssetUrl = useMemo(() => {
     if (!ambientAssetKey) return "";
 
@@ -101,7 +150,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     }
   }, [ambientAssetKey]);
   const bannerFallbackCover = useMemo(() => {
-    if (!player.currentTrack) {
+    if (!hasCurrentTrack) {
       return "url('/music-covers/yeoni-1st-album.webp')";
     }
 
@@ -110,7 +159,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     } catch {
       return "url('/music-covers/yeoni-1st-album.webp')";
     }
-  }, [player.currentTrack?.id]);
+  }, [hasCurrentTrack]);
   const playerStyle: PlayerStyle = {};
 
   if (player.currentTrack && !coverFailed) {
@@ -137,6 +186,37 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     setFailedCoverIds((current) => ({ ...current, [player.currentTrack?.id || ""]: true }));
   };
   const lyricsText = player.currentTrack?.lyrics?.trim() || "";
+  const listeningStatusLabel = getListeningStatusLabel(player.isLoading, player.canPlay, player.isPlaying);
+
+  async function handleShareNowPlaying() {
+    if (!player.currentTrack) return;
+
+    const track = player.currentTrack;
+    const trackUrl = buildMusicShareUrl(track.id);
+    const mainUrl = typeof window !== "undefined" ? new URL("/", window.location.origin).toString() : "https://code-destiny.com/";
+    const text = [
+      `${track.artistName} - ${track.title}`,
+      "Listen inside the Code Destiny moon library.",
+      `Code Destiny main: ${mainUrl}`,
+    ].join("\n");
+    const copiedText = `${text}\n${trackUrl}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Code Destiny Music - ${track.title}`,
+          text,
+          url: trackUrl,
+        });
+      } else {
+        await copyMusicShareText(copiedText);
+      }
+
+      setNowPlayingShared(true);
+      window.setTimeout(() => setNowPlayingShared(false), 1800);
+    } catch {
+    }
+  }
 
   if (isCompact && !isListeningModeOpen && player.currentTrack) {
     return (
@@ -241,98 +321,112 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
             <p className={styles.playerHeroText}>네오와 연이의 감성 무드로 이어지는 플레이 리스트.</p>
           </div>
           <div className={styles.playerMain}>
-            <MoonAlbumArtwork
-              coverUrl={player.currentTrack.coverUrl}
-              title={player.currentTrack.title}
-              artistKey={player.currentTrack.artistKey}
-              artistName={player.currentTrack.artistName}
-              coverFailed={coverFailed}
-              onCoverLoad={markCoverLoaded}
-              onCoverError={markCoverFailed}
-            />
+            <div className={styles.albumChamber}>
+              <MoonAlbumArtwork
+                coverUrl={player.currentTrack.coverUrl}
+                title={player.currentTrack.title}
+                artistKey={player.currentTrack.artistKey}
+                artistName={player.currentTrack.artistName}
+                coverFailed={coverFailed}
+                onCoverLoad={markCoverLoaded}
+                onCoverError={markCoverFailed}
+              />
+              <span className={styles.albumStatusBadge}>{listeningStatusLabel}</span>
+            </div>
 
-            <div className={styles.trackMeta}>
-              <span className={styles.artistName}>{player.currentTrack.artistName}</span>
+            <div className={styles.nowPlayingPanel}>
+              <div className={styles.nowPlayingHeader}>
+                <span className={styles.artistName}>{player.currentTrack.artistName}</span>
+                <button
+                  className={styles.nowPlayingShareButton}
+                  type="button"
+                  onClick={() => void handleShareNowPlaying()}
+                  aria-label="현재 곡 공유"
+                  data-shared={nowPlayingShared ? "true" : "false"}
+                >
+                  <Share2 size={16} aria-hidden />
+                  <span>{nowPlayingShared ? "Copied" : "Share"}</span>
+                </button>
+              </div>
               <h2>{player.currentTrack.title}</h2>
               <p>{player.currentTrack.mood || "moonlight session"}</p>
             </div>
 
-            <div className={styles.controlRow}>
-              <button className={styles.iconButton} type="button" onClick={player.previous} aria-label="Previous track">
-                <SkipBack size={18} />
-              </button>
-              <button
-                className={styles.playButton}
-                type="button"
-                onClick={player.isPlaying ? player.pause : player.play}
-                aria-label={player.isPlaying ? "Pause" : "Play"}
-              >
-                {player.isPlaying ? <Pause size={20} /> : <Play size={20} />}
-              </button>
-              <button className={styles.iconButton} type="button" onClick={player.next} aria-label="Next track">
-                <SkipForward size={18} />
-              </button>
-            </div>
+            <div className={styles.controlDeck}>
+              <div className={styles.controlRow}>
+                <button className={styles.iconButton} type="button" onClick={player.previous} aria-label="Previous track">
+                  <SkipBack size={18} />
+                </button>
+                <button
+                  className={styles.playButton}
+                  type="button"
+                  onClick={player.isPlaying ? player.pause : player.play}
+                  aria-label={player.isPlaying ? "Pause" : "Play"}
+                >
+                  {player.isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                </button>
+                <button className={styles.iconButton} type="button" onClick={player.next} aria-label="Next track">
+                  <SkipForward size={18} />
+                </button>
+              </div>
 
-            <label className={styles.progressArea}>
-              <span>{formatTime(player.currentTime)}</span>
-              <input
-                className={styles.progressInput}
-                type="range"
-                min="0"
-                max={progressMax}
-                step="0.1"
-                value={Math.min(player.currentTime, progressMax)}
-                onChange={(event) => player.seek(Number(event.currentTarget.value))}
-              />
-              <span>{formatTime(player.duration)}</span>
-            </label>
-
-            <div className={styles.secondaryControls}>
-              <button
-                className={styles.smallButton}
-                type="button"
-                onClick={() => player.setRepeat(getNextRepeatMode(player.repeat))}
-                aria-label={`Repeat ${player.repeat}`}
-                data-active={player.repeat !== "off"}
-              >
-                {player.repeat === "one" ? <Repeat1 size={18} /> : <Repeat size={18} />}
-              </button>
-              <button
-                className={styles.smallButton}
-                type="button"
-                onClick={player.toggleShuffle}
-                aria-label={player.shuffle ? "Shuffle on" : "Shuffle off"}
-                aria-pressed={player.shuffle}
-                data-active={player.shuffle}
-              >
-                <Shuffle size={18} />
-              </button>
-              <button
-                className={styles.smallButton}
-                type="button"
-                onClick={player.toggleMute}
-                aria-label={player.muted ? "Unmute" : "Mute"}
-                data-active={player.muted}
-              >
-                {player.muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-              </button>
-              <label className={styles.volumeControl}>
-                <span>Volume {Math.round(player.volume * 100)}</span>
+              <label className={styles.progressArea}>
+                <span>{formatTime(player.currentTime)}</span>
                 <input
-                  className={styles.volumeInput}
+                  className={styles.progressInput}
                   type="range"
                   min="0"
-                  max="1"
-                  step="0.01"
-                  value={player.volume}
-                  onChange={(event) => player.setVolume(Number(event.currentTarget.value))}
+                  max={progressMax}
+                  step="0.1"
+                  value={Math.min(player.currentTime, progressMax)}
+                  onChange={(event) => player.seek(Number(event.currentTarget.value))}
                 />
+                <span>{formatTime(player.duration)}</span>
               </label>
-            </div>
 
-            <div className={styles.statusLine}>
-              {player.isLoading ? "로딩 중..." : player.canPlay ? player.status : "준비 중..."}
+              <div className={styles.secondaryControls}>
+                <button
+                  className={styles.smallButton}
+                  type="button"
+                  onClick={() => player.setRepeat(getNextRepeatMode(player.repeat))}
+                  aria-label={`Repeat ${player.repeat}`}
+                  data-active={player.repeat !== "off"}
+                >
+                  {player.repeat === "one" ? <Repeat1 size={18} /> : <Repeat size={18} />}
+                </button>
+                <button
+                  className={styles.smallButton}
+                  type="button"
+                  onClick={player.toggleShuffle}
+                  aria-label={player.shuffle ? "Shuffle on" : "Shuffle off"}
+                  aria-pressed={player.shuffle}
+                  data-active={player.shuffle}
+                >
+                  <Shuffle size={18} />
+                </button>
+                <button
+                  className={styles.smallButton}
+                  type="button"
+                  onClick={player.toggleMute}
+                  aria-label={player.muted ? "Unmute" : "Mute"}
+                  data-active={player.muted}
+                >
+                  {player.muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                </button>
+                <label className={styles.volumeControl}>
+                  <span>{Math.round(player.volume * 100)}</span>
+                  <input
+                    className={styles.volumeInput}
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={player.volume}
+                    onChange={(event) => player.setVolume(Number(event.currentTarget.value))}
+                    aria-label="Volume"
+                  />
+                </label>
+              </div>
             </div>
 
             {player.errorMessage ? (

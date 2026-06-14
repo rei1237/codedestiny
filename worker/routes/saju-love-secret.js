@@ -25,13 +25,14 @@ const LOVE_SECRET_JOB_POLL_AFTER_MS = 4000;
 const LOVE_SECRET_LOCK_TTL_MS = 1000 * 60 * 20;
 const LOVE_SECRET_GENERATION_LOCKS = new Map();
 const LOVE_SECRET_PDF_CONFIG = Object.freeze({
-  generationMode: "local-assembled",
-  provider: "saju-assembler",
-  templateVersion: "love-secret-local-assembled-v3",
+  generationMode: "local-premium",
+  provider: "saju-premium-local-engine",
+  templateVersion: "love-secret-local-premium-v1",
+  qualityMode: "premium-local",
 });
 const LOVE_SECRET_FORBIDDEN_RE = /\b(?:fallback|payload|json|schema|debug|internal\s*server\s*error|object|undefined|null|nan|calculationmode|recovered|about:blank|raw)\b|자동\s*복구\s*생성|chapter\s*1\s*chapter\s*1|데이터가\s*부족합니다|로컬\s*엔진|계산\s*시그니처|내부\s*데이터|엔진\s*결과|데이터\s*정규화|품질\s*검증|재생성/gi;
 const LOVE_SECRET_MANUSCRIPT_SOURCE = Object.freeze({
-  LOCAL: "local-assembled",
+  LOCAL: "local-premium",
 });
 const LOVE_SECRET_PRODUCT_ID = "love_secret";
 
@@ -148,11 +149,11 @@ const LOVE_SECRET_CANONICAL_MODE_CONFIG = Object.freeze({
   couple: Object.freeze({
     mode: "couple",
     title: "사주 궁합 비책",
-    totalChapters: 15,
-    minTotalChars: 54000,
-    chapterMinDefault: 3500,
-    chapterMinByIndex: loveSecretChapterMins(15, 3400),
-    chapters: LOVE_SECRET_CANONICAL_COMPAT_CHAPTERS,
+    totalChapters: 10,
+    minTotalChars: 36000,
+    chapterMinDefault: 3000,
+    chapterMinByIndex: loveSecretChapterMins(10, 3000),
+    chapters: LOVE_SECRET_CANONICAL_COMPAT_CHAPTERS.slice(0, 10),
   }),
 });
 
@@ -202,7 +203,7 @@ const SOLO_LOVE_CHAPTER_SPECS = Object.freeze([
       "연애에서 주도권을 잡는 방식",
       "상대에게 맞추는 정도와 자기주장",
       "현재 대운이 연애 패턴에 주는 영향",
-      "2026년 세운이 연애 흐름에 주는 영향",
+      "올해 세운이 연애 흐름에 주는 영향",
     ]),
   }),
   Object.freeze({
@@ -291,7 +292,7 @@ const SOLO_LOVE_CHAPTER_SPECS = Object.freeze([
     categories: Object.freeze([
       "좋은 인연이 들어오기 쉬운 대운",
       "연애운이 강해지는 세운",
-      "2026년에 인연운이 움직이는 달",
+      "올해 인연운이 움직이는 달",
       "용신과 희신이 살아나는 만남 조건",
       "나에게 맞는 만남 장소와 환경",
       "소개, 모임, 앱, 직장, 취미 중 유리한 경로",
@@ -1025,9 +1026,18 @@ const LOVE_SECRET_PHASE6_SOLO_CHAPTERS = Object.freeze([
 
 const LOVE_SECRET_PHASE6_SOLO_SECTION_TITLES = Object.freeze(["핵심 요약 카드", "상담형 본문", "계산 근거 기반 해석", "주의할 점", "실천 조언", "체크리스트", "챕터 마무리 문장"]);
 
-const LOVE_SECRET_PHASE6_SOLO_SECTIONS = Object.freeze(Object.fromEntries(
-  Array.from({ length: 10 }, (_, idx) => [idx + 1, LOVE_SECRET_PHASE6_SOLO_SECTION_TITLES]),
-));
+const LOVE_SECRET_PHASE6_SOLO_SECTIONS = Object.freeze({
+  1: Object.freeze(["일간으로 보는 사랑의 기본 기질", "일지 배우자궁의 친밀감 본능", "월지가 만드는 현실 연애 조건", "오행 균형과 애정 에너지", "사랑에서 지켜야 할 핵심 기준"]),
+  2: Object.freeze(["사랑을 시작하는 방식", "호감이 생길 때의 표현", "관계를 유지하는 기본 태도", "십성으로 보는 애정 욕구", "나를 편안하게 하는 관계 조건"]),
+  3: Object.freeze(["내가 반복해서 끌리는 사람", "배우자성이 반응하는 매력", "도화와 신살이 만드는 끌림", "설렘과 불안을 구분하는 기준", "좋은 인연을 알아보는 현실 신호"]),
+  4: Object.freeze(["가까워질수록 드러나는 모습", "친밀감을 느끼는 속도", "거리감이 생기는 순간", "조후로 보는 애정 온도", "편안한 스킨십과 생활 리듬"]),
+  5: Object.freeze(["감정을 표현하는 말의 결", "침묵하거나 참는 이유", "서운함을 전하는 순서", "오해를 줄이는 질문", "관계를 여는 대화 루틴"]),
+  6: Object.freeze(["갈등이 시작되는 반복 구조", "상처받을 때 보이는 반응", "이별 신호가 강해지는 순간", "재회를 바랄 때 구분할 조건", "같은 패턴을 끊는 회복 행동"]),
+  7: Object.freeze(["나에게 맞는 배우자상", "결혼으로 안정되는 부분", "장기 관계에서 조율할 현실 조건", "생활 리듬과 책임감", "오래 가는 관계의 약속"]),
+  8: Object.freeze(["좋은 인연이 들어오기 쉬운 대운", "올해 세운이 여는 연애 기회", "월운으로 보는 만남과 조율", "조심해야 할 관계 전환점", "타이밍을 현실 행동으로 쓰는 법"]),
+  9: Object.freeze(["살려야 할 매력", "관리해야 할 약점", "피해야 할 상대 유형", "만나야 할 사람의 조건", "나에게 맞는 연애 선택 기준"]),
+  10: Object.freeze(["내 연애의 핵심 한 문장", "오늘부터 줄일 반복 반응", "오늘부터 늘릴 관계 행동", "30일 연애 회복 루틴", "품격 있는 사랑의 최종 기준"]),
+});
 
 const LOVE_SECRET_PHASE6_SOLO_TOPIC_KEYWORDS = Object.freeze({
   1: Object.freeze(["프롤로그", "기본 코드", "일간", "일지", "오행", "사랑"]),
@@ -1065,9 +1075,18 @@ const LOVE_SECRET_PHASE7_COMPAT_SECTION_TITLES = Object.freeze([
   "30일 관계 개선 루틴",
 ]);
 
-const LOVE_SECRET_PHASE7_COMPAT_SECTIONS = Object.freeze(Object.fromEntries(
-  Array.from({ length: 10 }, (_, idx) => [idx + 1, LOVE_SECRET_PHASE7_COMPAT_SECTION_TITLES]),
-));
+const LOVE_SECRET_PHASE7_COMPAT_SECTIONS = Object.freeze({
+  1: Object.freeze(["두 사람의 관계 코드 한 줄", "일간과 일지의 첫 맞물림", "처음 느껴지는 분위기", "관계 강점과 약점", "궁합을 살리는 기본 태도"]),
+  2: Object.freeze(["서로에게 반응하는 이유", "첫 끌림을 만든 오행 신호", "호감이 커지는 조건", "처음부터 조심할 기대", "설렘을 안정감으로 바꾸는 법"]),
+  3: Object.freeze(["감정 속도의 차이", "정서적 안정감을 주는 부분", "불안이 커지는 지점", "서로의 마음을 안심시키는 말", "감정 궁합을 지키는 루틴"]),
+  4: Object.freeze(["말이 잘 통하는 부분", "오해가 생기는 말의 결", "침묵이 생기는 이유", "서운함을 확인하는 순서", "대화를 회복하는 문장"]),
+  5: Object.freeze(["갈등이 시작되는 원인", "싸울 때 각자 보이는 반응", "충돌이 커지는 금지 문장", "화해가 어려워지는 패턴", "갈등을 줄이는 현실 약속"]),
+  6: Object.freeze(["다시 가까워지는 순서", "사과보다 중요한 다음 행동", "서로의 방어를 낮추는 말", "관계 개선을 위한 작은 약속", "회복력을 키우는 30일 행동"]),
+  7: Object.freeze(["돈과 소비 감각의 차이", "생활 리듬의 궁합", "일과 사랑의 우선순위", "현실 문제가 사랑에 주는 영향", "일상 리듬을 맞추는 조율법"]),
+  8: Object.freeze(["오래 갈 수 있는 관계 조건", "결혼 현실성의 강점", "책임과 역할 분담", "생활 속에서 드러날 차이", "장기 관계로 가기 위한 약속"]),
+  9: Object.freeze(["올해 두 사람의 관계 운", "가까워지기 좋은 시기", "조심해야 할 전환점", "월운으로 보는 관계 운영", "타이밍을 살리는 공동 행동"]),
+  10: Object.freeze(["두 사람의 최종 궁합 메시지", "반드시 살려야 할 강점", "반드시 피해야 할 습관", "30일 관계 개선 루틴", "앞으로의 선택 기준"]),
+});
 
 const LOVE_SECRET_PHASE7_COMPAT_TOPIC_KEYWORDS = Object.freeze({
   1: Object.freeze(["프롤로그", "관계 코드", "핵심 성향", "비교표", "두 사람", "궁합"]),
@@ -1122,13 +1141,25 @@ function firstLoveSecretText(...values) {
   return "";
 }
 
+function loveSecretCurrentTargetYear() {
+  const year = new Date().getFullYear();
+  return Number.isFinite(year) && year >= 2026 ? year : 2026;
+}
+
+function resolveLoveSecretTargetYear(value) {
+  const currentYear = loveSecretCurrentTargetYear();
+  const requestedYear = Number(value);
+  if (Number.isFinite(requestedYear) && requestedYear >= currentYear && requestedYear <= currentYear + 3) return requestedYear;
+  return currentYear;
+}
+
 function normalizeLoveSecretGenerationBody(body = {}, mode = "solo", base = {}) {
   const raw = body && typeof body === "object" ? body : {};
   const serviceContext = raw.serviceContext && typeof raw.serviceContext === "object" ? raw.serviceContext : {};
   const relationshipContext = raw.relationshipContext && typeof raw.relationshipContext === "object" ? raw.relationshipContext : {};
   const normalizedMode = normalizeMode(mode);
   const source = { ...serviceContext, ...relationshipContext, ...raw };
-  const targetYear = Number(source.targetYear || 2026);
+  const targetYear = resolveLoveSecretTargetYear(source.targetYear);
   const selfName = firstLoveSecretText(base?.user?.name, raw?.birthInput?.name, raw?.profile?.name, "의뢰인");
   const partnerName = firstLoveSecretText(base?.partner?.user?.name, raw?.partnerBirthInput?.name, relationshipContext?.partnerName, "상대방");
   const isCompatibility = normalizedMode === "compatibility";
@@ -1168,7 +1199,7 @@ function normalizeLoveSecretGenerationBody(body = {}, mode = "solo", base = {}) 
     schemaVersion: "love-secret-client-flow.v1",
     source: "worker-love-secret-normalizer",
     mode: normalizedMode,
-    chapterCount: normalizedMode === "compatibility" ? 15 : 10,
+    chapterCount: 10,
     selfName,
     partnerName: isCompatibility ? partnerName : "",
     assemblyContract: "love-secret-master-json.v1",
@@ -1178,7 +1209,7 @@ function normalizeLoveSecretGenerationBody(body = {}, mode = "solo", base = {}) 
   const reunionEnabled = source.wantsReunionAnalysis !== false && source.includeReunionAnalysis !== false;
   const contract = {
     mode: normalizedMode,
-    targetYear: Number.isFinite(targetYear) ? targetYear : 2026,
+    targetYear,
     loveStatus,
     relationshipStatus: loveStatus,
     currentLoveStatus: loveStatus,
@@ -1213,12 +1244,12 @@ function normalizeLoveSecretGenerationBody(body = {}, mode = "solo", base = {}) 
 async function buildLoveSecretChapters(env, { base, mode, config, body = {}, requestId = "", onProgress = null } = {}) {
   const normalizedBody = normalizeLoveSecretGenerationBody(body, mode, base);
   const normalizedMode = normalizeMode(mode);
-  const targetYear = Number(normalizedBody?.targetYear || 2026);
+  const targetYear = resolveLoveSecretTargetYear(normalizedBody?.targetYear);
   const loveSecretMasterJson = buildLoveSecretMasterJson({
     base,
     mode: normalizedMode,
     body: normalizedBody,
-    targetYear: Number.isFinite(targetYear) ? targetYear : 2026,
+    targetYear,
   });
   const masterJsonValidation = validateLoveSecretMasterJson(loveSecretMasterJson);
   if (!masterJsonValidation.ok) {
@@ -1241,6 +1272,8 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
         externalGeneration: false,
         provider: LOVE_SECRET_PDF_CONFIG.provider,
         templateVersion: LOVE_SECRET_PDF_CONFIG.templateVersion,
+        qualityMode: LOVE_SECRET_PDF_CONFIG.qualityMode,
+        fallbackUsed: false,
         chapterCount: 0,
         expectedChapterCount: 0,
         engineVersion: LOVE_SECRET_ENGINE_VERSION,
@@ -1297,6 +1330,8 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
     externalGeneration: false,
     provider: LOVE_SECRET_PDF_CONFIG.provider,
     templateVersion: LOVE_SECRET_PDF_CONFIG.templateVersion,
+    qualityMode: LOVE_SECRET_PDF_CONFIG.qualityMode,
+    fallbackUsed: false,
     chapterCount: chapters.length,
     expectedChapterCount: totalChapters,
     engineVersion: LOVE_SECRET_ENGINE_VERSION,
@@ -1317,7 +1352,7 @@ async function buildLoveSecretChapters(env, { base, mode, config, body = {}, req
   console.info("[LoveBook][Flow] ALL_CHAPTERS_DONE", {
     expected: totalChapters,
     actual: finalChapters.length,
-    localAssemblyOnly: true,
+    qualityMode: LOVE_SECRET_PDF_CONFIG.qualityMode,
     normalizedToLocal,
   });
   return {
@@ -1457,7 +1492,11 @@ function normalizeLoveSecretBirthInput(raw = {}, fallbackName = "사용자") {
     return { ok: false, code: "BIRTH_DATE_REQUIRED", message: "연애 비책 PDF 생성을 위해 생년월일 정보가 필요합니다." };
   }
 
-  const timeInfo = parseLoveSecretBirthTime(src.birthTime || src.time, src.birthHour ?? src.hour, src.birthMinute ?? src.minute);
+  const isTimeUnknown = Boolean(src.unknownTime || src.isTimeUnknown || src.timeUnknown);
+  let timeInfo = parseLoveSecretBirthTime(src.birthTime || src.time, src.birthHour ?? src.hour, src.birthMinute ?? src.minute);
+  if (!timeInfo.ok && isTimeUnknown) {
+    timeInfo = { ok: true, hour: 12, minute: 0, birthTime: "12:00" };
+  }
   if (!timeInfo.ok) {
     return { ok: false, code: "BIRTH_TIME_REQUIRED", message: "연애 비책 PDF는 출생 시간이 필요합니다. 태어난 시간을 입력해 주세요." };
   }
@@ -1481,6 +1520,7 @@ function normalizeLoveSecretBirthInput(raw = {}, fallbackName = "사용자") {
       timezone: clean(src.timezone || "Asia/Seoul") || "Asia/Seoul",
       latitude: Number.isFinite(latitude) ? latitude : 37.5665,
       longitude: Number.isFinite(longitude) ? longitude : 126.978,
+      unknownTime: isTimeUnknown,
     },
   };
 }
@@ -1520,7 +1560,7 @@ function buildLoveSecretBaseFromBirthInput(birthInput) {
         birthPlace: birthInput.birthPlace || "대한민국",
         latitude: birthInput.latitude,
         longitude: birthInput.longitude,
-        unknownTime: false,
+        unknownTime: Boolean(birthInput.unknownTime || birthInput.isTimeUnknown || birthInput.timeUnknown),
       },
     });
   } catch (error) {
@@ -1555,6 +1595,7 @@ function buildLoveSecretBaseFromBirthInput(birthInput) {
       birthDate: clean(birthInput.birthDate),
       birthTime: clean(birthInput.birthTime),
       calendarType: clean(birthInput.calendarType || "solar") || "solar",
+      unknownTime: Boolean(birthInput.unknownTime || birthInput.isTimeUnknown || birthInput.timeUnknown),
     },
     pillars: {
       year: toLoveSecretPillar(engine?.pillars?.year),
@@ -1832,6 +1873,21 @@ function safeLoveSecretClone(value) {
 function loveSecretCleanList(value, limit = 12) {
   const list = Array.isArray(value) ? value : [];
   return list.map((item) => stripUnsafeText(item)).filter(Boolean).slice(0, limit);
+}
+
+function loveSecretUniqueCategoryList(value, limit = 12) {
+  const list = Array.isArray(value) ? value : [];
+  const result = [];
+  const seen = new Set();
+  for (const item of list) {
+    const text = loveSecretSafeDisplayText(item);
+    const key = text.replace(/\s+/g, "");
+    if (!text || seen.has(key)) continue;
+    seen.add(key);
+    result.push(text);
+    if (result.length >= limit) break;
+  }
+  return result;
 }
 
 function loveSecretAgeAtYear(birthDate, targetYear) {
@@ -2275,7 +2331,7 @@ function normalizeLoveSecretForPdf(masterJson = {}) {
   };
 }
 
-function buildLoveSecretMasterPersonJson(base = {}, targetYear = 2026) {
+function buildLoveSecretMasterPersonJson(base = {}, targetYear = loveSecretCurrentTargetYear()) {
   const src = base && typeof base === "object" ? base : {};
   const reference = src?.loveSecretReference && typeof src.loveSecretReference === "object"
     ? src.loveSecretReference
@@ -2362,7 +2418,7 @@ function buildLoveSecretConsultationEvidence(masterJson = {}) {
   });
 }
 
-function buildLoveSecretMasterJson({ base = {}, mode = "solo", body = {}, targetYear = 2026 } = {}) {
+function buildLoveSecretMasterJson({ base = {}, mode = "solo", body = {}, targetYear = loveSecretCurrentTargetYear() } = {}) {
   const normalizedMode = normalizeMode(mode);
   const self = buildLoveSecretMasterPersonJson(base, targetYear);
   const partner = normalizedMode === "compatibility"
@@ -2445,6 +2501,21 @@ function loveSecretHashValue(value) {
 
 function buildLoveSecretPdfCacheDescriptor(base = {}, mode = "solo", body = {}) {
   const normalizedMode = normalizeMode(mode);
+  const raw = body && typeof body === "object" ? body : {};
+  const serviceContext = raw.serviceContext && typeof raw.serviceContext === "object" ? raw.serviceContext : {};
+  const relationshipContext = raw.relationshipContext && typeof raw.relationshipContext === "object" ? raw.relationshipContext : {};
+  const source = { ...serviceContext, ...relationshipContext, ...raw };
+  const contextHash = loveSecretHashValue({
+    targetYear: resolveLoveSecretTargetYear(source.targetYear),
+    loveStatus: firstLoveSecretText(source.loveStatus, source.relationshipStatus, source.currentLoveStatus),
+    currentConcern: firstLoveSecretText(source.currentConcern, source.concern, source.question),
+    idealType: firstLoveSecretText(source.idealType, source.preferredPartner),
+    pastLovePattern: firstLoveSecretText(source.pastLovePattern, source.relationshipPattern),
+    desiredOutcome: firstLoveSecretText(source.desiredOutcome),
+    relationshipType: firstLoveSecretText(source.relationshipType, source.status),
+    wantsMarriageAnalysis: source.wantsMarriageAnalysis !== false && source.includeMarriageAnalysis !== false,
+    wantsReunionAnalysis: source.wantsReunionAnalysis !== false && source.includeReunionAnalysis !== false,
+  });
   const profile = {
     user: safeLoveSecretClone(base?.user || {}),
     pillars: safeLoveSecretClone(base?.pillars || {}),
@@ -2470,6 +2541,7 @@ function buildLoveSecretPdfCacheDescriptor(base = {}, mode = "solo", body = {}) 
       version: LOVE_SECRET_PDF_CONFIG.templateVersion,
       profile,
       calculationResultHash,
+      contextHash,
     };
   }
   const partnerProfile = {
@@ -2502,6 +2574,7 @@ function buildLoveSecretPdfCacheDescriptor(base = {}, mode = "solo", body = {}) 
     myCalculationResultHash: calculationResultHash,
     partnerCalculationResultHash,
     compatibilityResultHash,
+    contextHash,
   };
 }
 
@@ -2936,8 +3009,15 @@ function extractLoveSecretFactKeywords(lockedFacts = []) {
 function markLoveSecretLocalChapter(chapter = {}) {
   return {
     ...chapter,
-    sections: (Array.isArray(chapter?.sections) ? chapter.sections : []).map((section) => ({ ...section })),
+    sections: (Array.isArray(chapter?.sections) ? chapter.sections : []).map((section) => ({
+      ...section,
+      source: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
+      qualityMode: LOVE_SECRET_PDF_CONFIG.qualityMode,
+      fallbackUsed: false,
+    })),
     source: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
+    qualityMode: LOVE_SECRET_PDF_CONFIG.qualityMode,
+    fallbackUsed: false,
   };
 }
 
@@ -2980,7 +3060,7 @@ function safeModeChapterConfig(mode) {
 function getChapterSpecificSections(body, chapterNo, mode) {
   const input = Array.isArray(body?.chapterSpecificSections) ? body.chapterSpecificSections : [];
   const cleanedInput = input.map((v) => stripUnsafeText(v)).filter(Boolean);
-  if (cleanedInput.length) return cleanedInput.slice(0, ["solo", "compatibility"].includes(normalizeMode(mode)) ? 7 : 5);
+  if (cleanedInput.length) return cleanedInput.slice(0, ["solo", "compatibility"].includes(normalizeMode(mode)) ? 12 : 5);
   const canonicalMode = normalizeMode(mode);
   if (canonicalMode === "solo") {
     const sections = LOVE_SECRET_PHASE6_SOLO_SECTIONS[chapterNo] || LOVE_SECRET_PHASE6_SOLO_SECTIONS[1];
@@ -3051,21 +3131,62 @@ function loveSecretStrengthTone(base, contextLabel = "이 장") {
   const isStrong = base?.strength?.isStrong === true || /강|왕|strong/i.test(label);
   const isWeak = base?.strength?.isStrong === false || /약|쇠|weak/i.test(label);
   if (isStrong) {
-    return `${contextLabel}에서는 강하게 드러나는 기운을 짧게 단정하지 않고, 매력으로 살아나는 장면과 부담으로 번지는 장면을 함께 봅니다. 힘이 충분한 항목은 관계를 밀고 가는 추진력이 되지만, 상대의 속도를 듣지 않으면 압박처럼 느껴질 수 있으므로 표현의 양보다 온도 조절이 중요합니다.`;
+    return loveSecretTextVariant(`${contextLabel}:${label}:strong-tone`, [
+      `${contextLabel}에서는 강하게 드러나는 기운을 짧게 단정하지 않고, 매력으로 살아나는 장면과 부담으로 번지는 장면을 함께 봅니다. 힘이 충분한 항목은 관계를 밀고 가는 추진력이 되지만, 상대의 속도를 듣지 않으면 압박처럼 느껴질 수 있으므로 표현의 양보다 온도 조절이 중요합니다.`,
+      `${contextLabel}에서는 기운이 앞서 나갈 때의 장점과 무리하게 밀어붙일 때의 부담을 분리해야 합니다. 관계를 주도하는 힘은 분명한 매력이지만, 상대가 숨 쉴 여지를 함께 남겨야 사랑의 온도가 오래 유지됩니다.`,
+      `${contextLabel}의 강한 흐름은 사랑을 선명하게 시작하게 하지만, 같은 힘이 확인 요구나 조급함으로 바뀌면 관계가 쉽게 피로해집니다. 그래서 이 대목은 표현의 크기보다 받아들일 수 있는 속도를 함께 읽어야 합니다.`,
+      `${contextLabel}에서는 주도성이 매력으로 보이는 순간과 압박으로 느껴지는 순간을 나누어 봅니다. 힘 있는 명식일수록 다정함은 더 크게 말하는 것이 아니라 상대의 박자에 맞춰 조절하는 데서 살아납니다.`,
+    ]);
   }
   if (isWeak) {
-    return `${contextLabel}에서는 약하게 드러나는 기운을 결핍으로 낙인찍기보다 보완 가능한 습관으로 다룹니다. 부족한 항목은 상대에게 전부 맡기기보다, 말의 순서와 만남의 리듬, 감정 확인 방식을 작게 정해 반복할 때 안정적으로 채워집니다.`;
+    return loveSecretTextVariant(`${contextLabel}:${label}:weak-tone`, [
+      `${contextLabel}에서는 약하게 드러나는 기운을 결핍으로 낙인찍기보다 보완 가능한 습관으로 다룹니다. 부족한 항목은 상대에게 전부 맡기기보다, 말의 순서와 만남의 리듬, 감정 확인 방식을 작게 정해 반복할 때 안정적으로 채워집니다.`,
+      `${contextLabel}에서 부족하게 보이는 기운은 사랑의 실패 조건이 아니라 관계를 천천히 안전하게 만드는 과제입니다. 먼저 기대를 낮추는 것이 아니라 필요한 안정 행동을 구체적으로 말하는 연습이 필요합니다.`,
+      `${contextLabel}의 약한 흐름은 상대에게 기대고 싶은 마음으로 나타날 수 있습니다. 이때 중요한 것은 의존을 숨기는 일이 아니라, 부탁과 기준을 부드럽게 나누어 관계가 무겁게 흐르지 않게 하는 것입니다.`,
+      `${contextLabel}에서는 모자란 기운을 상대에게 전부 채우라고 요구하지 않는 태도가 중요합니다. 작은 루틴, 짧은 확인, 반복 가능한 약속이 쌓일수록 관계의 안정감이 살아납니다.`,
+    ]);
   }
-  return `${contextLabel}에서는 균형에 가까운 항목을 과장하지 않고, 상황에 따라 강해지는 반응과 조용히 물러나는 반응을 나누어 봅니다.`;
+  return loveSecretTextVariant(`${contextLabel}:${label}:balanced-tone`, [
+    `${contextLabel}에서는 균형에 가까운 항목을 과장하지 않고, 상황에 따라 강해지는 반응과 조용히 물러나는 반응을 나누어 봅니다.`,
+    `${contextLabel}에서는 한쪽으로 치우치지 않는 장점을 살리되, 애매하게 미루는 태도가 되지 않도록 선택 기준을 분명히 세웁니다.`,
+    `${contextLabel}의 균형감은 관계를 부드럽게 만들지만, 중요한 순간에는 마음을 숨기지 않는 선명함도 필요합니다.`,
+  ]);
 }
 
-function loveSecretRelationManagementLine(relationHint = "", mode = "solo") {
+function loveSecretRelationManagementLine(relationHint = "", mode = "solo", contextLabel = "관계") {
   const normalizedMode = normalizeMode(mode);
   const base = normalizedMode === "compatibility"
-    ? "합, 충, 형, 파, 해, 삼합, 방합 같은 관계성은 좋은 궁합과 나쁜 궁합을 가르는 판정이 아니라 두 사람이 어떤 방식으로 가까워지고 예민해지는지를 보여 주는 작동 원리입니다."
-    : "합, 충, 형, 파, 해, 삼합, 방합 같은 관계성은 운을 단정하는 표지가 아니라 마음이 움직이는 방식과 관리해야 할 반응을 알려 주는 참고점입니다.";
-  const management = "끌림이 강하면 속도를 조절하고, 긴장이 생기면 말의 순서와 거리감을 먼저 조정하는 방식으로 다루는 것이 좋습니다.";
-  return [base, clean(relationHint), management].filter(Boolean).join(" ");
+    ? loveSecretTextVariant(`${contextLabel}:compat-relation-base`, [
+      "합, 충, 형, 파, 해, 삼합, 방합 같은 관계성은 좋은 궁합과 나쁜 궁합을 가르는 판정이 아니라 두 사람이 어떤 방식으로 가까워지고 예민해지는지를 보여 주는 작동 원리입니다.",
+      "궁합의 관계성은 맞다 틀리다의 결론보다 가까워지는 속도, 부딪히는 방식, 회복되는 순서를 알려 주는 지도에 가깝습니다.",
+      "두 사람의 합충형파해는 운명적 판정이 아니라 서로의 반응을 번역하는 언어입니다. 강하게 끌리는 지점과 예민해지는 지점을 함께 봐야 조율이 가능합니다.",
+    ])
+    : loveSecretTextVariant(`${contextLabel}:solo-relation-base`, [
+      "합, 충, 형, 파, 해, 삼합, 방합 같은 관계성은 운을 단정하는 표지가 아니라 마음이 움직이는 방식과 관리해야 할 반응을 알려 주는 참고점입니다.",
+      "관계성 신호는 좋은 사람을 정해 주는 답안이 아니라 내가 어떤 상황에서 빠르게 끌리고 어디서 방어가 생기는지를 보여 주는 단서입니다.",
+      "사주의 관계 흐름은 인연의 이름표가 아니라 마음의 반응 속도와 선택 습관을 읽는 참고점으로 다루어야 합니다.",
+    ]);
+  const management = loveSecretTextVariant(`${contextLabel}:relation-management`, [
+    "끌림이 강하면 속도를 조절하고, 긴장이 생기면 말의 순서와 거리감을 먼저 조정하는 방식으로 다루는 것이 좋습니다.",
+    "관계가 흔들릴 때는 결론을 앞세우기보다 확인할 사실, 말해야 할 감정, 부탁할 행동을 나누어 보는 편이 안전합니다.",
+    "좋은 흐름을 오래 쓰려면 강한 반응을 바로 행동으로 옮기기보다 상대가 받아들일 수 있는 온도로 낮추는 과정이 필요합니다.",
+    "예민한 지점이 보일수록 단정 대신 관찰, 판단 대신 요청, 침묵 대신 짧은 확인 문장으로 관계를 살리는 편이 좋습니다.",
+  ]);
+  const intimacySafety = loveSecretTextVariant(`${contextLabel}:intimacy-safety`, [
+    "정서적 거리감과 친밀감의 속도는 애정의 크기가 아니라 안심의 리듬으로 조율합니다.",
+    "가까워지는 속도는 사랑의 증거가 아니라 서로의 경계와 편안함이 맞아 가는 과정으로 보아야 합니다.",
+    "친밀감은 빠르게 확인할수록 좋은 항목이 아니라, 두 사람이 안전하다고 느끼는 거리에서 자연스럽게 깊어지는 흐름입니다.",
+  ]);
+  return [base, clean(relationHint), management, intimacySafety].filter(Boolean).join(" ");
+}
+
+function loveSecretThreePointGuidance(sectionTitle, sectionTone, contextLabel) {
+  return loveSecretTextVariant(`${contextLabel}:${sectionTitle}:three-point`, [
+    `${sectionTitle}에서는 빠른 결론보다 세 가지 확인이 필요합니다. 감정이 올라왔을 때 바로 판정하지 않는 것, 상대의 말보다 반복 행동을 보는 것, 내가 원하는 사랑의 형태를 ${sectionTone} 전하는 것입니다.`,
+    `${sectionTitle}를 현실에서 다룰 때는 마음의 크기, 상대의 반복 행동, 내가 지킬 기준을 따로 보아야 합니다. 이 세 가지가 나뉘면 불필요한 확인 요구가 줄어듭니다.`,
+    `${sectionTitle}의 실전 기준은 간단합니다. 지금 느끼는 감정이 사실인지, 상대의 행동이 반복되는지, 내가 원하는 방향을 ${sectionTone} 말했는지를 차례로 확인합니다.`,
+    `${sectionTitle}에서는 설렘, 불안, 기대를 한 문장에 섞지 않는 것이 중요합니다. 감정은 인정하고, 사실은 확인하며, 요청은 작게 말할수록 관계가 안정됩니다.`,
+  ]);
 }
 
 function sanitizeLoveSecretLocalText(value) {
@@ -3178,7 +3299,7 @@ function buildProfessionalLoveSecretSectionText(base, chapterTitle, sectionTitle
   const self = loveSecretProfileContext(base);
   const partner = normalizedMode === "compatibility" && base?.partner ? loveSecretProfileContext(base.partner) : null;
   const contextLabel = `${chapterNo}장 ${sectionTitle}`;
-  const relationLine = loveSecretRelationLine(self, base?.partner, contextLabel);
+  const relationLine = loveSecretRelationLine(self, normalizedMode === "compatibility" ? base?.partner : null, contextLabel);
   const dayBranchRelationHint = buildDayBranchRelationHint(self.dayBranch, partner?.dayBranch);
   const partnerLine = partner
     ? `${contextLabel}에서 상대는 ${partner.dayMaster} 일간과 ${partner.dayBranch} 일지를 중심으로 애정을 표현합니다. ${contextLabel}의 실제 장면에서는 ${partner.monthPillar}의 현실 감각이 더해져 말보다 태도와 반복되는 행동에서 진심이 드러나는 편입니다.`
@@ -3192,13 +3313,25 @@ function buildProfessionalLoveSecretSectionText(base, chapterTitle, sectionTitle
   const sectionTone = ["부드럽게", "차분하게", "정직하게", "품격 있게", "현실적으로"][sectionIndex % 5];
   const phase9Seed = `${normalizeMode(mode)}:${chapterNo}:${sectionIndex}:${chapterTitle}:${sectionTitle}:${self.dayMaster}:${partner?.dayMaster || ""}`;
   const strengthTone = loveSecretStrengthTone(base, contextLabel);
-  const relationManagement = loveSecretRelationManagementLine(dayBranchRelationHint, mode);
+  const relationManagement = loveSecretRelationManagementLine(dayBranchRelationHint, mode, contextLabel);
+  const strengthInsight = loveSecretTextVariant(`${phase9Seed}:strength-insight`, [
+    `이 구조에서 강점은 ${self.strength}의 기세가 관계를 끌고 가는 힘으로 작동한다는 점입니다.`,
+    `${sectionTitle}에서 먼저 볼 장점은 ${self.strength}의 기운이 마음을 숨기지 않고 관계를 움직이게 한다는 점입니다.`,
+    `${chapterTitle}의 이 대목에서는 ${self.strength} 흐름이 사랑을 시작하고 유지하는 추진력으로 드러납니다.`,
+    `${sectionTitle}를 볼 때 ${self.strength}의 결은 애정을 표현하는 힘과 관계를 끌고 가는 리듬으로 나타납니다.`,
+  ]);
+  const elementInsight = loveSecretTextVariant(`${phase9Seed}:element-insight`, [
+    `${self.dominantElement} 기운은 끌림을 만들지만, 부족한 ${self.deficientElement} 기운이 채워지지 않으면 서운함이 쌓이기 쉽습니다.`,
+    `${self.dominantElement} 기운이 매력으로 살아날수록 ${self.deficientElement} 기운을 보완하는 안정 행동도 함께 필요합니다.`,
+    `우세한 ${self.dominantElement} 흐름은 관계의 첫 반응을 선명하게 만들고, 약한 ${self.deficientElement} 흐름은 안심을 확인하는 방식에서 보완이 필요합니다.`,
+    `${self.dominantElement}의 힘은 설렘을 키우지만, ${self.deficientElement}의 결이 비면 마음을 해석으로 채우기 쉬우므로 생활 속 안정감이 중요합니다.`,
+  ]);
 
   const paragraphs = [
     `${chapterNo}장 ${chapterTitle}의 ${sectionTitle}은 사랑을 운명처럼 포장하기보다, 사주가 보여 주는 관계의 습관을 현실에서 읽어 내는 대목입니다. ${self.name}님의 핵심은 일간 ${self.dayMaster}, 일지 ${self.dayBranch}, 월지 ${self.monthBranch}에 놓여 있으며, 특히 월주 ${self.monthPillar}는 연애가 실제 생활과 만날 때 어떤 태도가 강해지는지를 보여 줍니다. ${relationLine}`,
-    `이 구조에서 강점은 ${self.strength}의 기세가 관계를 끌고 가는 힘으로 작동한다는 점입니다. ${self.dominantElement} 기운은 끌림을 만들지만, 부족한 ${self.deficientElement} 기운이 채워지지 않으면 서운함이 쌓이기 쉽습니다. ${partnerLine} 그래서 ${sectionTitle}에서는 감정을 증명하려는 태도보다 서로가 안심하는 조건을 먼저 정리해야 합니다.`,
+    `${strengthInsight} ${elementInsight} ${partnerLine} 그래서 ${sectionTitle}에서는 감정을 증명하려는 태도보다 서로가 안심하는 조건을 먼저 정리해야 합니다.`,
     `${contextLabel}에서 ${self.tenGod}의 기운은 애정 표현의 방식과 기대치를 결정합니다. ${contextLabel}의 사랑을 받을 때는 분명한 말과 꾸준한 행동을 원하고, 사랑을 줄 때는 상대가 흔들리지 않도록 생활 속 기준을 세우려는 면이 강해집니다. ${hourLine} ${contextLabel}을 이해하면 좋은 사람을 만나도 같은 오해가 줄고, 관계의 불필요한 긴장이 빠르게 가라앉습니다.`,
-    `${intimacyLine} 특히 ${sectionTitle}에서는 빠른 결론보다 세 가지 확인이 필요합니다. 첫째, 감정이 올라왔을 때 바로 판정하지 않는 것. 둘째, 상대의 말보다 반복 행동을 보는 것. 셋째, 내가 원하는 사랑의 형태를 ${sectionTone} 전하는 것입니다. 이 세 가지가 지켜질 때 관계는 운의 흔들림 속에서도 쉽게 무너지지 않습니다.`,
+    `${intimacyLine} ${loveSecretThreePointGuidance(sectionTitle, sectionTone, contextLabel)} 이 기준이 지켜질 때 관계는 운의 흔들림 속에서도 쉽게 무너지지 않습니다.`,
     strengthTone,
     relationManagement,
     `${self.useful ? `${contextLabel}의 보완 기운은 ${self.useful} 쪽에서 살아납니다. ` : ""}${self.daeun ? `${contextLabel}의 가까운 운 흐름은 ${self.daeun} 구간을 함께 보며 조절하면 좋습니다. ` : ""}${sectionTitle}의 실천 비책은 단순합니다. 마음이 급해질수록 확인을 요구하기보다 오늘 지킬 수 있는 작은 약속을 만들고, 상대가 반응할 시간을 주며, 나의 기준을 품격 있게 말하는 것입니다. ${contextLabel}이 지켜질 때 ${self.name}님의 사랑은 흔들리는 감정이 아니라 선택 가능한 인연으로 선명해집니다.`,
@@ -3406,20 +3539,56 @@ function buildLoveSecretThirtyDayRoutineRows(mode) {
   return normalizedMode === "compatibility" ? coupleRows : soloRows;
 }
 
+function buildLoveSecretLocalPremiumSectionAssets(profile = {}, title = "", sectionFacts = {}, normalizedMode = "solo") {
+  const kind = clean(profile.kind) || loveSecretCategoryKind(title);
+  const isCompat = normalizeMode(normalizedMode) === "compatibility";
+  const evidence = loveSecretCleanList([
+    ...(Array.isArray(profile.evidence) ? profile.evidence : []),
+    `${title} 판단 기준: ${loveSecretPair(sectionFacts.selfDayMaster, sectionFacts.dayBranch)} 관계 축`,
+    `${title} 보완 방향: ${loveSecretPair(sectionFacts.dominantElement, sectionFacts.deficientElement)} 오행 균형`,
+  ], 5);
+  const keyPoints = loveSecretCleanList([
+    loveSecretCategoryNoteSentence(title, "핵심 판단", profile.keyPoint),
+    loveSecretCategoryNoteSentence(title, "명리 해석", profile.interpretation),
+    `${title}에서는 감정의 크기보다 반복되는 행동, 말의 온도, 관계가 편안해지는 조건을 함께 봅니다.`,
+  ], 4);
+  const actionGuide = loveSecretCleanList([
+    loveSecretCategoryActionGuideLine(kind, title, sectionFacts, isCompat),
+    loveSecretCategoryNoteSentence(title, "실천 처방", profile.advice),
+    loveSecretCategoryNoteSentence(title, "마무리 기준", loveSecretCategoryClosingLine(kind, sectionFacts, title)),
+  ], 4);
+  const caution = loveSecretCleanList([
+    loveSecretCategoryNoteSentence(title, "주의 신호", profile.caution),
+    loveSecretCategoryNoteSentence(title, "명리 보완", loveSecretCategorySupportLine(kind, sectionFacts, title)),
+  ], 4);
+  const checklist = loveSecretPersonalizedList(title, profile.checklist);
+  return {
+    sajuEvidence: evidence.map(sanitizeLoveSecretLocalText),
+    keyPoints: keyPoints.map(sanitizeLoveSecretLocalText),
+    actionGuide: actionGuide.map(sanitizeLoveSecretLocalText),
+    caution: caution.map(sanitizeLoveSecretLocalText),
+    checklist: checklist.map(sanitizeLoveSecretLocalText),
+  };
+}
+
 function buildLocalChapter(base, chapterTitle, chapterSubtitle, sectionTitles, mode, chapterNo) {
   const quality = buildLoveSecretChapterQualityAssets(base, mode, chapterNo, chapterTitle);
   const normalizedMode = normalizeMode(mode);
+  const premiumFacts = buildLoveSecretAssembledFacts(base, normalizedMode, {});
   const sections = sectionTitles.map((sectionTitle, idx) => {
     const title = stripUnsafeText(sectionTitle) || `세부 항목 ${idx + 1}`;
+    const categoryProfile = buildLoveSecretCategoryConsultationProfile({ category: title, facts: premiumFacts, mode: normalizedMode });
+    const sectionFacts = categoryProfile.facts || premiumFacts;
+    const sectionAssets = buildLoveSecretLocalPremiumSectionAssets(categoryProfile, title, sectionFacts, normalizedMode);
     const section = {
       id: `${String(idx + 1).padStart(2, "0")}`,
       title,
       body: sanitizeLoveSecretLocalText(buildProfessionalLoveSecretSectionText(base, chapterTitle, title, mode, chapterNo, idx)),
-      sajuEvidence: quality.sajuEvidence.map(sanitizeLoveSecretLocalText),
-      keyPoints: quality.summaryCards.map(sanitizeLoveSecretLocalText),
-      actionGuide: quality.actionItems.map(sanitizeLoveSecretLocalText),
-      caution: quality.caution.map(sanitizeLoveSecretLocalText),
-      checklist: quality.checklist.map(sanitizeLoveSecretLocalText),
+      sajuEvidence: sectionAssets.sajuEvidence,
+      keyPoints: sectionAssets.keyPoints,
+      actionGuide: sectionAssets.actionGuide,
+      caution: sectionAssets.caution,
+      checklist: sectionAssets.checklist,
     };
     if ((normalizedMode === "solo" && chapterNo === 8 && idx === 0) || (normalizedMode === "compatibility" && chapterNo === 9 && idx === 0)) {
       section.tableType = "monthly-love-flow";
@@ -3461,6 +3630,9 @@ function buildLocalChapter(base, chapterTitle, chapterSubtitle, sectionTitles, m
     sections,
     localDraft: text,
     finalText: text,
+    source: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
+    qualityMode: LOVE_SECRET_PDF_CONFIG.qualityMode,
+    fallbackUsed: false,
   };
 }
 
@@ -3612,6 +3784,19 @@ const LOVE_SECRET_ASSEMBLED_COMPAT_SPECS = Object.freeze([
   Object.freeze({ title: "최종 궁합 비책", subtitle: "두 사람이 함께 지킬 30일 관계 루틴", focus: "관계를 살리는 실천 전략" }),
 ]);
 
+const LOVE_SECRET_ASSEMBLED_COMPAT_CATEGORIES = Object.freeze({
+  1: Object.freeze(["첫눈에 느껴지는 관계의 결", "일간·일지·월지 핵심 궁합", "끌림과 안정감의 균형", "관계를 흔드는 반복 신호", "두 사람의 생활 박자", "처음부터 조율해야 할 약점", "두 사람의 최종 궁합 한 문장"]),
+  2: Object.freeze(["처음 호감이 생기는 이유", "기질 차이가 매력으로 보이는 지점", "기질 차이가 상처가 되는 지점", "상대에게 끌리는 지점", "좋은 호감을 유지하는 기준", "위험한 기대와 착각", "호감이 안정감으로 바뀌는 조건"]),
+  3: Object.freeze(["정서적 안정감", "불안이 커지는 순간", "감정 속도 차이", "서로를 안심시키는 방식", "질투와 비교심이 생기는 지점", "편안함을 느끼는 감정 리듬", "감정 궁합을 살리는 습관"]),
+  4: Object.freeze(["말이 잘 통하는 지점", "오해가 생기는 표현", "침묵이 서운함이 되는 순간", "서운함을 안전하게 말하는 순서", "상대가 듣고 싶어 하는 확인 문장", "화해를 여는 문장", "관계를 살리는 대화 루틴"]),
+  5: Object.freeze(["갈등이 시작되는 원인", "싸울 때 각자 보이는 반응", "방어 반응의 차이", "상처가 깊어지는 금지 문장", "자주 부딪히는 현실 문제", "갈등을 줄이는 기준", "갈등 후 반복하면 안 되는 행동"]),
+  6: Object.freeze(["다시 가까워지는 순서", "사과와 인정의 언어", "회복 가능한 신호", "재충돌을 막는 약속", "화해가 쉬워지는 타이밍", "90일 관계 회복 루틴", "화해 후 지켜야 할 태도"]),
+  7: Object.freeze(["돈과 현실 감각의 차이", "일과 사랑의 우선순위", "가족과 주변 사람의 영향", "생활 습관의 차이", "역할 기대가 부담으로 바뀌는 순간", "현실 문제를 사랑의 편으로 돌리는 법", "현실 문제를 함께 다루는 법"]),
+  8: Object.freeze(["장기 관계로 이어질 수 있는 힘", "결혼 현실성의 강점", "가족·일·돈에서 조율할 지점", "약속이 무거워지는 시기", "함께 살아도 사랑이 남는 방식", "서로를 지치게 하지 않는 약속", "장기 관계의 품격 있는 기준"]),
+  9: Object.freeze(["올해 관계 운", "가까워지기 좋은 시기", "조심해야 할 전환점", "관계 결정에 유리한 때", "각자의 운이 엇갈릴 때의 운영", "함께 운을 살리는 공동 행동", "타이밍을 잘 쓰는 방법"]),
+  10: Object.freeze(["두 사람의 최종 궁합 메시지", "반드시 지켜야 할 태도", "반드시 피해야 할 습관", "30일 관계 회복 루틴", "90일 관계 성장 루틴", "관계를 이어가거나 정리할 품격 있는 기준", "최종 선택 기준"]),
+});
+
 const LOVE_SECRET_ASSEMBLED_SECTIONS = Object.freeze([
   "핵심 요약 카드",
   "상담형 본문",
@@ -3621,6 +3806,58 @@ const LOVE_SECRET_ASSEMBLED_SECTIONS = Object.freeze([
   "체크리스트",
   "마무리 문장",
 ]);
+
+function loveSecretAssembledChapterSpecs(mode = "solo") {
+  const normalizedMode = normalizeMode(mode);
+  if (normalizedMode === "compatibility") {
+    return LOVE_SECRET_ASSEMBLED_COMPAT_SPECS.map((spec, index) => {
+      const source = COMPATIBILITY_LOVE_CHAPTER_SPECS[index] || {};
+      const title = loveSecretSafeDisplayText(spec?.title, loveSecretSafeDisplayText(source?.title, `궁합 비책 ${index + 1}장`));
+      const premiumCategories = [
+        ...(Array.isArray(LOVE_SECRET_ASSEMBLED_COMPAT_CATEGORIES[index + 1]) ? LOVE_SECRET_ASSEMBLED_COMPAT_CATEGORIES[index + 1] : []),
+        ...(Array.isArray(LOVE_SECRET_PHASE7_COMPAT_SECTIONS[index + 1]) ? LOVE_SECRET_PHASE7_COMPAT_SECTIONS[index + 1] : []),
+      ];
+      const categories = loveSecretUniqueCategoryList(
+        loveSecretUniqueCategoryList(premiumCategories, 10).length
+          ? [
+              ...premiumCategories,
+              `${title}의 명리 근거`,
+              `${title}의 감정 운영 기준`,
+              `${title}의 현실 실천 체크`,
+            ]
+          : [],
+        10,
+      );
+      return {
+        number: loveSecretSafeDisplayText(source?.number, String(index + 1)),
+        title,
+        subtitle: loveSecretSafeDisplayText(spec?.subtitle, loveSecretSafeDisplayText(source?.subtitle, `${title}의 세부 상담 카테고리`)),
+        focus: loveSecretSafeDisplayText(spec?.focus, title),
+        categories: categories.length ? categories : Array.from(LOVE_SECRET_ASSEMBLED_SECTIONS),
+      };
+    });
+  }
+  const sourceSpecs = normalizedMode === "compatibility"
+    ? COMPATIBILITY_LOVE_CHAPTER_SPECS.slice(0, LOVE_SECRET_ASSEMBLED_COMPAT_SPECS.length)
+    : SOLO_LOVE_CHAPTER_SPECS.slice(0, LOVE_SECRET_ASSEMBLED_SOLO_SPECS.length);
+  const fallbackSpecs = normalizedMode === "compatibility" ? LOVE_SECRET_ASSEMBLED_COMPAT_SPECS : LOVE_SECRET_ASSEMBLED_SOLO_SPECS;
+  const mergedSpecs = sourceSpecs.map((spec, index) => ({
+    ...spec,
+    categories: Array.from(spec?.categories || []),
+  }));
+  return mergedSpecs.map((spec, index) => {
+    const fallback = fallbackSpecs[index] || {};
+    const title = loveSecretSafeDisplayText(spec?.title, loveSecretSafeDisplayText(fallback?.title, `연애 비책 ${index + 1}장`));
+    const categories = loveSecretCleanList(spec?.categories, 12);
+    return {
+      number: loveSecretSafeDisplayText(spec?.number, String(index + 1)),
+      title,
+      subtitle: loveSecretSafeDisplayText(spec?.subtitle, loveSecretSafeDisplayText(fallback?.subtitle, `${title}의 세부 상담 카테고리`)),
+      focus: loveSecretSafeDisplayText(spec?.focus, loveSecretSafeDisplayText(fallback?.focus, title)),
+      categories: categories.length ? categories : Array.from(LOVE_SECRET_ASSEMBLED_SECTIONS),
+    };
+  });
+}
 
 const LOVE_SECRET_ASSEMBLED_MOJIBAKE_RE = /[\uFFFD\uF900-\uFAFF]|[?][\uAC00-\uD7A3]|[\u3131-\u318E]{2,}|[怨沅諛藥鶯耶渦訝雅野蹂濡]/;
 const LOVE_SECRET_ASSEMBLED_FORBIDDEN_RE = /\b(?:undefined|null|nan|json|schema|debug|prompt|raw|payload|object)\b|\[object Object\]|자동\s*복구\s*생성|데이터\s*부족|템플릿|internal\s*server\s*error|about:blank/i;
@@ -3681,8 +3918,22 @@ function loveSecretBranchKorean(value, fallback = "배우자궁") {
   })[key] || loveSecretSafeDisplayText(value, fallback);
 }
 
-function buildLoveSecretAssembledFacts(base = {}, mode = "solo") {
+function buildLoveSecretAssembledContext(body = {}, mode = "solo", base = {}) {
+  const normalized = normalizeLoveSecretGenerationBody(body, mode, base);
+  return {
+    loveStatus: loveSecretSafeDisplayText(normalized.loveStatus, normalizeMode(mode) === "compatibility" ? "관계의 흐름을 확인하는 상태" : "사랑의 흐름을 점검하는 상태"),
+    currentConcern: loveSecretSafeDisplayText(normalized.currentConcern, "지금 가장 궁금한 사랑의 방향"),
+    idealType: loveSecretSafeDisplayText(normalized.idealType, "마음이 편안해지는 상대"),
+    pastLovePattern: loveSecretSafeDisplayText(normalized.pastLovePattern, "반복되는 관계 습관"),
+    desiredOutcome: loveSecretSafeDisplayText(normalized.desiredOutcome, "관계를 더 분명하고 안정적으로 만드는 것"),
+    relationshipType: loveSecretSafeDisplayText(normalized.relationshipType, normalizeMode(mode) === "compatibility" ? "서로의 관계 가능성을 확인하는 흐름" : "개인의 연애 흐름"),
+    targetYear: resolveLoveSecretTargetYear(normalized.targetYear),
+  };
+}
+
+function buildLoveSecretAssembledFacts(base = {}, mode = "solo", body = {}) {
   const normalizedMode = normalizeMode(mode);
+  const context = buildLoveSecretAssembledContext(body, normalizedMode, base);
   const selfName = loveSecretSafeDisplayText(base?.user?.name, "고객");
   const partnerName = loveSecretSafeDisplayText(base?.partner?.user?.name, "상대");
   const selfCore = base?.core || {};
@@ -3699,8 +3950,12 @@ function buildLoveSecretAssembledFacts(base = {}, mode = "solo") {
   const partnerDeficientElement = loveSecretElementKorean(base?.partner?.elementBalance?.deficient, "보완");
   const usefulElements = loveSecretCleanList(base?.yongshin?.usefulElements, 3).map((item) => loveSecretElementKorean(item, loveSecretSafeDisplayText(item))).filter(Boolean);
   const cautionElements = loveSecretCleanList(base?.yongshin?.cautionElements, 3).map((item) => loveSecretElementKorean(item, loveSecretSafeDisplayText(item))).filter(Boolean);
+  const dominantTenGod = loveSecretSafeDisplayText(base?.tenGods?.dominantTenGod || base?.tenGods?.topTenGods?.[0]?.name, "관계 중심성");
+  const partnerDominantTenGod = loveSecretSafeDisplayText(base?.partner?.tenGods?.dominantTenGod || base?.partner?.tenGods?.topTenGods?.[0]?.name, "상대 관계 중심성");
   const gender = normalizeLoveSecretGender(base?.user?.gender);
+  const partnerGender = normalizeLoveSecretGender(base?.partner?.user?.gender);
   const spouseStar = gender === "M" ? "재성" : gender === "F" ? "관성" : "배우자성";
+  const partnerSpouseStar = partnerGender === "M" ? "재성" : partnerGender === "F" ? "관성" : "상대 배우자성";
   const displayName = normalizedMode === "compatibility" ? `${selfName} × ${partnerName}` : selfName;
   return {
     mode: normalizedMode,
@@ -3719,75 +3974,1377 @@ function buildLoveSecretAssembledFacts(base = {}, mode = "solo") {
     partnerDeficientElement,
     usefulElements: usefulElements.length ? usefulElements.join(", ") : "안정",
     cautionElements: cautionElements.length ? cautionElements.join(", ") : "과열",
+    dominantTenGod,
+    partnerDominantTenGod,
     spouseStar,
+    partnerSpouseStar,
     strengthLabel: loveSecretSafeDisplayText(base?.strength?.label, "균형형"),
-    targetYear: new Date().getFullYear(),
+    ...context,
   };
+}
+
+function loveSecretCategoryKind(category = "") {
+  const text = clean(category);
+  if (/한난조습|조후|친밀|속궁합|스킨십|밀착|정서적 온도|거리감|가까워질수록/.test(text)) return "intimacy";
+  if (/대운|세운|월운|올해|시기|달|타이밍|전환점|흐름이 열리는/.test(text)) return "timing";
+  if (/두 일간|일간 궁합|핵심 궁합|궁합 한 문장|궁합 처방|두 사람|서로|함께|각자/.test(text)) return "compatibility";
+  if (/원하는 것|기대|역할|책임|표현력|공감/.test(text)) return "tenGod";
+  if (/서운|불안|안심받|집착|질투|비교|버림|회피|방어|애착/.test(text)) return "anxiety";
+  if (/일간|자아|기질|기본 성향/.test(text)) return "dayMaster";
+  if (/일지|배우자궁|관계 본능|관계의 뿌리|생활 밀착/.test(text)) return "spousePalace";
+  if (/월지|계절감|생활 리듬|일상|리듬/.test(text)) return "monthBranch";
+  if (/오행|용신|희신|기운|균형|한난조습|조후|온도|습한|건조|차가운|뜨거운/.test(text)) return "element";
+  if (/십성|비겁|식상|재성|관성|인성|역할|책임|표현력|공감/.test(text)) return "tenGod";
+  if (/배우자성|배우자|결혼|장기|오래|가족|돈|소비|현실|생활 계획/.test(text)) return "longTerm";
+  if (/끌림|호감|매력|도화|홍염|문창|역마|첫인상|분위기|설렘/.test(text)) return "attraction";
+  if (/표현|소통|말|연락|대화|침묵|사과|화해 문장|확인 문장/.test(text)) return "communication";
+  if (/불안|집착|질투|비교|버림|확인받|회피|방어|애착/.test(text)) return "anxiety";
+  if (/갈등|싸울|상처|금지 문장|충돌|부딪/.test(text)) return "conflict";
+  if (/이별|재회|미련|정리|회복|새로운 사랑/.test(text)) return "reunion";
+  if (/두 사람|궁합|서로|함께|각자/.test(text)) return "compatibility";
+  if (/계획|루틴|90일|30일|행동|마스터플랜|최종|원칙|기준/.test(text)) return "plan";
+  return "general";
+}
+
+function loveSecretTimingEvidenceHints(category = "", facts = {}) {
+  const title = clean(category);
+  const selfDay = loveSecretSafeDisplayText(facts.selfDayMaster, "일간");
+  const partnerDay = loveSecretSafeDisplayText(facts.partnerDayMaster, "");
+  const month = loveSecretSafeDisplayText(facts.monthBranch, "월지");
+  const partnerMonth = loveSecretSafeDisplayText(facts.partnerMonthBranch, "");
+  const targetYear = loveSecretSafeDisplayText(facts.targetYear, "올해");
+  const dominantElement = loveSecretSafeDisplayText(facts.dominantElement, "우세 기운");
+  const usefulElements = loveSecretSafeDisplayText(facts.usefulElements, "보완 기운");
+  const cautionElements = loveSecretSafeDisplayText(facts.cautionElements, "주의 기운");
+  const spouseStar = loveSecretSafeDisplayText(facts.spouseStar, "배우자성");
+
+  if (/조심|전환|주의/.test(title)) return ["전환점 경계 신호", `${cautionElements} 과열 조절`, `${month} 거리 조절`];
+  if (/가까워|만남|열리는/.test(title)) return ["접근 리듬 확장", `${dominantElement} 설렘 확장`, `${month} 만남 박자`];
+  if (/결정|선택|확정|유리한 때/.test(title)) return ["결정 문턱 신호", `${spouseStar} 약속 판단`, `${targetYear}년 선택 창`];
+  if (/엇갈|각자|속도/.test(title)) return ["속도 차 조율", `${selfDay}${partnerDay ? `/${partnerDay}` : ""} 반응 차`, `${month}${partnerMonth ? `/${partnerMonth}` : ""} 생활 박자`];
+  if (/함께|공동/.test(title)) return ["공동 루틴 운용", `${usefulElements} 합산 보완`, `${dominantElement} 협력 기운`];
+  if (/두 사람/.test(title)) return ["연간 궁합 흐름", `${selfDay}${partnerDay ? `/${partnerDay}` : ""} 관계 합`, `${targetYear}년 관계 합`];
+  if (/올해|연애운|관계 운/.test(title)) return ["연간 개인 관계 주제", `${selfDay} 선택 운`, `${targetYear}년 감정 운용`];
+  if (/타이밍|시기/.test(title)) return ["타이밍 운용 기준", `${month} 실행 박자`, `${usefulElements} 행동 보완`];
+  return ["시기 운영 기준", `${targetYear}년 흐름`, `${month} 현실 박자`];
+}
+
+function loveSecretCompatibilityEvidenceHints(category = "", facts = {}) {
+  const title = clean(category);
+  const selfDay = loveSecretSafeDisplayText(facts.selfDayMaster, "내 일간");
+  const partnerDay = loveSecretSafeDisplayText(facts.partnerDayMaster, "상대 일간");
+  const usefulElements = loveSecretSafeDisplayText(facts.usefulElements, "보완 기운");
+  const dominantElement = loveSecretSafeDisplayText(facts.dominantElement, "내 기운");
+  const partnerDominantElement = loveSecretSafeDisplayText(facts.partnerDominantElement, "상대 기운");
+
+  if (/각자|엇갈|속도/.test(title)) return ["각자의 운 속도", `${selfDay}/${partnerDay} 반응 차`, "엇갈림 조율 기준"];
+  if (/함께|공동/.test(title)) return ["공동 운용 방식", `${usefulElements} 공동 보완`, "함께 지킬 관계 루틴"];
+  if (/두 사람|서로|궁합/.test(title)) return ["두 사람의 관계 합", `${dominantElement}/${partnerDominantElement} 기운 교차`, "상호 안심 기준"];
+  return ["궁합 운영 기준", `${selfDay}/${partnerDay} 반응 합`, "관계 조율 신호"];
+}
+
+function loveSecretKoreanParticle(value, withFinal, withoutFinal) {
+  const chars = Array.from(clean(value)).reverse();
+  const last = chars.find((char) => {
+    const code = char.charCodeAt(0);
+    return code >= 0xAC00 && code <= 0xD7A3;
+  });
+  if (!last) return withFinal;
+  return ((last.charCodeAt(0) - 0xAC00) % 28) > 0 ? withFinal : withoutFinal;
+}
+
+function loveSecretWithParticle(value, withFinal, withoutFinal) {
+  const text = loveSecretSafeDisplayText(value, "");
+  if (!text) return "";
+  return `${text}${loveSecretKoreanParticle(text, withFinal, withoutFinal)}`;
+}
+
+function loveSecretPair(left, right) {
+  const a = loveSecretSafeDisplayText(left, "");
+  const b = loveSecretSafeDisplayText(right, "");
+  if (!a && !b) return "";
+  if (!a) return b;
+  if (!b) return a;
+  return `${loveSecretWithParticle(a, "과", "와")} ${b}`;
+}
+
+function loveSecretQuotedLabel(value, label) {
+  const text = loveSecretSafeDisplayText(value, "");
+  const suffix = loveSecretSafeDisplayText(label, "질문");
+  if (!text) return suffix;
+  if (suffix === "질문") return `"${text}"라는 ${suffix}`;
+  return `"${text}"${loveSecretKoreanParticle(text, "이라는", "라는")} ${suffix}`;
+}
+
+function loveSecretCategorySubject(category) {
+  const title = loveSecretSafeDisplayText(category, "이 카테고리");
+  return `${title}${loveSecretKoreanParticle(title, "은", "는")}`;
+}
+
+function loveSecretCategoryObject(category) {
+  const title = loveSecretSafeDisplayText(category, "이 카테고리");
+  return `${title}${loveSecretKoreanParticle(title, "을", "를")}`;
+}
+
+function loveSecretTextVariantIndex(value = "", size = 1) {
+  const text = clean(value);
+  if (!Number.isFinite(size) || size <= 1 || !text) return 0;
+  let hash = 0;
+  for (const char of Array.from(text)) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return hash % size;
+}
+
+function loveSecretTextVariant(value = "", variants = []) {
+  const list = loveSecretCleanList(variants, 20);
+  if (!list.length) return "";
+  return list[loveSecretTextVariantIndex(value, list.length)];
+}
+
+function loveSecretCategoryRole(category = "", mode = "solo") {
+  if (normalizeMode(mode) !== "compatibility") return "self";
+  const text = clean(category);
+  if (/^상대|상대가|상대를|상대의/.test(text)) return "partner";
+  if (/두 사람|서로|궁합|함께|각자|두 일간|맞물리는|채워주는|충돌하는|차이|공동/.test(text)) return "couple";
+  return "self";
+}
+
+function buildLoveSecretScopedFacts(facts = {}, category = "", mode = "solo") {
+  const role = loveSecretCategoryRole(category, mode);
+  if (role === "partner") {
+    return {
+      ...facts,
+      role,
+      selfName: facts.partnerName,
+      displayName: facts.partnerName,
+      selfDayMaster: facts.partnerDayMaster,
+      dayBranch: facts.partnerDayBranch,
+      monthBranch: facts.partnerMonthBranch,
+      dominantElement: facts.partnerDominantElement,
+      deficientElement: facts.partnerDeficientElement,
+      dominantTenGod: facts.partnerDominantTenGod,
+      spouseStar: facts.partnerSpouseStar,
+    };
+  }
+  return { ...facts, role };
+}
+
+function buildLoveSecretCategorySpecificProfile({ category, facts, kind, role }) {
+  const title = loveSecretSafeDisplayText(category, "이 카테고리");
+  const subjectTitle = loveSecretCategorySubject(title);
+  if (/도화/.test(title)) {
+    return {
+      evidence: [`${facts.dominantElement} 도화성 표현`, `${facts.dominantTenGod} 매력 발산`, `${facts.dayBranch} 첫 반응`],
+      keyPoint: `${subjectTitle} 시선을 끄는 분위기와 실제 관계로 남는 매력을 구분합니다.`,
+      interpretation: `${title}에서는 강한 호감이 생기는 순간보다 그 호감이 존중과 일관성으로 이어지는지를 봅니다.`,
+      advice: "시선을 끄는 표현은 살리되, 상대의 책임 있는 행동을 확인한 뒤 속도를 올립니다.",
+      caution: "주목받는 느낌을 운명감으로 착각하면 관계의 실제 안정성을 놓칠 수 있습니다.",
+      checklist: ["호감이 행동으로 이어지는가", "관심과 책임을 구분했는가", "내 매력을 과하게 증명하려 하지 않았는가"],
+    };
+  }
+  if (/홍염/.test(title)) {
+    return {
+      evidence: [`${facts.dominantElement} 감정 온도`, `${facts.deficientElement} 보완 욕구`, `${facts.dominantTenGod} 표현 결`],
+      keyPoint: `${subjectTitle} 감정의 농도와 상대를 끌어당기는 표현의 온도를 봅니다.`,
+      interpretation: `${title}에서는 설렘이 짙어질수록 상대를 이상화하는지, 실제 태도를 차분히 보는지 확인해야 합니다.`,
+      advice: "강한 감정이 올라올 때는 표현을 늦추기보다 문장을 짧게 다듬어 전합니다.",
+      caution: "강렬함만 믿고 관계의 경계와 생활 리듬을 건너뛰면 소모가 빨라질 수 있습니다.",
+      checklist: ["감정 표현이 과장되지 않았는가", "상대의 실제 행동을 보았는가", "속도를 조절할 기준이 있는가"],
+    };
+  }
+  if (/침묵/.test(title)) {
+    return {
+      evidence: [`${facts.dominantTenGod} 침묵 반응`, `${facts.deficientElement} 보완 언어`, `${facts.dayBranch} 안정 욕구`],
+      keyPoint: `${subjectTitle} 휴식의 침묵과 거리두기의 침묵을 구분하는 항목입니다.`,
+      interpretation: `${title}에서는 말이 없는 시간을 바로 애정 부족으로 해석하지 않고, 다시 연결될 약속이 있는지를 봅니다.`,
+      advice: "답을 재촉하기보다 다시 이야기할 시간과 확인할 주제를 짧게 제안합니다.",
+      caution: "침묵을 벌로 쓰거나 불안을 숨긴 채 상대를 시험하면 오해가 오래갑니다.",
+      checklist: ["침묵의 이유를 물어볼 문장이 있는가", "답변 기한을 부드럽게 정했는가", "침묵을 단정으로 해석하지 않았는가"],
+    };
+  }
+  if (/사과/.test(title)) {
+    return {
+      evidence: [`${facts.dominantTenGod} 책임 표현`, `${facts.dayBranch} 관계 회복성`, `${facts.deficientElement} 보완 언어`],
+      keyPoint: `${subjectTitle} 자존심을 꺾는 일이 아니라 관계의 안전감을 회복하는 기술입니다.`,
+      interpretation: `${title}에서는 변명보다 인정, 인정 뒤 행동 약속, 행동 뒤 반복 확인의 순서가 중요합니다.`,
+      advice: "사과 문장은 사건 인정, 감정 공감, 다음 행동 약속을 한 문장씩 나누어 말합니다.",
+      caution: "사과 뒤 바로 용서를 요구하면 상대는 다시 방어적으로 닫힐 수 있습니다.",
+      checklist: ["사건을 정확히 인정했는가", "상대 감정을 먼저 다루었는가", "다음 행동이 구체적인가"],
+    };
+  }
+  if (/질투|비교/.test(title)) {
+    return {
+      evidence: [`${facts.deficientElement} 결핍 자극`, `${facts.cautionElements} 과열 반응`, `${facts.dominantTenGod} 인정 욕구`],
+      keyPoint: `${subjectTitle} 사랑의 부족보다 인정받고 싶은 마음이 흔들리는 순간을 읽습니다.`,
+      interpretation: `${title}에서는 상대를 통제하려는 말보다 내가 어떤 장면에서 작아지는지를 먼저 확인해야 합니다.`,
+      advice: "비교가 올라온 날에는 상대를 추궁하기 전 내가 원하는 안심 행동을 하나만 요청합니다.",
+      caution: "질투를 시험으로 표현하면 상대의 진심보다 방어 반응만 커질 수 있습니다.",
+      checklist: ["비교의 대상과 감정을 분리했는가", "요청 문장이 통제처럼 들리지 않는가", "확인 가능한 행동을 제안했는가"],
+    };
+  }
+  if (/확인받/.test(title)) {
+    return {
+      evidence: [`${facts.deficientElement} 안심 결핍`, `${facts.dominantTenGod} 확인 욕구`, `${facts.dayBranch} 관계 경계`],
+      keyPoint: `${subjectTitle} 사랑을 확인받고 싶은 마음이 요청인지 시험인지 구분하는 자리입니다.`,
+      interpretation: `${title}에서는 상대의 진심을 묻기 전에 어떤 행동이 있어야 안심되는지 구체화해야 합니다.`,
+      advice: "확인받고 싶은 마음은 추궁보다 요청 문장으로 바꾸고, 상대가 할 수 있는 행동 하나로 좁힙니다.",
+      caution: "확인을 반복해서 요구하면 안심보다 상대의 피로가 먼저 커질 수 있습니다.",
+      checklist: ["원하는 확인 행동이 구체적인가", "요청과 추궁을 구분했는가", "같은 질문을 반복하지 않았는가"],
+    };
+  }
+  if (/버림|회피/.test(title)) {
+    return {
+      evidence: [`${facts.dayBranch} 애착 반응`, `${facts.deficientElement} 안정 결핍`, `${facts.dominantTenGod} 방어 방식`],
+      keyPoint: `${subjectTitle} 가까워지고 싶은 마음과 다치기 싫어 물러나는 마음이 부딪히는 지점입니다.`,
+      interpretation: `${title}에서는 상대의 반응보다 내가 먼저 끊어 내거나 과하게 매달리는 순간을 구분해야 합니다.`,
+      advice: "불안한 날에는 결론을 내리지 않고 필요한 확인과 혼자 진정할 시간을 따로 정합니다.",
+      caution: "먼저 차갑게 굴어 상처받지 않으려는 방식은 관계의 신뢰를 약하게 만듭니다.",
+      checklist: ["도망가고 싶은 마음을 알아차렸는가", "확인 요청과 거리두기를 분리했는가", "하루 뒤 다시 볼 기준이 있는가"],
+    };
+  }
+  if (/방어|스스로를 지키/.test(title)) {
+    return {
+      evidence: [`${facts.dayBranch} 자기보호 반응`, `${facts.cautionElements} 방어 과열`, `${facts.dominantTenGod} 관계 긴장`],
+      keyPoint: `${subjectTitle} 상처를 피하려고 먼저 닫히는 방식이 관계에 어떤 신호를 주는지 봅니다.`,
+      interpretation: `${title}에서는 나를 지키는 태도와 상대를 밀어내는 태도를 구분해야 관계가 덜 흔들립니다.`,
+      advice: "방어가 올라올 때는 말하지 않을 권리와 반드시 말해야 할 감정을 따로 정합니다.",
+      caution: "차갑게 버티는 방식이 오래되면 상대는 거절로 받아들일 수 있습니다.",
+      checklist: ["방어가 시작되는 장면을 알고 있는가", "말하지 않을 것과 말할 것을 나누었는가", "상대에게 닫힘으로 전달되지 않았는가"],
+    };
+  }
+  if (/불안을 낮추|건강한 애착|관계 연습/.test(title)) {
+    return {
+      evidence: [`${facts.deficientElement} 안정 보완`, `${facts.usefulElements} 회복 루틴`, `${facts.dayBranch} 애착 리듬`],
+      keyPoint: `${subjectTitle} 감정을 억누르는 법이 아니라 안심을 반복해서 학습하는 방법입니다.`,
+      interpretation: `${title}에서는 불안을 없애려 하기보다 불안이 와도 관계를 해치지 않는 루틴을 만들어야 합니다.`,
+      advice: "불안한 날의 연락 규칙, 혼자 진정하는 시간, 다시 확인할 문장을 미리 정합니다.",
+      caution: "루틴 없이 의지만으로 버티면 같은 장면에서 같은 반응이 반복됩니다.",
+      checklist: ["불안한 날의 연락 규칙이 있는가", "혼자 진정하는 행동이 있는가", "다시 대화할 시간이 정해졌는가"],
+    };
+  }
+  if (/돈|소비/.test(title)) {
+    return {
+      evidence: [`${facts.spouseStar} 현실 책임`, `${facts.monthBranch} 생활 리듬`, `${facts.dominantTenGod} 소비 태도`],
+      keyPoint: `${subjectTitle} 애정의 크기가 아니라 생활을 함께 운영하는 감각을 확인합니다.`,
+      interpretation: `${title}에서는 선물과 지출보다 돈을 말하는 태도, 부담을 나누는 기준, 미래 계획의 현실성을 봐야 합니다.`,
+      advice: "비용, 선물, 데이트 방식의 기준을 감정이 상하기 전 부드럽게 합의합니다.",
+      caution: "돈 이야기를 속물적이라고 피하면 장기 관계에서 더 큰 피로로 돌아올 수 있습니다.",
+      checklist: ["데이트 비용 기준이 있는가", "선물 기대치를 말했는가", "경제적 부담이 한쪽에 몰리지 않는가"],
+    };
+  }
+  if (/가족/.test(title)) {
+    return {
+      evidence: [`${facts.spouseStar} 가족 책임`, `${facts.dayBranch} 경계감`, `${facts.monthBranch} 생활권`],
+      keyPoint: `${subjectTitle} 두 사람의 사랑이 가족과 생활권 안에서 흔들리지 않을 경계를 봅니다.`,
+      interpretation: `${title}에서는 가족을 설득하는 힘보다 두 사람이 먼저 같은 편이 될 수 있는지를 확인해야 합니다.`,
+      advice: "가족 문제는 누가 맞는지보다 어디까지 함께 감당할지 경계를 먼저 정합니다.",
+      caution: "가족의 기준을 그대로 관계의 기준으로 가져오면 두 사람의 선택권이 약해집니다.",
+      checklist: ["두 사람의 우선순위가 합의됐는가", "가족 개입의 한계를 정했는가", "상대의 부담을 현실적으로 들었는가"],
+    };
+  }
+  if (/역할 분담|역할/.test(title)) {
+    return {
+      evidence: [`${facts.spouseStar} 역할 기대`, `${facts.dominantTenGod} 책임 방식`, `${facts.monthBranch} 생활 운영`],
+      keyPoint: `${subjectTitle} 사랑의 감정보다 함께 살 때 역할을 어떻게 나눌지 보는 항목입니다.`,
+      interpretation: `${title}에서는 누가 더 많이 하느냐보다 각자가 당연하게 여기는 책임의 기준을 맞춰야 합니다.`,
+      advice: "집안일, 일정, 정서적 돌봄, 경제 책임을 말로 나누어 합의합니다.",
+      caution: "역할 기대가 말없이 쌓이면 애정 문제가 아니라 불공정 문제로 번질 수 있습니다.",
+      checklist: ["역할 기대를 말했는가", "정서적 돌봄도 책임에 포함했는가", "한쪽 희생으로 유지되지 않는가"],
+    };
+  }
+  if (/결혼운이 열리기 쉬운/.test(title)) {
+    return {
+      evidence: [`${facts.targetYear}년 세운`, `${facts.spouseStar} 배우자성`, `${facts.usefulElements} 보완 기운`],
+      keyPoint: `${subjectTitle} 결혼을 확정하는 시기가 아니라 장기 약속을 현실로 검토하기 쉬운 문이 열리는 때입니다.`,
+      interpretation: `${title}에서는 만남의 숫자보다 책임 있는 대화, 생활 기준 공유, 관계를 공개적으로 다루는 태도가 함께 움직이는지를 봅니다.`,
+      advice: "흐름이 열릴 때는 고백이나 결정보다 돈, 가족, 시간, 거주 리듬처럼 오래 갈 조건을 먼저 정리합니다.",
+      caution: "운이 좋다는 말만 믿고 준비 없이 결혼 이야기를 밀어붙이면 현실 검증이 감정 압박으로 바뀔 수 있습니다.",
+      checklist: ["장기 약속의 현실 조건을 말했는가", "관계 공개와 가족 경계를 확인했는가", "좋은 흐름을 실제 대화로 옮겼는가"],
+    };
+  }
+  if (/결혼 이야기가 막히기 쉬운/.test(title)) {
+    return {
+      evidence: [`${facts.cautionElements} 과열 구간`, `${facts.dayBranch} 배우자궁 긴장`, `${facts.monthBranch} 현실 리듬`],
+      keyPoint: `${subjectTitle} 사랑이 약해서가 아니라 책임, 속도, 가족 문제의 언어가 맞지 않아 멈추는 구간입니다.`,
+      interpretation: `${title}에서는 상대의 확답 지연을 애정 부족으로 단정하지 않고 어떤 현실 조건이 말문을 막는지 살펴야 합니다.`,
+      advice: "막히는 시기에는 결론 요구를 줄이고 부담되는 조건, 아직 준비되지 않은 부분, 조율 가능한 범위를 나누어 묻습니다.",
+      caution: "결혼 이야기를 시험처럼 꺼내면 상대는 책임보다 압박을 먼저 느껴 관계가 더 굳을 수 있습니다.",
+      checklist: ["막히는 조건을 구체적으로 들었는가", "결론보다 조율 범위를 물었는가", "기다릴 수 있는 기한을 정했는가"],
+    };
+  }
+  if (/배우자와 갈등이 생기기 쉬운/.test(title)) {
+    return {
+      evidence: [`${facts.dayBranch} 배우자궁 반응`, `${facts.dominantTenGod} 갈등 방식`, `${facts.cautionElements} 긴장 기운`],
+      keyPoint: `${subjectTitle} 갈등의 원인을 성격 문제가 아니라 가까워진 뒤 반복되는 생활 반응으로 읽습니다.`,
+      interpretation: `${title}에서는 돈, 역할, 말투, 가족 경계 중 어느 지점에서 고객님의 기준과 상대의 기준이 충돌하는지 분리해야 합니다.`,
+      advice: "갈등 가능성이 높은 주제는 감정이 상하기 전에 금지 문장과 합의 문장을 미리 정합니다.",
+      caution: "배우자궁의 불편함을 상대 탓으로만 돌리면 내 반복 반응을 바꿀 기회를 놓칠 수 있습니다.",
+      checklist: ["갈등 주제를 생활 영역별로 나눴는가", "금지 문장을 정했는가", "반복되는 내 반응을 알고 있는가"],
+    };
+  }
+  if (/좋은 결혼으로 이어지기 위한/.test(title)) {
+    return {
+      evidence: [`${facts.spouseStar} 약속 기준`, `${facts.dayBranch} 안정감`, `${facts.usefulElements} 관계 보완`],
+      keyPoint: `${subjectTitle} 좋은 배우자를 맞히는 항목이 아니라 함께 살아도 사랑을 보존하는 선택 기준입니다.`,
+      interpretation: `${title}에서는 설렘, 책임, 생활 리듬, 갈등 회복력 중 무엇을 우선순위로 둘지 분명해야 합니다.`,
+      advice: "선택 기준은 매력 세 가지보다 반드시 지켜야 할 생활 원칙 세 가지로 정리합니다.",
+      caution: "모든 조건이 완벽한 사람을 찾으려 하면 실제로 오래 갈 수 있는 안정적 인연을 놓칠 수 있습니다.",
+      checklist: ["양보할 수 없는 원칙이 있는가", "갈등 회복력을 확인했는가", "매력과 생활 안정성을 함께 보았는가"],
+    };
+  }
+  if (/가치관|조건|배우자 조건|결혼 전/.test(title)) {
+    return {
+      evidence: [`${facts.spouseStar} 배우자 기준`, `${facts.dayBranch} 안정 조건`, `${facts.monthBranch} 현실 감각`],
+      keyPoint: `${subjectTitle} 설렘보다 오래 맞춰야 할 가치와 생활 기준을 확인합니다.`,
+      interpretation: `${title}에서는 다정함, 책임감, 돈, 가족, 일의 우선순위가 실제 선택 기준으로 이어지는지 봐야 합니다.`,
+      advice: "좋아하는 마음과 반드시 맞아야 할 조건을 따로 적고 대화에서 하나씩 확인합니다.",
+      caution: "조건을 감추고 감정만 앞세우면 결혼 이야기가 나올 때 갈등이 커질 수 있습니다.",
+      checklist: ["필수 가치관이 정리됐는가", "상대의 현실 기준을 들었는가", "타협 가능한 것과 아닌 것을 나누었는가"],
+    };
+  }
+  if (/대운/.test(title)) {
+    return {
+      evidence: [`대운의 큰 방향`, `${facts.monthBranch} 생활 리듬`, `${facts.usefulElements} 보완 기운`],
+      keyPoint: `${subjectTitle} 몇 달의 감정이 아니라 몇 년 단위로 사랑의 방향이 바뀌는 흐름입니다.`,
+      interpretation: `${title}에서는 만남 자체보다 관계를 받아들일 마음의 구조가 열리는지를 봅니다.`,
+      advice: "대운이 열릴 때는 사람을 많이 만나는 것보다 관계 기준을 먼저 정비합니다.",
+      caution: "큰 운이 좋다고 준비 없이 선택하면 같은 패턴을 더 크게 반복할 수 있습니다.",
+      checklist: ["장기 기준이 정리됐는가", "반복 패턴을 바꿀 준비가 되었는가", "만남의 환경을 넓혔는가"],
+    };
+  }
+  if (/월운|달/.test(title)) {
+    return {
+      evidence: [`월운의 세부 파동`, `${facts.deficientElement} 보완 시점`, `${facts.cautionElements} 주의 시점`],
+      keyPoint: `${subjectTitle} 고백, 대화, 거리 조절을 어느 달에 더 부드럽게 할지 보는 항목입니다.`,
+      interpretation: `${title}에서는 감정이 커지는 달과 관계를 정리하기 좋은 달을 나누어야 실행력이 생깁니다.`,
+      advice: "좋은 달에는 만남을 늘리고 예민한 달에는 결론보다 확인과 조율을 우선합니다.",
+      caution: "월운이 예민한 때 큰 결론을 밀어붙이면 작은 오해도 길어질 수 있습니다.",
+      checklist: ["대화하기 좋은 달을 정했는가", "예민한 달의 금지 행동이 있는가", "실제 일정으로 옮겼는가"],
+    };
+  }
+  if (/스킨십|속궁합|친밀감|온도|거리감|한난조습|조후/.test(title)) {
+    return {
+      evidence: [`${facts.dominantElement} 친밀 온도`, `${facts.deficientElement} 보완 온도`, `${facts.dayBranch} 경계 리듬`],
+      keyPoint: `${subjectTitle} 몸과 마음이 안전하다고 느끼는 속도와 온도를 확인하는 항목입니다.`,
+      interpretation: `${title}에서는 성적 단정이 아니라 가까워질 때 편안해지는지, 부담이 커지는지, 말로 경계를 조율할 수 있는지를 봅니다.`,
+      advice: "친밀감은 눈치로 맞추기보다 편한 속도, 불편한 선, 원하는 표현을 부드럽게 말합니다.",
+      caution: "속도의 차이를 사랑의 부족으로 단정하면 불필요한 방어와 서운함이 생깁니다.",
+      checklist: ["편안한 속도를 말했는가", "상대의 경계를 확인했는가", "친밀감과 애정 확인을 혼동하지 않았는가"],
+    };
+  }
+  if (/성적 단정이 아니라 조후 기반/.test(title)) {
+    return {
+      evidence: [`${facts.dominantElement} 조후 온도`, `${facts.deficientElement} 보완 리듬`, `${facts.dayBranch} 정서 경계`],
+      keyPoint: `${subjectTitle} 좋고 나쁨을 판정하지 않고 가까워질 때 안전해지는 온도와 속도를 읽습니다.`,
+      interpretation: `${title}에서는 속궁합을 노골적인 결론으로 말하지 않습니다. 조후의 온도, 말의 부드러움, 생활 리듬이 맞을 때 몸과 마음이 함께 편안해지는지를 봅니다.`,
+      advice: "편안한 접촉, 불편한 경계, 가까워지는 속도를 서로가 알아들을 수 있는 언어로 나눕니다.",
+      caution: "친밀감의 차이를 매력 부족이나 애정 부족으로 단정하면 관계의 안전감이 먼저 흔들릴 수 있습니다.",
+      checklist: ["조후를 단정이 아니라 경향으로 읽었는가", "불편한 경계를 말했는가", "친밀감과 감정 확인을 분리했는가"],
+    };
+  }
+  if (/마음이 식|멀어질 때/.test(title)) {
+    return {
+      evidence: [`${facts.dayBranch} 거리 반응`, `${facts.deficientElement} 정서 보완`, `${facts.dominantTenGod} 실망 처리`],
+      keyPoint: `${subjectTitle} 애정이 사라지는 순간보다 마음을 접기 시작하는 작은 신호를 봅니다.`,
+      interpretation: `${title}에서는 표현이 줄어드는 이유가 권태인지 상처인지, 혹은 혼자 정리하는 습관인지 구분해야 합니다.`,
+      advice: "마음이 식는 신호가 보일 때 바로 결론을 내리지 말고 불편했던 장면을 한 번은 말로 확인합니다.",
+      caution: "혼자 정리한 뒤 통보하면 상대는 회복 기회를 얻지 못해 상처가 깊어집니다.",
+      checklist: ["식은 마음의 원인을 구분했는가", "한 번은 말로 확인했는가", "정리와 회피를 혼동하지 않았는가"],
+    };
+  }
+  if (/미련/.test(title)) {
+    return {
+      evidence: [`${facts.dayBranch} 관계 기억`, `${facts.spouseStar} 인연 기대`, `${facts.deficientElement} 정서 결핍`],
+      keyPoint: `${subjectTitle} 사랑이 남은 것인지 익숙한 상실감에 붙잡힌 것인지 구분합니다.`,
+      interpretation: `${title}에서는 좋았던 기억보다 다시 만나면 달라질 조건이 실제로 있는지를 먼저 봐야 합니다.`,
+      advice: "미련이 올라올 때는 좋았던 장면, 아팠던 장면, 반복될 문제를 각각 적습니다.",
+      caution: "외로움을 인연의 신호로 착각하면 같은 이별을 다시 선택할 수 있습니다.",
+      checklist: ["미련과 외로움을 구분했는가", "반복 문제를 적었는가", "달라질 조건이 구체적인가"],
+    };
+  }
+  if (/이별이 발생하기 쉬운/.test(title)) {
+    return {
+      evidence: [`${facts.dayBranch} 거리 반응`, `${facts.cautionElements} 관계 긴장`, `${facts.dominantTenGod} 방어 방식`],
+      keyPoint: `${subjectTitle} 한 번의 사건보다 서운함이 말해지지 못하고 쌓이는 구조를 봅니다.`,
+      interpretation: `${title}에서는 연락 감소, 말투 변화, 회피, 시험 행동이 어떤 순서로 이어지는지 읽어야 합니다. 이별의 씨앗은 대개 큰 결론보다 작은 회피가 반복될 때 자랍니다.`,
+      advice: "멀어지는 신호가 보일 때는 추궁보다 불편했던 장면, 원하는 행동, 다시 볼 시간을 짧게 제안합니다.",
+      caution: "이별 신호를 운명처럼 단정하면 회복 가능한 대화까지 놓칠 수 있습니다.",
+      checklist: ["초기 신호를 구체적으로 적었는가", "회피와 정리를 구분했는가", "한 번은 회복 대화를 제안했는가"],
+    };
+  }
+  if (/반복되는 이별 패턴/.test(title)) {
+    return {
+      evidence: [`${facts.dayBranch} 반복 기억`, `${facts.deficientElement} 보완 과제`, `${facts.dominantTenGod} 관계 습관`],
+      keyPoint: `${subjectTitle} 같은 사람을 붙잡는 문제가 아니라 같은 방식으로 사랑을 잃는 장면을 바꾸는 항목입니다.`,
+      interpretation: `${title}에서는 과한 확인, 침묵, 밀어내기, 빠른 결론 중 어떤 행동이 이별을 반복시키는지 찾아야 합니다.`,
+      advice: "다음 관계 전에는 시작 신호, 멈출 행동, 회복 문장, 떠나야 할 기준을 네 칸으로 정리합니다.",
+      caution: "상대만 바꾸면 괜찮아질 거라고 믿으면 내 안의 반복 습관은 다음 관계에서도 다시 나타날 수 있습니다.",
+      checklist: ["반복되는 내 첫 반응을 아는가", "멈출 행동이 정해졌는가", "다음 관계의 회복 문장이 있는가"],
+    };
+  }
+  if (/재회 가능성을 높이는/.test(title)) {
+    return {
+      evidence: [`${facts.targetYear}년 회복 흐름`, `${facts.dayBranch} 관계 기억`, `${facts.spouseStar} 인연 기대`],
+      keyPoint: `${subjectTitle} 연락 타이밍보다 다시 만나도 유지될 변화가 있는지를 봅니다.`,
+      interpretation: `${title}에서는 사과, 바뀐 행동, 다시 반복하지 않을 약속이 함께 있어야 재회의 의미가 생깁니다.`,
+      advice: "연락 전 바뀐 행동 하나와 상대에게 확인할 조건 하나를 먼저 정합니다.",
+      caution: "감정만 앞세운 연락은 잠깐 이어져도 같은 갈등으로 돌아가기 쉽습니다.",
+      checklist: ["바뀐 행동이 있는가", "확인할 조건을 정했는가", "상대의 선택권을 존중하는가"],
+    };
+  }
+  if (/재회를 피해야|정리해야/.test(title)) {
+    return {
+      evidence: [`${facts.cautionElements} 반복 경고`, `${facts.dayBranch} 상처 기억`, `${facts.dominantTenGod} 관계 소모`],
+      keyPoint: `${subjectTitle} 다시 만나지 않는 선택이 사랑을 부정하는 일이 아닌 경우를 봅니다.`,
+      interpretation: `${title}에서는 반복 폭언, 무책임, 회피, 신뢰 훼손이 바뀌지 않았다면 재회보다 정리가 더 품격 있는 선택일 수 있습니다.`,
+      advice: "붙잡고 싶은 마음과 실제로 안전한 관계인지를 분리해 판단합니다.",
+      caution: "상처가 반복되는 관계를 운명으로 포장하면 회복해야 할 자존감이 더 약해집니다.",
+      checklist: ["반복 상처가 멈췄는가", "상대의 책임 있는 변화가 있는가", "내가 안전한 선택을 하고 있는가"],
+    };
+  }
+  if (/이별 후 회복|새로운 사랑/.test(title)) {
+    return {
+      evidence: [`${facts.usefulElements} 회복 기운`, `${facts.monthBranch} 생활 리듬`, `${facts.targetYear}년 전환 흐름`],
+      keyPoint: `${subjectTitle} 빨리 잊는 법보다 다시 좋은 사랑을 받을 수 있는 상태를 만드는 과정입니다.`,
+      interpretation: `${title}에서는 감정 정리, 생활 회복, 다음 관계의 기준을 순서대로 세워야 합니다.`,
+      advice: "연락 차단, 생활 루틴 회복, 다음 관계 기준 정리를 단계별로 진행합니다.",
+      caution: "빈자리를 바로 새 사람으로 채우면 같은 관계 패턴을 반복할 수 있습니다.",
+      checklist: ["생활 리듬이 회복됐는가", "전 관계의 반복 패턴을 정리했는가", "다음 기준을 세웠는가"],
+    };
+  }
+  if (/상대가 사랑에서 원하는 것/.test(title)) {
+    return {
+      evidence: [`${facts.selfDayMaster} 상대 일간`, `${facts.dominantTenGod} 상대 욕구`, `${facts.spouseStar} 상대 기대`],
+      keyPoint: `${subjectTitle} 상대가 사랑 안에서 확인받고 싶어 하는 역할과 태도를 읽습니다.`,
+      interpretation: `${title}에서는 고객님의 방식으로 사랑을 증명하기보다 상대가 안정감을 느끼는 표현을 찾아야 합니다.`,
+      advice: "상대가 원하는 말, 행동, 약속의 형태를 질문으로 확인합니다.",
+      caution: "상대의 욕구를 추측으로 단정하면 맞춰 주려 해도 어긋날 수 있습니다.",
+      checklist: ["상대의 기대를 직접 확인했는가", "내 방식만 밀어붙이지 않았는가", "상대의 안정 기준을 알고 있는가"],
+    };
+  }
+  if (/상대가 안심|상대의 마음을 여는 문장/.test(title)) {
+    return {
+      evidence: [`${facts.dominantTenGod} 상대 표현 방식`, `${facts.deficientElement} 상대 보완 언어`, `${facts.dayBranch} 상대 안정감`],
+      keyPoint: `${subjectTitle} 상대가 방어를 풀고 마음을 열 수 있는 말의 순서를 봅니다.`,
+      interpretation: `${title}에서는 감정 고백보다 상대가 부담 없이 대답할 수 있는 확인 문장이 먼저 필요합니다.`,
+      advice: "상대에게는 결론을 묻기보다 편했던 점, 불편했던 점, 원하는 속도를 차례로 묻습니다.",
+      caution: "상대를 열게 하려는 말이 압박처럼 들리면 오히려 거리가 생깁니다.",
+      checklist: ["상대가 대답할 여지를 주었는가", "결론 요구를 줄였는가", "편안한 질문으로 시작했는가"],
+    };
+  }
+  if (/상대가 멀어지는 순간/.test(title)) {
+    return {
+      evidence: [`${facts.dayBranch} 상대 거리 반응`, `${facts.cautionElements} 상대 부담 신호`, `${facts.dominantTenGod} 상대 방어`],
+      keyPoint: `${subjectTitle} 상대가 마음이 식어서가 아니라 부담을 느껴 물러나는 순간을 구분합니다.`,
+      interpretation: `${title}에서는 연락 감소, 답변 지연, 약속 회피가 어떤 압박 뒤에 나타나는지 살펴야 합니다.`,
+      advice: "상대가 멀어질 때는 추격보다 부담을 낮추는 문장과 다시 만날 시간을 제안합니다.",
+      caution: "불안해서 더 밀어붙이면 상대의 회피 반응이 더 빨라질 수 있습니다.",
+      checklist: ["상대가 부담 느낀 장면이 있는가", "추격 대신 여지를 주었는가", "다시 볼 시간을 제안했는가"],
+    };
+  }
+  if (/연애를 시작하는 방식/.test(title)) {
+    return {
+      evidence: [`${facts.selfDayMaster} 시작 속도`, `${facts.dominantTenGod} 접근 방식`, `${facts.dayBranch} 관계 문턱`],
+      keyPoint: `${subjectTitle} 호감이 생겼을 때 먼저 움직이는지, 기다리며 확인하는지 보는 항목입니다.`,
+      interpretation: `${title}에서는 시작의 빠르기보다 관계의 첫 약속을 어떤 온도로 만드는지가 더 중요합니다.`,
+      advice: "처음 호감이 생기면 표현, 확인, 만남 제안을 한 번에 몰아넣지 말고 순서를 나눕니다.",
+      caution: "시작이 빠를수록 상대의 일관성을 확인하는 시간을 반드시 남겨야 합니다.",
+      checklist: ["첫 표현이 과하지 않았는가", "상대의 속도를 보았는가", "첫 약속이 반복 가능한가"],
+    };
+  }
+  if (/관계가 깊어질수록/.test(title)) {
+    return {
+      evidence: [`${facts.dayBranch} 밀착 반응`, `${facts.monthBranch} 생활 적응`, `${facts.spouseStar} 신뢰 기대`],
+      keyPoint: `${subjectTitle} 가까워진 뒤 더 편안해지는지, 더 예민해지는지를 구분합니다.`,
+      interpretation: `${title}에서는 설렘 이후 드러나는 생활 습관과 감정 표현의 변화가 장기 안정성을 말해 줍니다.`,
+      advice: "가까워질수록 줄어드는 배려와 늘어나는 요구를 따로 적어 관계의 균형을 봅니다.",
+      caution: "익숙함을 편안함으로만 해석하면 관계 안의 피로 신호를 놓칠 수 있습니다.",
+      checklist: ["가까워진 뒤 배려가 유지되는가", "요구가 일방적으로 늘지 않았는가", "편안함과 무심함을 구분했는가"],
+    };
+  }
+  if (/권태기/.test(title)) {
+    return {
+      evidence: [`${facts.monthBranch} 반복 피로`, `${facts.deficientElement} 자극 결핍`, `${facts.dominantTenGod} 흥미 변화`],
+      keyPoint: `${subjectTitle} 사랑이 사라진 것이 아니라 관계의 리듬이 단조로워진 순간을 봅니다.`,
+      interpretation: `${title}에서는 새로움의 부족, 대화의 반복, 생활 피로 중 무엇이 애정을 흐리게 하는지 나눠야 합니다.`,
+      advice: "권태가 느껴질 때는 큰 이벤트보다 작은 변화, 새로운 대화 주제, 각자의 시간을 먼저 조율합니다.",
+      caution: "권태를 이별 신호로 단정하면 회복 가능한 관계도 쉽게 놓칠 수 있습니다.",
+      checklist: ["권태의 원인을 구분했는가", "작은 변화를 시도했는가", "혼자 결론 내리지 않았는가"],
+    };
+  }
+  if (/반복해서 만나는 상대 유형/.test(title)) {
+    return {
+      evidence: [`${facts.spouseStar} 반복 인연`, `${facts.dayBranch} 익숙한 끌림`, `${facts.dominantTenGod} 선택 습관`],
+      keyPoint: `${subjectTitle} 운명처럼 느껴지는 유형이 실제로는 익숙한 패턴인지 확인합니다.`,
+      interpretation: `${title}에서는 매번 비슷한 사람에게 끌리는 이유와 그 관계가 남기는 감정 비용을 함께 봐야 합니다.`,
+      advice: "끌리는 조건 세 가지와 관계가 힘들어지는 조건 세 가지를 나란히 적습니다.",
+      caution: "익숙한 불안을 설렘으로 착각하면 같은 관계가 반복될 수 있습니다.",
+      checklist: ["반복되는 상대 특징을 적었는가", "설렘과 불안을 구분했는가", "새로운 선택 기준이 있는가"],
+    };
+  }
+  if (/주도권/.test(title)) {
+    return {
+      evidence: [`${facts.dominantTenGod} 주도 방식`, `${facts.selfDayMaster} 자기 기준`, `${facts.dayBranch} 관계 균형`],
+      keyPoint: `${subjectTitle} 관계를 이끄는 힘과 상대를 조종하려는 불안을 구분합니다.`,
+      interpretation: `${title}에서는 먼저 제안하는 능력보다 상대의 선택권을 남겨 두는 태도가 관계의 품격을 만듭니다.`,
+      advice: "제안은 분명하게 하되, 상대가 거절하거나 조율할 여지를 함께 줍니다.",
+      caution: "관계를 내 방식대로만 움직이려 하면 상대의 자발성이 줄어듭니다.",
+      checklist: ["상대의 선택권을 남겼는가", "주도와 통제를 구분했는가", "조율 가능한 제안을 했는가"],
+    };
+  }
+  if (/자기주장|맞추는 정도/.test(title)) {
+    return {
+      evidence: [`${facts.selfDayMaster} 자기 기준`, `${facts.spouseStar} 관계 기대`, `${facts.deficientElement} 양보 지점`],
+      keyPoint: `${subjectTitle} 맞춰 주는 사랑과 나를 잃는 사랑의 경계를 봅니다.`,
+      interpretation: `${title}에서는 상대에게 맞추는 태도가 배려인지, 버림받지 않기 위한 과잉 적응인지 구분해야 합니다.`,
+      advice: "양보할 수 있는 것과 양보하면 나를 잃는 것을 미리 나눕니다.",
+      caution: "계속 맞추기만 하면 뒤늦게 억울함이 커져 관계가 흔들릴 수 있습니다.",
+      checklist: ["양보 가능한 선을 정했는가", "내 기준을 말했는가", "맞춤과 희생을 구분했는가"],
+    };
+  }
+  if (/연락 빈도|소통 리듬/.test(title)) {
+    return {
+      evidence: [`${facts.monthBranch} 생활 박자`, `${facts.dominantTenGod} 표현 욕구`, `${facts.deficientElement} 확인 욕구`],
+      keyPoint: `${subjectTitle} 애정의 양보다 서로가 편안한 연락 박자를 맞추는 항목입니다.`,
+      interpretation: `${title}에서는 답장 속도를 마음의 크기로 단정하지 않고 생활 리듬과 안심 방식의 차이를 함께 봐야 합니다.`,
+      advice: "연락 빈도, 답장 여유, 바쁜 날의 신호를 미리 합의합니다.",
+      caution: "연락을 애정 시험으로 만들면 사소한 지연도 갈등의 불씨가 됩니다.",
+      checklist: ["바쁜 날의 연락 기준이 있는가", "답장 속도를 단정하지 않는가", "서로 편한 빈도를 합의했는가"],
+    };
+  }
+  if (/말투|오해하기 쉬운 표현/.test(title)) {
+    return {
+      evidence: [`${facts.dominantTenGod} 표현 결`, `${facts.cautionElements} 말의 과열`, `${facts.dayBranch} 상처 기억`],
+      keyPoint: `${subjectTitle} 마음과 달리 차갑거나 날카롭게 들리는 표현을 점검합니다.`,
+      interpretation: `${title}에서는 내용보다 어조, 순서, 단어 선택이 상대의 방어를 먼저 건드릴 수 있습니다.`,
+      advice: "불편한 말은 평가 대신 관찰, 감정, 부탁의 순서로 바꿉니다.",
+      caution: "맞는 말을 해도 말투가 날카로우면 관계에는 공격으로 남을 수 있습니다.",
+      checklist: ["평가어를 줄였는가", "감정을 먼저 설명했는가", "부탁 문장으로 끝냈는가"],
+    };
+  }
+  if (/고백/.test(title)) {
+    return {
+      evidence: [`${facts.selfDayMaster} 표현 용기`, `${facts.dominantTenGod} 마음 전달`, `${facts.dayBranch} 관계 문턱`],
+      keyPoint: `${subjectTitle} 감정을 터뜨리는 순간이 아니라 관계의 문을 품격 있게 여는 방식입니다.`,
+      interpretation: `${title}에서는 확답을 압박하기보다 내 마음, 상대의 여지, 다음 만남을 부드럽게 연결해야 합니다.`,
+      advice: "고백은 감정 고백, 상대 존중, 다음 제안의 세 문장으로 나누어 준비합니다.",
+      caution: "확답을 바로 요구하면 좋은 마음도 부담으로 바뀔 수 있습니다.",
+      checklist: ["내 마음을 짧게 말했는가", "상대의 속도를 존중했는가", "다음 만남 제안이 있는가"],
+    };
+  }
+  if (/연애운을 살리는 소통 습관/.test(title)) {
+    return {
+      evidence: [`${facts.usefulElements} 보완 언어`, `${facts.dominantTenGod} 표현 습관`, `${facts.monthBranch} 반복 리듬`],
+      keyPoint: `${subjectTitle} 한 번의 대화 기술보다 매일 쌓이는 언어의 기운을 봅니다.`,
+      interpretation: `${title}에서는 고마움, 불편함, 바람을 작게 자주 말하는 습관이 관계 운을 살립니다.`,
+      advice: "하루 한 번 고마움, 일주일 한 번 조율, 한 달 한 번 관계 점검의 리듬을 둡니다.",
+      caution: "좋은 말이 사라지면 문제를 말할 때만 대화하는 관계가 됩니다.",
+      checklist: ["고마움을 자주 말하는가", "불편함을 미루지 않는가", "관계 점검 시간이 있는가"],
+    };
+  }
+  if (/90일/.test(title)) {
+    return {
+      evidence: [`${facts.targetYear}년 실행 흐름`, `${facts.usefulElements} 보완 루틴`, `${facts.monthBranch} 생활 박자`],
+      keyPoint: `${subjectTitle} 마음가짐이 아니라 3개월 동안 반복할 관계 습관을 세우는 항목입니다.`,
+      interpretation: `${title}에서는 첫 30일은 감정 정리, 다음 30일은 표현 조율, 마지막 30일은 선택 기준 확립으로 나눕니다.`,
+      advice: "90일 계획은 만남 늘리기보다 기준 세우기, 대화 연습, 선택 정리의 순서로 둡니다.",
+      caution: "계획을 크게 잡으면 지속되지 않으니 한 주에 하나의 행동만 바꾸는 편이 좋습니다.",
+      checklist: ["30일 단위 목표가 있는가", "매주 반복할 행동이 있는가", "90일 후 판단 기준이 있는가"],
+    };
+  }
+  if (/1년/.test(title)) {
+    return {
+      evidence: [`${facts.targetYear}년 세운`, `${facts.monthBranch} 생활 흐름`, `${facts.spouseStar} 장기 기대`],
+      keyPoint: `${subjectTitle} 올해의 감정 변화보다 1년 동안 관계 기준이 어떻게 성숙할지를 봅니다.`,
+      interpretation: `${title}에서는 만남, 관계 진전, 정리, 재도약의 계절을 나누어 무리한 결정을 줄여야 합니다.`,
+      advice: "분기별로 만남 확장, 관계 점검, 깊은 대화, 선택 정리의 주제를 배치합니다.",
+      caution: "한 번의 흐름으로 1년 전체를 단정하면 좋은 기회와 쉬어야 할 때를 놓칠 수 있습니다.",
+      checklist: ["분기별 관계 주제가 있는가", "쉬어야 할 시기를 인정하는가", "1년 후 원하는 관계상이 분명한가"],
+    };
+  }
+  if (/피해야 할 상대 유형/.test(title)) {
+    return {
+      evidence: [`${facts.cautionElements} 소모 신호`, `${facts.dayBranch} 상처 반복`, `${facts.dominantTenGod} 관계 약점`],
+      keyPoint: `${subjectTitle} 싫어할 사람을 고르는 일이 아니라 나를 약하게 만드는 패턴을 피하는 항목입니다.`,
+      interpretation: `${title}에서는 강한 끌림보다 반복적으로 불안, 통제, 무시를 만드는 유형을 먼저 걸러야 합니다.`,
+      advice: "초반부터 불안하게 만드는 말, 책임 없는 행동, 경계 침범을 세 가지 경고 신호로 둡니다.",
+      caution: "바뀔 가능성만 보고 관계를 시작하면 같은 상처가 반복될 수 있습니다.",
+      checklist: ["경고 신호가 정리됐는가", "끌림 때문에 무시하지 않았는가", "경계를 넘는 행동을 보았는가"],
+    };
+  }
+  if (/반드시 관리해야 할 약점/.test(title)) {
+    return {
+      evidence: [`${facts.cautionElements} 과열 지점`, `${facts.deficientElement} 결핍 지점`, `${facts.dominantTenGod} 반복 반응`],
+      keyPoint: `${subjectTitle} 부족함을 꾸짖는 항목이 아니라 사랑이 흔들리는 순간의 관리법입니다.`,
+      interpretation: `${title}에서는 과하게 확인하려는 마음, 빠른 결론, 침묵으로 방어하는 습관을 미리 다루어야 합니다.`,
+      advice: "약점은 숨기지 말고 올라오는 신호, 멈추는 행동, 회복 문장으로 나눕니다.",
+      caution: "약점을 성격 탓으로만 두면 관계가 바뀌어도 같은 장면이 반복됩니다.",
+      checklist: ["약점의 시작 신호를 아는가", "멈출 행동이 정해졌는가", "회복 문장이 준비됐는가"],
+    };
+  }
+  if (/상처가 깊어지는 금지 문장/.test(title)) {
+    return {
+      evidence: [`${facts.dominantTenGod} 갈등 언어`, `${facts.dayBranch} 상처 기억`, `${facts.cautionElements} 말의 과열`],
+      keyPoint: `${subjectTitle} 싸움의 내용보다 관계에 오래 남는 문장을 피하는 항목입니다.`,
+      interpretation: `${title}에서는 인격 단정, 비교, 과거 소환, 이별 협박이 가장 깊은 흔적을 남깁니다.`,
+      advice: "화가 날 때도 상대의 성격이 아니라 지금의 행동과 내가 느낀 감정만 말합니다.",
+      caution: "금지 문장은 사과해도 기억에 남아 다음 갈등의 불씨가 됩니다.",
+      checklist: ["인격 단정을 피했는가", "과거를 한꺼번에 꺼내지 않았는가", "이별을 협박처럼 쓰지 않았는가"],
+    };
+  }
+  if (/화해가 쉬워지는 타이밍|회복 의식/.test(title)) {
+    return {
+      evidence: [`${facts.monthBranch} 회복 박자`, `${facts.deficientElement} 진정 기운`, `${facts.dayBranch} 관계 회복성`],
+      keyPoint: `${subjectTitle} 누가 먼저 숙이느냐보다 감정이 내려앉는 시간을 읽는 항목입니다.`,
+      interpretation: `${title}에서는 바로 해결할 문제와 하루 뒤 말해야 할 문제를 나누어야 화해가 부드러워집니다.`,
+      advice: "화해는 진정 시간, 인정 문장, 다음 행동 약속의 순서로 진행합니다.",
+      caution: "감정이 끓는 중에 결론을 내리면 화해보다 재충돌이 쉬워집니다.",
+      checklist: ["진정 시간을 가졌는가", "인정 문장이 있었는가", "다음 행동 약속이 있는가"],
+    };
+  }
+  if (/90일 관계 회복/.test(title)) {
+    return {
+      evidence: [`${facts.targetYear}년 회복 흐름`, `${facts.usefulElements} 관계 보완`, `${facts.dayBranch} 신뢰 재건`],
+      keyPoint: `${subjectTitle} 한 번의 사과가 아니라 신뢰를 다시 쌓는 기간표입니다.`,
+      interpretation: `${title}에서는 첫 달은 말투 안정, 둘째 달은 약속 이행, 셋째 달은 갈등 재발 방지를 확인합니다.`,
+      advice: "90일 동안 사과보다 반복 행동을 보여 주고, 같은 갈등이 줄었는지를 점검합니다.",
+      caution: "빠른 용서만 바라면 회복 과정이 다시 부담으로 바뀝니다.",
+      checklist: ["말투가 안정됐는가", "약속 이행이 반복됐는가", "같은 갈등이 줄었는가"],
+    };
+  }
+  if (/품격 있게 이해/.test(title)) {
+    return {
+      evidence: [`${facts.selfDayMaster} 상대 기질`, `${facts.dayBranch} 상대 관계 본능`, `${facts.dominantTenGod} 상대 기대 방식`],
+      keyPoint: `${subjectTitle} 상대를 맞춰 주는 일이 아니라 품격 있게 번역하는 태도입니다.`,
+      interpretation: `${title}에서는 상대의 다름을 변명으로 받아들이지 않고, 이해할 부분과 지켜야 할 선을 함께 둡니다.`,
+      advice: "상대의 방식 하나를 이해하되, 고객님이 지켜야 할 경계 하나도 같이 정합니다.",
+      caution: "이해가 일방적 희생으로 바뀌면 관계의 균형이 무너집니다.",
+      checklist: ["이해와 희생을 구분했는가", "내 경계를 함께 세웠는가", "상대의 책임도 확인했는가"],
+    };
+  }
+  if (/최종 궁합 한 문장|최종 궁합 메시지/.test(title)) {
+    return {
+      evidence: [`${loveSecretPair(facts.selfDayMaster, facts.partnerDayMaster)} 일간`, `${loveSecretPair(facts.dayBranch, facts.partnerDayBranch)} 배우자궁`, `${facts.dominantElement}/${facts.partnerDominantElement} 오행 흐름`],
+      keyPoint: `${subjectTitle} 두 사람을 좋다 나쁘다로 판정하지 않고 오래 유지될 조건과 흔들릴 조건을 한 문장으로 압축합니다.`,
+      interpretation: `${title}에서는 끌림의 이유, 불편함의 원인, 지켜야 할 태도를 함께 보아야 궁합이 실제 조언이 됩니다.`,
+      advice: "최종 문장은 상대를 바꾸라는 결론이 아니라 두 사람이 함께 지킬 관계 원칙으로 정리합니다.",
+      caution: "궁합 한 문장을 운명 판정처럼 쓰면 조율 가능한 관계의 여지를 놓칠 수 있습니다.",
+      checklist: ["끌림과 위험을 함께 담았는가", "실천 가능한 원칙으로 끝나는가", "단정 대신 조율 조건을 제시했는가"],
+    };
+  }
+  if (/기질 차이가 매력/.test(title)) {
+    return {
+      evidence: [`${loveSecretPair(facts.selfDayMaster, facts.partnerDayMaster)} 기질 차이`, `${facts.dominantElement}/${facts.partnerDominantElement} 매력 온도`, `${facts.dominantTenGod} 반응 방식`],
+      keyPoint: `${subjectTitle} 서로 다른 점이 불편함이 되기 전 신선한 자극과 보완감으로 느껴지는 자리입니다.`,
+      interpretation: `${title}에서는 내가 부족하게 느낀 표현을 상대가 자연스럽게 보여 줄 때 끌림이 커집니다. 다만 매력은 생활 안에서 존중으로 이어져야 오래갑니다.`,
+      advice: "상대의 다른 점을 칭찬하되 내 방식도 함께 설명해 두 사람이 같은 언어를 만들도록 합니다.",
+      caution: "처음의 매력을 내 결핍을 채워 줄 의무로 바꾸면 상대는 쉽게 부담을 느낄 수 있습니다.",
+      checklist: ["차이를 칭찬으로 표현했는가", "내 방식도 설명했는가", "매력을 의무로 만들지 않았는가"],
+    };
+  }
+  if (/기질 차이가 상처/.test(title)) {
+    return {
+      evidence: [`${loveSecretPair(facts.selfDayMaster, facts.partnerDayMaster)} 충돌 방식`, `${facts.cautionElements} 긴장 기운`, `${loveSecretPair(facts.dayBranch, facts.partnerDayBranch)} 생활 반응`],
+      keyPoint: `${subjectTitle} 서로 다른 기질이 무시, 방치, 통제로 해석될 때 상처가 깊어지는 지점입니다.`,
+      interpretation: `${title}에서는 표현 속도, 답을 내리는 방식, 감정 회복 시간이 다를 때 누구의 잘못으로 단정하지 않고 번역해야 합니다.`,
+      advice: "상처가 되는 차이는 금지 문장, 필요한 설명, 다시 확인할 시간을 정해 완충합니다.",
+      caution: "다름을 성격 결함처럼 말하면 궁합의 약점이 아니라 관계의 방어벽이 됩니다.",
+      checklist: ["상처가 되는 차이를 이름 붙였는가", "금지 문장을 정했는가", "회복 시간을 합의했는가"],
+    };
+  }
+  if (/기본 궁합을 살리는 태도/.test(title)) {
+    return {
+      evidence: [`${loveSecretPair(facts.selfDayMaster, facts.partnerDayMaster)} 기본 결`, `${facts.usefulElements} 보완 방향`, `${facts.partnerDominantTenGod} 상대 기대`],
+      keyPoint: `${subjectTitle} 궁합의 장점을 키우려면 맞는 부분보다 어긋날 때의 태도가 더 중요합니다.`,
+      interpretation: `${title}에서는 칭찬, 확인, 거리 조절, 사과의 순서를 안정적으로 만들 때 기본 궁합이 살아납니다.`,
+      advice: "두 사람이 잘 맞는 장면을 기록하고, 어긋나는 장면에는 같은 회복 문장을 반복합니다.",
+      caution: "궁합이 좋다는 이유로 관리해야 할 차이를 방치하면 장점도 쉽게 소모됩니다.",
+      checklist: ["잘 맞는 장면을 알고 있는가", "어긋날 때 회복 문장이 있는가", "상대의 기대를 확인했는가"],
+    };
+  }
+  if (/배우자궁이 맞물리는 방식/.test(title)) {
+    return {
+      evidence: [`${loveSecretPair(facts.dayBranch, facts.partnerDayBranch)} 배우자궁`, `${facts.spouseStar}/${facts.partnerSpouseStar} 기대`, `${facts.monthBranch}/${facts.partnerMonthBranch} 생활권`],
+      keyPoint: `${subjectTitle} 두 사람이 가까워진 뒤 편안해지는 부분과 예민해지는 생활 접점을 읽습니다.`,
+      interpretation: `${title}에서는 데이트의 설렘보다 생활 밀착, 휴식 방식, 약속을 지키는 태도가 궁합의 뿌리로 드러납니다.`,
+      advice: "가까워진 뒤 편해지는 행동과 예민해지는 행동을 서로 한 가지씩 말합니다.",
+      caution: "배우자궁의 불편함을 무조건 나쁜 궁합으로 보면 조율 가능한 생활 차이까지 놓칠 수 있습니다.",
+      checklist: ["생활 밀착의 편안함을 확인했는가", "예민해지는 행동을 말했는가", "휴식 방식의 차이를 존중했는가"],
+    };
+  }
+  if (/두 사람의 일상 궁합 처방/.test(title)) {
+    return {
+      evidence: [`${facts.monthBranch}/${facts.partnerMonthBranch} 생활 박자`, `${facts.dominantElement}/${facts.partnerDominantElement} 감정 온도`, `${loveSecretPair(facts.dayBranch, facts.partnerDayBranch)} 일상 반응`],
+      keyPoint: `${subjectTitle} 거창한 이벤트보다 매일 반복되는 연락, 식사, 휴식, 정리 방식에서 궁합을 살리는 처방입니다.`,
+      interpretation: `${title}에서는 함께 있을 때 편해지는 루틴과 피곤해지는 루틴을 나누어야 합니다. 일상이 맞으면 사랑은 조용히 깊어지고, 일상이 계속 어긋나면 좋은 마음도 소모됩니다.`,
+      advice: "일주일 단위로 연락 기준, 만남 빈도, 혼자 쉬는 시간, 갈등 후 회복 순서를 정합니다.",
+      caution: "일상 궁합을 감정 문제로만 해석하면 실제로 조율할 수 있는 생활 습관을 놓칩니다.",
+      checklist: ["연락 기준이 있는가", "혼자 쉬는 시간을 존중하는가", "갈등 후 회복 순서를 정했는가"],
+    };
+  }
+  if (/상대/.test(title) && role === "partner") {
+    return {
+      evidence: [`${facts.selfDayMaster} 상대 일간`, `${facts.dayBranch} 상대 배우자궁`, `${facts.dominantTenGod} 상대 기대 방식`],
+      keyPoint: `${subjectTitle} 고객님의 기준이 아니라 상대가 사랑을 받아들이는 방식을 따로 읽어야 합니다.`,
+      interpretation: `${title}에서는 상대가 편안함을 느끼는 표현, 부담으로 받아들이는 속도, 관계에서 기대하는 역할을 분리합니다.`,
+      advice: "상대에게 맞출 부분과 고객님이 지켜야 할 기준을 같은 비중으로 놓고 조율합니다.",
+      caution: "상대를 이해한다는 이유로 고객님의 욕구를 지우면 관계의 균형이 무너질 수 있습니다.",
+      checklist: ["상대의 안심 방식이 무엇인가", "내 기준과 상대 기준을 구분했는가", "맞춤과 희생을 혼동하지 않았는가"],
+    };
+  }
+  return null;
+}
+
+function buildLoveSecretCategoryConsultationProfile({ category, facts: rawFacts, mode }) {
+  const facts = buildLoveSecretScopedFacts(rawFacts, category, mode);
+  const kind = loveSecretCategoryKind(category);
+  const isCompat = normalizeMode(mode) === "compatibility";
+  const role = facts.role || "self";
+  const subject = isCompat && role === "couple" ? `${facts.selfName}님과 ${facts.partnerName}님` : `${facts.selfName}님`;
+  const categorySubject = loveSecretCategorySubject(category);
+  const common = {
+    evidence: [
+      `${loveSecretPair(facts.selfDayMaster, `${facts.dayBranch} 배우자궁`)}`,
+      `${loveSecretWithParticle(`${facts.dominantElement} 우세 기운`, "과", "와")} ${facts.deficientElement} 보완 기운`,
+      `${facts.dominantTenGod} 중심 십성`,
+    ],
+    keyPoint: loveSecretTextVariant(`${category}:common-key`, [
+      `${categorySubject} ${subject}의 사랑이 실제 관계에서 어떤 선택으로 반복되는지를 보여 주는 항목입니다.`,
+      `상담의 초점은 ${category}${loveSecretKoreanParticle(category, "을", "를")} 통해 반복되는 감정 반응과 선택 기준을 분리하는 데 있습니다.`,
+      `이 대목은 ${category}${loveSecretKoreanParticle(category, "으", "")}로 드러나는 관계의 신호를 실제 행동 기준으로 바꾸는 자리입니다.`,
+      `${subject}에게 ${category}${loveSecretKoreanParticle(category, "은", "는")} 마음의 크기보다 반복되는 태도를 확인하게 하는 항목입니다.`,
+      `명리적으로는 ${category}${loveSecretKoreanParticle(category, "이", "가")} 일간, 배우자궁, 오행 균형이 관계 장면으로 번역되는 지점입니다.`,
+      `실제 상담에서는 ${category}${loveSecretKoreanParticle(category, "을", "를")} 통해 끌림과 부담이 동시에 생기는 자리를 구분합니다.`,
+      `${categorySubject} 익숙한 선택이 좋은 인연을 부르는지 소모를 부르는지 가르는 기준입니다.`,
+      `관계의 품격을 지키려면 ${category}${loveSecretKoreanParticle(category, "을", "를")} 감정 판단이 아니라 반복 행동으로 읽어야 합니다.`,
+      `이 항목은 ${category}${loveSecretKoreanParticle(category, "을", "를")} 통해 지금 줄일 반응과 살릴 장점을 함께 찾습니다.`,
+      `${subject}의 연애 흐름에서 ${category}${loveSecretKoreanParticle(category, "은", "는")} 마음을 확인하는 방식과 경계를 세우는 방식을 보여 줍니다.`,
+      `사주의 결로 보면 ${category}${loveSecretKoreanParticle(category, "은", "는")} 관계가 편해지는 장면과 예민해지는 장면을 나누는 항목입니다.`,
+      `고객님의 현실 관계에서는 ${category}${loveSecretKoreanParticle(category, "이", "가")} 작은 습관 하나를 바꾸는 출발점이 됩니다.`,
+    ]),
+    interpretation: loveSecretTextVariant(`${category}:common-interpretation`, [
+      `${categorySubject} 단독으로 단정하지 않고 일간, 배우자궁, 오행 균형을 함께 보아야 정확합니다.`,
+      `${category}${loveSecretKoreanParticle(category, "은", "는")} 감정의 크기보다 반복되는 선택을 함께 봐야 정확합니다.`,
+      `이 흐름은 ${facts.selfDayMaster} 일간의 반응, ${facts.dayBranch} 배우자궁의 안정 조건, ${facts.dominantElement}/${facts.deficientElement} 오행 균형을 함께 놓고 읽어야 합니다.`,
+      `${category}${loveSecretKoreanParticle(category, "을", "를")} 볼 때는 상대의 말보다 반복되는 행동과 고객님의 몸이 느끼는 편안함을 같이 확인해야 합니다.`,
+      `명식은 한 가지 신호로 결론내리지 않고, ${facts.dominantTenGod} 십성의 기대와 ${facts.usefulElements} 보완 방향을 함께 묶어 읽을 때 선명해집니다.`,
+      `${category}${loveSecretKoreanParticle(category, "은", "는")} 좋은 마음이 있어도 생활 장면에서 어떤 부담으로 바뀌는지 살펴야 합니다.`,
+      `관계가 흔들릴 때 이 항목은 누구의 잘못보다 반응의 순서와 회복 가능성을 먼저 보게 합니다.`,
+      `${category}${loveSecretKoreanParticle(category, "이", "가")} 보여 주는 신호는 감정의 결론이 아니라 다음 대화에서 확인할 기준입니다.`,
+    ]),
+    advice: loveSecretTextVariant(`${category}:common-advice`, [
+      `${category} 관점에서 줄일 반응 하나와 늘릴 행동 하나를 정해 반복합니다.`,
+      `${category}${loveSecretKoreanParticle(category, "을", "를")} 기준으로 오늘 하지 않을 말 하나와 대신 할 행동 하나를 정합니다.`,
+      `대화에서는 ${category}${loveSecretKoreanParticle(category, "을", "를")} 평가하지 말고 관찰한 행동, 느낀 감정, 원하는 요청으로 나누어 말합니다.`,
+      `${category}${loveSecretKoreanParticle(category, "이", "가")} 흔들리는 날에는 결론을 미루고 확인 가능한 약속 하나만 제안합니다.`,
+      `이번 주에는 ${category}${loveSecretKoreanParticle(category, "에", "에")} 맞는 작은 루틴을 하나 정해 반복해 보세요.`,
+      `${category}${loveSecretKoreanParticle(category, "을", "를")} 살리려면 상대를 시험하기보다 필요한 안정 행동을 짧게 요청합니다.`,
+      `관계가 급해질수록 ${category}${loveSecretKoreanParticle(category, "에서는", "에서는")} 속도를 늦추고 말의 온도를 낮추는 편이 좋습니다.`,
+      `${category}${loveSecretKoreanParticle(category, "은", "는")} 한 번의 결심보다 반복되는 작은 행동으로 바꾸는 것이 오래갑니다.`,
+    ]),
+    caution: loveSecretTextVariant(`${category}:common-caution`, [
+      "감정이 강한 날일수록 상대의 마음을 단정하지 않고 확인 가능한 행동부터 봅니다.",
+      `${category}${loveSecretKoreanParticle(category, "에서", "에서")} 마음이 급해지면 사실보다 해석이 앞설 수 있습니다.`,
+      `좋은 의도라도 ${category}${loveSecretKoreanParticle(category, "에서는", "에서는")} 상대에게 압박으로 전달될 수 있습니다.`,
+      `${category}${loveSecretKoreanParticle(category, "을", "를")} 운명처럼 단정하면 조율 가능한 부분까지 닫힐 수 있습니다.`,
+      `불안한 날에는 ${category}${loveSecretKoreanParticle(category, "을", "를")} 근거로 결론을 내리기보다 하루 뒤 다시 확인하는 편이 안전합니다.`,
+      `${category}${loveSecretKoreanParticle(category, "이", "가")} 반복될수록 사랑의 증명보다 생활 속 신뢰를 먼저 보아야 합니다.`,
+      `상대 반응을 시험하는 방식으로 ${category}${loveSecretKoreanParticle(category, "을", "를")} 다루면 관계의 방어가 커질 수 있습니다.`,
+      `${category}${loveSecretKoreanParticle(category, "에서는", "에서는")} 내 기준을 지키되 관계를 닫아 버리는 표현은 피해야 합니다.`,
+    ]),
+    checklist: [
+      `${category}에서 반복되는 내 반응을 한 문장으로 정리했는가`,
+      "상대의 말보다 반복되는 행동을 함께 확인했는가",
+      "오늘 실천할 작은 기준을 하나 정했는가",
+    ],
+  };
+  const profiles = {
+    dayMaster: {
+      evidence: [`${facts.selfDayMaster} 일간`, `${facts.dominantTenGod} 중심 십성`, `강약 판정 ${facts.strengthLabel}`],
+      keyPoint: `${facts.selfDayMaster} 일간은 사랑에서 자존감, 선택 속도, 먼저 다가가는 방식을 보여 줍니다.`,
+      interpretation: `${subject}은 관계 안에서 나를 잃지 않는 감각이 중요합니다. 일간의 결이 선명할수록 상대에게 맞추기보다 어떤 사랑을 원하는지 먼저 정리해야 관계가 안정됩니다.`,
+      advice: "호감이 생긴 뒤에도 내 기준과 생활 리듬을 지키는 문장을 먼저 준비합니다.",
+      caution: "상대 반응에 맞춰 나를 바꾸는 시간이 길어지면 본래의 매력이 흐려질 수 있습니다.",
+      checklist: ["나는 사랑에서 어떤 태도를 지키고 싶은가", "상대에게 맞추기 전 내 기준을 말했는가", "호감과 의존을 구분했는가"],
+    },
+    spousePalace: {
+      evidence: [`${facts.dayBranch} 배우자궁`, `${facts.spouseStar} 흐름`, `${facts.selfDayMaster} 일간과 일지의 연결`],
+      keyPoint: `${facts.dayBranch} 배우자궁은 가까워진 뒤 드러나는 안정감과 관계 본능을 보여 줍니다.`,
+      interpretation: `${category}에서는 설렘보다 가까운 거리에서 편안함이 유지되는지를 봅니다. 배우자궁이 말하는 본능은 오래 만날수록 더 선명해지므로, 생활 속 반복 반응을 반드시 함께 확인해야 합니다.`,
+      advice: "가까워진 뒤 불편해지는 지점과 편안해지는 지점을 분리해서 기록합니다.",
+      caution: "처음의 강한 끌림만으로 장기 안정성을 판단하면 실제 생활의 결을 놓칠 수 있습니다.",
+      checklist: ["가까워질수록 편안해지는가", "생활 리듬에서 반복되는 불편함은 무엇인가", "내가 원하는 안정감을 상대에게 설명했는가"],
+    },
+    monthBranch: {
+      evidence: [`${facts.monthBranch} 월지`, `${facts.strengthLabel} 계절 흐름`, `${facts.dominantElement} 우세 기운`],
+      keyPoint: `${facts.monthBranch} 월지는 연애가 일상과 만날 때의 계절감과 생활 리듬을 보여 줍니다.`,
+      interpretation: `${category}는 사랑을 감정만이 아니라 시간 사용, 약속 방식, 생활 온도로 읽는 항목입니다. 월지의 결이 맞으면 관계가 무리 없이 반복되고, 맞지 않으면 사소한 일정과 생활 방식에서 피로가 쌓입니다.`,
+      advice: "연락, 만남, 휴식의 주기를 현실적으로 맞추는 약속을 먼저 정합니다.",
+      caution: "감정은 좋은데 생활 리듬이 계속 어긋나면 관계가 쉽게 소모될 수 있습니다.",
+      checklist: ["만남 주기가 서로에게 무리 없는가", "생활 리듬 차이를 애정 부족으로 오해하지 않았는가", "반복 가능한 약속을 정했는가"],
+    },
+    element: {
+      evidence: [`우세 오행 ${facts.dominantElement}`, `보완 오행 ${facts.deficientElement}`, `용신 흐름 ${facts.usefulElements}`],
+      keyPoint: `오행 균형은 끌림의 온도와 관계를 안정시키는 보완점을 함께 보여 줍니다.`,
+      interpretation: `${category}에서는 강한 기운이 매력으로 드러나는 방식과 부족한 기운이 불안으로 나타나는 순간을 나누어 봅니다. ${facts.usefulElements}의 결은 관계를 부드럽게 살리는 방향이고, ${facts.cautionElements}의 결은 과해질 때 조절이 필요합니다.`,
+      advice: `관계가 흔들릴 때는 ${facts.usefulElements}의 생활 행동을 하나 정해 보완합니다.`,
+      caution: `${facts.cautionElements} 기운이 과해지는 날에는 결론을 늦추고 몸의 속도를 먼저 낮춥니다.`,
+      checklist: ["강한 기운이 매력으로 쓰였는가", "부족한 기운을 상대에게 요구로만 돌리지 않았는가", "보완 행동을 생활 루틴으로 정했는가"],
+    },
+    tenGod: {
+      evidence: [`중심 십성 ${facts.dominantTenGod}`, `${facts.spouseStar} 배우자성`, `${facts.selfDayMaster} 일간의 표현 방식`],
+      keyPoint: `${facts.dominantTenGod} 흐름은 사랑에서 원하는 역할, 표현 방식, 기대치를 보여 줍니다.`,
+      interpretation: `${category}는 내가 사랑받는다고 느끼는 조건과 사랑을 줄 때 반복하는 태도를 읽는 항목입니다. 십성의 결을 알면 상대를 바꾸려 하기보다 내가 어떤 방식으로 관계를 운영하는지 더 정확히 보입니다.`,
+      advice: "원하는 역할과 기대를 말없이 시험하지 말고 짧은 문장으로 확인합니다.",
+      caution: "기대가 쌓인 뒤 한 번에 터뜨리면 상대는 평가받는다고 느낄 수 있습니다.",
+      checklist: ["내가 원하는 연인의 역할을 말로 설명했는가", "상대에게 기대를 시험처럼 표현하지 않았는가", "표현 방식이 상대에게도 안전한가"],
+    },
+    longTerm: {
+      evidence: [`${facts.spouseStar} 배우자성`, `${facts.dayBranch} 배우자궁`, `${facts.monthBranch} 생활 리듬`],
+      keyPoint: `장기 관계는 감정의 크기보다 책임, 생활 리듬, 현실 조건의 합으로 판단해야 합니다.`,
+      interpretation: `${category}에서는 결혼운을 단순한 시기가 아니라 함께 살아도 사랑이 남는 구조로 봅니다. ${facts.spouseStar}의 기대와 ${facts.dayBranch} 배우자궁의 안정 조건이 맞을수록 오래 가는 약속이 가벼워집니다.`,
+      advice: "돈, 가족, 시간, 역할에 대한 기준을 관계 초기에 부드럽게 확인합니다.",
+      caution: "결혼 가능성을 감정 확신만으로 밀어붙이면 현실 조건에서 피로가 커질 수 있습니다.",
+      checklist: ["생활과 돈의 기준을 확인했는가", "가족과 일의 경계를 합의했는가", "오래 갈 관계의 책임을 한쪽에 몰지 않았는가"],
+    },
+    attraction: {
+      evidence: [`${facts.dominantElement} 매력 기운`, `${facts.dominantTenGod} 표현 결`, `${facts.selfDayMaster} 일간의 첫 반응`],
+      keyPoint: `끌림은 강한 자극만이 아니라 내 사주가 편안하게 반응하는 분위기에서 더 오래갑니다.`,
+      interpretation: `${category}에서는 빠른 설렘과 천천히 깊어지는 안정적 끌림을 구분합니다. 강하게 끌리는 유형이 늘 좋은 인연은 아니므로, 반복 행동과 생활 태도를 함께 확인해야 합니다.`,
+      advice: "설렘이 커질수록 상대의 일관성, 책임감, 대화 태도를 체크합니다.",
+      caution: "위험한 끌림을 운명감으로 포장하면 같은 관계 패턴이 반복될 수 있습니다.",
+      checklist: ["설렘과 안정감을 따로 확인했는가", "상대의 반복 행동을 보았는가", "내가 소모되는 끌림을 구분했는가"],
+    },
+    communication: {
+      evidence: [`${facts.dominantTenGod} 표현 방식`, `${facts.selfDayMaster} 일간`, `${facts.deficientElement} 보완 기운`],
+      keyPoint: `소통은 마음의 크기보다 말의 순서, 확인 방식, 침묵을 다루는 태도에서 갈립니다.`,
+      interpretation: `${category}에서는 고백, 사과, 화해가 잘 통하는 문장 구조를 봅니다. 감정부터 밀어붙이면 오해가 커지고, 사실 확인 뒤 감정을 말하면 관계의 안전감이 살아납니다.`,
+      advice: "사실 확인, 감정 표현, 원하는 행동 제안을 한 문장씩 나누어 말합니다.",
+      caution: "침묵을 벌로 쓰거나 확인 요구를 공격처럼 표현하면 회복이 늦어집니다.",
+      checklist: ["사실과 감정을 분리해 말했는가", "상대가 들을 수 있는 속도로 표현했는가", "화해 문장을 미리 준비했는가"],
+    },
+    anxiety: {
+      evidence: [`${facts.deficientElement} 보완 기운`, `${facts.cautionElements} 과열 기운`, `${facts.dominantTenGod} 관계 욕구`],
+      keyPoint: `불안과 집착은 사랑이 없어서가 아니라 안심을 확인하는 방식이 흔들릴 때 커집니다.`,
+      interpretation: `${category}에서는 확인받고 싶은 욕구와 회피하고 싶은 방어를 나누어 봅니다. 부족한 기운이 자극되면 상대의 작은 반응도 크게 해석되므로, 결론보다 몸과 말의 속도를 먼저 낮추는 것이 중요합니다.`,
+      advice: "불안이 올라온 날에는 확인 요구를 바로 보내지 말고 원하는 안정 행동을 짧게 적습니다.",
+      caution: "질투와 비교심을 시험으로 표현하면 관계의 신뢰가 빠르게 약해질 수 있습니다.",
+      checklist: ["불안의 원인이 사실인지 해석인지 구분했는가", "확인 요구를 요청 문장으로 바꾸었는가", "큰 결정을 하루 미루었는가"],
+    },
+    conflict: {
+      evidence: [`${facts.dominantTenGod} 갈등 반응`, `${facts.dayBranch} 배우자궁`, `${facts.cautionElements} 주의 기운`],
+      keyPoint: `갈등은 누가 옳은지보다 각자가 불안을 방어하는 방식에서 시작되는 경우가 많습니다.`,
+      interpretation: `${category}에서는 싸움의 원인, 금지 문장, 화해 타이밍을 분리합니다. 같은 문제라도 말의 순서가 바뀌면 상처가 줄고, 감정이 가라앉은 뒤 합의하면 관계 회복 속도가 빨라집니다.`,
+      advice: "갈등 당일에는 결론을 강요하지 말고 다시 이야기할 시간을 먼저 정합니다.",
+      caution: "상대의 성격을 단정하는 문장은 사과보다 오래 남는 상처가 됩니다.",
+      checklist: ["갈등의 시작점을 사건과 감정으로 분리했는가", "금지 문장을 피했는가", "화해 시간을 정했는가"],
+    },
+    reunion: {
+      evidence: [`${facts.dayBranch} 관계 기억`, `${facts.spouseStar} 인연 기대`, `${facts.targetYear}년 흐름`],
+      keyPoint: `재회는 미련의 크기가 아니라 다시 만나도 같은 문제가 반복되지 않을 조건으로 봐야 합니다.`,
+      interpretation: `${category}에서는 붙잡아야 할 인연과 정리해야 할 인연을 구분합니다. 재회 가능성이 있어도 관계 운영 방식이 바뀌지 않으면 같은 이별이 반복될 수 있습니다.`,
+      advice: "연락 전에 바뀐 행동, 확인할 조건, 멈출 기준을 먼저 정합니다.",
+      caution: "외로움 때문에 재회를 선택하면 관계의 핵심 문제가 다시 흐려질 수 있습니다.",
+      checklist: ["재회 후 달라질 행동이 구체적인가", "반복 이별 원인을 알고 있는가", "정리해야 할 신호를 정했는가"],
+    },
+    intimacy: {
+      evidence: [`${facts.dominantElement} 온도`, `${facts.deficientElement} 보완 온도`, `${facts.dayBranch} 친밀감 리듬`],
+      keyPoint: `친밀감은 성적 단정이 아니라 몸과 마음이 안전하다고 느끼는 속도와 온도의 문제입니다.`,
+      interpretation: `${category}에서는 가까워지는 속도, 스킨십의 편안함, 정서적 밀착의 리듬을 봅니다. 조후의 균형이 맞을수록 친밀감은 자연스럽고, 과열되거나 차가워질 때는 말보다 생활 리듬 조율이 먼저 필요합니다.`,
+      advice: "친밀감의 속도와 경계를 부드럽게 말하고 상대의 반응을 확인합니다.",
+      caution: "친밀감의 차이를 애정 부족으로 단정하면 불필요한 방어가 생깁니다.",
+      checklist: ["편안한 속도를 말했는가", "상대의 경계를 존중했는가", "친밀감과 애정 확인을 혼동하지 않았는가"],
+    },
+    timing: {
+      evidence: loveSecretCleanList([
+        ...loveSecretTimingEvidenceHints(category, facts),
+        `${facts.targetYear}년 세운`,
+        `${facts.monthBranch} 월지`,
+        `${facts.usefulElements} 보완 기운`,
+      ], 6),
+      keyPoint: `시기는 운이 대신 결정해 주는 답이 아니라 선택을 현실로 옮기기 좋은 리듬입니다.`,
+      interpretation: `${category}에서는 만남, 결정, 조율, 휴식의 때를 나누어 봅니다. 좋은 흐름이 열릴 때는 행동을 늘리고, 조심할 흐름에서는 관계의 속도를 늦추는 것이 좋습니다.`,
+      advice: "좋은 달에는 만남과 대화를 늘리고, 예민한 달에는 결론보다 점검을 우선합니다.",
+      caution: "시기 운을 핑계로 준비 없는 선택을 밀어붙이면 좋은 흐름도 소모됩니다.",
+      checklist: ["올해 행동을 시작할 시기를 정했는가", "조심할 때의 대화 원칙이 있는가", "운의 흐름을 실제 행동 계획으로 바꾸었는가"],
+    },
+    compatibility: {
+      evidence: loveSecretCleanList([
+        ...loveSecretCompatibilityEvidenceHints(category, facts),
+        `${loveSecretPair(facts.selfDayMaster, facts.partnerDayMaster)} 일간`,
+        `${loveSecretPair(facts.dayBranch, facts.partnerDayBranch)} 배우자궁`,
+        `${facts.dominantElement}/${facts.partnerDominantElement} 오행 흐름`,
+      ], 6),
+      keyPoint: `궁합은 좋고 나쁨의 판정이 아니라 서로의 속도와 기대를 조율하는 지도입니다.`,
+      interpretation: `${category}에서는 두 사람이 끌리는 이유와 흔들리는 이유를 함께 봅니다. 서로의 다른 반응을 애정 부족으로 해석하지 않고 생활 리듬과 감정 언어로 번역할 때 관계가 안정됩니다.`,
+      advice: "각자가 원하는 행동을 하나씩 말하고 이번 주에 지킬 작은 약속을 정합니다.",
+      caution: "한 사람의 기준으로만 관계 방향을 정하면 상대는 쉽게 방어적으로 변합니다.",
+      checklist: ["서로의 기대를 같은 문장으로 확인했는가", "생활 리듬 차이를 합의했는가", "갈등 후 회복 방식을 정했는가"],
+    },
+    plan: {
+      evidence: ["상담 질문의 핵심 방향", "관계 목표의 현실화", `${facts.usefulElements} 보완 기운`],
+      keyPoint: `마스터플랜은 예언이 아니라 반복 가능한 행동 기준으로 완성됩니다.`,
+      interpretation: `${category}에서는 앞으로의 사랑을 바꾸기 위해 지금 당장 줄일 행동과 늘릴 행동을 정리합니다. 작은 루틴이 반복되면 관계 운은 감정의 파도보다 안정적인 방향으로 움직입니다.`,
+      advice: "오늘, 7일, 30일 단위로 실천할 행동을 각각 하나씩 정합니다.",
+      caution: "계획이 너무 크면 지속되지 않으니 가장 작은 행동부터 시작합니다.",
+      checklist: ["오늘 할 행동이 하나로 좁혀졌는가", "반복할 루틴이 있는가", "멈춰야 할 관계 신호를 정했는가"],
+    },
+  };
+  const specific = buildLoveSecretCategorySpecificProfile({ category, facts, kind, role }) || {};
+  const selected = { ...(profiles[kind] || common), ...specific };
+  return {
+    kind,
+    role,
+    facts,
+    evidence: selected.evidence || common.evidence,
+    keyPoint: selected.keyPoint || common.keyPoint,
+    interpretation: selected.interpretation || common.interpretation,
+    advice: selected.advice || common.advice,
+    caution: selected.caution || common.caution,
+    checklist: selected.checklist || common.checklist,
+  };
+}
+
+function loveSecretCategoryScopedSentence(category, sentence, fallback = "") {
+  const title = loveSecretSafeDisplayText(category, "이 카테고리");
+  const text = loveSecretSafeDisplayText(sentence, fallback || `${title}의 흐름을 차분히 확인합니다.`);
+  const sentences = text.split(/(?<=[.!?])\s+/u).map((item) => item.trim()).filter(Boolean);
+  if (!sentences.length) return `${title}의 흐름을 차분히 확인합니다.`;
+  return sentences.map((item, index) => {
+    if (item.includes(title)) return item;
+    if (index > 0) {
+      return loveSecretTextVariant(`${title}:${item}:scoped-follow`, [
+        `${loveSecretCategorySubject(title)} ${item}`,
+        `${title}의 실제 관계 장면에서는 ${item}`,
+        `${title} 관점에서 현실 장면을 보면 ${item}`,
+        `이 판단은 ${title}에서도 이어지며, ${item}`,
+        `특히 ${title}에서는 ${item}`,
+        `이 부분은 ${title} 안에서 말보다 반복되는 행동으로 확인되며, ${item}`,
+      ]);
+    }
+    return loveSecretTextVariant(`${title}:${item}:scoped-lead`, [
+      `${title}에서는 ${item}`,
+      `이 항목의 핵심은 ${title}에서 ${item}`,
+      `여기서는 ${title}${loveSecretKoreanParticle(title, "이", "가")} 보여 주는 ${item}`,
+      `실제 상담에서는 ${title}의 장면에서 ${item}`,
+      `실제 관계 장면으로 옮기면 ${title}${loveSecretKoreanParticle(title, "은", "는")} ${item}`,
+      `명리 흐름으로 보면 ${title}에서 ${item}`,
+      `고객님의 연애 흐름 안에서는 ${title}${loveSecretKoreanParticle(title, "이", "가")} ${item}`,
+    ]);
+  }).join(" ");
+}
+
+function loveSecretCategoryNoteSentence(category, label, sentence) {
+  const title = loveSecretSafeDisplayText(category, "이 카테고리");
+  const scoped = loveSecretCategoryScopedSentence(title, sentence).split(/(?<=[.!?])\s+/u).filter(Boolean).join(" ");
+  const subject = loveSecretCategorySubject(title);
+  let core = scoped;
+  [`${title}에서는 `, `${title}은 `, `${title}는 `, `${title}의 `, `${title} `, `${subject} `].forEach((lead) => {
+    if (core.startsWith(lead)) core = core.slice(lead.length);
+  });
+  const openings = {
+    "핵심 판단": ["핵심으로 보면", "상담의 중심은", "중요하게 볼 점은", "명리적으로는"],
+    "실천 처방": ["실천은", "오늘의 처방은", "행동 기준은", "관계에서 쓸 문장은"],
+    "마무리 기준": ["마무리는", "마지막 기준은", "정리하면", "결론의 방향은"],
+    "주의 신호": ["주의할 신호는", "조심할 부분은", "놓치면 안 될 대목은", "예민하게 볼 지점은"],
+    "명리 보완": ["보완 관점은", "명리 보완은", "운의 균형으로는", "관계의 보완점은"],
+  };
+  const opening = loveSecretTextVariant(`${title}:${label}`, openings[label] || ["상담 포인트는", "실제 기준은", "확인할 부분은"]);
+  return `${title}의 ${opening} ${core}`;
+}
+
+function loveSecretPersonalizedList(category, values = []) {
+  const title = loveSecretSafeDisplayText(category, "이 카테고리");
+  return loveSecretCleanList(values, 6).map((item) => {
+    const text = loveSecretSafeDisplayText(item, "");
+    if (!text) return "";
+    if (text.includes(title)) return text;
+    return `${title}: ${text}`;
+  }).filter(Boolean);
+}
+
+function loveSecretCategoryOpeningLine(kind, category, facts, isCompat) {
+  const title = loveSecretSafeDisplayText(category, "이 카테고리");
+  const subjectTitle = loveSecretCategorySubject(title);
+  if (kind === "dayMaster") return `${subjectTitle} ${facts.selfDayMaster} 일간이 사랑 앞에서 지키려는 자존감과 선택의 속도를 보여 줍니다.`;
+  if (kind === "spousePalace") return `${subjectTitle} ${facts.dayBranch} 배우자궁이 가까운 관계에서 어떻게 안심하고 경계하는지를 드러냅니다.`;
+  if (kind === "monthBranch") return `${subjectTitle} ${facts.monthBranch} 월지가 만든 생활 리듬과 연애의 계절감을 읽는 자리입니다.`;
+  if (kind === "element") return `${subjectTitle} ${facts.dominantElement}의 강한 온도와 ${facts.deficientElement}의 빈자리가 관계에서 어떻게 섞이는지 봅니다.`;
+  if (kind === "tenGod") return `${subjectTitle} ${facts.dominantTenGod} 중심 십성이 사랑에서 맡으려는 역할과 기대를 보여 줍니다.`;
+  if (kind === "longTerm") return `${subjectTitle} ${loveSecretPair(facts.spouseStar, `${facts.dayBranch} 배우자궁`)}을 통해 오래 갈 약속의 현실성을 살핍니다.`;
+  if (kind === "attraction") return `${subjectTitle} 설렘이 운명감으로 번지는 지점과 오래 남는 끌림의 차이를 가릅니다.`;
+  if (kind === "communication") return `${subjectTitle} 마음의 크기보다 말의 순서와 확인 방식이 관계를 어떻게 바꾸는지 보여 줍니다.`;
+  if (kind === "anxiety") return `${subjectTitle} 안심받고 싶은 마음이 어떤 순간 집착이나 회피로 바뀌는지 읽습니다.`;
+  if (kind === "conflict") return `${subjectTitle} 다툼의 표면보다 방어 반응이 반복되는 지점을 먼저 봐야 합니다.`;
+  if (kind === "reunion") return `${subjectTitle} 미련이 아니라 다시 만나도 같은 상처를 반복하지 않을 조건을 묻습니다.`;
+  if (kind === "intimacy") return `${subjectTitle} 조후의 온도와 거리감을 통해 몸과 마음이 편안해지는 속도를 봅니다.`;
+  if (kind === "timing") return `${subjectTitle} ${facts.targetYear}년 흐름에서 선택을 현실로 옮기기 좋은 리듬을 짚습니다.`;
+  if (kind === "compatibility") return `${subjectTitle} ${loveSecretPair(facts.selfDayMaster, facts.partnerDayMaster)}이 서로를 받아들이는 방식의 차이를 읽습니다.`;
+  if (kind === "plan") return `${subjectTitle} 마음을 달래는 조언이 아니라 반복 가능한 관계 습관으로 정리해야 합니다.`;
+  return isCompat
+    ? `${subjectTitle} 두 사람의 관계에서 서로 다른 속도와 기대가 만나는 지점을 읽습니다.`
+    : `${subjectTitle} 사랑에서 반복되는 선택과 감정의 결을 구체적으로 확인하는 자리입니다.`;
+}
+
+function loveSecretCategoryEvidenceLine(kind, category, facts, profile, isCompat) {
+  const title = loveSecretSafeDisplayText(category, "이 카테고리");
+  const evidence = loveSecretCleanList(profile?.evidence, 4).join(", ");
+  if (kind === "dayMaster") return `${title}의 명리 근거는 ${evidence}입니다. ${title}에서는 일간이 선명할수록 사랑에서도 먼저 잃지 말아야 할 기준이 분명해집니다.`;
+  if (kind === "spousePalace") return `${title}에서는 ${evidence}라는 근거를 함께 놓고, 설렘 뒤에 남는 편안함과 생활 반응을 따져 봅니다.`;
+  if (kind === "monthBranch") return `${title}의 핵심 근거는 ${evidence}입니다. ${title}에서는 월지가 맞을수록 만남의 빈도와 휴식의 박자가 무리 없이 이어집니다.`;
+  if (kind === "element") return `${loveSecretCategorySubject(title)} ${evidence}라는 근거로 끌림의 열기와 관계를 식히거나 살리는 보완 기운을 나눕니다.`;
+  if (kind === "tenGod") return `${title}에서는 ${evidence}가 사랑받는 방식, 표현 방식, 기대의 언어로 드러납니다.`;
+  if (kind === "longTerm") return `${loveSecretCategorySubject(title)} ${evidence}라는 기준으로 감정 확신보다 생활의 책임이 지속될지를 봅니다.`;
+  if (kind === "attraction") return `${title}의 사주 단서는 ${evidence}입니다. ${title}에서는 강한 자극과 오래 남는 안정감을 분리해야 인연의 질이 보입니다.`;
+  if (kind === "communication") return `${title}에서는 ${evidence}가 말의 속도, 침묵의 의미, 사과가 통하는 문장으로 바뀝니다.`;
+  if (kind === "anxiety") return `${loveSecretCategorySubject(title)} ${evidence}가 자극될 때 해석이 커지는 지점을 구분해야 정확합니다.`;
+  if (kind === "conflict") return `${title}의 명리 근거는 ${evidence}입니다. ${title}에서는 충돌이 사건보다 각자의 방어 방식에서 길어지는 경우가 많습니다.`;
+  if (kind === "reunion") return `${loveSecretCategorySubject(title)} ${evidence}라는 흐름을 바탕으로 다시 이어질 조건과 정리해야 할 신호를 나눕니다.`;
+  if (kind === "intimacy") return `${loveSecretCategorySubject(title)} ${evidence}라는 조후 단서로 가까워지는 온도, 경계, 밀착의 리듬을 살핍니다.`;
+  if (kind === "timing") return `${title}의 근거는 ${evidence}입니다. ${title}에서는 좋은 운이 준비된 행동과 만날 때 관계의 문을 엽니다.`;
+  if (kind === "compatibility") return `${title}에서는 ${evidence}라는 근거를 겹쳐 보며 끌림, 피로, 회복의 방향을 함께 읽습니다.`;
+  if (kind === "plan") return `${loveSecretCategorySubject(title)} ${evidence}라는 상담 단서를 지금 할 행동, 줄일 행동, 멈출 기준으로 바꾸는 단계입니다.`;
+  return isCompat
+    ? `${title}의 근거는 ${evidence}입니다. ${title}에서는 두 사람의 차이를 판정이 아니라 조율해야 할 리듬으로 봐야 합니다.`
+    : `${title}의 근거는 ${evidence}입니다. ${title}에서는 감정의 크기보다 반복되는 선택을 함께 봐야 정확합니다.`;
+}
+
+function loveSecretCategoryPracticeLine(kind, category, facts, isCompat) {
+  const title = loveSecretSafeDisplayText(category, "이 카테고리");
+  if (kind === "dayMaster") return `${title}의 실천은 호감이 커질수록 ${facts.selfDayMaster} 일간의 품위를 지키는 말 한 가지를 먼저 정하는 것입니다.`;
+  if (kind === "spousePalace") return `${title}에서는 가까워진 뒤 편안해지는 행동과 불편해지는 행동을 따로 적어야 합니다.`;
+  if (kind === "monthBranch") return `${title}의 처방은 연락, 만남, 휴식의 주기를 감정이 아니라 현실 리듬에 맞추는 것입니다.`;
+  if (kind === "element") return `${loveSecretCategorySubject(title)} ${facts.usefulElements}을 살리는 생활 행동을 하나 정할 때 과열된 감정이 부드러워집니다.`;
+  if (kind === "tenGod") return `${title}에서는 원하는 역할을 시험하지 말고 짧고 품격 있는 요청 문장으로 바꿔야 합니다.`;
+  if (kind === "longTerm") return `${title}의 실전 기준은 돈, 가족, 시간, 역할 중 아직 말하지 않은 조건을 부드럽게 확인하는 것입니다.`;
+  if (kind === "attraction") return `${title}에서는 설렘이 커질수록 상대의 일관성, 책임감, 생활 태도를 함께 봐야 합니다.`;
+  if (kind === "communication") return `${title}의 처방은 사실 확인, 감정 표현, 원하는 행동 제안을 한 번에 섞지 않는 것입니다.`;
+  if (kind === "anxiety") return `${title}에서는 불안이 올라온 날 바로 결론을 요구하지 말고 원하는 안심 행동을 짧게 요청해야 합니다.`;
+  if (kind === "conflict") return `${title}의 회복법은 결론을 밀어붙이기 전에 다시 이야기할 시간을 정하는 것입니다.`;
+  if (kind === "reunion") return `${title}에서는 연락 전 바뀐 행동, 확인할 조건, 멈출 기준을 먼저 써야 합니다.`;
+  if (kind === "intimacy") return `${loveSecretCategorySubject(title)} 편안한 속도와 경계를 말할수록 친밀감이 애정 확인 싸움으로 번지지 않습니다.`;
+  if (kind === "timing") return `${title}에서는 좋은 달에 만남과 대화를 늘리고 예민한 달에는 결정보다 점검을 우선합니다.`;
+  if (kind === "compatibility") return `${title}의 실천은 서로 원하는 행동을 하나씩 말하고 이번 주에 지킬 작은 약속으로 좁히는 것입니다.`;
+  if (kind === "plan") return `${loveSecretCategorySubject(title)} 오늘, 7일, 30일 단위로 행동을 하나씩만 정할 때 실제 운을 움직입니다.`;
+  return isCompat
+    ? loveSecretTextVariant(title, [
+      `${title}에서는 서로가 원하는 답보다 먼저 확인할 순서와 멈출 기준을 맞출 때 관계가 안정됩니다.`,
+      `${title}에서는 한쪽의 결론을 밀어붙이기보다 두 사람이 같은 장면을 어떻게 해석하는지 나누어야 합니다.`,
+      `${title}에서는 기대의 차이를 옳고 그름으로 보지 않고 이번 주에 지킬 작은 합의로 옮겨야 합니다.`,
+      `${title}에서는 감정의 속도를 맞추기보다 말할 때와 기다릴 때를 함께 정하는 일이 중요합니다.`,
+    ])
+    : loveSecretTextVariant(title, [
+      `${title}에서는 판단을 흐리는 첫 반응을 알아차리고 신뢰를 키우는 행동으로 바꾸어 봅니다.`,
+      `${title}에서는 마음이 급해지는 장면과 실제로 확인해야 할 장면을 분리해야 합니다.`,
+      `${title}에서는 익숙한 방어를 잠시 멈추고 관계를 살리는 태도 하나를 꾸준히 선택합니다.`,
+      `${title}에서는 감정의 결론보다 오늘 반복할 수 있는 말과 행동을 먼저 정합니다.`,
+      `${title}에서는 상대의 마음을 단정하기 전에 내 기준과 요청을 품격 있게 정리합니다.`,
+    ]);
+}
+
+function loveSecretCategoryActionGuideLine(kind, category, facts, isCompat) {
+  const title = loveSecretSafeDisplayText(category, "이 카테고리");
+  if (kind === "communication") return `${title}의 실행 초점은 말하기 전 사실, 감정, 요청을 세 칸으로 나누는 것입니다.`;
+  if (kind === "anxiety") return `${title}의 실행 초점은 확인 요구를 보내기 전 불안의 근거와 해석을 분리하는 것입니다.`;
+  if (kind === "attraction") return `${title}의 실행 초점은 설렘을 키우기 전에 상대의 반복 행동을 확인하는 것입니다.`;
+  if (kind === "longTerm") return `${title}의 실행 초점은 감정 확신을 생활 기준, 돈, 가족, 시간의 언어로 번역하는 것입니다.`;
+  if (kind === "reunion") return `${title}의 실행 초점은 다시 연락하기 전 바뀐 행동과 멈출 기준을 먼저 쓰는 것입니다.`;
+  if (kind === "intimacy") return `${title}의 실행 초점은 편안한 속도와 불편한 경계를 말로 조율하는 것입니다.`;
+  if (kind === "timing") return `${title}의 실행 초점은 좋은 흐름에 할 행동과 예민한 흐름에 피할 행동을 나누는 것입니다.`;
+  if (kind === "compatibility") return `${title}의 실행 초점은 두 사람이 같은 결론보다 같은 확인 절차를 갖는 것입니다.`;
+  if (kind === "plan") return `${title}의 실행 초점은 오늘 할 일, 일주일 기준, 한 달 루틴을 작게 나누는 것입니다.`;
+  if (kind === "spousePalace") return `${title}의 실행 초점은 가까워진 뒤 편안한 행동과 불편한 행동을 따로 관찰하는 것입니다.`;
+  if (kind === "dayMaster") return `${title}의 실행 초점은 ${facts.selfDayMaster} 일간의 기준을 잃지 않는 표현을 준비하는 것입니다.`;
+  return isCompat
+    ? loveSecretTextVariant(title, [
+      `${title}에서는 서로의 속도 차이를 말로 확인하고 이번 주에 지킬 합의로 옮깁니다.`,
+      `${title}에서는 한쪽이 맞추는 방식보다 둘 다 지킬 수 있는 대화 절차를 정합니다.`,
+      `${title}에서는 다름을 설득하려 하지 말고 불편해지는 순간의 신호를 함께 정합니다.`,
+      `${title}에서는 관계를 밀어붙일 때와 기다릴 때를 같은 문장으로 확인합니다.`,
+    ])
+    : loveSecretTextVariant(title, [
+      `${title}에서는 오늘 줄일 반응과 유지할 태도를 하나씩 정합니다.`,
+      `${title}에서는 감정이 올라온 순간의 첫 행동을 바꾸는 데 초점을 둡니다.`,
+      `${title}에서는 상대를 시험하는 말 대신 확인 가능한 요청을 짧게 준비합니다.`,
+      `${title}에서는 마음을 크게 증명하기보다 작게 반복할 행동을 고릅니다.`,
+      `${title}에서는 불안을 키우는 습관과 사랑을 살리는 습관을 나누어 실행합니다.`,
+    ]);
+}
+
+function loveSecretSectionFrameLine({ sectionTitle, facts, chapterNo, sectionNo, isCompat }) {
+  const title = loveSecretSafeDisplayText(sectionTitle, "이 카테고리");
+  if (sectionNo === 1) {
+    return loveSecretTextVariant(`${title}:${chapterNo}:first-frame`, [
+      `${title}에서는 이 장의 핵심 목표를 실제 관계에서 확인할 수 있는 기준으로 세웁니다.`,
+      `먼저 ${title}${loveSecretKoreanParticle(title, "을", "를")} 통해 이 장의 상담 방향을 잡습니다.`,
+      `이 장은 ${title}${loveSecretKoreanParticle(title, "을", "를")} 출발점으로 삼아 관계의 핵심 장면을 읽습니다.`,
+      `상담의 문은 ${title}${loveSecretKoreanParticle(title, "으", "")}로 열고, 실제 선택 기준으로 좁혀 갑니다.`,
+    ]);
+  }
+  const soloFrames = [
+    `${loveSecretCategorySubject(title)} 감정의 결론보다 반복되는 장면을 먼저 읽어야 정확합니다.`,
+    `${title}에서는 마음의 크기보다 관계가 실제로 움직이는 방식을 봅니다.`,
+    `${loveSecretCategorySubject(title)} 사주 구조가 사랑의 선택으로 번역되는 지점을 보여 줍니다.`,
+    `${title}에서는 지금 필요한 태도와 멈춰야 할 반응을 나누어 봅니다.`,
+    `${loveSecretCategorySubject(title)} 상대의 마음을 맞히기보다 고객님의 관계 기준을 선명하게 합니다.`,
+    `${title}에서는 설렘 뒤에 반복될 수 있는 생활 장면을 먼저 확인합니다.`,
+    `${loveSecretCategorySubject(title)} 고객님의 강점이 관계 안에서 어떻게 살아나는지 살핍니다.`,
+    `${title}에서는 사랑을 서두르게 하는 마음과 지켜야 할 경계를 함께 봅니다.`,
+    `${loveSecretCategorySubject(title)} 익숙한 선택이 좋은 인연을 부르는지 소모를 부르는지 나눕니다.`,
+    `${title}에서는 감정의 파도보다 오래 남는 태도와 습관을 확인합니다.`,
+  ];
+  const compatFrames = [
+    `${title}에서는 두 사람이 같은 장면을 서로 다르게 받아들이는 이유를 봅니다.`,
+    `${loveSecretCategorySubject(title)} 한쪽의 잘잘못보다 관계의 박자가 어긋나는 지점을 살핍니다.`,
+    `${title}에서는 끌림, 부담, 회복 가능성을 한 흐름 안에서 나눕니다.`,
+    `${loveSecretCategorySubject(title)} 서로의 기대가 부딪히는 자리와 맞물리는 자리를 함께 보여 줍니다.`,
+    `${title}에서는 관계를 밀어붙일 때와 기다릴 때를 구분해야 합니다.`,
+    `${title}에서는 서로에게 맞춰야 할 부분과 그대로 존중할 부분을 구분합니다.`,
+    `${loveSecretCategorySubject(title)} 두 사람의 속도 차이가 안정감으로 바뀌는 조건을 살핍니다.`,
+    `${title}에서는 기대가 엇갈리는 장면을 작은 약속으로 되돌리는 방법을 봅니다.`,
+    `${loveSecretCategorySubject(title)} 감정의 결론보다 회복 가능한 대화 순서를 확인합니다.`,
+    `${title}에서는 함께 있을 때 편해지는 리듬과 부담되는 리듬을 나누어 봅니다.`,
+    `${title}에서는 두 사람의 반응 차이를 관계의 운영 규칙으로 바꾸어 봅니다.`,
+    `${loveSecretCategorySubject(title)} 서로가 안심하는 표현과 부담스러운 표현을 따로 구분합니다.`,
+    `${title}에서는 같은 문제를 반복하지 않기 위한 확인 순서를 세웁니다.`,
+    `${loveSecretCategorySubject(title)} 마음의 온도와 현실 조건이 만나는 지점을 살핍니다.`,
+    `${title}에서는 상대를 설득하기보다 두 사람이 지킬 수 있는 방식을 찾습니다.`,
+    `${loveSecretCategorySubject(title)} 관계가 편해지는 행동과 무거워지는 행동을 나누어 봅니다.`,
+    `${title}에서는 감정의 속도보다 서로의 회복 방식을 먼저 확인합니다.`,
+    `${loveSecretCategorySubject(title)} 좋은 마음이 실제 약속으로 이어지는지 점검합니다.`,
+  ];
+  const frames = isCompat ? compatFrames : soloFrames;
+  const tone = loveSecretTextVariant(`${sectionNo}:${chapterNo}:${title}:frame-tone`, [
+    "차분히",
+    "섬세하게",
+    "현실적으로",
+    "단정 없이",
+    "생활 장면으로",
+    "대화 기준으로",
+    "느린 호흡으로",
+    "관계의 품격을 지키며",
+    "실천 관점에서",
+    "감정과 현실을 나누어",
+  ]);
+  const frame = loveSecretTextVariant(`${title}:${chapterNo}:${sectionNo}:${isCompat ? "compat" : "solo"}`, frames);
+  return frame.replace(/(봅니다|살핍니다|나눕니다|보여 줍니다|구분해야 합니다|확인합니다)\.$/u, `${tone} $1.`);
+}
+
+function loveSecretSectionPatternLine({ kind, sectionTitle, facts, sectionNo, isCompat }) {
+  const title = loveSecretSafeDisplayText(sectionTitle, "이 카테고리");
+  if (!isCompat && sectionNo === 1) {
+    return loveSecretTextVariant(`${title}:solo:first-pattern`, [
+      `${loveSecretCategoryObject(title)} 고객님의 연애사에 대입하면 이상형의 단서와 반복 습관이 함께 드러납니다.`,
+      `고객님의 지난 관계에 비추어 보면 ${title}${loveSecretKoreanParticle(title, "은", "는")} 끌림의 시작과 멈춤의 이유를 함께 보여 줍니다.`,
+      `이 대목은 고객님이 사랑에서 자주 선택하는 사람과 오래 남는 장면을 분리해 보게 합니다.`,
+    ]);
+  }
+  if (isCompat && sectionNo === 1) {
+    return loveSecretTextVariant(`${title}:compat:first-pattern`, [
+      `${loveSecretCategoryObject(title)} 두 사람에게 적용하면 ${facts.loveStatus}의 흐름 안에서 기대, 속도, 회복 방식을 함께 확인하게 됩니다.`,
+      `두 분의 관계에 비추어 보면 ${title}${loveSecretKoreanParticle(title, "은", "는")} 끌림과 부담이 동시에 생기는 자리를 드러냅니다.`,
+      `${title}${loveSecretKoreanParticle(title, "은", "는")} 두 사람이 같은 마음을 서로 다른 속도로 표현하는 순간을 확인하게 합니다.`,
+    ]);
+  }
+  if (kind === "timing") return `${title}에서는 흐름이 열리는 때와 속도를 늦춰야 할 때를 구분해야 실행력이 생깁니다.`;
+  if (kind === "communication") return `${title}에서는 말의 내용보다 순서, 온도, 여백이 관계의 반응을 바꿉니다.`;
+  if (kind === "anxiety") return `${title}에서는 불안의 원인이 사실인지 해석인지 나누는 것이 먼저입니다.`;
+  if (kind === "reunion") return `${title}에서는 다시 이어질 가능성과 정리해야 할 신호를 동시에 보아야 합니다.`;
+  if (kind === "intimacy") return `${title}에서는 가까워지는 속도와 편안한 경계가 사랑의 안정감을 좌우합니다.`;
+  if (kind === "longTerm") return `${title}에서는 감정의 확신이 생활 책임으로 이어지는지를 확인합니다.`;
+  if (kind === "compatibility") return `${title}에서는 서로의 차이를 맞고 틀림이 아니라 번역해야 할 언어로 봅니다.`;
+  return loveSecretTextVariant(title, isCompat ? [
+    `${title}에서는 두 사람의 기질 차이가 대화, 거리감, 약속 방식에서 어떻게 드러나는지 봅니다.`,
+    `${title}에서는 서로의 기대가 맞물리는 자리와 피로가 쌓이는 자리를 나누어 읽습니다.`,
+    `${title}에서는 같은 상황을 다르게 받아들이는 이유를 실제 생활 장면으로 옮겨 확인합니다.`,
+    `${title}에서는 끌림을 유지하는 행동과 관계를 소모시키는 습관을 함께 살핍니다.`,
+    `${title}에서는 서로가 편해지는 장면과 방어적으로 변하는 장면을 따로 살핍니다.`,
+    `${title}에서는 관계의 강점이 실제 약속 안에서 유지되는지를 확인합니다.`,
+    `${title}에서는 두 사람이 같은 마음을 다른 방식으로 표현하는 지점을 읽습니다.`,
+    `${title}에서는 다름을 줄이는 일보다 다름을 안전하게 다루는 방식을 봅니다.`,
+    `${title}에서는 서로가 안심하는 방식과 불편해지는 방식을 따로 확인합니다.`,
+    `${title}에서는 두 사람의 생활 리듬이 감정의 안정감에 미치는 영향을 봅니다.`,
+    `${title}에서는 상대를 설득하기보다 함께 지킬 기준을 만드는 흐름으로 읽습니다.`,
+    `${title}에서는 기대가 다를 때 관계를 지키는 언어가 무엇인지 살핍니다.`,
+    `${title}에서는 같은 애정이 서로 다른 행동으로 표현되는 장면을 구분합니다.`,
+  ] : [
+    `${title}에서는 타고난 성향이 말투, 선택 속도, 관계 기준으로 드러나는 지점을 읽습니다.`,
+    `${title}에서는 감정의 방향과 실제 태도가 만나는 부분을 차분히 확인합니다.`,
+    `${title}에서는 사랑을 흔드는 습관과 관계를 살리는 습관을 따로 봅니다.`,
+    `${title}에서는 고객님의 선택 패턴이 어떤 인연을 부르고 멀어지게 하는지 살핍니다.`,
+    `${title}에서는 마음의 크기보다 반복된 행동의 결을 먼저 확인합니다.`,
+    `${title}에서는 관계가 흔들리는 순간의 말투와 선택 순서를 함께 봅니다.`,
+    `${title}에서는 끌림이 깊어질 때 생기는 기대와 거리감을 나누어 읽습니다.`,
+    `${title}에서는 반복된 연애 장면을 통해 지금 바꿀 수 있는 기준을 찾습니다.`,
+    `${title}에서는 편안해지는 사랑과 소모되는 사랑의 차이를 살핍니다.`,
+    `${title}에서는 사주의 기질을 실제 만남의 리듬과 대화 방식으로 풀어냅니다.`,
+    `${title}에서는 관계 안에서 강해지는 장점과 예민해지는 약점을 함께 봅니다.`,
+    `${title}에서는 인연을 끌어당기는 태도와 멀어지게 하는 반응을 구분합니다.`,
+  ]);
+}
+
+function loveSecretCautionLeadLine({ kind, sectionTitle, subject, chapterNo, sectionNo }) {
+  const title = loveSecretSafeDisplayText(sectionTitle, "이 카테고리");
+  const leads = [
+    `${title}에서 먼저 경계할 부분은 ${subject}의 마음이 급해질 때 기준이 흐려지는 순간입니다.`,
+    `${title}의 민감한 지점은 감정이 커질수록 확인보다 해석이 앞설 수 있다는 데 있습니다.`,
+    `${title}에서는 좋은 의도라도 상대에게 압박으로 전달되는 장면을 조심해야 합니다.`,
+    `${title}의 균형은 서두르지 않고 실제 행동을 확인할 때 살아납니다.`,
+    `${title}에서는 마음을 보호하되 관계를 닫아 버리지 않는 태도가 필요합니다.`,
+  ];
+  if (kind === "timing") return `${title}에서 조심할 흐름은 좋은 시기를 핑계로 준비 없는 선택을 서두르는 것입니다.`;
+  if (kind === "intimacy") return `${title}에서 섬세하게 볼 부분은 속도의 차이를 애정 부족으로 단정하지 않는 것입니다.`;
+  if (kind === "conflict") return `${title}에서 가장 위험한 지점은 문제 해결보다 상처 주는 문장이 먼저 나오는 순간입니다.`;
+  return leads[(chapterNo + sectionNo) % leads.length];
+}
+
+function loveSecretCategorySupportLine(kind, facts, category = "") {
+  const title = loveSecretSafeDisplayText(category, "이 카테고리");
+  if (["element", "intimacy", "timing"].includes(kind)) {
+    return `${title}에서는 ${facts.usefulElements}의 기운을 살리고 ${facts.cautionElements}의 과열을 낮추는 쪽으로 판단해야 합니다.`;
+  }
+  if (kind === "tenGod") {
+    return `${title}에서는 ${facts.dominantTenGod}의 기대를 말없이 시험하지 않고 요청의 언어로 바꾸는 것이 중요합니다.`;
+  }
+  if (kind === "spousePalace" || kind === "longTerm") {
+    return `${title}에서는 ${facts.dayBranch} 배우자궁과 ${facts.spouseStar}의 흐름을 설렘 이후의 안정 조건으로 확인해야 합니다.`;
+  }
+  if (kind === "compatibility") {
+    return `${title}에서는 ${loveSecretPair(facts.selfDayMaster, facts.partnerDayMaster)}의 차이를 잘잘못보다 속도와 언어의 차이로 해석해야 합니다.`;
+  }
+  if (kind === "reunion") {
+    return `${title}에서는 감정의 크기보다 다시 만났을 때 반복 문제를 다르게 다룰 준비가 되었는지를 봅니다.`;
+  }
+  if (kind === "communication") {
+    return `${title}에서는 확인 질문과 감정 표현을 분리해야 같은 마음도 덜 날카롭게 전달됩니다.`;
+  }
+  if (kind === "conflict") {
+    return `${title}에서는 사건 자체보다 반복되는 방어 반응을 보고 금지 문장과 회복 문장을 함께 정해야 합니다.`;
+  }
+  if (kind === "anxiety") {
+    return `${title}에서는 결론 요구보다 안심받고 싶은 행동을 구체화할 때 관계가 덜 흔들립니다.`;
+  }
+  return loveSecretTextVariant(title, [
+    `${loveSecretCategorySubject(title)} 말보다 반복된 태도와 선택의 방향을 함께 보아야 정확합니다.`,
+    `${title}에서는 감정이 커지는 순간보다 그 뒤에 남는 행동의 일관성을 봐야 합니다.`,
+    `${title}에서는 마음의 진심을 추측하기보다 확인 가능한 약속과 반응을 기준으로 삼습니다.`,
+    `${title}에서는 끌림, 불안, 기대가 실제 관계 습관으로 어떻게 굳어지는지 살펴야 합니다.`,
+    `${loveSecretCategorySubject(title)} 상담은 단정이 아니라 고객님이 바로 바꿀 수 있는 선택을 찾는 과정입니다.`,
+    `${title}에서는 말의 확신보다 생활 속에서 반복되는 신뢰의 모양을 봐야 합니다.`,
+    `${title}에서는 마음이 흔들릴 때 무엇을 확인하고 무엇을 기다릴지 나누어야 합니다.`,
+    `${title}에서는 상대의 반응을 해석하기 전에 고객님의 기준을 먼저 정돈해야 합니다.`,
+    `${title}에서는 좋은 감정이 오래 남을 수 있는 행동의 구조를 확인해야 합니다.`,
+    `${loveSecretCategorySubject(title)} 실제 상담에서는 예측보다 조율 가능한 선택지를 찾는 일이 중요합니다.`,
+    `${title}에서는 관계의 흐름을 감정 하나로 묶지 않고 말, 거리, 약속으로 나누어 봅니다.`,
+    `${title}에서는 지금 당장 바꿀 수 있는 태도와 시간을 두고 볼 신호를 구분해야 합니다.`,
+  ]);
+}
+
+function loveSecretCategoryClosingLine(kind, facts, category = "") {
+  const title = loveSecretSafeDisplayText(category, "이 카테고리");
+  const map = {
+    dayMaster: `${title}의 마무리는 ${facts.selfDayMaster} 일간의 기준을 해치지 않는 표현 한 가지를 정하는 것입니다.`,
+    spousePalace: `${title}에서는 가까워진 뒤 편안함이 유지되는 행동과 불편함이 커지는 행동을 각각 하나씩 기록해 보세요.`,
+    monthBranch: `${title}의 결론은 연락, 만남, 휴식의 주기를 현실적으로 맞추는 작은 약속입니다.`,
+    element: `${title}에서는 ${facts.usefulElements}을 살리는 생활 행동을 하나 정하면 감정의 과열이 줄어듭니다.`,
+    tenGod: `${title}의 핵심은 ${facts.dominantTenGod}의 기대를 시험이 아니라 요청 문장으로 바꾸는 것입니다.`,
+    longTerm: `${title}에서는 돈, 가족, 시간, 역할 중 아직 말하지 않은 현실 조건을 하나씩 확인해야 합니다.`,
+    attraction: `${title}에서는 설렘이 커질수록 상대의 일관성과 책임 있는 행동을 함께 확인해야 합니다.`,
+    communication: `${title}의 마무리는 사실 확인, 감정 표현, 원하는 행동 제안을 각각 한 문장으로 나누는 것입니다.`,
+    anxiety: `${title}에서는 불안이 올라온 날 큰 결정을 미루고 원하는 안심 행동을 짧게 요청하는 편이 안전합니다.`,
+    conflict: `${title}에서는 결론보다 다시 이야기할 시간을 정하는 것이 회복을 앞당깁니다.`,
+    reunion: `${title}에서는 연락 전 재회 후 달라질 행동과 멈춰야 할 기준을 먼저 정해야 합니다.`,
+    intimacy: `${loveSecretCategorySubject(title)} 속도를 맞추는 일이므로 편안한 경계와 원하는 리듬을 함께 말해야 합니다.`,
+    timing: `${title}에서 ${facts.targetYear}년의 흐름은 행동을 대신해 주지 않으므로 좋은 시기에는 준비된 선택을 실행해야 합니다.`,
+    compatibility: `${title}에서는 같은 결론보다 같은 확인 절차를 가질 때 관계가 오래 안정됩니다.`,
+    plan: `${loveSecretCategorySubject(title)} 오늘, 7일, 30일 단위로 하나씩만 정하면 실제 관계 습관으로 바뀝니다.`,
+  };
+  return map[kind] || loveSecretTextVariant(title, [
+    `${title}에서는 익숙한 반응을 잠시 멈추고 관계를 살리는 말을 먼저 선택해 보세요.`,
+    `${title}의 결론은 크게 바꾸는 일이 아니라 오늘도 지킬 수 있는 작은 기준을 세우는 것입니다.`,
+    `${title}에서는 상대를 바꾸려 하기 전 고객님의 말, 거리, 선택을 정돈하는 일이 먼저입니다.`,
+    `${title}에서는 마음의 답을 서두르지 말고 실제 행동으로 확인되는 신호를 기다려 보세요.`,
+    `${title}에서는 사랑을 증명하려 애쓰기보다 오래 남을 태도를 차분히 반복하는 편이 좋습니다.`,
+    `${title}에서는 감정이 앞서는 날일수록 짧은 요청과 충분한 여지를 함께 남겨 보세요.`,
+    `${title}의 마무리는 단정이 아니라 다음 대화에서 확인할 기준을 세우는 것입니다.`,
+    `${title}에서는 관계를 지키는 행동과 나를 지키는 경계를 같은 무게로 두세요.`,
+    `${title}에서는 오늘의 마음을 바로 결론으로 만들지 말고 반복되는 신호를 더 살펴보세요.`,
+    `${title}에서는 좋은 인연을 붙잡는 힘보다 나를 잃지 않는 태도가 먼저입니다.`,
+    `${title}에서는 상대를 더 붙잡는 말보다 관계를 편안하게 만드는 태도를 먼저 선택하세요.`,
+    `${title}의 마지막 기준은 마음을 증명하는 일이 아니라 신뢰가 남는 행동을 반복하는 것입니다.`,
+    `${title}에서는 지금 당장 확인할 신호와 시간을 두고 볼 흐름을 분리하세요.`,
+    `${title}에서는 사랑의 방향을 크게 말하기보다 오늘 지킬 수 있는 약속을 선명하게 정하세요.`,
+    `${title}에서는 감정의 확신보다 관계가 안전해지는 작은 절차를 남기는 것이 좋습니다.`,
+    `${title}에서는 고객님의 기준을 잃지 않으면서도 상대가 숨 쉴 여지를 남기는 태도가 중요합니다.`,
+    `${title}에서는 불안한 마음을 결론으로 바꾸지 말고 관계를 살리는 다음 행동으로 옮기세요.`,
+    `${title}의 결론은 상대를 판단하는 말이 아니라 고객님이 지킬 품격 있는 선택이어야 합니다.`,
+    `${title}에서는 반복된 습관 하나를 줄이고 안정감을 키우는 행동 하나를 남기세요.`,
+    `${title}에서는 좋은 마음이 소모되지 않도록 말의 순서와 관계의 경계를 함께 정하세요.`,
+  ]);
 }
 
 function buildLoveSecretAssembledSectionBody({ mode, spec, sectionTitle, facts, chapterNo, sectionNo }) {
   const isCompat = normalizeMode(mode) === "compatibility";
-  const subject = isCompat ? `${facts.selfName}님과 ${facts.partnerName}님` : `${facts.selfName}님`;
-  const basis = isCompat
-    ? `${facts.selfDayMaster}과 ${facts.partnerDayMaster}, ${facts.dayBranch}과 ${facts.partnerDayBranch}의 호흡`
-    : `${facts.selfDayMaster}, ${facts.dayBranch}, ${facts.monthBranch}의 흐름`;
-  const balance = isCompat
-    ? `${facts.dominantElement} 기운과 ${facts.partnerDominantElement} 기운이 만나는 방식`
-    : `${facts.dominantElement} 기운이 강하고 ${facts.deficientElement} 기운을 보완해야 하는 구조`;
-  const action = isCompat
-    ? "서로의 속도를 맞추는 약속을 작게 정하고, 감정이 올라올 때는 결론보다 확인 질문을 먼저 두는 편이 좋습니다."
-    : "관계의 속도를 서두르기보다 마음이 편안해지는 기준을 분명히 세우고, 표현과 확인의 균형을 맞추는 편이 좋습니다.";
-  const caution = isCompat
-    ? "한쪽이 모든 관계의 방향을 정하려 하면 균형이 흔들릴 수 있으니, 생활 리듬과 감정 언어를 함께 조율해야 합니다."
-    : "사랑받고 싶은 마음이 강해질수록 상대의 반응을 단정하지 말고, 내 감정의 근거와 실제 상황을 나누어 보아야 합니다.";
-
-  const paragraphA = `${sectionTitle}에서는 ${spec.focus}을 중심으로 봅니다. ${subject}의 관계 흐름은 ${basis}에서 출발하며, 겉으로 드러나는 끌림보다 반복해서 편안함을 만드는 방식이 더 중요하게 작용합니다.`;
-  const paragraphB = `사주 근거로는 ${balance}을 함께 살핍니다. 이 조합은 감정이 빠르게 움직이는 순간에도 관계의 현실 조건을 확인하게 만들며, 좋은 인연일수록 말보다 일정한 태도와 생활 속 신뢰로 깊어지는 경향이 있습니다.`;
-  const paragraphC = `${chapterNo}장의 ${sectionNo}번째 관점에서는 ${caution} 특히 ${facts.usefulElements}의 기운은 관계를 부드럽게 살리는 보완점이 되고, ${facts.cautionElements}의 기운은 과해질 때 오해나 거리감으로 나타날 수 있습니다.`;
-  const paragraphD = `${action} 오늘 바로 적용할 기준은 단순합니다. 마음이 흔들릴 때 먼저 사실을 확인하고, 그다음 감정을 말하며, 마지막에 원하는 행동을 짧게 제안하면 사랑의 흐름이 한결 안정됩니다.`;
+  const profile = buildLoveSecretCategoryConsultationProfile({ category: sectionTitle, facts, mode });
+  const sectionFacts = profile.facts || facts;
+  const subject = isCompat && profile.role === "couple" ? `${facts.selfName}님과 ${facts.partnerName}님` : `${sectionFacts.selfName}님`;
+  const chapterFocus = loveSecretSafeDisplayText(clean(spec?.focus).split(" - ")[0], "사랑의 흐름");
+  const openingLine = loveSecretCategoryOpeningLine(profile.kind, sectionTitle, sectionFacts, isCompat);
+  const evidenceLine = loveSecretCategoryEvidenceLine(profile.kind, sectionTitle, sectionFacts, profile, isCompat);
+  const practiceLine = loveSecretCategoryPracticeLine(profile.kind, sectionTitle, sectionFacts, isCompat);
+  const frameLine = loveSecretSectionFrameLine({ sectionTitle, facts, chapterNo, sectionNo, isCompat });
+  const patternLine = loveSecretSectionPatternLine({ kind: profile.kind, sectionTitle, facts, sectionNo, isCompat });
+  const cautionLead = loveSecretCautionLeadLine({ kind: profile.kind, sectionTitle, subject, chapterNo, sectionNo });
+  const paragraphA = `${openingLine} ${frameLine} ${loveSecretCategoryScopedSentence(sectionTitle, profile.keyPoint)}`;
+  const paragraphB = `${evidenceLine} ${patternLine} ${loveSecretCategoryScopedSentence(sectionTitle, profile.interpretation)}`;
+  const paragraphC = `${cautionLead} ${loveSecretCategoryScopedSentence(sectionTitle, profile.caution)} ${loveSecretCategorySupportLine(profile.kind, sectionFacts, sectionTitle)}`;
+  const paragraphD = `${practiceLine} ${loveSecretCategoryScopedSentence(sectionTitle, profile.advice)} ${loveSecretCategoryClosingLine(profile.kind, sectionFacts, sectionTitle)}`;
   return [paragraphA, paragraphB, paragraphC, paragraphD].join("\n\n");
 }
 
-function buildLoveSecretAssembledChapter(spec, index, mode, base) {
-  const facts = buildLoveSecretAssembledFacts(base, mode);
+function buildLoveSecretAssembledChapter(spec, index, mode, base, body = {}) {
+  const facts = buildLoveSecretAssembledFacts(base, mode, body);
   const chapterNo = index + 1;
-  const sections = LOVE_SECRET_ASSEMBLED_SECTIONS.map((title, sectionIndex) => {
+  const chapterFocus = loveSecretSafeDisplayText(spec?.focus, loveSecretSafeDisplayText(spec?.title, "사랑의 흐름"));
+  const categoryTitles = loveSecretCleanList(spec?.categories, 12);
+  const sectionTitles = categoryTitles.length ? categoryTitles : Array.from(LOVE_SECRET_ASSEMBLED_SECTIONS);
+  const sections = sectionTitles.map((title, sectionIndex) => {
+    const profile = buildLoveSecretCategoryConsultationProfile({ category: title, facts, mode });
+    const sectionFacts = profile.facts || facts;
     const body = buildLoveSecretAssembledSectionBody({
       mode,
-      spec,
+      spec: { ...spec, focus: `${chapterFocus} - ${title}` },
       sectionTitle: title,
       facts,
       chapterNo,
       sectionNo: sectionIndex + 1,
     });
-    return {
-      title,
-      body,
-      text: body,
-      sajuEvidence: [
-        `${facts.selfDayMaster} 일간의 관계 반응`,
-        `${facts.dayBranch} 배우자궁의 안정 조건`,
-        `${facts.dominantElement}과 ${facts.deficientElement}의 균형`,
+      return {
+        title,
+        categoryTitle: title,
+        categoryIndex: sectionIndex + 1,
+        body,
+        text: body,
+        source: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
+        qualityMode: LOVE_SECRET_PDF_CONFIG.qualityMode,
+        fallbackUsed: false,
+        sajuEvidence: [
+          ...profile.evidence,
+          `${loveSecretPair(`${sectionFacts.dominantElement} 우세`, `${sectionFacts.deficientElement} 보완`)} 균형`,
       ],
       keyPoints: [
-        `${spec.focus}을 관계 판단의 중심에 둡니다.`,
-        "감정의 속도보다 반복되는 태도를 우선 확인합니다.",
-        "끌림과 현실 조건을 함께 보아야 관계가 오래갑니다.",
+        `${title} 관점에서 관계의 핵심 신호를 좁혀 봅니다.`,
+        loveSecretCategoryNoteSentence(title, "핵심 판단", profile.keyPoint),
+        `${loveSecretCategoryObject(title)} ${chapterFocus} 안에서 관계 판단의 중심에 둡니다.`,
       ],
       actionGuide: [
-        "중요한 대화는 결론보다 확인 질문으로 시작합니다.",
-        "관계의 속도, 연락 빈도, 생활 경계를 구체적으로 정합니다.",
-        "불안이 커질 때는 상대 평가보다 내 필요를 먼저 말합니다.",
+        loveSecretCategoryActionGuideLine(profile.kind, title, sectionFacts, normalizeMode(mode) === "compatibility"),
+        loveSecretCategoryNoteSentence(title, "실천 처방", profile.advice),
+        loveSecretCategoryNoteSentence(title, "마무리 기준", loveSecretCategoryClosingLine(profile.kind, sectionFacts, title)),
       ],
-      checklist: [
-        "오늘 내 감정을 한 문장으로 정리했는가",
-        "상대에게 요구하기 전에 사실을 확인했는가",
-        "반복되는 불편함을 생활 규칙으로 바꾸었는가",
-      ],
+      checklist: loveSecretPersonalizedList(title, profile.checklist),
       caution: [
-        "단정적인 결론으로 상대의 마음을 재단하지 않습니다.",
-        "불안한 날에는 큰 결정을 미루고 대화의 온도를 낮춥니다.",
-        "관계의 책임을 한 사람에게만 몰아두지 않습니다.",
+        loveSecretCategoryNoteSentence(title, "주의 신호", profile.caution),
+        loveSecretCategoryNoteSentence(title, "명리 보완", loveSecretCategorySupportLine(profile.kind, sectionFacts, title)),
       ],
     };
   });
@@ -3819,31 +5376,36 @@ function buildLoveSecretAssembledChapter(spec, index, mode, base) {
     title: spec.title,
     subtitle: spec.subtitle,
     summaryCards: [
-      `${facts.displayName}의 ${spec.focus}은 사주 구조의 균형을 통해 더 선명하게 드러납니다.`,
-      `${facts.spouseStar}과 배우자궁의 흐름은 관계의 속도보다 신뢰의 반복을 중시합니다.`,
-      "좋은 선택은 강한 확신보다 편안한 확인, 일관된 태도, 현실적인 약속에서 시작됩니다.",
+      `이번 장은 ${loveSecretQuotedLabel(facts.currentConcern, "질문")}을 ${chapterFocus} 관점에서 풀어냅니다.`,
+      `${facts.displayName}의 ${loveSecretWithParticle(chapterFocus, "은", "는")} 사주 구조의 균형을 통해 더 선명하게 드러납니다.`,
+      `${chapterFocus}에서는 ${loveSecretPair(facts.spouseStar, "배우자궁")}의 흐름을 관계의 속도보다 신뢰의 반복으로 읽습니다.`,
+      `${chapterFocus}에서 ${loveSecretQuotedLabel(facts.desiredOutcome, "목표")}는 편안한 확인, 일관된 태도, 현실적인 약속으로 가까워집니다.`,
     ],
     sections,
     text,
     source: LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL,
+    qualityMode: LOVE_SECRET_PDF_CONFIG.qualityMode,
+    fallbackUsed: false,
   };
 }
 
-function buildLoveSecretAssembledChapters(chapters = [], base = {}, mode = "solo") {
+function buildLoveSecretAssembledChapters(chapters = [], base = {}, mode = "solo", body = {}) {
   const normalizedMode = normalizeMode(mode);
-  const specs = normalizedMode === "compatibility" ? LOVE_SECRET_ASSEMBLED_COMPAT_SPECS : LOVE_SECRET_ASSEMBLED_SOLO_SPECS;
+  const specs = loveSecretAssembledChapterSpecs(normalizedMode);
   return specs.map((spec, index) => {
-    const assembled = buildLoveSecretAssembledChapter(spec, index, normalizedMode, base);
+    const assembled = buildLoveSecretAssembledChapter(spec, index, normalizedMode, base, body);
     const previous = Array.isArray(chapters) ? chapters[index] || {} : {};
     return {
       ...previous,
       ...assembled,
-      metadata: {
-        ...(previous?.metadata && typeof previous.metadata === "object" ? previous.metadata : {}),
-        assemblyMode: LOVE_SECRET_PDF_CONFIG.generationMode,
-        templateVersion: LOVE_SECRET_PDF_CONFIG.templateVersion,
-      },
-    };
+        metadata: {
+          ...(previous?.metadata && typeof previous.metadata === "object" ? previous.metadata : {}),
+          assemblyMode: LOVE_SECRET_PDF_CONFIG.generationMode,
+          templateVersion: LOVE_SECRET_PDF_CONFIG.templateVersion,
+          qualityMode: LOVE_SECRET_PDF_CONFIG.qualityMode,
+          fallbackUsed: false,
+        },
+      };
   });
 }
 
@@ -3855,16 +5417,39 @@ function renderLoveSecretAssembledHtml(chapters = [], meta = {}) {
   const generatedAt = clean(meta?.generatedAt || new Date().toISOString()).slice(0, 10);
   const chapterList = Array.isArray(chapters) ? chapters : [];
   const tocHtml = chapterList.map((chapter) => `<li><span>${escapeLoveSecretHtml(chapter?.chapterNumber || "")}</span><strong>${escapeLoveSecretHtml(chapter?.title || "")}</strong><em>${escapeLoveSecretHtml(chapter?.subtitle || "")}</em></li>`).join("");
-  const listBlock = (label, values) => {
+  const listBlock = (label, values, semanticLabel = "") => {
     const items = loveSecretCleanList(values, 6).filter((item) => !LOVE_SECRET_ASSEMBLED_MOJIBAKE_RE.test(item));
     if (!items.length) return "";
-    return `<div class="note"><strong>${escapeLoveSecretHtml(label)}</strong><ul>${items.map((item) => `<li>${escapeLoveSecretHtml(item)}</li>`).join("")}</ul></div>`;
+    const semanticAttr = semanticLabel ? ` aria-label="${escapeLoveSecretHtml(semanticLabel)}"` : "";
+    return `<div class="note"${semanticAttr}><strong>${escapeLoveSecretHtml(label)}</strong><ul>${items.map((item) => `<li>${escapeLoveSecretHtml(item)}</li>`).join("")}</ul></div>`;
   };
   const tableBlock = (section) => {
     const rows = Array.isArray(section?.tableRows) ? section.tableRows : [];
     if (!rows.length) return "";
     const headers = Array.isArray(section?.tableHeaders) && section.tableHeaders.length ? section.tableHeaders : ["구분", "흐름", "실천"];
     return `<div class="table-card"><strong>${escapeLoveSecretHtml(section?.tableTitle || "관계 흐름표")}</strong><table><thead><tr>${headers.map((header) => `<th>${escapeLoveSecretHtml(header)}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeLoveSecretHtml(cell)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  };
+  const noteLabels = (chapterNo) => {
+    const labels = [
+      ["명리 핵심", "사랑 원형", "오늘의 태도", "자기 점검", "흔들림 주의"],
+      ["끌림 단서", "매력 해석", "관찰 포인트", "소모 체크", "위험 신호"],
+      ["패턴 근거", "반복 구조", "수정 행동", "패턴 점검", "반복 주의"],
+      ["소통 근거", "대화 해석", "표현 연습", "문장 점검", "오해 주의"],
+      ["불안 근거", "애착 해석", "안정 루틴", "감정 점검", "집착 주의"],
+      ["배우자운", "장기 조건", "현실 대화", "가치 점검", "결정 주의"],
+      ["이별 단서", "재회 판단", "회복 행동", "정리 점검", "미련 주의"],
+      ["조후 단서", "친밀감 해석", "속도 조율", "경계 점검", "단정 주의"],
+      ["시기 근거", "인연 흐름", "실행 타이밍", "기회 점검", "성급함 주의"],
+      ["최종 기준", "마스터 해석", "실천 계획", "선택 점검", "반복 주의"],
+    ];
+    const list = labels[Math.max(0, Math.min(9, Number(chapterNo || 1) - 1))] || labels[0];
+    return {
+      evidence: list[0],
+      keyPoints: list[1],
+      actionGuide: list[2],
+      checklist: list[3],
+      caution: list[4],
+    };
   };
   const overviewCards = chapterList.slice(0, 6).map((chapter) => {
     const summary = loveSecretCleanList(chapter?.summaryCards, 1)[0] || chapter?.subtitle || "";
@@ -3874,37 +5459,459 @@ function renderLoveSecretAssembledHtml(chapters = [], meta = {}) {
     const summary = loveSecretCleanList(chapter?.summaryCards, 3);
     const sections = (Array.isArray(chapter?.sections) ? chapter.sections : []).map((section) => {
       const paragraphs = clean(section?.body || section?.text).split(/\n{2,}/).filter(Boolean).map((line) => `<p>${escapeLoveSecretHtml(line)}</p>`).join("");
+      const labels = noteLabels(chapter?.chapter || index + 1);
       const notes = [
-        listBlock("사주 근거", section?.sajuEvidence),
-        listBlock("핵심 포인트", section?.keyPoints),
-        listBlock("실천 가이드", section?.actionGuide),
-        listBlock("체크리스트", section?.checklist),
-        listBlock("주의할 점", section?.caution),
+        listBlock(labels.evidence, section?.sajuEvidence, "사주 근거 해석"),
+        listBlock(labels.keyPoints, section?.keyPoints),
+        listBlock(labels.actionGuide, section?.actionGuide, "실천 조언"),
+        listBlock(labels.checklist, section?.checklist),
+        listBlock(labels.caution, section?.caution),
       ].filter(Boolean).join("");
       return `<section class="body-card"><h3>${escapeLoveSecretHtml(section?.title || "")}</h3>${paragraphs}${tableBlock(section)}${notes ? `<div class="notes">${notes}</div>` : ""}</section>`;
     }).join("");
-    return `<article class="chapter" style="page-break-before:${index > 0 ? "always" : "auto"}"><header><span class="chapter-no">CHAPTER ${escapeLoveSecretHtml(chapter?.chapterNumber || "")}</span><h2>${escapeLoveSecretHtml(chapter?.title || "")}</h2><p>${escapeLoveSecretHtml(chapter?.subtitle || "")}</p></header><div class="chapter-summary">${summary.map((item) => `<div><strong>요약</strong><p>${escapeLoveSecretHtml(item)}</p></div>`).join("")}</div>${sections}</article>`;
+    return `<article class="chapter" style="page-break-before:${index > 0 ? "always" : "auto"}"><header><span class="chapter-no">CHAPTER ${escapeLoveSecretHtml(chapter?.chapterNumber || "")}</span><h2>${escapeLoveSecretHtml(chapter?.title || "")}</h2><p>${escapeLoveSecretHtml(chapter?.subtitle || "")}</p></header><div class="chapter-summary">${summary.map((item) => `<div><strong>핵심 요약 카드</strong><p>${escapeLoveSecretHtml(item)}</p></div>`).join("")}</div>${sections}</article>`;
   }).join("");
   return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${escapeLoveSecretHtml(`${coverName}님의 ${coverTitle}`)}</title><style>@page{size:A4;margin:14mm;}*{box-sizing:border-box;}body{font-family:"Noto Serif KR","Malgun Gothic",serif;margin:0;color:#2a1724;background:#fff9fc;}header.cover{min-height:760px;padding:72px 56px;text-align:center;background:linear-gradient(145deg,#1c0714,#64123b 58%,#1d0714);color:#fff;page-break-after:always;}header.cover .brand{font-size:20px;font-weight:700;}header.cover .service{margin-top:64px;font-size:13px;letter-spacing:.24em;color:#f8d9e8;}header.cover h1{margin:14px 0;font-size:50px;letter-spacing:0;}header.cover .subtitle{font-size:18px;line-height:1.8;color:#ffeaf3;}header.cover .mode{display:inline-block;margin-top:28px;border:1px solid rgba(255,255,255,.42);border-radius:999px;padding:8px 18px;font-size:13px;background:rgba(255,255,255,.1);}header.cover .person{margin-top:54px;font-size:21px;}header.cover .generated{font-size:13px;color:#f6d9e5;margin-top:8px;}nav.toc{page-break-after:always;padding:54px 48px;background:#fff;}nav.toc h2,.overview h2{margin:0 0 22px;color:#64123b;font-size:28px;}nav.toc ol{list-style:none;margin:0;padding:0;}nav.toc li{display:grid;grid-template-columns:48px 1fr;gap:12px;border-bottom:1px solid #efd0dc;padding:12px 0;font-size:14px;}nav.toc span{color:#be185d;font-weight:700;}nav.toc em{grid-column:2;color:#8b6275;font-style:normal;font-size:12px;line-height:1.5;}.overview{page-break-after:always;background:#fff;padding:46px 48px;}.overview-grid,.chapter-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 22px;}.overview-grid div,.chapter-summary div{border:1px solid #f1c9db;background:#fff7fb;border-radius:6px;padding:12px;}.overview-grid strong,.chapter-summary strong{display:block;color:#8b1d52;font-size:12px;margin-bottom:6px;}.overview-grid p,.chapter-summary p{font-size:12px;line-height:1.6;margin:0;}main{padding:42px 48px;background:#fff;}article.chapter{padding:0 0 24px;}article.chapter header{border-bottom:1px solid #efc2d7;margin:28px 0 20px;padding-bottom:16px;}article.chapter h2{margin:8px 0;color:#64123b;font-size:25px;}article.chapter header p{margin:0;color:#7b4d65;font-size:14px;}article.chapter h3{margin:0 0 10px;color:#8b1d52;font-size:17px;}article.chapter p{line-height:1.88;margin:0 0 13px;font-size:14px;}.chapter-no{color:#be185d;font-size:12px;letter-spacing:.16em;}.body-card{border:1px solid #f1c9db;background:#fffdfd;border-radius:8px;padding:16px 18px;margin:16px 0 20px;page-break-inside:avoid;}.notes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 4px;page-break-inside:avoid;}.note,.table-card{border:1px solid #f1c9db;background:#fff7fb;padding:11px 12px;border-radius:6px;}.note strong,.table-card strong{display:block;margin-bottom:6px;color:#7a1748;font-size:12px;}.note ul{margin:0;padding-left:16px;}.note li{font-size:12px;line-height:1.6;margin:0 0 4px;}table{width:100%;border-collapse:collapse;background:#fff;}th,td{border:1px solid #e8c5d4;padding:7px 8px;text-align:left;font-size:11px;line-height:1.45;}th{background:#fde8f1;color:#7a1748;}.final-page{page-break-before:always;padding:54px 48px;background:#fff;}.final-page h2{margin:0 0 16px;color:#64123b;font-size:28px;}.final-page p{line-height:1.85;font-size:14px;}</style></head><body><header class="cover"><div class="brand">Code Destiny</div><div class="service">PREMIUM LOVE READING</div><h1>${escapeLoveSecretHtml(coverTitle)}</h1><div class="subtitle">사주 구조로 읽는 사랑의 흐름과 실천 전략</div><div class="mode">${escapeLoveSecretHtml(modeLabel)}</div><div class="person">${escapeLoveSecretHtml(coverName)}</div><div class="generated">생성일 ${escapeLoveSecretHtml(generatedAt)}</div></header><nav class="toc"><h2>목차</h2><ol>${tocHtml}</ol></nav><section class="overview"><h2>전체 요약</h2><div class="overview-grid">${overviewCards}</div></section><main>${chapterHtml}</main><section class="final-page"><h2>마지막 조언</h2><p>좋은 사랑은 강한 예언이 아니라 반복 가능한 선택에서 깊어집니다. 이 비책은 사주 계산값을 바탕으로 마음의 속도, 관계의 경계, 현실의 약속을 함께 정리한 상담 원고입니다. 오늘의 작은 조율이 앞으로의 관계를 더 맑고 단단하게 만들어 줍니다.</p></section></body></html>`;
 }
 
-function validateLoveSecretPdfCompletionPayload({ pdfReady, chapters, mode } = {}) {
-  const expected = normalizeMode(mode) === "compatibility" ? LOVE_SECRET_ASSEMBLED_COMPAT_SPECS.length : LOVE_SECRET_ASSEMBLED_SOLO_SPECS.length;
+function loveSecretExplicitContextValues(body = {}) {
+  const raw = body && typeof body === "object" ? body : {};
+  const serviceContext = raw.serviceContext && typeof raw.serviceContext === "object" ? raw.serviceContext : {};
+  const relationshipContext = raw.relationshipContext && typeof raw.relationshipContext === "object" ? raw.relationshipContext : {};
+  const source = { ...serviceContext, ...relationshipContext, ...raw };
+  return {
+    currentConcern: firstLoveSecretText(source.currentConcern, source.concern, source.question),
+    desiredOutcome: firstLoveSecretText(source.desiredOutcome),
+    idealType: firstLoveSecretText(source.idealType, source.preferredPartner),
+  };
+}
+
+function loveSecretContextTokens(value = "") {
+  return Array.from(new Set(clean(value)
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2 && !/^(그리고|하지만|그래서|관계|사랑|연애|상대|나에게|알고|싶다|합니다)$/.test(token))))
+    .slice(0, 8);
+}
+
+function validateLoveSecretCategoryCoverage(chapters = [], mode = "solo") {
+  const list = Array.isArray(chapters) ? chapters : [];
+  const specs = loveSecretAssembledChapterSpecs(mode);
+  const missing = [];
+  let expectedCategoryCount = 0;
+  let coveredCategoryCount = 0;
+
+  specs.forEach((spec, chapterIndex) => {
+    const chapter = list[chapterIndex] || {};
+    const sectionList = Array.isArray(chapter?.sections) ? chapter.sections : [];
+    const chapterText = [
+      clean(chapter?.title),
+      clean(chapter?.subtitle),
+      clean(chapter?.text),
+      sectionList.map((section) => [
+        clean(section?.title),
+        clean(section?.categoryTitle),
+        clean(section?.body || section?.text),
+        loveSecretCleanList(section?.sajuEvidence, 8).join(" "),
+        loveSecretCleanList(section?.keyPoints, 8).join(" "),
+        loveSecretCleanList(section?.actionGuide, 8).join(" "),
+        loveSecretCleanList(section?.checklist, 8).join(" "),
+      ].filter(Boolean).join(" ")).join(" "),
+    ].filter(Boolean).join(" ");
+    for (const category of loveSecretCleanList(spec?.categories, 12)) {
+      expectedCategoryCount += 1;
+      const titleMatched = sectionList.some((section) => {
+        const title = clean(section?.categoryTitle || section?.title);
+        return title === category || title.includes(category) || category.includes(title);
+      });
+      const bodyMatched = loveSecretCategoryCovered(category, chapterText);
+      if (titleMatched || bodyMatched) {
+        coveredCategoryCount += 1;
+      } else {
+        missing.push({
+          chapter: chapterIndex + 1,
+          chapterTitle: clean(spec?.title),
+          category,
+        });
+      }
+    }
+  });
+
+  return {
+    ok: missing.length === 0,
+    missing,
+    expectedCategoryCount,
+    coveredCategoryCount,
+  };
+}
+
+function loveSecretConsultingSentences(text = "") {
+  return clean(text)
+    .split(/(?<=[.!?])\s+/u)
+    .map((sentence) => sentence.replace(/\s+/g, " ").trim())
+    .filter((sentence) => sentence.length >= 24);
+}
+
+function loveSecretNormalizeConsultingSentence(sentence = "") {
+  return clean(sentence)
+    .replace(/[“”‘'"0-9]/g, "#")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function loveSecretCountTextOccurrences(text = "", value = "") {
+  const needle = clean(value);
+  if (!needle) return 0;
+  return clean(text).split(needle).length - 1;
+}
+
+function loveSecretNormalizeCategoryListText(value = "", category = "", body = {}) {
+  let text = clean(value).replace(/\s+/g, " ").trim();
+  const replacements = [
+    [category, "{CAT}"],
+    [body?.currentConcern, "{CONCERN}"],
+    [body?.desiredOutcome, "{GOAL}"],
+    [body?.idealType, "{IDEAL}"],
+    [body?.pastLovePattern, "{PATTERN}"],
+  ];
+  for (const [source, target] of replacements) {
+    const key = clean(source);
+    if (key) text = text.split(key).join(target);
+  }
+  return text;
+}
+
+function loveSecretUniqueCategoryListCount(sections = [], field, body = {}) {
+  const values = (Array.isArray(sections) ? sections : []).map((section) => {
+    const list = loveSecretCleanList(section?.[field], 8).join(" / ");
+    return loveSecretNormalizeCategoryListText(list, section?.categoryTitle || section?.title, body);
+  }).filter(Boolean);
+  return new Set(values).size;
+}
+
+function validateLoveSecretContextRepetition(chapters = [], body = {}) {
+  const list = Array.isArray(chapters) ? chapters : [];
+  const text = collectLoveSecretText(list);
+  const chapterCount = Math.max(1, list.length);
+  const limits = [
+    { key: "currentConcern", value: body?.currentConcern || body?.concern || body?.question, max: chapterCount + 4 },
+    { key: "desiredOutcome", value: body?.desiredOutcome, max: chapterCount * 2 + 4 },
+    { key: "idealType", value: body?.idealType || body?.preferredPartner, max: chapterCount + 4 },
+    { key: "pastLovePattern", value: body?.pastLovePattern || body?.relationshipPattern, max: chapterCount + 4 },
+    { key: "judgementBasis", value: "판단의 기준", max: chapterCount + 4 },
+    { key: "cautionStart", value: "조심할 점은", max: chapterCount + 4 },
+  ];
+  const overLimit = limits
+    .map((item) => ({ key: item.key, count: loveSecretCountTextOccurrences(text, item.value), max: item.value ? item.max : 0 }))
+    .filter((item) => item.max > 0 && item.count > item.max);
+  return {
+    ok: overLimit.length === 0,
+    overLimit,
+  };
+}
+
+function validateLoveSecretChapterVariety(chapters = [], body = {}) {
+  const weakChapters = [];
+  (Array.isArray(chapters) ? chapters : []).forEach((chapter, index) => {
+    const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
+    if (!sections.length) return;
+    const minUnique = sections.length >= 10 ? 5 : Math.min(3, sections.length);
+    const uniqueEvidence = loveSecretUniqueCategoryListCount(sections, "sajuEvidence", body);
+    const uniqueAction = loveSecretUniqueCategoryListCount(sections, "actionGuide", body);
+    const uniqueCaution = loveSecretUniqueCategoryListCount(sections, "caution", body);
+    if (uniqueEvidence < minUnique || uniqueAction < minUnique || uniqueCaution < minUnique) {
+      weakChapters.push({
+        chapter: index + 1,
+        title: clean(chapter?.title),
+        sections: sections.length,
+        minUnique,
+        uniqueEvidence,
+        uniqueAction,
+        uniqueCaution,
+      });
+    }
+  });
+  return {
+    ok: weakChapters.length === 0,
+    weakChapters,
+  };
+}
+
+function validateLoveSecretTemplateResidue(chapters = []) {
+  const list = Array.isArray(chapters) ? chapters : [];
+  const text = collectLoveSecretText(list).replace(/\s+/g, " ");
+  const exactRules = [
+    { key: "old_pattern_fallback", phrase: "사주가 보여 주는 성향을 실제 말, 행동, 선택의 기준으로 바꿔 읽습니다.", max: 0 },
+    { key: "old_action_solo_fallback", phrase: "반복되는 반응 하나를 줄이고 신뢰를 만드는 행동 하나를 늘리는 것입니다.", max: 0 },
+    { key: "old_action_compat_fallback", phrase: "서로의 속도 차이를 작은 약속으로 조율하는 것입니다.", max: 0 },
+    { key: "old_support_fallback", phrase: "감정의 크기보다 반복되는 선택과 실제 행동을 기준으로 읽어야 더 정확합니다.", max: 0 },
+    { key: "old_closing_fallback", phrase: "반복되는 반응을 하나 줄이고 관계를 살리는 행동 하나를 꾸준히 반복하세요.", max: 0 },
+    { key: "old_note_core_label", phrase: "핵심 판단:", max: 0 },
+    { key: "old_note_advice_label", phrase: "실천 처방:", max: 0 },
+    { key: "old_note_saju_label", phrase: "명리 보완:", max: 0 },
+  ];
+  const categoryNames = Array.from(new Set(list.flatMap((chapter) => (Array.isArray(chapter?.sections) ? chapter.sections : [])
+    .flatMap((section) => [clean(section?.categoryTitle), clean(section?.title)]))))
+    .filter((name) => name.length >= 2)
+    .sort((a, b) => b.length - a.length);
+  const normalizeTemplateSentence = (sentence) => {
+    let normalized = loveSecretNormalizeConsultingSentence(sentence);
+    categoryNames.forEach((name) => {
+      normalized = normalized.split(name).join("{CAT}");
+    });
+    return normalized;
+  };
+  const templateMarkers = [
+    "타고난 성향이 말투",
+    "감정의 방향과 실제 태도",
+    "사랑을 흔드는 습관",
+    "선택 패턴이 어떤 인연",
+    "마음의 크기보다 반복된 행동",
+    "관계가 흔들리는 순간의 말투",
+    "끌림이 깊어질 때 생기는 기대",
+    "반복된 연애 장면",
+    "편안해지는 사랑과 소모되는 사랑",
+    "사주의 기질을 실제 만남",
+    "관계 안에서 강해지는 장점",
+    "인연을 끌어당기는 태도",
+    "기질 차이가 대화",
+    "서로의 기대가 맞물리는 자리",
+    "같은 상황을 다르게 받아들이는 이유",
+    "끌림을 유지하는 행동",
+    "서로가 편해지는 장면",
+    "관계의 강점이 실제 약속",
+    "같은 마음을 다른 방식",
+    "다름을 안전하게 다루는 방식",
+    "오늘 줄일 반응",
+    "감정이 올라온 순간",
+    "상대를 시험하는 말",
+    "마음을 크게 증명하기보다",
+    "불안을 키우는 습관",
+    "속도 차이를 말로 확인",
+    "둘 다 지킬 수 있는 대화 절차",
+    "다름을 설득하려 하지 말고",
+    "밀어붙일 때와 기다릴 때",
+    "같은 장면을 서로 다르게",
+    "관계의 박자가 어긋나는",
+    "끌림, 부담, 회복 가능성",
+    "기대가 부딪히는 자리",
+    "서로에게 맞춰야 할 부분",
+    "속도 차이가 안정감",
+    "기대가 엇갈리는 장면",
+    "회복 가능한 대화 순서",
+    "편해지는 리듬과 부담되는 리듬",
+    "반복된 태도와 선택의 방향",
+    "확인 가능한 약속과 반응",
+    "생활 속에서 반복되는 신뢰",
+    "무엇을 확인하고 무엇을 기다릴지",
+    "고객님의 기준을 먼저 정돈",
+    "오래 남을 수 있는 행동의 구조",
+    "조율 가능한 선택지를 찾는 일",
+    "말, 거리, 약속으로 나누어",
+    "바꿀 수 있는 태도와 시간을 두고 볼 신호",
+    "익숙한 반응을 잠시 멈추고",
+    "오늘도 지킬 수 있는 작은 기준",
+    "짧은 요청과 충분한 여지",
+    "다음 대화에서 확인할 기준",
+    "나를 지키는 경계",
+    "반복되는 신호를 더 살펴",
+    "나를 잃지 않는 태도",
+  ];
+  const exactHits = exactRules
+    .map((rule) => ({ ...rule, count: loveSecretCountTextOccurrences(text, rule.phrase) }))
+    .filter((rule) => rule.count > rule.max);
+  const counts = new Map();
+  loveSecretConsultingSentences(text).forEach((sentence) => {
+    const normalized = normalizeTemplateSentence(sentence);
+    if (templateMarkers.some((marker) => normalized.includes(marker))) {
+      counts.set(normalized, (counts.get(normalized) || 0) + 1);
+    }
+  });
+  const repeatedTemplates = Array.from(counts.entries())
+    .filter(([, count]) => count > 12)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([sentence, count]) => ({ sentence, count, max: 12 }));
+  return {
+    ok: exactHits.length === 0 && repeatedTemplates.length === 0,
+    exactHits,
+    repeatedTemplates,
+  };
+}
+
+function validateLoveSecretSentenceVariety(chapters = []) {
+  const list = Array.isArray(chapters) ? chapters : [];
+  const text = list.map((chapter) => {
+    const sections = Array.isArray(chapter?.sections) ? chapter.sections : [];
+    if (sections.length) {
+      return sections.map((section) => clean(section?.body || section?.text || "")).filter(Boolean).join("\n");
+    }
+    return clean(chapter?.text || "");
+  }).filter(Boolean).join("\n");
+  const categoryNames = Array.from(new Set(list
+    .flatMap((chapter) => (Array.isArray(chapter?.sections) ? chapter.sections : [])
+      .flatMap((section) => [clean(section?.categoryTitle), clean(section?.title)]))))
+    .filter((name) => name.length >= 2)
+    .sort((a, b) => b.length - a.length);
+  const forbiddenPhrases = [
+    "이번 상담의 중심 질문은",
+    "현재 상태는",
+    "이 항목의 사주 근거는",
+    "주의점은 분명합니다",
+    "오늘 바로 바꿀 수 있는 말, 행동, 거리 조절",
+    "행동을 하나만 정합니다",
+    "싶다\"이라는",
+    "결는",
+    "정화과",
+    "경금과",
+    "화과 수",
+    "금를",
+    "리듬를",
+    "연결를",
+    "온도은",
+    "차이은",
+    "신강 신강약",
+  ];
+  const phraseHits = forbiddenPhrases
+    .map((phrase) => ({ phrase, count: text.split(phrase).length - 1 }))
+    .filter((item) => item.count > 0);
+  const counts = new Map();
+  for (const sentence of loveSecretConsultingSentences(text)) {
+    const normalized = loveSecretNormalizeConsultingSentence(sentence);
+    counts.set(normalized, (counts.get(normalized) || 0) + 1);
+  }
+  const openingCounts = new Map();
+  for (const sentence of loveSecretConsultingSentences(text)) {
+    let normalized = loveSecretNormalizeConsultingSentence(sentence);
+    categoryNames.forEach((name) => {
+      normalized = normalized.split(name).join("{CAT}");
+    });
+    const opening = normalized
+      .replace(/^\{CAT\}(?:에서는|은|는|의|을|를|에서)?\s*/u, "{CAT} ")
+      .slice(0, 42)
+      .trim();
+    if (opening.length >= 18) openingCounts.set(opening, (openingCounts.get(opening) || 0) + 1);
+  }
+  const repeatedSentences = Array.from(counts.entries())
+    .filter(([sentence, count]) => count > 2 && sentence.length >= 24)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([sentence, count]) => ({ sentence, count }));
+  const openingRepeatMax = Math.max(12, Math.ceil(Math.max(1, categoryNames.length) / 4));
+  const repeatedOpenings = Array.from(openingCounts.entries())
+    .filter(([opening, count]) => count > openingRepeatMax && opening.length >= 18)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([opening, count]) => ({ opening, count, max: openingRepeatMax }));
+  return {
+    ok: phraseHits.length === 0 && repeatedSentences.length === 0 && repeatedOpenings.length === 0,
+    phraseHits,
+    repeatedSentences,
+    repeatedOpenings,
+  };
+}
+
+function validateLoveSecretCustomerConsultingQuality({ chapters, mode, body } = {}) {
+  const list = Array.isArray(chapters) ? chapters : [];
+  const text = collectLoveSecretText(list).replace(/\s+/g, " ");
+  const issues = [];
+  const explicit = loveSecretExplicitContextValues(body);
+  const specs = loveSecretAssembledChapterSpecs(mode);
+  const expected = specs.length;
+  const categoryCoverage = validateLoveSecretCategoryCoverage(list, mode);
+  const sentenceVariety = validateLoveSecretSentenceVariety(list);
+  const contextRepetition = validateLoveSecretContextRepetition(list, body);
+  const chapterVariety = validateLoveSecretChapterVariety(list, body);
+  const templateResidue = validateLoveSecretTemplateResidue(list);
+  const lowSummaryChapters = [];
+  const categoryCountIssues = [];
+  const weakEvidenceSections = [];
+  const weakActionSections = [];
+  const weakChecklistSections = [];
+
+  list.forEach((chapter, chapterIndex) => {
+    if (loveSecretCleanList(chapter?.summaryCards, 6).length < 3) lowSummaryChapters.push(chapterIndex + 1);
+    const expectedSectionCount = loveSecretCleanList(specs[chapterIndex]?.categories, 12).length || LOVE_SECRET_ASSEMBLED_SECTIONS.length;
+    const actualSectionCount = Array.isArray(chapter?.sections) ? chapter.sections.length : 0;
+    if (actualSectionCount < expectedSectionCount) categoryCountIssues.push({ chapter: chapterIndex + 1, expected: expectedSectionCount, actual: actualSectionCount });
+    (Array.isArray(chapter?.sections) ? chapter.sections : []).forEach((section, sectionIndex) => {
+      const sectionId = `${chapterIndex + 1}:${sectionIndex + 1}`;
+      if (loveSecretCleanList(section?.sajuEvidence, 6).length < 2) weakEvidenceSections.push(sectionId);
+      if (loveSecretCleanList(section?.actionGuide || section?.actionItems || section?.advice, 6).length < 2) weakActionSections.push(sectionId);
+      if (loveSecretCleanList(section?.checklist, 6).length < 2) weakChecklistSections.push(sectionId);
+    });
+  });
+
+  const concernTokens = loveSecretContextTokens(explicit.currentConcern);
+  const desiredTokens = loveSecretContextTokens(explicit.desiredOutcome);
+  const idealTokens = loveSecretContextTokens(explicit.idealType);
+  if (concernTokens.length && !concernTokens.some((token) => text.includes(token))) issues.push("customer_concern_not_reflected");
+  if (desiredTokens.length && !desiredTokens.some((token) => text.includes(token))) issues.push("desired_outcome_not_reflected");
+  if (idealTokens.length && !idealTokens.some((token) => text.includes(token))) issues.push("ideal_type_not_reflected");
+  if (list.length !== expected) issues.push("customer_quality_chapter_count_mismatch");
+  if (categoryCountIssues.length) issues.push("category_section_count_incomplete");
+  if (!categoryCoverage.ok) issues.push("category_coverage_missing");
+  if (lowSummaryChapters.length) issues.push("summary_cards_incomplete");
+  if (weakEvidenceSections.length) issues.push("saju_evidence_incomplete");
+  if (weakActionSections.length) issues.push("action_guide_incomplete");
+  if (weakChecklistSections.length) issues.push("checklist_incomplete");
+  if (!sentenceVariety.ok) issues.push("sentence_variety_insufficient");
+  if (!contextRepetition.ok) issues.push("context_repetition_excessive");
+  if (!chapterVariety.ok) issues.push("chapter_variety_insufficient");
+  if (!templateResidue.ok) issues.push("template_residue_excessive");
+
+  return {
+    ok: issues.length === 0,
+    issues,
+    lowSummaryChapters,
+    categoryCountIssues: categoryCountIssues.slice(0, 12),
+    weakEvidenceSections: weakEvidenceSections.slice(0, 12),
+    weakActionSections: weakActionSections.slice(0, 12),
+    weakChecklistSections: weakChecklistSections.slice(0, 12),
+    categoryCoverage: {
+      expectedCategoryCount: categoryCoverage.expectedCategoryCount,
+      coveredCategoryCount: categoryCoverage.coveredCategoryCount,
+      missing: categoryCoverage.missing.slice(0, 12),
+    },
+    sentenceVariety,
+    contextRepetition,
+    chapterVariety: {
+      weakChapters: chapterVariety.weakChapters.slice(0, 12),
+    },
+    templateResidue,
+    reflectedContext: {
+      hasConcern: Boolean(concernTokens.length),
+      hasDesiredOutcome: Boolean(desiredTokens.length),
+      hasIdealType: Boolean(idealTokens.length),
+    },
+  };
+}
+
+function validateLoveSecretPdfCompletionPayload({ pdfReady, chapters, mode, body } = {}) {
+  const specs = loveSecretAssembledChapterSpecs(mode);
+  const expected = specs.length;
   const list = Array.isArray(chapters) ? chapters : [];
   const html = clean(pdfReady?.html || "");
   const downloadUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || "");
   const text = `${html.replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ")}\n${collectLoveSecretText(list)}`;
   const issues = [];
+  const customerQuality = validateLoveSecretCustomerConsultingQuality({ chapters: list, mode, body });
   if (!html.includes("<!DOCTYPE html>")) issues.push("html_shell_missing");
   if (!downloadUrl) issues.push("download_url_missing");
   if (list.length !== expected) issues.push("chapter_count_mismatch");
-  if (list.some((chapter) => !Array.isArray(chapter?.sections) || chapter.sections.length < 7)) issues.push("section_count_incomplete");
+  if (list.some((chapter, index) => {
+    const expectedSectionCount = loveSecretCleanList(specs[index]?.categories, 12).length || LOVE_SECRET_ASSEMBLED_SECTIONS.length;
+    return !Array.isArray(chapter?.sections) || chapter.sections.length < expectedSectionCount;
+  })) issues.push("section_count_incomplete");
   if (collectLoveSecretText(list).replace(/\s+/g, "").length < (expected >= 10 ? 30000 : 24000)) issues.push("manuscript_too_short");
   if (LOVE_SECRET_ASSEMBLED_MOJIBAKE_RE.test(text)) issues.push("mojibake_detected");
   if (LOVE_SECRET_ASSEMBLED_FORBIDDEN_RE.test(text)) issues.push("forbidden_terms_detected");
+  if (!customerQuality.ok) issues.push(...customerQuality.issues);
   return {
     ok: issues.length === 0,
     issues,
+    customerQuality,
     chapterCount: list.length,
     expectedChapterCount: expected,
     htmlLength: html.length,
@@ -4081,7 +6088,7 @@ function buildLoveSecretPdfReady(requestOrOrigin, reportId, chapters, base, mode
   const documentUrl = archivePdfUrl || archiveUrl;
   const selfEightCharacters = ["year", "month", "day", "hour"].map((key) => loveSecretPillarRaw(base?.pillars?.[key])).filter(Boolean).join(" ");
   const partnerEightCharacters = ["year", "month", "day", "hour"].map((key) => loveSecretPillarRaw(base?.partner?.pillars?.[key])).filter(Boolean).join(" ");
-  const targetYear = 2026;
+  const targetYear = resolveLoveSecretTargetYear();
   return {
     reportId: clean(reportId),
     mode: normalizedMode,
@@ -4112,12 +6119,12 @@ function buildLoveSecretPdfReady(requestOrOrigin, reportId, chapters, base, mode
   };
 }
 
-function buildLoveSecretPdfReadyAssembled(requestOrOrigin, reportId, chapters, base, mode) {
+function buildLoveSecretPdfReadyAssembled(requestOrOrigin, reportId, chapters, base, mode, body = {}) {
   const archiveUrl = buildLoveSecretArchiveUrl(requestOrOrigin, reportId);
   const archiveHtmlUrl = buildLoveSecretArchiveHtmlUrl(requestOrOrigin, reportId);
   const archivePdfUrl = buildLoveSecretArchivePdfUrl(requestOrOrigin, reportId);
   const normalizedMode = normalizeMode(mode);
-  const assembledChapters = buildLoveSecretAssembledChapters(chapters, base, normalizedMode);
+  const assembledChapters = buildLoveSecretAssembledChapters(chapters, base, normalizedMode, body);
   const selfName = loveSecretSafeDisplayText(base?.user?.name, "고객");
   const partnerName = loveSecretSafeDisplayText(base?.partner?.user?.name, "상대");
   const displayName = normalizedMode === "compatibility" ? `${selfName} × ${partnerName}` : selfName;
@@ -4162,6 +6169,8 @@ function buildLoveSecretSuccessPayload({ featureKey, mode, sessionId, reportId, 
     status: "completed",
     serverStatus: "completed",
     qualityStatus: "passed",
+    qualityMode: LOVE_SECRET_PDF_CONFIG.qualityMode,
+    fallbackUsed: false,
     featureKey,
     mode,
     reportId,
@@ -4181,6 +6190,69 @@ function buildLoveSecretSuccessPayload({ featureKey, mode, sessionId, reportId, 
     canReopen: true,
     canDownload: true,
     chapters,
+  };
+}
+
+async function buildLoveSecretVerifiedLocalPremiumPdf({
+  requestOrOrigin,
+  featureKey,
+  mode,
+  sessionId,
+  reportId,
+  chapterCount,
+  manuscriptSource,
+  chapters,
+  base,
+  body,
+  loveSecretMasterJson,
+  masterJsonValidation,
+  loveSecretFacts,
+  loveSecretChapterPlans,
+  localAssembly,
+} = {}) {
+  const normalizedMode = normalizeMode(mode);
+  const finalChapters = buildLoveSecretAssembledChapters(chapters, base, normalizedMode, body || {});
+  const finalManuscriptSource = LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
+  const pdfReady = buildLoveSecretPdfReadyAssembled(requestOrOrigin, reportId, finalChapters, base, normalizedMode, body || {});
+  const pdfCompletionValidation = validateLoveSecretPdfCompletionPayload({
+    pdfReady,
+    chapters: finalChapters,
+    mode: normalizedMode,
+    body: body || {},
+  });
+  if (!pdfCompletionValidation.ok) {
+    throw Object.assign(new Error("연애 비책 PDF 완료 검증을 통과하지 못했습니다. 원고를 보강한 뒤 다시 생성해 주세요."), {
+      code: "LOVE_SECRET_PDF_COMPLETION_INVALID",
+      status: 422,
+    });
+  }
+  const responsePayload = await generateLoveSecretLocalPdf({
+    featureKey,
+    mode: normalizedMode,
+    sessionId,
+    reportId,
+    chapterCount,
+    manuscriptSource: finalManuscriptSource,
+    chapters: finalChapters,
+    pdfReady,
+    pdfCompletionValidation,
+    loveSecretMasterJson,
+    masterJsonValidation,
+    loveSecretFacts,
+    loveSecretChapterPlans,
+    localAssembly,
+  }, {
+    config: LOVE_SECRET_PDF_CONFIG,
+    expectedChapterCount: chapterCount,
+    buildLocalPdf: (payload) => buildLoveSecretSuccessPayload(payload),
+  });
+
+  return {
+    responsePayload,
+    finalChapters,
+    pdfReady,
+    pdfCompletionValidation,
+    manuscriptSource: finalManuscriptSource,
   };
 }
 
@@ -4589,18 +6661,9 @@ async function runLoveSecretJob(env, jobId) {
     console.info("[LoveBookPremiumPDF][PdfRenderStart]", { chapterCount: finalChapters.length, manuscriptSource });
 
     const reportId = clean(job?.reportId || executionCtx.reportId || `love-secret-${Date.now().toString(36)}`);
-    finalChapters = buildLoveSecretAssembledChapters(finalChapters, base, mode);
-    manuscriptSource = LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
-    const pdfReady = buildLoveSecretPdfReadyAssembled(clean(job?.requestOrigin || ""), reportId, finalChapters, base, mode);
-    const pdfCompletionValidation = validateLoveSecretPdfCompletionPayload({ pdfReady, chapters: finalChapters, mode });
-    if (!pdfCompletionValidation.ok) {
-      throw Object.assign(new Error("연애 비책 PDF 완료 검증을 통과하지 못했습니다. 원고를 보강한 뒤 다시 생성해 주세요."), {
-        code: "LOVE_SECRET_PDF_COMPLETION_INVALID",
-        status: 422,
-      });
-    }
     const pdfCacheKey = clean(job?.cacheKey) || buildLoveSecretPdfCacheKey(base, mode, job?.requestBody || {});
-    const successResult = await generateLoveSecretLocalPdf({
+    const verifiedPdf = await buildLoveSecretVerifiedLocalPremiumPdf({
+      requestOrOrigin: clean(job?.requestOrigin || ""),
       featureKey: clean(job?.featureKey) || toFeatureKey(mode),
       mode,
       sessionId,
@@ -4608,18 +6671,17 @@ async function runLoveSecretJob(env, jobId) {
       chapterCount: totalChapters,
       manuscriptSource,
       chapters: finalChapters,
-      pdfReady,
-      pdfCompletionValidation,
+      base,
+      body: job?.requestBody || {},
       loveSecretMasterJson,
       masterJsonValidation,
       loveSecretFacts,
       loveSecretChapterPlans,
       localAssembly,
-    }, {
-      config: LOVE_SECRET_PDF_CONFIG,
-      expectedChapterCount: totalChapters,
-      buildLocalPdf: (payload) => buildLoveSecretSuccessPayload(payload),
     });
+    finalChapters = verifiedPdf.finalChapters;
+    manuscriptSource = verifiedPdf.manuscriptSource;
+    const { pdfReady, pdfCompletionValidation, responsePayload: successResult } = verifiedPdf;
 
     await coll.updateOne(
       { _id },
@@ -4850,18 +6912,8 @@ async function handlePrepare(request, env) {
   if (!partnerValid.ok) {
     return buildApiError("MISSING_PARTNER_SAJU", "궁합 모드는 상대 생년월일과 핵심 명식 정보가 필요합니다. 상대 정보를 확인해 주세요.", 400);
   }
-  return buildApiError(
-    "ASYNC_GENERATION_REQUIRED",
-    "연애 비책 PDF는 안정적인 품질 검증을 위해 비동기 생성으로 진행됩니다. 잠시 후 진행 상태를 확인해 주세요.",
-    409,
-    { mode, asyncEndpoint: "/api/love-secret/prepare-async" },
-  );
-
   const config = safeModeChapterConfig(mode);
   const sessionId = clean(body?.sessionId || body?.reportSessionId) || "";
-  if (mode === "solo") {
-    return buildApiError("ASYNC_GENERATION_REQUIRED", "연애 비책 PDF는 순차 생성으로 준비됩니다. 잠시 후 진행 상태를 확인해 주세요.", 409);
-  }
   const executionCtx = buildPremiumExecutionContext({
     serviceKey: LOVE_SECRET_SERVICE_KEY,
     reportType: "loveSecret",
@@ -4983,17 +7035,8 @@ async function handlePrepare(request, env) {
   console.info("[LoveBookPremiumPDF][PdfRenderSuccess]", { chapterCount: finalChapters.length, manuscriptSource });
 
   const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `love-secret-${Date.now().toString(36)}`);
-  finalChapters = buildLoveSecretAssembledChapters(finalChapters, base, mode);
-  manuscriptSource = LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
-  const pdfReady = buildLoveSecretPdfReadyAssembled(request, reportId, finalChapters, base, mode);
-  const pdfCompletionValidation = validateLoveSecretPdfCompletionPayload({ pdfReady, chapters: finalChapters, mode });
-  if (!pdfCompletionValidation.ok) {
-    throw Object.assign(new Error("연애 비책 PDF 완료 검증을 통과하지 못했습니다. 원고를 보강한 뒤 다시 생성해 주세요."), {
-      code: "LOVE_SECRET_PDF_COMPLETION_INVALID",
-      status: 422,
-    });
-  }
-  const responsePayload = await generateLoveSecretLocalPdf({
+  const verifiedPdf = await buildLoveSecretVerifiedLocalPremiumPdf({
+    requestOrOrigin: request,
     featureKey: authz.featureKey,
     mode,
     sessionId,
@@ -5001,18 +7044,17 @@ async function handlePrepare(request, env) {
     chapterCount: totalChapters,
     manuscriptSource,
     chapters: finalChapters,
-    pdfReady,
-    pdfCompletionValidation,
+    base,
+    body,
     loveSecretMasterJson,
     masterJsonValidation,
     loveSecretFacts,
     loveSecretChapterPlans,
     localAssembly,
-  }, {
-    config: LOVE_SECRET_PDF_CONFIG,
-    expectedChapterCount: totalChapters,
-    buildLocalPdf: (payload) => buildLoveSecretSuccessPayload(payload),
   });
+  finalChapters = verifiedPdf.finalChapters;
+  manuscriptSource = verifiedPdf.manuscriptSource;
+  const { pdfReady, pdfCompletionValidation, responsePayload } = verifiedPdf;
   await completePremiumPdfExecution(env, authz?.auth?.userId, executionCtx, reportId, {
     manuscriptSource,
     chapterCount: totalChapters,
@@ -5209,6 +7251,32 @@ async function handlePrepareAsync(request, env, ctx) {
         partnerData: body?.partnerData || "",
         quantumMyeongriJson: body?.quantumMyeongriJson && typeof body.quantumMyeongriJson === "object" ? body.quantumMyeongriJson : {},
         clientEngineEvidence: body?.clientEngineEvidence && typeof body.clientEngineEvidence === "object" ? body.clientEngineEvidence : {},
+        serviceContext: body?.serviceContext && typeof body.serviceContext === "object" ? body.serviceContext : {},
+        relationshipContext: body?.relationshipContext && typeof body.relationshipContext === "object" ? body.relationshipContext : {},
+        clientFlow: body?.clientFlow && typeof body.clientFlow === "object" ? body.clientFlow : {},
+        userLoveContext: body?.userLoveContext && typeof body.userLoveContext === "object" ? body.userLoveContext : {},
+        targetYear: resolveLoveSecretTargetYear(body?.targetYear),
+        loveStatus: clean(body?.loveStatus || body?.relationshipStatus || body?.currentLoveStatus),
+        relationshipStatus: clean(body?.relationshipStatus || body?.loveStatus || body?.currentLoveStatus),
+        currentLoveStatus: clean(body?.currentLoveStatus || body?.loveStatus || body?.relationshipStatus),
+        currentConcern: clean(body?.currentConcern || body?.concern || body?.question),
+        concern: clean(body?.concern || body?.currentConcern || body?.question),
+        question: clean(body?.question || body?.currentConcern || body?.concern),
+        idealType: clean(body?.idealType || body?.preferredPartner),
+        preferredPartner: clean(body?.preferredPartner || body?.idealType),
+        pastLovePattern: clean(body?.pastLovePattern || body?.relationshipPattern),
+        relationshipPattern: clean(body?.relationshipPattern || body?.pastLovePattern),
+        desiredOutcome: clean(body?.desiredOutcome),
+        relationshipType: clean(body?.relationshipType),
+        status: clean(body?.status),
+        wantsMarriageAnalysis: body?.wantsMarriageAnalysis !== false && body?.includeMarriageAnalysis !== false,
+        includeMarriageAnalysis: body?.wantsMarriageAnalysis !== false && body?.includeMarriageAnalysis !== false,
+        wantsReunionAnalysis: body?.wantsReunionAnalysis !== false && body?.includeReunionAnalysis !== false,
+        includeReunionAnalysis: body?.wantsReunionAnalysis !== false && body?.includeReunionAnalysis !== false,
+        tone: clean(body?.tone || body?.writingStyle),
+        writingStyle: clean(body?.writingStyle || body?.tone),
+        productTier: clean(body?.productTier || body?.tier),
+        tier: clean(body?.tier || body?.productTier),
       },
       requestOrigin: new URL(request.url).origin,
       execution: {
@@ -5270,65 +7338,55 @@ async function handlePrepareAsync(request, env, ctx) {
       resolveLoveSecretLock(sessionId, "failed", "");
       throw error;
     }
-    console.warn("[love-secret][async-job-db-fallback]", clean(error?.message || error) || error);
+    console.warn("[love-secret][async-job-db-direct-local-premium]", clean(error?.message || error) || error);
 
     try {
-    const {
-      chapters,
-      totalChapters: directChapterCount,
-      manuscriptSource: directManuscriptSource,
-      loveSecretMasterJson,
-      masterJsonValidation,
-      loveSecretFacts,
-      loveSecretChapterPlans,
-      localAssembly,
-    } = await buildLoveSecretChapters(env, {
-      base,
-      mode,
-      config,
-      body,
-      requestId: clean(body?.requestId || body?.reportId || sessionId),
-    });
-    let manuscriptSource = clean(directManuscriptSource) || LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
-
-    let finalChapters = reinforceLoveSecretChapters(
-      chapters.map((chapter) => ({ ...chapter, source: manuscriptSource })),
-      mode,
-      config,
-      base,
-    );
-    const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `love-secret-${Date.now().toString(36)}`);
-    finalChapters = buildLoveSecretAssembledChapters(finalChapters, base, mode);
-    manuscriptSource = LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
-    const pdfReady = buildLoveSecretPdfReadyAssembled(request, reportId, finalChapters, base, mode);
-    const pdfCompletionValidation = validateLoveSecretPdfCompletionPayload({ pdfReady, chapters: finalChapters, mode });
-    if (!pdfCompletionValidation.ok) {
-      throw Object.assign(new Error("연애 비책 PDF 완료 검증을 통과하지 못했습니다. 원고를 보강한 뒤 다시 생성해 주세요."), {
-        code: "LOVE_SECRET_PDF_COMPLETION_INVALID",
-        status: 422,
+      const {
+        chapters,
+        totalChapters: directChapterCount,
+        manuscriptSource: directManuscriptSource,
+        loveSecretMasterJson,
+        masterJsonValidation,
+        loveSecretFacts,
+        loveSecretChapterPlans,
+        localAssembly,
+      } = await buildLoveSecretChapters(env, {
+        base,
+        mode,
+        config,
+        body,
+        requestId: clean(body?.requestId || body?.reportId || sessionId),
       });
-    }
-    const pdfCacheKey = buildLoveSecretPdfCacheKey(base, mode, body);
-    const directResponse = await generateLoveSecretLocalPdf({
-      featureKey: authz.featureKey,
-      mode,
-      sessionId,
-      reportId,
-      chapterCount: directChapterCount,
-      manuscriptSource,
-      chapters: finalChapters,
-      pdfReady,
-      pdfCompletionValidation,
-      loveSecretMasterJson,
-      masterJsonValidation,
-      loveSecretFacts,
-      loveSecretChapterPlans,
-      localAssembly,
-    }, {
-      config: LOVE_SECRET_PDF_CONFIG,
-      expectedChapterCount: directChapterCount,
-      buildLocalPdf: (payload) => buildLoveSecretSuccessPayload(payload),
-    });
+      let manuscriptSource = clean(directManuscriptSource) || LOVE_SECRET_MANUSCRIPT_SOURCE.LOCAL;
+
+      let finalChapters = reinforceLoveSecretChapters(
+        chapters.map((chapter) => ({ ...chapter, source: manuscriptSource })),
+        mode,
+        config,
+        base,
+      );
+      const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `love-secret-${Date.now().toString(36)}`);
+      const pdfCacheKey = buildLoveSecretPdfCacheKey(base, mode, body);
+      const verifiedPdf = await buildLoveSecretVerifiedLocalPremiumPdf({
+        requestOrOrigin: request,
+        featureKey: authz.featureKey,
+        mode,
+        sessionId,
+        reportId,
+        chapterCount: directChapterCount,
+        manuscriptSource,
+        chapters: finalChapters,
+        base,
+        body,
+        loveSecretMasterJson,
+        masterJsonValidation,
+        loveSecretFacts,
+        loveSecretChapterPlans,
+        localAssembly,
+      });
+      finalChapters = verifiedPdf.finalChapters;
+      manuscriptSource = verifiedPdf.manuscriptSource;
+      const { pdfReady, pdfCompletionValidation, responsePayload: directResponse } = verifiedPdf;
 
     resolveLoveSecretLock(sessionId, "done", "");
     setLoveSecretPdfMemoryCache(pdfCacheKey, { payload: directResponse });
@@ -5365,19 +7423,19 @@ async function handlePrepareAsync(request, env, ctx) {
       ...directResponse,
       accepted: false,
       direct: true,
-      message: "대기열 저장소 문제로 직접 생성 모드로 전환되었습니다.",
+      message: "로컬 프리미엄 직접 생성이 완료되었습니다.",
     }, { status: 200 });
-    } catch (fallbackError) {
+    } catch (directError) {
       await failPremiumPdfExecution(
         env,
         authz?.auth?.userId,
         executionCtx,
         "love_secret_prepare_failed",
-        clean(fallbackError?.message || error?.message || "연애 비책 준비 실패"),
-        "love-secret-prepare-fallback",
+        clean(directError?.message || error?.message || "연애 비책 준비 실패"),
+        "love-secret-prepare-direct-local-premium",
       );
       resolveLoveSecretLock(sessionId, "failed", "");
-      throw fallbackError;
+      throw directError;
     }
   }
 }

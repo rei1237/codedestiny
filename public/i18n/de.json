@@ -1,14 +1,276 @@
 {
   "_comment": "Code Destiny — German premium localization (de.json)",
   "_version": "1.0.0",
-
   "brand": {
     "name": "Code Destiny",
     "tagline": "Östliche Weisheit × KI-Analyse",
     "subtitle": "3.000 Jahre chinesische Numerologie, entschlüsselt durch moderne KI",
     "trustBadge": "Über 100.000 Suchende in 80+ Ländern vertrauen uns"
   },
-
+  "home": {
+    "hero": {
+      "eyebrow": "Code Destiny / Honey Pig Fortune",
+      "brandLine": "Himmlische Schicksalssammlung",
+      "titleLine1": "Kostenloses Saju & Tarot",
+      "titleAccent": "Dein Tagesorakel",
+      "titleLine3": "an einem Ort",
+      "lead": "Entdecke Saju, Tarot, Zi Wei Dou Shu, Astrologie, Sukuyo, Kompatibilität und dein Tagesorakel in einem ruhigen Raum. Gib deine Geburtsdaten oder deine Frage ein und erhalte eine Deutung, die den Moment vor deiner nächsten Entscheidung klärt.",
+      "primaryCta": "Kostenlose Saju-Deutung starten",
+      "tarotCta": "Tarotkarten ziehen",
+      "todayCta": "Tagesorakel ansehen"
+    },
+    "nav": {
+      "home": "Start",
+      "saju": "Saju",
+      "tarot": "Tarot",
+      "astrology": "Astrologie",
+      "sukuyo": "Sukuyo",
+      "ziwei": "Zi Wei",
+      "vedic": "Vedisch",
+      "flowerDream": "Blumen & Träume",
+      "vvip": "VVIP-Archiv",
+      "oracle": "Orakel",
+      "brandAlias": "Honey Pig Fortune"
+    },
+    "previewCards": {
+      "tarotName": "Tarot",
+      "tarotMeta": "Kartenlegung",
+      "oracleName": "Orakel",
+      "oracleMeta": "Heilige Zeichen",
+      "astrologyName": "Astrologie",
+      "astrologyMeta": "Kosmisches Chart",
+      "ziweiName": "Zi Wei",
+      "ziweiMeta": "12-Paläste-Chart",
+      "vedicName": "Vedisch",
+      "vedicMeta": "Karma-Deutung",
+      "ichingName": "I Ging",
+      "ichingMeta": "64 Hexagramme",
+      "yeonStarHugName": "Yeons Sternenumarmung",
+      "yeonStarHugMeta": "Gefühlvolle Sternenroutine",
+      "nevilleName": "Neville-Meditation",
+      "nevilleMeta": "Routine zur Realitätsgestaltung"
+    },
+    "music": {
+      "title": "Unter Mondlicht, Flower Pig Vol. 1 Playlist",
+      "desc": "Wechsle in einen Mondrhythmus aus den emotionalen Stimmen von Neo und Flower Pig Vol. 1.",
+      "hint": "✦ Mondlicht-Playlist"
+    },
+    "mapIntro": {
+      "title": "Öffne die Schicksalstore auf der Mondkarte",
+      "desc": "Tarot, Orakel, Schicksalsblume, Traumdeutung, Meditation und Premiumberichte. Das Zeichen, das du jetzt brauchst, leuchtet leise in jeder Karte.",
+      "chipTarot": "Tarot",
+      "chipOracle": "Orakel",
+      "chipFlower": "Blumen & Träume",
+      "chipPremium": "Premiumberichte"
+    },
+    "input": {
+      "title": "Saju-Analyse starten",
+      "desc": "Gib Name und Geburtszeit ein, damit Chart, Elemente und Zehn Götter der Reihe nach sichtbar werden.",
+      "nameLabel": "Name",
+      "nameHint": "Gib den Namen ein, der in der Deutung erscheinen soll.",
+      "birthDateLabel": "Geburtsdatum",
+      "birthDateHint": "Wähle deinen Geburtstag, um die erste Grundlage deines Saju-Charts zu öffnen.",
+      "solar": "Solar",
+      "lunar": "Lunar",
+      "lunarLeap": "Lunarer Schaltmonat",
+      "birthTimeLabel": "Geburtszeit",
+      "birthTimeUnknown": "Wenn du die Geburtszeit nicht kennst, analysieren wir vorsichtig ab 12:00 Uhr.",
+      "birthCountryLabel": "Geburtsland/-ort",
+      "birthCountryHint": "Sommerzeit- und Längengradkorrektur automatisch",
+      "birthPlaceLoading": "Geburtsort wird geladen...",
+      "timePreview": "Vorschau der Zeitkorrektur",
+      "genderLabel": "Geschlecht",
+      "female": "Weiblich",
+      "male": "Männlich",
+      "submit": "Kostenlose Saju-Analyse starten",
+      "saveProfile": "Profilkarte speichern",
+      "saveOptional": "Optional",
+      "kakaoEvent": "Kakao-Teilen-Event",
+      "kakaoEventSub": "Freund einladen und 100 Moonlight Stone erhalten",
+      "referralNote": "Empfehlungsprämien werden vergeben, wenn sich ein Freund über deinen Mondlicht-Link anmeldet. Das Tageslimit beträgt 500 Moonlight Stone."
+    },
+    "startSection": {
+      "kicker": "TODAY CARDS",
+      "title": "Kostenlose Schicksalskarten für heute",
+      "lead": "Beginne auch beim ersten Besuch leicht und ruhig mit den sanftesten Karten im Mondlicht."
+    },
+    "startCards": {
+      "ziweiBadge": "Collection No. 01 · Empfohlen",
+      "ziweiTitle": "Zi Wei Dou Shu",
+      "ziweiDesc": "Lies deine Natur, Arbeit, Geldthemen und Beziehungen über ein 12-Paläste-Schicksalschart.",
+      "ziweiCta": "Chart ansehen",
+      "vedicBadge": "Collection No. 02 · Empfohlen",
+      "vedicTitle": "Vedische Astrologie",
+      "vedicDesc": "Folge dem heutigen Weg über Jyotish-Sterne und den leisen Strom des Karmas.",
+      "vedicCta": "Vedische Deutung ansehen",
+      "astrologyBadge": "Collection No. 03 · Empfohlen",
+      "astrologyTitle": "Astrologie",
+      "astrologyDesc": "Lies dein Geburtshoroskop über Sonne, Mond, Aszendent und Medium Coeli.",
+      "astrologyCta": "Chart ansehen",
+      "sukuyoBadge": "Collection No. 04 · Empfohlen",
+      "sukuyoTitle": "Sukuyo",
+      "sukuyoDesc": "Prüfe zuerst deine Mondstation, dein Temperament und den Tagesrhythmus.",
+      "sukuyoCta": "Kostenloses Sukuyo ansehen"
+    },
+    "collectionHeaders": {
+      "animal": {
+        "title": "Tier- und Gesichtslesung",
+        "subtitle": "Wecke den wilden Instinkt, der in dir schläft",
+        "lede": "Gesichtsform, Persönlichkeit und Saju-Signale zeigen gemeinsam deinen Instinktcharakter und deine Beziehungsenergie.",
+        "featureline": "KI-Tiergesichtslesung · MBTI-Tierkompatibilität · Tier-Totem · 60-Gapja-Schutzsiegel"
+      },
+      "meditation": {
+        "title": "Meditationskollektion",
+        "subtitle": "Ordne die Energie des Tages mit Vorstellungskraft und Unterbewusstsein",
+        "lede": "Von Neville Goddard inspirierte Visualisierungen beruhigen Emotionen und richten den Fokus auf die gewünschte Wirklichkeit.",
+        "featureline": "Neville-Meditation · Fokussiertes Atmen · Autosuggestion · Wirklichkeitsvisualisierung"
+      },
+      "tarot": {
+        "title": "Tarot-Lesungen",
+        "subtitle": "Wähle das passende Tarot und beginne jetzt",
+        "lede": "Beziehungen, Heilung, Selbstvertrauen, Wiedersehen, Jahresglück und Entscheidungen werden mit klaren Legungen gelesen.",
+        "featureline": "Beziehung 6 Karten · Heilung 4 Karten · Selbstvertrauen · Wiedersehen · Tierkreis-Jahresglück · Saju-Tarot"
+      },
+      "oracle": {
+        "title": "Orakel- und Divinationskollektion",
+        "subtitle": "Altes Wissen spricht heute zu dir",
+        "lede": "Stelle eine Frage und erhalte eine klare Antwort aus östlichen und westlichen Symboldeutungen.",
+        "featureline": "Hwatu · Ägyptisches Orakel · IFÀ · I Ging 64 Hexagramme · Runen · Geomantie · Teeblätter · Destiny Poker"
+      },
+      "cosmic": {
+        "title": "Kosmische und Zodiac-Kollektion",
+        "subtitle": "Deine Schicksalskarte, geschrieben in den Sternen",
+        "lede": "Planeten, Zeichen und Häuser verbinden sich zu einer himmlischen Deutung von Persönlichkeit und Timing.",
+        "featureline": "Westliche Astrologie · Zi Wei Dou Shu · Vedische Astrologie · Olympus-Zodiac-Orakel"
+      },
+      "flower": {
+        "title": "Schicksalsblume und Traumkollektion",
+        "subtitle": "Dein persönliches Schicksal blüht in der Sprache des Kosmos",
+        "lede": "Saju, Astrologie, Zi Wei und Sukuyo werden durch Blumensymbole zu poetischen Schicksalsberichten verwoben.",
+        "featureline": "Schicksalsblumen-Atelier · Astrologieblume · Zi-Wei-Blume · Sukuyo-Blume · Traumtarot · Psychoanalytische Traumdeutung"
+      },
+      "vvip": {
+        "title": "VVIP-Schicksalsarchiv",
+        "subtitle": "Deine Sterne, dein Saju und deine Bindungen werden zu einem geheimen Dokument.",
+        "lede": "Eine Premiumkollektion, die Leben, Liebe, Geld, Beziehungen und Wendepunkte tief auslegt.",
+        "featureline": "Zi Wei · Sukuyo · Astrologie · Vedisch · Seelenkarma"
+      },
+      "misc": {
+        "title": "Weitere Divinationskollektion",
+        "subtitle": "Von Psychotests bis Saju FPTI alles erkunden",
+        "lede": "Psychotests, AI Omikuji, Blutgruppentests, Lieblingsmensch-Schicksal und Saju FPTI fließen als Kartenkollektion zusammen.",
+        "featureline": "Psychologie-Hub · AI Omikuji · Blutgruppentest · Lieblingsmensch-Schicksal · Saju FPTI"
+      }
+    },
+    "tiles": {
+      "animalFaceTitle": "🎭 KI-Tiergesichtslesung",
+      "animalFaceDesc": "Gesichtsdeutung aus deinem Selfie",
+      "animalMbtiTitle": "🦁 MBTI-Tierkompatibilität",
+      "animalMbtiDesc": "16 Totem-Kompatibilitätswege",
+      "animalTotemTitle": "🧸 Tier-Totem",
+      "animalTotemDesc": "Kartenlegung des Schutztieres",
+      "sajuGuardianTitle": "🐲 Saju-Guardian-Beschwörung",
+      "sajuGuardianDesc": "Tagessäule, Elemente, Schutzsiegel und 7-Tage-Mission",
+      "destinyEggTitle": "🥚 Schicksalsei",
+      "destinyEggDesc": "Dein persönlicher Glücksbegleiter",
+      "fortuneFishTitle": "🐟 Wahrsagefisch",
+      "fortuneFishDesc": "Kostenlose Fischdeutung und Glücksbringer-Tresor",
+      "palmMapTitle": "🖐 Handlinienkarte",
+      "palmMapDesc": "Lies Liebe, Geld und Berufslinien in deiner Handfläche.",
+      "nevillePracticeTitle": "🧘 Neville-Meditationspraxis",
+      "nevillePracticeDesc": "Fokusguide für schöpferische Vorstellung",
+      "divyaYogaTitle": "🪷 Divya Yoga",
+      "divyaYogaDesc": "Persönliche Meditations- und Yogaroutine",
+      "cosmicSoulMeditationTitle": "🌌 Cosmic-Soul-Meditation",
+      "cosmicSoulMeditationDesc": "30- und 60-Minuten-Protokoll zur Realitätsgestaltung",
+      "tarotLoveTitle": "💕 Was sind wir?",
+      "tarotLoveDesc": "Die Temperatur zwischen Worten und Handlungen",
+      "tarotHealingTitle": "☀ Warmes Sonnenheilungs-Tarot",
+      "tarotHealingDesc": "Wo das Herz müde ist, und das Licht von heute",
+      "tarotSelfEsteemTitle": "✨ Tarot zur Rückkehr zum eigenen Maß",
+      "tarotSelfEsteemDesc": "5-Karten-Lesung aus der Herzmitte",
+      "tarotReunionTitle": "🌊 Wiedersehens-Leuchtturm-Tarot",
+      "tarotReunionDesc": "Verbleibende Wärme und sichere Distanz",
+      "tarotPromptMakerTitle": "💘 Tarot-Prompt-Bibliothek",
+      "tarotPromptMakerDesc": "Legung wählen, Karten öffnen, Lesetext vollenden",
+      "tarotYearTitle": "🐉 Tierkreis-Jahrestarot",
+      "tarotYearDesc": "Zwölf Monate Schutzenergie",
+      "tarotNumerologyTitle": "🔢 Numerologie-Tarot",
+      "tarotNumerologyDesc": "5-Karten-Lesung mit Lebenszahl und Tageszahl",
+      "tarotCareerMoveTitle": "💼 Karten für den Berufswechsel",
+      "tarotCareerMoveDesc": "7 Karten für das, was bleibt, und die nächste Richtung",
+      "tarotMindscanTitle": "🔮 Zwischen Worten und Handlungen",
+      "tarotMindscanDesc": "10 Karten für die Herztemperatur",
+      "tarotCrystalSoulTitle": "💎 Kristallseelen-Tarot",
+      "tarotCrystalSoulDesc": "Kristallenergie-Lesung",
+      "celestialHarmonyTitle": "✨ Himmlische Harmonie",
+      "celestialHarmonyDesc": "Tarot aus den Stimmen von 11 Planeten",
+      "sajuTarotTitle": "🔮 Saju-Tarot",
+      "sajuTarotDesc": "Entscheidungskriterien durch Karten und Zehn Götter",
+      "hwatuTitle": "🎴 Hwatu-Glück",
+      "hwatuDesc": "Glück durch 12 Monate Blumenkarten",
+      "egyptOracleTitle": "𓂀 Ägyptisches Orakel",
+      "egyptOracleDesc": "Kemet-Orakelglück",
+      "ifaOracleTitle": "🪬 IFÀ-Orakel",
+      "ifaOracleDesc": "Yoruba-Orakel der 256 Odu",
+      "ichingTurtleTitle": "☯️ I-Ging-Schildkrötenorakel",
+      "ichingTurtleDesc": "64 Hexagramme und 3000 Jahre Weisheit",
+      "runeOracleTitle": "ᚠ Stonehenge-Runenorakel",
+      "runeOracleDesc": "Deutung alter Runensymbole",
+      "geomancyTitle": "⟁ Geomantie-Erdorakel",
+      "geomancyDesc": "16 Linien von Zeichen aus der Erde",
+      "sikojenTitle": "🐷 Finnisches Zinnschwein-Orakel",
+      "sikojenDesc": "Ein süßes Neujahrsorakel mit Yeoni und Zinnschatten",
+      "royalTeaTitle": "🫖 Königliche Teelesung",
+      "royalTeaDesc": "Königliche Tasseografie mit Teeblättern",
+      "destinyPokerTitle": "🃏 Destiny Poker",
+      "destinyPokerDesc": "Ein Schicksalskartenduell mit den Göttern",
+      "westernAstrologyTitle": "✨ Basis-Chart der westlichen Astrologie",
+      "westernAstrologyDesc": "Kostenloses Geburtshoroskop · Synastrie 50 Coins",
+      "ziweiBasicTitle": "🌌 Zi Wei Dou Shu",
+      "ziweiBasicDesc": "Kostenloses Basischart · Kompatibilität optional 50 Coins",
+      "ziweiAdvancedTitle": "🌟 Fortgeschrittenes Zi Wei",
+      "ziweiAdvancedDesc": "12-Paläste-Lebensstrategie · tiefe Ming-Palast-Analyse",
+      "vedicAstrologyTitle": "🪐 Vedische Astrologie",
+      "vedicAstrologyDesc": "Kostenloses Basischart · Kompatibilität 50 Coins",
+      "olympusOracleTitle": "⚡ Olympus-Orakel",
+      "olympusOracleDesc": "12 Götter und Zodiac-Schicksalsdeutung",
+      "destinyFlowerTitle": "🌸 Schicksalsblume",
+      "destinyFlowerDesc": "Die Blume, die aus deinem Saju erblüht",
+      "astrologyFlowerTitle": "✨ Astrologieblume",
+      "astrologyFlowerDesc": "Sun · Rising · Moon",
+      "ziweiFlowerTitle": "🌺 Zi-Wei-Blume",
+      "ziweiFlowerDesc": "Ming-Palast-Hauptstern · Sternhelligkeit",
+      "sukuyoFlowerTitle": "🌙 Sukuyo-Blume",
+      "sukuyoFlowerDesc": "27 Mondhäuser · Mondphase",
+      "dreamTarotTitle": "🌙 Traumtarot",
+      "dreamTarotDesc": "3-Karten-Lesung des Traum-Nachklangs",
+      "psychoDreamTitle": "🕯️ Psychoanalytische Traumdeutung",
+      "psychoDreamDesc": "Freud · British Study",
+      "sukuyoPremiumTitle": "Premium-Sukuyo-Kompatibilität",
+      "sukuyoPremiumDesc": "Erstellt ein 15-Kapitel-Beratungs-PDF, getrennt von Basis-Kompatibilität und Detailerweiterung.",
+      "ziweiPremiumTitle": "Zi Wei Premium PDF",
+      "ziweiPremiumDesc": "Deutet die Lebenspaläste in deinem Ming-Palast und den 12 Palästen.",
+      "astroReportTitle": "Astrologie Cosmic Report",
+      "astroReportDesc": "Liest Wendepunkte durch Saturn, Knoten, Transite und Häuserfluss über Sonne, Mond und Aszendent.",
+      "vedicPremiumTitle": "Vedisches Premium PDF",
+      "vedicPremiumDesc": "Öffnet die Seelenrichtung, die Lagna und Nakshatra aussprechen.",
+      "soulKarmaTitle": "Seelenkarma",
+      "soulKarmaDesc": "Woher kommst du, und was bist du in diesem Leben gekommen zu lösen?",
+      "psychotestHubTitle": "🧠 Psychotest-Hub",
+      "psychotestHubDesc": "14 Thementests",
+      "aiOmikujiTitle": "🤖 AI Emoi Omikuji",
+      "aiOmikujiDesc": "Emotionale Orakellesung",
+      "yeonStarHugTileTitle": "🌸 Yeons Herzkonstellation",
+      "yeonStarHugTileDesc": "Eine sanfte Umarmung für das Herz von heute",
+      "bloodTypeTitle": "🩸 Blutgruppentest",
+      "bloodTypeDesc": "Eigenschaften · Kompatibilität · Coaching",
+      "favoriteDestinyTitle": "✨ Lieblingsmensch-Schicksal",
+      "favoriteDestinyDesc": "Photocard-Stimmungslesung",
+      "sajuFptiTitle": "🔮 Saju-FPTI-Test",
+      "sajuFptiDesc": "4-Achsen-Persönlichkeitsanalyse durch Elemente und Zehn Götter"
+    }
+  },
   "terms": {
     "사주": "Vier Säulen des Schicksals",
     "사주팔자": "Vier Säulen (Ba Zi)",
@@ -39,9 +301,12 @@
     "신금": "Quecksilberne Klinge (Affe·Metall)",
     "유금": "Morgenstahl (Hahn·Metall)",
     "술토": "Hütende Schwelle (Hund·Erde)",
-    "해수": "Urquell (Schwein·Wasser)"
+    "해수": "Urquell (Schwein·Wasser)",
+    "일주": "Tagespfeiler (Kernselbst)",
+    "월주": "Monatspfeiler (Potenzial)",
+    "년주": "Jahrespfeiler (Ahnenlinie)",
+    "시주": "Stundenpfeiler (Vermächtnis)"
   },
-
   "premium": {
     "reportTitle": "Dein Schicksals-Bauplan",
     "reportSubtitle": "Eine Premium-Lebensanalyse, angetrieben durch Östliche Meta-Psychologie und KI",
@@ -52,21 +317,55 @@
     },
     "cta": "Deinen Vollstaendigen Schicksals-Bauplan Freischalten",
     "priceDisplay": "Ab 2,90€",
-    "guarantee": "30-Tage-Zufriedenheitsgarantie"
+    "guarantee": "30-Tage-Zufriedenheitsgarantie",
+    "coreArchetype": {
+      "label": "Dein zentraler Lebensarchetyp",
+      "description": "Der zentrale Lebensarchetyp ist die strukturelle Signatur deines Schicksals. Er zeigt, wie deine Energie in der Welt Form annimmt, in welchem Feld deine Kraft natürlich wirkt und unter welchen Bedingungen deine Gaben klar hervortreten."
+    },
+    "decadeCycle": {
+      "label": "Dekaden-Schicksalszyklus",
+      "description": "Der Dekaden-Schicksalszyklus beschreibt die energetischen Klimazonen, durch die du jeweils zehn Jahre lang gehst. Er ist kein einfaches Glück-oder-Unglück-Urteil, sondern zeigt, welche Potenziale sich öffnen und welche Lektionen integriert werden wollen."
+    },
+    "compatibility": {
+      "label": "Kosmische Kompatibilitätsanalyse",
+      "description": "Wahre Kompatibilität reicht tiefer als Persönlichkeitstypen. Diese Analyse liest die Fünf-Elemente-Dynamik zwischen zwei Schicksalsbildern und zeigt, wo ihr euch stärkt, wo Reibung entsteht und wie Verbindung würdevoll fließen kann."
+    }
   },
-
   "trust": {
     "headline": "Warum Über 100.000 Menschen Code Destiny Vertrauen",
     "badges": [
-      { "icon": "🌍", "label": "Globale Community", "value": "+100.000 Nutzer in 80+ Ländern" },
-      { "icon": "🔒", "label": "SSL-Sicher", "value": "256-Bit-Verschlüsselung · Sichere Zahlung" },
-      { "icon": "⭐", "label": "Bewertung", "value": "4,9/5 Durchschnittsbewertung" },
-      { "icon": "🌐", "label": "Sprachen", "value": "10 Sprachen verfügbar" },
-      { "icon": "💳", "label": "Sicheres Checkout", "value": "Stripe-zertifiziert · Alle Karten" },
-      { "icon": "🔄", "label": "Garantie", "value": "30-Tage-Rückgabe" }
+      {
+        "icon": "🌍",
+        "label": "Globale Community",
+        "value": "+100.000 Nutzer in 80+ Ländern"
+      },
+      {
+        "icon": "🔒",
+        "label": "SSL-Sicher",
+        "value": "256-Bit-Verschlüsselung · Sichere Zahlung"
+      },
+      {
+        "icon": "⭐",
+        "label": "Bewertung",
+        "value": "4,9/5 Durchschnittsbewertung"
+      },
+      {
+        "icon": "🌐",
+        "label": "Sprachen",
+        "value": "10 Sprachen verfügbar"
+      },
+      {
+        "icon": "💳",
+        "label": "Sicheres Checkout",
+        "value": "Stripe-zertifiziert · Alle Karten"
+      },
+      {
+        "icon": "🔄",
+        "label": "Garantie",
+        "value": "30-Tage-Rückgabe"
+      }
     ]
   },
-
   "footer": {
     "tagline": "Antike Weisheit, moderne Präzision.",
     "about": "Code Destiny ist eine KI-gestützte Schicksals- und Fortunanalyse-Plattform, die über 3.000 Jahre östlicher kosmologischer Systeme mit moderner künstlicher Intelligenz verbindet. In 10 Sprachen verfügbar, kostenlos nutzbar.",
@@ -79,6 +378,193 @@
       "contact": "Kontakt"
     },
     "refundPolicy": "Premium-Münzen (digitale Guthaben) sind innerhalb von 14 Tagen nach dem Kauf erstattungsfähig, sofern unbenutzt, gemäß Verbraucherschutzgesetz.",
-    "copyright": "© 2025 Code Destiny. Alle Rechte vorbehalten. Nur zur Unterhaltung und Selbstreflexion, kein Ersatz für professionelle Beratung."
+    "copyright": "© 2025 Code Destiny. Alle Rechte vorbehalten. Nur zur Unterhaltung und Selbstreflexion, kein Ersatz für professionelle Beratung.",
+    "sections": {
+      "services": "Dienste",
+      "resources": "Ressourcen",
+      "legal": "Rechtliches",
+      "support": "Support"
+    }
+  },
+  "branches": {
+    "자수": {
+      "label": "Mitternachtsabgrund",
+      "animal": "Ratte・Wasser (子水)",
+      "essence": "Die Ratte bewegt sich mit feinem Instinkt durch die dunkelsten Wasser. Der Mitternachtsabgrund steht für verborgene Intelligenz, kluge Ressourcennutzung und die Fähigkeit, dort Wege zu finden, wo andere nur Dunkelheit sehen."
+    },
+    "축토": {
+      "label": "Eisernes Fundament",
+      "animal": "Ochse・Erde (丑土)",
+      "essence": "Der Ochse trägt, was andere nicht tragen können. Das Eiserne Fundament verkörpert unbeirrbare Geduld, langsam gesammelte Kraft und die stille Würde eines Lebens, das durch Beständigkeit gebaut wird."
+    },
+    "인목": {
+      "label": "Souveräner Aufbruch",
+      "animal": "Tiger・Holz (寅木)",
+      "essence": "Der Tiger herrscht über den ursprünglichen Wald. Souveräner Aufbruch beschreibt natürliche Autorität, schützende Stärke und ein Wachstum, das sich nicht dauerhaft zurückhalten lässt."
+    },
+    "묘목": {
+      "label": "Baldachin der Morgendämmerung",
+      "animal": "Hase・Holz (卯木)",
+      "essence": "Der Hase trägt die erste Lichtkraft des Morgens: sanft und doch unwiderstehlich. Dieser Zweig steht für soziale Anmut, künstlerische Empfindsamkeit und die Gabe, durch Weichheit zu gedeihen."
+    },
+    "진토": {
+      "label": "Himmlischer Thron",
+      "animal": "Drache・Erde (辰土)",
+      "essence": "Der Drache ist das mythische Wesen unter den zwölf Zweigen. Der Himmlische Thron steht für Wandlungskraft, göttliche Präsenz und ein Schicksal, das oft als außergewöhnlich wahrgenommen wird."
+    },
+    "사화": {
+      "label": "Verborgene Glut",
+      "animal": "Schlange・Feuer (巳火)",
+      "essence": "Die Schlange kündigt sich nicht laut an. Verborgene Glut bedeutet in der Stille gereifte Weisheit, langsam brennende Intensität und die Macht, mehr zu wissen, als man offen zeigt."
+    },
+    "오화": {
+      "label": "Sonnenlohe",
+      "animal": "Pferd・Feuer (午火)",
+      "essence": "Das Pferd trägt die Energie der Mittagssonne: Strahlkraft, Bewegung und leidenschaftliche Freiheit. Sonnenlohe ist am stärksten, wenn sie auf etwas zuläuft, das sie liebt."
+    },
+    "미토": {
+      "label": "Pastorales Heiligtum",
+      "animal": "Ziege・Erde (未土)",
+      "essence": "Die Ziege bringt Fülle ohne Härte. Das Pastorale Heiligtum steht für Fürsorge, Harmonie, tiefe Kreativität und Räume, in denen andere sich sicher fühlen."
+    },
+    "신금": {
+      "label": "Quecksilberne Klinge",
+      "animal": "Affe・Metall (申金)",
+      "essence": "Der Affe ist der kluge Verwandlungskünstler des Tierkreises. Die Quecksilberne Klinge steht für Witz, Anpassungsfähigkeit, Erfindungskraft und strategisches Denken in komplexen Situationen."
+    },
+    "유금": {
+      "label": "Mondsichelstahl",
+      "animal": "Hahn・Metall (酉金)",
+      "essence": "Der Hahn ist gelebte Präzision und der Bote des Morgens. Mondsichelstahl bedeutet Disziplin, verfeinerte Urteilskraft und den seltenen Blick für wahren Wert."
+    },
+    "술토": {
+      "label": "Hütende Schwelle",
+      "animal": "Hund・Erde (戌土)",
+      "essence": "Der Hund bewacht das heilige Tor. Die Hütende Schwelle steht für Vertrauen, Loyalität, Schutz des Wesentlichen und eine moralische Standfestigkeit, die nicht leicht erschüttert wird."
+    },
+    "해수": {
+      "label": "Urquell",
+      "animal": "Schwein・Wasser (亥水)",
+      "essence": "Das Schwein ist ein großer, aufrichtiger Strom. Der Urquell steht für Vitalität, Großzügigkeit, Reinheit und eine Tiefe, die nicht versiegt, solange das Herz wahrhaftig bleibt."
+    }
+  },
+  "services": {
+    "saju": {
+      "name": "Vier Säulen des Schicksals",
+      "short": "Saju-Lesung",
+      "description": "Das ursprüngliche System östlicher Meta-Psychologie. Dein Geburtsdatum trägt eine präzise kosmische Signatur: vier Säulen, acht Zeichen und tiefe Resonanz.",
+      "badge": "Beliebt"
+    },
+    "tarot": {
+      "name": "KI-Tarotführung",
+      "short": "KI-Tarot",
+      "description": "Archetypische Weisheit, verstärkt durch künstliche Intelligenz. Jede Lesung spiegelt dein gegenwärtiges Energiefeld."
+    },
+    "ziwei": {
+      "name": "Zi Wei Dou Shu",
+      "short": "Sternenkarte",
+      "description": "Das kaiserliche Sternkartensystem des alten China: 144 Lebenspaläste und 108 Sterne als Panorama des Schicksals.",
+      "badge": "Tiefenanalyse"
+    },
+    "astrology": {
+      "name": "Kosmische Astrologie",
+      "short": "Vedisch & Westlich",
+      "description": "Eine Verbindung aus vedischer Jyotish-Tradition und westlicher Astrologie für mehrschichtige Planetendeutung."
+    },
+    "destinyFlower": {
+      "name": "Schicksalsblumen-Archetyp",
+      "short": "Schicksalsblume",
+      "description": "Das Blühmuster deiner Seele, poetisch und präzise aus deiner elementaren Schicksalssignatur gelesen."
+    },
+    "compatibility": {
+      "name": "Kosmische Kompatibilität",
+      "short": "Kompatibilität",
+      "description": "Jenseits von Typentests liest diese Analyse die tiefe energetische Vereinbarung zwischen dir und anderen."
+    }
+  },
+  "pricing": {
+    "currencies": {
+      "KRW": {
+        "symbol": "₩",
+        "rate": 1,
+        "format": "₩{amount}"
+      },
+      "USD": {
+        "symbol": "$",
+        "rate": 0.00074,
+        "format": "${amount}"
+      },
+      "EUR": {
+        "symbol": "€",
+        "rate": 0.00068,
+        "format": "€{amount}"
+      },
+      "JPY": {
+        "symbol": "¥",
+        "rate": 0.11,
+        "format": "¥{amount}"
+      },
+      "CNY": {
+        "symbol": "¥",
+        "rate": 0.0053,
+        "format": "¥{amount}"
+      },
+      "GBP": {
+        "symbol": "£",
+        "rate": 0.00058,
+        "format": "£{amount}"
+      },
+      "AUD": {
+        "symbol": "A$",
+        "rate": 0.0012,
+        "format": "A${amount}"
+      },
+      "CAD": {
+        "symbol": "C$",
+        "rate": 0.001,
+        "format": "C${amount}"
+      },
+      "INR": {
+        "symbol": "₹",
+        "rate": 0.062,
+        "format": "₹{amount}"
+      },
+      "SGD": {
+        "symbol": "S$",
+        "rate": 0.00099,
+        "format": "S${amount}"
+      },
+      "MYR": {
+        "symbol": "RM",
+        "rate": 0.0035,
+        "format": "RM{amount}"
+      }
+    },
+    "tiers": [
+      {
+        "id": "starter",
+        "name": "Starter",
+        "krwPrice": 9900,
+        "coins": 10,
+        "description": "10 Premium-Deutungen",
+        "popular": false
+      },
+      {
+        "id": "standard",
+        "name": "Standard",
+        "krwPrice": 29000,
+        "coins": 35,
+        "description": "35 Premium-Deutungen + vollständiger Schicksalsbericht",
+        "popular": true
+      },
+      {
+        "id": "premium",
+        "name": "Premium",
+        "krwPrice": 59000,
+        "coins": 80,
+        "description": "80 Deutungen + lebenslanger Zugang zu Funktionen",
+        "popular": false
+      }
+    ]
   }
 }

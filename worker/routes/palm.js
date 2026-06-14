@@ -106,7 +106,7 @@ function buildCanonical(params) {
   };
 
   const missingFields = [];
-  const hasPalm = canonical.handContext.uploadedHands.length > 0;
+  const hasPalm = canonical.handContext.uploadedHands.length > 0 && canonical.imageQuality.isPalmDetected === true;
   if (!hasPalm) missingFields.push("handContext.uploadedHands");
 
   const hasLeftMajor =
@@ -241,6 +241,7 @@ export async function handlePalmRoutes(request, env) {
         {
           ok: false,
           code: "PALM_NOT_DETECTED",
+          reasonCode: "NO_PALM",
           error: "손바닥 인식에 실패했습니다.",
           checks: analyses.map((item) => ({
             side: item.side,
@@ -259,6 +260,7 @@ export async function handlePalmRoutes(request, env) {
         {
           ok: false,
           code: "IMAGE_QUALITY_LOW",
+          reasonCode: "LOW_CONFIDENCE",
           error: "이미지 품질이 부족합니다.",
           checks: analyses.map((item) => ({
             side: item.side,
@@ -363,6 +365,9 @@ export async function handlePalmRoutes(request, env) {
       recognitionData,
       specialPatterns,
       resultSections,
+      missingData: canonical.validation.missingFields,
+      warnings: imageQuality.warnings || [],
+      mode: canonical.validation.hasEnoughQuality ? "full" : "partial",
     });
   } catch (error) {
     return handleRouteError(error, { request, env, trace });

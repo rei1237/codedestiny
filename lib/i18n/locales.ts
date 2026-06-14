@@ -2,6 +2,8 @@ export type Locale = "ko" | "ja" | "zh" | "en";
 
 export const LOCALES = ["ko", "ja", "zh", "en"] as const;
 export const PUBLIC_LOCALES = ["ja", "zh", "en"] as const;
+export const SEO_INDEXABLE_LOCALES = ["ko"] as const;
+export const LOCALE_NAVIGATION_LOCALES = LOCALES;
 
 export const LOCALE_CONFIG: Record<Locale, {
   label: string;
@@ -16,7 +18,7 @@ export const LOCALE_CONFIG: Record<Locale, {
     label: "한국어",
     htmlLang: "ko",
     pathPrefix: "",
-    siteName: "Code Destiny | 꿀꿀 운세",
+    siteName: "Code Destiny",
     ogLocale: "ko_KR",
     hrefLang: "ko",
     hrefLangAliases: ["ko-KR"],
@@ -25,16 +27,16 @@ export const LOCALE_CONFIG: Record<Locale, {
     label: "日本語",
     htmlLang: "ja-JP",
     pathPrefix: "/ja",
-    siteName: "꿀꿀 운세 | Code Destiny Japan",
+    siteName: "Code Destiny Japan",
     ogLocale: "ja_JP",
     hrefLang: "ja",
     hrefLangAliases: ["ja-JP"],
   },
   zh: {
-    label: "简体中文",
+    label: "中文",
     htmlLang: "zh-CN",
     pathPrefix: "/zh",
-    siteName: "꿀꿀 운세 | Code Destiny 中文",
+    siteName: "Code Destiny China",
     ogLocale: "zh_CN",
     hrefLang: "zh-CN",
     hrefLangAliases: ["zh", "zh-Hans", "zh-TW", "zh-Hant"],
@@ -43,7 +45,7 @@ export const LOCALE_CONFIG: Record<Locale, {
     label: "English",
     htmlLang: "en",
     pathPrefix: "/en",
-    siteName: "꿀꿀 운세 | Code Destiny",
+    siteName: "Code Destiny",
     ogLocale: "en_US",
     hrefLang: "en",
     hrefLangAliases: ["en-US"],

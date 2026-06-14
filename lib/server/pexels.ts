@@ -29,7 +29,7 @@ const fallbackImages = {
   famous: "/fuctionassets/유명인 사주 분석.webp",
   career: "/fuctionassets/유명인 사주 분석.webp",
   love: "/fuctionassets/flower4.webp",
-  wealth: "/fuctionassets/funtion_wealth.webp",
+  wealth: "/fuctionassets/돈밝히는 연이.webp",
   health: "/fuctionassets/meditation.webp",
   default: "/fuctionassets/premiumstar.webp",
 } as const;
@@ -83,12 +83,13 @@ function normalizeQuery(query: string, section: PexelsImageSectionKey) {
   return raw;
 }
 
-function inferInsightSection(input: unknown): PexelsImageSectionKey {
+function collectInsightText(input: unknown) {
   const source = input && typeof input === "object" ? input as Record<string, unknown> : {};
-  const bag = [
+  return [
     source.slug,
     source.title,
     source.subtitle,
+    source.mainKeyword,
     source.excerpt,
     source.description,
     source.category,
@@ -98,7 +99,10 @@ function inferInsightSection(input: unknown): PexelsImageSectionKey {
     Array.isArray(source.keywords) ? source.keywords.join(" ") : "",
     Array.isArray(source.relatedKeywords) ? source.relatedKeywords.join(" ") : "",
   ].join(" ").toLowerCase();
+}
 
+function inferInsightSection(input: unknown): PexelsImageSectionKey {
+  const bag = collectInsightText(input);
   if (/유명인|celebrity|famous-saju/.test(bag)) return "famous";
   if (/자미|ziwei|명궁|궁위|사화/.test(bag)) return "ziwei";
   if (/숙요|sukuyo|27숙|영친|안괴|업태/.test(bag)) return "sukuyo";
@@ -106,19 +110,78 @@ function inferInsightSection(input: unknown): PexelsImageSectionKey {
   if (/베다|vedic|라그나|나크샤트라/.test(bag)) return "vedic";
   if (/점성|astrology|zodiac|태양궁|달궁|상승궁/.test(bag)) return "astrology";
   if (/꿈|dream|해몽/.test(bag)) return "dream";
+  if (/사주|명리|오행|십성|대운|일간|만세력|manseoryeok/.test(bag)) return "saju";
   if (/연애|궁합|관계|재회|love|compatibility/.test(bag)) return "love";
   if (/재물|wealth|돈|금전|수입/.test(bag)) return "wealth";
   if (/건강|health|회복|명상/.test(bag)) return "health";
   if (/직업|커리어|career|사업|성공|무대/.test(bag)) return "career";
-  if (/사주|명리|오행|십성|대운|일간/.test(bag)) return "saju";
   return "default";
+}
+
+function resolveFocusedPexelsQuery(input: unknown, section: PexelsImageSectionKey) {
+  const bag = collectInsightText(input);
+
+  if (section === "famous") {
+    if (/sports|축구|야구|피겨|골프|스포츠|stadium/.test(bag)) return "stadium spotlight night stars athlete";
+    if (/배우|actor|actress|cinema|film|movie/.test(bag)) return "cinema stage spotlight night portrait";
+    if (/가수|k-스타|singer|music|concert|stage|idol/.test(bag)) return "concert stage spotlight stars singer";
+    if (/business|사업|기업|founder|ceo|technology/.test(bag)) return "city skyline night lights success";
+    if (/politics|정치|president|leader|speech/.test(bag)) return "public speech podium spotlight night";
+    if (/historical|역사|king|queen|scholar|artist|creator/.test(bag)) return "ancient manuscript candle stars";
+    return cosmicImageRequests.famous.query;
+  }
+
+  if (section === "tarot") {
+    if (/love|연애|재회|relationship|궁합/.test(bag)) return "tarot cards candle love reading table";
+    if (/money|재물|돈|career|직업|사업/.test(bag)) return "tarot cards coins candle reading table";
+    if (/yes|no|선택|spread|스프레드/.test(bag)) return "tarot spread cards candle table";
+    return "tarot cards candle mystical table";
+  }
+
+  if (section === "saju") {
+    if (/manseoryeok|만세력|chart|명식|팔자/.test(bag)) return "astrology chart notebook candle stars";
+    if (/love|연애|궁합|relationship/.test(bag)) return "astrology chart couple candle night";
+    if (/wealth|재물|돈|career|직업|대운/.test(bag)) return "astrology chart desk candle gold";
+    return cosmicImageRequests.saju.query;
+  }
+
+  if (section === "ziwei") {
+    if (/궁|palace|minggong|명궁|재백|관록/.test(bag)) return "astrology chart star map notebook";
+    return cosmicImageRequests.ziwei.query;
+  }
+
+  if (section === "sukuyo") {
+    if (/love|연애|궁합|relationship|영친|안괴|업태/.test(bag)) return "moon constellation couple silhouette night";
+    return cosmicImageRequests.sukuyo.query;
+  }
+
+  if (section === "vedic") {
+    if (/lagna|라그나|nakshatra|나크샤트라|dasha|다샤/.test(bag)) return "indian temple night stars astrology";
+    return cosmicImageRequests.vedic.query;
+  }
+
+  if (section === "astrology") {
+    if (/birth|natal|chart|하우스|상승궁|달궁/.test(bag)) return "zodiac chart night sky astrology";
+    return cosmicImageRequests.astrology.query;
+  }
+
+  if (section === "love") return "couple silhouette stars night mystical";
+  if (section === "wealth") return "gold coins candle stars abundance";
+  if (section === "career") return "stage spotlight city night success";
+  if (section === "health") return "meditation candle calm night stars";
+  if (section === "dream") return "moon fog dreamy night stars";
+
+  if (/africa|ifa|cowrie|shell|아프리카|이파/.test(bag)) return "cowrie shells traditional divination candle";
+  if (/middle-east|arabic|중동|geomancy|지오맨시/.test(bag)) return "sand pattern divination candle desert";
+  if (/pig|oracle|strange|이색|돼지/.test(bag)) return "oracle cards candle mystical table";
+  return cosmicImageRequests.default.query;
 }
 
 export function resolvePexelsInsightImageRequest(input: unknown) {
   const section = inferInsightSection(input);
   return {
     section,
-    query: cosmicImageRequests[section]?.query || cosmicImageRequests.default.query,
+    query: resolveFocusedPexelsQuery(input, section),
     fallbackAlt: cosmicImageRequests[section]?.fallbackAlt || cosmicImageRequests.default.fallbackAlt,
   };
 }

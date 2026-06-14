@@ -3,7 +3,7 @@ import { getEnv } from "./env.js";
 /**
  * Resend Email Utility for Cloudflare Worker.
  */
-export async function sendEmail(env, { to, subject, html, from }) {
+export async function sendEmail(env, { to, subject, html, from, headers }) {
   const apiKey = getEnv(env, "emailapi");
   if (!apiKey) {
     console.error("[EMAIL] Resend API key (emailapi) is missing in environment.");
@@ -16,6 +16,9 @@ export async function sendEmail(env, { to, subject, html, from }) {
     subject: subject,
     html: html,
   };
+  if (headers && typeof headers === "object") {
+    payload.headers = headers;
+  }
 
   try {
     const response = await fetch("https://api.resend.com/emails", {

@@ -303,7 +303,7 @@
   function showCoinShortage(cost, reason) {
     try {
       if (typeof window.__cdOpenChargeModal === "function") {
-        window.alert("🪙 " + reason + "\n\n" + cost + "코인 가치의 단건 결제가 필요합니다.\n결제 상점을 엽니다.");
+        window.alert("🪙 " + reason + "\n\n" + cost + "코인이 필요합니다.\n충전 화면을 엽니다.");
         window.__cdOpenChargeModal();
         return;
       }
@@ -321,7 +321,7 @@
         cost: cost,
       }).then(function(choice) {
         if (choice === "direct") {
-          if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(true, "단건 결제를 준비하는 중입니다...");
+          if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(true, cost + "코인 사용을 확인하는 중입니다...");
           return window._cdRunDirectKrwCheckout({
             coinPrice: cost,
             cost: cost,
@@ -335,7 +335,7 @@
         if (choice !== "monthly") return false;
         return consumeMonthlyCredit(cost, reason, featureKey, requestId);
       }).catch(function(error) {
-        window.alert(String(error && error.message || "단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요."));
+        window.alert(String(error && error.message || "결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요."));
         return false;
       }).finally(function() {
         if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(false);
@@ -353,7 +353,7 @@
     };
     if (token) consumeHeaders.Authorization = "Bearer " + token;
 
-    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
+    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, cost + '코인 사용을 확인하는 중입니다...');
     return fetch("/api/billing/coin-gate", {
       method: "POST",
       headers: consumeHeaders,
@@ -876,7 +876,7 @@
     if (cat === "love") return "연애운 해석";
     if (cat === "relationship") return "인간관계운 해석";
     if (cat === "exam") return "합격운 해석";
-    return "전반 운세 해석";
+    return "전체 기조 해석";
   }
 
   function fallbackThreeCardSpread() {
@@ -1022,7 +1022,7 @@ function buildMonthDetailHtml(monthly, spreadCards, triadReading, cat) {
   var triadParts = Array.isArray(triadReading && triadReading.cardSections) ? triadReading.cardSections : [];
   var triadCardSections = triadParts.length
     ? triadParts.map(function (section) {
-        return '<p class="ty-month-detail-item"><strong>' + escapeHtml(section.positionLabel || section.positionTitle || "삼재") + '</strong> ' + escapeHtml((section.cardName || section.cardNameKo || "카드") + " · " + (section.orientationLabel || section.orientation || "")) + '</p>';
+        return '<p class="ty-month-detail-item"><strong>' + escapeHtml(section.positionLabel || section.positionTitle || "월운") + '</strong> ' + escapeHtml((section.cardName || section.cardNameKo || "카드") + " · " + (section.orientationLabel || section.orientation || "")) + '</p>';
       }).join("")
     : spreadText.join("");
 
@@ -1042,19 +1042,19 @@ function buildMonthDetailHtml(monthly, spreadCards, triadReading, cat) {
       "ty-month-item--zodiac"
     ),
     buildMonthNarrativeItem(
-      "3. 삼재 스프레드",
+      "3. 월운 흐름 스프레드",
       triadCardSections +
         '<p class="ty-month-detail-item"><strong>흐름 해석</strong> ' + escapeHtml(triadStory || "원인·전개·결과를 연결해 이번 달의 사건 흐름을 읽습니다.") + '</p>' +
-        '<p class="ty-month-detail-item"><strong>연결 조언</strong> ' + escapeHtml(triadAdvice || "삼재 스프레드는 월 메인 카드와 함께 해석해야 정확도가 올라갑니다.") + '</p>',
+        '<p class="ty-month-detail-item"><strong>연결 조언</strong> ' + escapeHtml(triadAdvice || "월운 흐름은 메인 카드와 함께 볼 때 이번 달의 선택 기준을 더 선명하게 보여줍니다.") + '</p>',
       "ty-month-item--triad"
     ),
-    buildMonthNarrativeItem("4. 전반 운세", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "overall", monthly.mainCard.questionSpecificMeaning || "")) + '</p>', "ty-month-item--overall"),
-    buildMonthNarrativeItem("5. 연애운 / 관계운", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "love", monthly.mainCard.love && monthly.mainCard.love[0] || "")) + '</p>', "ty-month-item--love"),
-    buildMonthNarrativeItem("6. 금전운 / 직업운", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "moneyWork", monthly.mainCard.moneyWork && monthly.mainCard.moneyWork[0] || "")) + '</p>', "ty-month-item--money"),
-    buildMonthNarrativeItem("7. 건강운 / 멘탈운", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "healthMind", monthly.mainCard.healthMind && monthly.mainCard.healthMind[0] || "")) + '</p>', "ty-month-item--health"),
-    buildMonthNarrativeItem("8. 이달의 기회", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "opportunity", "이번 달에 활용할 수 있는 구체적 기회가 드러납니다.")) + '</p>', "ty-month-item--opportunity"),
-    buildMonthNarrativeItem("9. 이달의 주의점", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "caution", monthly.mainCard.caution || "")) + '</p>', "ty-month-item--caution"),
-    buildMonthNarrativeItem("10. 천운 조언", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "advice", monthly.mainCard.advice || "")) + '</p>', "ty-month-item--advice"),
+    buildMonthNarrativeItem("4. 이달의 전체 기조", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "overall", monthly.mainCard.questionSpecificMeaning || "")) + '</p>', "ty-month-item--overall"),
+    buildMonthNarrativeItem("5. 관계와 마음의 흐름", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "love", monthly.mainCard.love && monthly.mainCard.love[0] || "")) + '</p>', "ty-month-item--love"),
+    buildMonthNarrativeItem("6. 재물과 일의 흐름", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "moneyWork", monthly.mainCard.moneyWork && monthly.mainCard.moneyWork[0] || "")) + '</p>', "ty-month-item--money"),
+    buildMonthNarrativeItem("7. 몸과 마음의 리듬", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "healthMind", monthly.mainCard.healthMind && monthly.mainCard.healthMind[0] || "")) + '</p>', "ty-month-item--health"),
+    buildMonthNarrativeItem("8. 이달에 열리는 문", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "opportunity", "이번 달에 활용할 수 있는 구체적 기회가 드러납니다.")) + '</p>', "ty-month-item--opportunity"),
+    buildMonthNarrativeItem("9. 조심스럽게 건너갈 지점", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "caution", monthly.mainCard.caution || "")) + '</p>', "ty-month-item--caution"),
+    buildMonthNarrativeItem("10. 이번 달의 선택 기준", '<p class="ty-month-detail-item">' + escapeHtml(getMonthlySectionText(monthly, "advice", monthly.mainCard.advice || "")) + '</p>', "ty-month-item--advice"),
   ];
 
   return sections.join("");
@@ -1118,11 +1118,11 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     var spreadCards = state.monthSpreadCache[monthKey] || [];
     var baseText = getMonthlyBaseText(monthly, cat);
     var fallbackByCat = {
-      general: "이번 달의 흐름은 차분한 점검과 실행의 균형에서 열립니다.",
-      money: "지출 우선순위를 정하고 현금흐름을 안정시키는 것이 핵심입니다.",
-      love: "감정을 명확히 표현하면 관계의 온도가 올라갑니다.",
-      relationship: "경계를 존중하는 대화가 인간관계를 안정시킵니다.",
-      exam: "짧고 반복적인 학습 루틴이 합격운을 높입니다."
+      general: "이번 달은 차분한 점검과 작은 실행이 균형을 잡을 때 흐름이 열립니다.",
+      money: "재물과 일의 흐름은 지출 기준, 일정, 역할을 분명히 할수록 안정됩니다.",
+      love: "관계의 온도는 큰 고백보다 일관된 표현과 편안한 대화에서 살아납니다.",
+      relationship: "인간관계는 경계를 존중하는 말과 약속의 속도를 맞출 때 안정됩니다.",
+      exam: "시험과 평가는 짧은 반복 루틴, 컨디션 관리, 마지막 점검의 질이 흐름을 바꿉니다."
     };
     if (!spreadCards.length) {
       var onlyBase = toReadableText(baseText, fallbackByCat[cat]);
@@ -1226,7 +1226,7 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
       renderMonthSpreadCards(spreadCards);
       loadMonthCategoryConsultation(monthNum, state.activeCategory || "general");
 
-      // 월 상세 카드 및 삼재 스프레드 카드에 부드러운 플립 애니메이션 적용
+      // 월 상세 카드 및 월운 흐름 카드에 부드러운 플립 애니메이션 적용
       if (panel) {
         panel.classList.remove("ty-month-detail-panel--flip-start", "ty-month-detail-panel--flip-end");
         // double-rAF: remove 반영 후 다음 프레임 add → 강제 reflow 없이 flip restart
@@ -1330,11 +1330,11 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     var defMoney = "꾸준한 관리와 현명한 선택이 재물 흐름을 안정시킵니다. 불필요한 지출을 줄이고 저축의 씨앗을 뿌리면 후반에 결실이 보입니다.";
     var defLove = "진심 어린 표현이 관계를 따뜻하게 만듭니다. 마음을 열고 대화할수록 인연이 깊어지는 달입니다.";
     var defRelation = "솔직한 소통과 경계 존중이 인간관계를 풍요롭게 합니다. 주변과의 조화를 위해 한 걸음 양보해 보세요.";
-    var defExam = "집중력과 꾸준한 노력이 좋은 결과로 이어집니다. 짧은 시간이라도 매일 반복하는 습관이 합격운을 높입니다.";
+    var defExam = "집중력은 한 번에 끌어올리기보다 짧은 반복 루틴과 마지막 점검의 질로 안정됩니다.";
 
     state.reading = {
-      summary: "천상의 열두 수호신이 한 해의 문을 열었습니다. 1月부터 12月까지 각 월패를 눌러 해당 달의 전반 운세, 재물·연애·인간관계·합격운을 자세히 확인하세요. 월별 카드와 세 갈래 월운이 당신의 한 해를 차분히 비춥니다.",
-      finalAdvice: "올해는 십이지신이 지키는 한 해입니다. 매월의 카드 메시지를 곁에 두고, 작은 결심 하나하나를 실천하면 운명의 수레바퀴가 유리하게 돌아갑니다. 급하지 않게, 그러나 꾸준히 나아가면 재물·인연·성취의 기운이 차분히 쌓입니다.",
+      summary: "천상의 열두 수호신이 한 해의 문을 열었습니다. 1월부터 12월까지 월별 카드를 눌러 전체 기조, 재물, 관계, 일, 평가의 흐름을 확인하세요. 카드와 월운의 세 갈래 흐름이 당신의 한 해를 차분히 비춥니다.",
+      finalAdvice: "올해는 매월의 신호를 곁에 두고 작은 결심을 현실로 옮길수록 선택 기준이 선명해집니다. 급하지 않게, 그러나 꾸준히 나아가면 재물, 인연, 성취의 기운이 차분히 쌓입니다.",
       monthlyReadings: state.cards.map(function (card, idx) {
         var id = card.cardId || card.id;
         var ori = card.orientation === "reversed" ? "r" : "u";
@@ -1346,7 +1346,7 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
         var nameKr = card.nameKr || card.name || getCardNameKr(id);
         var traits = zodiacTraits[idx] || "";
         var zName = zodiacNames[idx] || "";
-        var flowFallback = zName + "의 달입니다. " + traits + "의 기운이 당신을 감쌉니다. " + nameKr + (card.orientation === "reversed" ? "(역방향)" : "(정방향)") + "의 메시지가 이 달의 흐름을 이끕니다. 월초에 다짐한 일을 차분히 실천하면 후반에 열매가 보일 수 있습니다.";
+        var flowFallback = zName + "의 달에는 " + traits + "의 기운이 강하게 흐릅니다. " + nameKr + (card.orientation === "reversed" ? "(역방향)" : "(정방향)") + "의 메시지가 이달의 선택 기준을 비춥니다. 월초에 세운 작은 실천을 지키면 후반에 흐름이 안정됩니다.";
         return {
           month: idx + 1,
           zodiac: { name: zName, traits: traits },
@@ -1374,17 +1374,17 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     if (summaryEl) {
       var summaryLines = [];
       if (Array.isArray(state.consultingHighlights) && state.consultingHighlights.length) {
-        summaryLines.push("🔭 올해 먼저 떠오른 천운");
+        summaryLines.push("🔭 올해 먼저 읽히는 천운 신호");
         summaryLines.push(state.consultingHighlights.map(function (line) { return "• " + line; }).join("\n"));
         summaryLines.push("");
       }
       if (annual.summary) summaryLines.push(annual.summary);
       if (annual.overallFlow) summaryLines.push(annual.overallFlow);
-      summaryLines.push("한 해를 지배하는 카드 기운: " + (annual.dominantSuit || "메이저"));
-      summaryLines.push("속도를 늦춰 살필 달: " + (typeof annual.reversedCount === "number" ? annual.reversedCount + "개월" : "0개월"));
-      summaryLines.push("큰 전환의 문이 열리는 달: " + (typeof annual.majorCount === "number" ? annual.majorCount + "개월" : "0개월"));
-      if (annual.bestMonth) summaryLines.push("황금빛이 강한 달: " + (annual.bestMonth.monthLabel || (annual.bestMonth.month + "월")));
-      if (annual.cautionMonth) summaryLines.push("속도 조절이 필요한 달: " + (annual.cautionMonth.monthLabel || (annual.cautionMonth.month + "월")));
+      summaryLines.push("한 해의 바탕 원소: " + (annual.dominantSuit || "메이저"));
+      summaryLines.push("속도를 낮춰 살필 달: " + (typeof annual.reversedCount === "number" ? annual.reversedCount + "개월" : "0개월"));
+      summaryLines.push("전환점이 드러나는 달: " + (typeof annual.majorCount === "number" ? annual.majorCount + "개월" : "0개월"));
+      if (annual.bestMonth) summaryLines.push("기회가 또렷한 달: " + (annual.bestMonth.monthLabel || (annual.bestMonth.month + "월")));
+      if (annual.cautionMonth) summaryLines.push("조심스럽게 건너갈 달: " + (annual.cautionMonth.monthLabel || (annual.cautionMonth.month + "월")));
       summaryEl.style.display = "block";
       typewriterText(summaryEl, summaryLines.join("\n\n"), 24);
     }
@@ -1428,7 +1428,7 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
         front.appendChild(zodiac);
         var guide = document.createElement("span");
         guide.className = "ty-result-card-guide";
-        guide.textContent = "월별 운세";
+        guide.textContent = "월운 펼치기";
         front.appendChild(guide);
         inner.appendChild(back);
         inner.appendChild(front);
@@ -1450,13 +1450,10 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     var adviceText = r.finalAdvice || annual.annualAdvice ||
       "한 달의 흐름을 확인한 뒤, 실천 가능한 한 가지 행동으로 운의 방향을 고정하세요.";
     if (annual.repeatedRanks && annual.repeatedRanks.length) {
-      adviceText += "\n\n반복 숫자: " + annual.repeatedRanks.join(", ");
+      adviceText += "\n\n반복되는 숫자 리듬: " + annual.repeatedRanks.join(", ");
     }
     if (annual.repeatedCourts && annual.repeatedCourts.length) {
-      adviceText += "\n반복 궁정 카드: " + annual.repeatedCourts.join(", ");
-    }
-    if (state.engineMeta && state.engineMeta.qualityEnhanced) {
-      adviceText += "\n\n✨ 엔진 품질 강화: 카드별 맥락 기반 고품질 상담";
+      adviceText += "\n반복되는 인물 카드: " + annual.repeatedCourts.join(", ");
     }
     typewriterText(
       adviceEl,
@@ -1482,7 +1479,7 @@ function renderMonthDetailNarrative(monthNum, cat, spreadCards, triadReading) {
     }
     if (r.summary) text += r.summary + "\n\n";
     if (r.finalAdvice) text += "💌 " + r.finalAdvice + "\n\n";
-    text += "👉 무료 타로 보러가기: https://code-destiny.com";
+    text += "👉 십이지신 천운 타로 보기: https://code-destiny.com";
 
     if (navigator.share) {
       navigator.share({

@@ -845,15 +845,21 @@
 .tarot-healing-card-name {
   margin-top: 6px;
   font-family: var(--sun-font-sans);
-  font-size: clamp(0.68rem, 1.5vw + 0.2rem, 0.8rem);
+  font-size: clamp(0.7rem, 1.5vw + 0.2rem, 0.82rem);
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
+  line-height: 1.28;
   color: var(--sun-text-muted);
   text-align: center;
   padding: 4px 8px;
   border-radius: 8px;
   background: rgba(255, 247, 237, 0.95);
   border: 1px solid var(--sun-border);
+  max-width: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .tarot-healing-card--forced-face {
@@ -878,13 +884,19 @@
 }
 .tarot-healing-forced-name {
   font-family: var(--sun-font-sans);
-  font-size: clamp(0.65rem, 1.5vw + 0.2rem, 0.75rem);
+  font-size: clamp(0.68rem, 1.5vw + 0.2rem, 0.78rem);
   font-weight: 700;
+  line-height: 1.28;
   color: var(--sun-text);
   padding: 4px 8px;
   border-radius: 10px;
   background: rgba(255, 247, 237, 0.95);
   border: 1px solid var(--sun-border);
+  max-width: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* 리플: GPU만 */

@@ -16,7 +16,7 @@
   var SUKYO_EXECUTION_STATUS_API = '/api/billing/executions/status';
   var SUKYO_ARCHIVE_API = '/api/premium/pdf-archive';
   var SUKYO_TOTAL_CHAPTERS = 15;
-  var SUKYO_COIN_COST = 490;
+  var SUKYO_COIN_COST_FALLBACK = 490;
   var SUKYO_RUNNING_POLL_INTERVAL_MS = 4500;
   var SUKYO_RUNNING_POLL_MAX_ATTEMPTS = 160;
   var SUKYO_LOCAL_MANUSCRIPT_SOURCE = 'local-assembled';
@@ -36,6 +36,14 @@
   function _qs(id) { return document.getElementById(id); }
   function _clean(value) { return String(value || '').trim(); }
   function _num(value, fallback) { var n = Number(value); return Number.isFinite(n) ? n : fallback; }
+  function _resolveSukuyoCoinCost() {
+    var card = document.querySelector('[data-action="gotoSukuyoPremium"][data-coin-cost]');
+    var cost = _num(card && card.getAttribute('data-coin-cost'), NaN);
+    return Number.isFinite(cost) && cost > 0 ? Math.floor(cost) : SUKYO_COIN_COST_FALLBACK;
+  }
+  function _sukuyoCoinLabel() {
+    return _resolveSukuyoCoinCost().toLocaleString('ko-KR') + '코인';
+  }
   function _finiteNumber(value) {
     if (value === null || typeof value === 'undefined' || value === '') return NaN;
     var n = Number(value);
@@ -375,6 +383,7 @@
       var minuteEl = _qs('birthMinute');
       var nameEl = _qs('nameInput');
       var femaleEl = _qs('genderFemale');
+      var maleEl = _qs('genderMale');
       if (!birthDateEl || !birthDateEl.value) return null;
       var parts = birthDateEl.value.split('-');
       var year = _num(parts[0], NaN);
@@ -385,7 +394,7 @@
       var rawMinute = minuteEl && _clean(minuteEl.value) !== '' ? _num(minuteEl.value, 0) : 0;
       return {
         name: _clean(nameEl && nameEl.value) || '사용자',
-        gender: femaleEl && femaleEl.checked ? 'F' : 'M',
+        gender: femaleEl && femaleEl.checked ? 'female' : (maleEl && maleEl.checked ? 'male' : 'unknown'),
         birth: { year: year, month: month, day: day, hour: Number.isFinite(rawHour) ? rawHour : null, minute: Number.isFinite(rawHour) ? rawMinute : null },
         calendarType: 'solar',
       };
@@ -394,7 +403,60 @@
     }
   }
 
+  function _resolveSelfGender() {
+    var f = _qs('skSelfGenderF');
+    var m = _qs('skSelfGenderM');
+    if (m && m.classList.contains('on')) return 'male';
+    if (f && f.classList.contains('on')) return 'female';
+    return 'unknown';
+  }
+
+  function _getSelectedSelfCalendarType() {
+    var selected = document.querySelector('input[name="skSelfCalType"]:checked');
+    return selected ? _normalizeCalendarType(selected.value) : 'solar';
+  }
+
+  function _recoverBirthFromSukuyoForm() {
+    try {
+      var birthDateEl = _qs('skSelfBirthDate');
+      if (!birthDateEl || !birthDateEl.value) return null;
+
+      var parts = birthDateEl.value.split('-');
+      var year = _num(parts[0], NaN);
+      var month = _num(parts[1], NaN);
+      var day = _num(parts[2], NaN);
+      if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+
+      var hourEl = _qs('skSelfHour');
+      var minuteEl = _qs('skSelfMinute');
+      var birthTimeTextEl = _qs('skSelfBirthTimeText');
+      var timeUnknownEl = _qs('skSelfTimeUnknown');
+      var nameEl = _qs('skSelfName');
+      var rawTime = '';
+
+      if (timeUnknownEl && timeUnknownEl.checked) {
+        rawTime = 'unknown';
+      } else if (birthTimeTextEl && _clean(birthTimeTextEl.value)) {
+        rawTime = _clean(birthTimeTextEl.value);
+      } else if (hourEl && _clean(hourEl.value) !== '') {
+        rawTime = String(_num(hourEl.value, 0)).padStart(2, '0') + ':' + String(_num(minuteEl && minuteEl.value, 0)).padStart(2, '0');
+      }
+
+      var parsed = _parseTimeLoose(rawTime);
+      return {
+        name: _clean(nameEl && nameEl.value) || '사용자',
+        gender: _resolveSelfGender(),
+        birth: { year: year, month: month, day: day, hour: parsed.birthHour, minute: parsed.birthMinute },
+        calendarType: _getSelectedSelfCalendarType(),
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
   function _getActiveBirthProfile() {
+    var fromSukuyoForm = _recoverBirthFromSukuyoForm();
+    if (fromSukuyoForm) return fromSukuyoForm;
     var profile = window.__cdActiveBirthProfile;
     if (profile && profile.birth && profile.birth.year) return profile;
     var snap = window.__destinyFlowerSajuSnapshot;
@@ -410,10 +472,57 @@
     return null;
   }
 
+  function _setGenderToggle(prefix, gender) {
+    var normalized = _normalizeGender(gender);
+    var female = _qs(prefix + 'GenderF');
+    var male = _qs(prefix + 'GenderM');
+    if (male) male.classList.toggle('on', normalized === 'male');
+    if (female) female.classList.toggle('on', normalized === 'female');
+    _syncGenderAria(prefix);
+  }
+
+  function _syncGenderAria(prefix) {
+    var female = _qs(prefix + 'GenderF');
+    var male = _qs(prefix + 'GenderM');
+    if (male) male.setAttribute('aria-pressed', male.classList.contains('on') ? 'true' : 'false');
+    if (female) female.setAttribute('aria-pressed', female.classList.contains('on') ? 'true' : 'false');
+  }
+
+  function _fillSelfFormFromProfile(profile) {
+    if (!profile || !profile.birth) return;
+    var birth = profile.birth || {};
+    var dateEl = _qs('skSelfBirthDate');
+    var nameEl = _qs('skSelfName');
+    var hourEl = _qs('skSelfHour');
+    var minuteEl = _qs('skSelfMinute');
+    var textEl = _qs('skSelfBirthTimeText');
+    var timeUnknownEl = _qs('skSelfTimeUnknown');
+    var calendarType = _normalizeCalendarType(profile.calendarType || 'solar');
+    var y = _num(birth.year, NaN);
+    var m = _num(birth.month, NaN);
+    var d = _num(birth.day, NaN);
+    var hour = _num(birth.hour, NaN);
+    var minute = _num(birth.minute, 0);
+    if (nameEl && !_clean(nameEl.value)) nameEl.value = _clean(profile.name) || '사용자';
+    if (dateEl && Number.isFinite(y) && Number.isFinite(m) && Number.isFinite(d)) {
+      dateEl.value = [String(y).padStart(4, '0'), String(m).padStart(2, '0'), String(d).padStart(2, '0')].join('-');
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="skSelfCalType"]'), function (input) {
+      input.checked = _normalizeCalendarType(input.value) === calendarType;
+    });
+    _setGenderToggle('skSelf', profile.gender);
+    if (Number.isFinite(hour)) {
+      if (hourEl) hourEl.value = String(hour);
+      if (minuteEl) minuteEl.value = String(minute);
+      if (textEl && !_clean(textEl.value)) textEl.value = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+      if (timeUnknownEl) timeUnknownEl.checked = false;
+    }
+  }
+
   function _normalizeGender(raw) {
     var token = _clean(raw).toLowerCase();
-    if (token === 'f' || token === 'female' || token === 'woman' || token === '여성' || token === '여') return 'female';
-    if (token === 'm' || token === 'male' || token === 'man' || token === '남성' || token === '남') return 'male';
+    if (token === 'f' || token === 'female' || token === 'woman' || token === '여성' || token === '여자' || token === '여') return 'female';
+    if (token === 'm' || token === 'male' || token === 'man' || token === '남성' || token === '남자' || token === '남') return 'male';
     return 'unknown';
   }
 
@@ -512,10 +621,8 @@
     if (selected) return _normalizeGender(selected.value);
     var f = _qs('skPartnerGenderF');
     var m = _qs('skPartnerGenderM');
-    var u = _qs('skPartnerGenderU');
-    if (f && f.classList.contains('on')) return 'female';
     if (m && m.classList.contains('on')) return 'male';
-    if (u && u.classList.contains('on')) return 'unknown';
+    if (f && f.classList.contains('on')) return 'female';
     return 'unknown';
   }
 
@@ -596,10 +703,21 @@
     var selfDate = _parseDateParts(input && input.self && input.self.birthDate);
     var partnerDate = _parseDateParts(input && input.partner && input.partner.birthDate);
 
-    if (!selfDate) errors.push('self.birthDate');
+    if (!selfDate) {
+      errors.push('self.birthDate');
+      fieldErrors.skSelfBirthDate = '나의 생년월일을 정확히 입력해 주세요.';
+    }
     if (!partnerDate) {
       errors.push('partner.birthDate');
       fieldErrors.skPartnerBirthDate = '상대방 생년월일을 정확히 입력해 주세요.';
+    }
+    if (_normalizeGender(input && input.self && input.self.gender) === 'unknown') {
+      errors.push('self.gender');
+      fieldErrors.skSelfGender = '나의 성별을 남자 또는 여자로 선택해 주세요.';
+    }
+    if (_normalizeGender(input && input.partner && input.partner.gender) === 'unknown') {
+      errors.push('partner.gender');
+      fieldErrors.skPartnerGender = '상대방 성별을 남자 또는 여자로 선택해 주세요.';
     }
 
     return {
@@ -611,12 +729,106 @@
     };
   }
 
+  function _calendarLabel(value) {
+    var normalized = _normalizeCalendarType(value);
+    if (normalized === 'lunar') return '음력 평달';
+    if (normalized === 'lunar_leap') return '음력 윤달';
+    return '양력';
+  }
+
+  function _genderLabel(value) {
+    var gender = _normalizeGender(value);
+    if (gender === 'female') return '여자';
+    if (gender === 'male') return '남자';
+    return '성별 미확인';
+  }
+
+  function _timeLabel(person) {
+    if (!person) return '시간 확인 전';
+    if (person.isTimeUnknown) return '시간 모름';
+    var time = _clean(person.birthTime);
+    if (time) return time;
+    if (Number.isFinite(_num(person.birthHour, NaN))) {
+      return String(_num(person.birthHour, 0)).padStart(2, '0') + ':' + String(_num(person.birthMinute, 0)).padStart(2, '0');
+    }
+    return '시간 미입력';
+  }
+
+  function _readinessPersonLine(person, fallbackName) {
+    var name = _clean(person && person.name) || fallbackName;
+    var date = _clean(person && person.birthDate) || '생년월일 확인 전';
+    if (date === '0000-00-00') date = '생년월일 확인 전';
+    return name + ' · ' + date + ' · ' + _calendarLabel(person && person.calendarType) + ' · ' + _genderLabel(person && person.gender) + ' · ' + _timeLabel(person);
+  }
+
+  function _renderReadinessPanel(input, check, state, preflight) {
+    var panel = _qs('skReadinessPanel');
+    if (!panel) return;
+    var statusEl = _qs('skReadinessStatus');
+    var selfEl = _qs('skReadinessSelf');
+    var partnerEl = _qs('skReadinessPartner');
+    var qualityEl = _qs('skReadinessQuality');
+    var noticeEl = _qs('skReadinessNotice');
+    var safeInput = input || {};
+    var safeCheck = check || _validateBeforePayment(safeInput);
+    var dryRun = preflight && preflight.dryRun ? preflight.dryRun : {};
+    var verified = dryRun.selfStarReady && dryRun.partnerStarReady;
+    var hasUnknownTime = !!(safeInput.self && safeInput.self.isTimeUnknown) || !!(safeInput.partner && safeInput.partner.isTimeUnknown);
+
+    if (selfEl) selfEl.textContent = _readinessPersonLine(safeInput.self, '나');
+    if (partnerEl) partnerEl.textContent = _readinessPersonLine(safeInput.partner, '상대방');
+    if (qualityEl) {
+      qualityEl.textContent = verified
+        ? '본명숙 산출 완료 · 프리미엄 PDF 상담 가능'
+        : safeCheck.ok
+          ? '입력값 확인 완료 · 결제 전 산출 대기'
+          : '생년월일·성별 보완 필요';
+    }
+    if (statusEl) {
+      statusEl.textContent = state === 'verified'
+        ? '입력 검증이 완료되었습니다. ' + _sukuyoCoinLabel() + ' 결제 확인 뒤 PDF 생성을 시작합니다.'
+        : safeCheck.ok
+          ? '두 사람의 입력 기준이 준비되었습니다. 결제 전 산출 검증을 진행합니다.'
+          : '결제 전에 필요한 입력값을 먼저 보완해 주세요.';
+      statusEl.classList.toggle('sk-inline-error', !safeCheck.ok);
+    }
+    if (noticeEl) {
+      noticeEl.textContent = hasUnknownTime
+        ? '태어난 시간을 모르는 항목은 날짜 중심 궁합으로 계산하고, 시간 세부 문장은 보수적으로 작성합니다.'
+        : '기본 50코인 궁합과 별개의 프리미엄 PDF입니다. 결제 후 본명숙, 관계 유형, 거리감, 갈등 회복 루틴을 묶어 생성합니다.';
+    }
+  }
+
+  function _refreshReadinessPanel() {
+    var profile = _getActiveBirthProfile();
+    var partner = _getPartnerInput();
+    var normalizedInput = _normalizeCompatibilityInput(profile || {}, partner);
+    var check = _validateBeforePayment(normalizedInput);
+    _renderReadinessPanel(normalizedInput, check, check.ok ? 'ready' : 'invalid');
+  }
+
+  function _focusFirstInputError(fieldErrors) {
+    var ids = Object.keys(fieldErrors || {});
+    if (!ids.length) return;
+    var field = _qs(ids[0]);
+    if (!field || typeof field.focus !== 'function') return;
+    try {
+      field.focus({ preventScroll: true });
+      if (typeof field.scrollIntoView === 'function') field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (_) {
+      try { field.focus(); } catch (__) {}
+    }
+  }
+
   function _clearInputErrors() {
     Array.prototype.forEach.call(document.querySelectorAll('.sk-field-error'), function (el) {
       el.textContent = '';
       el.style.display = 'none';
     });
     Array.prototype.forEach.call(document.querySelectorAll('.sk-partner-inp'), function (el) {
+      el.classList.remove('is-error');
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.sk-gender-toggle'), function (el) {
       el.classList.remove('is-error');
     });
   }
@@ -631,20 +843,36 @@
     }
   }
 
+  function _clearFieldError(fieldId) {
+    var field = _qs(fieldId);
+    if (field && field.classList) field.classList.remove('is-error');
+    var errorEl = _qs(fieldId + 'Error');
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.style.display = 'none';
+    }
+  }
+
   function _renderProfileSummary(profile) {
     var element = _qs('skProfileSummary');
+    var manualForm = _qs('skSelfManualForm');
+    var selfCard = document.querySelector('#sukuyoBookModal .sk-self-card');
     if (!element) return;
     if (!profile) {
-      element.textContent = '생년월일 정보를 찾을 수 없습니다. 먼저 나의 운명 카드를 설정해 주세요.';
+      element.textContent = '나의 정보를 직접 입력해 주세요.';
+      if (manualForm) manualForm.style.display = '';
+      if (selfCard) selfCard.style.display = 'none';
       return;
     }
+    _fillSelfFormFromProfile(profile);
+    element.textContent = '저장된 나의 정보를 불러왔습니다. 필요하면 이번 리포트용으로 수정해 주세요.';
+    if (manualForm) manualForm.style.display = '';
+    if (selfCard) selfCard.style.display = 'none';
     var birth = profile.birth || {};
     var hasKnownTime = Number.isFinite(_num(birth.hour, NaN));
     var time = hasKnownTime
       ? [String(_num(birth.hour, 0)).padStart(2, '0'), String(_num(birth.minute, 0)).padStart(2, '0')].join(':')
       : '시간 미상';
-    element.textContent = [(_clean(profile.name) || '사용자'), [birth.year, birth.month, birth.day].filter(Boolean).join('-') + ' ' + time, _clean(profile.gender)].filter(Boolean).join(' · ');
-
     var selfName = _qs('skSelfNameValue');
     var selfBirth = _qs('skSelfBirthValue');
     var selfTime = _qs('skSelfTimeValue');
@@ -652,7 +880,7 @@
     if (selfName) selfName.textContent = _clean(profile.name) || '사용자';
     if (selfBirth) selfBirth.textContent = [birth.year, birth.month, birth.day].filter(Boolean).join('-') || '-';
     if (selfTime) selfTime.textContent = time || '시간 미상';
-    if (selfGender) selfGender.textContent = _clean(profile.gender) || '미지정';
+    if (selfGender) selfGender.textContent = _genderLabel(profile.gender);
   }
 
   function _withSukuyoArchiveFormat(url, format) {
@@ -699,34 +927,38 @@
     );
   }
 
+  function _isSukuyoArchivePending(payload) {
+    var p = payload || {};
+    var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
+    return p.archivePending === true
+      || ready.archivePending === true
+      || _clean(p.archiveStatus || ready.archiveStatus) === 'pending';
+  }
+
+  function _hasInlineSukuyoHtml(payload) {
+    var p = payload || {};
+    var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
+    return !!_clean(ready.html);
+  }
+
+  function _setSukuyoDownloadButtonState(payload) {
+    var button = _qs('skResultPdfBtn');
+    if (!button) return;
+    var isTemporaryHtml = _isSukuyoArchivePending(payload) && _hasInlineSukuyoHtml(payload);
+    button.textContent = isTemporaryHtml ? '📥 임시 HTML 원고 저장하기' : '📥 PDF로 저장하기';
+    button.setAttribute('aria-label', isTemporaryHtml ? '임시 HTML 원고 저장하기' : '숙요점 궁합 PDF 저장하기');
+  }
+
   function _splitParagraphs(body) {
     return String(body || '')
+      .replace(/\[(핵심 진단|숙요 고수의 정밀 관찰|관계에서 실제로 드러나는 모습|주의해야 할 흐름|실전 처방|대화 예시|7일 실천 루틴|달빛 처방)\]/g, '')
       .split(/\n{2,}/)
       .map(function (p) { return _clean(_sanitizeText(p)); })
       .filter(function (p) { return p.length > 0; });
   }
 
   function _extractStructuredBlocks(body) {
-    var source = String(body || '');
-    var re = /\[(핵심 진단|관계에서 실제로 드러나는 모습|주의해야 할 흐름|실전 처방)\]/g;
-    var marks = [];
-    var match;
-    while ((match = re.exec(source)) !== null) {
-      marks.push({ title: match[1], index: match.index, len: match[0].length });
-    }
-    if (!marks.length) {
-      return [{ title: '', body: source }];
-    }
-
-    var out = [];
-    for (var i = 0; i < marks.length; i += 1) {
-      var start = marks[i].index + marks[i].len;
-      var end = i + 1 < marks.length ? marks[i + 1].index : source.length;
-      var content = _clean(source.slice(start, end));
-      if (!content) continue;
-      out.push({ title: marks[i].title, body: content });
-    }
-    return out.length ? out : [{ title: '', body: source }];
+    return [{ title: '', body: String(body || '') }];
   }
 
   function _showSukuyoToast(message) {
@@ -822,12 +1054,16 @@
         });
       });
 
-      html += '<aside style="margin-top:8px;padding:10px;border-radius:10px;border:1px solid rgba(251,191,36,0.35);background:rgba(251,191,36,0.08);">';
-      html += '<strong style="display:block;margin-bottom:6px;color:#fde68a;font-size:0.8rem;">실전 조언</strong>';
-      html += '<p style="margin:0;color:#f9f4ff;line-height:1.8;font-size:14px;">갈등 직후 결론보다 감정 확인을 먼저 하고, 30분 이상 간격 후 다시 대화하는 규칙을 지키세요.</p>';
-      html += '</aside>';
       html += '</section>';
     });
+
+    var adviceSource = sections.length ? sections[sections.length - 1].body || '' : '';
+    var adviceParagraphs = _splitParagraphs(adviceSource);
+    var chapterAdvice = adviceParagraphs.length ? adviceParagraphs[adviceParagraphs.length - 1] : '이 장의 흐름은 두 사람의 관계 리듬에 맞춰 천천히 적용해 주세요.';
+    html += '<aside style="margin-top:8px;padding:12px;border-radius:12px;border:1px solid rgba(251,191,36,0.35);background:rgba(251,191,36,0.08);">';
+    html += '<strong style="display:block;margin-bottom:6px;color:#fde68a;font-size:0.82rem;">이 장의 관계 운영 포인트</strong>';
+    html += '<p style="margin:0;color:#f9f4ff;line-height:1.8;font-size:14px;">' + _sanitizeText(chapterAdvice) + '</p>';
+    html += '</aside>';
 
     html += '</section>';
     content.innerHTML = html;
@@ -903,33 +1139,38 @@
     if (subtitle) subtitle.textContent = '27개의 달별로 읽는 두 사람의 인연 지도 · 15챕터 리포트';
 
     var startBtn = _qs('skStartBtn');
-    if (startBtn) startBtn.textContent = '두 사람의 숙요 궁합 PDF 생성하기';
+    if (startBtn) startBtn.textContent = '입력 확인 후 ' + _sukuyoCoinLabel() + ' 결제하고 PDF 생성';
 
     var coinMsg = _qs('skCompatNeedMsg');
     if (coinMsg) coinMsg.textContent = '궁합 PDF는 두 사람의 생년월일이 모두 필요합니다.';
   }
 
   function _populateTimeSelects() {
-    var hourEl = _qs('skPartnerHour');
-    var minuteEl = _qs('skPartnerMinute');
+    [
+      { hourId: 'skSelfHour', minuteId: 'skSelfMinute' },
+      { hourId: 'skPartnerHour', minuteId: 'skPartnerMinute' },
+    ].forEach(function (pair) {
+      var hourEl = _qs(pair.hourId);
+      var minuteEl = _qs(pair.minuteId);
 
-    if (hourEl && hourEl.options.length <= 1) {
-      for (var h = 0; h < 24; h += 1) {
-        var opt = document.createElement('option');
-        opt.value = String(h);
-        opt.textContent = String(h).padStart(2, '0') + '시';
-        hourEl.appendChild(opt);
+      if (hourEl && hourEl.options.length <= 1) {
+        for (var h = 0; h < 24; h += 1) {
+          var opt = document.createElement('option');
+          opt.value = String(h);
+          opt.textContent = String(h).padStart(2, '0') + '시';
+          hourEl.appendChild(opt);
+        }
       }
-    }
 
-    if (minuteEl && minuteEl.options.length <= 1) {
-      [0, 10, 20, 30, 40, 50].forEach(function (m) {
-        var opt = document.createElement('option');
-        opt.value = String(m);
-        opt.textContent = String(m).padStart(2, '0') + '분';
-        minuteEl.appendChild(opt);
-      });
-    }
+      if (minuteEl && minuteEl.options.length <= 1) {
+        [0, 10, 20, 30, 40, 50].forEach(function (m) {
+          var opt = document.createElement('option');
+          opt.value = String(m);
+          opt.textContent = String(m).padStart(2, '0') + '분';
+          minuteEl.appendChild(opt);
+        });
+      }
+    });
   }
 
   function _renderChapterList(chapters) {
@@ -1518,7 +1759,8 @@
 
     _log('[SukuyoBook][PaymentGateStart]', { featureKey: SUKYO_FEATURE_KEY, mode: 'compatibility' });
     return new Promise(function (resolve, reject) {
-      window._cdCoinGatePerUse(SUKYO_COIN_COST, '숙요점 프리미엄 궁합 PDF 생성', function (_transactionId, data) {
+      var coinCost = _resolveSukuyoCoinCost();
+      window._cdCoinGatePerUse(coinCost, '숙요점 프리미엄 궁합 PDF 생성 · ' + _sukuyoCoinLabel(), function (_transactionId, data) {
         _lastPremiumPayment = _normalizePremiumPayment(_transactionId, data);
         _persistPremiumAccessToken(_lastPremiumPayment.premiumAccessToken || _extractPremiumToken(data));
         _markPremiumAccessVerified(25 * 60 * 1000);
@@ -1565,6 +1807,7 @@
     });
 
     _setActiveChapter(0);
+    _setSukuyoDownloadButtonState(payload);
   }
 
   function _syncDotsByChapters(chapters) {
@@ -1587,15 +1830,15 @@
     _resultPayload = response;
     _chapters = Array.isArray(response.chapters) ? response.chapters : [];
 
-    if (!_chapters.length || Number(response.chapterCount) !== 15 || Number(_chapters.length) !== 15) {
-      throw _createSukuyoError('15챕터 리포트 데이터가 비어 있습니다.', {
+    if (!_chapters.length || Number(response.chapterCount) !== SUKYO_TOTAL_CHAPTERS || Number(_chapters.length) !== SUKYO_TOTAL_CHAPTERS) {
+      throw _createSukuyoError('숙요점 궁합 리포트의 전체 챕터 데이터가 비어 있습니다.', {
         stage: 'completed-response-chapter-check',
         reportId: _clean(response.reportId),
         readiness: _describeSukuyoReadiness(response),
       });
     }
     if (!_isSukyoReportReady(response)) {
-      throw _createSukuyoError('일부 챕터의 내용을 더 정밀하게 다듬고 있습니다.', {
+      throw _createSukuyoError('PDF 완료 데이터 검증이 아직 끝나지 않았습니다.', {
         stage: 'completed-response-ready-check',
         reportId: _clean(response.reportId),
         readiness: _describeSukuyoReadiness(response),
@@ -1643,6 +1886,8 @@
     _detachModalFromResultPage(modal);
     _populateTimeSelects();
     _forceCompatibilityMode();
+    _syncGenderAria('skSelf');
+    _syncGenderAria('skPartner');
     _applyResultLayout();
 
     var profile = _getActiveBirthProfile();
@@ -1663,8 +1908,10 @@
       _renderProfileSummary(profile);
       _showScreen('skStartScreen');
     } else {
-      _showScreen('skNoProfileScreen');
+      _renderProfileSummary(null);
+      _showScreen('skStartScreen');
     }
+    _refreshReadinessPanel();
 
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -1697,7 +1944,10 @@
 
     var profile = _getActiveBirthProfile();
     if (!profile || !profile.birth) {
-      _showScreen('skNoProfileScreen');
+      _showScreen('skStartScreen');
+      _renderProfileSummary(null);
+      _clearInputErrors();
+      _setInputError('skSelfBirthDate', '나의 생년월일을 정확히 입력해 주세요.');
       return;
     }
 
@@ -1720,15 +1970,17 @@
     var check = _validateBeforePayment(normalizedInput);
     _log('[SukuyoBook][ValidationBeforePayment]', check);
     _clearInputErrors();
+    _renderReadinessPanel(normalizedInput, check, check.ok ? 'ready' : 'invalid');
     if (!check.ok) {
       Object.keys(check.fieldErrors || {}).forEach(function (fieldId) {
         _setInputError(fieldId, check.fieldErrors[fieldId]);
       });
       var modeHint = _qs('skModeHint');
       if (modeHint) {
-        modeHint.textContent = '입력값을 확인해 주세요. 궁합 PDF는 두 사람의 생년월일이 모두 필요합니다.';
+        modeHint.textContent = '입력값을 확인해 주세요. 궁합 PDF는 두 사람의 생년월일과 성별이 모두 필요합니다.';
         modeHint.classList.add('sk-inline-error');
       }
+      _focusFirstInputError(check.fieldErrors);
       return;
     }
 
@@ -1743,9 +1995,10 @@
 
     _runPreflight(normalizedInput)
       .then(function (preflight) {
-        _setLoadingProgress(0, SUKYO_TOTAL_CHAPTERS, '입력 정보를 확인했습니다. 결제 확인을 진행합니다.');
+        _setLoadingProgress(0, SUKYO_TOTAL_CHAPTERS, '입력 산출 기준을 확인했습니다. ' + _sukuyoCoinLabel() + ' 결제 확인을 진행합니다.');
         _setLoadingStage('숙요점 궁합 PDF 생성 중');
         _setLoadingNotice('관계 유형과 거리를 해석하는 중입니다');
+        _renderReadinessPanel(normalizedInput, check, 'verified', preflight);
 
         if (!preflight || !preflight.ok) {
           throw new Error('결제 전 입력 검증에 실패했습니다.');
@@ -1797,7 +2050,7 @@
           _setError('숙요점 궁합 PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.');
           return;
         }
-        _setError('일부 챕터의 내용을 더 정밀하게 다듬고 있습니다. 잠시 후 다시 시도해 주세요.');
+        _setError('PDF 생성 결과 검증이 완료되지 않았습니다. 코인 차감 상태를 확인한 뒤 잠시 후 다시 시도해 주세요.');
       })
       .finally(function () {
         _generating = false;
@@ -1873,7 +2126,7 @@
       pendingAnchor.click();
       pendingAnchor.remove();
       setTimeout(function () { URL.revokeObjectURL(pendingBlobUrl); }, 1500);
-      _showSukuyoToast('숙요점 궁합 PDF 원고를 다운로드했습니다. 저장 링크는 자동으로 다시 정리됩니다.');
+      _showSukuyoToast('PDF 저장소 반영이 지연되어 임시 HTML 원고를 먼저 다운로드했습니다. 잠시 후 PDF 저장 버튼을 다시 눌러 주세요.');
       return;
     }
 
@@ -1892,15 +2145,16 @@
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
+      _showSukuyoToast(isHtmlDownload ? 'HTML 원고 링크를 열었습니다. PDF 링크가 준비되면 다시 저장할 수 있습니다.' : '숙요점 궁합 PDF 저장 링크를 열었습니다.');
 
       fetch(downloadUrl, { method: 'HEAD', credentials: 'include' })
         .then(function (res) {
           if (!res.ok) {
-            _showSukuyoToast('저장 링크 상태: HTTP ' + res.status + ' (' + downloadUrl + ')');
+            _showSukuyoToast('PDF 저장 링크가 아직 안정적으로 연결되지 않았습니다. 잠시 후 다시 시도해 주세요.');
           }
         })
         .catch(function () {
-          _showSukuyoToast('저장 링크 확인 실패: ' + downloadUrl);
+          _showSukuyoToast('PDF 저장 링크 확인이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.');
         });
       return;
     }
@@ -1917,7 +2171,7 @@
       a.click();
       a.remove();
       setTimeout(function () { URL.revokeObjectURL(blobUrl); }, 1500);
-      _showSukuyoToast('저장 링크를 생성해 새 탭에서 열었습니다.');
+      _showSukuyoToast('PDF 링크가 아직 없어 임시 HTML 원고를 새 탭에서 열었습니다.');
       return;
     }
 
@@ -1940,46 +2194,68 @@
     if (target.id === 'skPartnerGenderF' || target.closest('#skPartnerGenderF')) {
       var f = _qs('skPartnerGenderF');
       var m = _qs('skPartnerGenderM');
-      var u = _qs('skPartnerGenderU');
       if (f) f.classList.add('on');
       if (m) m.classList.remove('on');
-      if (u) u.classList.remove('on');
+      _syncGenderAria('skPartner');
+      _clearFieldError('skPartnerGender');
+      _refreshReadinessPanel();
     }
     if (target.id === 'skPartnerGenderM' || target.closest('#skPartnerGenderM')) {
       var ff = _qs('skPartnerGenderF');
       var mm = _qs('skPartnerGenderM');
-      var uu = _qs('skPartnerGenderU');
       if (ff) ff.classList.remove('on');
       if (mm) mm.classList.add('on');
-      if (uu) uu.classList.remove('on');
+      _syncGenderAria('skPartner');
+      _clearFieldError('skPartnerGender');
+      _refreshReadinessPanel();
     }
-    if (target.id === 'skPartnerGenderU' || target.closest('#skPartnerGenderU')) {
-      var fff = _qs('skPartnerGenderF');
-      var mmm = _qs('skPartnerGenderM');
-      var uuu = _qs('skPartnerGenderU');
-      if (fff) fff.classList.remove('on');
-      if (mmm) mmm.classList.remove('on');
-      if (uuu) uuu.classList.add('on');
+    if (target.id === 'skSelfGenderF' || target.closest('#skSelfGenderF')) {
+      var sf = _qs('skSelfGenderF');
+      var sm = _qs('skSelfGenderM');
+      if (sf) sf.classList.add('on');
+      if (sm) sm.classList.remove('on');
+      _syncGenderAria('skSelf');
+      _clearFieldError('skSelfGender');
+      _refreshReadinessPanel();
     }
+    if (target.id === 'skSelfGenderM' || target.closest('#skSelfGenderM')) {
+      var sff = _qs('skSelfGenderF');
+      var smm = _qs('skSelfGenderM');
+      if (sff) sff.classList.remove('on');
+      if (smm) smm.classList.add('on');
+      _syncGenderAria('skSelf');
+      _clearFieldError('skSelfGender');
+      _refreshReadinessPanel();
+    }
+  });
+
+  document.addEventListener('input', function (event) {
+    var target = event.target;
+    if (!(target instanceof Element)) return;
+    if (/^sk(Self|Partner)/.test(target.id || '')) _refreshReadinessPanel();
   });
 
   document.addEventListener('change', function (event) {
     var target = event.target;
     if (!(target instanceof Element)) return;
 
-    if (target.id === 'skPartnerHour') {
-      var minuteEl = _qs('skPartnerMinute');
+    if (target.id === 'skSelfHour' || target.id === 'skPartnerHour') {
+      var minuteEl = _qs(target.id === 'skSelfHour' ? 'skSelfMinute' : 'skPartnerMinute');
       if (minuteEl && _clean(target.value) && !_clean(minuteEl.value)) minuteEl.value = '0';
     }
 
-    if (target.id === 'skPartnerTimeUnknown') {
+    if (target.id === 'skSelfTimeUnknown' || target.id === 'skPartnerTimeUnknown') {
       var isUnknown = !!target.checked;
-      var hourEl = _qs('skPartnerHour');
-      var minuteEl = _qs('skPartnerMinute');
-      var textEl = _qs('skPartnerBirthTimeText');
+      var isSelf = target.id === 'skSelfTimeUnknown';
+      var hourEl = _qs(isSelf ? 'skSelfHour' : 'skPartnerHour');
+      var minuteEl = _qs(isSelf ? 'skSelfMinute' : 'skPartnerMinute');
+      var textEl = _qs(isSelf ? 'skSelfBirthTimeText' : 'skPartnerBirthTimeText');
       if (hourEl) hourEl.disabled = isUnknown;
       if (minuteEl) minuteEl.disabled = isUnknown;
       if (textEl) textEl.disabled = isUnknown;
+    }
+    if (/^sk(Self|Partner)/.test(target.id || '') || target.name === 'skSelfCalType' || target.name === 'skPartnerCalType') {
+      _refreshReadinessPanel();
     }
   });
 })();

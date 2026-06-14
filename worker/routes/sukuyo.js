@@ -17,6 +17,8 @@ import {
 } from "../lib/sukyo-pdf.js";
 import { buildCanonicalSukuyoCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
+import { connectDb } from "../lib/db.js";
+import { ServiceExecutionTransaction } from "../lib/models.js";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
@@ -150,8 +152,8 @@ function parseTimeParts(value) {
 
 function normalizeGender(raw) {
   const token = clean(raw).toLowerCase();
-  if (["m", "male", "man", "남", "남성"].includes(token)) return "male";
-  if (["f", "female", "woman", "여", "여성"].includes(token)) return "female";
+  if (["m", "male", "man", "남", "남성", "남자"].includes(token)) return "male";
+  if (["f", "female", "woman", "여", "여성", "여자"].includes(token)) return "female";
   return "unknown";
 }
 
@@ -206,6 +208,27 @@ function normalizePersonInput(raw = {}, fallbackName = "사용자") {
     birthMinute: time.hasTime ? time.minute : null,
     timezone: clean(profile.timezone || "Asia/Seoul") || "Asia/Seoul",
     isTimeUnknown: time.isTimeUnknown,
+  };
+}
+
+function buildSukuyoGenderValidationError(input) {
+  const fieldErrors = {};
+  const missing = [];
+  if (!["male", "female"].includes(clean(input?.self?.gender))) {
+    missing.push("self.gender");
+    fieldErrors.skSelfGender = "나의 성별을 남자 또는 여자로 선택해 주세요.";
+  }
+  if (!["male", "female"].includes(clean(input?.partner?.gender))) {
+    missing.push("partner.gender");
+    fieldErrors.skPartnerGender = "상대방 성별을 남자 또는 여자로 선택해 주세요.";
+  }
+  if (!missing.length) return null;
+  return {
+    ok: false,
+    code: "SUKUYO_GENDER_REQUIRED",
+    message: "숙요점 프리미엄 PDF는 두 사람의 성별을 남자 또는 여자로 확정해야 생성할 수 있습니다.",
+    hardMissingFields: missing,
+    fieldErrors,
   };
 }
 
@@ -302,6 +325,137 @@ function buildSukuyoSeedFromCompatibility(input = {}) {
     partnerSukyo: canonical.personB?.sukuyo,
     canonical,
   });
+}
+
+function buildSukuyoSeedErrorResponse(error, fallbackMessage = "숙요점 궁합 계산에 필요한 입력값을 확인해 주세요.") {
+  return {
+    ok: false,
+    code: clean(error?.code || "SUKUYO_SEED_BUILD_FAILED"),
+    message: clean(error?.message) || fallbackMessage,
+    missing: Array.isArray(error?.missing) ? error.missing : undefined,
+  };
+}
+
+function buildSukuyoRunningResponse(request, { sessionId = "", reportId = "", featureKey = "", progress = null, startedAt = "" } = {}) {
+  const runningLinks = buildSukuyoRunningLinks(request, sessionId, reportId);
+  return {
+    ok: true,
+    status: "running",
+    serverStatus: "running",
+    sessionId,
+    reportId,
+    featureKey,
+    reportType: "sookyoPremium",
+    mode: "compatibility",
+    message: "같은 세션의 숙요점 PDF 생성이 이미 진행 중입니다.",
+    progress,
+    startedAt,
+    archiveUrl: runningLinks.archiveUrl,
+    statusPollUrl: runningLinks.statusPollUrl,
+  };
+}
+
+async function findSukuyoReusableExecution(env, userId, executionCtx = {}, fallback = {}) {
+  try {
+    await connectDb(withPdfFastDbEnv(env));
+    const filters = [];
+    const executionKey = clean(executionCtx.executionKey);
+    const sessionId = clean(executionCtx.sessionId || fallback.sessionId);
+    const reportId = clean(executionCtx.reportId || fallback.reportId);
+    const paymentSessionId = clean(executionCtx.paymentSessionId);
+    if (executionKey) filters.push({ executionKey });
+    if (sessionId) filters.push({ sessionId });
+    if (reportId) filters.push({ reportId });
+    if (paymentSessionId) filters.push({ paymentSessionId });
+    if (!filters.length) return null;
+    return await ServiceExecutionTransaction.findOne({
+      userId,
+      reportType: "sookyoPremium",
+      $or: filters,
+    }).sort({ completedAt: -1, updatedAt: -1, createdAt: -1 }).lean();
+  } catch (error) {
+    console.warn("[SukuyoPremiumPDF][ReusableExecutionLookupFailed]", { reason: clean(error?.message || error) });
+    return null;
+  }
+}
+
+function buildSukuyoReusableExecutionResponse(request, doc = {}, fallback = {}) {
+  const metadata = doc?.metadata && typeof doc.metadata === "object" ? doc.metadata : {};
+  const archive = metadata?.archive && typeof metadata.archive === "object" ? metadata.archive : {};
+  const reportId = clean(doc.reportId || archive.reportId || metadata.reportId || fallback.reportId);
+  const sessionId = clean(doc.sessionId || metadata.sessionId || fallback.sessionId);
+  const featureKey = clean(doc.featureKey || metadata.featureKey || fallback.featureKey);
+  const status = clean(doc.status);
+  const premiumStatus = clean(doc.premiumStatus);
+
+  if (status === "success" && premiumStatus === "completed" && isSukuyoCompletedPayloadReady(archive)) {
+    return {
+      status: 200,
+      payload: {
+        ...archive,
+        ok: true,
+        status: "completed",
+        serverStatus: "completed",
+        qualityStatus: "passed",
+        reportId,
+        sessionId,
+        featureKey,
+        fromCache: true,
+      },
+    };
+  }
+
+  if (status === "pending" || premiumStatus === "generating") {
+    return {
+      status: 202,
+      payload: buildSukuyoRunningResponse(request, {
+        sessionId,
+        reportId,
+        featureKey,
+        progress: metadata.progress || { stage: "payment-verified" },
+        startedAt: doc.generationStartedAt || doc.createdAt || "",
+      }),
+    };
+  }
+
+  return null;
+}
+
+async function acquireSukuyoExecutionLease(env, userId, executionCtx = {}) {
+  const executionKey = clean(executionCtx.executionKey);
+  if (!executionKey) return { ok: true };
+  try {
+    await connectDb(withPdfFastDbEnv(env));
+    const now = new Date();
+    const leaseUntil = new Date(now.getTime() + Math.max(20 * 60 * 1000, Number(executionCtx.timeoutSeconds || 1800) * 1000));
+    const token = `${executionKey}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
+    const doc = await ServiceExecutionTransaction.findOneAndUpdate(
+      {
+        userId,
+        executionKey,
+        status: "pending",
+        $or: [
+          { "lock.until": { $lte: now } },
+          { "lock.until": null },
+          { "lock.until": { $exists: false } },
+          { "lock.token": "" },
+        ],
+      },
+      {
+        $set: {
+          "lock.token": token,
+          "lock.until": leaseUntil,
+          "lock.acquiredAt": now,
+          heartbeatAt: now,
+        },
+      },
+      { returnDocument: "after" },
+    ).lean();
+    return { ok: Boolean(doc), doc, token };
+  } catch (error) {
+    console.warn("[SukuyoPremiumPDF][ExecutionLeaseAcquireFailed]", { reason: clean(error?.message || error) });
+    return { ok: false, error };
+  }
 }
 
 function readPremiumAccessToken(request, body = {}) {
@@ -497,6 +651,9 @@ async function handleSukuyoPremiumPreflight(request) {
     }, { status: 400 });
   }
 
+  const genderError = buildSukuyoGenderValidationError(input);
+  if (genderError) return json(genderError, { status: 400 });
+
   const validation = validateSukyoPdfInput({
     mode: input.mode,
     self: input.self,
@@ -514,16 +671,19 @@ async function handleSukuyoPremiumPreflight(request) {
     }, { status: 400 });
   }
 
-  const seed = buildSukuyoSeedFromCompatibility(input);
+  let seed = null;
+  try {
+    seed = buildSukuyoSeedFromCompatibility(input);
+  } catch (error) {
+    return json(buildSukuyoSeedErrorResponse(error), { status: Number(error?.status) || 422 });
+  }
+
   return json({
     ok: true,
     mode: "compatibility",
-    input,
     dryRun: {
       selfStarReady: Boolean(clean(seed?.userSukyo?.nameKo)),
       partnerStarReady: Boolean(clean(seed?.partnerSukyo?.nameKo)),
-      relationType: clean(seed?.compatibility?.relationType),
-      distance: clean(seed?.compatibility?.distanceLabel),
       chapterCount: SUKYO_PDF_CHAPTER_COUNT,
     },
   });
@@ -552,6 +712,9 @@ async function handleSukuyoPremiumPrepare(request, env) {
     }, { status: 400 });
   }
 
+  const genderError = buildSukuyoGenderValidationError(input);
+  if (genderError) return json(genderError, { status: 400 });
+
   const validation = validateSukyoPdfInput({
     mode: input.mode,
     self: input.self,
@@ -569,27 +732,39 @@ async function handleSukuyoPremiumPrepare(request, env) {
     }, { status: 400 });
   }
 
-  const dryRunSeed = buildSukuyoSeedFromCompatibility(input);
+  let dryRunSeed = null;
+  try {
+    dryRunSeed = buildSukuyoSeedFromCompatibility(input);
+  } catch (error) {
+    return json(buildSukuyoSeedErrorResponse(error), { status: Number(error?.status) || 422 });
+  }
+
+  const reusableExecutionCtx = buildPremiumExecutionContext({
+    serviceKey: "sukuyo-premium",
+    reportType: "sookyoPremium",
+    userId: auth.userId,
+    featureKey,
+    sessionId,
+    reportId,
+    access: null,
+    body,
+    timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+  });
+  const reusableExecution = await findSukuyoReusableExecution(env, auth.userId, reusableExecutionCtx, { sessionId, reportId, featureKey });
+  const reusableResponse = reusableExecution ? buildSukuyoReusableExecutionResponse(request, reusableExecution, { sessionId, reportId, featureKey }) : null;
+  if (reusableResponse) {
+    return json(reusableResponse.payload, { status: reusableResponse.status });
+  }
 
   const existingLock = sukuyoPdfGenerationLocks.get(sessionId);
   if (existingLock?.status === "running") {
-    const runningReportId = clean(existingLock.reportId || reportId);
-    const runningLinks = buildSukuyoRunningLinks(request, sessionId, runningReportId);
-    return json({
-      ok: true,
-      status: "running",
-      serverStatus: "running",
+    return json(buildSukuyoRunningResponse(request, {
       sessionId,
-      reportId: runningReportId,
+      reportId: clean(existingLock.reportId || reportId),
       featureKey: clean(existingLock.featureKey || featureKey),
-      reportType: "sookyoPremium",
-      mode: "compatibility",
-      message: "같은 세션의 숙요점 PDF 생성이 이미 진행 중입니다.",
       progress: existingLock.progress || null,
       startedAt: existingLock.startedAt,
-      archiveUrl: runningLinks.archiveUrl,
-      statusPollUrl: runningLinks.statusPollUrl,
-    });
+    }));
   }
 
   if (existingLock?.status === "done" && existingLock?.result) {
@@ -670,6 +845,16 @@ async function handleSukuyoPremiumPrepare(request, env) {
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
     await startPremiumPdfExecution(env, auth.userId, executionCtx);
+    const executionLease = await acquireSukuyoExecutionLease(env, auth.userId, executionCtx);
+    if (!executionLease.ok && !executionLease.error) {
+      return json(buildSukuyoRunningResponse(request, {
+        sessionId,
+        reportId,
+        featureKey,
+        progress: { stage: "payment-verified" },
+        startedAt: new Date().toISOString(),
+      }), { status: 202 });
+    }
 
     sukuyoPdfGenerationLocks.set(sessionId, {
       sessionId,

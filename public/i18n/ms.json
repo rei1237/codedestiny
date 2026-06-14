@@ -1,14 +1,276 @@
 {
   "_comment": "Code Destiny — Malay premium localization (ms.json)",
   "_version": "1.0.0",
-
   "brand": {
     "name": "Code Destiny",
     "tagline": "Kebijaksanaan Timur × Analisis AI",
     "subtitle": "3,000 tahun numerologi China, ditafsir oleh AI moden",
     "trustBadge": "Lebih 100,000 pengguna di 80+ negara mempercayai kami"
   },
-
+  "home": {
+    "hero": {
+      "eyebrow": "Code Destiny / Honey Pig Fortune",
+      "brandLine": "Koleksi Takdir Cakerawala",
+      "titleLine1": "Saju & Tarot Percuma",
+      "titleAccent": "Ramalan Hari Ini",
+      "titleLine3": "dalam satu platform",
+      "lead": "Terokai Saju, tarot, Zi Wei Dou Shu, astrologi, Sukuyo, keserasian dan ramalan hari ini dalam satu ruang yang tenang. Masukkan maklumat kelahiran atau soalan anda, lalu terima bacaan yang menjernihkan saat sebelum pilihan seterusnya.",
+      "primaryCta": "Mulakan bacaan Saju percuma",
+      "tarotCta": "Cabut kad tarot",
+      "todayCta": "Lihat ramalan hari ini"
+    },
+    "nav": {
+      "home": "Utama",
+      "saju": "Saju",
+      "tarot": "Tarot",
+      "astrology": "Astrologi",
+      "sukuyo": "Sukuyo",
+      "ziwei": "Zi Wei",
+      "vedic": "Veda",
+      "flowerDream": "Bunga & Mimpi",
+      "vvip": "Arkib VVIP",
+      "oracle": "Orakel",
+      "brandAlias": "Honey Pig Fortune"
+    },
+    "previewCards": {
+      "tarotName": "Tarot",
+      "tarotMeta": "Bacaan kad",
+      "oracleName": "Orakel",
+      "oracleMeta": "Isyarat suci",
+      "astrologyName": "Astrologi",
+      "astrologyMeta": "Carta kosmik",
+      "ziweiName": "Zi Wei",
+      "ziweiMeta": "Carta 12 istana",
+      "vedicName": "Veda",
+      "vedicMeta": "Bacaan karma",
+      "ichingName": "I Ching",
+      "ichingMeta": "64 heksagram",
+      "yeonStarHugName": "Pelukan Bintang Yeon",
+      "yeonStarHugMeta": "Rutin emosi bercahaya bintang",
+      "nevilleName": "Meditasi Neville",
+      "nevilleMeta": "Rutin cipta realiti"
+    },
+    "music": {
+      "title": "Di bawah cahaya bulan, senarai main Flower Pig Vol. 1",
+      "desc": "Masuk ke rentak cahaya bulan yang mencampurkan suara emosi Neo dan Flower Pig Vol. 1.",
+      "hint": "✦ Senarai main cahaya bulan"
+    },
+    "mapIntro": {
+      "title": "Buka pintu takdir di atas peta cahaya bulan",
+      "desc": "Tarot, orakel, bunga takdir, tafsir mimpi, meditasi dan laporan premium. Petanda yang anda perlukan kini bersinar lembut pada setiap kad.",
+      "chipTarot": "Tarot",
+      "chipOracle": "Orakel",
+      "chipFlower": "Bunga & Mimpi",
+      "chipPremium": "Laporan premium"
+    },
+    "input": {
+      "title": "Mulakan Analisis Saju",
+      "desc": "Masukkan nama dan masa lahir untuk membuka carta, elemen dan Sepuluh Dewa secara berturutan.",
+      "nameLabel": "Nama",
+      "nameHint": "Masukkan nama yang akan dipaparkan dalam bacaan.",
+      "birthDateLabel": "Tarikh lahir",
+      "birthDateHint": "Pilih tarikh lahir untuk membuka asas pertama carta Saju anda.",
+      "solar": "Solar",
+      "lunar": "Lunar",
+      "lunarLeap": "Bulan lompat lunar",
+      "birthTimeLabel": "Masa lahir",
+      "birthTimeUnknown": "Jika tidak tahu masa lahir, analisis dibuat secara berhati-hati daripada jam 12 tengah hari.",
+      "birthCountryLabel": "Negara/tempat lahir",
+      "birthCountryHint": "Pembetulan DST dan longitud digunakan secara automatik",
+      "birthPlaceLoading": "Memuatkan tempat lahir...",
+      "timePreview": "Pratonton pembetulan masa",
+      "genderLabel": "Jantina",
+      "female": "Perempuan",
+      "male": "Lelaki",
+      "submit": "Mulakan analisis Saju percuma",
+      "saveProfile": "Simpan kad profil",
+      "saveOptional": "Pilihan",
+      "kakaoEvent": "Acara kongsi Kakao",
+      "kakaoEventSub": "Jemput rakan dan terima 100 Moonlight Stone",
+      "referralNote": "Ganjaran rujukan diberi apabila rakan mendaftar melalui pautan jemputan cahaya bulan anda. Had harian ialah 500 Moonlight Stone."
+    },
+    "startSection": {
+      "kicker": "TODAY CARDS",
+      "title": "Kad takdir percuma untuk dibuka hari ini",
+      "lead": "Walaupun baru pertama kali singgah, mulakan dengan kad paling ringan di bawah cahaya bulan."
+    },
+    "startCards": {
+      "ziweiBadge": "Collection No. 01 · Disyorkan",
+      "ziweiTitle": "Zi Wei Dou Shu",
+      "ziweiDesc": "Baca sifat asas, kerja, wang dan hubungan melalui carta takdir 12 istana.",
+      "ziweiCta": "Lihat carta",
+      "vedicBadge": "Collection No. 02 · Disyorkan",
+      "vedicTitle": "Astrologi Veda",
+      "vedicDesc": "Ikuti jalan hari ini melalui bintang Jyotish dan aliran karma yang halus.",
+      "vedicCta": "Lihat bacaan Veda",
+      "astrologyBadge": "Collection No. 03 · Disyorkan",
+      "astrologyTitle": "Astrologi",
+      "astrologyDesc": "Baca carta kelahiran melalui Matahari, Bulan, Ascendant dan Midheaven.",
+      "astrologyCta": "Lihat carta",
+      "sukuyoBadge": "Collection No. 04 · Disyorkan",
+      "sukuyoTitle": "Sukuyo",
+      "sukuyoDesc": "Semak rumah bulan, perangai dan rentak rujukan hari ini terlebih dahulu.",
+      "sukuyoCta": "Lihat Sukuyo percuma"
+    },
+    "collectionHeaders": {
+      "animal": {
+        "title": "Koleksi Haiwan & Bacaan Wajah",
+        "subtitle": "Bangkitkan naluri liar yang tidur dalam diri",
+        "lede": "Bentuk wajah, personaliti dan isyarat Saju digabungkan untuk menunjukkan watak naluri serta tenaga hubungan anda.",
+        "featureline": "Bacaan wajah haiwan AI · Keserasian haiwan MBTI · Totem haiwan · Mohor penjaga 60-Gapja"
+      },
+      "meditation": {
+        "title": "Koleksi Meditasi",
+        "subtitle": "Susun tenaga hari ini melalui imaginasi dan bawah sedar",
+        "lede": "Rutin visualisasi gaya Neville Goddard menenangkan emosi dan memfokuskan anda kepada realiti yang mahu dijelmakan.",
+        "featureline": "Meditasi Neville · Pernafasan fokus · Autosaranan · Visualisasi realiti"
+      },
+      "tarot": {
+        "title": "Koleksi Bacaan Tarot",
+        "subtitle": "Pilih tarot yang anda perlukan dan mula sekarang",
+        "lede": "Hubungan, pemulihan, keyakinan diri, pertemuan semula, tuah tahunan dan pilihan praktikal dibaca melalui bentangan kad khusus.",
+        "featureline": "Hubungan 6 kad · Pemulihan 4 kad · Pulihkan keyakinan · Pertemuan semula · Tuah zodiak tahunan · Tarot Saju"
+      },
+      "oracle": {
+        "title": "Koleksi Orakel & Ramalan",
+        "subtitle": "Kebijaksanaan purba berbicara kepada anda hari ini",
+        "lede": "Letakkan satu soalan, lalu terima kesimpulan jelas melalui simbol Timur dan Barat.",
+        "featureline": "Hwatu · Orakel Mesir · IFÀ · I Ching 64 heksagram · Rune · Geomansi · Daun teh · Destiny Poker"
+      },
+      "cosmic": {
+        "title": "Koleksi Kosmik & Zodiak",
+        "subtitle": "Peta takdir kosmik anda tertulis di bintang",
+        "lede": "Planet, tanda zodiak dan rumah disambungkan untuk membaca personaliti serta masa yang tepat.",
+        "featureline": "Astrologi Barat · Zi Wei Dou Shu · Astrologi Veda · Orakel zodiak Olympus"
+      },
+      "flower": {
+        "title": "Koleksi Bunga Takdir & Mimpi",
+        "subtitle": "Takdir peribadi anda mekar dalam bahasa kosmos",
+        "lede": "Saju, astrologi, Zi Wei dan Sukuyo dijalin melalui simbol bunga menjadi laporan takdir yang puitis.",
+        "featureline": "Atelier bunga takdir · Bunga astrologi · Bunga Zi Wei · Bunga Sukuyo · Tarot mimpi · Bacaan mimpi psikoanalisis"
+      },
+      "vvip": {
+        "title": "Arkib Takdir VVIP",
+        "subtitle": "Bintang, Saju dan ikatan anda disatukan menjadi satu dokumen rahsia.",
+        "lede": "Koleksi premium yang membuka kehidupan, cinta, wang, hubungan dan titik perubahan secara mendalam.",
+        "featureline": "Zi Wei · Sukuyo · Astrologi · Veda · Karma jiwa"
+      },
+      "misc": {
+        "title": "Koleksi Ramalan Lain",
+        "subtitle": "Terokai semuanya daripada ujian psikologi hingga Saju FPTI",
+        "lede": "Ujian psikologi, AI omikuji, ujian jenis darah, takdir orang kegemaran dan Saju FPTI dihimpunkan sebagai koleksi kad.",
+        "featureline": "Hab psikologi · AI Omikuji · Ujian darah · Takdir kegemaran · Saju FPTI"
+      }
+    },
+    "tiles": {
+      "animalFaceTitle": "🎭 Bacaan Wajah Haiwan AI",
+      "animalFaceDesc": "Analisis wajah melalui swafoto",
+      "animalMbtiTitle": "🦁 Keserasian Haiwan MBTI",
+      "animalMbtiDesc": "16 laluan keserasian totem",
+      "animalTotemTitle": "🧸 Totem Haiwan",
+      "animalTotemDesc": "Bacaan kad haiwan pelindung",
+      "sajuGuardianTitle": "🐲 Seruan Penjaga Saju",
+      "sajuGuardianDesc": "Tiang hari, elemen, mohor penjaga dan misi 7 hari",
+      "destinyEggTitle": "🥚 Telur Takdir",
+      "destinyEggDesc": "Teman ramalan peribadi anda",
+      "fortuneFishTitle": "🐟 Ikan Peramal",
+      "fortuneFishDesc": "Bacaan ikan percuma dan peti azimat tuah",
+      "palmMapTitle": "🖐 Peta Tapak Tangan",
+      "palmMapDesc": "Baca aliran cinta, wang dan kerjaya pada tapak tangan anda.",
+      "nevillePracticeTitle": "🧘 Latihan Meditasi Neville",
+      "nevillePracticeDesc": "Panduan fokus untuk ciptaan imaginasi",
+      "divyaYogaTitle": "🪷 Divya Yoga",
+      "divyaYogaDesc": "Rutin meditasi dan yoga peribadi",
+      "cosmicSoulMeditationTitle": "🌌 Meditasi Jiwa Kosmik",
+      "cosmicSoulMeditationDesc": "Protokol rendering realiti 30 dan 60 minit",
+      "tarotLoveTitle": "💕 Kita ini apa?",
+      "tarotLoveDesc": "Suhu antara kata-kata dan tindakan",
+      "tarotHealingTitle": "☀ Tarot Pemulihan Matahari Hangat",
+      "tarotHealingDesc": "Tempat hati yang letih dan cahaya hari ini",
+      "tarotSelfEsteemTitle": "✨ Tarot Pulih Keyakinan Diri",
+      "tarotSelfEsteemDesc": "Bacaan 5 kad berpusat di hati",
+      "tarotReunionTitle": "🌊 Tarot Rumah Api Pertemuan Semula",
+      "tarotReunionDesc": "Sisa kehangatan dan jarak yang selamat",
+      "tarotPromptMakerTitle": "💘 Perpustakaan Prompt Tarot",
+      "tarotPromptMakerDesc": "Pilih bentangan, buka kad, lengkapkan teks bacaan",
+      "tarotYearTitle": "🐉 Tarot Tahun Zodiak",
+      "tarotYearDesc": "Tuah penjaga untuk dua belas bulan",
+      "tarotNumerologyTitle": "🔢 Tarot Numerologi",
+      "tarotNumerologyDesc": "Bacaan 5 kad nombor hidup dan nombor hari",
+      "tarotCareerMoveTitle": "💼 Kad Peralihan Kerjaya",
+      "tarotCareerMoveDesc": "7 kad tentang apa yang perlu dikekalkan dan arah seterusnya",
+      "tarotMindscanTitle": "🔮 Antara Kata dan Tindakan",
+      "tarotMindscanDesc": "10 kad untuk suhu hati",
+      "tarotCrystalSoulTitle": "💎 Tarot Jiwa Kristal",
+      "tarotCrystalSoulDesc": "Bacaan tenaga kristal",
+      "celestialHarmonyTitle": "✨ Harmoni Cakerawala",
+      "celestialHarmonyDesc": "Tarot dijalin daripada suara 11 planet",
+      "sajuTarotTitle": "🔮 Tarot Saju",
+      "sajuTarotDesc": "Panduan pilihan melalui kad dan Sepuluh Dewa",
+      "hwatuTitle": "🎴 Ramalan Hwatu",
+      "hwatuDesc": "Nasib melalui kad bunga 12 bulan",
+      "egyptOracleTitle": "𓂀 Orakel Mesir",
+      "egyptOracleDesc": "Ramalan orakel Kemet",
+      "ifaOracleTitle": "🪬 Orakel IFÀ",
+      "ifaOracleDesc": "Orakel Yoruba 256 Odu",
+      "ichingTurtleTitle": "☯️ Orakel Kura-kura I Ching",
+      "ichingTurtleDesc": "64 heksagram dan kebijaksanaan 3000 tahun",
+      "runeOracleTitle": "ᚠ Orakel Rune Stonehenge",
+      "runeOracleDesc": "Bacaan simbol rune purba",
+      "geomancyTitle": "⟁ Orakel Tanah Geomansi",
+      "geomancyDesc": "16 baris isyarat daripada bumi",
+      "sikojenTitle": "🐷 Orakel Babi Timah Finland",
+      "sikojenDesc": "Orakel Tahun Baru yang manis bersama Yeoni dan bayang timah",
+      "royalTeaTitle": "🫖 Bacaan Teh Diraja",
+      "royalTeaDesc": "Bacaan daun teh tasseografi diraja",
+      "destinyPokerTitle": "🃏 Destiny Poker",
+      "destinyPokerDesc": "Pertarungan kad takdir bersama para dewa",
+      "westernAstrologyTitle": "✨ Carta Asas Astrologi Barat",
+      "westernAstrologyDesc": "Carta kelahiran percuma · Keserasian sinastri 50 syiling",
+      "ziweiBasicTitle": "🌌 Zi Wei Dou Shu",
+      "ziweiBasicDesc": "Carta asas percuma · Keserasian pilihan 50 syiling",
+      "ziweiAdvancedTitle": "🌟 Zi Wei Lanjutan",
+      "ziweiAdvancedDesc": "Strategi hidup 12 istana · analisis mendalam Istana Ming",
+      "vedicAstrologyTitle": "🪐 Astrologi Veda",
+      "vedicAstrologyDesc": "Carta asas percuma · Keserasian 50 syiling",
+      "olympusOracleTitle": "⚡ Orakel Olympus",
+      "olympusOracleDesc": "Bacaan takdir 12 dewa dan zodiak",
+      "destinyFlowerTitle": "🌸 Bunga Takdir",
+      "destinyFlowerDesc": "Bunga yang mekar daripada Saju anda",
+      "astrologyFlowerTitle": "✨ Bunga Astrologi",
+      "astrologyFlowerDesc": "Sun · Rising · Moon",
+      "ziweiFlowerTitle": "🌺 Bunga Zi Wei",
+      "ziweiFlowerDesc": "Bintang utama Istana Ming · kecerahan bintang",
+      "sukuyoFlowerTitle": "🌙 Bunga Sukuyo",
+      "sukuyoFlowerDesc": "27 rumah bulan · fasa bulan",
+      "dreamTarotTitle": "🌙 Tarot Mimpi",
+      "dreamTarotDesc": "Bacaan 3 kad sisa mimpi",
+      "psychoDreamTitle": "🕯️ Bacaan Mimpi Psikoanalisis",
+      "psychoDreamDesc": "Freud · British Study",
+      "sukuyoPremiumTitle": "Keserasian Sukuyo Premium",
+      "sukuyoPremiumDesc": "Menjana PDF konsultasi 15 bab secara berasingan daripada keserasian asas dan pengembangan terperinci.",
+      "ziweiPremiumTitle": "PDF Premium Zi Wei",
+      "ziweiPremiumDesc": "Mentafsir istana kehidupan yang tertulis pada Istana Ming dan 12 istana anda.",
+      "astroReportTitle": "Laporan Kosmik Astrologi",
+      "astroReportDesc": "Membaca titik perubahan melalui Saturn, nod, transit dan aliran rumah di atas Matahari, Bulan dan Ascendant.",
+      "vedicPremiumTitle": "PDF Premium Veda",
+      "vedicPremiumDesc": "Membuka arah jiwa yang disuarakan oleh Lagna dan Nakshatra.",
+      "soulKarmaTitle": "Karma Jiwa",
+      "soulKarmaDesc": "Dari mana anda datang, dan apa yang anda tiba untuk selesaikan dalam hidup ini?",
+      "psychotestHubTitle": "🧠 Hab Ujian Psikologi",
+      "psychotestHubDesc": "14 ujian bertema",
+      "aiOmikujiTitle": "🤖 AI Emoi Omikuji",
+      "aiOmikujiDesc": "Bacaan orakel emosi",
+      "yeonStarHugTileTitle": "🌸 Buruj Hati Yeon",
+      "yeonStarHugTileDesc": "Pelukan lembut untuk hati hari ini",
+      "bloodTypeTitle": "🩸 Ujian Jenis Darah",
+      "bloodTypeDesc": "Sifat · keserasian · bimbingan",
+      "favoriteDestinyTitle": "✨ Takdir Orang Kegemaran",
+      "favoriteDestinyDesc": "Bacaan mood fotokad",
+      "sajuFptiTitle": "🔮 Ujian Saju FPTI",
+      "sajuFptiDesc": "Analisis personaliti 4 paksi melalui elemen dan Sepuluh Dewa"
+    }
+  },
   "terms": {
     "사주": "Empat Tiang Nasib",
     "사주팔자": "Empat Tiang (Ba Zi)",
@@ -39,30 +301,71 @@
     "신금": "Mata Pisau Lincah (Monyet·Logam)",
     "유금": "Keluli Fajar (Ayam·Logam)",
     "술토": "Ambang Penjaga (Anjing·Tanah)",
-    "해수": "Mata Air Purba (Babi·Air)"
+    "해수": "Mata Air Purba (Babi·Air)",
+    "일주": "Tiang Hari (diri teras)",
+    "월주": "Tiang Bulan (potensi)",
+    "년주": "Tiang Tahun (warisan leluhur)",
+    "시주": "Tiang Jam (legasi)"
   },
-
   "premium": {
     "reportTitle": "Pelan Nasib Anda",
     "reportSubtitle": "Analisis Kehidupan Premium didorong oleh Metapsikologi Timur dan AI",
     "intro": "Laporan ini bukan sekadar ramalan masa depan anda — ia adalah pelan tepat berasaskan data tentang seni bina tenaga yang membentuk kewujudan anda. Menggabungkan lebih 3,000 tahun kebijaksanaan kosmologi Timur dengan kecerdasan buatan canggih, Empat Tiang Nasib anda ditafsir untuk mendedahkan kuasa-kuasa tersembunyi yang mengawal kekuatan, bayangan dan potensi paling bercahaya anda. Ini adalah panduan peribadi anda untuk mengemudi Kitaran Nasib Dekad dengan kejelasan dan niat.",
     "cta": "Buka Kunci Pelan Nasib Penuh Anda",
     "priceDisplay": "Dari RM10",
-    "guarantee": "Jaminan kepuasan 30 hari"
+    "guarantee": "Jaminan kepuasan 30 hari",
+    "dominantElement": {
+      "label": "Elemen Dominan Anda (paksi keseimbangan)",
+      "description": "Elemen Dominan ialah kunci tenaga yang menyeimbangkan dan mengaktifkan keseluruhan struktur takdir anda. Apabila persekitaran, hubungan, dan keputusan selaras dengannya, momentum semula jadi carta anda menjadi lebih lancar."
+    },
+    "coreArchetype": {
+      "label": "Arketip Teras Kehidupan Anda",
+      "description": "Arketip Teras ialah tandatangan struktur takdir anda. Ia menunjukkan bagaimana tenaga anda tampil di dunia, medan mana yang membuat kekuatan anda menjadi semula jadi, dan keadaan yang membolehkan bakat anda mengkristal."
+    },
+    "decadeCycle": {
+      "label": "Kitaran Takdir Sedekad",
+      "description": "Kitaran Takdir Sedekad menggambarkan iklim tenaga sepuluh tahun yang anda lalui. Ia bukan penilaian nasib baik atau buruk semata-mata, tetapi peta potensi yang terbuka dan pelajaran yang perlu disepadukan."
+    },
+    "compatibility": {
+      "label": "Analisis Keserasian Kosmik",
+      "description": "Keserasian sebenar melampaui jenis personaliti. Bacaan ini meneliti interaksi Lima Elemen antara dua carta untuk menunjukkan di mana anda saling menguatkan, di mana geseran muncul, dan cara menjaga hubungan dengan anggun."
+    }
   },
-
   "trust": {
     "headline": "Mengapa Lebih 100,000 Orang Mempercayai Code Destiny",
     "badges": [
-      { "icon": "🌍", "label": "Komuniti Global", "value": "+100,000 pengguna di 80+ negara" },
-      { "icon": "🔒", "label": "SSL Selamat", "value": "Penyulitan 256-bit · Pembayaran selamat" },
-      { "icon": "⭐", "label": "Penilaian", "value": "Purata 4.9/5" },
-      { "icon": "🌐", "label": "Bahasa", "value": "10 bahasa tersedia" },
-      { "icon": "💳", "label": "Pembayaran Selamat", "value": "Disahkan Stripe · Semua kad utama" },
-      { "icon": "🔄", "label": "Jaminan", "value": "Bayaran balik 30 hari" }
+      {
+        "icon": "🌍",
+        "label": "Komuniti Global",
+        "value": "+100,000 pengguna di 80+ negara"
+      },
+      {
+        "icon": "🔒",
+        "label": "SSL Selamat",
+        "value": "Penyulitan 256-bit · Pembayaran selamat"
+      },
+      {
+        "icon": "⭐",
+        "label": "Penilaian",
+        "value": "Purata 4.9/5"
+      },
+      {
+        "icon": "🌐",
+        "label": "Bahasa",
+        "value": "10 bahasa tersedia"
+      },
+      {
+        "icon": "💳",
+        "label": "Pembayaran Selamat",
+        "value": "Disahkan Stripe · Semua kad utama"
+      },
+      {
+        "icon": "🔄",
+        "label": "Jaminan",
+        "value": "Bayaran balik 30 hari"
+      }
     ]
   },
-
   "footer": {
     "tagline": "Kebijaksanaan purba, ketepatan moden.",
     "about": "Code Destiny ialah platform analisis nasib dan tuah berkuasa AI yang menggabungkan lebih 3,000 tahun sistem kosmologi Timur dengan kecerdasan buatan moden. Tersedia dalam 10 bahasa, percuma untuk digunakan.",
@@ -75,6 +378,193 @@
       "contact": "Hubungi Kami"
     },
     "refundPolicy": "Syiling Premium (kredit digital) boleh dikembalikan dalam masa 14 hari selepas pembelian jika tidak digunakan, mengikut undang-undang perlindungan pengguna.",
-    "copyright": "© 2025 Code Destiny. Hak cipta terpelihara. Untuk hiburan dan refleksi diri sahaja, bukan pengganti nasihat profesional."
+    "copyright": "© 2025 Code Destiny. Hak cipta terpelihara. Untuk hiburan dan refleksi diri sahaja, bukan pengganti nasihat profesional.",
+    "sections": {
+      "services": "Perkhidmatan",
+      "resources": "Sumber",
+      "legal": "Perundangan",
+      "support": "Sokongan"
+    }
+  },
+  "branches": {
+    "자수": {
+      "label": "Jurang Tengah Malam",
+      "animal": "Tikus・Air (子水)",
+      "essence": "Tikus bergerak melalui air paling gelap dengan naluri yang tajam. Jurang Tengah Malam melambangkan kecerdasan tersembunyi, keupayaan mengumpul sumber, dan kebijaksanaan mencari jalan apabila orang lain hanya melihat gelap."
+    },
+    "축토": {
+      "label": "Batuan Besi",
+      "animal": "Lembu・Tanah (丑土)",
+      "essence": "Lembu menanggung beban yang tidak mampu dipikul orang lain. Batuan Besi mewakili kesabaran teguh, kuasa yang terkumpul perlahan-lahan, dan maruah hidup yang dibina melalui ketekunan."
+    },
+    "인목": {
+      "label": "Lonjakan Berdaulat",
+      "animal": "Harimau・Kayu (寅木)",
+      "essence": "Harimau memerintah hutan purba. Lonjakan Berdaulat ialah autoriti semula jadi, naluri melindungi, dan momentum pertumbuhan yang sukar ditahan terlalu lama."
+    },
+    "묘목": {
+      "label": "Kanopi Fajar",
+      "animal": "Arnab・Kayu (卯木)",
+      "essence": "Arnab membawa cahaya pertama yang lembut tetapi tidak tertahan. Kanopi Fajar melambangkan keanggunan sosial, sensitiviti seni, dan kemampuan berkembang melalui kelembutan."
+    },
+    "진토": {
+      "label": "Takhta Langit",
+      "animal": "Naga・Tanah (辰土)",
+      "essence": "Naga ialah satu-satunya makhluk mitos dalam dua belas cabang. Takhta Langit memancarkan kuasa transformasi, kehadiran suci, dan rasa luar biasa yang sering dirasai orang lain tanpa perlu dijelaskan."
+    },
+    "사화": {
+      "label": "Bara Tersembunyi",
+      "animal": "Ular・Api (巳火)",
+      "essence": "Ular tidak mengumumkan dirinya. Bara Tersembunyi ialah kebijaksanaan yang matang dalam diam, intensiti yang membara perlahan, dan kuasa mengetahui lebih daripada yang dizahirkan."
+    },
+    "오화": {
+      "label": "Nyalaan Suria",
+      "animal": "Kuda・Api (午火)",
+      "essence": "Kuda membawa tenaga matahari tengah hari: cahaya, gerak, dan kebebasan yang penuh ghairah. Nyalaan Suria paling kuat apabila berlari menuju sesuatu yang dicintai."
+    },
+    "미토": {
+      "label": "Tempat Suci Pastoral",
+      "animal": "Kambing・Tanah (未土)",
+      "essence": "Kambing membawa kelimpahan tanpa agresi. Tempat Suci Pastoral mewakili penjagaan, harmoni, kreativiti mendalam, dan ruang yang membuat orang lain berasa selamat."
+    },
+    "신금": {
+      "label": "Mata Merkuri",
+      "animal": "Monyet・Logam (申金)",
+      "essence": "Monyet ialah ahli strategi lincah zodiak. Mata Merkuri melambangkan kecerdikan, penyesuaian, inovasi, dan strategi fleksibel dalam keadaan kompleks."
+    },
+    "유금": {
+      "label": "Keluli Bulan Sabit",
+      "animal": "Ayam・Logam (酉金)",
+      "essence": "Ayam ialah lambang ketepatan dan penyeru fajar. Keluli Bulan Sabit mewakili disiplin, pertimbangan halus, dan pandangan tajam terhadap nilai sebenar."
+    },
+    "술토": {
+      "label": "Ambang Penjaga",
+      "animal": "Anjing・Tanah (戌土)",
+      "essence": "Anjing menjaga pintu yang suci. Ambang Penjaga ialah kepercayaan, kesetiaan, perlindungan terhadap yang penting, dan pusat moral yang sukar digoyahkan."
+    },
+    "해수": {
+      "label": "Mata Air Purba",
+      "animal": "Babi・Air (亥水)",
+      "essence": "Babi ialah arus besar yang murah hati dan jujur. Mata Air Purba melambangkan daya hidup, kelimpahan, ketulusan, dan kedalaman yang tidak kering apabila hati tetap murni."
+    }
+  },
+  "services": {
+    "saju": {
+      "name": "Empat Tiang Takdir",
+      "short": "Bacaan Saju",
+      "description": "Sistem asal meta-psikologi Timur. Tarikh lahir anda menyimpan tandatangan kosmik yang tepat: empat tiang, lapan aksara, dan kedalaman luas.",
+      "badge": "Popular"
+    },
+    "tarot": {
+      "name": "Panduan Tarot AI",
+      "short": "Tarot AI",
+      "description": "Kebijaksanaan arketip purba diperkuat oleh kecerdasan buatan. Setiap bacaan memantulkan medan tenaga anda saat ini."
+    },
+    "ziwei": {
+      "name": "Zi Wei Dou Shu",
+      "short": "Carta Bintang",
+      "description": "Sistem pemetaan bintang diraja China purba: 144 istana hidup dan 108 bintang sebagai panorama takdir.",
+      "badge": "Mendalam"
+    },
+    "astrology": {
+      "name": "Astrologi Kosmik",
+      "short": "Veda & Barat",
+      "description": "Gabungan Jyotish Veda dan astrologi Barat untuk mentafsir penjajaran planet melalui beberapa tradisi."
+    },
+    "destinyFlower": {
+      "name": "Arketip Bunga Takdir",
+      "short": "Bunga Takdir",
+      "description": "Corak mekarnya jiwa, dibaca secara puitis dan tepat daripada tandatangan elemen takdir anda."
+    },
+    "compatibility": {
+      "name": "Keserasian Kosmik",
+      "short": "Keserasian",
+      "description": "Melampaui ujian personaliti, bacaan ini membaca kontrak tenaga mendalam antara anda dan orang lain melalui Lima Elemen."
+    }
+  },
+  "pricing": {
+    "currencies": {
+      "KRW": {
+        "symbol": "₩",
+        "rate": 1,
+        "format": "₩{amount}"
+      },
+      "USD": {
+        "symbol": "$",
+        "rate": 0.00074,
+        "format": "${amount}"
+      },
+      "EUR": {
+        "symbol": "€",
+        "rate": 0.00068,
+        "format": "€{amount}"
+      },
+      "JPY": {
+        "symbol": "¥",
+        "rate": 0.11,
+        "format": "¥{amount}"
+      },
+      "CNY": {
+        "symbol": "¥",
+        "rate": 0.0053,
+        "format": "¥{amount}"
+      },
+      "GBP": {
+        "symbol": "£",
+        "rate": 0.00058,
+        "format": "£{amount}"
+      },
+      "AUD": {
+        "symbol": "A$",
+        "rate": 0.0012,
+        "format": "A${amount}"
+      },
+      "CAD": {
+        "symbol": "C$",
+        "rate": 0.001,
+        "format": "C${amount}"
+      },
+      "INR": {
+        "symbol": "₹",
+        "rate": 0.062,
+        "format": "₹{amount}"
+      },
+      "SGD": {
+        "symbol": "S$",
+        "rate": 0.00099,
+        "format": "S${amount}"
+      },
+      "MYR": {
+        "symbol": "RM",
+        "rate": 0.0035,
+        "format": "RM{amount}"
+      }
+    },
+    "tiers": [
+      {
+        "id": "starter",
+        "name": "Permulaan",
+        "krwPrice": 9900,
+        "coins": 10,
+        "description": "10 bacaan premium",
+        "popular": false
+      },
+      {
+        "id": "standard",
+        "name": "Standard",
+        "krwPrice": 29000,
+        "coins": 35,
+        "description": "35 bacaan premium + laporan takdir penuh",
+        "popular": true
+      },
+      {
+        "id": "premium",
+        "name": "Premium",
+        "krwPrice": 59000,
+        "coins": 80,
+        "description": "80 bacaan + akses ciri seumur hidup",
+        "popular": false
+      }
+    ]
   }
 }

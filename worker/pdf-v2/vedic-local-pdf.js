@@ -2,6 +2,13 @@ function clean(value) {
   return String(value || "").trim();
 }
 
+function isVedicPdfArchiveUrl(value, format) {
+  const url = clean(value);
+  const target = clean(format);
+  if (!url || !/\/api\/premium\/pdf-archive\//.test(url)) return false;
+  return new RegExp(`[?&]format=${target}(?:&|$)`, "i").test(url);
+}
+
 function createVedicLocalPdfError(message, code, status = 500, details = null) {
   const error = new Error(message);
   error.code = code;
@@ -20,6 +27,9 @@ function assertVedicLocalPdfResult(result = {}, config = {}, expectedChapterCoun
   const generationMode = clean(config.generationMode || "local-assembled");
   const templateVersion = clean(config.templateVersion);
   const storedUrl = clean(result?.downloadUrl || result?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
+  const pdfUrl = clean(result?.pdfUrl || pdfReady?.pdfUrl || pdfReady?.downloadUrl || result?.downloadUrl);
+  const htmlUrl = clean(result?.htmlUrl || pdfReady?.htmlUrl);
+  const writingPipeline = clean(result?.writingPipeline || pdfReady?.writingPipeline);
 
   const issues = [];
   if (clean(result?.manuscriptSource || pdfReady?.manuscriptSource) !== generationMode) issues.push("manuscript_source");
@@ -35,6 +45,13 @@ function assertVedicLocalPdfResult(result = {}, config = {}, expectedChapterCoun
   if (pdfCompletionValidation.ok === false) issues.push("pdf_completion_validation");
   if (!clean(pdfReady?.html)) issues.push("html");
   if (!storedUrl) issues.push("download_url");
+  if (!isVedicPdfArchiveUrl(pdfUrl, "pdf")) issues.push("archive_pdf_url");
+  if (!isVedicPdfArchiveUrl(htmlUrl, "html")) issues.push("archive_html_url");
+  if (clean(pdfReady?.renderFormat) !== "pdf-archive") issues.push("render_format");
+  if (clean(pdfReady?.mimeType) !== "application/pdf") issues.push("mime_type");
+  if (clean(pdfReady?.contentType) !== "application/pdf") issues.push("content_type");
+  if (pdfReady.canDownload !== true && result?.canDownload !== true) issues.push("can_download");
+  if (writingPipeline !== "local-calculation-to-local-assembled-pdf") issues.push("writing_pipeline");
 
   return {
     ok: issues.length === 0,
@@ -44,6 +61,10 @@ function assertVedicLocalPdfResult(result = {}, config = {}, expectedChapterCoun
     expectedChapterCount,
     generationMode,
     templateVersion,
+    pdfUrl,
+    htmlUrl,
+    canDownload: pdfReady.canDownload === true || result?.canDownload === true,
+    writingPipeline,
   };
 }
 
@@ -92,6 +113,6 @@ export async function generateVedicLocalPdf(input = {}, options = {}) {
     ...result,
     localOnly: true,
     localContract,
-    writingPipeline: "local-calculation-to-local-template-pdf",
+    writingPipeline: "local-calculation-to-local-assembled-pdf",
   };
 }

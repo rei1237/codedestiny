@@ -5,9 +5,11 @@ const rootDir = process.cwd();
 const sitemapRootPath = resolve(rootDir, "sitemap.xml");
 const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
 const insightsSourcePath = resolve(rootDir, "app", "insights", "articles.js");
+const insightsAdsenseReadySourcePath = resolve(rootDir, "app", "insights", "adsense-ready-articles.js");
 const insightsSeoGrowthSourcePath = resolve(rootDir, "app", "insights", "seo-growth-articles.js");
 const highValueSourcePath = resolve(rootDir, "app", "high-value", "content.js");
 const famousSajuSourcePath = resolve(rootDir, "lib", "famous-saju", "celebrity-data.ts");
+const psychotestSourcePath = resolve(rootDir, "lib", "psychotest-catalog.ts");
 const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
@@ -48,22 +50,45 @@ const coreRoutes = [
   { path: "/today", changefreq: "daily", priority: 0.97 },
   { path: "/daily-fortune", changefreq: "daily", priority: 0.97 },
   { path: "/compatibility", changefreq: "weekly", priority: 0.96 },
+  { path: "/saju/compatibility", changefreq: "weekly", priority: 0.96 },
   { path: "/tarot", changefreq: "weekly", priority: 0.96 },
+  { path: "/tarot/reunion", changefreq: "weekly", priority: 0.94 },
+  { path: "/tarot/mindscan", changefreq: "weekly", priority: 0.94 },
   { path: "/ziwei", changefreq: "weekly", priority: 0.95 },
   { path: "/ziwei/chart", changefreq: "weekly", priority: 0.92 },
   { path: "/astrology", changefreq: "weekly", priority: 0.95 },
+  { path: "/astrology/cosmic", changefreq: "weekly", priority: 0.92 },
   { path: "/sukuyo", changefreq: "weekly", priority: 0.94 },
   { path: "/sukuyo/compatibility", changefreq: "weekly", priority: 0.93 },
   { path: "/vedic", changefreq: "weekly", priority: 0.94 },
+  { path: "/vedic/jyotish", changefreq: "weekly", priority: 0.93 },
   { path: "/dream", changefreq: "weekly", priority: 0.94 },
+  { path: "/dream/tarot", changefreq: "weekly", priority: 0.88 },
+  { path: "/dream/psycho", changefreq: "weekly", priority: 0.88 },
+  { path: "/love", changefreq: "weekly", priority: 0.94 },
   { path: "/physiognomy", changefreq: "weekly", priority: 0.93 },
   { path: "/premium", changefreq: "weekly", priority: 0.93 },
+  { path: "/premium-reports", changefreq: "weekly", priority: 0.92 },
+  { path: "/pdf/life-book", changefreq: "monthly", priority: 0.88 },
+  { path: "/pdf/love-report", changefreq: "monthly", priority: 0.88 },
+  { path: "/pdf/new-year", changefreq: "monthly", priority: 0.88 },
+  { path: "/saju/basic", changefreq: "weekly", priority: 0.95 },
+  { path: "/oracle/sukuyo", changefreq: "weekly", priority: 0.93 },
+  { path: "/tarot/mingri", changefreq: "weekly", priority: 0.93 },
+  { path: "/tarot/love", changefreq: "weekly", priority: 0.9 },
+  { path: "/tarot/healing", changefreq: "weekly", priority: 0.9 },
+  { path: "/oracle/hwatu-life", changefreq: "weekly", priority: 0.88 },
+  { path: "/animal/mbti", changefreq: "weekly", priority: 0.87 },
+  { path: "/oracle/sikojen-povailu", changefreq: "weekly", priority: 0.87 },
+  { path: "/saju-picture", changefreq: "weekly", priority: 0.86 },
   { path: "/about", changefreq: "monthly", priority: 0.9 },
   { path: "/faq", changefreq: "monthly", priority: 0.88 },
   { path: "/methodology", changefreq: "monthly", priority: 0.86 },
   { path: "/contact", changefreq: "yearly", priority: 0.6 },
   { path: "/privacy", changefreq: "yearly", priority: 0.55 },
   { path: "/terms", changefreq: "yearly", priority: 0.55 },
+  { path: "/disclaimer", changefreq: "yearly", priority: 0.54 },
+  { path: "/advertising-policy", changefreq: "yearly", priority: 0.54 },
   { path: "/insights", changefreq: "weekly", priority: 0.85 },
   { path: "/insights/saju", changefreq: "weekly", priority: 0.84 },
   { path: "/insights/ziwei", changefreq: "weekly", priority: 0.88 },
@@ -75,8 +100,13 @@ const coreRoutes = [
   { path: "/insights/compatibility", changefreq: "weekly", priority: 0.82 },
   { path: "/famous-saju", changefreq: "weekly", priority: 0.88 },
   { path: "/high-value", changefreq: "weekly", priority: 0.84 },
-  { path: "/rss.xml", changefreq: "daily", priority: 0.2 },
-  { path: "/insights/rss.xml", changefreq: "daily", priority: 0.2 },
+  { path: "/high-value/complete-guide-to-saju", changefreq: "monthly", priority: 0.82 },
+  { path: "/high-value/category/saju-beginner", changefreq: "monthly", priority: 0.78 },
+  { path: "/high-value/category/tarot-reading", changefreq: "monthly", priority: 0.78 },
+  { path: "/high-value/category/compatibility-relationship", changefreq: "monthly", priority: 0.78 },
+  { path: "/high-value/category/daily-fortune", changefreq: "monthly", priority: 0.78 },
+  { path: "/high-value/category/astrology-ziwei", changefreq: "monthly", priority: 0.78 },
+  { path: "/high-value/category/methodology", changefreq: "monthly", priority: 0.78 },
 ];
 
 const localeHreflangAliases = {
@@ -168,6 +198,43 @@ function extractInsightRoutes() {
   return routes;
 }
 
+function extractSeoGrowthInsightRoutes() {
+  const source = [
+    readFileSync(insightsAdsenseReadySourcePath, "utf8"),
+    readFileSync(insightsSeoGrowthSourcePath, "utf8"),
+  ].join("\n");
+  const slugRegex = /slug:\s*["']([a-z0-9-]+)["']/g;
+  const seen = new Set();
+  const routes = [];
+
+  let match;
+  while ((match = slugRegex.exec(source)) !== null) {
+    const slug = String(match[1] || "").trim();
+    if (!slug || seen.has(slug)) continue;
+    seen.add(slug);
+    routes.push({ path: `/insights/${slug}`, changefreq: "monthly", priority: 0.74, lastmod: today });
+  }
+
+  return routes;
+}
+
+function extractPsychotestRoutes() {
+  const source = readFileSync(psychotestSourcePath, "utf8");
+  const slugRegex = /slug:\s*["']([a-z0-9-]+)["']/g;
+  const seen = new Set();
+  const routes = [{ path: "/psychotest", changefreq: "weekly", priority: 0.84, lastmod: today }];
+
+  let match;
+  while ((match = slugRegex.exec(source)) !== null) {
+    const slug = String(match[1] || "").trim();
+    if (!slug || seen.has(slug)) continue;
+    seen.add(slug);
+    routes.push({ path: `/psychotest/${slug}`, changefreq: "monthly", priority: 0.72, lastmod: today });
+  }
+
+  return routes;
+}
+
 function famousCategorySlug(value) {
   const table = {
     "역사 위인": "history",
@@ -189,7 +256,7 @@ function famousCategorySlug(value) {
 function extractFamousSajuRoutes() {
   const source = readFileSync(famousSajuSourcePath, "utf8");
   const itemRegex = /\[\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"[^"]+"\s*,\s*"([0-9]{4}-[0-9]{2}-[0-9]{2})"/g;
-  const routes = [];
+  const routes = [{ path: "/insights/famous-saju", changefreq: "weekly", priority: 0.89, lastmod: today }];
   const categoryRoutes = new Set();
   const seen = new Set();
 
@@ -199,7 +266,7 @@ function extractFamousSajuRoutes() {
     const category = String(match[3] || "").trim();
     if (!slug || seen.has(slug)) continue;
     seen.add(slug);
-    routes.push({ path: `/famous-saju/${slug}`, changefreq: "monthly", priority: 0.76, lastmod: today });
+    routes.push({ path: `/insights/famous-saju/${slug}`, changefreq: "monthly", priority: 0.78, lastmod: today });
 
     const cSlug = famousCategorySlug(category);
     if (cSlug) categoryRoutes.add(cSlug);
@@ -235,12 +302,14 @@ function extractHighValueRoutes() {
 
     if (slug && !seenPage.has(slug)) {
       seenPage.add(slug);
-      pageRoutes.push({
-        path: `/high-value/${slug}`,
-        changefreq: "monthly",
-        priority: 0.72,
-        lastmod: normalizeDate(updatedAt),
-      });
+      if (slug !== "saju-beginner") {
+        pageRoutes.push({
+          path: `/high-value/${slug}`,
+          changefreq: "monthly",
+          priority: 0.72,
+          lastmod: normalizeDate(updatedAt),
+        });
+      }
     }
 
     const cSlug = categorySlug(category);
@@ -265,7 +334,9 @@ function normalizeSitemapPath(pathname) {
   const noQuery = raw.split("?")[0].split("#")[0] || "/";
   const leading = noQuery.startsWith("/") ? noQuery : `/${noQuery}`;
   const compact = leading.replace(/\/{2,}/g, "/");
-  return compact === "/" ? "/" : compact.replace(/\/+$/, "");
+  if (compact === "/") return "/";
+  const trimmed = compact.replace(/\/+$/, "");
+  return /\.[a-z0-9]+$/i.test(trimmed) ? trimmed : `${trimmed}/`;
 }
 
 function isPublicSitemapPath(pathname) {
@@ -366,10 +437,11 @@ async function main() {
 
   const routeEntries = [
     ...coreRoutes,
-    ...buildI18nRouteEntries(),
     ...localInsights,
+    ...extractSeoGrowthInsightRoutes(),
     ...dynamicInsights,
     ...extractFamousSajuRoutes(),
+    ...extractPsychotestRoutes(),
     ...extractHighValueRoutes(),
   ];
 

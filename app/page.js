@@ -1,59 +1,62 @@
 import Link from "next/link";
-import { createI18nMetadata } from "../lib/seo/createI18nMetadata";
-import { getAlternatesByRouteKey } from "../lib/i18n/routes";
-import { buildOrganizationJsonLd, buildWebPageJsonLd, buildWebsiteJsonLd } from "../lib/structured-data";
+import { buildSeoMetadata } from "../lib/seo";
+import { publicSeoPages } from "../lib/seo/siteSeo";
+import {
+  buildOrganizationJsonLd,
+  buildWebPageJsonLd,
+  buildWebsiteJsonLd,
+} from "../lib/structured-data";
 import styles from "./home-cosmic.module.css";
 
-export const metadata = createI18nMetadata({
-  locale: "ko",
-  routeByLocale: getAlternatesByRouteKey("home"),
-  title: "꿀꿀 운세 | 무료 사주팔자 · 오늘의 운세 · 코드 데스티니",
-  description:
-    "꿀꿀 운세는 Code Destiny(코드 데스티니)가 제공하는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
-  keywords: [
-    "Code Destiny",
-    "코드 데스티니",
-    "꿀꿀 운세",
-    "꿀꿀 만세력",
-    "꿀꿀 사주",
-    "사주",
-    "운세",
-    "사주풀이",
-    "오늘의 운세",
-    "자미두수",
-    "숙요점",
-  ],
+const page = publicSeoPages.home;
+
+export const metadata = buildSeoMetadata({
+  path: page.path,
+  title: page.title,
+  description: page.description,
+  keywords: page.keywords,
 });
 
 const SERVICE_LINKS = [
-  { href: "/index.html", label: "무료 사주풀이 보기" },
-  { href: "/index.html", label: "오늘의 운세 확인하기" },
-  { href: "/index.html", label: "꿀꿀 운세 확인하기" },
-  { href: "/index.html?action=runCompat", label: "사주 궁합 분석하기" },
-  { href: "/index.html?action=openTarotModal", label: "명리학 타로 시작하기" },
-  { href: "/index.html?action=openZiweiModal", label: "자미두수 명반 보기" },
-  { href: "/index.html?action=openSukuyoModal", label: "숙요점 궁합 바로 보기" },
-  { href: "/index.html?action=openAstroModal", label: "점성술 차트 보기" },
-  { href: "/index.html?action=navigateToVedic", label: "베다점성술 라그나 보기" },
-  { href: "/index.html?action=openDreamModal", label: "무료 꿈해몽 보기" },
-  { href: "/index.html?action=openPhysiognomyApp", label: "동물관상 분석하기" },
-  { href: "/index.html", label: "프리미엄 운세 리포트 보기" },
+  { href: "/manse", label: "무료 만세력 사주 분석" },
+  { href: "/saju/basic", label: "사주 만세력 기본 해석" },
+  { href: "/tarot", label: "무료 타로 카드 리딩" },
+  { href: "/today", label: "오늘의 운세 보기" },
+  { href: "/saju/compatibility", label: "사주 궁합 해석" },
+  { href: "/ziwei", label: "자미두수 12궁 명반" },
+  { href: "/astrology", label: "점성술 출생차트" },
+  { href: "/sukuyo", label: "숙요점 27숙 궁합" },
+  { href: "/high-value", label: "운세 인사이트 가이드" },
+];
+
+const latestInsights = [
+  {
+    href: "/high-value/complete-guide-to-saju",
+    category: "사주 입문",
+    title: "사주를 처음 읽는 순서",
+    excerpt: "명식, 오행, 십성, 대운을 어떤 순서로 살펴보면 좋은지 정리했습니다.",
+  },
+  {
+    href: "/high-value/how-tarot-actually-works",
+    category: "타로 리딩",
+    title: "타로가 작동하는 방식",
+    excerpt: "카드 상징을 질문과 행동으로 연결하는 안전한 리딩 방식을 설명합니다.",
+  },
+  {
+    href: "/high-value/top-10-signs-of-compatibility",
+    category: "궁합과 관계",
+    title: "관계 궁합에서 확인할 신호",
+    excerpt: "점수보다 중요한 소통 리듬, 갈등 회복, 경계 설정을 살펴봅니다.",
+  },
 ];
 
 export default function HomePage() {
-  const latestInsights = [
-    { slug: "ziwei-basics", category: "자미두수", title: "자미두수 입문 가이드", excerpt: "명반을 읽는 기본 순서를 확인해 보세요." },
-    { slug: "sukuyo-basics", category: "숙요점", title: "숙요점 관계 해석", excerpt: "갈등 패턴과 회복 타이밍을 읽는 법을 정리합니다." },
-    { slug: "saju-free-guide", category: "사주", title: "무료 사주풀이 보는 법", excerpt: "초보자용 해석 순서를 짧게 정리했습니다." },
-    { slug: "tarot-spread-design-principles", category: "타로", title: "타로 스프레드 설계", excerpt: "질문을 잘 만드는 법과 카드 배열을 연결합니다." },
-  ];
   const orgJsonLd = buildOrganizationJsonLd();
   const websiteJsonLd = buildWebsiteJsonLd();
   const webPageJsonLd = buildWebPageJsonLd({
-    title: "꿀꿀 운세 | 무료 사주팔자 · 오늘의 운세 · 코드 데스티니",
-    description:
-      "꿀꿀 운세는 Code Destiny(코드 데스티니)가 제공하는 사주풀이, 오늘의 운세, 만세력, 궁합, 타로, 자미두수, 점성술을 한곳에서 볼 수 있는 무료 운세 플랫폼입니다.",
-    path: "/",
+    title: page.title,
+    description: page.description,
+    path: page.path,
   });
 
   return (
@@ -61,42 +64,42 @@ export default function HomePage() {
       <div className={styles.pageGlow} aria-hidden />
 
       <header className={`${styles.panel} ${styles.heroPanel}`}>
-        <span className={styles.heroKicker}>COSMIC SERVICE HUB</span>
-        <h1 className={styles.heroTitle}>
-          꿀꿀 운세 | 무료 사주팔자 · 오늘의 운세 · 코드 데스티니
-        </h1>
+        <span className={styles.heroKicker}>Code Destiny</span>
+        <h1 className={styles.heroTitle}>{page.h1}</h1>
         <p className={styles.heroLead}>
-          Code Destiny는 사주·타로·자미두수·점성술·숙요점·베다점을 한곳에서 해석하는 무료 운세 플랫폼입니다.
-          검색 사용자가 바로 이해하고 1클릭으로 기능을 시작할 수 있도록 서비스 허브와 인사이트 허브를 연결했습니다.
+          사주팔자, 만세력, 타로, 자미두수, 점성술, 숙요점, 궁합, 오늘의 운세를 한곳에서 살펴볼 수 있습니다.
+          각 기능은 오락과 자기성찰을 위한 참고 정보로 제공되며, 중요한 판단은 현실의 정보와 함께 확인하도록 안내합니다.
         </p>
         <div className={styles.badgeRow}>
-          <span className={styles.badge}>One-click Launch</span>
-          <span className={styles.badge}>Star-linked Insights</span>
-          <span className={styles.badge}>Cosmic Navigation</span>
+          <Link className={styles.badge} href="/manse">무료 사주 보기</Link>
+          <Link className={styles.badge} href="/tarot">타로 카드 뽑기</Link>
+          <Link className={styles.badge} href="/today">오늘의 운세 보기</Link>
         </div>
       </header>
 
       <section className={`${styles.panel} ${styles.sectionPanel}`}>
-        <h2 className={styles.sectionTitle}>핵심 서비스 링크 허브</h2>
-        <p className={styles.sectionLead}>오늘 바로 시작할 수 있는 핵심 운세 기능을 우주 항로처럼 빠르게 이동하세요.</p>
+        <h2 className={styles.sectionTitle}>주요 운세 서비스</h2>
+        <p className={styles.sectionLead}>
+          검색과 사용 흐름이 분명하도록 대표 기능을 주제별 랜딩 페이지로 연결했습니다.
+        </p>
         <div className={styles.serviceGrid}>
           {SERVICE_LINKS.map((link) => (
             <Link key={link.href} href={link.href} className={styles.serviceLink}>
               <span className={styles.serviceText}>{link.label}</span>
-              <span className={styles.serviceArrow} aria-hidden>
-                ↗
-              </span>
+              <span className={styles.serviceArrow} aria-hidden>→</span>
             </Link>
           ))}
         </div>
       </section>
 
       <section className={`${styles.panel} ${styles.sectionPanel}`}>
-        <h2 className={styles.sectionTitle}>운세 인사이트 최신 글</h2>
-        <p className={styles.sectionLead}>해석 팁, 심층 가이드, 관계/커리어 운세 인사이트를 별자리 카드처럼 확인하세요.</p>
+        <h2 className={styles.sectionTitle}>운세 인사이트</h2>
+        <p className={styles.sectionLead}>
+          처음 방문한 사용자도 각 운세 체계의 핵심 개념과 활용 방법을 먼저 이해할 수 있도록 공개 가이드를 제공합니다.
+        </p>
         <div className={styles.insightGrid}>
           {latestInsights.map((item) => (
-            <Link key={item.slug} href={`/insights/${item.slug}`} className={styles.insightCard}>
+            <Link key={item.href} href={item.href} className={styles.insightCard}>
               <p className={styles.insightCategory}>{item.category}</p>
               <h3 className={styles.insightTitle}>{item.title}</h3>
               <p className={styles.insightExcerpt}>{item.excerpt}</p>

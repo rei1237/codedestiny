@@ -1,152 +1,61 @@
-import { generatePageMetadata } from "../../lib/generate-page-metadata";
-import { ABOUT_PAGE_COPY } from "../_content/seo-copy";
-import { SUPPORT_EMAIL } from "../../lib/site-policy-config";
+import Link from "next/link";
+import { buildSeoMetadata } from "../../lib/seo";
+import { buildAboutPageJsonLd, buildOrganizationJsonLd } from "../../lib/structured-data";
+import { publicSeoPages } from "../../lib/seo/siteSeo";
 
-export function generateMetadata() {
-  return generatePageMetadata({
-    path: "/about",
-    title: "무료 사주 · 자미두수 운세 분석 서비스 소개 | Code Destiny",
-    description:
-      "Code Destiny(꿀꿀 만세력)는 사주팔자·타로·점성술·자미두수·숙요점 등 20가지 이상의 운세를 무료로 제공하는 AI 운세 플랫폼입니다. 서비스 미션·운영 원칙·운영자 정보·광고 정책을 확인하세요.",
-    keywords: [
-      "Code Destiny", "꿀꿀 만세력", "무료 운세 플랫폼", "서비스 소개", "운영자 소개",
-      "사주 서비스", "타로 서비스", "운세 앱", "AI 운세", "무료 사주",
-    ],
-  });
-}
+const seo = publicSeoPages.about;
 
-/* ── 구조화 데이터 (JSON-LD) — 조직 + 웹페이지 ── */
-const ABOUT_JSON_LD = JSON.stringify({
+export const metadata = buildSeoMetadata(seo);
+
+const jsonLd = JSON.stringify({
   "@context": "https://schema.org",
   "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://code-destiny.com/#organization",
-      name: "Code Destiny",
-      alternateName: ["코드 데스티니", "꿀꿀 만세력", "Ggulggul Manseryeok", "codedestiny"],
-      url: "https://code-destiny.com",
-      logo: {
-        "@type": "ImageObject",
-        url: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",
-        width: 512,
-        height: 512,
-      },
-      contactPoint: {
-        "@type": "ContactPoint",
-        email: SUPPORT_EMAIL,
-        contactType: "customer support",
-        availableLanguage: ["Korean", "English"],
-      },
-      sameAs: [
-        "https://code-destiny.com",
-        "https://code-destiny.com/insights",
-        "https://blog.naver.com/codedestiny",
-        "https://www.instagram.com/code_destiny_official/",
-      ],
-    },
-    {
-      "@type": "WebPage",
-      "@id": "https://code-destiny.com/about#webpage",
-      url: "https://code-destiny.com/about",
-      name: "서비스 소개 — Code Destiny 꿀꿀 만세력",
-      description:
-        "Code Destiny는 사주팔자·타로·자미두수·점성술·숙요점 등 20종 이상의 무료 운세를 제공하는 AI 기반 운세 플랫폼입니다.",
-      inLanguage: "ko",
-      isPartOf: { "@id": "https://code-destiny.com/#website" },
-      about: { "@id": "https://code-destiny.com/#organization" },
-      dateModified: "2026-04-03",
-    },
+    buildOrganizationJsonLd(),
+    buildAboutPageJsonLd({
+      path: "/about",
+      title: seo.title,
+      description: seo.description,
+    }),
   ],
 });
 
 export default function AboutPage() {
   return (
     <main className="cd-main-shell">
-      <script
-        type="application/ld+json"
-        // Static JSON-LD string defined in this module.
-        dangerouslySetInnerHTML={{ __html: ABOUT_JSON_LD }}
-      />
-
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <header className="cd-main-header">
-        <h1 className="cd-main-title">{ABOUT_PAGE_COPY.heading}</h1>
-        <p className="cd-main-intro">{ABOUT_PAGE_COPY.intro}</p>
+        <h1 className="cd-main-title">Code Destiny 소개</h1>
+        <p className="cd-main-intro">
+          Code Destiny는 무료 사주팔자, 만세력, 타로, 오늘의 운세, 궁합, 자미두수, 점성술, 숙요점을 한곳에서 살펴볼 수 있는 한국어 운세 플랫폼입니다.
+          모든 해석은 오락과 자기성찰을 돕는 참고 자료로 제공됩니다.
+        </p>
       </header>
 
       <section className="cd-card">
-        <h2 style={{ marginTop: 0, marginBottom: "10px", color: "#f8fafc", fontSize: "clamp(1rem,2.5vw,1.2rem)" }}>
-          브랜드 및 공식명
-        </h2>
-        <ul style={{ margin: 0, paddingLeft: "18px", lineHeight: 1.85, color: "#dbe5ff" }}>
-          <li>Code Destiny</li>
-          <li>코드 데스티니</li>
-          <li>꿀꿀 만세력</li>
-          <li>code-destiny.com / codedestiny</li>
+        <h2>제공 서비스</h2>
+        <ul>
+          <li>사주 만세력, 오행, 십성, 대운 흐름 해석</li>
+          <li>타로 카드 리딩과 연애, 재회, 마음 해석</li>
+          <li>자미두수, 점성술, 숙요점, 궁합, 오늘의 운세</li>
+          <li>프리미엄 리포트와 공개 가이드 문서</li>
         </ul>
       </section>
 
       <section className="cd-card">
-        <h2 style={{ marginTop: 0, marginBottom: "10px", color: "#f8fafc", fontSize: "clamp(1rem,2.5vw,1.2rem)" }}>
-          운영 정보
-        </h2>
-        <div style={{ display: "grid", gap: "8px" }}>
-          {ABOUT_PAGE_COPY.operatorRows.map(([label, value]) => (
-            <div
-              key={label}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "minmax(130px, 170px) 1fr",
-                gap: "10px",
-                padding: "9px 10px",
-                borderRadius: "10px",
-                border: "1px solid rgba(148,163,184,0.2)",
-                background: "rgba(15,23,42,0.35)",
-              }}
-            >
-              <strong style={{ color: "#f8eecb", fontSize: "0.88rem" }}>{label}</strong>
-              <span style={{ color: "#dbe5ff", lineHeight: 1.72 }}>{value}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="cd-card">
-        <h2 style={{ marginTop: 0, marginBottom: "10px", color: "#f8fafc", fontSize: "clamp(1rem,2.5vw,1.2rem)" }}>
-          주요 서비스
-        </h2>
-        <ul style={{ margin: 0, paddingLeft: "18px", lineHeight: 1.85, color: "#dbe5ff" }}>
-          {ABOUT_PAGE_COPY.serviceItems.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="cd-card">
-        <h2 style={{ marginTop: 0, marginBottom: "10px", color: "#f8fafc", fontSize: "clamp(1rem,2.5vw,1.2rem)" }}>
-          운영 원칙 및 면책
-        </h2>
-        <p style={{ margin: 0, color: "#dbe5ff", lineHeight: 1.85 }}>
-          본 서비스는 사주·타로·자미두수·점성술 해석을 자기이해와 선택 정리의 참고 정보로 제공합니다.
-          의료, 법률, 투자 판단을 대체하지 않으며 최종 의사결정 책임은 사용자에게 있습니다.
+        <h2>운영 원칙</h2>
+        <p>
+          개인의 선택을 대신하거나 불안을 조장하는 표현을 지양합니다.
+          건강, 법률, 투자, 금융처럼 전문 판단이 필요한 영역은 반드시 해당 분야 전문가와 상담해야 합니다.
         </p>
       </section>
 
       <section className="cd-card">
-        <h2 style={{ marginTop: 0, marginBottom: "10px", color: "#f8fafc", fontSize: "clamp(1rem,2.5vw,1.2rem)" }}>
-          공식 채널 및 관련 링크
-        </h2>
+        <h2>관련 문서</h2>
         <div className="cd-chip-wrap">
-          {ABOUT_PAGE_COPY.relatedLinks.map(([href, label]) => (
-            <a key={href} href={href} className="cd-chip">
-              {label}
-            </a>
-          ))}
-          <a href="https://blog.naver.com/codedestiny" className="cd-chip" target="_blank" rel="noreferrer noopener">
-            네이버 블로그
-          </a>
-          <a href="https://www.instagram.com/code_destiny_official/" className="cd-chip" target="_blank" rel="noreferrer noopener">
-            인스타그램
-          </a>
+          <Link href="/methodology" className="cd-chip">운세 콘텐츠 방법론</Link>
+          <Link href="/faq" className="cd-chip">자주 묻는 질문</Link>
+          <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
+          <Link href="/high-value" className="cd-chip">운세 인사이트 가이드</Link>
         </div>
       </section>
     </main>

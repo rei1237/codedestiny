@@ -1,24 +1,8 @@
 import type { Metadata } from "next";
-import { LOCALE_CONFIG, Locale } from "../i18n/locales";
+import { SEO_CORE_KEYWORDS, mergeKeywords } from "../seo-metadata";
+import { LOCALE_CONFIG, Locale, SEO_INDEXABLE_LOCALES } from "../i18n/locales";
+import { siteSeo } from "./siteSeo";
 import { createCanonicalFromLocaleRoutes, createHreflangFromRoutes } from "./createHreflang";
-
-const SEO_REQUIRED_PLATFORM_KEYWORDS = [
-  "코드 데스티니",
-  "Code Destiny",
-  "무료 운세",
-  "숙요점",
-  "사주팔자",
-  "자미두수 명반",
-  "타로 카드",
-  "베다 점성술",
-  "고품질 운세 리포트",
-];
-
-function mergeUniqueKeywords(input: string[] = []): string[] {
-  return Array.from(
-    new Set([...SEO_REQUIRED_PLATFORM_KEYWORDS, ...input.map((item) => String(item || "").trim()).filter(Boolean)]),
-  );
-}
 
 type CreateI18nMetadataInput = {
   locale: Locale;
@@ -38,24 +22,27 @@ export function createI18nMetadata(input: CreateI18nMetadataInput): Metadata {
     title,
     description,
     keywords = [],
-    image = "/icons/꿀꿀 운세 로고.webp",
+    image = siteSeo.defaultOgImage,
     noindex = false,
     type = "website",
   } = input;
 
   const localeConfig = LOCALE_CONFIG[locale];
+  const localeIsIndexable = (SEO_INDEXABLE_LOCALES as readonly string[]).includes(locale);
+  const shouldNoindex = noindex || !localeIsIndexable;
   const canonical = createCanonicalFromLocaleRoutes(locale, routeByLocale);
-  const languages = createHreflangFromRoutes(routeByLocale);
-  const imageUrl = image.startsWith("http") ? image : new URL(image, canonical).toString();
-  const mergedKeywords = mergeUniqueKeywords(keywords);
+  const languages = localeIsIndexable ? createHreflangFromRoutes(routeByLocale) : undefined;
+  const imageUrl = image.startsWith("http") ? image : new URL(image, siteSeo.siteUrl).toString();
+  const mergedKeywords = mergeKeywords(SEO_CORE_KEYWORDS, keywords);
 
   return {
+    metadataBase: new URL(siteSeo.siteUrl),
     title,
     description,
     keywords: mergedKeywords,
     alternates: {
       canonical,
-      languages,
+      ...(languages ? { languages } : {}),
     },
     openGraph: {
       type,
@@ -74,20 +61,31 @@ export function createI18nMetadata(input: CreateI18nMetadataInput): Metadata {
       ],
     },
     twitter: {
-      card: "summary_large_image",
+      card: siteSeo.twitterCard,
       title,
       description,
       images: [imageUrl],
     },
-    robots: {
-      index: !noindex,
-      follow: !noindex,
-      nocache: noindex,
-      googleBot: {
-        index: !noindex,
-        follow: !noindex,
-      },
-    },
+    robots: shouldNoindex
+      ? {
+          index: false,
+          follow: false,
+          googleBot: {
+            index: false,
+            follow: false,
+          },
+        }
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+            "max-video-preview": -1,
+          },
+        },
     other: {
       "content-language": localeConfig.htmlLang,
     },

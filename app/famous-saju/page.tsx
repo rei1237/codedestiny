@@ -5,7 +5,7 @@ import { buildCelebrityReading, categoryToSlug, famousSajuCategories, publishedC
 
 export const metadata = generatePageMetadata({
   path: "/famous-saju",
-  title: "유명인 사주 분석 아카이브 | Code Destiny",
+  title: "유명인 사주 분석 아카이브",
   description: "역사 위인, K-스타, 배우, 가수, 스포츠 스타의 생년월일을 바탕으로 내부 사주 엔진이 계산한 일간·오행·사주 흐름을 정리한 유명인 사주 분석 아카이브입니다.",
   keywords: ["유명인 사주", "연예인 사주", "BTS 사주", "아이유 사주", "손흥민 사주", "유명인 사주풀이"],
 });
@@ -16,7 +16,7 @@ function CelebrityCard({ slug }: { slug: string }) {
   if (!celebrity || !reading) return null;
 
   return (
-    <Link href={`/famous-saju/${celebrity.slug}`} className="group rounded-lg border border-white/10 bg-white/[0.045] p-4 transition hover:border-amber-200/50 hover:bg-white/[0.075]">
+    <Link href={`/insights/famous-saju/${celebrity.slug}`} className="group rounded-lg border border-white/10 bg-white/[0.045] p-4 transition hover:border-amber-200/50 hover:bg-white/[0.075]">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs text-amber-100/70">{celebrity.category}</p>
@@ -36,7 +36,7 @@ function CelebrityCard({ slug }: { slug: string }) {
 
 export default function FamousSajuPage() {
   const webPage = buildWebPageJsonLd({
-    title: "유명인 사주 분석 아카이브 | Code Destiny",
+    title: "유명인 사주 분석 아카이브",
     description: "내부 사주 엔진 계산 결과를 바탕으로 유명인의 일간, 오행, 직업운 흐름을 읽는 아카이브입니다.",
     path: "/famous-saju",
   });

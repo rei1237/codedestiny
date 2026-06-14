@@ -89,11 +89,11 @@ interface ReadingResult {
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────────
 const POSITIONS: TarotPos[] = [
-  { id: "top",    label: "위",   meaning: "겉으로 보이는 태도",       icon: "🎭", col: 2, row: 1 },
-  { id: "left",   label: "좌",   meaning: "속마음의 결",               icon: "💓", col: 1, row: 2 },
-  { id: "center", label: "중앙", meaning: "다가오지 않는 이유",        icon: "🧱", col: 2, row: 2, isCenter: true },
-  { id: "right",  label: "우",   meaning: "숨겨진 욕구",               icon: "🫧", col: 3, row: 2 },
-  { id: "bottom", label: "아래", meaning: "관계에 대한 판단",          icon: "⚖️", col: 2, row: 3 },
+  { id: "top",    label: "겉말",   meaning: "겉으로 보이는 태도",       icon: "🎭", col: 2, row: 1 },
+  { id: "left",   label: "마음결", meaning: "남은 감정의 결",           icon: "💓", col: 1, row: 2 },
+  { id: "center", label: "멈춤",   meaning: "멈춰 선 이유",             icon: "🧱", col: 2, row: 2, isCenter: true },
+  { id: "right",  label: "바람",   meaning: "말하지 못한 바람",         icon: "🫧", col: 3, row: 2 },
+  { id: "bottom", label: "현실",   meaning: "관계의 현실 판단",         icon: "⚖️", col: 2, row: 3 },
 ];
 
 const DECK_SIZE = 78;
@@ -296,7 +296,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/fuctionassets/mindscantaro.webp"
-              alt="속마음 타로"
+              alt="말과 행동 사이 타로"
               className="w-full h-full object-cover"
               width={520}
               height={520}
@@ -329,9 +329,9 @@ function IntroStage({ onStart }: { onStart: () => void }) {
             <span className="px-2.5 py-1 rounded-full border border-cyan-300/30 bg-cyan-400/10 text-[10px] tracking-[0.22em] text-cyan-100/85 uppercase">Stellar Reading</span>
             <span className="px-2.5 py-1 rounded-full border border-fuchsia-300/30 bg-fuchsia-400/10 text-[10px] tracking-[0.22em] text-fuchsia-100/85 uppercase">Mind Scan</span>
           </div>
-          <p className="text-[11px] tracking-[0.55em] text-purple-300/70 uppercase">Mind Scan Tarot</p>
+          <p className="text-[11px] tracking-[0.55em] text-purple-300/70 uppercase">Between Words Tarot</p>
           <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight drop-shadow-[0_0_20px_rgba(192,132,252,0.42)]" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
-            그 사람 마음의 결<br />
+            말과 행동 사이의 온도<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-fuchsia-300 to-pink-400">
               관계 간격 리딩
             </span>
@@ -375,7 +375,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
 
         <motion.p className="mt-5 text-[10px] text-purple-500/38 tracking-widest"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85 }}>
-          ✦ 그 사람의 말과 행동을 조용히 떠올리며 시작하세요 ✦
+          ✦ 그 사람의 말, 행동, 침묵을 조용히 떠올리며 시작하세요 ✦
         </motion.p>
         </motion.div>
       </div>
@@ -422,7 +422,7 @@ function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStage
 
       {/* Header */}
       <div className={`flex-shrink-0 pt-5 pb-3 px-4 text-center mx-auto mt-3 w-[min(100%,34rem)] ${COSMIC_PANEL}`}>
-        <p className="text-[10px] tracking-[0.42em] text-purple-400/58 uppercase mb-1">Mind Scan Tarot</p>
+        <p className="text-[10px] tracking-[0.42em] text-purple-400/58 uppercase mb-1">Between Words Tarot</p>
         <motion.h2 key={round} className="text-xl sm:text-2xl font-bold text-white"
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           {round === "main"
@@ -532,7 +532,7 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
 
         {/* Header */}
         <motion.div className={`text-center mb-7 w-full max-w-2xl px-5 py-5 ${COSMIC_PANEL}`} initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
-          <p className="text-[10px] tracking-[0.45em] text-purple-400/60 uppercase mb-1">Mind Scan Tarot</p>
+          <p className="text-[10px] tracking-[0.45em] text-purple-400/60 uppercase mb-1">Between Words Tarot</p>
           <AnimatePresence mode="wait">
             <motion.h2 key={allRevealed ? "done" : `r${revealedCount}`}
               className="text-xl sm:text-2xl font-bold text-white"
@@ -634,7 +634,7 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
                   <textarea
                     value={question}
                     onChange={(event) => onQuestionChange(event.target.value)}
-                    placeholder="예: 그 사람이 먼저 다시 연락할 가능성이 있는지, 있다면 어떤 방식으로 접근해야 하는지 알고 싶어요."
+                    placeholder="예: 요즘 말과 행동이 달라졌는데, 지금은 어떤 거리와 속도로 다가가야 할까요?"
                     rows={3}
                     className="w-full resize-none rounded-2xl border border-fuchsia-200/20 bg-slate-900/70 px-4 py-3 text-sm leading-relaxed text-white outline-none transition focus:border-fuchsia-300/45 focus:bg-slate-900"
                   />
@@ -755,10 +755,10 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
   }, [reading.sections?.length]);
 
   const buildText = useCallback(() => [
-    "[속마음 타로 리딩]", `페르소나: ${reading.persona}`, "",
+    "[말과 행동 사이 타로 리딩]", `페르소나: ${reading.persona}`, "",
     `감정 온도: ${summaryCard.emotionalTemperatureText || `${summaryCard.emotionalTemperature || 3} / 5`}`,
     `현재 심리: ${summaryCard.corePsychology || "미련은 있지만 먼저 다가오기는 조심스러운 상태"}`,
-    `연락 가능성: ${summaryCard.contactChance || "낮지는 않지만, 방어심리가 변수"}`,
+    `다시 닿을 여지: ${summaryCard.contactChance || "낮지는 않지만, 방어심리가 변수"}`,
     `관계 흐름: ${summaryCard.relationFlow || "단절보다 거리두기에 가까운 흐름"}`,
     `관계 단계: ${summaryCard.relationshipStage || "유보형 거리두기 단계"}`,
     `침묵 동인: ${summaryCard.silenceDriver || "자존심과 상처 재발 우려가 먼저 작동"}`,
@@ -766,16 +766,16 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
     `감정 욕구: ${summaryCard.emotionalNeed || "안전감과 존중 확인 욕구"}`,
     `추천 행동: ${summaryCard.recommendedAction || "부담 없는 안부로 접점 만들기"}`,
     "",
-    "[속마음 종합 상담]",
-    `상대의 감정 온도: ${innerHeartSummary.emotionalTemperature || "감정과 방어가 동시에 움직이는 흐름"}`,
-    `숨겨진 핵심 마음: ${innerHeartSummary.hiddenCore || "겉표현 아래에 망설임과 미련이 함께 남아 있습니다."}`,
-    `연락 가능성: ${innerHeartSummary.contactPossibility || "타이밍을 존중한 접근에서 반응 가능성이 열립니다."}`,
+    "[관계 간격 종합 상담]",
+    `감정 온도: ${innerHeartSummary.emotionalTemperature || "감정과 방어가 동시에 움직이는 흐름"}`,
+    `겉말 아래 남은 감정: ${innerHeartSummary.hiddenCore || "겉표현 아래에 망설임과 미련이 함께 남아 있습니다."}`,
+    `다시 닿을 여지: ${innerHeartSummary.contactPossibility || "타이밍을 존중한 접근에서 반응 가능성이 열립니다."}`,
     `관계의 위험 신호: ${innerHeartSummary.relationshipRisk || "확답 요구와 감정 압박은 방어를 강화할 수 있습니다."}`,
     `내가 취할 태도: ${innerHeartSummary.recommendedAttitude || "짧고 안정적인 메시지로 리듬을 맞추는 태도"}`,
     `최종 흐름: ${innerHeartSummary.finalFlow || "조정 구간을 거치며 관계 방향이 정해지는 흐름"}`,
     `오라클 메시지: ${innerHeartSummary.oracleMessage || "안전감을 주는 말 한 줄이 흐름을 바꿉니다."}`,
     "",
-    "[상대방 감정/상황 딥다이브 카드]",
+    "[감정과 상황의 딥다이브 카드]",
     ...(insightDeck || []).map((card, idx) =>
       [
         `${idx + 1}. ${card.category} - ${card.title}`,
@@ -808,20 +808,20 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
 
   const handleShare = useCallback(async () => {
     if (navigator.share) {
-      try { await navigator.share({ title: "속마음 타로 리딩", text: reading.intro }); showMsg("공유 완료!"); return; } catch (e) {}
+      try { await navigator.share({ title: "말과 행동 사이 타로 리딩", text: reading.intro }); showMsg("공유 완료!"); return; } catch (e) {}
     }
-    try { await navigator.clipboard.writeText(buildText()); showMsg("텍스트 복사됨!"); } catch (e) { showMsg("공유 실패"); }
+    try { await navigator.clipboard.writeText(buildText()); showMsg("리딩 문장이 복사되었습니다."); } catch (e) { showMsg("공유 실패"); }
   }, [reading, buildText]);
 
   const handleKakaoShare = useCallback(async () => {
     const currentUrl = typeof window !== "undefined"
       ? window.location.href
       : "https://code-destiny.com/tarot/mindscan";
-    const shareTitle = "속마음 타로 리딩";
+    const shareTitle = "말과 행동 사이 타로 리딩";
     const shortIntro = String(reading?.intro || "")
       .replace(/\s+/g, " ")
       .slice(0, 90);
-    const shareDesc = shortIntro || "겉말과 속마음의 간격을 섬세하게 읽는 마인드 스캔 타로";
+    const shareDesc = shortIntro || "말과 행동 사이의 온도를 섬세하게 읽는 관계 간격 타로";
 
     try {
       const kakao = (window as Window & {
@@ -855,7 +855,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             link: { mobileWebUrl: currentUrl, webUrl: currentUrl },
           },
           buttons: [{
-            title: "리딩 확인하기",
+            title: "리딩 열기",
             link: { mobileWebUrl: currentUrl, webUrl: currentUrl },
           }],
         });
@@ -918,9 +918,9 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
           <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-amber-300/35 bg-amber-200/10 text-lg text-amber-100 shadow-[0_0_18px_rgba(251,191,36,0.38)]">
             ✦
           </div>
-          <p className="text-[11px] tracking-[0.55em] text-amber-200/72 uppercase mb-2">Mind Scan Tarot · 관계 간격 리딩</p>
+          <p className="text-[11px] tracking-[0.55em] text-amber-200/72 uppercase mb-2">Between Words Tarot · 관계 간격 리딩</p>
           <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow-[0_0_20px_rgba(251,191,36,0.2)]" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
-            그 사람 마음의 결이{" "}
+            말과 행동 사이의 온도가{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-rose-200">열렸습니다</span>
           </h2>
           <div className="flex items-center justify-center gap-3 mt-2.5">
@@ -979,7 +979,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             style={{ background: "linear-gradient(130deg,rgba(120,53,15,0.28),rgba(146,64,14,0.12),rgba(30,41,59,0.3))" }}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: visibleCount >= 4 ? 1 : 0, y: visibleCount >= 4 ? 0 : 14 }}>
-            <h3 className="text-base sm:text-lg font-black text-amber-50 mb-3" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>속마음의 전체 기류</h3>
+            <h3 className="text-base sm:text-lg font-black text-amber-50 mb-3" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>관계 간격의 전체 기류</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm">
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/95">
                 감정 온도: <b>{summaryCard.emotionalTemperatureText || `${summaryCard.emotionalTemperature || 3} / 5`}</b>
@@ -988,7 +988,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                 다시 열릴 여지: <b>{summaryCard.reApproachChance || "중간"}</b>
               </div>
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/95">
-                연락 가능성: <b>{summaryCard.contactChance || "낮지는 않지만, 방어심리가 변수"}</b>
+                다시 닿을 여지: <b>{summaryCard.contactChance || "낮지는 않지만, 방어심리가 변수"}</b>
               </div>
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/95">
                 관계 흐름: <b>{summaryCard.relationFlow || "단절보다 거리두기에 가까움"}</b>
@@ -1013,13 +1013,13 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             </div>
             <div className="mt-4 grid grid-cols-1 gap-2 text-[12px]">
               <div className="rounded-xl border border-cyan-300/20 bg-cyan-500/10 px-3 py-2 text-cyan-50/95">
-                상대의 감정 온도: <b>{innerHeartSummary.emotionalTemperature || "감정과 방어가 동시에 움직이는 흐름"}</b>
+                감정 온도: <b>{innerHeartSummary.emotionalTemperature || "감정과 방어가 동시에 움직이는 흐름"}</b>
               </div>
               <div className="rounded-xl border border-indigo-300/20 bg-indigo-500/10 px-3 py-2 text-indigo-50/95">
-                가장 깊은 카드 결: <b>{innerHeartSummary.hiddenCore || "속마음과 망설임이 동시에 작동합니다."}</b>
+                가장 깊은 카드 결: <b>{innerHeartSummary.hiddenCore || "말 아래 남은 감정과 망설임이 동시에 작동합니다."}</b>
               </div>
               <div className="rounded-xl border border-amber-300/20 bg-amber-500/10 px-3 py-2 text-amber-50/95">
-                연락 가능성 요약: <b>{innerHeartSummary.contactPossibility || "압박 없는 접점에서 반응 가능성이 열립니다."}</b>
+                다시 닿을 여지: <b>{innerHeartSummary.contactPossibility || "압박 없는 접점에서 반응 가능성이 열립니다."}</b>
               </div>
               <div className="rounded-xl border border-emerald-300/20 bg-emerald-500/10 px-3 py-2 text-emerald-50/95">
                 오늘 내가 취할 태도: <b>{innerHeartSummary.recommendedAttitude || "짧고 안전한 대화 리듬을 먼저 만드세요."}</b>
@@ -1062,7 +1062,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                         <>
                           <p className="text-[10px] text-amber-100/78 mb-1 tracking-[0.12em] uppercase">{card.category}</p>
                           <p className="text-sm text-stone-50 font-semibold leading-5">{card.title}</p>
-                          <p className="text-[11px] text-amber-100/84 mt-2">{card.icon || "🃏"} OPEN</p>
+                          <p className="text-[11px] text-amber-100/84 mt-2">{card.icon || "🃏"} 열림</p>
                         </>
                       ) : (
                         <>
@@ -1167,7 +1167,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                 <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>카드의 얼굴:</b> {s.cardNameKo || s.mainCardName || "카드"} {s.orientation ? `(${s.orientation === "reversed" ? "역방향" : "정방향"})` : ""}</p>
                 <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>카드가 비춘 장면:</b> {s.cardMeaning || s.summary || s.content}</p>
                 <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>이 자리의 속삭임:</b> {s.positionMeaning || s.subtitle || "이 자리의 질문에 맞춘 해석"}</p>
-                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>속마음의 결:</b> {s.emotionalReading || s.summary || "감정과 방어가 함께 작동하는 흐름"}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>남은 감정의 결:</b> {s.emotionalReading || s.summary || "감정과 방어가 함께 작동하는 흐름"}</p>
                 <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>말하지 못한 메시지:</b> {s.hiddenMessage || "확답보다 안전한 대화 환경을 먼저 원하고 있습니다."}</p>
                 <p className="text-[13px] sm:text-sm text-amber-100/90 leading-7"><b>조심할 그림자:</b> {s.caution || "감정 확인을 몰아붙이면 방어가 강화될 수 있습니다."}</p>
                 <p className="text-[13px] sm:text-sm text-emerald-100/90 leading-7"><b>내가 건넬 태도:</b> {s.advice || "짧고 부담 없는 메시지로 리듬을 회복하세요."}</p>
@@ -1219,7 +1219,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             <h4 className="text-sm sm:text-base font-bold text-amber-50 mb-3">전체 종합 상담</h4>
             <div className="space-y-2">
               <p className="text-[13px] sm:text-sm text-cyan-100/92 leading-7"><b>관계의 위험 신호:</b> {innerHeartSummary.relationshipRisk || "확답을 강요하면 관계 방어가 강화될 수 있습니다."}</p>
-              <p className="text-[13px] sm:text-sm text-cyan-100/92 leading-7"><b>연락 가능성:</b> {innerHeartSummary.contactPossibility || "부담을 낮춘 접점에서 반응 가능성이 열립니다."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-100/92 leading-7"><b>다시 닿을 여지:</b> {innerHeartSummary.contactPossibility || "부담을 낮춘 접점에서 반응 가능성이 열립니다."}</p>
               <p className="text-[13px] sm:text-sm text-cyan-100/92 leading-7"><b>최종 흐름:</b> {innerHeartSummary.finalFlow || "관계는 조정 단계를 거쳐 방향을 결정할 가능성이 큽니다."}</p>
               <p className="text-[13px] sm:text-sm text-cyan-50/95 leading-7"><b>오라클 메시지:</b> {innerHeartSummary.oracleMessage || "안전감을 주는 말 한 줄이 상대의 방어를 낮춥니다."}</p>
             </div>
@@ -1236,7 +1236,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
             <div className="flex items-center justify-center gap-2 mt-3">
               <div className="w-8 h-px bg-amber-600/35" />
               <p className="text-[9px] text-amber-100/45 tracking-widest">
-                {reading.source === "rule-engine" ? "✦ 카드 의미 기반 리딩" : "✦ 마인드 스캔 리딩"}
+                {reading.source === "rule-engine" ? "✦ 카드 의미 기반 리딩" : "✦ 관계 간격 리딩"}
               </p>
               <div className="w-8 h-px bg-amber-600/35" />
             </div>
@@ -1248,7 +1248,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: visibleCount >= 15 ? 1 : 0, y: visibleCount >= 15 ? 0 : 8 }}>
           <div className={`${LUXE_CARD} p-3 sm:p-4`}>
-            <p className="text-[11px] text-amber-100/72 mb-3 tracking-[0.24em] uppercase text-center">Result Quick Actions</p>
+            <p className="text-[11px] text-amber-100/72 mb-3 tracking-[0.24em] uppercase text-center">리딩 저장과 공유</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <button
                 type="button"
@@ -1262,7 +1262,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
                 onClick={handleGoHome}
                 className="px-5 py-3 rounded-xl text-sm font-bold tracking-wide border border-rose-200/38 bg-rose-300/16 text-rose-50 hover:bg-rose-300/24 transition-colors"
               >
-                🏠 홈화면 바로가기
+                🏠 홈으로 가기
               </button>
             </div>
           </div>
@@ -1275,9 +1275,9 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
           {[
             { label: "📷 이미지 저장", fn: handleSaveImage, cls: "border-emerald-400/22 bg-emerald-500/8 text-emerald-100 hover:bg-emerald-500/18" },
             { label: "🔗 공유",       fn: handleShare,     cls: "border-fuchsia-400/22 bg-fuchsia-500/8 text-fuchsia-100 hover:bg-fuchsia-500/18" },
-            { label: "📋 텍스트 복사", fn: handleCopy,      cls: "border-amber-400/22 bg-amber-500/8 text-amber-100 hover:bg-amber-500/18" },
+            { label: "📋 리딩 문장 복사", fn: handleCopy,      cls: "border-amber-400/22 bg-amber-500/8 text-amber-100 hover:bg-amber-500/18" },
             { label: "💛 카카오톡 공유", fn: handleKakaoShare, cls: "border-yellow-300/35 bg-yellow-300/12 text-yellow-100 hover:bg-yellow-300/22" },
-            { label: "🏠 홈화면 바로가기", fn: handleGoHome, cls: "border-cyan-300/28 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20" },
+            { label: "🏠 홈으로 가기", fn: handleGoHome, cls: "border-cyan-300/28 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20" },
           ].map(b => (
             <button key={b.label} type="button" onClick={b.fn}
               className={`px-5 py-2.5 rounded-xl text-xs font-semibold tracking-wide border transition-colors ${b.cls}`}>
@@ -1294,7 +1294,7 @@ function ResultStage({ drawn, drawnSub, reading, onRestart, reportRef }: ResultS
 
         <button type="button" onClick={onRestart}
           className="mt-6 mb-12 px-8 py-3 rounded-full border border-amber-300/35 text-amber-100/78 text-sm font-medium tracking-wide hover:bg-amber-400/15 hover:text-amber-50 transition-all">
-          🔄 처음부터 다시 하기
+          🔄 다시 카드 열기
         </button>
       </div>
     </motion.div>
@@ -1437,7 +1437,7 @@ export default function MindScanTarot() {
 
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-mindscan",
-        reason: "마인드 스캔 타로 리딩",
+        reason: "말과 행동 사이 타로 리딩",
         forceDeduct: true,
         requestId: `tarot-mindscan:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         onPaid: async ({ chargedCoins, requiredCoins, balanceAfter }) => {
@@ -1445,12 +1445,12 @@ export default function MindScanTarot() {
           if (chargedCoins <= 0 && requiredCoins > 0) {
             showSubscriptionIncludedNotice({
               message: "구독 혜택이 적용되어 코인이 차감되지 않았습니다.",
-              reason: "마인드 스캔 타로",
+              reason: "말과 행동 사이 타로",
             });
             return;
           }
           if (chargedCoins > 0) {
-            showToast(`🪙 마인드 스캔 타로 이용으로 ${chargedCoins}코인이 차감되었습니다. 남은 코인: ${balanceAfter.toLocaleString("ko-KR")}`, "info");
+            showToast(`🪙 말과 행동 사이 타로 이용으로 ${chargedCoins}코인이 차감되었습니다. 남은 코인: ${balanceAfter.toLocaleString("ko-KR")}`, "info");
           }
         },
       });

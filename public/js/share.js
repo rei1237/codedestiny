@@ -381,22 +381,35 @@ function shareSukuyoKakao() {
     var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
       ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
       : (window.USER_NAME || '나');
-    var section = document.getElementById('sukuyoSection');
-    var preview = section ? _trimShareText(section.innerText, 240) : '';
+    var basic = (window._syLastSukuyoBasicResult && typeof window._syLastSukuyoBasicResult === 'object')
+      ? window._syLastSukuyoBasicResult
+      : {};
+    var displayIndex = basic.displayIndex || (Number.isFinite(Number(basic.mansionIdx)) ? Number(basic.mansionIdx) + 1 : '');
+    var daily = (basic.daily && typeof basic.daily === 'object') ? basic.daily : {};
+    var dailyMoon = (daily.moon && typeof daily.moon === 'object') ? daily.moon : {};
+    var lines = [];
+    if (basic.mansion) lines.push('본명숙: ' + basic.mansion + (displayIndex ? ' · ' + displayIndex + '/27' : ''));
+    if (dailyMoon.label) lines.push('오늘 달 리듬: ' + dailyMoon.label);
+    if (daily.insight) lines.push('핵심 조언: ' + _trimShareText(daily.insight, 90));
+    var preview = lines.length ? lines.join('\n') : '';
+    if (!preview) {
+      var section = document.getElementById('sukuyoSection');
+      preview = section ? _trimShareText(section.innerText, 180) : '';
+    }
     var base = window.location.href.split('?')[0];
-    var text = '💫 [숙요점 결과 공유]\n\n'
-      + name + '님의 숙요점 결과입니다.\n'
+    var text = '[무료 기본 숙요점 결과]\n\n'
+      + name + '님의 기본 숙요점 요약입니다.\n'
       + (preview ? ('\n' + preview + '\n') : '\n')
-      + '\n나도 무료로 확인하기 👇\n' + base;
+      + '\n나의 본명숙 확인하기\n' + base;
     if (navigator.share) {
-      navigator.share({ title: '💫 숙요점 결과', text: text, url: base }).catch(function(){});
+      navigator.share({ title: '무료 기본 숙요점 결과', text: text, url: base }).catch(function(){});
       return;
     }
     var a = document.createElement('a');
     a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
     a.click();
     setTimeout(function() {
-      copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬');
+      copyToClipboard(text, '숙요점 공유 문구를 복사했어요. 카카오톡에 붙여넣어 주세요.');
     }, 800);
   }, 'sukuyo');
 }
@@ -1170,133 +1183,223 @@ function getSubscriptionApiBaseUrl() {
   return '';
 }
 
-async function subscribeEmail() {
-  const emailVal = document.getElementById('subEmail').value.trim();
-  const subDaily = document.getElementById('subDaily').checked;
-  const subMonthly = document.getElementById('subMonthly').checked;
-  
-  if(!emailVal) {
-    alert('이메일 주소를 입력해주세요!');
-    return;
-  }
-  if (!emailVal.includes('@')) {
-    alert('유효한 이메일 주소를 입력해주세요.');
-    return;
-  }
-  if(!subDaily && !subMonthly) {
-    alert('일일 운세 또는 월별 운세 중 하나 이상을 선택해주세요!');
-    return;
-  }
-
-  // 1) 사주 분석 여부 확인
-  if(!window.G_PILLARS) {
-    alert('운세 구독을 위해 먼저 상단에서 [사주 분석하기]를 완료해주세요!');
-    return;
-  }
-
-  // 2) 오늘/이번달 정보 추출
-  const today = new Date();
-  const ty = today.getFullYear(), tm = today.getMonth() + 1, td = today.getDate(), th = today.getHours();
-  const dayGZ = getGanZhiForDate(ty, tm, td, th);
-  const monGZ = getMonthGanZhi(ty, tm);
-  const dayRes = analyzeFortuneGZ(dayGZ, window.G_PILLARS, '오늘 일진');
-  const monRes = analyzeFortuneGZ(monGZ, window.G_PILLARS, '이달 월운');
-
-  if ((subDaily && !dayRes) || (subMonthly && !monRes)) {
-    alert('운세 데이터 생성에 실패했습니다. 잠시 후 다시 시도해주세요.');
-    return;
-  }
-
-  const apiBase = getSubscriptionApiBaseUrl();
-  const endpoint = (apiBase ? apiBase : '') + '/api/subscriptions/daily-fortune';
-
-  const birthDateEl = document.getElementById('birthDate');
-  const birthYearVal = birthDateEl && birthDateEl.value ? parseInt(birthDateEl.value.split('-')[0], 10) || null : null;
-
+function cloneSubscriptionData(value) {
   try {
-    const resp = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: emailVal,
-        subDaily: !!subDaily,
-        subMonthly: !!subMonthly,
-        birthYear: birthYearVal || undefined,
-      }),
-    });
-
-    if (!resp.ok) {
-      let message = '구독 등록에 실패했습니다.';
-      try {
-        const payload = await resp.json();
-        if (payload && payload.message) message = payload.message;
-      } catch (_) {}
-      throw new Error(message);
-    }
-
-    alert(emailVal + ' 주소로 매일 운세 자동 발송 구독이 등록되었습니다!\n내일부터 매일 생성되는 운세 메일이 자동 전송됩니다.');
-    document.getElementById('subEmail').value = '';
-  } catch (err) {
-    var detail = (err && err.message) ? ('\n\n오류: ' + err.message) : '';
-    alert('구독 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' + detail);
+    return JSON.parse(JSON.stringify(value));
+  } catch (_) {
+    return null;
   }
 }
 
-// 홈 화면 전용 이메일 구독 (사주 분석 없이 바로 구독 가능)
-async function subscribeEmailHome() {
-  const emailVal = document.getElementById('subEmailHome').value.trim();
-  const subDaily = document.getElementById('subDailyHome').checked;
-  const subMonthly = document.getElementById('subMonthlyHome').checked;
+function getCheckedFormValue(name, fallback) {
+  try {
+    var nodes = document.getElementsByName(name);
+    for (var i = 0; i < nodes.length; i += 1) {
+      if (nodes[i].checked) return nodes[i].value || fallback;
+    }
+  } catch (_) {}
+  return fallback;
+}
+
+function getBirthSubscriptionData() {
+  var birthDateEl = document.getElementById('birthDate');
+  var birthHourEl = document.getElementById('birthHour');
+  var birthMinuteEl = document.getElementById('birthMinute');
+  var birthDate = birthDateEl && birthDateEl.value ? String(birthDateEl.value).trim() : '';
+  var birthHour = birthHourEl && birthHourEl.value !== '' ? parseInt(birthHourEl.value, 10) : 12;
+  var birthMinute = birthMinuteEl && birthMinuteEl.value !== '' ? parseInt(birthMinuteEl.value, 10) : 0;
+  return {
+    birthDate: birthDate,
+    birthYear: birthDate ? parseInt(birthDate.split('-')[0], 10) || undefined : undefined,
+    birthHour: Number.isFinite(birthHour) ? birthHour : 12,
+    birthMinute: Number.isFinite(birthMinute) ? birthMinute : 0,
+    calendarType: getCheckedFormValue('calType', 'solar'),
+    timezone: 'Asia/Seoul'
+  };
+}
+
+function buildSajuSubscriptionPayload(emailVal, subDaily, subMonthly, source) {
+  if (!window.G_PILLARS) {
+    return { error: '사주 기반 일일 운세 구독을 위해 먼저 생년월일로 사주 분석을 완료해 주세요.' };
+  }
+  if (typeof getGanZhiForDate !== 'function' || typeof getMonthGanZhi !== 'function' || typeof analyzeFortuneGZ !== 'function') {
+    return { error: '운세 계산 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.' };
+  }
+
+  var today = new Date();
+  var ty = today.getFullYear(), tm = today.getMonth() + 1, td = today.getDate(), th = today.getHours();
+  var dayGZ = getGanZhiForDate(ty, tm, td, th);
+  var monGZ = getMonthGanZhi(ty, tm);
+  var dayRes = analyzeFortuneGZ(dayGZ, window.G_PILLARS, '오늘 일진');
+  var monRes = analyzeFortuneGZ(monGZ, window.G_PILLARS, '이달 월운');
+
+  if ((subDaily && !dayRes) || (subMonthly && !monRes)) {
+    return { error: '운세 데이터 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.' };
+  }
+
+  var birth = getBirthSubscriptionData();
+  return {
+    payload: {
+      email: emailVal,
+      subDaily: !!subDaily,
+      subMonthly: false,
+      source: source || 'saju-analysis',
+      birthYear: birth.birthYear,
+      birthDate: birth.birthDate,
+      birthHour: birth.birthHour,
+      birthMinute: birth.birthMinute,
+      calendarType: birth.calendarType,
+      timezone: birth.timezone,
+      sajuSnapshot: {
+        pillars: cloneSubscriptionData(window.G_PILLARS),
+        natal: cloneSubscriptionData(window.G_NATAL || null),
+        power: cloneSubscriptionData(window.G_POWER || null),
+        johu: cloneSubscriptionData(window.G_JOHU || null),
+        jong: cloneSubscriptionData(window.G_JONG || null),
+        birth: cloneSubscriptionData(birth),
+        dailyPreview: cloneSubscriptionData(dayRes || null),
+        monthlyPreview: cloneSubscriptionData(monRes || null)
+      }
+    }
+  };
+}
+
+var SAJU_SUBSCRIPTION_IN_FLIGHT = { result: false, home: false };
+
+function getSajuSubscriptionConfig(scope) {
+  var isHome = scope === 'home';
+  return {
+    scope: isHome ? 'home' : 'result',
+    action: isHome ? 'subscribeEmailHome' : 'subscribeEmail',
+    source: isHome ? 'home-after-saju-analysis' : 'saju-analysis',
+    emailEl: document.getElementById(isHome ? 'subEmailHome' : 'subEmail'),
+    dailyEl: document.getElementById(isHome ? 'subDailyHome' : 'subDaily'),
+    monthlyEl: document.getElementById(isHome ? 'subMonthlyHome' : 'subMonthly'),
+    statusEl: document.getElementById(isHome ? 'subEmailHomeStatus' : 'subEmailStatus')
+  };
+}
+
+function setSajuSubscriptionStatus(scope, state, message) {
+  var cfg = getSajuSubscriptionConfig(scope);
+  var el = cfg.statusEl;
+  if (!el) {
+    if (message) showToast(message);
+    return;
+  }
+  var palette = {
+    info: ['rgba(30,41,59,.42)', 'rgba(148,163,184,.32)', '#e2e8f0'],
+    pending: ['rgba(69,26,3,.44)', 'rgba(245,158,11,.38)', '#fde68a'],
+    success: ['rgba(6,78,59,.42)', 'rgba(52,211,153,.38)', '#d1fae5'],
+    error: ['rgba(127,29,29,.42)', 'rgba(248,113,113,.42)', '#fee2e2']
+  };
+  var colors = palette[state] || palette.info;
+  el.textContent = message || '';
+  el.dataset.state = state || 'info';
+  el.style.display = message ? 'block' : 'none';
+  el.style.background = colors[0];
+  el.style.borderColor = colors[1];
+  el.style.color = colors[2];
+}
+
+function setSajuSubscriptionPending(scope, pending) {
+  var cfg = getSajuSubscriptionConfig(scope);
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('[data-action="' + cfg.action + '"]'));
+  [cfg.emailEl, cfg.dailyEl, cfg.monthlyEl].concat(buttons).forEach(function(node) {
+    if (!node) return;
+    node.disabled = !!pending;
+    if (node.tagName === 'BUTTON') {
+      if (!node.dataset.originalLabel) node.dataset.originalLabel = node.textContent || '';
+      node.textContent = pending ? '신청 중...' : node.dataset.originalLabel;
+      node.setAttribute('aria-busy', pending ? 'true' : 'false');
+    }
+  });
+}
+
+function isValidSubscriptionEmail(emailVal) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(emailVal || '').trim());
+}
+
+function guideSajuBeforeSubscription(scope) {
+  setSajuSubscriptionStatus(scope || 'home', 'info', '사주 원국을 먼저 열어야 매일의 기운을 정확히 이어 받을 수 있습니다. 생년월일을 입력하고 사주 분석을 완료해 주세요.');
+  try {
+    var target = document.getElementById('destinyCardForm') || document.getElementById('birthDate') || document.getElementById('inputPage');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (_) {}
+}
+
+function getSajuSubscriptionSuccessMessage(data, emailVal) {
+  if (data && data.message) return data.message;
+  return emailVal + ' 주소로 사주 기반 일일 운세 구독이 등록되었습니다.';
+}
+
+async function submitSajuSubscription(scope) {
+  var cfg = getSajuSubscriptionConfig(scope);
+  if (SAJU_SUBSCRIPTION_IN_FLIGHT[cfg.scope]) return;
+  var emailVal = cfg.emailEl && cfg.emailEl.value ? cfg.emailEl.value.trim() : '';
+  var subDaily = !!(cfg.dailyEl && cfg.dailyEl.checked);
+  var subMonthly = false;
 
   if (!emailVal) {
-    alert('이메일 주소를 입력해주세요!');
+    setSajuSubscriptionStatus(cfg.scope, 'error', '이메일 주소를 입력해 주세요.');
     return;
   }
-  if (!emailVal.includes('@')) {
-    alert('유효한 이메일 주소를 입력해주세요.');
+  if (!isValidSubscriptionEmail(emailVal)) {
+    setSajuSubscriptionStatus(cfg.scope, 'error', '정확한 이메일 주소를 입력해 주세요.');
     return;
   }
-  if (!subDaily && !subMonthly) {
-    alert('일일 운세 또는 월별 운세 중 하나 이상을 선택해주세요!');
+  if (!subDaily) {
+    setSajuSubscriptionStatus(cfg.scope, 'error', '일일 운세 이메일 수신을 선택해 주세요.');
+    return;
+  }
+  if (!window.G_PILLARS) {
+    guideSajuBeforeSubscription(cfg.scope);
     return;
   }
 
-  const apiBase = getSubscriptionApiBaseUrl();
-  const endpoint = (apiBase ? apiBase : '') + '/api/subscriptions/daily-fortune';
+  var payloadResult = buildSajuSubscriptionPayload(emailVal, subDaily, subMonthly, cfg.source);
+  if (payloadResult.error) {
+    setSajuSubscriptionStatus(cfg.scope, 'error', payloadResult.error);
+    return;
+  }
 
-  const birthDateElHome = document.getElementById('birthDate');
-  const birthYearHome = birthDateElHome && birthDateElHome.value ? parseInt(birthDateElHome.value.split('-')[0], 10) || null : null;
+  var apiBase = getSubscriptionApiBaseUrl();
+  var endpoint = (apiBase ? apiBase : '') + '/api/subscriptions/daily-fortune';
+  SAJU_SUBSCRIPTION_IN_FLIGHT[cfg.scope] = true;
+  setSajuSubscriptionPending(cfg.scope, true);
+  setSajuSubscriptionStatus(cfg.scope, 'info', '사주 원국과 오늘의 기운을 엮어 구독을 준비하고 있습니다.');
 
   try {
-    const resp = await fetch(endpoint, {
+    var resp = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: emailVal,
-        subDaily: !!subDaily,
-        subMonthly: !!subMonthly,
-        source: 'home-page',
-        birthYear: birthYearHome || undefined,
-      }),
+      body: JSON.stringify(payloadResult.payload)
     });
+    var data = await resp.json().catch(function(){ return {}; });
 
     if (!resp.ok) {
-      let message = '구독 등록에 실패했습니다.';
-      try {
-        const payload = await resp.json();
-        if (payload && payload.message) message = payload.message;
-      } catch (_) {}
+      var message = '구독 등록에 실패했습니다.';
+      if (data && data.message) message = data.message;
       throw new Error(message);
     }
 
-    alert(emailVal + ' 주소로 매일 일일 운세 자동 발송 구독이 등록되었습니다!\n내일부터 매일 생성되는 운세 메일이 자동 전송됩니다.');
-    document.getElementById('subEmailHome').value = '';
+    var state = data && data.firstMailSent === false ? 'pending' : 'success';
+    setSajuSubscriptionStatus(cfg.scope, state, getSajuSubscriptionSuccessMessage(data, emailVal));
+    if (cfg.emailEl) cfg.emailEl.value = '';
   } catch (err) {
-    var detail = (err && err.message) ? ('\n\n오류: ' + err.message) : '';
-    alert('구독 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' + detail);
+    var detail = err && err.message ? err.message : '잠시 후 다시 시도해 주세요.';
+    setSajuSubscriptionStatus(cfg.scope, 'error', '구독 등록 중 흐름이 끊겼습니다. ' + detail);
+  } finally {
+    SAJU_SUBSCRIPTION_IN_FLIGHT[cfg.scope] = false;
+    setSajuSubscriptionPending(cfg.scope, false);
   }
+}
+
+async function subscribeEmail() {
+  return submitSajuSubscription('result');
+}
+
+async function subscribeEmailHome() {
+  return submitSajuSubscription('home');
 }
 window.subscribeEmail = subscribeEmail;
 window.subscribeEmailHome = subscribeEmailHome;

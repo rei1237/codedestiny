@@ -1,39 +1,33 @@
-export const SITE_ORIGIN = "https://code-destiny.com";
+import { siteSeo } from "./seo/siteSeo";
+
+export const SITE_ORIGIN = siteSeo.siteUrl;
 
 export const SEO_CORE_KEYWORDS = [
-  // 기본 검색어 (broad)
-  "사주",
-  // 무료 의도 키워드 (high-intent: 사람들이 실제로 검색하는 형태)
-  "무료 사주",
-  "무료 운세",
-  "무료 타로",
-  "무료 궁합",
-  // 정확도 의도 키워드 (accuracy-seekers)
-  "정확한 운세",
-  "정확한 사주",
-  // 일시 기반 시즌 키워드 (high daily/seasonal volume)
-  "오늘 운세",
-  "2026 신년운세",
-  // 브랜드 키워드
+  "Code Destiny",
+  "코드 데스티니",
   "꿀꿀 운세",
-  "꿀꿀 사주",
   "꿀꿀 만세력",
-  "Code: Destiny",
-  // 전문 분야
-  "명리학",
+  "무료 사주",
+  "만세력",
+  "오늘의 운세",
+  "무료 타로",
+  "사주 궁합",
+  "자미두수",
+  "숙요점",
+  "점성술",
 ];
 
 export function toAbsoluteUrl(pathOrUrl: string): string {
   const safeInput = String(pathOrUrl || "/").trim();
-  if (!safeInput) {
-    return SITE_ORIGIN;
-  }
+  if (!safeInput) return SITE_ORIGIN;
 
   try {
-    if (safeInput.startsWith("http://") || safeInput.startsWith("https://")) {
-      return new URL(safeInput).toString();
+    if (/^https?:\/\//i.test(safeInput)) {
+      const parsed = new URL(safeInput);
+      parsed.hash = "";
+      return parsed.toString();
     }
-  } catch (e) {
+  } catch {
     return new URL("/", SITE_ORIGIN).toString();
   }
 
@@ -41,9 +35,7 @@ export function toAbsoluteUrl(pathOrUrl: string): string {
   return new URL(normalizedPath, SITE_ORIGIN).toString();
 }
 
-export function mergeKeywords(
-  ...sources: Array<string[] | undefined | null>
-): string[] {
+export function mergeKeywords(...sources: Array<string[] | undefined | null>): string[] {
   const seen = new Set<string>();
   const merged: string[] = [];
 

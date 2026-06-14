@@ -1,18 +1,10 @@
 import { connectDb } from "./db.js";
 import { DailyFortuneSubscription } from "./models.js";
-import { callGeminiText } from "./gemini.js";
 import { sendEmail } from "./resend.js";
 
-const ANIMAL_IDS = ["rat", "ox", "tiger", "rabbit", "dragon", "snake", "horse", "goat", "monkey", "rooster", "dog", "pig"];
 const STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
 const BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
 const GANJI_LIST = Array.from({ length: 60 }, (_, i) => STEMS[i % 10] + BRANCHES[i % 12]);
-
-function getBirthAnimalId(birthYear) {
-  if (!birthYear || birthYear < 1900) return null;
-  const idx = ((birthYear - 4) % 12 + 12) % 12;
-  return ANIMAL_IDS[idx];
-}
 
 function getJulianDay(year, month, day) {
   let y = year;
@@ -47,47 +39,175 @@ function getTodayPillars() {
   };
 }
 
+const ELEMENT_LABELS = {
+  wood: "목(木)",
+  fire: "화(火)",
+  earth: "토(土)",
+  metal: "금(金)",
+  water: "수(水)",
+};
+
+function getSiteBaseUrl(env) {
+  return String(env?.SITE_BASE_URL || env?.AUTH_FRONTEND_BASE_URL || "https://code-destiny.com").replace(/\/+$/, "");
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function safeText(value, fallback = "") {
+  const text = String(value || "").trim();
+  return text || fallback;
+}
+
+function formatPillar(value) {
+  if (!value || typeof value !== "object") return "정보 없음";
+  return `${safeText(value.g)}${safeText(value.j)}` || "정보 없음";
+}
+
+function formatBirth(sub) {
+  const date = safeText(sub.birthDate);
+  if (!date) return "출생 정보 저장됨";
+  const hour = Number.isFinite(Number(sub.birthHour)) ? String(sub.birthHour).padStart(2, "0") : "12";
+  const minute = Number.isFinite(Number(sub.birthMinute)) ? String(sub.birthMinute).padStart(2, "0") : "00";
+  return `${date} ${hour}:${minute} ${safeText(sub.calendarType, "solar")}`;
+}
+
+function formatElementName(value) {
+  return ELEMENT_LABELS[value] || safeText(value);
+}
+
+function formatElementBalance(natal) {
+  const source = natal && typeof natal === "object" && natal.elements && typeof natal.elements === "object"
+    ? natal.elements
+    : natal;
+  if (!source || typeof source !== "object") return "오행 분포 저장";
+  const parts = ["wood", "fire", "earth", "metal", "water"]
+    .map((key) => {
+      const amount = Number(source[key]);
+      return Number.isFinite(amount) ? `${ELEMENT_LABELS[key]} ${Math.round(amount)}` : "";
+    })
+    .filter(Boolean);
+  return parts.length ? parts.join(" · ") : "오행 분포 저장";
+}
+
+function formatElementList(value) {
+  const list = Array.isArray(value)
+    ? value
+    : (value && typeof value === "object" ? Object.values(value) : [value]);
+  return list.map((item) => formatElementName(item)).filter(Boolean).join(", ") || "균형 조율";
+}
+
+function getPreviewLine(preview) {
+  if (!preview || typeof preview !== "object") return "";
+  const score = Number(preview.score);
+  const scoreText = Number.isFinite(score) ? `${Math.round(score)}점` : "";
+  const grade = safeText(preview.grade || preview.band || preview.level);
+  const advice = safeText(preview.advice || preview.summary || preview.text || preview.msg);
+  return [scoreText, grade, advice].filter(Boolean).join(" · ");
+}
+
+function buildSajuMailContext(sub, today) {
+  const snapshot = sub.sajuSnapshot && typeof sub.sajuSnapshot === "object" ? sub.sajuSnapshot : null;
+  if (!snapshot || !snapshot.pillars || !snapshot.pillars.d) {
+    throw new Error("missing_saju_snapshot");
+  }
+  const p = snapshot.pillars;
+  return {
+    birth: formatBirth(sub),
+    yearPillar: formatPillar(p.y),
+    monthPillar: formatPillar(p.m),
+    dayPillar: formatPillar(p.d),
+    hourPillar: formatPillar(p.h),
+    dayMaster: safeText(p.d.g, "일간"),
+    dayBranch: safeText(p.d.j, "일지"),
+    elementBalance: formatElementBalance(snapshot.natal),
+    yongshin: formatElementList(snapshot.power && (snapshot.power.yongshin || snapshot.power.useful || snapshot.power.good)),
+    avoidElements: formatElementList(snapshot.power && (snapshot.power.kijishin || snapshot.power.bad || snapshot.power.avoid)),
+    johuType: safeText(snapshot.johu && (snapshot.johu.type || snapshot.johu.badgeTxt), "기운 조율"),
+    todayPillar: today.dayPillar,
+    yearFlow: today.yearPillar,
+    dailyPreview: getPreviewLine(snapshot.dailyPreview),
+    monthlyPreview: getPreviewLine(snapshot.monthlyPreview),
+  };
+}
+
+function buildSajuFortuneHtml(ctx) {
+  const focus = ctx.dailyPreview || `${ctx.dayMaster}${ctx.dayBranch} 원국이 ${ctx.todayPillar} 일진을 만나 하루의 속도를 조율합니다.`;
+  const monthlyLine = ctx.monthlyPreview
+    ? `<p style="margin:0 0 10px; color:#475569; font-size:14px; line-height:1.7;"><strong style="color:#4f46e5;">이번 달 배경</strong> ${escapeHtml(ctx.monthlyPreview)}</p>`
+    : "";
+  return `
+    <h2 style="margin:0 0 14px; color:#312e81; font-size:21px;">오늘의 사주 리듬</h2>
+    <p style="margin:0 0 14px; color:#334155; font-size:15px; line-height:1.75;">${escapeHtml(focus)}</p>
+    <div style="margin:18px 0; padding:16px; border-radius:18px; background:#f8fafc; border:1px solid #e2e8f0;">
+      <p style="margin:0 0 8px; color:#475569; font-size:14px; line-height:1.7;"><strong style="color:#4f46e5;">중심 기운</strong> ${escapeHtml(ctx.dayPillar)} 일주의 ${escapeHtml(ctx.dayMaster)} 기운이 오늘의 ${escapeHtml(ctx.todayPillar)} 일진과 만나, 먼저 마음의 결을 정돈한 뒤 움직일 때 복이 맑게 열립니다.</p>
+      <p style="margin:0; color:#475569; font-size:14px; line-height:1.7;"><strong style="color:#4f46e5;">오늘의 처방</strong> ${escapeHtml(ctx.yongshin)} 기운을 살리는 선택을 가까이 두고, ${escapeHtml(ctx.avoidElements)} 기운이 과해지는 말과 소비는 한 박자 늦추세요.</p>
+    </div>
+    ${monthlyLine}
+    <p style="margin:0 0 10px; color:#334155; font-size:15px; line-height:1.75;">오늘은 큰 결론보다 작은 질서를 세우는 날입니다. 아침에는 해야 할 일을 세 가지로 줄이고, 오후에는 관계에서 먼저 부드러운 표현을 고르세요. 밤에는 내일로 넘길 감정과 오늘 마무리할 감정을 조용히 나누면 운의 흐름이 한결 가벼워집니다.</p>
+    <div style="margin:18px 0; padding:16px; border-radius:18px; background:#fff7ed; border:1px solid #fed7aa;">
+      <p style="margin:0 0 8px; color:#7c2d12; font-size:14px; line-height:1.7;"><strong>행운 포인트</strong> 보완 기운 ${escapeHtml(ctx.yongshin)}을 떠올리게 하는 색이나 물건을 가까이 두세요.</p>
+      <p style="margin:0; color:#7c2d12; font-size:14px; line-height:1.7;"><strong>주의 신호</strong> ${escapeHtml(ctx.avoidElements)}의 결이 강해지는 순간에는 바로 답하지 말고 숨을 고른 뒤 움직이면 좋습니다.</p>
+    </div>
+    <p style="margin:0; color:#312e81; font-size:15px; line-height:1.75; font-weight:700;">당신의 오늘이 어제보다 더 반짝이길 바랄게요. - 꽃돼지 연이 드림</p>
+  `;
+}
+
+function buildPaidFeatureLinks(env) {
+  const base = getSiteBaseUrl(env);
+  return [
+    {
+      title: "사주 인생의 책",
+      desc: "오늘의 흐름을 넘어 평생의 기질, 대운, 관계, 재물 흐름을 한 권으로 정리합니다.",
+      href: `${base}/saju/lifebook?utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_cta_lifebook`,
+      cta: "인생의 책 열기",
+    },
+    {
+      title: "사주 연애 비책",
+      desc: "내 사주의 사랑 방식과 관계에서 반복되는 선택 패턴을 더 깊게 읽습니다.",
+      href: `${base}/saju/love-bible?premiumIntent=love-secret-pdf&mode=solo&utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_cta_love`,
+      cta: "연애 비책 보기",
+    },
+    {
+      title: "자미두수 심화 명반",
+      desc: "12궁의 운명 지도를 통해 커리어, 재물, 관계의 장기 전략을 확인합니다.",
+      href: `${base}/ziwei/chart?utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_cta_ziwei`,
+      cta: "명반 분석하기",
+    },
+  ];
+}
+
+function buildPaidFeatureCtaHtml(env) {
+  const links = buildPaidFeatureLinks(env);
+  const cards = links.map((item) => `
+    <div style="margin:0 0 12px; padding:16px; border-radius:18px; background:#ffffff; border:1px solid #e9d5ff;">
+      <h3 style="margin:0 0 6px; color:#4c1d95; font-size:16px;">${escapeHtml(item.title)}</h3>
+      <p style="margin:0 0 12px; color:#64748b; font-size:13px; line-height:1.65;">${escapeHtml(item.desc)}</p>
+      <a href="${escapeHtml(item.href)}" style="display:inline-block; color:#ffffff; background:#7c3aed; text-decoration:none; padding:10px 15px; border-radius:999px; font-size:13px; font-weight:800;">${escapeHtml(item.cta)}</a>
+    </div>
+  `).join("");
+  return `
+    <div style="margin:28px 0 0; padding:18px; border-radius:22px; background:linear-gradient(135deg,#faf5ff,#fff7ed); border:1px solid #e9d5ff;">
+      <div style="margin:0 0 12px; color:#6d28d9; font-size:13px; font-weight:900; letter-spacing:.04em;">오늘의 흐름을 더 깊게 여는 길</div>
+      ${cards}
+    </div>
+  `;
+}
+
 export async function sendSingleFortune(env, sub) {
   const pillars = getTodayPillars();
-  const birthAnimalId = getBirthAnimalId(sub.birthYear);
-  const animalName = birthAnimalId ? {
-    rat: "쥐띠", ox: "소띠", tiger: "범띠", rabbit: "토끼띠",
-    dragon: "용띠", snake: "뱀띠", horse: "말띠", goat: "양띠",
-    monkey: "잔나비띠", rooster: "닭띠", dog: "개띠", pig: "돼지띠"
-  }[birthAnimalId] : "운명가";
-
   const dateLabel = pillars.date;
-  
-  const prompt = `
-당신은 "꽃돼지 연이"라는 이름의 따뜻하고 영리한 사주 상담가입니다.
-오늘은 ${pillars.date} (${pillars.dayName}요일)이며, 오늘의 간지는 ${pillars.dayPillar}일, 올해는 ${pillars.yearPillar}년입니다.
-구독자(${animalName})님을 위한 오늘의 맞춤 운세를 작성해 주세요.
-
-[분석 조건]
-- 구독자의 띠: ${animalName}
-- 오늘의 일진(日辰): ${pillars.dayPillar}
-- 올해의 세운(歲運): ${pillars.yearPillar}
-
-[작성 가이드라인]
-1. 친근하고 다정한 말투(해요체)를 사용하세요.
-2. 오늘의 일진(${pillars.dayPillar})과 구독자의 띠(${animalName}) 사이의 합(合), 충(沖), 형(刑) 등을 고려한 핵심 조언을 한 문장으로 먼저 제시하세요.
-3. '오늘의 행운 포인트'(색상, 숫자, 방향 중 2개)를 포함하세요.
-4. '오늘의 마음가짐' 섹션을 통해 심리적인 위안과 행동 지침을 주세오.
-5. 전체 내용을 HTML 태그를 사용해 예쁘게 구성해 주세요. (h2, p, div 등 사용)
-   - 이메일 클라이언트 호환성을 위해 인라인 스타일(style="...")을 사용하세요.
-   - 글자 크기는 15px~16px, 줄 간격은 1.6 이상으로 읽기 편하게 작성하세요.
-6. 마지막에 "당신의 오늘이 어제보다 더 반짝이길 바랄게요. - 꽃돼지 연이 드림" 문구를 포함해 주세요.
-`;
-
-  const aiResult = await callGeminiText(env, prompt, {
-    modelEnvKeys: ["GEMINI_MODEL"],
-  });
-
-  if (!aiResult.ok) {
-    throw new Error(aiResult.error || "Gemini generation failed");
-  }
-
-  const fortuneHtmlContent = aiResult.text;
+  const ctx = buildSajuMailContext(sub, pillars);
+  const fortuneHtmlContent = buildSajuFortuneHtml(ctx);
+  const paidFeatureCtaHtml = buildPaidFeatureCtaHtml(env);
+  const siteBaseUrl = getSiteBaseUrl(env);
+  const unsubscribeUrl = `${siteBaseUrl}/api/subscriptions/daily-fortune/unsubscribe?email=${encodeURIComponent(sub.email)}`;
   
   const emailHtml = `
 <!DOCTYPE html>
@@ -105,15 +225,33 @@ export async function sendSingleFortune(env, sub) {
       <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 30px 20px; text-align: center;">
         <div style="font-size: 40px; margin-bottom: 10px;">🌸</div>
         <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">CODE DESTINY</h1>
-        <p style="margin: 5px 0 0; color: rgba(255,255,255,0.8); font-size: 14px;">${dateLabel} 오늘의 맞춤 운세</p>
+        <p style="margin: 5px 0 0; color: rgba(255,255,255,0.8); font-size: 14px;">${dateLabel} 사주 기반 오늘의 맞춤 운세</p>
       </div>
       
       <!-- Content -->
       <div style="padding: 30px 25px;">
+        <div style="margin:0 0 22px; padding:18px; border-radius:20px; background:linear-gradient(135deg,#eef2ff,#faf5ff); border:1px solid #ddd6fe;">
+          <div style="color:#4c1d95; font-size:13px; font-weight:800; letter-spacing:.03em; margin-bottom:10px;">오늘의 명식 좌표</div>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+            <tr>
+              <td style="padding:7px 0; color:#64748b; font-size:13px;">일주</td>
+              <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(ctx.dayPillar)}</td>
+            </tr>
+            <tr>
+              <td style="padding:7px 0; color:#64748b; font-size:13px;">오늘 일진</td>
+              <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(ctx.todayPillar)}</td>
+            </tr>
+            <tr>
+              <td style="padding:7px 0; color:#64748b; font-size:13px;">보완 기운</td>
+              <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(ctx.yongshin)}</td>
+            </tr>
+          </table>
+        </div>
         ${fortuneHtmlContent}
+        ${paidFeatureCtaHtml}
         
         <div style="margin-top: 30px; text-align: center;">
-          <a href="https://code-destiny.com" style="display: inline-block; background-color: #4f46e5; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 999px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">✨ 내 사주 자세히 분석하기</a>
+          <a href="${escapeHtml(siteBaseUrl)}?utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_home" style="display: inline-block; background-color: #4f46e5; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 999px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">✨ 내 사주 자세히 분석하기</a>
         </div>
       </div>
       
@@ -124,7 +262,7 @@ export async function sendSingleFortune(env, sub) {
           매일 아침 행운의 소식을 전해드립니다.
         </p>
         <div style="margin-top: 15px; font-size: 12px;">
-          <a href="https://code-destiny.com/api/subscriptions/daily-fortune/unsubscribe?email=${encodeURIComponent(sub.email)}" style="color: #64748b; text-decoration: underline;">구독 해지 (Unsubscribe)</a>
+          <a href="${escapeHtml(unsubscribeUrl)}" style="color: #64748b; text-decoration: underline;">구독 해지 (Unsubscribe)</a>
         </div>
         <p style="margin-top: 20px; font-size: 11px; color: #cbd5e1;">© 2026 CODE DESTINY. All rights reserved.</p>
       </div>
@@ -138,12 +276,16 @@ export async function sendSingleFortune(env, sub) {
     to: sub.email,
     subject: `[CODE DESTINY] ${dateLabel} 오늘의 맞춤 운세가 도착했습니다.`,
     html: emailHtml,
+    headers: {
+      "List-Unsubscribe": `<${unsubscribeUrl}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
   });
 
   if (emailResult.ok) {
     await DailyFortuneSubscription.updateOne(
       { _id: sub._id },
-      { $set: { lastSentAt: new Date() } }
+      { $set: { lastSentAt: new Date(), lastMailError: "", lastMailErrorAt: null } }
     );
     return true;
   } else {
@@ -174,6 +316,10 @@ export async function runDailyFortuneTask(env) {
       console.log(`[CRON] Successfully processed ${sub.email}`);
     } catch (err) {
       console.error(`[CRON] Error processing subscriber ${sub.email}:`, err);
+      await DailyFortuneSubscription.updateOne(
+        { _id: sub._id },
+        { $set: { lastMailError: String(err?.message || "daily_mail_failed").slice(0, 240), lastMailErrorAt: new Date() } }
+      );
     }
   }
 

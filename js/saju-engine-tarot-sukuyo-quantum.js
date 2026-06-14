@@ -356,7 +356,7 @@ function isTarotModalActive() {
 
 // 스프레드 모드별 라벨 (카테고리별 커스텀 가능)
 var TAROT_SPREAD_LABELS = {
-  default: ['흘러온 결', '지금의 결', '다가오는 결'],
+  default: ['지금까지의 흐름', '현재의 핵심 기운', '다음 선택 기준'],
   situationAdviceOutcome: ['상황', '조언', '결과']
 };
 
@@ -1102,14 +1102,101 @@ function mapCategoryToMyeongriCategory(category) {
     love: '연애',
     reunion: '재회',
     friendship: '인간관계',
-    wealth: '직업',
-    loss: '금전',
-    contract: '선택',
-    travel: '종합',
-    creative: '종합',
-    health: '멘탈'
+    wealth: '재물/사업',
+    loss: '재물 관리',
+    contract: '계약/문서',
+    travel: '이동/해외',
+    creative: '창의/예술',
+    health: '건강/휴식'
   };
   return map[category] || '오늘';
+}
+
+function getMyeongriCategoryLens(category, tenGod, orientation) {
+  var base = {
+    theme: '오늘의 선택 기준',
+    question: '지금 무엇을 먼저 정리해야 하는가',
+    focus: '카드가 보여준 기운을 현실의 작은 기준으로 낮추는 것이 핵심입니다.',
+    risk: '한 번에 결론을 내리려 하면 카드가 비춘 신호가 흐려질 수 있습니다.',
+    action: '오늘 바로 옮길 수 있는 행동 하나를 정하고 작게 실행하세요.'
+  };
+  var map = {
+    love: {
+      theme: '관계의 온도와 표현의 속도',
+      question: '마음을 확인하기 전에 어떤 속도로 다가가야 하는가',
+      focus: '상대의 반응보다 말투, 반복 행동, 부담을 느끼는 지점을 함께 봐야 합니다.',
+      risk: '확답을 빨리 요구하면 관계의 온도보다 방어심이 먼저 커질 수 있습니다.',
+      action: '긴 고백보다 부담 없는 한 문장으로 온도를 확인하세요.'
+    },
+    reunion: {
+      theme: '다시 닿아도 되는 거리',
+      question: '연락보다 먼저 회복되어야 할 기준은 무엇인가',
+      focus: '그리움의 크기보다 같은 상처를 반복하지 않을 구조가 먼저입니다.',
+      risk: '미련을 진심으로 착각하면 같은 방식의 이별을 다시 부를 수 있습니다.',
+      action: '바로 연락하기보다 과거 반복 패턴 하나를 먼저 정리하세요.'
+    },
+    friendship: {
+      theme: '관계의 신뢰와 거리감',
+      question: '어디까지 다가가고 어디서 선을 지켜야 하는가',
+      focus: '호의와 부담, 협력과 소모의 경계를 함께 읽어야 합니다.',
+      risk: '좋은 사람으로 남으려다 내 기준이 흐려질 수 있습니다.',
+      action: '상대에게 맞추기 전에 내가 편안한 거리 하나를 정하세요.'
+    },
+    wealth: {
+      theme: '재물과 사업의 회수 가능성',
+      question: '지금 확장할 때인가, 먼저 관리할 때인가',
+      focus: '돈의 흐름은 기대감보다 조건, 숫자, 반복 가능한 수익 구조로 판단해야 합니다.',
+      risk: '좋아 보이는 기회라도 관리 기준이 없으면 손실로 바뀔 수 있습니다.',
+      action: '수익 기대보다 비용, 조건, 회수 시점을 먼저 적어보세요.'
+    },
+    loss: {
+      theme: '새는 돈과 지켜야 할 자산',
+      question: '무엇을 벌기보다 무엇을 막아야 하는가',
+      focus: '재물운은 들어오는 돈만이 아니라 빠져나가는 구멍을 보는 자리입니다.',
+      risk: '불안한 마음으로 지출하거나 손실을 만회하려 하면 더 크게 흔들릴 수 있습니다.',
+      action: '오늘은 새 지출보다 보류할 항목 하나를 정하세요.'
+    },
+    contract: {
+      theme: '문서, 약속, 책임의 기준',
+      question: '서명하거나 약속하기 전에 무엇을 확인해야 하는가',
+      focus: '계약운은 말의 분위기보다 문장, 조건, 책임 범위를 정확히 보는 자리입니다.',
+      risk: '좋은 분위기에 밀려 불리한 조건을 넘기면 뒤늦게 부담이 커질 수 있습니다.',
+      action: '조건, 기한, 책임 주체를 한 번 더 확인한 뒤 결정하세요.'
+    },
+    travel: {
+      theme: '이동의 타이밍과 준비',
+      question: '지금 움직일 때인가, 준비를 더 해야 하는가',
+      focus: '이동운은 방향감과 준비 상태가 함께 맞아야 길하게 열립니다.',
+      risk: '충동적으로 움직이면 일정, 비용, 체력에서 작은 누수가 생길 수 있습니다.',
+      action: '일정표와 예비 비용을 먼저 확인하고 움직이세요.'
+    },
+    creative: {
+      theme: '표현, 창작, 공개의 시점',
+      question: '아이디어를 더 품을 때인가, 밖으로 내놓을 때인가',
+      focus: '창의운은 영감보다 결과물로 꺼내는 순간에 실제 힘이 생깁니다.',
+      risk: '완벽해질 때까지 미루면 좋은 기운이 머릿속에서만 맴돌 수 있습니다.',
+      action: '완성도보다 공개 가능한 최소 결과물을 하나 정하세요.'
+    },
+    health: {
+      theme: '회복 리듬과 몸의 신호',
+      question: '지금 몸과 마음이 요구하는 회복 방식은 무엇인가',
+      focus: '건강운은 극적인 변화보다 수면, 식사, 호흡, 휴식 리듬을 먼저 봅니다.',
+      risk: '버티는 힘을 운으로 착각하면 피로가 더 깊어질 수 있습니다.',
+      action: '오늘은 회복을 방해하는 습관 하나를 줄이세요.'
+    }
+  };
+  var lens = map[category] || base;
+  var dirNote = orientation === 'reversed'
+    ? ' 역방향이므로 이 주제는 무리하게 밀기보다 줄이고 정리하는 방식으로 다뤄야 합니다.'
+    : ' 정방향이므로 이 주제는 작은 실행으로 흐름을 확인해도 좋습니다.';
+  return {
+    theme: lens.theme,
+    question: lens.question,
+    focus: lens.focus + dirNote,
+    risk: lens.risk,
+    action: lens.action,
+    tenGodUse: tenGod ? tenGod + '의 기운은 이 질문에서 "' + lens.theme + '"을 현실로 다루는 방식으로 나타납니다.' : lens.focus
+  };
 }
 
 function resolveMainTenGod(card) {
@@ -1186,19 +1273,28 @@ function validateMyeongriTarotReading(reading) {
     reading && reading.shadowWarning,
     reading && reading.practicalAdvice,
     reading && reading.sealSentence,
-    reading && reading.oracleMessage
+    reading && reading.oracleMessage,
+    reading && reading.categoryLens && reading.categoryLens.theme,
+    reading && reading.categoryLens && reading.categoryLens.action
   ].join(' ');
 
   if (String(fullText).indexOf('순행') < 0 && String(fullText).indexOf('역행') < 0) {
     issues.push('순행/역행 차이가 본문에 반영되지 않았습니다.');
   }
   if (main) {
+    var mainCount = (String(fullText).match(new RegExp(main, 'g')) || []).length;
+    if (mainCount < 2) {
+      issues.push('주 십성이 본문에 충분히 반영되지 않았습니다.');
+    }
     MYEONGRI_TEN_GODS.forEach(function(tg) {
       if (tg === main) return;
       if (new RegExp(tg + '(?:이|가|은|는)?\\s*(?:순행|역행|관점|흐름)').test(fullText)) {
         issues.push('십성 충돌 문장이 감지되었습니다: ' + tg);
       }
     });
+  }
+  if (reading && reading.categoryLens && reading.categoryLens.theme && String(fullText).indexOf(reading.categoryLens.theme) < 0) {
+    issues.push('질문 카테고리 전용 렌즈가 본문에 충분히 반영되지 않았습니다.');
   }
   if (REPEATED_MYEONGRI_TAROT_PHRASES.some(function(p) { return String(fullText).indexOf(p) >= 0; })) {
     issues.push('금지 반복 문장이 남아 있습니다.');
@@ -1254,24 +1350,25 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
   var suitTheme = (SUIT_TEN_GOD_AFFINITY[suit] || SUIT_TEN_GOD_AFFINITY.major).theme;
   var tenProfile = getTenGodRealityProfile(mainTenGod);
   var comboArchetype = buildTarotComboArchetype(cardName, mainTenGod, profile, tenProfile);
+  var categoryLens = getMyeongriCategoryLens(category, mainTenGod, dir);
 
   var cardSubject = cardName + ' ' + (dir === 'reversed' ? '역행' : '순행');
   var bridge = resolveCardBridge(cardName, mainTenGod, dir);
-  var opening = '오늘 ' + catKo + '의 자리에는 ' + withKoreanJosa(cardSubject, '과', '와') + ' ' + mainTenGod + '의 결이 함께 들어와 있습니다.';
+  var opening = '오늘 ' + catKo + '의 자리에는 ' + withKoreanJosa(cardSubject, '과', '와') + ' ' + mainTenGod + '의 결이 함께 들어와 있습니다. 핵심 질문은 "' + categoryLens.question + '"입니다.';
   var cardMeaning = dir === 'reversed'
-    ? cardName + '의 역행이 들어온 오늘은 겉으로 밀어붙일수록 마음의 압력이 커질 수 있습니다. ' + profile.shadow + ' 그래서 지금 필요한 것은 더 큰 결심보다 작은 회복 루틴입니다.'
-    : cardName + '의 순행이 들어온 오늘은 이미 품고 있던 힘을 현실로 꺼내기 좋습니다. ' + profile.psych + ' 다만 기세가 좋을수록 선택의 기준은 더 단단해야 합니다.';
-  var tenGodInterpretation = mainTenGod + '의 결은 ' + tenMeta.meaning + '을 오늘의 현실 감각으로 끌어올립니다. ' + (dir === 'reversed' ? tenProfile.risk + ' 그래서 분석을 늘리기보다 속도를 낮추고 손실을 줄이는 쪽이 먼저입니다.' : tenProfile.reality + ' 이 흐름은 ' + withEuroRo(tenProfile.work) + ' 옮길 때 가장 안정적으로 살아납니다.');
+    ? cardName + '의 역행이 들어온 오늘은 겉으로 밀어붙일수록 마음의 압력이 커질 수 있습니다. ' + profile.shadow + ' ' + categoryLens.focus
+    : cardName + '의 순행이 들어온 오늘은 이미 품고 있던 힘을 현실로 꺼내기 좋습니다. ' + profile.psych + ' ' + categoryLens.focus;
+  var tenGodInterpretation = mainTenGod + '의 결은 ' + tenMeta.meaning + '을 오늘의 현실 감각으로 끌어올립니다. ' + categoryLens.tenGodUse + ' ' + (dir === 'reversed' ? tenProfile.risk + ' 그래서 분석을 늘리기보다 속도를 낮추고 손실을 줄이는 쪽이 먼저입니다.' : tenProfile.reality + ' 이 흐름은 ' + withEuroRo(tenProfile.work) + ' 옮길 때 가장 안정적으로 살아납니다.');
 
   var combinedReading = cardSubject + '의 상징이 ' + mainTenGod + '의 기운과 맞물리며 ' + comboArchetype + '의 흐름을 만듭니다. ' +
-    bridge + ' 오늘은 이 감각을 ' + withEuroRo(tenProfile.work) + ' 작게 옮길수록 판단이 선명해집니다.';
+    bridge + ' 오늘은 이 감각을 ' + withEuroRo(tenProfile.work) + ' 작게 옮길수록 판단이 선명해집니다. 특히 ' + catKo + ' 질문에서는 ' + categoryLens.theme + '을 먼저 기준으로 삼으세요.';
 
   var shadowWarning = dir === 'reversed'
-    ? '압박이 커질수록 감정으로 바로 반응하기보다 구조를 먼저 세워야 합니다. ' + tenProfile.risk
-    : '흐름이 열려 있어도 무리하게 속도를 올릴 필요는 없습니다. ' + tenProfile.risk + ' 오늘은 힘을 증명하기보다 오래 갈 리듬을 잡는 편이 좋습니다.';
+    ? '압박이 커질수록 감정으로 바로 반응하기보다 구조를 먼저 세워야 합니다. ' + tenProfile.risk + ' ' + categoryLens.risk
+    : '흐름이 열려 있어도 무리하게 속도를 올릴 필요는 없습니다. ' + tenProfile.risk + ' ' + categoryLens.risk + ' 오늘은 힘을 증명하기보다 오래 갈 리듬을 잡는 편이 좋습니다.';
   var practicalAdvice = dir === 'reversed'
-    ? '지금 겪는 지연이나 압박을 실패로 단정하지 마세요. 일정과 기준을 다시 줄이고, ' + tenProfile.action + ' 큰 문제는 한 번에 해결하려 하지 말고 오늘 처리할 수 있는 단위로 나누는 것이 좋습니다.'
-    : '오늘은 마음속 결심을 바깥 행동으로 옮겨도 좋습니다. ' + tenProfile.action + ' 특히 ' + withEuroRo(tenProfile.work) + ' 이어지는 작은 실행 하나가 다음 흐름을 열어줍니다.';
+    ? '지금 겪는 지연이나 압박을 실패로 단정하지 마세요. 일정과 기준을 다시 줄이고, ' + tenProfile.action + ' ' + categoryLens.action
+    : '오늘은 마음속 결심을 바깥 행동으로 옮겨도 좋습니다. ' + tenProfile.action + ' ' + categoryLens.action + ' 특히 ' + withEuroRo(tenProfile.work) + ' 이어지는 작은 실행 하나가 다음 흐름을 열어줍니다.';
 
   var oracleMessage = buildMyeongriMysticOracle(cardName, mainTenGod, dir);
   var sealSentence = dir === 'reversed'
@@ -1285,11 +1382,11 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
     ? '계속 생각만 하며 ' + tenProfile.action + '를 미루는 것.'
     : tenProfile.risk;
   var bestChoice = dir === 'reversed'
-    ? '속도를 줄이고 ' + tenProfile.action + '를 아주 작게 다시 여는 것.'
-    : withEuroRo(tenProfile.work) + ' 바로 옮기는 것.';
+    ? '속도를 줄이고 ' + categoryLens.action
+    : withEuroRo(tenProfile.work) + ' 바로 옮기되, ' + categoryLens.theme + '을 기준으로 삼는 것.';
   var actionAdvice = dir === 'reversed'
-    ? '일정 축소, 정리, 삭제, 재검토를 먼저 하세요.'
-    : '공개, 신청, 제안, 출시처럼 바깥으로 내보내는 행동을 선택하세요.';
+    ? '일정 축소, 정리, 삭제, 재검토를 먼저 하세요. ' + categoryLens.action
+    : '공개, 신청, 제안, 출시처럼 바깥으로 내보내는 행동을 선택하세요. ' + categoryLens.action;
   var oneLineConclusion = dir === 'reversed'
     ? '지금은 버티기보다 방향을 다시 세우는 시기입니다.'
     : '지금은 준비를 늘리는 것보다 공개와 실행이 운을 움직입니다.';
@@ -1322,7 +1419,8 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
     bestChoice: bestChoice,
     actionAdvice: actionAdvice,
     oneLineConclusion: oneLineConclusion,
-    comboArchetype: comboArchetype
+    comboArchetype: comboArchetype,
+    categoryLens: categoryLens
   };
 
   return ensureTenGodConsistency(reading);
@@ -1330,20 +1428,29 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
 
 function buildMyeongriTarotReadingHtml(reading, slotLabel) {
   var orientationLabel = TAROT_ORIENTATION_LABEL_KO[reading.card.orientation] || '순행(順行)';
+  var lens = reading.categoryLens || {};
 
   return '' +
     '<div style="margin-bottom:18px;padding:14px;border:1px solid rgba(255,255,255,0.14);border-radius:12px;background:rgba(17,24,39,0.34);">' +
       '<b style="color:#ffd700;font-size:1.02rem">' + escapeTarotHtml(slotLabel || '핵심 카드') + ' — ' + escapeTarotHtml(reading.card.nameKo) + ' (' + escapeTarotHtml(orientationLabel) + ')</b>' +
       '<div style="margin-top:12px;line-height:1.9;color:#e5e7eb;">' +
-        '<b style="color:#c4b5fd;">🌙 오늘의 기운</b><br>' +
-        '<span>' + escapeTarotHtml(reading.currentSituation) + '</span>' +
+        '<b style="color:#c4b5fd;">핵심 판정</b><br>' +
+        '<span>' + escapeTarotHtml(reading.oneLineConclusion || reading.opening || '') + '</span>' +
       '</div>' +
       '<div style="margin-top:12px;line-height:1.9;color:#fef3c7;">' +
-        '<b style="color:#fcd34d;">⚖️ 운명의 조율</b><br>' +
+        '<b style="color:#fcd34d;">카드별 명리 해석</b><br>' +
+        '<span>' + escapeTarotHtml(reading.currentSituation) + '</span>' +
+      '</div>' +
+      '<div style="margin-top:12px;line-height:1.9;color:#dbeafe;">' +
+        '<b style="color:#93c5fd;">십성 작동 방식</b><br>' +
+        '<span>' + escapeTarotHtml(reading.tenGodInterpretation) + '</span>' +
+      '</div>' +
+      '<div style="margin-top:12px;line-height:1.9;color:#d1fae5;">' +
+        '<b style="color:#6ee7b7;">질문별 현실 조언' + (lens.theme ? ' · ' + escapeTarotHtml(lens.theme) : '') + '</b><br>' +
         '<span>' + escapeTarotHtml(reading.practicalAdvice) + '</span>' +
       '</div>' +
       '<div style="margin-top:10px;padding:13px 14px;border:1px solid rgba(253,230,138,0.24);border-radius:12px;background:rgba(2,6,23,0.38);">' +
-        '<b style="color:#fde68a;font-size:1em">🧙 명리 타로 봉인 문장</b><br><br>' +
+        '<b style="color:#fde68a;font-size:1em">오늘의 한 문장</b><br><br>' +
         '<span style="line-height:1.9;color:#fef3c7;">' + escapeTarotHtml(reading.sealSentence || reading.oneLineConclusion || '') + '</span>' +
       '</div>' +
     '</div>';
@@ -1378,6 +1485,72 @@ function summarizeDominantSipsin(cardsData) {
   return best || '균형';
 }
 
+function getTenGodGroupKey(tenGod) {
+  var meta = TEN_GOD_DETAILS[normalizeTenGod(tenGod)] || {};
+  return meta.group || '';
+}
+
+function getTenGodGroupLabel(group) {
+  var labels = {
+    self: '비겁: 중심과 자기 기준',
+    output: '식상: 표현과 결과물',
+    wealth: '재성: 돈과 현실 성과',
+    officer: '관성: 책임과 관계의 규칙',
+    resource: '인성: 회복과 배움'
+  };
+  return labels[group] || '혼합 기운';
+}
+
+function analyzeMyeongriTenGodFlow(readings) {
+  var items = (readings || []).map(function(reading) {
+    var tenGod = normalizeTenGod(reading && reading.tenGod && reading.tenGod.main);
+    var group = getTenGodGroupKey(tenGod);
+    return { tenGod: tenGod || '미상', group: group || 'mixed' };
+  });
+  var names = items.map(function(item) { return item.tenGod; }).join(' → ');
+  var groups = items.map(function(item) { return item.group; });
+  var uniqueGroups = {};
+  groups.forEach(function(group) { uniqueGroups[group] = true; });
+  var supportMap = {
+    resource: { self: '배움과 보호가 자기 기준을 세워주는 생조 흐름' },
+    self: { output: '내 의지가 표현과 결과물로 빠져나가는 생산 흐름' },
+    output: { wealth: '표현과 결과물이 재물·성과로 이어지는 회수 흐름' },
+    wealth: { officer: '성과가 책임과 공적 기준으로 묶이는 관리 흐름' },
+    officer: { resource: '책임이 배움과 회복으로 돌아오는 정리 흐름' }
+  };
+  var tensionMap = {
+    output: { officer: '표현이 규칙을 건드려 말과 책임의 충돌이 생기기 쉬운 흐름' },
+    wealth: { resource: '현실 이익과 내면 회복이 서로 다른 속도를 요구하는 흐름' },
+    officer: { self: '책임과 자기 고집이 맞서며 압박이 커질 수 있는 흐름' },
+    self: { wealth: '내 방식과 돈의 조건이 충돌해 조율이 필요한 흐름' }
+  };
+  var steps = [];
+  for (var i = 0; i < groups.length - 1; i += 1) {
+    var a = groups[i];
+    var b = groups[i + 1];
+    if (supportMap[a] && supportMap[a][b]) steps.push(supportMap[a][b]);
+    else if (tensionMap[a] && tensionMap[a][b]) steps.push(tensionMap[a][b]);
+  }
+  var label = '혼합 조율';
+  var detail = '서로 다른 기운이 한 번에 움직이므로 우선순위를 정해야 합니다.';
+  if (Object.keys(uniqueGroups).length === 1) {
+    label = '한 기운 집중';
+    detail = getTenGodGroupLabel(groups[0]) + '이 반복되어 장점은 강하지만 과해지면 시야가 좁아질 수 있습니다.';
+  } else if (steps.some(function(step) { return step.indexOf('생조') >= 0 || step.indexOf('생산') >= 0 || step.indexOf('회수') >= 0; })) {
+    label = '생조와 전환';
+    detail = steps.join(' · ') + '입니다. 흐름을 살리려면 앞 카드의 기운을 다음 행동으로 넘겨야 합니다.';
+  } else if (steps.some(function(step) { return step.indexOf('충돌') >= 0 || step.indexOf('압박') >= 0; })) {
+    label = '충돌과 조율';
+    detail = steps.join(' · ') + '입니다. 바로 밀어붙이기보다 기준, 말, 돈, 책임을 분리해 다뤄야 합니다.';
+  }
+  return {
+    label: label,
+    names: names,
+    detail: detail,
+    oneLine: label + ': ' + names + ' 흐름은 ' + detail
+  };
+}
+
 function buildTarotRealityPlan(cardsData, category, labels, readings) {
   var past = cardsData[0] || {};
   var now = cardsData[1] || cardsData[0] || {};
@@ -1386,9 +1559,9 @@ function buildTarotRealityPlan(cardsData, category, labels, readings) {
   var nowReading = (readings && readings[1]) || combineTarotAndTenGod(now.card || {}, '', category, now.isReversed ? 'reversed' : 'upright');
   var futReading = (readings && readings[2]) || combineTarotAndTenGod(fut.card || {}, '', category, fut.isReversed ? 'reversed' : 'upright');
   var dom = summarizeDominantSipsin(cardsData) || '정인';
-  var l1 = labels[0] || '흘러온 결';
-  var l2 = labels[1] || '지금의 결';
-  var l3 = labels[2] || '다가오는 결';
+  var l1 = labels[0] || '지금까지의 흐름';
+  var l2 = labels[1] || '현재의 핵심 기운';
+  var l3 = labels[2] || '다음 선택 기준';
   var title = mapCategoryToMyeongriCategory(category);
   var futureCard = String((fut.card && fut.card.name_kr) || '다가오는 카드');
   var tenGodFlow = [
@@ -1396,12 +1569,13 @@ function buildTarotRealityPlan(cardsData, category, labels, readings) {
     (nowReading.tenGod && nowReading.tenGod.main) || '미상',
     (futReading.tenGod && futReading.tenGod.main) || '미상'
   ].join(' → ');
+  var tenGodFlowAnalysis = analyzeMyeongriTenGodFlow([pastReading, nowReading, futReading]);
   var coreConclusion = (futureCard === '태양' || futReading.tenGod.main === '식신')
-    ? '이번 리딩의 핵심은 “더 준비하라”가 아니라 “이제 공개하라”입니다. 특히 ' + tenGodFlow + ' 흐름은 배움 → 준비 → 결과물 생산으로 이어집니다.'
-    : (futReading.oneLineConclusion || '이번 리딩의 핵심은 생각을 끝내고 현실 행동으로 옮기는 것입니다.') + ' 특히 ' + tenGodFlow + ' 흐름을 한 줄로 묶어 읽을 때 방향이 선명합니다.';
-  var pastStory = '흘러온 결의 ' + escapeTarotHtml((past.card && past.card.name_kr) || l1) + '는 ' + escapeTarotHtml(pastReading.comboArchetype || pastReading.tenGod.main) + '를 쌓아온 시간을 비춥니다. ' + escapeTarotHtml(pastReading.cardMeaning);
-  var nowStory = '지금의 결에 놓인 ' + escapeTarotHtml((now.card && now.card.name_kr) || l2) + '는 ' + escapeTarotHtml(nowReading.comboArchetype || nowReading.tenGod.main) + '의 다음 수를 고르는 순간을 말합니다. ' + escapeTarotHtml(nowReading.practicalAdvice);
-  var futureStory = '다가오는 결의 ' + escapeTarotHtml(futureCard) + '는 ' + escapeTarotHtml(futReading.comboArchetype || futReading.tenGod.main) + '가 어떤 선택을 통해 드러날 수 있는지 보여줍니다. ' + escapeTarotHtml(futReading.oneLineConclusion || futReading.bestChoice || '');
+    ? '이번 리딩의 핵심은 “더 준비하라”가 아니라 “이제 공개하라”입니다. 특히 ' + tenGodFlowAnalysis.oneLine
+    : (futReading.oneLineConclusion || '이번 리딩의 핵심은 생각을 끝내고 현실 행동으로 옮기는 것입니다.') + ' 특히 ' + tenGodFlowAnalysis.oneLine;
+  var pastStory = '지금까지의 흐름에 놓인 ' + escapeTarotHtml((past.card && past.card.name_kr) || l1) + '는 ' + escapeTarotHtml(pastReading.comboArchetype || pastReading.tenGod.main) + '를 쌓아온 시간을 비춥니다. ' + escapeTarotHtml(pastReading.cardMeaning);
+  var nowStory = '현재의 핵심 기운에 놓인 ' + escapeTarotHtml((now.card && now.card.name_kr) || l2) + '는 ' + escapeTarotHtml(nowReading.comboArchetype || nowReading.tenGod.main) + '의 다음 수를 고르는 순간을 말합니다. ' + escapeTarotHtml(nowReading.practicalAdvice);
+  var futureStory = '다음 선택 기준에 놓인 ' + escapeTarotHtml(futureCard) + '는 ' + escapeTarotHtml(futReading.comboArchetype || futReading.tenGod.main) + '가 어떤 선택을 통해 드러날 수 있는지 보여줍니다. ' + escapeTarotHtml(futReading.oneLineConclusion || futReading.bestChoice || '');
 
   return '' +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(196,181,253,0.4);border-radius:12px;background:rgba(76,29,149,0.16);">' +
@@ -1414,6 +1588,10 @@ function buildTarotRealityPlan(cardsData, category, labels, readings) {
       '<div style="line-height:1.9;color:#f5f3ff;margin-bottom:10px;">' + pastStory + '</div>' +
       '<div style="line-height:1.9;color:#f5f3ff;margin-bottom:10px;">' + nowStory + '</div>' +
       '<div style="line-height:1.9;color:#f5f3ff;margin-bottom:12px;">' + futureStory + '</div>' +
+      '<div style="line-height:1.9;color:#bfdbfe;background:rgba(30,64,175,0.18);border:1px solid rgba(147,197,253,0.24);border-radius:10px;padding:10px 12px;margin-bottom:12px;">' +
+        '<b>십성 흐름 판정:</b> ' + escapeTarotHtml(tenGodFlowAnalysis.label) + ' · ' + escapeTarotHtml(tenGodFlowAnalysis.names) + '<br>' +
+        '<span>' + escapeTarotHtml(tenGodFlowAnalysis.detail) + '</span>' +
+      '</div>' +
       '<div style="line-height:1.9;color:#fde68a;background:rgba(2,6,23,0.28);border:1px solid rgba(253,230,138,0.22);border-radius:10px;padding:10px 12px;">' +
         '<b>핵심 결론:</b> ' + escapeTarotHtml(coreConclusion) +
       '</div>' +
@@ -1465,7 +1643,7 @@ function startThreeCardFlow() {
   var finalBtn = document.getElementById('tarotFinalBtn');
   if (finalBtn) finalBtn.disabled = true;
   var guideEl = document.getElementById('tarotSpreadGuide');
-  if (guideEl) guideEl.textContent = (labels[0] || '흘러온 결') + ' 자리의 카드를 먼저 열어보세요';
+  if (guideEl) guideEl.textContent = (labels[0] || '지금까지의 흐름') + ' 자리의 카드를 먼저 열어보세요';
   if (msgEl) msgEl.innerHTML = '🌙 마음을 고요히 하고, 끌리는 카드를 순서대로 열어보세요.';
   isReading = false;
 }
@@ -1498,7 +1676,7 @@ function flipTarotSpreadCard(index) {
   var data = tarotThreeCardState.cards[idx];
   
   if (data && msgEl) {
-    msgEl.innerHTML = '✨ ' + data.card.name_kr + ' — ' + (data.isReversed ? '역행의 에너지가 흐릅니다.' : '순행의 에너지가 흐릅니다.');
+    msgEl.innerHTML = '✨ ' + data.card.name_kr + ' — ' + (data.isReversed ? '역방향의 신호가 드러납니다.' : '정방향의 흐름이 열립니다.');
   }
   
   if (idx < 2 && guideEl) {
@@ -1567,7 +1745,7 @@ function _runShowTarotFinalInterpretation() {
   var oracle = (readings[readings.length - 1] && readings[readings.length - 1].oracleMessage) || '';
   var interpretation = '' +
     '<b style="color:#c4b5fd;font-size:1.02em">🔮 명리학 타로 세 장의 흐름</b><br>' +
-    '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">흩어진 마음을 세 장의 흐름 안에서 차분히 정리해 드릴게요.</span><br><br>' +
+    '<span style="opacity:0.9;color:#ddd6fe;line-height:1.85;">세 장의 카드는 지나온 흐름, 현재의 기운, 오늘 선택할 기준을 차례로 비춥니다.</span><br><br>' +
     parts +
     realityPlan +
     '<div style="margin-top:10px;padding:14px 16px;border:1px solid rgba(167,243,208,0.35);border-radius:12px;background:rgba(5,150,105,0.10);">' +
@@ -1593,7 +1771,7 @@ function _runShowTarotFinalInterpretation() {
       streamRitualHtmlTyped(interpretation, 'destinyFortune', function() {
         var guide = document.getElementById('tarotSpreadGuide');
         if (guide) guide.textContent = '✨ 세 장의 명리 흐름이 완성되었습니다.';
-        if (msgEl) msgEl.innerHTML = '🌟 카드의 결을 오늘의 행동으로 옮겨보세요.';
+        if (msgEl) msgEl.innerHTML = '🌟 카드와 십성의 신호를 오늘의 선택 기준으로 옮겨보세요.';
       });
     }, 350);
   }, 80);
@@ -2093,7 +2271,7 @@ function buildFortuneHTML(res, p){
     '겁재':'경쟁심이 강해지는 날. 충동 지출·도박성 결정 금지.',
     '식신':'창의력과 즐거움이 높아집니다. 새로운 아이디어를 실행하세요.',
     '상관':'말이 앞서는 날. 계약서·발언 신중히. 예술·발표엔 최적.',
-    '편재':'큰 기회와 큰 그림자 파동가 공존합니다. 작은 것부터 잡으세요.',
+    '편재':'큰 기회와 큰 변동성이 공존합니다. 작은 것부터 잡으세요.',
     '정재':'꼼꼼한 실무 처리에 집중. 수입·저축 점검 날로 적격.',
     '편관':'압박감이 오지만 이겨내면 신뢰를 얻는 날.',
     '정관':'책임과 명예가 강조됩니다. 법적 서류·공식 절차 처리 적기.',
@@ -5007,7 +5185,7 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
         "각": {icon:"✨",celebs:"아인슈타인, 마리 퀴리",talent:95,
             core:"각숙(角宿)는 동방 청룡의 뿔을 상징하는 첫 번째 별자리입니다. 우주적 문명의 씨앗을 품고 태어난 혼으로, 새로운 시대를 여는 창조의 빛을 내면에 가득 담고 있습니다. 당신은 세상이 미처 보지 못한 것을 먼저 보는 선각자입니다. 끊임없이 창조를 갈망하며, 아름다움과 진리를 향한 열정이 삶의 원동력입니다. 어떤 상황에서도 새로운 가능성을 발견하는 눈을 지녔습니다.",
             hidden:"화려한 무대 뒤편, 각숙는 인정과 사랑에 대한 깊은 갈망을 숨기고 있습니다. 강렬하게 빛나지만 내면 깊은 곳에서는 자신이 충분히 사랑받고 있는지 끊임없이 확인하고 싶어합니다. 타인의 시선에 무관한 척하지만 실은 큰 영향을 받습니다. 그러나 이 예민한 감수성이야말로 당신의 창조력의 진짜 원천입니다. 이 내면의 갈망을 예술이나 창작으로 승화시키면 천재적 경지에 이릅니다.",
-            karma:"각숙 태생은 어디서나 모임의 중심이 되는 타고난 자석입니다. 첫인상부터 빛나는 존재감으로 상대의 마음을 사로잡으며, 세대와 배경을 넘나드는 유연한 소통 능력을 지녔습니다. 다만 너무 많은 관계에 에너지를 쏟다가 정작 소중한 인연을 놓치는 실숙를 경계해야 합니다. 적의 마음도 무장해제시키는 당신의 매력은 인생 최고의 자산입니다. 특히 창의적이고 감수성 풍부한 이들과 깊은 유대가 형성됩니다.",
+            karma:"각숙 태생은 어디서나 모임의 중심이 되는 타고난 자석입니다. 첫인상부터 빛나는 존재감으로 상대의 마음을 사로잡으며, 세대와 배경을 넘나드는 유연한 소통 능력을 지녔습니다. 다만 너무 많은 관계에 에너지를 쏟다가 정작 소중한 인연을 놓치는 실수를 경계해야 합니다. 적의 마음도 무장해제시키는 당신의 매력은 인생 최고의 자산입니다. 특히 창의적이고 감수성 풍부한 이들과 깊은 유대가 형성됩니다.",
             mantra:"\"아직 세상에 없는 것을 만들어라. 두려움은 창조의 반대편이 아니라 창조의 연료다.\"",
             desc:"화려한 무대 위의 별처럼 자신을 드러내는 것을 즐기며, 탁월한 창조력과 예술적 기질을 지녔습니다.",
             work:"독창적인 아이디어와 기획력이 뛰어나 사람들의 이목을 끄는 직업이나 엔터테인먼트 분야에서 두각을 나타냅니다.",
@@ -5079,7 +5257,7 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
         "여": {icon:"🌙",celebs:"셰익스피어, 톨스토이",talent:93,
             core:"여숙(女宿)는 직녀성으로도 알려진 완벽주의와 절제의 별입니다. 여숙 아래 태어난 영혼은 하늘의 베를 짜는 장인처럼, 자신의 세계를 정밀하게 설계하고 완성하기 위해 이 땅에 왔습니다. 철저한 자기 수호와 품위를 삶의 기준으로 삼으며, 어떤 환경에서도 자신만의 격을 잃지 않는 귀한 영혼입니다.",
             hidden:"여숙는 완벽을 추구하다가 스스로의 감정을 억누르는 경향이 있습니다. 틀리거나 약점을 보이는 것을 극도로 싫어하기 때문에 상처를 홀로 감추고 삽니다. 또한 겉으로는 자존심이 강해 보이지만, 사실은 타인의 진심 어린 칭찬과 인정에 눈물이 날 정도로 감동받는 순수한 내면을 지녔습니다.",
-            karma:"여숙 태생은 말없이 주변을 압도하는 고요한 품격이 있습니다. 시끄럽게 주장하지 않아도 그 존재만으로 장소의 격이 높아집니다. 완벽주의 때문에 가끔 주변 사람들이 압박을 느낄 수 있으므로, 실숙를 함께 웃어 넘길 여유를 보여주면 관계가 훨씬 따뜻해집니다.",
+            karma:"여숙 태생은 말없이 주변을 압도하는 고요한 품격이 있습니다. 시끄럽게 주장하지 않아도 그 존재만으로 장소의 격이 높아집니다. 완벽주의 때문에 가끔 주변 사람들이 압박을 느낄 수 있으므로, 실수를 함께 웃어 넘길 여유를 보여주면 관계가 훨씬 따뜻해집니다.",
             mantra:"\"완벽함은 목적지가 아니라 방향이다. 그 방향으로 걷는 과정 자체가 이미 아름답다.\"",
             desc:"철저한 자기 수호와 완벽주의의 기운입니다. 내성적이지만 권위와 체면을 깊게 중시합니다.",
             work:"책임감이 강해 맡은 일은 빈틈없이 해내며, 자기만의 확실한 기술을 가지고 일해야 성공합니다.",
@@ -5100,12 +5278,12 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
             karma:"위숙 태생이 가는 곳에는 언제나 긴장과 활기가 동시에 흐릅니다. 극한의 상황에서 당신의 진가가 드러나므로, 위기 상황에서 당신에게 도움을 요청하는 사람들이 많아집니다. 다만 너무 극단적인 행보는 주변 사람들을 지치게 하므로, 에너지 강도를 조절하는 법을 익히십시오.",
             mantra:"\"나는 위험을 피하지 않는다. 위험 속에서 나는 가장 나답다.\"",
             desc:"위험을 두려워하지 않는 개척자적 기질과 극단적인 파괴와 창조의 힘을 동시에 지녔습니다.",
-            work:"그림자 파동가 클수록 역량이 폭발하며 큰 성공을 이루는 모 아니면 도 타입입니다.",
-            love:"평범함을 거부하며 폭발적인 감정에 휩쓸리는 롤러코스터 연애입니다.",
+            work:"변동성이 클수록 역량이 살아나지만, 방향을 정해야 성과가 안정되는 타입입니다.",
+            love:"평범한 흐름보다 선명한 감정 자극에 반응하기 쉬운 연애 패턴입니다.",
             wealth:"일순간에 거부가 되기도, 바닥으로 추락하기도 합니다. 그림자 파동 수호가 과제입니다."},
         "실": {icon:"💧",celebs:"이순신, 세종대왕",talent:99,
             core:"실숙(室宿)는 천자의 궁전, 페가수스 자리의 심장부에 해당하는 웅대한 별입니다. 실숙 아래 태어난 영혼은 이 세상에 새로운 질서와 공간을 창조하기 위해 왔습니다. 장대한 기세와 진취적인 에너지로 아무것도 없는 곳에서 새로운 세계를 건설하는 선구자의 기운을 온몸에 뿜어냅니다.",
-            hidden:"실숙는 모든 걸 시작하는 기세 뒤에 지속과 마무리에 대한 두려움을 감추고 있습니다. 시작의 에너지는 폭발적이지만 끝을 보지 못하거나 루틴이 생기면 흥미를 잃는 경향이 있습니다. 이 패턴을 스스로 인식하고, 끝맺음을 함께 할 파트너나 성궁 진법을 곁에 두는 것이 성공의 핵심 천기입니다.",
+            hidden:"실숙는 모든 걸 시작하는 기세 뒤에 지속과 마무리에 대한 두려움을 감추고 있습니다. 시작의 에너지는 빠르게 올라오지만 끝을 보지 못하거나 루틴이 생기면 흥미를 잃는 경향이 있습니다. 이 패턴을 스스로 인식하고, 끝맺음을 함께 할 파트너나 실행 구조를 곁에 두는 것이 성공의 핵심입니다.",
             karma:"실숙 태생이 나타나면 정체되어 있던 분위기가 한 번에 전환됩니다. 당신의 호탕한 에너지는 주변 사람들에게 '이제 시작하면 되겠다'는 용기를 줍니다. 먼저 치고 나가는 당신을 믿고 따라오는 충성스러운 동료들이 자연스럽게 만들어집니다.",
             mantra:"\"시작은 내가 한다. 두려움은 첫 발을 내딛는 순간 사라진다.\"",
             desc:"순수하고 거침이 없으며 목표를 향해 무서운 기세로 돌진하는 진취적이고 호탕한 성격입니다.",
@@ -5169,7 +5347,7 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
         "자": {icon:"🌋",celebs:"나폴레옹, 잔 다르크",talent:90,
             core:"자숙(觜宿)는 오리온자리의 짧은 별들로 이루어진 언어와 지식의 별입니다. 자숙 아래 태어난 영혼은 말과 글로 세상을 변화시키기 위해 왔습니다. 강력한 언어 능력과 넘치는 지적 호기심으로 세상의 정보를 흡수하고 새롭게 정의하는 것이 이 영혼의 사명입니다.",
             hidden:"자숙는 언제나 말이 많고 지식이 넘쳐 보이는 외면 뒤에 정작 진심을 말하지 못하는 어려움이 있습니다. 수많은 말들 속에서 가장 중요한 감정 한 마디를 꺼내는 것이 가장 힘듭니다. 말로 모든 것을 설명할 수 있다고 믿지만, 사랑과 그리움은 결국 침묵으로 전달되기도 한다는 것을 배워야 합니다.",
-            karma:"자숙 태생 주변에는 늘 다양한 사람들이 모여듭니다. 당신의 신선한 지식과 유머 감각은 어떤 모임에도 활기를 불어넣습니다. 다만 가끔 말이 지나쳐 상대를 상처입히거나 실숙를 유발할 수 있으므로, 말의 힘과 함께 침묵의 힘도 함께 키우는 것이 중요합니다.",
+            karma:"자숙 태생 주변에는 늘 다양한 사람들이 모여듭니다. 당신의 신선한 지식과 유머 감각은 어떤 모임에도 활기를 불어넣습니다. 다만 가끔 말이 지나쳐 상대를 상처입히거나 실수를 유발할 수 있으므로, 말의 힘과 함께 침묵의 힘도 함께 키우는 것이 중요합니다.",
             mantra:"\"내 말 한 마디가 세상을 바꿀 수 있다. 그러니 나는 더욱 신중하게, 더욱 진심을 담아 말한다.\"",
             desc:"언변이 타고났으며 호기심이 하늘을 찌릅니다. 때로는 지나친 참견으로 보일 수 있습니다.",
             work:"말로 하는 직업, 방송, 교육, 변호사, 언론 등에서 지식을 전파하며 성공합니다.",
@@ -5185,7 +5363,7 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
             love:"불같은 사랑에 빠져듭니다. 자존심이 세고 시시비비를 가려 다툼이 생깁니다.",
             wealth:"크게 투자하고 크게 회수하는 대범한 멘탈형 자산가 타입입니다."},
         "정": {icon:"🌪️",celebs:"마리 앙투아네트, 볼테르",talent:84,
-            core:"정숙(井宿)는 하늘의 우물을 의미하는 별로, 차갑고 청명한 이성의 원천을 상징합니다. 정숙 아래 태어난 영혼은 세상의 모든 것을 논리와 합리의 눈으로 분류하고 체계화하기 위해 왔습니다. 냉정한 분석력으로 진실을 가려내는 탐정이자, 성궁 진법의 비효율을 가장 먼저 발견하는 눈을 가졌습니다.",
+            core:"정숙(井宿)는 하늘의 우물을 의미하는 별로, 차갑고 청명한 이성의 원천을 상징합니다. 정숙 아래 태어난 영혼은 세상의 모든 것을 논리와 합리의 눈으로 분류하고 체계화하기 위해 왔습니다. 냉정한 분석력으로 진실을 가려내는 탐정이자, 실행 구조의 비효율을 가장 먼저 발견하는 눈을 가졌습니다.",
             hidden:"정숙는 차갑고 이성적인 외면 뒤에 아무에게도 보여주지 않는 따뜻한 감수성을 감추고 있습니다. 감정적으로 보이는 것을 약점이라 생각하기 때문에 사랑조차도 조건과 논리로 분석하려 합니다. 하지만 누군가가 그 방어막을 뚫고 들어오는 순간, 정숙는 놀라울 정도로 깊고 헌신적인 감정을 쏟아냅니다. 가끔은 먼저 안기는 연습을 해보십시오.",
             karma:"정숙 태생은 신뢰할 수 있는 합리적인 사람으로 평가받습니다. 감정에 흔들리지 않는 냉철한 판단력 덕에 위기 상황에서 결정적인 역할을 합니다. 다만 타인의 감정을 논리로 규정하거나 무시하는 모습이 상처를 주는 경우가 있으므로, 공감 능력을 의식적으로 훈련하는 것이 중요합니다.",
             mantra:"\"세상은 논리로 이해하고, 사람은 마음으로 이해한다.\"",
@@ -5217,13 +5395,13 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
             karma:"성숙 태생이 있는 무리는 자연스럽게 그를 중심으로 재편됩니다. 시키지 않아도 이끄는 자리에 서게 되며, 그 책임감과 위압감은 때로는 짐이 됩니다. 자신을 위한 것과 무리를 위한 것을 명확히 구분하여 에너지를 쓸 때 당신의 리더십은 비로소 완성됩니다.",
             mantra:"\"나는 승리를 위해 태어나지 않았다. 최선을 다하는 과정이 곧 나다.\"",
             desc:"스케일이 크고 도량이 넓으며 지는 것을 무척 싫어하는 승부사. 뭇 사람들의 존중을 받습니다.",
-            work:"사업이나 중책을 맡아 리더십을 발휘해야만 재능이 폭발합니다.",
+            work:"사업이나 중책을 맡아 리더십을 발휘할 때 재능이 선명해집니다.",
             love:"헌신적인 서포터형 연인과 장수합니다.",
             wealth:"씀씀이가 크지만 그만큼 크게 버는 스케일을 갖고 있습니다."},
         "장": {icon:"⚡",celebs:"펠레, 마라도나",talent:97,
-            core:"장숙(張宿)는 활짝 펼쳐진 새의 날개, 주작의 날개를 상징하는 풍요로움과 화려함의 별입니다. 장숙 아래 태어난 영혼은 이 세상에서 삶의 화려한 무대 위에 서서 자신의 빛으로 주변을 밝히기 위해 왔습니다. 타고난 오라와 폭발적인 개인기로 어느 무대에서나 스포트라이트의 중심이 됩니다.",
+            core:"장숙(張宿)는 활짝 펼쳐진 새의 날개, 주작의 날개를 상징하는 풍요로움과 화려함의 별입니다. 장숙 아래 태어난 사람은 삶의 무대 위에서 자신의 빛으로 주변을 밝히려는 기질이 강합니다. 타고난 존재감과 강한 표현력으로 어느 자리에서나 중심에 서기 쉽습니다.",
             hidden:"장숙는 화려함의 이면에 고독을 품고 있습니다. 수많은 사람들에게 에너지를 주면서도, 정작 자신에게 아무 조건 없이 에너지를 채워주는 사람이 없다는 외로움을 느낍니다. 대중에게 사랑받는 성공과 단 한 명에게 깊이 사랑받는 것 사이에서 갈등하는 것이 장숙의 본질적 숙제입니다.",
-            karma:"장숙 태생 주변에는 삶이 드라마처럼 풍요롭고 화려해집니다. 당신으로 인해 주변 사람들의 표정이 밝아지고, 환경이 풍요로워지는 마법이 일어납니다. 다만 이 빛이 때로는 주변 사람들을 위축시키거나 의존하게 만들 수 있으므로, 함께 빛날 수 있도록 주변의 별들을 일으켜 세우는 지혜가 필요합니다.",
+            karma:"장숙 태생 주변에는 삶이 드라마처럼 풍요롭고 화려해집니다. 당신으로 인해 주변 사람들의 표정이 밝아지고, 환경의 분위기가 좋아질 수 있습니다. 다만 이 빛이 때로는 주변 사람들을 위축시키거나 의존하게 만들 수 있으므로, 함께 빛날 수 있도록 주변의 별들을 일으켜 세우는 지혜가 필요합니다.",
             mantra:"\"나는 세상에서 가장 화려한 무대 위에 서 있다. 그 무대는 오늘 내가 걷는 이 길이다.\"",
             desc:"화려하고 대범하며 무리의 중심에서 화제성을 이끄는 태양 같은 존재입니다.",
             work:"정치, 기획, 사업, 무대 등 화려한 곳에서 재능과 존재감을 과시합니다.",
@@ -5249,18 +5427,291 @@ function calcSukuyoData(lunarObj, opt = { leapRule: 'current' }) {
             wealth:"단돈 1원도 헛되이 쓰지 않으며 치밀한 자금 수호로 막대한 부를 서서히 일궈냅니다."}
     };
 
+    const professionalSukuyoTraits = {
+        "각": {
+            core: "각숙(角宿)은 동방 청룡의 첫 기운처럼 새로운 흐름을 먼저 여는 숙입니다. 감각이 빠르고 가능성을 발견하는 눈이 선명하지만, 속도가 앞서면 주변의 호흡을 놓칠 수 있습니다. 시작 전에 기준과 순서를 정하면 개척성이 안정적인 성과로 이어집니다.",
+            hidden: "내면에는 인정받고 싶은 마음과 스스로 길을 열어야 한다는 압박이 함께 있습니다. 반응을 급히 확인하려 하기보다 감정을 창작, 기획, 제안으로 옮길 때 각숙의 빛이 맑아집니다.",
+            karma: "인연에서는 첫 만남의 인상이 강하게 남는 편입니다. 넓은 관계를 만들 수 있으나 중요한 사람에게 쓸 시간을 따로 남겨야 깊이가 생깁니다. 관계의 핵심은 매력보다 지속적인 확인입니다.",
+            mantra: "\"먼저 보는 눈을 가졌다면, 먼저 정리하는 책임도 함께 지닌다.\"",
+            desc: "새로운 가능성을 빠르게 감지하고 흐름의 첫 문을 여는 개척형 숙입니다.",
+            work: "기획, 창작, 발표, 신규 프로젝트에서 강점이 살아납니다. 시작은 빠르게 하되 마감 기준을 분명히 둘수록 성과가 안정됩니다.",
+            love: "호감 표현이 빠르고 분위기를 여는 힘이 있습니다. 상대의 속도를 확인하며 접근하면 관계가 오래 갑니다.",
+            wealth: "재물은 아이디어와 실행력에서 열립니다. 충동 지출보다 목표별 예산을 나누면 흐름이 단단해집니다."
+        },
+        "항": {
+            core: "항숙(亢宿)은 원칙과 품위를 세우는 숙입니다. 한번 정한 기준을 오래 지키는 힘이 있고, 신뢰를 쌓는 방식이 분명합니다. 다만 옳고 그름을 빠르게 가르기보다 상황의 맥락을 함께 보면 영향력이 부드러워집니다.",
+            hidden: "내면에는 흔들리지 않아야 한다는 긴장이 있습니다. 완벽한 모습만 보이려 할수록 피로가 쌓이므로, 잠시 내려놓는 시간을 허락할 때 중심이 더 단단해집니다.",
+            karma: "인연에서는 정신적 기둥처럼 보이기 쉽습니다. 기대를 많이 받는 만큼 부담도 따르므로, 도와줄 수 있는 범위와 지켜야 할 선을 명확히 말해야 합니다.",
+            mantra: "\"원칙은 사람을 밀어내기보다 길을 밝힐 때 품격이 생긴다.\"",
+            desc: "원칙, 책임, 신뢰를 중심으로 삶의 질서를 세우는 숙입니다.",
+            work: "관리, 리더십, 법과 기준, 운영 책임이 있는 자리에서 강합니다. 유연한 조율을 더하면 협업 신뢰가 커집니다.",
+            love: "신중하게 마음을 열지만 한번 정하면 책임감 있게 지킵니다. 판단보다 경청이 애정을 깊게 만듭니다.",
+            wealth: "재물은 장기 계획과 신용에서 자랍니다. 급한 승부보다 꾸준한 축적이 잘 맞습니다."
+        },
+        "저": {
+            core: "저숙(氐宿)은 뿌리를 내리고 시간을 견디는 숙입니다. 겉으로는 온화해도 내면에는 쉽게 흔들리지 않는 지속력이 있습니다. 느린 전개를 약점으로 보지 않고 축적의 방식으로 쓰면 큰 안정감을 만듭니다.",
+            hidden: "감정을 오래 품는 경향이 있어 서운함이 쌓이면 회복이 늦어질 수 있습니다. 감정을 기록하고 작은 대화로 풀어내면 저숙의 인내가 따뜻한 신뢰로 바뀝니다.",
+            karma: "인연에서는 한결같은 사람으로 기억됩니다. 화려한 표현보다 오래 곁을 지키는 방식이 강점이며, 배신과 약속 파기에 특히 예민할 수 있습니다.",
+            mantra: "\"깊이 내린 뿌리는 느리게 자라도 쉽게 마르지 않는다.\"",
+            desc: "내실, 인내, 축적을 통해 삶의 기반을 다지는 숙입니다.",
+            work: "장기 프로젝트, 연구, 운영, 자산 관리처럼 꾸준함이 필요한 일에 강합니다.",
+            love: "천천히 믿음을 확인하며 깊어지는 사랑을 선호합니다. 약속의 일관성이 관계 안정의 핵심입니다.",
+            wealth: "저축과 장기 계획에 강합니다. 작은 흐름을 놓치지 않는 습관이 재물 기반을 만듭니다."
+        },
+        "방": {
+            core: "방숙(房宿)은 사람과 기회를 움직이는 주도형 숙입니다. 존재감, 협상력, 성취 욕구가 뚜렷하고 현실적인 결과를 만들어내는 힘이 있습니다. 다만 주도권이 강해질수록 상대의 자율성을 함께 살펴야 합니다.",
+            hidden: "내면에는 인정받고 싶다는 감정적 갈증이 있습니다. 성과로만 마음을 증명하려 하면 관계가 긴장되므로, 취약함을 짧게라도 드러낼 때 신뢰가 깊어집니다.",
+            karma: "인연에서는 중심에 서기 쉽고, 주변 사람이 자연스럽게 기대를 걸 수 있습니다. 소유보다 협력을 선택하면 방숙의 영향력이 오래 갑니다.",
+            mantra: "\"진짜 힘은 사람을 묶는 데서가 아니라 함께 움직이게 하는 데서 나온다.\"",
+            desc: "권위, 성취, 협상 감각으로 현실의 판을 여는 숙입니다.",
+            work: "비즈니스, 협상, 조직 운영, 리더 역할에서 강합니다. 권한과 책임을 나눌수록 성과가 커집니다.",
+            love: "끌림과 표현력이 강하지만 소유욕이 앞서면 부담이 됩니다. 상대의 선택권을 존중할 때 매력이 안정됩니다.",
+            wealth: "큰 흐름을 잡는 감각이 좋습니다. 과시성 지출을 줄이고 장기 목표에 연결하면 재물이 모입니다."
+        },
+        "심": {
+            core: "심숙(心宿)은 깊은 감지력과 집중력을 지닌 숙입니다. 사람의 말보다 분위기와 숨은 의도를 먼저 읽는 편이며, 핵심을 파악하는 눈이 날카롭습니다. 판단이 빠른 만큼 확인 절차를 두면 통찰이 더 정확해집니다.",
+            hidden: "감정의 진폭이 커질 때 혼자 모든 의미를 해석하려는 경향이 있습니다. 의심이 길어지기 전에 사실과 느낌을 분리하면 내면의 힘이 맑아집니다.",
+            karma: "인연에서는 강한 인상을 남기고 깊은 대화를 끌어냅니다. 비밀과 속마음을 다루는 능력이 있으므로, 상대의 취약함을 조심스럽게 다루는 태도가 중요합니다.",
+            mantra: "\"깊이 보는 눈은 조용한 확인을 거칠 때 지혜가 된다.\"",
+            desc: "직관, 통찰, 집중을 통해 보이지 않는 흐름을 읽는 숙입니다.",
+            work: "상담, 분석, 기획, 심리, 조사처럼 숨은 구조를 파악하는 일에 강합니다.",
+            love: "강한 끌림과 깊은 몰입이 생기기 쉽습니다. 감정이 격해질수록 직접 확인하는 대화가 필요합니다.",
+            wealth: "정보와 타이밍을 읽는 감각이 있습니다. 불확실한 투자는 검증 단계를 거쳐야 안정됩니다."
+        },
+        "미": {
+            core: "미숙(尾宿)은 돌파력과 회복력이 강한 숙입니다. 어려운 상황에서도 물러서지 않는 힘이 있고, 막힌 흐름을 뚫어내는 에너지가 있습니다. 다만 모든 장면을 승부로 만들면 피로가 커지므로 힘을 쓸 곳을 골라야 합니다.",
+            hidden: "강한 태도 뒤에는 쉬고 싶은 마음과 순수한 인정 욕구가 있습니다. 계속 버티기보다 휴식과 감정 정리를 일정에 넣을 때 전투성이 건강한 추진력으로 바뀝니다.",
+            karma: "인연에서는 솔직하고 뜨거운 사람으로 보입니다. 직진성은 매력이나, 상대의 리듬을 읽지 않으면 압박으로 전달될 수 있습니다.",
+            mantra: "\"힘은 끝까지 밀어붙이는 데서만이 아니라 멈출 때를 아는 데서 완성된다.\"",
+            desc: "도전, 회복, 돌파의 기운으로 막힌 길을 여는 숙입니다.",
+            work: "경쟁, 위기 대응, 실행력이 필요한 분야에서 강합니다. 에너지 배분이 성과의 관건입니다.",
+            love: "표현이 솔직하고 뜨겁습니다. 감정의 속도를 낮춰 확인하면 관계가 안정됩니다.",
+            wealth: "큰 흐름을 잡을 수 있지만 변동성도 큽니다. 손절 기준과 예비 자금을 먼저 정해야 합니다."
+        },
+        "기": {
+            core: "기숙(箕宿)은 자유로운 탐색과 확장의 숙입니다. 새로운 지식, 장소, 사람을 통해 시야를 넓히며 고정된 틀에 오래 머물기 어렵습니다. 자유를 지키면서도 최소한의 약속을 세울 때 신뢰가 생깁니다.",
+            hidden: "내면에는 정착하고 싶은 마음과 떠나고 싶은 마음이 함께 있습니다. 어느 하나를 부정하지 말고, 돌아올 기준점을 만들면 불안정함이 줄어듭니다.",
+            karma: "인연에서는 신선한 자극을 주는 사람으로 보입니다. 다만 예측하기 어려운 행동이 신뢰를 흔들 수 있으므로, 중요한 약속은 말보다 일정으로 남기는 편이 좋습니다.",
+            mantra: "\"자유는 흩어지는 것이 아니라 나만의 기준으로 돌아올 수 있을 때 완성된다.\"",
+            desc: "탐색, 이동, 확장을 통해 새로운 길을 발견하는 숙입니다.",
+            work: "전문성, 독립성, 기획, 이동성이 있는 일에서 강합니다. 수직적 통제보다 자율 책임 구조가 맞습니다.",
+            love: "친구 같은 편안함과 적당한 거리를 중요하게 여깁니다. 자유와 안정의 합의가 필요합니다.",
+            wealth: "전문성을 넓게 연결할수록 재물 기회가 열립니다. 수입원을 분산하되 관리 기준은 단순해야 합니다."
+        },
+        "두": {
+            core: "두숙(斗宿)은 방향을 제시하고 지혜를 나누는 숙입니다. 큰 그림을 보고 사람을 이끄는 감각이 있으며, 배움과 가르침을 통해 운이 열립니다. 조언이 훈계처럼 들리지 않도록 상대의 준비도를 먼저 살피는 것이 좋습니다.",
+            hidden: "늘 현명해야 한다는 압박이 쌓일 수 있습니다. 모르는 것을 인정하고 배우는 자리에 설 때 두숙의 지혜는 더 깊어집니다.",
+            karma: "인연에서는 길을 알려주는 사람으로 기억됩니다. 존경을 받기 쉽지만, 상대를 내려다보지 않는 태도가 관계를 오래 지킵니다.",
+            mantra: "\"길을 아는 사람은 먼저 묻고, 그다음에 방향을 밝힌다.\"",
+            desc: "지식, 안내, 큰 방향성을 통해 사람과 일을 이끄는 숙입니다.",
+            work: "교육, 기획, 멘토링, 전략 수립에서 강합니다. 체계화 능력이 성과로 이어집니다.",
+            love: "상대를 챙기고 이끌려는 마음이 큽니다. 조언보다 공감을 먼저 두면 애정이 부드러워집니다.",
+            wealth: "명예와 신뢰를 기반으로 재물이 안정됩니다. 정도를 지키는 운영이 잘 맞습니다."
+        },
+        "여": {
+            core: "여숙(女宿)은 정제, 품위, 완성도를 중시하는 숙입니다. 세밀하게 다듬고 기준을 지키는 힘이 강하며, 조용한 존재감으로 신뢰를 만듭니다. 완벽함보다 적절한 완성을 선택할 때 흐름이 가벼워집니다.",
+            hidden: "약점을 보이고 싶지 않아 감정을 감추는 경향이 있습니다. 작은 실수와 부족함을 허용하면 긴장이 풀리고 관계의 온기가 살아납니다.",
+            karma: "인연에서는 쉽게 가벼워지지 않는 사람으로 보입니다. 예의와 신뢰를 중요하게 여기며, 상대의 무심한 말에 깊이 상처받을 수 있습니다.",
+            mantra: "\"품격은 빈틈을 없애는 데서가 아니라 마음을 흐트러뜨리지 않는 데서 생긴다.\"",
+            desc: "정제된 감각과 책임감으로 삶의 질을 높이는 숙입니다.",
+            work: "품질 관리, 문서, 설계, 전문 기술처럼 섬세함이 필요한 일에 강합니다.",
+            love: "조심스럽게 마음을 열며 존중받는 관계를 원합니다. 칭찬과 확인이 신뢰를 키웁니다.",
+            wealth: "계산과 관리에 강합니다. 지나친 절제보다 필요한 투자 기준을 세우면 균형이 좋아집니다."
+        },
+        "허": {
+            core: "허숙(虛宿)은 비움과 성찰을 통해 본질을 보는 숙입니다. 세속적 기준보다 의미와 깊이를 중요하게 여기며, 혼자 있는 시간에 통찰이 살아납니다. 고립이 길어지지 않도록 현실의 작은 약속을 함께 붙잡는 것이 좋습니다.",
+            hidden: "공허감이나 무의미감이 찾아올 때가 있습니다. 그 감정을 피하기보다 조용히 관찰하면 허숙 특유의 이해력과 공감 능력이 열립니다.",
+            karma: "인연에서는 상대가 자기 내면을 돌아보게 만드는 힘이 있습니다. 넓은 관계보다 깊은 소수의 관계가 더 잘 맞습니다.",
+            mantra: "\"비어 있는 자리는 사라진 곳이 아니라 새 의미가 들어올 그릇이다.\"",
+            desc: "성찰, 철학, 내면의 깊이를 통해 삶의 의미를 찾는 숙입니다.",
+            work: "상담, 연구, 철학, 종교, 치유, 글쓰기처럼 깊은 사유가 필요한 일에 강합니다.",
+            love: "정서적 교감과 조용한 이해를 중요하게 여깁니다. 말보다 분위기와 진심을 봅니다.",
+            wealth: "재물은 의미 있는 일과 연결될 때 안정됩니다. 감정적 공허를 소비로 채우지 않는 것이 중요합니다."
+        },
+        "위1": {
+            core: "위숙(危宿)은 전환점에서 힘을 발휘하는 숙입니다. 위험을 감지하고 새 길을 찾는 능력이 있으며, 위기 속에서 판단이 선명해질 수 있습니다. 다만 긴장을 계속 유지하면 소진되므로 안정 장치를 먼저 마련해야 합니다.",
+            hidden: "예측할 수 없는 상황을 견디면서도 마음 깊은 곳에서는 통제 가능한 기준을 원합니다. 모든 것을 장악하려 하기보다 핵심 변수만 관리하면 불안이 줄어듭니다.",
+            karma: "인연에서는 강한 자극과 변화를 가져오는 사람으로 보입니다. 매력은 크지만 상대가 지칠 수 있으므로 감정의 강도를 조절하는 지혜가 필요합니다.",
+            mantra: "\"벼랑의 지혜는 무작정 뛰는 것이 아니라 발 디딜 곳을 먼저 보는 데 있다.\"",
+            desc: "위기 감지와 전환 능력으로 새로운 국면을 여는 숙입니다.",
+            work: "위기 대응, 전환 프로젝트, 창업, 개편 업무에서 강합니다. 리스크 목록을 먼저 만들면 성과가 안정됩니다.",
+            love: "강렬한 감정과 특별한 경험에 끌립니다. 안정 규칙을 함께 정해야 관계가 오래 갑니다.",
+            wealth: "재물 흐름의 기복이 생기기 쉽습니다. 큰 선택 전 손실 한도와 안전 자금을 정해야 합니다."
+        },
+        "실": {
+            core: "실숙(室宿)은 새 공간과 질서를 여는 숙입니다. 시작하는 힘이 크고, 비어 있는 곳에 구조를 세우는 능력이 있습니다. 다만 첫 기세가 강한 만큼 마무리 체계를 함께 갖춰야 결과가 남습니다.",
+            hidden: "시작 이후의 반복과 유지에서 흥미가 떨어질 수 있습니다. 함께 점검할 사람, 일정, 마감 장치를 두면 실숙의 개시력이 완성력으로 이어집니다.",
+            karma: "인연에서는 분위기를 전환시키고 사람들에게 용기를 주는 역할을 합니다. 먼저 나아가되 주변의 준비 상태를 살피면 신뢰가 깊어집니다.",
+            mantra: "\"문을 여는 힘은 끝까지 불을 밝힐 때 집이 된다.\"",
+            desc: "시작, 개척, 공간 창조의 힘으로 새 판을 여는 숙입니다.",
+            work: "신규 사업, 기획, 공간 구성, 프로젝트 착수에 강합니다. 운영 파트너와 체크리스트가 필요합니다.",
+            love: "마음이 움직이면 빠르게 다가갑니다. 상대와 속도를 맞추는 약속이 관계 안정의 핵심입니다.",
+            wealth: "목표가 선명할 때 재물이 따라옵니다. 수입보다 유지 비용을 먼저 계산해야 합니다."
+        },
+        "벽": {
+            core: "벽숙(壁宿)은 조화와 경계를 함께 다루는 숙입니다. 사람과 사람 사이의 긴장을 완화하고, 서로 다른 입장을 잇는 힘이 있습니다. 다만 지나친 양보는 내면의 피로를 키우므로 자신의 요구를 분명히 해야 합니다.",
+            hidden: "평화를 지키려다 감정을 뒤로 미루는 경향이 있습니다. 작은 불편함을 초기에 말하면 관계가 무너지지 않고 오히려 더 안정됩니다.",
+            karma: "인연에서는 편안하고 믿을 수 있는 사람으로 보입니다. 여러 사람을 연결하는 복이 있으나, 모두를 책임지려 하면 지치기 쉽습니다.",
+            mantra: "\"진짜 조화는 나를 지운 침묵이 아니라 서로의 자리를 인정하는 선에서 시작된다.\"",
+            desc: "중재, 협력, 관계 조율을 통해 안정된 흐름을 만드는 숙입니다.",
+            work: "협업, 상담, 조정, 서비스, 참모 역할에서 강합니다. 경계와 역할을 명확히 하면 성과가 좋아집니다.",
+            love: "다정하고 안정적인 사랑을 선호합니다. 맞춰주기만 하기보다 원하는 것을 말해야 합니다.",
+            wealth: "인맥과 협업이 재물로 이어질 수 있습니다. 부탁과 거래의 선을 분명히 해야 합니다."
+        },
+        "규": {
+            core: "규숙(奎宿)은 전통, 기록, 품격의 숙입니다. 오래 남을 가치와 형식을 중요하게 여기며, 흐트러진 것을 정돈하는 감각이 있습니다. 보수성이 강해질 때는 작은 변화를 허용해야 운이 막히지 않습니다.",
+            hidden: "안정된 울타리를 원하면서도 새로운 세계에 대한 호기심이 있습니다. 익숙한 방식을 지키되 한 번씩 다른 관점을 들이면 답답함이 줄어듭니다.",
+            karma: "인연에서는 쉽게 가벼워지지 않는 신뢰를 줍니다. 격식과 예의를 알아보는 사람과 깊게 이어지며, 관계도 오래 쌓아가는 편입니다.",
+            mantra: "\"뿌리를 지키는 사람은 새 가지가 뻗을 자리도 함께 마련해야 한다.\"",
+            desc: "전통, 기록, 품격을 통해 오래 남을 가치를 세우는 숙입니다.",
+            work: "문서, 기록, 디자인, 문화, 교육, 품질 관리에서 강합니다. 기존 체계에 새 감각을 더할 때 빛납니다.",
+            love: "신뢰와 예의를 중요하게 여기며 천천히 깊어집니다. 안정된 약속이 애정을 키웁니다.",
+            wealth: "보수적 관리에 강합니다. 지나친 안전 선호를 조절하면 성장 기회를 놓치지 않습니다."
+        },
+        "루": {
+            core: "루숙(婁宿)은 연결과 생존 감각이 뛰어난 숙입니다. 사람과 장소에 빠르게 적응하고 관계망을 넓히는 힘이 있습니다. 깊이보다 넓이가 앞서면 피상적으로 보일 수 있으니 핵심 관계를 따로 관리해야 합니다.",
+            hidden: "밝게 어울리면서도 마음 한편에는 쉽게 지치는 지점이 있습니다. 혼자 정리하는 시간을 확보하면 친화력이 더 맑아집니다.",
+            karma: "인연에서는 쉽게 다가가기 좋은 사람으로 보입니다. 다양한 사람을 이어주는 복이 있으나, 모두에게 좋은 사람으로 남으려 할 필요는 없습니다.",
+            mantra: "\"많이 아는 인연보다 오래 지킬 인연을 고를 때 연결의 복이 깊어진다.\"",
+            desc: "사교, 연결, 적응력으로 관계의 길을 넓히는 숙입니다.",
+            work: "영업, 네트워크, 서비스, 홍보, 협업 중심 업무에서 강합니다.",
+            love: "친근하고 자연스러운 접근이 매력입니다. 가벼운 대화 안에서도 진심의 기준을 보여야 합니다.",
+            wealth: "사람과 정보가 재물 기회로 이어집니다. 과소비와 체면 지출을 줄이면 안정됩니다."
+        },
+        "위2": {
+            core: "위숙(胃宿)은 축적과 분석의 숙입니다. 지식, 자원, 경험을 모아 체계화하는 힘이 있으며 현실 감각이 단단합니다. 다만 지나친 분석은 결정을 늦출 수 있으므로 기준이 서면 실행으로 옮겨야 합니다.",
+            hidden: "불확실한 상황에서 마음이 쉽게 예민해질 수 있습니다. 모든 가능성을 다 붙잡기보다 중요한 변수 세 가지만 남기면 안정감이 회복됩니다.",
+            karma: "인연에서는 실속 있고 믿을 만한 사람으로 보입니다. 상대의 필요를 잘 파악하지만, 계산적으로 보이지 않도록 감정 표현을 함께 두는 것이 좋습니다.",
+            mantra: "\"모으는 힘은 나눌 방향을 가질 때 풍요가 된다.\"",
+            desc: "축적, 분석, 자원 관리로 현실 기반을 단단히 만드는 숙입니다.",
+            work: "기획, 재무, 데이터, 운영, 연구처럼 정리와 축적이 필요한 일에 강합니다.",
+            love: "신중하게 관찰하고 천천히 믿음을 쌓습니다. 마음을 표현하는 연습이 관계를 부드럽게 합니다.",
+            wealth: "자원 관리와 분석에 강합니다. 과도한 걱정보다 실행 가능한 재정표가 필요합니다."
+        },
+        "묘": {
+            core: "묘숙(昴宿)은 보호와 공감의 숙입니다. 사람의 마음을 부드럽게 감싸고 공동체의 안전감을 만드는 힘이 있습니다. 다만 돌봄이 과해지면 상대의 자립을 막을 수 있으니 거리를 함께 지켜야 합니다.",
+            hidden: "상대의 감정을 먼저 살피다 자신의 욕구를 늦게 알아차릴 수 있습니다. 내가 필요한 것을 말하는 연습이 회복의 시작입니다.",
+            karma: "인연에서는 따뜻하고 믿을 수 있는 사람으로 기억됩니다. 보호 본능이 강하지만, 구원하려는 태도는 피하는 것이 좋습니다.",
+            mantra: "\"따뜻함은 모두를 품는 것이 아니라 필요한 만큼 머물 자리를 내어주는 것이다.\"",
+            desc: "돌봄, 공감, 보호의 힘으로 관계의 안정감을 만드는 숙입니다.",
+            work: "복지, 교육, 상담, 케어, 고객 관리처럼 사람을 살피는 일에 강합니다.",
+            love: "다정하고 헌신적인 사랑을 합니다. 과보호보다 믿고 기다리는 태도가 필요합니다.",
+            wealth: "사람을 돕는 흐름에서 재물 기회가 생깁니다. 감정 지출과 대신 부담하기를 조심해야 합니다."
+        },
+        "필": {
+            core: "필숙(畢宿)은 완성도와 끈기의 숙입니다. 느리더라도 꾸준히 다듬어 결과물을 만드는 힘이 있습니다. 고집이 강해질 때는 방식보다 목적을 먼저 확인해야 막힘이 줄어듭니다.",
+            hidden: "익숙한 방식에서 벗어나는 일을 부담스러워할 수 있습니다. 작은 실험을 허용하면 완성도와 유연성이 함께 살아납니다.",
+            karma: "인연에서는 믿음직하고 오래가는 사람으로 보입니다. 다만 답답하다는 인상을 줄 수 있으니 감정 표현을 아끼지 않는 편이 좋습니다.",
+            mantra: "\"오래 붙드는 힘은 방향을 점검할 때 작품이 된다.\"",
+            desc: "근면, 완성도, 지속력으로 삶을 단단히 짓는 숙입니다.",
+            work: "장기 과제, 기술, 제작, 관리, 반복 훈련이 필요한 분야에서 강합니다.",
+            love: "한번 마음을 주면 오래 지키는 편입니다. 변화에 대한 두려움을 솔직히 말하면 관계가 편안해집니다.",
+            wealth: "꾸준한 축적과 안정적 관리가 잘 맞습니다. 지나친 보수성은 성장 기회를 늦출 수 있습니다."
+        },
+        "자": {
+            core: "자숙(觜宿)은 말과 판단의 숙입니다. 정보를 빠르게 모으고 핵심을 언어로 정리하는 능력이 있습니다. 말의 힘이 강한 만큼 표현의 온도를 조절하면 신뢰가 깊어집니다.",
+            hidden: "생각이 빠르게 돌아갈수록 날카로운 말이 먼저 나올 수 있습니다. 침묵을 선택하는 순간도 자숙에게는 중요한 기술입니다.",
+            karma: "인연에서는 지적이고 유머 있는 사람으로 보입니다. 대화가 관계를 열지만, 상대가 받아들일 수 있는 속도를 살펴야 합니다.",
+            mantra: "\"말은 길을 열 수도 있고 닫을 수도 있으니, 먼저 방향을 고르고 내보내라.\"",
+            desc: "언어, 판단, 정보 감각으로 상황을 정리하는 숙입니다.",
+            work: "기획, 글쓰기, 발표, 상담, 영업, 분석 업무에서 강합니다.",
+            love: "대화가 잘 통하는 사람에게 끌립니다. 비판보다 확인 질문을 쓰면 애정이 안정됩니다.",
+            wealth: "정보와 설득력이 재물로 이어질 수 있습니다. 과한 설명과 성급한 계약은 주의해야 합니다."
+        },
+        "삼": {
+            core: "삼숙(參宿)은 변화와 재구성의 숙입니다. 낡은 틀을 깨고 새로운 구조를 만들려는 힘이 강합니다. 변화의 속도가 빠른 만큼 주변의 안전감도 함께 챙겨야 합니다.",
+            hidden: "정체된 상황을 견디기 어려워 스스로 변화를 만들 수 있습니다. 파괴보다 개선의 순서를 택할 때 삼숙의 힘이 생산적으로 쓰입니다.",
+            karma: "인연에서는 강한 자극과 각성을 주는 사람으로 보입니다. 관계를 바꾸는 힘이 있으나, 상대가 따라올 시간을 주어야 합니다.",
+            mantra: "\"무너뜨릴 수 있다면 다시 세울 책임까지 함께 보라.\"",
+            desc: "변화, 개혁, 재구성을 통해 새 질서를 만드는 숙입니다.",
+            work: "혁신, 위기 전환, 콘텐츠, 전략 개편, 기술 변화에 강합니다.",
+            love: "강한 끌림과 빠른 전개가 생기기 쉽습니다. 감정의 결론을 서두르지 않는 것이 중요합니다.",
+            wealth: "새 흐름을 잡는 감각이 좋습니다. 무리한 확장보다 실험 단위를 작게 나누면 안정됩니다."
+        },
+        "정": {
+            core: "정숙(井宿)은 논리와 정리의 숙입니다. 차분하게 분류하고 기준을 세우며, 복잡한 문제에서 질서를 찾아냅니다. 지나친 냉정함으로 보이지 않도록 감정의 온도를 함께 전하면 좋습니다.",
+            hidden: "감정을 통제하려는 습관이 강해질 수 있습니다. 모든 것을 설명하려 하기보다 느끼는 그대로를 인정하면 내면이 부드러워집니다.",
+            karma: "인연에서는 합리적이고 분명한 사람으로 보입니다. 상대의 감정을 문제 해결 대상으로만 보지 않을 때 관계가 깊어집니다.",
+            mantra: "\"맑은 판단은 마음을 배제할 때가 아니라 마음까지 제자리에 둘 때 완성된다.\"",
+            desc: "논리, 분류, 판단력으로 혼란을 정리하는 숙입니다.",
+            work: "분석, 법무, 기획, 품질 관리, 시스템 설계에 강합니다.",
+            love: "신뢰와 합리적 대화를 중요하게 여깁니다. 감정 표현을 의식적으로 더하면 관계가 따뜻해집니다.",
+            wealth: "계획성과 검토 능력이 재물 안정에 좋습니다. 지나친 의심은 기회를 늦출 수 있습니다."
+        },
+        "귀": {
+            core: "귀숙(鬼宿)은 직감과 전환의 숙입니다. 보이지 않는 기류를 빠르게 감지하고, 변화의 조짐을 먼저 알아차리는 힘이 있습니다. 감각을 믿되 현실 확인을 거치면 예감이 지혜로 바뀝니다.",
+            hidden: "기분의 변화가 크거나 이유 없는 불안이 올라올 수 있습니다. 몸의 리듬과 수면을 정돈하면 직감이 더 선명해집니다.",
+            karma: "인연에서는 묘하게 마음을 끌어당기는 분위기가 있습니다. 상대의 감정을 민감하게 느끼므로, 내 감정과 상대 감정을 구분하는 연습이 필요합니다.",
+            mantra: "\"예감은 두려움이 아니라 방향을 알리는 작은 등불일 수 있다.\"",
+            desc: "직감, 예감, 전환 감각으로 흐름의 변화를 읽는 숙입니다.",
+            work: "상담, 예술, 기획, 위기 감지, 트렌드 파악에 강합니다.",
+            love: "말보다 분위기와 느낌을 중요하게 여깁니다. 불안을 대화로 확인하면 관계가 안정됩니다.",
+            wealth: "기회 감지는 빠르지만 기복이 있을 수 있습니다. 감정적 판단보다 확인 절차가 필요합니다."
+        },
+        "류": {
+            core: "류숙(柳宿)은 몰입과 지속의 숙입니다. 한 번 마음을 둔 일에 깊이 들어가 끝까지 붙드는 힘이 있습니다. 몰입이 집착으로 굳지 않도록 주기적으로 숨을 고르는 시간이 필요합니다.",
+            hidden: "감정을 오래 붙잡는 경향이 있어 마음이 닫히면 회복이 늦어질 수 있습니다. 감정을 몸 밖으로 꺼내는 기록과 대화가 중요합니다.",
+            karma: "인연에서는 깊고 오래 남는 사람으로 보입니다. 헌신이 강하지만 상대의 반응에 지나치게 묶이면 소모가 커질 수 있습니다.",
+            mantra: "\"깊이 사랑하고 깊이 몰입하되, 나를 잃지 않는 선이 필요하다.\"",
+            desc: "몰입, 헌신, 지속력으로 한 분야를 깊게 파고드는 숙입니다.",
+            work: "전문 연구, 예술, 장기 프로젝트, 섬세한 관리에 강합니다.",
+            love: "마음이 깊고 오래갑니다. 확인받고 싶은 마음을 솔직히 말할 때 관계가 건강해집니다.",
+            wealth: "꾸준히 쌓는 방식이 맞습니다. 감정에 따른 지출과 관계 비용을 조심해야 합니다."
+        },
+        "성": {
+            core: "성숙(星宿)은 승부와 주도성의 숙입니다. 목표를 향해 힘을 모으고 결과를 만들어내는 추진력이 있습니다. 성과가 마음보다 앞서면 관계가 긴장되므로 과정의 온도를 함께 살펴야 합니다.",
+            hidden: "인정받고 싶은 마음이 강해질 때 과열될 수 있습니다. 승패보다 성장 지표를 세우면 부담이 줄고 실력이 오래 갑니다.",
+            karma: "인연에서는 강하고 선명한 사람으로 보입니다. 주도권을 잡는 힘은 매력이나, 상대가 함께 빛날 자리를 남겨야 합니다.",
+            mantra: "\"이기는 힘은 함께 설 자리를 남길 때 오래 빛난다.\"",
+            desc: "승부, 결단, 추진력으로 목표를 향해 나아가는 숙입니다.",
+            work: "리더십, 경쟁, 발표, 사업, 성과 중심 업무에서 강합니다.",
+            love: "표현과 확신이 뚜렷합니다. 상대의 자존심과 속도를 존중할 때 애정이 안정됩니다.",
+            wealth: "성과가 재물로 연결되기 쉽습니다. 과열된 투자와 과시 지출은 조심해야 합니다."
+        },
+        "장": {
+            core: "장숙(張宿)은 확장과 표현의 숙입니다. 자신의 색을 드러내고 무대의 흐름을 키우는 힘이 있습니다. 관심이 여러 곳으로 흩어질 수 있으므로 중심 주제를 정하면 빛이 더 강해집니다.",
+            hidden: "화려하게 보이는 만큼 조용히 인정받고 싶은 마음이 있습니다. 외부 반응에 흔들릴 때는 내가 지키려는 가치부터 확인해야 합니다.",
+            karma: "인연에서는 분위기를 밝히고 사람을 끌어당기는 힘이 있습니다. 다만 과장된 표현은 오해를 만들 수 있어 진심의 크기를 차분히 보여주는 것이 좋습니다.",
+            mantra: "\"넓게 펼치는 힘은 중심을 잃지 않을 때 아름답다.\"",
+            desc: "확장, 표현, 무대 감각으로 자신의 세계를 넓히는 숙입니다.",
+            work: "브랜딩, 예술, 발표, 홍보, 기획, 교육 분야에서 강합니다.",
+            love: "표현력이 좋고 낭만을 중요하게 여깁니다. 기대치를 솔직히 조율하면 관계가 깊어집니다.",
+            wealth: "확장과 인지도가 재물로 이어질 수 있습니다. 수입보다 지출 속도를 관리해야 합니다."
+        },
+        "익": {
+            core: "익숙(翼宿)은 기준과 완성의 숙입니다. 높은 목표를 향해 꾸준히 날아오르며, 품질과 책임을 중요하게 여깁니다. 기준이 너무 높아지면 스스로와 주변을 지치게 할 수 있으니 단계별 완성을 인정해야 합니다.",
+            hidden: "부족함을 참기 어려워 긴장이 쌓일 수 있습니다. 실수에서 배운 것을 기록하면 자기비판이 성장의 자료로 바뀝니다.",
+            karma: "인연에서는 믿을 수 있고 엄격한 사람으로 보입니다. 애정에서도 기준이 높으므로, 상대의 노력과 마음을 자주 인정해야 합니다.",
+            mantra: "\"높이 날기 위해서는 완벽한 날개보다 꾸준한 호흡이 필요하다.\"",
+            desc: "완성도, 책임감, 높은 기준으로 삶의 품질을 높이는 숙입니다.",
+            work: "전문직, 품질 관리, 교육, 설계, 장기 프로젝트에 강합니다.",
+            love: "성실하고 책임감 있는 사랑을 원합니다. 비판보다 격려가 관계를 오래 지킵니다.",
+            wealth: "계획과 관리에 강합니다. 지나친 긴장으로 좋은 기회를 미루지 않도록 주의해야 합니다."
+        },
+        "진": {
+            core: "진숙(軫宿)은 정리와 전환의 숙입니다. 끝맺음과 다음 시작 사이의 흐름을 읽고, 복잡한 것을 마무리하는 능력이 있습니다. 결정이 늦어질 때는 완벽한 답보다 지금 정리할 한 가지를 고르는 것이 좋습니다.",
+            hidden: "여러 가능성을 살피느라 마음이 쉽게 피로해질 수 있습니다. 기준을 줄이고 우선순위를 정하면 불안이 정돈됩니다.",
+            karma: "인연에서는 섬세하고 사려 깊은 사람으로 보입니다. 상대의 작은 변화도 잘 알아차리지만, 과도한 걱정은 관계를 무겁게 만들 수 있습니다.",
+            mantra: "\"끝을 정리하는 사람은 다음 문이 열릴 자리를 함께 만든다.\"",
+            desc: "정리, 마무리, 전환 감각으로 흐름을 완성하는 숙입니다.",
+            work: "정산, 편집, 분석, 마감, 운영 개선처럼 끝맺음이 중요한 일에 강합니다.",
+            love: "섬세하게 살피는 사랑을 합니다. 걱정을 확인 질문으로 바꾸면 관계가 편안해집니다.",
+            wealth: "손익 정리와 마감 관리에 강합니다. 결정을 미루는 비용을 줄이는 것이 중요합니다."
+        }
+    };
+
     let key = m;
     if (m === "위") {
         key = m_data.is_first_wi ? "위1" : "위2";
     }
 
-    const mapped = baseData[key] || {
+    const mapped = Object.assign({}, baseData[key] || {
         icon: "🌟", celebs: "유명인 미상", talent: 80, 
         desc: "타고난 직관력과 깊은 영성을 지녔습니다.",
         work: "자신만의 길에서 천천히 기회를 발견합니다.",
         love: "신중하고 느린 호흡으로 인연을 만들어갑니다.",
         wealth: "꾸준하고 안정된 삶을 영위할 기본적인 운을 지녔습니다."
-    };
+    }, professionalSukuyoTraits[key] || {});
 
     lunarObj.lunarMansion = m + "(" + m_data.ch_name + ")";
 
@@ -5292,24 +5743,24 @@ function getDailyKarmicGuidance(lunarObj, m) {
     }
 
     function moonPhase(score) {
-        if (score >= 93) return {emoji:'🌕', label:'보름달', desc:'달이 완전히 차오른 절정의 기운. 모든 에너지가 한꺼번에 빛을 발하는 날입니다.'};
-        if (score >= 83) return {emoji:'🌔', label:'상현달', desc:'기운이 힘차게 차오르는 성장의 때. 시작한 일들이 탄력을 받습니다.'};
-        if (score >= 73) return {emoji:'🌓', label:'반달', desc:'빛과 그림자가 균형을 이루는 안정의 시간. 신중한 판단이 빛납니다.'};
-        if (score >= 63) return {emoji:'🌒', label:'초승달', desc:'가느다란 빛이 어둠 속에서 솟아오르는 새 시작의 기운. 씨앗을 심기 좋은 날.'};
-        return               {emoji:'🌑', label:'그믐달', desc:'달이 숨어 내면을 돌아보는 정화의 시간. 쉬고 비워야 합니다.'};
+        if (score >= 93) return {emoji:'🌕', label:'보름달', desc:'상징 리듬이 크게 차오른 날입니다. 결과를 단정하기보다 이미 잡은 방향을 정돈하기 좋습니다.'};
+        if (score >= 83) return {emoji:'🌔', label:'상현달', desc:'기운이 차오르는 흐름입니다. 새 일을 확정하기보다 준비를 한 걸음 앞으로 밀기 좋습니다.'};
+        if (score >= 73) return {emoji:'🌓', label:'반달', desc:'빛과 그림자가 균형을 이루는 흐름입니다. 비교와 조율을 차분히 다루기 좋습니다.'};
+        if (score >= 63) return {emoji:'🌒', label:'초승달', desc:'작은 시작의 리듬입니다. 부담 없는 계획과 루틴을 조용히 심기 좋습니다.'};
+        return               {emoji:'🌑', label:'그믐달', desc:'내면을 돌아보는 정화의 리듬입니다. 쉬고 비우며 다음 흐름을 기다리기 좋습니다.'};
     }
 
     const insightPool = [
-        `오늘의 ${m}별 기운은 고요한 수면 위 달빛처럼 당신의 직관을 선명하게 만듭니다. 마음속에서 오래 묵혀 두었던 질문에 답이 보이는 날입니다.`,
-        `${m}의 별자리 에너지가 오늘 당신의 언어를 빛나게 합니다. 중요한 대화나 글쓰기, 제안이 있다면 오늘이 최적의 날입니다.`,
-        `오늘 ${m}의 기운은 씨앗처럼 잠재적입니다. 눈에 띄는 결과보다 보이지 않는 토대를 쌓는 데 집중하면 훗날 큰 열매가 됩니다.`,
-        `${m}별의 진동수가 오늘 인간관계 채널을 활짝 열어줍니다. 오래된 인연을 다시 이을 기회가 찾아올 수 있습니다.`,
-        `오늘 ${m}의 우주적 파동이 당신의 창의력을 자극합니다. 평소와 다른 루트로 걷거나, 낯선 것을 시도할수록 영감이 샘솟습니다.`,
-        `${m}별이 오늘 재물 에너지를 활성화합니다. 오래 묵혀 두었던 금전 관련 결정이나 투자 검토를 진행하기에 좋은 에너지입니다.`,
-        `${m}의 기운이 당신의 감정 에너지를 정화하는 날입니다. 과거의 집착이나 오해를 내려놓고 가벼워질 수 있는 기회가 열립니다.`,
-        `오늘 ${m}별의 주파수는 용기를 장착해줍니다. 두렵다고 미뤄온 그 한 발을 내딛기에 이보다 좋은 날은 없습니다.`,
-        `${m}의 별빛이 오늘 집중력의 렌즈가 되어줍니다. 산만하게 흩어지는 에너지를 하나의 목표에 쏟아붓는 날로 만드십시오.`,
-        `${m}별이 따뜻한 인연의 온기를 퍼뜨리는 날입니다. 주변 사람들에게 작은 호의를 베푸는 것이 큰 파문이 되어 돌아옵니다.`
+        `오늘의 ${m}별 기운은 고요한 수면 위 달빛처럼 직관을 또렷하게 비춥니다. 마음속에서 오래 묵힌 질문을 차분히 정리하기 좋습니다.`,
+        `${m}의 별자리 에너지가 오늘 말의 결을 다듬어줍니다. 중요한 대화나 글쓰기, 제안은 확정 전에 초안을 정리하기 좋습니다.`,
+        `오늘 ${m}의 기운은 씨앗처럼 잠재적입니다. 눈에 띄는 결과보다 보이지 않는 토대를 쌓는 데 집중하면 흐름이 단단해집니다.`,
+        `${m}별의 진동수가 오늘 인간관계의 감각을 깨웁니다. 오래된 인연은 성급히 붙잡기보다 가볍게 안부를 전하기 좋습니다.`,
+        `오늘 ${m}의 우주적 파동은 창의력을 부드럽게 자극합니다. 평소와 다른 루트를 걸으며 작은 영감을 받아들이기 좋습니다.`,
+        `${m}별은 오늘 돈을 다루는 습관을 점검하게 합니다. 오래 미룬 지출 기준이나 예산표를 차분히 정리해보세요.`,
+        `${m}의 기운이 감정 에너지를 정화하는 날입니다. 과거의 집착이나 오해는 결론보다 거리 두기로 가볍게 내려놓기 좋습니다.`,
+        `오늘 ${m}별의 주파수는 작은 용기를 깨웁니다. 두렵다고 미뤄온 일은 큰 결단보다 첫 준비를 시작하기 좋습니다.`,
+        `${m}의 별빛이 오늘 집중력의 렌즈가 되어줍니다. 산만하게 흩어지는 에너지를 하나의 작은 목표에 모아보세요.`,
+        `${m}별이 따뜻한 인연의 온기를 퍼뜨리는 날입니다. 주변 사람에게 작은 호의를 건네며 관계의 결을 부드럽게 다듬기 좋습니다.`
     ];
 
     const ritualColors = ['#c0a060','#7eb8d4','#c87070','#80c87e','#b080c8','#d49060','#70a8c8','#c8b070','#78c8a0','#c07090'];
@@ -5608,6 +6059,57 @@ function syCanonicalEsc(value) {
     .replace(/'/g, '&#39;');
 }
 
+var SY_PAID_FEATURES = Object.freeze({
+  symbolicComparison: { key: 'sukuyo-symbolic-comparison', cost: 30, reason: '숙요점 상징 비교 확장' },
+  compatibility: { key: 'compat-sukuyo-compatibility', cost: 50, reason: '숙요점 궁합 분석' },
+  compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 120, reason: '숙요점 정밀 궁합 확장 분석' }
+});
+
+function syOpenPaidSukuyoFeature(feature, onGranted) {
+  var config = feature && typeof feature === 'object' ? feature : {};
+  var cost = Math.max(0, Math.floor(Number(config.cost || 0)));
+  var featureKey = String(config.key || '').trim();
+  var reason = String(config.reason || '숙요점 선택 확장').trim();
+  if (!cost || !featureKey || typeof window._cdOpenPaidServiceGate !== 'function') return false;
+  window._cdOpenPaidServiceGate({
+    title: reason,
+    reason: reason,
+    featureKey: featureKey,
+    categoryKey: 'sukuyo',
+    coinPrice: cost,
+    cost: cost,
+    requestId: featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+  }).then(function(result) {
+    if (result && result.status === 'granted' && typeof onGranted === 'function') onGranted(result);
+  }).catch(function(error) {
+    var message = error && error.message ? String(error.message) : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+    window.alert(message);
+  });
+  return true;
+}
+
+function syRequirePaidSukuyoFeature(feature, onGranted) {
+  if (syOpenPaidSukuyoFeature(feature, onGranted)) return true;
+  var isAdminBypass = false;
+  try {
+    isAdminBypass = !!(window.__cdAdminBypass || (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()));
+  } catch (_) {}
+  if (isAdminBypass) {
+    if (typeof onGranted === 'function') onGranted({ status: 'admin_bypass' });
+    return true;
+  }
+  var token = '';
+  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
+  if (!token) {
+    if (window.confirm('로그인이 필요한 선택 확장입니다.\n로그인 후 이용해 주세요.')) {
+      window.location.href = '/login?next=%2F';
+    }
+    return true;
+  }
+  window.alert('결제 모듈을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+  return true;
+}
+
 function syCanonicalList(value, fallbackText) {
   if (Array.isArray(value) && value.length) return value;
   return [fallbackText || '정보 없음'];
@@ -5651,21 +6153,21 @@ function syCanonicalTokenize(text, fallbackText) {
 function syCanonicalPhaseApproxFromDaily(dailyMoon) {
   var label = dailyMoon && dailyMoon.label ? String(dailyMoon.label) : '';
   if (label.indexOf('보름') >= 0) {
-    return { phaseName: label, illumination: 96, elongationAngle: 180, waxingOrWaning: '절정' };
+    return { phaseName: label, rhythmLight: '가득 찬 빛', rhythmPosition: '가장 밝은 구간', waxingOrWaning: '밝음' };
   }
   if (label.indexOf('상현') >= 0) {
-    return { phaseName: label, illumination: 74, elongationAngle: 120, waxingOrWaning: '차오름' };
+    return { phaseName: label, rhythmLight: '차오르는 빛', rhythmPosition: '성장권', waxingOrWaning: '차오름' };
   }
   if (label.indexOf('반달') >= 0) {
-    return { phaseName: label, illumination: 50, elongationAngle: 90, waxingOrWaning: '균형' };
+    return { phaseName: label, rhythmLight: '균형의 빛', rhythmPosition: '중간권', waxingOrWaning: '균형' };
   }
   if (label.indexOf('초승') >= 0) {
-    return { phaseName: label, illumination: 22, elongationAngle: 45, waxingOrWaning: '차오름' };
+    return { phaseName: label, rhythmLight: '막 피어나는 빛', rhythmPosition: '시작권', waxingOrWaning: '차오름' };
   }
   if (label.indexOf('그믐') >= 0) {
-    return { phaseName: label, illumination: 6, elongationAngle: 18, waxingOrWaning: '기울음' };
+    return { phaseName: label, rhythmLight: '내면으로 접힌 빛', rhythmPosition: '정리권', waxingOrWaning: '기울음' };
   }
-  return { phaseName: label || '미확인', illumination: null, elongationAngle: null, waxingOrWaning: '미확인' };
+  return { phaseName: label || '미확인', rhythmLight: '미확인', rhythmPosition: '미확인', waxingOrWaning: '미확인' };
 }
 
 function syBuildLocalCanonicalData(lunarObj, sData, daily, sourceProfile) {
@@ -5691,6 +6193,8 @@ function syBuildLocalCanonicalData(lunarObj, sData, daily, sourceProfile) {
 
   var phase = syCanonicalPhaseApproxFromDaily(daily && daily.moon);
   var traits = sData.traits || {};
+  var mansionIndexZeroBased = Number(sData.mansionIdx);
+  var displayIndex = Number.isFinite(mansionIndexZeroBased) ? mansionIndexZeroBased + 1 : null;
   var missing = [];
   if (!lunarObj || !lunarObj.year || !lunarObj.month || !lunarObj.day) missing.push('음력 생년월일');
   if (!daily) missing.push('일일 리듬');
@@ -5709,17 +6213,20 @@ function syBuildLocalCanonicalData(lunarObj, sData, daily, sourceProfile) {
     natalSukuyo: {
       nameKo: koName,
       nameHan: hanName,
-      index: sData.mansionIdx,
+      index: Number.isFinite(mansionIndexZeroBased) ? mansionIndexZeroBased : null,
+      indexZeroBased: Number.isFinite(mansionIndexZeroBased) ? mansionIndexZeroBased : null,
+      displayIndex: displayIndex,
+      displayLabel: displayIndex ? String(displayIndex) + ' / 27' : '미확인',
       direction: syCanonicalDirectionByIndex(sData.mansionIdx),
       element: syCanonicalElementByIndex(sData.mansionIdx)
     },
     lunarPhase: phase,
     sukuyoAttributes: {
       temperament: syCanonicalTokenize(traits.desc || traits.core, '기질 정보 없음'),
-      relationshipStyle: syCanonicalTokenize((traits.love || '') + '. ' + (traits.karma || ''), '관계 리듬 정보 없음'),
-      careerStyle: syCanonicalTokenize(traits.work, '커리어 리듬 정보 없음'),
-      wealthStyle: syCanonicalTokenize(traits.wealth, '재물 리듬 정보 없음'),
-      recoveryPattern: syCanonicalTokenize((daily && daily.insight ? daily.insight : '') + '. ' + (daily && daily.ritual && daily.ritual.action ? daily.ritual.action : ''), '회복 리듬 정보 없음')
+      relationshipStyle: syCanonicalTokenize((traits.love || '') + '. ' + (traits.karma || ''), '관계 성향 정보 없음'),
+      careerStyle: syCanonicalTokenize(traits.work, '커리어 성향 정보 없음'),
+      wealthStyle: syCanonicalTokenize(traits.wealth, '돈 습관 정보 없음'),
+      recoveryPattern: syCanonicalTokenize((daily && daily.insight ? daily.insight : '') + '. ' + (daily && daily.ritual && daily.ritual.action ? daily.ritual.action : ''), '회복 패턴 정보 없음')
     },
     validation: {
       missingFields: missing
@@ -5730,11 +6237,21 @@ function syBuildLocalCanonicalData(lunarObj, sData, daily, sourceProfile) {
 function syScoreBand(score) {
   var n = Number(score);
   if (!Number.isFinite(n)) return '잔잔함';
-  if (n >= 90) return '절정';
-  if (n >= 80) return '강한 상승';
+  if (n >= 90) return '매우 활발';
+  if (n >= 80) return '활발';
   if (n >= 70) return '안정 상승';
-  if (n >= 60) return '균형 조율';
-  return '회복 집중';
+  if (n >= 60) return '조율';
+  return '회복';
+}
+
+function syReferenceBand(score) {
+  var n = Number(score);
+  if (!Number.isFinite(n)) return '참고';
+  if (n >= 85) return '매우 활발';
+  if (n >= 72) return '활발';
+  if (n >= 60) return '안정';
+  if (n >= 48) return '조율';
+  return '휴식';
 }
 
 function syEnsureSentenceEnding(text) {
@@ -6145,7 +6662,7 @@ function syGuardianPlaceByIndex(index) {
  * @property {Array<{key:string,label:string,title:string,body:string}>} relationshipTabs
  * @property {Array<{label:string,han:string,essence:string,light:string,shadow:string,guide:string,tone:string}>} relationMiniMap
  * @property {{attractionType:string,loveStyle:string,deepeningMoment:string,anxietyPoint:string,longTermAdvice:string,avoidPattern:string}} loveProfile
- * @property {{moneyFlow:string,spendingHabit:string,savingPoint:string,workStrength:string,workCaution:string,collaborationTip:string,talent:number}} workMoney
+ * @property {{moneyFlow:string,spendingHabit:string,savingPoint:string,workStrength:string,workCaution:string,collaborationTip:string,talent:number,talentLabel:string}} workMoney
  * @property {{morning:string,day:string,night:string,trigger:string,balance:string}} emotionRhythm
  * @property {{moon:any,insight:string,ritual:any,overall:number,relations:number,love:number,wealth:number,message:string,action:string,avoid:string,luckyColor:string,luckyPlace:string}} dailyPrescription
  * @property {{name:string,emoji:string,color:string,place:string,action:string,mantra:string}} guardian
@@ -6169,7 +6686,7 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
   var karmaTokens = syCanonicalTokenize(traits.karma || traits.love, '좋은 인연은 작은 배려에서 자라납니다.');
   var loveTokens = syCanonicalTokenize(traits.love, '감정의 속도를 맞추는 대화가 중요합니다.');
   var workTokens = syCanonicalTokenize(traits.work, '역할을 분명히 하면 성과가 안정됩니다.');
-  var wealthTokens = syCanonicalTokenize(traits.wealth, '작은 절약과 큰 집중이 재물 흐름을 지켜줍니다.');
+  var wealthTokens = syCanonicalTokenize(traits.wealth, '작은 절약과 큰 집중이 돈의 흐름을 지켜줍니다.');
   var relationTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.relationshipStyle, []);
   var recoveryTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.recoveryPattern, []);
   var careerTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.careerStyle, []);
@@ -6183,7 +6700,7 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
   var mansionLabel = sData.mansion || ((natal.nameKo || '미상') + '宿(' + (natal.nameHan || '?') + ')');
   var relationDirection = syComposeFromTokens(relationTokens.length ? relationTokens : karmaTokens, '배려와 경계를 함께 지킬수록 인연이 깊어집니다.');
   var recoveryKeyword = syFirstToken(recoveryTokens, syFirstToken(syCanonicalTokenize(ritual.action, '호흡'), '호흡'));
-  var guardianName = guardian && guardian.name ? guardian.name : '달빛 수호령';
+  var guardianName = guardian && guardian.name ? guardian.name : '달빛 지표';
   var guardianEmoji = guardian && guardian.emoji ? guardian.emoji : '✨';
   var guardianColor = syGuardianColorByIndex(sData.mansionIdx);
   var guardianPlace = syGuardianPlaceByIndex(sData.mansionIdx);
@@ -6229,16 +6746,16 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
 
   var reading = {
     hero: {
-      title: '🌙 나의 달의 별 · 숙요점',
-      subtitle: '태어난 날의 달빛으로 본 성향, 인연, 감정 리듬을 읽어드립니다.',
+      title: '나의 본명숙 리딩',
+      subtitle: '태어난 날의 본명숙을 중심으로 기질, 관계 성향, 오늘의 참고 리듬을 읽어드립니다.',
       mansionLabel: mansionLabel,
-      moonLabel: (moon.emoji || '🌙') + ' ' + (moon.label || '달빛 흐름')
+      moonLabel: moon.label || '달빛 흐름'
     },
     summaryCards: [
       { label: '나의 본명숙', value: mansionLabel, tone: '타고난 별', note: syComposeFromTokens(coreTokens, '당신의 중심성이 오늘의 방향을 정합니다.') },
       { label: '달의 기질', value: syFirstToken(coreTokens, '고요한 집중형'), tone: syScoreBand(daily.overall), note: syComposeFromTokens(hiddenTokens, '내면의 리듬을 지키면 안정이 커집니다.') },
-      { label: '인연의 방향', value: relationDirection, tone: syScoreBand(daily.relations), note: syComposeFromTokens(karmaTokens, '가까운 관계에서 따뜻한 말 한마디가 큰 힘이 됩니다.') },
-      { label: '오늘의 회복 키워드', value: recoveryKeyword, tone: syScoreBand(daily.love), note: syComposeFromTokens(recoveryTokens, '무리하지 않는 회복 루틴이 감정 균형을 지켜줍니다.') }
+      { label: '관계 성향', value: relationDirection, tone: syScoreBand(daily.relations), note: syComposeFromTokens(karmaTokens, '가까운 관계에서 따뜻한 말 한마디가 큰 힘이 됩니다.') },
+      { label: '오늘 참고 키워드', value: recoveryKeyword, tone: syScoreBand(daily.love), note: syComposeFromTokens(recoveryTokens, '무리하지 않는 회복 루틴이 감정 균형을 지켜줍니다.') }
     ],
     moonProfile: {
       firstImpression: syComposeFromTokens(coreTokens, '첫인상에서 고요한 신뢰를 남기는 별입니다.'),
@@ -6283,12 +6800,12 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
         tone: 'moon'
       },
       {
-        label: '성위',
-        han: '成危',
-        essence: '역할과 목표가 맞물릴 때 성취를 만드는 인연입니다.',
-        light: '함께 방향을 잡으면 결과, 일, 현실 기반이 단단해집니다.',
-        shadow: '성과와 주도권에 치우치면 감정이 뒤로 밀립니다.',
-        guide: '목표 대화와 마음 대화를 따로 열어 균형을 잡으세요.',
+        label: '위성',
+        han: '危成',
+        essence: '서로 다른 관점이 현실의 성취를 자극하는 인연입니다.',
+        light: '일, 목표, 생활 기반을 함께 다룰 때 서로의 부족한 면을 보완합니다.',
+        shadow: '속도와 판단 기준이 어긋나면 가까이 있어도 거리감이 생길 수 있습니다.',
+        guide: '역할, 기대치, 결정권을 먼저 나누면 긴장이 성장 동력으로 바뀝니다.',
         tone: 'axis'
       },
       {
@@ -6319,18 +6836,19 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
       avoidPattern: avoidPatternText
     },
     workMoney: {
-      moneyFlow: syComposeFromTokens(wealthTokens, '현금 흐름을 가볍게 분산하면 안정이 빨라집니다.'),
+      moneyFlow: syComposeFromTokens(wealthTokens, '수입과 지출의 기준을 가볍게 나누면 돈의 흐름이 안정됩니다.'),
       spendingHabit: spendingHabitText,
       savingPoint: syComposeFromTokens(syCanonicalTokenize((ritual.action || '') + '. ' + (traits.work || ''), '고정 지출을 먼저 정리하면 저축 속도가 빨라집니다.'), '고정 지출을 먼저 정리하면 저축 속도가 빨라집니다.'),
       workStrength: syComposeFromTokens(workTokens, '역할을 분명히 하면 성과가 안정됩니다.'),
       workCaution: workCautionText,
       collaborationTip: collaborationTipText,
-      talent: Number(sData.talent) || 80
+      talent: Number(sData.talent) || 80,
+      talentLabel: syReferenceBand(Number(sData.talent) || 80)
     },
     emotionRhythm: {
-      morning: '아침 ' + morningScore + '점 · ' + (morningScore >= 75 ? '차분한 집중이 잘 붙는 시간입니다.' : '시동이 느릴 수 있어 루틴 워밍업이 필요합니다.') + ' 추천: 가장 작은 할 일 1개를 먼저 완료하세요.',
-      day: '낮 ' + dayScore + '점 · ' + (dayScore >= 75 ? '실행력과 판단력이 안정되는 구간입니다.' : '결정 피로가 올라오기 쉬운 시간대입니다.') + ' 추천: 우선순위 1개만 고정하고 나머지는 보류하세요.',
-      night: '밤 ' + nightScore + '점 · ' + (nightScore >= 75 ? '감정 공감과 대화가 부드럽게 열립니다.' : '감정 파고가 커질 수 있어 정리 대화가 유리합니다.') + ' 추천: 결론보다 의도 확인 질문을 먼저 하세요.',
+      morning: '아침 참고 구간 · ' + syReferenceBand(morningScore) + ' · ' + (morningScore >= 75 ? '차분한 집중이 잘 붙는 시간입니다.' : '시동이 느릴 수 있어 루틴 워밍업이 필요합니다.') + ' 추천: 가장 작은 할 일 1개를 먼저 완료하세요.',
+      day: '낮 참고 구간 · ' + syReferenceBand(dayScore) + ' · ' + (dayScore >= 75 ? '실행력과 판단력이 안정되는 구간입니다.' : '결정 피로가 올라오기 쉬운 시간대입니다.') + ' 추천: 우선순위 1개만 고정하고 나머지는 보류하세요.',
+      night: '밤 참고 구간 · ' + syReferenceBand(nightScore) + ' · ' + (nightScore >= 75 ? '감정 공감과 대화가 부드럽게 열립니다.' : '감정 파고가 커질 수 있어 정리 대화가 유리합니다.') + ' 추천: 결론보다 의도 확인 질문을 먼저 하세요.',
       trigger: syComposeFromTokens(syCanonicalTokenize((traits.hidden || '') + '. ' + (traits.karma || ''), '감정 방아쇠를 미리 알면 소모를 줄일 수 있습니다.'), '감정 방아쇠를 미리 알면 소모를 줄일 수 있습니다.'),
       balance: syComposeFromTokens(recoveryTokens, '짧은 호흡 루틴으로 균형 회복')
     },
@@ -6368,6 +6886,78 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
   });
 }
 
+function syNormalizeRelationMiniMapLabel(label) {
+  var raw = String(label == null ? '' : label).replace(/\s+/g, '');
+  if (!raw) return '';
+  if (raw.indexOf('영친') >= 0 || raw.indexOf('榮親') >= 0 || raw.indexOf('栄親') >= 0) return '영친';
+  if (raw.indexOf('업태') >= 0 || raw.indexOf('業胎') >= 0) return '업태';
+  if (raw.indexOf('우쇠') >= 0 || raw.indexOf('友衰') >= 0) return '우쇠';
+  if (raw.indexOf('위성') >= 0 || raw.indexOf('성위') >= 0 || raw.indexOf('危成') >= 0) return '위성';
+  if (raw.indexOf('안괴') >= 0 || raw.indexOf('安壞') >= 0) return '안괴';
+  if (raw.indexOf('명') >= 0 || raw.indexOf('命') >= 0) return '명';
+  return raw;
+}
+
+function syRenderRelationMiniMapCard(reading, options) {
+  var nodes = reading && Array.isArray(reading.relationMiniMap) ? reading.relationMiniMap : [];
+  if (!nodes.length) return '';
+  var opts = options || {};
+  var activeLabel = syNormalizeRelationMiniMapLabel(opts.activeLabel || '');
+  var embedded = !!opts.embedded;
+  var inline = !!opts.inline;
+  var title = activeLabel ? '계산된 관계 유형 해설' : '관계 유형 사전';
+  var desc = activeLabel
+    ? '이번 궁합에서 확인된 관계 유형을 밝게 표시했습니다. 나머지 유형은 숙요 관계 구조를 비교해 보는 참고 사전입니다.'
+    : '상대 입력 전에는 관계 유형의 의미를 미리 보는 안내입니다. 궁합 결과가 나오면 해당 유형이 강조됩니다.';
+  var wrapperOpen = embedded
+    ? '<section class="sy-relation-guide-card sy-relation-guide-card--embedded" data-sy-relation-guide-map="result" data-active-relation="' + syCanonicalEsc(activeLabel) + '">'
+    : (inline
+      ? '<section class="sy-relation-guide-inline" id="syRelationGuideMap" data-sy-relation-guide-map="basic" data-active-relation="' + syCanonicalEsc(activeLabel) + '">'
+      : '<div class="sy-card sy-relation-guide-card" id="syRelationGuideMap" data-sy-relation-guide-map="basic" data-active-relation="' + syCanonicalEsc(activeLabel) + '">');
+  var wrapperClose = (embedded || inline) ? '</section>' : '</div>';
+
+  return wrapperOpen
+    + '<div class="sy-relation-guide-head">'
+    + '<div><div class="sy-relation-guide-eyebrow">관계 유형 안내</div>'
+    + '<h4>' + syCanonicalEsc(title) + '</h4></div>'
+    + '<span class="sy-relation-guide-badge">' + syCanonicalEsc(activeLabel || '관계 유형 사전') + '</span>'
+    + '</div>'
+    + '<p class="sy-relation-guide-desc" data-sy-relation-guide-copy>' + syCanonicalEsc(desc) + '</p>'
+    + '<div class="sy-mini-grid sy-relation-guide-grid">'
+    + nodes.map(function(node) {
+      var nodeKey = syNormalizeRelationMiniMapLabel(node.label);
+      var isActive = activeLabel && nodeKey === activeLabel;
+      return '<article class="sy-mini-node sy-relation-node' + (isActive ? ' is-active' : '') + '" data-tone="' + syCanonicalEsc(node.tone) + '" data-sy-relation-node="' + syCanonicalEsc(nodeKey) + '">'
+        + '<div class="sy-mini-head"><strong>' + syCanonicalEsc(node.label) + '</strong><span>' + syCanonicalEsc(node.han) + '</span></div>'
+        + '<p class="sy-mini-essence">' + syCanonicalEsc(node.essence) + '</p>'
+        + '<dl>'
+        + '<div><dt>빛으로 쓰일 때</dt><dd>' + syCanonicalEsc(node.light) + '</dd></div>'
+        + '<div><dt>그림자로 흐를 때</dt><dd>' + syCanonicalEsc(node.shadow) + '</dd></div>'
+        + '<div><dt>다루는 법</dt><dd>' + syCanonicalEsc(node.guide) + '</dd></div>'
+        + '</dl>'
+        + '</article>';
+    }).join('')
+    + '</div>'
+    + wrapperClose;
+}
+
+function syHighlightRelationMiniMap(relationLabel) {
+  var activeLabel = syNormalizeRelationMiniMapLabel(relationLabel || '');
+  if (!activeLabel || typeof document === 'undefined') return;
+  document.querySelectorAll('[data-sy-relation-guide-map]').forEach(function(map) {
+    map.setAttribute('data-active-relation', activeLabel);
+    var badge = map.querySelector('.sy-relation-guide-badge');
+    if (badge) badge.textContent = activeLabel;
+    var copy = map.querySelector('[data-sy-relation-guide-copy]');
+    if (copy) {
+      copy.textContent = '방금 계산된 궁합의 관계 유형은 ' + activeLabel + '입니다. 밝게 표시된 항목에서 이 관계가 어떤 방식으로 작동하는지 확인하세요.';
+    }
+    map.querySelectorAll('[data-sy-relation-node]').forEach(function(node) {
+      node.classList.toggle('is-active', node.getAttribute('data-sy-relation-node') === activeLabel);
+    });
+  });
+}
+
 function syRenderCanonicalDashboard(canonicalPayload, reading) {
   var canonical = canonicalPayload && canonicalPayload.canonical ? canonicalPayload.canonical : canonicalPayload;
   if (!canonical || !canonical.natalSukuyo) return '';
@@ -6381,23 +6971,28 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
 
   var mansionLabel = (natalInfo.nameKo || '미상') + '宿(' + (natalInfo.nameHan || '?') + ')';
   var lunarDate = birth.lunarDate || '미확인';
-  var indexText = natalInfo.index == null ? '미확인' : String(natalInfo.index);
+  var rawDisplayIndex = Number(natalInfo.displayIndex);
+  var rawMansionIndex = Number(natalInfo.index);
+  var indexText = Number.isFinite(rawDisplayIndex)
+    ? String(rawDisplayIndex)
+    : (Number.isFinite(rawMansionIndex) ? String(rawMansionIndex + 1) : '미확인');
   var directionText = natalInfo.direction || '미확인';
   var elementText = natalInfo.element || '미확인';
   var phaseLabel = phase.phaseName || '미확인';
-  var illum = phase.illumination == null ? '미확인' : String(phase.illumination) + '%';
-  var angle = phase.elongationAngle == null ? '미확인' : String(phase.elongationAngle) + '도';
-  var waxing = phase.waxingOrWaning || '미확인';
+  var illum = phase.rhythmLight || (phase.illumination == null ? '미확인' : String(phase.illumination) + '%');
+  var angle = phase.rhythmPosition || (phase.elongationAngle == null ? '미확인' : String(phase.elongationAngle) + '도');
+  var waxingRaw = phase.waxingOrWaning || '미확인';
+  var waxing = waxingRaw === 'waxing' ? '차오름' : (waxingRaw === 'waning' ? '기울음' : waxingRaw);
   var phaseCycle = phase.cycle || '미확인';
   var yinYangFlow = phase.yinYangFlow || '미확인';
   var interpretationKey = phase.interpretationKey || '미확인';
   var calcSource = calcMeta.calendarSource || canonical.calendarSource || '미확인';
   var methodVersion = calcMeta.methodVersion || canonical.methodVersion || '미확인';
 
-  var relationshipRhythm = syCanonicalList(attrs.relationshipStyle, '관계 리듬 정보 없음');
-  var careerRhythm = syCanonicalList(attrs.careerStyle, '커리어 리듬 정보 없음');
-  var wealthRhythm = syCanonicalList(attrs.wealthStyle, '재물 리듬 정보 없음');
-  var recoveryRhythm = syCanonicalList(attrs.recoveryPattern, '회복 리듬 정보 없음');
+  var relationshipRhythm = syCanonicalList(attrs.relationshipStyle, '관계 성향 정보 없음');
+  var careerRhythm = syCanonicalList(attrs.careerStyle, '커리어 성향 정보 없음');
+  var wealthRhythm = syCanonicalList(attrs.wealthStyle, '돈 습관 정보 없음');
+  var recoveryRhythm = syCanonicalList(attrs.recoveryPattern, '회복 패턴 정보 없음');
   var temperament = syCanonicalList(attrs.temperament, '기질 정보 없음');
   var keywords = syCanonicalList(natalInfo.keywords, '핵심 키워드 정보 없음');
   var integratedSummaryCards = reading && Array.isArray(reading.summaryCards)
@@ -6407,13 +7002,13 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
     : [];
   var integratedHeroSubtitle = reading && reading.hero && reading.hero.subtitle
     ? String(reading.hero.subtitle)
-    : '태어난 날의 달빛으로 본 성향, 인연, 감정 리듬을 읽어드립니다.';
+    : '태어난 날의 본명숙으로 성향, 인연, 감정 리듬을 읽어드립니다.';
   var integratedMoonLabel = reading && reading.hero && reading.hero.moonLabel
     ? String(reading.hero.moonLabel)
-    : '🌙 달빛 흐름';
+    : '참고 리듬';
   var integratedGuardianLabel = reading && reading.guardian
-    ? String((reading.guardian.emoji || '✨') + ' ' + (reading.guardian.name || '달빛 수호령'))
-    : '✨ 달빛 수호령';
+    ? String(reading.guardian.name || '달빛 지표')
+    : '달빛 지표';
   var moonPhaseSeal = phaseLabel.indexOf('보름') >= 0 || phaseLabel.indexOf('만월') >= 0
     ? '●'
     : (phaseLabel.indexOf('초승') >= 0
@@ -6443,15 +7038,15 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
     + '<div class="sy-card sy-canon-card" id="syCanonicalDashboard" data-sy-personal-moon-hero="20260605-sukuyo-personal-hero">'
     + '<div class="sy-canon-hero">'
     + '<div class="sy-canon-hero-copy">'
-    + '<div class="sy-canon-overline">MOON MAP · 27 SUKUYO</div>'
-    + '<h4>나의 달빛 지도</h4>'
+    + '<div class="sy-canon-overline">기본 숙요점 · 27숙 기준</div>'
+    + '<h4>무료 기본 숙요점</h4>'
     + '<p>' + syCanonicalEsc(integratedHeroSubtitle) + '</p>'
     + '<div class="sy-canon-hero-row">'
     + '<span class="sy-canon-pill">본명숙 ' + syCanonicalEsc(mansionLabel) + '</span>'
-    + '<span class="sy-canon-pill">27수 INDEX ' + syCanonicalEsc(indexText) + '</span>'
-    + '<span class="sy-canon-pill">월상 ' + syCanonicalEsc(phaseLabel) + '</span>'
+    + '<span class="sy-canon-pill">27숙 순번 ' + syCanonicalEsc(indexText) + '/27</span>'
+    + '<span class="sy-canon-pill">오늘 참고 리듬 ' + syCanonicalEsc(phaseLabel) + '</span>'
     + '<span class="sy-canon-pill">' + syCanonicalEsc(integratedMoonLabel) + '</span>'
-    + '<span class="sy-canon-pill">수호 상징 ' + syCanonicalEsc(integratedGuardianLabel) + '</span>'
+    + '<span class="sy-canon-pill">달빛 보조 상징 ' + syCanonicalEsc(integratedGuardianLabel) + '</span>'
     + '</div>'
     + '</div>'
     + '<div class="sy-canon-moon-stage" aria-hidden="true">'
@@ -6462,15 +7057,16 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
     + '</div>'
     + '</div>'
     + validationMsg
-    + '<div class="sy-canon-tabs">'
-    + '<button type="button" class="sy-canon-tab active" data-sycanon="overview">핵심 좌표</button>'
-    + '<button type="button" class="sy-canon-tab" data-sycanon="rhythm">관계·커리어·재물·회복</button>'
-    + '<button type="button" class="sy-canon-tab" data-sycanon="moon">달 리듬</button>'
+    + '<p class="sy-canon-footnote">확정 계산값은 본명숙과 27숙 순번입니다. 관계·돈·오늘 리듬은 기본 성향을 풀어낸 참고 해석입니다.</p>'
+    + '<div class="sy-canon-tabs" role="tablist" aria-label="기본 숙요점 결과 보기">'
+    + '<button type="button" class="sy-canon-tab active" id="syCanonTabOverview" role="tab" aria-selected="true" aria-controls="syCanonPanelOverview" data-sycanon="overview">기본 요약</button>'
+    + '<button type="button" class="sy-canon-tab" id="syCanonTabRhythm" role="tab" aria-selected="false" aria-controls="syCanonPanelRhythm" data-sycanon="rhythm">성향·생활 패턴</button>'
+    + '<button type="button" class="sy-canon-tab" id="syCanonTabMoon" role="tab" aria-selected="false" aria-controls="syCanonPanelMoon" data-sycanon="moon">참고 리듬</button>'
     + '</div>'
-    + '<div class="sy-canon-panel active" data-sycanon-panel="overview">'
+    + '<div class="sy-canon-panel active" id="syCanonPanelOverview" role="tabpanel" aria-labelledby="syCanonTabOverview" data-sycanon-panel="overview">'
     + '<div class="sy-canon-grid">'
     + '<div class="sy-canon-kv"><span>본명숙</span><strong>' + syCanonicalEsc(mansionLabel) + '</strong></div>'
-    + '<div class="sy-canon-kv"><span>27수 INDEX</span><strong>' + syCanonicalEsc(indexText) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>27숙 순번</span><strong>' + syCanonicalEsc(indexText) + ' / 27</strong></div>'
     + '<div class="sy-canon-kv"><span>음력 생일</span><strong>' + syCanonicalEsc(lunarDate) + '</strong></div>'
     + '<div class="sy-canon-kv"><span>방향 / 속성</span><strong>' + syCanonicalEsc(directionText + ' / ' + elementText) + '</strong></div>'
     + '</div>'
@@ -6485,25 +7081,25 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
       : '')
     + '<div class="sy-canon-chip-row">' + renderTagList(temperament) + '</div>'
     + '<div class="sy-canon-chip-row">' + renderTagList(keywords) + '</div>'
-    + '<p class="sy-canon-footnote">계산 소스: ' + syCanonicalEsc(calcSource) + ' · 버전: ' + syCanonicalEsc(methodVersion) + '</p>'
+    + '<p class="sy-canon-footnote">계산 기준: 음력 생일 기반 27숙 · 윤달은 현재 음력 월 기준 · 생시는 기본 숙 산출에 미반영 · 오늘 리듬은 날짜 기반 상징 참고</p>'
     + '</div>'
-    + '<div class="sy-canon-panel" data-sycanon-panel="rhythm">'
+    + '<div class="sy-canon-panel" id="syCanonPanelRhythm" role="tabpanel" aria-labelledby="syCanonTabRhythm" data-sycanon-panel="rhythm">'
     + '<div class="sy-canon-rhythm-grid">'
-    + '<article><h5>관계 리듬</h5>' + renderBulletList(relationshipRhythm) + '</article>'
-    + '<article><h5>커리어 리듬</h5>' + renderBulletList(careerRhythm) + '</article>'
-    + '<article><h5>재물 리듬</h5>' + renderBulletList(wealthRhythm) + '</article>'
+    + '<article><h5>관계 성향</h5>' + renderBulletList(relationshipRhythm) + '</article>'
+    + '<article><h5>일 성향</h5>' + renderBulletList(careerRhythm) + '</article>'
+    + '<article><h5>돈 습관</h5>' + renderBulletList(wealthRhythm) + '</article>'
     + '<article><h5>회복 리듬</h5>' + renderBulletList(recoveryRhythm) + '</article>'
     + '</div>'
     + '</div>'
-    + '<div class="sy-canon-panel" data-sycanon-panel="moon">'
+    + '<div class="sy-canon-panel" id="syCanonPanelMoon" role="tabpanel" aria-labelledby="syCanonTabMoon" data-sycanon-panel="moon">'
     + '<div class="sy-canon-grid">'
-    + '<div class="sy-canon-kv"><span>월상</span><strong>' + syCanonicalEsc(phaseLabel) + '</strong></div>'
-    + '<div class="sy-canon-kv"><span>조도</span><strong>' + syCanonicalEsc(illum) + '</strong></div>'
-    + '<div class="sy-canon-kv"><span>삭망각</span><strong>' + syCanonicalEsc(angle) + '</strong></div>'
-    + '<div class="sy-canon-kv"><span>월상 흐름</span><strong>' + syCanonicalEsc(waxing) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>오늘 참고 리듬</span><strong>' + syCanonicalEsc(phaseLabel) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>상징 밝기</span><strong>' + syCanonicalEsc(illum) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>상징 위치</span><strong>' + syCanonicalEsc(angle) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>리듬 흐름</span><strong>' + syCanonicalEsc(waxing) + '</strong></div>'
     + '<div class="sy-canon-kv"><span>주기 해석</span><strong>' + syCanonicalEsc(phaseCycle) + '</strong></div>'
     + '<div class="sy-canon-kv"><span>음양 흐름</span><strong>' + syCanonicalEsc(yinYangFlow) + '</strong></div>'
-    + '<div class="sy-canon-kv"><span>운용 키</span><strong>' + syCanonicalEsc(interpretationKey) + '</strong></div>'
+    + '<div class="sy-canon-kv"><span>참고 키</span><strong>' + syCanonicalEsc(interpretationKey) + '</strong></div>'
     + '</div>'
     + '</div>'
     + '</div>';
@@ -6519,17 +7115,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         var _sySt = document.createElement('style');
         _sySt.id = 'sy-main-style';
         _sySt.textContent = `
-        .sy-container { --sy-night:#070a18; --sy-midnight:#101529; --sy-moon:#f8fafc; --sy-moon-soft:#dbeafe; --sy-pearl:#f8e7b7; --sy-orchid:#c4b5fd; --sy-jade:#99f6e4; --sy-rose:#fbcfe8; background:radial-gradient(circle at 78% 4%, rgba(248,250,252,0.18), transparent 9%), radial-gradient(circle at 83% 9%, rgba(191,219,254,0.12), transparent 17%), radial-gradient(circle at 12% 24%, rgba(153,246,228,0.1), transparent 22%), linear-gradient(165deg, rgba(7,10,24,0.99) 0%, rgba(15,18,38,0.98) 42%, rgba(25,18,42,0.96) 100%); border: 1px solid rgba(219,234,254,0.26); border-radius: 20px; padding: 32px 24px; color: #eef2ff; font-family: 'Noto Sans KR','Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif; box-shadow: 0 18px 58px rgba(0,0,0,0.72), 0 0 70px rgba(219,234,254,0.08), inset 0 1px 0 rgba(255,255,255,0.06); position: relative; touch-action: pan-y; overflow-x: hidden; isolation:isolate; }
-        .sy-container::before { content:''; position:absolute; top:-72px; right:-58px; width:240px; height:240px; border-radius:999px; background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.96) 0%, rgba(226,232,240,0.74) 30%, rgba(191,219,254,0.22) 56%, transparent 72%); box-shadow:0 0 48px rgba(219,234,254,0.22); pointer-events:none; z-index:-1; }
-        .sy-container::after { content:''; position:absolute; inset:0; background-image:radial-gradient(circle, rgba(248,250,252,0.34) 0 1px, transparent 1.5px), radial-gradient(circle, rgba(251,232,183,0.22) 0 1px, transparent 1.5px); background-size:72px 72px, 118px 118px; background-position:12px 18px, 44px 58px; opacity:0.22; pointer-events:none; z-index:-1; }
+        .sy-container { --sy-night:#070a18; --sy-midnight:#101529; --sy-moon:#f8fafc; --sy-moon-soft:#dbeafe; --sy-pearl:#f8e7b7; --sy-orchid:#c4b5fd; --sy-jade:#99f6e4; --sy-rose:#fbcfe8; background:linear-gradient(165deg, rgba(7,10,24,0.99) 0%, rgba(15,18,38,0.98) 48%, rgba(19,22,45,0.97) 100%); border: 1px solid rgba(219,234,254,0.24); border-radius: 20px; padding: 32px 24px; color: #eef2ff; font-family: 'Noto Sans KR','Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif; box-shadow: 0 16px 44px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.06); position: relative; touch-action: pan-y; overflow-x: hidden; isolation:isolate; }
+        .sy-container::before { content:''; position:absolute; inset:0 0 auto 0; height:1px; background:linear-gradient(90deg, transparent, rgba(219,234,254,0.34), transparent); pointer-events:none; z-index:-1; }
+        .sy-container::after { content:''; position:absolute; inset:0; background-image:linear-gradient(rgba(248,250,252,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(248,250,252,0.035) 1px, transparent 1px); background-size:84px 84px; opacity:0.18; pointer-events:none; z-index:-1; }
         .sy-header { position:relative; text-align: center; border: 1px solid rgba(219,234,254,0.16); border-bottom-color:rgba(248,231,183,0.24); border-radius:18px; padding:18px 14px 16px; margin-bottom: 22px; background:linear-gradient(145deg, rgba(15,23,42,0.54), rgba(30,27,75,0.24)); box-shadow:inset 0 1px 0 rgba(255,255,255,0.05); overflow:hidden; }
-        .sy-header::before { content:''; position:absolute; left:50%; top:-46px; width:118px; height:118px; transform:translateX(-50%); border-radius:999px; background:radial-gradient(circle at 38% 32%, rgba(255,255,255,0.88), rgba(219,234,254,0.42) 42%, transparent 68%); opacity:0.36; pointer-events:none; }
+        .sy-header::before { content:''; position:absolute; left:0; right:0; top:0; height:1px; background:linear-gradient(90deg, transparent, rgba(248,231,183,0.42), transparent); opacity:0.8; pointer-events:none; }
         .sy-header h3 { position:relative; margin: 0; background: linear-gradient(135deg, #f8fafc, #f8e7b7 48%, #c4b5fd); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size: 1.62rem; text-shadow: none; }
         .sy-header p { position:relative; }
-        .sy-card { position:relative; overflow:hidden; background:radial-gradient(circle at 88% 0%, rgba(248,250,252,0.16), transparent 31%), radial-gradient(circle at 10% 86%, rgba(153,246,228,0.08), transparent 30%), linear-gradient(150deg, rgba(13,18,36,0.94), rgba(18,24,46,0.92) 54%, rgba(31,24,50,0.9)); border-radius: 16px; padding: 20px; margin-bottom: 16px; border:1px solid rgba(219,234,254,0.22); border-left: 3px solid #c4b5fd; box-shadow:0 18px 46px rgba(2,6,23,0.42), 0 0 24px rgba(191,219,254,0.06), inset 0 1px 0 rgba(255,255,255,0.07); transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
-        .sy-card::before { content:''; position:absolute; inset:0; background:linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.045) 35%, transparent 58%), radial-gradient(circle at 12% 14%, rgba(125,211,252,0.08), transparent 32%), radial-gradient(circle at 90% 84%, rgba(196,181,253,0.1), transparent 38%); pointer-events:none; }
+        .sy-card { position:relative; overflow:hidden; background:linear-gradient(150deg, rgba(13,18,36,0.94), rgba(18,24,46,0.92) 58%, rgba(24,27,49,0.9)); border-radius: 16px; padding: 20px; margin-bottom: 16px; border:1px solid rgba(219,234,254,0.2); border-left: 3px solid #c4b5fd; box-shadow:0 14px 34px rgba(2,6,23,0.34), inset 0 1px 0 rgba(255,255,255,0.06); transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease; }
+        .sy-card::before { content:''; position:absolute; inset:0; background:linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.035) 38%, transparent 62%); pointer-events:none; }
         .sy-card > * { position:relative; z-index:1; }
-        @media (hover: hover) { .sy-card:hover { transform: translateY(-3px); border-color:rgba(248,250,252,0.36); box-shadow:0 22px 58px rgba(2,6,23,0.52), 0 0 28px rgba(219,234,254,0.14); } }
+        @media (hover: hover) { .sy-card:hover { transform: translateY(-1px); border-color:rgba(248,250,252,0.3); box-shadow:0 16px 38px rgba(2,6,23,0.4), inset 0 1px 0 rgba(255,255,255,0.07); } }
         .sy-gauge-bg { background: rgba(255,255,255,0.08); height: 9px; border-radius: 5px; margin-top: 6px; overflow: hidden; }
         .sy-gauge-fill { height: 100%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 5px; }
         .sy-glow-text { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px rgba(255,215,0,0.4); }
@@ -6577,7 +7173,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .daily-flow-row { display: flex; align-items: center; margin-bottom: 10px; font-size:0.95rem; }
         .daily-flow-label { width: 88px; font-weight: bold; color: #9ca3af; font-size:0.9rem; }
         .daily-flow-gauge { flex: 1; margin: 0 10px; }
-        .daily-flow-val { width: 42px; text-align: right; color:#fbbf24; font-weight: bold; font-size:0.95rem;}
+        .daily-flow-val { width: 62px; text-align: right; color:#fbbf24; font-weight: bold; font-size:0.82rem;}
         .sy-moon-display { text-align:center; padding:10px 0 14px; }
         .sy-moon-emoji { font-size:2.8rem; filter:drop-shadow(0 0 12px rgba(200,180,255,0.6)); display:block; margin-bottom:4px; }
         .sy-moon-label { font-size:0.8rem; color:#b8a0f0; letter-spacing:0.05em; }
@@ -6673,6 +7269,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-canon-tabs { display:flex; gap:7px; flex-wrap:wrap; margin:10px 0 12px; }
         .sy-canon-tab { padding:7px 12px; border-radius:999px; border:1px solid rgba(251,191,36,0.35); background:rgba(251,191,36,0.1); color:#fde68a; font-size:0.78rem; font-weight:700; cursor:pointer; min-height:38px; }
         .sy-canon-tab.active { background:rgba(251,191,36,0.26); border-color:rgba(251,191,36,0.75); color:#fff7d6; }
+        .sy-canon-tab:focus-visible { outline:2px solid rgba(254,243,199,0.9); outline-offset:2px; }
         .sy-canon-panel { display:none; }
         .sy-canon-panel.active { display:block; }
         .sy-canon-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
@@ -6730,6 +7327,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-mini-node div { min-width:0; }
         .sy-mini-node dt { color:#bfdbfe; font-size:0.68rem; font-weight:900; letter-spacing:0.04em; }
         .sy-mini-node dd { margin:2px 0 0; color:#cbd5e1; font-size:0.72rem; line-height:1.5; word-break:keep-all; }
+        .sy-relation-guide-card { border-left-color:#60a5fa; background:linear-gradient(150deg, rgba(9,18,38,0.96), rgba(17,24,48,0.94) 62%, rgba(24,27,52,0.92)); }
+        .sy-relation-guide-card--embedded { margin:0 0 14px; border:1px solid rgba(147,197,253,0.32); border-radius:16px; padding:15px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06), 0 16px 34px rgba(2,6,23,0.28); }
+        .sy-relation-guide-inline { margin-top:14px; padding-top:14px; border-top:1px solid rgba(244,114,182,0.22); }
+        .sy-relation-guide-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:7px; flex-wrap:wrap; }
+        .sy-relation-guide-eyebrow { color:#93c5fd; font-size:0.68rem; letter-spacing:0.04em; font-weight:900; margin-bottom:3px; }
+        .sy-relation-guide-head h4 { margin:0; color:#dbeafe; font-size:1.02rem; line-height:1.38; }
+        .sy-relation-guide-badge { display:inline-flex; align-items:center; justify-content:center; min-height:28px; padding:4px 11px; border-radius:999px; border:1px solid rgba(250,204,21,0.42); background:rgba(250,204,21,0.1); color:#fef3c7; font-size:0.74rem; font-weight:900; white-space:normal; text-align:center; line-height:1.35; max-width:100%; }
+        .sy-relation-guide-desc { margin:0 0 12px; color:#bfdbfe; font-size:0.84rem; line-height:1.72; word-break:keep-all; }
+        .sy-relation-guide-grid .sy-mini-node { transition:transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease; }
+        .sy-relation-guide-grid .sy-mini-node.is-active { border-color:rgba(250,204,21,0.88); box-shadow:0 0 0 1px rgba(250,204,21,0.24), 0 16px 32px rgba(250,204,21,0.12); transform:translateY(-2px); }
+        .sy-relation-guide-grid .sy-mini-node.is-active .sy-mini-head strong { color:#fef3c7; }
+        .sy-relation-guide-grid .sy-mini-node.is-active .sy-mini-essence { color:#fff7ed; }
         .sy-dual-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
         .sy-dual-card { border:1px solid rgba(167,139,250,0.28); border-radius:10px; padding:11px; background:rgba(17,24,39,0.6); }
         .sy-dual-card h5 { margin:0 0 5px 0; color:#ddd6fe; font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; }
@@ -6748,6 +7357,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-cta-row { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
         .sy-cta-row p { margin:0; color:#ccfbf1; font-size:0.88rem; line-height:1.7; }
         .sy-cta-link { display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:9px 15px; border-radius:999px; text-decoration:none; color:#ecfeff; background:rgba(6,182,212,0.24); border:1px solid rgba(103,232,249,0.55); font-size:0.84rem; font-weight:800; }
+        .sy-container, .sy-container * { letter-spacing:0!important; text-shadow:none!important; }
+        .sy-container * { text-transform:none!important; }
+        .sy-container .sy-star, .sy-container .sy-guardian-stage-stars i, .sy-container .sy-guardian-main-emoji { animation:none!important; filter:none!important; }
         @media (max-width: 768px) {
           .sy-container { padding:22px 16px; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
           .sy-header h3 { font-size:1.35rem; }
@@ -6790,10 +7402,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     let html = ``;
 
-    // 별 파티클 헤더
-    const starsHtml = '<span class="sy-star">✦</span> <span class="sy-star">✧</span> <span class="sy-star">✦</span> <span class="sy-star">✧</span>';
     html += `<div class="sy-container" id="lunarNexusApp" data-sy-moon-ui="20260605-sukuyo-moon-ui">`;
-    html += `<div class="sy-header"><h3>☽ Lunar Nexus · 숙요점 ☾</h3><p style="font-size: 0.82rem; opacity: 0.65; margin-top:6px; letter-spacing:0.08em;">${starsHtml} &nbsp; 카르마와 별의 궤적이 교차하는 곳 &nbsp; ${starsHtml}</p></div>`;
+    html += `<div class="sy-header"><h3>숙요점 기본 리딩</h3><p style="font-size: 0.82rem; opacity: 0.72; margin-top:6px; letter-spacing:0;">본명숙과 27숙 순번을 기준으로 성향과 관계 리듬을 정리합니다.</p></div>`;
 
     if (!lunarObj) {
         try {
@@ -6810,6 +7420,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     window._syLastSukuyoBasicResult = sData ? {
       mansion: sData.mansion,
       mansionIdx: sData.mansionIdx,
+      displayIndex: Number.isFinite(Number(sData.mansionIdx)) ? Number(sData.mansionIdx) + 1 : null,
       icon: sData.icon,
       talent: sData.talent,
       traits: sData.traits || {},
@@ -6821,9 +7432,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       canonicalData = syBuildLocalCanonicalData(lunarObj, sData, dailyFlow, sourceProfile || window._ziweiBirth || null);
     }
     var _selfGuardian = (function() {
-      if (!sData || typeof syResolveMansionGuardian !== 'function') return { name: '성운 고양이', emoji: '🐈' };
+      if (!sData || typeof syResolveMansionGuardian !== 'function') return { name: '달빛 지표', emoji: '✨' };
       try { return syResolveMansionGuardian(sData.mansion, sData.mansionIdx); }
-      catch (_e) { return { name: '성운 고양이', emoji: '🐈' }; }
+      catch (_e) { return { name: '달빛 지표', emoji: '✨' }; }
     })();
     var _reading = syBuildBasicReading(canonicalData, sData, dailyFlow, _selfGuardian);
     var _annualMonthlyReading = sData ? syBuildSukuyoAnnualMonthlyReading(canonicalData, sData, dailyFlow, sourceProfile || window._ziweiBirth || null) : null;
@@ -6837,7 +7448,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         return '<div class="daily-flow-row">'
           + '<div class="daily-flow-label">' + syCanonicalEsc(lbl) + '</div>'
           + '<div class="daily-flow-gauge"><div class="sy-gauge-bg"><div class="sy-gauge-fill" style="width:0%; background:' + color + ';" data-target="' + syCanonicalEsc(val) + '%"></div></div></div>'
-          + '<div class="daily-flow-val">' + syCanonicalEsc(val) + '점</div>'
+          + '<div class="daily-flow-val">' + syCanonicalEsc(syReferenceBand(val)) + '</div>'
           + '</div>';
       };
 
@@ -6857,7 +7468,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var karmaTokens = syCanonicalTokenize(karmaText, '관계는 작은 배려에서 깊어집니다.');
       var workTokens = syCanonicalTokenize(workText, '역할을 분명히 할수록 성과가 안정됩니다.');
       var loveTokens = syCanonicalTokenize(loveText, '감정의 속도를 맞추는 대화가 중요합니다.');
-      var wealthTokens = syCanonicalTokenize(wealthText, '지출 기준을 세우면 재물 리듬이 고르게 유지됩니다.');
+      var wealthTokens = syCanonicalTokenize(wealthText, '지출 기준을 세우면 돈의 흐름이 고르게 유지됩니다.');
       var decisionActionAdvice = syComposeFromTokens(
         syCanonicalTokenize(
           (workText || '') + '. ' + (hiddenText || '') + '. ' + (legacyDaily && legacyDaily.insight ? legacyDaily.insight : ''),
@@ -6880,29 +7491,29 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 <span class="sy-lunar-seal" aria-hidden="true"></span>
                 <h4 style="margin:0; color:#d8d4fe; font-size:1.05rem;">본성 심화 해석</h4>
               </div>
-              <p style="margin:0 0 10px 0; font-size:0.86rem; color:#cbd5e1; line-height:1.8;">${syCanonicalEsc(mansionName)}의 핵심 좌표와 ${syCanonicalEsc(moonToneLabel)} 위상을 함께 반영해, 성향·관계·실행 루틴을 문맥형으로 더 길고 세밀하게 읽어드립니다.</p>
+              <p style="margin:0 0 10px 0; font-size:0.86rem; color:#cbd5e1; line-height:1.8;">${syCanonicalEsc(mansionName)}의 핵심 좌표와 ${syCanonicalEsc(moonToneLabel)} 리듬을 함께 반영해, 성향·관계·실행 루틴을 문맥형으로 더 길고 세밀하게 읽어드립니다.</p>
               <div class="sy-moon-chip-wrap">
                 <span class="sy-moon-chip rounded-full border border-slate-300/25 bg-slate-900/60 px-3 py-1 text-[11px] tracking-[0.04em] text-slate-200"><span class="sy-moon-chip-dot"></span>본명숙 ${syCanonicalEsc(mansionName)}</span>
                 <span class="sy-moon-chip rounded-full border border-indigo-300/30 bg-indigo-900/30 px-3 py-1 text-[11px] tracking-[0.04em] text-indigo-100"><span class="sy-moon-chip-dot"></span>${syCanonicalEsc(moonToneLabel)}</span>
                 <span class="sy-moon-chip rounded-full border border-cyan-300/30 bg-cyan-900/20 px-3 py-1 text-[11px] tracking-[0.04em] text-cyan-100"><span class="sy-moon-chip-dot"></span>달 결 ${syCanonicalEsc(moonToneDesc)}</span>
               </div>
-            <div class="sy-natal-tab-bar">
-              <button class="sy-ntab active" data-ntab="core"><span class="sy-ntab-glyph"></span><span>천성의 빛</span></button>
-              <button class="sy-ntab" data-ntab="hidden"><span class="sy-ntab-glyph sy-ntab-glyph--hidden"></span><span>달의 이면</span></button>
-              <button class="sy-ntab" data-ntab="karma"><span class="sy-ntab-glyph sy-ntab-glyph--karma"></span><span>인연의 궤도</span></button>
-              <button class="sy-ntab" data-ntab="mantra"><span class="sy-ntab-glyph sy-ntab-glyph--mantra"></span><span>수호의 문장</span></button>
-              <button class="sy-ntab" data-ntab="daily"><span class="sy-ntab-glyph sy-ntab-glyph--daily"></span><span>일상 적용</span></button>
+            <div class="sy-natal-tab-bar" role="tablist" aria-label="숙요 본성 심화 해석">
+              <button class="sy-ntab active" id="syNTabCore" role="tab" aria-selected="true" aria-controls="sy-panel-core" data-ntab="core"><span class="sy-ntab-glyph"></span><span>천성의 빛</span></button>
+              <button class="sy-ntab" id="syNTabHidden" role="tab" aria-selected="false" aria-controls="sy-panel-hidden" data-ntab="hidden"><span class="sy-ntab-glyph sy-ntab-glyph--hidden"></span><span>달의 이면</span></button>
+              <button class="sy-ntab" id="syNTabKarma" role="tab" aria-selected="false" aria-controls="sy-panel-karma" data-ntab="karma"><span class="sy-ntab-glyph sy-ntab-glyph--karma"></span><span>인연의 궤도</span></button>
+              <button class="sy-ntab" id="syNTabMantra" role="tab" aria-selected="false" aria-controls="sy-panel-mantra" data-ntab="mantra"><span class="sy-ntab-glyph sy-ntab-glyph--mantra"></span><span>수호의 문장</span></button>
+              <button class="sy-ntab" id="syNTabDaily" role="tab" aria-selected="false" aria-controls="sy-panel-daily" data-ntab="daily"><span class="sy-ntab-glyph sy-ntab-glyph--daily"></span><span>일상 적용</span></button>
             </div>
-            <div class="sy-natal-panel active" id="sy-panel-core">
+            <div class="sy-natal-panel active" id="sy-panel-core" role="tabpanel" aria-labelledby="syNTabCore">
               <p class="sy-natal-text">${syCanonicalEsc(coreText)}</p>
               <div class="sy-narr-grid">
                 ${renderNarrCard('핵심 파동', coreTokens[0] || coreText)}
                 ${renderNarrCard('현실 발현', workTokens[0] || workText || coreTokens[1] || coreText)}
-                ${renderNarrCard('풍요 방향', wealthTokens[0] || wealthText || coreTokens[2] || coreText)}
+                ${renderNarrCard('돈 습관', wealthTokens[0] || wealthText || coreTokens[2] || coreText)}
               </div>
-              <div class="sy-narr-tail rounded-xl border border-indigo-200/30 bg-slate-900/60 p-3 text-sm leading-7 text-slate-100/90">${syCanonicalEsc(mansionName + '의 천성은 ' + syComposeFromTokens(coreTokens, coreText) + '의 결로 읽힙니다. 이 기질은 일에서는 ' + syFirstToken(workTokens, workText || '안정적인 실행력') + '로 나타나고, 재물에서는 ' + syFirstToken(wealthTokens, wealthText || '지속 가능한 축적 감각') + '로 연결됩니다. 즉, 감정의 속도를 조절하면서 작은 실행을 누적할 때 가장 품격 있는 성과로 이어집니다.')}</div>
+              <div class="sy-narr-tail rounded-xl border border-indigo-200/30 bg-slate-900/60 p-3 text-sm leading-7 text-slate-100/90">${syCanonicalEsc(mansionName + '의 천성은 ' + syComposeFromTokens(coreTokens, coreText) + '의 결로 읽힙니다. 이 기질은 일에서는 ' + syFirstToken(workTokens, workText || '안정적인 실행력') + '로 나타나고, 돈 습관에서는 ' + syFirstToken(wealthTokens, wealthText || '지속 가능한 축적 감각') + '로 연결됩니다. 즉, 감정의 속도를 조절하면서 작은 실행을 누적할 때 안정적인 성과로 이어집니다.')}</div>
             </div>
-            <div class="sy-natal-panel" id="sy-panel-hidden">
+            <div class="sy-natal-panel" id="sy-panel-hidden" role="tabpanel" aria-labelledby="syNTabHidden">
               <p class="sy-natal-text">${syCanonicalEsc(hiddenText)}</p>
               <div class="sy-narr-grid">
                 ${renderNarrCard('감정 저수지', hiddenTokens[0] || hiddenText)}
@@ -6911,7 +7522,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               </div>
               <div class="sy-narr-tail rounded-xl border border-cyan-200/30 bg-slate-900/60 p-3 text-sm leading-7 text-slate-100/90">${syCanonicalEsc('달의 이면에서는 ' + syComposeFromTokens(hiddenTokens, hiddenText) + '이 반복됩니다. 특히 ' + syFirstToken(loveTokens, loveText || '관계 장면') + '에서 내면 반응이 커질 수 있으니, 즉시 결론보다 감정 기록 3줄과 휴식 10분을 먼저 적용하면 불필요한 소모를 크게 줄일 수 있습니다.')}</div>
             </div>
-            <div class="sy-natal-panel" id="sy-panel-karma">
+            <div class="sy-natal-panel" id="sy-panel-karma" role="tabpanel" aria-labelledby="syNTabKarma">
               <p class="sy-natal-text">${syCanonicalEsc(karmaText)}</p>
               <div class="sy-narr-grid">
                 ${renderNarrCard('끌림 축', karmaTokens[0] || karmaText)}
@@ -6920,7 +7531,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               </div>
               <div class="sy-narr-tail rounded-xl border border-pink-200/30 bg-slate-900/60 p-3 text-sm leading-7 text-slate-100/90">${syCanonicalEsc('인연의 궤도는 ' + syComposeFromTokens(karmaTokens, karmaText) + '을 중심으로 회전합니다. 여기에 ' + syFirstToken(loveTokens, loveText || '관계 리듬') + '를 더하면 매력은 커지지만, 경계선이 흐려질 수 있습니다. 한 달 기준으로 대화의 강약을 조절하면 관계의 안정성과 깊이가 동시에 올라갑니다.')}</div>
             </div>
-            <div class="sy-natal-panel" id="sy-panel-mantra">
+            <div class="sy-natal-panel" id="sy-panel-mantra" role="tabpanel" aria-labelledby="syNTabMantra">
               <p class="sy-mantra">${syCanonicalEsc(mantraText)}</p>
               <div class="sy-mantra-stack">
                 ${renderNarrCard('문장 해석', syFirstToken(syCanonicalTokenize(mantraText, mantraText), mantraText))}
@@ -6929,12 +7540,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 ${renderNarrCard('현실 적용', decisionActionAdvice)}
               </div>
             </div>
-            <div class="sy-natal-panel" id="sy-panel-daily">
+            <div class="sy-natal-panel" id="sy-panel-daily" role="tabpanel" aria-labelledby="syNTabDaily">
               <div class="sy-daily-grid">
                 <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(167,139,250,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">일 · 사회성</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc(workText)}</p></div>
                 <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(251,139,160,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">연애 · 관계</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc(loveText)}</p></div>
                 <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(251,191,36,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">재물 · 현실</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc(wealthText)}</p></div>
-                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(125,211,252,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">달빛 루틴</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc('오늘은 ' + moonToneLabel + ' 위상입니다. ' + moonToneDesc)}</p></div>
+                <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(125,211,252,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">달빛 루틴</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc('오늘은 ' + moonToneLabel + ' 리듬입니다. ' + moonToneDesc)}</p></div>
                 <div style="padding:9px 12px; background:rgba(0,0,0,0.18); border-radius:7px; border-left:2px solid rgba(110,231,183,0.4);"><span style="font-size:0.72rem; color:#9ca3af; letter-spacing:0.05em;">실행 체크</span><p style="margin:5px 0 0; font-size:0.88rem; line-height:1.7; color:#d8d0ee;">${syCanonicalEsc('하루의 우선순위 1가지를 먼저 끝내고, 관계 대화는 밤 시간대에 진행하면 리듬이 안정됩니다.')}</p></div>
               </div>
               <div class="sy-narr-tail rounded-xl border border-emerald-200/25 bg-slate-900/60 p-3 text-sm leading-7 text-slate-100/90">${syCanonicalEsc('일상 적용의 핵심은 과한 결심보다 리듬 유지입니다. 오늘은 "짧은 실행 → 감정 정리 → 관계 대화" 순서를 지키면 에너지 누수를 줄이면서도 만족도가 오래 지속됩니다.')}</div>
@@ -6984,7 +7595,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         var reading = _reading || syBuildBasicReading(canonicalData, sData, (dailyFlow || getDailyKarmicGuidance(lunarObj, sData.mansion)), _selfGuardian);
         if (reading) {
           html += `<div class="sy-card" style="border-left-color:#a5b4fc;">
-            <h4 style="margin:0 0 10px 0; color:#c7d2fe;">🌙 달빛 성향 카드</h4>
+            <h4 style="margin:0 0 10px 0; color:#c7d2fe;">달빛 성향 카드</h4>
             <div class="sy-profile-grid">
               <article class="sy-profile-box"><h5>첫인상</h5><p>${syCanonicalEsc(reading.moonProfile.firstImpression)}</p></article>
               <article class="sy-profile-box"><h5>내면 리듬</h5><p>${syCanonicalEsc(reading.moonProfile.innerRhythm)}</p></article>
@@ -6995,7 +7606,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           </div>`;
 
           html += `<div class="sy-card" style="border-left-color:#fb7185;">
-            <h4 style="margin:0 0 8px 0; color:#fda4af;">💞 관계 탭</h4>
+            <h4 style="margin:0 0 8px 0; color:#fda4af;">관계 해석</h4>
             <div class="sy-rel-tabs">
               ${reading.relationshipTabs.map(function(tab, idx) {
                 return '<button type="button" class="sy-rel-tab' + (idx === 0 ? ' active' : '') + '" data-rel-tab="' + syCanonicalEsc(tab.key) + '">' + syCanonicalEsc(tab.label) + '</button>';
@@ -7007,10 +7618,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 + '<p>' + syCanonicalEsc(tab.body) + '</p>'
                 + '</div>';
             }).join('')}
+            ${syRenderRelationMiniMapCard(reading, { inline: true })}
           </div>`;
 
           html += `<div class="sy-card" style="border-left-color:#f472b6;">
-            <h4 style="margin:0 0 8px 0; color:#fbcfe8;">❤️ 연애 프로필</h4>
+            <h4 style="margin:0 0 8px 0; color:#fbcfe8;">연애 성향 프로필</h4>
             <div class="sy-dual-grid">
               <article class="sy-dual-card"><h5>끌림 유형</h5><p>${syCanonicalEsc(reading.loveProfile.attractionType)}</p></article>
               <article class="sy-dual-card"><h5>사랑 방식</h5><p>${syCanonicalEsc(reading.loveProfile.loveStyle)}</p></article>
@@ -7022,9 +7634,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           </div>`;
 
           html += `<div class="sy-card" style="border-left-color:#facc15;">
-            <h4 style="margin:0 0 8px 0; color:#fde68a;">💼 재물 · 일 흐름</h4>
+            <h4 style="margin:0 0 8px 0; color:#fde68a;">돈 습관 · 일 성향</h4>
             <div class="sy-dual-grid">
-              <article class="sy-dual-card"><h5>재물 흐름</h5><p>${syCanonicalEsc(reading.workMoney.moneyFlow)}</p></article>
+              <article class="sy-dual-card"><h5>돈을 다루는 방식</h5><p>${syCanonicalEsc(reading.workMoney.moneyFlow)}</p></article>
               <article class="sy-dual-card"><h5>소비 습관</h5><p>${syCanonicalEsc(reading.workMoney.spendingHabit)}</p></article>
               <article class="sy-dual-card"><h5>저축 포인트</h5><p>${syCanonicalEsc(reading.workMoney.savingPoint)}</p></article>
               <article class="sy-dual-card"><h5>일 강점</h5><p>${syCanonicalEsc(reading.workMoney.workStrength)}</p></article>
@@ -7032,14 +7644,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <article class="sy-dual-card"><h5>협업 키워드</h5><p>${syCanonicalEsc(reading.workMoney.collaborationTip)}</p></article>
             </div>
             <div class="sy-talent-bar" style="margin-top:11px;">
-              <span style="font-size:0.78rem; color:#fef3c7; white-space:nowrap;">잠재 재능 지수</span>
+              <span style="font-size:0.78rem; color:#fef3c7; white-space:nowrap;">성향 활용 구간</span>
               <div class="sy-talent-track"><div class="sy-talent-fill" style="width:0%" data-target="${reading.workMoney.talent}%"></div></div>
-              <strong style="color:#fde047; font-size:0.95rem; white-space:nowrap;">${reading.workMoney.talent}%</strong>
+              <strong style="color:#fde047; font-size:0.9rem; white-space:nowrap;">${syCanonicalEsc(reading.workMoney.talentLabel || syReferenceBand(reading.workMoney.talent))}</strong>
             </div>
           </div>`;
 
           html += `<div class="sy-card" style="border-left-color:#38bdf8;">
-            <h4 style="margin:0 0 8px 0; color:#7dd3fc;">🫧 나의 감정 리듬</h4>
+            <h4 style="margin:0 0 8px 0; color:#7dd3fc;">나의 감정 리듬</h4>
             <div class="sy-dual-grid">
               <article class="sy-dual-card"><h5>아침</h5><p>${syCanonicalEsc(reading.emotionRhythm.morning)}</p></article>
               <article class="sy-dual-card"><h5>낮</h5><p>${syCanonicalEsc(reading.emotionRhythm.day)}</p></article>
@@ -7049,39 +7661,23 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             <div class="sy-dual-card" style="margin-top:8px;"><h5>균형 회복 포인트</h5><p>${syCanonicalEsc(reading.emotionRhythm.balance)}</p></div>
           </div>`;
 
-          html += `<div class="sy-card" style="border-left-color:#60a5fa;">
-            <h4 style="margin:0 0 8px 0; color:#93c5fd;">🧭 인연 미니맵</h4>
-            <div class="sy-mini-grid">
-              ${reading.relationMiniMap.map(function(node) {
-                return '<article class="sy-mini-node" data-tone="' + syCanonicalEsc(node.tone) + '">'
-                  + '<div class="sy-mini-head"><strong>' + syCanonicalEsc(node.label) + '</strong><span>' + syCanonicalEsc(node.han) + '</span></div>'
-                  + '<p class="sy-mini-essence">' + syCanonicalEsc(node.essence) + '</p>'
-                  + '<dl>'
-                  + '<div><dt>빛으로 쓰일 때</dt><dd>' + syCanonicalEsc(node.light) + '</dd></div>'
-                  + '<div><dt>그림자로 흐를 때</dt><dd>' + syCanonicalEsc(node.shadow) + '</dd></div>'
-                  + '<div><dt>다루는 법</dt><dd>' + syCanonicalEsc(node.guide) + '</dd></div>'
-                  + '</dl>'
-                  + '</article>';
-              }).join('')}
-            </div>
-          </div>`;
-
           var daily = reading.dailyPrescription;
           var renderGauge = function(lbl, val, color) {
             return '<div class="daily-flow-row">'
               + '<div class="daily-flow-label">' + syCanonicalEsc(lbl) + '</div>'
               + '<div class="daily-flow-gauge"><div class="sy-gauge-bg"><div class="sy-gauge-fill" style="width:0%; background:' + color + ';" data-target="' + syCanonicalEsc(val) + '%"></div></div></div>'
-              + '<div class="daily-flow-val">' + syCanonicalEsc(val) + '점</div>'
+              + '<div class="daily-flow-val">' + syCanonicalEsc(syReferenceBand(val)) + '</div>'
               + '</div>';
           };
 
           _dailySectionHtml = '<div class="sy-card" style="margin-top:15px; border-left-color:#818cf8;">'
-            + '<h4 style="margin: 0 0 4px 0; color: #818cf8;">🌊 오늘의 달빛 처방 (심화)</h4>'
+            + '<h4 style="margin: 0 0 4px 0; color: #818cf8;">오늘의 참고 리듬</h4>'
             + '<div class="sy-moon-display"><span class="sy-moon-emoji">' + syCanonicalEsc(daily.moon.emoji) + '</span><span class="sy-moon-label">' + syCanonicalEsc(daily.moon.label) + ' — ' + syCanonicalEsc(daily.moon.desc) + '</span></div>'
+            + '<p style="margin:6px 0 10px; color:#a5b4fc; font-size:0.78rem; line-height:1.6;">날짜와 본명숙을 함께 본 상징 참고 흐름입니다. 실제 결정은 현실 조건을 함께 확인하세요.</p>'
             + renderGauge('전체 흐름', daily.overall, 'linear-gradient(90deg,#818cf8,#c4b5fd)')
             + renderGauge('관계 리듬', daily.relations, 'linear-gradient(90deg,#fb7185,#fda4af)')
-            + renderGauge('연애 리듬', daily.love, 'linear-gradient(90deg,#f43f5e,#fb923c)')
-            + renderGauge('재물 리듬', daily.wealth, 'linear-gradient(90deg,#eab308,#fde68a)')
+            + renderGauge('감정 리듬', daily.love, 'linear-gradient(90deg,#f43f5e,#fb923c)')
+            + renderGauge('돈 습관 점검', daily.wealth, 'linear-gradient(90deg,#eab308,#fde68a)')
             + '<div class="sy-insight">' + syCanonicalEsc(daily.insight) + '</div>'
             + '<div class="sy-dual-grid" style="margin-top:8px;">'
             + '<article class="sy-dual-card"><h5>오늘의 한 문장</h5><p>' + syCanonicalEsc(daily.message) + '</p></article>'
@@ -7089,11 +7685,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             + '<article class="sy-dual-card"><h5>피하면 좋은 행동</h5><p>' + syCanonicalEsc(daily.avoid) + '</p></article>'
             + '<article class="sy-dual-card"><h5>행운 장소</h5><p>' + syCanonicalEsc(daily.luckyPlace) + '</p></article>'
             + '</div>'
-            + '<div style="font-size:0.78rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.08em; margin-top:14px; margin-bottom:6px;">달빛 실천 루틴</div>'
+            + '<div style="font-size:0.78rem; color:#9ca3af; text-transform:none; letter-spacing:0; margin-top:14px; margin-bottom:6px;">달빛 실천 루틴</div>'
             + '<div class="sy-ritual-grid">'
             + '<div class="sy-ritual-box"><span class="sy-ritual-icon">🎨</span><span class="sy-ritual-label">행운 컬러</span><span class="sy-ritual-val" style="display:flex;align-items:center;justify-content:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:' + syCanonicalEsc(daily.ritual.color) + ';display:inline-block;flex-shrink:0;"></span>' + syCanonicalEsc(daily.ritual.color) + '</span></div>'
             + '<div class="sy-ritual-box"><span class="sy-ritual-icon">🍃</span><span class="sy-ritual-label">추천 음식</span><span class="sy-ritual-val">' + syCanonicalEsc(daily.ritual.food) + '</span></div>'
-            + '<div class="sy-ritual-box"><span class="sy-ritual-icon">✨</span><span class="sy-ritual-label">오늘의 실천</span><span class="sy-ritual-val">' + syCanonicalEsc(daily.ritual.action) + '</span></div>'
+            + '<div class="sy-ritual-box"><span class="sy-ritual-icon">•</span><span class="sy-ritual-label">오늘의 실천</span><span class="sy-ritual-val">' + syCanonicalEsc(daily.ritual.action) + '</span></div>'
             + '</div>'
             + '</div>';
         }
@@ -7136,18 +7732,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                     </select>
                   </label>
               </div>
-              <button id="sy3AnalyzeBtn" class="sy-moon-btn" data-my-idx="${sData ? sData.mansionIdx : 0}" data-my-mansion="${(sData ? sData.mansion : '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" style="padding: 11px; cursor: pointer; font-weight: 900; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 46px;">카르마 인연 분석하기</button>
+              <button id="sy3AnalyzeBtn" class="sy-moon-btn" data-my-idx="${sData ? sData.mansionIdx : 0}" data-my-mansion="${(sData ? sData.mansion : '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" style="padding: 11px; cursor: pointer; font-weight: 900; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 46px;">기본 궁합 보기 · 50코인</button>
           </div>
-        <div id="sy3Loading" class="sy-loader">우주의 먼지를 헤치며 카르마를 읽는 중...</div>
+        <div id="sy3Loading" class="sy-loader">숙요 관계 데이터를 계산하는 중입니다...</div>
         <div id="sy3Result" style="margin-top: 15px; display: none;"></div>
     </div>`;
 
     // ── 유명인 숙요 궁합 섹션 ──
     const _mIdxForCeleb = sData ? sData.mansionIdx : 0;
-    html += `<div class="sy-card" style="margin-top:15px; border-left-color:#a29bfe;">
-        <h4 style="margin:0 0 8px 0; color:#a29bfe;">⭐ 유명인 숙요 궁합</h4>
+    html += `<div class="sy-card" style="margin-top:15px; border-left-color:rgba(162,155,254,0.5); background:rgba(15,23,42,0.44); box-shadow:0 12px 28px rgba(2,6,23,0.28), inset 0 1px 0 rgba(255,255,255,0.04);">
+        <h4 style="margin:0 0 8px 0; color:#c4b5fd;">선택 참고 · 유명인 상징 비교</h4>
         <p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">
-        인물 아카이브에서 유명인을 선택하면 두 사람의 인연 리듬을 즉시 확인할 수 있습니다.
+        인물 아카이브의 생년월일 분류를 바탕으로 숙요 상징을 비교해 보는 30코인 선택 기능입니다. 실제 성향이나 관계 판단의 근거가 아니라 상징 이해용으로만 보세요.
         </p>
       <button type="button" id="szFilterToggle" class="sy-filter-toggle">필터 열기</button>
       <div id="szFilterBody" class="sy-filter-body collapsed">
@@ -7165,10 +7761,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     </div>`;
 
     // ── 동일 숙요 유명인 (동적 로딩) ──
-    html += `<div class="sy-card" style="margin-top:15px; border-left-color:#ffd700;">
-        <h4 style="margin:0 0 8px 0; color:#ffd700;">🌠 같은 별을 타고난 유명인</h4>
+    html += `<div class="sy-card" style="margin-top:15px; border-left-color:rgba(250,204,21,0.5); background:rgba(15,23,42,0.44); box-shadow:0 12px 28px rgba(2,6,23,0.28), inset 0 1px 0 rgba(255,255,255,0.04);">
+        <h4 style="margin:0 0 8px 0; color:#fde68a;">보조 참고 · 같은 숙 인물</h4>
         <p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">
-            <strong style="color:#ffd700;">${sData ? sData.mansion : '당신의 숙요'}</strong>와 같은 별 결을 지닌 유명인을 찾아 보여드립니다.
+            <strong style="color:#ffd700;">${sData ? sData.mansion : '당신의 숙요'}</strong>와 같은 숙으로 분류된 공개 인물 예시입니다. 타고난 성향을 단정하는 근거가 아니라 숙요 상징을 이해하기 위한 참고 목록입니다.
         </p>
         <div id="szSameMansion" style="display:flex;flex-wrap:wrap;gap:8px;min-height:44px;">
             <div style="color:#888;font-size:0.85rem;padding:8px 0;">✦ 계산 중...</div>
@@ -7190,17 +7786,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       const _guardianStory = (function() {
         if (typeof syBuildGuardianStory !== 'function') {
           return {
-            overview: '달빛의 결 사이에서 당신의 별혼을 오래 지켜온 수호령이 모습을 드러냈습니다. 이 인연은 우연한 취향이 아니라, 여러 생을 건너 이어진 보호의 약속에 가깝습니다.',
-            reason: '숙요 인연법에서는 사람의 혼과 동물령이 전생의 서약으로 맞물린다고 봅니다. 지금 이 순간의 별자리 결은 당신과 가장 오래 공명해 온 수호령의 이름을 다시 불러낸 것입니다.',
-            traits: '이 수호령은 마음의 소란을 가라앉히고, 중요한 갈림길에서 본능과 이성을 같은 방향으로 정렬시키는 능력이 뛰어납니다. 겉으로 조용해도 위기 순간에는 가장 정확한 보호 본능이 깨어납니다.',
+            overview: '달빛의 결 사이에서 오늘의 보조 상징이 떠올랐습니다. 이 상징은 본명숙의 기질을 부드럽게 보완하고, 선택의 호흡을 정돈하는 안내 표지로 읽습니다.',
+            reason: '숙요 해석의 핵심은 본명숙이며, 이 상징은 오늘의 정서 흐름을 덧붙인 참고 안내입니다. 지금의 상징은 감정과 판단의 균형을 회복하라는 신호에 가깝습니다.',
+            traits: '이 상징은 마음의 소란을 가라앉히고, 중요한 갈림길에서 본능과 이성을 같은 방향으로 정렬시키는 역할을 합니다. 조용한 장면에서 더 선명하게 작동합니다.',
             spirit: '영적인 기운은 꿈의 상징, 갑작스러운 예감, 반복되는 장면처럼 은근한 신호로 도착합니다. 조급함을 내려놓을수록 그 신호는 더 선명하고 따뜻해집니다.',
-            ritual: '잠들기 전 조명을 낮추고 오늘의 감정 한 줄을 기록한 뒤 3번 깊게 호흡해 보세요. 그 짧은 의식이 수호령과의 통로를 열어 밤사이 기운을 정화합니다.'
+            ritual: '잠들기 전 조명을 낮추고 오늘의 감정 한 줄을 기록한 뒤 3번 깊게 호흡해 보세요. 짧은 반복이 마음의 결을 정돈하고 다음 선택을 맑게 합니다.'
           };
         }
         return syBuildGuardianStory(_selfGuardian, sData ? sData.mansion : '');
       })();
       html += `<div class="sy-card sy-guardian-card">
-        <div class="sy-guardian-head">🌙 월하의 수호령</div>
+        <div class="sy-guardian-head">달빛 보조 상징</div>
         <div class="sy-guardian-stage">
           <div class="sy-guardian-stage-stars"><i>✦</i><i>✧</i><i>✦</i><i>✧</i></div>
           <div class="sy-guardian-main-emoji">${_guardianView.emoji}</div>
@@ -7208,11 +7804,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           <p class="sy-guardian-main-desc">${_guardianStory.overview}</p>
           <div class="sy-guardian-detail-list">
             <div class="sy-guardian-detail-item">
-              <h5>왜 이 수호령이 나왔나</h5>
+              <h5>왜 이 상징이 나왔나</h5>
               <p>${_guardianStory.reason}</p>
             </div>
             <div class="sy-guardian-detail-item">
-              <h5>수호령의 특징</h5>
+              <h5>상징의 특징</h5>
               <p>${_guardianStory.traits}</p>
             </div>
             <div class="sy-guardian-detail-item">
@@ -7224,21 +7820,21 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <p>${_guardianStory.ritual}</p>
             </div>
             <div class="sy-guardian-detail-item">
-              <h5>나의 수호 상징</h5>
-              <p>상징 색: ${_guardianView.color} · 상징 장소: ${_guardianView.place}<br>오늘의 행동: ${_guardianView.action}<br>수호 문장: ${_guardianView.mantra}</p>
+              <h5>나의 달빛 보조 상징</h5>
+              <p>상징 색: ${_guardianView.color} · 상징 장소: ${_guardianView.place}<br>오늘의 행동: ${_guardianView.action}<br>정렬 문장: ${_guardianView.mantra}</p>
             </div>
           </div>
         </div>
         <div class="sy-guardian-meta"><span>연결된 숙요</span><strong>${sData ? sData.mansion : '미상'}</strong></div>
       </div>`;
 
-      html += `<div class="sy-card" id="syAiPromptCard" style="border-left-color:rgba(168,85,247,0.9);background:radial-gradient(130% 140% at 8% 0%, rgba(59,130,246,0.24), transparent 42%), radial-gradient(120% 120% at 100% 100%, rgba(168,85,247,0.25), transparent 38%), linear-gradient(145deg, rgba(20,24,56,0.96), rgba(17,24,39,0.94)); border:1px solid rgba(196,181,253,0.28); box-shadow:0 24px 54px rgba(76,29,149,0.35);">
+      html += `<div class="sy-card" id="syAiPromptCard" style="border-left-color:rgba(168,85,247,0.38);background:linear-gradient(145deg, rgba(17,24,39,0.74), rgba(15,23,42,0.86)); border:1px solid rgba(196,181,253,0.18); box-shadow:0 10px 24px rgba(2,6,23,0.24), inset 0 1px 0 rgba(255,255,255,0.04);">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-          <h4 style="margin:0;color:#ddd6fe;letter-spacing:0.3px;">🌙 숙요 인연 맞춤 AI 프롬프트</h4>
-          <span style="font-size:0.7rem;color:#fde68a;border:1px solid rgba(251,191,36,0.3);background:rgba(251,191,36,0.12);padding:3px 8px;border-radius:999px;">별거리/인연온도 동시 반영</span>
+          <h4 style="margin:0;color:#ddd6fe;letter-spacing:0;">선택 확장 · AI 상담 프롬프트</h4>
+          <span style="font-size:0.7rem;color:#dbeafe;border:1px solid rgba(147,197,253,0.28);background:rgba(30,58,138,0.12);padding:3px 8px;border-radius:999px;">기본 결과 기반</span>
         </div>
         <p style="font-size:0.84rem;color:#e9d5ff;margin:0 0 10px 0;line-height:1.72;word-break:keep-all;">
-          질문을 입력하면 <strong>기본 숙요점 결과</strong>를 필수 반영해 프롬프트를 생성합니다. 궁합 분석 결과가 있으면 자동으로 함께 결합됩니다. (1회 100코인)
+          무료 기본 결과를 바탕으로 질문별 상담 프롬프트를 만듭니다. 궁합 분석을 먼저 실행하면 두 사람 데이터까지 함께 반영됩니다. 선택 시 100코인이 사용됩니다.
         </p>
         <textarea data-sy-ai-question maxlength="1000" placeholder="예: 지금 내 연애 패턴에서 가장 먼저 고쳐야 할 점이 뭘까?" style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(196,181,253,0.44);background:rgba(8,13,30,0.76);color:#f5f3ff;padding:11px;font-size:0.84rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
@@ -7246,7 +7842,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-          <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b);color:#2f2200;border:1px solid rgba(251,191,36,0.78);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 24px rgba(251,191,36,0.28);">100코인으로 프롬프트 생성</button>
+          <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">100코인 선택 생성</button>
           <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:9px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 생성</button>
           <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:9px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">프롬프트 복사</button>
         </div>
@@ -7280,15 +7876,19 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           canonicalRoot.querySelectorAll('.sy-canon-tab').forEach(btn => {
             btn.addEventListener('click', () => {
               const tabKey = btn.getAttribute('data-sycanon');
-              canonicalRoot.querySelectorAll('.sy-canon-tab').forEach(t => t.classList.remove('active'));
+              canonicalRoot.querySelectorAll('.sy-canon-tab').forEach(t => {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+              });
               canonicalRoot.querySelectorAll('.sy-canon-panel').forEach(p => p.classList.remove('active'));
               btn.classList.add('active');
+              btn.setAttribute('aria-selected', 'true');
               const panel = canonicalRoot.querySelector('[data-sycanon-panel="' + tabKey + '"]');
               if (panel) panel.classList.add('active');
             });
           });
         }
-        // 관계 탭 클릭 이벤트
+        // 관계 해석 탭 클릭 이벤트
         document.querySelectorAll('.sy-rel-tab').forEach(btn => {
             btn.addEventListener('click', () => {
                 const tabKey = btn.getAttribute('data-rel-tab');
@@ -7305,9 +7905,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             const tabKey = btn.getAttribute('data-ntab');
             const panelRoot = btn.closest('.sy-card');
             if (!panelRoot) return;
-            panelRoot.querySelectorAll('.sy-ntab').forEach(b => b.classList.remove('active'));
+            panelRoot.querySelectorAll('.sy-ntab').forEach(b => {
+              b.classList.remove('active');
+              b.setAttribute('aria-selected', 'false');
+            });
             panelRoot.querySelectorAll('.sy-natal-panel').forEach(p => p.classList.remove('active'));
             btn.classList.add('active');
+            btn.setAttribute('aria-selected', 'true');
             const panel = panelRoot.querySelector('#sy-panel-' + tabKey);
             if (panel) panel.classList.add('active');
           });
@@ -7453,7 +8057,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         golden:  { label: '황금빛 정원', concept: '따스한 햇살 아래 황금빛 꽃들이 만개한 정원. 바람이 닿는 곳마다 번영이 자라고, 두 사람이 함께 서면 왕국이 완성된다.', color1: '#00b894', color2: '#55efc4', bg: 'rgba(0,184,148,0.08)', border: 'rgba(0,184,148,0.3)', glowColor: '#00b894' },
         lake:    { label: '고요한 달의 호수', concept: '보름달이 완벽하게 반영되는 잔잔한 호수. 물결 하나 일지 않는 고요 속에서 두 영혼이 서로의 이름을 속삭이는 정경.', color1: '#74b9ff', color2: '#a29bfe', bg: 'rgba(116,185,255,0.08)', border: 'rgba(116,185,255,0.3)', glowColor: '#74b9ff' },
         castle:  { label: '평행선 위의 성채', concept: '서로 다른 방향을 향하지만 정교하게 맞물린 기하학적 건축물. 두 탑은 결코 만나지 않는 듯 보이지만, 그 사이의 공간이 가장 아름다운 다리가 된다.', color1: '#0984e3', color2: '#74b9ff', bg: 'rgba(9,132,227,0.08)', border: 'rgba(9,132,227,0.3)', glowColor: '#0984e3' },
-        storm:   { label: '폭풍 속의 불꽃', concept: '칠흑 같은 밤하늘을 가르는 번개와 바다 위에서 타오르는 불꽃의 충돌. 파괴와 창조가 동시에 일어나는 임계점 — 폭발의 순간이 곧 새 우주의 탄생이다.', color1: '#d63031', color2: '#ff7675', bg: 'rgba(214,48,49,0.08)', border: 'rgba(214,48,49,0.3)', glowColor: '#d63031' }
+        storm:   { label: '강한 자극의 관계', concept: '서로의 기준을 빠르게 흔드는 강한 자극의 흐름입니다. 감정의 속도를 조절하면 변화의 힘을 성장으로 돌릴 수 있습니다.', color1: '#d63031', color2: '#ff7675', bg: 'rgba(214,48,49,0.08)', border: 'rgba(214,48,49,0.3)', glowColor: '#d63031' }
       };
       return themes[typeKey] || themes.mirror;
     }
@@ -7787,9 +8391,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           prescription: [
             '🔭 월 1회 서로가 전혀 모르는 새로운 취미나 분야에 도전하라. 낯섦이 경이로움을 되살린다.',
             '📜 감정이 격해질 때 "나는 거울이 아닌 독립된 존재다"를 세 번 되뇌어라.',
-            '✨ 상대의 단점을 발견할 때, 그것이 당신 안에도 있음을 인정하라. 그 순간이 이 인연의 진짜 의미다.'
+            '상대의 단점을 발견할 때, 그것이 내 안의 반응과도 연결되는지 함께 살펴보세요. 그 지점에서 관계의 조율이 시작됩니다.'
           ],
-          shadow: '나의 그림자까지 완벽하게 비추는 거울 — 억압된 콤플렉스가 상대를 통해 폭발한다. "우리는 하나"라는 환상이 경계를 무너뜨린다.'
+          shadow: '나의 약한 반응까지 또렷하게 비추는 관계입니다. 서로를 지나치게 동일시하면 경계가 흐려질 수 있습니다.'
         };
 
       } else if (D === 9 || D === 18) {
@@ -7834,7 +8438,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           icon: '🌟',
           pastLife: { role: '전생의 번영 공동체', karma: '함께 세상에 아낌없이 나눈 선행의 총합' },
           advantages: [
-            { icon: '🌌', label: '영적 동력', text: '두 사람이 함께하면 우주의 주파수가 달라진다. 같은 공간에 있는 것만으로도 상대의 잠재력이 극대화되는 신비로운 에너지장이 형성된다.' },
+            { icon: '🌌', label: '영적 동력', text: '두 사람이 함께 있을 때 서로의 가능성을 더 쉽게 끌어내는 흐름입니다. 안정감과 응원이 잠재력을 현실로 옮기는 힘이 됩니다.' },
             { icon: '💼', label: '현실적 보완', text: '경제적·사회적 운기가 동반 상승한다. 이 인연을 통해 인맥이 확장되고, 기회가 자연스럽게 양쪽 모두에게 찾아온다. 함께 시작한 프로젝트는 반드시 성공의 궤도에 오른다.' },
             { icon: '💜', label: '심리적 위안', text: '상대 앞에서는 무방비 상태로도 안전하다. 완전한 이해와 수용의 에너지가 흐르기 때문에, 이 관계 안에서 두 사람 모두 \"진짜 나\"가 될 수 있다.' }
           ],
@@ -7879,7 +8483,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         var isDriving = [4, 13, 22].includes(D);
         var mg5 = magnetism(tier, 65);
         base = {
-          type: isDriving ? '성위(成危) — 내가 이끄는 동맹' : '성위(成危) — 상대가 이끄는 동맹',
+          type: isDriving ? '위성(危成) — 내가 이끄는 동맹' : '위성(危成) — 상대가 이끄는 동맹',
           typeLabel: isDriving ? '나의 드라이브 · 成' : '상대의 드라이브 · 成',
           stamp: isDriving ? '주도지합 (主導之合)' : '수행지합 (隨行之合)',
           score: 65, temperature: 58, magnetism: mg5,
@@ -7923,7 +8527,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           pastLife: { role: '전생의 숙적이자 연인', karma: '끝내지 못한 감정의 핏빛 기억' },
           advantages: [
             { icon: '🌌', label: '영적 동력 (파괴적 혁신)', text: isAn
-              ? '상대의 에너지가 당신의 안주를 부순다. 그 파괴는 당신 안의 가장 두꺼운 껍질을 깨는 진화의 촉매 — 이 인연 없이는 절대 나올 수 없는 잠재력이 폭발한다.'
+              ? '상대의 에너지가 익숙한 방식을 흔들 수 있습니다. 그 자극을 잘 다루면 미뤄 둔 변화와 성장을 시작하는 계기가 됩니다.'
               : '당신의 존재 자체가 상대에게 혁명을 일으킨다. 당신이 닿는 곳에서 변화가 시작되고, 그 변화는 상대를 더 높은 차원으로 끌어올린다.' },
             { icon: '💼', label: '현실적 보완 (자극의 경제학)', text: tier === 'near'
               ? '이 인연을 통해 당신은 안전지대 밖으로 강제로 끌려나간다. 그 불편한 성장이 커리어와 경제적 도약을 만든다.'
@@ -7939,7 +8543,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               ? '🛡️ 먼저 당신의 에너지 경계를 설정하라. \"No\"를 말하는 연습이 이 인연에서 당신을 지키는 가장 강한 무기다.'
               : '⚔️ 당신의 파괴 충동이 발동할 때, 그것을 \"언어\"로 표현하라. 행동으로 표출되는 파괴는 결국 당신에게 돌아온다.',
             '🔥 두 사람의 충돌 에너지를 공동의 창작물(사업, 예술, 프로젝트)로 전환하라. 그 에너지의 방향을 \"내부\"에서 \"외부\"로 돌리는 순간, 세상이 바뀐다.',
-            '💎 감정이 폭발하기 직전, 24시간의 물리적 분리를 규칙으로 삼아라. 냉각 후 대화할 때 이 인연의 진짜 선물이 보인다.'
+            '감정이 과열되기 전, 24시간의 물리적 거리를 규칙으로 삼으세요. 식힌 뒤 대화할 때 이 관계의 배움이 더 분명해집니다.'
           ],
           shadow: isAn
             ? '상대의 에너지에 잠식되면 당신이 먼저 소진된다. 빛날수록 더 타버리는 구조 — 이 인연의 가장 위험한 함정이다.'
@@ -8124,28 +8728,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
   // ── 유명인 선택 → 숙요 궁합 계산 및 배지 표시 ──────────────────
   window._szPickCeleb = function(myIdx, celeb) {
-    if (typeof window._cdCoinGatePerUse === 'function') {
-      window._cdCoinGatePerUse(50, '숙요점 유명인 궁합', function() { window._szPickCelebCore(myIdx, celeb); });
-      return;
-    }
-    var isAdminBypass = false;
-    try {
-      isAdminBypass = !!(window.__cdAdminBypass || (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()));
-    } catch (_) {}
-    if (isAdminBypass) {
+    if (syRequirePaidSukuyoFeature(SY_PAID_FEATURES.symbolicComparison, function() {
       window._szPickCelebCore(myIdx, celeb);
+    })) {
       return;
     }
-    var token = '';
-    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
-    if (!token) {
-      if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-        window.location.href = '/login?next=%2F';
-      }
-      return;
-    }
-    window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-    return;
   };
   window._szPickCelebCore = function(myIdx, celeb) {
     var badge = document.getElementById('szCelebBadge');
@@ -8222,13 +8809,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       + '<span style="background:rgba(162,155,254,0.15);border:1px solid rgba(162,155,254,0.3);padding:2px 9px;border-radius:20px;font-size:0.75rem;">거리: ' + distInfo.label + '</span>'
       + '</div>'
       + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;">'
-        + '<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px 4px;"><div style="font-size:0.65rem;color:#888;margin-bottom:2px;">카르마 점수</div><div style="font-size:1.6rem;font-weight:900;color:' + scoreColor + ';">' + rel.score + '</div></div>'
-        + '<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px 4px;"><div style="font-size:0.65rem;color:#888;margin-bottom:2px;">인연 온도</div><div style="font-size:1.6rem;font-weight:900;color:' + tempInfo.color + ';">' + rel.temperature + '°</div></div>'
+        + '<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px 4px;"><div style="font-size:0.65rem;color:#888;margin-bottom:2px;">카르마 구간</div><div style="font-size:0.92rem;line-height:1.25;font-weight:900;color:' + scoreColor + ';">' + syReferenceBand(rel.score) + '</div></div>'
+        + '<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px 4px;"><div style="font-size:0.65rem;color:#888;margin-bottom:2px;">온도 구간</div><div style="font-size:0.92rem;line-height:1.25;font-weight:900;color:' + tempInfo.color + ';">' + syReferenceBand(rel.temperature) + '</div></div>'
         + '<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px 4px;"><div style="font-size:0.65rem;color:#888;margin-bottom:2px;">관계 유형</div><div style="font-size:0.72rem;font-weight:700;color:#a29bfe;line-height:1.3;margin-top:2px;">' + rel.icon + ' ' + (rel.typeLabel || rel.type).slice(0, 12) + '</div></div>'
       + '</div>'
       + '<div style="background:rgba(13,16,26,0.55);border:1px solid rgba(162,155,254,0.22);border-radius:8px;padding:9px 10px;margin-bottom:8px;line-height:1.65;color:#dbeafe;font-size:0.78rem;">'
         + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">'
-          + '<span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.32);padding:2px 8px;border-radius:14px;">궁합 지수 ' + compatibilityIndex + '</span>'
+          + '<span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.32);padding:2px 8px;border-radius:14px;">관계 구간 ' + syReferenceBand(compatibilityIndex) + '</span>'
           + '<span style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.32);padding:2px 8px;border-radius:14px;">거리 A→B ' + distanceMetrics.forwardDistance + ' / B→A ' + distanceMetrics.reverseDistance + '</span>'
         + '</div>'
         + '<div>🧭 역할 가이드: ' + (roleGuide.meAction || '역할 기반 조율이 필요합니다.') + '</div>'
@@ -8250,11 +8837,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     var list = CelebrityService.getSameMansion(mansionIdx);
     if (list.length === 0) {
-      div.innerHTML = '<p style="color:#888;font-size:0.85rem;word-break:keep-all;margin:0;">당신의 별과 같은 결을 가진 유명인을 아직 찾지 못했습니다. 당신만의 독보적인 별빛이 강하게 작동 중입니다 ✨</p>';
+      div.innerHTML = '<p style="color:#888;font-size:0.85rem;word-break:keep-all;margin:0;">같은 숙으로 분류된 공개 인물 예시가 아직 없습니다. 본명숙 해석은 위의 기본 결과를 기준으로 확인하세요.</p>';
       return;
     }
 
-    var ICONS = ['⭐','🌟','✨','💫','🏅','🎖️','👑','🔥','💎','🌙','🪐','🌈'];
+    var ICONS = ['◇','◆','◈','△','○','◎','□','▱','✦','✧','◐','◑'];
     var profileByCat = {
       actor: { vibe: '몰입감 있는 감정선', talent: '표현력과 집중력', charm: '장면을 장악하는 존재감' },
       '배우': { vibe: '몰입감 있는 감정선', talent: '표현력과 집중력', charm: '장면을 장악하는 존재감' },
@@ -8272,7 +8859,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       '크리에이터': { vibe: '독창적 상상력의 결', talent: '기획력과 표현 확장', charm: '새로운 시각을 여는 감각' },
       default: { vibe: '균형 잡힌 별빛 무드', talent: '꾸준함과 성장성', charm: '편안한 신뢰감' }
     };
-    div.innerHTML = list.slice(0, 20).map(function(c, i) {
+    var sameMansionUnlocked = window._sySameMansionSymbolicUnlocked === true;
+    var visibleLimit = sameMansionUnlocked ? 20 : 4;
+    div.innerHTML = list.slice(0, visibleLimit).map(function(c, i) {
       var catKey = String(c.cat || '').toLowerCase();
       var meta = profileByCat[catKey] || profileByCat.default;
       return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;'
@@ -8288,6 +8877,20 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         + '</div>'
         + '</div>';
     }).join('');
+
+    if (!sameMansionUnlocked && list.length > visibleLimit) {
+      div.innerHTML += '<button type="button" data-sy-same-mansion-unlock style="display:flex;align-items:center;justify-content:center;min-height:76px;padding:10px 12px;border-radius:12px;border:1px solid rgba(250,204,21,0.32);background:rgba(250,204,21,0.08);color:#fde68a;font-size:0.8rem;font-weight:900;cursor:pointer;flex:1 1 170px;">전체 상징 목록 열기 · 30코인</button>';
+      var unlockBtn = div.querySelector('[data-sy-same-mansion-unlock]');
+      if (unlockBtn) {
+        unlockBtn.onclick = function() {
+          syRequirePaidSukuyoFeature(SY_PAID_FEATURES.symbolicComparison, function() {
+            window._sySameMansionSymbolicUnlocked = true;
+            window._szFillSameMansion(mansionIdx);
+          });
+        };
+      }
+      return;
+    }
 
     if (list.length > 20) {
       div.innerHTML += '<div style="display:flex;align-items:center;padding:6px 8px;color:#888;font-size:0.77rem;">외 ' + (list.length - 20) + '명</div>';
@@ -8309,7 +8912,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       badgeDesc: '파괴와 치유가 교차하는 강렬한 인연',
       lead: '강하게 끌리고 강하게 흔들리는, 인생을 바꾸는 급의 자극을 주는 관계입니다. 감정의 온도는 높지만 경계선 설계가 핵심입니다.',
       firstMeet: '처음부터 시선이 꽂히고 감정 파고가 크게 움직입니다. 이유보다 감각이 먼저 반응하는 만남입니다.',
-      development: '가까워질수록 서로의 약점과 욕망을 빠르게 건드립니다. 잘 다루면 폭발적인 성장, 놓치면 소모전이 됩니다.',
+      development: '가까워질수록 서로의 약점과 욕망을 빠르게 건드립니다. 잘 다루면 성장의 계기가 되고, 놓치면 소모전이 될 수 있습니다.',
       caution: '갈등 직후 바로 결론 내리기보다 냉각 시간을 합의하세요. 강한 감정은 규칙과 약속 위에 올릴 때 관계를 지킵니다.'
     },
     usei: {
@@ -8321,7 +8924,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       caution: '불편한 감정을 미루면 거리감으로 번질 수 있습니다. 다정함과 솔직함을 함께 쓰는 대화 습관이 필요합니다.'
     },
     seongwi: {
-      label: '성위(成危)',
+      label: '위성(危成)',
       badgeDesc: '목표 지향의 동맹형 인연',
       lead: '함께 목표를 향할 때 빛나는 관계입니다. 역할 분담이 선명할수록 시너지가 강해지며, 결과를 만들어내는 힘이 큽니다.',
       firstMeet: '상대의 추진력이나 실행 방식에 빠르게 눈길이 갑니다. 감정보다 가능성을 먼저 보는 만남입니다.',
@@ -8511,7 +9114,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
   var SY_PURPOSE_COMPAT_COPY = {
     yeongchin: {
-      love: '연애에서는 편안함과 성장감이 함께 살아납니다. 설렘이 폭발하기보다 믿음이 쌓이면서 마음이 깊어지는 구조입니다.',
+      love: '연애에서는 편안함과 성장감이 함께 살아납니다. 순간적인 자극보다 믿음이 쌓이면서 마음이 깊어지는 구조입니다.',
       marriage: '결혼에서는 생활 리듬과 책임 분담이 안정적으로 맞기 쉽습니다. 다만 익숙함에 기대어 표현을 줄이면 관계 온도가 낮아질 수 있습니다.',
       reunion: '재회는 감정의 상처보다 서로에게 남은 고마움이 클 때 유리합니다. 다시 만난다면 예전의 편안함을 새 약속으로 갱신해야 합니다.',
       flirting: '썸과 연락은 무리한 밀당보다 꾸준한 다정함이 잘 통합니다. 상대는 강한 말보다 변함없는 태도에서 마음을 엽니다.',
@@ -8705,8 +9308,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       '친': { base: 82, type: '영친 안정월', focus: '보호와 신뢰', relation: '관계에서는 돌봄과 감사 표현이 인연을 깊게 만듭니다.', work: '일과 돈은 기존 자원, 단골, 익숙한 역할에서 안정됩니다.', caution: '편안함에 기대어 필요한 결정을 늦추지 마세요.' },
       '우': { base: 70, type: '우쇠 교류월', focus: '대화와 조율', relation: '관계에서는 가벼운 대화가 뜻밖의 문을 엽니다.', work: '일과 돈은 정보 교환과 일정 조율에서 실마리가 생깁니다.', caution: '말이 많아질수록 핵심 약속은 짧게 남기세요.' },
       '쇠': { base: 58, type: '우쇠 정리월', focus: '거리와 회복', relation: '관계에서는 무리한 친밀감보다 편안한 거리가 복을 지킵니다.', work: '일과 돈은 보류, 정산, 재배치가 유리합니다.', caution: '감정의 피로를 성급한 결론으로 바꾸지 마세요.' },
-      '성': { base: 78, type: '성위 성취월', focus: '성과와 역할', relation: '관계에서는 역할을 분명히 나눌수록 신뢰가 살아납니다.', work: '일과 돈은 마감, 발표, 계약처럼 결과가 보이는 일에 힘이 붙습니다.', caution: '성과 욕심이 사람의 마음을 앞지르지 않게 하세요.' },
-      '위': { base: 62, type: '성위 조심월', focus: '판단과 균형', relation: '관계에서는 기대치를 낮추고 확인 질문을 부드럽게 건네세요.', work: '일과 돈은 큰 확장보다 조건 검토와 위험 분리가 먼저입니다.', caution: '확신이 약한 일은 하룻밤 더 두고 결정하세요.' },
+      '성': { base: 78, type: '위성 성취월', focus: '성과와 역할', relation: '관계에서는 역할을 분명히 나눌수록 신뢰가 살아납니다.', work: '일과 돈은 마감, 발표, 계약처럼 결과가 보이는 일에 힘이 붙습니다.', caution: '성과 욕심이 사람의 마음을 앞지르지 않게 하세요.' },
+      '위': { base: 62, type: '위성 조심월', focus: '판단과 균형', relation: '관계에서는 기대치를 낮추고 확인 질문을 부드럽게 건네세요.', work: '일과 돈은 큰 확장보다 조건 검토와 위험 분리가 먼저입니다.', caution: '확신이 약한 일은 하룻밤 더 두고 결정하세요.' },
       '안': { base: 54, type: '안괴 경계월', focus: '감정 파동 관리', relation: '관계에서는 가까워질수록 말의 온도를 낮추는 것이 좋습니다.', work: '일과 돈은 충동적 변경보다 손실 차단이 우선입니다.', caution: '불안이 올라올수록 증거와 감정을 분리해 보세요.' },
       '괴': { base: 46, type: '안괴 재정비월', focus: '중단과 재설계', relation: '관계에서는 억지 화해보다 침묵의 시간을 두는 편이 낫습니다.', work: '일과 돈은 무리한 추진을 멈추고 구조를 다시 짜야 합니다.', caution: '강한 말, 큰 지출, 즉흥 약속은 피하세요.' },
       '업': { base: 60, type: '업태 숙제월', focus: '반복 인연과 책임', relation: '관계에서는 오래된 패턴이 다시 올라오니 같은 반응을 반복하지 마세요.', work: '일과 돈은 밀린 책임을 정리할 때 다음 문이 열립니다.', caution: '남의 몫까지 떠안지 않도록 경계를 세우세요.' },
@@ -9042,7 +9645,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       usei: {
         title: '편안함 뒤에 서운함이 고이는 순간',
-        summary: '겉으로는 부드럽지만 마음속 기대가 조용히 쌓일 수 있습니다. 이 관계의 위험은 폭발보다 누적입니다.',
+        summary: '겉으로는 부드럽지만 마음속 기대가 조용히 쌓일 수 있습니다. 이 관계의 위험은 갑작스러운 충돌보다 누적입니다.',
         ban: '괜찮은 척하기, 돌려 말하기, 혼자 결론 내리기'
       },
       seongwi: {
@@ -9266,12 +9869,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var best = categories.slice().sort(function(a, b) { return b.score - a.score; })[0] || null;
     var weakest = categories.slice().sort(function(a, b) { return a.score - b.score; })[0] || null;
     var relationAdvice = {
-      ankai: '이 인연은 운명의 강도가 높지만, 경계선이 없으면 상처도 빠르게 깊어집니다. 사랑을 시험하지 말고 감정의 속도를 관리해야 합니다.',
+      ankai: '이 인연은 자극의 강도가 높지만, 경계선이 없으면 상처도 빠르게 깊어집니다. 사랑을 시험하지 말고 감정의 속도를 관리해야 합니다.',
       usei: '이 인연은 오래 익을수록 진심이 드러납니다. 다만 서운함을 미루면 편안함이 거리감으로 바뀝니다.',
       seongwi: '이 인연은 함께 목표를 잡을 때 강해집니다. 현실을 움직이는 힘은 좋지만 마음의 온도 점검을 빼면 건조해질 수 있습니다.',
       yeongchin: '이 인연은 안정과 돌봄의 힘이 큽니다. 오래 갈수록 고마움과 새로움을 의식적으로 넣어야 복이 유지됩니다.',
       life: '이 인연은 서로를 비추는 거울입니다. 상대를 고치려 들기보다 내 반응을 알아차릴수록 관계가 깊어집니다.',
-      taegeuk: '이 인연은 오래된 약속처럼 느껴질 수 있습니다. 운명감은 강하지만 현실의 작은 행동으로 증명해야 길이 열립니다.',
+      taegeuk: '이 인연은 오래된 약속처럼 느껴질 수 있습니다. 인연감은 선명하지만 현실의 작은 행동으로 증명해야 길이 열립니다.',
       default: '이 인연은 선택과 조율에 따라 품질이 달라집니다. 속도보다 대화의 순서를 잘 잡는 것이 핵심입니다.'
     };
     var sevenDays = [
@@ -9366,7 +9969,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       mansionLabel: mansionLabel,
       score: overall,
       theme: theme,
-      summary: mansionLabel + '의 ' + year + '년은 ' + theme + '의 문이 열리는 해입니다. 운은 한 번에 폭발하기보다 달마다 다른 문을 통과하며 깊어집니다.',
+      summary: mansionLabel + '의 ' + year + '년은 ' + theme + '의 문이 열리는 해입니다. 흐름은 한 번에 커지기보다 달마다 다른 문을 통과하며 깊어집니다.',
       yearlyCards: yearlyCards,
       monthly: monthly
     };
@@ -9614,7 +10217,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var recoveryPotential = syCompatClamp((100 - conflictRisk) + (relationKey === 'yeongchin' ? 22 : relationKey === 'taegeuk' ? 12 : relationKey === 'ankai' ? 6 : 10), 20, 99);
     var longTermPotential = syCompatClamp((dailyLifeChemistry * 0.4 + communicationChemistry * 0.35 + recoveryPotential * 0.25), 20, 99);
 
-    var tempBand = temp <= 30 ? '차가운 인연' : (temp <= 50 ? '천천히 데워지는 인연' : (temp <= 70 ? '따뜻한 현실형 인연' : (temp <= 85 ? '뜨거운 인연' : '폭발적인 인연')));
+    var tempBand = temp <= 30 ? '차분한 인연' : (temp <= 50 ? '천천히 데워지는 인연' : (temp <= 70 ? '따뜻한 현실형 인연' : (temp <= 85 ? '선명한 끌림의 인연' : '강한 끌림의 인연')));
     var difficulty = conflictRisk >= 86 ? 'Extreme' : (conflictRisk >= 71 ? 'Hard' : (conflictRisk >= 51 ? 'Normal' : 'Easy'));
 
     var seedRaw = [
@@ -9844,7 +10447,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   const SY_GUARDIAN_PROFILE_MAP = Object.freeze({
     '학': { core: '높은 시야와 정신 정렬', resonance: '멀리 보는 결정을 할수록 보호력이 커집니다.', traits: '감정보다 원칙을 먼저 세우는 타입이며, 혼란한 상황에서 기준점을 잡아 주변을 안정시킵니다.', spirit: '상승하는 바람의 기운이 강해 공부, 기획, 글쓰기처럼 구조를 세우는 작업에서 영감이 또렷해집니다.', ritual: '아침에 하늘을 30초 바라본 뒤 오늘 지킬 원칙 한 가지를 메모하면 수호 주파수가 빠르게 맞춰집니다.' },
     '사슴': { core: '섬세한 공감과 평화 유지', resonance: '대립을 완화하고 중재할 때 운이 열립니다.', traits: '타인의 정서를 빠르게 읽고 관계의 균형을 회복하는 능력이 뛰어납니다.', spirit: '부드러운 목기 계열의 기운으로 인간관계 치유력과 회복 탄성이 올라갑니다.', ritual: '하루 한 번 어깨 힘을 푼 뒤 고마운 사람 한 명을 떠올리면 보호막이 안정됩니다.' },
-    '오소리': { core: '끈기와 현실 대응력', resonance: '느리더라도 꾸준히 밀어붙일 때 결과가 크게 돌아옵니다.', traits: '한번 맡은 일은 끝까지 완주하며, 예상치 못한 변수에서도 생존 전략을 빠르게 찾습니다.', spirit: '대지 기운이 강해 생활 패턴, 체력, 재정 관리처럼 기반을 다질수록 영적 보호가 강화됩니다.', ritual: '오늘 해야 할 일 중 가장 작은 단위 하나를 즉시 완료하면 수호령의 추진력이 활성화됩니다.' },
+    '오소리': { core: '끈기와 현실 대응력', resonance: '느리더라도 꾸준히 밀어붙일 때 결과가 크게 돌아옵니다.', traits: '한번 맡은 일은 끝까지 완주하며, 예상치 못한 변수에서도 생존 전략을 빠르게 찾습니다.', spirit: '대지 기운이 강해 생활 패턴, 체력, 재정 관리처럼 기반을 다질수록 판단의 안정감이 커집니다.', ritual: '오늘 해야 할 일 중 가장 작은 단위 하나를 즉시 완료하면 추진력이 정렬됩니다.' },
     '표범': { core: '결단력과 압도적 집중', resonance: '우유부단함을 끊고 선택을 명확히 할 때 행운이 붙습니다.', traits: '순간 판단이 빠르고 핵심을 파고드는 힘이 강하며, 경쟁 구도에서 존재감이 커집니다.', spirit: '화기와 금기의 결합으로 행동 에너지와 목표 관통력이 상승합니다.', ritual: '중요한 결정 전 10초 정지 후 한 문장 결론을 말하면 방향성이 흐려지지 않습니다.' },
     '매': { core: '정밀 관찰과 타이밍 포착', resonance: '큰 흐름보다 결정적 순간을 잡는 전략에서 강합니다.', traits: '디테일을 놓치지 않고, 높은 곳에서 판세를 읽은 뒤 정확하게 움직이는 기질입니다.', spirit: '청명한 풍기 에너지로 시야가 맑아지고 잡음이 줄어들어 예감의 정확도가 올라갑니다.', ritual: '하루 마감 전에 오늘의 신호 한 가지를 기록하면 다음 기회의 타이밍이 빨라집니다.' },
     '사향고양이': { core: '은밀한 감지력과 경계 설정', resonance: '보이지 않는 분위기를 읽고 선을 지킬 때 보호가 강해집니다.', traits: '표면 아래 감정을 감지하는 능력이 뛰어나며, 무리하지 않고 안전한 거리를 유지합니다.', spirit: '달의 음기와 향기 같은 미세 감응이 강해 꿈, 직감, 기분의 변화로 신호가 옵니다.', ritual: '잠들기 전 휴대폰을 잠시 멀리 두고 조용히 호흡하면 영적 신호 수신률이 올라갑니다.' },
@@ -9863,10 +10466,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     '수리': { core: '고고한 관찰과 결단', resonance: '감정 소음에서 떨어져 관점 높이를 올릴수록 복이 커집니다.', traits: '핵심을 크게 보는 힘이 강해 장기 방향성과 전략 수립에서 두각을 보입니다.', spirit: '상층 바람 에너지로 관찰력과 판단의 선명도가 높아집니다.', ritual: '중요 선택 전 종이에 선택지 2개를 쓰고 1분간 거리 두고 바라보면 답이 또렷해집니다.' },
     '나비': { core: '변화 수용과 재생', resonance: '끝과 시작을 자연스럽게 받아들일 때 귀한 전환 운이 옵니다.', traits: '감수성이 풍부하고 변화 속에서 새로운 정체성을 빠르게 찾아냅니다.', spirit: '변환의 기운이 강해 이별, 이동, 직무 변경 같은 전환기에서 보호가 작동합니다.', ritual: '낡은 메모나 물건 하나를 정리하면 정체된 기운이 빠르게 순환합니다.' },
     '문어': { core: '다층 사고와 감정 해석', resonance: '복잡한 감정을 분해해 이해할수록 갈등이 줄어듭니다.', traits: '동시에 여러 맥락을 읽는 능력이 뛰어나 문제 해결에서 독창적 해법을 만듭니다.', spirit: '심해의 수기 에너지로 무의식 정보 처리와 내면 통찰이 강합니다.', ritual: '머릿속을 복잡하게 만든 일 1개를 종이에 구조화해 쓰면 즉시 명료도가 올라갑니다.' },
-    '독수리': { core: '원대한 목표와 돌파력', resonance: '크게 보고 과감히 내려찍는 순간에 운이 폭발합니다.', traits: '목표 중심성이 강하고 결정적 순간에 과감한 실행으로 판을 뒤집습니다.', spirit: '강한 태양-풍기 결합으로 리더십과 성취 에너지를 끌어올립니다.', ritual: '오늘의 최우선 목표 1개를 선언하고 가장 어려운 단계부터 시작하면 기운이 정렬됩니다.' },
+    '독수리': { core: '원대한 목표와 돌파력', resonance: '크게 보고 과감히 결단하는 순간에 흐름이 크게 열립니다.', traits: '목표 중심성이 강하고 결정적 순간에 과감한 실행으로 판을 뒤집습니다.', spirit: '강한 태양-풍기 결합으로 리더십과 성취 에너지를 끌어올립니다.', ritual: '오늘의 최우선 목표 1개를 선언하고 가장 어려운 단계부터 시작하면 기운이 정렬됩니다.' },
     '백조': { core: '품격과 정화의 에너지', resonance: '감정의 탁함을 걷어내고 우아하게 대응할수록 귀인이 붙습니다.', traits: '겉은 부드럽지만 내면이 단단해 품위 있게 관계를 이끌고 상처를 정화합니다.', spirit: '물과 달의 정화 기운이 강해 감정 회복, 화해, 사랑 운에서 보호가 두드러집니다.', ritual: '따뜻한 물을 마시며 오늘 놓아줄 감정 1개를 정하면 마음의 물결이 맑아집니다.' },
-    '성운 고양이': { core: '직감 회복과 감정 정돈', resonance: '복잡한 정보를 잠시 멈추고 감각을 믿을 때 길이 열립니다.', traits: '미세한 기류를 읽어 불필요한 소모를 줄이고, 자신만의 리듬을 빠르게 되찾습니다.', spirit: '은은한 달빛 기운이 불안을 낮추고 내면 나침반을 다시 켭니다.', ritual: '눈을 감고 10회 심호흡 후 오늘 가장 중요한 한 가지를 적어보세요.' },
-    'default': { core: '내면 나침반 정렬', resonance: '감정과 행동의 간격을 줄일수록 보호 흐름이 강해집니다.', traits: '현재 상황의 핵심을 식별하고 필요 없는 소음을 정리하는 힘이 활성화됩니다.', spirit: '달의 보호 기운이 직감과 관계 감수성을 높여 중요한 신호를 놓치지 않게 돕습니다.', ritual: '짧은 호흡 명상과 감사 한 줄 기록으로 수호령과의 연결을 안정화할 수 있습니다.' }
+    '달빛 지표': { core: '직감 회복과 감정 정돈', resonance: '복잡한 정보를 잠시 멈추고 감각을 믿을 때 길이 열립니다.', traits: '미세한 기류를 읽어 불필요한 소모를 줄이고, 자신만의 리듬을 빠르게 되찾습니다.', spirit: '은은한 달빛 기운이 불안을 낮추고 내면 나침반을 다시 켭니다.', ritual: '눈을 감고 10회 심호흡 후 오늘 가장 중요한 한 가지를 적어보세요.' },
+    'default': { core: '내면 나침반 정렬', resonance: '감정과 행동의 간격을 줄일수록 흐름이 안정됩니다.', traits: '현재 상황의 핵심을 식별하고 필요 없는 소음을 정리하는 힘이 활성화됩니다.', spirit: '달의 리듬이 직감과 관계 감수성을 높여 중요한 신호를 놓치지 않게 돕습니다.', ritual: '짧은 호흡 명상과 감사 한 줄 기록으로 마음의 결을 안정화할 수 있습니다.' }
   });
 
   function syParseMansionInfo(mansionText) {
@@ -9900,25 +10503,25 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       if (orderKey && SY_MANSION_GUARDIAN_MAP[orderKey]) return SY_MANSION_GUARDIAN_MAP[orderKey];
     }
 
-    return { name: '성운 고양이', emoji: '🐈' };
+    return { name: '달빛 지표', emoji: '✨' };
   }
 
   function syBuildGuardianStory(guardian, mansionText) {
-    var guardianName = guardian && guardian.name ? String(guardian.name) : '성운 고양이';
+    var guardianName = guardian && guardian.name ? String(guardian.name) : '달빛 지표';
     var mansionLabel = String(mansionText || '').trim() || '미상 숙요';
     var profile = SY_GUARDIAN_PROFILE_MAP[guardianName] || SY_GUARDIAN_PROFILE_MAP.default;
     var baseCore = profile.core || '내면 나침반 정렬';
     var resonance = profile.resonance || '당신의 리듬을 지킬수록 보호 흐름이 강해집니다.';
     var traits = profile.traits || '현재 상황의 핵심을 식별하고 불필요한 소음을 정리하는 힘이 활성화됩니다.';
-    var spirit = profile.spirit || '달의 보호 기운이 직감과 관계 감수성을 높여 중요한 신호를 놓치지 않게 돕습니다.';
-    var ritual = profile.ritual || '짧은 호흡 명상과 감사 한 줄 기록으로 수호령과의 연결을 안정화할 수 있습니다.';
+    var spirit = profile.spirit || '달의 상징 리듬이 직감과 관계 감수성을 깨워 중요한 신호를 살피게 돕습니다.';
+    var ritual = profile.ritual || '짧은 호흡 명상과 감사 한 줄 기록으로 마음의 결을 안정화할 수 있습니다.';
 
     return {
-      overview: guardianName + ' 수호령은 단순한 상징이 아니라, 달의 결 속에서 당신의 별혼과 오래 교신해 온 영적 동반자입니다. 지금 시기에는 특히 ' + baseCore + '의 힘을 끌어올려 감정의 물결을 가라앉히고 선택의 타이밍을 바로잡아 줍니다.',
-      reason: '숙요 인연법에서는 한 사람의 별혼이 전생의 인연 결을 따라 특정 동물령과 다시 만나게 된다고 전합니다. ' + mansionLabel + '의 별문이 열린 현재, ' + guardianName + '이 당신의 수호령으로 호명된 것은 우연한 배치가 아니라 오래 이어진 보호 서약의 재개에 가깝습니다. ' + resonance + ' 그래서 이 동물령은 이번 생에서도 길목마다 조용히 신호를 보내며 당신의 발걸음을 바로잡습니다.',
-      traits: guardianName + ' 수호령의 본성은 화려함보다 정확함에 있습니다. ' + traits + ' 평소에는 잔잔하게 머물지만, 중요한 인연과 결정의 갈림길에서는 특유의 감지력이 먼저 반응해 위험을 줄이고 올바른 선택 쪽으로 기운을 모읍니다.',
-      spirit: '이 수호령의 기운은 큰 목소리보다 미세한 파동으로 다가옵니다. ' + spirit + ' 특히 새벽 직전의 꿈, 반복해서 마주치는 상징, 이유 없는 직감의 끌림은 수호령이 보내는 안내 신호일 가능성이 큽니다.',
-      ritual: '수호 인연을 더 깊게 잇고 싶다면 작은 의식을 꾸준히 반복하는 것이 좋습니다. ' + ritual + ' 같은 시간대에 짧게라도 이어가면 당신의 기운장이 안정되고, 수호령의 보호 신호를 더 빠르고 선명하게 받게 됩니다.'
+      overview: guardianName + ' 상징은 달의 결 속에서 본명숙의 기질을 보완하는 안내 표지입니다. 지금 시기에는 특히 ' + baseCore + '의 힘을 끌어올려 감정의 물결을 가라앉히고 선택의 타이밍을 바로잡아 줍니다.',
+      reason: '숙요 해석의 핵심은 본명숙이며, 달빛 보조 상징은 오늘의 참고 리듬을 덧붙여 읽는 안내입니다. ' + mansionLabel + '의 흐름에서는 ' + guardianName + ' 상징이 감정과 판단의 균형을 회복하라는 신호로 읽힙니다. ' + resonance,
+      traits: guardianName + ' 상징의 본성은 화려함보다 정확함에 있습니다. ' + traits + ' 평소에는 잔잔하게 머물지만, 중요한 인연과 결정의 갈림길에서는 감지력이 먼저 반응해 선택의 방향을 좁혀 줍니다.',
+      spirit: '이 상징의 기운은 큰 목소리보다 미세한 결로 다가옵니다. ' + spirit + ' 특히 새벽 직전의 꿈, 반복해서 마주치는 상징, 이유 없는 직감의 끌림은 내면이 보내는 안내 신호일 가능성이 큽니다.',
+      ritual: '상징의 흐름을 일상에 잇고 싶다면 작은 의식을 꾸준히 반복하는 것이 좋습니다. ' + ritual + ' 같은 시간대에 짧게라도 이어가면 마음의 결이 안정되고 선택 신호가 더 빠르고 선명해집니다.'
     };
   }
 
@@ -9945,7 +10548,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       '',
       '# 숙요점 데이터 참고값',
       '- 카르마 점수: ' + karmaScore + '/100',
-      '- 인연 온도: ' + temperature + '/100',
+      '- 관계 온도 참고값: ' + temperature + '/100',
       '- 자력(磁力): ' + magnetism + '/100',
       '',
       '# Analysis Guidelines (Vibe Coding Principles)',
@@ -9958,7 +10561,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       '1. [한 줄 요약]: 두 사람의 관계를 정의하는 강렬한 키워드 문장.',
       '2. [영혼의 컬러와 시너지]: 두 사람의 성향이 섞였을 때 나타나는 분위기.',
       '3. [숙요 관계 심층 분석]: 관계 유형 및 거리의 관점에서 본 핵심 역학.',
-      '4. [주의해야 할 순간]: 갈등이 폭발하거나 오해가 생기기 쉬운 특정 상황.',
+      '4. [주의해야 할 순간]: 갈등이 과열되거나 오해가 생기기 쉬운 특정 상황.',
       '5. [관계 가이드라인]: 이 관계를 오랫동안 건강하게 유지하기 위한 AI의 전략적 조언.',
       "6. [궁합 에너지 점수]: 0~100% (단순 수치가 아닌, '매혹도', '안정성', '성장성'으로 세분화).",
       '',
@@ -9999,6 +10602,35 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       return null;
     }
     return compat;
+  }
+
+  function syPromptHasAnyKeyword(text, keywords) {
+    for (var i = 0; i < keywords.length; i += 1) {
+      if (text.indexOf(keywords[i]) > -1) return true;
+    }
+    return false;
+  }
+
+  function syInferSukuyoPromptDomain(question, preferCompatibility) {
+    var text = String(question || '').toLowerCase();
+    var relationContext = ['상대', '그 사람', '애인', '전남친', '전여친', '연인', '배우자', '부부', '썸', '이별', '헤어진', '연락', '관계'];
+    if (syPromptHasAnyKeyword(text, ['재회', '다시 만나', '다시 연락', '돌아올', '돌아오'])) return 'reconciliation';
+    if (syPromptHasAnyKeyword(text, ['회복', '다시']) && syPromptHasAnyKeyword(text, relationContext)) return 'reconciliation';
+    if (syPromptHasAnyKeyword(text, ['이별', '헤어', '정리', '끝내'])) return 'breakup';
+    if (syPromptHasAnyKeyword(text, ['건강', '멘탈', '불안', '스트레스', '수면', '회복력', '몸', '마음'])) return 'health';
+    if (syPromptHasAnyKeyword(text, ['돈', '재물', '수입', '투자', '저축', '매출', '재정', '자산'])) return 'money';
+    if (syPromptHasAnyKeyword(text, ['직업', '진로', '이직', '커리어', '직장', '승진', '사업', '업무', '일자리'])) return 'career';
+    if (syPromptHasAnyKeyword(text, ['성격', '기질', '강점', '약점', '본성', '패턴', '성향'])) return 'personality';
+    if (syPromptHasAnyKeyword(text, ['인생', '방향', '미래', '전환', '선택', '다시 일어', '앞으로'])) return 'life_direction';
+    if (preferCompatibility || syPromptHasAnyKeyword(text, ['궁합', '상대', '인연', '관계 유형'])) return 'compatibility';
+    if (syPromptHasAnyKeyword(text, ['연애', '결혼', '썸', '사랑'])) return 'love';
+    if (syPromptHasAnyKeyword(text, ['인간관계', '가족', '친구', '동료', '갈등'])) return 'relationship';
+    return 'life_direction';
+  }
+
+  function syPromptDomainNeedsCompatibility(domain) {
+    var key = String(domain || '').trim();
+    return key === 'compatibility' || key === 'reconciliation' || key === 'breakup';
   }
 
   function syOpenLoginForPrompt() {
@@ -10169,6 +10801,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       });
     }
     var compatibilityResult = syGetPromptCompatibilityResult(basicResult, !!opts.preferCompatibility);
+    var domain = String(opts.domain || syInferSukuyoPromptDomain(question, !!opts.preferCompatibility)).trim();
+    if (syPromptDomainNeedsCompatibility(domain) && !compatibilityResult) {
+      return Promise.resolve({
+        ok: false,
+        status: 400,
+        payload: {
+          code: 'MISSING_COMPATIBILITY_RESULT',
+          message: '궁합·재회·이별 질문은 숙요 궁합 계산을 먼저 만든 뒤 프롬프트를 생성해 주세요.'
+        }
+      });
+    }
     var requestNonce = Date.now() + ':' + Math.random().toString(16).slice(2);
 
     return syPromptGate({
@@ -10187,6 +10830,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         headers: syBuildFortuneAuthHeaders({ 'idempotency-key': 'sy-ai:' + requestNonce }),
         body: JSON.stringify({
           question: question,
+          domain: domain,
           basicResult: basicResult,
           compatibilityResult: compatibilityResult,
           requestId: evidence.requestId || ('sukuyo-ai-prompt:' + requestNonce),
@@ -10256,7 +10900,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       if (isLoading) {
         generateBtn.textContent = '프롬프트 생성 중...';
       } else {
-        generateBtn.textContent = '100코인으로 프롬프트 생성';
+        generateBtn.textContent = '100코인 선택 생성';
       }
     }
 
@@ -10419,28 +11063,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   }
 
   window.triggerSynergyCheck = function(myIdx, myMansionName) {
-      if (typeof window._cdCoinGatePerUse === 'function') {
-        window._cdCoinGatePerUse(50, '숙요점 궁합 분석', function() { window._triggerSynergyCheckCore(myIdx, myMansionName); });
-        return;
-      }
-      var isAdminBypass = false;
-      try {
-        isAdminBypass = !!(window.__cdAdminBypass || (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()));
-      } catch (_) {}
-      if (isAdminBypass) {
+      if (syRequirePaidSukuyoFeature(SY_PAID_FEATURES.compatibility, function() {
         window._triggerSynergyCheckCore(myIdx, myMansionName);
+      })) {
         return;
       }
-      var token = '';
-      try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
-      if (!token) {
-        if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-          window.location.href = '/login?next=%2F';
-        }
-        return;
-      }
-      window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-      return;
   };
   window._triggerSynergyCheckCore = function(myIdx, myMansionName) {
       // ── 모바일 더블탭 / 중복 실행 방어 ──
@@ -10595,7 +11222,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             elementHarmony: elementHarmony,
             strengthShadowMap: strengthShadowMap,
             relationVariant: relationVariant,
-            partnerGender: partnerGenderLabel
+            partnerGender: partnerGenderLabel,
+            partnerTraits: (tData && tData.traits) ? {
+              core: tData.traits.core || tData.traits.desc || '',
+              hidden: tData.traits.hidden || '',
+              love: tData.traits.love || '',
+              work: tData.traits.work || '',
+              wealth: tData.traits.wealth || '',
+              karma: tData.traits.karma || ''
+            } : {}
           };
           try {
             var _wheelState = window._syWheelState;
@@ -10643,6 +11278,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               signature: enhanced.signature,
               relationTypeKo: enhanced.relationTypeKo,
               distanceKo: enhanced.distanceKo,
+              roleA: enhanced.roleA,
+              roleB: enhanced.roleB,
               difficulty: enhanced.difficulty,
               tempBand: enhanced.tempBand,
               relationshipName: enhanced.relationshipName,
@@ -11031,6 +11668,37 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               </div>
             </section>`;
 
+          const precisionExtensionSections = [
+            purposeCompatibilitySection,
+            distanceDeepSection,
+            enhancedFlowSection,
+            chemistrySection,
+            emotionalIndicatorSection,
+            relationshipTimingSection,
+            relationshipPrescriptionSection,
+            relationshipRiskSection,
+            relationshipCategoriesSection,
+            expertFinalSection,
+            yearlyRelationshipSection,
+            roleSection,
+            guideSection,
+            detailCardsSection
+          ].join('');
+          const precisionUnlockSection = `
+            <section id="syCompatPrecisionGate" data-sy-precision-gate="20260615-sukuyo-paid-precision" style="background:linear-gradient(145deg,rgba(69,26,3,0.42),rgba(15,23,42,0.72));border:1px solid rgba(251,191,36,0.34);border-radius:16px;padding:15px;margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+                <div>
+                  <div style="font-size:0.74rem;color:#fde68a;letter-spacing:0.08em;text-transform:uppercase;font-weight:900;margin-bottom:5px;">정밀 궁합 확장</div>
+                  <div style="font-size:1rem;color:#fff7ed;font-weight:900;line-height:1.45;">목적별 리딩, 30일 타이밍, 위험·회복 루틴까지 더 깊게 엽니다.</div>
+                </div>
+                <span style="font-size:0.72rem;color:#fef3c7;border:1px solid rgba(251,191,36,0.34);background:rgba(251,191,36,0.1);padding:4px 9px;border-radius:999px;">120코인</span>
+              </div>
+              <p style="margin:0 0 10px;color:#fde68a;font-size:0.82rem;line-height:1.72;">기본 궁합 50코인 결과와 별도로, 상담에서 바로 쓰기 좋은 세부 시나리오와 회복 문장을 추가합니다.</p>
+              <button type="button" data-sy-precision-unlock style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(251,191,36,0.46);background:rgba(251,191,36,0.16);color:#fef3c7;font-size:0.84rem;font-weight:900;cursor:pointer;">정밀 궁합 확장 열기 · 120코인</button>
+              <div data-sy-precision-content style="display:none;margin-top:12px;"></div>
+              <div data-sy-precision-status style="margin-top:8px;color:#fde68a;font-size:0.76rem;line-height:1.6;"></div>
+            </section>`;
+
           // <style> 태그 upsert — removeChild+appendChild 대신 textContent만 교체
           // (remove+add 방식은 매 호출마다 head 리플로우를 강제 트리거)
           var _syStyleId = 'sy-compat-style';
@@ -11065,7 +11733,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-compat-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:16px}',
             '.sy-compat-metric-card{background:radial-gradient(circle at 82% 8%,rgba(248,250,252,.12),transparent 30%),rgba(15,23,42,.62);border-radius:14px;padding:13px 10px;text-align:center;border:1px solid rgba(219,234,254,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
             '.sy-compat-metric-label{font-size:.68rem;color:#dbeafe;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:900}',
-            '.sy-compat-metric-value{font-size:2.16rem;font-weight:900;line-height:1}',
+            '.sy-compat-metric-value{font-size:1.18rem;font-weight:900;line-height:1.28;word-break:keep-all}',
             '.sy-compat-metric-sub{font-size:.7rem;color:#cbd5e1;margin-top:2px}',
             '.sy-compat-metric-note{margin:7px 0 0;color:#e2e8f0;font-size:.72rem;line-height:1.55}',
             '.sy-compat-indicators{margin-bottom:16px;background:rgba(15,23,42,.5);border:1px solid rgba(147,197,253,.28);border-radius:14px;padding:12px}',
@@ -11151,11 +11819,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             </section>`;
           const compactMetricSection = `
             <section style="background:rgba(15,23,42,0.5);border:1px solid rgba(147,197,253,0.28);border-radius:14px;padding:12px;margin-bottom:14px;">
-              <div style="font-size:0.74rem;color:#93c5fd;text-transform:uppercase;font-weight:900;margin-bottom:9px;">핵심 지표</div>
+              <div style="font-size:0.74rem;color:#93c5fd;text-transform:uppercase;font-weight:900;margin-bottom:9px;">핵심 구간</div>
               <div class="sy-compat-metric-grid" data-sy-compat-indicators-ui="20260613-compact-natural-ko">
-                <article class="sy-compat-metric-card"><div class="sy-compat-metric-label">궁합 지수</div><div class="sy-compat-metric-value" style="color:${compatIndexColor};">${compatibilityIndex}</div><p class="sy-compat-metric-note">${syCanonicalEsc(compatibilityIndexNote)}</p></article>
-                <article class="sy-compat-metric-card"><div class="sy-compat-metric-label">인연 온도</div><div class="sy-compat-metric-value" style="color:${tempInfo.color};">${rel.temperature}</div><p class="sy-compat-metric-note">${syCanonicalEsc(syMetricNote('temperature', rel.temperature))}</p></article>
-                <article class="sy-compat-metric-card"><div class="sy-compat-metric-label">끌림</div><div class="sy-compat-metric-value" style="color:${th.color1};">${mgVal}</div><p class="sy-compat-metric-note">${syCanonicalEsc(syMetricNote('magnetism', mgVal))}</p></article>
+                <article class="sy-compat-metric-card"><div class="sy-compat-metric-label">관계 구간</div><div class="sy-compat-metric-value" style="color:${compatIndexColor};">${syCanonicalEsc(syReferenceBand(compatibilityIndex))}</div><p class="sy-compat-metric-note">참고값 ${syCanonicalEsc(compatibilityIndex)} · ${syCanonicalEsc(compatibilityIndexNote)}</p></article>
+                <article class="sy-compat-metric-card"><div class="sy-compat-metric-label">온도 구간</div><div class="sy-compat-metric-value" style="color:${tempInfo.color};">${syCanonicalEsc(syReferenceBand(rel.temperature))}</div><p class="sy-compat-metric-note">참고값 ${syCanonicalEsc(rel.temperature)} · ${syCanonicalEsc(syMetricNote('temperature', rel.temperature))}</p></article>
+                <article class="sy-compat-metric-card"><div class="sy-compat-metric-label">끌림 구간</div><div class="sy-compat-metric-value" style="color:${th.color1};">${syCanonicalEsc(syReferenceBand(mgVal))}</div><p class="sy-compat-metric-note">참고값 ${syCanonicalEsc(mgVal)} · ${syCanonicalEsc(syMetricNote('magnetism', mgVal))}</p></article>
               </div>
             </section>`;
           const compactJudgementSection = `
@@ -11247,6 +11915,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
               ${compactSummarySection}
 
+              ${syRenderRelationMiniMapCard(_reading, { activeLabel: enhanced.relationTypeKo, embedded: true })}
+
               ${compactMetricSection}
 
               ${compactJudgementSection}
@@ -11256,6 +11926,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               ${compactRiskSection}
 
               ${compactLightSection}
+
+              ${precisionUnlockSection}
 
               ${ankaiBadge}
 
@@ -11268,7 +11940,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
-                  <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b);color:#2f2200;border:1px solid rgba(251,191,36,0.78);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 24px rgba(251,191,36,0.25);">100코인으로 프롬프트 생성</button>
+                  <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">100코인 선택 생성</button>
                   <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>
                   <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
                 </div>
@@ -11279,6 +11951,26 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             </div>
           </div>`;
 
+          var precisionGate = rd.querySelector('#syCompatPrecisionGate');
+          if (precisionGate) {
+            var precisionBtn = precisionGate.querySelector('[data-sy-precision-unlock]');
+            var precisionContent = precisionGate.querySelector('[data-sy-precision-content]');
+            var precisionStatus = precisionGate.querySelector('[data-sy-precision-status]');
+            var revealPrecision = function() {
+              if (!precisionContent) return;
+              precisionContent.innerHTML = precisionExtensionSections;
+              precisionContent.style.display = 'block';
+              if (precisionBtn) precisionBtn.style.display = 'none';
+              if (precisionStatus) precisionStatus.textContent = '정밀 궁합 확장이 열렸습니다.';
+            };
+            if (precisionBtn) {
+              precisionBtn.addEventListener('click', function() {
+                if (precisionContent && precisionContent.style.display === 'block') return;
+                syRequirePaidSukuyoFeature(SY_PAID_FEATURES.compatibilityPrecision, revealPrecision);
+              });
+            }
+          }
+
           var compatAiPromptCard = rd.querySelector('#syCompatAiPromptCard');
           if (compatAiPromptCard && typeof syBindSukuyoPromptComposer === 'function') {
             syBindSukuyoPromptComposer(compatAiPromptCard, { preferCompatibility: true });
@@ -11286,6 +11978,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
           // innerHTML 완성 후 display:block — 빈 컨테이너 레이아웃 계산 1회 절약
           rd.style.display = 'block';
+          try {
+            syHighlightRelationMiniMap(enhanced.relationTypeKo || rel.typeLabel || rel.type);
+          } catch (_relMapErr) {}
 
           // 온도 바 애니메이션 (인라인 결과)
           setTimeout(function() {

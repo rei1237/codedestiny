@@ -542,6 +542,10 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
     <div class="glass" style="padding:18px 16px;margin-bottom:12px">
       <div class="section-head" style="margin-bottom:10px">출생 정보 입력</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="grid-column:1 / -1">
+          <label for="v_name">이름</label>
+          <input id="v_name" placeholder="예: 홍길동">
+        </div>
         <div>
           <label for="v_year">연도</label>
           <input id="v_year" inputmode="numeric" placeholder="예: 1994">
@@ -671,8 +675,9 @@ button{cursor:pointer;font-family:var(--font-body);border:none;outline:none}
         </div>
       </div>
       <div style="height:14px"></div>
-      <button class="btn-primary" id="v_run_btn" type="button" onclick="runVedicFromInput()">우주의 기운 확인하기 🔯</button>
-      <div style="margin-top:10px;color:var(--text3);font-size:12px;line-height:1.6">프로필 카드 없이도 바로 계산합니다.</div>
+      <div id="v_input_error" role="alert" style="display:none;margin-bottom:10px;padding:10px 12px;border-radius:12px;border:1px solid rgba(244,63,94,0.35);background:rgba(127,29,29,0.24);color:#fecdd3;font-size:12px;line-height:1.55;text-align:left"></div>
+      <button class="btn-primary" id="v_run_btn" type="button">베다 차트 계산하기</button>
+      <div style="margin-top:10px;color:var(--text3);font-size:12px;line-height:1.6">생년월일·시간·장소만 입력하면 무료 기본 명반을 계산합니다.</div>
     </div>
     <a href="/" class="btn-sm back-btn" style="text-decoration:none;color:inherit;display:inline-flex;justify-content:center;width:100%">← 메인으로</a>
   </div>
@@ -1689,7 +1694,14 @@ function renderBhavaMeaningPanel(n){
 
 function refreshBhavaGlossary(){
   var root=document.getElementById(bhavaGlossaryRootId);
-  if(root) root.outerHTML=renderBhavaGlossary();
+  if(!root) return;
+  var wasVisible=root.classList&&root.classList.contains('visible');
+  root.outerHTML=renderBhavaGlossary();
+  var next=document.getElementById(bhavaGlossaryRootId);
+  if(next&&next.classList&&(wasVisible||next.closest('.tab-panel.active'))){
+    next.classList.add('visible');
+  }
+  if(typeof initReveal==='function') setTimeout(initReveal,0);
 }
 
 function setBhavaMeaning(n){
@@ -1743,8 +1755,8 @@ function renderBhavaGlossary(){
   '</style>'+
   '<div id="'+bhavaGlossaryRootId+'" class="bhava-glossary-shell reveal reveal-delay-1">'+
     '<div class="bhava-glossary-shell__title">12 Bhava</div>'+
-    '<div class="bhava-glossary-shell__heading">📚 12바바 전통명</div>'+
-    '<div class="bhava-glossary-shell__sub">탭하면 전통명, 결, 그리고 영적인 속뜻이 아래로 부드럽게 펼쳐집니다.</div>'+
+    '<div class="bhava-glossary-shell__heading">📚 12바바 삶의 영역</div>'+
+    '<div class="bhava-glossary-shell__sub">각 바바를 탭하면 그 영역의 전통명과 삶에서 드러나는 의미가 아래에 펼쳐집니다.</div>'+
     '<div class="bhava-glossary-shell__grid">'+
       Array.from({length:12},function(_,i){
         var n=i+1;
@@ -2925,7 +2937,7 @@ async function copyCurrentVedicDataSnapshot(){
       document.execCommand('copy');
       document.body.removeChild(ta);
     }
-    alert('분석 데이터 JSON을 복사했습니다.');
+    alert('상담용 차트 데이터를 복사했습니다.');
   }catch(_){
     alert('복사에 실패했습니다. 잠시 후 다시 시도해 주세요.');
   }
@@ -2971,7 +2983,7 @@ function vedicAiCreateState(chartKey){
     question:'',
     prompt:'',
     questionType:'general',
-    statusMessage:'질문을 입력하면 결과 데이터를 바탕으로 AI 상담 프롬프트를 생성합니다. 생성 성공 시 100코인이 차감됩니다.',
+    statusMessage:'궁금한 흐름을 입력하면 현재 차트 기반 상담 질문을 정리합니다. 생성 성공 시 100코인이 차감됩니다.',
     statusError:false,
     inFlight:false,
     lastChargedCoins:0,
@@ -3000,9 +3012,9 @@ function vedicAiStatusText(code, fallbackMessage){
   if(code==='AUTH_REQUIRED') return '로그인이 필요합니다. 로그인 후 다시 시도해 주세요.';
   if(code==='INSUFFICIENT_COINS') return '코인이 부족합니다. 100코인 충전 후 다시 시도해 주세요.';
   if(code==='INVALID_QUESTION') return '질문은 5자 이상 1000자 이하로 입력해 주세요.';
-  if(code==='MISSING_VEDIC_RESULT') return '기본 베다 분석 결과가 없어 프롬프트를 생성할 수 없습니다.';
+  if(code==='MISSING_VEDIC_RESULT') return '기본 베다 분석 결과가 없어 상담 질문을 정리할 수 없습니다.';
   if(code==='MISSING_COMPATIBILITY_RESULT') return '궁합 질문은 먼저 베다 궁합 계산을 완료해야 합니다.';
-  if(code==='PROMPT_GENERATION_FAILED') return msg||'프롬프트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+  if(code==='PROMPT_GENERATION_FAILED') return msg||'상담 질문 정리에 실패했습니다. 잠시 후 다시 시도해 주세요.';
   return msg||'요청 처리 중 오류가 발생했습니다.';
 }
 
@@ -3025,8 +3037,8 @@ function renderVedicAIPromptSection(){
   const hasCompat=!!G.vedicCompatibilityResult;
   return `
   <div class="glass reveal reveal-delay-2" style="padding:16px;margin:14px 0 12px;border:1px solid rgba(251,191,36,0.35);border-radius:16px;background:radial-gradient(130% 140% at 6% 0%, rgba(251,191,36,0.2), transparent 42%), radial-gradient(120% 120% at 100% 100%, rgba(45,212,191,0.18), transparent 42%), linear-gradient(145deg, rgba(11,20,38,0.93), rgba(17,24,39,0.94));box-shadow:0 24px 56px rgba(120,53,15,0.25), inset 0 1px 0 rgba(255,255,255,0.07);">
-    <div class="section-head section-head-kr" style="margin-bottom:8px;color:#fde68a">🕉 베다 AI 상담 프롬프트 생성기</div>
-    <div class="body-text" style="margin-bottom:12px;line-height:1.72;color:#e2e8f0">현재 계산된 베다 결과 JSON(라시/나크샤트라/다샤)을 기반으로 질문 맞춤형 상담 프롬프트를 생성합니다. 서버에서 가격을 검증하며, 생성 성공 시에만 100코인이 차감됩니다.</div>
+    <div class="section-head section-head-kr" style="margin-bottom:8px;color:#fde68a">🕉 베다 상담 질문 정리</div>
+    <div class="body-text" style="margin-bottom:12px;line-height:1.72;color:#e2e8f0">계산된 라시·낙샤트라·다샤를 바탕으로 질문을 상담에 바로 쓸 수 있게 정리합니다. 서버에서 가격을 검증하며, 생성 성공 시에만 100코인이 차감됩니다.</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
       <span class="tag" style="background:rgba(251,191,36,0.16);color:#fde68a;border:1px solid rgba(251,191,36,0.36)">1회 ${VEDIC_AI_PROMPT_COST}코인</span>
       <span class="tag ${hasCompat?'tag-gold':'tag-purple'}" id="vedicAiCompatState">궁합 컨텍스트: ${hasCompat?'연결됨':'미연결'}</span>
@@ -3043,13 +3055,13 @@ function renderVedicAIPromptSection(){
       <button class="btn-sm" type="button" onclick="vedicAiUseExample('상대와의 궁합 데이터 기반으로 갈등을 줄이는 실전 행동 계획을 알려줘.')">예시: 궁합</button>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
-      <button class="btn-primary" id="vedicAiGenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b);border:1px solid rgba(251,191,36,0.5);color:#1f2937;box-shadow:0 10px 26px rgba(251,191,36,0.32)">${state.inFlight?'생성 중...':'✨ AI 상담 프롬프트 생성 (100코인)'}</button>
+      <button class="btn-primary" id="vedicAiGenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b);border:1px solid rgba(251,191,36,0.5);color:#1f2937;box-shadow:0 10px 26px rgba(251,191,36,0.32)">${state.inFlight?'정리 중...':'✨ 상담 질문 정리 (100코인)'}</button>
       <button class="btn-sm" id="vedicAiCopyBtn" type="button" onclick="vedicAiCopyPrompt()" ${state.prompt?'':'disabled'}>📋 복사</button>
       <button class="btn-sm" id="vedicAiRegenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" ${state.prompt?'':'disabled'}>🔄 재생성</button>
     </div>
     <div id="vedicAiStatus" style="margin-top:10px;font-size:12px;color:${statusColor};line-height:1.6">${hEsc(state.statusMessage)}</div>
     <div id="vedicAiPromptWrap" style="margin-top:12px;${state.prompt?'':'display:none;'}">
-      <div style="font-size:11px;color:#fde68a;margin-bottom:6px">생성된 프롬프트</div>
+      <div style="font-size:11px;color:#fde68a;margin-bottom:6px">정리된 상담 질문</div>
       <pre id="vedicAiPromptText" style="margin:0;padding:12px;border-radius:12px;border:1px solid rgba(45,212,191,0.24);background:rgba(2,6,23,0.58);color:#ccfbf1;font-size:12px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:360px;overflow:auto">${hEsc(state.prompt)}</pre>
       <div id="vedicAiPromptMeta" style="margin-top:8px;font-size:11px;color:var(--text3)"></div>
     </div>
@@ -3077,7 +3089,7 @@ function vedicAiRefreshUi(){
   }
   if(gBtn){
     gBtn.disabled=!!state.inFlight;
-    gBtn.textContent=state.inFlight?'생성 중...':'✨ AI 상담 프롬프트 생성 (100코인)';
+    gBtn.textContent=state.inFlight?'정리 중...':'✨ 상담 질문 정리 (100코인)';
   }
   if(cpBtn) cpBtn.disabled=!state.prompt||state.inFlight;
   if(reBtn) reBtn.disabled=!state.prompt||state.inFlight;
@@ -3111,7 +3123,7 @@ function vedicAiUseExample(text){
   const state=vedicAiEnsureState();
   state.question=String(text||'').slice(0,1000);
   state.statusError=false;
-  state.statusMessage='예시 질문을 적용했습니다. 생성 버튼을 누르면 서버에서 프롬프트를 만듭니다.';
+  state.statusMessage='예시 질문을 적용했습니다. 정리 버튼을 누르면 상담 질문을 만듭니다.';
   vedicAiRefreshUi();
 }
 
@@ -3137,16 +3149,16 @@ async function vedicAiGeneratePrompt(){
   const snapshot=buildCurrentVedicDataSnapshot(G.chart,G.report);
   if(!snapshot){
     state.statusError=true;
-    state.statusMessage='기본 베다 결과가 없어 프롬프트를 생성할 수 없습니다.';
+    state.statusMessage='기본 베다 결과가 없어 상담 질문을 정리할 수 없습니다.';
     vedicAiRefreshUi();
     return;
   }
 
   state.inFlight=true;
   state.statusError=false;
-  state.statusMessage='서버에서 프롬프트를 생성 중입니다. 생성 성공 시에만 100코인이 차감됩니다.';
+  state.statusMessage='상담 질문을 정리 중입니다. 생성 성공 시에만 100코인이 차감됩니다.';
   vedicAiRefreshUi();
-  _vedicSetPaymentPending(true,'베다 AI 프롬프트 결제/생성 확인 중입니다...');
+  _vedicSetPaymentPending(true,'베다 상담 질문 결제/생성 확인 중입니다...');
 
   try{
     let token='';
@@ -3185,7 +3197,7 @@ async function vedicAiGeneratePrompt(){
     state.balanceAfter=Number.isFinite(Number(data&&data.balanceAfter))?Number(data.balanceAfter):null;
     state.compatibilityHint=String(data&&data.compatibilityHint||'').trim();
     state.statusError=false;
-    state.statusMessage='프롬프트 생성 완료: '+state.lastChargedCoins+'코인 차감'+(Number.isFinite(state.balanceAfter)?(' · 잔액 '+Number(state.balanceAfter).toLocaleString('ko-KR')+'코인'):'');
+    state.statusMessage='상담 질문 정리 완료: '+state.lastChargedCoins+'코인 차감'+(Number.isFinite(state.balanceAfter)?(' · 잔액 '+Number(state.balanceAfter).toLocaleString('ko-KR')+'코인'):'');
     if(Number.isFinite(state.balanceAfter)) vedicAiSyncBalance(state.balanceAfter);
     vedicAiRefreshUi();
   }catch(e){
@@ -3204,7 +3216,7 @@ async function vedicAiCopyPrompt(){
   const state=vedicAiEnsureState();
   const text=String(state.prompt||'').trim();
   if(!text){
-    alert('복사할 프롬프트가 없습니다. 먼저 생성해 주세요.');
+    alert('복사할 상담 질문이 없습니다. 먼저 정리해 주세요.');
     return;
   }
   try{
@@ -3222,7 +3234,7 @@ async function vedicAiCopyPrompt(){
       document.body.removeChild(ta);
     }
     state.statusError=false;
-    state.statusMessage='생성된 프롬프트를 클립보드에 복사했습니다.';
+    state.statusMessage='정리된 상담 질문을 클립보드에 복사했습니다.';
     vedicAiRefreshUi();
   }catch(_){
     state.statusError=true;
@@ -3768,6 +3780,7 @@ function _fillInputFromProfile(profile){
     var b=(profile&&profile.birth)||{};
     var l=(profile&&profile.location)||{};
     function setV(id,v){ var el=document.getElementById(id); if(el&&v!=null&&v!=='') el.value=String(v); }
+    setV('v_name',profile&&profile.name);
     setV('v_year',b.year);
     setV('v_month',b.month);
     setV('v_day',b.day);
@@ -3860,15 +3873,16 @@ document.addEventListener('DOMContentLoaded', function(){
     var placeSel=document.getElementById('v_place');
     if(placeSel){
       placeSel.addEventListener('change', function(){
+        try{ vedicShowInputError(''); }catch(_){}
         try{ vedicApplySelectedPlace(); }catch(_){}
         try{ _syncVedicToProfileCardCompatFields(); }catch(_){}
       });
     }
-    ['v_year','v_month','v_day','v_hour','v_minute','v_gender','v_lat','v_lon','v_tz'].forEach(function(id){
+    ['v_name','v_year','v_month','v_day','v_hour','v_minute','v_gender','v_lat','v_lon','v_tz'].forEach(function(id){
       var el=document.getElementById(id);
       if(!el) return;
-      el.addEventListener('input', function(){ try{ _syncVedicToProfileCardCompatFields(); }catch(_){} });
-      el.addEventListener('change', function(){ try{ _syncVedicToProfileCardCompatFields(); }catch(_){} });
+      el.addEventListener('input', function(){ try{ vedicShowInputError(''); }catch(_){} try{ _syncVedicToProfileCardCompatFields(); }catch(_){} });
+      el.addEventListener('change', function(){ try{ vedicShowInputError(''); }catch(_){} try{ _syncVedicToProfileCardCompatFields(); }catch(_){} });
     });
     // Apply default place coordinates (Seoul) FIRST - before any other sync
     try{ vedicApplySelectedPlace(); }catch(e){ console.error('Error applying place:', e); }
@@ -3973,6 +3987,7 @@ function _readVedicCompatProfileCardData(){
     var btnF=document.getElementById('btnF');
     if(btnM&&btnM.classList.contains('on')) gender='M';
     else if(btnF&&btnF.classList.contains('on')) gender='F';
+    var nameValue=((document.getElementById('v_name')||{}).value||'').trim()||'나의 베다 차트';
     var countrySel=document.getElementById('birthCountry');
     var opt=countrySel?countrySel.options[countrySel.selectedIndex]:null;
     var tz=opt?countrySel.value:'Asia/Seoul';
@@ -3986,7 +4001,7 @@ function _readVedicCompatProfileCardData(){
     var year=parseInt(parts[0],10), month=parseInt(parts[1],10), day=parseInt(parts[2],10);
     return {
       id:'vedic_manual',
-      name:'(직접 입력)',
+      name:nameValue,
       gender:gender,
       birth:{ year:year, month:month, day:day, hour:hour, minute:minute, calType:'solar' },
       location:{ label:locationLabel, tz:tz, lng:lng, lat:lat, tzOffset:baseTzOff, baseTzOffset:baseTzOff }
@@ -3994,13 +4009,85 @@ function _readVedicCompatProfileCardData(){
   }catch(_){ return null; }
 }
 
+function vedicShowInputError(message){
+  var el=document.getElementById('v_input_error');
+  if(!el){
+    if(message) alert(message);
+    return;
+  }
+  el.textContent=message||'';
+  el.style.display=message?'block':'none';
+}
+
+function vedicValidCalendarDate(y,m,d){
+  var dt=new Date(Date.UTC(0,0,1));
+  dt.setUTCFullYear(y,m-1,d);
+  return dt.getUTCFullYear()===y&&dt.getUTCMonth()===(m-1)&&dt.getUTCDate()===d;
+}
+
+function vedicReadManualProfile(){
+  var yEl=document.getElementById('v_year');
+  var mEl=document.getElementById('v_month');
+  var dEl=document.getElementById('v_day');
+  var hEl=document.getElementById('v_hour');
+  var minEl=document.getElementById('v_minute');
+  var latEl=document.getElementById('v_lat');
+  var lonEl=document.getElementById('v_lon');
+  var tzEl=document.getElementById('v_tz');
+  var gEl=document.getElementById('v_gender');
+  var nameEl=document.getElementById('v_name');
+  var placeEl=document.getElementById('v_place');
+  var y=parseInt(yEl&&yEl.value?yEl.value:'',10);
+  var m=parseInt(mEl&&mEl.value?mEl.value:'',10);
+  var d=parseInt(dEl&&dEl.value?dEl.value:'',10);
+  var hRaw=hEl&&hEl.value?String(hEl.value).trim():'';
+  var minRaw=minEl&&minEl.value?String(minEl.value).trim():'';
+  var tzRaw=tzEl&&tzEl.value?String(tzEl.value).trim():'';
+  var hr=hRaw===''?12:parseInt(hRaw,10);
+  var min=minRaw===''?0:parseInt(minRaw,10);
+  var lat=parseFloat(latEl&&latEl.value?latEl.value:'');
+  var lon=parseFloat(lonEl&&lonEl.value?lonEl.value:'');
+  var tz=tzRaw===''?9:parseFloat(tzRaw);
+  if(!Number.isFinite(y)||!Number.isFinite(m)||!Number.isFinite(d)){
+    return {error:'생년월일을 모두 입력해 주세요.'};
+  }
+  if(y<1||y>9999||m<1||m>12||d<1||d>31||!vedicValidCalendarDate(y,m,d)){
+    return {error:'실제로 존재하는 생년월일을 입력해 주세요.'};
+  }
+  if(!Number.isFinite(hr)||hr<0||hr>23){
+    return {error:'태어난 시는 0~23 사이로 입력해 주세요.'};
+  }
+  if(!Number.isFinite(min)||min<0||min>59){
+    return {error:'태어난 분은 0~59 사이로 입력해 주세요.'};
+  }
+  if(!Number.isFinite(lat)||lat<-90||lat>90){
+    return {error:'위도는 -90~90 사이로 입력해 주세요.'};
+  }
+  if(!Number.isFinite(lon)||lon<-180||lon>180){
+    return {error:'경도는 -180~180 사이로 입력해 주세요.'};
+  }
+  if(!Number.isFinite(tz)||tz<-14||tz>14){
+    return {error:'타임존 오프셋은 -14~14 사이로 입력해 주세요.'};
+  }
+  var manualName=(nameEl&&nameEl.value?String(nameEl.value).trim():'')||'나의 베다 차트';
+  var placeLabel='직접 입력';
+  if(placeEl&&placeEl.options&&placeEl.selectedIndex>=0){
+    placeLabel=placeEl.options[placeEl.selectedIndex].text||placeLabel;
+  }
+  return {
+    profile:{
+      id:'vedic_manual',
+      name:manualName.slice(0,40),
+      gender:gEl&&gEl.value?gEl.value:'M',
+      birth:{ year:y,month:m,day:d,hour:hr,minute:min,calType:'solar' },
+      location:{ lat:lat, lng:lon, tzOffset:tz, baseTzOffset:tz, label:placeLabel, tz:placeEl&&placeEl.value?String(placeEl.value):'' }
+    }
+  };
+}
+
 function _prefillVedicInput(){
   try{
     vedicInitBirthPlaceSelect();
-    var now=new Date();
-    var yEl=document.getElementById('v_year'); if(yEl&&!yEl.value) yEl.value=String(now.getFullYear());
-    var mEl=document.getElementById('v_month'); if(mEl&&!mEl.value) mEl.value=String(now.getMonth()+1);
-    var dEl=document.getElementById('v_day'); if(dEl&&!dEl.value) dEl.value=String(now.getDate());
     var hEl=document.getElementById('v_hour'); if(hEl&&!hEl.value) hEl.value='12';
     var minEl=document.getElementById('v_minute'); if(minEl&&!minEl.value) minEl.value='0';
     var latEl=document.getElementById('v_lat'); if(latEl&&!latEl.value) latEl.value='37.5665';
@@ -4012,62 +4099,16 @@ function _prefillVedicInput(){
 
 function runVedicFromInput(){
   try{
-    console.log('runVedicFromInput started');
-    var compatProfile=_readVedicCompatProfileCardData();
-    if(compatProfile&&compatProfile.birth&&compatProfile.birth.year&&compatProfile.birth.month&&compatProfile.birth.day){
-      console.log('Using compat profile');
-      doCalculateFromProfile(compatProfile);
+    vedicShowInputError('');
+    var result=vedicReadManualProfile();
+    if(result.error){
+      vedicShowInputError(result.error);
       return;
     }
-    var yEl=document.getElementById('v_year');
-    var mEl=document.getElementById('v_month');
-    var dEl=document.getElementById('v_day');
-    var hEl=document.getElementById('v_hour');
-    var minEl=document.getElementById('v_minute');
-    var latEl=document.getElementById('v_lat');
-    var lonEl=document.getElementById('v_lon');
-    var tzEl=document.getElementById('v_tz');
-    var gEl=document.getElementById('v_gender');
-    
-    console.log('Field elements:', {yEl,mEl,dEl,hEl,minEl,latEl,lonEl,tzEl,gEl});
-    
-    var y=parseInt(yEl&&yEl.value?yEl.value:'',10);
-    var m=parseInt(mEl&&mEl.value?mEl.value:'',10);
-    var d=parseInt(dEl&&dEl.value?dEl.value:'',10);
-    var hr=parseInt(hEl&&hEl.value?hEl.value:'',10);
-    var min=parseInt(minEl&&minEl.value?minEl.value:'',10);
-    var lat=parseFloat(latEl&&latEl.value?latEl.value:'');
-    var lon=parseFloat(lonEl&&lonEl.value?lonEl.value:'');
-    var tz=parseFloat(tzEl&&tzEl.value?tzEl.value:'');
-    var gender=gEl&&gEl.value?gEl.value:'M';
-    
-    console.log('Parsed values:', {y,m,d,hr,min,lat,lon,tz,gender});
-
-    if(!Number.isFinite(y)||!Number.isFinite(m)||!Number.isFinite(d)){ 
-      alert('생년월일을 확인해 주세요. (입력값: '+(yEl&&yEl.value)+'-'+(mEl&&mEl.value)+'-'+(dEl&&dEl.value)+')'); 
-      return; 
-    }
-    if(!Number.isFinite(hr))hr=12;
-    if(!Number.isFinite(min))min=0;
-    if(!Number.isFinite(lat)||!Number.isFinite(lon)){ 
-      console.error('Invalid coordinates:', {lat, lon, latVal: latEl&&latEl.value, lonVal: lonEl&&lonEl.value});
-      alert('위도/경도를 확인해 주세요. 장소를 선택하거나 위도/경도를 입력해 주세요.\n\n현재 값 - 위도:'+(latEl&&latEl.value)+', 경도:'+(lonEl&&lonEl.value)); 
-      return; 
-    }
-    if(!Number.isFinite(tz))tz=9;
-
-    console.log('Creating profile and calling doCalculateFromProfile');
-    var profile={
-      id:'vedic_manual',
-      name:'(직접 입력)',
-      gender:gender,
-      birth:{ year:y,month:m,day:d,hour:hr,minute:min },
-      location:{ lat:lat, lng:lon, tzOffset:tz, baseTzOffset:tz, label:'(직접 입력)', tz:'' }
-    };
-    doCalculateFromProfile(profile);
+    doCalculateFromProfile(result.profile);
   }catch(e){
     console.error('runVedicFromInput error:',e);
-    alert('입력값 처리 중 오류가 발생했습니다.\n\n오류: '+(e&&e.message?e.message:'Unknown')+'\n\n스택: '+(e&&e.stack?e.stack:''));
+    vedicShowInputError('입력값 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
   }
 }
 
@@ -4220,9 +4261,45 @@ function renderResult(){
       return PKR[p]+' '+h+'H→'+targets;
     })
     .join(' · ');
+  const ascLord=rasi.houses[0].lord;
+  const ascLordHouse=planetHouse(rasi,ascLord);
+  const sunPos=rasi.planets.Sun||{};
+  const moonPos=rasi.planets.Moon||{};
+  const sunSignKr=SIGNKR[sunPos.sign]||sunPos.signName||'-';
+  const moonSignKr=SIGNKR[moonPos.sign]||moonPos.signName||'-';
+  const dashaMonthsLeft=Math.max(0,Math.ceil((maha.end-now)/(1000*60*60*24*30.4375)));
+  const masterReadingHtml=`
+  <div class="reveal reveal-delay-2" style="margin:14px 0 16px">
+    <div class="section-head section-head-kr" style="margin-bottom:10px">🔱 명반의 첫 계시</div>
+    <div class="sage-text" style="margin-bottom:12px">
+      이 명반은 <span class="keyword">${rasi.ascSignKr} 라그나</span>의 몸과 길, <span class="keyword">${moonSignKr} 달</span>의 마음, <span class="keyword">${sunSignKr} 태양</span>의 의지를 함께 보아야 정확히 열립니다. 지금은 <span class="keyword">${PKR[maha.p]} 대운</span> 위에 <span class="keyword">${PKR[anta.p]} 세운</span>이 얹혀 삶의 다음 선택을 비추고 있습니다.
+    </div>
+    <div class="summary-grid">
+      <div class="sum-card" style="border-color:rgba(212,175,55,0.24)">
+        <div class="sum-card-label">몸의 문</div>
+        <div class="sum-card-val" style="color:var(--gold)">${rasi.ascSignKr} 라그나</div>
+        <div class="sum-card-sub">지배성 ${PKR[ascLord]}이 ${ascLordHouse}바바에서 삶의 방향을 엽니다.</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(6,182,212,0.24)">
+        <div class="sum-card-label">마음의 별</div>
+        <div class="sum-card-val" style="color:var(--cyan)">${nkData.sym} ${nak.name}</div>
+        <div class="sum-card-sub">${nak.pada}파다 · ${PKR[nak.lord]}의 리듬으로 감정과 습관이 움직입니다.</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(245,158,11,0.25)">
+        <div class="sum-card-label">의지의 불꽃</div>
+        <div class="sum-card-val" style="color:#F59E0B">${sunSignKr} 태양</div>
+        <div class="sum-card-sub">사회적 자아와 선택의 중심축을 밝힙니다.</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(167,139,250,0.26)">
+        <div class="sum-card-label">시간의 강</div>
+        <div class="sum-card-val" style="color:var(--purple2)">${PKR[maha.p]} → ${PKR[anta.p]}</div>
+        <div class="sum-card-sub">대운 종료까지 약 ${dashaMonthsLeft}개월, 세운은 ${fmtDate(anta.end)}까지 이어집니다.</div>
+      </div>
+    </div>
+  </div>`;
   const vedicCanonicalCardsHtml=`
   <div class="reveal reveal-delay-2" style="margin:12px 0 16px">
-    <div class="section-head section-head-kr" style="margin-bottom:10px">🪷 기본 운세 확장 카테고리</div>
+    <div class="section-head section-head-kr" style="margin-bottom:10px">🪷 베다 차트 핵심 요약</div>
     <div class="summary-grid">
       <div class="sum-card" style="border-color:rgba(212,175,55,0.2)">
         <div class="sum-card-label">성향 코어</div>
@@ -4275,6 +4352,31 @@ function renderResult(){
     </div>
   </div>`;
 
+  // ── 무료 출생 차트 ───────────────────────────────────
+  const southHTML=renderSouthChart(rasi);
+  const northHTML=renderNorthChart(rasi);
+  const tabChart=`
+  <div class="reveal reveal-delay-1" style="margin:14px 0 16px">
+    <div class="section-head section-head-kr" style="margin-bottom:10px">🧭 무료 베다 출생 차트</div>
+    <div style="display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px">
+      <button class="chart-toggle-btn active" id="btn-south" onclick="toggleChart('south')" style="flex:1;padding:8px;font-size:12px;color:var(--text2);background:rgba(139,92,246,0.2);border:none;cursor:pointer">남인도식 □</button>
+      <button class="chart-toggle-btn" id="btn-north" onclick="toggleChart('north')" style="flex:1;padding:8px;font-size:12px;color:var(--text2);background:transparent;border:none;cursor:pointer">북인도식 ◇</button>
+    </div>
+    <div id="chart-south">${southHTML}</div>
+    <div id="chart-north" style="display:none">${northHTML}</div>
+    <div style="text-align:center;font-family:var(--font-display);font-size:10px;color:var(--gold);letter-spacing:0.12em;padding:8px 0;border-top:1px solid var(--bordergold);border-bottom:1px solid var(--bordergold);margin:10px 0">
+      ↑ Lagna · ${rasi.ascSignKr} ${(nd(rasi.asc)%30).toFixed(2)}°
+    </div>
+    ${renderBhavaGlossary()}
+  </div>
+  <div class="reveal reveal-delay-2">
+    <div class="section-head" style="margin-bottom:10px">✨ 행성 위치 · Sidereal Lahiri</div>
+    <svg class="constellation-path" viewBox="0 0 360 64" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M12,44 C42,18 74,20 102,40 S166,58 194,34 S256,8 292,28 S332,56 350,24"/>
+    </svg>
+    ${renderPlanetGrid(rasi)}
+  </div>`;
+
   // ── 탭 1: 종합 (Overview) ─────────────────────────────
   const tabOverview=`
   <div class="reveal">
@@ -4303,6 +4405,10 @@ function renderResult(){
       <div class="sum-card-sub">${fmtDate(anta.end)}까지</div>
     </div>
   </div>
+
+  ${tabChart}
+
+  ${masterReadingHtml}
 
   ${vedicCanonicalCardsHtml}
 
@@ -4337,31 +4443,6 @@ function renderResult(){
         <div class="body-text">실행 루틴: <span class="keyword">${vedicRoutineText}</span></div>
       </div>
     </div>
-  </div>`;
-
-  // ── 탭 2: 출생 차트 ───────────────────────────────────
-  const southHTML=renderSouthChart(rasi);
-  const northHTML=renderNorthChart(rasi);
-  const tabChart=`
-  <div class="reveal">
-    <div style="display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px">
-      <button class="chart-toggle-btn active" id="btn-south" onclick="toggleChart('south')" style="flex:1;padding:8px;font-size:12px;color:var(--text2);background:rgba(139,92,246,0.2);border:none;cursor:pointer">남인도식 □</button>
-      <button class="chart-toggle-btn" id="btn-north" onclick="toggleChart('north')" style="flex:1;padding:8px;font-size:12px;color:var(--text2);background:transparent;border:none;cursor:pointer">북인도식 ◇</button>
-    </div>
-    <div id="chart-south">${southHTML}</div>
-    <div id="chart-north" style="display:none">${northHTML}</div>
-    <div style="text-align:center;font-family:var(--font-display);font-size:10px;color:var(--gold);letter-spacing:0.12em;padding:8px 0;border-top:1px solid var(--bordergold);border-bottom:1px solid var(--bordergold);margin:10px 0">
-      ↑ Lagna · ${rasi.ascSignKr} ${(nd(rasi.asc)%30).toFixed(2)}°
-    </div>
-    ${renderBhavaGlossary()}
-  </div>
-  <div class="reveal reveal-delay-1">
-    <div class="section-head" style="margin-bottom:10px">✨ 행성 위치 · Sidereal Lahiri</div>
-    <svg class="constellation-path" viewBox="0 0 360 64" preserveAspectRatio="none" aria-hidden="true">
-      <path d="M12,44 C42,18 74,20 102,40 S166,58 194,34 S256,8 292,28 S332,56 350,24"/>
-    </svg>
-    ${renderPlanetGrid(rasi)}
-  </div>
   </div>`;
 
   // ── 탭 3: 다샤 타임라인 ───────────────────────────────
@@ -4427,7 +4508,7 @@ function renderResult(){
   const tabData=`
   <div class="reveal">
     <div class="sage-text" style="margin-bottom:12px">
-      현재 계산된 라시·낙샤트라·그라하·바바·다샤·D9/D10 데이터를 한 번에 확인할 수 있습니다.
+      메인 차트와 연결되는 12바바, 다샤 흐름, D9/D10 보조 차트를 한곳에서 확인합니다.
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
       <span class="tag tag-gold">라그나: ${rasi.ascSignKr}</span>
@@ -4526,7 +4607,7 @@ function renderResult(){
   const tabMoneyWork=renderWealth(report.wealth, insights)+renderCareer(report.career, insights);
   const tabDashaFocus=tabDasha+renderVimshottari(chart, insights)+tabAntar;
   const tabEnergy=renderChakra(report.chakra, insights)+renderRemedies(report.remedies, chart, insights);
-  const tabDeep=tabChart+tabData;
+  const tabDeep=tabData;
 
   // ── 최종 결과 페이지 HTML ─────────────────────────────
   document.getElementById('result-content').innerHTML=decorateBhavaTerms(`
@@ -5395,11 +5476,11 @@ async function doCompatCalc(){
       if(vh){
         vh.innerHTML='';
         if(typeof window.cdEnsureCompatLlmReady!=='function'){
-          vh.innerHTML='<div style="color:#fda4af;font-size:13px;padding:8px 0;">AI 프롬프트 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</div>';
+          vh.innerHTML='<div style="color:#fda4af;font-size:13px;padding:8px 0;">AI 상담 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</div>';
         } else {
           window.cdEnsureCompatLlmReady(function(){
             if(!window.CompatLlm||typeof window.CompatLlm.mountVedicFromPayload!=='function'){
-              vh.innerHTML='<div style="color:#fda4af;font-size:13px;padding:8px 0;">AI 프롬프트 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</div>';
+              vh.innerHTML='<div style="color:#fda4af;font-size:13px;padding:8px 0;">AI 상담 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</div>';
               return;
             }
             var moon1=G.chart&&G.chart.rasi&&G.chart.rasi.planets&&G.chart.rasi.planets.Moon;

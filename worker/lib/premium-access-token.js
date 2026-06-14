@@ -89,6 +89,10 @@ export async function createPremiumAccessToken(env, payload = {}) {
   const featureKey = String(payload?.featureKey || "").trim();
   const reason = String(payload?.reason || "").trim();
   const transactionId = String(payload?.transactionId || "").trim();
+  const reportId = String(payload?.reportId || "").trim();
+  const sessionId = String(payload?.sessionId || payload?.reportSessionId || "").trim();
+  const requestId = String(payload?.requestId || "").trim();
+  const purchaseId = String(payload?.purchaseId || "").trim();
   const chargedCoins = Number(payload?.chargedCoins || 0);
 
   return signJwt(
@@ -100,6 +104,11 @@ export async function createPremiumAccessToken(env, payload = {}) {
       featureKey,
       reason,
       transactionId,
+      reportId,
+      sessionId,
+      reportSessionId: sessionId,
+      requestId,
+      purchaseId,
       chargedCoins: Number.isFinite(chargedCoins) ? chargedCoins : 0,
       freeBySubscription: payload?.freeBySubscription === true,
     },

@@ -135,7 +135,7 @@ const ZIWEI_COUNSELING_TRACKS = [
     key: "turning",
     title: "운명의 전환점",
     sectionId: "master" as ZiweiSectionId,
-    note: "대운과 사화가 크게 바뀌는 시기, 인생의 갈림길과 조심해야 할 문턱을 정리합니다.",
+    note: "대한과 사화가 크게 바뀌는 시기, 인생의 갈림길과 조심해야 할 문턱을 정리합니다.",
   },
   {
     key: "strategy",
@@ -154,20 +154,20 @@ const ZIWEI_STRENGTH_COPY: Record<string, string> = {
 };
 
 const TRACK_ICON_MAP: Partial<Record<ZiweiSectionId, string>> = {
-  overview: "🌌",
-  ming: "👤",
-  siblings: "🤝",
-  spouse: "💞",
-  children: "🌱",
-  wealth: "💰",
-  health: "🫀",
-  travel: "🧭",
-  friends: "🫱🏻‍🫲🏻",
-  career: "🏛️",
-  property: "🏡",
-  fortune: "✨",
-  parents: "🕊️",
-  master: "🪐",
+  overview: "總",
+  ming: "命",
+  siblings: "兄",
+  spouse: "夫",
+  children: "子",
+  wealth: "財",
+  health: "疾",
+  travel: "遷",
+  friends: "僕",
+  career: "官",
+  property: "田",
+  fortune: "福",
+  parents: "父",
+  master: "限",
 };
 
 const PALACE_DEFINITION_MAP: Record<ZiweiPalaceId, { name: string; definition: string; focus: string }> = {
@@ -322,6 +322,26 @@ function buildEnergyScore(palace: ZiweiPalace): number {
   if (palace.isEmptyMainStarPalace || palace.isEmpty) score -= 8;
 
   return Math.max(0, Math.min(100, score));
+}
+
+function palaceForceLabel(score: number): string {
+  if (score >= 78) return "궁세 왕성";
+  if (score >= 62) return "궁세 안정";
+  if (score >= 46) return "궁세 조율";
+  return "보정 필요";
+}
+
+function palaceForceToneClass(score: number): string {
+  if (score >= 78) return "border border-emerald-300/35 bg-emerald-200/15 text-emerald-100";
+  if (score >= 62) return "border border-cyan-300/35 bg-cyan-200/15 text-cyan-100";
+  if (score >= 46) return "border border-amber-300/35 bg-amber-200/15 text-amber-100";
+  return "border border-rose-300/35 bg-rose-200/15 text-rose-100";
+}
+
+function palaceGapLabel(gap: number): string {
+  if (gap <= 12) return "작아 균형이 좋습니다";
+  if (gap <= 26) return "중간이라 한쪽 보정이 필요합니다";
+  return "커서 약한 축의 보강이 우선입니다";
 }
 
 function pickKeywords(palace: ZiweiPalace): string[] {
@@ -495,7 +515,7 @@ export default function AdvancedZiweiSectionV2({
     birthYear: "",
     birthMonth: "1",
     birthDay: "1",
-    birthHour: "12",
+    birthHour: "",
     birthMinute: "0",
     unknownHour: false,
     gender: "F",
@@ -646,12 +666,12 @@ export default function AdvancedZiweiSectionV2({
       .join(" · ");
 
     return [
-      `가장 강하게 살아 있는 영역은 ${strongest.palace.name}이며, 현재 에너지 ${strongest.energy}/100으로 상승 동력이 분명합니다.`,
+      `가장 선명하게 열린 궁위는 ${strongest.palace.name}입니다. ${palaceForceLabel(strongest.energy)}로 읽히며, 주성·보조성 배열이 상승 동력을 만듭니다.`,
       `관리 우선순위는 ${weakest.palace.name}입니다. 이 궁은 약점이 아니라 생활 설계를 바꾸면 크게 회복되는 핵심 포인트입니다.`,
       `지금 명반에서 반복되는 패턴 키워드는 ${repeatedKeywords || "관계·일·회복"} 흐름으로 읽힙니다.`,
-      `성공의 문은 강한 궁의 추진력을 약한 궁의 루틴 보정과 연결할 때 가장 안정적으로 열립니다.`,
+      `성공의 문은 왕성한 궁의 추진력을 조율이 필요한 궁의 대궁·삼방사정 보정과 연결할 때 안정적으로 열립니다.`,
       `관계에서는 감정의 강도보다 경계와 역할을 먼저 합의할수록 운의 소모를 줄일 수 있습니다.`,
-      `지금 가장 먼저 정리할 항목은 약한 궁 1순위에 14일 실천 루틴을 고정하는 일입니다.`,
+      `지금 가장 먼저 정리할 항목은 관리 궁 1순위의 사화·대궁 신호를 현실 규칙 하나로 고정하는 일입니다.`,
     ];
   }, [palaceCounseling, strongTop3, weakTop3]);
 
@@ -676,7 +696,7 @@ export default function AdvancedZiweiSectionV2({
         return {
           ...pair,
           state,
-          summary: `${pair.lens}. 현재는 ${state} 흐름이며, 에너지 격차는 ${gap}점입니다. 격차가 클수록 약한 축에 루틴 보정이 필요합니다.`,
+          summary: `${pair.lens}. 현재는 ${state} 흐름이며, 두 궁의 궁세 차이는 ${palaceGapLabel(gap)}. 차이가 클수록 약한 축에 생활 보정이 필요합니다.`,
         };
       })
       .filter(Boolean) as Array<{ title: string; lens: string; state: string; summary: string }>;
@@ -714,11 +734,11 @@ export default function AdvancedZiweiSectionV2({
   const practicalAdvices = useMemo(() => {
     if (!strongTop3.length || !weakTop3.length) return [] as string[];
     return [
-      `강한 궁 ${strongTop3[0].palace.name}의 추진력을 약한 궁 ${weakTop3[0].palace.name} 루틴 보정에 연결하세요. 한쪽만 밀면 피로가 누적됩니다.`,
-      `주간 계획은 관계·일·회복 3칸으로 나눠 작성하고, 약한 궁 관련 일정은 오전 고정 슬롯으로 배치하세요.`,
+      `왕성한 궁 ${strongTop3[0].palace.name}의 추진력을 관리 궁 ${weakTop3[0].palace.name}의 대궁·삼방사정 보정에 연결하세요. 한쪽만 밀면 피로가 누적됩니다.`,
+      `주간 계획은 관계·일·회복 3칸으로 나누고, 관리 궁 관련 일정은 흔들리지 않는 고정 시간에 배치하세요.`,
       `중요 결정은 감정이 올라온 당일 확정하지 말고 24시간 숙성 후 체크리스트로 검토하세요.`,
       `관계 갈등은 성격 평가 대신 역할·기대·기한의 문장으로 바꾸면 운의 소모를 크게 줄일 수 있습니다.`,
-      `성공 신호가 올라올수록 쉬는 방식(수면·산책·디지털 오프)을 먼저 고정하면 장기 운의 탄성이 살아납니다.`,
+      `성공 신호가 올라올수록 쉬는 방식을 먼저 고정하면 대한의 큰 흐름을 오래 견디는 힘이 살아납니다.`,
     ];
   }, [strongTop3, weakTop3]);
 
@@ -768,6 +788,11 @@ export default function AdvancedZiweiSectionV2({
 
   const handleCompute = useCallback(() => {
     void enterImmersiveMode();
+
+    if (!form.unknownHour && String(form.birthHour).trim() === "") {
+      alert("정확한 출생 시를 선택하거나, 출생시간 미상을 체크해 정오 기준 참고 명반으로 진행해 주세요.");
+      return;
+    }
 
     const normalized = normalizeZiweiInput({
       name: form.name,
@@ -901,18 +926,20 @@ export default function AdvancedZiweiSectionV2({
       if (rawProfile) {
         const payload = JSON.parse(rawProfile);
         if (payload?.birth?.year) {
+          const profileHour = Number(payload.birth.hour);
+          const hasProfileHour = Number.isFinite(profileHour) && profileHour >= 0 && profileHour <= 23;
           setForm((prev) => ({
             ...prev,
             name: payload.name || "",
             birthYear: String(payload.birth.year),
             birthMonth: String(payload.birth.month ?? 1),
             birthDay: String(payload.birth.day ?? 1),
-            birthHour: String(payload.birth.hour ?? 12),
+            birthHour: hasProfileHour ? String(profileHour) : "",
             birthMinute: String(payload.birth.minute ?? 0),
-            unknownHour: false,
+            unknownHour: !hasProfileHour,
             gender: (payload.gender === "M" ? "M" : "F") as ZiweiGender,
           }));
-          autoComputeRef.current = true;
+          autoComputeRef.current = hasProfileHour;
         }
       }
     } catch {
@@ -939,9 +966,9 @@ export default function AdvancedZiweiSectionV2({
         <GalaxyBackdrop />
         <div className="relative z-10">
           <p className="text-[11px] font-semibold tracking-[0.32em] text-cyan-100/80">ZIWEI PREMIUM COUNSELING</p>
-          <h3 className="mt-3 text-2xl font-black leading-tight text-white md:text-3xl">심화 자미두수 프리미엄 상담</h3>
+          <h3 className="mt-3 text-2xl font-black leading-tight text-white md:text-3xl">심화 자미두수 12궁 상담</h3>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-200/90">
-            기본 명반 보기와 별개로, 주성·사화·삼방사정·대운을 한 판단으로 묶어 관계와 돈과 일의 실제 선택 흐름까지 읽습니다.
+            기본 명반 보기와 별개로, 주성·사화·삼방사정·대한을 한 판단으로 묶어 관계와 돈과 일의 실제 선택 흐름까지 읽습니다.
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <button
@@ -952,7 +979,7 @@ export default function AdvancedZiweiSectionV2({
               disabled={generationLoading}
               className="rounded-2xl bg-gradient-to-r from-cyan-200 via-sky-300 to-amber-200 px-4 py-4 text-sm font-black text-slate-950"
             >
-              운명의 문 열기
+              심화 명반 열기
             </button>
             <button
               onClick={() => {
@@ -979,7 +1006,7 @@ export default function AdvancedZiweiSectionV2({
                 <p className="text-[11px] font-semibold tracking-[0.3em] text-cyan-100/80">ZIWEI PREMIUM INPUT</p>
                 <h1 className="mt-3 text-3xl font-black text-white md:text-4xl">심화 자미두수 상담 명반을 준비합니다</h1>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-200/85">
-                  기본 무료 자미두수는 12궁 명반 확인용입니다. 이 화면은 같은 명반을 사화·삼방사정·대운·실행 조언까지 확장해 읽는 심화 상담용입니다.
+                  기본 무료 자미두수는 12궁 명반 확인용입니다. 이 화면은 같은 명반을 사화·삼방사정·대한·실행 조언까지 확장해 읽는 심화 상담용입니다.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -1068,6 +1095,9 @@ export default function AdvancedZiweiSectionV2({
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
                   disabled={form.unknownHour}
                 >
+                  <option value="" disabled>
+                    출생 시 선택
+                  </option>
                   {Array.from({ length: 24 }, (_, i) => i).map((h) => (
                     <option key={h} value={h}>
                       {String(h).padStart(2, "0")}시
@@ -1114,7 +1144,7 @@ export default function AdvancedZiweiSectionV2({
                   onChange={(e) => setForm((prev) => ({ ...prev, unknownHour: e.target.checked }))}
                   className="h-4 w-4 accent-cyan-300"
                 />
-                출생시간 미상(정오 기준으로 읽기)
+                출생시간 미상(정오 기준 참고 리딩)
               </label>
               <label className="inline-flex items-center gap-2">
                 <input
@@ -1126,6 +1156,10 @@ export default function AdvancedZiweiSectionV2({
                 윤달
               </label>
             </div>
+
+            <p className="mt-3 text-xs leading-6 text-amber-100/85">
+              자미두수는 출생 시각에 따라 명궁·신궁과 일부 궁위가 달라집니다. 시각이 불확실하면 정오 기준 참고 명반으로 표시됩니다.
+            </p>
 
             <button
               type="button"
@@ -1195,7 +1229,7 @@ export default function AdvancedZiweiSectionV2({
               <p className="text-[11px] font-semibold tracking-[0.32em] text-cyan-100/80">ZIWEI PREMIUM REPORT</p>
               <h1 className="max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">{chart.user.name || "당신"}님의 심화 자미두수 상담 리포트</h1>
               <p className="max-w-3xl text-sm leading-7 text-slate-200/90 md:text-base">
-                기본 명반의 12궁 배치에 머물지 않고, 명궁에서 시작된 결이 부부궁과 관록궁, 재백궁으로 번질 때 어떤 순서로 삶을 정리해야 하는지 상담하듯 풀어드립니다.
+                명궁·신궁의 축, 주성의 묘왕평함, 사화와 삼방사정, 대한·유년의 흐름을 함께 대조해 삶의 우선순위를 상담하듯 풀어드립니다.
               </p>
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -1260,7 +1294,7 @@ export default function AdvancedZiweiSectionV2({
 
         {chart.warnings.length ? (
           <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.24em] text-amber-100/80">조용히 참고할 부분</p>
+            <p className="text-xs font-semibold tracking-[0.24em] text-amber-100/80">정밀도 참고</p>
             <div className="mt-3 space-y-2 text-sm leading-7 text-amber-50/90">
               {chart.warnings.map((warning, idx) => (
                 <p key={`${warning.code}-${idx}`}>• {warning.message}</p>
@@ -1297,11 +1331,28 @@ export default function AdvancedZiweiSectionV2({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold tracking-[0.24em] text-cyan-100/80">12궁 명반</p>
-                <h2 className="mt-2 text-lg font-black text-white">궁전의 원형 배치</h2>
+                <h2 className="mt-2 text-lg font-black text-white">궁위 배치</h2>
               </div>
               <p className="text-xs text-slate-300">선택한 궁: {sectionTitle(activeSection)}</p>
             </div>
-            <div className="relative mx-auto mt-5 aspect-square w-full max-w-[36rem] rounded-full border border-white/10 bg-black/15 p-4">
+            <div className="mt-5 grid grid-cols-2 gap-2 md:hidden">
+              {chart.palaces.map((palace) => {
+                const active = palace.id === orbitActivePalaceId;
+                const stars = palace.mainStars.slice(0, 2).map((s) => s.name).join(" · ") || "무주성궁";
+                return (
+                  <button
+                    key={`mobile-${palace.id}`}
+                    type="button"
+                    onClick={() => loadSection(palace.id)}
+                    className={`min-h-[5.25rem] rounded-2xl border px-3 py-3 text-left transition ${active ? "border-cyan-200/65 bg-cyan-200/15 text-white" : "border-white/10 bg-black/30 text-slate-200"}`}
+                  >
+                    <p className="text-xs font-semibold">{palace.name} · {palace.earthlyBranch}</p>
+                    <p className="mt-1 text-[11px] leading-5 text-slate-300">{stars}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="relative mx-auto mt-5 hidden aspect-square w-full max-w-[36rem] rounded-full border border-white/10 bg-black/15 p-4 md:block">
               <div className="absolute inset-[16%] rounded-full border border-cyan-100/15 bg-[radial-gradient(circle,rgba(56,189,248,0.10),rgba(4,8,18,0.0)_72%)]" />
               <div className="absolute inset-[31%] rounded-full border border-white/10 bg-white/6" />
               {chart.palaces.map((palace, index) => {
@@ -1315,7 +1366,7 @@ export default function AdvancedZiweiSectionV2({
                     key={palace.id}
                     type="button"
                     onClick={() => loadSection(palace.id)}
-                    className={`absolute z-10 w-[7.4rem] -translate-x-1/2 -translate-y-1/2 rounded-2xl border px-3 py-2 text-left shadow-[0_0_24px_rgba(255,255,255,0.05)] transition ${active ? "border-cyan-200/65 bg-cyan-200/15 text-white" : "border-white/10 bg-black/30 text-slate-200 hover:border-cyan-100/30 hover:bg-black/45"}`}
+                    className={`absolute z-10 w-[6.4rem] -translate-x-1/2 -translate-y-1/2 rounded-2xl border px-3 py-2 text-left shadow-[0_0_24px_rgba(255,255,255,0.05)] transition lg:w-[7.4rem] ${active ? "border-cyan-200/65 bg-cyan-200/15 text-white" : "border-white/10 bg-black/30 text-slate-200 hover:border-cyan-100/30 hover:bg-black/45"}`}
                     style={{ left, top }}
                   >
                     <p className="text-[11px] font-semibold">{palace.name}</p>
@@ -1324,9 +1375,9 @@ export default function AdvancedZiweiSectionV2({
                 );
               })}
               <div className="absolute inset-1/2 z-20 flex w-28 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/10 px-4 py-3 text-center text-[11px] font-semibold text-amber-50 shadow-[0_0_32px_rgba(251,191,36,0.18)]">
-                은하 중심의
+                명반 중심의
                 <br />
-                상담 축
+                판독 축
               </div>
             </div>
           </StagePanel>
@@ -1367,7 +1418,7 @@ export default function AdvancedZiweiSectionV2({
                     </div>
                   </div>
                   <div>
-                    <p className="text-[11px] font-semibold tracking-[0.28em] text-amber-100/80">{activePalace.name} 별자리 판독</p>
+                    <p className="text-[11px] font-semibold tracking-[0.28em] text-amber-100/80">{activePalace.name} 성요 판독</p>
                     <h3 className="mt-2 text-xl font-black text-white">
                       {activePalace.id === "ming"
                         ? "성향, 자기방어, 선택 습관을 먼저 읽습니다"
@@ -1383,7 +1434,7 @@ export default function AdvancedZiweiSectionV2({
                           : `${activePalace.name}은 ${PALACE_DEFINITION_MAP[activePalace.id].definition}입니다.`}
                     </p>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {["원국", "주성", "보조성", "살성", "사화", "대궁", "삼방사정", "차성", "대운", "유년", "실전 처방"].map((scope) => (
+                      {["원국", "주성", "보조성", "살성", "사화", "대궁", "삼방사정", "차성", "대한", "유년", "실전 처방"].map((scope) => (
                         <span key={`scope-${activePalace.id}-${scope}`} className="rounded-full border border-white/12 bg-white/8 px-3 py-1 text-[11px] font-semibold text-slate-100">
                           {scope}
                         </span>
@@ -1467,7 +1518,7 @@ export default function AdvancedZiweiSectionV2({
                   <th className="px-3 py-3 font-semibold">정의</th>
                   <th className="px-3 py-3 font-semibold">주성</th>
                   <th className="px-3 py-3 font-semibold">보조성</th>
-                  <th className="px-3 py-3 font-semibold">에너지</th>
+                  <th className="px-3 py-3 font-semibold">궁세</th>
                 </tr>
               </thead>
               <tbody>
@@ -1478,8 +1529,8 @@ export default function AdvancedZiweiSectionV2({
                     <td className="px-3 py-3">{item.palace.mainStars.map((s) => s.name).join(" · ") || "무주성궁"}</td>
                     <td className="px-3 py-3">{item.palace.auxiliaryStars.map((s) => s.name).slice(0, 3).join(" · ") || "-"}</td>
                     <td className="px-3 py-3">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${item.energy >= 70 ? "border border-emerald-300/35 bg-emerald-200/15 text-emerald-100" : item.energy <= 45 ? "border border-rose-300/35 bg-rose-200/15 text-rose-100" : "border border-cyan-300/35 bg-cyan-200/15 text-cyan-100"}`}>
-                        {item.energy}/100
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${palaceForceToneClass(item.energy)}`}>
+                        {palaceForceLabel(item.energy)}
                       </span>
                     </td>
                   </tr>
@@ -1506,7 +1557,7 @@ export default function AdvancedZiweiSectionV2({
             <div className="mt-4 space-y-3">
               {strongTop3.map((item, index) => (
                 <div key={`strong-${item.palace.id}`} className="rounded-2xl border border-emerald-300/25 bg-emerald-200/10 p-4">
-                  <p className="text-sm font-black text-emerald-50">#{index + 1} {item.palace.name} · {item.energy}/100</p>
+                  <p className="text-sm font-black text-emerald-50">#{index + 1} {item.palace.name} · {palaceForceLabel(item.energy)}</p>
                   <p className="mt-2 text-xs leading-6 text-emerald-100/90">핵심 키워드: {item.keywords.join(" · ") || "흐름 정렬"}</p>
                   <p className="mt-2 text-sm leading-7 text-slate-100/95">{item.strengths}</p>
                 </div>
@@ -1519,7 +1570,7 @@ export default function AdvancedZiweiSectionV2({
             <div className="mt-4 space-y-3">
               {weakTop3.map((item, index) => (
                 <div key={`weak-${item.palace.id}`} className="rounded-2xl border border-rose-300/25 bg-rose-200/10 p-4">
-                  <p className="text-sm font-black text-rose-50">#{index + 1} {item.palace.name} · {item.energy}/100</p>
+                  <p className="text-sm font-black text-rose-50">#{index + 1} {item.palace.name} · {palaceForceLabel(item.energy)}</p>
                   <p className="mt-2 text-xs leading-6 text-rose-100/90">핵심 키워드: {item.keywords.join(" · ") || "리듬 보정"}</p>
                   <p className="mt-2 text-sm leading-7 text-slate-100/95">{item.cautions}</p>
                 </div>
@@ -1535,7 +1586,7 @@ export default function AdvancedZiweiSectionV2({
               <article key={`detail-${item.palace.id}`} className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a1427]/90 via-[#0b1224]/85 to-[#130b25]/88 p-4 shadow-[0_14px_40px_rgba(5,10,30,0.35)]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-lg font-black text-white">{item.palace.name}</h3>
-                  <span className="rounded-full border border-cyan-300/30 bg-cyan-200/10 px-3 py-1 text-xs font-semibold text-cyan-100">에너지 {item.energy}/100</span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${palaceForceToneClass(item.energy)}`}>{palaceForceLabel(item.energy)}</span>
                 </div>
                 <p className="mt-2 text-xs leading-6 text-slate-300">정의: {item.definition}</p>
                 <p className="mt-1 text-xs leading-6 text-slate-300">주성: {item.palace.mainStars.map((s) => `${s.name}${s.strengthSymbol || ""}`).join(" · ") || "무주성궁"}</p>

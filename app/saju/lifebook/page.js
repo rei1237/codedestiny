@@ -12,28 +12,28 @@ const SERVICE_KEY = "saju-lifebook";
 const FEATURE_KEY = "saju_life_book_pdf";
 
 const STEP_LABELS = [
-  "프로필 정보를 확인하는 중입니다",
-  "사주 원국을 정리하는 중입니다",
-  "팔자 8글자의 흐름을 해석하는 중입니다",
-  "대운과 세운의 큰 흐름을 반영하는 중입니다",
-  "재물·직업·관계의 구조를 정리하는 중입니다",
-  "용신과 인생 전략을 구성하는 중입니다",
-  "완료",
+  "프로필과 결제 권한을 확인하는 중입니다",
+  "사주 원국의 네 기둥을 정리하는 중입니다",
+  "일간·월지·오행의 균형을 해석하는 중입니다",
+  "대운과 세운의 전환 흐름을 반영하는 중입니다",
+  "재물·직업·관계의 반복 구조를 정리하는 중입니다",
+  "용신과 최종 선택 기준을 구성하는 중입니다",
+  "PDF 원고 구성이 완료되었습니다",
 ];
 
 const CHAPTER_ROADMAP = [
-  "I. 사주 원국 완전 해설",
-  "II. 나의 설계도",
-  "III. 숨겨진 무기",
-  "IV. 대운 정밀 분석",
-  "V. 격국과 사회적 소명",
-  "VI. 관계의 전략",
-  "VII. 연애·결혼 완전 분석",
-  "VIII. 재물·직업 완전 분석",
-  "IX. 건강·심신 리듬",
-  "X. 신살·십이운성·퀀텀 포인트",
-  "XI. 위기와 반전 시나리오",
-  "XII. 나의 길",
+  "I. 프롤로그",
+  "II. 원국 해석",
+  "III. 일간과 월지",
+  "IV. 오행 균형",
+  "V. 십성 구조",
+  "VI. 용신·희신·기신",
+  "VII. 격국과 삶의 큰 틀",
+  "VIII. 연애와 관계",
+  "IX. 직업과 재물",
+  "X. 건강과 생활 리듬",
+  "XI. 대운 분석",
+  "XII. 선택 연도와 가까운 미래",
   "XIII. 마스터플랜",
 ];
 
@@ -43,6 +43,10 @@ function nowDate() {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+function defaultTargetYear() {
+  return String(new Date().getFullYear());
 }
 
 function parseBirthDate(dateText) {
@@ -86,6 +90,89 @@ function getLifeBookDownloadTargets(data) {
   };
 }
 
+function normalizeLifeBookResultPayload(payload) {
+  if (!payload || typeof payload !== "object") return {};
+  const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
+  const nested = data?.result && typeof data.result === "object" ? data.result : null;
+  if (!nested) return data;
+  return {
+    ...data,
+    ...nested,
+    status: nested.status || data.status,
+    progress: nested.progress || data.progress,
+    pdfReady: nested.pdfReady || data.pdfReady,
+    chapters: Array.isArray(nested.chapters) ? nested.chapters : data.chapters,
+  };
+}
+
+function getLifeBookSessionId(data, fallback = "") {
+  return String(
+    data?.sessionId
+    || data?.reportSessionId
+    || data?.pdfReady?.sessionId
+    || data?.pdfReady?.reportSessionId
+    || fallback
+    || "",
+  ).trim();
+}
+
+function isLifeBookRunningPayload(responseStatus, payload) {
+  const data = normalizeLifeBookResultPayload(payload);
+  const status = String(data?.status || payload?.status || "").toLowerCase();
+  return responseStatus === 202 || ["running", "queued", "processing", "generating", "pending"].includes(status);
+}
+
+function isLifeBookDonePayload(data) {
+  const normalized = normalizeLifeBookResultPayload(data);
+  const status = String(normalized?.status || "").toLowerCase();
+  const chapters = Array.isArray(normalized?.chapters) ? normalized.chapters : [];
+  const targets = getLifeBookDownloadTargets(normalized);
+  return status === "done"
+    || status === "completed"
+    || (chapters.length >= 13 && Boolean(targets.pdfUrl || targets.htmlUrl || targets.html));
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForLifeBookCompletion({ sessionId, headers, onProgressStep }) {
+  const safeSessionId = String(sessionId || "").trim();
+  if (!safeSessionId) throw new Error("인생의 책 생성 세션을 찾지 못했습니다.");
+
+  for (let attempt = 0; attempt < 420; attempt += 1) {
+    const response = await fetch(`/api/premium/saju-lifebook/status?sessionId=${encodeURIComponent(safeSessionId)}`, {
+      method: "GET",
+      headers,
+      credentials: "include",
+      cache: "no-store",
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload?.ok === false) {
+      if (attempt < 3) {
+        await wait(1200);
+        continue;
+      }
+      throw new Error(mapApiError(response.status, payload));
+    }
+
+    const data = normalizeLifeBookResultPayload(payload);
+    const status = String(data?.status || "").toLowerCase();
+    const currentChapter = Number(data?.progress?.currentChapterNo || data?.currentChapterNo || 0);
+    if (Number.isFinite(currentChapter) && currentChapter > 0 && typeof onProgressStep === "function") {
+      onProgressStep(Math.min(STEP_LABELS.length - 2, Math.max(1, Math.floor((currentChapter / 13) * (STEP_LABELS.length - 2)))));
+    }
+    if (status === "failed" || status === "error") {
+      throw new Error(String(data?.message || data?.error?.message || "인생의 책 생성에 실패했습니다."));
+    }
+    if (isLifeBookDonePayload(data)) return data;
+
+    await wait(3000);
+  }
+
+  throw new Error("인생의 책 생성이 예상보다 오래 걸리고 있습니다. 잠시 후 다시 확인해 주세요.");
+}
+
 function makeRequestId(prefix = "lifebook") {
   return `${prefix}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 9)}`;
 }
@@ -94,6 +181,9 @@ function mapApiError(status, payload) {
   const code = String(payload?.code || payload?.error?.code || "").toUpperCase();
   const message = String(payload?.message || payload?.error?.message || "").trim();
 
+  if (code === "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING") {
+    return "결제는 확인되었지만 생성 권한 연결이 완료되지 않았습니다. 결제 내역을 확인한 뒤 다시 시도해 주세요.";
+  }
   if (status === 401 || code === "UNAUTHORIZED") {
     return "로그인 후 인생의 책 PDF를 생성할 수 있습니다.";
   }
@@ -283,10 +373,11 @@ export default function SajuLifebookPage() {
     gender: "female",
     calendarType: "solar",
     birthDate: nowDate(),
-    birthTimeKnown: true,
+    birthTimeKnown: false,
     hour: "12",
     minute: "00",
     birthplace: "서울",
+    targetYear: defaultTargetYear(),
   });
 
   const [loading, setLoading] = useState(false);
@@ -297,6 +388,7 @@ export default function SajuLifebookPage() {
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [showDetail, setShowDetail] = useState(false);
   const [enginePreview, setEnginePreview] = useState(null);
+  const [lastRequestContext, setLastRequestContext] = useState(null);
   const timerRef = useRef(null);
   const submitLockRef = useRef(false);
 
@@ -304,6 +396,11 @@ export default function SajuLifebookPage() {
   const currentChapter = chapters[selectedChapter] || null;
   const categories = Array.isArray(currentChapter?.categories) ? currentChapter.categories : [];
   const currentCategory = categories[selectedCategory] || null;
+  const totalCategoryCount = chapters.reduce((sum, chapter) => sum + (Array.isArray(chapter?.categories) ? chapter.categories.length : 0), 0);
+  const currentCategoryText = String(currentCategory?.finalText || currentCategory?.localSummary || "");
+  const currentCategoryEvidence = Array.isArray(currentCategory?.evidenceTags)
+    ? currentCategory.evidenceTags.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
 
   const progressPercent = useMemo(() => {
     const total = STEP_LABELS.length;
@@ -312,6 +409,17 @@ export default function SajuLifebookPage() {
   }, [stepIndex]);
   const fortuneGraphData = useMemo(() => resolveLifeFortuneGraphData(result), [result]);
   const fortuneCurrentAge = useMemo(() => getDisplayCurrentAge(result, form.birthDate), [form.birthDate, result]);
+  const downloadTargets = useMemo(() => getLifeBookDownloadTargets(result), [result]);
+  const hasPdfDownloadTarget = Boolean(downloadTargets.pdfUrl);
+  const hasHtmlDownloadTarget = Boolean(downloadTargets.htmlUrl || downloadTargets.html);
+  const requestContextText = useMemo(() => {
+    const context = lastRequestContext || {};
+    return [
+      context.reportId ? `reportId ${context.reportId}` : "",
+      context.sessionId ? `sessionId ${context.sessionId}` : "",
+      context.requestId ? `requestId ${context.requestId}` : "",
+    ].filter(Boolean).join(" · ");
+  }, [lastRequestContext]);
 
   const updateField = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -329,7 +437,7 @@ export default function SajuLifebookPage() {
         const max = STEP_LABELS.length - 3;
         return prev >= max ? prev : prev + 1;
       });
-    }, 900);
+    }, 2600);
   };
 
   const handleSubmit = async (event) => {
@@ -366,6 +474,11 @@ export default function SajuLifebookPage() {
       setError("태어난 시간을 정확히 입력해 주세요.");
       return;
     }
+    const targetYear = Math.trunc(Number(form.targetYear));
+    if (!Number.isFinite(targetYear) || targetYear < 1900 || targetYear > 2099) {
+      setError("기준 연도는 1900년부터 2099년 사이로 선택해 주세요.");
+      return;
+    }
 
     let localEngine = null;
     try {
@@ -376,11 +489,11 @@ export default function SajuLifebookPage() {
       setEnginePreview({
         status: "ready",
         title: "사주 원국과 대운 흐름이 인생의 책 원고에 반영됩니다.",
-        summary: String(localEngine.finalAdvancedReport?.brandPhrases?.join(" · ") || "운의 환골탈태 · 천기적 액션 처방"),
+        summary: String(localEngine.finalAdvancedReport?.brandPhrases?.join(" · ") || "원국의 균형 · 대운의 방향 · 현실 선택 기준"),
       });
     } catch (engineError) {
       console.warn("[LifeBook][QuantumMyeongriV2Failed]", engineError);
-      setError("퀀텀 명리엔진 v2 계산값을 만들지 못했습니다. 생년월일시와 양력/음력 설정을 다시 확인해 주세요.");
+      setError("정밀 사주 계산값을 만들지 못했습니다. 생년월일시와 양력/음력 설정을 다시 확인해 주세요.");
       return;
     }
 
@@ -400,6 +513,7 @@ export default function SajuLifebookPage() {
       const requestId = makeRequestId("lifebook");
       const reportId = `saju-lifebook-${Date.now().toString(36)}`;
       const reportSessionId = `life-book:${reportId}`;
+      setLastRequestContext({ reportId, sessionId: reportSessionId, requestId });
 
       const gate = await runBillingCoinGate({
         categoryKey: "premium-report",
@@ -448,6 +562,12 @@ export default function SajuLifebookPage() {
           : (gateRaw?.consume && typeof gateRaw.consume === "object")
             ? gateRaw.consume
             : null;
+      setLastRequestContext({
+        reportId: String(accessGrant?.reportId || reportId || "").trim(),
+        sessionId: String(accessGrant?.sessionId || reportSessionId || "").trim(),
+        requestId,
+        purchaseId: String(accessGrant?.purchaseId || payment?.transactionId || "").trim(),
+      });
 
       const clientEnginePayload = readClientLifeBookEnginePayload(localEngine);
       const payload = {
@@ -476,6 +596,8 @@ export default function SajuLifebookPage() {
         hour,
         minute,
         birthTimeKnown: true,
+        targetYear,
+        analysisYear: targetYear,
         birthplace: String(form.birthplace || "").trim(),
         timezone: "Asia/Seoul",
         engineData: {
@@ -506,10 +628,24 @@ export default function SajuLifebookPage() {
       if (!response.ok || !responsePayload?.ok) {
         throw new Error(mapApiError(response.status, responsePayload));
       }
-      const resultPayload = responsePayload.data || responsePayload || {};
+      let resultPayload = responsePayload.data || responsePayload || {};
+      if (isLifeBookRunningPayload(response.status, responsePayload)) {
+        const sessionForPoll = getLifeBookSessionId(resultPayload, payload.reportSessionId);
+        resultPayload = await waitForLifeBookCompletion({
+          sessionId: sessionForPoll,
+          headers,
+          onProgressStep: setStepIndex,
+        });
+      }
 
       setStepIndex(STEP_LABELS.length - 1);
       setResult(resultPayload || null);
+      setLastRequestContext((prev) => ({
+        ...(prev || {}),
+        reportId: String(resultPayload?.reportId || resultPayload?.pdfReady?.reportId || prev?.reportId || reportId || "").trim(),
+        sessionId: String(resultPayload?.sessionId || resultPayload?.reportSessionId || resultPayload?.pdfReady?.sessionId || prev?.sessionId || reportSessionId || "").trim(),
+        requestId,
+      }));
       setShowDetail(true);
       console.info("[LifeBook][SessionCreateSuccess]");
       console.info("[LifeBook][PdfRequestSuccess]");
@@ -523,14 +659,20 @@ export default function SajuLifebookPage() {
     }
   };
   const handlePrint = () => {
-    const { pdfUrl, htmlUrl, html } = getLifeBookDownloadTargets(result);
+    const { pdfUrl } = getLifeBookDownloadTargets(result);
     const downloadPdfUrl = resolveArchiveFormatUrl(pdfUrl, "pdf");
-    const downloadHtmlUrl = resolveArchiveFormatUrl(htmlUrl, "html");
 
     if (downloadPdfUrl) {
       window.open(downloadPdfUrl, "_blank", "noopener,noreferrer");
       return;
     }
+
+    setError("PDF 저장 링크가 아직 준비되지 않았습니다. HTML 열람본은 별도 버튼으로 먼저 열 수 있습니다.");
+  };
+
+  const handleOpenHtml = () => {
+    const { htmlUrl, html } = getLifeBookDownloadTargets(result);
+    const downloadHtmlUrl = resolveArchiveFormatUrl(htmlUrl, "html");
 
     if (downloadHtmlUrl) {
       window.open(downloadHtmlUrl, "_blank", "noopener,noreferrer");
@@ -558,7 +700,42 @@ export default function SajuLifebookPage() {
       return;
     }
 
-    setError("결과를 찾지 못했습니다. 다시 시도해주세요.");
+    setError("HTML 열람본을 찾지 못했습니다. 잠시 후 다시 시도해주세요.");
+  };
+
+  const buildRequestQuery = () => {
+    const params = new URLSearchParams();
+    params.set("service", SERVICE_KEY);
+    params.set("feature", FEATURE_KEY);
+    if (lastRequestContext?.reportId) params.set("reportId", lastRequestContext.reportId);
+    if (lastRequestContext?.sessionId) params.set("sessionId", lastRequestContext.sessionId);
+    if (lastRequestContext?.requestId) params.set("requestId", lastRequestContext.requestId);
+    return params.toString();
+  };
+
+  const handleOpenBillingHistory = () => {
+    window.location.href = `/points/history?${buildRequestQuery()}`;
+  };
+
+  const handleOpenCharge = () => {
+    window.location.href = "/points?service=saju-lifebook";
+  };
+
+  const handleOpenSupport = () => {
+    window.location.href = `/contact-us?${buildRequestQuery()}`;
+  };
+
+  const handleCopyRequestContext = async () => {
+    if (!requestContextText) {
+      setError("복사할 요청 정보가 아직 없습니다.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(requestContextText);
+      setError("인생의 책 요청 정보가 복사되었습니다.");
+    } catch (_) {
+      setError(requestContextText);
+    }
   };
   return (
     <main style={{ minHeight: "100vh", background: "linear-gradient(180deg, #0d0a08 0%, #16100b 50%, #0b0806 100%)", color: "#f7ead7" }}>
@@ -569,10 +746,10 @@ export default function SajuLifebookPage() {
             <p style={{ marginTop: 10, fontSize: 18, color: "#f6ddb3" }}>팔자 8글자로 읽는 나만의 운명 해설서</p>
             <p style={{ marginTop: 12, color: "#ebd6b8", lineHeight: 1.7 }}>
               원국, 일간, 월지, 용신, 대운, 관계, 재물, 커리어, 건강, 위기관리, 실행전략까지
-              13챕터로 구성된 프리미엄 리포트를 생성합니다.
+              13챕터로 구성된 프리미엄 상담문을 생성합니다.
             </p>
             <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {["Premium PDF", "13 Chapters", "사주 원국 기반", "최고 운세 전문가 해석", "완성형 상담문 리포트"].map((tag) => (
+              {["Premium PDF", "13 Chapters", "사주 원국 기반", "명리 상담문", "PDF 저장용 리포트"].map((tag) => (
                 <span key={tag} style={{ borderRadius: 999, padding: "6px 12px", fontSize: 12, background: "rgba(245,214,165,.15)", border: "1px solid rgba(245,214,165,.38)" }}>{tag}</span>
               ))}
             </div>
@@ -580,7 +757,6 @@ export default function SajuLifebookPage() {
 
           <article style={{ borderRadius: 22, padding: 14, border: "1px solid rgba(245, 214, 165, .22)", background: "linear-gradient(160deg, rgba(26,19,12,.95), rgba(53,37,24,.93))" }}>
             <CoverImage />
-            <p style={{ margin: "10px 6px 0", fontSize: 13, color: "#e9d4b2" }}>/fuctionassets/lifebook.webp</p>
           </article>
         </div>
 
@@ -621,6 +797,10 @@ export default function SajuLifebookPage() {
                 <option value="lunar">음력</option>
               </select>
             </label>
+            <label style={{ gridColumn: "1 / -1", display: "flex", gap: 8, alignItems: "flex-start", borderRadius: 12, border: "1px solid rgba(228,195,138,.28)", background: "rgba(228,195,138,.07)", padding: "10px 12px", color: "#f4dab4", fontSize: 13, lineHeight: 1.5 }}>
+              <input type="checkbox" checked={form.birthTimeKnown} onChange={(e) => updateField("birthTimeKnown", e.target.checked)} style={{ marginTop: 3 }} />
+              <span>정확한 태어난 시·분을 알고 있습니다. 출생시간 모름이나 낮 12시 보수 계산으로 만든 프로필은 인생의 책 PDF를 생성할 수 없습니다.</span>
+            </label>
             <label style={{ display: "grid", gap: 6 }}>
               <span>태어난 시</span>
               <input type="number" min="0" max="23" value={form.hour} disabled={!form.birthTimeKnown} onChange={(e) => updateField("hour", e.target.value)} style={{ borderRadius: 10, border: "1px solid #896744", background: form.birthTimeKnown ? "#16100b" : "#271d14", color: "#fff4e5", padding: "10px 12px" }} />
@@ -633,10 +813,13 @@ export default function SajuLifebookPage() {
               <span>출생지</span>
               <input value={form.birthplace} onChange={(e) => updateField("birthplace", e.target.value)} style={{ borderRadius: 10, border: "1px solid #896744", background: "#16100b", color: "#fff4e5", padding: "10px 12px" }} />
             </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20 }}>
-              <input type="checkbox" checked={!form.birthTimeKnown} onChange={(e) => updateField("birthTimeKnown", !e.target.checked)} />
-              <span>태어난 시간을 모릅니다 (시간 미상 기준)</span>
+            <label style={{ display: "grid", gap: 6 }}>
+              <span>기준 연도</span>
+              <input type="number" min="1900" max="2099" value={form.targetYear} onChange={(e) => updateField("targetYear", e.target.value)} style={{ borderRadius: 10, border: "1px solid #896744", background: "#16100b", color: "#fff4e5", padding: "10px 12px" }} />
             </label>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20, color: "#f1d0a0", fontSize: 13 }}>
+              시주와 대운 정밀 계산을 위해 태어난 시·분은 필수이며, 결제 전 권한과 금액을 확인한 뒤 원고 작성이 시작됩니다.
+            </div>
           </div>
 
           <div style={{ marginTop: 12, borderRadius: 14, padding: 12, border: "1px solid rgba(244,213,159,.28)", background: "rgba(244,213,159,.07)", display: "grid", gap: 7 }}>
@@ -656,31 +839,45 @@ export default function SajuLifebookPage() {
             </div>
           </div>
 
-          <p style={{ marginTop: 10, fontSize: 13, color: "#dcc5a1" }}>로그인 및 결제 권한 확인 후 생성이 시작됩니다.</p>
+          <p style={{ marginTop: 10, fontSize: 13, color: "#dcc5a1" }}>500코인 · 결제 전 금액 확인 · 완료 후 PDF 재열람 가능. 로그인, 결제 권한, 정확한 출생시간 확인 후 13챕터 원고 생성이 시작됩니다.</p>
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 10 }}>
             <button type="submit" disabled={loading} style={{ borderRadius: 999, border: "1px solid #e4c38a", background: loading ? "#7d6540" : "#e5c792", color: "#2e1d11", fontWeight: 800, padding: "10px 18px", cursor: loading ? "wait" : "pointer", touchAction: "manipulation" }}>
-              {loading ? "인생의 책 생성 중..." : "인생의 책 작성 시작"}
+              {loading ? "13챕터 원고 작성 중..." : "500코인 결제 확인 후 작성 시작"}
             </button>
-            {(result?.pdfUrl || result?.downloadUrl || result?.htmlUrl || result?.pdfReady?.pdfUrl || result?.pdfReady?.downloadUrl || result?.pdfReady?.htmlUrl || result?.pdfReady?.html) ? (
+            {hasPdfDownloadTarget ? (
               <button type="button" onClick={handlePrint} style={{ borderRadius: 999, border: "1px solid rgba(228,195,138,.7)", background: "transparent", color: "#f7e8cf", fontWeight: 700, padding: "10px 16px", cursor: "pointer", touchAction: "manipulation" }}>
-                PDF 출력/다운로드
+                PDF 저장/열기
+              </button>
+            ) : null}
+            {hasHtmlDownloadTarget ? (
+              <button type="button" onClick={handleOpenHtml} style={{ borderRadius: 999, border: "1px solid rgba(228,195,138,.45)", background: "rgba(228,195,138,.08)", color: "#f7e8cf", fontWeight: 700, padding: "10px 16px", cursor: "pointer", touchAction: "manipulation" }}>
+                HTML 열람본 열기
               </button>
             ) : null}
           </div>
 
           {loading ? (
-            <div style={{ marginTop: 12, borderRadius: 12, padding: 12, border: "1px solid rgba(228,195,138,.3)", background: "rgba(228,195,138,.08)" }}>
+            <div role="status" aria-live="polite" style={{ marginTop: 12, borderRadius: 12, padding: 12, border: "1px solid rgba(228,195,138,.3)", background: "rgba(228,195,138,.08)" }}>
               <div style={{ height: 8, width: "100%", borderRadius: 999, overflow: "hidden", background: "rgba(228,195,138,.22)" }}>
                 <div style={{ width: `${progressPercent}%`, height: "100%", borderRadius: 999, background: "linear-gradient(90deg, #f4d59f, #ca8c3f)" }} />
               </div>
-              <p style={{ margin: "9px 0 0", color: "#f4dab4" }}>{STEP_LABELS[stepIndex]}</p>
+              <p style={{ margin: "9px 0 0", color: "#f4dab4" }}>{STEP_LABELS[stepIndex]} · 완료까지 화면을 유지해 주세요.</p>
             </div>
           ) : null}
 
           {error ? (
             <div style={{ marginTop: 12, borderRadius: 10, border: "1px solid #cc775f", background: "rgba(204,119,95,.15)", color: "#ffd8ce", padding: "10px 12px" }}>
-              {error}
+              <div>{error}</div>
+              {requestContextText ? (
+                <div style={{ marginTop: 6, fontSize: 12, color: "#f6b9aa", wordBreak: "break-word" }}>{requestContextText}</div>
+              ) : null}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
+                <button type="button" onClick={handleOpenBillingHistory} style={{ borderRadius: 999, border: "1px solid rgba(255,216,206,.42)", background: "rgba(255,255,255,.08)", color: "#ffe2d9", padding: "7px 11px", cursor: "pointer" }}>결제 내역 확인</button>
+                <button type="button" onClick={handleOpenCharge} style={{ borderRadius: 999, border: "1px solid rgba(255,216,206,.42)", background: "rgba(255,255,255,.08)", color: "#ffe2d9", padding: "7px 11px", cursor: "pointer" }}>코인 충전</button>
+                <button type="button" onClick={handleCopyRequestContext} style={{ borderRadius: 999, border: "1px solid rgba(255,216,206,.42)", background: "rgba(255,255,255,.08)", color: "#ffe2d9", padding: "7px 11px", cursor: "pointer" }}>요청 정보 복사</button>
+                <button type="button" onClick={handleOpenSupport} style={{ borderRadius: 999, border: "1px solid rgba(255,216,206,.42)", background: "rgba(255,255,255,.08)", color: "#ffe2d9", padding: "7px 11px", cursor: "pointer" }}>문의하기</button>
+              </div>
             </div>
           ) : null}
 
@@ -695,7 +892,12 @@ export default function SajuLifebookPage() {
         {chapters.length ? (
           <section style={{ marginTop: 20, borderRadius: 18, padding: 16, border: "1px solid rgba(240,209,157,.22)", background: "rgba(24,17,12,.72)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-              <h2 style={{ margin: 0 }}>챕터 상세창</h2>
+              <div>
+                <h2 style={{ margin: 0 }}>상담 결과</h2>
+                <p style={{ margin: "5px 0 0", color: "#dfcaab", fontSize: 13 }}>
+                  {chapters.length}개 장 · {totalCategoryCount}개 카테고리 상담문
+                </p>
+              </div>
               <button type="button" onClick={() => setShowDetail((prev) => !prev)} style={{ borderRadius: 999, border: "1px solid rgba(240,209,157,.4)", background: "transparent", color: "#f7e8cf", padding: "7px 14px", cursor: "pointer" }}>
                 {showDetail ? "상세창 닫기" : "상세창 열기"}
               </button>
@@ -730,6 +932,9 @@ export default function SajuLifebookPage() {
               <div className="detail-grid" style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1.05fr", gap: 12 }}>
                 <article style={{ borderRadius: 14, border: "1px solid rgba(240,209,157,.24)", background: "rgba(240,209,157,.08)", padding: 12 }}>
                   <h3 style={{ margin: "0 0 10px" }}>{String(currentChapter.title || "")}</h3>
+                  <p style={{ margin: "0 0 10px", color: "#dfcaab", fontSize: 13, lineHeight: 1.55 }}>
+                    이 장은 아래 카테고리별로 원국 근거와 운의 흐름을 분리해 상담합니다.
+                  </p>
                   <div style={{ display: "grid", gap: 8 }}>
                     {categories.map((category, idx) => (
                       <button
@@ -754,9 +959,23 @@ export default function SajuLifebookPage() {
                 </article>
 
                 <article style={{ borderRadius: 14, border: "1px solid rgba(240,209,157,.24)", background: "rgba(17,12,9,.78)", padding: 14 }}>
-                  <h3 style={{ margin: "0 0 10px" }}>{String(currentCategory?.title || "상세 본문")}</h3>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", marginBottom: 10 }}>
+                    <h3 style={{ margin: 0 }}>{String(currentCategory?.title || "상세 본문")}</h3>
+                    <span style={{ borderRadius: 999, padding: "4px 9px", border: "1px solid rgba(240,209,157,.3)", color: "#f4d59f", fontSize: 12 }}>
+                      카테고리 맞춤 상담
+                    </span>
+                  </div>
+                  {currentCategoryEvidence.length ? (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+                      {currentCategoryEvidence.slice(0, 4).map((tag) => (
+                        <span key={tag} style={{ borderRadius: 999, padding: "4px 8px", background: "rgba(240,209,157,.1)", color: "#f7e8cf", fontSize: 12 }}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                   <div style={{ color: "#e9d8bd", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>
-                    {String(currentCategory?.finalText || currentCategory?.localSummary || "상세 상담문이 여기에 표시됩니다.")}
+                    {currentCategoryText || "상세 상담문이 여기에 표시됩니다."}
                   </div>
                 </article>
               </div>

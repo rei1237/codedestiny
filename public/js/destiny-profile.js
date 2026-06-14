@@ -1964,15 +1964,13 @@
     var responseFeature = String(payload.featureKey || payload.contentId || (payload.accessGrant && payload.accessGrant.featureKey) || "").trim();
     if (requestedFeature && responseFeature && requestedFeature !== responseFeature) return false;
     var accessType = String(payload.accessType || payload.transactionType || (payload.accessGrant && payload.accessGrant.accessType) || "").trim().toLowerCase();
-    var accessMethod = String(payload.accessMethod || payload.paymentMethod || (payload.accessGrant && payload.accessGrant.accessMethod) || "").trim().toUpperCase();
     return Boolean(
       payload.alreadyUnlocked === true ||
       payload.__cdPassGateResolved === true ||
       payload.freeBySubscription === true ||
       payload.freeBySubscription === "true" ||
       accessType === "already_unlocked" ||
-      accessType === "membership_pass" ||
-      accessMethod === "PASS"
+      accessType === "membership_pass"
     );
   }
 
@@ -2148,7 +2146,7 @@
     var values = [data.freeBySubscription === true ? 'membership_pass' : '', data.alreadyUnlocked === true ? 'already_unlocked' : '', data.accessType, data.transactionType, data.accessMethod, data.paymentMethod, consume.accessType, consume.transactionType, consume.accessMethod, consume.paymentMethod, accessGrant.accessType, accessGrant.transactionType, accessGrant.accessMethod, accessGrant.paymentMethod];
     for (var i = 0; i < values.length; i += 1) {
       var value = String(values[i] || '').toLowerCase();
-      if (value === 'membership_pass' || value === 'pass' || value === 'already_unlocked') return true;
+      if (value === 'membership_pass' || value === 'already_unlocked') return true;
     }
     return false;
   }
@@ -2205,7 +2203,7 @@
         if (result.status === 'pass_applied') {
           if (typeof window._cdShowMembershipFreeNotice === 'function') window._cdShowMembershipFreeNotice({ title: title, coinPrice: coinPrice, payload: payload });
           else if (typeof window._cdSetCoinGateOverlay === 'function') {
-            window._cdSetCoinGateOverlay(true, '이용권이 적용되었어요 🌙\n꽃돼지가 꿀단지를 열어드렸어요.\n이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.\n코인 차감 없이 바로 열어드릴게요.', 'pass-applied');
+            window._cdSetCoinGateOverlay(true, '이용권이 적용되었습니다.\n이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.\n코인 차감 없이 바로 열어드릴게요.', 'pass-applied');
             window.setTimeout(function() { window._cdSetCoinGateOverlay(false); }, 1600);
           }
           else if (typeof window._cdShowSubscriptionShieldNotice === 'function') window._cdShowSubscriptionShieldNotice({ message: '\uC774\uC6A9\uAD8C\uC73C\uB85C \uCF54\uC778 \uCC28\uAC10 \uC5C6\uC774 \uC774\uC6A9\uD569\uB2C8\uB2E4.', requiredCoins: coinPrice });

@@ -3,7 +3,7 @@ import NumerologyTarotClient from "./NumerologyTarotClient";
 
 export const metadata: Metadata = {
   title: "수비학 타로 | Code Destiny",
-  description: "생년월일 기반 수비학 숫자와 3카드 스프레드를 결합해 연애/재회/직업 흐름을 읽는 리딩",
+  description: "생명수·오늘수·질문수를 5카드 흐름과 겹쳐 관계·일·선택의 리듬을 차분히 읽는 수비학 타로",
 };
 
 export default function NumerologyTarotPage() {

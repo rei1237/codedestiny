@@ -45,7 +45,7 @@ const SERVICE = {
 };
 
 export const metadata = withUniqueRouteMetadata("/astrology/cosmic", {
-  title: "점성술 코즈믹 차트 - 태양·달·상승궁 분석 | Code Destiny",
+  title: "점성술 코즈믹 차트 - 태양·달·상승궁 분석",
   description:
     "서양 점성술의 태양궁, 달궁, 상승궁을 중심으로 성향과 관계 패턴을 읽는 코즈믹 차트 서비스.",
 });

@@ -12,7 +12,7 @@
     position_3: "상대가 나를 바라보는 마음",
     position_4: "상대의 연애 의지와 열망",
     position_5: "관계를 가로막는 핵심 요인",
-    position_6: "앞으로 펼쳐질 단기적 결말",
+    position_6: "가까운 흐름과 선택 기준",
   };
   var DISPLAY_ORDER = [0, 1, 2, 3, 4, 5];
   var GUIDE_ORDER = [0, 1, 2, 3, 4, 5];
@@ -314,7 +314,7 @@
   function showCoinShortage(cost, reason) {
     try {
       if (typeof window.__cdOpenChargeModal === "function") {
-        window.alert("🪙 " + reason + "\n\n" + cost + "코인이 필요합니다.\n코인 충전 창을 엽니다.");
+        window.alert("🪙 " + reason + "\n\n" + cost + "코인이 필요합니다.\n충전 화면을 엽니다.");
         window.__cdOpenChargeModal();
         return;
       }
@@ -331,7 +331,7 @@
         cost: cost,
       }).then(function(choice) {
         if (choice === "direct") {
-          if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(true, "단건 결제를 준비하는 중입니다...");
+          if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(true, cost + "코인 사용을 확인하는 중입니다...");
           return window._cdRunDirectKrwCheckout({
             coinPrice: cost,
             cost: cost,
@@ -345,7 +345,7 @@
         if (choice !== "monthly") return false;
         return consumeMonthlyCredit(cost, reason, featureKey, requestId);
       }).catch(function(error) {
-        window.alert(String(error && error.message || "단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요."));
+        window.alert(String(error && error.message || "결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요."));
         return false;
       }).finally(function() {
         if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(false);
@@ -363,7 +363,7 @@
     };
     if (token) consumeHeaders.Authorization = "Bearer " + token;
 
-    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, '결제를 확인 중입니다...');
+    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, cost + '코인 사용을 확인하는 중입니다...');
     return fetch("/api/billing/coin-gate", {
       method: "POST",
       headers: consumeHeaders,
@@ -536,27 +536,27 @@
   function createLocalRelationshipReading(cards) {
     var safeCards = normalizeRelationshipCards(cards);
     var positionFocusMap = {
-      position_1: "내가 상대를 해석하는 프레임이 관계 만족도를 좌우합니다.",
-      position_2: "상대의 표현 속도와 감정의 유무를 분리해서 읽어야 정확합니다.",
-      position_3: "상대가 관계에 붙인 이름보다 반복 행동이 더 중요한 신호입니다.",
-      position_4: "연애 의지는 강도보다 지속성으로 검증됩니다.",
-      position_5: "병목은 감정 부족보다 방식 불일치일 가능성이 큽니다.",
-      position_6: "결말은 고정값이 아니라 지금의 소통 방식에 따라 바뀝니다.",
+      position_1: "내가 상대를 바라보는 기준이 관계의 온도를 바꿉니다.",
+      position_2: "상대의 표현 속도와 마음의 깊이는 따로 읽어야 합니다.",
+      position_3: "카드가 비추는 감정 온도보다 반복되는 행동이 더 분명한 신호입니다.",
+      position_4: "연애 의지는 뜨거움보다 꾸준함으로 드러납니다.",
+      position_5: "막힘은 감정 부족보다 서로 다른 표현 방식에서 시작될 수 있습니다.",
+      position_6: "관계의 다음 장은 지금의 대화와 거리 조절에 따라 달라집니다.",
     };
     var breakdown = safeCards.map(function (card, idx) {
       var label = POSITION_LABELS[card.position] || ("포지션 " + String(idx + 1));
       var cardName = (card.nameKr || card.name || "타로 카드") + (card.orientation === "reversed" ? " (역)" : "");
       var orientSummary = card.orientation === "reversed"
-        ? "역방향 카드이므로 속도를 늦추고 사실 확인 중심으로 대화해야 오해를 줄일 수 있습니다."
-        : "정방향 카드이므로 작은 약속을 꾸준히 지키면 관계 온도가 빠르게 안정됩니다.";
-      var summary = (positionFocusMap[card.position] || "현재 포지션의 신호를 행동으로 옮기는 것이 핵심입니다.") + " " + orientSummary;
+        ? "역방향은 서두른 판단보다 사실 확인과 거리 조절이 필요하다는 신호입니다."
+        : "정방향은 작은 약속과 진심 어린 표현이 관계 온도를 안정시킨다는 신호입니다.";
+      var summary = (positionFocusMap[card.position] || "현재 포지션의 신호를 차분한 행동으로 옮기는 것이 핵심입니다.") + " " + orientSummary;
       return { title: label, card: cardName, summary: summary };
     });
 
     return {
-      overallVibe: "지금 두 사람의 관계는 끌림과 조심스러움이 함께 존재하는 과도기입니다. 감정의 강도 자체보다 감정을 전달하는 방식이 관계의 만족도를 크게 바꾸는 시기예요. 이 흐름은 고정된 운명이 아니라, 대화의 태도와 경계 설정에 따라 충분히 더 따뜻한 방향으로 바뀔 수 있습니다.",
-      deepReading: "핵심은 확신의 부족이 아니라 표현의 타이밍입니다. 상대의 반응을 시험하기보다, 내 감정을 간결하고 구체적으로 전달할 때 긴장이 풀리고 신뢰가 쌓입니다. 불안이 올라올수록 마음속 추측을 늘리기보다 '내가 확인한 사실'을 중심으로 대화를 이어가 보세요.",
-      realityAndFuture: "단기적으로는 속도 조절이 필요하지만, 중요한 포인트를 솔직하게 확인하면 관계의 방향은 분명해집니다. 불필요한 추측을 줄이고 작은 약속을 지키는 반복이 생기면 관계는 생각보다 빠르게 안정됩니다. 지금의 선택이 3개월 뒤의 관계 결을 바꾼다는 점을 기억해 주세요.",
+      overallVibe: "지금 두 사람 사이에는 끌림과 조심스러움이 함께 흐릅니다. 감정의 크기보다 마음을 전하는 방식이 관계의 온도를 바꾸는 때입니다. 이 흐름은 정해진 결말이 아니라, 대화의 태도와 서로의 선을 존중하는 방식에 따라 더 따뜻하게 달라질 수 있습니다.",
+      deepReading: "핵심은 확신의 부족보다 표현의 타이밍입니다. 상대의 반응을 시험하기보다, 내 마음을 간결하고 구체적으로 전할 때 긴장이 풀리고 신뢰가 쌓입니다. 불안이 올라올수록 추측을 키우기보다 확인한 사실을 중심으로 대화를 이어가 보세요.",
+      realityAndFuture: "가까운 흐름에서는 속도 조절이 필요합니다. 중요한 마음을 확인하더라도 결론을 서두르기보다 대화의 기준을 먼저 맞춰야 관계의 방향이 선명해집니다. 불필요한 추측을 줄이고 작은 약속을 지키는 반복이 생기면, 두 사람의 관계는 안정된 결로 이동할 수 있습니다.",
       positionBreakdown: breakdown,
       advice: [
         "상대의 말보다 말투와 반응 속도 같은 비언어 신호를 함께 보세요.",
@@ -947,7 +947,7 @@
     if (!guide) return;
     var step = state.revealedCount;
     if (step >= 6) {
-      guide.textContent = "모든 카드를 확인했습니다. 아래 버튼을 눌러 최종 해석을 보세요.";
+      guide.textContent = "모든 카드를 확인했습니다. 아래 버튼을 눌러 관계 리딩을 열어보세요.";
       updateGuideNextEffect();
       return;
     }
@@ -1092,6 +1092,13 @@
     FORBIDDEN_RESULT_PATTERNS.forEach(function (pattern) {
       out = out.replace(pattern, "");
     });
+    out = out
+      .replace(/상대의\s*실제\s*감정\s*온도/g, "카드가 비춘 감정 온도")
+      .replace(/상대의\s*실제\s*감정/g, "카드가 비춘 감정")
+      .replace(/단기\s*결말/g, "가까운 흐름과 선택 기준")
+      .replace(/결말을\s*결정/g, "흐름의 온도를 바꾸")
+      .replace(/결과\s*곡선/g, "관계의 온도")
+      .replace(/고정값/g, "확정된 답");
     out = removeRepeatedSentencesForUi(out);
     out = out.replace(/\s{2,}/g, " ").trim();
     return out;
@@ -1125,10 +1132,10 @@
   function normalizeFinalAdvice(rawFinalAdvice, adviceList) {
     var src = rawFinalAdvice && typeof rawFinalAdvice === "object" ? rawFinalAdvice : {};
     return {
-      instantMission: cleanRelationshipResultText(src.instantMission || adviceList[0] || "상대의 반응을 추측하기보다 최근 행동 3가지를 정리해 보세요."),
-      conversationTip: cleanRelationshipResultText(src.conversationTip || adviceList[1] || "왜 그랬어? 대신 나는 이렇게 느꼈어. 네 생각을 듣고 싶어 라고 말해 보세요."),
-      relationshipBoundary: cleanRelationshipResultText(src.relationshipBoundary || adviceList[2] || "답장이 늦다는 이유만으로 관계를 단정하지 말고 반복되는 약속 회피는 기록해 두세요."),
-      nextSevenDays: cleanRelationshipResultText(src.nextSevenDays || adviceList[3] || "결론 압박보다 편안한 대화 1회를 만드는 것이 다음 7일 흐름을 바꿉니다."),
+      instantMission: cleanRelationshipResultText(src.instantMission || adviceList[0] || "상대의 반응을 추측하기보다 최근에 반복된 행동 3가지를 조용히 정리해 보세요."),
+      conversationTip: cleanRelationshipResultText(src.conversationTip || adviceList[1] || "왜 그랬어?보다 나는 이렇게 느꼈고, 네 생각도 듣고 싶어라는 문장으로 대화의 문을 여세요."),
+      relationshipBoundary: cleanRelationshipResultText(src.relationshipBoundary || adviceList[2] || "답장 속도만으로 관계를 단정하지 말고, 반복되는 약속 회피처럼 확인 가능한 행동을 기준으로 삼으세요."),
+      nextSevenDays: cleanRelationshipResultText(src.nextSevenDays || adviceList[3] || "결론 압박보다 편안한 대화 1회를 만드는 것이 다음 7일의 관계 온도를 안정시킵니다."),
     };
   }
 
@@ -1175,21 +1182,21 @@
 
     if (overallVibe) {
       html += '<section class="tarot-love-section tarot-love-section--vibe">';
-      html += '<h4 class="tarot-love-section-title">🌙 타로 마스터의 시선</h4>';
+      html += '<h4 class="tarot-love-section-title">🌙 관계의 현재 온도</h4>';
       html += '<div class="tarot-love-section-text">' + formatReadingText(overallVibe) + "</div>";
       html += "</section>";
     }
 
     if (deepReading) {
       html += '<section class="tarot-love-section tarot-love-section--insight">';
-      html += '<h4 class="tarot-love-section-title">🔍 마음의 해부학</h4>';
+      html += '<h4 class="tarot-love-section-title">🔍 마음이 엇갈리는 지점</h4>';
       html += '<div class="tarot-love-section-text">' + formatReadingText(deepReading) + "</div>";
       html += "</section>";
     }
 
     if (realityAndFuture) {
       html += '<section class="tarot-love-section tarot-love-section--future">';
-      html += '<h4 class="tarot-love-section-title">🚧 현실과 다가올 내일</h4>';
+      html += '<h4 class="tarot-love-section-title">🧭 현실 흐름과 다음 선택</h4>';
       html += '<div class="tarot-love-section-text">' + formatReadingText(realityAndFuture) + "</div>";
       html += "</section>";
     }
@@ -1214,11 +1221,11 @@
         html += '<span class="tarot-love-orientation-badge ' + (orientationLabel === "역방향" ? "is-reversed" : "is-upright") + '">' + escapeHtml(orientationLabel) + '</span>';
         html += '</div>';
         if (cardName) html += '<p class="tarot-love-position-cardname">' + escapeHtml(cardName) + "</p>";
-        if (headline) html += '<div class="tarot-love-position-keyline"><strong>한 줄 핵심:</strong> ' + escapeHtml(headline) + '</div>';
-        if (detail) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">상세 해석</p>' + formatReadingText(detail) + '</div>';
-        if (relationshipInsight) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">상대/관계 심리</p>' + formatReadingText(relationshipInsight) + '</div>';
-        if (advice) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">조언</p>' + formatReadingText(advice) + '</div>';
-        if (caution) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">주의할 점</p>' + formatReadingText(caution) + '</div>';
+        if (headline) html += '<div class="tarot-love-position-keyline"><strong>핵심 신호:</strong> ' + escapeHtml(headline) + '</div>';
+        if (detail) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">관계 해석</p>' + formatReadingText(detail) + '</div>';
+        if (relationshipInsight) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">관계 심리</p>' + formatReadingText(relationshipInsight) + '</div>';
+        if (advice) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">오늘의 선택</p>' + formatReadingText(advice) + '</div>';
+        if (caution) html += '<div class="tarot-love-position-text"><p class="tarot-love-mini-title">조심할 흐름</p>' + formatReadingText(caution) + '</div>';
         html += "</article>";
       });
       html += "</div>";
@@ -1226,18 +1233,18 @@
     }
 
     html += '<section class="tarot-love-section tarot-love-focus-section">';
-    html += '<h4 class="tarot-love-section-title">🧭 마지막 조언</h4>';
+    html += '<h4 class="tarot-love-section-title">🧭 지금 지켜야 할 기준</h4>';
     html += '<div class="tarot-love-final-advice-grid">';
-    html += '<article class="tarot-love-final-advice-item"><h5>⚡ 지금 당장 할 1가지</h5><p>' + escapeHtml(String(finalAdvice.instantMission || "")) + '</p></article>';
-    html += '<article class="tarot-love-final-advice-item"><h5>💬 대화 팁</h5><p>' + escapeHtml(String(finalAdvice.conversationTip || "")) + '</p></article>';
+    html += '<article class="tarot-love-final-advice-item"><h5>⚡ 오늘 남길 한 문장</h5><p>' + escapeHtml(String(finalAdvice.instantMission || "")) + '</p></article>';
+    html += '<article class="tarot-love-final-advice-item"><h5>💬 대화의 온도</h5><p>' + escapeHtml(String(finalAdvice.conversationTip || "")) + '</p></article>';
     html += '<article class="tarot-love-final-advice-item"><h5>🛡️ 내가 지킬 선</h5><p>' + escapeHtml(String(finalAdvice.relationshipBoundary || "")) + '</p></article>';
-    html += '<article class="tarot-love-final-advice-item"><h5>🌙 앞으로 7일</h5><p>' + escapeHtml(String(finalAdvice.nextSevenDays || "")) + '</p></article>';
+    html += '<article class="tarot-love-final-advice-item"><h5>🌙 7일의 리듬</h5><p>' + escapeHtml(String(finalAdvice.nextSevenDays || "")) + '</p></article>';
     html += '</div>';
     html += '</section>';
 
     if (adviceList.length) {
       html += '<section class="tarot-love-section tarot-love-section--advice">';
-      html += '<h4 class="tarot-love-section-title">✅ 실전 체크리스트</h4>';
+      html += '<h4 class="tarot-love-section-title">✅ 관계 체크리스트</h4>';
       html += '<ul class="tarot-love-checklist">';
       adviceList.forEach(function (item) {
         var text = item != null ? String(item) : "";

@@ -72,8 +72,8 @@ const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
     { title: "협업 능력", question: "같은 목표를 향해 움직일 때 협업의 강점과 병목은 무엇인가?" },
     { title: "주변 도움과 방해", question: "주변 사람은 어떤 메커니즘으로 도움이 되거나 방해가 되는가?" },
     { title: "공동 프로젝트 운", question: "공동 프로젝트는 어떤 조건에서 성과가 나는가?" },
-    { title: "신뢰할 사람의 유형", question: "누구와는 잘 맞고 누구와는 에너지가 새기 쉬운가?" },
-    { title: "대운과 인맥 전략", question: "형제궁을 인맥 전략으로 바꾸려면 어떤 타이밍을 읽어야 하는가?" },
+    { title: "신뢰할 사람의 유형", question: "누구와는 잘 맞고 누구와는 기운이 새기 쉬운가?" },
+    { title: "대한과 인맥 전략", question: "형제궁을 인맥 전략으로 바꾸려면 어떤 타이밍을 읽어야 하는가?" },
   ],
   spouse: [
     { title: "연애 성향", question: "이 부부궁은 사랑을 어떻게 시작하고 확인하는가?" },
@@ -83,7 +83,7 @@ const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
     { title: "반복되는 갈등", question: "관계에서 반복적으로 부딪히는 주제는 무엇인가?" },
     { title: "애정 표현과 신뢰 조건", question: "애정 표현과 안정감은 어떤 방식에서 생기는가?" },
     { title: "거리감의 원인", question: "소원함과 이별감은 어떤 구조에서 커지기 쉬운가?" },
-    { title: "대운과 관계 전략", question: "관계의 시기가 바뀔 때 어떤 선택이 더 안정적인가?" },
+    { title: "대한과 관계 전략", question: "관계의 시기가 바뀔 때 어떤 선택이 더 안정적인가?" },
   ],
   children: [
     { title: "자녀 인연의 기본 흐름", question: "돌봄과 후속 세대의 인연은 어떤 질감으로 들어오는가?" },
@@ -93,7 +93,7 @@ const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
     { title: "생산성과 유산", question: "지속 가능한 성과를 남기기 위한 생산성 구조는 무엇인가?" },
     { title: "돌봄과 책임의 방식", question: "책임감이 과해지거나 부족해지는 지점은 어디인가?" },
     { title: "감정적 보상과 기대", question: "애정과 성과를 섞어 기대할 때 어떤 문제가 생기는가?" },
-    { title: "대운과 성과 전략", question: "자녀궁을 창작과 성과 전략으로 바꾸려면 무엇을 읽어야 하는가?" },
+    { title: "대한과 성과 전략", question: "자녀궁을 창작과 성과 전략으로 바꾸려면 무엇을 읽어야 하는가?" },
   ],
   wealth: [
     { title: "돈을 버는 방식", question: "이 재백궁은 어떤 수익 구조를 선호하는가?" },
@@ -103,17 +103,17 @@ const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
     { title: "사업·거래 운", question: "거래와 사업 판단은 어떤 구조에서 유리한가?" },
     { title: "돈이 들어오는 경로", question: "사람·직무·플랫폼 중 어디에서 재물 문이 열리기 쉬운가?" },
     { title: "돈이 새는 원인", question: "재물 누수는 어디에서 시작되는가?" },
-    { title: "대운과 재물 전략", question: "대운에서 재백궁이 흔들릴 때 무엇을 지키는 것이 우선인가?" },
+    { title: "대한과 재물 전략", question: "대한에서 재백궁이 흔들릴 때 무엇을 지키는 것이 우선인가?" },
   ],
   health: [
-    { title: "기본 체력과 에너지 패턴", question: "이 질액궁은 체력과 에너지를 어떤 리듬으로 쓰는가?" },
+    { title: "기본 체력과 기운 패턴", question: "이 질액궁은 체력과 기운을 어떤 리듬으로 쓰는가?" },
     { title: "스트레스의 신체화", question: "스트레스는 몸 어디와 생활 습관에 먼저 드러나는가?" },
     { title: "약해지기 쉬운 생활 영역", question: "일상에서 가장 쉽게 무너지는 축은 무엇인가?" },
     { title: "회복력이 살아나는 조건", question: "회복 속도를 끌어올리는 조건은 무엇인가?" },
     { title: "과로·번아웃 패턴", question: "무리할 때 반복되는 위험 신호는 무엇인가?" },
     { title: "감정과 몸의 연결", question: "정서 변화가 컨디션에 어떤 식으로 번지는가?" },
     { title: "생활 습관 경계", question: "건강 리듬을 무너뜨리는 습관은 무엇인가?" },
-    { title: "대운과 회복 전략", question: "질액궁을 회복 전략으로 번역할 때 가장 중요한 기준은 무엇인가?" },
+    { title: "대한과 회복 전략", question: "질액궁을 회복 전략으로 번역할 때 가장 중요한 기준은 무엇인가?" },
   ],
   travel: [
     { title: "외부 환경에서의 운", question: "밖으로 나갈수록 어떤 기운이 살아나는가?" },
@@ -123,17 +123,17 @@ const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
     { title: "외부 이미지", question: "사회는 이 사람을 어떤 캐릭터로 읽기 쉬운가?" },
     { title: "밖에서 얻는 기회", question: "새로운 기회는 어떤 움직임을 통해 들어오는가?" },
     { title: "외부 활동 리스크", question: "확장 과정에서 무엇을 특히 조심해야 하는가?" },
-    { title: "대운과 확장 전략", question: "천이궁을 활용한 확장 전략은 어떤 순서가 안전한가?" },
+    { title: "대한과 확장 전략", question: "천이궁을 활용한 확장 전략은 어떤 순서가 안전한가?" },
   ],
   friends: [
     { title: "친구·지인 인연", question: "노복궁은 어떤 유형의 사람을 끌어들이는가?" },
     { title: "팀원·후배 운", question: "함께 움직이는 사람들과의 힘 배분은 어떻게 나타나는가?" },
     { title: "고객·팬·팔로워 운", question: "대중적 지지나 고객 흐름은 어떤 조건에서 늘어나는가?" },
     { title: "도움을 주는 사람의 유형", question: "실제로 도움이 되는 사람은 어떤 특징을 갖는가?" },
-    { title: "나를 소모시키는 사람의 유형", question: "어떤 관계는 에너지를 빼앗기 쉬운가?" },
+    { title: "나를 소모시키는 사람의 유형", question: "어떤 관계는 기운을 빼앗기 쉬운가?" },
     { title: "집단 속 역할", question: "집단에서 맡게 되는 역할과 기대는 무엇인가?" },
     { title: "리더십과 추종자 운", question: "사람을 이끌거나 따라야 할 때 어떤 방식이 맞는가?" },
-    { title: "대운과 네트워크 전략", question: "노복궁을 네트워크 전략으로 운용하려면 무엇을 기준 삼아야 하는가?" },
+    { title: "대한과 네트워크 전략", question: "노복궁을 네트워크 전략으로 운용하려면 무엇을 기준 삼아야 하는가?" },
   ],
   career: [
     { title: "타고난 직업 성향", question: "관록궁은 어떤 일의 결을 타고났다고 말하는가?" },
@@ -143,7 +143,7 @@ const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
     { title: "명예와 평판", question: "커리어 평판은 무엇을 통해 쌓이거나 흔들리는가?" },
     { title: "성과·승진 흐름", question: "성과가 누적되는 방식과 평가 포인트는 무엇인가?" },
     { title: "이직·독립 가능성", question: "독립과 전환은 어떤 조건에서 유리해지는가?" },
-    { title: "대운과 성공 전략", question: "커리어 전환기에는 무엇을 먼저 정렬해야 하는가?" },
+    { title: "대한과 성공 전략", question: "커리어 전환기에는 무엇을 먼저 정렬해야 하는가?" },
   ],
   property: [
     { title: "주거 안정성", question: "전택궁은 생활 기반의 안정도를 어떻게 보여주는가?" },
@@ -153,7 +153,7 @@ const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
     { title: "공간 취향과 생활 패턴", question: "공간을 쓰는 방식에 어떤 습관과 취향이 드러나는가?" },
     { title: "재산 축적 기반", question: "전택궁은 장기 자산의 밑바탕을 어떻게 말하는가?" },
     { title: "이사와 주거 변화", question: "거주 변화는 어떤 시그널에서 결정하는 것이 안전한가?" },
-    { title: "대운과 생활 기반 전략", question: "전택궁을 생활 안정 전략으로 바꾸려면 무엇을 보아야 하는가?" },
+    { title: "대한과 생활 기반 전략", question: "전택궁을 생활 안정 전략으로 바꾸려면 무엇을 보아야 하는가?" },
   ],
   fortune: [
     { title: "마음의 기본 온도", question: "복덕궁이 보여주는 기본 정서는 어떤 온도인가?" },
@@ -163,7 +163,7 @@ const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
     { title: "안정과 불안의 패턴", question: "불안은 어떤 상황에서 커지고 어떤 조건에서 잦아드는가?" },
     { title: "취미·예술·영성 성향", question: "복덕궁은 어떤 취향과 정신적 세계를 선호하는가?" },
     { title: "공허감의 흐름", question: "허무감이 스며들기 쉬운 시점은 언제인가?" },
-    { title: "대운과 행복 전략", question: "복덕궁을 행복 전략으로 바꾸려면 무엇을 훈련해야 하는가?" },
+    { title: "대한과 행복 전략", question: "복덕궁을 행복 전략으로 바꾸려면 무엇을 훈련해야 하는가?" },
   ],
   parents: [
     { title: "부모와의 기본 인연", question: "부모궁은 보호와 기대의 구조를 어떻게 보여주는가?" },
@@ -173,7 +173,7 @@ const PALACE_CATEGORY_SPECS: Record<ZiweiPalaceId, PalaceCategorySpec[]> = {
     { title: "보호받는 방식", question: "도움을 받을 때는 어떤 태도와 구조가 통하는가?" },
     { title: "권위와의 관계", question: "권위자와는 어떻게 거리를 잡는 것이 좋은가?" },
     { title: "가족 패턴과 리스크", question: "가족 안에서 반복되는 긴장과 충돌 패턴은 무엇인가?" },
-    { title: "대운과 보호·독립 전략", question: "보호와 독립의 균형을 맞추려면 무엇을 기준 삼아야 하는가?" },
+    { title: "대한과 보호·독립 전략", question: "보호와 독립의 균형을 맞추려면 무엇을 기준 삼아야 하는가?" },
   ],
 };
 
@@ -192,7 +192,7 @@ const PALACE_COUNSELING_LENSES: Record<ZiweiPalaceId, PalaceCounselingLens> = {
     relationshipLens: ["친구", "동료", "라이벌", "협업 파트너"],
     lifeAdviceLens: ["관계 경계 문장화", "역할 합의", "공동 목표 정렬"],
     cautionLens: ["비교 경쟁 과열", "도움과 의존 혼동", "소모성 네트워크"],
-    opening: "형제궁은 혈연뿐 아니라 친구·동료 같은 수평 관계에서 어떤 에너지로 연결되는지를 보여줍니다.",
+    opening: "형제궁은 혈연뿐 아니라 친구·동료 같은 수평 관계에서 어떤 기운으로 연결되는지를 보여줍니다.",
   },
   spouse: {
     role: "연애·결혼·친밀 관계의 핵심 패턴",
@@ -206,7 +206,7 @@ const PALACE_COUNSELING_LENSES: Record<ZiweiPalaceId, PalaceCounselingLens> = {
     role: "자녀·후배·창작 결과물을 키우는 생산 축",
     personalityLens: ["돌봄 방식", "책임감", "생산성 패턴"],
     relationshipLens: ["자녀", "후배", "제자", "함께 성장하는 관계"],
-    lifeAdviceLens: ["돌봄과 간섭 구분", "성과 기록", "에너지 배분"],
+    lifeAdviceLens: ["돌봄과 간섭 구분", "성과 기록", "기운 배분"],
     cautionLens: ["책임 과부하", "기대 투사", "정서적 소진"],
     opening: "자녀궁은 실제 자녀 인연뿐 아니라 후배·창작물·성과물을 어떻게 키워내는지를 드러내는 자리입니다.",
   },
@@ -220,7 +220,7 @@ const PALACE_COUNSELING_LENSES: Record<ZiweiPalaceId, PalaceCounselingLens> = {
   },
   health: {
     role: "체력·스트레스·회복 루틴을 좌우하는 생활 축",
-    personalityLens: ["에너지 사용 패턴", "피로 신호", "회복 민감도"],
+    personalityLens: ["기운 사용 패턴", "피로 신호", "회복 민감도"],
     relationshipLens: ["돌봄 관계", "일정 압박", "경계 설정"],
     lifeAdviceLens: ["수면·식사 리듬", "과로 알람", "회복 루틴 고정"],
     cautionLens: ["번아웃", "감정의 신체화", "생활 리듬 붕괴"],
@@ -420,7 +420,7 @@ function normalizeStrengthWord(symbol: string): string {
   if (symbol === "O") return "별의 본성이 안정적으로 발휘되는 흐름";
   if (symbol === "▲") return "상황에 따라 힘이 달라지는 별의 상태";
   if (symbol === "△") return "무난하지만 방향에 따라 달라지는 흐름";
-  if (symbol === "X") return "별의 에너지가 눌리거나 왜곡되기 쉬운 상태";
+  if (symbol === "X") return "별의 기운이 눌리거나 왜곡되기 쉬운 상태";
   return "상황에 따라 읽어야 하는 흐름";
 }
 
@@ -611,7 +611,7 @@ function buildSiblingCounselingExpansion(
     return `협업에서는 좋은 마음보다 역할 배분이 먼저입니다. ${mainName}은 내가 자연스럽게 맡는 포지션을 만들고, ${support}은 부족한 부분을 메워 주는 사람과 도구를 끌어옵니다. 그러나 ${tension}이 강하면 책임 소재가 흐려지거나 말의 온도 차이로 신뢰가 흔들릴 수 있어, 시작 전에 역할·기한·결정권을 문장으로 남기는 편이 좋습니다. ${transformLine}`;
   }
   if (category.title.includes("도움") || category.title.includes("방해")) {
-    return `주변 도움과 방해는 사람의 선악보다 에너지 교환 방식에서 갈립니다. ${mainName}과 맞는 사람은 내 판단을 맑게 만들고 행동 속도를 올려 주지만, ${tension}을 건드리는 사람은 설명을 길게 만들고 마음을 지치게 할 수 있습니다. ${support}은 도움을 실제 결과로 연결하는 통로이므로, 도움을 받을 때도 감정적 의리보다 역할과 범위를 분명히 해야 합니다. ${transformLine}`;
+    return `주변 도움과 방해는 사람의 선악보다 기운을 주고받는 방식에서 갈립니다. ${mainName}과 맞는 사람은 내 판단을 맑게 만들고 행동 속도를 올려 주지만, ${tension}을 건드리는 사람은 설명을 길게 만들고 마음을 지치게 할 수 있습니다. ${support}은 도움을 실제 결과로 연결하는 통로이므로, 도움을 받을 때도 감정적 의리보다 역할과 범위를 분명히 해야 합니다. ${transformLine}`;
   }
   if (category.title.includes("공동 프로젝트")) {
     return `공동 프로젝트는 형제궁이 가장 현실적으로 드러나는 자리입니다. ${mainName}은 프로젝트 안에서 내가 중심을 잡는 방식, ${secondName}은 함께 움직이는 사람들의 속도 차이를 보여줍니다. ${support}이 살아 있으면 협력의 손발이 맞고, ${tension}이 커지면 중간 조율 비용이 늘어나므로 처음부터 기록, 분담, 검수 기준을 고정해야 합니다. ${transformLine}`;
@@ -655,7 +655,7 @@ function buildRemainingPalaceCounselingExpansion(
     if (category.title.includes("창작") || category.title.includes("생산") || category.title.includes("성과")) {
       return `이 궁은 내가 세상에 내보내는 결과물의 운도 말합니다. ${mainName}은 아이디어가 작품, 프로젝트, 서비스로 자라는 방식을 만들고, ${support}은 완성도와 지속성을 올려 줍니다. ${tension}이 강할 때는 시작보다 마무리, 기대보다 검수, 애정보다 일정표가 중요합니다. ${transformLine}`;
     }
-    return `자녀궁의 대운 전략은 키우는 대상과 나의 에너지를 분리하는 데서 시작됩니다. ${mainName}은 책임감을 만들지만, ${tension}이 누적되면 내가 감당할 몫과 상대가 배워야 할 몫을 혼동하기 쉽습니다. 이 궁은 애정을 오래 쓰려면 기대치와 지원 범위를 먼저 정해야 한다고 말합니다. ${transformLine}`;
+    return `자녀궁의 대한 전략은 키우는 대상과 나의 기운을 분리하는 데서 시작됩니다. ${mainName}은 책임감을 만들지만, ${tension}이 누적되면 내가 감당할 몫과 상대가 배워야 할 몫을 혼동하기 쉽습니다. 이 궁은 애정을 오래 쓰려면 기대치와 지원 범위를 먼저 정해야 한다고 말합니다. ${transformLine}`;
   }
 
   if (palace.id === "wealth") {
@@ -673,9 +673,9 @@ function buildRemainingPalaceCounselingExpansion(
       return `질액궁은 병을 단정하는 자리가 아니라 몸과 마음이 어디서 먼저 피로를 드러내는지 읽는 자리입니다. ${mainName}은 체력 사용 방식과 긴장 반응을 만들고, ${secondName}은 회복 속도와 생활 리듬을 더합니다. ${support}이 좋으면 회복 습관이 빨리 자리 잡지만, ${tension}이 강하면 작은 피로가 감정과 일정 전체로 번질 수 있습니다. ${transformLine}`;
     }
     if (category.title.includes("회복") || category.title.includes("과로") || category.title.includes("생활")) {
-      return `회복은 쉬는 시간이 아니라 다시 균형을 되찾는 기술입니다. ${mainName}은 어떤 방식으로 에너지가 새는지 알려 주고, ${support}은 수면, 식사, 운동, 정리 루틴을 붙잡게 합니다. ${tension}이 커질수록 의지보다 환경 설계가 중요하므로 최소 루틴을 작고 단단하게 고정해야 합니다. ${transformLine}`;
+      return `회복은 쉬는 시간이 아니라 다시 균형을 되찾는 기술입니다. ${mainName}은 어떤 방식으로 기운이 새는지 알려 주고, ${support}은 수면, 식사, 운동, 정리 루틴을 붙잡게 합니다. ${tension}이 커질수록 의지보다 환경 설계가 중요하므로 최소 루틴을 작고 단단하게 고정해야 합니다. ${transformLine}`;
     }
-    return `질액궁의 대운 전략은 몸을 몰아붙여 성과를 내는 방식에서 벗어나는 것입니다. ${mainName}은 강하게 쓰면 성취가 빠르지만, ${tension}이 누적되면 번아웃 신호가 먼저 옵니다. 이 궁은 건강을 예언이 아니라 생활 운영표로 다루라고 말합니다. ${transformLine}`;
+    return `질액궁의 대한 전략은 몸을 몰아붙여 성과를 내는 방식에서 벗어나는 것입니다. ${mainName}은 강하게 쓰면 성취가 빠르지만, ${tension}이 누적되면 번아웃 신호가 먼저 옵니다. 이 궁은 건강을 예언이 아니라 생활 운영표로 다루라고 말합니다. ${transformLine}`;
   }
 
   if (palace.id === "travel") {
@@ -690,7 +690,7 @@ function buildRemainingPalaceCounselingExpansion(
 
   if (palace.id === "friends") {
     if (category.title.includes("친구") || category.title.includes("팀원") || category.title.includes("도움")) {
-      return `노복궁은 나를 둘러싼 사람들의 질과 쓰임을 봅니다. ${mainName}은 어떤 팀원, 친구, 고객, 팔로워를 끌어들이는지 보여주고, ${support}은 그 연결을 실제 도움으로 바꿉니다. ${tension}이 강하면 사람은 많은데 에너지가 새거나 역할 불균형이 생길 수 있습니다. ${transformLine}`;
+      return `노복궁은 나를 둘러싼 사람들의 질과 쓰임을 봅니다. ${mainName}은 어떤 팀원, 친구, 고객, 팔로워를 끌어들이는지 보여주고, ${support}은 그 연결을 실제 도움으로 바꿉니다. ${tension}이 강하면 사람은 많은데 기운이 새거나 역할 불균형이 생길 수 있습니다. ${transformLine}`;
     }
     if (category.title.includes("소모") || category.title.includes("집단") || category.title.includes("리더십")) {
       return `집단 안에서 이 궁은 내가 이끄는 사람인지, 돕는 사람인지, 조율하는 사람인지 보여줍니다. ${mainName}은 집단 속 역할을 만들고, ${tension}은 관계 소모와 기대 과잉의 지점을 알려 줍니다. 오래 가는 네트워크를 만들려면 친분보다 역할, 기여, 보상 구조가 먼저 정리되어야 합니다. ${transformLine}`;
@@ -723,7 +723,7 @@ function buildRemainingPalaceCounselingExpansion(
       return `복덕궁은 혼자 있을 때의 마음 온도와 행복을 느끼는 방식을 봅니다. ${mainName}은 내면의 기본 리듬을 만들고, ${secondName}은 취향, 휴식, 영성, 예술 감각의 결을 더합니다. ${support}이 좋으면 마음이 스스로 회복하는 힘이 강하지만, ${tension}이 커지면 쉬어도 쉬지 못하는 생각 과열이 생길 수 있습니다. ${transformLine}`;
     }
     if (category.title.includes("스트레스") || category.title.includes("불안") || category.title.includes("공허")) {
-      return `불안과 공허감은 약함이 아니라 마음의 에너지가 어디에서 새는지 알려 주는 신호입니다. ${mainName}은 만족감을 느끼는 조건을 만들고, ${tension}은 생각이 고착되는 지점을 알려 줍니다. 이 궁은 휴식도 계획해야 회복이 된다고 말하며, 혼자 있는 시간의 질을 반드시 관리해야 합니다. ${transformLine}`;
+      return `불안과 공허감은 약함이 아니라 마음의 기운이 어디에서 새는지 알려 주는 신호입니다. ${mainName}은 만족감을 느끼는 조건을 만들고, ${tension}은 생각이 고착되는 지점을 알려 줍니다. 이 궁은 휴식도 계획해야 회복이 된다고 말하며, 혼자 있는 시간의 질을 반드시 관리해야 합니다. ${transformLine}`;
     }
     return `복덕궁의 행복 전략은 바깥 성과를 내면 안정으로 번역하는 일입니다. ${mainName}은 어떤 활동이 마음을 맑게 하는지 말하고, ${support}은 취미와 회복 루틴을 붙입니다. ${tension}이 강할 때는 사람을 더 만나기보다 생각을 비우는 구조를 먼저 만들어야 합니다. ${transformLine}`;
   }
@@ -762,14 +762,14 @@ function buildZiweiFullScopeConsultation(
     ? `이 궁은 공궁 성향이 있어 ${opposite}의 별을 빌려 읽어야 하며, 그래서 환경과 상대 선택이 결과를 크게 바꿉니다.`
     : `이 궁은 주성이 직접 자리를 잡아 ${mainStars}의 성정이 비교적 곧게 드러납니다.`;
   const periodLine = period
-    ? `대운에서는 ${period.range} 구간의 ${ZIWEI_PALACE_NAME[period.palaceId]} 흐름과 맞물려, 지금의 선택이 장기 습관으로 굳어질 수 있습니다.`
-    : "대운 흐름은 현재 궁의 반복 습관을 기준으로 보수적으로 읽어야 합니다.";
+    ? `대한에서는 ${period.range} 구간의 ${ZIWEI_PALACE_NAME[period.palaceId]} 흐름과 맞물려, 지금의 선택이 장기 습관으로 굳어질 수 있습니다.`
+    : "대한 흐름은 현재 궁의 반복 습관을 기준으로 보수적으로 읽어야 합니다.";
   const annualLine = annualHit
     ? `${annualLabel} 유년에는 이 궁이 직접 건드려지므로 ${category.title}이 실제 사건으로 빨리 드러날 수 있습니다.`
     : `${annualLabel} 유년에는 이 궁이 전면에 서기보다 연결궁과 대궁을 통해 간접적으로 움직입니다.`;
 
   return removeRepeatedZiweiDeepPhrases(
-    `자미두수식으로 깊게 보면 ${category.title}은 원국, 대궁, 삼방사정, 사화, 대운과 유년을 함께 묶어 판단해야 합니다. 원국에서는 ${mainStars}이 핵심 성향을 만들고, 대궁 ${opposite}과 삼방 ${triad}이 현실 장면을 보정합니다. ${emptyLine} ${sihuaLine} ${periodLine} ${annualLine} 실전 상담에서는 이 모든 신호를 한 줄로 합쳐, 지금 당장 넓힐 부분과 조심스럽게 정리할 부분을 분리해 읽습니다.`,
+    `자미두수식으로 깊게 보면 ${category.title}은 원국, 대궁, 삼방사정, 사화, 대한과 유년을 함께 묶어 판단해야 합니다. 원국에서는 ${mainStars}이 핵심 성향을 만들고, 대궁 ${opposite}과 삼방 ${triad}이 현실 장면을 보정합니다. ${emptyLine} ${sihuaLine} ${periodLine} ${annualLine} 실전 상담에서는 이 모든 신호를 한 줄로 합쳐, 지금 당장 넓힐 부분과 조심스럽게 정리할 부분을 분리해 읽습니다.`,
   );
 }
 
@@ -877,7 +877,7 @@ function buildCategoryCounselingParagraph(
       fullScopeLine,
       `당신은 ${personalityAnchor}이 중심이 되는 사람처럼 보입니다. ${mainNames}의 조합은 선택 속도와 확신을 좌우하고, 그래서 같은 상황도 누구보다 빠르게 결론을 내리거나 반대로 오래 붙잡고 있을 수 있습니다.`,
       `사람들과의 관계에서는 ${relationshipAnchor}이 핵심입니다. 가까운 사람일수록 기대치와 경계선을 먼저 맞춰야 마음이 덜 다치고, 오래 가는 인연도 그때부터 시작됩니다.`,
-      `현실에서는 ${palace.name}의 ${category.title}이 업무·연애·돈·가족 중 지금 에너지가 몰린 장면에서 먼저 결과로 나타납니다. ${transformationLine}`,
+      `현실에서는 ${palace.name}의 ${category.title}이 업무·연애·돈·가족 중 지금 기운이 몰린 장면에서 먼저 결과로 나타납니다. ${transformationLine}`,
       crossPalaceLine,
       `${category.title}의 주의할 점은 ${cautionAnchor}입니다. 살성의 압박이나 화기 흐름이 겹치면 작은 말 한마디도 크게 번질 수 있어 속도 조절이 필요합니다.`,
       `${category.title}의 조언은 ${adviceAnchor}을 바로 실행하는 것입니다. 오늘부터 ${category.title} 기준표와 선택 조건을 문장으로 정리하면 흔들림이 줄어듭니다.`,

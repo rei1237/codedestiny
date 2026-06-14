@@ -20,12 +20,12 @@
  *   }
  */
 
+import { siteSeo } from "./seo/siteSeo";
 import { mergeKeywords, SEO_CORE_KEYWORDS, toAbsoluteUrl } from "./seo-metadata";
 import { buildOpenGraphImageUrl, getCanonicalUrl, isIndexableRoute, normalizePath } from "./seo.v2";
 
-const SITE_ORIGIN =
-  (process.env.NEXT_PUBLIC_SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
-const DEFAULT_OG_IMAGE_URL = `${SITE_ORIGIN}/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp`;
+const SITE_ORIGIN = siteSeo.siteUrl.replace(/\/$/, "");
+const DEFAULT_OG_IMAGE_URL = siteSeo.defaultOgImage;
 
 /** 경로 끝 슬래시를 제거해 canonical 중복 방지 */
 function normalizeCanonicalPath(path: string): string {
@@ -158,7 +158,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
       url: canonicalUrl,
       title: uniqueTitle,
       description: uniqueDescription,
-      siteName: "코드 데스티니 꿀꿀 운세",
+      siteName: siteSeo.siteName,
       images: [{ url: ogImage, width: 1200, height: 630, alt: uniqueTitle }],
       ...(publishedAt ? { publishedTime: new Date(publishedAt).toISOString() } : {}),
       ...(updatedAt ? { modifiedTime: new Date(updatedAt).toISOString() } : {}),
@@ -227,7 +227,7 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
           availability: "https://schema.org/InStock",
           url,
         },
-        author: { "@id": `${SITE_ORIGIN}/about#author` },
+        author: { "@id": `${SITE_ORIGIN}/#organization` },
         publisher: { "@id": `${SITE_ORIGIN}/#organization` },
         image: { "@type": "ImageObject", url: ogImage },
         ...(featureList.length > 0 ? { featureList } : {}),
@@ -275,7 +275,7 @@ export function withUniqueRouteMetadata(
   const twitter = (metadata?.twitter as Record<string, unknown> | undefined) || undefined;
   const alternates = (metadata?.alternates as Record<string, unknown> | undefined) || undefined;
   const canonical = normalizeMetaText(alternates?.canonical) || toAbsoluteUrl(canonicalPath);
-  const mergedTitle = uniqueTitle || rawTitle || "코드 데스티니 꿀꿀 운세";
+  const mergedTitle = uniqueTitle || rawTitle || siteSeo.defaultTitle;
   const mergedDescription = uniqueDescription || rawDescription;
   const imageCandidate =
     pickFirstImageUrl(openGraph?.images) ||
@@ -304,7 +304,7 @@ export function withUniqueRouteMetadata(
       type: normalizeMetaText(openGraph?.type) || "website",
       locale,
       url: normalizeMetaText(openGraph?.url) || canonical,
-      siteName: normalizeMetaText(openGraph?.siteName) || "코드 데스티니 꿀꿀 운세",
+      siteName: normalizeMetaText(openGraph?.siteName) || siteSeo.siteName,
       title: appendUniqueTitle(normalizeMetaText(openGraph?.title) || mergedTitle, routeMetaCode),
       description: appendUniqueDescription(
         normalizeMetaText(openGraph?.description) || mergedDescription,

@@ -162,7 +162,7 @@ function buildStarInterpretation(star: ZiweiStarMeta, group: "main" | "assistant
   if (star.name === "천동" && (symbol === "△" || symbol === "X")) {
     specialRules.push("천동 약세 구간은 '편안함이 곧 불안함'으로 체감되기 쉬워, 안락함보다 성취감 중심 프로젝트에 몰입할 때 심리적 안정이 올라갑니다.");
     specialRules.push("천동의 감수성은 소모형 감정 반응보다 사람의 마음을 읽고 정리하는 상담·기획·섬세한 조율 영역에서 가치가 극대화됩니다.");
-    specialRules.push("루틴 명상·시각화·수면 고정은 흔들리는 천동 에너지를 묶어주는 핵심 방어막입니다.");
+    specialRules.push("루틴 명상·시각화·수면 고정은 흔들리는 천동의 기운을 묶어주는 핵심 방어막입니다.");
   }
   if (star.name === "경양" && symbol === "◎") {
     specialRules.push("경양 강세는 공격성이 아니라 문제 핵심을 찌르는 기술력·돌파력·결단력으로 승화될 가능성이 큽니다.");
@@ -353,7 +353,7 @@ function buildPalaceLongBody(chart: ZiweiDeepChart, palace: ZiweiPalace): string
 
   const cautions = [
     sentenceList(tpl.cautionLens, "과속/과부하/관계 소모"),
-    "살성은 무조건 흉이 아니라 고속 실행 에너지이므로, 일정 완충과 손실 상한선을 같이 설계해야 합니다.",
+    "살성은 무조건 흉이 아니라 고속 실행 기운이므로, 일정 완충과 손실 상한선을 같이 설계해야 합니다.",
     "화기가 있는 궁은 막힘으로 단정하지 말고 집중 과제의 방향을 먼저 정의해야 합니다.",
   ];
 
@@ -365,7 +365,7 @@ function buildPalaceLongBody(chart: ZiweiDeepChart, palace: ZiweiPalace): string
 
   const hasGyeongyang = palace.maleficStars.some((s) => s.name === "경양");
   if (hasGyeongyang) {
-    actions.push("경양 에너지는 인간관계 정면충돌보다 복잡한 문제를 정리하고 결단하는 방향으로 배출해 성과 에너지로 전환합니다.");
+    actions.push("경양의 기운은 인간관계 정면충돌보다 복잡한 문제를 정리하고 결단하는 방향으로 배출해 성과의 힘으로 전환합니다.");
   }
 
   if (palace.auxiliaryStars.some((s) => s.name === "우필" && (symbolOf(s) === "◎" || symbolOf(s) === "O" || symbolOf(s) === "▲"))) {
@@ -375,7 +375,7 @@ function buildPalaceLongBody(chart: ZiweiDeepChart, palace: ZiweiPalace): string
   const body = [
     `${palace.name}은 ${tpl.meaning}을 아주 분명하게 드러내는 자리입니다. 이 궁은 단순한 성격 설명이 아니라, 지금 삶에서 무엇을 먼저 붙잡아야 하는지 알려주는 상담의 중심축입니다.`,
     `배치된 주성은 ${main}이고, 보조성은 ${assistant}, 살성은 ${malefic}입니다. 사화는 ${transformations}으로 나타나며, 밖에서 들어오는 흐름은 ${incomingTransformationText}로 읽힙니다. ${emptyMainNarrative} ${noDirectTransformationNarrative}`,
-    `강약의 의미는 단순한 점수가 아니라 생활 속 체감 온도입니다. ◎은 별의 힘이 가장 찬란하게 살아나는 상태이고, O는 본성이 안정적으로 발휘되는 흐름입니다. ▲은 상황에 따라 힘이 달라지는 구간, △은 무난하지만 방향에 따라 달라지는 흐름, X는 에너지가 눌리거나 왜곡되기 쉬운 상태입니다. 그래서 같은 별이라도 어디에 놓였는지에 따라 말투, 관계, 돈, 일의 결과가 전혀 다르게 나타납니다.`,
+    `강약의 의미는 단순한 점수가 아니라 생활 속 체감 온도입니다. ◎은 별의 힘이 가장 찬란하게 살아나는 상태이고, O는 본성이 안정적으로 발휘되는 흐름입니다. ▲은 상황에 따라 힘이 달라지는 구간, △은 무난하지만 방향에 따라 달라지는 흐름, X는 기운이 눌리거나 왜곡되기 쉬운 상태입니다. 그래서 같은 별이라도 어디에 놓였는지에 따라 말투, 관계, 돈, 일의 결과가 전혀 다르게 나타납니다.`,
     `이제 별 하나하나를 상담하듯 짚어보겠습니다. ${buildPerStarCounselingLines(palace)}`,
     `별 하나하나를 보면 더 선명해집니다. ${starDetails.join(" ")}`,
     `별들끼리의 조합은 따로 보면 약해 보이더라도 함께 읽으면 큰 맥락을 만듭니다. ${synergy.join(" ")} ${conflicts.join(" ")}`,
@@ -480,7 +480,7 @@ function buildMaster(chart: ZiweiDeepChart): ZiweiDeepChapter {
   const fullText = removeRepeatedZiweiDeepPhrases([
     `지금 명반 전체를 한 문장으로 잡으면 ${chart.summary.direction}입니다. 복잡한 해석을 모두 기억하려고 애쓰기보다, 이 문장을 오늘의 선택 기준으로 삼는 것이 가장 빠른 길입니다.`,
     `현재 흐름에서 힘이 먼저 살아나는 궁은 ${topStrength || "상위 궁 데이터 확인 필요"}이고, 먼저 보완해야 할 궁은 ${lowStrength || "하위 궁 데이터 확인 필요"}입니다. 운은 좋고 나쁨의 낙인이 아니라, 어디를 먼저 쓰고 어디를 먼저 고칠지의 순서입니다.`,
-    `대운 흐름을 보면 지금 구간은 ${currentPeriod}입니다. 다음 구간은 ${nextPeriod}로 넘어갑니다. 그러니 당장 성과를 키울 영역과 천천히 기반을 다질 영역을 분리해 운용해야 체감 성과가 안정됩니다.`,
+    `대한 흐름을 보면 지금 구간은 ${currentPeriod}입니다. 다음 구간은 ${nextPeriod}로 넘어갑니다. 그러니 당장 성과를 키울 영역과 천천히 기반을 다질 영역을 분리해 운용해야 체감 성과가 안정됩니다.`,
     `올해 유년 키워드는 ${annualKey}이며, 특히 ${annualPalaces || "핵심 궁 정보 제한"}에서 사건 체감이 빠르게 올라올 수 있습니다. 이 구간에서는 감정 반응보다 일정·문서·돈의 순서로 정리할수록 실수가 줄어듭니다.`,
     `사화 흐름은 다음과 같이 읽으시면 됩니다. ${buildSihuaAnalysis(chart).replace(/\n+/g, " ")}`,
     `화록은 들어오는 기회를 받는 힘, 화권은 책임을 떠맡는 힘, 화과는 평판을 키우는 힘, 화기는 오래 미뤄 둔 과제를 해결하라는 신호입니다. 특히 화기는 불운의 낙인이 아니라, 지금 반드시 정리해야 하는 삶의 숙제를 알려주는 등불에 가깝습니다.`,
@@ -494,17 +494,17 @@ function buildMaster(chart: ZiweiDeepChart): ZiweiDeepChapter {
     title: MASTER_TEMPLATE.title,
     summary: [
       "사화 작동궁 기반 성공/리스크 축을 분리했습니다.",
-      "대운·세운 시기 전략을 행동 단위로 번역했습니다.",
+      "대한·유년 시기 전략을 행동 단위로 번역했습니다.",
       "최종 성공 공식을 직업/돈/관계/사업 전략으로 통합했습니다.",
     ],
     fullText,
-    highlights: ["사화", "대운", "세운", "마스터플랜", "성공 공식"],
-    strengths: ["사화를 기회/과제로 분리해 해석", "대운·세운을 실행전략으로 번역", "90일 로드맵으로 행동 고정"],
+    highlights: ["사화", "대한", "유년", "마스터플랜", "성공 공식"],
+    strengths: ["사화를 기회/과제로 분리해 해석", "대한·유년을 실행전략으로 번역", "90일 로드맵으로 행동 고정"],
     cautions: ["화기를 흉으로만 단정하지 않기", "시기 해석을 예언으로 오해하지 않기", "강점 확장과 리스크 관리의 균형 유지"],
-    remedies: ["월간 사화 체크", "분기 대운 리셋", "주간 실행 로그"],
-    actionItems: ["이번 달 화기 과제 1개를 문서화", "다음 대운 대비 역량 1개 선행 확보", "90일 테이블에 본인 일정 매핑"],
+    remedies: ["월간 사화 체크", "분기 대한 리셋", "주간 실행 로그"],
+    actionItems: ["이번 달 화기 과제 1개를 문서화", "다음 대한 대비 역량 1개 선행 확보", "90일 테이블에 본인 일정 매핑"],
     routine7Days: ["사화 작동궁 점검", "핵심 리스크 1개 완충", "결정 로그 기록"],
-    routine30Days: ["대운 흐름 리뷰", "수익/관계/건강 3축 재정렬", "분기 목표 재설정"],
+    routine30Days: ["대한 흐름 리뷰", "수익/관계/건강 3축 재정렬", "분기 목표 재설정"],
   };
 }
 

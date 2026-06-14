@@ -17,9 +17,9 @@ export default function NotFoundPage() {
       React.createElement("title", null, "페이지를 찾지 못했습니다 | Code Destiny"),
       React.createElement("meta", {
         name: "description",
-        content: "요청한 페이지를 찾지 못했습니다. 유명인 사주 분석과 운세 인사이트 허브에서 관련 글을 이어서 확인할 수 있습니다.",
+        content: "요청한 페이지를 찾지 못했습니다. Code Destiny의 공개 운세 가이드와 주요 서비스에서 가까운 경로를 확인할 수 있습니다.",
       }),
-      React.createElement("meta", { name: "robots", content: "noindex,follow" })
+      React.createElement("meta", { name: "robots", content: "noindex,follow" }),
     ),
     React.createElement(
       "main",
@@ -52,7 +52,7 @@ export default function NotFoundPage() {
         React.createElement(
           "p",
           { style: { margin: "14px auto 0", maxWidth: 520, lineHeight: 1.8, color: "#cbd5e1" } },
-          "주소가 바뀌었거나 아직 공개되지 않은 글일 수 있습니다. 유명인 사주 분석과 운세 인사이트 허브에서 가까운 글을 이어서 확인해 보세요."
+          "주소가 바뀌었거나 아직 공개되지 않은 글일 수 있습니다. 유명인 사주 분석과 운세 인사이트 허브에서 가까운 글을 이어서 확인해 보세요.",
         ),
         React.createElement(
           "div",
@@ -72,8 +72,8 @@ export default function NotFoundPage() {
                 textDecoration: "none",
               },
             },
-            item.label
-          ))
+            item.label,
+          )),
         ),
         React.createElement(
           "div",
@@ -91,7 +91,7 @@ export default function NotFoundPage() {
                 textDecoration: "none",
               },
             },
-            "운세 인사이트 허브"
+            "운세 인사이트 허브",
           ),
           React.createElement(
             "a",
@@ -106,10 +106,10 @@ export default function NotFoundPage() {
                 textDecoration: "none",
               },
             },
-            "내 사주 분석"
-          )
-        )
-      )
+            "무료 사주 분석",
+          ),
+        ),
+      ),
     )
   );
 }

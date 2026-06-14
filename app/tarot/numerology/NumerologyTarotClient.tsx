@@ -418,18 +418,18 @@ export default function NumerologyTarotClient() {
     const base = FREE_TALENT_MAP[lifePath] || FREE_TALENT_MAP[(lifePath % 9) || 9] || FREE_TALENT_MAP[9];
     const topicFocusMap: Record<TopicKey, string> = {
       love: "지금 관계의 온도와 진심을 읽는 흐름에 맞춘 해석입니다.",
-      reunion: "끊어진 인연의 잔향과 재연결 가능성을 함께 봅니다.",
-      feelings: "상대의 표면과 내면이 얼마나 다른지까지 함께 봅니다.",
+      reunion: "끊어진 인연의 잔향과 다시 닿을 여지를 함께 봅니다.",
+      feelings: "상대의 말과 행동 사이에 남은 온도차를 함께 봅니다.",
       career: "역할, 성장, 성과 흐름이 어디에 모이는지 중심으로 읽습니다.",
       money: "수입, 지출, 기회 포착의 리듬을 기준으로 풀어냅니다.",
       relationship: "대인관계의 경계와 신뢰, 협력의 온도를 함께 봅니다.",
       health: "컨디션, 회복, 에너지 소모를 생활 리듬 기준으로 읽습니다.",
-      move: "이동과 변화의 타이밍, 준비도, 정착 가능성을 함께 점검합니다.",
+      move: "이동과 변화의 타이밍, 준비도, 정착 여지를 함께 점검합니다.",
       general: "지금 전체 운의 방향과 실행 우선순위를 함께 보는 기준입니다.",
     };
 
     return {
-      headline: `${lifeData?.keyword || "핵심 기질"}을 중심으로 한 무료 상세 리포트`,
+      headline: `${lifeData?.keyword || "핵심 기질"}을 중심으로 한 기초 리딩`,
       summary: `생명수 ${numerology.lifePathNumber}와 ${TOPIC_LABELS[topic]}의 오늘 리듬을 겹쳐, 지금 먼저 보이는 성향과 선택의 결을 정리했습니다.`,
       cards: [
         { title: "타고난 성향", value: base.trait },
@@ -495,7 +495,7 @@ export default function NumerologyTarotClient() {
       } else {
         await document.exitFullscreen();
       }
-    } catch (e) {
+    } catch {
       showToast("브라우저 정책으로 전체화면 전환이 제한되었습니다.", "error");
     }
   }
@@ -559,7 +559,7 @@ export default function NumerologyTarotClient() {
 
   async function payAndRead() {
     if (!cards.length || !numerology) {
-      setError("먼저 카드 뽑기를 진행해 주세요.");
+      setError("먼저 카드를 열어 주세요.");
       return;
     }
     if (!toText(question)) {
@@ -567,7 +567,7 @@ export default function NumerologyTarotClient() {
       return;
     }
     if (revealed.length < cards.length) {
-      setError(`카드 ${cards.length || 5}장을 모두 열어야 해석을 볼 수 있습니다.`);
+      setError(`카드 ${cards.length || 5}장을 모두 열어야 리딩을 볼 수 있습니다.`);
       return;
     }
 
@@ -625,12 +625,10 @@ export default function NumerologyTarotClient() {
         <header className={styles.topBar}>
           <strong className={styles.brand}>수비학 타로</strong>
           <nav className={styles.topNav} aria-label="수비학 타로 메뉴">
-            <button type="button">홈</button>
-            <button type="button">리딩하기</button>
-            <button type="button">나의 리딩</button>
-            <button type="button">숫자 해석</button>
-            <button type="button">타로 가이드</button>
-            <button type="button">프리미엄</button>
+            <span>정보 입력</span>
+            <span>숫자 정렬</span>
+            <span>카드 열기</span>
+            <span>결 읽기</span>
           </nav>
           <div className={styles.actions}>
             <button type="button" className={styles.ghostBtn} onClick={() => router.push("/index.html")}>메인으로</button>
@@ -641,7 +639,7 @@ export default function NumerologyTarotClient() {
         <section className={styles.heroGrid}>
           <div className={styles.mainPanel}>
             <h1 className={styles.title}>숫자 리듬 타로</h1>
-            <p className={styles.subtitle}>생명수·오늘수·질문수가 3장의 카드와 만나는 리딩</p>
+            <p className={styles.subtitle}>생명수·오늘수·질문수가 5장의 카드와 만나는 리딩</p>
 
             <div className={styles.stepRail}>
               {STEP_LABELS.map((label, idx) => (
@@ -653,7 +651,7 @@ export default function NumerologyTarotClient() {
 
             <div className={styles.stage}>
               <section className={styles.formCard}>
-                <h2 className={styles.formTitle}>숫자가 태어난 시간을 알려주세요</h2>
+                <h2 className={styles.formTitle}>당신의 숫자가 깨어나는 시간을 알려주세요</h2>
 
                 <div className={styles.topicTabs}>
                   {TOPIC_OPTIONS.map((option) => (
@@ -775,13 +773,13 @@ export default function NumerologyTarotClient() {
                               <p className={styles.previewMeta}>{entry.orientation === "reversed" ? "역방향" : "정방향"}</p>
                             </>
                           ) : (
-                            <span>OPEN</span>
+                            <span>열기</span>
                           )
                         ) : (
                           <>
                             <p className={styles.previewPosition}>{entry.title}</p>
                             <div style={{ fontSize: 30 }}>{entry.icon}</div>
-                            <p className={styles.previewMeta}>숫자 대기</p>
+                            <p className={styles.previewMeta}>숫자 정렬 전</p>
                           </>
                         )}
                       </button>
@@ -798,7 +796,7 @@ export default function NumerologyTarotClient() {
                   <p>{numerology.lifePathNumber} · {lifeData?.keyword || "핵심 파동"}</p>
                 </article>
                 <article className={styles.infoItem}>
-                  <h4>개인수</h4>
+                  <h4>오늘수</h4>
                   <p>{numerology.personalDayNumber} · 오늘의 흐름</p>
                 </article>
                 <article className={styles.infoItem}>
@@ -838,7 +836,7 @@ export default function NumerologyTarotClient() {
                     <p className={styles.resultLead}>{reading.numerologyReading}</p>
                     <p className={styles.resultCoreMessage}>오늘 붙잡을 한 문장: {reading.coreMessage}</p>
                     {reading.quality?.warnings?.length ? (
-                      <p className={styles.qualityNote}>리딩 보강: 카드와 숫자의 연결을 한 번 더 정돈했습니다.</p>
+                      <p className={styles.qualityNote}>리딩 보강: 숫자와 카드의 연결을 한 번 더 차분히 정리했습니다.</p>
                     ) : null}
                   </article>
 
@@ -879,7 +877,7 @@ export default function NumerologyTarotClient() {
                           <p className={styles.keywordChip}>키워드: {item.keywordFocus}</p>
                           <p><strong>카드 기본 의미</strong><br />{item.cardMeaning}</p>
                           <p><strong>숫자의 리듬</strong><br />{item.numerologyBridge}</p>
-                          <p><strong>선택 카테고리별 해석</strong><br />{item.topicInterpretation}</p>
+                          <p><strong>선택한 주제의 해석</strong><br />{item.topicInterpretation}</p>
                           <p><strong>숨은 패턴</strong><br />{item.hiddenPattern}</p>
                           <p className={styles.actionTip}><strong>오늘의 작은 의식</strong><br />{item.actionTip}</p>
                           <p className={styles.cautionText}><strong>주의점</strong><br />{item.caution}</p>
@@ -900,7 +898,7 @@ export default function NumerologyTarotClient() {
                   </article>
 
                   <article className={styles.resultSection}>
-                    <h4>5. 앞으로 7일 실행 플랜</h4>
+                    <h4>5. 앞으로 7일 작은 실천</h4>
                     <ol className={styles.planList}>
                       {reading.conclusion.sevenDayPlan.map((item, idx) => (
                         <li key={`${idx}-${item}`}>{item}</li>
@@ -909,14 +907,14 @@ export default function NumerologyTarotClient() {
                   </article>
 
                   <article className={styles.resultSection}>
-                    <h4>6. 지금 실행할 것 / 피할 것</h4>
+                    <h4>6. 지금 할 것 / 잠시 미룰 것</h4>
                     <div className={styles.resultGrid}>
                       <article className={styles.resultBox}>
-                        <h5>지금 실행할 것</h5>
+                        <h5>지금 할 것</h5>
                         <p>{reading.conclusion.doThis.join(" / ")}</p>
                       </article>
                       <article className={styles.resultBox}>
-                        <h5>피할 것</h5>
+                        <h5>잠시 미룰 것</h5>
                         <p>{reading.conclusion.avoidThis.join(" / ")}</p>
                       </article>
                       <article className={styles.resultBox}>
@@ -947,7 +945,7 @@ export default function NumerologyTarotClient() {
               </article>
 
               <article className={styles.phone}>
-                <h4>2. 타로 뽑기</h4>
+                <h4>2. 카드 열기</h4>
                 <div className={styles.miniCardStack}>
                   {[0, 1, 2, 3, 4].map((idx) => {
                     const picked = cards[idx];
@@ -969,14 +967,14 @@ export default function NumerologyTarotClient() {
                     );
                   })}
                 </div>
-                <div className={styles.miniField}>공개 진행률: {revealProgress}</div>
-                <div className={styles.miniField}>리딩 준비: {readingEnabled ? "완료" : "세 장의 카드 공개 필요"}</div>
+                <div className={styles.miniField}>카드 공개: {revealProgress}</div>
+                <div className={styles.miniField}>리딩 준비: {readingEnabled ? "완료" : `${cards.length || 5}장의 카드 공개 필요`}</div>
               </article>
 
               <article className={styles.phone}>
                 <h4>3. 결과 확인</h4>
                 <div className={styles.statPill}>생명수: {numerology?.lifePathNumber ?? "-"}</div>
-                <div className={styles.statPill}>개인수: {numerology?.personalDayNumber ?? "-"}</div>
+                <div className={styles.statPill}>오늘수: {numerology?.personalDayNumber ?? "-"}</div>
                 <div className={styles.statPill}>질문수: {numerology?.questionNumber ?? "-"}</div>
                 <div className={styles.miniField}>{reading?.coreMessage || "세 숫자와 카드가 맞물리면 핵심 메시지가 떠오릅니다."}</div>
               </article>

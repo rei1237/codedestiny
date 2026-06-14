@@ -8,6 +8,7 @@ import { useCoinGate } from "../../hooks/useCoinGate";
 import { buildImageCandidates, TAROT_CARDS } from "../../../lib/tarot/tarot-cards.mjs";
 import {
   CATEGORY_LABEL,
+  buildRecommendedQuestionsForSpread,
   DEFAULT_QUESTION_BY_CATEGORY,
   DIFFICULTY_LABEL,
   findSpreadById,
@@ -34,6 +35,7 @@ type BillingSnapshot = {
   requiredCoins: number;
   canAccess: boolean;
   freeBySubscription: boolean;
+  canUseByPass: boolean;
   subscriptionTier: string;
   accessReason: string;
 };
@@ -54,7 +56,7 @@ const DECK_SLOTS = Array.from({ length: 78 }, (_, index) => index);
 const STEP_META: Array<{ id: Stage; title: string; caption: string; icon: string }> = [
   { id: "question", title: "질문 올리기", caption: "마음속 질문을 밤하늘에 올리고 어울리는 스프레드를 고르세요.", icon: "✦" },
   { id: "draw", title: "카드 열기", caption: "직관이 닿는 순서대로 카드를 열어 질문의 별자리를 만듭니다.", icon: "✦" },
-  { id: "prompt", title: "오라클 문장", caption: "카드가 만든 흐름을 바로 읽을 수 있는 리딩 원고로 정리합니다.", icon: "✦" },
+  { id: "prompt", title: "AI 프롬프트", caption: "카드가 만든 흐름을 AI 타로 상담 프롬프트로 정리합니다.", icon: "✦" },
 ];
 
 const CARD_COUNT_FILTERS = ["all", 1, 3, 5, 7, 10, 12, 14] as const;
@@ -62,6 +64,7 @@ const CARD_COUNT_FILTERS = ["all", 1, 3, 5, 7, 10, 12, 14] as const;
 const QUESTION_CATEGORY_OPTIONS: TarotSpreadCategory[] = [
   "love",
   "reunion",
+  "third_party",
   "relationship",
   "career",
   "money",
@@ -69,9 +72,20 @@ const QUESTION_CATEGORY_OPTIONS: TarotSpreadCategory[] = [
   "self",
   "choice",
   "daily",
+  "crisis",
   "future",
+  "spiritual",
+  "power",
+  "legal",
   "special",
 ];
+
+const SENSITIVE_CATEGORY_NOTICE: Partial<Record<TarotSpreadCategory, string>> = {
+  crisis: "위기 질문은 공포를 키우지 않고, 멈출 선택과 지금 도움을 청할 지점을 먼저 분리합니다.",
+  money: "금전 질문은 수익이나 투자 판단을 단정하지 않고, 위험 신호와 관리 기준을 중심으로 읽습니다.",
+  self: "마음 질문은 진단이 아니라 감정의 이름과 회복 행동을 찾는 참고 리딩으로 다룹니다.",
+  legal: "법률·송사 질문은 승패나 판결을 단정하지 않고, 기록 정리와 전문가 상담을 돕는 참고용 상징 해석으로만 다룹니다.",
+};
 
 const CATEGORY_FILTER_OPTIONS: Array<{ id: "all" | TarotSpreadCategory; label: string }> = [
   { id: "all", label: "전체" },
@@ -83,6 +97,17 @@ const CATEGORY_FILTER_OPTIONS: Array<{ id: "all" | TarotSpreadCategory; label: s
 
 function normalizeText(value: string) {
   return String(value || "").trim().replace(/\s+/g, " ");
+}
+
+function buildQuestionQualityNotice(question: string, category: TarotSpreadCategory) {
+  const text = normalizeText(question);
+  if (!text) return `${CATEGORY_LABEL[category]} 질문을 한 문장으로 적으면 추천 질문과 스프레드가 더 정확해집니다.`;
+  if (text.length < 12) return "질문이 짧아 해석 범위가 넓어질 수 있어요. 대상, 상황, 알고 싶은 결론 중 하나를 더해보세요.";
+  if (text.length > 170) return "질문이 길어 핵심이 흐려질 수 있어요. 가장 중요한 사건과 알고 싶은 방향만 남기면 프롬프트가 선명해집니다.";
+  if (!/(어떻게|무엇|뭐|왜|언제|가능성|마음|흐름|조언|선택|해야|될까|일까|할까|괜찮|가능|타이밍|결과|주의)/u.test(text)) {
+    return "질문 안에 알고 싶은 방향을 조금 더 넣으면 카드가 전할 상담 초점이 또렷해집니다.";
+  }
+  return "질문 흐름이 충분히 잡혔습니다. 추천 질문을 누르면 더 상담형 문장으로 다듬을 수 있습니다.";
 }
 
 function buildFlowLines(cards: DrawnTarotCard[]) {
@@ -173,6 +198,7 @@ export default function TarotPromptMakerPage() {
   const [drawnCards, setDrawnCards] = useState<DrawnTarotCard[]>([]);
   const [promptResult, setPromptResult] = useState<PromptResult | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [questionStatus, setQuestionStatus] = useState("");
   const [billingSnapshot, setBillingSnapshot] = useState<BillingSnapshot | null>(null);
   const [billingLoading, setBillingLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -196,7 +222,7 @@ export default function TarotPromptMakerPage() {
   const progressText = `${drawnCards.length} / ${selectedSpread.cardCount}`;
 
   const recommendedSpreads = useMemo(
-    () => recommendSpreads(`${effectiveQuestion} ${CATEGORY_LABEL[selectedQuestionCategory]}`, cardCountFilter).slice(0, 6),
+    () => recommendSpreads(effectiveQuestion, cardCountFilter, selectedQuestionCategory).slice(0, 6),
     [effectiveQuestion, cardCountFilter, selectedQuestionCategory],
   );
 
@@ -221,17 +247,25 @@ export default function TarotPromptMakerPage() {
     [searchQuery, categoryFilter, cardCountFilter, recommendedSpreads, selectedQuestionCategory],
   );
 
-  const billingSubscriptionLabel = billingSnapshot?.freeBySubscription
-    ? getSubscriptionTierLabel(billingSnapshot.subscriptionTier)
+  const recommendedQuestions = useMemo(
+    () => buildRecommendedQuestionsForSpread(selectedSpread, selectedQuestionCategory, 5, question),
+    [selectedSpread, selectedQuestionCategory, question],
+  );
+
+  const billingPassIncluded = Boolean(billingSnapshot?.freeBySubscription || billingSnapshot?.canUseByPass);
+  const billingSubscriptionLabel = billingPassIncluded
+    ? getSubscriptionTierLabel(billingSnapshot?.subscriptionTier)
     : "";
 
   const billingCoinLabel = billingSnapshot
-    ? (billingSnapshot.freeBySubscription ? `${billingSubscriptionLabel} 월정석` : billingSnapshot.requiredCoins > 0 ? `${billingSnapshot.requiredCoins}코인` : "무료")
+    ? (billingPassIncluded ? `${billingSubscriptionLabel} 월정석` : billingSnapshot.requiredCoins > 0 ? `${billingSnapshot.requiredCoins}코인` : "무료")
     : "1회 50코인";
 
   const billingStateLabel = billingSnapshot
-    ? (billingSnapshot.freeBySubscription ? "월정석 포함" : billingSnapshot.canAccess ? "즉시 이용" : "결제 필요")
+    ? (billingPassIncluded ? "월정석 포함" : billingSnapshot.canAccess ? "즉시 이용" : "결제 필요")
     : (billingLoading ? "확인 중" : "미연동");
+  const sensitiveCategoryNotice = SENSITIVE_CATEGORY_NOTICE[selectedQuestionCategory];
+  const questionQualityNotice = buildQuestionQualityNotice(question, selectedQuestionCategory);
 
   useEffect(() => {
     if (selectedSpreadId) return;
@@ -255,7 +289,9 @@ export default function TarotPromptMakerPage() {
         const payload = await response.json().catch(() => ({}));
         const data = payload?.ok && payload?.data && typeof payload.data === "object" ? payload.data : null;
         if (!active || !data) return;
-        setBillingSnapshot({ requiredCoins: Number(data.requiredCoins || 0), canAccess: Boolean(data.canAccess), freeBySubscription: Boolean(data.freeBySubscription), subscriptionTier: String(data.subscriptionTier || "free"), accessReason: String(data.accessReason || "").trim().toLowerCase() });
+        const paymentOptions = data.paymentOptions && typeof data.paymentOptions === "object" ? data.paymentOptions as Record<string, unknown> : {};
+        const canUseByPass = Boolean(paymentOptions.canUseByPass || data.canUseByPass);
+        setBillingSnapshot({ requiredCoins: Number(data.requiredCoins || 0), canAccess: Boolean(data.canAccess || canUseByPass), freeBySubscription: Boolean(data.freeBySubscription || canUseByPass), canUseByPass, subscriptionTier: String(data.subscriptionTier || "free"), accessReason: String(data.accessReason || "").trim().toLowerCase() });
       } catch {
         if (!active) return;
         setBillingSnapshot(null);
@@ -281,13 +317,20 @@ export default function TarotPromptMakerPage() {
     setShowSpreadPicker(false);
   }
 
-  function promptSpreadForCategory() {
-    return { ...selectedSpread, category: selectedQuestionCategory };
+  function buildPromptForCurrentState() {
+    return buildOraclePrompt(selectedSpread, effectiveQuestion, drawnCards, { questionCategory: selectedQuestionCategory });
   }
 
   function handleQuestionChip(text: string) {
     setQuestion(text);
     setFeedback("");
+    setQuestionStatus("빠른 질문으로 상담 초점을 잡았습니다.");
+  }
+
+  function handleRecommendedQuestion(text: string) {
+    setQuestion(text);
+    setFeedback("");
+    setQuestionStatus("추천 질문으로 상담 초점을 다듬었습니다.");
   }
 
   function handleStartDraw() {
@@ -371,7 +414,7 @@ export default function TarotPromptMakerPage() {
       return;
     }
     const generate = () => {
-      const nextPrompt = buildOraclePrompt(promptSpreadForCategory(), effectiveQuestion, drawnCards);
+      const nextPrompt = buildPromptForCurrentState();
       setPromptResult(nextPrompt);
       setStage("prompt");
       setFeedback("");
@@ -385,9 +428,9 @@ export default function TarotPromptMakerPage() {
         requestId: `tarot-prompt-library:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         onPaid: ({ chargedCoins, requiredCoins, balanceAfter, accessSource, subscriptionTier, monthlyCreditsSpent, monthlyBalanceAfter }) => {
           generate();
-          if (accessSource === "subscription" || (chargedCoins <= 0 && requiredCoins > 0 && billingSnapshot?.freeBySubscription)) {
+          if (accessSource === "subscription" || (chargedCoins <= 0 && requiredCoins > 0 && billingPassIncluded)) {
             showSubscriptionIncludedNotice({
-              message: "월정석 혜택으로 타로 프롬프트 라이브러리가 열렸습니다. 달빛의 흐름 안에서 오라클 원고가 안전하게 완성되었습니다.",
+              message: "월정석 혜택으로 타로 프롬프트 라이브러리가 열렸습니다. 달빛의 흐름 안에서 AI 오라클 프롬프트가 완성되었습니다.",
               reason: "타로 프롬프트 라이브러리",
               tier: subscriptionTier || billingSnapshot?.subscriptionTier,
             });
@@ -399,7 +442,7 @@ export default function TarotPromptMakerPage() {
             showToast(`Moonlight Stone ${spentText}로 타로 프롬프트 라이브러리가 열렸습니다.${balanceText}`, "info");
             return;
           }
-          if (chargedCoins > 0) showToast(`타로 프롬프트 라이브러리 이용이 승인되었습니다. 남은 잔량: ${balanceAfter.toLocaleString("ko-KR")}`, "info");
+          if (chargedCoins > 0) showToast(`타로 프롬프트 라이브러리 이용이 승인되었습니다. 남은 코인: ${balanceAfter.toLocaleString("ko-KR")}`, "info");
         },
       });
       if (!paymentResult.ok) {
@@ -414,11 +457,11 @@ export default function TarotPromptMakerPage() {
         if (paymentResult.code === "INSUFFICIENT_COINS") { setFeedback(`코인이 부족합니다. ${paymentResult.requiredCoins}코인이 필요합니다.`); return; }
         if (paymentResult.code === "PRICE_NOT_FOUND") { setFeedback("서비스 이용 조건을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요."); return; }
         if (paymentResult.code === "SERVER_CONFIG_ERROR") { setFeedback("결제 확인이 잠시 지연되고 있습니다. 잠시 후 다시 시도해 주세요."); return; }
-        if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) showToast("프롬프트 생성이 완료되지 않아 이번 결제가 환불되었습니다.", "info");
+        if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) showToast("AI 오라클 프롬프트가 완성되지 않아 이번 결제가 환불되었습니다.", "info");
         setFeedback(paymentResult.message || "결제 확인이 완료되지 않았습니다.");
       }
     } catch (error) {
-      setFeedback(error instanceof Error ? error.message : "오라클 문장을 엮는 중 문제가 발생했습니다.");
+      setFeedback(error instanceof Error ? error.message : "AI 오라클 프롬프트를 엮는 중 문제가 발생했습니다.");
     } finally {
       setIsGenerating(false);
     }
@@ -429,7 +472,7 @@ export default function TarotPromptMakerPage() {
     try {
       await navigator.clipboard.writeText(promptResult.prompt);
       setCopied(true);
-      showToast("오라클 원고가 복사되었습니다.", "success");
+      showToast("AI 오라클 프롬프트가 복사되었습니다.", "success");
     } catch {
       showToast("클립보드 복사에 실패했습니다.", "error");
     }
@@ -437,15 +480,15 @@ export default function TarotPromptMakerPage() {
 
   function handleRegeneratePrompt() {
     if (drawnCards.length !== selectedSpread.cardCount) { setFeedback("카드 선택이 완료된 뒤 다시 생성할 수 있습니다."); return; }
-    const nextPrompt = buildOraclePrompt(promptSpreadForCategory(), effectiveQuestion, drawnCards);
+    const nextPrompt = buildPromptForCurrentState();
     setPromptResult(nextPrompt);
     setFeedback("");
-    showToast("같은 카드 조합으로 오라클 원고를 다시 정리했습니다.", "success");
+    showToast("같은 카드 조합으로 AI 오라클 프롬프트를 다시 정리했습니다.", "success");
   }
 
   function handleTunePrompt(label: string, instruction: string) {
     if (!promptResult) return;
-    const marker = `[추가 톤 조율 - ${label}]`;
+    const marker = `[리딩 톤 조율 - ${label}]`;
     if (promptResult.prompt.includes(marker)) {
       showToast("이미 반영된 조율입니다.", "info");
       return;
@@ -454,7 +497,7 @@ export default function TarotPromptMakerPage() {
       ...promptResult,
       prompt: `${promptResult.prompt}\n\n${marker}\n${instruction}`,
     });
-    showToast(`${label} 지시문을 더했습니다.`, "success");
+    showToast(`${label} 조율 문장을 더했습니다.`, "success");
   }
 
   function handleRedrawCards() { resetDrawState(); setStage("draw"); setFeedback(""); }
@@ -503,24 +546,24 @@ export default function TarotPromptMakerPage() {
           {/* ── Header ── */}
           <header className="text-center mb-8 pt-2">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#a855f7]/40 bg-[#a855f7]/10 text-[11px] font-semibold tracking-[0.25em] text-[#c4b5fd] uppercase mb-4">
-              ✦ Oracle Prompt Atelier ✦
+              ✦ AI 오라클 프롬프트 아틀리에 ✦
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{ color: "#fff", textShadow: "0 0 40px rgba(168,85,247,0.4)" }}>
               <span className="text-[#e9d5ff]">질문을 올리고</span>
               <span className="mx-3 text-[#c084fc]">→</span>
               <span className="text-[#e9d5ff]">카드를 열어</span>
               <span className="mx-3 text-[#c084fc]">→</span>
-              <span className="bg-gradient-to-r from-[#c084fc] to-[#f472b6] bg-clip-text text-transparent">오라클 원고로</span>
+              <span className="bg-gradient-to-r from-[#c084fc] to-[#f472b6] bg-clip-text text-transparent">AI 프롬프트로</span>
             </h1>
             <p className="mt-3 text-[#c4b5fd]/70 text-sm sm:text-base">
-              질문, 스프레드, 카드의 방향을 하나의 섬세한 오라클 리딩 원고로 엮습니다.
+              질문, 스프레드, 카드의 방향을 하나의 섬세한 AI 타로 상담 프롬프트로 엮습니다.
             </p>
 
             {/* Billing badge */}
             <div className="inline-flex items-center gap-3 mt-4 px-4 py-2 rounded-full border border-[#7c3aed]/30 bg-[#1e0a3c]/60 backdrop-blur-sm">
               <span className="text-[#a78bfa] text-xs font-semibold">{billingCoinLabel}</span>
               <span className="w-px h-3 bg-white/20" />
-              <span className={`text-xs font-semibold ${billingSnapshot?.freeBySubscription ? "text-[#34d399]" : "text-[#fbbf24]"}`}>{billingStateLabel}</span>
+              <span className={`text-xs font-semibold ${billingPassIncluded ? "text-[#34d399]" : "text-[#fbbf24]"}`}>{billingStateLabel}</span>
             </div>
           </header>
 
@@ -566,12 +609,15 @@ export default function TarotPromptMakerPage() {
                     >
                       <textarea
                         value={question}
-                        onChange={(e) => { setQuestion(e.target.value); setFeedback(""); }}
+                        onChange={(e) => { setQuestion(e.target.value); setFeedback(""); setQuestionStatus(""); }}
                         maxLength={220}
                         placeholder="지금 가장 궁금한 질문을 적어주세요. 예: 그 사람이 다시 연락할까요?"
                         className="w-full min-h-[140px] resize-none bg-transparent text-[#f3e8ff] text-sm sm:text-base leading-relaxed outline-none placeholder:text-[#7c3aed]/50"
                       />
-                      <div className="text-right text-xs text-[#6d28d9]/60 mt-1">{question.length} / 220</div>
+                      <div className="flex items-start justify-between gap-3 mt-2">
+                        <div className="text-xs leading-relaxed text-[#a78bfa]/75">{questionStatus || questionQualityNotice}</div>
+                        <div className="shrink-0 text-xs text-[#6d28d9]/60">{question.length} / 220</div>
+                      </div>
                     </div>
 
                     <div
@@ -641,14 +687,55 @@ export default function TarotPromptMakerPage() {
                       </div>
                     </div>
 
+                    <div
+                      className="rounded-2xl border border-[#6d28d9]/35 p-4 mb-5"
+                      style={{ background: "rgba(15,5,35,0.48)" }}
+                    >
+                      <div className="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                          <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70">추천 질문</div>
+                          <div className="text-xs text-[#a78bfa]/70 mt-1">{selectedSpread.title} · {CATEGORY_LABEL[selectedQuestionCategory]}</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRecommendedQuestion(recommendedQuestions[0] || DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory])}
+                          className="px-3 py-1.5 rounded-full border border-[#f59e0b]/35 bg-[#f59e0b]/10 text-xs font-semibold text-[#fde68a] hover:bg-[#f59e0b]/15 transition-all"
+                        >
+                          첫 질문 적용
+                        </button>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {recommendedQuestions.map((item) => (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => handleRecommendedQuestion(item)}
+                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-left text-xs leading-relaxed text-[#d8b4fe] hover:border-[#c084fc]/35 hover:bg-[#c084fc]/10 transition-all"
+                          >
+                            {item}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {sensitiveCategoryNotice && (
+                      <div className="mb-5 rounded-2xl border border-[#f59e0b]/30 bg-[#f59e0b]/10 px-4 py-3 text-xs leading-relaxed text-[#fde68a]/90">
+                        {sensitiveCategoryNotice}
+                      </div>
+                    )}
+
                     {/* Actions */}
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button
                         type="button"
-                        onClick={() => setQuestion(DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory])}
+                        onClick={() => {
+                          setQuestion(DEFAULT_QUESTION_BY_CATEGORY[selectedQuestionCategory]);
+                          setFeedback("");
+                          setQuestionStatus("카테고리 기본 질문으로 상담 방향을 맞췄습니다.");
+                        }}
                         className="flex-1 px-4 py-3 rounded-full border border-white/15 bg-white/5 text-[#c4b5fd] text-sm font-medium hover:bg-white/10 transition-all"
                       >
-                        추천 질문 자동 입력
+                        카테고리 기본 질문
                       </button>
                       <motion.button
                         whileHover={{ scale: 1.03 }}
@@ -935,7 +1022,7 @@ export default function TarotPromptMakerPage() {
                       className="w-full py-4 rounded-2xl font-bold text-sm text-[#1a0533] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                       style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 8px 30px rgba(168,85,247,0.3)" }}
                     >
-                      {isGenerating || isPaying ? "✦ 오라클 문장 조율 중..." : "✦ 오라클 원고 만들기"}
+                      {isGenerating || isPaying ? "✦ 프롬프트 조율 중..." : "✦ AI 오라클 프롬프트 만들기"}
                     </motion.button>
 
                     {feedback && <p className="text-rose-300/80 text-xs text-center">{feedback}</p>}
@@ -959,7 +1046,7 @@ export default function TarotPromptMakerPage() {
                       className="rounded-2xl border border-[#7c3aed]/30 p-5"
                       style={{ background: "linear-gradient(145deg, rgba(25,10,55,0.92), rgba(15,5,38,0.92))" }}
                     >
-                      <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60 mb-2">당신을 위한 타로 메시지</div>
+                      <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60 mb-2">AI 상담 프롬프트 지도</div>
                       <h2 className="text-xl font-bold text-[#e9d5ff] mb-2">{selectedSpread.title}</h2>
                       <p className="text-xs text-[#a78bfa]/75 leading-relaxed mb-2">{promptResult.effectiveQuestion}</p>
                       <p className="text-xs text-[#c4b5fd]/65 leading-relaxed">{promptResult.summary}</p>
@@ -1018,15 +1105,15 @@ export default function TarotPromptMakerPage() {
                     >
                       <div className="flex items-center justify-between gap-3 mb-4">
                         <div>
-                          <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60">Oracle Prompt</div>
-                          <div className="text-base font-bold text-[#e9d5ff] mt-0.5">지금 복사할 오라클 원고 ✦</div>
+                          <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60">AI 오라클 프롬프트</div>
+                          <div className="text-base font-bold text-[#e9d5ff] mt-0.5">지금 복사할 AI 오라클 프롬프트 ✦</div>
                         </div>
                         <button
                           type="button"
                           onClick={handleCopyPrompt}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#c084fc]/40 bg-[#c084fc]/10 text-[#e9d5ff] text-xs font-semibold hover:bg-[#c084fc]/20 transition-all"
                         >
-                          {copied ? "✓ 복사 완료" : "📋 문장 복사"}
+                          {copied ? "✓ 복사 완료" : "📋 프롬프트 복사"}
                         </button>
                       </div>
 
@@ -1043,15 +1130,15 @@ export default function TarotPromptMakerPage() {
                     {/* Action buttons */}
                     <div className="grid grid-cols-2 gap-3">
                       <button type="button" onClick={handleCopyPrompt} className="col-span-2 py-3 rounded-2xl font-bold text-sm text-[#1a0533] transition-all" style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 6px 25px rgba(168,85,247,0.25)" }}>
-                        {copied ? "✓ 복사 완료" : "✦ 오라클 원고 복사"}
+                        {copied ? "✓ 복사 완료" : "✦ AI 오라클 프롬프트 복사"}
                       </button>
-                      <button type="button" onClick={() => handleTunePrompt("상담톤 강화", "전체 답변을 실제 상담사가 눈앞의 고객에게 말하듯 자연스럽게 이어 주세요. 카드 이름보다 고객 질문의 맥락, 포지션 의미, 카드 간 관계를 먼저 설명하고, 문장 끝마다 고객의 주도권을 회복시키는 방향으로 정리하세요.")} className="py-2.5 rounded-xl border border-[#c084fc]/30 bg-[#c084fc]/10 text-xs font-semibold text-[#e9d5ff] hover:bg-[#c084fc]/20 transition-all">
+                      <button type="button" onClick={() => handleTunePrompt("상담톤 강화", "전체 답변을 실제 상담사가 눈앞의 질문자에게 말하듯 자연스럽게 이어 주세요. 카드 이름보다 질문의 맥락, 포지션 의미, 카드 간 관계를 먼저 설명하고, 문장 끝마다 질문자의 주도권을 회복시키는 방향으로 정리하세요.")} className="py-2.5 rounded-xl border border-[#c084fc]/30 bg-[#c084fc]/10 text-xs font-semibold text-[#e9d5ff] hover:bg-[#c084fc]/20 transition-all">
                         상담톤 강화
                       </button>
                       <button type="button" onClick={() => handleTunePrompt("더 현실적으로", "상징 해석 뒤에는 반드시 현실적인 판단 기준과 행동 순서를 붙여 주세요. 법률, 의료, 투자, 임신, 합격 여부 등 민감한 주제는 참고용 조언으로만 표현하고 전문가 상담을 함께 권하세요.")} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
                         더 현실적으로
                       </button>
-                      <button type="button" onClick={() => handleTunePrompt("더 따뜻하게", "답변의 온도를 조금 더 부드럽게 낮추고, 불안한 고객이 숨을 고를 수 있도록 위로와 선택지를 함께 주세요. 공포를 주는 표현이나 단정적 미래 예언은 피하세요.")} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
+                      <button type="button" onClick={() => handleTunePrompt("더 따뜻하게", "답변의 온도를 조금 더 부드럽게 낮추고, 불안한 질문자가 숨을 고를 수 있도록 위로와 선택지를 함께 주세요. 공포를 주는 표현이나 단정적 미래 예언은 피하세요.")} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">
                         더 따뜻하게
                       </button>
                       <button type="button" onClick={handleRegeneratePrompt} className="py-2.5 rounded-xl border border-white/12 bg-white/5 text-xs font-semibold text-[#c4b5fd] hover:bg-white/10 transition-all">

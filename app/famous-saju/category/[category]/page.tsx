@@ -19,7 +19,7 @@ export function generateMetadata({ params }: PageProps) {
   const label = getCategoryLabel(params.category);
   return generatePageMetadata({
     path: `/famous-saju/category/${params.category}`,
-    title: `${label || "유명인"} 사주 분석 모음 | Code Destiny`,
+    title: `${label || "유명인"} 사주 분석 모음`,
     description: `${label || "유명인"} 분야 인물들의 일간, 오행, 직업운 흐름을 내부 사주 엔진 계산 기반으로 모아본 페이지입니다.`,
     keywords: [`${label} 사주`, "유명인 사주", "연예인 사주", "사주풀이"],
   });
@@ -38,7 +38,7 @@ export default function FamousSajuCategoryPage({ params }: PageProps) {
         <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300">공개 생년월일이 있는 {label} 인물만 노출하며, 출생 시간이 공개되지 않은 경우 시주는 제외합니다.</p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
-            <Link key={item.slug} href={`/famous-saju/${item.slug}`} className="rounded-lg border border-white/10 bg-white/[0.045] p-4 hover:border-amber-200/50">
+            <Link key={item.slug} href={`/insights/famous-saju/${item.slug}`} className="rounded-lg border border-white/10 bg-white/[0.045] p-4 hover:border-amber-200/50">
               <p className="text-sm text-amber-100/70">{item.birthDate?.slice(0, 4)}년생</p>
               <h2 className="mt-2 text-lg font-semibold text-white">{item.name}</h2>
               <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-300">{item.shortBio}</p>

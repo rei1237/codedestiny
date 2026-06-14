@@ -7,6 +7,9 @@ const publicDir = resolve(rootDir, "public");
 const candidates = [resolve(rootDir, ".open-next", "assets"), resolve(rootDir, "out")];
 
 const sourceDir = candidates.find((dirPath) => existsSync(dirPath));
+const generatedRouteHtmlFiles = [
+  "insights/index.html",
+];
 
 if (!sourceDir) {
   console.error("[prepare-cloudflare-dist] Missing source output (.open-next/assets or out).");
@@ -28,6 +31,16 @@ function clearDirectoryOrRemove(targetDir) {
   }
 }
 
+function restoreGeneratedRouteHtml(targetRoot) {
+  for (const routeFile of generatedRouteHtmlFiles) {
+    const sourcePath = join(sourceDir, routeFile);
+    if (!existsSync(sourcePath)) continue;
+    const targetPath = join(targetRoot, routeFile);
+    mkdirSync(join(targetPath, ".."), { recursive: true });
+    cpSync(sourcePath, targetPath, { force: true });
+  }
+}
+
 if (existsSync(distDir)) {
   clearDirectoryOrRemove(distDir);
 }
@@ -38,6 +51,7 @@ cpSync(sourceDir, distDir, { recursive: true, force: true });
 // Safety net: merge committed public assets so Pages deploy never misses legacy static files.
 if (existsSync(publicDir)) {
   cpSync(publicDir, distDir, { recursive: true, force: true });
+  restoreGeneratedRouteHtml(distDir);
   console.log(`[prepare-cloudflare-dist] Merged ${publicDir} -> ${distDir}`);
 }
 
@@ -47,6 +61,7 @@ if (existsSync(publicDir)) {
 const openNextAssetsDir = resolve(rootDir, ".open-next", "assets");
 if (existsSync(openNextAssetsDir) && existsSync(publicDir)) {
   cpSync(publicDir, openNextAssetsDir, { recursive: true, force: true });
+  restoreGeneratedRouteHtml(openNextAssetsDir);
   console.log(`[prepare-cloudflare-dist] Merged ${publicDir} -> ${openNextAssetsDir}`);
 }
 
@@ -69,6 +84,7 @@ if (existsSync(inlineSourceDir)) {
   if (existsSync(assetsRoot)) {
     if (existsSync(publicDir)) {
       cpSync(publicDir, assetsRoot, { recursive: true, force: true });
+      restoreGeneratedRouteHtml(assetsRoot);
       console.log(`[prepare-cloudflare-dist] Merged ${publicDir} -> ${assetsRoot}`);
     }
 

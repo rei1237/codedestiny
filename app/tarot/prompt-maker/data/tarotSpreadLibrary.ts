@@ -86,6 +86,218 @@ export const DEFAULT_QUESTION_BY_CATEGORY: Record<TarotSpreadCategory, string> =
   special: "이 특별한 상황에서 가장 먼저 읽어야 할 핵심 신호는 무엇일까?",
 };
 
+const CATEGORY_RECOMMENDED_QUESTIONS: Record<TarotSpreadCategory, string[]> = {
+  love: [
+    "상대방이 나를 바라보는 마음의 온도는 지금 어느 정도일까?",
+    "이 관계에서 내가 먼저 조절해야 할 태도는 무엇일까?",
+    "상대의 말과 행동 사이에서 놓치고 있는 신호는 무엇일까?",
+  ],
+  reunion: [
+    "다시 연락한다면 어떤 타이밍과 방식이 가장 부드러울까?",
+    "상대 마음에 남은 미련과 정리된 부분은 어떻게 나뉘어 있을까?",
+    "재회를 원한다면 내가 먼저 바꿔야 할 반복 패턴은 무엇일까?",
+  ],
+  third_party: [
+    "이 관계에 영향을 주는 제3자의 실제 영향력은 어느 정도일까?",
+    "내가 경쟁 구도라고 느끼는 부분 중 사실과 불안은 어떻게 나뉠까?",
+    "지금 관계를 지키기 위해 확인해야 할 진실은 무엇일까?",
+  ],
+  daily: [
+    "오늘 가장 먼저 붙잡아야 할 메시지는 무엇일까?",
+    "오늘 말과 행동에서 조심해야 할 흐름은 무엇일까?",
+    "하루를 마무리할 때 나에게 남을 핵심 배움은 무엇일까?",
+  ],
+  choice: [
+    "A와 B 중 지금의 나에게 더 건강한 선택은 무엇일까?",
+    "선택을 미루고 있는 진짜 이유는 무엇일까?",
+    "결정 후 내가 감당해야 할 현실 조건은 무엇일까?",
+  ],
+  career: [
+    "지금 커리어에서 움직여야 할 때일까, 더 준비해야 할 때일까?",
+    "현재 일에서 나의 강점과 소진 지점은 어떻게 나뉠까?",
+    "다음 기회를 잡기 위해 현실적으로 준비할 것은 무엇일까?",
+  ],
+  money: [
+    "요즘 돈의 흐름에서 새는 지점은 어디일까?",
+    "재물운을 회복하기 위해 먼저 정리해야 할 소비 패턴은 무엇일까?",
+    "지금 확장보다 안정에 집중해야 하는 부분은 무엇일까?",
+  ],
+  relationship: [
+    "이 관계에서 반복되는 오해의 핵심은 무엇일까?",
+    "상대와 나 사이에 다시 세워야 할 경계는 무엇일까?",
+    "관계를 회복하려면 어떤 대화 순서가 가장 안전할까?",
+  ],
+  self: [
+    "내가 지금 붙잡고 있는 감정의 이름은 무엇일까?",
+    "나를 지치게 하는 반복 패턴은 어디에서 시작될까?",
+    "오늘 나를 회복시키는 가장 작은 행동은 무엇일까?",
+  ],
+  crisis: [
+    "이 위기의 본질과 겉으로 보이는 문제는 어떻게 다를까?",
+    "지금 당장 피해야 할 충동적 선택은 무엇일까?",
+    "막힌 흐름을 풀기 위해 가장 먼저 정리할 변수는 무엇일까?",
+  ],
+  future: [
+    "가까운 미래에 가장 먼저 드러날 변화는 무엇일까?",
+    "앞으로의 흐름에서 내가 준비해야 할 전환점은 무엇일까?",
+    "지금 선택이 장기 흐름에 어떤 방향을 만들까?",
+  ],
+  spiritual: [
+    "지금 반복해서 들어오는 직관의 신호는 무엇을 말할까?",
+    "내가 외면하고 있는 내면의 메시지는 무엇일까?",
+    "운명적 흐름 안에서 지금 받아들여야 할 배움은 무엇일까?",
+  ],
+  family: [
+    "가족 안에서 반복되는 감정 패턴은 무엇일까?",
+    "내가 지켜야 할 경계와 풀어야 할 마음은 어떻게 나뉠까?",
+    "가족 관계 회복을 위해 지금 가능한 첫 대화는 무엇일까?",
+  ],
+  power: [
+    "성공을 향해 가는 과정에서 내가 놓치고 있는 균형은 무엇일까?",
+    "영향력을 키울 때 조심해야 할 그림자는 무엇일까?",
+    "지금 나에게 필요한 리더십 태도는 무엇일까?",
+  ],
+  legal: [
+    "이 분쟁에서 감정과 사실을 어떻게 분리해 봐야 할까?",
+    "합의나 대응 전에 기록으로 남겨야 할 핵심은 무엇일까?",
+    "전문가 상담 전에 정리해야 할 쟁점은 무엇일까?",
+  ],
+  special: [
+    "지금 상황에서 가장 먼저 읽어야 할 핵심 신호는 무엇일까?",
+    "겉으로 보이는 문제 뒤에 숨어 있는 진짜 변수는 무엇일까?",
+    "오늘 내가 현실적으로 조정할 수 있는 태도는 무엇일까?",
+  ],
+};
+
+const SPREAD_RECOMMENDED_QUESTIONS: Record<string, string[]> = {
+  "three-card-flow": ["현재 상황, 숨은 흐름, 조언을 한 번에 보면 지금 어떤 선택이 가장 자연스러울까?"],
+  "one-card-core": ["지금 내가 가장 먼저 붙잡아야 할 한 가지 메시지는 무엇일까?"],
+  "five-card-consult": ["현재 문제의 원인과 내가 오늘 취할 수 있는 현실 조언은 무엇일까?"],
+  "seven-card-depth": ["이 질문의 숨은 원인과 가까운 미래 흐름을 깊게 보면 무엇이 보일까?"],
+  "celtic-cross-ten": ["이 상황의 전체 판세와 장기적으로 중요한 선택 기준은 무엇일까?"],
+  "heart-mirror": ["상대방은 지금 나를 어떤 마음의 거울로 바라보고 있을까?"],
+  "true-heart": ["그 사람의 말과 행동 뒤에 있는 진심은 무엇일까?"],
+  "will-contact": ["상대에게 연락이 올 가능성과 연락을 막는 마음은 무엇일까?"],
+  "some-temperature": ["우리 사이의 썸 온도는 지금 어느 단계일까?"],
+  "love-balance": ["이 관계에서 감정의 균형이 무너진 지점은 어디일까?"],
+  "confession-timing": ["지금 마음을 표현해도 괜찮은 타이밍일까?"],
+  "hidden-like": ["상대가 숨기고 있는 호감이나 망설임은 무엇일까?"],
+  "relationship-progress": ["이 관계가 앞으로 발전하려면 무엇이 먼저 바뀌어야 할까?"],
+  "breakup-reason": ["이별의 표면 이유와 진짜 이유는 어떻게 다를까?"],
+  "reunion-chance": ["다시 이어질 가능성과 현실적으로 넘어야 할 조건은 무엇일까?"],
+  "missing-and-release": ["상대에게 남은 미련과 정리된 마음은 어떻게 나뉠까?"],
+  "reunion-or-not": ["다시 만나는 것이 정말 나에게 건강한 선택일까?"],
+  "ex-current": ["헤어진 사람의 현재 마음과 일상 흐름은 어디쯤 있을까?"],
+  "after-breakup-heal": ["이별 후 내가 회복하기 위해 가장 먼저 돌봐야 할 마음은 무엇일까?"],
+  "me-third": ["나와 제3자 사이에서 실제로 작동하는 관계 구도는 무엇일까?"],
+  "rival-shadow": ["경쟁자의 존재가 실제 위협인지 내 불안의 그림자인지 알고 싶어."],
+  "hidden-relationship": ["상대가 숨기고 있는 감정이나 관계 가능성은 무엇일까?"],
+  "crossroads": ["갈림길 앞에서 내가 선택 기준으로 삼아야 할 것은 무엇일까?"],
+  "a-vs-b": ["A와 B 중 어떤 선택이 지금의 나에게 더 맞을까?"],
+  "do-or-not": ["지금 행동해야 할까, 조금 더 기다려야 할까?"],
+  "opportunity-door": ["새로운 기회를 받아들여도 괜찮을까?"],
+  "today-flow": ["오늘 하루의 큰 흐름과 조심할 신호는 무엇일까?"],
+  "today-energy": ["오늘 내 몸과 마음의 에너지는 어떻게 움직일까?"],
+  "day-closing": ["오늘을 마무리하며 내려놓아야 할 감정은 무엇일까?"],
+  "tomorrow-ready": ["내일을 위해 오늘 준비해야 할 핵심은 무엇일까?"],
+  "career-direction": ["앞으로의 커리어 방향에서 나에게 맞는 길은 무엇일까?"],
+  "job-change": ["지금 이직을 선택해도 괜찮을까?"],
+  "business-luck": ["사업의 강점과 위기, 돌파구는 어디에 있을까?"],
+  "project-success": ["이 프로젝트가 성공하려면 어떤 변수를 먼저 관리해야 할까?"],
+  "money-talent": ["내 재능 중 돈으로 연결될 가능성이 큰 부분은 무엇일까?"],
+  "money-flow": ["현재 재물 흐름에서 막힌 곳과 회복 포인트는 어디일까?"],
+  "spending-check": ["내 지출 패턴에서 감정적으로 새는 부분은 무엇일까?"],
+  "real-breakthrough": ["현실적인 압박을 돌파하기 위해 가장 먼저 해야 할 일은 무엇일까?"],
+  "inner-voice": ["내면의 진짜 목소리는 지금 무엇을 원하고 있을까?"],
+  "self-worth": ["흔들린 자존감을 회복하기 위해 필요한 메시지는 무엇일까?"],
+  "shadow-self": ["내가 반복하는 그림자 패턴과 통합해야 할 마음은 무엇일까?"],
+  "anxiety-relief": ["불안의 뿌리와 오늘 가능한 진정 행동은 무엇일까?"],
+  "self-love": ["나를 더 사랑하기 위해 오늘 시작할 작은 돌봄은 무엇일까?"],
+  "relationship-temp": ["이 인간관계의 현재 온도와 유지 전략은 무엇일까?"],
+  "conflict-solve": ["갈등을 풀기 위한 첫 대화와 순서는 무엇일까?"],
+  "trust-restore": ["깨진 신뢰를 다시 회복할 수 있는 흐름일까?"],
+  "sudden-event": ["갑작스러운 사건의 본질과 내가 놓친 신호는 무엇일까?"],
+  "crisis-break": ["막막한 위기에서 가장 현실적인 돌파구는 어디에 있을까?"],
+  "truth-check": ["내가 착각하고 있는 부분과 사실로 봐야 할 부분은 무엇일까?"],
+  "near-future": ["가까운 미래에 먼저 나타날 변화는 무엇일까?"],
+  "three-month": ["앞으로 3개월의 흐름에서 가장 중요한 전환점은 언제일까?"],
+  "destiny-road": ["인생의 큰 흐름에서 지금 내가 서 있는 길은 어디일까?"],
+  "life-compass": ["삶의 방향성을 다시 잡기 위해 필요한 나침반은 무엇일까?"],
+  "lucky-star": ["앞으로의 행운과 기회가 열리는 지점은 어디일까?"],
+  "soul-message": ["영혼이 지금 내게 전하려는 메시지는 무엇일까?"],
+  "guardian-energy": ["나를 지키는 에너지와 약해진 보호막은 무엇일까?"],
+  "destiny-signal": ["반복되는 신호와 우연은 어떤 의미를 품고 있을까?"],
+  "family-legacy": ["가족에게서 물려받은 재능과 과제는 무엇일까?"],
+  "family-heal": ["가족 관계 회복을 위해 내가 먼저 볼 마음은 무엇일까?"],
+  "success-crown": ["성공으로 가는 길에서 내 강점과 그림자는 무엇일까?"],
+  "power-shadow": ["힘을 가질 때 조심해야 할 내 안의 그림자는 무엇일까?"],
+  "leader-path": ["리더로서 지금 선택해야 할 균형과 전략은 무엇일까?"],
+  "lawsuit-verdict": ["이 송사에서 유불리보다 먼저 정리해야 할 핵심 쟁점은 무엇일까?"],
+  "legal-settlement": ["합의 가능성을 높이려면 어떤 조건과 감정을 분리해야 할까?"],
+  "evidence-check": ["현재 증거와 진술에서 보강해야 할 부분은 무엇일까?"],
+  "case-timeline": ["이 사건의 시간 흐름에서 내가 움직여야 할 타이밍은 언제일까?"],
+  "defense-line": ["내 입장의 방어선에서 가장 약한 지점은 어디일까?"],
+  "contract-trap": ["계약이나 합의서에서 놓치기 쉬운 함정은 무엇일까?"],
+  "dispute-resolve": ["분쟁을 현실적으로 풀기 위한 접점은 어디에 있을까?"],
+  "legal-timing": ["법적 행동을 지금 해야 할지 기다려야 할지 어떤 기준으로 볼까?"],
+  "justice-mirror": ["복잡한 분쟁의 전체 판세에서 가장 중요한 변수는 무엇일까?"],
+  "fomo-relief": ["비교와 불안에서 벗어나기 위해 지금 내려놓아야 할 것은 무엇일까?"],
+  ghosting: ["잠수 탄 사람의 침묵 뒤에 있는 흐름과 내가 취할 태도는 무엇일까?"],
+  "dead-end": ["막다른 길처럼 느껴지는 상황에서 열릴 수 있는 우회로는 무엇일까?"],
+  "mind-afterglow": ["상대 마음속에 남은 잔상과 앞으로의 움직임은 무엇일까?"],
+  "next-scene": ["이 관계의 다음 장면은 어떤 분위기로 이어질까?"],
+  "prompt-maker": ["이 카드 조합으로 가장 좋은 AI 타로 상담 프롬프트를 만들려면 무엇을 강조해야 할까?"],
+};
+
+function normalizeQuestionSeed(question: string) {
+  const text = String(question || "").trim().replace(/\s+/g, " ");
+  if (text.length < 5) return "";
+  return text.length > 44 ? `${text.slice(0, 44).trim()}...` : text;
+}
+
+function buildContextualQuestions(category: TarotSpreadCategory, questionSeed: string, spreadTitle: string) {
+  if (!questionSeed) return [];
+  const defaultQuestions = [
+    `"${questionSeed}" 이 질문에서 가장 먼저 분리해야 할 사실과 감정은 무엇일까?`,
+    `"${questionSeed}" 를 ${spreadTitle}로 보면 지금 확인해야 할 핵심 포지션은 무엇일까?`,
+  ];
+  const categoryQuestions: Partial<Record<TarotSpreadCategory, string[]>> = {
+    love: [
+      `"${questionSeed}" 속에서 상대 마음과 내가 바라는 해석은 어떻게 다를까?`,
+      `"${questionSeed}" 를 ${spreadTitle}로 보면 관계 온도를 바꾸는 신호는 무엇일까?`,
+    ],
+    reunion: [
+      `"${questionSeed}" 에서 미련과 현실 조건은 어떻게 나뉘어 있을까?`,
+      `"${questionSeed}" 를 ${spreadTitle}로 보면 다시 다가갈 타이밍은 어디에 있을까?`,
+    ],
+    third_party: [
+      `"${questionSeed}" 에서 확인된 사실과 불안이 만든 추측은 어떻게 다를까?`,
+      `"${questionSeed}" 를 ${spreadTitle}로 보면 제3자의 실제 영향력은 어느 정도일까?`,
+    ],
+    career: [
+      `"${questionSeed}" 에서 감정적 만족과 현실 조건은 어떻게 균형을 잡아야 할까?`,
+      `"${questionSeed}" 를 ${spreadTitle}로 보면 지금 준비할 다음 행동은 무엇일까?`,
+    ],
+    money: [
+      `"${questionSeed}" 에서 기대 수익보다 먼저 점검해야 할 위험 신호는 무엇일까?`,
+      `"${questionSeed}" 를 ${spreadTitle}로 보면 지켜야 할 돈의 경계선은 어디일까?`,
+    ],
+    crisis: [
+      `"${questionSeed}" 에서 지금 멈춰야 할 행동과 바로 할 행동은 무엇일까?`,
+      `"${questionSeed}" 를 ${spreadTitle}로 보면 도움을 청해야 할 지점은 어디일까?`,
+    ],
+    legal: [
+      `"${questionSeed}" 에서 감정과 법적 사실은 어떻게 분리해 봐야 할까?`,
+      `"${questionSeed}" 를 ${spreadTitle}로 보면 기록으로 먼저 남겨야 할 쟁점은 무엇일까?`,
+    ],
+    self: [
+      `"${questionSeed}" 에서 가장 먼저 이름 붙여야 할 감정은 무엇일까?`,
+      `"${questionSeed}" 를 ${spreadTitle}로 보면 오늘 나를 회복시키는 행동은 무엇일까?`,
+    ],
+  };
+  return categoryQuestions[category] || defaultQuestions;
+}
+
 const SPECIAL_POSITIONS: Record<string, string[]> = {
   "true-heart": [
     "상대방의 표면적인 마음",
@@ -363,6 +575,23 @@ function buildSpread(blueprint: SpreadBlueprint): TarotSpread {
 }
 
 export const SPREAD_LIBRARY: TarotSpread[] = BLUEPRINTS.map(buildSpread);
+
+export function buildRecommendedQuestionsForSpread(spread: TarotSpread, questionCategory?: TarotSpreadCategory, limit = 5, currentQuestion = "") {
+  const category = questionCategory || spread.category;
+  const spreadTitle = spread.title.replace(/\s*(스프레드|배열)$/u, "").trim();
+  const questionSeed = normalizeQuestionSeed(currentQuestion);
+  const bridgeQuestion = category !== spread.category
+    ? `${CATEGORY_LABEL[category]} 질문을 ${spread.title}로 볼 때 가장 먼저 확인해야 할 흐름은 무엇일까?`
+    : "";
+  return Array.from(new Set([
+    ...buildContextualQuestions(category, questionSeed, spread.title),
+    ...(SPREAD_RECOMMENDED_QUESTIONS[spread.id] || []),
+    bridgeQuestion,
+    ...(CATEGORY_RECOMMENDED_QUESTIONS[category] || CATEGORY_RECOMMENDED_QUESTIONS.special),
+    `${spreadTitle}에서 내가 놓치고 있는 핵심 변수는 무엇일까?`,
+    `${spreadTitle} 기준으로 오늘 당장 조정해야 할 태도는 무엇일까?`,
+  ].map((question) => String(question || "").trim()).filter(Boolean))).slice(0, limit);
+}
 
 export function findSpreadById(id: string) {
   return SPREAD_LIBRARY.find((spread) => spread.id === id) || SPREAD_LIBRARY[0];

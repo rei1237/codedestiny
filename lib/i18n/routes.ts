@@ -1,4 +1,4 @@
-import { LOCALE_CONFIG, LOCALES, Locale } from "./locales";
+import { LOCALE_CONFIG, LOCALES, Locale, LOCALE_NAVIGATION_LOCALES } from "./locales";
 
 export const I18N_ROUTE_KEYS = [
   "home",
@@ -78,7 +78,7 @@ export function getRouteKeyByLocalizedPath(pathname: string): I18nRouteKey | nul
 }
 
 export function getLocaleLinksForRoute(routeKey: I18nRouteKey) {
-  return LOCALES.map((locale) => ({
+  return LOCALE_NAVIGATION_LOCALES.map((locale) => ({
     locale,
     href: I18N_ROUTE_MAP[routeKey][locale],
     hrefLang: LOCALE_CONFIG[locale].hrefLang,

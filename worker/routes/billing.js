@@ -284,10 +284,40 @@ function resolveUsagePassCategories(pricing = {}) {
 }
 
 async function consumeUsagePassIfAvailable(env, authUserId, pricing, requestId) {
+  const featureKey = String(pricing?.featureKey || "").trim();
+  const normalizedRequestId = String(requestId || "").trim();
+  const idempotencyMarker = normalizedRequestId && featureKey
+    ? `usage-pass:${featureKey}:${normalizedRequestId}`
+    : "";
   const categories = resolveUsagePassCategories(pricing);
   if (!categories.length) return null;
 
   await connectDb(env);
+
+  if (idempotencyMarker) {
+    const idempotentUser = await User.findOne({
+      _id: authUserId,
+      recentConsumeRequestIds: idempotencyMarker,
+    })
+      .select("points usagePasses")
+      .lean();
+    if (idempotentUser) {
+      const usagePasses = Array.isArray(idempotentUser.usagePasses) ? idempotentUser.usagePasses : [];
+      const idempotentCategory = categories.find((candidate) => usagePasses.some((entry) => String(entry?.category || "") === candidate)) || categories[0];
+      const activePass = usagePasses.find((entry) => String(entry?.category || "") === idempotentCategory);
+      return {
+        category: idempotentCategory,
+        remainingUses: Number(activePass?.remainingUses || 0),
+        requestId: normalizedRequestId,
+        transactionType: "usage_pass",
+        idempotent: true,
+        user: {
+          id: String(authUserId || ""),
+          points: Number(idempotentUser?.points || 0),
+        },
+      };
+    }
+  }
 
   let updatedUser = null;
   let category = "";
@@ -296,6 +326,7 @@ async function consumeUsagePassIfAvailable(env, authUserId, pricing, requestId) 
     updatedUser = await User.findOneAndUpdate(
       {
         _id: authUserId,
+        ...(idempotencyMarker ? { recentConsumeRequestIds: { $ne: idempotencyMarker } } : {}),
         usagePasses: {
           $elemMatch: {
             category,
@@ -306,6 +337,7 @@ async function consumeUsagePassIfAvailable(env, authUserId, pricing, requestId) 
       {
         $inc: { "usagePasses.$.remainingUses": -1 },
         $set: { "usagePasses.$.updatedAt": new Date() },
+        ...(idempotencyMarker ? { $addToSet: { recentConsumeRequestIds: idempotencyMarker } } : {}),
       },
       {
         returnDocument: "after",
@@ -323,7 +355,7 @@ async function consumeUsagePassIfAvailable(env, authUserId, pricing, requestId) 
   return {
     category,
     remainingUses: Number(activePass?.remainingUses || 0),
-    requestId: String(requestId || ""),
+    requestId: normalizedRequestId,
     transactionType: "usage_pass",
     user: {
       id: String(authUserId || ""),
@@ -1169,16 +1201,29 @@ async function resolveProfileScopedUnlocks(authUserId, profileId) {
 async function successWithPremiumAccess(env, authUserId, data, message = "요청이 성공했습니다.", init = {}) {
   const pricing = data?.pricing || {};
   const consume = data?.consume || {};
-  const featureKey = String(pricing?.featureKey || consume?.featureKey || data?.accessGrant?.featureKey || "").trim();
+  const accessGrant = data?.accessGrant && typeof data.accessGrant === "object" ? data.accessGrant : {};
+  const featureKey = String(pricing?.featureKey || consume?.featureKey || accessGrant?.featureKey || "").trim();
   const reason = String(pricing?.reason || "").trim();
-  const profileId = cleanProfileId(data?.accessGrant?.profileId || consume?.profileId || data?.profileId);
+  const profileId = cleanProfileId(accessGrant?.profileId || consume?.profileId || data?.profileId);
   const transactionId = String(
     consume?.transactionId
-      || data?.accessGrant?.evidenceId
-      || data?.accessGrant?.purchaseId
-      || data?.accessGrant?.requestId
+      || accessGrant?.evidenceId
+      || accessGrant?.purchaseId
+      || accessGrant?.requestId
       || "",
   ).trim();
+  const tokenReportId = String(data?.reportId || accessGrant?.reportId || consume?.reportId || "").trim();
+  const tokenSessionId = String(
+    data?.sessionId
+      || data?.reportSessionId
+      || accessGrant?.sessionId
+      || accessGrant?.reportSessionId
+      || consume?.sessionId
+      || consume?.reportSessionId
+      || "",
+  ).trim();
+  const tokenRequestId = String(data?.requestId || accessGrant?.requestId || consume?.requestId || "").trim();
+  const tokenPurchaseId = String(data?.purchaseId || accessGrant?.purchaseId || consume?.purchaseId || "").trim();
   const reportType = resolvePremiumAccessReportType(featureKey, reason);
   const premiumAccessToken = reportType
     ? await createPremiumAccessToken(env, {
@@ -1187,6 +1232,10 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
       featureKey,
       reason,
       transactionId,
+      reportId: tokenReportId,
+      sessionId: tokenSessionId,
+      requestId: tokenRequestId,
+      purchaseId: tokenPurchaseId,
       chargedCoins: Number(consume?.chargedCoins || 0),
       freeBySubscription: data?.freeBySubscription === true || consume?.accessType === "membership_pass",
     })
@@ -1269,7 +1318,7 @@ const REPORT_TYPE_FALLBACK = Object.freeze({
   sookyoPremium: { reportType: "sukyo_book", displayName: "숙요점" },
   westernAstrologyPremium: { reportType: "western_astro_book", displayName: "점성술" },
   vedicPremium: { reportType: "vedic_book", displayName: "베다점" },
-  soulOriginKarma: { reportType: "soul_origin_book", displayName: "운명의 기원서" },
+  soulOriginKarma: { reportType: "soul_origin_book", displayName: "운명의 업" },
 });
 
 function toArchiveBase(doc) {
@@ -1310,6 +1359,326 @@ function toArchiveBase(doc) {
     canReopen,
     canDownload: Boolean(pdfUrl),
   };
+}
+
+function stripArchiveHtmlText(html) {
+  const source = String(html || "");
+  const withBreaks = source
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|section|article|h[1-6]|li|tr|table|main|header|footer)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ");
+  return withBreaks
+    .replace(/&#x([0-9a-f]+);/gi, (_match, hex) => {
+      const codePoint = parseInt(hex, 16);
+      try { return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : " "; } catch (_) { return " "; }
+    })
+    .replace(/&#(\d+);/g, (_match, raw) => {
+      const codePoint = parseInt(raw, 10);
+      try { return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : " "; } catch (_) { return " "; }
+    })
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, "\"")
+    .replace(/&#39;/g, "'");
+}
+
+function archivePlainText(value) {
+  const source = String(value || "");
+  const decoded = /<[^>]+>/.test(source) ? stripArchiveHtmlText(source) : source;
+  return decoded
+    .replace(/\r\n?/g, "\n")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, " ")
+    .replace(/[ \t\f\v]+/g, " ")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function archiveTextUnits(value) {
+  return Array.from(String(value || "")).reduce((sum, char) => {
+    const codePoint = char.codePointAt(0) || 0;
+    if (/\s/.test(char)) return sum + 0.35;
+    if (codePoint <= 0x007f) return sum + 0.58;
+    if (codePoint <= 0x024f) return sum + 0.72;
+    return sum + 1;
+  }, 0);
+}
+
+function wrapArchivePdfText(value, maxUnits = 52) {
+  const plain = archivePlainText(value);
+  if (!plain) return [];
+  const lines = [];
+  const paragraphs = plain.split(/\n+/).map((item) => item.trim()).filter(Boolean);
+  for (const paragraph of paragraphs) {
+    let line = "";
+    let lineUnits = 0;
+    const tokens = paragraph.split(/(\s+)/).filter((token) => token.length > 0);
+    for (const token of tokens) {
+      const tokenUnits = archiveTextUnits(token);
+      if (line && lineUnits + tokenUnits > maxUnits) {
+        lines.push(line.trim());
+        line = "";
+        lineUnits = 0;
+      }
+      if (tokenUnits > maxUnits) {
+        for (const char of Array.from(token)) {
+          const charUnits = archiveTextUnits(char);
+          if (line && lineUnits + charUnits > maxUnits) {
+            lines.push(line.trim());
+            line = "";
+            lineUnits = 0;
+          }
+          line += char;
+          lineUnits += charUnits;
+        }
+      } else {
+        line += token;
+        lineUnits += tokenUnits;
+      }
+    }
+    if (line.trim()) lines.push(line.trim());
+    lines.push("");
+  }
+  while (lines.length && !lines[lines.length - 1]) lines.pop();
+  return lines;
+}
+
+function archivePdfHex(value) {
+  let hex = "";
+  for (const char of Array.from(String(value || ""))) {
+    let codePoint = char.codePointAt(0) || 0x20;
+    if (codePoint > 0xffff || (codePoint >= 0xd800 && codePoint <= 0xdfff)) codePoint = 0x25a1;
+    if (codePoint < 0x20 && codePoint !== 0x09) codePoint = 0x20;
+    hex += codePoint.toString(16).toUpperCase().padStart(4, "0");
+  }
+  return hex || "0020";
+}
+
+function archivePdfLineOp(text, x, y, size, color = "0.11 0.08 0.18") {
+  return `${color} rg BT /F1 ${Number(size).toFixed(2)} Tf 1 0 0 1 ${Number(x).toFixed(2)} ${Number(y).toFixed(2)} Tm <${archivePdfHex(text)}> Tj ET\n`;
+}
+
+function pushArchivePdfBlock(blocks, label, value) {
+  const text = archivePlainText(value);
+  if (!text) return;
+  if (label) blocks.push({ type: "heading", text: label });
+  blocks.push({ type: "body", text });
+}
+
+function pushArchivePdfListBlock(blocks, label, values) {
+  const items = (Array.isArray(values) ? values : [])
+    .map((item) => archivePlainText(item))
+    .filter(Boolean)
+    .slice(0, 8);
+  if (!items.length) return;
+  if (label) blocks.push({ type: "heading", text: label });
+  blocks.push({ type: "list", text: items.map((item) => `• ${item}`).join("\n") });
+}
+
+function pushArchivePdfTableBlock(blocks, section = {}) {
+  const rows = Array.isArray(section?.tableRows) ? section.tableRows : [];
+  if (!rows.length) return;
+  const headers = Array.isArray(section?.tableHeaders) ? section.tableHeaders.map((header) => archivePlainText(header)).filter(Boolean) : [];
+  const title = archivePlainText(section?.tableTitle || "관계 흐름 표");
+  blocks.push({ type: "heading", text: title });
+  if (headers.length) blocks.push({ type: "table", text: headers.join(" | ") });
+  blocks.push({
+    type: "table",
+    text: rows
+      .slice(0, 12)
+      .map((row) => (Array.isArray(row) ? row : [row]).map((cell) => archivePlainText(cell)).filter(Boolean).join(" | "))
+      .filter(Boolean)
+      .join("\n"),
+  });
+}
+
+function buildArchivePdfSections({ archive = {}, metadata = {}, reportId = "", htmlContent = "" } = {}) {
+  const title = archivePlainText(archive?.title || archive?.displayName || metadata?.displayName || "Code Destiny Premium PDF");
+  const reportType = archivePlainText(archive?.archiveReportType || archive?.reportType || metadata?.reportType || "");
+  const displayName = archivePlainText(archive?.displayName || metadata?.displayName || title || "프리미엄 운명 리포트");
+  const coverKicker = /vedic|jyotish/i.test(reportType)
+    ? "VEDIC JYOTISH PREMIUM"
+    : /love[_-]?book|love[_-]?secret/i.test(reportType)
+    ? "PREMIUM LOVE READING"
+    : /soul[_-]?origin|soulOriginKarma/i.test(reportType)
+      ? "SOUL ORIGIN KARMA REPORT"
+      : "CODE DESTINY PREMIUM REPORT";
+  const generatedAt = toIso(archive?.completedAt || archive?.generatedAt || archive?.pdfReady?.generatedAt || metadata?.completedAt || metadata?.generatedAt || new Date());
+  const chapters = Array.isArray(archive?.chapters) ? archive.chapters : [];
+  const sections = chapters.map((chapter, index) => {
+    const chapterTitle = archivePlainText(chapter?.title || chapter?.name || `Chapter ${index + 1}`);
+    const blocks = [];
+    pushArchivePdfBlock(blocks, "", chapter?.summary || chapter?.overview || chapter?.intro);
+    pushArchivePdfListBlock(blocks, "핵심 요약", chapter?.summaryCards || chapter?.keyPoints);
+    pushArchivePdfListBlock(blocks, "실행 방향", chapter?.actionItems || chapter?.actionGuide || chapter?.advice);
+    pushArchivePdfListBlock(blocks, "확인 체크리스트", chapter?.checklist);
+    if (Array.isArray(chapter?.categories)) {
+      for (const category of chapter.categories) {
+        pushArchivePdfBlock(blocks, category?.title || category?.name || "", category?.finalText || category?.text || category?.content || category?.summary);
+      }
+    }
+    if (Array.isArray(chapter?.sections)) {
+      for (const section of chapter.sections) {
+        pushArchivePdfBlock(blocks, section?.title || section?.name || "", section?.finalText || section?.text || section?.content || section?.body);
+        pushArchivePdfListBlock(blocks, "사주 근거", section?.sajuEvidence);
+        pushArchivePdfListBlock(blocks, "핵심 포인트", section?.keyPoints);
+        pushArchivePdfListBlock(blocks, "실천 조언", section?.actionGuide || section?.actionItems || section?.advice);
+        pushArchivePdfListBlock(blocks, "주의할 흐름", section?.caution);
+        pushArchivePdfListBlock(blocks, "체크리스트", section?.checklist);
+        pushArchivePdfTableBlock(blocks, section);
+      }
+    }
+    pushArchivePdfBlock(blocks, "실전 조언", chapter?.practicalAdvice);
+    pushArchivePdfBlock(blocks, "주의할 흐름", chapter?.cautionFlow);
+    pushArchivePdfBlock(blocks, "전환의 문장", chapter?.transitionLine);
+    pushArchivePdfBlock(blocks, "", chapter?.finalText || chapter?.text || chapter?.content || chapter?.body);
+    return { title: chapterTitle, blocks };
+  }).filter((section) => section.title || section.blocks.length);
+  if (!sections.length) {
+    const fallbackLines = archivePlainText(htmlContent).split(/\n+/).map((line) => line.trim()).filter(Boolean);
+    const blocks = fallbackLines.slice(0, 160).map((line) => ({ type: "body", text: line }));
+    if (blocks.length) sections.push({ title: title || "Premium Report", blocks });
+  }
+  return { title, displayName, coverKicker, generatedAt, reportId: cleanText(reportId, 120), sections };
+}
+
+function buildNativeArchivePdfBytes(input = {}) {
+  const encoder = new TextEncoder();
+  const model = buildArchivePdfSections(input);
+  const width = 595.28;
+  const height = 841.89;
+  const marginX = 52;
+  const pages = [];
+  const title = model.title || "Code Destiny Premium PDF";
+  const generatedDate = model.generatedAt ? model.generatedAt.slice(0, 10) : "";
+
+  function pageBase(sectionTitle) {
+    let ops = "";
+    ops += "0.985 0.978 1 rg 0 0 595.28 841.89 re f\n";
+    ops += "0.155 0.09 0.29 rg 0 801.89 595.28 40 re f\n";
+    ops += archivePdfLineOp("CODE DESTINY", marginX, 818, 9, "0.88 0.82 1");
+    ops += archivePdfLineOp(sectionTitle || title, marginX, 785, 13, "0.20 0.11 0.34");
+    ops += "0.82 0.78 0.90 RG 0.8 w 52 769 m 543 769 l S\n";
+    return ops;
+  }
+
+  function finalizePage(ops, pageNo) {
+    let next = ops;
+    next += "0.82 0.78 0.90 RG 0.6 w 52 42 m 543 42 l S\n";
+    next += archivePdfLineOp(`${pageNo}`, 526, 24, 8, "0.46 0.40 0.55");
+    return next;
+  }
+
+  function addCoverPage() {
+    let ops = "";
+    ops += "0.105 0.07 0.19 rg 0 0 595.28 841.89 re f\n";
+    ops += "0.35 0.18 0.67 rg 0 0 595.28 210 re f\n";
+    ops += archivePdfLineOp(model.coverKicker || "CODE DESTINY PREMIUM REPORT", marginX, 708, 11, "0.82 0.72 1");
+    const coverTitleLines = wrapArchivePdfText(title, 22).slice(0, 4);
+    coverTitleLines.forEach((line, index) => {
+      ops += archivePdfLineOp(line, marginX, 650 - (index * 28), 24, "0.98 0.95 1");
+    });
+    ops += archivePdfLineOp(model.displayName || "프리미엄 운명 리포트", marginX, 548, 14, "0.94 0.86 1");
+    if (generatedDate) ops += archivePdfLineOp(`생성일 ${generatedDate}`, marginX, 514, 10, "0.83 0.77 0.92");
+    if (model.reportId) ops += archivePdfLineOp(`고유번호 ${model.reportId}`, marginX, 492, 8, "0.72 0.66 0.84");
+    pages.push(ops);
+  }
+
+  function addTextSection(section, sectionIndex) {
+    let ops = pageBase(section.title);
+    let y = 742;
+    const pageTitle = section.title || `${sectionIndex + 1}`;
+    function commitPage() {
+      pages.push(ops);
+      ops = pageBase(pageTitle);
+      y = 742;
+    }
+    function ensureLine(needed = 16) {
+      if (y < 70 + needed) commitPage();
+    }
+    for (const line of wrapArchivePdfText(`${String(sectionIndex + 1).padStart(2, "0")}  ${pageTitle}`, 38)) {
+      ensureLine(24);
+      ops += archivePdfLineOp(line, marginX, y, 17, "0.18 0.09 0.31");
+      y -= 27;
+    }
+    y -= 5;
+    for (const block of section.blocks || []) {
+      const blockType = archivePlainText(block?.type || "body");
+      const isHeading = blockType === "heading";
+      const isList = blockType === "list";
+      const isTable = blockType === "table";
+      const size = isHeading ? 11.2 : isTable ? 8.8 : isList ? 9.2 : 9.8;
+      const leading = isHeading ? 20 : isTable ? 13.2 : isList ? 14.2 : 15.2;
+      const maxUnits = isHeading ? 44 : isTable ? 64 : isList ? 56 : 58;
+      const color = isHeading ? "0.32 0.14 0.55" : isTable ? "0.30 0.23 0.38" : isList ? "0.22 0.12 0.30" : "0.13 0.10 0.18";
+      const lines = wrapArchivePdfText(block?.text || "", maxUnits);
+      if (!lines.length) continue;
+      if (isHeading) y -= 4;
+      for (const line of lines) {
+        if (!line) {
+          y -= 7;
+          continue;
+        }
+        ensureLine(leading);
+        ops += archivePdfLineOp(line, marginX, y, size, color);
+        y -= leading;
+      }
+      y -= isHeading ? 2 : 7;
+    }
+    pages.push(ops);
+  }
+
+  addCoverPage();
+  if (model.sections.length > 1) {
+    let ops = pageBase("목차");
+    let y = 742;
+    model.sections.forEach((section, index) => {
+      if (y < 76) {
+        pages.push(ops);
+        ops = pageBase("목차");
+        y = 742;
+      }
+      ops += archivePdfLineOp(`${String(index + 1).padStart(2, "0")}  ${section.title}`, marginX, y, 11, "0.16 0.10 0.26");
+      y -= 20;
+    });
+    pages.push(ops);
+  }
+  model.sections.forEach(addTextSection);
+  if (!pages.length) pages.push(pageBase(title));
+
+  const finalizedPages = pages.map((ops, index) => finalizePage(ops, index + 1));
+  const objects = [null];
+  objects.push("<< /Type /Catalog /Pages 2 0 R >>");
+  objects.push("");
+  objects.push("<< /Type /Font /Subtype /CIDFontType0 /BaseFont /HYGoThic-Medium /CIDSystemInfo << /Registry (Adobe) /Ordering (Korea1) /Supplement 2 >> >>");
+  objects.push("<< /Type /Font /Subtype /Type0 /BaseFont /HYGoThic-Medium /Encoding /UniKS-UCS2-H /DescendantFonts [3 0 R] >>");
+  const pageIds = [];
+  for (const pageOps of finalizedPages) {
+    const contentId = objects.length;
+    objects.push(`<< /Length ${encoder.encode(pageOps).length} >>\nstream\n${pageOps}endstream`);
+    const pageId = objects.length;
+    objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /Font << /F1 4 0 R >> >> /Contents ${contentId} 0 R >>`);
+    pageIds.push(pageId);
+  }
+  objects[2] = `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageIds.length} >>`;
+  let pdf = "%PDF-1.7\n%\u00E2\u00E3\u00CF\u00D3\n";
+  const offsets = [];
+  for (let index = 1; index < objects.length; index += 1) {
+    offsets[index] = encoder.encode(pdf).length;
+    pdf += `${index} 0 obj\n${objects[index]}\nendobj\n`;
+  }
+  const xrefOffset = encoder.encode(pdf).length;
+  pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+  for (let index = 1; index < objects.length; index += 1) {
+    pdf += `${String(offsets[index]).padStart(10, "0")} 00000 n \n`;
+  }
+  pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+  return encoder.encode(pdf);
 }
 
 async function requireArchiveAuth(request, env) {
@@ -1405,7 +1774,8 @@ async function handlePdfArchiveDetail(request, env, reportIdRaw) {
     });
   }
   if (format === "pdf" || format === "download") {
-    if (!htmlContent.trim()) {
+    const hasArchiveChapters = Array.isArray(archive?.chapters) && archive.chapters.length > 0;
+    if (!htmlContent.trim() && !hasArchiveChapters) {
       return failure(404, "PDF_HTML_NOT_FOUND", "저장된 PDF 문서를 찾을 수 없습니다.");
     }
     const fileBase = cleanText(archive?.title || archive?.displayName || reportId, 120)
@@ -1414,12 +1784,14 @@ async function handlePdfArchiveDetail(request, env, reportIdRaw) {
       || "code-destiny-report";
     const asciiFileBase = fileBase.replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "code-destiny-report";
     const encodedFileName = encodeURIComponent(`${fileBase}.pdf`);
-    return new Response(new TextEncoder().encode(htmlContent), {
+    const pdfBytes = buildNativeArchivePdfBytes({ archive, metadata, reportId, htmlContent });
+    return new Response(pdfBytes, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${asciiFileBase}.pdf"; filename*=UTF-8''${encodedFileName}`,
         "Cache-Control": "private, no-store",
+        "X-CD-PDF-Renderer": "native-text-v1",
       },
     });
   }
@@ -1972,6 +2344,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     });
   }
   const singleOrMonthlyOnly = monthlyBalanceRequested;
+  const shouldAutoConsumeUsagePass = !membershipPassOnly
+    && !monthlyBalanceRequested
+    && !directPaymentRequested
+    && !coinPaymentRequested;
 
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId)).trim();
@@ -2161,6 +2537,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
   let usagePassChecked = false;
   const tryUsagePassAccess = async () => {
+    if (!shouldAutoConsumeUsagePass) return null;
     usagePassChecked = true;
     const usagePassConsume = await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
     if (!usagePassConsume) return null;
@@ -2210,6 +2587,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         featureKey: String(pricing.featureKey || ""),
         category: usagePassConsume.category,
         remainingUses: usagePassConsume.remainingUses,
+        idempotent: Boolean(usagePassConsume.idempotent),
         chargedCoins: 0,
         membershipCreditCost: 0,
       },
@@ -2229,7 +2607,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       },
       balance: Number(usagePassConsume?.user?.points || 0),
       user: usagePassConsume.user,
-      freeBySubscription: true,
+      freeBySubscription: false,
     }, "이용권으로 콘텐츠 이용 권한을 발급했습니다.");
   };
 
@@ -2532,7 +2910,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       });
     }
 
-    const usagePassConsume = usagePassChecked || singleOrMonthlyOnly ? null : await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
+    const usagePassConsume = usagePassChecked || !shouldAutoConsumeUsagePass || singleOrMonthlyOnly ? null : await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
     if (usagePassConsume) {
       let unlockEntitlement = null;
       if (persistProfileUnlockEntitlement) {
@@ -2569,17 +2947,26 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         pricing,
         ...paymentDecision,
         paymentOptions: paymentDecision,
+        accessMethod: "PASS",
         consume: {
           ok: true,
           transactionType: "usage_pass",
+          accessType: "usage_pass",
+          accessMethod: "PASS",
+          paymentMethod: "PASS",
           requestId,
           featureKey: String(pricing.featureKey || ""),
           category: usagePassConsume.category,
           remainingUses: usagePassConsume.remainingUses,
+          idempotent: Boolean(usagePassConsume.idempotent),
+          chargedCoins: 0,
+          membershipCreditCost: 0,
         },
         premiumAccessToken: null,
         accessGrant: {
           ok: true,
+          accessType: "usage_pass",
+          accessMethod: "PASS",
           featureKey: String(pricing.featureKey || ""),
           sessionId: reportSessionId || undefined,
           requestId,
@@ -2591,6 +2978,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         },
         balance: Number(usagePassConsume?.user?.points || 0),
         user: usagePassConsume.user,
+        freeBySubscription: false,
       }, "이용권 회차를 사용해 서비스를 열었습니다.");
     }
   }
@@ -3360,7 +3748,7 @@ function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
   };
 }
 
-async function readBillingSnapshot(request, env) {
+async function readBillingSnapshot(request, env, options = {}) {
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth?.userId) {
     return {
@@ -3382,7 +3770,9 @@ async function readBillingSnapshot(request, env) {
 
   try {
     await connectDb(env);
-    const seededUser = await seedMembershipCreditForExistingPassIfNeeded(auth.userId);
+    const seededUser = options.seedLegacyCredit === false
+      ? null
+      : await seedMembershipCreditForExistingPassIfNeeded(auth.userId);
     const user = await User.findById(auth.userId)
       .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId unlockedFeatures")
       .lean();
@@ -3492,7 +3882,7 @@ async function handleUnlockStatus(request, env) {
     return failure(404, "PRICE_NOT_FOUND", pricingResult.message || "가격 정보를 찾을 수 없습니다.");
   }
 
-  const data = await readBillingSnapshot(request, env);
+  const data = await readBillingSnapshot(request, env, { seedLegacyCredit: false });
   if (data?.degraded === true) {
     return failure(
       503,
@@ -3539,6 +3929,16 @@ async function handleUnlockStatus(request, env) {
     },
   });
   if (accessDecision.paymentOptions) paymentDecision = accessDecision.paymentOptions;
+  const passStatusCovered = accessDecision.reason === "pass_covered"
+    || (!shouldPersistProfileUnlockEntitlement(pricing) && paymentDecision.canUseByPass === true);
+  const responseAccessDecision = passStatusCovered && !accessDecision.accessGranted
+    ? {
+      ...accessDecision,
+      accessGranted: true,
+      reason: "pass_covered",
+      shouldOpenPaymentSelector: false,
+    }
+    : accessDecision;
   if (accessDecision.accessGranted) {
     unlocked = true;
     if (pricing.featureKey) unlockMap[pricing.featureKey] = true;
@@ -3557,20 +3957,20 @@ async function handleUnlockStatus(request, env) {
     ...paymentDecision,
     paymentOptions: paymentDecision,
     unlocked,
-    accessDecision,
+    accessDecision: responseAccessDecision,
     accessReason: accessDecision.reason === "already_unlocked"
       ? ACCESS_DECISION_REASONS.ALREADY_UNLOCKED
-      : (accessDecision.reason === "pass_covered" ? ACCESS_DECISION_REASONS.SUBSCRIPTION_ACTIVE : legacyAccess.reason),
+      : (passStatusCovered ? ACCESS_DECISION_REASONS.SUBSCRIPTION_ACTIVE : legacyAccess.reason),
     subscriptionTier: subscription.tier,
     freeLimit: Number(subscription.freeLimit || 0),
-    freeBySubscription: accessDecision.reason === "pass_covered",
+    freeBySubscription: passStatusCovered,
     accessGateResult: accessDecision.accessGateResult || null,
     licensePass: accessDecision.accessGateResult || null,
     currentBalance,
-    requiredCoins: accessDecision.accessGranted ? 0 : Number(pricing.cost || 0),
-    shouldOpenPaymentSelector: accessDecision.shouldOpenPaymentSelector,
+    requiredCoins: accessDecision.accessGranted || passStatusCovered ? 0 : Number(pricing.cost || 0),
+    shouldOpenPaymentSelector: passStatusCovered ? false : accessDecision.shouldOpenPaymentSelector,
     availableMethods: accessDecision.availableMethods,
-    canAccess: Boolean(accessDecision.accessGranted),
+    canAccess: Boolean(accessDecision.accessGranted || passStatusCovered),
   }, "기능 접근 상태를 조회했습니다.");
 }
 
@@ -4118,6 +4518,7 @@ export const __billingTestUtils = {
   buildAccessDecision,
   buildPaidContentAccessDecision,
   buildPassPaymentDecision,
+  buildNativeArchivePdfBytes,
   requireBillingAuth,
   resolvePaidContentAccess,
 };

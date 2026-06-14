@@ -1,4 +1,4 @@
-import SajuBasicPage from "../../../components/SajuBasicPage";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "사주 만세력 기본 해석 - 오행·십성·명식 분석 | Code Destiny",
@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function SajuBasicPlayPage() {
-  return <SajuBasicPage />;
+  redirect("/#destinyCardForm");
 }

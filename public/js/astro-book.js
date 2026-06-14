@@ -13,6 +13,9 @@
   var ASTRO_WESTERN_CHART_API = '/api/astro/western-chart';
   var ASTRO_TOTAL_CHAPTERS = 12;
   var ASTRO_COIN_COST = 390;
+  var ASTRO_PREPARE_TIMEOUT_MS = 90000;
+  var ASTRO_DOWNLOAD_TIMEOUT_MS = 60000;
+  var ASTRO_STATUS_POLL_MS = 4000;
   var ASTRO_SIGN_NAMES = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
 
   var _chapters = [];
@@ -44,6 +47,20 @@
       return value.replace(/([?&]format=)[^&]+/i, '$1' + encodeURIComponent(targetFormat));
     }
     return value + (value.indexOf('?') >= 0 ? '&' : '?') + 'format=' + encodeURIComponent(targetFormat);
+  }
+
+  function _fetchWithTimeout(url, options, timeoutMs) {
+    var ms = Math.max(1000, Number(timeoutMs || 0) || 30000);
+    var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = null;
+    var requestOptions = options || {};
+    if (controller) {
+      requestOptions = Object.assign({}, requestOptions, { signal: controller.signal });
+      timer = setTimeout(function () { controller.abort(); }, ms);
+    }
+    return fetch(url, requestOptions).finally(function () {
+      if (timer) clearTimeout(timer);
+    });
   }
 
   function _logFlow(code, meta) {
@@ -354,9 +371,14 @@
   }
 
   function _setError(msg) {
+    var raw = String(msg || '');
     var message = _sanitizeText(msg);
-    if (/internal\s*server\s*error|\bobject\b/i.test(String(msg || ''))) {
-      message = 'PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.';
+    if (/PAYMENT_CONFIRMED_BUT_ACCESS_MISSING|결제는 확인되었지만/i.test(raw)) {
+      message = '결제는 확인되었지만 생성 권한 연결이 아직 완료되지 않았습니다. 잠시 후 다시 시도하면 중복 결제 없이 이어서 확인합니다.';
+    } else if (/ASTRO_PAYMENT_CANCELLED|결제\s*취소|payment\s*cancel/i.test(raw)) {
+      message = '결제가 완료되지 않았습니다. 코인은 차감되지 않았으며, 원하실 때 다시 생성할 수 있습니다.';
+    } else if (/internal\s*server\s*error|\bobject\b|ASTRO_PREMIUM|ASTRO_REPORT|ASTRO_CHART|PDF 결과|원고|검증|시간이 초과|생성 실패|생성 오류|HTTP\s*5/i.test(raw)) {
+      message = 'PDF 생성이 완료되지 않았습니다. 결제 또는 코인 처리분은 자동 보상 확인 대상이며, 잠시 후 포인트 내역을 확인한 뒤 다시 시도해 주세요.';
     }
     var el = _qs('abErrorMsg');
     if (el) el.textContent = message || '생성 중 오류가 발생했습니다.';
@@ -526,6 +548,55 @@
     return { birthTime: '', birthHour: null, birthMinute: 0, isTimeUnknown: true };
   }
 
+  function _parseTimezoneOffsetLiteral(value) {
+    if (value === 0) return 0;
+    var raw = _clean(value);
+    if (!raw) return NaN;
+    var direct = Number(raw);
+    if (Number.isFinite(direct)) return direct;
+    var lower = raw.toLowerCase();
+    if (lower === 'asia/seoul' || lower === 'asia/jeju' || lower === 'kst' || lower === 'korea standard time' || lower === 'korean standard time') return 9;
+    if (lower === 'asia/tokyo' || lower === 'jst' || lower === 'japan standard time') return 9;
+    if (lower === 'utc' || lower === 'gmt' || lower === 'z' || lower === 'zulu') return 0;
+    var match = raw.match(/^(?:utc|gmt)?\s*([+-])(\d{1,2})(?::?(\d{2}))?$/i);
+    if (!match) return NaN;
+    var hour = Number(match[2]);
+    var minute = Number(match[3] || 0);
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) return NaN;
+    return (match[1] === '-' ? -1 : 1) * (hour + minute / 60);
+  }
+
+  function _resolveTimezoneOffsetHours(timezone, parts) {
+    var literal = _parseTimezoneOffsetLiteral(timezone);
+    if (Number.isFinite(literal)) return literal;
+    var raw = _clean(timezone);
+    if (!raw || raw.indexOf('/') < 0 || typeof Intl === 'undefined' || !Intl.DateTimeFormat) return NaN;
+    try {
+      var p = parts || {};
+      var year = Number(p.year || p.birthYear);
+      var month = Number(p.month || p.birthMonth);
+      var day = Number(p.day || p.birthDay);
+      var hour = Number(p.hour != null ? p.hour : p.birthHour);
+      var minute = Number(p.minute != null ? p.minute : p.birthMinute);
+      if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return NaN;
+      var date = new Date(Date.UTC(year, month - 1, day, Number.isFinite(hour) ? hour : 0, Number.isFinite(minute) ? minute : 0));
+      var formatted = new Intl.DateTimeFormat('en-US', {
+        timeZone: raw,
+        timeZoneName: 'shortOffset',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23'
+      }).formatToParts(date);
+      for (var i = 0; i < formatted.length; i += 1) {
+        if (formatted[i].type === 'timeZoneName') return _parseTimezoneOffsetLiteral(formatted[i].value);
+      }
+    } catch (_) {}
+    return NaN;
+  }
+
   function _normalizeAstroBirthInput(profile) {
     var p = profile || {};
     var b = p.birth || {};
@@ -534,7 +605,19 @@
     var month = Number(b.month || 0);
     var day = Number(b.day || 0);
     var parsedTime = _parseBirthTimeInput(b.time || b.birthTime || '', b.hour, b.minute);
-    var tz = _clean(l.tz || l.timezone || p.timezone || 'Asia/Seoul') || 'Asia/Seoul';
+    var tz = _clean(l.tz || l.timezone || p.timezone || '');
+    var rawTzOffset = l.tzOffset != null ? l.tzOffset : (l.timezoneOffset != null ? l.timezoneOffset : (l.utcOffset != null ? l.utcOffset : (p.timezoneOffsetHours != null ? p.timezoneOffsetHours : p.tzOffset)));
+    var tzOffset = Number(rawTzOffset);
+    if (!Number.isFinite(tzOffset)) {
+      tzOffset = _resolveTimezoneOffsetHours(tz, {
+        year: year,
+        month: month,
+        day: day,
+        hour: parsedTime.birthHour,
+        minute: parsedTime.birthMinute
+      });
+    }
+    if (!tz && Number.isFinite(tzOffset)) tz = String(tzOffset);
     var gender = _clean(p.gender).toLowerCase();
     var normGender = 'unknown';
     if (gender === 'm' || gender === 'male' || gender.indexOf('남') >= 0) normGender = 'male';
@@ -550,9 +633,10 @@
       birthHour: parsedTime.birthHour,
       birthMinute: parsedTime.birthMinute,
       timezone: tz,
+      timezoneOffsetHours: Number.isFinite(tzOffset) ? tzOffset : null,
       birthPlace: _clean(l.label || p.birthPlace || ''),
       latitude: Number.isFinite(Number(l.lat)) ? Number(l.lat) : null,
-      longitude: Number.isFinite(Number(l.lon || l.lng)) ? Number(l.lon || l.lng) : null,
+      longitude: Number.isFinite(Number(l.lon != null ? l.lon : l.lng)) ? Number(l.lon != null ? l.lon : l.lng) : null,
       isTimeUnknown: !!parsedTime.isTimeUnknown,
     };
   }
@@ -563,11 +647,22 @@
       && Number.isFinite(Number(birthInput && birthInput.birthMonth))
       && Number.isFinite(Number(birthInput && birthInput.birthDay));
     var hasBirthTime = Number.isFinite(Number(birthInput && birthInput.birthHour));
+    var hasTimezone = !!_clean(birthInput && birthInput.timezone);
+    var hasTimezoneOffset = Number.isFinite(Number(birthInput && birthInput.timezoneOffsetHours));
+    var hasBirthPlace = !!_clean(birthInput && birthInput.birthPlace);
+    var hasCoordinates = Number.isFinite(Number(birthInput && birthInput.latitude))
+      && Number.isFinite(Number(birthInput && birthInput.longitude));
     if (!hasBirthDate || !hasBirthYmd) {
       return { ok: false, message: '생년월일 정보가 확인되지 않아 점성술 PDF를 생성할 수 없습니다. 프로필 카드에서 생년월일을 먼저 입력해주세요.' };
     }
     if (!hasBirthTime || birthInput.isTimeUnknown) {
       return { ok: false, message: '점성술 PDF는 상승궁과 하우스 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요.' };
+    }
+    if (!hasTimezone || !hasTimezoneOffset) {
+      return { ok: false, message: '점성술 PDF는 정확한 하우스 계산을 위해 출생지 시간대가 필요합니다. 프로필 카드에서 태어난 지역을 다시 선택해주세요.' };
+    }
+    if (!hasBirthPlace || !hasCoordinates) {
+      return { ok: false, message: '점성술 PDF는 상승궁·하우스·천정점 계산을 위해 출생지가 필요합니다. 프로필 카드에서 태어난 지역을 먼저 선택해주세요.' };
     }
     return { ok: true };
   }
@@ -580,9 +675,17 @@
       var hour = Number(birth.hour);
       if (!Number.isFinite(hour)) return null;
       var localHour = hour + Number(birth.minute || 0) / 60;
-      var lat = Number(location.lat || 37.5665);
-      var lon = Number(location.lon || 126.9780);
-      var tz = Number(location.tzOffset || 9);
+      var lat = Number(location.lat != null ? location.lat : 37.5665);
+      var lon = Number(location.lon != null ? location.lon : (location.lng != null ? location.lng : 126.9780));
+      var rawTz = location.tzOffset != null ? location.tzOffset : (location.timezoneOffset != null ? location.timezoneOffset : (location.utcOffset != null ? location.utcOffset : location.timezone || location.tz));
+      var tz = _resolveTimezoneOffsetHours(rawTz, {
+        year: birth.year,
+        month: birth.month,
+        day: birth.day,
+        hour: birth.hour,
+        minute: birth.minute
+      });
+      if (!Number.isFinite(tz)) return null;
       var hs = (typeof window !== 'undefined' && window.ASTRO_HOUSE_SYSTEM) ? window.ASTRO_HOUSE_SYSTEM : 'P';
       var chart = window.calcAstroSwissChartOrThrow(
         Number(birth.year),
@@ -704,15 +807,23 @@
     var location = (profile && profile.location) || {};
     var hour = Number(birth.hour);
     var minute = Number(birth.minute || 0);
+    var rawTzOffset = location.tzOffset != null ? location.tzOffset : (location.timezoneOffset != null ? location.timezoneOffset : (location.utcOffset != null ? location.utcOffset : location.timezone || location.tz));
+    var tzOffset = _resolveTimezoneOffsetHours(rawTzOffset, {
+      year: birth.year,
+      month: birth.month,
+      day: birth.day,
+      hour: birth.hour,
+      minute: birth.minute
+    });
     return {
       year: Number(birth.year),
       month: Number(birth.month),
       day: Number(birth.day),
       hour: Number.isFinite(hour) ? hour : null,
       minute: Number.isFinite(minute) ? minute : 0,
-      timezone: Number(location.tzOffset || location.timezone || 9),
-      lat: Number(location.lat || 37.5665),
-      lon: Number(location.lon || location.lng || 126.9780),
+      timezone: Number.isFinite(tzOffset) ? tzOffset : NaN,
+      lat: Number(location.lat != null ? location.lat : 37.5665),
+      lon: Number(location.lon != null ? location.lon : (location.lng != null ? location.lng : 126.9780)),
     };
   }
 
@@ -807,6 +918,7 @@
         birthDate: _clean(birthInput && birthInput.birthDate),
         birthTime: _clean(birthInput && birthInput.birthTime),
         timezone: _clean(birthInput && birthInput.timezone),
+        timezoneOffsetHours: Number.isFinite(Number(birthInput && birthInput.timezoneOffsetHours)) ? Number(birthInput.timezoneOffsetHours) : null,
         birthPlace: _clean(birthInput && birthInput.birthPlace),
       },
       coreSigns: {
@@ -830,7 +942,7 @@
       return;
     }
     var birth = profile.birth || {};
-    var place = (profile.location && profile.location.label) || '대한민국 (서울)';
+    var place = (profile.location && profile.location.label) || '출생지 미입력';
     var hour = Number(birth.hour);
     var minute = Number(birth.minute || 0);
     var time = Number.isFinite(hour)
@@ -856,7 +968,7 @@
     if (bar) bar.style.width = pct + '%';
     if (txt) txt.textContent = safeStep + ' / ' + safeTotal + ' 챕터 ' + (isDone ? '완성' : '진행');
     if (num) num.textContent = 'Chapter ' + Math.max(1, safeStep || 1);
-    if (ch) ch.textContent = _sanitizeText(title || '점성술 코즈믹 차트 PDF를 완성하는 중입니다');
+    if (ch) ch.textContent = _sanitizeText(title || '점성술 코즈믹 리포트 PDF를 완성하는 중입니다');
 
     var dots = document.querySelectorAll('.ab-ch-dot');
     Array.prototype.forEach.call(dots, function (dot) {
@@ -884,9 +996,9 @@
   function _startProgressAnimation() {
     _stopProgressAnimation();
     var titles = [
-      '프로필 정보 확인 중',
-      '결제 및 세션 준비 중',
-      '출생 차트 계산을 준비하는 중입니다',
+      '출생 정보를 확인하는 중입니다',
+      '리포트 세션을 여는 중입니다',
+      '행성 좌표와 하우스를 계산하는 중입니다',
     ];
     var total = _getTotalChapters();
     var idx = 0;
@@ -981,11 +1093,11 @@
       if (authToken) headers.Authorization = 'Bearer ' + authToken;
       if (premiumToken) headers['x-premium-access-token'] = premiumToken;
 
-      fetch(url, {
+      _fetchWithTimeout(url, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(body),
-      })
+      }, ASTRO_PREPARE_TIMEOUT_MS)
         .then(function (res) {
           return res.json().catch(function () { return {}; }).then(function (json) {
             return { res: res, json: json };
@@ -1004,7 +1116,40 @@
           }));
         })
         .catch(function (err) {
-          run(resolve, reject, err instanceof Error ? err : new Error(String(err && err.message || err || '요청 실패')));
+          if (err && err.name === 'AbortError') {
+            if (idx < endpoints.length) {
+              run(resolve, reject, err);
+              return;
+            }
+            _fetchAstroStatus(body && body.sessionId, body && body.reportId)
+              .then(function (payload) {
+                var data = _statusData(payload);
+                if (data.status === 'done' && data.result) {
+                  resolve({ ok: true, status: 'done', result: data.result, sessionId: data.sessionId, reportId: data.reportId });
+                  return;
+                }
+                if (data.status === 'running') {
+                  resolve({
+                    ok: true,
+                    status: 'running',
+                    sessionId: data.sessionId || (body && body.sessionId),
+                    reportId: data.reportId || (body && body.reportId),
+                    timeoutRecovery: true,
+                  });
+                  return;
+                }
+                reject(_buildAstroApiError({ status: data.statusCode || 500, body: data }, (data.error && data.error.message) || data.message || '점성술 PDF 생성 상태를 확인하지 못했습니다.', {
+                  stage: 'prepare-timeout',
+                  sessionId: body && body.sessionId,
+                  reportId: body && body.reportId
+                }));
+              })
+              .catch(function (statusErr) {
+                reject(statusErr instanceof Error ? statusErr : new Error(String(statusErr && statusErr.message || statusErr || '상태 확인 실패')));
+              });
+            return;
+          }
+          reject(err instanceof Error ? err : new Error(String(err && err.message || err || '요청 실패')));
         });
     }
 
@@ -1021,10 +1166,14 @@
     return headers;
   }
 
-  function _fetchAstroStatus(sessionId) {
+  function _fetchAstroStatus(sessionId, reportId) {
     var sid = _clean(sessionId);
-    if (!sid) return Promise.reject(new Error('점성술 생성 세션을 확인할 수 없습니다.'));
-    var endpoints = _buildApiCandidates(ASTRO_STATUS_API + '?sessionId=' + encodeURIComponent(sid));
+    var rid = _clean(reportId);
+    if (!sid && !rid) return Promise.reject(new Error('점성술 생성 세션을 확인할 수 없습니다.'));
+    var query = [];
+    if (sid) query.push('sessionId=' + encodeURIComponent(sid));
+    if (rid) query.push('reportId=' + encodeURIComponent(rid));
+    var endpoints = _buildApiCandidates(ASTRO_STATUS_API + '?' + query.join('&'));
     var idx = 0;
     function run(resolve, reject, lastErr) {
       if (idx >= endpoints.length) {
@@ -1059,18 +1208,24 @@
     return payload || {};
   }
 
+  function _statusRetryDelay(statusData) {
+    var ms = Number(statusData && statusData.retryAfterMs);
+    if (!Number.isFinite(ms) || ms < 1000) return ASTRO_STATUS_POLL_MS;
+    return Math.min(10000, Math.max(1000, Math.trunc(ms)));
+  }
+
   function _progressTitle(progress, statusData) {
     var state = _clean((progress && progress.stateKey) || (statusData && statusData.status));
     var title = _clean(progress && progress.currentChapterTitle);
-    if (state === 'local_calculation') return '출생 차트와 하우스 근거를 정리하는 중입니다';
-    if (state === 'writing_seed') return '차트 근거를 프리미엄 원고 신호로 정리하는 중입니다';
-    if (state === 'writing_local') return title ? title : '프리미엄 원고를 로컬 조립하는 중입니다';
-    if (state === 'manuscript_validated') return '프리미엄 원고 검수를 완료하는 중입니다';
-    if (state === 'pdf_rendering') return 'PDF 편집/렌더링 중';
-    if (state === 'pdf_rendered') return 'PDF 저장 정보를 확인하는 중입니다';
-    if (state === 'failed') return '프리미엄 원고 작성이 완료되지 않았습니다';
+    if (state === 'local_calculation') return '행성 좌표와 하우스의 삶의 장면을 정리하는 중입니다';
+    if (state === 'writing_seed') return '차트의 핵심 상징을 상담 목차로 엮는 중입니다';
+    if (state === 'writing_local') return title ? title : '12개 챕터의 상담문을 차례로 엮는 중입니다';
+    if (state === 'manuscript_validated') return '챕터 흐름과 문장 결을 마지막으로 살피는 중입니다';
+    if (state === 'pdf_rendering') return '코즈믹 리포트 PDF를 편집하는 중입니다';
+    if (state === 'pdf_rendered') return 'PDF 저장 경로를 확인하는 중입니다';
+    if (state === 'failed') return '코즈믹 리포트 작성이 완료되지 않았습니다';
     if (state === 'completed' || state === 'done') return '완료';
-    return title || '점성술 코즈믹 차트 PDF를 준비하는 중입니다';
+    return title || '점성술 코즈믹 리포트 PDF를 준비하는 중입니다';
   }
 
   function _applyAstroStatusProgress(statusPayload) {
@@ -1089,14 +1244,14 @@
     return data;
   }
 
-  function _startAstroStatusPolling(sessionId) {
+  function _startAstroStatusPolling(sessionId, reportId) {
     _stopProgressAnimation();
     function tick() {
       if (!_generating) {
         _stopProgressAnimation();
         return;
       }
-      _fetchAstroStatus(sessionId)
+      _fetchAstroStatus(sessionId, reportId)
         .then(function (payload) {
           var data = _applyAstroStatusProgress(payload);
           if (data.status === 'done' || data.status === 'failed') _stopProgressAnimation();
@@ -1104,14 +1259,14 @@
         .catch(function () {});
     }
     tick();
-    _progressTimer = setInterval(tick, 1800);
+    _progressTimer = setInterval(tick, ASTRO_STATUS_POLL_MS);
   }
 
-  function _waitForAstroCompletion(sessionId) {
+  function _waitForAstroCompletion(sessionId, reportId) {
     var started = Date.now();
     var timeoutMs = 12 * 60 * 1000;
     function wait() {
-      return _fetchAstroStatus(sessionId).then(function (payload) {
+      return _fetchAstroStatus(sessionId, reportId).then(function (payload) {
         var data = _applyAstroStatusProgress(payload);
         if (data.status === 'done' && data.result) return data.result;
         if (data.status === 'failed') throw _buildAstroApiError({ status: data.statusCode || 500, body: data }, (data.error && data.error.message) || data.message || '점성술 PDF 생성에 실패했습니다.', {
@@ -1120,10 +1275,41 @@
           reportId: data.reportId
         });
         if (Date.now() - started > timeoutMs) throw new Error('점성술 PDF 생성 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.');
-        return new Promise(function (resolve) { setTimeout(resolve, 1800); }).then(wait);
+        return new Promise(function (resolve) { setTimeout(resolve, _statusRetryDelay(data)); }).then(wait);
       });
     }
     return wait();
+  }
+
+  function _downloadAstroBookUrl(url, filename) {
+    var safeUrl = _clean(url);
+    if (!safeUrl) return Promise.reject(new Error('PDF 다운로드 URL이 아직 준비되지 않았습니다.'));
+    return _fetchWithTimeout(safeUrl, {
+      method: 'GET',
+      headers: _astroStatusHeaders(),
+    }, ASTRO_DOWNLOAD_TIMEOUT_MS)
+      .then(function (res) {
+        if (!res.ok) {
+          return res.text().catch(function () { return ''; }).then(function (text) {
+            var err = new Error(text || ('PDF 다운로드 요청에 실패했습니다. HTTP ' + res.status));
+            err.status = res.status;
+            throw err;
+          });
+        }
+        return res.blob();
+      })
+      .then(function (blob) {
+        var objectUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = filename || 'astro-premium-report.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () {
+          try { URL.revokeObjectURL(objectUrl); } catch (_) {}
+        }, 1500);
+      });
   }
 
   function _ensurePremiumPaymentAsync() {
@@ -1258,6 +1444,7 @@
       return;
     }
 
+    var astroBase = _buildAstroBase(profile);
     var astroClientEvidenceJson = _buildAstroClientEvidenceJson(profile, birthInput);
 
     _generating = true;
@@ -1283,7 +1470,6 @@
         var paymentGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
         _logStage('SessionCreateSuccess', { sessionId: sessionId });
         _setLoadingProgress(0, total, '출생 차트 계산 요청 중');
-        _startAstroStatusPolling(sessionId);
         _logStage('PdfRequestStart', { featureKey: ASTRO_FEATURE_KEY, sessionId: sessionId });
         return _postPrepare({
           featureKey: ASTRO_FEATURE_KEY,
@@ -1299,9 +1485,12 @@
           _paymentContext: paymentContext,
           birthInput: birthInput,
           profile: profile,
+          astroBase: astroBase && astroBase.chart ? astroBase : undefined,
           astroClientEvidenceJson: astroClientEvidenceJson,
         }).then(function (response) {
-          if (response && response.status === 'running') return _waitForAstroCompletion(sessionId);
+          if (response && response.status === 'running') {
+            return _waitForAstroCompletion(sessionId, response.reportId || paymentContext.reportId);
+          }
           return response;
         });
       })
@@ -1347,14 +1536,11 @@
     var url = _resolveAstroStoredUrl(_resultPayload);
 
     if (url) {
-      var a = document.createElement('a');
-      a.href = url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.download = ((_resultPayload && _resultPayload.pdfReady && _resultPayload.pdfReady.filename) || 'astro-premium-report.pdf').replace(/\.html?$/i, '.pdf');
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      var filename = ((_resultPayload && _resultPayload.pdfReady && _resultPayload.pdfReady.filename) || 'astro-premium-report.pdf').replace(/\.html?$/i, '.pdf');
+      _downloadAstroBookUrl(url, filename).catch(function (err) {
+        _logError(err, { stage: 'download' });
+        _setError('PDF 다운로드 권한을 확인하지 못했습니다. 로그인 상태를 확인한 뒤 다시 시도해 주세요.');
+      });
       return;
     }
 

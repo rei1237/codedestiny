@@ -3,7 +3,7 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const META = {
   path: "/animal/physio",
-  title: "AI 동물 관상 - 셀카 얼굴 분석 가이드 | Code Destiny",
+  title: "AI 동물 관상 - 셀카 얼굴 분석 가이드",
   description: "얼굴형, 표정, 분위기 신호를 동물 비유로 해석해 자기표현과 관계 소통 힌트를 제공하는 동물관상 페이지입니다.",
   keywords: ["동물 관상", "AI 관상", "얼굴형 분석", "animal physiognomy", "셀카 관상"],
   image: "https://code-destiny.com/fuctionassets/ai%20animal.webp",

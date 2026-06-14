@@ -66,72 +66,52 @@
     },
     compatibility: {
       titles: [
-        '두 사람의 사랑 구조 총론',
-        '나의 연애 성향 요약',
-        '상대의 연애 성향 요약',
-        '일간 궁합과 기본 기질',
-        '일지 궁합과 관계의 뿌리',
-        '배우자성으로 보는 사랑의 기대치',
-        '오행 균형으로 보는 감정 궁합',
-        '조후로 보는 속궁합과 친밀감',
+        '두 사람의 관계 코드',
+        '첫 끌림과 호감 조건',
+        '감정 궁합',
         '대화와 표현 궁합',
-        '갈등과 화해 패턴',
-        '이별과 재회 가능성',
-        '결혼과 장기 관계 궁합',
-        '현실 문제와 관계 유지 전략',
-        '두 사람의 운 흐름과 타이밍',
-        '두 사람을 위한 최종 사랑 전략'
+        '갈등 패턴',
+        '화해와 회복력',
+        '현실 조건 궁합',
+        '장기 관계 가능성',
+        '올해의 관계 흐름',
+        '최종 궁합 비책'
       ],
       subtitles: [
-        '궁합의 핵심 결을 한눈에 정리',
-        '관계를 읽는 나의 기본 렌즈',
-        '상대를 이해하는 핵심 포인트',
-        '두 사람 기질의 상호작용',
-        '생활 밀착 영역의 궁합 진단',
-        '서로가 관계에서 바라는 기준',
-        '감정 온도와 안정감의 균형',
-        '정서적 밀착과 몸의 편안함',
-        '말의 결이 맞는 지점과 엇갈림',
-        '충돌의 구조와 회복의 방식',
-        '관계 지속의 조건과 한계',
-        '현실 생활로 이어질 가능성',
-        '돈·일·가족·생활의 실제 조율',
-        '대운·세운으로 보는 전환점',
-        '관계를 이어가거나 정리할 기준'
+        '각자의 사주가 만났을 때 생기는 기본 결',
+        '서로에게 끌리는 지점과 조심할 기대',
+        '정서적 안정감과 반응 속도의 차이',
+        '말의 결, 침묵의 의미, 오해의 방향',
+        '부딪히는 순간 드러나는 각자의 방어 방식',
+        '다시 가까워지는 데 필요한 조건',
+        '생활, 책임, 돈, 시간의 조율',
+        '오래 가는 관계로 이어질 때 필요한 약속',
+        '올해 두 사람에게 강해지는 기회와 주의점',
+        '두 사람이 함께 지킬 30일 관계 루틴'
       ],
       loading: [
-        '두 사람의 사랑 구조를 총론하는 중입니다',
-        '나의 연애 성향을 정리하는 중입니다',
-        '상대의 연애 성향을 분석하는 중입니다',
-        '두 일간 기질의 상호작용을 해석하는 중입니다',
-        '일지 궁합과 관계의 뿌리를 진단하는 중입니다',
-        '배우자성으로 보는 기대치를 비교하는 중입니다',
-        '오행 균형과 감정 궁합을 분석하는 중입니다',
-        '조후로 보는 속궁합을 집필하는 중입니다',
-        '대화와 표현 궁합을 정리하는 중입니다',
-        '갈등과 화해 패턴을 진단하는 중입니다',
-        '이별과 재회 가능성을 분석하는 중입니다',
-        '결혼과 장기 관계 궁합을 점검하는 중입니다',
-        '현실 문제와 관계 전략을 구성하는 중입니다',
-        '대운·세운의 운 흐름을 계산하는 중입니다',
-        '두 사람의 최종 사랑 전략을 완성하는 중입니다'
+        '두 사람의 관계 코드를 정리하는 중입니다',
+        '첫 끌림과 호감 조건을 분석하는 중입니다',
+        '감정 궁합과 안정감을 살피는 중입니다',
+        '대화와 표현의 결을 정리하는 중입니다',
+        '갈등이 생기는 구조를 진단하는 중입니다',
+        '화해와 회복의 순서를 구성하는 중입니다',
+        '현실 조건 궁합을 점검하는 중입니다',
+        '장기 관계 가능성을 해석하는 중입니다',
+        '올해의 관계 흐름을 계산하는 중입니다',
+        '최종 궁합 비책을 완성하는 중입니다'
       ],
       structured: {
-        1: ['두 사람의 일간 관계', '일지가 만드는 기본 분위기', '오행 균형과 에너지 흐름', '이 관계의 핵심 강점', '이 관계에서 가장 조심해야 할 점'],
-        2: ['나의 사랑 태도', '내가 원하는 관계의 조건', '불안할 때 보이는 반응', '나의 방어기제', '나를 더 사랑스럽게 만드는 태도'],
-        3: ['상대의 사랑 태도', '상대가 원하는 관계의 조건', '상대가 멀어질 때 보이는 신호', '상대를 이해하는 핵심 포인트', '상대를 존중하는 방법'],
-        4: ['두 일간이 만드는 분위기', '서로에게 자극이 되는 부분', '서로를 어렵게 느끼는 부분', '기질 차이를 조화시키는 법', '일간 궁합의 실전 적용'],
-        5: ['두 사람의 일지 관계', '편안함을 느끼는 부분', '반복되는 감정 충돌', '가까워질수록 드러나는 문제', '관계의 뿌리를 안정시키는 방법'],
-        6: ['내가 원하는 사랑의 기준', '상대가 원하는 사랑의 기준', '기대가 맞는 부분', '기대가 어긋나는 부분', '기대 차이를 줄이는 방법'],
-        7: ['두 사람의 오행 구성', '부족한 기운을 채워주는 부분', '과한 기운이 충돌하는 부분', '감정이 뜨거워지는 순간', '감정 균형을 맞추는 방법'],
-        8: ['두 사람의 명식 온도 차이', '서로에게 따뜻함을 주는 방식', '긴장과 이완이 생기는 지점', '몸과 마음의 친밀감이 맞는 부분', '속궁합을 건강하게 유지하는 법'],
-        9: ['말이 잘 통하는 부분', '말이 엇갈리는 부분', '서운함을 표현하는 방식', '침묵이 생기는 이유', '관계를 살리는 대화법'],
-        10: ['가장 자주 부딪히는 문제', '서로를 오해하는 지점', '감정이 폭발하는 순간', '화해가 어려워지는 이유', '갈등을 줄이는 현실적인 방법'],
-        11: ['이 관계가 멀어지는 이유', '이별 후에도 마음이 남는 이유', '다시 이어질 수 있는 조건', '재회 후 반복될 수 있는 문제', '재회를 원할 때 가장 중요한 태도'],
-        12: ['오래 만날수록 안정되는 부분', '결혼 후 드러날 수 있는 차이', '생활 리듬의 궁합', '책임과 역할 분담의 문제', '장기 관계로 가기 위한 조건'],
-        13: ['돈과 현실 감각의 차이', '일과 사랑의 우선순위', '가족과 주변 사람의 영향', '생활 습관에서 생기는 문제', '현실 문제를 함께 해결하는 법'],
-        14: ['지금 두 사람의 관계 운', '가까워지기 좋은 시기', '조심해야 할 시기', '관계가 바뀌는 전환점', '타이밍을 잘 쓰는 방법'],
-        15: ['이 관계의 최종 핵심 메시지', '관계를 망치는 행동', '관계를 살리는 행동', '서로에게 꼭 필요한 태도', '앞으로의 선택을 위한 조언']
+        1: ['첫눈에 느껴지는 관계의 결', '일간·일지·월지 핵심 궁합', '끌림과 안정감의 균형', '관계를 흔드는 반복 신호', '두 사람의 생활 박자', '처음부터 조율해야 할 약점', '두 사람의 최종 궁합 한 문장'],
+        2: ['처음 호감이 생기는 이유', '기질 차이가 매력으로 보이는 지점', '기질 차이가 상처가 되는 지점', '상대에게 끌리는 지점', '좋은 호감을 유지하는 기준', '위험한 기대와 착각', '호감이 안정감으로 바뀌는 조건'],
+        3: ['정서적 안정감', '불안이 커지는 순간', '감정 속도 차이', '서로를 안심시키는 방식', '질투와 비교심이 생기는 지점', '편안함을 느끼는 감정 리듬', '감정 궁합을 살리는 습관'],
+        4: ['말이 잘 통하는 지점', '오해가 생기는 표현', '침묵이 서운함이 되는 순간', '서운함을 안전하게 말하는 순서', '상대가 듣고 싶어 하는 확인 문장', '화해를 여는 문장', '관계를 살리는 대화 루틴'],
+        5: ['갈등이 시작되는 원인', '싸울 때 각자 보이는 반응', '방어 반응의 차이', '상처가 깊어지는 금지 문장', '자주 부딪히는 현실 문제', '갈등을 줄이는 기준', '갈등 후 반복하면 안 되는 행동'],
+        6: ['다시 가까워지는 순서', '사과와 인정의 언어', '회복 가능한 신호', '재충돌을 막는 약속', '화해가 쉬워지는 타이밍', '90일 관계 회복 루틴', '화해 후 지켜야 할 태도'],
+        7: ['돈과 현실 감각의 차이', '일과 사랑의 우선순위', '가족과 주변 사람의 영향', '생활 습관의 차이', '역할 기대가 부담으로 바뀌는 순간', '현실 문제를 사랑의 편으로 돌리는 법', '현실 문제를 함께 다루는 법'],
+        8: ['장기 관계로 이어질 수 있는 힘', '결혼 현실성의 강점', '가족·일·돈에서 조율할 지점', '약속이 무거워지는 시기', '함께 살아도 사랑이 남는 방식', '서로를 지치게 하지 않는 약속', '장기 관계의 품격 있는 기준'],
+        9: ['올해 관계 운', '가까워지기 좋은 시기', '조심해야 할 전환점', '관계 결정에 유리한 때', '각자의 운이 엇갈릴 때의 운영', '함께 운을 살리는 공동 행동', '타이밍을 잘 쓰는 방법'],
+        10: ['두 사람의 최종 궁합 메시지', '반드시 지켜야 할 태도', '반드시 피해야 할 습관', '30일 관계 회복 루틴', '90일 관계 성장 루틴', '관계를 이어가거나 정리할 품격 있는 기준', '최종 선택 기준']
       }
     }
   };
@@ -259,7 +239,6 @@
   var _lsAccessGrant = null;
   var _lsGatePurchaseId = '';
   var _lsResultPayload = null;
-  var _lsLocalDownloadUrl = '';
   var _lsFetchChapterForPartialRegenerate = null;
   var _lsJobStateKey = 'cd:premium-job:love-secret';
   var _lsLastStateKey = '';
@@ -273,10 +252,11 @@
     solo: '사주 프리미엄 연애운 리포트 생성',
     compatibility: '사주 프리미엄 궁합 리포트 생성'
   };
-  var LOVE_SECRET_REQUIRED_COINS_BY_MODE = {
+  var LOVE_SECRET_PRICE_FALLBACK_BY_MODE = {
     solo: 300,
     compatibility: 400
   };
+  var _loveSecretPriceCache = {};
   var LOVE_BOOK_GENERATION_MESSAGES = {
     loading_helper: '연애 비책을 펼칠 준비를 하고 있습니다.',
     checking_payment: '결제 정보를 확인하고 있습니다.',
@@ -321,8 +301,70 @@
 
   function _getLoveSecretRequiredCoins(mode) {
     var normalizedMode = _normalizeLoveSecretMode(mode);
-    var coins = Number(LOVE_SECRET_REQUIRED_COINS_BY_MODE[normalizedMode]);
+    var coins = Number(_loveSecretPriceCache[normalizedMode] || LOVE_SECRET_PRICE_FALLBACK_BY_MODE[normalizedMode]);
     return Number.isFinite(coins) && coins > 0 ? coins : 300;
+  }
+
+  function _getLoveSecretTargetYear() {
+    var year = new Date().getFullYear();
+    return Number.isFinite(year) && year >= 2026 ? year : 2026;
+  }
+
+  function _formatLoveSecretCoinLabel(coins) {
+    var amount = Math.max(0, Math.floor(Number(coins || 0)));
+    return amount > 0 ? amount + '코인' : '결제 확인';
+  }
+
+  function _readLoveSecretFeatureCost(payload) {
+    var sources = [];
+    if (payload && typeof payload === 'object') {
+      sources.push(payload);
+      if (payload.data && typeof payload.data === 'object') sources.push(payload.data);
+      if (payload.feature && typeof payload.feature === 'object') sources.push(payload.feature);
+      if (payload.data && payload.data.feature && typeof payload.data.feature === 'object') sources.push(payload.data.feature);
+    }
+    for (var i = 0; i < sources.length; i++) {
+      var src = sources[i];
+      var value = Number(src.cost || src.coinCost || src.priceCoin || src.requiredCoins || src.requiredCoin || src.coins || 0);
+      if (Number.isFinite(value) && value > 0) return Math.floor(value);
+    }
+    return 0;
+  }
+
+  function _applyLoveSecretPriceLabels() {
+    var solo = _getLoveSecretRequiredCoins('solo');
+    var compatibility = _getLoveSecretRequiredCoins('compatibility');
+    var delta = Math.max(0, compatibility - solo);
+    document.querySelectorAll('[data-ls-price-mode]').forEach(function (node) {
+      var mode = _normalizeLoveSecretMode(node.getAttribute('data-ls-price-mode'));
+      node.textContent = _formatLoveSecretCoinLabel(_getLoveSecretRequiredCoins(mode));
+    });
+    document.querySelectorAll('[data-ls-price-delta]').forEach(function (node) {
+      node.textContent = '+' + _formatLoveSecretCoinLabel(delta);
+    });
+    document.querySelectorAll('[data-ls-price-button]').forEach(function (node) {
+      var mode = _normalizeLoveSecretMode(node.getAttribute('data-ls-price-button'));
+      node.setAttribute('data-coin-cost', String(_getLoveSecretRequiredCoins(mode)));
+    });
+  }
+
+  async function _refreshLoveSecretPriceLabels() {
+    _applyLoveSecretPriceLabels();
+    await Promise.all(['solo', 'compatibility'].map(async function (mode) {
+      var featureKey = _getLoveSecretFeatureKey(mode);
+      try {
+        var res = await fetch('/api/billing/features?featureKey=' + encodeURIComponent(featureKey), {
+          method: 'GET',
+          credentials: 'include',
+          headers: { Accept: 'application/json' }
+        });
+        if (!res || !res.ok) return;
+        var json = await res.json();
+        var cost = _readLoveSecretFeatureCost(json);
+        if (cost > 0) _loveSecretPriceCache[_normalizeLoveSecretMode(mode)] = cost;
+      } catch (_) {}
+    }));
+    _applyLoveSecretPriceLabels();
   }
 
   function _beginLoveSecretPaymentGate(mode, reportId) {
@@ -601,7 +643,7 @@
         } else {
           // Create and load the script
           var script = document.createElement('script');
-          script.src = '/js/coin-gate-helper.js?v=20260529-love-book';
+          script.src = '/js/coin-gate-helper.js?v=build-20260615-love-secret-uiux';
           var loadTimeout = setTimeout(() => {
             reject(new Error('COIN_GATE_HELPER_TIMEOUT'));
           }, 5000);
@@ -710,11 +752,15 @@
         premiumAccessToken: _issuedPremiumToken,
       };
     } catch (error) {
-      console.info('[LoveBook] helper load', { helperLoaded: false, message: String(error && error.message ? error.message : error) });
+      var rawGateMessage = String(error && error.message ? error.message : error || 'COIN_GATE_HELPER_MISSING');
+      var gateMessage = rawGateMessage.indexOf('COIN_GATE_HELPER_') === 0
+        ? '결제 창을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'
+        : rawGateMessage;
+      console.info('[LoveBook] helper load', { helperLoaded: false, message: rawGateMessage });
       return {
         ok: false,
         status: 500,
-        message: String(error && error.message ? error.message : 'COIN_GATE_HELPER_MISSING'),
+        message: gateMessage,
         accessGrant: null,
         purchaseId: '',
         premiumAccessToken: '',
@@ -1422,6 +1468,14 @@
     }
   }
 
+  function _ensureLoveSecretModalMounted() {
+    var modal = _qs('loveSecretModal');
+    if (modal && modal.parentElement !== document.body) {
+      document.body.appendChild(modal);
+    }
+    return modal;
+  }
+
   function _renderTocButtons(totalChapters) {
     var nav = document.querySelector('.ls-toc');
     if (!nav) return;
@@ -1610,7 +1664,7 @@
     var day = parseInt((_qs('lsPsDay') || {}).value || '0', 10);
     var hourEl = _qs('lsPsHour');
     var hourIdx = (hourEl && hourEl.value !== '') ? parseInt(hourEl.value, 10) : -1;
-    if (!year || !month || !day || hourIdx < 0) return null;
+    if (!year || !month || !day) return null;
     var jiHourMap = [23, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21];
     var birthHour = (hourIdx >= 0 && hourIdx < jiHourMap.length) ? jiHourMap[hourIdx] : 12;
     var gm = _qs('lsPsGenderM');
@@ -1621,6 +1675,7 @@
       gender: gender,
       birthDate: String(year).padStart(4, '0') + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0'),
       birthTime: String(birthHour).padStart(2, '0') + ':00',
+      unknownTime: hourIdx < 0,
       calendarType: 'solar',
       timezone: 'Asia/Seoul',
       latitude: 37.6,
@@ -1681,47 +1736,10 @@
       return true;
     }
 
-    var hasChapters = _chapters.some(function (chapter) { return String(chapter || '').trim(); });
-    if (hasChapters && typeof Blob !== 'undefined' && window.URL && typeof window.URL.createObjectURL === 'function') {
-      try {
-        if (_lsLocalDownloadUrl) {
-          try { window.URL.revokeObjectURL(_lsLocalDownloadUrl); } catch (_) {}
-        }
-        var html = _buildLoveSecretPrintHtml();
-        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-        _lsLocalDownloadUrl = window.URL.createObjectURL(blob);
-        _lsResultPayload = Object.assign({}, data, {
-          ok: true,
-          status: 'completed',
-          serverStatus: 'completed',
-          reportId: String(data.reportId || _lsCurrentReportId || '').trim(),
-          storedUrl: _lsLocalDownloadUrl,
-          downloadUrl: _lsLocalDownloadUrl,
-          pdfUrl: _lsLocalDownloadUrl,
-          htmlUrl: _lsLocalDownloadUrl,
-          localDownload: true,
-          canDownload: true,
-          canReopen: true,
-        });
-        _logLoveSecretFlow('LocalDownloadUrlRecovered', {
-          mode: _currentChapterMode,
-          reportId: _lsCurrentReportId || '',
-          chapterCount: _chapters.filter(Boolean).length,
-        });
-        return true;
-      } catch (error) {
-        _logLoveSecretFlow('LocalDownloadUrlRecoveryFailed', {
-          mode: _currentChapterMode,
-          reportId: _lsCurrentReportId || '',
-          message: String(error && error.message ? error.message : error || ''),
-        });
-      }
-    }
-
     _logLoveSecretFlow('StoredReportUrlMissing', {
       mode: _currentChapterMode,
       reportId: String(data.reportId || _lsCurrentReportId || '').trim(),
-      hasChapters: hasChapters,
+      hasChapters: _chapters.some(function (chapter) { return String(chapter || '').trim(); }),
     });
     return false;
   }
@@ -1834,13 +1852,11 @@
       var day = _lsToInt(dParts[2], 0);
       if (!year || !month || !day) return null;
 
-      var timeInput = String(window.prompt('출생 시각을 입력해 주세요. (예: 14:30)', '') || '').trim();
+      var timeInput = String(window.prompt('출생 시각을 입력해 주세요. 모르면 비워두세요. (예: 14:30)', '') || '').trim();
       var parsedPromptTime = _lsParseFlexibleBirthTime(timeInput, null, null);
-      if (parsedPromptTime.isUnknown || !Number.isFinite(parsedPromptTime.hour)) {
-        alert('연애 비책 프리미엄 생성에는 출생 시각이 필요합니다.');
-        return null;
-      }
-      var hour = _lsToInt(parsedPromptTime.hour, null);
+      var hour = (parsedPromptTime.isUnknown || !Number.isFinite(parsedPromptTime.hour))
+        ? 12
+        : _lsToInt(parsedPromptTime.hour, 12);
       var minute = _lsToInt(parsedPromptTime.minute, 0);
 
       var genderInput = String(window.prompt('성별을 입력해 주세요. (M/F)', 'F') || 'F').trim().toUpperCase();
@@ -1970,16 +1986,14 @@
 
   window.openLoveSecretModal = function () {
     _prepareLoveSecretUi('solo');
-    var modal = _qs('loveSecretModal');
+    _refreshLoveSecretPriceLabels();
+    var modal = _ensureLoveSecretModalMounted();
     if (!modal) return;
     _ensureLoveSecretContextPanel();
-    var hasData = _lsAdoptBirthProfile({ allowPrompt: true });
-    if (!hasData) {
-      var _oLsFormEl = document.getElementById('birthDate') || document.getElementById('run-btn') || document.getElementById('loveSecretModal');
-      if (_oLsFormEl) { try { _oLsFormEl.scrollIntoView({behavior:'smooth',block:'center'}); } catch(_){} }
-      alert('💕 연애 비책 생성을 위해 생년월일 정보가 필요합니다. 정보 입력 후 다시 시도해 주세요.');
-      return;
-    }
+    var hasData = _lsAdoptBirthProfile({ allowPrompt: false });
+    _setLoveSecretInputNotice(hasData
+      ? '⚠️ 분석에는 약 2~3분이 소요됩니다. 유형을 선택하면 결제 확인 후 생성됩니다.'
+      : '생년월일을 입력하지 않아도 구성을 먼저 확인할 수 있습니다. 생성 전에는 생년월일이 필요합니다.');
 
     _lsResumePremiumJob();
 
@@ -2048,11 +2062,11 @@
       ? window.__cdRunPremiumChapterPipeline
       : null;
     if (!runPipeline) {
-      alert('공통 챕터 파이프라인을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      _showLoveSecretInlineError('공통 챕터 파이프라인을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
       return;
     }
     if (!_lsCurrentReportId || typeof fetchChapter !== 'function') {
-      alert('현재 세션 정보가 부족해 부분 재생성을 시작할 수 없습니다. 리포트를 다시 생성한 뒤 시도해 주세요.');
+      _showLoveSecretInlineError('현재 세션 정보가 부족해 부분 재생성을 시작할 수 없습니다. 리포트를 다시 생성한 뒤 시도해 주세요.');
       return;
     }
 
@@ -2087,7 +2101,7 @@
     }).catch(function (error) {
       var msg = String(error && error.message ? error.message : error || '부분 재생성 중 오류가 발생했습니다.');
       _logLoveSecretError(error, { stage: 'partial-regenerate', mode: _currentChapterMode, reportId: _lsCurrentReportId });
-      alert('연애 비책 부분 재생성 중 오류가 발생했습니다: ' + msg);
+      _showLoveSecretInlineError('연애 비책 부분 재생성 중 오류가 발생했습니다: ' + msg);
     });
   }
 
@@ -2137,6 +2151,50 @@
     });
   }
 
+  function _setLoveSecretInputNotice(message) {
+    var notice = _qs('lsInputNotice');
+    if (!notice) return;
+    notice.textContent = String(message || '⚠️ 분석에는 약 2~3분이 소요됩니다. 생년월일 입력 후 결제와 생성으로 진행됩니다.');
+  }
+
+  function _showLoveSecretBirthRequiredNotice() {
+    _setLoveSecretInputNotice('생년월일을 먼저 입력해 주세요. 출생 시간을 모르면 낮 12시 기준으로 보수 해석합니다.');
+    _showScreen('lsStartScreen');
+    var target = document.getElementById('birthDate') || document.getElementById('run-btn') || _qs('loveSecretModal');
+    if (target) {
+      try { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
+      try { if (typeof target.focus === 'function') target.focus({ preventScroll: true }); } catch (_) {}
+    }
+  }
+
+  function _setLoveSecretButtonBusy(button, busy, busyText) {
+    if (!button) return;
+    if (busy) {
+      if (!button.getAttribute('data-ls-original-html')) button.setAttribute('data-ls-original-html', button.innerHTML);
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+      button.textContent = String(busyText || '처리 중...');
+      return;
+    }
+    var originalHtml = button.getAttribute('data-ls-original-html');
+    if (originalHtml) button.innerHTML = originalHtml;
+    button.disabled = false;
+    button.removeAttribute('aria-busy');
+  }
+
+  function _showLoveSecretInlineError(message) {
+    var text = String(message || '연애 비책 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    var msgEl = _qs('lsErrorMsg');
+    if (msgEl) {
+      msgEl.textContent = text;
+      _showScreen('lsErrorScreen');
+      return;
+    }
+    var chapterMsg = _qs('lsChapterMsg');
+    if (chapterMsg) chapterMsg.textContent = text;
+    try { console.warn('[LoveBook][InlineError]', text); } catch (_) {}
+  }
+
   /* ── 모듈 레벨 사주 데이터 저장 ───────────────────────────── */
   var _cachedSajuData = '';
   var _cachedSajuBase = null;
@@ -2145,9 +2203,9 @@
     if (_generating) return;
     _ensureLoveSecretContextPanel();
     // 프로필 복구: __cdActiveBirthProfile 없으면 localStorage DP에서 시도
-    _lsAdoptBirthProfile({ allowPrompt: true });
+    _lsAdoptBirthProfile({ allowPrompt: false });
     var hasData = !!(window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth && window.__cdActiveBirthProfile.birth.year);
-    if (!hasData) { alert('생년월일 정보를 확인할 수 없어 연애 비책 생성을 시작할 수 없습니다.'); return; }
+    if (!hasData) { _showLoveSecretBirthRequiredNotice(); return; }
     // 사주 분석 화면과 100% 일치하도록 G_PILLARS 등 전역 변수 재계산
     if (typeof window.computeProfileForModal === 'function' && window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth) {
       try { window.computeProfileForModal(window.__cdActiveBirthProfile); } catch (_cpE) {}
@@ -2172,10 +2230,10 @@
       hasPartner: hasPartner,
     });
     if (!hasSelf) {
-      return { ok: false, message: '생년월일과 출생 시간이 모두 필요합니다. 정보를 확인한 뒤 다시 시도해 주세요.' };
+      return { ok: false, message: '생년월일 정보가 필요합니다. 출생 시간을 모르면 낮 12시 기준으로 보수 해석합니다.' };
     }
     if (String(mode || 'solo') === 'compatibility' && !hasPartner) {
-      return { ok: false, message: '궁합 모드는 상대방 생년월일과 출생 시간 입력이 필요합니다.' };
+      return { ok: false, message: '궁합 모드는 상대방 생년월일이 필요합니다. 출생 시각은 모름으로 진행할 수 있습니다.' };
     }
     return { ok: true };
   }
@@ -2188,11 +2246,13 @@
     var month = parseInt((_qs('lsPsMonth') || {}).value || '0', 10);
     var day = parseInt((_qs('lsPsDay') || {}).value || '0', 10);
     if (!year || !month || !day) {
-      var yearEl = _qs('lsPsYear');
-      if (yearEl) {
-        yearEl.focus();
-        yearEl.style.borderColor = 'rgba(239,68,68,0.8)';
-        setTimeout(function () { yearEl.style.borderColor = ''; }, 2000);
+      var missingEl = !year ? _qs('lsPsYear') : (!month ? _qs('lsPsMonth') : _qs('lsPsDay'));
+      var infoEl = _qs('lsPsInfo');
+      if (infoEl) infoEl.textContent = '궁합 PDF 생성에는 상대방 생년월일이 필요합니다. 출생 시각은 모름으로 진행할 수 있습니다.';
+      if (missingEl) {
+        missingEl.focus();
+        missingEl.style.borderColor = 'rgba(239,68,68,0.8)';
+        setTimeout(function () { missingEl.style.borderColor = ''; }, 2000);
       }
       return;
     }
@@ -2202,23 +2262,21 @@
     _logLoveSecretFlow('PartnerInputResolved', { hasPartnerInput: !!prePartnerBirthInput });
     var preValidation = _validateLoveBookInputBeforePayment('compatibility', prePartnerBirthInput);
     if (!preValidation.ok) {
-      window.alert(preValidation.message || '입력값 확인이 필요합니다.');
+      if (!window.__cdActiveBirthProfile) _showLoveSecretBirthRequiredNotice();
+      else _showLoveSecretInlineError(preValidation.message || '입력값 확인이 필요합니다.');
       return;
     }
     _logLoveSecretFlow('BirthInputNormalized', { mode: 'compatibility', hasSelfBirth: true, hasPartnerBirth: true });
 
     var startBtn = _qs('lsPsStartBtn');
-    if (startBtn) { startBtn.disabled = true; startBtn.textContent = '처리 중...'; }
+    _setLoveSecretButtonBusy(startBtn, true, '결제 확인 중...');
     if (!_beginLoveSecretPaymentGate('compatibility', reportId)) {
       _restorePartnerStartBtn();
       return;
     }
 
     function _restorePartnerStartBtn() {
-      if (startBtn) {
-        startBtn.disabled = false;
-        startBtn.textContent = '💑 두 사람의 궁합 분석 시작하기';
-      }
+      _setLoveSecretButtonBusy(startBtn, false);
     }
 
     function _startWithPartnerData(paymentContext) {
@@ -2233,7 +2291,7 @@
       _logLoveSecretFlow('PaymentGateStart', { mode: 'compatibility', reportId: reportId });
       var gateResult = await _runLoveSecretCoinGate('compatibility', reportId);
       if (!gateResult.ok) {
-        window.alert(gateResult.message || '결제 확인에 실패했습니다.');
+        _showLoveSecretInlineError(gateResult.message || '결제 확인에 실패했습니다.');
         return;
       }
       _logLoveSecretFlow('PaymentGateSuccess', { mode: 'compatibility', reportId: reportId, purchaseId: gateResult.purchaseId || '' });
@@ -2251,16 +2309,21 @@
     var reportId = _lsBuildReportId('solo');
     var preValidation = _validateLoveBookInputBeforePayment('solo', null);
     if (!preValidation.ok) {
-      window.alert(preValidation.message || '입력값 확인이 필요합니다.');
+      _showLoveSecretBirthRequiredNotice();
       return;
     }
     _logLoveSecretFlow('BirthInputNormalized', { mode: 'solo', hasSelfBirth: true, hasPartnerBirth: false });
-    if (!_beginLoveSecretPaymentGate('solo', reportId)) return;
+    var soloBtn = document.querySelector('[data-action="lsSkipPartner"]');
+    _setLoveSecretButtonBusy(soloBtn, true, '결제 확인 중...');
+    if (!_beginLoveSecretPaymentGate('solo', reportId)) {
+      _setLoveSecretButtonBusy(soloBtn, false);
+      return;
+    }
     _logLoveSecretFlow('PaymentGateStart', { mode: 'solo', reportId: reportId });
     try {
       var gateResult = await _runLoveSecretCoinGate('solo', reportId);
       if (!gateResult.ok) {
-        window.alert(gateResult.message || '결제 확인에 실패했습니다.');
+        _showLoveSecretInlineError(gateResult.message || '결제 확인에 실패했습니다.');
         return;
       }
       _logLoveSecretFlow('PaymentGateSuccess', { mode: 'solo', reportId: reportId, purchaseId: gateResult.purchaseId || '' });
@@ -2268,6 +2331,7 @@
       _startGeneration(null, gateResult, reportId);
     } finally {
       if (!_generating) _endLoveSecretPaymentGate(reportId);
+      _setLoveSecretButtonBusy(soloBtn, false);
     }
   };
 
@@ -2311,7 +2375,7 @@
       _generating = false;
       _stopLoadingAnimation();
       _setLoveBookGenerationState('failed');
-      alert('생년월일과 출생 시간이 모두 필요합니다. 정보를 확인한 뒤 다시 시도해 주세요.');
+      _showLoveSecretBirthRequiredNotice();
       return;
     }
     var sajuData = _cachedSajuData || _collectSajuData();
@@ -2341,83 +2405,6 @@
     }
     _setProgress(0);
 
-    function _buildLocalFallbackContext(partnerRaw) {
-      var dominant = (((sajuBase || {}).elementBalance || {}).dominant || '') || '균형';
-      var deficient = (((sajuBase || {}).elementBalance || {}).deficient || '') || '없음';
-      var dayMaster = (((sajuBase || {}).core || {}).dayMaster || '') || '일간 미상';
-      var strengthLabel = (((sajuBase || {}).strength || {}).label || '') || '중립';
-      var useful = ((((sajuBase || {}).yongshin || {}).usefulElements) || []).slice(0, 3);
-      var partnerHint = String(partnerRaw || '').trim();
-      var isCompat = _currentChapterMode === 'compatibility';
-      return {
-        dominant: String(dominant),
-        deficient: String(deficient),
-        dayMaster: String(dayMaster),
-        strengthLabel: String(strengthLabel),
-        useful: useful.length ? useful.join(', ') : '용신 정보 없음',
-        partnerHint: partnerHint,
-        relationFocus: isCompat
-          ? '두 사람의 상호작용과 감정 리듬'
-          : '사용자 단독 연애 패턴과 실행 전략',
-      };
-    }
-
-    function _buildLocalFallbackSectionBody(chapterNo, label, reason, context) {
-      var p1 = label + '는 현재 관계에서 무엇을 지켜야 하는지 분명하게 알려주는 항목입니다. 감정이 커질수록 기준이 흐려지기 쉬우므로, 이 구간에서는 마음의 크기보다 관계의 방향을 먼저 점검해야 합니다. 서둘러 결론을 내리기보다 지금의 말투와 반응이 신뢰를 쌓는 방향인지 확인하면 관계 피로를 크게 줄일 수 있습니다.';
-      var p2 = '일간 ' + context.dayMaster + '과 강도 ' + context.strengthLabel + ' 흐름에서는 표현의 선명함이 장점으로 작동합니다. 다만 우세 오행 ' + context.dominant + '이 과열되면 상대를 이해하기보다 판단하려는 태도가 커질 수 있고, 부족한 ' + context.deficient + ' 기운이 약할 때는 감정 완충이 늦어질 수 있습니다. 보완 포인트인 ' + context.useful + ' 성향을 생활 루틴에 반영하면 관계 안정성이 올라갑니다.';
-      var p3 = '관계가 잘 풀릴 때는 서로의 기준을 숨기지 않고도 편안하게 대화가 이어집니다. 이때는 상대를 바꾸려 하기보다 나의 말의 온도와 순서를 조정하는 것만으로도 매력이 선명해집니다. 특히 작은 약속을 지키는 반복은 신뢰를 빠르게 올리고, 장기적으로 결혼과 생활의 현실 궁합까지 탄탄하게 만드는 힘이 됩니다.';
-      var p4 = '흔들릴 때는 침묵으로 버티거나 단정적인 말로 관계를 밀어내기 쉬우므로, 먼저 감정을 한 문장으로 확인하고 그다음 요구를 말하는 순서를 지켜야 합니다. 오늘은 대화 하나를 짧게라도 마무리하고, 내일은 고쳐야 할 습관 한 가지를 기록해 실천해 보세요. 이 작은 반복이 사랑을 오래 지키는 가장 현실적인 전략이 됩니다.';
-      if (context.partnerHint && _currentChapterMode === 'compatibility') {
-        p4 += ' 두 사람의 속도 차이가 느껴질수록 결론을 늦추고 합의 문장을 먼저 만드는 방식이 관계를 지키는 데 유리합니다.';
-      }
-      return [p1, p2, p3, p4].join('\n\n');
-    }
-
-    function _buildLocalFallbackChapter(idx, reason, partnerRaw) {
-      var chapterNo = idx + 1;
-      var labels = _getLoveSecretStructuredLabels(chapterNo, _currentChapterMode);
-      if (!Array.isArray(labels) || !labels.length) {
-        labels = ['핵심 진단', '감정 흐름', '리스크', '실행 전략', '체크포인트'];
-      }
-      var context = _buildLocalFallbackContext(partnerRaw);
-      var sections = labels.map(function (label) {
-        return {
-          title: String(label),
-          body: _buildLocalFallbackSectionBody(chapterNo, String(label), reason, context),
-        };
-      });
-      var text = sections.map(function (row) {
-        return '## ' + row.title + '\n' + row.body;
-      }).join('\n\n');
-
-      return {
-        title: _getLoveSecretChapterTitle(idx, _currentChapterMode),
-        subtitle: _getLoveSecretChapterSubtitle(idx, _currentChapterMode),
-        text: text,
-        sections: sections,
-      };
-    }
-
-    function _fillLocalFallbackChapters(reason, partnerRaw, forceAll) {
-      for (var i = 0; i < totalChapters; i++) {
-        if (!forceAll && (_chapters[i] || _chapterStructured[i])) continue;
-        var localChapter = _buildLocalFallbackChapter(i, reason, partnerRaw);
-        _chapterMeta[i] = {
-          title: String(localChapter.title || _getLoveSecretChapterTitle(i, _currentChapterMode)),
-          subtitle: String(localChapter.subtitle || _getLoveSecretChapterSubtitle(i, _currentChapterMode)),
-          isSkeleton: true,
-        };
-        _chapters[i] = String(localChapter.text || '').trim();
-        _chapterStructured[i] = { sections: localChapter.sections || [] };
-      }
-      _setProgress(totalChapters);
-      _logLoveSecretFlow('LOCAL_FALLBACK_RENDERED', {
-        mode: _currentChapterMode,
-        reportId: _lsCurrentReportId,
-        reason: String(reason || 'unknown'),
-      });
-    }
-
     var _lsReportId = _lsCurrentReportId;
     var _lsFeatureKey = _getLoveSecretFeatureKey(_currentChapterMode);
     var _lsSessionId = String((_lsAccessGrant && _lsAccessGrant.sessionId) || ('love-book:' + _lsReportId)).trim();
@@ -2427,7 +2414,7 @@
       var isCompatibility = normalizedMode === 'compatibility';
       var selfName = _clean((birthInput && birthInput.name) || ((window.__cdActiveBirthProfile || {}).name) || '\uc0ac\uc6a9\uc790') || '\uc0ac\uc6a9\uc790';
       var partnerName = _clean((partnerBirthInput && partnerBirthInput.name) || '\uc0c1\ub300\ubc29') || '\uc0c1\ub300\ubc29';
-      var targetYear = 2026;
+      var targetYear = _getLoveSecretTargetYear();
       var userContext = _collectLoveSecretUserContext(normalizedMode, partnerBirthInput);
       var soloLoveStatus = '\ud604\uc7ac \uc5f0\uc560 \ud750\ub984, \uc778\uc5f0\uc758 \uc2dc\uae30, \uad00\uacc4 \uc120\ud0dd\uc744 \ud568\uaed8 \ubcf4\uace0 \uc2f6\uc740 \uc0c1\ud0dc';
       var compatLoveStatus = '\uc0c1\ub300\uc640\uc758 \uad00\uacc4 \ud750\ub984, \uad81\ud569, \uac10\uc815\uc758 \uc628\ub3c4\uc640 \uc9c0\uc18d \uac00\ub2a5\uc131\uc744 \ud568\uaed8 \ubcf4\uace0 \uc2f6\uc740 \uc0c1\ud0dc';
@@ -2508,7 +2495,7 @@
         missing: _lsContractCheck.errors,
         reportId: _lsCurrentReportId,
       });
-      alert('\uc5f0\uc560 \ube44\ucc45 \uc0dd\uc131 \uc815\ubcf4\uac00 \ucda9\ubd84\ud558\uc9c0 \uc54a\uc544\uc694. \uad00\uacc4\uc758 \ud750\ub984\uacfc \uac00\uc7a5 \uad81\uae08\ud55c \uc9c8\ubb38\uc744 \ud655\uc778\ud55c \ub4a4 \ub2e4\uc2dc \uc2dc\ub3c4\ud574 \uc8fc\uc138\uc694.');
+      _showLoveSecretInlineError('연애 비책 생성 정보가 충분하지 않아요. 관계의 흐름과 가장 궁금한 질문을 확인한 뒤 다시 시도해 주세요.');
       return;
     }
 
@@ -2609,15 +2596,15 @@
               chapterSessionId: 'love-secret-chapter-' + (idx + 1),
               chapter: idx + 1,
               mode: _currentChapterMode,
-              generationMode: 'local-assembled',
-              authoringMode: 'local-assembled',
+              generationMode: 'local-premium',
+              authoringMode: 'premium-local',
               featureKey: _lsFeatureKey,
               purchaseId: _purchaseId || undefined,
               strictNoFallback: true,
               chapterTitle: _getLoveSecretChapterTitle(idx, _currentChapterMode),
               chapterSubtitle: _getLoveSecretChapterSubtitle(idx, _currentChapterMode),
               chapterSpecificSections: Array.isArray(_getLoveSecretStructuredLabels(idx + 1, _currentChapterMode))
-                ? _getLoveSecretStructuredLabels(idx + 1, _currentChapterMode).slice(0, 8)
+                ? _getLoveSecretStructuredLabels(idx + 1, _currentChapterMode).slice(0, 12)
                 : [],
               accessGrant: _lsAccessGrant || undefined,
               premiumAccessToken: _lsPremiumToken || undefined,
@@ -2692,9 +2679,9 @@
       _lsResultPayload = payload;
       var manuscriptSource = String(payload.manuscriptSource || '').toLowerCase();
       var localAssembly = payload.localAssembly && typeof payload.localAssembly === 'object' ? payload.localAssembly : {};
-      if (payload.fallbackUsed || manuscriptSource !== 'local-assembled' || localAssembly.enabled !== true || localAssembly.externalGeneration !== false) {
-        throw _buildLoveSecretApiError({ body: payload, status: 422 }, '연애 비책 PDF가 로컬 조립 검증을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요.', {
-          stage: 'local-assembled-result',
+      if (payload.fallbackUsed || manuscriptSource !== 'local-premium' || localAssembly.enabled !== true || localAssembly.externalGeneration !== false || localAssembly.fallbackUsed === true) {
+        throw _buildLoveSecretApiError({ body: payload, status: 422 }, '연애 비책 PDF가 로컬 프리미엄 품질 검증을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요.', {
+          stage: 'local-premium-result',
           mode: _currentChapterMode,
           reportId: _lsReportId,
           sessionId: _lsSessionId
@@ -2716,9 +2703,9 @@
       }
       _setProgress(Math.max(0, Math.min(totalChapters, list.length || totalChapters)));
       _setLoveBookGenerationState('local_result_ready');
-      _logLoveSecretFlow('LocalAssembledResultReady', {
+      _logLoveSecretFlow('LocalPremiumResultReady', {
         mode: _currentChapterMode,
-        manuscriptSource: String(payload.manuscriptSource || 'local-assembled'),
+        manuscriptSource: String(payload.manuscriptSource || 'local-premium'),
         fallbackUsed: false,
       });
     }
@@ -2907,8 +2894,8 @@
       }
       _setLoveBookGenerationState('writing_local');
       var syncPayload = Object.assign({}, preparePayload || {}, {
-        generationMode: 'local-assembled',
-        authoringMode: 'local-assembled',
+        generationMode: 'local-premium',
+        authoringMode: 'premium-local',
         strictNoFallback: true,
       });
       var syncRes = await fetch('/api/love-secret/prepare', {
@@ -2939,8 +2926,8 @@
         sessionId: _lsSessionId,
         reportSessionId: _lsSessionId,
         mode: _currentChapterMode,
-        generationMode: 'local-assembled',
-        authoringMode: 'local-assembled',
+        generationMode: 'local-premium',
+        authoringMode: 'premium-local',
         strictNoFallback: true,
         featureKey: _lsFeatureKey,
         purchaseId: String((_lsAccessGrant && _lsAccessGrant.purchaseId) || _lsGatePurchaseId || '').trim() || undefined,
@@ -3049,12 +3036,15 @@
       if (chapterMsg) {
         chapterMsg.textContent = msg;
       }
-      alert(msg);
+      _showLoveSecretInlineError(msg);
     });
   }
 
   window.downloadLoveSecretPdf = function () {
-    if (!_chapters.some(Boolean)) { alert('먼저 연애 비책을 생성해 주세요.'); return; }
+    if (!_chapters.some(Boolean)) {
+      _showLoveSecretInlineError('먼저 연애 비책을 생성해 주세요.');
+      return;
+    }
     var storedUrl = _resolveLoveSecretStoredUrl(_lsResultPayload);
     if (storedUrl) {
       try {
@@ -3062,7 +3052,18 @@
         return;
       } catch (_) {}
     }
-    alert('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+    _showLoveSecretInlineError('리포트 저장 URL이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+  };
+
+  window.openLoveSecretLatestReport = function () {
+    var storedUrl = _resolveLoveSecretStoredUrl(_lsResultPayload);
+    if (storedUrl) {
+      try {
+        window.open(storedUrl, '_blank', 'noopener,noreferrer');
+        return;
+      } catch (_) {}
+    }
+    _showLoveSecretInlineError('현재 세션에서 다시 열 수 있는 연애 비책 완성본을 찾지 못했습니다. 생성이 완료된 뒤 다운로드 버튼을 이용해 주세요.');
   };
 
   /* ── 클릭 핸들러 (data-action 디스패치) ──────────────────── */
@@ -3078,6 +3079,7 @@
     if (action === 'lsStartWithPartner')  { window.lsStartWithPartner();  return; }
     if (action === 'lsSkipPartner')       { window.lsSkipPartner();       return; }
     if (action === 'downloadLoveSecretPdf') { window.downloadLoveSecretPdf(); return; }
+    if (action === 'openLoveSecretLatestReport') { window.openLoveSecretLatestReport(); return; }
     if (action === 'shareLoveSecretKakao') {
       if (typeof window.shareLoveSecretKakao === 'function') window.shareLoveSecretKakao();
       return;
@@ -3091,5 +3093,7 @@
       if (modal && modal.style.display !== 'none') window.closeLoveSecretModal();
     }
   });
+
+  _refreshLoveSecretPriceLabels();
 
 })();

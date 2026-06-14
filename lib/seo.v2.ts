@@ -1,27 +1,28 @@
 import type { Metadata, MetadataRoute } from "next";
 import { ROUTES, BASE_URL, type SitemapRouteEntry } from "./seo-site-urls";
-import { SEO_SITE_CONFIG } from "./seo/siteConfig";
+import { isNoindexPath, normalizeSeoPath, siteSeo, toCanonicalUrl } from "./seo/siteSeo";
 
 export const SEO_V2_SITE = {
-  name: SEO_SITE_CONFIG.brandName,
-  titleTemplate: SEO_SITE_CONFIG.titleTemplate,
-  defaultTitle: SEO_SITE_CONFIG.homeTitle,
-  defaultDescription: SEO_SITE_CONFIG.defaultDescription,
+  name: siteSeo.siteName,
+  titleTemplate: siteSeo.titleTemplate,
+  defaultTitle: siteSeo.defaultTitle,
+  defaultDescription: siteSeo.defaultDescription,
   siteUrl: (
     process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.PUBLIC_SITE_URL ||
     process.env.SITE_URL ||
-    SEO_SITE_CONFIG.siteUrl ||
+    siteSeo.siteUrl ||
     BASE_URL
   ).replace(/\/+$/, ""),
-  locale: SEO_SITE_CONFIG.locale,
-  author: SEO_SITE_CONFIG.brandFullName,
-  publisher: SEO_SITE_CONFIG.brandFullName,
-  defaultOgImage: SEO_SITE_CONFIG.defaultOgImage,
+  locale: "ko_KR",
+  author: siteSeo.siteName,
+  publisher: siteSeo.siteName,
+  defaultOgImage: siteSeo.defaultOgImage,
 };
 
 const PRIVATE_ROUTE_PATTERNS = [
   /^\/api(?:\/|$)/,
+  /^\/api-hello-test(?:\/|$)/,
   /^\/admin(?:\/|$)/,
   /^\/auth(?:\/|$)/,
   /^\/login(?:\/|$)/,
@@ -33,8 +34,14 @@ const PRIVATE_ROUTE_PATTERNS = [
   /^\/payment(?:\/|$)/,
   /^\/payments(?:\/|$)/,
   /^\/checkout(?:\/|$)/,
+  /^\/success(?:\/|$)/,
+  /^\/fail(?:\/|$)/,
   /^\/premium-unlock(?:\/|$)/,
   /^\/dev-status(?:\/|$)/,
+  /^\/debug(?:\/|$)/,
+  /^\/test(?:\/|$)/,
+  /^\/result(?:\/|$)/,
+  /^\/results(?:\/|$)/,
   /\/play(?:\/|$)/,
   /\/stage(?:\/|$)/,
   /\/start(?:\/|$)/,
@@ -71,28 +78,12 @@ export type SeoV2Content = {
 };
 
 export function normalizePath(pathOrUrl: string): string {
-  const raw = String(pathOrUrl || "/").trim();
-  if (!raw) return "/";
-
-  let pathname = raw;
-  try {
-    if (/^https?:\/\//i.test(raw)) {
-      pathname = new URL(raw).pathname || "/";
-    }
-  } catch {
-    pathname = "/";
-  }
-
-  const noHash = pathname.split("#")[0] || "/";
-  const noQuery = noHash.split("?")[0] || "/";
-  const leading = noQuery.startsWith("/") ? noQuery : `/${noQuery}`;
-  const compact = leading.replace(/\/{2,}/g, "/");
-  return compact === "/" ? "/" : compact.replace(/\/+$/, "");
+  return normalizeSeoPath(pathOrUrl);
 }
 
 export function isPrivateRoute(pathOrUrl: string): boolean {
   const path = normalizePath(pathOrUrl);
-  return PRIVATE_ROUTE_PATTERNS.some((pattern) => pattern.test(path));
+  return isNoindexPath(path) || PRIVATE_ROUTE_PATTERNS.some((pattern) => pattern.test(path));
 }
 
 export function isIndexableRoute(pathOrUrl: string, noindex = false): boolean {
@@ -132,7 +123,7 @@ export function normalizeUrl(pathOrUrl: string): string {
 }
 
 export function getCanonicalUrl(pathOrUrl: string): string {
-  return normalizeUrl(normalizePath(pathOrUrl));
+  return toCanonicalUrl(pathOrUrl);
 }
 
 export function buildOpenGraphImageUrl(content?: Pick<SeoV2Content, "image" | "contentType">): string {

@@ -23,7 +23,7 @@ export function generateMetadata({ params }: PageProps) {
   const test = getPsychotestBySlug(params.slug);
   if (!test) {
     return {
-      title: "심리테스트 | Code Destiny",
+      title: "심리테스트",
       robots: { index: false, follow: false },
     };
   }

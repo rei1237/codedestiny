@@ -433,14 +433,20 @@
 }
 .tarot-self-esteem-card-front[data-reversed="1"] .tarot-self-esteem-face-img { transform: rotate(180deg); }
 .tarot-self-esteem-card-name {
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   color: #fbbf24;
   margin-top: 5px;
   text-align: center;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
+  line-height: 1.25;
   text-shadow: 0 0 8px rgba(251,191,36,0.6);
   padding: 0 2px;
+  max-width: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 .self-esteem-ripple-wave {
   position: absolute;
@@ -822,4 +828,3 @@
   .tse-levelup-card, .tse-action-card { padding: 16px 14px; }
   .tarot-self-esteem-result-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
 }
-

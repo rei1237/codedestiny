@@ -20,6 +20,8 @@ const sajuEngineSource = source("js/saju-engine.js");
 const sukuyoEngineSource = source("js/saju-engine-tarot-sukuyo-quantum.js");
 const indexRuntimeSource = source("js/core/index-inline-runtime.js");
 const billingSource = source("worker/routes/billing.js");
+const workerAccessSource = source("worker/lib/access-control.js");
+const premiumRouteAccessSource = source("app/_lib/premium-route-access.ts");
 const kemetSource = source("js/oracle-kcg.js");
 const tarotYearSource = source("js/tarot-year-fortune-experience.js");
 const tarotLoveSource = source("js/tarot-love-experience.js");
@@ -34,11 +36,13 @@ const expectedCosts = {
   "animal-totem-basic": 30,
   "animal-totem-deep": 60,
   "flower-studio-per-use": 50,
+  "sukuyo-symbolic-comparison": 30,
   "compat-astro-synastry": 50,
   "compat-astro-direct-synastry": 50,
   "compat-ziwei-compatibility": 50,
   "compat-saju-compatibility": 50,
   "compat-sukuyo-compatibility": 50,
+  "premium-sukuyo-compat-extra": 120,
   "physiognomy-compatibility": 50,
   "physiognomy-pastlife-compatibility": 50,
   "profile-card-manage": 50,
@@ -83,6 +87,7 @@ for (const featureKey of [
   "compat-ziwei-compatibility",
   "compat-saju-compatibility",
   "compat-sukuyo-compatibility",
+  "sukuyo-symbolic-comparison",
   "vedic-compatibility-per-use",
   "physiognomy-compatibility",
   "physiognomy-pastlife-compatibility",
@@ -93,6 +98,7 @@ for (const featureKey of [
   "astrology_ai_prompt_generator",
   "vedic_ai_prompt_generator",
   "profile-card-manage",
+  "premium-sukuyo-compat-extra",
 ]) {
   assert.equal(UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey], undefined, `${featureKey} must not be an unlock product`);
   assert.equal(getPaidFeatureBillingType(featureKey), PAID_FEATURE_BILLING_TYPES.PER_USE, `${featureKey} must be per-use paid`);
@@ -135,9 +141,13 @@ for (const text of ["점성술 셜럭 시나스트리 궁합", "점성술 직접
   assert.match(sajuEngineSource, new RegExp(text), `${text} must still call the common paid gate`);
 }
 
-for (const text of ["숙요점 유명인 궁합", "숙요점 궁합 분석"]) {
-  assert.match(sukuyoEngineSource, new RegExp(text), `${text} must still call the common paid gate`);
-}
+assert.match(sukuyoEngineSource, /SY_PAID_FEATURES/, "Sukuyo runtime must centralize paid feature metadata");
+assert.match(sukuyoEngineSource, /sukuyo-symbolic-comparison/, "Sukuyo symbolic comparison must use its 30-coin featureKey");
+assert.match(sukuyoEngineSource, /compat-sukuyo-compatibility/, "Sukuyo base compatibility must use its 50-coin featureKey");
+assert.match(sukuyoEngineSource, /premium-sukuyo-compat-extra/, "Sukuyo precision compatibility must use its 120-coin featureKey");
+assert.match(sukuyoEngineSource, /syRequirePaidSukuyoFeature/, "Sukuyo paid extensions must pass through the paid gate");
+assert.doesNotMatch(workerAccessSource, /featureKey:\s*["']premium-sukuyo-compat-extra["']/, "120-coin Sukuyo precision add-on must not authorize premium PDF access");
+assert.doesNotMatch(premiumRouteAccessSource, /featureKey:\s*["']premium-sukuyo-compat-extra["']/, "Next PDF route access must not accept the 120-coin Sukuyo precision add-on");
 
 assert.match(indexRuntimeSource, /애니멀 토템 리딩/, "animal totem runtime must still call common paid gate");
 assert.match(kemetSource, /_cdCoinGatePerUse/, "Kemet oracle must still call common paid gate");

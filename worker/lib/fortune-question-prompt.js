@@ -28,6 +28,16 @@ function safeJsonBlock(value, fallback = "{}") {
   }
 }
 
+function isSajuPrompt(fortuneType, fortuneLabel) {
+  return String(fortuneType || "").toLowerCase() === "saju" || String(fortuneLabel || "").includes("사주");
+}
+
+function isAstrologyPrompt(fortuneType, fortuneLabel) {
+  const type = String(fortuneType || "").toLowerCase();
+  const label = String(fortuneLabel || "");
+  return type === "astrology" || label.includes("점성술") || label.includes("Astrology");
+}
+
 function inferIntentLabel(userQuestion, mode, questionTypeLabel) {
   const q = toText(userQuestion).toLowerCase();
   const modeText = toText(mode).toLowerCase();
@@ -59,7 +69,28 @@ function buildSummaryIntent({ userQuestion, mode, questionTypeLabel, fortuneLabe
   return `${fortuneLabel} 관점에서 사용자 질문의 표면 요청을 넘어, ${intent}을 데이터 근거 중심으로 해석`;
 }
 
-function buildCoreRequestLines() {
+function buildCoreRequestLines(fortuneType, fortuneLabel) {
+  if (isAstrologyPrompt(fortuneType, fortuneLabel)) {
+    return [
+      "1. 사용자의 질문을 먼저 점성술 상담 질문으로 정교하게 재정의하고, 차트에서 확인할 축을 분리해주세요.",
+      "2. 태양·달·상승궁·MC를 우선 읽고, 수성·금성·화성·목성·토성으로 심리/관계/행동/성장 구조를 보강해주세요.",
+      "3. 하우스, 하우스 룰러, 주요 어스펙트, 원소·양식 분포를 질문과 직접 연결하되 용어만 나열하지 말고 실제 삶의 장면으로 번역해주세요.",
+      "4. 트랜싯·프로펙션·피르다리아 등 시기 정보는 제공된 데이터 안에서만 사용하고, 확정 예언이 아니라 선택 리듬으로 설명해주세요.",
+      "5. 궁합/시너스트리 데이터가 있으면 개인 차트의 욕구, 두 차트의 접점, 하우스 오버레이, 조율법을 분리해서 해석해주세요.",
+      "6. 출생시간·좌표·하우스 신뢰도가 불완전하면 상승궁·달·하우스 판단을 보수적으로 표현하고 추가 확인 정보를 안내해주세요.",
+    ];
+  }
+
+  if (isSajuPrompt(fortuneType, fortuneLabel)) {
+    return [
+      "1. 사용자의 질문을 먼저 한 문장으로 정리하고, 명식에서 실제로 확인할 축을 분리해주세요.",
+      "2. 원국의 일간, 월지, 십성, 오행 균형, 조후, 용신·기신 후보를 질문과 직접 연결해주세요.",
+      "3. 긍정 가능성과 막히는 지점을 나누되, 각각에 명식 근거를 붙여주세요.",
+      "4. 대운·세운 흐름은 확정 예언이 아니라 선택의 리듬으로 설명해주세요.",
+      "5. 마지막에는 사용자가 바로 실행할 수 있는 말, 행동, 점검 기준을 제시해주세요.",
+    ];
+  }
+
   return [
     "1. 질문의 핵심 의도를 먼저 해석해주세요.",
     "2. 현재 명반/차트/카드/숙/궁/행성/십성 구조에서 이 질문과 직접 관련된 요소를 찾아주세요.",
@@ -69,7 +100,35 @@ function buildCoreRequestLines() {
   ];
 }
 
-function buildAnswerFormatLines() {
+function buildAnswerFormatLines(fortuneType, fortuneLabel) {
+  if (isAstrologyPrompt(fortuneType, fortuneLabel)) {
+    return [
+      "1. 질문 재정의와 상담 초점",
+      "2. 핵심 차트 근거: 태양·달·ASC·MC",
+      "3. 심리와 행동 패턴: 수성·금성·화성",
+      "4. 현실 무대: 하우스·룰러·원소·양식",
+      "5. 주요 어스펙트로 보는 강점과 긴장",
+      "6. 시기 흐름: 제공된 트랜싯·타임로드 기준",
+      "7. 궁합 데이터가 있을 때: 끌림·안정·충돌·조율법",
+      "8. 선택지 비교와 오늘부터 할 행동",
+      "9. 추가로 확인하면 좋은 정보와 후속 질문",
+    ];
+  }
+
+  if (isSajuPrompt(fortuneType, fortuneLabel)) {
+    return [
+      "1. 질문의 핵심과 명식의 초점",
+      "2. 원국 근거: 일간·월지·십성·오행",
+      "3. 현재 강점과 열리는 길",
+      "4. 막히는 지점과 반복 패턴",
+      "5. 대운·세운으로 보는 시기별 흐름",
+      "6. 현실 선택지 비교",
+      "7. 피해야 할 선택과 말",
+      "8. 2주·3개월·1년 실행 조언",
+      "9. 추가로 물어보면 좋은 질문",
+    ];
+  }
+
   return [
     "1. 질문의 핵심 요약",
     "2. 명반/차트/카드상 근거",
@@ -84,11 +143,12 @@ function buildAnswerFormatLines() {
 
 function buildExtraDepthLines(analysisAngles, followUps, caution) {
   const lines = [
-    "[심화 요청]",
-    "- 가능하면 다층 구조(기질 -> 구조 -> 시기 -> 행동)로 분석해 주세요.",
+    "[정밀 보강 요청]",
+    "- 질문을 더 좋은 상담 질문으로 한 번 재작성한 뒤 해석을 시작해 주세요.",
+    "- 다층 구조(기질 -> 구조 -> 시기 -> 행동)로 분석해 주세요.",
     "- 해석마다 데이터 근거를 최소 1개 이상 연결해 주세요.",
     "- 전략은 단기(2~6주), 중기(3~6개월), 장기(1년+)로 나눠 제안해 주세요.",
-    "- 불확실한 판정은 불확실하다고 명시하고, 확인해야 할 추가 데이터도 제시해 주세요.",
+    "- 불확실한 판정은 불확실하다고 밝히고, 추가로 확인할 정보도 제시해 주세요.",
   ];
 
   if (analysisAngles.length) {
@@ -112,15 +172,63 @@ function buildExtraDepthLines(analysisAngles, followUps, caution) {
   return lines;
 }
 
-function ensureMinLength(promptText, analysisAngles, followUps, caution, minLength) {
+function buildCompletionChecklistLines(fortuneType, fortuneLabel) {
+  if (isSajuPrompt(fortuneType, fortuneLabel)) {
+    return [
+      "[완성도 점검]",
+      "- 사주 일반론으로 흐르면 일간·월지·십성·오행 중 최소 2개 근거를 질문에 다시 연결해 주세요.",
+      "- 외부 AI가 그대로 붙여넣어 이해할 수 있도록 목적, 원국 근거, 답변 형식, 금지할 단정을 분리해 주세요.",
+      "- 민감한 개인정보는 반복 노출하지 말고, 필요한 경우 명식 정보만 간결하게 언급해 주세요.",
+      "- 마지막 문장은 상담 결과가 아니라 더 깊은 사주 상담을 요청하는 질문문으로 정리해 주세요.",
+    ];
+  }
+
+  return [
+    "[완성도 점검]",
+    "- 답변이 일반론으로 흐르면 원국 근거와 질문을 다시 연결해 주세요.",
+    "- 사용자의 선택권을 좁히지 말고, 가능한 선택지와 리스크를 함께 보여주세요.",
+    "- 민감한 개인정보는 반복 노출하지 말고, 필요한 경우 명식 정보만 간결하게 언급해 주세요.",
+    "- 마지막 문장은 사용자가 오늘 바로 실행할 수 있는 작은 의식처럼 정리해 주세요.",
+  ];
+}
+
+function buildWritingRuleLines(fortuneType, fortuneLabel) {
+  const rules = [
+    "- 근거 없는 단정 대신 근거와 불확실성을 함께 제시해주세요.",
+    "- 분석 근거를 먼저 제시하고, 그 뒤에 조언을 제시해주세요.",
+    "- 실전 적용 가능한 액션 플랜으로 마무리해주세요.",
+    "- 필요하면 표/리스트를 활용하되, 핵심 판단 이유를 생략하지 마세요.",
+    "- 이름, 생년월일, 출생시간 같은 개인정보는 답변에 반복 노출하지 마세요.",
+  ];
+
+  if (isAstrologyPrompt(fortuneType, fortuneLabel)) {
+    return rules.concat([
+      "- 점성술 용어는 반드시 쉬운 한국어로 풀어 쓰고, 행성/하우스/어스펙트가 실제 장면에서 어떻게 드러나는지 설명해주세요.",
+      "- 좋은 말만 하지 말고 강점, 그림자, 보완 행동을 같은 비중으로 다뤄주세요.",
+      "- 궁합 해석에서는 상대를 단정하거나 낙인찍지 말고 두 사람이 조율할 수 있는 패턴으로 표현해주세요.",
+      "- 투자, 의료, 법률, 이별/결혼 확정처럼 고위험 결론은 단정하지 말고 참고용 방향과 확인 질문으로 제시해주세요.",
+    ]);
+  }
+
+  if (isSajuPrompt(fortuneType, fortuneLabel)) {
+    return rules.concat([
+      "- 답변 초안이 사주 일반론으로 흐르면 일간·월지·십성·오행·조후 중 최소 2개 근거로 다시 좁혀주세요.",
+      "- 외부 AI가 그대로 이해할 수 있도록 목적, 원국 근거, 원하는 답변 형식, 금지할 단정을 분리해주세요.",
+      "- 실제 상담 결과처럼 확정하지 말고, 더 좋은 사주 질문문을 만들기 위한 문장으로 마무리해주세요.",
+      "- 투자, 의료, 법률, 결혼/이별 확정처럼 고위험 결론은 단정하지 말고 확인 질문과 선택지로 바꿔주세요.",
+    ]);
+  }
+
+  return rules;
+}
+
+function ensureMinLength(promptText, analysisAngles, followUps, caution, minLength, fortuneType, fortuneLabel) {
   let prompt = String(promptText || "");
   if (prompt.length >= minLength) return prompt;
 
-  const paddingBlocks = buildExtraDepthLines(analysisAngles, followUps, caution);
-  let guard = 0;
-  while (prompt.length < minLength && guard < 4) {
-    prompt += `\n\n${paddingBlocks.join("\n")}`;
-    guard += 1;
+  prompt += `\n\n${buildExtraDepthLines(analysisAngles, followUps, caution).join("\n")}`;
+  if (prompt.length < minLength) {
+    prompt += `\n\n${buildCompletionChecklistLines(fortuneType, fortuneLabel).join("\n")}`;
   }
   return prompt;
 }
@@ -174,6 +282,8 @@ export function buildFortuneQuestionPromptPackage({
       followUps,
       caution,
       Math.max(1200, Number(minPromptLength) || DEFAULT_MIN_PROMPT_LENGTH),
+      fortuneType,
+      safeFortuneLabel,
     );
   } else {
     // 기존 로직
@@ -191,7 +301,7 @@ export function buildFortuneQuestionPromptPackage({
       summaryIntent,
       "",
       "[핵심 분석 요청]",
-      ...buildCoreRequestLines(),
+      ...buildCoreRequestLines(fortuneType, safeFortuneLabel),
       "",
       "[세부 분석 관점]",
       ...(angles.length ? angles.map((angle) => `- ${angle}`) : ["- 질문과 관련된 핵심 관점이 충분히 제공되지 않았습니다. 제공된 데이터에서 직접 핵심 관점을 추출해주세요."]),
@@ -205,13 +315,10 @@ export function buildFortuneQuestionPromptPackage({
       "```",
       "",
       "[답변 형식]",
-      ...buildAnswerFormatLines(),
+      ...buildAnswerFormatLines(fortuneType, safeFortuneLabel),
       "",
       "[작성 규칙]",
-      "- 근거 없는 단정 대신 근거와 불확실성을 함께 제시해주세요.",
-      "- 분석 근거를 먼저 제시하고, 그 뒤에 조언을 제시해주세요.",
-      "- 실전 적용 가능한 액션 플랜으로 마무리해주세요.",
-      "- 필요하면 표/리스트를 활용하되, 핵심 판단 이유를 생략하지 마세요.",
+      ...buildWritingRuleLines(fortuneType, safeFortuneLabel),
     ];
 
     if (followUps.length) {
@@ -222,11 +329,15 @@ export function buildFortuneQuestionPromptPackage({
       lines.push("", `[주의사항] ${toText(caution)}`);
     }
 
-    generatedPrompt = ensureMinLength(lines.join("\n"), angles, followUps, caution, Math.max(1200, Number(minPromptLength) || DEFAULT_MIN_PROMPT_LENGTH));
+    generatedPrompt = ensureMinLength(lines.join("\n"), angles, followUps, caution, Math.max(1200, Number(minPromptLength) || DEFAULT_MIN_PROMPT_LENGTH), fortuneType, safeFortuneLabel);
   }
 
+  const packageTitle = isSajuPrompt(fortuneType, safeFortuneLabel)
+    ? `${safeFortuneLabel} 질문문 생성 프롬프트`
+    : `${safeFortuneLabel} 심층 질문 프롬프트`;
+
   return {
-    title: `${safeFortuneLabel} 심층 질문 프롬프트`,
+    title: packageTitle,
     summaryIntent,
     generatedPrompt,
     analysisAngles: angles,

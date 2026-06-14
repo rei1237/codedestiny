@@ -361,6 +361,117 @@ function getCategoryVoice(categoryId) {
   return CATEGORY_VOICES[categoryId] || CATEGORY_VOICES.overall;
 }
 
+const CRYSTAL_CATEGORY_LENSES = {
+  overall: {
+    axis: "오늘 가장 먼저 정리할 기준",
+    choice: "흩어진 신호 중 하나만 고르는 선택",
+    opportunity: "하루의 우선순위가 또렷해지는 작은 질서",
+    risk: "여러 신호를 모두 따라가려는 마음",
+    timing: "해가 지기 전 한 가지를 끝내고, 밤에는 남은 감정을 정리하는 리듬",
+    action: "가장 먼저 끝낼 일 하나를 정하는 것",
+    oracle: "흐린 감각을 오늘의 작은 결단으로 바꾸는 첫 번째 실행",
+  },
+  wealth: {
+    axis: "돈이 들어오고 나가는 문턱의 조건",
+    choice: "수익 가능성과 손실 방어를 분리하는 선택",
+    opportunity: "작은 수익보다 오래 남는 구조를 만드는 단서",
+    risk: "기대 수익만 보고 비용과 책임을 흐리는 태도",
+    timing: "새 제안은 바로 잡지 말고 조건을 적어 3일 이상 확인하는 리듬",
+    action: "지금 지킬 돈과 움직일 돈을 분리하는 것",
+    oracle: "돈의 흐름은 감이 아니라 조건을 밝히는 손끝에서 열린다",
+  },
+  love: {
+    axis: "마음의 온도와 표현의 속도",
+    choice: "확인하고 싶은 마음과 상대가 받아들일 수 있는 말의 간격",
+    opportunity: "부드러운 한 문장으로 관계의 방어가 낮아지는 순간",
+    risk: "감정을 증명하려는 조급함",
+    timing: "대화는 즉흥 메시지보다 서로 숨을 고를 수 있는 시간에 여는 리듬",
+    action: "서운함을 비난이 아닌 요청으로 바꾸는 것",
+    oracle: "사랑의 문은 강한 말보다 안전한 온도에서 열린다",
+  },
+  reunion: {
+    axis: "남은 감정과 다시 만날 조건의 차이",
+    choice: "그리움 때문에 다가갈지, 회복 가능한 약속이 생겼을 때 다가갈지의 구분",
+    opportunity: "감정을 정리한 뒤 조심스럽게 닿을 수 있는 작은 통로",
+    risk: "변하지 않은 방식으로 다시 시작하려는 마음",
+    timing: "연락보다 먼저 침묵의 이유와 다시 만날 기준을 정리하는 리듬",
+    action: "재회를 바라는 이유와 실제 회복 조건을 나누어 적는 것",
+    oracle: "다시 이어질 인연은 그리움보다 달라진 태도를 먼저 알아본다",
+  },
+  move: {
+    axis: "움직임의 욕구와 도착 이후의 현실 조건",
+    choice: "떠나는 속도보다 새 자리에서 유지할 수 있는 기반을 보는 선택",
+    opportunity: "환경이 바뀌며 숨통이 트이는 새로운 동선",
+    risk: "준비되지 않은 변화에 기대를 모두 실어 버리는 태도",
+    timing: "거리, 비용, 일정, 생활 리듬을 함께 적고 움직이는 리듬",
+    action: "이동 뒤에도 지킬 루틴 하나를 먼저 정하는 것",
+    oracle: "좋은 변화는 떠나는 순간보다 도착한 뒤의 생활에서 증명된다",
+  },
+  career: {
+    axis: "역할, 실력, 평가 기준이 만나는 지점",
+    choice: "버티는 힘과 방향을 바꾸는 결단을 구분하는 선택",
+    opportunity: "보이지 않던 강점이 역할이나 제안으로 드러나는 흐름",
+    risk: "비교와 불안 때문에 자신의 기준을 잃는 태도",
+    timing: "성과로 보일 일 하나를 먼저 마감하고 다음 방향을 확인하는 리듬",
+    action: "나의 강점이 실제 성과로 이어지는 지점을 적는 것",
+    oracle: "진로의 문은 큰 선언보다 오늘 끝낸 하나의 증거로 열린다",
+  },
+  health: {
+    axis: "몸의 신호와 마음의 피로가 만나는 지점",
+    choice: "더 버틸지, 회복을 일정에 먼저 올릴지의 구분",
+    opportunity: "생활 리듬을 작게 회복하며 기운이 돌아오는 신호",
+    risk: "무리를 정상으로 착각하고 피로를 미루는 태도",
+    timing: "수면, 물, 호흡 중 하나부터 7일간 일정하게 돌보는 리듬",
+    action: "오늘의 피로를 키우는 행동 하나를 멈추는 것",
+    oracle: "회복의 문은 몸이 보낸 작은 신호를 존중할 때 열린다",
+  },
+  relation: {
+    axis: "신뢰와 경계가 균형을 찾는 자리",
+    choice: "참는 관계와 조율할 관계를 분리하는 선택",
+    opportunity: "말의 온도를 낮추며 신뢰를 다시 세울 수 있는 순간",
+    risk: "모든 사람을 살피느라 자신의 선을 잃는 태도",
+    timing: "불편한 대화는 즉시 반응하지 말고 맥락을 맞춘 뒤 여는 리듬",
+    action: "지켜야 할 경계와 건넬 수 있는 호의를 따로 정하는 것",
+    oracle: "좋은 인연은 나를 잃지 않는 선 위에서 더 오래 머문다",
+  },
+};
+
+const CRYSTAL_POSITION_LENSES = {
+  1: {
+    role: "현재 파동을 읽는 입구",
+    reading: "첫 자리는 지금 이미 드러난 기운을 말하므로, 감정의 이름보다 현실의 상태를 먼저 보아야 합니다.",
+    action: "현재 상태를 한 문장으로 이름 붙입니다.",
+  },
+  2: {
+    role: "가능성이 열리는 통로",
+    reading: "두 번째 자리는 아직 작지만 살아 있는 가능성을 비추므로, 크게 확장하기보다 손에 잡히는 단서를 살피는 자리입니다.",
+    action: "이번 주에 확인할 수 있는 가능성의 단서 1개를 적습니다.",
+  },
+  3: {
+    role: "반복 패턴을 드러내는 그림자",
+    reading: "세 번째 자리는 흐름을 막는 습관과 두려움을 보여 주므로, 좋은 해석보다 멈춰야 할 반응을 먼저 찾아야 합니다.",
+    action: "같은 패턴을 반복하게 만드는 반응 1개를 멈춥니다.",
+  },
+  4: {
+    role: "현실 조언이 내려오는 손",
+    reading: "네 번째 자리는 조언의 자리이므로, 감정 해석을 실제 행동으로 옮길 때 힘이 살아납니다.",
+    action: "오늘 바로 실행할 행동 1개를 끝냅니다.",
+  },
+  5: {
+    role: "흐름이 향하는 마지막 문",
+    reading: "마지막 자리는 결과를 단정하기보다 지금 선택이 어떤 방향으로 굳어지는지를 보여 줍니다.",
+    action: "7일 뒤 다시 확인할 결과 기준 1개를 정합니다.",
+  },
+};
+
+function getCrystalCategoryLens(categoryId) {
+  return CRYSTAL_CATEGORY_LENSES[categoryId] || CRYSTAL_CATEGORY_LENSES.overall;
+}
+
+function getCrystalPositionLens(order) {
+  return CRYSTAL_POSITION_LENSES[order] || CRYSTAL_POSITION_LENSES[1];
+}
+
 const CARD_MEANING_OVERRIDES = {
   "Five of Pentacles": "결핍감, 재정 압박, 소외감, 부족함에 대한 두려움",
   "Five of Wands": "경쟁, 충돌, 실력 겨루기, 시장의 소란, 의견 차이",
@@ -563,18 +674,23 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
     : [cardSuite(cardName), orientation === "reversed" ? "지연" : "진행", "핵심 전환", "행동 필요"];
 
   const voice = getCategoryVoice(category.id);
+  const lens = getCrystalCategoryLens(category.id);
+  const positionLens = getCrystalPositionLens(position.order);
   const cardMeaning = buildCardMeaning(cardNameEn, orientation, tarotKeywords);
   const cardLean = buildVariedReadingLead(position, cardNameKo, orientation, category.name, crystal.nameKo);
   const crystalMeaning = `${crystal.nameKo}는 ${crystal.meaning.replace(/입니다\.?$/, "")}. ${crystal.adviceTone} 쪽이 살고, ${crystal.cautionTone}는 잠시 낮춰야 합니다.`;
-  const positionInterpretation = `${position.title}의 질문은 "${position.question}"입니다. 이 위치에 ${cardNameKo}가 들어왔다는 것은 ${category.focus}의 큰 흐름을 현실 선택으로 번역하라는 신호입니다.`;
-  const oneLineSummary = `${cardLean} ${voice.crystalHook}`;
-  const crystalEnergy = `${crystal.nameKo}의 ${crystal.keywords.slice(0, 3).join(" · ")} 파동은 ${category.name}의 흐름을 부드럽게 정리합니다. ${crystalMeaning}`;
-  const cardFlow = `${cardMeaning} 따라서 이 카드는 "무엇을 더할지"보다 "무엇을 덜어낼지"를 분명하게 말합니다. ${position.title}는 지금의 판단이 어디로 향해야 하는지 알려 주는 좌표입니다.`;
-  const currentPulse = `${orientation === "reversed" ? "지연과 재검토의 심리" : "전진과 확인의 심리"}가 동시에 떠오릅니다. 핵심 키워드 ${tarotKeywords.slice(0, 2).join(" · ")}를 기준으로 오늘의 감정을 한 문장으로 정리해 보세요.`;
-  const caution = `${orientation === "reversed" ? "같은 실수를 설명만으로 넘기지 말고 중단 지점을 먼저 세워야 합니다." : "속도를 올리기보다 기준을 먼저 맞춰야 결과가 오래 갑니다."}`;
-  const uplift = `${crystal.nameKo}의 기운은 ${category.name}에서 기준과 순서를 회복시키는 편입니다. ${voice.uplift} ${position.title}의 결론은 한 번에 바꾸는 것이 아니라, 오늘의 선택을 작게 바로잡는 데 있습니다.`;
-  const practicalActions = uniqueSentenceList([...(Array.isArray(voice.action) ? voice.action : []), `${position.title}와 연결된 행동을 오늘 1개만 끝냅니다.`, `${crystal.nameKo}를 떠올리며 판단 기준을 1줄로 적습니다.`]).slice(0, 4);
-  const opportunity = `${tarotKeywords.slice(0, 2).join(" · ")} 신호는 ${position.title}에서 작은 문을 엽니다. 이번 주에는 기대를 키우기보다 확인 가능한 단서 하나를 정해 조용히 움직여 보세요.`;
+  const orientationPulse = orientation === "reversed"
+    ? `에너지가 안쪽으로 말려 있어 ${lens.risk}이 커질 수 있습니다.`
+    : `에너지가 밖으로 열리고 있어 ${lens.opportunity}가 현실로 드러나기 쉽습니다.`;
+  const positionInterpretation = `${position.title}의 질문은 "${position.question}"입니다. 이 자리는 ${positionLens.role}이며, ${cardNameKo}가 들어온 것은 ${category.focus}를 ${lens.axis}으로 다시 읽으라는 신호입니다.`;
+  const oneLineSummary = `${cardLean} ${lens.axis}에서 ${voice.crystalHook}이 핵심입니다.`;
+  const crystalEnergy = `${crystal.nameKo}의 ${crystal.keywords.slice(0, 3).join(" · ")} 파동은 ${category.name}의 흐름을 부드럽게 정리합니다. ${crystalMeaning} 이 원석은 ${lens.choice}가 흐려질 때 감정의 결을 낮추고 판단의 손잡이를 다시 잡게 합니다.`;
+  const cardFlow = `${cardMeaning} ${positionLens.reading} ${position.title}의 ${cardNameKo}는 ${lens.axis}을 중심에 두고, 지금 더해야 할 것과 덜어낼 것을 나누라고 말합니다.`;
+  const currentPulse = `${orientationPulse} 핵심 키워드 ${tarotKeywords.slice(0, 2).join(" · ")}를 기준으로 오늘의 감정과 현실 조건을 한 문장으로 분리해 보세요.`;
+  const caution = `${orientation === "reversed" ? "같은 실수를 설명만으로 넘기지 말고 중단 지점을 먼저 세워야 합니다." : "속도를 올리기보다 기준을 먼저 맞춰야 결과가 오래 갑니다."} 특히 ${lens.risk}은 이 카드의 빛을 흐리게 만들 수 있습니다.`;
+  const uplift = `${crystal.nameKo}의 기운은 ${category.name}에서 기준과 순서를 회복시키는 편입니다. ${voice.uplift} ${position.title}의 결론은 ${lens.action}부터 시작할 때 가장 맑아집니다.`;
+  const practicalActions = uniqueSentenceList([...(Array.isArray(voice.action) ? voice.action : []), positionLens.action, `${crystal.nameKo}를 떠올리며 ${lens.axis}을 1줄로 적습니다.`]).slice(0, 4);
+  const opportunity = `${tarotKeywords.slice(0, 2).join(" · ")} 신호는 ${position.title}에서 ${lens.opportunity}로 바뀝니다. 이번 주에는 기대를 키우기보다 ${lens.action}에 맞는 단서 하나를 조용히 확인해 보세요.`;
   const action = practicalActions.join(" / ");
   const neoLine = `네오: ${voice.neo}`;
   const younLine = `연이: ${voice.youn}`;
@@ -623,22 +739,23 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
 function buildCrystalSoulSummary(category, sections, coreCrystal) {
   const strongest = sections[2] || sections[0];
   const voice = getCategoryVoice(category.id);
+  const lens = getCrystalCategoryLens(category.id);
   const practicalActions = uniqueSentenceList([
     voice.action[0],
     voice.action[1],
     voice.action[2],
-    `${coreCrystal.nameKo}의 기운을 떠올리며 오늘의 선택 기준 1개를 메모에 남깁니다.`,
+    `${coreCrystal.nameKo}의 기운을 떠올리며 ${lens.axis}을 메모에 남깁니다.`,
   ]);
   return {
     category: category.name,
     coreCrystal: coreCrystal.nameKo,
-    overallFlow: `${category.name}의 5장 흐름은 초반 ${sections[0]?.positionTitle || "첫 번째 자리"}에서 감지된 시작점을, 중반 ${sections[2]?.positionTitle || "세 번째 자리"}에서 걸림을 확인하고, 후반 ${sections[4]?.positionTitle || "마지막 자리"}에서 실제 선택으로 마무리하도록 안내합니다. ${coreCrystal.nameKo}는 이 흐름을 한 줄로 묶기보다 단계별로 정돈하게 돕습니다.`,
-    strongestSignal: `${strongest.cardNameKo}와 ${strongest.positionTitle}의 결합이 가장 선명한 신호입니다. ${strongest.oneLineSummary} 이 조합은 회피보다 확인, 감정보다 기준을 먼저 두라고 말합니다.`,
-    opportunity: `${sections[1]?.positionTitle || "두 번째 자리"}에서는 ${sections[1]?.tarotKeywords.slice(0, 2).join(" · ")} 신호가 작은 가능성의 문으로 바뀝니다. 기대를 키우기보다 지금 할 수 있는 부드러운 실행으로 번역하는 편이 유리합니다.`,
-    risk: `${sections[2]?.positionTitle || "세 번째 자리"}의 경고를 흐리게 읽으면 같은 패턴이 다시 반복될 수 있습니다. ${voice.caution} 따라서 반응을 늦추고 사실을 먼저 확인하는 태도가 필요합니다.`,
-    timingAdvice: `${voice.pulse} 지금은 크게 밀어붙이기보다 14~30일 검증 구간을 두는 타이밍입니다. 준비와 실행을 분리해 기록하면 흐름이 더 또렷해집니다.`,
+    overallFlow: `${category.name}의 5장 흐름은 초반 ${sections[0]?.positionTitle || "첫 번째 자리"}에서 감지된 시작점을, 중반 ${sections[2]?.positionTitle || "세 번째 자리"}에서 걸림을 확인하고, 후반 ${sections[4]?.positionTitle || "마지막 자리"}에서 실제 선택으로 마무리하도록 안내합니다. ${coreCrystal.nameKo}는 이 흐름을 한 줄로 묶기보다 ${lens.axis}을 중심으로 단계별로 정돈하게 돕습니다. 지금의 핵심은 운이 좋다 나쁘다의 판정보다, ${lens.choice}가 얼마나 맑아지는지에 있습니다.`,
+    strongestSignal: `${strongest.cardNameKo}와 ${strongest.positionTitle}의 결합이 가장 선명한 신호입니다. ${strongest.oneLineSummary} 이 조합은 ${lens.action}을 먼저 세우면 흐름이 살아나고, ${lens.risk}에 끌려가면 같은 자리에서 맴돌 수 있음을 알려 줍니다.`,
+    opportunity: `${sections[1]?.positionTitle || "두 번째 자리"}에서는 ${sections[1]?.tarotKeywords.slice(0, 2).join(" · ")} 신호가 ${lens.opportunity}로 바뀝니다. 기대를 키우기보다 지금 할 수 있는 부드러운 실행으로 번역하는 편이 유리하며, 작은 확인 하나가 다음 문을 여는 열쇠가 됩니다.`,
+    risk: `${sections[2]?.positionTitle || "세 번째 자리"}의 경고를 흐리게 읽으면 같은 패턴이 다시 반복될 수 있습니다. ${voice.caution} 특히 ${lens.risk}이 올라올 때는 반응을 늦추고 사실, 감정, 요청을 따로 보아야 합니다.`,
+    timingAdvice: `${voice.pulse} 지금은 크게 밀어붙이기보다 14~30일 검증 구간을 두는 타이밍입니다. ${lens.timing}을 유지하면 준비와 실행이 분리되고, 카드가 보여 준 흐름이 더 또렷한 현실 신호로 남습니다.`,
     practicalActions,
-    oracleMessage: `${coreCrystal.nameKo}의 오라클: "지금 필요한 것은 큰 반전이 아니라, 흐린 감각을 오늘의 작은 결단으로 바꾸는 첫 번째 실행이다."`,
+    oracleMessage: `${coreCrystal.nameKo}의 오라클: "${lens.oracle}."`,
     neoLine: `네오: ${voice.neo}`,
     younLine: `연이: ${voice.youn}`,
   };
@@ -707,13 +824,14 @@ function buildCrystalSoulMasterChaptersFallback(readingData) {
   const s3 = sections[2] || {};
   const s4 = sections[3] || {};
   const s5 = sections[4] || {};
+  const lens = getCrystalCategoryLens(readingData?.categoryId);
 
   const chapters = [
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[0],
       openingKeywords: ["오라", "현재 파동", "상담 오프닝"],
       keywordVisual: buildKeywordVisual((s1.tarotKeywords || []).concat(s2.tarotKeywords || [])),
-      content: `내담자님, 오늘 당신의 무의식이 선택한 첫 번째 진입점은 ${summary.coreCrystal || readingData.coreCrystal}의 파동입니다. ${summary.overallFlow || "현재 흐름은 즉흥보다 기준을 세우는 쪽에 힘이 실립니다."} 지금의 장면은 좋은 운과 나쁜 운을 이분법으로 판정하는 구간이 아니라, 현재 감정과 현실 행동의 간격을 섬세하게 맞추는 구간입니다. ${s1.oneLineSummary || "첫 번째 카드가 핵심 기운을 보여 줍니다."} 이 문장을 첫 문턱의 중심으로 붙잡아 두시면, 뒤따르는 작은 의식들이 더 안정적으로 마음에 내려앉습니다.`,
+      content: `내담자님, 오늘 무의식이 선택한 첫 번째 진입점은 ${summary.coreCrystal || readingData.coreCrystal}의 파동입니다. ${summary.overallFlow || "현재 흐름은 즉흥보다 기준을 세우는 쪽에 힘이 실립니다."} 지금의 장면은 좋은 운과 나쁜 운을 이분법으로 판정하는 구간이 아니라, ${lens.axis}을 통해 현재 감정과 현실 행동의 간격을 섬세하게 맞추는 구간입니다. ${s1.oneLineSummary || "첫 번째 카드가 핵심 기운을 보여 줍니다."} 이 문장을 첫 문턱의 중심으로 붙잡아 두시면, 뒤따르는 작은 의식들이 더 안정적으로 마음에 내려앉습니다.`,
     },
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[1],
@@ -736,20 +854,20 @@ function buildCrystalSoulMasterChaptersFallback(readingData) {
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[4],
       openingKeywords: ["관계", "현실", "실행"],
-      keywordVisual: buildKeywordVisual(["경계", "표현", "협상", "기준"]),
-      content: `이 리딩의 빛은 통찰을 오래 붙잡는 데서 끝나지 않고, 오늘의 작은 선택으로 내려올 때 선명해집니다. ${summary.strongestSignal || "가장 강한 신호는 핵심 카드 조합에서 드러납니다."} ${summary.opportunity || "두 번째 자리에서 가능성의 문이 열립니다."} 관계에서는 감정 해명을 길게 하기보다, 사실 1개와 요청 1개를 분리해 전달하세요. 재물/진로 영역에서는 이번 주에 지킬 기준 하나만 남기고, 그 기준이 지켜졌는지를 부드럽게 확인해야 합니다. 내담자님이 오늘 만들 문장은 길 필요가 없습니다. '지금은 무엇을 멈추고, 무엇을 시작할지' 이 두 문장을 또렷하게 쓰는 순간, 카드가 말한 가능성은 행동의 형태를 얻습니다.`,
+      keywordVisual: buildKeywordVisual(["현실화", "선택", "기준", "실행"]),
+      content: `이 리딩의 빛은 통찰을 오래 붙잡는 데서 끝나지 않고, 오늘의 작은 선택으로 내려올 때 선명해집니다. ${summary.strongestSignal || "가장 강한 신호는 핵심 카드 조합에서 드러납니다."} ${summary.opportunity || "두 번째 자리에서 가능성의 문이 열립니다."} ${readingData.category || "이번 질문"}에서는 ${lens.choice}가 상담의 중심축입니다. 그러므로 오늘의 현실 조언은 ${lens.action}입니다. 내담자님이 오늘 만들 문장은 길 필요가 없습니다. '지금은 무엇을 멈추고, 무엇을 시작할지' 이 두 문장을 또렷하게 쓰는 순간, 카드가 말한 가능성은 행동의 형태를 얻습니다.`,
     },
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[5],
       openingKeywords: ["타이밍", "루틴", "14~30일"],
       keywordVisual: buildKeywordVisual(["타이밍", "체크포인트", "리추얼", "누적"]),
-      content: `${summary.timingAdvice || "지금은 즉흥 확장보다 검증 구간을 먼저 확보하는 타이밍입니다."} 14~30일 구간은 운세를 기다리는 시간이 아니라 파동을 몸에 익히는 기간입니다. 1주차에는 정리와 관찰, 2주차에는 작은 움직임, 3~4주차에는 유지할 것과 내려놓을 것을 가르는 리듬을 권장합니다. 리추얼은 화려할 필요가 없습니다. 같은 시간대에 3분 정리 메모를 남기고, 매주 한 번 카드의 빛의 단서를 다시 읽어 오늘의 행동과 얼마나 맞닿았는지 확인하세요. 이렇게 하면 타로 상징이 추상 언어에서 벗어나 생활 속에서 반복 가능한 선택의 신호로 바뀝니다.`,
+      content: `${summary.timingAdvice || "지금은 즉흥 확장보다 검증 구간을 먼저 확보하는 타이밍입니다."} 14~30일 구간은 운세를 기다리는 시간이 아니라 파동을 몸에 익히는 기간입니다. 특히 이번 질문은 ${lens.timing}을 유지할 때 흐름이 안정됩니다. 1주차에는 정리와 관찰, 2주차에는 작은 움직임, 3~4주차에는 유지할 것과 내려놓을 것을 가르는 리듬을 권장합니다. 리추얼은 화려할 필요가 없습니다. 같은 시간대에 3분 정리 메모를 남기고, 매주 한 번 카드의 빛의 단서를 다시 읽어 오늘의 행동과 얼마나 맞닿았는지 확인하세요. 이렇게 하면 타로 상징이 추상 언어에서 벗어나 생활 속에서 반복 가능한 선택의 신호로 바뀝니다.`,
     },
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[6],
       openingKeywords: ["봉인 조언", "통합", "마무리"],
       keywordVisual: buildKeywordVisual(["통합", "결단", "회복", "전환"]),
-      content: `마지막으로 내담자님께 봉인 조언을 남깁니다. ${summary.oracleMessage || "지금 필요한 기적은 기준 있는 결단입니다."} 오늘의 리딩은 불안을 없애 주는 마법이 아니라, 불안을 다루는 구조를 선물합니다. ${summary.risk || "반복 습관을 방치하면 카드 잠재력이 줄어듭니다."} 그러므로 결론은 단순합니다. 지금 즉시 시작할 행동 1개, 즉시 중단할 행동 1개를 정하고 7일 동안만 지켜 보세요. 그 7일이 지나면 이미 파동이 바뀐 체감을 얻게 될 가능성이 큽니다.`,
+      content: `마지막으로 내담자님께 봉인 조언을 남깁니다. ${summary.oracleMessage || `${readingData.coreCrystal}의 오라클: "${lens.oracle}."`} 오늘의 리딩은 불안을 없애 주는 마법이 아니라, 불안을 다루는 구조를 선물합니다. ${summary.risk || "반복 습관을 방치하면 카드 잠재력이 줄어듭니다."} 그러므로 결론은 단순합니다. 지금 즉시 시작할 행동 1개, 즉시 중단할 행동 1개를 정하고 7일 동안만 지켜 보세요. 그 7일 동안 ${lens.risk}을 알아차리는 힘이 커지면, 파동이 달라지는 체감도 훨씬 선명해질 가능성이 큽니다.`,
     },
   ];
 
@@ -788,6 +906,8 @@ function buildCrystalSoulMasterPrompt(readingData, intake = {}) {
     "- 반드시 1:1 상담 대화체로 작성하고, 기계적 나열형 문장을 금지합니다.",
     "- 각 카드 해설은 메이저/마이너 아르카나 맥락과 수비학 신호를 자연스럽게 포함합니다.",
     "- 카드와 원석의 치유 파동을 결합해 오늘 실천할 작은 회복 의식을 제시합니다.",
+    "- 모든 문장은 카테고리의 현실 문맥에 맞춰 씁니다. 연애는 감정과 표현, 재물은 조건과 손실 방어, 재회는 감정과 재접근 조건, 건강은 생활 리듬 중심으로 해석합니다.",
+    "- 건강/재물/관계 결과는 단정하거나 공포를 주지 말고, 관찰 가능한 신호와 선택 가능한 행동으로 번역합니다.",
     "- 각 섹션 도입부에 반드시 [키워드: ...] 형식 문자열을 제공합니다.",
     "- 분량 축소 금지: 카드 5섹션 + 깊은 7개의 문을 모두 작성합니다.",
     "",

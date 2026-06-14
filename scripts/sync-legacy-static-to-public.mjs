@@ -390,10 +390,18 @@ function cacheBustMobileInteractionPatchScriptRefs(source, buildTimestamp) {
 }
 
 function applyLocaleSeoMeta(indexHtml, localePath) {
-  const canonicalUrl = `https://code-destiny.com${localePath}`;
-  return indexHtml
+  const canonicalUrl = "https://code-destiny.com/";
+  const noindexMeta = '<meta name="robots" content="noindex, nofollow">';
+  const localizedHtml = indexHtml
     .replace(/<link rel="canonical" href="[^"]*">/i, `<link rel="canonical" href="${canonicalUrl}">`)
-    .replace(/<meta property="og:url" content="[^"]*">/i, `<meta property="og:url" content="${canonicalUrl}">`);
+    .replace(/<meta property="og:url" content="[^"]*">/i, `<meta property="og:url" content="${canonicalUrl}">`)
+    .replace(/<meta name="robots" content="[^"]*">/i, noindexMeta);
+
+  if (/<meta name="robots" content="[^"]*">/i.test(localizedHtml)) {
+    return localizedHtml;
+  }
+
+  return localizedHtml.replace(/<link rel="canonical" href="[^"]*">/i, (match) => `${match}\n${noindexMeta}`);
 }
 
 function stripBomInPublicHtmlTree(targetDir) {

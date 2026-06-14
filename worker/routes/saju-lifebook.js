@@ -46,8 +46,8 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "03",
     roman: "III",
-    title: "제 3장 숨겨진 무기 — 용신·희신과 나만의 필살기",
-    subtitle: "용신·희신·기신을 실전 전략으로 바꾸는 장",
+    title: "제 3장 용신·희신·기신 — 균형을 회복하는 방향",
+    subtitle: "용신·희신·기신을 삶의 선택 기준으로 정리하는 장",
     categories: [
       "이 명식에서 가장 필요한 기운",
       "용신이 살아날 때 열리는 길",
@@ -74,8 +74,8 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "05",
     roman: "V",
-    title: "제 5장 격국과 사회적 소명 — 나의 성공 방정식",
-    subtitle: "격국과 사회적 역할을 통해 성공 구조를 설계하는 장",
+    title: "제 5장 격국과 사회적 역할 — 성과가 열리는 구조",
+    subtitle: "격국과 사회적 역할을 통해 성취의 구조를 읽는 장",
     categories: [
       "격국으로 보는 사회적 역할",
       "내가 인정받는 방식",
@@ -102,7 +102,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "07",
     roman: "VII",
-    title: "제 7장 연애·결혼 완전 분석 — 사랑의 패턴과 배우자운",
+    title: "제 7장 연애·결혼 분석 — 사랑의 패턴과 배우자운",
     subtitle: "연애와 결혼의 반복 패턴을 현실적으로 정리하는 장",
     categories: [
       "끌리는 사람의 유형",
@@ -116,7 +116,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "08",
     roman: "VIII",
-    title: "제 8장 재물·직업 완전 분석 — 돈과 일의 성공 지도",
+    title: "제 8장 재물·직업 분석 — 돈과 일이 머무는 구조",
     subtitle: "재물과 직업의 구조를 구체적인 실행으로 연결하는 장",
     categories: [
       "돈이 들어오는 방식",
@@ -144,7 +144,7 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "10",
     roman: "X",
-    title: "제 10장 신살·십이운성·퀀텀 포인트 — 숨은 운명의 장치",
+    title: "제 10장 신살·십이운성 — 반복 신호와 숨은 작용",
     subtitle: "신살과 십이운성의 반복 신호를 현실적으로 해석하는 장",
     categories: [
       "주요 신살이 말하는 특징",
@@ -158,43 +158,43 @@ const CHAPTER_BLUEPRINTS = [
   {
     id: "11",
     roman: "XI",
-    title: "제 11장 위기와 반전 시나리오 — 무너질 때 다시 서는 법",
-    subtitle: "흔들리는 지점과 반전 전략을 구체화하는 장",
+    title: "제 11장 대운 분석 — 큰 운의 계절과 전환 구조",
+    subtitle: "현재 대운과 다음 대운이 직업, 관계, 재물에 여는 과제를 정리하는 장",
     categories: [
-      "이 명식이 흔들리는 순간",
-      "반복되는 선택 실수",
-      "인간관계에서 생기는 위기",
-      "돈과 일에서 생기는 위기",
-      "위기를 반전시키는 힘",
-      "다시 일어서는 현실 전략",
+      "대운 시작점과 전환 구조",
+      "현재 대운의 핵심 과제",
+      "다음 대운의 예고 신호",
+      "대운별 직업 흐름",
+      "대운별 관계 흐름",
+      "대운별 재물 흐름",
     ],
   },
   {
     id: "12",
     roman: "XII",
-    title: "제 12장 나의 길 — 인생의 방향과 장기 성장",
-    subtitle: "장기 성장의 방향과 단계별 실행을 정리하는 장",
+    title: "제 12장 선택 연도와 세운 — 가까운 운의 속도 조절",
+    subtitle: "선택 연도와 현재 대운의 접점을 상반기, 하반기, 월별 흐름으로 정리하는 장",
     categories: [
-      "이 사람이 결국 가야 할 길",
-      "재능이 성과로 바뀌는 과정",
-      "1년 안에 정리해야 할 것",
-      "3년 안에 키워야 할 것",
-      "10년 안에 완성해야 할 것",
-      "인생 후반으로 갈수록 강해지는 부분",
+      "선택 연도와 현재 대운의 접점",
+      "선택 연도 세운의 핵심 기운",
+      "상반기의 기회와 부담",
+      "하반기의 기회와 부담",
+      "일과 재물의 가까운 흐름",
+      "월별로 주의 깊게 볼 신호",
     ],
   },
   {
     id: "13",
     roman: "XIII",
-    title: "제 13장 마스터플랜 — 3년·5년·10년 운명 전략",
-    subtitle: "돈·일·관계를 묶은 장기 전략을 확정하는 종장",
+    title: "제 13장 최종 통합 — 마지막 상담 편지",
+    subtitle: "명식, 대운, 세운, 관계, 일과 돈의 결론을 하나로 묶는 종장",
     categories: [
-      "지금 가장 먼저 해야 할 선택",
-      "3년 전략",
-      "5년 전략",
-      "10년 전략",
-      "돈·일·관계의 통합 전략",
-      "최종 운명 조언",
+      "전체 명식의 최종 문장",
+      "가장 강한 운명의 축",
+      "반복해서 조심해야 할 약점",
+      "관계에서 지켜야 할 원칙",
+      "일과 돈에서 지켜야 할 원칙",
+      "마지막 상담 편지",
     ],
   },
 ];
@@ -285,7 +285,7 @@ const LIFEBOOK_FEATURE_KEY_ALIASES = new Set([
   "premium_pdf_saju_life_book",
   "premium-lifebook-report",
 ]);
-const LIFE_BOOK_PROMPT_VERSION = "life-book-local-assembler-v3";
+const LIFE_BOOK_PROMPT_VERSION = "life-book-local-assembler-v6";
 
 
 const LIFEBOOK_MIN_CATEGORY_CHARS = 850;
@@ -295,7 +295,11 @@ const LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS = 250;
 const LIFEBOOK_BLOCKING_MIN_CHAPTER_CHARS = 2600;
 const LIFEBOOK_BLOCKING_MIN_TOTAL_CHARS = 70000;
 const LIFEBOOK_QUALITY_REPAIR_MAX_ROUNDS = 3;
-const LIFEBOOK_LOCAL_TARGET_YEAR = 2026;
+const LIFEBOOK_HIGH_QUALITY_MIN_SCORE = 82;
+const LIFEBOOK_HIGH_QUALITY_MIN_EVIDENCE_TAGS = 3;
+const LIFEBOOK_LOCAL_TARGET_YEAR = new Date().getFullYear();
+const LIFEBOOK_TARGET_YEAR_MIN = 1900;
+const LIFEBOOK_TARGET_YEAR_MAX = 2099;
 const LIFEBOOK_A4_CHAR_RANGE = Object.freeze({ min: 850, target: 950, max: 1100 });
 const LIFEBOOK_A4_TOTAL_TARGET = Object.freeze({ pages: 100, minChars: 85000, targetChars: 95000, maxChars: 110000 });
 const LIFEBOOK_CHAPTER_PAGE_TARGETS = Object.freeze({
@@ -321,8 +325,8 @@ const LIFEBOOK_CHAPTER_COMMON_STRUCTURE = Object.freeze([
   "쉬운 현실 언어 해석",
   "강점 분석",
   "주의점 분석",
-  "실전 전략",
-  "행동 체크리스트",
+  "카테고리별 판단 기준",
+  "상담 확인 질문",
   "장 요약 박스",
   "다음 장으로 연결되는 문장",
 ]);
@@ -332,19 +336,139 @@ const LIFEBOOK_PHASE6_CHAPTER_STRUCTURE = Object.freeze([
   "상담형 본문",
   "계산 근거 기반 해석",
   "주의할 점",
-  "실천 조언",
-  "체크리스트",
+  "카테고리별 판단 기준",
+  "상담 확인 질문",
   "챕터 마무리 문장",
 ]);
 
 const LIFEBOOK_PHASE6_CATEGORY_SECTIONS = Object.freeze(LIFEBOOK_PHASE6_CHAPTER_STRUCTURE.slice(1));
 
-
+const LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS = Object.freeze({
+  "01": [
+    "이 책이 붙잡는 한 문장",
+    "타고난 명식의 첫인상",
+    "일간과 월지가 만든 기본 리듬",
+    "가장 강하게 작동하는 기운",
+    "부족해서 보완해야 할 기운",
+    "현재 대운이 여는 첫 과제",
+    "인생의 책을 읽는 기준",
+  ],
+  "02": [
+    "원국 전체의 핵심 문장",
+    "년주가 말하는 초년의 배경",
+    "월주가 말하는 사회적 무대",
+    "일주가 말하는 자기 본질",
+    "시주가 말하는 말년과 잠재력",
+    "천간과 지지의 드러난 성향",
+    "지장간에 숨은 진짜 동기",
+    "팔자 전체의 반복 패턴",
+  ],
+  "03": [
+    "월지와 월령의 계절감",
+    "일간의 본질",
+    "일간의 강약과 중심성",
+    "통근과 뿌리의 안정감",
+    "조후가 만드는 심리 온도",
+    "신강·신약 판단과 균형",
+    "기질이 드러나는 생활 방식",
+    "안정되는 환경과 흔들리는 환경",
+  ],
+  "04": [
+    "오행 전체 분포",
+    "강한 오행의 장점",
+    "강한 오행의 과부하",
+    "부족한 오행의 결핍 신호",
+    "부족한 오행의 보완 루틴",
+    "조후와 오행의 온도감",
+    "오행 균형을 삶에서 쓰는 법",
+  ],
+  "05": [
+    "십성 전체 분포",
+    "비겁이 말하는 자기 힘",
+    "식상이 말하는 표현과 생산성",
+    "재성이 말하는 현실감각과 돈",
+    "관성이 말하는 책임과 사회성",
+    "인성이 말하는 배움과 보호",
+    "십성이 충돌할 때의 반복 패턴",
+  ],
+  "06": [
+    "용신의 선정 근거",
+    "희신이 돕는 방향",
+    "기신이 흔드는 지점",
+    "잘 풀리는 사람과 환경",
+    "소모되는 사람과 환경",
+    "재능이 살아나는 조건",
+    "운을 쓸 때 지켜야 할 기준",
+  ],
+  "07": [
+    "격국의 성립과 삶의 큰 틀",
+    "사회적 역할과 쓰임",
+    "성과가 나는 무대",
+    "명예와 책임을 다루는 방식",
+    "조직과 독립성의 적합도",
+    "브랜드와 평판의 방향",
+    "성공 구조의 약점",
+  ],
+  "08": [
+    "연애가 시작되는 방식",
+    "호감과 애착의 패턴",
+    "배우자성의 강약",
+    "배우자궁의 안정성",
+    "결혼운의 흐름",
+    "갈등과 회복 방식",
+    "맞는 인연의 조건",
+  ],
+  "09": [
+    "재성이 말하는 돈의 그릇",
+    "식상이 말하는 수익화 방식",
+    "관성이 말하는 직업 책임",
+    "인성이 말하는 전문성",
+    "맞는 직업 무대",
+    "사업과 투자 판단 기준",
+    "재물운이 흔들리는 지점",
+  ],
+  "10": [
+    "오행 균형으로 보는 몸의 리듬",
+    "과한 기운이 만드는 피로",
+    "부족한 기운이 만드는 취약점",
+    "조후와 컨디션의 관계",
+    "스트레스가 쌓이는 방식",
+    "회복이 쉬운 생활 조건",
+    "의료 상담이 필요한 경계",
+  ],
+  "11": [
+    "대운 시작점과 전환 구조",
+    "현재 대운의 핵심 과제",
+    "다음 대운의 예고 신호",
+    "대운별 직업 흐름",
+    "대운별 관계 흐름",
+    "대운별 재물 흐름",
+    "전환기에 조심해야 할 선택",
+  ],
+  "12": [
+    "선택 연도와 현재 대운의 접점",
+    "선택 연도 세운의 핵심 기운",
+    "상반기의 기회와 부담",
+    "하반기의 기회와 부담",
+    "일과 재물의 가까운 흐름",
+    "관계와 건강의 가까운 흐름",
+    "월별로 주의 깊게 볼 신호",
+  ],
+  "13": [
+    "전체 명식의 최종 문장",
+    "가장 강한 운명의 축",
+    "반복해서 조심해야 할 약점",
+    "관계에서 지켜야 할 원칙",
+    "일과 돈에서 지켜야 할 원칙",
+    "대운과 세운을 통합한 판단",
+    "마지막 상담 편지",
+  ],
+});
 
 export const LIFE_BOOK_PDF_CONFIG = Object.freeze({
   generationMode: "local-assembled",
   provider: "saju-assembler",
-  templateVersion: "life-book-local-assembled-v3",
+  templateVersion: "life-book-local-assembled-v7",
 });
 const LIFEBOOK_AUTHORING_MODE = "local-assembled";
 const LIFEBOOK_LOCAL_WRITING_STATE = "local_writing";
@@ -776,58 +900,58 @@ function stripForbiddenTokens(value) {
 }
 
 const CHAPTER_TOPIC_RULES = {
-  "01": ["년주", "월주", "일주", "시주", "일간", "원국"],
-  "02": ["월지", "일간", "조후", "신강", "신약", "기질"],
-  "03": ["용신", "희신", "기신", "전략", "환경", "실행"],
-  "04": ["대운", "시작", "방향", "현재", "다음", "흐름"],
-  "05": ["격국", "사회적 역할", "성공", "소명", "직업", "브랜드"],
-  "06": ["사람", "관계", "협업", "귀인", "갈등", "인연"],
-  "07": ["연애", "관계", "결혼", "배우자", "갈등", "사랑"],
-  "08": ["돈", "재물", "직업", "투자", "사업", "커리어"],
-  "09": ["건강", "오행", "마음", "스트레스", "회복", "생활 리듬"],
-  "10": ["신살", "12운성", "십이운성", "패턴", "퀀텀", "가능성"],
-  "11": ["2026", "병오", "세운", "월별", "행동", "로드맵"],
-  "12": ["생애", "대운", "직업", "재물", "가족", "미션"],
-  "13": ["90일", "1년", "장기", "돈", "일", "관계", "최종 조언"],
+  "01": ["핵심", "명식", "일간", "월지", "대운", "기준"],
+  "02": ["원국", "년주", "월주", "일주", "시주", "지장간"],
+  "03": ["일간", "월지", "월령", "조후", "신강", "통근"],
+  "04": ["오행", "목", "화", "토", "금", "수", "균형"],
+  "05": ["십성", "비겁", "식상", "재성", "관성", "인성"],
+  "06": ["용신", "희신", "기신", "균형", "환경", "선택"],
+  "07": ["격국", "사회적 역할", "성과", "명예", "조직", "평판"],
+  "08": ["연애", "결혼", "배우자", "배우자궁", "갈등", "인연"],
+  "09": ["재물", "직업", "재성", "식상", "관성", "투자"],
+  "10": ["건강", "심신", "오행", "조후", "스트레스", "회복"],
+  "11": ["대운", "시작", "현재", "다음", "전환", "흐름"],
+  "12": ["선택 연도", "세운", "상반기", "하반기", "월별", "로드맵"],
+  "13": ["최종", "명식", "강점", "약점", "관계", "일과 돈", "편지"],
 };
 
 const LIFEBOOK_CHAPTER_LENSES = {
-  "01": { focus: "원국 구조", tone: "태어난 설계도를 처음 여는 듯한 해설", practical: "네 기둥이 어떻게 한 사람의 선택 기준이 되는지 읽어내는 장" },
-  "02": { focus: "월령·조후·오행 균형", tone: "기질과 체질을 이해시키는 해설", practical: "강약과 균형을 생활 리듬으로 번역하는 장" },
-  "03": { focus: "용신·희신·기신", tone: "무기와 전략을 찾아주는 해설", practical: "잘 되는 환경과 소모되는 환경을 갈라내는 장" },
-  "04": { focus: "대운과 시기", tone: "시기별 선택 전략", practical: "현재와 다음 흐름을 행동 순서로 정리하는 장" },
-  "05": { focus: "격국과 사회적 역할", tone: "성공 방정식", practical: "무대와 역할이 맞아떨어질 때 성과가 커지는 장" },
-  "06": { focus: "관계와 파트너십", tone: "인연 운영법", practical: "사람과의 거리, 협업, 상처 회복법을 다루는 장" },
-  "07": { focus: "연애와 결혼", tone: "사랑의 패턴 상담", practical: "사랑의 시작과 유지, 갈등 관리 방식을 읽는 장" },
-  "08": { focus: "재물과 직업", tone: "돈과 일의 실행 지도", practical: "수익 구조와 커리어 누적 전략을 짜는 장" },
-  "09": { focus: "건강과 심신", tone: "회복 루틴 상담", practical: "몸과 마음의 리듬을 장기적으로 지키는 장" },
-  "10": { focus: "신살과 십이운성", tone: "숨은 반복 패턴 해설", practical: "표면 아래의 반복 장치를 읽는 장" },
-  "11": { focus: "위기와 반전", tone: "무너질 때 다시 서는 전략", practical: "실수와 흔들림을 반전의 발판으로 바꾸는 장" },
-  "12": { focus: "장기 성장", tone: "인생 방향성", practical: "재능과 장기 성장 방향을 현실 언어로 묶는 장" },
-  "13": { focus: "3년·5년·10년 마스터플랜", tone: "최종 전략", practical: "돈, 일, 관계를 한 장의 계획으로 통합하는 장" },
+  "01": { focus: "핵심 명식 요약", tone: "운명의 첫 문장을 여는 상담", practical: "일간, 월지, 현재 대운을 한 기준으로 묶는 장" },
+  "02": { focus: "사주 원국과 네 기둥", tone: "원국의 구조를 분해하는 해설", practical: "년월일시와 지장간이 실제 성향으로 드러나는 방식을 읽는 장" },
+  "03": { focus: "일간·월지·조후", tone: "기질과 균형을 잡아 주는 상담", practical: "월령, 통근, 신강신약을 생활 리듬으로 번역하는 장" },
+  "04": { focus: "오행 분포와 균형", tone: "강한 기운과 부족한 기운을 가르는 해설", practical: "오행의 과다·부족을 보완 루틴과 선택 기준으로 바꾸는 장" },
+  "05": { focus: "십성 분포와 사회적 발현", tone: "재능과 욕망의 쓰임을 읽는 상담", practical: "비겁·식상·재성·관성·인성이 현실에서 맡는 역할을 정리하는 장" },
+  "06": { focus: "용신·희신·기신", tone: "살리는 기운과 소모되는 기운을 구분하는 해설", practical: "좋은 사람, 환경, 선택 조건을 분명히 세우는 장" },
+  "07": { focus: "격국과 성공 구조", tone: "사회적 쓰임과 성취 구조를 읽는 상담", practical: "성과가 나는 무대, 평판, 조직 적합도를 정리하는 장" },
+  "08": { focus: "연애·결혼·배우자궁", tone: "사랑의 시작과 지속 방식을 읽는 상담", practical: "배우자성, 배우자궁, 갈등 회복 방식을 구분하는 장" },
+  "09": { focus: "직업·재물·수익 구조", tone: "돈과 일의 흐름을 현실적으로 짚는 상담", practical: "재성, 식상, 관성, 인성이 수익과 직업으로 이어지는 방식을 읽는 장" },
+  "10": { focus: "건강·심신·생활 리듬", tone: "오행과 조후로 회복 순서를 잡는 상담", practical: "과한 기운과 부족한 기운이 컨디션에 남기는 신호를 다루는 장" },
+  "11": { focus: "대운 흐름과 전환 구조", tone: "큰 운의 계절을 읽는 상담", practical: "현재 대운과 다음 대운이 직업, 관계, 재물에 주는 과제를 정리하는 장" },
+  "12": { focus: "선택 연도와 세운", tone: "가까운 운의 속도를 조절하는 상담", practical: "상반기, 하반기, 월별 신호를 실제 선택 순서로 바꾸는 장" },
+  "13": { focus: "최종 통합과 상담 편지", tone: "삶의 기준을 마지막으로 정리하는 상담", practical: "명식, 대운, 세운, 관계, 일과 돈의 결론을 하나로 묶는 장" },
 };
 
 const LIFEBOOK_CANONICAL_TOPIC_RULES = Object.freeze({
-  "01": ["원국", "년주", "월주", "일주", "시주", "팔자"],
-  "02": ["월지", "일간", "조후", "신강", "신약", "기질"],
-  "03": ["용신", "희신", "기신", "필살기", "환경", "전략"],
-  "04": ["대운", "시작", "방향", "현재", "다음", "파도"],
-  "05": ["격국", "사회", "소명", "성공", "역할", "직업"],
-  "06": ["관계", "인연", "파트너십", "귀인", "갈등", "협업"],
-  "07": ["연애", "결혼", "배우자", "사랑", "갈등", "재회"],
-  "08": ["재물", "직업", "돈", "사업", "커리어", "투자"],
-  "09": ["건강", "심신", "오행", "스트레스", "수면", "관리"],
-  "10": ["신살", "12운성", "십이운성", "퀀텀", "비밀", "코드"],
-  "11": ["2026", "병오", "세운", "월별", "로드맵", "행동"],
-  "12": ["생애", "마스터플랜", "대운", "10대", "전환점", "미션"],
-  "13": ["최종", "전략", "90일", "1년", "장기", "편지"],
+  "01": ["핵심", "명식", "일간", "월지", "대운", "기준"],
+  "02": ["원국", "년주", "월주", "일주", "시주", "지장간"],
+  "03": ["일간", "월지", "월령", "조후", "신강", "통근"],
+  "04": ["오행", "목", "화", "토", "금", "수"],
+  "05": ["십성", "비겁", "식상", "재성", "관성", "인성"],
+  "06": ["용신", "희신", "기신", "균형", "환경", "선택"],
+  "07": ["격국", "사회", "소명", "성취", "역할", "직업"],
+  "08": ["연애", "결혼", "배우자", "사랑", "갈등", "인연"],
+  "09": ["재물", "직업", "돈", "사업", "커리어", "투자"],
+  "10": ["건강", "심신", "오행", "스트레스", "수면", "관리"],
+  "11": ["대운", "시작", "방향", "현재", "다음", "전환"],
+  "12": ["선택 연도", "세운", "월별", "로드맵", "대응"],
+  "13": ["최종", "전략", "관계", "직업", "재물", "편지"],
 });
 
 const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
   {
     id: "01",
     roman: "I",
-    title: "🌌 사주 원국 완전 해설 — 팔자 8글자의 비밀",
+    title: "🌌 사주 원국 해설 — 팔자 8글자의 구조",
     subtitle: "사주 8글자의 전체 구조와 네 기둥의 설계를 깊이 해석합니다.",
     categories: [
       "팔자 8글자가 만드는 첫인상",
@@ -885,8 +1009,8 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
   {
     id: "03",
     roman: "III",
-    title: "⚔️ 숨겨진 무기 — 용신·희신과 나만의 필살기",
-    subtitle: "용신, 희신, 기신을 환경 선택과 실행 전략으로 바꿉니다.",
+    title: "⚔️ 용신·희신·기신 — 균형을 회복하는 방향",
+    subtitle: "용신, 희신, 기신을 환경 선택과 삶의 기준으로 정리합니다.",
     categories: [
       "용신이란 무엇인가",
       "내 사주에서 가장 중요한 용신",
@@ -899,7 +1023,7 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
       "관계에서 용신을 쓰는 법",
       "돈과 기회에서 용신을 쓰는 법",
       "생활 습관에서 용신을 쓰는 법",
-      "나만의 필살기 선언문",
+      "나만의 선택 기준 선언문",
     ],
     engineFocus: [
       "억부 용신",
@@ -954,8 +1078,8 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
   {
     id: "05",
     roman: "V",
-    title: "👑 격국과 사회적 소명 — 나의 성공 방정식",
-    subtitle: "격국이 말하는 사회적 역할과 성공 방정식을 해석합니다.",
+    title: "👑 격국과 사회적 역할 — 성과가 열리는 구조",
+    subtitle: "격국이 말하는 사회적 역할과 성취 구조를 해석합니다.",
     categories: [
       "격국이란 무엇인가",
       "내 사주의 주된 격국",
@@ -968,7 +1092,7 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
       "개인 브랜드와 사업 가능성",
       "명예와 평판을 얻는 방식",
       "나에게 맞는 성공 속도",
-      "나의 성공 방정식",
+      "나의 성취 구조",
     ],
     engineFocus: [
       "월지 중심 격국",
@@ -1008,7 +1132,7 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
   {
     id: "07",
     roman: "VII",
-    title: "💑 연애·결혼 완전 분석 — 사주가 말하는 나의 사랑",
+    title: "💑 연애·결혼 분석 — 사주가 말하는 나의 사랑",
     subtitle: "연애, 결혼, 배우자성, 배우자궁의 흐름을 관계 전략으로 정리합니다.",
     categories: [
       "연애에서의 기본 성향",
@@ -1041,7 +1165,7 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
   {
     id: "08",
     roman: "VIII",
-    title: "💰 재물·직업 완전 전략 — 부의 그릇을 키우는 천기",
+    title: "💰 재물·직업 분석 — 돈과 일이 머무는 구조",
     subtitle: "재성, 식상, 관성, 인성을 직업과 재물 전략으로 연결합니다.",
     categories: [
       "돈을 대하는 기본 방식",
@@ -1055,7 +1179,7 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
       "사업/프리랜스 가능성",
       "피해야 할 돈의 패턴",
       "장기적 자산 전략",
-      "부의 그릇을 키우는 실전법",
+      "돈의 그릇을 안정시키는 실전법",
     ],
     engineFocus: [
       "재성",
@@ -1065,7 +1189,7 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
       "격국",
       "용신",
       "대운상 재물 흐름",
-      "2026년 재물 흐름",
+      "선택 연도 재물 흐름",
     ],
     writingRequirements: [
       "투자 종목 추천 금지",
@@ -1076,7 +1200,7 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
   {
     id: "09",
     roman: "IX",
-    title: "🏥 건강·심신 에너지 완전 분석 — 오행이 말하는 신체 지도",
+    title: "🏥 건강·심신 리듬 — 오행이 말하는 생활 지도",
     subtitle: "오행과 조후를 몸과 마음의 생활 관리 관점으로 해석합니다.",
     categories: [
       "오행 균형으로 보는 에너지 체질",
@@ -1109,8 +1233,8 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
   {
     id: "10",
     roman: "X",
-    title: "🔮 신살·12운성·퀀텀 명리 — 사주의 숨겨진 비밀 코드",
-    subtitle: "신살, 12운성, 특수 코드를 선택 가능성의 언어로 풀이합니다.",
+    title: "🔮 신살·12운성 해석 — 반복 신호와 숨은 작용",
+    subtitle: "신살, 12운성, 특수 작용을 선택 가능성의 언어로 풀이합니다.",
     categories: [
       "신살을 현대적으로 이해하는 법",
       "내 사주의 핵심 신살",
@@ -1124,7 +1248,7 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
       "월주 12운성",
       "일주 12운성",
       "시주 12운성",
-      "퀀텀 명리엔진이 포착한 숨은 패턴",
+      "원국이 드러내는 반복 패턴",
       "이 코드를 인생에서 쓰는 법",
     ],
     engineFocus: [
@@ -1133,7 +1257,7 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
       "12운성 위치",
       "반복 패턴",
       "도충/합충형파해와 신살의 결합",
-      "퀀텀 포인트 요약",
+      "반복 신호 요약",
     ],
     writingRequirements: [
       "신살을 공포스럽게 표현하지 말 것",
@@ -1143,27 +1267,27 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
   {
     id: "11",
     roman: "XI",
-    title: "📅 2026 丙午年 실전 로드맵 — 12개월 행동 지침",
-    subtitle: "2026 병오년의 세운과 월별 행동 지침을 현실 전략으로 정리합니다.",
+    title: "📅 선택 연도 실전 로드맵 — 12개월 행동 지침",
+    subtitle: "선택한 연도의 세운과 월별 행동 지침을 현실 전략으로 정리합니다.",
     categories: [
-      "2026 병오년 전체 분위기",
-      "2026년이 원국에 주는 자극",
-      "현재 대운과 2026년의 결합",
-      "2026년의 핵심 기회",
-      "2026년의 핵심 주의점",
+      "선택 연도 전체 분위기",
+      "선택 연도가 원국에 주는 자극",
+      "현재 대운과 선택 연도의 결합",
+      "선택 연도의 핵심 기회",
+      "선택 연도의 핵심 주의점",
       "일/직업 흐름",
       "재물 흐름",
       "관계 흐름",
       "연애 흐름",
       "건강/컨디션 흐름",
       "1월~12월 월별 로드맵",
-      "2026년에 반드시 키워야 할 능력",
-      "2026년에 피해야 할 선택",
-      "2026년 최종 행동 지침",
+      "선택 연도에 반드시 키워야 할 능력",
+      "선택 연도에 피해야 할 선택",
+      "선택 연도 최종 행동 지침",
     ],
     engineFocus: [
-      "2026 병오년 세운",
-      "2026 월운 12개월",
+      "선택 연도 세운",
+      "선택 연도 월운 12개월",
       "대운과 세운 관계",
       "원국과 세운 합충형파해",
       "용신/기신 작용",
@@ -1211,13 +1335,13 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
       "원국 핵심 구조",
       "용신 흐름",
       "격국의 성숙 과정",
-      "2026년 이후 흐름",
+      "선택 연도 이후 흐름",
     ],
   },
   {
     id: "13",
     roman: "XIII",
-    title: "💌 거장의 최종 전략 제언 — 나에게 주는 운명 사용 설명서",
+    title: "💌 최종 제언 — 나에게 주는 운명 사용 기준",
     subtitle: "앞선 모든 해석을 최종 조언과 실행 계획으로 묶습니다.",
     categories: [
       "이 사주의 가장 중요한 한 문장",
@@ -1228,9 +1352,9 @@ const LIFEBOOK_CANONICAL_BLUEPRINTS = Object.freeze([
       "일과 돈에서의 최종 조언",
       "건강과 마음에서의 최종 조언",
       "현재 대운에서 가장 중요한 선택",
-      "2026년에 반드시 실천할 것",
+      "선택 연도에 반드시 실천할 것",
       "앞으로 10년의 핵심 전략",
-      "나에게 주는 운명 사용 설명서",
+      "나에게 주는 운명 사용 기준",
       "최종 편지",
     ],
     writingRequirements: [
@@ -1248,7 +1372,7 @@ const LIFEBOOK_PHASE6_BLUEPRINTS = Object.freeze([
     roman: "I",
     title: "프롤로그 — 내 인생의 핵심 코드",
     subtitle: "원국 전체를 하나의 운명적 문장으로 묶어 삶의 첫 방향을 엽니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["01"],
     engineFocus: ["원국", "사주 팔자", "일간", "월지", "오행", "십성", "용신"],
   },
   {
@@ -1256,7 +1380,7 @@ const LIFEBOOK_PHASE6_BLUEPRINTS = Object.freeze([
     roman: "II",
     title: "원국 해석 — 태어난 순간의 구조",
     subtitle: "년주, 월주, 일주, 시주의 배치를 통해 태어난 순간의 기본 구조를 읽습니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["02"],
     engineFocus: ["년주", "월주", "일주", "시주", "지장간", "원국 구조", "계절 기운"],
   },
   {
@@ -1264,7 +1388,7 @@ const LIFEBOOK_PHASE6_BLUEPRINTS = Object.freeze([
     roman: "III",
     title: "일간과 월지 — 내가 세상을 살아가는 기본 방식",
     subtitle: "일간의 본질과 월지의 계절성을 함께 보아 삶의 작동 방식을 해석합니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["03"],
     engineFocus: ["일간", "월지", "월령", "신강신약", "조후", "기질", "생활 방식"],
   },
   {
@@ -1272,7 +1396,7 @@ const LIFEBOOK_PHASE6_BLUEPRINTS = Object.freeze([
     roman: "IV",
     title: "오행 균형 — 넘치는 기운과 부족한 기운",
     subtitle: "목화토금수의 과다와 부족을 정리해 강점, 피로, 보완 루틴을 찾습니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["04"],
     engineFocus: ["목", "화", "토", "금", "수", "오행 과다", "오행 부족", "오행 균형"],
   },
   {
@@ -1280,7 +1404,7 @@ const LIFEBOOK_PHASE6_BLUEPRINTS = Object.freeze([
     roman: "V",
     title: "십성 구조 — 성격, 재능, 욕망의 패턴",
     subtitle: "비겁, 식상, 재성, 관성, 인성의 흐름으로 성격과 재능의 반복 패턴을 읽습니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["05"],
     engineFocus: ["비견", "겁재", "식신", "상관", "재성", "관성", "인성", "십성 분포"],
   },
   {
@@ -1288,7 +1412,7 @@ const LIFEBOOK_PHASE6_BLUEPRINTS = Object.freeze([
     roman: "VI",
     title: "용신·희신·기신 — 나를 살리는 방향과 피해야 할 방향",
     subtitle: "사주의 균형을 회복시키는 방향과 과해질 때 조심해야 할 흐름을 나눕니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["06"],
     engineFocus: ["용신", "희신", "기신", "조후 용신", "억부 용신", "균형 방향", "주의 기운"],
   },
   {
@@ -1296,7 +1420,7 @@ const LIFEBOOK_PHASE6_BLUEPRINTS = Object.freeze([
     roman: "VII",
     title: "격국과 삶의 큰 틀 — 인생이 풀리는 방식",
     subtitle: "격국과 계절의 큰 틀을 통해 일이 열리고 막히는 방식을 해석합니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["07"],
     engineFocus: ["격국", "월령", "사회적 역할", "성공 방식", "명예", "구조", "대세"],
   },
   {
@@ -1304,7 +1428,7 @@ const LIFEBOOK_PHASE6_BLUEPRINTS = Object.freeze([
     roman: "VIII",
     title: "연애와 관계 — 사랑, 결혼, 친밀감의 패턴",
     subtitle: "친밀감, 애착, 결혼관, 관계 회복 방식을 상담형 문장으로 정리합니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["08"],
     engineFocus: ["연애", "배우자궁", "배우자성", "관계", "합충형해", "친밀감", "결혼"],
   },
   {
@@ -1312,7 +1436,7 @@ const LIFEBOOK_PHASE6_BLUEPRINTS = Object.freeze([
     roman: "IX",
     title: "직업과 재물 — 돈이 들어오는 방식과 커리어 방향",
     subtitle: "재성, 관성, 식상의 작동을 통해 돈과 일의 흐름을 현실적으로 연결합니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["09"],
     engineFocus: ["직업", "재물", "재성", "관성", "식상", "커리어", "수입 구조", "일의 방식"],
   },
   {
@@ -1320,7 +1444,7 @@ const LIFEBOOK_PHASE6_BLUEPRINTS = Object.freeze([
     roman: "X",
     title: "건강과 생활 리듬 — 몸과 마음의 관리법",
     subtitle: "오행 균형과 조후를 바탕으로 생활 리듬과 회복 루틴을 제안합니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["10"],
     engineFocus: ["건강", "생활 리듬", "오행 균형", "조후", "수면", "회복", "스트레스"],
   },
   {
@@ -1328,24 +1452,24 @@ const LIFEBOOK_PHASE6_BLUEPRINTS = Object.freeze([
     roman: "XI",
     title: "대운 분석 — 인생의 큰 계절 변화",
     subtitle: "현재 대운과 다음 대운의 전환을 통해 인생의 큰 계절을 읽습니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["11"],
     engineFocus: ["대운", "현재 대운", "다음 대운", "대운 전환", "십년 흐름", "기회", "주의점"],
   },
   {
     id: "12",
     roman: "XII",
-    title: "올해와 가까운 미래 — 세운·월운 기반 실전 조언",
+    title: "선택 연도와 가까운 미래 — 세운·월운 기반 실전 조언",
     subtitle: "세운과 월운의 가까운 흐름을 실행 가능한 조언으로 바꿉니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
-    engineFocus: ["세운", "월운", "2026", "가까운 미래", "월별 흐름", "실전 조언", "선택 시기"],
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["12"],
+    engineFocus: ["세운", "월운", "선택 연도", "가까운 미래", "월별 흐름", "실전 조언", "선택 시기"],
   },
   {
     id: "13",
     roman: "XIII",
     title: "마스터플랜 — 앞으로의 선택과 실행 전략",
     subtitle: "전체 해석을 하나의 선택 기준과 실행 전략으로 묶어 마무리합니다.",
-    categories: LIFEBOOK_PHASE6_CATEGORY_SECTIONS,
-    engineFocus: ["마스터플랜", "실행 전략", "체크리스트", "위기 대응", "관계", "직업", "재물", "루틴"],
+    categories: LIFEBOOK_CATEGORY_SPECIFIC_SECTIONS["13"],
+    engineFocus: ["마스터플랜", "최종 선택 기준", "관계", "직업", "재물", "대운 통합"],
   },
 ]);
 
@@ -1565,6 +1689,66 @@ function validateChapterTopicCoverage(chapter = {}) {
   return hits >= 2;
 }
 
+const LIFEBOOK_CATEGORY_TOKEN_STOPWORDS = new Set([
+  "그리고",
+  "그러나",
+  "에서는",
+  "으로",
+  "에서",
+  "하는",
+  "있는",
+  "없는",
+  "대한",
+  "기준",
+  "핵심",
+  "방식",
+  "흐름",
+  "분석",
+  "해석",
+  "상담",
+  "정리",
+  "완전",
+  "전체",
+]);
+
+function extractLifeBookMeaningfulTokens(value = "") {
+  return Array.from(new Set(String(value || "")
+    .match(/[가-힣A-Za-z0-9]+/g) || []))
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2)
+    .filter((token) => !LIFEBOOK_CATEGORY_TOKEN_STOPWORDS.has(token));
+}
+
+function getLifeBookCategoryFitKeywords(chapter = {}, categoryTitle = "") {
+  const chapterId = String(chapter?.id || "");
+  const chapterRules = LIFEBOOK_CANONICAL_TOPIC_RULES[chapterId] || CHAPTER_TOPIC_RULES[chapterId] || [];
+  return {
+    category: extractLifeBookMeaningfulTokens(categoryTitle),
+    chapter: Array.from(new Set([
+      ...chapterRules,
+      ...extractLifeBookMeaningfulTokens(chapter?.title || ""),
+      ...extractLifeBookMeaningfulTokens(chapter?.subtitle || ""),
+      ...(Array.isArray(chapter?.engineFocus) ? chapter.engineFocus : []),
+    ].map((item) => clean(item)).filter(Boolean))),
+  };
+}
+
+function evaluateLifeBookCategoryFit(text = "", chapter = {}, categoryTitle = "") {
+  const source = stripForbiddenTokens(text);
+  const lowerSource = source.toLowerCase();
+  const keywords = getLifeBookCategoryFitKeywords(chapter, categoryTitle);
+  const categoryHits = keywords.category.filter((keyword) => lowerSource.includes(keyword.toLowerCase())).length;
+  const chapterHits = keywords.chapter.filter((keyword) => lowerSource.includes(keyword.toLowerCase())).length;
+  return {
+    hasCategoryGrounding: !keywords.category.length || categoryHits >= Math.min(2, keywords.category.length),
+    hasChapterTopicGrounding: !keywords.chapter.length || chapterHits >= 2,
+    categoryHits,
+    chapterHits,
+    categoryKeywordCount: keywords.category.length,
+    chapterKeywordCount: keywords.chapter.length,
+  };
+}
+
 function normalizeIncomingAnalysisSignals(raw = {}) {
   const src = raw && typeof raw === "object" ? raw : {};
   const weights = src.elementWeights && typeof src.elementWeights === "object"
@@ -1781,7 +1965,7 @@ function deriveLifeBookPayload(profile, signals, chapters, metadata = {}) {
     timing: {
       currentDaeun: { label: signals.currentDaewun || signals.rhythm },
       nextDaeun: { label: signals.nextDaewun || `${signals.monthBranch} 이후 전환` },
-      yearlyFlow: { year: new Date().getFullYear() },
+      yearlyFlow: { year: signals.currentYear || LIFEBOOK_LOCAL_TARGET_YEAR },
       monthlyFlow: Array.from({ length: 12 }).map((_, idx) => ({ month: idx + 1, score: clamp(55 + ((idx * 7 + profile.day) % 40), 40, 95) })),
     },
     specialStars,
@@ -1791,6 +1975,26 @@ function deriveLifeBookPayload(profile, signals, chapters, metadata = {}) {
 
 function pad2(value) {
   return String(value).padStart(2, "0");
+}
+
+function resolveLifeBookTargetYear(body = {}, fallback = LIFEBOOK_LOCAL_TARGET_YEAR) {
+  const raw = body?.targetYear ?? body?.analysisYear ?? body?.selectedYear ?? body?.yearForReading;
+  const year = Number(raw);
+  const fallbackYear = Number(fallback);
+  if (!Number.isFinite(year)) {
+    return clamp(Number.isFinite(fallbackYear) ? Math.trunc(fallbackYear) : new Date().getFullYear(), LIFEBOOK_TARGET_YEAR_MIN, LIFEBOOK_TARGET_YEAR_MAX);
+  }
+  return clamp(Math.trunc(year), LIFEBOOK_TARGET_YEAR_MIN, LIFEBOOK_TARGET_YEAR_MAX);
+}
+
+function resolveLifeBookYearPillar(targetYear = LIFEBOOK_LOCAL_TARGET_YEAR) {
+  const year = resolveLifeBookTargetYear({ targetYear });
+  try {
+    const solar = Solar.fromYmdHms(year, 7, 1, 12, 0, 0);
+    return `${normalizeStemLabel(solar.getLunar().getEightChar().getYearGan())}${normalizeBranchLabel(solar.getLunar().getEightChar().getYearZhi())}`.trim();
+  } catch (_) {
+    return "";
+  }
 }
 
 function normalizeGender(raw) {
@@ -2024,6 +2228,52 @@ function countForbiddenTerms(chapters = []) {
   return count;
 }
 
+function isLifeBookEmergencyFallbackSource(value = "") {
+  return /\b(?:fallback|emergency|recovery)\b|비상|복구/i.test(clean(value));
+}
+
+function lifeBookTextHasAny(haystack = "", keywords = []) {
+  const source = clean(haystack);
+  return safeLifeBookList(keywords).some((keyword) => {
+    const token = clean(keyword);
+    return token && source.includes(token);
+  });
+}
+
+function getLifeBookHighQualityEvidenceGroups(chapterId = "", categoryTitle = "") {
+  const id = String(chapterId || "");
+  const title = clean(categoryTitle);
+  if (id === "01") return [["일간", "명식"], ["월지", "대운"], ["용신", "기준"]];
+  if (id === "02") {
+    if (lifeBookCategoryIncludes(title, ["년주"])) return [["년주"], ["원국", "초년", "배경"], ["월지", "일간", "성향"]];
+    if (lifeBookCategoryIncludes(title, ["월주", "사회적"])) return [["월주"], ["사회", "무대", "배경"], ["월지", "월령", "성향"]];
+    if (lifeBookCategoryIncludes(title, ["일주", "자기"])) return [["일주"], ["일지", "자기", "본질"], ["관계", "성향", "기준"]];
+    if (lifeBookCategoryIncludes(title, ["시주", "말년"])) return [["시주"], ["말년", "잠재력", "후반"], ["미래", "성향", "기준"]];
+    if (lifeBookCategoryIncludes(title, ["지장간"])) return [["지장간"], ["천간", "지지", "원국"], ["동기", "숨은", "반복"]];
+    return [["원국"], ["년주", "월주", "일주", "시주", "천간", "지지"], ["지장간", "반복", "성향"]];
+  }
+  if (id === "03") return [["일간"], ["월지", "월령"], ["조후", "통근", "신강", "신약"]];
+  if (id === "04") return [["오행"], ["강한", "과한", "과다"], ["부족", "보완", "균형"]];
+  if (id === "05") return [["십성"], ["비겁", "식상", "재성", "관성", "인성"], ["역할", "사회", "반복"]];
+  if (id === "06") return [["용신"], ["희신"], ["기신"], ["선택", "환경", "균형"]];
+  if (id === "07") return [["격국"], ["월령", "투간", "통근"], ["사회", "성과", "평판", "역할"]];
+  if (id === "08") return [["배우자궁", "일지"], ["배우자성"], ["합충형해", "갈등", "인연"]];
+  if (id === "09") return [["재성"], ["식상", "관성"], ["직업", "수익", "돈", "재물"]];
+  if (id === "10") return [["오행"], ["조후"], ["건강", "심신", "회복", "생활"]];
+  if (id === "11") return [["대운"], ["현재", "다음", "전환", "흐름", "시기"], ["직업", "관계", "재물", "선택", "과제"]];
+  if (id === "12") return [["세운", "선택 연도"], ["상반기"], ["하반기"], ["월별", "로드맵"]];
+  if (id === "13") return [["최종", "통합"], ["명식", "대운", "세운"], ["관계", "일", "돈", "재물"]];
+  return [["원국"], ["대운", "세운"], ["선택", "기준"]];
+}
+
+function hasLifeBookHighQualityEvidence(category = {}, chapterId = "", categoryTitle = "") {
+  const body = clean(category?.finalText || category?.text || category?.localSummary || "");
+  const evidenceText = safeLifeBookList(category?.evidenceTags).join(" ");
+  const haystack = `${body} ${evidenceText}`;
+  return getLifeBookHighQualityEvidenceGroups(chapterId, categoryTitle)
+    .every((group) => lifeBookTextHasAny(haystack, group));
+}
+
 function sanitizeCategoryText(text = "", chapterId = "", categoryTitle = "", categoryIndex = 0, minLength = LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS) {
   const baseText = dedupeParagraphs(stripForbiddenTokens(text));
   const ensured = ensureProfessionalCategoryLength(baseText, chapterId, categoryTitle, categoryIndex, Math.max(minLength, LIFEBOOK_BLOCKING_MIN_CATEGORY_CHARS));
@@ -2036,15 +2286,19 @@ function sanitizeLifeBookChapters(profile, signals, chapters = [], options = {})
     const blueprint = getLifeBookBlueprints()[chapterIndex] || chapter;
     const categories = (Array.isArray(chapter?.categories) ? chapter.categories : []).map((category, categoryIndex) => {
       const expectedTitle = blueprint?.categories?.[categoryIndex] || category?.title || `카테고리 ${categoryIndex + 1}`;
-      const fallbackText = buildProfessionalLifeBookCategoryText(profile, signals, blueprint, expectedTitle, categoryIndex);
-      const rawText = clean(category?.finalText || category?.text || category?.localSummary || fallbackText);
-      const sanitized = sanitizeCategoryText(rawText || fallbackText, blueprint?.id || chapter?.id || "", expectedTitle, categoryIndex);
+      const premiumDraftText = buildProfessionalLifeBookCategoryText(profile, signals, blueprint, expectedTitle, categoryIndex);
+      const hasOriginalText = Boolean(clean(category?.finalText || category?.text || category?.localSummary));
+      const rawText = clean(category?.finalText || category?.text || category?.localSummary || premiumDraftText);
+      const usedEmergencyRecovery = !rawText;
+      const sanitized = sanitizeCategoryText(rawText || premiumDraftText, blueprint?.id || chapter?.id || "", expectedTitle, categoryIndex);
       return {
         ...category,
         id: String(category?.id || `${categoryIndex + 1}`),
         title: expectedTitle,
         localSummary: sanitized,
         finalText: sanitized,
+        compositionSource: clean(category?.compositionSource) || (hasOriginalText ? "sanitized-premium-category" : "premium-category-draft"),
+        fallbackUsed: Boolean(category?.fallbackUsed) || usedEmergencyRecovery,
         order: categoryIndex + 1,
       };
     });
@@ -2143,6 +2397,7 @@ function evaluateLifeBookQuality(chapters = []) {
   const warningItems = [];
 
   list.forEach((chapter, cidx) => {
+    const blueprint = getLifeBookBlueprints()[cidx] || chapter;
     const chapterChars = chapterTextLength(chapter);
     const pagePlan = getLifeBookPagePlan(chapter?.id || String(cidx + 1).padStart(2, "0"));
     const recommendedMinChars = Math.max(LIFEBOOK_MIN_CHAPTER_CHARS, Number(pagePlan?.minChars || 0));
@@ -2176,15 +2431,31 @@ function evaluateLifeBookQuality(chapters = []) {
         softWarnings.push(code);
         warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "high" });
       }
+      if (Boolean(category?.fallbackUsed) || isLifeBookEmergencyFallbackSource(category?.compositionSource)) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_fallback_source_blocked`;
+        softWarnings.push(code);
+        warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "high" });
+      }
+      const hasRequiredMyeongriEvidence = hasLifeBookHighQualityEvidence(category, blueprint?.id || chapter?.id || "", category?.title || blueprint?.categories?.[kidx] || "");
+      if (safeLifeBookList(category?.evidenceTags).length < LIFEBOOK_HIGH_QUALITY_MIN_EVIDENCE_TAGS && !hasRequiredMyeongriEvidence) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_evidence_tags_missing`;
+        softWarnings.push(code);
+        warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "high" });
+      }
+      if (!hasRequiredMyeongriEvidence) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_required_myeongri_evidence_missing`;
+        softWarnings.push(code);
+        warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "high" });
+      }
 
-      const quality = evaluateCounselingQualityClean(body);
-      if (!quality.hasPracticalAdvice) {
-        const code = `chapter_${cidx + 1}_category_${kidx + 1}_practical_missing`;
+      const quality = evaluateCounselingQualityClean(body, blueprint, category?.title || blueprint?.categories?.[kidx] || "");
+      if (!quality.hasCategoryGrounding) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_category_scope_missing`;
         softWarnings.push(code);
         warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "medium" });
       }
-      if (!quality.hasPracticalAction) {
-        const code = `chapter_${cidx + 1}_category_${kidx + 1}_practical_action_missing`;
+      if (!quality.hasChapterTopicGrounding) {
+        const code = `chapter_${cidx + 1}_category_${kidx + 1}_chapter_topic_missing`;
         softWarnings.push(code);
         warningItems.push({ code, chapterIndex: cidx, categoryIndex: kidx, severity: "medium" });
       }
@@ -2237,7 +2508,7 @@ function evaluateLifeBookQuality(chapters = []) {
   const repetitionLimit = allowedLifeBookRepetitionScore(list);
   if (repScore > repetitionLimit) {
     softWarnings.push("repetition_detected");
-    warningItems.push({ code: "repetition_detected", chapterIndex: -1, categoryIndex: -1, severity: "medium" });
+    warningItems.push({ code: "repetition_detected", chapterIndex: -1, categoryIndex: -1, severity: "high" });
   }
 
   const uniqueWarnings = Array.from(new Set(softWarnings));
@@ -2268,6 +2539,85 @@ function evaluateLifeBookQuality(chapters = []) {
   };
 }
 
+function validateLifeBookCoreMyeongriLogic(chapters = []) {
+  const rules = [
+    { id: "03", groups: [["월령", "월지"], ["조후"], ["통근", "신강", "신약", "뿌리"]] },
+    { id: "06", groups: [["용신"], ["희신"], ["기신"], ["억부", "조후", "통관", "병약", "균형"]] },
+    { id: "07", groups: [["격국"], ["월령", "투간", "통근"], ["사회", "성과", "평판", "역할"]] },
+    { id: "09", groups: [["재성"], ["식상"], ["관성"], ["수익", "직업", "돈", "재물"]] },
+    { id: "11", groups: [["대운"], ["현재"], ["다음", "전환"], ["직업", "관계", "재물", "선택"]] },
+    { id: "12", groups: [["세운", "선택 연도"], ["상반기"], ["하반기"], ["월별", "로드맵", "선택"]] },
+  ];
+  const errors = [];
+  rules.forEach((rule) => {
+    const chapter = pickLifeBookChapterById(chapters, rule.id);
+    const body = getLifeBookChapterFinalMarkdown(chapter || {});
+    const missingGroup = rule.groups.find((group) => !lifeBookTextHasAny(body, group));
+    if (missingGroup) errors.push(`chapter_${rule.id}_core_logic_missing:${missingGroup.join("|")}`);
+  });
+  return errors;
+}
+
+function validateLifeBookHighQualityReadiness(chapters = [], metadata = {}) {
+  const errors = [];
+  const warnings = [];
+  const structure = validateLifeBookStructure(chapters);
+  const quality = evaluateLifeBookQuality(chapters);
+
+  if (!structure.ok) errors.push(...structure.blockingErrors);
+  errors.push(...validateLifeBookCoreMyeongriLogic(chapters));
+
+  const blockingWarnings = (Array.isArray(quality.warningItems) ? quality.warningItems : [])
+    .filter((item) => clean(item?.severity) === "high")
+    .map((item) => clean(item?.code))
+    .filter(Boolean);
+  errors.push(...blockingWarnings);
+
+  if (Number(quality.qualityScore || 0) < LIFEBOOK_HIGH_QUALITY_MIN_SCORE) {
+    errors.push("high_quality_score_below_threshold");
+  }
+
+  const sourceText = [
+    metadata?.manuscriptSource,
+    metadata?.finalManuscriptSource,
+    metadata?.generationMode,
+    metadata?.source,
+  ].map(clean).filter(Boolean).join(" ");
+  if (isLifeBookEmergencyFallbackSource(sourceText)) {
+    errors.push("fallback_manuscript_source_blocked");
+  }
+
+  (Array.isArray(chapters) ? chapters : []).forEach((chapter, chapterIndex) => {
+    if (Boolean(chapter?.fallbackUsed) || isLifeBookEmergencyFallbackSource(chapter?.source) || isLifeBookEmergencyFallbackSource(chapter?.compositionSource)) {
+      errors.push(`chapter_${chapterIndex + 1}_fallback_source_blocked`);
+    }
+    (Array.isArray(chapter?.categories) ? chapter.categories : []).forEach((category, categoryIndex) => {
+      const evidenceTags = safeLifeBookList(category?.evidenceTags);
+      const hasRequiredMyeongriEvidence = hasLifeBookHighQualityEvidence(category, chapter?.id || String(chapterIndex + 1).padStart(2, "0"), category?.title || "");
+      if (evidenceTags.length < LIFEBOOK_HIGH_QUALITY_MIN_EVIDENCE_TAGS && !hasRequiredMyeongriEvidence) {
+        errors.push(`chapter_${chapterIndex + 1}_category_${categoryIndex + 1}_evidence_tags_missing`);
+      }
+      if (Boolean(category?.fallbackUsed) || isLifeBookEmergencyFallbackSource(category?.compositionSource)) {
+        errors.push(`chapter_${chapterIndex + 1}_category_${categoryIndex + 1}_fallback_source_blocked`);
+      }
+      if (!hasRequiredMyeongriEvidence) {
+        errors.push(`chapter_${chapterIndex + 1}_category_${categoryIndex + 1}_required_myeongri_evidence_missing`);
+      }
+    });
+  });
+
+  if (quality.repetition && !quality.repetition.ok) warnings.push("repetition_above_recommended_limit");
+
+  return {
+    ok: errors.length === 0,
+    errors: Array.from(new Set(errors)),
+    warnings: Array.from(new Set(warnings)),
+    structure,
+    quality,
+    qualityScore: quality.qualityScore,
+  };
+}
+
 function repairLifeBookStructure(profile, signals, chapters = []) {
   return sanitizeLifeBookChapters(profile, signals, ensureCompleteLifeBookChapters(profile, signals, chapters));
 }
@@ -2276,6 +2626,7 @@ function repairLifeBookQualityIssues(profile, signals, chapters = [], qualityRep
   const list = sanitizeLifeBookChapters(profile, signals, chapters);
   const items = Array.isArray(qualityReport?.warningItems) ? qualityReport.warningItems : [];
   const targetSet = new Set();
+  const ctx = buildLifeBookReadingContext(profile, signals);
 
   items.forEach((item) => {
     const chapterIndex = Number(item?.chapterIndex);
@@ -2305,6 +2656,9 @@ function repairLifeBookQualityIssues(profile, signals, chapters = [], qualityRep
         title: categoryTitle,
         localSummary: finalText,
         finalText,
+        evidenceTags: buildLifeBookCategoryEvidenceTags(signals, ctx, blueprint?.id || chapter?.id, categoryTitle),
+        compositionSource: "premium-quality-repair",
+        fallbackUsed: false,
         order: categoryIndex + 1,
       };
     });
@@ -2406,26 +2760,22 @@ function evaluateCounselingQuality(text = "") {
   };
 }
 
-function evaluateCounselingQualityClean(text = "") {
+function evaluateCounselingQualityClean(text = "", chapter = {}, categoryTitle = "") {
   const source = stripForbiddenTokens(text);
-  const practicalRe = /(오늘|이번 주|먼저|우선|정리|기록|줄이|지출|수면|식사|경계|루틴|실천|계획|선택|피해야|확인해야|관리해야)/;
-  const practicalActionRe = /(보아야 합니다|정해야 합니다|확인해야 합니다|선택해야 합니다|피해야 합니다|줄여야 합니다|기록해 두는 편이 좋습니다|관리해야 합니다|우선해야 합니다|조절해야 합니다|거리를 두는 편이 좋습니다)/g;
   const warmRe = /(무리하지 않아도 됩니다|안정적으로 사용할 수 있습니다|좋은 결과를 만들 수 있습니다|흐름이 안정됩니다|버틸 수 있습니다|유지됩니다|선명해집니다)/;
   const counselorRe = /(명식|원국|일간|월지|월령|대운|세운|오행|십성|용신|희신|기신|일주|월주|조후|격국|신살|십이운성)/g;
   const secondPersonRe = /(님|이 명식|사용자|삶|관계|일|돈|몸|마음)/g;
   const sentenceCount = source.split(/[.!?\n]+/).map((s) => s.trim()).filter((s) => s.length >= 10).length;
-  const practicalActionHits = (source.match(practicalActionRe) || []).length;
   const counselorHits = (source.match(counselorRe) || []).length;
   const secondPersonHits = (source.match(secondPersonRe) || []).length;
   const tail = source.slice(-260);
+  const categoryFit = evaluateLifeBookCategoryFit(source, chapter, categoryTitle);
   return {
-    hasPracticalAdvice: practicalRe.test(source),
-    hasPracticalAction: practicalActionHits >= 2,
+    ...categoryFit,
     hasCounselorGrounding: counselorHits >= 4,
     hasDirectCounselingTone: secondPersonHits >= 2,
     hasWarmEnding: warmRe.test(tail),
     sentenceCount,
-    practicalActionHits,
     counselorHits,
     secondPersonHits,
   };
@@ -2666,7 +3016,7 @@ function scoreLifeBookStructuredAdvancedReport(value) {
   if (engineVersion === "QUANTUM_MYEONGRI_ENGINE_V2") score += 100;
   if (/QUANTUM MYEONGRI Engine v\.2/i.test(title) || /QUANTUM MYEONGRI Engine v\.2/i.test(markdown)) score += 40;
   if (/운의 환골탈태/.test(markdown)) score += 10;
-  if (/천기적 액션 처방/.test(markdown)) score += 10;
+  if (/현실 선택 기준/.test(markdown)) score += 10;
   if (Array.isArray(value?.actionPrescription) && value.actionPrescription.length) score += 10;
   return score;
 }
@@ -2689,9 +3039,9 @@ function rowsOf(value) {
   return [];
 }
 
-function buildLifeBookMonthlyLuckContract(body = {}, structured = {}) {
+function buildLifeBookMonthlyLuckContract(body = {}, structured = {}, targetYear = resolveLifeBookTargetYear(body)) {
   const fromStructured = rowsOf(structured?.sewoon?.monthlyHighlights);
-  const fromBody = rowsOf(body?.yearlyLuck2026?.monthly || body?.monthlyLuck2026 || body?.wolun2026);
+  const fromBody = rowsOf(body?.annualLuck?.monthly || body?.yearlyLuck2026?.monthly || body?.monthlyLuck2026 || body?.wolun2026);
   const source = fromStructured.length ? fromStructured : fromBody;
   const normalized = source.map((row, index) => ({
     month: Number(row?.month || row?.monthNo || row?.index || index + 1) || index + 1,
@@ -2706,6 +3056,7 @@ function buildLifeBookMonthlyLuckContract(body = {}, structured = {}) {
   if (normalized.length >= 12) return normalized.slice(0, 12);
   const byMonth = new Map(normalized.map((row) => [Number(row.month), row]));
   const annualTheme = firstClean(
+    body?.annualLuck?.elementEffect,
     body?.yearlyLuck2026?.elementEffect,
     structured?.sewoon?.analysis,
     structured?.sewoon?.currentYear?.summary,
@@ -2724,7 +3075,7 @@ function buildLifeBookMonthlyLuckContract(body = {}, structured = {}) {
       daeunSewoonRelation: "",
       actionGuide: `${month}월은 연간 세운 흐름을 기준으로 생활 리듬, 관계, 지출, 회복 루틴을 점검하는 보조 구간입니다.`,
       avoidChoice: "월별 원자료가 없으므로 단정적 사건 예측 대신 연간 흐름 안에서 조심할 선택만 정리합니다.",
-      source: "fallback-from-year2026",
+      source: `fallback-from-year-${targetYear}`,
       isFallback: true,
     };
   });
@@ -2783,7 +3134,7 @@ function buildLifeBookEngineSummary({ birthInput = {}, profile = {}, signals = {
   const support = firstClean(structured?.yongshin?.secondary, signals?.support);
   const caution = firstClean(signals?.caution, compactStringList(structured?.yongshin?.gishin)[0]);
   const currentDaeun = firstClean(localSajuJson?.currentDaeun?.label, structured?.daewoon?.current?.label, structured?.daewoon?.current?.ganji, signals?.currentDaewun);
-  const year2026 = firstObject(body?.yearlyLuck2026, structured?.sewoon, localSajuJson?.yearlyFlow);
+  const annualLuck = firstObject(body?.annualLuck, body?.yearlyLuck2026, localSajuJson?.yearlyFlow, structured?.sewoon);
   return {
     coreIdentity: [firstClean(localSajuJson?.dayMaster, structured?.fourPillars?.day?.stem, signals?.dayMaster), firstClean(localSajuJson?.monthBranch, signals?.monthBranch), firstClean(signals?.topTenGod)].filter(Boolean).join(" · "),
     strongestElements: compactStringList(signals?.dominantElement || elementBalance?.dominant),
@@ -2798,7 +3149,8 @@ function buildLifeBookEngineSummary({ birthInput = {}, profile = {}, signals = {
     wealthPattern: firstClean(signals?.wealthSignal, structured?.lifeDomains?.wealth),
     healthEnergyPattern: firstClean(localSajuJson?.healthSignals?.johuType, structured?.lifeDomains?.healthMind, signals?.johuType),
     currentDaeunTheme: firstClean(currentDaeun, structured?.daewoon?.currentAnalysis),
-    year2026Theme: firstClean(year2026?.theme, year2026?.analysis, year2026?.finalClassification, year2026?.pillar),
+    year2026Theme: firstClean(annualLuck?.theme, annualLuck?.analysis, annualLuck?.finalClassification, annualLuck?.pillar),
+    yearTheme: firstClean(annualLuck?.theme, annualLuck?.analysis, annualLuck?.finalClassification, annualLuck?.pillar),
     cautionPattern: compactStringList(signals?.weakSignals).join(" · ") || firstClean(caution),
     masterAdviceSeed: [useful && `${useful} 기운을 현실 선택의 기준으로 삼기`, currentDaeun && `${currentDaeun} 흐름 안에서 우선순위 재정렬`, "관계·일·돈을 동시에 바꾸지 말고 순차적으로 조정"].filter(Boolean).join(" · "),
   };
@@ -2815,6 +3167,8 @@ function buildLifeBookEngineContract({ birthInput = {}, profile = {}, signals = 
   );
   const pillars = localSajuJson?.pillars || {};
   const summary = buildLifeBookEngineSummary({ birthInput, profile, signals, localSajuJson, structured, body });
+  const targetYear = resolveLifeBookTargetYear(body, signals?.currentYear || localSajuJson?.yearlyFlow?.year);
+  const targetYearPillar = firstClean(signals?.currentYearPillar, body?.annualLuck?.ganji, body?.yearlyLuck2026?.ganji, structured?.sewoon?.currentYear?.ganji, structured?.sewoon?.currentYear?.label, localSajuJson?.yearlyFlow?.pillar, resolveLifeBookYearPillar(targetYear));
   const normalizationWarnings = [
     ...(structured && typeof structured === "object" ? [] : ["structuredAdvancedReport_missing"]),
     ...(localSajuJson?.tenGodsByPillar && Object.keys(localSajuJson.tenGodsByPillar).length >= 3 ? [] : ["tenGodsByPillar_sparse"]),
@@ -2906,22 +3260,24 @@ function buildLifeBookEngineContract({ birthInput = {}, profile = {}, signals = 
       clashAnalysis: structured?.clashAnalysis || {},
     },
     daeun: buildLifeBookDaeunContract(signals, localSajuJson, structured),
+    targetYear,
     year2026: {
-      ganji: firstClean(body?.yearlyLuck2026?.ganji, structured?.sewoon?.currentYear?.ganji, structured?.sewoon?.currentYear?.label, localSajuJson?.yearlyFlow?.pillar),
-      heavenlyStemTenGod: firstClean(body?.yearlyLuck2026?.heavenlyStemTenGod, body?.yearlyLuck2026?.tenGodToDayMaster),
-      earthlyBranchTenGod: firstClean(body?.yearlyLuck2026?.earthlyBranchTenGod),
-      natalInteractions: compactStringList(body?.yearlyLuck2026?.interactionsWithNatal || structured?.sewoon?.analysis),
-      daeunRelation: firstClean(body?.yearlyLuck2026?.daeunRelation, structured?.sewoon?.analysis),
+      year: targetYear,
+      ganji: targetYearPillar,
+      heavenlyStemTenGod: firstClean(body?.annualLuck?.heavenlyStemTenGod, body?.yearlyLuck2026?.heavenlyStemTenGod, body?.yearlyLuck2026?.tenGodToDayMaster),
+      earthlyBranchTenGod: firstClean(body?.annualLuck?.earthlyBranchTenGod, body?.yearlyLuck2026?.earthlyBranchTenGod),
+      natalInteractions: compactStringList(body?.annualLuck?.interactionsWithNatal || body?.yearlyLuck2026?.interactionsWithNatal || structured?.sewoon?.analysis),
+      daeunRelation: firstClean(body?.annualLuck?.daeunRelation, body?.yearlyLuck2026?.daeunRelation, structured?.sewoon?.analysis),
       theme: summary.year2026Theme,
-      career: firstClean(body?.yearlyLuck2026?.career, signals?.careerSignal),
-      wealth: firstClean(body?.yearlyLuck2026?.wealth, signals?.wealthSignal),
-      relationship: firstClean(body?.yearlyLuck2026?.relationship, signals?.relationshipSignal),
-      love: firstClean(body?.yearlyLuck2026?.loveMarriage, signals?.spouseSignal),
-      health: firstClean(body?.yearlyLuck2026?.health, summary.healthEnergyPattern),
-      caution: firstClean(body?.yearlyLuck2026?.caution, summary.cautionPattern),
-      opportunity: firstClean(body?.yearlyLuck2026?.opportunity),
+      career: firstClean(body?.annualLuck?.career, body?.yearlyLuck2026?.career, signals?.careerSignal),
+      wealth: firstClean(body?.annualLuck?.wealth, body?.yearlyLuck2026?.wealth, signals?.wealthSignal),
+      relationship: firstClean(body?.annualLuck?.relationship, body?.yearlyLuck2026?.relationship, signals?.relationshipSignal),
+      love: firstClean(body?.annualLuck?.loveMarriage, body?.annualLuck?.love, body?.yearlyLuck2026?.loveMarriage, signals?.spouseSignal),
+      health: firstClean(body?.annualLuck?.health, body?.yearlyLuck2026?.health, summary.healthEnergyPattern),
+      caution: firstClean(body?.annualLuck?.caution, body?.yearlyLuck2026?.caution, summary.cautionPattern),
+      opportunity: firstClean(body?.annualLuck?.opportunity, body?.yearlyLuck2026?.opportunity),
     },
-    monthlyLuck2026: buildLifeBookMonthlyLuckContract(body, structured),
+    monthlyLuck2026: buildLifeBookMonthlyLuckContract(body, structured, targetYear),
     specialStars: buildLifeBookSpecialStarContract(localSajuJson, signals, structured),
     twelveStages: {
       byPillar: normalizeLifeBookTwelveStagesForAssembly(localSajuJson?.twelveGrowthStages || signals?.twelveGrowthStages),
@@ -2932,7 +3288,8 @@ function buildLifeBookEngineContract({ birthInput = {}, profile = {}, signals = 
 }
 
 function buildLifeBookAssemblyInput(birthInput, profile, signals, localSajuJson, body = {}) {
-  const targetYear = Number(body?.targetYear || LIFEBOOK_LOCAL_TARGET_YEAR) || LIFEBOOK_LOCAL_TARGET_YEAR;
+  const targetYear = resolveLifeBookTargetYear(body);
+  const targetYearPillar = firstClean(signals?.currentYearPillar, body?.annualLuck?.ganji, body?.yearlyLuck2026?.ganji, localSajuJson?.yearlyFlow?.pillar, resolveLifeBookYearPillar(targetYear));
   const pillars = localSajuJson?.pillars || {};
   const tenGodsByPillar = localSajuJson?.tenGodsByPillar || {};
   const elementCounts = localSajuJson?.fiveElements || signals?.elementWeights || {};
@@ -3045,19 +3402,19 @@ function buildLifeBookAssemblyInput(birthInput, profile, signals, localSajuJson,
       currentCycle: currentCycle ? normalizeLifeBookLuckCycleForAssembly(currentCycle) : undefined,
     },
     yearlyLuck2026: {
-      year: LIFEBOOK_LOCAL_TARGET_YEAR,
-      stem: "丙",
-      branch: "午",
-      ganji: "丙午",
-      tenGodToDayMaster: clean(body?.yearlyLuck2026?.tenGodToDayMaster || ""),
-      elementEffect: clean(body?.yearlyLuck2026?.elementEffect || "화 기운의 세운으로 생활 속 속도와 표현성이 커지는 흐름"),
-      interactionsWithNatal: compactStringList(body?.yearlyLuck2026?.interactionsWithNatal),
-      career: clean(body?.yearlyLuck2026?.career || signals?.careerSignal),
-      wealth: clean(body?.yearlyLuck2026?.wealth || signals?.wealthSignal),
-      relationship: clean(body?.yearlyLuck2026?.relationship || signals?.relationshipSignal),
-      loveMarriage: clean(body?.yearlyLuck2026?.loveMarriage || signals?.spouseSignal),
-      health: clean(body?.yearlyLuck2026?.health || `${clean(signals?.johuType || "조후")} 기준의 생활 리듬 관리`),
-      monthly: Array.isArray(body?.yearlyLuck2026?.monthly) ? body.yearlyLuck2026.monthly : [],
+      year: targetYear,
+      stem: clean(body?.annualLuck?.stem || body?.yearlyLuck2026?.stem || targetYearPillar.slice(0, 1)),
+      branch: clean(body?.annualLuck?.branch || body?.yearlyLuck2026?.branch || targetYearPillar.slice(1, 2)),
+      ganji: targetYearPillar,
+      tenGodToDayMaster: clean(body?.annualLuck?.tenGodToDayMaster || body?.yearlyLuck2026?.tenGodToDayMaster || ""),
+      elementEffect: clean(body?.annualLuck?.elementEffect || body?.yearlyLuck2026?.elementEffect || `${targetYear}년 ${targetYearPillar || "세운"} 흐름으로 생활 속 속도와 선택 기준이 조정되는 흐름`),
+      interactionsWithNatal: compactStringList(body?.annualLuck?.interactionsWithNatal || body?.yearlyLuck2026?.interactionsWithNatal),
+      career: clean(body?.annualLuck?.career || body?.yearlyLuck2026?.career || signals?.careerSignal),
+      wealth: clean(body?.annualLuck?.wealth || body?.yearlyLuck2026?.wealth || signals?.wealthSignal),
+      relationship: clean(body?.annualLuck?.relationship || body?.yearlyLuck2026?.relationship || signals?.relationshipSignal),
+      loveMarriage: clean(body?.annualLuck?.loveMarriage || body?.annualLuck?.love || body?.yearlyLuck2026?.loveMarriage || signals?.spouseSignal),
+      health: clean(body?.annualLuck?.health || body?.yearlyLuck2026?.health || `${clean(signals?.johuType || "조후")} 기준의 생활 리듬 관리`),
+      monthly: Array.isArray(body?.annualLuck?.monthly) ? body.annualLuck.monthly : (Array.isArray(body?.yearlyLuck2026?.monthly) ? body.yearlyLuck2026.monthly : []),
     },
     serviceContext: buildLifeBookServiceContext(body),
   };
@@ -3077,7 +3434,7 @@ function buildLifeBookSectionFinalText(section = {}) {
   const actionGuide = Array.isArray(section?.actionGuide) ? section.actionGuide.map((item) => stripForbiddenTokens(item)).filter(Boolean) : [];
   const blocks = [body];
   if (keyPoints.length) blocks.push(`핵심 포인트\n${keyPoints.map((item) => `- ${item}`).join("\n")}`);
-  if (actionGuide.length) blocks.push(`실천 가이드\n${actionGuide.map((item) => `- ${item}`).join("\n")}`);
+  if (actionGuide.length) blocks.push(`상담 포인트\n${actionGuide.map((item) => `- ${item}`).join("\n")}`);
   return dedupeParagraphs(blocks.filter(Boolean).join("\n\n"));
 }
 
@@ -3110,9 +3467,9 @@ function buildLifeBookChapterOpeningText(parsed = {}, chapterSpec = {}) {
   const focus = normalizeLifeBookTextList(chapterSpec?.engineFocus);
   const questionFallback = categories.slice(0, 3).map((category) => `${category}은 삶에서 어떻게 드러나는가`);
   const checklistFallback = [
-    "이 장의 핵심 구조를 내 언어로 한 문장 정리하기",
-    "강점으로 쓸 조건과 흔들리기 쉬운 조건을 분리하기",
-    "다음 한 달 동안 바로 바꿀 생활 선택 한 가지 정하기",
+    "이 장에서 가장 강하게 작동하는 원국 근거 확인",
+    "강점으로 드러나는 조건과 흔들리기 쉬운 조건 분리",
+    "카테고리별 상담 주제가 서로 섞이지 않았는지 확인",
   ];
   const focusSentence = focus.length
     ? `${focus.join(", ")}을 중심으로 이 장의 흐름을 읽습니다.`
@@ -3126,8 +3483,8 @@ function buildLifeBookChapterOpeningText(parsed = {}, chapterSpec = {}) {
     `쉬운 현실 언어 해석\n${stripForbiddenTokens(parsed?.plainLanguageReading || "복잡한 명리의 언어를 일, 관계, 감정, 선택의 습관으로 풀어 읽으면 지금 어떤 리듬을 살리고 무엇을 조절해야 하는지가 선명해집니다.")}`,
     `강점 분석\n${stripForbiddenTokens(parsed?.strengthAnalysis || "강점은 무리하게 밀어붙일 때보다 알맞은 환경과 반복 가능한 습관 속에서 가장 안정적으로 드러납니다.")}`,
     `주의점 분석\n${stripForbiddenTokens(parsed?.cautionAnalysis || "주의점은 피해야 할 운명이 아니라 미리 알아차리고 조절해야 할 반복 신호로 다루는 것이 좋습니다.")}`,
-    `실전 전략\n${stripForbiddenTokens(parsed?.practicalStrategy || "오늘의 선택을 크게 바꾸기보다 말투, 일정, 관계의 거리, 돈의 흐름처럼 매일 반복되는 장면부터 정돈하십시오.")}`,
-    `행동 체크리스트\n${normalizeLifeBookTextList(parsed?.actionChecklist, checklistFallback).map((item) => `- ${item}`).join("\n")}`,
+    `카테고리별 판단 기준\n${stripForbiddenTokens(parsed?.practicalStrategy || "이 장은 각 카테고리의 제목이 가리키는 삶의 영역을 기준으로 원국, 대운, 세운의 근거를 분리해 읽어야 합니다.")}`,
+    `상담 확인 질문\n${normalizeLifeBookTextList(parsed?.actionChecklist, checklistFallback).map((item) => `- ${item}`).join("\n")}`,
     `장 요약 박스\n${stripForbiddenTokens(parsed?.summaryBox || parsed?.chapterSummary || focusSentence)}`,
     requiredNotice ? `필수 안내문\n${requiredNotice}` : "",
     `다음 장으로 연결되는 문장\n${stripForbiddenTokens(parsed?.nextChapterBridge || "이 흐름을 바탕으로 다음 장에서는 더 깊은 기질과 운용 전략을 살펴봅니다.")}`,
@@ -3156,10 +3513,10 @@ function summarizeLifeBookChapter(chapter = {}) {
 function buildLifeBookStyleGuide(chapterSpec = {}) {
   return {
     language: "ko",
-    tone: "품격 있는 전문가 상담문과 실전 전략서의 결합",
+    tone: "품격 있는 전문가 상담문과 카테고리별 정밀 해석의 결합",
     audience: "유료 프리미엄 PDF를 읽는 일반 사용자",
-    sentenceRule: "과장된 예언보다 관찰 가능한 패턴과 선택 전략으로 설명",
-    structureRule: "요약, 상담형 본문, 표처럼 읽히는 정리, 체크리스트, 실전 조언을 자연스럽게 포함",
+    sentenceRule: "과장된 예언보다 관찰 가능한 패턴과 카테고리별 판단 기준으로 설명",
+    structureRule: "요약, 상담형 본문, 표처럼 읽히는 정리, 카테고리별 근거, 상담 확인 질문을 자연스럽게 포함",
     safetyRule: "공포 조장, 절대 단정, 의학적 진단, 투자 수익 보장, 내부 계산 근거성 용어 노출 금지",
     chapterRequirements: Array.isArray(chapterSpec?.writingRequirements) ? chapterSpec.writingRequirements : [],
     requiredNotice: clean(chapterSpec?.requiredNotice),
@@ -3167,7 +3524,7 @@ function buildLifeBookStyleGuide(chapterSpec = {}) {
 }
 
 function buildLifeBookSectionRequiredEngineFields(chapterSpec = {}, sectionTitle = "") {
-  const common = ["원국 핵심", "일간", "용신", "현재 대운", "2026년 핵심 요약"];
+  const common = ["원국 핵심", "일간", "용신", "현재 대운", "선택 연도 핵심 요약"];
   const section = clean(sectionTitle);
   const fields = [
     ...common,
@@ -3176,15 +3533,15 @@ function buildLifeBookSectionRequiredEngineFields(chapterSpec = {}, sectionTitle
   const rules = [
     { re: /년주|월주|일주|시주|팔자|원국|천간|지지|지장간|공망|도충|합충|형파해|특수/, fields: ["원국", "천간/지지/지장간", "합충형파해", "도충/특수 구조"] },
     { re: /일간|월지|월령|신강|신약|중화|조후|통근|생조|극설|계절|온도|습|건조/, fields: ["일간 강약", "월령", "조후", "통근", "생조/극설", "오행 온도감"] },
-    { re: /용신|희신|기신|구신|한신|필살기/, fields: ["용신/희신/기신/구신/한신", "용신 선정 이유", "오행별 현실 전략"] },
+    { re: /용신|희신|기신|구신|한신|균형|선택 기준/, fields: ["용신/희신/기신/구신/한신", "용신 선정 이유", "오행별 현실 전략"] },
     { re: /대운|10년|초년|청년|중년|장년|말년/, fields: ["대운 배열", "현재 대운", "다음 대운", "대운과 용신 관계"] },
     { re: /격국|성격|파격|사회|조직|브랜드|명예|성공/, fields: ["월지 중심 격국", "십성 중심 구조", "성격/파격 여부", "사회적 역할 요약"] },
     { re: /관계|인연|호감|오해|갈등|협업|귀인|계약|배우자궁|대인/, fields: ["십성 분포", "충/형/원진/귀문", "귀인성", "배우자궁과 대인관계 패턴"] },
     { re: /연애|사랑|상대|결혼|배우자|인연/, fields: ["일지", "배우자궁", "남녀별 배우자성", "재성/관성 구조", "대운·세운상 연애 자극"] },
-    { re: /돈|재물|직업|사업|프리랜스|자산|수익|커리어/, fields: ["재성", "식상", "관성", "인성", "격국", "용신", "대운상 재물 흐름", "2026년 재물 흐름"] },
+    { re: /돈|재물|직업|사업|프리랜스|자산|수익|커리어/, fields: ["재성", "식상", "관성", "인성", "격국", "용신", "대운상 재물 흐름", "선택 연도 재물 흐름"] },
     { re: /건강|심신|오행|컨디션|스트레스|회복|수면|운동|식습관|감정|번아웃/, fields: ["오행 과다/부족", "조후", "화기/수기/습도/건조도", "용신 오행", "기신 오행"] },
-    { re: /신살|도화|홍염|역마|화개|귀문|원진|12운성|운성|퀀텀|코드/, fields: ["신살 목록", "신살 위치", "12운성 위치", "반복 패턴", "도충/합충형파해와 신살 결합"] },
-    { re: /2026|병오|월별|월운|세운|로드맵|1월|12월/, fields: ["2026 병오년 세운", "2026 월운 12개월", "대운과 세운 관계", "원국과 세운 합충형파해", "용신/기신 작용"] },
+    { re: /신살|도화|홍염|역마|화개|귀문|원진|12운성|운성|반복 신호|숨은 작용/, fields: ["신살 목록", "신살 위치", "12운성 위치", "반복 패턴", "도충/합충형파해와 신살 결합"] },
+    { re: /선택\s*연도|월별|월운|세운|로드맵|1월|12월/, fields: ["선택 연도 세운", "선택 연도 월운 12개월", "대운과 세운 관계", "원국과 세운 합충형파해", "용신/기신 작용"] },
   ];
   rules.forEach((rule) => {
     if (rule.re.test(section)) fields.push(...rule.fields);
@@ -3376,7 +3733,7 @@ function buildLifeBookDeterministicFinalSummary(chapters = []) {
 function buildLifeBookDeterministicFinalManuscript(profile = {}, chapters = []) {
   const safeName = stripForbiddenTokens(profile?.name || "사용자");
   const cover = [
-    "# 인생의 책 — 나의 운명 사용 설명서",
+    "# 인생의 책 — 나의 운명 사용 기준",
     `${safeName}님을 위한 프리미엄 사주 상담 원고`,
     "이 원고는 사주 원국과 운의 흐름을 삶의 선택 언어로 정리한 완성형 상담문입니다.",
   ].join("\n\n");
@@ -3404,6 +3761,7 @@ function validateLifeBookFinalManuscriptMarkdown(markdown = "", chapters = []) {
   const blueprints = getLifeBookBlueprints();
   if (!body.includes("인생의 책")) errors.push("final_markdown_title_missing");
   if (!/목차/.test(body)) errors.push("final_markdown_toc_missing");
+  if (!/최종 명리 판단 축/.test(body)) errors.push("final_markdown_master_judgment_missing");
   if (!/전체 핵심 요약/.test(body)) errors.push("final_markdown_summary_missing");
   const pagebreakCount = (body.match(/<!--\s*pagebreak\s*-->/gi) || []).length;
   if (pagebreakCount < blueprints.length) errors.push("final_markdown_pagebreak_missing");
@@ -3446,17 +3804,94 @@ function buildLifeBookClosingPage() {
   return [
     "## 마지막 페이지 — 전체 요약과 재열람 안내",
     "### 전체 요약",
-    "인생의 책은 원국, 오행, 십성, 용신, 대운, 세운을 하나의 흐름으로 엮어 지금의 선택 기준을 정리합니다. 좋은 흐름은 실행으로 살리고, 부담스러운 흐름은 관리 가능한 생활 리듬으로 낮추는 것이 핵심입니다.",
-    "### 30일 실천 루틴",
-    "| 기간 | 실천 주제 | 점검 질문 |",
+    "인생의 책은 원국, 오행, 십성, 용신, 대운, 세운을 하나의 흐름으로 엮어 지금의 선택 기준을 정리합니다. 좋은 흐름은 자신의 영역에 맞게 살리고, 부담스러운 흐름은 어느 카테고리에서 반복되는지 알아차리는 것이 핵심입니다.",
+    "### 카테고리별 재열람 기준",
+    "| 궁금한 영역 | 다시 볼 장 | 확인할 상담 기준 |",
     "| --- | --- | --- |",
-    "| 1일차-7일차 | 수면, 식사, 지출, 말투 중 하나를 기록합니다. | 내가 반복해서 흔들리는 장면은 무엇인가? |",
-    "| 8일차-14일차 | 일과 관계에서 줄일 역할 하나를 정합니다. | 지금 내 책임이 아닌 일까지 떠안고 있지 않은가? |",
-    "| 15일차-21일차 | 강점이 결과로 보이는 작은 산출물을 만듭니다. | 내 기운이 가장 자연스럽게 쓰이는 무대는 어디인가? |",
-    "| 22일차-30일차 | 다음 90일 기준을 한 문장으로 정리합니다. | 유지할 것, 줄일 것, 새로 시작할 것은 무엇인가? |",
+    "| 자기 본질 | 원국·일간·월지 장 | 어떤 기둥이 삶의 중심을 잡고 있는지 확인합니다. |",
+    "| 관계와 사랑 | 관계·연애 장 | 배우자성, 배우자궁, 합충형해가 만드는 반복 패턴을 확인합니다. |",
+    "| 일과 돈 | 격국·직업·재물 장 | 재성, 관성, 식상이 어떤 방식으로 성과와 수입을 만드는지 확인합니다. |",
+    "| 시기 판단 | 대운·세운 장 | 현재 대운과 가까운 세운이 같은 방향을 가리키는지 확인합니다. |",
+    "| 최종 판단 | 마스터플랜 장 | 관계, 일, 재물 중 어느 기준을 우선해야 하는지 확인합니다. |",
     "### 재열람 안내",
-    "이 PDF는 한 번 읽고 끝내는 문서가 아니라, 대운과 세운의 흐름을 따라 다시 펼쳐 보는 개인용 운명 지도입니다. 큰 선택을 앞두었을 때는 목차에서 해당 장을 다시 확인하고, 마지막 페이지의 30일 루틴으로 현실의 속도를 조절하십시오.",
+    "이 PDF는 한 번 읽고 끝내는 문서가 아니라, 대운과 세운의 흐름을 따라 다시 펼쳐 보는 개인용 운명 지도입니다. 큰 선택을 앞두었을 때는 목차에서 해당 카테고리를 다시 확인하고, 같은 주제가 여러 장에서 어떻게 반복되는지 함께 보십시오.",
   ].join("\n\n");
+}
+
+function pickLifeBookChapterById(chapters = [], chapterId = "") {
+  const id = String(chapterId || "").padStart(2, "0");
+  return (Array.isArray(chapters) ? chapters : []).find((chapter) => String(chapter?.id || "").padStart(2, "0") === id) || null;
+}
+
+function buildLifeBookSentenceSnippet(value = "", fallback = "") {
+  const source = stripForbiddenTokens(value || fallback || "")
+    .replace(/#{1,6}\s*/g, "")
+    .replace(/\|/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!source) return stripForbiddenTokens(fallback || "이 장의 핵심 판단을 원국과 운의 흐름으로 다시 확인합니다.");
+  const sentence = source.split(/(?<=[.!?])\s+/).find((item) => clean(item).length >= 24) || source;
+  return stripForbiddenTokens(sentence).slice(0, 170).trim();
+}
+
+function findLifeBookCategorySnippet(chapter = {}, keywords = [], fallback = "") {
+  const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+  const category = categories.find((item) => lifeBookCategoryIncludes(item?.title || "", keywords)) || categories[0] || null;
+  return buildLifeBookSentenceSnippet(category?.finalText || category?.localSummary || category?.text || "", fallback);
+}
+
+function buildLifeBookChapterSummaryCardFromCategories(chapter = {}, blueprint = {}) {
+  const categories = (Array.isArray(chapter?.categories) ? chapter.categories : [])
+    .filter((category) => clean(category?.title) && clean(category?.finalText || category?.localSummary || category?.text));
+  const selectedIndexes = Array.from(new Set([
+    0,
+    Math.max(0, Math.floor((categories.length - 1) / 2)),
+    Math.max(0, categories.length - 1),
+  ])).filter((index) => categories[index]);
+  const evidenceTags = Array.from(new Set(categories.flatMap((category) => safeLifeBookList(category?.evidenceTags)).map(clean).filter(Boolean))).slice(0, 6);
+  const rows = selectedIndexes.map((index) => {
+    const category = categories[index];
+    return `- ${stripForbiddenTokens(category.title)}: ${buildLifeBookSentenceSnippet(category.finalText || category.localSummary || category.text)}`;
+  });
+  return [
+    "### 핵심 요약 카드",
+    evidenceTags.length ? `- 핵심 근거: ${evidenceTags.join(" · ")}` : `- 핵심 근거: ${stripForbiddenTokens(blueprint?.title || chapter?.title || "이 장의 명리 판단")}`,
+    ...rows,
+    `- 상담 기준: 이 장의 결론은 단정이 아니라 ${stripForbiddenTokens(blueprint?.title || chapter?.title || "해당 장")}에서 반복되는 선택 기준을 붙잡는 데 있습니다.`,
+  ].filter(Boolean).join("\n");
+}
+
+function buildLifeBookMasterJudgmentContractSection(chapters = []) {
+  const chapter02 = pickLifeBookChapterById(chapters, "02");
+  const chapter03 = pickLifeBookChapterById(chapters, "03");
+  const chapter06 = pickLifeBookChapterById(chapters, "06");
+  const chapter07 = pickLifeBookChapterById(chapters, "07");
+  const chapter11 = pickLifeBookChapterById(chapters, "11");
+  const chapter12 = pickLifeBookChapterById(chapters, "12");
+  return [
+    "## 최종 명리 판단 축",
+    `- 원국의 중심: ${findLifeBookCategorySnippet(chapter02, ["원국", "지장간", "반복"], "네 기둥과 지장간의 반복을 먼저 확인합니다.")}`,
+    `- 월령과 조후: ${findLifeBookCategorySnippet(chapter03, ["월지", "월령", "조후", "통근"], "일간이 월령을 만나 어떤 힘으로 버티는지 확인합니다.")}`,
+    `- 용신의 방향: ${findLifeBookCategorySnippet(chapter06, ["용신", "희신", "기신"], "살리는 기운과 소모되는 기운의 방향을 나누어 봅니다.")}`,
+    `- 격국과 쓰임: ${findLifeBookCategorySnippet(chapter07, ["격국", "사회적", "성과", "평판"], "격국이 현실에서 어떤 무대와 책임으로 살아나는지 확인합니다.")}`,
+    `- 대운과 세운: ${findLifeBookCategorySnippet(chapter11, ["현재", "다음", "대운"], "현재 대운과 다음 대운의 과제를 나누어 봅니다.")}`,
+    `- 가까운 선택: ${findLifeBookCategorySnippet(chapter12, ["선택 연도", "세운", "월별"], "선택 연도 세운이 현재 대운 위에서 어디를 자극하는지 확인합니다.")}`,
+  ].join("\n\n");
+}
+
+function buildLifeBookYearlyFlowFinalSection(chapters = []) {
+  const chapter12 = pickLifeBookChapterById(chapters, "12");
+  const contact = findLifeBookCategorySnippet(chapter12, ["접점", "현재 대운"], "선택 연도는 현재 대운의 큰 과제 위에서 가까운 선택을 자극합니다.");
+  const firstHalf = findLifeBookCategorySnippet(chapter12, ["상반기"], contact);
+  const secondHalf = findLifeBookCategorySnippet(chapter12, ["하반기"], contact);
+  const monthly = findLifeBookCategorySnippet(chapter12, ["월별"], contact);
+  return [
+    "### 세운·월운 선택 기준",
+    `- 1월~3월: ${firstHalf}`,
+    `- 4월~6월: ${firstHalf}`,
+    `- 7월~9월: ${secondHalf}`,
+    `- 10월~12월: ${monthly || secondHalf}`,
+  ].join("\n");
 }
 
 function buildLifeBookPhase6DeterministicFinalManuscript(profile = {}, chapters = []) {
@@ -3471,17 +3906,19 @@ function buildLifeBookPhase6DeterministicFinalManuscript(profile = {}, chapters 
     "달빛처럼 조용히 비추는 사주 구조와 운의 흐름을 바탕으로, 지금의 삶을 더 선명하게 선택하기 위한 프리미엄 상담 리포트입니다.",
   ].join("\n\n");
   const toc = ["## 목차", buildLifeBookFullTableOfContentsMarkdown()].join("\n\n");
+  const masterJudgmentContract = buildLifeBookMasterJudgmentContractSection(chapters);
   const chapterBlocks = getLifeBookBlueprints().map((blueprint, index) => {
     const chapter = Array.isArray(chapters) ? chapters[index] : null;
     const body = getLifeBookChapterFinalMarkdown(chapter || blueprint);
     const chapterBody = /핵심 요약 카드|요약\s*카드/.test(body)
       ? body
-      : `${body}\n\n### 핵심 요약 카드\n\n이 장은 ${stripForbiddenTokens(blueprint.title)}의 핵심 흐름을 실제 선택 기준으로 정리합니다. 강한 기운은 실행 기준으로, 부족한 기운은 관리 기준으로 삼을 때 삶의 방향이 선명해집니다.`;
+      : `${body}\n\n${buildLifeBookChapterSummaryCardFromCategories(chapter || {}, blueprint)}`;
     return `<!-- pagebreak -->\n\n## ${blueprint.roman}. ${stripForbiddenTokens(blueprint.title)}\n\n### 챕터 표지\n\n“${stripForbiddenTokens(blueprint.subtitle || "운명은 단정된 결론이 아니라, 더 나은 선택을 위한 조용한 지도입니다.")}”\n\n${chapterBody}`;
   });
   return normalizeLifeBookFinalManuscriptMarkdown([
     cover,
     toc,
+    masterJudgmentContract,
     ...chapterBlocks,
     "<!-- pagebreak -->",
     buildLifeBookPhase6DeterministicFinalSummary(chapters),
@@ -3497,13 +3934,15 @@ function validateLifeBookPhase6FinalManuscriptMarkdown(markdown = "", chapters =
   if (!body.includes("인생의 책")) errors.push("final_markdown_title_missing");
   if (!/목차/.test(body)) errors.push("final_markdown_toc_missing");
   if (!/전체 핵심 요약/.test(body)) errors.push("final_markdown_summary_missing");
-  LIFEBOOK_PHASE6_CHAPTER_STRUCTURE.forEach((section) => {
-    if (!body.includes(section)) errors.push(`phase6_section_missing:${section}`);
-  });
   const pagebreakCount = (body.match(/<!--\s*pagebreak\s*-->/gi) || []).length;
   if (pagebreakCount < blueprints.length) errors.push("final_markdown_pagebreak_missing");
   blueprints.forEach((chapter) => {
     if (!body.includes(stripForbiddenTokens(chapter.title))) errors.push(`final_markdown_chapter_${chapter.id}_missing`);
+    const expectedCategories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+    const categoryHits = expectedCategories.filter((title) => body.includes(stripForbiddenTokens(title))).length;
+    if (expectedCategories.length && categoryHits < Math.min(3, expectedCategories.length)) {
+      errors.push(`phase6_category_coverage:${chapter.id}`);
+    }
   });
   const sourceLength = totalManuscriptLength(chapters);
   const minimumChars = Math.max(LIFEBOOK_BLOCKING_MIN_TOTAL_CHARS, Math.floor(sourceLength * 0.72));
@@ -3530,11 +3969,9 @@ function patchLifeBookPhase6FinalQualityRequirements(markdown = "", chapters = [
 이 내용은 사주 오행을 기반으로 한 자기관리 참고 자료이며, 의학적 진단이나 치료를 대신하지 않습니다. 불편이 지속되면 전문 의료 상담을 우선하십시오.`);
   }
   if (!/1월/.test(body) || !/12월/.test(body)) {
-    const monthRows = Array.from({ length: 12 }, (_, index) => `- ${index + 1}월: 세운과 월운의 흐름을 기준으로 일, 재물, 관계, 건강의 우선순위를 점검하십시오.`).join("\n");
     body = normalizeLifeBookFinalManuscriptMarkdown(`${body}
 
-### 세운·월운 12개월 체크
-${monthRows}`);
+${buildLifeBookYearlyFlowFinalSection(chapters)}`);
   }
   const validation = validateLifeBookPhase6FinalManuscriptMarkdown(body, chapters);
   return {
@@ -3569,6 +4006,7 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, assembly
   const chapters = [];
   const summaries = [];
   let deterministicReinforcedCount = 0;
+  let premiumAssembledChapterCount = 0;
   const chapterPlans = buildLifeBookChapterPlans();
   const normalizedData = assemblyInput?.lifeBookMasterJson?.normalizedData || assemblyInput?.normalizedData || null;
   const localChapters = buildLifeBookChapters(profile, signals, normalizedData);
@@ -3610,10 +4048,11 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, assembly
       chapter: {
         ...localChapter,
         chapterPlan,
-        source: "assembled-complete",
+        source: "premium-assembled",
       },
       summary: summarizeLifeBookChapter(localChapter),
-      deterministicReinforced: true,
+      deterministicReinforced: false,
+      premiumAssembled: true,
     };
     chapters.push(generated.chapter);
     summaries.push({
@@ -3622,6 +4061,7 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, assembly
       summary: generated.summary,
     });
     if (generated.deterministicReinforced) deterministicReinforcedCount += 1;
+    if (generated.premiumAssembled) premiumAssembledChapterCount += 1;
     if (typeof onProgress === "function") {
       onProgress({
         stateKey: LIFEBOOK_WRITING_STATE,
@@ -3634,12 +4074,31 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, assembly
       requestId,
       chapterNumber: chapterSpec.roman,
       deterministicReinforced: generated.deterministicReinforced,
+      premiumAssembled: generated.premiumAssembled,
       cacheHit: Boolean(generated.cacheHit),
       charLength: chapterTextLength(generated.chapter),
     });
   }
 
   const sanitized = sanitizeLifeBookChapters(profile, signals, chapters, { authoringMode: LIFEBOOK_AUTHORING_MODE });
+  const preFinalHighQualityGate = validateLifeBookHighQualityReadiness(sanitized, {
+    manuscriptSource: "premium-local-chapter-assembly",
+    generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
+  });
+  logLifeBookServer("LifeBookHighQualityPreFinalGate", {
+    requestId,
+    ok: preFinalHighQualityGate.ok,
+    errors: preFinalHighQualityGate.errors,
+    warnings: preFinalHighQualityGate.warnings,
+    qualityScore: preFinalHighQualityGate.qualityScore,
+  });
+  if (!preFinalHighQualityGate.ok) {
+    throw Object.assign(new Error("인생의 책 고품질 원고 기준을 충족하지 못했습니다. fallback 없이 원고를 보강한 뒤 다시 생성해 주세요."), {
+      code: "LIFEBOOK_HIGH_QUALITY_GATE_FAILED",
+      status: 422,
+      details: preFinalHighQualityGate,
+    });
+  }
   const finalManuscriptMarkdown = buildLifeBookPhase6DeterministicFinalManuscript(profile, sanitized);
   const finalManuscriptValidation = validateLifeBookPhase6FinalManuscriptMarkdown(finalManuscriptMarkdown, sanitized);
   const finalQualityReview = patchLifeBookPhase6FinalQualityRequirements(finalManuscriptMarkdown, sanitized);
@@ -3660,14 +4119,14 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, assembly
     summaries,
     finalManuscriptMarkdown: finalQualityReview.finalManuscriptMarkdown,
     finalManuscriptSource: [
-      "deterministic-full-manuscript",
-      "deterministic-final-pdf-review",
+      "premium-full-manuscript",
+      "premium-final-pdf-review",
     ].filter(Boolean).join("+"),
     finalManuscriptErrors: [
       ...(Array.isArray(finalManuscriptValidation.errors) ? finalManuscriptValidation.errors : []),
       ...(Array.isArray(finalQualityReview.validation?.errors) ? finalQualityReview.validation.errors : []),
     ],
-    finalQualityReviewSource: "deterministic-final-pdf-review",
+    finalQualityReviewSource: "premium-final-pdf-review",
     finalQualityReviewPassed,
     finalQualityReviewErrors: finalQualityReviewPassed ? [] : (finalQualityReview.validation?.errors || []),
     finalQualityReviewWarnings: Array.from(new Set([
@@ -3675,6 +4134,8 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, assembly
       ...(Array.isArray(finalQualityReview.validation?.errors) ? finalQualityReview.validation.errors.map((error) => `assembled_review_issue:${error}`) : []),
     ])),
     deterministicReinforcedCount,
+    premiumAssembledChapterCount,
+    highQualityGate: preFinalHighQualityGate,
     authoringMode: LIFEBOOK_AUTHORING_MODE,
     templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
     generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
@@ -3682,9 +4143,9 @@ async function assembleLifeBookChaptersLocally(env, { profile, signals, assembly
     localAssembly,
     manuscriptSource: [
       LIFE_BOOK_PDF_CONFIG.templateVersion,
-      "local-chapter-assembly",
-      "deterministic-full-manuscript",
-      "deterministic-final-pdf-review",
+      "premium-local-chapter-assembly",
+      "premium-full-manuscript",
+      "premium-final-pdf-review",
     ].filter(Boolean).join("+"),
   };
 }
@@ -3694,7 +4155,8 @@ function generateLifeBookPdfFromChapters(profile, signals, chapters, generatedAt
 }
 
 function calculateSajuLocally({ birthInput = {}, profile = {}, body = {}, sessionId = "" } = {}) {
-  const signals = deriveLocalSignals(profile, body?.sajuData || "", body?.analysisSignals || {});
+  const targetYear = resolveLifeBookTargetYear(body);
+  const signals = deriveLocalSignals(profile, body?.sajuData || "", body?.analysisSignals || {}, targetYear);
   let localSajuJson = buildLifeBookLocalSajuJson(birthInput, profile, signals, []);
   let localSajuValidation = validateLifeBookLocalSajuJson(localSajuJson);
   if (!localSajuValidation.ok || (Array.isArray(localSajuValidation.warnings) && localSajuValidation.warnings.length)) {
@@ -3850,7 +4312,7 @@ function makeLifeBookBlock(id, tags, weight, title, summary, body, advice = [], 
 }
 
 const LIFEBOOK_DAY_MASTER_BLOCKS = Object.freeze({
-  gap: makeLifeBookBlock("day-master-gap", ["dayMaster", "gap", "wood", "yang"], 10, "갑목 일간의 삶의 축", "갑목은 큰 나무처럼 방향성과 성장감을 통해 자기 길을 세우는 힘입니다.", ["갑목은 위로 뻗는 나무처럼 삶의 기준을 세우고 넓은 판에서 성장할 때 힘이 살아납니다.", "중요한 것은 명분, 장기 목표, 스스로 선택했다는 확신입니다.", "억지로 꺾이는 환경에서는 답답함이 커지고 넓은 역할을 맡으면 빠르게 성장합니다."], ["장기 목표를 시각화하고 매년 하나의 큰 줄기를 정해 밀고 나가는 방식이 좋습니다."], ["자존심이 강해질수록 유연성이 떨어질 수 있으므로 타인의 조언을 완전히 배척하지 않는 것이 중요합니다."], ["올해 반드시 키워야 할 한 가지 능력 정하기", "체면 때문에 미루는 선택 정리하기"]),
+  gap: makeLifeBookBlock("day-master-gap", ["dayMaster", "gap", "wood", "yang"], 10, "갑목 일간의 삶의 축", "갑목은 큰 나무처럼 방향성과 성장감을 통해 자기 길을 세우는 힘입니다.", ["갑목은 위로 뻗는 나무처럼 삶의 기준을 세우고 넓은 판에서 성장할 때 힘이 살아납니다.", "중요한 것은 명분, 장기 목표, 스스로 선택했다는 확신입니다.", "억지로 꺾이는 환경에서는 답답함이 커지고 넓은 역할을 맡으면 빠르게 성장합니다."], ["장기 목표를 시각화하고 매년 하나의 큰 줄기를 정해 밀고 나가는 방식이 좋습니다."], ["자존심이 강해질수록 유연성이 떨어질 수 있으므로 타인의 조언을 완전히 배척하지 않는 것이 중요합니다."], ["선택 연도에 반드시 키워야 할 한 가지 능력 정하기", "체면 때문에 미루는 선택 정리하기"]),
   eul: makeLifeBookBlock("day-master-eul", ["dayMaster", "eul", "wood", "yin"], 10, "을목 일간의 섬세한 확장력", "을목은 풀과 넝쿨처럼 환경을 읽고 부드럽게 뻗어가는 힘입니다.", ["을목은 단번에 밀어붙이기보다 관계와 분위기를 읽으며 길을 찾아갑니다.", "섬세함, 적응력, 꾸준한 개선이 삶의 중요한 무기입니다.", "작은 기회도 오래 돌보면 큰 결과로 이어질 수 있습니다."], ["작게 시작해 반복적으로 개선하는 루틴이 좋습니다."], ["주변 분위기에 너무 맞추면 자신의 중심이 흐려질 수 있습니다."], ["내가 지켜야 할 기준 한 문장으로 정리하기", "작은 성과를 주간 단위로 기록하기"]),
   byeong: makeLifeBookBlock("day-master-byeong", ["dayMaster", "byeong", "fire", "yang"], 10, "병화 일간의 빛과 존재감", "병화는 태양처럼 드러내고 밝히는 힘으로 사람과 일을 움직입니다.", ["병화는 숨기기보다 표현할 때 힘이 살아납니다.", "명확한 비전, 인정, 따뜻한 리더십이 삶의 중요한 동력입니다.", "주변을 밝히는 만큼 스스로의 열도 잘 관리해야 합니다."], ["사람 앞에서 설명하고 공유하는 역할을 적극적으로 선택하면 좋습니다."], ["과열되면 성급한 판단과 감정 소모가 커질 수 있습니다."], ["이번 달 공개적으로 완성할 결과물 정하기", "휴식 시간을 일정에 먼저 넣기"]),
   jeong: makeLifeBookBlock("day-master-jeong", ["dayMaster", "jeong", "fire", "yin"], 10, "정화 일간의 집중된 온기", "정화는 촛불처럼 필요한 곳을 깊고 오래 비추는 힘입니다.", ["정화는 큰 소리보다 깊은 몰입과 정성에서 힘이 나옵니다.", "사람의 마음을 살피고 작은 차이를 읽는 감각이 좋습니다.", "자기 안의 불씨를 꺼뜨리지 않는 환경 선택이 중요합니다."], ["작고 깊은 전문성을 쌓아 신뢰를 만드는 방식이 좋습니다."], ["감정 소모가 누적되면 판단력이 흐려질 수 있습니다."], ["소모적인 관계 하나 줄이기", "내 전문성을 보여줄 작은 결과물 만들기"]),
@@ -3882,7 +4344,7 @@ const LIFEBOOK_USEFUL_GOD_BLOCKS = Object.freeze(Object.fromEntries(["wood", "fi
 const LIFEBOOK_FLOW_BLOCKS = Object.freeze({
   daewoonCurrent: makeLifeBookBlock("flow-daewoon-current", ["luckCycle", "daewoon", "current"], 8, "현재 대운의 과제", "현재 대운은 지금의 삶에서 반복적으로 다뤄야 할 큰 과제를 보여줍니다.", ["대운은 단기 사건보다 긴 주기의 무대입니다.", "지금 반복되는 일은 우연보다 구조적 과제일 가능성이 큽니다.", "무엇을 키우고 무엇을 줄일지 정하면 흐름이 안정됩니다."], ["대운의 주제를 한 문장으로 정리하십시오."], ["대운을 단정적 예언으로 받아들이지 마십시오."], ["반복되는 과제 쓰기", "10년 단위 목표 다시 보기"]),
   daewoonNext: makeLifeBookBlock("flow-daewoon-next", ["luckCycle", "daewoon", "next"], 7, "다음 대운의 준비", "다음 대운은 지금부터 정리하고 준비해야 할 변화의 방향입니다.", ["다음 흐름은 갑자기 오지 않고 현재의 선택에서 준비됩니다.", "지금 정리하는 습관과 관계가 다음 단계의 기반이 됩니다.", "큰 전환일수록 미리 작게 연습하는 편이 좋습니다."], ["다음 단계에 필요한 역량을 미리 준비하십시오."], ["아직 오지 않은 흐름 때문에 현재를 소홀히 하지 마십시오."], ["다음 3년 준비 목록 만들기", "불필요한 책임 정리하기"]),
-  annual: makeLifeBookBlock("flow-annual", ["luckCycle", "annual"], 7, "세운의 실행 신호", "세운은 올해 실제로 조정해야 할 속도와 우선순위를 보여줍니다.", ["세운은 대운보다 가까운 실행 리듬입니다.", "올해 강해지는 주제는 일상 선택에서 먼저 드러납니다.", "월별로 속도를 나누면 무리한 결정이 줄어듭니다."], ["올해의 목표를 분기별로 나누십시오."], ["한 해의 신호를 과장해 전부 바꾸려 하지 마십시오."], ["분기별 목표 쓰기", "월별 회고 날짜 정하기"]),
+  annual: makeLifeBookBlock("flow-annual", ["luckCycle", "annual"], 7, "세운의 실행 신호", "세운은 선택 연도에 실제로 조정해야 할 속도와 우선순위를 보여줍니다.", ["세운은 대운보다 가까운 실행 리듬입니다.", "선택 연도에 강해지는 주제는 일상 선택에서 먼저 드러납니다.", "월별로 속도를 나누면 무리한 결정이 줄어듭니다."], ["선택 연도의 목표를 분기별로 나누십시오."], ["한 해의 신호를 과장해 전부 바꾸려 하지 마십시오."], ["분기별 목표 쓰기", "월별 회고 날짜 정하기"]),
 });
 
 const LIFEBOOK_DOMAIN_BLOCKS = Object.freeze({
@@ -3988,8 +4450,7 @@ function selectLifeBookDomainBlocks(chapter = {}, categoryTitle = "") {
   if (chapterId === "10" || title.includes("건강") || title.includes("회복") || title.includes("생활 리듬")) keys.push("health");
   if (chapterId === "11" || title.includes("대운")) keys.push("daewoonCurrent", "daewoonNext");
   if (chapterId === "12" || title.includes("세운") || title.includes("월운") || title.includes("가까운 미래")) keys.push("annual");
-  if (chapterId === "13" || title.includes("루틴") || title.includes("실천") || title.includes("마스터플랜")) keys.push("routine", "crisis", "career", "money", "relationship");
-  if (chapterId === "13" || title.includes("루틴") || title.includes("실천")) keys.push("routine");
+  if (chapterId === "13" || title.includes("마스터플랜")) keys.push("crisis", "career", "money", "relationship");
   return keys;
 }
 
@@ -4054,7 +4515,6 @@ function renderLifeBookInterpretationBlock(block = {}, seed = "") {
   const body = rotateLifeBookList(block.body, lifeBookSeedNumber(seed, `${block.id}:body`)).slice(0, bodyLimit).join(" ");
   const advice = rotateLifeBookList(block.advice, lifeBookSeedNumber(seed, `${block.id}:advice`)).slice(0, adviceLimit).join(" ");
   const caution = rotateLifeBookList(block.caution, lifeBookSeedNumber(seed, `${block.id}:caution`)).slice(0, cautionLimit).join(" ");
-  const checklist = rotateLifeBookList(block.checklist, lifeBookSeedNumber(seed, `${block.id}:checklist`)).slice(0, 3).join(", ");
   const toneLine = tone === "strong"
     ? "강하게 드러나는 항목이므로 장점이 발휘되는 환경, 반복될 때의 부담, 현실에서 쓰는 자리를 함께 보아야 합니다."
     : tone === "weak"
@@ -4068,9 +4528,8 @@ function renderLifeBookInterpretationBlock(block = {}, seed = "") {
     body,
     toneLine,
     relationLine,
-    advice ? `실천 조언은 ${advice}` : "",
+    advice ? `상담 포인트는 ${advice}` : "",
     caution ? `주의할 점은 ${caution}` : "",
-    checklist ? `이번 흐름에서 점검할 항목은 ${checklist}입니다.` : "",
   ].filter(Boolean).join("\n\n"));
 }
 
@@ -4343,7 +4802,7 @@ async function composeLifeBookChapters(normalized = {}, { env = {}, sessionId = 
     sessionId,
     reportId,
     chapterCount: getLifeBookBlueprints().length,
-    targetYear: LIFEBOOK_LOCAL_TARGET_YEAR,
+    targetYear: normalized?.assemblyInput?.userProfile?.targetYear || normalized?.signals?.currentYear || LIFEBOOK_LOCAL_TARGET_YEAR,
     generationMode: LIFE_BOOK_PDF_CONFIG.generationMode,
     templateVersion: LIFE_BOOK_PDF_CONFIG.templateVersion,
     assemblyRuntime,
@@ -4396,10 +4855,23 @@ async function composeLifeBookChapters(normalized = {}, { env = {}, sessionId = 
   const finalQualityWarnings = Array.isArray(qualityEvaluation.softWarnings) ? qualityEvaluation.softWarnings : [];
   const finalQualityScore = Number(qualityEvaluation.qualityScore || 0);
   const repairedCategoryCount = Number(generatedLifeBook.deterministicReinforcedCount || 0);
+  const highQualityGate = validateLifeBookHighQualityReadiness(completedChapters, {
+    manuscriptSource: generatedLifeBook.manuscriptSource,
+    finalManuscriptSource: generatedLifeBook.finalManuscriptSource,
+    generationMode: generatedLifeBook.generationMode || LIFE_BOOK_PDF_CONFIG.generationMode,
+  });
   const finalQualityBlockingWarnings = (Array.isArray(qualityEvaluation.warningItems) ? qualityEvaluation.warningItems : [])
     .filter((item) => clean(item?.severity) === "high")
     .map((item) => clean(item?.code))
     .filter(Boolean);
+
+  if (!highQualityGate.ok) {
+    throw Object.assign(new Error("인생의 책 고품질 원고 기준을 충족하지 못했습니다. PDF 생성 전에 원고를 다시 보강해 주세요."), {
+      code: "LIFEBOOK_HIGH_QUALITY_GATE_FAILED",
+      status: 422,
+      details: highQualityGate,
+    });
+  }
 
   if (finalQualityBlockingWarnings.length) {
     throw Object.assign(new Error("인생의 책 원고 품질 기준을 충족하지 못했습니다. 핵심 원고를 보강한 뒤 다시 생성해 주세요."), {
@@ -4429,6 +4901,7 @@ async function composeLifeBookChapters(normalized = {}, { env = {}, sessionId = 
     completedChapters,
     structureValidation,
     qualityEvaluation,
+    highQualityGate,
     finalQualityWarnings,
     finalQualityScore,
     repairedCategoryCount,
@@ -5169,7 +5642,7 @@ function extractSignalFromSajuData(rawSajuData = "") {
   };
 }
 
-function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
+function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}, targetYear = LIFEBOOK_LOCAL_TARGET_YEAR) {
   let engineProfile = null;
   try {
     const calendarType = profile.calendarType === "lunar_leap"
@@ -5296,9 +5769,8 @@ function deriveLocalSignals(profile, rawSajuData = "", analysisSignals = {}) {
   const daewunCycles = parsedAnalysis.daewunCycles.length ? parsedAnalysis.daewunCycles : (Array.isArray(daewun.cycles) ? daewun.cycles : []);
   const currentDaeunNode = parsedAnalysis.currentDaeunNode || daewun.current || null;
   const nextDaeunNode = parsedAnalysis.nextDaeunNode || daewun.next || null;
-  const currentYear = new Date().getFullYear();
-  const currentYearSolar = Solar.fromDate(new Date());
-  const currentYearPillar = `${normalizeStemLabel(currentYearSolar.getLunar().getEightChar().getYearGan())}${normalizeBranchLabel(currentYearSolar.getLunar().getEightChar().getYearZhi())}`.trim();
+  const currentYear = resolveLifeBookTargetYear({ targetYear });
+  const currentYearPillar = resolveLifeBookYearPillar(currentYear);
 
   const specialStars = parsedAnalysis.specialStars.length ? parsedAnalysis.specialStars : calcLifeBookSpecialStarsFromPillars(enginePillars);
   const twelveGrowthStages = parsedAnalysis.twelveGrowthStages.length ? parsedAnalysis.twelveGrowthStages : buildLifeBookTwelveGrowthStages(enginePillars);
@@ -5461,7 +5933,7 @@ function buildCategoryText(profile, signals, chapter, categoryTitle, categoryInd
     const starSummary = Array.isArray(signals.specialStars) && signals.specialStars.length ? signals.specialStars.join(", ") : "생활 리듬의 반복 신호";
     paragraph3 = `신살과 십이운성은 눈에 잘 보이지 않는 반복 장면을 설명해 줍니다. ${starSummary}이 두드러질수록 특정 상황에서 감정 반응이 빠르게 올라오고, ${stageSummary} 흐름은 삶의 강약이 바뀌는 타이밍을 알려 줍니다. 이 신호를 알고 있으면 불안을 키우기보다 미리 대응 계획을 세울 수 있습니다.`;
   } else if (chapterId === "11") {
-    paragraph3 = `2026년 병오년은 세운의 불기운이 원국과 만나는 방식을 세밀하게 보아야 합니다. ${clean(signals.currentYearPillar || "병오")}의 흐름은 단순한 길흉보다 행동의 속도, 관계의 온도, 일과 돈의 우선순위를 조절하는 기준으로 읽어야 합니다. 월별 흐름은 예언이 아니라 실행 순서이므로, 무리한 확정보다 준비와 점검의 리듬을 세우는 편이 안정적입니다.`;
+    paragraph3 = `${clean(signals.currentYear || "선택한 연도")}년 ${clean(signals.currentYearPillar || "세운")}은 원국과 만나는 방식을 세밀하게 보아야 합니다. ${clean(signals.currentYearPillar || "해당 세운")}의 흐름은 단순한 길흉보다 행동의 속도, 관계의 온도, 일과 돈의 우선순위를 조절하는 기준으로 읽어야 합니다. 월별 흐름은 예언이 아니라 실행 순서이므로, 무리한 확정보다 준비와 점검의 리듬을 세우는 편이 안정적입니다.`;
   } else if (chapterId === "12") {
     paragraph3 = `장기 성장의 핵심은 재능을 오래 쓰는 구조를 만드는 데 있습니다. ${clean(signals.talentSignal)}과 ${clean(signals.careerSignal)}을 함께 놓고 보면, 빠른 확장보다 기반을 단단히 다진 뒤 폭을 넓히는 방식이 훨씬 유리합니다. 당장의 성과 압박이 있더라도 자신의 축을 지키는 선택이 결국 더 큰 결과를 만듭니다.`;
   } else {
@@ -5597,7 +6069,8 @@ function buildLifeBookReadingContext(profile = {}, signals = {}) {
     topTenGod,
     currentDaeun,
     nextDaeun,
-    currentYearPillar: clean(signals.currentYearPillar || "올해 세운"),
+    currentYear: clean(signals.currentYear || "선택한 연도"),
+    currentYearPillar: clean(signals.currentYearPillar || "선택 연도 세운"),
     powerLabel: clean(signals.powerLabel || engine?.usefulGods?.strength || "중화"),
     johuType: clean(signals.johuType || "균형"),
   };
@@ -5606,30 +6079,416 @@ function buildLifeBookReadingContext(profile = {}, signals = {}) {
 function buildLifeBookChapterInsight(chapterId, ctx, categoryTitle) {
   const common = `원국은 ${ctx.yearPillar}, ${ctx.monthPillar}, ${ctx.dayPillar}, ${ctx.hourPillar}의 흐름으로 구성됩니다. 그중 일간 ${ctx.dayMaster}은 판단의 중심이고, 월지 ${ctx.monthBranch}은 삶의 기본 무대와 심리 리듬을 결정하는 자리입니다.`;
   const map = {
-    "01": `${common} ${categoryTitle}에서는 이 구조가 성격 설명에 머물지 않고, 선택을 반복하는 방식으로 어떻게 굳어지는지 보아야 합니다.`,
-    "02": `월지 ${ctx.monthBranch}과 조후 ${ctx.johuType}의 흐름을 함께 보면, 이 명식은 속도보다 리듬을 맞출 때 안정됩니다. ${categoryTitle}은 컨디션, 감정의 온도, 관계의 거리감까지 연결됩니다.`,
-    "03": `용신 ${ctx.useful}, 희신 ${ctx.support}, 부담되는 기운 ${ctx.caution}은 행운과 불운의 이름이 아니라 균형을 잡는 방향입니다. ${categoryTitle}은 그 균형을 현실에서 어떻게 쓸지에 관한 항목입니다.`,
-    "04": `현재 대운 ${ctx.currentDaeun}은 무조건 확장하거나 움츠러들 시기가 아니라, 무엇을 남기고 무엇을 정리할지 가르는 큰 흐름입니다. ${categoryTitle}은 이 흐름 안에서 판단의 순서를 세우는 데 중요합니다.`,
-    "05": `격국은 직업 이름을 찍어 주는 방식이 아니라, 사회에서 어떤 방식으로 쓰임을 얻는지 보여 줍니다. ${ctx.topTenGod}의 비중은 ${categoryTitle}에서 인정, 책임, 성과의 방식을 읽게 합니다.`,
-    "06": `관계에서는 일지 ${ctx.dayBranch}과 월지 ${ctx.monthBranch}의 간격이 중요합니다. ${categoryTitle}은 누구와 가까워질지보다 어떤 관계에서 에너지가 안정되는지를 먼저 봐야 합니다.`,
-    "07": `연애와 결혼은 끌림만으로 판단하면 흐름을 놓치기 쉽습니다. ${categoryTitle}은 감정의 속도와 실제 생활의 안정감이 같은 방향인지 확인하는 항목입니다.`,
-    "08": `재물과 직업은 돈의 크기보다 돈이 들어오고 나가는 구조가 핵심입니다. ${categoryTitle}에서는 ${ctx.topTenGod}과 오행의 강약이 일하는 방식과 수익의 형태로 어떻게 드러나는지 봅니다.`,
-    "09": `건강과 심신은 질병을 단정하는 영역이 아니라 리듬과 관리의 문제입니다. ${categoryTitle}은 ${ctx.weakest} 기운이 약해질 때 반복되기 쉬운 피로와 스트레스 반응을 조절하는 데 초점을 둡니다.`,
-    "10": `신살과 십이운성은 겁을 주는 장치가 아니라 반복되는 에너지의 표식입니다. ${categoryTitle}은 사건의 단정이 아니라 변화와 충돌이 생기는 구조를 읽는 항목입니다.`,
-    "11": `2026년 병오년은 가까운 세운이 현재 대운과 겹치며 나타나는 실전 흐름입니다. ${categoryTitle}은 예언보다 월별 대응 전략으로 보아야 하며, 기회와 부담을 동시에 살피는 편이 정확합니다.`,
-    "12": `생애 마스터플랜은 대운의 큰 주기를 현실의 나이대와 연결하는 작업입니다. ${categoryTitle}은 당장의 성과보다 오래 유지할 방향과 전환점의 순서를 읽는 항목입니다.`,
+    "01": `${common} ${categoryTitle}에서는 세부 풀이에 앞서 이 명식이 반복해서 선택하게 되는 삶의 기준을 먼저 붙잡습니다.`,
+    "02": `${common} ${categoryTitle}은 네 기둥 중 어느 자리가 가장 크게 말하는지, 겉의 천간과 속의 지장간이 같은 방향인지 살피는 원국 해석입니다.`,
+    "03": `월지 ${ctx.monthBranch}과 조후 ${ctx.johuType}의 흐름을 함께 보면, 이 명식은 속도보다 리듬을 맞출 때 안정됩니다. ${categoryTitle}은 일간이 계절을 만나 실제로 작동하는 방식을 읽습니다.`,
+    "04": `${ctx.dominant} 기운과 ${ctx.weakest} 기운의 간격은 이 명식의 장점과 피로를 동시에 보여 줍니다. ${categoryTitle}은 오행을 숫자가 아니라 흐름과 온도로 풀어야 선명합니다.`,
+    "05": `십성은 재능과 욕망이 사회에서 어떤 역할로 바뀌는지 보여 줍니다. ${ctx.topTenGod}의 비중은 ${categoryTitle}에서 표현, 돈, 책임, 배움의 방향을 읽게 합니다.`,
+    "06": `용신 ${ctx.useful}, 희신 ${ctx.support}, 부담되는 기운 ${ctx.caution}은 행운과 불운의 이름이 아니라 균형을 잡는 방향입니다. ${categoryTitle}은 그 균형을 현실에서 어떻게 쓸지에 관한 대목입니다.`,
+    "07": `격국은 직업 이름을 찍어 주는 방식이 아니라, 사회에서 어떤 방식으로 쓰임을 얻는지 보여 줍니다. ${ctx.topTenGod}의 비중은 ${categoryTitle}에서 인정, 책임, 성과의 방식을 읽게 합니다.`,
+    "08": `연애와 결혼은 끌림만으로 판단하면 흐름을 놓치기 쉽습니다. ${categoryTitle}은 일지 ${ctx.dayBranch}, 배우자성, 관계의 충합이 같은 방향인지 나누어 보아야 합니다.`,
+    "09": `재물과 직업은 돈의 크기보다 돈이 들어오고 나가는 구조가 핵심입니다. ${categoryTitle}에서는 ${ctx.topTenGod}과 오행의 강약이 일하는 방식과 수익의 형태로 어떻게 드러나는지 봅니다.`,
+    "10": `건강과 심신은 질병을 단정하는 영역이 아니라 리듬과 관리의 문제입니다. ${categoryTitle}은 ${ctx.weakest} 기운이 약해질 때 반복되기 쉬운 피로와 스트레스 반응을 조절하는 데 초점을 둡니다.`,
+    "11": `현재 대운 ${ctx.currentDaeun}은 무조건 확장하거나 움츠러들 시기가 아니라, 무엇을 남기고 무엇을 정리할지 가르는 큰 흐름입니다. ${categoryTitle}은 이 흐름 안에서 판단의 순서를 세우는 데 중요합니다.`,
+    "12": `${ctx.currentYear}년 ${ctx.currentYearPillar}은 가까운 세운이 현재 대운과 겹치며 나타나는 실전 흐름입니다. ${categoryTitle}은 예언보다 월별 대응 전략으로 보아야 하며, 기회와 부담을 동시에 살피는 편이 정확합니다.`,
     "13": `최종 전략은 큰 목표보다 매년 반복할 기준이 중요합니다. ${categoryTitle}은 현재 대운 ${ctx.currentDaeun}과 다음 대운 ${ctx.nextDaeun} 사이에서 오래 버틸 구조를 만드는 항목입니다.`,
   };
   return map[String(chapterId)] || `${common} ${categoryTitle}은 이 명식의 강점과 주의점을 현실적인 선택 기준으로 바꾸는 항목입니다.`;
 }
 
+function lifeBookCategoryIncludes(categoryTitle = "", keywords = []) {
+  const title = clean(categoryTitle);
+  return safeLifeBookList(keywords).some((keyword) => title.includes(clean(keyword)));
+}
+
+function buildLifeBookCategoryEvidenceTags(signals = {}, ctx = {}, chapterId = "", categoryTitle = "") {
+  const title = clean(categoryTitle);
+  const id = String(chapterId || "");
+  const tags = [];
+  const push = (...items) => {
+    items.forEach((item) => {
+      const value = clean(item);
+      if (value && !tags.includes(value)) tags.push(value);
+    });
+  };
+
+  push(ctx.dayMaster && `${ctx.dayMaster} 일간`, ctx.monthBranch && `${ctx.monthBranch} 월지`);
+
+  if (id === "01") push("핵심 명식", ctx.currentDaeun, ctx.useful && `${ctx.useful} 용신`);
+  if (id === "02") {
+    if (lifeBookCategoryIncludes(title, ["년주"])) push(ctx.yearPillar, "초년 배경");
+    if (lifeBookCategoryIncludes(title, ["월주", "사회적"])) push(ctx.monthPillar, "사회적 무대");
+    if (lifeBookCategoryIncludes(title, ["일주", "자기"])) push(ctx.dayPillar, ctx.dayBranch && `${ctx.dayBranch} 일지`);
+    if (lifeBookCategoryIncludes(title, ["시주", "말년"])) push(ctx.hourPillar, "말년 잠재력");
+    if (lifeBookCategoryIncludes(title, ["지장간"])) push("지장간", "숨은 동기");
+    push("원국 전체");
+  }
+  if (id === "03") push("월령", "통근", "조후", ctx.powerLabel);
+  if (id === "04") push("오행 분포", ctx.dominant && `${ctx.dominant} 강세`, ctx.weakest && `${ctx.weakest} 보완`);
+  if (id === "05") {
+    if (lifeBookCategoryIncludes(title, ["비겁"])) push("비겁");
+    if (lifeBookCategoryIncludes(title, ["식상"])) push("식상");
+    if (lifeBookCategoryIncludes(title, ["재성"])) push("재성");
+    if (lifeBookCategoryIncludes(title, ["관성"])) push("관성");
+    if (lifeBookCategoryIncludes(title, ["인성"])) push("인성");
+    push(ctx.topTenGod, "십성 분포");
+  }
+  if (id === "06") push(ctx.useful && `${ctx.useful} 용신`, ctx.support && `${ctx.support} 희신`, ctx.caution && `${ctx.caution} 기신`);
+  if (id === "07") push("격국", "월령", ctx.topTenGod, "사회적 쓰임");
+  if (id === "08") push(ctx.dayBranch && `${ctx.dayBranch} 배우자궁`, "배우자성", "합충형해", "관계 리듬");
+  if (id === "09") push("재성", "식상", "관성", ctx.currentDaeun, "수익 구조");
+  if (id === "10") push("오행 균형", "조후", ctx.dominant && `${ctx.dominant} 과다`, ctx.weakest && `${ctx.weakest} 부족`);
+  if (id === "11") push(ctx.currentDaeun, ctx.nextDaeun, "대운 전환");
+  if (id === "12") push(ctx.currentYearPillar, ctx.currentDaeun, "세운", "월별 신호");
+  if (id === "13") push(ctx.useful && `${ctx.useful} 기준`, ctx.topTenGod, "최종 통합");
+
+  push(signals.useful, signals.topTenGod);
+  return tags.slice(0, 8);
+}
+
+function buildLifeBookCategoryExpertLines(ctx, chapterId, categoryTitle) {
+  const title = clean(categoryTitle);
+  const id = String(chapterId || "");
+  const baseTiming = `${title}은 원국만으로 끝나지 않고 현재 ${ctx.currentDaeun}에서 실제 과제로 떠오릅니다. 다음 ${ctx.nextDaeun}을 준비할수록 지금의 선택은 더 분명한 기준을 남겨야 합니다.`;
+
+  if (id === "01") {
+    return [
+      `${title}에서는 ${ctx.dayMaster} 일간과 ${ctx.monthBranch} 월지를 먼저 세웁니다. 이 두 축이 흔들리면 강한 기운도 방향을 잃고, 약한 기운은 결핍감으로만 느껴질 수 있습니다.`,
+      `${ctx.dominant} 기운은 삶을 앞으로 밀어 주는 힘이고, ${ctx.weakest} 기운은 오래 관리해야 할 빈자리입니다. 이 둘을 동시에 보아야 첫 장의 문장이 과장되지 않습니다.`,
+      baseTiming,
+      `따라서 이 장의 결론은 사건 예언이 아니라 판단 기준입니다. ${ctx.name}님은 크게 움직일 때일수록 ${ctx.useful}의 방향을 잃지 않는 선택이 필요합니다.`,
+    ];
+  }
+  if (id === "02") {
+    const pillarLine = lifeBookCategoryIncludes(title, ["년주"]) ? `${ctx.yearPillar}은 초년의 배경과 오래 남은 습관을 보여 줍니다.`
+      : lifeBookCategoryIncludes(title, ["월주", "사회적"]) ? `${ctx.monthPillar}은 사회적 무대와 인정받는 방식을 보여 줍니다.`
+      : lifeBookCategoryIncludes(title, ["일주", "자기"]) ? `${ctx.dayPillar}은 자기 본질과 친밀한 관계의 중심을 보여 줍니다.`
+      : lifeBookCategoryIncludes(title, ["시주", "말년"]) ? `${ctx.hourPillar}은 늦게 피는 재능과 말년의 방향을 보여 줍니다.`
+      : `${ctx.yearPillar}, ${ctx.monthPillar}, ${ctx.dayPillar}, ${ctx.hourPillar}은 따로 서 있지 않고 서로의 힘을 빌려 원국의 반복을 만듭니다.`;
+    return [
+      pillarLine,
+      `${title}의 판단은 겉으로 드러난 천간과 지지 안에 숨은 지장간을 함께 보아야 합니다. 겉말과 속동기가 어긋나는 지점에서 같은 선택이 반복됩니다.`,
+      `월지 ${ctx.monthBranch}이 원국의 무대를 잡고, 일간 ${ctx.dayMaster}이 그 무대에서 어떤 방식으로 버티는지가 상담의 중심입니다.`,
+      `이 장에서는 좋은 팔자와 나쁜 팔자로 가르지 않습니다. 네 기둥이 어떤 순서로 힘을 주고받는지 읽어야 현실 조언이 정확해집니다.`,
+    ];
+  }
+  if (id === "03") {
+    return [
+      `${title}은 일간의 성격 풀이가 아니라 월령을 얻었는지, 통근이 있는지, 조후가 맞는지를 함께 보는 자리입니다.`,
+      `${ctx.dayMaster} 일간이 ${ctx.monthBranch} 월지의 계절을 만나면 힘의 쓰임이 정해집니다. 신강·신약은 고집의 강약이 아니라 오래 버틸 수 있는 뿌리의 문제입니다.`,
+      `조후가 ${ctx.johuType}으로 흐르면 마음의 온도와 몸의 리듬도 그 영향을 받습니다. 재능보다 먼저 안정되는 환경을 잡아야 운을 오래 씁니다.`,
+      `이 판단이 정확해야 뒤의 용신, 직업, 관계, 건강 해석이 한 방향으로 모입니다.`,
+    ];
+  }
+  if (id === "04") {
+    return [
+      `${title}은 오행의 숫자를 세는 데서 끝나지 않습니다. ${ctx.dominant}이 강하게 앞서고 ${ctx.weakest}이 비어 있는 구조가 어떤 생활 반복을 만드는지 보아야 합니다.`,
+      `강한 오행은 재능이지만 통로가 없으면 과부하가 됩니다. 부족한 오행은 약점이지만 알맞은 사람, 장소, 습관을 만나면 균형의 문이 됩니다.`,
+      `오행의 생극제화가 부드러울 때는 선택이 자연스럽고, 막힐 때는 같은 일도 감정과 몸에 부담으로 남습니다.`,
+      `이 장의 조언은 보완 색이나 상징보다 실제 루틴입니다. ${ctx.weakest}을 살리는 반복을 작게 잡아야 균형이 오래 갑니다.`,
+    ];
+  }
+  if (id === "05") {
+    const star = lifeBookCategoryIncludes(title, ["비겁"]) ? "비겁"
+      : lifeBookCategoryIncludes(title, ["식상"]) ? "식상"
+      : lifeBookCategoryIncludes(title, ["재성"]) ? "재성"
+      : lifeBookCategoryIncludes(title, ["관성"]) ? "관성"
+      : lifeBookCategoryIncludes(title, ["인성"]) ? "인성"
+      : ctx.topTenGod;
+    return [
+      `${title}에서는 ${star}이 성격이 아니라 사회적 역할로 어떻게 바뀌는지 봅니다. 같은 십성도 천간에 드러난 것과 지지에 숨어 있는 것은 발현 방식이 다릅니다.`,
+      `${ctx.topTenGod}의 비중이 크면 삶의 언어가 그 별을 통해 반복됩니다. 장점으로 쓰면 재능이 되고, 과하면 관계와 일의 균형을 흔듭니다.`,
+      `십성의 충돌은 욕망이 나쁘다는 뜻이 아닙니다. 표현, 돈, 책임, 배움이 어느 순서로 이어져야 하는지를 알려 주는 신호입니다.`,
+      `따라서 ${title}의 조언은 별 하나의 길흉보다, 그 별을 언제 앞세우고 언제 뒤로 물릴지 정하는 데 있습니다.`,
+    ];
+  }
+  if (id === "06") {
+    return [
+      `${title}은 용신을 이름으로 외우는 장이 아닙니다. ${ctx.useful}이 왜 필요하고, ${ctx.support}이 어떻게 돕고, ${ctx.caution}이 언제 판단을 흐리는지 나누어 보아야 합니다.`,
+      `억부, 조후, 통관, 병약의 논리 중 어디에서 균형이 무너지는지를 확인해야 용신 판단이 실제 상담이 됩니다.`,
+      `사람과 환경도 용신처럼 작동합니다. 어떤 관계는 숨을 열어 주고, 어떤 관계는 기운을 과하게 몰아 소모를 키웁니다.`,
+      `이 장의 결론은 행운의 주문이 아니라 선택 기준입니다. 잘 풀리는 조건을 반복하고, 소모되는 조건을 줄여야 운이 안정됩니다.`,
+    ];
+  }
+  if (id === "07") {
+    return [
+      `${title}은 격국의 이름보다 성립 조건이 먼저입니다. 월령, 투간, 통근, 용신의 방향이 어긋나지 않아야 사회적 쓰임이 선명해집니다.`,
+      `${ctx.topTenGod}이 격의 흐름과 맞으면 성과는 억지가 아니라 책임과 평판으로 쌓입니다. 맞지 않으면 노력은 많아도 무대 선택에서 피로가 생깁니다.`,
+      `조직과 독립성, 명예와 실리, 브랜드와 평판은 모두 격국의 쓰임에서 갈립니다. ${title}은 이 사람이 어느 무대에서 인정받는지를 가려내는 항목입니다.`,
+      `성공 구조의 약점은 실패 예언이 아닙니다. 강한 역할을 오래 쓰기 위해 반드시 관리해야 할 균열입니다.`,
+    ];
+  }
+  if (id === "08") {
+    return [
+      `${title}에서는 감정보다 먼저 배우자궁, 배우자성, 일지의 안정성을 봅니다. 끌림과 함께 사는 리듬은 같은 말이 아니기 때문입니다.`,
+      `${ctx.dayBranch} 일지가 안정되면 친밀감이 생활로 이어지고, 흔들리면 좋아하는 마음과 일상의 속도가 따로 움직일 수 있습니다.`,
+      `합충형해가 관계의 문을 열 때는 시작이 빠르고, 충돌을 만들 때는 갈등 회복 방식이 인연의 수명을 결정합니다.`,
+      `이 장의 조언은 상대를 맞히는 데 있지 않습니다. ${ctx.name}님이 어떤 조건에서 마음을 열고, 어떤 조건에서 방어가 강해지는지 아는 데 있습니다.`,
+    ];
+  }
+  if (id === "09") {
+    return [
+      `${title}은 돈의 크기보다 돈이 생기고 머무는 구조를 봅니다. 재성은 그릇이고, 식상은 수익화의 통로이며, 관성은 직업적 신뢰의 틀입니다.`,
+      `${ctx.topTenGod}이 앞에 서는 방식에 따라 일의 언어가 달라집니다. 표현으로 벌지, 관리로 벌지, 책임으로 벌지, 전문성으로 벌지를 구분해야 합니다.`,
+      `${ctx.currentDaeun}에서는 무리한 확장보다 수입 구조와 책임 범위를 함께 보아야 합니다. 돈만 보고 움직이면 몸과 관계가 먼저 신호를 보낼 수 있습니다.`,
+      `사업과 투자는 기세가 아니라 감당 가능한 손실, 반복 가능한 수익, 오래 지킬 수 있는 원칙으로 판단해야 합니다.`,
+    ];
+  }
+  if (id === "10") {
+    return [
+      `${title}은 병명을 단정하는 장이 아니라 오행과 조후가 생활 리듬에 남기는 신호를 읽는 장입니다.`,
+      `${ctx.dominant} 기운이 과하면 과열과 긴장이 생기고, ${ctx.weakest} 기운이 약하면 회복의 통로가 좁아질 수 있습니다.`,
+      `스트레스는 마음만의 문제가 아니라 명식의 균형이 흔들릴 때 반복되는 몸의 언어로 나타납니다. 수면, 식사, 움직임, 관계의 속도를 함께 조절해야 합니다.`,
+      `반복되는 통증이나 불편은 운세 해석으로 대신하지 않습니다. 필요한 경우 의료 상담을 우선하고, 명리는 생활 리듬을 정돈하는 보조 지도로 삼아야 합니다.`,
+    ];
+  }
+  if (id === "11") {
+    return [
+      `${title}은 대운의 좋고 나쁨보다 간지와 십성이 원국의 어느 글자를 깨우는지 보는 장입니다.`,
+      `현재 ${ctx.currentDaeun}은 지금 맡아야 할 역할을 앞으로 밀어내고, 다음 ${ctx.nextDaeun}은 방향을 바꾸라는 예고로 다가옵니다.`,
+      `직업, 관계, 재물은 따로 움직이지 않습니다. 대운이 바뀌면 같은 재능도 쓰이는 무대와 책임의 크기가 달라집니다.`,
+      `전환기에는 새것을 잡기 전에 끝낼 것과 줄일 것을 먼저 정해야 합니다. 그래야 다음 운의 기회가 부담으로 바뀌지 않습니다.`,
+    ];
+  }
+  if (id === "12") {
+    return [
+      `${title}은 선택 연도 ${ctx.currentYear}년의 세운이 현재 ${ctx.currentDaeun} 위에 얹히는 지점을 읽습니다.`,
+      `${ctx.currentYearPillar}의 기운이 원국의 강한 곳을 자극하면 일이 커지고, 약한 곳을 건드리면 관리해야 할 부담이 먼저 드러납니다.`,
+      `상반기와 하반기는 같은 해 안에서도 속도가 다릅니다. 밀어야 할 때와 정리해야 할 때를 나누어야 가까운 운을 정확히 쓸 수 있습니다.`,
+      `월별 신호는 사건 맞히기가 아니라 선택의 순서입니다. 큰 결정, 계약, 관계 회복, 건강 관리는 서로 다른 달의 리듬을 요구합니다.`,
+    ];
+  }
+  if (id === "13") {
+    return [
+      `${title}은 앞 장의 판단을 다시 모아 하나의 생활 원칙으로 세우는 자리입니다.`,
+      `${ctx.dominant}의 강점, ${ctx.weakest}의 보완, ${ctx.useful}의 선택 기준, ${ctx.currentDaeun}의 과제가 서로 어긋나지 않아야 최종 조언이 힘을 얻습니다.`,
+      `관계에서 지킬 원칙과 일과 돈에서 지킬 원칙은 분리되어 보이지만, 실제로는 같은 명식의 반복에서 나옵니다.`,
+      `마지막 상담은 화려한 예언보다 오래 지킬 수 있는 기준이어야 합니다. ${ctx.name}님은 강점을 크게 쓰되 약점이 보내는 신호를 먼저 인정할 때 운을 가장 안정적으로 씁니다.`,
+    ];
+  }
+  return [
+    `${title}은 원국의 근거와 현재 운의 요구를 함께 놓고 읽어야 합니다.`,
+    baseTiming,
+  ];
+}
+
+function buildLifeBookCategoryJudgmentChainLines(ctx, chapterId, categoryTitle) {
+  const title = clean(categoryTitle);
+  const id = String(chapterId || "");
+  if (id === "01") {
+    return [
+      `이 대목의 근거는 ${ctx.dayPillar}의 일간 중심과 ${ctx.monthBranch} 월지가 만든 계절감입니다. 여기에 현재 ${ctx.currentDaeun}이 얹히면, 타고난 성향이 지금 어떤 방식으로 시험받는지 보입니다.`,
+      `고수의 판단은 강한 ${ctx.dominant}을 무조건 밀어붙이는 데 있지 않습니다. ${ctx.weakest}이 비는 순간 삶의 속도와 관계의 온도가 흔들리므로, 강점과 결핍을 한 쌍으로 읽어야 합니다.`,
+      `현실 적용은 단순합니다. 중요한 선택 앞에서는 ${ctx.useful}의 방향과 맞는지 먼저 묻고, 감정이 급해질 때는 결정을 미루어 기준을 다시 세우는 편이 좋습니다.`,
+    ];
+  }
+  if (id === "02") {
+    const pillarFocus = lifeBookCategoryIncludes(title, ["년주"]) ? `${ctx.yearPillar}의 초년 배경`
+      : lifeBookCategoryIncludes(title, ["월주", "사회적"]) ? `${ctx.monthPillar}의 사회적 무대`
+      : lifeBookCategoryIncludes(title, ["일주", "자기"]) ? `${ctx.dayPillar}의 자기 기준과 일지 ${ctx.dayBranch}`
+      : lifeBookCategoryIncludes(title, ["시주", "말년"]) ? `${ctx.hourPillar}의 말년 잠재력`
+      : `${ctx.yearPillar}, ${ctx.monthPillar}, ${ctx.dayPillar}, ${ctx.hourPillar}의 원국 배열`;
+    return [
+      `판단의 출발점은 ${pillarFocus}입니다. 네 기둥은 한 줄씩 따로 말하지 않고, 어느 기둥이 앞에서 끌고 어느 기둥이 뒤에서 보조하는지를 함께 보여 줍니다.`,
+      `천간은 밖으로 드러난 태도이고 지지와 지장간은 속에서 움직이는 동기입니다. 둘이 어긋나면 겉으로는 괜찮아 보여도 같은 감정과 선택이 안쪽에서 반복됩니다.`,
+      `현실에서는 원국의 반복을 고치려 하기보다 알아차리는 편이 먼저입니다. 반복되는 반응을 알면 관계, 일, 돈의 선택에서 같은 실수를 줄일 수 있습니다.`,
+    ];
+  }
+  if (id === "03") {
+    return [
+      `근거는 ${ctx.dayMaster} 일간이 ${ctx.monthBranch} 월령을 만난 모양입니다. 통근이 있으면 버티는 힘이 생기고, 뿌리가 약하면 사람과 환경의 도움을 받아야 기운이 오래 갑니다.`,
+      `신강·신약은 성격의 세기가 아니라 감당 가능한 에너지의 문제입니다. 조후가 ${ctx.johuType}으로 흐를 때 마음의 온도와 몸의 리듬도 같은 방향으로 반응합니다.`,
+      `적용은 환경 선택에서 갈립니다. 안정되는 공간, 사람, 일의 속도를 먼저 잡아야 뒤의 용신, 직업, 관계 해석이 실제 생활에서 흔들리지 않습니다.`,
+    ];
+  }
+  if (id === "04") {
+    return [
+      `이 항목은 ${ctx.dominant}의 강세와 ${ctx.weakest}의 빈자리를 함께 놓고 봅니다. 오행은 많고 적음보다 어디로 흐르고 어디서 막히는지가 더 중요합니다.`,
+      `고수는 강한 오행을 복으로만 보지 않습니다. 통로가 있으면 재능이 되고, 통로가 막히면 과열, 고집, 피로, 관계의 압박으로 바뀔 수 있습니다.`,
+      `현실 적용은 ${ctx.weakest}을 억지로 채우는 데 있지 않습니다. 약한 기운이 살아나는 루틴과 사람, 공간을 반복해서 선택해야 균형이 오래 갑니다.`,
+    ];
+  }
+  if (id === "05") {
+    const star = lifeBookCategoryIncludes(title, ["비겁"]) ? "비겁"
+      : lifeBookCategoryIncludes(title, ["식상"]) ? "식상"
+      : lifeBookCategoryIncludes(title, ["재성"]) ? "재성"
+      : lifeBookCategoryIncludes(title, ["관성"]) ? "관성"
+      : lifeBookCategoryIncludes(title, ["인성"]) ? "인성"
+      : ctx.topTenGod;
+    return [
+      `근거는 십성 분포 안에서 ${star}이 어떤 자리에 놓였는가입니다. 천간에 드러난 별은 밖에서 보이는 역할이고, 지지에 숨은 별은 실제 욕구와 반복을 만듭니다.`,
+      `판단은 ${star}의 많고 적음보다 쓰임의 순서에 있습니다. 표현이 돈으로 이어지는지, 책임이 평판으로 이어지는지, 배움이 전문성으로 이어지는지를 구분해야 합니다.`,
+      `현실에서는 ${ctx.topTenGod}을 앞세울 때와 내려놓을 때를 알아야 합니다. 같은 재능도 때를 놓치면 압박이 되고, 자리를 맞추면 신뢰와 결과가 됩니다.`,
+    ];
+  }
+  if (id === "06") {
+    return [
+      `이 장의 근거는 ${ctx.useful} 용신, ${ctx.support} 희신, ${ctx.caution} 기신의 관계입니다. 세 기운은 이름이 아니라 명식이 숨을 쉬는 방향과 막히는 방향을 나누어 줍니다.`,
+      `판단은 억부, 조후, 통관, 병약 중 어디에서 균형이 필요한지를 보는 데 있습니다. 용신이 맞아도 환경이 맞지 않으면 기운은 오래 살아나지 않습니다.`,
+      `현실 적용은 사람과 장소 선택입니다. 편안하게 반복되는 조건은 살리는 기운이고, 이유 없이 소모가 커지는 조건은 줄여야 할 기운입니다.`,
+    ];
+  }
+  if (id === "07") {
+    return [
+      `격국 판단은 ${ctx.monthBranch} 월령, 투간, 통근, 그리고 ${ctx.useful}의 방향이 함께 맞는지에서 시작합니다. 이름만 붙이면 격은 살아나지 않습니다.`,
+      `고수의 눈은 직업명을 맞히는 데 머물지 않습니다. ${ctx.topTenGod}이 사회적 쓰임으로 바뀌는 무대, 책임의 크기, 평판이 쌓이는 방식을 함께 봅니다.`,
+      `현실에서는 맞지 않는 무대에서 오래 버티는 일을 능력으로 착각하지 않아야 합니다. 격의 쓰임과 맞는 판을 고르면 노력의 양보다 성과의 밀도가 달라집니다.`,
+    ];
+  }
+  if (id === "08") {
+    return [
+      `관계 판단의 근거는 일지 ${ctx.dayBranch}, 배우자궁, 배우자성, 합충형해의 흐름입니다. 감정의 세기만 보면 인연의 지속성을 놓치기 쉽습니다.`,
+      `고수는 끌림과 안정성을 분리해서 봅니다. 끌림은 빠르게 시작하게 만들 수 있지만, 생활의 리듬과 책임을 견디는 힘은 배우자궁과 대운의 자극에서 드러납니다.`,
+      `현실 적용은 상대를 맞히는 것이 아니라 나의 반응을 아는 것입니다. 마음이 열리는 조건과 방어가 강해지는 조건을 알면 관계의 반복을 덜 다치게 다룰 수 있습니다.`,
+    ];
+  }
+  if (id === "09") {
+    return [
+      `재물과 직업의 근거는 재성, 식상, 관성, 인성이 어떤 순서로 이어지는가입니다. 식상은 만들어 내는 통로이고, 재성은 돈의 그릇이며, 관성은 책임과 신뢰의 틀입니다.`,
+      `판단은 돈이 들어오는가보다 머무는가에 있습니다. ${ctx.currentDaeun}이 수익 구조를 키우는지, 책임만 키우는지에 따라 같은 일도 결과가 달라집니다.`,
+      `현실에서는 확장보다 구조를 먼저 봐야 합니다. 반복 가능한 수익, 감당 가능한 지출, 오래 지킬 수 있는 역할이 맞아야 재물운이 흩어지지 않습니다.`,
+    ];
+  }
+  if (id === "10") {
+    return [
+      `건강과 심신의 근거는 오행 균형과 조후입니다. ${ctx.dominant}이 과하면 긴장과 과열이 생기고, ${ctx.weakest}이 비면 회복의 통로가 좁아질 수 있습니다.`,
+      `이 판단은 병명을 말하는 것이 아닙니다. 명리는 몸이 보내는 반복 신호와 생활 리듬의 취약점을 읽어 관리의 순서를 잡는 데 쓰여야 합니다.`,
+      `현실 적용은 수면, 식사, 움직임, 관계의 속도입니다. 반복되는 불편이나 통증은 의료 상담을 우선하고, 사주 해석은 회복 루틴을 정돈하는 보조 기준으로 두어야 합니다.`,
+    ];
+  }
+  if (id === "11") {
+    return [
+      `대운 판단의 근거는 현재 ${ctx.currentDaeun}과 다음 ${ctx.nextDaeun}이 원국의 어느 글자와 십성을 깨우는가입니다. 대운은 사건보다 역할의 계절을 바꿉니다.`,
+      `판단은 좋은 운과 나쁜 운으로 자르지 않습니다. 같은 기회도 원국의 강한 곳을 건드리면 확장이 되고, 약한 곳을 건드리면 부담과 정리가 먼저 옵니다.`,
+      `현실에서는 새 판을 벌이기 전에 끝낼 것과 남길 것을 정해야 합니다. 전환기의 선택은 속도보다 순서가 중요합니다.`,
+    ];
+  }
+  if (id === "12") {
+    return [
+      `선택 연도의 근거는 ${ctx.currentYearPillar} 세운이 현재 ${ctx.currentDaeun} 위에 얹히는 방식입니다. 세운은 대운의 큰 과제에 가까운 자극을 더합니다.`,
+      `판단은 한 해 전체를 한 문장으로 단정하지 않는 데 있습니다. 상반기와 하반기, 월별 신호가 서로 다르면 밀어야 할 일과 정리해야 할 일이 달라집니다.`,
+      `현실 적용은 일정과 결정의 순서입니다. 계약, 이직, 투자, 관계 회복, 건강 관리는 같은 속도로 처리하지 말고 운의 리듬에 맞춰 나누어야 합니다.`,
+    ];
+  }
+  if (id === "13") {
+    return [
+      `최종 통합의 근거는 원국, ${ctx.currentDaeun}, ${ctx.currentYearPillar} 세운이 같은 방향을 가리키는지입니다. 앞 장의 판단이 여기서 하나의 기준으로 모여야 합니다.`,
+      `고수의 결론은 화려한 예언보다 우선순위입니다. 관계, 일, 돈, 몸의 리듬이 충돌할 때 무엇을 먼저 지켜야 운을 오래 쓰는지가 핵심입니다.`,
+      `현실에서는 ${ctx.useful}의 기준을 잃지 않는 선택이 필요합니다. 강점은 크게 쓰되, ${ctx.weakest}이 보내는 신호를 무시하지 않을 때 삶의 흐름이 안정됩니다.`,
+    ];
+  }
+  return [
+    `${title}의 근거는 원국과 현재 운의 접점입니다.`,
+    `판단은 길흉보다 반복되는 선택의 방향을 보는 데 있습니다.`,
+    `현실에서는 제목이 가리키는 삶의 영역에서 먼저 기준을 세워야 합니다.`,
+  ];
+}
+
+function buildLifeBookCategoryCompletionLines(chapterId, categoryTitle) {
+  const title = clean(categoryTitle);
+  const map = {
+    "01": [`${title}은 전체 명식의 첫 기준입니다. 일간과 월지, 현재 대운이 같은 방향을 가리키는지 확인해야 첫 문장이 흔들리지 않습니다.`],
+    "02": [`${title}은 네 기둥과 지장간의 관계로 다시 확인해야 합니다. 겉으로 보이는 성향과 안쪽의 동기가 만나는 지점을 놓치면 원국 해석이 얕아집니다.`],
+    "03": [`${title}은 월령, 통근, 조후, 신강신약을 함께 보아야 합니다. 이 네 판단이 이어질 때 기질 해석이 실제 생활 조언으로 내려옵니다.`],
+    "04": [`${title}은 오행의 과다와 부족을 생극제화의 흐름으로 읽어야 합니다. 강한 기운은 통로를 주고 약한 기운은 루틴으로 살리는 것이 핵심입니다.`],
+    "05": [`${title}은 십성의 이름보다 현실 역할을 보아야 합니다. 표현, 돈, 책임, 배움이 어떤 순서로 이어지는지 살피면 반복 패턴이 선명해집니다.`],
+    "06": [`${title}은 용신, 희신, 기신의 작동을 실제 사람과 환경으로 번역해야 합니다. 살리는 조건과 소모되는 조건을 분리해야 상담이 정확해집니다.`],
+    "07": [`${title}은 격국의 성립, 파격 가능성, 사회적 쓰임을 함께 보아야 합니다. 월령과 투간, 용신의 방향이 맞는지 확인해야 성취 구조가 살아납니다.`],
+    "08": [`${title}은 배우자성, 배우자궁, 일지의 안정성, 합충형해를 함께 놓아야 합니다. 끌림과 생활의 지속성은 반드시 나누어 판단해야 합니다.`],
+    "09": [`${title}은 재성, 식상, 관성, 인성의 연결로 보아야 합니다. 돈이 생기는 통로와 오래 머무는 그릇이 다르기 때문입니다.`],
+    "10": [`${title}은 오행과 조후가 생활 리듬에 남기는 신호로 읽어야 합니다. 반복되는 불편은 의료 상담을 우선하고, 명리는 회복 루틴을 정돈하는 기준으로 삼아야 합니다.`],
+    "11": [`${title}은 대운 간지와 십성이 원국을 어떻게 깨우는지 확인해야 합니다. 현재 대운과 다음 대운의 과제를 나누어야 전환기 판단이 분명해집니다.`],
+    "12": [`${title}은 세운이 현재 대운 위에서 어느 부분을 자극하는지 보는 장입니다. 상반기, 하반기, 월별 리듬을 나누어야 가까운 선택이 정확해집니다.`],
+    "13": [`${title}은 앞 장의 결론을 하나의 기준으로 모아야 합니다. 관계, 일, 돈, 몸의 리듬이 충돌할 때 무엇을 먼저 지킬지 정하는 것이 마지막 상담입니다.`],
+  };
+  return map[String(chapterId || "")] || [`${title}은 원국의 근거와 현재 운의 요구를 함께 놓고 읽어야 합니다.`];
+}
+
+function buildLifeBookCategoryLensLine(chapterId, ctx, categoryTitle) {
+  const title = clean(categoryTitle);
+  const id = String(chapterId || "");
+  if (id === "01") {
+    if (lifeBookCategoryIncludes(title, ["한 문장", "첫인상"])) return `${ctx.dayMaster} 일간이 ${ctx.monthBranch} 월지 위에 서 있는 모양이 이 책의 첫 문장입니다. 여기서는 사건을 맞히기보다, 같은 선택이 왜 반복되는지 한 줄의 운명 기준으로 압축해 읽습니다.`;
+    if (lifeBookCategoryIncludes(title, ["강하게"])) return `${ctx.dominant} 기운은 이 명식에서 먼저 목소리를 내는 축입니다. 강한 기운은 재능이지만, 오래 방치되면 삶의 속도와 관계의 온도를 한쪽으로 몰고 가므로 쓰임의 자리를 정해야 합니다.`;
+    if (lifeBookCategoryIncludes(title, ["부족"])) return `${ctx.weakest} 기운은 결핍의 낙인이 아니라 보완해야 할 통로입니다. 이 기운이 약해지는 장면을 알면, 무리한 개운보다 생활 구조와 사람 선택에서 먼저 균형을 잡을 수 있습니다.`;
+    return `${title}은 전체 원고의 문을 여는 자리입니다. 원국의 세부 판단으로 바로 들어가기 전에, ${ctx.dayPillar}의 중심과 ${ctx.currentDaeun}의 요구를 하나의 방향으로 묶어 봅니다.`;
+  }
+  if (id === "02") {
+    if (lifeBookCategoryIncludes(title, ["년주"])) return `년주는 삶의 첫 배경과 오래된 습관의 문입니다. ${ctx.yearPillar}이 원국에서 어떤 온도를 띠는지 보면, 초년의 환경이 지금의 방어 방식과 자존감에 어떻게 남았는지 읽을 수 있습니다.`;
+    if (lifeBookCategoryIncludes(title, ["월주", "사회적"])) return `월주는 사회로 나가는 문이며, ${ctx.monthPillar}은 이 사람이 인정받는 방식과 부담을 떠안는 방식을 함께 보여 줍니다. 직업 이름보다 먼저 보아야 할 것은 월주가 허락하는 무대의 성격입니다.`;
+    if (lifeBookCategoryIncludes(title, ["일주", "자기"])) return `일주는 자기 자신과 친밀한 관계의 자리입니다. ${ctx.dayPillar}의 결을 보면 겉으로 드러나는 태도보다 깊은 곳의 선택 기준, 사랑을 받아들이는 방식, 고집의 방향이 선명해집니다.`;
+    if (lifeBookCategoryIncludes(title, ["시주", "말년"])) return `시주는 늦게 피어나는 재능과 미래의 정리 방식을 품습니다. ${ctx.hourPillar}은 당장의 성과보다 오래 남길 것, 후반부에 삶이 어떤 방향으로 깊어지는지를 살피는 자리입니다.`;
+    if (lifeBookCategoryIncludes(title, ["지장간"])) return `지장간은 겉으로 보이지 않는 동기입니다. 천간에 드러난 말과 지지 안에 숨은 마음이 다를 때, 사람은 같은 상황에서도 설명하기 어려운 끌림과 거부감을 반복합니다.`;
+    return `${title}에서는 네 기둥을 따로 떼어 해석하지 않습니다. 년월일시가 서로 어떤 순서로 힘을 주고받는지 보아야 이 원국의 실제 작동 방식이 살아납니다.`;
+  }
+  if (id === "03") {
+    if (lifeBookCategoryIncludes(title, ["월지", "월령"])) return `${ctx.monthBranch} 월지는 태어난 계절의 기운이며, 일간이 세상에 적응하는 첫 기후입니다. 월령을 얻었는지 잃었는지에 따라 같은 ${ctx.dayMaster}이라도 자신감과 피로의 양상이 달라집니다.`;
+    if (lifeBookCategoryIncludes(title, ["강약", "중심성", "신강", "신약", "통근"])) return `일간의 강약은 성격의 강함이 아니라 버틸 수 있는 뿌리의 문제입니다. 통근이 안정되면 밀고 나가는 힘이 생기고, 뿌리가 약하면 사람과 환경의 도움을 받아야 기운이 오래 갑니다.`;
+    if (lifeBookCategoryIncludes(title, ["조후", "온도"])) return `조후는 명식의 온도 조절입니다. 너무 뜨겁거나 차가운 명식은 재능이 있어도 소모가 빠르므로, 이 장에서는 성취보다 먼저 몸과 마음이 안정되는 기후를 찾아야 합니다.`;
+    return `${title}은 일간이 월지의 계절을 만나 어떤 방식으로 삶을 운용하는지 읽는 대목입니다. 이 판단이 정확해야 뒤의 용신, 직업, 관계 해석도 흔들리지 않습니다.`;
+  }
+  if (id === "04") {
+    if (lifeBookCategoryIncludes(title, ["강한", "과부하"])) return `${ctx.dominant} 기운이 강하면 삶의 한 영역에서 추진력과 존재감이 뚜렷해집니다. 다만 강한 기운은 복이 되려면 통로가 필요하고, 통로가 막히면 급함·과열·집착으로 바뀔 수 있습니다.`;
+    if (lifeBookCategoryIncludes(title, ["부족", "결핍", "보완"])) return `${ctx.weakest} 기운이 약한 지점은 운이 없는 자리가 아니라 관리가 필요한 빈자리입니다. 빈자리를 억지로 채우기보다, 약한 기운이 살아나는 사람·공간·습관을 선택해야 합니다.`;
+    return `오행은 많고 적음의 숫자보다 흐르는 방향이 중요합니다. ${ctx.dominant}이 앞에서 끌고 ${ctx.weakest}이 뒤에서 비면, 장점과 피로가 같은 뿌리에서 함께 나옵니다.`;
+  }
+  if (id === "05") {
+    if (lifeBookCategoryIncludes(title, ["비겁"])) return `비겁은 자기 힘, 독립성, 경쟁심의 자리입니다. 강하면 스스로 길을 내지만 관계의 양보가 과제가 되고, 약하면 나를 대신해 줄 구조와 동료 선택이 중요해집니다.`;
+    if (lifeBookCategoryIncludes(title, ["식상"])) return `식상은 재능이 밖으로 나오는 통로입니다. 표현, 기획, 생산성이 살아나면 돈과 평판으로 이어지지만, 과하면 말과 결과의 간격이 커질 수 있습니다.`;
+    if (lifeBookCategoryIncludes(title, ["재성"])) return `재성은 돈만이 아니라 현실 감각, 관리 능력, 관계 속 책임을 함께 봅니다. 재성이 잘 흐르면 돈이 머물 구조가 생기고, 막히면 수입보다 지출과 욕심의 방향이 먼저 흔들립니다.`;
+    if (lifeBookCategoryIncludes(title, ["관성"])) return `관성은 책임, 규칙, 사회적 역할입니다. 이 기운이 바르게 서면 신뢰와 직함이 생기고, 무리하면 의무감이 몸과 마음을 압박합니다.`;
+    if (lifeBookCategoryIncludes(title, ["인성"])) return `인성은 배움, 보호, 회복의 기운입니다. 생각을 깊게 만들지만 지나치면 실행을 늦추므로, 배운 것을 어디에 써야 하는지가 핵심입니다.`;
+    return `십성은 성격표가 아니라 기운이 사회에서 어떤 역할로 바뀌는지 보여 주는 지도입니다. ${ctx.topTenGod}이 강하게 보이면 그 십성이 일과 관계의 언어가 됩니다.`;
+  }
+  if (id === "06") {
+    if (lifeBookCategoryIncludes(title, ["용신"])) return `용신 ${ctx.useful}은 행운의 부적이 아니라 명식이 숨을 쉬는 방향입니다. 억부, 조후, 병약의 논리 중 어디서 균형이 필요한지 살펴야 실제 선택 기준이 나옵니다.`;
+    if (lifeBookCategoryIncludes(title, ["희신"])) return `희신 ${ctx.support}은 용신을 돕는 조력의 기운입니다. 주역은 아니지만 이 기운이 살아날 때 사람, 환경, 일정이 부드럽게 맞물립니다.`;
+    if (lifeBookCategoryIncludes(title, ["기신", "소모"])) return `기신 ${ctx.caution}은 피해야 할 운명이 아니라 과해질 때 판단을 흐리는 방향입니다. 기신이 움직이는 장면을 알면 문제를 막는 힘이 생깁니다.`;
+    return `${title}은 기운의 이름보다 실제 환경 선택이 중요합니다. 나를 살리는 기운은 생활에서 편안한 반복으로 나타나고, 소모되는 기운은 비슷한 사람과 상황을 통해 되풀이됩니다.`;
+  }
+  if (id === "07") {
+    if (lifeBookCategoryIncludes(title, ["성립", "큰 틀"])) return `격국의 성립은 이름보다 조건이 먼저입니다. ${ctx.monthBranch} 월령, 드러난 천간, ${ctx.dayMaster} 일간의 뿌리, ${ctx.useful}의 균형이 한 방향으로 모일 때 삶의 큰 틀이 선명해집니다.`;
+    if (lifeBookCategoryIncludes(title, ["사회적 역할", "쓰임"])) return `사회적 역할은 격이 현실에서 입는 옷입니다. ${ctx.topTenGod}이 앞에 설수록 사람들은 이 명식에게 특정한 책임과 쓰임을 기대하게 됩니다.`;
+    if (lifeBookCategoryIncludes(title, ["성과", "무대"])) return `성과가 나는 무대는 노력의 양보다 격의 쓰임과 맞는지가 중요합니다. 맞는 무대에서는 책임이 커져도 성취로 이어지고, 맞지 않는 무대에서는 성과보다 소모가 먼저 쌓입니다.`;
+    if (lifeBookCategoryIncludes(title, ["명예", "책임"])) return `명예와 책임은 관성의 압박만이 아니라 격이 사회와 약속하는 방식입니다. 책임을 감당할 그릇이 준비될 때 평판은 천천히 단단해집니다.`;
+    if (lifeBookCategoryIncludes(title, ["조직", "독립"])) return `조직과 독립의 적합도는 자유가 좋은가 안정이 좋은가의 문제가 아닙니다. 격이 제도 안에서 힘을 얻는지, 독자적 판에서 힘을 얻는지를 나누어 보아야 합니다.`;
+    if (lifeBookCategoryIncludes(title, ["브랜드", "평판"])) return `브랜드와 평판은 격이 반복해서 남기는 인상입니다. ${ctx.topTenGod}의 쓰임이 분명할수록 사람들은 이 명식을 특정한 전문성과 태도로 기억합니다.`;
+    if (lifeBookCategoryIncludes(title, ["약점"])) return `성공 구조의 약점은 격이 무너지는 지점입니다. 강한 역할을 오래 쓰려면 ${ctx.caution}이 과해지는 장면과 ${ctx.weakest}이 비는 장면을 먼저 관리해야 합니다.`;
+    return `격국은 인생의 직업명을 찍는 기술이 아니라, 어떤 방식으로 사회적 쓰임을 얻는지 보는 큰 틀입니다. ${ctx.topTenGod}의 작동이 격의 흐름과 어긋나지 않을 때 성과는 억지보다 자연스러운 책임으로 쌓입니다.`;
+  }
+  if (id === "08") {
+    if (lifeBookCategoryIncludes(title, ["배우자궁"])) return `배우자궁은 사랑의 결과가 머무는 자리입니다. 일지 ${ctx.dayBranch}이 안정되면 친밀감이 생활로 이어지고, 흔들리면 좋아하는 마음과 함께 사는 리듬이 따로 움직일 수 있습니다.`;
+    if (lifeBookCategoryIncludes(title, ["배우자성"])) return `배우자성은 끌리는 사람의 모습과 관계에서 기대하는 역할을 보여 줍니다. 강약보다 중요한 것은 그 별이 원국 안에서 보호받는지, 대운에서 자극을 받는지입니다.`;
+    return `연애와 관계는 감정 하나로 판단하지 않습니다. 일지, 배우자성, 합충형해가 같은 방향을 가리킬 때 인연은 오래 머물고, 서로 다른 방향이면 끌림과 생활의 안정성을 나누어 보아야 합니다.`;
+  }
+  if (id === "09") {
+    if (lifeBookCategoryIncludes(title, ["재성", "돈"])) return `재성은 돈의 크기보다 돈이 만들어지고 머무는 그릇입니다. 재성이 살아도 식상과 관성이 받쳐 주지 않으면 수입은 생겨도 관리가 어려워질 수 있습니다.`;
+    if (lifeBookCategoryIncludes(title, ["식상", "수익화"])) return `식상은 재능을 결과물로 바꾸는 통로입니다. 말, 기술, 콘텐츠, 서비스가 밖으로 흘러야 재성으로 이어지며, 막히면 재능은 있어도 돈의 문까지 닿지 않습니다.`;
+    if (lifeBookCategoryIncludes(title, ["관성", "직업"])) return `관성은 직업의 책임과 신뢰의 틀입니다. 관성이 바르게 작동하면 조직과 제도 안에서 인정이 생기고, 과하면 부담만 커져 몸이 먼저 반응합니다.`;
+    return `직업과 재물은 하나의 축으로 보아야 합니다. ${ctx.topTenGod}이 어떤 방식으로 결과를 만들고, 현재 ${ctx.currentDaeun}이 그 결과를 키우는지 줄이는지를 함께 봅니다.`;
+  }
+  if (id === "10") {
+    if (lifeBookCategoryIncludes(title, ["의료"])) return `이 대목은 병명을 단정하지 않습니다. 오행과 조후가 보여 주는 것은 취약한 생활 리듬이며, 반복되는 불편이나 통증은 운세 해석보다 의료 상담을 우선해야 합니다.`;
+    return `건강과 생활 리듬은 오행의 과다·부족이 몸과 마음에 남기는 신호를 읽는 장입니다. ${ctx.weakest} 기운이 약해질 때 어떤 피로가 반복되는지 살피면 회복의 순서가 보입니다.`;
+  }
+  if (id === "11") {
+    if (lifeBookCategoryIncludes(title, ["현재"])) return `현재 대운 ${ctx.currentDaeun}은 지금 삶이 요구하는 역할을 보여 줍니다. 좋고 나쁨보다 중요한 것은 이 대운이 원국의 어느 글자를 깨우고 어느 책임을 앞으로 밀어내는가입니다.`;
+    if (lifeBookCategoryIncludes(title, ["다음"])) return `다음 대운 ${ctx.nextDaeun}은 갑자기 오는 사건이 아니라 지금부터 방향을 바꾸는 예고입니다. 다음 흐름에서 필요한 기운을 미리 준비하면 전환기의 충격이 줄어듭니다.`;
+    return `대운은 인생의 큰 계절입니다. 같은 원국도 대운의 간지와 십성이 바뀌면 쓰임의 무대가 달라지므로, 직업·관계·재물의 변화는 대운 속에서 읽어야 합니다.`;
+  }
+  if (id === "12") {
+    if (lifeBookCategoryIncludes(title, ["상반기", "하반기", "월별"])) return `${ctx.currentYear}년 ${ctx.currentYearPillar}의 흐름은 월별 사건 예언보다 속도 조절의 문제로 보아야 합니다. 어느 달에 밀고, 어느 달에 정리할지 구분하는 것이 핵심입니다.`;
+    return `선택 연도는 세운이 현재 대운 위에 얹히는 자리입니다. ${ctx.currentDaeun}이 요구하는 큰 과제와 ${ctx.currentYearPillar}의 자극이 만나는 지점을 읽어야 현실 조언이 살아납니다.`;
+  }
+  if (id === "13") {
+    return `마스터플랜은 모든 장의 결론을 하나의 생활 기준으로 묶는 자리입니다. 관계, 일, 재물, 몸의 리듬이 서로 충돌할 때 무엇을 먼저 지킬지 정해야 운을 오래 쓸 수 있습니다.`;
+  }
+  return `${title}은 원국의 근거와 현재 운의 요구를 함께 놓고 읽어야 합니다. 제목이 가리키는 삶의 영역을 중심에 둘 때 상담문이 흐려지지 않습니다.`;
+}
+
 function ensureProfessionalCategoryLength(text, chapterId, categoryTitle, categoryIndex, minLength = LIFEBOOK_MIN_CATEGORY_CHARS + 120) {
   let result = dedupeParagraphs(stripForbiddenTokens(text));
-  const additions = [
-    `${categoryTitle}에서 중요한 것은 좋은 흐름을 과신하지 않고, 불안한 흐름을 과장하지 않는 태도입니다. 명식이 보여 주는 강점은 반복된 선택을 통해 실력이 되고, 약점은 방치될 때 같은 문제를 되풀이하게 만듭니다. 따라서 지금 필요한 것은 큰 결심보다 일정, 관계, 지출, 휴식의 기준을 분명히 세우는 일입니다.`,
-    `이 항목은 단순한 성향 설명으로 끝나지 않습니다. 실제 생활에서는 말투, 일의 속도, 사람을 고르는 기준, 돈을 쓰는 방식에서 같은 흐름이 반복됩니다. 잘 맞는 환경에서는 집중력과 책임감이 살아나지만, 맞지 않는 환경에서는 방어심과 피로가 빠르게 커질 수 있으므로 기준을 먼저 정해야 합니다.`,
-    `운이 열릴 때는 속도를 조금 높여도 되지만, 운이 불안정할 때는 새 판을 벌이기보다 기존 구조를 정리하는 편이 낫습니다. 선택의 기준은 간단합니다. 오래 책임질 수 있는 일인지, 관계와 돈의 흐름이 무리 없이 이어지는지, 몸의 리듬을 해치지 않는지부터 확인해야 합니다.`,
-  ];
+  const additions = buildLifeBookCategoryCompletionLines(chapterId, categoryTitle);
   let guard = 0;
   while (result.length < minLength && guard < 8) {
     result = dedupeParagraphs(`${result}\n\n${additions[(categoryIndex + guard) % additions.length]}`);
@@ -5637,7 +6496,11 @@ function ensureProfessionalCategoryLength(text, chapterId, categoryTitle, catego
   }
   const required = LIFEBOOK_CANONICAL_TOPIC_RULES[String(chapterId || "")] || [];
   if (required.length && !required.some((keyword) => result.includes(keyword))) {
-    result = dedupeParagraphs(`${result}\n\n이 장에서는 ${required.slice(0, 3).join(", ")}의 흐름을 함께 보아야 판단이 선명해집니다. 좋은 기운은 활용 기준으로, 부담되는 기운은 관리 기준으로 삼을 때 명식의 장점이 현실에서 오래 유지됩니다.`);
+    result = dedupeParagraphs(`${result}\n\n이 장에서는 ${required.slice(0, 3).join(", ")}의 흐름이 반드시 함께 놓여야 합니다. 그래야 장점은 쓰임으로 이어지고, 부담은 관리 가능한 신호로 바뀝니다.`);
+  }
+  const fit = evaluateLifeBookCategoryFit(result, { id: chapterId }, categoryTitle);
+  if (!fit.hasCategoryGrounding) {
+    result = dedupeParagraphs(`${result}\n\n${categoryTitle}이라는 제목이 이번 상담의 중심입니다. 다른 주제는 보조 근거로만 다루고, 이 삶의 영역에서 실제로 드러나는 선택과 반복을 먼저 읽어야 합니다.`);
   }
   return stripForbiddenTokens(result);
 }
@@ -5646,54 +6509,37 @@ function buildProfessionalLifeBookCategoryText(profile, signals, chapter, catego
   const ctx = buildLifeBookReadingContext(profile, signals);
   const chapterId = String(chapter?.id || "");
   const insight = buildLifeBookChapterInsight(chapterId, ctx, categoryTitle);
+  const categoryLensLine = buildLifeBookCategoryLensLine(chapterId, ctx, categoryTitle);
+  const judgmentChainLines = buildLifeBookCategoryJudgmentChainLines(ctx, chapterId, categoryTitle);
+  const expertLines = buildLifeBookCategoryExpertLines(ctx, chapterId, categoryTitle);
   const blockInterpretation = buildLifeBookBlockInterpretationText(normalizedData, chapter, categoryTitle, 4);
   const contractContext = buildLifeBookContractContextLines(normalizedData || {}, chapter, categoryTitle);
-  const strengthLine = `${categoryTitle}에서 이 명식이 잘 쓰이면 ${ctx.dominant} 기운의 추진력과 ${ctx.topTenGod}의 현실 감각이 결합되어, 상황을 오래 관찰한 뒤 필요한 지점을 정확히 짚는 힘으로 나타납니다. 특히 ${ctx.dayPillar}의 중심이 흔들리지 않을 때는 말보다 결과로 신뢰를 쌓는 장점이 강해집니다.`;
-  const cautionLine = `${categoryTitle}의 반대편을 보면, 균형이 무너질 때 ${ctx.caution} 기운이 과해지거나 ${ctx.weakest} 기운이 약해지는 쪽으로 흐르며 판단이 급해지고 관계와 일의 경계가 흐려질 수 있습니다. 이때는 스스로를 몰아붙이기보다 일정과 책임 범위를 줄이고, 감정으로 결정한 일을 하루 뒤 다시 확인해야 합니다.`;
-  const timingLine = `${categoryTitle}은 현재 ${ctx.currentDaeun}의 흐름과도 연결됩니다. 이 시기에는 무리한 확장보다 오래 가져갈 구조를 선별하는 일이 중요하고, 다음 ${ctx.nextDaeun}으로 넘어갈수록 지금 남겨 둔 기준이 결과의 차이를 만들기 때문에 지속 가능한 관계, 수입 구조, 생활 리듬을 우선해야 합니다.`;
-  const practicalLines = {
-    "01": `${categoryTitle}의 실천 기준은 단순합니다. 원국의 강점을 살리려면 먼저 하루의 우선순위를 줄이고, 중요한 결정은 ${ctx.dayMaster} 일간의 기준에 맞는지 확인해야 합니다. 남의 속도에 끌려가면 장점이 분산되고, 자기 기준만 고집하면 관계가 경직될 수 있으므로 조절해야 합니다.`,
-    "02": `${categoryTitle}을 현실에 적용하려면 수면, 식사, 일의 시작 시간을 일정하게 두는 편이 좋습니다. 몸의 리듬이 흐트러지면 판단도 함께 흔들리므로, 큰 계획보다 생활의 온도와 속도를 먼저 안정시키는 것을 선택해야 합니다.`,
-    "03": `${categoryTitle}에서 용신과 희신은 생활에서 선택해야 할 방향입니다. ${ctx.useful}과 ${ctx.support}의 흐름이 살아나는 환경을 의식적으로 늘리고, ${ctx.caution}이 과해지는 사람과 일은 거리를 두는 편이 좋습니다.`,
-    "04": `${categoryTitle}의 대운 판단에서는 좋은 시기와 불편한 시기를 나누기보다, 각 시기에 맡겨진 과제를 보는 편이 정확합니다. 현재는 성급히 판을 넓히기보다 남길 일과 정리할 일을 구분해야 다음 흐름이 가벼워집니다.`,
-    "05": `${categoryTitle}에서 격국과 소명은 타인의 인정에 끌려가기보다 자신이 지속적으로 성과를 낼 수 있는 무대를 고르는 데 쓰여야 합니다. 맞지 않는 환경에서 버티는 힘을 능력으로 착각하지 않아야 합니다.`,
-    "06": `${categoryTitle}에서는 친밀감보다 안정감을 기준으로 보아야 합니다. 가까운 사람일수록 기대와 책임의 선을 말로 확인하고, 반복해서 에너지를 소모시키는 관계는 거리를 두는 편이 좋습니다.`,
-    "07": `${categoryTitle}에서는 강한 끌림을 곧 안정으로 착각하지 않아야 합니다. 오래 가는 관계는 감정의 세기보다 갈등 후 회복 방식, 생활 리듬, 돈과 책임을 다루는 태도에서 갈립니다.`,
-    "08": `${categoryTitle}에서는 수익보다 구조가 먼저입니다. 들어오는 돈, 새는 돈, 반드시 지켜야 할 비용을 분리하고, 자신의 강점이 반복적으로 팔릴 수 있는 방식으로 일을 설계해야 합니다.`,
-    "09": `${categoryTitle}은 병명을 예언하는 방식으로 보지 않습니다. 다만 피로가 쌓일 때 반복되는 생활 패턴을 관리해야 하며, 불편이 지속되면 전문 의료 상담을 우선하는 것이 가장 현실적인 선택입니다.`,
-    "10": `${categoryTitle}에서 신살과 특수 포인트는 겁낼 대상이 아니라 알아차릴 신호입니다. 변화가 반복되는 자리에서는 서둘러 결론 내리지 말고, 무엇이 계속 충돌하는지 기록해 두는 편이 도움이 됩니다.`,
-    "11": `${categoryTitle}에서 2026년 세운은 대응의 기준입니다. 기회가 보여도 책임질 수 있는 범위를 먼저 정하고, 부담이 커지는 달에는 약속, 지출, 일정의 수를 줄여야 합니다.`,
-    "12": `${categoryTitle}의 생애 전략에서는 모든 목표를 한꺼번에 밀어붙이지 않아야 합니다. 대운의 단계별로 직업, 돈, 관계, 몸의 축을 나누어 관리해야 장기 흐름이 안정됩니다.`,
-    "13": `${categoryTitle}의 최종 전략은 화려한 목표보다 유지 가능한 루틴으로 완성됩니다. 90일은 정리, 1년은 기반, 장기 계획은 확장과 안정으로 나누어 보아야 계획이 실제 삶에서 버틸 수 있습니다.`,
-  };
-  const groundingLine = `${categoryTitle}은 명식, 원국, 일간, 월지, 대운, 세운을 따로 떼어 보지 않아야 합니다. 원국은 타고난 기준을 보여 주고, 대운은 그 기준이 어떤 무대에서 쓰이는지 알려 줍니다. 세운은 올해 실제로 조절해야 할 속도와 우선순위를 드러냅니다. 그래서 이 항목에서는 감정적 확신보다 반복되는 선택의 결과를 확인해야 합니다.`;
-  const finalLine = `${categoryTitle}에 대한 마지막 조언은 분명합니다. ${ctx.name}님의 명식은 장점을 크게 쓰려 할수록 약점 관리가 함께 필요하므로, 좋을 때는 구조를 넓히고 불안정할 때는 속도를 줄이는 방식으로 대응하면 운의 흐름을 더 안정적으로 사용할 수 있습니다.`;
   return softenLifeBookLocalWording(ensureProfessionalCategoryLength([
     insight,
-    strengthLine,
-    cautionLine,
-    timingLine,
+    categoryLensLine,
+    ...judgmentChainLines,
+    ...expertLines,
     contractContext,
-    practicalLines[chapterId] || practicalLines["13"],
     blockInterpretation,
-    groundingLine,
-    finalLine,
   ].join("\n\n"), chapterId, categoryTitle, categoryIndex));
 }
 
 function buildChapterLocalText(profile, signals, chapter, normalizedData = null) {
   const categories = Array.isArray(chapter?.categories) ? chapter.categories : [];
+  const ctx = buildLifeBookReadingContext(profile, signals);
   return categories.map((categoryTitle, index) => {
     const text = buildProfessionalLifeBookCategoryText(profile, signals, chapter, categoryTitle, index, normalizedData);
     return {
       id: `${String(index + 1).padStart(2, "0")}`,
       title: categoryTitle,
       localSummary: softenLifeBookLocalWording(text),
-      evidenceTags: [signals.dayMaster, signals.monthBranch, signals.useful].filter(Boolean),
+      evidenceTags: buildLifeBookCategoryEvidenceTags(signals, ctx, chapter?.id, categoryTitle),
+      compositionSource: "premium-category-draft",
+      fallbackUsed: false,
       advicePoints: [
-        "핵심 패턴을 문장으로 명확히 기록하기",
-        "이번 달 실행 항목을 1~2개로 제한하기",
-        "관계·돈·건강 점검 루틴을 주간 단위로 고정하기",
+        `${categoryTitle}의 원국 근거`,
+        `${chapter.title} 안에서의 카테고리 위치`,
+        "강점과 주의점의 분리 해석",
       ],
       finalText: softenLifeBookLocalWording(text),
     };
@@ -5726,13 +6572,14 @@ function findLifeBookBlueprintByTitle(chapterTitle = "") {
 }
 
 function buildLifeBookChapterStructureTable(chapterTitle = "", categories = []) {
+  const categoryRows = (Array.isArray(categories) ? categories : [])
+    .map((category) => stripForbiddenTokens(category?.title || ""))
+    .filter(Boolean);
   const rows = [
     ["챕터 제목", stripForbiddenTokens(chapterTitle)],
-    ...LIFEBOOK_PHASE6_CATEGORY_SECTIONS.map((section) => [
+    ...categoryRows.map((section) => [
       section,
-      Array.isArray(categories) && categories.some((category) => clean(category?.title) === clean(section))
-        ? "계산값을 상담 문장으로 풀어 PDF 본문에 반영합니다."
-        : "해당 섹션은 상담 원고 구성 과정에서 보강됩니다.",
+      "이 카테고리의 원국 근거와 운의 흐름을 상담 문장으로 풀어 PDF 본문에 반영합니다.",
     ]),
   ];
   return [
@@ -5756,19 +6603,19 @@ function buildLifeBookPhase7SummaryCards(chapterTitle = "", blueprint = {}) {
 function buildLifeBookPhase7AdviceList(chapterTitle = "", blueprint = {}) {
   const focus = safeLifeBookList(blueprint.engineFocus);
   return [
-    "#### 실천 조언 3가지",
-    `- 조언 1: ${stripForbiddenTokens(chapterTitle)}에서 가장 먼저 보이는 주제를 이번 달의 한 가지 실행 기준으로 정하십시오.`,
-    `- 조언 2: ${stripForbiddenTokens(focus[0] || "원국")}과 ${stripForbiddenTokens(focus[1] || "운의 흐름")}이 충돌할 때는 속도를 늦추고 기록으로 판단하십시오.`,
-    "- 조언 3: 관계, 일, 돈, 건강 중 하나만 바꾸려 하지 말고 작은 루틴 하나를 고정해 전체 리듬을 안정시키십시오.",
+    "#### 상담 검토 포인트",
+    `- ${stripForbiddenTokens(chapterTitle)}에서 가장 강하게 작동하는 주제를 먼저 확인합니다.`,
+    `- ${stripForbiddenTokens(focus[0] || "원국")}과 ${stripForbiddenTokens(focus[1] || "운의 흐름")}이 같은 방향인지, 서로 충돌하는지 분리해 봅니다.`,
+    "- 관계, 일, 돈, 건강 중 어느 영역에서 같은 패턴이 반복되는지 확인합니다.",
   ].join("\n");
 }
 
 function buildLifeBookPhase7Checklist(chapterTitle = "") {
   return [
-    "#### 체크리스트 3문항",
-    `- 체크 1: ${stripForbiddenTokens(chapterTitle)}의 핵심 조언을 한 문장으로 적었는가?`,
-    "- 체크 2: 이번 주에 실제로 바꿀 행동을 하나로 줄였는가?",
-    "- 체크 3: 과한 확신, 불안, 미루기 중 지금 나를 흔드는 반응을 확인했는가?",
+    "#### 상담 확인 질문",
+    `- ${stripForbiddenTokens(chapterTitle)}에서 원국 근거가 무엇인지 확인했는가?`,
+    "- 이 장의 카테고리와 다른 주제가 섞여 판단이 흐려지지 않았는가?",
+    "- 강점과 주의점이 같은 근거에서 어떻게 다르게 나타나는지 확인했는가?",
   ].join("\n");
 }
 
@@ -5790,13 +6637,13 @@ function buildLifeBookMonthlyFlowTable() {
 function buildLifeBookMasterPlanTable() {
   return [
     "#### 인생 마스터플랜 표",
-    "| 영역 | 선택 기준 | 실행 전략 |",
+    "| 영역 | 해석 기준 | 확인할 내용 |",
     "| --- | --- | --- |",
-    "| 일과 커리어 | 강한 기운이 성과로 보이는 무대인지 확인합니다. | 반복 가능한 결과물을 만들고 역할을 좁혀 집중합니다. |",
-    "| 재물 | 수입보다 지출과 위험 관리 구조가 먼저 안정되어야 합니다. | 고정 지출, 위험 판단, 충동 결제를 분리해 기록합니다. |",
-    "| 관계 | 가까움보다 건강한 거리와 책임의 경계가 중요합니다. | 기대를 말로 확인하고 소모적인 역할을 줄입니다. |",
-    "| 건강과 루틴 | 회복 리듬이 무너지면 운의 장점도 오래 쓰기 어렵습니다. | 수면, 식사, 움직임 중 하나를 먼저 고정합니다. |",
-    "| 장기 선택 | 대운의 큰 방향과 올해의 실행 속도를 함께 봅니다. | 90일 계획, 1년 목표, 10년 방향을 한 줄씩 정리합니다. |",
+    "| 일과 커리어 | 격국, 관성, 식상, 인성이 어떤 무대를 가리키는지 봅니다. | 성과가 쌓이는 역할과 소모되는 역할을 분리합니다. |",
+    "| 재물 | 재성과 식상의 연결, 대운의 재물 자극, 지출 구조를 함께 봅니다. | 돈이 들어오는 방식과 새는 지점을 구분합니다. |",
+    "| 관계 | 일지, 배우자궁, 합충형해, 십성 분포를 함께 봅니다. | 가까워지는 방식과 멀어지는 이유를 분리합니다. |",
+    "| 건강과 심신 | 오행 균형, 조후, 약한 기운의 반복 신호를 봅니다. | 운세 해석이 아니라 생활 리듬의 취약점을 확인합니다. |",
+    "| 시기 판단 | 현재 대운과 가까운 세운이 같은 방향인지 봅니다. | 기회와 부담이 커지는 영역을 구분합니다. |",
   ].join("\n");
 }
 
@@ -5843,13 +6690,13 @@ function enhanceLifeBookPhase7Section(chapterTitle = "", category = {}, text = "
   const title = clean(category?.title);
   const additions = [];
   if (title === "핵심 요약 카드") additions.push(buildLifeBookPhase7SummaryCards(chapterTitle, blueprint));
-  if (title === "실천 조언") additions.push(buildLifeBookPhase7AdviceList(chapterTitle, blueprint));
-  if (title === "체크리스트") additions.push(buildLifeBookPhase7Checklist(chapterTitle));
+  if (title === "카테고리별 판단 기준") additions.push(buildLifeBookPhase7AdviceList(chapterTitle, blueprint));
+  if (title === "상담 확인 질문") additions.push(buildLifeBookPhase7Checklist(chapterTitle));
   if (clean(chapterTitle).includes("오행 균형") && title === "계산 근거 기반 해석") additions.push(buildLifeBookFiveElementBalanceTable());
   if (clean(chapterTitle).includes("십성 구조") && title === "계산 근거 기반 해석") additions.push(buildLifeBookTenGodDistributionTable());
   if (clean(chapterTitle).includes("대운 분석") && title === "계산 근거 기반 해석") additions.push(buildLifeBookDaewoonFlowTable());
-  if (clean(chapterTitle).includes("올해와 가까운 미래") && title === "계산 근거 기반 해석") additions.push(buildLifeBookMonthlyFlowTable());
-  if (clean(chapterTitle).includes("마스터플랜") && title === "실천 조언") additions.push(buildLifeBookMasterPlanTable());
+  if (clean(chapterTitle).includes("선택 연도와 가까운 미래") && title === "계산 근거 기반 해석") additions.push(buildLifeBookMonthlyFlowTable());
+  if (clean(chapterTitle).includes("마스터플랜") && title === "카테고리별 판단 기준") additions.push(buildLifeBookMasterPlanTable());
   return stripForbiddenTokens([text, ...additions].filter(Boolean).join("\n\n"));
 }
 
@@ -5871,12 +6718,22 @@ function createLifeBookFallbackText(profile, signals, chapter, categoryTitle, or
 }
 
 function buildLifeBookFallbackChapters(profile, signals, chapters = []) {
-  return ensureCompleteLifeBookChapters(profile, signals, chapters).map((chapter) => ({
-    ...chapter,
-    finalText: buildChapterBody(chapter.title, chapter.categories, chapter.chapterOpening),
-    text: buildChapterBody(chapter.title, chapter.categories, chapter.chapterOpening),
-    source: "assembled",
-  }));
+  return ensureCompleteLifeBookChapters(profile, signals, chapters).map((chapter) => {
+    const categories = (Array.isArray(chapter?.categories) ? chapter.categories : []).map((category) => ({
+      ...category,
+      compositionSource: "emergency-recovery",
+      fallbackUsed: true,
+    }));
+    const chapterText = buildChapterBody(chapter.title, categories, chapter.chapterOpening);
+    return {
+      ...chapter,
+      categories,
+      finalText: chapterText,
+      text: chapterText,
+      source: "emergency-recovery",
+      fallbackUsed: true,
+    };
+  });
 }
 
 function buildLifeBookPayload(profile, signals, chapters, metadata = {}) {
@@ -5949,19 +6806,23 @@ function ensureCompleteLifeBookChapters(profile, signals, chapters = [], options
 
   return getLifeBookBlueprints().map((blueprint) => {
     const chapter = chapterMap.get(String(blueprint.id));
-    const fallbackCategories = buildChapterLocalText(profile, signals, blueprint);
+    const premiumCategories = buildChapterLocalText(profile, signals, blueprint);
     const categoryMap = new Map((Array.isArray(chapter?.categories) ? chapter.categories : []).map((item) => [String(item?.title || item?.id || ""), item]));
 
-    const categories = fallbackCategories.map((fallbackCategory, index) => {
-      const existing = categoryMap.get(String(fallbackCategory.title)) || categoryMap.get(String(fallbackCategory.id));
-      const nextText = stripForbiddenTokens(existing?.finalText || existing?.localSummary || fallbackCategory.localSummary);
+    const categories = premiumCategories.map((premiumCategory, index) => {
+      const existing = categoryMap.get(String(premiumCategory.title)) || categoryMap.get(String(premiumCategory.id));
+      const existingText = clean(existing?.finalText || existing?.localSummary || "");
+      const nextText = stripForbiddenTokens(existingText || premiumCategory.localSummary);
+      const usedEmergencyRecovery = !nextText;
       return {
-        id: fallbackCategory.id,
-        title: fallbackCategory.title,
+        id: premiumCategory.id,
+        title: premiumCategory.title,
         localSummary: nextText,
-        evidenceTags: Array.isArray(existing?.evidenceTags) && existing.evidenceTags.length ? existing.evidenceTags : fallbackCategory.evidenceTags,
-        advicePoints: Array.isArray(existing?.advicePoints) && existing.advicePoints.length ? existing.advicePoints : fallbackCategory.advicePoints,
-        finalText: nextText || createLifeBookFallbackText(profile, signals, blueprint, fallbackCategory.title, fallbackCategory.localSummary),
+        evidenceTags: Array.isArray(existing?.evidenceTags) && existing.evidenceTags.length ? existing.evidenceTags : premiumCategory.evidenceTags,
+        advicePoints: Array.isArray(existing?.advicePoints) && existing.advicePoints.length ? existing.advicePoints : premiumCategory.advicePoints,
+        compositionSource: usedEmergencyRecovery ? "emergency-recovery" : clean(existing?.compositionSource || premiumCategory.compositionSource || "premium-category-draft"),
+        fallbackUsed: Boolean(existing?.fallbackUsed) || usedEmergencyRecovery,
+        finalText: nextText || createLifeBookFallbackText(profile, signals, blueprint, premiumCategory.title, premiumCategory.localSummary),
         order: index + 1,
       };
     });
@@ -6199,7 +7060,7 @@ function renderLifeBookPdfClean({ profile, signals, chapters, generatedAt, final
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>인생의 책 — 나의 운명 사용 설명서</title>
+    <title>인생의 책 — 나의 운명 사용 기준</title>
     <style>
       :root{color-scheme:light}
       *{box-sizing:border-box}
@@ -6489,7 +7350,7 @@ function buildLifeBookPdfRecord({
     userId: clean(userId),
     profileId: clean(profileId) || clean(userId),
     serviceType: "life-book",
-    title: "인생의 책 — 나의 운명 사용 설명서",
+    title: "인생의 책 — 나의 운명 사용 기준",
     createdAt: clean(createdAt) || new Date().toISOString(),
     engineVersion: clean(engineVersion) || "quantum-myeongri-v1",
     chapterCount: 13,
@@ -6552,6 +7413,7 @@ function buildPdfReadyPayloadClean(profile, chapters, metadata = {}) {
     profile,
     metadata,
     html: String(metadata.pdfHtml || ""),
+    manuscriptSource: clean(metadata.manuscriptSource || ""),
     finalManuscriptMarkdown: normalizeLifeBookFinalManuscriptMarkdown(metadata.finalManuscriptMarkdown || ""),
     finalManuscriptSource: clean(metadata.finalManuscriptSource || ""),
     finalManuscriptErrors: Array.isArray(metadata.finalManuscriptErrors) ? metadata.finalManuscriptErrors : [],
@@ -6559,6 +7421,7 @@ function buildPdfReadyPayloadClean(profile, chapters, metadata = {}) {
     finalQualityReviewPassed: Boolean(metadata.finalQualityReviewPassed),
     finalQualityReviewErrors: Array.isArray(metadata.finalQualityReviewErrors) ? metadata.finalQualityReviewErrors : [],
     finalQualityReviewWarnings: Array.isArray(metadata.finalQualityReviewWarnings) ? metadata.finalQualityReviewWarnings : [],
+    highQualityGate: metadata.highQualityGate || null,
     chapters: chapters.map((chapter, index) => ({
       chapter: index + 1,
       id: chapter.id,
@@ -6589,6 +7452,7 @@ function buildPdfReadyPayload(profile, chapters, metadata = {}) {
     profile,
     metadata,
     html: String(metadata.pdfHtml || ""),
+    manuscriptSource: clean(metadata.manuscriptSource || ""),
     finalManuscriptMarkdown: normalizeLifeBookFinalManuscriptMarkdown(metadata.finalManuscriptMarkdown || ""),
     finalManuscriptSource: clean(metadata.finalManuscriptSource || ""),
     finalManuscriptErrors: Array.isArray(metadata.finalManuscriptErrors) ? metadata.finalManuscriptErrors : [],
@@ -6596,6 +7460,7 @@ function buildPdfReadyPayload(profile, chapters, metadata = {}) {
     finalQualityReviewPassed: Boolean(metadata.finalQualityReviewPassed),
     finalQualityReviewErrors: Array.isArray(metadata.finalQualityReviewErrors) ? metadata.finalQualityReviewErrors : [],
     finalQualityReviewWarnings: Array.isArray(metadata.finalQualityReviewWarnings) ? metadata.finalQualityReviewWarnings : [],
+    highQualityGate: metadata.highQualityGate || null,
     chapters: (Array.isArray(chapters) ? chapters : []).map((chapter, index) => ({
       chapter: index + 1,
       id: chapter.id,
@@ -6629,6 +7494,12 @@ function validateLifeBookPdfCompletionPayload({ pdfReady = {}, chapters = [] } =
   if (!structure.ok) errors.push(...structure.blockingErrors);
 
   const quality = evaluateLifeBookQuality(chapters);
+  const highQuality = validateLifeBookHighQualityReadiness(chapters, {
+    manuscriptSource: pdfReady?.manuscriptSource,
+    finalManuscriptSource: pdfReady?.finalManuscriptSource,
+    generationMode: pdfReady?.generationMode,
+  });
+  if (!highQuality.ok) errors.push(...highQuality.errors);
   const blockingWarnings = (Array.isArray(quality.warningItems) ? quality.warningItems : [])
     .filter((item) => clean(item?.severity) === "high")
     .map((item) => clean(item?.code))
@@ -6648,6 +7519,7 @@ function validateLifeBookPdfCompletionPayload({ pdfReady = {}, chapters = [] } =
     errors: Array.from(new Set(errors)),
     structure,
     quality,
+    highQuality,
   };
 }
 
@@ -6759,6 +7631,8 @@ async function handlePrepareSync(request, env) {
     throw error;
   }
   const body = await readJson(request);
+  body.targetYear = resolveLifeBookTargetYear(body);
+  body.analysisYear = body.targetYear;
   const premiumAccessToken = String(
     request.headers.get("x-premium-access-token")
     || body?.premiumAccessToken
@@ -6778,11 +7652,12 @@ async function handlePrepareSync(request, env) {
     hasBirthDate: Boolean(birthInput.birthDate),
     hasBirthTime: Boolean(birthInput.birthTime),
     birthHour: birthInput.birthHour,
+    targetYear: body.targetYear,
     hasGender: Boolean(birthInput.gender && birthInput.gender !== "unknown"),
     calendarType: birthInput.calendarType,
   });
 
-  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId) || `life-book:${auth.userId}:${birthInput.birthDate}:${birthInput.birthTime || "unknown"}`;
+  const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId) || `life-book:${auth.userId}:${birthInput.birthDate}:${birthInput.birthTime || "unknown"}:${body.targetYear}`;
   const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-lifebook-${Date.now()}`);
   const profileId = resolveLifeBookProfileId(body, profile);
   const featureKey = resolveLifeBookFeatureKey(body?.featureKey);
@@ -7052,6 +7927,7 @@ async function handlePrepareSync(request, env) {
     completedChapters,
     structureValidation,
     qualityEvaluation,
+    highQualityGate,
     finalQualityWarnings,
     finalQualityScore,
     repairedCategoryCount,
@@ -7104,6 +7980,7 @@ async function handlePrepareSync(request, env) {
     finalQualityReviewPassed: Boolean(generatedLifeBook.finalQualityReviewPassed),
     finalQualityReviewErrors: generatedLifeBook.finalQualityReviewErrors || [],
     finalQualityReviewWarnings: generatedLifeBook.finalQualityReviewWarnings || [],
+    highQualityGate,
     generationMode: generatedLifeBook.generationMode || LIFE_BOOK_PDF_CONFIG.generationMode,
     templateVersion: generatedLifeBook.templateVersion || LIFE_BOOK_PDF_CONFIG.templateVersion,
     localAssembly,
@@ -7186,6 +8063,7 @@ async function handlePrepareSync(request, env) {
     sectionCount: completedChapters.reduce((sum, chapter) => sum + (Array.isArray(chapter?.sectionResults) ? chapter.sectionResults.length : 0), 0),
     qualityWarnings: finalQualityWarnings,
     qualityScore: finalQualityScore,
+    highQualityGate,
     pdfCompletionValidation,
     repairedCategoryCount,
     cacheKey,
@@ -7428,6 +8306,8 @@ async function handlePrepare(request, env, ctx) {
   } catch (_) {
     return await handlePrepareSync(new Request(request, { body: bodyText }), env);
   }
+  body.targetYear = resolveLifeBookTargetYear(body);
+  body.analysisYear = body.targetYear;
 
   let auth;
   try {
@@ -7445,7 +8325,7 @@ async function handlePrepare(request, env, ctx) {
   }
 
   const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId)
-    || `life-book:${auth.userId}:${clean(body?.birthDate || "unknown")}:${clean(body?.birthTime || body?.hour || "unknown")}`;
+    || `life-book:${auth.userId}:${clean(body?.birthDate || "unknown")}:${clean(body?.birthTime || body?.hour || "unknown")}:${body.targetYear}`;
   const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `saju-lifebook-${Date.now()}`);
   const existingLock = LIFEBOOK_SESSION_LOCKS.get(sessionId);
 

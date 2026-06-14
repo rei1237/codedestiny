@@ -671,8 +671,8 @@
   box-shadow: 0 0 30px rgba(255, 120, 200, 0.6);
 }
 @media (max-width: 480px) {
-  .tarot-love-slot { width: 78px; }
-  .tarot-love-card { width: 78px; height: 104px; }
+  .tarot-love-slot { width: 84px; }
+  .tarot-love-card { width: 84px; height: 114px; }
 }
 
 .tarot-love-card-back,
@@ -746,16 +746,18 @@
   transform: rotate(180deg);
 }
 .tarot-love-card-front .tarot-love-card-name {
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   color: #ffd1f0;
   margin-top: 4px;
   text-align: center;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.25;
   max-width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
 }
 
 /* Final button */
@@ -832,8 +834,8 @@
 }
 .tarot-love-result-mini-card {
   position: relative;
-  width: 52px;
-  height: 72px;
+  width: 58px;
+  height: 80px;
   border-radius: 6px;
   overflow: hidden;
   border: 1px solid rgba(255, 180, 220, 0.3);
@@ -882,9 +884,9 @@
 }
 @media (max-width: 520px) {
   .tarot-love-result-cards-strip { gap: 8px 10px; padding: 12px 8px 14px; }
-  .tarot-love-result-mini-card { width: 46px; height: 64px; }
-  .tarot-love-result-mini-label { font-size: 0.62rem; max-width: 58px; }
-  .tarot-love-result-mini-name { font-size: 0.6rem; max-width: 58px; }
+  .tarot-love-result-mini-card { width: 52px; height: 72px; }
+  .tarot-love-result-mini-label { font-size: 0.66rem; max-width: 64px; }
+  .tarot-love-result-mini-name { font-size: 0.63rem; max-width: 64px; }
 }
 
 .tarot-love-section {
@@ -1283,11 +1285,11 @@
     gap: 8px;
   }
   .tarot-love-slot {
-    width: 78px;
+    width: 82px;
   }
   .tarot-love-card {
-    width: 78px;
-    height: 106px;
+    width: 82px;
+    height: 112px;
   }
   .tarot-love-slot-label {
     font-size: 0.68rem;

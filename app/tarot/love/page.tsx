@@ -3,7 +3,7 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const META = {
   path: "/tarot/love",
-  title: "우리는 무슨 사이? - 6카드 연애 관계 타로 | Code Destiny",
+  title: "우리는 무슨 사이? - 6카드 연애 관계 타로",
   description: "내가 보는 상대, 상대의 시선, 관계를 막는 요인과 예상 결과까지 6카드 스프레드로 확인하세요.",
   keywords: ["연애 타로", "관계 타로", "relationship six card", "우리는 무슨 사이", "재회", "연애운"],
   image: "https://code-destiny.com/fuctionassets/tarolove.webp",

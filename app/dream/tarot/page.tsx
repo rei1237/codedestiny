@@ -3,7 +3,7 @@ import { buildFortuneJsonLd, generatePageMetadata } from "../../../lib/generate-
 
 const META = {
   path: "/dream/tarot",
-  title: "드림 타로 - 꿈의 잔향을 여는 3카드 리딩 | Code Destiny",
+  title: "드림 타로 - 꿈의 잔향을 여는 3카드 리딩",
   description: "꿈속 장면과 깨어난 뒤의 감정을 세 장의 카드에 겹쳐, 무의식이 남긴 상징과 오늘 봉인할 선택을 읽습니다.",
   keywords: ["꿈해몽", "드림 타로", "꿈 상징", "dream interpretation", "무의식"],
   image: "https://code-destiny.com/fuctionassets/heamong.webp",

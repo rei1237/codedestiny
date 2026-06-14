@@ -1,6 +1,6 @@
-const BRAND_NAME = "Code: Destiny";
+const BRAND_NAME = "Code Destiny";
 const BRAND_URL = "https://code-destiny.com";
-const AUTHOR_NAME = "꽃돼지 연이";
+const DEFAULT_IMAGE = `${BRAND_URL}/og/code-destiny-og.png`;
 
 function toIsoString(value) {
   if (!value) return undefined;
@@ -19,35 +19,18 @@ function StructuredDataScript({ id, data }) {
   );
 }
 
-function buildAuthor() {
-  return {
-    "@type": "Person",
-    "@id": `${BRAND_URL}/about#author`,
-    name: AUTHOR_NAME,
-    url: `${BRAND_URL}/about`,
-    jobTitle: "명리학 연구자 · 운세 콘텐츠 에디터",
-    description:
-      "사주, 타로, 점성술 콘텐츠를 실제 사례 기반으로 해석하고 검증하는 Code: Destiny 운영자.",
-    worksFor: {
-      "@type": "Organization",
-      "@id": `${BRAND_URL}/#organization`,
-      name: BRAND_NAME,
-    },
-    knowsAbout: ["사주", "명리학", "타로", "운세", "점성술", "심리 테스트"],
-  };
-}
-
 function buildOrganization() {
   return {
     "@type": "Organization",
     "@id": `${BRAND_URL}/#organization`,
     name: BRAND_NAME,
+    alternateName: ["코드 데스티니", "꿀꿀 만세력", "꿀꿀 운세"],
     url: BRAND_URL,
     logo: {
       "@type": "ImageObject",
-      url: `${BRAND_URL}/icons/꿀꿀 운세 로고.webp`,
-      width: 512,
-      height: 512,
+      url: DEFAULT_IMAGE,
+      width: 1200,
+      height: 630,
     },
   };
 }
@@ -64,7 +47,6 @@ export function ArticleJsonLd({
   inLanguage = "ko-KR",
 }) {
   const organization = buildOrganization();
-  const author = buildAuthor();
   const published = toIsoString(datePublished) || toIsoString(dateModified);
   const modified = toIsoString(dateModified) || published;
 
@@ -72,7 +54,6 @@ export function ArticleJsonLd({
     "@context": "https://schema.org",
     "@graph": [
       organization,
-      author,
       {
         "@type": "Article",
         "@id": `${url}#article`,
@@ -85,26 +66,22 @@ export function ArticleJsonLd({
         url,
         inLanguage,
         author: {
-          "@id": `${BRAND_URL}/about#author`,
+          "@type": "Organization",
+          "@id": `${BRAND_URL}/#organization`,
+          name: BRAND_NAME,
         },
         publisher: {
           "@id": `${BRAND_URL}/#organization`,
         },
         ...(published ? { datePublished: published } : {}),
         ...(modified ? { dateModified: modified } : {}),
-        ...(image
-          ? {
-              image: {
-                "@type": "ImageObject",
-                url: image,
-                width: 1200,
-                height: 630,
-              },
-            }
-          : {}),
-        ...(Array.isArray(keywords) && keywords.length > 0
-          ? { keywords: keywords.join(", ") }
-          : {}),
+        image: {
+          "@type": "ImageObject",
+          url: image || DEFAULT_IMAGE,
+          width: 1200,
+          height: 630,
+        },
+        ...(Array.isArray(keywords) && keywords.length > 0 ? { keywords: keywords.join(", ") } : {}),
         ...(articleSection ? { articleSection } : {}),
       },
     ],
@@ -114,7 +91,6 @@ export function ArticleJsonLd({
 }
 
 export function BreadcrumbJsonLd({ items = [] }) {
-  // items: [{ name, url }]
   if (!Array.isArray(items) || items.length === 0) return null;
   const data = {
     "@context": "https://schema.org",
@@ -184,7 +160,7 @@ export function SoftwareApplicationJsonLd({
     inLanguage,
     isAccessibleForFree: true,
     author: {
-      "@id": `${BRAND_URL}/about#author`,
+      "@id": `${BRAND_URL}/#organization`,
     },
     publisher: {
       "@id": `${BRAND_URL}/#organization`,
@@ -199,20 +175,14 @@ export function SoftwareApplicationJsonLd({
       availability: "https://schema.org/InStock",
       url,
     },
-    ...(image
-      ? {
-          image: {
-            "@type": "ImageObject",
-            url: image,
-          },
-        }
-      : {}),
+    image: {
+      "@type": "ImageObject",
+      url: image || DEFAULT_IMAGE,
+    },
     ...(Array.isArray(featureList) && featureList.length > 0
       ? { featureList: featureList.map((item) => String(item).trim()).filter(Boolean) }
       : {}),
-    ...(Array.isArray(keywords) && keywords.length > 0
-      ? { keywords: keywords.join(", ") }
-      : {}),
+    ...(Array.isArray(keywords) && keywords.length > 0 ? { keywords: keywords.join(", ") } : {}),
   };
 
   return <StructuredDataScript id="jsonld-software-app" data={data} />;

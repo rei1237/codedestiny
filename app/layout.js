@@ -8,27 +8,27 @@ import DeferredAdsense from "./components/DeferredAdsense";
 import NavigationProvider from "./providers/NavigationProvider";
 import AppChrome from "./components/AppChrome";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
+import { siteSeo } from "../lib/seo/siteSeo";
+import {
+  buildOrganizationJsonLd,
+  buildWebPageJsonLd,
+  buildWebsiteJsonLd,
+} from "../lib/structured-data";
 
 const notoSansKRVariable = "font-noto-sans-kr-offline";
 
-const CANONICAL_ORIGIN = "https://code-destiny.com";
-const BRAND_ICON_PATH = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
-const BRAND_ICON_URL = `${CANONICAL_ORIGIN}${BRAND_ICON_PATH}`;
-
-// Static metadata for static export
 export const metadata = {
   charset: "utf-8",
-  metadataBase: new URL("https://code-destiny.com"),
-  applicationName: "꿀꿀 운세",
+  metadataBase: new URL(siteSeo.siteUrl),
+  applicationName: siteSeo.siteName,
   title: {
-    default: "꿀꿀 운세 | 무료 사주팔자 · 오늘의 운세 · 코드 데스티니",
-    template: "%s | 꿀꿀 운세",
+    default: siteSeo.defaultTitle,
+    template: siteSeo.titleTemplate,
   },
-  description:
-    "꿀꿀 운세는 Code Destiny(코드 데스티니)가 제공하는 무료 운세, 숙요점, 사주팔자, 자미두수 명반, 타로 카드, 베다 점성술, 고품질 운세 리포트를 한곳에서 제공하는 통합 운세 플랫폼입니다.",
+  description: siteSeo.defaultDescription,
   keywords: SEO_CORE_KEYWORDS,
-  creator: "Code Destiny",
-  publisher: "Code Destiny",
+  creator: siteSeo.siteName,
+  publisher: siteSeo.siteName,
   category: "Fortune & Astrology",
   classification: "Fortune telling, astrology, saju, tarot",
   referrer: "origin-when-cross-origin",
@@ -49,58 +49,44 @@ export const metadata = {
     },
   },
   icons: {
-    icon: BRAND_ICON_PATH,
-    shortcut: BRAND_ICON_PATH,
-    apple: BRAND_ICON_PATH,
-    other: [
-      { rel: "icon", type: "image/webp", sizes: "1200x1200", url: BRAND_ICON_PATH },
-    ],
+    icon: "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp",
+    shortcut: "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp",
+    apple: "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp",
   },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: "꿀꿀 운세",
+    title: siteSeo.siteName,
     statusBarStyle: "default",
-    startupImage: [BRAND_ICON_PATH],
   },
   alternates: {
     canonical: "/",
     languages: {
       ko: "/",
-      en: "/en",
-      ja: "/ja",
-      zh: "/zh",
       "x-default": "/",
     },
   },
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    alternateLocale: ["en_US", "ja_JP", "zh_CN"],
-    url: "https://code-destiny.com",
-    siteName: "꿀꿀 운세",
-    title: "꿀꿀 운세 | 무료 사주팔자 · 오늘의 운세 · 코드 데스티니",
-    description:
-      "꿀꿀 운세는 Code Destiny(코드 데스티니)가 제공하는 무료 운세, 숙요점, 사주팔자, 자미두수 명반, 타로 카드, 베다 점성술, 고품질 운세 리포트를 한곳에서 제공하는 통합 운세 플랫폼입니다.",
+    url: siteSeo.siteUrl,
+    siteName: siteSeo.siteName,
+    title: siteSeo.defaultTitle,
+    description: siteSeo.defaultDescription,
     images: [
       {
-        url: BRAND_ICON_URL,
+        url: siteSeo.defaultOgImage,
         width: 1200,
         height: 630,
-        alt: "꿀꿀 운세 - 무료 사주팔자, 자미두수 운세 분석",
+        alt: "Code Destiny 무료 사주 타로 오늘의 운세 플랫폼",
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
-    title: "꿀꿀 운세 | 무료 사주팔자 · 오늘의 운세 · 코드 데스티니",
-    description:
-      "꿀꿀 운세는 Code Destiny(코드 데스티니)가 제공하는 무료 운세, 숙요점, 사주팔자, 자미두수 명반, 타로 카드, 베다 점성술, 고품질 운세 리포트를 한곳에서 제공하는 통합 운세 플랫폼입니다.",
-    images: [BRAND_ICON_URL],
-    creator: "@codedestiny",
-  },
-  verification: {
-    yandex: "98b1cd43eb1188de",
+    card: siteSeo.twitterCard,
+    title: siteSeo.defaultTitle,
+    description: siteSeo.defaultDescription,
+    images: [siteSeo.defaultOgImage],
   },
   other: {
     "naver-site-verification": "b0fd5fe51988d4063ba5ae1875a97d5531bc1a1e",
@@ -118,106 +104,29 @@ export const viewport = {
   colorScheme: "dark light",
 };
 
-// JSON-LD structured data
-const jsonLd = JSON.stringify({
+const jsonLdGraph = {
   "@context": "https://schema.org",
   "@graph": [
-    {
-      "@type": "WebSite",
-      "@id": "https://code-destiny.com/#website",
-      url: "https://code-destiny.com",
-      name: "꿀꿀 운세",
-      alternateName: ["코드 데스티니", "꿀꿀 운세", "꿀꿀 만세력", "codedestiny"],
-      description: "사주·타로·자미두수·점성술을 연결해 해석하는 무료 운세 플랫폼",
-      publisher: { "@type": "Organization", "@id": "https://code-destiny.com/#organization" },
-      potentialAction: {
-        "@type": "SearchAction",
-        target: "https://code-destiny.com/?q={search_term_string}",
-        "query-input": "required name=search_term_string",
-      },
-      inLanguage: "ko",
-    },
-    {
-      "@type": "Organization",
-      "@id": "https://code-destiny.com/#organization",
-      name: "꿀꿀 운세",
-      alternateName: ["코드 데스티니", "꿀꿀 운세", "꿀꿀 만세력", "Ggulggul Manseryeok", "codedestiny"],
-      url: "https://code-destiny.com",
-      logo: {
-        "@type": "ImageObject",
-        "@id": BRAND_ICON_URL,
-        url: BRAND_ICON_URL,
-        contentUrl: BRAND_ICON_URL,
-        width: 1200,
-        height: 630,
-        caption: "꿀꿀 운세 - Free Saju & Fortune Platform",
-      },
-      image: { "@id": BRAND_ICON_URL },
-    },
-    {
-      "@type": "SoftwareApplication",
-      "@id": "https://code-destiny.com/#softwareapplication",
-      name: "꿀꿀 운세",
-      applicationCategory: "LifestyleApplication",
-      operatingSystem: "Web",
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "KRW",
-      },
-      featureList: [
-        "무료 운세",
-        "숙요점",
-        "사주팔자",
-        "자미두수 명반",
-        "타로 카드",
-        "베다 점성술",
-        "고품질 운세 리포트",
-      ],
-      applicationSubCategory: "Fortune & Astrology",
-      inLanguage: ["ko", "en", "ja", "zh"],
-      url: "https://code-destiny.com",
-      publisher: { "@id": "https://code-destiny.com/#organization" },
-    },
-    {
-      "@type": "WebPage",
-      "@id": "https://code-destiny.com/#webpage",
-      url: "https://code-destiny.com",
-      name: "꿀꿀 운세 | 무료 사주팔자 · 오늘의 운세 · 코드 데스티니",
-      isPartOf: { "@id": "https://code-destiny.com/#website" },
-      about: { "@id": "https://code-destiny.com/#organization" },
-      primaryImageOfPage: { "@id": BRAND_ICON_URL },
-      datePublished: "2024-01-01T00:00:00+09:00",
-      dateModified: new Date().toISOString(),
-      description:
-        "꿀꿀 운세는 Code Destiny(코드 데스티니)가 제공하는 무료 운세, 숙요점, 사주팔자, 자미두수 명반, 타로 카드, 베다 점성술, 고품질 운세 리포트를 한곳에서 제공하는 통합 운세 플랫폼입니다.",
-      inLanguage: "ko",
-      potentialAction: {
-        "@type": "ReadAction",
-        target: ["https://code-destiny.com"],
-      },
-    },
+    buildOrganizationJsonLd(),
+    buildWebsiteJsonLd(),
+    buildWebPageJsonLd({
+      title: siteSeo.defaultTitle,
+      description: siteSeo.defaultDescription,
+      path: "/",
+    }),
   ],
-});
+};
 
-// Simplified layout for static export
 export default function RootLayout({ children }) {
   return (
     <html lang="ko" dir="ltr" className={notoSansKRVariable}>
       <head>
         <link rel="alternate" type="application/rss+xml" title="Code Destiny Insights RSS" href="https://code-destiny.com/rss.xml" />
         <link rel="alternate" hrefLang="ko" href="https://code-destiny.com/" />
-        <link rel="alternate" hrefLang="en" href="https://code-destiny.com/en/" />
-        <link rel="alternate" hrefLang="ja" href="https://code-destiny.com/ja/" />
-        <link rel="alternate" hrefLang="zh" href="https://code-destiny.com/zh/" />
         <link rel="alternate" hrefLang="x-default" href="https://code-destiny.com/" />
-        <meta property="og:site_name" content="Code Destiny" />
+        <meta property="og:site_name" content={siteSeo.siteName} />
         <meta property="og:locale" content="ko_KR" />
-        <meta property="og:locale:alternate" content="en_US" />
-        <meta property="og:locale:alternate" content="ja_JP" />
-        <meta property="og:locale:alternate" content="zh_CN" />
-        <meta name="yandex-verification" content="98b1cd43eb1188de" />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdGraph) }} />
       </head>
       <body className={notoSansKRVariable}>
         <PaymentProcessingProvider>
@@ -227,9 +136,7 @@ export default function RootLayout({ children }) {
               <BuildInfoLogger />
               <AppVersionGuard />
               <ToastProvider />
-              <AppChrome>
-                {children}
-              </AppChrome>
+              <AppChrome>{children}</AppChrome>
             </NavigationProvider>
           </Suspense>
         </PaymentProcessingProvider>

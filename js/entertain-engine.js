@@ -437,10 +437,10 @@
     ],
     fire: [
       { id: 'fq1', icon: '🔥', text: '오늘 하루 최우선 목표 1개를 완수하기', exp: 25 },
-      { id: 'fq2', icon: '🌅', text: '아침에 햇빛 10분 이상 쬐기 (비타민D 충전)', exp: 10 },
+      { id: 'fq2', icon: '🌅', text: '아침 햇빛을 10분 이상 받으며 몸의 리듬 깨우기', exp: 10 },
       { id: 'fq3', icon: '💪', text: '30분 이상 유산소 운동 (달리기, 사이클, 댄스)', exp: 20 },
       { id: 'fq4', icon: '🎯', text: '하고 싶었던 말을 용기 있게 표현하기 (문자도 OK)', exp: 20 },
-      { id: 'fq5', icon: '💊', text: '수분 2L 이상 섭취하고 마신 양 체크하기', exp: 10 }
+      { id: 'fq5', icon: '💊', text: '물을 충분히 마시고 하루의 물기 리듬 체크하기', exp: 10 }
     ],
     earth: [
       { id: 'eq1', icon: '⛰️', text: '오늘 감사한 것 3가지를 일기나 메모에 기록하기', exp: 15 },
@@ -451,13 +451,13 @@
     ],
     metal: [
       { id: 'mq1', icon: '⚔️', text: '가장 어려운 일을 먼저 처리하기 (이팅 더 프로그)', exp: 25 },
-      { id: 'mq2', icon: '🫁', text: '복식 호흡 5분 — 폐와 신경계 정화 호흡', exp: 15 },
+      { id: 'mq2', icon: '🫁', text: '복식 호흡 5분 — 숨의 리듬을 차분히 정돈하기', exp: 15 },
       { id: 'mq3', icon: '🗑️', text: '불필요한 앱·파일·물건 하나 정리하거나 삭제하기', exp: 10 },
       { id: 'mq4', icon: '📊', text: '오늘 지출 내역 확인 및 이번 달 예산 점검하기', exp: 20 },
       { id: 'mq5', icon: '🤫', text: '불필요한 말을 아끼고 핵심만 전달하는 하루', exp: 15 }
     ],
     water: [
-      { id: 'aq1', icon: '💧', text: '기상 직후 물 한 잔 (공복에 신장·방광 깨우기)', exp: 10 },
+      { id: 'aq1', icon: '💧', text: '기상 직후 물 한 잔으로 몸의 물기 깨우기', exp: 10 },
       { id: 'aq2', icon: '🧘', text: '5분 명상 또는 조용한 사색 시간 갖기', exp: 20 },
       { id: 'aq3', icon: '📖', text: '오늘 직관적으로 떠오른 아이디어·감정 기록하기', exp: 20 },
       { id: 'aq4', icon: '🌊', text: '걱정거리를 종이에 쓰고 해결책 1가지 적어보기', exp: 25 },
@@ -839,7 +839,7 @@
         element: elements[0],
         expReward: 10,
         text: getRpgElementLabel(elements[0]) + ' 기운을 깨우는 작은 행동 하나 정하기',
-        description: '서버 기록이 열리기 전에도 오늘의 성장 방향을 먼저 확인할 수 있습니다.',
+        description: '운명 기록이 열리기 전에도 오늘의 성장 방향을 먼저 확인할 수 있습니다.',
         reason: '부족한 기운을 작게 보완하면 하루의 리듬이 안정됩니다.',
         afterCompleteMessage: '작은 선택이 운의 결을 다시 세웁니다.'
       },
@@ -984,7 +984,7 @@
         + '</div>'
         + '<div class="ent-rpg-quest-footer">'
         +   '<div class="ent-rpg-exp-tag">+' + escapeRpgHtml(quest.expReward) + ' EXP</div>'
-        +   '<button type="button" class="ent-rpg-complete-btn' + (done ? ' is-done' : '') + '" data-rpg-complete="' + escapeRpgHtml(quest.questId) + '"' + ((done || isPreviewMode) ? ' disabled aria-pressed="' + (done ? 'true' : 'false') + '"' : ' aria-pressed="false"') + '>' + escapeRpgHtml(isPreviewMode ? '미리보기' : btnLabel) + '</button>'
+        +   '<button type="button" class="ent-rpg-complete-btn' + (done ? ' is-done' : '') + '" data-rpg-complete="' + escapeRpgHtml(quest.questId) + '"' + ((done || isPreviewMode) ? ' disabled aria-pressed="' + (done ? 'true' : 'false') + '"' : ' aria-pressed="false"') + '>' + escapeRpgHtml(isPreviewMode ? '기록 대기' : btnLabel) + '</button>'
         + '</div>'
         + (done ? '<span class="cd-rpg-spark">COMPLETE</span>' : '')
         + '</article>';
@@ -996,7 +996,7 @@
       ? '<div class="ent-rpg-secret-panel is-open">'
         +   '<div class="ent-rpg-secret-open-icon">✦</div>'
         +   '<div class="ent-rpg-secret-title">오늘의 성장 메시지</div>'
-        +   '<div class="ent-rpg-secret-copy">서버가 모든 완료 기록을 저장했습니다. 이제 오늘의 비밀 운세를 열어볼 수 있습니다.</div>'
+        +   '<div class="ent-rpg-secret-copy">오늘의 완료 기록이 새겨졌습니다. 이제 비밀 운세의 문이 열립니다.</div>'
         +   '<div class="ent-rpg-secret-message">' + escapeRpgHtml(secretMessage) + '</div>'
         +   '<div class="ent-rpg-secret-note">UNLOCK SAVED ON SERVER</div>'
         + '</div>'
@@ -1037,22 +1037,22 @@
     var giDisplay = formatRpgElementList(usefulGods.gi) || '미정';
     var abilityTitle = formatRpgElementName(toRpgList(usefulGods.yong)[0] || dayMaster.elementKo || dayMaster.element || '운명') + ' 공명';
     var previewBlock = isPreviewMode
-      ? '<div class="ent-rpg-preview-note">운명의 기록이 열리는 동안, 지금 확인 가능한 성장 루트를 먼저 펼쳐드립니다. EXP 저장은 서버 응답 후 활성화됩니다.</div>'
+      ? '<div class="ent-rpg-preview-note">운명의 기록이 열리기 전, 지금 확인 가능한 성장 루트를 먼저 펼쳐드립니다. EXP 각인은 프로필 연결 후 활성화됩니다.</div>'
       : '';
     var loadingBlock = isLoading
       ? '<div class="ent-rpg-loading">오늘의 사주 기반 퀘스트를 불러오는 중입니다.</div>'
-      : (errText && state.errorState ? '<div class="ent-rpg-empty">서버 응답을 불러오지 못했습니다.<br>' + escapeRpgHtml(errText) + '</div>' : '');
+      : (errText && state.errorState ? '<div class="ent-rpg-empty">오늘의 성장 기록을 열지 못했습니다.<br>' + escapeRpgHtml(errText) + '</div>' : '');
     return '<section class="ent-rpg-shell ent-reveal" id="entRpgSection" data-marker="rpg-character-sheet-today-skill-v20260613" data-dayel="' + escapeRpgHtml(profileDayEl) + '" data-state="' + escapeRpgHtml(state.errorState ? 'error' : (isLoading ? 'loading' : 'ready')) + '" data-profile-id="' + escapeRpgHtml(state.profileId || '') + '" data-quest-date="' + escapeRpgHtml(state.questDateKst || '') + '">'
       + '<div class="ent-rpg-topline">'
       +   '<div>'
       +     '<div class="ent-quest-tag">⚡ DAILY QUEST SYSTEM</div>'
       +     '<div class="ent-quest-title">오늘의 일일 퀘스트</div>'
-      +     '<div class="ent-quest-sub">서버가 사주 구조에 맞춰 오늘의 미션을 배정합니다 · KST 자정 기준 리셋</div>'
+      +     '<div class="ent-quest-sub">사주 구조에 맞춰 오늘의 미션이 열립니다 · KST 자정 기준 리셋</div>'
       +   '</div>'
       +   '<div class="ent-rpg-kst">KST · ' + getKstDateString() + '</div>'
       + '</div>'
       + (state.message ? '<div class="ent-rpg-status">' + escapeRpgHtml(state.message) + '</div>' : '')
-      + (state.errorState ? '<div class="ent-rpg-status is-error">' + escapeRpgHtml(errText || '서버와 연결되지 않았습니다.') + '</div>' : '')
+      + (state.errorState ? '<div class="ent-rpg-status is-error">' + escapeRpgHtml(errText || '오늘의 기록과 연결되지 않았습니다.') + '</div>' : '')
       + '<div class="ent-rpg-grid">'
       +   '<section class="ent-rpg-card ent-rpg-card--hero">'
       +     '<div class="ent-rpg-card__eyebrow">CORE CLASS</div>'
@@ -1095,7 +1095,7 @@
       +   '<section class="ent-rpg-card ent-rpg-card--quests">'
       +     '<div class="ent-rpg-card__eyebrow">TODAY\'S QUESTS</div>'
       +     '<div class="ent-rpg-card__title">오늘의 일일 퀘스트</div>'
-      +     '<div class="ent-rpg-card__sub">퀘스트를 완료할수록 서버에 EXP가 누적되고, 레벨업과 내부 보상이 해금됩니다.</div>'
+      +     '<div class="ent-rpg-card__sub">퀘스트를 완료할수록 EXP가 누적되고, 레벨업과 내부 보상이 해금됩니다.</div>'
       +     loadingBlock
       +     previewBlock
       +     todaySkillHtml
@@ -1109,7 +1109,7 @@
       +   '<section class="ent-rpg-card ent-rpg-card--secret">'
       +     '<div class="ent-rpg-card__eyebrow">TODAY\'S SECRET FORTUNE</div>'
       +     '<div class="ent-rpg-card__title">오늘의 비밀 운세</div>'
-      +     '<div class="ent-rpg-card__sub">모든 미션을 완료하면 오늘의 성장 메시지가 해금되고 서버에 기록됩니다.</div>'
+      +     '<div class="ent-rpg-card__sub">모든 미션을 완료하면 오늘의 성장 메시지가 해금되고 운명 기록에 새겨집니다.</div>'
       +     secretHtml
       +   '</section>'
       + '</div>'
@@ -1155,11 +1155,11 @@
     var questRoot = root || document.getElementById('entRpgSection');
     if (!questRoot) return;
     if (!profileId) {
-      renderRpgSection(questRoot, { loading: false, errorState: true, errorMessage: '프로필을 찾을 수 없습니다.' }, p);
+      renderRpgSection(questRoot, { loading: false, errorState: false, message: '프로필을 저장하면 오늘의 퀘스트 기록이 열립니다.' }, p);
       return;
     }
     questRoot.dataset.profileId = profileId;
-    renderRpgSection(questRoot, { loading: true, profileId: profileId, message: '서버에서 오늘의 운명을 불러오는 중입니다.' }, p);
+    renderRpgSection(questRoot, { loading: true, profileId: profileId, message: '오늘의 운명 기록을 여는 중입니다.' }, p);
     try {
       var params = new URLSearchParams();
       params.set('profileId', profileId);
@@ -1173,7 +1173,7 @@
         renderRpgSection(questRoot, {
           loading: false,
           errorState: true,
-          errorMessage: (payload && payload.message) || '오늘의 RPG 상태를 불러오지 못했습니다.',
+          errorMessage: (payload && payload.message) || '오늘의 성장 기록을 열지 못했습니다.',
           profileId: profileId
         }, p);
         return;
@@ -1191,7 +1191,7 @@
       renderRpgSection(questRoot, {
         loading: false,
         errorState: true,
-        errorMessage: '서버와 연결되지 않았습니다. 잠시 후 다시 시도하세요.',
+        errorMessage: '오늘의 성장 기록을 잠시 열지 못했습니다. 잠시 후 다시 시도하세요.',
         profileId: profileId
       }, p);
     }
@@ -1228,7 +1228,7 @@
           await loadRpgStatus(root, p);
           return;
         }
-        var failMessage = (payload && payload.message) || '퀘스트 완료에 실패했습니다.';
+        var failMessage = (payload && payload.message) || '퀘스트 기록을 새기지 못했습니다.';
         renderRpgSection(root, Object.assign({
           loading: false,
           errorState: true,
@@ -1253,7 +1253,7 @@
       renderRpgSection(root, {
         loading: false,
         errorState: true,
-        errorMessage: '퀘스트 완료 요청을 처리하지 못했습니다.',
+        errorMessage: '퀘스트 기록을 새기지 못했습니다.',
         profileId: String(root.dataset.profileId || '')
       }, p);
     }

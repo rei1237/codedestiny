@@ -3,7 +3,7 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const META = {
   path: "/vedic/jyotish",
-  title: "베다 점성술 (Jyotish) - 라시·다샤 해석 | Code Destiny",
+  title: "베다 점성술 (Jyotish) - 라시·다샤 해석",
   description: "항성 황도 기반 베다 점성술로 라시 차트, 낙샤트라, 다샤 흐름을 읽는 실행형 가이드입니다.",
   keywords: ["베다 점성술", "Jyotish", "낙샤트라", "다샤", "인도 점성술"],
   image: "https://code-destiny.com/fuctionassets/veda.webp",

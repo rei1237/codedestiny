@@ -124,9 +124,7 @@ function buildChapters(mode, specs) {
     const keywords = TOPIC_KEYWORDS[mode][chapterNo];
     const categories = mode === "compatibility"
       ? Array.from(loveSecret.LOVE_SECRET_PHASE7_COMPAT_SECTIONS[chapterNo] || loveSecret.LOVE_SECRET_PHASE7_COMPAT_SECTIONS[1])
-      : Array.isArray(spec.categories) && spec.categories.length
-      ? spec.categories.slice(0, 5)
-      : ["핵심 성향", "감정 흐름", "사주 근거", "관계 전략", "실천 비책"];
+      : Array.from(loveSecret.LOVE_SECRET_PHASE6_SOLO_SECTIONS[chapterNo] || loveSecret.LOVE_SECRET_PHASE6_SOLO_SECTIONS[1]);
     const sections = categories.map((title, sectionIndex) => ({
       title,
       body: sectionBody({ mode, chapterNo, sectionNo: sectionIndex + 1, title, keywords }),
@@ -203,6 +201,7 @@ function assertMode(mode, specs, expectedCount) {
   assert.equal(validation.explicitIntimacyCount, 0, `${mode} phase9 explicit validation`);
   assert.equal(validation.partnerBlameCount, 0, `${mode} phase9 blame validation`);
 
+  const assembledChapters = loveSecret.buildLoveSecretAssembledChapters(chapters, base, mode);
   const pdfReady = loveSecret.buildLoveSecretPdfReady("https://example.test", `love_secret_${mode}_smoke`, chapters, base, mode);
   assert.equal(pdfReady.reportId, `love_secret_${mode}_smoke`, `${mode} report id`);
   assert.equal(pdfReady.mode, mode, `${mode} pdf mode`);
@@ -216,14 +215,15 @@ function assertMode(mode, specs, expectedCount) {
   assert.ok(String(pdfReady.html || "").includes(mode === "compatibility" ? "두 사람 궁합 리포트" : "개인 연애 리포트"), `${mode} cover mode`);
   assert.ok(String(pdfReady.html || "").includes("<nav class=\"toc\"><h2>목차</h2>"), `${mode} toc`);
   assert.ok(String(pdfReady.html || "").includes("CHAPTER"), `${mode} chapter marker`);
-  assert.ok(String(pdfReady.html || "").includes("핵심 요약 카드"), `${mode} summary section`);
+  const firstRenderedSection = String(assembledChapters[0]?.sections?.[0]?.title || "");
+  assert.ok(firstRenderedSection && String(pdfReady.html || "").includes(firstRenderedSection), `${mode} first category section`);
   assert.ok(String(pdfReady.html || "").includes("사주 근거 해석"), `${mode} evidence section`);
   assert.ok(String(pdfReady.html || "").includes("실천 조언"), `${mode} action section`);
   assert.ok(String(pdfReady.html || "").includes("시기별 연애 흐름"), `${mode} timing table`);
   assert.ok(String(pdfReady.html || "").includes("30일"), `${mode} routine table`);
   assert.ok(String(pdfReady.html || "").includes("전체 요약"), `${mode} final summary`);
   assert.ok(String(pdfReady.html || "").includes("마지막 조언"), `${mode} final advice`);
-  const pdfCompletionValidation = loveSecret.validateLoveSecretPdfCompletionPayload({ pdfReady, chapters: loveSecret.buildLoveSecretAssembledChapters(chapters, base, mode), mode });
+  const pdfCompletionValidation = loveSecret.validateLoveSecretPdfCompletionPayload({ pdfReady, chapters: assembledChapters, mode });
   assert.equal(pdfCompletionValidation.ok, true, `${mode} assembled pdf completion validation ${JSON.stringify(pdfCompletionValidation)}`);
   assert.ok(String(pdfReady.html || "").length > 10000, `${mode} html length`);
   assert.ok(String(pdfReady.downloadUrl || "").includes("/api/premium/pdf-archive/"), `${mode} archive url`);
@@ -393,26 +393,30 @@ function assertPaymentFlowGuards() {
   assert.match(loveSecretRouteSource, /existingJob && clean\(existingJob\.status\) === "completed"/, "completed async job reused on refresh");
   assert.match(loveSecretRouteSource, /fromCache: true/, "completed result reports cache reuse");
   assert.match(loveSecretRouteSource, /cacheKey: pdfCacheKey/, "content cache key stored on job");
+  assert.match(loveSecretRouteSource, /buildLoveSecretVerifiedLocalPremiumPdf/, "local premium PDF verification uses shared pipeline");
+  assert.equal((loveSecretRouteSource.match(/generateLoveSecretLocalPdf\(/g) || []).length, 1, "local premium PDF generator is called only by shared pipeline");
+  assert.doesNotMatch(loveSecretRouteSource, /async-job-db-fallback|prepare-fallback|대기열 저장소 문제/, "direct local premium path is not named as fallback");
 }
 
 function assertPhase6SoloChapterStructure(chapters, label) {
   const expectedTitles = loveSecret.LOVE_SECRET_PHASE6_SOLO_CHAPTERS.map((chapter) => chapter.title);
-  const expectedSections = loveSecret.LOVE_SECRET_PHASE6_SOLO_SECTIONS[1];
   assert.equal(chapters.length, 10, `${label} phase6 solo chapter count`);
   chapters.forEach((chapter, index) => {
+    const expectedSections = loveSecret.LOVE_SECRET_PHASE6_SOLO_SECTIONS[index + 1];
     assert.equal(chapter.title, expectedTitles[index], `${label} phase6 chapter ${index + 1} title`);
     assert.ok(Array.isArray(chapter.sections), `${label} phase6 chapter ${index + 1} sections`);
     assert.deepEqual(chapter.sections.map((section) => section.title), expectedSections, `${label} phase6 chapter ${index + 1} section titles`);
-    assert.ok(String(chapter.text || "").includes("핵심 요약 카드"), `${label} phase6 chapter ${index + 1} summary card text`);
-    assert.ok(String(chapter.text || "").includes("챕터 마무리 문장"), `${label} phase6 chapter ${index + 1} closing text`);
+    expectedSections.forEach((sectionTitle) => {
+      assert.ok(String(chapter.text || "").includes(sectionTitle), `${label} phase6 chapter ${index + 1} includes ${sectionTitle}`);
+    });
   });
 }
 
 function assertPhase7CompatibilityChapterStructure(chapters, label) {
   const expectedTitles = loveSecret.LOVE_SECRET_PHASE7_COMPAT_CHAPTERS.map((chapter) => chapter.title);
-  const expectedSections = loveSecret.LOVE_SECRET_PHASE7_COMPAT_SECTIONS[1];
   assert.equal(chapters.length, 10, `${label} phase7 compatibility chapter count`);
   chapters.forEach((chapter, index) => {
+    const expectedSections = loveSecret.LOVE_SECRET_PHASE7_COMPAT_SECTIONS[index + 1];
     assert.equal(chapter.title, expectedTitles[index], `${label} phase7 chapter ${index + 1} title`);
     assert.ok(Array.isArray(chapter.sections), `${label} phase7 chapter ${index + 1} sections`);
     assert.deepEqual(chapter.sections.map((section) => section.title), expectedSections, `${label} phase7 chapter ${index + 1} section titles`);
@@ -498,10 +502,11 @@ function assertLoveSecretPdfCache() {
 async function assertLocalAssemblyScaffold() {
   externalGenerationFetchAttempts = 0;
   assert.deepEqual(loveSecret.LOVE_SECRET_PDF_CONFIG, {
-    generationMode: "local-assembled",
-    provider: "saju-assembler",
-    templateVersion: "love-secret-local-assembled-v3",
-  }, "love secret pdf config is local assembled");
+    generationMode: "local-premium",
+    provider: "saju-premium-local-engine",
+    templateVersion: "love-secret-local-premium-v1",
+    qualityMode: "premium-local",
+  }, "love secret pdf config is local premium");
 
   const restoreFetch = installLoveSecretExternalFetchGuard();
   try {
@@ -541,7 +546,7 @@ async function assertLocalAssemblyScaffold() {
     assert.ok(couplePlans.every((plan) => Array.isArray(plan.lockedFacts) && plan.lockedFacts.length > 0), "couple plans carry locked facts");
 
     const generated = await loveSecret.buildLoveSecretChapters({
-      LOVE_SECRET_PDF_GENERATION_MODE: "local-assembled",
+      LOVE_SECRET_PDF_GENERATION_MODE: "local-premium",
       LOVE_SECRET_EXTERNAL_GENERATION_ENABLED: "true",
     }, {
       base,
@@ -550,21 +555,24 @@ async function assertLocalAssemblyScaffold() {
       body: { requestId: "smoke-local-assembly-solo" },
       requestId: "smoke-local-assembly-solo",
     });
-    assert.equal(generated.manuscriptSource, "local-assembled", "solo uses local assembled manuscript");
-    assert.equal(generated.localAssembly.enabled, true, "solo local assembly enabled");
+    assert.equal(generated.manuscriptSource, "local-premium", "solo uses local premium manuscript");
+    assert.equal(generated.localAssembly.enabled, true, "solo local premium enabled");
     assert.equal(generated.localAssembly.externalCallsAllowed, false, "solo external generation calls blocked");
     assert.equal(generated.localAssembly.externalGeneration, false, "solo external generation blocked");
-    assert.equal(generated.localAssembly.templateVersion, "love-secret-local-assembled-v3", "solo local assembly template version");
-    assert.equal(generated.localAssembly.chapterCount, 10, "solo local assembly chapter count");
-    assert.equal(generated.localAssembly.expectedChapterCount, 10, "solo local assembly expected chapter count");
+    assert.equal(generated.localAssembly.templateVersion, "love-secret-local-premium-v1", "solo local premium template version");
+    assert.equal(generated.localAssembly.qualityMode, "premium-local", "solo local premium quality mode");
+    assert.equal(generated.localAssembly.fallbackUsed, false, "solo local premium fallback unused");
+    assert.equal(generated.localAssembly.chapterCount, 10, "solo local premium chapter count");
+    assert.equal(generated.localAssembly.expectedChapterCount, 10, "solo local premium expected chapter count");
     assert.equal(externalGenerationFetchAttempts, 0, "solo external generation fetch attempts");
     assert.equal(generated.chapters.length, 10, "solo generated chapter count");
     assert.ok(generated.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "solo has no empty chapter");
-    assertChapterRequiredFields(generated.chapters, "solo local assembly");
-    assertPhase6SoloChapterStructure(generated.chapters, "solo local assembly");
-    assertPhase8ContentStandards(generated.chapters, "solo local assembly");
-    assertPhase9SentenceRules(generated.chapters, "solo local assembly");
-    assertNoUnsafeRenderedText(generated.chapters, "solo local assembly");
+    assert.ok(generated.chapters.every((chapter) => chapter.qualityMode === "premium-local" && chapter.fallbackUsed === false), "solo chapters carry local premium quality marker");
+    assertChapterRequiredFields(generated.chapters, "solo local premium");
+    assertPhase6SoloChapterStructure(generated.chapters, "solo local premium");
+    assertPhase8ContentStandards(generated.chapters, "solo local premium");
+    assertPhase9SentenceRules(generated.chapters, "solo local premium");
+    assertNoUnsafeRenderedText(generated.chapters, "solo local premium");
     assert.ok(generated.loveSecretChapterPlans.every((plan) => Array.isArray(plan.lockedFacts) && plan.lockedFacts.length > 0), "generated chapter plans carry locked facts");
 
     const variantBase = structuredClone(base);
@@ -580,7 +588,7 @@ async function assertLocalAssemblyScaffold() {
     variantBase.specialStars = { tao: 10, yeokma: 75, hwa: 40, gwimun: true };
     variantBase.loveSecretReference = buildLoveSecretReference(variantBase);
     const variantGenerated = await loveSecret.buildLoveSecretChapters({
-      LOVE_SECRET_PDF_GENERATION_MODE: "local-assembled",
+      LOVE_SECRET_PDF_GENERATION_MODE: "local-premium",
     }, {
       base: variantBase,
       mode: "solo",
@@ -592,7 +600,7 @@ async function assertLocalAssemblyScaffold() {
     assert.notEqual(generated.chapters[0].text, variantGenerated.chapters[0].text, "different local inputs produce distinct chapter text");
 
     const generatedCompatibility = await loveSecret.buildLoveSecretChapters({
-      LOVE_SECRET_PDF_GENERATION_MODE: "local-assembled",
+      LOVE_SECRET_PDF_GENERATION_MODE: "local-premium",
       LOVE_SECRET_EXTERNAL_GENERATION_ENABLED: "true",
     }, {
       base,
@@ -601,21 +609,24 @@ async function assertLocalAssemblyScaffold() {
       body: { requestId: "smoke-local-assembly-compatibility" },
       requestId: "smoke-local-assembly-compatibility",
     });
-    assert.equal(generatedCompatibility.manuscriptSource, "local-assembled", "compatibility uses local assembled manuscript");
-    assert.equal(generatedCompatibility.localAssembly.enabled, true, "compatibility local assembly enabled");
+    assert.equal(generatedCompatibility.manuscriptSource, "local-premium", "compatibility uses local premium manuscript");
+    assert.equal(generatedCompatibility.localAssembly.enabled, true, "compatibility local premium enabled");
     assert.equal(generatedCompatibility.localAssembly.externalCallsAllowed, false, "compatibility external generation calls blocked");
     assert.equal(generatedCompatibility.localAssembly.externalGeneration, false, "compatibility external generation blocked");
-    assert.equal(generatedCompatibility.localAssembly.templateVersion, "love-secret-local-assembled-v3", "compatibility local assembly template version");
-    assert.equal(generatedCompatibility.localAssembly.chapterCount, 10, "compatibility local assembly chapter count");
-    assert.equal(generatedCompatibility.localAssembly.expectedChapterCount, 10, "compatibility local assembly expected chapter count");
+    assert.equal(generatedCompatibility.localAssembly.templateVersion, "love-secret-local-premium-v1", "compatibility local premium template version");
+    assert.equal(generatedCompatibility.localAssembly.qualityMode, "premium-local", "compatibility local premium quality mode");
+    assert.equal(generatedCompatibility.localAssembly.fallbackUsed, false, "compatibility local premium fallback unused");
+    assert.equal(generatedCompatibility.localAssembly.chapterCount, 10, "compatibility local premium chapter count");
+    assert.equal(generatedCompatibility.localAssembly.expectedChapterCount, 10, "compatibility local premium expected chapter count");
     assert.equal(externalGenerationFetchAttempts, 0, "compatibility external generation fetch attempts");
     assert.equal(generatedCompatibility.chapters.length, 10, "compatibility generated chapter count");
     assert.ok(generatedCompatibility.chapters.every((chapter) => String(chapter.text || "").trim().length > 0), "compatibility has no empty chapter");
-    assertChapterRequiredFields(generatedCompatibility.chapters, "compatibility local assembly");
-    assertPhase7CompatibilityChapterStructure(generatedCompatibility.chapters, "compatibility local assembly");
-    assertPhase8ContentStandards(generatedCompatibility.chapters, "compatibility local assembly");
-    assertPhase9SentenceRules(generatedCompatibility.chapters, "compatibility local assembly");
-    assertNoUnsafeRenderedText(generatedCompatibility.chapters, "compatibility local assembly");
+    assert.ok(generatedCompatibility.chapters.every((chapter) => chapter.qualityMode === "premium-local" && chapter.fallbackUsed === false), "compatibility chapters carry local premium quality marker");
+    assertChapterRequiredFields(generatedCompatibility.chapters, "compatibility local premium");
+    assertPhase7CompatibilityChapterStructure(generatedCompatibility.chapters, "compatibility local premium");
+    assertPhase8ContentStandards(generatedCompatibility.chapters, "compatibility local premium");
+    assertPhase9SentenceRules(generatedCompatibility.chapters, "compatibility local premium");
+    assertNoUnsafeRenderedText(generatedCompatibility.chapters, "compatibility local premium");
   } finally {
     restoreFetch();
   }

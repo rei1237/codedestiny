@@ -45,7 +45,7 @@ const SERVICE = {
 };
 
 export const metadata = withUniqueRouteMetadata("/tarot/mingri", {
-  title: "🔮 명리학 타로 - 카드와 십성이 비추는 선택 리딩 | Code Destiny",
+  title: "🔮 명리학 타로 - 카드와 십성이 비추는 선택 리딩",
   description:
     "연애, 재회, 사업, 건강 등 고민의 문에 맞춰 한 장 리딩 또는 세 장 흐름으로 카드와 십성의 결을 읽습니다.",
 });

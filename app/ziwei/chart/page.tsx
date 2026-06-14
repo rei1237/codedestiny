@@ -4,13 +4,13 @@ import ZiweiChartClientLoader from "./ZiweiChartClientLoader";
 export function generateMetadata() {
   return generatePageMetadata({
     path: "/ziwei/chart",
-    title: "자미두수 명반 보기 · 명궁·재백궁·관록궁 해석 | Code Destiny",
+    title: "심화 자미두수 상담 · 12궁·사화·대한 해석",
     description:
-      "자미두수(紫微斗數) 명반을 기반으로 12궁·명궁·신궁·사화·대한 흐름을 로컬 계산과 템플릿으로 생성하는 인터랙티브 심화 리포트입니다.",
+      "자미두수(紫微斗數) 명반을 기반으로 12궁·명궁·신궁·사화·대한 흐름을 정밀하게 엮어 내면의 방향과 현실의 선택을 읽는 심화 상담 리포트입니다.",
     keywords: [
       "자미두수",
       "자미두수 명반",
-      "자미두수 무료",
+      "심화 자미두수 상담",
       "12궁",
       "명궁",
       "신궁",
@@ -33,7 +33,7 @@ const ZIWEI_FAQ_JSON_LD = JSON.stringify({
       name: "자미두수 명반은 무엇을 보나요?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "명궁·신궁을 기준으로 12궁에 배치된 주성과 사화, 대한 흐름을 함께 읽어 성향·관계·진로·재물의 작동 방식을 해석합니다.",
+        text: "명궁·신궁을 기준으로 12궁에 배치된 주성과 사화, 대한의 흐름을 함께 읽어 성향·관계·진로·재물의 작동 방식을 해석합니다.",
       },
     },
     {
@@ -51,7 +51,7 @@ export default function ZiweiChartPage() {
   return (
     <main className="relative min-h-[100dvh] bg-[#030712] text-slate-100">
       <h1 className="sr-only">
-        자미두수 명반으로 보는 내 인생의 12궁
+        심화 자미두수 상담으로 보는 내 인생의 12궁
       </h1>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ZIWEI_FAQ_JSON_LD }} />
       <ZiweiChartClientLoader />

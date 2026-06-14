@@ -50,6 +50,7 @@
   var _result = null;
   var _loadingTimer = null;
   var _isGenerating = false;
+  var _resolvedCoinCost = COIN_COST;
 
   var LOADING_TEXTS = [
     '다섯 운세 흐름의 핵심 주제를 정리하는 중입니다.',
@@ -62,6 +63,20 @@
 
   function $(id) { return document.getElementById(id); }
   function clean(value) { return String(value == null ? '' : value).trim(); }
+
+  function formatCoinCost(value) {
+    var cost = Math.max(0, Math.floor(Number(value || COIN_COST)));
+    return cost.toLocaleString('ko-KR') + '코인';
+  }
+
+  function updateSoulOriginCoinCost(cost) {
+    _resolvedCoinCost = Math.max(0, Math.floor(Number(cost || COIN_COST)));
+    var label = formatCoinCost(_resolvedCoinCost);
+    var badge = $('soCoinCostBadge');
+    var notice = $('soCoinCostLabel');
+    if (badge) badge.textContent = label + ' · 1회';
+    if (notice) notice.textContent = label + ' · 결과 재열람 가능';
+  }
 
   function setDisplay(id, value) {
     var el = $(id);
@@ -179,6 +194,11 @@
     setDisplay('soErrorScreen', name === 'error' ? '' : 'none');
   }
 
+  function setLoadingMessage(message) {
+    var el = $('soLoadingMessage');
+    if (el && clean(message)) el.textContent = clean(message);
+  }
+
   function getApiBaseCandidates(path) {
     var p = String(path || '');
     if (p.charAt(0) !== '/') p = '/' + p;
@@ -202,13 +222,24 @@
   function parseDateParts(dateStr) {
     var m = clean(dateStr).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
     if (!m) return null;
-    return { year: Number(m[1]), month: Number(m[2]), day: Number(m[3]) };
+    var parts = { year: Number(m[1]), month: Number(m[2]), day: Number(m[3]) };
+    if (parts.month < 1 || parts.month > 12 || parts.day < 1 || parts.day > 31) return null;
+    return parts;
+  }
+
+  function isValidBirthDateParts(year, month, day, calendarType) {
+    if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) return false;
+    if (String(calendarType || '').indexOf('lunar') === 0) return day <= 30;
+    var date = new Date(Date.UTC(year, month - 1, day));
+    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
   }
 
   function parseTimeParts(timeStr) {
     var m = clean(timeStr).match(/^(\d{1,2}):(\d{1,2})$/);
     if (!m) return null;
-    return { hour: Number(m[1]), minute: Number(m[2]) };
+    var parts = { hour: Number(m[1]), minute: Number(m[2]) };
+    if (parts.hour < 0 || parts.hour > 23 || parts.minute < 0 || parts.minute > 59) return null;
+    return parts;
   }
 
   function inferTimezoneOffsetHours(timezone) {
@@ -402,6 +433,7 @@
 
     var timezone = clean(src.timezone || 'Asia/Seoul') || 'Asia/Seoul';
     var calendarType = normalizeCalendarType(src.calendarType || src.calendar || src.calType || 'solar');
+    if (!isValidBirthDateParts(date.year, date.month, date.day, calendarType)) return null;
 
     return {
       name: clean(src.name || '사용자') || '사용자',
@@ -424,8 +456,43 @@
     };
   }
 
-  function resolveReportUrl(payload) {
+  function withArchiveFormat(value, format) {
+    var url = clean(value);
+    var targetFormat = clean(format).toLowerCase();
+    if (!url || !targetFormat || url.indexOf('/api/premium/pdf-archive/') < 0) return url;
+    try {
+      var parsed = new URL(url, window.location.origin);
+      parsed.searchParams.set('format', targetFormat);
+      if (/^https?:\/\//i.test(url)) return parsed.toString();
+      return parsed.pathname + parsed.search + parsed.hash;
+    } catch (_) {
+      var joiner = url.indexOf('?') >= 0 ? '&' : '?';
+      return url.replace(/([?&])format=[^&#]*/i, '$1format=' + targetFormat) + (/[?&]format=/i.test(url) ? '' : joiner + 'format=' + targetFormat);
+    }
+  }
+
+  function resolveReportUrl(payload, preferred) {
     var pdfReady = payload && payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
+    if (preferred === 'html') {
+      return withArchiveFormat(clean(
+        (payload && payload.htmlUrl)
+        || pdfReady.htmlUrl
+        || (payload && payload.pdfUrl)
+        || (payload && payload.downloadUrl)
+        || pdfReady.pdfUrl
+        || pdfReady.downloadUrl
+      ), 'html');
+    }
+    if (preferred === 'pdf') {
+      return withArchiveFormat(clean(
+        (payload && payload.pdfUrl)
+        || (payload && payload.downloadUrl)
+        || pdfReady.pdfUrl
+        || pdfReady.downloadUrl
+        || (payload && payload.htmlUrl)
+        || pdfReady.htmlUrl
+      ), 'pdf');
+    }
     return clean(
       (payload && payload.pdfUrl)
       || (payload && payload.downloadUrl)
@@ -452,19 +519,21 @@
       ? data.localAssembly
       : (pdfReady.localAssembly && typeof pdfReady.localAssembly === 'object' ? pdfReady.localAssembly : {});
     var hasReportId = !!clean(data.reportId);
-    var hasStoredUrl = !!resolveReportUrl(data);
+    var hasStoredUrl = !!resolveReportUrl(data, 'pdf') && !!resolveReportUrl(data, 'html');
     var isCompleted = (!status && !serverStatus) || status === 'completed' || serverStatus === 'completed';
     var hasExpectedChapters = chapters.length >= EXPECTED_CHAPTER_COUNT || reportedCount >= EXPECTED_CHAPTER_COUNT;
-    var hasPassedQuality = !qualityStatus || qualityStatus === 'passed';
-    var hasAcceptedManuscript = manuscriptSource === 'local-assembled';
-    var hasAcceptedChapters = chapterAuthoringSource === 'local-assembled';
-    var hasLocalSummary = summarySource === 'local-assembled';
+    var hasPassedQuality = qualityStatus === 'passed';
+    var hasAcceptedManuscript = manuscriptSource === 'local-master-authored';
+    var hasAcceptedChapters = chapterAuthoringSource === 'local-master-authored';
+    var hasLocalSummary = summarySource === 'local-master-authored';
     var hasLocalAssembly = localAssembly.enabled === true
       && localAssembly.externalGeneration === false
       && localAssembly.externalCallsAllowed === false
+      && localAssembly.fallbackUsed !== true
+      && clean(localAssembly.authoringEngine) === 'local-master-counsel-engine'
       && Number(localAssembly.chapterCount || 0) >= EXPECTED_CHAPTER_COUNT
       && Number(localAssembly.expectedChapterCount || 0) === EXPECTED_CHAPTER_COUNT
-      && clean(localAssembly.templateVersion) === 'soul-origin-local-assembled-v2';
+      && clean(localAssembly.templateVersion) === 'soul-origin-local-master-v3';
     var hasAcceptedAuthoring = localAuthoringUsed && hasLocalAssembly;
     return hasReportId && hasStoredUrl && hasExpectedChapters && hasPassedQuality && isCompleted && hasAcceptedManuscript && hasAcceptedChapters && hasLocalSummary && hasAcceptedAuthoring;
   }
@@ -609,18 +678,19 @@
   }
 
   function renderResultActions(payload) {
-    var reportUrl = resolveReportUrl(payload);
+    var openUrl = resolveReportUrl(payload, 'html');
+    var downloadUrl = resolveReportUrl(payload, 'pdf');
     var openBtn = $('soOpenReportBtn');
     var downloadBtn = $('soDownloadReportBtn');
 
     if (openBtn) {
-      openBtn.style.display = reportUrl ? '' : 'none';
-      openBtn.onclick = reportUrl ? function () { window.open(reportUrl, '_blank', 'noopener'); } : null;
+      openBtn.style.display = openUrl ? '' : 'none';
+      openBtn.onclick = openUrl ? function () { window.open(openUrl, '_blank', 'noopener'); } : null;
     }
 
     if (downloadBtn) {
-      downloadBtn.style.display = reportUrl ? '' : 'none';
-      downloadBtn.onclick = reportUrl ? function () { window.open(reportUrl, '_blank', 'noopener'); } : null;
+      downloadBtn.style.display = downloadUrl ? '' : 'none';
+      downloadBtn.onclick = downloadUrl ? function () { window.open(downloadUrl, '_blank', 'noopener'); } : null;
     }
   }
 
@@ -643,6 +713,209 @@
     }
   }
 
+  function normalizePercent(value) {
+    var parsed = Number(value);
+    if (!Number.isFinite(parsed)) return 0;
+    return Math.max(0, Math.min(100, Math.round(parsed)));
+  }
+
+  function qualityLabelFromScore(score) {
+    var value = normalizePercent(score);
+    if (value >= 90) return '매우 선명함';
+    if (value >= 82) return '안정적으로 선명함';
+    if (value > 0) return '핵심 흐름 확인됨';
+    return '검수 완료';
+  }
+
+  function buildQualitySummary(quality) {
+    var status = clean(quality && quality.status).toLowerCase();
+    if (status && status !== 'passed') return '상담 검수 진행 중';
+    return '상담 검수 · ' + qualityLabelFromScore(quality && quality.score) + ' · 장별 근거와 실천 처방 확인';
+  }
+
+  function extractPreviewParagraph(value, maxLength) {
+    var limit = Math.max(120, Number(maxLength || 280));
+    var text = clean(value).replace(/\s+/g, ' ').trim();
+    if (!text || text.length <= limit) return text;
+    return text.slice(0, limit).replace(/\s+\S*$/, '') + '…';
+  }
+
+  function pickResultPracticeText(chapters) {
+    var list = Array.isArray(chapters) ? chapters : [];
+    for (var i = 0; i < list.length; i += 1) {
+      var sections = Array.isArray(list[i] && list[i].sections) ? list[i].sections : [];
+      for (var j = 0; j < sections.length; j += 1) {
+        var body = clean(sections[j] && sections[j].body);
+        if (!body) continue;
+        var sentences = body.split(/[.!?。]|다\./).map(function (item) { return clean(item); }).filter(Boolean);
+        for (var k = 0; k < sentences.length; k += 1) {
+          if (sentences[k].indexOf('실천') >= 0 || sentences[k].indexOf('처방') >= 0 || sentences[k].indexOf('순서') >= 0) {
+            return extractPreviewParagraph(sentences[k] + '다.', 180);
+          }
+        }
+      }
+    }
+    return '오늘 바로 바꿀 수 있는 작은 선택부터 정리하고, 같은 반응이 반복되는 장면을 PDF의 장별 처방에 따라 하나씩 조정하세요.';
+  }
+
+  function renderSymbolicProfile(payload) {
+    var profile = payload && payload.symbolicProfile && typeof payload.symbolicProfile === 'object' ? payload.symbolicProfile : {};
+    var cardWrap = $('soSymbolCards');
+    var metricWrap = $('soMetricGraph');
+    var quality = payload && payload.qualityReport && typeof payload.qualityReport === 'object' ? payload.qualityReport : {};
+    if (cardWrap) {
+      cardWrap.innerHTML = '';
+      var cards = Array.isArray(profile.symbolSentences) ? profile.symbolSentences : [];
+      for (var i = 0; i < cards.length; i += 1) {
+        var card = cards[i] || {};
+        var el = document.createElement('div');
+        el.className = 'so-symbol-card';
+        var title = document.createElement('b');
+        title.textContent = clean(card.title || '상징 문장');
+        var body = document.createElement('p');
+        body.textContent = clean(card.body || '');
+        el.appendChild(title);
+        el.appendChild(body);
+        cardWrap.appendChild(el);
+      }
+      cardWrap.style.display = cards.length ? '' : 'none';
+    }
+
+    if (metricWrap) {
+      metricWrap.innerHTML = '';
+      var items = Array.isArray(profile.metrics) ? profile.metrics : [];
+      var heading = document.createElement('div');
+      heading.className = 'so-metric-summary';
+      heading.textContent = clean(profile.mainSymbol || '운명의 핵심 상징') + ' · ' + buildQualitySummary(quality);
+      metricWrap.appendChild(heading);
+      for (var j = 0; j < items.length; j += 1) {
+        var item = items[j] || {};
+        var value = normalizePercent(item.value);
+        var row = document.createElement('div');
+        row.className = 'so-metric-row';
+        var label = document.createElement('span');
+        label.textContent = clean(item.label || '');
+        var track = document.createElement('i');
+        var bar = document.createElement('em');
+        bar.style.width = value + '%';
+        track.appendChild(bar);
+        var score = document.createElement('strong');
+        score.textContent = String(value);
+        row.appendChild(label);
+        row.appendChild(track);
+        row.appendChild(score);
+        metricWrap.appendChild(row);
+      }
+      metricWrap.style.display = items.length ? '' : 'none';
+    }
+  }
+
+  function renderResultSummaryCards(payload) {
+    var listEl = $('soResultContent');
+    if (!listEl) return;
+    var chapters = Array.isArray(payload && payload.chapters) ? payload.chapters : [];
+    var sectionCount = chapters.reduce(function (sum, chapter) {
+      return sum + (Array.isArray(chapter && chapter.sections) ? chapter.sections.length : 0);
+    }, 0);
+    var quality = payload && payload.qualityReport && typeof payload.qualityReport === 'object' ? payload.qualityReport : {};
+    var profile = payload && payload.symbolicProfile && typeof payload.symbolicProfile === 'object' ? payload.symbolicProfile : {};
+    var article = document.createElement('article');
+    article.className = 'lb-result-article';
+    var title = document.createElement('h3');
+    title.className = 'lb-result-article__title';
+    title.textContent = '상담 핵심 요약';
+    var subtitle = document.createElement('p');
+    subtitle.className = 'lb-result-article__subtitle';
+    subtitle.textContent = chapters.length + '장 · ' + sectionCount + '개 세부 카테고리 · ' + qualityLabelFromScore(quality.score);
+    article.appendChild(title);
+    article.appendChild(subtitle);
+
+    [
+      { title: '핵심 판정', body: extractPreviewParagraph(payload && payload.summary, 220) || '운명의 업 흐름을 장별로 정리했습니다.' },
+      { title: '상징 축', body: clean(profile.mainSymbol || '운명의 핵심 상징') + ' · ' + clean(profile.axis || '사주와 대운의 교차 흐름') },
+      { title: '실천 처방', body: pickResultPracticeText(chapters) },
+    ].forEach(function (item) {
+      var sectionEl = document.createElement('section');
+      sectionEl.className = 'lb-result-article__section';
+      var h4 = document.createElement('h4');
+      h4.className = 'lb-result-article__section-title';
+      h4.textContent = item.title;
+      var body = document.createElement('p');
+      body.className = 'lb-result-article__section-body';
+      body.textContent = item.body;
+      sectionEl.appendChild(h4);
+      sectionEl.appendChild(body);
+      article.appendChild(sectionEl);
+    });
+    listEl.appendChild(article);
+  }
+
+  function renderChapterPreview(previewEl, chapter) {
+    if (!previewEl) return;
+    previewEl.innerHTML = '';
+    if (!chapter) return;
+    var article = document.createElement('article');
+    article.className = 'lb-result-article so-chapter-preview';
+    var h3 = document.createElement('h3');
+    h3.className = 'lb-result-article__title';
+    h3.textContent = clean(chapter.title || '선택 챕터');
+    var subtitle = document.createElement('p');
+    subtitle.className = 'lb-result-article__subtitle';
+    subtitle.textContent = clean(chapter.subtitle || '');
+    article.appendChild(h3);
+    article.appendChild(subtitle);
+    var sections = Array.isArray(chapter.sections) ? chapter.sections : [];
+    for (var i = 0; i < sections.length; i += 1) {
+      var sec = sections[i] || {};
+      var sectionEl = document.createElement('section');
+      sectionEl.className = 'lb-result-article__section';
+      var h4 = document.createElement('h4');
+      h4.className = 'lb-result-article__section-title';
+      h4.textContent = clean(sec.title || ('항목 ' + (i + 1)));
+      var body = document.createElement('p');
+      body.className = 'lb-result-article__section-body';
+      body.textContent = extractPreviewParagraph(sec.body || '', 320);
+      sectionEl.appendChild(h4);
+      sectionEl.appendChild(body);
+      article.appendChild(sectionEl);
+    }
+    if (sections.length) {
+      var note = document.createElement('p');
+      note.className = 'lb-result-article__subtitle';
+      note.textContent = '전체 세부 상담은 PDF에서 확인할 수 있습니다.';
+      article.appendChild(note);
+    }
+    previewEl.appendChild(article);
+  }
+
+  function renderChapterNavigator(chapters) {
+    var navEl = $('soChapterNav');
+    var previewEl = $('soChapterPreview');
+    if (!navEl || !previewEl) return false;
+    navEl.innerHTML = '';
+    var list = Array.isArray(chapters) ? chapters : [];
+    if (!list.length) {
+      previewEl.innerHTML = '';
+      return true;
+    }
+    list.forEach(function (chapter, index) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = index === 0 ? 'so-chapter-nav__btn is-active' : 'so-chapter-nav__btn';
+      btn.textContent = String(index + 1).padStart(2, '0');
+      btn.title = clean(chapter && chapter.title || '');
+      btn.onclick = function () {
+        var active = navEl.querySelector('.is-active');
+        if (active) active.classList.remove('is-active');
+        btn.classList.add('is-active');
+        renderChapterPreview(previewEl, chapter);
+      };
+      navEl.appendChild(btn);
+    });
+    renderChapterPreview(previewEl, list[0]);
+    return true;
+  }
+
   function renderResult(payload) {
     _result = payload;
     var titleEl = $('soResultTitle');
@@ -651,10 +924,17 @@
 
     if (titleEl) titleEl.textContent = clean(payload && payload.title) || '운명의 업 프리미엄 리포트';
     if (summaryEl) summaryEl.textContent = clean(payload && payload.summary) || '운명의 업 리포트가 열렸습니다.';
+    renderSymbolicProfile(payload || {});
 
     if (listEl) {
       listEl.innerHTML = '';
       var chapters = Array.isArray(payload && payload.chapters) ? payload.chapters : [];
+      renderResultSummaryCards(payload || {});
+      if (renderChapterNavigator(chapters)) {
+        renderResultActions(payload || {});
+        showScreen('result');
+        return;
+      }
       for (var i = 0; i < chapters.length; i += 1) {
         var chapter = chapters[i] || {};
         var article = document.createElement('article');
@@ -787,7 +1067,10 @@
       return '로그인 후 운명의 업 PDF를 생성할 수 있습니다.';
     }
     if (code.indexOf('PAYMENT_CONFIRMED_BUT_ACCESS_MISSING') >= 0) {
-      return '결제는 완료되었지만 생성 권한 연결이 지연되었습니다. 다시 시도해 주세요.';
+      return '결제는 확인되었습니다. 중복 차감 없이 생성 권한을 다시 연결 중이니 잠시 후 다시 시도해 주세요.';
+    }
+    if (code.indexOf('SOUL_ORIGIN_PRICING_LOOKUP_FAILED') >= 0) {
+      return '결제 금액을 서버에서 확인하지 못했습니다. 코인은 차감되지 않았으니 잠시 후 다시 시도해 주세요.';
     }
     if (status >= 500
       || code.indexOf('SERVICE_UNAVAILABLE') >= 0
@@ -805,6 +1088,9 @@
     }
     if (code.indexOf('REPORT_SAVE_URL_MISSING') >= 0 || code.indexOf('SOUL_ORIGIN_REPORT_NOT_READY') >= 0) {
       return 'PDF 저장 경로가 아직 열리지 않았습니다. 잠시 후 다시 시도해 주세요.';
+    }
+    if (code.indexOf('SOUL_ORIGIN_PDF_COMPLETION_VALIDATION_FAILED') >= 0 || code.indexOf('SOUL_ORIGIN_QUALITY_VALIDATION_FAILED') >= 0) {
+      return '상담서 품질 검수에서 통과하지 못해 PDF를 열지 않았습니다. 결제 내역은 보존되니 잠시 후 다시 불러와 주세요.';
     }
     if (code.indexOf('SOUL_ORIGIN_STATUS_TIMEOUT') >= 0) {
       return '운명의 업 PDF 생성이 오래 걸리고 있습니다. 잠시 후 reportId로 다시 불러와 주세요.';
@@ -954,7 +1240,45 @@
     return new Promise(function (resolve, reject) { next(resolve, reject, ''); });
   }
 
-  function ensurePayment() {
+  function extractSoulOriginServerCoinCost(payload) {
+    var source = payload && payload.data && typeof payload.data === 'object' ? payload.data : (payload || {});
+    var pricing = source && source.pricing && typeof source.pricing === 'object' ? source.pricing : {};
+    var value = Number(pricing.cost || pricing.coinPrice || pricing.priceCoin || pricing.finalCoinPrice);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+  }
+
+  function resolveSoulOriginCoinCost() {
+    var endpoints = getApiBaseCandidates('/api/billing/features?featureKey=' + encodeURIComponent(FEATURE_KEY));
+    var idx = 0;
+    function next() {
+      if (idx >= endpoints.length) return Promise.resolve(0);
+      var headers = {};
+      var authToken = readAuthToken();
+      if (authToken) headers.Authorization = 'Bearer ' + authToken;
+      return fetchJsonWithTimeout(endpoints[idx++], { method: 'GET', headers: headers }, 12000)
+        .then(function (pack) {
+          if (pack && pack.ok && pack.data) {
+            var serverCost = extractSoulOriginServerCoinCost(pack.data);
+            if (serverCost > 0) return serverCost;
+          }
+          return next();
+        })
+        .catch(function () { return next(); });
+    }
+    return next().then(function (cost) {
+      if (!cost) {
+        var error = new Error('결제 금액을 서버에서 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+        error.code = 'SOUL_ORIGIN_PRICING_LOOKUP_FAILED';
+        error.status = 503;
+        throw error;
+      }
+      updateSoulOriginCoinCost(cost);
+      return _resolvedCoinCost;
+    });
+  }
+
+  function ensurePayment(coinCost) {
+    var resolvedCoinCost = Math.max(0, Math.floor(Number(coinCost || COIN_COST)));
     var requestId = readSessionValue(REQUEST_ID_KEY) || makeRequestId();
     var sessionId = readSessionValue(SESSION_ID_KEY) || makeSessionId();
     var paymentReportId = 'soul-origin:' + Date.now().toString(36);
@@ -1006,10 +1330,10 @@
             var gate = window._cdOpenPaidServiceGate({
               categoryKey: 'premium-report',
               featureKey: FEATURE_KEY,
-              title: '영혼의 기원 리포트 생성',
-              reason: '영혼의 기원 리포트 생성',
-              coinPrice: COIN_COST,
-              cost: COIN_COST,
+              title: '운명의 업 리포트 생성',
+              reason: '운명의 업 리포트 생성',
+              coinPrice: resolvedCoinCost,
+              cost: resolvedCoinCost,
               reportType: REPORT_TYPE,
               reportId: reportId,
               sessionId: sessionId,
@@ -1073,7 +1397,7 @@
       try {
         logStage('CoinGateStart');
         var immediate = window._cdCoinGatePerUse(
-          COIN_COST,
+          resolvedCoinCost,
           '운명의 업 리포트 생성',
           function (transactionId, data) {
             logStage('CoinGateSuccess', {
@@ -1205,8 +1529,8 @@
   async function generateSoulOrigin() {
     if (_isGenerating) return;
     _isGenerating = true;
-    var requestId = readSessionValue(REQUEST_ID_KEY) || makeRequestId();
-    var sessionId = readSessionValue(SESSION_ID_KEY) || makeSessionId();
+    var requestId = makeRequestId();
+    var sessionId = makeSessionId();
     writeSessionValue(REQUEST_ID_KEY, requestId);
     writeSessionValue(SESSION_ID_KEY, sessionId);
 
@@ -1219,6 +1543,7 @@
 
       showScreen('loading');
       startLoadingTicker();
+      setLoadingMessage('운명의 업 프리미엄 금액과 생성 권한을 확인하는 중입니다.');
 
       logStage('ProductLookupStart', { requestId: requestId, sessionId: sessionId });
       if (!FEATURE_KEY || !REPORT_TYPE) {
@@ -1231,7 +1556,9 @@
       }
       logStage('ProductLookupSuccess', { requestId: requestId, sessionId: sessionId });
 
-      var payment = await ensurePayment();
+      var resolvedCoinCost = await resolveSoulOriginCoinCost();
+      setLoadingMessage('결제 권한을 확인하고 상담서 생성을 준비하는 중입니다.');
+      var payment = await ensurePayment(resolvedCoinCost);
       var token = clean((payment && (payment.premiumAccessToken || payment.accessToken || payment.token)) || readPremiumToken());
       var paymentRequestId = clean((payment && payment.requestId) || requestId);
       var paymentSessionId = clean((payment && (payment.sessionId || payment.reportSessionId)) || sessionId);
@@ -1279,8 +1606,11 @@
       };
 
       logStage('SessionCreateStart', { requestId: requestId, sessionId: sessionId });
+      setLoadingMessage('사주·자미두수·점성술·베다점의 핵심 신호를 정밀 산출하는 중입니다.');
       logStage('ServerLocalCalcStart', { requestId: requestId, sessionId: sessionId });
+      setLoadingMessage('운명의 업 마스터 상담사가 장별 해석을 집필하는 중입니다.');
       logStage('LocalAssemblyStart', { requestId: requestId, sessionId: sessionId, expectedChapterCount: EXPECTED_CHAPTER_COUNT });
+      setLoadingMessage('상담 품질을 검수하고 프리미엄 PDF로 봉인하는 중입니다.');
       logStage('PDFRenderStart', { requestId: requestId, sessionId: sessionId });
       var statusContext = {
         reportId: reportId,
@@ -1298,11 +1628,13 @@
           reportId: statusContext.reportId,
           errorCode: clean(requestError && requestError.code) || 'REQUEST_FAILED',
         });
+        setLoadingMessage('PDF 저장소 반영을 확인하는 중입니다.');
         data = await pollSoulOriginStatus(statusContext, token);
       }
       if (isSoulOriginRunning(data)) {
         statusContext.reportId = clean(data && (data.reportId || (data.data && data.data.reportId))) || statusContext.reportId;
         statusContext.sessionId = clean(data && (data.sessionId || (data.data && data.data.sessionId))) || statusContext.sessionId;
+        setLoadingMessage('상담서 완성본을 불러오는 중입니다.');
         data = await pollSoulOriginStatus(statusContext, token);
       }
       if (!isSoulOriginReportReady(data)) {
@@ -1358,6 +1690,8 @@
     logStage('OpenModal', { requestId: readSessionValue(REQUEST_ID_KEY), sessionId: readSessionValue(SESSION_ID_KEY) });
     document.body.classList.add('lb-modal-open');
     document.body.style.overflow = 'hidden';
+    updateSoulOriginCoinCost(_resolvedCoinCost);
+    resolveSoulOriginCoinCost().catch(function () {});
 
     var persisted = readPersisted();
     if (persisted && Array.isArray(persisted.chapters) && persisted.chapters.length) {

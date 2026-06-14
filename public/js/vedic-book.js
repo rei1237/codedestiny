@@ -16,16 +16,45 @@
   var VEDIC_CLIENT_EVIDENCE_SCHEMA_VERSION = 'vedic-premium-client-evidence.v1';
   var VEDIC_STATUS_MAX_ATTEMPTS = 150;
   var VEDIC_STATUS_POLL_MS = 4000;
+  var VEDIC_PROGRESS_STAGE_TITLES = [
+    '프로필 정보를 확인하는 중입니다',
+    '베다 차트를 계산하고 있습니다',
+    '라그나와 나크샤트라 근거를 정리하고 있습니다',
+    '행성·하우스·다샤 신호를 검증하고 있습니다',
+    '직업·관계·재물 상담 문장을 구성하고 있습니다',
+    '상징 문장과 시각 요약을 조율하고 있습니다',
+    '프리미엄 PDF를 렌더링하고 있습니다',
+    'PDF 저장 정보를 확인하고 있습니다',
+    '상담 리포트 완성도를 점검하고 있습니다',
+    '챕터 목차를 정리하고 있습니다',
+    '결과 화면을 준비하고 있습니다',
+    '완료'
+  ];
 
   var _chapters = [];
   var _canonicalChapters = [];
   var _resultPayload = null;
+  var VEDIC_UI_CHAPTER_TITLES = [
+    '베다 차트 전체 총론',
+    '라그나와 타고난 인생 설계',
+    '문 사인과 나크샤트라 심층 해석',
+    '태양과 자아의 방향성',
+    '행성들이 말하는 재능과 성향',
+    '하우스로 보는 인생 영역',
+    '직업과 사회적 성공운',
+    '재물과 풍요의 흐름',
+    '사랑과 배우자운',
+    '다샤로 보는 운의 흐름',
+    '카르마와 영적 성장의 방향',
+    '최종 베다 마스터플랜'
+  ];
   var _generating = false;
   var _progressTimer = null;
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
   var _currentVedicSessionId = '';
   var _currentVedicReportId = '';
+  var _currentVedicPaymentRequestId = '';
   var _lastPremiumPayment = null;
 
   function _qs(id) { return document.getElementById(id); }
@@ -140,6 +169,15 @@
       .trim();
   }
 
+  function _escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function _persistPremiumAccessToken(token) {
     var value = String(token || '').trim();
     if (!value) return;
@@ -216,6 +254,50 @@
     }
   }
 
+  function _ensureCurrentVedicGenerationIds() {
+    if (!_currentVedicSessionId) {
+      _currentVedicSessionId = 'vedic-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    }
+    if (!_currentVedicReportId) {
+      _currentVedicReportId = _currentVedicSessionId.replace(/^vedic-premium-/, 'vedic-report-');
+    }
+    if (!_currentVedicPaymentRequestId) {
+      _currentVedicPaymentRequestId = _currentVedicSessionId + ':pay';
+    }
+    return {
+      sessionId: _currentVedicSessionId,
+      reportId: _currentVedicReportId,
+      requestId: _currentVedicPaymentRequestId
+    };
+  }
+
+  function _bindPaymentToCurrentGeneration(payment) {
+    var context = _ensureCurrentVedicGenerationIds();
+    var next = payment && typeof payment === 'object' ? payment : {};
+    next.sessionId = _clean(next.sessionId || context.sessionId) || undefined;
+    next.reportSessionId = _clean(next.reportSessionId || next.sessionId || context.sessionId) || undefined;
+    next.reportId = _clean(next.reportId || context.reportId) || undefined;
+    next.requestId = _clean(next.requestId || context.requestId) || undefined;
+    if (next.accessGrant && typeof next.accessGrant === 'object') {
+      next.accessGrant.sessionId = _clean(next.accessGrant.sessionId || next.sessionId) || undefined;
+      next.accessGrant.reportSessionId = _clean(next.accessGrant.reportSessionId || next.reportSessionId) || undefined;
+      next.accessGrant.reportId = _clean(next.accessGrant.reportId || next.reportId) || undefined;
+      next.accessGrant.requestId = _clean(next.accessGrant.requestId || next.requestId) || undefined;
+    }
+    return next;
+  }
+
+  function _paymentMatchesCurrentGeneration(payment) {
+    var context = _ensureCurrentVedicGenerationIds();
+    var value = payment && typeof payment === 'object' ? payment : {};
+    if (value.adminTestMode === true || value.adminBypass === true) return true;
+    var hasPaymentEvidence = Boolean(value.transactionId || value.purchaseId || value.premiumAccessToken || value.accessGrant);
+    if (!hasPaymentEvidence) return false;
+    var sessionId = _clean(value.sessionId || value.reportSessionId || value.accessGrant && (value.accessGrant.sessionId || value.accessGrant.reportSessionId));
+    var reportId = _clean(value.reportId || value.accessGrant && value.accessGrant.reportId);
+    return sessionId === context.sessionId && reportId === context.reportId;
+  }
+
   function _markPremiumAccessVerified(ttlMs) {
     var ttl = Number(ttlMs || 0);
     if (!Number.isFinite(ttl) || ttl <= 0) ttl = 25 * 60 * 1000;
@@ -225,12 +307,7 @@
   }
 
   function _hasPremiumAccessForGeneration() {
-    if (Date.now() < _premiumAccessVerifiedUntil) return true;
-    if (_premiumTokenMatches() || Date.now() < _premiumPaidUntil) {
-      _markPremiumAccessVerified(25 * 60 * 1000);
-      return true;
-    }
-    return false;
+    return Date.now() < _premiumAccessVerifiedUntil && _paymentMatchesCurrentGeneration(_lastPremiumPayment);
   }
 
   function _buildApiCandidates(pathname) {
@@ -583,8 +660,8 @@
     return lines.map(function (line) {
       var safe = _sanitizeText(line);
       if (!safe) return '';
-      if (titleMap[safe]) return '<h4 class="vd-section-heading">' + safe + '</h4>';
-      return '<p>' + safe + '</p>';
+      if (titleMap[safe]) return '<h4 class="vd-section-heading">' + _escapeHtml(safe) + '</h4>';
+      return '<p>' + _escapeHtml(safe) + '</p>';
     }).join('');
   }
 
@@ -787,6 +864,12 @@
     if (text) text.textContent = step + ' / ' + total + ' 챕터 완성';
     if (number) number.textContent = '제' + step + '장';
     if (chapter) chapter.textContent = _sanitizeText(title || '베다점 챕터를 생성하는 중입니다');
+    var fallbackTitle = VEDIC_PROGRESS_STAGE_TITLES[Math.max(0, Math.min(VEDIC_PROGRESS_STAGE_TITLES.length - 1, step - 1))] || '베다점 PDF를 생성하는 중입니다';
+    var safeTitle = _sanitizeText(title || fallbackTitle);
+    if (/[\uFFFD]|[踰좊떎梨꾨꾩]/.test(safeTitle)) safeTitle = fallbackTitle;
+    if (text) text.textContent = step + ' / ' + total + ' 챕터 완성';
+    if (number) number.textContent = 'Chapter ' + step;
+    if (chapter) chapter.textContent = safeTitle || fallbackTitle;
     var dots = document.querySelectorAll('.vd-ch-dot');
     Array.prototype.forEach.call(dots, function (dot) {
       var dotNo = Number(dot.getAttribute('data-vdch'));
@@ -813,6 +896,7 @@
       '차크라와 레메디 조언을 구성하는 중입니다',
       '베다 점성술 리포트를 완성하는 중입니다'
     ];
+    titles = VEDIC_PROGRESS_STAGE_TITLES;
     var index = 1;
     _setLoadingProgress(1, VEDIC_TOTAL_CHAPTERS, titles[0]);
     _progressTimer = setInterval(function () {
@@ -825,22 +909,88 @@
     }, 850);
   }
 
-  function _renderResult(chapters, payload) {
+  function _normalizeVedicUiSummary(chapters, payload, report) {
+    var source = report && report.pdfReady && report.pdfReady.visualSummary
+      || report && report.vedicVisualSummary
+      || payload && payload.visualSummary
+      || {};
+    var chart = payload && payload.chart || {};
+    var nakshatra = chart.nakshatra && typeof chart.nakshatra === 'object' ? chart.nakshatra : {};
+    var evidenceCount = Number(source.evidenceCount || report && report.quality && report.quality.evidenceUniqueSignalCount || 0);
+    if (!evidenceCount) {
+      var seen = {};
+      (chapters || []).forEach(function (chapter) {
+        var categories = Array.isArray(chapter.categories) ? chapter.categories : [];
+        categories.forEach(function (category) {
+          var ids = Array.isArray(category.usedSignalIds) ? category.usedSignalIds : [];
+          ids.forEach(function (id) { if (_clean(id)) seen[_clean(id)] = true; });
+        });
+      });
+      evidenceCount = Object.keys(seen).length;
+    }
+    return {
+      lagna: _sanitizeText(source.lagna || chart.lagnaSign || '라그나'),
+      moonSign: _sanitizeText(source.moonSign || chart.moonSign || '문 사인'),
+      moonNakshatra: _sanitizeText(source.moonNakshatra || nakshatra.name || '나크샤트라'),
+      activeDasha: _sanitizeText(source.activeDasha || chart.dashas && chart.dashas.currentMahaDasha || '현재 다샤'),
+      nextDasha: _sanitizeText(source.nextDasha || '다음 다샤'),
+      evidenceCount: evidenceCount,
+      symbolicSentence: _sanitizeText(source.symbolicSentence || report && report.symbolicSentence || '라그나와 나크샤트라가 만나는 지점에서 지금의 선택이 현실의 문장으로 정리됩니다.'),
+      elementBalance: Array.isArray(source.elementBalance) ? source.elementBalance : [],
+      houseFocus: Array.isArray(source.houseFocus) ? source.houseFocus : []
+    };
+  }
+
+  function _renderVedicUiBars(rows) {
+    return (Array.isArray(rows) ? rows : []).slice(0, 7).map(function (row) {
+      var percent = Math.max(6, Math.min(100, Number(row && (row.percent || row.value) || 0)));
+      return '<div class="vd-ui-bar"><span>' + _escapeHtml(_sanitizeText(row && (row.label || row.title))) + '</span><i style="--value:' + percent + '%"></i><b>' + _escapeHtml(_sanitizeText(row && row.value)) + '</b></div>';
+    }).join('');
+  }
+
+  function _renderVedicConsultSummary(chapters, payload, report) {
+    var summary = _normalizeVedicUiSummary(chapters || [], payload || {}, report || {});
+    var elementBars = _renderVedicUiBars(summary.elementBalance);
+    var houseBars = _renderVedicUiBars(summary.houseFocus);
+    return '<section class="vd-consult-summary" data-vedic-ui-summary>' +
+      '<div class="vd-consult-summary__seal" aria-hidden="true">🪷</div>' +
+      '<div class="vd-consult-summary__body">' +
+      '<p class="vd-consult-summary__kicker">상징 문장</p>' +
+      '<h4>' + _escapeHtml(summary.symbolicSentence) + '</h4>' +
+      '<div class="vd-consult-summary__grid">' +
+      '<span><b>라그나</b>' + _escapeHtml(summary.lagna) + '</span>' +
+      '<span><b>달</b>' + _escapeHtml(summary.moonSign) + ' · ' + _escapeHtml(summary.moonNakshatra) + '</span>' +
+      '<span><b>현재 다샤</b>' + _escapeHtml(summary.activeDasha) + '</span>' +
+      '<span><b>근거 신호</b>' + _escapeHtml(String(summary.evidenceCount || 0)) + '개</span>' +
+      '</div>' +
+      '<div class="vd-consult-summary__charts">' +
+      '<div><strong>원소 밸런스</strong>' + (elementBars || '<p>차트 계산값을 PDF에 반영했습니다.</p>') + '</div>' +
+      '<div><strong>하우스 집중도</strong>' + (houseBars || '<p>장별 상담 근거를 정리했습니다.</p>') + '</div>' +
+      '</div>' +
+      '</div>' +
+      '</section>';
+  }
+
+  function _renderResult(chapters, payload, report) {
     var toc = _qs('vdToc');
     var content = _qs('vdChapterContent');
     var name = _qs('vdResultName');
     var date = _qs('vdResultDate');
     if (toc) toc.innerHTML = '';
     if (content) content.innerHTML = '';
+    if (content) content.innerHTML = _renderVedicConsultSummary(chapters || [], payload || {}, report || _resultPayload || {});
     if (name) name.textContent = '🪷 ' + _sanitizeText(payload && payload.user && payload.user.name || '사용자') + '님의 베다점 리포트';
     if (date) date.textContent = _sanitizeText(payload && payload.user && payload.user.birthDate || '');
+    if (name) name.textContent = _sanitizeText(payload && payload.user && payload.user.name || '사용자') + '님의 베다점 리포트';
     chapters.forEach(function (chapter, index) {
       var chapterNo = Number(chapter && (chapter.order || chapter.chapterNo || (index + 1))) || (index + 1);
       var heading = _sanitizeText(String(chapter && chapter.title || '').split('—')[0]) || ('제' + chapterNo + '장');
+      heading = VEDIC_UI_CHAPTER_TITLES[index] || heading || ('제' + chapterNo + '장');
       if (toc) {
         var button = document.createElement('button');
         button.type = 'button';
         button.className = 'lb-toc-item loaded';
+        button.textContent = '제' + chapterNo + '장 ' + heading;
         button.textContent = '제' + chapterNo + '장 ' + heading;
         button.addEventListener('click', function () {
           var section = document.getElementById('vdChapter-' + (index + 1));
@@ -853,10 +1003,11 @@
         sectionEl.id = 'vdChapter-' + (index + 1);
         sectionEl.className = 'lb-chapter-card';
         var html = '<h4 class="lb-chapter-title">제' + chapterNo + '장 ' + heading + '</h4>';
+        html = '<h4 class="lb-chapter-title">제' + chapterNo + '장 ' + _escapeHtml(heading) + '</h4>';
         var categories = Array.isArray(chapter.categories) ? chapter.categories : [];
         for (var categoryIndex = 0; categoryIndex < categories.length; categoryIndex += 1) {
           var category = categories[categoryIndex] || {};
-          html += '<article class="lb-sub-card"><h5 class="lb-sub-title">' + _sanitizeText(category.title || ('세부 카테고리 ' + (categoryIndex + 1))) + '</h5><div class="lb-sub-body vd-section-body">' + _renderVedicSectionBody(category.text || category.localSummary || category.body || '') + '</div></article>';
+          html += '<article class="lb-sub-card"><h5 class="lb-sub-title">' + _escapeHtml(_sanitizeText(category.title || ('세부 카테고리 ' + (categoryIndex + 1)))) + '</h5><div class="lb-sub-body vd-section-body">' + _renderVedicSectionBody(category.text || category.localSummary || category.body || '') + '</div></article>';
         }
         sectionEl.innerHTML = html;
         content.appendChild(sectionEl);
@@ -909,18 +1060,22 @@
   }
 
   function _ensurePremiumPaymentThenStart() {
+    var context = _ensureCurrentVedicGenerationIds();
     if (_hasPremiumAccessForGeneration()) return true;
     if (typeof window._cdCoinGatePerUse !== 'function') {
       _logError({ message: '결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.', status: 503, code: 'VEDIC_PAYMENT_MODULE_MISSING' }, { stage: 'billing' });
       alert('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.');
       return false;
     }
-    _logStage('PaymentGateStart', { featureKey: VEDIC_FEATURE_KEY });
+    _logStage('PaymentGateStart', { featureKey: VEDIC_FEATURE_KEY, sessionId: context.sessionId, reportId: context.reportId });
     window._cdCoinGatePerUse(VEDIC_COIN_COST, '베다 점성술 프리미엄 PDF 리포트 생성', function (_transactionId, data) {
-      _lastPremiumPayment = _normalizePremiumPayment(_transactionId, data);
+      _lastPremiumPayment = _bindPaymentToCurrentGeneration(_normalizePremiumPayment(_transactionId, data));
+      if (!_lastPremiumPayment.transactionId && !_lastPremiumPayment.purchaseId && !_lastPremiumPayment.premiumAccessToken && !_lastPremiumPayment.accessGrant) {
+        _lastPremiumPayment.adminTestMode = true;
+      }
       _persistPremiumAccessToken(_lastPremiumPayment.premiumAccessToken || _extractPremiumToken(data));
       _markPremiumAccessVerified(25 * 60 * 1000);
-      _logStage('PaymentGateSuccess', { featureKey: VEDIC_FEATURE_KEY });
+      _logStage('PaymentGateSuccess', { featureKey: VEDIC_FEATURE_KEY, sessionId: context.sessionId, reportId: context.reportId });
       window.generateVedicBook();
     }, function () {
       _lastPremiumPayment = null;
@@ -928,7 +1083,14 @@
       _logStage('PaymentGateCancel', { featureKey: VEDIC_FEATURE_KEY });
     }, {
       featureKey: VEDIC_FEATURE_KEY,
-      requestId: 'vedic-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+      reportType: 'vedicPremium',
+      serviceKey: 'vedic-premium',
+      actionType: 'pdf',
+      action: 'generateVedicPremiumPdf',
+      requestId: context.requestId,
+      reportId: context.reportId,
+      sessionId: context.sessionId,
+      reportSessionId: context.sessionId,
     });
     return false;
   }
@@ -1018,13 +1180,12 @@
       return;
     }
 
+    _ensureCurrentVedicGenerationIds();
+
     if (!_hasPremiumAccessForGeneration()) {
       if (!_ensurePremiumPaymentThenStart()) return;
       return;
     }
-
-    _currentVedicSessionId = 'vedic-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
-    _currentVedicReportId = '';
 
     _generating = true;
     _setStartBusy(true);
@@ -1047,11 +1208,11 @@
         _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '나크샤트라와 카라카를 해석하는 중입니다');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '베다 점성술 리포트를 완성하는 중입니다');
         _logStage('SessionCreateStart', { endpoint: VEDIC_PREPARE_API, featureKey: VEDIC_FEATURE_KEY });
-        var paymentContext = _normalizePremiumPayment('', _lastPremiumPayment || {});
+        var paymentContext = _bindPaymentToCurrentGeneration(_normalizePremiumPayment('', _lastPremiumPayment || {}));
         paymentContext.sessionId = _clean(paymentContext.sessionId || _currentVedicSessionId) || undefined;
         paymentContext.reportSessionId = _clean(paymentContext.reportSessionId || paymentContext.sessionId || _currentVedicSessionId) || undefined;
         paymentContext.premiumAccessToken = _readPremiumAccessToken() || paymentContext.premiumAccessToken || undefined;
-        _currentVedicReportId = _clean(paymentContext.reportId);
+        _currentVedicReportId = _clean(paymentContext.reportId || _currentVedicReportId);
         var paymentGrant = paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
         return _postPrepare({
           sessionId: _currentVedicSessionId,
@@ -1059,7 +1220,7 @@
           reportSessionId: paymentContext.reportSessionId || _currentVedicSessionId,
           purchaseId: paymentContext.purchaseId || undefined,
           requestId: paymentContext.requestId || undefined,
-          reportId: paymentContext.reportId || undefined,
+          reportId: _currentVedicReportId || paymentContext.reportId || undefined,
           accessGrant: paymentGrant || undefined,
           premiumAccessToken: paymentContext.premiumAccessToken || undefined,
           payment: paymentContext,
@@ -1106,7 +1267,7 @@
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '사랑·직업·재물의 흐름을 정리하는 중입니다');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'PDF 편집/렌더링 중');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '완료');
-  _renderResult(_chapters, response.payload || {});
+        _renderResult(_chapters, response.payload || {}, response);
         _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, localAssembly: Boolean(response.localAssembly && response.localAssembly.enabled === true) });
 
         _showScreen('vdResultScreen');
@@ -1119,6 +1280,10 @@
         _generating = false;
         _currentVedicSessionId = '';
         _currentVedicReportId = '';
+        _currentVedicPaymentRequestId = '';
+        _premiumAccessVerifiedUntil = 0;
+        _premiumPaidUntil = 0;
+        _lastPremiumPayment = null;
         _setStartBusy(false);
         _stopProgressAnimation();
       });

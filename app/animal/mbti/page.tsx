@@ -3,7 +3,7 @@ import { buildFortuneJsonLd, generatePageMetadata } from "../../../lib/generate-
 
 const META = {
   path: "/animal/mbti",
-  title: "MBTI 동물 궁합 - 16유형 관계 케미 | Code Destiny",
+  title: "MBTI 동물 궁합 - 16유형 관계 케미",
   description: "MBTI 성향 조합을 동물 토템 비유로 번역해 연애·우정·협업 궁합의 실제 소통 포인트를 안내합니다.",
   keywords: ["MBTI 동물 궁합", "16유형 궁합", "연애 궁합", "MBTI compatibility", "동물 토템"],
   image: "https://code-destiny.com/fuctionassets/ai%20face.webp",

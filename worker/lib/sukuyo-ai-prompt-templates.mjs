@@ -197,28 +197,52 @@ export const SUKUYO_PROMPT_TEMPLATES = Object.freeze({
       "지금 피해야 할 선택을 명확히 알려주세요.",
     ],
   },
+  personality: {
+    domain: "personality",
+    domainKo: "성향/기질",
+    requiresCompatibility: false,
+    keywordWeights: {
+      "본명숙 기질": { weight: 0.92, depth: "핵심", markers: ["traits.core", "mansion"] },
+      "그림자 패턴": { weight: 0.88, depth: "핵심", markers: ["traits.hidden", "karma"] },
+      "관계 반응": { weight: 0.84, depth: "중요", markers: ["traits.love", "moonTone"] },
+      "실행 리듬": { weight: 0.8, depth: "보조", markers: ["traits.work", "traits.wealth"] },
+    },
+    analysisAngles: [
+      "본명숙 기질의 강점과 과잉 반응 분리",
+      "그림자 패턴이 관계와 선택에 나타나는 방식",
+      "연애/일/재물 리듬의 공통 반복 구조",
+      "기질을 안정적으로 쓰는 4주 루틴",
+    ],
+    questionPatterns: [
+      "제 성향에서 가장 먼저 다듬어야 할 패턴은 무엇인가요?",
+      "강점이 과해질 때 생기는 문제를 알려주세요.",
+      "제 본명숙 기질을 현실에서 잘 쓰는 루틴을 제안해주세요.",
+    ],
+  },
 });
 
 export function getSukuyoPromptTemplate(domain) {
   return SUKUYO_PROMPT_TEMPLATES[String(domain || "").trim()] || null;
 }
 
+function matchesAny(text, keywords) {
+  return keywords.some((keyword) => text.includes(keyword));
+}
+
 export function classifyQuestionToSukuyoDomain(question) {
   const text = String(question || "").toLowerCase();
-  const map = {
-    reconciliation: ["재회", "다시", "돌아", "회복"],
-    breakup: ["이별", "헤어", "정리", "끝내"],
-    compatibility: ["궁합", "상대", "인연", "관계 유형"],
-    love: ["연애", "결혼", "썸"],
-    career: ["직업", "진로", "이직", "커리어", "직장"],
-    money: ["돈", "재물", "수입", "투자", "저축"],
-    relationship: ["인간관계", "가족", "친구", "동료", "갈등"],
-    health: ["건강", "멘탈", "불안", "스트레스", "회복"],
-    life_direction: ["인생", "방향", "미래", "전환", "선택"],
-  };
+  const relationContext = ["상대", "그 사람", "애인", "전남친", "전여친", "연인", "배우자", "부부", "썸", "이별", "헤어진", "연락", "관계"];
 
-  for (const [domain, keywords] of Object.entries(map)) {
-    if (keywords.some((k) => text.includes(k))) return domain;
-  }
+  if (matchesAny(text, ["재회", "다시 만나", "다시 연락", "돌아올", "돌아오"])) return "reconciliation";
+  if (matchesAny(text, ["회복", "다시"]) && matchesAny(text, relationContext)) return "reconciliation";
+  if (matchesAny(text, ["이별", "헤어", "정리", "끝내"])) return "breakup";
+  if (matchesAny(text, ["건강", "멘탈", "불안", "스트레스", "수면", "회복력", "몸", "마음"])) return "health";
+  if (matchesAny(text, ["돈", "재물", "수입", "투자", "저축", "매출", "재정", "자산"])) return "money";
+  if (matchesAny(text, ["직업", "진로", "이직", "커리어", "직장", "승진", "사업", "업무", "일자리"])) return "career";
+  if (matchesAny(text, ["궁합", "상대", "인연", "관계 유형"])) return "compatibility";
+  if (matchesAny(text, ["연애", "결혼", "썸", "사랑"])) return "love";
+  if (matchesAny(text, ["인간관계", "가족", "친구", "동료", "갈등"])) return "relationship";
+  if (matchesAny(text, ["성격", "기질", "강점", "약점", "본성", "패턴", "성향"])) return "personality";
+  if (matchesAny(text, ["인생", "방향", "미래", "전환", "선택", "다시 일어", "앞으로"])) return "life_direction";
   return "life_direction";
 }

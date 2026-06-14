@@ -17,7 +17,8 @@ function assertLoveSecretLocalPdfResult(result = {}, config = {}, expectedChapte
   const pdfCompletionValidation = result?.pdfCompletionValidation && typeof result.pdfCompletionValidation === "object"
     ? result.pdfCompletionValidation
     : {};
-  const generationMode = clean(config.generationMode || "local-assembled");
+  const generationMode = clean(config.generationMode || "local-premium");
+  const qualityMode = clean(config.qualityMode || "premium-local");
   const templateVersion = clean(config.templateVersion);
   const storedUrl = clean(result?.downloadUrl || result?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
 
@@ -25,12 +26,15 @@ function assertLoveSecretLocalPdfResult(result = {}, config = {}, expectedChapte
   if (result?.ok !== true) issues.push("ok");
   if (clean(result?.manuscriptSource) !== generationMode) issues.push("manuscript_source");
   if (result?.fallbackUsed === true) issues.push("fallback_used");
+  if (qualityMode && clean(result?.qualityMode) !== qualityMode) issues.push("quality_mode");
   if (chapters.length !== expectedChapterCount) issues.push("chapter_count");
   if (Number(result?.chapterCount || 0) !== expectedChapterCount) issues.push("payload_chapter_count");
   if (Number(pdfReady?.chapterCount || 0) !== expectedChapterCount) issues.push("pdf_chapter_count");
   if (localAssembly.enabled !== true) issues.push("local_assembly_enabled");
   if (localAssembly.externalGeneration !== false) issues.push("external_generation");
   if (localAssembly.externalCallsAllowed !== false) issues.push("external_calls_allowed");
+  if (localAssembly.fallbackUsed === true) issues.push("local_assembly_fallback_used");
+  if (qualityMode && clean(localAssembly.qualityMode) !== qualityMode) issues.push("local_assembly_quality_mode");
   if (Number(localAssembly.chapterCount || 0) !== expectedChapterCount) issues.push("local_assembly_chapter_count");
   if (Number(localAssembly.expectedChapterCount || 0) !== expectedChapterCount) issues.push("local_assembly_expected_chapter_count");
   if (templateVersion && clean(localAssembly.templateVersion) !== templateVersion) issues.push("local_assembly_template_version");
@@ -45,6 +49,7 @@ function assertLoveSecretLocalPdfResult(result = {}, config = {}, expectedChapte
     chapterCount: chapters.length,
     expectedChapterCount,
     generationMode,
+    qualityMode,
     templateVersion,
   };
 }
@@ -94,6 +99,6 @@ export async function generateLoveSecretLocalPdf(input = {}, options = {}) {
     ...result,
     localOnly: true,
     localContract,
-    writingPipeline: "local-calculation-to-local-template-pdf",
+    writingPipeline: "local-calculation-to-premium-local-pdf",
   };
 }

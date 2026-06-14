@@ -516,9 +516,17 @@ const dailyFortuneSubscriptionSchema = new mongoose.Schema({
   subDaily: { type: Boolean, default: true },
   subMonthly: { type: Boolean, default: false },
   birthYear: { type: Number, default: null, min: 1900, max: 2100 },
+  birthDate: { type: String, default: "", trim: true, maxlength: 10 },
+  birthHour: { type: Number, default: null, min: 0, max: 23 },
+  birthMinute: { type: Number, default: null, min: 0, max: 59 },
+  calendarType: { type: String, default: "solar", trim: true, maxlength: 20 },
+  timezone: { type: String, default: "Asia/Seoul", trim: true, maxlength: 40 },
+  sajuSnapshot: { type: mongoose.Schema.Types.Mixed, default: null },
   source: { type: String, default: "saju-analysis", trim: true, maxlength: 40 },
   isActive: { type: Boolean, default: true, index: true },
   lastSentAt: { type: Date, default: null },
+  lastMailError: { type: String, default: "", trim: true, maxlength: 240 },
+  lastMailErrorAt: { type: Date, default: null },
   unsubscribedAt: { type: Date, default: null },
 }, { timestamps: true });
 

@@ -1,21 +1,20 @@
-import Link from "next/link";
-
 export const metadata = {
-  title: "페이지를 찾지 못했습니다 | Code Destiny",
-  description: "요청한 페이지를 찾지 못했습니다. 유명인 사주 분석과 운세 인사이트 허브에서 관련 글을 이어서 확인할 수 있습니다.",
+  title: "페이지를 찾지 못했습니다",
+  description: "요청한 페이지를 찾지 못했습니다. Code Destiny의 공개 운세 가이드와 주요 서비스에서 가까운 경로를 확인할 수 있습니다.",
   robots: {
     index: false,
     follow: true,
   },
 };
 
-export default function NotFound() {
-  const quickLinks = [
-    { href: "/insights/famous-saju", label: "유명인 사주 분석" },
-    { href: "/insights/famous-saju/yi-sun-sin", label: "이순신 사주" },
-    { href: "/insights/famous-saju/iu", label: "아이유 사주" },
-  ];
+const quickLinks = [
+  { href: "/insights", label: "운세 인사이트 가이드" },
+  { href: "/manse", label: "무료 만세력 사주 분석" },
+  { href: "/tarot", label: "무료 타로 리딩" },
+  { href: "/today", label: "오늘의 운세 보기" },
+];
 
+export default function NotFound() {
   return (
     <main
       style={{
@@ -45,11 +44,11 @@ export default function NotFound() {
           페이지를 찾지 못했습니다
         </h1>
         <p style={{ margin: "0 auto", maxWidth: "520px", lineHeight: 1.7, color: "#cbd5e1" }}>
-          주소가 바뀌었거나 아직 공개되지 않은 글일 수 있습니다. 유명인 사주 분석과 운세 인사이트 허브에서 가까운 글을 이어서 확인해 보세요.
+          주소가 바뀌었거나 아직 공개되지 않은 페이지일 수 있습니다. 아래의 공개 가이드와 주요 운세 서비스에서 가까운 경로를 확인해 주세요.
         </p>
         <div style={{ margin: "22px auto 0", display: "grid", gap: "10px", maxWidth: "520px" }}>
           {quickLinks.map((item) => (
-            <Link
+            <a
               key={item.href}
               href={item.href}
               style={{
@@ -63,12 +62,12 @@ export default function NotFound() {
               }}
             >
               {item.label}
-            </Link>
+            </a>
           ))}
         </div>
         <div style={{ marginTop: "20px", display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center" }}>
-          <Link
-            href="/insights"
+          <a
+            href="/"
             style={{
               borderRadius: "999px",
               background: "#f8fafc",
@@ -78,10 +77,10 @@ export default function NotFound() {
               textDecoration: "none",
             }}
           >
-            운세 인사이트 허브
-          </Link>
-          <Link
-            href="/saju"
+            홈으로 돌아가기
+          </a>
+          <a
+            href="/saju/basic"
             style={{
               borderRadius: "999px",
               background: "linear-gradient(135deg, #f59e0b, #d97706)",
@@ -91,8 +90,8 @@ export default function NotFound() {
               textDecoration: "none",
             }}
           >
-            내 사주 분석
-          </Link>
+            사주 기본 해석 보기
+          </a>
         </div>
       </section>
     </main>
