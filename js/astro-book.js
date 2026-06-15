@@ -376,9 +376,9 @@
     if (/PAYMENT_CONFIRMED_BUT_ACCESS_MISSING|결제는 확인되었지만/i.test(raw)) {
       message = '결제는 확인되었지만 생성 권한 연결이 아직 완료되지 않았습니다. 잠시 후 다시 시도하면 중복 결제 없이 이어서 확인합니다.';
     } else if (/ASTRO_PAYMENT_CANCELLED|결제\s*취소|payment\s*cancel/i.test(raw)) {
-      message = '결제가 완료되지 않았습니다. 코인은 차감되지 않았으며, 원하실 때 다시 생성할 수 있습니다.';
+      message = '결제가 완료되지 않았습니다. 결제 내역은 생성되지 않았으며, 원하실 때 다시 생성할 수 있습니다.';
     } else if (/internal\s*server\s*error|\bobject\b|ASTRO_PREMIUM|ASTRO_REPORT|ASTRO_CHART|PDF 결과|원고|검증|시간이 초과|생성 실패|생성 오류|HTTP\s*5/i.test(raw)) {
-      message = 'PDF 생성이 완료되지 않았습니다. 결제 또는 코인 처리분은 자동 보상 확인 대상이며, 잠시 후 포인트 내역을 확인한 뒤 다시 시도해 주세요.';
+      message = 'PDF 생성이 완료되지 않았습니다. 결제 처리분은 자동 보상 확인 대상이며, 잠시 후 결제 내역을 확인한 뒤 다시 시도해 주세요.';
     }
     var el = _qs('abErrorMsg');
     if (el) el.textContent = message || '생성 중 오류가 발생했습니다.';

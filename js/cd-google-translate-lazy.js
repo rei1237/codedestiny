@@ -31,12 +31,41 @@
     document.head.appendChild(s);
   }
 
-  function hasTranslateIntent() {
+  function normalizeLang(lang) {
+    var next = String(lang || '').trim();
+    if (next === 'zh' || next === 'zh-cn' || next === 'zh_CN') return 'zh-CN';
+    if (/^(ko|en|ja|zh-CN|hi|es|fr|de|nl|ms)$/.test(next)) return next;
+    return 'ko';
+  }
+
+  function getUrlLang() {
     try {
-      if ((document.cookie || '').indexOf('googtrans=') !== -1) return true;
-      if ((location.search || '').indexOf('lang=') !== -1) return true;
+      var params = new URLSearchParams(window.location.search || '');
+      var lang = params.get('lang');
+      return lang ? normalizeLang(lang) : '';
     } catch (_) {}
+    return '';
+  }
+
+  function getExplicitSavedLang() {
+    try {
+      if (localStorage.getItem('cd_lang_explicit') !== '1') return '';
+      var lang = localStorage.getItem('cd_lang');
+      return lang ? normalizeLang(lang) : '';
+    } catch (_) {}
+    return '';
+  }
+
+  function hasTranslateIntent() {
+    var urlLang = getUrlLang();
+    if (urlLang && urlLang !== 'ko') return true;
+    var savedLang = getExplicitSavedLang();
+    if (savedLang && savedLang !== 'ko') return true;
     return false;
+  }
+
+  function loadTranslateForExplicitIntent() {
+    if (hasTranslateIntent()) loadTranslate();
   }
 
   document.addEventListener('click', function (e) {
@@ -48,17 +77,16 @@
   }, { passive: true });
 
   window.addEventListener('pointerdown', function () {
-    if (hasTranslateIntent()) loadTranslate();
+    loadTranslateForExplicitIntent();
   }, { once: true, passive: true });
 
   window.addEventListener('load', function () {
-    // Hidden widget is preloaded so the first user selection can translate immediately.
-    loadTranslate();
+    loadTranslateForExplicitIntent();
   }, { once: true });
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadTranslate, { once: true });
+    document.addEventListener('DOMContentLoaded', loadTranslateForExplicitIntent, { once: true });
   } else {
-    loadTranslate();
+    loadTranslateForExplicitIntent();
   }
 })();

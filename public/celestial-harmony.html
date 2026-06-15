@@ -378,7 +378,7 @@
           <div class="premium-status-panel" id="premiumStatusPanel" aria-live="polite">
             <div class="premium-status-row">
               <span class="premium-chip" id="premiumChip">카드 대기</span>
-              <span style="font-size:.72rem;color:rgba(255,255,255,.64);">11행성 심층 리딩 <strong style="color:rgba(253,230,138,.95);">100코인</strong> · 별빛 통합 오라클이 열립니다.</span>
+              <span style="font-size:.72rem;color:rgba(255,255,255,.64);">11행성 심층 리딩 <strong style="color:rgba(253,230,138,.95);">10,000원</strong> · 별빛 통합 오라클이 열립니다.</span>
             </div>
             <div id="premiumStatusText" style="font-size:.78rem;color:rgba(255,255,255,.78);line-height:1.5;">행성 자리를 먼저 펼친 뒤, 별빛 통합 오라클을 열 수 있습니다.</div>
             <div class="premium-steps" id="premiumSteps">
@@ -388,7 +388,7 @@
               <div class="premium-step" data-step="complete"><div class="premium-step__k">4단계</div><div class="premium-step__v">리딩 완성</div></div>
             </div>
           </div>
-          <p class="mt-5 text-amber-200/28 text-xs">&#x1F4AB; 1회 100코인으로 11행성 전체 리딩과 별빛 통합 오라클을 엽니다.</p>
+          <p class="mt-5 text-amber-200/28 text-xs">&#x1F4AB; 1회 10,000원으로 11행성 전체 리딩과 별빛 통합 오라클을 엽니다.</p>
         </div>
       </div>
     </section>
@@ -1192,7 +1192,7 @@
       try{payload=await res.json();}catch(_){payload={};}
       console.log('[CelestialHarmony][CoinGate] response', { status: res.status, payload: payload });
       if(!res.ok || payload.ok===false){
-        var gateErr = new Error((payload&&payload.error&&payload.error.message)||payload.message||'코인 결제 확인에 실패했습니다.');
+        var gateErr = new Error((payload&&payload.error&&payload.error.message)||payload.message||'원화 결제 확인에 실패했습니다.');
         gateErr.status = res.status;
         gateErr.payload = payload;
         throw gateErr;
@@ -1383,7 +1383,7 @@
         premiumTokenMasked: maskToken(currentPremiumToken || readPremiumToken())
       });
       updatePremiumStatus('premium active','결제 확인을 진행하고 있습니다.','payment',['draw']);
-      setLoading(true,'코인 결제를 확인하고 천체의 선율 리딩을 준비하고 있습니다...');
+      setLoading(true,'원화 결제를 확인하고 천체의 선율 리딩을 준비하고 있습니다...');
 
       try{
         if(!currentReportId) currentReportId = buildReportId();
@@ -1460,7 +1460,7 @@
         if(status===401 || code==='UNAUTHORIZED'){
           updatePremiumStatus('premium issue','결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.','payment',['draw']);
         } else if(!hasAccess){
-          updatePremiumStatus('premium issue','코인 결제 확인에 실패했습니다.','payment',['draw']);
+          updatePremiumStatus('premium issue','원화 결제 확인에 실패했습니다.','payment',['draw']);
         } else {
           updatePremiumStatus('premium recover','결제는 확인되었습니다. 저장된 권한으로 리딩 생성을 다시 시도합니다.','generate',['draw','payment']);
         }

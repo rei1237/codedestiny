@@ -136,8 +136,8 @@ styles/                  ←→  public/styles/
 <!-- 보조 버튼 -->
 <button class="btn-secondary">더 알아보기</button>
 
-<!-- 코인 버튼 -->
-<button class="btn-coin">100코인 시작</button>
+<!-- 유료 버튼 -->
+<button class="btn-coin">유료 시작</button>
 ```
 
 ### **타일 (카드)**

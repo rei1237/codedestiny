@@ -346,7 +346,7 @@
   function showCoinShortage(cost, reason) {
     try {
       if (typeof window.__cdOpenChargeModal === "function") {
-        window.alert("🪙 " + reason + "\n\n" + cost + "코인 가치의 단건 결제가 필요합니다.\n결제 상점을 엽니다.");
+        window.alert("🪙 " + reason + "\n\n" + (Math.max(0, Number(cost || 0)) * 100).toLocaleString("ko-KR") + "원 단건 결제가 필요합니다.\n결제 상점을 엽니다.");
         window.__cdOpenChargeModal();
         return;
       }
@@ -424,7 +424,7 @@
             return false;
           }
           if (!res.ok || data.ok === false) {
-            window.alert(String(data.message || "코인 차감에 실패했습니다."));
+            window.alert(String(data.message || "원화 결제 확인에 실패했습니다."));
             return false;
           }
           return true;
@@ -1120,7 +1120,7 @@
         rollbackCoinBestEffort(REUNION_COIN_COST, REUNION_REASON, REUNION_FEATURE_KEY).then(function (rolledBack) {
           state.hasAccess = false;
           if (rolledBack) {
-            alert("해석 생성 오류가 발생해 결제 코인을 복구했습니다. 다시 시도해 주세요.");
+            alert("해석 생성 오류가 발생해 결제 금액을 복구했습니다. 다시 시도해 주세요.");
           } else {
             alert("해석 생성 중 오류가 발생했습니다. 결과 페이지 진입이 차단되었습니다. 잠시 후 다시 시도해 주세요.");
           }

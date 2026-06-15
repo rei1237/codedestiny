@@ -68,7 +68,8 @@
   function _formatCoins(value, fallback) {
     var number = _coinNumber(value);
     if (number === null) return fallback || '결제창 확인';
-    try { return number.toLocaleString('ko-KR') + '코인'; } catch (_) { return String(number) + '코인'; }
+    var won = Math.max(0, Math.floor(number)) * 100;
+    try { return won.toLocaleString('ko-KR') + '원'; } catch (_) { return String(won) + '원'; }
   }
 
   function _firstCoinValue(payload, keys) {
@@ -120,7 +121,7 @@
     var state = snapshot || _billingSnapshot || {};
     var costLabel = _formatCoins(state.cost || COIN_COST, '결제창 확인');
     var balanceLabel = state.balanceKnown
-      ? _formatCoins(state.balance, '0코인')
+      ? _formatCoins(state.balance, '0원')
       : state.authenticated === false ? '로그인 필요' : '결제창 확인';
     var priceEl = _qs('nyConfirmPrice');
     var balanceEl = _qs('nyConfirmBalance');
@@ -630,7 +631,7 @@
     if (profileEl) profileEl.textContent = _profileLabel(pending && pending.profile);
     if (yearEl) yearEl.textContent = String(pending && pending.targetYear || _targetYear() || '') + '년';
     _applyBillingSnapshot(_billingSnapshot);
-    if (noticeEl) noticeEl.textContent = '동일한 사주 정보와 대상 연도의 보관 리포트가 있으면 코인 차감 없이 기존 결과를 불러옵니다.';
+    if (noticeEl) noticeEl.textContent = '동일한 사주 정보와 대상 연도의 보관 리포트가 있으면 추가 결제 없이 기존 결과를 불러옵니다.';
   }
 
   function _billingErrorOptions(gate) {
@@ -644,10 +645,10 @@
         retryText: '로그인 후 다시 시도'
       };
     }
-    if (status === 402 || code === 'INSUFFICIENT_COINS' || /코인|잔액|이용권/.test(message)) {
+    if (status === 402 || code === 'INSUFFICIENT_COINS' || /잔액|이용권|결제|권한/.test(message)) {
       return {
         showCharge: true,
-        detail: '코인 또는 이용권 상태를 확인한 뒤 다시 생성해 주세요. 권한이 확인되기 전에는 PDF 생성이 시작되지 않습니다.',
+        detail: '원화 결제 또는 이용권 상태를 확인한 뒤 다시 생성해 주세요. 권한이 확인되기 전에는 PDF 생성이 시작되지 않습니다.',
         retryText: '권한 다시 확인'
       };
     }
@@ -920,7 +921,7 @@
         ok: false,
         status: response.status,
         code: _clean(payload.code || (payload.error && payload.error.code)),
-        message: _clean(payload.message || (payload.error && payload.error.message)) || '프리미엄 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.'
+        message: _clean(payload.message || (payload.error && payload.error.message)) || '프리미엄 PDF 생성을 위해 원화 결제 또는 이용권 확인이 필요합니다.'
       };
     }
     _log('PaymentVerificationPassed', { featureKey: BILLING_FEATURE_KEY, reportId: reportId, hasPurchaseId: !!grant.purchaseId });
@@ -1263,8 +1264,8 @@
       chargeAction.click();
       return;
     }
-    _setError('코인 충전 창을 열 수 없습니다. 잠시 후 다시 시도해 주세요.', {
-      detail: '상단의 이용권 상점에서 코인 또는 이용권 상태를 확인해 주세요.',
+    _setError('결제 창을 열 수 없습니다. 잠시 후 다시 시도해 주세요.', {
+      detail: '상단의 이용권 상점에서 원화 결제 또는 이용권 상태를 확인해 주세요.',
       retryText: '다시 확인'
     });
   };
@@ -1333,7 +1334,7 @@
     }).then(function (gate) {
       if (!gate.ok) {
         _logError(gate, { stage: 'billing', reportId: pending.reportId });
-        _setError(gate.message || '프리미엄 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.', _billingErrorOptions(gate));
+        _setError(gate.message || '프리미엄 PDF 생성을 위해 원화 결제 또는 이용권 확인이 필요합니다.', _billingErrorOptions(gate));
         return null;
       }
       return _runAfterBilling(pending, gate.accessGrant, gate.premiumAccessToken);

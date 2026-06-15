@@ -175,7 +175,7 @@ assert.equal(family690.canUseByPass, true, "family 690: canUseByPass");
 assert.equal(family690.canUseByMonthly, false, "family 690: monthly fallback is unnecessary without balance");
 assertFinalPass(family690, "card", "family 690 requested card");
 
-const discountedPdf = applyPdfPassDiscountToPricing({
+const unchangedPdf = applyPdfPassDiscountToPricing({
   featureKey: "premium_pdf_ziwei",
   billingType: "pdf",
   cost: 590,
@@ -184,15 +184,16 @@ const discountedPdf = applyPdfPassDiscountToPricing({
   cashPrice: 59000,
   membershipCreditCost: 5900,
 }, activePass(PASS_TIERS.PREMIUM));
-assert.equal(discountedPdf.coinPrice, 540, "premium pass discounts PDF by 50 coins");
-const discountedPdfDecision = decision({
+assert.equal(unchangedPdf.coinPrice, 590, "premium pass leaves PDF price unchanged");
+assert.equal(unchangedPdf.passDiscount, undefined, "premium pass does not attach PDF pass discount");
+const unchangedPdfDecision = decision({
   pass: activePass(PASS_TIERS.PREMIUM),
-  coinCost: discountedPdf.coinPrice,
-  monthlyBalance: 5400,
+  coinCost: unchangedPdf.coinPrice,
+  monthlyBalance: 5900,
 });
-assert.equal(discountedPdfDecision.canUseByPass, false, "discounted PDF remainder must not be pass-covered again");
+assert.equal(unchangedPdfDecision.canUseByPass, false, "PDF remains outside normal pass free coverage");
 
-const smallPdfRemainder = applyPdfPassDiscountToPricing({
+const smallPdfUnchanged = applyPdfPassDiscountToPricing({
   featureKey: "premium_pdf_saju_love_secret",
   billingType: "pdf",
   cost: 50,
@@ -203,12 +204,13 @@ const smallPdfRemainder = applyPdfPassDiscountToPricing({
 }, activePass(PASS_TIERS.STANDARD));
 const smallPdfDecision = __billingTestUtils.buildPassPaymentDecision(
   activePass(PASS_TIERS.STANDARD),
-  smallPdfRemainder,
-  { membershipCreditBalance: 200 },
+  smallPdfUnchanged,
+  { membershipCreditBalance: 500 },
 );
-assert.equal(smallPdfRemainder.coinPrice, 20, "standard pass discounts small PDF by 30 coins");
-assert.equal(smallPdfDecision.canUseByPass, false, "small discounted PDF remainder still requires payment");
-assert.equal(smallPdfDecision.canUseByMonthly, true, "small discounted PDF remainder can use monthly credit");
+assert.equal(smallPdfUnchanged.coinPrice, 50, "standard pass leaves small PDF price unchanged");
+assert.equal(smallPdfUnchanged.passDiscount, undefined, "standard pass does not attach small PDF pass discount");
+assert.equal(smallPdfDecision.canUseByPass, false, "small PDF still requires product payment");
+assert.equal(smallPdfDecision.canUseByMonthly, true, "small PDF can still use internal entitlement fallback");
 
 const expiredPass = activePass(PASS_TIERS.VVIP, pastDate());
 const expiredVvip50 = decision({
@@ -289,29 +291,28 @@ assertContains(paymentsSource, 'accessMethod: "CARD"', "card access method remai
 assertContains(paymentsSource, "handleSubscriptionMonthlyCreditConfirm", "subscription pass monthly credit confirm path");
 assertContains(paymentsSource, 'paymentMethodHint === "monthly_credit"', "subscription pass monthly credit routing");
 assertContains(paymentsSource, 'type: "MONTHLY_CREDIT_SPEND"', "subscription pass monthly credit ledger");
-assertContains(pointsSource, "onSubscribeWithMonthlyCredit", "subscription pass monthly credit UI handler");
-assertContains(pointsSource, 'paymentMethod: "monthly_credit"', "subscription pass monthly credit request");
-assertContains(pointsSource, "Moonlight Stone {monthlyCreditCost.toLocaleString", "subscription pass monthly credit CTA");
+assertNotContains(pointsSource, "onSubscribeWithMonthlyCredit", "subscription pass monthly credit UI handler removed");
+assertNotContains(pointsSource, 'paymentMethod: "monthly_credit"', "subscription pass monthly credit request removed from UI");
+assertContains(pointsSource, "PDF 서비스는 상품별 원화 단건 결제", "standard pass PDF single-payment UI");
 assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "points page reads payments/me subscriptions");
 assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points page normalizes subscription payloads");
 assertContains(pointsSource, "mergeSubscriptionState", "points page merges server subscription state");
-assertContains(pointsSource, "<SubscriptionStatusCard subscription={subscription} monthlyCredits={currentMonthlyCredits} />", "points page passes monthly credits to status card");
-assertContains(pointsSource, "PDF 생성 시 30코인 자동 할인", "standard pass PDF discount UI");
+assertContains(pointsSource, "<SubscriptionStatusCard subscription={subscription} />", "points page renders status card without monthly balance copy");
+const legacyPdfDiscountCopy = [
+  "PDF 생성 시 3,000원 ",
+  "자동 ",
+  "할인",
+].join("");
+assertNotContains(pointsSource, legacyPdfDiscountCopy, "standard pass legacy pricing UI removed");
 assertContains(pointsSource, "프로필 추가·수정·삭제 무료, 제한 없음", "family profile unlimited UI");
 assertContains(pointsSource, "formatSubscriptionPlanPolicy", "subscription pass policy formatter");
 assertContains(statusCardSource, "Family 이용권으로 모든 서비스가 무료 처리됩니다.", "family status card policy");
-assertContains(statusCardSource, "일반 한도 초과 서비스는 기존가 결제, PDF는 할인 후 잔액 결제됩니다.", "non-family paid service/PDF status policy");
+assertContains(statusCardSource, "한도 초과 서비스와 PDF는 상품별 원화 단건 결제로 이용할 수 있습니다.", "non-family paid service/PDF status policy");
 assertNotContains(paymentsSource, '"profileSubscription.membershipCreditBalance": 0,\n        "profileSubscription.membershipCreditGranted": 0,\n        "profileSubscription.membershipCreditUsed": 0,', "card pass confirm must preserve monthly credit ledger");
 
-assertBefore(
-  indexSource,
-  'data-mode="direct"',
-  'data-mode="monthly"',
-  "payment modal shows card before monthly",
-);
 assertContains(indexSource, 'class="cd-direct-payment-option" data-mode="direct"', "single payment CTA");
-assertContains(indexSource, "var monthlyButtonHtml", "monthly payment CTA");
-assertContains(indexSource, 'data-mode="monthly"', "monthly payment mode marker");
+assertContains(indexSource, "var monthlyButtonHtml = ''", "monthly payment CTA removed");
+assertNotContains(indexSource, 'class="cd-direct-payment-option" data-mode="monthly"', "monthly payment option removed from modal");
 assertContains(indexSource, 'data-mode="pass"', "payment modal shows pass apply option");
 assertContains(indexSource, "\\uC774\\uC6A9\\uAD8C \\uC801\\uC6A9", "payment modal pass apply label");
 assertContains(indexSource, "FAMILY 이용권이 적용되었습니다.", "static family license pass success copy");
@@ -319,8 +320,8 @@ assertContains(indexSource, "membership-honey-kkulkkul.webp", "static license pa
 assertContains(indexSource, "forceDeduct: false", "static membership pass probe never deducts coins");
 assertContains(indexSource, "_subTier === 'family' ? 999999999", "main shell family policy pass limit");
 assertContains(indexSource, "Code Destiny Family 30일", "main shell family payment modal copy");
-assertContains(indexSource, "PDF \\uD560\\uC778 \\uC790\\uB3D9 \\uC801\\uC6A9", "main shell PDF discount modal copy");
-assertContains(indexSource, "directCoinLabel", "payment modal displays discounted coin basis");
+assertContains(indexSource, "\\uC0C1\\uD488\\uBCC4 \\uC6D0\\uD654 \\uB2E8\\uAC74 \\uACB0\\uC81C", "main shell PDF single-payment modal copy");
+assertContains(indexSource, "directCoinLabel", "payment modal displays original value basis");
 assertContains(indexSource, "membershipCoverage: (passFirstAccess && passFirstAccess.membershipCoverage)", "pass-first coverage feeds payment modal");
 assertContains(indexSource, "passButtonHtml", "payment modal includes pass card HTML");
 assertContains(indexSource, "monthlyBalance >= requiredMonthlyCredits", "simple frontend monthly balance check");

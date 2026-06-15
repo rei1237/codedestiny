@@ -561,8 +561,8 @@ const appHtml = `
 
         <button class="action-btn" style="width: 100%; margin-top: 15px; background: #FEE500; color: #3B1E08; border: none; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" onclick="sharePhysiognomyKakao()">💬 카카오톡으로 관상 결과 공유하기</button>
         <button class="action-btn" id="pastLifeFaceBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%); color:#fff; box-shadow:0 4px 15px rgba(124,58,237,0.35); padding:13px;" onclick="showPastLifePhysiognomy()">🌘 나의 전생 관상 보기</button>
-        <button class="action-btn" id="pastLifeCompatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #4f46e5 0%, #9333ea 52%, #e11d48 100%); color:#fff; box-shadow:0 4px 15px rgba(79,70,229,0.38); padding:14px 14px 10px; font-size:1.05rem; flex-direction:column; align-items:center; gap:5px;" onclick="startPastLifeCompatMode()"><span>🌘 전생 관상 궁합 보기</span><span style="font-size:0.78rem; font-weight:700; background:rgba(255,255,255,0.22); border-radius:20px; padding:3px 12px;">🐷 50 코인 차감</span></button>
-        <button class="action-btn" id="compatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #f472b6 0%, #e11d48 100%); color: #fff; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); padding:14px 14px 10px; font-size:1.05rem; flex-direction:column; align-items:center; gap:5px;" onclick="startCompatMode()"><span>💕 상대방과 관상 궁합 보기</span><span style="font-size:0.78rem; font-weight:700; background:rgba(255,255,255,0.22); border-radius:20px; padding:3px 12px; letter-spacing:0.02em;">🐷 50 코인 차감</span></button>
+        <button class="action-btn" id="pastLifeCompatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #4f46e5 0%, #9333ea 52%, #e11d48 100%); color:#fff; box-shadow:0 4px 15px rgba(79,70,229,0.38); padding:14px 14px 10px; font-size:1.05rem; flex-direction:column; align-items:center; gap:5px;" onclick="startPastLifeCompatMode()"><span>🌘 전생 관상 궁합 보기</span><span style="font-size:0.78rem; font-weight:700; background:rgba(255,255,255,0.22); border-radius:20px; padding:3px 12px;">🐷 5,000원 결제</span></button>
+        <button class="action-btn" id="compatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #f472b6 0%, #e11d48 100%); color: #fff; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); padding:14px 14px 10px; font-size:1.05rem; flex-direction:column; align-items:center; gap:5px;" onclick="startCompatMode()"><span>💕 상대방과 관상 궁합 보기</span><span style="font-size:0.78rem; font-weight:700; background:rgba(255,255,255,0.22); border-radius:20px; padding:3px 12px; letter-spacing:0.02em;">🐷 5,000원 결제</span></button>
         <button class="action-btn" style="width: 100%; margin-top: 10px; background: #e2e8f0; color: #475569; box-shadow: none; padding:12px;" onclick="resetPhysiognomyApp()"> 다른 사진으로 분석하기</button>
         <button class="action-btn" style="width: 100%; margin-top: 10px; background: #fff; color: #475569; border: 1px solid #cbd5e1; box-shadow: none; padding:12px;" onclick="closePhysiognomyApp()"> 메인 화면으로 돌아가기</button>
       </div>
@@ -1936,7 +1936,7 @@ function renderPastLifeCompatResult(result) {
       return;
     }
 
-    // ── 관상 궁합 50코인 게이트 (공통 게이트 경유) ──
+    // ── 관상 궁합 5,000원 게이트 (공통 게이트 경유) ──
     (function () {
       if (typeof window._cdCoinGatePerUse !== 'function') {
         window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
@@ -1945,7 +1945,7 @@ function renderPastLifeCompatResult(result) {
 
       const compatRequestId = 'physiognomy-compatibility:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
       window._cdCoinGatePerUse(50, '관상 궁합 분석', function () {
-        // 코인 차감 성공 → 궁합 모드 시작
+        // 결제 확인 성공 → 궁합 모드 시작
         compatMode = true;
         pastLifeCompatMode = false;
         _phyUploadToken += 1;

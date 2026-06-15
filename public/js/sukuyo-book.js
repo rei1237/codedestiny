@@ -42,7 +42,7 @@
     return Number.isFinite(cost) && cost > 0 ? Math.floor(cost) : SUKYO_COIN_COST_FALLBACK;
   }
   function _sukuyoCoinLabel() {
-    return _resolveSukuyoCoinCost().toLocaleString('ko-KR') + '코인';
+    return (_resolveSukuyoCoinCost() * 100).toLocaleString('ko-KR') + '원';
   }
   function _finiteNumber(value) {
     if (value === null || typeof value === 'undefined' || value === '') return NaN;
@@ -817,7 +817,7 @@
     if (noticeEl) {
       noticeEl.textContent = hasUnknownTime
         ? '태어난 시간을 모르는 항목은 날짜 중심 궁합으로 계산하고, 시간 세부 문장은 보수적으로 작성합니다.'
-        : '기본 50코인 궁합과 별개의 프리미엄 PDF입니다. 결제 후 본명숙, 관계 유형, 거리감, 갈등 회복 루틴을 묶어 생성합니다.';
+        : '기본 5,000원 궁합과 별개의 프리미엄 PDF입니다. 결제 후 본명숙, 관계 유형, 거리감, 갈등 회복 루틴을 묶어 생성합니다.';
     }
   }
 
@@ -1438,7 +1438,7 @@
             return;
           }
           if (pack.res.status === 402 || pack.res.status === 403) {
-            reject(_createSukuyoError('프리미엄 궁합 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.', {
+            reject(_createSukuyoError('프리미엄 궁합 PDF 생성을 위해 원화 결제 또는 이용권 확인이 필요합니다.', {
               stage: 'api-post',
               method: 'POST',
               pathname: pathname,
@@ -2072,10 +2072,10 @@
         });
         var msg = _clean(error && error.message);
         if (msg.indexOf('환불') >= 0) {
-          _setError('숙요점 궁합 PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.');
+          _setError('숙요점 궁합 PDF 생성이 완료되지 않았습니다. 결제 처리분은 자동 환불 확인 대상입니다. 다시 시도해 주세요.');
           return;
         }
-        _setError('PDF 생성 결과 검증이 완료되지 않았습니다. 코인 차감 상태를 확인한 뒤 잠시 후 다시 시도해 주세요.');
+        _setError('PDF 생성 결과 검증이 완료되지 않았습니다. 원화 결제 상태를 확인한 뒤 잠시 후 다시 시도해 주세요.');
       })
       .finally(function () {
         _generating = false;

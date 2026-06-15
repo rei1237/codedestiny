@@ -86,8 +86,8 @@
       "saveProfile": "Guardar carta de perfil",
       "saveOptional": "Opcional",
       "kakaoEvent": "Evento de compartir en Kakao",
-      "kakaoEventSub": "Invita a un amigo y recibe 100 Moonlight Stone",
-      "referralNote": "La recompensa se otorga cuando un amigo se registra con tu enlace lunar. El límite diario es 500 Moonlight Stone."
+      "kakaoEventSub": "Crea un enlace para invitar amigos",
+      "referralNote": "Invita amigos con tu enlace lunar."
     },
     "startSection": {
       "kicker": "TODAY CARDS",

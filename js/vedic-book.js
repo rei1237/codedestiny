@@ -687,7 +687,7 @@
     var element = _qs('vdErrorMsg');
     var safe = _sanitizeText(message);
     if (/internal\s*server\s*error/i.test(String(message || ''))) {
-      safe = 'PDF 생성이 완료되지 않아 사용된 코인이 자동으로 환불되었습니다. 다시 시도해 주세요.';
+      safe = 'PDF 생성이 완료되지 않았습니다. 결제 처리분은 자동 환불 확인 대상입니다. 다시 시도해 주세요.';
     }
     if (element) element.textContent = safe || '생성 중 오류가 발생했습니다.';
     _showScreen('vdErrorScreen');

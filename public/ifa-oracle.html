@@ -198,7 +198,7 @@ html,body{margin:0;padding:0;background:#040200;color:var(--text);font-family:Ge
     <div class="divider" aria-hidden="true"><span class="line"></span><span class="gem">◈</span><span class="line"></span></div>
 
     <section class="action">
-      <button id="castBtn" class="btn-cast" type="button">운명 확인하기 (30코인) • Consult the Oracle</button>
+      <button id="castBtn" class="btn-cast" type="button">운명 확인하기 (3,000원) • Consult the Oracle</button>
       <div id="miniBtns" class="mini">
         <button id="saveBtn" type="button">결과 저장</button>
         <button id="resetBtn" type="button">새 점괘</button>
@@ -459,10 +459,10 @@ function ensureIfaCoinGate(){
     var bal = 0;
     try { var _u = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); bal = Number(_u && _u.points) || 0; } catch(_) {}
     if (bal < IFA_COIN_COST) {
-      alert('🪙 IFÀ 오라클 리딩\n\n' + IFA_COIN_COST + '코인이 필요합니다.\n현재 보유: ' + bal.toLocaleString('ko-KR') + '코인\n\n코인 충전 후 다시 시도해 주세요.');
+      alert('🪙 IFÀ 오라클 리딩\n\n' + (IFA_COIN_COST * 100).toLocaleString('ko-KR') + '원 결제가 필요합니다.\n현재 보유 원화 가치: ' + (bal * 100).toLocaleString('ko-KR') + '원\n\n결제 후 다시 시도해 주세요.');
       resolve(false); return;
     }
-    if (!confirm('🪙 IFÀ 오라클 리딩\n\n이용할 때마다 ' + IFA_COIN_COST + '코인이 차감됩니다.\n현재 보유: ' + bal.toLocaleString('ko-KR') + '코인\n\n진행하시겠습니까?')) {
+    if (!confirm('IFÀ 오라클 리딩\n\n이용할 때마다 결제 권한 확인이 필요합니다.\n\n진행하시겠습니까?')) {
       resolve(false); return;
     }
     var requestId = 'ifa:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
@@ -496,7 +496,7 @@ function ensureIfaCoinGate(){
         var _msg =
           (res.data && res.data.error && res.data.error.message) ||
           (res.data && res.data.message) ||
-          '코인 차감에 실패했습니다.';
+          '원화 결제 확인에 실패했습니다.';
         alert(_msg);
         resolve(false);
       }
@@ -551,7 +551,7 @@ async function cast(){
   if(busy)return;
   const gateOk=await ensureIfaCoinGate();
   if(!gateOk){
-    setPhase("의식이 보류되었습니다 • 코인 확인 후 다시 시도해 주세요");
+    setPhase("의식이 보류되었습니다 • 결제 권한 확인 후 다시 시도해 주세요");
     return;
   }
   busy=true;
@@ -614,7 +614,7 @@ function resetAll(){
   typingRunId++;
   lastOracleText="";
   setPhase("질문을 품고, 오리샤의 바람을 들으세요");
-  el("castBtn").textContent="운명 확인하기 (30코인) • Consult the Oracle";
+  el("castBtn").textContent="운명 확인하기 (3,000원) • Consult the Oracle";
   el("castBtn").disabled=false;
   el("reveal").style.display="none";
   el("oracleBox").style.display="none";

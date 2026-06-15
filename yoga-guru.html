@@ -1130,7 +1130,7 @@
 (async function(){
   'use strict';
   var KEY = 'openYogaGuru';
-  // 관리자 패널 로그인: 코인 없이 바로 이용 가능
+  // 관리자 패널 로그인: 유료 처리 없이 바로 이용 가능
   try { if (sessionStorage.getItem('flower_admin_token') && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(sessionStorage.getItem('flower_admin_token') || '')) return; } catch(_ae) {}
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(e) {}
@@ -1239,13 +1239,13 @@
             <div class="deity">🐘</div>
             <div class="time">30분</div>
             <div class="name">Ganesha's Awakening</div>
-            <div class="desc">장애물을 걷어내는 가네샤의 기운 · 활력 회복 · 스트레스 해소 · 이용료 30코인</div>
+            <div class="desc">장애물을 걷어내는 가네샤의 기운 · 활력 회복 · 스트레스 해소 · 이용료 3,000원</div>
           </button>
           <button class="duration-btn" data-duration="60" onclick="selectDuration(this, 60)">
             <div class="deity">🔱</div>
             <div class="time">60분</div>
             <div class="name">Shiva's Transformation</div>
-            <div class="desc">시바의 파괴와 재창조 에너지 · 유연성 극대화 · 깊은 내면 탐구 · 이용료 50코인</div>
+            <div class="desc">시바의 파괴와 재창조 에너지 · 유연성 극대화 · 깊은 내면 탐구 · 이용료 5,000원</div>
           </button>
         </div>
       </div>
@@ -1442,7 +1442,7 @@ function _ensureMeditationPaymentUi() {
   overlay.innerHTML =
     '<div class="cd-mpay-box">' +
     '<div class="cd-mpay-spinner" aria-hidden="true"></div>' +
-    '<div id="cdMeditationPayMessage" class="cd-mpay-message">코인 결제 처리 중...</div>' +
+    '<div id="cdMeditationPayMessage" class="cd-mpay-message">원화 결제 처리 중...</div>' +
     '</div>';
   document.body.appendChild(overlay);
 
@@ -1473,7 +1473,7 @@ function _showMeditationDeductedUi(cost, balanceAfter) {
 
   var msg = '이용 권한 확인 완료';
   if (typeof balanceAfter === 'number' && Number.isFinite(balanceAfter)) {
-    msg += ' · 잔액 ' + Number(balanceAfter).toLocaleString('ko-KR') + '코인';
+    msg += ' · 잔여 가치 ' + Number(balanceAfter).toLocaleString('ko-KR');
   }
   toast.textContent = msg;
   toast.classList.add('is-show');
@@ -2152,7 +2152,7 @@ async function invokeGuru() {
     var refunded = await _refundMeditationCoinForApiFailure(sessionCost, _cdYogaLastTx, selectedDuration + 'm');
     if (refunded) {
       _cdYogaLastTx = '';
-      window.alert('요가 코스 생성 실패로 코인이 자동 환불되었습니다.');
+      window.alert('요가 코스 생성 실패로 결제 처리분이 자동 환불 확인 대상입니다.');
     }
     clearInterval(msgInterval);
     document.getElementById('loadingState').classList.remove('active');

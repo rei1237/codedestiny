@@ -36,7 +36,7 @@ const cases = [
       ["policy", "PROFILE_CARD_PAYMENT_BYPASS"],
       ["profileRoute", "ensureProfileDeleteAuthorized(auth, {"],
       ["profileRoute", "profileCardActionPaymentRequiredResponse(action, requestId, profileId, policy)"],
-      ["profileRoute", "if (profileCount <= 1)"],
+      ["profileRoute", "if (profiles.length <= 1)"],
     ],
     excludes: [
       ["policy", "VVIP_PROFILE_LIMIT_INCLUDED"],
@@ -71,13 +71,13 @@ const cases = [
     ],
   },
   {
-    name: "monthly stones cost is fixed at 50 and recorded atomically",
+    name: "membership benefit cost is fixed at 50 and recorded atomically",
     includes: [
-      ["policy", "PROFILE_CARD_DELETE_COST_MONTHLY_STONES = 50"],
+      ["policy", "PROFILE_CARD_DELETE_COST_MONTHLY_STONES = PROFILE_CARD_DELETE_COST_COINS * 10"],
       ["profileRoute", "PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
       ["profileRoute", "\"profileSubscription.membershipCreditBalance\": -PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
       ["profileRoute", "\"profileSubscription.membershipCreditUsed\": PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
-      ["mePage", "Moonlight Stone 50개"],
+      ["mePage", "이용권 혜택 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용"],
     ],
   },
   {
@@ -107,7 +107,7 @@ const cases = [
       ["mePage", "rounded-t-2xl"],
       ["mePage", "min-h-[44px]"],
       ["mePage", "결제창을 여는 중입니다."],
-      ["mePage", "Moonlight Stone을 차감하는 중입니다."],
+      ["mePage", "이용권 혜택을 적용하는 중입니다."],
     ],
   },
 ];

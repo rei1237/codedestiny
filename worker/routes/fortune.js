@@ -1568,7 +1568,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     const krwEquivalent = cost * 100;
     return json({
       ok: false,
-      message: "보너스 가치 또는 상품별 원화 단건 결제가 필요합니다.",
+      message: "이용권 혜택 또는 상품별 원화 단건 결제가 필요합니다.",
       code: "PAYMENT_REQUIRED",
       featureKey,
       reason,
@@ -1703,7 +1703,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   return json({
     ok: false,
-    message: "보너스 가치 또는 상품별 원화 단건 결제가 필요합니다.",
+    message: "이용권 혜택 또는 상품별 원화 단건 결제가 필요합니다.",
     code: "PAYMENT_REQUIRED",
     featureKey,
     reason,

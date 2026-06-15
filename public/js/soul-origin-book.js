@@ -66,7 +66,7 @@
 
   function formatCoinCost(value) {
     var cost = Math.max(0, Math.floor(Number(value || COIN_COST)));
-    return cost.toLocaleString('ko-KR') + '코인';
+    return (cost * 100).toLocaleString('ko-KR') + '원';
   }
 
   function updateSoulOriginCoinCost(cost) {
@@ -1070,7 +1070,7 @@
       return '결제는 확인되었습니다. 중복 차감 없이 생성 권한을 다시 연결 중이니 잠시 후 다시 시도해 주세요.';
     }
     if (code.indexOf('SOUL_ORIGIN_PRICING_LOOKUP_FAILED') >= 0) {
-      return '결제 금액을 서버에서 확인하지 못했습니다. 코인은 차감되지 않았으니 잠시 후 다시 시도해 주세요.';
+      return '결제 금액을 서버에서 확인하지 못했습니다. 추가 결제 없이 잠시 후 다시 시도해 주세요.';
     }
     if (status >= 500
       || code.indexOf('SERVICE_UNAVAILABLE') >= 0
@@ -1081,7 +1081,7 @@
       return '결제 서버 연결이 일시적으로 원활하지 않습니다. 잠시 후 다시 시도해 주세요.';
     }
     if (status === 402 || code.indexOf('PAYMENT_REQUIRED') >= 0 || code.indexOf('INSUFFICIENT') >= 0 || code.indexOf('COIN') >= 0 || code.indexOf('POINT') >= 0) {
-      return '운명의 업 PDF 생성을 위해 코인이 필요합니다.';
+      return '운명의 업 PDF 생성을 위해 원화 결제 확인이 필요합니다.';
     }
     if (code.indexOf('BIRTH_') >= 0 || raw.indexOf('태어난 시간') >= 0 || raw.indexOf('생년월일') >= 0) {
       return '생년월일시 정보를 확인한 뒤 다시 시도해 주세요.';
@@ -1162,7 +1162,7 @@
 
     function next(resolve, reject, lastMessage) {
       if (idx >= endpoints.length) {
-        reject(lastMessage instanceof Error ? lastMessage : new Error(lastMessage || '코인 결제 확인에 실패했습니다.'));
+        reject(lastMessage instanceof Error ? lastMessage : new Error(lastMessage || '원화 결제 확인에 실패했습니다.'));
         return;
       }
 
@@ -1323,7 +1323,7 @@
             runServerCoinGate(reportId, requestId, sessionId)
               .then(resolve)
               .catch(function (fallbackError) {
-                reject(fallbackError || error || new Error('코인 결제 확인에 실패했습니다.'));
+                reject(fallbackError || error || new Error('원화 결제 확인에 실패했습니다.'));
               });
           }
           try {
@@ -1410,7 +1410,7 @@
             logStage('Failed', { stage: 'CoinGateFailed', errorCode: clean(error && error.code) || 'COIN_GATE_FAILED' });
             done({
               ok: false,
-              message: clean(error && error.message) || '코인 결제 확인이 필요합니다.',
+              message: clean(error && error.message) || '원화 결제 확인이 필요합니다.',
               code: clean(error && error.code) || 'COIN_GATE_FAILED',
               status: Number(error && error.status || 0) || undefined,
               stage: 'CoinGateFailed',

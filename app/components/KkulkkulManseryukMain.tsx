@@ -34,7 +34,7 @@ function LockedSection({
   cost,
   isUnlocked,
   onUnlock,
-  buttonLabel = "보너스 가치로 운명 확인하기",
+  buttonLabel = "이용권 혜택으로 운명 확인하기",
   children,
 }: LockedSectionProps) {
   const [isScrolling, setIsScrolling] = useState(false);
@@ -104,7 +104,7 @@ function LockedSection({
       {/* 결제 전 유료 데이터는 렌더링하지 않고 미리보기 더미만 표시 */}
       <div className="mt-3 rounded-2xl border border-amber-100 bg-rose-50/80 p-4 text-neutral-500 blur-[10px] grayscale-[50%] select-none pointer-events-none">
         <p className="font-semibold">잠금된 프리미엄 운명 데이터</p>
-        <p className="mt-1 text-sm">보너스 가치 또는 원화 단건 결제 후 상세 결과가 열립니다.</p>
+        <p className="mt-1 text-sm">이용권 혜택 또는 원화 단건 결제 후 상세 결과가 열립니다.</p>
       </div>
 
       <div className="absolute inset-0 grid place-items-center bg-white/20 backdrop-blur-[10px]">
@@ -574,14 +574,14 @@ function notifyCoinResult(data: any, fallbackCost: number, points: number, label
     const usedCredits = firstFiniteNonNegative(normalized?.membershipCreditCost, normalized?.requiredMonthlyCredits);
     const details = [
       usedCredits !== null ? `${formatMonthlyCreditValue(usedCredits)} 사용` : "",
-      snapshot.monthlyCredits !== null ? `남은 보너스 가치: ${formatMonthlyCreditValue(snapshot.monthlyCredits)}` : "",
+      snapshot.monthlyCredits !== null ? `남은 이용권 혜택: ${formatMonthlyCreditValue(snapshot.monthlyCredits)}` : "",
     ].filter(Boolean);
-    showToast(`${label} 보너스 가치로 열렸습니다.${details.length ? ` ${details.join(" · ")}` : ""}`, "info");
+    showToast(`${label} 이용권 혜택으로 열렸습니다.${details.length ? ` ${details.join(" · ")}` : ""}`, "info");
     return;
   }
   if (isSubscriptionIncludedResponse(normalized, chargedCoins)) {
     showSubscriptionIncludedNotice({
-      message: String(normalized?.message || data?.message || "보너스 가치 범위에 포함되어 바로 이용할 수 있습니다."),
+      message: String(normalized?.message || data?.message || "이용권 혜택 범위에 포함되어 바로 이용할 수 있습니다."),
       reason: label,
       tier: String(normalized?.subscriptionTier || ""),
     });
@@ -1112,7 +1112,7 @@ export default function KkulkkulManseryukMain() {
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-rose-700">꿀꿀 만세력</p>
               <h1 className="mt-2 text-3xl font-black leading-tight">달빛 운세 이용권</h1>
               <p className="mt-2 text-sm text-neutral-700">
-                무료는 즉시 노출, 유료는 보너스 가치 또는 원화 단건 결제로 개별 해금합니다. 결제 전에는 데이터가 노출되지 않습니다.
+                무료는 즉시 노출, 유료는 이용권 혜택 또는 원화 단건 결제로 개별 해금합니다. 결제 전에는 데이터가 노출되지 않습니다.
               </p>
             </div>
 
@@ -1124,7 +1124,7 @@ export default function KkulkkulManseryukMain() {
               </p>
               <div className="mt-2 grid gap-1 text-xs font-bold text-amber-900/80">
                 <span>보유 원화 가치: {formatCoinValue(currentCoins)}</span>
-                <span>보너스 가치: {formatMonthlyCreditValue(currentMonthlyCredits)}</span>
+                <span>이용권 혜택: {formatMonthlyCreditValue(currentMonthlyCredits)}</span>
               </div>
             </div>
           </div>
@@ -1257,7 +1257,7 @@ export default function KkulkkulManseryukMain() {
                   onClick={wrapClick(() => runPaidFeatureOnce(item.key, item.cost))}
                   className="mt-3 w-full rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-bold text-white transition-transform duration-200 hover:scale-105 active:scale-95"
                 >
-                  {item.key === "stonehengeRunes" ? "배열 고르고 이용권으로 열기" : "보너스 가치로 운명 확인하기"}
+                  {item.key === "stonehengeRunes" ? "배열 고르고 이용권으로 열기" : "이용권 혜택으로 운명 확인하기"}
                 </button>
 
                 {perUseCount[item.key] > 0 ? (

@@ -851,7 +851,7 @@ function consumeGeomancyPerUseCoin() {
         resolve(false);
       });
     }).catch(function() {
-      window.alert('코인 차감 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      window.alert('원화 결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       resolve(false);
     }).finally(function() {
       setGeomancyPaymentPending(false);

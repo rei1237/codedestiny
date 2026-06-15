@@ -996,7 +996,7 @@ body {
   </button>
 
   <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;">
-    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.4);border-radius:20px;padding:5px 14px;font-size:11.5px;color:#e8c44a;font-weight:600;letter-spacing:0.5px;">🪙 7카드 커리어 전환 리딩 · 50코인</span>
+    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.4);border-radius:20px;padding:5px 14px;font-size:11.5px;color:#e8c44a;font-weight:600;letter-spacing:0.5px;">🪙 7카드 커리어 전환 리딩 · 5,000원</span>
   </div>
 
   <p style="margin-top:12px;font-size:11px;color:rgba(200,185,220,0.3);letter-spacing:1px;">
@@ -1195,7 +1195,7 @@ body {
   <div class="action-area">
     <div class="status-msg" id="statusMsg">카드를 한 장씩 열어 일의 기준을 확인하세요 ✦</div>
     <button class="btn-read" id="readBtn" onclick="getReading()" disabled>
-      <div>✦ &nbsp; 50코인으로 커리어 리딩 열기 &nbsp; ✦</div>
+      <div>✦ &nbsp; 5,000원으로 커리어 리딩 열기 &nbsp; ✦</div>
       <div style="font-size:11px;font-weight:600;background:rgba(0,0,0,0.2);border-radius:12px;padding:2px 12px;margin-top:5px;letter-spacing:0.5px;">리딩이 열리지 않으면 자동 환불</div>
     </button>
     <button class="btn-reset" onclick="resetSpread()">↺ &nbsp; 카드 다시 정렬하기</button>
@@ -1235,7 +1235,7 @@ const IJIK_COIN_COST = 50;
 let _ijikLastCoinTx = '';
 
 function setIjikPaymentPending(show, message) {
-  var text = String(message || '').trim() || '50코인 사용을 확인하는 중입니다.';
+  var text = String(message || '').trim() || '5,000원 결제를 확인하는 중입니다.';
   try {
     if (typeof window._cdSetCoinGateOverlay === 'function') {
       window._cdSetCoinGateOverlay(!!show, text);
@@ -1248,7 +1248,7 @@ function setIjikPaymentPending(show, message) {
     overlay = document.createElement('div');
     overlay.id = 'cdStandalonePaymentOverlay';
     overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%, rgba(15,23,42,.78), rgba(2,6,23,.92));backdrop-filter:blur(8px);padding:16px;';
-    overlay.innerHTML = '<div style="width:min(420px,100%);border-radius:20px;border:1px solid rgba(125,211,252,.42);background:linear-gradient(135deg, rgba(15,23,42,.92), rgba(30,41,59,.94));box-shadow:0 24px 54px rgba(2,6,23,.5);padding:22px 18px;color:rgba(226,232,240,.98);text-align:center;"><div style="width:44px;height:44px;margin:0 auto 12px;border-radius:999px;border:3px solid rgba(125,211,252,.22);border-top-color:rgba(125,211,252,.96);animation:cdStandalonePaymentSpin .9s linear infinite"></div><p style="margin:0;font-size:19px;font-weight:800;color:rgba(224,242,254,.98)">50코인 사용 확인 중...</p><p style="margin:9px 0 0;font-size:14px;color:rgba(186,230,253,.95)">리딩 권한과 잔액을 안전하게 확인하고 있습니다.</p><p id="cdStandalonePaymentOverlayStatus" style="margin:13px 0 0;border-radius:12px;border:1px solid rgba(167,243,208,.3);background:linear-gradient(135deg, rgba(15,23,42,.44), rgba(6,78,59,.3));padding:8px 10px;color:rgba(220,252,231,.98);font-size:13px;font-weight:600">50코인 사용을 확인하는 중입니다.</p></div>';
+    overlay.innerHTML = '<div style="width:min(420px,100%);border-radius:20px;border:1px solid rgba(125,211,252,.42);background:linear-gradient(135deg, rgba(15,23,42,.92), rgba(30,41,59,.94));box-shadow:0 24px 54px rgba(2,6,23,.5);padding:22px 18px;color:rgba(226,232,240,.98);text-align:center;"><div style="width:44px;height:44px;margin:0 auto 12px;border-radius:999px;border:3px solid rgba(125,211,252,.22);border-top-color:rgba(125,211,252,.96);animation:cdStandalonePaymentSpin .9s linear infinite"></div><p style="margin:0;font-size:19px;font-weight:800;color:rgba(224,242,254,.98)">5,000원 결제 확인 중...</p><p style="margin:9px 0 0;font-size:14px;color:rgba(186,230,253,.95)">리딩 권한과 결제 상태를 안전하게 확인하고 있습니다.</p><p id="cdStandalonePaymentOverlayStatus" style="margin:13px 0 0;border-radius:12px;border:1px solid rgba(167,243,208,.3);background:linear-gradient(135deg, rgba(15,23,42,.44), rgba(6,78,59,.3));padding:8px 10px;color:rgba(220,252,231,.98);font-size:13px;font-weight:600">5,000원 결제를 확인하는 중입니다.</p></div>';
     document.body.appendChild(overlay);
     if (!document.getElementById('cdStandalonePaymentOverlayStyle')) {
       var style = document.createElement('style');
@@ -1625,7 +1625,7 @@ async function initDeckFromApi() {
   }
 }
 
-// ─── COIN GATE (1회 50코인) ───
+// ─── PAYMENT GATE (1회 5,000원) ───
 async function ijikCoinGate(cost, reason) {
   var _ADMIN_TOKEN_RE = /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/;
   var isAdminLike = false;

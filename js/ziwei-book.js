@@ -191,7 +191,7 @@
       return;
     }
     btn.classList.remove('is-busy');
-    btn.innerHTML = btn.dataset.zbIdleHtml || '자미두수 PDF 생성하기<span class="cd-preparing-badge cd-preparing-badge--cta">590코인</span>';
+    btn.innerHTML = btn.dataset.zbIdleHtml || '자미두수 PDF 생성하기<span class="cd-preparing-badge cd-preparing-badge--cta">59,000원</span>';
   }
 
   function setZiweiPhase(phase, title){
@@ -920,7 +920,7 @@
       btn.dataset.zbProfileReady = hasDate && hasTime ? '1' : '0';
       if(!hasDate) setZiweiStartButtonHtml('생년월일 입력하기', 'PDF 생성 전 필수');
       else if(!hasTime) setZiweiStartButtonHtml('출생시 입력하기', '정밀 명반 필수');
-      else setZiweiStartButtonHtml('자미두수 PDF 생성하기', '590코인');
+      else setZiweiStartButtonHtml('자미두수 PDF 생성하기', '59,000원');
     }
   }
 
@@ -1305,7 +1305,7 @@
         if(settled) return;
         settled = true;
         if(result && result.ok === false){
-          var paymentError = buildZiweiApiError({ status: Number(result.status || 402), body: result }, result.message || '코인 결제 확인이 필요합니다.', 'payment');
+          var paymentError = buildZiweiApiError({ status: Number(result.status || 402), body: result }, result.message || '원화 결제 확인이 필요합니다.', 'payment');
           logZiweiError(paymentError, { stage: 'billing', requestId: result && result.requestId });
           reject(paymentError);
           return;
@@ -1350,7 +1350,7 @@
         var immediate = window._cdCoinGatePerUse(COIN_COST, '자미두수 프리미엄 PDF 리포트 생성', function(_transactionId, data){
           finish(Object.assign({ ok: true, transactionId: _transactionId }, data || {}));
         }, function(error){
-          finish(Object.assign({ ok: false, status: 402, code: 'ZIWEI_PAYMENT_CANCELLED', message: (error && error.message) || '코인 결제 확인이 필요합니다.' }, error || {}));
+          finish(Object.assign({ ok: false, status: 402, code: 'ZIWEI_PAYMENT_CANCELLED', message: (error && error.message) || '원화 결제 확인이 필요합니다.' }, error || {}));
         }, {
           featureKey: FEATURE_KEY,
           serviceKey: 'ziwei-book',

@@ -98,8 +98,8 @@ export default function PaymentLoading({
       description: "승인 신호와 콘텐츠 이용 권한을 함께 확인하고 있습니다.",
     },
     monthly: {
-      title: "보너스 가치 적용 중",
-      description: "보너스 가치와 콘텐츠 이용 권한을 확인하고 있습니다.",
+      title: "이용권 혜택 적용 중",
+      description: "이용권 혜택과 콘텐츠 이용 권한을 확인하고 있습니다.",
     },
     subscription: {
       title: "이용권 결제 확인 중",

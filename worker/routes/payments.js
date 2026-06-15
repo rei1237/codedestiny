@@ -482,7 +482,7 @@ function resolvePaymentMethodLabel(payment) {
   const currency = String(metadata.currency || "").trim().toUpperCase();
 
   if (normalized === "moonlight_stone" || normalized === "monthly_credit" || normalized === "monthly" || accessType === "membership_credit" || currency === "MOONLIGHT_STONE" || currency === "MONTHLY_CREDIT") {
-    return "보너스 가치";
+    return "이용권 혜택";
   }
   if (normalized === "card_general" || normalized === "card") return "카드 결제";
   if (normalized === "virtual_account") return "가상계좌";
@@ -3402,7 +3402,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
   const currentMonthlyCredits = Math.max(0, Math.floor(Number(existingUser?.profileSubscription?.membershipCreditBalance || 0)));
   if (currentMonthlyCredits < requiredMonthlyCredits) {
     return json({
-      message: "보너스 가치가 부족합니다.",
+      message: "이용권 혜택이 부족합니다.",
       code: "INSUFFICIENT_MONTHLY_CREDITS",
       requiredMonthlyCredits,
       currentMonthlyCredits,
@@ -3580,7 +3580,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
       incrementAttempt: true,
     }).catch(() => {});
     return json({
-      message: "보너스 가치가 부족합니다.",
+      message: "이용권 혜택이 부족합니다.",
       code: "INSUFFICIENT_MONTHLY_CREDITS",
       requiredMonthlyCredits,
       currentMonthlyCredits,
@@ -3666,7 +3666,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
   });
 
   return json({
-    message: "보너스 가치로 달빛 이용권이 활성화되었습니다.",
+    message: "이용권 혜택으로 달빛 이용권이 활성화되었습니다.",
     idempotent: false,
     payment: formatPaymentResponse(await Payment.findById(paymentRecord._id).lean()),
     subscription: {
@@ -4359,7 +4359,7 @@ function resolveMonthlyCreditRefundReason(metadata, fallback) {
       || fallback
       || "",
   ).trim();
-  return reason || "보너스 가치 환불";
+  return reason || "이용권 혜택 환불";
 }
 
 function formatMonthlyCreditLedgerEntry(entry) {
@@ -4547,7 +4547,7 @@ function formatMonthlyCreditGrantSummary(auth, safeUser, ledgers) {
     amount: granted,
     beforeBalance: 0,
     afterBalance: Math.max(granted, balance + used),
-    reason: "보너스 가치 지급",
+    reason: "이용권 혜택 지급",
     sourceId,
     serviceKey: "membership_credit_grant",
     createdAt: safeUser?.joinedAt || sub.legacyCoinCreditSeededAt || null,

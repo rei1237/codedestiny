@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   카카오톡 공유 코인 보상 시스템  —  share-reward.js
+   카카오톡 공유 보상 시스템  —  share-reward.js
    ─────────────────────────────────────────────────────────────────────
-   • 공유 성공 시 코인 10개 자동 지급
+   • 공유 성공 시 이벤트 보상 자동 반영
    • 하루 3회 한도 (localStorage 기반 선행 체크 + 서버 이중 검증)
    • 같은 contentId 당일 재공유 시 보상 없음
    • 비로그인: 공유는 허용, 보상은 안내 토스트 표시
@@ -183,7 +183,7 @@
     /* 3) DOM 직접 갱신 fallback */
     try {
       var el = document.getElementById('goldenGrainBalanceText');
-      if (el) el.textContent = '보유 ' + n.toLocaleString('ko-KR') + ' 코인';
+      if (el) el.textContent = '보유 혜택 ' + n.toLocaleString('ko-KR');
     } catch (_e) {}
   }
 
@@ -222,7 +222,7 @@
   ══════════════════════════════════════════════════════════════════ */
 
   /**
-   * 카카오톡 공유 실행 후 코인 보상을 처리하는 래퍼 함수.
+   * 카카오톡 공유 실행 후 보상을 처리하는 래퍼 함수.
    *
    * @param {Function} shareFn   - 실제 공유를 수행하는 함수 (동기)
    * @param {string}   contentId - 콘텐츠 식별자
@@ -271,7 +271,7 @@
           _markUsed(cid);
           if (typeof newPoints === 'number') _applyNewPoints(newPoints);
           showShareRewardToast(
-            '🐷 코인 ' + REWARD_AMOUNT + '개 획득! (오늘 ' + usedToday + '/' + limitPerDay + '회)',
+            '공유 보상 반영! (오늘 ' + usedToday + '/' + limitPerDay + '회)',
           );
         },
         /* onError */ function (status, data) {

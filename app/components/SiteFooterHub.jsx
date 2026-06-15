@@ -127,7 +127,7 @@ const REFUND_POLICY_ROWS = [
     "콘텐츠 가격은 원화 기준으로 표시되며 선불형 잔액 적립은 제공하지 않습니다.",
   "디지털 콘텐츠 제공이 시작된 이후에는 해당 제공분의 환불이 제한될 수 있으며, 미제공분이 있으면 합리적 기준에 따라 잔여분을 산정합니다.",
   "시스템 오류, 중복 결제, 결과 미제공처럼 서비스 제공이 정상 완료되지 않은 주문은 재생성 또는 환불로 처리합니다.",
-  "프로모션, 이벤트, 무상 지급, 보상성 지급분은 현금 환불 대상에 포함되지 않습니다.",
+  "프로모션, 이벤트, 무상 제공 이용권은 현금 환불 대상에 포함되지 않습니다.",
   "환불 금액과 시점은 관계 법령, 결제대행사 정책, 카드사 또는 플랫폼 정산 주기에 따릅니다.",
   "환불 접수는 결제자 본인 확인이 완료된 요청만 처리하며, 완료까지 통상 영업일 3~10일이 소요됩니다.",
 ];
@@ -163,8 +163,8 @@ export default function SiteFooterHub() {
             ))}
           </div>
 
-          <section aria-label="사업자 정보 및 코인 환불 정책" className={styles.sfhBusinessCard}>
-            <h2 className={styles.sfhBusinessTitle}>사업자 정보 및 코인 환불 정책</h2>
+          <section aria-label="사업자 정보 및 환불 정책" className={styles.sfhBusinessCard}>
+            <h2 className={styles.sfhBusinessTitle}>사업자 정보 및 환불 정책</h2>
 
             <ul className={styles.sfhBusinessList}>
               {BUSINESS_INFO_ROWS.map((row) => (

@@ -312,7 +312,7 @@
 
   function _formatLoveSecretCoinLabel(coins) {
     var amount = Math.max(0, Math.floor(Number(coins || 0)));
-    return amount > 0 ? amount + '코인' : '결제 확인';
+    return amount > 0 ? (amount * 100).toLocaleString('ko-KR') + '원' : '결제 확인';
   }
 
   function _readLoveSecretFeatureCost(payload) {

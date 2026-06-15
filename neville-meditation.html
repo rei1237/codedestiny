@@ -682,7 +682,7 @@
 (async function(){
   'use strict';
   var KEY = 'openNevilleMeditationPage';
-  // 관리자 패널 로그인: 코인 없이 바로 이용 가능
+  // 관리자 패널 로그인: 유료 처리 없이 바로 이용 가능
   try { if (sessionStorage.getItem('flower_admin_token') && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(sessionStorage.getItem('flower_admin_token') || '')) return; } catch(_ae) {}
   var token = '';
   try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(e) {}
@@ -747,7 +747,7 @@
       <div class="card-corner"></div>
       <div class="card-dur">30<span>분</span></div>
       <div class="card-title">에센셜 명상<br>현실의 즉각적 전환</div>
-      <div class="card-desc">짧은 시간 안에 뇌파를 낮추고<br>잠재의식의 문을 여는 코스<br>이용료: 30코인</div>
+      <div class="card-desc">짧은 시간 안에 뇌파를 낮추고<br>잠재의식의 문을 여는 코스<br>이용료: 3,000원</div>
       <div class="phase-dots">
         <div class="phase-dot" style="background:#4A7C9E"></div>
         <div class="phase-dot" style="background:#7B5EA7"></div>
@@ -760,7 +760,7 @@
       <div class="card-corner"></div>
       <div class="card-dur">60<span>분</span></div>
       <div class="card-title">마스터 명상<br>의식의 완전한 재편</div>
-      <div class="card-desc">의식의 층위를 가장 깊은 곳까지<br>안내하는 완전한 마스터 코스<br>이용료: 50코인</div>
+      <div class="card-desc">의식의 층위를 가장 깊은 곳까지<br>안내하는 완전한 마스터 코스<br>이용료: 5,000원</div>
       <div class="phase-dots">
         <div class="phase-dot" style="background:#4A7C9E"></div>
         <div class="phase-dot" style="background:#7B5EA7;flex:3"></div>
@@ -1609,7 +1609,7 @@ function _ensureMeditationPaymentUi() {
   overlay.innerHTML =
     '<div class="cd-mpay-box">' +
     '<div class="cd-mpay-spinner" aria-hidden="true"></div>' +
-    '<div id="cdMeditationPayMessage" class="cd-mpay-message">코인 결제 처리 중...</div>' +
+    '<div id="cdMeditationPayMessage" class="cd-mpay-message">원화 결제 처리 중...</div>' +
     '</div>';
   document.body.appendChild(overlay);
 
@@ -1640,7 +1640,7 @@ function _showMeditationDeductedUi(cost, balanceAfter) {
 
   var msg = '이용 권한 확인 완료';
   if (typeof balanceAfter === 'number' && Number.isFinite(balanceAfter)) {
-    msg += ' · 잔액 ' + Number(balanceAfter).toLocaleString('ko-KR') + '코인';
+    msg += ' · 잔여 가치 ' + Number(balanceAfter).toLocaleString('ko-KR');
   }
   toast.textContent = msg;
   toast.classList.add('is-show');

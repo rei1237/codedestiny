@@ -215,12 +215,12 @@ export default function PointHistoryPage() {
       const isJson = ct.includes("application/json") || ct.includes("/json");
       if (!isJson) {
         if (!res.ok) throw new Error(`잠시 후 다시 시도해 주세요. (HTTP ${res.status})`);
-        throw new Error("보너스 가치 서버 응답 오류입니다.");
+        throw new Error("이용권 혜택 서버 응답 오류입니다.");
       }
       const data: MeResponse = await res.json();
       if (!res.ok) {
         const msg = (data as { message?: string }).message || "";
-        throw new Error(msg || "보너스 가치 내역을 불러오지 못했습니다.");
+        throw new Error(msg || "이용권 혜택 내역을 불러오지 못했습니다.");
       }
       const normalized = normalizePointPayload(data);
       setUserName(normalized.userName);
@@ -233,7 +233,7 @@ export default function PointHistoryPage() {
       setHasLoadedPoints(true);
       setPointsError(null);
     } catch (e: unknown) {
-      setPointsError(e instanceof Error ? e.message : "보너스 가치 내역을 불러오지 못했습니다.");
+      setPointsError(e instanceof Error ? e.message : "이용권 혜택 내역을 불러오지 못했습니다.");
     }
   }, [apiBase, router]);
 
@@ -372,7 +372,7 @@ export default function PointHistoryPage() {
       >
         <div className="text-center text-[#5C3A1E]">
           <div className="mb-3 text-5xl animate-bounce">🐷</div>
-          <p className="font-semibold">보너스 가치 내역을 불러오는 중...</p>
+          <p className="font-semibold">이용권 혜택 내역을 불러오는 중...</p>
         </div>
       </main>
     );
@@ -442,7 +442,7 @@ export default function PointHistoryPage() {
             <div className="flex items-center gap-3">
               <CoinIcon size="lg" />
               <span className="text-[28px] font-black text-[#7A4A00] leading-none">
-                보너스 가치
+                이용권 혜택
                 <span className="ml-1.5 text-base font-bold text-amber-800">서버 기준 잔액</span>
               </span>
             </div>
@@ -463,7 +463,7 @@ export default function PointHistoryPage() {
               </p>
             )}
             <p className="mt-1 text-[11px] text-[#9B7040]">
-              보너스 가치 잔액과 이용 내역은 서버 원장 기준으로 표시됩니다.
+              이용권 혜택 잔액과 이용 내역은 서버 원장 기준으로 표시됩니다.
             </p>
           </div>
         </section>
@@ -484,12 +484,12 @@ export default function PointHistoryPage() {
 
         {/* 요약 통계 */}
         <section
-          aria-label="보너스 가치 요약"
+          aria-label="이용권 혜택 요약"
           className="grid grid-cols-2 gap-3"
         >
             {[
-              { label: "현재 보너스 가치", value: currentMonthlyCredits, icon: "잔여", showCoin: false, cls: "border-amber-200 bg-amber-50/80", valcls: "text-amber-700" },
-              { label: "총 사용 보너스 가치", value: totalSpentMonthlyCredits, icon: "사용", showCoin: false, cls: "border-rose-200 bg-rose-50/80", valcls: "text-rose-700" },
+              { label: "현재 이용권 혜택", value: currentMonthlyCredits, icon: "잔여", showCoin: false, cls: "border-amber-200 bg-amber-50/80", valcls: "text-amber-700" },
+              { label: "총 사용 이용권 혜택", value: totalSpentMonthlyCredits, icon: "사용", showCoin: false, cls: "border-rose-200 bg-rose-50/80", valcls: "text-rose-700" },
             ].map((item) => (
             <div
               key={item.label}
@@ -507,13 +507,13 @@ export default function PointHistoryPage() {
           ))}
         </section>
 
-        {/* 보너스 가치 흐름 내역 */}
+        {/* 이용권 혜택 흐름 내역 */}
         <section
-          aria-label="보너스 가치 흐름 내역"
+          aria-label="이용권 혜택 흐름 내역"
           className="rounded-[24px] border border-[#EDDBA3]/70 bg-[rgba(255,252,243,0.95)] overflow-hidden shadow-[0_8px_28px_rgba(120,80,10,0.09)]"
         >
           <div className="p-5 pb-0">
-            <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">보너스 가치 흐름 내역</h2>
+            <h2 className="text-[15px] font-bold text-[#5C3A1E] mb-3">이용권 혜택 흐름 내역</h2>
 
             {/* 탭 */}
             <div className="flex gap-2 mb-4">
@@ -559,15 +559,15 @@ export default function PointHistoryPage() {
             ) : filteredHistories.length === 0 ? (
               <div className="py-8 text-center">
                 <p className="text-3xl mb-2">📭</p>
-                <p className="text-sm text-[#7A5230]">아직 보너스 가치 내역이 없습니다.</p>
+                <p className="text-sm text-[#7A5230]">아직 이용권 혜택 내역이 없습니다.</p>
               </div>
             ) : (
               <div className="space-y-2.5">
                 {filteredHistories.map((entry) => {
                   const isSpend = entry.type === "MONTHLY_CREDIT_SPEND";
                   const kl = isSpend
-                    ? { text: "보너스 가치 사용", cls: "bg-rose-100 text-rose-700 border-rose-300" }
-                    : { text: "보너스 가치 지급", cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
+                    ? { text: "이용권 혜택 사용", cls: "bg-rose-100 text-rose-700 border-rose-300" }
+                    : { text: "이용권 혜택 지급", cls: "bg-emerald-100 text-emerald-800 border-emerald-300" };
                   const dc = isSpend ? "text-rose-700" : "text-emerald-700";
                   const prefix = isSpend ? "-" : "+";
                   const displayReason = entry.reason || entry.serviceKey || "-";
@@ -596,11 +596,11 @@ export default function PointHistoryPage() {
                             {prefix}{formatMonthlyCredits(entry.amount)}
                           </span>
                         </div>
-                        {/* 잔여 보너스 가치 */}
+                        {/* 잔여 이용권 혜택 */}
                         <div className="mt-2 flex items-center gap-1.5 rounded-[10px] bg-amber-50 border border-amber-100 px-2.5 py-1.5">
                           <CoinIcon size="sm" />
                           <p className="text-[12px] text-[#7A4A00] font-bold">
-                            반영 후 보너스 가치&nbsp;
+                            반영 후 이용권 혜택&nbsp;
                             <span className="text-[13px] text-[#5C3A1E]">
                               {formatMonthlyCredits(entry.afterBalance)}
                             </span>
@@ -667,7 +667,7 @@ export default function PointHistoryPage() {
         <section className="rounded-[20px] border border-[#EDDBA3]/60 bg-[rgba(255,248,228,0.55)] p-5">
           <h3 className="font-bold text-[#5C3A1E] mb-2">결제/멤버십 이용 안내</h3>
           <ul className="space-y-1.5 text-sm text-[#7A5230]">
-            <li>• 보너스 가치 잔액과 사용 내역은 서버 원장 기준으로 표시됩니다.</li>
+            <li>• 이용권 혜택 잔액과 사용 내역은 서버 원장 기준으로 표시됩니다.</li>
             <li>• 유료 상품은 원화 단건 결제로 결제되며, 결제 완료 후 해당 상품 이용 또는 결과 생성이 진행됩니다.</li>
             <li>• 시스템 오류, 중복 결제, 결과 미제공 건은 재생성 또는 환불 처리됩니다.</li>
             <li>• 환불 처리는 <strong>결제 수단(카드)으로만</strong> 가능합니다.</li>
@@ -675,7 +675,7 @@ export default function PointHistoryPage() {
             <li>• 콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</li>
             <li>• 달빛 이용권은 30일 상품이며 자동결제 상품이 아니고, 만료 후 다시 구매해야 합니다.</li>
             <li>• 이용권 결제 후 유료 기능을 이용하지 않은 경우 결제일로부터 7일 이내 환불 요청이 가능하며, 이용이 시작된 뒤에는 환불이 제한될 수 있습니다.</li>
-            <li>• 보너스 가치 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.</li>
+            <li>• 이용권 혜택 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.</li>
             <li>• 민원담당자: 박병하 (050-6664-7398) · seongbae555@gmail.com</li>
           </ul>
         </section>

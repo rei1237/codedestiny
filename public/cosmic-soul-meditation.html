@@ -722,7 +722,7 @@
         <div class="card-tag">// VERSION A</div>
         <div class="card-badge">HIGH EFFICIENCY</div>
         <div class="card-dur">30<span>min</span></div>
-        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">이용료 100코인</div>
+        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">이용료 10,000원</div>
         <p class="card-title">효율 동기화 세션<br><em style="font-style:italic;color:var(--nebula);font-family:'Cormorant Garamond',serif">Efficiency Sync Protocol</em></p>
         <p class="card-desc">
           바쁜 일과 중 강력한 멘탈 튜닝.<br>
@@ -742,7 +742,7 @@
         <div class="card-tag">// VERSION B</div>
         <div class="card-badge" style="border-color:rgba(219,167,58,0.35);color:var(--gold)">DEEP DIVE</div>
         <div class="card-dur" style="color:var(--gold)">60<span>min</span></div>
-        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">이용료 200코인</div>
+        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">이용료 20,000원</div>
         <p class="card-title">심층 변형 세션<br><em style="font-style:italic;color:var(--gold);font-family:'Cormorant Garamond',serif">Deep Transformation Protocol</em></p>
         <p class="card-desc">
           자아 해체 → 양자 얽힘 → 완전한 현실 변형.<br>
@@ -1521,7 +1521,7 @@ function _ensureMeditationPaymentUi(){
   overlay.innerHTML=
     '<div class="cd-mpay-box">'+
     '<div class="cd-mpay-spinner" aria-hidden="true"></div>'+
-    '<div id="cdMeditationPayMessage" class="cd-mpay-message">코인 결제 처리 중...</div>'+
+    '<div id="cdMeditationPayMessage" class="cd-mpay-message">원화 결제 처리 중...</div>'+
     '</div>';
   document.body.appendChild(overlay);
 
@@ -1552,7 +1552,7 @@ function _showMeditationAccessGrantedUi(balanceAfter){
 
   var msg='이용 권한 확인 완료';
   if(typeof balanceAfter==='number'&&Number.isFinite(balanceAfter)){
-    msg+=' · 잔액 '+Number(balanceAfter).toLocaleString('ko-KR')+'코인';
+    msg+=' · 잔여 가치 '+Number(balanceAfter).toLocaleString('ko-KR');
   }
   toast.textContent=msg;
   toast.classList.add('is-show');

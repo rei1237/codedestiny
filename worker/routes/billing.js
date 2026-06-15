@@ -2714,7 +2714,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       const passFailureCode = accessDecision.reason === "profile_limit_exceeded"
         ? "PROFILE_LIMIT_EXCEEDED"
         : (accessDecision.reason === "price_exceeds_pass_limit" ? "PRICE_EXCEEDS_PASS_LIMIT" : "MEMBERSHIP_PASS_NOT_COVERED");
-      return failure(402, passFailureCode, "현재 이용권 한도 밖 서비스입니다. 보너스 가치 또는 원화 단건 결제로 이용해 주세요.", undefined, {
+      return failure(402, passFailureCode, "현재 이용권 한도 밖 서비스입니다. 원화 단건 결제로 이용해 주세요.", undefined, {
         pricing,
         ...paymentDecision,
         paymentOptions: paymentDecision,
@@ -2869,7 +2869,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           monthlyCredits: membershipConsume.monthlyCredits,
           monthlyCreditsAsCoins: membershipConsume.monthlyCreditsAsCoins,
           user: membershipConsume.user,
-        }, "보너스 가치로 콘텐츠 이용 권한을 발급했습니다.");
+        }, "이용권 혜택으로 콘텐츠 이용 권한을 발급했습니다.");
       }
     } catch (error) {
       logBillingRouteError("membership-credit-consume", error, request, {
@@ -2879,7 +2879,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       return failure(
         500,
         "MEMBERSHIP_CREDIT_CONSUME_FAILED",
-        "보너스 가치 처리 중 오류가 발생했습니다.",
+        "이용권 혜택 처리 중 오류가 발생했습니다.",
         String(error?.message || ""),
       );
     }
@@ -2891,7 +2891,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         .lean();
       const monthlyCredits = Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0)));
       const requiredMonthlyCredits = calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0));
-      return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "보너스 가치가 부족합니다.", undefined, {
+      return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "이용권 혜택이 부족합니다.", undefined, {
         pricing,
         ...paymentDecision,
         paymentOptions: {
@@ -3617,7 +3617,7 @@ async function handleBillingSnapshotBalance(request, env) {
     return failure(
       503,
       "BALANCE_SNAPSHOT_UNAVAILABLE",
-      "보너스 가치를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      "이용권 혜택을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       undefined,
       {
         status: "error",
@@ -3887,7 +3887,7 @@ async function handleUnlockStatus(request, env) {
     return failure(
       503,
       "BALANCE_SNAPSHOT_UNAVAILABLE",
-      "보너스 가치를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      "이용권 혜택을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       undefined,
       {
         status: "error",

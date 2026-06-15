@@ -26,7 +26,7 @@ export default function DestinyBiasCoinModal({
         <h3 className="mt-2 text-xl font-black text-white">{title}</h3>
         <p className="mt-3 text-sm leading-7 text-white/85">{message}</p>
         {requiredCoins ? (
-          <p className="mt-2 text-xs font-semibold text-amber-100/90">필요 코인: {requiredCoins.toLocaleString("ko-KR")}</p>
+          <p className="mt-2 text-xs font-semibold text-amber-100/90">필요 금액: {(requiredCoins * 100).toLocaleString("ko-KR")}원</p>
         ) : null}
 
         <div className="mt-5 flex flex-wrap gap-2">

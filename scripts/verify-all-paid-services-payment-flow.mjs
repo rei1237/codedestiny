@@ -240,11 +240,11 @@ async function consumeOne({ env, authToken, testCase, index }) {
   const consume = data?.consume && typeof data.consume === "object" ? data.consume : data;
   const chargedCoins = Number(consume?.chargedCoins ?? consume?.cost ?? 0);
   if (!Number.isFinite(chargedCoins) || chargedCoins <= 0) {
-    throw new Error(`차감 코인 검증 실패 (${testCase.id}): chargedCoins=${chargedCoins}`);
+    throw new Error(`유료 처리 검증 실패 (${testCase.id}): chargedCoins=${chargedCoins}`);
   }
 
   if (Number.isFinite(testCase.expectedCost) && testCase.expectedCost > 0 && chargedCoins !== testCase.expectedCost) {
-    throw new Error(`차감 코인 불일치 (${testCase.id}): expected=${testCase.expectedCost}, actual=${chargedCoins}`);
+    throw new Error(`유료 처리 금액 불일치 (${testCase.id}): expected=${testCase.expectedCost}, actual=${chargedCoins}`);
   }
 
   return {

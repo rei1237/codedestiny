@@ -2983,7 +2983,7 @@ function vedicAiCreateState(chartKey){
     question:'',
     prompt:'',
     questionType:'general',
-    statusMessage:'궁금한 흐름을 입력하면 현재 차트 기반 상담 질문을 정리합니다. 생성 성공 시 100코인이 차감됩니다.',
+    statusMessage:'궁금한 흐름을 입력하면 현재 차트 기반 상담 질문을 정리합니다. 생성 성공 시 10,000원 결제가 확인됩니다.',
     statusError:false,
     inFlight:false,
     lastChargedCoins:0,
@@ -3010,7 +3010,7 @@ function vedicAiResetForChart(chart){
 function vedicAiStatusText(code, fallbackMessage){
   const msg=String(fallbackMessage||'').trim();
   if(code==='AUTH_REQUIRED') return '로그인이 필요합니다. 로그인 후 다시 시도해 주세요.';
-  if(code==='INSUFFICIENT_COINS') return '코인이 부족합니다. 100코인 충전 후 다시 시도해 주세요.';
+  if(code==='INSUFFICIENT_COINS') return '원화 결제 확인이 필요합니다. 10,000원 결제 후 다시 시도해 주세요.';
   if(code==='INVALID_QUESTION') return '질문은 5자 이상 1000자 이하로 입력해 주세요.';
   if(code==='MISSING_VEDIC_RESULT') return '기본 베다 분석 결과가 없어 상담 질문을 정리할 수 없습니다.';
   if(code==='MISSING_COMPATIBILITY_RESULT') return '궁합 질문은 먼저 베다 궁합 계산을 완료해야 합니다.';
@@ -3038,9 +3038,9 @@ function renderVedicAIPromptSection(){
   return `
   <div class="glass reveal reveal-delay-2" style="padding:16px;margin:14px 0 12px;border:1px solid rgba(251,191,36,0.35);border-radius:16px;background:radial-gradient(130% 140% at 6% 0%, rgba(251,191,36,0.2), transparent 42%), radial-gradient(120% 120% at 100% 100%, rgba(45,212,191,0.18), transparent 42%), linear-gradient(145deg, rgba(11,20,38,0.93), rgba(17,24,39,0.94));box-shadow:0 24px 56px rgba(120,53,15,0.25), inset 0 1px 0 rgba(255,255,255,0.07);">
     <div class="section-head section-head-kr" style="margin-bottom:8px;color:#fde68a">🕉 베다 상담 질문 정리</div>
-    <div class="body-text" style="margin-bottom:12px;line-height:1.72;color:#e2e8f0">계산된 라시·낙샤트라·다샤를 바탕으로 질문을 상담에 바로 쓸 수 있게 정리합니다. 서버에서 가격을 검증하며, 생성 성공 시에만 100코인이 차감됩니다.</div>
+    <div class="body-text" style="margin-bottom:12px;line-height:1.72;color:#e2e8f0">계산된 라시·낙샤트라·다샤를 바탕으로 질문을 상담에 바로 쓸 수 있게 정리합니다. 서버에서 가격을 검증하며, 생성 성공 시에만 10,000원 결제가 확인됩니다.</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
-      <span class="tag" style="background:rgba(251,191,36,0.16);color:#fde68a;border:1px solid rgba(251,191,36,0.36)">1회 ${VEDIC_AI_PROMPT_COST}코인</span>
+      <span class="tag" style="background:rgba(251,191,36,0.16);color:#fde68a;border:1px solid rgba(251,191,36,0.36)">1회 유료</span>
       <span class="tag ${hasCompat?'tag-gold':'tag-purple'}" id="vedicAiCompatState">궁합 컨텍스트: ${hasCompat?'연결됨':'미연결'}</span>
     </div>
     <textarea id="vedicAiQuestion" oninput="vedicAiOnQuestionInput(this.value)" maxlength="1000" placeholder="예: 내 다샤 흐름에서 올해 커리어 전환 타이밍을 어떻게 잡아야 할까?" style="width:100%;min-height:100px;border-radius:12px;border:1px solid rgba(45,212,191,0.34);background:rgba(6,14,30,0.68);color:#ecfeff;padding:12px;font-size:13px;line-height:1.65;resize:vertical">${hEsc(state.question)}</textarea>
@@ -3055,7 +3055,7 @@ function renderVedicAIPromptSection(){
       <button class="btn-sm" type="button" onclick="vedicAiUseExample('상대와의 궁합 데이터 기반으로 갈등을 줄이는 실전 행동 계획을 알려줘.')">예시: 궁합</button>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
-      <button class="btn-primary" id="vedicAiGenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b);border:1px solid rgba(251,191,36,0.5);color:#1f2937;box-shadow:0 10px 26px rgba(251,191,36,0.32)">${state.inFlight?'정리 중...':'✨ 상담 질문 정리 (100코인)'}</button>
+      <button class="btn-primary" id="vedicAiGenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b);border:1px solid rgba(251,191,36,0.5);color:#1f2937;box-shadow:0 10px 26px rgba(251,191,36,0.32)">${state.inFlight?'정리 중...':'✨ 상담 질문 정리 (10,000원)'}</button>
       <button class="btn-sm" id="vedicAiCopyBtn" type="button" onclick="vedicAiCopyPrompt()" ${state.prompt?'':'disabled'}>📋 복사</button>
       <button class="btn-sm" id="vedicAiRegenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" ${state.prompt?'':'disabled'}>🔄 재생성</button>
     </div>
@@ -3089,7 +3089,7 @@ function vedicAiRefreshUi(){
   }
   if(gBtn){
     gBtn.disabled=!!state.inFlight;
-    gBtn.textContent=state.inFlight?'정리 중...':'✨ 상담 질문 정리 (100코인)';
+    gBtn.textContent=state.inFlight?'정리 중...':'✨ 상담 질문 정리 (10,000원)';
   }
   if(cpBtn) cpBtn.disabled=!state.prompt||state.inFlight;
   if(reBtn) reBtn.disabled=!state.prompt||state.inFlight;
@@ -3099,9 +3099,9 @@ function vedicAiRefreshUi(){
     if(state.prompt){
       const qLabel=VEDIC_AI_QUESTION_TYPE_LABELS[state.questionType]||VEDIC_AI_QUESTION_TYPE_LABELS.general;
       const charged=Number(state.lastChargedCoins||0);
-      const remain=Number.isFinite(state.balanceAfter)?' · 잔액 '+Number(state.balanceAfter).toLocaleString('ko-KR')+'코인':'';
+      const remain=Number.isFinite(state.balanceAfter)?' · 잔여 가치 '+Number(state.balanceAfter).toLocaleString('ko-KR'):'';
       const compat=state.compatibilityHint?(' · '+state.compatibilityHint):'';
-      metaEl.textContent='유형: '+qLabel+' · 차감: '+charged+'코인'+remain+compat;
+      metaEl.textContent='유형: '+qLabel+' · 승인: '+charged+remain+compat;
     }else{
       metaEl.textContent='';
     }
@@ -3156,7 +3156,7 @@ async function vedicAiGeneratePrompt(){
 
   state.inFlight=true;
   state.statusError=false;
-  state.statusMessage='상담 질문을 정리 중입니다. 생성 성공 시에만 100코인이 차감됩니다.';
+  state.statusMessage='상담 질문을 정리 중입니다. 생성 성공 시에만 10,000원 결제가 확인됩니다.';
   vedicAiRefreshUi();
   _vedicSetPaymentPending(true,'베다 상담 질문 결제/생성 확인 중입니다...');
 
@@ -3184,7 +3184,7 @@ async function vedicAiGeneratePrompt(){
       if(code==='AUTH_REQUIRED'&&window.confirm('로그인이 필요합니다. 로그인 화면으로 이동할까요?')){
         window.location.href='/login?next='+encodeURIComponent(location.pathname+location.search);
       }
-      if(code==='INSUFFICIENT_COINS'&&window.confirm('코인이 부족합니다. 충전 페이지로 이동할까요?')){
+      if(code==='INSUFFICIENT_COINS'&&window.confirm('결제 권한이 부족합니다. 결제 페이지로 이동할까요?')){
         window.location.href='/points';
       }
       vedicAiRefreshUi();
@@ -3197,7 +3197,7 @@ async function vedicAiGeneratePrompt(){
     state.balanceAfter=Number.isFinite(Number(data&&data.balanceAfter))?Number(data.balanceAfter):null;
     state.compatibilityHint=String(data&&data.compatibilityHint||'').trim();
     state.statusError=false;
-    state.statusMessage='상담 질문 정리 완료: '+state.lastChargedCoins+'코인 차감'+(Number.isFinite(state.balanceAfter)?(' · 잔액 '+Number(state.balanceAfter).toLocaleString('ko-KR')+'코인'):'');
+    state.statusMessage='상담 질문 정리 완료: '+(Number(state.lastChargedCoins||0)*100).toLocaleString('ko-KR')+'원 결제 확인'+(Number.isFinite(state.balanceAfter)?(' · 잔여 원화 가치 '+(Number(state.balanceAfter)*100).toLocaleString('ko-KR')+'원'):'');
     if(Number.isFinite(state.balanceAfter)) vedicAiSyncBalance(state.balanceAfter);
     vedicAiRefreshUi();
   }catch(e){
@@ -4600,8 +4600,8 @@ function renderResult(){
   <div class="reveal reveal-delay-2" style="margin-top:14px">
     <div class="glass" style="padding:14px;border:1px solid rgba(236,72,153,0.22)">
       <div class="section-head section-head-kr" style="color:var(--pink);margin-bottom:8px">💞 베다 궁합 계산</div>
-      <div class="body-text" style="margin-bottom:10px">아쉬타쿠타 밀란 8항목으로 두 사람의 궁합을 계산합니다. 궁합 계산은 1회 50코인이 차감됩니다.</div>
-      <button class="btn-primary" onclick="showDetail('compat')">💕 궁합 계산기 열기 (1회 50코인)</button>
+      <div class="body-text" style="margin-bottom:10px">아쉬타쿠타 밀란 8항목으로 두 사람의 궁합을 계산합니다. 궁합 계산은 1회 5,000원 결제로 열립니다.</div>
+      <button class="btn-primary" onclick="showDetail('compat')">💕 궁합 계산기 열기 (1회 5,000원)</button>
     </div>
   </div>`;
   const tabMoneyWork=renderWealth(report.wealth, insights)+renderCareer(report.career, insights);
@@ -5208,7 +5208,7 @@ function renderRomance(r,chart,ins){
 function renderCompatInput(){
   return detailHeader('👫','궁합 계산기','Ashtakoot Milan · 8 Koota')+`
   <div class="sage-text reveal" style="margin-bottom:16px">아쉬타쿠타 밀란(Ashtakoot Milan)은 두 영혼의 달 낙샤트라를 8가지 기준으로 분석하여 36점 만점으로 궁합을 측정하는 베다 점성술의 핵심 결혼 궁합 시스템입니다.</div>
-  <div class="sage-text reveal" style="margin-bottom:10px;color:#fde68a">🔒 궁합 계산은 1회 50코인이 차감됩니다. (기본 명반 계산은 무료)</div>
+  <div class="sage-text reveal" style="margin-bottom:10px;color:#fde68a">🔒 궁합 계산은 1회 5,000원 결제로 열립니다. (기본 명반 계산은 무료)</div>
   <div class="glass reveal reveal-delay-1" style="padding:16px;margin-bottom:12px">
     <div class="section-head form-subhead" style="margin-bottom:12px">두 번째 인물 출생 정보</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
@@ -5229,7 +5229,7 @@ function renderCompatInput(){
       <div><label>위도</label><input id="c-lat" value="37.5665"></div>
       <div><label>경도</label><input id="c-lon" value="126.978"></div>
     </div>
-    <button class="btn-primary" onclick="doCompatCalc()">💕 궁합 계산하기 (50코인)</button>
+    <button class="btn-primary" onclick="doCompatCalc()">💕 궁합 계산하기 (5,000원)</button>
   </div>
   <div id="compat-result"></div>`;
 }

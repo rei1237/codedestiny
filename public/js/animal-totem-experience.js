@@ -178,7 +178,7 @@
           openInsufficientCoinsUi();
           return false;
         }
-        var errorMessage = String(result.message || (result.error && result.error.message) || "코인 결제에 실패했습니다.");
+        var errorMessage = String(result.message || (result.error && result.error.message) || "원화 결제 확인에 실패했습니다.");
         global.alert(errorMessage);
         return false;
       }
@@ -274,7 +274,7 @@
         var message = String(
           (payload && payload.error && payload.error.message)
           || (payload && payload.message)
-          || "코인 결제에 실패했습니다."
+          || "원화 결제 확인에 실패했습니다."
         );
         global.alert(message);
         return false;

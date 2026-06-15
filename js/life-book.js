@@ -2496,7 +2496,7 @@ function _isLifeBookGenerationBusy() {
     var action = btn.getAttribute('data-action');
 
     if (action === 'openLifeBookModal') {
-      // 코인 게이트 없이 타일 클릭 시 직접 모달 열기
+      // 유료 게이트 없이 타일 클릭 시 직접 모달 열기
       window.openLifeBookModal();
       return;
     }
@@ -2505,7 +2505,7 @@ function _isLifeBookGenerationBusy() {
       return;
     }
     if (action === 'generateLifeBook') {
-      // 이미 생성 중이면 코인 차감 전에 즉시 차단
+      // 이미 생성 중이면 결제 처리 전에 즉시 차단
       if (_isLifeBookGenerationBusy()) {
         window.alert('인생의 책이 이미 생성 중입니다. 잠시만 기다려 주세요.');
         return;

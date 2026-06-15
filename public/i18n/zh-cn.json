@@ -86,8 +86,8 @@
       "saveProfile": "保存个人命运卡",
       "saveOptional": "可选",
       "kakaoEvent": "Kakao分享活动",
-      "kakaoEventSub": "邀请好友完成注册可获得100 Moonlight Stone",
-      "referralNote": "好友通过你的月光邀请链接完成注册时，将发放推荐奖励。每日发放上限为500 Moonlight Stone。"
+      "kakaoEventSub": "创建好友邀请链接",
+      "referralNote": "可通过你的月光邀请链接邀请好友。"
     },
     "startSection": {
       "kicker": "TODAY CARDS",

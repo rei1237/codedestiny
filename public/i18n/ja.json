@@ -86,8 +86,8 @@
       "saveProfile": "プロフィールカードを保存",
       "saveOptional": "任意",
       "kakaoEvent": "Kakao共有イベント",
-      "kakaoEventSub": "友だち招待完了で100 Moonlight Stone",
-      "referralNote": "月光招待リンクから友だちの登録が完了すると紹介報酬が支給されます。1日の支給上限は500 Moonlight Stoneです。"
+      "kakaoEventSub": "友だち招待リンクを作成",
+      "referralNote": "月光招待リンクで友だちを招待できます。"
     },
     "startSection": {
       "kicker": "TODAY CARDS",

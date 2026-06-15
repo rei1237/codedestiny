@@ -1,8 +1,4 @@
 import {
-  calculateKrwAmountFromCoins,
-  calculateMembershipCreditCost,
-} from "./billing-policy.js";
-import {
   FAMILY_PASS_MAX_COVERED_COIN,
   PASS_TIERS,
   normalizePassTier,
@@ -11,12 +7,6 @@ import {
   PAID_FEATURE_BILLING_TYPES,
   getPaidFeatureBillingType,
 } from "./paid-feature-registry.js";
-
-function toCoinPrice(value) {
-  const coinPrice = Number(value);
-  if (!Number.isFinite(coinPrice) || coinPrice <= 0) return 0;
-  return Math.floor(coinPrice);
-}
 
 function isActiveEntitlement(entitlement = {}) {
   if (!entitlement || entitlement.isActive !== true) return false;
@@ -42,42 +32,6 @@ export function getPassDiscountCoinLimit(entitlement = {}) {
   return Math.max(0, Math.floor(Number(entitlement.maxCoveredCoin || entitlement.freeLimit || entitlement.passLimit || 0)));
 }
 
-export function applyPdfPassDiscountToPricing(pricing = {}, entitlement = {}) {
-  if (!isPdfFeaturePricing(pricing)) return pricing;
-
-  const originalCoinPrice = toCoinPrice(pricing?.originalCoinPrice || pricing?.coinPrice || pricing?.cost);
-  const passLimit = getPassDiscountCoinLimit(entitlement);
-  const discountCoins = Math.min(originalCoinPrice, passLimit);
-  if (originalCoinPrice <= 0 || discountCoins <= 0) return pricing;
-
-  const finalCoinPrice = Math.max(0, originalCoinPrice - discountCoins);
-  const amountKRW = calculateKrwAmountFromCoins(finalCoinPrice);
-  const membershipCreditCost = calculateMembershipCreditCost(finalCoinPrice);
-  const discount = {
-    type: "pdf_membership_pass_discount",
-    tier: String(entitlement?.tier || "").trim(),
-    passTier: normalizePassTier(entitlement?.passTier || entitlement?.tier),
-    originalCoinPrice,
-    discountCoins,
-    finalCoinPrice,
-    freeByFamily: isFamilyPassEntitlement(entitlement),
-  };
-
-  return {
-    ...pricing,
-    originalCost: originalCoinPrice,
-    originalCoinPrice,
-    cost: finalCoinPrice,
-    coinPrice: finalCoinPrice,
-    amountKRW,
-    cashPrice: amountKRW,
-    krwAmount: amountKRW,
-    membershipCreditCost,
-    displayPrice: `${amountKRW.toLocaleString("ko-KR")}원`,
-    passDiscount: discount,
-    pricingPolicy: {
-      ...(pricing?.pricingPolicy || {}),
-      pdfPassDiscount: discount,
-    },
-  };
+export function applyPdfPassDiscountToPricing(pricing = {}) {
+  return pricing;
 }

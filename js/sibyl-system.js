@@ -53,7 +53,7 @@
     /위험\s*계수\s*47\s*,?\s*적성\s*계수\s*608\s*기준으로\s*운영\s*강도를\s*조절합니다/i,
     /사주\s*질문\s*프롬프트\s*만들기/i,
     /결과\s*기반\s*고품질\s*질문/i,
-    /생성\s*비용\s*:\s*100코인/i,
+    /생성\s*비용\s*:\s*10,?000원/i,
     /아래\s*내용을\s*AI에게\s*그대로\s*붙여넣어\s*질문해보세요/i,
     /연이의\s*편지/i
   ];
@@ -416,7 +416,7 @@
         btn.disabled = false;
         return;
       }
-      btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인';
+      btn.textContent = '⚡ EXECUTE DOMINATOR — 10,000원';
       btn.disabled = false;
       return;
     }
@@ -427,7 +427,7 @@
       btn.disabled = false;
       return;
     }
-    btn.textContent = '⚡ EXECUTE DOMINATOR — 100코인';
+    btn.textContent = '⚡ EXECUTE DOMINATOR — 10,000원';
     btn.disabled = false;
   }
 
@@ -626,7 +626,7 @@
       return '로그인이 필요합니다. 로그인 후 다시 시도해 주세요.';
     }
     if (code === 'INSUFFICIENT_BALANCE' || msg.indexOf('insufficient') >= 0) {
-      return '코인이 부족합니다. 코인 충전 후 다시 시도해 주세요.';
+      return '원화 결제 확인이 필요합니다. 결제 후 다시 시도해 주세요.';
     }
     if (code === 'PRICE_NOT_FOUND' || code === 'UNKNOWN_FEATURE_KEY') {
       return '결제 가격 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
@@ -2839,7 +2839,7 @@
       + '위 데이터는 원국의 <strong>정적 구조 분석</strong>입니다. 실제 운명은 <strong>현재 어느 대운에 위치하는지</strong>에 따라 완전히 달라집니다. '
       + '<strong>10년 위험 계수 그래프</strong>, 직업 전환 최적 타이밍, 관계 리스크, '
       + '개운 처방전은 <em class="sb-nature-hl">DOMINATOR REPORT</em>에서만 열람됩니다.</p>'
-      + '<div class="sb-nature-cta-hint">▼ 하단 ⚡ EXECUTE DOMINATOR (100코인) 으로 전체 리포트 열람</div>'
+      + '<div class="sb-nature-cta-hint">▼ 하단 ⚡ EXECUTE DOMINATOR (10,000원) 으로 전체 리포트 열람</div>'
       + '</div>';
 
     return html;
@@ -3048,10 +3048,10 @@
       + '<div class="sb-nature-block">'
       + '<div class="sb-nature-tag">■ ACTION GUIDE — 무료 실행 가이드</div>'
       + '<p class="sb-nature-body">' + overview.action + '</p>'
-      + '<div class="sb-nature-row"><span class="sb-nature-key">유료와 구분</span><span class="sb-nature-val">무료는 요약/기본 지표, 100코인은 10챕터 장문 리포트 잠금 해제 전용입니다.</span></div>'
+      + '<div class="sb-nature-row"><span class="sb-nature-key">유료와 구분</span><span class="sb-nature-val">무료는 요약/기본 지표, 10,000원은 10챕터 장문 리포트 잠금 해제 전용입니다.</span></div>'
       + '<ul class="sb-free-recovery-checklist">'
       + '<li>무료 결과는 기본 지표와 월별 우선순위를 지속 제공합니다.</li>'
-      + '<li>유료 100코인은 도미네이터 10챕터 리포트 잠금 해제 전용입니다.</li>'
+      + '<li>유료 10,000원은 도미네이터 10챕터 리포트 잠금 해제 전용입니다.</li>'
       + '<li>복구 모드 해제 후 상세 계산 결과가 자동으로 갱신됩니다.</li>'
       + '</ul>'
       + '</div>';
@@ -3397,7 +3397,7 @@
   async function _resolveSibylBalance() {
     var balanceRes = await _fetchApiJson('/api/billing/balance');
     if (!balanceRes.ok) {
-      throw _toApiError(balanceRes, '코인 잔액을 확인하지 못했습니다.');
+      throw _toApiError(balanceRes, '결제 권한을 확인하지 못했습니다.');
     }
     var balanceData = _extractApiData(balanceRes.payload);
     var balance = Number(balanceData && balanceData.balance || 0);
@@ -3509,7 +3509,7 @@
     var balance = await _resolveSibylBalance();
 
     if (balance < pricing.cost) {
-      throw { status: 400, code: 'INSUFFICIENT_BALANCE', message: '코인이 부족합니다.' };
+      throw { status: 400, code: 'INSUFFICIENT_BALANCE', message: '원화 결제 확인이 필요합니다.' };
     }
 
     var gateRes = await _fetchApiJson('/api/billing/coin-gate', {
@@ -3524,7 +3524,7 @@
     });
 
     if (!gateRes.ok) {
-      throw _toApiError(gateRes, '코인 결제가 완료되지 않았습니다.');
+      throw _toApiError(gateRes, '원화 결제가 완료되지 않았습니다.');
     }
 
     return {
@@ -3564,7 +3564,7 @@
     return refundRes;
   }
 
-  /* ── 코인 차감 후 도미네이터 리포트 호출 ── */
+  /* ── 결제 확인 후 도미네이터 리포트 호출 ── */
   async function _unlockDominator() {
     var btn = _q('sbUnlockBtn');
 

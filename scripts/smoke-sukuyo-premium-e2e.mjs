@@ -248,7 +248,7 @@ async function main() {
   printKeyValue("CONSUME_STATUS", consumeResult.status);
   printKeyValue("CONSUME_CODE", consumeResult.code || "");
   printKeyValue("CONSUME_CHARGED", consumeResult.chargedCoins);
-  ensure(consumeResult.ok && consumeResult.premiumAccessToken, "코인 차감 또는 premium access token 발급 실패", consumeResult.data);
+  ensure(consumeResult.ok && consumeResult.premiumAccessToken, "유료 처리 또는 premium access token 발급 실패", consumeResult.data);
 
   const prepareResult = await prepare(base, loginResult.token, consumeResult.premiumAccessToken, input);
   const payload = prepareResult.data || {};

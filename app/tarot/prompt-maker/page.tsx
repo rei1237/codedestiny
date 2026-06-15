@@ -445,9 +445,9 @@ export default function TarotPromptMakerPage() {
             return;
           }
           if (accessSource === "moonlight_stone") {
-            const spentText = monthlyCreditsSpent > 0 ? formatMonthlyCreditValue(monthlyCreditsSpent) : "보유 보너스 가치";
-            const balanceText = typeof monthlyBalanceAfter === "number" ? ` 남은 보너스 가치: ${formatMonthlyCreditValue(monthlyBalanceAfter)}` : "";
-            showToast(`보너스 가치 ${spentText}로 타로 프롬프트 라이브러리가 열렸습니다.${balanceText}`, "info");
+            const spentText = monthlyCreditsSpent > 0 ? formatMonthlyCreditValue(monthlyCreditsSpent) : "보유 이용권 혜택";
+            const balanceText = typeof monthlyBalanceAfter === "number" ? ` 남은 이용권 혜택: ${formatMonthlyCreditValue(monthlyBalanceAfter)}` : "";
+            showToast(`이용권 혜택 ${spentText}으로 타로 프롬프트 라이브러리가 열렸습니다.${balanceText}`, "info");
             return;
           }
           if (chargedCoins > 0) showToast(`타로 프롬프트 라이브러리 이용이 승인되었습니다. 잔여 원화 가치: ${formatCoinValue(balanceAfter)}`, "info");

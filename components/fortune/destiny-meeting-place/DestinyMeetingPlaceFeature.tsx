@@ -16,6 +16,7 @@ const FEATURE_KEY = "destiny_meeting_place";
 const FEATURE_REASON = "사주로 보는 인연의 장소 1회 분석";
 const FEATURE_COST = 100;
 const FEATURE_MEMBERSHIP_CREDIT_COST = FEATURE_COST * 10;
+const FEATURE_PRICE_LABEL = `${(FEATURE_COST * 100).toLocaleString("ko-KR")}원`;
 const HERO_IMAGE = "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp";
 
 type Props = {
@@ -123,7 +124,7 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
         </div>
         <p className="mt-2 text-xs text-[#5f6f84]">{previewLine}</p>
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-          <span className="rounded-full bg-[#fff0cf] px-3 py-1 font-black text-[#8b6116]">1회 {FEATURE_COST}코인</span>
+          <span className="rounded-full bg-[#fff0cf] px-3 py-1 font-black text-[#8b6116]">1회 {FEATURE_PRICE_LABEL}</span>
           <span className="rounded-full bg-[#e6f0ff] px-3 py-1 font-bold text-[#214a77]">이용권 확인 후 단건/월정석 결제 지원</span>
         </div>
         <button
@@ -168,7 +169,7 @@ export default function DestinyMeetingPlaceFeature({ sajuResult }: Props) {
                   disabled={isCharging || isLoading}
                   className="rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {FEATURE_COST}코인으로 다시 분석하기
+                  {FEATURE_PRICE_LABEL}으로 다시 분석하기
                 </button>
                 <button
                   type="button"

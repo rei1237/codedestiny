@@ -5002,7 +5002,7 @@ function _confirmSajuQuestionPromptPurchase(domain, privacyOptions) {
   if (privacyOptions && privacyOptions.hideTime) protectedItems.push('원본 출생시간');
   var protectedText = protectedItems.length ? protectedItems.join(', ') + ' 제외' : '개인정보 원문 포함';
   return window.confirm(
-    '100코인으로 상담 결과가 아닌 외부 AI용 사주 질문문을 생성합니다.\n\n'
+    '10,000원으로 상담 결과가 아닌 외부 AI용 사주 질문문을 생성합니다.\n\n'
     + '선택 주제: ' + _sajuPromptDomainLabel(domain) + '\n'
     + '개인정보 설정: ' + protectedText + '\n'
     + '명식 계산값은 질문문 품질을 위해 포함됩니다.'
@@ -5066,7 +5066,7 @@ function _buildSajuQuestionPromptHtml() {
     + '<div class="prem-box" style="background:linear-gradient(145deg,#fffaf0,#fef3c7);border:1.5px solid rgba(217,119,6,.42);box-shadow:0 18px 38px rgba(180,83,9,.14);">'
     +   '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'
     +     '<div><span class="prem-title" style="color:#92400e;">🪙 사주 질문문 생성기</span><p style="font-size:0.8rem;color:#78350f;margin:4px 0 0;line-height:1.62;">상담 결과가 아니라, 외부 AI에 그대로 붙여넣을 깊은 사주 질문문을 만듭니다.</p></div>'
-    +     '<span style="font-size:0.72rem;color:#92400e;border:1px solid rgba(217,119,6,.35);background:rgba(251,191,36,.18);padding:4px 9px;border-radius:999px;font-weight:900;">AI 질문문 · 100코인</span>'
+    +     '<span style="font-size:0.72rem;color:#92400e;border:1px solid rgba(217,119,6,.35);background:rgba(251,191,36,.18);padding:4px 9px;border-radius:999px;font-weight:900;">AI 질문문 · 10,000원</span>'
     +   '</div>'
     +   '<textarea data-saju-ai-question maxlength="1000" placeholder="예: 올해 이직을 준비할 때 제 사주에서 가장 조심해야 할 선택은 무엇인가요?" style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(217,119,6,.34);background:rgba(255,255,255,.78);color:#3f2504;padding:11px;font-size:0.84rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>'
     +   '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
@@ -5093,7 +5093,7 @@ function _buildSajuQuestionPromptHtml() {
     +   '</div>'
     +   '<div style="margin-top:5px;font-size:0.7rem;color:#92400e;line-height:1.5;">명식 계산값은 질문문 품질을 위해 포함됩니다.</div>'
     +   '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">'
-    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#d97706,#f59e0b);color:white;border:1px solid rgba(180,83,9,.48);padding:10px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;">100코인으로 질문문 만들기</button>'
+    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#d97706,#f59e0b);color:white;border:1px solid rgba(180,83,9,.48);padding:10px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;">10,000원으로 질문문 만들기</button>'
     +     '<button data-saju-ai-regenerate type="button" style="display:none;background:#92400e;color:#fff;border:1px solid rgba(146,64,14,.38);padding:10px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 생성</button>'
     +     '<button data-saju-ai-copy type="button" style="display:none;background:#047857;color:#fff;border:1px solid rgba(4,120,87,.42);padding:10px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">질문문 복사</button>'
     +   '</div>'
@@ -5169,7 +5169,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     inputEl.disabled = isLoading;
     generateBtn.disabled = isLoading;
     regenerateBtn.disabled = isLoading;
-    generateBtn.textContent = isLoading ? '질문문 생성 중...' : '100코인으로 질문문 만들기';
+    generateBtn.textContent = isLoading ? '질문문 생성 중...' : '10,000원으로 질문문 만들기';
     updateCount();
   }
   function handleGenerate() {
@@ -5198,7 +5198,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
         regenerateBtn.style.display = 'inline-flex';
         if (payload.balanceAfter != null) _applySajuAIPromptBalance(payload.balanceAfter);
         var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
-        _sajuPromptSetStatus(statusEl, (chargedCoins > 0 ? chargedCoins + '코인 차감 완료. ' : '') + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 외부 AI용 사주 질문문이 완성되었습니다.', 'success');
+        _sajuPromptSetStatus(statusEl, (chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : '') + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 외부 AI용 사주 질문문이 완성되었습니다.', 'success');
         return;
       }
 
@@ -5233,7 +5233,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     });
   });
   updateCount();
-  _sajuPromptSetStatus(statusEl, '질문을 입력하면 100코인 결제 확인 후 외부 AI용 질문문을 생성합니다.', 'info');
+  _sajuPromptSetStatus(statusEl, '질문을 입력하면 10,000원 결제 확인 후 외부 AI용 질문문을 생성합니다.', 'info');
 }
 
   function renderSpecialCharm(p, natal) {
@@ -9168,13 +9168,13 @@ function renderAstroInsightLegacyNeon() {
 
     var astroAiPromptSectionHtml = ''
       + '<div class="astro-section astro-prompt-panel" id="astroAiPromptSection" style="border:1px solid rgba(125,211,252,0.35);background:linear-gradient(145deg,rgba(2,6,23,.96),rgba(10,20,42,.94));box-shadow:0 24px 54px rgba(15,23,42,0.45), inset 0 1px 0 rgba(255,255,255,0.08);border-radius:16px;">'
-      + '<div class="astro-section-title-row"><div><div class="astro-section-kicker">Cosmic Prompt Forge</div><div class="astro-subhead" style="margin-bottom:8px;color:#bae6fd;">🌌 점성술 질문 문장 만들기</div></div><span class="astro-price-pill astro-price-pill--prompt">1회 100코인</span></div>'
+      + '<div class="astro-section-title-row"><div><div class="astro-section-kicker">Cosmic Prompt Forge</div><div class="astro-subhead" style="margin-bottom:8px;color:#bae6fd;">🌌 점성술 질문 문장 만들기</div></div><span class="astro-price-pill astro-price-pill--prompt">1회 10,000원</span></div>'
       + '<p class="astro-birth-lead" style="margin-bottom:9px;color:#e2e8f0;">'
       + '현재 차트 해석을 바탕으로 질문 맞춤 상담 프롬프트를 생성합니다. 시너스트리 궁합을 본 뒤에는 방금 계산한 궁합 데이터가 함께 반영됩니다.'
       + '</p>'
       + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">'
       + '  <span style="font-size:11px;color:#93c5fd;border:1px solid rgba(125,211,252,.28);padding:3px 8px;border-radius:999px;background:rgba(14,116,144,.2);">이용권 · 단건결제 · 월정석 보너스</span>'
-      + '  <span id="astroAiPromptCoinBalance" style="font-size:11px;color:#bae6fd;">100코인 · 궁합 결과 반영 가능</span>'
+      + '  <span id="astroAiPromptCoinBalance" style="font-size:11px;color:#bae6fd;">10,000원 · 궁합 결과 반영 가능</span>'
       + '</div>'
       + '<textarea id="astroAiPromptQuestionInput" maxlength="'+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'" placeholder="예) 올해 이직 시기와 연봉 협상 전략을 점성술 근거로 알려주세요." style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(125,211,252,0.34);background:rgba(3,10,29,.78);color:#e2e8f0;padding:11px;line-height:1.65;font-size:0.84rem;box-sizing:border-box;resize:vertical;"></textarea>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;">'
@@ -9182,7 +9182,7 @@ function renderAstroInsightLegacyNeon() {
       + '  <span style="font-size:11px;color:#93c5fd;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
       + '</div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">'
-      + '  <button id="astroAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#0ea5e9,#2563eb 62%,#4f46e5);color:#fff;border:1px solid rgba(125,211,252,.45);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(37,99,235,.38);">100코인으로 맞춤 프롬프트 생성</button>'
+      + '  <button id="astroAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#0ea5e9,#2563eb 62%,#4f46e5);color:#fff;border:1px solid rgba(125,211,252,.45);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(37,99,235,.38);">10,000원으로 맞춤 프롬프트 생성</button>'
       + '  <button id="astroAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border:1px solid rgba(125,211,252,.42);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '</div>'
       + '<div id="astroAiPromptStatus" style="margin-top:8px;font-size:12px;color:#cbd5e1;line-height:1.6;"></div>'
@@ -9198,12 +9198,12 @@ function renderAstroInsightLegacyNeon() {
       + '<div><div class="astro-action-hub__kicker">Swiss Ephemeris Ready</div><div class="astro-subhead" style="margin-bottom:7px;color:#bae6fd;">🌌 나의 항성판이 열렸습니다</div></div>'
       + '<span class="astro-price-pill astro-price-pill--free">기본 차트 무료</span>'
       + '</div>'
-      + '<p class="astro-action-hub__lead">정밀 차트, 프롬프트, 직접 입력 궁합, 유명인 궁합 실험실을 한 화면에서 순서대로 볼 수 있게 배치했습니다. 궁합 계산은 실행 시 50코인 결제 후 열립니다.</p>'
+      + '<p class="astro-action-hub__lead">정밀 차트, 프롬프트, 직접 입력 궁합, 유명인 궁합 실험실을 한 화면에서 순서대로 볼 수 있게 배치했습니다. 궁합 계산은 실행 시 5,000원 결제 후 열립니다.</p>'
       + '<div class="astro-action-hub__constellation" aria-hidden="true"><span>☉</span><i></i><span>☽</span><i></i><span>ASC</span><i></i><span>♀</span><i></i><span>♂</span></div>'
       + '<div class="astro-action-hub__grid">'
       + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroAiPromptSection" aria-controls="astroAiPromptSection"><span class="astro-action-hub__glyph">✦</span><strong>질문 프롬프트 생성</strong><span>차트 기반 상담 문장을 바로 작성합니다.</span><em>아래에 표시됨</em></button>'
-      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="asDirect_name" aria-controls="asDirect_name"><span class="astro-action-hub__glyph">☍</span><strong>상대 직접 입력 궁합 · 50코인</strong><span>출생 정보와 도시로 두 사람의 시나스트리를 엽니다.</span><em>결제 후 분석</em></button>'
-      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroSynastrySection" aria-controls="astroSynastrySection"><span class="astro-action-hub__glyph">✧</span><strong>유명인 궁합 실험실 · 50코인</strong><span>셀럽 차트와 나의 별자리 합을 비교합니다.</span><em>결제 후 분석</em></button>'
+      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="asDirect_name" aria-controls="asDirect_name"><span class="astro-action-hub__glyph">☍</span><strong>상대 직접 입력 궁합 · 5,000원</strong><span>출생 정보와 도시로 두 사람의 시나스트리를 엽니다.</span><em>결제 후 분석</em></button>'
+      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroSynastrySection" aria-controls="astroSynastrySection"><span class="astro-action-hub__glyph">✧</span><strong>유명인 궁합 실험실 · 5,000원</strong><span>셀럽 차트와 나의 별자리 합을 비교합니다.</span><em>결제 후 분석</em></button>'
       + '</div>'
       + '</div>';
 
@@ -9759,7 +9759,7 @@ function renderAstroInsightLegacyNeon() {
         /* ── ★ 직접 입력 시나스트리 궁합 ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-amber astro-compat-panel astro-compat-panel--direct">'
         +'<div class="astro-subhead" style="color:#f59e0b;">💫 나의 시나스트리: 상대 직접 입력</div>'
-        +'<div class="astro-paid-note"><strong>유료 궁합 분석 · 50코인</strong><span>결제 확인 후 두 사람의 시나스트리 결과가 생성됩니다.</span></div>'
+        +'<div class="astro-paid-note"><strong>유료 궁합 분석 · 5,000원</strong><span>결제 확인 후 두 사람의 시나스트리 결과가 생성됩니다.</span></div>'
         +'<div class="astro-desc">'
         +'<p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">'
         +'상대 정보만 넣으면 두 사람의 케미 지도가 즉시 오픈됩니다. 시간 미상이면 12:00(정오)로도 OK, 대화 템포 힌트까지 뽑아드려요.'
@@ -9793,7 +9793,7 @@ function renderAstroInsightLegacyNeon() {
         +'</select>'
         +'</div>'
         +'</div>'
-        +'<button onclick="window._astroDirectSynastry()" class="astro-neon-cta">✦ 50코인으로 시나스트리 분석하기</button>'
+        +'<button onclick="window._astroDirectSynastry()" class="astro-neon-cta">✦ 5,000원으로 시나스트리 분석하기</button>'
         +'<div id="asDirectResult" style="margin-top:14px;"></div>'
         +'</div>'
         +'</div>'
@@ -9801,7 +9801,7 @@ function renderAstroInsightLegacyNeon() {
         /* ── ★ 점성술 유명인 시나스트리 궁합 (신규) ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-indigo astro-compat-panel astro-compat-panel--celeb" id="astroSynastrySection">'
         +'<div class="astro-subhead" style="color:#818cf8;">🌌 유명인 시나스트리 (셀럽 궁합 실험실)</div>'
-        +'<div class="astro-paid-note astro-paid-note--pink"><strong>유명인 궁합 분석 · 50코인</strong><span>셀럽을 선택하면 결제 확인 후 궁합 리포트가 열립니다.</span></div>'
+        +'<div class="astro-paid-note astro-paid-note--pink"><strong>유명인 궁합 분석 · 5,000원</strong><span>셀럽을 선택하면 결제 확인 후 궁합 리포트가 열립니다.</span></div>'
         +'<div class="astro-desc">'
 
         /* ── [✨ 천상의 지도: 당신의 성좌] ── */
@@ -10320,7 +10320,7 @@ function renderAstroInsightLegacyNeon() {
         + '<div class="astro-syn-prompt-card" data-astro-synastry-prompt-card="included-v20260615-quality-v2" style="margin-top:14px;border:1px solid rgba(125,211,252,.34);background:linear-gradient(145deg,rgba(8,13,32,.94),rgba(20,34,58,.9));border-radius:14px;padding:13px;box-shadow:0 16px 34px rgba(8,47,73,.26);">'
         + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px;">'
         + '<div><div style="font-size:0.76rem;color:#a5f3fc;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">Synastry Prompt Included</div><strong style="display:block;color:#fef3c7;font-size:0.96rem;">궁합 결과 기반 AI 상담 프롬프트</strong></div>'
-        + '<span style="border:1px solid rgba(134,239,172,.35);background:rgba(22,101,52,.22);color:#bbf7d0;border-radius:999px;padding:4px 8px;font-size:0.7rem;font-weight:900;">궁합 50코인에 포함</span>'
+        + '<span style="border:1px solid rgba(134,239,172,.35);background:rgba(22,101,52,.22);color:#bbf7d0;border-radius:999px;padding:4px 8px;font-size:0.7rem;font-weight:900;">궁합 5,000원에 포함</span>'
         + '</div>'
         + '<p style="margin:0 0 8px 0;color:#cbd5e1;font-size:0.8rem;line-height:1.65;">방금 계산한 시너스트리 결과를 달·금성·화성·하우스 오버레이 중심의 깊은 관계 상담 흐름으로 이어갈 수 있습니다.</p>'
         + '<textarea data-astro-synastry-prompt-output readonly style="width:100%;min-height:178px;border-radius:10px;border:1px solid rgba(125,211,252,.3);background:rgba(2,6,23,.74);color:#e0f2fe;padding:10px;font-size:0.78rem;line-height:1.66;box-sizing:border-box;resize:vertical;">' + _astroPromptEscapeHtml(prompt) + '</textarea>'
@@ -10369,7 +10369,7 @@ function renderAstroInsightLegacyNeon() {
 
     function _astroSetCoinBalanceText(node, points) {
       if (!node) return;
-      node.textContent = '100코인 · 이용권/단건결제 확인 후 생성';
+      node.textContent = '10,000원 · 이용권/단건결제 확인 후 생성';
     }
 
     function _astroBuildPromptHeaders() {
@@ -10443,7 +10443,7 @@ function renderAstroInsightLegacyNeon() {
         generateBtn.disabled = inFlight;
         inputEl.disabled = inFlight;
         generateBtn.style.opacity = inFlight ? '0.72' : '1';
-        generateBtn.textContent = inFlight ? '생성 중...' : '100코인으로 맞춤 프롬프트 생성';
+        generateBtn.textContent = inFlight ? '생성 중...' : '10,000원으로 맞춤 프롬프트 생성';
       }
 
       function updateCount() {
@@ -10538,7 +10538,7 @@ function renderAstroInsightLegacyNeon() {
 
       inputEl.addEventListener('input', updateCount);
       updateCount();
-      _astroSetPromptStatus(statusEl, '질문을 입력하면 100코인 결제 확인 후 현재 차트와 최근 궁합 결과를 반영해 프롬프트를 생성합니다.', 'info');
+      _astroSetPromptStatus(statusEl, '질문을 입력하면 10,000원 결제 확인 후 현재 차트와 최근 궁합 결과를 반영해 프롬프트를 생성합니다.', 'info');
     }
     _astroMountPromptSection();
 
@@ -10645,7 +10645,7 @@ function renderAstroInsightLegacyNeon() {
                         +'onmouseenter="this.style.background=\'rgba(52,211,153,0.2)\'" onmouseleave="this.style.background=\'rgba(52,211,153,0.08)\'">'
                         + t.flag + ' ' + t.c.name
                         +'<span style="font-size:0.6rem;color:'+tagClr+';margin-left:4px;font-weight:700;">'+tag+'</span>'
-                        +'<span style="font-size:0.6rem;color:#fde68a;margin-left:6px;font-weight:800;">50코인</span>'
+                        +'<span style="font-size:0.6rem;color:#fde68a;margin-left:6px;font-weight:800;">5,000원</span>'
                         +'</div>';
                 }).join('');
             }
@@ -10676,7 +10676,7 @@ function renderAstroInsightLegacyNeon() {
                 var flag = (typeof COUNTRY_CONFIG !== 'undefined' && COUNTRY_CONFIG[c.nationality]) ? COUNTRY_CONFIG[c.nationality].flag + ' ' : '';
                 var btn = document.createElement('button');
                 btn.type = 'button';
-                btn.textContent = flag + c.name + ' · 50코인';
+                btn.textContent = flag + c.name + ' · 5,000원';
                 btn.style.cssText = 'padding:5px 11px;border-radius:999px;font-size:0.75rem;font-weight:700;letter-spacing:.01em;border:1px solid rgba(244,114,182,0.34);background:linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78));color:#fbcfe8;cursor:pointer;transition:all 0.2s;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
                 btn.onmouseenter = function() { this.style.background='rgba(244,114,182,0.18)'; };
                 btn.onmouseleave = function() { this.style.background='linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78))'; };
@@ -10940,7 +10940,7 @@ function renderAstroInsightLegacyNeon() {
 
     /* ── 유명인 선택 → 시나스트리 결과 계산 ── */
     window._astroPickCeleb = function(name, birth, hour) {
-        /* 50코인 퍼유즈 게이트 */
+        /* 5,000원 퍼유즈 게이트 */
         if (typeof window._cdCoinGatePerUse === 'function') {
           window._cdCoinGatePerUse(50, '점성술 셜럭 시나스트리 궁합', function() {
             window._astroPickCelebCore(name, birth, hour);
@@ -11201,7 +11201,7 @@ function renderAstroInsightLegacyNeon() {
 
     /* ── 💑 직접 입력 시나스트리 계산 함수 ── */
     window._astroDirectSynastry = function() {
-        /* 50코인 퍼유즈 게이트 */
+        /* 5,000원 퍼유즈 게이트 */
         if (typeof window._cdCoinGatePerUse === 'function') {
           window._cdCoinGatePerUse(50, '점성술 직접 입력 시나스트리 궁합', function() {
             window._astroDirectSynastryCore();
@@ -16405,7 +16405,7 @@ function renderZiwei(p, natal, targetId) {
       + '<div class="zw-detail-panel" id="zwDeepAiPromptPanel" style="border:1px solid rgba(192,132,252,0.32);background:radial-gradient(140% 130% at 8% 0%, rgba(168,85,247,0.2), transparent 44%), radial-gradient(130% 130% at 100% 100%, rgba(16,185,129,0.18), transparent 40%), linear-gradient(145deg,rgba(24,24,55,0.93),rgba(8,20,28,0.92));box-shadow:0 24px 50px rgba(88,28,135,0.34), inset 0 1px 0 rgba(255,255,255,0.07);border-radius:16px;">'
       + '  <div class="zw-dp-header">'
       + '    <div class="zw-dp-title" style="color:#f5d0fe">👑 자미두수 궁성 맞춤 AI 프롬프트</div>'
-      + '    <div class="zw-dp-subtitle" style="color:#e9d5ff">기본 명반 데이터를 기반으로 질문별 고품질 상담 프롬프트를 생성합니다. (1회 100코인)</div>'
+      + '    <div class="zw-dp-subtitle" style="color:#e9d5ff">기본 명반 데이터를 기반으로 질문별 고품질 상담 프롬프트를 생성합니다. (1회 10,000원)</div>'
       + '  </div>'
       + '  <div style="font-size:0.78rem;line-height:1.62;color:#e9d5ff;margin-bottom:10px">'
       + '    연애, 소송, 직업, 돈, 인간관계, 건강, 인생 방향 질문을 입력하면 질문 분류+명반 핵심궁을 반영해 프롬프트를 생성합니다.'
@@ -16419,7 +16419,7 @@ function renderZiwei(p, natal, targetId) {
       + '    <span id="zwDeepAiPromptBalance">로그인 시 잔액이 표시됩니다.</span>'
       + '  </div>'
       + '  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">'
-      + '    <button id="zwDeepAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#34d399);color:#172554;border:1px solid rgba(251,191,36,0.76);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(251,191,36,0.28);">100코인으로 AI 프롬프트 생성</button>'
+      + '    <button id="zwDeepAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#34d399);color:#172554;border:1px solid rgba(251,191,36,0.76);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(251,191,36,0.28);">10,000원으로 AI 프롬프트 생성</button>'
       + '    <button id="zwDeepAiPromptRegenerateBtn" type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#312e81);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>'
       + '    <button id="zwDeepAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#6d28d9,#4338ca);color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '  </div>'
@@ -16464,7 +16464,7 @@ function renderZiwei(p, natal, targetId) {
       questionEl.disabled = isLoading;
       generateBtn.textContent = isLoading
         ? '프롬프트 생성 중...'
-        : (_ZW_AI_PROMPT_COST + '코인으로 AI 프롬프트 생성');
+        : ((_ZW_AI_PROMPT_COST * 100).toLocaleString('ko-KR') + '원으로 AI 프롬프트 생성');
       generateBtn.style.opacity = isLoading ? '0.7' : '1';
       regenerateBtn.style.opacity = isLoading ? '0.7' : '1';
     }
@@ -16500,7 +16500,7 @@ function renderZiwei(p, natal, targetId) {
         if (!payload) return;
         var points = Number((payload.user && payload.user.points) || payload.balance);
         if (Number.isFinite(points)) {
-          balanceEl.textContent = '현재 코인: ' + points.toLocaleString('ko-KR');
+          balanceEl.textContent = '현재 원화 가치: ' + (points * 100).toLocaleString('ko-KR') + '원';
         }
       }).catch(function() {
         balanceEl.textContent = '로그인 시 잔액이 표시됩니다.';
@@ -16580,11 +16580,11 @@ function renderZiwei(p, natal, targetId) {
           var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
           var balanceAfter = Number(payload.balanceAfter);
           if (balanceEl && Number.isFinite(balanceAfter)) {
-            balanceEl.textContent = '현재 코인: ' + balanceAfter.toLocaleString('ko-KR');
+            balanceEl.textContent = '현재 원화 가치: ' + (balanceAfter * 100).toLocaleString('ko-KR') + '원';
           }
           setStatus(
             chargedCoins > 0
-              ? ('프롬프트가 생성되었습니다. ' + chargedCoins + '코인이 차감되었습니다.')
+              ? ('프롬프트가 생성되었습니다. ' + (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제가 확인되었습니다.')
               : '프롬프트가 생성되었습니다.',
             'success'
           );
@@ -16649,7 +16649,7 @@ function renderZiwei(p, natal, targetId) {
 
     updateCount();
     updateBalance();
-    setStatus('질문 입력 후 버튼을 누르면 100코인 차감 후 프롬프트를 생성합니다.', 'info');
+    setStatus('질문 입력 후 버튼을 누르면 10,000원 결제 확인 후 프롬프트를 생성합니다.', 'info');
   }
 
   function _zwPortfolioBuildModalHtml(row, summary) {
@@ -19798,13 +19798,13 @@ function renderZiwei(p, natal, targetId) {
           +'<p style="font-size:0.8rem;color:#c4b5fd;line-height:1.65;margin:0 0 12px;">유년 '+zwFlowEsc(flowGanji || String(flowYear))+'의 사화와 12궁 흐름을 월별로 펼친 운세입니다.</p>'
           +monthlySummaryHtml
           +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin-bottom:14px;">'+monthlyFlowHtml+'</div>'
-          +'<div class="cd-section-gate" id="ziweiDecadeLuckGate" data-locked-title="자미두수 10년운 잠금" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 100코인이 필요합니다." style="border-radius:12px;margin-top:14px;">'
+          +'<div class="cd-section-gate" id="ziweiDecadeLuckGate" data-locked-title="자미두수 10년운 잠금" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 10,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
             +'<div class="cd-section-gate__overlay">'
               +'<div class="cd-section-gate__icon">🔐</div>'
               +'<p class="cd-section-gate__title">자미두수 10년운 — 프리미엄 콘텐츠</p>'
               +'<p class="cd-section-gate__desc">대한(大限)을 기준으로 앞으로의 10년을 연도별로 풀어드립니다.</p>'
-              +'<span class="cd-section-gate__badge">100코인으로 영구 해금</span>'
-              +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="ziwei_decade_luck" data-content-key="ziwei.decadeLuck" data-service-key="ziwei" data-unlock-cost="100">🪙 100코인으로 10년운 열기</button>'
+              +'<span class="cd-section-gate__badge">10,000원으로 영구 해금</span>'
+              +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="ziwei_decade_luck" data-content-key="ziwei.decadeLuck" data-service-key="ziwei" data-unlock-cost="100">🪙 10,000원으로 10년운 열기</button>'
             +'</div>'
             +'<div class="cd-section-gate__body">'
               +'<div style="background:rgba(15,23,42,0.62);border:1px solid rgba(125,211,252,0.22);border-radius:11px;padding:13px 14px;">'
@@ -20301,18 +20301,18 @@ function renderZiwei(p, natal, targetId) {
           var btn = shell.querySelector('[data-action="unlockZiweiDaehanTimeline"]');
           if (btn) {
             btn.disabled = !!unlocked;
-            btn.textContent = unlocked ? '해금 완료' : '🪙 200코인으로 평생 해금하기';
+            btn.textContent = unlocked ? '해금 완료' : '🪙 20,000원으로 평생 해금하기';
           }
         }
         function zwDahanSetGateCoins(shell, coins, required) {
           var coinEl = shell && shell.querySelector('.zw-daehan-current-coins');
-          if (coinEl) coinEl.textContent = Number.isFinite(Number(coins)) ? String(Math.max(0, Math.floor(Number(coins)))) : '-';
+          if (coinEl) coinEl.textContent = Number.isFinite(Number(coins)) ? (Math.max(0, Math.floor(Number(coins))) * 100).toLocaleString('ko-KR') : '-';
           var btn = shell && shell.querySelector('[data-action="unlockZiweiDaehanTimeline"]');
           var charge = shell && shell.querySelector('.zw-daehan-charge-link');
           var enough = Number(coins || 0) >= Number(required || 200);
           if (btn && !shell.classList.contains('cd-section-gate--unlocked')) btn.disabled = !enough;
           if (charge) charge.style.display = enough ? 'none' : 'inline-flex';
-          if (!enough) zwDahanSetGateMessage(shell, '코인이 부족합니다. 충전 후 다시 열어 주세요.', 'error');
+          if (!enough) zwDahanSetGateMessage(shell, '원화 가치가 부족합니다. 결제 후 다시 열어 주세요.', 'error');
         }
         function zwDahanPremiumShellHtml(bodyHtml) {
           var profileId = zwDahanResolveProfileId();
@@ -20327,10 +20327,10 @@ function renderZiwei(p, natal, targetId) {
                 +'<span>✦ 사화·삼방사정 핵심 지수</span>'
               +'</div>'
               +'<span class="cd-section-gate__badge">한 번 구매 시 영구 열람</span>'
-              +'<button type="button" class="cd-section-gate__btn" data-action="unlockZiweiDaehanTimeline">🪙 200코인으로 평생 해금하기</button>'
+              +'<button type="button" class="cd-section-gate__btn" data-action="unlockZiweiDaehanTimeline">🪙 20,000원으로 평생 해금하기</button>'
               +'<div class="zw-daehan-lock-message" style="min-height:18px;color:#c4b5fd;font-size:0.74rem;font-weight:800;"></div>'
-              +'<a class="zw-daehan-charge-link" href="/points" style="display:none;align-items:center;justify-content:center;border:1px solid rgba(196,181,253,0.35);border-radius:999px;padding:7px 12px;color:#fef3c7;background:rgba(15,23,42,0.65);font-size:0.74rem;font-weight:900;text-decoration:none;">코인 충전하기</a>'
-              +'<div style="color:#cbd5e1;font-size:0.72rem;">현재 보유 코인: <b class="zw-daehan-current-coins">-</b>코인</div>'
+              +'<a class="zw-daehan-charge-link" href="/points" style="display:none;align-items:center;justify-content:center;border:1px solid rgba(196,181,253,0.35);border-radius:999px;padding:7px 12px;color:#fef3c7;background:rgba(15,23,42,0.65);font-size:0.74rem;font-weight:900;text-decoration:none;">원화 결제하기</a>'
+              +'<div style="color:#cbd5e1;font-size:0.72rem;">현재 보유 원화 가치: <b class="zw-daehan-current-coins">-</b>원</div>'
             +'</div>'
             +'<div class="cd-section-gate__body" style="max-height:none;">'+bodyHtml+'</div>'
           +'</div>';
@@ -20389,7 +20389,7 @@ function renderZiwei(p, natal, targetId) {
                 zwDahanSetGateMessage(shell, '프로필을 먼저 선택해 주세요.', 'error');
                 return;
               }
-              if (!window.confirm('대한 타임라인 해금\n\n200코인을 사용하여 인생 전체 운명 지도를 여시겠습니까?\n\n구매 후 영구 열람 가능합니다.')) return;
+              if (!window.confirm('대한 타임라인 해금\n\n20,000원 결제로 인생 전체 운명 지도를 여시겠습니까?\n\n구매 후 영구 열람 가능합니다.')) return;
               shell.classList.add('cd-section-gate--checking');
               btn.disabled = true;
               btn.textContent = '별의 흐름을 여는 중...';
@@ -20409,14 +20409,14 @@ function renderZiwei(p, natal, targetId) {
                 }
                 shell.classList.add('cd-section-gate--error');
                 btn.disabled = false;
-                btn.textContent = '🪙 200코인으로 평생 해금하기';
+                btn.textContent = '🪙 20,000원으로 평생 해금하기';
                 if (payload.error === 'INSUFFICIENT_COINS') zwDahanSetGateCoins(shell, payload.current || payload.userCoins || 0, required);
                 zwDahanSetGateMessage(shell, payload.message || '해금에 실패했습니다. 다시 시도해 주세요.', 'error');
               }).catch(function() {
                 shell.classList.remove('cd-section-gate--checking');
                 shell.classList.add('cd-section-gate--error');
                 btn.disabled = false;
-                btn.textContent = '🪙 200코인으로 평생 해금하기';
+                btn.textContent = '🪙 20,000원으로 평생 해금하기';
                 zwDahanSetGateMessage(shell, '해금 요청 중 오류가 발생했습니다. 다시 시도해 주세요.', 'error');
               });
             });
@@ -20919,8 +20919,8 @@ function renderZiwei(p, natal, targetId) {
               +'<div class="cd-section-gate__icon" style="font-size:1.45rem;">🔒</div>'
               +'<p class="cd-section-gate__title" style="font-size:0.94rem;">'+zwFlowEsc(title)+'</p>'
               +'<p class="cd-section-gate__desc" style="max-width:300px;font-size:0.74rem;-webkit-line-clamp:2;">'+zwFlowEsc(desc)+'</p>'
-              +'<span class="cd-section-gate__badge">'+cost+'코인 영구 해금</span>'
-              +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="'+zwFlowEsc(key)+'" data-service-key="ziwei" data-unlock-cost="'+cost+'" style="min-height:36px;padding:9px 14px;font-size:0.78rem;">🪙 '+cost+'코인으로 열기</button>'
+              +'<span class="cd-section-gate__badge">'+(cost * 100).toLocaleString('ko-KR')+'원 영구 해금</span>'
+              +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="'+zwFlowEsc(key)+'" data-service-key="ziwei" data-unlock-cost="'+cost+'" style="min-height:36px;padding:9px 14px;font-size:0.78rem;">🪙 '+(cost * 100).toLocaleString('ko-KR')+'원으로 열기</button>'
               +'<div data-zw-paid-gate-message style="min-height:14px;color:'+color+';font-size:0.68rem;font-weight:900;"></div>'
             +'</div>'
             +'<div class="cd-section-gate__body" style="max-height:none;">'+bodyHtml+'</div>'
@@ -20950,12 +20950,12 @@ function renderZiwei(p, natal, targetId) {
           +ziweiBasicCompleteHtml
         +'</section>'
         +'<section data-cd-marker="ziwei-extension-stack-v20260615-step2" style="margin-bottom:20px;opacity:0.96;">'
-          +'<div style="margin:4px 0 9px;padding:10px 12px;border:1px solid rgba(196,181,253,0.2);border-radius:10px;background:rgba(30,27,75,0.18);color:#ddd6fe;font-size:0.77rem;line-height:1.6;"><b style="color:#f5d0fe;">더 깊이 볼 때</b><br>무료 기본 3장을 먼저 읽고, 필요한 심화 장만 코인으로 여는 구조입니다. 이미 유료인 궁합·대한 흐름은 기존 결제 흐름을 유지합니다.</div>'
-          +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 150코인', zwBasicPaidGateHtml('ziwei_love_deep', 150, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
-          +zwReadingPanel('궁합 보기', '상대 비교', sec_compat, false, '#c084fc', '상대 정보를 넣었을 때만 열리는 선택 장입니다. 이용 전 코인이 안내됩니다.')
-          +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 100코인', zwBasicPaidGateHtml('ziwei_twelve_palaces', 100, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
+          +'<div style="margin:4px 0 9px;padding:10px 12px;border:1px solid rgba(196,181,253,0.2);border-radius:10px;background:rgba(30,27,75,0.18);color:#ddd6fe;font-size:0.77rem;line-height:1.6;"><b style="color:#f5d0fe;">더 깊이 볼 때</b><br>무료 기본 3장을 먼저 읽고, 필요한 심화 장만 원화 기준으로 여는 구조입니다. 이미 유료인 궁합·대한 흐름은 기존 결제 흐름을 유지합니다.</div>'
+          +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 15,000원', zwBasicPaidGateHtml('ziwei_love_deep', 150, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
+          +zwReadingPanel('궁합 보기', '상대 비교', sec_compat, false, '#c084fc', '상대 정보를 넣었을 때만 열리는 선택 장입니다. 이용 전 원화 금액이 안내됩니다.')
+          +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 10,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 100, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
           +zwReadingPanel('대한·변곡점 요약', '흐름 장', sec_dahan + sec_pivot, false, '#a78bfa', '시기별 변화와 전환점을 참고용으로 봅니다.')
-          +zwReadingPanel('상징 보조층', '유료 상징 · 100코인', zwBasicPaidGateHtml('ziwei_symbolic_layer', 100, '상징 보조층', '명궁·신궁·사화의 상징 인장을 엽니다.', sec_olympus_ziwei, '#c084fc'), false, '#c084fc', '정통 명반 해석 뒤에 덧붙이는 선택형 상징 해설입니다.')
+          +zwReadingPanel('상징 보조층', '유료 상징 · 10,000원', zwBasicPaidGateHtml('ziwei_symbolic_layer', 100, '상징 보조층', '명궁·신궁·사화의 상징 인장을 엽니다.', sec_olympus_ziwei, '#c084fc'), false, '#c084fc', '정통 명반 해석 뒤에 덧붙이는 선택형 상징 해설입니다.')
           +zwReadingPanel('생애 총론과 연간 흐름', '보조 흐름', sec_grand + sec_ziwei_flow, false, '#c084fc', '장기 성향과 연간 흐름을 기존 방식으로 확인합니다.')
         +'</section>';
 
@@ -22129,7 +22129,7 @@ function renderSummary(p,johu,natal){
     (elMoneyAdvice[domE]||'재물이 들어오는 방향과 색상을 활용하세요')+'</div>'+
     '<br>'+subHead('투자 원칙','#ef6c00')+
     li(dominant==='식신'||dominant==='정재'?
-       ['안정형 — 적금·부동산·배당주 우선','월 소득의 20% 이상 자동이체 저축','급등주·코인 단타 지양']:
+       ['안정형 — 적금·부동산·배당주 우선','월 소득의 20% 이상 자동이체 저축','급등주·고위험 단기투자 지양']:
        dominant==='편재'||dominant==='겁재'?
        ['공격형 — 분산 투자, 빠른 손절 원칙','레버리지는 총 자산의 10% 이내로 제한','연대보증·구두 계약 절대 금지']:
        ['균형형 — 안전자산 60%, 변동자산 40%','분기별 포트폴리오 점검','장기 복리 투자가 가장 효율적'])+
@@ -22873,7 +22873,7 @@ async function runCompat(){
     return;
   }
 
-  /* 🔒 사주 궁합 50코인 게이트 */
+  /* 🔒 사주 궁합 5,000원 게이트 */
   if (typeof window._cdCoinGatePerUse === 'function') {
     window._cdCoinGatePerUse(50, '사주 궁합 분석', function() {
       runCompatCore(compatRunBtn, name, bd, type);
@@ -27348,14 +27348,14 @@ function showQuantumResult() {
     var safeId = 'astroPaidGate_' + key.replace(/[^a-z0-9_-]/gi, '_');
     var unlocked = _astroCounselIsUnlocked(key);
     var gateClass = 'cd-section-gate astro-counsel-paid-gate' + (unlocked ? ' cd-section-gate--unlocked' : '');
-    var buttonText = unlocked ? '잠금 해제됨' : ('🪙 ' + Number(cost || 0) + '코인으로 열기');
+    var buttonText = unlocked ? '잠금 해제됨' : ('🪙 ' + (Number(cost || 0) * 100).toLocaleString('ko-KR') + '원으로 열기');
     var buttonAttrs = unlocked ? ' disabled aria-label="기존 결제로 잠금 해제됨"' : '';
     return '<div class="' + gateClass + '" id="' + _astroCounselEscape(safeId) + '" data-unlock-key="' + _astroCounselEscape(key) + '" style="position:relative;min-height:210px;border-radius:12px;overflow:hidden;">'
       + '<div class="cd-section-gate__overlay" style="gap:7px;padding:16px 14px;background:linear-gradient(180deg,rgba(9,6,28,.88),rgba(5,12,30,.96));">'
       + '<div class="cd-section-gate__icon" style="font-size:1.5rem;">🔒</div>'
       + '<p class="cd-section-gate__title" style="font-size:0.96rem;">' + _astroCounselEscape(title) + '</p>'
       + '<p class="cd-section-gate__desc" style="max-width:320px;font-size:0.75rem;-webkit-line-clamp:2;">' + _astroCounselEscape(desc) + '</p>'
-      + '<span class="cd-section-gate__badge">' + Number(cost || 0) + '코인 영구 해금</span>'
+      + '<span class="cd-section-gate__badge">' + (Number(cost || 0) * 100).toLocaleString('ko-KR') + '원 영구 해금</span>'
       + '<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="' + _astroCounselEscape(key) + '" data-service-key="astrology" data-unlock-cost="' + Number(cost || 0) + '" style="min-height:36px;padding:9px 14px;font-size:0.78rem;"' + buttonAttrs + '>' + _astroCounselEscape(buttonText) + '</button>'
       + '</div>'
       + '<div class="cd-section-gate__body" style="max-height:none;">' + bodyHtml + '</div>'
@@ -27892,13 +27892,13 @@ function showQuantumResult() {
     _astroCounselSetText(wrap, '#astroAiPromptSection .astro-section-kicker', 'Ask the Stars');
     _astroCounselSetText(wrap, '#astroAiPromptSection .astro-subhead', '🌌 별에게 묻는 질문 만들기');
     _astroCounselSetText(wrap, '#astroAiPromptSection .astro-birth-lead', '지금 차트의 별빛을 바탕으로, 실제 상담에 건넬 수 있는 질문 문장을 정돈합니다. 궁합을 본 뒤에는 두 사람의 시나스트리 흐름까지 함께 담깁니다.');
-    _astroCounselSetText(wrap, '#astroAiPromptGenerateBtn', '100코인으로 별자리 질문 열기');
+    _astroCounselSetText(wrap, '#astroAiPromptGenerateBtn', '10,000원으로 별자리 질문 열기');
     _astroCounselSetText(wrap, '#astroAiPromptCopyBtn', '질문 문장 복사');
     _astroCounselSetPlaceholder(wrap, '#astroAiPromptQuestionInput', '예: 지금 내 차트에서 사랑과 일의 방향이 왜 엇갈리는지, 점성술 상담 문장으로 깊게 풀어주세요.');
     _astroCounselSetTexts(wrap, '#astroActionHub .astro-action-hub__btn strong', [
       '별에게 묻는 질문',
-      '두 사람의 별을 겹쳐 보기 · 50코인',
-      '유명인 별자리 궁합 · 50코인'
+      '두 사람의 별을 겹쳐 보기 · 5,000원',
+      '유명인 별자리 궁합 · 5,000원'
     ]);
     _astroCounselSetTexts(wrap, '#astroActionHub .astro-action-hub__btn > span:not(.astro-action-hub__glyph)', [
       '현재 차트를 바탕으로 상담에 건넬 질문을 정돈합니다.',
@@ -27911,9 +27911,9 @@ function showQuantumResult() {
       '별자리 실험실'
     ]);
     _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-subhead', '💫 두 사람의 별을 겹쳐 보기');
-    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-paid-note strong', '시나스트리 궁합 · 50코인');
+    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-paid-note strong', '시나스트리 궁합 · 5,000원');
     _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-paid-note span', '상대의 출생 정보를 더하면 두 별자리의 끌림과 긴장을 함께 읽습니다.');
-    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-neon-cta', '✦ 50코인으로 두 사람의 별자리 궁합 보기');
+    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-neon-cta', '✦ 5,000원으로 두 사람의 별자리 궁합 보기');
     _astroCounselSetTexts(wrap, '.astro-compat-panel--direct .astro-label', [
       '상대 이름',
       '상대 생년월일',
@@ -27926,7 +27926,7 @@ function showQuantumResult() {
     if (directCityEmpty) directCityEmpty.textContent = '태어난 도시 선택';
     _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-desc > p', '상대의 별을 더하면 두 사람 사이의 끌림, 긴장, 안정감, 반복되는 관계 패턴이 하나의 하늘 지도처럼 드러납니다. 생시를 모를 때는 정오 기준으로 읽되, 달과 상승궁은 가능성의 범위로 보겠습니다.');
     _astroCounselSetText(wrap, '#astroSynastrySection .astro-subhead', '🌌 유명인 별자리 궁합 실험실');
-    _astroCounselSetText(wrap, '#astroSynastrySection .astro-paid-note strong', '유명인 시나스트리 · 50코인');
+    _astroCounselSetText(wrap, '#astroSynastrySection .astro-paid-note strong', '유명인 시나스트리 · 5,000원');
     _astroCounselSetText(wrap, '#astroSynastrySection .astro-paid-note span', '선택한 인물의 별과 나의 별을 겹쳐 관계의 결을 읽습니다.');
     _astroCounselSetTexts(wrap, '#astroSynastrySection .astro-neon-soft-block > div:first-child', [
       '나와 같은 별의 결',

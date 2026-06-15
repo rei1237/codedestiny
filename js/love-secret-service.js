@@ -1,7 +1,7 @@
 /**
  * LoveSecretService — 연애 비책: 운명의 설계도
  * 사주팔자 기반 10대분류 맞춤형 연애 전략 엔진
- * Cost: 200코인 (영구 해금)
+ * Cost: 20,000원 (영구 해금)
  * (C) CODE:DESTINY
  */
 (function (global) {

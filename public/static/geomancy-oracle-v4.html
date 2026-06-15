@@ -773,14 +773,14 @@ function consumeGeomancyPerUseCoin() {
           return;
         }
         if (resp.status === 402) {
-          window.alert('코인이 부족합니다. 충전 후 다시 시도해 주세요.');
+          window.alert('결제 권한이 부족합니다. 결제 후 다시 시도해 주세요.');
         } else {
-          window.alert((payload && payload.message) || '코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+          window.alert((payload && payload.message) || '원화 결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
         }
         resolve(false);
       });
     }).catch(function() {
-      window.alert('코인 차감 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+      window.alert('원화 결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
       resolve(false);
     });
   });

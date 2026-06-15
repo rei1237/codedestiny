@@ -675,7 +675,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-976e81dee0b1').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-9cc96d460317').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -757,23 +757,23 @@
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js'
+      'js/animal-totem-experience.js?v=build-9cc96d460317'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-976e81dee0b1'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-976e81dee0b1'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-976e81dee0b1'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-9cc96d460317'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-9cc96d460317'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-9cc96d460317'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-976e81dee0b1'],
-    openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js?v=build-976e81dee0b1'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-9cc96d460317'],
+    openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js?v=build-9cc96d460317'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-976e81dee0b1']
+    openSibylModal: ['js/sibyl-system.js?v=build-9cc96d460317']
   };
 
   function normalizeScriptSrc(src) {
@@ -1035,7 +1035,7 @@
       return true;
     }
 
-    // 코인 게이트가 필요한 액션은 전역 핸들러로 전달한다.
+    // 유료 게이트가 필요한 액션은 전역 핸들러로 전달한다.
     // Route through the global click handler to keep Preview/gates stable.
     var isPremGateAction = (
       action === 'gotoNamingPremium'
@@ -1506,7 +1506,7 @@
     init();
   }
 
-  // 코인 게이트 통과 후 호출되는 함수 - 영국 홍차점 페이지 이동
+  // 유료 게이트 통과 후 호출되는 함수 - 영국 홍차점 페이지 이동
   window.openRoyalTeaOracle = function() {
     window.location.href = '/royal-tea-oracle.html';
   };

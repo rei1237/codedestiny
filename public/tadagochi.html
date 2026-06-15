@@ -1999,7 +1999,7 @@ function pickBySeed(list,seed,offset){
 // ── 클라이언트 로컬 운세 엔진 (시스템별 완전 분리) ───────────────────────
 function detectFortuneFocus(question){
   var q=(question||'');
-  if(/재물|돈|수입|지출|투자|금전|저축|대출|연봉|월급|수익|매출|주식|코인|부동산|부업/.test(q)) return 'money';
+  if(/재물|돈|수입|지출|투자|금전|저축|대출|연봉|월급|수익|매출|주식|가상자산|암호화폐|부동산|부업/.test(q)) return 'money';
   if(/연애|사랑|인연|이별|재회|썸|결혼|고백|소개팅|데이트|연락|커플|솔로/.test(q)) return 'love';
   if(/직장|직업|회사|이직|면접|합격|업무|커리어|사업|시험|학업|공부|취업|승진|평가|프로젝트/.test(q)) return 'career';
   if(/관계|인간관계|친구|가족|동료|상사|부하|협업|갈등|소통|평판|네트워킹/.test(q)) return 'relationship';

@@ -129,7 +129,7 @@
   min-height: 420px;
 }
 
-/* 상단: PREMIUM / 코인 배지 행 */
+/* 상단: PREMIUM / 유료 배지 행 */
 .lifebook-tile__label-row {
   display: flex;
   justify-content: space-between;
@@ -1466,7 +1466,7 @@ body.lb-modal-open {
   border-color: rgba(251,191,36,0.5);
   color: #fde68a;
 }
-/* 코인 안내 박스 */
+/* 유료 안내 박스 */
 .lb-coin-notice {
   display: flex;
   align-items: center;
@@ -1481,7 +1481,7 @@ body.lb-modal-open {
 }
 .lb-coin-icon { font-size: 1.1rem; }
 .lb-coin-label strong { color: #fbbf24; }
-/* 버튼 내 코인 배지 */
+/* 버튼 내 유료 배지 */
 .lb-btn-coin {
   display: inline-flex;
   align-items: center;
@@ -1661,7 +1661,7 @@ body.lb-modal-open {
     font-size: 0.82rem;
     padding: 0 8px;
   }
-  /* 타일 내 코인 배지 가독성 */
+  /* 타일 내 유료 배지 가독성 */
   .lifebook-tile__coin-badge {
     font-size: 0.72rem;
     padding: 3px 8px;

@@ -229,7 +229,7 @@ async function main() {
 
   ensure(
     consumeResult.ok && consumeResult.premiumAccessToken,
-    "코인 차감 또는 premium access token 발급 실패",
+    "유료 처리 또는 premium access token 발급 실패",
     consumeResult.data,
   );
 

@@ -201,7 +201,7 @@ assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-b", servic
 const beforePoints = h.getUnlockedContentKeys({ userId: "u1", profileId: "profile-a", serviceKey: "saju" }).length;
 const repurchase = h.purchase({ userId: "u1", profileId: "profile-a", contentKey: SAJU_KEYS.DAEUN });
 assert.equal(repurchase.alreadyUnlocked, true, "이미 unlocked면 결제창 없음");
-assert.equal(repurchase.charged, 0, "이미 unlocked면 코인 차감 없음");
+assert.equal(repurchase.charged, 0, "이미 unlocked면 추가 유료 처리 없음");
 assert.equal(h.getUnlockedContentKeys({ userId: "u1", profileId: "profile-a", serviceKey: "saju" }).length, beforePoints, "중복 unlock 없음");
 
 const pass = h.passUnlock({ userId: "u1", profileId: "profile-a", contentKey: SAJU_KEYS.FULL });
@@ -221,9 +221,9 @@ assert.equal(h.backfill({ userId: "u1", profileId: "profile-c", contentKey: SAJU
 assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-c", serviceKey: "saju", contentKey: SAJU_KEYS.DAEUN }), true, "backfill 후 unlocked");
 
 h.monthlyCreditConsume({ userId: "u1", profileId: "profile-d", contentKey: SAJU_KEYS.FULL, coinAmount: 50, monthlyAmountUsed: 500, transactionId: "monthly-full" });
-assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-d", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), false, "Moonlight Stone 차감 직후 unlock 저장 실패 상태 재현");
-assert.equal(h.backfill({ userId: "u1", profileId: "profile-d", contentKey: SAJU_KEYS.FULL }), true, "Moonlight Stone 차감 이력으로 unlock backfill");
-assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-d", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), true, "Moonlight Stone backfill 후 unlocked");
+assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-d", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), false, "이용권 혜택 처리 직후 unlock 저장 실패 상태 재현");
+assert.equal(h.backfill({ userId: "u1", profileId: "profile-d", contentKey: SAJU_KEYS.FULL }), true, "이용권 혜택 처리 이력으로 unlock backfill");
+assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-d", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), true, "이용권 혜택 backfill 후 unlocked");
 
 const alreadyUnlockedAccess = h.accessCheck({ userId: "u1", profileId: "profile-a", contentKey: SAJU_KEYS.DAEUN, priceCoin: 50 });
 assert.equal(alreadyUnlockedAccess.accessGranted, true, "phase10 already unlocked access granted");

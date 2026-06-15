@@ -71,7 +71,7 @@ var LOVE_CODE_FEATURE = {
 
 var REPORT_CARDS = [
   { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:'✨ 매력 분석 자세히 보기', thumb:'meryok-new.webp', accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:30  },
-  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:'퀀텀 명리 엔진',        desc:'합화 우선 분석으로 나만의 천기 지도를 제공합니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체를 계속 확인할 수 있습니다.', cta:'⚡ 퀀텀 명리 전체 열기',          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'100코인 · 영구 해금'  },
+  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:'퀀텀 명리 엔진',        desc:'합화 우선 분석으로 나만의 천기 지도를 제공합니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체를 계속 확인할 수 있습니다.', cta:'⚡ 퀀텀 명리 전체 열기',          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'10,000원 · 영구 해금'  },
   { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:'명리 헬스 리포트',      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:'💚 건강 리포트 확인하기',      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:50  },
   { id:'sajuprompt', thumb:'사주 프롬프트.webp', label:'사주 AI 프롬프트',      desc:'물상·아바타·이상형 얼굴 등 무료 AI 이미지 프롬프트를 받아보세요.', note:'내 사주의 분위기를 다양한 컨셉의 이미지 프롬프트로 바로 가져갈 수 있습니다.', cta:'🤖 무료 프롬프트 보기',    accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard',       coinCost:0 },
   { id:'sajurpg',    thumb:'RPG 인생 스킬트리.webp', label:'인생 스킬 트리',        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:'🎮 스킬 트리 펼쳐보기',        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard',      coinCost:30  },
@@ -1068,7 +1068,8 @@ function renderReportDashboard() {
     b.images.forEach(function(img) {
       var rawThumb = String(img.thumb || (img.id + '.webp'));
       var thumbSrc = '/fuctionassets/' + encodeURIComponent(rawThumb).replace(/%2F/g, '/');
-      var tilePriceText = (b.coinCost > 0) ? (b.mainLock === false ? ('1회 ' + b.coinCost + '코인') : ('🔒 ' + b.coinCost + '코인 · 잠금 콘텐츠')) : '무료';
+      var tileWonPrice = (Number(b.coinCost || 0) * 100).toLocaleString('ko-KR') + '원';
+      var tilePriceText = (b.coinCost > 0) ? (b.mainLock === false ? ('1회 ' + tileWonPrice) : ('🔒 ' + tileWonPrice + ' · 잠금 콘텐츠')) : '무료';
       var tilePriceClass = (b.coinCost > 0) ? (b.mainLock === false ? 'rpt-v2-price-badge is-per-use' : 'rpt-v2-price-badge') : 'rpt-v2-price-badge is-free';
       gridHtml += '<div class="rpt-v2-img-wrap">';
       gridHtml += '<img class="rpt-v2-img" src="' + thumbSrc + '" alt="' + img.label + '" loading="lazy" '

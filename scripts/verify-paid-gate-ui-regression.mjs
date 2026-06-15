@@ -62,11 +62,11 @@ const perUseGateSource = section(indexSource, "function _cdRunPerUseCoinGate(", 
 assertBefore(perUseGateSource, "_cdBeginPaidFeatureInFlight(action, paidGateFeatureKey", "await _cdChooseServicePaymentMode({", "paid gate opens before eligibility wait");
 
 assertBefore(indexSource, 'data-mode="pass"', 'data-mode="direct"', "pass option appears before direct card");
-assertBefore(indexSource, 'data-mode="direct"', 'data-mode="monthly"', "direct and monthly options both visible");
+assertNotContains(indexSource, 'class="cd-direct-payment-option" data-mode="monthly"', "monthly payment option removed");
 assertContains(indexSource, "var passDisabledAttr = passEligible ? '' : ' disabled aria-disabled=\"true\"';", "pass disabled state");
 assertContains(indexSource, "var passBusy = false;", "pass lookup click lock");
 assertContains(indexSource, 'data-payment-status', "payment choice status state");
-assertContains(indexSource, "var monthlyButtonHtml = '<button type=\"button\" class=\"cd-direct-payment-option' + monthlyDisabledClass", "monthly option remains visible");
+assertContains(indexSource, "var monthlyButtonHtml = ''", "monthly option remains hidden");
 
 assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdLoadPortOneV2Sdk()", "pass access returns before PortOne SDK");
 assertContains(indexSource, "provider: 'PORTONE_V2'", "PortOne provider in checkout payload");
@@ -91,7 +91,7 @@ assertContains(billingRouteSource, "consumeUsagePassIfAvailable", "pass consume 
 assertContains(billingRouteSource, 'accessMethod: "PASS"', "pass access method");
 assertContains(billingRouteSource, 'requestedPaymentMode === "monthly_credit"', "monthly mode stays separate");
 assertContains(indexSource, "paymentMode: 'DIRECT_KRW'", "direct mode stays separate");
-assertContains(indexSource, "paymentMode: perUseChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "membership and Moonlight Stone choices stay explicit");
+assertContains(indexSource, "paymentMode: perUseChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "internal membership entitlement route remains explicit");
 assertContains(billingRouteSource, '"/api/payments/prepare"', "direct payment prepare path");
 assertContains(billingRouteSource, '"/api/payments/confirm"', "direct payment confirm path");
 assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable", '"/api/payments/prepare"', "pass checked before card prepare");

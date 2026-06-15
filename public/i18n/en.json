@@ -88,8 +88,8 @@
       "saveProfile": "Save profile card",
       "saveOptional": "Optional",
       "kakaoEvent": "Kakao share event",
-      "kakaoEventSub": "Invite a friend and receive 100 Moonlight Stone",
-      "referralNote": "Referral rewards are granted when a friend signs up through your moonlight invite link. The daily reward limit is 500 Moonlight Stone."
+      "kakaoEventSub": "Create a friend invite link",
+      "referralNote": "Invite friends through your moonlight link."
     },
     "startSection": {
       "kicker": "TODAY CARDS",

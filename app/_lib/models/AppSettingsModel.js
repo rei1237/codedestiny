@@ -15,7 +15,7 @@ const DEFAULT_SETTINGS = {
   coinPackages: [
     { id: "pkg_500",  name: "기본팩 50,000원",      coins: 500,  priceKRW: 5000,  isActive: true },
     { id: "pkg_1200", name: "표준팩 1,20,000원",   coins: 1200, priceKRW: 10000, isActive: true },
-    { id: "pkg_3000", name: "프리미엄팩 3,000코인", coins: 3000, priceKRW: 22000, isActive: true },
+    { id: "pkg_3000", name: "프리미엄팩 22,000원", coins: 3000, priceKRW: 22000, isActive: true },
   ],
   popupEnabled: false,
   popupTitle: "",

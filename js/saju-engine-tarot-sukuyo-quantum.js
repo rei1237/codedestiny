@@ -1713,7 +1713,7 @@ function showTarotFinalInterpretation() {
     return;
   }
   if (tarotThreeCardState.revealedIndex !== 2) return;
-  // 명리학 타로는 무료 전환: 코인 게이트를 거치지 않고 즉시 실행
+  // 명리학 타로는 무료 전환: 유료 게이트를 거치지 않고 즉시 실행
   _runShowTarotFinalInterpretation();
 }
 
@@ -1787,7 +1787,7 @@ function startTarotReading() {
   }
   if(isReading) return;
   if (!isTarotModalActive()) return;
-  // 명리학 타로는 무료 전환: 코인 게이트를 거치지 않고 즉시 실행
+  // 명리학 타로는 무료 전환: 유료 게이트를 거치지 않고 즉시 실행
   _runStartTarotReading();
 }
 
@@ -4695,7 +4695,7 @@ function renderLottoRitualReport(state){
   area.innerHTML=
     '<section class="lr-wrap" aria-label="달빛 럭키 리추얼 리포트">'+
       '<div class="lr-head">'+
-        '<span class="lr-kicker">50코인 디지털 리포트</span>'+
+        '<span class="lr-kicker">5,000원 디지털 리포트</span>'+
         '<h4>'+lottoEsc(report.title)+'</h4>'+
         '<p>더 좋은 번호가 아니라, 번호별 상징 해석과 이번 주 금전 루틴을 여는 달빛 리포트입니다.</p>'+
       '</div>'+
@@ -5061,7 +5061,7 @@ function renderLottoNumbers(natal, bazi){
           '<p>번호별 상징 해석과 이번 주 금전 루틴을 확인해보세요.</p>'+
           '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-tile-lock-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-tile-lock-cost="50">'+
             '<span class="tarot-tile__title">달빛 럭키 리추얼 리포트</span>'+
-            '<small>50코인으로 달빛 럭키 리추얼 열기</small>'+
+            '<small>5,000원으로 달빛 럭키 리추얼 열기</small>'+
           '</button>'+
           '<em>구매 즉시 열람되는 디지털 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다.</em>'+
         '</div>'+
@@ -6061,6 +6061,7 @@ function syCanonicalEsc(value) {
 
 var SY_PAID_FEATURES = Object.freeze({
   symbolicComparison: { key: 'sukuyo-symbolic-comparison', cost: 30, reason: '숙요점 상징 비교 확장' },
+  monthlyFortune: { key: 'sukuyo-monthly-fortune', cost: 30, reason: '월별 숙요 운세 확장' },
   compatibility: { key: 'compat-sukuyo-compatibility', cost: 50, reason: '숙요점 궁합 분석' },
   compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 120, reason: '숙요점 정밀 궁합 확장 분석' }
 });
@@ -6108,6 +6109,80 @@ function syRequirePaidSukuyoFeature(feature, onGranted) {
   }
   window.alert('결제 모듈을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
   return true;
+}
+
+function syPaidFeatureUserScope() {
+  var user = null;
+  var root = typeof window !== 'undefined' ? window : {};
+  try {
+    if (typeof readAuthUser === 'function') user = readAuthUser();
+    else if (typeof root.readAuthUser === 'function') user = root.readAuthUser();
+  } catch (_) {}
+  if (user && typeof user === 'object') {
+    var id = user.id || user.uid || user.userId || user.email || user.phone || user.username;
+    if (id) return String(id).trim();
+  }
+  try {
+    var token = localStorage.getItem('fortune_auth_token') || '';
+    if (token) return token.slice(0, 32);
+  } catch (_) {}
+  return 'guest';
+}
+
+function syPaidFeatureStorageKey(featureKey) {
+  return 'cd_sukuyo_paid_unlock:' + syPaidFeatureUserScope() + ':' + String(featureKey || '').trim();
+}
+
+function syFeatureListHasKey(list, featureKey) {
+  if (!Array.isArray(list)) return false;
+  var key = String(featureKey || '').trim();
+  for (var i = 0; i < list.length; i += 1) {
+    if (String(list[i] || '').trim() === key) return true;
+  }
+  return false;
+}
+
+function syIsPaidSukuyoFeatureUnlocked(featureKey) {
+  var key = String(featureKey || '').trim();
+  var root = typeof window !== 'undefined' ? window : {};
+  if (!key) return false;
+  if (key === SY_PAID_FEATURES.symbolicComparison.key && root._sySameMansionSymbolicUnlocked === true) return true;
+  if (key === SY_PAID_FEATURES.monthlyFortune.key && root._syMonthlySukuyoFortuneUnlocked === true) return true;
+  try {
+    if (typeof root.isTileKeyUnlocked === 'function' && root.isTileKeyUnlocked(key)) return true;
+  } catch (_) {}
+  try {
+    if (root.unlockedFeatureMap && root.unlockedFeatureMap[key] === true) return true;
+  } catch (_) {}
+  try {
+    var user = null;
+    if (typeof readAuthUser === 'function') user = readAuthUser();
+    else if (typeof root.readAuthUser === 'function') user = root.readAuthUser();
+    if (user && syFeatureListHasKey(user.unlockedFeatures, key)) return true;
+    if (user && user.unlockMap && user.unlockMap[key] === true) return true;
+  } catch (_) {}
+  try {
+    if (localStorage.getItem(syPaidFeatureStorageKey(key)) === '1') return true;
+  } catch (_) {}
+  return false;
+}
+
+function syMarkPaidSukuyoFeatureUnlocked(featureKey) {
+  var key = String(featureKey || '').trim();
+  var root = typeof window !== 'undefined' ? window : {};
+  if (!key) return;
+  try {
+    if (!root.unlockedFeatureMap) root.unlockedFeatureMap = Object.create(null);
+    root.unlockedFeatureMap[key] = true;
+  } catch (_) {}
+  try { localStorage.setItem(syPaidFeatureStorageKey(key), '1'); } catch (_) {}
+  if (key === SY_PAID_FEATURES.symbolicComparison.key) root._sySameMansionSymbolicUnlocked = true;
+  if (key === SY_PAID_FEATURES.monthlyFortune.key) root._syMonthlySukuyoFortuneUnlocked = true;
+}
+
+function syPaidPriceLabel(feature) {
+  var cost = Math.max(0, Math.floor(Number(feature && feature.cost ? feature.cost : 0)));
+  return (cost * 100).toLocaleString('ko-KR') + '원';
 }
 
 function syCanonicalList(value, fallbackText) {
@@ -7281,6 +7356,46 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-lunar-month-item .sy-lunar-note--relation { color:#bfdbfe; }
         .sy-lunar-month-item .sy-lunar-note--work { color:#fde68a; }
         .sy-lunar-month-item .sy-lunar-note--caution { color:#fed7aa; margin-bottom:0; }
+        .sy-paid-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:9px; flex-wrap:wrap; }
+        .sy-paid-kicker { display:inline-flex; align-items:center; gap:6px; margin-bottom:5px; color:#f8e7b7; font-size:0.7rem; font-weight:900; letter-spacing:0; }
+        .sy-paid-status { display:inline-flex; align-items:center; justify-content:center; min-height:30px; padding:5px 11px; border-radius:999px; border:1px solid rgba(248,231,183,0.44); background:rgba(120,53,15,0.18); color:#fef3c7; font-size:0.73rem; font-weight:900; line-height:1.35; }
+        .sy-paid-status.is-unlocked { border-color:rgba(134,239,172,0.5); background:rgba(20,83,45,0.22); color:#bbf7d0; }
+        .sy-same-mansion-card { margin-top:15px; border-left-color:#f8e7b7!important; border-color:rgba(248,231,183,0.24); background:radial-gradient(circle at 88% 8%, rgba(248,250,252,0.16), transparent 26%), radial-gradient(circle at 12% 90%, rgba(250,204,21,0.1), transparent 30%), linear-gradient(145deg, rgba(25,22,45,0.94), rgba(9,14,31,0.96))!important; }
+        .sy-same-mansion-card.is-locked { box-shadow:0 18px 46px rgba(2,6,23,0.42), 0 0 26px rgba(250,204,21,0.08), inset 0 1px 0 rgba(255,255,255,0.06); }
+        .sy-same-mansion-title { margin:0; color:#fef3c7; font-size:1.04rem; line-height:1.38; }
+        .sy-same-mansion-copy { margin:0 0 13px; color:#dbeafe; font-size:0.87rem; line-height:1.78; word-break:keep-all; }
+        .sy-same-mansion-copy strong { color:#f8e7b7; }
+        .sy-same-mansion-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; min-height:48px; }
+        .sy-same-person-card { position:relative; overflow:hidden; border:1px solid rgba(248,231,183,0.22); border-radius:14px; padding:12px 11px; background:linear-gradient(145deg, rgba(15,23,42,0.68), rgba(44,37,68,0.42)); min-width:0; box-shadow:inset 0 1px 0 rgba(255,255,255,0.04); }
+        .sy-same-person-card::before { content:''; position:absolute; right:-24px; top:-26px; width:82px; height:82px; border-radius:999px; background:radial-gradient(circle at 35% 30%, rgba(248,250,252,0.58), rgba(248,231,183,0.16) 48%, transparent 70%); opacity:0.38; pointer-events:none; }
+        .sy-same-symbol { position:relative; width:32px; height:32px; border-radius:999px; display:flex; align-items:center; justify-content:center; margin-bottom:7px; color:#0f172a; background:radial-gradient(circle at 34% 28%, #fff7d6, #f8e7b7 45%, #93c5fd 100%); box-shadow:0 0 18px rgba(248,231,183,0.22); font-weight:900; }
+        .sy-same-person-name { position:relative; color:#fef3c7; font-weight:900; font-size:0.83rem; line-height:1.35; word-break:keep-all; }
+        .sy-same-person-cat { position:relative; margin-top:2px; color:#a5b4fc; font-size:0.68rem; font-weight:800; }
+        .sy-same-person-read { position:relative; display:grid; gap:5px; margin:9px 0 0; }
+        .sy-same-person-read div { min-width:0; }
+        .sy-same-person-read dt { color:#f8e7b7; font-size:0.67rem; font-weight:900; }
+        .sy-same-person-read dd { margin:1px 0 0; color:#dbeafe; font-size:0.72rem; line-height:1.55; word-break:keep-all; }
+        .sy-same-person-read .is-locked-line dd { color:#94a3b8; }
+        .sy-same-unlock-card { position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:4px; min-height:100%; border-radius:14px; border:1px solid rgba(248,231,183,0.5); background:radial-gradient(circle at 84% 18%, rgba(248,250,252,0.2), transparent 34%), linear-gradient(145deg, rgba(120,53,15,0.3), rgba(30,27,75,0.44)); color:#fff7d6; padding:14px 13px; cursor:pointer; text-align:left; box-shadow:0 14px 30px rgba(2,6,23,0.32), inset 0 1px 0 rgba(255,255,255,0.07); }
+        .sy-same-unlock-card strong { font-size:0.92rem; line-height:1.35; }
+        .sy-same-unlock-card em { font-style:normal; color:#f8e7b7; font-size:0.78rem; font-weight:900; }
+        .sy-same-unlock-card small { color:#dbeafe; font-size:0.72rem; line-height:1.5; }
+        .sy-lock-badge { display:inline-flex; align-items:center; min-height:24px; padding:3px 9px; border-radius:999px; background:rgba(2,6,23,0.5); border:1px solid rgba(248,231,183,0.38); color:#fef3c7; font-size:0.64rem; font-weight:900; }
+        .sy-same-count-note { display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:12px; border:1px dashed rgba(148,163,184,0.34); color:#cbd5e1; font-size:0.76rem; }
+        .sy-lunar-month-card.is-locked { border-color:rgba(248,231,183,0.26); border-left-color:#f8e7b7!important; background:radial-gradient(circle at 84% 8%, rgba(248,250,252,0.16), transparent 27%), radial-gradient(circle at 12% 90%, rgba(20,184,166,0.12), transparent 32%), linear-gradient(145deg, rgba(15,23,42,0.96), rgba(24,29,54,0.94))!important; }
+        .sy-lunar-month-titlebar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+        .sy-lunar-month-titlebar h4 { margin:0; color:#ccfbf1; font-size:1.04rem; line-height:1.35; }
+        .sy-lunar-month-copy { margin:0 0 12px; color:#dbeafe; font-size:0.86rem; line-height:1.78; word-break:keep-all; }
+        .sy-month-lock-panel { display:grid; grid-template-columns:84px minmax(0,1fr); gap:14px; align-items:center; border:1px solid rgba(248,231,183,0.22); border-radius:15px; padding:14px; background:linear-gradient(145deg, rgba(2,6,23,0.5), rgba(30,41,59,0.42)); margin-bottom:10px; }
+        .sy-month-lock-orbit { position:relative; width:68px; height:68px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#0f172a; font-weight:900; background:radial-gradient(circle at 34% 28%, #fff7d6, #f8e7b7 48%, #93c5fd 100%); box-shadow:0 0 28px rgba(248,231,183,0.18); }
+        .sy-month-lock-orbit::before { content:''; position:absolute; inset:-9px; border-radius:999px; border:1px dashed rgba(248,231,183,0.36); }
+        .sy-month-lock-body strong { display:block; color:#fef3c7; font-size:0.98rem; margin-bottom:4px; }
+        .sy-month-lock-body p { margin:0 0 10px; color:#dbeafe; font-size:0.84rem; line-height:1.7; word-break:keep-all; }
+        .sy-month-unlock-btn { display:inline-flex; align-items:center; justify-content:center; min-height:40px; border-radius:999px; border:1px solid rgba(248,231,183,0.56); background:linear-gradient(135deg, rgba(248,231,183,0.24), rgba(20,184,166,0.18)); color:#fff7d6; font-size:0.82rem; font-weight:900; padding:8px 14px; cursor:pointer; }
+        .sy-month-preview-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+        .sy-month-preview-item { position:relative; overflow:hidden; border:1px solid rgba(148,163,184,0.22); border-radius:12px; padding:10px; background:rgba(15,23,42,0.52); }
+        .sy-month-preview-item strong { display:block; color:#bfdbfe; font-size:0.78rem; margin-bottom:5px; }
+        .sy-month-preview-item span { display:block; color:#94a3b8; font-size:0.74rem; line-height:1.55; }
         .sy-canon-validation { margin-bottom:10px; font-size:0.78rem; color:#fca5a5; background:rgba(127,29,29,0.25); border:1px solid rgba(252,165,165,0.4); border-radius:8px; padding:8px 10px; }
         .sy-canon-tabs { display:flex; gap:7px; flex-wrap:wrap; margin:10px 0 12px; }
         .sy-canon-tab { padding:8px 13px; border-radius:999px; border:1px solid rgba(251,191,36,0.36); background:linear-gradient(135deg, rgba(251,191,36,0.12), rgba(30,41,59,0.48)); color:#fde68a; font-size:0.78rem; font-weight:700; cursor:pointer; min-height:40px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.05); transition:background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
@@ -7398,6 +7513,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-lunar-year-head { grid-template-columns:1fr; }
           .sy-lunar-year-grid { grid-template-columns:1fr 1fr; }
           .sy-lunar-month-grid { grid-template-columns:1fr; }
+          .sy-same-mansion-grid { grid-template-columns:1fr 1fr; }
+          .sy-month-lock-panel { grid-template-columns:1fr; }
+          .sy-month-preview-grid { grid-template-columns:1fr; }
           .sy-canon-grid { grid-template-columns:1fr; }
           .sy-canon-brief-grid { grid-template-columns:1fr; }
           .sy-canon-rhythm-grid { grid-template-columns:1fr; }
@@ -7407,6 +7525,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-header h3 { font-size:1.22rem; }
           .sy-hero-title { font-size:1.08rem; }
           .sy-summary-grid { grid-template-columns:1fr; }
+          .sy-same-mansion-grid { grid-template-columns:1fr; }
           .sy-canon-moon-stage { min-height:116px; }
           .sy-lunar-year-grid { grid-template-columns:1fr; }
           .sy-lunar-score-orb { min-height:116px; }
@@ -7751,7 +7870,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                     </select>
                   </label>
               </div>
-              <button id="sy3AnalyzeBtn" class="sy-moon-btn" data-my-idx="${sData ? sData.mansionIdx : 0}" data-my-mansion="${(sData ? sData.mansion : '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" style="padding: 11px; cursor: pointer; font-weight: 900; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 46px;">기본 궁합 보기 · 50코인</button>
+              <button id="sy3AnalyzeBtn" class="sy-moon-btn" data-my-idx="${sData ? sData.mansionIdx : 0}" data-my-mansion="${(sData ? sData.mansion : '').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" style="padding: 11px; cursor: pointer; font-weight: 900; width: 100%; touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 46px;">기본 궁합 보기 · 5,000원</button>
           </div>
         <div id="sy3Loading" class="sy-loader">숙요 관계 데이터를 계산하는 중입니다...</div>
         <div id="sy3Result" style="margin-top: 15px; display: none;"></div>
@@ -7762,7 +7881,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     html += `<div class="sy-card" style="margin-top:15px; border-left-color:rgba(162,155,254,0.5); background:rgba(15,23,42,0.44); box-shadow:0 12px 28px rgba(2,6,23,0.28), inset 0 1px 0 rgba(255,255,255,0.04);">
         <h4 style="margin:0 0 8px 0; color:#c4b5fd;">선택 참고 · 유명인 상징 비교</h4>
         <p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">
-        인물 아카이브의 생년월일 분류를 바탕으로 숙요 상징을 비교해 보는 30코인 선택 기능입니다. 실제 성향이나 관계 판단의 근거가 아니라 상징 이해용으로만 보세요.
+        인물 아카이브의 생년월일 분류를 바탕으로 숙요 상징을 비교해 보는 3,000원 선택 기능입니다. 실제 성향이나 관계 판단의 근거가 아니라 상징 이해용으로만 보세요.
         </p>
       <button type="button" id="szFilterToggle" class="sy-filter-toggle">필터 열기</button>
       <div id="szFilterBody" class="sy-filter-body collapsed">
@@ -7779,14 +7898,19 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div id="szCelebBadge" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(162,155,254,0.1);border:1px solid rgba(162,155,254,0.3);border-radius:8px;font-size:0.85rem;color:#c792ea;word-break:keep-all;line-height:1.6;"></div>
     </div>`;
 
-    // ── 동일 숙요 유명인 (동적 로딩) ──
-    html += `<div class="sy-card" style="margin-top:15px; border-left-color:rgba(250,204,21,0.5); background:rgba(15,23,42,0.44); box-shadow:0 12px 28px rgba(2,6,23,0.28), inset 0 1px 0 rgba(255,255,255,0.04);">
-        <h4 style="margin:0 0 8px 0; color:#fde68a;">보조 참고 · 같은 숙 인물</h4>
-        <p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">
-            <strong style="color:#ffd700;">${sData ? sData.mansion : '당신의 숙요'}</strong>와 같은 숙으로 분류된 공개 인물 예시입니다. 타고난 성향을 단정하는 근거가 아니라 숙요 상징을 이해하기 위한 참고 목록입니다.
+    html += `<div class="sy-card sy-same-mansion-card is-locked" data-sy-same-mansion-card="20260615-premium-lock" data-sy-paid-feature="${SY_PAID_FEATURES.symbolicComparison.key}">
+        <div class="sy-paid-card-head">
+          <div>
+            <div class="sy-paid-kicker">잠금 콘텐츠 · ${syPaidPriceLabel(SY_PAID_FEATURES.symbolicComparison)}</div>
+            <h4 class="sy-same-mansion-title">보조 참고 · 같은 숙 인물</h4>
+          </div>
+          <span class="sy-paid-status" data-sy-same-mansion-status>미리보기 4명</span>
+        </div>
+        <p class="sy-same-mansion-copy">
+          <strong>${sData ? sData.mansion : '당신의 숙요'}</strong>와 같은 숙으로 분류된 공개 인물을 상징 지도처럼 펼쳐봅니다. 결제 후에는 전체 목록과 함께 분위기, 재능, 매력, 주의 포인트까지 더 깊게 확인할 수 있습니다.
         </p>
-        <div id="szSameMansion" style="display:flex;flex-wrap:wrap;gap:8px;min-height:44px;">
-            <div style="color:#888;font-size:0.85rem;padding:8px 0;">✦ 계산 중...</div>
+        <div id="szSameMansion" class="sy-same-mansion-grid">
+            <div style="color:#cbd5e1;font-size:0.85rem;padding:8px 0;">✦ 달빛 상징을 정렬하는 중...</div>
         </div>
     </div>`;
 
@@ -7873,7 +7997,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           </div>
         </div>
         <p style="font-size:0.84rem;color:#e9d5ff;margin:0 0 10px 0;line-height:1.72;word-break:keep-all;">
-          본명숙과 달빛 보조 상징을 바탕으로, 지금 묻고 싶은 질문을 상담용 프롬프트로 정리합니다. 궁합을 먼저 확인했다면 두 사람의 숙요 거리와 관계 리듬까지 함께 담깁니다. 생성 시 100코인이 사용됩니다.
+          본명숙과 달빛 보조 상징을 바탕으로, 지금 묻고 싶은 질문을 상담용 프롬프트로 정리합니다. 궁합을 먼저 확인했다면 두 사람의 숙요 거리와 관계 리듬까지 함께 담깁니다. 생성 시 10,000원 결제가 확인됩니다.
         </p>
         <textarea data-sy-ai-question maxlength="1000" placeholder="예: 내 본명숙 흐름에서 지금 연애의 반복 패턴을 어떻게 풀어야 할까?" style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(250,204,21,0.34);background:rgba(8,13,30,0.76);color:#f5f3ff;padding:11px;font-size:0.84rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
@@ -7881,7 +8005,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-          <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#facc15,#c084fc);color:#111827;border:1px solid rgba(254,243,199,0.56);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(250,204,21,0.16);">달빛 프롬프트 생성 · 100코인</button>
+          <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#facc15,#c084fc);color:#111827;border:1px solid rgba(254,243,199,0.56);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(250,204,21,0.16);">달빛 프롬프트 생성 · 10,000원</button>
           <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:9px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 생성</button>
           <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:9px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">프롬프트 복사</button>
         </div>
@@ -7982,7 +8106,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         }
         const syAiPromptCard = document.getElementById('syAiPromptCard');
         if (syAiPromptCard && typeof syBindSukuyoPromptComposer === 'function') {
-          syBindSukuyoPromptComposer(syAiPromptCard, { preferCompatibility: false, generateLabel: '달빛 프롬프트 생성 · 100코인', loadingLabel: '달빛 프롬프트 여는 중...' });
+          syBindSukuyoPromptComposer(syAiPromptCard, { preferCompatibility: false, generateLabel: '달빛 프롬프트 생성 · 10,000원', loadingLabel: '달빛 프롬프트 여는 중...' });
         }
         // 국가 탭 생성 (Config-driven)
         const _countryCatsDiv = document.getElementById('szCountryCats');
@@ -8046,6 +8170,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         if (typeof window._szCelebFilter === 'function') window._szCelebFilter(_renderMIdx, '', '', null);
         // 동일 숙요 채우기
         if (typeof window._szFillSameMansion === 'function') window._szFillSameMansion(_renderMIdx);
+        if (typeof syBindSukuyoMonthlyUnlock === 'function') syBindSukuyoMonthlyUnlock(_annualMonthlyReading);
     }, 150);
 }
   
@@ -8876,54 +9001,70 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     var list = CelebrityService.getSameMansion(mansionIdx);
     if (list.length === 0) {
-      div.innerHTML = '<p style="color:#888;font-size:0.85rem;word-break:keep-all;margin:0;">같은 숙으로 분류된 공개 인물 예시가 아직 없습니다. 본명숙 해석은 위의 기본 결과를 기준으로 확인하세요.</p>';
+      div.innerHTML = '<p style="color:#cbd5e1;font-size:0.85rem;word-break:keep-all;margin:0;">같은 숙으로 분류된 공개 인물 예시가 아직 없습니다. 본명숙 해석은 위의 기본 결과를 기준으로 확인하세요.</p>';
       return;
     }
 
-    var ICONS = ['◇','◆','◈','△','○','◎','□','▱','✦','✧','◐','◑'];
+    var ICONS = ['◇','◆','◈','△','✦','✧','☾','☽','✶','✷','✹','✺'];
     var profileByCat = {
-      actor: { vibe: '몰입감 있는 감정선', talent: '표현력과 집중력', charm: '장면을 장악하는 존재감' },
-      '배우': { vibe: '몰입감 있는 감정선', talent: '표현력과 집중력', charm: '장면을 장악하는 존재감' },
-      singer: { vibe: '감성 전달력이 좋은 무드', talent: '리듬·호흡 감각', charm: '목소리와 분위기의 흡인력' },
-      '가수': { vibe: '감성 전달력이 좋은 무드', talent: '리듬·호흡 감각', charm: '목소리와 분위기의 흡인력' },
-      idol: { vibe: '밝고 세련된 에너지', talent: '무대 퍼포먼스와 팀워크', charm: '팬심을 끌어당기는 친화력' },
-      '아이돌': { vibe: '밝고 세련된 에너지', talent: '무대 퍼포먼스와 팀워크', charm: '팬심을 끌어당기는 친화력' },
-      sports: { vibe: '승부욕과 추진력의 결', talent: '집중력과 체력 관리', charm: '강단 있는 에너지' },
-      '운동선수': { vibe: '승부욕과 추진력의 결', talent: '집중력과 체력 관리', charm: '강단 있는 에너지' },
-      entrepreneur: { vibe: '실행 중심의 현실 감각', talent: '문제 해결과 리더십', charm: '결단력에서 나오는 신뢰' },
-      '기업가': { vibe: '실행 중심의 현실 감각', talent: '문제 해결과 리더십', charm: '결단력에서 나오는 신뢰' },
-      scholar: { vibe: '차분하고 깊은 사고', talent: '분석력과 구조화', charm: '지적인 안정감' },
-      '학자': { vibe: '차분하고 깊은 사고', talent: '분석력과 구조화', charm: '지적인 안정감' },
-      creator: { vibe: '독창적 상상력의 결', talent: '기획력과 표현 확장', charm: '새로운 시각을 여는 감각' },
-      '크리에이터': { vibe: '독창적 상상력의 결', talent: '기획력과 표현 확장', charm: '새로운 시각을 여는 감각' },
-      default: { vibe: '균형 잡힌 별빛 무드', talent: '꾸준함과 성장성', charm: '편안한 신뢰감' }
+      actor: { vibe: '감정의 농도를 오래 붙잡는 별빛', talent: '표현력과 장면 장악력', charm: '한 번 보면 기억되는 존재감', caution: '역할에 몰입할수록 휴식 경계가 필요합니다' },
+      '배우': { vibe: '감정의 농도를 오래 붙잡는 별빛', talent: '표현력과 장면 장악력', charm: '한 번 보면 기억되는 존재감', caution: '역할에 몰입할수록 휴식 경계가 필요합니다' },
+      singer: { vibe: '목소리로 분위기를 바꾸는 달빛', talent: '호흡, 리듬, 감정 전달력', charm: '공간을 부드럽게 끌어당기는 흡인력', caution: '감정 소모가 커질 때 루틴 회복이 중요합니다' },
+      '가수': { vibe: '목소리로 분위기를 바꾸는 달빛', talent: '호흡, 리듬, 감정 전달력', charm: '공간을 부드럽게 끌어당기는 흡인력', caution: '감정 소모가 커질 때 루틴 회복이 중요합니다' },
+      idol: { vibe: '빛을 받으면 더 선명해지는 별무리', talent: '무대 감각과 팀 리듬 조율', charm: '친근함과 화려함이 함께 보이는 매력', caution: '외부 기대에 맞추다 내 속도를 잃지 않아야 합니다' },
+      '아이돌': { vibe: '빛을 받으면 더 선명해지는 별무리', talent: '무대 감각과 팀 리듬 조율', charm: '친근함과 화려함이 함께 보이는 매력', caution: '외부 기대에 맞추다 내 속도를 잃지 않아야 합니다' },
+      sports: { vibe: '승부의 순간에 강해지는 직선의 별', talent: '집중력, 체력, 반복 훈련의 힘', charm: '흔들리지 않는 강단과 실행력', caution: '승부욕이 과열되면 회복 시간을 먼저 확보해야 합니다' },
+      '운동선수': { vibe: '승부의 순간에 강해지는 직선의 별', talent: '집중력, 체력, 반복 훈련의 힘', charm: '흔들리지 않는 강단과 실행력', caution: '승부욕이 과열되면 회복 시간을 먼저 확보해야 합니다' },
+      entrepreneur: { vibe: '현실을 움직이는 결단의 별빛', talent: '문제 해결, 구조화, 리더십', charm: '판단이 빠르고 신뢰를 만드는 추진력', caution: '성과 속도가 빨라질수록 관계 설명을 놓치지 않아야 합니다' },
+      '기업가': { vibe: '현실을 움직이는 결단의 별빛', talent: '문제 해결, 구조화, 리더십', charm: '판단이 빠르고 신뢰를 만드는 추진력', caution: '성과 속도가 빨라질수록 관계 설명을 놓치지 않아야 합니다' },
+      scholar: { vibe: '고요한 곳에서 깊어지는 지성의 달', talent: '분석력, 검증, 장기 집중', charm: '차분한 안정감과 설득력', caution: '확신이 강해질수록 다른 해석의 여지를 남겨야 합니다' },
+      '학자': { vibe: '고요한 곳에서 깊어지는 지성의 달', talent: '분석력, 검증, 장기 집중', charm: '차분한 안정감과 설득력', caution: '확신이 강해질수록 다른 해석의 여지를 남겨야 합니다' },
+      creator: { vibe: '익숙한 것을 새롭게 비추는 상상력', talent: '기획력, 표현 확장, 감각적 편집', charm: '새로운 시각을 열어주는 독창성', caution: '아이디어가 많을수록 완성 기준을 먼저 정해야 합니다' },
+      '크리에이터': { vibe: '익숙한 것을 새롭게 비추는 상상력', talent: '기획력, 표현 확장, 감각적 편집', charm: '새로운 시각을 열어주는 독창성', caution: '아이디어가 많을수록 완성 기준을 먼저 정해야 합니다' },
+      default: { vibe: '균형 잡힌 별빛 무드', talent: '꾸준함과 성장성', charm: '편안한 신뢰감', caution: '주변 기대보다 자신의 리듬을 우선 확인해야 합니다' }
     };
-    var sameMansionUnlocked = window._sySameMansionSymbolicUnlocked === true;
+    var sameMansionUnlocked = syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.symbolicComparison.key);
+    var sameCard = document.querySelector('[data-sy-same-mansion-card]');
+    var status = document.querySelector('[data-sy-same-mansion-status]');
+    if (sameCard) {
+      sameCard.classList.toggle('is-unlocked', sameMansionUnlocked);
+      sameCard.classList.toggle('is-locked', !sameMansionUnlocked);
+    }
+    if (status) {
+      status.textContent = sameMansionUnlocked ? '해금 완료 · 전체 상징' : '잠금 콘텐츠 · 미리보기 4명';
+      status.classList.toggle('is-unlocked', sameMansionUnlocked);
+    }
     var visibleLimit = sameMansionUnlocked ? 20 : 4;
     div.innerHTML = list.slice(0, visibleLimit).map(function(c, i) {
       var catKey = String(c.cat || '').toLowerCase();
       var meta = profileByCat[catKey] || profileByCat.default;
-      return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;'
-        + 'background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.22);border-radius:12px;'
-        + 'padding:11px 10px;min-width:170px;max-width:220px;flex:1 1 170px;text-align:left;">'
-        + '<div style="font-size:1.4rem;margin-bottom:4px;">' + ICONS[i % ICONS.length] + '</div>'
-        + '<div style="font-size:0.78rem;color:#ffd700;font-weight:700;word-break:keep-all;line-height:1.3;">' + c.name + '</div>'
-        + '<div style="font-size:0.66rem;color:#888;margin-top:2px;">' + c.cat + '</div>'
-        + '<div style="font-size:0.7rem;color:#d1d5db;margin-top:6px;line-height:1.6;">'
-          + '분위기: ' + meta.vibe + '<br>'
-          + '재능 포인트: ' + meta.talent + '<br>'
-          + '매력 포인트: ' + meta.charm
-        + '</div>'
-        + '</div>';
+      return '<article class="sy-same-person-card ' + (sameMansionUnlocked ? 'is-unlocked' : 'is-preview') + '">'
+        + '<div class="sy-same-symbol" aria-hidden="true"><span>' + syCanonicalEsc(ICONS[i % ICONS.length]) + '</span></div>'
+        + '<div class="sy-same-person-name">' + syCanonicalEsc(c.name || '공개 인물') + '</div>'
+        + '<div class="sy-same-person-cat">' + syCanonicalEsc(c.cat || '상징 참고') + '</div>'
+        + '<dl class="sy-same-person-read">'
+          + '<div><dt>분위기</dt><dd>' + syCanonicalEsc(meta.vibe) + '</dd></div>'
+          + '<div><dt>재능</dt><dd>' + syCanonicalEsc(meta.talent) + '</dd></div>'
+          + '<div><dt>매력</dt><dd>' + syCanonicalEsc(meta.charm) + '</dd></div>'
+          + (sameMansionUnlocked
+            ? '<div><dt>주의</dt><dd>' + syCanonicalEsc(meta.caution) + '</dd></div>'
+            : '<div class="is-locked-line"><dt>주의</dt><dd>해금 후 표시</dd></div>')
+        + '</dl>'
+        + '</article>';
     }).join('');
 
     if (!sameMansionUnlocked && list.length > visibleLimit) {
-      div.innerHTML += '<button type="button" data-sy-same-mansion-unlock style="display:flex;align-items:center;justify-content:center;min-height:76px;padding:10px 12px;border-radius:12px;border:1px solid rgba(250,204,21,0.32);background:rgba(250,204,21,0.08);color:#fde68a;font-size:0.8rem;font-weight:900;cursor:pointer;flex:1 1 170px;">전체 상징 목록 열기 · 30코인</button>';
+      div.innerHTML += '<button type="button" class="sy-same-unlock-card" data-sy-same-mansion-unlock aria-label="같은 숙 인물 전체 상징 목록을 3,000원으로 해금">'
+        + '<span class="sy-lock-badge">LOCKED</span>'
+        + '<strong>전체 상징 목록 열기</strong>'
+        + '<em>' + syPaidPriceLabel(SY_PAID_FEATURES.symbolicComparison) + '</em>'
+        + '<small>20명 상징 지도와 주의 포인트까지 확장</small>'
+        + '</button>';
       var unlockBtn = div.querySelector('[data-sy-same-mansion-unlock]');
       if (unlockBtn) {
         unlockBtn.onclick = function() {
           syRequirePaidSukuyoFeature(SY_PAID_FEATURES.symbolicComparison, function() {
-            window._sySameMansionSymbolicUnlocked = true;
+            syMarkPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.symbolicComparison.key);
             window._szFillSameMansion(mansionIdx);
           });
         };
@@ -8932,7 +9073,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
 
     if (list.length > 20) {
-      div.innerHTML += '<div style="display:flex;align-items:center;padding:6px 8px;color:#888;font-size:0.77rem;">외 ' + (list.length - 20) + '명</div>';
+      div.innerHTML += '<div class="sy-same-count-note">외 ' + syCanonicalEsc(list.length - 20) + '명 더 있음</div>';
     }
   };
 
@@ -10014,13 +10155,84 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     };
   }
 
+  function syRenderSukuyoScoreBar(score, color) {
+    var n = syCompatClamp(score, 0, 100);
+    return '<div style="height:7px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;"><div style="height:100%;width:' + n + '%;background:' + color + ';border-radius:999px;"></div></div>';
+  }
+
+  function syRenderSukuyoMonthlyGrid(reading) {
+    if (!reading || !Array.isArray(reading.monthly)) return '';
+    var moonMarks = ['☾', '◐', '●', '◑'];
+    return '<div class="sy-lunar-month-grid">'
+      + reading.monthly.map(function(item, idx) {
+        var color = item.score >= 76 ? '#86efac' : (item.score >= 62 ? '#fde68a' : '#bfdbfe');
+        return '<article class="sy-lunar-month-item">'
+          + '<div class="sy-lunar-month-head"><strong class="sy-lunar-month-title"><span class="sy-lunar-phase">' + syCanonicalEsc(moonMarks[idx % moonMarks.length]) + '</span><span>' + syCanonicalEsc(item.month) + ' · ' + syCanonicalEsc(item.type) + '</span></strong><span class="sy-lunar-band" style="color:' + color + ';">' + syCanonicalEsc(item.band) + '</span></div>'
+          + syRenderSukuyoScoreBar(item.score, 'linear-gradient(90deg,#10b981,#86efac)')
+          + '<p>' + syCanonicalEsc(item.body) + '</p>'
+          + '<p class="sy-lunar-note sy-lunar-note--relation">관계 · ' + syCanonicalEsc(item.relation) + '</p>'
+          + '<p class="sy-lunar-note sy-lunar-note--work">일·돈 · ' + syCanonicalEsc(item.work) + '</p>'
+          + '<p class="sy-lunar-note sy-lunar-note--caution">주의 · ' + syCanonicalEsc(item.caution) + '</p>'
+          + '</article>';
+      }).join('')
+      + '</div>';
+  }
+
+  function syRenderSukuyoMonthlyLock(reading) {
+    var sample = reading && Array.isArray(reading.monthly) ? reading.monthly.slice(0, 3) : [];
+    return '<div class="sy-month-lock-panel">'
+      + '<div class="sy-month-lock-orbit" aria-hidden="true">☾</div>'
+      + '<div class="sy-month-lock-body">'
+        + '<strong>12개월 숙요 흐름표 잠금</strong>'
+        + '<p>월별 관계, 일·돈, 주의 포인트는 결제 후 열립니다. 좋은 달에는 속도를 조절하고 느린 달에는 회복을 선택할 수 있도록 한 해의 달빛 리듬을 월 단위로 펼쳐드립니다.</p>'
+        + '<button type="button" class="sy-month-unlock-btn" data-sy-monthly-unlock aria-label="월별 숙요 운세를 3,000원으로 해금">월별 숙요 운세 열기 · ' + syPaidPriceLabel(SY_PAID_FEATURES.monthlyFortune) + '</button>'
+      + '</div>'
+      + '</div>'
+      + '<div class="sy-month-preview-grid">'
+      + sample.map(function(item) {
+        return '<article class="sy-month-preview-item"><strong>' + syCanonicalEsc(item.month) + ' · 잠금 미리보기</strong><span>' + syCanonicalEsc(item.type) + ' 흐름과 핵심 조언은 해금 후 표시됩니다.</span></article>';
+      }).join('')
+      + '</div>';
+  }
+
+  function sySetSukuyoMonthlyUnlockState(isUnlocked) {
+    var card = document.querySelector('[data-sy-monthly-fortune]');
+    var status = document.querySelector('[data-sy-monthly-status]');
+    if (card) {
+      card.classList.toggle('is-unlocked', !!isUnlocked);
+      card.classList.toggle('is-locked', !isUnlocked);
+    }
+    if (status) {
+      status.textContent = isUnlocked ? '해금 완료 · 전체 월별 운세' : '잠금 콘텐츠 · 3,000원';
+      status.classList.toggle('is-unlocked', !!isUnlocked);
+    }
+  }
+
+  function syRevealSukuyoMonthlyFortune(reading) {
+    var source = reading || window._sySukuyoMonthlyReading || null;
+    var target = document.getElementById('syMonthlyFortuneContent');
+    if (!target || !source) return;
+    target.innerHTML = syRenderSukuyoMonthlyGrid(source);
+    sySetSukuyoMonthlyUnlockState(true);
+  }
+
+  function syBindSukuyoMonthlyUnlock(reading) {
+    if (reading) window._sySukuyoMonthlyReading = reading;
+    var btn = document.querySelector('[data-sy-monthly-unlock]');
+    if (!btn || btn._syMonthlyUnlockBound) return;
+    btn._syMonthlyUnlockBound = true;
+    btn.addEventListener('click', function() {
+      syRequirePaidSukuyoFeature(SY_PAID_FEATURES.monthlyFortune, function() {
+        syMarkPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.monthlyFortune.key);
+        syRevealSukuyoMonthlyFortune(reading || window._sySukuyoMonthlyReading || null);
+      });
+    });
+  }
+
   function syRenderSukuyoAnnualMonthlySections(reading) {
     if (!reading) return '';
-    var moonMarks = ['☾', '◐', '●', '◑'];
-    var bar = function(score, color) {
-      var n = syCompatClamp(score, 0, 100);
-      return '<div style="height:7px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;"><div style="height:100%;width:' + n + '%;background:' + color + ';border-radius:999px;"></div></div>';
-    };
+    var monthlyUnlocked = syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.monthlyFortune.key);
+    if (typeof window !== 'undefined') window._sySukuyoMonthlyReading = reading;
     return ''
       + '<div class="sy-card sy-lunar-year-card" data-sy-year-fortune="20260605-sukuyo-year" data-sy-year-moon-ui="20260606-sukuyo-year-moon">'
       + '<div class="sy-lunar-overline">Annual Sukuyo Fortune</div>'
@@ -10042,22 +10254,16 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       }).join('')
       + '</div>'
       + '</div>'
-      + '<div class="sy-card sy-lunar-month-card" data-sy-monthly-fortune="20260605-sukuyo-monthly" data-sy-monthly-moon-ui="20260606-sukuyo-monthly-moon">'
-      + '<div class="sy-lunar-overline" style="color:#99f6e4;">Monthly Sukuyo Rhythm</div>'
-      + '<h4 style="margin:0 0 8px;color:#ccfbf1;">월별 숙요 운세</h4>'
-      + '<div class="sy-lunar-month-grid">'
-      + reading.monthly.map(function(item, idx) {
-        var color = item.score >= 76 ? '#86efac' : (item.score >= 62 ? '#fde68a' : '#bfdbfe');
-        return '<article class="sy-lunar-month-item">'
-          + '<div class="sy-lunar-month-head"><strong class="sy-lunar-month-title"><span class="sy-lunar-phase">' + syCanonicalEsc(moonMarks[idx % moonMarks.length]) + '</span><span>' + syCanonicalEsc(item.month) + ' · ' + syCanonicalEsc(item.type) + '</span></strong><span class="sy-lunar-band" style="color:' + color + ';">' + syCanonicalEsc(item.band) + '</span></div>'
-          + bar(item.score, 'linear-gradient(90deg,#10b981,#86efac)')
-          + '<p>' + syCanonicalEsc(item.body) + '</p>'
-          + '<p class="sy-lunar-note sy-lunar-note--relation">관계 · ' + syCanonicalEsc(item.relation) + '</p>'
-          + '<p class="sy-lunar-note sy-lunar-note--work">일·돈 · ' + syCanonicalEsc(item.work) + '</p>'
-          + '<p class="sy-lunar-note sy-lunar-note--caution">주의 · ' + syCanonicalEsc(item.caution) + '</p>'
-          + '</article>';
-      }).join('')
+      + '<div class="sy-card sy-lunar-month-card ' + (monthlyUnlocked ? 'is-unlocked' : 'is-locked') + '" data-sy-monthly-fortune="20260615-sukuyo-monthly-paid" data-sy-monthly-moon-ui="20260606-sukuyo-monthly-moon" data-sy-paid-feature="' + SY_PAID_FEATURES.monthlyFortune.key + '">'
+      + '<div class="sy-lunar-month-titlebar">'
+        + '<div>'
+          + '<div class="sy-lunar-overline" style="color:#99f6e4;">Monthly Sukuyo Rhythm</div>'
+          + '<h4>월별 숙요 운세</h4>'
+        + '</div>'
+        + '<span class="sy-paid-status ' + (monthlyUnlocked ? 'is-unlocked' : '') + '" data-sy-monthly-status>' + (monthlyUnlocked ? '해금 완료 · 전체 월별 운세' : '잠금 콘텐츠 · 3,000원') + '</span>'
       + '</div>'
+      + '<p class="sy-lunar-month-copy">본명숙 <strong style="color:#fef3c7;">' + syCanonicalEsc(reading.mansionLabel) + '</strong> 기준으로 매월의 관계, 일·돈, 주의 신호를 달의 리듬처럼 나누어 봅니다.</p>'
+      + '<div id="syMonthlyFortuneContent">' + (monthlyUnlocked ? syRenderSukuyoMonthlyGrid(reading) : syRenderSukuyoMonthlyLock(reading)) + '</div>'
       + '</div>';
   }
 
@@ -10917,7 +11123,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     rootEl.dataset.syAiBound = '1';
 
     var isLoading = false;
-    var generateLabel = opts.generateLabel || '100코인 선택 생성';
+    var generateLabel = opts.generateLabel || '10,000원 선택 생성';
     var loadingLabel = opts.loadingLabel || '프롬프트 생성 중...';
 
     function setStatus(message, tone) {
@@ -10957,7 +11163,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           balanceEl.textContent = '로그인 시 잔액이 표시됩니다.';
           return;
         }
-        balanceEl.textContent = '현재 코인: ' + points.toLocaleString('ko-KR');
+        balanceEl.textContent = '현재 원화 가치: ' + (points * 100).toLocaleString('ko-KR') + '원';
       });
     }
 
@@ -10989,14 +11195,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
           var balanceAfter = Number(payload.balanceAfter);
           if (balanceEl && Number.isFinite(balanceAfter)) {
-            balanceEl.textContent = '현재 코인: ' + balanceAfter.toLocaleString('ko-KR');
+            balanceEl.textContent = '현재 원화 가치: ' + (balanceAfter * 100).toLocaleString('ko-KR') + '원';
           }
 
           if (payload.compatibilityUsed) {
-            setStatus((chargedCoins > 0 ? chargedCoins + '코인 차감 완료. ' : '') + '궁합 데이터까지 반영해 프롬프트를 생성했습니다.', 'success');
+            setStatus((chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : '') + '궁합 데이터까지 반영해 프롬프트를 생성했습니다.', 'success');
           } else {
             var hint = String(payload.compatibilityHint || '궁합 데이터가 없어 기본 숙요점 기준으로 생성했습니다.');
-            setStatus((chargedCoins > 0 ? chargedCoins + '코인 차감 완료. ' : '') + hint, 'success');
+            setStatus((chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : '') + hint, 'success');
           }
           return;
         }
@@ -11044,7 +11250,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     updateCount();
     updateBalanceText();
-    setStatus('질문 입력 후 버튼을 누르면 100코인 차감 후 프롬프트를 생성합니다.', 'info');
+    setStatus('질문 입력 후 버튼을 누르면 10,000원 결제 확인 후 프롬프트를 생성합니다.', 'info');
   }
 
   function syCopyText(text) {
@@ -11732,10 +11938,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <div style="font-size:0.74rem;color:#fde68a;letter-spacing:0.08em;text-transform:uppercase;font-weight:900;margin-bottom:5px;">정밀 궁합 확장</div>
                   <div style="font-size:1rem;color:#fff7ed;font-weight:900;line-height:1.45;">목적별 리딩, 30일 타이밍, 위험·회복 루틴까지 더 깊게 엽니다.</div>
                 </div>
-                <span style="font-size:0.72rem;color:#fef3c7;border:1px solid rgba(251,191,36,0.34);background:rgba(251,191,36,0.1);padding:4px 9px;border-radius:999px;">120코인</span>
+                <span style="font-size:0.72rem;color:#fef3c7;border:1px solid rgba(251,191,36,0.34);background:rgba(251,191,36,0.1);padding:4px 9px;border-radius:999px;">12,000원</span>
               </div>
-              <p style="margin:0 0 10px;color:#fde68a;font-size:0.82rem;line-height:1.72;">기본 궁합 50코인 결과와 별도로, 상담에서 바로 쓰기 좋은 세부 시나리오와 회복 문장을 추가합니다.</p>
-              <button type="button" data-sy-precision-unlock style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(251,191,36,0.46);background:rgba(251,191,36,0.16);color:#fef3c7;font-size:0.84rem;font-weight:900;cursor:pointer;">정밀 궁합 확장 열기 · 120코인</button>
+              <p style="margin:0 0 10px;color:#fde68a;font-size:0.82rem;line-height:1.72;">기본 궁합 5,000원 결과와 별도로, 상담에서 바로 쓰기 좋은 세부 시나리오와 회복 문장을 추가합니다.</p>
+              <button type="button" data-sy-precision-unlock style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(251,191,36,0.46);background:rgba(251,191,36,0.16);color:#fef3c7;font-size:0.84rem;font-weight:900;cursor:pointer;">정밀 궁합 확장 열기 · 12,000원</button>
               <div data-sy-precision-content style="display:none;margin-top:12px;"></div>
               <div data-sy-precision-status style="margin-top:8px;color:#fde68a;font-size:0.76rem;line-height:1.6;"></div>
             </section>`;
@@ -11974,14 +12180,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
               <div class="sy-sec" id="syCompatAiPromptCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.2), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.35); box-shadow:0 20px 44px rgba(76,29,149,0.34); border-radius:14px;">
                 <div class="sy-sec-title" style="color:#ddd6fe;">💫 궁합 전용 AI 질문 프롬프트</div>
-                <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터(거리/관계유형/카르마)를 포함해 프롬프트를 생성합니다. (1회 100코인)</div>
+                <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터(거리/관계유형/카르마)를 포함해 프롬프트를 생성합니다. (1회 10,000원)</div>
                 <textarea data-sy-ai-question maxlength="1000" placeholder="예: 이 관계가 오래 가려면 어떤 대화 습관을 먼저 바꿔야 할까?" style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
                   <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
                   <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
-                  <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">100코인 선택 생성</button>
+                  <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">10,000원 선택 생성</button>
                   <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>
                   <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
                 </div>

@@ -1327,9 +1327,9 @@
   /* lockBody 호출 여부 추적 — mobile 에서 unlockBody 불필요 호출 방지 */
   var _bodyLocked = false;
 
-  /* ── 프로필 카드 운세 선택 모달: 코인 잠금 설정 ──
+  /* ── 프로필 카드 운세 선택 모달: 유료 잠금 설정 ──
      기본 차트(자미두수·숙요점·베다점·점성술)는 무료 개방.
-     운명의 꽃 아틀리에는 1회 200코인 영구 해금. ── */
+     운명의 꽃 아틀리에는 1회 20,000원 영구 해금. ── */
   var _DP_FEATURE_LOCKS = {
     olympus: { key: 'olympus-fc', cost: 100, name: '올림푸스 신탁' },
     flower:  { key: 'flower-fc',  cost: 200, name: '운명의 꽃 아틀리에 전체', extraUnlockKeys: ['flower-destiny', 'flower-astro', 'flower-ziwei', 'flower-sukuyo'] }
@@ -1535,8 +1535,8 @@
       item.style.transition = 'opacity 220ms ease, transform 220ms ease';
       item.style.pointerEvents = 'auto';
       item.innerHTML = '<strong style="display:block;font-size:12px;letter-spacing:.08em;color:#fde68a;">COIN NOTICE</strong>'
-        + '<span>🪙 ' + detail + ' 이용으로 <strong>' + amount.toLocaleString('ko-KR') + '코인</strong>이 차감되었습니다.</span>'
-        + '<span style="display:block;color:rgba(255,255,255,0.86);margin-top:2px;">남은 코인: ' + (isFinite(remain) ? remain.toLocaleString('ko-KR') : '-') + '</span>';
+        + '<span>🪙 ' + detail + ' 이용으로 <strong>' + (amount * 100).toLocaleString('ko-KR') + '원</strong> 결제가 확인되었습니다.</span>'
+        + '<span style="display:block;color:rgba(255,255,255,0.86);margin-top:2px;">남은 원화 가치: ' + (isFinite(remain) ? (remain * 100).toLocaleString('ko-KR') + '원' : '-') + '</span>';
 
       root.appendChild(item);
       requestAnimationFrame(function() {
@@ -1561,7 +1561,7 @@
       var tierLabel = tierRaw === 'vvip' ? 'VVIP' : (tierRaw === 'premium' ? '프리미엄' : (tierRaw === 'standard' ? '스탠다드' : '구독'));
       var requiredCoins = Number(info.requiredCoins || 0);
       var freeLimit = Number(info.freeLimit || 0);
-      var message = String(info.message || '').trim() || (tierLabel + ' 혜택으로 이번 리딩은 코인이 차감되지 않았어요. 연이가 별빛 방패로 지켜드렸어요.');
+      var message = String(info.message || '').trim() || (tierLabel + ' 혜택으로 이번 리딩은 추가 결제 없이 열렸어요. 연이가 별빛 방패로 지켜드렸어요.');
 
       var root = document.getElementById('cd-subscription-notice-root');
       if (!root) {
@@ -1634,10 +1634,10 @@
       policy.style.color = 'rgba(255,247,237,0.9)';
       var policyLabel = '구독 정책 적용: ' + tierLabel + ' 플랜';
       if (freeLimit > 0) {
-        policyLabel += ' · ' + freeLimit.toLocaleString('ko-KR') + '코인 이하 서비스 비차감';
+        policyLabel += ' · ' + (freeLimit * 100).toLocaleString('ko-KR') + '원 이하 서비스 비차감';
       }
       if (requiredCoins > 0) {
-        policyLabel += ' · 이번 서비스 ' + requiredCoins.toLocaleString('ko-KR') + '코인';
+        policyLabel += ' · 이번 서비스 ' + (requiredCoins * 100).toLocaleString('ko-KR') + '원';
       }
       policy.textContent = policyLabel;
 
@@ -1881,8 +1881,8 @@
   }
 
   /**
-   * 1회 코인 차감 게이트 — 영구 해금 없이 사용할 때마다 cost 코인 차감.
-   * @param {number} cost   차감 코인 수
+   * 1회 결제 게이트 — 영구 해금 없이 사용할 때마다 cost 기준으로 확인.
+   * @param {number} cost   결제 기준 수
    * @param {string} reason 기능명 (알림 문구용)
    * @param {Function} cb   성공 시 호출할 콜백
    */
@@ -2203,7 +2203,7 @@
         if (result.status === 'pass_applied') {
           if (typeof window._cdShowMembershipFreeNotice === 'function') window._cdShowMembershipFreeNotice({ title: title, coinPrice: coinPrice, payload: payload });
           else if (typeof window._cdSetCoinGateOverlay === 'function') {
-            window._cdSetCoinGateOverlay(true, '이용권이 적용되었습니다.\n이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.\n코인 차감 없이 바로 열어드릴게요.', 'pass-applied');
+            window._cdSetCoinGateOverlay(true, '이용권이 적용되었습니다.\n이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.\n추가 결제 없이 바로 열어드릴게요.', 'pass-applied');
             window.setTimeout(function() { window._cdSetCoinGateOverlay(false); }, 1600);
           }
           else if (typeof window._cdShowSubscriptionShieldNotice === 'function') window._cdShowSubscriptionShieldNotice({ message: '\uC774\uC6A9\uAD8C\uC73C\uB85C \uCF54\uC778 \uCC28\uAC10 \uC5C6\uC774 \uC774\uC6A9\uD569\uB2C8\uB2E4.', requiredCoins: coinPrice });
@@ -2593,7 +2593,7 @@
         hasBalanceSnapshot = true;
       }
     } catch(_) {}
-    var balanceLabel = hasBalanceSnapshot ? (Number(balance).toLocaleString('ko-KR') + '코인') : '알 수 없음';
+    var balanceLabel = hasBalanceSnapshot ? ((Number(balance) * 100).toLocaleString('ko-KR') + '원') : '알 수 없음';
     var membershipCoverage = _dpReadActiveMembershipCoverage(cost);
     if (!membershipCoverage) {
       if (typeof window._cdResolvePaidContentAccess === 'function' && optionBag.disablePassFirst !== true && optionBag.disablePassChoice !== true) {
@@ -2652,7 +2652,7 @@
             if (choice === 'monthly') {
               window._cdCoinGatePerUseInFlight = true;
               window.__cdCoinGatePerUseLockAt = Date.now();
-              _dpSetPaymentPending(true, 'Moonlight Stone 보너스 적용 중입니다.', 'monthly');
+              _dpSetPaymentPending(true, '결제 권한을 확인하고 있습니다.', 'monthly');
               return _dpRunMonthlyCreditFromMainGate({
                 title: reason,
                 reason: reason,
@@ -2737,7 +2737,7 @@
           if (choice === 'monthly') {
             window._cdCoinGatePerUseInFlight = true;
             window.__cdCoinGatePerUseLockAt = Date.now();
-            _dpSetPaymentPending(true, 'Moonlight Stone 보너스 적용 중입니다.', 'monthly');
+            _dpSetPaymentPending(true, '결제 권한을 확인하고 있습니다.', 'monthly');
             return _dpRunMonthlyCreditFromMainGate({
               title: reason,
               reason: reason,
@@ -2835,7 +2835,7 @@
         var rawFailData = (res && res.data && typeof res.data === 'object') ? res.data : {};
         var failData = (rawFailData.data && typeof rawFailData.data === 'object') ? rawFailData.data : rawFailData;
         var msg = rawFailData.message || failData.message || '단건 결제가 필요합니다.';
-        if (res.status === 402) msg = msg + '\n\n단건 결제 기준: 50코인 = 5,000원\n포트원 V2 KG이니시스 결제로 진행됩니다.';
+        if (res.status === 402) msg = msg + '\n\n단건 결제 기준: 5,000원\n포트원 V2 KG이니시스 결제로 진행됩니다.';
         if (typeof window.__cdOpenChargeModal === 'function') { window.alert(msg); window.__cdOpenChargeModal(); }
         else window.location.href = '/points';
         if (typeof onCancel === 'function') onCancel();
@@ -2855,7 +2855,7 @@
         && data.ok !== false
         && (requestedCost <= 0 || freeBySubscription || chargedCoins > 0 || transactionId);
       if (!coinGateConfirmed) {
-        var failMsg = String((data && data.message) || '코인 결제 확인값이 부족하여 생성을 시작하지 않았습니다. 다시 시도해 주세요.');
+        var failMsg = String((data && data.message) || '원화 결제 확인값이 부족하여 생성을 시작하지 않았습니다. 다시 시도해 주세요.');
         window.alert(failMsg);
         if (typeof onCancel === 'function') onCancel();
         return;
@@ -2998,9 +2998,9 @@
   }
 
   /**
-   * 프로필 카드 모달 코인 잠금 게이트
+   * 프로필 카드 모달 유료 잠금 게이트
    * 이미 해금됐거나 관리자/프리미엄이면 cb() 즉시 호출,
-   * 아닌 경우 코인 확인 → 차감 API → 영구 해금 저장 → cb()
+   * 아닌 경우 결제 확인 → 권한 저장 → cb()
    */
   function _dpGateLockFeature(type, cb) {
     var info = _DP_FEATURE_LOCKS[type];
@@ -3127,7 +3127,7 @@
           return;
         }
         if (!res.ok) {
-          window.alert((res.data && res.data.message) || '코인 차감에 실패했습니다. 다시 시도해 주세요.');
+          window.alert((res.data && res.data.message) || '원화 결제 확인에 실패했습니다. 다시 시도해 주세요.');
           return;
         }
         var newBalance = (res.data && res.data.user && typeof res.data.user.points === 'number')
@@ -3383,9 +3383,9 @@
     if (canUsePlanSlot) {
       quotaText.textContent = label + ' · 기본 제공 프로필 카드 ' + remaining + (unlimited ? '' : '개') + ' 저장 가능 (' + used + '/' + limitLabel + ')';
     } else if (!_dpSubIsActive) {
-      quotaText.textContent = '무료 계정 · 기본 프로필 카드 1개 사용 완료 · 추가 생성 ' + PROFILE_CARD_MANAGE_COST + '코인';
+      quotaText.textContent = '무료 계정 · 기본 프로필 카드 1개 사용 완료 · 추가 생성 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원';
     } else {
-      quotaText.textContent = label + ' · 기본 한도 ' + limitLabel + '개 사용 완료 · 추가 생성 50코인';
+      quotaText.textContent = label + ' · 기본 한도 ' + limitLabel + '개 사용 완료 · 추가 생성 5,000원';
     }
   }
 
@@ -3420,13 +3420,13 @@
     } else if (canCreateWithoutPayment) {
       setSaveButtonContent('프로필 카드 생성', slotLabel + ' 사용 중');
     } else {
-      setSaveButtonContent('프로필 카드 추가 생성', PROFILE_CARD_MANAGE_COST + '코인');
+      setSaveButtonContent('프로필 카드 추가 생성', (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원');
     }
     btn.style.opacity = '';
     btn.style.cursor = '';
     btn.title = canCreateWithoutPayment
       ? planLabel + ' 한도 ' + _dpFormatLimitLabel(maxProfiles) + ' 중 ' + profileCount + '개를 사용 중입니다.'
-      : '프로필 카드 추가는 서버에서 50코인 또는 5,000원 결제를 확인한 뒤 저장됩니다.';
+      : '프로필 카드 추가는 서버에서 5,000원 결제를 확인한 뒤 저장됩니다.';
   }
 
   function _resolveEventElement(target) {
@@ -3990,7 +3990,7 @@
       body.className = 'dp-delete-gate__body';
       var copy = document.createElement('p');
       copy.className = 'dp-delete-gate__copy';
-      copy.textContent = '\uC0AD\uC81C \uD6C4 \uBCF5\uAD6C\uAC00 \uC5B4\uB835\uC2B5\uB2C8\uB2E4. \uBB34\uB8CC \uD1B5\uACFC \uC5C6\uC774 \uB2E8\uAC74\uACB0\uC81C\uC640 Moonlight Stone\uB9CC \uC0AC\uC6A9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.';
+      copy.textContent = '\uC0AD\uC81C \uD6C4 \uBCF5\uAD6C\uAC00 \uC5B4\uB835\uC2B5\uB2C8\uB2E4. \uBB34\uB8CC \uD1B5\uACFC \uC5C6\uC774 \uB2E8\uAC74\uACB0\uC81C\uB9CC \uC0AC\uC6A9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.';
       var options = document.createElement('div');
       options.className = 'dp-delete-gate__options';
 
@@ -4009,9 +4009,7 @@
       }
 
       var directBtn = buildOption('direct', '\uB2E8\uAC74\uACB0\uC81C ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0', '\uC0AD\uC81C \uC804\uC6A9 1\uD68C \uACB0\uC81C');
-      var monthlyBtn = buildOption('monthly', 'Moonlight Stone ' + PROFILE_CARD_MANAGE_MONTHLY_COST + '\uAC1C', '\uC6D4\uC815\uC11D \uC794\uC561\uC73C\uB85C \uC0AD\uC81C');
       options.appendChild(directBtn);
-      options.appendChild(monthlyBtn);
 
       var foot = document.createElement('div');
       foot.className = 'dp-delete-gate__foot';
@@ -4057,7 +4055,6 @@
       function pick(mode) {
         status.textContent = '\uACB0\uC81C \uC120\uD0DD\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.';
         directBtn.disabled = true;
-        monthlyBtn.disabled = true;
         cancel.disabled = true;
         done(mode);
       }
@@ -4066,7 +4063,6 @@
         if (event && event.target === overlay) done(null);
       });
       directBtn.addEventListener('click', function() { pick('direct'); });
-      monthlyBtn.addEventListener('click', function() { pick('monthly'); });
       cancel.addEventListener('click', function() { done(null); });
       document.addEventListener('keydown', onKey);
       document.body.appendChild(overlay);
@@ -4079,7 +4075,7 @@
     if (!choice) return null;
     var base = _dpBuildProfileDeletePaymentBase(profileId, requestId);
     if (choice === 'monthly') {
-      _dpSetPaymentPending(true, 'Moonlight Stone\uB85C \uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C \uACB0\uC81C\uB97C \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...', 'monthly');
+      _dpSetPaymentPending(true, '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C \uACB0\uC81C \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...', 'monthly');
       var monthlyPayload = await _dpRunMonthlyCreditFromMainGate(Object.assign({}, base, {
         paymentMode: 'MOONLIGHT_STONE',
         accessMode: 'moonlight_stone'
@@ -4744,7 +4740,7 @@
         var lockedNotice = selectionRequired
           ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">이용권 혜택이 종료되었습니다. 계속 사용할 프로필 카드 1개를 선택하면 다음 이용권 결제 전까지 해당 카드만 사용할 수 있습니다.</div>'
           : (isFreeUser
-          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">프로필 카드 추가 생성/삭제는 서버 확인 후 50코인으로 처리됩니다.</div>'
+          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">프로필 카드 추가 생성/삭제는 서버 확인 후 5,000원으로 처리됩니다.</div>'
           : '');
 
     container.innerHTML = list.map(function(p, idx) {
@@ -4800,7 +4796,7 @@
               + '</div>'
             + '</div>'
             + '<div class="dp-li-actions" aria-label="프로필 카드 관리">'
-              + '<button type="button" class="dp-li-del" aria-label="\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C, \uB2E8\uAC74 \uACB0\uC81C \uB610\uB294 \uC6D4\uC815\uC11D \uC804\uC6A9" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C \u00B7 ' + PROFILE_CARD_MANAGE_COST + '\uCF54\uC778/\uC6D4\uC815\uC11D</button>'
+              + '<button type="button" class="dp-li-del" aria-label="\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C, \uB2E8\uAC74 \uACB0\uC81C \uB610\uB294 \uC6D4\uC815\uC11D \uC804\uC6A9" data-profile-delete-marker="profile-list-delete-only-50coin-v20260612">\uC0AD\uC81C \u00B7 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0/\uC6D4\uC815\uC11D</button>'
             + '</div>'
             + '</div>';
         }).join('') + lockedNotice;
@@ -4957,7 +4953,7 @@
     var createRequestId = _dpBuildProfileManageRequestId('create', createProfileId);
     var createScope = '';
     var createConfirm = createRequiresPayment
-      ? '프로필 카드를 추가 생성할까요?\n추가 생성은 서버에서 50코인 또는 5,000원 결제 확인 후 저장됩니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.'
+      ? '프로필 카드를 추가 생성할까요?\n추가 생성은 서버에서 5,000원 결제 확인 후 저장됩니다.\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.'
       : '새 프로필 카드를 생성할까요?\n입력한 생년월일/시간/성별/출생지를 다시 확인해 주세요.';
     if ((createRequiresPayment || !hasProfiles) && !confirm(createConfirm)) return;
     var btn = document.getElementById('dpSaveBtn');
@@ -5720,10 +5716,10 @@
         + '<button class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--ziwei" onclick="window._dpOpenFortuneType(\'ziwei\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--astro" onclick="window._dpOpenFortuneType(\'astro\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
-        + (function(){ var lk=_dpIsFeatureLocked('olympus-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--olympus' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'⚡') + '</span><span class="dp-fsel-btn-label">올림푸스 신탁' + (lk?'<span class="dp-fsel-btn-cost"> 🔒 100코인</span>':'') + '</span></button>'; })()
+        + (function(){ var lk=_dpIsFeatureLocked('olympus-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--olympus' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'olympus\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'⚡') + '</span><span class="dp-fsel-btn-label">올림푸스 신탁' + (lk?'<span class="dp-fsel-btn-cost"> 🔒 10,000원</span>':'') + '</span></button>'; })()
         + '<button class="dp-fsel-btn dp-fsel-btn--vedic" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
         + '<button class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
-        + (function(){ var lk=_dpIsFeatureLocked('flower-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--flower' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'🌸') + '</span><span class="dp-fsel-btn-label">운명의 꽃' + (lk?'<span class="dp-fsel-btn-cost"> 200코인</span>':'') + '</span></button>'; })()
+        + (function(){ var lk=_dpIsFeatureLocked('flower-fc'); return '<button class="dp-fsel-btn dp-fsel-btn--flower' + (lk?' dp-fsel-btn--locked':'') + '" onclick="window._dpOpenFortuneType(\'flower\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + (lk?'🔒':'🌸') + '</span><span class="dp-fsel-btn-label">운명의 꽃' + (lk?'<span class="dp-fsel-btn-cost"> 20,000원</span>':'') + '</span></button>'; })()
       + '</div>'
       + '</div>';
     document.body.appendChild(ov);
@@ -5774,7 +5770,7 @@
     window._dpFortuneSelEl = null;
 
     function _openTarget() {
-      /* 코인 잠금 대상 기능은 게이트를 통과해야 실행 */
+      /* 유료 잠금 대상 기능은 게이트를 통과해야 실행 */
       if (_DP_FEATURE_LOCKS[type]) {
         _dpGateLockFeature(type, function() { _runFortuneType(type); });
         return;
@@ -6570,7 +6566,7 @@
       window._cdCoinGatePerUseInFlight = true;
       window.__cdCoinGatePerUseLockAt = Date.now();
       var pendingLabel = String(reason || '').trim() || '유료 서비스';
-      _dpSetPaymentPending(true, pendingLabel + ' Moonlight Stone 보너스 적용 중입니다.', 'monthly');
+      _dpSetPaymentPending(true, pendingLabel + ' 결제 권한을 확인하고 있습니다.', 'monthly');
       return _dpWaitForPaymentOverlayPaint().then(function() {
         return _dpFetchJsonWithFallback('/api/billing/coin-gate', {
           method: 'POST',
@@ -6619,7 +6615,7 @@
         var rawData = (res && res.data && typeof res.data === 'object') ? res.data : {};
         var data = (rawData.data && typeof rawData.data === 'object') ? rawData.data : rawData;
         if (res.status === 402 || !res.ok || !data || data.ok === false) {
-          var failMessage = String((data && data.message) || rawData.message || 'Moonlight Stone이 부족합니다. 필요 Moonlight Stone과 보유 Moonlight Stone을 확인해 주세요.');
+          var failMessage = String((data && data.message) || rawData.message || '결제 권한을 확인하지 못했습니다. 단건 결제를 선택해 주세요.');
           window.alert(failMessage);
           if (typeof onCancel === 'function') onCancel();
           return;

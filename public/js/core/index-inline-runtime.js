@@ -1624,57 +1624,57 @@ window.addEventListener('cd:auth-changed', __cdInlineRuntimeEvents.authChangedFo
 
 var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js'); },
-  openDreamModal: function() { return __cdLoadScriptOnce('/lib/ai-engine.js').then(function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-976e81dee0b1'); }); },
-  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-976e81dee0b1'); },
+  openDreamModal: function() { return __cdLoadScriptOnce('/lib/ai-engine.js').then(function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-9cc96d460317'); }); },
+  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-9cc96d460317'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
-  openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-976e81dee0b1'); },
-  closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-976e81dee0b1'); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-976e81dee0b1').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-976e81dee0b1'); }); },
+  openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-9cc96d460317'); },
+  closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-9cc96d460317'); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-9cc96d460317').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-9cc96d460317'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-976e81dee0b1'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-976e81dee0b1'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-9cc96d460317'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-9cc96d460317'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-976e81dee0b1'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-976e81dee0b1'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-9cc96d460317'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-9cc96d460317'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-976e81dee0b1').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-9cc96d460317').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
-  openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-976e81dee0b1'); },
-  closeLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-976e81dee0b1'); },
-  generateLoveSecret: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-976e81dee0b1'); },
-  openLoveSecretLatestReport: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-976e81dee0b1'); },
-  downloadLoveSecretPdf: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-976e81dee0b1'); },
-  shareLoveSecretKakao: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-976e81dee0b1'); },
-  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-976e81dee0b1'); },
-  closeLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-976e81dee0b1'); },
-  generateLifeBook: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-976e81dee0b1'); },
-  openAstroBookModal: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-976e81dee0b1'); },
-  closeAstroBookModal: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-976e81dee0b1'); },
-  generateAstroBook: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-976e81dee0b1'); },
-  downloadAstroBookPdf: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-976e81dee0b1'); },
-  gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-976e81dee0b1'); },
-  openZiweiBookModal: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-976e81dee0b1'); },
-  closeZiweiBookModal: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-976e81dee0b1'); },
-  generateZiweiBook: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-976e81dee0b1'); },
-  downloadZiweiBookPdf: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-976e81dee0b1'); },
-  gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-976e81dee0b1'); },
-  openSajuNewYearModal: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-976e81dee0b1'); },
-  closeSajuNewYearModal: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-976e81dee0b1'); },
-  generateSajuNewYear: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-976e81dee0b1'); },
-  downloadSajuNewYearPdf: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-976e81dee0b1'); },
-  openVedicBookModal: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-976e81dee0b1'); },
-  closeVedicBookModal: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-976e81dee0b1'); },
-  generateVedicBook: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-976e81dee0b1'); },
-  downloadVedicBookPdf: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-976e81dee0b1'); },
-  gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-976e81dee0b1'); },
-  openSukuyoBookModal: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-976e81dee0b1'); },
-  closeSukuyoBookModal: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-976e81dee0b1'); },
-  generateSukuyoBook: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-976e81dee0b1'); },
-  downloadSukuyoBookPdf: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-976e81dee0b1'); },
-  gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-976e81dee0b1'); },
+  openLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-9cc96d460317'); },
+  closeLoveSecretModal: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-9cc96d460317'); },
+  generateLoveSecret: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-9cc96d460317'); },
+  openLoveSecretLatestReport: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-9cc96d460317'); },
+  downloadLoveSecretPdf: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-9cc96d460317'); },
+  shareLoveSecretKakao: function() { return __cdLoadScriptOnce('/js/love-secret-v2.js?v=build-9cc96d460317'); },
+  openLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-9cc96d460317'); },
+  closeLifeBookModal: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-9cc96d460317'); },
+  generateLifeBook: function() { return __cdLoadScriptOnce('/js/life-book.js?v=build-9cc96d460317'); },
+  openAstroBookModal: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-9cc96d460317'); },
+  closeAstroBookModal: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-9cc96d460317'); },
+  generateAstroBook: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-9cc96d460317'); },
+  downloadAstroBookPdf: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-9cc96d460317'); },
+  gotoAstrologyPremium: function() { return __cdLoadScriptOnce('/js/astro-book.js?v=build-9cc96d460317'); },
+  openZiweiBookModal: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-9cc96d460317'); },
+  closeZiweiBookModal: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-9cc96d460317'); },
+  generateZiweiBook: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-9cc96d460317'); },
+  downloadZiweiBookPdf: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-9cc96d460317'); },
+  gotoZiweiPremium: function() { return __cdLoadScriptOnce('/js/ziwei-book.js?v=build-9cc96d460317'); },
+  openSajuNewYearModal: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-9cc96d460317'); },
+  closeSajuNewYearModal: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-9cc96d460317'); },
+  generateSajuNewYear: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-9cc96d460317'); },
+  downloadSajuNewYearPdf: function() { return __cdLoadScriptOnce('/js/saju-new-year.js?v=build-9cc96d460317'); },
+  openVedicBookModal: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-9cc96d460317'); },
+  closeVedicBookModal: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-9cc96d460317'); },
+  generateVedicBook: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-9cc96d460317'); },
+  downloadVedicBookPdf: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-9cc96d460317'); },
+  gotoVedicPremium: function() { return __cdLoadScriptOnce('/js/vedic-book.js?v=build-9cc96d460317'); },
+  openSukuyoBookModal: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-9cc96d460317'); },
+  closeSukuyoBookModal: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-9cc96d460317'); },
+  generateSukuyoBook: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-9cc96d460317'); },
+  downloadSukuyoBookPdf: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-9cc96d460317'); },
+  gotoSukuyoPremium: function() { return __cdLoadScriptOnce('/js/sukuyo-book.js?v=build-9cc96d460317'); },
   openLoveSimulation: function() { try { window.location.assign('/saju/love-simulation'); } catch(e) { window.open('/saju/love-simulation', '_self'); } return Promise.resolve(); },
   setTarotMode: function() { return __cdEnsureSajuCoreLoaded(); },
   selectTarotCategory: function() { return __cdEnsureSajuCoreLoaded(); },
@@ -1914,15 +1914,15 @@ function __cdEnsureSajuCoreLoaded() {
 
   var chain = [
     'https://cdn.jsdelivr.net/npm/lunar-javascript@latest/lunar.js',
-    '/js/core/kasi-calendar-service.js?v=build-976e81dee0b1',
-    '/js/compat-llm-prompts.js?v=build-976e81dee0b1',
-    '/js/saju-engine.js?v=build-976e81dee0b1',
-      '/js/core/saju/extremeTResult.js?v=build-976e81dee0b1',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-976e81dee0b1',
-    '/js/core/saju/modalProfileState.js?v=build-976e81dee0b1',
-    '/js/core/saju/reportDashboard.js?v=build-976e81dee0b1',
-    '/js/saju-engine-continuation.js?v=build-976e81dee0b1',
-    '/js/entertain-engine.js?v=build-976e81dee0b1'
+    '/js/core/kasi-calendar-service.js?v=build-9cc96d460317',
+    '/js/compat-llm-prompts.js?v=build-9cc96d460317',
+    '/js/saju-engine.js?v=build-9cc96d460317',
+      '/js/core/saju/extremeTResult.js?v=build-9cc96d460317',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-9cc96d460317',
+    '/js/core/saju/modalProfileState.js?v=build-9cc96d460317',
+    '/js/core/saju/reportDashboard.js?v=build-9cc96d460317',
+    '/js/saju-engine-continuation.js?v=build-9cc96d460317',
+    '/js/entertain-engine.js?v=build-9cc96d460317'
   ];
 
   __cdSajuCoreLoadPromise = chain.reduce(function(promise, src) {
@@ -1942,7 +1942,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-976e81dee0b1')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-9cc96d460317')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -1960,7 +1960,7 @@ function __cdEnsureSwissEphLoaded() {
   if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
 
   __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-976e81dee0b1';
+    var src = '/js/swisseph-loader.js?v=build-9cc96d460317';
     var norm = __cdNormalizeScriptSrc(src);
     if (!norm) {
       reject(new Error('missing swisseph src'));
@@ -2224,7 +2224,7 @@ __cdInstallSajuActionStub('runCompat');
 __cdInstallSajuActionStub('openAnimalDestinyRoute');
 __cdInstallSajuActionStub('openDestinyMeetingPlaceRoute');
 window.openLuckSyncDiary = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-976e81dee0b1').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-9cc96d460317').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
       return window.LuckSyncDiary.open();
     }
@@ -2232,7 +2232,7 @@ window.openLuckSyncDiary = function() {
   });
 };
 window.closeLuckSyncDiary = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-976e81dee0b1').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-9cc96d460317').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.close === 'function') {
       return window.LuckSyncDiary.close();
     }
@@ -2615,7 +2615,7 @@ function __cdBindAnimalTotemTileDirect() {
     try {
       var overlay = document.getElementById('animalTotemOverlay');
       if (overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')) return;
-      // ── 코인 게이트 체크 ──
+      // ── 유료 게이트 체크 ──
       var _tile = document.querySelector('.tarot-tile--animal-totem[data-coin-cost], [data-action="openAnimalTotemModal"][data-coin-cost]');
       var _coinCost = _tile ? Number(_tile.getAttribute('data-coin-cost') || 0) : 0;
       if (_coinCost > 0 && _tile && !_tile.getAttribute('data-pvw-bypass')) {
@@ -2637,7 +2637,7 @@ function __cdBindAnimalTotemTileDirect() {
         window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
         return;
       }
-      // ── 코인 게이트 통과 ──
+      // ── 유료 게이트 통과 ──
       _doOpenTotem();
     } catch (err) { console.error('[totem] openTotemModal error:', err); }
     function _doOpenTotem() {
@@ -2649,8 +2649,8 @@ function __cdBindAnimalTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-976e81dee0b1')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-976e81dee0b1'); })
+        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-9cc96d460317')
+          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-9cc96d460317'); })
           .then(function() {
             try {
               if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
@@ -4535,7 +4535,7 @@ var _dfStudioState = {
   },
   coinGatePassed: false,
   coinGateInFlight: false,
-  _coinGatePassToken: null  // 코인 게이트 토큰 (내부 콜백용, 외부 호출 방어)
+  _coinGatePassToken: null  // 유료 게이트 토큰 (내부 콜백용, 외부 호출 방어)
 };
 
 var _DF_STUDIO_TITLE = '🌸 운명의 꽃 아틀리에';
@@ -7067,9 +7067,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
-    '/js/compat-llm-prompts.js?v=build-976e81dee0b1',
-    '/js/saju-engine.js?v=build-976e81dee0b1',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-976e81dee0b1'
+    '/js/compat-llm-prompts.js?v=build-9cc96d460317',
+    '/js/saju-engine.js?v=build-9cc96d460317',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-9cc96d460317'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
@@ -7089,7 +7089,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-976e81dee0b1'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-9cc96d460317'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
@@ -7773,8 +7773,8 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-976e81dee0b1')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-976e81dee0b1'); })
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-9cc96d460317')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-9cc96d460317'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {
@@ -7885,7 +7885,7 @@ window.openTarotModal = openTarotModal;
 window.closeTarotModal = closeTarotModal;
 
 /* ═══════════════════════════════════════════════════════════════
-   세 타로 메인 화면 클릭 시 코인 차감 핸들러
+   세 타로 메인 화면 클릭 시 유료 처리 핸들러
    이직 운명의 카드 · 속마음 알아보기 · 원석 소울 타로
 ═══════════════════════════════════════════════════════════════ */
 function startIjikTarot() {
@@ -7930,7 +7930,7 @@ function openSajuLifeBookBuilder() {
     window.openLifeBookModal();
     return;
   }
-  __cdLoadScriptOnce('/js/life-book.js?v=build-976e81dee0b1').then(function () {
+  __cdLoadScriptOnce('/js/life-book.js?v=build-9cc96d460317').then(function () {
     if (typeof window.openLifeBookModal === 'function') window.openLifeBookModal();
   });
 }
@@ -8015,6 +8015,75 @@ var __cdLangUiApplying = false;
 
 function cdGetLangLabel(code) {
   return _langLabelMap[code] || String(code || 'KR').toUpperCase();
+}
+
+function cdNormalizeTranslateLang(code) {
+  var next = String(code || '').trim();
+  if (next === 'zh' || next === 'zh-cn' || next === 'zh_CN') return 'zh-CN';
+  return Object.prototype.hasOwnProperty.call(_langLabelMap, next) ? next : 'ko';
+}
+
+function cdReadUrlTranslateLang() {
+  try {
+    var params = new URLSearchParams(window.location.search || '');
+    var lang = params.get('lang');
+    return lang ? cdNormalizeTranslateLang(lang) : '';
+  } catch (_) {}
+  return '';
+}
+
+function cdReadExplicitTranslateLang() {
+  try {
+    if (localStorage.getItem('cd_lang_explicit') !== '1') return '';
+    var stored = localStorage.getItem('cd_lang');
+    return stored ? cdNormalizeTranslateLang(stored) : '';
+  } catch (_) {}
+  return '';
+}
+
+function cdGetExplicitTranslateIntentLang() {
+  var urlLang = cdReadUrlTranslateLang();
+  if (urlLang && urlLang !== 'ko') return urlLang;
+  var storedLang = cdReadExplicitTranslateLang();
+  if (storedLang && storedLang !== 'ko') return storedLang;
+  return '';
+}
+
+function cdClearGoogleTranslateCookies() {
+  var host = window.location.hostname;
+  document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax;';
+  if (host) {
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=' + host + '; path=/; SameSite=Lax;';
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.' + host + '; path=/; SameSite=Lax;';
+  }
+}
+
+function cdClearImplicitTranslateState() {
+  try {
+    if (localStorage.getItem('cd_lang_explicit') === '1') return;
+    localStorage.removeItem('cd_lang');
+  } catch (_) {}
+  cdClearGoogleTranslateCookies();
+}
+
+function cdMarkExplicitLanguageChoice(langCode) {
+  try {
+    localStorage.setItem('cd_lang_explicit', '1');
+    if (langCode) localStorage.setItem('cd_lang', cdNormalizeTranslateLang(langCode));
+  } catch (_) {}
+}
+
+cdClearImplicitTranslateState();
+
+if (!window.__cdExplicitLangChoiceBound) {
+  window.__cdExplicitLangChoiceBound = true;
+  document.addEventListener('click', function(event) {
+    var target = event && event.target;
+    if (!target || !target.closest) return;
+    var btn = target.closest('.lang-btn[data-lang]');
+    if (!btn) return;
+    cdMarkExplicitLanguageChoice(btn.getAttribute('data-lang'));
+  }, true);
 }
 
 function cdGetCurrentLangFromCookie() {
@@ -8152,7 +8221,7 @@ function changeLanguage(langCode, btn) {
     label.textContent = cdGetLangLabel(langCode);
   }
 
-  try { localStorage.setItem('cd_lang', langCode); } catch (_) {}
+  cdMarkExplicitLanguageChoice(langCode);
 
   var applyPromise = cdSetGoogleTranslateLanguage(langCode, {
     maxAttempts: 90,
@@ -8254,7 +8323,14 @@ function toggleLangDropdown() {
 }
 
 window.addEventListener('load', function() {
-  cdEnsureGoogleTranslateBootstrap();
+  var explicitLang = cdGetExplicitTranslateIntentLang();
+  if (explicitLang) {
+    cdSetGoogleTranslateLanguage(explicitLang, {
+      maxAttempts: 90,
+      retryDelay: 50,
+      fallbackToCookieReload: true
+    });
+  }
   if (!window.__cdLangWrapAutoHideScheduled) {
     window.__cdLangWrapAutoHideScheduled = true;
     __cdScheduleLangWrapHide();
@@ -8288,27 +8364,6 @@ window.addEventListener('load', function() {
     var label = document.getElementById('langLabel');
     if (label) label.textContent = cdGetLangLabel(lang || 'ko');
   }, 1000);
-});
-
-// Auto-select language by IP/region on first visit (no saved preference)
-window.addEventListener('load', function() {
-  setTimeout(function() {
-    try {
-      var saved = localStorage.getItem('cd_lang');
-      if (saved) return;
-    } catch (_) {}
-
-    fetch('/api/geo', { cache: 'no-store' })
-      .then(function(r) { return r.json(); })
-      .then(function(p) {
-        if (!p || !p.widgetLang) return;
-        var nextLang = String(p.widgetLang);
-        if (!nextLang || nextLang === 'ko') return;
-        try { localStorage.setItem('cd_lang', nextLang); } catch (_) {}
-        changeLanguage(nextLang);
-      })
-      .catch(function() {});
-  }, 1200);
 });
 
 (function() {

@@ -89,7 +89,7 @@ index-inline-runtime.js → 기본 초기화
          ↓
 sibyl-system.js → 사용자 상호작용
          ↓
-/api/sibyl/report → 백엔드 (100코인 차감)
+/api/sibyl/report → 백엔드 (유료 처리)
          ↓
 20,000자 + 리포트 생성
 ```

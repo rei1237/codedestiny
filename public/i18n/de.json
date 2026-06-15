@@ -86,8 +86,8 @@
       "saveProfile": "Profilkarte speichern",
       "saveOptional": "Optional",
       "kakaoEvent": "Kakao-Teilen-Event",
-      "kakaoEventSub": "Freund einladen und 100 Moonlight Stone erhalten",
-      "referralNote": "Empfehlungsprämien werden vergeben, wenn sich ein Freund über deinen Mondlicht-Link anmeldet. Das Tageslimit beträgt 500 Moonlight Stone."
+      "kakaoEventSub": "Einladungslink für Freunde erstellen",
+      "referralNote": "Lade Freunde über deinen Mondlicht-Link ein."
     },
     "startSection": {
       "kicker": "TODAY CARDS",
