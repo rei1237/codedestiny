@@ -41,7 +41,7 @@
 - lint 경고는 기존 다수 존재. 현재 기준으로 exit 0이며, 후속 정리에서는 경고 수 증가 없음 기준으로 추적 필요.
 - `public/version.json`은 `npm run build`가 갱신하는 빌드 메타데이터라 cleanup 커밋에는 포함하지 않음.
 - cleanup audit dry-run은 문서 파일까지 unused 후보로 볼 수 있어 삭제 판단에는 추가 사용처 증거가 필요.
-- `scripts/verify-paid-feature-billing-policy.mjs`는 `sukuyo-symbolic-comparison`을 30코인으로 기대하지만 현재 Worker registry와 Sukuyo engine은 50코인으로 일치. 결제 정책 확인 전 보류.
+- `scripts/verify-paid-feature-billing-policy.mjs`의 `sukuyo-symbolic-comparison` 기대값을 현재 Worker registry와 Sukuyo engine의 50코인 설정에 맞춰 복구.
 
 ## 다음에 정리할 후보
 

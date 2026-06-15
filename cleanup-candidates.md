@@ -26,7 +26,7 @@
 | `fortune/data/**`와 `public/fortune/data/**` | 생성/배포 mirror 데이터 | generator 및 sitemap/rss 경로 확인 |
 | `js/vendor/sweph-wasm/**`와 `public/js/vendor/sweph-wasm/**` | 브라우저 fetch 경로 민감 | 실제 wasm/ephe fetch path 확인 |
 | `css/index-inline-extracted.css`, `public/css/index-inline-extracted.css` | 코드 참조는 감사 보고서 외 없음. 단, sync가 root `css`를 `public/css`로 복사하고 stale 제거는 보장하지 않음 | source+mirror 삭제 정책 정리 |
-| `scripts/verify-paid-feature-billing-policy.mjs` | `sukuyo-symbolic-comparison` 30코인 기대값이 현재 Worker registry 및 Sukuyo engine 50코인 설정과 충돌 | 결제 정책 확인 |
+| `scripts/verify-paid-feature-billing-policy.mjs` | 처리 완료. `sukuyo-symbolic-comparison` 기대값을 현재 Worker registry 및 Sukuyo engine의 50코인 설정과 일치시킴 | `node scripts/verify-paid-feature-billing-policy.mjs` 통과 |
 
 ## 모듈화 대기
 
