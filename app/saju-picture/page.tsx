@@ -124,6 +124,8 @@ const SAJU_GUARDIAN_ACCESS_VERSION = "v2";
 const SAJU_GUARDIAN_SESSION_MARK = "1";
 const SAJU_GUARDIAN_VERIFICATION_RETRY_MS = 800;
 const SAJU_GUARDIAN_TILE_LOCK_SCOPE_KEY = "fortune_auth_user";
+const SAJU_GUARDIAN_TILE_LOCKS_PREFIX = "cd_tile_locks_v2";
+const SAJU_GUARDIAN_IMAGE_SRC = "/fuctionassets/saju-guardian-animal-v20260615.png";
 
 type GuardianPayload = Record<string, unknown> | null | undefined;
 
@@ -194,6 +196,21 @@ function readFortuneAuthScopeId() {
   }
 }
 
+function collectGuardianTileLockStorageKeys() {
+  const keys = new Set<string>(["cd_tile_locks"]);
+  const scopedKey = readFortuneAuthScopeId();
+  if (scopedKey) keys.add(scopedKey);
+  try {
+    for (let index = 0; index < window.localStorage.length; index += 1) {
+      const key = window.localStorage.key(index) || "";
+      if (key === SAJU_GUARDIAN_TILE_LOCKS_PREFIX || key.startsWith(`${SAJU_GUARDIAN_TILE_LOCKS_PREFIX}::`)) {
+        keys.add(key);
+      }
+    }
+  } catch (_) {}
+  return Array.from(keys);
+}
+
 function hasGuardianUnlockAccessInTileLockMaps() {
   if (typeof window === "undefined") return false;
   const runtimeUnlockedFeatureMap =
@@ -204,20 +221,14 @@ function hasGuardianUnlockAccessInTileLockMaps() {
     }
   } catch (_) {}
   try {
-    const legacyRaw = window.localStorage.getItem("cd_tile_locks");
-    if (legacyRaw) {
-      const legacy = JSON.parse(legacyRaw);
-      if (hasFeatureInLockMap(legacy, SAJU_GUARDIAN_FEATURE_KEY)) return true;
-    }
-  } catch (_) {}
-  try {
-    const scopedKey = readFortuneAuthScopeId();
-    if (scopedKey) {
-      const scopedRaw = window.localStorage.getItem(scopedKey);
-      if (scopedRaw) {
-        const scoped = JSON.parse(scopedRaw);
-        if (hasFeatureInLockMap(scoped, SAJU_GUARDIAN_FEATURE_KEY)) return true;
-      }
+    const storageKeys = collectGuardianTileLockStorageKeys();
+    for (const storageKey of storageKeys) {
+      try {
+        const raw = window.localStorage.getItem(storageKey);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        if (hasFeatureInLockMap(parsed, SAJU_GUARDIAN_FEATURE_KEY)) return true;
+      } catch (_) {}
     }
   } catch (_) {}
   return false;
@@ -1486,7 +1497,7 @@ export default function SajuPicturePage() {
         <div className="max-w-md mx-auto px-4 pb-12 space-y-6">
           <div className="relative w-full aspect-square max-w-sm mx-auto mt-6 rounded-3xl overflow-hidden shadow-2xl shadow-pink-200/60 border-4 border-white/80">
             <Image
-              src="/fuctionassets/saju-guardian-60gabsja.webp"
+              src={SAJU_GUARDIAN_IMAGE_SRC}
               alt="사주 가디언 소환진"
               fill
               priority
