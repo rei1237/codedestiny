@@ -77,6 +77,28 @@ export default function HomePage() {
         </div>
       </header>
 
+      <section className={`${styles.panel} ${styles.musicPanel}`} data-marker="react-home-dest1nova-music-v20260615">
+        <Link href="/music" className={styles.musicEntry} aria-label="DEST1NOVA 달빛 플레이리스트 감상하기">
+          <span className={styles.musicCovers} aria-hidden="true">
+            <span className={`${styles.musicAlbum} ${styles.musicAlbumNeo}`}>
+              <img src="https://music.code-destiny.com/neosong/%EB%84%A4%EC%98%A4%20%EB%8D%B0%EB%B7%94.webp" alt="" loading="lazy" decoding="async" />
+            </span>
+            <span className={`${styles.musicAlbum} ${styles.musicAlbumYeoni}`}>
+              <img src="https://music.code-destiny.com/yeonisong/%EA%BD%83%EB%8F%BC%EC%A7%80%201%EC%A7%91.webp" alt="" loading="lazy" decoding="async" />
+            </span>
+            <span className={`${styles.musicAlbum} ${styles.musicAlbumDest1nova}`}>
+              <img src="https://music.code-destiny.com/DEST1NOVA/DEST1NOVA.webp" alt="" loading="lazy" decoding="async" />
+            </span>
+          </span>
+          <span className={styles.musicCopy}>
+            <span className={styles.musicKicker}>MOON MUSIC</span>
+            <strong>달빛 아래, DEST1NOVA까지 열린 플레이리스트</strong>
+            <span>네오와 연이의 미니 앨범, DEST1NOVA의 별빛 트랙까지 한 번에 이어집니다.</span>
+          </span>
+          <span className={styles.musicCta}>53곡 감상하기</span>
+        </Link>
+      </section>
+
       <section className={`${styles.panel} ${styles.sectionPanel}`}>
         <h2 className={styles.sectionTitle}>주요 운세 서비스</h2>
         <p className={styles.sectionLead}>

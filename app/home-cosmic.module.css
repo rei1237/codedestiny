@@ -152,6 +152,110 @@
   line-height: 1.7;
 }
 
+.musicPanel {
+  margin-top: 1.15rem;
+  padding: 1rem;
+  background:
+    radial-gradient(620px 180px at 82% 10%, rgba(103, 232, 249, 0.18), transparent 64%),
+    linear-gradient(145deg, rgba(8, 18, 45, 0.88), rgba(29, 22, 66, 0.82) 56%, rgba(7, 38, 55, 0.86));
+}
+
+.musicEntry {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.15rem;
+  color: #f7fbff;
+}
+
+.musicCovers {
+  position: relative;
+  width: 210px;
+  height: 128px;
+  filter: drop-shadow(0 18px 26px rgba(2, 6, 23, 0.42));
+}
+
+.musicAlbum {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid rgba(226, 241, 255, 0.34);
+  background: #050a1a;
+  box-shadow: 0 16px 32px rgba(3, 7, 18, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.musicAlbum img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.musicAlbumNeo {
+  left: 0;
+  top: 10px;
+  width: 104px;
+  height: 104px;
+}
+
+.musicAlbumYeoni {
+  left: 58px;
+  top: 30px;
+  width: 92px;
+  height: 92px;
+}
+
+.musicAlbumDest1nova {
+  left: 116px;
+  top: 0;
+  width: 116px;
+  height: 116px;
+  border-color: rgba(165, 243, 252, 0.5);
+  box-shadow: 0 18px 42px rgba(8, 47, 73, 0.42), 0 0 34px rgba(103, 232, 249, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.musicCopy {
+  display: grid;
+  gap: 0.32rem;
+}
+
+.musicKicker {
+  color: rgba(207, 250, 254, 0.82);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+}
+
+.musicCopy strong {
+  color: #fff8dd;
+  font-size: clamp(1.2rem, 2vw, 1.72rem);
+  line-height: 1.22;
+  font-weight: 850;
+}
+
+.musicCopy span:last-child {
+  max-width: 620px;
+  color: rgba(226, 232, 240, 0.84);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.musicCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(165, 243, 252, 0.34);
+  background: rgba(165, 243, 252, 0.12);
+  color: #ecfeff;
+  padding: 0 1rem;
+  font-size: 0.82rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
 .serviceGrid {
   margin-top: 0.95rem;
   display: grid;
@@ -253,6 +357,45 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .musicEntry {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+
+  .musicCovers {
+    width: min(210px, 100%);
+  }
+
+  .musicCta {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .musicCovers {
+    width: 176px;
+    height: 112px;
+  }
+
+  .musicAlbumNeo {
+    width: 88px;
+    height: 88px;
+  }
+
+  .musicAlbumYeoni {
+    left: 48px;
+    width: 78px;
+    height: 78px;
+  }
+
+  .musicAlbumDest1nova {
+    left: 96px;
+    width: 96px;
+    height: 96px;
+  }
 }
 
 @media (min-width: 768px) {
