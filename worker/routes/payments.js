@@ -27,7 +27,7 @@ import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
-import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
+import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 
@@ -178,12 +178,12 @@ function isDigitalContentPaymentRequest(body = {}) {
 const USAGE_PASS_PRODUCT_CATALOG = Object.freeze({
   saju_unlock_3: Object.freeze({ id: "saju_unlock_3", category: "saju_unlock", uses: 3, paymentAmount: 12000, coinPrice: 150, title: "사주 잠금 서비스 3개 해제권" }),
   saju_unlock_5: Object.freeze({ id: "saju_unlock_5", category: "saju_unlock", uses: 5, paymentAmount: 19000, coinPrice: 250, title: "사주 잠금 서비스 5개 해제권" }),
-  fortune_30_3: Object.freeze({ id: "fortune_30_3", category: "fortune_30", uses: 3, paymentAmount: 6900, coinPrice: 90, title: "30코인 이하 운세 3회 이용권" }),
-  fortune_30_10: Object.freeze({ id: "fortune_30_10", category: "fortune_30", uses: 10, paymentAmount: 22500, coinPrice: 300, title: "30코인 이하 운세 10회 이용권" }),
-  fortune_30_30: Object.freeze({ id: "fortune_30_30", category: "fortune_30", uses: 30, paymentAmount: 63000, coinPrice: 900, title: "30코인 이하 운세 30회 이용권" }),
-  fortune_50_3: Object.freeze({ id: "fortune_50_3", category: "fortune_50", uses: 3, paymentAmount: 11500, coinPrice: 150, title: "50코인 이하 운세 3회 이용권" }),
-  fortune_50_10: Object.freeze({ id: "fortune_50_10", category: "fortune_50", uses: 10, paymentAmount: 37500, coinPrice: 500, title: "50코인 이하 운세 10회 이용권" }),
-  fortune_50_30: Object.freeze({ id: "fortune_50_30", category: "fortune_50", uses: 30, paymentAmount: 105000, coinPrice: 1500, title: "50코인 이하 운세 30회 이용권" }),
+  fortune_30_3: Object.freeze({ id: "fortune_30_3", category: "fortune_30", uses: 3, paymentAmount: 6900, coinPrice: 90, title: "3,000원 이하 운세 3회 이용권" }),
+  fortune_30_10: Object.freeze({ id: "fortune_30_10", category: "fortune_30", uses: 10, paymentAmount: 22500, coinPrice: 300, title: "3,000원 이하 운세 10회 이용권" }),
+  fortune_30_30: Object.freeze({ id: "fortune_30_30", category: "fortune_30", uses: 30, paymentAmount: 63000, coinPrice: 900, title: "3,000원 이하 운세 30회 이용권" }),
+  fortune_50_3: Object.freeze({ id: "fortune_50_3", category: "fortune_50", uses: 3, paymentAmount: 11500, coinPrice: 150, title: "5,000원 이하 운세 3회 이용권" }),
+  fortune_50_10: Object.freeze({ id: "fortune_50_10", category: "fortune_50", uses: 10, paymentAmount: 37500, coinPrice: 500, title: "5,000원 이하 운세 10회 이용권" }),
+  fortune_50_30: Object.freeze({ id: "fortune_50_30", category: "fortune_50", uses: 30, paymentAmount: 105000, coinPrice: 1500, title: "5,000원 이하 운세 30회 이용권" }),
   compat_3: Object.freeze({ id: "compat_3", category: "compat", uses: 3, paymentAmount: 11500, coinPrice: 150, title: "운세 서비스 궁합 3회 이용권" }),
   compat_10: Object.freeze({ id: "compat_10", category: "compat", uses: 10, paymentAmount: 37500, coinPrice: 500, title: "운세 서비스 궁합 10회 이용권" }),
   compat_30: Object.freeze({ id: "compat_30", category: "compat", uses: 30, paymentAmount: 105000, coinPrice: 1500, title: "운세 서비스 궁합 30회 이용권" }),
@@ -203,8 +203,8 @@ function buildUsagePassPricing(product) {
     featureKey: `usage-pass-${product.category}-${product.uses}`,
     cost: Number(product.coinPrice || 0),
     coinPrice: Number(product.coinPrice || 0),
-    displayUnit: "coin",
-    displayPrice: `${Number(product.coinPrice || 0).toLocaleString("ko-KR")}코인`,
+    displayUnit: "KRW",
+    displayPrice: `${calculateKrwAmountFromCoins(Number(product.coinPrice || 0)).toLocaleString("ko-KR")}원`,
     reason: String(product.title || "횟수형 이용권"),
     currency: "KRW",
     amountKRW: Number(product.paymentAmount || 0),
@@ -482,7 +482,7 @@ function resolvePaymentMethodLabel(payment) {
   const currency = String(metadata.currency || "").trim().toUpperCase();
 
   if (normalized === "moonlight_stone" || normalized === "monthly_credit" || normalized === "monthly" || accessType === "membership_credit" || currency === "MOONLIGHT_STONE" || currency === "MONTHLY_CREDIT") {
-    return "Moonlight Stone";
+    return "보너스 가치";
   }
   if (normalized === "card_general" || normalized === "card") return "카드 결제";
   if (normalized === "virtual_account") return "가상계좌";
@@ -775,7 +775,7 @@ function resolveSinglePaymentPricing(body = {}) {
     return {
       ok: false,
       status: 400,
-      message: "Payment product coin price is invalid.",
+      message: "Payment product value is invalid.",
       code: "INVALID_PRODUCT_PRICE",
     };
   }
@@ -2157,7 +2157,7 @@ async function settlePaymentByImpUid({
     return {
       ok: false,
       status: 410,
-      message: "선불형 잔액 결제는 더 이상 처리하지 않습니다. 상품별 코인 기준 단건 결제를 이용해 주세요.",
+      message: "선불형 잔액 결제는 더 이상 처리하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
     };
   }
 
@@ -3034,7 +3034,7 @@ async function handlePrepare(request, env, auth) {
   }
 
   return json({
-    message: "선불형 잔액 상품은 더 이상 판매하지 않습니다. 상품별 코인 기준 단건 결제를 이용해 주세요.",
+    message: "선불형 잔액 상품은 더 이상 판매하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
     code: "POINT_CHARGE_DISABLED",
   }, { status: 410 });
 
@@ -3402,7 +3402,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
   const currentMonthlyCredits = Math.max(0, Math.floor(Number(existingUser?.profileSubscription?.membershipCreditBalance || 0)));
   if (currentMonthlyCredits < requiredMonthlyCredits) {
     return json({
-      message: "Moonlight Stone 보너스 잔량이 부족합니다.",
+      message: "보너스 가치가 부족합니다.",
       code: "INSUFFICIENT_MONTHLY_CREDITS",
       requiredMonthlyCredits,
       currentMonthlyCredits,
@@ -3580,7 +3580,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
       incrementAttempt: true,
     }).catch(() => {});
     return json({
-      message: "Moonlight Stone 보너스 잔량이 부족합니다.",
+      message: "보너스 가치가 부족합니다.",
       code: "INSUFFICIENT_MONTHLY_CREDITS",
       requiredMonthlyCredits,
       currentMonthlyCredits,
@@ -3666,7 +3666,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
   });
 
   return json({
-    message: "Moonlight Stone 보너스로 달빛 이용권이 활성화되었습니다.",
+    message: "보너스 가치로 달빛 이용권이 활성화되었습니다.",
     idempotent: false,
     payment: formatPaymentResponse(await Payment.findById(paymentRecord._id).lean()),
     subscription: {
@@ -4359,7 +4359,7 @@ function resolveMonthlyCreditRefundReason(metadata, fallback) {
       || fallback
       || "",
   ).trim();
-  return reason || "Moonlight Stone 환불";
+  return reason || "보너스 가치 환불";
 }
 
 function formatMonthlyCreditLedgerEntry(entry) {
@@ -4547,7 +4547,7 @@ function formatMonthlyCreditGrantSummary(auth, safeUser, ledgers) {
     amount: granted,
     beforeBalance: 0,
     afterBalance: Math.max(granted, balance + used),
-    reason: "Moonlight Stone 지급",
+    reason: "보너스 가치 지급",
     sourceId,
     serviceKey: "membership_credit_grant",
     createdAt: safeUser?.joinedAt || sub.legacyCoinCreditSeededAt || null,

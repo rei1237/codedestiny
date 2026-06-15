@@ -120,9 +120,9 @@ const FEATURES: ServiceFeature[] = ([
     launchRoute: "/ziwei/chart",
     accessType: "paid",
     featureKey: "premium-ziwei",
-    priceLabel: "500코인",
+    priceLabel: "50,000원",
     tags: ["자미두수", "12궁", "명궁", "신궁", "사화"],
-    highlights: ["12궁 핵심 명반", "500코인 영구 해금", "프리미엄 PDF 확장 가능"],
+    highlights: ["12궁 핵심 명반", "50,000원 영구 해금", "프리미엄 PDF 확장 가능"],
     howItWorks: [
       { title: "출생 정보 입력", description: "생년월일시 입력으로 명반 계산 준비" },
       { title: "12궁 배치 계산", description: "명궁·신궁·주성 배치를 내부 엔진으로 계산" },
@@ -215,7 +215,7 @@ const FEATURES: ServiceFeature[] = ([
     launchRoute: "/index.html?action=openAstroModal",
     accessType: "free",
     tags: ["점성술", "태양궁", "달궁", "상승궁", "하우스"],
-    highlights: ["기본 차트 무료", "궁합 50코인", "심화 해석 가능"],
+    highlights: ["기본 차트 무료", "궁합 5,000원", "심화 해석 가능"],
     howItWorks: [
       { title: "출생 정보 입력", description: "출생 시간을 포함해 차트 계산" },
       { title: "코즈믹 차트 생성", description: "행성/하우스 기반 핵심 축 계산" },
@@ -246,7 +246,7 @@ const FEATURES: ServiceFeature[] = ([
     launchRoute: "/index.html?action=openTarotModal",
     accessType: "free",
     tags: ["타로", "연애", "선택", "리딩"],
-    highlights: ["기본 리딩 무료", "심화 스프레드는 코인 과금"],
+    highlights: ["기본 리딩 무료", "심화 스프레드는 원화 단건 결제"],
     howItWorks: [
       { title: "질문 설정", description: "현재 고민과 질문을 정리합니다." },
       { title: "카드 전개", description: "스프레드 규칙에 따라 카드가 열립니다." },
@@ -277,7 +277,7 @@ const FEATURES: ServiceFeature[] = ([
     accessType: "paid",
     featureKey: "tarot-prompt-maker",
     tags: ["타로", "프롬프트", "스프레드", "AI 리딩"],
-    highlights: ["질문 자동 분류", "63개 스프레드 라이브러리", "1회 50코인"],
+    highlights: ["질문 자동 분류", "63개 스프레드 라이브러리", "1회 5,000원"],
     howItWorks: [
       { title: "질문 입력", description: "지금 궁금한 상황을 자연어로 입력합니다." },
       { title: "스프레드 선택", description: "질문 의도에 맞는 스프레드를 고르고 카드 수만큼 직접 드로우합니다." },
@@ -308,7 +308,7 @@ const FEATURES: ServiceFeature[] = ([
     accessType: "paid",
     priceLabel: "부분 유료",
     tags: ["손금", "AI 이미지 분석", "생명선", "감정선"],
-    highlights: ["기본 진입 가능", "상세 리딩은 코인 기반"],
+    highlights: ["기본 진입 가능", "상세 리딩은 원화 기준"],
     howItWorks: [
       { title: "손바닥 업로드", description: "안내에 따라 손바닥 이미지를 업로드합니다." },
       { title: "라인 분석", description: "핵심 손금 라인과 패턴을 추출합니다." },
@@ -400,7 +400,7 @@ const FEATURES: ServiceFeature[] = ([
     accessType: "paid",
     featureKey: "loveSimulation",
     tags: ["러브 코드", "연애 시뮬레이션", "궁합", "사주"],
-    highlights: ["시뮬레이션형 체험", "코인 기반 실행"],
+    highlights: ["시뮬레이션형 체험", "원화 기준 실행"],
     howItWorks: [
       { title: "상대 정보 입력", description: "상대 생년월일로 기본 사주 정보를 구성합니다." },
       { title: "페르소나 생성", description: "연애 반응 패턴을 시뮬레이션용으로 생성합니다." },
@@ -521,7 +521,7 @@ const FEATURES: ServiceFeature[] = ([
     launchRoute: "/premium/saju-lifebook",
     accessType: "premium_report",
     featureKey: "saju_life_book_pdf",
-    priceLabel: "500코인",
+    priceLabel: "50,000원",
     tags: ["사주", "인생 전략", "13챕터", "PDF"],
     highlights: ["13챕터 고정 구조", "로컬 계산 우선", "PDF 저장용 결과"],
     howItWorks: [
@@ -553,7 +553,7 @@ const FEATURES: ServiceFeature[] = ([
     launchRoute: "/index.html?action=gotoZiweiPremium",
     accessType: "premium_report",
     featureKey: "premium_pdf_ziwei",
-    priceLabel: "590코인",
+    priceLabel: "59,000원",
     tags: ["ZIWEI", "PREMIUM", "15 CHAPTERS", "PDF"],
     highlights: ["15챕터 고정 구조", "명궁·신궁·12궁 기반", "대한·유년 종합 전략"],
     howItWorks: [
@@ -585,7 +585,7 @@ const FEATURES: ServiceFeature[] = ([
     launchRoute: "/index.html?action=openRuneOracle",
     accessType: "paid",
     featureKey: "stonehengeRunes",
-    priceLabel: "30~120코인",
+    priceLabel: "3,000원~12,000원",
     tags: ["룬", "오라클", "스톤헨지", "선택 리딩"],
     highlights: ["다중 스프레드", "질문형 리딩"],
     howItWorks: [
@@ -617,7 +617,7 @@ const FEATURES: ServiceFeature[] = ([
     launchRoute: "/index.html?action=openAnimalTotemModal",
     accessType: "paid",
     featureKey: "animal-totem-basic",
-    priceLabel: "30~60코인",
+    priceLabel: "3,000원~6,000원",
     tags: ["토템", "수호 동물", "카드 리딩"],
     highlights: ["기본/심화 모드", "상징형 메시지"],
     howItWorks: [

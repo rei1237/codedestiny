@@ -2817,7 +2817,7 @@ async function handlePrepare(request, env) {
         : paymentConfirmedButMissing
           ? "결제는 확인되었지만 생성 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요."
           : isCoinShortage
-            ? "운명의 업 PDF 생성을 위해 코인이 필요합니다."
+            ? "운명의 업 PDF 생성을 위해 결제가 필요합니다."
             : status === 402
               ? "프리미엄 PDF 생성 권한이 필요합니다."
             : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";

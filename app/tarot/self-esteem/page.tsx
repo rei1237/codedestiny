@@ -112,7 +112,7 @@ export default function TarotSelfEsteemLandingPage() {
             {/* Info Box */}
             <div className="rounded-xl border-l-4 border-emerald-400 bg-gradient-to-r from-emerald-400/15 to-emerald-300/5 p-4">
               <p className="text-sm font-semibold text-emerald-100">
-                ✨ <span className="text-emerald-200">100% 무료</span> — 코인 차감 없이 모든 기능 이용 가능
+                ✨ <span className="text-emerald-200">100% 무료</span> — 추가 결제 없이 모든 기능 이용 가능
               </p>
             </div>
           </div>

@@ -375,7 +375,7 @@ body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#
                 cursor: generationLoading ? "wait" : "pointer", opacity: generationLoading ? 0.72 : 1,
               }}
             >
-              {generationLoading ? "코인 확인 중…" : "프리미엄 작명 시작하기"}
+              {generationLoading ? "결제 확인 중…" : "프리미엄 작명 시작하기"}
             </button>
           </div>
         </div>

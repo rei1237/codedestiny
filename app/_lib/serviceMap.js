@@ -88,7 +88,7 @@ export const SERVICE_MAP = {
     seoText:
       "최애운명은 AI가 계산하지 않고 내부 사주 엔진의 canonical JSON을 기반으로 해석만 생성합니다.",
     ogImage: "https://code-destiny.com/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
-    landingPoints: ["내 사주 × 최애 사주 공명 점수", "오행 보완/십성 역할 제안", "1회 50코인 분석 카드"],
+    landingPoints: ["내 사주 × 최애 사주 공명 점수", "오행 보완/십성 역할 제안", "1회 5,000원 분석 카드"],
     keywords: [
       "최애운명",
       "팬덤 사주",
@@ -143,7 +143,7 @@ export const SERVICE_MAP = {
     seoText:
       "인연의 장소 기능은 동물점 결과 화면 종속이 아닌 독립 분석 페이지로 실행되며, 입력 즉시 사주 계산 후 장소 리포트를 제공합니다.",
     ogImage: "https://code-destiny.com/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp",
-    landingPoints: ["독립 실행 입력 폼", "인연 장소 TOP 5", "국가/도시 추천", "1회 100코인"],
+    landingPoints: ["독립 실행 입력 폼", "인연 장소 TOP 5", "국가/도시 추천", "1회 10,000원"],
     keywords: [
       "사주로 보는 인연의 장소",
       "인연 장소 추천",
@@ -524,7 +524,7 @@ export const SERVICE_MAP = {
     seoText:
       "IFA 오라클은 상징 조합과 질문 맥락을 연결해 연애·재물·건강 흐름을 해석하는 인터랙티브 신탁 서비스입니다.",
     ogImage: "https://code-destiny.com/fuctionassets/ifafortune.webp",
-    landingPoints: ["256 오두 전통 해석", "질문 맥락형 오라클", "회차당 30코인 리딩"],
+    landingPoints: ["256 오두 전통 해석", "질문 맥락형 오라클", "회차당 3,000원 리딩"],
     keywords: [
       "IFA 오라클",
       "이파 점술",

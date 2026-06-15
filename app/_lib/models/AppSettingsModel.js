@@ -13,8 +13,8 @@ const DEFAULT_SETTINGS = {
   newUserCoins: 100,
   fortuneCosts: { saju: 10, tarot: 5, horoscope: 3, dream: 5, daily: 0, geomancy: 5 },
   coinPackages: [
-    { id: "pkg_500",  name: "기본팩 500코인",      coins: 500,  priceKRW: 5000,  isActive: true },
-    { id: "pkg_1200", name: "표준팩 1,200코인",   coins: 1200, priceKRW: 10000, isActive: true },
+    { id: "pkg_500",  name: "기본팩 50,000원",      coins: 500,  priceKRW: 5000,  isActive: true },
+    { id: "pkg_1200", name: "표준팩 1,20,000원",   coins: 1200, priceKRW: 10000, isActive: true },
     { id: "pkg_3000", name: "프리미엄팩 3,000코인", coins: 3000, priceKRW: 22000, isActive: true },
   ],
   popupEnabled: false,

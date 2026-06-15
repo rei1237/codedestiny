@@ -1127,7 +1127,7 @@ async function findOrCreateSocialUser(provider, profile, env) {
     amount: SIGNUP_MONTHLY_CREDIT_GRANT,
     beforeBalance: 0,
     afterBalance: SIGNUP_MONTHLY_CREDIT_GRANT,
-    reason: "회원가입 Moonlight Stone 지급",
+    reason: "회원가입 보너스 가치 지급",
     sourceId: `signup:${String(createdUser._id || "")}`,
     serviceKey: "signup_bonus",
     metadata: {
@@ -1687,7 +1687,7 @@ async function handleRegister(request, env) {
     amount: SIGNUP_MONTHLY_CREDIT_GRANT,
     beforeBalance: 0,
     afterBalance: SIGNUP_MONTHLY_CREDIT_GRANT,
-    reason: "회원가입 Moonlight Stone 지급",
+    reason: "회원가입 보너스 가치 지급",
     sourceId: `signup:${String(user._id || "")}`,
     serviceKey: "signup_bonus",
     metadata: {

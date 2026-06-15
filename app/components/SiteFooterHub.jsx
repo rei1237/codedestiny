@@ -124,7 +124,7 @@ const BUSINESS_INFO_ROWS = [
 
 const REFUND_POLICY_ROWS = [
   "결제일로부터 7일 이내이고 결과 열람, 리딩 실행, PDF 또는 AI 해석 생성이 시작되지 않은 주문은 청약철회를 접수할 수 있습니다.",
-  "코인은 가격 표시 단위이며 선불 충전/잔액 적립은 제공하지 않습니다.",
+    "콘텐츠 가격은 원화 기준으로 표시되며 선불형 잔액 적립은 제공하지 않습니다.",
   "디지털 콘텐츠 제공이 시작된 이후에는 해당 제공분의 환불이 제한될 수 있으며, 미제공분이 있으면 합리적 기준에 따라 잔여분을 산정합니다.",
   "시스템 오류, 중복 결제, 결과 미제공처럼 서비스 제공이 정상 완료되지 않은 주문은 재생성 또는 환불로 처리합니다.",
   "프로모션, 이벤트, 무상 지급, 보상성 지급분은 현금 환불 대상에 포함되지 않습니다.",
@@ -184,7 +184,7 @@ export default function SiteFooterHub() {
             <div className={styles.sfhBusinessDivider}>
               <p className={styles.sfhRefundTitle}>디지털 운세 서비스 환불 안내</p>
               <p className={styles.sfhBusinessEmphasis}>
-                유료 리딩과 PDF는 상품별 코인 기준 단건 결제로 제공되며, 전자상거래 관련 법령 및 약관에 따라 미사용 주문과 미제공 주문을 기준으로 환불을 안내합니다.
+                유료 리딩과 PDF는 상품별 원화 단건 결제로 제공되며, 전자상거래 관련 법령 및 약관에 따라 미사용 주문과 미제공 주문을 기준으로 환불을 안내합니다.
               </p>
               <ul className={styles.sfhRefundList}>
                 {REFUND_POLICY_ROWS.map((rule) => (

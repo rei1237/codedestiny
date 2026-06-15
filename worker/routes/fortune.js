@@ -46,6 +46,7 @@ import {
   resolvePremiumAccessReportType,
 } from "../lib/premium-access-token.js";
 import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
@@ -523,7 +524,7 @@ function resolveServerCoinPricing({ env, productSpec, requestedCost, featureKey,
       return {
         ok: true,
         cost: requestCost,
-        reason: reasonText || "Coin gate per-use",
+        reason: reasonText || "Single payment per-use",
         featureKey: key,
         pricingSource: "dynamic-fallback",
       };
@@ -1197,7 +1198,7 @@ async function handleBalance(auth) {
       authenticated: true,
       balance: 0,
       walletCreated: false,
-      message: "Coin balance initialized with safe default.",
+      message: "Payment value initialized with safe default.",
       user: userPayload(auth, 0, []),
       unlockedFeatures: [],
       unlockMap: {},
@@ -1217,7 +1218,7 @@ async function handleBalance(auth) {
     authenticated: true,
     balance: points,
     walletCreated: true,
-    message: "Coin balance loaded.",
+    message: "Payment value loaded.",
     user: userPayload(auth, points, unlockedFeatures),
     unlockedFeatures,
     unlockMap: toUnlockMap(unlockedFeatures),
@@ -1234,7 +1235,7 @@ function buildDbFallbackBalance(auth, error) {
     balance: points,
     walletCreated: false,
     code: "DB_FALLBACK",
-    message: "코인 서버가 일시적으로 불안정하여 보조 정보로 표시합니다.",
+    message: "결제 서버가 일시적으로 불안정하여 보조 정보로 표시합니다.",
     debugMessage: String(error?.message || ""),
     errorDetails: {
       stage: "fortune-db-fallback-balance",
@@ -1260,13 +1261,13 @@ function handleGuestBalance() {
 async function handleChargeSimulate(request, env, auth) {
   return json({
     ok: false,
-    message: "선불형 잔액 상품은 더 이상 판매하지 않습니다. 상품별 코인 기준 단건 결제를 이용해 주세요.",
+    message: "선불형 잔액 상품은 더 이상 판매하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
     code: "POINT_CHARGE_DISABLED",
   }, { status: 410 });
 
   if (String(env.PIG_COIN_PAYMENT_API_READY || "") !== "true") {
     return json({
-      message: "Coin charge simulation is disabled because the payment API is not ready.",
+      message: "Prepaid balance simulation is disabled because the payment API is not ready.",
       code: "PIG_COIN_CHARGE_DISABLED",
     }, { status: 503 });
   }
@@ -1294,7 +1295,7 @@ async function handleChargeSimulate(request, env, auth) {
     kind: "charge",
     delta,
     balanceAfter: Number(updatedUser.points || 0),
-    reason: "Coin charge simulation",
+    reason: "Prepaid balance simulation",
     featureKey: "pig-coin-charge",
     metadata: {
       source: "fortune.pig-coin.charge-simulate",
@@ -1392,7 +1393,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     : PIG_COIN_DEFAULT_UNLOCK_COST;
 
   if (cost <= 0 || cost > PIG_COIN_MAX_COST) {
-    return json({ message: "Invalid coin deduction amount.", code: "INVALID_REQUEST" }, { status: 400 });
+    return json({ message: "Invalid payment value amount.", code: "INVALID_REQUEST" }, { status: 400 });
   }
 
   const reason = String(pricing.reason || requestReason || "Paid feature unlock").trim().slice(0, 120);
@@ -1567,7 +1568,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     const krwEquivalent = cost * 100;
     return json({
       ok: false,
-      message: "Moonlight Stone 보너스 또는 상품별 코인 기준 단건 결제가 필요합니다.",
+      message: "보너스 가치 또는 상품별 원화 단건 결제가 필요합니다.",
       code: "PAYMENT_REQUIRED",
       featureKey,
       reason,
@@ -1594,7 +1595,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   if (existingCoinSpend) {
     const unlockedFeatures = normalizePersistentUnlockKeys(subscriptionUser.unlockedFeatures);
     return json({
-      message: "Already processed coin payment.",
+      message: "Already processed single payment.",
       code: "ALREADY_PROCESSED",
       featureKey,
       reason,
@@ -1702,7 +1703,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   return json({
     ok: false,
-    message: "Moonlight Stone 보너스 또는 상품별 코인 기준 단건 결제가 필요합니다.",
+    message: "보너스 가치 또는 상품별 원화 단건 결제가 필요합니다.",
     code: "PAYMENT_REQUIRED",
     featureKey,
     reason,
@@ -1780,7 +1781,7 @@ async function handlePigCoinRefund(request, auth) {
     : PIG_COIN_DEFAULT_UNLOCK_COST;
 
   if (cost <= 0 || cost > PIG_COIN_MAX_COST) {
-    return json({ message: "Invalid coin refund amount." }, { status: 400 });
+    return json({ message: "Invalid payment refund amount." }, { status: 400 });
   }
 
   const reason = String(body?.reason || "Premium generation failed auto-refund").trim().slice(0, 120);
@@ -1927,7 +1928,7 @@ function mapZiweiConsumeFailure(response, payload) {
   if (status === 402 || code === "INSUFFICIENT_BALANCE" || code === "INSUFFICIENT_COINS" || code === "PAYMENT_REQUIRED") {
     return buildZiweiAIPromptError(
       "PAYMENT_REQUIRED",
-      `단건 결제가 필요합니다. ${ZIWEI_AI_PROMPT_PRICE}코인 가치의 상품입니다.`,
+      `단건 결제가 필요합니다. ${calculateKrwAmountFromCoins(ZIWEI_AI_PROMPT_PRICE).toLocaleString("ko-KR")}원 가치의 상품입니다.`,
       402,
     );
   }
@@ -1963,7 +1964,7 @@ function mapSajuConsumeFailure(response, payload) {
   if (status === 402 || code === "INSUFFICIENT_BALANCE") {
     return buildSajuAIPromptError(
       "PAYMENT_REQUIRED",
-      `단건 결제가 필요합니다. ${SAJU_AI_PROMPT_PRICE}코인 가치의 상품입니다.`,
+      `단건 결제가 필요합니다. ${calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE).toLocaleString("ko-KR")}원 가치의 상품입니다.`,
       402,
     );
   }
@@ -1995,7 +1996,7 @@ function mapAstrologyConsumeFailure(response, payload) {
   if (status === 402 || code === "INSUFFICIENT_BALANCE") {
     return buildAstrologyAIPromptError(
       "PAYMENT_REQUIRED",
-      `단건 결제가 필요합니다. ${ASTROLOGY_AI_PROMPT_PRICE}코인 가치의 상품입니다.`,
+      `단건 결제가 필요합니다. ${calculateKrwAmountFromCoins(ASTROLOGY_AI_PROMPT_PRICE).toLocaleString("ko-KR")}원 가치의 상품입니다.`,
       402,
     );
   }
@@ -2019,7 +2020,7 @@ function mapVedicConsumeFailure(response, payload) {
   if (status === 402 || code === "INSUFFICIENT_BALANCE") {
     return buildVedicAIPromptError(
       "PAYMENT_REQUIRED",
-      `단건 결제가 필요합니다. ${VEDIC_AI_PROMPT_PRICE}코인 가치의 상품입니다.`,
+      `단건 결제가 필요합니다. ${calculateKrwAmountFromCoins(VEDIC_AI_PROMPT_PRICE).toLocaleString("ko-KR")}원 가치의 상품입니다.`,
       402,
     );
   }
@@ -2682,7 +2683,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
   if (!preflightAccess) {
     return buildZiweiAIPromptError(
       "PAYMENT_REQUIRED",
-      `단건 결제가 필요합니다. ${ZIWEI_AI_PROMPT_PRICE}코인 가치의 상품입니다.`,
+      `단건 결제가 필요합니다. ${calculateKrwAmountFromCoins(ZIWEI_AI_PROMPT_PRICE).toLocaleString("ko-KR")}원 가치의 상품입니다.`,
       402,
     );
   }
@@ -2816,7 +2817,7 @@ function mapSukuyoConsumeFailure(response, payload) {
   if (status === 402 || code === "INSUFFICIENT_BALANCE") {
     return buildSukuyoAIPromptError(
       "PAYMENT_REQUIRED",
-      `단건 결제가 필요합니다. ${SUKUYO_AI_PROMPT_PRICE}코인 가치의 상품입니다.`,
+      `단건 결제가 필요합니다. ${calculateKrwAmountFromCoins(SUKUYO_AI_PROMPT_PRICE).toLocaleString("ko-KR")}원 가치의 상품입니다.`,
       402,
     );
   }
@@ -3419,7 +3420,7 @@ async function handleShareReward(request, auth) {
 async function handleSubscribe(request, auth) {
   return json({
     ok: false,
-    message: "이전 달빛 이용권 신청 방식은 종료되었습니다. 1~12개월 달빛 이용권은 코인 기준 단건 결제로 이용해 주세요.",
+    message: "이전 달빛 이용권 신청 방식은 종료되었습니다. 1~12개월 달빛 이용권은 원화 단건 결제로 이용해 주세요.",
     code: "COIN_SUBSCRIPTION_DISABLED",
   }, { status: 410 });
 }

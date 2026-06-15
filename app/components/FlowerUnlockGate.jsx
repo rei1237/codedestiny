@@ -92,7 +92,7 @@ export default function FlowerUnlockGate({
         <p style={{ margin: 0, lineHeight: 1.8, color: "#dbe5ff" }}>
           이 페이지는 로그인 사용자 중 해당 콘텐츠를 해금한 경우에만 열립니다.
           <br />
-          코인은 콘텐츠 가치 표시 단위이며, 결제 페이지에서 코인 기준 단건 결제로 해금할 수 있습니다.
+          표시 금액은 기존 콘텐츠 가치와 동일한 원화 기준이며, 결제 페이지에서 원화 단건 결제로 해금할 수 있습니다.
         </p>
 
         <div
@@ -107,9 +107,9 @@ export default function FlowerUnlockGate({
             color: "#e2e8f0",
           }}
         >
-          <div>현재 보유 코인: <strong>{Number(currentPoints || 0).toLocaleString("ko-KR")}</strong></div>
-          <div>필요 코인: <strong>{Number(requiredCoins || 0).toLocaleString("ko-KR")}</strong></div>
-            {shortfall > 0 ? <div style={{ color: "#fda4af" }}>부족 코인 기준치: {shortfall.toLocaleString("ko-KR")}</div> : null}
+          <div>현재 보유 원화 가치: <strong>{Number(currentPoints || 0).toLocaleString("ko-KR")}</strong></div>
+          <div>필요 원화 가치: <strong>{Number(requiredCoins || 0).toLocaleString("ko-KR")}</strong></div>
+            {shortfall > 0 ? <div style={{ color: "#fda4af" }}>부족 원화 가치: {shortfall.toLocaleString("ko-KR")}</div> : null}
         </div>
 
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "16px" }}>

@@ -46,7 +46,7 @@ const TIER_META: Record<SubscriptionTier, {
     badge: "bg-white/10 text-slate-100 ring-1 ring-white/15",
     badgeText: "FREE",
     dot: "bg-slate-300",
-    desc: "기본 운세 서비스를 무료로 이용 중입니다. 단건 결제 서비스는 코인 기준 결제로 이용할 수 있습니다.",
+    desc: "기본 운세 서비스를 무료로 이용 중입니다. 단건 결제 서비스는 원화 결제로 이용할 수 있습니다.",
     profileMax: "1개",
     freeUpTo: null,
   },
@@ -59,9 +59,9 @@ const TIER_META: Record<SubscriptionTier, {
     badge: "bg-gradient-to-r from-[#d8bd72] to-[#f5df9d] text-[#1d1834]",
     badgeText: "STANDARD",
     dot: "bg-[#f5df9d]",
-    desc: "일반 유료 서비스 30코인 이하 이용 · PDF 생성 30코인 할인 · 최대 3개 프로필",
+    desc: "일반 유료 서비스 3,000원 이하 이용 · PDF 생성 3,000원 할인 · 최대 3개 프로필",
     profileMax: "3개",
-    freeUpTo: "일반 30코인 이하 · PDF 30코인 할인",
+    freeUpTo: "일반 3,000원 이하 · PDF 3,000원 할인",
   },
   premium: {
     icon: "🌕",
@@ -72,9 +72,9 @@ const TIER_META: Record<SubscriptionTier, {
     badge: "bg-gradient-to-r from-[#cab8ff] to-[#f2d48f] text-[#17142b]",
     badgeText: "PREMIUM",
     dot: "bg-[#cab8ff]",
-    desc: "일반 유료 서비스 50코인 이하 이용 · PDF 생성 50코인 할인 · 최대 7개 프로필",
+    desc: "일반 유료 서비스 5,000원 이하 이용 · PDF 생성 5,000원 할인 · 최대 7개 프로필",
     profileMax: "7개",
-    freeUpTo: "일반 50코인 이하 · PDF 50코인 할인",
+    freeUpTo: "일반 5,000원 이하 · PDF 5,000원 할인",
   },
   vvip: {
     icon: "🌌",
@@ -85,9 +85,9 @@ const TIER_META: Record<SubscriptionTier, {
     badge: "bg-gradient-to-r from-[#f3dd9a] via-[#cab8ff] to-[#8cb8ff] text-[#11142a]",
     badgeText: "VVIP",
     dot: "bg-[#f3dd9a]",
-    desc: "일반 유료 서비스 100코인 이하 이용 · PDF 생성 100코인 할인 · 최대 15개 프로필",
+    desc: "일반 유료 서비스 10,000원 이하 이용 · PDF 생성 10,000원 할인 · 최대 15개 프로필",
     profileMax: "15개",
-    freeUpTo: "일반 100코인 이하 · PDF 100코인 할인",
+    freeUpTo: "일반 10,000원 이하 · PDF 10,000원 할인",
   },
   family: {
     icon: "∞",
@@ -155,7 +155,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
   const benefitLabel = meta.freeUpTo || "단건 결제 가능";
   const singlePaymentCopy = effectiveTier === "family"
     ? "Family 이용권으로 모든 서비스가 무료 처리됩니다."
-    : "일반 한도 초과 서비스는 기존가 결제, PDF는 할인 후 잔액 결제됩니다.";
+    : "일반 한도 초과 서비스는 기존가 결제, PDF는 할인 후 잔여 금액만 결제됩니다.";
 
   return (
     <section
@@ -199,7 +199,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
                 {meta.label} · {benefitLabel} / {durationLabel} · {wonValue.toLocaleString("ko-KR")}원 상당
               </p>
               <p className="mt-1 text-[11.5px] text-slate-200">
-                기본 결제 단위는 코인이며 Moonlight Stone은 이벤트 보너스로만 지급됩니다.
+                기본 결제 단위는 원화이며 보너스 가치는 이벤트 보너스로만 지급됩니다.
               </p>
             </div>
 
@@ -249,7 +249,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
                 </div>
               )}
               <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
-                <p className="text-[10px] text-slate-300 font-bold">Moonlight Stone</p>
+                <p className="text-[10px] text-slate-300 font-bold">보너스 가치</p>
                 <p className="text-[14px] font-black text-white">{monthlyCreditBalance.toLocaleString("ko-KR")}개</p>
               </div>
             </div>
@@ -272,7 +272,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
               <div className="rounded-[12px] border border-orange-300/50 bg-orange-400/12 px-3.5 py-2.5 flex items-start gap-2">
                 <span className="text-orange-500 flex-shrink-0 mt-0.5">🔔</span>
                 <p className="text-[11.5px] text-orange-100">
-                  이용권 기간은 유지됩니다. 추가 유료 콘텐츠는 상품별 코인 기준 단건 결제로 이용할 수 있습니다.
+                  이용권 기간은 유지됩니다. 추가 유료 콘텐츠는 상품별 원화 단건 결제로 이용할 수 있습니다.
                 </p>
               </div>
             )}
@@ -306,8 +306,8 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
             ) : (
               <div className="rounded-[14px] border border-white/12 bg-white/8 px-3.5 py-3">
                 <p className="text-[12.5px] text-slate-200">{meta.desc}</p>
-                <p className="mt-1 text-[11.5px] text-[#f3dd9a]">단건 결제 가능 · 콘텐츠 가치 단위 1코인 = 100원</p>
-                <p className="mt-1 text-[11.5px] font-bold text-[#cab8ff]">Moonlight Stone {monthlyCreditBalance.toLocaleString("ko-KR")}개</p>
+                <p className="mt-1 text-[11.5px] text-[#f3dd9a]">단건 결제 가능 · 콘텐츠 가치는 원화 기준으로 표시됩니다</p>
+                <p className="mt-1 text-[11.5px] font-bold text-[#cab8ff]">보너스 가치 {(monthlyCreditBalance * 10).toLocaleString("ko-KR")}원 상당</p>
               </div>
             )}
           </div>

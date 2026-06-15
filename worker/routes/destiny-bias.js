@@ -191,6 +191,7 @@ function buildDestinyBiasOgSvg(request) {
   const grade = normalizeOgText(params.get("grade"), "A", 6);
   const relation = normalizeOgText(params.get("relation"), "운명 공명", 24);
   const price = normalizeOgText(params.get("price"), String(DESTINY_BIAS_ANALYZE_COST), 8);
+  const priceWon = `${Math.max(0, Math.floor(Number(price || 0) * 100)).toLocaleString("ko-KR")}원`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Destiny Bias OG">
@@ -235,7 +236,7 @@ function buildDestinyBiasOgSvg(request) {
   <g transform="translate(580,330)">
     <rect x="0" y="0" rx="18" ry="18" width="330" height="128" fill="rgba(0,0,0,0.22)" stroke="rgba(255,255,255,0.25)"/>
     <text x="24" y="44" fill="#fef3c7" font-size="24" font-weight="700">이용 요금</text>
-    <text x="24" y="92" fill="#fde68a" font-size="42" font-weight="800">1회 ${escapeXml(price)}코인</text>
+    <text x="24" y="92" fill="#fde68a" font-size="42" font-weight="800">1회 ${escapeXml(priceWon)}</text>
   </g>
 
   <text x="122" y="520" fill="#cbd5e1" font-size="22" font-weight="600">Code Destiny · 내부 명식 엔진 계산 / AI 해석 전용</text>

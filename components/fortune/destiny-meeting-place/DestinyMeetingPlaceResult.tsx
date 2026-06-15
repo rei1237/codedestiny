@@ -69,6 +69,10 @@ type PromptAtelierGridProps = {
 const serifClass = "font-['Noto_Serif_KR','Cormorant_Garamond',serif]";
 const sansClass = "font-['Pretendard','Apple_SD_Gothic_Neo','Noto_Sans_KR',sans-serif]";
 
+function formatCoinValue(amount: number) {
+  return `${Math.max(0, Math.floor(Number(amount || 0) * 100)).toLocaleString("ko-KR")}원`;
+}
+
 const fadeUpVariant = {
   hidden: { opacity: 0, y: 26 },
   visible: {
@@ -259,7 +263,7 @@ function DestinySummaryCard({ oneLine, chips, chargedCoins, topPlace }: DestinyS
               {chip}
             </GlassChip>
           ))}
-          <GlassChip className="border-[#f8dfa6]/35 bg-[#f8dfa6]/15 text-[#fff1cf]">분석 코인 {chargedCoins}</GlassChip>
+          <GlassChip className="border-[#f8dfa6]/35 bg-[#f8dfa6]/15 text-[#fff1cf]">분석 가치 {formatCoinValue(chargedCoins)}</GlassChip>
           {topPlace ? <GlassChip className="border-[#93c5fd]/35 bg-[#93c5fd]/15 text-[#e6f2ff]">다음 좌표 {topPlace.name}</GlassChip> : null}
         </div>
       </div>

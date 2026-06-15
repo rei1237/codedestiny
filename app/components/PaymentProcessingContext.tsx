@@ -490,7 +490,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
             <p className="text-sm leading-6 text-slate-200">{copy.message}</p>
             {state.cost !== null ? (
               <p className="mt-3 inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-bold text-cyan-100">
-                필요 코인 {state.cost.toLocaleString("ko-KR")}
+                필요 금액 {Math.max(0, state.cost * 100).toLocaleString("ko-KR")}원
               </p>
             ) : null}
             {showSkeleton ? (

@@ -584,13 +584,13 @@ export default function NumerologyTarotClient() {
           await requestReading();
           if (chargedCoins <= 0 && requiredCoins > 0) {
             showSubscriptionIncludedNotice({
-              message: "구독 혜택이 적용되어 코인이 차감되지 않았습니다.",
+              message: "이용권 혜택이 적용되어 추가 결제 없이 열렸습니다.",
               reason: "수비학 타로 리딩",
             });
             return;
           }
           if (chargedCoins > 0) {
-            showToast(`수비학 타로 리딩 이용으로 ${chargedCoins}코인이 차감되었습니다. 남은 코인: ${balanceAfter.toLocaleString("ko-KR")}`, "info");
+            showToast(`수비학 타로 리딩 ${Math.max(0, chargedCoins * 100).toLocaleString("ko-KR")}원 결제가 승인되었습니다. 잔여 원화 가치: ${Math.max(0, balanceAfter * 100).toLocaleString("ko-KR")}원`, "info");
           }
         },
       });
@@ -607,10 +607,10 @@ export default function NumerologyTarotClient() {
           return;
         }
         if (paymentResult.code === "INSUFFICIENT_COINS") {
-          setError(`코인이 부족합니다. ${paymentResult.requiredCoins}코인이 필요합니다.`);
+          setError(`결제 가능 금액이 부족합니다. ${Math.max(0, Number(paymentResult.requiredCoins || 0) * 100).toLocaleString("ko-KR")}원 결제가 필요합니다.`);
           return;
         }
-        setError(paymentResult.message || "코인 결제에 실패했습니다.");
+        setError(paymentResult.message || "원화 결제에 실패했습니다.");
       }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "리딩 생성 중 오류가 발생했습니다.");
@@ -730,7 +730,7 @@ export default function NumerologyTarotClient() {
                 <div className={styles.actions} style={{ marginTop: 12 }}>
                   <button type="button" onClick={startDraw} className={styles.mainBtn}>숫자 리듬 열기 ✦</button>
                   <button type="button" onClick={payAndRead} disabled={!readingEnabled || loading || isPaying} className={styles.lightBtn}>
-                    {loading || isPaying ? "숫자와 카드를 엮는 중..." : "리딩 결과 열기 (30코인)"}
+                    {loading || isPaying ? "숫자와 카드를 엮는 중..." : "리딩 결과 열기 (3,000원)"}
                   </button>
                 </div>
 

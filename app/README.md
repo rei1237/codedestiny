@@ -18,9 +18,9 @@ robots.ts / sitemap.ts → 🔍 SEO (검색엔진 최적화)
 ```
 saju/                → 📊 사주 분석
   ├── basic/         → 기본 사주
-  ├── lifebook/      → 프리미엄 (490코인)
-  ├── love-secret/   → 연애 비책 (290코인)
-  └── sibyl/         → 시빌라 진로 분석 (100코인)
+  ├── lifebook/      → 프리미엄 (49,000원)
+  ├── love-secret/   → 연애 비책 (29,000원)
+  └── sibyl/         → 시빌라 진로 분석 (10,000원)
 
 tarot/               → 🔮 타로 리딩
   ├── mingri/        → 명리학 타로 (무료)
@@ -36,7 +36,7 @@ oracle/              → 🎯 오라클
   ├── hwatu-life/    → 화투 인생 패
   └── sikojen-povailu/ → 핀란드 주석점
 
-points/              → 💰 코인 충전 (포트원 결제)
+points/              → 💰 원화 결제 (포트원 결제)
 login/ signup/       → 🔑 인증
 about/ faq/          → 📖 정책 & 가이드
 ```
@@ -62,7 +62,7 @@ api/                 → 🌐 API 엔드포인트
   ├── astro/planets  → 점성술 API
   ├── auth/          → 인증 (OAuth, JWT)
   └── _lib/
-      ├── paymentValidation.js → 💳 코인 차감 엔진
+      ├── paymentValidation.js → 💳 원화 결제 검증 엔진
       └── legacyApiProxy.js → 레거시 API 호출
 
 [locale]/            → 🌍 다국어 라우팅 (en-us, ja-jp 등)
@@ -92,8 +92,8 @@ api/                 → 🌐 API 엔드포인트
 ### **API 핵심**
 | 엔드포인트 | 기능 |
 |----------|------|
-| `/api/tarot/reading` | 타로 리딩 (10코인/회) |
-| `/api/sibyl/report` | 시빌라 리포트 (100코인/회) |
+| `/api/tarot/reading` | 타로 리딩 (1,000원/회) |
+| `/api/sibyl/report` | 시빌라 리포트 (10,000원/회) |
 | `/api/auth/[provider]/callback` | OAuth 콜백 |
 
 ---
@@ -114,7 +114,7 @@ api/                 → 🌐 API 엔드포인트
 ## 🚀 **빠른 참고**
 
 - **다국어 지원**: `app/[locale]/` 폴더 또는 `app/_content/seo-copy.js`에서 추가
-- **결제 연동**: `app/api/_lib/paymentValidation.js`에서 차감 로직 관리
+- **결제 연동**: `app/api/_lib/paymentValidation.js`에서 결제 검증 로직 관리
 - **메타데이터**: `lib/generate-page-metadata.ts`에서 생성 (경로별 고유 코드)
 - **SEO**: `app/_content/seo-copy.js`와 `SeoJsonLd.tsx` 연동
 

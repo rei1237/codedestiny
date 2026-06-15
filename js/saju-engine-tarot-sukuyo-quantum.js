@@ -7828,21 +7828,41 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div class="sy-guardian-meta"><span>연결된 숙요</span><strong>${sData ? sData.mansion : '미상'}</strong></div>
       </div>`;
 
-      html += `<div class="sy-card" id="syAiPromptCard" style="border-left-color:rgba(168,85,247,0.38);background:linear-gradient(145deg, rgba(17,24,39,0.74), rgba(15,23,42,0.86)); border:1px solid rgba(196,181,253,0.18); box-shadow:0 10px 24px rgba(2,6,23,0.24), inset 0 1px 0 rgba(255,255,255,0.04);">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-          <h4 style="margin:0;color:#ddd6fe;letter-spacing:0;">선택 확장 · AI 상담 프롬프트</h4>
-          <span style="font-size:0.7rem;color:#dbeafe;border:1px solid rgba(147,197,253,0.28);background:rgba(30,58,138,0.12);padding:3px 8px;border-radius:999px;">기본 결과 기반</span>
+      html += `<div class="sy-card" id="syAiPromptCard" data-sy-ai-prompt-marker="sukuyo-moon-prompt-v20260615" style="position:relative;overflow:hidden;border-left-color:rgba(250,204,21,0.5);background:radial-gradient(circle at 92% 0%, rgba(250,230,160,0.18), transparent 28%), radial-gradient(circle at 12% 8%, rgba(147,197,253,0.14), transparent 30%), linear-gradient(145deg, rgba(9,13,33,0.92), rgba(24,18,52,0.9)); border:1px solid rgba(250,204,21,0.22); box-shadow:0 18px 42px rgba(2,6,23,0.38),0 0 26px rgba(250,204,21,0.08), inset 0 1px 0 rgba(255,255,255,0.06);">
+        <div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;margin-bottom:10px;">
+          <span aria-hidden="true" style="display:inline-flex;width:54px;height:54px;align-items:center;justify-content:center;border-radius:999px;background:radial-gradient(circle,rgba(250,230,160,0.12),rgba(147,197,253,0.06) 62%,transparent 74%);border:1px solid rgba(250,204,21,0.22);box-shadow:0 0 22px rgba(250,204,21,0.16),inset 0 1px 0 rgba(255,255,255,0.1);">
+            <svg viewBox="0 0 64 64" width="42" height="42" focusable="false" style="display:block;filter:drop-shadow(0 0 10px rgba(250,230,160,0.32));">
+              <defs>
+                <linearGradient id="syPromptMoonGrad" x1="10" y1="8" x2="54" y2="56">
+                  <stop offset="0" stop-color="#fff7d6"/>
+                  <stop offset="0.52" stop-color="#facc15"/>
+                  <stop offset="1" stop-color="#bfdbfe"/>
+                </linearGradient>
+              </defs>
+              <path d="M44.7 48.4A21.6 21.6 0 0 1 22.2 13.1 22.8 22.8 0 1 0 44.7 48.4Z" fill="url(#syPromptMoonGrad)" opacity="0.96"/>
+              <path d="M45.2 14.2l1.5 4.1 4.1 1.5-4.1 1.5-1.5 4.1-1.5-4.1-4.1-1.5 4.1-1.5 1.5-4.1Z" fill="#dbeafe" opacity="0.9"/>
+              <circle cx="47" cy="39" r="2.1" fill="#fef3c7" opacity="0.86"/>
+              <circle cx="18" cy="46" r="1.6" fill="#bfdbfe" opacity="0.72"/>
+            </svg>
+          </span>
+          <div style="min-width:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
+              <h4 style="margin:0;color:#fef3c7;letter-spacing:0;font-size:1rem;line-height:1.35;">달빛 숙요점 프롬프트</h4>
+              <span style="font-size:0.7rem;color:#dbeafe;border:1px solid rgba(147,197,253,0.32);background:rgba(30,58,138,0.14);padding:3px 8px;border-radius:999px;">본명숙 리딩 기반</span>
+            </div>
+            <div style="font-size:0.73rem;color:#c4b5fd;line-height:1.5;">숙요 27수와 달의 결을 질문에 맞는 상담 문장으로 엽니다.</div>
+          </div>
         </div>
         <p style="font-size:0.84rem;color:#e9d5ff;margin:0 0 10px 0;line-height:1.72;word-break:keep-all;">
-          무료 기본 결과를 바탕으로 질문별 상담 프롬프트를 만듭니다. 궁합 분석을 먼저 실행하면 두 사람 데이터까지 함께 반영됩니다. 선택 시 100코인이 사용됩니다.
+          본명숙과 달빛 보조 상징을 바탕으로, 지금 묻고 싶은 질문을 상담용 프롬프트로 정리합니다. 궁합을 먼저 확인했다면 두 사람의 숙요 거리와 관계 리듬까지 함께 담깁니다. 생성 시 100코인이 사용됩니다.
         </p>
-        <textarea data-sy-ai-question maxlength="1000" placeholder="예: 지금 내 연애 패턴에서 가장 먼저 고쳐야 할 점이 뭘까?" style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(196,181,253,0.44);background:rgba(8,13,30,0.76);color:#f5f3ff;padding:11px;font-size:0.84rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
+        <textarea data-sy-ai-question maxlength="1000" placeholder="예: 내 본명숙 흐름에서 지금 연애의 반복 패턴을 어떻게 풀어야 할까?" style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(250,204,21,0.34);background:rgba(8,13,30,0.76);color:#f5f3ff;padding:11px;font-size:0.84rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
-          <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
+          <span data-sy-ai-count style="font-size:0.72rem;color:#fde68a;">0 / 1000</span>
           <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-          <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">100코인 선택 생성</button>
+          <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#facc15,#c084fc);color:#111827;border:1px solid rgba(254,243,199,0.56);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(250,204,21,0.16);">달빛 프롬프트 생성 · 100코인</button>
           <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:9px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 생성</button>
           <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:9px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">프롬프트 복사</button>
         </div>
@@ -7943,7 +7963,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         }
         const syAiPromptCard = document.getElementById('syAiPromptCard');
         if (syAiPromptCard && typeof syBindSukuyoPromptComposer === 'function') {
-          syBindSukuyoPromptComposer(syAiPromptCard, { preferCompatibility: false });
+          syBindSukuyoPromptComposer(syAiPromptCard, { preferCompatibility: false, generateLabel: '달빛 프롬프트 생성 · 100코인', loadingLabel: '달빛 프롬프트 여는 중...' });
         }
         // 국가 탭 생성 (Config-driven)
         const _countryCatsDiv = document.getElementById('szCountryCats');
@@ -10878,6 +10898,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     rootEl.dataset.syAiBound = '1';
 
     var isLoading = false;
+    var generateLabel = opts.generateLabel || '100코인 선택 생성';
+    var loadingLabel = opts.loadingLabel || '프롬프트 생성 중...';
 
     function setStatus(message, tone) {
       statusEl.textContent = String(message || '');
@@ -10898,9 +10920,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       generateBtn.style.opacity = isLoading ? '0.72' : '1';
       regenerateBtn.style.opacity = isLoading ? '0.72' : '1';
       if (isLoading) {
-        generateBtn.textContent = '프롬프트 생성 중...';
+        generateBtn.textContent = loadingLabel;
       } else {
-        generateBtn.textContent = '100코인 선택 생성';
+        generateBtn.textContent = generateLabel;
       }
     }
 

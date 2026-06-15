@@ -839,11 +839,11 @@ export default function SajuLifebookPage() {
             </div>
           </div>
 
-          <p style={{ marginTop: 10, fontSize: 13, color: "#dcc5a1" }}>500코인 · 결제 전 금액 확인 · 완료 후 PDF 재열람 가능. 로그인, 결제 권한, 정확한 출생시간 확인 후 13챕터 원고 생성이 시작됩니다.</p>
+          <p style={{ marginTop: 10, fontSize: 13, color: "#dcc5a1" }}>50,000원 · 결제 전 금액 확인 · 완료 후 PDF 재열람 가능. 로그인, 결제 권한, 정확한 출생시간 확인 후 13챕터 원고 생성이 시작됩니다.</p>
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 10 }}>
             <button type="submit" disabled={loading} style={{ borderRadius: 999, border: "1px solid #e4c38a", background: loading ? "#7d6540" : "#e5c792", color: "#2e1d11", fontWeight: 800, padding: "10px 18px", cursor: loading ? "wait" : "pointer", touchAction: "manipulation" }}>
-              {loading ? "13챕터 원고 작성 중..." : "500코인 결제 확인 후 작성 시작"}
+              {loading ? "13챕터 원고 작성 중..." : "50,000원 결제 확인 후 작성 시작"}
             </button>
             {hasPdfDownloadTarget ? (
               <button type="button" onClick={handlePrint} style={{ borderRadius: 999, border: "1px solid rgba(228,195,138,.7)", background: "transparent", color: "#f7e8cf", fontWeight: 700, padding: "10px 16px", cursor: "pointer", touchAction: "manipulation" }}>
@@ -874,7 +874,7 @@ export default function SajuLifebookPage() {
               ) : null}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
                 <button type="button" onClick={handleOpenBillingHistory} style={{ borderRadius: 999, border: "1px solid rgba(255,216,206,.42)", background: "rgba(255,255,255,.08)", color: "#ffe2d9", padding: "7px 11px", cursor: "pointer" }}>결제 내역 확인</button>
-                <button type="button" onClick={handleOpenCharge} style={{ borderRadius: 999, border: "1px solid rgba(255,216,206,.42)", background: "rgba(255,255,255,.08)", color: "#ffe2d9", padding: "7px 11px", cursor: "pointer" }}>코인 충전</button>
+                <button type="button" onClick={handleOpenCharge} style={{ borderRadius: 999, border: "1px solid rgba(255,216,206,.42)", background: "rgba(255,255,255,.08)", color: "#ffe2d9", padding: "7px 11px", cursor: "pointer" }}>원화 결제</button>
                 <button type="button" onClick={handleCopyRequestContext} style={{ borderRadius: 999, border: "1px solid rgba(255,216,206,.42)", background: "rgba(255,255,255,.08)", color: "#ffe2d9", padding: "7px 11px", cursor: "pointer" }}>요청 정보 복사</button>
                 <button type="button" onClick={handleOpenSupport} style={{ borderRadius: 999, border: "1px solid rgba(255,216,206,.42)", background: "rgba(255,255,255,.08)", color: "#ffe2d9", padding: "7px 11px", cursor: "pointer" }}>문의하기</button>
               </div>

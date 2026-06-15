@@ -40,6 +40,14 @@ type BillingSnapshot = {
   accessReason: string;
 };
 
+function formatCoinValue(amount: number) {
+  return `${Math.max(0, Math.floor(Number(amount || 0) * 100)).toLocaleString("ko-KR")}원`;
+}
+
+function formatMonthlyCreditValue(amount: number) {
+  return `${Math.max(0, Math.floor(Number(amount || 0) * 10)).toLocaleString("ko-KR")}원 상당`;
+}
+
 const CARD_POOL = (TAROT_CARDS as TarotCardSource[])
   .map((card) => ({
     cardCode: String(card?.code || ""),
@@ -258,8 +266,8 @@ export default function TarotPromptMakerPage() {
     : "";
 
   const billingCoinLabel = billingSnapshot
-    ? (billingPassIncluded ? `${billingSubscriptionLabel} 월정석` : billingSnapshot.requiredCoins > 0 ? `${billingSnapshot.requiredCoins}코인` : "무료")
-    : "1회 50코인";
+    ? (billingPassIncluded ? `${billingSubscriptionLabel} 월정석` : billingSnapshot.requiredCoins > 0 ? formatCoinValue(billingSnapshot.requiredCoins) : "무료")
+    : "1회 5,000원";
 
   const billingStateLabel = billingSnapshot
     ? (billingPassIncluded ? "월정석 포함" : billingSnapshot.canAccess ? "즉시 이용" : "결제 필요")
@@ -437,12 +445,12 @@ export default function TarotPromptMakerPage() {
             return;
           }
           if (accessSource === "moonlight_stone") {
-            const spentText = monthlyCreditsSpent > 0 ? `${monthlyCreditsSpent.toLocaleString("ko-KR")}개` : "보유";
-            const balanceText = typeof monthlyBalanceAfter === "number" ? ` 남은 Moonlight Stone: ${monthlyBalanceAfter.toLocaleString("ko-KR")}개` : "";
-            showToast(`Moonlight Stone ${spentText}로 타로 프롬프트 라이브러리가 열렸습니다.${balanceText}`, "info");
+            const spentText = monthlyCreditsSpent > 0 ? formatMonthlyCreditValue(monthlyCreditsSpent) : "보유 보너스 가치";
+            const balanceText = typeof monthlyBalanceAfter === "number" ? ` 남은 보너스 가치: ${formatMonthlyCreditValue(monthlyBalanceAfter)}` : "";
+            showToast(`보너스 가치 ${spentText}로 타로 프롬프트 라이브러리가 열렸습니다.${balanceText}`, "info");
             return;
           }
-          if (chargedCoins > 0) showToast(`타로 프롬프트 라이브러리 이용이 승인되었습니다. 남은 코인: ${balanceAfter.toLocaleString("ko-KR")}`, "info");
+          if (chargedCoins > 0) showToast(`타로 프롬프트 라이브러리 이용이 승인되었습니다. 잔여 원화 가치: ${formatCoinValue(balanceAfter)}`, "info");
         },
       });
       if (!paymentResult.ok) {
@@ -454,7 +462,7 @@ export default function TarotPromptMakerPage() {
           }
           return;
         }
-        if (paymentResult.code === "INSUFFICIENT_COINS") { setFeedback(`코인이 부족합니다. ${paymentResult.requiredCoins}코인이 필요합니다.`); return; }
+        if (paymentResult.code === "INSUFFICIENT_COINS") { setFeedback(`결제 가능 금액이 부족합니다. ${formatCoinValue(paymentResult.requiredCoins)} 결제가 필요합니다.`); return; }
         if (paymentResult.code === "PRICE_NOT_FOUND") { setFeedback("서비스 이용 조건을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요."); return; }
         if (paymentResult.code === "SERVER_CONFIG_ERROR") { setFeedback("결제 확인이 잠시 지연되고 있습니다. 잠시 후 다시 시도해 주세요."); return; }
         if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) showToast("AI 오라클 프롬프트가 완성되지 않아 이번 결제가 환불되었습니다.", "info");

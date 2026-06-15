@@ -16,6 +16,8 @@ export default function PremiumPreview({
   coinCost = 10,
   onUnlock,
 }) {
+  const displayPrice = `${Math.max(0, Math.floor(Number(coinCost || 0) * 100)).toLocaleString("ko-KR")}원`;
+
   return (
     <div className={styles.previewContainer}>
       {/* 미리보기 본문 (300자+ 반드시 표시) */}
@@ -32,15 +34,15 @@ export default function PremiumPreview({
         <span className={styles.lockIcon}>🔐</span>
         <div className={styles.lockTitle}>{featureName} 전체 보기</div>
         <div className={styles.lockDesc}>
-          코인 {coinCost}개로 전체 내용을 잠금 해제하세요.<br />
-          구매한 코인은 모든 분석 기능에 사용 가능합니다.
+          {displayPrice} 결제로 전체 내용을 잠금 해제하세요.<br />
+          선불형 잔액 상품은 판매하지 않으며, 상품별 원화 결제로 이용합니다.
         </div>
         <button
           className={styles.lockBtn}
           onClick={onUnlock}
           type="button"
         >
-          🪙 코인 {coinCost}개로 전체 보기
+          {displayPrice} 결제로 전체 보기
         </button>
       </div>
     </div>

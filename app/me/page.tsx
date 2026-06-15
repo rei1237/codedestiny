@@ -191,19 +191,25 @@ function profileActionProductName(action: ProfileActionType) {
 
 function profileActionButtonLabel(action: ProfileActionType) {
   const label = profileActionLabel(action);
-  if (action === "delete") return `${label} · 50코인 가치`;
+  if (action === "delete") return `${label} · ${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}원`;
   return label;
 }
 
+function formatMonthlyStoneValue(monthlyCredits?: number) {
+  const value = Number(monthlyCredits || 0);
+  const safeValue = Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+  return `${(safeValue * 10).toLocaleString("ko-KR")}원 상당`;
+}
+
 function profileActionPrimaryLabel(action: ProfileActionType, method?: ProfileActionPaymentMethod) {
-  if (method === "monthly_stones") return `Moonlight Stone ${PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST}개 사용`;
+  if (method === "monthly_stones") return `보너스 가치 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용`;
   if (method === "card") return `${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}원 결제`;
   return profileActionButtonLabel(action);
 }
 
 function profileActionProgressLabel(action: ProfileActionType, stage: ProfileActionStage) {
   if (stage === "payment") return "결제창을 여는 중입니다.";
-  if (stage === "coin") return "Moonlight Stone을 차감하는 중입니다.";
+  if (stage === "coin") return "보너스 가치를 적용하는 중입니다.";
   if (stage === "saving") return action === "delete" ? "\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4." : `${profileActionLabel(action)} \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.`;
   if (stage === "deleting") return "\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.";
   return action === "create" ? "\uCD94\uAC00 \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4." : "\uC0AD\uC81C \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.";
@@ -331,16 +337,14 @@ function formatProfileSubscriptionDaysLeft(raw?: string | null) {
 }
 
 function profileSubscriptionBenefit(subscription: ProfileSubscription) {
-  if (!subscription.isActive) return "단건 결제 또는 Moonlight Stone으로 이용";
+  if (!subscription.isActive) return "단건 결제 또는 보너스 가치로 이용";
   if (subscription.tier === "family") return "모든 유료 기능 이용 가능";
   const freeLimit = Number(subscription.freeLimit || 0);
-  return freeLimit > 0 ? `${freeLimit.toLocaleString("ko-KR")}코인 이하 기능 이용 가능` : "이용권 혜택 적용 중";
+  return freeLimit > 0 ? `${(freeLimit * 100).toLocaleString("ko-KR")}원 이하 기능 이용 가능` : "이용권 혜택 적용 중";
 }
 
 function formatMonthlyStoneBalance(monthlyCredits?: number) {
-  const value = Number(monthlyCredits || 0);
-  const safeValue = Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
-  return `${safeValue.toLocaleString("ko-KR")} Moonlight Stone`;
+  return formatMonthlyStoneValue(monthlyCredits);
 }
 
 function fallbackSubscription(): ProfileSubscription {
@@ -425,7 +429,7 @@ export default function MePage() {
   const hasEnoughMonthlyStonesForProfileAction = membershipCreditBalance >= PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST;
   const canCreateWithinProfileLimit = isUnlimitedProfilePlan || profiles.length < profileLimit;
   const createRequiresProfileActionPayment = !canCreateWithinProfileLimit && !isProfileActionPaymentBypass;
-  const profileActionPolicyNotice = "프로필 카드 삭제에는 50코인 기준 결제가 필요합니다.";
+  const profileActionPolicyNotice = "프로필 카드 삭제에는 5,000원 결제가 필요합니다.";
   const subscriptionStartedAtLabel = formatProfileSubscriptionDate(subscription.startedAt);
   const subscriptionExpiresAtLabel = formatProfileSubscriptionDate(subscription.expiresAt);
   const subscriptionDaysLeftLabel = formatProfileSubscriptionDaysLeft(subscription.expiresAt);
@@ -926,7 +930,7 @@ export default function MePage() {
     const requestId = buildProfileActionRequestId(action, profile.id);
     const selectedPaymentMethod = paymentMethod || "card";
     if (selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
-      setAuthNotice(`Moonlight Stone이 부족합니다. 프로필 카드 삭제에는 Moonlight Stone ${PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST}개가 필요합니다. 단건결제로 진행하거나 Moonlight Stone을 확보한 뒤 다시 시도해주세요.`);
+      setAuthNotice(`보너스 가치가 부족합니다. 프로필 카드 삭제에는 보너스 가치 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)}가 필요합니다. 단건결제로 진행하거나 보너스 가치를 확보한 뒤 다시 시도해주세요.`);
       return;
     }
     setBusyAction(`${action}:${profile.id}`);
@@ -978,7 +982,7 @@ export default function MePage() {
     const selectedPaymentMethod = paymentMethod || (hasEnoughMonthlyStonesForProfileAction ? "monthly_stones" : "card");
 
     if (requiresPayment && selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
-      setAuthNotice(`Moonlight Stone이 부족합니다. 프로필 카드 작업에는 Moonlight Stone ${PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST}개가 필요합니다. 단건결제로 진행하거나 Moonlight Stone을 확보한 뒤 다시 시도해주세요.`);
+      setAuthNotice(`보너스 가치가 부족합니다. 프로필 카드 작업에는 보너스 가치 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)}가 필요합니다. 단건결제로 진행하거나 보너스 가치를 확보한 뒤 다시 시도해주세요.`);
       return;
     }
 
@@ -1135,9 +1139,9 @@ export default function MePage() {
                     <span className="absolute right-[26%] top-[20%] h-1 w-1 rounded-full bg-[#ddd6fe]" />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">Moonlight Stone 잔액</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">보너스 가치</p>
                     <p className="mt-0.5 text-xl font-black tracking-tight text-amber-100">{monthlyStoneBalance}</p>
-                    <p className="mt-1 text-[11px] leading-5 text-slate-300">프로필 카드 관리와 프리미엄 기능에 사용할 수 있는 잔액입니다.</p>
+                    <p className="mt-1 text-[11px] leading-5 text-slate-300">프로필 카드 관리와 프리미엄 기능에 사용할 수 있는 보너스 가치입니다.</p>
                   </div>
                 </div>
                 <Link href="/points" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#8b5cf6,#ec4899)] px-4 py-2 text-sm font-black text-white shadow-[0_10px_24px_rgba(139,92,246,0.34)] transition-transform hover:-translate-y-0.5">{"\uC774\uC6A9\uAD8C \uAD00\uB9AC"}</Link>
@@ -1412,7 +1416,7 @@ export default function MePage() {
             <h3 className="text-lg font-bold text-amber-100">새 프로필 추가</h3>
             <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
               {createRequiresProfileActionPayment
-                ? "무료 프로필 카드 한도를 모두 사용했어요. 새 프로필 카드를 추가하려면 50코인 가치가 필요합니다. 일반 이용권 혜택은 적용되지 않으며, 단건결제 또는 Moonlight Stone으로만 진행할 수 있어요."
+                ? "무료 프로필 카드 한도를 모두 사용했어요. 새 프로필 카드를 추가하려면 5,000원 가치가 필요합니다. 일반 이용권 혜택은 적용되지 않으며, 단건결제 또는 보너스 가치로만 진행할 수 있어요."
                 : "현재 프로필 카드 보유 한도 내에서 새 프로필을 추가할 수 있습니다."}
             </p>
             {busyAction === "create" ? (
@@ -1566,12 +1570,12 @@ export default function MePage() {
           <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-rose-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
             <h3 className="text-lg font-bold text-rose-100">프로필 삭제 확인</h3>
             <p className="mt-2 rounded-lg border border-rose-300/25 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-100">
-              프로필 카드 삭제는 50코인 기준 결제로 진행됩니다.
+              프로필 카드 삭제는 5,000원 기준 결제로 진행됩니다.
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-200">
               프로필 카드를 삭제할까요?
               <br />
-              단건결제 또는 Moonlight Stone {PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST}개 사용 중 하나를 선택해 주세요.
+              단건결제 또는 보너스 가치 {formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용 중 하나를 선택해 주세요.
               <br />
               삭제 후에는 해당 프로필 카드의 저장 정보가 사라집니다.
             </p>
@@ -1627,7 +1631,7 @@ export default function MePage() {
           <div className="w-full max-w-md rounded-xl border border-amber-300/35 bg-[#171a34] p-5 shadow-2xl shadow-black/40">
             <h3 className="text-lg font-bold text-amber-100">프로필 한도를 확인해 주세요</h3>
             <p className="mt-3 text-sm leading-6 text-slate-200">
-              현재 이용권 한도에 따라 새 프로필 추가가 제한될 수 있습니다. 코인을 충전하거나 상위 이용권으로 전환한 뒤 다시 시도해 주세요.
+              현재 이용권 한도에 따라 새 프로필 추가가 제한될 수 있습니다. 원화 단건결제를 진행하거나 상위 이용권으로 전환한 뒤 다시 시도해 주세요.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button

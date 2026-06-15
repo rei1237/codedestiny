@@ -829,7 +829,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
       return json({
         ok: false,
         code: access?.code || "SUKUYO_PAYMENT_REQUIRED",
-        message: access?.message || "프리미엄 궁합 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다.",
+        message: access?.message || "프리미엄 궁합 PDF 생성을 위해 원화 결제 또는 이용권 확인이 필요합니다.",
       }, { status: Number(access?.status) || 403 });
     }
 

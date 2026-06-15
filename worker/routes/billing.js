@@ -35,7 +35,7 @@ import {
   ServiceExecutionTransaction,
   User,
 } from "../lib/models.js";
-import { calculateMembershipCreditCost, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
+import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
 import {
   applyPdfPassDiscountToPricing,
   isPdfFeaturePricing,
@@ -2149,7 +2149,7 @@ function mapCoinGateFailure(responseStatus, payload) {
     return {
       status: 402,
       code: "PAYMENT_REQUIRED",
-      message: "상품별 코인 기준 단건 결제가 필요합니다.",
+      message: "상품별 원화 단건 결제가 필요합니다.",
       debugMessage: message,
     };
   }
@@ -2714,7 +2714,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       const passFailureCode = accessDecision.reason === "profile_limit_exceeded"
         ? "PROFILE_LIMIT_EXCEEDED"
         : (accessDecision.reason === "price_exceeds_pass_limit" ? "PRICE_EXCEEDS_PASS_LIMIT" : "MEMBERSHIP_PASS_NOT_COVERED");
-      return failure(402, passFailureCode, "현재 이용권 한도 밖 서비스입니다. Moonlight Stone 보너스 또는 코인 기준 단건 결제로 이용해 주세요.", undefined, {
+      return failure(402, passFailureCode, "현재 이용권 한도 밖 서비스입니다. 보너스 가치 또는 원화 단건 결제로 이용해 주세요.", undefined, {
         pricing,
         ...paymentDecision,
         paymentOptions: paymentDecision,
@@ -2869,7 +2869,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           monthlyCredits: membershipConsume.monthlyCredits,
           monthlyCreditsAsCoins: membershipConsume.monthlyCreditsAsCoins,
           user: membershipConsume.user,
-        }, "Moonlight Stone으로 콘텐츠 이용 권한을 발급했습니다.");
+        }, "보너스 가치로 콘텐츠 이용 권한을 발급했습니다.");
       }
     } catch (error) {
       logBillingRouteError("membership-credit-consume", error, request, {
@@ -2879,7 +2879,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       return failure(
         500,
         "MEMBERSHIP_CREDIT_CONSUME_FAILED",
-        "Moonlight Stone 처리 중 오류가 발생했습니다.",
+        "보너스 가치 처리 중 오류가 발생했습니다.",
         String(error?.message || ""),
       );
     }
@@ -2891,7 +2891,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         .lean();
       const monthlyCredits = Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0)));
       const requiredMonthlyCredits = calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0));
-      return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "Moonlight Stone 보너스 잔량이 부족합니다.", undefined, {
+      return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "보너스 가치가 부족합니다.", undefined, {
         pricing,
         ...paymentDecision,
         paymentOptions: {
@@ -2983,7 +2983,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }
   }
 
-  if (!coinPaymentRequested) return failure(402, "PAYMENT_REQUIRED", "상품별 코인 기준 단건 결제가 필요합니다.", undefined, {
+  if (!coinPaymentRequested) return failure(402, "PAYMENT_REQUIRED", "상품별 원화 단건 결제가 필요합니다.", undefined, {
     pricing,
     ...paymentDecision,
     paymentOptions: paymentDecision,
@@ -3081,7 +3081,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             points: currentBalance,
             profileSubscription: currentUser?.profileSubscription || null,
           },
-        }, "이미 처리된 코인 결제 요청입니다.");
+        }, "이미 처리된 원화 결제 요청입니다.");
       }
     }
 
@@ -3128,9 +3128,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             points: Math.max(0, Math.floor(Number(currentUser?.points || 0))),
             profileSubscription: currentUser?.profileSubscription || null,
           },
-        }, "이미 처리된 코인 결제 요청입니다.");
+        }, "이미 처리된 원화 결제 요청입니다.");
       }
-      return failure(402, "INSUFFICIENT_COINS", "코인 잔액이 부족합니다.", undefined, {
+      return failure(402, "INSUFFICIENT_COINS", "결제 가능 금액이 부족합니다. 원화 단건 결제를 이용해 주세요.", undefined, {
         pricing,
         requiredCoins,
         currentCoins: Math.max(0, Math.floor(Number(currentUser?.points || 0))),
@@ -3274,10 +3274,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     };
 
     if (isPdfGenerationService || isUnlockPaidFeatureKey(coinFeatureKey)) {
-      return await successWithPremiumAccess(env, authCheck.auth.userId, coinSuccessPayload, "코인으로 콘텐츠 이용 권한을 발급했습니다.");
+      return await successWithPremiumAccess(env, authCheck.auth.userId, coinSuccessPayload, `${calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)).toLocaleString("ko-KR")}원 결제로 콘텐츠 이용 권한을 발급했습니다.`);
     }
 
-    return success(coinSuccessPayload, "코인으로 콘텐츠 이용 권한을 발급했습니다.");
+    return success(coinSuccessPayload, `${calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)).toLocaleString("ko-KR")}원 결제로 콘텐츠 이용 권한을 발급했습니다.`);
   }
 
   const delegatedBody = {
@@ -3617,7 +3617,7 @@ async function handleBillingSnapshotBalance(request, env) {
     return failure(
       503,
       "BALANCE_SNAPSHOT_UNAVAILABLE",
-      "Moonlight Stone 잔량을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      "보너스 가치를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       undefined,
       {
         status: "error",
@@ -3887,7 +3887,7 @@ async function handleUnlockStatus(request, env) {
     return failure(
       503,
       "BALANCE_SNAPSHOT_UNAVAILABLE",
-      "Moonlight Stone 잔량을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      "보너스 가치를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       undefined,
       {
         status: "error",

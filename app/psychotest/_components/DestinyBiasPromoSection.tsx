@@ -38,7 +38,7 @@ export default function DestinyBiasPromoSection() {
               sizes="(max-width: 768px) 100vw, 40vw"
             />
             <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-xl border border-white/25 bg-black/40 px-3 py-2 text-[11px] font-semibold text-cyan-100/90 backdrop-blur-md">
-              ✨ 1회 50코인 · 포토카드 포함
+              ✨ 1회 5,000원 · 포토카드 포함
             </div>
           </div>
         </div>

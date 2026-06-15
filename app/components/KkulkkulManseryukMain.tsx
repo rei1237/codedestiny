@@ -20,13 +20,21 @@ type LockedSectionProps = {
   children: React.ReactNode;
 };
 
+function formatCoinValue(amount: number) {
+  return `${Math.max(0, Math.floor(Number(amount || 0) * 100)).toLocaleString("ko-KR")}원`;
+}
+
+function formatMonthlyCreditValue(amount: number | null) {
+  return `${Math.max(0, Math.floor(Number(amount || 0) * 10)).toLocaleString("ko-KR")}원 상당`;
+}
+
 function LockedSection({
   title,
   description,
   cost,
   isUnlocked,
   onUnlock,
-  buttonLabel = "Moonlight Stone 보너스로 운명 확인하기",
+  buttonLabel = "보너스 가치로 운명 확인하기",
   children,
 }: LockedSectionProps) {
   const [isScrolling, setIsScrolling] = useState(false);
@@ -96,7 +104,7 @@ function LockedSection({
       {/* 결제 전 유료 데이터는 렌더링하지 않고 미리보기 더미만 표시 */}
       <div className="mt-3 rounded-2xl border border-amber-100 bg-rose-50/80 p-4 text-neutral-500 blur-[10px] grayscale-[50%] select-none pointer-events-none">
         <p className="font-semibold">잠금된 프리미엄 운명 데이터</p>
-        <p className="mt-1 text-sm">Moonlight Stone 보너스 또는 코인 기준 단건 결제 후 상세 결과가 열립니다.</p>
+        <p className="mt-1 text-sm">보너스 가치 또는 원화 단건 결제 후 상세 결과가 열립니다.</p>
       </div>
 
       <div className="absolute inset-0 grid place-items-center bg-white/20 backdrop-blur-[10px]">
@@ -113,7 +121,7 @@ function LockedSection({
             </svg>
           </div>
           <p className="mb-1 text-sm font-semibold text-neutral-800">유료 기능 잠금 상태</p>
-          <p className="mb-3 text-xs font-bold text-amber-700">소모 코인: {cost}</p>
+          <p className="mb-3 text-xs font-bold text-amber-700">필요 원화 가치: {cost}</p>
           <button
             type="button"
             onClick={wrapClick(onUnlock)}
@@ -555,7 +563,7 @@ function markZiweiPremiumUnlockedClient() {
 }
 
 function notifyCoinDeducted(cost: number, points: number, label: string) {
-  showToast(`${label} 이용권 확인이 완료되었습니다. ${cost}코인 · ${(cost * 100).toLocaleString("ko-KR")}원 상당`, "info");
+  showToast(`${label} 이용권 확인이 완료되었습니다. ${formatCoinValue(cost)} 결제가 승인되었습니다.`, "info");
 }
 
 function notifyCoinResult(data: any, fallbackCost: number, points: number, label: string) {
@@ -565,15 +573,15 @@ function notifyCoinResult(data: any, fallbackCost: number, points: number, label
     const snapshot = extractBillingSnapshot(normalized);
     const usedCredits = firstFiniteNonNegative(normalized?.membershipCreditCost, normalized?.requiredMonthlyCredits);
     const details = [
-      usedCredits !== null ? `${usedCredits.toLocaleString("ko-KR")}개 사용` : "",
-      snapshot.monthlyCredits !== null ? `남은 Moonlight Stone: ${snapshot.monthlyCredits.toLocaleString("ko-KR")}개` : "",
+      usedCredits !== null ? `${formatMonthlyCreditValue(usedCredits)} 사용` : "",
+      snapshot.monthlyCredits !== null ? `남은 보너스 가치: ${formatMonthlyCreditValue(snapshot.monthlyCredits)}` : "",
     ].filter(Boolean);
-    showToast(`${label} Moonlight Stone 보너스로 열렸습니다.${details.length ? ` ${details.join(" · ")}` : ""}`, "info");
+    showToast(`${label} 보너스 가치로 열렸습니다.${details.length ? ` ${details.join(" · ")}` : ""}`, "info");
     return;
   }
   if (isSubscriptionIncludedResponse(normalized, chargedCoins)) {
     showSubscriptionIncludedNotice({
-      message: String(normalized?.message || data?.message || "Moonlight Stone 보너스 범위에 포함되어 바로 이용할 수 있습니다."),
+      message: String(normalized?.message || data?.message || "보너스 가치 범위에 포함되어 바로 이용할 수 있습니다."),
       reason: label,
       tier: String(normalized?.subscriptionTier || ""),
     });
@@ -769,7 +777,7 @@ export default function KkulkkulManseryukMain() {
       notifyCoinResult(normalized, cost, newPoints, key);
       setPerUseCount((prev) => ({ ...prev, [key]: prev[key] + 1 }));
       setSparkleTarget(key);
-      showToast(`✨ 운명 확인을 위해 코인이 사용되었습니다. 잠시 후 결과가 열립니다.`, "success");
+      showToast(`✨ 운명 확인 결제가 승인되었습니다. 잠시 후 결과가 열립니다.`, "success");
       redirectPerUseFeature(key);
     } catch (e) {
       console.error('[runPaidFeatureOnce]', e);
@@ -1104,7 +1112,7 @@ export default function KkulkkulManseryukMain() {
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-rose-700">꿀꿀 만세력</p>
               <h1 className="mt-2 text-3xl font-black leading-tight">달빛 운세 이용권</h1>
               <p className="mt-2 text-sm text-neutral-700">
-                무료는 즉시 노출, 유료는 Moonlight Stone 보너스 또는 코인 기준 단건 결제로 개별 해금합니다. 결제 전에는 데이터가 노출되지 않습니다.
+                무료는 즉시 노출, 유료는 보너스 가치 또는 원화 단건 결제로 개별 해금합니다. 결제 전에는 데이터가 노출되지 않습니다.
               </p>
             </div>
 
@@ -1112,11 +1120,11 @@ export default function KkulkkulManseryukMain() {
               <p className="text-xs font-semibold text-amber-800">콘텐츠 가치 단위</p>
               <p className="mt-1 flex items-center gap-2 text-xl font-extrabold text-amber-900">
                 <span aria-hidden="true">🌙</span>
-                <span>1코인 = 100원 상당</span>
+                <span>원화 기준 가치로 표시</span>
               </p>
               <div className="mt-2 grid gap-1 text-xs font-bold text-amber-900/80">
-                <span>보유 코인: {currentCoins.toLocaleString("ko-KR")}코인</span>
-                <span>Moonlight Stone 잔량: {currentMonthlyCredits.toLocaleString("ko-KR")}개</span>
+                <span>보유 원화 가치: {formatCoinValue(currentCoins)}</span>
+                <span>보너스 가치: {formatMonthlyCreditValue(currentMonthlyCredits)}</span>
               </div>
             </div>
           </div>
@@ -1228,11 +1236,11 @@ export default function KkulkkulManseryukMain() {
 
           <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {[
-              { key: "turtleIChing" as const, title: "주역 거북점", cost: 30, note: "1회 30코인" },
-              { key: "egyptOracle" as const, title: "이집트 신탁", cost: 30, note: "1회 30코인" },
-              { key: "geomancy" as const, title: "지오맨시 흙점", cost: 50, note: "1회 50코인" },
-              { key: "stonehengeRunes" as const, title: "스톤헨지 룬점", cost: 0, note: "배열별 30/50/70/120코인" },
-              { key: "premiumTarot" as const, title: "프리미엄 타로(회복 타로 제외)", cost: 100, note: "1회 100코인" },
+              { key: "turtleIChing" as const, title: "주역 거북점", cost: 30, note: "1회 3,000원" },
+              { key: "egyptOracle" as const, title: "이집트 신탁", cost: 30, note: "1회 3,000원" },
+              { key: "geomancy" as const, title: "지오맨시 흙점", cost: 50, note: "1회 5,000원" },
+              { key: "stonehengeRunes" as const, title: "스톤헨지 룬점", cost: 0, note: "배열별 3,000원/5,000원/7,000원/12,000원" },
+              { key: "premiumTarot" as const, title: "프리미엄 타로(회복 타로 제외)", cost: 100, note: "1회 10,000원" },
             ].map((item) => (
               <article
                 key={item.key}
@@ -1249,7 +1257,7 @@ export default function KkulkkulManseryukMain() {
                   onClick={wrapClick(() => runPaidFeatureOnce(item.key, item.cost))}
                   className="mt-3 w-full rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-bold text-white transition-transform duration-200 hover:scale-105 active:scale-95"
                 >
-                  {item.key === "stonehengeRunes" ? "배열 고르고 이용권으로 열기" : "Moonlight Stone 보너스로 운명 확인하기"}
+                  {item.key === "stonehengeRunes" ? "배열 고르고 이용권으로 열기" : "보너스 가치로 운명 확인하기"}
                 </button>
 
                 {perUseCount[item.key] > 0 ? (
@@ -1366,7 +1374,7 @@ export default function KkulkkulManseryukMain() {
             <div style={{ flex: 1, padding: "16px 16px 16px 4px" }}>
               <p style={{ color: "rgba(245,226,122,0.75)", fontSize: "0.58rem", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 4px" }}>명운 · Naming Premium</p>
               <p style={{ color: "#fff", fontWeight: 800, fontSize: "1rem", margin: "0 0 6px", lineHeight: 1.3 }}>사주 프리미엄 작명</p>
-              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>700코인 · 만세력 엔진 연동 · 용신/오행/수리 작명 리포트</p>
+              <p style={{ color: "rgba(203,213,225,0.55)", fontSize: "0.75rem", lineHeight: 1.6, margin: "0 0 10px" }}>70,000원 · 만세력 엔진 연동 · 용신/오행/수리 작명 리포트</p>
               <span style={{
                 display: "inline-block",
                 background: "linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.12))",

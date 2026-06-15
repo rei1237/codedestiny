@@ -98,8 +98,8 @@ export default function PaymentLoading({
       description: "승인 신호와 콘텐츠 이용 권한을 함께 확인하고 있습니다.",
     },
     monthly: {
-      title: "Moonlight Stone 적용 중",
-      description: "보너스 잔량과 콘텐츠 이용 권한을 확인하고 있습니다.",
+      title: "보너스 가치 적용 중",
+      description: "보너스 가치와 콘텐츠 이용 권한을 확인하고 있습니다.",
     },
     subscription: {
       title: "이용권 결제 확인 중",
@@ -125,7 +125,7 @@ export default function PaymentLoading({
     },
     "pass-applied": {
       title: "이용권 적용 완료",
-      description: "보유한 이용권으로 이번 콘텐츠가 열렸습니다.\n코인 차감 없이 바로 이어집니다.",
+      description: "보유한 이용권으로 이번 콘텐츠가 열렸습니다.\n추가 결제 없이 바로 이어집니다.",
       status: "콘텐츠 문을 여는 중입니다.",
     },
   };

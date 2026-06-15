@@ -23,20 +23,20 @@ type FormState = {
 
 const oracleItems: ServiceCardModel[] = [
   { title: "화투 인생패", description: "12달 흐름 점술", href: "/oracle/hwatu-life", emoji: "🎴", badges: [{ text: "무료", tone: "free" }] },
-  { title: "영국 홍차점", description: "타세오그래피 찻잎 리딩", href: "/oracle/royal-tea", emoji: "🫖", badges: [{ text: "30코인", tone: "coin" }] },
+  { title: "영국 홍차점", description: "타세오그래피 찻잎 리딩", href: "/oracle/royal-tea", emoji: "🫖", badges: [{ text: "3,000원", tone: "coin" }] },
   { title: "핀란드 주석점", description: "상징 해석 신탁", href: "/oracle/sikojen-povailu", emoji: "🐷", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
-  { title: "스톤헨지 룬", description: "고대 북유럽 룬 신탁", href: "/oracle/rune", emoji: "ᚱ", badges: [{ text: "30~120코인", tone: "coin" }, { text: "NEW", tone: "new" }] },
-  { title: "지오맨시 흙점", description: "대지 징후 16행 점술", href: "/geomancy-oracle-v4.html", emoji: "⟁", badges: [{ text: "50코인", tone: "coin" }] },
+  { title: "스톤헨지 룬", description: "고대 북유럽 룬 신탁", href: "/oracle/rune", emoji: "ᚱ", badges: [{ text: "3,000원~12,000원", tone: "coin" }, { text: "NEW", tone: "new" }] },
+  { title: "지오맨시 흙점", description: "대지 징후 16행 점술", href: "/geomancy-oracle-v4.html", emoji: "⟁", badges: [{ text: "5,000원", tone: "coin" }] },
   { title: "데스티니 포커", description: "카드 상징 운세 판독", href: "/destiny-poker.html", emoji: "🃏", badges: [{ text: "무료", tone: "free" }] },
-  { title: "이파 오라클 (IFÀ)", description: "요루바 256 오두 신탁", href: "/oracle/ifa", emoji: "🪬", badges: [{ text: "30코인", tone: "coin" }] },
+  { title: "이파 오라클 (IFÀ)", description: "요루바 256 오두 신탁", href: "/oracle/ifa", emoji: "🪬", badges: [{ text: "3,000원", tone: "coin" }] },
 ];
 
 const cosmicItems: ServiceCardModel[] = [
   { title: "점성술 코즈믹", description: "태양·달·상승궁 분석", href: "/astrology/cosmic", emoji: "🌌", badges: [{ text: "기본 무료", tone: "free" }] },
   { title: "기본 숙요점", description: "27수 궁합과 달의 리듬", href: "/oracle/sukuyo", emoji: "💫", badges: [{ text: "무료", tone: "free" }] },
-  { title: "자미두수 명반", description: "12궁 기반 운명 지도", href: "/ziwei/chart", emoji: "✨", badges: [{ text: "기본 무료", tone: "free" }, { text: "궁합 50", tone: "coin" }] },
+  { title: "자미두수 명반", description: "12궁 기반 운명 지도", href: "/ziwei/chart", emoji: "✨", badges: [{ text: "기본 무료", tone: "free" }, { text: "궁합 5,000원", tone: "coin" }] },
   { title: "베다 점성술", description: "나크샤트라·다샤 리딩", href: "/saju/basic/play", emoji: "🪐", badges: [{ text: "기본 무료", tone: "free" }] },
-  { title: "올림푸스 신탁", description: "신화 별자리 상징 해석", href: "/olympus", emoji: "⚡", badges: [{ text: "해금 100", tone: "coin" }, { text: "NEW", tone: "new" }] },
+  { title: "올림푸스 신탁", description: "신화 별자리 상징 해석", href: "/olympus", emoji: "⚡", badges: [{ text: "해금 10,000원", tone: "coin" }, { text: "NEW", tone: "new" }] },
   { title: "명리학 인사이트", description: "해석 가이드 콘텐츠", href: "/insights", emoji: "📚", badges: [{ text: "가이드", tone: "soft" }] },
   { title: "하이밸류 아카이브", description: "심층 운세 콘텐츠 모음", href: "/high-value", emoji: "🧭", badges: [{ text: "읽기", tone: "soft" }] },
 ];
@@ -44,16 +44,16 @@ const cosmicItems: ServiceCardModel[] = [
 const animalItems: ServiceCardModel[] = [
   { title: "AI 동물 관상", description: "얼굴형 기반 성향 분석", href: "/saju-picture", emoji: "🎭", badges: [{ text: "무료", tone: "free" }] },
   { title: "MBTI 동물 궁합", description: "16타입 관계 에너지", href: "/animal/mbti", emoji: "🦁", badges: [{ text: "무료", tone: "free" }] },
-  { title: "애니멀 토템", description: "수호 동물 메시지 리딩", href: "/?action=openAnimalTotemModal", emoji: "🐯", badges: [{ text: "30~60코인", tone: "coin" }] },
+  { title: "애니멀 토템", description: "수호 동물 메시지 리딩", href: "/?action=openAnimalTotemModal", emoji: "🐯", badges: [{ text: "3,000원~6,000원", tone: "coin" }] },
   { title: "운명의 알", description: "운세 다마고치 체험", href: "/tadagochi", emoji: "🥚", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
   { title: "포춘텔러 물고기", description: "상징 움직임 운세 리딩", href: "/fortune-teller-fish.html", emoji: "🐟", badges: [{ text: "무료", tone: "free" }] },
   { title: "사주 가디언 아트", description: "수호 동물 아트 생성", href: "/saju-picture", emoji: "🐲", badges: [{ text: "무료", tone: "free" }] },
 ];
 
 const meditationItems: ServiceCardModel[] = [
-  { title: "네빌 명상", description: "상상 창조 집중 루틴", href: "/neville-meditation.html", emoji: "🧘", badges: [{ text: "30~50코인", tone: "coin" }] },
-  { title: "Divya Yoga", description: "요가 기반 집중 리셋", href: "/yoga-guru.html", emoji: "🧘‍♀️", badges: [{ text: "30~50코인", tone: "coin" }] },
-  { title: "코즈믹 소울 명상", description: "R=VD 현실화 프로토콜", href: "/cosmic-soul-meditation.html", emoji: "🌠", badges: [{ text: "50~100코인", tone: "coin" }] },
+  { title: "네빌 명상", description: "상상 창조 집중 루틴", href: "/neville-meditation.html", emoji: "🧘", badges: [{ text: "3,000원~5,000원", tone: "coin" }] },
+  { title: "Divya Yoga", description: "요가 기반 집중 리셋", href: "/yoga-guru.html", emoji: "🧘‍♀️", badges: [{ text: "3,000원~5,000원", tone: "coin" }] },
+  { title: "코즈믹 소울 명상", description: "R=VD 현실화 프로토콜", href: "/cosmic-soul-meditation.html", emoji: "🌠", badges: [{ text: "5,000원~10,000원", tone: "coin" }] },
   { title: "드림 타로", description: "꿈의 잔향 3카드", href: "/dream/tarot", emoji: "🌙", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
   { title: "정신분석 해몽", description: "Freud 관점 심층 해석", href: "/dream/psycho", emoji: "🕯️", badges: [{ text: "무료", tone: "free" }] },
   { title: "심리테스트 허브", description: "성격·연애·직장 14종 모음", href: "/psychotest", emoji: "🧩", badges: [{ text: "무료", tone: "free" }, { text: "추천", tone: "soft" }] },
@@ -103,13 +103,13 @@ const miscDivinationItems: ServiceCardModel[] = [
     href: "/saju/destiny-bias",
     emoji: "✨",
     image: "/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp",
-    badges: [{ text: "1회 50코인", tone: "coin" }, { text: "포토카드", tone: "new" }],
+    badges: [{ text: "1회 5,000원", tone: "coin" }, { text: "포토카드", tone: "new" }],
     cta: "최애운명 시작",
   },
 ];
 
 const premiumItems: ServiceCardModel[] = [
-  { title: "명운 프리미엄 작명", description: "오행·수리 기반 작명", href: "/myungwun_final.html", emoji: "🖋️", badges: [{ text: "700코인", tone: "coin" }] },
+  { title: "명운 프리미엄 작명", description: "오행·수리 기반 작명", href: "/myungwun_final.html", emoji: "🖋️", badges: [{ text: "70,000원", tone: "coin" }] },
   { title: "결제/멤버십 관리", description: "멤버십과 결제 내역 관리", href: "/points", emoji: "💳", badges: [{ text: "관리", tone: "soft" }] },
 ];
 
@@ -342,9 +342,9 @@ export default function MainLandingPage() {
         />
 
         <DeferredServiceCollectionSection
-          title="프리미엄/코인 서비스 안내"
+          title="프리미엄/원화 결제 서비스 안내"
           subtitle="소개 보기부터 심화 분석까지 이어지는 VVIP 리포트"
-          description="프리미엄 분석은 코인 기반으로 제공되며 결과 리포트는 계정에서 다시 확인할 수 있습니다."
+          description="프리미엄 분석은 원화 기준으로 제공되며 결과 리포트는 계정에서 다시 확인할 수 있습니다."
           icon={<DestinyIcon name="coin" size={20} className="text-amber-100" variant="soft" />}
           items={premiumItems}
         />
@@ -353,7 +353,7 @@ export default function MainLandingPage() {
       <LazySection className="cd-main-shell !pb-10 !pt-2" minHeight={420} rootMargin="460px 0px">
         <div className="cd-card mb-4">
           <h2 className="cd-main-title" style={{ fontSize: "clamp(1.2rem, 2.2vw, 1.7rem)" }}>
-            Premium / Coin Information
+            Premium / Payment Information
           </h2>
           <p className="cd-main-intro" style={{ marginTop: "8px", marginBottom: 0 }}>
             하단에서 가격, 결제, 신뢰 정보를 한 번에 확인하고 필요할 때만 프리미엄 리포트를 시작할 수 있습니다.

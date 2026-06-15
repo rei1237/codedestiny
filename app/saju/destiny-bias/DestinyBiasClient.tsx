@@ -656,10 +656,10 @@ export default function DestinyBiasClient() {
             message: "최애운명 분석은 결제 후 이용할 수 있습니다. 결제 페이지에서 상품을 선택해 주세요.",
             requiredCoins: DEFAULT_ANALYZE_COST,
           });
-          throw new Error("코인이 부족합니다.");
+          throw new Error("결제 가능 금액이 부족합니다.");
         }
 
-        throw new Error(coinGateResult.error?.message || "코인 결제 확인에 실패했습니다.");
+        throw new Error(coinGateResult.error?.message || "원화 결제 확인에 실패했습니다.");
       }
 
       const localResult = analyzeDestinyBias({
@@ -693,7 +693,7 @@ export default function DestinyBiasClient() {
       setResultVm(null);
       setUiStep(3);
       if (analysisError instanceof Error) {
-        if (analysisError.message !== "코인이 부족합니다." && analysisError.message !== "로그인 후 다시 시도해 주세요.") {
+        if (analysisError.message !== "결제 가능 금액이 부족합니다." && analysisError.message !== "로그인 후 다시 시도해 주세요.") {
           setError(analysisError.message);
         }
       } else {

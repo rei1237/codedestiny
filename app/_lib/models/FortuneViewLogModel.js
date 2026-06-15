@@ -37,7 +37,7 @@ export async function getFortuneViewLogModel() {
       featureKey: { type: String, default: "", index: true },
       // 요청 IP (어뷰징 감지용) — 단방향 해시로 저장해 개인정보 보호
       ipHash: { type: String, default: "" },
-      // 코인 차감 여부
+    // 결제 적용 여부
       coinDeducted: { type: Boolean, default: false },
       coinAmount:   { type: Number, default: 0 },
       // 응답 시간(ms) — 평균 응답 속도 통계

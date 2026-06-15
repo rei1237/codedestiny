@@ -32,7 +32,7 @@ interface PremiumBlurGateProps {
   price?: number;
   /** 상품명 */
   productName?: string;
-  /** 코인 수 (코인 결제 시) */
+  /** 원화 가치 계산 기준 */
   coinCost?: number;
   /** 잠금 해제 콜백 */
   onUnlock?: () => void;
@@ -104,6 +104,7 @@ export default function PremiumBlurGate({
   const [isHovering, setIsHovering] = useState(false);
 
   const formattedPrice = price.toLocaleString("ko-KR");
+  const formattedCoinValue = `${Math.max(0, Math.floor(Number(coinCost || 0) * 100)).toLocaleString("ko-KR")}원`;
 
   return (
     <div className="relative space-y-4">
@@ -217,7 +218,7 @@ export default function PremiumBlurGate({
               />
               <span className="relative z-10">
                 {coinCost
-                  ? `🪙 코인 ${coinCost}개로 해금하기`
+                  ? `${formattedCoinValue} 결제로 해금하기`
                   : `🔓 ${productName} 해금 — ₩${formattedPrice}`}
               </span>
             </motion.button>

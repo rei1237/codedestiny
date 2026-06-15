@@ -495,7 +495,7 @@ function profileCardActionPaymentRequiredResponse(action, requestId, profileId =
     ok: false,
     success: false,
     code: "PAYMENT_REQUIRED",
-    message: `${reason}\uB294 \uC774\uC6A9\uAD8C \uBB34\uB8CC \uD1B5\uACFC \uC5C6\uC774 \uC624\uC9C1 \uB2E8\uAC74 \uACB0\uC81C ${PROFILE_CARD_MANAGE_COST}\uCF54\uC778 \uAE30\uC900(${PROFILE_CARD_MANAGE_AMOUNT_KRW.toLocaleString("ko-KR")}\uC6D0) \uB610\uB294 Moonlight Stone ${PROFILE_CARD_MANAGE_MEMBERSHIP_COST}\uAC1C \uC6D4\uC815\uC11D \uACB0\uC81C\uB85C\uB9CC \uC9C4\uD589\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.`,
+    message: `${reason}는 이용권 무료 통과 없이 오직 단건 결제 ${PROFILE_CARD_MANAGE_AMOUNT_KRW.toLocaleString("ko-KR")}원 또는 보너스 가치 ${(PROFILE_CARD_MANAGE_MEMBERSHIP_COST * 10).toLocaleString("ko-KR")}원 상당으로만 진행할 수 있습니다.`,
     policy,
     pricing: {
       featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,

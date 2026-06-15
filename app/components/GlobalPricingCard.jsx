@@ -251,7 +251,7 @@ export default function GlobalPricingCard({ locale, forceCurrency, onSelectTier 
               {loading ? "…" : convertPrice(tier.krwPrice, currency, rates)}
             </div>
 
-            {/* 코인 수 */}
+                  {/* 원화 가치 */}
             <div
               style={{
                 display: "flex",

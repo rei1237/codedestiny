@@ -77,8 +77,8 @@ export default function LoveSimulationClient() {
       const message = String(result.error?.message || "");
       if (/로그인|인증|auth/i.test(message)) {
         setError("로그인 후 러브 코드를 잠금 해제할 수 있습니다.");
-      } else if (/coin|코인|balance|잔액|insufficient/i.test(message)) {
-        setError("코인이 부족합니다. 충전 후 다시 시도해주세요.");
+      } else if (/coin|\uCF54\uC778|balance|잔액|insufficient/i.test(message)) {
+        setError("결제 가능 금액이 부족합니다. 원화 단건 결제로 다시 시도해주세요.");
       } else {
         setError("잠금 해제에 실패했습니다. 잠시 후 다시 시도해주세요.");
       }
@@ -129,7 +129,7 @@ export default function LoveSimulationClient() {
               disabled={isBusy}
               className="mt-7 inline-flex h-14 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-pink-400 via-fuchsia-400 to-violet-400 px-5 text-base font-black text-white shadow-[0_16px_34px_rgba(217,70,239,.34)] transition hover:scale-[1.01] disabled:cursor-wait disabled:opacity-70"
             >
-              {status === "unlocking" ? "잠금 해제 중..." : status === "checking" ? "이용권 확인 중..." : "100코인으로 잠금 해제"}
+              {status === "unlocking" ? "잠금 해제 중..." : status === "checking" ? "이용권 확인 중..." : "10,000원으로 잠금 해제"}
             </button>
           </div>
         </section>

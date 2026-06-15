@@ -1862,10 +1862,10 @@ export default function PalmDestinyMain() {
         coinGateCode === "AUTH_REQUIRED"
           ? "로그인이 필요합니다. 로그인 후 다시 손금 분석을 시도해 주세요."
           : coinGateCode === "INSUFFICIENT_COINS"
-          ? `코인이 부족합니다. ${serverCost}코인이 필요합니다.`
+          ? `결제 가능 금액이 부족합니다. ${serverCost}결제가 필요합니다.`
           : coinGateCode === "PRICE_NOT_FOUND"
           ? "손금 분석 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요."
-          : coinGateResult.error?.message || "코인 결제에 실패했습니다.";
+          : coinGateResult.error?.message || "원화 결제에 실패했습니다.";
 
       updatePaidFeatureGate({
         categoryKey: "palm-reading",
@@ -1916,7 +1916,7 @@ export default function PalmDestinyMain() {
       }
 
       const serverCost = Number(entitlementCheckResult.data?.pricing?.cost || 0);
-      setSubmitMessage(`이용권 확인이 끝났습니다. 사진을 분석합니다... (${serverCost}코인)`);
+      setSubmitMessage(`이용권 확인이 끝났습니다. 사진을 분석합니다... (${Math.max(0, serverCost * 100).toLocaleString("ko-KR")}원)`);
 
       const [leftPalmImage, rightPalmImage, leftVision, rightVision] = await Promise.all([
         leftHand.file ? fileToDataUrl(leftHand.file) : Promise.resolve(null),
@@ -2093,7 +2093,7 @@ export default function PalmDestinyMain() {
       }
 
       activeBillingGateRequestId = billingChargeRequestId;
-      setSubmitMessage(`분석 결과를 확인했습니다. 이용권을 확정하고 있습니다... (${serverCost}코인)`);
+      setSubmitMessage(`분석 결과를 확인했습니다. 이용권을 확정하고 있습니다... (${Math.max(0, serverCost * 100).toLocaleString("ko-KR")}원)`);
       const coinGateResult = await runBillingCoinGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,

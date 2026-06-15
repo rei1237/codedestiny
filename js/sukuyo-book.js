@@ -488,6 +488,28 @@
     if (female) female.setAttribute('aria-pressed', female.classList.contains('on') ? 'true' : 'false');
   }
 
+  function _syncTimeUnknownControls(prefix) {
+    var timeUnknownEl = _qs(prefix + 'TimeUnknown');
+    var isUnknown = !!(timeUnknownEl && timeUnknownEl.checked);
+    var hourEl = _qs(prefix + 'Hour');
+    var minuteEl = _qs(prefix + 'Minute');
+    var textEl = _qs(prefix + 'BirthTimeText');
+    if (hourEl) hourEl.disabled = isUnknown;
+    if (minuteEl) minuteEl.disabled = isUnknown;
+    if (textEl) textEl.disabled = isUnknown;
+  }
+
+  function _setCompatibilityFormEnabled(enabled) {
+    var section = _qs('skPartnerFormSection');
+    if (!section) return;
+    section.classList.toggle('is-disabled', !enabled);
+    section.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+    Array.prototype.forEach.call(section.querySelectorAll('input, select, button'), function (control) {
+      control.disabled = !enabled;
+    });
+    if (enabled) _syncTimeUnknownControls('skPartner');
+  }
+
   function _fillSelfFormFromProfile(profile) {
     if (!profile || !profile.birth) return;
     var birth = profile.birth || {};
@@ -1122,6 +1144,7 @@
 
     var section = _qs('skPartnerFormSection');
     if (section) section.style.display = '';
+    _setCompatibilityFormEnabled(true);
 
     var hint = _qs('skModeHint');
     if (hint) {
@@ -1888,6 +1911,8 @@
     _forceCompatibilityMode();
     _syncGenderAria('skSelf');
     _syncGenderAria('skPartner');
+    _syncTimeUnknownControls('skSelf');
+    _syncTimeUnknownControls('skPartner');
     _applyResultLayout();
 
     var profile = _getActiveBirthProfile();
@@ -2245,14 +2270,8 @@
     }
 
     if (target.id === 'skSelfTimeUnknown' || target.id === 'skPartnerTimeUnknown') {
-      var isUnknown = !!target.checked;
       var isSelf = target.id === 'skSelfTimeUnknown';
-      var hourEl = _qs(isSelf ? 'skSelfHour' : 'skPartnerHour');
-      var minuteEl = _qs(isSelf ? 'skSelfMinute' : 'skPartnerMinute');
-      var textEl = _qs(isSelf ? 'skSelfBirthTimeText' : 'skPartnerBirthTimeText');
-      if (hourEl) hourEl.disabled = isUnknown;
-      if (minuteEl) minuteEl.disabled = isUnknown;
-      if (textEl) textEl.disabled = isUnknown;
+      _syncTimeUnknownControls(isSelf ? 'skSelf' : 'skPartner');
     }
     if (/^sk(Self|Partner)/.test(target.id || '') || target.name === 'skSelfCalType' || target.name === 'skPartnerCalType') {
       _refreshReadinessPanel();

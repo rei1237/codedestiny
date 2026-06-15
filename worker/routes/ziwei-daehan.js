@@ -185,7 +185,7 @@ async function handleDaehanUnlock(request, env) {
       required: DAEHAN_COST,
       current: current.points,
       userCoins: current.points,
-      message: `대한 타임라인 해금에 ${DAEHAN_COST}코인이 필요합니다. 현재 잔액: ${current.points}코인`,
+      message: `대한 타임라인 해금에 ${(DAEHAN_COST * 100).toLocaleString("ko-KR")}원 결제가 필요합니다. 현재 보유 원화 가치: ${(Math.max(0, Number(current.points || 0)) * 100).toLocaleString("ko-KR")}원`,
     }, { status: 402 });
   }
 

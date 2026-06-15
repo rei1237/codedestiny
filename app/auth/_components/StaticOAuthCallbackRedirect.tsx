@@ -377,7 +377,7 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
                 parsedUser.points = nextPoints;
                 localStorage.setItem("fortune_auth_user", JSON.stringify(parsedUser));
               } catch (e) {}
-              debugAuth("[auth] coin refreshed");
+      debugAuth("[auth] payment value refreshed");
             }),
           fetch(subscriptionUrl, {
             method: "GET",

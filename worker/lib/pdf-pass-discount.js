@@ -73,7 +73,7 @@ export function applyPdfPassDiscountToPricing(pricing = {}, entitlement = {}) {
     cashPrice: amountKRW,
     krwAmount: amountKRW,
     membershipCreditCost,
-    displayPrice: `${finalCoinPrice.toLocaleString("ko-KR")}\uCF54\uC778`,
+    displayPrice: `${amountKRW.toLocaleString("ko-KR")}원`,
     passDiscount: discount,
     pricingPolicy: {
       ...(pricing?.pricingPolicy || {}),

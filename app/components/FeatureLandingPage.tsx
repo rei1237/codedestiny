@@ -238,15 +238,15 @@ const ACTION_MAP: Record<string, string> = {
 };
 
 const PAID_SLUG_META: Record<string, { coins: string }> = {
-  "/flower/destiny":   { coins: "50코인" },
-  "/flower/astrology": { coins: "50코인" },
-  "/flower/jamidusu":  { coins: "50코인" },
-  "/flower/sukuyo":    { coins: "50코인" },
-  "/tarot/love": { coins: "50코인" },
-  "/tarot/reunion": { coins: "50코인" },
-  "/tarot/year": { coins: "30코인" },
-  "/oracle/royal-tea": { coins: "30코인" },
-  "/yoga-guru": { coins: "30코인" },
+  "/flower/destiny":   { coins: "5,000원" },
+  "/flower/astrology": { coins: "5,000원" },
+  "/flower/jamidusu":  { coins: "5,000원" },
+  "/flower/sukuyo":    { coins: "5,000원" },
+  "/tarot/love": { coins: "5,000원" },
+  "/tarot/reunion": { coins: "5,000원" },
+  "/tarot/year": { coins: "3,000원" },
+  "/oracle/royal-tea": { coins: "3,000원" },
+  "/yoga-guru": { coins: "3,000원" },
 };
 
 /* Particle positions for the 5 floating items */
@@ -728,7 +728,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             fontSize:"0.78rem", lineHeight:1.6, textAlign:"center",
             color:"rgba(248,250,252,0.78)",
           }}>
-            유료 기능입니다. 바로가기를 누르면 메인 화면에서 코인 게이트가 먼저 표시됩니다.
+            유료 기능입니다. 바로가기를 누르면 메인 화면에서 결제 확인이 먼저 표시됩니다.
           </p>
         )}
 

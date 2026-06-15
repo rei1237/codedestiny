@@ -294,7 +294,7 @@ function profilePaymentRequiredResponse(requestId) {
   return json({
     ok: false,
     code: "PAYMENT_REQUIRED",
-    message: "프로필 카드 추가/삭제는 50코인 또는 5,000원 결제 후 가능합니다.",
+    message: "프로필 카드 추가/삭제는 5,000원 또는 5,000원 결제 후 가능합니다.",
     pricing: {
       featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
       reason: "프로필 카드 추가/삭제",

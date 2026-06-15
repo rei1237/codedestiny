@@ -120,14 +120,142 @@ type Phase = "checking" | "locked" | "intro" | "form" | "loading" | "result" | "
 const SAJU_GUARDIAN_FEATURE_KEY = "saju-guardian-unlock";
 const SAJU_GUARDIAN_ACTION = "openSajuGuardianPage";
 const SAJU_GUARDIAN_LEGACY_ACTION = "openSajuAnimalPage";
+const SAJU_GUARDIAN_ACCESS_VERSION = "v2";
+const SAJU_GUARDIAN_SESSION_MARK = "1";
+const SAJU_GUARDIAN_VERIFICATION_RETRY_MS = 800;
+const SAJU_GUARDIAN_TILE_LOCK_SCOPE_KEY = "fortune_auth_user";
+
+type GuardianPayload = Record<string, unknown> | null | undefined;
+
+function buildGuardianStorageKeys() {
+  return [
+    `cd_pa_${SAJU_GUARDIAN_ACTION}`,
+    `cd_pa_${SAJU_GUARDIAN_LEGACY_ACTION}`,
+    `cd_pa_${SAJU_GUARDIAN_FEATURE_KEY}`,
+  ];
+}
+
+function isTruthLike(value: unknown): boolean {
+  if (value === true) return true;
+  if (value === 1) return true;
+  if (typeof value === "string") {
+    const lowered = value.trim().toLowerCase();
+    return lowered === "1" || lowered === "true" || lowered === "ok" || lowered === "yes";
+  }
+  return false;
+}
+
+function hasFeatureInLockMap(mapObj: unknown, lockKey: string): boolean {
+  if (!mapObj || typeof mapObj !== "object") return false;
+  const valueBy = (key: string): boolean => {
+    const source = (mapObj as Record<string, unknown>)[key];
+    if (isTruthLike(source)) return true;
+    if (!source || typeof source !== "object") return false;
+    if (typeof (source as Record<string, unknown>).unlocked === "boolean") {
+      return (source as Record<string, unknown>).unlocked === true;
+    }
+    if (typeof (source as Record<string, unknown>).grant === "boolean") {
+      return (source as Record<string, unknown>).grant === true;
+    }
+    if (typeof (source as Record<string, unknown>).granted === "boolean") {
+      return (source as Record<string, unknown>).granted === true;
+    }
+    if (typeof (source as Record<string, unknown>).access === "boolean") {
+      return (source as Record<string, unknown>).access === true;
+    }
+    return false;
+  };
+  const aliases = [lockKey];
+  if (lockKey === SAJU_GUARDIAN_FEATURE_KEY) {
+    aliases.push(SAJU_GUARDIAN_ACTION);
+    aliases.push(SAJU_GUARDIAN_LEGACY_ACTION);
+  } else if (lockKey === SAJU_GUARDIAN_ACTION || lockKey === SAJU_GUARDIAN_LEGACY_ACTION) {
+    aliases.push(SAJU_GUARDIAN_FEATURE_KEY);
+  }
+
+  return aliases.some((alias) => valueBy(alias));
+}
+
+function readFortuneAuthScopeId() {
+  try {
+    const raw = window.localStorage.getItem(SAJU_GUARDIAN_TILE_LOCK_SCOPE_KEY) || "";
+    if (!raw) return "";
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const scopeRaw =
+      parsed?.id ||
+      parsed?.userId ||
+      parsed?.email ||
+      parsed?.username ||
+      parsed?.loginId;
+    const scope = String(scopeRaw || "").trim().toLowerCase();
+    return scope ? `cd_tile_locks_v2::${scope}` : "";
+  } catch (_) {
+    return "";
+  }
+}
+
+function hasGuardianUnlockAccessInTileLockMaps() {
+  if (typeof window === "undefined") return false;
+  const runtimeUnlockedFeatureMap =
+    (window as Window & { unlockedFeatureMap?: Record<string, unknown> | null }).unlockedFeatureMap;
+  try {
+    if (runtimeUnlockedFeatureMap && typeof runtimeUnlockedFeatureMap === "object") {
+      if (hasFeatureInLockMap(runtimeUnlockedFeatureMap, SAJU_GUARDIAN_FEATURE_KEY)) return true;
+    }
+  } catch (_) {}
+  try {
+    const legacyRaw = window.localStorage.getItem("cd_tile_locks");
+    if (legacyRaw) {
+      const legacy = JSON.parse(legacyRaw);
+      if (hasFeatureInLockMap(legacy, SAJU_GUARDIAN_FEATURE_KEY)) return true;
+    }
+  } catch (_) {}
+  try {
+    const scopedKey = readFortuneAuthScopeId();
+    if (scopedKey) {
+      const scopedRaw = window.localStorage.getItem(scopedKey);
+      if (scopedRaw) {
+        const scoped = JSON.parse(scopedRaw);
+        if (hasFeatureInLockMap(scoped, SAJU_GUARDIAN_FEATURE_KEY)) return true;
+      }
+    }
+  } catch (_) {}
+  return false;
+}
+
+function readGuardianStorageEntry(storage: Storage, key: string) {
+  const raw = storage.getItem(key);
+  if (!raw) return false;
+  if (raw === SAJU_GUARDIAN_SESSION_MARK) return true;
+  try {
+    const parsed = JSON.parse(raw) as { v?: string };
+    if (parsed?.v && parsed.v === SAJU_GUARDIAN_ACCESS_VERSION) return true;
+  } catch (_) {
+    return false;
+  }
+  return false;
+}
 
 function hasGuardianUnlockAccess() {
   if (typeof window === "undefined") return false;
   try {
+    const keys = buildGuardianStorageKeys();
     return (
-      window.sessionStorage.getItem(`cd_pa_${SAJU_GUARDIAN_ACTION}`) === "1" ||
-      window.sessionStorage.getItem(`cd_pa_${SAJU_GUARDIAN_LEGACY_ACTION}`) === "1" ||
-      window.sessionStorage.getItem(`cd_pa_${SAJU_GUARDIAN_FEATURE_KEY}`) === "1"
+      hasGuardianUnlockAccessInTileLockMaps() ||
+      keys.some((key) => {
+        try {
+          return readGuardianStorageEntry(window.sessionStorage, key);
+        } catch (_) {
+          return false;
+        }
+      }) ||
+      keys.some((key) => {
+        try {
+          return readGuardianStorageEntry(window.localStorage, key);
+        } catch (_) {
+          return false;
+        }
+      })
     );
   } catch (_) {
     return false;
@@ -137,18 +265,74 @@ function hasGuardianUnlockAccess() {
 function rememberGuardianUnlockAccess() {
   if (typeof window === "undefined") return;
   try {
-    window.sessionStorage.setItem(`cd_pa_${SAJU_GUARDIAN_ACTION}`, "1");
-    window.sessionStorage.setItem(`cd_pa_${SAJU_GUARDIAN_FEATURE_KEY}`, "1");
+    const payload = JSON.stringify({
+      v: SAJU_GUARDIAN_ACCESS_VERSION,
+      grantedAt: Date.now(),
+    });
+    buildGuardianStorageKeys().forEach((key) => {
+      window.sessionStorage.setItem(key, payload);
+      window.localStorage.setItem(key, payload);
+      window.sessionStorage.setItem(`${key}:v`, SAJU_GUARDIAN_ACCESS_VERSION);
+      window.localStorage.setItem(`${key}:v`, SAJU_GUARDIAN_ACCESS_VERSION);
+    });
   } catch (_) {}
 }
 
 function payloadGrantsGuardianAccess(payload: unknown) {
   try {
-    const text = JSON.stringify(payload || {});
-    return (
+    if (!payload || typeof payload !== "object") return false;
+    const data = payload as Record<string, unknown>;
+    const accessDecision = (data.accessDecision as Record<string, unknown> | null) || null;
+    const direct =
+      data.canAccess === true ||
+      data.freeBySubscription === true ||
+      data.accessGranted === true ||
+      data.granted === true ||
+      data.hasAccess === true ||
+      data.ok === true ||
+      data.unlocked === true ||
+      data.passActive === true ||
+      data.alreadyUnlocked === true;
+    const decisionDirect =
+      accessDecision?.accessGranted === true ||
+      accessDecision?.accessGateResult === true ||
+      accessDecision?.passCovered === true ||
+      accessDecision?.alreadyUnlocked === true;
+
+    if (direct || decisionDirect) return true;
+    if (
+      data.code === "ALREADY_UNLOCKED" ||
+      data.code === "PASS_FREE" ||
+      data.code === "MEMBERSHIP_PASS_ACTIVE" ||
+      data.code === "PASS_ACTIVE" ||
+      data.code === "ACCESS_GRANTED" ||
+      data.code === "PASS_COVERED"
+    ) {
+      return true;
+    }
+    if (typeof accessDecision?.reason === "string" && /already_unlocked|pass_covered|pass_applied|membership_pass|pass_active/i.test(accessDecision.reason)) {
+      return true;
+    }
+    if (
+      typeof accessDecision?.status === "string" &&
+      /already_unlocked|pass_covered|pass_applied|membership_pass|pass_active|unlocked|success/i.test(accessDecision.status)
+    ) {
+      return true;
+    }
+    if (typeof (data.status as string) === "string" && /already_unlocked|pass_applied|membership_pass|success|pass_covered/i.test(String(data.status))) {
+      return true;
+    }
+
+    const text = JSON.stringify(data);
+    const containsKey =
       text.includes(SAJU_GUARDIAN_FEATURE_KEY) &&
-      /(already_unlocked|pass_applied|membership_pass|ALREADY_UNLOCKED|PASS_FREE|accessGrant|premiumAccessToken)/i.test(text) &&
-      !/(PAYMENT_REQUIRED|INSUFFICIENT_COINS|PRICE_NOT_FOUND)/i.test(text)
+      !/(PAYMENT_REQUIRED|INSUFFICIENT_COINS|PRICE_NOT_FOUND|FORBIDDEN|UNAUTHORIZED)/i.test(text);
+
+    if (!containsKey) {
+      return false;
+    }
+    return /(already_unlocked|pass_applied|membership_pass|accessGrant|premiumAccessToken|accessGranted|hasAccess|pass_active|already_has_access|unlocked|PASS_ACTIVE|PASS_FREE|ALREADY_UNLOCKED|PASS_COVERED|pass_covered|access)/i.test(
+      text,
     );
   } catch (_) {
     return false;
@@ -158,29 +342,47 @@ function payloadGrantsGuardianAccess(payload: unknown) {
 async function verifyGuardianUnlockAccess() {
   if (hasGuardianUnlockAccess()) return true;
   if (typeof window === "undefined") return false;
+  const requestAccessCheck = async (reason: string): Promise<GuardianPayload | null> => {
+    try {
+      const response = await fetch("/api/billing/coin-gate", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          categoryKey: "main-tile",
+          subFeatureKey: SAJU_GUARDIAN_FEATURE_KEY,
+          featureKey: SAJU_GUARDIAN_FEATURE_KEY,
+          paymentMode: "MEMBERSHIP_PASS",
+          forceDeduct: false,
+          cost: 100,
+          coinPrice: 100,
+          reason,
+          requestId: `guardian-access:${Date.now().toString(36)}`,
+        }),
+      });
+      if (!response.ok) {
+        return null;
+      }
+      return (await response.json().catch(() => null)) as GuardianPayload;
+    } catch (_) {
+      return null;
+    }
+  };
   try {
-    const response = await fetch("/api/billing/coin-gate", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        categoryKey: "main-tile",
-        subFeatureKey: SAJU_GUARDIAN_FEATURE_KEY,
-        featureKey: SAJU_GUARDIAN_FEATURE_KEY,
-        paymentMode: "MEMBERSHIP_PASS",
-        forceDeduct: false,
-        cost: 100,
-        coinPrice: 100,
-        reason: "사주 가디언 소환진 해금 확인",
-        requestId: `guardian-access:${Date.now().toString(36)}`,
-      }),
-    });
-    const payload = await response.json().catch(() => null);
-    if (response.ok && payloadGrantsGuardianAccess(payload)) {
+    const payload = await requestAccessCheck("사주 가디언 소환진 해금 확인");
+    const isAllowed = payloadGrantsGuardianAccess(payload);
+    if (isAllowed) {
+      rememberGuardianUnlockAccess();
+      return true;
+    }
+    await new Promise((resolve) => setTimeout(resolve, SAJU_GUARDIAN_VERIFICATION_RETRY_MS));
+    const retryPayload = await requestAccessCheck("사주 가디언 소환진 해금 재확인");
+    if (payloadGrantsGuardianAccess(retryPayload)) {
       rememberGuardianUnlockAccess();
       return true;
     }
   } catch (_) {}
+  if (hasGuardianUnlockAccess()) return true;
   return false;
 }
 
@@ -361,7 +563,7 @@ const SAJU_GUARDIAN_VALUE_SECTIONS = [
 ] as const;
 
 const GUARDIAN_FLOW_STEPS = [
-  { step: "01", label: "해금", title: "100코인 영구 해금", icon: "🔒" },
+  { step: "01", label: "해금", title: "10,000원 영구 해금", icon: "🔒" },
   { step: "02", label: "좌표", title: "일주·월지·시지 세우기", icon: "🗝️" },
   { step: "03", label: "인장", title: "오행 수호 인장 열기", icon: "🔮" },
   { step: "04", label: "리딩", title: "7일 수호 미션 받기", icon: "💌" },
@@ -723,6 +925,25 @@ function ResultCard({
     },
   ];
 
+  const executionGuides = [
+    {
+      title: "오늘의 판단 우선순위",
+      body: `가장 먼저 처리할 순서는 ①미루는 답장 1건 정리, ②오후 업무의 핵심 1건 선택, ③불필요한 약속 1개 삭제입니다. ${resolvedGanji}의 ${stemPolarity}${result.dominantElement} 기운은 분산보다 정렬을 먼저 먹입니다.`,
+    },
+    {
+      title: "관계 운영 문장",
+      body: `오늘 대화에서는 '지금은 잠깐 멈추고 정리한 뒤 다시 말하겠다'를 기본 문장으로 세우세요. 월지가 밀어 주는 정서 기운과 시지가 조용히 받쳐주는 질서를 함께 쓰면 오해 비용이 낮아집니다.`,
+    },
+    {
+      title: "일·금전 리스크 체크",
+      body: "작은 지출 승인, 즉시 반응 메시지, 감정적 구매를 동시에 하지 마세요. 3회 확인 후 진행하면 일주가 드러내는 속도를 살려 손실 확률을 줄일 수 있습니다.",
+    },
+    {
+      title: "7일 루틴 시작점",
+      body: "매일 밤 10분, 오늘의 가디언 포인트 1개를 점검해 기록하세요. 수호 메시지를 매일 반복할수록 실행 실패 비용이 빠르게 낮아집니다.",
+    },
+  ];
+
   const reportPanels = {
     seal: {
       label: "인장",
@@ -730,7 +951,7 @@ function ResultCard({
       items: interpretationCards.slice(0, 3),
     },
     flow: {
-      label: "운용",
+      label: "흐름",
       title: "관계·일·재물 운용",
       items: interpretationCards.slice(3, 8),
     },
@@ -746,6 +967,11 @@ function ResultCard({
         title: `${mission.day} · ${mission.title}`,
         body: mission.body,
       })),
+    },
+    guide: {
+      label: "운용",
+      title: "실전 가디언 가이드",
+      items: executionGuides,
     },
   } as const;
 
@@ -1098,9 +1324,11 @@ export default function SajuPicturePage() {
   }, [birthYear, birthMonth, birthDay, birthHour, isFormValid]);
 
   const handleReset = useCallback(() => {
-    setPhase(hasGuardianUnlockAccess() ? "intro" : "locked");
     setApiData(null);
     setErrorMsg("");
+    verifyGuardianUnlockAccess().then((allowed) => {
+      setPhase(allowed ? "intro" : "locked");
+    });
   }, []);
 
   if (phase === "checking") {
@@ -1178,7 +1406,7 @@ export default function SajuPicturePage() {
               href="/index.html?action=openSajuGuardianPage"
               className="mt-5 inline-flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 px-5 py-4 text-sm font-black text-white shadow-xl shadow-pink-200/60 transition-transform active:scale-[0.98]"
             >
-              🔒 100코인으로 영구 해금하기
+              🔒 10,000원으로 영구 해금하기
             </a>
             <a
               href="/"
@@ -1258,7 +1486,7 @@ export default function SajuPicturePage() {
         <div className="max-w-md mx-auto px-4 pb-12 space-y-6">
           <div className="relative w-full aspect-square max-w-sm mx-auto mt-6 rounded-3xl overflow-hidden shadow-2xl shadow-pink-200/60 border-4 border-white/80">
             <Image
-              src="/fuctionassets/Who%20am%20I%20with%20saju.webp"
+              src="/fuctionassets/saju-guardian-60gabsja.webp"
               alt="사주 가디언 소환진"
               fill
               priority
@@ -1268,7 +1496,7 @@ export default function SajuPicturePage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             <div className="absolute bottom-4 left-4 right-4 text-center">
               <span className="inline-block bg-white/90 backdrop-blur-sm text-slate-800 font-bold text-sm rounded-full px-4 py-1.5 shadow-sm">
-                🔒 100코인 영구 해금 · 60갑자 수호 인장
+                🔒 10,000원 영구 해금 · 60갑자 수호 인장
               </span>
             </div>
           </div>
@@ -1326,7 +1554,7 @@ export default function SajuPicturePage() {
           </div>
 
           <section className="bg-white/70 backdrop-blur-sm rounded-3xl p-5 border border-white/60 shadow-md space-y-3" aria-label="사주 가디언 소환진 구성">
-            <h2 className="text-sm font-black text-slate-700 tracking-wide">100코인 수호 인장 구성</h2>
+            <h2 className="text-sm font-black text-slate-700 tracking-wide">10,000원 수호 인장 구성</h2>
             {SAJU_GUARDIAN_VALUE_SECTIONS.map((section) => (
               <article key={section.title} className="rounded-2xl border border-pink-100 bg-white/70 p-3.5">
                 <h3 className="text-sm font-bold text-pink-600 leading-relaxed">{section.title}</h3>

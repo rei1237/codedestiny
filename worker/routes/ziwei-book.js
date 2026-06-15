@@ -5144,7 +5144,7 @@ async function handlePrepare(request, env) {
       message: status === 401
         ? "자미두수 PDF 생성을 위해 먼저 로그인해 주세요."
         : status === 402
-          ? "프리미엄 PDF 생성을 위해 코인 또는 이용권 확인이 필요합니다."
+          ? "프리미엄 PDF 생성을 위해 원화 결제 또는 이용권 확인이 필요합니다."
           : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
     }, { status });
   }

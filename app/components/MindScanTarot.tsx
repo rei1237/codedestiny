@@ -1444,13 +1444,13 @@ export default function MindScanTarot() {
           await executeReading();
           if (chargedCoins <= 0 && requiredCoins > 0) {
             showSubscriptionIncludedNotice({
-              message: "구독 혜택이 적용되어 코인이 차감되지 않았습니다.",
+              message: "이용권 혜택이 적용되어 추가 결제 없이 열렸습니다.",
               reason: "말과 행동 사이 타로",
             });
             return;
           }
           if (chargedCoins > 0) {
-            showToast(`🪙 말과 행동 사이 타로 이용으로 ${chargedCoins}코인이 차감되었습니다. 남은 코인: ${balanceAfter.toLocaleString("ko-KR")}`, "info");
+            showToast(`말과 행동 사이 타로 ${Math.max(0, chargedCoins * 100).toLocaleString("ko-KR")}원 결제가 승인되었습니다. 잔여 원화 가치: ${Math.max(0, balanceAfter * 100).toLocaleString("ko-KR")}원`, "info");
           }
         },
       });
@@ -1467,7 +1467,7 @@ export default function MindScanTarot() {
           return;
         }
         if (paymentResult.code === "INSUFFICIENT_COINS") {
-          setReadingError(`코인이 부족합니다. ${paymentResult.requiredCoins}코인이 필요합니다.`);
+          setReadingError(`결제 가능 금액이 부족합니다. ${paymentResult.requiredCoins}결제가 필요합니다.`);
           return;
         }
         if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) {

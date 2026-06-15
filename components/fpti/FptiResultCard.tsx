@@ -644,7 +644,7 @@ export default function FptiResultCard({ result }: Props) {
           return;
         }
         if (purchase.status === 402) {
-          setDeepError("코인이 부족합니다. 심층 리포트 잠금 해제에는 200코인이 필요합니다.");
+          setDeepError("결제 가능 금액이 부족합니다. 심층 리포트 잠금 해제에는 20,000원이 필요합니다.");
           return;
         }
         setDeepError(purchase.message || "결제 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
@@ -828,7 +828,7 @@ export default function FptiResultCard({ result }: Props) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs tracking-[0.18em] text-[#F6D365]">PREMIUM DEEP REPORT</p>
-            <h4 className="text-lg font-semibold text-amber-100">FPTI 심층 리포트 잠금 해제 (200코인)</h4>
+            <h4 className="text-lg font-semibold text-amber-100">FPTI 심층 리포트 잠금 해제 (20,000원)</h4>
             <p className="text-sm text-amber-50">결제 전 미리보기, 결제 후 7개 챕터 전체 열람으로 동작합니다.</p>
           </div>
           {!accessState.isUnlocked && (
@@ -838,7 +838,7 @@ export default function FptiResultCard({ result }: Props) {
               disabled={deepLoading}
               className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,165,233,0.35)] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {deepLoading ? "잠금 해제 처리 중" : "FPTI 심층 리포트 잠금 해제 (200코인)"}
+              {deepLoading ? "잠금 해제 처리 중" : "FPTI 심층 리포트 잠금 해제 (20,000원)"}
             </button>
           )}
           {accessState.isUnlocked && (

@@ -10,6 +10,7 @@ import type { PaymentLoadingProps } from "../components/common/PaymentLoading";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
+import { readSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "../_lib/billing-client";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 import { refreshBillingBalance } from "../_lib/auth-store";
 
@@ -355,9 +356,9 @@ const SUBSCRIPTION_BASE_PLANS = [
     badge:        "",
     features:     [
       "프로필 최대 3개 생성",
-      "30코인 이하 유료 기능 이용 가능",
-      "PDF 생성 시 30코인 자동 할인",
-      "30코인 초과 기능은 단건 결제 또는 Moonlight Stone/코인 결제",
+      "3,000원 이하 유료 기능 이용 가능",
+      "PDF 생성 시 3,000원 자동 할인",
+      "3,000원 초과 기능은 단건 결제 또는 보너스 가치/원화 결제",
       "결제 즉시 30일 이용권 활성화",
       "자동결제 상품 아님",
     ],
@@ -372,9 +373,9 @@ const SUBSCRIPTION_BASE_PLANS = [
     theme:        "rose",
     features:     [
       "프로필 최대 7개 생성",
-      "50코인 이하 유료 기능 이용 가능",
-      "PDF 생성 시 50코인 자동 할인",
-      "50코인 초과 기능은 단건 결제 또는 Moonlight Stone/코인 결제",
+      "5,000원 이하 유료 기능 이용 가능",
+      "PDF 생성 시 5,000원 자동 할인",
+      "5,000원 초과 기능은 단건 결제 또는 보너스 가치/원화 결제",
       "결제 즉시 30일 이용권 활성화",
       "자동결제 상품 아님",
     ],
@@ -390,9 +391,9 @@ const SUBSCRIPTION_BASE_PLANS = [
     theme:        "purple",
     features:     [
       "프로필 최대 15개 생성",
-      "100코인 이하 유료 기능 이용 가능",
-      "PDF 생성 시 100코인 자동 할인",
-      "100코인 초과 기능은 단건 결제 또는 Moonlight Stone/코인 결제",
+      "10,000원 이하 유료 기능 이용 가능",
+      "PDF 생성 시 10,000원 자동 할인",
+      "10,000원 초과 기능은 단건 결제 또는 보너스 가치/원화 결제",
       "결제 즉시 30일 이용권 활성화",
       "자동결제 상품 아님",
     ],
@@ -409,7 +410,7 @@ const SUBSCRIPTION_BASE_PLANS = [
     features:     [
       "프로필 추가·수정·삭제 무료, 제한 없음",
       "PDF 포함 모든 유료 기능 이용 가능",
-      "코인 기준 단건 결제 없이 Family 혜택 적용",
+      "원화 단건 결제 없이 Family 혜택 적용",
       "결제 즉시 30일 이용권 활성화",
       "자동결제 상품 아님",
     ],
@@ -525,8 +526,12 @@ function formatWon(amount: number) {
   return `${Number(amount || 0).toLocaleString("ko-KR")}원`;
 }
 
+function formatCoinValue(amount: number) {
+  return formatWon(Math.max(0, Math.floor(Number(amount || 0))) * 100);
+}
+
 function formatMonthlyCredits(amount: number) {
-  return `${Number(amount || 0).toLocaleString("ko-KR")} Moonlight Stone`;
+  return `${(Math.max(0, Math.floor(Number(amount || 0))) * 10).toLocaleString("ko-KR")}원 상당`;
 }
 
 function getSubscriptionMonthlyCreditCost(plan: Pick<SubscriptionPlan, "wonPrice">) {
@@ -556,24 +561,24 @@ function formatSubscriptionPlanProfileLimit(plan: Pick<SubscriptionPlan, "profil
 
 function formatSubscriptionPlanPolicy(plan: Pick<SubscriptionPlan, "freeUpTo">) {
   if (plan.freeUpTo === null) return "모든 유료/PDF 서비스 무료";
-  return `일반 ${plan.freeUpTo}코인 이하 이용 · PDF ${plan.freeUpTo}코인 할인`;
+  return `일반 ${formatCoinValue(plan.freeUpTo)} 이하 이용 · PDF ${formatCoinValue(plan.freeUpTo)} 할인`;
 }
 
 function formatSubscriptionPlanValueLine(plan: Pick<SubscriptionPlan, "tier" | "freeUpTo" | "durationMonths">) {
   const duration = formatSubscriptionDurationLabel(plan.durationMonths);
   if (plan.tier === "family") return `Family 전체 혜택 / ${duration}`;
-  return `${Number(plan.freeUpTo || 0).toLocaleString("ko-KR")}코인 이하 기능 / ${duration}`;
+  return `${formatCoinValue(Number(plan.freeUpTo || 0))} 이하 기능 / ${duration}`;
 }
 
 function mapMonthlyCreditLedgerLabel(type: MonthlyCreditLedgerItem["type"]) {
   const normalized = String(type || "").trim().toUpperCase();
   if (normalized.includes("REFUND")) {
-    return { label: "Moonlight Stone 환불", cls: "bg-cyan-100 text-cyan-800 border-cyan-300", prefix: "+" };
+    return { label: "보너스 가치 환불", cls: "bg-cyan-100 text-cyan-800 border-cyan-300", prefix: "+" };
   }
   if (normalized === "MONTHLY_CREDIT_SPEND") {
-    return { label: "Moonlight Stone 사용", cls: "bg-rose-100 text-rose-700 border-rose-300", prefix: "-" };
+    return { label: "보너스 가치 사용", cls: "bg-rose-100 text-rose-700 border-rose-300", prefix: "-" };
   }
-  return { label: "Moonlight Stone 지급", cls: "bg-emerald-100 text-emerald-800 border-emerald-300", prefix: "+" };
+  return { label: "보너스 가치 지급", cls: "bg-emerald-100 text-emerald-800 border-emerald-300", prefix: "+" };
 }
 
 function isMonthlyCreditPayment(payment: Pick<PaymentHistoryItem, "paymentMethod" | "accessType">) {
@@ -583,7 +588,7 @@ function isMonthlyCreditPayment(payment: Pick<PaymentHistoryItem, "paymentMethod
 }
 
 function formatPaymentMethodLabel(payment: PaymentHistoryItem) {
-  if (isMonthlyCreditPayment(payment)) return "Moonlight Stone";
+  if (isMonthlyCreditPayment(payment)) return "보너스 가치";
   const method = String(payment.paymentMethodLabel || payment.paymentMethod || "").trim();
   const normalized = method.toLowerCase();
   if (!method) return "-";
@@ -597,9 +602,9 @@ function formatPaymentMethodLabel(payment: PaymentHistoryItem) {
 function formatPaymentMonthlyCreditHint(payment: PaymentHistoryItem) {
   const cost = Math.max(0, Math.floor(Number(payment.membershipCreditCost || 0)));
   if (cost <= 0) return "";
-  const amount = `${cost.toLocaleString("ko-KR")}개`;
-  if (isMonthlyCreditPayment(payment)) return `Moonlight Stone ${amount} 사용`;
-  return `Moonlight Stone 보너스 기준 ${amount}`;
+  const amount = formatMonthlyCredits(cost);
+  if (isMonthlyCreditPayment(payment)) return `보너스 가치 ${amount} 사용`;
+  return `보너스 가치 기준 ${amount}`;
 }
 
 function formatDateTime(raw?: string | null) {
@@ -1087,7 +1092,7 @@ function SubscriptionSection({
           <p className="text-[11px] font-bold uppercase tracking-widest text-[#cab8ff]">연이의 달빛 이용권 상점</p>
           <h2 className="mt-0.5 text-xl font-bold text-white">연이의 달빛 이용권 상점</h2>
           <p className="mt-1 text-sm text-slate-200">
-            30일 이용권 상품과 Moonlight Stone 잔량을 함께 확인하세요.
+            30일 이용권 상품과 보너스 가치를 함께 확인하세요.
           </p>
         </div>
 
@@ -1125,12 +1130,12 @@ function SubscriptionSection({
           </p>
           <ul className="mt-1.5 space-y-1 text-[11.5px] text-slate-200">
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">모든 신규 판매 이용권은 <strong>결제 검증 성공 시점부터 30일 동안 유효</strong>합니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 30/50/100코인 이하일 때 이용권으로 이용할 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 3,000원/5,000원/10,000원 이하일 때 이용권으로 이용할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Code Destiny Family는 프로필 카드 제한 없이 모든 유료 기능을 이용할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP의 PDF 서비스는 생성 결제 시 각 등급 한도만큼 자동 할인되며, Family는 PDF 포함 모든 유료 기능이 무료 처리됩니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">한도 초과 일반 유료 서비스는 상품별 코인 기준 단건 결제로 이용할 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">한도 초과 일반 유료 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Moonlight Stone 잔량은 신규 가입·이벤트로만 지급되며 구매하거나 충전할 수 없습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">보너스 가치는 신규 가입·이벤트로만 지급되며 구매하거나 충전할 수 없습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">이용권 결제 후 유료 기능을 1회 이상 이용하면 환불이 제한될 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0"><strong>자동결제가 아닌 30일 이용권</strong>이며, 결제 전 환불 규정 동의가 필요합니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</span></li>
@@ -1401,13 +1406,13 @@ function SubscriptionSection({
                       : "border-white/10 bg-white/[0.04] text-slate-400",
                   ].join(" ")}
                 >
-                  Moonlight Stone {monthlyCreditCost.toLocaleString("ko-KR")}개로 활성화
+                  보너스 가치 {formatMonthlyCredits(monthlyCreditCost)}로 활성화
                 </button>
               )}
 
               {monthlyCredits < monthlyCreditCost && !lowerTierBlocked && (
                 <p className="mt-1 text-[11px] font-semibold text-amber-200/80">
-                  Moonlight Stone 보너스 현재 {monthlyCredits.toLocaleString("ko-KR")}개
+                  보너스 가치 현재 {formatMonthlyCredits(monthlyCredits)}
                 </p>
               )}
 
@@ -1452,7 +1457,7 @@ function SubscriptionSection({
       <div className="px-5 pb-5 space-y-1">
         <p className="text-[11px] text-[#9B7040]">✅ 결제 즉시 이용권 혜택이 활성화되며 <strong>30일 동안 유효</strong>합니다.</p>
         <p className="text-[11px] text-rose-600 font-bold">이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.</p>
-        <p className="text-[11px] text-[#9B7040]">Moonlight Stone 잔량은 이벤트 보너스이며 구매·충전할 수 없습니다.</p>
+        <p className="text-[11px] text-[#9B7040]">보너스 가치는 이벤트 보너스이며 구매·충전할 수 없습니다.</p>
       </div>
     </section>
   );
@@ -1587,11 +1592,11 @@ function WalletCard({
 
           <div className="flex flex-col items-start gap-1 sm:items-end">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-[#f3dd9a]">
-              Moonlight Stone 보너스 잔량
+              보너스 가치
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[22px] font-black leading-none text-white">
-                {monthlyStoneBalance.toLocaleString("ko-KR")}
+                {formatMonthlyCredits(monthlyStoneBalance)}
               </span>
               <button
                 type="button"
@@ -1599,11 +1604,11 @@ function WalletCard({
                 disabled={isRefreshingMonthlyCredits}
                 className="rounded-full border border-[#cab8ff]/45 bg-white/[0.08] px-3 py-1.5 text-[11px] font-black text-[#f3dd9a] transition hover:bg-white/[0.14] disabled:cursor-not-allowed disabled:opacity-55"
               >
-                {isRefreshingMonthlyCredits ? "확인 중..." : "월정석 잔량 확인"}
+                {isRefreshingMonthlyCredits ? "확인 중..." : "보너스 가치 확인"}
               </button>
             </div>
             <p className="max-w-[280px] text-[11px] text-slate-200 sm:text-right">
-              신규 가입·이벤트로 지급되는 Moonlight Stone 보너스 잔량입니다. 기본 결제는 상품별 코인 기준 단건 결제로 진행됩니다.
+              신규 가입·이벤트로 지급되는 보너스 가치입니다. 기본 결제는 상품별 원화 단건 결제로 진행됩니다.
             </p>
           </div>
         </div>
@@ -1670,7 +1675,7 @@ function PackageCard({
         </span>
       </div>
       <span className="mt-2.5 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[#cab8ff] to-[#f3dd9a] px-2.5 py-1 text-[12px] font-black text-[#151832] shadow-[0_3px_10px_rgba(202,184,255,0.24)]">
-        코인 기준 결제 · Moonlight Stone 보너스 병행
+        원화 결제 · 보너스 가치 병행
       </span>
 
       {/* 선택 체크마크 */}
@@ -1713,7 +1718,7 @@ export default function PointsPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingVariant, setProcessingVariant] = useState<PaymentLoadingVariant>("subscription");
   const [processingText, setProcessingText] = useState(
-    "코인 기준 달빛 이용권 결제 정보를 확인하고 있습니다.",
+    "원화 기준 달빛 이용권 결제 정보를 확인하고 있습니다.",
   );
   const {
     startProcessing: showProcessingOverlay,
@@ -1835,9 +1840,9 @@ export default function PointsPage() {
     setIsRefreshingMonthlyCredits(true);
     try {
       const latestMonthlyCredits = await refreshWalletFromServer();
-      pushToast("success", `Moonlight Stone 잔량을 확인했습니다. 현재 ${latestMonthlyCredits.toLocaleString("ko-KR")}개입니다.`);
+      pushToast("success", `보너스 가치를 확인했습니다. 현재 ${formatMonthlyCredits(latestMonthlyCredits)}입니다.`);
     } catch (error: unknown) {
-      pushToast("error", getErrorMessage(error, "Moonlight Stone 잔량 확인에 실패했습니다."));
+      pushToast("error", getErrorMessage(error, "보너스 가치 확인에 실패했습니다."));
     } finally {
       setIsRefreshingMonthlyCredits(false);
     }
@@ -1872,6 +1877,7 @@ export default function PointsPage() {
       localStorage.setItem(scopedKey, payload);
       localStorage.setItem("fortune_profile_subscription", payload);
       localStorage.setItem("fortune_profile_subscription_owner", scope);
+      saveSubscriptionSnapshotForUser(scope === "guest" ? undefined : scope, sub, "points-page");
 
       const eventPayload = { source: "points-page", event: "subscription", at: Date.now() };
       window.dispatchEvent(new CustomEvent("cd:auth-changed", { detail: eventPayload }));
@@ -1883,7 +1889,7 @@ export default function PointsPage() {
     } catch { /* noop */ }
   }, []);
 
-  /* ── 서버에서 Moonlight Stone/주문 상태 조회 ─────────────────────────────── */
+  /* ── 서버에서 보너스 가치/주문 상태 조회 ─────────────────────────────── */
   const fetchMyPointState = useCallback(
     async () => {
       if (fetchMyPointStateInFlightRef.current) {
@@ -1920,7 +1926,7 @@ export default function PointsPage() {
         if (payloadCode === "AUTH_REFRESH_TEMPORARY_FAILURE") {
           throw new Error(mapAuthRefreshTemporaryFailureMessage());
         }
-        throw new Error(payload.message || "결제 및 Moonlight Stone 정보를 불러오지 못했습니다.");
+        throw new Error(payload.message || "결제 및 보너스 가치 정보를 불러오지 못했습니다.");
       }
 
       const normalized = normalizeMePayload(payload);
@@ -1928,6 +1934,7 @@ export default function PointsPage() {
       setCurrentMonthlyCredits(Math.max(0, Math.floor(Number(normalized.monthlyCredits || 0))));
       void refreshWalletFromServer().catch(() => null);
       if (normalized.subscription) {
+        saveSubscriptionSnapshotForUser(undefined, normalized.subscription, "payments-me");
         setSubscription((prev) => {
           const nextSubscription = mergeSubscriptionState(prev, normalized.subscription as SubscriptionStatus);
           if (nextSubscription.isActive) persistSubscriptionCache(nextSubscription);
@@ -2008,12 +2015,12 @@ export default function PointsPage() {
     saveAdminTestTierClient(adminTestTier);
   }, [adminTestTier, authUser]);
 
-  /* ── 부팅 후 Moonlight Stone/주문 정보 로드 ─────────────────────────────── */
+  /* ── 부팅 후 보너스 가치/주문 정보 로드 ─────────────────────────────── */
   useEffect(() => {
     if (isBooting) return;
 
     fetchMyPointState().catch((error) => {
-      pushToast("error", getErrorMessage(error, "결제 및 Moonlight Stone 정보를 불러오지 못했습니다."));
+      pushToast("error", getErrorMessage(error, "결제 및 보너스 가치 정보를 불러오지 못했습니다."));
     });
   }, [fetchMyPointState, isBooting, pushToast]);
 
@@ -2029,8 +2036,25 @@ export default function PointsPage() {
         profileLimit: pendingPass.profileLimit,
         lowBalanceWarning: false,
       }));
+      return;
     }
     const isAdminSession = authUser?.role === "admin" && isFlowerAdminSessionClient();
+    if (!isAdminSession) {
+      const cachedSnapshot = readSubscriptionSnapshotForUser();
+      if (cachedSnapshot) {
+        const snapshotSubscription = normalizeSubscriptionStatusFromPayload({
+          tier: cachedSnapshot.tier,
+          isActive: cachedSnapshot.state === "active",
+          expiresAt: cachedSnapshot.expiresAt,
+          status: cachedSnapshot.state === "active" ? "active" : "inactive",
+          source: cachedSnapshot.source,
+        });
+        if (snapshotSubscription) {
+          setSubscription((prev) => mergeSubscriptionState(prev, snapshotSubscription));
+        }
+        return;
+      }
+    }
     const flowerAdminToken = isAdminSession ? getFlowerAdminTokenClient() : "";
     const adminHeaders = flowerAdminToken ? {
       "x-admin-token": flowerAdminToken,
@@ -2060,7 +2084,11 @@ export default function PointsPage() {
       .then((d) => {
         if (!d) return;
         const normalizedSubscription = normalizeSubscriptionStatusFromPayload(d);
-        if (!normalizedSubscription) return;
+        if (!normalizedSubscription) {
+          saveSubscriptionSnapshotForUser(undefined, { tier: "free", isActive: false, status: "inactive" }, "subscription-status");
+          return;
+        }
+        saveSubscriptionSnapshotForUser(undefined, normalizedSubscription, "subscription-status");
         setSubscription((prev) => {
           const nextSubscription = mergeSubscriptionState(prev, normalizedSubscription);
           if (nextSubscription.isActive) persistSubscriptionCache(nextSubscription);
@@ -2228,7 +2256,7 @@ export default function PointsPage() {
   const requestCancelPayment = useCallback(
     async (payment: PaymentHistoryItem) => {
       const ok = window.confirm(
-        `${formatWon(payment.paymentAmount)} 결제를 취소할까요?\n이미 사용한 Moonlight Stone 또는 이용 내역이 있으면 취소가 제한될 수 있습니다.`,
+        `${formatWon(payment.paymentAmount)} 결제를 취소할까요?\n이미 사용한 보너스 가치 또는 이용 내역이 있으면 취소가 제한될 수 있습니다.`,
       );
       if (!ok) return;
 
@@ -2626,6 +2654,7 @@ export default function PointsPage() {
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
+    setPendingSubscriptionPaymentPlan(null);
     setProcessingStage(`${plan.title} 결제 정보를 확인하고 있습니다.`, "subscription");
 
     try {
@@ -2811,21 +2840,22 @@ export default function PointsPage() {
       return;
     }
 
-    const latestMonthlyCredits = await refreshWalletFromServer().catch(() => currentMonthlyCredits);
-    if (latestMonthlyCredits < requiredMonthlyCredits) {
-      pushToast("error", `Moonlight Stone 보너스가 부족합니다. 필요: ${requiredMonthlyCredits.toLocaleString("ko-KR")}개`);
-      return;
-    }
-
     const requestId = `subscription-monthly:${plan.planId}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const actionLockKey = `subscription-monthly:${plan.planId}`;
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setPendingMonthlyCreditPlan(null);
     setIsProcessing(true);
-    setProcessingStage(`${plan.title}을 Moonlight Stone 보너스로 활성화하고 있습니다.`, "monthly");
+    setProcessingStage(`${plan.title} 보너스 가치를 확인하고 있습니다.`, "monthly");
 
     try {
+      const latestMonthlyCredits = await refreshWalletFromServer().catch(() => currentMonthlyCredits);
+      if (latestMonthlyCredits < requiredMonthlyCredits) {
+        pushToast("error", `보너스 가치가 부족합니다. 필요: ${formatMonthlyCredits(requiredMonthlyCredits)}`);
+        return;
+      }
+
+      setProcessingStage(`${plan.title}을 보너스 가치로 활성화하고 있습니다.`, "monthly");
       const confirmData = await confirmSubscriptionWithServer({
         merchantUid: requestId,
         tier: plan.tier,
@@ -2865,11 +2895,11 @@ export default function PointsPage() {
       }
 
       await syncSubscriptionAppliedStage();
-      pushToast("success", confirmData.message || `${plan.title}이 Moonlight Stone 보너스로 활성화되었습니다.`);
+      pushToast("success", confirmData.message || `${plan.title}이 보너스 가치로 활성화되었습니다.`);
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);
     } catch (error: unknown) {
-      pushToast("error", getErrorMessage(error, "Moonlight Stone 보너스 사용에 실패했습니다."));
+      pushToast("error", getErrorMessage(error, "보너스 가치 사용에 실패했습니다."));
     } finally {
       releasePaymentActionLock(actionLockKey);
       setIsProcessing(false);
@@ -3042,8 +3072,8 @@ export default function PointsPage() {
                 }}
                 className="rounded-[14px] border border-amber-200/45 bg-amber-200 px-4 py-3 text-left text-[#151832] shadow-[0_10px_22px_rgba(243,221,154,0.18)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="block text-sm font-black">코인 기준 단건 결제</span>
-                <span className="mt-1 block text-[12px] font-semibold">콘텐츠 가치 단위는 코인으로 표시되며 보안 결제창에서 결제합니다.</span>
+                <span className="block text-sm font-black">원화 단건 결제</span>
+                <span className="mt-1 block text-[12px] font-semibold">콘텐츠 가치는 원화로 표시되며 보안 결제창에서 결제합니다.</span>
               </button>
               <button
                 type="button"
@@ -3056,9 +3086,9 @@ export default function PointsPage() {
                 }}
                 className="rounded-[14px] border border-white/15 bg-white/[0.08] px-4 py-3 text-left text-slate-100 shadow transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="block text-sm font-black">Moonlight Stone 보너스 사용</span>
+                <span className="block text-sm font-black">보너스 가치 사용</span>
                 <span className="mt-1 block text-[12px] font-semibold text-slate-200">
-                  구매 불가 보너스 · 필요 {pendingSubscriptionPaymentMonthlyCreditCost.toLocaleString("ko-KR")}개 · 현재 {currentMonthlyCredits.toLocaleString("ko-KR")}개
+                  구매 불가 보너스 · 필요 {formatMonthlyCredits(pendingSubscriptionPaymentMonthlyCreditCost)} · 현재 {formatMonthlyCredits(currentMonthlyCredits)}
                 </span>
               </button>
             </div>
@@ -3086,14 +3116,14 @@ export default function PointsPage() {
         >
           <div className="w-full max-w-sm rounded-[20px] border border-amber-200/35 bg-[#111832] p-5 text-slate-100 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
             <p id="monthlyCreditPassConfirmTitle" className="text-base font-black text-white">
-              Moonlight Stone 보너스 사용
+              보너스 가치 사용
             </p>
             <p className="mt-3 text-sm leading-relaxed text-slate-200">
-              {pendingMonthlyCreditPlan.title} 활성화에 Moonlight Stone 보너스 {pendingMonthlyCreditCost.toLocaleString("ko-KR")}개를 사용합니다.
+              {pendingMonthlyCreditPlan.title} 활성화에 보너스 가치 {formatMonthlyCredits(pendingMonthlyCreditCost)}를 사용합니다.
             </p>
             <div className="mt-4 rounded-[14px] border border-white/10 bg-white/[0.07] px-3 py-2 text-[12px] text-slate-200">
-              <p>현재 Moonlight Stone {currentMonthlyCredits.toLocaleString("ko-KR")}개</p>
-              <p>사용 후 예상 잔량 {Math.max(0, currentMonthlyCredits - pendingMonthlyCreditCost).toLocaleString("ko-KR")}개</p>
+              <p>현재 보너스 가치 {formatMonthlyCredits(currentMonthlyCredits)}</p>
+              <p>사용 후 예상 가치 {formatMonthlyCredits(Math.max(0, currentMonthlyCredits - pendingMonthlyCreditCost))}</p>
               <p className="mt-2 font-bold text-[#f3dd9a]">30일 동안 활성화되며 자동결제 상품이 아닙니다.</p>
             </div>
             <label className="mt-3 flex items-start gap-2 rounded-[14px] border border-amber-200/35 bg-amber-200/10 px-3.5 py-3 text-[12px] font-bold text-amber-100">
@@ -3125,7 +3155,7 @@ export default function PointsPage() {
             </div>
             {currentMonthlyCredits < pendingMonthlyCreditCost && (
               <p className="mt-3 text-[12px] font-bold text-rose-200">
-                Moonlight Stone 보너스 잔량이 부족합니다.
+                보너스 가치가 부족합니다.
               </p>
             )}
           </div>
@@ -3166,10 +3196,10 @@ export default function PointsPage() {
                     연이의 달빛 이용권 상점
                   </h1>
                   <p className="mt-1 text-sm text-slate-200">
-                    달빛 이용권 상품과 Moonlight Stone 보너스 잔량을 한 화면에서 확인하세요.
+            달빛 이용권 상품과 보너스 가치를 한 화면에서 확인하세요.
                   </p>
                   <p className="mt-1 text-[12px] text-[#f3dd9a]">
-                    기본 결제 단위는 코인이며, Moonlight Stone은 신규 가입·이벤트 보너스로만 지급됩니다.
+                    기본 결제 단위는 원화이며, 보너스 가치는 신규 가입·이벤트 보너스로만 지급됩니다.
                   </p>
                 </div>
               </div>
@@ -3202,12 +3232,12 @@ export default function PointsPage() {
 
         <section className="rounded-[20px] border border-white/12 bg-white/[0.08] p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="font-bold text-white">Moonlight Stone 사용 내역</h3>
+            <h3 className="font-bold text-white">보너스 가치 사용 내역</h3>
             <span className="text-[11px] font-semibold text-slate-300">지급 / 사용 / 잔액</span>
           </div>
 
           {monthlyCreditLedgers.length === 0 ? (
-            <p className="text-sm text-slate-300">아직 Moonlight Stone 사용 내역이 없습니다.</p>
+            <p className="text-sm text-slate-300">아직 보너스 가치 사용 내역이 없습니다.</p>
           ) : (
             <div className="space-y-2.5">
               {monthlyCreditLedgers.map((entry) => {
@@ -3270,7 +3300,7 @@ export default function PointsPage() {
 
         {/* ③ 섹션 구분선 */}
         <section
-          aria-label="코인 기준 단건 결제 안내"
+          aria-label="원화 단건 결제 안내"
           className="rounded-[20px] border border-white/12 bg-white/[0.06] px-5 py-4 text-sm leading-6 text-slate-200"
         >
           일반 유료 서비스는 이용권 한도 이하일 때만 이용권으로 열립니다. PDF 서비스는 결제 시 등급 한도만큼 할인되며, Family는 PDF를 포함한 모든 기능이 무료로 처리됩니다.
@@ -3307,7 +3337,7 @@ export default function PointsPage() {
                     <div className="mt-2 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-2">
                       <p>결제시각: {formatDateTime(payment.paidAt || payment.cancelledAt)}</p>
                       <p>결제수단: {formatPaymentMethodLabel(payment)}</p>
-                      {paymentMethodHint ? <p>Moonlight Stone 표시: {paymentMethodHint}</p> : null}
+                      {paymentMethodHint ? <p>보너스 가치 표시: {paymentMethodHint}</p> : null}
                       <p>승인번호: {payment.approvalNumber || "-"}</p>
                       <p>주문번호: {payment.merchantUid || "-"}</p>
                     </div>
@@ -3475,7 +3505,7 @@ export default function PointsPage() {
             <div className="mb-5 flex items-start justify-between gap-3">
               <div>
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-700">
-                  코인 기준 결제 방법 선택
+                  원화 결제 방법 선택
                 </p>
                 <h4 className="mt-0.5 text-lg font-bold text-[#5C3A1E]">
                   {selectedPackage.title} · 콘텐츠 기준 {selectedPackage.points.toLocaleString("ko-KR")}
@@ -3528,7 +3558,7 @@ export default function PointsPage() {
               disabled={isProcessing}
               className="mt-5 w-full rounded-[16px] bg-gradient-to-r from-[#C9A84C] via-[#DFB84C] to-[#E8C060] px-4 py-4 text-base font-black text-white shadow-[0_10px_28px_rgba(160,120,20,0.45)] transition-all hover:-translate-y-0.5 hover:from-[#D4B050] hover:to-[#F0CD6A] hover:shadow-[0_14px_32px_rgba(160,120,20,0.55)] active:scale-[0.97] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isProcessing ? "🐷 연결 중..." : "코인 기준 결제를 진행합니다"}
+              {isProcessing ? "🐷 연결 중..." : "원화 결제를 진행합니다"}
             </button>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { authFetch } from "@/app/_lib/auth-client";
 import { normalizeBaseUrl } from "@/app/_lib/api-config";
+import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import {
   beginPaidAttempt,
   markPaidAttemptCallbackReturned,
@@ -77,6 +78,18 @@ export type PaymentEligibility = {
     provider: "PORTONE_V2_KG_INICIS";
   };
   raw: Record<string, unknown>;
+};
+
+type SubscriptionSnapshotTier = "free" | "standard" | "premium" | "vvip" | "family";
+
+export type SubscriptionSnapshot = {
+  userId: string;
+  state: "active" | "none";
+  tier: SubscriptionSnapshotTier;
+  expiresAt: string | null;
+  checkedAt: number;
+  purchaseVersion: string;
+  source: string;
 };
 
 type RuntimePaidServiceGateResult = {
@@ -205,6 +218,9 @@ const BILLING_BALANCE_RECENT_TTL_MS = 5000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
 const PAYMENT_CHOICE_RECENT_TTL_MS = 1800;
 export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-4c7c95b72cf6";
+const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
+const SUBSCRIPTION_SNAPSHOT_ACTIVE_STATUSES = new Set(["active", "subscribed", "paid", "success", "succeeded", "complete", "completed", "confirmed", "approved"]);
+const SUBSCRIPTION_SNAPSHOT_INACTIVE_STATUSES = new Set(["none", "free", "inactive", "expired", "canceled", "cancelled", "refunded", "failed", "paused"]);
 
 const BILLING_FEATURE_KEY_ALIASES: Record<string, string> = {
   saju_life_book_pdf: "premium-lifebook-report",
@@ -338,8 +354,254 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 }
 
+function normalizeSubscriptionSnapshotTier(value: unknown): SubscriptionSnapshotTier {
+  const tier = toText(value).toLowerCase();
+  if (tier.includes("family") || tier.includes("code destiny family")) return "family";
+  if (tier.includes("gold") || tier.includes("vvip")) return "vvip";
+  if (tier.includes("silver") || tier.includes("premium")) return "premium";
+  if (tier.includes("bronze") || tier.includes("standard")) return "standard";
+  return "free";
+}
+
+function subscriptionSnapshotPassLimit(tier: SubscriptionSnapshotTier): number {
+  if (tier === "family") return 999999999;
+  if (tier === "vvip") return 100;
+  if (tier === "premium") return 50;
+  if (tier === "standard") return 30;
+  return 0;
+}
+
+function resolveSubscriptionSnapshotUserId(userId?: string): string {
+  const explicit = toText(userId).toLowerCase();
+  if (explicit) return explicit;
+  if (typeof window === "undefined") return "";
+  return resolveAuthScopeFromUser(readSanitizedAuthUser());
+}
+
+function subscriptionSnapshotKey(userId: string): string {
+  return `${SUBSCRIPTION_SNAPSHOT_KEY_PREFIX}${userId}`;
+}
+
+function normalizeSubscriptionSnapshotDate(value: unknown): string | null {
+  const text = toText(value);
+  if (!text) return null;
+  const time = Date.parse(text);
+  return Number.isFinite(time) ? new Date(time).toISOString() : null;
+}
+
+function subscriptionSnapshotStatusIsActive(value: unknown): boolean {
+  return SUBSCRIPTION_SNAPSHOT_ACTIVE_STATUSES.has(toText(value).toLowerCase());
+}
+
+function subscriptionSnapshotStatusIsInactive(value: unknown): boolean {
+  return SUBSCRIPTION_SNAPSHOT_INACTIVE_STATUSES.has(toText(value).toLowerCase());
+}
+
+function removeSubscriptionSnapshotByUserId(userId: string) {
+  if (typeof window === "undefined" || !userId) return;
+  try {
+    localStorage.removeItem(subscriptionSnapshotKey(userId));
+  } catch {
+    /* noop */
+  }
+}
+
+export function clearSubscriptionSnapshotForUser(userId?: string) {
+  removeSubscriptionSnapshotByUserId(resolveSubscriptionSnapshotUserId(userId));
+}
+
+export function readSubscriptionSnapshotForUser(userId?: string): SubscriptionSnapshot | null {
+  const resolvedUserId = resolveSubscriptionSnapshotUserId(userId);
+  if (typeof window === "undefined" || !resolvedUserId) return null;
+  try {
+    const raw = localStorage.getItem(subscriptionSnapshotKey(resolvedUserId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      removeSubscriptionSnapshotByUserId(resolvedUserId);
+      return null;
+    }
+    const snapshotUserId = toText(parsed.userId).toLowerCase();
+    const state = parsed.state === "active" || parsed.state === "none" ? parsed.state : "";
+    const tier = normalizeSubscriptionSnapshotTier(parsed.tier);
+    const checkedAt = Number(parsed.checkedAt);
+    const expiresAt = normalizeSubscriptionSnapshotDate(parsed.expiresAt);
+    if (snapshotUserId !== resolvedUserId || !state || !Number.isFinite(checkedAt) || (state === "active" && tier === "free")) {
+      removeSubscriptionSnapshotByUserId(resolvedUserId);
+      return null;
+    }
+    if (state === "active" && expiresAt && Date.parse(expiresAt) <= Date.now()) {
+      removeSubscriptionSnapshotByUserId(resolvedUserId);
+      return null;
+    }
+    return {
+      userId: snapshotUserId,
+      state,
+      tier: state === "active" ? tier : "free",
+      expiresAt: state === "active" ? expiresAt : null,
+      checkedAt,
+      purchaseVersion: toText(parsed.purchaseVersion),
+      source: toText(parsed.source || "local"),
+    };
+  } catch {
+    removeSubscriptionSnapshotByUserId(resolvedUserId);
+    return null;
+  }
+}
+
+function buildSubscriptionSnapshotPayload(userId: string, value: unknown, source: string): SubscriptionSnapshot {
+  const record = asRecord(value) || {};
+  const nested = asRecord(record.subscription) || asRecord(record.membership) || {};
+  const options = asRecord(record.paymentOptions) || {};
+  const tier = normalizeSubscriptionSnapshotTier(
+    record.tier
+      ?? record.plan
+      ?? record.planId
+      ?? record.passTier
+      ?? record.subscriptionTier
+      ?? options.tier
+      ?? options.passTier
+      ?? options.subscriptionTier
+      ?? nested.tier
+      ?? nested.plan
+      ?? nested.passTier,
+  );
+  const expiresAt = normalizeSubscriptionSnapshotDate(
+    record.expiresAt
+      ?? record.currentPeriodEnd
+      ?? record.endsAt
+      ?? record.validUntil
+      ?? options.expiresAt
+      ?? nested.expiresAt
+      ?? nested.currentPeriodEnd
+      ?? nested.endsAt
+      ?? nested.validUntil,
+  );
+  const rawStatus = record.status ?? record.subscriptionStatus ?? record.membershipStatus ?? options.status ?? nested.status ?? nested.subscriptionStatus;
+  const hasFutureExpiry = !!expiresAt && Date.parse(expiresAt) > Date.now();
+  const explicitActive = record.isActive === true
+    || record.isSubscribed === true
+    || record.active === true
+    || record.enabled === true
+    || record.valid === true
+    || record.hasActivePass === true
+    || options.hasActivePass === true
+    || nested.isActive === true
+    || nested.isSubscribed === true
+    || subscriptionSnapshotStatusIsActive(rawStatus);
+  const explicitInactive = subscriptionSnapshotStatusIsInactive(rawStatus)
+    || (record.isActive === false && !explicitActive)
+    || (record.isSubscribed === false && !explicitActive)
+    || (record.hasActivePass === false && !explicitActive)
+    || (options.hasActivePass === false && !explicitActive)
+    || (nested.isActive === false && !explicitActive)
+    || (nested.isSubscribed === false && !explicitActive);
+  const state = tier !== "free" && !explicitInactive && (explicitActive || hasFutureExpiry) ? "active" : "none";
+  return {
+    userId,
+    state,
+    tier: state === "active" ? tier : "free",
+    expiresAt: state === "active" ? expiresAt : null,
+    checkedAt: Date.now(),
+    purchaseVersion: toText(record.purchaseVersion ?? record.paymentId ?? record.merchantUid ?? record.orderId ?? record.subscriptionId ?? record.updatedAt ?? expiresAt),
+    source: toText(source || record.source || "client"),
+  };
+}
+
+export function saveSubscriptionSnapshotForUser(userId: string | undefined, value: unknown, source = "client"): SubscriptionSnapshot | null {
+  const resolvedUserId = resolveSubscriptionSnapshotUserId(userId);
+  if (typeof window === "undefined" || !resolvedUserId) return null;
+  try {
+    const snapshot = buildSubscriptionSnapshotPayload(resolvedUserId, value, source);
+    localStorage.setItem(subscriptionSnapshotKey(resolvedUserId), JSON.stringify(snapshot));
+    return snapshot;
+  } catch {
+    return null;
+  }
+}
+
+function readSubscriptionSnapshotMonthlyBalance(): number {
+  const user = typeof window !== "undefined" ? readSanitizedAuthUser() : null;
+  const balance = Number(user?.monthlyCredits ?? user?.profileSubscription?.membershipCreditBalance ?? 0);
+  return Number.isFinite(balance) && balance > 0 ? Math.floor(balance) : 0;
+}
+
+function buildSnapshotPaymentEligibility(input: {
+  coinCost?: number;
+  coinPrice?: number;
+  priceKRW?: number;
+  amountKRW?: number;
+}, snapshot: SubscriptionSnapshot): BillingResult<PaymentEligibility> {
+  const coinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, 0)));
+  const priceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW ?? coinCost * 100, 0)));
+  const monthlyBalance = readSubscriptionSnapshotMonthlyBalance();
+  const passLimit = snapshot.state === "active" ? subscriptionSnapshotPassLimit(snapshot.tier) : 0;
+  const passTier = snapshot.state === "active" && snapshot.tier !== "free"
+    ? snapshot.tier as PaymentEligibility["pass"]["tier"]
+    : null;
+  const canUseByPass = snapshot.state === "active" && passLimit > 0 && coinCost > 0 && coinCost <= passLimit;
+  const paymentOptions = {
+    hasActivePass: snapshot.state === "active",
+    passTier,
+    passLimit,
+    freeLimit: passLimit,
+    canUseByPass,
+    monthlyBalance,
+    canUseByMonthly: false,
+    canUseByCard: true,
+    coinCost,
+  };
+  const raw = {
+    source: snapshot.source || "subscription_snapshot",
+    subscriptionSnapshot: snapshot,
+    paymentOptions,
+  };
+  return {
+    ok: true,
+    status: 200,
+    data: {
+      loading: false,
+      coinCost,
+      priceKRW,
+      access: {
+        canAccess: false,
+        alreadyUnlocked: false,
+        reason: snapshot.state === "active" ? "subscription_snapshot_active" : "subscription_snapshot_none",
+      },
+      pass: {
+        hasActivePass: snapshot.state === "active",
+        tier: passTier,
+        label: labelForPassTier(passTier),
+        limit: passLimit > 0 ? passLimit : null,
+        canUse: canUseByPass,
+      },
+      monthly: {
+        balance: monthlyBalance,
+        canUse: false,
+        afterBalance: monthlyBalance,
+      },
+      card: {
+        canUse: true,
+        provider: "PORTONE_V2_KG_INICIS",
+      },
+      raw,
+    },
+    message: "",
+    error: null,
+    raw,
+  };
+}
+
 function formatPaymentWon(amount: number): string {
   return `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString("ko-KR")}원`;
+}
+
+function formatCoinValueWon(amount: number): string {
+  return formatPaymentWon(Math.max(0, Math.floor(Number(amount || 0))) * 100);
+}
+
+function formatMonthlyCreditValueWon(amount: number): string {
+  return `${(Math.max(0, Math.floor(Number(amount || 0))) * 10).toLocaleString("ko-KR")}원 상당`;
 }
 
 function escapePaymentText(value: unknown): string {
@@ -592,12 +854,12 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   let canUseMonthly = monthlyBalanceConfirmed && requiredMonthlyCredits > 0 && monthlyBalance >= requiredMonthlyCredits;
   const resolveMonthlyOptionHint = () => monthlyBalanceConfirmed
     ? (canUseMonthly
-      ? "보유 Moonlight Stone으로 즉시 이용 권한을 저장합니다."
-      : `Moonlight Stone 잔량 부족 · 보유 ${monthlyBalance.toLocaleString("ko-KR")}개`)
-    : "Moonlight Stone 최신 잔량을 확인하지 못했습니다. 아래 버튼으로 다시 조회해 주세요.";
+      ? "보유 보너스 가치로 즉시 이용 권한을 저장합니다."
+      : `보너스 가치 부족 · 보유 ${formatMonthlyCreditValueWon(monthlyBalance)}`)
+    : "최신 보너스 가치를 확인하지 못했습니다. 아래 버튼으로 다시 조회해 주세요.";
   const resolveMonthlyBalanceText = () => monthlyBalanceConfirmed
-    ? `Moonlight Stone 잔량 확인 완료 · 현재 ${monthlyBalance.toLocaleString("ko-KR")}개`
-    : "Moonlight Stone 최신 잔량 확인이 필요합니다.";
+    ? `보너스 가치 확인 완료 · 현재 ${formatMonthlyCreditValueWon(monthlyBalance)}`
+    : "최신 보너스 가치 확인이 필요합니다.";
   let monthlyOptionHint = resolveMonthlyOptionHint();
   const passTier = toText(membershipCoverage?.tier || membershipCoverage?.passTier || "");
   const passLimit = Math.max(0, Math.floor(toNumber(membershipCoverage?.passLimit ?? membershipCoverage?.freeLimit, 0)));
@@ -605,7 +867,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     ? `${passTier.toUpperCase()} 이용권`
     : "이용권 확인 완료";
   const passHint = passLimit > 0
-    ? `${passLimit.toLocaleString("ko-KR")}코인 상한을 초과해 결제가 필요합니다.`
+    ? `${formatCoinValueWon(passLimit)} 상한을 초과해 결제가 필요합니다.`
     : "이 기능은 이용권으로 바로 열 수 없어 결제가 필요합니다.";
   const passStoreTitle = passTier && passTier !== "free" ? "달빛 이용권 업그레이드" : "달빛 이용권 상점";
   const passStoreHint = passTier && passTier !== "free"
@@ -632,10 +894,10 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         </div>
         <h2 class="cd-react-payment-choice-title">달빛 결제 방식 선택</h2>
         <p class="cd-react-payment-choice-sub">이용권 확인이 끝났습니다. 달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.</p>
-        <p class="cd-react-payment-choice-note"><strong>${escapePaymentText(title)}</strong><br>${coinPrice.toLocaleString("ko-KR")}코인 기준 · ${formatPaymentWon(directAmount)}</p>
+        <p class="cd-react-payment-choice-note"><strong>${escapePaymentText(title)}</strong><br>${formatCoinValueWon(coinPrice)} 기준 · ${formatPaymentWon(directAmount)}</p>
         <div class="cd-react-payment-choice-balance" data-monthly-balance-status data-state="${monthlyBalanceConfirmed ? "fresh" : "error"}">
           <span data-monthly-balance-text>${escapePaymentText(resolveMonthlyBalanceText())}</span>
-          <button type="button" class="cd-react-payment-choice-refresh" data-refresh-monthly-balance>잔량 다시 조회</button>
+          <button type="button" class="cd-react-payment-choice-refresh" data-refresh-monthly-balance>잔여 가치 다시 조회</button>
         </div>
         <div class="cd-react-payment-choice-grid">
           <button type="button" class="cd-react-payment-choice-option" data-mode="direct">
@@ -644,8 +906,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             <span>카드 또는 간편결제로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.</span>
           </button>
           <button type="button" class="cd-react-payment-choice-option" data-mode="monthly" data-monthly-option${canUseMonthly ? "" : " disabled aria-disabled=\"true\""}>
-            <span class="cd-react-payment-choice-badge">Moonlight Stone</span>
-            <strong>Moonlight Stone ${requiredMonthlyCredits.toLocaleString("ko-KR")}개 사용</strong>
+            <span class="cd-react-payment-choice-badge">보너스 가치</span>
+            <strong>보너스 가치 ${formatMonthlyCreditValueWon(requiredMonthlyCredits)} 사용</strong>
             <span data-monthly-hint>${escapePaymentText(monthlyOptionHint)}</span>
           </button>
           <button type="button" class="cd-react-payment-choice-option" data-mode="pass-store">
@@ -693,7 +955,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       if (settled) return;
       const refreshButton = modal.querySelector<HTMLButtonElement>("[data-refresh-monthly-balance]");
       if (refreshButton) refreshButton.disabled = true;
-      setStatus("Moonlight Stone 잔량을 다시 조회하고 있습니다.");
+      setStatus("보너스 가치를 다시 조회하고 있습니다.");
       latestBalance = await fetchFreshBillingBalanceForPayment();
       latestBalanceData = latestBalance?.ok ? latestBalance.data : null;
       monthlyBalanceConfirmed = Boolean(latestBalanceData);
@@ -704,8 +966,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       applyMonthlyBalanceUi();
       setStatus(
         monthlyBalanceConfirmed
-          ? `Moonlight Stone 잔량을 다시 확인했습니다. 현재 ${monthlyBalance.toLocaleString("ko-KR")}개입니다.`
-          : "Moonlight Stone 잔량 조회에 실패했습니다. 다시 시도해 주세요.",
+          ? `보너스 가치를 다시 확인했습니다. 현재 ${formatMonthlyCreditValueWon(monthlyBalance)}입니다.`
+          : "보너스 가치 조회에 실패했습니다. 다시 시도해 주세요.",
         !monthlyBalanceConfirmed,
       );
       if (refreshButton) refreshButton.disabled = false;
@@ -713,7 +975,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     const showWaitOverlay = (mode: PaymentChoiceMode) => {
       const runtimeWindow = window as RuntimeApiWindow;
       if (mode === "monthly") {
-        runtimeWindow._cdSetCoinGateOverlay?.(true, "Moonlight Stone 보너스 적용 중입니다. 보너스 잔량과 이용 권한을 확인하고 있습니다.", "monthly");
+        runtimeWindow._cdSetCoinGateOverlay?.(true, "보너스 가치 적용 중입니다. 보너스 가치와 이용 권한을 확인하고 있습니다.", "monthly");
       } else if (mode === "direct") {
         runtimeWindow._cdSetCoinGateOverlay?.(false);
       }
@@ -744,8 +1006,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           if (mode === "monthly") {
             setStatus(
               monthlyBalanceConfirmed
-                ? "Moonlight Stone 잔량이 부족합니다. 단건 결제를 선택해 주세요."
-                : "Moonlight Stone 최신 잔량을 확인하지 못했습니다. 다시 열어 주세요.",
+                ? "보너스 가치가 부족합니다. 단건 결제를 선택해 주세요."
+                : "최신 보너스 가치를 확인하지 못했습니다. 다시 열어 주세요.",
               true,
             );
           }
@@ -754,7 +1016,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((node) => {
           node.disabled = true;
         });
-        setStatus(mode === "monthly" ? "Moonlight Stone 보너스를 적용하고 있습니다." : "단건 결제를 진행하고 있습니다.");
+        setStatus(mode === "monthly" ? "보너스 가치를 적용하고 있습니다." : "단건 결제를 진행하고 있습니다.");
         showWaitOverlay(mode);
         close(mode);
       });
@@ -1004,7 +1266,7 @@ function resolveRuntimeBillingPricing(input: BillingCoinGateInput, eligibility: 
     cost,
     coinPrice: cost,
     displayUnit: toText(rawPricing.displayUnit || "coin"),
-    displayPrice: toText(rawPricing.displayPrice || `${cost.toLocaleString("ko-KR")}코인`),
+    displayPrice: toText(rawPricing.displayPrice || formatCoinValueWon(cost)),
     reason: toText(rawPricing.reason || input.reason || featureKey),
     currency: toText(rawPricing.currency || "KRW"),
     cashPrice: amountKRW,
@@ -1269,20 +1531,20 @@ function buildLicensePassOverlayMessage(data: BillingCoinGateData & Record<strin
     return [
       "FAMILY 이용권이 적용되었습니다.",
       "이 콘텐츠는 FAMILY 이용권으로 무료 이용됩니다.",
-      "코인 차감 없이 모든 유료 서비스를 이용할 수 있어요.",
+      "추가 결제 없이 모든 유료 서비스를 이용할 수 있어요.",
     ].join("\n");
   }
   if (gate.licenseTier === "VVIP") {
     return [
       "VVIP 이용권이 적용되었습니다.",
       "이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.",
-      "코인 차감 없이 바로 열어드릴게요.",
+      "추가 결제 없이 바로 열어드릴게요.",
     ].join("\n");
   }
   return [
     "이용권이 적용되었습니다.",
     "이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.",
-    "코인 차감 없이 바로 열어드릴게요.",
+    "추가 결제 없이 바로 열어드릴게요.",
   ].join("\n");
 }
 
@@ -1302,24 +1564,24 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
   if (status === "paymentPreparing") return { message: text || "단건 결제창을 여는 중입니다. 주문 금액과 인증 정보를 안전하게 맞추고 있습니다.", mode: "card" };
   if (status === "paymentWindowOpen") return { message: text || "열린 결제창에서 카드 인증을 진행해 주세요. 인증이 끝나면 권한을 확인합니다.", mode: "card" };
   if (status === "opening" || status === "loadingProducts" || status === "readyToPay") {
-    if (kind === "subscription") return { message: text || "코인 기준 이용권 결제 정보를 확인하고 있습니다.", mode: "subscription" };
-    if (kind === "monthly") return { message: text || "Moonlight Stone 보너스 적용을 준비하고 있습니다.", mode: "monthly" };
-    if (kind === "single") return { message: text || "코인 기준 단건 결제창을 여는 중입니다. 주문 금액과 인증 정보를 안전하게 맞추고 있습니다.", mode: "card" };
+    if (kind === "subscription") return { message: text || "원화 기준 이용권 결제 정보를 확인하고 있습니다.", mode: "subscription" };
+    if (kind === "monthly") return { message: text || "보너스 가치 적용을 준비하고 있습니다.", mode: "monthly" };
+    if (kind === "single") return { message: text || "원화 단건 결제창을 여는 중입니다. 주문 금액과 인증 정보를 안전하게 맞추고 있습니다.", mode: "card" };
     if (kind === "unlock") return { message: text || "잠금 해제 준비 중입니다.", mode: "unlock-saving" };
     return { message: text || "결제창을 열기 전 주문 정보를 확인하고 있습니다.", mode: "checkout" };
   }
   if (status === "paymentProcessing") {
     if (kind === "pass") return { message: text || "이용권을 적용하고 있습니다.", mode: "pass" };
-    if (kind === "subscription") return { message: text || "코인 기준 이용권 결제 승인과 활성화를 확인하고 있습니다.", mode: "subscription" };
-    if (kind === "monthly") return { message: text || "Moonlight Stone 보너스 적용 중입니다. 보너스 잔량과 이용 권한을 확인하고 있습니다.", mode: "monthly" };
-    if (kind === "single") return { message: text || "코인 기준 단건 결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "confirm" };
+    if (kind === "subscription") return { message: text || "원화 기준 이용권 결제 승인과 활성화를 확인하고 있습니다.", mode: "subscription" };
+    if (kind === "monthly") return { message: text || "보너스 가치 적용 중입니다. 보너스 가치와 이용 권한을 확인하고 있습니다.", mode: "monthly" };
+    if (kind === "single") return { message: text || "원화 단건 결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "confirm" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제를 반영하고 있습니다.", mode: "unlock-saving" };
     return { message: text || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: "confirm" };
   }
   if (status === "paymentSuccess") {
-    if (kind === "subscription") return { message: text || "코인 기준 이용권 활성화가 완료되었습니다.", mode: "payment-complete" };
-    if (kind === "monthly") return { message: text || "Moonlight Stone 보너스로 콘텐츠 이용 권한을 열었습니다.", mode: "payment-complete" };
-    if (kind === "single") return { message: text || "코인 기준 단건 결제와 이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
+    if (kind === "subscription") return { message: text || "원화 기준 이용권 활성화가 완료되었습니다.", mode: "payment-complete" };
+    if (kind === "monthly") return { message: text || "보너스 가치로 콘텐츠 이용 권한을 열었습니다.", mode: "payment-complete" };
+    if (kind === "single") return { message: text || "원화 단건 결제와 이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제가 완료되었습니다.", mode: "payment-complete" };
     return { message: text || "이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
   }
@@ -1552,6 +1814,12 @@ export async function fetchPaymentEligibility(input: {
   priceKRW?: number;
   amountKRW?: number;
 }): Promise<BillingResult<PaymentEligibility>> {
+  const knownCoinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, 0)));
+  const knownPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
+  const snapshot = readSubscriptionSnapshotForUser();
+  if (snapshot && (knownCoinCost > 0 || knownPriceKRW > 0)) {
+    return buildSnapshotPaymentEligibility(input, snapshot);
+  }
   const query = toQuery({
     productId: input.productId,
     serviceType: input.serviceType,
@@ -1586,6 +1854,15 @@ export async function fetchPaymentEligibility(input: {
   const accessDecision = asRecord(data.accessDecision);
   const accessReason = toText(accessDecision?.reason || data.accessReason || data.decisionReason);
   const canAccess = Boolean(data.canAccess === true || data.unlocked === true || accessDecision?.accessGranted === true);
+  saveSubscriptionSnapshotForUser(undefined, {
+    ...data,
+    ...options,
+    tier: data.subscriptionTier ?? options.subscriptionTier ?? options.passTier ?? data.passTier,
+    passTier: options.passTier ?? data.passTier,
+    isActive: Boolean(options.hasActivePass ?? data.hasActivePass),
+    hasActivePass: Boolean(options.hasActivePass ?? data.hasActivePass),
+    expiresAt: data.expiresAt ?? options.expiresAt,
+  }, "unlock-status");
   const eligibility: PaymentEligibility = {
     loading: false,
     coinCost,

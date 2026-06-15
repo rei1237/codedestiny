@@ -7,7 +7,7 @@ export const FLOWER_ROUTE_LOCK_KEY_MAP = Object.freeze({
   "flower/sukuyo": "flower-sukuyo",
 });
 
-// 운명의 꽃 아틀리에는 200코인 1회 해금으로 모든 꽃 소스를 함께 연다.
+// 운명의 꽃 아틀리에는 20,000원 1회 해금으로 모든 꽃 소스를 함께 연다.
 const LOCK_ALIAS_MAP = Object.freeze({
   "olympus-profile-fc": ["olympus-fc"],
   "olympus-fc": ["olympus-profile-fc"],
