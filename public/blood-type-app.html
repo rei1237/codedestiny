@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>블러드타입 — 혈액형 라이프 앱</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -228,6 +226,15 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Noto San
 /* TOAST */
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--black);color:var(--white);padding:10px 24px;border-radius:50px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;pointer-events:none;z-index:300;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+<link rel="preconnect" href="https://assets.code-destiny.com" crossorigin>
+<style data-cd-r2-static-fonts>
+@font-face{font-family:'CodeDestinyStaticDisplay';src:url('https://assets.code-destiny.com/Mulmaru.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'CodeDestinyStaticDecorative';src:url('https://assets.code-destiny.com/Galmuri11-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:optional}
+:root{--font-body:'Apple SD Gothic Neo','Malgun Gothic',system-ui,-apple-system,'Segoe UI',sans-serif;--font-display:'CodeDestinyStaticDisplay',var(--font-body);--font-decorative:'CodeDestinyStaticDecorative',var(--font-display)}
+body{font-family:var(--font-body)!important;line-height:1.68;letter-spacing:0;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.title,.cover-title,.hero-title,.card-title,.section-title{font-family:var(--font-display)!important;letter-spacing:0;word-break:keep-all}
+button,input,select,textarea{font-family:var(--font-body)!important}
 </style>
 </head>
 <body>

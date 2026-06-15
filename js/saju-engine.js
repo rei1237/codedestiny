@@ -5002,10 +5002,10 @@ function _confirmSajuQuestionPromptPurchase(domain, privacyOptions) {
   if (privacyOptions && privacyOptions.hideTime) protectedItems.push('원본 출생시간');
   var protectedText = protectedItems.length ? protectedItems.join(', ') + ' 제외' : '개인정보 원문 포함';
   return window.confirm(
-    '10,000원으로 상담 결과가 아닌 외부 AI용 사주 질문문을 생성합니다.\n\n'
+    '10,000원으로 명식의 결을 담은 깊은 질문문을 엽니다.\n\n'
     + '선택 주제: ' + _sajuPromptDomainLabel(domain) + '\n'
     + '개인정보 설정: ' + protectedText + '\n'
-    + '명식 계산값은 질문문 품질을 위해 포함됩니다.'
+    + '명식 계산값은 질문의 결을 맞추기 위해 함께 흐릅니다.'
   );
 }
 
@@ -5062,43 +5062,44 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain) {
 
 function _buildSajuQuestionPromptHtml() {
   return ''
-    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-question-prompt-v20260615-privacy" style="margin-top:15px">'
-    + '<div class="prem-box" style="background:linear-gradient(145deg,#fffaf0,#fef3c7);border:1.5px solid rgba(217,119,6,.42);box-shadow:0 18px 38px rgba(180,83,9,.14);">'
-    +   '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'
-    +     '<div><span class="prem-title" style="color:#92400e;">🪙 사주 질문문 생성기</span><p style="font-size:0.8rem;color:#78350f;margin:4px 0 0;line-height:1.62;">상담 결과가 아니라, 외부 AI에 그대로 붙여넣을 깊은 사주 질문문을 만듭니다.</p></div>'
-    +     '<span style="font-size:0.72rem;color:#92400e;border:1px solid rgba(217,119,6,.35);background:rgba(251,191,36,.18);padding:4px 9px;border-radius:999px;font-weight:900;">AI 질문문 · 10,000원</span>'
+    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-question-prompt-v20260616-lux-analysis-only" style="margin:18px 0 0" data-saju-analysis-only="true">'
+    + '<div class="prem-box" style="position:relative;overflow:hidden;border-radius:8px;border:1px solid rgba(207,172,91,.48);background:linear-gradient(135deg,rgba(17,18,24,.96),rgba(47,35,29,.96) 48%,rgba(250,246,234,.96));box-shadow:0 22px 52px rgba(18,18,24,.24),inset 0 1px 0 rgba(255,255,255,.2);padding:18px;">'
+    +   '<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(207,172,91,.16),transparent 28%,rgba(255,255,255,.16) 100%);"></div>'
+    +   '<div style="position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:flex-start;margin-bottom:13px;">'
+    +     '<div><div style="font-size:0.72rem;color:#d9bd77;letter-spacing:.14em;font-weight:900;text-transform:uppercase;">Saju Question Atelier</div><span class="prem-title" style="display:block;margin-top:4px;color:#fff7df;font-size:1.02rem;line-height:1.35;font-weight:900;">사주의 다음 문을 여는 질문</span><p style="font-size:0.82rem;color:rgba(255,247,223,.78);margin:5px 0 0;line-height:1.7;word-break:keep-all;">명식 위에 맴도는 고민을 한 문장으로 남기면, 팔자의 결에 맞춘 깊은 질문이 드러납니다.</p></div>'
+    +     '<span style="white-space:nowrap;font-size:0.72rem;color:#2a2117;border:1px solid rgba(207,172,91,.42);background:linear-gradient(135deg,#f8df9b,#cfa04d);padding:6px 10px;border-radius:999px;font-weight:900;box-shadow:0 8px 18px rgba(0,0,0,.16);">깊은 질문 · 10,000원</span>'
     +   '</div>'
-    +   '<textarea data-saju-ai-question maxlength="1000" placeholder="예: 올해 이직을 준비할 때 제 사주에서 가장 조심해야 할 선택은 무엇인가요?" style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(217,119,6,.34);background:rgba(255,255,255,.78);color:#3f2504;padding:11px;font-size:0.84rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>'
-    +   '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
-    +     '<span data-saju-ai-count style="font-size:0.72rem;color:#92400e;">0 / 1000</span>'
-    +     '<span style="font-size:0.72rem;color:#92400e;">질문 5자 이상 · 결제 확인 후 생성</span>'
+    +   '<textarea data-saju-ai-question maxlength="1000" placeholder="예: 올해 이직을 앞두고 제 명식에서 가장 조심해야 할 선택은 무엇인가요?" style="position:relative;width:100%;min-height:116px;border-radius:8px;border:1px solid rgba(207,172,91,.45);background:rgba(255,252,243,.92);color:#24170c;padding:13px 14px;font-size:0.88rem;line-height:1.68;resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 10px rgba(44,29,12,.08);"></textarea>'
+    +   '<div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
+    +     '<span data-saju-ai-count style="font-size:0.72rem;color:rgba(255,247,223,.68);font-weight:800;">0 / 1000</span>'
+    +     '<span style="font-size:0.72rem;color:rgba(255,247,223,.7);font-weight:700;">질문 5자 이상 · 결제 확인 뒤 열림</span>'
     +   '</div>'
-    +   '<div style="margin-top:10px;">'
-    +     '<div style="font-size:0.72rem;color:#92400e;font-weight:800;margin-bottom:6px;">질문 주제</div>'
-    +     '<div style="display:flex;gap:6px;flex-wrap:wrap;font-size:0.72rem;color:#78350f;">'
-    +       '<label style="display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(217,119,6,.28);background:rgba(255,255,255,.58);padding:6px 8px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="" checked> 자동</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(217,119,6,.28);background:rgba(255,255,255,.58);padding:6px 8px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="career"> 진로</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(217,119,6,.28);background:rgba(255,255,255,.58);padding:6px 8px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="money"> 재물</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(217,119,6,.28);background:rgba(255,255,255,.58);padding:6px 8px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="love"> 연애</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(217,119,6,.28);background:rgba(255,255,255,.58);padding:6px 8px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="litigation"> 송사</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(217,119,6,.28);background:rgba(255,255,255,.58);padding:6px 8px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="relationship"> 관계</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(217,119,6,.28);background:rgba(255,255,255,.58);padding:6px 8px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="health"> 건강</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:4px;border:1px solid rgba(217,119,6,.28);background:rgba(255,255,255,.58);padding:6px 8px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="life_direction"> 인생</label>'
+    +   '<div style="position:relative;margin-top:13px;">'
+    +     '<div style="font-size:0.72rem;color:#e8c778;font-weight:900;margin-bottom:7px;letter-spacing:.04em;">질문이 향하는 자리</div>'
+    +     '<div style="display:flex;gap:6px;flex-wrap:wrap;font-size:0.74rem;color:#fff7df;">'
+    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="" checked style="accent-color:#d9bd77;"> 자동</label>'
+    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="career" style="accent-color:#d9bd77;"> 진로</label>'
+    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="money" style="accent-color:#d9bd77;"> 재물</label>'
+    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="love" style="accent-color:#d9bd77;"> 연애</label>'
+    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="litigation" style="accent-color:#d9bd77;"> 송사</label>'
+    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="relationship" style="accent-color:#d9bd77;"> 관계</label>'
+    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="health" style="accent-color:#d9bd77;"> 건강</label>'
+    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="life_direction" style="accent-color:#d9bd77;"> 인생</label>'
     +     '</div>'
     +   '</div>'
-    +   '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;font-size:0.74rem;color:#78350f;">'
-    +     '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="checkbox" data-saju-ai-hide-name checked> 이름 원문 제외</label>'
-    +     '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="checkbox" data-saju-ai-hide-birth checked> 원본 생년월일 제외</label>'
-    +     '<label style="display:inline-flex;align-items:center;gap:5px;"><input type="checkbox" data-saju-ai-hide-time checked> 원본 출생시간 제외</label>'
+    +   '<div style="position:relative;display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:0.74rem;color:rgba(255,247,223,.78);">'
+    +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-name checked style="accent-color:#d9bd77;"> 이름 원문 제외</label>'
+    +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-birth checked style="accent-color:#d9bd77;"> 원본 생년월일 제외</label>'
+    +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-time checked style="accent-color:#d9bd77;"> 원본 출생시간 제외</label>'
     +   '</div>'
-    +   '<div style="margin-top:5px;font-size:0.7rem;color:#92400e;line-height:1.5;">명식 계산값은 질문문 품질을 위해 포함됩니다.</div>'
-    +   '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">'
-    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#d97706,#f59e0b);color:white;border:1px solid rgba(180,83,9,.48);padding:10px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;">10,000원으로 질문문 만들기</button>'
-    +     '<button data-saju-ai-regenerate type="button" style="display:none;background:#92400e;color:#fff;border:1px solid rgba(146,64,14,.38);padding:10px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 생성</button>'
-    +     '<button data-saju-ai-copy type="button" style="display:none;background:#047857;color:#fff;border:1px solid rgba(4,120,87,.42);padding:10px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">질문문 복사</button>'
+    +   '<div style="position:relative;margin-top:6px;font-size:0.7rem;color:rgba(255,247,223,.58);line-height:1.55;">이름과 원문 생년월일은 기본으로 가리고, 명식의 흐름만 질문 안에 남깁니다.</div>'
+    +   '<div style="position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;">'
+    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#f3d58a,#b7822f);color:#1e160c;border:1px solid rgba(255,234,166,.72);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.22);">10,000원으로 질문 열기</button>'
+    +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(207,172,91,.4);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 열기</button>'
+    +     '<button data-saju-ai-copy type="button" style="display:none;background:#164e3b;color:#ecfdf5;border:1px solid rgba(110,231,183,.38);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">질문문 복사</button>'
     +   '</div>'
-    +   '<textarea data-saju-ai-output readonly style="display:none;margin-top:10px;width:100%;min-height:220px;border-radius:12px;border:1px solid rgba(4,120,87,.42);background:rgba(236,253,245,.82);color:#064e3b;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>'
-    +   '<div data-saju-ai-status style="margin-top:8px;font-size:0.76rem;color:#6b4e16;"></div>'
+    +   '<textarea data-saju-ai-output readonly style="position:relative;display:none;margin-top:12px;width:100%;min-height:220px;border-radius:8px;border:1px solid rgba(207,172,91,.42);background:rgba(255,252,243,.94);color:#1f2a19;padding:13px 14px;font-size:0.82rem;line-height:1.68;resize:vertical;box-sizing:border-box;"></textarea>'
+    +   '<div data-saju-ai-status style="position:relative;margin-top:9px;font-size:0.76rem;color:rgba(255,247,223,.72);line-height:1.55;"></div>'
     + '</div>'
     + '</div>';
 }
@@ -5109,17 +5110,16 @@ function _mountSajuQuestionPromptCard() {
   if (existingQuestion) existingQuestion.remove();
 
   var html = _buildSajuQuestionPromptHtml();
-  var imgMount = document.getElementById('sajuAiImagePromptMount');
+  var resultPage = document.getElementById('resultPage');
+  if (!resultPage || resultPage.style.display === 'none') return false;
+  var imgMount = resultPage.querySelector('#sajuAiImagePromptMount');
   if (imgMount) {
     imgMount.insertAdjacentHTML('afterbegin', html);
   } else {
-    var aiMount = document.getElementById('aiPromptMount');
-    var letterBox = document.getElementById('letterBox');
-    var targetCard = document.getElementById('dailyMonthlyCard') || document.getElementById('fortuneResult');
+    var aiMount = resultPage.querySelector('#aiPromptMount');
+    var targetCard = resultPage.querySelector('#sajuCard');
     if (aiMount) {
       aiMount.insertAdjacentHTML('afterbegin', html);
-    } else if (letterBox) {
-      letterBox.insertAdjacentHTML('beforebegin', html);
     } else if (targetCard) {
       targetCard.insertAdjacentHTML('afterend', html);
     } else {
@@ -5169,7 +5169,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     inputEl.disabled = isLoading;
     generateBtn.disabled = isLoading;
     regenerateBtn.disabled = isLoading;
-    generateBtn.textContent = isLoading ? '질문문 생성 중...' : '10,000원으로 질문문 만들기';
+    generateBtn.textContent = isLoading ? '질문의 결을 여는 중...' : '10,000원으로 질문 열기';
     updateCount();
   }
   function handleGenerate() {
@@ -5186,7 +5186,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
       return;
     }
     setLoading(true);
-    _sajuPromptSetStatus(statusEl, '결제 권한을 확인하고 ' + _sajuPromptDomainLabel(domain) + ' 주제의 외부 AI용 사주 질문문을 생성합니다.', 'info');
+    _sajuPromptSetStatus(statusEl, '결제 권한을 확인하고 ' + _sajuPromptDomainLabel(domain) + ' 주제의 깊은 질문문을 엽니다.', 'info');
     _requestSajuQuestionPrompt(question, privacyOptions, domain).then(function(result) {
       var payload = result && result.payload ? result.payload : {};
       var promptText = String(payload.prompt || payload.generatedPrompt || '').trim();
@@ -5198,7 +5198,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
         regenerateBtn.style.display = 'inline-flex';
         if (payload.balanceAfter != null) _applySajuAIPromptBalance(payload.balanceAfter);
         var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
-        _sajuPromptSetStatus(statusEl, (chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : '') + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 외부 AI용 사주 질문문이 완성되었습니다.', 'success');
+        _sajuPromptSetStatus(statusEl, (chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : '') + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 깊은 질문문이 완성되었습니다.', 'success');
         return;
       }
 
@@ -5233,7 +5233,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     });
   });
   updateCount();
-  _sajuPromptSetStatus(statusEl, '질문을 입력하면 10,000원 결제 확인 후 외부 AI용 질문문을 생성합니다.', 'info');
+  _sajuPromptSetStatus(statusEl, '질문을 남기면 10,000원 결제 확인 뒤 깊은 질문문이 열립니다.', 'info');
 }
 
   function renderSpecialCharm(p, natal) {
@@ -6001,10 +6001,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
     var maxRetries = 20;
 
     function tryMount() {
-      var targetCard = document.getElementById('dailyMonthlyCard') || document.getElementById('fortuneResult');
-      var letterBox = document.getElementById('letterBox');
+      var resultPage = document.getElementById('resultPage');
+      var targetCard = resultPage ? resultPage.querySelector('#dailyMonthlyCard') : null;
+      var analysisCard = resultPage ? resultPage.querySelector('#sajuCard') : null;
 
-      if (!targetCard && !letterBox && retryCount < maxRetries) {
+      if ((!resultPage || resultPage.style.display === 'none' || !analysisCard) && retryCount < maxRetries) {
         retryCount++;
         setTimeout(tryMount, 500);
         return;
@@ -6022,16 +6023,15 @@ function _bindSajuQuestionPromptCard(rootEl) {
           targetCard.insertAdjacentHTML('afterend', html);
         }
 
-        var imgMount = document.getElementById('sajuAiImagePromptMount');
-        if (imgMount) {
+        var imgMount = resultPage ? resultPage.querySelector('#sajuAiImagePromptMount') : null;
+        if (imgMount && resultPage && resultPage.contains(imgMount)) {
           imgMount.innerHTML = questionPromptHtml + aiPromptHtml;
         } else {
-          var aiMount = document.getElementById('aiPromptMount');
-          if (aiMount) {
+          var aiMount = resultPage ? resultPage.querySelector('#aiPromptMount') : null;
+          if (aiMount && resultPage.contains(aiMount)) {
             aiMount.innerHTML = questionPromptHtml + aiPromptHtml;
-          } else if (letterBox) {
-            letterBox.insertAdjacentHTML('beforebegin', questionPromptHtml);
-            letterBox.insertAdjacentHTML('beforebegin', aiPromptHtml);
+          } else if (analysisCard) {
+            analysisCard.insertAdjacentHTML('afterend', questionPromptHtml + aiPromptHtml);
           }
         }
         _bindSajuQuestionPromptCard(document.getElementById('sajuQuestionPromptGeneratorCard'));

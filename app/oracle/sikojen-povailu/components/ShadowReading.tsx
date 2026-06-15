@@ -82,7 +82,7 @@ export function ShadowReading() {
         </div>
 
         {/* 제목 */}
-        <h2 className="text-3xl md:text-4xl font-bold text-rose-600 text-center" style={{ fontFamily: "'Jua', sans-serif" }}>
+        <h2 className="text-3xl md:text-4xl font-bold text-rose-600 text-center" style={{ fontFamily: "var(--font-playful)" }}>
           🌑 영혼의 그림자 읽기 👁️
         </h2>
 
@@ -136,7 +136,7 @@ export function ShadowReading() {
         {revealText && (
           <div className="w-full rounded-2xl border-2 border-rose-300 bg-gradient-to-br from-white via-rose-50 to-amber-50 p-6 animate-fade-in shadow-[0_14px_32px_rgba(190,24,93,0.14)]">
             
-            <h3 className="text-xl md:text-2xl font-bold text-rose-700 text-center mb-4" style={{ fontFamily: "'Jua', sans-serif" }}>
+            <h3 className="text-xl md:text-2xl font-bold text-rose-700 text-center mb-4" style={{ fontFamily: "var(--font-playful)" }}>
               🌑 진짜 의미
             </h3>
 

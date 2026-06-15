@@ -1,4 +1,9 @@
 import fs from "node:fs";
+import assert from "node:assert/strict";
+import { getBillingFeaturePricing } from "../worker/lib/billing-feature-registry.js";
+import { getPaidFeatureBillingType } from "../worker/lib/paid-feature-registry.js";
+import { resolvePremiumAccessReportType } from "../worker/lib/premium-access-token.js";
+import { __accessControlTestUtils } from "../worker/lib/access-control.js";
 
 function read(path) {
   return fs.readFileSync(path, "utf8");
@@ -21,6 +26,8 @@ function expectNotContains(source, needle, label) {
 const front = read("js/soul-origin-book.js");
 const publicFront = read("public/js/soul-origin-book.js");
 const worker = read("worker/routes/soul-origin.js");
+const billing = read("worker/routes/billing.js");
+const accessControl = read("worker/lib/access-control.js");
 const accessToken = read("worker/lib/premium-access-token.js");
 
 for (const [label, source] of [
@@ -98,8 +105,38 @@ expectNotContains(worker, "const summary = await generateSoulOriginSummaryByLLM"
 expectNotContains(worker, 'import { callGeminiText } from "../lib/gemini.js"', "worker Gemini import");
 expectNotContains(worker, "callGeminiText(", "worker Gemini text call");
 
+expectContains(accessControl, "function requiresContextBoundPremiumPaymentEvidence", "access-control context-bound helper");
+expectContains(accessControl, 'normalized === "soulOriginKarma"', "access-control soul origin context binding");
+expectContains(accessControl, "const requiresContextBoundPaymentEvidence = requiresContextBoundPremiumPaymentEvidence(normalizedReportType)", "access-control bound evidence usage");
+
+expectContains(billing, "function resolvePaidReportSessionFallback", "billing service session fallback helper");
+expectContains(billing, "return `soul-origin:${id}`", "billing soul origin session fallback");
+expectContains(billing, "resolvePaidReportSessionFallback(pricing, reportId, requestId)", "billing session fallback usage");
+
 expectContains(accessToken, '"premium_pdf_soul_origin": "soulOriginKarma"', "premium token feature mapping");
 expectContains(accessToken, '"premium-soul-origin-report": "soulOriginKarma"', "premium token legacy mapping");
 expectContains(accessToken, "soul_origin_karma: \"soulOriginKarma\"", "premium token archive mapping");
+
+for (const featureKey of ["premium_pdf_soul_origin", "premium-soul-origin-report", "openSoulOriginModal"]) {
+  const resolved = getBillingFeaturePricing({ featureKey });
+  assert.equal(resolved.ok, true, `billing pricing missing: ${featureKey}`);
+  assert.equal(resolved.pricing.featureKey, "premium_pdf_soul_origin", `billing canonical feature mismatch: ${featureKey}`);
+  assert.equal(Number(resolved.pricing.cost), 690, `billing cost mismatch: ${featureKey}`);
+  assert.equal(resolved.pricing.reason, "운명의 업 생성", `billing reason mismatch: ${featureKey}`);
+  assert.equal(getPaidFeatureBillingType(resolved.pricing.featureKey), "pdf", `billing type mismatch: ${featureKey}`);
+  assert.equal(resolvePremiumAccessReportType(resolved.pricing.featureKey, resolved.pricing.reason), "soulOriginKarma", `premium access report type mismatch: ${featureKey}`);
+}
+console.log("[verify-soul-origin-pdf-service-flow] OK runtime billing mapping");
+
+assert.equal(__accessControlTestUtils.requiresContextBoundPremiumPaymentEvidence("soulOriginKarma"), true, "soul origin must require context-bound payment evidence");
+assert.equal(__accessControlTestUtils.premiumTokenMatchesRequestBinding(
+  { reportId: "report-a", sessionId: "session-a", requestId: "request-a", purchaseId: "purchase-a" },
+  { reportId: "report-b", sessionId: "session-b", requestId: "request-b", purchaseId: "purchase-b" },
+), false, "mismatched soul origin token binding should be rejected");
+assert.equal(__accessControlTestUtils.premiumTokenMatchesRequestBinding(
+  { reportId: "report-a", sessionId: "session-a", requestId: "request-a", purchaseId: "purchase-a" },
+  { reportId: "report-a", sessionId: "session-b", requestId: "request-b", purchaseId: "purchase-b" },
+), true, "matching soul origin token binding should be accepted");
+console.log("[verify-soul-origin-pdf-service-flow] OK runtime access binding");
 
 console.log("[verify-soul-origin-pdf-service-flow] PASS");

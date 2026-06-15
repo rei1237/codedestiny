@@ -103,7 +103,7 @@ export function PhaseRitualPrep() {
         
         {/* 제목 */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-pink-600 mb-3" style={{ fontFamily: "'Jua', serif" }}>
+          <h1 className="text-3xl md:text-4xl font-bold text-pink-600 mb-3" style={{ fontFamily: "var(--font-playful)" }}>
             당신의 마법 주석을 선택하세요!
           </h1>
           
@@ -133,7 +133,7 @@ export function PhaseRitualPrep() {
                 </div>
 
                 {/* 주머니 정보 */}
-                <h3 className="text-lg font-bold text-rose-700 mb-1" style={{ fontFamily: "'Jua', serif" }}>
+                <h3 className="text-lg font-bold text-rose-700 mb-1" style={{ fontFamily: "var(--font-playful)" }}>
                   {pouch.label}
                 </h3>
                 <p className="text-xs text-rose-600 font-medium">
@@ -154,7 +154,7 @@ export function PhaseRitualPrep() {
         {/* 선택 피드백 메시지 */}
         {selectedCategory && (
           <div className="text-center mt-8 animate-fade-in">
-            <p className="text-lg font-bold text-rose-600 mb-1" style={{ fontFamily: "'Jua', serif" }}>
+            <p className="text-lg font-bold text-rose-600 mb-1" style={{ fontFamily: "var(--font-playful)" }}>
               좋은 선택! 🎀
             </p>
             <p className="text-xs text-rose-500">주석을 녹이는 마법이 준비되고 있어요...</p>

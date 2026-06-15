@@ -1978,6 +1978,26 @@ body.lb-modal-open {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
+#sukuyoBookModal #skPartnerFormSection .lb-start__partner-fields {
+  display: flex !important;
+  flex-direction: column;
+  visibility: visible;
+  opacity: 1;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  margin-top: 14px;
+}
+
+#sukuyoBookModal #skPartnerFormSection .sk-partner-field {
+  display: block !important;
+  visibility: visible;
+  opacity: 1;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
 #sukuyoBookModal .sk-partner-field .form-label {
   color: #f8f4ff !important;
   font-size: 0.92rem;

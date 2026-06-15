@@ -1776,24 +1776,24 @@
       '<meta charset="UTF-8">' +
       '<title>' + _escHtml((profile.name || '사용자') + '님의 연애 비책') + '</title>' +
       '<style>' +
-      '@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Gowun+Dodum&display=swap");' +
-      'body{font-family:"Noto Serif KR","Gowun Dodum",serif;color:#1a0a1e;background:#fff;margin:0;padding:0;}' +
+      '@font-face{font-family:"CodeDestinyPremium";src:url("https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf") format("opentype");font-weight:500;font-style:normal;font-display:optional;}' +
+      'body{font-family:"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;color:#1a0a1e;background:#fff;margin:0;padding:0;}' +
       '.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:40px;background:linear-gradient(135deg,#1a0010 0%,#3d0030 50%,#1a0010 100%);color:#fff;page-break-after:always;}' +
       '.cover-badge{font-size:.75rem;letter-spacing:.2em;color:#f9a8d4;margin-bottom:16px;text-transform:uppercase;}' +
-      '.cover-title{font-size:3rem;font-weight:700;margin:0 0 12px;color:#fce7f3;letter-spacing:.05em;}' +
+      '.cover-title{font-family:"CodeDestinyPremium","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;font-size:3rem;font-weight:700;margin:0 0 12px;color:#fce7f3;letter-spacing:.03em;}' +
       '.cover-subtitle{font-size:1.1rem;color:#f472b6;margin:0 0 32px;}' +
       '.cover-name{font-size:1.7rem;color:#fde68a;margin:0 0 8px;}' +
       '.cover-info{font-size:.9rem;color:#fbb6ce;margin:0 0 10px;}' +
       '.cover-deco{font-size:1.5rem;color:#ec4899;letter-spacing:.3em;margin-top:32px;}' +
       '.toc{padding:48px 56px;page-break-after:always;}' +
-      '.toc-title{font-size:1.4rem;color:#9d174d;margin-bottom:32px;border-bottom:2px solid #ec4899;padding-bottom:12px;}' +
+      '.toc-title{font-family:"CodeDestinyPremium","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;font-size:1.4rem;color:#9d174d;margin-bottom:32px;border-bottom:2px solid #ec4899;padding-bottom:12px;}' +
       '.toc-item{display:flex;align-items:baseline;gap:8px;margin-bottom:16px;font-size:1rem;}' +
       '.toc-num{color:#ec4899;font-weight:700;min-width:80px;}' +
       '.toc-text{color:#4a0030;}' +
       '.chapter{padding:48px 56px;}' +
       '.chapter-header{border-bottom:1px solid #fce7f3;margin-bottom:32px;padding-bottom:24px;}' +
       '.chapter-num{font-size:.75rem;letter-spacing:.2em;color:#ec4899;text-transform:uppercase;display:block;margin-bottom:8px;}' +
-      '.chapter-title{font-size:1.8rem;font-weight:700;color:#4a0030;margin:0 0 8px;}' +
+      '.chapter-title{font-family:"CodeDestinyPremium","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;font-size:1.8rem;font-weight:700;color:#4a0030;margin:0 0 8px;}' +
       '.chapter-sub{font-size:.95rem;color:#be185d;margin:0;}' +
       '.chapter-body{line-height:1.9;font-size:.98rem;color:#2d1a2e;}' +
       '.ls-md-h1,.ls-md-h2{font-size:1.3rem;font-weight:700;color:#4a0030;margin:28px 0 12px;border-left:4px solid #ec4899;padding-left:12px;}' +

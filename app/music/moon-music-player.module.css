@@ -1206,7 +1206,7 @@
 
 .playlistTitle {
   color: var(--moon-ink);
-  font-family: "Noto Serif KR", "Gowun Batang", serif;
+  font-family: var(--font-display);
   font-size: 1.18rem;
   font-weight: 900;
   line-height: 1.15;
@@ -1434,6 +1434,7 @@
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
     rgba(255, 255, 255, 0.02);
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
 }
 
 .playlistTrack::before {
@@ -1526,6 +1527,7 @@
     radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.22), transparent 28%),
     linear-gradient(145deg, #182038, #4c6680 52%, #f0d8ba);
   box-shadow: 0 0 22px rgba(232, 244, 255, 0.08);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
 .playlistThumb::after {
@@ -1743,6 +1745,244 @@
   }
 }
 
+@media (min-width: 1120px) {
+  .playerShell {
+    place-items: start center;
+    padding: 38px 34px 48px;
+    background:
+      radial-gradient(ellipse at 18% 6%, rgba(245, 227, 174, 0.2), transparent 28rem),
+      radial-gradient(ellipse at 84% 14%, rgba(126, 224, 255, 0.16), transparent 30rem),
+      radial-gradient(ellipse at 54% 92%, rgba(255, 177, 213, 0.1), transparent 32rem),
+      linear-gradient(145deg, #050711 0%, #0d1324 46%, #111f2a 100%);
+  }
+
+  .dest1novaMode {
+    background:
+      radial-gradient(ellipse at 18% 8%, rgba(52, 232, 255, 0.2), transparent 30rem),
+      radial-gradient(ellipse at 82% 16%, rgba(255, 198, 92, 0.2), transparent 28rem),
+      radial-gradient(ellipse at 56% 90%, rgba(255, 88, 176, 0.12), transparent 34rem),
+      linear-gradient(145deg, #020511 0%, #07182d 48%, #101f1e 100%);
+  }
+
+  .playerFrame {
+    width: min(100%, 1280px);
+    grid-template-columns: minmax(620px, 1fr) minmax(360px, 424px);
+    grid-template-areas:
+      "hero player"
+      "list player";
+    align-items: start;
+    gap: 22px;
+    padding: 28px;
+    background:
+      radial-gradient(circle at 14% 12%, rgba(245, 227, 174, 0.12), transparent 22rem),
+      radial-gradient(circle at 74% 12%, var(--moon-rose), transparent 24rem),
+      linear-gradient(120deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.035) 48%, rgba(126, 224, 255, 0.055)),
+      var(--moon-glass);
+    box-shadow:
+      0 32px 110px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+  }
+
+  .playerHero {
+    grid-area: hero;
+    min-height: 116px;
+    align-content: end;
+    margin: 0;
+    padding: 8px 4px 12px;
+  }
+
+  .playerHeroKicker {
+    color: rgba(245, 227, 174, 0.78);
+  }
+
+  .dest1novaMode .playerHeroKicker {
+    color: rgba(111, 238, 255, 0.82);
+  }
+
+  .playerHeroTitle {
+    max-width: 740px;
+    font-size: clamp(2.1rem, 3.1vw, 3.35rem);
+    text-shadow:
+      0 0 22px rgba(245, 227, 174, 0.12),
+      0 0 46px rgba(126, 224, 255, 0.1);
+  }
+
+  .playerHeroText {
+    max-width: 680px;
+    font-size: 1rem;
+  }
+
+  .playerMain {
+    grid-area: player;
+    position: sticky;
+    top: 28px;
+    align-content: start;
+    gap: 16px;
+    padding: 18px;
+    border: 1px solid rgba(238, 247, 255, 0.14);
+    border-radius: 8px;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(245, 227, 174, 0.1), transparent 18rem),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.026)),
+      rgba(3, 7, 18, 0.28);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 20px 56px rgba(0, 0, 0, 0.26);
+  }
+
+  .albumChamber {
+    gap: 10px;
+  }
+
+  .albumStage {
+    width: min(100%, 336px);
+  }
+
+  .nowPlayingPanel,
+  .controlDeck,
+  .lyricsPanel {
+    max-width: 100%;
+  }
+
+  .nowPlayingPanel {
+    padding: 18px;
+  }
+
+  .nowPlayingPanel h2 {
+    font-size: clamp(1.55rem, 2.1vw, 2.35rem);
+  }
+
+  .controlDeck {
+    padding: 16px;
+  }
+
+  .playlistPanel {
+    grid-area: list;
+    width: 100%;
+    min-height: 680px;
+    padding: 20px;
+    border-color: rgba(238, 247, 255, 0.24);
+    background:
+      linear-gradient(118deg, rgba(245, 227, 174, 0.11), transparent 26%, rgba(126, 224, 255, 0.09) 76%, transparent),
+      repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.028) 0 1px, transparent 1px 22px),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04)),
+      rgba(5, 9, 22, 0.54);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      inset 0 -1px 0 rgba(245, 227, 174, 0.1),
+      0 24px 70px rgba(0, 0, 0, 0.34),
+      0 0 54px rgba(126, 224, 255, 0.08);
+  }
+
+  .playlistPanel[data-playlist-mode="dest1nova"] {
+    border-color: rgba(111, 238, 255, 0.34);
+    background:
+      linear-gradient(116deg, rgba(52, 232, 255, 0.16), transparent 30%, rgba(255, 198, 92, 0.11) 78%, transparent),
+      repeating-linear-gradient(135deg, rgba(111, 238, 255, 0.04) 0 1px, transparent 1px 22px),
+      linear-gradient(180deg, rgba(52, 232, 255, 0.12), rgba(255, 88, 176, 0.04)),
+      rgba(2, 9, 22, 0.62);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 24px 70px rgba(0, 7, 24, 0.36),
+      0 0 42px rgba(52, 232, 255, 0.12);
+  }
+
+  .playlistHeaderButton {
+    min-height: 74px;
+    padding: 2px 2px 12px;
+    border-bottom: 1px solid rgba(238, 247, 255, 0.1);
+  }
+
+  .playlistTitle {
+    font-size: 1.58rem;
+  }
+
+  .playlistSubtitle {
+    font-size: 0.78rem;
+  }
+
+  .playlistBody {
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .playlistTabs {
+    gap: 8px;
+    padding: 5px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.028)),
+      rgba(3, 6, 16, 0.28);
+  }
+
+  .playlistTab {
+    min-height: 42px;
+    font-size: 0.8rem;
+  }
+
+  .playlistSearch {
+    min-height: 48px;
+    padding: 0 14px;
+    background:
+      radial-gradient(circle at 8% 10%, rgba(255, 255, 255, 0.08), transparent 30%),
+      rgba(3, 6, 16, 0.34);
+  }
+
+  .playlistScroll {
+    max-height: 520px;
+    gap: 10px;
+    padding-right: 8px;
+  }
+
+  .playlistTrack {
+    min-height: 96px;
+    grid-template-columns: minmax(0, 1fr) 46px;
+    gap: 10px;
+    padding: 6px;
+    border-color: rgba(238, 247, 255, 0.12);
+  }
+
+  .playlistTrack:hover {
+    transform: translateY(-2px);
+    border-color: rgba(238, 247, 255, 0.24);
+    box-shadow:
+      0 14px 32px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .playlistTrackButton {
+    min-height: 82px;
+    grid-template-columns: 74px minmax(0, 1fr) auto;
+    gap: 14px;
+    padding: 7px;
+  }
+
+  .playlistThumb {
+    width: 74px;
+  }
+
+  .playlistTrack:hover .playlistThumb,
+  .playlistTrack[aria-current="true"] .playlistThumb {
+    transform: scale(1.025);
+    border-color: rgba(238, 247, 255, 0.28);
+    box-shadow:
+      0 0 28px rgba(232, 244, 255, 0.14),
+      0 10px 24px rgba(0, 0, 0, 0.24);
+  }
+
+  .playlistTrackTitle {
+    font-size: 1.02rem;
+  }
+
+  .playlistTrackArtist {
+    font-size: 0.8rem;
+  }
+
+  .playlistTrackMood {
+    max-width: 132px;
+  }
+}
+
 @media (max-width: 980px) {
   .playerShell {
     align-items: start;
@@ -1770,6 +2010,177 @@
 
   .playlistScroll {
     max-height: 420px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1119px) {
+  .playerShell {
+    place-items: start center;
+    padding: 28px 16px 36px;
+  }
+
+  .playerFrame {
+    width: min(100%, 760px);
+    gap: 16px;
+    padding: 20px;
+    background:
+      radial-gradient(circle at 18% 14%, rgba(245, 227, 174, 0.12), transparent 16rem),
+      radial-gradient(circle at 82% 18%, var(--moon-rose), transparent 18rem),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.038)),
+      var(--moon-glass);
+  }
+
+  .playerHero {
+    margin-bottom: 2px;
+  }
+
+  .playerHeroTitle {
+    font-size: clamp(1.55rem, 4.2vw, 2.15rem);
+  }
+
+  .playerMain {
+    grid-template-columns: minmax(212px, 250px) minmax(0, 1fr);
+    align-items: center;
+    justify-items: stretch;
+    gap: 14px;
+    padding: 0;
+  }
+
+  .albumChamber {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: stretch;
+    justify-content: center;
+    align-content: center;
+    padding: 12px;
+    border: 1px solid rgba(238, 247, 255, 0.12);
+    border-radius: 8px;
+    background:
+      radial-gradient(circle at 50% 26%, rgba(255, 255, 255, 0.08), transparent 54%),
+      rgba(3, 7, 18, 0.2);
+  }
+
+  .albumStage {
+    width: min(100%, 238px);
+  }
+
+  .albumStatusBadge {
+    min-height: 30px;
+    padding: 7px 11px;
+    font-size: 0.72rem;
+  }
+
+  .nowPlayingPanel {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
+    padding: 15px;
+  }
+
+  .nowPlayingPanel h2 {
+    font-size: clamp(1.36rem, 3.2vw, 1.85rem);
+  }
+
+  .controlDeck {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .controlRow {
+    padding: 4px 0;
+  }
+
+  .playButton {
+    width: 62px;
+    height: 62px;
+  }
+
+  .secondaryControls {
+    border-radius: 8px;
+  }
+
+  .lyricsPanel {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+
+  .lyricsToggle {
+    min-height: 40px;
+  }
+
+  .playlistPanel {
+    width: 100%;
+    padding: 18px;
+    border-color: rgba(238, 247, 255, 0.24);
+    background:
+      linear-gradient(118deg, rgba(245, 227, 174, 0.1), transparent 26%, rgba(126, 224, 255, 0.085) 76%, transparent),
+      repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 20px),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.038)),
+      rgba(5, 9, 22, 0.56);
+  }
+
+  .playlistHeaderButton {
+    min-height: 66px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(238, 247, 255, 0.1);
+  }
+
+  .playlistTitle {
+    font-size: 1.38rem;
+  }
+
+  .playlistBody {
+    gap: 13px;
+    margin-top: 14px;
+  }
+
+  .playlistSearch {
+    min-height: 46px;
+    background:
+      radial-gradient(circle at 8% 12%, rgba(255, 255, 255, 0.08), transparent 30%),
+      rgba(3, 6, 16, 0.34);
+  }
+
+  .playlistScroll {
+    max-height: 480px;
+    gap: 10px;
+    padding-right: 6px;
+  }
+
+  .playlistTrack {
+    min-height: 90px;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    border-color: rgba(238, 247, 255, 0.12);
+  }
+
+  .playlistTrackButton {
+    min-height: 78px;
+    grid-template-columns: 68px minmax(0, 1fr) auto;
+  }
+
+  .playlistThumb {
+    width: 68px;
+  }
+
+  .playlistTrack[aria-current="true"] .playlistThumb {
+    transform: scale(1.025);
+    border-color: rgba(238, 247, 255, 0.28);
+    box-shadow:
+      0 0 28px rgba(232, 244, 255, 0.14),
+      0 10px 24px rgba(0, 0, 0, 0.24);
+  }
+
+  .playlistShareButton {
+    opacity: 0.72;
+  }
+
+  .playlistTrack:hover .playlistShareButton,
+  .playlistTrack:focus-within .playlistShareButton,
+  .playlistTrack[aria-current="true"] .playlistShareButton {
+    opacity: 1;
   }
 }
 

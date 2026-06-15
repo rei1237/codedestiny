@@ -132,7 +132,7 @@ button[onclick*="close"], button[aria-label*="닫"] {
   --border-color: #3F3F42;
 }
 
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Gowun Dodum',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box;font-family:var(--font-body)}
 /* overflow-x:hidden을 html에 설정하면 html+body 이중 스크롤 컨테이너 → iOS 수직 스크롤 차단
    body의 overflow-x:hidden이 visible인 html을 통해 뷰포트로 전파되므로 html에는 설정 불필요 */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -6679,7 +6679,7 @@ body.neo-mode .monthly-label { color: #64748b; }
     border-radius: 16px;
     padding: 24px 20px;
     box-shadow: 0 8px 24px rgba(255, 139, 167, 0.15);
-    font-family: 'Noto Sans KR', sans-serif;
+    font-family: var(--font-body);
     border: 1px solid #FFD6E8;
     transition: all 0.4s ease;
   }
@@ -6728,6 +6728,60 @@ body.neo-mode .monthly-label { color: #64748b; }
   body.neo-mode .sub-desc {
     color: #a0aec0;
   }
+  .sub-daily-group {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .sub-daily-option {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #4a2637;
+    font-size: 0.94rem;
+    font-weight: 800;
+    line-height: 1.35;
+    letter-spacing: 0;
+    word-break: keep-all;
+  }
+  .sub-daily-option input {
+    flex: 0 0 auto;
+    accent-color: var(--pink);
+  }
+  .sub-daily-note {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 139, 167, 0.22);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.72);
+    color: #482536;
+    font-size: clamp(0.88rem, 2.65vw, 0.96rem);
+    font-weight: 700;
+    line-height: 1.58;
+    letter-spacing: 0;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    text-wrap: pretty;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+  body.neo-mode .sub-daily-option {
+    color: #f4e9c8;
+  }
+  body.neo-mode .sub-daily-note {
+    border-color: rgba(197, 160, 89, 0.3);
+    background: rgba(197, 160, 89, 0.12);
+    color: #f8f1d5;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
   .sub-form {
     display: flex;
     gap: 8px;
@@ -6767,6 +6821,20 @@ body.neo-mode .monthly-label { color: #64748b; }
     color: #0b1021;
   }
   .btn-subscribe:hover { opacity: 0.9; }
+  @media (max-width: 420px) {
+    .sub-daily-group {
+      max-width: 100%;
+      gap: 7px;
+    }
+    .sub-daily-option {
+      font-size: 0.9rem;
+    }
+    .sub-daily-note {
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      line-height: 1.62;
+    }
+  }
   .sub-webpush {
     font-size: 0.8rem;
     color: #888;
@@ -15532,4 +15600,262 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
     -webkit-line-clamp: 3;
     line-clamp: 3;
   }
+}
+
+:is(
+  .logo-area h1,
+  .moon-topbar__brand strong,
+  .moon-hero h1,
+  .moon-section-head h2,
+  .post-saju-services-intro strong,
+  .feat-collection__title,
+  .feature-card__title,
+  .tarot-tile__title,
+  .fortune-score,
+  .fortune-oneliner,
+  .fortune-sec-title,
+  .oracle-title-m,
+  #tarotModalOverlay #tarotCardName,
+  #tarotModalOverlay .tarot-card-name,
+  .res-title,
+  .df-studio-hero h2,
+  .ilju-v2-hero h2,
+  .t-hero-copy h1,
+  .t-hero-copy h2,
+  .t-hero-copy h3
+) {
+  font-family: var(--font-display);
+  letter-spacing: 0;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+  font-feature-settings: "palt" 1;
+}
+
+:is(
+  .moon-hero__lead,
+  .moon-section-head p,
+  .post-saju-services-intro span,
+  .feature-card__desc,
+  .feature-card__detail-text,
+  .tarot-tile__desc,
+  .fortune-section,
+  .sub-desc,
+  .sub-daily-note,
+  #tarotModalOverlay .oracle-text-m,
+  #tarotModalOverlay .ritual-text-m,
+  .result-content,
+  .res-text--keyword,
+  .villain-v2-section p,
+  .villain-zone-card p,
+  .villain-one-line,
+  .villain-profile-card .villain-quote
+) {
+  font-family: var(--font-body);
+  letter-spacing: 0;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+:is(
+  .membership-recap-cta__title,
+  .membership-recap-cta__btn,
+  .honey-membership-mini__title,
+  .honey-membership-mini__cta,
+  .cd-paid-gate__title,
+  .cd-paid-gate__price,
+  .cd-paid-gate__cta,
+  .premium-card__title,
+  .premium-card__price,
+  .premium-pass-card__title,
+  .premium-pass-card__price,
+  .sub-title
+) {
+  font-family: var(--font-premium);
+  letter-spacing: 0;
+  word-break: keep-all;
+}
+
+:is(
+  .feature-card--face .feature-card__title,
+  .feature-card--animal .feature-card__title,
+  .feature-card--tazza .feature-card__title,
+  .feature-card--destiny-flower .feature-card__title,
+  .feature-card--astrology-flower .feature-card__title,
+  .feature-card--jamidusu-flower .feature-card__title,
+  .feature-card--sukuyo-flower .feature-card__title,
+  .lotto-machine-title,
+  .animal-totem-face--front b,
+  .mbti-sheet-hero h1,
+  .mbti-sheet-hero h2
+) {
+  font-family: var(--font-playful);
+  letter-spacing: 0;
+  word-break: keep-all;
+}
+
+:is(
+  .villain-code-name,
+  .villain-profile-card h4,
+  .villain-summary-card strong,
+  .tarot-slot-label,
+  .tarot-mode-btn,
+  .lotto-draw-ball,
+  .animal-totem-face--back
+) {
+  font-family: var(--font-decorative);
+  letter-spacing: 0;
+  word-break: keep-all;
+}
+
+:is(
+  .feature-card__launch,
+  .feature-card__cta,
+  .moon-hero__cta,
+  .mystic-summon-btn,
+  .btn-subscribe,
+  .villain-copy-btn,
+  .lotto-draw-btn
+) {
+  font-family: var(--font-body);
+  font-weight: 800;
+  letter-spacing: 0;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 480px) {
+  :is(
+    .feature-card__title,
+    .tarot-tile__title,
+    .fortune-oneliner,
+    .sub-title,
+    .membership-recap-cta__title
+  ) {
+    line-height: 1.38;
+  }
+  :is(
+    .feature-card__launch,
+    .feature-card__cta,
+    .btn-subscribe,
+    .membership-recap-cta__btn
+  ) {
+    line-height: 1.24;
+  }
+}
+
+.moon-hero h1,
+.moon-topbar__brand strong,
+.moon-section-head h2,
+.feat-collection__title,
+.post-saju-services-intro strong,
+.fortune-score,
+.fortune-oneliner,
+.fortune-sec-title,
+.feature-card--tarot .feature-card__title,
+.feature-card--sukuyo .feature-card__title,
+.feature-card--astro-fc .feature-card__title,
+.feature-card--ziwei .feature-card__title,
+.feature-card--juyuk .feature-card__title,
+.feature-card--egypt .feature-card__title,
+.oracle-title-m,
+#tarotModalOverlay #tarotCardName,
+#tarotModalOverlay .tarot-card-name,
+.kemet-title,
+.res-title {
+  font-family: var(--font-display) !important;
+  font-weight: 700;
+  letter-spacing: 0 !important;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+.membership-recap-cta__title,
+.honey-membership-mini__title,
+.cd-paid-gate__title,
+.cd-paid-gate__price,
+.premium-card__title,
+.premium-card__price,
+.premium-pass-card__title,
+.premium-pass-card__price,
+.sub-title,
+.synergy-box--premium strong,
+.res-title--bright {
+  font-family: var(--font-premium) !important;
+  font-weight: 700;
+  letter-spacing: 0 !important;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.feature-card--face .feature-card__title,
+.feature-card--animal .feature-card__title,
+.feature-card--tazza .feature-card__title,
+.feature-card--destiny-flower .feature-card__title,
+.feature-card--astrology-flower .feature-card__title,
+.feature-card--jamidusu-flower .feature-card__title,
+.feature-card--sukuyo-flower .feature-card__title,
+.animal-totem-face--front b,
+.lotto-machine-title,
+.t-hero-copy h1,
+.t-hero-copy h2,
+.mbti-sheet-hero h1,
+.mbti-sheet-hero h2 {
+  font-family: var(--font-playful) !important;
+  font-weight: 700;
+  letter-spacing: 0 !important;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.villain-code-name,
+.villain-profile-card h4,
+.villain-summary-card strong,
+.villain-risk-score,
+.tarot-slot-label,
+.tarot-mode-btn,
+.lotto-draw-ball,
+.animal-totem-face--back,
+.tarot-tile__coin-badge {
+  font-family: var(--font-decorative) !important;
+  font-weight: 700;
+  letter-spacing: 0 !important;
+  word-break: keep-all;
+}
+
+.moon-hero__lead,
+.moon-section-head p,
+.feature-card__desc,
+.feature-card__detail-text,
+.tarot-tile__desc,
+.fortune-section,
+.sub-desc,
+.sub-daily-note,
+#tarotModalOverlay .oracle-text-m,
+#tarotModalOverlay .ritual-text-m,
+.result-content,
+.villain-v2-section p,
+.villain-zone-card p,
+.villain-one-line,
+.villain-profile-card .villain-quote {
+  font-family: var(--font-body) !important;
+  letter-spacing: 0 !important;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.feature-card__launch,
+.feature-card__cta,
+.moon-hero__cta,
+.mystic-summon-btn,
+.btn-subscribe,
+.membership-recap-cta__btn,
+.villain-copy-btn,
+.lotto-draw-btn {
+  font-family: var(--font-body) !important;
+  font-weight: 800;
+  letter-spacing: 0 !important;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }

@@ -808,16 +808,16 @@
     }
     if (statusEl) {
       statusEl.textContent = state === 'verified'
-        ? '입력 검증이 완료되었습니다. ' + _sukuyoCoinLabel() + ' 결제 확인 뒤 PDF 생성을 시작합니다.'
+        ? '상대방 입력 검증이 완료되었습니다. ' + _sukuyoCoinLabel() + ' 결제 확인 뒤 PDF 생성을 시작합니다.'
         : safeCheck.ok
-          ? '두 사람의 입력 기준이 준비되었습니다. 결제 전 산출 검증을 진행합니다.'
-          : '결제 전에 필요한 입력값을 먼저 보완해 주세요.';
+          ? '상대방의 입력 기준이 준비되었습니다. 결제 전 산출 검증을 진행합니다.'
+          : '상대방 생년월일과 성별을 먼저 확인해 주세요.';
       statusEl.classList.toggle('sk-inline-error', !safeCheck.ok);
     }
     if (noticeEl) {
       noticeEl.textContent = hasUnknownTime
         ? '태어난 시간을 모르는 항목은 날짜 중심 궁합으로 계산하고, 시간 세부 문장은 보수적으로 작성합니다.'
-        : '기본 5,000원 궁합과 별개의 프리미엄 PDF입니다. 결제 후 본명숙, 관계 유형, 거리감, 갈등 회복 루틴을 묶어 생성합니다.';
+        : '숙요점 PDF 서비스 안에서만 열리는 전용 궁합입니다. 결제 후 본명숙, 관계 유형, 거리감, 갈등 회복 루틴이 하나의 상담 흐름으로 이어집니다.';
     }
   }
 
@@ -1148,12 +1148,12 @@
 
     var hint = _qs('skModeHint');
     if (hint) {
-      hint.textContent = '숙요점 프리미엄 PDF는 궁합 전용 서비스입니다. 두 사람의 생년월일 정보가 모두 필요합니다.';
+      hint.textContent = '저장된 나의 운명 카드 위로 상대방의 달빛 정보가 더해지면 두 사람의 인연 지도가 열립니다.';
       hint.classList.remove('sk-inline-error');
     }
 
     var startDesc = _qs('skStartDesc');
-    if (startDesc) startDesc.innerHTML = '숙요점 프리미엄 궁합 PDF는 <strong>두 사람의 관계 해석 전용</strong>입니다. 두 사람의 생년월일과 시간을 기반으로 27숙 궁합 15챕터를 생성합니다.';
+    if (startDesc) startDesc.innerHTML = '저장된 나의 운명 카드에 상대방의 본명숙과 관계 거리가 겹쳐져 <strong>15챕터 궁합 PDF</strong>가 열립니다.';
 
     var title = _qs('skModalTitle');
     if (title) title.textContent = '💫 숙요점 프리미엄 궁합 PDF';
@@ -1165,7 +1165,7 @@
     if (startBtn) startBtn.textContent = '입력 확인 후 ' + _sukuyoCoinLabel() + ' 결제하고 PDF 생성';
 
     var coinMsg = _qs('skCompatNeedMsg');
-    if (coinMsg) coinMsg.textContent = '궁합 PDF는 두 사람의 생년월일이 모두 필요합니다.';
+    if (coinMsg) coinMsg.textContent = '궁합 PDF는 상대방의 생년월일이 들어와야 열립니다.';
   }
 
   function _populateTimeSelects() {
@@ -1934,7 +1934,7 @@
       _showScreen('skStartScreen');
     } else {
       _renderProfileSummary(null);
-      _showScreen('skStartScreen');
+      _showScreen('skSetupScreen');
     }
     _refreshReadinessPanel();
 
@@ -1969,10 +1969,9 @@
 
     var profile = _getActiveBirthProfile();
     if (!profile || !profile.birth) {
-      _showScreen('skStartScreen');
+      _showScreen('skSetupScreen');
       _renderProfileSummary(null);
       _clearInputErrors();
-      _setInputError('skSelfBirthDate', '나의 생년월일을 정확히 입력해 주세요.');
       return;
     }
 
@@ -1997,12 +1996,16 @@
     _clearInputErrors();
     _renderReadinessPanel(normalizedInput, check, check.ok ? 'ready' : 'invalid');
     if (!check.ok) {
+      if (check.fieldErrors && (check.fieldErrors.skSelfBirthDate || check.fieldErrors.skSelfGender)) {
+        _showScreen('skSetupScreen');
+        return;
+      }
       Object.keys(check.fieldErrors || {}).forEach(function (fieldId) {
         _setInputError(fieldId, check.fieldErrors[fieldId]);
       });
       var modeHint = _qs('skModeHint');
       if (modeHint) {
-        modeHint.textContent = '입력값을 확인해 주세요. 궁합 PDF는 두 사람의 생년월일과 성별이 모두 필요합니다.';
+        modeHint.textContent = '상대방 생년월일과 성별을 먼저 확인해 주세요.';
         modeHint.classList.add('sk-inline-error');
       }
       _focusFirstInputError(check.fieldErrors);

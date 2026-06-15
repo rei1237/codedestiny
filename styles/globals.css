@@ -2,8 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
+:root,
 .font-noto-sans-kr-offline {
-	--font-noto-sans-kr: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	--font-body: "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	--font-display: "CodeDestinyDisplay", var(--font-body);
+	--font-premium: "CodeDestinyPremium", var(--font-display);
+	--font-playful: "CodeDestinyPlayful", var(--font-display);
+	--font-decorative: "CodeDestinyDecorative", var(--font-display);
+	--font-noto-sans-kr: var(--font-body);
+}
+
+@font-face {
+	font-family: "CodeDestinyBody";
+	src: local("Pretendard"), local("Apple SD Gothic Neo"), local("Malgun Gothic");
+	font-weight: 400 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "CodeDestinyDisplay";
+	src: url("https://assets.code-destiny.com/Mulmaru.woff2") format("woff2");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "CodeDestinyDecorative";
+	src: url("https://assets.code-destiny.com/Galmuri11-Bold.woff2") format("woff2");
+	font-weight: 700;
+	font-style: normal;
+	font-display: optional;
+}
+
+@font-face {
+	font-family: "CodeDestinyPremium";
+	src: url("https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf") format("opentype");
+	font-weight: 500;
+	font-style: normal;
+	font-display: optional;
+}
+
+@font-face {
+	font-family: "CodeDestinyPlayful";
+	src: url("https://assets.code-destiny.com/netmarbleM.ttf") format("truetype");
+	font-weight: 500;
+	font-style: normal;
+	font-display: optional;
 }
 
 /* ─── 모바일 터치·스크롤 기반 (모든 브라우저/OS 동일 경험) ─── */
@@ -29,7 +75,10 @@
 		min-height: 100dvh;
 		background: #020617;
 		color: #f8fafc;
-		font-family: var(--font-noto-sans-kr, "Noto Sans KR"), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+		font-family: var(--font-body);
+		font-size: 16px;
+		line-height: 1.62;
+		letter-spacing: 0;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 		font-synthesis: none;
@@ -358,7 +407,7 @@
 		font-size: 0.75rem;
 		letter-spacing: 0.08em;
 		color: rgba(209, 213, 219, 0.85);
-		font-family: "Nanum Myeongjo", "Noto Serif KR", serif;
+		font-family: var(--font-display);
 		text-shadow: 0 0 6px rgba(15, 23, 42, 0.9);
 	}
 }

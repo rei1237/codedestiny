@@ -301,9 +301,9 @@ export default function HPremiumNamingSection({
     }).join("");
     const pillarsLine = analysis ? `년주 ${escH(analysis.pillars.year.gan)}${escH(analysis.pillars.year.zhi)} · 월주 ${escH(analysis.pillars.month.gan)}${escH(analysis.pillars.month.zhi)} · 일주 ${escH(analysis.pillars.day.gan)}${escH(analysis.pillars.day.zhi)} · 시주 ${escH(analysis.pillars.hour.gan)}${escH(analysis.pillars.hour.zhi)}` : "";
     const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"/><title>명운 프리미엄 작명 추천</title><style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+@font-face{font-family:'CodeDestinyPremium';src:url('https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf') format('opentype');font-weight:500;font-style:normal;font-display:optional}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Serif KR','Noto Sans KR',serif;background:#07091a;color:#e2e8f0;padding:32px}
+body{font-family:'CodeDestinyPremium','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;background:#07091a;color:#e2e8f0;padding:32px}
 .cover{text-align:center;padding:48px 0 32px}
 .cover-badge{font-size:0.65rem;letter-spacing:0.3em;color:rgba(212,175,55,0.7);text-transform:uppercase;margin-bottom:16px}
 .cover-title{font-size:2rem;font-weight:700;color:#d4af37;margin-bottom:10px}

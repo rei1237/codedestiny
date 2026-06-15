@@ -8,6 +8,13 @@
 /* ─── 기본 리셋 및 모바일 터치·스크롤 기반 ─── */
 /* NOTE: @tailwind 지시어는 Next.js 빌드에서만 처리됨.
    static HTML 직접 링크 시에는 순수 CSS 규칙만 유효함. */
+:root {
+	--font-body: "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", system-ui, -apple-system, sans-serif;
+	--font-display: "CodeDestinyDisplay", var(--font-body);
+	--font-premium: "CodeDestinyPremium", var(--font-display);
+	--font-playful: "CodeDestinyPlayful", var(--font-display);
+	--font-decorative: "CodeDestinyDecorative", var(--font-display);
+}
 html {
 	-webkit-text-size-adjust: 100%;
 	text-size-adjust: 100%;
@@ -28,7 +35,7 @@ body {
 	background: var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
 	color: #3D3D3D;
 	color: var(--text-main, #3D3D3D);
-	font-family: "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+	font-family: var(--font-body);
 	-webkit-overflow-scrolling: touch;
 	overscroll-behavior-y: none;
 	touch-action: pan-y;
@@ -579,6 +586,7 @@ body {
 }
 .feat-collection__title,
 .tarot-collection__title {
+	font-family: var(--font-display);
 	font-size: clamp(1.1rem, 3.5vw, 1.35rem);
 	font-weight: 800;
 	margin: 0 0 8px;
@@ -2140,25 +2148,6 @@ body.neo-mode #birthDate.inp::-webkit-datetime-edit-month-field,
 body.neo-mode #birthDate.inp::-webkit-datetime-edit-day-field {
   color: rgba(240, 232, 220, 0.95) !important;
   -webkit-text-fill-color: rgba(240, 232, 220, 0.95) !important;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   ★ font-display: swap 폴백
-   (Google Fonts가 swap을 지원하지만, 로컬 @font-face는 별도 적용)
-   ═══════════════════════════════════════════════════════════ */
-@font-face {
-  font-family: "Noto Sans KR";
-  font-display: swap;
-  /* Google Fonts CDN에서 실제 src를 오버라이드하지 않고
-     display:swap을 로컬로 보장 (환경에 따라 Google Fonts가
-     display=swap 파라미터를 미반영할 경우 대비) */
-  src: local("Noto Sans KR");
-  unicode-range: U+AC00-D7A3; /* 한글 */
-}
-@font-face {
-  font-family: "Cinzel";
-  font-display: swap;
-  src: local("Cinzel");
 }
 
 /* IO 기반 이미지/배경 지연 로딩용 LQIP 상태 */

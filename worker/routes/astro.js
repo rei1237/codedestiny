@@ -1034,23 +1034,25 @@ function toVedicTimezoneOffset(timezoneValue) {
   return 9;
 }
 
-function normalizeVedicChartSourceForPdf(chartSource = {}) {
+function normalizeVedicChartSourceForPdf(chartSource = {}, defaults = {}) {
+  const source = clean(chartSource?.source || chartSource?.calculationSource || defaults?.source || "");
+  const engineQuality = clean(chartSource?.engineQuality || defaults?.engineQuality || (/swiss/i.test(source) ? "swiss" : ""));
   return {
     planets: chartSource?.planets && typeof chartSource.planets === "object" ? chartSource.planets : {},
     retrograde: chartSource?.retrograde && typeof chartSource.retrograde === "object" ? chartSource.retrograde : {},
-    ayanamsaName: clean(chartSource?.ayanamsaName || chartSource?.ayanamsaType || "Lahiri") || "Lahiri",
+    ayanamsaName: clean(chartSource?.ayanamsaName || chartSource?.ayanamsaType || ""),
     ayanamsa: Number.isFinite(Number(chartSource?.ayanamsa)) ? Number(chartSource.ayanamsa) : undefined,
     ascendantSidereal: Number.isFinite(Number(chartSource?.ascendantSidereal ?? chartSource?.ascendant ?? chartSource?.lagnaLongitude))
       ? Number(chartSource?.ascendantSidereal ?? chartSource?.ascendant ?? chartSource?.lagnaLongitude)
       : null,
-    source: clean(chartSource?.source || chartSource?.calculationSource || ""),
-    engineQuality: clean(chartSource?.engineQuality || ""),
-    fallbackUsed: chartSource?.fallbackUsed === true,
+    source,
+    engineQuality,
+    fallbackUsed: chartSource?.fallbackUsed === true || defaults?.fallbackUsed === true,
   };
 }
 
-function hasUsableVedicChartSource(chartSource = {}) {
-  const source = normalizeVedicChartSourceForPdf(chartSource);
+function hasUsableVedicChartSource(chartSource = {}, defaults = {}) {
+  const source = normalizeVedicChartSourceForPdf(chartSource, defaults);
   return validateVedicPremiumChartSourceQuality({
     chartSource: source,
     requireTrustedSource: true,
@@ -1095,17 +1097,26 @@ function toSwissVedicInputFromBirthInput(birthInput = {}) {
 async function resolveVedicChartForPremiumPdf(rawInput, birthInput, env, requestUrl) {
   try {
     const calculated = await getSwissVedicPlanets(env, toSwissVedicInputFromBirthInput(birthInput), { requestUrl });
-    if (hasUsableVedicChartSource(calculated)) {
-      const chartSource = normalizeVedicChartSourceForPdf(calculated);
+    const chartSource = normalizeVedicChartSourceForPdf(calculated, {
+      source: "swiss-wasm-local",
+      engineQuality: "swiss",
+    });
+    const chartSourceQuality = validateVedicPremiumChartSourceQuality({
+      chartSource,
+      requireTrustedSource: true,
+    });
+    if (chartSourceQuality.ok) {
       return {
-        source: clean(chartSource.source || "swiss-wasm-local"),
+        source: clean(chartSource.source),
         chartSource,
-        chartSourceQuality: validateVedicPremiumChartSourceQuality({
-          chartSource,
-          requireTrustedSource: true,
-        }),
+        chartSourceQuality,
       };
     }
+    console.warn("[VedicPremiumPDF][SwissChartQualityRejected]", {
+      issues: chartSourceQuality.issues,
+      source: chartSourceQuality.source,
+      qualityScore: chartSourceQuality.qualityScore,
+    });
   } catch (error) {
     console.warn("[VedicPremiumPDF][SwissChartUnavailable]", {
       reason: clean(error?.message || error),
@@ -1113,16 +1124,24 @@ async function resolveVedicChartForPremiumPdf(rawInput, birthInput, env, request
   }
 
   const provided = extractProvidedVedicBase(rawInput);
-  if (allowProvidedVedicPremiumChartSource(env) && provided && hasUsableVedicChartSource(provided)) {
+  if (allowProvidedVedicPremiumChartSource(env) && provided) {
     const chartSource = normalizeVedicChartSourceForPdf(provided);
-    return {
-      source: clean(chartSource.source || "provided-trusted-chart"),
+    const chartSourceQuality = validateVedicPremiumChartSourceQuality({
       chartSource,
-      chartSourceQuality: validateVedicPremiumChartSourceQuality({
+      requireTrustedSource: true,
+    });
+    if (chartSourceQuality.ok) {
+      return {
+        source: clean(chartSource.source),
         chartSource,
-        requireTrustedSource: true,
-      }),
-    };
+        chartSourceQuality,
+      };
+    }
+    console.warn("[VedicPremiumPDF][ProvidedChartQualityRejected]", {
+      issues: chartSourceQuality.issues,
+      source: chartSourceQuality.source,
+      qualityScore: chartSourceQuality.qualityScore,
+    });
   }
 
   const error = new Error("베다 차트 계산을 완료하지 못했습니다. 출생 정보와 지역 정보를 확인해 주세요.");
@@ -1320,6 +1339,7 @@ async function handleAstroPremiumPrepare(request, env) {
       sessionId,
       birthInput,
     }, {
+      env,
       requestUrl: request.url,
       log: (stage, payload) => {
         const tag = `[AstroPremiumPDF][${stage}]`;
@@ -1543,6 +1563,7 @@ async function handleAstroPremiumPrepare(request, env) {
       details: normalizeAstroError(error),
     });
     const rawMessage = clean(error?.message || "점성술 프리미엄 PDF 생성에 실패했습니다.");
+    const originalCode = clean(error?.details?.originalCode || error?.code);
     const userFacingMessage = rawMessage.includes("태어난 시간") || rawMessage.includes("birth")
       ? "점성술 PDF 생성에 필요한 출생시 정보가 부족합니다. 프로필 카드에서 태어난 시간을 확인해 주세요."
       : rawMessage.includes("원고") || rawMessage.includes("검증")
@@ -1558,7 +1579,7 @@ async function handleAstroPremiumPrepare(request, env) {
         stage: "local-assembly",
         sessionId,
         reportId: clean(body?.reportId || body?.accessGrant?.reportId),
-        originalCode: error?.code || null,
+        originalCode: originalCode || null,
       },
     }, { status: Number(error?.status || 500) });
   }

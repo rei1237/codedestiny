@@ -41,11 +41,13 @@ const staticTargets = [
   "celestial-harmony.html",
   "yoga-guru.html",
   "geomancy-oracle-v4.html",
+  "destiny-poker.html",
   "fortune-teller-fish.html",
   "royal-tea-oracle.html",
   "emoi_omikuji_v2.html",
   "blood-type-app.html",
   "tadagochi.html",
+  "myungwun_final.html",
   "AnalysisEngine.js",
   "PhysiognomyUI.js",
   "HwatuFortune.js",
@@ -434,6 +436,70 @@ function stripBomInPublicHtmlTree(targetDir) {
   }
 }
 
+const STATIC_R2_FONT_HTML_BLOCK = `<link rel="preconnect" href="https://assets.code-destiny.com" crossorigin>
+<style data-cd-r2-static-fonts>
+@font-face{font-family:'CodeDestinyStaticDisplay';src:url('https://assets.code-destiny.com/Mulmaru.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'CodeDestinyStaticDecorative';src:url('https://assets.code-destiny.com/Galmuri11-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:optional}
+:root{--font-body:'Apple SD Gothic Neo','Malgun Gothic',system-ui,-apple-system,'Segoe UI',sans-serif;--font-display:'CodeDestinyStaticDisplay',var(--font-body);--font-decorative:'CodeDestinyStaticDecorative',var(--font-display)}
+body{font-family:var(--font-body)!important;line-height:1.68;letter-spacing:0;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.title,.cover-title,.hero-title,.card-title,.section-title{font-family:var(--font-display)!important;letter-spacing:0;word-break:keep-all}
+button,input,select,textarea{font-family:var(--font-body)!important}
+</style>`;
+
+const STATIC_R2_FONT_CSS_BLOCK = `@font-face{font-family:'CodeDestinyStaticDisplay';src:url('https://assets.code-destiny.com/Mulmaru.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'CodeDestinyStaticDecorative';src:url('https://assets.code-destiny.com/Galmuri11-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:optional}
+:root{--font-body:'Apple SD Gothic Neo','Malgun Gothic',system-ui,-apple-system,'Segoe UI',sans-serif;--font-display:'CodeDestinyStaticDisplay',var(--font-body);--font-decorative:'CodeDestinyStaticDecorative',var(--font-display)}
+body{font-family:var(--font-body);line-height:1.68;letter-spacing:0;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.title,.post-title,.blog-title,.blog-card-title,.section-title{font-family:var(--font-display);letter-spacing:0;word-break:keep-all}
+button,input,select,textarea{font-family:var(--font-body)}
+`;
+
+function removeGoogleFontReferences(content) {
+  return String(content || "")
+    .replace(/^\s*<link\b[^>]*href=["']https:\/\/fonts\.(?:googleapis|gstatic)\.com[^>]*>\s*\r?\n?/gim, "")
+    .replace(/^\s*<link\b[^>]*https:\/\/fonts\.(?:googleapis|gstatic)\.com[^>]*>\s*\r?\n?/gim, "")
+    .replace(/^\s*@import\s+url\(["']?https:\/\/fonts\.googleapis\.com[^)]*\)\s*;\s*\r?\n?/gim, "");
+}
+
+function sanitizePublicGoogleFontReferences(targetDir) {
+  if (!existsSync(targetDir)) return;
+
+  let touched = 0;
+  const stack = [targetDir];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    const entries = readdirSync(current, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const absPath = join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(absPath);
+        continue;
+      }
+      if (!entry.isFile() || (!entry.name.endsWith(".html") && !entry.name.endsWith(".css"))) continue;
+
+      const original = stripLeadingBom(readFileSync(absPath)).toString("utf8");
+      const withoutGoogleFonts = removeGoogleFontReferences(original);
+      if (withoutGoogleFonts === original) continue;
+
+      let nextContent = withoutGoogleFonts;
+      if (entry.name.endsWith(".html") && !nextContent.includes("data-cd-r2-static-fonts")) {
+        nextContent = nextContent.replace(/<\/head>/i, `${STATIC_R2_FONT_HTML_BLOCK}\n</head>`);
+      }
+      if (entry.name.endsWith(".css") && !nextContent.includes("CodeDestinyStaticDisplay")) {
+        nextContent = `${STATIC_R2_FONT_CSS_BLOCK}\n${nextContent}`;
+      }
+
+      writeFileSync(absPath, Buffer.from(nextContent, "utf8"));
+      touched += 1;
+    }
+  }
+
+  if (touched > 0) {
+    console.log(`[sync-legacy-static-to-public] Removed Google Fonts from ${touched} public artifact(s).`);
+  }
+}
+
 if (!existsSync(publicDir)) {
   mkdirSync(publicDir, { recursive: true });
 }
@@ -668,5 +734,7 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     }
   }
 }
+
+sanitizePublicGoogleFontReferences(publicDir);
 
 console.log("[sync-legacy-static-to-public] Completed static asset sync.");

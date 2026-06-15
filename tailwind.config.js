@@ -10,6 +10,13 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        body: ["var(--font-body)"],
+        display: ["var(--font-display)"],
+        premium: ["var(--font-premium)"],
+        playful: ["var(--font-playful)"],
+        decorative: ["var(--font-decorative)"],
+      },
       keyframes: {
         "fade-in-up": {
           "0%": { opacity: "0", transform: "translateY(18px) scale(0.985)" },

@@ -855,6 +855,11 @@ function premiumTokenMatchesRequestBinding(tokenPayload = {}, binding = {}) {
   return pairs.some(([tokenValue, requestValue]) => tokenValue && requestValue && tokenValue === requestValue);
 }
 
+function requiresContextBoundPremiumPaymentEvidence(reportType = "") {
+  const normalized = String(reportType || "").trim();
+  return normalized === "vedicPremium" || normalized === "soulOriginKarma";
+}
+
 async function findLoveSecretBasePlusCompatibilityEvidence(userId, requestBody = {}) {
   const modeToken = normalizeModeToken(requestBody);
   const isCouple = modeToken.includes("couple") || modeToken.includes("compat");
@@ -1096,7 +1101,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
   const isAdminTestUser = String(userId || "").trim() === ADMIN_TEST_USER_ID;
   const hasRequestedAdminBypass = hasAdminTestAccessContext(requestBody);
   const hasAccessPolicy = Boolean(normalizedReportType && (unlockPolicy.length || alternativeRules.length || requiredRules.length));
-  const requiresContextBoundPaymentEvidence = normalizedReportType === "vedicPremium";
+  const requiresContextBoundPaymentEvidence = requiresContextBoundPremiumPaymentEvidence(normalizedReportType);
 
   if (isAdminTestUser && hasAccessPolicy) {
     const allowed = {
@@ -1189,7 +1194,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       logSajuAccessResolved(allowed);
       return allowed;
     }
-    const tokenBindingOk = normalizedReportType === "vedicPremium"
+    const tokenBindingOk = requiresContextBoundPaymentEvidence
       ? premiumTokenMatchesRequestBinding(tokenCheck.payload, accessBinding)
       : true;
     if (tokenCheck.ok && tokenBindingOk && premiumTokenMatchesCurrentAccessRules(tokenCheck.payload, alternativeRules, requiredRules)) {
@@ -1547,4 +1552,6 @@ export const __accessControlTestUtils = {
   buildAlternativePaymentRules,
   buildRequiredPaymentRules,
   extractPaymentLookupTokens,
+  premiumTokenMatchesRequestBinding,
+  requiresContextBoundPremiumPaymentEvidence,
 };

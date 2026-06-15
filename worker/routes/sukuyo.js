@@ -684,6 +684,10 @@ async function handleSukuyoPremiumPreflight(request) {
     dryRun: {
       selfStarReady: Boolean(clean(seed?.userSukyo?.nameKo)),
       partnerStarReady: Boolean(clean(seed?.partnerSukyo?.nameKo)),
+      relationType: clean(seed?.compatibility?.relationType || seed?.localSukuyoCompatibilityJson?.relation?.typeKo),
+      relationTypeHan: clean(seed?.compatibility?.relationTypeHan || seed?.localSukuyoCompatibilityJson?.relation?.typeHan),
+      distanceLabel: clean(seed?.compatibility?.distanceLabel || seed?.localSukuyoCompatibilityJson?.relation?.distanceLabel),
+      compatibilityIndex: Number(seed?.compatibility?.compatibilityIndex || seed?.localSukuyoCompatibilityJson?.relation?.compatibilityIndex || 0),
       chapterCount: SUKYO_PDF_CHAPTER_COUNT,
     },
   });
@@ -699,6 +703,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
   const premiumAccessToken = readPremiumAccessToken(request, body);
   const featureKey = clean(body?.featureKey) || SUKYO_PDF_FEATURE_KEY;
   const reportId = resolveSukuyoReportId(body, sessionId);
+  const pdfDbEnv = withPdfFastDbEnv(env);
   let executionCtx = null;
 
   const input = normalizeCompatibilityInput(body);
@@ -750,7 +755,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
     body,
     timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
   });
-  const reusableExecution = await findSukuyoReusableExecution(env, auth.userId, reusableExecutionCtx, { sessionId, reportId, featureKey });
+  const reusableExecution = await findSukuyoReusableExecution(pdfDbEnv, auth.userId, reusableExecutionCtx, { sessionId, reportId, featureKey });
   const reusableResponse = reusableExecution ? buildSukuyoReusableExecutionResponse(request, reusableExecution, { sessionId, reportId, featureKey }) : null;
   if (reusableResponse) {
     return json(reusableResponse.payload, { status: reusableResponse.status });
@@ -805,7 +810,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
   try {
     const signedTokenAccess = await resolveSukuyoSignedTokenAccess(env, auth.userId, premiumAccessToken);
     const access = signedTokenAccess || await requirePremiumReportAccess(
-      withPdfFastDbEnv(env),
+      pdfDbEnv,
       auth.userId,
       "sookyoPremium",
       {
@@ -844,8 +849,8 @@ async function handleSukuyoPremiumPrepare(request, env) {
       body,
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
-    await startPremiumPdfExecution(env, auth.userId, executionCtx);
-    const executionLease = await acquireSukuyoExecutionLease(env, auth.userId, executionCtx);
+    await startPremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx);
+    const executionLease = await acquireSukuyoExecutionLease(pdfDbEnv, auth.userId, executionCtx);
     if (!executionLease.ok && !executionLease.error) {
       return json(buildSukuyoRunningResponse(request, {
         sessionId,
@@ -944,7 +949,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
     let completedExecution = null;
 
     try {
-      completedExecution = await completePremiumPdfExecution(env, auth.userId, executionCtx, reportId, {
+      completedExecution = await completePremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx, reportId, {
         chapterCount: generated.chapterCount,
         manuscriptSource: generated.manuscriptSource || SUKYO_PDF_CONFIG.generationMode,
         localAssembly: generated.localAssembly || generated?.payload?.localAssembly || pdfReady.localAssembly,
@@ -1043,7 +1048,7 @@ async function handleSukuyoPremiumPrepare(request, env) {
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
     await failPremiumPdfExecution(
-      env,
+      pdfDbEnv,
       auth.userId,
       failedCtx,
       "sukuyo_generation_failed",

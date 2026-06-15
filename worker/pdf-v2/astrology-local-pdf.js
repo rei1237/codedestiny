@@ -48,9 +48,10 @@ function assertAstrologyLocalPdfResult(result = {}) {
 
 export async function generateAstrologyLocalPdf(rawInput = {}, options = {}) {
   const log = typeof options.log === "function" ? options.log : null;
+  const env = options.env || null;
   let generated;
   try {
-    generated = await generateAstroPremiumReport(null, rawInput, {
+    generated = await generateAstroPremiumReport(env, rawInput, {
       requestUrl: options.requestUrl,
       log,
     });

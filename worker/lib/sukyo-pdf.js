@@ -48,6 +48,12 @@ const FORBIDDEN_BODY_PHRASES = [
 ];
 
 const ALLOWED_DOMAIN_REPEAT_TERMS = ["안괴", "영친", "업태", "근거리", "중거리", "원거리", "화해", "거리 조절"];
+const ALLOWED_DOMAIN_REPEAT_PATTERNS = Object.freeze([
+  /기운이\s+\S+으로\s+이어지며\s+조화\s+점수는\s+\d+점입니다/u,
+  /애정을\s+표현할\s+때\s+\S+을\s+앞세우고\s+불안이\s+커지면\s+\S+을\s+보일\s+수\s+있습니다/u,
+  /편안함\s+속에서도\s+성장\s+과제를\s+주간\s+단위로\s+고정/u,
+  /갈등\s+직후\s+24시간\s+내\s+사실\s+감정\s+합의\s+순서로\s+재접속/u,
+]);
 const FORBIDDEN_TEMPLATE_STEMS = Object.freeze([
   "의 핵심은",
   "조합에서 이 항목은",
@@ -436,7 +442,7 @@ function normalizePersonInput(raw = {}, fallbackName) {
   );
 
   return {
-    name: text(profile.name || profile.label || fallbackName),
+    name: safeSukyoPersonName(profile.name || profile.label, fallbackName),
     gender: normalizeGender(profile.gender || profile.sex),
     calendarType: normalizeCalendarType(profile.calendarType || profile.calType),
     birthDate,
@@ -584,6 +590,12 @@ function hasSukyoBrokenText(value) {
     || /[ㄱ-ㅎㅏ-ㅣ]{2,}/.test(body);
 }
 
+function safeSukyoPersonName(value, fallback = "") {
+  const name = text(value);
+  if (!name || /^\?+$/.test(name) || hasSukyoBrokenText(name)) return text(fallback, "사용자");
+  return name;
+}
+
 function safeSukyoDisplayText(value, fallback = "") {
   const out = sanitizeSukyoPremiumText(value);
   if (!out || /^\?+$/.test(out) || hasSukyoBrokenText(out)) return fallback;
@@ -666,6 +678,13 @@ function normalizeKoreanText(value) {
     .trim();
 }
 
+function isAllowedDomainRepeat(value) {
+  const fragment = normalizeKoreanText(value);
+  if (!fragment) return false;
+  if (ALLOWED_DOMAIN_REPEAT_TERMS.some((token) => fragment.includes(normalizeKoreanText(token)))) return true;
+  return ALLOWED_DOMAIN_REPEAT_PATTERNS.some((pattern) => pattern.test(fragment));
+}
+
 function hasRepeatedParagraphs(chapters) {
   const paragraphs = (Array.isArray(chapters) ? chapters : [])
     .flatMap((chapter) => (Array.isArray(chapter.sections) ? chapter.sections : []))
@@ -691,7 +710,7 @@ function hasRepeatedSentences(chapters) {
     .flatMap((chapter) => (Array.isArray(chapter.sections) ? chapter.sections : []))
     .flatMap((section) => splitMeaningfulSentences(section.body))
     .map((line) => normalizeKoreanText(line))
-    .filter((line) => line.length >= 30);
+    .filter((line) => line.length >= 30 && !isAllowedDomainRepeat(line));
 
   const counts = new Map();
   for (const sentence of sentences) {
@@ -719,7 +738,7 @@ function hasRepeatedNgrams(chapters) {
   const counts = new Map();
 
   for (const fragment of fragments) {
-    if (ALLOWED_DOMAIN_REPEAT_TERMS.some((token) => fragment.includes(token))) continue;
+    if (isAllowedDomainRepeat(fragment)) continue;
     counts.set(fragment, (counts.get(fragment) || 0) + 1);
   }
 

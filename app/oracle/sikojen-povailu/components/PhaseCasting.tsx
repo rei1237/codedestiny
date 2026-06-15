@@ -82,7 +82,7 @@ export function PhaseCasting() {
       <div className="relative z-10 w-full max-w-2xl flex flex-col items-center justify-center mt-24">
         
         {/* 제목 */}
-        <h2 className="text-3xl md:text-4xl font-bold text-pink-600 mb-12 text-center drop-shadow-lg" style={{ fontFamily: "'Jua', serif" }}>
+        <h2 className="text-3xl md:text-4xl font-bold text-pink-600 mb-12 text-center drop-shadow-lg" style={{ fontFamily: "var(--font-playful)" }}>
           🔥 주석이 녹아내려 ✨
         </h2>
 
@@ -167,7 +167,7 @@ export function PhaseCasting() {
                   <div className="relative z-10 flex flex-col items-center justify-center group-hover:scale-110 transition-transform" style={{
                     animation: `gentle-bob 1.5s ease-in-out infinite`,
                   }}>
-                    <div className="text-2xl font-bold text-gray-600 mb-1" style={{ fontFamily: "'Jua', serif" }}>주석</div>
+                    <div className="text-2xl font-bold text-gray-600 mb-1" style={{ fontFamily: "var(--font-playful)" }}>주석</div>
                     <div className="text-xs text-gray-500 tracking-widest">TIN</div>
                     {/* 메탈릭 광택 라인 */}
                     <div className="mt-2 w-12 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent rounded-full opacity-60" />

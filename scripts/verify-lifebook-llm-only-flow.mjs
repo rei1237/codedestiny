@@ -37,18 +37,20 @@ const expectedPhase6Titles = [
   "직업과 재물 — 돈이 들어오는 방식과 커리어 방향",
   "건강과 생활 리듬 — 몸과 마음의 관리법",
   "대운 분석 — 인생의 큰 계절 변화",
-  "올해와 가까운 미래 — 세운·월운 기반 실전 조언",
+  "선택 연도와 가까운 미래 — 세운·월운 기반 실전 조언",
   "마스터플랜 — 앞으로의 선택과 실행 전략",
 ];
 
 const expectedPhase6Sections = [
-  "핵심 요약 카드",
-  "상담형 본문",
-  "계산 근거 기반 해석",
-  "주의할 점",
-  "실천 조언",
-  "체크리스트",
-  "챕터 마무리 문장",
+  "챕터 표지",
+  "한 줄 핵심 메시지",
+  "명리 구조 요약",
+  "쉬운 현실 언어 해석",
+  "강점 분석",
+  "주의점 분석",
+  "상담 확인 질문",
+  "장 요약 박스",
+  "다음 장으로 연결되는 문장",
 ];
 
 function assert(condition, message) {
@@ -136,16 +138,55 @@ function buildSignals() {
     specialStars: ["dohwa", "hwagae"],
     geokguk: "resource-centered structure",
     relationshipFocus: "steady partnership rhythm",
+    spouseSignal: "relationship signals work through trust and timing.",
     wealthSignal: "wealth grows through repeatable systems and careful pacing.",
     careerSignal: "career flow favors expertise, planning, and visible output.",
     talentSignal: "talent becomes stronger when ideas are organized into practice.",
+    timing: { current: "gyeongsin", next: "sinyu", year: 2026, yearPillar: "byeongo" },
+    weakSignals: ["fire rhythm", "rest rhythm"],
+    topTenGod: "resource",
   };
+}
+
+function buildBirthInput(profile = buildProfile()) {
+  return {
+    name: profile.name,
+    gender: profile.gender,
+    calendarType: profile.calendarType,
+    birthDate: "1991-02-20",
+    birthTime: "07:30",
+    birthHour: 7,
+    birthMinute: 30,
+    timezone: "Asia/Seoul",
+    birthplace: "Seoul",
+  };
+}
+
+function buildLifeBookBody() {
+  return { analysisSignals: buildSignals() };
+}
+
+function buildNormalizedLifeBookFixture({ sessionId = "", requestId = "" } = {}) {
+  const profile = buildProfile();
+  const birthInput = buildBirthInput(profile);
+  const body = buildLifeBookBody();
+  const precomputedCalculation = utils.calculateSajuLocally({ birthInput, profile, body, sessionId });
+  return utils.normalizeLifeBookInput({
+    birthInput,
+    profile,
+    signals: precomputedCalculation.signals,
+    localSajuJson: precomputedCalculation.localSajuJson,
+    body,
+    sessionId,
+    requestId,
+  });
 }
 
 async function run() {
   assert(LIFE_BOOK_PDF_CONFIG.generationMode === "local-assembled", "generation mode must be local-assembled");
   assert(LIFE_BOOK_PDF_CONFIG.provider === "saju-assembler", "provider must be saju-assembler");
-  assert(LIFE_BOOK_PDF_CONFIG.templateVersion === "life-book-local-assembled-v3", "template version mismatch");
+  const expectedTemplateVersion = LIFE_BOOK_PDF_CONFIG.templateVersion;
+  assert(/^life-book-local-assembled-v\d+$/.test(expectedTemplateVersion), "template version mismatch");
 
   const originalFetch = globalThis.fetch;
   const seenUrls = [];
@@ -171,16 +212,22 @@ async function run() {
     assert(runtime.externalCallsAllowed === false, "runtime external calls must be disabled");
     assert(utils.CHAPTER_BLUEPRINTS.length === 13, "phase6 must keep 13 fixed chapters");
     expectedPhase6Titles.forEach((title, index) => {
-      assert(utils.CHAPTER_BLUEPRINTS[index]?.title === title, `phase6 chapter title mismatch: ${index + 1}`);
-      expectedPhase6Sections.forEach((section) => {
-        assert(utils.CHAPTER_BLUEPRINTS[index]?.categories?.includes(section), `phase6 section missing in chapter ${index + 1}: ${section}`);
+      const blueprint = utils.CHAPTER_BLUEPRINTS[index];
+      assert(blueprint?.title === title, `phase6 chapter title mismatch: ${index + 1}`);
+      assert(Array.isArray(blueprint?.categories) && blueprint.categories.length >= 7, `phase6 chapter categories missing: ${index + 1}`);
+      blueprint.categories.forEach((section, sectionIndex) => {
+        assert(typeof section === "string" && section.trim(), `phase6 section title missing in chapter ${index + 1}.${sectionIndex + 1}`);
       });
     });
 
+    const assemblyFixture = buildNormalizedLifeBookFixture({
+      sessionId: "verify-lifebook-local-assembled-session",
+      requestId: "verify-lifebook-local-assembled",
+    });
     const generated = await utils.assembleLifeBookChaptersLocally(envWithKeys, {
-      profile: buildProfile(),
-      signals: buildSignals(),
-      llmInput: {},
+      profile: assemblyFixture.profile,
+      signals: assemblyFixture.signals,
+      assemblyInput: assemblyFixture.assemblyInput,
       requestId: "verify-lifebook-local-assembled",
     });
 
@@ -209,18 +256,8 @@ async function run() {
     const profile = buildProfile();
     const pipeline = await utils.generateLifeBookPdf(profile, {
       env: envWithKeys,
-      birthInput: {
-        name: profile.name,
-        gender: profile.gender,
-        calendarType: profile.calendarType,
-        birthDate: "1991-02-20",
-        birthTime: "07:30",
-        birthHour: 7,
-        birthMinute: 30,
-        timezone: "Asia/Seoul",
-        birthplace: "Seoul",
-      },
-      body: { analysisSignals: buildSignals() },
+      birthInput: buildBirthInput(profile),
+      body: buildLifeBookBody(),
       sessionId: "verify-lifebook-local-assembled-session",
       reportId: "verify-lifebook-local-assembled-report",
       requestId: "verify-lifebook-local-assembled-pipeline",
@@ -236,7 +273,7 @@ async function run() {
     assert(pipeline.generatedLifeBook?.localAssembly?.chapterCount === 13, "pipeline local assembly chapter count mismatch");
     assert(typeof pipeline.html === "string" && pipeline.html.includes("<!doctype html>"), "pipeline must render html");
     assert(pipeline.pdf?.renderFormat === "pdf-archive", "pipeline pdf render format mismatch");
-    assert(typeof pipeline.cacheKey === "string" && pipeline.cacheKey.includes("life_book_pdf:life-book-local-assembled-v3:"), "pipeline cache key missing");
+    assert(typeof pipeline.cacheKey === "string" && pipeline.cacheKey.includes(`life_book_pdf:${expectedTemplateVersion}:`), "pipeline cache key missing");
     assert(typeof pipeline.calculationResultHash === "string" && pipeline.calculationResultHash.length > 0, "pipeline calculation result hash missing");
     assert(pipeline.cacheHit === false, "first pipeline run must render before cache");
     const normalized = pipeline.lifeBookNormalizedData;
@@ -292,15 +329,16 @@ async function run() {
     expectedPhase6Titles.forEach((title, index) => {
       const chapterMarkdown = getChapterMarkdown(pipeline.finalManuscriptMarkdown, title, expectedPhase6Titles[index + 1], index);
       assert(chapterMarkdown.length >= 2000, `chapter minimum body length failed: ${index + 1}`);
-      assert(countMatches(chapterMarkdown, /-\s*요약\s*\d+:/g) >= 3, `chapter summary count failed: ${index + 1}`);
-      assert(countMatches(chapterMarkdown, /-\s*조언\s*\d+:/g) >= 3, `chapter advice count failed: ${index + 1}`);
-      assert(countMatches(chapterMarkdown, /-\s*체크\s*\d+:/g) >= 3, `chapter checklist count failed: ${index + 1}`);
+      const missingCategory = (utils.CHAPTER_BLUEPRINTS[index]?.categories || []).find((categoryTitle) => !chapterMarkdown.includes(categoryTitle));
+      assert(!missingCategory, `chapter category missing: ${index + 1}: ${missingCategory}`);
+      assert(chapterMarkdown.includes("상담 확인 질문"), `chapter consultation questions missing: ${index + 1}`);
+      assert(chapterMarkdown.includes("장 요약 박스"), `chapter summary box missing: ${index + 1}`);
     });
     assert(countMatches(pipeline.finalManuscriptMarkdown, /\| 구성 \| 역할 \|/g) >= 10, "final manuscript must include at least 10 table/card sections");
     assert(pipeline.finalManuscriptMarkdown.includes("월별 흐름 표"), "final manuscript missing monthly flow table");
     assert(pipeline.finalManuscriptMarkdown.includes("| 월 | 흐름 | 실전 조언 |"), "final manuscript missing monthly flow table header");
     assert(pipeline.finalManuscriptMarkdown.includes("인생 마스터플랜 표"), "final manuscript missing masterplan table");
-    assert(pipeline.finalManuscriptMarkdown.includes("| 영역 | 선택 기준 | 실행 전략 |"), "final manuscript missing masterplan table header");
+    assert(pipeline.finalManuscriptMarkdown.includes("| 영역 | 해석 기준 | 확인할 내용 |"), "final manuscript missing masterplan table header");
     assert(pipeline.finalManuscriptMarkdown.includes("Code:Destiny"), "final manuscript missing service name");
     assert(pipeline.finalManuscriptMarkdown.includes("나의 사주 구조로 읽는 삶의 방향"), "final manuscript missing cover subtitle");
     assert(pipeline.finalManuscriptMarkdown.includes("생성일:"), "final manuscript missing generated date");
@@ -325,18 +363,8 @@ async function run() {
 
     const cachedPipeline = await utils.generateLifeBookPdf(profile, {
       env: envWithKeys,
-      birthInput: {
-        name: profile.name,
-        gender: profile.gender,
-        calendarType: profile.calendarType,
-        birthDate: "1991-02-20",
-        birthTime: "07:30",
-        birthHour: 7,
-        birthMinute: 30,
-        timezone: "Asia/Seoul",
-        birthplace: "Seoul",
-      },
-      body: { analysisSignals: buildSignals() },
+      birthInput: buildBirthInput(profile),
+      body: buildLifeBookBody(),
       sessionId: "verify-lifebook-local-assembled-session-refresh",
       reportId: "verify-lifebook-local-assembled-report-refresh",
       requestId: "verify-lifebook-local-assembled-pipeline-refresh",

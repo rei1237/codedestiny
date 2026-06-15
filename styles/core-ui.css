@@ -9,6 +9,56 @@
 @tailwind components;
 @tailwind utilities;
 
+:root,
+.font-noto-sans-kr-offline {
+	--font-body: "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	--font-display: "CodeDestinyDisplay", var(--font-body);
+	--font-premium: "CodeDestinyPremium", var(--font-display);
+	--font-playful: "CodeDestinyPlayful", var(--font-display);
+	--font-decorative: "CodeDestinyDecorative", var(--font-display);
+	--font-noto-sans-kr: var(--font-body);
+}
+
+@font-face {
+	font-family: "CodeDestinyBody";
+	src: local("Pretendard"), local("Apple SD Gothic Neo"), local("Malgun Gothic");
+	font-weight: 400 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "CodeDestinyDisplay";
+	src: url("https://assets.code-destiny.com/Mulmaru.woff2") format("woff2");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "CodeDestinyDecorative";
+	src: url("https://assets.code-destiny.com/Galmuri11-Bold.woff2") format("woff2");
+	font-weight: 700;
+	font-style: normal;
+	font-display: optional;
+}
+
+@font-face {
+	font-family: "CodeDestinyPremium";
+	src: url("https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf") format("opentype");
+	font-weight: 500;
+	font-style: normal;
+	font-display: optional;
+}
+
+@font-face {
+	font-family: "CodeDestinyPlayful";
+	src: url("https://assets.code-destiny.com/netmarbleM.ttf") format("truetype");
+	font-weight: 500;
+	font-style: normal;
+	font-display: optional;
+}
+
 /* ─── 모바일 터치·스크롤 기반 (모든 브라우저/OS 동일 경험) ─── */
 @layer base {
 	html {
@@ -29,7 +79,10 @@
 		min-height: 100dvh;
 		background: #020617;
 		color: #f8fafc;
-		font-family: "Inter", "Pretendard", "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+		font-family: var(--font-body);
+		font-size: 16px;
+		line-height: 1.62;
+		letter-spacing: 0;
 		-webkit-overflow-scrolling: touch;
 		overscroll-behavior-y: none;
 		touch-action: pan-y;
@@ -224,7 +277,7 @@
 		font-size: 0.75rem;
 		letter-spacing: 0.08em;
 		color: rgba(209, 213, 219, 0.85);
-		font-family: "Nanum Myeongjo", "Noto Serif KR", serif;
+		font-family: var(--font-display);
 		text-shadow: 0 0 6px rgba(15, 23, 42, 0.9);
 	}
 }
@@ -587,6 +640,7 @@ body {
 }
 .feat-collection__title,
 .tarot-collection__title {
+	font-family: var(--font-display);
 	font-size: clamp(1.1rem, 3.5vw, 1.35rem);
 	font-weight: 800;
 	margin: 0 0 8px;
@@ -2148,25 +2202,6 @@ body.neo-mode #birthDate.inp::-webkit-datetime-edit-month-field,
 body.neo-mode #birthDate.inp::-webkit-datetime-edit-day-field {
   color: rgba(240, 232, 220, 0.95) !important;
   -webkit-text-fill-color: rgba(240, 232, 220, 0.95) !important;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   ★ font-display: swap 폴백
-   (Google Fonts가 swap을 지원하지만, 로컬 @font-face는 별도 적용)
-   ═══════════════════════════════════════════════════════════ */
-@font-face {
-  font-family: "Noto Sans KR";
-  font-display: swap;
-  /* Google Fonts CDN에서 실제 src를 오버라이드하지 않고
-     display:swap을 로컬로 보장 (환경에 따라 Google Fonts가
-     display=swap 파라미터를 미반영할 경우 대비) */
-  src: local("Noto Sans KR");
-  unicode-range: U+AC00-D7A3; /* 한글 */
-}
-@font-face {
-  font-family: "Cinzel";
-  font-display: swap;
-  src: local("Cinzel");
 }
 
 /* IO 기반 이미지/배경 지연 로딩용 LQIP 상태 */

@@ -1275,8 +1275,10 @@ export function buildVedicLocalChartJson(rawInput = {}, options = {}) {
     source: clean(chartSource?.source || chartSource?.calculationSource || ""),
     engineQuality: clean(chartSource?.engineQuality || ""),
     fallbackUsed: chartSource?.fallbackUsed === true,
+    ayanamsaName: clean(chartSource?.ayanamsaName || chartSource?.ayanamsaType || ""),
     hasAscendant: Number.isFinite(lagnaLon),
     hasAyanamsaValue: Number.isFinite(Number(chartSource?.ayanamsa)),
+    hasAyanamsaName: Boolean(clean(chartSource?.ayanamsaName || chartSource?.ayanamsaType)),
     planetCount: planets.length,
   };
   chartJson.chartSourceQuality = validateVedicPremiumChartSourceQuality({
@@ -3167,6 +3169,19 @@ const VEDIC_PREMIUM_REQUIRED_SOURCE_PLANETS = Object.freeze(["Sun", "Moon", "Mer
 const VEDIC_PREMIUM_BLOCKED_SOURCE_RE = /\b(?:fallback|basic|recovered|provided|client|cache|mock|sample|seed|safe-local|astronomy-engine-fallback)\b/i;
 const VEDIC_PREMIUM_TRUSTED_SOURCE_RE = /\b(?:swiss|external-vedic-api|server-vedic|premium-vedic)\b/i;
 
+function readVedicSourcePlanetLongitude(sourcePlanets = {}, planetName = "") {
+  const variants = [planetName, planetName.toLowerCase(), PLANET_KO[planetName]].map((item) => clean(item)).filter(Boolean);
+  for (const key of variants) {
+    const value = sourcePlanets?.[key];
+    const longitude = value && typeof value === "object"
+      ? value.longitude ?? value.absoluteLongitude ?? value.lon ?? value.siderealLongitude
+      : value;
+    const degree = normalizeDegree(longitude);
+    if (Number.isFinite(degree)) return degree;
+  }
+  return NaN;
+}
+
 export function validateVedicPremiumChartSourceQuality(input = {}) {
   const chartSource = safeObject(input?.chartSource || input?.source || input?.vedicBase?.chart || input?.chart);
   const chartJson = safeObject(input?.chartJson || input?.localVedicChartJson || input?.payload);
@@ -3180,17 +3195,22 @@ export function validateVedicPremiumChartSourceQuality(input = {}) {
   const fallbackUsed = chartSource?.fallbackUsed === true || sourceMeta?.fallbackUsed === true || VEDIC_PREMIUM_BLOCKED_SOURCE_RE.test(sourceLabel);
   const sourcePlanets = safeObject(chartSource?.planets);
   const chartPlanets = safeArray(chart?.planets);
-  const hasAllPlanets = VEDIC_PREMIUM_REQUIRED_SOURCE_PLANETS.every((planet) => {
-    if (Number.isFinite(Number(sourcePlanets?.[planet]))) return true;
-    return chartPlanets.some((item) => normalizePlanetName(item?.name || item?.graha) === planet && Number.isFinite(Number(item?.longitude)));
+  const missingPlanets = VEDIC_PREMIUM_REQUIRED_SOURCE_PLANETS.filter((planet) => {
+    if (Number.isFinite(readVedicSourcePlanetLongitude(sourcePlanets, planet))) return false;
+    return !chartPlanets.some((item) => normalizePlanetName(item?.name || item?.graha) === planet && Number.isFinite(Number(item?.longitude)));
   });
+  const sourcePlanetCount = VEDIC_PREMIUM_REQUIRED_SOURCE_PLANETS.length - missingPlanets.length;
+  const hasAllPlanets = missingPlanets.length === 0;
   const hasAscendant = Number.isFinite(Number(chartSource?.ascendantSidereal ?? chartSource?.ascendant ?? chartSource?.lagnaLongitude))
     || sourceMeta?.hasAscendant === true
     || Boolean(clean(chart?.lagnaSign));
-  const hasAyanamsa = Number.isFinite(Number(chartSource?.ayanamsa))
-    || Boolean(clean(chartSource?.ayanamsaName || chartSource?.ayanamsaType || chartJson?.settings?.ayanamsa));
+  const hasAyanamsaValue = Number.isFinite(Number(chartSource?.ayanamsa)) || sourceMeta?.hasAyanamsaValue === true;
+  const hasAyanamsaName = Boolean(clean(chartSource?.ayanamsaName || chartSource?.ayanamsaType)) || sourceMeta?.hasAyanamsaName === true;
+  const hasAyanamsa = hasAyanamsaValue || hasAyanamsaName;
   const hasMoonNakshatra = Boolean(clean(chart?.nakshatra?.name)) || !Object.keys(chart).length;
   const hasDasha = Boolean(clean(chart?.dashas?.currentMahaDasha)) || safeArray(chart?.dashas?.periods).length > 0 || !Object.keys(chart).length;
+  const trustedSource = Boolean(sourceLabel && VEDIC_PREMIUM_TRUSTED_SOURCE_RE.test(sourceLabel));
+  const engineTrusted = !engineQuality || /(swiss|vedic|external)/i.test(engineQuality);
 
   if (calculationMode && calculationMode !== "full") issues.push("calculation_mode_not_full");
   if (!hasAllPlanets) issues.push("planets_missing");
@@ -3199,9 +3219,22 @@ export function validateVedicPremiumChartSourceQuality(input = {}) {
   if (!hasMoonNakshatra) issues.push("moon_nakshatra_missing");
   if (!hasDasha) issues.push("dasha_missing");
   if (fallbackUsed) issues.push("fallback_source_blocked");
-  if (engineQuality && !/(swiss|vedic|external)/i.test(engineQuality)) issues.push("engine_quality_untrusted");
+  if (!engineTrusted) issues.push("engine_quality_untrusted");
   if (requireTrustedSource && !sourceLabel) issues.push("source_missing");
-  if (requireTrustedSource && sourceLabel && !VEDIC_PREMIUM_TRUSTED_SOURCE_RE.test(sourceLabel)) issues.push("source_untrusted");
+  if (requireTrustedSource && sourceLabel && !trustedSource) issues.push("source_untrusted");
+
+  const qualityChecks = [
+    hasAllPlanets,
+    hasAscendant,
+    hasAyanamsa,
+    hasMoonNakshatra,
+    hasDasha,
+    !fallbackUsed,
+    engineTrusted,
+    !requireTrustedSource || Boolean(sourceLabel && trustedSource),
+  ];
+  const qualityScore = Math.round((qualityChecks.filter(Boolean).length / qualityChecks.length) * 100);
+  const qualityGrade = issues.length === 0 ? "premium" : qualityScore >= 75 ? "review" : "blocked";
 
   return {
     ok: issues.length === 0,
@@ -3212,9 +3245,18 @@ export function validateVedicPremiumChartSourceQuality(input = {}) {
     fallbackUsed,
     hasAllPlanets,
     hasAscendant,
+    hasAyanamsaValue,
+    hasAyanamsaName,
     hasAyanamsa,
     hasMoonNakshatra,
     hasDasha,
+    sourcePlanetCount,
+    requiredPlanetCount: VEDIC_PREMIUM_REQUIRED_SOURCE_PLANETS.length,
+    missingPlanets,
+    trustedSource,
+    engineTrusted,
+    qualityScore,
+    qualityGrade,
     trustedSourceRequired: requireTrustedSource,
   };
 }

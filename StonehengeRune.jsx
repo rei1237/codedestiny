@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { fetchBillingFeaturePricing, runBillingCoinGate } from "@/app/_lib/billing-client";
 
-const GOOGLE_FONTS = `@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700;800&display=swap');`;
+const GOOGLE_FONTS = "";
 
 // ─── RUNES DATA ────────────────────────────────────────────────────────────────
 const RUNES_DATA = [
@@ -831,7 +831,7 @@ export default function StonehengeRune() {
             radial-gradient(ellipse 80% 40% at 50% -10%, rgba(30,58,138,0.45) 0%, transparent 70%),
             radial-gradient(ellipse 60% 50% at 80% 80%, rgba(88,28,135,0.25) 0%, transparent 60%),
             radial-gradient(ellipse 40% 30% at 20% 60%, rgba(15,118,110,0.12) 0%, transparent 60%);
-          font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+          font-family: var(--font-body);
           color: #e2e8f0;
           overflow-x: hidden;
           position: relative;
@@ -923,7 +923,7 @@ export default function StonehengeRune() {
           margin-bottom: 52px;
         }
         .sr-header-eyebrow {
-          font-family: 'Noto Sans KR', sans-serif;
+          font-family: var(--font-body);
           font-size: 12px;
           letter-spacing: 0.2em;
           color: #94a3b8;
@@ -932,7 +932,7 @@ export default function StonehengeRune() {
           margin-bottom: 12px;
         }
         .sr-header-title {
-          font-family: 'Cinzel Decorative', serif;
+          font-family: var(--font-display);
           font-size: clamp(22px, 6vw, 38px);
           font-weight: 700;
           background: linear-gradient(135deg, #e2e8f0 0%, #93c5fd 40%, #a78bfa 70%, #e2e8f0 100%);
@@ -1026,7 +1026,7 @@ export default function StonehengeRune() {
 
         /* ── SPREAD SELECTOR ── */
         .sr-section-label {
-          font-family: 'Cinzel', serif;
+          font-family: var(--font-decorative);
           font-size: 11px;
           letter-spacing: 0.25em;
           color: #475569;
@@ -1082,7 +1082,7 @@ export default function StonehengeRune() {
           filter: drop-shadow(0 0 8px rgba(99,102,241,0.6));
         }
         .sr-spread-btn-name {
-          font-family: 'Noto Sans KR', sans-serif;
+          font-family: var(--font-body);
           font-size: 13px;
           color: #e2e8f0;
           font-weight: 700;
@@ -1103,7 +1103,7 @@ export default function StonehengeRune() {
           border: 1px solid rgba(139,92,246,0.5);
           border-radius: 14px;
           color: #e2e8f0;
-          font-family: 'Noto Sans KR', sans-serif;
+          font-family: var(--font-body);
           font-size: 15px;
           font-weight: 800;
           letter-spacing: 0.04em;
@@ -1160,7 +1160,7 @@ export default function StonehengeRune() {
           50%      { transform: rotate(12deg) scale(0.95); }
         }
         .sr-bag-text {
-          font-family: 'Cinzel', serif;
+          font-family: var(--font-decorative);
           font-size: 13px;
           letter-spacing: 0.15em;
           color: #6366f1;
@@ -1274,7 +1274,7 @@ export default function StonehengeRune() {
         }
 
         .sr-card-position {
-          font-family: 'Cinzel', serif;
+          font-family: var(--font-decorative);
           font-size: 10px;
           letter-spacing: 0.25em;
           color: #475569;
@@ -1310,7 +1310,7 @@ export default function StonehengeRune() {
           50%      { filter: drop-shadow(0 0 14px rgba(147,197,253,1.0)); }
         }
         .sr-card-name {
-          font-family: 'Cinzel', serif;
+          font-family: var(--font-decorative);
           font-size: 14px;
           font-weight: 500;
           color: #cbd5e1;
@@ -1363,13 +1363,13 @@ export default function StonehengeRune() {
         .sr-detail-stone.rev .sr-detail-symbol { transform: rotate(180deg); display: block; }
         .sr-detail-info { flex: 1; }
         .sr-detail-name {
-          font-family: 'Cinzel Decorative', serif;
+          font-family: var(--font-display);
           font-size: 22px;
           color: #e2e8f0;
           margin-bottom: 4px;
         }
         .sr-detail-dir {
-          font-family: 'Cinzel', serif;
+          font-family: var(--font-decorative);
           font-size: 11px;
           letter-spacing: 0.2em;
           margin-bottom: 6px;
@@ -1632,7 +1632,7 @@ export default function StonehengeRune() {
           margin-bottom: 28px;
         }
         .sr-cta-title {
-          font-family: 'Noto Sans KR', sans-serif;
+          font-family: var(--font-body);
           font-size: 13px;
           letter-spacing: 0.1em;
           color: #93c5fd;
@@ -1654,7 +1654,7 @@ export default function StonehengeRune() {
         .sr-cta-btn {
           padding: 13px 10px;
           border-radius: 10px;
-          font-family: 'Noto Sans KR', sans-serif;
+          font-family: var(--font-body);
           font-size: 13px;
           font-weight: 700;
           letter-spacing: 0.02em;
@@ -1687,7 +1687,7 @@ export default function StonehengeRune() {
           border: 1px solid rgba(51,65,85,0.5);
           border-radius: 10px;
           color: #475569;
-          font-family: 'Noto Sans KR', sans-serif;
+          font-family: var(--font-body);
           font-size: 12px;
           letter-spacing: 0.15em;
           cursor: pointer;

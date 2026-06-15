@@ -3,8 +3,6 @@
  * 모든 기존 기능·텍스트 유지, 시각적 개편
  */
 
-/* ═══ Google Font: Cinzel (우아한 세리프) ═══ */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap');
 
 /* ═══ Background: Deep Cosmic Nebula ═══ */
 .df-studio-overlay {
@@ -103,7 +101,7 @@
 .df-studio-title,
 .df-studio-hero h2,
 #dfStudioTitle {
-  font-family: 'Cinzel', 'Noto Serif KR', Georgia, serif !important;
+  font-family: var(--font-decorative) !important;
   font-weight: 600;
   font-size: clamp(1.6rem, 3.2vw, 2.25rem) !important;
   letter-spacing: 0.12em;
@@ -328,7 +326,7 @@
 .df-studio-insight h3,
 #dfStudioName {
   color: #f7e7ce !important;
-  font-family: 'Cinzel', 'Noto Serif KR', serif !important;
+  font-family: var(--font-decorative) !important;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
 }
 

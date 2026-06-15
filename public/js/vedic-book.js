@@ -278,11 +278,16 @@
     next.reportSessionId = _clean(next.reportSessionId || next.sessionId || context.sessionId) || undefined;
     next.reportId = _clean(next.reportId || context.reportId) || undefined;
     next.requestId = _clean(next.requestId || context.requestId) || undefined;
+    next.purchaseId = _clean(next.purchaseId || (next.accessGrant && next.accessGrant.purchaseId) || next.transactionId) || undefined;
     if (next.accessGrant && typeof next.accessGrant === 'object') {
       next.accessGrant.sessionId = _clean(next.accessGrant.sessionId || next.sessionId) || undefined;
       next.accessGrant.reportSessionId = _clean(next.accessGrant.reportSessionId || next.reportSessionId) || undefined;
       next.accessGrant.reportId = _clean(next.accessGrant.reportId || next.reportId) || undefined;
       next.accessGrant.requestId = _clean(next.accessGrant.requestId || next.requestId) || undefined;
+      next.accessGrant.purchaseId = _clean(next.accessGrant.purchaseId || next.purchaseId) || undefined;
+      next.accessGrant.transactionId = _clean(next.accessGrant.transactionId || next.transactionId || next.purchaseId) || undefined;
+      next.accessGrant.featureKey = _clean(next.accessGrant.featureKey || VEDIC_FEATURE_KEY) || VEDIC_FEATURE_KEY;
+      next.accessGrant.reportType = _clean(next.accessGrant.reportType || 'vedicPremium') || 'vedicPremium';
     }
     return next;
   }
@@ -607,9 +612,12 @@
     var planetMap = chartBody.planets && typeof chartBody.planets === 'object' ? chartBody.planets : {};
     var localPlanets = localChart && localChart.chart && Array.isArray(localChart.chart.planets) ? localChart.chart.planets : [];
     var localHouses = localChart && localChart.chart && Array.isArray(localChart.chart.houses) ? localChart.chart.houses : [];
+    var chartSource = chartBody.chartSource && typeof chartBody.chartSource === 'object' ? chartBody.chartSource : chartBody;
     var hasPlanets = Object.keys(planetMap).length > 0 || localPlanets.length > 0;
     var hasAscendant = Number.isFinite(Number(chartBody.ascendantSidereal || chartBody.ascendant || chartBody.lagnaLongitude))
       || Boolean(localChart && localChart.chart && _clean(localChart.chart.lagnaSign));
+    var hasAyanamsa = Number.isFinite(Number(chartSource.ayanamsa))
+      || Boolean(_clean(chartSource.ayanamsaName || chartSource.ayanamsaType || localChart && localChart.settings && localChart.settings.ayanamsa));
     return {
       schemaVersion: VEDIC_CLIENT_EVIDENCE_SCHEMA_VERSION,
       source: 'browser-vedic-book',
@@ -618,7 +626,8 @@
       hasBirthInput: Boolean(birthInput && _clean(birthInput.birthDate)),
       hasPlanets: hasPlanets,
       hasAscendant: hasAscendant,
-      evidenceCount: (hasPlanets ? 1 : 0) + (hasAscendant ? 1 : 0) + localHouses.length,
+      hasAyanamsa: hasAyanamsa,
+      evidenceCount: (hasPlanets ? 1 : 0) + (hasAscendant ? 1 : 0) + (hasAyanamsa ? 1 : 0) + localHouses.length,
       birthProfile: {
         birthDate: _clean(birthInput && birthInput.birthDate),
         birthTime: _clean(birthInput && birthInput.birthTime),
@@ -633,6 +642,9 @@
         moonNakshatra: _clean(localChart && localChart.chart && localChart.chart.nakshatra && localChart.chart.nakshatra.name),
         planetCount: localPlanets.length || Object.keys(planetMap).length,
         houseCount: localHouses.length,
+        chartSource: _clean(chartSource.source || chartSource.calculationSource),
+        engineQuality: _clean(chartSource.engineQuality),
+        fallbackUsed: chartSource.fallbackUsed === true,
       },
     };
   }
@@ -1310,9 +1322,6 @@
       anchor.remove();
       return;
     }
-
-    alert('PDF 다운로드 링크가 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');
-    return;
 
     if (!_resultPayload.pdfReady || !_resultPayload.pdfReady.html) {
       alert('리포트가 아직 준비되지 않았습니다. 먼저 생성해 주세요.');

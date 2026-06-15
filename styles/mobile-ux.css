@@ -561,25 +561,6 @@ body.neo-mode #birthDate.inp::-webkit-datetime-edit-day-field {
   -webkit-text-fill-color: rgba(240, 232, 220, 0.95) !important;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   ★ font-display: swap 폴백
-   (Google Fonts가 swap을 지원하지만, 로컬 @font-face는 별도 적용)
-   ═══════════════════════════════════════════════════════════ */
-@font-face {
-  font-family: "Noto Sans KR";
-  font-display: swap;
-  /* Google Fonts CDN에서 실제 src를 오버라이드하지 않고
-     display:swap을 로컬로 보장 (환경에 따라 Google Fonts가
-     display=swap 파라미터를 미반영할 경우 대비) */
-  src: local("Noto Sans KR");
-  unicode-range: U+AC00-D7A3; /* 한글 */
-}
-@font-face {
-  font-family: "Cinzel";
-  font-display: swap;
-  src: local("Cinzel");
-}
-
 /* IO 기반 이미지/배경 지연 로딩용 LQIP 상태 */
 .io-lazy-img {
   filter: blur(10px);

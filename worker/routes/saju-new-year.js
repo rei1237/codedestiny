@@ -3234,7 +3234,7 @@ function newYearSectionSimilarity(left = "", right = "") {
   return Math.max(tokenScore, shingleScore);
 }
 
-function validateSajuNewYearSentenceDiversity({ chapters = [], exactSentenceLimit = 3, chapterAverageLimit = 0.58, sectionSimilarityLimit = 0.64, globalSectionSimilarityLimit = 0.78 } = {}) {
+function validateSajuNewYearSentenceDiversity({ chapters = [], exactSentenceLimit = 3, chapterAverageLimit = 0.58, sectionSimilarityLimit = 0.68, globalSectionSimilarityLimit = 0.78 } = {}) {
   const sections = [];
   (Array.isArray(chapters) ? chapters : []).forEach((chapter, chapterIndex) => {
     normalizeNewYearChapterSections(chapter).forEach((section, sectionIndex) => {

@@ -45,7 +45,7 @@ export function PhaseReveal() {
           <div className="mb-6 flex h-28 w-28 items-center justify-center rounded-full border border-rose-200/50 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.95),rgba(255,193,211,0.72)_55%,rgba(255,173,120,0.65)_100%)] shadow-[0_0_34px_rgba(255,165,185,0.45)]">
             <span className="text-5xl" style={{ animation: 'moltenPulse 1.2s ease-in-out infinite' }}>🫧</span>
           </div>
-          <p className="mb-2 text-xl font-bold text-rose-700" style={{ fontFamily: "'Jua', sans-serif" }}>
+          <p className="mb-2 text-xl font-bold text-rose-700" style={{ fontFamily: "var(--font-playful)" }}>
             주석이 운명의 형상으로 굳어지고 있어요
           </p>
           <p className="text-sm text-rose-600">연이가 마지막 별빛을 불어넣는 중...</p>
@@ -104,7 +104,7 @@ export function PhaseReveal() {
                 </div>
 
                 <div className="relative z-10 text-center mb-6">
-                  <h2 className="text-2xl md:text-3xl font-bold text-amber-900 mb-2" style={{ fontFamily: "'Jua', sans-serif" }}>
+                  <h2 className="text-2xl md:text-3xl font-bold text-amber-900 mb-2" style={{ fontFamily: "var(--font-playful)" }}>
                     {selectedShape.name_ko}
                   </h2>
                   <div className="mb-2 flex items-center justify-center gap-2">
@@ -202,7 +202,7 @@ export function PhaseReveal() {
             <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-tr from-white/40 to-rose-100/20"></div>
 
             <div className="relative z-10 text-center">
-              <h3 className="mb-4 text-2xl font-bold text-rose-600" style={{ fontFamily: "'Jua', sans-serif" }}>
+              <h3 className="mb-4 text-2xl font-bold text-rose-600" style={{ fontFamily: "var(--font-playful)" }}>
                 🌙 영혼의 그림자
               </h3>
               

@@ -169,7 +169,7 @@ function makeChapterDraft(seed, chapterSpec) {
   };
 }
 
-describe("saju new year LLM-only pipeline", () => {
+describe("saju new year high-quality assembled pipeline", () => {
   test("입력 정규화는 selectedYear와 birthTime을 표준화한다", () => {
     const utils = route.__sajuNewYearTestUtils;
     const normalized = utils.normalizeInput(makePayload({ birthTime: "오전 7시 15분", selectedYear: 2027 }));
@@ -213,98 +213,40 @@ describe("saju new year LLM-only pipeline", () => {
     expect(validation.errors).toContain("luckCycles.monthlyFortunes");
   });
 
-  test("프롬프트는 로컬 원고 보강이 아니라 새 챕터 작성 지침을 담는다", () => {
+  test("high-quality 챕터 조립은 최종 품질 검증을 통과한다", () => {
     const utils = route.__sajuNewYearTestUtils;
     const normalized = utils.normalizeInput(makePayload({ selectedYear: 2026 }));
-    const seed = utils.buildPdfSeed(normalized.profile, normalized.targetYear, makePayload());
-    const prompt = utils.buildSajuNewYearChapterPrompt(seed, seed.chapterSpecs[0], []);
+    const yearly = utils.normalizeYearlySajuInput({
+      profile: normalized.profile,
+      targetYear: normalized.targetYear,
+      body: makePayload(),
+    });
+    const chapterResult = utils.composeYearlySajuChapters(yearly);
 
-    expect(prompt).toContain("JSON seed");
-    expect(prompt).toContain("챕터 구조");
-    expect(prompt).toContain("각 세부 카테고리 본문은 최소 700자 이상");
-    expect(prompt).not.toMatch(/localSummary|manuscript|rewrite/i);
+    expect(chapterResult.validation.ok).toBe(true);
+    expect(chapterResult.validation.errors).toHaveLength(0);
+    expect(chapterResult.chapters).toHaveLength(10);
+    expect(chapterResult.manuscriptSource).toBe("high-quality-consultation");
+    expect(chapterResult.validation.stats.sentenceDiversity.maxSectionSimilarity).toBeLessThanOrEqual(0.68);
   });
 
-  test("LLM 결과 챕터는 섹션 기반 품질 검증을 통과한다", () => {
+  test("PDF 생성 결과는 10챕터와 완료 검증 payload를 만든다", () => {
     const utils = route.__sajuNewYearTestUtils;
     const normalized = utils.normalizeInput(makePayload({ selectedYear: 2026 }));
-    const seed = utils.buildPdfSeed(normalized.profile, normalized.targetYear, makePayload());
-    const chapterSpecs = utils.buildSajuNewYearChapterSpecs(seed.input.targetYear);
-    const chapters = chapterSpecs.map((spec) => makeChapterDraft(seed, spec));
-
-    const quality = utils.validateSajuNewYearPdfLLMInterpretationQuality({
-      chapters,
-      expectedChapters: chapterSpecs,
-      minChapterLength: 4200,
-      minSectionLength: 700,
-      seed,
+    const generated = utils.generateYearlySajuPdf(normalized.profile, normalized.targetYear, {
+      body: makePayload(),
+      metadata: { reportType: "sajuNewYear", sessionId: "jest-high-quality" },
     });
 
-    expect(quality.ok).toBe(true);
-    expect(quality.errors).toHaveLength(0);
-    expect(chapters).toHaveLength(10);
-    expect(chapters[7].text).toContain("상반기");
-    expect(chapters[7].text).toContain("하반기");
-    expect(chapters[9].text).toContain("핵심 메시지");
-    expect(chapters[9].text).toContain("실전 전략");
+    expect(generated.validation.ok).toBe(true);
+    expect(generated.chapters).toHaveLength(10);
+    expect(generated.manuscriptSource).toBe("high-quality-consultation");
+    expect(generated.pdfCompletionValidation.ok).toBe(true);
+    expect(generated.pdfReady.metadata.qualityStatus).toBe("passed");
+    expect(generated.pdfReady.html).toContain("최종 신년 로드맵");
   });
 
-  test("정규화된 챕터는 섹션 제목과 본문을 보존한다", () => {
-    const utils = route.__sajuNewYearTestUtils;
-    const normalized = utils.normalizeInput(makePayload({ selectedYear: 2026 }));
-    const seed = utils.buildPdfSeed(normalized.profile, normalized.targetYear, makePayload());
-    const chapterSpec = utils.buildSajuNewYearChapterSpecs(seed.input.targetYear)[0];
-    const parsed = {
-      sections: chapterSpec.categories.map((title, idx) => ({
-        title,
-        body: makeBody(`${chapterSpec.title} ${title} ${idx}번 섹션은 ${seed.input.targetYear}년 흐름을 읽는 상담문입니다.`, 920),
-      })),
-    };
-
-    const normalizedChapter = utils.normalizeGeneratedChapter(chapterSpec, parsed);
-    expect(normalizedChapter).not.toBeNull();
-    expect(normalizedChapter.sections).toHaveLength(5);
-    expect(normalizedChapter.sections[0].title).toBe(chapterSpec.categories[0]);
-  });
-
-  test("품질 미달 챕터는 deterministic 보강으로 최소 기준을 충족해야 한다", () => {
-    const utils = route.__sajuNewYearTestUtils;
-    const normalized = utils.normalizeInput(makePayload({ selectedYear: 2026 }));
-    const seed = utils.buildPdfSeed(normalized.profile, normalized.targetYear, makePayload());
-    const chapterSpecs = utils.buildSajuNewYearChapterSpecs(seed.input.targetYear);
-    const chapters = chapterSpecs.map((spec) => makeChapterDraft(seed, spec));
-    const weakSpec = chapterSpecs[0];
-    const weakChapter = {
-      no: weakSpec.no,
-      title: weakSpec.title,
-      sections: weakSpec.categories.map((title) => ({
-        title,
-        body: "짧은 일반론 문장입니다. 올해는 좋은 일이 생길 수 있습니다.",
-      })),
-      text: "짧은 일반론 문장",
-      source: "llm",
-    };
-
-    const repaired = utils.reinforceChapterFromSpec({
-      seed,
-      chapterSpec: weakSpec,
-      chapter: weakChapter,
-      reason: "test_quality_repair",
-    });
-    chapters[0] = repaired.chapter;
-
-    expect(repaired.reinforced).toBe(true);
-    const quality = utils.validateSajuNewYearPdfLLMInterpretationQuality({
-      chapters,
-      expectedChapters: chapterSpecs,
-      minChapterLength: 4200,
-      minSectionLength: 700,
-      seed,
-    });
-    expect(quality.ok).toBe(true);
-  });
-
-  test("LLM 챕터가 비어도 deterministic 챕터를 즉시 구성할 수 있어야 한다", () => {
+  test("deterministic 챕터 샘플은 현재 챕터 구조를 채운다", () => {
     const utils = route.__sajuNewYearTestUtils;
     const normalized = utils.normalizeInput(makePayload({ selectedYear: 2026 }));
     const seed = utils.buildPdfSeed(normalized.profile, normalized.targetYear, makePayload());
@@ -312,7 +254,7 @@ describe("saju new year LLM-only pipeline", () => {
     const chapter = utils.buildDeterministicChapterFromSpec(seed, chapterSpec, "forced_fallback");
 
     expect(chapter.sections).toHaveLength(chapterSpec.categories.length);
-    expect(chapter.source).toBe("llm-reinforced");
+    expect(chapter.source).toBe("local-reinforced");
     expect(chapter.sections.every((section) => typeof section.body === "string" && section.body.length >= 700)).toBe(true);
   });
 
@@ -325,6 +267,6 @@ describe("saju new year LLM-only pipeline", () => {
     expect(body.ok).toBe(true);
     expect(body.serviceKey).toBe(constants.SERVICE_KEY);
     expect(body.chapterCount).toBe(constants.NEW_YEAR_CHAPTERS.length);
-    expect(body.chapters).toEqual(constants.NEW_YEAR_CHAPTERS);
+    expect(body.chapters).toEqual(route.__sajuNewYearTestUtils.buildSajuNewYearChapterSpecs(body.targetYear));
   });
 });

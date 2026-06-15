@@ -1,12 +1,16 @@
+@font-face{font-family:'CodeDestinyStaticDisplay';src:url('https://assets.code-destiny.com/Mulmaru.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'CodeDestinyStaticDecorative';src:url('https://assets.code-destiny.com/Galmuri11-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:optional}
+:root{--font-body:'Apple SD Gothic Neo','Malgun Gothic',system-ui,-apple-system,'Segoe UI',sans-serif;--font-display:'CodeDestinyStaticDisplay',var(--font-body);--font-decorative:'CodeDestinyStaticDecorative',var(--font-display)}
+body{font-family:var(--font-body);line-height:1.68;letter-spacing:0;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.title,.post-title,.blog-title,.blog-card-title,.section-title{font-family:var(--font-display);letter-spacing:0;word-break:keep-all}
+button,input,select,textarea{font-family:var(--font-body)}
+
 /* ═══════════════════════════════════════════════════
    Code Destiny Blog — blog-style.css
    다크/신비로운/보라-금 계열 블로그 공통 스타일
    ═══════════════════════════════════════════════════ */
 
-/* ── Google Fonts ── */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@400;700&family=Cinzel:wght@400;700&display=swap');
-
-/* ── CSS Variables ── */
+/* ── Google Fonts ── *//* ── CSS Variables ── */
 :root {
   --color-bg: #020617;
   --color-bg-card: #0f172a;

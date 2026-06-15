@@ -1309,9 +1309,10 @@
       }).catch(function () { return null; });
     }).catch(function (error) {
       _logError(error, { stage: error && error.stage || 'preflight', reportId: pending.reportId });
-      _setError(_publicErrorMessage(error, '신년운세 PDF 생성 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'), {
-        detail: '아직 결제 단계로 넘어가지 않았습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.'
-      });
+      var options = Number(error && error.status || 0) === 401
+        ? _billingErrorOptions(error)
+        : { detail: '아직 결제 단계로 넘어가지 않았습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.' };
+      _setError(_publicErrorMessage(error, '신년운세 PDF 생성 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'), options);
     }).finally(function () {
       _generating = false;
       _setBusy(false);

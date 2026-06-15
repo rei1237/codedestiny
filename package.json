@@ -38,6 +38,7 @@
     "verify:no-secret-leak": "node scripts/verify-no-secret-leak.mjs",
     "verify:worker-size": "node scripts/verify-worker-size-budget.mjs",
     "verify:entry-encoding": "node scripts/verify-entry-encoding.mjs",
+    "verify:r2-fonts": "node scripts/verify-r2-font-assets.mjs",
     "verify:cf:migration": "node scripts/verify-cloudflare-migration-readiness.mjs",
     "verify:style-sync": "node scripts/verify-style-sync.mjs",
     "verify:public-parity": "node scripts/verify-public-parity.mjs",

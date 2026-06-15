@@ -11,9 +11,6 @@
 <title>Fortune Tama - 운세 다마고치</title>
 
 <meta name="theme-color" content="#7c3aed">
-
-<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
-
 <script>
 
 window.tailwind = window.tailwind || {};
@@ -397,7 +394,15 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 .si-angry{animation:sto-angry .55s ease-in-out infinite}
 
 </style>
-
+<link rel="preconnect" href="https://assets.code-destiny.com" crossorigin>
+<style data-cd-r2-static-fonts>
+@font-face{font-family:'CodeDestinyStaticDisplay';src:url('https://assets.code-destiny.com/Mulmaru.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'CodeDestinyStaticDecorative';src:url('https://assets.code-destiny.com/Galmuri11-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:optional}
+:root{--font-body:'Apple SD Gothic Neo','Malgun Gothic',system-ui,-apple-system,'Segoe UI',sans-serif;--font-display:'CodeDestinyStaticDisplay',var(--font-body);--font-decorative:'CodeDestinyStaticDecorative',var(--font-display)}
+body{font-family:var(--font-body)!important;line-height:1.68;letter-spacing:0;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.title,.cover-title,.hero-title,.card-title,.section-title{font-family:var(--font-display)!important;letter-spacing:0;word-break:keep-all}
+button,input,select,textarea{font-family:var(--font-body)!important}
+</style>
 </head>
 
 <body>

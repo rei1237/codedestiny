@@ -11,6 +11,15 @@ import LifeFortuneGraph, {
 const SERVICE_KEY = "saju-lifebook";
 const FEATURE_KEY = "saju_life_book_pdf";
 
+function readLifeBookAuthToken() {
+  if (typeof window === "undefined") return "";
+  try {
+    return String(window.localStorage.getItem("fortune_auth_token") || "").trim();
+  } catch (error) {
+    return "";
+  }
+}
+
 const STEP_LABELS = [
   "프로필과 결제 권한을 확인하는 중입니다",
   "사주 원국의 네 기둥을 정리하는 중입니다",
@@ -615,6 +624,8 @@ export default function SajuLifebookPage() {
       };
 
       const headers = { "Content-Type": "application/json" };
+      const authToken = readLifeBookAuthToken();
+      if (authToken) headers.Authorization = `Bearer ${authToken}`;
       if (premiumAccessToken) headers["x-premium-access-token"] = premiumAccessToken;
 
       const response = await fetch("/api/premium/saju-lifebook/prepare", {

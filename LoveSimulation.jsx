@@ -9,8 +9,6 @@ import { useState, useEffect, useRef } from "react";
 ═══════════════════════════════════════════════ */
 
 const STYLES = `
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel+Decorative:wght@400;700;900&family=Outfit:wght@300;400;600&display=swap');
-
 :root {
   --pink-soft: #fff1f2;
   --pink-light: #ffe4e6;
@@ -34,7 +32,7 @@ const STYLES = `
 body {
   background: linear-gradient(135deg, #fff1f2 0%, #fff7ed 50%, #f5f3ff 100%);
   color: var(--text-main);
-  font-family: 'Outfit', 'Noto Serif KR', serif;
+  font-family: var(--font-body);
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -74,7 +72,7 @@ body {
   50% { transform: translateY(-12px); }
 }
 .cd-portal-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(28px, 6vw, 52px);
   color: var(--rose);
@@ -84,7 +82,7 @@ body {
   text-shadow: 0 4px 12px rgba(225,29,72,0.1);
 }
 .cd-portal-sub {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   font-weight: 400;
   font-size: clamp(14px, 2.5vw, 18px);
   color: var(--text-dim);
@@ -160,7 +158,7 @@ body {
   border-radius: 16px;
   padding: 14px 18px;
   color: var(--text-main);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   font-size: 16px; outline: none; transition: all 0.3s; appearance: none;
 }
 .cd-input:focus {
@@ -181,7 +179,7 @@ body {
   background: linear-gradient(135deg, #fb7185, #e11d48);
   border: none; border-radius: 18px;
   color: #fff;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 17px; letter-spacing: 0.05em;
   cursor: pointer; margin-top: 12px;
@@ -228,11 +226,11 @@ body {
   background: var(--crimson); color: #fff;
   border-radius: 20px; padding: 4px 10px;
   font-size: 11px; letter-spacing: 0.05em;
-  font-family: 'Cinzel Decorative', cursive;
+  font-family: var(--font-playful);
   box-shadow: 0 0 20px rgba(192,50,74,0.5);
 }
 .cd-char-name {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: clamp(24px, 6vw, 36px);
   color: var(--rose); text-align: center;
@@ -277,7 +275,7 @@ body {
 }
 .cd-synastry-label { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; }
 .cd-synastry-score {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 48px; color: var(--rose);
   line-height: 1;
@@ -288,7 +286,7 @@ body {
   width: 100%; padding: 18px;
   background: #fff; border: 2px solid var(--rose);
   border-radius: 18px; color: var(--rose);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 17px; letter-spacing: 0.05em; cursor: pointer;
   transition: all 0.3s;
@@ -323,7 +321,7 @@ body {
   background: var(--pink-soft);
   border: 1.5px solid var(--pink-medium);
   border-radius: 12px; color: var(--rose);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: 13px; cursor: pointer; transition: all 0.2s;
 }
@@ -384,7 +382,7 @@ body {
 .cd-textarea {
   flex: 1; background: var(--pink-soft); border: 1.5px solid var(--border);
   border-radius: 16px; padding: 12px 18px; color: var(--text-main);
-  font-family: 'Outfit', sans-serif; font-size: 15px; resize: none;
+  font-family: var(--font-body); font-size: 15px; resize: none;
   min-height: 48px; max-height: 140px; outline: none; transition: all 0.2s;
 }
 .cd-textarea:focus { background: #fff; border-color: var(--pink-accent); }
@@ -481,7 +479,7 @@ body {
   border-radius: 0 8px 8px 0; margin-bottom: 18px; text-align: left;
 }
 .cd-aff-result {
-  font-family: 'Cinzel Decorative', cursive;
+  font-family: var(--font-playful);
   font-size: 36px; line-height: 1; margin-bottom: 5px;
 }
 .cd-aff-result.pos { color: #5BA87A; text-shadow: 0 0 30px rgba(91,168,122,0.5); }
@@ -490,7 +488,7 @@ body {
 .cd-close-btn {
   padding: 12px 34px; background: transparent;
   border: 1px solid var(--gold-dim); border-radius: 10px; color: var(--gold);
-  font-family: 'Noto Serif KR', serif; font-size: 14px; letter-spacing: 0.1em;
+  font-family: var(--font-body); font-size: 14px; letter-spacing: 0.04em;
   cursor: pointer; transition: all 0.3s;
 }
 .cd-close-btn:hover { background: rgba(200,169,110,0.1); border-color: var(--gold); }
@@ -528,7 +526,7 @@ body {
 .lc-tab {
   flex: 1; padding: 10px 16px;
   background: transparent; border: none;
-  color: var(--text-dim); font-family: 'Noto Serif KR', serif;
+  color: var(--text-dim); font-family: var(--font-body);
   font-size: 13px; cursor: pointer; transition: all 0.25s;
   letter-spacing: 0.05em;
 }
@@ -542,7 +540,7 @@ body {
 .lc-gender-toggle { display:flex; gap:10px; margin-bottom:18px; width:100%; max-width:520px; }
 .lc-gender-btn {
   flex:1; padding:9px 18px; border-radius:12px; border:1px solid var(--border);
-  background: var(--glass); color: var(--text-dim); font-family:'Noto Serif KR',serif;
+  background: var(--glass); color: var(--text-dim); font-family:var(--font-body);
   font-size:14px; cursor:pointer; transition: all 0.25s; letter-spacing:0.05em;
 }
 .lc-gender-btn.active-m {
@@ -562,11 +560,11 @@ body {
   box-shadow: 0 8px 32px rgba(249,168,212,0.22);
 }
 .lc-match-rank {
-  font-family:'Cinzel Decorative',cursive; font-size:20px; color:var(--gold);
+  font-family:var(--font-playful); font-size:20px; color:var(--gold);
   width:32px; flex-shrink:0; text-align:center;
 }
 .lc-match-pct {
-  font-family:'Cinzel Decorative',cursive; font-size:17px; margin-left:auto; flex-shrink:0;
+  font-family:var(--font-playful); font-size:17px; margin-left:auto; flex-shrink:0;
 }
 .lc-match-pct.high { color:#f9a8d4; }
 .lc-match-pct.mid  { color:#fcd34d; }
@@ -574,13 +572,13 @@ body {
 
 /* ── 내 사주 설정 화면 ── */
 .lc-self-header {
-  font-family: 'Cinzel Decorative', cursive;
+  font-family: var(--font-playful);
   font-size: clamp(18px, 4vw, 28px); color: #93c5fd;
   letter-spacing: 0.2em; text-align: center; margin-bottom: 6px;
   text-shadow: 0 0 40px rgba(100,180,255,0.35);
 }
 .lc-self-sub {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: var(--font-display); font-style: normal;
   font-size: 13px; color: var(--text-dim); text-align: center;
   margin-bottom: 30px; letter-spacing: 0.1em;
 }
@@ -661,7 +659,7 @@ body {
   animation: awaken 0.6s cubic-bezier(0.16,1,0.3,1) both;
 }
 .lc-self-result-title {
-  font-family: 'Cinzel Decorative', cursive;
+  font-family: var(--font-playful);
   font-size: 17px; color: #93c5fd; margin-bottom: 4px;
 }
 .lc-self-result-sub {
@@ -690,7 +688,7 @@ body {
   background: linear-gradient(135deg, rgba(100,140,255,0.3), rgba(120,80,200,0.3));
   border: 1px solid rgba(100,180,255,0.45);
   border-radius: 10px; color: #93c5fd;
-  font-family: 'Noto Serif KR', serif;
+  font-family: var(--font-body);
   font-size: 15px; letter-spacing: 0.18em;
   cursor: pointer; margin-top: 18px;
   transition: all 0.3s; position: relative; overflow: hidden;
@@ -698,7 +696,7 @@ body {
 .lc-continue-btn:hover { box-shadow: 0 0 36px rgba(100,180,255,0.3); transform: translateY(-2px); }
 .lc-skip-btn {
   margin-top: 12px; background: transparent; border: none;
-  color: rgba(196,160,191,0.55); font-family:'Noto Serif KR',serif;
+  color: rgba(196,160,191,0.55); font-family:var(--font-body);
   font-size: 12px; cursor: pointer; letter-spacing: 0.08em;
   padding: 6px 0; display: block; width: 100%; text-align: center;
   transition: color 0.25s;
@@ -735,7 +733,7 @@ body {
 .lc-versus-dm { font-size: 10px; color: var(--text-dim); text-align: center; }
 .lc-vs-sep {
   flex-shrink: 0;
-  font-family: 'Cinzel Decorative', cursive;
+  font-family: var(--font-playful);
   font-size: 14px; color: rgba(200,169,110,0.55);
   display: flex; flex-direction: column; align-items: center; gap: 6px;
 }
@@ -747,7 +745,7 @@ body {
   text-align: center; margin-bottom: 20px;
 }
 .lc-compat-num {
-  font-family: 'Cinzel Decorative', cursive;
+  font-family: var(--font-playful);
   font-size: 44px; line-height: 1;
   background: linear-gradient(135deg, #93c5fd 0%, #f9a8d4 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -775,7 +773,7 @@ body {
 .lc-my-banner-edit {
   margin-left: auto; background: transparent; border: none;
   color: rgba(147,197,253,0.5); font-size: 11px; cursor: pointer;
-  letter-spacing: 0.06em; font-family:'Noto Serif KR',serif;
+  letter-spacing: 0.04em; font-family:var(--font-body);
   padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(100,180,255,0.18);
   transition: all 0.2s;
 }

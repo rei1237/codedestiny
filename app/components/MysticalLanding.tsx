@@ -2,10 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Playfair_Display, Inter } from 'next/font/google';
-
-const playfair = Playfair_Display({ subsets: ['latin'], weight: ['700', '900'] });
-const inter = Inter({ subsets: ['latin'], weight: ['400', '600'] });
 
 const services = [
   {
@@ -102,7 +98,7 @@ export default function MysticalLanding() {
   }, []);
 
   return (
-    <div className={`relative min-h-screen bg-[#0f0920] text-[#e0e0e0] selection:bg-purple-500/30 overflow-x-hidden ${inter.className}`}>
+    <div className="relative min-h-screen overflow-x-hidden bg-[#0f0920] font-body text-[#e0e0e0] selection:bg-purple-500/30">
       {/* Background Particles (Static Placeholder for performance, can be enhanced) */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         {[...Array(20)].map((_, i) => (
@@ -142,7 +138,7 @@ export default function MysticalLanding() {
       {/* Hero Section */}
       <section className="relative z-20 pt-32 pb-20 px-6 max-w-6xl mx-auto text-center">
         <motion.h1 
-          className={`${playfair.className} text-4xl md:text-6xl font-black mb-6 tracking-tight`}
+          className="mb-6 font-display text-4xl font-black tracking-tight md:text-6xl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}

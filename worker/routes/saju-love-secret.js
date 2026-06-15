@@ -1011,6 +1011,11 @@ function toFeatureKey(mode) {
   return LOVE_SECRET_FEATURE_KEY_BY_MODE[normalized] || LOVE_SECRET_FEATURE_KEY_BY_MODE.solo;
 }
 
+function inferLoveSecretModeFromReportId(reportId) {
+  const value = clean(reportId).toLowerCase();
+  return value.includes("compat") || value.includes("couple") ? "compatibility" : "solo";
+}
+
 const LOVE_SECRET_PHASE6_SOLO_CHAPTERS = Object.freeze([
   Object.freeze({ title: "프롤로그 — 내 사랑의 기본 코드", subtitle: "일간·일지·오행으로 읽는 사랑의 출발점" }),
   Object.freeze({ title: "연애 성향 — 나는 어떤 방식으로 사랑하는가", subtitle: "사랑을 시작하고 유지하는 나의 기본 방식" }),
@@ -6794,13 +6799,15 @@ async function authorizeLoveSecret(request, env, body, mode) {
   const reportId = clean(body?.reportId);
   const sessionId = clean(body?.sessionId || body?.reportSessionId || body?.chapterSessionId);
   const purchaseId = clean(body?.purchaseId || body?.reportPurchaseId || body?.accessGrant?.purchaseId || body?.payment?.purchaseId || body?._paymentContext?.purchaseId);
+  const premiumAccessToken = clean(body?.premiumAccessToken || request?.headers?.get?.("x-premium-access-token"));
 
   const access = await requirePremiumReportAccess(getLoveSecretFastDbEnv(env), auth.userId, "loveSecret", {
     ...body,
     mode,
     reportType: "loveSecret",
     featureKey,
-    _accessRoute: "/api/love-secret/generate-chapter",
+    premiumAccessToken: premiumAccessToken || undefined,
+    _accessRoute: body?._accessRoute || "/api/love-secret/generate-chapter",
   });
 
   if (!access?.ok) {
@@ -6830,6 +6837,82 @@ async function authorizeLoveSecret(request, env, body, mode) {
   }
 
   return { ok: true, auth, featureKey, access };
+}
+
+async function handleAccess(request, env) {
+  const url = new URL(request.url);
+  const reportId = clean(url.searchParams.get("reportId"));
+  if (!reportId) return buildApiError("MISSING_REPORT_ID", "reportId가 필요합니다.", 400);
+
+  const mode = normalizeMode(url.searchParams.get("mode") || inferLoveSecretModeFromReportId(reportId));
+  const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("reportSessionId") || `love-book:${reportId}`);
+  const body = {
+    reportId,
+    sessionId,
+    reportSessionId: sessionId,
+    mode,
+    reportType: "loveSecret",
+    featureKey: toFeatureKey(mode),
+    _accessRoute: "/api/love-secret/access",
+  };
+  const authz = await authorizeLoveSecret(request, env, body, mode);
+  if (!authz.ok) return authz.response;
+
+  const purchaseId = clean(authz.access?.matchedTransactionId || authz.access?.entitlementId);
+  const accessGrant = {
+    ok: true,
+    accessType: clean(authz.access?.accessType || "premium_access"),
+    accessMethod: clean(authz.access?.accessMethod || authz.access?.paymentMode || ""),
+    featureKey: clean(authz.access?.featureKey || authz.featureKey),
+    reportId,
+    sessionId,
+    purchaseId: purchaseId || undefined,
+    evidenceId: purchaseId || undefined,
+  };
+  const executionCtx = buildPremiumExecutionContext({
+    serviceKey: LOVE_SECRET_SERVICE_KEY,
+    reportType: "loveSecret",
+    userId: authz?.auth?.userId,
+    featureKey: authz.featureKey,
+    sessionId,
+    reportId,
+    access: authz.access,
+    body: { ...body, accessGrant },
+    timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
+  });
+  const reusableExecution = await findLoveSecretReusableExecution(env, authz?.auth?.userId, executionCtx, {
+    sessionId,
+    reportId,
+    mode,
+    featureKey: authz.featureKey,
+  });
+  const reusableResponse = reusableExecution ? buildLoveSecretReusableExecutionResponse(reusableExecution, {
+    sessionId,
+    reportId,
+    mode,
+    featureKey: authz.featureKey,
+  }) : null;
+  if (reusableResponse?.status === 409) return json(reusableResponse.payload, { status: reusableResponse.status });
+
+  const completed = reusableResponse?.status === 200 && reusableResponse?.payload;
+  return json({
+    ok: true,
+    status: completed ? "completed" : "available",
+    mode,
+    reportId,
+    sessionId,
+    featureKey: authz.featureKey,
+    accessGrant,
+    ...(completed ? {
+      result: reusableResponse.payload,
+      pdfReady: reusableResponse.payload.pdfReady,
+      pdfUrl: reusableResponse.payload.pdfUrl,
+      htmlUrl: reusableResponse.payload.htmlUrl,
+      downloadUrl: reusableResponse.payload.downloadUrl,
+      canReopen: true,
+      canDownload: true,
+    } : {}),
+  });
 }
 
 async function handleGenerateChapter(request, env) {
@@ -7540,6 +7623,10 @@ export async function handleSajuLoveSecretRoutes(request, env = {}, ctx = null) 
 
     if (method === "GET" && path === "/result") {
       return await handleJobResult(request, env);
+    }
+
+    if (method === "GET" && path === "/access") {
+      return await handleAccess(request, env);
     }
 
     if (["GET", "POST"].includes(method)) return notFound();

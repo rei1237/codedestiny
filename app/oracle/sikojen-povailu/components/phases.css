@@ -1,7 +1,5 @@
 /* Sikojen Povailu - Phase별 스타일 */
 
-@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
-
 :root {
   --sikojen-cream: #FFF8E7;
   --sikojen-beige: #F5E6D3;
@@ -23,7 +21,7 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
-  font-family: 'Jua', 'Papogane', cursive, sans-serif;
+  font-family: var(--font-playful);
   background: linear-gradient(180deg, var(--sikojen-cream) 0%, var(--sikojen-beige) 100%);
   animation: fadeIn 0.5s ease-in;
 }

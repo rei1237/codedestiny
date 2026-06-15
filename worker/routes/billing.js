@@ -1975,6 +1975,15 @@ function canGeneratePaidPdf(pricing = {}) {
   return isSajuPdfGenerationFeatureKey(pricing?.featureKey) || isPdfFeaturePricing(pricing);
 }
 
+function resolvePaidReportSessionFallback(pricing = {}, reportId = "", requestId = "") {
+  const featureKey = String(pricing?.featureKey || "").trim();
+  const id = String(reportId || "").trim();
+  if (!id) return String(requestId || "").trim();
+  if (featureKey === "premium_pdf_soul_origin" || featureKey === "premium-soul-origin-report") return `soul-origin:${id}`;
+  if (/love[_-]?secret|love[_-]?book/i.test(featureKey)) return `love-book:${id}`;
+  return `paid-report:${id}`;
+}
+
 function shouldPersistProfileUnlockEntitlement(pricing = {}) {
   return !canGeneratePaidPdf(pricing) && isProfileScopedUnlockKey(pricing?.featureKey);
 }
@@ -2350,7 +2359,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     && !coinPaymentRequested;
 
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
-  const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId)).trim();
+  const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || resolvePaidReportSessionFallback(pricing, reportId, requestId)).trim();
   const isPdfGenerationService = canGeneratePaidPdf(pricing);
   const persistProfileUnlockEntitlement = shouldPersistProfileUnlockEntitlement(pricing);
   if (authCheck.adminMode) {
@@ -4120,7 +4129,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
   const requestId = resolveRequestId(request, body);
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(
-    body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || (reportId ? `love-book:${reportId}` : requestId),
+    body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || resolvePaidReportSessionFallback(pricing, reportId, requestId),
   ).trim();
   if (authCheck.adminMode) {
     const adminAuthUserId = String(authCheck?.auth?.userId || ADMIN_TEST_USER_ID);

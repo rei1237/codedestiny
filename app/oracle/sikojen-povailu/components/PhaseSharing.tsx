@@ -125,7 +125,7 @@ export function PhaseSharing() {
         </div>
 
         {/* 제목 */}
-        <h2 className="text-3xl md:text-4xl font-bold text-rose-500 text-center" style={{ fontFamily: "'Jua', sans-serif" }}>
+        <h2 className="text-3xl md:text-4xl font-bold text-rose-500 text-center" style={{ fontFamily: "var(--font-playful)" }}>
           행운이 활짝 피었어요! 🌺
         </h2>
 
@@ -142,7 +142,7 @@ export function PhaseSharing() {
             {/* 카드 헤더 */}
             <div className="text-center mb-4">
               <div className="text-5xl mb-3">{selectedShape.icon}</div>
-              <h3 className="text-2xl font-bold text-rose-600 mb-1" style={{ fontFamily: "'Jua', sans-serif" }}>
+              <h3 className="text-2xl font-bold text-rose-600 mb-1" style={{ fontFamily: "var(--font-playful)" }}>
                 {selectedShape.name_ko}
               </h3>
               <p className="text-sm text-rose-500 italic mb-2">
@@ -238,7 +238,7 @@ export function PhaseSharing() {
 
         {/* 연이의 축복 메시지 */}
         <div className="w-full max-w-md rounded-2xl border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-indigo-50 p-6 text-center">
-          <p className="text-lg font-bold text-purple-600 mb-3" style={{ fontFamily: "'Jua', sans-serif" }}>
+          <p className="text-lg font-bold text-purple-600 mb-3" style={{ fontFamily: "var(--font-playful)" }}>
             ✨ 연이의 축복 ✨
           </p>
           <p className="text-sm text-purple-800 leading-relaxed">

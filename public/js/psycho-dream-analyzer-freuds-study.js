@@ -319,8 +319,8 @@
     var style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent =
-      "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@500;600;700&family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap');\n" +
-      ":root{--ps-bg1:#1A252F;--ps-bg2:#2C3E50;--ps-gold:#D4AF37;--ps-burg:#A52A2A;--ps-cream:#FDF4D8;--ps-cream2:#F4E9C7;--ps-text:#FDFDFD;--ps-muted:rgba(253,253,253,.78);--ps-paper:#FDF4D8;--ps-paperEdge:rgba(212,175,37,.30);--ps-borderGold:rgba(212,175,37,.55);--ps-font-sans:'Noto Sans KR','Lato',-apple-system,BlinkMacSystemFont,sans-serif;--ps-font-display:'Noto Serif KR','Playfair Display',Georgia,serif;}\n" +
+      "@font-face{font-family:'CodeDestinyPremium';src:url('https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf') format('opentype');font-weight:500;font-style:normal;font-display:optional;}\n" +
+      ":root{--ps-bg1:#1A252F;--ps-bg2:#2C3E50;--ps-gold:#D4AF37;--ps-burg:#A52A2A;--ps-cream:#FDF4D8;--ps-cream2:#F4E9C7;--ps-text:#FDFDFD;--ps-muted:rgba(253,253,253,.78);--ps-paper:#FDF4D8;--ps-paperEdge:rgba(212,175,37,.30);--ps-borderGold:rgba(212,175,37,.55);--ps-font-sans:var(--font-body,'Apple SD Gothic Neo','Malgun Gothic',-apple-system,BlinkMacSystemFont,sans-serif);--ps-font-display:'CodeDestinyPremium',var(--font-display,var(--ps-font-sans));}\n" +
       "#".concat(OVERLAY_ID, "{position:fixed;inset:0;display:none;z-index:9999;overflow:auto;overflow-x:hidden;min-height:100vh;min-height:100dvh;max-height:none;-webkit-overflow-scrolling:touch;background:\n" +
       "radial-gradient(1000px 600px at 15% 10%, rgba(212,175,37,.10), transparent 55%),\n" +
       "radial-gradient(900px 540px at 85% 25%, rgba(165,42,42,.10), transparent 60%),\n" +
@@ -1007,4 +1007,3 @@
   }
   setScreen("input");
 })();
-

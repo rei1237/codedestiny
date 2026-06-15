@@ -118,15 +118,19 @@ async function consumeForAstro(base, authToken, requestId) {
   };
 }
 
-async function prepareAstro(base, authToken, premiumAccessToken) {
+async function prepareAstro(base, authToken, premiumAccessToken, westernChart = null) {
   const birthInput = buildBirthPayload();
   const sessionId = `astro-e2e-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const reportId = sessionId;
+  const chartPayload = westernChart?.data && typeof westernChart.data === "object" ? westernChart.data : westernChart;
   const body = {
     featureKey: "premium-astrology-report",
     sessionId,
     reportSessionId: sessionId,
+    reportId,
     premiumAccessToken,
     birthInput,
+    ...(chartPayload && typeof chartPayload === "object" ? { swissChart: chartPayload } : {}),
     profile: {
       name: birthInput.name,
       gender: birthInput.gender,
@@ -164,6 +168,8 @@ async function prepareAstro(base, authToken, premiumAccessToken) {
       cfRay: clean(response.headers.get("cf-ray")),
     },
     data,
+    sessionId,
+    reportId,
   };
 }
 
@@ -191,6 +197,29 @@ async function fetchWesternChart(base, authToken, birthInput) {
     status: response.status,
     ok: response.ok,
     data,
+  };
+}
+
+async function fetchExecutionStatus(base, authToken, sessionId, reportId) {
+  const params = new URLSearchParams();
+  if (sessionId) params.set("sessionId", sessionId);
+  if (reportId) params.set("reportId", reportId);
+  const path = `/api/billing/executions/status${params.toString() ? `?${params.toString()}` : ""}`;
+  const { response, data } = await requestJson(base, path, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+  const execution = data?.data?.execution && typeof data.data.execution === "object"
+    ? data.data.execution
+    : data?.execution;
+
+  return {
+    status: response.status,
+    ok: response.ok,
+    data,
+    execution: execution && typeof execution === "object" ? execution : null,
   };
 }
 
@@ -233,7 +262,7 @@ async function main() {
     consumeResult.data,
   );
 
-  const prepareResult = await prepareAstro(base, loginResult.token, consumeResult.premiumAccessToken);
+  const prepareResult = await prepareAstro(base, loginResult.token, consumeResult.premiumAccessToken, western.data);
   printKeyValue("PREPARE_STATUS", prepareResult.status);
   printKeyValue("PREPARE_ERROR_CODE", prepareResult.headers.errorCode || "");
   printKeyValue("PREPARE_CF_RAY", prepareResult.headers.cfRay || "");
@@ -274,7 +303,25 @@ async function main() {
   printKeyValue("PDF_URL", pdfUrl);
   printKeyValue("HTML_URL", htmlUrl);
   printKeyValue("MIME_TYPE", mimeType);
-  printKeyValue("REPORT_ID", clean(payload.reportId));
+  const sessionId = clean(payload.sessionId || prepareResult.sessionId);
+  const reportId = clean(payload.reportId || prepareResult.reportId);
+  printKeyValue("SESSION_ID", sessionId);
+  printKeyValue("REPORT_ID", reportId);
+
+  if (!prepareResult.ok || !payload.ok) {
+    try {
+      const executionStatus = await fetchExecutionStatus(base, loginResult.token, sessionId, reportId);
+      const execution = executionStatus.execution || {};
+      printKeyValue("EXECUTION_STATUS_HTTP", executionStatus.status);
+      printKeyValue("EXECUTION_STATUS", clean(execution.status));
+      printKeyValue("EXECUTION_PREMIUM_STATUS", clean(execution.premiumStatus));
+      printKeyValue("EXECUTION_REFUND_STATUS", clean(execution.refundStatus));
+      printKeyValue("EXECUTION_REASON_CODE", clean(execution.reasonCode));
+      printKeyValue("EXECUTION_COIN_REFUNDED", Boolean(execution?.compensation?.coinRefunded));
+    } catch (statusError) {
+      printKeyValue("EXECUTION_STATUS_ERROR", clean(statusError?.message || statusError));
+    }
+  }
 
   ensure(prepareResult.ok && payload.ok, "점성술 prepare 실패", payload);
   ensure(chapters.length === 12, "챕터 수가 12가 아님", { chapterCount: chapters.length, payload });
