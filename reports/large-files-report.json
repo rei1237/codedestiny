@@ -1,23 +1,83 @@
 {
-  "generatedAt": "2026-05-11T14:44:08.355Z",
+  "generatedAt": "2026-06-15T21:48:08.474Z",
   "mode": "dry-run",
   "thresholdBytes": 524288,
   "thresholdHuman": "512.0 KB",
   "largeFiles": [
     {
-      "path": "_tmp_ppt_review/source.zip",
-      "size": 6096903,
-      "sizeHuman": "5.81 MB",
-      "extension": ".zip"
+      "path": "_tmp_saju_3c71.js",
+      "size": 2471984,
+      "sizeHuman": "2.36 MB",
+      "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image1.png",
-      "size": 1882655,
-      "sizeHuman": "1.80 MB",
-      "extension": ".png"
+      "path": "js/saju-engine.js",
+      "size": 1968569,
+      "sizeHuman": "1.88 MB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/saju-engine.js",
+      "size": 1968569,
+      "sizeHuman": "1.88 MB",
+      "extension": ".js"
+    },
+    {
+      "path": "_tmp_bfd_saju.js",
+      "size": 1503406,
+      "sizeHuman": "1.43 MB",
+      "extension": ".js"
+    },
+    {
+      "path": "index.html",
+      "size": 1330635,
+      "sizeHuman": "1.27 MB",
+      "extension": ".html"
+    },
+    {
+      "path": "public/index.html",
+      "size": 1330635,
+      "sizeHuman": "1.27 MB",
+      "extension": ".html"
+    },
+    {
+      "path": "public/static/index.html",
+      "size": 1330635,
+      "sizeHuman": "1.27 MB",
+      "extension": ".html"
+    },
+    {
+      "path": "public/en/index.html",
+      "size": 1330576,
+      "sizeHuman": "1.27 MB",
+      "extension": ".html"
+    },
+    {
+      "path": "public/ja/index.html",
+      "size": 1330576,
+      "sizeHuman": "1.27 MB",
+      "extension": ".html"
+    },
+    {
+      "path": "public/zh/index.html",
+      "size": 1330576,
+      "sizeHuman": "1.27 MB",
+      "extension": ".html"
+    },
+    {
+      "path": "js/vendor/sweph-wasm/ephe/semo_18.se1",
+      "size": 1304771,
+      "sizeHuman": "1.24 MB",
+      "extension": ".se1"
     },
     {
       "path": "public/ephe/semo_18.se1",
+      "size": 1304771,
+      "sizeHuman": "1.24 MB",
+      "extension": ".se1"
+    },
+    {
+      "path": "public/js/vendor/sweph-wasm/ephe/semo_18.se1",
       "size": 1304771,
       "sizeHuman": "1.24 MB",
       "extension": ".se1"
@@ -29,109 +89,85 @@
       "extension": ".json"
     },
     {
-      "path": "js/saju-engine.js",
-      "size": 1299680,
+      "path": "_tmp_313a8bd.js",
+      "size": 1300940,
       "sizeHuman": "1.24 MB",
       "extension": ".js"
     },
     {
-      "path": "public/js/saju-engine.js",
-      "size": 1299680,
-      "sizeHuman": "1.24 MB",
+      "path": "js/saju-engine-tarot-sukuyo-quantum.js",
+      "size": 1009252,
+      "sizeHuman": "985.6 KB",
       "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image3.png",
-      "size": 1211533,
-      "sizeHuman": "1.16 MB",
-      "extension": ".png"
+      "path": "public/js/saju-engine-tarot-sukuyo-quantum.js",
+      "size": 1009252,
+      "sizeHuman": "985.6 KB",
+      "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image4.png",
-      "size": 835384,
-      "sizeHuman": "815.8 KB",
-      "extension": ".png"
+      "path": "seo-audit-report.json",
+      "size": 695083,
+      "sizeHuman": "678.8 KB",
+      "extension": ".json"
     },
     {
-      "path": "public/en/index.html",
-      "size": 661539,
-      "sizeHuman": "646.0 KB",
-      "extension": ".html"
-    },
-    {
-      "path": "public/ja/index.html",
-      "size": 661539,
-      "sizeHuman": "646.0 KB",
-      "extension": ".html"
-    },
-    {
-      "path": "public/zh/index.html",
-      "size": 661539,
-      "sizeHuman": "646.0 KB",
-      "extension": ".html"
-    },
-    {
-      "path": "public/index.html",
-      "size": 661535,
-      "sizeHuman": "646.0 KB",
-      "extension": ".html"
-    },
-    {
-      "path": "public/static/index.html",
-      "size": 661535,
-      "sizeHuman": "646.0 KB",
-      "extension": ".html"
-    },
-    {
-      "path": "index.html",
-      "size": 659895,
-      "sizeHuman": "644.4 KB",
-      "extension": ".html"
+      "path": "app/saju/love-simulation/_data/loveCodeMvp.ts",
+      "size": 630647,
+      "sizeHuman": "615.9 KB",
+      "extension": ".ts"
     },
     {
       "path": "package-lock.json",
-      "size": 629265,
-      "sizeHuman": "614.5 KB",
+      "size": 614244,
+      "sizeHuman": "599.8 KB",
       "extension": ".json"
     },
     {
       "path": "public/secret-house_real.html",
-      "size": 568894,
-      "sizeHuman": "555.6 KB",
+      "size": 587447,
+      "sizeHuman": "573.7 KB",
       "extension": ".html"
     },
     {
       "path": "secret-house_real.html",
-      "size": 568894,
-      "sizeHuman": "555.6 KB",
+      "size": 587447,
+      "sizeHuman": "573.7 KB",
       "extension": ".html"
+    },
+    {
+      "path": "js/vendor/sweph-wasm/wasm/swisseph.wasm",
+      "size": 584227,
+      "sizeHuman": "570.5 KB",
+      "extension": ".wasm"
+    },
+    {
+      "path": "public/js/vendor/sweph-wasm/wasm/swisseph.wasm",
+      "size": 584227,
+      "sizeHuman": "570.5 KB",
+      "extension": ".wasm"
     },
     {
       "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 말.png",
       "size": 564506,
       "sizeHuman": "551.3 KB",
       "extension": ".png"
+    },
+    {
+      "path": "public/styles/fortune-ui.css",
+      "size": 548918,
+      "sizeHuman": "536.1 KB",
+      "extension": ".css"
+    },
+    {
+      "path": "styles/fortune-ui.css",
+      "size": 548918,
+      "sizeHuman": "536.1 KB",
+      "extension": ".css"
     }
   ],
   "imageOptimizationCandidates": [
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image1.png",
-      "size": 1882655,
-      "sizeHuman": "1.80 MB",
-      "suggestion": "Consider WebP/AVIF conversion"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image3.png",
-      "size": 1211533,
-      "sizeHuman": "1.16 MB",
-      "suggestion": "Consider WebP/AVIF conversion"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image4.png",
-      "size": 835384,
-      "sizeHuman": "815.8 KB",
-      "suggestion": "Consider WebP/AVIF conversion"
-    },
     {
       "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 테마 말.png",
       "size": 564506,
@@ -163,12 +199,6 @@
       "suggestion": "Consider WebP/AVIF conversion"
     },
     {
-      "path": "public/icons/android-chrome-512x512.png",
-      "size": 400553,
-      "sizeHuman": "391.2 KB",
-      "suggestion": "Consider WebP/AVIF conversion"
-    },
-    {
       "path": "public/fuctionassets/tadagochi-local/천사 컨셉/천사 컨셉 쥐.png",
       "size": 399211,
       "sizeHuman": "389.9 KB",
@@ -178,12 +208,6 @@
       "path": "public/fuctionassets/tadagochi/천사 컨셉/천사 컨셉 쥐.png",
       "size": 399211,
       "sizeHuman": "389.9 KB",
-      "suggestion": "Consider WebP/AVIF conversion"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image2.png",
-      "size": 398138,
-      "sizeHuman": "388.8 KB",
       "suggestion": "Consider WebP/AVIF conversion"
     },
     {
@@ -574,30 +598,6 @@
       "path": "public/fuctionassets/tadagochi-local/우주 테마/우주 컨셉 알.png",
       "size": 268223,
       "sizeHuman": "261.9 KB",
-      "suggestion": "Consider WebP/AVIF conversion"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image8.png",
-      "size": 256689,
-      "sizeHuman": "250.7 KB",
-      "suggestion": "Consider WebP/AVIF conversion"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image15.png",
-      "size": 240460,
-      "sizeHuman": "234.8 KB",
-      "suggestion": "Consider WebP/AVIF conversion"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image9.png",
-      "size": 228489,
-      "sizeHuman": "223.1 KB",
-      "suggestion": "Consider WebP/AVIF conversion"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image7.png",
-      "size": 206701,
-      "sizeHuman": "201.9 KB",
       "suggestion": "Consider WebP/AVIF conversion"
     }
   ]

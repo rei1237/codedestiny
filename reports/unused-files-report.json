@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-05-11T14:44:08.234Z",
+  "generatedAt": "2026-06-15T21:48:07.993Z",
   "mode": "dry-run",
-  "totalFilesScanned": 1969,
-  "entryPointCount": 490,
-  "reachableCount": 908,
-  "unreachableCount": 1061,
+  "totalFilesScanned": 2330,
+  "entryPointCount": 741,
+  "reachableCount": 1213,
+  "unreachableCount": 1117,
   "entryPoints": [
     "app/AnimalTotem.tsx",
     "app/HomeClient.js",
@@ -21,17 +21,24 @@
     "app/_lib/api-config.ts",
     "app/_lib/auth-client.ts",
     "app/_lib/auth-storage.ts",
+    "app/_lib/auth-store.ts",
+    "app/_lib/billing-client.ts",
     "app/_lib/callVertexGemini.ts",
     "app/_lib/csrf.js",
     "app/_lib/dbConnect.js",
+    "app/_lib/design/iconMap.ts",
     "app/_lib/featureUnlocks.js",
     "app/_lib/flowerAdminToken.js",
+    "app/_lib/fortune/ganjiGuardianSprite.ts",
     "app/_lib/generate-ziwei-deep-chapter.ts",
     "app/_lib/generate-ziwei-deep-summary.ts",
+    "app/_lib/http-client.ts",
     "app/_lib/legacyApiProxy.js",
     "app/_lib/lifebook/canonical.js",
     "app/_lib/lifebook/state.js",
     "app/_lib/localePath.js",
+    "app/_lib/love-secret/gemini-json.server.ts",
+    "app/_lib/love-secret/report-types.ts",
     "app/_lib/models/AppSettingsModel.js",
     "app/_lib/models/AuditLogModel.js",
     "app/_lib/models/DailyFortuneSubscriptionModel.js",
@@ -43,17 +50,61 @@
     "app/_lib/models/PointHistoryModel.js",
     "app/_lib/models/UserModel.js",
     "app/_lib/normalize-ziwei-input.ts",
+    "app/_lib/paid-attempt-session.ts",
+    "app/_lib/premium-route-access.ts",
+    "app/_lib/profile-card-storage.ts",
     "app/_lib/route-auth.ts",
+    "app/_lib/saju/new-year/types/chapters/chapterIICareer.types.ts",
+    "app/_lib/saju/new-year/types/chapters/chapterIIIWealth.types.ts",
+    "app/_lib/saju/new-year/types/chapters/chapterIOverview.types.ts",
+    "app/_lib/saju/new-year/types/chapters/chapterIVRelationship.types.ts",
+    "app/_lib/saju/new-year/types/chapters/chapterIXMonthlyTable.types.ts",
+    "app/_lib/saju/new-year/types/chapters/chapterVIHealthEnergy.types.ts",
+    "app/_lib/saju/new-year/types/chapters/chapterVIIIRiskPlan.types.ts",
+    "app/_lib/saju/new-year/types/chapters/chapterVIIQuarterDecision.types.ts",
+    "app/_lib/saju/new-year/types/chapters/chapterVRomanceFamily.types.ts",
+    "app/_lib/saju/new-year/types/chapters/chapterXFinalRoadmap.types.ts",
+    "app/_lib/saju/new-year/types/common.types.ts",
+    "app/_lib/saju/new-year/types/index.ts",
+    "app/_lib/saju/new-year/types/sajuNewYearReport.types.ts",
+    "app/_lib/serviceFeatureRegistry.ts",
     "app/_lib/serviceMap.js",
     "app/_lib/serviceSections.js",
     "app/_lib/validate-ziwei-chart.ts",
+    "app/_lib/vedic/premium/guards/premiumTextGuard.ts",
+    "app/_lib/vedic/premium/types/index.ts",
+    "app/_lib/vedic/premium/types/vedicPremiumChapter.types.ts",
+    "app/_lib/vedic/premium/types/vedicPremiumRaw.types.ts",
+    "app/_lib/vedic/premium/types/vedicPremiumReport.types.ts",
+    "app/_lib/ziwei-advanced-normalization.ts",
+    "app/_lib/ziwei-advanced-selftest.ts",
+    "app/_lib/ziwei-deep-reading.ts",
     "app/_lib/ziwei-deep-runtime.ts",
     "app/_lib/ziwei-deep-templates.ts",
     "app/_lib/ziwei-engine.ts",
     "app/_lib/ziwei-interpretations.ts",
     "app/_lib/ziwei-normalization.ts",
     "app/_lib/ziwei-star-interpretations.ts",
+    "app/_lib/ziwei-strength.ts",
     "app/_lib/ziwei-types.ts",
+    "app/_lib/ziwei/premium/types/index.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterI.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterII.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterIII.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterIV.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterIX.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterV.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterVI.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterVII.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterVIII.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterX.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterXI.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterXII.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterXIII.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterXIV.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumChapterXV.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumCommon.types.ts",
+    "app/_lib/ziwei/premium/types/ziweiPremiumReport.types.ts",
     "app/_locale/LocaleShellPage.js",
     "app/about/page.js",
     "app/admin/cache-status/page.tsx",
@@ -70,16 +121,13 @@
     "app/advertising-policy/page.js",
     "app/animal/mbti/page.tsx",
     "app/animal/physio/page.tsx",
+    "app/api-hello-test/layout.tsx",
+    "app/api-hello-test/page.tsx",
     "app/api/celestial-harmony/route.js",
+    "app/api/hello/route.ts",
     "app/api/kasi/calendar/route.ts",
     "app/api/lifebook/session/route.js",
     "app/api/palm/analyze/route.ts",
-    "app/api/premium/_astroCommon.ts",
-    "app/api/premium/astro-life/route.ts",
-    "app/api/premium/astro-western/route.ts",
-    "app/api/premium/sukuyo-life/route.ts",
-    "app/api/premium/vedic-life/route.ts",
-    "app/api/premium/ziwei-life/route.ts",
     "app/api/sukuyo-basic/route.ts",
     "app/api/tarot/_engine.js",
     "app/api/tarot/draw/route.js",
@@ -96,10 +144,12 @@
     "app/components/AdvancedZiweiSection.tsx",
     "app/components/AdvancedZiweiSectionV2.tsx",
     "app/components/AnalysisLoadingScreen.tsx",
+    "app/components/AppChrome.tsx",
     "app/components/AppVersionGuard.tsx",
     "app/components/AstrologyCosmicPage.tsx",
     "app/components/AuthWidget.tsx",
     "app/components/Breadcrumb.js",
+    "app/components/BuildInfoLogger.tsx",
     "app/components/DeferredAdsense.tsx",
     "app/components/DisclaimerBanner.jsx",
     "app/components/EmailSubscriptionSection.tsx",
@@ -110,11 +160,7 @@
     "app/components/GlobalHeader.tsx",
     "app/components/GlobalPricingCard.jsx",
     "app/components/GlobalTrustSection.jsx",
-    "app/components/HPremiumAstrologySection.tsx",
     "app/components/HPremiumNamingSection.tsx",
-    "app/components/HPremiumSukuyoSection.tsx",
-    "app/components/HPremiumVedicSection.tsx",
-    "app/components/HPremiumZiweiBookSection.tsx",
     "app/components/HomeServiceSections.tsx",
     "app/components/HwatuLifeCardTest.tsx",
     "app/components/I18nSeoPageTemplate.jsx",
@@ -145,7 +191,9 @@
     "app/components/ServiceCard.tsx",
     "app/components/ServiceCollectionSection.tsx",
     "app/components/ServiceRenderSkeleton.jsx",
+    "app/components/ShareWidget.tsx",
     "app/components/SiteFooterHub.jsx",
+    "app/components/StarlightLoginPortal.tsx",
     "app/components/SunHealingTarot.tsx",
     "app/components/TarotCard.tsx",
     "app/components/TarotReunionClient.tsx",
@@ -154,10 +202,53 @@
     "app/components/WebVitalsConsole.tsx",
     "app/components/WithdrawModal.jsx",
     "app/components/ZiweiChartPage.tsx",
+    "app/components/astrology-pdf/Chapter1_Intro.tsx",
+    "app/components/astrology-pdf/Chapter2_BigThree.tsx",
+    "app/components/astrology-pdf/renderHelpers.ts",
+    "app/components/common/ExitToast.tsx",
     "app/components/common/PaymentLoading.tsx",
     "app/components/hwatu-life/testData.ts",
+    "app/components/icons/AnimalSymbol.tsx",
+    "app/components/icons/AnimalSymbols.tsx",
+    "app/components/icons/BiasSymbols.tsx",
+    "app/components/icons/CosmicIcon.tsx",
+    "app/components/icons/DestinyIcon.tsx",
+    "app/components/icons/FeatureSymbol.tsx",
+    "app/components/icons/FortuneSymbols.tsx",
+    "app/components/icons/OmikujiSymbols.tsx",
+    "app/components/lifebook/LifeFortuneGraph.jsx",
     "app/components/luck-diary/NightReflectionPlanner.tsx",
+    "app/components/saju-new-year-pdf/NewYearCh10_FinalRoadmap.tsx",
+    "app/components/saju-new-year-pdf/NewYearCh1_Overview.tsx",
+    "app/components/saju-new-year-pdf/NewYearCh2_Career.tsx",
+    "app/components/saju-new-year-pdf/NewYearCh3_Wealth.tsx",
+    "app/components/saju-new-year-pdf/NewYearCh4_Relationship.tsx",
+    "app/components/saju-new-year-pdf/NewYearCh5_RomanceFamily.tsx",
+    "app/components/saju-new-year-pdf/NewYearCh6_HealthEnergy.tsx",
+    "app/components/saju-new-year-pdf/NewYearCh7_QuarterDecision.tsx",
+    "app/components/saju-new-year-pdf/NewYearCh8_RiskPlan.tsx",
+    "app/components/saju-new-year-pdf/NewYearCh9_MonthlyTable.tsx",
+    "app/components/saju-new-year-pdf/renderHelpers.ts",
     "app/components/subscriptionNotice.ts",
+    "app/components/ui/IconBadge.tsx",
+    "app/components/ui/SectionTitle.tsx",
+    "app/components/ziwei-pdf/Chapter10_MindAndParents.tsx",
+    "app/components/ziwei-pdf/Chapter11_Health.tsx",
+    "app/components/ziwei-pdf/Chapter12_DecadeFlow.tsx",
+    "app/components/ziwei-pdf/Chapter13_YearRoadmap.tsx",
+    "app/components/ziwei-pdf/Chapter14_MasterPlan.tsx",
+    "app/components/ziwei-pdf/Chapter15_FinalStrategy.tsx",
+    "app/components/ziwei-pdf/Chapter1_MyungpanOverview.tsx",
+    "app/components/ziwei-pdf/Chapter2_MyungShin.tsx",
+    "app/components/ziwei-pdf/Chapter3_FourTransformations.tsx",
+    "app/components/ziwei-pdf/Chapter4_MainStars.tsx",
+    "app/components/ziwei-pdf/Chapter5_AssistAndKillerStars.tsx",
+    "app/components/ziwei-pdf/Chapter6_WealthCareer.tsx",
+    "app/components/ziwei-pdf/Chapter7_RelationshipFamily.tsx",
+    "app/components/ziwei-pdf/Chapter8_MoveHome.tsx",
+    "app/components/ziwei-pdf/Chapter9_Network.tsx",
+    "app/components/ziwei-pdf/chapterRenderer.tsx",
+    "app/components/ziwei-pdf/renderHelpers.ts",
     "app/components/ziwei/ZiweiCosmicHero.tsx",
     "app/components/ziwei/ZiweiDeepChapterView.tsx",
     "app/components/ziwei/ZiweiMasterPlan.tsx",
@@ -176,12 +267,19 @@
     "app/dream/tarot/page.tsx",
     "app/en-us/page.js",
     "app/face-reading/page.js",
+    "app/famous-saju/[slug]/page.tsx",
+    "app/famous-saju/category/[category]/page.tsx",
+    "app/famous-saju/page.tsx",
     "app/faq/page.js",
+    "app/fpti/page.tsx",
     "app/high-value/[slug]/page.js",
     "app/high-value/category/[category]/page.js",
     "app/high-value/content.js",
     "app/high-value/page.js",
+    "app/hooks/useBackNavigation.ts",
+    "app/hooks/useCoinGate.ts",
     "app/hooks/usePayment.ts",
+    "app/hooks/useServiceExecutionGuard.ts",
     "app/insights/InsightTopicArchive.jsx",
     "app/insights/InsightsCosmicClient.js",
     "app/insights/[slug]/InsightArticleCosmicClient.js",
@@ -192,6 +290,8 @@
     "app/insights/astrology/page.js",
     "app/insights/compatibility/page.js",
     "app/insights/dream/page.js",
+    "app/insights/famous-saju/[slug]/page.tsx",
+    "app/insights/famous-saju/page.tsx",
     "app/insights/layout.js",
     "app/insights/page.js",
     "app/insights/saju/page.js",
@@ -208,10 +308,17 @@
     "app/layout.js",
     "app/login/layout.tsx",
     "app/login/page.tsx",
+    "app/love/page.js",
     "app/manse/page.js",
     "app/me/layout.tsx",
     "app/me/page.tsx",
     "app/methodology/page.js",
+    "app/music/MoonAlbumArtwork.tsx",
+    "app/music/MusicPlayerExample.tsx",
+    "app/music/MusicPlaylistPanel.tsx",
+    "app/music/_data/musicManifest.ts",
+    "app/music/_hooks/useMusicPlayer.ts",
+    "app/music/page.tsx",
     "app/not-found.js",
     "app/olympus/page.js",
     "app/oracle/hwatu-life/page.tsx",
@@ -226,7 +333,9 @@
     "app/oracle/sikojen-povailu/components/PhaseRitualPrep.tsx",
     "app/oracle/sikojen-povailu/components/PhaseSharing.tsx",
     "app/oracle/sikojen-povailu/components/PhaseWelcoming.tsx",
+    "app/oracle/sikojen-povailu/components/PigCounselBubble.tsx",
     "app/oracle/sikojen-povailu/components/ShadowReading.tsx",
+    "app/oracle/sikojen-povailu/components/YeonSpriteAvatar.tsx",
     "app/oracle/sikojen-povailu/data/shapes.ts",
     "app/oracle/sikojen-povailu/layout.tsx",
     "app/oracle/sikojen-povailu/page.tsx",
@@ -235,33 +344,141 @@
     "app/page.js",
     "app/palm-reading/PalmDestinyMain.tsx",
     "app/palm-reading/PalmLineOverlay.tsx",
+    "app/palm-reading/error.tsx",
     "app/palm-reading/page.tsx",
+    "app/pdf/life-book/page.js",
+    "app/pdf/love-report/page.js",
+    "app/pdf/new-year/page.js",
     "app/physiognomy/page.js",
     "app/points/BillingCardModal.tsx",
-    "app/points/GalaxiaPayModal.tsx",
     "app/points/SubscriptionStatusCard.tsx",
     "app/points/history/layout.tsx",
     "app/points/history/page.tsx",
     "app/points/layout.tsx",
     "app/points/page.tsx",
+    "app/premium-reports/page.js",
     "app/premium-unlock/PremiumSalesContent.tsx",
     "app/premium-unlock/page.tsx",
     "app/premium/page.js",
+    "app/premium/saju-lifebook/page.js",
+    "app/premium/saju-love-bible/page.js",
     "app/privacy-policy/PrivacyPolicyContent.jsx",
     "app/privacy-policy/page.js",
     "app/privacy/page.js",
+    "app/providers/NavigationProvider.tsx",
     "app/psychotest/[slug]/page.tsx",
+    "app/psychotest/_components/DestinyBiasPromoSection.tsx",
     "app/psychotest/page.tsx",
     "app/robots.ts",
+    "app/saju-fpti/page.tsx",
     "app/saju-picture/layout.js",
     "app/saju-picture/page.tsx",
+    "app/saju/animal-destiny/components/AnimalCareerPanel.tsx",
+    "app/saju/animal-destiny/components/AnimalCharacterHero.tsx",
+    "app/saju/animal-destiny/components/AnimalCompatibilityGrid.tsx",
+    "app/saju/animal-destiny/components/AnimalDestinyHero.tsx",
+    "app/saju/animal-destiny/components/AnimalDestinyInputForm.tsx",
+    "app/saju/animal-destiny/components/AnimalDestinyIntro.tsx",
+    "app/saju/animal-destiny/components/AnimalDestinyPage.tsx",
+    "app/saju/animal-destiny/components/AnimalGameStats.tsx",
+    "app/saju/animal-destiny/components/AnimalLovePanel.tsx",
+    "app/saju/animal-destiny/components/AnimalLuckItems.tsx",
+    "app/saju/animal-destiny/components/AnimalPersonalityPanel.tsx",
+    "app/saju/animal-destiny/components/AnimalResultScreen.tsx",
+    "app/saju/animal-destiny/components/AnimalRevealAnimation.tsx",
+    "app/saju/animal-destiny/components/AnimalShareCard.tsx",
+    "app/saju/animal-destiny/components/AnimalSummaryCard.tsx",
+    "app/saju/animal-destiny/components/CosmicSigil.tsx",
+    "app/saju/animal-destiny/components/CrackingEggAnimation.tsx",
+    "app/saju/animal-destiny/components/FlipCardReveal.tsx",
+    "app/saju/animal-destiny/components/TamagotchiDeviceFrame.tsx",
+    "app/saju/animal-destiny/components/TwelveAnimalAdviceCard.tsx",
+    "app/saju/animal-destiny/components/TwelveAnimalDexGrid.tsx",
+    "app/saju/animal-destiny/components/TwelveAnimalHero.tsx",
+    "app/saju/animal-destiny/components/TwelveAnimalInputCard.tsx",
+    "app/saju/animal-destiny/components/TwelveAnimalLoading.tsx",
+    "app/saju/animal-destiny/components/TwelveAnimalResultCard.tsx",
+    "app/saju/animal-destiny/components/TwelveAnimalShareCard.tsx",
+    "app/saju/animal-destiny/components/TwelveAnimalTabs.tsx",
+    "app/saju/animal-destiny/data/animalDestinyData.ts",
+    "app/saju/animal-destiny/engine/localSajuCalculator.ts",
+    "app/saju/animal-destiny/hooks/useAnimalCardExport.ts",
+    "app/saju/animal-destiny/lib/analysisNarrative.ts",
+    "app/saju/animal-destiny/lib/animalInterpretation.ts",
+    "app/saju/animal-destiny/lib/animalMapping.ts",
+    "app/saju/animal-destiny/lib/calculateTwelveLifeStage.ts",
+    "app/saju/animal-destiny/lib/sajuAdapter.ts",
+    "app/saju/animal-destiny/lib/stageScore.ts",
+    "app/saju/animal-destiny/lib/twelveGrowthAnimalResults.ts",
+    "app/saju/animal-destiny/lib/twelveStages.ts",
+    "app/saju/animal-destiny/lib/types.ts",
+    "app/saju/animal-destiny/page.tsx",
+    "app/saju/animal-destiny/store/useAnimalDestinyStore.ts",
+    "app/saju/animal-test/page.tsx",
     "app/saju/basic/page.tsx",
     "app/saju/basic/play/page.tsx",
-    "app/saju/lifebook/LifebookChapterViewer.tsx",
-    "app/saju/lifebook/SajuLifebookLandingClient.tsx",
-    "app/saju/lifebook/page.tsx",
-    "app/saju/love-secret/page.tsx",
+    "app/saju/compatibility/page.js",
+    "app/saju/destiny-bias/DestinyBiasClient.tsx",
+    "app/saju/destiny-bias/components/BiasDestinyAuraBadge.tsx",
+    "app/saju/destiny-bias/components/BiasDestinyHero.tsx",
+    "app/saju/destiny-bias/components/BiasDestinyInputPanel.tsx",
+    "app/saju/destiny-bias/components/BiasDestinyMainCard.tsx",
+    "app/saju/destiny-bias/components/BiasDestinyResultTabs.tsx",
+    "app/saju/destiny-bias/components/BiasDestinyShareCard.tsx",
+    "app/saju/destiny-bias/components/BiasDestinySpotlightBackground.tsx",
+    "app/saju/destiny-bias/components/BiasDestinyStageLoading.tsx",
+    "app/saju/destiny-bias/components/BiasDestinyStageSummary.tsx",
+    "app/saju/destiny-bias/components/CosmicConcertBackground.tsx",
+    "app/saju/destiny-bias/components/DestinyBiasActionBar.tsx",
+    "app/saju/destiny-bias/components/DestinyBiasCoinModal.tsx",
+    "app/saju/destiny-bias/components/DestinyBiasDetailSections.tsx",
+    "app/saju/destiny-bias/components/DestinyBiasHeader.tsx",
+    "app/saju/destiny-bias/components/DestinyBiasLoadingScreen.tsx",
+    "app/saju/destiny-bias/components/DestinyBiasPhotocard.tsx",
+    "app/saju/destiny-bias/components/DestinyBiasProgress.tsx",
+    "app/saju/destiny-bias/components/FansignEditionBadge.tsx",
+    "app/saju/destiny-bias/components/MyDestinyBiasHero.tsx",
+    "app/saju/destiny-bias/components/MyDestinyBiasShell.tsx",
+    "app/saju/destiny-bias/engine/birthEnergy.ts",
+    "app/saju/destiny-bias/engine/compatibilityScore.ts",
+    "app/saju/destiny-bias/engine/destinyBiasEngine.ts",
+    "app/saju/destiny-bias/engine/destinyBiasMeta.ts",
+    "app/saju/destiny-bias/engine/favoriteDestinyReading.ts",
+    "app/saju/destiny-bias/engine/reportTemplates.ts",
+    "app/saju/destiny-bias/engine/sajuPersonality.ts",
+    "app/saju/destiny-bias/lib/celebrityProfiles.ts",
+    "app/saju/destiny-bias/lib/destinyBiasCopy.ts",
+    "app/saju/destiny-bias/lib/destinyBiasTheme.ts",
+    "app/saju/destiny-bias/lib/destinyBiasTouchGuard.ts",
+    "app/saju/destiny-bias/lib/types.ts",
+    "app/saju/destiny-bias/page.tsx",
+    "app/saju/destiny-bias/stage/page.tsx",
+    "app/saju/destiny-bias/utils/buildBiasCardSvgModel.ts",
+    "app/saju/destiny-bias/utils/createBiasEnergySvg.ts",
+    "app/saju/destiny-bias/utils/createDestinyBiasSvg.ts",
+    "app/saju/destiny-bias/utils/downloadPngFromSvg.ts",
+    "app/saju/destiny-bias/utils/downloadSvg.ts",
+    "app/saju/destiny-bias/utils/svgText.ts",
+    "app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx",
+    "app/saju/destiny-meeting-place/page.tsx",
+    "app/saju/lifebook/page.js",
+    "app/saju/love-bible/page.js",
     "app/saju/love-simulation/LoveSimulationClient.tsx",
+    "app/saju/love-simulation/_components/AffinityMeter.tsx",
+    "app/saju/love-simulation/_components/CustomSajuForm.tsx",
+    "app/saju/love-simulation/_components/DialogueBox.tsx",
+    "app/saju/love-simulation/_components/LoveCharacterStorySection.tsx",
+    "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
+    "app/saju/love-simulation/_data/loveCharacterStories.ts",
+    "app/saju/love-simulation/_data/loveCodeMvp.ts",
+    "app/saju/love-simulation/_data/presets.ts",
+    "app/saju/love-simulation/_data/scenarios.ts",
+    "app/saju/love-simulation/_hooks/useSimulation.ts",
+    "app/saju/love-simulation/_services/sajuApi.ts",
+    "app/saju/love-simulation/_types/index.ts",
+    "app/saju/love-simulation/_utils/loveCharacterMatching.ts",
+    "app/saju/love-simulation/_utils/loveCodeScoring.ts",
+    "app/saju/love-simulation/_utils/personaLogic.ts",
     "app/saju/love-simulation/page.tsx",
     "app/saju/page.js",
     "app/saju/sibyl/page.tsx",
@@ -281,7 +498,15 @@
     "app/tarot/mindscan/page.tsx",
     "app/tarot/mingri/page.tsx",
     "app/tarot/mingri/play/page.tsx",
+    "app/tarot/numerology/NumerologyTarotClient.tsx",
+    "app/tarot/numerology/page.tsx",
     "app/tarot/page.js",
+    "app/tarot/prompt-maker/data/tarotSpreadLibrary.ts",
+    "app/tarot/prompt-maker/page.tsx",
+    "app/tarot/prompt-maker/types.ts",
+    "app/tarot/prompt-maker/utils/buildOraclePrompt.ts",
+    "app/tarot/prompt-maker/utils/classifyTarotQuestion.ts",
+    "app/tarot/prompt-maker/utils/layoutSpreadPositions.ts",
     "app/tarot/reunion/page.tsx",
     "app/tarot/self-esteem/page.tsx",
     "app/tarot/year/page.tsx",
@@ -291,13 +516,16 @@
     "app/today/page.js",
     "app/vedic/jyotish/page.tsx",
     "app/vedic/page.js",
+    "app/yeon-star-hug/page.tsx",
     "app/zh-cn/page.js",
     "app/ziwei/chart/ZiweiChartClientLoader.tsx",
     "app/ziwei/chart/page.tsx",
     "app/ziwei/page.js",
+    "blood-type-app.html",
     "celestial-harmony.html",
     "cosmic-soul-meditation.html",
     "destiny-poker.html",
+    "emoi_omikuji_v2.html",
     "fortune-teller-fish.html",
     "geomancy-oracle-v4.html",
     "ifa-oracle-about.html",
@@ -320,6 +548,7 @@
     "public/blog/tarot-spread-howto.html",
     "public/blog/yongshin-guide.html",
     "public/blog/ziwei-intro.html",
+    "public/blood-type-app.html",
     "public/celestial-harmony.html",
     "public/cosmic-soul-meditation.html",
     "public/destiny-poker.html",
@@ -445,6 +674,7 @@
     "royal-tea-oracle.html",
     "scripts/adsense-crawl-audit.mjs",
     "scripts/audit-unused-files.mjs",
+    "scripts/auth-wrong-password-smoke.mjs",
     "scripts/check-seo-health.mjs",
     "scripts/clean-cloudflare-build.mjs",
     "scripts/deploy-pages.mjs",
@@ -452,37 +682,58 @@
     "scripts/fortune-daily-once.mjs",
     "scripts/gen-daily.mjs",
     "scripts/gen-fortune-system-pages.mjs",
+    "scripts/generate-music-manifest.ts",
     "scripts/generate-rss.mjs",
     "scripts/generate-sitemap.mjs",
     "scripts/guard-blocked-keywords.mjs",
+    "scripts/local-dev-auth-api.mjs",
     "scripts/migrate-insights-to-content.mjs",
     "scripts/migrate-withdraw-indexes.mjs",
+    "scripts/next-build-with-pages-manifest.mjs",
     "scripts/opennext-deploy-retry.mjs",
+    "scripts/prepare-cloudflare-dist.mjs",
     "scripts/print-build-context.mjs",
     "scripts/promote-static-shell-to-root.mjs",
     "scripts/prune-server-function-static-heavy.mjs",
     "scripts/psi-lighthouse-audit.mjs",
+    "scripts/qa-destiny-bias-touch-check.mjs",
     "scripts/safe-clean-repo.mjs",
     "scripts/sanitize-open-next-env.mjs",
     "scripts/seed-inicis-test-account.mjs",
     "scripts/seed-test-account.mjs",
+    "scripts/seed-test-users.mjs",
     "scripts/seo-audit.mjs",
     "scripts/smoke-oauth-callbacks.mjs",
+    "scripts/smoke-pexels-images.mjs",
+    "scripts/smoke-premium-timeout-rate-limit.mjs",
+    "scripts/smoke-ziwei-paid-retry-recovery.mjs",
+    "scripts/smoke-ziwei-premium-e2e.mjs",
     "scripts/sync-cloudflare-pages-secrets.mjs",
     "scripts/sync-cloudflare-worker-secrets.mjs",
     "scripts/sync-legacy-static-to-public.mjs",
     "scripts/test-signup.mjs",
     "scripts/verify-all-paid-services-payment-flow.mjs",
+    "scripts/verify-billing-pass-policy.mjs",
     "scripts/verify-cloudflare-migration-readiness.mjs",
     "scripts/verify-entry-encoding.mjs",
+    "scripts/verify-i18n-public-parity.mjs",
+    "scripts/verify-i18n-runtime-readiness.mjs",
     "scripts/verify-inicis-local-auth.mjs",
+    "scripts/verify-insight-famous-coverage.mjs",
+    "scripts/verify-lifebook-required-coverage.mjs",
     "scripts/verify-locale-main-sync.mjs",
     "scripts/verify-no-secret-leak.mjs",
+    "scripts/verify-paid-gate-ui-regression.mjs",
+    "scripts/verify-portone-single-payment-regression.mjs",
+    "scripts/verify-profile-card-action-policy.mjs",
     "scripts/verify-public-parity.mjs",
+    "scripts/verify-r2-font-assets.mjs",
+    "scripts/verify-rpg-phase9.mjs",
     "scripts/verify-runtime-cache-sync.mjs",
     "scripts/verify-style-sync.mjs",
     "scripts/verify-test-account-payment-flow.mjs",
     "scripts/verify-worker-size-budget.mjs",
+    "scripts/with-utf8-console.mjs",
     "scripts/write-version-json.mjs",
     "secret-house_real.html",
     "server/app.js",
@@ -497,145 +748,91 @@
     "wrangler.toml",
     "yoga-guru.html"
   ],
-  "graphNodeCount": 764,
+  "graphNodeCount": 1122,
   "unusedCandidates": [
     {
-      "path": "_tmp_ppt_review/source.zip",
-      "size": 6096903,
-      "sizeHuman": "5.81 MB",
-      "extension": ".zip"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image1.png",
-      "size": 1882655,
-      "sizeHuman": "1.80 MB",
-      "extension": ".png"
+      "path": "_tmp_saju_3c71.js",
+      "size": 2471984,
+      "sizeHuman": "2.36 MB",
+      "extension": ".js"
     },
     {
       "path": "js/saju-engine.js",
-      "size": 1299680,
+      "size": 1968569,
+      "sizeHuman": "1.88 MB",
+      "extension": ".js"
+    },
+    {
+      "path": "_tmp_bfd_saju.js",
+      "size": 1503406,
+      "sizeHuman": "1.43 MB",
+      "extension": ".js"
+    },
+    {
+      "path": "js/vendor/sweph-wasm/ephe/semo_18.se1",
+      "size": 1304771,
+      "sizeHuman": "1.24 MB",
+      "extension": ".se1"
+    },
+    {
+      "path": "_tmp_313a8bd.js",
+      "size": 1300940,
       "sizeHuman": "1.24 MB",
       "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image3.png",
-      "size": 1211533,
-      "sizeHuman": "1.16 MB",
-      "extension": ".png"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image4.png",
-      "size": 835384,
-      "sizeHuman": "815.8 KB",
-      "extension": ".png"
-    },
-    {
       "path": "js/saju-engine-tarot-sukuyo-quantum.js",
-      "size": 480790,
-      "sizeHuman": "469.5 KB",
+      "size": 1009252,
+      "sizeHuman": "985.6 KB",
       "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image2.png",
-      "size": 398138,
-      "sizeHuman": "388.8 KB",
-      "extension": ".png"
+      "path": "js/vendor/sweph-wasm/ephe/sepl_18.se1",
+      "size": 484055,
+      "sizeHuman": "472.7 KB",
+      "extension": ".se1"
     },
     {
-      "path": "fuctionassets/심리테스트.webp",
-      "size": 392674,
-      "sizeHuman": "383.5 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "fuctionassets/sajuhealth.webp",
-      "size": 318636,
-      "sizeHuman": "311.2 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/1_1.webp",
-      "size": 298166,
-      "sizeHuman": "291.2 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image8.png",
-      "size": 256689,
-      "sizeHuman": "250.7 KB",
-      "extension": ".png"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image15.png",
-      "size": 240460,
-      "sizeHuman": "234.8 KB",
-      "extension": ".png"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image9.png",
-      "size": 228489,
-      "sizeHuman": "223.1 KB",
-      "extension": ".png"
+      "path": ".codex-next-dev.log",
+      "size": 371998,
+      "sizeHuman": "363.3 KB",
+      "extension": ".log"
     },
     {
       "path": "tsconfig.tsbuildinfo",
-      "size": 217721,
-      "sizeHuman": "212.6 KB",
+      "size": 307899,
+      "sizeHuman": "300.7 KB",
       "extension": ".tsbuildinfo"
     },
     {
-      "path": "fuctionassets/destiny pocker.webp",
-      "size": 217426,
-      "sizeHuman": "212.3 KB",
-      "extension": ".webp"
+      "path": "css/index-inline-extracted.css",
+      "size": 286391,
+      "sizeHuman": "279.7 KB",
+      "extension": ".css"
     },
     {
-      "path": "fuctionassets/piggyfortune.webp",
-      "size": 217268,
-      "sizeHuman": "212.2 KB",
-      "extension": ".webp"
+      "path": "js/luck-sync-diary.js",
+      "size": 247637,
+      "sizeHuman": "241.8 KB",
+      "extension": ".js"
     },
     {
-      "path": "fuctionassets/imsolo.webp",
-      "size": 216214,
-      "sizeHuman": "211.1 KB",
-      "extension": ".webp"
+      "path": "seo-audit-report.md",
+      "size": 241530,
+      "sizeHuman": "235.9 KB",
+      "extension": ".md"
     },
     {
-      "path": "fuctionassets/최애운명.webp",
-      "size": 209922,
-      "sizeHuman": "205.0 KB",
-      "extension": ".webp"
+      "path": "js/entertain-engine.js",
+      "size": 227820,
+      "sizeHuman": "222.5 KB",
+      "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image7.png",
-      "size": 206701,
-      "sizeHuman": "201.9 KB",
-      "extension": ".png"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image6.png",
-      "size": 198885,
-      "sizeHuman": "194.2 KB",
-      "extension": ".png"
-    },
-    {
-      "path": "fuctionassets/lotto.webp",
-      "size": 187804,
-      "sizeHuman": "183.4 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/8_1.webp",
-      "size": 182478,
-      "sizeHuman": "178.2 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "fuctionassets/trip.webp",
-      "size": 181084,
-      "sizeHuman": "176.8 KB",
-      "extension": ".webp"
+      "path": "js/vendor/sweph-wasm/ephe/seas_18.se1",
+      "size": 223002,
+      "sizeHuman": "217.8 KB",
+      "extension": ".se1"
     },
     {
       "path": "all_webp_files.txt",
@@ -644,340 +841,76 @@
       "extension": ".txt"
     },
     {
-      "path": "fuctionassets/meryok.webp",
-      "size": 159048,
-      "sizeHuman": "155.3 KB",
-      "extension": ".webp"
+      "path": "_tmp_ziwei.diff",
+      "size": 163649,
+      "sizeHuman": "159.8 KB",
+      "extension": ".diff"
     },
     {
-      "path": "fuctionassets/vilun.webp",
-      "size": 154346,
-      "sizeHuman": "150.7 KB",
-      "extension": ".webp"
+      "path": "LoveSimulation.jsx",
+      "size": 155036,
+      "sizeHuman": "151.4 KB",
+      "extension": ".jsx"
     },
     {
-      "path": "fuctionassets/ai face.webp",
-      "size": 142128,
-      "sizeHuman": "138.8 KB",
-      "extension": ".webp"
+      "path": "dev-server.log",
+      "size": 140499,
+      "sizeHuman": "137.2 KB",
+      "extension": ".log"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image5.png",
-      "size": 139421,
-      "sizeHuman": "136.2 KB",
-      "extension": ".png"
+      "path": ".next-dev-server.log",
+      "size": 89822,
+      "sizeHuman": "87.7 KB",
+      "extension": ".log"
     },
     {
-      "path": "fuctionassets/4CUT.webp",
-      "size": 137800,
-      "sizeHuman": "134.6 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/4_1.webp",
-      "size": 133256,
-      "sizeHuman": "130.1 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "fuctionassets/quntum.webp",
-      "size": 131892,
-      "sizeHuman": "128.8 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "fuctionassets/sajuprompt.webp",
-      "size": 131558,
-      "sizeHuman": "128.5 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "fuctionassets/unsetama.webp",
-      "size": 127156,
-      "sizeHuman": "124.2 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "fuctionassets/ai tarrot.webp",
-      "size": 117742,
-      "sizeHuman": "115.0 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image12.png",
-      "size": 117598,
-      "sizeHuman": "114.8 KB",
-      "extension": ".png"
-    },
-    {
-      "path": "sudda/hwatu/5_1.webp",
-      "size": 116618,
-      "sizeHuman": "113.9 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/9_1.webp",
-      "size": 112926,
-      "sizeHuman": "110.3 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "fuctionassets/fortuneteller fish.webp",
-      "size": 112732,
-      "sizeHuman": "110.1 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/7_1.webp",
-      "size": 110270,
-      "sizeHuman": "107.7 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "fuctionassets/tetoegen.webp",
-      "size": 97304,
-      "sizeHuman": "95.0 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/10_1.webp",
-      "size": 95462,
-      "sizeHuman": "93.2 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "fuctionassets/tbal.webp",
-      "size": 90740,
-      "sizeHuman": "88.6 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "fuctionassets/ai animal.webp",
-      "size": 90180,
-      "sizeHuman": "88.1 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image10.png",
-      "size": 89646,
-      "sizeHuman": "87.5 KB",
-      "extension": ".png"
-    },
-    {
-      "path": "fuctionassets/sajurpg.webp",
-      "size": 88236,
-      "sizeHuman": "86.2 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/1_3.webp",
-      "size": 87220,
-      "sizeHuman": "85.2 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/9_4.webp",
-      "size": 86134,
-      "sizeHuman": "84.1 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/11_1.webp",
-      "size": 86012,
-      "sizeHuman": "84.0 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image11.png",
-      "size": 85435,
-      "sizeHuman": "83.4 KB",
-      "extension": ".png"
-    },
-    {
-      "path": "sudda/hwatu/9_2.webp",
-      "size": 81742,
-      "sizeHuman": "79.8 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/10_2.webp",
-      "size": 80360,
-      "sizeHuman": "78.5 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/9_3.webp",
-      "size": 75092,
-      "sizeHuman": "73.3 KB",
-      "extension": ".webp"
+      "path": ".codex-next-dev-prompt-maker.err.log",
+      "size": 89461,
+      "sizeHuman": "87.4 KB",
+      "extension": ".log"
     },
     {
       "path": "js/love-secret-service.js",
-      "size": 71723,
-      "sizeHuman": "70.0 KB",
+      "size": 81546,
+      "sizeHuman": "79.6 KB",
       "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image14.png",
-      "size": 69760,
-      "sizeHuman": "68.1 KB",
-      "extension": ".png"
-    },
-    {
-      "path": "sudda/hwatu/8_2.webp",
-      "size": 69644,
-      "sizeHuman": "68.0 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/2_2.webp",
-      "size": 69582,
-      "sizeHuman": "68.0 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/2_3.webp",
-      "size": 69420,
-      "sizeHuman": "67.8 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/1_4.webp",
-      "size": 69376,
-      "sizeHuman": "67.8 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/4_4.webp",
-      "size": 68924,
-      "sizeHuman": "67.3 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/3_3.webp",
-      "size": 66936,
-      "sizeHuman": "65.4 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/2_4.webp",
-      "size": 66832,
-      "sizeHuman": "65.3 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/media/image13.png",
-      "size": 66506,
-      "sizeHuman": "64.9 KB",
-      "extension": ".png"
-    },
-    {
-      "path": "sudda/hwatu/10_4.webp",
-      "size": 65814,
-      "sizeHuman": "64.3 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/5_3.webp",
-      "size": 65364,
-      "sizeHuman": "63.8 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/12_2.webp",
-      "size": 65188,
-      "sizeHuman": "63.7 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/3_4.webp",
-      "size": 65140,
-      "sizeHuman": "63.6 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/10_3.webp",
-      "size": 65058,
-      "sizeHuman": "63.5 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/8_3.webp",
-      "size": 64756,
-      "sizeHuman": "63.2 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/11_3.webp",
-      "size": 64162,
-      "sizeHuman": "62.7 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/6_1.webp",
-      "size": 63854,
-      "sizeHuman": "62.4 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/4_3.webp",
-      "size": 63530,
-      "sizeHuman": "62.0 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/7_2.webp",
-      "size": 63294,
-      "sizeHuman": "61.8 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/7_4.webp",
-      "size": 60410,
-      "sizeHuman": "59.0 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "js/entertain-engine.js",
-      "size": 60407,
-      "sizeHuman": "59.0 KB",
+      "path": "js/tarot-self-esteem-experience.js",
+      "size": 74255,
+      "sizeHuman": "72.5 KB",
       "extension": ".js"
-    },
-    {
-      "path": "sudda/hwatu/8_4.webp",
-      "size": 60296,
-      "sizeHuman": "58.9 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "sudda/hwatu/6_3.webp",
-      "size": 58316,
-      "sizeHuman": "56.9 KB",
-      "extension": ".webp"
     },
     {
       "path": "js/core/saju/reportDashboard.js",
-      "size": 58065,
-      "sizeHuman": "56.7 KB",
+      "size": 70048,
+      "sizeHuman": "68.4 KB",
       "extension": ".js"
     },
     {
-      "path": "sudda/hwatu/3_2.webp",
-      "size": 57896,
-      "sizeHuman": "56.5 KB",
-      "extension": ".webp"
+      "path": ".codex-next-dev-prompt-maker.out.log",
+      "size": 61653,
+      "sizeHuman": "60.2 KB",
+      "extension": ".log"
     },
     {
-      "path": "sudda/hwatu/5_2.webp",
-      "size": 56324,
-      "sizeHuman": "55.0 KB",
-      "extension": ".webp"
+      "path": "js/core/saju/extremeTResult.js",
+      "size": 59298,
+      "sizeHuman": "57.9 KB",
+      "extension": ".js"
     },
     {
-      "path": "sudda/hwatu/7_3.webp",
-      "size": 54926,
-      "sizeHuman": "53.6 KB",
-      "extension": ".webp"
+      "path": "docs/duplicate-assets-cleanup.md",
+      "size": 56902,
+      "sizeHuman": "55.6 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "js/tarot-love-experience.js",
+      "size": 56204,
+      "sizeHuman": "54.9 KB",
+      "extension": ".js"
     },
     {
       "path": "lib/sukuyo-engine-server.ts",
@@ -986,22 +919,16 @@
       "extension": ".ts"
     },
     {
-      "path": "sudda/hwatu/5_4.webp",
-      "size": 51610,
-      "sizeHuman": "50.4 KB",
-      "extension": ".webp"
-    },
-    {
       "path": "js/astral-soul.js",
-      "size": 50487,
-      "sizeHuman": "49.3 KB",
+      "size": 50637,
+      "sizeHuman": "49.5 KB",
       "extension": ".js"
     },
     {
-      "path": "sudda/hwatu/12_4.webp",
-      "size": 49046,
-      "sizeHuman": "47.9 KB",
-      "extension": ".webp"
+      "path": "js/core/kasi-calendar-service.js",
+      "size": 50170,
+      "sizeHuman": "49.0 KB",
+      "extension": ".js"
     },
     {
       "path": "styles/main-glass.css",
@@ -1010,34 +937,40 @@
       "extension": ".css"
     },
     {
-      "path": "js/tarot-self-esteem-experience.js",
-      "size": 47386,
-      "sizeHuman": "46.3 KB",
+      "path": ".codex-static-tarot-love.log",
+      "size": 44730,
+      "sizeHuman": "43.7 KB",
+      "extension": ".log"
+    },
+    {
+      "path": "scripts/smoke-love-secret-premium-e2e.mjs",
+      "size": 42702,
+      "sizeHuman": "41.7 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "js/services/animal-totem-content-engine.js",
+      "size": 40219,
+      "sizeHuman": "39.3 KB",
       "extension": ".js"
     },
     {
-      "path": "js/tarot-love-experience.js",
-      "size": 46686,
-      "sizeHuman": "45.6 KB",
+      "path": "js/animal-totem-experience.js",
+      "size": 39293,
+      "sizeHuman": "38.4 KB",
       "extension": ".js"
     },
     {
-      "path": "sudda/hwatu/11_2.webp",
-      "size": 42394,
-      "sizeHuman": "41.4 KB",
-      "extension": ".webp"
+      "path": "scripts/test-saju-solar-term-regression.mjs",
+      "size": 38513,
+      "sizeHuman": "37.6 KB",
+      "extension": ".mjs"
     },
     {
-      "path": "js/core/kasi-calendar-service.js",
-      "size": 36530,
-      "sizeHuman": "35.7 KB",
-      "extension": ".js"
-    },
-    {
-      "path": "sudda/hwatu/6_4.webp",
-      "size": 35630,
-      "sizeHuman": "34.8 KB",
-      "extension": ".webp"
+      "path": "insights/rss.xml",
+      "size": 37482,
+      "sizeHuman": "36.6 KB",
+      "extension": ".xml"
     },
     {
       "path": "scripts/patch-diary-ui.mjs",
@@ -1046,15 +979,27 @@
       "extension": ".mjs"
     },
     {
-      "path": "js/inline/planet-widget-cosmic.js",
-      "size": 25351,
-      "sizeHuman": "24.8 KB",
-      "extension": ".js"
+      "path": "scripts/verify-lifebook-llm-only-flow.mjs",
+      "size": 22974,
+      "sizeHuman": "22.4 KB",
+      "extension": ".mjs"
     },
     {
       "path": "scripts/inject-godlife.mjs",
       "size": 22013,
       "sizeHuman": "21.5 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": ".codex-mindscan-dev.out.log",
+      "size": 21433,
+      "sizeHuman": "20.9 KB",
+      "extension": ".log"
+    },
+    {
+      "path": "scripts/smoke-saju-new-year-premium-e2e.mjs",
+      "size": 21103,
+      "sizeHuman": "20.6 KB",
       "extension": ".mjs"
     },
     {
@@ -1064,39 +1009,129 @@
       "extension": ".js"
     },
     {
-      "path": "update_emoi.py",
-      "size": 18144,
-      "sizeHuman": "17.7 KB",
-      "extension": ".py"
+      "path": ".codex-mindscan-dev.err.log",
+      "size": 19338,
+      "sizeHuman": "18.9 KB",
+      "extension": ".log"
     },
     {
-      "path": "fuctionassets/flower-320.webp",
-      "size": 17896,
-      "sizeHuman": "17.5 KB",
-      "extension": ".webp"
+      "path": "codex-dev-server-3001.err.log",
+      "size": 19057,
+      "sizeHuman": "18.6 KB",
+      "extension": ".log"
     },
     {
-      "path": "styles/mobile-ux.css",
-      "size": 16363,
-      "sizeHuman": "16.0 KB",
-      "extension": ".css"
+      "path": "scripts/verify-vedic-variety.mjs",
+      "size": 18906,
+      "sizeHuman": "18.5 KB",
+      "extension": ".mjs"
     },
     {
-      "path": "__tests__/worker/love-secret.strict.test.js",
-      "size": 13923,
-      "sizeHuman": "13.6 KB",
+      "path": "codex-dev-server-3002.err.log",
+      "size": 17745,
+      "sizeHuman": "17.3 KB",
+      "extension": ".log"
+    },
+    {
+      "path": "scripts/verify-ziwei-deep-counseling-quality.cjs",
+      "size": 17104,
+      "sizeHuman": "16.7 KB",
+      "extension": ".cjs"
+    },
+    {
+      "path": "_headers",
+      "size": 16331,
+      "sizeHuman": "15.9 KB",
+      "extension": "(none)"
+    },
+    {
+      "path": "js/mobile-backstack-navigation.js",
+      "size": 16249,
+      "sizeHuman": "15.9 KB",
       "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideMasters/slideMaster1.xml",
-      "size": 12498,
-      "sizeHuman": "12.2 KB",
-      "extension": ".xml"
+      "path": "lib/yeon/generateYeonPrompt.ts",
+      "size": 16086,
+      "sizeHuman": "15.7 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "scripts/verify-saju-unlock-entitlement-regression.mjs",
+      "size": 15944,
+      "sizeHuman": "15.6 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "styles/mobile-ux.css",
+      "size": 15448,
+      "sizeHuman": "15.1 KB",
+      "extension": ".css"
+    },
+    {
+      "path": "__tests__/worker/sukuyo-preflight-and-recovery-guard.test.js",
+      "size": 15331,
+      "sizeHuman": "15.0 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "components/yeon/YeonStarHugPage.tsx",
+      "size": 14843,
+      "sizeHuman": "14.5 KB",
+      "extension": ".tsx"
+    },
+    {
+      "path": "scripts/smoke-astro-premium-e2e.mjs",
+      "size": 14689,
+      "sizeHuman": "14.3 KB",
+      "extension": ".mjs"
     },
     {
       "path": "__tests__/palm/palm-map-engine-requirements.test.js",
-      "size": 11813,
-      "sizeHuman": "11.5 KB",
+      "size": 14656,
+      "sizeHuman": "14.3 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "__tests__/worker/dream-psycho-analysis.route.test.js",
+      "size": 14052,
+      "sizeHuman": "13.7 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "__tests__/worker/vedic-ai-prompt-domain-templates.test.js",
+      "size": 13292,
+      "sizeHuman": "13.0 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "__tests__/worker/fpti-deep-report.quality.test.js",
+      "size": 12947,
+      "sizeHuman": "12.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "AGENTS.md",
+      "size": 12486,
+      "sizeHuman": "12.2 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "scripts/smoke-sukuyo-premium-e2e.mjs",
+      "size": 12383,
+      "sizeHuman": "12.1 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "__tests__/worker/saju-new-year.pipeline.test.js",
+      "size": 12196,
+      "sizeHuman": "11.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "js/saju-engine-continuation.js",
+      "size": 11636,
+      "sizeHuman": "11.4 KB",
       "extension": ".js"
     },
     {
@@ -1106,10 +1141,28 @@
       "extension": ".js"
     },
     {
+      "path": "scripts/verify-soul-origin-pdf-service-flow.mjs",
+      "size": 11458,
+      "sizeHuman": "11.2 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": ".codex-static-4173.log",
+      "size": 11194,
+      "sizeHuman": "10.9 KB",
+      "extension": ".log"
+    },
+    {
       "path": "js/tarot-data.js",
       "size": 10926,
       "sizeHuman": "10.7 KB",
       "extension": ".js"
+    },
+    {
+      "path": "tmp-codex-animal-dev.log",
+      "size": 10902,
+      "sizeHuman": "10.6 KB",
+      "extension": ".log"
     },
     {
       "path": "js/services/sajuWorkerServiceAdvanced.js",
@@ -1118,16 +1171,16 @@
       "extension": ".js"
     },
     {
-      "path": "js/saju-engine-continuation.js",
-      "size": 10681,
-      "sizeHuman": "10.4 KB",
-      "extension": ".js"
+      "path": "lib/payment/portone.ts",
+      "size": 10576,
+      "sizeHuman": "10.3 KB",
+      "extension": ".ts"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/docProps/thumbnail.jpeg",
-      "size": 10240,
-      "sizeHuman": "10.0 KB",
-      "extension": ".jpeg"
+      "path": "js/core/kasi/calendar.js",
+      "size": 10360,
+      "sizeHuman": "10.1 KB",
+      "extension": ".js"
     },
     {
       "path": "PROJECT_STRUCTURE.md",
@@ -1136,15 +1189,15 @@
       "extension": ".md"
     },
     {
-      "path": "__tests__/worker/lifebook.strict.test.js",
-      "size": 10091,
-      "sizeHuman": "9.9 KB",
-      "extension": ".js"
+      "path": "components/sukuyo-compat-report/mapWorkerPayloadToSukuyoReport.ts",
+      "size": 9870,
+      "sizeHuman": "9.6 KB",
+      "extension": ".ts"
     },
     {
-      "path": "js/core/kasi/calendar.js",
-      "size": 9831,
-      "sizeHuman": "9.6 KB",
+      "path": "__tests__/palm/palm-ui-requirements.test.js",
+      "size": 9754,
+      "sizeHuman": "9.5 KB",
       "extension": ".js"
     },
     {
@@ -1154,21 +1207,39 @@
       "extension": ".js"
     },
     {
-      "path": "js/engines/ziwei-doushu.js",
-      "size": 9700,
+      "path": "scripts/ziwei-page-window-smoke.mjs",
+      "size": 9717,
       "sizeHuman": "9.5 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "__tests__/worker/api-status-normalization.test.js",
+      "size": 9535,
+      "sizeHuman": "9.3 KB",
       "extension": ".js"
     },
     {
-      "path": "fuctionassets/yeon.webp",
-      "size": 9392,
+      "path": "js/services/sajuWorkerExamples.js",
+      "size": 9463,
       "sizeHuman": "9.2 KB",
-      "extension": ".webp"
+      "extension": ".js"
     },
     {
       "path": "scripts/validate-seo-meta.js",
-      "size": 8938,
-      "sizeHuman": "8.7 KB",
+      "size": 9130,
+      "sizeHuman": "8.9 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "lib/yeon/sampleYeonMessages.ts",
+      "size": 9120,
+      "sizeHuman": "8.9 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "__tests__/worker/coin-access.guard.test.js",
+      "size": 9107,
+      "sizeHuman": "8.9 KB",
       "extension": ".js"
     },
     {
@@ -1178,10 +1249,16 @@
       "extension": ".js"
     },
     {
-      "path": "js/services/sajuWorkerExamples.js",
-      "size": 8695,
+      "path": "lib/seo-site-urls.ts",
+      "size": 8700,
       "sizeHuman": "8.5 KB",
-      "extension": ".js"
+      "extension": ".ts"
+    },
+    {
+      "path": "components/sukuyo-compat-report/normalizeSukuyoCompatibilityReport.ts",
+      "size": 8694,
+      "sizeHuman": "8.5 KB",
+      "extension": ".ts"
     },
     {
       "path": "scripts/build-tarot-db-from-themaintarot.mjs",
@@ -1190,15 +1267,15 @@
       "extension": ".mjs"
     },
     {
+      "path": "components/fortune/destiny-meeting-place/DestinyMeetingPlaceFeature.tsx",
+      "size": 8600,
+      "sizeHuman": "8.4 KB",
+      "extension": ".tsx"
+    },
+    {
       "path": "js/web-vitals-console.js",
       "size": 8591,
       "sizeHuman": "8.4 KB",
-      "extension": ".js"
-    },
-    {
-      "path": "__tests__/palm/palm-ui-requirements.test.js",
-      "size": 8515,
-      "sizeHuman": "8.3 KB",
       "extension": ".js"
     },
     {
@@ -1208,10 +1285,28 @@
       "extension": ".ts"
     },
     {
-      "path": "__tests__/worker/vedic-premium.strict.test.js",
-      "size": 8120,
-      "sizeHuman": "7.9 KB",
+      "path": "__tests__/worker/payments.prepare-idempotency.test.js",
+      "size": 8167,
+      "sizeHuman": "8.0 KB",
       "extension": ".js"
+    },
+    {
+      "path": ".codex-next-dev.err.log",
+      "size": 8139,
+      "sizeHuman": "7.9 KB",
+      "extension": ".log"
+    },
+    {
+      "path": "scripts/verify-paid-feature-billing-policy.mjs",
+      "size": 7999,
+      "sizeHuman": "7.8 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "scripts/smoke-vedic-premium-e2e.mjs",
+      "size": 7995,
+      "sizeHuman": "7.8 KB",
+      "extension": ".mjs"
     },
     {
       "path": "scripts/verify-ziwei-brightness-constraints.cjs",
@@ -1220,27 +1315,33 @@
       "extension": ".cjs"
     },
     {
+      "path": "scripts/verify-sukuyo-pdf-local-fallback.mjs",
+      "size": 7899,
+      "sizeHuman": "7.7 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "build_output.txt",
+      "size": 7870,
+      "sizeHuman": "7.7 KB",
+      "extension": ".txt"
+    },
+    {
       "path": "js/data/chinese-astrology.js",
       "size": 7774,
       "sizeHuman": "7.6 KB",
       "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout5.xml",
-      "size": 7655,
-      "sizeHuman": "7.5 KB",
-      "extension": ".xml"
+      "path": "ASTRO_REFACTOR_COMPLETION_CHECKLIST.md",
+      "size": 7761,
+      "sizeHuman": "7.6 KB",
+      "extension": ".md"
     },
     {
-      "path": "__tests__/worker/astro-premium.strict.test.js",
-      "size": 7559,
-      "sizeHuman": "7.4 KB",
-      "extension": ".js"
-    },
-    {
-      "path": "__tests__/worker/sukuyo-natal-premium.quality.test.js",
-      "size": 7438,
-      "sizeHuman": "7.3 KB",
+      "path": "__tests__/worker/saju-lifebook.pipeline-quality-soft-gate.test.js",
+      "size": 7385,
+      "sizeHuman": "7.2 KB",
       "extension": ".js"
     },
     {
@@ -1250,16 +1351,16 @@
       "extension": ".md"
     },
     {
-      "path": "_tmp_palm_attached_smoke_with_clientlike_data.mjs",
-      "size": 7230,
-      "sizeHuman": "7.1 KB",
-      "extension": ".mjs"
+      "path": "lib/seo.v2.ts",
+      "size": 7208,
+      "sizeHuman": "7.0 KB",
+      "extension": ".ts"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/theme/theme1.xml",
-      "size": 7101,
+      "path": "__tests__/worker/astro-premium.generator.pipeline.test.js",
+      "size": 7104,
       "sizeHuman": "6.9 KB",
-      "extension": ".xml"
+      "extension": ".js"
     },
     {
       "path": "__tests__/palm/both-hands-comparison.test.js",
@@ -1268,34 +1369,22 @@
       "extension": ".js"
     },
     {
-      "path": "__tests__/worker/premium-report.canonical.test.js",
-      "size": 6965,
+      "path": "types/sukuyo-compat-report/sukuyoCompatibilityReport.types.ts",
+      "size": 7024,
+      "sizeHuman": "6.9 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "CLOUDFLARE_PAGES_SETUP.md",
+      "size": 6974,
       "sizeHuman": "6.8 KB",
-      "extension": ".js"
+      "extension": ".md"
     },
     {
       "path": "scripts/validate-phase4.mjs",
       "size": 6959,
       "sizeHuman": "6.8 KB",
       "extension": ".mjs"
-    },
-    {
-      "path": "CLOUDFLARE_PAGES_SETUP.md",
-      "size": 6835,
-      "sizeHuman": "6.7 KB",
-      "extension": ".md"
-    },
-    {
-      "path": "__tests__/worker/sukuyo-premium.strict.test.js",
-      "size": 6812,
-      "sizeHuman": "6.7 KB",
-      "extension": ".js"
-    },
-    {
-      "path": "__tests__/worker/ziwei-premium.strict.test.js",
-      "size": 6793,
-      "sizeHuman": "6.6 KB",
-      "extension": ".js"
     },
     {
       "path": "CelestialHarmony.jsx",
@@ -1310,28 +1399,52 @@
       "extension": ".md"
     },
     {
-      "path": "_tmp_premium_pdf_api_smoke.mjs",
-      "size": 6633,
-      "sizeHuman": "6.5 KB",
+      "path": "scripts/smoke-palm-10.mjs",
+      "size": 6595,
+      "sizeHuman": "6.4 KB",
       "extension": ".mjs"
     },
     {
-      "path": "js/splash.js",
-      "size": 6413,
-      "sizeHuman": "6.3 KB",
+      "path": "scripts/verify-health-report-regression.mjs",
+      "size": 6383,
+      "sizeHuman": "6.2 KB",
+      "extension": ".mjs"
+    },
+    {
+      "path": "__tests__/worker/premium-access-control.rules.test.js",
+      "size": 6217,
+      "sizeHuman": "6.1 KB",
       "extension": ".js"
     },
     {
+      "path": "types/saju-premium-report/chapters/sajuChapter.types.ts",
+      "size": 6169,
+      "sizeHuman": "6.0 KB",
+      "extension": ".ts"
+    },
+    {
       "path": "styles/README.md",
-      "size": 5929,
+      "size": 5924,
       "sizeHuman": "5.8 KB",
       "extension": ".md"
+    },
+    {
+      "path": ".env.local",
+      "size": 5854,
+      "sizeHuman": "5.7 KB",
+      "extension": ".local"
     },
     {
       "path": "CLEANUP_REPORT.md",
       "size": 5786,
       "sizeHuman": "5.7 KB",
       "extension": ".md"
+    },
+    {
+      "path": ".github/workflows/cloudflare-worker-deploy.yml",
+      "size": 5599,
+      "sizeHuman": "5.5 KB",
+      "extension": ".yml"
     },
     {
       "path": "QUICK_START.md",
@@ -1346,10 +1459,10 @@
       "extension": ".cjs"
     },
     {
-      "path": "icons/samba-130.webp",
-      "size": 5218,
+      "path": "build-destiny.log",
+      "size": 5184,
       "sizeHuman": "5.1 KB",
-      "extension": ".webp"
+      "extension": ".log"
     },
     {
       "path": "adsense-audit-report.md",
@@ -1358,74 +1471,38 @@
       "extension": ".md"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/[Content_Types].xml",
-      "size": 5149,
-      "sizeHuman": "5.0 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout8.xml",
-      "size": 5087,
-      "sizeHuman": "5.0 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout4.xml",
-      "size": 5080,
-      "sizeHuman": "5.0 KB",
-      "extension": ".xml"
-    },
-    {
       "path": "styles/critical-above-fold.css",
       "size": 5065,
       "sizeHuman": "4.9 KB",
       "extension": ".css"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide3.xml",
-      "size": 4856,
-      "sizeHuman": "4.7 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout9.xml",
-      "size": 4834,
-      "sizeHuman": "4.7 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout3.xml",
-      "size": 4606,
-      "sizeHuman": "4.5 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": ".env.local",
-      "size": 4589,
-      "sizeHuman": "4.5 KB",
-      "extension": ".local"
-    },
-    {
-      "path": "__tests__/worker/coin-access.guard.test.js",
-      "size": 4541,
-      "sizeHuman": "4.4 KB",
+      "path": "__tests__/worker/billing.access-decision.test.js",
+      "size": 4923,
+      "sizeHuman": "4.8 KB",
       "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout1.xml",
-      "size": 4524,
-      "sizeHuman": "4.4 KB",
-      "extension": ".xml"
+      "path": "__tests__/worker/astrology-ai-prompt-domain-templates.test.js",
+      "size": 4815,
+      "sizeHuman": "4.7 KB",
+      "extension": ".js"
     },
     {
-      "path": "js/README.md",
-      "size": 4513,
-      "sizeHuman": "4.4 KB",
+      "path": "docs/r2-assets-cache-strategy.md",
+      "size": 4774,
+      "sizeHuman": "4.7 KB",
       "extension": ".md"
     },
     {
-      "path": "docs/pdf-generation-audit.md",
-      "size": 4481,
+      "path": "docs/music-player.md",
+      "size": 4631,
+      "sizeHuman": "4.5 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "js/README.md",
+      "size": 4509,
       "sizeHuman": "4.4 KB",
       "extension": ".md"
     },
@@ -1436,10 +1513,34 @@
       "extension": ".js"
     },
     {
-      "path": "fuctionassets/animaltotem-cute.svg",
-      "size": 4390,
+      "path": "__codex-next-dev.err.log",
+      "size": 4403,
       "sizeHuman": "4.3 KB",
-      "extension": ".svg"
+      "extension": ".log"
+    },
+    {
+      "path": "__tests__/worker/astro-canonical-pipeline.regression.test.js",
+      "size": 4399,
+      "sizeHuman": "4.3 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "components/fortune/animal-twelve/AnimalCharacterSvg.tsx",
+      "size": 4394,
+      "sizeHuman": "4.3 KB",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/fortune/GuardianAnimalSprite.tsx",
+      "size": 4378,
+      "sizeHuman": "4.3 KB",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/fortune/animal-twelve/AnimalCard.tsx",
+      "size": 4362,
+      "sizeHuman": "4.3 KB",
+      "extension": ".tsx"
     },
     {
       "path": "scripts/README.md",
@@ -1460,16 +1561,58 @@
       "extension": ".md"
     },
     {
-      "path": "update_emoi2.py",
-      "size": 4177,
-      "sizeHuman": "4.1 KB",
-      "extension": ".py"
+      "path": "__tests__/worker/destiny-bias-engine.day-pillar.regression.test.js",
+      "size": 4296,
+      "sizeHuman": "4.2 KB",
+      "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide10.xml",
-      "size": 4008,
+      "path": "components/fortune/animal-twelve/AnimalResultSections.tsx",
+      "size": 4260,
+      "sizeHuman": "4.2 KB",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/sukuyo-compat-report/SukuyoCompatibilityReportBuilder.tsx",
+      "size": 4233,
+      "sizeHuman": "4.1 KB",
+      "extension": ".tsx"
+    },
+    {
+      "path": "__tests__/worker/celestial-melody-reading.quality.test.js",
+      "size": 4204,
+      "sizeHuman": "4.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "__tests__/worker/sibyl-flow-kasi.smoke.test.js",
+      "size": 4199,
+      "sizeHuman": "4.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "tailwind.config.js",
+      "size": 4150,
+      "sizeHuman": "4.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "cleanup-report.md",
+      "size": 4135,
+      "sizeHuman": "4.0 KB",
+      "extension": ".md"
+    },
+    {
+      "path": "pages/404.js",
+      "size": 3954,
       "sizeHuman": "3.9 KB",
-      "extension": ".xml"
+      "extension": ".js"
+    },
+    {
+      "path": "scripts/grant-monthly-coins.mjs",
+      "size": 3921,
+      "sizeHuman": "3.8 KB",
+      "extension": ".mjs"
     },
     {
       "path": "docs/admin-coin-paid-flow-checklist-2026-04-14.md",
@@ -1484,28 +1627,16 @@
       "extension": ".js"
     },
     {
-      "path": "_tmp_palm_attached_smoke.mjs",
-      "size": 3850,
-      "sizeHuman": "3.8 KB",
-      "extension": ".mjs"
-    },
-    {
-      "path": "tailwind.config.js",
-      "size": 3833,
-      "sizeHuman": "3.7 KB",
-      "extension": ".js"
-    },
-    {
       "path": "scripts/dream-tarot-calibration-results.json",
       "size": 3809,
       "sizeHuman": "3.7 KB",
       "extension": ".json"
     },
     {
-      "path": "_tmp_premium_pdf_api_smoke_love.mjs",
-      "size": 3763,
+      "path": "__tests__/worker/premium-json-only-bridge.test.js",
+      "size": 3807,
       "sizeHuman": "3.7 KB",
-      "extension": ".mjs"
+      "extension": ".js"
     },
     {
       "path": "js/services/sajuWorkerService.js",
@@ -1514,34 +1645,28 @@
       "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/presentation.xml",
-      "size": 3701,
+      "path": "__tests__/ui/animal-destiny.static.test.js",
+      "size": 3683,
       "sizeHuman": "3.6 KB",
-      "extension": ".xml"
+      "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide2.xml",
-      "size": 3647,
+      "path": "docs/luck-sync-diary-regression-checklist-2026-06-04.md",
+      "size": 3656,
       "sizeHuman": "3.6 KB",
-      "extension": ".xml"
+      "extension": ".md"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide6.xml",
-      "size": 3625,
+      "path": "scripts/verify-ai-prompt-billing-policy.mjs",
+      "size": 3545,
       "sizeHuman": "3.5 KB",
-      "extension": ".xml"
+      "extension": ".mjs"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide5.xml",
-      "size": 3622,
-      "sizeHuman": "3.5 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide7.xml",
-      "size": 3618,
-      "sizeHuman": "3.5 KB",
-      "extension": ".xml"
+      "path": "__tests__/worker/soul-origin.pipeline.test.js",
+      "size": 3529,
+      "sizeHuman": "3.4 KB",
+      "extension": ".js"
     },
     {
       "path": "Rules/agent-regression-guard.md",
@@ -1550,10 +1675,10 @@
       "extension": ".md"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout11.xml",
-      "size": 3496,
+      "path": "__tests__/worker/sukuyo-ai-prompt-domain-templates.test.js",
+      "size": 3506,
       "sizeHuman": "3.4 KB",
-      "extension": ".xml"
+      "extension": ".js"
     },
     {
       "path": "scripts/verify-kasi-calendar-conversion.cjs",
@@ -1562,52 +1687,46 @@
       "extension": ".cjs"
     },
     {
-      "path": "_tmp_patch_auth_lock_indexes.cjs",
-      "size": 3452,
-      "sizeHuman": "3.4 KB",
-      "extension": ".cjs"
-    },
-    {
       "path": "scripts/cleanup-unused-assets.mjs",
-      "size": 3402,
+      "size": 3406,
       "sizeHuman": "3.3 KB",
       "extension": ".mjs"
     },
     {
       "path": "__tests__/worker/paid-feature-registry.legacy-65de451.test.js",
-      "size": 3355,
+      "size": 3352,
       "sizeHuman": "3.3 KB",
       "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout10.xml",
-      "size": 3275,
-      "sizeHuman": "3.2 KB",
-      "extension": ".xml"
+      "path": "__tests__/worker/astro-payload-normalization.test.js",
+      "size": 3199,
+      "sizeHuman": "3.1 KB",
+      "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout2.xml",
-      "size": 3212,
+      "path": ".github/workflows/cloudflare-pages-deploy.yml",
+      "size": 3182,
       "sizeHuman": "3.1 KB",
-      "extension": ".xml"
+      "extension": ".yml"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide4.xml",
-      "size": 3136,
+      "path": "lib/yeon/profileSeed.ts",
+      "size": 3150,
       "sizeHuman": "3.1 KB",
-      "extension": ".xml"
+      "extension": ".ts"
+    },
+    {
+      "path": "__tests__/worker/saju-ai-prompt-domain-templates.test.js",
+      "size": 3063,
+      "sizeHuman": "3.0 KB",
+      "extension": ".js"
     },
     {
       "path": "docs/portone-resubmission-checklist-2026-04-16.md",
       "size": 3054,
       "sizeHuman": "3.0 KB",
       "extension": ".md"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide8.xml",
-      "size": 3047,
-      "sizeHuman": "3.0 KB",
-      "extension": ".xml"
     },
     {
       "path": "scripts/build-cloudflare.mjs",
@@ -1622,40 +1741,34 @@
       "extension": ".md"
     },
     {
+      "path": "tmp-codex-dmp-dev.log",
+      "size": 3007,
+      "sizeHuman": "2.9 KB",
+      "extension": ".log"
+    },
+    {
       "path": "js/inline/mobile-safe-render-init.js",
       "size": 3000,
       "sizeHuman": "2.9 KB",
       "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/_rels/presentation.xml.rels",
-      "size": 2990,
-      "sizeHuman": "2.9 KB",
-      "extension": ".rels"
-    },
-    {
-      "path": "scripts/prepare-cloudflare-dist.mjs",
-      "size": 2911,
+      "path": "docs/payment-auto-refund-rollback.md",
+      "size": 2901,
       "sizeHuman": "2.8 KB",
-      "extension": ".mjs"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/tableStyles.xml",
-      "size": 2860,
-      "sizeHuman": "2.8 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide9.xml",
-      "size": 2807,
-      "sizeHuman": "2.7 KB",
-      "extension": ".xml"
+      "extension": ".md"
     },
     {
       "path": "docs/landing-duplicate-usage-2026-05-04.md",
       "size": 2795,
       "sizeHuman": "2.7 KB",
       "extension": ".md"
+    },
+    {
+      "path": "scripts/sukuyo-compat-sample-smoke.ts",
+      "size": 2664,
+      "sizeHuman": "2.6 KB",
+      "extension": ".ts"
     },
     {
       "path": "scripts/optimize-static-thirdparty-loading.cjs",
@@ -1670,6 +1783,24 @@
       "extension": ".mjs"
     },
     {
+      "path": "__tests__/worker/premium-legacy-alias.routes.test.js",
+      "size": 2517,
+      "sizeHuman": "2.5 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "tmp-codex-animal-dev.err.log",
+      "size": 2505,
+      "sizeHuman": "2.4 KB",
+      "extension": ".log"
+    },
+    {
+      "path": "components/yeon/YeonShareCard.tsx",
+      "size": 2503,
+      "sizeHuman": "2.4 KB",
+      "extension": ".tsx"
+    },
+    {
       "path": "docs/seo-deploy-checklist.md",
       "size": 2486,
       "sizeHuman": "2.4 KB",
@@ -1682,10 +1813,28 @@
       "extension": ".md"
     },
     {
+      "path": "components/fortune/destiny-meeting-place/DestinyMeetingPlaceHero.tsx",
+      "size": 2453,
+      "sizeHuman": "2.4 KB",
+      "extension": ".tsx"
+    },
+    {
       "path": "scripts/parse-lh-summary.cjs",
-      "size": 2421,
+      "size": 2425,
       "sizeHuman": "2.4 KB",
       "extension": ".cjs"
+    },
+    {
+      "path": "components/yeon/YeonCardDownloadButton.tsx",
+      "size": 2404,
+      "sizeHuman": "2.3 KB",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/yeon/YeonMessageTimeline.tsx",
+      "size": 2373,
+      "sizeHuman": "2.3 KB",
+      "extension": ".tsx"
     },
     {
       "path": "css/sibyl-premium.css",
@@ -1694,15 +1843,9 @@
       "extension": ".css"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout6.xml",
-      "size": 2359,
+      "path": "__tests__/worker/sibyl-premium.strict.test.js",
+      "size": 2357,
       "sizeHuman": "2.3 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": "__tests__/worker/premium-report.feature-spec.test.js",
-      "size": 2291,
-      "sizeHuman": "2.2 KB",
       "extension": ".js"
     },
     {
@@ -1712,58 +1855,52 @@
       "extension": ".js"
     },
     {
-      "path": ".github/workflows/cloudflare-worker-deploy.yml",
-      "size": 2262,
+      "path": "lib/yeon/emotionMap.ts",
+      "size": 2267,
       "sizeHuman": "2.2 KB",
-      "extension": ".yml"
+      "extension": ".ts"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide12.xml",
-      "size": 2205,
+      "path": "components/yeon/YeonFloatingCharacter.tsx",
+      "size": 2256,
       "sizeHuman": "2.2 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide13.xml",
-      "size": 2205,
-      "sizeHuman": "2.2 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide14.xml",
-      "size": 2205,
-      "sizeHuman": "2.2 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide15.xml",
-      "size": 2205,
-      "sizeHuman": "2.2 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide16.xml",
-      "size": 2205,
-      "sizeHuman": "2.2 KB",
-      "extension": ".xml"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide11.xml",
-      "size": 2204,
-      "sizeHuman": "2.2 KB",
-      "extension": ".xml"
+      "extension": ".tsx"
     },
     {
       "path": "scripts/minify-handler.mjs",
-      "size": 2187,
+      "size": 2191,
       "sizeHuman": "2.1 KB",
       "extension": ".mjs"
     },
     {
-      "path": "scripts/patch-index-html-optimized-images.mjs",
+      "path": "components/yeon/YeonEmotionSelector.tsx",
       "size": 2185,
       "sizeHuman": "2.1 KB",
+      "extension": ".tsx"
+    },
+    {
+      "path": "scripts/patch-index-html-optimized-images.mjs",
+      "size": 2179,
+      "sizeHuman": "2.1 KB",
       "extension": ".mjs"
+    },
+    {
+      "path": "__codex-next-dev.out.log",
+      "size": 2163,
+      "sizeHuman": "2.1 KB",
+      "extension": ".log"
+    },
+    {
+      "path": "tmp-codex-dmp-dev.err.log",
+      "size": 2159,
+      "sizeHuman": "2.1 KB",
+      "extension": ".log"
+    },
+    {
+      "path": ".codex-dev-server.log",
+      "size": 2086,
+      "sizeHuman": "2.0 KB",
+      "extension": ".log"
     },
     {
       "path": "DEPLOY_CHECKLIST.md",
@@ -1772,22 +1909,34 @@
       "extension": ".md"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideMasters/_rels/slideMaster1.xml.rels",
-      "size": 1991,
-      "sizeHuman": "1.9 KB",
-      "extension": ".rels"
+      "path": "lib/share.v2.ts",
+      "size": 2058,
+      "sizeHuman": "2.0 KB",
+      "extension": ".ts"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/slideLayout7.xml",
-      "size": 1989,
-      "sizeHuman": "1.9 KB",
-      "extension": ".xml"
+      "path": "__tests__/ui/animal-destiny-narrative.static.test.js",
+      "size": 2052,
+      "sizeHuman": "2.0 KB",
+      "extension": ".js"
     },
     {
-      "path": "_tmp_cleanup_psychotest_and_splash_comment.mjs",
-      "size": 1976,
+      "path": "lib/yeon/zodiac.ts",
+      "size": 2051,
+      "sizeHuman": "2.0 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "codex-dev-server-3001.log",
+      "size": 2003,
+      "sizeHuman": "2.0 KB",
+      "extension": ".log"
+    },
+    {
+      "path": "components/yeon/YeonTypewriterBubble.tsx",
+      "size": 1985,
       "sizeHuman": "1.9 KB",
-      "extension": ".mjs"
+      "extension": ".tsx"
     },
     {
       "path": "types/astrology.ts",
@@ -1802,22 +1951,46 @@
       "extension": ".mjs"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/docProps/app.xml",
-      "size": 1884,
-      "sizeHuman": "1.8 KB",
-      "extension": ".xml"
+      "path": "lib/yeon/normalizeFortuneSignal.ts",
+      "size": 1924,
+      "sizeHuman": "1.9 KB",
+      "extension": ".ts"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/slide1.xml",
-      "size": 1878,
+      "path": "lib/yeon/timeTheme.ts",
+      "size": 1912,
+      "sizeHuman": "1.9 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "lib/yeon/validateYeonMessage.ts",
+      "size": 1898,
+      "sizeHuman": "1.9 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "__tests__/ui/ganji-guardian-sprite.static.test.js",
+      "size": 1889,
       "sizeHuman": "1.8 KB",
-      "extension": ".xml"
+      "extension": ".js"
+    },
+    {
+      "path": ".github/workflows/paid-flow-gates.yml",
+      "size": 1806,
+      "sizeHuman": "1.8 KB",
+      "extension": ".yml"
     },
     {
       "path": "__tests__/worker/auth.require-auth.fallback.test.js",
       "size": 1802,
       "sizeHuman": "1.8 KB",
       "extension": ".js"
+    },
+    {
+      "path": "scripts/verify-portone-webhook-signature.mjs",
+      "size": 1801,
+      "sizeHuman": "1.8 KB",
+      "extension": ".mjs"
     },
     {
       "path": "lib/mongodb.ts",
@@ -1832,12 +2005,6 @@
       "extension": ".cjs"
     },
     {
-      "path": "__tests__/worker/premium-access-control.rules.test.js",
-      "size": 1694,
-      "sizeHuman": "1.7 KB",
-      "extension": ".js"
-    },
-    {
       "path": "__tests__/ui/gender-selection.static.test.js",
       "size": 1643,
       "sizeHuman": "1.6 KB",
@@ -1848,6 +2015,12 @@
       "size": 1572,
       "sizeHuman": "1.5 KB",
       "extension": ".mjs"
+    },
+    {
+      "path": "components/yeon/YeonZodiacSelector.tsx",
+      "size": 1570,
+      "sizeHuman": "1.5 KB",
+      "extension": ".tsx"
     },
     {
       "path": "docs/seo-before-after.md",
@@ -1874,16 +2047,34 @@
       "extension": ".yml"
     },
     {
-      "path": "_tmp_patch_splash_indexes.mjs",
-      "size": 1328,
-      "sizeHuman": "1.3 KB",
-      "extension": ".mjs"
+      "path": "__tests__/ui/twelve-life-stage.static.test.js",
+      "size": 1416,
+      "sizeHuman": "1.4 KB",
+      "extension": ".js"
     },
     {
-      "path": "_tmp_scan_charset.mjs",
-      "size": 1277,
-      "sizeHuman": "1.2 KB",
-      "extension": ".mjs"
+      "path": "pages/500.js",
+      "size": 1408,
+      "sizeHuman": "1.4 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "types/sukuyo-compat-report/sukuyoCompatibilityWorkerContract.types.ts",
+      "size": 1381,
+      "sizeHuman": "1.3 KB",
+      "extension": ".ts"
+    },
+    {
+      "path": "__tests__/worker/astro-swiss-url-builder.test.js",
+      "size": 1303,
+      "sizeHuman": "1.3 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "__codex_next_dev.err.log",
+      "size": 1299,
+      "sizeHuman": "1.3 KB",
+      "extension": ".log"
     },
     {
       "path": "js/utils/dom.js",
@@ -1892,10 +2083,10 @@
       "extension": ".js"
     },
     {
-      "path": "_git_push.cjs",
-      "size": 1264,
+      "path": "__tests__/ui/animal-destiny-stage-content.static.test.js",
+      "size": 1257,
       "sizeHuman": "1.2 KB",
-      "extension": ".cjs"
+      "extension": ".js"
     },
     {
       "path": "__tests__/worker/paid-feature-registry.integrity.test.js",
@@ -1904,16 +2095,28 @@
       "extension": ".js"
     },
     {
-      "path": "scripts/auth-wrong-password-smoke.mjs",
-      "size": 1195,
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh1_Summary.tsx",
+      "size": 1245,
       "sizeHuman": "1.2 KB",
-      "extension": ".mjs"
+      "extension": ".tsx"
     },
     {
-      "path": "_tmp_fix_saveTileLocks_dup.cjs",
-      "size": 1183,
+      "path": "types/saju-premium-report/sajuPremiumReport.types.ts",
+      "size": 1200,
       "sizeHuman": "1.2 KB",
-      "extension": ".cjs"
+      "extension": ".ts"
+    },
+    {
+      "path": ".gitignore",
+      "size": 1194,
+      "sizeHuman": "1.2 KB",
+      "extension": "(none)"
+    },
+    {
+      "path": "components/sukuyo-compat-report/chapters/_shared.tsx",
+      "size": 1162,
+      "sizeHuman": "1.1 KB",
+      "extension": ".tsx"
     },
     {
       "path": "scripts/indexnow-submit.ts",
@@ -1928,16 +2131,40 @@
       "extension": ".js"
     },
     {
-      "path": ".gitignore",
-      "size": 1103,
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh2_Personality.tsx",
+      "size": 1101,
       "sizeHuman": "1.1 KB",
-      "extension": "(none)"
+      "extension": ".tsx"
+    },
+    {
+      "path": ".env.cloudflare.local",
+      "size": 1099,
+      "sizeHuman": "1.1 KB",
+      "extension": ".local"
+    },
+    {
+      "path": "scripts/verify-physiognomy-scoring.mjs",
+      "size": 1098,
+      "sizeHuman": "1.1 KB",
+      "extension": ".mjs"
     },
     {
       "path": "tsconfig.json",
-      "size": 1003,
-      "sizeHuman": "1003 B",
+      "size": 1033,
+      "sizeHuman": "1.0 KB",
       "extension": ".json"
+    },
+    {
+      "path": ".codex-dev-3001.out.log",
+      "size": 1032,
+      "sizeHuman": "1.0 KB",
+      "extension": ".log"
+    },
+    {
+      "path": "types/saju-premium-report/common.types.ts",
+      "size": 1013,
+      "sizeHuman": "1013 B",
+      "extension": ".ts"
     },
     {
       "path": "lib/indexnow.ts",
@@ -1952,10 +2179,16 @@
       "extension": ".mjs"
     },
     {
-      "path": "js/inline/pwa-theme-init.js",
-      "size": 917,
-      "sizeHuman": "917 B",
-      "extension": ".js"
+      "path": "__codex_next_dev.out.log",
+      "size": 942,
+      "sizeHuman": "942 B",
+      "extension": ".log"
+    },
+    {
+      "path": ".github/workflows/secret-scan.yml",
+      "size": 934,
+      "sizeHuman": "934 B",
+      "extension": ".yml"
     },
     {
       "path": "scripts/setup-cloudflare-auth.mjs",
@@ -1970,16 +2203,22 @@
       "extension": ".cjs"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/viewProps.xml",
-      "size": 854,
-      "sizeHuman": "854 B",
-      "extension": ".xml"
+      "path": "js/inline/pwa-theme-init.js",
+      "size": 905,
+      "sizeHuman": "905 B",
+      "extension": ".js"
     },
     {
-      "path": ".env.cloudflare.local",
-      "size": 796,
-      "sizeHuman": "796 B",
-      "extension": ".local"
+      "path": ".codex-dev-3001.err.log",
+      "size": 810,
+      "sizeHuman": "810 B",
+      "extension": ".log"
+    },
+    {
+      "path": "components/yeon/YeonSpriteFrame.tsx",
+      "size": 805,
+      "sizeHuman": "805 B",
+      "extension": ".tsx"
     },
     {
       "path": "lib/seo/keywords.ts",
@@ -1994,12 +2233,6 @@
       "extension": ".js"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/_rels/.rels",
-      "size": 738,
-      "sizeHuman": "738 B",
-      "extension": "(none)"
-    },
-    {
       "path": "lib/seo/createMetadata.ts",
       "size": 735,
       "sizeHuman": "735 B",
@@ -2012,22 +2245,34 @@
       "extension": ".mjs"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/docProps/core.xml",
-      "size": 679,
-      "sizeHuman": "679 B",
-      "extension": ".xml"
+      "path": "codex-dev-server-3002.log",
+      "size": 642,
+      "sizeHuman": "642 B",
+      "extension": ".log"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/presProps.xml",
-      "size": 651,
-      "sizeHuman": "651 B",
-      "extension": ".xml"
+      "path": "scripts/cloudflare-ignore.sh",
+      "size": 623,
+      "sizeHuman": "623 B",
+      "extension": ".sh"
+    },
+    {
+      "path": "SECURITY.md",
+      "size": 619,
+      "sizeHuman": "619 B",
+      "extension": ".md"
     },
     {
       "path": "scripts/gen-daily-2026-03-21.mjs",
       "size": 614,
       "sizeHuman": "614 B",
       "extension": ".mjs"
+    },
+    {
+      "path": ".codex-dev-3002.log",
+      "size": 578,
+      "sizeHuman": "578 B",
+      "extension": ".log"
     },
     {
       "path": "scripts/test-resend-email.mjs",
@@ -2049,8 +2294,8 @@
     },
     {
       "path": "fix-encoding.js",
-      "size": 512,
-      "sizeHuman": "512 B",
+      "size": 521,
+      "sizeHuman": "521 B",
       "extension": ".js"
     },
     {
@@ -2060,172 +2305,100 @@
       "extension": ".ts"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide11.xml.rels",
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh13_ReunionBreakup.tsx",
+      "size": 472,
+      "sizeHuman": "472 B",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh5_FirstAttraction.tsx",
+      "size": 464,
+      "sizeHuman": "464 B",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh10_RiskPair.tsx",
+      "size": 463,
+      "sizeHuman": "463 B",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh11_LongBond.tsx",
+      "size": 463,
+      "sizeHuman": "463 B",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh3_RelationType.tsx",
+      "size": 459,
+      "sizeHuman": "459 B",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh14_Timing.tsx",
+      "size": 456,
+      "sizeHuman": "456 B",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh15_Reality.tsx",
+      "size": 452,
+      "sizeHuman": "452 B",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh16_Final.tsx",
+      "size": 449,
+      "sizeHuman": "449 B",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh9_Conflict.tsx",
+      "size": 449,
+      "sizeHuman": "449 B",
+      "extension": ".tsx"
+    },
+    {
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh12_Intimacy.tsx",
       "size": 447,
       "sizeHuman": "447 B",
-      "extension": ".rels"
+      "extension": ".tsx"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide12.xml.rels",
-      "size": 447,
-      "sizeHuman": "447 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide13.xml.rels",
-      "size": 447,
-      "sizeHuman": "447 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide14.xml.rels",
-      "size": 447,
-      "sizeHuman": "447 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide15.xml.rels",
-      "size": 447,
-      "sizeHuman": "447 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide16.xml.rels",
-      "size": 447,
-      "sizeHuman": "447 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide10.xml.rels",
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh4_Distance.tsx",
       "size": 446,
       "sizeHuman": "446 B",
-      "extension": ".rels"
+      "extension": ".tsx"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide2.xml.rels",
-      "size": 446,
-      "sizeHuman": "446 B",
-      "extension": ".rels"
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh8_Marriage.tsx",
+      "size": 443,
+      "sizeHuman": "443 B",
+      "extension": ".tsx"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide3.xml.rels",
-      "size": 446,
-      "sizeHuman": "446 B",
-      "extension": ".rels"
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh6_Emotion.tsx",
+      "size": 438,
+      "sizeHuman": "438 B",
+      "extension": ".tsx"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide4.xml.rels",
-      "size": 446,
-      "sizeHuman": "446 B",
-      "extension": ".rels"
+      "path": "components/sukuyo-compat-report/chapters/SukuyoCh7_Love.tsx",
+      "size": 437,
+      "sizeHuman": "437 B",
+      "extension": ".tsx"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide5.xml.rels",
-      "size": 446,
-      "sizeHuman": "446 B",
-      "extension": ".rels"
+      "path": ".eslintrc.json",
+      "size": 384,
+      "sizeHuman": "384 B",
+      "extension": ".json"
     },
     {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide6.xml.rels",
-      "size": 446,
-      "sizeHuman": "446 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide7.xml.rels",
-      "size": 446,
-      "sizeHuman": "446 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide8.xml.rels",
-      "size": 446,
-      "sizeHuman": "446 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide9.xml.rels",
-      "size": 446,
-      "sizeHuman": "446 B",
-      "extension": ".rels"
-    },
-    {
-      "path": ".github/workflows/secret-scan.yml",
-      "size": 417,
-      "sizeHuman": "417 B",
-      "extension": ".yml"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout1.xml.rels",
-      "size": 311,
-      "sizeHuman": "311 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout10.xml.rels",
-      "size": 311,
-      "sizeHuman": "311 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout11.xml.rels",
-      "size": 311,
-      "sizeHuman": "311 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout2.xml.rels",
-      "size": 311,
-      "sizeHuman": "311 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout3.xml.rels",
-      "size": 311,
-      "sizeHuman": "311 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout4.xml.rels",
-      "size": 311,
-      "sizeHuman": "311 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout5.xml.rels",
-      "size": 311,
-      "sizeHuman": "311 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout6.xml.rels",
-      "size": 311,
-      "sizeHuman": "311 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout7.xml.rels",
-      "size": 311,
-      "sizeHuman": "311 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout8.xml.rels",
-      "size": 311,
-      "sizeHuman": "311 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slideLayouts/_rels/slideLayout9.xml.rels",
-      "size": 311,
-      "sizeHuman": "311 B",
-      "extension": ".rels"
-    },
-    {
-      "path": "_tmp_ppt_review/unzipped/ppt/slides/_rels/slide1.xml.rels",
-      "size": 311,
-      "sizeHuman": "311 B",
-      "extension": ".rels"
+      "path": "next-env.d.ts",
+      "size": 335,
+      "sizeHuman": "335 B",
+      "extension": ".ts"
     },
     {
       "path": ".gitleaks.toml",
@@ -2234,22 +2407,28 @@
       "extension": ".toml"
     },
     {
-      "path": ".github/workflows/cloudflare-pages-deploy.yml",
-      "size": 292,
-      "sizeHuman": "292 B",
-      "extension": ".yml"
+      "path": ".codex-next-mindscan.log",
+      "size": 299,
+      "sizeHuman": "299 B",
+      "extension": ".log"
     },
     {
       "path": "fix-acting-btn.js",
-      "size": 280,
-      "sizeHuman": "280 B",
+      "size": 290,
+      "sizeHuman": "290 B",
       "extension": ".js"
     },
     {
-      "path": "next-env.d.ts",
-      "size": 268,
-      "sizeHuman": "268 B",
-      "extension": ".ts"
+      "path": "codex-dev-server.err.log",
+      "size": 275,
+      "sizeHuman": "275 B",
+      "extension": ".log"
+    },
+    {
+      "path": "pages/_document.js",
+      "size": 233,
+      "sizeHuman": "233 B",
+      "extension": ".js"
     },
     {
       "path": "lib/seo/breadcrumbs.ts",
@@ -2264,6 +2443,30 @@
       "extension": "(none)"
     },
     {
+      "path": ".npmrc",
+      "size": 169,
+      "sizeHuman": "169 B",
+      "extension": "(none)"
+    },
+    {
+      "path": "pages/_app.js",
+      "size": 138,
+      "sizeHuman": "138 B",
+      "extension": ".js"
+    },
+    {
+      "path": "types/saju-premium-report/index.ts",
+      "size": 124,
+      "sizeHuman": "124 B",
+      "extension": ".ts"
+    },
+    {
+      "path": ".env.example",
+      "size": 122,
+      "sizeHuman": "122 B",
+      "extension": ".example"
+    },
+    {
       "path": ".secret.example",
       "size": 118,
       "sizeHuman": "118 B",
@@ -2276,28 +2479,106 @@
       "extension": ".ts"
     },
     {
+      "path": ".editorconfig",
+      "size": 110,
+      "sizeHuman": "110 B",
+      "extension": "(none)"
+    },
+    {
+      "path": "lib/fpti/saju-fpti-adapter.ts",
+      "size": 108,
+      "sizeHuman": "108 B",
+      "extension": ".ts"
+    },
+    {
       "path": "postcss.config.mjs",
       "size": 87,
       "sizeHuman": "87 B",
       "extension": ".mjs"
     },
     {
-      "path": ".eslintrc.json",
-      "size": 73,
-      "sizeHuman": "73 B",
-      "extension": ".json"
+      "path": "codex-dev-server.log",
+      "size": 78,
+      "sizeHuman": "78 B",
+      "extension": ".log"
     },
     {
       "path": ".nvmrc",
       "size": 4,
       "sizeHuman": "4 B",
       "extension": "(none)"
+    },
+    {
+      "path": ".codex-dev-server.err.log",
+      "size": 0,
+      "sizeHuman": "0 B",
+      "extension": ".log"
+    },
+    {
+      "path": ".codex-dev-server.out.log",
+      "size": 0,
+      "sizeHuman": "0 B",
+      "extension": ".log"
+    },
+    {
+      "path": ".next-love-dev-3001.err.log",
+      "size": 0,
+      "sizeHuman": "0 B",
+      "extension": ".log"
+    },
+    {
+      "path": ".next-love-dev-3001.out.log",
+      "size": 0,
+      "sizeHuman": "0 B",
+      "extension": ".log"
+    },
+    {
+      "path": ".next-love-dev.err.log",
+      "size": 0,
+      "sizeHuman": "0 B",
+      "extension": ".log"
+    },
+    {
+      "path": ".next-love-dev.out.log",
+      "size": 0,
+      "sizeHuman": "0 B",
+      "extension": ".log"
+    },
+    {
+      "path": "dev-server.err.log",
+      "size": 0,
+      "sizeHuman": "0 B",
+      "extension": ".log"
+    },
+    {
+      "path": "dev-server.out.log",
+      "size": 0,
+      "sizeHuman": "0 B",
+      "extension": ".log"
+    },
+    {
+      "path": "🎊",
+      "size": 0,
+      "sizeHuman": "0 B",
+      "extension": "(none)"
     }
   ],
   "protectedButUnreached": [
     {
+      "path": "app/methodology/page.module.css",
+      "size": 4897,
+      "sizeHuman": "4.8 KB",
+      "extension": ".css"
+    },
+    {
+      "path": "app/music/README.md",
+      "size": 3073,
+      "sizeHuman": "3.0 KB",
+      "extension": ".md"
+    },
+    {
       "path": "app/README.md",
-      "size": 4496,
+      "size": 4508,
       "sizeHuman": "4.4 KB",
       "extension": ".md"
     },
@@ -2525,146 +2806,146 @@
     },
     {
       "path": "fortune/monthly/aquarius.html",
-      "size": 2104,
-      "sizeHuman": "2.1 KB",
+      "size": 2906,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/aries.html",
-      "size": 2086,
-      "sizeHuman": "2.0 KB",
+      "size": 2888,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/cancer.html",
-      "size": 2082,
-      "sizeHuman": "2.0 KB",
+      "size": 2884,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/capricorn.html",
-      "size": 2100,
-      "sizeHuman": "2.1 KB",
+      "size": 2902,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/dog.html",
-      "size": 2072,
-      "sizeHuman": "2.0 KB",
+      "size": 2874,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/dragon.html",
-      "size": 2078,
-      "sizeHuman": "2.0 KB",
+      "size": 2880,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/gemini.html",
-      "size": 2112,
-      "sizeHuman": "2.1 KB",
+      "size": 2914,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/goat.html",
-      "size": 2068,
-      "sizeHuman": "2.0 KB",
+      "size": 2870,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/horse.html",
-      "size": 2076,
-      "sizeHuman": "2.0 KB",
+      "size": 2878,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/leo.html",
-      "size": 2094,
-      "sizeHuman": "2.0 KB",
+      "size": 2896,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/libra.html",
-      "size": 2098,
-      "sizeHuman": "2.0 KB",
+      "size": 2900,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/monkey.html",
-      "size": 2096,
-      "sizeHuman": "2.0 KB",
+      "size": 2898,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/ox.html",
-      "size": 2064,
-      "sizeHuman": "2.0 KB",
+      "size": 2866,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/pig.html",
-      "size": 2078,
-      "sizeHuman": "2.0 KB",
+      "size": 2880,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/pisces.html",
-      "size": 2100,
-      "sizeHuman": "2.1 KB",
+      "size": 2902,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/rabbit.html",
-      "size": 2096,
-      "sizeHuman": "2.0 KB",
+      "size": 2898,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/rat.html",
-      "size": 2066,
-      "sizeHuman": "2.0 KB",
+      "size": 2868,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/rooster.html",
-      "size": 2086,
-      "sizeHuman": "2.0 KB",
+      "size": 2888,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/sagittarius.html",
-      "size": 2098,
-      "sizeHuman": "2.0 KB",
+      "size": 2900,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/scorpio.html",
-      "size": 2096,
-      "sizeHuman": "2.0 KB",
+      "size": 2898,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/snake.html",
-      "size": 2064,
-      "sizeHuman": "2.0 KB",
+      "size": 2866,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/taurus.html",
-      "size": 2094,
-      "sizeHuman": "2.0 KB",
+      "size": 2896,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/tiger.html",
-      "size": 2100,
-      "sizeHuman": "2.1 KB",
+      "size": 2902,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/monthly/virgo.html",
-      "size": 2104,
-      "sizeHuman": "2.1 KB",
+      "size": 2906,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
@@ -2675,302 +2956,302 @@
     },
     {
       "path": "fortune/tomorrow/aquarius.html",
-      "size": 2112,
-      "sizeHuman": "2.1 KB",
+      "size": 2914,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/aries.html",
-      "size": 2094,
-      "sizeHuman": "2.0 KB",
+      "size": 2896,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/cancer.html",
-      "size": 2090,
-      "sizeHuman": "2.0 KB",
+      "size": 2892,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/capricorn.html",
-      "size": 2108,
-      "sizeHuman": "2.1 KB",
+      "size": 2910,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/dog.html",
-      "size": 2080,
-      "sizeHuman": "2.0 KB",
+      "size": 2882,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/dragon.html",
-      "size": 2086,
-      "sizeHuman": "2.0 KB",
+      "size": 2888,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/gemini.html",
-      "size": 2120,
-      "sizeHuman": "2.1 KB",
+      "size": 2922,
+      "sizeHuman": "2.9 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/goat.html",
-      "size": 2076,
-      "sizeHuman": "2.0 KB",
+      "size": 2878,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/horse.html",
-      "size": 2084,
-      "sizeHuman": "2.0 KB",
+      "size": 2886,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/leo.html",
-      "size": 2102,
-      "sizeHuman": "2.1 KB",
+      "size": 2904,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/libra.html",
-      "size": 2106,
-      "sizeHuman": "2.1 KB",
+      "size": 2908,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/monkey.html",
-      "size": 2104,
-      "sizeHuman": "2.1 KB",
+      "size": 2906,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/ox.html",
-      "size": 2072,
-      "sizeHuman": "2.0 KB",
+      "size": 2874,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/pig.html",
-      "size": 2086,
-      "sizeHuman": "2.0 KB",
+      "size": 2888,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/pisces.html",
-      "size": 2108,
-      "sizeHuman": "2.1 KB",
+      "size": 2910,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/rabbit.html",
-      "size": 2104,
-      "sizeHuman": "2.1 KB",
+      "size": 2906,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/rat.html",
-      "size": 2074,
-      "sizeHuman": "2.0 KB",
+      "size": 2876,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/rooster.html",
-      "size": 2094,
-      "sizeHuman": "2.0 KB",
+      "size": 2896,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/sagittarius.html",
-      "size": 2106,
-      "sizeHuman": "2.1 KB",
+      "size": 2908,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/scorpio.html",
-      "size": 2104,
-      "sizeHuman": "2.1 KB",
+      "size": 2906,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/snake.html",
-      "size": 2072,
-      "sizeHuman": "2.0 KB",
+      "size": 2874,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/taurus.html",
-      "size": 2102,
-      "sizeHuman": "2.1 KB",
+      "size": 2904,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/tiger.html",
-      "size": 2108,
-      "sizeHuman": "2.1 KB",
+      "size": 2910,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/tomorrow/virgo.html",
-      "size": 2112,
-      "sizeHuman": "2.1 KB",
+      "size": 2914,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/aquarius.html",
-      "size": 2104,
-      "sizeHuman": "2.1 KB",
+      "size": 2906,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/aries.html",
-      "size": 2086,
-      "sizeHuman": "2.0 KB",
+      "size": 2888,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/cancer.html",
-      "size": 2082,
-      "sizeHuman": "2.0 KB",
+      "size": 2884,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/capricorn.html",
-      "size": 2100,
-      "sizeHuman": "2.1 KB",
+      "size": 2902,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/dog.html",
-      "size": 2072,
-      "sizeHuman": "2.0 KB",
+      "size": 2874,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/dragon.html",
-      "size": 2078,
-      "sizeHuman": "2.0 KB",
+      "size": 2880,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/gemini.html",
-      "size": 2112,
-      "sizeHuman": "2.1 KB",
+      "size": 2914,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/goat.html",
-      "size": 2068,
-      "sizeHuman": "2.0 KB",
+      "size": 2870,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/horse.html",
-      "size": 2076,
-      "sizeHuman": "2.0 KB",
+      "size": 2878,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/leo.html",
-      "size": 2094,
-      "sizeHuman": "2.0 KB",
+      "size": 2896,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/libra.html",
-      "size": 2098,
-      "sizeHuman": "2.0 KB",
+      "size": 2900,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/monkey.html",
-      "size": 2096,
-      "sizeHuman": "2.0 KB",
+      "size": 2898,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/ox.html",
-      "size": 2064,
-      "sizeHuman": "2.0 KB",
+      "size": 2866,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/pig.html",
-      "size": 2078,
-      "sizeHuman": "2.0 KB",
+      "size": 2880,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/pisces.html",
-      "size": 2100,
-      "sizeHuman": "2.1 KB",
+      "size": 2902,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/rabbit.html",
-      "size": 2096,
-      "sizeHuman": "2.0 KB",
+      "size": 2898,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/rat.html",
-      "size": 2066,
-      "sizeHuman": "2.0 KB",
+      "size": 2868,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/rooster.html",
-      "size": 2086,
-      "sizeHuman": "2.0 KB",
+      "size": 2888,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/sagittarius.html",
-      "size": 2098,
-      "sizeHuman": "2.0 KB",
+      "size": 2900,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/scorpio.html",
-      "size": 2096,
-      "sizeHuman": "2.0 KB",
+      "size": 2898,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/snake.html",
-      "size": 2064,
-      "sizeHuman": "2.0 KB",
+      "size": 2866,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/taurus.html",
-      "size": 2094,
-      "sizeHuman": "2.0 KB",
+      "size": 2896,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/tiger.html",
-      "size": 2100,
-      "sizeHuman": "2.1 KB",
+      "size": 2902,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "fortune/weekly/virgo.html",
-      "size": 2104,
-      "sizeHuman": "2.1 KB",
+      "size": 2906,
+      "sizeHuman": "2.8 KB",
       "extension": ".html"
     },
     {
       "path": "public/_headers",
-      "size": 10939,
-      "sizeHuman": "10.7 KB",
+      "size": 16331,
+      "sizeHuman": "15.9 KB",
       "extension": "(none)"
     },
     {
       "path": "public/_redirects",
-      "size": 3690,
-      "sizeHuman": "3.6 KB",
+      "size": 3500,
+      "sizeHuman": "3.4 KB",
       "extension": "(none)"
     },
     {
@@ -3250,15 +3531,33 @@
       "extension": ".json"
     },
     {
+      "path": "public/fortune/sikojen-povailu/images/piggyfortune.webp",
+      "size": 217268,
+      "sizeHuman": "212.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fortune/sikojen-povailu/images/yeon.webp",
+      "size": 9392,
+      "sizeHuman": "9.2 KB",
+      "extension": ".webp"
+    },
+    {
       "path": "public/fortune/tarot/tarot-data.json",
       "size": 11896,
       "sizeHuman": "11.6 KB",
       "extension": ".json"
     },
     {
-      "path": "public/fuctionassets/4CUT.webp",
-      "size": 137800,
-      "sizeHuman": "134.6 KB",
+      "path": "public/fuctionassets/60갑자 사주 가디언.WEBP",
+      "size": 247798,
+      "sizeHuman": "242.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/극T테스트.webp",
+      "size": 264006,
+      "sizeHuman": "257.8 KB",
       "extension": ".webp"
     },
     {
@@ -3622,15 +3921,237 @@
       "extension": ".jpg"
     },
     {
+      "path": "public/fuctionassets/돈독오른 연이.webp",
+      "size": 219550,
+      "sizeHuman": "214.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/돈밝히는 연이.webp",
+      "size": 102232,
+      "sizeHuman": "99.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/남_강태준.webp",
+      "size": 195534,
+      "sizeHuman": "191.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/남_권세현.webp",
+      "size": 112926,
+      "sizeHuman": "110.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/남_네오.webp",
+      "size": 110028,
+      "sizeHuman": "107.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/남_미카엘.webp",
+      "size": 118152,
+      "sizeHuman": "115.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/남_서유안.webp",
+      "size": 152246,
+      "sizeHuman": "148.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/남_서이준.webp",
+      "size": 132808,
+      "sizeHuman": "129.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/남_윤시우.webp",
+      "size": 149086,
+      "sizeHuman": "145.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/남_한윤서.webp",
+      "size": 141506,
+      "sizeHuman": "138.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/여_김밍.webp",
+      "size": 147228,
+      "sizeHuman": "143.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/여_박지은.webp",
+      "size": 175532,
+      "sizeHuman": "171.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/여_새벽.webp",
+      "size": 147476,
+      "sizeHuman": "144.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/여_서연.webp",
+      "size": 162780,
+      "sizeHuman": "159.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/여_소화.webp",
+      "size": 145538,
+      "sizeHuman": "142.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/여_연이 프로필 사복버전.webp",
+      "size": 203720,
+      "sizeHuman": "198.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/여_지윤.webp",
+      "size": 132706,
+      "sizeHuman": "129.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/러브 코드/여_하린.webp",
+      "size": 215556,
+      "sizeHuman": "210.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/명리 헬스 리포트.webp",
+      "size": 162626,
+      "sizeHuman": "158.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/사주 네컷.webp",
+      "size": 199506,
+      "sizeHuman": "194.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/사주 다이어리.webp",
+      "size": 195404,
+      "sizeHuman": "190.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/사주 로또.webp",
+      "size": 285982,
+      "sizeHuman": "279.3 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/사주 프롬프트.webp",
+      "size": 203374,
+      "sizeHuman": "198.6 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/사주로 보는 여행지.webp",
+      "size": 213470,
+      "sizeHuman": "208.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/사주로 보는 FITI 테스트.webp",
+      "size": 168670,
+      "sizeHuman": "164.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/사주로 보는 FPTI 테스트.webp",
+      "size": 168670,
+      "sizeHuman": "164.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/사주로보는 인연의 장소.webp",
+      "size": 197460,
+      "sizeHuman": "192.8 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/사주보는 연이.webp",
+      "size": 108196,
+      "sizeHuman": "105.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/시크릿 하우스.webp",
+      "size": 205894,
+      "sizeHuman": "201.1 KB",
+      "extension": ".webp"
+    },
+    {
       "path": "public/fuctionassets/심리테스트.webp",
       "size": 392674,
       "sizeHuman": "383.5 KB",
       "extension": ".webp"
     },
     {
+      "path": "public/fuctionassets/연이 캐릭터 스프라이트 시트.webp",
+      "size": 95126,
+      "sizeHuman": "92.9 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/연이.webp",
+      "size": 9392,
+      "sizeHuman": "9.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/운명의 업.webp",
+      "size": 252592,
+      "sizeHuman": "246.7 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/유명인 사주 분석.webp",
+      "size": 151730,
+      "sizeHuman": "148.2 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/자는 연이.png",
+      "size": 70805,
+      "sizeHuman": "69.1 KB",
+      "extension": ".png"
+    },
+    {
       "path": "public/fuctionassets/최애운명.webp",
       "size": 209922,
       "sizeHuman": "205.0 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/퀀텀 명리 엔진.webp",
+      "size": 236024,
+      "sizeHuman": "230.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/테토VS에겐.webp",
+      "size": 160254,
+      "sizeHuman": "156.5 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/핀란드 돼지 주석점.webp",
+      "size": 110564,
+      "sizeHuman": "108.0 KB",
       "extension": ".webp"
     },
     {
@@ -3682,6 +4203,12 @@
       "extension": ".webp"
     },
     {
+      "path": "public/fuctionassets/godlife.webp",
+      "size": 183950,
+      "sizeHuman": "179.6 KB",
+      "extension": ".webp"
+    },
+    {
       "path": "public/fuctionassets/harry.webp",
       "size": 49598,
       "sizeHuman": "48.4 KB",
@@ -3694,51 +4221,39 @@
       "extension": ".webp"
     },
     {
-      "path": "public/fuctionassets/imsolo.webp",
-      "size": 216214,
-      "sizeHuman": "211.1 KB",
+      "path": "public/fuctionassets/love code.webp",
+      "size": 134280,
+      "sizeHuman": "131.1 KB",
       "extension": ".webp"
     },
     {
-      "path": "public/fuctionassets/lotto.webp",
-      "size": 187804,
-      "sizeHuman": "183.4 KB",
+      "path": "public/fuctionassets/meryok-new.webp",
+      "size": 224988,
+      "sizeHuman": "219.7 KB",
       "extension": ".webp"
     },
     {
       "path": "public/fuctionassets/meryok.webp",
-      "size": 159048,
-      "sizeHuman": "155.3 KB",
+      "size": 224988,
+      "sizeHuman": "219.7 KB",
       "extension": ".webp"
     },
     {
-      "path": "public/fuctionassets/piggyfortune.webp",
-      "size": 217268,
-      "sizeHuman": "212.2 KB",
+      "path": "public/fuctionassets/premium veda.webp",
+      "size": 93982,
+      "sizeHuman": "91.8 KB",
       "extension": ".webp"
     },
     {
-      "path": "public/fuctionassets/quntum.webp",
-      "size": 131892,
-      "sizeHuman": "128.8 KB",
+      "path": "public/fuctionassets/RPG 인생 스킬트리.webp",
+      "size": 192594,
+      "sizeHuman": "188.1 KB",
       "extension": ".webp"
     },
     {
-      "path": "public/fuctionassets/sajuhealth.webp",
-      "size": 318636,
-      "sizeHuman": "311.2 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "public/fuctionassets/sajuprompt.webp",
-      "size": 131558,
-      "sizeHuman": "128.5 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "public/fuctionassets/sajurpg.webp",
-      "size": 88236,
-      "sizeHuman": "86.2 KB",
+      "path": "public/fuctionassets/saju-guardian-60gabsja.webp",
+      "size": 247798,
+      "sizeHuman": "242.0 KB",
       "extension": ".webp"
     },
     {
@@ -4960,105 +5475,87 @@
       "extension": ".png"
     },
     {
-      "path": "public/fuctionassets/tbal.webp",
-      "size": 90740,
-      "sizeHuman": "88.6 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "public/fuctionassets/tetoegen.webp",
-      "size": 97304,
-      "sizeHuman": "95.0 KB",
-      "extension": ".webp"
-    },
-    {
-      "path": "public/fuctionassets/trip.webp",
-      "size": 181084,
-      "sizeHuman": "176.8 KB",
-      "extension": ".webp"
-    },
-    {
       "path": "public/fuctionassets/unsetama.webp",
       "size": 127156,
       "sizeHuman": "124.2 KB",
       "extension": ".webp"
     },
     {
-      "path": "public/fuctionassets/vilun.webp",
-      "size": 154346,
-      "sizeHuman": "150.7 KB",
+      "path": "public/fuctionassets/vilun-new.webp",
+      "size": 221588,
+      "sizeHuman": "216.4 KB",
       "extension": ".webp"
     },
     {
-      "path": "public/fuctionassets/yeon.webp",
-      "size": 9392,
-      "sizeHuman": "9.2 KB",
+      "path": "public/fuctionassets/vilun.webp",
+      "size": 221588,
+      "sizeHuman": "216.4 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/fuctionassets/Who am I with saju.webp",
+      "size": 247798,
+      "sizeHuman": "242.0 KB",
       "extension": ".webp"
     },
     {
       "path": "public/i18n/de.json",
-      "size": 4720,
-      "sizeHuman": "4.6 KB",
+      "size": 28056,
+      "sizeHuman": "27.4 KB",
       "extension": ".json"
     },
     {
       "path": "public/i18n/en.json",
-      "size": 13101,
-      "sizeHuman": "12.8 KB",
+      "size": 27357,
+      "sizeHuman": "26.7 KB",
       "extension": ".json"
     },
     {
       "path": "public/i18n/es.json",
-      "size": 4699,
-      "sizeHuman": "4.6 KB",
+      "size": 28048,
+      "sizeHuman": "27.4 KB",
       "extension": ".json"
     },
     {
       "path": "public/i18n/fr.json",
-      "size": 4788,
-      "sizeHuman": "4.7 KB",
+      "size": 28932,
+      "sizeHuman": "28.3 KB",
       "extension": ".json"
     },
     {
       "path": "public/i18n/hi.json",
-      "size": 8169,
-      "sizeHuman": "8.0 KB",
+      "size": 46016,
+      "sizeHuman": "44.9 KB",
       "extension": ".json"
     },
     {
       "path": "public/i18n/ja.json",
-      "size": 5617,
-      "sizeHuman": "5.5 KB",
+      "size": 29293,
+      "sizeHuman": "28.6 KB",
       "extension": ".json"
     },
     {
       "path": "public/i18n/ms.json",
-      "size": 3891,
-      "sizeHuman": "3.8 KB",
+      "size": 26632,
+      "sizeHuman": "26.0 KB",
       "extension": ".json"
     },
     {
       "path": "public/i18n/nl.json",
-      "size": 3967,
-      "sizeHuman": "3.9 KB",
+      "size": 26706,
+      "sizeHuman": "26.1 KB",
       "extension": ".json"
     },
     {
       "path": "public/i18n/zh-cn.json",
-      "size": 4895,
-      "sizeHuman": "4.8 KB",
+      "size": 25040,
+      "sizeHuman": "24.5 KB",
       "extension": ".json"
     },
     {
-      "path": "public/icons/android-chrome-192x192.png",
-      "size": 78142,
-      "sizeHuman": "76.3 KB",
-      "extension": ".png"
-    },
-    {
-      "path": "public/icons/android-chrome-512x512.png",
-      "size": 400553,
-      "sizeHuman": "391.2 KB",
+      "path": "public/icons/fortune-tama-192.png",
+      "size": 58461,
+      "sizeHuman": "57.1 KB",
       "extension": ".png"
     },
     {
@@ -5068,7 +5565,13 @@
       "extension": ".png"
     },
     {
-      "path": "public/icons/samba-130.webp",
+      "path": "public/icons/fortune-tama-512.webp",
+      "size": 57430,
+      "sizeHuman": "56.1 KB",
+      "extension": ".webp"
+    },
+    {
+      "path": "public/icons/neo-130.webp",
       "size": 5218,
       "sizeHuman": "5.1 KB",
       "extension": ".webp"
@@ -5080,15 +5583,21 @@
       "extension": ".webp"
     },
     {
-      "path": "public/js/astral-soul.js",
-      "size": 50487,
-      "sizeHuman": "49.3 KB",
+      "path": "public/insights/rss.xml",
+      "size": 37482,
+      "sizeHuman": "36.6 KB",
+      "extension": ".xml"
+    },
+    {
+      "path": "public/js/animal-totem-experience.js",
+      "size": 39293,
+      "sizeHuman": "38.4 KB",
       "extension": ".js"
     },
     {
-      "path": "public/js/cd-google-translate-lazy.js",
-      "size": 2009,
-      "sizeHuman": "2.0 KB",
+      "path": "public/js/astral-soul.js",
+      "size": 50637,
+      "sizeHuman": "49.5 KB",
       "extension": ".js"
     },
     {
@@ -5117,20 +5626,26 @@
     },
     {
       "path": "public/js/core/kasi-calendar-service.js",
-      "size": 36530,
-      "sizeHuman": "35.7 KB",
+      "size": 50170,
+      "sizeHuman": "49.0 KB",
       "extension": ".js"
     },
     {
       "path": "public/js/core/kasi/calendar.js",
-      "size": 9831,
-      "sizeHuman": "9.6 KB",
+      "size": 10360,
+      "sizeHuman": "10.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/core/saju/extremeTResult.js",
+      "size": 59298,
+      "sizeHuman": "57.9 KB",
       "extension": ".js"
     },
     {
       "path": "public/js/core/saju/reportDashboard.js",
-      "size": 58065,
-      "sizeHuman": "56.7 KB",
+      "size": 70048,
+      "sizeHuman": "68.4 KB",
       "extension": ".js"
     },
     {
@@ -5147,8 +5662,8 @@
     },
     {
       "path": "public/js/entertain-engine.js",
-      "size": 60407,
-      "sizeHuman": "59.0 KB",
+      "size": 227820,
+      "sizeHuman": "222.5 KB",
       "extension": ".js"
     },
     {
@@ -5171,14 +5686,14 @@
     },
     {
       "path": "public/js/inline/planet-widget-cosmic.js",
-      "size": 25351,
-      "sizeHuman": "24.8 KB",
+      "size": 39035,
+      "sizeHuman": "38.1 KB",
       "extension": ".js"
     },
     {
       "path": "public/js/inline/pwa-theme-init.js",
-      "size": 917,
-      "sizeHuman": "917 B",
+      "size": 905,
+      "sizeHuman": "905 B",
       "extension": ".js"
     },
     {
@@ -5189,38 +5704,56 @@
     },
     {
       "path": "public/js/love-secret-service.js",
-      "size": 71723,
-      "sizeHuman": "70.0 KB",
+      "size": 81546,
+      "sizeHuman": "79.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/luck-sync-diary.js",
+      "size": 247637,
+      "sizeHuman": "241.8 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/mobile-backstack-navigation.js",
+      "size": 16249,
+      "sizeHuman": "15.9 KB",
       "extension": ".js"
     },
     {
       "path": "public/js/README.md",
-      "size": 4513,
+      "size": 4509,
       "sizeHuman": "4.4 KB",
       "extension": ".md"
     },
     {
       "path": "public/js/router.js",
-      "size": 6583,
-      "sizeHuman": "6.4 KB",
+      "size": 6615,
+      "sizeHuman": "6.5 KB",
       "extension": ".js"
     },
     {
       "path": "public/js/saju-engine-continuation.js",
-      "size": 10681,
-      "sizeHuman": "10.4 KB",
+      "size": 11636,
+      "sizeHuman": "11.4 KB",
       "extension": ".js"
     },
     {
       "path": "public/js/saju-engine-tarot-sukuyo-quantum.js",
-      "size": 480790,
-      "sizeHuman": "469.5 KB",
+      "size": 1009252,
+      "sizeHuman": "985.6 KB",
       "extension": ".js"
     },
     {
       "path": "public/js/saju-engine.js",
-      "size": 1299680,
-      "sizeHuman": "1.24 MB",
+      "size": 1968569,
+      "sizeHuman": "1.88 MB",
+      "extension": ".js"
+    },
+    {
+      "path": "public/js/services/animal-totem-content-engine.js",
+      "size": 40219,
+      "sizeHuman": "39.3 KB",
       "extension": ".js"
     },
     {
@@ -5249,8 +5782,8 @@
     },
     {
       "path": "public/js/services/sajuWorkerExamples.js",
-      "size": 8695,
-      "sizeHuman": "8.5 KB",
+      "size": 9463,
+      "sizeHuman": "9.2 KB",
       "extension": ".js"
     },
     {
@@ -5284,12 +5817,6 @@
       "extension": ".js"
     },
     {
-      "path": "public/js/splash.js",
-      "size": 6413,
-      "sizeHuman": "6.3 KB",
-      "extension": ".js"
-    },
-    {
       "path": "public/js/tarot-data.js",
       "size": 10926,
       "sizeHuman": "10.7 KB",
@@ -5297,14 +5824,14 @@
     },
     {
       "path": "public/js/tarot-love-experience.js",
-      "size": 46814,
-      "sizeHuman": "45.7 KB",
+      "size": 56204,
+      "sizeHuman": "54.9 KB",
       "extension": ".js"
     },
     {
       "path": "public/js/tarot-self-esteem-experience.js",
-      "size": 47386,
-      "sizeHuman": "46.3 KB",
+      "size": 74255,
+      "sizeHuman": "72.5 KB",
       "extension": ".js"
     },
     {
@@ -5326,6 +5853,24 @@
       "extension": ".js"
     },
     {
+      "path": "public/js/vendor/sweph-wasm/ephe/seas_18.se1",
+      "size": 223002,
+      "sizeHuman": "217.8 KB",
+      "extension": ".se1"
+    },
+    {
+      "path": "public/js/vendor/sweph-wasm/ephe/semo_18.se1",
+      "size": 1304771,
+      "sizeHuman": "1.24 MB",
+      "extension": ".se1"
+    },
+    {
+      "path": "public/js/vendor/sweph-wasm/ephe/sepl_18.se1",
+      "size": 484055,
+      "sizeHuman": "472.7 KB",
+      "extension": ".se1"
+    },
+    {
       "path": "public/js/web-vitals-console.js",
       "size": 8591,
       "sizeHuman": "8.4 KB",
@@ -5339,8 +5884,8 @@
     },
     {
       "path": "public/static/js/router.js",
-      "size": 6561,
-      "sizeHuman": "6.4 KB",
+      "size": 6608,
+      "sizeHuman": "6.5 KB",
       "extension": ".js"
     },
     {
@@ -5399,13 +5944,13 @@
     },
     {
       "path": "public/styles/mobile-ux.css",
-      "size": 16363,
-      "sizeHuman": "16.0 KB",
+      "size": 15448,
+      "sizeHuman": "15.1 KB",
       "extension": ".css"
     },
     {
       "path": "public/styles/README.md",
-      "size": 5929,
+      "size": 5924,
       "sizeHuman": "5.8 KB",
       "extension": ".md"
     },
@@ -5648,12 +6193,6 @@
       "size": 86134,
       "sizeHuman": "84.1 KB",
       "extension": ".webp"
-    },
-    {
-      "path": "public/tadagochi-sw.js",
-      "size": 2325,
-      "sizeHuman": "2.3 KB",
-      "extension": ".js"
     },
     {
       "path": "public/tarot-cards/aceofcups.jpeg",
@@ -6466,12 +7005,6 @@
       "extension": ".jpeg"
     },
     {
-      "path": "public/tarot-cards/theworld.webp",
-      "size": 43192,
-      "sizeHuman": "42.2 KB",
-      "extension": ".webp"
-    },
-    {
       "path": "public/tarot-cards/threeofcups.jpeg",
       "size": 31921,
       "sizeHuman": "31.2 KB",
@@ -6587,8 +7120,8 @@
     },
     {
       "path": "server/.env.example",
-      "size": 3178,
-      "sizeHuman": "3.1 KB",
+      "size": 3285,
+      "sizeHuman": "3.2 KB",
       "extension": ".example"
     },
     {
@@ -6623,13 +7156,13 @@
     },
     {
       "path": "server/middleware/auth.middleware.js",
-      "size": 4117,
+      "size": 4121,
       "sizeHuman": "4.0 KB",
       "extension": ".js"
     },
     {
       "path": "server/middleware/flower-admin.middleware.js",
-      "size": 2900,
+      "size": 2904,
       "sizeHuman": "2.8 KB",
       "extension": ".js"
     },
@@ -6647,8 +7180,8 @@
     },
     {
       "path": "server/models/Payment.js",
-      "size": 1854,
-      "sizeHuman": "1.8 KB",
+      "size": 2155,
+      "sizeHuman": "2.1 KB",
       "extension": ".js"
     },
     {
@@ -6661,6 +7194,12 @@
       "path": "server/models/PointHistory.js",
       "size": 1092,
       "sizeHuman": "1.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/models/ProfileCard.js",
+      "size": 1620,
+      "sizeHuman": "1.6 KB",
       "extension": ".js"
     },
     {
@@ -6689,26 +7228,26 @@
     },
     {
       "path": "server/routes/admin.routes.js",
-      "size": 41316,
-      "sizeHuman": "40.3 KB",
+      "size": 41360,
+      "sizeHuman": "40.4 KB",
       "extension": ".js"
     },
     {
       "path": "server/routes/astro.routes.js",
-      "size": 8092,
+      "size": 8096,
       "sizeHuman": "7.9 KB",
       "extension": ".js"
     },
     {
       "path": "server/routes/auth.routes.js",
-      "size": 33913,
-      "sizeHuman": "33.1 KB",
+      "size": 34050,
+      "sizeHuman": "33.3 KB",
       "extension": ".js"
     },
     {
       "path": "server/routes/fortune.routes.js",
-      "size": 51569,
-      "sizeHuman": "50.4 KB",
+      "size": 53553,
+      "sizeHuman": "52.3 KB",
       "extension": ".js"
     },
     {
@@ -6719,14 +7258,14 @@
     },
     {
       "path": "server/routes/oracle.routes.js",
-      "size": 12092,
+      "size": 12096,
       "sizeHuman": "11.8 KB",
       "extension": ".js"
     },
     {
       "path": "server/routes/payment.routes.js",
-      "size": 55066,
-      "sizeHuman": "53.8 KB",
+      "size": 440,
+      "sizeHuman": "440 B",
       "extension": ".js"
     },
     {
@@ -6736,9 +7275,15 @@
       "extension": ".js"
     },
     {
+      "path": "server/routes/profile.routes.js",
+      "size": 10817,
+      "sizeHuman": "10.6 KB",
+      "extension": ".js"
+    },
+    {
       "path": "server/routes/sibyl.routes.js",
-      "size": 16740,
-      "sizeHuman": "16.3 KB",
+      "size": 16744,
+      "sizeHuman": "16.4 KB",
       "extension": ".js"
     },
     {
@@ -6767,32 +7312,32 @@
     },
     {
       "path": "server/routes/user.routes.js",
-      "size": 3370,
-      "sizeHuman": "3.3 KB",
+      "size": 8927,
+      "sizeHuman": "8.7 KB",
       "extension": ".js"
     },
     {
       "path": "server/routes/yoga-guru.routes.js",
-      "size": 14142,
+      "size": 14146,
       "sizeHuman": "13.8 KB",
       "extension": ".js"
     },
     {
       "path": "server/services/kasi-calendar.service.js",
-      "size": 9018,
+      "size": 9016,
       "sizeHuman": "8.8 KB",
-      "extension": ".js"
-    },
-    {
-      "path": "server/services/portone.service.js",
-      "size": 6587,
-      "sizeHuman": "6.4 KB",
       "extension": ".js"
     },
     {
       "path": "server/services/swiss-ephemeris.service.js",
       "size": 9801,
       "sizeHuman": "9.6 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "server/services/tarot-engine.service.js",
+      "size": 190769,
+      "sizeHuman": "186.3 KB",
       "extension": ".js"
     },
     {
@@ -6862,10 +7407,52 @@
       "extension": ".ts"
     },
     {
+      "path": "worker/lib/astro-local-interpreter.js",
+      "size": 17466,
+      "sizeHuman": "17.1 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "worker/lib/astro/normalizeAstroPayloadForStrictValidation.js",
+      "size": 3277,
+      "sizeHuman": "3.2 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "worker/lib/astro/test.astroGeneration.js",
+      "size": 3823,
+      "sizeHuman": "3.7 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "worker/lib/gemini-client.js",
+      "size": 2026,
+      "sizeHuman": "2.0 KB",
+      "extension": ".js"
+    },
+    {
+      "path": "worker/lib/generate-sukuyo-pdf.js",
+      "size": 373,
+      "sizeHuman": "373 B",
+      "extension": ".js"
+    },
+    {
+      "path": "worker/lib/premium-chapter-json-contract.js",
+      "size": 9101,
+      "sizeHuman": "8.9 KB",
+      "extension": ".js"
+    },
+    {
       "path": "worker/package.json",
       "size": 26,
       "sizeHuman": "26 B",
       "extension": ".json"
+    },
+    {
+      "path": "worker/routes/premium.js",
+      "size": 14834,
+      "sizeHuman": "14.5 KB",
+      "extension": ".js"
     }
   ],
   "notes": [
