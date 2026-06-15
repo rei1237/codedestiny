@@ -1,11 +1,12 @@
 "use client";
 
 import styles from "./moon-music-player.module.css";
+import type { ArtistKey } from "./_data/musicManifest";
 
 type MoonAlbumArtworkProps = {
   coverUrl: string;
   title: string;
-  artistKey: "neo" | "yeoni";
+  artistKey: ArtistKey;
   artistName: string;
   coverFailed: boolean;
   onCoverLoad: () => void;

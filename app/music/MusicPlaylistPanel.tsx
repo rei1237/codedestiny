@@ -19,6 +19,7 @@ type MusicPlaylistPanelProps = {
 const PLAYLIST_TABS: Array<{ key: PlaylistTab; label: string }> = [
   { key: "yeoni", label: "Yeoni" },
   { key: "neo", label: "Neo" },
+  { key: "dest1nova", label: "DEST1NOVA" },
   { key: "all", label: "All" },
 ];
 
@@ -120,7 +121,7 @@ export default function MusicPlaylistPanel({
   }
 
   return (
-    <aside className={styles.playlistPanel} aria-label="Music playlist">
+    <aside className={styles.playlistPanel} data-playlist-mode={activeTab} aria-label="Music playlist">
       <details className={styles.playlistDetails} open>
         <summary className={styles.playlistHeaderButton}>
           <span className={styles.playlistHeaderText}>
@@ -134,7 +135,7 @@ export default function MusicPlaylistPanel({
         </summary>
 
         <div className={styles.playlistBody}>
-          <div className={styles.playlistTabs} role="tablist" aria-label="Filter playlist by artist">
+          <div className={styles.playlistTabs} role="tablist" aria-label="Filter playlist">
             {PLAYLIST_TABS.map((tab) => (
               <button
                 key={tab.key}

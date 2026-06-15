@@ -1,7 +1,7 @@
 import { buildMusicPublicUrl } from "@/lib/r2-public-url";
 
-export type ArtistKey = "neo" | "yeoni";
-export type ArtistName = "Neo" | "Yeoni";
+export type ArtistKey = "neo" | "yeoni" | "dest1nova";
+export type ArtistName = "Neo" | "Yeoni" | "DEST1NOVA";
 
 export type Track = {
   id: string;
@@ -18,10 +18,12 @@ export type Track = {
   lyrics?: string;
 };
 
+type MusicFolder = "neosong" | "yeonisong" | "neosongmini1" | "yeonisongmini1" | "DEST1NOVA";
+
 type ArtistConfig = {
   artistKey: ArtistKey;
   artistName: ArtistName;
-  folder: "neosong" | "yeonisong";
+  folder: MusicFolder;
   fallbackCoverFileName: string;
   coverFileNames: readonly string[];
   displayCoverUrl?: string;
@@ -29,6 +31,10 @@ type ArtistConfig = {
 
 type ArtistAudioManifest = {
   artistKey: ArtistKey;
+  folder?: MusicFolder;
+  fallbackCoverFileName?: string;
+  coverFileNames?: readonly string[];
+  displayCoverUrl?: string;
   audioFileNames: readonly string[];
 };
 
@@ -48,6 +54,14 @@ const ARTISTS = {
     fallbackCoverFileName: "꽃돼지 1집.png",
     coverFileNames: ["꽃돼지 1집.webp", "꽃돼지 1집.png"],
     displayCoverUrl: "/music-covers/yeoni-1st-album.webp",
+  },
+  dest1nova: {
+    artistKey: "dest1nova",
+    artistName: "DEST1NOVA",
+    folder: "DEST1NOVA",
+    fallbackCoverFileName: "DEST1NOVA.webp",
+    coverFileNames: ["DEST1NOVA.webp"],
+    displayCoverUrl: undefined,
   },
 } as const satisfies Record<ArtistKey, ArtistConfig>;
 
@@ -87,6 +101,53 @@ const artistAudioManifests = [
       "별자리 지도 위에서.wav",
       "숙요점 레슨.wav",
       "연이의 Moonlight Code.wav",
+    ],
+  },
+  {
+    artistKey: "neo",
+    folder: "neosongmini1",
+    fallbackCoverFileName: "네오 미니 앨범 1집.webp",
+    coverFileNames: ["네오 미니 앨범 1집.webp"],
+    audioFileNames: [
+      "매력의 sign.wav",
+      "비겁다자의 우정 지옥.wav",
+      "새벽 끝.mp3",
+      "식상 폭발 말빨천재.wav",
+      "역마살 열차창.wav",
+      "재성아 나 돈 좀 줘.wav",
+      "탐랑성 Danger.wav",
+    ],
+  },
+  {
+    artistKey: "yeoni",
+    folder: "yeonisongmini1",
+    fallbackCoverFileName: "연이 미니 앨범 1집 (2).webp",
+    coverFileNames: ["연이 미니 앨범 1집 (2).webp"],
+    audioFileNames: [
+      "Flower pig 매력살.mp3",
+      "기신은 bye bye.wav",
+      "달빛처럼 닿을게.wav",
+      "도화 화개 love charm.mp3",
+      "별빛 재판.mp3",
+      "손끝 숨결.mp3",
+    ],
+  },
+  {
+    artistKey: "dest1nova",
+    audioFileNames: [
+      "Flip the Card.mp3",
+      "I am your fate.wav",
+      "Karma, karma.mp3",
+      "LUCKY THIEF.mp3",
+      "Synastry gravity.mp3",
+      "Zero hour, we don’t run.mp3",
+      "별빛 궤도속 fatal-sign.wav",
+      "별이 말해.mp3",
+      "오행 FLEX.mp3",
+      "운세 soda pop.wav",
+      "자미제왕 컴백.wav",
+      "천동성 힐링남.mp3",
+      "편관의 궤도.wav",
     ],
   },
 ] as const satisfies readonly ArtistAudioManifest[];
@@ -3172,8 +3233,16 @@ function findCoverFileName(artist: ArtistConfig, audioFileName: string) {
   )) || artist.fallbackCoverFileName;
 }
 
-function buildTrack(artistKey: ArtistKey, audioFileName: string, index: number): Track {
-  const artist = ARTISTS[artistKey];
+function buildTrack(manifest: ArtistAudioManifest, audioFileName: string, index: number): Track {
+  const baseArtist = ARTISTS[manifest.artistKey];
+  const hasFolderOverride = Boolean(manifest.folder);
+  const artist: ArtistConfig = {
+    ...baseArtist,
+    folder: manifest.folder || baseArtist.folder,
+    fallbackCoverFileName: manifest.fallbackCoverFileName || baseArtist.fallbackCoverFileName,
+    coverFileNames: manifest.coverFileNames || baseArtist.coverFileNames,
+    displayCoverUrl: manifest.displayCoverUrl ?? (hasFolderOverride ? undefined : baseArtist.displayCoverUrl),
+  };
   const audioKey = keyFromFileName(artist.folder, audioFileName);
   const coverKey = keyFromFileName(artist.folder, findCoverFileName(artist, audioFileName));
 
@@ -3191,9 +3260,16 @@ function buildTrack(artistKey: ArtistKey, audioFileName: string, index: number):
   };
 }
 
+const artistTrackCounts: Record<ArtistKey, number> = { neo: 0, yeoni: 0, dest1nova: 0 };
+
 export const tracks = artistAudioManifests.flatMap((manifest) => (
-  manifest.audioFileNames.map((audioFileName, index) => buildTrack(manifest.artistKey, audioFileName, index))
+  manifest.audioFileNames.map((audioFileName) => {
+    const index = artistTrackCounts[manifest.artistKey];
+    artistTrackCounts[manifest.artistKey] += 1;
+    return buildTrack(manifest, audioFileName, index);
+  })
 ));
 export const neoTracks = tracks.filter((track) => track.artistKey === "neo");
 export const yeoniTracks = tracks.filter((track) => track.artistKey === "yeoni");
-export const allTracks = [...yeoniTracks, ...neoTracks];
+export const dest1novaTracks = tracks.filter((track) => track.artistKey === "dest1nova");
+export const allTracks = [...yeoniTracks, ...neoTracks, ...dest1novaTracks];

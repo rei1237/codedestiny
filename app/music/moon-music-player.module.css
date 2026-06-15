@@ -81,6 +81,26 @@
     linear-gradient(145deg, #120512 0%, #2a0d2a 48%, #3a1632 100%);
 }
 
+.dest1novaMode {
+  --moon-ink: #f8fbff;
+  --moon-muted: rgba(208, 231, 255, 0.76);
+  --moon-line: rgba(111, 238, 255, 0.3);
+  --moon-glass: rgba(4, 18, 36, 0.56);
+  --moon-cyan: rgba(52, 232, 255, 0.38);
+  --moon-rose: rgba(255, 88, 176, 0.28);
+  --album-frame-width: min(88%, 344px);
+  --album-frame-aspect: 1;
+  --album-frame-padding: 12px;
+  --album-frame-bg: linear-gradient(145deg, rgba(214, 248, 255, 0.18), rgba(4, 18, 36, 0.78));
+  --album-frame-shadow: 0 30px 76px rgba(0, 6, 18, 0.58), 0 0 86px rgba(52, 232, 255, 0.26);
+  --cover-fit: contain;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(52, 232, 255, 0.22), transparent 15rem),
+    radial-gradient(circle at 82% 24%, rgba(255, 198, 92, 0.16), transparent 18rem),
+    radial-gradient(circle at 54% 86%, rgba(255, 88, 176, 0.14), transparent 20rem),
+    linear-gradient(145deg, #020511 0%, #07182d 46%, #14231c 100%);
+}
+
 .miniPlayerShell {
   --moon-ink: #f7fbff;
   --moon-muted: rgba(232, 242, 255, 0.72);
@@ -258,6 +278,16 @@
     var(--cover-image),
     radial-gradient(circle at 50% 40%, rgba(255, 198, 225, 0.24), transparent 23rem);
   opacity: 0.62;
+  filter: blur(44px) saturate(1.28);
+}
+
+.dest1novaMode .coverAmbient {
+  background:
+    linear-gradient(rgba(2, 7, 18, 0.5), rgba(2, 7, 18, 0.72)),
+    var(--cover-image),
+    radial-gradient(circle at 44% 36%, rgba(52, 232, 255, 0.26), transparent 22rem),
+    radial-gradient(circle at 74% 66%, rgba(255, 198, 92, 0.13), transparent 18rem);
+  opacity: 0.66;
   filter: blur(44px) saturate(1.28);
 }
 
@@ -1158,6 +1188,11 @@
   color: rgba(255, 205, 229, 0.84);
 }
 
+.dest1novaMode .playlistKicker,
+.playlistPanel[data-playlist-mode="dest1nova"] .playlistKicker {
+  color: rgba(121, 239, 255, 0.9);
+}
+
 .playlistHeaderMeta {
   display: inline-flex;
   align-items: center;
@@ -1188,7 +1223,7 @@
 
 .playlistTabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
   padding: 4px;
   border: 1px solid rgba(238, 247, 255, 0.13);
@@ -1197,10 +1232,15 @@
 }
 
 .playlistTab {
+  min-width: 0;
   min-height: 34px;
+  padding: 0 8px;
   border-radius: 999px;
+  overflow: hidden;
   font-size: 0.8rem;
   font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .playlistTab[aria-selected="true"] {
@@ -1210,6 +1250,26 @@
     radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.22), transparent 38%),
     rgba(245, 227, 174, 0.14);
   box-shadow: 0 0 22px rgba(245, 227, 174, 0.12);
+}
+
+.playlistPanel[data-playlist-mode="dest1nova"] {
+  border-color: rgba(111, 238, 255, 0.28);
+  background:
+    linear-gradient(180deg, rgba(52, 232, 255, 0.105), rgba(255, 88, 176, 0.035)),
+    rgba(2, 9, 22, 0.52);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 20px 48px rgba(0, 7, 24, 0.32),
+    0 0 28px rgba(52, 232, 255, 0.1);
+}
+
+.playlistPanel[data-playlist-mode="dest1nova"] .playlistTab[aria-selected="true"] {
+  border-color: rgba(111, 238, 255, 0.52);
+  color: #f8fbff;
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.24), transparent 38%),
+    linear-gradient(135deg, rgba(52, 232, 255, 0.26), rgba(255, 198, 92, 0.12));
+  box-shadow: 0 0 24px rgba(52, 232, 255, 0.18);
 }
 
 .playlistSearch {
@@ -1305,6 +1365,21 @@
 .playlistTrack[aria-current="true"]::before {
   background: linear-gradient(to bottom, transparent, #f5e3ae, #dff6ff, transparent);
   box-shadow: 0 0 16px rgba(232, 244, 255, 0.46);
+}
+
+.dest1novaMode .playlistTrack[aria-current="true"] {
+  border-color: rgba(111, 238, 255, 0.38);
+  background:
+    linear-gradient(90deg, rgba(52, 232, 255, 0.15), rgba(255, 198, 92, 0.065)),
+    rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 28px rgba(52, 232, 255, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.dest1novaMode .playlistTrack[aria-current="true"]::before {
+  background: linear-gradient(to bottom, transparent, #6feeff, #ffd06a, transparent);
+  box-shadow: 0 0 18px rgba(111, 238, 255, 0.5);
 }
 
 .playlistTrack[data-disabled="true"] {
@@ -1465,6 +1540,11 @@
   box-shadow: 0 0 8px rgba(238, 247, 255, 0.42);
   transform-origin: bottom;
   will-change: opacity, transform;
+}
+
+.dest1novaMode .equalizerIcon i {
+  background: linear-gradient(to top, #6feeff, #ffd06a);
+  box-shadow: 0 0 10px rgba(111, 238, 255, 0.5);
 }
 
 .playlistTrack[data-playing="true"] .equalizerIcon i:nth-child(1) {

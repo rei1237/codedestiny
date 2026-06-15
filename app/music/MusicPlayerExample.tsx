@@ -124,7 +124,11 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const [nowPlayingShared, setNowPlayingShared] = useState(false);
   const currentTrackId = player.currentTrack?.id || "";
   const coverFailed = Boolean(!player.currentTrack?.coverUrl || (currentTrackId && failedCoverIds[currentTrackId]));
-  const artistThemeClass = player.currentTrack?.artistKey === "yeoni" ? styles.yeoniMode : styles.neoMode;
+  const artistThemeClass = player.currentTrack?.artistKey === "dest1nova"
+    ? styles.dest1novaMode
+    : player.currentTrack?.artistKey === "yeoni"
+      ? styles.yeoniMode
+      : styles.neoMode;
   const isCompact = presentation === "compact";
   const hasCurrentTrack = Boolean(player.currentTrack);
 
