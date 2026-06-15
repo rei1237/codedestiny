@@ -169,7 +169,7 @@ function lyricsFromAudioFileName(audioFileName: string) {
   const normalized = basenameFromFileName(audioFileName).toLowerCase();
 
   if (normalized === "karma, karma") {
-    return [Intro]
+    return `[Intro]
 Karma, karma
 다시 너를 찾아
 전생의 문이 열려
@@ -275,7 +275,7 @@ You are my sign
 Karma, karma
 다시 너를 찾아
 전생의 문이 닫혀도
-I’ll find you again;
+I’ll find you again`;
   }
   if (normalized.includes("새벽 끝")) {
     return `[Verse 1]

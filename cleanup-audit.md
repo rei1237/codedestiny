@@ -11,18 +11,19 @@
 | 항목 | 결과 | 근거 |
 | --- | --- | --- |
 | install | PASS | `npm install` 완료. 추적 파일 변경 없음. |
-| lint | FAIL | `next lint`가 기존 경고 다수로 exit 1. 주요 유형: unused vars, no-img-element, no-html-link-for-pages, no-var. |
-| typecheck | FAIL | `app/music/_data/musicManifest.ts:174` 구문 오류. `return [Intro]` 뒤 원문 텍스트가 TS 표현식 밖으로 노출됨. |
-| build | FAIL | sync/public parity/i18n/locale/runtime-cache 검증은 PASS. Next compile은 `app/music/_data/musicManifest.ts:174` 동일 지점에서 FAIL. |
+| lint | PASS | `npm run lint` exit 0. 기존 경고 다수 유지: unused vars, no-img-element, no-html-link-for-pages, no-var. |
+| typecheck | PASS | `app/music/_data/musicManifest.ts`의 가사 template literal 복구 후 `npm run typecheck` 통과. |
+| build | PASS | `npm run build` 통과. sync/public parity/i18n/locale/runtime-cache, Next compile, static export, postbuild 완료. |
 | test | N/A | `package.json`에 `test` 스크립트 없음. |
 | worker dry-run | PASS | `npm run build:worker` 통과. `whatwg-url` default export warning 1건. |
 | cleanup audit script | PASS | `npm run audit:cleanup` dry-run 완료. `reports/*-report.json` 3개 갱신. |
 
-발견된 기존 오류:
+초기 발견 및 처리:
 
-- `app/music/_data/musicManifest.ts:174`부터 음악 가사/텍스트로 보이는 원문이 문자열 또는 배열 값으로 감싸지지 않아 TypeScript/Next build를 막고 있음.
+- `app/music/_data/musicManifest.ts:174`부터 음악 가사/텍스트로 보이는 원문이 template literal로 감싸지지 않아 TypeScript/Next build를 막고 있었고, 해당 블록만 복구함.
 - lint는 현 시점 기준 기존 경고가 많아 cleanup 후 회귀 판단 기준으로 "경고 수 증가 없음"을 우선 적용해야 함.
 - `npm run build`의 `sync:public`, `verify:public-parity`, `verify:i18n-runtime`, `verify:locale-main-sync`, `verify:runtime-cache-sync`는 모두 통과함.
+- touched files 기준 깨진 문자열/인코딩 패턴 및 운세 금지 표현 exact scan에서 추가 노출 없음.
 
 검색 근거:
 
@@ -76,7 +77,7 @@
 | R2 music covers | first viewport 근처 image 3개 eager | `index.html` music.code-destiny.com 검색 | viewport 위치 확인 후 lazy/fetchpriority 조정 | R2 초기 호출 감소 |
 | React runtime payment src | `PAID_SERVICE_RUNTIME_SRC`가 `build-5e369f274cec`, static은 `build-ddb9d94bea3a` | `app/_lib/billing-client.ts:220`, `index.html` cache key 검색 | cache key single source 후보 | stale runtime 로딩 위험 감소 |
 | debug output | 관계 타로, PDF, billing, music player 등에 console 출력 | debug keyword search | 운영 필요 로그와 dev 로그 분리 | 콘솔 노이즈 및 민감 맥락 노출 감소 |
-| music manifest | TS syntax error로 build 차단 | typecheck/build 실패 | manifest 생성물 복구 또는 generator 재실행 | 기본 검증 회복 |
+| music manifest | 가사 template literal 누락으로 build 차단됨 | 초기 typecheck/build 실패, 복구 후 PASS | manifest generator 재발 방지 후보 | 기본 검증 유지 |
 | 대형 client data | `app/saju/love-simulation/_data/loveCodeMvp.ts` 615.9 KB | large report | route chunk 영향 확인 후 dynamic data import | React route bundle 감소 |
 
 ## 5. 모듈화 후보
