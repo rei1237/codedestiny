@@ -46,7 +46,7 @@
 | `_tmp_ziwei.diff` | 루트 임시 diff | `audit:cleanup` unusedCandidates. | 낮음 | 파일명 exact `rg` 후 삭제 검증 |
 | `.codex-next-dev.log`, `.next-dev-server.log`, `.codex-*.log`, `codex-dev-server-*.log`, `dev-server.log`, `tmp-codex-animal-dev.log` | 개발 로그 산출물 | `audit:cleanup` unusedCandidates. 런타임 import/route 아님. | 낮음 | exact `rg` 후 묶음 삭제 |
 | `tsconfig.tsbuildinfo` | TypeScript 캐시 산출물 | `audit:cleanup` unusedCandidates. | 낮음 | `.gitignore` 포함 여부 확인 후 삭제 |
-| `all_webp_files.txt` | 일회성 asset inventory로 보임 | `audit:cleanup` unusedCandidates. | 낮음 | exact `rg` 후 삭제 또는 `reports/` 이동 후보 |
+| `all_webp_files.txt` | 일회성 `dist` WebP inventory | `git grep "all_webp_files"` 결과 문서/보고서 외 참조 없음. | 낮음 | 삭제 완료 |
 | `seo-audit-report.md`, `seo-audit-report.json` | 감사 산출물로 보임 | `audit:cleanup` unusedCandidates. | 중간 | SEO 작업 기록 여부 확인 전 보류 |
 | `js/saju-engine.js`, `js/saju-engine-tarot-sukuyo-quantum.js` | 감사 스크립트상 unused지만 runtime loader 문자열 참조 존재 | `js/core/index-inline-runtime.js`에서 `/js/saju-engine.js?v=...`, `/js/saju-engine-tarot-sukuyo-quantum.js?v=...` 로드 | 높음 | 삭제 금지. 번들/분할 후보로만 관리 |
 | `public/**` mirror HTML/JS/CSS | 중복 파일로 탐지됨 | sync 대상 mirror. `npm run sync:public` 산출물 | 높음 | 직접 삭제 금지 |

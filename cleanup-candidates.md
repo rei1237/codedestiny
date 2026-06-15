@@ -10,7 +10,7 @@
 | `_tmp_ziwei.diff` | 삭제 후보 | `rg "_tmp_ziwei|_tmp_ziwei.diff"` 후 제거 |
 | `.codex-next-dev.log`, `.next-dev-server.log`, `.codex-*.log`, `codex-dev-server-*.log`, `dev-server.log`, `tmp-codex-animal-dev.log` | 삭제 후보 | exact filename `rg` 후 제거 |
 | `tsconfig.tsbuildinfo` | 삭제 후보 | `.gitignore` 확인 후 제거 |
-| `all_webp_files.txt` | 삭제 후보 | 생성 스크립트/문서 참조 확인 |
+| `all_webp_files.txt` | 처리 완료 | `git grep "all_webp_files"` 결과 문서/보고서 외 참조 없음. 삭제 완료 |
 | `seo-audit-report.md`, `seo-audit-report.json` | 보류 | SEO 감사 기록 보존 필요성 확인 |
 
 ## 삭제 금지 또는 보류

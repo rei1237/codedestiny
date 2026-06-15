@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-15T21:48:07.993Z",
+  "generatedAt": "2026-06-15T22:27:35.154Z",
   "mode": "dry-run",
-  "totalFilesScanned": 2330,
+  "totalFilesScanned": 2331,
   "entryPointCount": 741,
   "reachableCount": 1213,
-  "unreachableCount": 1117,
+  "unreachableCount": 1118,
   "entryPoints": [
     "app/AnimalTotem.tsx",
     "app/HomeClient.js",
@@ -800,8 +800,8 @@
     },
     {
       "path": "tsconfig.tsbuildinfo",
-      "size": 307899,
-      "sizeHuman": "300.7 KB",
+      "size": 354250,
+      "sizeHuman": "345.9 KB",
       "extension": ".tsbuildinfo"
     },
     {
@@ -833,12 +833,6 @@
       "size": 223002,
       "sizeHuman": "217.8 KB",
       "extension": ".se1"
-    },
-    {
-      "path": "all_webp_files.txt",
-      "size": 178992,
-      "sizeHuman": "174.8 KB",
-      "extension": ".txt"
     },
     {
       "path": "_tmp_ziwei.diff",
@@ -1127,6 +1121,12 @@
       "size": 12196,
       "sizeHuman": "11.9 KB",
       "extension": ".js"
+    },
+    {
+      "path": "cleanup-audit.md",
+      "size": 11930,
+      "sizeHuman": "11.7 KB",
+      "extension": ".md"
     },
     {
       "path": "js/saju-engine-continuation.js",
@@ -1769,6 +1769,12 @@
       "size": 2664,
       "sizeHuman": "2.6 KB",
       "extension": ".ts"
+    },
+    {
+      "path": "cleanup-candidates.md",
+      "size": 2653,
+      "sizeHuman": "2.6 KB",
+      "extension": ".md"
     },
     {
       "path": "scripts/optimize-static-thirdparty-loading.cjs",
