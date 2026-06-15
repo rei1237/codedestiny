@@ -75,7 +75,7 @@
 | Swiss ephemeris assets | `.se1`, wasm이 root/public vendor에 중복 | duplicate report | 실제 fetch 경로 확인 후 한 경로로 수렴 후보 | 정적 자산 중복 감소 |
 | font preload | font 4종 선언, 1종 preload | `index.html` font/preload 검색 | 실제 first paint font만 preload 유지 | 네트워크 초기 경쟁 완화 |
 | R2 music covers | first viewport 근처 image 3개 eager | `index.html` music.code-destiny.com 검색 | viewport 위치 확인 후 lazy/fetchpriority 조정 | R2 초기 호출 감소 |
-| React runtime payment src | `PAID_SERVICE_RUNTIME_SRC`가 `build-5e369f274cec`, static은 `build-ddb9d94bea3a` | `app/_lib/billing-client.ts:220`, `index.html` cache key 검색 | cache key single source 후보 | stale runtime 로딩 위험 감소 |
+| React runtime payment src | `PAID_SERVICE_RUNTIME_SRC`가 static shell cache key와 불일치 | `app/_lib/billing-client.ts:220`, `index.html` cache key 검색 | `build-ddb9d94bea3a`로 정렬 완료 | stale runtime 로딩 위험 감소 |
 | debug output | 관계 타로, PDF, billing, music player 등에 console 출력 | debug keyword search | 운영 필요 로그와 dev 로그 분리 | 콘솔 노이즈 및 민감 맥락 노출 감소 |
 | music manifest | 가사 template literal 누락으로 build 차단됨 | 초기 typecheck/build 실패, 복구 후 PASS | manifest generator 재발 방지 후보 | 기본 검증 유지 |
 | 대형 client data | `app/saju/love-simulation/_data/loveCodeMvp.ts` 615.9 KB | large report | route chunk 영향 확인 후 dynamic data import | React route bundle 감소 |

@@ -28,6 +28,7 @@
 
 - 추적 중이던 `dist` WebP inventory 178,992 bytes 제거.
 - 대형 runtime/engine 파일은 실제 loader 참조가 있어 삭제하지 않고 병목 후보로만 기록.
+- React billing client의 `/js/destiny-profile.js` cache key를 static shell의 현재 key와 정렬.
 
 ## 결제/프로필/PDF/R2 회귀 방지 확인 결과
 

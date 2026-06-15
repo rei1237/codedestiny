@@ -217,7 +217,7 @@ const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
 const BILLING_BALANCE_RECENT_TTL_MS = 5000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
 const PAYMENT_CHOICE_RECENT_TTL_MS = 1800;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-5e369f274cec";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-ddb9d94bea3a";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
 const SUBSCRIPTION_SNAPSHOT_ACTIVE_STATUSES = new Set(["active", "subscribed", "paid", "success", "succeeded", "complete", "completed", "confirmed", "approved"]);
 const SUBSCRIPTION_SNAPSHOT_INACTIVE_STATUSES = new Set(["none", "free", "inactive", "expired", "canceled", "cancelled", "refunded", "failed", "paused"]);
