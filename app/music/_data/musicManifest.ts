@@ -168,6 +168,2391 @@ function titleFromAudioFileName(fileName: string) {
 function lyricsFromAudioFileName(audioFileName: string) {
   const normalized = basenameFromFileName(audioFileName).toLowerCase();
 
+  if (normalized.includes("새벽 끝")) {
+    return `[Verse 1]
+부서진 하늘 아래
+나는 아직 숨을 쉬어
+누군가의 꿈은 칼이 되고
+누군가의 눈물은 별이 돼
+
+어릴 적 믿었던 세상은
+너무 쉽게 무너졌고
+착한 마음 하나만으로는
+아무도 지킬 수 없었어
+
+[Pre-Chorus]
+그래도 네 이름을 부르면
+폐허 속에도 꽃이 피어
+내가 괴물이 된다 해도
+너만은 안고 싶어
+
+[Chorus]
+세상은 잔혹해
+그래도 난 널 사랑해
+피 묻은 새벽 끝에서도
+너의 손을 놓지 않을게
+
+운명이 날 밀어내도
+죄가 되어버린다 해도
+이 차가운 세계 속에서
+나는 너를 사랑하겠어
+
+[Verse 2]
+정답은 늘 늦게 오고
+후회는 먼저 찾아와
+살아남은 사람의 가슴엔
+말 못 할 밤이 쌓여가
+
+자유라 부르던 빛조차
+누군가에겐 상처였고
+내가 원한 작은 행복도
+전쟁처럼 멀어졌어
+
+[Pre-Chorus]
+그래도 네 눈을 보면
+나는 다시 사람이 돼
+모든 걸 잃은 밤에도
+너만은 기억할게
+
+[Chorus]
+세상은 잔혹해
+그래도 난 널 사랑해
+찢겨진 날개라 해도
+너에게 날아가고 싶어
+
+심장이 부서져도
+내일이 사라진다 해도
+이 슬픈 세계 끝에서
+나는 너를 사랑하겠어
+
+[Bridge]
+용서받지 못할 길이라도
+돌아갈 수 없는 나라도
+너를 만난 그 순간만큼은
+내 삶이 틀리지 않았어
+
+[Final Chorus]
+세상은 잔혹해
+그래도 난 널 사랑해
+마지막 빛이 꺼진대도
+너의 이름을 지킬게
+
+운명이 날 삼켜도
+악몽이 나를 불러도
+이 잔혹한 세계 속에서
+나는 너를 사랑하겠어
+
+[Outro]
+부서진 하늘 아래
+그래도 사랑은 남아
+너 하나를 위해 나는
+다시 살아가겠어`;
+  }
+
+  if (normalized.includes("매력의 sign")) {
+    return `[Intro]
+Yeah
+도화, 홍염, 화개
+내 사주에 새겨진 sign
+날 보면 조심해
+이미 늦었으니까
+
+[Verse 1]
+조용히 걸어도 시선이 따라와
+말없이 웃어도 분위긴 달라져
+내가 뭘 한 것도 아닌데
+네 심장은 먼저 나를 알아봐
+
+도화는 눈빛에 피고
+홍염은 숨결에 번져
+화개는 달빛처럼 숨어
+넌 더 깊이 알고 싶어져
+
+[Pre-Chorus]
+다가오면 위험해
+멀어지면 더 궁금해
+내 안의 별들이 깨어나
+너의 밤을 흔들어
+
+[Chorus]
+매력살, 날 보면 fatal
+도화빛 눈빛에 넌 흔들려
+매력살, 빠지면 fatal
+홍염처럼 뜨겁게 번져
+
+화개처럼 비밀스럽게
+네 맘속에 스며들어
+매력살, 날 보면 fatal
+넌 이미 내 운명에 걸렸어
+
+[Post-Chorus]
+Fatal, fatal, my charm sign
+Fatal, fatal, can’t deny
+도화, 홍염, 화개, all night
+넌 내 별에 끌려와
+
+[Verse 2]
+쉽게 다 보여주진 않아
+내 마음은 locked, secret door
+한 걸음 더 가까이 오면
+너는 더 길을 잃어
+
+무대 위에 조명이 켜지면
+내 운도 같이 빛나
+사주 속에 숨겨둔 매력
+오늘 밤 전부 터져 나와
+
+[Pre-Chorus]
+눈빛 하나로 signal
+손짓 하나로 danger
+너도 모르게 내 이름을
+계속 부르게 될 거야
+
+[Chorus]
+매력살, 날 보면 fatal
+도화빛 눈빛에 넌 흔들려
+매력살, 빠지면 fatal
+홍염처럼 뜨겁게 번져
+
+화개처럼 비밀스럽게
+네 맘속에 스며들어
+매력살, 날 보면 fatal
+넌 이미 내 운명에 걸렸어
+
+[Rap]
+도화는 bloom, 홍염은 flame
+화개는 moon, I own my name
+타고난 vibe, 계산은 no
+내 걸음마다 터지는 glow
+
+눈빛은 sharp, 목소린 low
+네 심장 위로 drop that flow
+사주가 말해, I’m the sign
+너의 밤을 바꿀 남자
+
+[Bridge]
+날 사랑하면 어려울 거야
+빛과 그림자 둘 다 나니까
+하지만 네가 진심이라면
+내 가장 깊은 별을 보여줄게
+
+[Final Chorus]
+매력살, 날 보면 fatal
+도화빛 눈빛에 넌 흔들려
+매력살, 빠지면 fatal
+홍염처럼 뜨겁게 번져
+
+화개처럼 아름답게
+너의 꿈에 스며들어
+매력살, 날 보면 fatal
+오늘 밤 넌 나에게 걸렸어
+
+[Outro]
+도화, 홍염, 화개
+내 사주에 새겨진 sign
+Fatal, fatal, my charm sign
+이미 늦었으니까`;
+  }
+
+  if (normalized.includes("비겁다자의 우정 지옥")) {
+    return `[Intro]
+야, 친구야!
+이번엔 진짜 너무했다!
+의리냐, 경쟁이냐
+비겁다자의 우정 지옥!
+
+[Verse 1]
+친구는 많아, 단톡은 불나
+약속은 매일매일 풀부킹
+근데 이상해, 뭔가 이상해
+좋은 일만 생기면 네가 먼저 와
+
+내 썸도 알고, 내 꿈도 알고
+내 비밀까지 다 아는 너
+웃으며 “잘돼라” 말은 하는데
+왜 눈빛은 살짝 불타오르냐
+
+[Pre-Chorus]
+의리로 뭉친 줄 알았는데
+은근히 순위표가 있었네
+내 사주에 비겁이 많다더니
+친구도 많고 경쟁도 많아
+
+[Chorus]
+친구야 친구야 왜 내 운을 가져가
+좋은 기회 오면 왜 네가 먼저 잡아
+친구야 친구야 그래도 미워 못 해
+같이 웃고 싸우는 우정 지옥
+
+친구야 친구야 왜 내 썸을 바라봐
+내가 좋아하면 너도 좋아하잖아
+친구야 친구야 이건 의리냐 질투냐
+비겁다자의 우정 지옥이다!
+
+[Verse 2]
+내가 산 옷을 네가 또 사고
+내가 간 카페에 네가 또 가고
+나만의 필살기인 줄 알았는데
+다음 날 보니 네 피드에 올라와
+
+그래도 웃겨, 그래서 좋아
+혼자보단 시끄러운 인생
+싸우고 삐지고 다시 또 만나
+결국엔 치킨 앞에 화해하네
+
+[Pre-Chorus]
+내 편인지 라이벌인지
+가끔은 헷갈리는 사이
+그래도 세상이 날 때리면
+제일 먼저 달려오는 너
+
+[Chorus]
+친구야 친구야 왜 내 운을 가져가
+좋은 기회 오면 왜 네가 먼저 잡아
+친구야 친구야 그래도 미워 못 해
+같이 웃고 싸우는 우정 지옥
+
+친구야 친구야 왜 내 썸을 바라봐
+내가 좋아하면 너도 좋아하잖아
+친구야 친구야 이건 의리냐 질투냐
+비겁다자의 우정 지옥이다!
+
+[Dance Rock Break]
+비겁! 비겁! 많아도 너무 많아
+의리! 질투! 둘 다 너무 많아
+친구! 경쟁! 끊을 수가 없어
+우정 지옥으로 뛰어들어!
+
+[Bridge]
+가끔은 네가 너무 얄미워
+내 운을 반쯤 가져간 것 같아
+하지만 내 편이 필요할 때
+네가 없으면 더 허전해
+
+[Final Chorus]
+친구야 친구야 왜 내 운을 가져가
+그래도 내 인생에 네가 있어 웃는다
+친구야 친구야 같이 한번 가보자
+이 난장판 같은 우정 지옥
+
+친구야 친구야 내 운 반은 돌려줘
+대신에 내 마음 반은 네가 가져가
+친구야 친구야 이건 의리다 운명이다
+비겁다자의 우정 지옥이다!
+
+[Outro]
+야, 그래도 친구지!
+근데 내 썸은 건드리지 마라!
+비겁다자 우정 지옥
+끝까지 간다!`;
+  }
+
+  if (normalized.includes("식상 폭발 말빨천재")) {
+    return `[Intro]
+Yeah, listen
+말하지 말라 했지?
+근데 내 입은 이미 stage 위
+식상 폭발, let’s go
+
+[Verse 1]
+가만히 있으라 했지만
+내 생각은 이미 비트 위야
+눈빛은 조용한 척해도
+머릿속엔 가사가 뛰어다녀
+
+한마디 툭 던졌을 뿐인데
+분위기가 갑자기 바뀌어
+내 말은 그냥 말이 아냐
+판을 뒤집는 작은 번개야
+
+[Pre-Chorus]
+참으라 해도 안 돼
+숨기라 해도 안 돼
+내 안에 넘치는 표현력
+이건 타고난 destiny
+
+[Chorus]
+입 열면 터져, 식상 폭발
+내 말은 운명을 흔드는 파도
+숨길 수 없어, 나는 표현형 인간
+오늘도 세상에 나를 뱉어
+
+입 열면 터져, 식상 폭발
+말 한 방에 공기가 바뀐다
+막을 수 없어, 나는 무대형 인간
+내 목소리로 길을 만든다
+
+[Post-Chorus]
+톡톡 튀어, 말말 튀어
+입만 열면 판이 뒤집혀
+식상, 식상, 식상 폭발
+내 말빨은 운명 돌파
+
+[Rap 1]
+생각은 fast, 입술은 mic
+내 하루는 매일 live
+표현 안 하면 답답해서
+심장이 먼저 drop the vibe
+
+누가 뭐래도 I don’t stop
+말로 세우는 my own top
+사주에 박힌 이 에너지
+식상 강한 born to talk
+
+[Verse 2]
+말 한마디로 웃기고
+말 한마디로 울리고
+내 감정은 숨는 법 몰라
+있는 그대로 터지고
+
+가끔은 너무 솔직해서
+문제가 될 때도 있지만
+그래도 나를 숨기는 것보단
+세상에 던지는 게 나다워
+
+[Pre-Chorus]
+조용한 밤도 안 돼
+침묵 속에선 못 살아
+내 안의 리듬이 말해
+지금이 바로 spotlight
+
+[Chorus]
+입 열면 터져, 식상 폭발
+내 말은 운명을 흔드는 파도
+숨길 수 없어, 나는 표현형 인간
+오늘도 세상에 나를 뱉어
+
+입 열면 터져, 식상 폭발
+말 한 방에 공기가 바뀐다
+막을 수 없어, 나는 무대형 인간
+내 목소리로 길을 만든다
+
+[Rap 2]
+말빨은 weapon, 감성은 engine
+내 문장은 전부 다 action
+눈치만 보던 어제는 delete
+오늘은 내가 main attraction
+
+툭 치면 나와 punchline
+숨 쉬듯 터져 headline
+내 사주 속 식상 에너지
+세상을 향해 go sign
+
+[Bridge]
+때로는 말이 너무 앞서
+상처가 된 적도 있었어
+하지만 침묵보다 뜨겁게
+진심을 배워가는 나야
+
+[Final Chorus]
+입 열면 터져, 식상 폭발
+내 말은 운명을 흔드는 파도
+숨길 수 없어, 나는 표현형 인간
+오늘도 세상에 나를 뱉어
+
+입 열면 터져, 식상 폭발
+내 목소리로 세상을 깨운다
+멈출 수 없어, 나는 창조형 인간
+내 말이 곧 나의 무대야
+
+[Outro]
+식상, 식상, 식상 폭발
+말빨 천재, 무대 장악
+입 열면 터져
+끝까지 터져`;
+  }
+
+  if (normalized.includes("재성아 나 돈 좀 줘")) {
+    return `[Intro]
+재성아, 어디 갔니?
+통장이 울고 있잖아
+이번 달은 진짜 부탁한다
+재성아 와라!
+
+[Verse 1]
+월급은 들어오자마자
+안녕도 없이 사라져
+카드값은 왜 이렇게
+나를 사랑해 찾아와
+
+편의점 커피 한 잔에도
+손이 덜덜 떨리는데
+재물운 너 어디 숨었니
+나랑도 좀 친해지자
+
+[Pre-Chorus]
+내 사주에 재성이 약해도
+내 텐션은 절대 안 약해
+비어 있는 지갑 속에도
+희망은 아직 반짝해
+
+[Chorus]
+재성아 와라, 통장에 와라
+지갑 속 바람 좀 막아줘
+재성아 와라, 내 운에 와라
+이번 달은 내가 이긴다
+
+돈복아 와라, 내 손에 와라
+잔고에 꽃 좀 피워줘
+재성아 와라, 통장에 와라
+오늘부터 부자 기운 온다
+
+[Post-Chorus]
+차곡차곡, 착착착
+잔고 올라가라 착착착
+재성재성, 와라와라
+통장 속에 별이 떠라
+
+[Verse 2]
+쿠폰은 나의 절친이고
+할인은 나의 이상형
+배달 앱을 지웠다가
+다시 까는 나의 운명
+
+돈은 왜 나만 보면
+숨바꼭질 시작하니
+나도 이제 재성 만나
+럭키 비키 살아볼래
+
+[Pre-Chorus]
+사주팔자 바꿀 순 없어도
+소비 습관은 바꿀 수 있어
+작은 돈도 모이면 대운
+오늘부터 나는 달라져
+
+[Chorus]
+재성아 와라, 통장에 와라
+지갑 속 바람 좀 막아줘
+재성아 와라, 내 운에 와라
+이번 달은 내가 이긴다
+
+돈복아 와라, 내 손에 와라
+잔고에 꽃 좀 피워줘
+재성아 와라, 통장에 와라
+오늘부터 부자 기운 온다
+
+[Rap]
+월세, 공과금, 카드값 attack
+잔고는 매일매일 looking so sad
+그래도 난 포기 안 해, no cap
+재성 불러 모아 money comeback
+
+천 원도 소중해, 만 원은 royal
+티끌 모아 태산, attitude loyal
+재물운 들어와, 문 열어 놔
+내 통장 VIP 자리 비워 놔
+
+[Bridge]
+돈 때문에 울던 밤도
+이젠 웃으며 넘길래
+나를 살리는 좋은 기운
+내 손으로 불러볼래
+
+[Final Chorus]
+재성아 와라, 통장에 와라
+지갑 속 바람 좀 막아줘
+재성아 와라, 내 운에 와라
+이번 달은 내가 이긴다
+
+돈복아 와라, 내 삶에 와라
+가난한 마음도 바꿔줘
+재성아 와라, 통장에 와라
+나는 결국 부자 기운 탄다
+
+[Outro]
+재성아 와라
+통장에 와라
+이번 달은
+내가 이긴다`;
+  }
+
+  if (normalized.includes("역마살 열차창")) {
+    return `[Intro]
+Oh oh oh, 길 위에 별이 떠
+Oh oh oh, 너에게로 달려가
+역마역마, 역마역마
+내 종착지는 너야
+
+[Verse 1]
+서울에서 부산까지
+마음은 또 비행기 타
+머무르는 법을 몰라
+내 별은 계속 길 위에 있어
+
+제주 바람, 강릉 바다
+밤기차 창문 속 달빛
+어디론가 떠나야만
+숨을 쉬는 나였는데
+
+[Pre-Chorus]
+지도에도 없던 이름
+우연처럼 네가 떴어
+수많은 길을 돌고 돌아
+결국 너에게 온 거야
+
+[Chorus]
+역마역마, 너에게로 달려가
+지도에도 없는 사랑을 찾아
+역마역마, 멈출 수가 없어
+내 종착지는 결국 너야
+
+달려달려, 바람보다 빠르게
+내 운명이 너를 향해 뛰어
+역마역마, 길 끝에서 만난 love
+떠돌던 내 마음이 너에게 멈춰
+
+[Post-Chorus]
+La la la, 너에게로 run
+La la la, my lucky destination
+역마역마, 두근두근
+내 여행의 끝은 너야
+
+[Verse 2]
+낯선 도시, 낯선 거리
+처음 본 하늘 아래서
+너를 만난 그 순간에
+모든 풍경이 노래가 됐어
+
+혼자 걷던 골목길도
+이젠 영화처럼 빛나
+내가 지나온 모든 길이
+너를 향한 예고편 같아
+
+[Pre-Chorus]
+정류장마다 흔들리던
+내 마음의 나침반이
+네가 웃던 그 순간부터
+한 방향만 가리켜
+
+[Chorus]
+역마역마, 너에게로 달려가
+지도에도 없는 사랑을 찾아
+역마역마, 멈출 수가 없어
+내 종착지는 결국 너야
+
+달려달려, 바람보다 빠르게
+내 운명이 너를 향해 뛰어
+역마역마, 길 끝에서 만난 love
+떠돌던 내 마음이 너에게 멈춰
+
+[Bridge]
+난 늘 떠나야 사는 사람
+붙잡히는 게 두려웠어
+근데 이상해, 네 곁에서는
+처음으로 머물고 싶어
+
+[Final Chorus]
+역마역마, 너에게로 달려가
+세상 끝이어도 난 널 찾아가
+역마역마, 멈출 수가 없어
+내 종착지는 영원히 너야
+
+달려달려, 별빛 따라 달려가
+이 우연을 운명이라 부를래
+역마역마, 길 위에서 만난 love
+내 모든 여행은 너에게 닿아
+
+[Outro]
+Oh oh oh, 길 위에 별이 떠
+Oh oh oh, 너에게로 달려가
+역마역마, 역마역마
+내 종착지는 너야`;
+  }
+
+  if (normalized.includes("탐랑성 danger")) {
+    return `[Intro]
+Yeah
+Tam-rang, tam-rang
+눈빛 조심해
+한 번 빠지면 못 나와
+
+[Verse 1]
+조용히 걸어 들어가도
+분위기는 먼저 날 알아봐
+말 한마디 안 꺼내도
+네 심장은 이미 반응하잖아
+
+웃는 건 반칙이래
+눈빛은 더 위험하대
+근데 난 그냥 나일 뿐인데
+왜 다들 흔들려, 왜
+
+[Pre-Chorus]
+달빛 아래 비친 내 그림자
+조금은 달콤하고 조금은 dangerous
+다가오면 더 깊어져
+네 마음의 문을 열어
+
+[Chorus]
+탐랑탐랑, 내 눈빛은 danger
+탐랑탐랑, 넌 이미 in danger
+한 번만 봐도 기억에 남아
+밤새 네 맘속에 번져가
+
+탐랑탐랑, 숨길 수 없는 flavor
+탐랑탐랑, 치명적인 player
+도망가도 결국 돌아와
+넌 내 별에 끌려와
+
+[Post-Chorus]
+Tam-rang, tam-rang
+빛나는 desire
+Tam-rang, tam-rang
+뜨거워져 fire
+
+손끝 하나, 눈빛 하나
+네 마음을 흔들어 놔
+Tam-rang, tam-rang
+나를 보면 danger
+
+[Verse 2]
+화려한 조명 아래서
+나는 더 선명해져
+무대 위의 숨소리까지
+너를 향해 춤을 춰
+
+예술처럼 다가가
+장난처럼 웃어봐
+하지만 네가 느낀 떨림은
+절대 우연이 아니야
+
+[Pre-Chorus]
+달콤한 독처럼 스며들어
+너도 모르게 나를 찾게 돼
+이끌림은 운명 같아
+멈추려 해도 늦었어
+
+[Chorus]
+탐랑탐랑, 내 눈빛은 danger
+탐랑탐랑, 넌 이미 in danger
+한 번만 봐도 기억에 남아
+밤새 네 맘속에 번져가
+
+탐랑탐랑, 숨길 수 없는 flavor
+탐랑탐랑, 치명적인 player
+도망가도 결국 돌아와
+넌 내 별에 끌려와
+
+[Rap]
+I’m not bad, 그냥 좀 위험해
+내 매력은 계산보다 instinct
+자미두수 속에 박힌 star
+탐랑성이 만든 superstar
+
+말투는 soft, 무드는 deep
+네 시선은 already locked on me
+밀어내도 closer, closer
+끝내 넌 내 orbit 안에
+
+[Bridge]
+나도 알아, 내가 쉬운 답은 아닌 걸
+빛과 그림자가 같이 사는 걸
+그래도 네가 진심이라면
+내 밤의 중심까지 보여줄게
+
+[Final Chorus]
+탐랑탐랑, 내 눈빛은 danger
+탐랑탐랑, 넌 이미 in danger
+한 번만 봐도 잊을 수 없어
+너의 밤을 전부 흔들어
+
+탐랑탐랑, 숨길 수 없는 fever
+탐랑탐랑, 더 깊어지는 whisper
+도망가도 결국 돌아와
+넌 내 운명에 걸려와`;
+  }
+
+  if (normalized.includes("flower pig 매력살")) {
+    return `[Intro]
+도화, 홍염, 화개
+살살살, 내 매력 살
+어머, 또 쳐다보네?
+
+[Verse 1]
+아무것도 안 했는데
+왜 분위기가 달라져
+그냥 웃은 것뿐인데
+심장이 먼저 반응해
+
+도화는 눈빛에 피고
+홍염은 말끝에 번져
+화개는 조용히 숨어
+더 알고 싶게 만들어
+
+[Pre-Chorus]
+나는 몰라, 몰라
+근데 다들 흔들려
+나도 몰래 켜진 spotlight
+오늘도 시선이 따라와
+
+[Chorus]
+살살살, 내 매력 살
+도화살이 반짝반짝 피어나
+살살살, 더 빠져봐
+홍염살이 뜨겁게 번져가
+
+화개화개, 비밀스러워
+가까이 오면 더 멀어져
+살살살, 내 매력 살
+넌 이미 내 운명에 걸렸어
+
+[Post-Chorus]
+도화, 도화, 눈빛이 danger
+홍염, 홍염, 심장이 fever
+화개, 화개, 달빛 속 stranger
+살살살, 내 매력 살
+
+[Verse 2]
+꾸민 듯 안 꾸민 듯
+나는 그냥 나일 뿐인데
+왜 자꾸 질문이 많아
+내 마음은 비공개야
+
+화려하게 웃다가도
+갑자기 혼자가 좋아
+다가오면 신비롭고
+멀어지면 더 궁금하지
+
+[Pre-Chorus]
+예쁜 척은 안 해
+그냥 타고난 vibe
+내 사주 속 매력들이
+오늘 밤 춤을 춰
+
+[Chorus]
+살살살, 내 매력 살
+도화살이 반짝반짝 피어나
+살살살, 더 빠져봐
+홍염살이 뜨겁게 번져가
+
+화개화개, 비밀스러워
+가까이 오면 더 멀어져
+살살살, 내 매력 살
+넌 이미 내 운명에 걸렸어
+
+[Rap]
+도화는 bloom, 홍염은 boom
+화개는 moonlight in my room
+말 안 해도 느껴지는 mood
+나를 보면 자꾸 lose your cool
+
+관심은 많아도 쉽게는 no
+내 마음 열쇠는 secret code
+예쁜데 이상하게 깊어
+그래서 더 위험한 flow
+
+[Bridge]
+사랑은 살짝 어려워
+나는 나도 잘 모르겠어
+하지만 네가 진심이면
+내 달빛 안에 들어와
+
+[Final Chorus]
+살살살, 내 매력 살
+도화살이 반짝반짝 피어나
+살살살, 더 빠져봐
+홍염살이 뜨겁게 번져가
+
+화개화개, 비밀스러워
+나를 알수록 더 빠져들어
+살살살, 내 매력 살
+오늘 밤 넌 나에게 걸렸어
+
+[Outro]
+도화, 홍염, 화개
+살살살, 내 매력 살
+쉿, 이건 타고난 거야`;
+  }
+
+  if (normalized.includes("기신은 bye bye")) {
+    return `[Intro]
+Bye bye, bye bye
+기신은 bye bye
+My side, my side
+용신은 my side
+
+[Verse 1]
+또 왜 그래, 또 또 왜 그래
+내 기분까지 네가 왜 정해
+웃는 척해도 티가 나잖아
+내 운을 갉아먹는 bad vibe
+
+말끝마다 툭, 마음마다 쿡
+괜찮은 척했지만 I’m done
+오늘부터 나는 나를 지켜
+불길한 너의 알림은 mute
+
+[Pre-Chorus]
+내 사주에 낀 먹구름
+이제는 걷어낼 timing
+나를 낮추던 말들은
+전부 다 삭제해, clean
+
+[Chorus]
+기신은 bye bye, 용신은 my side
+내 운명 다시 켜, light it up tonight
+기신은 bye bye, 용신은 my side
+나를 아프게 한 건 전부 out of my life
+
+Bye bye, bye bye
+더는 안 끌려가
+My side, my side
+좋은 운만 따라와
+
+기신은 bye bye, 용신은 my side
+오늘의 나는 새 대운으로 shine
+
+[Verse 2]
+눈치 보던 나는 없지
+이젠 내가 나의 center
+질투 섞인 말은 pass it
+반짝이는 나를 enter
+
+목이 막힌 관계는 cut
+가짜 미소 전부 shut
+나를 살리는 사람만
+내 세계 안에 남겨둬
+
+[Pre-Chorus]
+흔들리던 나의 계절
+이제는 봄으로 changing
+막혀 있던 마음길도
+너 없이 더 잘 열려, free
+
+[Chorus]
+기신은 bye bye, 용신은 my side
+내 운명 다시 켜, light it up tonight
+기신은 bye bye, 용신은 my side
+나를 아프게 한 건 전부 out of my life
+
+Bye bye, bye bye
+더는 안 끌려가
+My side, my side
+좋은 운만 따라와
+
+기신은 bye bye, 용신은 my side
+오늘의 나는 새 대운으로 shine
+
+[Dance Break]
+기, 기, 기신은 bye
+용, 용, 용신은 my
+운, 운, 운명이 fly
+I’m so lucky, I’m so high
+
+기, 기, 기신은 bye
+용, 용, 용신은 my
+나쁜 vibe는 good night
+좋은 기운 spotlight
+
+[Bridge]
+미안하지만 난 떠날게
+내 마음을 더는 안 팔게
+상처로 배운 이 리듬 위에
+진짜 나를 다시 찾을게
+
+[Final Chorus]
+기신은 bye bye, 용신은 my side
+내 운명 다시 켜, light it up tonight
+기신은 bye bye, 용신은 my side
+나를 살리는 사랑만 keep in my life
+
+Bye bye, bye bye
+더는 안 무너져
+My side, my side
+좋은 운만 번져
+
+기신은 bye bye, 용신은 my side
+오늘의 나는 새 대운으로 shine
+
+[Outro]
+Bye bye, bye bye
+기신은 bye bye
+My side, my side
+용신은 my side`;
+  }
+
+  if (normalized.includes("달빛처럼 닿을게")) {
+    return `[Verse 1]
+고요한 밤하늘 아래
+은빛이 창가를 스쳐
+말 없는 내 마음 위로
+네 이름이 내려앉아
+
+손끝에 닿을 수 없지만
+늘 가까운 온도처럼
+어둠이 짙어질수록
+더 선명해지는 너
+
+[Pre-Chorus]
+멀리서도 알아볼 수 있어
+흔들리는 내 하루 끝에서
+운명처럼 번지는 빛
+조용히 나를 부르고
+
+[Chorus]
+달빛처럼 너에게 닿을게
+멀어져도 사라지지 않게
+밤이 깊어질수록 넌 더 빛나
+내 마음의 길을 비춰줘
+달빛처럼 너에게 닿을게
+숨겨둔 사랑도 밝혀줄게
+저 별들 사이로 번진 약속
+넌 내게 온 유일한 빛
+
+[Verse 2]
+잠든 도시 위로 번진
+희미한 꿈의 조각들
+스쳐 간 계절 끝에도
+네가 남긴 향기가 있어
+
+닿지 못해 더 애틋한
+이름 하나 품고 살아
+아픈 기억의 그림자도
+네가 있으면 잠잠해
+
+[Pre-Chorus]
+어느 날 문득 돌아보면
+내가 서 있던 모든 자리
+늘 같은 방향으로
+너를 향하고 있었어
+
+[Chorus]
+달빛처럼 너에게 닿을게
+멀어져도 사라지지 않게
+밤이 깊어질수록 넌 더 빛나
+내 마음의 길을 비춰줘
+달빛처럼 너에게 닿을게
+숨겨둔 사랑도 밝혀줄게
+저 별들 사이로 번진 약속
+넌 내게 온 유일한 빛
+
+[Bridge]
+만질 수 없는 거리라도
+사랑은 길을 잃지 않아
+서로를 모른 척한 시간도
+이제는 다 너를 향해
+
+눈을 감아도 보여
+희미한 내일 끝에
+네가 서 있어
+웃고 있어
+
+[Final Chorus]
+달빛처럼 너에게 닿을게
+끝내 너를 놓지 않게
+밤이 깊어질수록 넌 더 빛나
+내 마음의 길을 비춰줘
+달빛처럼 너에게 닿을게
+이 운명 끝에 널 안을게
+어둔 하늘을 건너온 사랑
+이제 따뜻하게 번져가
+달빛처럼 너에게 닿을게
+영원처럼 너에게 닿을게`;
+  }
+
+  if (normalized.includes("도화 화개 love charm")) {
+    return `[Intro]
+도화처럼 피어나
+홍염처럼 물들어
+화개처럼 반짝이는
+나의 love charm
+
+[Verse 1]
+오늘따라 이상해
+네 앞에만 서면
+볼 끝에 꽃이 피고
+말투가 살짝 달라져
+
+그냥 웃었을 뿐인데
+넌 자꾸 눈을 못 떼
+내 사주 속 작은 별들이
+너를 향해 깨어나
+
+[Pre-Chorus]
+도화는 살랑살랑
+내 눈빛에 내려앉고
+홍염은 두근두근
+내 마음을 붉게 물들여
+
+화개는 조용조용
+비밀처럼 빛나
+알면 알수록 더 예쁜
+나의 사랑 공식
+
+[Chorus]
+살랑살랑, 내 맘이 피어나
+너를 보면 꽃잎처럼 날아가
+반짝반짝, 이 순간이 좋아
+내 매력에 살짝 빠져봐
+
+도화도 홍염도 love mode
+화개는 moonlight glow
+살랑살랑, 너에게 번져가
+오늘부터 너는 내 운명 같아
+
+[Post-Chorus]
+Love charm, love charm
+도화빛 love charm
+Love charm, love charm
+홍염빛 my heart
+
+살랑살랑, 두근두근
+너만 보면 bloom bloom bloom
+화개처럼 신비롭게
+내 마음은 zoom zoom zoom
+
+[Verse 2]
+괜히 머릴 넘기고
+괜히 눈을 피하고
+아닌 척해도 내 마음은
+네 이름만 따라가
+
+친구들이 말해
+“너 요즘 좀 예뻐졌어”
+아마도 네가 내 하루에
+봄을 데려온 걸까
+
+[Pre-Chorus]
+도화는 포근포근
+내 미소에 스며들고
+홍염은 말랑말랑
+내 고백을 준비해
+
+화개는 반짝반짝
+달빛 아래 속삭여
+조금 느려도 괜찮아
+이건 운명일 테니까
+
+[Chorus]
+살랑살랑, 내 맘이 피어나
+너를 보면 꽃잎처럼 날아가
+반짝반짝, 이 순간이 좋아
+내 매력에 살짝 빠져봐
+
+도화도 홍염도 love mode
+화개는 moonlight glow
+살랑살랑, 너에게 번져가
+오늘부터 너는 내 운명 같아
+
+[Rap]
+도화는 bloom, 홍염은 boom
+화개는 moonlight in my room
+말 안 해도 느껴지는 mood
+나를 보면 자꾸 lose your cool
+
+관심은 많아도 쉽게는 no
+내 마음 열쇠는 secret code
+예쁜데 이상하게 깊어
+그래서 더 위험한 flow
+
+[Bridge]
+너에게 예뻐 보이고 싶어
+근데 꾸미지 않아도 좋아
+내 안의 별과 꽃과 달이
+너를 만나 더 빛나니까
+
+[Final Chorus]
+살랑살랑, 사랑이 피어나
+너와 나의 계절이 시작돼
+반짝반짝, 숨길 수가 없어
+내 마음이 너를 부르잖아
+
+도화도 홍염도 love mode
+화개는 moonlight glow
+살랑살랑, 네 품에 닿으면
+우연마저 운명이 될 거야
+
+[Outro]
+도화처럼 피어나
+홍염처럼 물들어
+화개처럼 빛나는
+나의 love charm`;
+  }
+
+  if (normalized.includes("별빛 궤도속 fatal-sign")) {
+    return `[Intro]
+Fatal sign
+별들이 깨어나
+넌 이미 내 궤도 안에 있어
+
+[Verse 1]
+검은 밤 위로 걸어 들어가
+공기가 먼저 나를 알아봐
+말없이 스친 내 silhouette
+네 시선은 멈춰, no escape
+
+Rising sign, 첫눈에 새겨져
+Venus smile, 부드럽게 번져
+Moonlight shadow, 감춰둔 비밀
+알수록 더 깊어지는 느낌
+
+[Pre-Chorus]
+가까이 오면 더 위험해
+멀어지면 더 궁금해
+내 차트 속 어둔 별들이
+너의 심장을 불러
+
+[Chorus]
+별빛에 걸려, fatal sign
+넌 내 궤도 안에 locked tonight
+도망쳐 봐도, can’t deny
+결국 내 이름을 부르게 돼
+
+Fatal, fatal, 넌 빠져가
+Mars on fire, 뜨겁게 번져가
+별빛에 걸려, fatal sign
+오늘 밤 넌 나를 잊지 못해
+
+[Post-Chorus]
+Fatal sign, fatal sign
+Venus, Mars, Moon collide
+Fatal sign, fatal sign
+넌 내 별에 걸려 tonight
+
+[Verse 2]
+내 눈빛은 eclipse
+빛과 어둠 사이의 kiss
+손끝 하나로 shift
+네 운명이 흔들리는 switch
+
+Pluto vibe, 깊이 끌어당겨
+Saturn line, 쉽게는 못 넘겨
+달콤한 미로처럼
+넌 계속 나를 따라와
+
+[Pre-Chorus]
+숨겨둔 내 별자리
+너만 보게 될 story
+운명이라 말하긴 이르지만
+이미 시작된 gravity
+
+[Chorus]
+별빛에 걸려, fatal sign
+넌 내 궤도 안에 locked tonight
+도망쳐 봐도, can’t deny
+결국 내 이름을 부르게 돼
+
+Fatal, fatal, 넌 빠져가
+Mars on fire, 뜨겁게 번져가
+별빛에 걸려, fatal sign
+오늘 밤 넌 나를 잊지 못해
+
+[Rap]
+Rising on me, 첫 장면 freeze
+Venus in my voice, 넌 이미 weak
+Mars in my move, 심장이 beat
+Moon in my eyes, 더 깊은 deep
+
+Pluto pull, 너를 당겨 slow
+Cosmic rhythm, 몸이 먼저 know
+별들이 그린 dangerous line
+넌 이미 crossing my sign
+
+[Bridge]
+나를 사랑하면 길을 잃어
+쉽게 끝날 꿈은 아니니까
+하지만 네가 진심이라면
+내 가장 어두운 별도 보여줄게
+
+[Dance Break]
+Fatal, fatal
+Sign, sign
+Orbit, orbit
+Mine, mine
+
+[Final Chorus]
+별빛에 걸려, fatal sign
+운명처럼 네 맘에 새겨져
+멈추려 해도, can’t rewind
+너의 밤은 나로 물들어가
+
+Fatal, fatal, 더 깊어져
+달빛 아래 모든 별이 터져
+별빛에 걸려, fatal sign
+넌 내 우주 안에 갇혀 있어
+
+[Outro]
+Fatal sign
+별들이 말해
+넌 이미 내 궤도 안에 있어`;
+  }
+
+  if (normalized.includes("flip the card")) {
+    return `[Intro]
+Shh… the cards are awake
+Royal Arcana
+운명의 문이 열려
+
+[Verse 1]
+검은 벨벳 위에 내려앉은 moonlight
+황금 촛불 사이 너를 본 순간
+첫 장은 The Magician, 손끝의 sign
+내 심장은 이미 너를 선택한 night
+
+은빛 컵에 담긴 비밀 같은 눈빛
+검의 기사처럼 다가가는 heartbeat
+말하지 않아도 알아, destiny call
+카드 한 장 위에 새겨진 우리 둘
+
+[Pre-Chorus]
+The Moon은 속삭여, 숨겨둔 마음
+The Tower 무너져도 넌 나의 crown
+운명의 수레바퀴 돌아가
+이 밤의 끝에서 널 데려가
+
+[Chorus]
+Flip that card, royal heart
+내 운명 위에 올라타
+Lovers, Lovers, 너와 나
+왕관보다 빛나잖아
+
+Tarot, Tarot, tell me now
+누가 내 심장을 훔쳤나
+카드가 말해, it’s you, it’s you
+오늘 밤 넌 나의 queen of stars
+
+[Post-Chorus Hook]
+Card, card, flip it
+Heart, heart, steal it
+운명처럼 coming, coming
+Royal love, we rule it
+
+Card, card, flip it
+Heart, heart, feel it
+타로 속의 너와 나
+Royal, royal, Arcana
+
+[Verse 2]
+The Emperor처럼 난 고개를 들어
+차가운 표정 뒤 불꽃을 숨겨
+The Fool이라 해도 너라면 jump
+절벽 끝에서도 널 향해 run
+
+별의 카드 아래 맹세해 tonight
+상처도 금빛으로 바뀌는 highlight
+Death card 뒤엔 다시 피는 rose
+끝난 줄 알았던 사랑이 reload
+
+[Pre-Chorus 2]
+The Star는 비춰줘, 우리의 다음
+Justice도 인정해, 완벽한 balance
+운명의 수레바퀴 돌아가
+이 밤의 왕좌로 널 데려가
+
+[Chorus]
+Flip that card, royal heart
+내 운명 위에 올라타
+Lovers, Lovers, 너와 나
+왕관보다 빛나잖아
+
+Tarot, Tarot, tell me now
+누가 내 심장을 훔쳤나
+카드가 말해, it’s you, it’s you
+오늘 밤 넌 나의 queen of stars
+
+[Bridge]
+눈 감아도 보여
+열두 시의 palace
+금빛 별이 내려
+우릴 위한 prophecy
+
+뒤집힌 카드도 괜찮아
+너와 나면 해석은 달라
+불길한 예언마저
+사랑 앞에 무릎 꿇어
+
+[Dance Break]
+One card, two cards, royal sign
+Three cards, four cards, cross the line
+Crown up, lights up, destiny
+Arcana, Arcana, follow me
+
+[Final Chorus]
+Flip that card, royal heart
+내 운명 위에 올라타
+Lovers, Lovers, 너와 나
+왕관보다 빛나잖아
+
+Tarot, Tarot, tell me now
+누가 내 심장을 훔쳤나
+카드가 말해, it’s you, it’s you
+오늘 밤 넌 나의 queen of stars
+
+[Outro]
+Card, card, flip it
+Heart, heart, steal it
+타로 속의 너와 나
+Royal, royal, Arcana`;
+  }
+
+  if (normalized.includes("i am your fate")) {
+    return `[Intro]
+Saju, Tarot, Star sign, Zi Wei
+운명의 판이 열려
+I am your fate
+넌 이미 내 예언 안에 있어
+
+[Verse 1]
+검은 밤 위로 조명이 켜져
+명반이 돌아, 별들이 깨어
+네 심장 위에 새겨진 sign
+피할 수 없는 나의 design
+
+사주는 말해, 난 네 용신
+타로는 뽑아, The Lovers scene
+금성은 빛나, 화성은 fire
+자미성 crown, 올라가 higher
+
+[Pre-Chorus]
+도망쳐 봐도 결국 내 orbit
+읽히는 눈빛, 숨겨도 logic
+카드도 별도 명반도 모두
+한 방향만 가리켜
+
+[Chorus]
+I am your fate, fate, fate
+운명 위에 내가 서
+Call my name, name, name
+네 밤을 전부 흔들어
+
+사주 타로 별자리까지
+답은 나야, can’t deny
+I am your fate, fate, fate
+넌 내 운명에 locked tonight
+
+[Post-Chorus]
+Fate, fate, 운명이 터져
+Name, name, 내 이름 불러
+별빛 아래, 카드 위에
+넌 이미 나를 선택해
+
+[Verse 2]
+달빛은 dark, 내 미소는 danger
+네 마음을 여는 secret changer
+합이면 sweet, 충이면 thriller
+그래도 끌려, I’m your killer
+
+자미두수 명궁에 center
+관록궁 불타, 무대는 fever
+타로 속 Devil도 고개를 끄덕
+이 끌림은 너무 깊어, deeper
+
+[Pre-Chorus]
+읽을 수 없는 나의 equation
+하지만 느껴지는 attraction
+네 운세 속 가장 강한 문장
+그건 바로 나였어
+
+[Chorus]
+I am your fate, fate, fate
+운명 위에 내가 서
+Call my name, name, name
+네 밤을 전부 흔들어
+
+사주 타로 별자리까지
+답은 나야, can’t deny
+I am your fate, fate, fate
+넌 내 운명에 locked tonight
+
+[Rap]
+명반 check, 차트 check
+내 등장은 cosmic effect
+Venus drip, Mars attack
+심장 위로 drop that track
+
+대운이 와, 세운이 와
+결국 네 시선은 내게 와
+타로 카드 뒤집어 봐
+결론은 me, no more doubt
+
+[Bridge]
+예언처럼 다가와
+악몽처럼 아름다워
+네가 찾던 답이 나라면
+무릎 꿇지 말고 날 바라봐
+
+[Dance Break]
+Saju, Tarot
+Star sign, Zi Wei
+Fate, fate
+I am your fate
+
+Crown, card
+Moon, heart
+운명판 위로
+We rise, we rise
+
+[Final Chorus]
+I am your fate, fate, fate
+운명보다 강하게
+Call my name, name, name
+네 세계를 깨워내
+
+사주 타로 별자리까지
+전부 나를 가리켜
+I am your fate, fate, fate
+오늘 밤 넌 내게 걸렸어
+
+[Outro]
+Saju, Tarot, Star sign, Zi Wei
+운명의 판이 닫혀
+I am your fate
+넌 이미 내 별 안에 있어`;
+  }
+
+  if (normalized.includes("synastry gravity")) {
+    return `[Intro]
+Yeah
+Our charts collide
+Synastry, destiny
+너와 나의 별이 겹쳐
+
+[Verse 1]
+처음 본 순간 이상했어
+내 태양이 네 달을 깨워
+말도 안 되게 익숙한 vibe
+전생부터 이어진 sign
+
+내 Venus는 네 Mars를 불러
+심장이 먼저 궤도를 돌아
+낯선데 너무 가까워
+별들이 이미 알고 있었어
+
+[Pre-Chorus]
+네 눈빛은 my rising sign
+숨길수록 더 선명해져
+Saturn처럼 무겁게 와도
+이 사랑은 도망 못 가
+
+[Chorus]
+Synastry, 너와 나의 chemistry
+별자리 위에 새긴 fantasy
+Sun to Moon, Venus to Mars
+부딪혀도 우린 shining stars
+
+Synastry, 운명 같은 gravity
+멀어져도 다시 pull me in
+North Node 따라 너에게 가
+이건 사랑보다 깊은 sign
+
+[Post-Chorus Hook]
+Star, star, star, we align
+Heart, heart, heart, cross the line
+끌려, 끌려, cosmic love
+너와 나의 synastry
+
+Star, star, star, we collide
+Heart, heart, heart, 밤새 shine
+돌아, 돌아, destiny
+너와 나의 synastry
+
+[Verse 2]
+네 Pluto가 내 맘을 흔들어
+숨겨둔 어둠까지 밝혀
+네 Mercury, 내 말투를 읽어
+말 안 해도 대답을 들어
+
+7하우스 문이 열리고
+12하우스 꿈이 번지고
+스쳐 간 줄 알았던 너는
+내 차트 안에 살고 있었어
+
+[Pre-Chorus 2]
+Square라 해도 겁 안 나
+아픈 만큼 더 뜨거워져
+Trine처럼 쉽게 흐르다
+Conjunction, 하나가 돼
+
+[Chorus]
+Synastry, 너와 나의 chemistry
+별자리 위에 새긴 fantasy
+Sun to Moon, Venus to Mars
+부딪혀도 우린 shining stars
+
+Synastry, 운명 같은 gravity
+멀어져도 다시 pull me in
+North Node 따라 너에게 가
+이건 사랑보다 깊은 sign
+
+[Bridge]
+달이 기울어도
+별은 지워지지 않아
+차트가 틀려도
+우린 답을 찾아가
+
+운명이 장난친대도
+나는 너를 선택해
+불길한 각도마저
+우리만의 무대가 돼
+
+[Dance Break]
+Sun, Moon, Venus, Mars
+Pull me close, we touch the stars
+Trine, square, opposition
+Love is our ignition
+
+[Final Chorus]
+Synastry, 너와 나의 chemistry
+별자리 위에 새긴 fantasy
+Sun to Moon, Venus to Mars
+부딪혀도 우린 shining stars
+
+Synastry, 운명 같은 gravity
+멀어져도 다시 pull me in
+North Node 따라 너에게 가
+이건 사랑보다 깊은 sign
+
+[Outro]
+Star, star, star, we align
+Heart, heart, heart, cross the line
+너와 나의 별이 겹쳐
+This is our synastry`;
+  }
+
+  if (normalized.includes("lucky thief")) {
+    return `[Intro]
+Yeah
+Bad luck on the table
+We don’t ask, we take it
+Lucky Thief, ha
+
+[Verse 1]
+오늘 운세? 위험 신호
+웃기지 마, 내가 신호
+검은 밤을 밟고 들어가
+네 불안을 훔쳐, clean mode
+
+빨간 경고등이 blink blink
+내 발끝은 더 quick quick
+손금 위를 미끄러져
+네 마음선에 내 이름 찍지
+
+걱정은 너무 느려
+난 이미 문을 열어
+불운이 날 노려봐도
+I wink, then I take over
+
+[Pre-Chorus]
+쉿, 예감이 말해
+오늘 밤은 뒤집혀
+네가 겁낸 모든 bad sign
+내 주머니 속에 갇혀
+
+[Chorus]
+I take your bad luck, take your heart
+웃으면서 판을 바꿔
+운명 따윈 wait, wait, wait
+내가 먼저 움직여
+
+I’m a lucky thief, dangerous charm
+들키기 전에 더 가까워져
+Bad sign, good night
+Fortune, come alive
+네 운세는 지금부터 mine
+
+[Post-Chorus Hook]
+Take it, take it, bad luck
+Flip it, flip it, good luck
+Steal it, steal it, your heart
+Ha, ha, lucky thief
+
+Tick-tock, one shot
+Moonwalk, jackpot
+Bad luck, bye-bye
+Fortune on my side
+
+[Verse 2]
+럭키 컬러는 black suit
+미소 뒤엔 sharp truth
+타로카드처럼 뒤집어
+넌 놀라지만 too smooth
+
+숫자 7보다 더 lucky
+내 등장은 almost guilty
+불길한 꿈도 내가 해석해
+“결론은 나를 믿지”
+
+도망가도 소용없어
+중력처럼 끌려왔어
+좋은 날을 기다리지 마
+내가 바로 길일이라서
+
+[Pre-Chorus 2]
+쉿, 심장이 말해
+이미 답은 정해져
+네가 숨긴 모든 wish list
+내 리듬 위에 걸려
+
+[Chorus]
+I take your bad luck, take your heart
+웃으면서 판을 바꿔
+운명 따윈 wait, wait, wait
+내가 먼저 움직여
+
+I’m a lucky thief, dangerous charm
+들키기 전에 더 가까워져
+Bad sign, good night
+Fortune, come alive
+네 운세는 지금부터 mine
+
+[Bridge]
+불안은 금고에 lock
+의심은 바닥에 drop
+네 운명선 끝에서
+난 기다려, knock knock
+
+흉몽도 전부 remix
+불길함마저 my trick
+네가 날 부른 순간
+Game over, I’m picked
+
+[Dance Break]
+Palm line, moon sign
+Red light, green light
+Flip card, steal heart
+Move fast, don’t stop
+
+One step, two step
+운세를 hijack
+Bad luck, get back
+Lucky thief attack
+
+[Final Chorus]
+I take your bad luck, take your heart
+웃으면서 판을 바꿔
+운명 따윈 wait, wait, wait
+내가 먼저 움직여
+
+I’m a lucky thief, dangerous charm
+들키기 전에 더 가까워져
+Bad sign, good night
+Fortune, come alive
+네 운세는 지금부터 mine
+
+[Outro]
+Take it, take it, bad luck
+Flip it, flip it, good luck
+Steal it, steal it, your heart
+Lucky thief, we take over`;
+  }
+
+  if (normalized.includes("zero hour") && normalized.includes("we don")) {
+    return `[Intro]
+Yeah
+When the clock hits zero
+We wake up
+Blue hour boys
+
+[Verse 1]
+모두가 잠든 밤 열두 시 반
+도시는 멈춰, 숨죽인 neon
+교복 위에 걸친 black jacket
+오늘도 운명은 나를 test it
+
+거울 속의 내가 물어
+“도망칠래, 아니면 더 걸어?”
+겁은 심장 안에 locked up
+난 웃고 말해, “let’s go up”
+
+[Pre-Chorus]
+푸른 달이 내려와
+내 그림자를 비춰
+끝을 아는 순간부터
+난 더 크게 살아
+
+[Chorus]
+Zero hour, we don’t run
+어둠 속을 밟고 올라
+My shadow, my power
+나를 삼켜도 난 더 빛나
+
+Blue fire, burn it up
+운명 따윈 break it now
+살아 있다는 증거처럼
+오늘 밤 내 심장이 louder
+
+[Post-Chorus Hook]
+Tick-tock, midnight
+Blue flame, spotlight
+Shadow, shadow, come and try
+We rise, we rise, we rise
+
+Tick-tock, no fear
+End line, come near
+살아, 살아, louder now
+We rise, we rise, we rise
+
+[Verse 2]
+검은 복도 끝에 울린 bell
+내 발소린 위험한 spell
+누가 괴물인지 몰라도
+내 안의 나부터 깨워
+
+차가운 땀, but I like that
+두려움도 나의 soundtrack
+내 약점까지 무기로 들어
+무대 위로 전부 끌어올려
+
+[Pre-Chorus 2]
+푸른 별이 떨어져
+내 이름을 불러
+끝을 향해 달릴수록
+난 더 나를 믿어
+
+[Chorus]
+Zero hour, we don’t run
+어둠 속을 밟고 올라
+My shadow, my power
+나를 삼켜도 난 더 빛나
+
+Blue fire, burn it up
+운명 따윈 break it now
+살아 있다는 증거처럼
+오늘 밤 내 심장이 louder
+
+[Bridge]
+언젠가 모두 사라진대도
+지금 이 순간은 내 거야
+눈물도 흉터도 전부
+내가 살아낸 proof야
+
+끝이 두렵다면 더 춤춰
+밤이 깊을수록 더 웃어
+내 그림자와 손을 잡고
+새벽까지 fight for life
+
+[Dance Break]
+Zero, zero, count it down
+Blue moon over this town
+Shadow step, heart attack
+Never, never turning back
+
+One life, one night
+No fear, blue light
+Break fate, ignite
+We own the midnight
+
+[Final Chorus]
+Zero hour, we don’t run
+어둠 속을 밟고 올라
+My shadow, my power
+나를 삼켜도 난 더 빛나
+
+Blue fire, burn it up
+운명 따윈 break it now
+살아 있다는 증거처럼
+오늘 밤 내 심장이 louder
+
+[Outro]
+Tick-tock, midnight
+Blue flame, spotlight
+끝을 알아도 난 살아
+We rise, we rise, we rise`;
+  }
+
+  if (normalized.includes("별이 말해")) {
+    return `[Intro]
+별이 말해, 너였다고
+처음부터 내 운명이었다고
+
+[Verse 1]
+오늘의 운세를 보다가
+괜히 네 이름이 떠올랐어
+좋은 일이 생긴다던 말
+이상하게 너 같았어
+
+타로 카드 한 장에도
+별자리의 작은 말에도
+내 마음은 같은 답을 골라
+너에게로 가라고
+
+[Pre-Chorus]
+멀리 돌아온 계절 끝에
+이제야 알 것 같아
+내가 찾던 행운은
+사람이었나 봐
+
+[Chorus]
+별이 말해, 너였다고
+내 모든 길 끝에 네가 있었다고
+운명처럼, 거짓말처럼
+내 하루가 너로 빛나
+
+사주도 타로도 별자리도
+전부 너를 가리켜
+오늘의 운명은 너야
+내 사랑의 답은 너야
+
+[Verse 2]
+어긋난 날도 많았고
+혼자 울던 밤도 있었어
+사랑은 늘 어려운 문제라
+피하고만 싶었어
+
+근데 너를 만난 뒤로
+내 세상이 조금 달라져
+흐린 운도 맑아지는 듯해
+네가 웃어줄 때면
+
+[Pre-Chorus]
+수많은 우연들이
+하나씩 이어져서
+결국 너라는 이름의
+기적이 된 거야
+
+[Chorus]
+별이 말해, 너였다고
+내 모든 길 끝에 네가 있었다고
+운명처럼, 거짓말처럼
+내 하루가 너로 빛나
+
+사주도 타로도 별자리도
+전부 너를 가리켜
+오늘의 운명은 너야
+내 사랑의 답은 너야
+
+[Bridge]
+내일이 보이지 않는 밤에도
+네 손을 잡으면 알 것 같아
+불안했던 나의 운명도
+너와 함께라면 괜찮아
+
+[Final Chorus]
+별이 말해, 너였다고
+처음부터 내 마음은 널 향했다고
+늦게 와도, 멀리 돌아도
+결국 우린 만날 사랑
+
+사주도 타로도 별자리도
+이제 같은 말을 해
+평생의 운명은 너야
+내 마지막 답은 너야
+
+[Outro]
+별이 말해, 너였다고
+오늘도 난 너를 사랑한다고`;
+  }
+
+  if (normalized.includes("오행 flex")) {
+    return `[Intro]
+Yeah, yeah
+Code in my destiny
+목화토금수, we turn it up
+
+[Verse 1]
+내 원국 위에 불 켜
+오늘 기분은 갑자기 병화
+차갑던 밤도 녹여
+무대 위로 올라, I’m on fire
+
+비견은 옆에서 박수 쳐
+식신은 훅을 뽑아 또
+재성은 반짝, money sign
+관성은 말해 “지금이야”
+
+[Pre-Chorus]
+합이면 가까워져
+충이면 더 뜨거워져
+형파해도 겁 안 나
+내 팔자는 내가 remix now
+
+[Chorus]
+목화토금수, 오행 FLEX
+내 운명은 무대 위에 dance
+대운이 바뀌어, upgrade check
+오늘부터 내가 내 lucky star
+
+목화토금수, balance up
+용신처럼 너는 light me up
+사주팔자 위로 jump, jump, jump
+운명도 나를 따라 clap, clap, clap
+
+[Post-Chorus Hook]
+목! 화! 토! 금! 수!
+Turn it up, turn it up
+목! 화! 토! 금! 수!
+운명까지 흔들어
+
+[Verse 2]
+겁재가 와도 I don’t care
+내 멘탈은 금처럼 rare
+편인은 생각이 너무 많대
+그래도 난 무대에서 slay
+
+정관처럼 반듯하게
+칠살처럼 날카롭게
+도화살 켜진 spotlight
+오늘 밤 시선은 all mine
+
+[Pre-Chorus 2]
+기신은 bye, bye, bye
+용신은 my, my, my
+흔들려도 괜찮아
+내 팔자는 내가 choose it now
+
+[Chorus]
+목화토금수, 오행 FLEX
+내 운명은 무대 위에 dance
+대운이 바뀌어, upgrade check
+오늘부터 내가 내 lucky star
+
+목화토금수, balance up
+용신처럼 너는 light me up
+사주팔자 위로 jump, jump, jump
+운명도 나를 따라 clap, clap, clap
+
+[Bridge]
+어제의 나는 수기운에 잠겼고
+오늘의 나는 화기운에 타올라
+십년 대운이 돌아선 순간
+새로운 나를 불러, destiny restart
+
+[Dance Break]
+합충형파해, break it down
+천간지지, spin around
+음양 rhythm, feel it now
+운명 위로 bounce, bounce, bounce
+
+[Final Chorus]
+목화토금수, 오행 FLEX
+내 운명은 무대 위에 dance
+대운이 바뀌어, upgrade check
+오늘부터 내가 내 lucky star
+
+목화토금수, balance up
+용신처럼 너는 light me up
+사주팔자 위로 jump, jump, jump
+운명도 나를 따라 clap, clap, clap
+
+[Outro]
+목! 화! 토! 금! 수!
+We don’t stop
+사주팔자 위에 pop
+내 운명은 내가 rock`;
+  }
+
+  if (normalized.includes("천동성 힐링남")) {
+    return `[Intro]
+괜찮아, 내게 기대
+오늘은 울어도 돼
+네 하루 끝에 서 있을게
+I’ll be your healing boy
+
+[Verse 1]
+괜찮은 척 웃는 너
+그 표정 다 보이잖아
+사람들 속에 지쳐도
+내 앞에선 쉬어도 돼
+
+자미두수 별빛 아래
+천동성이 속삭여
+서두르지 않아도 돼
+너의 속도도 예쁘다고
+
+[Pre-Chorus]
+명궁에 작은 봄이 와
+복덕궁엔 햇살이 번져
+무너진 마음 한가운데
+내가 조용히 앉아줄게
+
+[Chorus]
+괜찮아, 내게 기대
+오늘은 울어도 돼
+네 마음 비 오는 날엔
+내가 우산이 되어줄게
+
+쉬어가, 내 품에 기대
+아픈 말은 내려놔도 돼
+세상이 너무 빠를 때
+오늘은 내가 네 힐링남
+
+[Post-Chorus]
+Healing, healing, 네 마음에 봄
+Feeling, feeling, 웃음이 피어
+살랑살랑 바람처럼
+네 곁에 머물게
+
+[Verse 2]
+너무 잘하려 하지 마
+가끔은 멈춰도 좋아
+완벽하지 않은 너도
+내 눈에는 반짝이니까
+
+친구처럼 장난치고
+연인처럼 안아줄게
+귀엽게 웃는 그 순간
+내 운명도 같이 풀려
+
+[Pre-Chorus]
+천동성의 다정한 빛
+네 어깨 위에 내려와
+괜히 센 척 안 해도 돼
+내가 네 편이 되어줄게
+
+[Chorus]
+괜찮아, 내게 기대
+오늘은 울어도 돼
+네 마음 비 오는 날엔
+내가 우산이 되어줄게
+
+쉬어가, 내 품에 기대
+아픈 말은 내려놔도 돼
+세상이 너무 빠를 때
+오늘은 내가 네 힐링남
+
+[Bridge]
+눈물이 나면 숨기지 마
+그것도 너의 별빛이야
+어두운 밤이 지나가면
+우리에게 봄이 올 거야
+
+[Final Chorus]
+괜찮아, 내게 기대
+오늘은 웃어도 돼
+너의 지친 하루 끝에
+내가 봄처럼 안아줄게
+
+쉬어가, 내 품에 기대
+천천히 다시 걸어가면 돼
+네 마음이 편해질 때까지
+나는 너의 힐링남
+
+[Outro]
+괜찮아, 내게 기대
+오늘은 쉬어도 돼
+네 하루 끝에 서 있을게
+I’ll be your healing boy`;
+  }
+
+  if (normalized.includes("편관의 궤도")) {
+    return `[Intro]
+Warning, warning
+가까이 오면 위험해
+But I’ll protect you
+편관 남자, let’s go
+
+[Verse 1]
+차갑게 보여도 오해하지 마
+쉽게 마음을 꺼내진 않아
+말보다 행동이 먼저인 타입
+네 앞에선 절대 안 물러나
+
+세상이 널 흔들어도
+나는 흔들리지 않아
+상처가 널 겨누는 순간
+내가 먼저 막아설게
+
+[Pre-Chorus]
+날카로운 눈빛 뒤에
+숨겨둔 진심이 있어
+위험해 보여도 알아둬
+난 네 편이 되는 남자
+
+[Chorus]
+편관편관, 위험한데 끌려
+차가운 듯 뜨겁게 널 지켜
+편관편관, 가까이 오면 떨려
+네 앞에선 내가 방패가 돼
+
+Red flag 같아도, I’m your guard
+쉽게 무너지지 않는 heart
+편관편관, 위험한데 끌려
+나를 믿으면 끝까지 지켜
+
+[Post-Chorus]
+Danger, danger, but I’m your shield
+Closer, closer, you know it’s real
+편관편관, 널 지켜
+편관편관, I’m your shield
+
+[Verse 2]
+착한 말만 하는 남잔 아냐
+필요하면 독하게 말해
+네가 무너지는 길이라면
+내가 먼저 길을 막을게
+
+사랑은 달콤한 말보다
+끝까지 버티는 책임감
+네 눈물 앞에서는 절대
+도망치는 법을 몰라 난
+
+[Pre-Chorus]
+거칠어진 세상 속에
+내가 네 울타리 될게
+불안한 밤이 와도
+내 어깨에 기대면 돼
+
+[Chorus]
+편관편관, 위험한데 끌려
+차가운 듯 뜨겁게 널 지켜
+편관편관, 가까이 오면 떨려
+네 앞에선 내가 방패가 돼
+
+Red flag 같아도, I’m your guard
+쉽게 무너지지 않는 heart
+편관편관, 위험한데 끌려
+나를 믿으면 끝까지 지켜
+
+[Rap]
+Pyeon-gwan energy, sharp like a blade
+흔들림 없는 나의 태도는 brave
+네가 위험하면 I step in front
+사랑도 전쟁이면 I never run
+
+차가운 말투, 뜨거운 심장
+내 방식은 조금 거칠지만
+약속 하나는 절대 안 깨
+너를 지키는 게 내 운명 같애
+
+[Bridge]
+나도 알아, 쉬운 남잔 아니야
+때론 너무 강해 보일 거야
+하지만 네가 내 사람이면
+끝까지 너를 놓지 않아
+
+[Dance Break]
+편관, 편관
+Danger, shield
+편관, 편관
+Never yield
+
+[Final Chorus]
+편관편관, 위험한데 끌려
+상처보다 먼저 널 안아줄게
+편관편관, 가까이 오면 떨려
+네 세상에 내가 방패가 돼
+
+Red flag 같아도, I’m your guard
+너를 위해 강해지는 heart
+편관편관, 위험한데 끌려
+나를 믿으면 끝까지 지켜
+
+[Outro]
+Warning, warning
+가까이 오면 위험해
+But I’ll protect you
+편관 남자, I’m your shield`;
+  }
+
+  if (normalized.includes("운세 soda pop")) {
+    return `[Intro]
+사주, 타로, 별자리, 자미두수
+오늘 내 연애운 check it, check it
+톡 쏘는 운명, pop it up
+운세 어벤져스, let’s go
+
+[Verse 1]
+아침부터 네 이름이
+내 머릿속에 bubble up
+카톡 하나 기다리다
+심장이 soda처럼 pop
+
+사주는 말해 “너는 용신”
+타로는 말해 “The Lovers”
+별자리는 반짝반짝
+자미두수도 너래, 너래
+
+[Pre-Chorus]
+합인지 충인지 몰라도
+끌리는 건 확실해
+별도 카드도 명반도
+전부 너를 가리켜
+
+[Chorus]
+Pop pop, love is soda pop
+내 연애운이 터져, 올라가
+사주 타로 별자리까지
+답은 결국 너야
+
+Pop pop, heart is soda pop
+너를 보면 톡 쏘는 my heart
+자미두수 명반까지
+내 운명은 너야
+
+[Post-Chorus]
+톡톡톡, 너 때문에 pop
+두근두근, 멈출 수가 없어
+톡톡톡, love soda pop
+오늘의 운세는 너야
+
+[Verse 2]
+럭키 컬러 맞춰 입고
+네가 있는 길로 walkin’
+괜히 우연인 척하지만
+사실 전부 timing
+
+금성은 반짝, 달은 설렘
+타로 카드는 핑크빛
+명궁 속 내 마음까지
+너 하나로 shining
+
+[Pre-Chorus]
+읽씹이면 흉운인가
+답장 오면 대운인가
+우주의 모든 알고리즘
+너에게만 반응해
+
+[Chorus]
+Pop pop, love is soda pop
+내 연애운이 터져, 올라가
+사주 타로 별자리까지
+답은 결국 너야
+
+Pop pop, heart is soda pop
+너를 보면 톡 쏘는 my heart
+자미두수 명반까지
+내 운명은 너야
+
+[Rap]
+사주로 check, 타로로 pick
+별자리까지 완전 perfect fit
+합이면 sweet, 충이면 thrill
+그래도 너면 I want it still
+
+명반을 봐도 네가 center
+내 마음은 already enter
+오늘 운세 대박 사건
+너를 보면 터져 탄산처럼
+
+[Bridge]
+운세가 틀려도 괜찮아
+내 마음은 이미 정답이야
+카드도 별도 몰랐던 miracle
+너 하나로 완성돼
+
+[Final Chorus]
+Pop pop, love is soda pop
+내 심장이 터져, 올라가
+사주 타로 별자리까지
+답은 결국 너야
+
+Pop pop, heart is soda pop
+너와 나의 운명이 fizz up
+자미두수 명반까지
+내 마지막 답은 너야
+
+[Outro]
+톡톡톡, 너 때문에 pop
+오늘의 운세는 너야
+사주, 타로, 별자리까지
+답은 결국 너야`;
+  }
+
+  if (normalized.includes("자미제왕 컴백")) {
+    return `[Intro]
+Crown on me
+자미제왕 comeback
+명반이 열려
+왕의 별이 깨어나
+
+[Verse 1]
+조명이 켜진 순간
+공기가 먼저 바뀌어
+고개를 들어, look at me
+내 자리는 center
+
+명궁 위에 새겨진 sign
+자미성이 나를 불러
+평범하게 살라 해도
+내 운명은 무대 위야
+
+[Pre-Chorus]
+복덕궁엔 빛이 차오르고
+관록궁엔 불이 붙어
+오늘 밤 내 별의 명령은
+더 높이 올라가
+
+[Chorus]
+자미자미, crown on me
+왕의 별이 내려와
+자미자미, follow me
+무대 위를 지배해
+
+명반 속에 적힌 destiny
+오늘 내가 주인공이지
+자미자미, crown on me
+제왕처럼 comeback해
+
+[Post-Chorus]
+Crown, crown, crown on me
+별들이 다 bow to me
+자미자미, rise with me
+오늘 밤은 내 궁전
+
+[Verse 2]
+어제의 나는 bye bye
+오늘의 나는 high light
+대운 타고 올라가
+내 이름이 headline
+
+흔들려도 왕답게
+넘어져도 더 크게
+내 사주 속 제왕성이
+다시 나를 일으켜
+
+[Pre-Chorus]
+천천히 온 시간들이
+이 순간을 만든 거야
+왕관은 그냥 쓰는 게 아냐
+버틴 자만 빛나
+
+[Chorus]
+자미자미, crown on me
+왕의 별이 내려와
+자미자미, follow me
+무대 위를 지배해
+
+명반 속에 적힌 destiny
+오늘 내가 주인공이지
+자미자미, crown on me
+제왕처럼 comeback해
+
+[Rap]
+자미성 on, 내 별은 royal
+무대 위 걸음은 natural loyal
+명궁 check, 관록궁 flame
+내 운명의 판을 바꾸는 name
+
+흉운이 와도 I don’t care
+대운이 오면 올라타, yeah
+왕관은 무겁지만 빛나
+오늘 밤 내 별이 이긴다
+
+[Bridge]
+혼자 어둠을 지나왔어
+아무도 믿지 않던 밤
+하지만 별은 알고 있었어
+내가 돌아올 거란 걸
+
+[Dance Break]
+자미, 자미
+Crown on me
+제왕, 제왕
+Comeback king
+
+명궁, 명반
+Light on me
+자미자미
+Crown on me
+
+[Final Chorus]
+자미자미, crown on me
+왕의 별이 폭발해
+자미자미, follow me
+이 무대는 나의 세계
+
+운세마저 나를 가리켜
+오늘 내가 전설이 돼
+자미자미, crown on me
+자미제왕 comeback해
+
+[Outro]
+Crown on me
+자미제왕 comeback
+별들이 말해
+이제 내 시대야`;
+  }
+
   if (normalized.includes("숙요점") || (normalized.includes("sukuyo") && normalized.includes("lesson"))) {
     const lyric = [
       "[INTRO — 숙요점 세계관 오프닝]",
@@ -3131,6 +5516,87 @@ AI 타로 별빛 카드
 내일도 웃어, code destiny
 연이의 Moonlight Code
 우리 함께 피어나는 곳`;
+  }
+
+  if (normalized.includes("손끝 숨결")) {
+    return `[Verse 1]
+밤하늘 가장 먼 별처럼
+너는 손끝에 닿지 않아
+그런데 눈을 감으면 이상해
+내 곁에서 숨 쉬는 것 같아
+
+혼자 남겨진 시간들도
+조금씩 빛으로 변해가
+너를 생각하는 마음 하나로
+나는 다시 걸어가
+
+[Pre-Chorus]
+말로는 다 전하지 못한
+우리의 작고 깊은 약속
+흩어진 꿈의 조각마저
+너에게 가는 길이 돼
+
+[Chorus]
+멀리 있을수록 더 가까워져
+보이지 않아도 느낄 수 있어
+외로움은 나를 울렸지만
+끝내 너를 지키는 힘이 돼
+
+우연처럼 시작된 이 마음이
+언젠가 운명이 된다면
+다시 만나는 그 순간에
+나는 너를 꼭 안을게
+
+[Verse 2]
+변해가는 거리와 사람들
+낯선 계절의 바람 속에
+우리의 이름은 희미해져도
+사라지진 않을 거야
+
+깨져버린 약속까지도
+새로운 맹세가 된다면
+아픈 오늘을 지나간 뒤에
+기적은 다시 피어나
+
+[Pre-Chorus]
+눈부신 내일이 안 보여도
+너를 향한 마음은 선명해
+손을 잡지 않아도 알아
+우린 같은 별을 보고 있어
+
+[Chorus]
+멀리 있을수록 더 가까워져
+보이지 않아도 느낄 수 있어
+그리움은 가슴을 찌르지만
+끝내 사랑이라는 빛이 돼
+
+우연처럼 스쳐간 우리 둘이
+언젠가 운명이 된다면
+처음 만났던 그 마음으로
+나는 너를 다시 믿을게
+
+[Bridge]
+길을 잃은 밤에도
+너의 목소리가 들려
+포기하지 말라고
+아직 끝난 게 아니라고
+
+[Final Chorus]
+멀리 있을수록 더 가까워져
+눈을 감으면 네가 보여
+외로움도 슬픔도 전부
+너에게 닿기 위한 노래야
+
+우연처럼 시작된 이 마음이
+반드시 운명이 된다면
+다시 만나는 그날까지
+오늘을 살아갈게
+
+[Outro]
+작은 오르골이 멈춰도
+우리의 별은 돌아가
+시간을 넘어 다시
+너에게 닿을게`;
   }
 
   if (!normalized.includes("remix") || !normalized.includes("ver")) return undefined;
