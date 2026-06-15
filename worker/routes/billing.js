@@ -4212,6 +4212,12 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
           profileId: profileId || undefined,
           chargedCoins: 0,
         },
+        checkout: {
+          bypassed: true,
+          bypassReason: "ALREADY_UNLOCKED",
+          paymentMode: "MEMBERSHIP_PASS",
+          orderCreated: false,
+        },
         premiumAccessToken: null,
         accessGrant: {
           ok: true,
@@ -4308,6 +4314,12 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
     ...paymentDecision,
     paymentOptions: paymentDecision,
     accessMethod: "PASS",
+    checkout: {
+      bypassed: true,
+      bypassReason: "PASS_FREE",
+      paymentMode: "MEMBERSHIP_PASS",
+      orderCreated: false,
+    },
     charged: 0,
     consume: {
       ok: true,

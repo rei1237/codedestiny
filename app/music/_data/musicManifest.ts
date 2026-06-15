@@ -168,6 +168,115 @@ function titleFromAudioFileName(fileName: string) {
 function lyricsFromAudioFileName(audioFileName: string) {
   const normalized = basenameFromFileName(audioFileName).toLowerCase();
 
+  if (normalized === "karma, karma") {
+    return [Intro]
+Karma, karma
+다시 너를 찾아
+전생의 문이 열려
+I can’t escape you
+
+[Verse 1]
+검은 달빛 아래
+너를 처음 본 순간
+처음이 아닌 것처럼
+내 심장이 널 기억해
+
+낯선 이름인데
+왜 이렇게 아픈지
+수천 번의 밤을 지나
+너에게 돌아온 것 같아
+
+[Pre-Chorus]
+붉은 실이 손끝에 감겨
+끊어내도 다시 이어져
+운명이라 부르기엔
+너무 깊은 이끌림
+
+[Chorus]
+카르마 카르마, 다시 너를 찾아
+전생의 약속처럼 내게 와
+카르마 카르마, 피할 수가 없어
+널 사랑한 죄로 또 태어나
+
+눈물도 상처도 다 너에게 가
+내 모든 생이 너를 기억해
+카르마 카르마, 다시 너를 찾아
+이번 생도 결국 너야
+
+[Post-Chorus]
+Karma, karma, locked in your love
+달빛 속에 묶인 우리 둘
+Karma, karma, can’t let you go
+다시 태어나도 너야
+
+[Verse 2]
+타로 속 Lovers
+달 아래 숨은 sign
+별들이 속삭여
+우린 끝난 적 없다고
+
+라후처럼 끌리고
+케투처럼 멀어져도
+업처럼 돌아와
+결국 같은 문 앞에 서
+
+[Pre-Chorus]
+너를 밀어낼수록 더
+내 안으로 깊이 번져
+사랑인지 벌인지
+알 수 없어도 원해
+
+[Chorus]
+카르마 카르마, 다시 너를 찾아
+전생의 약속처럼 내게 와
+카르마 카르마, 피할 수가 없어
+널 사랑한 죄로 또 태어나
+
+눈물도 상처도 다 너에게 가
+내 모든 생이 너를 기억해
+카르마 카르마, 다시 너를 찾아
+이번 생도 결국 너야
+
+[Rap]
+전생의 밤, 현생의 light
+너를 보면 흔들리는 timeline
+업태처럼 엮인 destiny
+끊어도 다시 오는 gravity
+
+피와 눈물로 쓴 계약
+사랑은 독이자 구원 같아
+도망쳐도 네가 내 방향
+끝내 난 너에게 fall down
+
+[Bridge]
+만약 이 사랑이 벌이라면
+나는 다시 죄인이 될게
+천 번의 생을 돌아간대도
+너 하나를 선택할게
+
+[Dance Break]
+Karma, karma
+Red moon, red line
+Karma, karma
+You are my sign
+
+[Final Chorus]
+카르마 카르마, 다시 너를 찾아
+운명의 불꽃처럼 타올라
+카르마 카르마, 멈출 수가 없어
+널 사랑하려 또 태어나
+
+눈물도 상처도 다 의미가 돼
+너를 만난 순간 완성돼
+카르마 카르마, 다시 너를 찾아
+이번 생도 결국 너야
+
+[Outro]
+Karma, karma
+다시 너를 찾아
+전생의 문이 닫혀도
+I’ll find you again;
+  }
   if (normalized.includes("새벽 끝")) {
     return `[Verse 1]
 부서진 하늘 아래

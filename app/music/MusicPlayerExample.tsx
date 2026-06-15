@@ -144,6 +144,17 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     }
   }, [selectTrack]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const desktopMediaQuery = window.matchMedia("(min-width: 1120px)");
+    const syncLyricsLayout = () => setIsLyricsOpen(desktopMediaQuery.matches);
+
+    syncLyricsLayout();
+    desktopMediaQuery.addEventListener("change", syncLyricsLayout);
+    return () => desktopMediaQuery.removeEventListener("change", syncLyricsLayout);
+  }, []);
+
   const ambientAssetUrl = useMemo(() => {
     if (!ambientAssetKey) return "";
 

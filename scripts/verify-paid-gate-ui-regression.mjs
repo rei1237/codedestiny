@@ -62,11 +62,11 @@ const perUseGateSource = section(indexSource, "function _cdRunPerUseCoinGate(", 
 assertBefore(perUseGateSource, "_cdBeginPaidFeatureInFlight(action, paidGateFeatureKey", "await _cdChooseServicePaymentMode({", "paid gate opens before eligibility wait");
 
 assertBefore(indexSource, 'data-mode="pass"', 'data-mode="direct"', "pass option appears before direct card");
-assertNotContains(indexSource, 'class="cd-direct-payment-option" data-mode="monthly"', "monthly payment option removed");
+assertContains(indexSource, 'data-mode="monthly" data-monthly-option', "monthly payment option restored");
 assertContains(indexSource, "var passDisabledAttr = passEligible ? '' : ' disabled aria-disabled=\"true\"';", "pass disabled state");
 assertContains(indexSource, "var passBusy = false;", "pass lookup click lock");
 assertContains(indexSource, 'data-payment-status', "payment choice status state");
-assertContains(indexSource, "var monthlyButtonHtml = ''", "monthly option remains hidden");
+assertContains(indexSource, "var allowMonthlyChoice = !isProfileDeletePayment", "monthly option excludes profile deletion");
 
 assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdLoadPortOneV2Sdk()", "pass access returns before PortOne SDK");
 assertContains(indexSource, "provider: 'PORTONE_V2'", "PortOne provider in checkout payload");

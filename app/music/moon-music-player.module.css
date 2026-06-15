@@ -1857,6 +1857,24 @@
     padding: 16px;
   }
 
+  .lyricsPanel {
+    align-self: stretch;
+    max-width: 100%;
+  }
+
+  .lyricsBodyOpen {
+    max-height: min(60svh, 600px);
+    padding: 0 14px 16px;
+    margin-top: 12px;
+  }
+
+  .lyricsText {
+    max-height: min(52svh, 540px);
+    font-size: 0.92rem;
+    line-height: 1.78;
+    padding: 16px 14px 8px;
+  }
+
   .playlistPanel {
     grid-area: list;
     width: 100%;
@@ -1981,6 +1999,39 @@
   .playlistTrackMood {
     max-width: 132px;
   }
+
+  .playlistScroll {
+    max-height: min(64svh, 640px);
+    gap: 11px;
+    padding-right: 9px;
+  }
+
+  .playlistTrack {
+    min-height: 98px;
+    grid-template-columns: minmax(0, 1fr) 52px;
+    gap: 11px;
+  }
+
+  .playlistTrackButton {
+    min-height: 84px;
+    grid-template-columns: 76px minmax(0, 1fr) auto;
+  }
+
+  .playlistThumb {
+    width: 76px;
+  }
+
+  .playlistTrackTitle {
+    font-size: 1.06rem;
+  }
+
+  .playlistTrackArtist {
+    font-size: 0.82rem;
+  }
+
+  .playlistTrackMood {
+    max-width: 138px;
+  }
 }
 
 @media (max-width: 980px) {
@@ -2103,8 +2154,48 @@
   }
 
   .lyricsPanel {
+    align-self: stretch;
+  }
+
+  .lyricsToggle {
+    min-height: 44px;
+    font-size: 0.88rem;
+  }
+
+  .lyricsBodyOpen {
+    max-height: min(58vh, 560px);
+    padding: 0 14px 16px;
+    margin-top: 12px;
+  }
+
+  .lyricsText {
+    max-height: min(50vh, 500px);
+    font-size: 0.9rem;
+    line-height: 1.8;
+    padding: 16px 13px 8px;
+  }
+
+  .playlistScroll {
+    max-height: 560px;
+  }
+
+  .playlistTrackTitle {
+    font-size: 1.06rem;
+  }
+
+  .playlistTrackArtist {
+    font-size: 0.82rem;
+  }
+
+  .lyricsPanel {
+    align-self: stretch;
     grid-column: 1 / -1;
     grid-row: 3;
+  }
+
+  .lyricsBody {
+    overflow-y: auto;
+    padding-right: 6px;
   }
 
   .lyricsToggle {
