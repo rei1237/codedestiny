@@ -57,6 +57,13 @@ const SAJU_MONEY_ANGLES = Object.freeze([
   "피해야 할 돈 버는 방식(투자 습관·동업 구조·소비 패턴) 명시",
 ]);
 
+const SAJU_AI_PROMPT_MASTERY_ANGLES = Object.freeze([
+  "외부 AI에게 그대로 물어볼 수 있도록 역할·원국 근거·질문 의도·답변 형식을 한 번에 묶기",
+  "최고 수준의 명리학자 관점에서 일간·월령·조후·격국·용신·십성·합충형파해·대운·세운을 우선순위화",
+  "확정 근거와 추정 영역을 나누어 단정 대신 확인 질문과 선택지로 돌리기",
+  "AI 답변이 사주 전용 상담 흐름으로 열리도록 금지할 단정과 원하는 답변 구조를 분명히 남기기",
+]);
+
 function toText(value, fallback = DEFAULT_TEXT) {
   const text = String(value == null ? "" : value).trim();
   return text || fallback;
@@ -315,6 +322,19 @@ function ensureSajuPromptQuality(prompt) {
   };
 }
 
+function appendSajuExternalAiPurpose(prompt, template, questionTypeLabel) {
+  const domainLabel = template?.domainKo || "사주";
+  const typeLabel = questionTypeLabel || "질문 주제";
+  const lines = [
+    "[사주 전용 AI 질문문 목적]",
+    "- 외부 AI에게 그대로 붙여넣으면 최고 수준의 명리 상담 답변을 청할 수 있는 사주 전용 질문문입니다.",
+    "- 답변자는 명리학자로서 일간·월령·조후·격국·용신·십성·합충형파해·대운/세운을 교차해 흐름을 읽어주세요.",
+    `- 주제는 ${domainLabel}/${typeLabel}에 맞추고, 사주 근거와 현실 선택지를 함께 비춰주세요.`,
+    "- 확정 예언보다 가능성, 리스크, 확인 질문, 다음 행동 순서가 먼저 드러나게 해주세요.",
+  ];
+  return `${String(prompt || "").trim()}\n\n${lines.join("\n")}`.trim();
+}
+
 export function buildSajuAIPromptWithDomain({
   question,
   sajuResult,
@@ -367,21 +387,22 @@ export function buildSajuAIPromptWithDomain({
   const promptPackage = buildFortuneQuestionPromptPackage({
     fortuneType: "saju",
     fortuneLabel: "사주",
-    expertLabel: "30년 경력의 명리학 전문가",
+    expertLabel: "최고 수준의 명리학자",
     userQuestion: normalizedQuestion,
     analysisResult: sajuResult,
     profile: normalizedProfile,
     compatibilityTarget,
     mode: mode || resolvedDomain,
     questionTypeLabel: `${template.domainKo}/${questionTypeLabel}`,
-    analysisAngles: (template.analysisAngles || []).concat(buildSajuAnalysisAngles(questionType, normalizedQuestion)),
+    analysisAngles: (template.analysisAngles || []).concat(SAJU_AI_PROMPT_MASTERY_ANGLES, buildSajuAnalysisAngles(questionType, normalizedQuestion)),
     recommendedFollowUpQuestions: followUps.length ? followUps : buildSajuFollowUps(questionType),
     caution: "사주는 확률적 경향 해석이며 법률/의료/투자 결정을 대체하지 않습니다.",
     domainDataLines,
     minPromptLength: 1800,
   });
 
-  const qualityResult = ensureSajuPromptQuality(promptPackage.generatedPrompt);
+  const purposePrompt = appendSajuExternalAiPurpose(promptPackage.generatedPrompt, template, questionTypeLabel);
+  const qualityResult = ensureSajuPromptQuality(purposePrompt);
   const generatedPrompt = qualityResult.prompt;
 
   const digestSource = [

@@ -6060,7 +6060,7 @@ function syCanonicalEsc(value) {
 }
 
 var SY_PAID_FEATURES = Object.freeze({
-  symbolicComparison: { key: 'sukuyo-symbolic-comparison', cost: 30, reason: '숙요점 상징 비교 확장' },
+  symbolicComparison: { key: 'sukuyo-symbolic-comparison', cost: 50, reason: '숙요점 같은 숙 인물 심층 매칭' },
   monthlyFortune: { key: 'sukuyo-monthly-fortune', cost: 30, reason: '월별 숙요 운세 확장' },
   compatibility: { key: 'compat-sukuyo-compatibility', cost: 50, reason: '숙요점 궁합 분석' },
   compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 120, reason: '숙요점 정밀 궁합 확장 분석' }
@@ -7575,6 +7575,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       catch (_e) { return { name: '달빛 지표', emoji: '✨' }; }
     })();
     var _reading = syBuildBasicReading(canonicalData, sData, dailyFlow, _selfGuardian);
+    try { window._syRelationMiniMapReading = _reading && Array.isArray(_reading.relationMiniMap) ? { relationMiniMap: _reading.relationMiniMap } : null; } catch (_) {}
     var _annualMonthlyReading = sData ? syBuildSukuyoAnnualMonthlyReading(canonicalData, sData, dailyFlow, sourceProfile || window._ziweiBirth || null) : null;
     var _dailySectionHtml = '';
     var _legacyNexusHtml = '';
@@ -7898,16 +7899,16 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div id="szCelebBadge" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(162,155,254,0.1);border:1px solid rgba(162,155,254,0.3);border-radius:8px;font-size:0.85rem;color:#c792ea;word-break:keep-all;line-height:1.6;"></div>
     </div>`;
 
-    html += `<div class="sy-card sy-same-mansion-card is-locked" data-sy-same-mansion-card="20260615-premium-lock" data-sy-paid-feature="${SY_PAID_FEATURES.symbolicComparison.key}">
+    html += `<div class="sy-card sy-same-mansion-card is-locked" data-sy-same-mansion-card="20260616-same-mansion-match-5000" data-sy-paid-feature="${SY_PAID_FEATURES.symbolicComparison.key}">
         <div class="sy-paid-card-head">
           <div>
             <div class="sy-paid-kicker">잠금 콘텐츠 · ${syPaidPriceLabel(SY_PAID_FEATURES.symbolicComparison)}</div>
-            <h4 class="sy-same-mansion-title">보조 참고 · 같은 숙 인물</h4>
+            <h4 class="sy-same-mansion-title">나와 같은 숙 인물 심층 매칭</h4>
           </div>
-          <span class="sy-paid-status" data-sy-same-mansion-status>미리보기 4명</span>
+          <span class="sy-paid-status" data-sy-same-mansion-status>미리보기 2명</span>
         </div>
         <p class="sy-same-mansion-copy">
-          <strong>${sData ? sData.mansion : '당신의 숙요'}</strong>와 같은 숙으로 분류된 공개 인물을 상징 지도처럼 펼쳐봅니다. 결제 후에는 전체 목록과 함께 분위기, 재능, 매력, 주의 포인트까지 더 깊게 확인할 수 있습니다.
+          <strong>${sData ? sData.mansion : '당신의 숙요'}</strong>와 같은 달빛을 타고 태어난 공개 인물의 결이 서로 다른 방식으로 드러납니다. 해금 후에는 닮은 기질, 다르게 피어나는 재능, 끌림의 색, 숨은 그림자까지 인물별로 열립니다.
         </p>
         <div id="szSameMansion" class="sy-same-mansion-grid">
             <div style="color:#cbd5e1;font-size:0.85rem;padding:8px 0;">✦ 달빛 상징을 정렬하는 중...</div>
@@ -9006,23 +9007,94 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
 
     var ICONS = ['◇','◆','◈','△','✦','✧','☾','☽','✶','✷','✹','✺'];
-    var profileByCat = {
-      actor: { vibe: '감정의 농도를 오래 붙잡는 별빛', talent: '표현력과 장면 장악력', charm: '한 번 보면 기억되는 존재감', caution: '역할에 몰입할수록 휴식 경계가 필요합니다' },
-      '배우': { vibe: '감정의 농도를 오래 붙잡는 별빛', talent: '표현력과 장면 장악력', charm: '한 번 보면 기억되는 존재감', caution: '역할에 몰입할수록 휴식 경계가 필요합니다' },
-      singer: { vibe: '목소리로 분위기를 바꾸는 달빛', talent: '호흡, 리듬, 감정 전달력', charm: '공간을 부드럽게 끌어당기는 흡인력', caution: '감정 소모가 커질 때 루틴 회복이 중요합니다' },
-      '가수': { vibe: '목소리로 분위기를 바꾸는 달빛', talent: '호흡, 리듬, 감정 전달력', charm: '공간을 부드럽게 끌어당기는 흡인력', caution: '감정 소모가 커질 때 루틴 회복이 중요합니다' },
-      idol: { vibe: '빛을 받으면 더 선명해지는 별무리', talent: '무대 감각과 팀 리듬 조율', charm: '친근함과 화려함이 함께 보이는 매력', caution: '외부 기대에 맞추다 내 속도를 잃지 않아야 합니다' },
-      '아이돌': { vibe: '빛을 받으면 더 선명해지는 별무리', talent: '무대 감각과 팀 리듬 조율', charm: '친근함과 화려함이 함께 보이는 매력', caution: '외부 기대에 맞추다 내 속도를 잃지 않아야 합니다' },
-      sports: { vibe: '승부의 순간에 강해지는 직선의 별', talent: '집중력, 체력, 반복 훈련의 힘', charm: '흔들리지 않는 강단과 실행력', caution: '승부욕이 과열되면 회복 시간을 먼저 확보해야 합니다' },
-      '운동선수': { vibe: '승부의 순간에 강해지는 직선의 별', talent: '집중력, 체력, 반복 훈련의 힘', charm: '흔들리지 않는 강단과 실행력', caution: '승부욕이 과열되면 회복 시간을 먼저 확보해야 합니다' },
-      entrepreneur: { vibe: '현실을 움직이는 결단의 별빛', talent: '문제 해결, 구조화, 리더십', charm: '판단이 빠르고 신뢰를 만드는 추진력', caution: '성과 속도가 빨라질수록 관계 설명을 놓치지 않아야 합니다' },
-      '기업가': { vibe: '현실을 움직이는 결단의 별빛', talent: '문제 해결, 구조화, 리더십', charm: '판단이 빠르고 신뢰를 만드는 추진력', caution: '성과 속도가 빨라질수록 관계 설명을 놓치지 않아야 합니다' },
-      scholar: { vibe: '고요한 곳에서 깊어지는 지성의 달', talent: '분석력, 검증, 장기 집중', charm: '차분한 안정감과 설득력', caution: '확신이 강해질수록 다른 해석의 여지를 남겨야 합니다' },
-      '학자': { vibe: '고요한 곳에서 깊어지는 지성의 달', talent: '분석력, 검증, 장기 집중', charm: '차분한 안정감과 설득력', caution: '확신이 강해질수록 다른 해석의 여지를 남겨야 합니다' },
-      creator: { vibe: '익숙한 것을 새롭게 비추는 상상력', talent: '기획력, 표현 확장, 감각적 편집', charm: '새로운 시각을 열어주는 독창성', caution: '아이디어가 많을수록 완성 기준을 먼저 정해야 합니다' },
-      '크리에이터': { vibe: '익숙한 것을 새롭게 비추는 상상력', talent: '기획력, 표현 확장, 감각적 편집', charm: '새로운 시각을 열어주는 독창성', caution: '아이디어가 많을수록 완성 기준을 먼저 정해야 합니다' },
-      default: { vibe: '균형 잡힌 별빛 무드', talent: '꾸준함과 성장성', charm: '편안한 신뢰감', caution: '주변 기대보다 자신의 리듬을 우선 확인해야 합니다' }
+    var sameMansionProfileBank = {
+      actor: {
+        vibe: ['감정의 결을 오래 머금는 달빛', '시선이 닿는 순간 장면을 바꾸는 별', '고요한 표정 뒤에 깊은 파문이 흐르는 기운', '작은 움직임에도 서사가 피어나는 별자리'],
+        talent: ['표정과 침묵 사이의 온도를 붙잡는 힘', '몰입의 깊이로 주변 공기를 바꾸는 재능', '감정의 농도를 장면마다 다르게 조율하는 감각', '한순간의 눈빛을 오래 남기는 집중력']
+      },
+      singer: {
+        vibe: ['목소리로 달의 결을 흔드는 파동', '무대 밖에서도 리듬이 은근히 흐르는 별빛', '감정이 선율을 타고 먼저 번지는 기운', '혼자 서 있을 때 색이 더 짙어지는 달빛'],
+        talent: ['호흡을 감정의 문으로 여는 힘', '리듬과 가사를 자기 온도로 바꾸는 재능', '짧은 소절에도 분위기를 머물게 하는 감각', '대중의 마음을 선율 안으로 부드럽게 모으는 힘']
+      },
+      idol: {
+        vibe: ['화려함 뒤에 섬세한 심지가 흐르는 별무리', '팀의 리듬 안에서 자기 색이 선명해지는 달빛', '빛을 받을수록 표정의 온도가 빠르게 살아나는 기운', '무대 위 반짝임과 사적인 고요가 함께 머무는 별'],
+        talent: ['표정, 동선, 호흡을 한 번에 맞추는 감각', '기대의 파도를 자기 언어로 바꾸는 재능', '순간의 반응을 무대 장악력으로 끌어올리는 힘', '반복 훈련을 가볍게 빛나게 만드는 집중력']
+      },
+      sports: {
+        vibe: ['승부의 문 앞에서 더 또렷해지는 별', '몸의 리듬이 결단으로 이어지는 달빛', '압박이 커질수록 중심이 단단해지는 기운', '반복 속에서 빛을 벼리는 직선의 별'],
+        talent: ['순간 판단과 체력을 하나로 묶는 힘', '긴장감을 집중으로 바꾸는 재능', '몸에 새긴 루틴으로 흐름을 잡는 감각', '끝까지 밀고 가는 실행의 심지']
+      },
+      entrepreneur: {
+        vibe: ['현실의 문을 빠르게 여는 결단의 별', '혼돈 속에서 구조가 먼저 떠오르는 달빛', '사람과 기회를 한 방향으로 모으는 기운', '판을 읽고 타이밍을 잡는 예리한 별'],
+        talent: ['문제를 기회로 바꾸는 판단력', '흩어진 흐름을 구조로 세우는 재능', '사람의 마음과 숫자의 흐름을 함께 보는 감각', '위험과 속도 사이의 균형을 잡는 힘']
+      },
+      scholar: {
+        vibe: ['고요한 곳에서 더 깊어지는 지성의 달', '확신보다 관찰이 먼저 흐르는 별빛', '숨은 질서를 오래 바라보는 기운', '조용한 질문으로 문을 여는 달빛'],
+        talent: ['복잡한 흐름을 차분히 가르는 힘', '검증과 직관을 함께 세우는 재능', '작은 단서에서 큰 구조를 길어 올리는 감각', '오래 붙드는 집중으로 진실에 닿는 힘']
+      },
+      creator: {
+        vibe: ['익숙한 것을 낯선 빛으로 돌려놓는 상상력', '감각의 조각을 새로운 형태로 엮는 별', '보이지 않던 결을 색과 말로 피워내는 기운', '작은 영감이 빠르게 세계가 되는 달빛'],
+        talent: ['기획과 표현을 한 호흡으로 잇는 힘', '흩어진 이미지를 자기 색으로 편집하는 재능', '새로운 시각을 현실의 장면으로 내리는 감각', '분위기와 디테일을 동시에 붙잡는 힘']
+      },
+      default: {
+        vibe: ['겉으로는 잔잔해도 안쪽 별빛이 또렷한 기운', '낯선 자리에서 자기 리듬을 천천히 여는 달빛', '부드러운 인상 아래 단단한 기준이 머무는 별', '관계의 온도를 세밀하게 감지하는 기운'],
+        talent: ['흐름을 살피고 필요한 순간에 중심을 잡는 힘', '사람과 상황의 결을 빠르게 느끼는 재능', '꾸준한 호흡으로 가능성을 현실에 붙이는 감각', '말보다 태도로 신뢰를 쌓는 힘']
+      }
     };
+    var sameMansionCharmPalette = [
+      '처음엔 부드럽지만 가까워질수록 선명한 온도가 살아납니다',
+      '말보다 분위기가 먼저 다가와 오래 잔상을 남깁니다',
+      '가벼운 듯 보여도 결정적인 순간에는 존재감이 크게 떠오릅니다',
+      '친근함 속에 쉽게 흉내 낼 수 없는 자기 색이 흐릅니다',
+      '조용히 머물다가 한순간에 시선을 묶는 힘이 있습니다',
+      '밝은 표면 아래 섬세한 감정선이 은근히 빛납니다'
+    ];
+    var sameMansionShadowPalette = [
+      '호응이 커질수록 자기 속도를 잃지 않게 경계를 세워야 합니다',
+      '기대에 맞추다 보면 마음의 피로가 늦게 올라올 수 있습니다',
+      '강한 인상이 먼저 닿을 때 속마음의 여백을 지켜야 합니다',
+      '빛나는 순간이 많을수록 혼자 숨을 고르는 시간이 필요합니다',
+      '관계의 반응을 너무 빨리 읽으면 자기 선택이 흐려질 수 있습니다',
+      '좋은 흐름이 열려도 완급을 잃지 않는 절제가 필요합니다'
+    ];
+
+    function sySameMansionHash(value) {
+      var text = String(value || '');
+      var hash = 0;
+      for (var n = 0; n < text.length; n += 1) {
+        hash = ((hash << 5) - hash + text.charCodeAt(n)) | 0;
+      }
+      return Math.abs(hash);
+    }
+
+    function sySameMansionPick(list, seed) {
+      var source = Array.isArray(list) && list.length ? list : sameMansionProfileBank.default.vibe;
+      return source[Math.abs(seed) % source.length];
+    }
+
+    function sySameMansionCategoryKey(cat) {
+      var raw = String(cat || '').toLowerCase();
+      if (/걸그룹|보이그룹|아이돌|idol|k-pop|kpop/.test(raw)) return 'idol';
+      if (/가수|솔로|singer|뮤지션|music/.test(raw)) return 'singer';
+      if (/배우|actor|actress/.test(raw)) return 'actor';
+      if (/운동|선수|sports|athlete/.test(raw)) return 'sports';
+      if (/기업|창업|entrepreneur|founder|ceo/.test(raw)) return 'entrepreneur';
+      if (/학자|연구|scholar|researcher/.test(raw)) return 'scholar';
+      if (/작가|감독|크리에이터|creator|artist|director/.test(raw)) return 'creator';
+      return 'default';
+    }
+
+    function syBuildSameMansionProfile(c, i, mansionIdx) {
+      var categoryKey = sySameMansionCategoryKey(c && c.cat);
+      var bank = sameMansionProfileBank[categoryKey] || sameMansionProfileBank.default;
+      var seed = sySameMansionHash([mansionIdx, i, c && c.name, c && c.cat].join('|'));
+      return {
+        vibe: sySameMansionPick(bank.vibe, seed + i),
+        talent: sySameMansionPick(bank.talent, seed + (i * 3) + 7),
+        charm: sySameMansionPick(sameMansionCharmPalette, seed + (i * 5) + 13),
+        caution: sySameMansionPick(sameMansionShadowPalette, seed + (i * 7) + 19)
+      };
+    }
     var sameMansionUnlocked = syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.symbolicComparison.key);
     var sameCard = document.querySelector('[data-sy-same-mansion-card]');
     var status = document.querySelector('[data-sy-same-mansion-status]');
@@ -9031,34 +9103,33 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       sameCard.classList.toggle('is-locked', !sameMansionUnlocked);
     }
     if (status) {
-      status.textContent = sameMansionUnlocked ? '해금 완료 · 전체 상징' : '잠금 콘텐츠 · 미리보기 4명';
+      status.textContent = sameMansionUnlocked ? '해금 완료 · 인물별 공명' : '잠금 콘텐츠 · 미리보기 2명';
       status.classList.toggle('is-unlocked', sameMansionUnlocked);
     }
-    var visibleLimit = sameMansionUnlocked ? 20 : 4;
+    var visibleLimit = sameMansionUnlocked ? 20 : 2;
     div.innerHTML = list.slice(0, visibleLimit).map(function(c, i) {
-      var catKey = String(c.cat || '').toLowerCase();
-      var meta = profileByCat[catKey] || profileByCat.default;
+      var meta = syBuildSameMansionProfile(c, i, mansionIdx);
       return '<article class="sy-same-person-card ' + (sameMansionUnlocked ? 'is-unlocked' : 'is-preview') + '">'
         + '<div class="sy-same-symbol" aria-hidden="true"><span>' + syCanonicalEsc(ICONS[i % ICONS.length]) + '</span></div>'
         + '<div class="sy-same-person-name">' + syCanonicalEsc(c.name || '공개 인물') + '</div>'
         + '<div class="sy-same-person-cat">' + syCanonicalEsc(c.cat || '상징 참고') + '</div>'
         + '<dl class="sy-same-person-read">'
-          + '<div><dt>분위기</dt><dd>' + syCanonicalEsc(meta.vibe) + '</dd></div>'
-          + '<div><dt>재능</dt><dd>' + syCanonicalEsc(meta.talent) + '</dd></div>'
-          + '<div><dt>매력</dt><dd>' + syCanonicalEsc(meta.charm) + '</dd></div>'
+          + '<div><dt>닮은 결</dt><dd>' + syCanonicalEsc(meta.vibe) + '</dd></div>'
+          + '<div><dt>발현</dt><dd>' + syCanonicalEsc(meta.talent) + '</dd></div>'
+          + '<div><dt>끌림</dt><dd>' + syCanonicalEsc(meta.charm) + '</dd></div>'
           + (sameMansionUnlocked
-            ? '<div><dt>주의</dt><dd>' + syCanonicalEsc(meta.caution) + '</dd></div>'
-            : '<div class="is-locked-line"><dt>주의</dt><dd>해금 후 표시</dd></div>')
+            ? '<div><dt>그림자</dt><dd>' + syCanonicalEsc(meta.caution) + '</dd></div>'
+            : '<div class="is-locked-line"><dt>그림자</dt><dd>해금 후 열림</dd></div>')
         + '</dl>'
         + '</article>';
     }).join('');
 
     if (!sameMansionUnlocked && list.length > visibleLimit) {
-      div.innerHTML += '<button type="button" class="sy-same-unlock-card" data-sy-same-mansion-unlock aria-label="같은 숙 인물 전체 상징 목록을 3,000원으로 해금">'
+      div.innerHTML += '<button type="button" class="sy-same-unlock-card" data-sy-same-mansion-unlock aria-label="같은 숙 인물 심층 매칭을 5,000원으로 해금">'
         + '<span class="sy-lock-badge">LOCKED</span>'
-        + '<strong>전체 상징 목록 열기</strong>'
+        + '<strong>인물별 공명 프로필 열기</strong>'
         + '<em>' + syPaidPriceLabel(SY_PAID_FEATURES.symbolicComparison) + '</em>'
-        + '<small>20명 상징 지도와 주의 포인트까지 확장</small>'
+        + '<small>20명의 닮은 결, 다른 매력, 숨은 그림자까지 인물마다 다르게 열립니다</small>'
         + '</button>';
       var unlockBtn = div.querySelector('[data-sy-same-mansion-unlock]');
       if (unlockBtn) {
@@ -12042,6 +12113,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             return idx === 0 || idx === 2 || idx === 3;
           });
           const compactScripts = ((enhanced.relationshipPrescriptions && enhanced.relationshipPrescriptions.scripts) || []).slice(0, 2);
+          const relationMiniMapReading = (window._syRelationMiniMapReading && Array.isArray(window._syRelationMiniMapReading.relationMiniMap))
+            ? window._syRelationMiniMapReading
+            : { relationMiniMap: [] };
           const compactAdvantages = (rel.advantages || []).slice(0, 2).map(function(a) {
             return '<article style="background:' + th.bg + ';border:1px solid ' + th.border + ';border-radius:11px;padding:11px 12px;">'
               + '<strong style="display:block;color:' + th.color1 + ';font-size:0.8rem;margin-bottom:5px;">' + syCanonicalEsc(a.label || '인연의 빛') + '</strong>'
@@ -12162,7 +12236,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
               ${compactSummarySection}
 
-              ${syRenderRelationMiniMapCard(_reading, { activeLabel: enhanced.relationTypeKo, embedded: true })}
+              ${syRenderRelationMiniMapCard(relationMiniMapReading, { activeLabel: enhanced.relationTypeKo, embedded: true })}
 
               ${compactMetricSection}
 

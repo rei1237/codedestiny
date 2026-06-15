@@ -5062,17 +5062,18 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain) {
 
 function _buildSajuQuestionPromptHtml() {
   return ''
-    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-question-prompt-v20260616-lux-analysis-only" style="margin:18px 0 0" data-saju-analysis-only="true">'
-    + '<div class="prem-box" style="position:relative;overflow:hidden;border-radius:8px;border:1px solid rgba(207,172,91,.48);background:linear-gradient(135deg,rgba(17,18,24,.96),rgba(47,35,29,.96) 48%,rgba(250,246,234,.96));box-shadow:0 22px 52px rgba(18,18,24,.24),inset 0 1px 0 rgba(255,255,255,.2);padding:18px;">'
-    +   '<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(207,172,91,.16),transparent 28%,rgba(255,255,255,.16) 100%);"></div>'
-    +   '<div style="position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:flex-start;margin-bottom:13px;">'
-    +     '<div><div style="font-size:0.72rem;color:#d9bd77;letter-spacing:.14em;font-weight:900;text-transform:uppercase;">Saju Question Atelier</div><span class="prem-title" style="display:block;margin-top:4px;color:#fff7df;font-size:1.02rem;line-height:1.35;font-weight:900;">사주의 다음 문을 여는 질문</span><p style="font-size:0.82rem;color:rgba(255,247,223,.78);margin:5px 0 0;line-height:1.7;word-break:keep-all;">명식 위에 맴도는 고민을 한 문장으로 남기면, 팔자의 결에 맞춘 깊은 질문이 드러납니다.</p></div>'
-    +     '<span style="white-space:nowrap;font-size:0.72rem;color:#2a2117;border:1px solid rgba(207,172,91,.42);background:linear-gradient(135deg,#f8df9b,#cfa04d);padding:6px 10px;border-radius:999px;font-weight:900;box-shadow:0 8px 18px rgba(0,0,0,.16);">깊은 질문 · 10,000원</span>'
+    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-question-prompt-v20260616-taegeuk-ai" style="margin:18px 0 0" data-saju-analysis-only="true">'
+    + '<div class="prem-box" style="position:relative;overflow:hidden;border-radius:8px;border:1px solid rgba(230,196,112,.62);background:radial-gradient(circle at 86% 12%,rgba(226,52,52,.22),transparent 22%),radial-gradient(circle at 92% 76%,rgba(28,75,150,.22),transparent 24%),linear-gradient(135deg,rgba(12,13,18,.98),rgba(42,28,22,.97) 52%,rgba(243,236,218,.96));box-shadow:0 24px 58px rgba(12,13,18,.3),inset 0 1px 0 rgba(255,255,255,.22);padding:18px;">'
+    +   '<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(230,196,112,.18),transparent 30%,rgba(255,255,255,.14) 100%);"></div>'
+    +   '<div style="position:absolute;right:18px;bottom:-34px;width:132px;height:132px;border-radius:50%;opacity:.2;border:1px solid rgba(255,231,164,.42);background:radial-gradient(circle at 50% 26%,#cf2e2e 0 16%,transparent 17%),radial-gradient(circle at 50% 74%,#133e7c 0 16%,transparent 17%),linear-gradient(180deg,#cf2e2e 0 50%,#133e7c 50% 100%);filter:saturate(1.08);"></div>'
+    +   '<div style="position:relative;display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:13px;">'
+    +     '<div style="display:flex;gap:12px;align-items:flex-start;min-width:220px;flex:1 1 300px;"><span aria-hidden="true" style="flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,231,164,.72);background:radial-gradient(circle at 50% 28%,#f8ead4 0 10%,transparent 11%),radial-gradient(circle at 50% 72%,#24170c 0 10%,transparent 11%),linear-gradient(180deg,#b91c1c 0 50%,#123c7d 50% 100%);box-shadow:0 10px 24px rgba(0,0,0,.28),inset 0 0 0 3px rgba(255,247,223,.72);"></span><div><div style="font-size:0.72rem;color:#e8c778;letter-spacing:.14em;font-weight:900;text-transform:uppercase;">Saju AI Prompt Atelier</div><span class="prem-title" style="display:block;margin-top:4px;color:#fff7df;font-size:1.04rem;line-height:1.35;font-weight:900;">최고의 명리학자처럼 AI에게 물어볼 사주 질문문</span><p style="font-size:0.82rem;color:rgba(255,247,223,.8);margin:5px 0 0;line-height:1.7;word-break:keep-all;">명식 위에 맴도는 고민을 남기면, 일간·월령·조후·십성의 결을 따라 AI에게 건넬 사주 전용 프롬프트가 드러납니다.</p></div></div>'
+    +     '<span style="white-space:nowrap;font-size:0.72rem;color:#2a2117;border:1px solid rgba(244,216,142,.68);background:linear-gradient(135deg,#fde8a4,#c6923a);padding:7px 11px;border-radius:999px;font-weight:900;box-shadow:0 10px 20px rgba(0,0,0,.18);">AI 질문 프롬프트 · 10,000원</span>'
     +   '</div>'
-    +   '<textarea data-saju-ai-question maxlength="1000" placeholder="예: 올해 이직을 앞두고 제 명식에서 가장 조심해야 할 선택은 무엇인가요?" style="position:relative;width:100%;min-height:116px;border-radius:8px;border:1px solid rgba(207,172,91,.45);background:rgba(255,252,243,.92);color:#24170c;padding:13px 14px;font-size:0.88rem;line-height:1.68;resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 10px rgba(44,29,12,.08);"></textarea>'
+    +   '<textarea data-saju-ai-question maxlength="1000" placeholder="예: 올해 이직을 앞둔 제 사주에서 잡아야 할 기회와 피해야 할 선택은 무엇인가요?" style="position:relative;width:100%;min-height:116px;border-radius:8px;border:1px solid rgba(230,196,112,.55);background:rgba(255,252,243,.94);color:#24170c;padding:13px 14px;font-size:0.88rem;line-height:1.68;resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 12px rgba(44,29,12,.09),0 0 0 1px rgba(255,244,205,.18);"></textarea>'
     +   '<div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
     +     '<span data-saju-ai-count style="font-size:0.72rem;color:rgba(255,247,223,.68);font-weight:800;">0 / 1000</span>'
-    +     '<span style="font-size:0.72rem;color:rgba(255,247,223,.7);font-weight:700;">질문 5자 이상 · 결제 확인 뒤 열림</span>'
+    +     '<span style="font-size:0.72rem;color:rgba(255,247,223,.72);font-weight:700;">질문 5자 이상 · 결제 확인 뒤 AI 프롬프트 열림</span>'
     +   '</div>'
     +   '<div style="position:relative;margin-top:13px;">'
     +     '<div style="font-size:0.72rem;color:#e8c778;font-weight:900;margin-bottom:7px;letter-spacing:.04em;">질문이 향하는 자리</div>'
@@ -5092,11 +5093,11 @@ function _buildSajuQuestionPromptHtml() {
     +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-birth checked style="accent-color:#d9bd77;"> 원본 생년월일 제외</label>'
     +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-time checked style="accent-color:#d9bd77;"> 원본 출생시간 제외</label>'
     +   '</div>'
-    +   '<div style="position:relative;margin-top:6px;font-size:0.7rem;color:rgba(255,247,223,.58);line-height:1.55;">이름과 원문 생년월일은 기본으로 가리고, 명식의 흐름만 질문 안에 남깁니다.</div>'
+    +   '<div style="position:relative;margin-top:6px;font-size:0.7rem;color:rgba(255,247,223,.6);line-height:1.55;">이름과 원문 생년월일은 기본으로 가리고, 명식의 흐름만 AI에게 건넬 질문 안에 남깁니다.</div>'
     +   '<div style="position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;">'
-    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#f3d58a,#b7822f);color:#1e160c;border:1px solid rgba(255,234,166,.72);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.22);">10,000원으로 질문 열기</button>'
-    +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(207,172,91,.4);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 열기</button>'
-    +     '<button data-saju-ai-copy type="button" style="display:none;background:#164e3b;color:#ecfdf5;border:1px solid rgba(110,231,183,.38);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">질문문 복사</button>'
+    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">10,000원으로 AI 질문문 열기</button>'
+    +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 열기</button>'
+    +     '<button data-saju-ai-copy type="button" style="display:none;background:#133e35;color:#ecfdf5;border:1px solid rgba(110,231,183,.38);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">AI 질문문 복사</button>'
     +   '</div>'
     +   '<textarea data-saju-ai-output readonly style="position:relative;display:none;margin-top:12px;width:100%;min-height:220px;border-radius:8px;border:1px solid rgba(207,172,91,.42);background:rgba(255,252,243,.94);color:#1f2a19;padding:13px 14px;font-size:0.82rem;line-height:1.68;resize:vertical;box-sizing:border-box;"></textarea>'
     +   '<div data-saju-ai-status style="position:relative;margin-top:9px;font-size:0.76rem;color:rgba(255,247,223,.72);line-height:1.55;"></div>'
@@ -5169,7 +5170,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     inputEl.disabled = isLoading;
     generateBtn.disabled = isLoading;
     regenerateBtn.disabled = isLoading;
-    generateBtn.textContent = isLoading ? '질문의 결을 여는 중...' : '10,000원으로 질문 열기';
+    generateBtn.textContent = isLoading ? 'AI 질문문의 결을 여는 중...' : '10,000원으로 AI 질문문 열기';
     updateCount();
   }
   function handleGenerate() {
@@ -5186,7 +5187,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
       return;
     }
     setLoading(true);
-    _sajuPromptSetStatus(statusEl, '결제 권한을 확인하고 ' + _sajuPromptDomainLabel(domain) + ' 주제의 깊은 질문문을 엽니다.', 'info');
+    _sajuPromptSetStatus(statusEl, '결제 권한을 확인하고 ' + _sajuPromptDomainLabel(domain) + ' 주제의 사주 전용 AI 질문문을 엽니다.', 'info');
     _requestSajuQuestionPrompt(question, privacyOptions, domain).then(function(result) {
       var payload = result && result.payload ? result.payload : {};
       var promptText = String(payload.prompt || payload.generatedPrompt || '').trim();
@@ -5198,7 +5199,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
         regenerateBtn.style.display = 'inline-flex';
         if (payload.balanceAfter != null) _applySajuAIPromptBalance(payload.balanceAfter);
         var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
-        _sajuPromptSetStatus(statusEl, (chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : '') + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 깊은 질문문이 완성되었습니다.', 'success');
+        _sajuPromptSetStatus(statusEl, (chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : '') + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 사주 전용 AI 질문문이 열렸습니다.', 'success');
         return;
       }
 
@@ -5211,7 +5212,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
       }
       if (code === 'PAYMENT_REQUIRED' || code === 'INSUFFICIENT_COINS' || result.status === 402) {
         _sajuPromptSetStatus(statusEl, message, 'error');
-        _openSajuPaidPaymentMode(100, '사주 질문문 생성', 'saju_ai_prompt_generator');
+        _openSajuPaidPaymentMode(100, '사주 AI 질문문 생성', 'saju_ai_prompt_generator');
         return;
       }
       _sajuPromptSetStatus(statusEl, message, 'error');
@@ -5233,7 +5234,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     });
   });
   updateCount();
-  _sajuPromptSetStatus(statusEl, '질문을 남기면 10,000원 결제 확인 뒤 깊은 질문문이 열립니다.', 'info');
+  _sajuPromptSetStatus(statusEl, '질문을 남기면 10,000원 결제 확인 뒤 AI에게 건넬 사주 전용 질문문이 열립니다.', 'info');
 }
 
   function renderSpecialCharm(p, natal) {
@@ -27777,10 +27778,10 @@ function showQuantumResult() {
       + '<p>기본 차트에서 한 걸음 더 들어가, 일과 역할, 재능과 끌림, 관계의 문, 과제와 변화를 상담실의 언어로 천천히 펼칩니다. 별의 배치를 따로 나열하지 않고, 서로 이어지는 삶의 장면으로 읽습니다.</p>'
       + '</div>'
       + '<div class="astro-stellar-archive__grid">'
-      + _astroCounselPaidGate('astro_career_talent_deep', 50, '일과 역할 심화 리딩', 'MC·10하우스 룰러·6하우스·ASC 룰러·목성으로 사회적 이름, 일의 리듬, 수익화 방향을 함께 엽니다.', careerBody)
-      + _astroCounselPaidGate('astro_talent_attraction_deep', 50, '재능과 끌림 심화 리딩', '금성·화성·목성으로 좋아하는 것, 움직이게 하는 것, 사람에게 닿는 매력을 잇습니다.', talentBody)
-      + _astroCounselPaidGate('astro_relationship_deep', 50, '관계의 문 심화 리딩', '금성·화성·7하우스로 마음이 열리는 조건, 끌림의 속도, 오래 머무는 관계의 약속을 봅니다.', relationshipBody)
-      + _astroCounselPaidGate('astro_growth_shadow_deep', 50, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 반복되는 과제, 깊은 전환, 현실로 돌아오는 회복 의식을 읽습니다.', growthBody)
+      + _astroCounselPaidGate('astro_stellar_career_room', 50, '일과 역할 심화 리딩', 'MC·10하우스 룰러·6하우스·ASC 룰러·목성으로 사회적 이름, 일의 리듬, 수익화 방향을 함께 엽니다.', careerBody)
+      + _astroCounselPaidGate('astro_stellar_talent_room', 50, '재능과 끌림 심화 리딩', '금성·화성·목성으로 좋아하는 것, 움직이게 하는 것, 사람에게 닿는 매력을 잇습니다.', talentBody)
+      + _astroCounselPaidGate('astro_stellar_relationship_room', 50, '관계의 문 심화 리딩', '금성·화성·7하우스로 마음이 열리는 조건, 끌림의 속도, 오래 머무는 관계의 약속을 봅니다.', relationshipBody)
+      + _astroCounselPaidGate('astro_stellar_growth_room', 50, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 반복되는 과제, 깊은 전환, 현실로 돌아오는 회복 의식을 읽습니다.', growthBody)
       + '</div>'
       + '</section>';
   }

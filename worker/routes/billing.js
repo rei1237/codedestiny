@@ -2272,10 +2272,13 @@ async function requireBillingAuth(request, env, pricing = {}) {
     return { ok: true, auth: null };
   }
 
-  const adminMode = isPaidServiceFeaturePricing(pricing) && isAdminPaidServiceBypassEnabled(env)
-    ? await verifyFlowerAdminToken(request, env)
-    : false;
-  const auth = await getOptionalUserFromRequest(request, env);
+  const shouldCheckAdminMode = isPaidServiceFeaturePricing(pricing)
+    && isAdminPaidServiceBypassEnabled(env)
+    && Boolean(extractFlowerAdminToken(request));
+  const [auth, adminMode] = await Promise.all([
+    getOptionalUserFromRequest(request, env),
+    shouldCheckAdminMode ? verifyFlowerAdminToken(request, env) : Promise.resolve(false),
+  ]);
   if (auth) {
     return { ok: true, auth, adminMode };
   }
@@ -2357,6 +2360,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     && !monthlyBalanceRequested
     && !directPaymentRequested
     && !coinPaymentRequested;
+  const shouldAutoUnlockWithPass = !monthlyBalanceRequested
+    && !directPaymentRequested
+    && !coinPaymentRequested;
 
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || resolvePaidReportSessionFallback(pricing, reportId, requestId)).trim();
@@ -2420,7 +2426,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       freeBySubscription: false,
     }, "ADMIN_TEST_PAYMENT_BYPASS");
   }
-  const profileId = authCheck?.auth?.userId ? await withDbAccessTimeout(
+  const profileResolvePromise = authCheck?.auth?.userId ? withDbAccessTimeout(
     resolveBillingProfileId(authCheck.auth.userId, body, env),
     PAID_ACCESS_DECISION_DB_TIMEOUT_MS,
     "COIN_GATE_PROFILE_RESOLVE_TIMEOUT",
@@ -2429,8 +2435,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       throw error;
     }
     return "";
-  }) : "";
-  const subscriptionPassForDecision = authCheck?.auth?.userId ? await withDbAccessTimeout(
+  }) : Promise.resolve("");
+  const subscriptionPassPromise = authCheck?.auth?.userId ? withDbAccessTimeout(
     getMembershipPassForBillingRequest(
       request,
       env,
@@ -2443,7 +2449,11 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       throw error;
     }
     return null;
-  }) : null;
+  }) : Promise.resolve(null);
+  const [profileId, subscriptionPassForDecision] = await Promise.all([
+    profileResolvePromise,
+    subscriptionPassPromise,
+  ]);
   pricing = applyPdfPassDiscountToPricing(pricing, subscriptionPassForDecision?.entitlement || {});
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
   if (persistProfileUnlockEntitlement && !profileId) {
@@ -2473,7 +2483,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       pricing,
       requestId,
       requestedPaymentMode,
-      allowPassAutoUnlock: true,
+      allowPassAutoUnlock: shouldAutoUnlockWithPass,
       subscriptionPass: subscriptionPassForDecision,
       body: scopedBody,
     });
@@ -2895,10 +2905,14 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }
 
     if (monthlyBalanceRequested) {
-      const currentUser = await User.findById(authCheck.auth.userId)
-        .select("profileSubscription")
-        .lean();
-      const monthlyCredits = Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0)));
+      let monthlyCredits = Number(subscriptionPassForDecision?.profileSubscription?.membershipCreditBalance);
+      if (!Number.isFinite(monthlyCredits)) {
+        const currentUser = await User.findById(authCheck.auth.userId)
+          .select("profileSubscription")
+          .lean();
+        monthlyCredits = Number(currentUser?.profileSubscription?.membershipCreditBalance || 0);
+      }
+      monthlyCredits = Math.max(0, Math.floor(monthlyCredits));
       const requiredMonthlyCredits = calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0));
       return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "이용권 혜택이 부족합니다.", undefined, {
         pricing,
