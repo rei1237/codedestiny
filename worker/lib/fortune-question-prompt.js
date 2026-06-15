@@ -38,6 +38,40 @@ function isAstrologyPrompt(fortuneType, fortuneLabel) {
   return type === "astrology" || label.includes("점성술") || label.includes("Astrology");
 }
 
+function inferExpertVoiceName(fortuneType, fortuneLabel) {
+  const type = String(fortuneType || "").toLowerCase();
+  const label = String(fortuneLabel || "");
+  if (isSajuPrompt(type, label)) return "명리학자";
+  if (isAstrologyPrompt(type, label)) return "점성술사";
+  if (type === "sukyo" || label.includes("숙요")) return "숙요점 관계 상담가";
+  if (type === "ziwei" || label.includes("자미")) return "자미두수 명반 해석가";
+  if (type === "vedic" || label.includes("베다")) return "베다 점성술사";
+  if (label.includes("타로")) return "타로 리더";
+  if (label.includes("수비학")) return "수비학 해석가";
+  if (label.includes("꿈")) return "상징 해석가";
+  return `${toText(fortuneLabel, "운세")} 전문가`;
+}
+
+function buildExpertVoiceRuleLines(fortuneType, fortuneLabel) {
+  const expertVoiceName = inferExpertVoiceName(fortuneType, fortuneLabel);
+  return [
+    `- 문체는 ${expertVoiceName}가 눈앞의 사용자를 직접 상담하듯 작성해주세요.`,
+    "- 기능, 서비스, 리포트, 섹션을 소개하는 설명문처럼 쓰지 마세요.",
+    "- 금지 표현: 보여줍니다, 읽습니다, 말합니다, 방향입니다, 설명합니다, 제공합니다.",
+    "- 금지 시작: 이 글은, 이 섹션은, 이 기능은, 이 결과는, 분석 결과는.",
+    "- 금지 표현이 필요해 보이면 드러납니다, 흐릅니다, 가리킵니다, 비춥니다, 기울어 있습니다, 열립니다처럼 상담 해석문으로 바꿔주세요.",
+    "- 무엇을 보여주는지 설명하지 말고, 사용자의 흐름에 무엇이 떠오르고 어디로 기운이 움직이는지 바로 풀어주세요.",
+    "- 모든 운세 문장은 전문적이고 신비로운 상담문이어야 하며 개발 문서, 기능 소개, 사용 안내처럼 들리면 안 됩니다.",
+  ];
+}
+
+function appendExpertVoiceGuard(promptText, fortuneType, fortuneLabel) {
+  const prompt = String(promptText || "");
+  const marker = "[전문가 상담 문체 고정 규칙]";
+  if (prompt.includes(marker)) return prompt;
+  return `${prompt}\n\n${marker}\n${buildExpertVoiceRuleLines(fortuneType, fortuneLabel).join("\n")}`;
+}
+
 function inferIntentLabel(userQuestion, mode, questionTypeLabel) {
   const q = toText(userQuestion).toLowerCase();
   const modeText = toText(mode).toLowerCase();
@@ -331,6 +365,8 @@ export function buildFortuneQuestionPromptPackage({
 
     generatedPrompt = ensureMinLength(lines.join("\n"), angles, followUps, caution, Math.max(1200, Number(minPromptLength) || DEFAULT_MIN_PROMPT_LENGTH), fortuneType, safeFortuneLabel);
   }
+
+  generatedPrompt = appendExpertVoiceGuard(generatedPrompt, fortuneType, safeFortuneLabel);
 
   const packageTitle = isSajuPrompt(fortuneType, safeFortuneLabel)
     ? `${safeFortuneLabel} 질문문 생성 프롬프트`

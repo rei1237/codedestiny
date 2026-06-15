@@ -20233,16 +20233,38 @@ function renderZiwei(p, natal, targetId) {
               +'<div style="padding:0 11px 11px;">'+dahanTimelineFullHtml+'</div>'
             +'</details>';
         }
+        function zwDahanNormalizeProfileId(value) {
+          return String(value || '').trim().slice(0, 80).replace(/\s+/g, '_');
+        }
+        function zwDahanProfileIdFromProfile(profile) {
+          return zwDahanNormalizeProfileId(profile && (profile.profileId || profile.id));
+        }
         function zwDahanResolveProfileId() {
           var resolved = '';
           try {
             if (typeof window._cdResolveCurrentProfileIdForAccess === 'function') resolved = window._cdResolveCurrentProfileIdForAccess();
           } catch (_) {}
-          if (!resolved) {
+          resolved = zwDahanNormalizeProfileId(resolved);
+          if (resolved) return resolved;
+          try {
+            resolved = zwDahanProfileIdFromProfile(window.__cdCurrentDestinyProfile);
+          } catch (_) {}
+          if (resolved) return resolved;
+          try {
+            if (typeof window.__cdGetCurrentDestinyProfile === 'function') resolved = zwDahanProfileIdFromProfile(window.__cdGetCurrentDestinyProfile());
+          } catch (_) {}
+          if (resolved) return resolved;
+          try {
+            var storage = window.DestinyProfileManager && window.DestinyProfileManager.storage;
+            if (storage && typeof storage.current === 'function') resolved = zwDahanProfileIdFromProfile(storage.current());
+          } catch (_) {}
+          if (resolved) return resolved;
+          try {
             var currentProfile = window.__cdCurrentProfile || window.currentDestinyProfile || window.selectedDestinyProfile || null;
-            resolved = String((currentProfile && (currentProfile.profileId || currentProfile.id)) || window.__cdCurrentProfileId || window.currentProfileId || window.selectedProfileId || '').trim();
-          }
-          return String(resolved || '').trim().slice(0, 80).replace(/\s+/g, '_');
+            resolved = zwDahanProfileIdFromProfile(currentProfile);
+          } catch (_) {}
+          if (resolved) return resolved;
+          return zwDahanNormalizeProfileId(window.__cdCurrentProfileId || window.currentProfileId || window.selectedProfileId || '');
         }
         function zwDahanPremiumRequest(path, init) {
           return _cdAIPromptRequestJson(path, init || {}).then(function(result) {
@@ -20318,9 +20340,15 @@ function renderZiwei(p, natal, targetId) {
           if (!shell || shell.getAttribute('data-bound') === 'true') return;
           shell.setAttribute('data-bound', 'true');
           var btn = shell.querySelector('[data-action="unlockZiweiDaehanTimeline"]');
-          var profileId = String(shell.getAttribute('data-profile-id') || '').trim();
           var required = Number(shell.getAttribute('data-required-coins') || 200);
+          function readProfileId() {
+            var latestProfileId = zwDahanResolveProfileId() || String(shell.getAttribute('data-profile-id') || '').trim();
+            latestProfileId = zwDahanNormalizeProfileId(latestProfileId);
+            if (latestProfileId) shell.setAttribute('data-profile-id', latestProfileId);
+            return latestProfileId;
+          }
           function refreshStatus() {
+            var profileId = readProfileId();
             if (!profileId) {
               if (btn) btn.disabled = true;
               zwDahanSetGateMessage(shell, '프로필을 먼저 선택해 주세요.', 'error');
@@ -20356,6 +20384,7 @@ function renderZiwei(p, natal, targetId) {
               event.preventDefault();
               event.stopPropagation();
               if (btn.disabled || shell.classList.contains('cd-section-gate--unlocked')) return;
+              var profileId = readProfileId();
               if (!profileId) {
                 zwDahanSetGateMessage(shell, '프로필을 먼저 선택해 주세요.', 'error');
                 return;
@@ -27039,7 +27068,7 @@ function showQuantumResult() {
 }
 
 (function(){
-  var ASTRO_COUNSEL_MARKER = 'counsel-v20260614-astro-basic-polish';
+  var ASTRO_COUNSEL_MARKER = 'cosmic-restored-v20260615';
   var SIGN_NAMES = ['양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리','천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
   var SIGN_ELEMENTS = ['fire','earth','air','water','fire','earth','air','water','fire','earth','air','water'];
   var SIGN_MODES = ['cardinal','fixed','mutable','cardinal','fixed','mutable','cardinal','fixed','mutable','cardinal','fixed','mutable'];
@@ -27549,6 +27578,389 @@ function showQuantumResult() {
       + '</div>';
   }
 
+  function _astroCounselSetText(root, selector, text) {
+    var node = root && root.querySelector ? root.querySelector(selector) : null;
+    if (node) node.textContent = text;
+  }
+
+  function _astroCounselSetTexts(root, selector, texts) {
+    if (!root || !root.querySelectorAll || !Array.isArray(texts)) return;
+    var nodes = root.querySelectorAll(selector);
+    for (var i = 0; i < nodes.length && i < texts.length; i += 1) {
+      nodes[i].textContent = texts[i];
+    }
+  }
+
+  function _astroCounselSetPlaceholder(root, selector, text) {
+    var node = root && root.querySelector ? root.querySelector(selector) : null;
+    if (node) node.setAttribute('placeholder', text);
+  }
+
+  function _astroCounselChip(label, value) {
+    return '<span class="astro-stellar-reading__chip"><b>' + _astroCounselEscape(label) + '</b>' + _astroCounselEscape(value) + '</span>';
+  }
+
+  function _astroCounselPlacementLine(placement) {
+    if (!placement) return '-';
+    return placement.label + ' ' + placement.sign + ' · ' + _astroCounselHouseText(placement.house);
+  }
+
+  function _astroCounselDeepPanel(title, kicker, lead, chips, paragraphs, notes) {
+    return '<article class="astro-stellar-reading">'
+      + '<div class="astro-stellar-reading__kicker">' + _astroCounselEscape(kicker) + '</div>'
+      + '<h4>' + _astroCounselEscape(title) + '</h4>'
+      + '<p class="astro-stellar-reading__lead">' + _astroCounselEscape(lead) + '</p>'
+      + '<div class="astro-stellar-reading__chips">' + (chips || []).join('') + '</div>'
+      + '<div class="astro-stellar-reading__body">'
+      + (paragraphs || []).map(function(row) {
+        return '<p><b>' + _astroCounselEscape(row[0]) + '</b>' + _astroCounselEscape(row[1]) + '</p>';
+      }).join('')
+      + '</div>'
+      + '<div class="astro-stellar-reading__notes">'
+      + (notes || []).map(function(note) { return '<span class="astro-stellar-reading__note">' + _astroCounselEscape(note) + '</span>'; }).join('')
+      + '</div>'
+      + '</article>';
+  }
+
+  function _astroCounselDeepLockedHtml(pack) {
+    var chart = pack && pack.chart;
+    if (!chart) return '';
+    var ascIdx = _astroCounselSignIdx(chart.asc);
+    var houseAscIdx = ascIdx == null ? 0 : ascIdx;
+    var mcIdx = _astroCounselSignIdx(chart.mc);
+    var tenthIdx = _astroCounselHouseSignIdx(chart, 10, houseAscIdx);
+    var sixthIdx = _astroCounselHouseSignIdx(chart, 6, houseAscIdx);
+    var seventhIdx = _astroCounselHouseSignIdx(chart, 7, houseAscIdx);
+    mcIdx = mcIdx == null ? houseAscIdx : mcIdx;
+    tenthIdx = tenthIdx == null ? houseAscIdx : tenthIdx;
+    sixthIdx = sixthIdx == null ? houseAscIdx : sixthIdx;
+    seventhIdx = seventhIdx == null ? houseAscIdx : seventhIdx;
+    var tenthRuler = _astroCounselRuler(tenthIdx);
+    var ascRuler = _astroCounselRuler(houseAscIdx);
+    var seventhRuler = _astroCounselRuler(seventhIdx);
+    var mc = { sign:_astroCounselSignName(chart.mc), signIdx:mcIdx };
+    var tenth = _astroCounselPlacement(chart, tenthRuler, houseAscIdx);
+    var ascRulerPlacement = _astroCounselPlacement(chart, ascRuler, houseAscIdx);
+    var seventhRulerPlacement = _astroCounselPlacement(chart, seventhRuler, houseAscIdx);
+    var sixthSign = SIGN_NAMES[sixthIdx] || '6하우스';
+    var seventhSign = SIGN_NAMES[seventhIdx] || '7하우스';
+    var venus = _astroCounselPlacement(chart, 'Venus', houseAscIdx);
+    var mars = _astroCounselPlacement(chart, 'Mars', houseAscIdx);
+    var jupiter = _astroCounselPlacement(chart, 'Jupiter', houseAscIdx);
+    var saturn = _astroCounselPlacement(chart, 'Saturn', houseAscIdx);
+    var pluto = _astroCounselPlacement(chart, 'Pluto', houseAscIdx);
+    var neptune = _astroCounselPlacement(chart, 'Neptune', houseAscIdx);
+
+    var careerBody = _astroCounselDeepPanel(
+      '일과 역할: 사회에 남길 별의 이름',
+      'MC · 10H Ruler · 6H · ASC Ruler · Jupiter',
+      '당신의 차트에서 일은 단순한 생계가 아니라, 세상에 어떤 이름으로 남을지를 묻는 자리입니다.',
+      [
+        _astroCounselChip('MC', mc.sign),
+        _astroCounselChip('10하우스 룰러', _astroCounselPlacementLine(tenth)),
+        _astroCounselChip('6하우스', sixthSign),
+        _astroCounselChip('ASC 룰러', _astroCounselPlacementLine(ascRulerPlacement)),
+        _astroCounselChip('목성', _astroCounselPlacementLine(jupiter))
+      ],
+      [
+        ['상담의 첫 문장', '이 리딩은 직업명을 하나로 못 박기보다, 당신이 오래 버틸 수 있는 무대와 그 무대에서 남기는 인상을 함께 읽습니다. 차트는 직함보다 더 깊은 질문을 던집니다. 어디에서 당신의 기준이 살아나고, 어떤 일을 할 때 사람들이 당신을 다시 찾는가입니다.'],
+        ['사회적 이름', 'MC ' + mc.sign + '은 세상 앞에 걸리는 간판입니다. ' + _astroCounselTone(mc.signIdx, '공적 역할의 중심 신호') + '이 강해질수록 당신은 단순히 주어진 일을 처리하는 사람보다, 방향을 정하고 기준을 남기는 사람으로 기억되기 쉽습니다.'],
+        ['커리어가 흘러가는 통로', '10하우스 룰러인 ' + _astroCounselRulerLabel(tenthRuler) + '는 ' + _astroCounselPlacementLine(tenth) + '에 놓여 있습니다. 이름을 얻는 사건은 갑자기 떨어지는 행운보다 ' + tenth.topic + '을 구체적인 결과물로 만들 때 열립니다.'],
+        ['일상의 노동 리듬', '6하우스 ' + sixthSign + '은 몸이 버티는 방식과 매일 반복되는 질서를 가리킵니다. 큰 목표가 있어도 하루의 리듬이 맞지 않으면 별은 쉽게 흐려집니다. 당신에게 필요한 것은 더 많은 근성이 아니라, 업무 시간과 협업 거리와 회복 주기를 정확히 맞춘 루틴입니다.'],
+        ['ASC 룰러의 시작 방식', 'ASC 룰러 ' + _astroCounselPlacementLine(ascRulerPlacement) + '은 당신이 일을 시작하고 사람들 앞에 등장하는 방식을 보여줍니다. ' + ascRulerPlacement.topic + '에서 먼저 몸을 움직일 때 기회가 열리며, 처음부터 완벽하게 보이려 하기보다 당신다운 속도로 문을 여는 편이 좋습니다.'],
+        ['목성이 키우는 무대', '목성 ' + _astroCounselPlacementLine(jupiter) + '은 성장의 문입니다. 배움, 신뢰, 소개, 확장 제안은 ' + jupiter.topic + '을 통해 들어옵니다. 이 별은 과장된 약속보다 꾸준히 지킨 약속을 좋아하므로, 작게 시작해도 신뢰의 기록을 남기면 무대가 점점 넓어집니다.'],
+        ['현실에서 나타나는 장면', '일이 잘 풀릴 때 당신은 한 번에 크게 뛰기보다, 반복해서 쌓은 기준이 어느 순간 평판으로 바뀌는 흐름을 탑니다. 사람들이 당신에게 맡기고 싶은 것은 단순한 손이 아니라 판단력, 책임감, 그리고 일을 끝까지 가져가는 온도입니다.'],
+        ['피해야 할 그림자', '성과 기준은 흐릿한데 감정 노동만 많은 자리, 책임은 많은데 권한이 없는 자리, 오래 남길 이름보다 당장의 반응만 요구하는 자리는 기운을 소모시킬 수 있습니다. 별은 당신에게 바쁜 사람이 아니라 방향을 가진 사람이 되라고 말합니다.'],
+        ['종합 처방', '이번 달에는 대표 결과물 하나에 이름을 붙이세요. 문서, 포트폴리오, 제안서, 기록, 공개 가능한 샘플처럼 형태가 남는 것이 좋습니다. 당신의 커리어 별은 막연한 가능성보다 세상에 놓인 증거를 통해 힘을 얻습니다.']
+      ],
+      [
+        '잘 맞는 환경: 기준, 권한, 성장 경로가 보이고 결과물을 오래 축적할 수 있는 무대',
+        '수익화 포인트: 당신의 판단 기준을 설명 가능한 언어로 바꾸면 신뢰가 가격이 됩니다',
+        '주의할 환경: 책임은 큰데 결정권이 없고, 감정 소모가 성과로 인정되지 않는 자리',
+        '30일 처방: 대표 결과물 하나, 반복 루틴 하나, 보여줄 수 있는 기록 하나를 동시에 세우기',
+        '마지막 문장: 당신의 일은 빨리 빛나는 불꽃보다 오래 방향을 비추는 별에 가깝습니다'
+      ]
+    );
+
+    var talentBody = _astroCounselDeepPanel(
+      '재능과 끌림: 매력이 사람에게 도착하는 방식',
+      'Venus · Mars · Jupiter',
+      '금성은 좋아하는 것, 화성은 움직이게 하는 것, 목성은 그 재능이 사람들 사이에서 커지는 길입니다.',
+      [
+        _astroCounselChip('금성', _astroCounselPlacementLine(venus)),
+        _astroCounselChip('화성', _astroCounselPlacementLine(mars)),
+        _astroCounselChip('목성', _astroCounselPlacementLine(jupiter))
+      ],
+      [
+        ['상담의 첫 문장', '당신의 매력은 큰 소리로 증명할 때보다, 스스로 좋아하는 것을 정확히 고르고 오래 다듬을 때 더 선명해집니다. 이 장은 타고난 재능을 칭찬하는 데서 멈추지 않고, 그 재능이 사람에게 어떻게 닿는지까지 읽습니다.'],
+        ['금성의 취향', '금성 ' + venus.sign + '은 호감과 아름다움이 열리는 문입니다. ' + venus.topic + '에서 자연스럽게 기쁨이 살아나며, 좋아하는 것을 정성스럽게 고르는 태도 자체가 당신의 분위기가 됩니다. 억지로 눈에 띄려 할수록 빛은 흐려지고, 진짜 취향을 숨기지 않을수록 매력은 깊어집니다.'],
+        ['화성의 점화', '화성 ' + mars.sign + '은 욕망이 행동으로 바뀌는 순간을 가리킵니다. ' + mars.topic + '에서 경쟁심과 용기가 켜지지만, 급하게 증명하려 하면 에너지가 흩어질 수 있습니다. 이 화성은 무작정 빠른 돌진보다 정확히 겨냥한 한 걸음에서 힘을 얻습니다.'],
+        ['목성의 확장', '목성 ' + _astroCounselPlacementLine(jupiter) + '은 재능이 사람들의 신뢰를 얻고 더 큰 장으로 퍼지는 길입니다. ' + jupiter.topic + '과 연결된 공부, 소개, 협업, 발표를 꾸준히 열면 당신의 장점은 혼자만의 감각에서 사회적 자산으로 바뀝니다.'],
+        ['세 별의 연결', '금성이 좋아하는 것을 고르고, 화성이 그것을 향해 몸을 움직이며, 목성이 사람들 사이로 넓힙니다. 좋아하지만 움직이지 않는 것은 취미에 머물고, 움직이지만 좋아하지 않는 것은 쉽게 지칩니다. 좋아함과 추진력과 확장이 겹치는 지점이 가장 오래 가는 재능의 별자리입니다.'],
+        ['브랜딩의 문장', '당신에게 어울리는 표현은 과장된 포장보다 선택 기준을 보여주는 방식입니다. 왜 이것을 좋아하는지, 왜 이 방식으로 움직이는지, 왜 이 방향으로 키우고 싶은지를 말할 수 있을 때 사람들은 재능보다 먼저 당신의 결을 신뢰합니다.'],
+        ['관계에서 보이는 매력', '대인 관계에서는 빠른 반응보다 지속되는 관심이 더 큰 매력이 됩니다. 상대가 당신에게 끌리는 순간은 화려한 연출보다, 좋아하는 것을 세심하게 기억하고 필요한 순간에 움직이는 태도에서 시작될 가능성이 큽니다.'],
+        ['과잉 사용의 그림자', '금성이 지나치면 취향이 까다로움으로 보이고, 화성이 지나치면 다급한 증명욕으로 보이며, 목성이 지나치면 아직 익지 않은 가능성을 너무 크게 말할 수 있습니다. 매력은 넘치는 것보다 정확한 온도에서 오래 남습니다.'],
+        ['종합 처방', '오늘부터 좋아하는 일, 바로 움직이는 일, 커질 수 있는 일을 각각 한 줄로 적으세요. 세 줄이 만나는 곳에 당신의 다음 콘텐츠, 다음 제안, 다음 관계의 문이 있습니다. 별은 이미 있는 재능을 더 선명한 선택으로 불러내라고 말합니다.']
+      ],
+      [
+        '브랜딩 포인트: 취향을 숨기지 말고, 선택 기준과 반복되는 관심사를 보여주기',
+        '창작 포인트: 금성의 미감, 화성의 실행력, 목성의 확장성을 하나의 프로젝트에 묶기',
+        '관계 포인트: 즉각적인 반응보다 지속되는 관심과 약속 이행으로 매력을 남기기',
+        '주의할 패턴: 좋아 보이는 모든 것에 힘을 쓰다가 중심 재능이 흐려지는 것',
+        '마지막 문장: 당신의 매력은 시선을 빼앗는 빛보다 다시 돌아오게 만드는 향에 가깝습니다'
+      ]
+    );
+
+    var relationshipBody = _astroCounselDeepPanel(
+      '관계의 문: 사랑이 들어오고 머무는 자리',
+      'Venus · Mars · 7H',
+      '관계운은 누가 맞고 틀린가보다, 어떤 문으로 서로에게 들어오고 어디에서 오래 머무는지를 볼 때 선명해집니다.',
+      [
+        _astroCounselChip('금성', _astroCounselPlacementLine(venus)),
+        _astroCounselChip('화성', _astroCounselPlacementLine(mars)),
+        _astroCounselChip('7하우스', seventhSign),
+        _astroCounselChip('7하우스 룰러', _astroCounselPlacementLine(seventhRulerPlacement))
+      ],
+      [
+        ['상담의 첫 문장', '사랑은 단순히 좋은 사람을 만나는 문제만은 아닙니다. 어떤 분위기에서 마음이 열리고, 어떤 순간에 욕망이 움직이며, 어떤 상대 앞에서 같은 패턴을 반복하는지를 볼 때 관계의 별자리가 드러납니다.'],
+        ['금성의 애정 언어', '금성 ' + venus.sign + '은 애정이 편안하게 흐르는 분위기입니다. 당신은 ' + venus.topic + '에서 상대의 섬세함과 취향을 읽으며, 거창한 고백보다 반복되는 태도에서 마음을 여는 편입니다. 이 금성은 마음을 급히 몰아붙이는 사랑보다, 천천히 취향과 신뢰를 나누는 사랑에서 부드럽게 빛납니다.'],
+        ['화성의 끌림과 갈등', '화성 ' + mars.sign + '은 관계 안에서 욕망과 갈등이 켜지는 지점입니다. ' + mars.topic + '에서 먼저 다가가거나 방어적으로 반응하기 쉬우므로, 감정이 빨라질수록 원하는 것을 정확히 말해야 합니다. 화성은 침묵 속에서 추측하게 만들 때보다 솔직한 방향을 가질 때 건강하게 움직입니다.'],
+        ['7하우스의 상대상', '7하우스 ' + seventhSign + '은 당신이 관계에서 자주 마주치는 거울입니다. 이상하게 끌리는 사람, 반복해서 부딪히는 사람, 나와 다르지만 자꾸 의식되는 사람이 이 문을 통해 들어옵니다. 상대에게 끌리는 이유와 불편해지는 이유가 같은 뿌리를 가질 수 있습니다.'],
+        ['7하우스 룰러의 생활화', '7하우스 룰러 ' + _astroCounselPlacementLine(seventhRulerPlacement) + '은 관계가 실제 생활에서 어디로 흘러가는지를 보여줍니다. ' + seventhRulerPlacement.topic + '을 존중하는 약속이 있을 때 설렘은 잠깐의 불꽃에서 안정된 온기로 바뀝니다.'],
+        ['궁합에서 먼저 볼 것', '시너스트리에서는 상대의 태양, 달, 금성, 화성이 당신의 금성·화성·7하우스 문을 어떻게 건드리는지 함께 봐야 합니다. 끌림이 강하다고 곧 안정적인 것은 아니며, 편안하다고 반드시 설레지 않는 것도 아닙니다. 두 사람의 별은 끌림과 생활 리듬을 따로 읽을 때 더 정확합니다.'],
+        ['잘 맞는 상대의 분위기', '당신에게 오래 남는 사람은 감정을 크게 흔드는 사람보다, 당신의 애정 언어를 배우려는 사람일 가능성이 큽니다. 마음이 열리는 속도를 존중하고, 갈등이 생겼을 때 회피보다 조율을 선택하는 상대와 관계의 별이 안정됩니다.'],
+        ['관계가 깨지는 패턴', '좋아함을 증명하려고 너무 빨리 결론을 내리거나, 상대가 내 마음을 알아서 읽어주길 기다리는 태도는 관계의 문을 흐리게 할 수 있습니다. 금성은 애정을 원하고, 화성은 방향을 원하며, 7하우스는 상호성을 원합니다. 이 셋 중 하나가 빠지면 설렘이 쉽게 피로가 됩니다.'],
+        ['종합 처방', '상대에게 바라는 태도 하나와 내가 지킬 태도 하나를 따로 적으세요. 궁합은 운명처럼 찾아오는 것이기도 하지만, 반복해서 선택하는 태도 속에서 자라는 것이기도 합니다. 별은 당신에게 사랑을 서두르기보다 사랑이 머무를 자리를 만들라고 말합니다.']
+      ],
+      [
+        '궁합 포인트: 끌림의 강도, 감정 회복 방식, 생활 약속의 안정성을 따로 확인하기',
+        '시너스트리 포인트: 상대의 태양·달·금성·화성이 내 금성·화성·7하우스를 어떻게 건드리는지 보기',
+        '주의할 패턴: 좋아함을 증명하려고 관계의 속도를 억지로 빠르게 만들기',
+        '관계 처방: 원하는 것 하나, 불편한 것 하나, 지킬 수 있는 약속 하나를 말로 꺼내기',
+        '마지막 문장: 당신의 사랑은 문을 활짝 여는 순간보다, 문을 닫지 않고 지켜내는 태도에서 깊어집니다'
+      ]
+    );
+
+    var growthBody = _astroCounselDeepPanel(
+      '과제와 변화: 오래된 안개를 통과하는 법',
+      'Saturn · Pluto · Neptune',
+      '토성은 반복 훈련, 명왕성은 통제와 상실의 문, 해왕성은 이상화와 영감의 안개입니다.',
+      [
+        _astroCounselChip('토성', _astroCounselPlacementLine(saturn)),
+        _astroCounselChip('명왕성', _astroCounselPlacementLine(pluto)),
+        _astroCounselChip('해왕성', _astroCounselPlacementLine(neptune))
+      ],
+      [
+        ['상담의 첫 문장', '이 장은 삶에서 자꾸 반복되는 무거운 감각을 벌로 보지 않습니다. 느리게 오는 별들은 우리를 급히 흔들기보다, 오래된 습관과 두려움과 환상을 차례로 벗기며 더 진실한 형태로 데려갑니다.'],
+        ['토성의 문턱', '토성 ' + saturn.sign + '은 오래 버텨야 실력이 되는 자리를 가리킵니다. ' + saturn.topic + '에서 느린 진전이나 책임감이 반복될 수 있지만, 바로 그 영역에서 당신의 신뢰가 가장 단단하게 자랍니다. 토성은 빠른 위로보다 지킬 수 있는 구조를 요구합니다.'],
+        ['토성이 주는 훈련', '같은 문제가 반복된다면 그것은 실패의 표시라기보다 아직 뼈대가 필요한 자리일 수 있습니다. 일정, 계약, 비용, 역할, 마감처럼 확인 가능한 언어로 삶을 정리할 때 토성의 압박은 두려움이 아니라 실력으로 바뀝니다.'],
+        ['명왕성의 깊은 전환', '명왕성 ' + pluto.sign + '은 피하고 싶어도 결국 뿌리째 바꾸게 되는 주제입니다. ' + pluto.topic + '에서 통제하려는 마음이 강해질수록, 무엇을 잃을까 두려운지 먼저 보아야 합니다. 명왕성은 빼앗기 위해 오는 별이 아니라, 더 이상 낡은 방식으로는 살 수 없음을 알려주는 별입니다.'],
+        ['명왕성 해석의 주의점', '명왕성은 세대 행성이므로 사인 하나만으로 개인의 운명을 단정하지 않습니다. 다만 이 별이 놓인 하우스와 개인 행성과의 접촉이 강할수록, 그 주제는 삶에서 더 개인적인 전환점으로 드러납니다. 이 리딩은 그 깊은 층을 조심스럽게 여는 첫 문입니다.'],
+        ['해왕성의 안개', '해왕성 ' + neptune.sign + '은 영감과 혼란이 함께 오는 자리입니다. ' + neptune.topic + '에서 이상화가 일어나기 쉬우므로, 아름다운 감각을 살리되 약속과 경계는 글로 남기는 편이 안전합니다. 해왕성은 꿈을 주지만, 경계가 없을 때 피로도 함께 데려옵니다.'],
+        ['현실로 돌아오는 의식', '불안이 커질 때는 마음을 더 파헤치기보다 현실의 작은 증거를 확인하세요. 오늘 지킬 약속, 실제로 가진 돈, 몸이 쉬어야 할 시간, 상대가 말한 문장처럼 손에 잡히는 것들이 해왕성의 안개를 걷어냅니다.'],
+        ['세 별의 연결', '토성이 구조를 세우고, 해왕성이 마음의 진짜 소망을 들려주며, 명왕성이 더 이상 예전 방식으로 돌아갈 수 없는 전환점을 만듭니다. 이 셋은 빠른 해결보다 반복 관찰에 강합니다. 당신은 지금 고장 난 것이 아니라 오래된 껍질을 벗는 중일 수 있습니다.'],
+        ['종합 처방', '미뤄온 문제 하나를 고르되 바로 해결하려 들지 마세요. 먼저 15분 동안 같은 장면이 언제 반복되는지, 그때 무엇을 통제하려 하는지, 어떤 환상을 붙잡고 있는지 적어보세요. 별은 해결보다 자각이 먼저라고 말합니다.']
+      ],
+      [
+        '회복 포인트: 애매한 불안을 일정, 비용, 약속, 역할처럼 확인 가능한 언어로 바꾸기',
+        '경계 포인트: 연민과 책임을 구분하고, 아름다운 말보다 실제 행동을 기준으로 삼기',
+        '명왕성 포인트: 잃을까 두려운 것을 적으면 통제의 뿌리가 보입니다',
+        '주의할 패턴: 구원자 역할을 맡거나, 모든 것을 혼자 통제하려 하거나, 불편한 진실을 환상으로 덮기',
+        '마지막 문장: 당신의 변화는 무너짐이 아니라 더 진실한 형태로 다시 태어나는 과정입니다'
+      ]
+    );
+
+    return '<section class="astro-stellar-archive" data-astro-deep-restored="' + ASTRO_COUNSEL_MARKER + '">'
+      + '<div class="astro-stellar-archive__head">'
+      + '<span>Sealed Constellation Archive</span>'
+      + '<h3>봉인된 별의 방</h3>'
+      + '<p>기본 차트에서 한 걸음 더 들어가, 일과 역할, 재능과 끌림, 관계의 문, 과제와 변화를 상담실의 언어로 천천히 펼칩니다. 별의 배치를 따로 나열하지 않고, 서로 이어지는 삶의 장면으로 읽습니다.</p>'
+      + '</div>'
+      + '<div class="astro-stellar-archive__grid">'
+      + _astroCounselPaidGate('astro_career_talent_deep', 50, '일과 역할 심화 리딩', 'MC·10하우스 룰러·6하우스·ASC 룰러·목성으로 사회적 이름, 일의 리듬, 수익화 방향을 함께 엽니다.', careerBody)
+      + _astroCounselPaidGate('astro_talent_attraction_deep', 50, '재능과 끌림 심화 리딩', '금성·화성·목성으로 좋아하는 것, 움직이게 하는 것, 사람에게 닿는 매력을 잇습니다.', talentBody)
+      + _astroCounselPaidGate('astro_relationship_deep', 50, '관계의 문 심화 리딩', '금성·화성·7하우스로 마음이 열리는 조건, 끌림의 속도, 오래 머무는 관계의 약속을 봅니다.', relationshipBody)
+      + _astroCounselPaidGate('astro_growth_shadow_deep', 50, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 반복되는 과제, 깊은 전환, 현실로 돌아오는 회복 의식을 읽습니다.', growthBody)
+      + '</div>'
+      + '</section>';
+  }
+
+  function _astroCounselRestoredHeroHtml(pack) {
+    var chart = pack.chart;
+    var ascIdx = _astroCounselSignIdx(chart.asc);
+    var houseAscIdx = ascIdx == null ? 0 : ascIdx;
+    var sun = _astroCounselPlacement(chart, 'Sun', houseAscIdx);
+    var moon = _astroCounselPlacement(chart, 'Moon', houseAscIdx);
+    var asc = { sign:_astroCounselSignName(chart.asc), signIdx:ascIdx };
+    var mc = { sign:_astroCounselSignName(chart.mc), signIdx:_astroCounselSignIdx(chart.mc) };
+    return ''
+      + '<section class="astro-restored-hero" data-astro-basic-result="' + ASTRO_COUNSEL_MARKER + '">'
+      + '<div class="astro-restored-hero__sky" aria-hidden="true"><span></span><span></span><span></span></div>'
+      + '<div class="astro-restored-hero__kicker">Western Astrology Restored</div>'
+      + '<h3>당신의 별자리가 다시 말을 걸기 시작합니다</h3>'
+      + '<p><b>' + _astroCounselEscape(sun.sign) + ' 태양</b>은 삶이 향하는 빛의 방향이고, <b>' + _astroCounselEscape(moon.sign) + ' 달</b>은 마음이 쉬어 가는 은밀한 항구입니다. <b>' + _astroCounselEscape(asc.sign) + ' 상승궁</b>은 세상에 처음 닿는 별빛이며, MC <b>' + _astroCounselEscape(mc.sign) + '</b>은 당신이 사회 속에 남길 이름의 결을 보여줍니다.</p>'
+      + '<div class="astro-restored-hero__orbits">'
+      + '<span>☉ ' + _astroCounselEscape(sun.sign) + '</span>'
+      + '<i></i><span>☽ ' + _astroCounselEscape(moon.sign) + '</span>'
+      + '<i></i><span>ASC ' + _astroCounselEscape(asc.sign) + '</span>'
+      + '<i></i><span>MC ' + _astroCounselEscape(mc.sign) + '</span>'
+      + '</div>'
+      + '<div class="astro-restored-hero__cards">'
+      + '<article><strong>오늘의 중심 별</strong><span>' + _astroCounselEscape(_astroCounselTone(sun.signIdx, '내면의 중심 신호')) + '이 ' + _astroCounselEscape(sun.topic) + '에서 선명하게 빛납니다.</span></article>'
+      + '<article><strong>마음의 달빛</strong><span>' + _astroCounselEscape(_astroCounselMoonNeed(moon.signIdx)) + '을 지켜줄수록 판단의 결이 맑아집니다.</span></article>'
+      + '<article><strong>처음 열리는 문</strong><span>' + _astroCounselEscape(_astroCounselAscStyle(asc.signIdx)) + '이 첫 만남과 시작의 분위기를 이끕니다.</span></article>'
+      + '</div>'
+      + '</section>';
+  }
+
+  function _astroCounselRestoredStyleHtml() {
+    return '<style id="astroCosmicRestoredStyle">'
+      + '.astro-cosmic-restored{position:relative;overflow:hidden;background:radial-gradient(circle at 18% 2%,rgba(250,204,21,.18),transparent 24%),radial-gradient(circle at 82% 10%,rgba(45,212,191,.16),transparent 26%),linear-gradient(180deg,#050711 0%,#07101f 48%,#110d1f 100%)!important;border-radius:22px!important;padding:14px!important;}'
+      + '.astro-cosmic-restored:before{content:"";position:absolute;inset:0;background-image:radial-gradient(1px 1px at 12% 18%,rgba(255,255,255,.82),transparent),radial-gradient(1px 1px at 26% 68%,rgba(251,191,36,.72),transparent),radial-gradient(1px 1px at 54% 24%,rgba(125,211,252,.72),transparent),radial-gradient(1px 1px at 88% 76%,rgba(240,171,252,.72),transparent),linear-gradient(120deg,transparent 0 55%,rgba(125,211,252,.08) 55.3%,transparent 56% 100%);pointer-events:none;opacity:.8;}'
+      + '.astro-cosmic-restored>*{position:relative;z-index:1;}'
+      + '.astro-restored-hero{position:relative;overflow:hidden;border:1px solid rgba(251,191,36,.42);background:linear-gradient(145deg,rgba(8,14,34,.96),rgba(9,37,48,.88) 52%,rgba(37,20,54,.92));border-radius:20px;padding:18px;margin:0 0 14px 0;box-shadow:0 26px 60px -34px rgba(34,211,238,.72),inset 0 1px 0 rgba(255,255,255,.1);}'
+      + '.astro-restored-hero__sky{position:absolute;inset:0;pointer-events:none;}'
+      + '.astro-restored-hero__sky span{position:absolute;border-radius:999px;border:1px solid rgba(251,191,36,.18);box-shadow:0 0 44px rgba(125,211,252,.12);}'
+      + '.astro-restored-hero__sky span:nth-child(1){width:220px;height:220px;right:-80px;top:-70px;}'
+      + '.astro-restored-hero__sky span:nth-child(2){width:150px;height:150px;left:-52px;bottom:-54px;border-color:rgba(45,212,191,.18);}'
+      + '.astro-restored-hero__sky span:nth-child(3){width:90px;height:90px;right:26%;bottom:22px;border-color:rgba(240,171,252,.18);}'
+      + '.astro-restored-hero__kicker{position:relative;color:#67e8f9;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin-bottom:7px;}'
+      + '.astro-restored-hero h3{position:relative;margin:0 0 9px 0;color:#fff7ed;font-size:24px;line-height:1.34;font-family:"Noto Serif KR","Noto Sans KR",serif;letter-spacing:0;}'
+      + '.astro-restored-hero p{position:relative;margin:0;color:#dbeafe;font-size:14px;line-height:1.82;word-break:keep-all;}'
+      + '.astro-restored-hero p b{color:#fef3c7;}'
+      + '.astro-restored-hero__orbits{position:relative;display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:13px 0 12px;color:#fde68a;}'
+      + '.astro-restored-hero__orbits span{display:inline-flex;align-items:center;min-height:28px;border-radius:999px;border:1px solid rgba(251,191,36,.32);background:rgba(15,23,42,.58);padding:5px 9px;font-size:12px;font-weight:900;}'
+      + '.astro-restored-hero__orbits i{display:block;flex:1;min-width:18px;height:1px;background:linear-gradient(90deg,rgba(125,211,252,.16),rgba(251,191,36,.5),rgba(240,171,252,.16));}'
+      + '.astro-restored-hero__cards{position:relative;display:grid;grid-template-columns:1fr;gap:9px;}'
+      + '.astro-restored-hero__cards article{border-radius:14px;border:1px solid rgba(125,211,252,.28);background:rgba(2,6,23,.42);padding:11px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);}'
+      + '.astro-restored-hero__cards strong{display:block;color:#fef3c7;font-size:13px;margin-bottom:4px;}'
+      + '.astro-restored-hero__cards span{display:block;color:#c7f9ff;font-size:12px;line-height:1.65;}'
+      + '.astro-restored-chart-details{border:1px solid rgba(125,211,252,.28);border-radius:16px;background:rgba(3,10,29,.48);margin:0 0 14px 0;overflow:hidden;}'
+      + '.astro-restored-chart-details>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;padding:12px 13px;color:#fef3c7;font-weight:900;list-style:none;}'
+      + '.astro-restored-chart-details>summary::-webkit-details-marker{display:none;}'
+      + '.astro-restored-chart-details>summary em{color:#93c5fd;font-size:11px;font-style:normal;font-weight:700;}'
+      + '.astro-restored-chart-details .astro-wheel-card{margin:0!important;border-radius:0!important;border-width:1px 0 0 0!important;}'
+      + '.astro-cosmic-restored .astro-action-hub,.astro-cosmic-restored .astro-section{border-radius:16px!important;}'
+      + '.astro-cosmic-restored .astro-action-hub,.astro-cosmic-restored .astro-prompt-panel,.astro-cosmic-restored .astro-compat-panel{border:1px solid rgba(125,211,252,.28)!important;background:linear-gradient(155deg,rgba(5,12,31,.94),rgba(18,22,52,.9) 54%,rgba(35,19,54,.86))!important;box-shadow:0 22px 52px -34px rgba(125,211,252,.8),inset 0 1px 0 rgba(255,255,255,.08)!important;}'
+      + '.astro-cosmic-restored .astro-compat-panel{position:relative;overflow:hidden;}'
+      + '.astro-cosmic-restored .astro-compat-panel:before,.astro-cosmic-restored .astro-prompt-panel:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 8% 18%,rgba(251,191,36,.13),transparent 23%),radial-gradient(circle at 88% 18%,rgba(56,189,248,.12),transparent 26%),linear-gradient(120deg,transparent 0 60%,rgba(240,171,252,.07) 60.2%,transparent 61%);pointer-events:none;}'
+      + '.astro-cosmic-restored .astro-compat-panel>*,.astro-cosmic-restored .astro-prompt-panel>*{position:relative;z-index:1;}'
+      + '.astro-cosmic-restored .astro-paid-note{border:1px solid rgba(251,191,36,.28)!important;background:rgba(120,53,15,.18)!important;border-radius:13px!important;padding:10px 11px!important;margin:8px 0 12px!important;}'
+      + '.astro-cosmic-restored .astro-paid-note strong{display:block;color:#fef3c7;font-size:13px;margin-bottom:4px;}'
+      + '.astro-cosmic-restored .astro-paid-note span{display:block;color:#dbeafe;font-size:12px;line-height:1.65;}'
+      + '.astro-cosmic-restored .astro-neon-input,.astro-cosmic-restored .astro-neon-select,#astroAiPromptQuestionInput,#astroAiPromptOutput{border-color:rgba(125,211,252,.34)!important;background:rgba(2,8,23,.72)!important;color:#eaf6ff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);}'
+      + '.astro-cosmic-restored .astro-neon-cta,#astroAiPromptGenerateBtn{border-radius:999px!important;background:linear-gradient(135deg,#0ea5e9,#4f46e5 58%,#7c3aed)!important;box-shadow:0 16px 34px -20px rgba(56,189,248,.9)!important;}'
+      + '.astro-stellar-archive{position:relative;border:1px solid rgba(251,191,36,.3);background:radial-gradient(circle at 18% 0%,rgba(251,191,36,.15),transparent 28%),radial-gradient(circle at 88% 12%,rgba(125,211,252,.12),transparent 30%),linear-gradient(160deg,rgba(7,12,28,.94),rgba(18,11,37,.9));border-radius:20px;padding:15px;margin:0 0 14px 0;overflow:hidden;}'
+      + '.astro-stellar-archive:before{content:"";position:absolute;inset:0;background-image:radial-gradient(1px 1px at 16% 26%,rgba(255,255,255,.78),transparent),radial-gradient(1px 1px at 44% 12%,rgba(251,191,36,.64),transparent),radial-gradient(1px 1px at 76% 72%,rgba(125,211,252,.7),transparent);pointer-events:none;opacity:.9;}'
+      + '.astro-stellar-archive>*{position:relative;z-index:1;}'
+      + '.astro-stellar-archive__head span{display:block;color:#67e8f9;font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px;}'
+      + '.astro-stellar-archive__head h3{margin:0 0 8px;color:#fff7ed;font-family:"Noto Serif KR","Noto Sans KR",serif;font-size:22px;line-height:1.35;letter-spacing:0;}'
+      + '.astro-stellar-archive__head p{margin:0 0 13px;color:#dbeafe;font-size:13px;line-height:1.75;}'
+      + '.astro-stellar-archive__grid{display:grid;grid-template-columns:1fr;gap:12px;}'
+      + '.astro-stellar-archive .astro-counsel-paid-gate{border:1px solid rgba(125,211,252,.24);background:rgba(2,6,23,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);}'
+      + '.astro-stellar-reading{padding:14px;background:linear-gradient(155deg,rgba(8,17,35,.96),rgba(22,22,51,.94));border-radius:13px;}'
+      + '.astro-stellar-reading__kicker{color:#93c5fd;font-size:10px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}'
+      + '.astro-stellar-reading h4{margin:0 0 8px;color:#fef3c7;font-size:18px;line-height:1.42;font-family:"Noto Serif KR","Noto Sans KR",serif;letter-spacing:0;}'
+      + '.astro-stellar-reading__lead{margin:0 0 10px;color:#dbeafe;font-size:13px;line-height:1.75;}'
+      + '.astro-stellar-reading__chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 11px;}'
+      + '.astro-stellar-reading__chips span{display:inline-flex;gap:5px;border:1px solid rgba(125,211,252,.24);border-radius:999px;background:rgba(8,47,73,.28);padding:5px 8px;color:#dbeafe;font-size:11px;line-height:1.35;}'
+      + '.astro-stellar-reading__chips b{color:#fde68a;}'
+      + '.astro-stellar-reading__body p{margin:0 0 10px;color:#dbeafe;font-size:13px;line-height:1.82;}'
+      + '.astro-stellar-reading__body p b{display:block;color:#fef3c7;margin-bottom:3px;}'
+      + '.astro-stellar-reading__notes{display:grid;grid-template-columns:1fr;gap:7px;margin-top:10px;}'
+      + '.astro-stellar-reading__notes span{border-left:3px solid rgba(240,171,252,.62);background:rgba(88,28,135,.18);border-radius:10px;padding:8px 10px;color:#f5d0fe;font-size:12px;line-height:1.62;}'
+      + '@media (min-width:720px){.astro-restored-hero__cards{grid-template-columns:repeat(3,minmax(0,1fr));}.astro-restored-hero h3{font-size:28px;}}'
+      + '@media (min-width:900px){.astro-stellar-archive__grid{grid-template-columns:repeat(2,minmax(0,1fr));}.astro-stellar-archive__head h3{font-size:26px;}}'
+      + '@media (max-width:560px){.astro-cosmic-restored{padding:10px!important;border-radius:16px!important;}.astro-restored-hero{padding:15px;border-radius:16px;}.astro-restored-hero h3{font-size:21px;}.astro-restored-hero__orbits i{display:none;}.astro-restored-chart-details>summary{align-items:flex-start;flex-direction:column;}}'
+      + '</style>';
+  }
+
+  function _astroCounselPolishRestored(area, pack) {
+    var wrap = area && area.querySelector ? area.querySelector('#astroBodyWrap') : null;
+    if (!wrap) return;
+    wrap.classList.add('astro-cosmic-restored', 'notranslate');
+    area.classList.add('notranslate');
+    wrap.setAttribute('data-astro-restored', ASTRO_COUNSEL_MARKER);
+    if (!document.getElementById('astroCosmicRestoredStyle')) area.insertAdjacentHTML('afterbegin', _astroCounselRestoredStyleHtml());
+    if (!wrap.querySelector('[data-astro-basic-result="' + ASTRO_COUNSEL_MARKER + '"]')) {
+      wrap.insertAdjacentHTML('afterbegin', _astroCounselRestoredHeroHtml(pack));
+    }
+
+    _astroCounselSetText(wrap, '#astroActionHub .astro-action-hub__kicker', 'Constellation Gate');
+    _astroCounselSetText(wrap, '#astroActionHub .astro-subhead', '🌌 별의 문이 열렸습니다');
+    _astroCounselSetText(wrap, '#astroActionHub .astro-action-hub__lead', '당신의 출생 차트 위로 성향, 오늘의 흐름, 관계 궁합으로 이어지는 별자리 지도가 펼쳐졌습니다. 필요한 순간 상대의 별을 겹쳐 시나스트리 궁합을 열어볼 수 있습니다.');
+    _astroCounselSetText(wrap, '#astroAiPromptSection .astro-section-kicker', 'Ask the Stars');
+    _astroCounselSetText(wrap, '#astroAiPromptSection .astro-subhead', '🌌 별에게 묻는 질문 만들기');
+    _astroCounselSetText(wrap, '#astroAiPromptSection .astro-birth-lead', '지금 차트의 별빛을 바탕으로, 실제 상담에 건넬 수 있는 질문 문장을 정돈합니다. 궁합을 본 뒤에는 두 사람의 시나스트리 흐름까지 함께 담깁니다.');
+    _astroCounselSetText(wrap, '#astroAiPromptGenerateBtn', '100코인으로 별자리 질문 열기');
+    _astroCounselSetText(wrap, '#astroAiPromptCopyBtn', '질문 문장 복사');
+    _astroCounselSetPlaceholder(wrap, '#astroAiPromptQuestionInput', '예: 지금 내 차트에서 사랑과 일의 방향이 왜 엇갈리는지, 점성술 상담 문장으로 깊게 풀어주세요.');
+    _astroCounselSetTexts(wrap, '#astroActionHub .astro-action-hub__btn strong', [
+      '별에게 묻는 질문',
+      '두 사람의 별을 겹쳐 보기 · 50코인',
+      '유명인 별자리 궁합 · 50코인'
+    ]);
+    _astroCounselSetTexts(wrap, '#astroActionHub .astro-action-hub__btn > span:not(.astro-action-hub__glyph)', [
+      '현재 차트를 바탕으로 상담에 건넬 질문을 정돈합니다.',
+      '상대의 출생 정보로 두 차트의 궤도를 겹쳐 읽습니다.',
+      '선택한 인물의 별과 나의 별이 만드는 관계의 결을 봅니다.'
+    ]);
+    _astroCounselSetTexts(wrap, '#astroActionHub .astro-action-hub__btn em', [
+      '질문 작성',
+      '관계의 궤도',
+      '별자리 실험실'
+    ]);
+    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-subhead', '💫 두 사람의 별을 겹쳐 보기');
+    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-paid-note strong', '시나스트리 궁합 · 50코인');
+    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-paid-note span', '상대의 출생 정보를 더하면 두 별자리의 끌림과 긴장을 함께 읽습니다.');
+    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-neon-cta', '✦ 50코인으로 두 사람의 별자리 궁합 보기');
+    _astroCounselSetTexts(wrap, '.astro-compat-panel--direct .astro-label', [
+      '상대 이름',
+      '상대 생년월일',
+      '태어난 시각',
+      '상대 성별',
+      '태어난 도시'
+    ]);
+    _astroCounselSetPlaceholder(wrap, '#asDirect_name', '예: 마음에 남은 사람');
+    var directCityEmpty = wrap.querySelector('#asDirect_city option[value=""]');
+    if (directCityEmpty) directCityEmpty.textContent = '태어난 도시 선택';
+    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-desc > p', '상대의 별을 더하면 두 사람 사이의 끌림, 긴장, 안정감, 반복되는 관계 패턴이 하나의 하늘 지도처럼 드러납니다. 생시를 모를 때는 정오 기준으로 읽되, 달과 상승궁은 가능성의 범위로 보겠습니다.');
+    _astroCounselSetText(wrap, '#astroSynastrySection .astro-subhead', '🌌 유명인 별자리 궁합 실험실');
+    _astroCounselSetText(wrap, '#astroSynastrySection .astro-paid-note strong', '유명인 시나스트리 · 50코인');
+    _astroCounselSetText(wrap, '#astroSynastrySection .astro-paid-note span', '선택한 인물의 별과 나의 별을 겹쳐 관계의 결을 읽습니다.');
+    _astroCounselSetTexts(wrap, '#astroSynastrySection .astro-neon-soft-block > div:first-child', [
+      '나와 같은 별의 결',
+      '유명인 별자리 궁합 선택'
+    ]);
+    _astroCounselSetPlaceholder(wrap, '#astroSyQ', '이름으로 찾기 · 예: 테일러, 아이유, 뉴진스');
+    _astroCounselSetText(wrap, '.astro-wheel-card .astro-subhead', '🪐 태어난 순간의 하늘 지도');
+    _astroCounselSetText(wrap, '.astro-wheel-card .astro-wheel-caption', '아래 표는 별자리 리딩의 원본 좌표입니다. 행성 위치와 각도는 참고용으로 보고, 실제 해석은 위아래의 상담 문장을 중심으로 읽어주세요.');
+
+    if (!wrap.querySelector('[data-astro-deep-restored="' + ASTRO_COUNSEL_MARKER + '"]')) {
+      var deepHtml = _astroCounselDeepLockedHtml(pack);
+      var hub = wrap.querySelector('#astroActionHub');
+      var firstCompat = wrap.querySelector('.astro-compat-panel--direct');
+      if (deepHtml && hub) {
+        hub.insertAdjacentHTML('afterend', deepHtml);
+      } else if (deepHtml && firstCompat) {
+        firstCompat.insertAdjacentHTML('beforebegin', deepHtml);
+      } else if (deepHtml) {
+        wrap.insertAdjacentHTML('beforeend', deepHtml);
+      }
+    }
+
+    var wheel = wrap.querySelector('.astro-wheel-card');
+    if (wheel && !wheel.closest('.astro-restored-chart-details')) {
+      var details = document.createElement('details');
+      details.className = 'astro-restored-chart-details';
+      details.innerHTML = '<summary><span>하늘 지도와 계산 상세 펼치기</span><em>행성 위치표 · 어스펙트 원본</em></summary>';
+      wheel.parentNode.insertBefore(details, wheel);
+      details.appendChild(wheel);
+    }
+    _astroCounselBindPaidGateObserver(area);
+    _astroCounselApplyPaidGates();
+  }
+
   function renderAstroInsightCounselV20260613() {
     var area = document.getElementById('astroResult');
     if (!area) return;
@@ -27556,6 +27968,15 @@ function showQuantumResult() {
     if (!pack.ok) {
       _astroCounselRenderError(pack.message);
       return;
+    }
+    if (typeof window !== 'undefined' && typeof window.renderAstroInsightLegacyNeon === 'function') {
+      try {
+        window.renderAstroInsightLegacyNeon();
+        _astroCounselPolishRestored(area, pack);
+        return;
+      } catch (legacyErr) {
+        try { console.warn('[astro-basic-restore] legacy renderer fallback', legacyErr); } catch (_logErr) {}
+      }
     }
     var chart = pack.chart;
     var ascIdx = _astroCounselSignIdx(chart.asc);

@@ -7115,22 +7115,36 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         var _sySt = document.createElement('style');
         _sySt.id = 'sy-main-style';
         _sySt.textContent = `
-        .sy-container { --sy-night:#070a18; --sy-midnight:#101529; --sy-moon:#f8fafc; --sy-moon-soft:#dbeafe; --sy-pearl:#f8e7b7; --sy-orchid:#c4b5fd; --sy-jade:#99f6e4; --sy-rose:#fbcfe8; background:linear-gradient(165deg, rgba(7,10,24,0.99) 0%, rgba(15,18,38,0.98) 48%, rgba(19,22,45,0.97) 100%); border: 1px solid rgba(219,234,254,0.24); border-radius: 20px; padding: 32px 24px; color: #eef2ff; font-family: 'Noto Sans KR','Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif; box-shadow: 0 16px 44px rgba(0,0,0,0.58), inset 0 1px 0 rgba(255,255,255,0.06); position: relative; touch-action: pan-y; overflow-x: hidden; isolation:isolate; }
-        .sy-container::before { content:''; position:absolute; inset:0 0 auto 0; height:1px; background:linear-gradient(90deg, transparent, rgba(219,234,254,0.34), transparent); pointer-events:none; z-index:-1; }
-        .sy-container::after { content:''; position:absolute; inset:0; background-image:linear-gradient(rgba(248,250,252,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(248,250,252,0.035) 1px, transparent 1px); background-size:84px 84px; opacity:0.18; pointer-events:none; z-index:-1; }
+        .sy-container { --sy-night:#050713; --sy-midnight:#0e1427; --sy-moon:#f8fafc; --sy-moon-soft:#dbeafe; --sy-pearl:#f8e7b7; --sy-orchid:#c4b5fd; --sy-jade:#99f6e4; --sy-rose:#fbcfe8; --sy-silver:#e5edff; --sy-gold:#f7d98a; --sy-glass:rgba(8,13,30,0.74); background:radial-gradient(ellipse at 78% 4%, rgba(248,250,252,0.2), transparent 10%), radial-gradient(ellipse at 83% 9%, rgba(191,219,254,0.14), transparent 18%), radial-gradient(circle at 14% 22%, rgba(153,246,228,0.1), transparent 24%), radial-gradient(circle at 55% 100%, rgba(196,181,253,0.1), transparent 32%), linear-gradient(165deg, rgba(5,7,19,0.99) 0%, rgba(12,16,34,0.98) 42%, rgba(27,20,48,0.97) 100%); border:1px solid rgba(226,232,240,0.3); border-radius:20px; padding:34px 24px; color:#eef2ff; font-family:'Noto Sans KR','Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif; box-shadow:0 24px 70px rgba(0,0,0,0.74), 0 0 0 1px rgba(255,255,255,0.035) inset, 0 0 92px rgba(219,234,254,0.11); position:relative; touch-action:pan-y; overflow-x:hidden; isolation:isolate; }
+        .sy-container::before { content:''; position:absolute; top:-76px; right:-62px; width:252px; height:252px; border-radius:999px; background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.98) 0%, rgba(226,232,240,0.78) 30%, rgba(191,219,254,0.24) 56%, transparent 72%); box-shadow:0 0 54px rgba(219,234,254,0.28), 0 0 104px rgba(167,139,250,0.13); pointer-events:none; z-index:0; animation:syMoonDrift 8s ease-in-out infinite; }
+        .sy-container::after { content:''; position:absolute; inset:0; background-image:radial-gradient(circle, rgba(248,250,252,0.36) 0 1px, transparent 1.5px), radial-gradient(circle, rgba(251,232,183,0.24) 0 1px, transparent 1.5px), radial-gradient(circle, rgba(196,181,253,0.2) 0 1px, transparent 1.5px); background-size:72px 72px, 118px 118px, 164px 164px; background-position:12px 18px, 44px 58px, 96px 22px; opacity:0.25; pointer-events:none; z-index:0; mix-blend-mode:screen; }
+        .sy-container > * { position:relative; z-index:1; }
+        .sy-container > .sy-lunar-rim { position:absolute; inset:10px; z-index:0; border-radius:18px; border:1px solid rgba(248,250,252,0.08); pointer-events:none; box-shadow:inset 0 0 0 1px rgba(248,231,183,0.06), inset 0 0 42px rgba(147,197,253,0.06); opacity:0.92; overflow:hidden; }
+        .sy-lunar-rim::before { content:''; position:absolute; left:-12%; right:-12%; top:9%; height:1px; background:linear-gradient(90deg, transparent, rgba(248,231,183,0.36), rgba(219,234,254,0.22), transparent); transform:rotate(-7deg); }
+        .sy-lunar-rim span { position:absolute; top:22px; right:34px; width:38px; height:38px; border-radius:999px; border:1px solid rgba(248,250,252,0.44); background:radial-gradient(circle at 34% 30%, rgba(255,255,255,0.98), rgba(248,231,183,0.66) 46%, rgba(147,197,253,0.2) 72%, transparent 100%); box-shadow:0 0 24px rgba(219,234,254,0.24), 0 0 48px rgba(248,231,183,0.1); animation:syLunarRimFloat 7.4s ease-in-out infinite; }
+        .sy-lunar-rim span::after { content:''; position:absolute; right:4px; top:3px; width:31px; height:31px; border-radius:999px; background:rgba(5,7,19,0.54); }
+        .sy-lunar-rim i,.sy-lunar-rim b { position:absolute; width:5px; height:5px; border-radius:999px; background:#f8fafc; box-shadow:0 0 12px rgba(219,234,254,0.72); }
+        .sy-lunar-rim i { left:8%; top:16%; }
+        .sy-lunar-rim b { right:18%; bottom:14%; width:4px; height:4px; background:#f8e7b7; }
         .sy-header { position:relative; text-align: center; border: 1px solid rgba(219,234,254,0.16); border-bottom-color:rgba(248,231,183,0.24); border-radius:18px; padding:18px 14px 16px; margin-bottom: 22px; background:linear-gradient(145deg, rgba(15,23,42,0.54), rgba(30,27,75,0.24)); box-shadow:inset 0 1px 0 rgba(255,255,255,0.05); overflow:hidden; }
-        .sy-header::before { content:''; position:absolute; left:0; right:0; top:0; height:1px; background:linear-gradient(90deg, transparent, rgba(248,231,183,0.42), transparent); opacity:0.8; pointer-events:none; }
+        .sy-header::before { content:''; position:absolute; left:50%; top:-46px; width:118px; height:118px; transform:translateX(-50%); border-radius:999px; background:radial-gradient(circle at 38% 32%, rgba(255,255,255,0.9), rgba(219,234,254,0.44) 42%, transparent 68%); opacity:0.42; pointer-events:none; animation:syHeaderMoonGlow 5.8s ease-in-out infinite; }
+        .sy-header::after { content:''; position:absolute; left:0; right:0; top:0; height:1px; background:linear-gradient(90deg, transparent, rgba(248,231,183,0.46), transparent); opacity:0.9; pointer-events:none; }
         .sy-header h3 { position:relative; margin: 0; background: linear-gradient(135deg, #f8fafc, #f8e7b7 48%, #c4b5fd); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size: 1.62rem; text-shadow: none; }
         .sy-header p { position:relative; }
-        .sy-card { position:relative; overflow:hidden; background:linear-gradient(150deg, rgba(13,18,36,0.94), rgba(18,24,46,0.92) 58%, rgba(24,27,49,0.9)); border-radius: 16px; padding: 20px; margin-bottom: 16px; border:1px solid rgba(219,234,254,0.2); border-left: 3px solid #c4b5fd; box-shadow:0 14px 34px rgba(2,6,23,0.34), inset 0 1px 0 rgba(255,255,255,0.06); transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease; }
-        .sy-card::before { content:''; position:absolute; inset:0; background:linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.035) 38%, transparent 62%); pointer-events:none; }
+        .sy-card { position:relative; overflow:hidden; background:radial-gradient(circle at 88% 0%, rgba(248,250,252,0.16), transparent 31%), radial-gradient(circle at 10% 86%, rgba(153,246,228,0.08), transparent 30%), linear-gradient(150deg, rgba(13,18,36,0.94), rgba(18,24,46,0.92) 54%, rgba(31,24,50,0.9)); border-radius: 16px; padding: 20px; margin-bottom: 16px; border:1px solid rgba(219,234,254,0.22); border-left: 3px solid #c4b5fd; box-shadow:0 18px 46px rgba(2,6,23,0.42), 0 0 24px rgba(191,219,254,0.06), inset 0 1px 0 rgba(255,255,255,0.07); transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
+        .sy-card::before { content:''; position:absolute; inset:0; background:linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.045) 35%, transparent 58%), radial-gradient(circle at 12% 14%, rgba(125,211,252,0.08), transparent 32%), radial-gradient(circle at 90% 84%, rgba(196,181,253,0.1), transparent 38%); pointer-events:none; }
         .sy-card > * { position:relative; z-index:1; }
-        @media (hover: hover) { .sy-card:hover { transform: translateY(-1px); border-color:rgba(248,250,252,0.3); box-shadow:0 16px 38px rgba(2,6,23,0.4), inset 0 1px 0 rgba(255,255,255,0.07); } }
+        @media (hover: hover) { .sy-card:hover { transform: translateY(-3px); border-color:rgba(248,250,252,0.36); box-shadow:0 22px 58px rgba(2,6,23,0.52), 0 0 28px rgba(219,234,254,0.14); } }
         .sy-gauge-bg { background: rgba(255,255,255,0.08); height: 9px; border-radius: 5px; margin-top: 6px; overflow: hidden; }
         .sy-gauge-fill { height: 100%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 5px; }
         .sy-glow-text { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px rgba(255,215,0,0.4); }
         .sy-loader { display: none; text-align: center; padding: 20px; color: #a78bfa; font-style: italic; animation: syPulse 1.5s infinite; }
         @keyframes syPulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; text-shadow: 0 0 15px #a78bfa; } }
+        @keyframes syMoonDrift { 0%,100% { transform:translate3d(0,0,0) scale(1); opacity:0.92; } 50% { transform:translate3d(-8px,10px,0) scale(1.04); opacity:1; } }
+        @keyframes syHeaderMoonGlow { 0%,100% { opacity:0.32; transform:translateX(-50%) scale(0.96); } 50% { opacity:0.5; transform:translateX(-50%) scale(1.04); } }
+        @keyframes syLunarRimFloat { 0%,100% { transform:translate3d(0,0,0); opacity:0.72; } 50% { transform:translate3d(-4px,5px,0); opacity:0.96; } }
+        @keyframes syMoonOrbitDrift { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+        @keyframes syMoonCoreGlow { 0%,100% { box-shadow:0 0 30px rgba(248,250,252,0.4), 0 0 54px rgba(147,197,253,0.22); } 50% { box-shadow:0 0 38px rgba(248,250,252,0.5), 0 0 68px rgba(248,231,183,0.18); } }
         @keyframes syStarBlink { 0%,100% { opacity:0.3; transform:scale(0.8); } 50% { opacity:1; transform:scale(1.1); } }
         .sy-star { display:inline-block; animation: syStarBlink 2s infinite; }
         .sy-star:nth-child(2) { animation-delay:0.5s; }
@@ -7219,9 +7233,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-guardian-meta { margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 11px; border-radius:999px; background:rgba(15,23,42,0.72); border:1px solid rgba(148,163,184,0.35); }
         .sy-guardian-meta span { font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; font-weight:700; }
         .sy-guardian-meta strong { color:#f8fafc; font-size:0.9rem; }
-        .sy-canon-card { border-left-color:#f8e7b7; background:radial-gradient(circle at 84% 12%, rgba(248,250,252,0.16), transparent 28%), linear-gradient(155deg, rgba(21,19,43,0.97) 0%, rgba(12,24,46,0.97) 48%, rgba(7,10,28,0.98) 100%); box-shadow:0 18px 42px rgba(0,0,0,0.42), 0 0 28px rgba(219,234,254,0.08), inset 0 0 0 1px rgba(250,232,183,0.1); position:relative; overflow:hidden; }
-        .sy-canon-card::before { content:''; position:absolute; inset:-24% auto auto -12%; width:260px; height:260px; pointer-events:none; background:radial-gradient(circle, rgba(251,191,36,0.15) 0%, rgba(251,191,36,0.03) 40%, rgba(251,191,36,0) 72%); }
-        .sy-canon-card::after { content:''; position:absolute; right:-120px; bottom:-120px; width:280px; height:280px; pointer-events:none; background:radial-gradient(circle, rgba(99,102,241,0.22) 0%, rgba(99,102,241,0.06) 40%, rgba(99,102,241,0) 74%); }
+        .sy-canon-card { border-left-color:#f8e7b7; border-color:rgba(248,231,183,0.26); background:radial-gradient(circle at 86% 10%, rgba(248,250,252,0.18), transparent 24%), radial-gradient(circle at 13% 88%, rgba(153,246,228,0.1), transparent 30%), linear-gradient(155deg, rgba(20,19,44,0.98) 0%, rgba(10,23,45,0.98) 48%, rgba(5,8,25,0.99) 100%); box-shadow:0 20px 50px rgba(0,0,0,0.46), 0 0 32px rgba(219,234,254,0.1), inset 0 0 0 1px rgba(250,232,183,0.12), inset 0 1px 0 rgba(255,255,255,0.06); position:relative; overflow:hidden; }
+        .sy-canon-card::before { content:''; position:absolute; inset:-24% auto auto -12%; width:280px; height:280px; pointer-events:none; background:radial-gradient(circle, rgba(251,191,36,0.17) 0%, rgba(251,191,36,0.04) 42%, rgba(251,191,36,0) 72%); }
+        .sy-canon-card::after { content:''; position:absolute; inset:auto -122px -126px auto; width:300px; height:300px; pointer-events:none; background:radial-gradient(circle, rgba(99,102,241,0.24) 0%, rgba(99,102,241,0.07) 40%, rgba(99,102,241,0) 74%); }
         .sy-canon-hero { margin-bottom:14px; display:grid; grid-template-columns:minmax(0,1fr) 136px; gap:14px; align-items:center; }
         .sy-canon-hero-copy { min-width:0; }
         .sy-canon-overline { font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:#f8e7b7; margin-bottom:4px; }
@@ -7229,15 +7243,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-canon-hero p { margin:0; color:#e0e7ff; font-size:0.9rem; line-height:1.75; word-break:keep-all; }
         .sy-canon-hero-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
         .sy-canon-pill { display:inline-flex; align-items:center; border-radius:999px; border:1px solid rgba(251,191,36,0.4); background:rgba(120,53,15,0.32); color:#fde68a; font-size:0.72rem; font-weight:700; padding:4px 10px; }
-        .sy-canon-moon-stage { position:relative; min-height:142px; border-radius:18px; border:1px solid rgba(219,234,254,0.22); background:radial-gradient(circle at 50% 42%, rgba(248,250,252,0.16), transparent 36%), rgba(2,6,23,0.28); display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06); }
-        .sy-canon-moon-orbit { position:absolute; width:106px; height:106px; border-radius:999px; border:1px solid rgba(219,234,254,0.22); }
+        .sy-canon-moon-stage { position:relative; min-height:142px; border-radius:18px; border:1px solid rgba(219,234,254,0.24); background:radial-gradient(circle at 50% 42%, rgba(248,250,252,0.18), transparent 33%), radial-gradient(circle at 50% 50%, rgba(14,165,233,0.09), transparent 55%), linear-gradient(180deg, rgba(2,6,23,0.42), rgba(15,23,42,0.24)); display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; box-shadow:inset 0 1px 0 rgba(255,255,255,0.07), inset 0 0 28px rgba(147,197,253,0.05); }
+        .sy-canon-moon-stage::before { content:''; position:absolute; width:132px; height:132px; border-radius:999px; border:1px solid rgba(248,231,183,0.14); box-shadow:0 0 30px rgba(248,231,183,0.08); animation:syMoonOrbitDrift 13s linear infinite; }
+        .sy-canon-moon-stage::after { content:''; position:absolute; inset:12px; border-radius:14px; border:1px solid rgba(248,250,252,0.06); background:linear-gradient(115deg, transparent, rgba(255,255,255,0.04), transparent); pointer-events:none; }
+        .sy-canon-moon-orbit { position:absolute; z-index:1; width:108px; height:108px; border-radius:999px; border:1px solid rgba(219,234,254,0.24); animation:syMoonOrbitDrift 11s linear infinite; }
         .sy-canon-moon-orbit span,.sy-canon-moon-orbit i,.sy-canon-moon-orbit b { position:absolute; width:6px; height:6px; border-radius:999px; background:#f8fafc; box-shadow:0 0 12px rgba(219,234,254,0.72); }
         .sy-canon-moon-orbit span { left:13px; top:20px; }
         .sy-canon-moon-orbit i { right:10px; top:42px; }
         .sy-canon-moon-orbit b { left:48px; bottom:8px; }
-        .sy-canon-moon-core { width:62px; height:62px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#0f172a; font-size:1.5rem; font-weight:900; background:radial-gradient(circle at 35% 28%, #ffffff 0%, #f8e7b7 48%, #93c5fd 100%); box-shadow:0 0 26px rgba(248,250,252,0.38), 0 0 46px rgba(147,197,253,0.2); }
-        .sy-canon-moon-label { margin-top:8px; color:#f8e7b7; font-size:0.78rem; font-weight:900; text-align:center; }
-        .sy-canon-moon-illum { margin-top:2px; color:#bfdbfe; font-size:0.72rem; font-weight:800; }
+        .sy-canon-moon-core { position:relative; z-index:2; width:62px; height:62px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#0f172a; font-size:1.5rem; font-weight:900; background:radial-gradient(circle at 35% 28%, #ffffff 0%, #f8e7b7 48%, #93c5fd 100%); box-shadow:0 0 30px rgba(248,250,252,0.4), 0 0 54px rgba(147,197,253,0.22); animation:syMoonCoreGlow 4.8s ease-in-out infinite; }
+        .sy-canon-moon-label { position:relative; z-index:2; margin-top:8px; color:#f8e7b7; font-size:0.78rem; font-weight:900; text-align:center; }
+        .sy-canon-moon-illum { position:relative; z-index:2; margin-top:2px; color:#bfdbfe; font-size:0.72rem; font-weight:800; }
         .sy-lunar-year-card { border-left-color:#f8e7b7!important; background:radial-gradient(circle at 84% 9%, rgba(248,250,252,0.18), transparent 27%), radial-gradient(circle at 12% 78%, rgba(196,181,253,0.12), transparent 32%), linear-gradient(145deg,rgba(31,24,56,0.82),rgba(8,13,30,0.94))!important; }
         .sy-lunar-overline { font-size:0.72rem; color:#f8e7b7; letter-spacing:0; text-transform:uppercase; font-weight:900; margin-bottom:7px; }
         .sy-lunar-year-head { display:grid; grid-template-columns:minmax(0,1fr) 142px; gap:14px; align-items:stretch; margin-bottom:12px; }
@@ -7267,17 +7283,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-lunar-month-item .sy-lunar-note--caution { color:#fed7aa; margin-bottom:0; }
         .sy-canon-validation { margin-bottom:10px; font-size:0.78rem; color:#fca5a5; background:rgba(127,29,29,0.25); border:1px solid rgba(252,165,165,0.4); border-radius:8px; padding:8px 10px; }
         .sy-canon-tabs { display:flex; gap:7px; flex-wrap:wrap; margin:10px 0 12px; }
-        .sy-canon-tab { padding:7px 12px; border-radius:999px; border:1px solid rgba(251,191,36,0.35); background:rgba(251,191,36,0.1); color:#fde68a; font-size:0.78rem; font-weight:700; cursor:pointer; min-height:38px; }
-        .sy-canon-tab.active { background:rgba(251,191,36,0.26); border-color:rgba(251,191,36,0.75); color:#fff7d6; }
+        .sy-canon-tab { padding:8px 13px; border-radius:999px; border:1px solid rgba(251,191,36,0.36); background:linear-gradient(135deg, rgba(251,191,36,0.12), rgba(30,41,59,0.48)); color:#fde68a; font-size:0.78rem; font-weight:700; cursor:pointer; min-height:40px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.05); transition:background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+        .sy-canon-tab.active { background:linear-gradient(135deg, rgba(248,231,183,0.35), rgba(147,197,253,0.24)); border-color:rgba(251,191,36,0.78); color:#fff7d6; box-shadow:0 0 0 1px rgba(248,231,183,0.14), 0 10px 22px rgba(2,6,23,0.28); }
         .sy-canon-tab:focus-visible { outline:2px solid rgba(254,243,199,0.9); outline-offset:2px; }
         .sy-canon-panel { display:none; }
         .sy-canon-panel.active { display:block; }
         .sy-canon-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-        .sy-canon-kv { border:1px solid rgba(226,232,240,0.2); background:rgba(15,23,42,0.55); border-radius:10px; padding:10px; }
+        .sy-canon-kv { border:1px solid rgba(226,232,240,0.22); background:linear-gradient(145deg, rgba(15,23,42,0.68), rgba(30,41,59,0.42)); border-radius:10px; padding:10px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.04); }
         .sy-canon-kv span { display:block; font-size:0.7rem; color:#94a3b8; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:4px; }
         .sy-canon-kv strong { color:#f8fafc; font-size:0.92rem; line-height:1.45; }
         .sy-canon-brief-grid { margin-top:10px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
-        .sy-canon-brief-item { border:1px solid rgba(250,204,21,0.24); border-radius:10px; padding:10px; background:linear-gradient(150deg, rgba(67,56,202,0.22) 0%, rgba(15,23,42,0.72) 100%); }
+        .sy-canon-brief-item { border:1px solid rgba(250,204,21,0.28); border-radius:10px; padding:10px; background:linear-gradient(150deg, rgba(67,56,202,0.24) 0%, rgba(15,23,42,0.76) 100%); box-shadow:inset 0 1px 0 rgba(255,255,255,0.04); }
         .sy-canon-brief-label { color:#fcd34d; font-size:0.72rem; letter-spacing:0.04em; }
         .sy-canon-brief-value { margin-top:3px; color:#fff7d6; font-size:0.94rem; line-height:1.45; font-weight:900; }
         .sy-canon-brief-note { margin-top:5px; color:#dbeafe; font-size:0.77rem; line-height:1.6; }
@@ -7312,7 +7328,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-rel-panel h5 { margin:0 0 6px 0; color:#fecdd3; font-size:0.9rem; }
         .sy-rel-panel p { margin:0; color:#e2e8f0; font-size:0.88rem; line-height:1.8; }
         .sy-mini-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
-        .sy-mini-node { border:1px solid rgba(148,163,184,0.25); border-radius:12px; background:rgba(15,23,42,0.6); padding:12px; text-align:left; }
+        .sy-mini-node { border:1px solid rgba(148,163,184,0.25); border-radius:12px; background:linear-gradient(145deg, rgba(15,23,42,0.7), rgba(30,41,59,0.42)); padding:12px; text-align:left; box-shadow:inset 0 1px 0 rgba(255,255,255,0.04); }
         .sy-mini-node[data-tone="bloom"] { border-color:rgba(110,231,183,0.34); background:linear-gradient(145deg,rgba(6,78,59,0.24),rgba(15,23,42,0.64)); }
         .sy-mini-node[data-tone="karma"] { border-color:rgba(251,191,36,0.34); background:linear-gradient(145deg,rgba(113,63,18,0.22),rgba(15,23,42,0.64)); }
         .sy-mini-node[data-tone="moon"] { border-color:rgba(125,211,252,0.34); background:linear-gradient(145deg,rgba(12,74,110,0.22),rgba(15,23,42,0.64)); }
@@ -7348,7 +7364,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-compat-lede { margin:0 0 14px 0; color:#eaf2ff; font-size:0.92rem; font-weight:600; line-height:1.72; letter-spacing:0.01em; text-shadow:0 1px 10px rgba(15,23,42,0.9), 0 0 14px rgba(191,219,254,0.2); opacity:0.96; word-break:keep-all; }
         .sy-moon-field { box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.02); transition:border-color .2s ease, box-shadow .2s ease, background .2s ease; }
         .sy-moon-field:focus { outline:none; border-color:rgba(191,219,254,0.95)!important; box-shadow:0 0 0 3px rgba(191,219,254,0.18), 0 0 22px rgba(167,139,250,0.24); background:rgba(13,18,36,0.96)!important; }
-        .sy-moon-btn { background:linear-gradient(135deg,#fda4af,#c4b5fd 52%,#93c5fd)!important; color:#10172a!important; border:1px solid rgba(255,255,255,0.36)!important; border-radius:10px!important; box-shadow:0 12px 28px rgba(147,197,253,0.22), 0 0 18px rgba(244,114,182,0.18); letter-spacing:0.02em; }
+        .sy-moon-btn { position:relative; overflow:hidden; background:linear-gradient(135deg,#fee2e2 0%,#f8e7b7 32%,#c4b5fd 64%,#93c5fd 100%)!important; color:#10172a!important; border:1px solid rgba(255,255,255,0.42)!important; border-radius:12px!important; box-shadow:0 14px 32px rgba(147,197,253,0.24), 0 0 22px rgba(248,231,183,0.14); letter-spacing:0.02em; }
+        .sy-moon-btn::before { content:''; position:absolute; inset:1px; border-radius:10px; background:linear-gradient(115deg, rgba(255,255,255,0.42), transparent 35%, rgba(255,255,255,0.16)); opacity:0.62; pointer-events:none; }
         .sy-moon-btn:focus-visible { outline:none; box-shadow:0 0 0 3px rgba(224,231,255,0.26), 0 14px 30px rgba(147,197,253,0.26); }
         .sy-filter-toggle { width:100%; margin:0 0 9px 0; border-radius:10px; border:1px solid rgba(147,197,253,0.35); background:rgba(30,58,138,0.16); color:#bfdbfe; font-size:0.8rem; font-weight:700; padding:9px 11px; cursor:pointer; min-height:40px; }
         .sy-filter-body.collapsed { display:none; }
@@ -7357,9 +7374,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-cta-row { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
         .sy-cta-row p { margin:0; color:#ccfbf1; font-size:0.88rem; line-height:1.7; }
         .sy-cta-link { display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:9px 15px; border-radius:999px; text-decoration:none; color:#ecfeff; background:rgba(6,182,212,0.24); border:1px solid rgba(103,232,249,0.55); font-size:0.84rem; font-weight:800; }
-        .sy-container, .sy-container * { letter-spacing:0!important; text-shadow:none!important; }
+        .sy-container, .sy-container * { letter-spacing:0!important; }
         .sy-container * { text-transform:none!important; }
-        .sy-container .sy-star, .sy-container .sy-guardian-stage-stars i, .sy-container .sy-guardian-main-emoji { animation:none!important; filter:none!important; }
+        .sy-container p, .sy-container li, .sy-container dd, .sy-container input, .sy-container select, .sy-container textarea, .sy-container button { text-shadow:none; }
+        .sy-container input, .sy-container select, .sy-container textarea { letter-spacing:0!important; }
         @media (max-width: 768px) {
           .sy-container { padding:22px 16px; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
           .sy-header h3 { font-size:1.35rem; }
@@ -7402,8 +7420,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     let html = ``;
 
-    html += `<div class="sy-container" id="lunarNexusApp" data-sy-moon-ui="20260605-sukuyo-moon-ui">`;
-    html += `<div class="sy-header"><h3>숙요점 기본 리딩</h3><p style="font-size: 0.82rem; opacity: 0.72; margin-top:6px; letter-spacing:0;">본명숙과 27숙 순번을 기준으로 성향과 관계 리듬을 정리합니다.</p></div>`;
+    html += `<div class="sy-container" id="lunarNexusApp" data-sy-moon-ui="20260615-sukuyo-lunar-nexus-premium">`;
+    html += `<div class="sy-lunar-rim" aria-hidden="true"><span></span><i></i><b></b></div>`;
+    html += `<div class="sy-header"><h3>☽ 달빛 숙요점 · Lunar Nexus ☾</h3><p style="font-size: 0.82rem; opacity: 0.72; margin-top:6px; letter-spacing:0;">본명숙과 27숙 순번을 달빛 명반 위에 올려 성향과 관계 리듬을 정리합니다.</p></div>`;
 
     if (!lunarObj) {
         try {

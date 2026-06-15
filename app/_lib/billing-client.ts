@@ -592,6 +592,28 @@ function buildSnapshotPaymentEligibility(input: {
   };
 }
 
+async function fetchPricingForSubscriptionSnapshot(input: {
+  productId?: string;
+  serviceType?: string;
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  reason?: string;
+}): Promise<Record<string, unknown> | null> {
+  const query = toQuery({
+    productId: input.productId,
+    serviceType: input.serviceType,
+    categoryKey: input.categoryKey,
+    subFeatureKey: input.subFeatureKey,
+    featureKey: input.featureKey,
+    reason: input.reason,
+  });
+  if (!query) return null;
+  const response = await authFetchBilling(`/api/billing/features?${query}`, { method: "GET" });
+  const parsed = await parseBillingResponse<{ pricing?: Record<string, unknown> }>(response);
+  return parsed.ok && parsed.data?.pricing && typeof parsed.data.pricing === "object" ? parsed.data.pricing : null;
+}
+
 function formatPaymentWon(amount: number): string {
   return `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString("ko-KR")}원`;
 }
@@ -601,7 +623,7 @@ function formatCoinValueWon(amount: number): string {
 }
 
 function formatMonthlyCreditValueWon(amount: number): string {
-  return `${(Math.max(0, Math.floor(Number(amount || 0))) * 10).toLocaleString("ko-KR")}원 상당`;
+  return `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString("ko-KR")}개`;
 }
 
 function escapePaymentText(value: unknown): string {
@@ -854,12 +876,12 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   let canUseMonthly = monthlyBalanceConfirmed && requiredMonthlyCredits > 0 && monthlyBalance >= requiredMonthlyCredits;
   const resolveMonthlyOptionHint = () => monthlyBalanceConfirmed
     ? (canUseMonthly
-      ? "보유 보너스 가치로 즉시 이용 권한을 저장합니다."
-      : `보너스 가치 부족 · 보유 ${formatMonthlyCreditValueWon(monthlyBalance)}`)
-    : "최신 보너스 가치를 확인하지 못했습니다. 아래 버튼으로 다시 조회해 주세요.";
+      ? "보유 Moonlight Stone으로 즉시 이용 권한을 저장합니다."
+      : `Moonlight Stone 잔량 부족 · 보유 ${formatMonthlyCreditValueWon(monthlyBalance)}`)
+    : "Moonlight Stone 최신 잔량을 확인하지 못했습니다. 아래 버튼으로 다시 조회해 주세요.";
   const resolveMonthlyBalanceText = () => monthlyBalanceConfirmed
-    ? `보너스 가치 확인 완료 · 현재 ${formatMonthlyCreditValueWon(monthlyBalance)}`
-    : "최신 보너스 가치 확인이 필요합니다.";
+    ? `Moonlight Stone 잔량 확인 완료 · 현재 ${formatMonthlyCreditValueWon(monthlyBalance)}`
+    : "Moonlight Stone 최신 잔량 확인이 필요합니다.";
   let monthlyOptionHint = resolveMonthlyOptionHint();
   const passTier = toText(membershipCoverage?.tier || membershipCoverage?.passTier || "");
   const passLimit = Math.max(0, Math.floor(toNumber(membershipCoverage?.passLimit ?? membershipCoverage?.freeLimit, 0)));
@@ -897,7 +919,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         <p class="cd-react-payment-choice-note"><strong>${escapePaymentText(title)}</strong><br>${formatCoinValueWon(coinPrice)} 기준 · ${formatPaymentWon(directAmount)}</p>
         <div class="cd-react-payment-choice-balance" data-monthly-balance-status data-state="${monthlyBalanceConfirmed ? "fresh" : "error"}">
           <span data-monthly-balance-text>${escapePaymentText(resolveMonthlyBalanceText())}</span>
-          <button type="button" class="cd-react-payment-choice-refresh" data-refresh-monthly-balance>잔여 가치 다시 조회</button>
+          <button type="button" class="cd-react-payment-choice-refresh" data-refresh-monthly-balance>잔량 다시 조회</button>
         </div>
         <div class="cd-react-payment-choice-grid">
           <button type="button" class="cd-react-payment-choice-option" data-mode="direct">
@@ -906,8 +928,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             <span>카드 또는 간편결제로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.</span>
           </button>
           <button type="button" class="cd-react-payment-choice-option" data-mode="monthly" data-monthly-option${canUseMonthly ? "" : " disabled aria-disabled=\"true\""}>
-            <span class="cd-react-payment-choice-badge">보너스 가치</span>
-            <strong>보너스 가치 ${formatMonthlyCreditValueWon(requiredMonthlyCredits)} 사용</strong>
+            <span class="cd-react-payment-choice-badge">Moonlight Stone</span>
+            <strong>Moonlight Stone ${formatMonthlyCreditValueWon(requiredMonthlyCredits)} 사용</strong>
             <span data-monthly-hint>${escapePaymentText(monthlyOptionHint)}</span>
           </button>
           <button type="button" class="cd-react-payment-choice-option" data-mode="pass-store">
@@ -955,7 +977,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       if (settled) return;
       const refreshButton = modal.querySelector<HTMLButtonElement>("[data-refresh-monthly-balance]");
       if (refreshButton) refreshButton.disabled = true;
-      setStatus("보너스 가치를 다시 조회하고 있습니다.");
+      setStatus("Moonlight Stone 잔량을 다시 조회하고 있습니다.");
       latestBalance = await fetchFreshBillingBalanceForPayment();
       latestBalanceData = latestBalance?.ok ? latestBalance.data : null;
       monthlyBalanceConfirmed = Boolean(latestBalanceData);
@@ -966,8 +988,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       applyMonthlyBalanceUi();
       setStatus(
         monthlyBalanceConfirmed
-          ? `보너스 가치를 다시 확인했습니다. 현재 ${formatMonthlyCreditValueWon(monthlyBalance)}입니다.`
-          : "보너스 가치 조회에 실패했습니다. 다시 시도해 주세요.",
+          ? `Moonlight Stone 잔량을 다시 확인했습니다. 현재 ${formatMonthlyCreditValueWon(monthlyBalance)}입니다.`
+          : "Moonlight Stone 잔량 조회에 실패했습니다. 다시 시도해 주세요.",
         !monthlyBalanceConfirmed,
       );
       if (refreshButton) refreshButton.disabled = false;
@@ -975,7 +997,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     const showWaitOverlay = (mode: PaymentChoiceMode) => {
       const runtimeWindow = window as RuntimeApiWindow;
       if (mode === "monthly") {
-        runtimeWindow._cdSetCoinGateOverlay?.(true, "보너스 가치 적용 중입니다. 보너스 가치와 이용 권한을 확인하고 있습니다.", "monthly");
+        runtimeWindow._cdSetCoinGateOverlay?.(true, "Moonlight Stone 보너스 적용 중입니다. 보너스 잔량과 이용 권한을 확인하고 있습니다.", "monthly");
       } else if (mode === "direct") {
         runtimeWindow._cdSetCoinGateOverlay?.(false);
       }
@@ -1006,8 +1028,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           if (mode === "monthly") {
             setStatus(
               monthlyBalanceConfirmed
-                ? "보너스 가치가 부족합니다. 단건 결제를 선택해 주세요."
-                : "최신 보너스 가치를 확인하지 못했습니다. 다시 열어 주세요.",
+                ? "Moonlight Stone 잔량이 부족합니다. 단건 결제를 선택해 주세요."
+                : "Moonlight Stone 최신 잔량을 확인하지 못했습니다. 다시 열어 주세요.",
               true,
             );
           }
@@ -1016,7 +1038,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((node) => {
           node.disabled = true;
         });
-        setStatus(mode === "monthly" ? "보너스 가치를 적용하고 있습니다." : "단건 결제를 진행하고 있습니다.");
+        setStatus(mode === "monthly" ? "Moonlight Stone 보너스를 적용하고 있습니다." : "단건 결제를 진행하고 있습니다.");
         showWaitOverlay(mode);
         close(mode);
       });
@@ -1565,7 +1587,7 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
   if (status === "paymentWindowOpen") return { message: text || "열린 결제창에서 카드 인증을 진행해 주세요. 인증이 끝나면 권한을 확인합니다.", mode: "card" };
   if (status === "opening" || status === "loadingProducts" || status === "readyToPay") {
     if (kind === "subscription") return { message: text || "원화 기준 이용권 결제 정보를 확인하고 있습니다.", mode: "subscription" };
-    if (kind === "monthly") return { message: text || "보너스 가치 적용을 준비하고 있습니다.", mode: "monthly" };
+    if (kind === "monthly") return { message: text || "Moonlight Stone 보너스 적용을 준비하고 있습니다.", mode: "monthly" };
     if (kind === "single") return { message: text || "원화 단건 결제창을 여는 중입니다. 주문 금액과 인증 정보를 안전하게 맞추고 있습니다.", mode: "card" };
     if (kind === "unlock") return { message: text || "잠금 해제 준비 중입니다.", mode: "unlock-saving" };
     return { message: text || "결제창을 열기 전 주문 정보를 확인하고 있습니다.", mode: "checkout" };
@@ -1573,14 +1595,14 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
   if (status === "paymentProcessing") {
     if (kind === "pass") return { message: text || "이용권을 적용하고 있습니다.", mode: "pass" };
     if (kind === "subscription") return { message: text || "원화 기준 이용권 결제 승인과 활성화를 확인하고 있습니다.", mode: "subscription" };
-    if (kind === "monthly") return { message: text || "보너스 가치 적용 중입니다. 보너스 가치와 이용 권한을 확인하고 있습니다.", mode: "monthly" };
+    if (kind === "monthly") return { message: text || "Moonlight Stone 보너스 적용 중입니다. 보너스 잔량과 이용 권한을 확인하고 있습니다.", mode: "monthly" };
     if (kind === "single") return { message: text || "원화 단건 결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.", mode: "confirm" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제를 반영하고 있습니다.", mode: "unlock-saving" };
     return { message: text || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: "confirm" };
   }
   if (status === "paymentSuccess") {
     if (kind === "subscription") return { message: text || "원화 기준 이용권 활성화가 완료되었습니다.", mode: "payment-complete" };
-    if (kind === "monthly") return { message: text || "보너스 가치로 콘텐츠 이용 권한을 열었습니다.", mode: "payment-complete" };
+    if (kind === "monthly") return { message: text || "Moonlight Stone 보너스로 콘텐츠 이용 권한을 열었습니다.", mode: "payment-complete" };
     if (kind === "single") return { message: text || "원화 단건 결제와 이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
     if (kind === "unlock") return { message: text || "콘텐츠 잠금 해제가 완료되었습니다.", mode: "payment-complete" };
     return { message: text || "이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
@@ -1817,7 +1839,20 @@ export async function fetchPaymentEligibility(input: {
   const knownCoinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, 0)));
   const knownPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
   const snapshot = readSubscriptionSnapshotForUser();
-  if (snapshot && (knownCoinCost > 0 || knownPriceKRW > 0)) {
+  if (snapshot) {
+    if (knownCoinCost > 0 || knownPriceKRW > 0) {
+      return buildSnapshotPaymentEligibility(input, snapshot);
+    }
+    const pricing = await fetchPricingForSubscriptionSnapshot(input).catch(() => null);
+    if (pricing) {
+      const pricingCoinCost = Math.max(0, Math.floor(toNumber(pricing.coinPrice ?? pricing.cost, 0)));
+      const pricingAmountKRW = Math.max(0, Math.floor(toNumber(pricing.amountKRW ?? pricing.cashPrice, pricingCoinCost * 100)));
+      return buildSnapshotPaymentEligibility({
+        ...input,
+        coinCost: pricingCoinCost,
+        priceKRW: pricingAmountKRW,
+      }, snapshot);
+    }
     return buildSnapshotPaymentEligibility(input, snapshot);
   }
   const query = toQuery({
@@ -1907,8 +1942,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       featureId,
       featureKey: featureId,
       requestId: existing.requestId,
-      status: "checkingEntitlement",
-      message: "이미 이용권을 확인하고 있습니다.",
+      status: "loadingProducts",
+      message: "이미 결제 요청을 처리하고 있습니다.",
     });
     return existing.promise;
   }
@@ -1918,8 +1953,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       featureId,
       featureKey: featureId,
       requestId: recent.requestId,
-      status: "checkingEntitlement",
-      message: "최근 이용권 확인 요청을 안전하게 이어가고 있습니다.",
+      status: "loadingProducts",
+      message: "최근 결제 요청을 안전하게 이어가고 있습니다.",
     });
     return recent.promise;
   }
@@ -1930,12 +1965,14 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     mode: toText(input.reason || ""),
   });
   const gateRequestId = toText(input.requestId || activeAttempt.attemptId || inFlightKey);
+  const initialSnapshot = readSubscriptionSnapshotForUser();
+  const skipEntitlementCheck = initialSnapshot?.state === "none";
   emitPaidFeatureGate("open", {
     featureId,
     featureKey: featureId,
     requestId: gateRequestId,
-    status: "checkingEntitlement",
-    message: "이용권 확인 중입니다.",
+    status: skipEntitlementCheck ? "loadingProducts" : "checkingEntitlement",
+    message: skipEntitlementCheck ? "결제 가능한 상품 정보를 준비하고 있습니다." : "이용권 확인 중입니다.",
     paymentMode: input.paymentMode,
     reason: input.reason,
   });
@@ -1971,9 +2008,10 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     const knownCoinCost = resolveKnownCoinCost(input, eligibility);
     const accessAlreadyGranted = eligibility?.access.canAccess === true;
     const passFirstEligible = explicitPassMode || accessAlreadyGranted || eligibility?.pass.canUse === true;
+    const snapshotSaysNoPass = eligibility?.access.reason === "subscription_snapshot_none";
     if (eligibility) {
       const eligibilityOverlay = resolvePaymentWaitOverlay(
-        accessAlreadyGranted || eligibility.pass.canUse ? "checkingEntitlement" : "loadingProducts",
+        accessAlreadyGranted || eligibility.pass.canUse ? "checkingEntitlement" : (snapshotSaysNoPass ? "readyToPay" : "loadingProducts"),
         undefined,
         { paymentMode: requestedMode, featureKey: featureId, reason: input.reason },
       );
@@ -1981,10 +2019,10 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         featureId,
         featureKey: featureId,
         requestId: gateRequestId,
-        status: accessAlreadyGranted || eligibility.pass.canUse ? "checkingEntitlement" : "loadingProducts",
+        status: accessAlreadyGranted || eligibility.pass.canUse ? "checkingEntitlement" : (snapshotSaysNoPass ? "readyToPay" : "loadingProducts"),
         message: accessAlreadyGranted
           ? (eligibility.access.alreadyUnlocked ? "이미 저장된 이용 권한을 확인하고 있습니다." : "서버에 저장된 이용 권한을 확인하고 있습니다.")
-          : eligibilityOverlay.message,
+          : (snapshotSaysNoPass ? "결제 가능한 상품을 준비하고 있습니다." : eligibilityOverlay.message),
         cost: eligibility.coinCost,
         paymentMode: requestedMode,
         reason: input.reason,

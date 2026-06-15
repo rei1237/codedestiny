@@ -155,7 +155,7 @@ export default function SubscriptionStatusCard({ subscription, monthlyCredits = 
   const benefitLabel = meta.freeUpTo || "단건 결제 가능";
   const singlePaymentCopy = effectiveTier === "family"
     ? "Family 이용권으로 모든 서비스가 무료 처리됩니다."
-    : "일반 한도 초과 서비스는 기존가 결제, PDF는 할인 후 잔여 금액만 결제됩니다.";
+    : "일반 한도 초과 서비스는 기존가 결제, PDF는 할인 후 잔액 결제됩니다.";
 
   return (
     <section
