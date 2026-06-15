@@ -2117,6 +2117,52 @@ body.lb-modal-open {
   border-image: linear-gradient(90deg, transparent, rgba(167,139,250,0.25), transparent) 1;
 }
 
+#sukuyoBookModal #skStartScreen {
+  display: flex !important;
+  flex-direction: column;
+}
+
+#sukuyoBookModal #skStartScreen > * {
+  flex: 0 0 auto;
+  order: 20;
+}
+
+#sukuyoBookModal #skStartScreen > .lb-marketing-hero {
+  order: 1;
+  padding-bottom: 6px !important;
+}
+
+#sukuyoBookModal #skPartnerFormSection {
+  order: 2;
+  display: block !important;
+  flex: 0 0 auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin-top: 8px !important;
+  overflow: visible !important;
+}
+
+#sukuyoBookModal #skStartScreen > .lb-start__profile-box:not(#skPartnerFormSection):not(.sk-self-card-wrap) {
+  order: 3;
+}
+
+#sukuyoBookModal #skStartScreen > .lb-start-info {
+  order: 4;
+}
+
+#sukuyoBookModal #skStartScreen > .lb-why-section {
+  order: 5;
+}
+
+#sukuyoBookModal #skStartScreen > .lb-start__chapters {
+  order: 6;
+}
+
+#sukuyoBookModal #skStartScreen > .sk-self-card-wrap {
+  order: 7;
+}
+
 #sukuyoBookModal .sk-title-moon {
   display: inline-flex;
   width: 24px;
@@ -2134,7 +2180,7 @@ body.lb-modal-open {
 
 #sukuyoBookModal .lb-start__partner-box {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   padding: 20px 22px !important;
   border: 1px solid rgba(180,160,255,0.18) !important;
   border-radius: 16px;
@@ -2189,6 +2235,47 @@ body.lb-modal-open {
 #sukuyoBookModal .lb-start__partner-fields {
   gap: 18px;
   margin-top: 0;
+}
+
+#sukuyoBookModal #skPartnerFormSection.lb-start__partner-box {
+  padding: 16px 18px !important;
+  overflow: visible !important;
+}
+
+#sukuyoBookModal #skPartnerFormSection .lb-start__profile-label {
+  margin-bottom: 10px !important;
+}
+
+#sukuyoBookModal #skPartnerFormSection .lb-start__profile-label::after {
+  margin-top: 8px;
+}
+
+#sukuyoBookModal #skPartnerFormSection > .lb-start__partner-fields {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px !important;
+  height: auto !important;
+  max-height: none !important;
+  margin-top: 0 !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  visibility: visible !important;
+}
+
+#sukuyoBookModal #skPartnerFormSection .sk-partner-field {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+#sukuyoBookModal #skPartnerFormSection .sk-partner-field:nth-child(3),
+#sukuyoBookModal #skPartnerFormSection .sk-partner-field:nth-child(4) {
+  grid-column: 1 / -1;
+}
+
+#sukuyoBookModal #skPartnerFormSection .sk-help-text {
+  display: none;
 }
 
 #sukuyoBookModal .sk-partner-field .form-label {
@@ -2400,6 +2487,10 @@ body.lb-modal-open {
     padding: 18px 16px !important;
   }
 
+  #sukuyoBookModal #skPartnerFormSection.lb-start__partner-box {
+    padding: 14px 16px !important;
+  }
+
   #sukuyoBookModal .sk-partner-inp {
     min-height: 46px;
     font-size: 0.92rem;
@@ -2412,6 +2503,13 @@ body.lb-modal-open {
 
   #sukuyoBookModal .sk-partner-radio-row {
     gap: 12px;
+  }
+}
+
+@media (max-width: 599px) {
+  #sukuyoBookModal #skPartnerFormSection > .lb-start__partner-fields {
+    grid-template-columns: 1fr;
+    gap: 10px !important;
   }
 }
 
