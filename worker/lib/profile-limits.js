@@ -255,6 +255,94 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
   };
 }
 
+export function resolveProfileLimitForClient(subscription, options = {}) {
+  const tier = String(subscription?.tier || "").trim().toLowerCase();
+  if (subscription?.isActive && tier === "family") return 0;
+  const rawLimit = Number(subscription?.profileLimit);
+  const allowZeroLimit = options?.allowZeroLimit === true;
+  if (Number.isFinite(rawLimit) && (rawLimit > 0 || (allowZeroLimit && rawLimit >= 0))) {
+    return Math.floor(rawLimit);
+  }
+  return 1;
+}
+
+function sanitizeProfileId(value, maxLen = 80) {
+  return String(value || "").trim().slice(0, maxLen).replace(/\s+/g, "_");
+}
+
+export function resolveCurrentProfileId(rawCurrentId, profiles, options = {}) {
+  const currentId = sanitizeProfileId(rawCurrentId, options.maxProfileIdLength || 80);
+  if (!currentId) return "";
+
+  for (let i = 0; i < profiles.length; i += 1) {
+    if (String(profiles[i]?.id || "") === currentId) return currentId;
+  }
+
+  return "";
+}
+
+export function resolveSingleProfileAccess(user, profiles, subscription, options = {}) {
+  const profileLimit = resolveProfileLimitForClient(subscription, options);
+  const isSingleMode = false;
+  const savedCurrentId = resolveCurrentProfileId(user?.destinyProfilesCurrentId, profiles, options) || profiles[0]?.id || "";
+
+  if (!isSingleMode) {
+    return {
+      profiles,
+      currentId: savedCurrentId,
+      profileAccess: {
+        mode: "subscription",
+        selectionRequired: false,
+        locked: false,
+        lockedProfileId: "",
+        profileLimit,
+      },
+    };
+  }
+
+  if (profiles.length <= 1) {
+    const onlyId = profiles[0]?.id || "";
+    return {
+      profiles,
+      currentId: onlyId,
+      profileAccess: {
+        mode: "single",
+        selectionRequired: false,
+        locked: Boolean(onlyId),
+        lockedProfileId: onlyId,
+        profileLimit: 1,
+      },
+    };
+  }
+
+  const lockedId = resolveCurrentProfileId(user?.destinyProfilesLockedCurrentId, profiles, options);
+  if (lockedId) {
+    return {
+      profiles: profiles.filter((profile) => String(profile?.id || "") === lockedId),
+      currentId: lockedId,
+      profileAccess: {
+        mode: "single",
+        selectionRequired: false,
+        locked: true,
+        lockedProfileId: lockedId,
+        profileLimit: 1,
+      },
+    };
+  }
+
+  return {
+    profiles,
+    currentId: savedCurrentId,
+    profileAccess: {
+      mode: "single",
+      selectionRequired: true,
+      locked: false,
+      lockedProfileId: "",
+      profileLimit: 1,
+    },
+  };
+}
+
 export function canBypassCoinGate(entitlement, serviceCoinPrice) {
   return canUseByPass(entitlement, serviceCoinPrice);
 }

@@ -7,6 +7,7 @@ const root = process.cwd();
 
 const files = {
   policy: "worker/lib/profile-card-mutation-policy.js",
+  profileLimits: "worker/lib/profile-limits.js",
   profileRoute: "worker/routes/profile.js",
   paymentsRoute: "worker/routes/payments.js",
   mePage: "app/me/page.tsx",
@@ -36,7 +37,7 @@ const cases = [
       ["policy", "PROFILE_CARD_PAYMENT_BYPASS"],
       ["profileRoute", "ensureProfileDeleteAuthorized(auth, {"],
       ["profileRoute", "profileCardActionPaymentRequiredResponse(action, requestId, profileId, policy)"],
-      ["profileRoute", "if (profiles.length <= 1)"],
+      ["profileLimits", "if (profiles.length <= 1)"],
     ],
     excludes: [
       ["policy", "VVIP_PROFILE_LIMIT_INCLUDED"],

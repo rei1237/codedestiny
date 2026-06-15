@@ -56,7 +56,7 @@
 
 | 영역 | 중복 내용 | 현재 위치 | 통합 위치 제안 | 위험도 |
 | -- | ----- | ----- | -------- | --- |
-| 프로필 조회/접근 | `resolveCurrentId`, `resolveSingleProfileAccess`, `listUserProfiles`, pass entitlement 계산 | `worker/routes/profile.js`, `worker/routes/user.js` | `worker/lib/profile-source-of-truth.js` | 중간 |
+| 프로필 조회/접근 | `resolveCurrentId`, `resolveSingleProfileAccess`, profile limit 계산 | `worker/routes/profile.js`, `worker/routes/user.js` | `worker/lib/profile-limits.js`로 일부 통합 완료 | 중간 |
 | 프로필 카드 결제 정책 | `profile-card-manage`, 50 coin, 5,000 KRW, monthly credit 처리 | `worker/routes/profile.js`, `worker/routes/user.js`, `worker/routes/billing.js`, `worker/lib/profile-card-mutation-policy.js` | 기존 `worker/lib/profile-card-mutation-policy.js` 확장 | 높음 |
 | 정적/React 결제 게이트 | PortOne SDK load, `/api/billing/coin-gate`, pass/direct 선택 UI | `index.html`, `js/destiny-profile.js`, `app/_lib/billing-client.ts`, `app/hooks/useCoinGate.ts` | `lib/payment/access-gate.ts`, `components/payment/PaymentWaitOverlay.tsx` | 높음 |
 | 결제 대기 UI | static gate overlay와 React `PaymentProcessingContext` 병행 | `index.html`, `app/components/PaymentProcessingContext.tsx`, `app/components/PaymentProcessingOverlay.tsx` | 공통 상태 contract 우선 정리 | 중간 |

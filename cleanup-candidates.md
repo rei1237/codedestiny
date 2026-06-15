@@ -25,12 +25,14 @@
 | PDF localAssembly/externalGeneration guards | LLM 회귀 방지 핵심 guard | PDF smoke 통과 후 공통화 |
 | `fortune/data/**`와 `public/fortune/data/**` | 생성/배포 mirror 데이터 | generator 및 sitemap/rss 경로 확인 |
 | `js/vendor/sweph-wasm/**`와 `public/js/vendor/sweph-wasm/**` | 브라우저 fetch 경로 민감 | 실제 wasm/ephe fetch path 확인 |
+| `css/index-inline-extracted.css`, `public/css/index-inline-extracted.css` | 코드 참조는 감사 보고서 외 없음. 단, sync가 root `css`를 `public/css`로 복사하고 stale 제거는 보장하지 않음 | source+mirror 삭제 정책 정리 |
+| `scripts/verify-paid-feature-billing-policy.mjs` | `sukuyo-symbolic-comparison` 30코인 기대값이 현재 Worker registry 및 Sukuyo engine 50코인 설정과 충돌 | 결제 정책 확인 |
 
 ## 모듈화 대기
 
 | 영역 | 후보 모듈 | 선행 조건 |
 | --- | --- | --- |
-| 프로필 current/list resolver | `worker/lib/profile-source-of-truth.js` | `profile.js`와 `user.js` route test |
+| 프로필 current/list resolver | `worker/lib/profile-limits.js` | current/access helper 일부 통합 완료. `listUserProfiles` 추가 공통화는 route test 필요 |
 | 프로필 카드 mutation access | `worker/lib/profile-card-mutation-policy.js` 확장 | profile 50 coin regression pass |
 | 결제 게이트 | `lib/payment/access-gate.ts` | static/React featureKey contract 정리 |
 | R2 URL | `lib/assets/r2-url.ts` | static shell cache key map 확인 |

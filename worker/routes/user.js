@@ -2,7 +2,11 @@ import { connectDb } from "../lib/db.js";
 import { PointHistory, ProfileCard, User } from "../lib/models.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import {
+  normalizeHoneyPassEntitlement,
+  resolveCurrentProfileId as resolveCurrentId,
+  resolveSingleProfileAccess,
+} from "../lib/profile-limits.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 
 const MAX_SYNC_PROFILES = 30;
@@ -211,80 +215,6 @@ function toClientProfile(doc) {
   };
 }
 
-function resolveCurrentId(rawCurrentId, profiles) {
-  const currentId = sanitizeProfileId(rawCurrentId);
-  if (!currentId) return "";
-
-  for (let i = 0; i < profiles.length; i += 1) {
-    if (String(profiles[i]?.id || "") === currentId) return currentId;
-  }
-
-  return "";
-}
-
-function resolveSingleProfileAccess(user, profiles, subscription) {
-  const rawProfileLimit = Number(subscription?.profileLimit);
-  const profileLimit = Number.isFinite(rawProfileLimit) && rawProfileLimit >= 0 ? Math.floor(rawProfileLimit) : 1;
-  const isSingleMode = false;
-  const savedCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
-
-  if (!isSingleMode) {
-    return {
-      profiles,
-      currentId: savedCurrentId,
-      profileAccess: {
-        mode: "subscription",
-        selectionRequired: false,
-        locked: false,
-        lockedProfileId: "",
-        profileLimit,
-      },
-    };
-  }
-
-  if (profiles.length <= 1) {
-    const onlyId = profiles[0]?.id || "";
-    return {
-      profiles,
-      currentId: onlyId,
-      profileAccess: {
-        mode: "single",
-        selectionRequired: false,
-        locked: Boolean(onlyId),
-        lockedProfileId: onlyId,
-        profileLimit: 1,
-      },
-    };
-  }
-
-  const lockedId = resolveCurrentId(user?.destinyProfilesLockedCurrentId, profiles);
-  if (lockedId) {
-    return {
-      profiles: profiles.filter((profile) => String(profile?.id || "") === lockedId),
-      currentId: lockedId,
-      profileAccess: {
-        mode: "single",
-        selectionRequired: false,
-        locked: true,
-        lockedProfileId: lockedId,
-        profileLimit: 1,
-      },
-    };
-  }
-
-  return {
-    profiles,
-    currentId: savedCurrentId,
-    profileAccess: {
-      mode: "single",
-      selectionRequired: true,
-      locked: false,
-      lockedProfileId: "",
-      profileLimit: 1,
-    },
-  };
-}
-
 async function listUserProfiles(userId) {
   const docs = await ProfileCard.find({ userId }).sort({ createdAt: 1 }).lean();
   return docs.map(toClientProfile);
@@ -425,7 +355,7 @@ async function handleGetDestinyProfiles(auth) {
 
   const subscription = resolveSubscriptionPolicy(user);
   const profiles = await listUserProfiles(auth.userId);
-  const access = resolveSingleProfileAccess(user, profiles, subscription);
+  const access = resolveSingleProfileAccess(user, profiles, subscription, { allowZeroLimit: true });
   const currentId = access.currentId;
 
   if (subscription.isActive) {
@@ -562,7 +492,7 @@ async function handleSyncDestinyProfiles(request, auth) {
     { _id: auth.userId },
     { $set: updateSet },
   );
-  const access = resolveSingleProfileAccess({ ...user, ...updateSet }, profiles, subscription);
+  const access = resolveSingleProfileAccess({ ...user, ...updateSet }, profiles, subscription, { allowZeroLimit: true });
 
   return json({
     ok: true,

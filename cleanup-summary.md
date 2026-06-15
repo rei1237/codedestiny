@@ -17,11 +17,12 @@
 
 ## 통합한 중복 로직 목록
 
-- 아직 없음. 현재 단계는 기준선 확정과 명백한 산출물 제거만 수행.
+- 프로필 현재 ID/단일 프로필 접근/profile limit 계산: `worker/routes/profile.js`, `worker/routes/user.js`의 중복 helper를 `worker/lib/profile-limits.js`로 통합.
+- 프로필 route 이름 fallback mojibake 2곳을 `이름 없음`으로 복구.
 
 ## 새로 만든 공통 모듈 목록
 
-- 아직 없음.
+- 신규 파일 없음. 기존 `worker/lib/profile-limits.js`에 공통 helper 추가.
 
 ## 성능 개선 사항
 
@@ -30,7 +31,8 @@
 
 ## 결제/프로필/PDF/R2 회귀 방지 확인 결과
 
-- 결제/프로필/PDF/R2 핵심 파일은 수정하지 않음.
+- 프로필 current/access helper만 공통화했고 결제/PDF/R2 핵심 흐름은 수정하지 않음.
+- `node scripts/verify-profile-card-action-policy.mjs` 통과.
 - `npm run build:worker` dry-run 통과.
 - `npm run build`에서 `sync:public`, `verify:public-parity`, `verify:i18n-runtime`, `verify:locale-main-sync`, `verify:runtime-cache-sync`, Next compile, static export, postbuild 통과.
 
@@ -39,10 +41,11 @@
 - lint 경고는 기존 다수 존재. 현재 기준으로 exit 0이며, 후속 정리에서는 경고 수 증가 없음 기준으로 추적 필요.
 - `public/version.json`은 `npm run build`가 갱신하는 빌드 메타데이터라 cleanup 커밋에는 포함하지 않음.
 - cleanup audit dry-run은 문서 파일까지 unused 후보로 볼 수 있어 삭제 판단에는 추가 사용처 증거가 필요.
+- `scripts/verify-paid-feature-billing-policy.mjs`는 `sukuyo-symbolic-comparison`을 30코인으로 기대하지만 현재 Worker registry와 Sukuyo engine은 50코인으로 일치. 결제 정책 확인 전 보류.
 
 ## 다음에 정리할 후보
 
-- 프로필 접근/카드 결제 정책: `worker/routes/profile.js`, `worker/routes/user.js`, `worker/lib/profile-card-mutation-policy.js`.
+- 프로필 카드 결제 정책: `worker/lib/profile-card-mutation-policy.js` 중심으로 추가 중복 확인.
 - 결제 게이트 contract: `index.html`, `js/destiny-profile.js`, `app/_lib/billing-client.ts`, `app/hooks/useCoinGate.ts`.
 - PDF ready/archive payload 반복: `worker/routes/astro.js`, `saju-lifebook.js`, `saju-new-year.js`, `saju-love-secret.js`, `ziwei-book.js`.
 - R2 URL 생성 규칙: `lib/r2-public-url.ts`, static shell hardcoded asset URLs.

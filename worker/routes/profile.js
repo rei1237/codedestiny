@@ -2,7 +2,12 @@
 import { requireUserFromRequest } from "../lib/auth.js";
 import { PointHistory, ProfileCard, User } from "../lib/models.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import {
+  normalizeHoneyPassEntitlement,
+  resolveCurrentProfileId as resolveCurrentId,
+  resolveProfileLimitForClient,
+  resolveSingleProfileAccess,
+} from "../lib/profile-limits.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import {
   PROFILE_CARD_DELETE_COST_COINS,
@@ -29,7 +34,7 @@ function sanitizeProfileId(value) {
 }
 
 function sanitizeName(value) {
-  return sanitizeString(value, MAX_NAME_LEN) || "?대쫫 ?놁쓬";
+  return sanitizeString(value, MAX_NAME_LEN) || "이름 없음";
 }
 
 function sanitizeGender(value) {
@@ -227,14 +232,6 @@ function canCreateProfileWithinSubscriptionLimit(subscription, currentCount) {
   return count < limit;
 }
 
-function resolveProfileLimitForClient(subscription) {
-  const tier = String(subscription?.tier || "").trim().toLowerCase();
-  if (subscription?.isActive && tier === "family") return 0;
-  const rawLimit = Number(subscription?.profileLimit);
-  if (Number.isFinite(rawLimit) && rawLimit > 0) return Math.floor(rawLimit);
-  return 1;
-}
-
 function getRemainingProfileActionCoins(user) {
   const creditBalance = Number(user?.profileSubscription?.membershipCreditBalance);
   if (Number.isFinite(creditBalance) && creditBalance > 0) return Math.max(0, Math.floor(creditBalance / 10));
@@ -287,7 +284,7 @@ function toClientProfile(doc) {
   return {
     id: String(doc.profileId || ""),
     profileId: String(doc.profileId || ""),
-    name: String(doc.name || "?대쫫 ?놁쓬"),
+    name: String(doc.name || "이름 없음"),
     gender: sanitizeGender(doc.gender),
     birthDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
     birthTime: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
@@ -308,77 +305,6 @@ function toClientProfile(doc) {
     },
     createdAt: doc.createdAt || null,
     updatedAt: doc.updatedAt || null,
-  };
-}
-
-function resolveCurrentId(rawCurrentId, profiles) {
-  const currentId = sanitizeProfileId(rawCurrentId);
-  if (!currentId) return "";
-  for (let i = 0; i < profiles.length; i += 1) {
-    if (String(profiles[i]?.id || "") === currentId) return currentId;
-  }
-  return "";
-}
-
-function resolveSingleProfileAccess(user, profiles, subscription) {
-  const profileLimit = resolveProfileLimitForClient(subscription);
-  const isSingleMode = false;
-  const savedCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
-
-  if (!isSingleMode) {
-    return {
-      profiles,
-      currentId: savedCurrentId,
-      profileAccess: {
-        mode: "subscription",
-        selectionRequired: false,
-        locked: false,
-        lockedProfileId: "",
-        profileLimit,
-      },
-    };
-  }
-
-  if (profiles.length <= 1) {
-    const onlyId = profiles[0]?.id || "";
-    return {
-      profiles,
-      currentId: onlyId,
-      profileAccess: {
-        mode: "single",
-        selectionRequired: false,
-        locked: Boolean(onlyId),
-        lockedProfileId: onlyId,
-        profileLimit: 1,
-      },
-    };
-  }
-
-  const lockedId = resolveCurrentId(user?.destinyProfilesLockedCurrentId, profiles);
-  if (lockedId) {
-    return {
-      profiles: profiles.filter((profile) => String(profile?.id || "") === lockedId),
-      currentId: lockedId,
-      profileAccess: {
-        mode: "single",
-        selectionRequired: false,
-        locked: true,
-        lockedProfileId: lockedId,
-        profileLimit: 1,
-      },
-    };
-  }
-
-  return {
-    profiles,
-    currentId: savedCurrentId,
-    profileAccess: {
-      mode: "single",
-      selectionRequired: true,
-      locked: false,
-      lockedProfileId: "",
-      profileLimit: 1,
-    },
   };
 }
 
