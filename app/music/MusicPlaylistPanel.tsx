@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Search, Share2 } from "lucide-react";
+import { ChevronDown, Moon, Search, Share2, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { ArtistKey, Track } from "./_data/musicManifest";
 import styles from "./moon-music-player.module.css";
@@ -33,6 +33,12 @@ function formatDuration(seconds?: number) {
 
 function normalizeSearchText(value: string) {
   return value.trim().toLowerCase();
+}
+
+function getTrackCollectionLabel(track: Track) {
+  if (track.artistKey === "dest1nova") return "DEST1NOVA";
+  if (track.audioKey.startsWith("neosongmini1/") || track.audioKey.startsWith("yeonisongmini1/")) return "Mini Album";
+  return "Moon Cut";
 }
 
 function buildShareUrl(path: string) {
@@ -72,10 +78,18 @@ export default function MusicPlaylistPanel({
   onCoverError,
   onSelectTrack,
 }: MusicPlaylistPanelProps) {
-  const [activeTab, setActiveTab] = useState<PlaylistTab>("yeoni");
+  const [activeTab, setActiveTab] = useState<PlaylistTab>("all");
   const [query, setQuery] = useState("");
   const [sharedTrackId, setSharedTrackId] = useState("");
   const normalizedQuery = normalizeSearchText(query);
+  const playlistCounts = useMemo(() => {
+    return PLAYLIST_TABS.reduce<Record<PlaylistTab, number>>((counts, tab) => {
+      counts[tab.key] = tab.key === "all"
+        ? tracks.length
+        : tracks.filter((track) => track.artistKey === tab.key).length;
+      return counts;
+    }, { all: 0, neo: 0, yeoni: 0, dest1nova: 0 });
+  }, [tracks]);
 
   const filteredTracks = useMemo(() => {
     return tracks.filter((track) => {
@@ -83,7 +97,7 @@ export default function MusicPlaylistPanel({
       if (activeTab !== "all" && track.artistKey !== activeTab) return false;
       if (!normalizedQuery) return true;
 
-      return `${track.title} ${track.artistName} ${track.mood || ""}`
+      return `${track.title} ${track.artistName} ${track.mood || ""} ${track.audioKey}`
         .toLowerCase()
         .includes(normalizedQuery);
     });
@@ -125,10 +139,15 @@ export default function MusicPlaylistPanel({
       <details className={styles.playlistDetails} open>
         <summary className={styles.playlistHeaderButton}>
           <span className={styles.playlistHeaderText}>
-            <span className={styles.playlistKicker}>Moon Library</span>
-            <span className={styles.playlistTitle}>Playlist</span>
+            <span className={styles.playlistKicker}>
+              <Moon size={13} aria-hidden />
+              Moon Library
+            </span>
+            <span className={styles.playlistTitle}>Lunar Playlist</span>
+            <span className={styles.playlistSubtitle}>{filteredTracks.length} of {tracks.length} tracks</span>
           </span>
           <span className={styles.playlistHeaderMeta}>
+            <Sparkles className={styles.playlistHeaderIcon} size={18} aria-hidden />
             <span className={styles.playlistCount}>{filteredTracks.length}</span>
             <ChevronDown className={styles.playlistToggleIcon} size={18} aria-hidden />
           </span>
@@ -145,7 +164,8 @@ export default function MusicPlaylistPanel({
                 aria-selected={activeTab === tab.key}
                 onClick={() => setActiveTab(tab.key)}
               >
-                {tab.label}
+                <span>{tab.label}</span>
+                <span className={styles.playlistTabCount}>{playlistCounts[tab.key]}</span>
               </button>
             ))}
           </div>
@@ -167,6 +187,7 @@ export default function MusicPlaylistPanel({
                 const coverUnavailable = !track.coverUrl || Boolean(failedCoverIds[track.id]);
                 const durationLabel = formatDuration(track.durationSeconds);
                 const isPlayable = Boolean(track.audioUrl);
+                const collectionLabel = getTrackCollectionLabel(track);
 
                 return (
                   <div
@@ -176,6 +197,8 @@ export default function MusicPlaylistPanel({
                     aria-current={isCurrent ? "true" : undefined}
                     data-disabled={!isPlayable ? "true" : "false"}
                     data-playing={isCurrent && isPlaying ? "true" : "false"}
+                    data-artist={track.artistKey}
+                    data-collection={collectionLabel}
                   >
                     <button
                       className={styles.playlistTrackButton}
@@ -199,7 +222,7 @@ export default function MusicPlaylistPanel({
                         <span className={styles.playlistTrackTitle}>{track.title || "Untitled track"}</span>
                         <span className={styles.playlistTrackSubline}>
                           <span className={styles.playlistTrackArtist}>{track.artistName || "Unknown artist"}</span>
-                          {track.mood ? <span className={styles.playlistTrackMood}>{track.mood}</span> : null}
+                          <span className={styles.playlistTrackMood}>{collectionLabel}</span>
                         </span>
                       </span>
 
