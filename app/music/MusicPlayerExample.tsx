@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
@@ -114,9 +115,14 @@ function getListeningStatusLabel(isLoading: boolean, canPlay: boolean, isPlaying
 }
 
 export default function MusicPlayerExample({ ambientAssetKey, presentation = "full" }: MusicPlayerExampleProps) {
-  const player = useMusicPlayer(allTracks, { initialVolume: 0.85 });
+  const searchParams = useSearchParams();
+  const sharedTrackId = searchParams?.get("track") || undefined;
+  const initialSharedTrackId = useMemo(() => {
+    return sharedTrackId && allTracks.some((track) => track.id === sharedTrackId) ? sharedTrackId : undefined;
+  }, [sharedTrackId]);
+  const player = useMusicPlayer(allTracks, { initialVolume: 0.85, initialTrackId: initialSharedTrackId });
   const selectTrack = player.selectTrack;
-  const hasAppliedSharedTrackRef = useRef(false);
+  const sharedTrackSyncAttemptsRef = useRef(0);
   const progressMax = player.duration || 0;
   const [failedCoverIds, setFailedCoverIds] = useState<Record<string, boolean>>({});
   const [isListeningModeOpen, setIsListeningModeOpen] = useState(presentation === "full");
@@ -126,23 +132,22 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const coverFailed = Boolean(!player.currentTrack?.coverUrl || (currentTrackId && failedCoverIds[currentTrackId]));
   const artistThemeClass = player.currentTrack?.artistKey === "dest1nova"
     ? styles.dest1novaMode
-    : player.currentTrack?.artistKey === "yeoni"
-      ? styles.yeoniMode
-      : styles.neoMode;
+    : player.currentTrack?.artistKey === "lunabloom"
+      ? styles.lunabloomMode
+      : player.currentTrack?.artistKey === "yeoni"
+        ? styles.yeoniMode
+        : styles.neoMode;
   const isCompact = presentation === "compact";
   const hasCurrentTrack = Boolean(player.currentTrack);
 
   useEffect(() => {
-    if (hasAppliedSharedTrackRef.current || typeof window === "undefined") return;
-
-    const sharedTrackId = new URLSearchParams(window.location.search).get("track");
     const hasSharedTrack = Boolean(sharedTrackId && allTracks.some((track) => track.id === sharedTrackId));
-    hasAppliedSharedTrackRef.current = true;
+    if (!hasSharedTrack || !sharedTrackId || currentTrackId === sharedTrackId) return;
+    if (sharedTrackSyncAttemptsRef.current >= 2) return;
 
-    if (hasSharedTrack && sharedTrackId) {
-      selectTrack(sharedTrackId);
-    }
-  }, [selectTrack]);
+    sharedTrackSyncAttemptsRef.current += 1;
+    selectTrack(sharedTrackId);
+  }, [currentTrackId, selectTrack, sharedTrackId]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

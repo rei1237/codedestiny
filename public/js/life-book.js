@@ -31,16 +31,16 @@
 
   var CHAPTER_SUBTITLES = [
     '원국 전체를 하나의 핵심 문장으로 묶어 삶의 첫 방향을 엽니다.',
-    '년주, 월주, 일주, 시주의 배치를 통해 태어난 순간의 구조를 읽습니다.',
+    '년주, 월주, 일주, 시주의 배치 속에서 태어난 순간의 구조가 드러납니다.',
     '일간의 본질과 월지의 계절성을 함께 보아 삶의 작동 방식을 해석합니다.',
     '목화토금수의 과다와 부족을 정리해 강점, 피로, 보완 루틴을 찾습니다.',
-    '비겁, 식상, 재성, 관성, 인성의 흐름으로 반복 패턴을 읽습니다.',
+    '비겁, 식상, 재성, 관성, 인성의 흐름 속에서 반복 패턴이 떠오릅니다.',
     '사주의 균형을 회복시키는 방향과 조심해야 할 흐름을 나눕니다.',
     '격국과 계절의 큰 틀을 통해 일이 열리고 막히는 방식을 해석합니다.',
     '친밀감, 애착, 결혼관, 관계 회복 방식을 상담형 문장으로 정리합니다.',
     '재성, 관성, 식상의 작동을 통해 돈과 일의 흐름을 현실적으로 연결합니다.',
     '오행 균형과 조후를 바탕으로 생활 리듬과 회복 루틴을 제안합니다.',
-    '현재 대운과 다음 대운의 전환을 통해 인생의 큰 계절을 읽습니다.',
+    '현재 대운과 다음 대운의 전환 속에서 인생의 큰 계절이 열립니다.',
     '세운과 월운의 가까운 흐름을 실행 가능한 조언으로 바꿉니다.',
     '전체 해석을 하나의 선택 기준과 실행 전략으로 묶어 마무리합니다.',
   ];
@@ -66,7 +66,7 @@
     '태어난 시간의 하늘 기운이 지금의 삶과 조용히 맞물립니다.',
     '천간과 지지가 엮어 온 운명의 결을 차분히 펼칩니다.',
     '용신의 빛이 당신의 강점과 회복의 길을 밝히고 있습니다.',
-    '대운은 인생의 계절입니다. 지금 머무는 계절의 뜻을 읽습니다.',
+    '대운은 인생의 계절입니다. 지금 머무는 계절의 뜻이 깊게 드러납니다.',
     '음양의 균형 속에서 당신에게 필요한 선택의 기준을 찾습니다.',
     '오행의 흐름은 몸과 마음, 일과 사랑의 리듬을 함께 비춥니다.',
     '격국은 하늘이 당신에게 부여한 사회적 무대의 윤곽입니다.',
@@ -1102,7 +1102,7 @@ function _isLifeBookGenerationBusy() {
     });
   }
 
-  function _collectLifeBookQuantumMyeongriJson(profile) {
+  function _collectLifeBookQuantumMyeongriJson(profile, targetYear) {
     var snap = window.__destinyFlowerSajuSnapshot || {};
     var analysis = snap.analysis || snap.saju || {};
     var pillars = window.G_PILLARS || {};
@@ -1111,6 +1111,25 @@ function _isLifeBookGenerationBusy() {
     var jong = window.G_JONG || {};
     var daewunList = _normalizeLifeBookDaewunList(window.G_DAEWUN || window.G_DAEUN || []);
     var birth = (profile && profile.birth) || snap.birth || {};
+    var resolvedTargetYear = Number(targetYear);
+    if (!Number.isFinite(resolvedTargetYear) || resolvedTargetYear < 1900 || resolvedTargetYear > 2200) resolvedTargetYear = new Date().getFullYear();
+    var currentDaewunNode = null;
+    var nextDaewunNode = null;
+    if (Array.isArray(daewunList) && daewunList.length && birth && birth.year) {
+      var targetAge = resolvedTargetYear - Number(birth.year || 0) + 1;
+      for (var di = 0; di < daewunList.length; di++) {
+        var row = daewunList[di] || {};
+        var nextRow = daewunList[di + 1] || null;
+        var startAge = Number(row.age || row.startAge || 0);
+        var endAge = nextRow ? Number(nextRow.age || nextRow.startAge || 999) : 999;
+        if (targetAge >= startAge && targetAge < endAge) {
+          currentDaewunNode = row;
+          nextDaewunNode = nextRow;
+          break;
+        }
+      }
+      if (!currentDaewunNode) currentDaewunNode = daewunList[daewunList.length - 1] || null;
+    }
     var input = {
       name: String((profile && profile.name) || snap.name || '').trim(),
       gender: _normalizeGenderForApi((profile && profile.gender) || snap.gender || ''),
@@ -1185,7 +1204,8 @@ function _isLifeBookGenerationBusy() {
           reasoning: String(analysis.gyeokgukReason || '').trim(),
         },
         daewoon: {
-          current: daewunList[0] || null,
+          current: currentDaewunNode || daewunList[0] || null,
+          next: nextDaewunNode || null,
           cycles: daewunList,
         },
         sewoon: {
@@ -1217,7 +1237,7 @@ function _isLifeBookGenerationBusy() {
     };
   }
 
-  function _collectLifeBookAnalysisSignals(profile) {
+  function _collectLifeBookAnalysisSignals(profile, targetYear) {
     var snap = window.__destinyFlowerSajuSnapshot || {};
     var analysis = snap.analysis || snap.saju || {};
     var power = window.G_POWER || {};
@@ -1252,7 +1272,9 @@ function _isLifeBookGenerationBusy() {
     var currentDaeunNode = null;
     var nextDaeunNode = null;
     if (Array.isArray(daewunList) && daewunList.length && profile && profile.birth && profile.birth.year) {
-      var currentAge = new Date().getFullYear() - Number(profile.birth.year || 0) + 1;
+      var resolvedTargetYear = Number(targetYear);
+      if (!Number.isFinite(resolvedTargetYear) || resolvedTargetYear < 1900 || resolvedTargetYear > 2200) resolvedTargetYear = new Date().getFullYear();
+      var currentAge = resolvedTargetYear - Number(profile.birth.year || 0) + 1;
       for (var i = 0; i < daewunList.length; i++) {
         var cur = daewunList[i] || {};
         var next = daewunList[i + 1] || null;
@@ -2167,8 +2189,8 @@ function _isLifeBookGenerationBusy() {
         minute: _birthTimeKnown ? Number.isFinite(_birthMinuteRaw) ? _birthMinuteRaw : 0 : 0,
         birthplace: String((profile && profile.location && profile.location.label) || '대한민국'),
         sajuData: String(sajuData || ''),
-        analysisSignals: _collectLifeBookAnalysisSignals(profile),
-        quantumMyeongriJson: _collectLifeBookQuantumMyeongriJson(profile),
+        analysisSignals: _collectLifeBookAnalysisSignals(profile, targetYear),
+        quantumMyeongriJson: _collectLifeBookQuantumMyeongriJson(profile, targetYear),
       };
 
       _setGenerationState('calculation_validated');

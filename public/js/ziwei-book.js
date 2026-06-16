@@ -316,7 +316,7 @@
 
   function isReusablePaidStatus(status){
     var s = text(status);
-    return s === 'generating' || s === 'failed_retryable';
+    return s === 'paid' || s === 'generating' || s === 'failed_retryable';
   }
 
   function isZiweiFeatureKey(value){
@@ -655,6 +655,7 @@
       fill.setAttribute('aria-valuenow', String(Math.round(safePercent)));
     }
     setText('zbLoadingChapter', label || '자미두수 명반을 준비하는 중입니다.');
+    if(label) setText('zbMysticQuote', label);
     updateZiweiGenerationState({ message: text(label || ''), totalChapters: TOTAL_CHAPTERS });
   }
 
@@ -1613,9 +1614,24 @@
       showError('재열람 가능한 이전 리포트가 없습니다.');
       return;
     }
-    var recovered = await fetchZiweiResult(text(saved.sessionId), text(saved.reportId));
+    var recovered = await recoverPendingResult({
+      sessionId: text(saved.sessionId),
+      reportId: text(saved.reportId),
+      status: text(saved.status) || 'processing',
+      retryable: true
+    }, saved);
     if(!recovered){
       showError('이전 리포트를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    var readiness = getZiweiReportReadiness(recovered);
+    if(!readiness.completed){
+      writePaidSession({
+        status: 'failed_retryable',
+        reportId: text(recovered.reportId || saved.reportId),
+        sessionId: text(recovered.sessionId || saved.sessionId)
+      });
+      showError('결제는 확인되었습니다. PDF 저장이 아직 진행 중입니다. 잠시 후 다시 이어받아 주세요.', recovered);
       return;
     }
     RESULT = recovered;

@@ -2116,9 +2116,10 @@ async function handleVedicPremiumPrepare(request, env) {
       });
     }
     const rawMessage = clean(error?.message || "베다점 프리미엄 PDF 생성에 실패했습니다.");
-    const userFacingMessage = rawMessage.includes("출생") || rawMessage.includes("birth")
+    const errorCode = clean(error?.code || "");
+    const userFacingMessage = errorCode === "BIRTH_INPUT_INVALID" || /BIRTH_INPUT|birth-input|birth input/i.test(rawMessage)
       ? "베다점 PDF 생성에 필요한 출생 정보가 부족합니다. 생년월일, 태어난 시간, 지역 정보를 확인해 주세요."
-      : rawMessage.includes("차트") || rawMessage.includes("Swiss")
+      : errorCode === "VEDIC_CHART_SOURCE_INVALID" || errorCode === "VEDIC_CHART_SOURCE_QUALITY_INVALID" || rawMessage.includes("차트") || rawMessage.includes("Swiss")
         ? "베다 차트 계산 중 일시적 오류가 발생했습니다. 출생 정보와 지역 정보를 확인한 뒤 다시 시도해 주세요."
         : rawMessage.includes("원고") || rawMessage.includes("검증") || rawMessage.includes("contract")
           ? "생성된 베다점 상담 원고가 품질 기준을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요."
@@ -2131,7 +2132,7 @@ async function handleVedicPremiumPrepare(request, env) {
         stage: "vedic-generation",
         sessionId: vedicSessionId,
         reportId: reportId || clean(body?.reportId || body?.accessGrant?.reportId),
-        originalCode: error?.code || null,
+        originalCode: errorCode || null,
       },
     }, { status: Number(error?.status || 500) });
   }

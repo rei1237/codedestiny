@@ -69,10 +69,15 @@
     s.src = src;
     s.defer = true;
     s.async = false;
+    s.dataset.loading = '1';
     s.onload = function () {
+      s.dataset.loading = '0';
+      s.dataset.loaded = '1';
       nextIdle(function () { loadSequentially(nodes, idx + 1, done); });
     };
     s.onerror = function () {
+      s.dataset.loading = '0';
+      s.dataset.loaded = '0';
       nextIdle(function () { loadSequentially(nodes, idx + 1, done); });
     };
     document.body.appendChild(s);

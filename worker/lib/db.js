@@ -142,16 +142,20 @@ export async function connectDb(env = {}) {
     for (let attempt = 0; attempt <= retryCount; attempt += 1) {
       if (!connectPromise) {
         console.log(`[db-connect] starting connection to mongodb... family=${ipFamily} attempt=${attempt + 1}/${retryCount + 1}`);
-        const connectTask = mongoose.connect(uri, {
+        const connectOptions = {
           dbName: resolveMongoDbName(env) || undefined,
           maxPoolSize: Number(getEnv(env, "MONGO_MAX_POOL_SIZE", "5")),
           serverSelectionTimeoutMS,
           connectTimeoutMS,
           socketTimeoutMS,
           bufferCommands: false,
-          family: ipFamily,
           autoIndex: false,
-        });
+        };
+        if (ipFamily === 4 || ipFamily === 6) {
+          connectOptions.family = ipFamily;
+        }
+
+        const connectTask = mongoose.connect(uri, connectOptions);
 
         connectTask
           .then(() => console.log(`[db-connect] mongodb connected successfully. family=${ipFamily}`))

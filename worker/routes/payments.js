@@ -491,6 +491,17 @@ function resolvePaymentMethodLabel(payment) {
   return method || "-";
 }
 
+function isSinglePurchaseDigitalPayment(payment) {
+  return String(payment?.paymentType || "").trim().toLowerCase() === "digital_content"
+    && String(payment?.accessType || "").trim().toLowerCase() === "single_purchase";
+}
+
+function isPaymentAutoCancelEligible(payment) {
+  return isSinglePurchaseDigitalPayment(payment)
+    && Number(payment?.paymentAmount || 0) > 0
+    && Number(payment?.chargedPoints || 0) <= 0;
+}
+
 function formatPaymentResponse(payment) {
   if (!payment) return null;
 
@@ -550,6 +561,7 @@ function formatPaymentResponse(payment) {
     receiptUrl,
     cancelAmount,
     cancelledAt: toIsoOrNull(cancelledAt),
+    cancelEligible: isPaymentAutoCancelEligible(payment),
   };
 }
 
@@ -865,6 +877,7 @@ function buildSingleCompleteAccessGrant({ payment, entitlement, profileId, conte
   return {
     ok: true,
     accessType: "single_purchase",
+    cancelEligible: true,
     purchaseId: String(payment?._id || ""),
     merchantUid: String(payment?.merchantUid || ""),
     paymentId: String(payment?.merchantUid || ""),
@@ -4279,7 +4292,73 @@ async function handleCancel(request, env, auth) {
   });
 }
 
-async function handleReportFailure(request, auth) {
+function shouldAutoCancelReportedResultFailure(payment, body, reasonCode) {
+  if (!isPaymentAutoCancelEligible(payment)) return false;
+  const status = String(payment?.status || "").trim().toLowerCase();
+  if (!["success", "fulfilled", "cancelled", "refunded"].includes(status)) return false;
+  if (body?.autoRefund === true || body?.refundOnFailure === true || body?.resultNotProvided === true) return true;
+  const code = String(reasonCode || "").trim().toLowerCase();
+  return [
+    "result_not_provided",
+    "result_missing",
+    "content_not_provided",
+    "service_execution_failed",
+    "generation_failed",
+    "pdf_generation_failed",
+    "premium_pdf_not_completed",
+    "premium_pdf_completion_invalid",
+    "execution_timeout",
+    "timeout_auto_refund",
+  ].includes(code);
+}
+
+async function cancelReportedResultFailurePayment(env, paymentRecord, reasonCode, reasonMessage) {
+  if (paymentRecord.status === "cancelled" || paymentRecord.status === "refunded") {
+    return {
+      cancelled: true,
+      idempotent: true,
+      payment: formatPaymentResponse(paymentRecord),
+    };
+  }
+  if (paymentRecord.status !== "success" && paymentRecord.status !== "fulfilled") {
+    return {
+      cancelled: false,
+      skipped: true,
+      payment: formatPaymentResponse(paymentRecord),
+    };
+  }
+
+  const canceledPortOne = await cancelPortOnePayment(env, {
+    impUid: paymentRecord.impUid || paymentRecord.merchantUid,
+    merchantUid: paymentRecord.merchantUid || paymentRecord.impUid,
+    reason: reasonMessage,
+    checksum: Number(paymentRecord.paymentAmount || 0) || undefined,
+  });
+
+  const canceledPayment = await Payment.findByIdAndUpdate(
+    paymentRecord._id,
+    {
+      $set: {
+        status: "cancelled",
+        orderState: SINGLE_PAYMENT_ORDER_STATES.CANCELLED,
+        rawPortOne: canceledPortOne,
+        failureCode: reasonCode,
+        failureMessage: reasonMessage,
+        failureStage: "result_failure_auto_refund",
+        lastErrorAt: new Date(),
+      },
+    },
+    { returnDocument: "after" },
+  ).lean();
+
+  return {
+    cancelled: true,
+    idempotent: false,
+    payment: formatPaymentResponse(canceledPayment || paymentRecord),
+  };
+}
+
+async function handleReportFailure(request, env, auth) {
   const body = await readJson(request);
   const merchantUid = String(body?.merchantUid || body?.merchant_uid || "").trim() || undefined;
   const impUid = String(body?.impUid || body?.paymentId || "").trim() || undefined;
@@ -4303,7 +4382,10 @@ async function handleReportFailure(request, auth) {
     return json({ message: "Only your own payment can be reported." }, { status: 403 });
   }
 
-  if (payment && payment.status !== "success") {
+  let autoRefund = null;
+  if (payment && shouldAutoCancelReportedResultFailure(payment, body, reasonCode)) {
+    autoRefund = await cancelReportedResultFailurePayment(env, payment, reasonCode, reasonMessage);
+  } else if (payment && payment.status !== "success") {
     await markPaymentFailure(payment, {
       status: reasonCode === "cancelled" ? "cancelled" : "failed",
       paymentMethod: payment.paymentMethod,
@@ -4327,7 +4409,13 @@ async function handleReportFailure(request, auth) {
     payload: body,
   });
 
-  return json({ ok: true, message: "Payment failure report recorded." });
+  return json({
+    ok: true,
+    message: autoRefund?.cancelled ? "Payment failure report recorded and refunded." : "Payment failure report recorded.",
+    autoRefunded: Boolean(autoRefund?.cancelled),
+    idempotent: Boolean(autoRefund?.idempotent),
+    payment: autoRefund?.payment || undefined,
+  });
 }
 
 function formatPointHistoryEntry(entry) {
@@ -4931,7 +5019,7 @@ export async function handlePaymentRoutes(request, env) {
     if (method === "POST" && path === "/confirm") return await handleConfirm(request, env, auth);
     if (method === "POST" && path === "/subscription/confirm") return await handleSubscriptionConfirm(request, env, auth);
     if (method === "POST" && path === "/cancel") return await handleCancel(request, env, auth);
-    if (method === "POST" && path === "/report-failure") return await handleReportFailure(request, auth);
+    if (method === "POST" && path === "/report-failure") return await handleReportFailure(request, env, auth);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {

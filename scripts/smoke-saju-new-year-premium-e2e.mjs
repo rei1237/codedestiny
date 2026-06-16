@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { generateNewYearLocalPdf } from "../worker/pdf-v2/new-year-local-pdf.js";
 import { __sajuNewYearTestUtils as newYear } from "../worker/routes/saju-new-year.js";
 
 const routeSource = readFileSync(new URL("../worker/routes/saju-new-year.js", import.meta.url), "utf8");
@@ -318,6 +319,39 @@ try {
   assert.ok(String(localPdfReady.html || "").includes("마지막 조언"));
   const completionValidation = newYear.validateSajuNewYearPdfCompletionPayload({ pdfReady: localPdfReady, chapters: pipelineResult.chapters });
   assert.equal(completionValidation.ok, true, `completion validation ${JSON.stringify(completionValidation)}`);
+  const localPdfReadyWithDownload = {
+    ...localPdfReady,
+    pdfUrl: "https://example.test/api/premium/pdf-archive/smoke-local-pipeline?format=pdf",
+    downloadUrl: "https://example.test/api/premium/pdf-archive/smoke-local-pipeline?format=pdf",
+    htmlUrl: "https://example.test/api/premium/pdf-archive/smoke-local-pipeline?format=html",
+  };
+  const localPdfContractResult = await generateNewYearLocalPdf({
+    reportId: "smoke-local-pipeline",
+    featureKey: "saju_new_year_pdf",
+    sessionId: "smoke-local-pipeline",
+    targetYear: pipelineResult.localYearSajuJson.targetYear,
+    chapterCount: pipelineResult.chapters.length,
+    manuscriptSource: pipelineResult.manuscriptSource,
+    chapters: pipelineResult.chapters,
+    localAssembly: pipelineResult.localAssembly,
+    pdfReady: localPdfReadyWithDownload,
+    pdfCompletionValidation: newYear.validateSajuNewYearPdfCompletionPayload({
+      pdfReady: localPdfReadyWithDownload,
+      chapters: pipelineResult.chapters,
+      requireDownloadUrl: true,
+    }),
+    pdfUrl: localPdfReadyWithDownload.pdfUrl,
+    htmlUrl: localPdfReadyWithDownload.htmlUrl,
+    downloadUrl: localPdfReadyWithDownload.downloadUrl,
+  }, {
+    config: newYear.YEARLY_SAJU_PDF_CONFIG,
+    expectedChapterCount: pipelineResult.chapters.length,
+    buildLocalPdf: (payload) => payload,
+  });
+  assert.equal(localPdfContractResult.localContract.ok, true, `local pdf contract ${JSON.stringify(localPdfContractResult.localContract)}`);
+  assert.deepEqual(localPdfContractResult.localContract.issues, []);
+  assert.equal(localPdfContractResult.localContract.manuscriptSource, "high-quality-consultation");
+  assert.equal(localPdfContractResult.localContract.assemblyGenerationMode, "high-quality-assembled");
   assert.equal(externalGenerationFetchCount, 0);
   const reusableCached = newYear.buildNewYearReusableExecutionResponse({
     status: "success",

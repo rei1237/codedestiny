@@ -19,10 +19,18 @@ function assertNewYearLocalPdfResult(result = {}, config = {}, expectedChapterCo
     : {};
   const generationMode = clean(config.generationMode || "local-assembled");
   const templateVersion = clean(config.templateVersion);
+  const manuscriptSource = clean(result?.manuscriptSource || pdfReady?.metadata?.manuscriptSource || localAssembly.manuscriptSource);
+  const expectedManuscriptSources = (Array.isArray(config.manuscriptSources) && config.manuscriptSources.length
+    ? config.manuscriptSources
+    : [generationMode, "high-quality-consultation", "local-assembled"])
+    .map((item) => clean(item))
+    .filter(Boolean);
+  const assemblyGenerationMode = clean(localAssembly.generationMode || pdfReady?.metadata?.generationMode || pdfReady?.metadata?.assemblyMode);
   const storedUrl = clean(result?.downloadUrl || result?.pdfUrl || pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
 
   const issues = [];
-  if (clean(result?.manuscriptSource) !== generationMode) issues.push("manuscript_source");
+  if (!manuscriptSource || !expectedManuscriptSources.includes(manuscriptSource)) issues.push("manuscript_source");
+  if (generationMode && assemblyGenerationMode !== generationMode) issues.push("local_assembly_generation_mode");
   if (result?.fallbackUsed === true) issues.push("fallback_used");
   if (chapters.length !== expectedChapterCount) issues.push("chapter_count");
   if (Number(result?.chapterCount || 0) !== expectedChapterCount) issues.push("payload_chapter_count");
@@ -42,6 +50,9 @@ function assertNewYearLocalPdfResult(result = {}, config = {}, expectedChapterCo
     localAssembly,
     chapterCount: chapters.length,
     expectedChapterCount,
+    manuscriptSource,
+    expectedManuscriptSources,
+    assemblyGenerationMode,
     generationMode,
     templateVersion,
   };

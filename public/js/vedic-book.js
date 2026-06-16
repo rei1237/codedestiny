@@ -378,8 +378,86 @@
     }
   }
 
+  function _firstDefined() {
+    for (var index = 0; index < arguments.length; index += 1) {
+      if (arguments[index] !== undefined && arguments[index] !== null && arguments[index] !== '') return arguments[index];
+    }
+    return undefined;
+  }
+
+  function _finiteNumber(value, fallback) {
+    var number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+  }
+
+  function _parseBirthDateParts(value) {
+    var raw = _clean(value);
+    if (!raw) return null;
+    var parts = raw.indexOf('-') >= 0 ? raw.split('-') : (raw.length >= 8 ? [raw.slice(0, 4), raw.slice(4, 6), raw.slice(6, 8)] : []);
+    if (parts.length < 3) return null;
+    var year = Number(parts[0]);
+    var month = Number(parts[1]);
+    var day = Number(parts[2]);
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+    return { year: year, month: month, day: day };
+  }
+
+  function _parseBirthTimeParts(value) {
+    var raw = _clean(value);
+    if (!raw) return null;
+    var parts = raw.split(':');
+    if (parts.length < 2) return null;
+    var hour = Number(parts[0]);
+    var minute = Number(parts[1]);
+    if (!Number.isFinite(hour)) return null;
+    return { hour: hour, minute: Number.isFinite(minute) ? minute : 0 };
+  }
+
+  function _normalizeVedicProfileForPdf(profile) {
+    var source = profile && typeof profile === 'object' ? profile : {};
+    var birth = source.birth && typeof source.birth === 'object' ? source.birth : {};
+    var birthInput = source.birthInput && typeof source.birthInput === 'object' ? source.birthInput : {};
+    var location = source.location && typeof source.location === 'object' ? source.location : {};
+    var parsedDate = _parseBirthDateParts(_firstDefined(source.birthDate, birthInput.birthDate, birth.date, source.date));
+    var parsedTime = _parseBirthTimeParts(_firstDefined(source.birthTime, birthInput.birthTime, birth.time, source.time));
+
+    var year = _finiteNumber(_firstDefined(birth.year, birthInput.birthYear, source.birthYear, parsedDate && parsedDate.year), NaN);
+    var month = _finiteNumber(_firstDefined(birth.month, birthInput.birthMonth, source.birthMonth, parsedDate && parsedDate.month), NaN);
+    var day = _finiteNumber(_firstDefined(birth.day, birthInput.birthDay, source.birthDay, parsedDate && parsedDate.day), NaN);
+    var hour = _finiteNumber(_firstDefined(birth.hour, birthInput.birthHour, source.birthHour, parsedTime && parsedTime.hour), NaN);
+    var minute = _finiteNumber(_firstDefined(birth.minute, birthInput.birthMinute, source.birthMinute, parsedTime && parsedTime.minute), 0);
+    var lat = _finiteNumber(_firstDefined(location.lat, location.latitude, birthInput.latitude, source.latitude, source.lat), 37.5665);
+    var lon = _finiteNumber(_firstDefined(location.lon, location.lng, location.longitude, birthInput.longitude, source.longitude, source.lng, source.lon), 126.9780);
+    var tzOffset = _finiteNumber(_firstDefined(location.tzOffset, location.baseTzOffset, source.tzOffset, source.timezoneOffset), NaN);
+    if (Number.isFinite(tzOffset) && Math.abs(tzOffset) > 24) tzOffset = tzOffset / 60;
+
+    return {
+      id: source.id,
+      name: _clean(source.name || birthInput.name) || '사용자',
+      gender: source.gender || source.sex || birthInput.gender || 'unknown',
+      birth: {
+        year: year,
+        month: month,
+        day: day,
+        hour: Number.isFinite(hour) ? Math.max(0, Math.min(23, Math.floor(hour))) : null,
+        minute: Number.isFinite(minute) ? Math.max(0, Math.min(59, Math.floor(minute))) : 0,
+        calType: birth.calType || source.calType || 'solar',
+      },
+      location: {
+        label: _clean(location.label || birthInput.birthPlace || source.birthPlace || source.place || source.locationName) || '대한민국 (서울)',
+        lat: lat,
+        lon: lon,
+        lng: lon,
+        tz: _clean(location.tz || birthInput.timezone || source.timezone || source.tz) || 'Asia/Seoul',
+        tzOffset: Number.isFinite(tzOffset) ? tzOffset : 9,
+        baseTzOffset: Number.isFinite(tzOffset) ? tzOffset : 9,
+      },
+    };
+  }
+
   function _hasValidBirthProfile(profile) {
-    return Boolean(profile && profile.birth && Number(profile.birth.year) > 1800 && Number(profile.birth.month) > 0 && Number(profile.birth.day) > 0);
+    var normalized = _normalizeVedicProfileForPdf(profile);
+    return Boolean(normalized && normalized.birth && Number(normalized.birth.year) > 1800 && Number(normalized.birth.month) > 0 && Number(normalized.birth.day) > 0);
   }
 
   function _readBirthProfileFromStorage() {
@@ -387,12 +465,12 @@
       var match = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
         || window.__cdCurrentDestinyProfile
         || null;
-      if (_hasValidBirthProfile(match)) return match;
+      if (_hasValidBirthProfile(match)) return _normalizeVedicProfileForPdf(match);
     } catch (_) {}
 
     try {
       var payload = JSON.parse(localStorage.getItem('destiny_profile') || sessionStorage.getItem('destiny_profile') || '{}');
-      if (payload && payload.birth && payload.birth.year) return payload;
+      if (_hasValidBirthProfile(payload)) return _normalizeVedicProfileForPdf(payload);
     } catch (_) {}
 
     return null;
@@ -453,13 +531,13 @@
 
   function _getActiveBirthProfile() {
     var profile = window.__cdActiveBirthProfile;
-    if (_hasValidBirthProfile(profile)) return profile;
+    if (_hasValidBirthProfile(profile)) return _normalizeVedicProfileForPdf(profile);
     var snap = window.__destinyFlowerSajuSnapshot;
-    if (_hasValidBirthProfile(snap)) return snap;
+    if (_hasValidBirthProfile(snap)) return _normalizeVedicProfileForPdf(snap);
     var storageProfile = _readBirthProfileFromStorage();
-    if (_hasValidBirthProfile(storageProfile)) return storageProfile;
+    if (_hasValidBirthProfile(storageProfile)) return _normalizeVedicProfileForPdf(storageProfile);
     var fromDom = _recoverBirthFromDOM();
-    if (_hasValidBirthProfile(fromDom)) return fromDom;
+    if (_hasValidBirthProfile(fromDom)) return _normalizeVedicProfileForPdf(fromDom);
     return null;
   }
 
@@ -1151,9 +1229,10 @@
 
     _logStage('ModalOpen');
     _resolveBirthProfile().then(function (profile) {
-      if (_hasValidBirthProfile(profile)) {
-        window.__cdActiveBirthProfile = profile;
-        _renderProfileSummary(profile);
+      var normalizedProfile = _normalizeVedicProfileForPdf(profile);
+      if (_hasValidBirthProfile(normalizedProfile)) {
+        window.__cdActiveBirthProfile = normalizedProfile;
+        _renderProfileSummary(normalizedProfile);
         _showScreen('vdStartScreen');
         return;
       }
@@ -1188,10 +1267,11 @@
     if (_generating) return;
 
     _resolveBirthProfile().then(function (profile) {
-    if (!profile || !profile.birth) {
-      _showScreen('vdNoProfileScreen');
-      return;
-    }
+      profile = _normalizeVedicProfileForPdf(profile);
+      if (!profile || !profile.birth) {
+        _showScreen('vdNoProfileScreen');
+        return;
+      }
 
     var birthInput = _normalizeBirthInput(profile);
     _logStage('ProfileResolved', {

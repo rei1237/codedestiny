@@ -206,6 +206,22 @@
     return summary;
   }
 
+  function _resolveSukuyoGenerationErrorMessage(error) {
+    var msg = _sanitizeText(_clean(error && error.message));
+    if (msg.indexOf('환불') >= 0) {
+      return '숙요점 궁합 PDF 생성이 완료되지 않았습니다. 결제 처리분은 자동 환불 확인 대상입니다. 다시 시도해 주세요.';
+    }
+    if (msg && !/^[A-Z0-9_:-]+$/.test(msg) && msg.length >= 8 && msg.length <= 180) {
+      return msg;
+    }
+    var details = error && error.details && typeof error.details === 'object' ? error.details : null;
+    var detailsMessage = _sanitizeText(_clean(details && (details.message || details.reasonMessage || details.error)));
+    if (detailsMessage && !/^[A-Z0-9_:-]+$/.test(detailsMessage) && detailsMessage.length >= 8 && detailsMessage.length <= 180) {
+      return detailsMessage;
+    }
+    return 'PDF 생성 결과 검증이 완료되지 않았습니다. 원화 결제 상태를 확인한 뒤 잠시 후 다시 시도해 주세요.';
+  }
+
   function _sanitizeText(value) {
     return String(value || '')
       .replace(/\b(undefined|null|nan)\b/gi, '')
@@ -220,6 +236,18 @@
 
   function _newSessionId() {
     return 'sukuyo-session-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  }
+
+  function _getSukuyoGenerationScope() {
+    var sessionId = _clean(_activeSessionId) || _newSessionId();
+    _activeSessionId = sessionId;
+    var reportId = 'sukyo-premium-' + sessionId;
+    return {
+      sessionId: sessionId,
+      reportSessionId: sessionId,
+      reportId: reportId,
+      requestId: reportId + '-' + Date.now().toString(36),
+    };
   }
 
   function _extractPremiumToken(payload) {
@@ -1040,7 +1068,7 @@
   }
 
   function _setSukuyoDownloadButtonState(payload) {
-    var button = _qs('skResultPdfBtn');
+    var button = _qs('skPdfBtn') || _qs('skResultPdfBtn');
     if (!button) return;
     var isTemporaryHtml = _isSukuyoArchivePending(payload) && _hasInlineSukuyoHtml(payload);
     button.textContent = isTemporaryHtml ? '📥 임시 HTML 원고 저장하기' : '📥 PDF로 저장하기';
@@ -1125,6 +1153,35 @@
       actions.style.backdropFilter = 'blur(8px)';
       actions.style.borderTop = '1px solid rgba(167,139,250,0.24)';
       actions.style.zIndex = '8';
+    }
+  }
+
+  function _applySukuyoScreenLayout(screenId) {
+    var modal = _qs('sukuyoBookModal');
+    var panel = document.querySelector('#sukuyoBookModal .lb-modal__panel');
+    var header = document.querySelector('#sukuyoBookModal .lb-modal__header');
+    var loadingScreen = _qs('skLoadingScreen');
+    var isLoading = screenId === 'skLoadingScreen';
+
+    if (modal) {
+      modal.classList.toggle('sukuyo-book-modal--generating', isLoading);
+      modal.scrollTop = 0;
+    }
+    if (header) header.style.display = isLoading ? 'none' : '';
+    if (panel) {
+      panel.scrollTop = 0;
+      panel.style.margin = isLoading ? 'auto' : '';
+      panel.style.width = isLoading ? 'min(520px, calc(100vw - 28px))' : '';
+      panel.style.maxWidth = isLoading ? '520px' : '';
+      panel.style.maxHeight = isLoading ? 'calc(100vh - 48px)' : '';
+      panel.style.minHeight = isLoading ? 'auto' : '';
+      panel.style.overflow = isLoading ? 'hidden' : '';
+      panel.style.display = '';
+      panel.style.flexDirection = '';
+    }
+    if (loadingScreen) {
+      loadingScreen.style.minHeight = isLoading ? 'auto' : '';
+      loadingScreen.style.padding = isLoading ? '34px 22px 26px' : '';
     }
   }
 
@@ -1310,11 +1367,16 @@
   }
 
   function _showScreen(screenId) {
+    var targetScreenId = screenId === 'skSetupScreen' ? 'skNoProfileScreen' : screenId;
     ['skNoProfileScreen', 'skStartScreen', 'skLoadingScreen', 'skResultScreen', 'skErrorScreen'].forEach(function (id) {
       var element = _qs(id);
-      if (element) element.style.display = id === screenId ? '' : 'none';
+      if (element) {
+        element.style.display = id === targetScreenId ? '' : 'none';
+        if (id === targetScreenId) element.scrollTop = 0;
+      }
     });
-    if (screenId === 'skResultScreen') _applyResultLayout();
+    _applySukuyoScreenLayout(targetScreenId);
+    if (targetScreenId === 'skResultScreen') _applyResultLayout();
   }
 
   function _setError(message) {
@@ -1646,7 +1708,8 @@
   }
 
   function _buildPrepareBody(normalizedInput) {
-    var sessionId = _activeSessionId || _newSessionId();
+    var scope = _getSukuyoGenerationScope();
+    var sessionId = scope.sessionId;
     var paymentContext = _lastPremiumPayment && typeof _lastPremiumPayment === 'object' ? Object.assign({}, _lastPremiumPayment) : null;
     var token = _readPremiumAccessToken() || _extractPremiumToken(paymentContext);
     if (!paymentContext && token) {
@@ -1659,12 +1722,17 @@
       };
     }
     if (paymentContext) {
+      paymentContext.featureKey = SUKYO_FEATURE_KEY;
+      paymentContext.aliasFeatureKey = SUKYO_ALIAS_FEATURE_KEY;
+      paymentContext.reportType = 'sookyoPremium';
+      paymentContext.mode = 'compatibility';
+      paymentContext.reportMode = 'compatibility';
       paymentContext.premiumAccessToken = token || paymentContext.premiumAccessToken || undefined;
       paymentContext.sessionId = _clean(paymentContext.sessionId || sessionId) || undefined;
       paymentContext.reportSessionId = _clean(paymentContext.reportSessionId || paymentContext.sessionId || sessionId) || undefined;
     }
     var accessGrant = paymentContext && paymentContext.accessGrant && typeof paymentContext.accessGrant === 'object' ? paymentContext.accessGrant : null;
-    var reportId = _clean(paymentContext && paymentContext.reportId || accessGrant && accessGrant.reportId || ('sukyo-premium-' + sessionId));
+    var reportId = _clean(paymentContext && paymentContext.reportId || accessGrant && accessGrant.reportId || scope.reportId);
     if (paymentContext) paymentContext.reportId = reportId || paymentContext.reportId || undefined;
     return {
       sessionId: sessionId,
@@ -1856,24 +1924,40 @@
       return Promise.reject(new Error('결제 모듈을 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.'));
     }
 
-    _log('[SukuyoBook][PaymentGateStart]', { featureKey: SUKYO_FEATURE_KEY, mode: 'compatibility' });
+    var paymentScope = _getSukuyoGenerationScope();
+    _log('[SukuyoBook][PaymentGateStart]', { featureKey: SUKYO_FEATURE_KEY, mode: 'compatibility', reportId: paymentScope.reportId });
     return new Promise(function (resolve, reject) {
       var coinCost = _resolveSukuyoCoinCost();
       window._cdCoinGatePerUse(coinCost, '숙요점 프리미엄 궁합 PDF 생성 · ' + _sukuyoCoinLabel(), function (_transactionId, data) {
         _lastPremiumPayment = _normalizePremiumPayment(_transactionId, data);
+        _lastPremiumPayment.featureKey = SUKYO_FEATURE_KEY;
+        _lastPremiumPayment.aliasFeatureKey = SUKYO_ALIAS_FEATURE_KEY;
+        _lastPremiumPayment.reportType = 'sookyoPremium';
+        _lastPremiumPayment.mode = 'compatibility';
+        _lastPremiumPayment.reportMode = 'compatibility';
+        _lastPremiumPayment.sessionId = _clean(_lastPremiumPayment.sessionId || paymentScope.sessionId) || paymentScope.sessionId;
+        _lastPremiumPayment.reportSessionId = _clean(_lastPremiumPayment.reportSessionId || paymentScope.reportSessionId) || paymentScope.reportSessionId;
+        _lastPremiumPayment.reportId = _clean(_lastPremiumPayment.reportId || paymentScope.reportId) || paymentScope.reportId;
+        _lastPremiumPayment.requestId = _clean(_lastPremiumPayment.requestId || paymentScope.requestId) || paymentScope.requestId;
         _persistPremiumAccessToken(_lastPremiumPayment.premiumAccessToken || _extractPremiumToken(data));
         _markPremiumAccessVerified(25 * 60 * 1000);
-        _log('[SukuyoBook][PaymentGateSuccess]', { featureKey: SUKYO_FEATURE_KEY });
+        _log('[SukuyoBook][PaymentGateSuccess]', { featureKey: SUKYO_FEATURE_KEY, reportId: _lastPremiumPayment.reportId });
         resolve(_lastPremiumPayment);
       }, function () {
         reject(new Error('결제가 취소되어 생성을 중단했습니다.'));
       }, {
         featureKey: SUKYO_FEATURE_KEY,
+        categoryKey: 'premium-pdf',
+        subFeatureKey: SUKYO_FEATURE_KEY,
         mode: 'compatibility',
         reportMode: 'compatibility',
         reportType: 'sookyoPremium',
         aliasFeatureKey: SUKYO_ALIAS_FEATURE_KEY,
-        requestId: 'sukyo-premium-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+        serviceKey: 'sukuyo-premium',
+        reportId: paymentScope.reportId,
+        sessionId: paymentScope.sessionId,
+        reportSessionId: paymentScope.reportSessionId,
+        requestId: paymentScope.requestId,
       });
     });
   }
@@ -2149,12 +2233,7 @@
           sessionId: _activeSessionId,
           updatedAt: Date.now(),
         });
-        var msg = _clean(error && error.message);
-        if (msg.indexOf('환불') >= 0) {
-          _setError('숙요점 궁합 PDF 생성이 완료되지 않았습니다. 결제 처리분은 자동 환불 확인 대상입니다. 다시 시도해 주세요.');
-          return;
-        }
-        _setError('PDF 생성 결과 검증이 완료되지 않았습니다. 원화 결제 상태를 확인한 뒤 잠시 후 다시 시도해 주세요.');
+        _setError(_resolveSukuyoGenerationErrorMessage(error));
       })
       .finally(function () {
         _generating = false;

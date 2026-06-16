@@ -92,9 +92,9 @@
   --moon-glass: rgba(4, 18, 36, 0.56);
   --moon-cyan: rgba(52, 232, 255, 0.38);
   --moon-rose: rgba(255, 88, 176, 0.28);
-  --album-frame-width: min(88%, 344px);
-  --album-frame-aspect: 1;
-  --album-frame-padding: 12px;
+  --album-frame-width: min(98%, 432px);
+  --album-frame-aspect: 16 / 9;
+  --album-frame-padding: 10px;
   --album-frame-bg: linear-gradient(145deg, rgba(214, 248, 255, 0.18), rgba(4, 18, 36, 0.78));
   --album-frame-shadow: 0 30px 76px rgba(0, 6, 18, 0.58), 0 0 86px rgba(52, 232, 255, 0.26);
   --cover-fit: contain;
@@ -103,6 +103,26 @@
     radial-gradient(circle at 82% 24%, rgba(255, 198, 92, 0.16), transparent 18rem),
     radial-gradient(circle at 54% 86%, rgba(255, 88, 176, 0.14), transparent 20rem),
     linear-gradient(145deg, #020511 0%, #07182d 46%, #14231c 100%);
+}
+
+.lunabloomMode {
+  --moon-ink: #fffaf0;
+  --moon-muted: rgba(255, 234, 203, 0.76);
+  --moon-line: rgba(255, 201, 114, 0.32);
+  --moon-glass: rgba(37, 18, 43, 0.54);
+  --moon-cyan: rgba(255, 201, 114, 0.34);
+  --moon-rose: rgba(223, 117, 255, 0.24);
+  --album-frame-width: min(82%, 328px);
+  --album-frame-aspect: 1;
+  --album-frame-padding: 12px;
+  --album-frame-bg: linear-gradient(145deg, rgba(255, 231, 185, 0.2), rgba(37, 18, 43, 0.78));
+  --album-frame-shadow: 0 30px 76px rgba(32, 12, 38, 0.54), 0 0 82px rgba(255, 201, 114, 0.24);
+  --cover-fit: contain;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 201, 114, 0.24), transparent 15rem),
+    radial-gradient(circle at 80% 20%, rgba(223, 117, 255, 0.16), transparent 18rem),
+    radial-gradient(circle at 54% 86%, rgba(255, 238, 209, 0.15), transparent 20rem),
+    linear-gradient(145deg, #130919 0%, #25112f 48%, #3a1c31 100%);
 }
 
 .miniPlayerShell {
@@ -295,6 +315,16 @@
   filter: blur(44px) saturate(1.28);
 }
 
+.lunabloomMode .coverAmbient {
+  background:
+    linear-gradient(rgba(27, 10, 35, 0.48), rgba(27, 10, 35, 0.72)),
+    var(--cover-image),
+    radial-gradient(circle at 48% 38%, rgba(255, 201, 114, 0.24), transparent 22rem),
+    radial-gradient(circle at 74% 66%, rgba(223, 117, 255, 0.12), transparent 18rem);
+  opacity: 0.64;
+  filter: blur(44px) saturate(1.24);
+}
+
 .coverFallback .coverAmbient {
   background:
     radial-gradient(circle at 44% 32%, rgba(246, 240, 207, 0.2), transparent 13rem),
@@ -325,6 +355,13 @@
   background:
     linear-gradient(118deg, transparent 0 18%, rgba(255, 223, 239, 0.18) 28%, transparent 46%),
     linear-gradient(132deg, transparent 0 48%, rgba(255, 151, 205, 0.12) 57%, transparent 70%);
+}
+
+.lunabloomMode .moonbeam {
+  opacity: 0.52;
+  background:
+    linear-gradient(118deg, transparent 0 18%, rgba(255, 231, 185, 0.18) 28%, transparent 46%),
+    linear-gradient(132deg, transparent 0 48%, rgba(223, 117, 255, 0.11) 57%, transparent 70%);
 }
 
 .isPlaying .coverAmbient {
@@ -508,6 +545,15 @@
     0 0 210px rgba(255, 205, 229, 0.14);
 }
 
+.lunabloomMode .albumAura {
+  background:
+    radial-gradient(circle, rgba(255, 242, 212, 0.24), rgba(255, 201, 114, 0.12) 38%, transparent 68%);
+  box-shadow:
+    0 0 58px rgba(255, 231, 185, 0.34),
+    0 0 132px rgba(255, 201, 114, 0.22),
+    0 0 210px rgba(223, 117, 255, 0.13);
+}
+
 .albumHalo {
   position: absolute;
   inset: 1%;
@@ -522,6 +568,11 @@
 .yeoniMode .albumHalo {
   background:
     conic-gradient(from 180deg, rgba(255, 255, 255, 0.04), rgba(255, 232, 244, 0.46), rgba(255, 153, 205, 0.18), rgba(255, 210, 232, 0.28), rgba(255, 255, 255, 0.04));
+}
+
+.lunabloomMode .albumHalo {
+  background:
+    conic-gradient(from 180deg, rgba(255, 255, 255, 0.04), rgba(255, 231, 185, 0.46), rgba(223, 117, 255, 0.16), rgba(255, 201, 114, 0.24), rgba(255, 255, 255, 0.04));
 }
 
 .albumMoonRing {
@@ -541,6 +592,13 @@
   box-shadow:
     inset 0 0 26px rgba(255, 224, 239, 0.12),
     0 0 34px rgba(255, 161, 209, 0.16);
+}
+
+.lunabloomMode .albumMoonRing {
+  border-color: rgba(255, 231, 185, 0.34);
+  box-shadow:
+    inset 0 0 26px rgba(255, 231, 185, 0.12),
+    0 0 34px rgba(255, 201, 114, 0.16);
 }
 
 .albumFrame {
@@ -573,10 +631,25 @@
   border-color: rgba(255, 224, 239, 0.38);
 }
 
+.dest1novaMode .albumFrame {
+  border-color: rgba(111, 238, 255, 0.38);
+}
+
+.lunabloomMode .albumFrame {
+  border-color: rgba(255, 231, 185, 0.38);
+}
+
 .yeoniMode .albumFrame::before {
   background:
     radial-gradient(circle at 24% 18%, rgba(255, 246, 251, 0.28), transparent 24%),
     radial-gradient(circle at 78% 84%, rgba(255, 150, 205, 0.2), transparent 34%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.14), transparent 38%);
+}
+
+.lunabloomMode .albumFrame::before {
+  background:
+    radial-gradient(circle at 24% 18%, rgba(255, 247, 226, 0.28), transparent 24%),
+    radial-gradient(circle at 78% 84%, rgba(223, 117, 255, 0.18), transparent 34%),
     linear-gradient(120deg, rgba(255, 255, 255, 0.14), transparent 38%);
 }
 
@@ -628,6 +701,17 @@
   box-shadow:
     0 28px 70px rgba(34, 4, 26, 0.46),
     0 0 68px rgba(255, 159, 207, 0.24);
+}
+
+.lunabloomMode .coverFallbackArt {
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 247, 226, 0.28), transparent 26%),
+    radial-gradient(circle at 66% 70%, rgba(223, 117, 255, 0.18), transparent 34%),
+    linear-gradient(145deg, #25112f, #7c3b61 54%, #ffe1a8),
+    var(--moon-banner-cover-fallback) center / cover no-repeat;
+  box-shadow:
+    0 28px 70px rgba(32, 12, 38, 0.46),
+    0 0 68px rgba(255, 201, 114, 0.22);
 }
 
 .coverFallback .coverFallbackArt,
@@ -1411,6 +1495,11 @@
   color: rgba(121, 239, 255, 0.9);
 }
 
+.lunabloomMode .playlistKicker,
+.playlistPanel[data-playlist-mode="lunabloom"] .playlistKicker {
+  color: rgba(255, 216, 137, 0.9);
+}
+
 .playlistHeaderMeta {
   display: inline-flex;
   align-items: center;
@@ -1446,7 +1535,7 @@
 
 .playlistTabs {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
   padding: 4px;
   border: 1px solid rgba(238, 247, 255, 0.13);
@@ -1531,6 +1620,34 @@
   border-color: rgba(111, 238, 255, 0.58);
   color: #041421;
   background: #6feeff;
+}
+
+.playlistPanel[data-playlist-mode="lunabloom"] {
+  border-color: rgba(255, 201, 114, 0.28);
+  background:
+    linear-gradient(116deg, rgba(255, 201, 114, 0.13), transparent 28%, rgba(223, 117, 255, 0.08) 74%, transparent),
+    repeating-linear-gradient(135deg, rgba(255, 201, 114, 0.032) 0 1px, transparent 1px 18px),
+    linear-gradient(180deg, rgba(255, 201, 114, 0.1), rgba(223, 117, 255, 0.035)),
+    rgba(29, 12, 35, 0.58);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 20px 48px rgba(22, 8, 30, 0.32),
+    0 0 28px rgba(255, 201, 114, 0.1);
+}
+
+.playlistPanel[data-playlist-mode="lunabloom"] .playlistTab[aria-selected="true"] {
+  border-color: rgba(255, 201, 114, 0.52);
+  color: #fffaf0;
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.24), transparent 38%),
+    linear-gradient(135deg, rgba(255, 201, 114, 0.24), rgba(223, 117, 255, 0.12));
+  box-shadow: 0 0 24px rgba(255, 201, 114, 0.16);
+}
+
+.playlistPanel[data-playlist-mode="lunabloom"] .playlistTab[aria-selected="true"] .playlistTabCount {
+  border-color: rgba(255, 201, 114, 0.58);
+  color: #241124;
+  background: #ffd889;
 }
 
 .playlistSearch {
@@ -1648,6 +1765,21 @@
   box-shadow: 0 0 18px rgba(111, 238, 255, 0.5);
 }
 
+.lunabloomMode .playlistTrack[aria-current="true"] {
+  border-color: rgba(255, 201, 114, 0.38);
+  background:
+    linear-gradient(90deg, rgba(255, 201, 114, 0.14), rgba(223, 117, 255, 0.06)),
+    rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 28px rgba(255, 201, 114, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.lunabloomMode .playlistTrack[aria-current="true"]::before {
+  background: linear-gradient(to bottom, transparent, #ffd889, #df75ff, transparent);
+  box-shadow: 0 0 18px rgba(255, 201, 114, 0.46);
+}
+
 .playlistTrack[data-disabled="true"] {
   cursor: not-allowed;
   opacity: 0.52;
@@ -1665,6 +1797,10 @@
 
 .playlistTrack[data-collection="DEST1NOVA"] {
   border-color: rgba(111, 238, 255, 0.16);
+}
+
+.playlistTrack[data-collection="Luna Bloom"] {
+  border-color: rgba(255, 201, 114, 0.16);
 }
 
 .playlistTrackButton {
@@ -1832,6 +1968,11 @@
 .dest1novaMode .equalizerIcon i {
   background: linear-gradient(to top, #6feeff, #ffd06a);
   box-shadow: 0 0 10px rgba(111, 238, 255, 0.5);
+}
+
+.lunabloomMode .equalizerIcon i {
+  background: linear-gradient(to top, #ffd889, #df75ff);
+  box-shadow: 0 0 10px rgba(255, 201, 114, 0.46);
 }
 
 .playlistTrack[data-playing="true"] .equalizerIcon i:nth-child(1) {
@@ -2072,6 +2213,14 @@
       linear-gradient(145deg, #020511 0%, #07182d 48%, #101f1e 100%);
   }
 
+  .lunabloomMode {
+    background:
+      radial-gradient(ellipse at 18% 8%, rgba(255, 201, 114, 0.2), transparent 30rem),
+      radial-gradient(ellipse at 82% 16%, rgba(223, 117, 255, 0.16), transparent 28rem),
+      radial-gradient(ellipse at 56% 90%, rgba(255, 238, 209, 0.12), transparent 34rem),
+      linear-gradient(145deg, #130919 0%, #25112f 48%, #3a1c31 100%);
+  }
+
   .playerFrame {
     width: min(100%, 1280px);
     grid-template-columns: minmax(620px, 1fr) minmax(360px, 424px);
@@ -2106,6 +2255,10 @@
 
   .dest1novaMode .playerHeroKicker {
     color: rgba(111, 238, 255, 0.82);
+  }
+
+  .lunabloomMode .playerHeroKicker {
+    color: rgba(255, 216, 137, 0.84);
   }
 
   .playerHeroTitle {
@@ -2145,6 +2298,11 @@
 
   .albumStage {
     width: min(100%, 336px);
+  }
+
+  .neoMode .albumStage,
+  .dest1novaMode .albumStage {
+    width: min(100%, 424px);
   }
 
   .nowPlayingPanel,
@@ -2212,6 +2370,19 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.12),
       0 24px 70px rgba(0, 7, 24, 0.36),
       0 0 42px rgba(52, 232, 255, 0.12);
+  }
+
+  .playlistPanel[data-playlist-mode="lunabloom"] {
+    border-color: rgba(255, 201, 114, 0.34);
+    background:
+      linear-gradient(116deg, rgba(255, 201, 114, 0.15), transparent 30%, rgba(223, 117, 255, 0.1) 78%, transparent),
+      repeating-linear-gradient(135deg, rgba(255, 201, 114, 0.038) 0 1px, transparent 1px 22px),
+      linear-gradient(180deg, rgba(255, 201, 114, 0.11), rgba(223, 117, 255, 0.04)),
+      rgba(29, 12, 35, 0.62);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 24px 70px rgba(22, 8, 30, 0.36),
+      0 0 42px rgba(255, 201, 114, 0.12);
   }
 
   .playlistHeaderButton {

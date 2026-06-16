@@ -19,6 +19,7 @@ import { buildCanonicalSukuyoCompatibility, buildSukuyoFromLunar } from "../lib/
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { connectDb } from "../lib/db.js";
 import { ProfileCard, ServiceExecutionTransaction, User } from "../lib/models.js";
+import { findActivePaidContentUnlock } from "../lib/content-unlocks.js";
 import {
   buildPremiumExecutionContext,
   completePremiumPdfExecution,
@@ -29,6 +30,10 @@ import { generateSukuyoLocalPdf } from "../pdf-v2/sukuyo-local-pdf.js";
 
 const SUKUYO_SESSION_LOCK_TTL_MS = 20 * 60 * 1000;
 const SUKYO_COMPAT_TOKEN_MIN_COINS = 490;
+const SUKYO_YEARLY_FORTUNE_PRICE_KRW = 10000;
+const SUKYO_YEARLY_FORTUNE_PRICE_COINS = 100;
+const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
+const SUKYO_YEARLY_FORTUNE_SERVICE_KEY = "sukuyo";
 const sukuyoPdfGenerationLocks = new Map();
 
 function clean(value) {
@@ -1653,10 +1658,363 @@ async function handleSukuyoPremiumPrepare(request, env) {
   }
 }
 
+function normalizeSukuyoTargetYear(value) {
+  const nowYear = new Date().getFullYear();
+  const year = Math.floor(Number(value || nowYear));
+  if (!Number.isFinite(year)) return nowYear;
+  return Math.max(nowYear - 1, Math.min(nowYear + 10, year));
+}
+
+function sukuyoYearlyContentKey(targetYear) {
+  return `${SUKYO_YEARLY_FORTUNE_PRODUCT_KEY}:${normalizeSukuyoTargetYear(targetYear)}`;
+}
+
+function hashSukuyoYearlySeed(value) {
+  const text = clean(value);
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i += 1) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function pickSukuyoYearly(list, seed, offset = 0) {
+  if (!Array.isArray(list) || !list.length) return "";
+  return list[(Math.abs(Number(seed || 0)) + offset) % list.length];
+}
+
+function scoreSukuyoYearly(seed, base = 62, spread = 18, offset = 0) {
+  const n = (Math.abs(Number(seed || 0)) + offset * 9973) % (spread * 2 + 1);
+  return Math.max(35, Math.min(96, Math.round(base - spread + n)));
+}
+
+function normalizeSukuyoGenderLabel(value) {
+  const token = clean(value).toUpperCase();
+  if (token === "M" || token === "MALE") return "남성";
+  if (token === "F" || token === "FEMALE") return "여성";
+  return "미지정";
+}
+
+function formatSukuyoBirthDate(profile) {
+  const birth = profile?.birth || {};
+  const y = String(Number(birth.year || 0)).padStart(4, "0");
+  const m = String(Number(birth.month || 0)).padStart(2, "0");
+  const d = String(Number(birth.day || 0)).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+async function resolveSukuyoYearlyProfile(env, auth, profileIdRaw) {
+  await connectDb(env);
+  const requestedProfileId = clean(profileIdRaw);
+  const user = await User.findById(auth.userId).select("destinyProfilesCurrentId").lean();
+  const profileId = requestedProfileId || clean(user?.destinyProfilesCurrentId);
+  if (!profileId) {
+    const error = new Error("숙요점 1년운을 열 프로필을 먼저 선택해 주세요.");
+    error.status = 403;
+    error.code = "PROFILE_REQUIRED";
+    throw error;
+  }
+  const profile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
+  if (!profile) {
+    const error = new Error("선택한 프로필을 찾지 못했습니다.");
+    error.status = 404;
+    error.code = "PROFILE_NOT_FOUND";
+    throw error;
+  }
+  return profile;
+}
+
+function resolveSukuyoLunarFromProfile(profile) {
+  const birth = profile?.birth || {};
+  const year = Number(birth.year);
+  const month = Number(birth.month);
+  const day = Number(birth.day);
+  const hour = Number.isFinite(Number(birth.hour)) ? Number(birth.hour) : 12;
+  const minute = Number.isFinite(Number(birth.minute)) ? Number(birth.minute) : 0;
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+  const calendarType = clean(birth.calType || "solar").toLowerCase();
+  if (calendarType === "lunar" || calendarType === "lunar_leap") {
+    return { year, month, day, isLeap: calendarType === "lunar_leap" };
+  }
+  const lunar = Solar.fromYmdHms(year, month, day, hour, minute, 0).getLunar();
+  const lunarMonth = Number(lunar.getMonth());
+  return {
+    year: Number(lunar.getYear()),
+    month: Math.abs(lunarMonth),
+    day: Number(lunar.getDay()),
+    isLeap: lunarMonth < 0,
+  };
+}
+
+function relationFromSukuyoDistance(distance) {
+  const d = ((Number(distance) % 27) + 27) % 27;
+  if (d === 0) return { label: "명", theme: "내 안의 원형이 또렷해지는 달", opportunity: "정체성과 이름값을 새롭게 세울 기회", caution: "혼자 결정한 기준을 모두에게 적용하려는 마음" };
+  if ([1, 8, 10, 17, 19, 26].includes(d)) return { label: "영친", theme: "사람과 자원이 부드럽게 이어지는 달", opportunity: "귀인, 소개, 협업, 재회 흐름", caution: "호의와 의무를 혼동하는 선택" };
+  if ([2, 7, 11, 16, 20, 25].includes(d)) return { label: "우쇠", theme: "편안함 속에서 실속을 다지는 달", opportunity: "루틴 정비와 안정적인 수익 구조", caution: "익숙함 때문에 미뤄둔 결정을 방치하는 흐름" };
+  if ([3, 6, 12, 15, 21, 24].includes(d)) return { label: "안괴", theme: "경계와 욕망이 동시에 떠오르는 달", opportunity: "낡은 패턴을 끊고 판을 다시 짜는 힘", caution: "감정적인 확장, 충동 계약, 날 선 말" };
+  return { label: "성위", theme: "역할과 성취가 현실로 굳어지는 달", opportunity: "성과 발표, 시험, 승진, 사업 구조화", caution: "성과를 빨리 증명하려다 회복을 줄이는 선택" };
+}
+
+function buildSukuyoYearlyFortuneResult({ auth, profile, targetYear }) {
+  const lunar = resolveSukuyoLunarFromProfile(profile);
+  if (!lunar) {
+    const error = new Error("숙요점 1년운 계산에 필요한 생년월일이 부족합니다.");
+    error.status = 422;
+    error.code = "INVALID_PROFILE_BIRTH";
+    throw error;
+  }
+  const natal = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: lunar.isLeap, source: "profile-canonical" }) || {};
+  const natalName = clean(natal.nameKo || natal.name || natal.label || natal.mansion || "본명숙");
+  const natalIndex = Number.isFinite(Number(natal.index)) ? Number(natal.index) : 0;
+  const birth = profile.birth || {};
+  const seed = hashSukuyoYearlySeed([
+    auth.userId,
+    profile.profileId,
+    birth.year,
+    birth.month,
+    birth.day,
+    birth.hour,
+    birth.minute,
+    profile.gender,
+    targetYear,
+    SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
+  ].join("|"));
+  const archetypes = [
+    { key: "달빛 정렬", tone: "흩어진 약속과 감정의 결을 다시 맞추는 해", action: "새로 넓히기보다 이미 가진 관계와 일을 선명하게 정리하세요." },
+    { key: "인연 개화", tone: "사람을 통해 길이 열리고 오래된 문이 다시 빛나는 해", action: "소개, 협업, 재회의 신호가 오면 조건을 분명히 두고 받아들이세요." },
+    { key: "기반 축성", tone: "느린 축적이 나중의 큰 흐름을 받치는 해", action: "월별 지출, 체력, 업무 루틴을 기록으로 남기세요." },
+    { key: "경계 재편", tone: "끌림과 부담을 분리하며 나의 영역을 되찾는 해", action: "급한 계약과 감정적 약속은 하루를 묵힌 뒤 움직이세요." },
+    { key: "성과 점등", tone: "이름, 실적, 평판이 밖으로 드러나는 해", action: "드러낼 결과물을 작게라도 완성해 사람 앞에 올리세요." },
+  ];
+  const themeProfile = archetypes[(seed + natalIndex) % archetypes.length];
+  const totalScore = scoreSukuyoYearly(seed, 70 + (natalIndex % 5), 14, 1);
+  const firstScore = scoreSukuyoYearly(seed, 66 + (natalIndex % 7), 13, 2);
+  const secondScore = scoreSukuyoYearly(seed, 69 + (natalIndex % 6), 13, 3);
+  const keywords = [
+    themeProfile.key,
+    pickSukuyoYearly(["영친의 문", "우쇠의 안정", "안괴의 재편", "성위의 결실", "명궁의 회복"], seed, 4),
+    pickSukuyoYearly(["월별 속도 조절", "관계의 선명함", "돈의 기준선", "몸의 리듬", "작은 완성"], seed, 8),
+  ];
+  const monthTitles = ["문이 열림", "숨 고르기", "관계 조율", "기반 정리", "실행 점화", "감정 정돈", "성과 노출", "계약 검증", "회복과 재배치", "귀인 접속", "돈의 기준", "마무리와 봉인"];
+  const monthlyFlow = Array.from({ length: 12 }, (_, index) => {
+    const monthSukuyo = buildSukuyoFromLunar(((index + targetYear) % 12) + 1, ((natalIndex + index * 2 + targetYear) % 27) + 1, { source: "yearly-month-seed" }) || {};
+    const monthIndex = Number.isFinite(Number(monthSukuyo.index)) ? Number(monthSukuyo.index) : (natalIndex + index + 1) % 27;
+    const distance = (monthIndex - natalIndex + 27) % 27;
+    const relation = relationFromSukuyoDistance(distance);
+    const score = scoreSukuyoYearly(seed, 64 + (distance % 9), 15, index + 10);
+    return {
+      month: index + 1,
+      title: `${monthTitles[index]} · ${relation.label}`,
+      score,
+      theme: `${index + 1}월에는 월숙 ${clean(monthSukuyo.nameKo || monthSukuyo.name || "월숙")}이 본명숙 ${natalName}에 ${relation.label}의 결로 닿습니다. ${relation.theme}이 강하게 떠오릅니다.`,
+      opportunity: relation.opportunity,
+      caution: relation.caution,
+      action: score >= 74
+        ? "좋은 흐름은 바로 약속으로 고정하고, 결과가 보이는 일부터 앞에 두세요."
+        : score >= 60
+          ? "속도를 일정하게 유지하며 관계와 돈의 조건을 한 번 더 맞추세요."
+          : "새로운 확장보다 정리, 검증, 회복을 먼저 두면 손실이 줄어듭니다.",
+    };
+  });
+  const risingMonths = monthlyFlow.filter((item) => item.score >= 74).slice(0, 3).map((item) => `${item.month}월`);
+  const cautionMonths = monthlyFlow.filter((item) => item.score < 60).slice(0, 3).map((item) => `${item.month}월`);
+  const profileSummary = {
+    name: clean(profile.name || "사용자"),
+    birthDate: formatSukuyoBirthDate(profile),
+    calendarType: clean(profile.birth?.calType || "solar"),
+    gender: normalizeSukuyoGenderLabel(profile.gender),
+    targetYear,
+    "natal宿": natalName,
+  };
+  return {
+    profileSummary,
+    yearlyTheme: {
+      title: `${targetYear}년 ${natalName}의 ${themeProfile.key}`,
+      keywords,
+      summary: `${natalName}의 ${targetYear}년에는 ${themeProfile.tone}가 드러납니다. 상승기는 ${risingMonths.join(", ") || "상반기 중반"}에 머물고, 조심해야 할 흐름은 ${cautionMonths.join(", ") || "분기 전환기"}에 비칩니다. ${themeProfile.action}`,
+    },
+    totalFortune: {
+      score: totalScore,
+      text: `올해 총운은 본명숙 ${natalName}이 가진 ${pickSukuyoYearly(["예민한 직감", "빠른 반응성", "신중한 판단", "강한 회복력", "관계 감지력"], seed, 12)}이 현실의 선택과 만나는 해입니다. 큰 행운 하나보다 월마다 달라지는 관계의 거리, 돈의 기준, 몸의 리듬을 섬세하게 맞출 때 운이 깊어집니다. ${themeProfile.key}의 흐름은 이미 곁에 있던 기회가 이름을 얻는 모습으로 떠오릅니다.`,
+    },
+    firstHalf: {
+      score: firstScore,
+      text: `상반기는 기반을 다지는 달빛이 강합니다. ${monthlyFlow.slice(0, 6).map((item) => `${item.month}월 ${item.title}`).join(", ")}의 순서로 문이 열리며, 관계에서는 말의 속도보다 약속의 정확도가 중요하게 비칩니다.`,
+      action: "새로 시작하는 일은 작게 시험하고, 지출과 일정은 숫자로 남기세요.",
+    },
+    secondHalf: {
+      score: secondScore,
+      text: `하반기는 성과와 정리의 결이 함께 흐릅니다. ${monthlyFlow.slice(6).map((item) => `${item.month}월 ${item.title}`).join(", ")}의 리듬 속에서 오래 끌던 일이 형태를 얻고, 맞지 않는 인연은 자연스럽게 거리가 잡힙니다.`,
+      action: "좋은 제안도 조건표를 먼저 보고, 오래된 부담은 역할을 다시 나누세요.",
+    },
+    monthlyFlow,
+    loveAndRelationship: {
+      score: scoreSukuyoYearly(seed, 68, 16, 31),
+      text: `연애와 관계에서는 ${pickSukuyoYearly(["영친처럼 다정한 연결", "우쇠처럼 편안한 안정", "안괴처럼 강한 끌림", "성위처럼 현실적인 약속"], seed, 32)}이 떠오릅니다. 마음이 빨라지는 순간일수록 말의 온도와 약속의 범위를 함께 맞춰야 합니다.`,
+      advice: "호감은 자주 표현하되, 관계의 이름과 속도는 상대의 현실까지 보고 정하세요.",
+    },
+    workAndBusiness: {
+      score: scoreSukuyoYearly(seed, 69, 15, 41),
+      text: `일과 사업운은 본명숙 ${natalName}의 장점이 반복 업무보다 선택과 집중에서 빛납니다. 성과는 한 번에 터지기보다 월별로 쌓이며, 특히 ${risingMonths.join(", ") || "기회가 밝은 달"}에는 외부 제안과 협업이 강하게 떠오릅니다.`,
+      advice: "작은 결과물을 먼저 공개하고, 계약은 역할·마감·정산 기준을 문서로 남기세요.",
+    },
+    money: {
+      score: scoreSukuyoYearly(seed, 66, 15, 51),
+      text: "금전운은 달마다 온도 차가 납니다. 들어오는 돈보다 새어 나가는 돈의 결을 잡을 때 전체 운이 안정됩니다. 충동 구매와 감정적 투자보다 반복 수입, 고정비 조정, 현금 흐름 정리가 복을 부릅니다.",
+      advice: "큰 지출은 하루 늦추고, 월초에는 예산선, 월말에는 남은 현금을 반드시 맞추세요.",
+    },
+    healthAndMind: {
+      score: scoreSukuyoYearly(seed, 67, 14, 61),
+      text: "건강과 멘탈은 수면, 눈, 소화, 긴장성 피로 쪽으로 신호가 비칩니다. 운이 커지는 달에는 체력이 먼저 닳을 수 있으니 회복 루틴을 일정 안에 넣어야 달빛이 흐려지지 않습니다.",
+      advice: "밤 시간의 화면과 과한 약속을 줄이고, 보름 전후에는 몸을 비우는 루틴을 두세요.",
+    },
+    noblePersonAndCaution: {
+      noblePerson: `${pickSukuyoYearly(["영친", "우쇠", "성위"], seed, 71)}의 기운을 가진 사람, 약속을 숫자와 일정으로 맞춰 주는 사람`,
+      cautionPerson: `${pickSukuyoYearly(["안괴", "명", "우쇠"], seed, 72)}의 그림자가 강한 사람, 감정으로 결정을 재촉하는 사람`,
+      relationshipAdvice: "올해의 인연은 오래 붙드는 힘보다 서로의 경계를 존중할 때 깊어집니다.",
+    },
+    finalPrescription: {
+      oneLine: `${targetYear}년 ${natalName}에게는 달마다 오는 문을 모두 열기보다, 내 별이 편안히 숨 쉬는 문만 고르는 지혜가 필요합니다.`,
+      doThis: ["월초 목표 하나를 정하기", "보름 전후 관계와 지출 점검하기", "좋은 제안은 작은 실행으로 먼저 검증하기"],
+      avoidThis: ["감정이 오른 날 계약하기", "다른 프로필의 운을 내 흐름처럼 섞기", "회복 시간을 줄여 성과를 밀어붙이기"],
+    },
+  };
+}
+
+function buildSukuyoYearlyPreview(fullResult) {
+  const totalText = clean(fullResult?.totalFortune?.text);
+  return {
+    profileSummary: fullResult.profileSummary,
+    yearlyTheme: fullResult.yearlyTheme,
+    totalFortunePreview: {
+      score: fullResult.totalFortune.score,
+      text: totalText.length > 120 ? `${totalText.slice(0, 120)}...` : totalText,
+    },
+    monthlyPreview: fullResult.monthlyFlow.slice(0, 2),
+    lockedNotice: "전체 12개월 흐름, 사랑/금전/사업/건강운은 잠금 해제 후 열립니다.",
+  };
+}
+
+async function findSukuyoYearlyUnlock({ userId, profileId, targetYear }) {
+  return findActivePaidContentUnlock({
+    userId,
+    profileId,
+    serviceKey: SUKYO_YEARLY_FORTUNE_SERVICE_KEY,
+    contentKey: sukuyoYearlyContentKey(targetYear),
+  });
+}
+
+async function handleSukuyoYearlyFortune(request, env) {
+  const auth = await requireAuth(request, env);
+  const url = new URL(request.url);
+  const targetYear = normalizeSukuyoTargetYear(url.searchParams.get("year"));
+  const profile = await resolveSukuyoYearlyProfile(env, auth, url.searchParams.get("profileId"));
+  const fullResult = buildSukuyoYearlyFortuneResult({ auth, profile, targetYear });
+  const unlock = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear });
+  const unlocked = Boolean(unlock?._id);
+  return json({
+    ok: true,
+    productKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
+    contentKey: sukuyoYearlyContentKey(targetYear),
+    pricing: {
+      amountKrw: SUKYO_YEARLY_FORTUNE_PRICE_KRW,
+      coinPrice: SUKYO_YEARLY_FORTUNE_PRICE_COINS,
+      currency: "KRW",
+    },
+    unlockScope: {
+      userId: auth.userId,
+      profileId: profile.profileId,
+      productKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
+      targetYear,
+    },
+    unlocked,
+    preview: unlocked ? null : buildSukuyoYearlyPreview(fullResult),
+    result: unlocked ? fullResult : null,
+  });
+}
+
+async function handleSukuyoYearlyUnlock(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
+  const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);
+  const existing = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear });
+  const contentKey = sukuyoYearlyContentKey(targetYear);
+  if (existing?._id) {
+    return json({
+      ok: true,
+      alreadyUnlocked: true,
+      unlocked: true,
+      productKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
+      contentKey,
+      profileId: profile.profileId,
+      targetYear,
+    });
+  }
+  return json({
+    ok: true,
+    alreadyUnlocked: false,
+    unlocked: false,
+    productKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
+    contentKey,
+    profileId: profile.profileId,
+    targetYear,
+    billing: {
+      endpoint: "/api/billing/coin-gate",
+      payload: {
+        featureKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
+        contentKey,
+        serviceKey: SUKYO_YEARLY_FORTUNE_SERVICE_KEY,
+        profileId: profile.profileId,
+        selectedProfileId: profile.profileId,
+        targetYear,
+        reason: "숙요점 1년운 전체 해석 잠금 해제",
+        coinPrice: SUKYO_YEARLY_FORTUNE_PRICE_COINS,
+        cost: SUKYO_YEARLY_FORTUNE_PRICE_COINS,
+        amountKrw: SUKYO_YEARLY_FORTUNE_PRICE_KRW,
+        disablePassChoice: true,
+        disablePassFirst: true,
+      },
+    },
+  });
+}
+
+async function handleSukuyoYearlyVerifyPayment(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
+  const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);
+  const paymentId = clean(body?.paymentId || body?.impUid || body?.merchantUid || body?.merchant_uid);
+  const existing = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear });
+  if (existing?._id) {
+    return json({ ok: true, unlocked: true, productKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY, contentKey: sukuyoYearlyContentKey(targetYear), profileId: profile.profileId, targetYear });
+  }
+  if (!paymentId) {
+    return json({ ok: false, unlocked: false, code: "PAYMENT_EVIDENCE_REQUIRED", message: "결제 검증 정보가 필요합니다." }, { status: 400 });
+  }
+  return json({ ok: false, unlocked: false, code: "PAYMENT_NOT_VERIFIED", message: "서버 결제 검증 후 잠금 해제가 필요합니다." }, { status: 402 });
+}
+
 export async function handleSukuyoRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/sukuyo");
+
+    if (path === "/yearly-fortune") {
+      if (method !== "GET") return methodNotAllowed();
+      return await handleSukuyoYearlyFortune(request, env);
+    }
+
+    if (path === "/yearly-fortune/unlock") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleSukuyoYearlyUnlock(request, env);
+    }
+
+    if (path === "/yearly-fortune/verify-payment") {
+      if (method !== "POST") return methodNotAllowed();
+      return await handleSukuyoYearlyVerifyPayment(request, env);
+    }
 
     if (path === "/past-life-reading") {
       if (method !== "POST") return methodNotAllowed();

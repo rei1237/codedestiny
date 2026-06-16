@@ -1037,8 +1037,13 @@ export default {
       if (
         url.pathname === "/api/sukuyo"
         || url.pathname.startsWith("/api/sukuyo/")
+        || url.pathname === "/api/sukyo"
+        || url.pathname.startsWith("/api/sukyo/")
       ) {
-        return withCorsHeaders(request, env, await handleSukuyoRoutes(request, env));
+        const routedRequest = url.pathname.startsWith("/api/sukyo")
+          ? rewriteRequestPath(request, url.pathname.replace("/api/sukyo", "/api/sukuyo"))
+          : request;
+        return withCorsHeaders(request, env, await handleSukuyoRoutes(routedRequest, env));
       }
 
       if (url.pathname === "/api/astrology" || url.pathname.startsWith("/api/astrology/")) {

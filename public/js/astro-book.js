@@ -597,6 +597,35 @@
     return NaN;
   }
 
+  function _pickAstroTimezoneOffset(profile, location) {
+    var p = profile || {};
+    var l = location || {};
+    var values = [
+      l.tzOffset,
+      l.tzOffsetHours,
+      l.timezoneOffsetHours,
+      l.timezoneOffsetHour,
+      l.timezoneOffset,
+      l.utcOffsetHours,
+      l.utcOffset,
+      l.baseTzOffset,
+      l.baseTimezoneOffset,
+      p.timezoneOffsetHours,
+      p.timezoneOffsetHour,
+      p.tzOffsetHours,
+      p.tzOffset,
+      p.utcOffsetHours,
+      p.utcOffset,
+      p.baseTzOffset,
+      p.baseTimezoneOffset
+    ];
+    for (var i = 0; i < values.length; i += 1) {
+      if (values[i] == null || values[i] === '') continue;
+      return values[i];
+    }
+    return null;
+  }
+
   function _normalizeAstroBirthInput(profile) {
     var p = profile || {};
     var b = p.birth || {};
@@ -606,7 +635,7 @@
     var day = Number(b.day || 0);
     var parsedTime = _parseBirthTimeInput(b.time || b.birthTime || '', b.hour, b.minute);
     var tz = _clean(l.tz || l.timezone || p.timezone || '');
-    var rawTzOffset = l.tzOffset != null ? l.tzOffset : (l.timezoneOffset != null ? l.timezoneOffset : (l.utcOffset != null ? l.utcOffset : (p.timezoneOffsetHours != null ? p.timezoneOffsetHours : p.tzOffset)));
+    var rawTzOffset = _pickAstroTimezoneOffset(p, l);
     var tzOffset = Number(rawTzOffset);
     if (!Number.isFinite(tzOffset)) {
       tzOffset = _resolveTimezoneOffsetHours(tz, {
@@ -634,6 +663,7 @@
       birthMinute: parsedTime.birthMinute,
       timezone: tz,
       timezoneOffsetHours: Number.isFinite(tzOffset) ? tzOffset : null,
+      baseTzOffset: Number.isFinite(tzOffset) ? tzOffset : null,
       birthPlace: _clean(l.label || p.birthPlace || ''),
       latitude: Number.isFinite(Number(l.lat)) ? Number(l.lat) : null,
       longitude: Number.isFinite(Number(l.lon != null ? l.lon : l.lng)) ? Number(l.lon != null ? l.lon : l.lng) : null,
@@ -807,7 +837,7 @@
     var location = (profile && profile.location) || {};
     var hour = Number(birth.hour);
     var minute = Number(birth.minute || 0);
-    var rawTzOffset = location.tzOffset != null ? location.tzOffset : (location.timezoneOffset != null ? location.timezoneOffset : (location.utcOffset != null ? location.utcOffset : location.timezone || location.tz));
+    var rawTzOffset = _pickAstroTimezoneOffset(profile, location) || location.timezone || location.tz;
     var tzOffset = _resolveTimezoneOffsetHours(rawTzOffset, {
       year: birth.year,
       month: birth.month,

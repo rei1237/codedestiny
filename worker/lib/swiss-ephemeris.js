@@ -29,6 +29,7 @@ const VEDIC_PLANETS = [
 const EPHE_FILES = ["seas_18.se1", "sepl_18.se1", "semo_18.se1", "sefstars.txt"];
 const DEFAULT_SWISS_WASM_PATH = "/js/vendor/sweph-wasm/wasm/swisseph.wasm";
 const FALLBACK_SWISS_WASM_URL = "https://cdn.jsdelivr.net/npm/sweph-wasm/dist/wasm/swisseph.wasm";
+const FALLBACK_SWISS_EPHE_BASE_URL = "https://cdn.jsdelivr.net/npm/sweph-wasm/dist/ephe/";
 
 let swissPromise = null;
 
@@ -684,28 +685,42 @@ async function createSwissInstance(env, options = {}) {
   try {
     swe = await initSwiss(wasmPath);
   } catch (error) {
-    const message = String(error?.message || error || "").toLowerCase();
-    const recoverablePathError = message.includes("invalid url")
-      || message.includes("invalid url string")
-      || message.includes("failed to parse url")
-      || message.includes("typeerror");
-    if (!recoverablePathError) {
-      throw toStatusError(500, `Swiss wasm init failed: ${String(error?.message || error || "unknown")}`);
-    }
+    const attempts = [];
+    if (String(wasmPath || "").trim() !== FALLBACK_SWISS_WASM_URL) attempts.push(FALLBACK_SWISS_WASM_URL);
+    attempts.push("");
 
-    try {
-      swe = await initSwiss("");
-    } catch (retryError) {
-      throw toStatusError(500, `Swiss wasm init failed after fallback: ${String(retryError?.message || retryError || "unknown")}`);
+    let lastError = error;
+    for (const fallbackPath of attempts) {
+      try {
+        swe = await initSwiss(fallbackPath);
+        lastError = null;
+        break;
+      } catch (retryError) {
+        lastError = retryError;
+      }
+    }
+    if (!swe) {
+      throw toStatusError(500, `Swiss wasm init failed after fallback: ${String(lastError?.message || lastError || "unknown")}`);
     }
   }
 
   const epheBaseUrl = resolveEpheBaseUrl(env, options);
+  const epheAttempts = [epheBaseUrl];
+  if (epheBaseUrl !== FALLBACK_SWISS_EPHE_BASE_URL) epheAttempts.push(FALLBACK_SWISS_EPHE_BASE_URL);
 
-  try {
-    await swe.swe_set_ephe_path(epheBaseUrl, EPHE_FILES);
-  } catch (error) {
-    throw toStatusError(500, `Swiss ephemeris load failed from ${epheBaseUrl}: ${error?.message || error}`);
+  let epheLoaded = false;
+  let epheLastError = null;
+  for (const candidateBaseUrl of epheAttempts) {
+    try {
+      await swe.swe_set_ephe_path(candidateBaseUrl, EPHE_FILES);
+      epheLoaded = true;
+      break;
+    } catch (error) {
+      epheLastError = error;
+    }
+  }
+  if (!epheLoaded) {
+    throw toStatusError(500, `Swiss ephemeris load failed from ${epheBaseUrl}: ${epheLastError?.message || epheLastError}`);
   }
 
   return swe;
@@ -875,6 +890,8 @@ export async function getSwissVedicPlanets(env, payload, options = {}) {
     ayanamsa,
     ascendantSidereal: Number.isFinite(siderealAsc) ? siderealAsc : null,
     source: "swiss-wasm-local",
+    engineQuality: "swiss",
+    fallbackUsed: false,
   };
 }
 

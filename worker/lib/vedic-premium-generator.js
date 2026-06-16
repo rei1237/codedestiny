@@ -483,21 +483,23 @@ function pickRawBirthSource(input = {}) {
   const user = input.user && typeof input.user === "object" ? input.user : {};
   const profile = input.profile && typeof input.profile === "object" ? input.profile : {};
   const location = input.location && typeof input.location === "object" ? input.location : {};
+  const profileBirth = profile.birth && typeof profile.birth === "object" ? profile.birth : {};
+  const profileLocation = profile.location && typeof profile.location === "object" ? profile.location : {};
   return {
     name: input.name ?? birthInput.name ?? user.name ?? profile.name,
     gender: input.gender ?? input.sex ?? birthInput.gender ?? user.gender ?? profile.gender,
-    date: input.birthDate ?? birthInput.birthDate ?? input.birthday ?? input.birth ?? input.solarDate ?? input.date ?? birth.date ?? user.birthDate ?? profile.birthDate,
-    year: input.birthYear ?? birthInput.birthYear ?? birth.year ?? profile.birthYear,
-    month: input.birthMonth ?? birthInput.birthMonth ?? birth.month ?? profile.birthMonth,
-    day: input.birthDay ?? birthInput.birthDay ?? birth.day ?? profile.birthDay,
-    time: input.birthTime ?? birthInput.birthTime ?? input.time ?? birth.time ?? profile.birthTime ?? user.birthTime,
-    hour: input.birthHour ?? birthInput.birthHour ?? input.hour ?? input.birth_hour ?? birth.hour ?? profile.birthHour,
-    minute: input.birthMinute ?? birthInput.birthMinute ?? input.minute ?? birth.minute ?? profile.birthMinute,
-    timezone: input.timezone ?? birthInput.timezone ?? input.tz ?? location.tz ?? user.timezone ?? profile.timezone,
-    birthPlace: input.birthPlace ?? birthInput.birthPlace ?? input.place ?? input.locationName ?? input.location ?? user.birthPlace ?? profile.birthPlace,
-    latitude: input.latitude ?? birthInput.latitude ?? input.lat ?? location.lat,
-    longitude: input.longitude ?? birthInput.longitude ?? input.lng ?? input.lon ?? location.lon,
-    isTimeUnknown: Boolean(input.isTimeUnknown || birthInput.isTimeUnknown || input.timeUnknown || input.birthTimeUnknown),
+    date: input.birthDate ?? birthInput.birthDate ?? input.birthday ?? input.solarDate ?? input.date ?? birth.date ?? profileBirth.date ?? user.birthDate ?? profile.birthDate,
+    year: input.birthYear ?? birthInput.birthYear ?? birth.year ?? profileBirth.year ?? profile.birthYear,
+    month: input.birthMonth ?? birthInput.birthMonth ?? birth.month ?? profileBirth.month ?? profile.birthMonth,
+    day: input.birthDay ?? birthInput.birthDay ?? birth.day ?? profileBirth.day ?? profile.birthDay,
+    time: input.birthTime ?? birthInput.birthTime ?? input.time ?? birth.time ?? profileBirth.time ?? profile.birthTime ?? user.birthTime,
+    hour: input.birthHour ?? birthInput.birthHour ?? input.hour ?? input.birth_hour ?? birth.hour ?? profileBirth.hour ?? profile.birthHour,
+    minute: input.birthMinute ?? birthInput.birthMinute ?? input.minute ?? birth.minute ?? profileBirth.minute ?? profile.birthMinute,
+    timezone: input.timezone ?? birthInput.timezone ?? input.tz ?? location.tz ?? profileLocation.tz ?? user.timezone ?? profile.timezone,
+    birthPlace: input.birthPlace ?? birthInput.birthPlace ?? input.place ?? input.locationName ?? (typeof input.location === "string" ? input.location : undefined) ?? location.label ?? location.name ?? user.birthPlace ?? profile.birthPlace ?? profile.place ?? profile.locationName ?? profileLocation.label ?? profileLocation.name,
+    latitude: input.latitude ?? birthInput.latitude ?? input.lat ?? location.lat ?? location.latitude ?? profile.latitude ?? profile.lat ?? profileLocation.lat ?? profileLocation.latitude,
+    longitude: input.longitude ?? birthInput.longitude ?? input.lng ?? input.lon ?? location.lon ?? location.lng ?? location.longitude ?? profile.longitude ?? profile.lng ?? profile.lon ?? profileLocation.lon ?? profileLocation.lng ?? profileLocation.longitude,
+    isTimeUnknown: Boolean(input.isTimeUnknown || birthInput.isTimeUnknown || input.timeUnknown || input.birthTimeUnknown || profile.isTimeUnknown || profileBirth.isTimeUnknown),
   };
 }
 

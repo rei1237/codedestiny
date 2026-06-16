@@ -71,6 +71,8 @@ const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_compat: SAJU_LOCKED_CONTENT_KEYS.COMPATIBILITY,
 });
 
+const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
+
 const ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   ziwei_decade_luck: "ziwei.decadeLuck",
 });
@@ -78,6 +80,7 @@ const ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
 const PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   ...SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY,
   ...ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY,
+  [SUKYO_YEARLY_FORTUNE_PRODUCT_KEY]: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
 });
 
 const PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
@@ -89,6 +92,7 @@ const PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
 const PROFILE_UNLOCK_SERVICE_KEYS = Object.freeze([
   CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU,
   "ziwei",
+  "sukuyo",
 ]);
 
 const ACCESS_METHOD_ORDER = Object.freeze(["pass", "one_time", "monthly"]);
@@ -190,8 +194,15 @@ const SAJU_PDF_GENERATION_FEATURE_KEYS = new Set([
 
 function resolveSajuProfileUnlockContentKey(featureKey, contentKey = "") {
   const explicitContentKey = String(contentKey || "").trim();
+  const normalizedFeatureKey = String(featureKey || "").trim();
+  if (
+    normalizedFeatureKey === SUKYO_YEARLY_FORTUNE_PRODUCT_KEY
+    && (explicitContentKey === SUKYO_YEARLY_FORTUNE_PRODUCT_KEY || explicitContentKey.startsWith(`${SUKYO_YEARLY_FORTUNE_PRODUCT_KEY}:`))
+  ) {
+    return explicitContentKey;
+  }
   if (PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY[explicitContentKey]) return explicitContentKey;
-  return PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[String(featureKey || "").trim()] || "";
+  return PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[normalizedFeatureKey] || "";
 }
 
 function createUnlockEntitlementSaveError(error) {

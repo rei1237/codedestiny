@@ -404,7 +404,7 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
       setShuffle(persistedState.shuffle);
     }
 
-    if (persistedState.trackId) {
+    if (persistedState.trackId && !options.initialTrackId) {
       const restoredIndex = tracks.findIndex((track) => track.id === persistedState.trackId);
       if (restoredIndex >= 0) {
         setTrackIndex(restoredIndex, false);
@@ -412,7 +412,7 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
     }
 
     hasRestoredStateRef.current = true;
-  }, [setTrackIndex, setVolume, tracks]);
+  }, [options.initialTrackId, setTrackIndex, setVolume, tracks]);
 
   useEffect(() => {
     tracksRef.current = tracks;

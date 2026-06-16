@@ -11188,76 +11188,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   }
 
   function syBuildSukuyoAnnualMonthlyReading(canonicalData, sData, daily, sourceProfile) {
-    if (!sData) return null;
+    var profileId = syResolveCurrentProfileIdForPaidGate();
     var year = new Date().getFullYear();
-    var traits = sData.traits || {};
-    var mansionIdx = Number.isFinite(Number(sData.mansionIdx)) ? Number(sData.mansionIdx) : 0;
-    var mansionLabel = String(sData.mansion || '본명숙');
-    var birth = sourceProfile && sourceProfile.birth ? sourceProfile.birth : (sourceProfile || {});
-    var birthKey = [birth.year, birth.month, birth.day, birth.hour, birth.minute].join('-');
-    var baseDaily = daily || {};
-    var overall = syCompatClamp((Number(baseDaily.overall || 62) * 0.35) + (Number(baseDaily.relations || 62) * 0.2) + (Number(baseDaily.love || 62) * 0.15) + (Number(baseDaily.wealth || 62) * 0.18) + ((mansionIdx % 9) * 1.4), 20, 99);
-    var relations = syCompatClamp(Number(baseDaily.relations || overall), 20, 99);
-    var love = syCompatClamp(Number(baseDaily.love || overall), 20, 99);
-    var wealth = syCompatClamp(Number(baseDaily.wealth || overall), 20, 99);
-    var seed = syCompatHash([mansionLabel, mansionIdx, year, birthKey, overall, relations, love, wealth].join('|'));
-    var themes = ['성장', '정리', '인연', '재물', '이동', '회복', '창조', '공부', '결실', '전환', '보호', '확장'];
-    var theme = themes[(seed + mansionIdx) % themes.length];
-    var relationTone = relations >= 76 ? '새 인연과 귀인의 문이 열리며, 기존 관계에서는 더 깊은 신뢰를 확인하는 해입니다.' : (relations >= 60 ? '가까운 사람과의 속도 조절이 중요합니다. 서두른 확답보다 꾸준한 말이 운을 살립니다.' : '관계에서는 정리와 선별이 먼저입니다. 마음을 소모시키는 약속은 줄이고 진짜 인연만 남겨야 합니다.');
-    var workTone = wealth >= 76 ? '일과 재물은 수확을 향해 움직입니다. 다만 커지는 흐름일수록 지출 기준과 역할 경계를 명확히 해야 합니다.' : (wealth >= 60 ? '재물은 큰 변동보다 안정적인 축적에 유리합니다. 작은 수입, 반복되는 루틴, 실용적 선택이 복을 만듭니다.' : '올해는 공격적 확장보다 현금 흐름과 에너지 보존이 우선입니다. 무리한 투자와 충동 지출은 피하세요.');
-    var emotionTone = love >= 74 ? '감정은 따뜻하게 열리지만, 마음이 커질수록 기대도 커집니다. 표현은 자주, 결론은 천천히가 좋습니다.' : '감정은 깊어지는 대신 예민해질 수 있습니다. 혼자 해석하기보다 짧게 확인하는 습관이 필요합니다.';
-    var yearlyCards = [
-      { title: '올해의 숙요 테마', value: theme + '의 해', body: mansionLabel + '의 별빛은 올해 ' + theme + '을 중심으로 열립니다. 크게 흔드는 사건보다 반복되는 선택이 운의 품질을 바꿉니다.' },
-      { title: '관계운', value: syIndicatorBand(relations), body: relationTone },
-      { title: '일·돈 흐름', value: syIndicatorBand(wealth), body: workTone },
-      { title: '감정 리듬', value: syIndicatorBand(love), body: emotionTone },
-      { title: '주의점', value: overall >= 72 ? '과속 주의' : '소모 주의', body: '좋은 흐름도 욕심이 앞서면 흐려집니다. 약속, 돈, 감정 표현은 한 번 더 확인한 뒤 움직이세요.' },
-      { title: '행운법', value: '달빛 루틴', body: '매월 초에는 목표 하나를 정하고, 보름 전후에는 관계와 감정을 정리하세요. 그믐 무렵에는 쉬어가는 선택이 운을 지킵니다.' }
-    ];
-    var monthly = [];
-    for (var i = 0; i < 12; i++) {
-      var monthLunar = syBuildMonthlySukuyoLunar(year, i);
-      var monthSukuyo = null;
-      try { monthSukuyo = calcSukuyoData(monthLunar); } catch (_me) { monthSukuyo = null; }
-      var monthIdx = monthSukuyo && Number.isFinite(Number(monthSukuyo.mansionIdx))
-        ? Number(monthSukuyo.mansionIdx)
-        : ((mansionIdx + i + 1) % 27);
-      var distance = (monthIdx - mansionIdx + 27) % 27;
-      var monthRelation = syWheelRelationFromDistance(distance);
-      var relationProfile = syMonthlySukuyoRelationProfile(monthRelation.short);
-      var domainScore = monthRelation.short === '영' || monthRelation.short === '친' || monthRelation.short === '우' || monthRelation.short === '쇠'
-        ? relations
-        : (monthRelation.short === '성' || monthRelation.short === '위' ? wealth : (monthRelation.short === '안' || monthRelation.short === '괴' ? love : overall));
-      var relationPulse = ((distance * 5 + i * 7 + (seed % 19)) % 17) - 8;
-      var monthScore = syCompatClamp(relationProfile.base + relationPulse + ((Number(domainScore || 62) - 62) * 0.08) + ((Number(overall || 62) - 62) * 0.05), 32, 96);
-      var lunarLabel = monthLunar && monthLunar.month && monthLunar.day
-        ? '음력 ' + monthLunar.month + '월 ' + monthLunar.day + '일'
-        : '월초';
-      var monthMansion = monthSukuyo && monthSukuyo.mansion ? monthSukuyo.mansion : '월숙';
-      monthly.push({
-        month: (i + 1) + '월',
-        type: relationProfile.type,
-        score: monthScore,
-        band: syIndicatorBand(monthScore),
-        focus: relationProfile.focus,
-        body: lunarLabel + ' 월숙 ' + monthMansion + '이 본명숙 ' + mansionLabel + '에 ' + monthRelation.label + '으로 들어오는 달입니다. ' + relationProfile.focus + '이 중심이 되며, ' + syFirstToken(syCanonicalTokenize(traits.core || traits.desc, '내면의 기준'), '내면의 기준') + '을 지킬수록 운의 결이 안정됩니다.',
-        relation: relationProfile.relation,
-        work: relationProfile.work,
-        caution: relationProfile.caution,
-        relationLabel: monthRelation.label,
-        mansionLabel: monthMansion,
-        distance: distance
-      });
-    }
     return {
-      year: year,
-      title: year + '년 숙요점 1년운',
-      mansionLabel: mansionLabel,
-      score: overall,
-      theme: theme,
-      summary: mansionLabel + '의 ' + year + '년은 ' + theme + '의 문이 열리는 해입니다. 흐름은 한 번에 커지기보다 달마다 다른 문을 통과하며 깊어집니다.',
-      yearlyCards: yearlyCards,
-      monthly: monthly
+      serverYearly: true,
+      profileId: profileId,
+      targetYear: year,
+      localMansion: sData && sData.mansion ? String(sData.mansion) : '본명숙',
+      sourceProfile: sourceProfile || null
     };
   }
 
@@ -11267,109 +11205,222 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   }
 
   function syRenderSukuyoMonthlyGrid(reading) {
-    if (!reading || !Array.isArray(reading.monthly)) return '';
+    var months = reading && Array.isArray(reading.monthlyFlow) ? reading.monthlyFlow : [];
+    if (!months.length) return '';
     var moonMarks = ['☾', '◐', '●', '◑'];
     return '<div class="sy-lunar-month-grid">'
-      + reading.monthly.map(function(item, idx) {
+      + months.map(function(item, idx) {
         var color = item.score >= 76 ? '#86efac' : (item.score >= 62 ? '#fde68a' : '#bfdbfe');
         return '<article class="sy-lunar-month-item">'
-          + '<div class="sy-lunar-month-head"><strong class="sy-lunar-month-title"><span class="sy-lunar-phase">' + syCanonicalEsc(moonMarks[idx % moonMarks.length]) + '</span><span>' + syCanonicalEsc(item.month) + ' · ' + syCanonicalEsc(item.type) + '</span></strong><span class="sy-lunar-band" style="color:' + color + ';">' + syCanonicalEsc(item.band) + '</span></div>'
+          + '<div class="sy-lunar-month-head"><strong class="sy-lunar-month-title"><span class="sy-lunar-phase">' + syCanonicalEsc(moonMarks[idx % moonMarks.length]) + '</span><span>' + syCanonicalEsc(item.month) + '월 · ' + syCanonicalEsc(item.title) + '</span></strong><span class="sy-lunar-band" style="color:' + color + ';">' + syCanonicalEsc(item.score) + '점</span></div>'
           + syRenderSukuyoScoreBar(item.score, 'linear-gradient(90deg,#10b981,#86efac)')
-          + '<p>' + syCanonicalEsc(item.body) + '</p>'
-          + '<p class="sy-lunar-note sy-lunar-note--relation">관계 · ' + syCanonicalEsc(item.relation) + '</p>'
-          + '<p class="sy-lunar-note sy-lunar-note--work">일·돈 · ' + syCanonicalEsc(item.work) + '</p>'
+          + '<p>' + syCanonicalEsc(item.theme) + '</p>'
+          + '<p class="sy-lunar-note sy-lunar-note--relation">기회 · ' + syCanonicalEsc(item.opportunity) + '</p>'
+          + '<p class="sy-lunar-note sy-lunar-note--work">실행 · ' + syCanonicalEsc(item.action) + '</p>'
           + '<p class="sy-lunar-note sy-lunar-note--caution">주의 · ' + syCanonicalEsc(item.caution) + '</p>'
           + '</article>';
       }).join('')
       + '</div>';
   }
 
-  function syRenderSukuyoMonthlyLock(reading) {
-    var sample = reading && Array.isArray(reading.monthly) ? reading.monthly.slice(0, 3) : [];
+  function syFetchSukuyoYearlyJson(path, options) {
+    if (typeof fetchJsonWithAuth === 'function') return fetchJsonWithAuth(path, options || {});
+    var headers = Object.assign({ 'Content-Type': 'application/json' }, (options && options.headers) || {});
+    try {
+      var token = localStorage.getItem('fortune_auth_token') || '';
+      if (token) headers.Authorization = 'Bearer ' + token;
+    } catch (_) {}
+    return fetch(path, Object.assign({}, options || {}, { headers: headers }))
+      .then(function(res) {
+        return res.json().catch(function() { return {}; }).then(function(payload) {
+          return { ok: res.ok, status: res.status, payload: payload };
+        });
+      });
+  }
+
+  function syRenderSukuyoYearlyLocked(payload) {
+    var preview = payload && payload.preview ? payload.preview : {};
+    var theme = preview.yearlyTheme || {};
+    var summary = preview.profileSummary || {};
+    var keywords = Array.isArray(theme.keywords) ? theme.keywords : [];
+    var sample = Array.isArray(preview.monthlyPreview) ? preview.monthlyPreview : [];
     return '<div class="sy-month-lock-panel">'
       + '<div class="sy-month-lock-orbit" aria-hidden="true">☾</div>'
       + '<div class="sy-month-lock-body">'
-        + '<strong>12개월 숙요 흐름표 잠금</strong>'
-        + '<p>월별 관계, 일·돈, 주의 포인트는 결제 후 열립니다. 좋은 달에는 속도를 조절하고 느린 달에는 회복을 선택할 수 있도록 한 해의 달빛 리듬을 월 단위로 펼쳐드립니다.</p>'
-        + '<button type="button" class="sy-month-unlock-btn" data-sy-monthly-unlock aria-label="월별 숙요 운세를 3,000원으로 해금">월별 숙요 운세 열기 · ' + syPaidPriceLabel(SY_PAID_FEATURES.monthlyFortune) + '</button>'
+        + '<strong>' + syCanonicalEsc(theme.title || '숙요점 1년운 전체 해석') + '</strong>'
+        + '<p>' + syCanonicalEsc(theme.summary || '올해의 월별 흐름과 사랑, 일, 금전, 건강운은 잠금 해제 후 이어집니다.') + '</p>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px;">' + keywords.map(function(key) { return '<span class="sy-paid-status">' + syCanonicalEsc(key) + '</span>'; }).join('') + '</div>'
+        + '<p style="color:#fef3c7;">' + syCanonicalEsc(summary.name || '프로필') + ' · ' + syCanonicalEsc(summary.birthDate || '') + ' · ' + syCanonicalEsc(summary.gender || '') + ' · ' + syCanonicalEsc(summary.targetYear || '') + '년 · 본명숙 ' + syCanonicalEsc(summary['natal宿'] || '') + '</p>'
+        + '<p>' + syCanonicalEsc((preview.totalFortunePreview && preview.totalFortunePreview.text) || '') + '</p>'
+        + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="숙요점 1년운 전체 해석 잠금 해제">숙요점 1년운 전체 해석 잠금 해제 · 10,000원</button>'
       + '</div>'
       + '</div>'
       + '<div class="sy-month-preview-grid">'
       + sample.map(function(item) {
-        return '<article class="sy-month-preview-item"><strong>' + syCanonicalEsc(item.month) + ' · 잠금 미리보기</strong><span>' + syCanonicalEsc(item.type) + ' 흐름과 핵심 조언은 해금 후 표시됩니다.</span></article>';
+        return '<article class="sy-month-preview-item"><strong>' + syCanonicalEsc(item.month) + '월 · ' + syCanonicalEsc(item.title) + '</strong><span>' + syCanonicalEsc(item.theme) + '</span></article>';
       }).join('')
+      + '<article class="sy-month-preview-item"><strong>잠금 영역</strong><span>전체 12개월 흐름, 사랑/금전/사업/건강운은 잠금 해제 후 확인할 수 있습니다.</span></article>'
       + '</div>';
   }
 
+  function syRenderSukuyoYearlyFull(result) {
+    if (!result) return '';
+    var summary = result.profileSummary || {};
+    var theme = result.yearlyTheme || {};
+    var domains = [
+      ['사랑/관계운', result.loveAndRelationship],
+      ['일/사업/학업운', result.workAndBusiness],
+      ['금전운', result.money],
+      ['건강/멘탈운', result.healthAndMind]
+    ];
+    return ''
+      + '<div class="sy-lunar-year-head">'
+      + '<div class="sy-lunar-year-copy">'
+      + '<h4>' + syCanonicalEsc(theme.title || '숙요점 1년운') + '</h4>'
+      + '<p>' + syCanonicalEsc(theme.summary || '') + '</p>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;">' + (Array.isArray(theme.keywords) ? theme.keywords : []).map(function(key) { return '<span class="sy-paid-status is-unlocked">' + syCanonicalEsc(key) + '</span>'; }).join('') + '</div>'
+      + '</div>'
+      + '<article class="sy-lunar-score-orb"><div class="sy-lunar-score">' + syCanonicalEsc(result.totalFortune && result.totalFortune.score) + '점</div><div class="sy-lunar-score-label">올해 총운</div></article>'
+      + '</div>'
+      + '<article style="background:rgba(2,6,23,0.42);border:1px solid rgba(216,180,254,0.22);border-radius:12px;padding:11px;color:#ede9fe;font-size:0.84rem;line-height:1.8;margin-bottom:10px;">'
+      + syCanonicalEsc(summary.name || '프로필') + ' · ' + syCanonicalEsc(summary.birthDate || '') + ' · ' + syCanonicalEsc(summary.gender || '') + ' · ' + syCanonicalEsc(summary.targetYear || '') + '년 · 본명숙 <strong style="color:#fef3c7;">' + syCanonicalEsc(summary['natal宿'] || '') + '</strong>'
+      + '</article>'
+      + '<div class="sy-lunar-year-grid">'
+      + '<article><strong>전체 총운</strong><span>' + syCanonicalEsc(result.totalFortune && result.totalFortune.score) + '점</span><p>' + syCanonicalEsc(result.totalFortune && result.totalFortune.text) + '</p></article>'
+      + '<article><strong>상반기 흐름</strong><span>' + syCanonicalEsc(result.firstHalf && result.firstHalf.score) + '점</span><p>' + syCanonicalEsc(result.firstHalf && result.firstHalf.text) + '</p><p>' + syCanonicalEsc(result.firstHalf && result.firstHalf.action) + '</p></article>'
+      + '<article><strong>하반기 흐름</strong><span>' + syCanonicalEsc(result.secondHalf && result.secondHalf.score) + '점</span><p>' + syCanonicalEsc(result.secondHalf && result.secondHalf.text) + '</p><p>' + syCanonicalEsc(result.secondHalf && result.secondHalf.action) + '</p></article>'
+      + domains.map(function(pair) {
+        var item = pair[1] || {};
+        return '<article><strong>' + syCanonicalEsc(pair[0]) + '</strong><span>' + syCanonicalEsc(item.score) + '점</span><p>' + syCanonicalEsc(item.text) + '</p><p>' + syCanonicalEsc(item.advice) + '</p></article>';
+      }).join('')
+      + '<article><strong>귀인/주의 인연</strong><span>인연의 결</span><p>귀인 · ' + syCanonicalEsc(result.noblePersonAndCaution && result.noblePersonAndCaution.noblePerson) + '</p><p>주의 · ' + syCanonicalEsc(result.noblePersonAndCaution && result.noblePersonAndCaution.cautionPerson) + '</p><p>' + syCanonicalEsc(result.noblePersonAndCaution && result.noblePersonAndCaution.relationshipAdvice) + '</p></article>'
+      + '<article><strong>숙요점식 한 줄 처방</strong><span>올해의 처방</span><p>' + syCanonicalEsc(result.finalPrescription && result.finalPrescription.oneLine) + '</p><p>잡을 것 · ' + syCanonicalEsc((result.finalPrescription && result.finalPrescription.doThis || []).join(' · ')) + '</p><p>피할 것 · ' + syCanonicalEsc((result.finalPrescription && result.finalPrescription.avoidThis || []).join(' · ')) + '</p></article>'
+      + '</div>'
+      + '<div style="margin-top:14px;"><div class="sy-lunar-overline" style="color:#99f6e4;">Monthly Sukuyo Rhythm</div><h4 style="margin:0 0 10px;color:#ccfbf1;">월별 12개월 흐름</h4>' + syRenderSukuyoMonthlyGrid(result) + '</div>';
+  }
+
   function sySetSukuyoMonthlyUnlockState(isUnlocked) {
-    var card = document.querySelector('[data-sy-monthly-fortune]');
+    var card = document.querySelector('[data-sy-yearly-fortune-card]');
     var status = document.querySelector('[data-sy-monthly-status]');
     if (card) {
       card.classList.toggle('is-unlocked', !!isUnlocked);
       card.classList.toggle('is-locked', !isUnlocked);
     }
     if (status) {
-      status.textContent = isUnlocked ? '해금 완료 · 전체 월별 운세' : '잠금 콘텐츠 · 3,000원';
+      status.textContent = isUnlocked ? '해금 완료 · 전체 1년운' : '잠금 콘텐츠 · 10,000원';
       status.classList.toggle('is-unlocked', !!isUnlocked);
     }
   }
 
-  function syRevealSukuyoMonthlyFortune(reading) {
-    var source = reading || window._sySukuyoMonthlyReading || null;
-    var target = document.getElementById('syMonthlyFortuneContent');
-    if (!target || !source) return;
-    target.innerHTML = syRenderSukuyoMonthlyGrid(source);
-    sySetSukuyoMonthlyUnlockState(true);
+  function syHydrateSukuyoYearlyFortune(reading) {
+    var state = reading || window._sySukuyoYearlyReading || {};
+    var target = document.getElementById('syYearlyFortuneContent');
+    var status = document.querySelector('[data-sy-monthly-status]');
+    if (!target) return;
+    var yearSelect = document.querySelector('[data-sy-yearly-select]');
+    var targetYear = Number((yearSelect && yearSelect.value) || state.targetYear || new Date().getFullYear());
+    var profileId = state.profileId || syResolveCurrentProfileIdForPaidGate();
+    window._sySukuyoYearlyHydrateKey = String(profileId || '') + ':' + String(targetYear || '');
+    target.innerHTML = '<div style="padding:18px;color:#fef3c7;line-height:1.8;">숙요점 1년운을 열고 있어요. 결제 승인과 잠금 해제를 확인하는 중입니다.</div>';
+    syFetchSukuyoYearlyJson('/api/sukuyo/yearly-fortune?profileId=' + encodeURIComponent(profileId || '') + '&year=' + encodeURIComponent(targetYear), { method: 'GET' })
+      .then(function(pack) {
+        var payload = pack && pack.payload ? pack.payload : {};
+        if (!pack || !pack.ok || payload.ok === false) throw new Error((payload && payload.message) || '숙요점 1년운을 불러오지 못했습니다.');
+        window._sySukuyoYearlyReading = Object.assign({}, state, { profileId: payload.unlockScope && payload.unlockScope.profileId || profileId, targetYear: targetYear, payload: payload });
+        sySetSukuyoMonthlyUnlockState(!!payload.unlocked);
+        if (status) status.textContent = payload.unlocked ? '해금 완료 · 전체 1년운' : '잠금 콘텐츠 · 10,000원';
+        target.innerHTML = payload.unlocked ? syRenderSukuyoYearlyFull(payload.result) : syRenderSukuyoYearlyLocked(payload);
+        syBindSukuyoMonthlyUnlock(window._sySukuyoYearlyReading);
+      })
+      .catch(function(error) {
+        target.innerHTML = '<div style="padding:18px;color:#fecaca;line-height:1.8;">' + syCanonicalEsc(error && error.message || '숙요점 1년운을 불러오지 못했습니다.') + '</div>';
+      });
   }
 
   function syBindSukuyoMonthlyUnlock(reading) {
-    if (reading) window._sySukuyoMonthlyReading = reading;
-    var btn = document.querySelector('[data-sy-monthly-unlock]');
-    if (!btn || btn._syMonthlyUnlockBound) return;
-    btn._syMonthlyUnlockBound = true;
+    if (reading) window._sySukuyoYearlyReading = reading;
+    var select = document.querySelector('[data-sy-yearly-select]');
+    if (select && !select._syYearlySelectBound) {
+      select._syYearlySelectBound = true;
+      select.addEventListener('change', function() {
+        syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading);
+      });
+    }
+    var hydrateKey = String((window._sySukuyoYearlyReading && window._sySukuyoYearlyReading.profileId) || reading.profileId || '') + ':' + String((document.querySelector('[data-sy-yearly-select]') || {}).value || reading.targetYear || '');
+    if (hydrateKey && window._sySukuyoYearlyHydrateKey !== hydrateKey) {
+      window._sySukuyoYearlyHydrateKey = hydrateKey;
+      syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading);
+    }
+    var btn = document.querySelector('[data-sy-yearly-unlock]');
+    if (!btn || btn._syYearlyUnlockBound) return;
+    btn._syYearlyUnlockBound = true;
     btn.addEventListener('click', function() {
-      syRequirePaidSukuyoFeature(SY_PAID_FEATURES.monthlyFortune, function() {
-        syMarkPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.monthlyFortune.key);
-        syRevealSukuyoMonthlyFortune(reading || window._sySukuyoMonthlyReading || null);
+      var state = window._sySukuyoYearlyReading || reading || {};
+      var targetYear = Number((document.querySelector('[data-sy-yearly-select]') || {}).value || state.targetYear || new Date().getFullYear());
+      var profileId = state.profileId || syResolveCurrentProfileIdForPaidGate();
+      btn.disabled = true;
+      btn.textContent = '숙요점 1년운을 열고 있어요.';
+      syFetchSukuyoYearlyJson('/api/sukuyo/yearly-fortune/unlock', {
+        method: 'POST',
+        body: JSON.stringify({ profileId: profileId, targetYear: targetYear })
+      }).then(function(pack) {
+        var payload = pack && pack.payload ? pack.payload : {};
+        if (!pack || !pack.ok || payload.ok === false) throw new Error((payload && payload.message) || '잠금 해제 상태를 확인하지 못했습니다.');
+        if (payload.unlocked || payload.alreadyUnlocked) {
+          syHydrateSukuyoYearlyFortune(Object.assign({}, state, { profileId: payload.profileId || profileId, targetYear: targetYear }));
+          return null;
+        }
+        if (typeof window._cdOpenPaidServiceGate !== 'function') throw new Error('결제 모듈을 불러오지 못했습니다.');
+        var billing = payload.billing && payload.billing.payload ? payload.billing.payload : {};
+        return window._cdOpenPaidServiceGate(Object.assign({}, billing, {
+          title: '숙요점 1년운 전체 해석 잠금 해제',
+          reason: '숙요점 1년운 전체 해석 잠금 해제',
+          featureKey: 'sukyo_yearly_fortune_unlock',
+          contentKey: payload.contentKey,
+          profileId: payload.profileId || profileId,
+          selectedProfileId: payload.profileId || profileId,
+          targetYear: targetYear,
+          coinPrice: 100,
+          cost: 100,
+          amountKrw: 10000,
+          disablePassChoice: true,
+          disablePassFirst: true,
+          allowedPaymentModes: 'direct,monthly'
+        })).then(function(result) {
+          if (!result || result.status !== 'granted') throw new Error('결제가 완료되지 않았습니다.');
+          return syFetchSukuyoYearlyJson('/api/sukuyo/yearly-fortune/verify-payment', {
+            method: 'POST',
+            body: JSON.stringify({ profileId: payload.profileId || profileId, targetYear: targetYear, paymentId: result.transactionId })
+          }).then(function() {
+            syHydrateSukuyoYearlyFortune(Object.assign({}, state, { profileId: payload.profileId || profileId, targetYear: targetYear }));
+          });
+        });
+      }).catch(function(error) {
+        btn.disabled = false;
+        btn.textContent = '숙요점 1년운 전체 해석 잠금 해제 · 10,000원';
+        window.alert(error && error.message ? error.message : '잠금 해제 처리에 실패했습니다.');
       });
     });
   }
 
   function syRenderSukuyoAnnualMonthlySections(reading) {
     if (!reading) return '';
-    var monthlyUnlocked = syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.monthlyFortune.key);
-    if (typeof window !== 'undefined') window._sySukuyoMonthlyReading = reading;
+    if (typeof window !== 'undefined') window._sySukuyoYearlyReading = reading;
+    var year = Number(reading.targetYear || new Date().getFullYear());
+    var yearOptions = [year, year + 1].map(function(y) {
+      return '<option value="' + syCanonicalEsc(y) + '">' + syCanonicalEsc(y) + '년</option>';
+    }).join('');
     return ''
-      + '<div class="sy-card sy-lunar-year-card" data-sy-year-fortune="20260605-sukuyo-year" data-sy-year-moon-ui="20260606-sukuyo-year-moon">'
+      + '<div class="sy-card sy-lunar-year-card is-locked" data-sy-yearly-fortune-card data-sy-year-fortune="20260616-sukuyo-yearly-premium" data-sy-year-moon-ui="20260606-sukuyo-year-moon">'
       + '<div class="sy-lunar-overline">Annual Sukuyo Fortune</div>'
-      + '<div class="sy-lunar-year-head">'
-      + '<div class="sy-lunar-year-copy">'
-      + '<h4>' + syCanonicalEsc(reading.title) + ' · ' + syCanonicalEsc(reading.theme) + '</h4>'
-      + '<p>' + syCanonicalEsc(reading.summary) + '</p>'
-      + '</div>'
-      + '<article class="sy-lunar-score-orb"><div class="sy-lunar-score">' + syCanonicalEsc(reading.score) + '점</div><div class="sy-lunar-score-label">올해 총운</div></article>'
-      + '</div>'
-      + '<article style="background:rgba(2,6,23,0.42);border:1px solid rgba(216,180,254,0.22);border-radius:12px;padding:11px;color:#ede9fe;font-size:0.84rem;line-height:1.8;margin-bottom:10px;">본명숙 <strong style="color:#fef3c7;">' + syCanonicalEsc(reading.mansionLabel) + '</strong> 기준으로 올해의 인연, 일, 감정, 재물 흐름을 12개월 리듬으로 나누어 봅니다. 좋은 달에는 과속을 줄이고, 느린 달에는 회복을 선택하는 것이 핵심입니다.</article>'
-      + '<div class="sy-lunar-year-grid">'
-      + reading.yearlyCards.map(function(item) {
-        return '<article>'
-          + '<strong>' + syCanonicalEsc(item.title) + '</strong>'
-          + '<span>' + syCanonicalEsc(item.value) + '</span>'
-          + '<p>' + syCanonicalEsc(item.body) + '</p>'
-          + '</article>';
-      }).join('')
-      + '</div>'
-      + '</div>'
-      + '<div class="sy-card sy-lunar-month-card ' + (monthlyUnlocked ? 'is-unlocked' : 'is-locked') + '" data-sy-monthly-fortune="20260615-sukuyo-monthly-paid" data-sy-monthly-moon-ui="20260606-sukuyo-monthly-moon" data-sy-paid-feature="' + SY_PAID_FEATURES.monthlyFortune.key + '">'
       + '<div class="sy-lunar-month-titlebar">'
         + '<div>'
-          + '<div class="sy-lunar-overline" style="color:#99f6e4;">Monthly Sukuyo Rhythm</div>'
-          + '<h4>월별 숙요 운세</h4>'
+          + '<h4>숙요점 1년운</h4>'
+          + '<p class="sy-lunar-month-copy">서버 기준 프로필과 본명숙으로 여는 프리미엄 12개월 달빛 흐름입니다.</p>'
         + '</div>'
-        + '<span class="sy-paid-status ' + (monthlyUnlocked ? 'is-unlocked' : '') + '" data-sy-monthly-status>' + (monthlyUnlocked ? '해금 완료 · 전체 월별 운세' : '잠금 콘텐츠 · 3,000원') + '</span>'
+        + '<div style="display:grid;gap:7px;justify-items:end;"><select data-sy-yearly-select style="min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(2,6,23,.62);color:#fef3c7;padding:4px 10px;font-weight:900;">' + yearOptions + '</select><span class="sy-paid-status" data-sy-monthly-status>잠금 콘텐츠 · 10,000원</span></div>'
       + '</div>'
-      + '<p class="sy-lunar-month-copy">본명숙 <strong style="color:#fef3c7;">' + syCanonicalEsc(reading.mansionLabel) + '</strong> 기준으로 매월의 관계, 일·돈, 주의 신호를 달의 리듬처럼 나누어 봅니다.</p>'
-      + '<div id="syMonthlyFortuneContent">' + (monthlyUnlocked ? syRenderSukuyoMonthlyGrid(reading) : syRenderSukuyoMonthlyLock(reading)) + '</div>'
+      + '<div id="syYearlyFortuneContent"><div style="padding:18px;color:#fef3c7;line-height:1.8;">숙요점 1년운을 열고 있어요.</div></div>'
       + '</div>';
   }
 

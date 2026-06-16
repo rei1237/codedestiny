@@ -116,11 +116,33 @@ function resolvePremiumPdfReadiness(metadata, reportId) {
 
 function buildPaymentRefFromBody(body = {}) {
   const payment = safeObject(body.payment || body.paymentRef || body._paymentContext?.payment);
+  const accessGrant = safeObject(body.accessGrant || body._paymentContext?.accessGrant);
+  const accessType = clean(
+    payment.accessType
+    || accessGrant.accessType
+    || accessGrant.transactionType
+    || body.accessType,
+    80,
+  ).toLowerCase();
+  const merchantUid = clean(payment.merchantUid || body.merchantUid || body.merchant_uid || accessGrant.merchantUid, 120);
+  const paymentId = clean(
+    payment.paymentId
+    || payment.impUid
+    || body.paymentId
+    || body.impUid
+    || accessGrant.paymentId
+    || accessGrant.merchantUid,
+    120,
+  );
+  const hasSinglePaymentKey = Boolean(merchantUid || paymentId);
   return {
-    impUid: clean(payment.impUid || payment.paymentId || body.impUid || body.paymentId, 120),
-    merchantUid: clean(payment.merchantUid || body.merchantUid || body.merchant_uid, 120),
-    paymentId: clean(payment.paymentId || payment.impUid || body.paymentId || body.impUid, 120),
-    cancelEligible: payment.cancelEligible === true || body.cancelEligible === true,
+    impUid: clean(payment.impUid || payment.paymentId || body.impUid || body.paymentId || accessGrant.paymentId, 120),
+    merchantUid,
+    paymentId,
+    cancelEligible: payment.cancelEligible === true
+      || accessGrant.cancelEligible === true
+      || body.cancelEligible === true
+      || (accessType === "single_purchase" && hasSinglePaymentKey),
   };
 }
 
@@ -416,7 +438,7 @@ export async function completePremiumPdfExecution(env, userId, ctx, reportId, ex
 export async function failPremiumPdfExecution(env, userId, ctx, reasonCode, reasonMessage, failureStage = "generation") {
   if (!ctx || !ctx.executionKey) return null;
   try {
-    return await failServiceExecution(env, userId, {
+    const payload = {
       executionKey: ctx.executionKey,
       sessionId: ctx.sessionId,
       reportId: ctx.reportId,
@@ -425,8 +447,37 @@ export async function failPremiumPdfExecution(env, userId, ctx, reasonCode, reas
       failureStage: clean(failureStage || reasonCode || "generation", 80),
       failureReason: clean(reasonMessage || "Premium PDF generation failed.", 500),
       forceRefundOnClose: true,
+    };
+
+    let failed = await failServiceExecution(env, userId, payload);
+    if (!failed?.ok && Number(failed?.status || 0) === 404) {
+      await startServiceExecution(env, userId, {
+        executionKey: ctx.executionKey,
+        reportType: ctx.reportType,
+        featureKey: ctx.featureKey,
+        reportId: ctx.reportId,
+        sessionId: ctx.sessionId,
+        paymentSessionId: ctx.paymentSessionId,
+        coinTransactionId: ctx.coinTransactionId,
+        sourceTransactionId: ctx.sourceTransactionId,
+        payment: ctx.payment,
+        coinAmount: ctx.coinAmount,
+        cost: ctx.cost,
+        timeoutSeconds: ctx.timeoutSeconds,
+        maxRetries: ctx.maxRetries,
+        idempotencyKey: ctx.idempotencyKey,
+        metadata: ctx.metadata,
+      });
+      failed = await failServiceExecution(env, userId, payload);
+    }
+
+    return failed;
+  } catch (error) {
+    console.error("[premium-pdf-execution][fail-error]", {
+      message: String(error?.message || error),
+      executionKey: clean(ctx?.executionKey, 120),
+      reportId: clean(ctx?.reportId, 120),
     });
-  } catch (_) {
     return null;
   }
 }

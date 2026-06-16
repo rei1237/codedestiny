@@ -393,7 +393,6 @@ async function runUsagePassRefund({ userId, execution, requestId }) {
 }
 
 async function runPaymentCancel(env, paymentRef = {}, reason) {
-  if (!paymentRef.cancelEligible) return { cancelled: false, skipped: true };
   const impUid = String(paymentRef.impUid || paymentRef.paymentId || "").trim();
   const merchantUid = String(paymentRef.merchantUid || "").trim();
   if (!impUid && !merchantUid) return { cancelled: false, skipped: true };
@@ -406,11 +405,21 @@ async function runPaymentCancel(env, paymentRef = {}, reason) {
   }).lean();
 
   if (!payment) return { cancelled: false, skipped: true };
-  if (String(payment.status || "") === "cancelled") {
+  if (String(payment.status || "") === "cancelled" || String(payment.status || "") === "refunded") {
     return { cancelled: true, idempotent: true };
   }
-  if (String(payment.status || "") !== "success") {
-    return { cancelled: false, skipped: true };
+  if (String(payment.status || "") !== "success" && String(payment.status || "") !== "fulfilled") {
+    return { cancelled: false, skipped: true, reason: "PAYMENT_NOT_SUCCESS" };
+  }
+
+  const paymentType = cleanMetadataText(payment.paymentType, 80).toLowerCase();
+  const accessType = cleanMetadataText(payment.accessType, 80).toLowerCase();
+  const singlePurchasePayment = paymentType === "digital_content" && accessType === "single_purchase";
+  if (!paymentRef.cancelEligible && !singlePurchasePayment) {
+    return { cancelled: false, skipped: true, reason: "PAYMENT_CANCEL_NOT_ELIGIBLE" };
+  }
+  if (singlePurchasePayment && Number(payment.chargedPoints || 0) > 0) {
+    return { cancelled: false, skipped: true, reason: "POINT_CHARGE_ROLLBACK_REQUIRED" };
   }
 
   const canceledPortOne = await cancelPortOnePayment(env, {
@@ -425,7 +434,11 @@ async function runPaymentCancel(env, paymentRef = {}, reason) {
     {
       $set: {
         status: "cancelled",
+        orderState: "CANCELLED",
         rawPortOne: canceledPortOne,
+        failureCode: null,
+        failureMessage: null,
+        failureStage: null,
       },
     },
   );

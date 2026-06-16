@@ -29,6 +29,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "sukuyo-relationship-encyclopedia",
   "sukuyo-past-life-reading",
   "sukuyo-monthly-fortune",
+  "sukyo_yearly_fortune_unlock",
   "compat-sukuyo-compatibility",
   "vedic-compatibility-per-use",
   "stonehenge-runes-single",
@@ -152,6 +153,7 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "sukuyo-relationship-encyclopedia": { cost: 50, reason: "숙요 인연 도감" },
   "sukuyo-past-life-reading": { cost: 100, reason: "숙요 전생 인연 리딩" },
   "sukuyo-monthly-fortune": { cost: 30, reason: "월별 숙요 운세 확장" },
+  "sukyo_yearly_fortune_unlock": { cost: 100, reason: "숙요점 1년운 전체 해석 잠금 해제" },
   "compat-astro-synastry": { cost: 50, reason: "점성술 셜럭 시나스트리 궁합" },
   "compat-astro-direct-synastry": { cost: 50, reason: "점성술 직접 입력 시나스트리 궁합" },
   "compat-ziwei-compatibility": { cost: 50, reason: "자미두수 궁합 분석" },
@@ -440,6 +442,7 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "astro_stellar_relationship_room",
   "astro_stellar_growth_room",
   "fun.quantumLotto.ritualReport",
+  "sukyo_yearly_fortune_unlock",
 ]);
 
 export const PER_USE_PAID_FEATURE_KEYS = Object.freeze([...PER_USE_PAID_FEATURE_KEY_LIST].sort());
