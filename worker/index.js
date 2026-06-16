@@ -1043,7 +1043,7 @@ export default {
         const routedRequest = url.pathname.startsWith("/api/sukyo")
           ? rewriteRequestPath(request, url.pathname.replace("/api/sukyo", "/api/sukuyo"))
           : request;
-        return withCorsHeaders(request, env, await handleSukuyoRoutes(routedRequest, env));
+        return withCorsHeaders(request, env, await handleSukuyoRoutes(routedRequest, env, ctx));
       }
 
       if (url.pathname === "/api/astrology" || url.pathname.startsWith("/api/astrology/")) {

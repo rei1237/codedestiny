@@ -13,7 +13,7 @@
   var SUKYO_PREFLIGHT_API = '/api/sukuyo/premium/preflight';
   var SUKYO_PREPARE_API = '/api/sukuyo/premium/prepare';
   var SUKYO_CHAPTERS_API = '/api/sukuyo/premium/chapters';
-  var SUKYO_EXECUTION_STATUS_API = '/api/billing/executions/status';
+  var SUKYO_EXECUTION_STATUS_API = '/api/sukuyo/premium/status';
   var SUKYO_ARCHIVE_API = '/api/premium/pdf-archive';
   var SUKYO_TOTAL_CHAPTERS = 15;
   var SUKYO_COIN_COST_FALLBACK = 490;
@@ -234,6 +234,14 @@
       .replace(/자동\s*복구\s*생성/gi, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
+  }
+
+  function _chapterTitleOnly(title, chapterNo) {
+    var value = _clean(title);
+    var no = Number(chapterNo || 0);
+    if (!value) return no ? ('제' + no + '장') : '';
+    value = value.replace(/^제\s*\d+\s*장\s*[.:．。-]?\s*/i, '');
+    return value || (no ? ('제' + no + '장') : '');
   }
 
   function _newSessionId() {
@@ -1244,7 +1252,7 @@
 
     var html = '';
     html += '<section class="lb-chapter-card" style="border:1px solid rgba(167,139,250,0.28);border-radius:18px;background:rgba(10,5,22,0.75);padding:16px;">';
-    html += '<h4 class="lb-chapter-title" style="margin:0 0 12px;font-size:1.03rem;color:#fde68a;">제' + Number(chapter.order || 0) + '장. ' + _sanitizeText(chapter.title) + '</h4>';
+    html += '<h4 class="lb-chapter-title" style="margin:0 0 12px;font-size:1.03rem;color:#fde68a;">제' + Number(chapter.order || 0) + '장. ' + _sanitizeText(_chapterTitleOnly(chapter.title, chapter.order)) + '</h4>';
 
     sections.forEach(function (section) {
       var blocks = _extractStructuredBlocks(section.body || '');
@@ -1503,8 +1511,8 @@
         if (i >= list.length) { resolve(); return; }
         var chapter = list[i] || {};
         var chapterNo = Number(chapter.order || chapter.chapterNo || (i + 1)) || (i + 1);
-        var title = _sanitizeText(chapter.title || ('제' + chapterNo + '장'));
-        _setLoadingProgress(chapterNo, SUKYO_TOTAL_CHAPTERS, '제' + chapterNo + '장 ' + title + ' 작성 중...');
+        var title = _sanitizeText(_chapterTitleOnly(chapter.title, chapterNo));
+        _setLoadingProgress(chapterNo, SUKYO_TOTAL_CHAPTERS, '제' + chapterNo + '장. ' + title + ' 작성 중...');
         _setLoadingStage('숙요점 궁합 PDF 생성 중');
         _persistGenerationState({
           isOpen: true,
@@ -1546,7 +1554,7 @@
     var apply15 = function () {
       var step = Math.min(index15 + 1, total);
       var chapter = source[step - 1] || {};
-      _setLoadingProgress(step, total, '제' + step + '장 ' + _sanitizeText(chapter.title || '숙요 궁합 원고') + ' 작성 중...');
+      _setLoadingProgress(step, total, '제' + step + '장. ' + _sanitizeText(_chapterTitleOnly(chapter.title || '숙요 궁합 원고', step)) + ' 작성 중...');
       _setLoadingStage('숙요점 프리미엄 궁합 PDF 생성 중');
       _setLoadingNotice('두 사람의 본명숙과 관계 거리를 따라 PDF 원고가 열리고 있습니다.');
       if (index15 < total - 1) index15 += 1;
@@ -1967,6 +1975,10 @@
             var execution = data && data.execution || {};
             var nextReportId = _clean(execution.reportId || reportId);
             if (_isSukuyoExecutionCompleted(execution)) {
+              if (data && data.report && _isSukyoReportReady(data.report)) {
+                resolve(_normalizeArchivedSukuyoReport(data.report));
+                return;
+              }
               _setLoadingNotice('숙요점 프리미엄 궁합 PDF 완료본을 불러오는 중입니다');
               _fetchArchivedSukuyoReport(nextReportId).then(resolve).catch(reject);
               return;
@@ -2073,7 +2085,7 @@
         var button = document.createElement('button');
         button.type = 'button';
         button.className = 'lb-toc-item loaded';
-        button.innerHTML = '<span>CHAPTER ' + Number(chapter.order || index + 1) + '</span><strong>' + _sanitizeText(chapter.title) + '</strong>';
+        button.innerHTML = '<span>CHAPTER ' + Number(chapter.order || index + 1) + '</span><strong>' + _sanitizeText(_chapterTitleOnly(chapter.title, chapter.order || index + 1)) + '</strong>';
         button.addEventListener('click', function () {
           _setActiveChapter(index);
         });

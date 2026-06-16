@@ -52,7 +52,7 @@ export function generateMetadata({ params }: PageProps) {
     return generatePageMetadata({
       path: "/insights/famous-saju",
       title: "유명인 사주 분석 | 운세 인사이트 허브",
-      description: "유명인 사주 분석 글을 찾지 못했습니다. 운세 인사이트 허브에서 공개 생년월일 기반 유명인 사주 글을 확인할 수 있습니다.",
+      description: "유명인 사주 글이 아직 열리지 않았습니다. 운세 인사이트 허브에서 공개 생년월일을 따라 다른 명식의 별빛을 이어 살펴보세요.",
       keywords: ["유명인 사주", "운세 인사이트", "사주 분석"],
     });
   }
@@ -80,7 +80,7 @@ function UnknownCelebrityPage({ slug }: { slug: string }) {
         </Link>
         <h1 className="mt-6 text-3xl font-bold text-white sm:text-5xl">아직 준비되지 않은 유명인 사주입니다</h1>
         <p className="mt-5 max-w-3xl text-base leading-8 text-slate-300">
-          요청한 slug <span className="text-amber-100">{decodeURIComponent(String(slug || ""))}</span>에 맞는 공개 유명인 데이터를 찾지 못했습니다. 아래 글이나 유명인 사주 분석 목록에서 다른 사주 콘텐츠를 확인할 수 있습니다.
+          요청한 slug <span className="text-amber-100">{decodeURIComponent(String(slug || ""))}</span>에 맞는 공개 유명인 명식이 아직 열리지 않았습니다. 아래 글이나 유명인 사주 목록에서 다른 별빛의 흐름을 이어 살펴보세요.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link href="/insights/famous-saju" className="rounded-lg border border-amber-200/40 bg-amber-100/10 px-4 py-2 text-sm font-semibold text-amber-50 hover:bg-amber-100/15">
@@ -110,7 +110,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
 
   const { celebrity, saju, calculationStatus, dayMasterLabel, hourText, elementProfile, summary, sections, timeNotice, engineInputSummary, heroImageQuery, heroCopy, coreKeywords, analysisBadge, insightCards, reliabilityNotes, conclusion } = reading;
   const related = getCelebrityRelatedList(celebrity);
-  const heroImage = await getPexelsSectionImage(heroImageQuery, "default");
+  const heroImage = await getPexelsSectionImage(heroImageQuery, "famous");
   const sectionImages = await Promise.all(
     sections.map((section) => getPexelsSectionImage(section.imageQuery, section.imageSection)),
   );
@@ -166,7 +166,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
   };
   const insightLinks = [
     { href: "/insights/saju-four-pillars-basics", title: "사주팔자 기초 가이드", description: "연주·월주·일주·시주의 기본 흐름을 먼저 이해합니다." },
-    { href: "/insights/ten-heavenly-stems-practical", title: "십간으로 보는 일간 감각", description: "갑을병정부터 임계까지 일간의 색을 쉽게 읽습니다." },
+    { href: "/insights/ten-heavenly-stems-practical", title: "십간으로 보는 일간 감각", description: "갑을병정부터 임계까지 일간의 색이 부드럽게 드러납니다." },
     { href: "/insights/twelve-earthly-branches-and-seasons", title: "지지와 계절감 읽기", description: "월지와 계절의 기운이 사주 전체에 주는 리듬을 살핍니다." },
   ];
 
@@ -183,7 +183,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
           <div>
             <p className="text-sm font-semibold text-amber-100/80">{celebrity.category}</p>
             <h1 className="mt-3 text-3xl font-bold tracking-normal text-white sm:text-5xl">
-              {celebrity.nameKo} 사주 분석: {dayMasterLabel}와 오행 흐름
+              {celebrity.nameKo} 명식: {dayMasterLabel}와 오행의 결
             </h1>
             <p className="mt-5 text-lg leading-8 text-slate-200">{heroCopy}</p>
             <p className="mt-4 inline-flex rounded-full border border-amber-200/30 bg-amber-100/10 px-3 py-1.5 text-sm font-semibold text-amber-50">
@@ -213,11 +213,11 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
 
         <section className="mt-8 grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
           <div className="rounded-3xl border border-white/10 bg-white/[0.055] p-5 md:p-6">
-            <p className="text-sm font-semibold text-amber-100">핵심 요약</p>
+            <p className="text-sm font-semibold text-amber-100">명식의 첫 울림</p>
             <p className="mt-3 text-base leading-8 text-slate-200">{summary}</p>
           </div>
-          <nav className="rounded-3xl border border-white/10 bg-white/[0.04] p-5" aria-label="본문 목차">
-            <p className="text-sm font-semibold text-amber-100">본문 목차</p>
+          <nav className="rounded-3xl border border-white/10 bg-white/[0.04] p-5" aria-label="흐름의 문">
+            <p className="text-sm font-semibold text-amber-100">흐름의 문</p>
             <ol className="mt-3 space-y-2 text-sm text-slate-300">
               {tableOfContents.map((item) => (
                 <li key={item.id}>
@@ -270,7 +270,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
         ) : null}
 
         <section className="mt-8 rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-          <h2 className="text-xl font-semibold text-white">분석 기준</h2>
+          <h2 className="text-xl font-semibold text-white">명식 신뢰도</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {reliabilityNotes.map((note) => (
               <div key={note.label} className="rounded-2xl border border-white/10 bg-black/10 p-4">
@@ -282,8 +282,8 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
         </section>
 
         <section className="mt-8 rounded-3xl border border-amber-200/25 bg-[linear-gradient(135deg,rgba(251,191,36,0.12),rgba(255,255,255,0.04))] p-5 md:p-6">
-          <p className="text-sm font-semibold text-amber-100">핵심 해석 박스</p>
-          <h2 className="mt-2 text-2xl font-semibold text-white">Code식 한 줄 결론</h2>
+          <p className="text-sm font-semibold text-amber-100">마지막 조율</p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">별이 남긴 마지막 문장</h2>
           <p className="mt-3 text-base leading-8 text-slate-200">{conclusion}</p>
         </section>
 
@@ -309,7 +309,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
 
         <section className="mt-10">
           <h2 className="text-xl font-semibold text-white">관련 글 추천</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-400">비슷한 분야의 유명인 사주와 운세 인사이트 글을 이어서 읽어볼 수 있습니다.</p>
+          <p className="mt-2 text-sm leading-6 text-slate-400">비슷한 분야의 유명인 사주와 운세 인사이트의 흐름이 이어집니다.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((item) => (
               <Link key={item.slug} href={`/insights/famous-saju/${item.slug}`} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 hover:border-amber-200/50">
@@ -333,7 +333,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
           <h2 className="text-xl font-semibold text-white">내 사주도 이어서 보기</h2>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link href="/saju/basic/play" className="rounded-lg bg-amber-100 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-amber-50">
-              내 사주도 분석해보기
+              내 사주도 열어보기
             </Link>
             <Link href="/insights" className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-slate-100 hover:border-amber-200/40">
               운세 인사이트 더 보기
