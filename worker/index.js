@@ -6,6 +6,138 @@ const ROUTE_METRICS_STATE = {
 };
 
 const ROUTE_METRIC_FLUSH_EVERY = 500;
+const PEXELS_IMAGE_ROUTE_CACHE = new Map();
+const PEXELS_SECTION_IMAGES = {
+  saju: "/fuctionassets/saju.webp",
+  tarot: "/fuctionassets/tarolove.webp",
+  astrology: "/fuctionassets/jumsung.webp",
+  ziwei: "/fuctionassets/jami.webp",
+  sukuyo: "/fuctionassets/sukyo.webp",
+  vedic: "/fuctionassets/veda.webp",
+  dream: "/fuctionassets/heamong.webp",
+  famous: "/fuctionassets/placeholder.webp",
+  career: "/fuctionassets/placeholder.webp",
+  love: "/fuctionassets/flower4.webp",
+  wealth: "/fuctionassets/placeholder.webp",
+  health: "/fuctionassets/meditation.webp",
+  default: "/fuctionassets/premiumstar.webp",
+};
+
+const PEXELS_SECTION_QUERIES = {
+  saju: { query: "mystical astrology stars cosmic sky five elements", fallbackAlt: "별의 기운이 맴도는 사주 에너지" },
+  tarot: { query: "mystic tarot cards stars nebula night sky", fallbackAlt: "카드 속 별빛으로 열리는 이야기" },
+  astrology: { query: "astrology zodiac stars cosmic night sky", fallbackAlt: "천체 리듬이 스미는 점성의 하늘" },
+  ziwei: { query: "purple galaxy stars cosmic astrology chart", fallbackAlt: "북두칠성의 기운이 흘러드는 자리" },
+  sukuyo: { query: "moon stars mystical night sky constellation", fallbackAlt: "달빛과 별빛이 가는 길" },
+  vedic: { query: "vedic astrology stars cosmic temple night", fallbackAlt: "밤하늘과 신성한 별자리의 흔적" },
+  dream: { query: "dreamy moon stars mystical fog night sky", fallbackAlt: "꿈결처럼 피어오르는 운명의 시야" },
+  famous: { query: "mystical cosmic portrait silhouette stars", fallbackAlt: "별빛에 둘러싸인 명인의 초상" },
+  career: { query: "cosmic stage spotlight stars destiny", fallbackAlt: "무대 위 빛으로 비추는 운명" },
+  love: { query: "mystical stars soft light cosmic love", fallbackAlt: "연결되는 마음의 별빛" },
+  wealth: { query: "gold stars cosmic abundance mystical", fallbackAlt: "깃발처럼 반짝이는 풍요의 별빛" },
+  health: { query: "meditation stars cosmic calm night", fallbackAlt: "고요한 별빛 아래의 치유" },
+  default: { query: "mystical cosmos stars nebula night sky", fallbackAlt: "별빛의 정기가 어우러지는 순간" },
+};
+
+const PEXELS_IMAGE_ROUTE_SECTIONS = new Set(Object.keys(PEXELS_SECTION_IMAGES));
+const PEXELS_IMAGE_ROUTE_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+const PEXELS_KEYWORDS_RE = /(cosmic|cosmos|star|stars|nebula|galaxy|moon|mystic|mystical|astrology|zodiac)/i;
+
+function getPexelsSection(value) {
+  const key = String(value || "default").trim().toLowerCase();
+  return PEXELS_IMAGE_ROUTE_SECTIONS.has(key) ? key : "default";
+}
+
+function getPexelsApiKey(env) {
+  return String(
+    env?.PEXELS_API_KEY
+    || env?.NEXT_PUBLIC_PEXELS_API_KEY
+    || env?.REACT_APP_PEXELS_API_KEY
+    || env?.VITE_PEXELS_API_KEY
+    || env?.PEXELS_APIKEY
+    || env?.PEXES_APIKEY
+    || "",
+  ).trim();
+}
+
+function getPexelsFailureStatus(status) {
+  if (status === 401) return "unauthorized";
+  if (status === 403) return "forbidden";
+  if (status === 429) return "rate-limited";
+  if (status >= 500) return "server-error";
+  return "empty";
+}
+
+function normalizePexelsQuery(rawQuery, section) {
+  const query = String(rawQuery || "").trim();
+  if (!query) return PEXELS_SECTION_QUERIES[section].query;
+  if (/[\uac00-\ud7a3]/.test(query)) return PEXELS_SECTION_QUERIES[section].query;
+  if (!PEXELS_KEYWORDS_RE.test(query)) return `${query} cosmic stars mystical`;
+  return query;
+}
+
+async function handlePexelsImageRequest(request, env) {
+  const url = new URL(request.url);
+  const section = getPexelsSection(url.searchParams.get("section"));
+  const normalizedQuery = normalizePexelsQuery(url.searchParams.get("query"), section);
+  const fallbackMeta = PEXELS_SECTION_QUERIES[section] || PEXELS_SECTION_QUERIES.default;
+  const fallback = {
+    src: PEXELS_SECTION_IMAGES[section] || PEXELS_SECTION_IMAGES.default,
+    alt: fallbackMeta.fallbackAlt || `${normalizedQuery}의 별빛 장면`,
+    source: "fallback",
+  };
+  const cacheKey = `${section}:${normalizedQuery}`;
+  const cached = PEXELS_IMAGE_ROUTE_CACHE.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return jsonResponse(request, env, cached.image);
+  }
+
+  const apiKey = getPexelsApiKey(env);
+  if (!apiKey) {
+    return jsonResponse(request, env, { ...fallback, status: "missing-key" });
+  }
+
+  try {
+    const pexelsUrl = new URL("https://api.pexels.com/v1/search");
+    pexelsUrl.searchParams.set("query", normalizedQuery);
+    pexelsUrl.searchParams.set("per_page", "8");
+    pexelsUrl.searchParams.set("orientation", "landscape");
+    pexelsUrl.searchParams.set("size", "large");
+    pexelsUrl.searchParams.set("locale", "en-US");
+
+    const response = await fetch(pexelsUrl, {
+      headers: { Authorization: apiKey },
+    });
+    if (!response.ok) {
+      return jsonResponse(request, env, { ...fallback, status: getPexelsFailureStatus(response.status) });
+    }
+
+    const payload = await response.json().catch(() => null);
+    const photos = Array.isArray(payload?.photos) ? payload.photos : [];
+    const photo = photos.find((item) => item?.src?.landscape || item?.src?.large2x || item?.src?.large || item?.src?.medium);
+    const src = photo?.src?.landscape || photo?.src?.large2x || photo?.src?.large || photo?.src?.medium;
+    if (!src) {
+      return jsonResponse(request, env, { ...fallback, status: "empty" });
+    }
+
+    const image = {
+      src,
+      alt: photo?.alt || fallback.alt,
+      credit: photo?.photographer || null,
+      creditUrl: photo?.photographer_url || photo?.url || null,
+      source: "pexels",
+      status: "ok",
+    };
+    PEXELS_IMAGE_ROUTE_CACHE.set(cacheKey, {
+      expiresAt: Date.now() + PEXELS_IMAGE_ROUTE_CACHE_TTL_MS,
+      image,
+    });
+    return jsonResponse(request, env, image);
+  } catch {
+    return jsonResponse(request, env, { ...fallback, status: "network-error" });
+  }
+}
+
 const RUNTIME_KEY_MATRIX_CACHE_TTL_MS = 30000;
 const RUNTIME_KEY_MATRIX_CACHE = {
   expiresAt: 0,
@@ -775,6 +907,10 @@ export default {
 
       if (url.pathname === "/api/version") {
         return runWithRouteMetrics("api/version", env, () => jsonResponse(request, env, buildVersionPayload(env)));
+      }
+
+      if (url.pathname === "/api/pexels-image") {
+        return runWithRouteMetrics("api/pexels-image", env, () => handlePexelsImageRequest(request, env));
       }
 
       // Legacy compatibility: 일부 런타임이 /api/status 상태 체크를 사용한다.
