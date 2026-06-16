@@ -138,22 +138,32 @@ function buildSajuMailContext(sub, today) {
 }
 
 function buildSajuFortuneHtml(ctx) {
-  const focus = ctx.dailyPreview || `${ctx.dayMaster}${ctx.dayBranch} 원국이 ${ctx.todayPillar} 일진을 만나 하루의 속도를 조율합니다.`;
+  const focus = ctx.dailyPreview || `${ctx.dayMaster}${ctx.dayBranch} 원국 위로 ${ctx.todayPillar} 일진이 내려앉으며 하루의 결이 선명하게 드러납니다.`;
   const monthlyLine = ctx.monthlyPreview
-    ? `<p style="margin:0 0 10px; color:#475569; font-size:14px; line-height:1.7;"><strong style="color:#4f46e5;">이번 달 배경</strong> ${escapeHtml(ctx.monthlyPreview)}</p>`
+    ? `<div style="margin:16px 0 0; padding:14px 16px; border-radius:16px; background:#fffaf0; border:1px solid #fde68a;"><div style="margin:0 0 5px; color:#92400e; font-size:12px; font-weight:900; letter-spacing:.08em;">이번 달 배경</div><p style="margin:0; color:#78350f; font-size:14px; line-height:1.72;">${escapeHtml(ctx.monthlyPreview)}</p></div>`
     : "";
   return `
-    <h2 style="margin:0 0 14px; color:#312e81; font-size:21px;">오늘의 사주 리듬</h2>
-    <p style="margin:0 0 14px; color:#334155; font-size:15px; line-height:1.75;">${escapeHtml(focus)}</p>
-    <div style="margin:18px 0; padding:16px; border-radius:18px; background:#f8fafc; border:1px solid #e2e8f0;">
-      <p style="margin:0 0 8px; color:#475569; font-size:14px; line-height:1.7;"><strong style="color:#4f46e5;">중심 기운</strong> ${escapeHtml(ctx.dayPillar)} 일주의 ${escapeHtml(ctx.dayMaster)} 기운이 오늘의 ${escapeHtml(ctx.todayPillar)} 일진과 만나, 먼저 마음의 결을 정돈한 뒤 움직일 때 복이 맑게 열립니다.</p>
-      <p style="margin:0; color:#475569; font-size:14px; line-height:1.7;"><strong style="color:#4f46e5;">오늘의 처방</strong> ${escapeHtml(ctx.yongshin)} 기운을 살리는 선택을 가까이 두고, ${escapeHtml(ctx.avoidElements)} 기운이 과해지는 말과 소비는 한 박자 늦추세요.</p>
+    <div style="margin:0 0 18px;">
+      <div style="display:inline-block; margin:0 0 10px; padding:6px 12px; border-radius:999px; background:#eef2ff; color:#4338ca; font-size:12px; font-weight:900; letter-spacing:.08em;">오늘의 사주 리듬</div>
+      <h2 style="margin:0 0 12px; color:#1f1b4d; font-size:24px; line-height:1.32;">${escapeHtml(ctx.todayPillar)} 일진이 비추는 하루</h2>
+      <p style="margin:0; color:#334155; font-size:15px; line-height:1.82;">${escapeHtml(focus)}</p>
+    </div>
+    <div style="margin:18px 0; padding:18px; border-radius:22px; background:linear-gradient(135deg,#f8fafc 0%,#eef2ff 100%); border:1px solid #dbeafe;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+        <tr><td style="padding:0 0 12px; color:#475569; font-size:13px; line-height:1.6;">중심 기운</td><td style="padding:0 0 12px; color:#312e81; font-size:15px; font-weight:900; text-align:right;">${escapeHtml(ctx.dayPillar)} 일주</td></tr>
+        <tr><td style="padding:0 0 12px; color:#475569; font-size:13px; line-height:1.6;">오늘의 보완</td><td style="padding:0 0 12px; color:#047857; font-size:15px; font-weight:900; text-align:right;">${escapeHtml(ctx.yongshin)}</td></tr>
+        <tr><td style="padding:0; color:#475569; font-size:13px; line-height:1.6;">잠시 낮출 결</td><td style="padding:0; color:#be123c; font-size:15px; font-weight:900; text-align:right;">${escapeHtml(ctx.avoidElements)}</td></tr>
+      </table>
+    </div>
+    <div style="margin:18px 0; padding:18px; border-radius:22px; background:#ffffff; border:1px solid #e2e8f0; box-shadow:0 10px 24px rgba(15,23,42,.06);">
+      <p style="margin:0 0 12px; color:#475569; font-size:14px; line-height:1.78;"><strong style="color:#4f46e5;">중심 기운</strong> ${escapeHtml(ctx.dayPillar)} 일주의 ${escapeHtml(ctx.dayMaster)} 기운이 오늘의 ${escapeHtml(ctx.todayPillar)} 일진과 만나, 먼저 마음의 결을 정돈한 뒤 움직일 때 복이 맑게 열립니다.</p>
+      <p style="margin:0; color:#475569; font-size:14px; line-height:1.78;"><strong style="color:#4f46e5;">오늘의 처방</strong> ${escapeHtml(ctx.yongshin)} 기운을 살리는 선택을 가까이 두고, ${escapeHtml(ctx.avoidElements)} 기운이 과해지는 말과 소비는 한 박자 늦추세요.</p>
     </div>
     ${monthlyLine}
-    <p style="margin:0 0 10px; color:#334155; font-size:15px; line-height:1.75;">오늘은 큰 결론보다 작은 질서를 세우는 날입니다. 아침에는 해야 할 일을 세 가지로 줄이고, 오후에는 관계에서 먼저 부드러운 표현을 고르세요. 밤에는 내일로 넘길 감정과 오늘 마무리할 감정을 조용히 나누면 운의 흐름이 한결 가벼워집니다.</p>
-    <div style="margin:18px 0; padding:16px; border-radius:18px; background:#fff7ed; border:1px solid #fed7aa;">
-      <p style="margin:0 0 8px; color:#7c2d12; font-size:14px; line-height:1.7;"><strong>행운 포인트</strong> 보완 기운 ${escapeHtml(ctx.yongshin)}을 떠올리게 하는 색이나 물건을 가까이 두세요.</p>
-      <p style="margin:0; color:#7c2d12; font-size:14px; line-height:1.7;"><strong>주의 신호</strong> ${escapeHtml(ctx.avoidElements)}의 결이 강해지는 순간에는 바로 답하지 말고 숨을 고른 뒤 움직이면 좋습니다.</p>
+    <p style="margin:18px 0 10px; color:#334155; font-size:15px; line-height:1.82;">오늘은 큰 결론보다 작은 질서를 세우는 날입니다. 아침에는 해야 할 일을 세 가지로 줄이고, 오후에는 관계에서 먼저 부드러운 표현을 고르세요. 밤에는 내일로 넘길 감정과 오늘 마무리할 감정을 조용히 나누면 운의 흐름이 한결 가벼워집니다.</p>
+    <div style="margin:18px 0; padding:18px; border-radius:22px; background:linear-gradient(135deg,#fff7ed 0%,#fff1f2 100%); border:1px solid #fed7aa;">
+      <p style="margin:0 0 10px; color:#7c2d12; font-size:14px; line-height:1.78;"><strong>행운 포인트</strong> 보완 기운 ${escapeHtml(ctx.yongshin)}을 떠올리게 하는 색이나 물건을 가까이 두세요.</p>
+      <p style="margin:0; color:#7c2d12; font-size:14px; line-height:1.78;"><strong>주의 신호</strong> ${escapeHtml(ctx.avoidElements)}의 결이 강해지는 순간에는 바로 답하지 말고 숨을 고른 뒤 움직이면 좋습니다.</p>
     </div>
     <p style="margin:0; color:#312e81; font-size:15px; line-height:1.75; font-weight:700;">당신의 오늘이 어제보다 더 반짝이길 바랄게요. - 꽃돼지 연이 드림</p>
   `;
@@ -164,21 +174,21 @@ function buildPaidFeatureLinks(env) {
   return [
     {
       title: "사주 인생의 책",
-      desc: "오늘의 흐름을 넘어 평생의 기질, 대운, 관계, 재물 흐름을 한 권으로 정리합니다.",
+      desc: "오늘의 흐름 너머 평생의 기질, 대운, 관계, 재물의 결이 한 권의 운명서로 열립니다.",
       href: `${base}/saju/lifebook?utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_cta_lifebook`,
       cta: "인생의 책 열기",
     },
     {
       title: "사주 연애 비책",
-      desc: "내 사주의 사랑 방식과 관계에서 반복되는 선택 패턴을 더 깊게 읽습니다.",
+      desc: "내 사주의 사랑 방식과 관계에서 되풀이되는 선택의 그림자가 더 깊은 빛으로 떠오릅니다.",
       href: `${base}/saju/love-bible?premiumIntent=love-secret-pdf&mode=solo&utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_cta_love`,
       cta: "연애 비책 보기",
     },
     {
       title: "자미두수 심화 명반",
-      desc: "12궁의 운명 지도를 통해 커리어, 재물, 관계의 장기 전략을 확인합니다.",
+      desc: "12궁의 운명 지도 위로 커리어, 재물, 관계의 장기 흐름이 차례로 비춥니다.",
       href: `${base}/ziwei/chart?utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_cta_ziwei`,
-      cta: "명반 분석하기",
+      cta: "명반 열기",
     },
   ];
 }
@@ -251,15 +261,15 @@ export async function sendSingleFortune(env, sub) {
         ${paidFeatureCtaHtml}
         
         <div style="margin-top: 30px; text-align: center;">
-          <a href="${escapeHtml(siteBaseUrl)}?utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_home" style="display: inline-block; background-color: #4f46e5; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 999px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">✨ 내 사주 자세히 분석하기</a>
+          <a href="${escapeHtml(siteBaseUrl)}?utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_home" style="display: inline-block; background-color: #4f46e5; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 999px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);">✨ 내 사주 더 깊이 열기</a>
         </div>
       </div>
       
       <!-- Footer -->
       <div style="background-color: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #f1f5f9;">
         <p style="margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.6;">
-          본 메일은 구독 신청을 하신 분들께 발송되는 맞춤 운세 서비스입니다.<br>
-          매일 아침 행운의 소식을 전해드립니다.
+          구독 신청을 남긴 분께 매일 아침의 운이 조용히 닿습니다.<br>
+          하루의 첫 빛 속에서 필요한 기운만 고요히 머뭅니다.
         </p>
         <div style="margin-top: 15px; font-size: 12px;">
           <a href="${escapeHtml(unsubscribeUrl)}" style="color: #64748b; text-decoration: underline;">구독 해지 (Unsubscribe)</a>

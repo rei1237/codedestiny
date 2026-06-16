@@ -11,7 +11,7 @@ export async function sendEmail(env, { to, subject, html, from, headers }) {
   }
 
   const payload = {
-    from: from || "Code Destiny <noreply@code-destiny.com>",
+    from: from || getEnv(env, "EMAIL_FROM") || getEnv(env, "RESEND_FROM") || "Code Destiny <noreply@code-destiny.com>",
     to: Array.isArray(to) ? to : [to],
     subject: subject,
     html: html,

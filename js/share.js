@@ -1199,26 +1199,114 @@ function getCheckedFormValue(name, fallback) {
   return fallback;
 }
 
-function getBirthSubscriptionData() {
+function padSajuSubscriptionNumber(value) {
+  var n = parseInt(value, 10);
+  return String(Number.isFinite(n) ? n : 0).padStart(2, '0');
+}
+
+function normalizeSajuSubscriptionProfile(profile) {
+  if (!profile || typeof profile !== 'object') return null;
+  var birth = profile.birth && typeof profile.birth === 'object' ? profile.birth : {};
+  var dateText = String(profile.birthDate || profile.birthIso || '').split(/[T\s]/)[0] || '';
+  var dateParts = dateText
+    ? (dateText.indexOf('-') >= 0 || dateText.indexOf('/') >= 0 ? dateText.split(/[-/]/) : [dateText.slice(0, 4), dateText.slice(4, 6), dateText.slice(6, 8)])
+    : [];
+  var year = parseInt(birth.year != null ? birth.year : (profile.birthYear != null ? profile.birthYear : dateParts[0]), 10);
+  var month = parseInt(birth.month != null ? birth.month : (profile.birthMonth != null ? profile.birthMonth : dateParts[1]), 10);
+  var day = parseInt(birth.day != null ? birth.day : (profile.birthDay != null ? profile.birthDay : dateParts[2]), 10);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+  var hour = parseInt(birth.hour != null ? birth.hour : profile.birthHour, 10);
+  var minute = parseInt(birth.minute != null ? birth.minute : profile.birthMinute, 10);
+  var calType = String(birth.calType || profile.calType || profile.calendarType || 'solar').trim();
+  if (calType !== 'lunar' && calType !== 'lunar_leap') calType = 'solar';
+  return Object.assign({}, profile, {
+    id: profile.id || profile.profileId,
+    profileId: profile.profileId || profile.id,
+    birth: Object.assign({}, birth, {
+      year: year,
+      month: month,
+      day: day,
+      hour: Number.isFinite(hour) ? hour : 12,
+      minute: Number.isFinite(minute) ? minute : 0,
+      calType: calType
+    }),
+    birthYear: year,
+    birthMonth: month,
+    birthDay: day,
+    birthHour: Number.isFinite(hour) ? hour : 12,
+    birthMinute: Number.isFinite(minute) ? minute : 0,
+    birthDate: year + '-' + padSajuSubscriptionNumber(month) + '-' + padSajuSubscriptionNumber(day),
+    calendarType: calType
+  });
+}
+
+function getStoredSajuSubscriptionProfile() {
+  try {
+    var storage = window.DestinyProfileManager && window.DestinyProfileManager.storage;
+    if (storage && typeof storage.current === 'function') {
+      var current = normalizeSajuSubscriptionProfile(storage.current());
+      if (current) return current;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function getSajuSubscriptionProfileCandidate() {
+  return normalizeSajuSubscriptionProfile(window.__cdActiveBirthProfile)
+    || getStoredSajuSubscriptionProfile()
+    || normalizeSajuSubscriptionProfile(window.__destinyFlowerSajuSnapshot);
+}
+
+function hasUsableSajuSubscriptionPillars() {
+  return !!(window.G_PILLARS && window.G_PILLARS.d && window.G_PILLARS.d.g && window.G_PILLARS.d.j);
+}
+
+function ensureSajuSubscriptionPillars() {
+  if (hasUsableSajuSubscriptionPillars()) {
+    return { ok: true, profile: getSajuSubscriptionProfileCandidate() };
+  }
+  var profile = getSajuSubscriptionProfileCandidate();
+  if (!profile) {
+    return { ok: false, missingProfile: true, error: '사주 원국을 먼저 열어야 매일의 기운을 정확히 이어 받을 수 있습니다. 생년월일을 입력하고 사주 분석을 완료해 주세요.' };
+  }
+  if (typeof window.computeProfileForModal !== 'function') {
+    return { ok: false, error: '저장된 프로필을 여는 계산 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.' };
+  }
+  try {
+    var computed = window.computeProfileForModal(profile);
+    if (computed && hasUsableSajuSubscriptionPillars()) {
+      return { ok: true, profile: profile };
+    }
+  } catch (_) {}
+  return { ok: false, error: '저장된 프로필에서 사주 원국을 다시 여는 데 실패했습니다. 프로필을 다시 선택한 뒤 신청해 주세요.' };
+}
+
+function getBirthSubscriptionData(profile) {
+  var profileBirth = profile && profile.birth && typeof profile.birth === 'object' ? profile.birth : null;
   var birthDateEl = document.getElementById('birthDate');
   var birthHourEl = document.getElementById('birthHour');
   var birthMinuteEl = document.getElementById('birthMinute');
-  var birthDate = birthDateEl && birthDateEl.value ? String(birthDateEl.value).trim() : '';
-  var birthHour = birthHourEl && birthHourEl.value !== '' ? parseInt(birthHourEl.value, 10) : 12;
-  var birthMinute = birthMinuteEl && birthMinuteEl.value !== '' ? parseInt(birthMinuteEl.value, 10) : 0;
+  var profileDate = profile && profile.birthDate ? String(profile.birthDate).trim() : '';
+  var hasFormBirthDate = !!(birthDateEl && birthDateEl.value);
+  var birthDate = hasFormBirthDate ? String(birthDateEl.value).trim() : profileDate;
+  var birthHour = birthHourEl && birthHourEl.value !== '' ? parseInt(birthHourEl.value, 10) : (profileBirth ? parseInt(profileBirth.hour, 10) : 12);
+  var birthMinute = birthMinuteEl && birthMinuteEl.value !== '' ? parseInt(birthMinuteEl.value, 10) : (profileBirth ? parseInt(profileBirth.minute, 10) : 0);
+  var calendarType = hasFormBirthDate ? getCheckedFormValue('calType', profileBirth ? profileBirth.calType : 'solar') : (profileBirth && profileBirth.calType) || getCheckedFormValue('calType', 'solar');
+  var timezone = profile && profile.location && profile.location.tz ? profile.location.tz : 'Asia/Seoul';
   return {
     birthDate: birthDate,
     birthYear: birthDate ? parseInt(birthDate.split('-')[0], 10) || undefined : undefined,
     birthHour: Number.isFinite(birthHour) ? birthHour : 12,
     birthMinute: Number.isFinite(birthMinute) ? birthMinute : 0,
-    calendarType: getCheckedFormValue('calType', 'solar'),
-    timezone: 'Asia/Seoul'
+    calendarType: calendarType || 'solar',
+    timezone: timezone
   };
 }
 
-function buildSajuSubscriptionPayload(emailVal, subDaily, subMonthly, source) {
-  if (!window.G_PILLARS) {
-    return { error: '사주 기반 일일 운세 구독을 위해 먼저 생년월일로 사주 분석을 완료해 주세요.' };
+function buildSajuSubscriptionPayload(emailVal, subDaily, subMonthly, source, profileCandidate) {
+  var ready = ensureSajuSubscriptionPillars();
+  if (!ready.ok) {
+    return { error: ready.error };
   }
   if (typeof getGanZhiForDate !== 'function' || typeof getMonthGanZhi !== 'function' || typeof analyzeFortuneGZ !== 'function') {
     return { error: '운세 계산 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.' };
@@ -1235,7 +1323,7 @@ function buildSajuSubscriptionPayload(emailVal, subDaily, subMonthly, source) {
     return { error: '운세 데이터 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.' };
   }
 
-  var birth = getBirthSubscriptionData();
+  var birth = getBirthSubscriptionData(profileCandidate || ready.profile);
   return {
     payload: {
       email: emailVal,
@@ -1349,12 +1437,17 @@ async function submitSajuSubscription(scope) {
     setSajuSubscriptionStatus(cfg.scope, 'error', '일일 운세 이메일 수신을 선택해 주세요.');
     return;
   }
-  if (!window.G_PILLARS) {
+  var ready = ensureSajuSubscriptionPillars();
+  if (!ready.ok && ready.missingProfile) {
     guideSajuBeforeSubscription(cfg.scope);
     return;
   }
+  if (!ready.ok) {
+    setSajuSubscriptionStatus(cfg.scope, 'error', ready.error);
+    return;
+  }
 
-  var payloadResult = buildSajuSubscriptionPayload(emailVal, subDaily, subMonthly, cfg.source);
+  var payloadResult = buildSajuSubscriptionPayload(emailVal, subDaily, subMonthly, cfg.source, ready.profile);
   if (payloadResult.error) {
     setSajuSubscriptionStatus(cfg.scope, 'error', payloadResult.error);
     return;

@@ -236,14 +236,180 @@ async function runCoinRefund({ userId, featureKey, cost, sourceTransactionId, ex
   };
 }
 
-async function runMonthlyCreditRefund({ userId, featureKey, sourceTransactionId, executionId, requestId, reason }) {
-  if (!userId || !sourceTransactionId) return { refunded: false, skipped: true };
-  if (!mongoose.Types.ObjectId.isValid(String(sourceTransactionId))) {
+function extractMonthlyCreditExecutionHints(execution = {}) {
+  const metadata = execution?.metadata && typeof execution.metadata === "object" ? execution.metadata : {};
+  const billing = metadata.billing && typeof metadata.billing === "object" ? metadata.billing : {};
+  const requestIdHint = cleanMetadataText(
+    billing.requestId || metadata.requestId || metadata.idempotencyKey || execution.executionKey,
+    120,
+  );
+  const purchaseIdHint = cleanMetadataText(
+    billing.purchaseId || metadata.purchaseId || metadata.orderId || execution.paymentSessionId,
+    120,
+  );
+  const sessionIdHint = cleanMetadataText(
+    metadata.sessionId || execution.sessionId || billing.sessionId || metadata.reportSessionId,
+    160,
+  );
+  const reportIdHint = cleanMetadataText(
+    metadata.reportId || execution.reportId || billing.reportId,
+    120,
+  );
+  const pointHistoryHint = cleanMetadataText(
+    billing.pointHistoryId || metadata.pointHistoryId || metadata.refundForPointHistoryId,
+    120,
+  );
+  const ledgerIdHint = cleanMetadataText(
+    metadata.billing?.ledgerId || billing.ledgerId || metadata.ledgerId,
+    120,
+  );
+
+  return {
+    requestIdHint,
+    purchaseIdHint,
+    sessionIdHint,
+    reportIdHint,
+    pointHistoryHint,
+    ledgerIdHint,
+  };
+}
+
+async function resolveMonthlyCreditSourceTransactionId({
+  userId,
+  featureKey,
+  sourceTransactionId,
+  execution = {},
+}) {
+  const hints = extractMonthlyCreditExecutionHints(execution);
+  const direct = cleanMetadataText(sourceTransactionId || hints.pointHistoryHint, 120);
+  if (direct && mongoose.Types.ObjectId.isValid(direct)) {
+    const directPoint = await PointHistory.findOne({
+      _id: direct,
+      userId,
+      kind: "deduct",
+    }).lean();
+    if (directPoint) return String(directPoint._id || "");
+  }
+
+  if (!hints.requestIdHint && !hints.purchaseIdHint && !hints.sessionIdHint && !hints.reportIdHint) {
+    return "";
+  }
+
+  if (hints.ledgerIdHint && mongoose.Types.ObjectId.isValid(hints.ledgerIdHint)) {
+    const ledgerById = await MonthlyCreditLedger.findOne({
+      _id: hints.ledgerIdHint,
+      userId,
+      type: "MONTHLY_CREDIT_SPEND",
+      ...(featureKey ? { serviceKey: featureKey } : {}),
+    }).lean();
+    const ledgerPointId = cleanMetadataText(ledgerById?.metadata?.pointHistoryId, 120);
+    if (ledgerPointId && mongoose.Types.ObjectId.isValid(ledgerPointId)) {
+      return ledgerPointId;
+    }
+  }
+
+  const ledgerOr = [];
+  if (hints.requestIdHint) {
+    ledgerOr.push(
+      { sourceId: hints.requestIdHint },
+      { "metadata.requestId": hints.requestIdHint },
+      { "metadata.idempotencyKey": hints.requestIdHint },
+      { "metadata.orderId": hints.requestIdHint },
+    );
+  }
+  if (hints.purchaseIdHint) {
+    ledgerOr.push(
+      { sourceId: hints.purchaseIdHint },
+      { "metadata.purchaseId": hints.purchaseIdHint },
+      { "metadata.orderId": hints.purchaseIdHint },
+    );
+  }
+  if (ledgerOr.length > 0) {
+    const spendLedger = await MonthlyCreditLedger.findOne({
+      userId,
+      type: "MONTHLY_CREDIT_SPEND",
+      ...(featureKey ? { serviceKey: featureKey } : {}),
+      $or: ledgerOr,
+    }).sort({ createdAt: -1 }).lean();
+    const spendLedgerPointId = cleanMetadataText(spendLedger?.metadata?.pointHistoryId, 120);
+    if (spendLedgerPointId && mongoose.Types.ObjectId.isValid(spendLedgerPointId)) {
+      return spendLedgerPointId;
+    }
+  }
+
+  const pointHistoryOr = [];
+  if (hints.requestIdHint) {
+    pointHistoryOr.push(
+      { "metadata.requestId": hints.requestIdHint },
+      { "metadata.idempotencyKey": hints.requestIdHint },
+      { "metadata.orderId": hints.requestIdHint },
+    );
+  }
+  if (hints.purchaseIdHint) {
+    pointHistoryOr.push(
+      { "metadata.purchaseId": hints.purchaseIdHint },
+      { "metadata.orderId": hints.purchaseIdHint },
+      { _id: mongoose.Types.ObjectId.isValid(hints.purchaseIdHint) ? hints.purchaseIdHint : undefined },
+    );
+  }
+  if (hints.sessionIdHint) {
+    pointHistoryOr.push(
+      { "metadata.sessionId": hints.sessionIdHint },
+      { "metadata.reportSessionId": hints.sessionIdHint },
+    );
+  }
+  if (hints.reportIdHint) {
+    pointHistoryOr.push(
+      { "metadata.reportId": hints.reportIdHint },
+    );
+  }
+  const safePointHistoryOr = pointHistoryOr.filter((entry) => Object.values(entry)[0] !== undefined);
+  if (safePointHistoryOr.length === 0) return "";
+
+  const pointHistory = await PointHistory.findOne({
+    userId,
+    kind: "deduct",
+    "metadata.accessType": "membership_credit",
+    ...(featureKey ? { featureKey } : {}),
+    $or: safePointHistoryOr,
+  }).sort({ createdAt: -1 }).lean();
+  if (!pointHistory) return "";
+
+  return cleanMetadataText(pointHistory._id, 120);
+}
+
+async function runMonthlyCreditRefund({
+  userId,
+  featureKey,
+  sourceTransactionId,
+  executionId,
+  reason,
+  execution,
+}) {
+  const resolvedSourceTransactionId = cleanMetadataText(
+    await resolveMonthlyCreditSourceTransactionId({
+      userId,
+      featureKey: cleanMetadataText(featureKey, 80),
+      sourceTransactionId,
+      execution,
+    }),
+    120,
+  );
+  if (!resolvedSourceTransactionId) return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
+
+  if (executionId && resolvedSourceTransactionId !== cleanMetadataText(sourceTransactionId, 120)) {
+    await ServiceExecutionTransaction.updateOne(
+      { _id: executionId, userId, sourceTransactionId: { $ne: resolvedSourceTransactionId } },
+      { $set: { sourceTransactionId: resolvedSourceTransactionId } },
+    ).catch(() => {});
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(String(resolvedSourceTransactionId))) {
     return { refunded: false, skipped: true, reason: "SOURCE_TRANSACTION_NOT_POINT_HISTORY_ID" };
   }
 
   const deducted = await PointHistory.findOne({
-    _id: sourceTransactionId,
+    _id: resolvedSourceTransactionId,
     userId,
     kind: "deduct",
   }).lean();
@@ -470,7 +636,7 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       featureKey: execution.featureKey,
       sourceTransactionId: execution.sourceTransactionId,
       executionId: String(execution._id),
-      requestId,
+      execution,
       reason: `${reason.message}`.slice(0, 120),
     });
 

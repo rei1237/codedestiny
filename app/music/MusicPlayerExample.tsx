@@ -18,7 +18,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { buildAssetsPublicUrl, buildMusicPublicUrl } from "@/lib/r2-public-url";
-import { allTracks } from "./_data/musicManifest";
+import { allTracks, type ArtistKey } from "./_data/musicManifest";
 import { useMusicPlayer, type RepeatMode } from "./_hooks/useMusicPlayer";
 import MoonAlbumArtwork from "./MoonAlbumArtwork";
 import MusicPlaylistPanel from "./MusicPlaylistPanel";
@@ -28,6 +28,8 @@ type MusicPlayerExampleProps = {
   ambientAssetKey?: string;
   presentation?: "full" | "compact";
 };
+
+type PlaylistThemeMode = "all" | ArtistKey;
 
 type PlayerStyle = CSSProperties & {
   "--cover-image"?: string;
@@ -174,13 +176,15 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const [isListeningModeOpen, setIsListeningModeOpen] = useState(presentation === "full");
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
   const [nowPlayingShared, setNowPlayingShared] = useState(false);
+  const [playlistThemeMode, setPlaylistThemeMode] = useState<PlaylistThemeMode>("all");
   const currentTrackId = player.currentTrack?.id || "";
   const coverFailed = Boolean(!player.currentTrack?.coverUrl || (currentTrackId && failedCoverIds[currentTrackId]));
-  const artistThemeClass = player.currentTrack?.artistKey === "dest1nova"
+  const effectiveArtistTheme = playlistThemeMode === "all" ? player.currentTrack?.artistKey : playlistThemeMode;
+  const artistThemeClass = effectiveArtistTheme === "dest1nova"
     ? styles.dest1novaMode
-    : player.currentTrack?.artistKey === "lunabloom"
+    : effectiveArtistTheme === "lunabloom"
       ? styles.lunabloomMode
-      : player.currentTrack?.artistKey === "yeoni"
+      : effectiveArtistTheme === "yeoni"
         ? styles.yeoniMode
         : styles.neoMode;
   const isCompact = presentation === "compact";
@@ -268,9 +272,10 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       setIsLyricsLoading(false);
       return;
     }
+    const lyricsLookupKey = track.lyricsLookupKey;
 
-    if (lyricsTextCache.has(track.lyricsLookupKey)) {
-      setLyricsText(lyricsTextCache.get(track.lyricsLookupKey) || "");
+    if (lyricsTextCache.has(lyricsLookupKey)) {
+      setLyricsText(lyricsTextCache.get(lyricsLookupKey) || "");
       setIsLyricsLoading(false);
       return;
     }
@@ -282,14 +287,14 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     void getMusicLyricsModule()
       .then((module) => {
         if (cancelled) return;
-        const nextLyrics = module.lyricsFromAudioFileName(track.lyricsLookupKey || "");
+        const nextLyrics = module.lyricsFromAudioFileName(lyricsLookupKey);
         const nextLyricsText = typeof nextLyrics === "string" ? nextLyrics.trim() : "";
-        lyricsTextCache.set(track.lyricsLookupKey, nextLyricsText);
+        lyricsTextCache.set(lyricsLookupKey, nextLyricsText);
         setLyricsText(nextLyricsText);
       })
       .catch(() => {
         if (!cancelled) {
-          lyricsTextCache.set(track.lyricsLookupKey, "");
+          lyricsTextCache.set(lyricsLookupKey, "");
           setLyricsText("");
         }
       })
@@ -399,7 +404,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     return (
       <section
         className={`${styles.miniPlayerShell} ${artistThemeClass} ${coverFailed ? styles.coverFallback : ""} font-body`}
-        data-artist-mode={player.currentTrack.artistKey}
+        data-artist-mode={effectiveArtistTheme || player.currentTrack.artistKey}
         style={playerStyle}
         aria-label="Code Destiny music player"
       >
@@ -449,7 +454,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   return (
     <section
       className={`${styles.playerShell} ${isCompact ? styles.listeningOverlay : ""} ${artistThemeClass} ${player.isPlaying ? styles.isPlaying : styles.isPaused} ${coverFailed ? styles.coverFallback : ""} font-body`}
-      data-artist-mode={player.currentTrack?.artistKey || "neo"}
+      data-artist-mode={effectiveArtistTheme || "neo"}
       style={playerStyle}
     >
       {isCompact ? (
@@ -639,6 +644,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
             currentTrackId={player.currentTrack?.id}
             isPlaying={player.isPlaying}
             failedCoverIds={failedCoverIds}
+            onActiveTabChange={setPlaylistThemeMode}
             onCoverError={handlePlaylistCoverError}
             onSelectTrack={handlePlaylistTrackSelect}
           />

@@ -23,6 +23,7 @@ type MusicPlaylistPanelProps = {
   currentTrackId?: string;
   isPlaying: boolean;
   failedCoverIds: Record<string, boolean>;
+  onActiveTabChange?: (tabKey: PlaylistTab) => void;
   onCoverError: (trackId: string) => void;
   onSelectTrack: (trackId: string) => void;
 };
@@ -35,7 +36,8 @@ const PLAYLIST_TABS: Array<{ key: PlaylistTab; label: string }> = [
   { key: "all", label: "All" },
 ];
 
-const PLAYLIST_PAGE_SIZE = 40;
+const PLAYLIST_OVERSCAN_COUNT = 8;
+const PLAYLIST_DEFAULT_ROW_STRIDE = 92;
 type PlaylistTrackEntry = {
   track: Track;
   searchableText: string;
@@ -143,6 +145,7 @@ const PlaylistTrackItem = memo(function PlaylistTrackItem({
       className={styles.playlistTrack}
       role="group"
       aria-current={isCurrent ? "true" : undefined}
+      data-playlist-track="true"
       data-disabled={!isPlayable ? "true" : "false"}
       data-playing={isCurrentTrackPlaying ? "true" : "false"}
       data-artist={track.artistKey}
@@ -239,6 +242,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
   currentTrackId,
   isPlaying,
   failedCoverIds,
+  onActiveTabChange,
   onCoverError,
   onSelectTrack,
 }: MusicPlaylistPanelProps) {
@@ -246,11 +250,12 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
   const [query, setQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [sharedTrackId, setSharedTrackId] = useState("");
-  const [visibleTrackCount, setVisibleTrackCount] = useState(PLAYLIST_PAGE_SIZE);
+  const [virtualScrollTop, setVirtualScrollTop] = useState(0);
+  const [virtualViewportHeight, setVirtualViewportHeight] = useState(516);
+  const [virtualRowStride, setVirtualRowStride] = useState(PLAYLIST_DEFAULT_ROW_STRIDE);
   const sharedTrackResetTimerRef = useRef<number | null>(null);
   const playlistScrollRef = useRef<HTMLDivElement | null>(null);
-  const loadMoreTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const loadMoreObserverRef = useRef<IntersectionObserver | null>(null);
+  const virtualScrollRafRef = useRef<number | null>(null);
   const normalizedQuery = normalizeSearchText(query);
   const deferredQuery = useDeferredValue(normalizedQuery);
   const [, startSearchTransition] = useTransition();
@@ -302,11 +307,31 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
       }));
   }, [activeTab, deferredQuery, searchableTracks]);
 
-  const visibleTracks = useMemo(() => {
-    return filteredTracks.slice(0, visibleTrackCount);
-  }, [filteredTracks, visibleTrackCount]);
+  const virtualWindow = useMemo(() => {
+    if (!filteredTracks.length) {
+      return {
+        startIndex: 0,
+        endIndex: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
+        tracks: [] as PlaylistTrackDisplay[],
+      };
+    }
 
-  const hasMoreTracks = visibleTrackCount < filteredTracks.length;
+    const rowStride = Math.max(1, virtualRowStride);
+    const viewportHeight = Math.max(1, virtualViewportHeight);
+    const startIndex = Math.max(0, Math.floor(virtualScrollTop / rowStride) - PLAYLIST_OVERSCAN_COUNT);
+    const visibleCount = Math.ceil(viewportHeight / rowStride) + PLAYLIST_OVERSCAN_COUNT * 2;
+    const endIndex = Math.min(filteredTracks.length, startIndex + visibleCount);
+
+    return {
+      startIndex,
+      endIndex,
+      paddingTop: startIndex * rowStride,
+      paddingBottom: Math.max(0, (filteredTracks.length - endIndex) * rowStride),
+      tracks: filteredTracks.slice(startIndex, endIndex),
+    };
+  }, [filteredTracks, virtualRowStride, virtualScrollTop, virtualViewportHeight]);
 
   const handleTrackSelect = useCallback((trackId: string) => {
     onSelectTrack(trackId);
@@ -318,7 +343,8 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
 
   const handleTabSelect = useCallback((tabKey: PlaylistTab) => {
     setActiveTab(tabKey);
-  }, []);
+    onActiveTabChange?.(tabKey);
+  }, [onActiveTabChange]);
 
   const trackById = useMemo(() => {
     const map = new Map<string, Track>();
@@ -372,21 +398,22 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
     })();
   }, [clearSharedTrackResetTimer, trackById]);
 
-  const loadMoreTracks = useCallback(() => {
-    startSearchTransition(() => {
-      setVisibleTrackCount((current) => Math.min(current + PLAYLIST_PAGE_SIZE, filteredTracks.length));
-    });
-  }, [filteredTracks.length, startSearchTransition]);
-
   useEffect(() => {
     startSearchTransition(() => {
-      setVisibleTrackCount(PLAYLIST_PAGE_SIZE);
+      setVirtualScrollTop(0);
     });
+    if (playlistScrollRef.current) {
+      playlistScrollRef.current.scrollTop = 0;
+    }
   }, [activeTab, deferredQuery, tracks, startSearchTransition]);
 
   useEffect(() => {
     return () => {
       clearSharedTrackResetTimer();
+      if (virtualScrollRafRef.current !== null) {
+        window.cancelAnimationFrame(virtualScrollRafRef.current);
+        virtualScrollRafRef.current = null;
+      }
     };
   }, [clearSharedTrackResetTimer]);
 
@@ -406,38 +433,54 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
     };
   }, [searchInput, startSearchTransition]);
 
+  const syncVirtualMetrics = useCallback(() => {
+    const listElement = playlistScrollRef.current;
+    if (!listElement) return;
+
+    const firstTrack = listElement.querySelector<HTMLElement>("[data-playlist-track='true']");
+    const listStyle = window.getComputedStyle(listElement);
+    const gap = Number.parseFloat(listStyle.rowGap || listStyle.gap || "0") || 0;
+    const fallbackStride = window.matchMedia("(max-width: 640px)").matches
+      ? 84
+      : window.matchMedia("(max-width: 1119px)").matches
+        ? 100
+        : PLAYLIST_DEFAULT_ROW_STRIDE;
+    const nextRowStride = Math.max(1, (firstTrack?.offsetHeight || fallbackStride) + gap);
+    const nextViewportHeight = listElement.clientHeight || 516;
+
+    setVirtualViewportHeight((current) => Math.abs(current - nextViewportHeight) > 1 ? nextViewportHeight : current);
+    setVirtualRowStride((current) => Math.abs(current - nextRowStride) > 1 ? nextRowStride : current);
+  }, []);
+
+  const handlePlaylistScroll = useCallback(() => {
+    const listElement = playlistScrollRef.current;
+    if (!listElement || virtualScrollRafRef.current !== null) return;
+
+    virtualScrollRafRef.current = window.requestAnimationFrame(() => {
+      virtualScrollRafRef.current = null;
+      const currentListElement = playlistScrollRef.current;
+      if (!currentListElement) return;
+
+      setVirtualScrollTop(currentListElement.scrollTop);
+      setVirtualViewportHeight(currentListElement.clientHeight || 516);
+    });
+  }, []);
+
+  useEffect(() => {
+    syncVirtualMetrics();
+  }, [syncVirtualMetrics, virtualWindow.tracks.length, activeTab, deferredQuery]);
+
   useEffect(() => {
     const listElement = playlistScrollRef.current;
-    const trigger = loadMoreTriggerRef.current;
-    if (!listElement || !trigger || !hasMoreTracks || typeof IntersectionObserver === "undefined") return;
+    if (!listElement || typeof ResizeObserver === "undefined") return;
 
-    if (loadMoreObserverRef.current) {
-      loadMoreObserverRef.current.disconnect();
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!hasMoreTracks) return;
-        if (entries.some((entry) => entry.isIntersecting)) {
-          loadMoreTracks();
-        }
-      },
-      {
-        root: listElement,
-        rootMargin: "200px 0px 0px 0px",
-        threshold: 0.01,
-      }
-    );
-    observer.observe(trigger);
-    loadMoreObserverRef.current = observer;
+    const resizeObserver = new ResizeObserver(syncVirtualMetrics);
+    resizeObserver.observe(listElement);
 
     return () => {
-      observer.disconnect();
-      if (loadMoreObserverRef.current === observer) {
-        loadMoreObserverRef.current = null;
-      }
+      resizeObserver.disconnect();
     };
-  }, [hasMoreTracks, loadMoreTracks]);
+  }, [syncVirtualMetrics]);
 
   return (
     <aside className={styles.playlistPanel} data-playlist-mode={activeTab} aria-label="Music playlist">
@@ -481,10 +524,13 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
             />
           </label>
 
-          <div className={styles.playlistScroll} ref={playlistScrollRef}>
-            {visibleTracks.length ? (
+          <div className={styles.playlistScroll} ref={playlistScrollRef} onScroll={handlePlaylistScroll}>
+            {filteredTracks.length ? (
               <>
-                {visibleTracks.map((track) => (
+                {virtualWindow.paddingTop ? (
+                  <div className={styles.playlistVirtualSpacer} style={{ height: virtualWindow.paddingTop }} aria-hidden />
+                ) : null}
+                {virtualWindow.tracks.map((track) => (
                   <PlaylistTrackItem
                     key={track.track.id}
                     track={track.track}
@@ -500,15 +546,8 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
                     onShareTrack={handleTrackShare}
                   />
                 ))}
-                {hasMoreTracks ? (
-                  <button
-                    ref={loadMoreTriggerRef}
-                    type="button"
-                    onClick={loadMoreTracks}
-                    className={`${styles.playlistTab} ${styles.playlistLoadMore}`}
-                  >
-                    Load more ({visibleTracks.length}/{filteredTracks.length})
-                  </button>
+                {virtualWindow.paddingBottom ? (
+                  <div className={styles.playlistVirtualSpacer} style={{ height: virtualWindow.paddingBottom }} aria-hidden />
                 ) : null}
               </>
             ) : (
