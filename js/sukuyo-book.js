@@ -921,6 +921,82 @@
     return _withSukuyoArchiveFormat('/api/premium/pdf-archive/' + encodeURIComponent(id), format || 'pdf');
   }
 
+  function _buildSukuyoAuthHeaders() {
+    var headers = {};
+    var authToken = '';
+    try { authToken = localStorage.getItem('fortune_auth_token') || ''; } catch (_) { authToken = ''; }
+    var premiumToken = _readPremiumAccessToken();
+    if (authToken) headers.Authorization = 'Bearer ' + authToken;
+    if (premiumToken) headers['x-premium-access-token'] = premiumToken;
+    return headers;
+  }
+
+  function _readSukuyoBlobPrefix(blob, length) {
+    var part = blob && typeof blob.slice === 'function' ? blob.slice(0, length || 5) : blob;
+    if (part && typeof part.text === 'function') return part.text();
+    return new Promise(function (resolve, reject) {
+      try {
+        var reader = new FileReader();
+        reader.onload = function () { resolve(String(reader.result || '')); };
+        reader.onerror = function () { reject(reader.error || new Error('SUKUYO_BLOB_READ_FAILED')); };
+        reader.readAsText(part);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  function _downloadSukuyoBlob(blob, filename) {
+    var blobUrl = URL.createObjectURL(blob);
+    var anchor = document.createElement('a');
+    anchor.href = blobUrl;
+    anchor.download = filename || 'sukyo-premium-report.pdf';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(function () { try { URL.revokeObjectURL(blobUrl); } catch (_) {} }, 3000);
+  }
+
+  function _downloadSukuyoUrlAsBlob(url, filename, expectedFormat) {
+    var targetUrl = _clean(url);
+    if (!targetUrl) return Promise.reject(new Error('SUKUYO_DOWNLOAD_URL_MISSING'));
+    return fetch(targetUrl, {
+      method: 'GET',
+      headers: _buildSukuyoAuthHeaders(),
+      credentials: 'include',
+      cache: 'no-store',
+    })
+      .then(function (res) {
+        if (!res.ok) {
+          return res.text().catch(function () { return ''; }).then(function (text) {
+            var error = new Error(text || ('SUKUYO_DOWNLOAD_HTTP_' + res.status));
+            error.status = res.status;
+            throw error;
+          });
+        }
+        var contentType = _clean(res.headers && res.headers.get('content-type')).toLowerCase();
+        return res.blob().then(function (blob) {
+          return { blob: blob, contentType: contentType };
+        });
+      })
+      .then(function (pack) {
+        if (!pack.blob || !pack.blob.size) throw new Error('SUKUYO_DOWNLOAD_EMPTY_BLOB');
+        if (pack.contentType.indexOf('application/json') >= 0) throw new Error('SUKUYO_DOWNLOAD_JSON_RESPONSE');
+        if (expectedFormat === 'pdf') {
+          if (pack.contentType.indexOf('text/plain') >= 0) {
+            throw new Error('SUKUYO_DOWNLOAD_NOT_PDF:' + pack.contentType);
+          }
+          return _readSukuyoBlobPrefix(pack.blob, 5).then(function (magic) {
+            if (magic !== '%PDF-') throw new Error('SUKUYO_DOWNLOAD_INVALID_PDF:' + magic);
+            _downloadSukuyoBlob(pack.blob, filename);
+            return true;
+          });
+        }
+        _downloadSukuyoBlob(pack.blob, filename);
+        return true;
+      });
+  }
+
   function _resolveSukuyoStoredUrl(payload) {
     var p = payload || {};
     var ready = p.pdfReady && typeof p.pdfReady === 'object' ? p.pdfReady : {};
@@ -2163,26 +2239,23 @@
       var isHtmlDownload = !isPdfDownload && (/\.html?(?:$|[?#])/i.test(downloadUrl) || /format=html(?:$|&)/i.test(downloadUrl) || /text\/html/i.test(_clean(ready.mimeType)) || downloadUrl === htmlUrl);
       var filename = _clean(ready.filename) || (reportId ? ('sukyo-premium-' + reportId + '.pdf') : 'sukyo-premium-report.pdf');
       filename = isHtmlDownload ? filename.replace(/\.pdf$/i, '.html') : filename.replace(/\.html?$/i, '.pdf');
-      var anchor = document.createElement('a');
-      anchor.href = downloadUrl;
-      anchor.target = '_blank';
-      anchor.rel = 'noopener noreferrer';
-      if (isHtmlDownload) {
-        anchor.download = filename;
-      }
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      _showSukuyoToast(isHtmlDownload ? 'HTML 원고 링크를 열었습니다. PDF 링크가 준비되면 다시 저장할 수 있습니다.' : '숙요점 궁합 PDF 저장 링크를 열었습니다.');
-
-      fetch(downloadUrl, { method: 'HEAD', credentials: 'include' })
-        .then(function (res) {
-          if (!res.ok) {
-            _showSukuyoToast('PDF 저장 링크가 아직 안정적으로 연결되지 않았습니다. 잠시 후 다시 시도해 주세요.');
-          }
+      _showSukuyoToast(isHtmlDownload ? 'HTML 원고를 저장하고 있습니다.' : '숙요점 궁합 PDF를 저장하고 있습니다.');
+      _downloadSukuyoUrlAsBlob(downloadUrl, filename, isHtmlDownload ? 'html' : 'pdf')
+        .then(function () {
+          _showSukuyoToast(isHtmlDownload ? 'HTML 원고 저장을 시작했습니다.' : '숙요점 궁합 PDF 저장을 시작했습니다.');
         })
-        .catch(function () {
-          _showSukuyoToast('PDF 저장 링크 확인이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.');
+        .catch(function (error) {
+          console.error('[SukuyoPremiumPDF][DownloadFailed]', {
+            reportId: reportId,
+            downloadUrl: downloadUrl,
+            status: error && error.status,
+            message: String(error && error.message || error || ''),
+          });
+          if (error && Number(error.status) === 401) {
+            _showSukuyoToast('로그인이 만료되었습니다. 다시 로그인한 뒤 PDF를 저장해 주세요.');
+            return;
+          }
+          _showSukuyoToast('PDF 저장 링크를 열 수 없습니다. 잠시 후 다시 시도해 주세요.');
         });
       return;
     }

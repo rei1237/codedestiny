@@ -1463,6 +1463,87 @@ function archivePdfLineOp(text, x, y, size, color = "0.11 0.08 0.18") {
   return `${color} rg BT /F1 ${Number(size).toFixed(2)} Tf 1 0 0 1 ${Number(x).toFixed(2)} ${Number(y).toFixed(2)} Tm <${archivePdfHex(text)}> Tj ET\n`;
 }
 
+function archivePdfScore(value, fallback = 50) {
+  const score = Number(value);
+  const resolved = Number.isFinite(score) ? score : Number(fallback);
+  return Math.max(0, Math.min(100, Math.round(Number.isFinite(resolved) ? resolved : 50)));
+}
+
+function archivePdfRectOp(x, y, width, height, fill, stroke = "", strokeWidth = 0.8) {
+  let ops = `${fill} rg ${Number(x).toFixed(2)} ${Number(y).toFixed(2)} ${Number(width).toFixed(2)} ${Number(height).toFixed(2)} re f\n`;
+  if (stroke) {
+    ops += `${stroke} RG ${Number(strokeWidth).toFixed(2)} w ${Number(x).toFixed(2)} ${Number(y).toFixed(2)} ${Number(width).toFixed(2)} ${Number(height).toFixed(2)} re S\n`;
+  }
+  return ops;
+}
+
+function archivePdfPathOp(points = [], fill, stroke = "", strokeWidth = 1) {
+  if (!Array.isArray(points) || points.length < 3) return "";
+  const [first, ...rest] = points;
+  let ops = `${fill} rg ${first.x.toFixed(2)} ${first.y.toFixed(2)} m `;
+  for (const point of rest) ops += `${point.x.toFixed(2)} ${point.y.toFixed(2)} l `;
+  ops += "h f\n";
+  if (stroke) {
+    ops += `${stroke} RG ${Number(strokeWidth).toFixed(2)} w ${first.x.toFixed(2)} ${first.y.toFixed(2)} m `;
+    for (const point of rest) ops += `${point.x.toFixed(2)} ${point.y.toFixed(2)} l `;
+    ops += "h S\n";
+  }
+  return ops;
+}
+
+function archivePdfStrokePathOp(points = [], stroke = "0.78 0.72 0.86", strokeWidth = 0.6) {
+  if (!Array.isArray(points) || points.length < 3) return "";
+  const [first, ...rest] = points;
+  let ops = `${stroke} RG ${Number(strokeWidth).toFixed(2)} w ${first.x.toFixed(2)} ${first.y.toFixed(2)} m `;
+  for (const point of rest) ops += `${point.x.toFixed(2)} ${point.y.toFixed(2)} l `;
+  return `${ops}h S\n`;
+}
+
+function isSukuyoArchiveReport(archive = {}, metadata = {}, reportType = "") {
+  const aliases = Array.isArray(archive?.reportTypeAliases) ? archive.reportTypeAliases : [];
+  const haystack = [
+    reportType,
+    archive?.reportType,
+    archive?.archiveReportType,
+    metadata?.reportType,
+    metadata?.canonicalReportType,
+    ...aliases,
+  ].map((item) => String(item || "").toLowerCase()).join(" ");
+  return /sukyo|sookyo|sukuyo/.test(haystack) || String(archive?.displayName || "").includes("숙요");
+}
+
+function buildSukuyoArchiveVisualModel(archive = {}, metadata = {}, reportType = "") {
+  if (!isSukuyoArchiveReport(archive, metadata, reportType)) return null;
+  const payload = archive?.payload && typeof archive.payload === "object" ? archive.payload : {};
+  const localJson = archive?.localSukuyoCompatibilityJson && typeof archive.localSukuyoCompatibilityJson === "object"
+    ? archive.localSukuyoCompatibilityJson
+    : payload?.localSukuyoCompatibilityJson && typeof payload.localSukuyoCompatibilityJson === "object"
+      ? payload.localSukuyoCompatibilityJson
+      : payload;
+  const relation = localJson?.relation && typeof localJson.relation === "object" ? localJson.relation : {};
+  const compatibility = payload?.compatibility && typeof payload.compatibility === "object" ? payload.compatibility : {};
+  const chemistry = relation?.chemistry && typeof relation.chemistry === "object" ? relation.chemistry : {};
+  const items = [
+    { label: "궁합 지수", value: archivePdfScore(relation.score ?? relation.compatibilityScore ?? compatibility.compatibilityIndex ?? compatibility.score, 58), color: "0.56 0.28 0.86" },
+    { label: "감정 반응", value: archivePdfScore(chemistry.emotional ?? compatibility.temperature ?? compatibility.chemistryScore, 58), color: "0.88 0.24 0.50" },
+    { label: "대화 안정", value: archivePdfScore(chemistry.communication ?? compatibility.communicationScore, 55), color: "0.06 0.58 0.62" },
+    { label: "일상 안정", value: archivePdfScore(chemistry.dailyLife ?? compatibility.stabilityScore, 53), color: "0.86 0.55 0.08" },
+    { label: "회복 탄력", value: archivePdfScore(chemistry.recoveryPotential ?? compatibility.growthScore, 51), color: "0.18 0.45 0.86" },
+    { label: "장기 가능", value: archivePdfScore(chemistry.longTermPotential ?? compatibility.compatibilityIndex, 50), color: "0.18 0.62 0.32" },
+    { label: "갈등 민감", value: archivePdfScore(chemistry.conflictRisk ?? compatibility.conflictScore, 52), color: "0.88 0.26 0.20" },
+  ];
+  return {
+    type: "sukuyo",
+    relationType: archivePlainText(relation.typeKo || relation.type || compatibility.relationType || "숙요 궁합"),
+    distance: archivePlainText(relation.distanceLabel || compatibility.distanceLabel || ""),
+    selfStar: archivePlainText(localJson?.self?.sukuyoStar || payload?.self?.sukuyoStar || ""),
+    partnerStar: archivePlainText(localJson?.partner?.sukuyoStar || payload?.partner?.sukuyoStar || ""),
+    relationTheme: archivePlainText(relation.relationTheme || ""),
+    items,
+    radarItems: items.slice(0, 6),
+  };
+}
+
 function pushArchivePdfBlock(blocks, label, value) {
   const text = archivePlainText(value);
   if (!text) return;
@@ -1507,7 +1588,10 @@ function buildArchivePdfSections({ archive = {}, metadata = {}, reportId = "", h
     ? "PREMIUM LOVE READING"
     : /soul[_-]?origin|soulOriginKarma/i.test(reportType)
       ? "SOUL ORIGIN KARMA REPORT"
+      : isSukuyoArchiveReport(archive, metadata, reportType)
+        ? "SUKUYO COMPATIBILITY MAP"
       : "CODE DESTINY PREMIUM REPORT";
+  const visualModel = buildSukuyoArchiveVisualModel(archive, metadata, reportType);
   const generatedAt = toIso(archive?.completedAt || archive?.generatedAt || archive?.pdfReady?.generatedAt || metadata?.completedAt || metadata?.generatedAt || new Date());
   const chapters = Array.isArray(archive?.chapters) ? archive.chapters : [];
   const sections = chapters.map((chapter, index) => {
@@ -1544,7 +1628,7 @@ function buildArchivePdfSections({ archive = {}, metadata = {}, reportId = "", h
     const blocks = fallbackLines.slice(0, 160).map((line) => ({ type: "body", text: line }));
     if (blocks.length) sections.push({ title: title || "Premium Report", blocks });
   }
-  return { title, displayName, coverKicker, generatedAt, reportId: cleanText(reportId, 120), sections };
+  return { title, displayName, coverKicker, generatedAt, reportId: cleanText(reportId, 120), sections, visualModel };
 }
 
 function buildNativeArchivePdfBytes(input = {}) {
@@ -1586,6 +1670,55 @@ function buildNativeArchivePdfBytes(input = {}) {
     ops += archivePdfLineOp(model.displayName || "프리미엄 운명 리포트", marginX, 548, 14, "0.94 0.86 1");
     if (generatedDate) ops += archivePdfLineOp(`생성일 ${generatedDate}`, marginX, 514, 10, "0.83 0.77 0.92");
     if (model.reportId) ops += archivePdfLineOp(`고유번호 ${model.reportId}`, marginX, 492, 8, "0.72 0.66 0.84");
+    pages.push(ops);
+  }
+
+  function addSukuyoVisualPage(visual = {}) {
+    let ops = pageBase("숙요 궁합 시각 지도");
+    ops += archivePdfRectOp(52, 610, 491, 116, "0.12 0.08 0.23", "0.80 0.70 0.95", 0.9);
+    ops += archivePdfLineOp("숙요 궁합 시각 지도", 74, 690, 19, "0.99 0.95 1");
+    ops += archivePdfLineOp(`${visual.selfStar || "본명숙"}  ×  ${visual.partnerStar || "상대숙"}`, 74, 662, 12, "0.90 0.84 1");
+    ops += archivePdfLineOp([visual.relationType, visual.distance].filter(Boolean).join(" · ") || "관계 흐름", 74, 640, 11, "0.99 0.88 0.64");
+    const themeLines = wrapArchivePdfText(visual.relationTheme || "관계의 온도와 회복의 결이 점수의 층으로 드러납니다.", 42).slice(0, 2);
+    themeLines.forEach((line, index) => {
+      ops += archivePdfLineOp(line, 286, 690 - (index * 17), 10, "0.92 0.88 0.98");
+    });
+
+    ops += archivePdfLineOp("관계 에너지 그래프", 58, 578, 14, "0.22 0.10 0.36");
+    let barY = 548;
+    for (const item of visual.items || []) {
+      const value = archivePdfScore(item.value);
+      ops += archivePdfLineOp(item.label, 66, barY + 4, 9.2, "0.17 0.12 0.24");
+      ops += archivePdfLineOp(`${value}`, 504, barY + 4, 9.2, "0.17 0.12 0.24");
+      ops += archivePdfRectOp(154, barY, 326, 10, "0.90 0.86 0.95");
+      ops += archivePdfRectOp(154, barY, 326 * (value / 100), 10, item.color || "0.56 0.28 0.86");
+      barY -= 31;
+    }
+
+    ops += archivePdfLineOp("조율 레이더", 58, 300, 14, "0.22 0.10 0.36");
+    const cx = 300;
+    const cy = 184;
+    const radius = 100;
+    const radarItems = Array.isArray(visual.radarItems) ? visual.radarItems : [];
+    for (const scale of [0.25, 0.5, 0.75, 1]) {
+      const ring = radarItems.map((_, index) => {
+        const angle = (-Math.PI / 2) + (index * 2 * Math.PI / Math.max(1, radarItems.length));
+        return { x: cx + Math.cos(angle) * radius * scale, y: cy + Math.sin(angle) * radius * scale };
+      });
+      if (ring.length >= 3) ops += archivePdfStrokePathOp(ring, "0.78 0.72 0.86", 0.45);
+    }
+    const shape = radarItems.map((item, index) => {
+      const angle = (-Math.PI / 2) + (index * 2 * Math.PI / Math.max(1, radarItems.length));
+      const value = archivePdfScore(item.value) / 100;
+      return { x: cx + Math.cos(angle) * radius * value, y: cy + Math.sin(angle) * radius * value };
+    });
+    if (shape.length >= 3) ops += archivePdfPathOp(shape, "0.70 0.91 0.88", "0.86 0.62 0.16", 1.3);
+    radarItems.forEach((item, index) => {
+      const angle = (-Math.PI / 2) + (index * 2 * Math.PI / Math.max(1, radarItems.length));
+      const labelX = cx + Math.cos(angle) * (radius + 34);
+      const labelY = cy + Math.sin(angle) * (radius + 34);
+      ops += archivePdfLineOp(`${item.label} ${archivePdfScore(item.value)}`, labelX - 30, labelY, 8.3, "0.18 0.13 0.25");
+    });
     pages.push(ops);
   }
 
@@ -1634,6 +1767,7 @@ function buildNativeArchivePdfBytes(input = {}) {
   }
 
   addCoverPage();
+  if (model.visualModel?.type === "sukuyo") addSukuyoVisualPage(model.visualModel);
   if (model.sections.length > 1) {
     let ops = pageBase("목차");
     let y = 742;

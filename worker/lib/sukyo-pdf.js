@@ -2966,6 +2966,69 @@ function renderActionItems(items = []) {
     .join("");
 }
 
+function clampSukyoVisualScore(value, fallback = 50) {
+  const score = safeNumber(value, fallback);
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function buildSukyoVisualScoreItems(seed = {}) {
+  const relation = seed?.localSukuyoCompatibilityJson?.relation || {};
+  const compatibility = seed?.compatibility || {};
+  const chemistry = relation?.chemistry || {};
+  return [
+    { label: "궁합 지수", value: clampSukyoVisualScore(relation.score ?? relation.compatibilityScore ?? compatibility.compatibilityIndex ?? compatibility.score, 58), className: "violet" },
+    { label: "감정 반응", value: clampSukyoVisualScore(chemistry.emotional ?? compatibility.temperature ?? compatibility.chemistryScore, 58), className: "rose" },
+    { label: "대화 안정", value: clampSukyoVisualScore(chemistry.communication ?? compatibility.communicationScore, 55), className: "teal" },
+    { label: "일상 안정", value: clampSukyoVisualScore(chemistry.dailyLife ?? compatibility.stabilityScore, 53), className: "gold" },
+    { label: "회복 탄력", value: clampSukyoVisualScore(chemistry.recoveryPotential ?? compatibility.growthScore, 51), className: "blue" },
+    { label: "장기 가능", value: clampSukyoVisualScore(chemistry.longTermPotential ?? compatibility.compatibilityIndex, 50), className: "green" },
+    { label: "갈등 민감", value: clampSukyoVisualScore(chemistry.conflictRisk ?? compatibility.conflictScore, 52), className: "coral" },
+  ];
+}
+
+function renderSukyoScoreMeters(items = []) {
+  return safeArray(items)
+    .map((item) => {
+      const value = clampSukyoVisualScore(item.value);
+      return `<div class="score-meter score-meter--${escapeHtml(item.className || "violet")}"><div class="score-meter__top"><span>${escapeHtml(item.label)}</span><strong>${value}</strong></div><div class="score-meter__track"><i style="width:${value}%"></i></div></div>`;
+    })
+    .join("");
+}
+
+function renderSukyoRadarSvg(items = []) {
+  const radarItems = safeArray(items).slice(0, 6);
+  if (radarItems.length < 3) return "";
+  const cx = 150;
+  const cy = 150;
+  const radius = 108;
+  const points = radarItems.map((item, index) => {
+    const angle = (-Math.PI / 2) + (index * 2 * Math.PI / radarItems.length);
+    const value = clampSukyoVisualScore(item.value) / 100;
+    return {
+      label: item.label,
+      value: clampSukyoVisualScore(item.value),
+      x: cx + Math.cos(angle) * radius * value,
+      y: cy + Math.sin(angle) * radius * value,
+      lx: cx + Math.cos(angle) * (radius + 24),
+      ly: cy + Math.sin(angle) * (radius + 24),
+    };
+  });
+  const polygon = points.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ");
+  const rings = [0.25, 0.5, 0.75, 1].map((scale) => {
+    const ring = radarItems.map((_, index) => {
+      const angle = (-Math.PI / 2) + (index * 2 * Math.PI / radarItems.length);
+      return `${(cx + Math.cos(angle) * radius * scale).toFixed(1)},${(cy + Math.sin(angle) * radius * scale).toFixed(1)}`;
+    }).join(" ");
+    return `<polygon points="${ring}" class="radar-ring"/>`;
+  }).join("");
+  const axes = radarItems.map((_, index) => {
+    const angle = (-Math.PI / 2) + (index * 2 * Math.PI / radarItems.length);
+    return `<line x1="${cx}" y1="${cy}" x2="${(cx + Math.cos(angle) * radius).toFixed(1)}" y2="${(cy + Math.sin(angle) * radius).toFixed(1)}" class="radar-axis"/>`;
+  }).join("");
+  const labels = points.map((point) => `<text x="${point.lx.toFixed(1)}" y="${point.ly.toFixed(1)}" text-anchor="middle">${escapeHtml(point.label)} ${point.value}</text>`).join("");
+  return `<svg class="radar-chart" viewBox="0 0 300 300" role="img" aria-label="숙요 궁합 레이더 차트">${rings}${axes}<polygon points="${polygon}" class="radar-fill"/><polygon points="${polygon}" class="radar-line"/>${labels}</svg>`;
+}
+
 export function renderSukyoPremiumPdf(chapters, seed) {
   const safeName = safeSukyoDisplayText(seed?.userProfile?.name, "사용자");
   const partnerName = safeSukyoDisplayText(seed?.partnerProfile?.name, "상대방");
@@ -2995,6 +3058,10 @@ export function renderSukyoPremiumPdf(chapters, seed) {
   const renderedCalendarTrust = safeSukyoDisplayText(buildCalendarTrustSummary(seed), "27숙 기준으로 입력된 생년월일을 바탕으로 본명숙과 궁합 흐름을 산출했습니다.");
   const finalActionItems = buildFinalActionItems(seed, renderedFinalPrescription);
   const finalActionList = renderActionItems(finalActionItems.length ? finalActionItems : [renderedFinalPrescription]);
+  const visualScoreItems = buildSukyoVisualScoreItems(seed);
+  const scoreMeters = renderSukyoScoreMeters(visualScoreItems);
+  const radarChart = renderSukyoRadarSvg(visualScoreItems);
+  const primaryScore = visualScoreItems[0]?.value ?? 0;
 
   const toc = chapters.map((chapter) => `<li><span>제${chapter.order}장</span>${escapeHtml(chapter.title)}</li>`).join("");
   const chapterHtml = chapters.map((chapter) => {
@@ -3033,6 +3100,7 @@ export function renderSukyoPremiumPdf(chapters, seed) {
 <style>
 @page{margin:18mm 14mm}*{box-sizing:border-box}body{margin:0;background:#070817;color:#f7eefc;font-family:'Noto Serif KR','Gowun Dodum',serif;line-height:1.78}main{max-width:980px;margin:0 auto;padding:34px 24px 72px}.cover{min-height:720px;border:1px solid rgba(216,180,254,.34);border-radius:18px;padding:34px;background:radial-gradient(circle at 18% 8%,rgba(244,194,255,.25),transparent 32%),linear-gradient(145deg,#0a1029 0%,#251044 50%,#070817 100%);page-break-after:always}.cover img{width:min(420px,92%);display:block;margin:22px auto;border-radius:16px;border:1px solid rgba(255,255,255,.18);background:#15122a}.eyebrow{letter-spacing:.18em;text-transform:uppercase;color:#f7c7ff;font-size:12px}.cover h1{margin:10px 0 8px;font-size:38px;color:#fff7fb}.cover .subtitle{font-size:18px;color:#ffd7ef;margin:0 0 18px}.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:24px 0}.summary div{border:1px solid rgba(255,255,255,.13);border-radius:10px;padding:12px;background:rgba(14,20,45,.72)}.summary strong{display:block;color:#ffe8a3}.intro,.toc,.chapter,.bridge-card{border:1px solid rgba(216,180,254,.22);border-radius:14px;background:rgba(13,18,40,.88);padding:20px;margin:22px 0;page-break-inside:avoid}.toc ol{columns:2;gap:28px}.toc li{break-inside:avoid;margin:0 0 8px;color:#eee1ff}.toc li span{color:#f9c6ff;margin-right:8px}.chapter{page-break-before:always}.chapter-kicker{margin:0 0 6px;color:#f8c8ff;letter-spacing:.12em;text-transform:uppercase}.chapter h2{margin:0;color:#fff4c2;font-size:24px}.chapter-summary{margin:12px 0 16px;padding:12px 14px;border-radius:10px;border:1px solid rgba(245,208,254,.25);background:rgba(40,18,68,.56);color:#f6ecfb}.section-grid{display:grid;grid-template-columns:1fr;gap:12px}.section-card{border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px;background:linear-gradient(180deg,rgba(64,38,92,.72),rgba(18,24,48,.86));max-height:none;overflow:visible}.section-card h3{margin:0 0 8px;color:#ffd6f6;font-size:17px}.section-block{margin-top:10px}.section-block:first-of-type{margin-top:0}.section-subtitle{margin:0 0 8px;font-size:14px;color:#fde68a;letter-spacing:.02em}.section-body{display:flex;flex-direction:column;gap:12px}.section-body p{margin:0;color:#f4edf7;line-height:1.9;word-break:keep-all;overflow-wrap:break-word}.chapter-prescription{margin-top:14px;padding:14px;border-radius:12px;border:1px solid rgba(196,181,253,.32);background:linear-gradient(145deg,rgba(72,36,126,.55),rgba(22,22,48,.72))}.chapter-prescription h4{margin:0 0 8px;color:#fef3c7}.chapter-prescription p{margin:0;color:#f4edf7;line-height:1.84}.bridge-card h2{margin:0 0 8px;color:#fff4c2}.bridge-card p{margin:0;color:#f4edf7;line-height:1.86}.notice{color:#d8c8ed;font-size:13px}.final-prescription{page-break-before:always}@media print{body{background:#070817}.cover,.chapter,.final-prescription{break-after:page}.toc ol{columns:1}}
 .summary{grid-template-columns:repeat(5,minmax(0,1fr))}.executive-summary{border:1px solid rgba(251,207,232,.28);border-radius:14px;background:linear-gradient(145deg,rgba(38,18,66,.92),rgba(12,18,38,.94));padding:22px;margin:22px 0;page-break-inside:avoid}.executive-summary h2{margin:0 0 6px;color:#fff4c2}.executive-lead{margin:0 0 16px;color:#f7d7ff}.insight-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.insight-tile{border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:13px;background:rgba(255,255,255,.055)}.insight-tile strong{display:block;color:#fde68a;margin-bottom:6px}.insight-tile p{margin:0;color:#f6ecfb;line-height:1.78}.trust-strip{margin-top:14px;padding:12px 14px;border-left:3px solid #fde68a;background:rgba(253,230,138,.08);color:#eadcf8}.action-checklist{margin:12px 0 0;padding-left:20px}.action-checklist li{margin:0 0 8px;color:#f4edf7;line-height:1.76}.section-body p + p{padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}@media print{body{background:#fff;color:#211827}.cover,.chapter,.bridge-card,.executive-summary,.intro,.toc{background:#fff;color:#211827;border-color:#d9c7ee}.section-card{background:#fff;color:#211827;border-color:#ded4e9}.section-body p,.chapter-prescription p,.bridge-card p,.insight-tile p,.action-checklist li{color:#211827}.chapter h2,.bridge-card h2,.executive-summary h2{color:#3b2354}.chapter-summary,.chapter-prescription,.insight-tile{background:#fbf8ff;color:#211827}.notice,.trust-strip{color:#4d405a}}
+.visual-dashboard{display:grid;grid-template-columns:minmax(260px,.9fr) 1.1fr;gap:16px;margin:20px 0 24px;page-break-inside:avoid}.score-orbit{position:relative;min-height:290px;border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:18px;background:radial-gradient(circle at 50% 38%,rgba(45,212,191,.18),transparent 34%),linear-gradient(160deg,rgba(14,20,45,.86),rgba(52,25,78,.84))}.score-orbit__core{width:142px;height:142px;margin:10px auto 18px;border-radius:50%;display:grid;place-items:center;text-align:center;background:conic-gradient(from 210deg,#f472b6 ${primaryScore}%,rgba(255,255,255,.12) 0);box-shadow:0 0 34px rgba(244,114,182,.24)}.score-orbit__core span{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;background:#120e28;color:#fff4c2;font-size:34px;font-weight:700}.score-orbit p{margin:0;color:#eadcf8;line-height:1.78}.score-panel{border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:16px;background:rgba(255,255,255,.055)}.score-panel h3{margin:0 0 12px;color:#fff4c2}.score-meter{margin:0 0 12px}.score-meter__top{display:flex;justify-content:space-between;gap:12px;margin-bottom:5px;color:#f7ecff}.score-meter__top strong{color:#fff4c2}.score-meter__track{height:9px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}.score-meter__track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#a78bfa,#f472b6)}.score-meter--teal .score-meter__track i{background:linear-gradient(90deg,#2dd4bf,#38bdf8)}.score-meter--gold .score-meter__track i{background:linear-gradient(90deg,#facc15,#fb923c)}.score-meter--blue .score-meter__track i{background:linear-gradient(90deg,#60a5fa,#818cf8)}.score-meter--green .score-meter__track i{background:linear-gradient(90deg,#34d399,#a3e635)}.score-meter--coral .score-meter__track i{background:linear-gradient(90deg,#fb7185,#f97316)}.radar-wrap{display:grid;grid-template-columns:330px 1fr;align-items:center;gap:14px;border:1px solid rgba(45,212,191,.2);border-radius:14px;padding:16px;background:rgba(10,24,40,.72);margin:18px 0 0}.radar-chart{width:100%;max-width:330px}.radar-ring{fill:none;stroke:rgba(255,255,255,.18);stroke-width:1}.radar-axis{stroke:rgba(255,255,255,.14);stroke-width:1}.radar-fill{fill:rgba(45,212,191,.28)}.radar-line{fill:none;stroke:#facc15;stroke-width:2.5}.radar-chart text{fill:#f8e8ff;font-size:11px}.radar-copy h3{margin:0 0 8px;color:#fff4c2}.radar-copy p{margin:0;color:#f4edf7;line-height:1.78}@media print{.visual-dashboard{grid-template-columns:1fr 1fr}.visual-dashboard,.radar-wrap{break-inside:avoid}.score-orbit,.score-panel,.radar-wrap{background:#fff;color:#211827;border-color:#d8c7ec}.score-orbit p,.radar-copy p,.score-meter__top{color:#211827}.score-orbit__core span{background:#fff;color:#3b2354}.radar-chart text{fill:#3b2354}}
 </style>
 </head>
 <body>
@@ -3049,11 +3117,28 @@ export function renderSukyoPremiumPdf(chapters, seed) {
       <div><strong>거리</strong>${escapeHtml(distance)}</div>
       <div><strong>핵심 점수</strong>${escapeHtml(renderedScoreSummary.split(".")[0])}</div>
     </div>
-    <p class="notice">이 문서는 두 사람의 숙요 계산 결과를 기반으로 한 관계 운영 상담 리포트입니다.</p>
+    <p class="notice">두 사람의 숙요 계산값 위로 관계의 온도, 거리, 회복의 결이 함께 드러납니다.</p>
   </section>
   <section class="executive-summary">
     <h2>첫눈에 보는 궁합 핵심</h2>
-    <p class="executive-lead">${escapeHtml(safeName)}님과 ${escapeHtml(partnerName)}님의 관계는 먼저 결론을 보고, 이후 챕터별 세부 상담으로 깊이를 확인하는 흐름입니다.</p>
+    <p class="executive-lead">${escapeHtml(safeName)}님과 ${escapeHtml(partnerName)}님의 인연은 점수의 표면보다 감정, 대화, 회복의 층에서 더 선명하게 떠오릅니다.</p>
+    <div class="visual-dashboard">
+      <div class="score-orbit">
+        <div class="score-orbit__core"><span>${escapeHtml(primaryScore)}</span></div>
+        <p>${escapeHtml(renderedScoreSummary)}</p>
+      </div>
+      <div class="score-panel">
+        <h3>관계 에너지 그래프</h3>
+        ${scoreMeters}
+      </div>
+    </div>
+    <div class="radar-wrap">
+      ${radarChart}
+      <div class="radar-copy">
+        <h3>조율 레이더</h3>
+        <p>${escapeHtml(renderedDirectionSummary)} ${escapeHtml(renderedDistanceSummary)}</p>
+      </div>
+    </div>
     <div class="insight-grid">
       <div class="insight-tile"><strong>관계 판정</strong><p>${escapeHtml(renderedRelationSummary)}</p></div>
       <div class="insight-tile"><strong>점수 해석</strong><p>${escapeHtml(renderedScoreSummary)}</p></div>
@@ -3062,7 +3147,7 @@ export function renderSukyoPremiumPdf(chapters, seed) {
     </div>
     <div class="trust-strip">${escapeHtml(renderedCalendarTrust)}</div>
   </section>
-  <section class="intro"><h2>해석 원칙</h2><p>본 리포트는 두 사람의 생년월일을 바탕으로 산출된 27숙 궁합 흐름을 관계 상담의 언어로 풀어낸 문서입니다. 모든 문장은 실제 관계에서 적용 가능한 선택과 행동을 중심으로 구성했습니다.</p></section>
+  <section class="intro"><h2>해석 원칙</h2><p>두 사람의 생년월일에서 떠오른 27숙 궁합 흐름이 관계 상담의 언어로 이어집니다. 선택의 문턱마다 감정의 결, 대화의 순서, 회복의 약속이 함께 비칩니다.</p></section>
   <section class="bridge-card"><h2>관계 유형 요약</h2><p>${escapeHtml(renderedRelationSummary)}</p></section>
   <section class="bridge-card"><h2>거리와 인연 강도 요약</h2><p>${escapeHtml(renderedDistanceSummary)} ${escapeHtml(renderedStrengthSummary)}</p></section>
   <section class="toc"><h2>15챕터 목차</h2><ol>${toc}</ol></section>
