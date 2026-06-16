@@ -687,7 +687,6 @@ function buildLifeBookReusableExecutionResponse(doc = {}, fallback = {}) {
   const sessionId = clean(doc.sessionId || metadata.sessionId || fallback.sessionId);
   const cacheKey = clean(doc.cacheKey || metadata.cacheKey || metadata.lifeBookPdfCacheKey || fallback.cacheKey);
   const isCompleted = clean(doc.status) === "success" && clean(doc.premiumStatus) === "completed";
-  const isFailed = clean(doc.status) === "failed" || clean(doc.premiumStatus) === "failed";
 
   if (isCompleted && storedUrl) {
     const data = {
@@ -722,19 +721,6 @@ function buildLifeBookReusableExecutionResponse(doc = {}, fallback = {}) {
     };
   }
 
-  if (isFailed) {
-    return {
-      status: 409,
-      payload: {
-        ok: false,
-        serviceKey: LIFEBOOK_SERVICE_KEY,
-        code: "LIFEBOOK_PREVIOUS_GENERATION_FAILED",
-        message: "이전 인생의 책 PDF 생성이 실패했습니다. 새 생성 요청으로 다시 시도해 주세요.",
-        debugSafe: { reportId, sessionId, previousStatus: clean(doc.status), previousPremiumStatus: clean(doc.premiumStatus) },
-      },
-    };
-  }
-
   if (clean(doc.status) === "pending" || clean(doc.premiumStatus) === "generating") {
     return {
       status: 202,
@@ -762,6 +748,34 @@ function buildLifeBookReusableExecutionResponse(doc = {}, fallback = {}) {
   }
 
   return null;
+}
+
+function isLifeBookTerminalFailedExecution(doc = {}) {
+  const source = doc && typeof doc === "object" ? doc : {};
+  const status = clean(source.status);
+  const premiumStatus = clean(source.premiumStatus);
+  return status === "failed"
+    || status === "refunded"
+    || premiumStatus === "failed"
+    || premiumStatus === "refund_failed"
+    || premiumStatus === "refunded"
+    || premiumStatus === "abandoned";
+}
+
+function applyLifeBookRetryExecutionKey(executionCtx = {}, previousExecution = {}) {
+  const previousKey = clean(previousExecution.executionKey, 120);
+  if (!previousKey || clean(executionCtx.executionKey, 120) !== previousKey) return executionCtx;
+  const retryToken = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  executionCtx.executionKey = `${previousKey.slice(0, Math.max(1, 112 - retryToken.length))}:r:${retryToken}`.slice(0, 120);
+  executionCtx.idempotencyKey = executionCtx.executionKey;
+  executionCtx.metadata = {
+    ...(executionCtx.metadata || {}),
+    retryOfExecutionKey: previousKey,
+    retryOfStatus: clean(previousExecution.status, 80),
+    retryOfPremiumStatus: clean(previousExecution.premiumStatus, 80),
+    retryStartedAt: new Date().toISOString(),
+  };
+  return executionCtx;
 }
 
 async function acquireLifeBookExecutionLease(env, userId, executionCtx = {}) {
@@ -7608,7 +7622,7 @@ async function handleStatus(request, env) {
   const archive = metadata?.archive && typeof metadata.archive === "object" ? metadata.archive : {};
   const status = clean(doc.status) === "success" && clean(doc.premiumStatus) === "completed"
     ? "done"
-    : clean(doc.status) === "failed" || clean(doc.premiumStatus) === "failed"
+    : isLifeBookTerminalFailedExecution(doc)
       ? "failed"
       : "running";
   return json(buildLifeBookStatusPayload({
@@ -7700,6 +7714,7 @@ async function handlePrepareSync(request, env) {
   const reusableExecution = await findLifeBookReusableExecution(env, auth.userId, reusableExecutionCtx, { sessionId, reportId, featureKey });
   const reusableResponse = reusableExecution ? buildLifeBookReusableExecutionResponse(reusableExecution, { sessionId, reportId, featureKey }) : null;
   if (reusableResponse) return json(reusableResponse.payload, { status: reusableResponse.status });
+  const retrySourceExecution = isLifeBookTerminalFailedExecution(reusableExecution) ? reusableExecution : null;
 
   const recordCreatedAt = new Date().toISOString();
   const engineVersion = resolveLifeBookEngineVersion(env);
@@ -7804,6 +7819,7 @@ async function handlePrepareSync(request, env) {
     body,
     timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
   });
+  if (retrySourceExecution) applyLifeBookRetryExecutionKey(executionCtx, retrySourceExecution);
   executionCtx.metadata = {
     ...(executionCtx.metadata || {}),
     profileId,

@@ -6784,6 +6784,19 @@ function isLikelyDbUnavailableError(error) {
     || msg.includes("topology");
 }
 
+function loveSecretAccessErrorMessage(code, status, fallback = "") {
+  if (code === "PAYMENT_CONFIRMED_BUT_ACCESS_MISSING") {
+    return "결제는 확인되었지만 생성 권한 연결이 완료되지 않았습니다. 잠시 후 다시 시도해 주세요.";
+  }
+  if (Number(status) === 402) {
+    return "프리미엄 연애 비책 생성 권한이 필요합니다.";
+  }
+  if (Number(status) === 401) {
+    return "로그인 후 연애 비책 PDF를 생성할 수 있습니다.";
+  }
+  return clean(fallback) || "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+}
+
 async function authorizeLoveSecret(request, env, body, mode) {
   let auth;
   try {
@@ -6826,7 +6839,7 @@ async function authorizeLoveSecret(request, env, body, mode) {
           : "결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.";
     return {
       ok: false,
-      response: buildApiError(code, message, status, {
+      response: buildApiError(code, loveSecretAccessErrorMessage(code, status, message), status, {
         featureKey,
         mode,
         hasSessionId: Boolean(sessionId),
@@ -6942,7 +6955,7 @@ async function handleGenerateChapter(request, env) {
   }
   const partnerValid = validatePartnerMinimumSaju(base, mode);
   if (!partnerValid.ok) {
-    return buildApiError("MISSING_PARTNER_SAJU", "궁합 모드는 상대 생년월일과 핵심 명식 정보가 필요합니다. 상대 정보를 확인해 주세요.", 400);
+    return buildApiError("MISSING_PARTNER_SAJU", "궁합 모드에는 상대 생년월일과 출생 시각 정보가 필요합니다. 상대 정보를 확인해 주세요.", 400);
   }
 
   const chapterMeta = (Array.isArray(config.chapters) ? config.chapters : [])[chapterNo - 1] || {};
@@ -7194,7 +7207,7 @@ async function handlePrepareAsync(request, env, ctx) {
   }
   const partnerValid = validatePartnerMinimumSaju(base, mode);
   if (!partnerValid.ok) {
-    return buildApiError("MISSING_PARTNER_SAJU", "궁합 모드는 상대 생년월일과 핵심 명식 정보가 필요합니다. 상대 정보를 확인해 주세요.", 400);
+    return buildApiError("MISSING_PARTNER_SAJU", "궁합 모드에는 상대 생년월일과 출생 시각 정보가 필요합니다. 상대 정보를 확인해 주세요.", 400);
   }
 
   const config = safeModeChapterConfig(mode);

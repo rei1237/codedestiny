@@ -27,7 +27,8 @@ const VEDIC_PLANETS = [
   ["Saturn", "SE_SATURN"],
 ];
 const EPHE_FILES = ["seas_18.se1", "sepl_18.se1", "semo_18.se1", "sefstars.txt"];
-const DEFAULT_SWISS_WASM_URL = "https://cdn.jsdelivr.net/npm/sweph-wasm/dist/wasm/swisseph.wasm";
+const DEFAULT_SWISS_WASM_PATH = "/js/vendor/sweph-wasm/wasm/swisseph.wasm";
+const FALLBACK_SWISS_WASM_URL = "https://cdn.jsdelivr.net/npm/sweph-wasm/dist/wasm/swisseph.wasm";
 
 let swissPromise = null;
 
@@ -621,9 +622,7 @@ function resolveEpheBaseUrl(env, options = {}) {
 }
 
 function resolveSwissWasmPath(env, options = {}) {
-  const rawPath = sanitizeUrlLikeEnvValue(getEnv(env, "SWISS_WASM_PATH") || options.wasmPath);
-  if (!rawPath) return DEFAULT_SWISS_WASM_URL;
-
+  const rawPath = sanitizeUrlLikeEnvValue(getEnv(env, "SWISS_WASM_PATH") || options.wasmPath) || DEFAULT_SWISS_WASM_PATH;
   const requestUrl = clean(options.requestUrl);
   const tryResolveFromRequest = () => {
     if (!requestUrl) return "";
@@ -637,7 +636,17 @@ function resolveSwissWasmPath(env, options = {}) {
   if (rawPath.startsWith("/")) {
     const resolved = tryResolveFromRequest();
     if (resolved) return resolved;
-    return undefined;
+    const originFromEnv = resolveOriginLike(
+      getEnv(env, "PUBLIC_SITE_ORIGIN")
+      || getEnv(env, "NEXT_PUBLIC_SITE_URL")
+      || getEnv(env, "SITE_URL")
+      || getEnv(env, "CF_PAGES_URL")
+      || getEnv(env, "WORKER_ORIGIN")
+      || getEnv(env, "ASTRO_SWISS_BASE_URL")
+      || getEnv(env, "ASTRO_API_BASE_URL"),
+    );
+    if (originFromEnv) return new URL(rawPath, `${originFromEnv}/`).toString();
+    return FALLBACK_SWISS_WASM_URL;
   }
 
   try {
@@ -646,10 +655,10 @@ function resolveSwissWasmPath(env, options = {}) {
   } catch (e) {
     const resolved = tryResolveFromRequest();
     if (resolved) return resolved;
-    return DEFAULT_SWISS_WASM_URL;
+    return FALLBACK_SWISS_WASM_URL;
   }
 
-  return DEFAULT_SWISS_WASM_URL;
+  return FALLBACK_SWISS_WASM_URL;
 }
 
 async function createSwissInstance(env, options = {}) {

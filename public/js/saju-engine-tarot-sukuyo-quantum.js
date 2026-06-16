@@ -6060,11 +6060,30 @@ function syCanonicalEsc(value) {
 }
 
 var SY_PAID_FEATURES = Object.freeze({
-  symbolicComparison: { key: 'sukuyo-symbolic-comparison', cost: 50, reason: '숙요점 같은 숙 인물 심층 매칭' },
+  relationshipRadar: { key: 'sukuyo-symbolic-comparison', cost: 50, reason: '숙요 인연 레이더' },
+  relationshipEncyclopedia: { key: 'sukuyo-relationship-encyclopedia', cost: 50, reason: '숙요 인연 도감' },
+  pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 100, reason: '숙요 전생 인연 리딩' },
   monthlyFortune: { key: 'sukuyo-monthly-fortune', cost: 30, reason: '월별 숙요 운세 확장' },
   compatibility: { key: 'compat-sukuyo-compatibility', cost: 50, reason: '숙요점 궁합 분석' },
   compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 120, reason: '숙요점 정밀 궁합 확장 분석' }
 });
+
+function syResolveCurrentProfileIdForPaidGate() {
+  try {
+    if (typeof _cdResolveCurrentProfileIdForAccess === 'function') {
+      var resolved = _cdResolveCurrentProfileIdForAccess();
+      if (resolved) return String(resolved).trim();
+    }
+  } catch (_) {}
+  try {
+    var currentProfile = window.__cdCurrentDestinyProfile
+      || (window.DestinyProfileManager && window.DestinyProfileManager.storage && window.DestinyProfileManager.storage.current && window.DestinyProfileManager.storage.current())
+      || null;
+    var currentId = String((currentProfile && (currentProfile.profileId || currentProfile.id)) || '').trim();
+    if (currentId) return currentId.slice(0, 80).replace(/\s+/g, '_');
+  } catch (_) {}
+  return '';
+}
 
 function syOpenPaidSukuyoFeature(feature, onGranted) {
   var config = feature && typeof feature === 'object' ? feature : {};
@@ -6072,7 +6091,7 @@ function syOpenPaidSukuyoFeature(feature, onGranted) {
   var featureKey = String(config.key || '').trim();
   var reason = String(config.reason || '숙요점 선택 확장').trim();
   if (!cost || !featureKey || typeof window._cdOpenPaidServiceGate !== 'function') return false;
-  window._cdOpenPaidServiceGate({
+  var gateOptions = {
     title: reason,
     reason: reason,
     featureKey: featureKey,
@@ -6080,7 +6099,13 @@ function syOpenPaidSukuyoFeature(feature, onGranted) {
     coinPrice: cost,
     cost: cost,
     requestId: featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
-  }).then(function(result) {
+  };
+  var profileId = syResolveCurrentProfileIdForPaidGate();
+  if (profileId) {
+    gateOptions.profileId = profileId;
+    gateOptions.selectedProfileId = profileId;
+  }
+  window._cdOpenPaidServiceGate(gateOptions).then(function(result) {
     if (result && result.status === 'granted' && typeof onGranted === 'function') onGranted(result);
   }).catch(function(error) {
     var message = error && error.message ? String(error.message) : '결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
@@ -6146,7 +6171,9 @@ function syIsPaidSukuyoFeatureUnlocked(featureKey) {
   var key = String(featureKey || '').trim();
   var root = typeof window !== 'undefined' ? window : {};
   if (!key) return false;
-  if (key === SY_PAID_FEATURES.symbolicComparison.key && root._sySameMansionSymbolicUnlocked === true) return true;
+  if (key === SY_PAID_FEATURES.relationshipRadar.key && root._sySukuyoRadarUnlocked === true) return true;
+  if (key === SY_PAID_FEATURES.relationshipEncyclopedia.key && root._sySukuyoEncyclopediaUnlocked === true) return true;
+  if (key === SY_PAID_FEATURES.pastLifeReading.key && root._sySukuyoPastLifeUnlocked === true) return true;
   if (key === SY_PAID_FEATURES.monthlyFortune.key && root._syMonthlySukuyoFortuneUnlocked === true) return true;
   try {
     if (typeof root.isTileKeyUnlocked === 'function' && root.isTileKeyUnlocked(key)) return true;
@@ -6176,7 +6203,9 @@ function syMarkPaidSukuyoFeatureUnlocked(featureKey) {
     root.unlockedFeatureMap[key] = true;
   } catch (_) {}
   try { localStorage.setItem(syPaidFeatureStorageKey(key), '1'); } catch (_) {}
-  if (key === SY_PAID_FEATURES.symbolicComparison.key) root._sySameMansionSymbolicUnlocked = true;
+  if (key === SY_PAID_FEATURES.relationshipRadar.key) root._sySukuyoRadarUnlocked = true;
+  if (key === SY_PAID_FEATURES.relationshipEncyclopedia.key) root._sySukuyoEncyclopediaUnlocked = true;
+  if (key === SY_PAID_FEATURES.pastLifeReading.key) root._sySukuyoPastLifeUnlocked = true;
   if (key === SY_PAID_FEATURES.monthlyFortune.key) root._syMonthlySukuyoFortuneUnlocked = true;
 }
 
@@ -7360,28 +7389,111 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-paid-kicker { display:inline-flex; align-items:center; gap:6px; margin-bottom:5px; color:#f8e7b7; font-size:0.7rem; font-weight:900; letter-spacing:0; }
         .sy-paid-status { display:inline-flex; align-items:center; justify-content:center; min-height:30px; padding:5px 11px; border-radius:999px; border:1px solid rgba(248,231,183,0.44); background:rgba(120,53,15,0.18); color:#fef3c7; font-size:0.73rem; font-weight:900; line-height:1.35; }
         .sy-paid-status.is-unlocked { border-color:rgba(134,239,172,0.5); background:rgba(20,83,45,0.22); color:#bbf7d0; }
-        .sy-same-mansion-card { margin-top:15px; border-left-color:#f8e7b7!important; border-color:rgba(248,231,183,0.24); background:radial-gradient(circle at 88% 8%, rgba(248,250,252,0.16), transparent 26%), radial-gradient(circle at 12% 90%, rgba(250,204,21,0.1), transparent 30%), linear-gradient(145deg, rgba(25,22,45,0.94), rgba(9,14,31,0.96))!important; }
-        .sy-same-mansion-card.is-locked { box-shadow:0 18px 46px rgba(2,6,23,0.42), 0 0 26px rgba(250,204,21,0.08), inset 0 1px 0 rgba(255,255,255,0.06); }
-        .sy-same-mansion-title { margin:0; color:#fef3c7; font-size:1.04rem; line-height:1.38; }
-        .sy-same-mansion-copy { margin:0 0 13px; color:#dbeafe; font-size:0.87rem; line-height:1.78; word-break:keep-all; }
-        .sy-same-mansion-copy strong { color:#f8e7b7; }
-        .sy-same-mansion-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; min-height:48px; }
-        .sy-same-person-card { position:relative; overflow:hidden; border:1px solid rgba(248,231,183,0.22); border-radius:14px; padding:12px 11px; background:linear-gradient(145deg, rgba(15,23,42,0.68), rgba(44,37,68,0.42)); min-width:0; box-shadow:inset 0 1px 0 rgba(255,255,255,0.04); }
-        .sy-same-person-card::before { content:''; position:absolute; right:-24px; top:-26px; width:82px; height:82px; border-radius:999px; background:radial-gradient(circle at 35% 30%, rgba(248,250,252,0.58), rgba(248,231,183,0.16) 48%, transparent 70%); opacity:0.38; pointer-events:none; }
-        .sy-same-symbol { position:relative; width:32px; height:32px; border-radius:999px; display:flex; align-items:center; justify-content:center; margin-bottom:7px; color:#0f172a; background:radial-gradient(circle at 34% 28%, #fff7d6, #f8e7b7 45%, #93c5fd 100%); box-shadow:0 0 18px rgba(248,231,183,0.22); font-weight:900; }
-        .sy-same-person-name { position:relative; color:#fef3c7; font-weight:900; font-size:0.83rem; line-height:1.35; word-break:keep-all; }
-        .sy-same-person-cat { position:relative; margin-top:2px; color:#a5b4fc; font-size:0.68rem; font-weight:800; }
-        .sy-same-person-read { position:relative; display:grid; gap:5px; margin:9px 0 0; }
-        .sy-same-person-read div { min-width:0; }
-        .sy-same-person-read dt { color:#f8e7b7; font-size:0.67rem; font-weight:900; }
-        .sy-same-person-read dd { margin:1px 0 0; color:#dbeafe; font-size:0.72rem; line-height:1.55; word-break:keep-all; }
-        .sy-same-person-read .is-locked-line dd { color:#94a3b8; }
-        .sy-same-unlock-card { position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:4px; min-height:100%; border-radius:14px; border:1px solid rgba(248,231,183,0.5); background:radial-gradient(circle at 84% 18%, rgba(248,250,252,0.2), transparent 34%), linear-gradient(145deg, rgba(120,53,15,0.3), rgba(30,27,75,0.44)); color:#fff7d6; padding:14px 13px; cursor:pointer; text-align:left; box-shadow:0 14px 30px rgba(2,6,23,0.32), inset 0 1px 0 rgba(255,255,255,0.07); }
-        .sy-same-unlock-card strong { font-size:0.92rem; line-height:1.35; }
-        .sy-same-unlock-card em { font-style:normal; color:#f8e7b7; font-size:0.78rem; font-weight:900; }
-        .sy-same-unlock-card small { color:#dbeafe; font-size:0.72rem; line-height:1.5; }
-        .sy-lock-badge { display:inline-flex; align-items:center; min-height:24px; padding:3px 9px; border-radius:999px; background:rgba(2,6,23,0.5); border:1px solid rgba(248,231,183,0.38); color:#fef3c7; font-size:0.64rem; font-weight:900; }
-        .sy-same-count-note { display:flex; align-items:center; justify-content:center; min-height:44px; border-radius:12px; border:1px dashed rgba(148,163,184,0.34); color:#cbd5e1; font-size:0.76rem; }
+        .sy-radar-card { margin-top:15px; border-left-color:#c4b5fd!important; border-color:rgba(196,181,253,0.3); background:radial-gradient(circle at 86% 8%, rgba(216,180,254,0.18), transparent 26%), radial-gradient(circle at 12% 90%, rgba(125,211,252,0.1), transparent 30%), linear-gradient(145deg, rgba(25,22,45,0.96), rgba(9,14,31,0.98))!important; box-shadow:0 18px 46px rgba(2,6,23,0.42), 0 0 28px rgba(196,181,253,0.09), inset 0 1px 0 rgba(255,255,255,0.06); }
+        .sy-dogam-card { margin-top:15px; border-left-color:#f8e7b7!important; border-color:rgba(248,231,183,0.32); background:radial-gradient(circle at 9% 8%,rgba(248,231,183,0.15),transparent 28%),radial-gradient(circle at 90% 12%,rgba(165,180,252,0.16),transparent 30%),linear-gradient(145deg,rgba(20,18,36,0.96),rgba(8,13,30,0.98))!important; box-shadow:0 18px 46px rgba(2,6,23,0.42),inset 0 1px 0 rgba(255,255,255,0.06); }
+        .sy-past-life-card { margin-top:15px; border-left-color:#d8b4fe!important; border-color:rgba(216,180,254,0.38); background:radial-gradient(circle at 12% 8%,rgba(216,180,254,0.18),transparent 30%),radial-gradient(circle at 88% 20%,rgba(253,224,71,0.11),transparent 28%),linear-gradient(145deg,rgba(28,18,48,0.97),rgba(9,13,29,0.98))!important; box-shadow:0 18px 46px rgba(2,6,23,0.44),inset 0 1px 0 rgba(255,255,255,0.06); }
+        .sy-past-life-title { margin:0; color:#f5d0fe; font-size:1.06rem; line-height:1.38; }
+        .sy-past-life-copy { margin:0 0 13px; color:#e9d5ff; font-size:0.88rem; line-height:1.78; word-break:keep-all; }
+        .sy-past-life-submit { min-height:46px; border-radius:12px; border:1px solid rgba(255,255,255,0.44); background:linear-gradient(135deg,#d8b4fe,#f8e7b7 52%,#93c5fd); color:#111827; font-weight:950; cursor:pointer; box-shadow:0 14px 32px rgba(216,180,254,0.22); }
+        .sy-past-life-status { min-height:20px; color:#f5d0fe; font-size:0.78rem; line-height:1.55; }
+        .sy-past-life-result { margin-top:14px; display:grid; gap:11px; }
+        .sy-past-life-panel { overflow:hidden; border:1px solid rgba(216,180,254,0.34); border-radius:18px; background:linear-gradient(145deg,rgba(15,23,42,0.76),rgba(49,24,78,0.58)); box-shadow:inset 0 1px 0 rgba(255,255,255,0.06); }
+        .sy-past-life-panel[data-relation="업태"] { border-color:rgba(216,180,254,0.48); }
+        .sy-past-life-panel[data-relation="안괴"] { border-color:rgba(196,181,253,0.58); background:linear-gradient(145deg,rgba(45,18,68,0.78),rgba(15,23,42,0.72)); }
+        .sy-past-life-panel[data-relation="영친"] { border-color:rgba(253,224,71,0.38); }
+        .sy-past-life-panel[data-relation="명"] { border-color:rgba(226,232,240,0.42); }
+        .sy-past-life-panel[data-relation="우쇠"] { border-color:rgba(125,211,252,0.36); }
+        .sy-past-life-panel[data-relation="성위"] { border-color:rgba(134,239,172,0.36); }
+        .sy-past-life-head { padding:15px; border-bottom:1px solid rgba(226,232,240,0.13); }
+        .sy-past-life-head h5 { margin:0 0 7px; color:#f8fafc; font-size:1.04rem; line-height:1.44; }
+        .sy-past-life-head p { margin:0; color:#e9d5ff; font-size:0.85rem; line-height:1.72; word-break:keep-all; }
+        .sy-past-life-badges { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:9px; }
+        .sy-past-life-badges span { border:1px solid rgba(226,232,240,0.24); border-radius:999px; background:rgba(2,6,23,0.38); color:#fef3c7; padding:4px 9px; font-size:0.73rem; font-weight:850; }
+        .sy-past-life-body { padding:15px; display:grid; gap:11px; }
+        .sy-past-life-score-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+        .sy-past-life-score { border:1px solid rgba(148,163,184,0.22); border-radius:12px; background:rgba(2,6,23,0.34); padding:9px; }
+        .sy-past-life-score span { display:block; color:#bfdbfe; font-size:0.71rem; font-weight:900; margin-bottom:4px; }
+        .sy-past-life-score strong { color:#fef3c7; font-size:1.02rem; }
+        .sy-past-life-score i { display:block; height:7px; border-radius:999px; margin-top:7px; background:linear-gradient(90deg,#c4b5fd,#f8e7b7,#93c5fd); }
+        .sy-past-life-section-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+        .sy-past-life-section { border:1px solid rgba(148,163,184,0.22); border-radius:13px; background:rgba(2,6,23,0.32); padding:11px; }
+        .sy-past-life-section h6 { margin:0 0 6px; color:#f5d0fe; font-size:0.8rem; line-height:1.35; }
+        .sy-past-life-section p,.sy-past-life-section li { margin:0; color:#dbeafe; font-size:0.82rem; line-height:1.72; word-break:keep-all; }
+        .sy-past-life-section ul { margin:0; padding-left:17px; display:grid; gap:4px; }
+        .sy-past-life-one-line { border:1px solid rgba(250,204,21,0.28); border-radius:13px; background:rgba(250,204,21,0.08); color:#fef3c7; padding:11px; font-size:0.87rem; line-height:1.7; font-weight:850; word-break:keep-all; }
+        .sy-past-life-disclaimer { color:#cbd5e1; font-size:0.75rem; line-height:1.6; word-break:keep-all; }
+        .sy-dogam-title { margin:0; color:#fde68a; font-size:1.06rem; line-height:1.38; }
+        .sy-dogam-copy { margin:0 0 12px; color:#dbeafe; font-size:0.88rem; line-height:1.78; word-break:keep-all; }
+        .sy-dogam-submit { min-height:46px; width:100%; border-radius:12px; border:1px solid rgba(255,255,255,0.42); background:linear-gradient(135deg,#fde68a,#c4b5fd 54%,#93c5fd); color:#111827; font-weight:950; cursor:pointer; box-shadow:0 14px 32px rgba(196,181,253,0.2); }
+        .sy-dogam-status { min-height:20px; color:#e9d5ff; font-size:0.78rem; line-height:1.55; margin-top:9px; }
+        .sy-dogam-result { margin-top:14px; display:grid; gap:12px; }
+        .sy-dogam-hero,.sy-dogam-highlight,.sy-dogam-entry { border:1px solid rgba(226,232,240,0.18); border-radius:14px; background:rgba(2,6,23,0.34); padding:12px; }
+        .sy-dogam-hero h5 { margin:0 0 6px; color:#f8fafc; font-size:1.02rem; line-height:1.42; }
+        .sy-dogam-hero p,.sy-dogam-highlight p,.sy-dogam-entry p { margin:0; color:#dbeafe; font-size:0.82rem; line-height:1.68; word-break:keep-all; }
+        .sy-dogam-meta,.sy-dogam-distribution,.sy-dogam-highlights,.sy-dogam-grid { display:grid; gap:8px; }
+        .sy-dogam-meta { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .sy-dogam-distribution { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .sy-dogam-highlights { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .sy-dogam-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .sy-dogam-pill,.sy-dogam-dist { border:1px solid rgba(226,232,240,0.18); border-radius:999px; background:rgba(15,23,42,0.58); color:#e0e7ff; padding:6px 9px; font-size:0.74rem; font-weight:850; text-align:center; }
+        .sy-dogam-filters { display:flex; gap:7px; overflow-x:auto; padding:2px 0 4px; scrollbar-width:thin; }
+        .sy-dogam-filter { flex:0 0 auto; border:1px solid rgba(196,181,253,0.32); border-radius:999px; background:rgba(15,23,42,0.64); color:#ddd6fe; padding:7px 11px; font-size:0.76rem; font-weight:850; cursor:pointer; }
+        .sy-dogam-filter.is-active { background:linear-gradient(135deg,#fde68a,#c4b5fd); color:#111827; }
+        .sy-dogam-entry { display:grid; gap:8px; }
+        .sy-dogam-entry[data-relation="명"] { border-color:rgba(226,232,240,0.34); }
+        .sy-dogam-entry[data-relation="업태"] { border-color:rgba(191,219,254,0.36); box-shadow:inset 0 0 28px rgba(168,85,247,0.08); }
+        .sy-dogam-entry[data-relation="영친"] { border-color:rgba(253,224,71,0.38); }
+        .sy-dogam-entry[data-relation="우쇠"] { border-color:rgba(125,211,252,0.34); }
+        .sy-dogam-entry[data-relation="안괴"] { border-color:rgba(216,180,254,0.48); box-shadow:inset 0 0 32px rgba(147,51,234,0.12); }
+        .sy-dogam-entry[data-relation="성위"] { border-color:rgba(134,239,172,0.34); }
+        .sy-dogam-entry h6 { margin:0; color:#fef3c7; font-size:0.92rem; line-height:1.38; }
+        .sy-dogam-tags { display:flex; flex-wrap:wrap; gap:5px; }
+        .sy-dogam-tags span { border:1px solid rgba(226,232,240,0.16); border-radius:999px; color:#bfdbfe; padding:3px 7px; font-size:0.7rem; }
+        .sy-dogam-score-mini { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+        .sy-dogam-score-mini span { border-radius:9px; background:rgba(15,23,42,0.58); color:#e0f2fe; padding:6px; font-size:0.72rem; text-align:center; }
+        .sy-dogam-entry details { border-top:1px solid rgba(226,232,240,0.12); padding-top:7px; }
+        .sy-dogam-entry summary { color:#f5d0fe; cursor:pointer; font-size:0.78rem; font-weight:900; }
+        .sy-dogam-detail { display:grid; gap:8px; margin-top:8px; }
+        .sy-dogam-detail b { color:#fde68a; }
+        .sy-radar-title { margin:0; color:#f5d0fe; font-size:1.06rem; line-height:1.38; }
+        .sy-radar-copy { margin:0 0 13px; color:#dbeafe; font-size:0.88rem; line-height:1.78; word-break:keep-all; }
+        .sy-radar-form { display:grid; gap:10px; }
+        .sy-radar-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+        .sy-radar-field { display:grid; gap:5px; min-width:0; }
+        .sy-radar-field span { color:#ddd6fe; font-size:0.74rem; font-weight:900; }
+        .sy-radar-field input,.sy-radar-field select { width:100%; box-sizing:border-box; min-height:44px; border-radius:10px; border:1px solid rgba(196,181,253,0.42); background:rgba(8,13,30,0.78); color:#f8fafc; padding:9px 10px; font-size:0.88rem; color-scheme:dark; }
+        .sy-radar-self-note { border:1px solid rgba(147,197,253,0.24); border-radius:12px; background:rgba(15,23,42,0.48); padding:10px 11px; color:#bfdbfe; font-size:0.8rem; line-height:1.65; word-break:keep-all; }
+        .sy-radar-self-fields { display:none; }
+        .sy-radar-self-fields.is-visible { display:grid; gap:9px; }
+        .sy-radar-submit { min-height:46px; border-radius:12px; border:1px solid rgba(255,255,255,0.42); background:linear-gradient(135deg,#c4b5fd,#93c5fd 48%,#f8e7b7); color:#111827; font-weight:950; cursor:pointer; box-shadow:0 14px 32px rgba(147,197,253,0.2); }
+        .sy-radar-status { min-height:20px; color:#e9d5ff; font-size:0.78rem; line-height:1.55; }
+        .sy-radar-result { margin-top:14px; }
+        .sy-radar-result-card { overflow:hidden; border:1px solid rgba(196,181,253,0.34); border-radius:18px; background:linear-gradient(145deg, rgba(15,23,42,0.78), rgba(30,27,75,0.66)); box-shadow:inset 0 1px 0 rgba(255,255,255,0.06); }
+        .sy-radar-result-card[data-relation="영친"] { border-color:rgba(253,224,71,0.36); background:radial-gradient(circle at 88% 0%,rgba(253,224,71,0.16),transparent 30%),linear-gradient(145deg,rgba(45,34,16,0.72),rgba(13,30,42,0.7)); }
+        .sy-radar-result-card[data-relation="안괴"] { border-color:rgba(216,180,254,0.52); background:radial-gradient(circle at 88% 0%,rgba(168,85,247,0.2),transparent 32%),linear-gradient(145deg,rgba(49,18,72,0.78),rgba(15,23,42,0.72)); }
+        .sy-radar-result-card[data-relation="업태"] { border-color:rgba(191,219,254,0.42); background:radial-gradient(circle at 16% 8%,rgba(226,232,240,0.18),transparent 30%),linear-gradient(145deg,rgba(30,41,59,0.74),rgba(40,28,60,0.68)); }
+        .sy-radar-result-card[data-relation="우쇠"] { border-color:rgba(125,211,252,0.36); background:linear-gradient(145deg,rgba(12,35,54,0.74),rgba(30,41,59,0.72)); }
+        .sy-radar-result-card[data-relation="성위"] { border-color:rgba(134,239,172,0.36); background:radial-gradient(circle at 88% 0%,rgba(134,239,172,0.13),transparent 30%),linear-gradient(145deg,rgba(18,43,44,0.74),rgba(30,27,75,0.64)); }
+        .sy-radar-result-card[data-relation="명"] { border-color:rgba(226,232,240,0.38); background:radial-gradient(circle at 50% 0%,rgba(226,232,240,0.16),transparent 28%),linear-gradient(145deg,rgba(51,65,85,0.68),rgba(15,23,42,0.74)); }
+        .sy-radar-head { padding:15px; border-bottom:1px solid rgba(226,232,240,0.14); }
+        .sy-radar-head h5 { margin:0 0 6px; color:#f8fafc; font-size:1.05rem; line-height:1.45; }
+        .sy-radar-head p { margin:0; color:#dbeafe; font-size:0.86rem; line-height:1.7; }
+        .sy-radar-badges { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:9px; }
+        .sy-radar-badges span { border:1px solid rgba(226,232,240,0.24); border-radius:999px; background:rgba(2,6,23,0.38); color:#e0e7ff; padding:4px 9px; font-size:0.74rem; font-weight:800; }
+        .sy-radar-body { padding:15px; display:grid; gap:12px; }
+        .sy-radar-chart-row { display:grid; grid-template-columns:minmax(150px,220px) minmax(0,1fr); gap:13px; align-items:center; }
+        .sy-radar-svg-wrap { display:flex; justify-content:center; align-items:center; min-height:170px; }
+        .sy-radar-score-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+        .sy-radar-score-card { border:1px solid rgba(148,163,184,0.24); border-radius:12px; background:rgba(2,6,23,0.38); padding:10px; min-width:0; }
+        .sy-radar-score-card span { display:block; color:#bfdbfe; font-size:0.72rem; font-weight:900; margin-bottom:4px; }
+        .sy-radar-score-card strong { color:#f8fafc; font-size:1.05rem; }
+        .sy-radar-score-bar { height:7px; border-radius:999px; background:rgba(148,163,184,0.18); overflow:hidden; margin-top:7px; }
+        .sy-radar-score-bar i { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#93c5fd,#c4b5fd,#f8e7b7); }
+        .sy-radar-section-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+        .sy-radar-section { border:1px solid rgba(148,163,184,0.22); border-radius:13px; background:rgba(2,6,23,0.34); padding:11px; }
+        .sy-radar-section h6 { margin:0 0 6px; color:#f5d0fe; font-size:0.8rem; line-height:1.35; }
+        .sy-radar-section p { margin:0; color:#dbeafe; font-size:0.82rem; line-height:1.72; word-break:keep-all; }
+        .sy-radar-one-line { border:1px solid rgba(250,204,21,0.28); border-radius:13px; background:rgba(250,204,21,0.08); color:#fef3c7; padding:11px; font-size:0.88rem; line-height:1.7; font-weight:800; word-break:keep-all; }
         .sy-lunar-month-card.is-locked { border-color:rgba(248,231,183,0.26); border-left-color:#f8e7b7!important; background:radial-gradient(circle at 84% 8%, rgba(248,250,252,0.16), transparent 27%), radial-gradient(circle at 12% 90%, rgba(20,184,166,0.12), transparent 32%), linear-gradient(145deg, rgba(15,23,42,0.96), rgba(24,29,54,0.94))!important; }
         .sy-lunar-month-titlebar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
         .sy-lunar-month-titlebar h4 { margin:0; color:#ccfbf1; font-size:1.04rem; line-height:1.35; }
@@ -7513,7 +7625,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-lunar-year-head { grid-template-columns:1fr; }
           .sy-lunar-year-grid { grid-template-columns:1fr 1fr; }
           .sy-lunar-month-grid { grid-template-columns:1fr; }
-          .sy-same-mansion-grid { grid-template-columns:1fr 1fr; }
+          .sy-radar-grid,.sy-radar-chart-row,.sy-radar-section-grid { grid-template-columns:1fr; }
+          .sy-past-life-score-grid,.sy-past-life-section-grid { grid-template-columns:1fr; }
+          .sy-dogam-meta,.sy-dogam-distribution,.sy-dogam-highlights,.sy-dogam-grid { grid-template-columns:1fr; }
           .sy-month-lock-panel { grid-template-columns:1fr; }
           .sy-month-preview-grid { grid-template-columns:1fr; }
           .sy-canon-grid { grid-template-columns:1fr; }
@@ -7525,7 +7639,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-header h3 { font-size:1.22rem; }
           .sy-hero-title { font-size:1.08rem; }
           .sy-summary-grid { grid-template-columns:1fr; }
-          .sy-same-mansion-grid { grid-template-columns:1fr; }
+          .sy-radar-score-grid { grid-template-columns:1fr; }
+          .sy-past-life-score-grid { grid-template-columns:1fr; }
+          .sy-dogam-score-mini { grid-template-columns:1fr; }
           .sy-canon-moon-stage { min-height:116px; }
           .sy-lunar-year-grid { grid-template-columns:1fr; }
           .sy-lunar-score-orb { min-height:116px; }
@@ -7877,42 +7993,93 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div id="sy3Result" style="margin-top: 15px; display: none;"></div>
     </div>`;
 
-    // ── 유명인 숙요 궁합 섹션 ──
-    const _mIdxForCeleb = sData ? sData.mansionIdx : 0;
-    html += `<div class="sy-card" style="margin-top:15px; border-left-color:rgba(162,155,254,0.5); background:rgba(15,23,42,0.44); box-shadow:0 12px 28px rgba(2,6,23,0.28), inset 0 1px 0 rgba(255,255,255,0.04);">
-        <h4 style="margin:0 0 8px 0; color:#c4b5fd;">선택 참고 · 유명인 상징 비교</h4>
-        <p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">
-        인물 아카이브의 생년월일 분류를 바탕으로 숙요 상징을 비교해 보는 3,000원 선택 기능입니다. 실제 성향이나 관계 판단의 근거가 아니라 상징 이해용으로만 보세요.
-        </p>
-      <button type="button" id="szFilterToggle" class="sy-filter-toggle">필터 열기</button>
-      <div id="szFilterBody" class="sy-filter-body collapsed">
-        <div style="position:relative;margin-bottom:8px;">
-          <input type="text" id="szCelebQ" placeholder="이름으로 검색 (예: 아이유, 이재용, Taylor Swift...)" autocomplete="off"
-            style="width:100%;box-sizing:border-box;padding:8px 36px 8px 10px;border-radius:5px;background:rgba(20,25,35,0.8);color:#fff;border:1px solid rgba(162,155,254,0.5);font-size:0.88rem;">
-          <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#888;pointer-events:none;">🔍</span>
-        </div>
-        <div id="szCountryCats" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
-        <div id="szCelebCats" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;"></div>
-        </div>
-        <div id="szCelebBtns" style="display:flex;flex-wrap:wrap;gap:5px;max-height:150px;overflow-y:auto;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:8px;background:rgba(0,0,0,0.15);min-height:44px;box-sizing:border-box;"></div>
-      <div id="szCelebMoreWrap"></div>
-        <div id="szCelebBadge" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(162,155,254,0.1);border:1px solid rgba(162,155,254,0.3);border-radius:8px;font-size:0.85rem;color:#c792ea;word-break:keep-all;line-height:1.6;"></div>
-    </div>`;
-
-    html += `<div class="sy-card sy-same-mansion-card is-locked" data-sy-same-mansion-card="20260616-same-mansion-match-5000" data-sy-paid-feature="${SY_PAID_FEATURES.symbolicComparison.key}">
+    const _radarProfileName = syCanonicalEsc((sourceProfile && (sourceProfile.name || sourceProfile.nickname || sourceProfile.profileName)) || (window._ziweiBirth && window._ziweiBirth.name) || '나');
+    const _radarBirth = syCanonicalEsc((sourceProfile && (sourceProfile.birthDate || sourceProfile.date)) || (window._ziweiBirth && window._ziweiBirth.birthDate) || '');
+    const _radarHasSelf = !!sData;
+    html += `<div class="sy-card sy-radar-card" data-sy-radar-card="20260616-sukyo-relationship-radar" data-sy-paid-feature="${SY_PAID_FEATURES.relationshipRadar.key}">
         <div class="sy-paid-card-head">
           <div>
-            <div class="sy-paid-kicker">잠금 콘텐츠 · ${syPaidPriceLabel(SY_PAID_FEATURES.symbolicComparison)}</div>
-            <h4 class="sy-same-mansion-title">나와 같은 숙 인물 심층 매칭</h4>
+            <div class="sy-paid-kicker">숙요 관계 분석 · ${syPaidPriceLabel(SY_PAID_FEATURES.relationshipRadar)}</div>
+            <h4 class="sy-radar-title">숙요 인연 레이더</h4>
           </div>
-          <span class="sy-paid-status" data-sy-same-mansion-status>미리보기 2명</span>
+          <span class="sy-paid-status" data-sy-radar-status-pill>27숙 관계법</span>
         </div>
-        <p class="sy-same-mansion-copy">
-          <strong>${sData ? sData.mansion : '당신의 숙요'}</strong>와 같은 달빛을 타고 태어난 공개 인물의 결이 서로 다른 방식으로 드러납니다. 해금 후에는 닮은 기질, 다르게 피어나는 재능, 끌림의 색, 숨은 그림자까지 인물별로 열립니다.
+        <p class="sy-radar-copy">
+          이 사람은 내게 편안한 인연일까, 강하게 흔드는 인연일까? 27숙 관계법으로 끌림, 안정감, 소모도, 장기 인연 가능성을 분석합니다.
         </p>
-        <div id="szSameMansion" class="sy-same-mansion-grid">
-            <div style="color:#cbd5e1;font-size:0.85rem;padding:8px 0;">✦ 달빛 상징을 정렬하는 중...</div>
+        <div class="sy-radar-self-note">상대의 생년월일을 입력하면, 나와의 숙요 관계를 레이더처럼 분석해드립니다. ${_radarHasSelf ? ('기준 프로필: ' + _radarProfileName + (_radarBirth ? ' · ' + _radarBirth : '') + ' · ' + syCanonicalEsc(sData.mansion) + '숙') : '저장된 프로필이 없으면 아래 내 정보를 함께 입력해 주세요.'}</div>
+        <form class="sy-radar-form" data-sy-radar-form data-my-idx="${sData ? sData.mansionIdx : ''}" data-my-mansion="${sData ? syCanonicalEsc(sData.mansion) : ''}" data-has-self="${_radarHasSelf ? '1' : '0'}">
+          <div class="sy-radar-self-fields ${_radarHasSelf ? '' : 'is-visible'}" data-sy-radar-self-fields>
+            <div class="sy-radar-grid">
+              <label class="sy-radar-field"><span>내 이름</span><input type="text" data-sy-radar-user-name value="${_radarProfileName}" autocomplete="name"></label>
+              <label class="sy-radar-field"><span>내 성별</span><select data-sy-radar-user-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
+              <label class="sy-radar-field"><span>내 생년월일</span><input type="date" data-sy-radar-user-date value="${_radarBirth}"></label>
+              <label class="sy-radar-field"><span>내 달력</span><select data-sy-radar-user-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
+            </div>
+          </div>
+          <div class="sy-radar-grid">
+            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-radar-partner-name placeholder="예: 민서" maxlength="40" autocomplete="off"></label>
+            <label class="sy-radar-field"><span>상대 성별</span><select data-sy-radar-partner-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
+            <label class="sy-radar-field"><span>상대 생년월일</span><input type="date" data-sy-radar-partner-date required></label>
+            <label class="sy-radar-field"><span>상대 달력</span><select data-sy-radar-partner-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
+            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-radar-partner-time placeholder="선택 입력"></label>
+            <label class="sy-radar-field"><span>관계 목적</span><select data-sy-radar-purpose><option value="general">전체 분석</option><option value="love">연애</option><option value="reunion">재회</option><option value="marriage">결혼</option><option value="friend">친구</option><option value="family">가족</option><option value="business">동업/비즈니스</option><option value="work">직장/상사/동료</option></select></label>
+          </div>
+          <button type="submit" class="sy-radar-submit">인연 레이더 분석하기</button>
+          <div class="sy-radar-status" data-sy-radar-status aria-live="polite"></div>
+        </form>
+        <div class="sy-radar-result" data-sy-radar-result></div>
+    </div>`;
+
+    html += `<div class="sy-card sy-past-life-card" data-sy-past-life-card="20260616-sukyo-past-life-reading" data-sy-paid-feature="${SY_PAID_FEATURES.pastLifeReading.key}">
+        <div class="sy-paid-card-head">
+          <div>
+            <div class="sy-paid-kicker">숙요 전생 서사 · ${syPaidPriceLabel(SY_PAID_FEATURES.pastLifeReading)}</div>
+            <h4 class="sy-past-life-title">숙요 전생 인연 리딩</h4>
+          </div>
+          <span class="sy-paid-status" data-sy-past-life-status-pill>심화 해금</span>
         </div>
+        <p class="sy-past-life-copy">
+          왜 이 사람은 처음부터 낯설지 않았을까? 두 사람의 27숙 관계 안에서 오래된 인연처럼 남는 끌림, 미완의 숙제, 반복되는 감정 패턴을 비춥니다.
+        </p>
+        <div class="sy-radar-self-note">전생의 사실을 단정하지 않고, 숙요 관계 구조가 만드는 익숙함과 여운의 결을 살핍니다. ${_radarHasSelf ? ('기준 프로필: ' + _radarProfileName + (_radarBirth ? ' · ' + _radarBirth : '') + ' · ' + syCanonicalEsc(sData.mansion) + '숙') : '저장된 프로필이 없으면 아래 내 정보를 함께 입력해 주세요.'}</div>
+        <form class="sy-radar-form" data-sy-past-life-form data-my-idx="${sData ? sData.mansionIdx : ''}" data-my-mansion="${sData ? syCanonicalEsc(sData.mansion) : ''}" data-has-self="${_radarHasSelf ? '1' : '0'}">
+          <div class="sy-radar-self-fields ${_radarHasSelf ? '' : 'is-visible'}" data-sy-past-life-self-fields>
+            <div class="sy-radar-grid">
+              <label class="sy-radar-field"><span>내 이름</span><input type="text" data-sy-past-life-user-name value="${_radarProfileName}" autocomplete="name"></label>
+              <label class="sy-radar-field"><span>내 성별</span><select data-sy-past-life-user-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
+              <label class="sy-radar-field"><span>내 생년월일</span><input type="date" data-sy-past-life-user-date value="${_radarBirth}"></label>
+              <label class="sy-radar-field"><span>내 달력</span><select data-sy-past-life-user-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
+            </div>
+          </div>
+          <div class="sy-radar-grid">
+            <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-past-life-partner-name placeholder="예: 민서" maxlength="40" autocomplete="off"></label>
+            <label class="sy-radar-field"><span>상대 성별</span><select data-sy-past-life-partner-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
+            <label class="sy-radar-field"><span>상대 생년월일</span><input type="date" data-sy-past-life-partner-date required></label>
+            <label class="sy-radar-field"><span>상대 달력</span><select data-sy-past-life-partner-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
+            <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-past-life-partner-time placeholder="선택 입력"></label>
+            <label class="sy-radar-field"><span>관계 목적</span><select data-sy-past-life-purpose><option value="general">전체 분석</option><option value="love">연애</option><option value="reunion">재회</option><option value="marriage">결혼</option><option value="crush">짝사랑</option><option value="friend">친구</option><option value="family">가족</option><option value="business">동업/비즈니스</option><option value="work">직장/상사/동료</option></select></label>
+          </div>
+          <button type="submit" class="sy-past-life-submit">전생 인연 리딩 열기</button>
+          <div class="sy-past-life-status" data-sy-past-life-status aria-live="polite"></div>
+        </form>
+        <div class="sy-past-life-result" data-sy-past-life-result></div>
+    </div>`;
+
+    html += `<div class="sy-card sy-dogam-card" data-sy-dogam-card="20260616-sukyo-relationship-encyclopedia" data-sy-paid-feature="${SY_PAID_FEATURES.relationshipEncyclopedia.key}">
+        <div class="sy-paid-card-head">
+          <div>
+            <div class="sy-paid-kicker">숙요 관계 도감 · ${syPaidPriceLabel(SY_PAID_FEATURES.relationshipEncyclopedia)}</div>
+            <h4 class="sy-dogam-title">숙요 인연 도감</h4>
+          </div>
+          <span class="sy-paid-status" data-sy-dogam-status-pill>27숙 전체 지도</span>
+        </div>
+        <p class="sy-dogam-copy">
+          나의 숙을 기준으로 27숙 전체 인연 지도를 펼쳐드립니다. 누가 나를 편안하게 해주는지, 누가 나를 흔드는지, 어떤 숙과 오래 가기 쉬운지 한눈에 확인해보세요.
+        </p>
+        <button type="button" class="sy-dogam-submit" data-sy-dogam-open data-my-idx="${sData ? sData.mansionIdx : ''}" data-my-mansion="${sData ? syCanonicalEsc(sData.mansion) : ''}" data-user-name="${_radarProfileName}">내 인연 도감 열기</button>
+        <div class="sy-dogam-status" data-sy-dogam-status aria-live="polite"></div>
+        <div class="sy-dogam-result" data-sy-dogam-result></div>
     </div>`;
 
     if (_dailySectionHtml) {
@@ -8109,68 +8276,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         if (syAiPromptCard && typeof syBindSukuyoPromptComposer === 'function') {
           syBindSukuyoPromptComposer(syAiPromptCard, { preferCompatibility: false, generateLabel: '달빛 프롬프트 생성 · 10,000원', loadingLabel: '달빛 프롬프트 여는 중...' });
         }
-        // 국가 탭 생성 (Config-driven)
-        const _countryCatsDiv = document.getElementById('szCountryCats');
-        if (_countryCatsDiv && typeof COUNTRY_CONFIG !== 'undefined') {
-            const _mkCtryBtn = (code, label, isActive) => {
-                const b = document.createElement('button');
-                b.type = 'button';
-                b.className = 'sz-country-tab' + (isActive ? ' active' : '');
-                b.dataset.country = code;
-                b.textContent = label;
-                b.style.cssText = 'padding:3px 9px;border-radius:20px;font-size:0.7rem;border:1px solid rgba(100,200,255,' + (isActive?'0.7':'0.3') + ');background:rgba(100,200,255,' + (isActive?'0.18':'0.04') + ');color:' + (isActive?'#87ceeb':'#7f8c8d') + ';cursor:pointer;white-space:nowrap;transition:all 0.2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:36px;';
-                b.onclick = () => {
-                    document.querySelectorAll('#szCountryCats .sz-country-tab').forEach(t => {
-                        t.classList.remove('active');
-                        t.style.background = 'rgba(100,200,255,0.04)';
-                        t.style.borderColor = 'rgba(100,200,255,0.3)';
-                        t.style.color = '#7f8c8d';
-                    });
-                    b.classList.add('active');
-                    b.style.background = 'rgba(100,200,255,0.18)';
-                    b.style.borderColor = 'rgba(100,200,255,0.7)';
-                    b.style.color = '#87ceeb';
-                    window._szActiveCountry = code;
-                    window._szCelebFilter(_renderMIdx, (document.querySelector('.sy-ctab.active') || {dataset:{}}).dataset.cat || '', (document.getElementById('szCelebQ') || {}).value || '', null);
-                };
-                return b;
-            };
-            _countryCatsDiv.appendChild(_mkCtryBtn('', '🌐 전체', true));
-            Object.entries(COUNTRY_CONFIG).sort((a,b)=>a[1].order-b[1].order).forEach(([code, info]) => {
-                _countryCatsDiv.appendChild(_mkCtryBtn(code, info.flag + ' ' + info.label, false));
-            });
-        }
-        // 카테고리 탭 생성
-        const _catsDiv = document.getElementById('szCelebCats');
-        if (_catsDiv && typeof CELEB_CATS !== 'undefined') {
-            const _ic = typeof CELEB_CAT_ICONS !== 'undefined' ? CELEB_CAT_ICONS : {};
-            ['전체', ...CELEB_CATS].forEach((c, i) => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'sy-ctab' + (i === 0 ? ' active' : '');
-                btn.dataset.cat = i === 0 ? '' : c;
-                btn.textContent = (_ic[c] || (i === 0 ? '✨' : '')) + ' ' + c;
-                btn.style.cssText = 'padding:4px 10px;border-radius:20px;font-size:0.73rem;border:1px solid rgba(162,155,254,' + (i===0?'0.6':'0.3') + ');background:rgba(162,155,254,' + (i===0?'0.2':'0.05') + ');color:#c792ea;cursor:pointer;white-space:nowrap;transition:all 0.2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:36px;';
-                btn.onclick = function() { window._szCelebFilter(_renderMIdx, btn.dataset.cat, (document.getElementById('szCelebQ') || {}).value || '', btn); };
-                _catsDiv.appendChild(btn);
-            });
-        }
-        // 검색 이벤트 연결 — 300ms debounce로 키 입력마다 발생하는 DOM 과부하 방지
-        const _qInp = document.getElementById('szCelebQ');
-        if (_qInp) {
-            var _szDebounceTimer = null;
-            _qInp.addEventListener('input', () => {
-                clearTimeout(_szDebounceTimer);
-                _szDebounceTimer = setTimeout(() => {
-                    window._szCelebFilter(_renderMIdx, (document.querySelector('.sy-ctab.active') || {dataset:{}}).dataset.cat || '', _qInp.value, null);
-                }, 300);
-            });
-        }
-        // 초기 유명인 목록
-        window._szActiveCountry = '';
-        if (typeof window._szCelebFilter === 'function') window._szCelebFilter(_renderMIdx, '', '', null);
-        // 동일 숙요 채우기
-        if (typeof window._szFillSameMansion === 'function') window._szFillSameMansion(_renderMIdx);
+        if (typeof syBindSukuyoRadar === 'function') syBindSukuyoRadar(_renderMIdx, sData ? sData.mansion : '');
+        if (typeof syBindSukuyoPastLife === 'function') syBindSukuyoPastLife(_renderMIdx, sData ? sData.mansion : '');
+        if (typeof syBindSukuyoEncyclopedia === 'function') syBindSukuyoEncyclopedia(_renderMIdx, sData ? sData.mansion : '');
         if (typeof syBindSukuyoMonthlyUnlock === 'function') syBindSukuyoMonthlyUnlock(_annualMonthlyReading);
     }, 150);
 }
@@ -8741,412 +8849,1339 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   })();
   // ── End SukuyoCompatEngine ──────────────────────────────────────────
 
-  // ══════════════════════════════════════════════════════════════════
-  // CelebrityService — 사주 DB ↔ 숙요점 브릿지
-  // 런타임에 CELEBS 배열에서 음력 변환 후 숙요 계산, 결과 캐싱
-  // ══════════════════════════════════════════════════════════════════
-  var CelebrityService = (function() {
-    var _cache = {}; // mansionIdx → [celeb, ...]
-    var _filterCache = new Map(); // "query|cat|country" → celeb[]
-
-    // YYYY-MM-DD 문자열 → 숙요 mansionIdx (실패 시 null)
-    function _celebToMansion(birth, hour) {
-      try {
-        var parts = birth.split('-');
-        var y = parseInt(parts[0], 10);
-        var mo = parseInt(parts[1], 10);
-        var d = parseInt(parts[2], 10);
-        var h = (typeof hour === 'number' && !isNaN(hour)) ? hour : 12;
-        var solarDate = new Date(y, mo - 1, d, h, 0, 0);
-        // KasiEngine은 사주 모듈에서 전역으로 노출된 음력 변환 엔진
-        if (typeof KasiEngine === 'undefined' || typeof KasiEngine.solarToLunar !== 'function') return null;
-        var lunarObj = KasiEngine.solarToLunar(solarDate, true);
-        if (!lunarObj) return null;
-        var res = calcSukuyoData(lunarObj);
-        return res ? res.mansionIdx : null;
-      } catch(e) { return null; }
-    }
-
-    // 전체 CELEBS 순회하여 mansionIdx → celeb[] 맵 빌드 (캐시)
-    function _buildCache() {
-      if (Object.keys(_cache).length > 0) return; // 이미 계산됨
-      if (typeof CELEBS === 'undefined') return;
-      CELEBS.forEach(function(c) {
-        var idx = _celebToMansion(c.birth, c.hour !== undefined ? c.hour : 12);
-        if (idx === null || idx === undefined) return;
-        if (!_cache[idx]) _cache[idx] = [];
-        _cache[idx].push(c);
-      });
-    }
-
-    // 특정 mansionIdx와 동일한 유명인 목록 반환
-    function getSameMansion(mansionIdx) {
-      _buildCache();
-      return _cache[mansionIdx] || [];
-    }
-
-    // 특정 유명인을 생년월일로 조회해 mansionIdx 반환 (선택용)
-    function getMansionOf(celebName) {
-      if (typeof CELEBS === 'undefined') return null;
-      var found = CELEBS.filter(function(c) { return c.name === celebName; })[0];
-      if (!found) return null;
-      return _celebToMansion(found.birth, found.hour !== undefined ? found.hour : 12);
-    }
-
-    // 이름/카테고리/국가로 필터링된 유명인 목록
-    function filter(query, cat, country) {
-      if (typeof CELEBS === 'undefined') return [];
-      var q = (query || '').trim().toLowerCase();
-      var key = [q, cat || '', country || ''].join('|');
-      var cached = _filterCache.get(key);
-      if (cached) return cached;
-      var filtered = CELEBS.filter(function(c) {
-        var catOk = !cat || c.cat === cat;
-        var nameOk = !q || c.name.toLowerCase().indexOf(q) > -1;
-        var countryOk = !country || (c.nationality || 'KR') === country;
-        return catOk && nameOk && countryOk;
-      });
-      _filterCache.set(key, filtered);
-      if (_filterCache.size > 120) {
-        var firstKey = _filterCache.keys().next().value;
-        _filterCache.delete(firstKey);
+  var SukuyoRadarEngine = (function() {
+    var PURPOSE_LABELS = {
+      love: '연애',
+      reunion: '재회',
+      marriage: '결혼',
+      friend: '친구',
+      family: '가족',
+      business: '동업/비즈니스',
+      work: '직장/상사/동료',
+      general: '전체 분석'
+    };
+    var SCORE_RANGES = {
+      '명': { attraction:[65,80], stability:[60,75], exhaustion:[35,55], longevity:[55,75], growth:[40,60] },
+      '업태': { attraction:[75,95], stability:[45,65], exhaustion:[55,80], longevity:[50,75], growth:[65,90] },
+      '영친': { attraction:[60,80], stability:[75,95], exhaustion:[20,45], longevity:[75,95], growth:[45,70] },
+      '우쇠': { attraction:[55,75], stability:[50,70], exhaustion:[45,70], longevity:[45,70], growth:[65,85] },
+      '안괴': { attraction:[80,98], stability:[25,55], exhaustion:[70,95], longevity:[30,65], growth:[75,95] },
+      '성위': { attraction:[60,85], stability:[45,70], exhaustion:[50,75], longevity:[50,75], growth:[70,90] }
+    };
+    var RELATION_COPY = {
+      '명': {
+        title: '거울처럼 닮아 빠르게 알아보는 인연',
+        subtitle: '익숙함과 반복이 함께 머무는 관계',
+        summary: '두 사람 사이에는 처음부터 오래 알던 듯한 결이 드러납니다. 말투, 감정 반응, 선택 기준이 닮아 빠르게 가까워지지만, 같은 약점이 동시에 올라오면 둘 다 물러서기 어려울 수 있습니다.',
+        chemistry: '닮은 감각이 친밀감을 빠르게 엽니다. 서로가 좋아하는 속도와 싫어하는 장면을 빨리 알아채며, 사소한 농담이나 생활 취향에서도 공명이 살아납니다.',
+        risk: '반복되는 단점이 서로를 비추면 답답함이 커질 수 있습니다. 상대를 고치려 하기보다 같은 패턴이 올라오는 순간을 함께 멈추는 약속이 필요합니다.',
+        advice: '닮은 점을 증명하려 애쓰기보다 차이를 작게라도 남겨 두세요. 각자의 시간, 돈, 감정 회복법을 따로 인정할 때 거울 인연이 오래 빛납니다.',
+        oneLine: '서로를 거울처럼 비추는 인연이니, 닮음보다 반복 관리가 오래 가는 열쇠입니다.'
+      },
+      '업태': {
+        title: '설명하기 어려운 잔상이 남는 인연',
+        subtitle: '오래된 서사와 미완의 숙제가 스미는 관계',
+        summary: '이 관계에는 이유 없이 신경 쓰이는 기운이 강하게 떠오릅니다. 의미감은 깊지만 관계의 형태가 흐리면 기다림과 해석이 길어지기 쉽습니다.',
+        chemistry: '말보다 분위기가 먼저 닿습니다. 짧은 만남 뒤에도 오래 생각나고, 서로의 삶에 흔적을 남기는 힘이 짙게 흐릅니다.',
+        risk: '미련과 책임감이 뒤섞이면 관계를 정리하거나 새로 세우는 일이 늦어질 수 있습니다. 감정의 깊이보다 현실의 약속이 지켜지는지를 보아야 합니다.',
+        advice: '이 인연을 살리려면 이름 붙일 수 있는 약속을 만드세요. 기다림, 연락, 만남의 기준이 현실에서 선명해질수록 잔상은 따뜻한 기억으로 가라앉습니다.',
+        oneLine: '깊은 잔상이 남는 인연이지만, 현실의 약속이 없으면 마음만 오래 머무릅니다.'
+      },
+      '영친': {
+        title: '편안함이 오래 자라는 인연',
+        subtitle: '보호와 친밀감이 생활 속에 스미는 관계',
+        summary: '이 관계는 자극보다 안정감이 먼저 드러납니다. 함께 있을수록 생활 리듬이 맞고, 정서적으로 기대기 쉬운 구조가 열립니다.',
+        chemistry: '폭발적인 긴장보다 은근한 다정함이 깊어집니다. 작은 배려와 반복되는 신뢰가 두 사람의 온도를 차분히 올립니다.',
+        risk: '너무 익숙해지면 표현이 줄고 가족 같은 분위기로 굳을 수 있습니다. 편안함을 당연하게 여기면 설렘의 불씨가 약해집니다.',
+        advice: '고마움과 애정을 의식적으로 표현하세요. 정해진 데이트, 안부 리듬, 생활 배려를 작게 반복하면 오래 갈 가능성이 크게 살아납니다.',
+        oneLine: '편안함이 강한 인연이니, 익숙함 속에서도 애정 표현을 놓치지 마세요.'
+      },
+      '우쇠': {
+        title: '서로의 속도 차이를 배우는 인연',
+        subtitle: '감정 온도와 역할 차이가 드러나는 관계',
+        summary: '두 사람은 서로의 부족한 부분을 비추지만 감정 온도가 다르게 느껴질 수 있습니다. 한쪽은 더 기대고 싶고, 다른 한쪽은 거리를 두고 싶어질 수 있습니다.',
+        chemistry: '서로 다른 표현 방식이 오히려 배움이 됩니다. 같은 방식으로 사랑받으려 하기보다 상대의 언어를 알 때 관계가 부드러워집니다.',
+        risk: '한쪽이 더 맞춰준다는 느낌이 쌓이면 서운함이 늦게 올라옵니다. 배려가 의무처럼 굳기 전에 역할과 기대치를 다시 나누어야 합니다.',
+        advice: '연락, 만남, 돈, 시간의 기준을 서로의 언어로 합의하세요. 애정의 양보다 표현 방식의 차이를 이해할 때 이 인연은 오래 안정됩니다.',
+        oneLine: '속도 차이가 있는 인연이니, 같은 방식의 애정을 요구하기보다 표현법을 맞추세요.'
+      },
+      '안괴': {
+        title: '강하게 끌리지만 서로를 흔드는 인연',
+        subtitle: '자극과 균열이 동시에 떠오르는 관계',
+        summary: '이 관계는 처음부터 강하게 당기지만 시간이 지나면 서로의 약한 부분을 건드리기 쉽습니다. 끌림은 빠르게 올라가지만 안정감은 천천히 만들어야 합니다.',
+        chemistry: '시선과 감정의 반응이 빠릅니다. 서로에게 인생의 방향을 바꾸는 자극이 될 수 있으며, 익숙한 관계에서는 느끼기 어려운 강렬함이 흐릅니다.',
+        risk: '감정 확인을 반복하거나 상대를 시험하는 방식으로 가면 소모도가 커집니다. 통제, 불안, 자존심 싸움이 잦아질 때는 거리 두기와 경계 설정이 필요합니다.',
+        advice: '약속, 연락, 돈, 관계 경계를 분명히 정하세요. 두려움이나 압박이 커지고 일상이 위축된다면 믿을 수 있는 사람이나 전문 상담의 도움을 함께 요청해야 합니다.',
+        oneLine: '강한 끌림은 선명하지만, 경계와 회복 규칙이 없으면 서로를 지치게 합니다.'
+      },
+      '성위': {
+        title: '성장 자극이 강하게 흐르는 인연',
+        subtitle: '목표와 역할이 관계를 움직이는 구조',
+        summary: '이 관계는 편안함보다 성장 자극이 강합니다. 서로에게 동기부여가 되지만, 관계가 경쟁이나 평가처럼 느껴지면 피로감이 커질 수 있습니다.',
+        chemistry: '함께 목표를 세울 때 빛이 납니다. 서로의 가능성을 보게 만들고, 느슨해진 삶의 리듬을 다시 세우는 힘이 있습니다.',
+        risk: '성과와 비교가 감정의 자리까지 들어오면 관계가 과제처럼 무거워집니다. 잘하려는 마음이 평가와 통제로 바뀌지 않게 살펴야 합니다.',
+        advice: '공동 목표는 세우되 감정까지 성과처럼 다루지 마세요. 칭찬, 휴식, 실패를 받아주는 언어가 있어야 성장의 자극이 오래 따뜻하게 남습니다.',
+        oneLine: '서로를 성장시키는 인연이니, 목표보다 감정의 숨을 먼저 챙기세요.'
       }
-      return filtered;
+    };
+    var PURPOSE_COPY = {
+      love: {
+        '명': '연애에서는 닮은 감각이 빠르게 설렘으로 열리지만, 같은 불안이 동시에 올라오면 확인을 반복하기 쉽습니다. 표현은 자주, 판단은 천천히 두세요.',
+        '업태': '연애에서는 쉽게 잊히지 않는 잔상이 강합니다. 그리움만으로 관계를 밀지 말고 실제 만남과 약속의 성실함을 기준으로 삼으세요.',
+        '영친': '연애에서는 안정감이 깊은 매력으로 흐릅니다. 설렘이 잔잔해져도 애정 표현과 작은 이벤트를 놓치지 않으면 오래 따뜻합니다.',
+        '우쇠': '연애에서는 감정 온도차가 핵심입니다. 상대의 표현이 내 기대와 다르더라도 애정이 없는 것으로 단정하지 마세요.',
+        '안괴': '연애에서는 끌림이 빠르지만 불안도 빠르게 올라옵니다. 시험, 잠수, 통제로 마음을 확인하려는 흐름은 즉시 멈추어야 합니다.',
+        '성위': '연애에서는 서로의 성장을 응원할 때 빛납니다. 다만 조언이 평가처럼 들리지 않게 다정한 표현을 먼저 세우세요.'
+      },
+      reunion: {
+        '명': '재회에서는 익숙한 장점과 같은 갈등이 함께 돌아옵니다. 다시 시작한다면 이전에 반복된 말투와 회피 방식을 먼저 바꾸어야 합니다.',
+        '업태': '재회에서는 미련이 깊게 남기 쉽습니다. 가능성보다 재회 뒤 유지 조건, 연락 규칙, 관계 이름이 먼저 정해져야 합니다.',
+        '영친': '재회에서는 편안함이 다시 문을 엽니다. 다만 익숙함에 기대어 예전 문제를 덮으면 같은 장면이 되살아납니다.',
+        '우쇠': '재회에서는 누가 더 맞추었는지의 기억이 중요합니다. 균형을 회복할 구체적 약속 없이는 서운함이 다시 쌓입니다.',
+        '안괴': '재회에서는 끌림보다 안전한 거리와 경계가 먼저입니다. 집착, 감시, 위협이 있었던 관계라면 재회보다 보호와 도움 요청이 우선입니다.',
+        '성위': '재회에서는 함께 달라질 목표가 있을 때 힘이 납니다. 그러나 관계를 증명 과제로 만들면 다시 피로해집니다.'
+      },
+      marriage: {
+        '명': '결혼에서는 생활 취향이 닮아 빠르게 안정될 수 있습니다. 대신 돈, 가족, 휴식 방식의 반복 갈등을 미리 문장으로 정해야 합니다.',
+        '업태': '결혼에서는 의미감만으로는 부족합니다. 책임 분담과 경제 기준이 선명할수록 오래된 인연감이 현실의 안정으로 내려옵니다.',
+        '영친': '결혼에서는 생활 안정성이 강하게 열립니다. 다만 익숙함 속에서 감사 표현이 사라지지 않도록 작은 의식을 남겨 두세요.',
+        '우쇠': '결혼에서는 역할 차이를 세밀하게 나누어야 합니다. 한쪽의 양보가 당연해지지 않게 가사, 돈, 가족 경계를 정하세요.',
+        '안괴': '결혼에서는 감정 과열과 통제 욕구를 조심해야 합니다. 갈등이 커질 때 제3의 상담 구조를 두면 소모를 줄일 수 있습니다.',
+        '성위': '결혼에서는 공동 목표가 큰 힘이 됩니다. 집, 일, 돈의 목표와 별개로 둘만의 휴식 시간을 반드시 지켜야 합니다.'
+      },
+      friend: {
+        '명': '친구로는 말하지 않아도 통하는 편안함이 큽니다. 다만 같은 약점이 부딪힐 때 서로를 놀리거나 단정하지 않아야 오래 갑니다.',
+        '업태': '친구로는 오래 기억되는 조력자처럼 남습니다. 마음이 깊어지는 만큼 기대와 부탁의 선을 분명히 두세요.',
+        '영친': '친구로는 신뢰가 탄탄하게 자랍니다. 오래 가는 우정의 기운이 강하니 고마움을 자주 표현하면 더 따뜻합니다.',
+        '우쇠': '친구로는 서로 다른 생활 리듬을 인정해야 합니다. 자주 보지 않아도 마음이 식은 것은 아닐 수 있습니다.',
+        '안괴': '친구로는 강한 자극과 비교심이 섞일 수 있습니다. 경쟁, 소유, 소문으로 흐르면 거리를 두는 편이 좋습니다.',
+        '성위': '친구로는 함께 배우고 성장하는 힘이 큽니다. 조언을 많이 주고받되 평가처럼 굳지 않게 웃음과 여백을 남기세요.'
+      },
+      family: {
+        '명': '가족 관계에서는 닮은 반응이 상처 버튼을 빠르게 누를 수 있습니다. 서로를 잘 안다는 말보다 지금의 감정을 새로 들어야 합니다.',
+        '업태': '가족 관계에서는 오래된 책임감과 미안함이 남기 쉽습니다. 모든 것을 감당하려 하기보다 가능한 몫을 분명히 나누세요.',
+        '영친': '가족 관계에서는 보호와 의지가 자연스럽습니다. 다만 돌봄이 당연해지지 않게 감사와 휴식의 균형을 챙기세요.',
+        '우쇠': '가족 관계에서는 역할 고착을 조심해야 합니다. 늘 참는 사람, 늘 결정하는 사람이 정해지면 피로가 깊어집니다.',
+        '안괴': '가족 관계에서는 오래된 자존심과 통제감이 크게 흔들릴 수 있습니다. 위협이나 폭력의 신호가 있다면 즉시 도움을 요청하세요.',
+        '성위': '가족 관계에서는 기대와 성취 압박이 강해질 수 있습니다. 사랑을 성과로 재지 않는 말이 관계를 부드럽게 합니다.'
+      },
+      business: {
+        '명': '동업에서는 판단 기준이 닮아 속도가 빠릅니다. 대신 같은 blind spot이 생기니 회계, 계약, 책임 범위를 외부 기준으로 고정하세요.',
+        '업태': '동업에서는 의미와 비전이 강하게 붙습니다. 돈, 지분, 의사결정권을 흐리게 두면 감정의 잔상이 오래 남습니다.',
+        '영친': '동업에서는 신뢰와 생활 리듬이 장점입니다. 느슨해지지 않도록 역할표와 마감 기준을 정하면 안정적으로 갑니다.',
+        '우쇠': '동업에서는 강점 보완이 좋지만 한쪽 부담이 커질 수 있습니다. 책임, 비용, 보상 기준을 숫자로 남겨야 합니다.',
+        '안괴': '동업에서는 추진력과 갈등이 동시에 큽니다. 돈과 권한을 구두로 두지 말고, 위험 신호가 보이면 즉시 분리 가능한 구조를 두세요.',
+        '성위': '동업에서는 목표 달성력이 강합니다. 경쟁심이 내부 평가로 번지지 않게 최종 결정권과 휴식 규칙을 정하세요.'
+      },
+      work: {
+        '명': '직장에서는 업무 감각이 닮아 빠르게 맞습니다. 다만 실수 패턴도 닮을 수 있어 검토 역할을 분리하면 좋습니다.',
+        '업태': '직장에서는 묘한 책임감이나 신경 쓰임이 생길 수 있습니다. 개인 감정보다 업무 범위와 피드백 채널을 기준으로 두세요.',
+        '영친': '직장에서는 협업 안정감이 좋습니다. 다만 친밀함이 평가와 역할을 흐리지 않게 업무 기준을 분명히 하세요.',
+        '우쇠': '직장에서는 속도와 보고 방식 차이가 드러납니다. 서로의 업무 스타일을 맞추면 부족한 부분을 잘 보완합니다.',
+        '안괴': '직장에서는 평가, 권한, 감정 소모가 예민하게 흔들릴 수 있습니다. 공개된 기록과 공식 채널을 활용해 경계를 지키세요.',
+        '성위': '직장에서는 목표와 성과를 향한 자극이 큽니다. 경쟁이 과열되지 않도록 역할과 칭찬의 균형을 함께 세우세요.'
+      },
+      general: {
+        '명': '전체 흐름에서는 닮음이 빠른 이해로 열립니다. 반복되는 약점을 함께 관리할 때 관계의 질이 안정됩니다.',
+        '업태': '전체 흐름에서는 깊은 의미감과 현실 약속의 균형이 관건입니다. 마음만 오래 두지 말고 행동을 확인하세요.',
+        '영친': '전체 흐름에서는 오래 가는 편안함이 강합니다. 안정된 관계일수록 표현과 새로움을 의식적으로 남겨야 합니다.',
+        '우쇠': '전체 흐름에서는 서로의 다른 속도를 배우는 인연입니다. 기대치를 말로 나누면 소모가 줄어듭니다.',
+        '안괴': '전체 흐름에서는 강한 끌림과 소모가 함께 드러납니다. 경계, 회복 시간, 도움 요청의 문을 열어 두세요.',
+        '성위': '전체 흐름에서는 성장 자극이 핵심입니다. 목표를 세우되 감정을 성과처럼 다루지 않을 때 오래 갑니다.'
+      }
+    };
+    var PURPOSE_ADJUST = {
+      love: { attraction:4, stability:-2, exhaustion:2, longevity:0, growth:1 },
+      reunion: { attraction:2, stability:-3, exhaustion:5, longevity:-3, growth:3 },
+      marriage: { attraction:-2, stability:5, exhaustion:-2, longevity:6, growth:0 },
+      friend: { attraction:-2, stability:4, exhaustion:-3, longevity:4, growth:1 },
+      family: { attraction:-4, stability:3, exhaustion:3, longevity:2, growth:1 },
+      business: { attraction:-3, stability:2, exhaustion:2, longevity:1, growth:5 },
+      work: { attraction:-4, stability:1, exhaustion:2, longevity:0, growth:4 },
+      general: { attraction:0, stability:0, exhaustion:0, longevity:0, growth:0 }
+    };
+    function hash(value) {
+      var text = String(value || '');
+      var out = 2166136261;
+      for (var i = 0; i < text.length; i += 1) {
+        out ^= text.charCodeAt(i);
+        out = Math.imul(out, 16777619);
+      }
+      return Math.abs(out >>> 0);
     }
-
-    return { getSameMansion: getSameMansion, getMansionOf: getMansionOf, filter: filter, _celebToMansion: _celebToMansion };
+    function clamp(value) {
+      return Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+    }
+    function mansionName(data) {
+      var name = String(data && data.mansion || '').replace(/숙$/,'').trim();
+      return name ? name + '숙' : '미상';
+    }
+    function distanceKo(distInfo, relationType) {
+      if (relationType === '명' || relationType === '업태') return '해당없음';
+      var raw = distInfo && Number(distInfo.raw);
+      if (!Number.isFinite(raw) || raw <= 0) return '해당없음';
+      if (raw <= 4) return '근거리';
+      if (raw <= 10) return '중거리';
+      return '원거리';
+    }
+    function relationFromD(D) {
+      if (D === 0) return '명';
+      if (D === 9 || D === 18) return '업태';
+      if ([1, 8, 10, 17, 19, 26].indexOf(D) >= 0) return '영친';
+      if ([2, 7, 11, 16, 20, 25].indexOf(D) >= 0) return '우쇠';
+      if ([3, 6, 12, 15, 21, 24].indexOf(D) >= 0) return '안괴';
+      return '성위';
+    }
+    function directionFromD(D) {
+      if (D === 0) return '상호작용';
+      if (D === 9 || D === 18) return '상호작용';
+      if ([1,2,3,4,10,11,12,13,19,20,21,22].indexOf(D) >= 0) return '상대가 나에게 작용';
+      if ([5,6,7,8,14,15,16,17,23,24,25,26].indexOf(D) >= 0) return '내가 상대에게 작용';
+      return '해당없음';
+    }
+    function scoreFor(relationType, key, seed, purpose, distance) {
+      var range = (SCORE_RANGES[relationType] || SCORE_RANGES['명'])[key] || [45,70];
+      var low = range[0];
+      var high = range[1];
+      var base = Math.round((low + high) / 2);
+      var driftRaw = hash(seed + ':' + key) % 11;
+      var drift = driftRaw - 5;
+      if (drift > 0 && drift < 3) drift = 3;
+      if (drift < 0 && drift > -3) drift = -3;
+      var purposeDelta = (PURPOSE_ADJUST[purpose] || PURPOSE_ADJUST.general)[key] || 0;
+      var distanceDelta = 0;
+      if (distance === '근거리') distanceDelta = key === 'attraction' ? 3 : (key === 'exhaustion' ? 2 : 0);
+      if (distance === '중거리') distanceDelta = (key === 'stability' || key === 'longevity') ? 2 : 0;
+      if (distance === '원거리') distanceDelta = key === 'stability' ? -2 : (key === 'exhaustion' ? -2 : (key === 'longevity' ? 1 : 0));
+      return clamp(base + drift + purposeDelta + distanceDelta);
+    }
+    function buildScores(input, relationType, distance) {
+      var seed = [input.userBirthDate, input.partnerBirthDate, input.userMansion, input.partnerMansion, relationType].join('|');
+      return {
+        attraction: scoreFor(relationType, 'attraction', seed, input.relationshipPurpose, distance),
+        stability: scoreFor(relationType, 'stability', seed, input.relationshipPurpose, distance),
+        exhaustion: scoreFor(relationType, 'exhaustion', seed, input.relationshipPurpose, distance),
+        longevity: scoreFor(relationType, 'longevity', seed, input.relationshipPurpose, distance),
+        growth: scoreFor(relationType, 'growth', seed, input.relationshipPurpose, distance)
+      };
+    }
+    function build(input) {
+      var myIdx = syWheelNormalizeIndex(input.userMansionIdx);
+      var partnerIdx = syWheelNormalizeIndex(input.partnerMansionIdx);
+      if (myIdx == null || partnerIdx == null) throw new Error('숙 계산값이 부족합니다.');
+      var D = (partnerIdx - myIdx + 27) % 27;
+      var distInfo = SukuyoCompatEngine.calcDistance(D);
+      var relationType = relationFromD(D);
+      var distance = distanceKo(distInfo, relationType);
+      var direction = directionFromD(D);
+      var userMansion = input.userMansion || '';
+      var partnerMansion = input.partnerMansion || '';
+      var scores = buildScores({
+        userBirthDate: input.userBirthDate,
+        partnerBirthDate: input.partnerBirthDate,
+        userMansion: userMansion,
+        partnerMansion: partnerMansion,
+        relationshipPurpose: input.relationshipPurpose
+      }, relationType, distance);
+      var copy = RELATION_COPY[relationType] || RELATION_COPY['명'];
+      var purpose = input.relationshipPurpose || 'general';
+      var purposeReading = ((PURPOSE_COPY[purpose] || PURPOSE_COPY.general)[relationType] || PURPOSE_COPY.general[relationType]);
+      var partnerLabel = input.partnerName ? String(input.partnerName).trim() : '상대';
+      return {
+        'user宿': userMansion,
+        'partner宿': partnerMansion,
+        relationType: relationType,
+        distance: distance,
+        direction: direction,
+        title: copy.title,
+        subtitle: copy.subtitle,
+        scores: scores,
+        summary: copy.summary,
+        chemistry: copy.chemistry,
+        risk: copy.risk,
+        advice: copy.advice,
+        purposeReading: purposeReading,
+        oneLine: partnerLabel + '님과의 인연은 ' + copy.oneLine,
+        purposeLabel: PURPOSE_LABELS[purpose] || PURPOSE_LABELS.general,
+        relationLabel: relationType + (distance && distance !== '해당없음' ? ' ' + distance : ''),
+        directionLabel: direction,
+        seedSignature: hash([input.userBirthDate, input.partnerBirthDate, userMansion, partnerMansion, relationType].join('|')).toString(36)
+      };
+    }
+    function chartSvg(scores) {
+      var labels = [
+        ['끌림', scores.attraction],
+        ['안정', scores.stability],
+        ['소모', scores.exhaustion],
+        ['장기', scores.longevity],
+        ['성장', scores.growth]
+      ];
+      var cx = 110, cy = 110, r = 74;
+      var points = labels.map(function(item, idx) {
+        var angle = -90 + idx * 72;
+        var rad = angle * Math.PI / 180;
+        var rr = r * (Number(item[1]) / 100);
+        return [cx + Math.cos(rad) * rr, cy + Math.sin(rad) * rr];
+      });
+      var grid = [0.25,0.5,0.75,1].map(function(scale) {
+        var ring = labels.map(function(_item, idx) {
+          var angle = -90 + idx * 72;
+          var rad = angle * Math.PI / 180;
+          return (cx + Math.cos(rad) * r * scale).toFixed(1) + ',' + (cy + Math.sin(rad) * r * scale).toFixed(1);
+        }).join(' ');
+        return '<polygon points="' + ring + '" fill="none" stroke="rgba(226,232,240,0.16)" stroke-width="1"/>';
+      }).join('');
+      var axes = labels.map(function(_item, idx) {
+        var angle = -90 + idx * 72;
+        var rad = angle * Math.PI / 180;
+        return '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + Math.cos(rad) * r).toFixed(1) + '" y2="' + (cy + Math.sin(rad) * r).toFixed(1) + '" stroke="rgba(226,232,240,0.14)" stroke-width="1"/>';
+      }).join('');
+      var text = labels.map(function(item, idx) {
+        var angle = -90 + idx * 72;
+        var rad = angle * Math.PI / 180;
+        return '<text x="' + (cx + Math.cos(rad) * 94).toFixed(1) + '" y="' + (cy + Math.sin(rad) * 94).toFixed(1) + '" text-anchor="middle" dominant-baseline="middle" fill="rgba(226,232,240,0.9)" font-size="11" font-weight="800">' + syCanonicalEsc(item[0]) + '</text>';
+      }).join('');
+      var dataPoints = points.map(function(p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
+      return '<svg viewBox="0 0 220 220" role="img" aria-label="숙요 인연 레이더 차트" style="width:100%;max-width:220px;height:auto;display:block;">'
+        + '<defs><radialGradient id="syRadarGlow" cx="50%" cy="50%" r="58%"><stop offset="0%" stop-color="rgba(196,181,253,0.36)"/><stop offset="100%" stop-color="rgba(147,197,253,0.02)"/></radialGradient></defs>'
+        + '<circle cx="' + cx + '" cy="' + cy + '" r="92" fill="url(#syRadarGlow)" stroke="rgba(196,181,253,0.18)"/>'
+        + grid + axes
+        + '<polygon points="' + dataPoints + '" fill="rgba(196,181,253,0.34)" stroke="#f8e7b7" stroke-width="2"/>'
+        + points.map(function(p) { return '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3.4" fill="#fef3c7" stroke="#c4b5fd" stroke-width="1"/>'; }).join('')
+        + text
+        + '</svg>';
+    }
+    function scoreCard(label, value) {
+      var n = clamp(value);
+      return '<article class="sy-radar-score-card"><span>' + syCanonicalEsc(label) + '</span><strong>' + n + '</strong><div class="sy-radar-score-bar"><i style="width:' + n + '%"></i></div></article>';
+    }
+    function render(result) {
+      var scores = result.scores || {};
+      var sections = [
+        ['핵심 판정', result.summary],
+        ['이 관계의 끌림', result.chemistry],
+        ['안정감과 장기 가능성', '안정 지수 ' + scores.stability + ', 장기 인연 지수 ' + scores.longevity + '로 드러납니다. 높은 점수는 관계가 저절로 완성된다는 뜻이 아니라, 서로의 리듬을 지킬 때 오래 머무를 바탕이 있다는 뜻입니다.'],
+        ['조심해야 할 소모 패턴', result.risk],
+        ['관계 목적별 조언', result.purposeReading],
+        ['오래 가져가기 위한 전략', result.advice]
+      ];
+      return '<div class="sy-radar-result-card" data-relation="' + syCanonicalEsc(result.relationType) + '">'
+        + '<div class="sy-radar-head">'
+          + '<div class="sy-radar-badges"><span>내 숙 ' + syCanonicalEsc(result['user宿']) + '</span><span>상대 숙 ' + syCanonicalEsc(result['partner宿']) + '</span><span>관계 타입 ' + syCanonicalEsc(result.relationLabel) + '</span><span>' + syCanonicalEsc(result.purposeLabel) + '</span></div>'
+          + '<h5>' + syCanonicalEsc(result.title) + '</h5><p>' + syCanonicalEsc(result.subtitle) + ' · ' + syCanonicalEsc(result.directionLabel) + '</p>'
+        + '</div>'
+        + '<div class="sy-radar-body">'
+          + '<div class="sy-radar-chart-row"><div class="sy-radar-svg-wrap">' + chartSvg(scores) + '</div><div class="sy-radar-score-grid">'
+            + scoreCard('끌림 지수', scores.attraction)
+            + scoreCard('안정 지수', scores.stability)
+            + scoreCard('소모 지수', scores.exhaustion)
+            + scoreCard('장기 인연 지수', scores.longevity)
+            + scoreCard('성장 지수', scores.growth)
+          + '</div></div>'
+          + '<div class="sy-radar-section-grid">' + sections.map(function(item) {
+            return '<article class="sy-radar-section"><h6>' + syCanonicalEsc(item[0]) + '</h6><p>' + syCanonicalEsc(item[1]) + '</p></article>';
+          }).join('') + '</div>'
+          + '<div class="sy-radar-one-line">오늘의 한 문장 · ' + syCanonicalEsc(result.oneLine) + '</div>'
+        + '</div>'
+      + '</div>';
+    }
+    return { build: build, render: render, relationFromD: relationFromD, distanceKo: distanceKo, directionFromD: directionFromD, clamp: clamp, hash: hash, mansionName: mansionName };
   })();
 
-  // ── 유명인 탭/검색 필터 렌더러 ──────────────────────────────────
-  window._szCelebFilter = function(myIdx, cat, query, clickedTab) {
-    var btnsDiv = document.getElementById('szCelebBtns');
-    var moreWrap = document.getElementById('szCelebMoreWrap');
-    if (!btnsDiv) return;
+  function syRadarParseDate(value) {
+    var text = String(value || '').trim();
+    var match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+    if (!match) return null;
+    return { year: parseInt(match[1], 10), month: parseInt(match[2], 10), day: parseInt(match[3], 10), text: text };
+  }
 
-    // 탭 active 상태 업데이트
-    if (clickedTab) {
-      var tabs = document.querySelectorAll('#szCelebCats .sy-ctab');
-      tabs.forEach(function(t) {
-        var isActive = t === clickedTab;
-        t.classList.toggle('active', isActive);
-        t.style.background = isActive ? 'rgba(162,155,254,0.2)' : 'rgba(162,155,254,0.05)';
-        t.style.borderColor = isActive ? 'rgba(162,155,254,0.6)' : 'rgba(162,155,254,0.3)';
+  async function syRadarResolveLunar(dateText, calendarType, timeText) {
+    var parsed = syRadarParseDate(dateText);
+    if (!parsed) throw new Error('생년월일 형식이 올바르지 않습니다.');
+    var t = String(timeText || '12:00').split(':');
+    var hour = parseInt(t[0] || '12', 10);
+    var minute = parseInt(t[1] || '0', 10);
+    if (!Number.isFinite(hour)) hour = 12;
+    if (!Number.isFinite(minute)) minute = 0;
+    var cal = String(calendarType || 'solar');
+    if (cal === 'lunar' || cal === 'lunar_leap') {
+      return { year: parsed.year, month: parsed.month, day: parsed.day, isLeap: cal === 'lunar_leap' };
+    }
+    var lunarObj = null;
+    if (typeof resolvePrimaryCalendarContext === 'function') {
+      var lat = (window._astroBirth && window._astroBirth.lat) || (window._ziweiBirth && window._ziweiBirth.lat) || 37.5665;
+      var lon = (window._astroBirth && window._astroBirth.lon) || (window._ziweiBirth && window._ziweiBirth.lon) || 126.9780;
+      var tz = (window._astroBirth && window._astroBirth.tz != null) ? window._astroBirth.tz : ((window._ziweiBirth && window._ziweiBirth.tz != null) ? window._ziweiBirth.tz : 9);
+      var ctx = await resolvePrimaryCalendarContext({
+        calendarType: 'solar',
+        year: parsed.year,
+        month: parsed.month,
+        day: parsed.day,
+        hour: hour,
+        minute: minute,
+        second: 0,
+        latitude: lat,
+        longitude: lon,
+        tzOffsetHours: tz
+      }, { setCurrent: false, localOnly: false });
+      if (ctx && ctx.lunar && ctx.lunar.year && ctx.lunar.month && ctx.lunar.day) {
+        lunarObj = { year: ctx.lunar.year, month: ctx.lunar.month, day: ctx.lunar.day, isLeap: !!ctx.lunar.isLeap };
+      }
+    }
+    if (!lunarObj && typeof KasiEngine !== 'undefined' && typeof KasiEngine.solarToLunar === 'function') {
+      lunarObj = KasiEngine.solarToLunar(new Date(parsed.year, parsed.month - 1, parsed.day, hour, minute, 0), true);
+    }
+    if (!lunarObj) throw new Error('음력 변환에 실패했습니다.');
+    return lunarObj;
+  }
+
+  function syRadarReadField(form, selector) {
+    var el = form ? form.querySelector(selector) : null;
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function syBindSukuyoRadar(myIdx, myMansionName) {
+    var form = document.querySelector('[data-sy-radar-form]');
+    if (!form || form.__syRadarBound) return;
+    form.__syRadarBound = true;
+    var status = document.querySelector('[data-sy-radar-status]');
+    var resultHost = document.querySelector('[data-sy-radar-result]');
+    var statusPill = document.querySelector('[data-sy-radar-status-pill]');
+    var submitBtn = form.querySelector('.sy-radar-submit');
+    if (statusPill && syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipRadar.key)) {
+      statusPill.textContent = '해금 완료';
+      statusPill.classList.add('is-unlocked');
+    }
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      var run = async function() {
+        if (submitBtn) submitBtn.disabled = true;
+        if (status) status.textContent = '두 사람의 달빛 궤도를 맞추고 있습니다...';
+        try {
+          var hasSelf = form.getAttribute('data-has-self') === '1';
+          var userDate = syRadarReadField(form, '[data-sy-radar-user-date]');
+          var userCalendar = syRadarReadField(form, '[data-sy-radar-user-calendar]') || 'solar';
+          var userName = syRadarReadField(form, '[data-sy-radar-user-name]') || '나';
+          var userGender = syRadarReadField(form, '[data-sy-radar-user-gender]') || 'unknown';
+          var partnerName = syRadarReadField(form, '[data-sy-radar-partner-name]') || '상대';
+          var partnerDate = syRadarReadField(form, '[data-sy-radar-partner-date]');
+          var partnerCalendar = syRadarReadField(form, '[data-sy-radar-partner-calendar]') || 'solar';
+          var partnerTime = syRadarReadField(form, '[data-sy-radar-partner-time]') || '12:00';
+          var partnerGender = syRadarReadField(form, '[data-sy-radar-partner-gender]') || 'unknown';
+          var purpose = syRadarReadField(form, '[data-sy-radar-purpose]') || 'general';
+          if (!partnerDate) throw new Error('상대 생년월일을 입력해 주세요.');
+          var userIdx = syWheelNormalizeIndex(myIdx);
+          var userMansion = myMansionName || '';
+          if (!hasSelf || userIdx == null || !userMansion) {
+            if (!userDate) throw new Error('저장된 프로필이 없어 내 생년월일이 필요합니다.');
+            var userLunar = await syRadarResolveLunar(userDate, userCalendar, '12:00');
+            var userData = calcSukuyoData(userLunar);
+            if (!userData) throw new Error('내 숙요 계산에 실패했습니다.');
+            userIdx = userData.mansionIdx;
+            userMansion = SukuyoRadarEngine.mansionName(userData);
+          } else {
+            userMansion = String(userMansion || '').replace(/숙$/,'') + '숙';
+          }
+          var partnerLunar = await syRadarResolveLunar(partnerDate, partnerCalendar, partnerTime);
+          var partnerData = calcSukuyoData(partnerLunar);
+          if (!partnerData) throw new Error('상대 숙요 계산에 실패했습니다.');
+          var partnerIdx = partnerData.mansionIdx;
+          var partnerMansion = SukuyoRadarEngine.mansionName(partnerData);
+          var D = (partnerIdx - userIdx + 27) % 27;
+          var distInfo = SukuyoCompatEngine.calcDistance(D);
+          var rel = SukuyoCompatEngine.resolve(D, distInfo, { myIdx: userIdx, partnerIdx: partnerIdx });
+          var radarResult = SukuyoRadarEngine.build({
+            userProfileId: '',
+            userName: userName,
+            userBirthDate: userDate || '',
+            userCalendarType: userCalendar === 'lunar_leap' ? 'lunar' : userCalendar,
+            userGender: userGender,
+            partnerName: partnerName,
+            partnerBirthDate: partnerDate,
+            partnerCalendarType: partnerCalendar === 'lunar_leap' ? 'lunar' : partnerCalendar,
+            partnerGender: partnerGender,
+            relationshipPurpose: purpose,
+            userMansionIdx: userIdx,
+            partnerMansionIdx: partnerIdx,
+            userMansion: userMansion,
+            partnerMansion: partnerMansion
+          });
+          window._syLastCompat = {
+            myIdx: userIdx,
+            partnerIdx: partnerIdx,
+            partnerMansion: partnerMansion,
+            relationType: radarResult.relationLabel,
+            distanceLabel: radarResult.distance,
+            temperature: rel.temperature || 0,
+            score: rel.score || 0,
+            magnetism: rel.magnetism || 0,
+            stamp: rel.stamp || '',
+            compatibilityIndex: Number(rel.compatibilityIndex || rel.score || 0),
+            distanceMetrics: rel.distanceMetrics || {},
+            roleActionGuide: rel.roleActionGuide || {},
+            elementHarmony: rel.elementHarmony || {},
+            strengthShadowMap: rel.strengthShadowMap || {},
+            relationVariant: 'sukyo-radar-' + radarResult.seedSignature,
+            radar: radarResult
+          };
+          try {
+            var wheelState = window._syWheelState;
+            var wheelHost = document.getElementById('syWheelCardHost');
+            if (wheelState && wheelHost && typeof syRenderWheelCard === 'function') {
+              wheelHost.outerHTML = syRenderWheelCard(wheelState, window._syLastCompat);
+            }
+          } catch (_wheelErr) {}
+          if (resultHost) resultHost.innerHTML = SukuyoRadarEngine.render(radarResult);
+          if (status) status.textContent = '인연 레이더가 열렸습니다.';
+          if (statusPill) {
+            statusPill.textContent = '해금 완료';
+            statusPill.classList.add('is-unlocked');
+          }
+        } catch (error) {
+          if (status) status.textContent = error && error.message ? String(error.message) : '인연 레이더를 열지 못했습니다. 입력값을 다시 확인해 주세요.';
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      };
+      if (syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipRadar.key)) {
+        run();
+        return;
+      }
+      syRequirePaidSukuyoFeature(SY_PAID_FEATURES.relationshipRadar, function() {
+        syMarkPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipRadar.key);
+        run();
+      });
+    });
+  }
+
+  var SukuyoPastLifeEngine = (function() {
+    var LOGIC_VERSION = 'sukyo-past-life-v1';
+    var PURPOSE_LABELS = {
+      love: '연애',
+      reunion: '재회',
+      marriage: '결혼',
+      crush: '짝사랑',
+      friend: '친구',
+      family: '가족',
+      business: '동업/비즈니스',
+      work: '직장/상사/동료',
+      general: '전체 분석'
+    };
+    var SCORE_RANGES = {
+      '업태': { pastLifeFeeling:[85,98], attraction:[75,92], unfinishedTask:[80,98], repeatPattern:[70,90], emotionalExhaustion:[50,75], healingPotential:[65,85], realityPotential:[45,70] },
+      '안괴': { pastLifeFeeling:[75,95], attraction:[85,98], unfinishedTask:[70,92], repeatPattern:[75,95], emotionalExhaustion:[75,98], healingPotential:[55,80], realityPotential:[30,60] },
+      '명': { pastLifeFeeling:[65,85], attraction:[60,78], unfinishedTask:[55,78], repeatPattern:[75,92], emotionalExhaustion:[40,65], healingPotential:[60,82], realityPotential:[55,75] },
+      '영친': { pastLifeFeeling:[60,82], attraction:[55,78], unfinishedTask:[35,58], repeatPattern:[45,65], emotionalExhaustion:[20,45], healingPotential:[75,95], realityPotential:[75,95] },
+      '우쇠': { pastLifeFeeling:[55,78], attraction:[55,75], unfinishedTask:[55,78], repeatPattern:[60,82], emotionalExhaustion:[45,70], healingPotential:[60,82], realityPotential:[45,70] },
+      '성위': { pastLifeFeeling:[60,82], attraction:[60,80], unfinishedTask:[60,85], repeatPattern:[60,82], emotionalExhaustion:[50,75], healingPotential:[65,88], realityPotential:[50,75] }
+    };
+    var RELATION_META = {
+      '업태': {
+        title: '오래된 약속처럼 남는 인연',
+        subtitle: '미완의 숙제와 설명하기 어려운 익숙함',
+        theme: '감정보다 현실의 약속을 확인해야 하는 전생형 여운',
+        summary: '이 관계에는 처음부터 오래 알고 지낸 사람처럼 느껴지는 기운이 짙게 머뭅니다. 다만 익숙함이 곧 안정성을 뜻하지는 않으니, 마음의 깊이보다 지금의 태도와 약속을 먼저 보아야 합니다.',
+        first: '낯선 사람인데도 말투와 분위기가 어딘가 익숙하게 닿습니다. 오래된 기억처럼 남는 장면이 생기고, 짧은 만남 뒤에도 해석이 길어질 수 있습니다.',
+        story: '전생 서사처럼 읽으면 두 사람은 끝맺지 못한 약속을 다시 마주한 결입니다. 이번 생에서는 감정의 깊이를 증명하기보다 현실에서 지켜지는 약속이 관계의 진짜 무게가 됩니다.',
+        task: '미완의 숙제는 기다림과 의미 부여를 줄이고, 서로가 실제로 책임지는 방식을 확인하는 데 있습니다.',
+        repeat: '관계가 흐려질수록 기다림이 길어지고, 작은 신호를 큰 운명처럼 해석하는 패턴이 반복될 수 있습니다.',
+        trigger: '상대의 애매한 태도, 늦은 답, 정리되지 않은 약속이 마음속 오래된 결핍을 건드립니다.',
+        lesson: '이번 생의 과제는 그리움보다 현실의 태도를 기준으로 삼는 것입니다.',
+        advice: '관계 이름, 연락 리듬, 만남의 기준을 부드럽지만 분명하게 세우세요.',
+        oneLine: '오래된 인연처럼 느껴질수록, 지금 지켜지는 약속을 먼저 보세요.'
+      },
+      '안괴': {
+        title: '강하게 끌리지만 경계가 필요한 인연',
+        subtitle: '흔들림과 방향 전환이 함께 일어나는 관계',
+        theme: '강한 끌림 속에서 경계와 안전을 다시 배우는 전생형 자극',
+        summary: '이 관계는 처음부터 감정의 파도가 크게 일어날 수 있습니다. 전생의 기억처럼 강렬하게 느껴져도 현재의 동의, 경계, 안전이 가장 앞에 와야 합니다.',
+        first: '시선이 빠르게 묶이고 상대의 작은 반응에도 마음이 크게 움직입니다. 익숙함보다 충격에 가까운 끌림이 먼저 떠오를 수 있습니다.',
+        story: '전생 서사처럼 읽으면 두 사람은 서로의 약한 곳을 건드리며 방향을 바꾸게 하는 결입니다. 잘 다루면 성장의 문이 열리지만, 시험과 통제로 흐르면 감정 소모가 커집니다.',
+        task: '미완의 숙제는 끌림을 이유로 경계를 흐리지 않는 데 있습니다. 연락, 돈, 관계 정의, 사적인 시간을 분명히 해야 합니다.',
+        repeat: '확인받고 싶을수록 상대를 시험하거나 더 붙잡으려는 패턴이 올라올 수 있습니다.',
+        trigger: '무시당했다는 느낌, 불안한 침묵, 통제받는 감각이 강한 감정 버튼으로 떠오릅니다.',
+        lesson: '이번 생의 과제는 강한 감정을 안전한 규칙 위에 올리는 것입니다.',
+        advice: '불안이 커질 때 결론을 밀어붙이지 말고, 서로가 편안하게 지킬 수 있는 경계를 먼저 정하세요.',
+        oneLine: '강하게 끌릴수록 관계를 지키는 것은 감정의 크기가 아니라 안전한 경계입니다.'
+      },
+      '명': {
+        title: '나를 거울처럼 비추는 인연',
+        subtitle: '닮은 영혼과 반복되는 패턴',
+        theme: '닮은 점이 빠른 이해와 같은 약점을 함께 비추는 거울형 서사',
+        summary: '이 관계는 서로를 오래 알던 사람처럼 빠르게 이해하게 합니다. 하지만 닮은 결은 위로가 되면서도 같은 약점이 반복되는 통로가 될 수 있습니다.',
+        first: '취향, 반응, 말의 속도가 비슷하게 맞아 처음부터 부담이 덜합니다. 상대를 보며 내 모습을 보는 듯한 감각이 올라옵니다.',
+        story: '전생 서사처럼 읽으면 두 사람은 같은 장면을 다른 몸으로 반복해 온 거울형 인연입니다. 이번 생에서는 닮은 점에 기대기보다 반복되는 습관을 함께 알아차려야 합니다.',
+        task: '미완의 숙제는 같은 약점이 부딪힐 때 서로를 고치려 하기보다 멈추는 법을 배우는 데 있습니다.',
+        repeat: '둘 다 물러서기 어려운 순간, 비슷한 방어 방식이 동시에 올라올 수 있습니다.',
+        trigger: '상대의 단점이 사실은 내 안의 익숙한 그림자처럼 느껴질 때 마음이 답답해집니다.',
+        lesson: '이번 생의 과제는 닮음을 운명으로만 소비하지 않고 반복 패턴을 관리하는 것입니다.',
+        advice: '비슷함을 확인하는 말보다, 각자의 회복 방식과 독립된 시간을 인정하세요.',
+        oneLine: '거울처럼 닮은 인연일수록, 반복되는 습관을 함께 멈추는 힘이 필요합니다.'
+      },
+      '영친': {
+        title: '오래된 품처럼 편안한 인연',
+        subtitle: '보호와 돌봄이 자연스럽게 흐르는 관계',
+        theme: '편안함과 돌봄이 깊어지지만 표현을 잊지 않아야 하는 보호형 서사',
+        summary: '이 관계는 전생의 품처럼 편안하게 느껴질 수 있습니다. 함께 있을수록 안정이 깊어지지만, 익숙함 속에서 표현이 줄어들지 않게 살펴야 합니다.',
+        first: '처음부터 과한 긴장보다 안도감이 먼저 올라옵니다. 생활 리듬과 마음의 온도가 자연스럽게 맞는 장면이 생깁니다.',
+        story: '전생 서사처럼 읽으면 두 사람은 서로를 돌보던 기억처럼 부드럽게 이어집니다. 이번 생에서는 보호가 의무로 굳지 않도록 고마움을 자주 꺼내야 합니다.',
+        task: '미완의 숙제는 편안함을 당연하게 두지 않고 애정과 감사의 말을 계속 나누는 데 있습니다.',
+        repeat: '너무 익숙해질수록 설렘보다 가족 같은 습관이 먼저 자리 잡을 수 있습니다.',
+        trigger: '표현이 줄어들거나 배려가 당연해질 때 서운함이 조용히 쌓입니다.',
+        lesson: '이번 생의 과제는 안정 속에서도 마음을 새롭게 표현하는 것입니다.',
+        advice: '작은 안부, 고마움, 애정 표현을 의식적으로 반복하세요.',
+        oneLine: '편안한 인연은 저절로 오래 가는 것이 아니라, 표현을 통해 더 깊어집니다.'
+      },
+      '우쇠': {
+        title: '서로 다른 온도를 배우는 인연',
+        subtitle: '속도 차이와 보완이 함께 흐르는 관계',
+        theme: '다른 속도를 통해 사랑과 배려의 언어를 배우는 배움형 서사',
+        summary: '이 관계는 전생의 미완 수업처럼 서로의 속도 차이를 비춥니다. 한쪽은 더 가까워지고 싶고, 다른 한쪽은 숨 쉴 공간을 원할 수 있습니다.',
+        first: '끌림은 있지만 표현 방식이 다르게 느껴질 수 있습니다. 상대의 거리감이 차가움인지 신중함인지 천천히 확인해야 합니다.',
+        story: '전생 서사처럼 읽으면 두 사람은 서로에게 부족했던 언어를 배우러 다시 만난 결입니다. 이번 생에서는 같은 방식의 사랑을 요구하기보다 표현 차이를 이해해야 합니다.',
+        task: '미완의 숙제는 누가 더 맞추는가를 따지기 전에 서로의 리듬을 현실적으로 조율하는 데 있습니다.',
+        repeat: '기대와 반응 속도가 어긋나면서 서운함을 오래 품는 패턴이 반복될 수 있습니다.',
+        trigger: '답이 늦거나 온도가 다르게 느껴질 때, 버려진 듯한 감각이나 부담감이 올라옵니다.',
+        lesson: '이번 생의 과제는 애정의 양보다 표현의 차이를 읽는 것입니다.',
+        advice: '연락, 만남, 혼자 있는 시간의 기준을 서로의 언어로 합의하세요.',
+        oneLine: '온도 차이가 있는 인연일수록, 같은 사랑을 다른 방식으로 표현할 수 있음을 기억하세요.'
+      },
+      '성위': {
+        title: '서로를 밀어 올리는 성장 계약형 인연',
+        subtitle: '목표와 현실 과제가 관계를 움직이는 구조',
+        theme: '성장과 자극이 깊지만 감정의 안전감을 먼저 챙겨야 하는 계약형 서사',
+        summary: '이 관계는 전생의 약속처럼 서로를 성장시키는 자극을 품고 있습니다. 함께 있으면 목표가 선명해지지만, 관계가 평가처럼 느껴지면 피로가 커질 수 있습니다.',
+        first: '상대에게서 나를 더 나아가게 하는 기운을 느낄 수 있습니다. 호감과 존중, 경쟁심이 묘하게 섞여 올라옵니다.',
+        story: '전생 서사처럼 읽으면 두 사람은 서로를 밀어 올리기로 약속한 결입니다. 이번 생에서는 성과보다 감정의 안전감을 먼저 지켜야 성장의 빛이 오래 갑니다.',
+        task: '미완의 숙제는 관계를 과제나 성적표처럼 다루지 않는 데 있습니다.',
+        repeat: '좋은 자극이 비교와 평가로 바뀌면 마음이 긴장하고 방어적으로 굳을 수 있습니다.',
+        trigger: '무능하게 보일까 두려운 순간, 인정받고 싶은 마음이 날카롭게 올라옵니다.',
+        lesson: '이번 생의 과제는 목표를 나누되 감정까지 성과로 재단하지 않는 것입니다.',
+        advice: '공동 목표는 작게 세우고, 실패했을 때도 안전하게 돌아올 언어를 마련하세요.',
+        oneLine: '성장시키는 인연일수록, 먼저 지켜야 할 것은 성과가 아니라 마음의 안전입니다.'
+      }
+    };
+
+    function scoreFromRange(range, seed, key) {
+      var mid = Math.round((range[0] + range[1]) / 2);
+      var magnitude = 3 + (SukuyoRadarEngine.hash(seed + ':' + key + ':m') % 5);
+      var sign = (SukuyoRadarEngine.hash(seed + ':' + key + ':s') % 2) === 0 ? -1 : 1;
+      return SukuyoRadarEngine.clamp(mid + (magnitude * sign));
+    }
+
+    function buildScores(relationType, distance, seed) {
+      var ranges = SCORE_RANGES[relationType] || SCORE_RANGES['성위'];
+      var scores = {};
+      Object.keys(ranges).forEach(function(key) {
+        scores[key] = scoreFromRange(ranges[key], seed, key);
+      });
+      if (distance === '근거리') {
+        scores.attraction += 5;
+        scores.repeatPattern += 4;
+        scores.emotionalExhaustion += 3;
+      } else if (distance === '중거리') {
+        scores.healingPotential += 4;
+        scores.realityPotential += 3;
+      } else if (distance === '원거리') {
+        scores.pastLifeFeeling += 4;
+        scores.unfinishedTask += 5;
+      }
+      Object.keys(scores).forEach(function(key) { scores[key] = SukuyoRadarEngine.clamp(scores[key]); });
+      if (relationType === '영친') {
+        scores.emotionalExhaustion = Math.min(scores.emotionalExhaustion, 45);
+        scores.healingPotential = Math.max(scores.healingPotential, 75);
+        scores.realityPotential = Math.max(scores.realityPotential, 75);
+      }
+      if (relationType === '안괴') {
+        scores.emotionalExhaustion = Math.max(scores.emotionalExhaustion, 75);
+        scores.realityPotential = Math.min(scores.realityPotential, 60);
+      }
+      if (relationType === '업태') {
+        scores.pastLifeFeeling = Math.max(scores.pastLifeFeeling, 85);
+        scores.unfinishedTask = Math.max(scores.unfinishedTask, 80);
+      }
+      if (relationType === '명') scores.repeatPattern = Math.max(scores.repeatPattern, 75);
+      return scores;
+    }
+
+    function directionReading(direction) {
+      if (direction === '내가 상대에게 작용') return '이 흐름에서는 내가 관계의 의미를 더 크게 느끼기 쉽습니다. 마음이 커질수록 상대의 현재 태도와 경계를 함께 살펴야 합니다.';
+      if (direction === '상대가 나에게 작용') return '상대가 나의 기억과 감정에 강하게 남는 흐름입니다. 흔들림이 커질수록 나의 생활 리듬을 먼저 지켜야 합니다.';
+      if (direction === '상호작용') return '두 사람 모두에게 잔상이 남기 쉬운 흐름입니다. 서로에게 남는 힘이 크기 때문에 약속과 경계가 더 선명해야 합니다.';
+      return '';
+    }
+
+    function purposeReading(purpose, relationType) {
+      var relHint = relationType === '안괴' ? '강한 끌림을 이유로 불안과 통제를 키우지 않는 것이 핵심입니다.' : (relationType === '업태' ? '전생처럼 느껴지는 여운보다 현재의 약속과 태도를 보아야 합니다.' : '익숙함의 결을 살리되 현실의 리듬을 함께 맞춰야 합니다.');
+      var map = {
+        love: '연애에서는 끌림, 표현 방식, 불안의 속도가 관계를 좌우합니다. ' + relHint,
+        reunion: '재회에서는 다시 만나는 가능성보다 다시 만났을 때 같은 패턴을 반복하지 않을 조건이 먼저입니다. 상대의 거절 의사가 명확하다면 더 밀어붙이지 않는 것이 중요합니다.',
+        marriage: '결혼에서는 전생감보다 현실 지속 가능성, 생활 리듬, 책임 분담, 감정 안정성이 먼저 드러나야 합니다. 약속을 지키는 방식이 사랑의 무게가 됩니다.',
+        crush: '짝사랑에서는 상대의 마음을 단정하지 않습니다. 오래된 인연처럼 느껴져도 현재의 동의와 경계가 우선이며, 나의 감정 패턴과 현실 행동 기준을 먼저 세워야 합니다.',
+        friend: '친구 관계에서는 신뢰, 거리감, 오래 가는 우정의 리듬이 중요합니다. 편안함을 핑계로 선을 넘지 않을 때 인연이 맑게 이어집니다.',
+        family: '가족 관계에서는 반복되는 상처 버튼, 역할 고착, 화해 방식이 핵심입니다. 사랑한다는 이유로 경계가 사라지지 않게 거리를 조율해야 합니다.',
+        business: '동업과 비즈니스에서는 감성적 서사보다 신뢰, 역할, 돈, 책임, 계약, 의사결정 방식이 우선입니다. 문서와 기준이 관계를 지킵니다.',
+        work: '직장 관계에서는 권한, 평가, 협업 방식, 감정 소모가 중요합니다. 업무의 기준과 감정의 기준을 섞지 않아야 피로가 줄어듭니다.',
+        general: '전체 흐름에서는 감성 서사와 현실 조언을 함께 보아야 합니다. 오래된 인연처럼 느껴져도 지금 서로가 안전하게 머무는 방식이 가장 중요합니다.'
+      };
+      return map[purpose] || map.general;
+    }
+
+    function warningSigns(purpose, relationType) {
+      var list = [
+        '전생처럼 느껴지는 감정이 있어도 현재의 동의와 경계가 우선입니다.',
+        '기다림이 나를 망가뜨린다면 그것은 인연이 아니라 반복 패턴일 수 있습니다.'
+      ];
+      if (relationType === '안괴') list.push('시험, 통제, 일방적 확인이 잦아지면 잠시 거리를 두어야 합니다.');
+      if (relationType === '업태') list.push('의미에 취해 현실의 행동과 책임을 놓치지 않아야 합니다.');
+      if (purpose === 'reunion' || purpose === 'crush') {
+        list.push('상대의 거절 의사가 명확하다면 더 밀어붙이지 않는 것이 중요합니다.');
+        list.push('관계를 회복하려면 감정의 크기보다 상대가 안전하게 느끼는 방식이 먼저입니다.');
+      }
+      return list;
+    }
+
+    function healingActions(relationType) {
+      var base = [
+        '연락, 만남, 돈, 관계 정의를 말로 확인합니다.',
+        '감정이 크게 올라온 날에는 결론보다 회복 시간을 먼저 둡니다.'
+      ];
+      if (relationType === '영친') base.push('고마움과 애정 표현을 작은 습관으로 남깁니다.');
+      else if (relationType === '성위') base.push('공동 목표보다 감정의 안전감을 먼저 확인합니다.');
+      else if (relationType === '우쇠') base.push('서로 다른 표현 속도를 같은 자리에서 번역합니다.');
+      else base.push('오래된 느낌보다 현재 지켜지는 행동을 기준으로 삼습니다.');
+      return base;
+    }
+
+    function build(input) {
+      var userIdx = syWheelNormalizeIndex(input.userMansionIdx);
+      var partnerIdx = syWheelNormalizeIndex(input.partnerMansionIdx);
+      if (userIdx == null || partnerIdx == null) throw new Error('숙 계산값이 올바르지 않습니다.');
+      var D = (partnerIdx - userIdx + 27) % 27;
+      var distInfo = SukuyoCompatEngine.calcDistance(D);
+      SukuyoCompatEngine.resolve(D, distInfo, { myIdx: userIdx, partnerIdx: partnerIdx });
+      var relationType = SukuyoRadarEngine.relationFromD(D);
+      var distance = SukuyoRadarEngine.distanceKo(distInfo, relationType);
+      var direction = SukuyoRadarEngine.directionFromD(D);
+      var purpose = PURPOSE_LABELS[input.purpose] ? input.purpose : 'general';
+      var userMansion = String(input.userMansion || '').replace(/숙$/,'') + '숙';
+      var partnerMansion = String(input.partnerMansion || '').replace(/숙$/,'') + '숙';
+      var seed = [userMansion, partnerMansion, relationType, input.userBirthDate || '', input.partnerBirthDate || '', purpose].join('|');
+      var meta = RELATION_META[relationType] || RELATION_META['성위'];
+      var directionLine = directionReading(direction);
+      var scores = buildScores(relationType, distance, seed);
+      return {
+        userProfileId: input.userProfileId || '',
+        userName: input.userName || '나',
+        partnerName: input.partnerName || '상대',
+        'user宿': userMansion,
+        'partner宿': partnerMansion,
+        relationType: relationType,
+        distance: distance,
+        direction: direction,
+        purpose: purpose,
+        title: meta.title,
+        subtitle: meta.subtitle,
+        karmicTheme: meta.theme,
+        scores: scores,
+        summary: meta.summary + (directionLine ? ' ' + directionLine : ''),
+        firstImpression: meta.first,
+        pastLifeStory: meta.story,
+        unfinishedTask: meta.task,
+        repeatPattern: meta.repeat,
+        emotionalTrigger: meta.trigger,
+        currentLifeLesson: meta.lesson,
+        relationshipAdvice: meta.advice,
+        purposeReading: purposeReading(purpose, relationType),
+        warningSigns: warningSigns(purpose, relationType),
+        healingActions: healingActions(relationType),
+        oneLine: meta.oneLine,
+        disclaimer: '전생을 실제 사실로 단정하지 않습니다. 숙요점 관계 구조가 만드는 오래된 인연 같은 감정 패턴을 상담 언어로 비춘 것입니다.',
+        generatedAt: new Date().toISOString(),
+        logicVersion: LOGIC_VERSION,
+        seedSignature: SukuyoRadarEngine.hash(seed).toString(36)
+      };
+    }
+
+    function scoreCard(label, value) {
+      var safeValue = SukuyoRadarEngine.clamp(value);
+      return '<div class="sy-past-life-score"><span>' + syCanonicalEsc(label) + '</span><strong>' + safeValue + '</strong><i style="width:' + safeValue + '%"></i></div>';
+    }
+
+    function section(title, body) {
+      return '<article class="sy-past-life-section"><h6>' + syCanonicalEsc(title) + '</h6><p>' + syCanonicalEsc(body) + '</p></article>';
+    }
+
+    function listSection(title, items) {
+      return '<article class="sy-past-life-section"><h6>' + syCanonicalEsc(title) + '</h6><ul>' + (items || []).map(function(item) { return '<li>' + syCanonicalEsc(item) + '</li>'; }).join('') + '</ul></article>';
+    }
+
+    function render(result, unlocked) {
+      var s = result.scores || {};
+      var scoreHtml = [
+        scoreCard('전생감 지수', s.pastLifeFeeling),
+        scoreCard('끌림 지수', s.attraction),
+        scoreCard('미완의 숙제 지수', s.unfinishedTask),
+        scoreCard('반복 패턴 지수', s.repeatPattern),
+        scoreCard('감정 소모 지수', s.emotionalExhaustion),
+        scoreCard('치유 가능성', s.healingPotential),
+        scoreCard('현실 지속 가능성', s.realityPotential)
+      ].join('');
+      var body = [
+        section('핵심 판정', result.summary),
+        section('처음부터 낯설지 않았던 이유', result.firstImpression)
+      ];
+      if (unlocked) {
+        body = body.concat([
+          section('전생 서사로 본 이 관계', result.pastLifeStory),
+          section('이번 생에 반복되는 감정 패턴', result.repeatPattern),
+          section('이 관계의 미완의 숙제', result.unfinishedTask),
+          section('상대가 건드리는 감정 버튼', result.emotionalTrigger),
+          section('이번 생에서 풀어야 할 관계 과제', result.currentLifeLesson),
+          section('관계 목적별 리딩', result.purposeReading),
+          listSection('위험 신호', result.warningSigns),
+          listSection('치유 행동', result.healingActions)
+        ]);
+      } else {
+        body.push(section('잠긴 심화 리딩', '전생 서사 전체, 미완의 숙제, 반복 패턴, 감정 버튼, 목적별 리딩, 위험 신호와 치유 행동은 해금 후 열립니다.'));
+      }
+      return '<div class="sy-past-life-panel" data-relation="' + syCanonicalEsc(result.relationType) + '">'
+        + '<div class="sy-past-life-head">'
+        + '<div class="sy-past-life-badges"><span>내 숙 ' + syCanonicalEsc(result['user宿']) + '</span><span>상대 숙 ' + syCanonicalEsc(result['partner宿']) + '</span><span>' + syCanonicalEsc(result.relationType + ' · ' + result.distance) + '</span><span>' + syCanonicalEsc(result.direction) + '</span></div>'
+        + '<h5>' + syCanonicalEsc(result.userName) + '님과 ' + syCanonicalEsc(result.partnerName) + '님의 숙요 전생 인연 리딩</h5>'
+        + '<p>' + syCanonicalEsc(result.karmicTheme) + '</p>'
+        + '</div>'
+        + '<div class="sy-past-life-body">'
+        + '<div class="sy-past-life-score-grid">' + scoreHtml + '</div>'
+        + '<div class="sy-past-life-section-grid">' + body.join('') + '</div>'
+        + '<div class="sy-past-life-one-line">' + syCanonicalEsc(result.oneLine) + '</div>'
+        + '<div class="sy-past-life-disclaimer">' + syCanonicalEsc(result.disclaimer) + '</div>'
+        + '</div></div>';
+    }
+
+    return { build: build, render: render, logicVersion: LOGIC_VERSION };
+  })();
+
+  function syPastLifeGateEvidence(gateResult) {
+    var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
+    var payload = gate.payload && typeof gate.payload === 'object' ? gate.payload : gate;
+    var data = typeof syPromptPayloadData === 'function' ? syPromptPayloadData(payload) : (payload.data && typeof payload.data === 'object' ? payload.data : payload);
+    var consume = data.consume && typeof data.consume === 'object' ? data.consume : (payload.consume && typeof payload.consume === 'object' ? payload.consume : {});
+    var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : (payload.accessGrant && typeof payload.accessGrant === 'object' ? payload.accessGrant : {});
+    var requestId = String(gate.requestId || data.requestId || payload.requestId || accessGrant.requestId || consume.requestId || '').trim();
+    return {
+      requestId: requestId,
+      accessGrant: accessGrant,
+      consume: consume,
+      payment: data.payment && typeof data.payment === 'object' ? data.payment : (payload.payment && typeof payload.payment === 'object' ? payload.payment : undefined),
+      _paymentContext: {
+        requestId: requestId,
+        featureKey: String(data.featureKey || payload.featureKey || accessGrant.featureKey || consume.featureKey || SY_PAID_FEATURES.pastLifeReading.key).trim(),
+        transactionId: String(data.transactionId || payload.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
+        accessType: String(data.accessType || payload.accessType || accessGrant.accessType || consume.accessType || '').trim(),
+        accessMethod: String(data.accessMethod || payload.accessMethod || accessGrant.accessMethod || consume.accessMethod || consume.paymentMethod || '').trim(),
+        paymentMode: String(data.paymentMode || payload.paymentMode || accessGrant.paymentMode || consume.paymentMode || '').trim()
+      }
+    };
+  }
+
+  async function syRequestSukuyoPastLifeReading(input, gateResult) {
+    var body = Object.assign({}, input || {});
+    var profileId = syResolveCurrentProfileIdForPaidGate();
+    if (profileId) {
+      body.userProfileId = body.userProfileId || profileId;
+      body.profileId = body.profileId || profileId;
+      body.selectedProfileId = body.selectedProfileId || profileId;
+    }
+    body.featureKey = SY_PAID_FEATURES.pastLifeReading.key;
+    body.reportType = 'sukuyoPastLifeReading';
+    body.mode = 'past-life-reading';
+    if (gateResult) Object.assign(body, syPastLifeGateEvidence(gateResult));
+    var response = await syPromptRequestJson('/api/sukuyo/past-life-reading', {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+    var payload = response && response.payload ? response.payload : {};
+    if (response && response.ok && payload && payload.ok && payload.data) return payload.data;
+    var error = payload.error && typeof payload.error === 'object' ? payload.error : payload;
+    throw new Error(String(error.message || payload.message || '숙요 전생 인연 리딩을 열지 못했습니다.'));
+  }
+
+  function syBindSukuyoPastLife(myIdx, myMansionName) {
+    var form = document.querySelector('[data-sy-past-life-form]');
+    if (!form || form.__syPastLifeBound) return;
+    form.__syPastLifeBound = true;
+    var status = document.querySelector('[data-sy-past-life-status]');
+    var resultHost = document.querySelector('[data-sy-past-life-result]');
+    var statusPill = document.querySelector('[data-sy-past-life-status-pill]');
+    var submitBtn = form.querySelector('.sy-past-life-submit');
+    if (statusPill && syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.pastLifeReading.key)) {
+      statusPill.textContent = '해금 완료';
+      statusPill.classList.add('is-unlocked');
+    }
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      var run = async function() {
+        if (submitBtn) submitBtn.disabled = true;
+        if (status) status.textContent = '두 사람 사이에 남은 오래된 결을 맞추고 있습니다...';
+        try {
+          var hasSelf = form.getAttribute('data-has-self') === '1';
+          var userDate = syRadarReadField(form, '[data-sy-past-life-user-date]');
+          var userCalendar = syRadarReadField(form, '[data-sy-past-life-user-calendar]') || 'solar';
+          var userName = syRadarReadField(form, '[data-sy-past-life-user-name]') || '나';
+          var userGender = syRadarReadField(form, '[data-sy-past-life-user-gender]') || 'unknown';
+          var partnerName = syRadarReadField(form, '[data-sy-past-life-partner-name]') || '상대';
+          var partnerDate = syRadarReadField(form, '[data-sy-past-life-partner-date]');
+          var partnerCalendar = syRadarReadField(form, '[data-sy-past-life-partner-calendar]') || 'solar';
+          var partnerTime = syRadarReadField(form, '[data-sy-past-life-partner-time]') || '12:00';
+          var partnerGender = syRadarReadField(form, '[data-sy-past-life-partner-gender]') || 'unknown';
+          var purpose = syRadarReadField(form, '[data-sy-past-life-purpose]') || 'general';
+          if (!partnerDate) throw new Error('상대 생년월일을 입력해 주세요.');
+          var userIdx = syWheelNormalizeIndex(myIdx);
+          var userMansion = myMansionName || '';
+          if (!hasSelf || userIdx == null || !userMansion) {
+            if (!userDate) throw new Error('저장된 프로필이 없어 내 생년월일이 필요합니다.');
+            var userLunar = await syRadarResolveLunar(userDate, userCalendar, '12:00');
+            var userData = calcSukuyoData(userLunar);
+            if (!userData) throw new Error('내 숙요 계산에 실패했습니다.');
+            userIdx = userData.mansionIdx;
+            userMansion = SukuyoRadarEngine.mansionName(userData);
+          } else {
+            userMansion = String(userMansion || '').replace(/숙$/,'') + '숙';
+          }
+          var partnerLunar = await syRadarResolveLunar(partnerDate, partnerCalendar, partnerTime);
+          var partnerData = calcSukuyoData(partnerLunar);
+          if (!partnerData) throw new Error('상대 숙요 계산에 실패했습니다.');
+          var partnerIdx = partnerData.mansionIdx;
+          var partnerMansion = SukuyoRadarEngine.mansionName(partnerData);
+          var serverProfileId = syResolveCurrentProfileIdForPaidGate();
+          var inputPayload = {
+            userProfileId: serverProfileId,
+            userName: userName,
+            userBirthDate: userDate || '',
+            userCalendarType: userCalendar === 'lunar_leap' ? 'lunar' : userCalendar,
+            userGender: userGender,
+            partnerName: partnerName,
+            partnerBirthDate: partnerDate,
+            partnerCalendarType: partnerCalendar === 'lunar_leap' ? 'lunar' : partnerCalendar,
+            partnerGender: partnerGender,
+            partnerBirthTime: partnerTime,
+            partnerTime: partnerTime,
+            purpose: purpose,
+            userMansionIdx: userIdx,
+            partnerMansionIdx: partnerIdx,
+            userMansion: userMansion,
+            partnerMansion: partnerMansion
+          };
+          var result = SukuyoPastLifeEngine.build(inputPayload);
+          var reveal = function(unlocked) {
+            if (resultHost) resultHost.innerHTML = SukuyoPastLifeEngine.render(result, unlocked);
+            if (status) status.textContent = unlocked ? '숙요 전생 인연 리딩이 열렸습니다.' : '무료 미리보기가 열렸습니다. 전체 전생 서사는 해금 후 이어집니다.';
+            if (statusPill && unlocked) {
+              statusPill.textContent = '해금 완료';
+              statusPill.classList.add('is-unlocked');
+            }
+          };
+          if (syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.pastLifeReading.key)) {
+            try {
+              if (status) status.textContent = '저장된 전생 인연 리딩을 불러오고 있습니다...';
+              result = await syRequestSukuyoPastLifeReading(inputPayload, null);
+            } catch (_serverError) {}
+            reveal(true);
+          } else {
+            reveal(false);
+            syRequirePaidSukuyoFeature(SY_PAID_FEATURES.pastLifeReading, async function(gateResult) {
+              syMarkPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.pastLifeReading.key);
+              try {
+                if (status) status.textContent = '전생 인연 리딩을 저장하고 있습니다...';
+                result = await syRequestSukuyoPastLifeReading(inputPayload, gateResult);
+              } catch (serverError) {
+                if (status) status.textContent = (serverError && serverError.message) ? String(serverError.message) : '서버 저장은 잠시 지연되고 있습니다. 리딩은 이 자리에서 열립니다.';
+              }
+              reveal(true);
+            });
+          }
+        } catch (error) {
+          if (status) status.textContent = error && error.message ? String(error.message) : '전생 인연 리딩을 열지 못했습니다. 입력값을 다시 확인해 주세요.';
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      };
+      run();
+    });
+  }
+
+  var SukuyoEncyclopediaEngine = (function() {
+    var LOGIC_VERSION = 'sukyo-encyclopedia-v1';
+    var SCORE_RANGES = {
+      '명': { attraction:[60,78], stability:[58,75], exhaustion:[35,60], longevity:[55,75], growth:[40,65], businessFit:[50,70], loveFit:[55,75], marriageFit:[50,70] },
+      '업태': { attraction:[75,95], stability:[45,65], exhaustion:[55,78], longevity:[50,72], growth:[65,90], businessFit:[45,65], loveFit:[70,90], marriageFit:[45,68] },
+      '영친': { attraction:[60,80], stability:[75,95], exhaustion:[20,45], longevity:[75,95], growth:[45,70], businessFit:[60,80], loveFit:[70,88], marriageFit:[78,95] },
+      '우쇠': { attraction:[55,75], stability:[48,70], exhaustion:[45,70], longevity:[45,68], growth:[65,85], businessFit:[55,78], loveFit:[50,72], marriageFit:[45,68] },
+      '안괴': { attraction:[80,98], stability:[25,55], exhaustion:[70,95], longevity:[30,65], growth:[75,95], businessFit:[35,65], loveFit:[65,90], marriageFit:[25,55] },
+      '성위': { attraction:[60,85], stability:[45,70], exhaustion:[50,75], longevity:[50,75], growth:[70,92], businessFit:[70,92], loveFit:[55,78], marriageFit:[50,72] }
+    };
+    var RELATION_META = {
+      '명': {
+        title: '거울형 인연',
+        subtitle: '나와 닮은 결이 빠르게 맞닿는 관계',
+        keywords: ['거울', '동질감', '반복 패턴'],
+        summary: '이 숙은 당신에게 거울처럼 다가오는 인연입니다. 비슷한 감각으로 빠르게 가까워질 수 있지만, 서로의 약점도 비슷하게 반복될 수 있습니다. 오래 가려면 닮은 점에 기대기보다 반복되는 패턴을 함께 관리해야 합니다.',
+        love: '연애에서는 익숙함이 설렘을 빠르게 열어 줍니다. 다만 같은 불안이 동시에 올라오면 확인과 서운함이 반복될 수 있으니 감정의 이름을 천천히 나누는 편이 좋습니다.',
+        marriage: '결혼으로 이어질 때는 생활 취향이 닮아 안정될 수 있습니다. 돈, 가족, 휴식 방식처럼 반복되는 장면은 미리 합의해야 오래 부드럽습니다.',
+        friendship: '친구나 동료로 만나면 말하지 않아도 통하는 감각이 큽니다. 서로를 너무 동일시하지 않을 때 편안함이 오래 남습니다.',
+        business: '비즈니스에서는 판단 속도가 닮아 진행이 빠를 수 있습니다. 같은 blind spot이 생기지 않도록 역할 검토와 기록을 따로 두는 편이 좋습니다.',
+        caution: '상대의 단점이 곧 내 반응을 건드릴 수 있습니다. 지적보다 패턴 인식이 먼저입니다.',
+        strategy: '닮은 지점은 인정하고, 결정권과 회복 시간은 따로 남겨 두세요.'
+      },
+      '업태': {
+        title: '전생형 인연',
+        subtitle: '설명하기 어려운 익숙함과 여운이 남는 관계',
+        keywords: ['잔상', '미완', '의미감'],
+        summary: '이 숙은 설명하기 어려운 익숙함과 여운을 남기는 인연입니다. 처음부터 오래 알던 사람처럼 느껴질 수 있지만, 관계가 불분명하면 감정의 잔상이 길어질 수 있습니다. 의미에 빠지기보다 현실에서 약속과 태도가 이어지는지를 봐야 합니다.',
+        love: '연애에서는 마음의 깊이가 빠르게 커질 수 있습니다. 기다림만 길어지지 않도록 관계의 이름과 만남의 리듬을 현실에 세워야 합니다.',
+        marriage: '결혼에서는 의미감보다 책임 분담이 핵심입니다. 경제 기준과 가족 경계가 분명할수록 오래된 인연감이 안정으로 내려옵니다.',
+        friendship: '친구나 동료로 만나도 오래 기억에 남는 숙입니다. 부탁과 기대의 선을 정하면 여운이 부담으로 굳지 않습니다.',
+        business: '비즈니스에서는 비전의 공명이 강하지만 정산과 권한이 흐려질 수 있습니다. 숫자와 계약을 먼저 세우면 인연의 무게가 균형을 찾습니다.',
+        caution: '미련과 책임감이 뒤섞이면 정리가 늦어질 수 있습니다. 태도와 약속을 기준으로 삼으세요.',
+        strategy: '감정의 깊이를 확인하기보다 실제로 지켜지는 약속을 천천히 보세요.'
+      },
+      '영친': {
+        title: '안정형 인연',
+        subtitle: '편안함과 보호감이 생활 속에 자라는 관계',
+        keywords: ['안정', '보호', '생활 궁합'],
+        summary: '이 숙은 당신에게 편안함과 안정감을 주기 쉬운 인연입니다. 함께 있을수록 생활 리듬이 맞고, 감정적으로 기대기 쉬운 구조입니다. 다만 너무 익숙해지면 표현이 줄어들 수 있으니 고마움과 애정을 의식적으로 표현해야 합니다.',
+        love: '연애에서는 자극보다 신뢰가 먼저 자랍니다. 큰 이벤트보다 꾸준한 안부와 다정한 표현이 관계의 온도를 살립니다.',
+        marriage: '결혼 안정성이 강하게 떠오르는 숙입니다. 역할을 부드럽게 나누고 감사 표현을 남기면 생활의 힘이 오래 갑니다.',
+        friendship: '친구나 동료로 만나면 기대기 쉬운 안정감이 있습니다. 정서적 쉼터가 되되, 한쪽만 돌보는 구조로 굳지 않게 살피세요.',
+        business: '비즈니스에서는 신뢰와 운영 안정감이 장점입니다. 마감, 책임, 수익 기준을 정하면 오래 가는 협업으로 열립니다.',
+        caution: '너무 편안해 표현이 줄어들면 관계가 당연한 것으로 굳을 수 있습니다.',
+        strategy: '작은 감사, 정해진 연락, 생활 배려를 의식적으로 반복하세요.'
+      },
+      '우쇠': {
+        title: '배움형 인연',
+        subtitle: '속도와 온도 차이를 조율하는 관계',
+        keywords: ['온도차', '보완', '거리감'],
+        summary: '이 숙은 서로의 속도와 감정 온도가 다르게 느껴질 수 있는 인연입니다. 한쪽은 더 가까워지고 싶고, 다른 한쪽은 거리를 두고 싶어질 수 있습니다. 같은 방식의 애정을 요구하기보다 서로의 표현 차이를 이해하는 것이 중요합니다.',
+        love: '연애에서는 애정 표현의 방식이 다르게 나타날 수 있습니다. 늦은 반응을 애정 없음으로 단정하지 말고 원하는 표현을 구체적으로 나누세요.',
+        marriage: '결혼에서는 역할과 속도 조율이 중요합니다. 양보가 한쪽으로만 쌓이지 않도록 가사, 돈, 가족 경계를 명확히 두는 편이 좋습니다.',
+        friendship: '친구나 동료로 만나면 서로 다른 리듬이 배움이 됩니다. 자주 보지 않아도 신뢰가 남을 수 있습니다.',
+        business: '비즈니스에서는 서로의 부족한 영역을 보완합니다. 책임, 비용, 보상 기준이 선명해야 서운함이 줄어듭니다.',
+        caution: '한쪽이 맞춰준다는 느낌이 누적되면 늦게 서운함이 올라옵니다.',
+        strategy: '연락, 만남, 돈, 시간의 기준을 말로 합의하세요.'
+      },
+      '안괴': {
+        title: '강렬형 인연',
+        subtitle: '끌림과 흔들림이 함께 올라오는 관계',
+        keywords: ['강한 끌림', '경계', '감정 소모'],
+        summary: '이 숙은 강하게 끌리지만 서로의 약한 부분을 건드리기 쉬운 인연입니다. 끌림은 빠르게 올라가지만 안정감은 천천히 만들어야 합니다. 감정 확인을 반복하거나 상대를 시험하는 방식으로 가면 소모도가 커지므로, 경계와 약속을 분명히 해야 합니다.',
+        love: '연애에서는 설렘과 불안이 함께 커질 수 있습니다. 시험, 잠수, 통제로 마음을 확인하려는 흐름은 멈추고 약속과 경계를 먼저 세워야 합니다.',
+        marriage: '결혼에서는 감정 과열과 통제 욕구를 조심해야 합니다. 갈등이 커질 때는 둘만 버티기보다 상담 구조나 제3의 조율 장치를 두는 편이 안전합니다.',
+        friendship: '친구나 동료로 만나도 비교심과 자극이 강하게 떠오를 수 있습니다. 경쟁, 소유, 소문으로 흐르면 거리를 조절하세요.',
+        business: '비즈니스에서는 추진력과 충돌이 동시에 뜹니다. 권한, 돈, 책임을 문서로 남기고 위험 신호가 보이면 분리 가능한 구조를 두세요.',
+        caution: '통제, 불안, 자존심 싸움이 잦아지면 관계보다 안전이 먼저입니다. 위협이나 폭력이 있다면 거리 두기와 도움 요청이 필요합니다.',
+        strategy: '경계, 회복 시간, 연락 규칙, 돈의 기준을 처음부터 분명히 두세요.'
+      },
+      '성위': {
+        title: '성장형 인연',
+        subtitle: '목표와 역할이 서로를 밀어 올리는 관계',
+        keywords: ['성장', '목표', '동기부여'],
+        summary: '이 숙은 당신을 성장시키고 자극하는 인연입니다. 함께 있으면 목표 의식이 강해지고 현실적인 동기부여가 생길 수 있습니다. 다만 관계가 평가나 경쟁처럼 느껴지면 피로해질 수 있으니, 성과보다 감정의 안전감을 먼저 챙겨야 합니다.',
+        love: '연애에서는 서로의 목표를 응원할 때 빛납니다. 조언이 평가처럼 들리지 않도록 다정한 확인을 먼저 두세요.',
+        marriage: '결혼에서는 공동 목표가 큰 힘이 됩니다. 집, 일, 돈의 목표와 별개로 둘만의 휴식 시간을 남겨야 관계가 과제처럼 굳지 않습니다.',
+        friendship: '친구나 동료로 만나면 함께 배우고 커지는 힘이 있습니다. 조언과 피드백 사이에 칭찬과 여백을 함께 두세요.',
+        business: '비즈니스 적합도가 높게 흐르기 쉬운 숙입니다. 공동 목표, 최종 결정권, 실패 처리 규칙을 정하면 성과가 안정됩니다.',
+        caution: '목표가 감정보다 앞서면 관계가 평가처럼 느껴질 수 있습니다.',
+        strategy: '성과의 언어와 마음의 언어를 나누어 쓰세요.'
+      }
+    };
+    var FILTER_LABELS = [
+      ['all','전체'], ['stable','안정형'], ['attraction','끌림형'], ['caution','주의형'], ['growth','성장형'],
+      ['karmic','전생형'], ['love','연애'], ['marriage','결혼'], ['business','비즈니스'], ['friendship','친구']
+    ];
+    function clamp(value) {
+      return SukuyoRadarEngine.clamp(value);
+    }
+    function mansionDisplay(index) {
+      var mansion = syWheelMansion(index);
+      return mansion ? mansion.ko + '숙' : '미상';
+    }
+    function distanceLabel(distInfo, relationType) {
+      return SukuyoRadarEngine.distanceKo(distInfo, relationType);
+    }
+    function scoreFor(relationType, key, seed, distance) {
+      var ranges = SCORE_RANGES[relationType] || SCORE_RANGES['명'];
+      var range = ranges[key] || [45,70];
+      var base = Math.round((range[0] + range[1]) / 2);
+      var drift = (SukuyoRadarEngine.hash(seed + ':' + key) % 11) - 5;
+      if (drift > 0 && drift < 3) drift = 3;
+      if (drift < 0 && drift > -3) drift = -3;
+      var distanceDelta = 0;
+      if (distance === '근거리' && (key === 'attraction' || key === 'exhaustion')) distanceDelta = 4;
+      if (distance === '중거리' && (key === 'stability' || key === 'longevity')) distanceDelta = 3;
+      if (distance === '원거리' && key === 'growth') distanceDelta = 4;
+      var value = clamp(base + drift + distanceDelta);
+      if (relationType === '안괴') {
+        if (key === 'stability') value = Math.min(value, 55);
+        if (key === 'exhaustion') value = Math.max(value, 70);
+      }
+      if (relationType === '영친' && key === 'stability') value = Math.max(value, 75);
+      if (relationType === '성위' && key === 'growth') value = Math.max(value, 70);
+      if (relationType === '업태' && key === 'attraction') value = Math.max(value, 75);
+      return clamp(value);
+    }
+    function buildScores(relationType, distance, seed) {
+      return {
+        attraction: scoreFor(relationType, 'attraction', seed, distance),
+        stability: scoreFor(relationType, 'stability', seed, distance),
+        exhaustion: scoreFor(relationType, 'exhaustion', seed, distance),
+        longevity: scoreFor(relationType, 'longevity', seed, distance),
+        growth: scoreFor(relationType, 'growth', seed, distance),
+        businessFit: scoreFor(relationType, 'businessFit', seed, distance),
+        loveFit: scoreFor(relationType, 'loveFit', seed, distance),
+        marriageFit: scoreFor(relationType, 'marriageFit', seed, distance)
+      };
+    }
+    function categoriesFor(relationType, scores) {
+      var cats = [];
+      if (scores.stability >= 75 || relationType === '영친') cats.push('stable');
+      if (scores.attraction >= 80 || ((relationType === '안괴' || relationType === '업태') && scores.attraction >= 75)) cats.push('attraction');
+      if (scores.exhaustion >= 70 || relationType === '안괴') cats.push('caution');
+      if (scores.growth >= 75 || relationType === '성위' || relationType === '우쇠' || (relationType === '안괴' && scores.growth >= 75)) cats.push('growth');
+      if (relationType === '업태' || (relationType === '명' && scores.attraction >= 70)) cats.push('karmic');
+      if (scores.marriageFit >= 75 && scores.stability >= 70 && scores.longevity >= 70) cats.push('marriage');
+      if (scores.loveFit >= 75 && scores.attraction >= 65 && scores.stability >= 55) cats.push('love');
+      if (scores.stability >= 70 && scores.exhaustion <= 50) cats.push('friendship');
+      if (scores.businessFit >= 75 && (relationType === '성위' || relationType === '영친' || relationType === '우쇠')) cats.push('business');
+      if (scores.stability >= 75 && scores.exhaustion <= 40) cats.push('healing');
+      return cats;
+    }
+    function buildEntry(userIdx, targetIdx, userMansion) {
+      var D = (targetIdx - userIdx + 27) % 27;
+      var distInfo = SukuyoCompatEngine.calcDistance(D);
+      var relationType = SukuyoRadarEngine.relationFromD(D);
+      var distance = distanceLabel(distInfo, relationType);
+      var direction = SukuyoRadarEngine.directionFromD(D);
+      var targetMansion = mansionDisplay(targetIdx);
+      var seed = [userMansion, targetMansion, relationType, D].join('|');
+      var scores = buildScores(relationType, distance, seed);
+      var meta = RELATION_META[relationType] || RELATION_META['명'];
+      var categories = categoriesFor(relationType, scores);
+      return {
+        'target宿': targetMansion,
+        relationType: relationType,
+        distance: distance,
+        direction: direction,
+        categories: categories,
+        title: targetMansion + ' · ' + meta.title,
+        subtitle: meta.subtitle,
+        keywords: meta.keywords.slice(0, 3),
+        scores: scores,
+        summary: targetMansion + '을 가진 사람들은 대체로 ' + meta.summary,
+        loveReading: meta.love,
+        marriageReading: meta.marriage,
+        friendshipReading: meta.friendship,
+        businessReading: meta.business,
+        caution: meta.caution,
+        strategy: meta.strategy,
+        oneLine: targetMansion + ' 인연은 ' + meta.title + '으로 들어오니, ' + meta.strategy,
+        _sortSeed: SukuyoRadarEngine.hash(seed)
+      };
+    }
+    function sortByScore(entries, key, limit, filterFn) {
+      return entries.filter(function(entry) {
+        return typeof filterFn === 'function' ? filterFn(entry) : true;
+      }).slice().sort(function(a, b) {
+        var diff = (b.scores[key] || 0) - (a.scores[key] || 0);
+        if (diff) return diff;
+        var ex = (a.scores.exhaustion || 0) - (b.scores.exhaustion || 0);
+        if (ex) return ex;
+        return (a._sortSeed || 0) - (b._sortSeed || 0);
+      }).slice(0, limit || 3);
+    }
+    function buildHighlights(entries) {
+      return {
+        mostStable: sortByScore(entries, 'stability', 3),
+        strongestAttraction: sortByScore(entries, 'attraction', 3),
+        cautionRelations: sortByScore(entries, 'exhaustion', 3, function(entry) { return entry.categories.indexOf('caution') >= 0; }),
+        growthRelations: sortByScore(entries, 'growth', 3),
+        karmicRelations: sortByScore(entries, 'attraction', 3, function(entry) { return entry.categories.indexOf('karmic') >= 0; }),
+        businessPartners: sortByScore(entries, 'businessFit', 3),
+        marriageCandidates: sortByScore(entries, 'marriageFit', 3)
+      };
+    }
+    function build(input) {
+      var userIdx = syWheelNormalizeIndex(input && input.userMansionIdx);
+      if (userIdx == null) throw new Error('본명숙 기준값이 필요합니다.');
+      var userName = String(input.userName || '당신').trim() || '당신';
+      var userMansion = String(input.userMansion || mansionDisplay(userIdx)).replace(/숙$/,'') + '숙';
+      var entries = SUKYO_MANSIONS_27.map(function(_mansion, targetIdx) {
+        return buildEntry(userIdx, targetIdx, userMansion);
+      });
+      var distribution = { '명':0, '업태':0, '영친':0, '우쇠':0, '안괴':0, '성위':0 };
+      entries.forEach(function(entry) { distribution[entry.relationType] = (distribution[entry.relationType] || 0) + 1; });
+      var highlights = buildHighlights(entries);
+      var stableCount = entries.filter(function(entry) { return entry.categories.indexOf('stable') >= 0; }).length;
+      var growthCount = entries.filter(function(entry) { return entry.categories.indexOf('growth') >= 0; }).length;
+      var cautionCount = entries.filter(function(entry) { return entry.categories.indexOf('caution') >= 0; }).length;
+      return {
+        userProfileId: input.userProfileId || '',
+        userName: userName,
+        'user宿': userMansion,
+        generatedAt: new Date().toISOString(),
+        logicVersion: LOGIC_VERSION,
+        entries: entries,
+        highlights: highlights,
+        distribution: distribution,
+        summary: stableCount >= growthCount
+          ? '당신의 인연 지도에는 편안함을 오래 키우는 숙들이 선명하게 머무릅니다. 안정적인 사람들과 리듬을 맞출수록 관계 운이 부드럽게 열립니다.'
+          : '당신의 인연 지도에는 성장을 깨우는 숙들이 강하게 떠오릅니다. 편안함만 찾기보다 함께 커지는 관계에서 깊은 반응이 살아납니다.',
+        userPattern: '27숙 전체를 펼치면 안정형 ' + stableCount + '개, 성장형 ' + growthCount + '개, 경계 조율형 ' + cautionCount + '개가 드러납니다.',
+        recommendedUse: '이 도감은 특정 사람을 단정하는 판결이 아니라, 그 숙을 가진 사람들과 만날 때 반복되기 쉬운 관계 결을 비추는 달빛 지도입니다.'
+      };
+    }
+    function listNames(entries) {
+      return entries.map(function(entry) { return entry['target宿']; }).join(', ');
+    }
+    function scoreMini(entry) {
+      var s = entry.scores;
+      return '<div class="sy-dogam-score-mini"><span>끌림 ' + s.attraction + '</span><span>안정 ' + s.stability + '</span><span>소모 ' + s.exhaustion + '</span></div>';
+    }
+    function entryHtml(entry, locked) {
+      var cats = entry.categories.join(' ');
+      var tagHtml = entry.keywords.map(function(keyword) { return '<span>' + syCanonicalEsc(keyword) + '</span>'; }).join('');
+      var detail = locked
+        ? '<div class="sy-dogam-detail">'
+          + '<p><b>핵심 판정</b><br>' + syCanonicalEsc(entry.summary) + '</p>'
+          + '<p><b>연애로 만났을 때</b><br>' + syCanonicalEsc(entry.loveReading) + '</p>'
+          + '<p><b>결혼으로 이어질 때</b><br>' + syCanonicalEsc(entry.marriageReading) + '</p>'
+          + '<p><b>친구/동료로 만났을 때</b><br>' + syCanonicalEsc(entry.friendshipReading) + '</p>'
+          + '<p><b>비즈니스로 엮일 때</b><br>' + syCanonicalEsc(entry.businessReading) + '</p>'
+          + '<p><b>조심해야 할 패턴</b><br>' + syCanonicalEsc(entry.caution) + '</p>'
+          + '<p><b>오래 가기 위한 전략</b><br>' + syCanonicalEsc(entry.strategy) + '</p>'
+          + '<p><b>한 문장</b><br>' + syCanonicalEsc(entry.oneLine) + '</p>'
+        + '</div>'
+        : '<div class="sy-dogam-detail"><p>전체 도감 해금 후 연애, 결혼, 친구, 비즈니스, 경계 전략이 모두 열립니다.</p></div>';
+      return '<article class="sy-dogam-entry" data-relation="' + syCanonicalEsc(entry.relationType) + '" data-categories="' + syCanonicalEsc(cats) + '">'
+        + '<h6>' + syCanonicalEsc(entry.title) + '</h6>'
+        + '<p>' + syCanonicalEsc(entry.relationType + (entry.distance !== '해당없음' ? ' ' + entry.distance : '') + ' · ' + entry.direction) + '</p>'
+        + '<div class="sy-dogam-tags">' + tagHtml + '</div>'
+        + scoreMini(entry)
+        + '<details><summary>자세히 보기</summary>' + detail + '</details>'
+      + '</article>';
+    }
+    function highlightHtml(title, entries) {
+      return '<article class="sy-dogam-highlight"><p><b>' + syCanonicalEsc(title) + '</b><br>' + syCanonicalEsc(listNames(entries) || '해당 숙 없음') + '</p></article>';
+    }
+    function render(result, unlocked) {
+      var entries = unlocked ? result.entries : result.entries.slice(0, 5);
+      var distribution = ['명','업태','영친','우쇠','안괴','성위'].map(function(type) {
+        return '<span class="sy-dogam-dist">' + syCanonicalEsc(type) + ' ' + (result.distribution[type] || 0) + '</span>';
+      }).join('');
+      var filters = FILTER_LABELS.map(function(item) {
+        return '<button type="button" class="sy-dogam-filter' + (item[0] === 'all' ? ' is-active' : '') + '" data-sy-dogam-filter="' + item[0] + '">' + syCanonicalEsc(item[1]) + '</button>';
+      }).join('');
+      return '<div class="sy-dogam-hero">'
+        + '<h5>' + syCanonicalEsc(result.userName) + '님의 숙요 인연 도감</h5>'
+        + '<div class="sy-dogam-meta"><span class="sy-dogam-pill">내 숙 ' + syCanonicalEsc(result['user宿']) + '</span><span class="sy-dogam-pill">도감 완성도 ' + (unlocked ? '27/27' : '5/27') + '</span><span class="sy-dogam-pill">' + syCanonicalEsc(result.logicVersion) + '</span></div>'
+        + '<p>' + syCanonicalEsc(result.summary) + '</p><p>' + syCanonicalEsc(result.userPattern) + '</p><p>' + syCanonicalEsc(result.recommendedUse) + '</p>'
+      + '</div>'
+      + '<div class="sy-dogam-distribution">' + distribution + '</div>'
+      + '<div class="sy-dogam-highlights">'
+        + highlightHtml('가장 편안한 숙 TOP 3', result.highlights.mostStable)
+        + highlightHtml('강하게 끌리는 숙 TOP 3', result.highlights.strongestAttraction)
+        + highlightHtml('조심해야 할 숙 TOP 3', result.highlights.cautionRelations)
+        + highlightHtml('나를 성장시키는 숙 TOP 3', result.highlights.growthRelations)
+        + highlightHtml('전생처럼 남는 숙', result.highlights.karmicRelations)
+        + highlightHtml('비즈니스에 좋은 숙 TOP 3', result.highlights.businessPartners)
+        + highlightHtml('결혼 안정성이 높은 숙 TOP 3', result.highlights.marriageCandidates)
+      + '</div>'
+      + '<div class="sy-dogam-filters" role="tablist">' + filters + '</div>'
+      + '<div class="sy-dogam-grid">' + entries.map(function(entry) { return entryHtml(entry, unlocked); }).join('') + '</div>';
+    }
+    return { build: build, render: render };
+  })();
+
+  function syBindSukuyoEncyclopediaFilters(host) {
+    if (!host || host.__syDogamFilterBound) return;
+    host.__syDogamFilterBound = true;
+    var buttons = host.querySelectorAll('[data-sy-dogam-filter]');
+    var cards = host.querySelectorAll('.sy-dogam-entry');
+    buttons.forEach(function(button) {
+      button.addEventListener('click', function() {
+        var key = button.getAttribute('data-sy-dogam-filter') || 'all';
+        buttons.forEach(function(item) { item.classList.remove('is-active'); });
+        button.classList.add('is-active');
+        cards.forEach(function(card) {
+          var cats = String(card.getAttribute('data-categories') || '');
+          card.style.display = (key === 'all' || cats.indexOf(key) >= 0) ? '' : 'none';
+        });
+      });
+    });
+  }
+
+  function syBindSukuyoEncyclopedia(myIdx, myMansionName) {
+    var button = document.querySelector('[data-sy-dogam-open]');
+    if (!button || button.__syDogamBound) return;
+    button.__syDogamBound = true;
+    var status = document.querySelector('[data-sy-dogam-status]');
+    var resultHost = document.querySelector('[data-sy-dogam-result]');
+    var statusPill = document.querySelector('[data-sy-dogam-status-pill]');
+    if (statusPill && syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipEncyclopedia.key)) {
+      statusPill.textContent = '해금 완료';
+      statusPill.classList.add('is-unlocked');
+    }
+    function buildResult() {
+      var userIdx = syWheelNormalizeIndex(myIdx != null ? myIdx : button.getAttribute('data-my-idx'));
+      var userMansion = myMansionName || button.getAttribute('data-my-mansion') || '';
+      if (!userMansion && userIdx != null) {
+        var fallbackMansion = syWheelMansion(userIdx);
+        userMansion = fallbackMansion ? fallbackMansion.ko + '숙' : '';
+      }
+      return SukuyoEncyclopediaEngine.build({
+        userName: button.getAttribute('data-user-name') || '당신',
+        userMansionIdx: userIdx,
+        userMansion: String(userMansion || '').replace(/숙$/,'') + '숙'
       });
     }
-
-    var normQuery = (query || '').trim();
-    var filterKey = [cat || '', window._szActiveCountry || '', normQuery.toLowerCase()].join('|');
-    if (window._szFilterKey !== filterKey) {
-      window._szFilterKey = filterKey;
-      window._szVisibleCount = 40;
+    function renderResult(unlocked) {
+      var result = buildResult();
+      if (resultHost) {
+        resultHost.innerHTML = SukuyoEncyclopediaEngine.render(result, unlocked);
+        syBindSukuyoEncyclopediaFilters(resultHost);
+      }
+      if (status) status.textContent = unlocked ? '숙요 인연 도감이 열렸습니다.' : '무료 미리보기 5개가 열렸습니다. 전체 27숙 도감은 해금 후 펼쳐집니다.';
+      if (statusPill && unlocked) {
+        statusPill.textContent = '해금 완료';
+        statusPill.classList.add('is-unlocked');
+      }
     }
-
-    var list = CelebrityService.filter(normQuery, cat, window._szActiveCountry || '');
-    var visibleCount = Math.max(20, Number(window._szVisibleCount) || 40);
-    btnsDiv.innerHTML = '';
-    if (moreWrap) moreWrap.innerHTML = '';
-
-    if (list.length === 0) {
-      btnsDiv.innerHTML = '<span style="color:#666;font-size:0.82rem;padding:6px;">검색 결과가 없습니다.</span>';
-      return;
-    }
-
-    // DocumentFragment로 일괄 삽입 — 개별 appendChild 다중 호출 대신 단 1회 DOM 변경
-    var frag = document.createDocumentFragment();
-    list.slice(0, visibleCount).forEach(function(c) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      var _flag = (typeof COUNTRY_CONFIG !== 'undefined' && COUNTRY_CONFIG[c.nationality]) ? COUNTRY_CONFIG[c.nationality].flag + ' ' : '';
-      btn.textContent = _flag + c.name;
-      btn.style.cssText = 'padding:4px 10px;border-radius:20px;font-size:0.75rem;border:1px solid rgba(162,155,254,0.3);background:rgba(20,25,35,0.8);color:#c9d1e8;cursor:pointer;transition:all 0.2s;white-space:nowrap;touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:36px;';
-      btn.onmouseenter = function() { this.style.background = 'rgba(162,155,254,0.2)'; this.style.color = '#e0d0ff'; };
-      btn.onmouseleave = function() { this.style.background = 'rgba(20,25,35,0.8)'; this.style.color = '#c9d1e8'; };
-      btn.onclick = function() {
-        window._szPickCeleb(myIdx, c);
-        btnsDiv.querySelectorAll('button').forEach(function(b) { b.style.background = 'rgba(20,25,35,0.8)'; b.style.color = '#c9d1e8'; });
-        this.style.background = 'rgba(162,155,254,0.25)';
-        this.style.color = '#fff';
-      };
-      frag.appendChild(btn);
+    button.addEventListener('click', function() {
+      try {
+        renderResult(false);
+      } catch (error) {
+        if (status) status.textContent = error && error.message ? String(error.message) : '도감을 열 기준값이 부족합니다.';
+        return;
+      }
+      if (syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipEncyclopedia.key)) {
+        renderResult(true);
+        return;
+      }
+      syRequirePaidSukuyoFeature(SY_PAID_FEATURES.relationshipEncyclopedia, function() {
+        syMarkPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipEncyclopedia.key);
+        renderResult(true);
+      });
     });
-    btnsDiv.appendChild(frag); // 단 1회 DOM 삽입
+  }
 
-    if (list.length > visibleCount && moreWrap) {
-      var moreBtn = document.createElement('button');
-      moreBtn.type = 'button';
-      moreBtn.className = 'sy-load-more-btn';
-      moreBtn.textContent = '더보기 (' + (list.length - visibleCount) + '명 남음)';
-      moreBtn.onclick = function() {
-        window._szVisibleCount = visibleCount + 40;
-        var activeCat = (document.querySelector('#szCelebCats .sy-ctab.active') || { dataset: {} }).dataset.cat || '';
-        var qValue = (document.getElementById('szCelebQ') || {}).value || '';
-        window._szCelebFilter(myIdx, activeCat, qValue, null);
-      };
-      moreWrap.appendChild(moreBtn);
-    } else if (list.length > visibleCount) {
-      var note = document.createElement('div');
-      note.style.cssText = 'color:#666;font-size:0.75rem;padding:6px 4px;';
-      note.textContent = '... 외 ' + (list.length - visibleCount) + '명';
-      btnsDiv.appendChild(note);
-    }
-  };
-
-  // ── 유명인 선택 → 숙요 궁합 계산 및 배지 표시 ──────────────────
-  window._szPickCeleb = function(myIdx, celeb) {
-    if (syRequirePaidSukuyoFeature(SY_PAID_FEATURES.symbolicComparison, function() {
-      window._szPickCelebCore(myIdx, celeb);
-    })) {
-      return;
-    }
-  };
-  window._szPickCelebCore = function(myIdx, celeb) {
-    var badge = document.getElementById('szCelebBadge');
-    if (!badge) return;
-
-    var tIdx = CelebrityService._celebToMansion(celeb.birth, celeb.hour !== undefined ? celeb.hour : 12);
-    if (tIdx === null || tIdx === undefined) {
-      badge.style.display = 'block';
-      badge.innerHTML = '<span style="color:#ff7675;">⚠️ ' + celeb.name + '의 숙요 계산에 실패했습니다.</span>';
-      return;
-    }
-
-    var D = (tIdx - myIdx + 27) % 27;
-    var distInfo = SukuyoCompatEngine.calcDistance(D);
-    var rel = SukuyoCompatEngine.resolve(D, distInfo, { myIdx: myIdx, partnerIdx: tIdx });
-    var relationStory = null;
-    try {
-      relationStory = buildSukuyoRelationStory(rel, distInfo);
-    } catch (_) {
-      relationStory = null;
-    }
-    var relationOneLine = relationStory && relationStory.lead
-      ? String(relationStory.lead).split('.')[0] + '.'
-      : ((rel.advantages && rel.advantages[0] && rel.advantages[0].text) ? rel.advantages[0].text : '서로의 리듬을 맞추면 인연의 결이 더 또렷해집니다.');
-    var tempInfo = SukuyoCompatEngine.tempLabel(rel.temperature);
-    var scoreColor = rel.score >= 80 ? '#2ed573' : (rel.score >= 55 ? '#f39c12' : '#ff4757');
-    var compatibilityIndex = Number(rel.compatibilityIndex || rel.score || 0);
-    var distanceMetrics = rel.distanceMetrics || { forwardDistance: D, reverseDistance: (27 - D) % 27, shortestDistance: distInfo.raw || 0, resonanceCode: '', tensionBand: '' };
-    var roleGuide = rel.roleActionGuide || {};
-    var elementHarmony = rel.elementHarmony || {};
-    var strengthShadowMap = rel.strengthShadowMap || {};
-
-    window._syLastCompat = {
-      myIdx: syWheelNormalizeIndex(myIdx),
-      partnerIdx: syWheelNormalizeIndex(tIdx),
-      partnerMansion: '',
-      relationType: rel.typeLabel || rel.type || '',
-      distanceLabel: distInfo.label || '',
-      temperature: rel.temperature || 0,
-      score: rel.score || 0,
-      magnetism: rel.magnetism || 0,
-      stamp: rel.stamp || '',
-      compatibilityIndex: compatibilityIndex,
-      distanceMetrics: distanceMetrics,
-      roleActionGuide: roleGuide,
-      elementHarmony: elementHarmony,
-      strengthShadowMap: strengthShadowMap,
-      relationVariant: rel.relationVariant || ''
-    };
-    try {
-      var _wheelState = window._syWheelState;
-      var _wheelHost = document.getElementById('syWheelCardHost');
-      if (_wheelState && _wheelHost && typeof syRenderWheelCard === 'function') {
-        _wheelHost.outerHTML = syRenderWheelCard(_wheelState, window._syLastCompat);
-      }
-    } catch (_we) {}
-
-    // 유명인 birth → 숙요 이름 조회
-    var tLunar = null;
-    try {
-      var p2 = celeb.birth.split('-');
-      var tSolar = new Date(parseInt(p2[0],10), parseInt(p2[1],10)-1, parseInt(p2[2],10), celeb.hour||12, 0, 0);
-      tLunar = KasiEngine.solarToLunar(tSolar, true);
-    } catch(e) {}
-    var tMansionName = tLunar ? (calcSukuyoData(tLunar) || {}).mansion || '' : '';
-    if (window._syLastCompat) {
-      window._syLastCompat.partnerMansion = tMansionName || '';
-    }
-
-    badge.style.display = 'block';
-    badge.innerHTML = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:8px;">'
-      + '<strong style="color:#e0d0ff;font-size:0.95rem;">✦ ' + celeb.name + '</strong>'
-      + '<span style="background:rgba(162,155,254,0.15);border:1px solid rgba(162,155,254,0.3);padding:2px 9px;border-radius:20px;font-size:0.75rem;">숙요: ' + (tMansionName || '—') + '</span>'
-      + '<span style="background:rgba(162,155,254,0.15);border:1px solid rgba(162,155,254,0.3);padding:2px 9px;border-radius:20px;font-size:0.75rem;">거리: ' + distInfo.label + '</span>'
-      + '</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;">'
-        + '<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px 4px;"><div style="font-size:0.65rem;color:#888;margin-bottom:2px;">카르마 구간</div><div style="font-size:0.92rem;line-height:1.25;font-weight:900;color:' + scoreColor + ';">' + syReferenceBand(rel.score) + '</div></div>'
-        + '<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px 4px;"><div style="font-size:0.65rem;color:#888;margin-bottom:2px;">온도 구간</div><div style="font-size:0.92rem;line-height:1.25;font-weight:900;color:' + tempInfo.color + ';">' + syReferenceBand(rel.temperature) + '</div></div>'
-        + '<div style="text-align:center;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px 4px;"><div style="font-size:0.65rem;color:#888;margin-bottom:2px;">관계 유형</div><div style="font-size:0.72rem;font-weight:700;color:#a29bfe;line-height:1.3;margin-top:2px;">' + rel.icon + ' ' + (rel.typeLabel || rel.type).slice(0, 12) + '</div></div>'
-      + '</div>'
-      + '<div style="background:rgba(13,16,26,0.55);border:1px solid rgba(162,155,254,0.22);border-radius:8px;padding:9px 10px;margin-bottom:8px;line-height:1.65;color:#dbeafe;font-size:0.78rem;">'
-        + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">'
-          + '<span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.32);padding:2px 8px;border-radius:14px;">관계 구간 ' + syReferenceBand(compatibilityIndex) + '</span>'
-          + '<span style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.32);padding:2px 8px;border-radius:14px;">거리 A→B ' + distanceMetrics.forwardDistance + ' / B→A ' + distanceMetrics.reverseDistance + '</span>'
-        + '</div>'
-        + '<div>🧭 역할 가이드: ' + (roleGuide.meAction || '역할 기반 조율이 필요합니다.') + '</div>'
-        + '<div>🧪 오행 합: ' + (elementHarmony.summary || '오행 균형 데이터를 계산 중입니다.') + '</div>'
-        + '<div>🧩 강점-그림자: ' + (strengthShadowMap.complementSummary || '서로의 장단점 보완 포인트를 확인해 보세요.') + '</div>'
-      + '</div>'
-      + '<div style="font-size:0.82rem;color:#dfe6e9;line-height:1.7;background:rgba(0,0,0,0.15);padding:10px 12px;border-radius:8px;word-break:keep-all;">'
-        + '<strong style="color:#a29bfe;">📜 ' + rel.stamp + '</strong><br>'
-        + '<strong style="color:#f5d0fe;">관계 한 줄:</strong> ' + relationOneLine + '<br>'
-        + (rel.relationVariant ? ('<strong style="color:#93c5fd;">계산 시그니처:</strong> ' + rel.relationVariant + '<br>') : '')
-        + (rel.advantages && rel.advantages[0] ? rel.advantages[0].icon + ' ' + rel.advantages[0].text : '')
-      + '</div>';
-  };
-
-  // ── 동일 숙요 유명인 채우기 ──────────────────────────────────────
-  window._szFillSameMansion = function(mansionIdx) {
-    var div = document.getElementById('szSameMansion');
-    if (!div) return;
-
-    var list = CelebrityService.getSameMansion(mansionIdx);
-    if (list.length === 0) {
-      div.innerHTML = '<p style="color:#cbd5e1;font-size:0.85rem;word-break:keep-all;margin:0;">같은 숙으로 분류된 공개 인물 예시가 아직 없습니다. 본명숙 해석은 위의 기본 결과를 기준으로 확인하세요.</p>';
-      return;
-    }
-
-    var ICONS = ['◇','◆','◈','△','✦','✧','☾','☽','✶','✷','✹','✺'];
-    var sameMansionProfileBank = {
-      actor: {
-        vibe: ['감정의 결을 오래 머금는 달빛', '시선이 닿는 순간 장면을 바꾸는 별', '고요한 표정 뒤에 깊은 파문이 흐르는 기운', '작은 움직임에도 서사가 피어나는 별자리'],
-        talent: ['표정과 침묵 사이의 온도를 붙잡는 힘', '몰입의 깊이로 주변 공기를 바꾸는 재능', '감정의 농도를 장면마다 다르게 조율하는 감각', '한순간의 눈빛을 오래 남기는 집중력']
-      },
-      singer: {
-        vibe: ['목소리로 달의 결을 흔드는 파동', '무대 밖에서도 리듬이 은근히 흐르는 별빛', '감정이 선율을 타고 먼저 번지는 기운', '혼자 서 있을 때 색이 더 짙어지는 달빛'],
-        talent: ['호흡을 감정의 문으로 여는 힘', '리듬과 가사를 자기 온도로 바꾸는 재능', '짧은 소절에도 분위기를 머물게 하는 감각', '대중의 마음을 선율 안으로 부드럽게 모으는 힘']
-      },
-      idol: {
-        vibe: ['화려함 뒤에 섬세한 심지가 흐르는 별무리', '팀의 리듬 안에서 자기 색이 선명해지는 달빛', '빛을 받을수록 표정의 온도가 빠르게 살아나는 기운', '무대 위 반짝임과 사적인 고요가 함께 머무는 별'],
-        talent: ['표정, 동선, 호흡을 한 번에 맞추는 감각', '기대의 파도를 자기 언어로 바꾸는 재능', '순간의 반응을 무대 장악력으로 끌어올리는 힘', '반복 훈련을 가볍게 빛나게 만드는 집중력']
-      },
-      sports: {
-        vibe: ['승부의 문 앞에서 더 또렷해지는 별', '몸의 리듬이 결단으로 이어지는 달빛', '압박이 커질수록 중심이 단단해지는 기운', '반복 속에서 빛을 벼리는 직선의 별'],
-        talent: ['순간 판단과 체력을 하나로 묶는 힘', '긴장감을 집중으로 바꾸는 재능', '몸에 새긴 루틴으로 흐름을 잡는 감각', '끝까지 밀고 가는 실행의 심지']
-      },
-      entrepreneur: {
-        vibe: ['현실의 문을 빠르게 여는 결단의 별', '혼돈 속에서 구조가 먼저 떠오르는 달빛', '사람과 기회를 한 방향으로 모으는 기운', '판을 읽고 타이밍을 잡는 예리한 별'],
-        talent: ['문제를 기회로 바꾸는 판단력', '흩어진 흐름을 구조로 세우는 재능', '사람의 마음과 숫자의 흐름을 함께 보는 감각', '위험과 속도 사이의 균형을 잡는 힘']
-      },
-      scholar: {
-        vibe: ['고요한 곳에서 더 깊어지는 지성의 달', '확신보다 관찰이 먼저 흐르는 별빛', '숨은 질서를 오래 바라보는 기운', '조용한 질문으로 문을 여는 달빛'],
-        talent: ['복잡한 흐름을 차분히 가르는 힘', '검증과 직관을 함께 세우는 재능', '작은 단서에서 큰 구조를 길어 올리는 감각', '오래 붙드는 집중으로 진실에 닿는 힘']
-      },
-      creator: {
-        vibe: ['익숙한 것을 낯선 빛으로 돌려놓는 상상력', '감각의 조각을 새로운 형태로 엮는 별', '보이지 않던 결을 색과 말로 피워내는 기운', '작은 영감이 빠르게 세계가 되는 달빛'],
-        talent: ['기획과 표현을 한 호흡으로 잇는 힘', '흩어진 이미지를 자기 색으로 편집하는 재능', '새로운 시각을 현실의 장면으로 내리는 감각', '분위기와 디테일을 동시에 붙잡는 힘']
-      },
-      default: {
-        vibe: ['겉으로는 잔잔해도 안쪽 별빛이 또렷한 기운', '낯선 자리에서 자기 리듬을 천천히 여는 달빛', '부드러운 인상 아래 단단한 기준이 머무는 별', '관계의 온도를 세밀하게 감지하는 기운'],
-        talent: ['흐름을 살피고 필요한 순간에 중심을 잡는 힘', '사람과 상황의 결을 빠르게 느끼는 재능', '꾸준한 호흡으로 가능성을 현실에 붙이는 감각', '말보다 태도로 신뢰를 쌓는 힘']
-      }
-    };
-    var sameMansionCharmPalette = [
-      '처음엔 부드럽지만 가까워질수록 선명한 온도가 살아납니다',
-      '말보다 분위기가 먼저 다가와 오래 잔상을 남깁니다',
-      '가벼운 듯 보여도 결정적인 순간에는 존재감이 크게 떠오릅니다',
-      '친근함 속에 쉽게 흉내 낼 수 없는 자기 색이 흐릅니다',
-      '조용히 머물다가 한순간에 시선을 묶는 힘이 있습니다',
-      '밝은 표면 아래 섬세한 감정선이 은근히 빛납니다'
-    ];
-    var sameMansionShadowPalette = [
-      '호응이 커질수록 자기 속도를 잃지 않게 경계를 세워야 합니다',
-      '기대에 맞추다 보면 마음의 피로가 늦게 올라올 수 있습니다',
-      '강한 인상이 먼저 닿을 때 속마음의 여백을 지켜야 합니다',
-      '빛나는 순간이 많을수록 혼자 숨을 고르는 시간이 필요합니다',
-      '관계의 반응을 너무 빨리 읽으면 자기 선택이 흐려질 수 있습니다',
-      '좋은 흐름이 열려도 완급을 잃지 않는 절제가 필요합니다'
-    ];
-
-    function sySameMansionHash(value) {
-      var text = String(value || '');
-      var hash = 0;
-      for (var n = 0; n < text.length; n += 1) {
-        hash = ((hash << 5) - hash + text.charCodeAt(n)) | 0;
-      }
-      return Math.abs(hash);
-    }
-
-    function sySameMansionPick(list, seed) {
-      var source = Array.isArray(list) && list.length ? list : sameMansionProfileBank.default.vibe;
-      return source[Math.abs(seed) % source.length];
-    }
-
-    function sySameMansionCategoryKey(cat) {
-      var raw = String(cat || '').toLowerCase();
-      if (/걸그룹|보이그룹|아이돌|idol|k-pop|kpop/.test(raw)) return 'idol';
-      if (/가수|솔로|singer|뮤지션|music/.test(raw)) return 'singer';
-      if (/배우|actor|actress/.test(raw)) return 'actor';
-      if (/운동|선수|sports|athlete/.test(raw)) return 'sports';
-      if (/기업|창업|entrepreneur|founder|ceo/.test(raw)) return 'entrepreneur';
-      if (/학자|연구|scholar|researcher/.test(raw)) return 'scholar';
-      if (/작가|감독|크리에이터|creator|artist|director/.test(raw)) return 'creator';
-      return 'default';
-    }
-
-    function syBuildSameMansionProfile(c, i, mansionIdx) {
-      var categoryKey = sySameMansionCategoryKey(c && c.cat);
-      var bank = sameMansionProfileBank[categoryKey] || sameMansionProfileBank.default;
-      var seed = sySameMansionHash([mansionIdx, i, c && c.name, c && c.cat].join('|'));
-      return {
-        vibe: sySameMansionPick(bank.vibe, seed + i),
-        talent: sySameMansionPick(bank.talent, seed + (i * 3) + 7),
-        charm: sySameMansionPick(sameMansionCharmPalette, seed + (i * 5) + 13),
-        caution: sySameMansionPick(sameMansionShadowPalette, seed + (i * 7) + 19)
-      };
-    }
-    var sameMansionUnlocked = syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.symbolicComparison.key);
-    var sameCard = document.querySelector('[data-sy-same-mansion-card]');
-    var status = document.querySelector('[data-sy-same-mansion-status]');
-    if (sameCard) {
-      sameCard.classList.toggle('is-unlocked', sameMansionUnlocked);
-      sameCard.classList.toggle('is-locked', !sameMansionUnlocked);
-    }
-    if (status) {
-      status.textContent = sameMansionUnlocked ? '해금 완료 · 인물별 공명' : '잠금 콘텐츠 · 미리보기 2명';
-      status.classList.toggle('is-unlocked', sameMansionUnlocked);
-    }
-    var visibleLimit = sameMansionUnlocked ? 20 : 2;
-    div.innerHTML = list.slice(0, visibleLimit).map(function(c, i) {
-      var meta = syBuildSameMansionProfile(c, i, mansionIdx);
-      return '<article class="sy-same-person-card ' + (sameMansionUnlocked ? 'is-unlocked' : 'is-preview') + '">'
-        + '<div class="sy-same-symbol" aria-hidden="true"><span>' + syCanonicalEsc(ICONS[i % ICONS.length]) + '</span></div>'
-        + '<div class="sy-same-person-name">' + syCanonicalEsc(c.name || '공개 인물') + '</div>'
-        + '<div class="sy-same-person-cat">' + syCanonicalEsc(c.cat || '상징 참고') + '</div>'
-        + '<dl class="sy-same-person-read">'
-          + '<div><dt>닮은 결</dt><dd>' + syCanonicalEsc(meta.vibe) + '</dd></div>'
-          + '<div><dt>발현</dt><dd>' + syCanonicalEsc(meta.talent) + '</dd></div>'
-          + '<div><dt>끌림</dt><dd>' + syCanonicalEsc(meta.charm) + '</dd></div>'
-          + (sameMansionUnlocked
-            ? '<div><dt>그림자</dt><dd>' + syCanonicalEsc(meta.caution) + '</dd></div>'
-            : '<div class="is-locked-line"><dt>그림자</dt><dd>해금 후 열림</dd></div>')
-        + '</dl>'
-        + '</article>';
-    }).join('');
-
-    if (!sameMansionUnlocked && list.length > visibleLimit) {
-      div.innerHTML += '<button type="button" class="sy-same-unlock-card" data-sy-same-mansion-unlock aria-label="같은 숙 인물 심층 매칭을 5,000원으로 해금">'
-        + '<span class="sy-lock-badge">LOCKED</span>'
-        + '<strong>인물별 공명 프로필 열기</strong>'
-        + '<em>' + syPaidPriceLabel(SY_PAID_FEATURES.symbolicComparison) + '</em>'
-        + '<small>20명의 닮은 결, 다른 매력, 숨은 그림자까지 인물마다 다르게 열립니다</small>'
-        + '</button>';
-      var unlockBtn = div.querySelector('[data-sy-same-mansion-unlock]');
-      if (unlockBtn) {
-        unlockBtn.onclick = function() {
-          syRequirePaidSukuyoFeature(SY_PAID_FEATURES.symbolicComparison, function() {
-            syMarkPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.symbolicComparison.key);
-            window._szFillSameMansion(mansionIdx);
-          });
-        };
-      }
-      return;
-    }
-
-    if (list.length > 20) {
-      div.innerHTML += '<div class="sy-same-count-note">외 ' + syCanonicalEsc(list.length - 20) + '명 더 있음</div>';
-    }
-  };
+  if (typeof window !== 'undefined') {
+    window.SukuyoRadarEngine = SukuyoRadarEngine;
+    window.syBindSukuyoRadar = syBindSukuyoRadar;
+    window.SukuyoPastLifeEngine = SukuyoPastLifeEngine;
+    window.syBindSukuyoPastLife = syBindSukuyoPastLife;
+    window.SukuyoEncyclopediaEngine = SukuyoEncyclopediaEngine;
+    window.syBindSukuyoEncyclopedia = syBindSukuyoEncyclopedia;
+  }
 
   // ── 숙요 관계성 UI 스토리 데이터 (단계 2: 배지 + 3단 구조) ─────────────
   var SY_RELATION_STORY_COPY = {

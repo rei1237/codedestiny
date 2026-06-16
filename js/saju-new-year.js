@@ -120,39 +120,14 @@
   function _applyBillingSnapshot(snapshot) {
     var state = snapshot || _billingSnapshot || {};
     var costLabel = _formatCoins(state.cost || COIN_COST, '결제창 확인');
-    var balanceLabel = state.balanceKnown
-      ? _formatCoins(state.balance, '0원')
-      : state.authenticated === false ? '로그인 필요' : '결제창 확인';
-    var priceEl = _qs('nyConfirmPrice');
-    var balanceEl = _qs('nyConfirmBalance');
-    var statusEl = _qs('nyBillingStatus');
     var coinLabel = _qs('nyCoinLabel');
     var tileBadge = _qs('nyTileCoinBadge');
     var generateCoin = _qs('nyGenerateCoin');
-    var confirmCoin = _qs('nyConfirmCoin');
     var generateBtn = _qs('nyGenerateBtn');
-    var confirmBtn = _qs('nyConfirmPayBtn');
-    if (priceEl) priceEl.textContent = costLabel;
-    if (balanceEl) balanceEl.textContent = balanceLabel;
     if (coinLabel) coinLabel.innerHTML = '<strong>' + _esc(costLabel) + '</strong> · 서버 권한 확인 후 차감 · 10챕터 신년 전략서 PDF';
     if (tileBadge) tileBadge.textContent = '🪙 ' + costLabel + ' 기준';
     if (generateCoin) generateCoin.textContent = '🪙 ' + costLabel;
-    if (confirmCoin) confirmCoin.textContent = '🪙 ' + costLabel;
     if (generateBtn) generateBtn.setAttribute('data-coin-cost', String(_coinNumber(state.cost) || COIN_COST));
-    if (confirmBtn) confirmBtn.setAttribute('data-coin-cost', String(_coinNumber(state.cost) || COIN_COST));
-    if (statusEl) {
-      if (state.authenticated === false) {
-        statusEl.textContent = '로그인 후 서버 가격표와 잔액을 다시 확인합니다.';
-      } else if (state.balanceKnown && _coinNumber(state.cost) !== null) {
-        statusEl.textContent = state.balance >= state.cost
-          ? '보유 잔액으로 생성 조건을 충족합니다. 최종 차감은 결제 확인 후 진행됩니다.'
-          : '보유 잔액이 이용 기준보다 부족할 수 있습니다. 충전 또는 이용권 상태를 확인해 주세요.';
-      } else if (state.pricingKnown) {
-        statusEl.textContent = '서버 가격표를 확인했습니다. 결제창에서 잔액과 이용권을 최종 확인합니다.';
-      } else {
-        statusEl.textContent = '결제창에서 서버 가격표, 잔액, 이용권을 최종 확인합니다.';
-      }
-    }
   }
 
   async function _fetchBillingJson(url) {
@@ -501,7 +476,7 @@
   }
 
   function _showScreen(id) {
-    ['nyStartScreen', 'nyConfirmScreen', 'nyLoadingScreen', 'nyResultScreen', 'nyErrorScreen'].forEach(function (screenId) {
+    ['nyStartScreen', 'nyLoadingScreen', 'nyResultScreen', 'nyErrorScreen'].forEach(function (screenId) {
       var el = _qs(screenId);
       if (el) el.style.display = screenId === id ? '' : 'none';
     });
@@ -533,7 +508,7 @@
   }
 
   function _setBusy(isBusy) {
-    ['nyGenerateBtn', 'nyConfirmPayBtn'].forEach(function (id) {
+    ['nyGenerateBtn'].forEach(function (id) {
       var btn = _qs(id);
       if (!btn) return;
       btn.disabled = !!isBusy;
@@ -624,16 +599,6 @@
     el.innerHTML = '<strong>사주 정보 필요</strong> 생년월일을 먼저 입력해야 신년운세 PDF를 정확하게 생성할 수 있습니다.';
   }
 
-  function _setConfirmSummary(pending) {
-    var profileEl = _qs('nyConfirmProfile');
-    var yearEl = _qs('nyConfirmYear');
-    var noticeEl = _qs('nyConfirmNotice');
-    if (profileEl) profileEl.textContent = _profileLabel(pending && pending.profile);
-    if (yearEl) yearEl.textContent = String(pending && pending.targetYear || _targetYear() || '') + '년';
-    _applyBillingSnapshot(_billingSnapshot);
-    if (noticeEl) noticeEl.textContent = '동일한 사주 정보와 대상 연도의 보관 리포트가 있으면 추가 결제 없이 기존 결과를 불러옵니다.';
-  }
-
   function _billingErrorOptions(gate) {
     var status = Number(gate && gate.status || 0);
     var code = _clean(gate && (gate.code || gate.errorCode)).toUpperCase();
@@ -677,6 +642,11 @@
 
   function _buildPreparePayload(reportId, targetYear, profile, normalizedBirth, accessGrant, premiumToken, options) {
     var sessionId = _clean(accessGrant && (accessGrant.sessionId || accessGrant.reportSessionId)) || ('saju-new-year:' + reportId);
+    var accessFeatureKey = _clean(accessGrant && accessGrant.featureKey) || API_FEATURE_KEY;
+    var accessType = _clean(accessGrant && (accessGrant.accessType || accessGrant.transactionType));
+    var accessMethod = _clean(accessGrant && (accessGrant.accessMethod || accessGrant.paymentMethod));
+    var transactionId = _clean(accessGrant && (accessGrant.transactionId || accessGrant.sourceTransactionId || accessGrant.paymentId || accessGrant.evidenceId));
+    var paymentToken = _clean(premiumToken || (accessGrant && (accessGrant.premiumAccessToken || accessGrant._premiumAccessToken || accessGrant.accessToken || accessGrant.token)));
     var payload = {
       serviceKey: SERVICE_KEY,
       productKey: API_FEATURE_KEY,
@@ -706,26 +676,47 @@
       payload.preflightOnly = true;
       payload.lookupOnly = true;
     }
-    if (premiumToken) payload.premiumAccessToken = premiumToken;
+    if (paymentToken) payload.premiumAccessToken = paymentToken;
     if (accessGrant) {
       payload.purchaseId = accessGrant.purchaseId;
       payload.requestId = accessGrant.requestId;
+      if (transactionId) {
+        payload.transactionId = transactionId;
+        payload.sourceTransactionId = transactionId;
+        payload.paymentId = transactionId;
+      }
       payload.accessGrant = accessGrant;
       payload.payment = {
-        featureKey: API_FEATURE_KEY,
+        featureKey: accessFeatureKey,
         requestId: accessGrant.requestId,
         purchaseId: accessGrant.purchaseId,
+        transactionId: transactionId || undefined,
+        sourceTransactionId: transactionId || undefined,
+        paymentId: transactionId || undefined,
         sessionId: sessionId,
         reportSessionId: sessionId,
-        reportId: reportId
+        reportId: reportId,
+        accessType: accessType || undefined,
+        transactionType: accessType || undefined,
+        accessMethod: accessMethod || undefined,
+        paymentMethod: accessMethod || undefined,
+        premiumAccessToken: paymentToken || undefined
       };
       payload._paymentContext = {
-        featureKey: API_FEATURE_KEY,
+        featureKey: accessFeatureKey,
         requestId: accessGrant.requestId,
         purchaseId: accessGrant.purchaseId,
+        transactionId: transactionId || undefined,
+        sourceTransactionId: transactionId || undefined,
+        paymentId: transactionId || undefined,
         sessionId: sessionId,
         reportSessionId: sessionId,
-        reportId: reportId
+        reportId: reportId,
+        accessType: accessType || undefined,
+        transactionType: accessType || undefined,
+        accessMethod: accessMethod || undefined,
+        paymentMethod: accessMethod || undefined,
+        premiumAccessToken: paymentToken || undefined
       };
     }
     return payload;
@@ -772,6 +763,28 @@
     var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
     var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
     var access = data.access && typeof data.access === 'object' ? data.access : {};
+    var featureKey = _clean(accessGrant.featureKey || consume.featureKey || access.featureKey || data.featureKey || API_FEATURE_KEY) || API_FEATURE_KEY;
+    var accessType = _clean(accessGrant.accessType || consume.accessType || access.accessType || data.accessType || data.transactionType);
+    var accessMethod = _clean(accessGrant.accessMethod || consume.accessMethod || access.accessMethod || data.accessMethod || data.paymentMethod);
+    var transactionId = _clean(
+      accessGrant.transactionId
+      || accessGrant.sourceTransactionId
+      || accessGrant.paymentId
+      || accessGrant.evidenceId
+      || consume.transactionId
+      || consume.sourceTransactionId
+      || consume.paymentId
+      || consume.evidenceId
+      || data.transactionId
+      || data.sourceTransactionId
+      || data.paymentId
+      || data.evidenceId
+      || access.transactionId
+      || access.sourceTransactionId
+      || access.paymentId
+      || access.evidenceId
+    );
+    var premiumAccessToken = _extractPremiumToken(data);
     var normalizedReportId = _clean(accessGrant.reportId || data.reportId || reportId);
     var sessionId = _clean(accessGrant.sessionId || data.sessionId || data.reportSessionId || ('saju-new-year:' + normalizedReportId));
     var requestId = _clean(accessGrant.requestId || data.requestId || consume.requestId || fallbackRequestId);
@@ -797,16 +810,25 @@
       || consume.ok === true
       || access.ok === true
       || access.accessGranted === true
-      || ['granted', 'success', 'succeeded', 'pass_applied', 'has_entitlement', 'completed'].indexOf(statusText) >= 0;
+      || ['granted', 'success', 'succeeded', 'pass_applied', 'has_entitlement', 'completed', 'monthly_paid'].indexOf(statusText) >= 0;
     var purchaseId = explicitPurchaseId || (accessOk ? ('access:' + _clean(requestId || sessionId || normalizedReportId)) : '');
     if (!normalizedReportId || !purchaseId) return null;
     return {
       ok: true,
-      featureKey: API_FEATURE_KEY,
+      featureKey: featureKey,
       sessionId: sessionId,
       reportSessionId: sessionId,
       purchaseId: purchaseId,
       requestId: requestId,
+      transactionId: transactionId || undefined,
+      sourceTransactionId: transactionId || undefined,
+      paymentId: transactionId || undefined,
+      evidenceId: _clean(accessGrant.evidenceId || consume.evidenceId || data.evidenceId || access.evidenceId) || undefined,
+      accessType: accessType || undefined,
+      transactionType: accessType || undefined,
+      accessMethod: accessMethod || undefined,
+      paymentMethod: accessMethod || undefined,
+      premiumAccessToken: premiumAccessToken || undefined,
       reportId: normalizedReportId,
       paidAt: _clean(accessGrant.paidAt || data.paidAt || new Date().toISOString())
     };
@@ -835,12 +857,13 @@
           if (token) _persistPremiumAccessToken(token);
           _mergeBillingSnapshot(data, 'coin-gate');
           var grant = _normalizeAccessGrant(data, reportId, requestId);
+          var grantToken = token || _clean(grant && grant.premiumAccessToken) || _readPremiumAccessToken();
           if (!grant) {
             resolve({ ok: false, status: 500, message: '결제 접근 권한을 확인하지 못했습니다.', requestId: requestId });
             return;
           }
           _log('PaymentVerificationPassed', { featureKey: BILLING_FEATURE_KEY, reportId: reportId, hasPurchaseId: !!grant.purchaseId });
-          resolve({ ok: true, accessGrant: grant, premiumAccessToken: token, requestId: requestId });
+          resolve({ ok: true, accessGrant: grant, premiumAccessToken: grantToken, requestId: requestId });
         }
         function cancel() {
           if (settled) return;
@@ -916,6 +939,7 @@
     if (token) _persistPremiumAccessToken(token);
     _mergeBillingSnapshot(payload, 'coin-gate');
     var grant = _normalizeAccessGrant(data, reportId, requestId);
+    var grantToken = token || _clean(grant && grant.premiumAccessToken) || _readPremiumAccessToken();
     if (!response.ok || payload.ok === false || !grant) {
       return {
         ok: false,
@@ -925,7 +949,7 @@
       };
     }
     _log('PaymentVerificationPassed', { featureKey: BILLING_FEATURE_KEY, reportId: reportId, hasPurchaseId: !!grant.purchaseId });
-    return { ok: true, accessGrant: grant, premiumAccessToken: token, requestId: requestId };
+    return { ok: true, accessGrant: grant, premiumAccessToken: grantToken, requestId: requestId };
   }
 
   async function _postPrepare(payload) {
@@ -1193,6 +1217,22 @@
     });
   }
 
+  function _runBillingAndGeneration(pending) {
+    _showScreen('nyLoadingScreen');
+    _setStage('billing');
+    _setProgress(1, '결제창에서 권한과 잔액을 확인하는 중입니다');
+    return _refreshNewYearBillingSnapshot().catch(function () { return null; }).then(function () {
+      return _runCoinGate(pending.reportId);
+    }).then(function (gate) {
+      if (!gate.ok) {
+        _logError(gate, { stage: 'billing', reportId: pending.reportId });
+        _setError(gate.message || '프리미엄 PDF 생성을 위해 원화 결제 또는 이용권 확인이 필요합니다.', _billingErrorOptions(gate));
+        return null;
+      }
+      return _runAfterBilling(pending, gate.accessGrant, gate.premiumAccessToken);
+    });
+  }
+
   window.openSajuNewYearModal = function () {
     _log('ModalOpen');
     var modal = _qs('sajuNewYearModal');
@@ -1301,17 +1341,12 @@
       throw error;
     }).then(function (reused) {
       if (reused) return null;
-      _setConfirmSummary(pending);
-      _showScreen('nyConfirmScreen');
-      return _refreshNewYearBillingSnapshot().then(function () {
-        _setConfirmSummary(pending);
-        return null;
-      }).catch(function () { return null; });
+      return _runBillingAndGeneration(pending);
     }).catch(function (error) {
       _logError(error, { stage: error && error.stage || 'preflight', reportId: pending.reportId });
       var options = Number(error && error.status || 0) === 401
         ? _billingErrorOptions(error)
-        : { detail: '아직 결제 단계로 넘어가지 않았습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.' };
+        : { detail: '결제 권한 확인 또는 생성 준비 중 문제가 생겼습니다. 입력 정보를 확인한 뒤 다시 시도해 주세요.' };
       _setError(_publicErrorMessage(error, '신년운세 PDF 생성 준비 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'), options);
     }).finally(function () {
       _generating = false;
@@ -1327,19 +1362,7 @@
     _pendingGeneration = pending;
     _generating = true;
     _setBusy(true);
-    _showScreen('nyLoadingScreen');
-    _setStage('billing');
-    _setProgress(1, '결제창에서 권한과 잔액을 확인하는 중입니다');
-    _refreshNewYearBillingSnapshot().catch(function () { return null; }).then(function () {
-      return _runCoinGate(pending.reportId);
-    }).then(function (gate) {
-      if (!gate.ok) {
-        _logError(gate, { stage: 'billing', reportId: pending.reportId });
-        _setError(gate.message || '프리미엄 PDF 생성을 위해 원화 결제 또는 이용권 확인이 필요합니다.', _billingErrorOptions(gate));
-        return null;
-      }
-      return _runAfterBilling(pending, gate.accessGrant, gate.premiumAccessToken);
-    }).catch(function (error) {
+    _runBillingAndGeneration(pending).catch(function (error) {
       _logError(error, { stage: error && error.stage || 'generate', reportId: pending.reportId });
       _setError(_publicErrorMessage(error, '신년운세 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'), {
         detail: '결제 권한이 확인된 뒤 생성 단계에서 문제가 생겼습니다. 다시 시도하면 기존 권한을 먼저 조회합니다.',

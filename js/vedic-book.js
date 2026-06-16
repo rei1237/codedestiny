@@ -50,6 +50,7 @@
   ];
   var _generating = false;
   var _progressTimer = null;
+  var _currentProgressStep = 0;
   var _premiumAccessVerifiedUntil = 0;
   var _premiumPaidUntil = 0;
   var _currentVedicSessionId = '';
@@ -695,6 +696,30 @@
     });
   }
 
+  function _normalizeVedicReportResponse(response) {
+    var source = response && typeof response === 'object' ? response : {};
+    var data = source.data && typeof source.data === 'object' ? source.data : null;
+    var result = data && data.result && typeof data.result === 'object' ? data.result : null;
+    if (result) {
+      var normalized = {};
+      Object.keys(result).forEach(function (key) { normalized[key] = result[key]; });
+      if (!normalized.status && data.status) normalized.status = data.status === 'done' ? 'completed' : data.status;
+      if (!normalized.sessionId && data.sessionId) normalized.sessionId = data.sessionId;
+      if (!normalized.reportId && data.reportId) normalized.reportId = data.reportId;
+      if (!normalized.pdfReady && data.pdfReady) normalized.pdfReady = data.pdfReady;
+      if (normalized.canDownload !== true && data.canDownload === true) normalized.canDownload = true;
+      return normalized;
+    }
+    if (data) {
+      var merged = {};
+      Object.keys(source).forEach(function (key) { if (key !== 'data') merged[key] = source[key]; });
+      Object.keys(data).forEach(function (key) { merged[key] = data[key]; });
+      if (merged.status === 'done') merged.status = 'completed';
+      return merged;
+    }
+    return source;
+  }
+
   function _setError(message) {
     var element = _qs('vdErrorMsg');
     var safe = _sanitizeText(message);
@@ -706,7 +731,7 @@
   }
 
   function _isCompletedReportReady(response) {
-    var payload = response || {};
+    var payload = _normalizeVedicReportResponse(response || {});
     var ready = payload.pdfReady && typeof payload.pdfReady === 'object' ? payload.pdfReady : {};
     var chapters = Array.isArray(payload.chapters) ? payload.chapters : [];
     var total = Number(VEDIC_TOTAL_CHAPTERS || 0) || 12;
@@ -736,7 +761,8 @@
   }
 
   function _isRunningReport(response) {
-    var status = _clean(response && response.status).toLowerCase();
+    var payload = _normalizeVedicReportResponse(response || {});
+    var status = _clean(payload && payload.status).toLowerCase();
     return status === 'running' || status === 'pending' || status === 'generating';
   }
 
@@ -809,9 +835,10 @@
         '베다점 원고와 PDF를 완성하는 중입니다'
       );
       return _getVedicStatus(sessionId, reportId).then(function (payload) {
-        if (_isCompletedReportReady(payload)) return payload;
-        if (payload && payload.ok === false && _clean(payload.status).toLowerCase() === 'failed') {
-          var failedError = _buildVedicApiError({ status: payload.statusCode || 500, body: payload }, _clean(payload.message) || '베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.', {
+        var report = _normalizeVedicReportResponse(payload || {});
+        if (_isCompletedReportReady(report)) return report;
+        if (report && report.ok === false && _clean(report.status).toLowerCase() === 'failed') {
+          var failedError = _buildVedicApiError({ status: report.statusCode || 500, body: report }, _clean(report.message) || '베다점 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.', {
             stage: 'status',
             sessionId: sessionId,
             reportId: reportId
@@ -819,8 +846,8 @@
           failedError.permanent = true;
           throw failedError;
         }
-        if (payload && payload.ok === false && !_isRunningReport(payload)) {
-          var statusError = _buildVedicApiError({ status: payload.statusCode || 500, body: payload }, _clean(payload.message) || '베다점 PDF 생성에 실패했습니다.', {
+        if (report && report.ok === false && !_isRunningReport(report)) {
+          var statusError = _buildVedicApiError({ status: report.statusCode || 500, body: report }, _clean(report.message) || '베다점 PDF 생성에 실패했습니다.', {
             stage: 'status',
             sessionId: sessionId,
             reportId: reportId
@@ -831,7 +858,7 @@
         if (attempts >= VEDIC_STATUS_MAX_ATTEMPTS) {
           throw new Error('베다점 PDF 생성 시간이 길어지고 있습니다. 잠시 후 다시 확인해 주세요.');
         }
-        return _sleep(Number(payload && payload.retryAfterMs) || VEDIC_STATUS_POLL_MS).then(poll);
+        return _sleep(Number(report && report.retryAfterMs) || Number(payload && payload.data && payload.data.retryAfterMs) || VEDIC_STATUS_POLL_MS).then(poll);
       }).catch(function (error) {
         if (error && error.permanent) throw error;
         if (Number(error && error.status) === 401 || Number(error && error.status) === 403 || Number(error && error.status) === 422) throw error;
@@ -867,6 +894,10 @@
   }
 
   function _setLoadingProgress(step, total, title) {
+    var requestedStep = Math.max(0, Number(step || 0));
+    if (_generating && requestedStep < _currentProgressStep) requestedStep = _currentProgressStep;
+    _currentProgressStep = requestedStep;
+    step = requestedStep;
     var pct = Math.max(0, Math.min(100, Math.round((step / Math.max(total, 1)) * 100)));
     var bar = _qs('vdProgressBar');
     var text = _qs('vdProgressText');
@@ -910,14 +941,15 @@
     ];
     titles = VEDIC_PROGRESS_STAGE_TITLES;
     var index = 1;
+    var maxAnimatedStep = Math.max(1, VEDIC_TOTAL_CHAPTERS - 1);
     _setLoadingProgress(1, VEDIC_TOTAL_CHAPTERS, titles[0]);
     _progressTimer = setInterval(function () {
       if (!_generating) { _stopProgressAnimation(); return; }
       index += 1;
-      if (index > VEDIC_TOTAL_CHAPTERS) index = VEDIC_TOTAL_CHAPTERS;
+      if (index > maxAnimatedStep) index = maxAnimatedStep;
       var titleIndex = Math.min(titles.length - 1, Math.max(0, index - 1));
       _setLoadingProgress(index, VEDIC_TOTAL_CHAPTERS, titles[titleIndex]);
-      if (index >= VEDIC_TOTAL_CHAPTERS) _stopProgressAnimation();
+      if (index >= maxAnimatedStep) _stopProgressAnimation();
     }, 850);
   }
 
@@ -1200,6 +1232,7 @@
     }
 
     _generating = true;
+    _currentProgressStep = 0;
     _setStartBusy(true);
     _showScreen('vdLoadingScreen');
     _setLoadingProgress(1, VEDIC_TOTAL_CHAPTERS, '프로필 정보 확인 중');
@@ -1218,7 +1251,7 @@
       })
       .then(function (chart) {
         _setLoadingProgress(2, VEDIC_TOTAL_CHAPTERS, '나크샤트라와 카라카를 해석하는 중입니다');
-        _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '베다 점성술 리포트를 완성하는 중입니다');
+        _setLoadingProgress(3, VEDIC_TOTAL_CHAPTERS, '베다 점성술 리포트를 완성하는 중입니다');
         _logStage('SessionCreateStart', { endpoint: VEDIC_PREPARE_API, featureKey: VEDIC_FEATURE_KEY });
         var paymentContext = _bindPaymentToCurrentGeneration(_normalizePremiumPayment('', _lastPremiumPayment || {}));
         paymentContext.sessionId = _clean(paymentContext.sessionId || _currentVedicSessionId) || undefined;
@@ -1254,7 +1287,7 @@
         });
       })
       .then(function (response) {
-        response = response || {};
+        response = _normalizeVedicReportResponse(response || {});
 
         if (response && response.status === 'running') {
           _logStage('SessionAlreadyRunning', { sessionId: _clean(response.sessionId || _currentVedicSessionId) });
@@ -1266,7 +1299,7 @@
         return response;
       })
       .then(function (response) {
-        response = response || {};
+        response = _normalizeVedicReportResponse(response || {});
         if (!_isCompletedReportReady(response)) {
           throw new Error('베다점 PDF 결과가 아직 완전히 저장되지 않았습니다. 잠시 후 다시 시도해 주세요.');
         }
@@ -1279,7 +1312,7 @@
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '사랑·직업·재물의 흐름을 정리하는 중입니다');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, 'PDF 편집/렌더링 중');
         _setLoadingProgress(VEDIC_TOTAL_CHAPTERS, VEDIC_TOTAL_CHAPTERS, '완료');
-        _renderResult(_chapters, response.payload || {}, response);
+        _renderResult(_chapters, response.payload || response.localVedicChartJson || {}, response);
         _logStage('PdfRequestSuccess', { chapterCount: _chapters.length, localAssembly: Boolean(response.localAssembly && response.localAssembly.enabled === true) });
 
         _showScreen('vdResultScreen');

@@ -14,6 +14,7 @@ export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   ziweiPremium: ["premium-ziwei", "premiumDivinationPack"],
   westernAstrologyPremium: ["premium-astrology", "premiumDivinationPack"],
   sookyoPremium: ["premium-sukuyo", "premiumDivinationPack"],
+  sukuyoPastLifeReading: ["sukuyo-past-life-reading", "premiumDivinationPack"],
   vedicPremium: ["premium-veda", "premiumDivinationPack"],
   celestialHarmony: ["premiumDivinationPack"],
   soulOriginKarma: ["premiumDivinationPack"],
@@ -431,6 +432,23 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         featureKey: "coin-gate-per-use",
         reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
         minCost: 490,
+        windowMinutes: 240,
+      },
+    ];
+  }
+
+  if (reportType === "sukuyoPastLifeReading") {
+    return [
+      {
+        featureKey: "sukuyo-past-life-reading",
+        reason: "숙요 전생 인연 리딩",
+        minCost: 100,
+        windowMinutes: 240,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "숙요 전생 인연 리딩",
+        minCost: 100,
         windowMinutes: 240,
       },
     ];

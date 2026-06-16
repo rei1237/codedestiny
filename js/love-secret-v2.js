@@ -305,6 +305,114 @@
     return Number.isFinite(coins) && coins > 0 ? coins : 300;
   }
 
+  function _normalizeLoveSecretPaymentContext(source, mode, reportId) {
+    var normalizedMode = _normalizeLoveSecretMode(mode);
+    var featureKey = _getLoveSecretFeatureKey(normalizedMode);
+    var ctx = source && typeof source === 'object' ? source : {};
+    var grant = ctx.accessGrant && typeof ctx.accessGrant === 'object' ? ctx.accessGrant : {};
+    var raw = ctx.raw && typeof ctx.raw === 'object' ? ctx.raw : {};
+    var rawData = raw.data && typeof raw.data === 'object' ? raw.data : raw;
+    var rawGrant = rawData.accessGrant && typeof rawData.accessGrant === 'object' ? rawData.accessGrant : {};
+    var consume = rawData.consume && typeof rawData.consume === 'object' ? rawData.consume : {};
+    var normalizedReportId = String(reportId || ctx.reportId || grant.reportId || rawData.reportId || '').trim();
+    var sessionId = String(
+      grant.sessionId
+      || rawGrant.sessionId
+      || ctx.sessionId
+      || ctx.reportSessionId
+      || rawData.sessionId
+      || rawData.reportSessionId
+      || (normalizedReportId ? 'love-book:' + normalizedReportId : '')
+    ).trim();
+    var requestId = String(
+      grant.requestId
+      || rawGrant.requestId
+      || ctx.requestId
+      || rawData.requestId
+      || consume.requestId
+      || ''
+    ).trim();
+    var purchaseId = String(
+      ctx.purchaseId
+      || grant.purchaseId
+      || grant.evidenceId
+      || grant.paymentId
+      || grant.transactionId
+      || rawGrant.purchaseId
+      || rawGrant.evidenceId
+      || rawData.purchaseId
+      || rawData.transactionId
+      || rawData.paymentId
+      || consume.transactionId
+      || consume.purchaseId
+      || consume.paymentId
+      || consume._id
+      || requestId
+      || ''
+    ).trim();
+    var premiumAccessToken = String(
+      ctx.premiumAccessToken
+      || grant.premiumAccessToken
+      || rawGrant.premiumAccessToken
+      || rawData.premiumAccessToken
+      || ''
+    ).trim();
+    var serverGranted = Boolean(
+      ctx.ok === true
+      || rawData.ok === true
+      || rawData.canAccess === true
+      || rawData.unlocked === true
+      || rawData.accessGranted === true
+      || (rawData.accessDecision && rawData.accessDecision.accessGranted === true)
+      || grant.ok === true
+      || rawGrant.ok === true
+    );
+    var hasAccessEvidence = Boolean(
+      purchaseId
+      || premiumAccessToken
+      || serverGranted
+      || grant.evidenceId
+      || grant.paymentId
+      || grant.transactionId
+      || rawGrant.evidenceId
+      || rawGrant.paymentId
+      || rawGrant.transactionId
+      || rawData.transactionId
+      || rawData.paymentId
+      || consume.transactionId
+      || consume.paymentId
+      || consume.purchaseId
+    );
+    if (!hasAccessEvidence) {
+      return {
+        accessGrant: null,
+        purchaseId: '',
+        premiumAccessToken: '',
+        sessionId: sessionId,
+        requestId: requestId,
+        featureKey: featureKey,
+        reportId: normalizedReportId,
+      };
+    }
+    var accessGrant = Object.assign({}, rawGrant, grant);
+    if (normalizedReportId) accessGrant.reportId = normalizedReportId;
+    if (sessionId) accessGrant.sessionId = sessionId;
+    if (requestId) accessGrant.requestId = requestId;
+    if (purchaseId) accessGrant.purchaseId = purchaseId;
+    if (featureKey) accessGrant.featureKey = featureKey;
+    if (premiumAccessToken) accessGrant.premiumAccessToken = premiumAccessToken;
+    if (Object.keys(accessGrant).length) accessGrant.ok = accessGrant.ok === false ? false : true;
+    return {
+      accessGrant: Object.keys(accessGrant).length ? accessGrant : null,
+      purchaseId: purchaseId,
+      premiumAccessToken: premiumAccessToken,
+      sessionId: sessionId,
+      requestId: requestId,
+      featureKey: featureKey,
+      reportId: normalizedReportId,
+    };
+  }
+
   function _getLoveSecretTargetYear() {
     var year = new Date().getFullYear();
     return Number.isFinite(year) && year >= 2026 ? year : 2026;
@@ -643,7 +751,7 @@
         } else {
           // Create and load the script
           var script = document.createElement('script');
-          script.src = '/js/coin-gate-helper.js?v=build-20260615-love-secret-uiux';
+          script.src = '/js/coin-gate-helper.js?v=build-20260616-love-secret-access';
           var loadTimeout = setTimeout(() => {
             reject(new Error('COIN_GATE_HELPER_TIMEOUT'));
           }, 5000);
@@ -698,16 +806,21 @@
           forceDeduct: true,
         },
       });
-      var accessGrant = purchase && purchase.accessGrant ? purchase.accessGrant : null;
-      var _issuedPremiumToken = String(purchase.premiumAccessToken || '').trim();
-      var _rawPurchaseId = String(purchase.purchaseId || '').trim();
+      var normalizedAccess = _normalizeLoveSecretPaymentContext(purchase, normalizedMode, reportId);
+      var accessGrant = normalizedAccess.accessGrant;
+      var _issuedPremiumToken = String(normalizedAccess.premiumAccessToken || '').trim();
+      var _rawPurchaseId = String(normalizedAccess.purchaseId || '').trim();
       console.info('[LoveBook] payment access', {
         featureKey: featureKey,
         hasAccessGrant: Boolean(accessGrant),
         hasPremiumToken: Boolean(_issuedPremiumToken),
         hasPurchaseId: Boolean(_rawPurchaseId),
       });
-      if (!purchase || !purchase.ok) {
+      var paymentGateDefaultMessage = '결제 확인에 실패했습니다. 다시 시도해 주세요.';
+      var accessGateDefaultMessage = '접근 권한을 확인하지 못했습니다. 결제 확인 후 다시 시도해 주세요.';
+      if (!purchase) purchase = { status: 500, message: paymentGateDefaultMessage };
+      if (!String(purchase.message || '').trim()) purchase.message = paymentGateDefaultMessage;
+      if (!purchase || (!purchase.ok && !accessGrant && !_issuedPremiumToken && !_rawPurchaseId)) {
         return {
           ok: false,
           status: Number((purchase && purchase.status) || 500),
@@ -721,11 +834,16 @@
       if (!accessGrant && (_issuedPremiumToken || _rawPurchaseId)) {
         accessGrant = {
           ok: true,
-          purchaseId: _rawPurchaseId,
+          purchaseId: _rawPurchaseId || undefined,
           sessionId: 'love-book:' + String(reportId || '').trim(),
           featureKey: featureKey,
+          reportId: String(reportId || '').trim(),
+          premiumAccessToken: _issuedPremiumToken || undefined,
           paidAt: new Date().toISOString(),
         };
+      }
+      if (!accessGrant && String(purchase.message || '') === paymentGateDefaultMessage) {
+        purchase.message = accessGateDefaultMessage;
       }
       if (!accessGrant) {
         return {
@@ -2366,6 +2484,16 @@
       _logLoveSecretFlow('PartnerInputResolved', { hasPartnerInput: !!partnerBirthInput });
     }
     _lsCurrentReportId = String(reportId || '').trim() || _lsBuildReportId(_currentChapterMode);
+    var normalizedPaymentCtx = _normalizeLoveSecretPaymentContext(_paymentCtx, _currentChapterMode, _lsCurrentReportId);
+    if (normalizedPaymentCtx.accessGrant || normalizedPaymentCtx.premiumAccessToken || normalizedPaymentCtx.purchaseId) {
+      _lsAccessGrant = normalizedPaymentCtx.accessGrant;
+      _lsGatePurchaseId = String(normalizedPaymentCtx.purchaseId || '').trim();
+      if (normalizedPaymentCtx.premiumAccessToken) {
+        try { window.__cdPremiumAccessToken = normalizedPaymentCtx.premiumAccessToken; } catch (_) {}
+        try { sessionStorage.setItem('cd_premium_access_token', normalizedPaymentCtx.premiumAccessToken); } catch (_) {}
+        try { localStorage.setItem('cd_premium_access_token', normalizedPaymentCtx.premiumAccessToken); } catch (_) {}
+      }
+    }
     _setLoveBookGenerationState('preparing_generation');
     _showScreen('lsLoadingScreen');
     _prepareLoveSecretUi(_currentChapterMode);

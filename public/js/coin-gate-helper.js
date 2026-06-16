@@ -204,33 +204,57 @@
   function normalizeAccessGrant(data, payload) {
     var reportId = String((payload && payload.reportId) || (data && data.reportId) || '').trim();
     var accessGrant = data && data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+    var consume = data && data.consume && typeof data.consume === 'object' ? data.consume : {};
     var purchaseId = String(
       (accessGrant && accessGrant.purchaseId)
+      || (accessGrant && accessGrant.evidenceId)
+      || (accessGrant && accessGrant.paymentId)
+      || (accessGrant && accessGrant.transactionId)
       || (data && data.purchaseId)
       || (data && data.transactionId)
-      || (((data && data.consume) || {}).transactionId)
+      || (data && data.paymentId)
+      || (consume && consume.transactionId)
+      || (consume && consume.paymentId)
+      || (consume && consume.purchaseId)
+      || (consume && consume._id)
+      || (payload && payload.purchaseId)
+      || (payload && payload.requestId)
       || ''
     ).trim();
+    var premiumAccessToken = String(
+      (accessGrant && accessGrant.premiumAccessToken)
+      || (data && data.premiumAccessToken)
+      || (payload && payload.premiumAccessToken)
+      || ''
+    ).trim();
+    var serverGranted = data && (
+      data.canAccess === true
+      || data.unlocked === true
+      || data.accessGranted === true
+      || data.ok === true
+      || (data.accessDecision && data.accessDecision.accessGranted === true)
+    );
     var sessionId = String((accessGrant && accessGrant.sessionId) || normalizeReportSessionId(reportId, payload)).trim();
     var requestId = String(
       (accessGrant && accessGrant.requestId)
       || (data && data.requestId)
-      || (((data && data.consume) || {}).requestId)
+      || (consume && consume.requestId)
       || (payload && payload.requestId)
       || ''
     ).trim();
 
-    if (!reportId || !purchaseId) return null;
+    if (!reportId || (!purchaseId && !premiumAccessToken && !serverGranted)) return null;
 
-    return {
+    return Object.assign({}, accessGrant, {
       ok: true,
       featureKey: String((payload && payload.featureKey) || (accessGrant && accessGrant.featureKey) || LOVE_BOOK_FEATURE_KEY),
       sessionId: sessionId || undefined,
-      purchaseId: purchaseId || undefined,
+      purchaseId: purchaseId || requestId || undefined,
       requestId: requestId || undefined,
       reportId: reportId,
+      premiumAccessToken: premiumAccessToken || undefined,
       paidAt: String((accessGrant && accessGrant.paidAt) || (data && data.paidAt) || new Date().toISOString()),
-    };
+    });
   }
 
   function buildHelper() {
@@ -251,6 +275,7 @@
           reportId: reportId || undefined,
           sessionId: sessionId || undefined,
           reportSessionId: sessionId || undefined,
+          premiumAccessToken: String(payload.premiumAccessToken || '').trim() || undefined,
         };
         var requestedCoinPrice = Math.max(0, Math.floor(Number(payload.coinPrice || payload.cost || payload.priceCoin || 0)));
         if (!(requestedCoinPrice > 0) && requestBody.featureKey) {

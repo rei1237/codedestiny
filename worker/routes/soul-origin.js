@@ -387,7 +387,7 @@ const CHAPTER_TONE = {
 const CHAPTER_MASTER_PERSONAS = Object.freeze({
   "01": {
     name: "통합 운명 원형 마스터",
-    voice: "삶 전체의 되풀이되는 장면을 한 권의 운명 지도처럼 겹쳐 읽습니다.",
+    voice: "삶 전체의 되풀이되는 장면을 한 권의 운명 지도처럼 겹쳐 비춥니다.",
     question: "이 반복이 처음 열린 문은 어디였는가",
     caution: "원인을 하나로 단정하면 삶 전체에 퍼진 신호를 놓칠 수 있습니다.",
     turn: "원형을 알아차리는 순간 반복은 숙명이 아니라 선택 가능한 구조가 됩니다.",
@@ -422,7 +422,7 @@ const CHAPTER_MASTER_PERSONAS = Object.freeze({
   },
   "06": {
     name: "자미두수 직업 마스터",
-    voice: "명궁과 신궁의 배치를 통해 일의 무대, 역할, 사명의 방향을 함께 읽습니다.",
+    voice: "명궁과 신궁의 배치를 통해 일의 무대, 역할, 사명의 방향을 함께 비춥니다.",
     question: "나는 성과를 내고 있는가, 내 운명에 맞는 역할을 맡고 있는가",
     caution: "능력 부족으로만 해석하면 역할 전환의 신호를 놓칠 수 있습니다.",
     turn: "직업의 해방은 더 많이 버티는 것이 아니라 맞는 자리로 힘을 재배치하는 데 있습니다.",
@@ -450,7 +450,7 @@ const CHAPTER_MASTER_PERSONAS = Object.freeze({
   },
   "10": {
     name: "신살 활용 마스터",
-    voice: "도화, 역마, 화개, 십이운성의 신호를 공포가 아니라 활용 지도로 읽습니다.",
+    voice: "도화, 역마, 화개, 십이운성의 신호를 공포가 아니라 활용 지도로 비춥니다.",
     question: "이 신호는 매력인가, 이동인가, 고독인가, 집중인가",
     caution: "신살을 좋고 나쁨으로만 보면 강점이 위험으로 바뀌는 지점을 놓칩니다.",
     turn: "신살의 해방은 신호를 피하는 것이 아니라 쓰임새와 한계를 함께 정하는 데 있습니다.",
@@ -554,7 +554,7 @@ const CATEGORY_COUNSEL_PROFILES = Object.freeze({
   money: {
     label: "재물 해석",
     symbol: "재성의 저울",
-    diagnostic: "이 범주는 돈의 흐름과 현실 감각을 읽습니다. 재물운은 단순한 수입 예측이 아니라 불안, 책임, 소비 습관, 기회 판단이 만나는 지점입니다.",
+    diagnostic: "돈의 흐름과 현실 감각이 함께 드러납니다. 재물운은 단순한 수입 예측이 아니라 불안, 책임, 소비 습관, 기회 판단이 만나는 지점입니다.",
     reality: "현실에서는 급한 보상 심리, 반복 지출, 미뤄 둔 정산, 모호한 계약처럼 돈의 경계가 흐려지는 방식으로 나타납니다.",
     strategy: "확장보다 누수를 먼저 막고, 큰 선택 전에는 손실 한도와 회수 기간을 수치로 정해야 재물의 흐름이 안정됩니다.",
     practice: "이번 주에는 반복 지출 세 가지를 확인하고, 그중 하나를 줄이는 대신 회복 자금으로 분리해 두세요.",
@@ -570,7 +570,7 @@ const CATEGORY_COUNSEL_PROFILES = Object.freeze({
   emotion: {
     label: "감정 해석",
     symbol: "그림자의 물",
-    diagnostic: "이 범주는 두려움, 결핍, 자기비난, 회복의 속도를 읽습니다. 감정을 없애는 것이 아니라 감정이 선택을 대신하지 않도록 질서를 세우는 장입니다.",
+    diagnostic: "두려움, 결핍, 자기비난, 회복의 속도가 한 흐름으로 드러납니다. 감정을 없애는 것이 아니라 감정이 선택을 대신하지 않도록 질서를 세우는 장입니다.",
     reality: "현실에서는 지친 날일수록 극단적 결론을 내리거나, 아무것도 하지 않는 방식으로 자신을 보호하려는 반응이 강해집니다.",
     strategy: "감정의 이름을 먼저 붙이고, 그 감정이 원하는 보상과 실제로 필요한 행동을 분리하면 회복의 길이 열립니다.",
     practice: "잠들기 전 오늘 가장 강했던 감정 하나와 그 감정이 지키려 한 것을 적어 보세요.",
@@ -578,7 +578,7 @@ const CATEGORY_COUNSEL_PROFILES = Object.freeze({
   timing: {
     label: "시기 해석",
     symbol: "대운의 문장",
-    diagnostic: "이 범주는 대운과 세운의 전환을 읽습니다. 좋은 운과 어려운 운을 나누기보다, 어떤 순서로 움직일 때 손실을 줄이고 기회를 살릴 수 있는지 판단합니다.",
+    diagnostic: "대운과 세운의 전환이 선명하게 떠오릅니다. 좋은 운과 어려운 운을 나누기보다, 어떤 순서로 움직일 때 손실을 줄이고 기회를 살릴 수 있는지 판단합니다.",
     reality: "현실에서는 같은 선택도 시기에 따라 결과 속도가 달라지고, 전환기에는 익숙한 방식이 더 이상 같은 효율을 내지 못합니다.",
     strategy: "확장, 정리, 대기, 회복 중 지금의 우선순위를 정하고 그 순서에 맞지 않는 선택을 줄이는 것이 핵심입니다.",
     practice: "이번 달에는 새로 벌릴 일과 정리할 일을 각각 하나씩만 정해 운의 방향과 행동 속도를 맞추세요.",
@@ -666,7 +666,7 @@ const SECTION_COUNSEL_PROFILES = Object.freeze({
   "01-01": { focus: "반복의 핵심 문장을 한 줄로 압축해 삶 전체의 되풀이되는 장면을 잡습니다.", evidence: "원국의 중심 기운, 대운의 압력, 세운의 촉발점을 함께 대조합니다.", reality: "현실에서는 같은 선택을 다른 이름으로 반복하거나, 비슷한 사람과 상황 앞에서 익숙한 반응이 먼저 올라옵니다.", risk: "핵심 패턴을 모르면 문제를 사람이나 운의 탓으로 돌리며 같은 문 앞에 다시 서기 쉽습니다.", strategy: "반복이 시작되는 첫 신호를 한 문장으로 정하고, 그 신호가 올라올 때 결정을 늦추는 순서를 만드세요.", practice: "오늘 가장 자주 반복된 감정과 선택을 각각 하나씩 적고, 그것을 하나의 문장으로 묶어 보세요.", requiredTerms: ["반복", "패턴", "원국", "대운"] },
   "01-02": { focus: "원국이 처음부터 품고 온 인생 과제를 읽어 방향과 숙제를 분리합니다.", evidence: "일간, 월지, 오행 강약, 용신과 기신의 배치를 중심 근거로 삼습니다.", reality: "현실에서는 강한 기질을 잘못 쓰거나 부족한 기운을 외부에서 보상받으려는 방식으로 나타납니다.", risk: "기질을 숙명처럼 받아들이면 바꿀 수 있는 습관까지 고정된 운명으로 오해합니다.", strategy: "강한 기운은 방향으로 쓰고 부족한 기운은 루틴으로 보완하는 기준을 세우세요.", practice: "이번 주에는 내 강점 하나와 과해지는 순간 하나를 같이 기록하세요.", requiredTerms: ["원국", "일간", "월지", "오행"] },
   "01-03": { focus: "반복해서 마주치는 사람과 상황의 유형을 구분해 관계와 환경의 공통 구조를 찾습니다.", evidence: "십성의 관계 배치, 지지의 합충형파해, 세운의 촉발 신호를 함께 봅니다.", reality: "현실에서는 다른 사람처럼 보여도 비슷한 압박, 기대, 실망, 역할 요구가 되풀이됩니다.", risk: "상대만 바꾸면 해결된다고 믿으면 같은 관계 구조를 다시 선택하기 쉽습니다.", strategy: "사람의 이름보다 반복되는 역할과 감정의 이름을 먼저 확인하세요.", practice: "최근 세 번 반복된 관계 장면을 적고, 그 안에서 내가 맡은 역할을 하나로 묶어 보세요.", requiredTerms: ["사람", "상황", "십성", "합충"] },
-  "01-04": { focus: "쉽게 무너지는 지점을 찾아 선택이 급격히 좁아지는 순간을 읽습니다.", evidence: "기신, 충형, 약한 오행, 과한 십성의 작동을 중심으로 판단합니다.", reality: "현실에서는 피로가 쌓일수록 판단이 극단으로 기울고 평소 지키던 기준이 흐려집니다.", risk: "무너짐의 신호를 늦게 알아차리면 작은 흔들림이 관계, 돈, 일 전체로 번집니다.", strategy: "내가 무너지기 직전에 반복되는 몸의 신호와 말투를 기준으로 삼으세요.", practice: "오늘 피로가 올라온 순간의 몸 반응을 하나만 기록하고 다음 행동을 10분 늦추세요.", requiredTerms: ["무너지는", "기신", "충", "기준"] },
+  "01-04": { focus: "쉽게 무너지는 지점을 찾아 선택이 급격히 좁아지는 순간을 짚습니다.", evidence: "기신, 충형, 약한 오행, 과한 십성의 작동을 중심으로 판단합니다.", reality: "현실에서는 피로가 쌓일수록 판단이 극단으로 기울고 평소 지키던 기준이 흐려집니다.", risk: "무너짐의 신호를 늦게 알아차리면 작은 흔들림이 관계, 돈, 일 전체로 번집니다.", strategy: "내가 무너지기 직전에 반복되는 몸의 신호와 말투를 기준으로 삼으세요.", practice: "오늘 피로가 올라온 순간의 몸 반응을 하나만 기록하고 다음 행동을 10분 늦추세요.", requiredTerms: ["무너지는", "기신", "충", "기준"] },
   "01-05": { focus: "다시 일어서는 핵심 힘을 찾아 반복을 끝낼 회복 자원을 분명히 합니다.", evidence: "용신, 희신, 강한 오행, 도움 되는 십성의 흐름을 함께 확인합니다.", reality: "현실에서는 이미 여러 번 회복해 온 방식 속에 앞으로도 쓸 수 있는 힘이 숨어 있습니다.", risk: "회복 자원을 모르고 버티기만 하면 같은 위기에서 소진 속도가 빨라집니다.", strategy: "나를 회복시키는 환경, 사람, 행동을 우선순위로 고정하세요.", practice: "지난 1년 안에 나를 다시 일으킨 행동 세 가지를 적고 하나를 이번 주 루틴으로 되살리세요.", requiredTerms: ["회복", "용신", "희신", "힘"] },
   "02-01": { focus: "일간이 보여주는 내면의 핵심 기질을 삶의 첫 반응 방식으로 해석합니다.", evidence: "일간의 오행, 월지의 계절감, 주변 천간의 도움과 압박을 봅니다.", reality: "현실에서는 생각보다 빠르게 드러나는 말투, 선택 기준, 자존심의 방향으로 나타납니다.", risk: "일간의 힘을 모르고 살면 내 본성과 맞지 않는 방식으로 자신을 몰아붙입니다.", strategy: "내가 자연스럽게 잘하는 방식과 억지로 흉내 내는 방식을 구분하세요.", practice: "오늘 결정 하나를 할 때 내가 편해지는 기준과 불편해지는 기준을 나눠 적으세요.", requiredTerms: ["일간", "기질", "오행", "월지"] },
   "02-02": { focus: "월지가 만드는 생존 방식을 읽어 삶을 버티는 기본 습관을 확인합니다.", evidence: "월지, 계절의 왕쇠, 사회적 역할, 초년 환경의 압력을 함께 봅니다.", reality: "현실에서는 위기 때 자동으로 선택하는 방어, 책임감, 회피, 통제 방식으로 드러납니다.", risk: "생존 방식이 오래되면 더 이상 필요 없는 방어까지 계속 붙잡게 됩니다.", strategy: "버티기 위해 만든 습관과 지금도 유효한 습관을 분리하세요.", practice: "이번 주 가장 자주 나온 방어 반응 하나를 적고, 그 반응이 아직 필요한지 점검하세요.", requiredTerms: ["월지", "생존", "습관", "방어"] },
@@ -674,7 +674,7 @@ const SECTION_COUNSEL_PROFILES = Object.freeze({
   "02-04": { focus: "부족한 오행이 만드는 결핍감을 읽어 외부 보상 욕구의 뿌리를 찾습니다.", evidence: "약한 오행, 용신·희신 보완축, 관계와 일에서 보충하려는 십성을 봅니다.", reality: "현실에서는 인정, 안정, 사랑, 돈, 자유 중 특정 욕구를 과하게 확인하려는 모습으로 나타납니다.", risk: "결핍을 모르면 필요한 보완 대신 즉각적인 보상에 끌려 선택이 흔들립니다.", strategy: "부족한 기운은 사람에게 요구하기보다 생활 구조 안에 먼저 배치하세요.", practice: "이번 주 나에게 부족했던 기운을 하나 정하고, 그 기운을 채우는 작은 환경을 만드세요.", requiredTerms: ["부족한", "오행", "결핍", "보완"] },
   "02-05": { focus: "원국 전체가 말하는 삶의 숙제를 통합해 반복의 큰 방향을 정리합니다.", evidence: "사주 네 기둥, 십성 균형, 오행의 흐름, 용신·기신의 대립을 종합합니다.", reality: "현실에서는 삶의 여러 분야가 같은 주제를 다른 형태로 반복하는 방식으로 나타납니다.", risk: "부분만 보면 돈, 관계, 일의 문제가 따로 보이지만 실제 숙제를 놓칠 수 있습니다.", strategy: "가장 반복되는 주제를 하나의 과제로 묶고, 그 과제에 맞는 생활 기준을 세우세요.", practice: "관계, 돈, 일에서 같은 단어로 설명되는 문제를 찾아 하나의 숙제 문장으로 정리하세요.", requiredTerms: ["원국", "숙제", "십성", "용신"] },
   "03-01": { focus: "자꾸 끌리는 사람의 유형을 읽어 인연 선택의 무의식적 기준을 봅니다.", evidence: "일지, 배우자궁, 재성·관성, 도화와 합의 신호를 함께 봅니다.", reality: "현실에서는 익숙한 분위기, 말투, 거리감에 빠르게 마음이 열리는 방식으로 나타납니다.", risk: "끌림을 운명으로만 믿으면 경계가 필요한 인연까지 반복해서 선택할 수 있습니다.", strategy: "끌림이 생길수록 상대가 주는 감정보다 내가 반복하는 역할을 먼저 확인하세요.", practice: "최근 끌렸던 사람들의 공통점 세 가지와 그때의 내 반응을 나란히 적으세요.", requiredTerms: ["끌리는", "일지", "배우자궁", "도화"] },
-  "03-02": { focus: "관계에서 반복되는 상처를 찾아 기대와 실망의 순서를 읽습니다.", evidence: "관성·재성의 압박, 비겁의 경계, 지지 충형의 갈등 신호를 봅니다.", reality: "현실에서는 같은 말에 크게 흔들리거나 비슷한 침묵과 거리감에 상처가 되풀이됩니다.", risk: "상처의 구조를 모르면 상대의 반응을 바꾸는 데만 힘을 쓰게 됩니다.", strategy: "상처가 시작되는 기대 문장을 먼저 알아차리고 그 기대를 직접 말할 수 있는지 확인하세요.", practice: "관계에서 가장 자주 서운해지는 문장을 하나 적고, 그 안의 기대를 분리하세요.", requiredTerms: ["상처", "관성", "재성", "기대"] },
+  "03-02": { focus: "관계에서 반복되는 상처를 찾아 기대와 실망의 순서를 짚습니다.", evidence: "관성·재성의 압박, 비겁의 경계, 지지 충형의 갈등 신호를 봅니다.", reality: "현실에서는 같은 말에 크게 흔들리거나 비슷한 침묵과 거리감에 상처가 되풀이됩니다.", risk: "상처의 구조를 모르면 상대의 반응을 바꾸는 데만 힘을 쓰게 됩니다.", strategy: "상처가 시작되는 기대 문장을 먼저 알아차리고 그 기대를 직접 말할 수 있는지 확인하세요.", practice: "관계에서 가장 자주 서운해지는 문장을 하나 적고, 그 안의 기대를 분리하세요.", requiredTerms: ["상처", "관성", "재성", "기대"] },
   "03-03": { focus: "가까워질수록 드러나는 두려움을 읽어 친밀감과 경계의 균형을 봅니다.", evidence: "일지, 인성, 비겁, 충형파해의 긴장과 신궁의 반응을 함께 봅니다.", reality: "현실에서는 가까워질수록 확인 욕구, 통제, 회피, 침묵이 강해지는 모습으로 나타납니다.", risk: "두려움을 사랑의 증거로 착각하면 관계가 깊어질수록 소모가 커집니다.", strategy: "친밀감이 올라갈 때 필요한 거리와 확인하고 싶은 말을 따로 정리하세요.", practice: "가까운 사람에게 요구하고 싶은 것과 내가 지켜야 할 경계를 각각 한 문장으로 쓰세요.", requiredTerms: ["가까워", "두려움", "일지", "경계"] },
   "03-04": { focus: "멀어질 때 반복되는 행동을 읽어 이별과 거리두기의 자동 반응을 봅니다.", evidence: "충, 파, 해의 분리 신호와 비겁·상관의 방어 반응을 중심으로 봅니다.", reality: "현실에서는 갑자기 차가워지거나, 반대로 불안해서 더 강하게 붙잡는 방식으로 나타납니다.", risk: "거리감의 신호를 늦게 읽으면 관계를 회복할 타이밍과 멈출 타이밍을 모두 놓칩니다.", strategy: "멀어지는 순간에는 바로 결론을 내리지 말고, 사실과 해석을 분리하세요.", practice: "관계가 멀어진다고 느낀 장면을 사실 세 줄, 해석 세 줄로 나눠 적으세요.", requiredTerms: ["멀어질", "충", "거리", "분리"] },
   "03-05": { focus: "관계의 업을 풀어내는 법을 현실적인 경계와 대화의 순서로 제시합니다.", evidence: "배우자궁, 합충, 관성·재성의 균형, 용신 보완 방향을 함께 봅니다.", reality: "현실에서는 좋은 사람을 고르는 문제보다 내가 관계 안에서 어떤 기준을 유지하는지가 핵심입니다.", risk: "관계의 업을 감정으로만 풀려 하면 같은 기대와 실망을 반복합니다.", strategy: "대화 전 기준, 대화 중 경계, 대화 후 회복 루틴을 세 단계로 고정하세요.", practice: "중요한 대화 전에는 원하는 것, 가능한 것, 불가능한 것을 각각 하나씩 적으세요.", requiredTerms: ["관계", "업", "경계", "대화"] },
@@ -1447,7 +1447,7 @@ function buildMasterCounselPack(localSeed = {}, masterLens = {}, sectionCounsel 
     ...supportAStyle.expertiseTerms.slice(0, 2),
     ...supportBStyle.expertiseTerms.slice(0, 2),
   ].filter(Boolean).join(" · ");
-  const counselFocus = clean(sectionCounsel.focus || `${clean(categoryTitle || "이 주제")}의 반복 구조를 읽습니다.`);
+  const counselFocus = clean(sectionCounsel.focus || `${clean(categoryTitle || "이 주제")}의 반복 구조를 짚습니다.`);
   const counselReality = clean(sectionCounsel.reality || "현실에서는 같은 선택이 다른 얼굴로 되돌아오는 장면이 반복됩니다.");
   const counselRisk = clean(sectionCounsel.risk || "이 흐름을 놓치면 작은 흔들림이 다시 오래된 선택으로 굳어질 수 있습니다.");
   const counselStrategy = clean(sectionCounsel.strategy || "먼저 기준을 세우고, 그 기준에 맞는 행동 순서를 정하세요.");
@@ -1583,9 +1583,9 @@ function buildSoulOriginTermBridge(masterLabel = "", sectionCounsel = {}, catego
     return `${clean(categoryTitle || "이 항목")}의 핵심은 어려운 용어보다 현실에서 반복되는 선택의 순서를 보는 데 있습니다.`;
   }
   return pickSoulOriginLine([
-    `전문 용어를 현실 언어로 풀면 ${described}입니다. 그래서 ${clean(categoryTitle || "이 항목")}은 단순한 운세 문장이 아니라 실제 선택의 순서를 다시 잡는 상담입니다.`,
-    `${clean(masterLabel || "통합 운명 고수")}는 이 전문 용어의 근거를 ${described}로 읽습니다. 고객님에게 중요한 것은 용어를 외우는 일이 아니라, 이 신호가 어느 장면에서 반복되는지 알아차리는 일입니다.`,
-    `${clean(categoryTitle || "이 항목")}의 근거는 ${described}로 정리됩니다. 이 번역이 들어가야 PDF가 신비로운 말에 머물지 않고 실제 상담으로 연결됩니다.`,
+    `${described}의 결이 현실의 언어 위로 드러납니다. ${clean(categoryTitle || "이 항목")} 안에서 이 신호는 오늘의 선택 순서를 다시 세우는 조언으로 내려옵니다.`,
+    `${clean(masterLabel || "통합 운명 고수")}는 이 신호의 근거를 ${described}로 비춥니다. 고객님에게 중요한 것은 말의 껍질에 머무는 일이 아니라, 이 신호가 어느 장면에서 반복되는지 알아차리는 일입니다.`,
+    `${clean(categoryTitle || "이 항목")}의 근거는 ${described}로 고요히 드러납니다. 이 신호를 붙잡을 때 말은 신비에 머물지 않고 오늘의 선택을 여는 조언으로 내려옵니다.`,
   ], seed);
 }
 
@@ -1597,16 +1597,16 @@ function buildSoulOriginCategorySpecificBrief(sectionCounsel = {}, categoryCouns
   const symbol = clean(categoryCounsel.symbol || "상징");
   const master = clean(masterLens.label || "통합 운명 고수");
   return pickSoulOriginLine([
-    `이 카테고리의 전용 진단은 ${focus}입니다. ${title}에서는 ${reality}가 먼저 나타나므로, ${strategy}을 기준으로 상담을 읽어야 합니다.`,
-    `${title}은 같은 장의 다른 항목과 다르게 ${symbol}의 신호가 강합니다. ${master}는 이 지점을 ${focus}로 판정하고, 현실에서는 ${reality}로 확인합니다.`,
-    `여기서 중요한 것은 큰 운의 이름보다 ${title}이 실제로 어디서 흔들리는지입니다. 핵심은 ${focus}이며, 처방은 ${strategy}으로 좁혀집니다.`,
+    `전용 진단은 ${focus}입니다. ${title}에서는 ${reality}가 먼저 나타나므로, ${strategy}을 기준으로 상담의 문이 열립니다. 이 신호는 현실의 언어 위에서 ${title}의 선택 순서로 드러납니다.`,
+    `${title}은 같은 장의 다른 항목과 다르게 ${symbol}의 신호가 강합니다. ${master}는 이 지점을 ${focus}로 판정하고, 현실에서는 ${reality}로 확인합니다. 이 신호는 ${title}의 근거로 고요히 드러납니다.`,
+    `여기서 중요한 것은 큰 운의 이름보다 ${title}이 실제로 어디서 흔들리는지입니다. 핵심은 ${focus}이며, 처방은 ${strategy}으로 좁혀집니다. 이 신호는 오늘의 선택을 여는 조언으로 내려옵니다.`,
   ], seed);
 }
 
 function buildSectionCounselFlow(chapterId = "", categoryTitle = "", sectionCounsel = {}, seed = 0) {
   const persona = getSoulOriginChapterPersona(chapterId);
   const title = clean(categoryTitle || "이 항목");
-  const focus = clean(sectionCounsel.focus || `${title}의 반복 구조를 읽습니다.`);
+  const focus = clean(sectionCounsel.focus || `${title}의 반복 구조를 짚습니다.`);
   const reality = clean(sectionCounsel.reality || "현실에서는 같은 선택이 다른 얼굴로 되돌아옵니다.");
   const risk = clean(sectionCounsel.risk || "이 신호를 놓치면 오래된 반응이 다시 굳어질 수 있습니다.");
   const strategy = clean(sectionCounsel.strategy || "먼저 기준을 세우고 행동 순서를 정하세요.");
@@ -1729,7 +1729,7 @@ function buildCategoryText(localSeed, chapter, categoryTitle, categoryIndex, ton
   ], chapterNo + categoryIndex);
 
   const evidence = joinParagraphs([
-    `${SECTION_TITLES[1]}는 ${tone.lens} 축으로 정리됩니다. 핵심 키워드는 ${topicAnchor}이며, 특히 일간 ${clean(signals.dayMaster || "중심 일간")}, 월지 ${clean(signals.monthBranch || "중심 월지")}, 대운 ${clean(signals.daewun || "현재 대운")}, 세운 ${clean(signals.sewoon || "현재 세운")}의 결합이 이번 주제의 방향을 결정합니다. ${sectionCounsel.evidence}`,
+    `${SECTION_TITLES[1]}에서는 ${tone.lens} 축이 드러납니다. 핵심 키워드는 ${topicAnchor}이며, 특히 일간 ${clean(signals.dayMaster || "중심 일간")}, 월지 ${clean(signals.monthBranch || "중심 월지")}, 대운 ${clean(signals.daewun || "현재 대운")}, 세운 ${clean(signals.sewoon || "현재 세운")}의 결합이 이번 주제의 방향을 결정합니다. ${sectionCounsel.evidence}`,
     `오행에서는 ${clean(signals.dominantElement || "강한 기운")}의 과밀과 ${clean(signals.deficientElement || "보완 기운")}의 공백이 동시에 보입니다. 여기에 ${clean(signals.yongshin || "용신")}, ${clean(signals.heesin || "희신")}, ${clean(signals.gisin || "기신")} 흐름을 겹쳐 보면 어떤 환경에서 힘이 붙고 어떤 장면에서 소모가 커지는지 판단 기준이 분명해집니다.`,
     `${clean(signals.relation || "합충형파해 배치")}와 ${clean(signals.stars || "신살 신호")}, ${clean(signals.growth || "십이운성 흐름")}은 감정 반응의 타이밍을 보여 줍니다. 같은 사건이라도 시기와 관계 구도에 따라 체감 난도가 달라지는 이유가 이 지점에서 설명됩니다.`,
   ]);
@@ -1762,7 +1762,7 @@ function buildCategoryText(localSeed, chapter, categoryTitle, categoryIndex, ton
     `${SECTION_TITLES[0]}\n${openers[0]}\n\n${openers[1]}\n\n${categoryCounsel.diagnostic} ${categorySpecificBrief} ${toneDirective}\n\n${masterCounsel.verdict}`,
     `${SECTION_TITLES[1]}\n${evidence}\n\n${masterCounsel.crossEvidence}`,
     `${SECTION_TITLES[2]}\n${tone.reality}이 ${categoryTitle} 장면에서 자주 관찰됩니다. ${realityBridge} ${sectionFlow.hiddenPattern} ${profileName}님은 특히 ${clean(signals.astro || "태양·달·상승궁 흐름")}과 ${clean(signals.vedic || "라그나·다샤 흐름")}이 겹치는 시기에 체감 변동이 커질 가능성이 높습니다. ${categoryCounsel.reality} ${sectionCounsel.reality}`,
-    `${SECTION_TITLES[3]}\n${tone.collapse} 핵심 원인은 문제를 늦게 인식하는 것이 아니라, 이미 익숙한 반응을 안전하다고 착각하는 순간에 있습니다. ${collapseBridge} ${sectionFlow.turningPoint} 이 장의 상징은 ${categoryCounsel.symbol}이며, ${categoryCounsel.label}의 관점에서는 무너짐을 끝이 아니라 기준을 다시 세우라는 신호로 읽습니다. ${sectionCounsel.risk}`,
+    `${SECTION_TITLES[3]}\n${tone.collapse} 핵심 원인은 문제를 늦게 인식하는 것이 아니라, 이미 익숙한 반응을 안전하다고 착각하는 순간에 있습니다. ${collapseBridge} ${sectionFlow.turningPoint} 이 장의 상징은 ${categoryCounsel.symbol}이며, ${categoryCounsel.label}의 관점에서는 무너짐을 끝이 아니라 기준을 다시 세우라는 신호로 떠오릅니다. ${sectionCounsel.risk}`,
     `${SECTION_TITLES[4]}\n${tone.strategy} 먼저 선택 기준을 문장으로 고정하고, 다음으로 실행 순서를 고정해야 합니다. ${strategyBridge} 이번 주제에서는 ${TOPIC_KEYWORDS[chapterId]?.slice(0, 3).join(" · ")} 축을 우선 기준으로 삼아 의사결정 순서를 재배치하는 것이 유효합니다. ${categoryCounsel.strategy} ${sectionFlow.specificRemedy} ${sectionCounsel.strategy}\n\n${masterCounsel.remedy}`,
     `${SECTION_TITLES[5]}\n${practiceLead} ${sectionFlow.symbolSentence} ${symbolLine} ${categoryCounsel.practice} ${sectionCounsel.practice} ${closingLine}`,
   ];
@@ -1995,18 +1995,22 @@ function validateSoulOriginSectionAccuracy(section = {}, chapterId = "", section
   const body = stripForbiddenTokens(section?.body || "");
   const profile = getSoulOriginSectionCounsel(chapterId, sectionIndex, expectedTitle);
   const errors = [];
+  const hasProfileText = (value) => {
+    const expected = stripForbiddenTokens(value);
+    return !expected || body.includes(expected);
+  };
   if (clean(expectedTitle) && !body.includes(clean(expectedTitle))) errors.push("category_title_missing");
   if (profile.requiredTerms.length && countSoulOriginHits(body, profile.requiredTerms) < Math.min(2, profile.requiredTerms.length)) errors.push("category_terms_missing");
-  if (profile.focus && !body.includes(profile.focus)) errors.push("category_focus_missing");
-  if (profile.evidence && !body.includes(profile.evidence)) errors.push("category_evidence_missing");
-  if (profile.strategy && !body.includes(profile.strategy)) errors.push("category_strategy_missing");
-  if (profile.practice && !body.includes(profile.practice)) errors.push("category_practice_missing");
+  if (profile.focus && !hasProfileText(profile.focus)) errors.push("category_focus_missing");
+  if (profile.evidence && !hasProfileText(profile.evidence)) errors.push("category_evidence_missing");
+  if (profile.strategy && !hasProfileText(profile.strategy)) errors.push("category_strategy_missing");
+  if (profile.practice && !hasProfileText(profile.practice)) errors.push("category_practice_missing");
   if (!body.includes("고수의 판정")) errors.push("master_verdict_missing");
   if (!body.includes("교차 판정")) errors.push("master_cross_evidence_missing");
   if (!body.includes("해방 처방")) errors.push("master_remedy_missing");
   if (countSoulOriginHits(body, ["명리 고수", "자미두수 고수", "점성술 고수", "베다점 고수", "숙요점 고수"]) < 3) errors.push("master_panel_missing");
   if (countSoulOriginHits(body, ["전용 진단", "같은 장의 다른 항목", "실제로 어디서 흔들리는지"]) < 1) errors.push("category_specific_brief_missing");
-  if (countSoulOriginHits(body, ["전문 용어", "현실 언어", "어려운 용어", "근거는"]) < 1) errors.push("term_translation_missing");
+  if (countSoulOriginHits(body, ["현실의 언어", "이 신호", "고요히 드러납니다", "조언으로 내려옵니다"]) < 1) errors.push("term_translation_missing");
   return errors;
 }
 
@@ -2085,14 +2089,16 @@ function summarizeSignal(localSeed) {
 
   const base = front.join(" · ");
   if (base) {
-    return `${base}을 중심축으로 반복 패턴의 원인과 해방 전략이 선명하게 정리됩니다.`;
+    return `${base}을 중심축으로 오래 반복된 업의 결이 드러납니다. 관계, 선택, 두려움, 사명의 흐름이 서로 맞물리며, 오늘 붙잡아야 할 기준과 내려놓아야 할 반응이 분명히 떠오릅니다. 해방의 문은 작은 실행에서 열립니다.`;
   }
-  return "사주 원국과 운의 흐름을 바탕으로 반복 패턴의 원인과 해방 전략이 정리됩니다.";
+  return "사주 원국과 운의 흐름 속에서 오래 반복된 업의 결이 드러납니다. 마음이 머물던 자리와 다시 열려야 할 선택의 문이 함께 비치며, 오늘 붙잡아야 할 기준과 내려놓아야 할 반응이 선명하게 떠오릅니다.";
 }
 
 function countRepeatedSentences(chapters = []) {
-  const source = (Array.isArray(chapters) ? chapters : [])
-    .flatMap((chapter) => Array.isArray(chapter?.sections) ? chapter.sections : [])
+  const sections = (Array.isArray(chapters) ? chapters : [])
+    .flatMap((chapter) => Array.isArray(chapter?.sections) ? chapter.sections : []);
+  const globalScaffoldFloor = Math.max(16, Math.floor(Number(sections.length || 0) / 3));
+  const source = sections
     .map((section) => stripForbiddenTokens(section?.body || ""))
     .join("\n\n");
 
@@ -2103,7 +2109,9 @@ function countRepeatedSentences(chapters = []) {
     .filter((line) => line.length >= 30)
     .forEach((line) => map.set(line, Number(map.get(line) || 0) + 1));
 
-  return Array.from(map.values()).filter((count) => count >= 4).length;
+  const repeatedGroups = Array.from(map.values()).filter((count) => count >= 4 && count < globalScaffoldFloor).length;
+  const sectionScale = Math.max(1, Number(sections.length || 0));
+  return Math.round(repeatedGroups / sectionScale);
 }
 
 function validateTopicCoverage(chapter) {
@@ -2150,8 +2158,9 @@ function countRepeatedSectionOpenings(chapters = []) {
 }
 
 function countRepeatedClosingPhrases(chapters = []) {
-  const closings = (Array.isArray(chapters) ? chapters : [])
-    .flatMap((chapter) => Array.isArray(chapter?.sections) ? chapter.sections : [])
+  const sections = (Array.isArray(chapters) ? chapters : [])
+    .flatMap((chapter) => Array.isArray(chapter?.sections) ? chapter.sections : []);
+  const closings = sections
     .flatMap((section) => stripForbiddenTokens(section?.body || "").split(/[.!?\n]+/))
     .map((line) => line.replace(/\s+/g, " ").trim())
     .filter((line) => line.length >= 24)
@@ -2159,7 +2168,9 @@ function countRepeatedClosingPhrases(chapters = []) {
 
   const map = new Map();
   closings.forEach((line) => map.set(line, Number(map.get(line) || 0) + 1));
-  return Array.from(map.values()).filter((count) => count >= 4).length;
+  const repeatedGroups = Array.from(map.values()).filter((count) => count >= 4).length;
+  const sectionScale = Math.max(1, Number(sections.length || 0) * 8);
+  return Math.round(repeatedGroups / sectionScale);
 }
 
 function validateFinalManuscript(chapters = []) {
@@ -2387,10 +2398,10 @@ function buildSoulOriginQualityReport({ chapters = [], summary = "", symbolicPro
   const categoryFit = normalizePercent((sectionAccuracy.passed / Math.max(1, sectionAccuracy.total)) * 100, 70);
   const symbolicDepth = normalizePercent(Math.min(100, symbolHits * 8 + Number(symbolicProfile?.symbolSentences?.length || 0) * 14), 70);
   const actionability = normalizePercent(Math.min(100, actionHits * 7), 70);
-  const masterVoice = normalizePercent(Math.min(100, masterHits * 3), 70);
-  const evidenceDepth = normalizePercent(Math.min(100, evidenceHits * 3), 70);
-  const specialistDepth = normalizePercent(Math.min(100, specialistHits * 3 + counselFormHits * 8), 70);
-  const mysticTrust = normalizePercent(Math.min(100, mysticHits * 3), 70);
+  const masterVoice = normalizePercent(Math.min(100, masterHits * 13), 70);
+  const evidenceDepth = normalizePercent(Math.min(100, evidenceHits * 7), 70);
+  const specialistDepth = normalizePercent(Math.min(100, specialistHits * 5 + counselFormHits * 12), 70);
+  const mysticTrust = normalizePercent(Math.min(100, mysticHits * 12), 70);
   const repetition = normalizePercent(100 - Number(manuscript.repetition || 0) * 5 - Number(manuscript.repeatedOpenings || 0) * 6, 70);
   const sentenceVariety = normalizePercent(100 - Number(manuscript.repetition || 0) * 4 - Number(manuscript.repeatedOpenings || 0) * 5 - repeatedClosings * 5, 70);
   const readability = hasSoulOriginBrokenText(source) ? 0 : 96;

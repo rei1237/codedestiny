@@ -3,11 +3,11 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const META = {
   path: "/oracle/sukuyo",
-  title: "숙요점 - 27수 별자리 운명 분석",
-  description: "27수 체계로 성향, 관계 리듬, 생활 템포를 읽는 숙요점 가이드와 실행형 해석을 제공합니다.",
-  keywords: ["숙요점", "27수", "숙요 궁합", "달 위치 점성술", "sukuyo"],
+  title: "숙요 인연 레이더 | Code Destiny",
+  description: "상대의 생년월일로 나와의 숙요 관계를 분석하고, 끌림·안정감·소모도·장기 인연 가능성을 확인해보세요.",
+  keywords: ["숙요점", "숙요 궁합", "27숙", "안괴", "영친", "업태", "우쇠", "성위", "인연 분석", "연애 궁합"],
   image: "https://code-destiny.com/fuctionassets/sukyo.webp",
-  featureList: ["27수 성향 해석", "관계 리듬 분석", "실전 활용 가이드"],
+  featureList: ["27숙 관계 타입 산출", "인연 레이더 지수", "관계 목적별 조언"],
   applicationCategory: "LifestyleApplication",
 } as const;
 
@@ -16,11 +16,11 @@ export function generateMetadata() {
 }
 
 const SERVICE = {
-  h1: "숙요점",
+  h1: "숙요 인연 레이더",
   description: META.description,
   ogImage: META.image,
   landingPoints: [...META.featureList],
-  seoText: "숙요점은 달의 위치를 27수로 해석해 관계와 생활 리듬을 읽는 동양 점성술 가이드입니다.",
+  seoText: "숙요 인연 레이더는 두 사람의 본명숙과 27숙 관계를 바탕으로 끌림, 안정감, 소모도, 장기 인연 가능성을 비춥니다.",
   valueGuideTitle: "숙요점을 실전에 적용하는 6단계",
   valueSections: [
     {

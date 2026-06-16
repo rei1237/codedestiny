@@ -948,7 +948,7 @@ export default {
       }
 
       if (url.pathname === "/api/ziwei-book" || url.pathname.startsWith("/api/ziwei-book/")) {
-        return withCorsHeaders(request, env, await handleZiweiBookRoutes(request, env));
+        return withCorsHeaders(request, env, await handleZiweiBookRoutes(request, env, ctx));
       }
 
       if (url.pathname === "/api/ziwei/daehan" || url.pathname.startsWith("/api/ziwei/daehan/")) {

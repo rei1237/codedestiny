@@ -515,6 +515,23 @@ function clean(value) {
   return String(value || "").trim();
 }
 
+function asPlainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function getAstroBirthInputSource(body = {}) {
+  const root = asPlainObject(body);
+  const nestedBirthInput = asPlainObject(root.birthInput);
+  if (Object.keys(nestedBirthInput).length === 0) return root;
+  return {
+    ...root,
+    ...nestedBirthInput,
+    profile: nestedBirthInput.profile || root.profile,
+    location: nestedBirthInput.location || root.location,
+    user: nestedBirthInput.user || root.user,
+  };
+}
+
 function withPdfArchiveFormat(url, format) {
   const value = clean(url);
   const targetFormat = clean(format) || "pdf";
@@ -726,9 +743,13 @@ function buildAstroPdfQualityGate(generated = {}) {
   const localDraftChapterCount = Number(generated?.localDraftChapterCount || 0);
   const localAssembly = generated?.localAssembly && typeof generated.localAssembly === "object" ? generated.localAssembly : {};
   const totalLength = Number(generated?.totalLength || 0);
+  const expectedSectionCount = ASTRO_PREMIUM_CHAPTERS.reduce((sum, chapter) => sum + (Array.isArray(chapter.categories) ? chapter.categories.length : 0), 0);
   const issues = [];
-  if (manuscriptSource !== ASTRO_PDF_CONFIG.generationMode) issues.push("manuscript_source");
   if (manuscriptSource !== ASTRO_PDF_CONFIG.generationMode) issues.push("non_local_manuscript_source");
+  if (Number(stats.chapterCount || 0) !== totalChapters) issues.push("chapter_count");
+  if (Number(stats.expectedChapterCount || totalChapters) !== totalChapters) issues.push("expected_chapter_count");
+  if (Number(stats.sectionCount || 0) !== expectedSectionCount) issues.push("section_count");
+  if (Number(stats.expectedSectionCount || expectedSectionCount) !== expectedSectionCount) issues.push("expected_section_count");
   if (localDraftChapterCount !== totalChapters) issues.push("local_draft_chapter_count");
   if (localAssembly.enabled !== true) issues.push("local_assembly");
   if (localAssembly.externalGeneration !== false) issues.push("external_generation");
@@ -1154,6 +1175,8 @@ async function handleAstroPremiumPrepare(request, env) {
   let auth = null;
   let body = {};
   let sessionId = "";
+  let reportId = "";
+  let birthInputSource = {};
   const pdfDbEnv = withPdfFastDbEnv(env);
   try {
     auth = await requireAuth(request, env);
@@ -1163,10 +1186,11 @@ async function handleAstroPremiumPrepare(request, env) {
       sessionId: clean(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId),
       reportSessionId: clean(body?.reportSessionId || body?.accessGrant?.reportSessionId || body?.accessGrant?.sessionId),
     });
-    const reportId = clean(body?.reportId || body?.accessGrant?.reportId || `astro-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
+    reportId = clean(body?.reportId || body?.accessGrant?.reportId || `astro-premium-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`);
     const premiumAccessToken = readPremiumAccessToken(request, body);
     const featureKey = clean(body?.featureKey || ASTRO_PREMIUM_FEATURE_KEY) || ASTRO_PREMIUM_FEATURE_KEY;
-    const birthInput = normalizeAstroPremiumBirthInput(body);
+    birthInputSource = getAstroBirthInputSource(body);
+    const birthInput = normalizeAstroPremiumBirthInput(birthInputSource);
 
     compactAstroPremiumLocks();
     const existingLock = astroPremiumGenerationLocks.get(sessionId);
@@ -1213,44 +1237,6 @@ async function handleAstroPremiumPrepare(request, env) {
       sessionId,
       ...toSafeBirthLog(birthInput, ASTRO_PREMIUM_CHAPTERS.length),
     });
-
-    const validation = validateAstroPayloadForApi({ birthInput });
-    if (!validation.ok) {
-      const missingTime = validation.missing.includes("birthHour");
-      const missingLocation = ["birthPlace", "latitude", "longitude"].some((key) => validation.missing.includes(key));
-      const missingTimezone = ["timezone", "timezoneOffsetHours"].some((key) => validation.missing.includes(key));
-      astroPremiumGenerationLocks.set(sessionId, {
-        sessionId,
-        reportId,
-        userId: auth.userId,
-        status: "failed",
-        startedAt: new Date().toISOString(),
-        startedAtMs: Date.now(),
-        stage: "birth-input-invalid",
-        progress: {
-          stateKey: "failed",
-          currentChapterNo: 0,
-          totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
-          currentChapterTitle: "출생 정보 확인 실패",
-          updatedAt: new Date().toISOString(),
-        },
-      });
-      return json({
-        ok: false,
-        code: "MISSING_ASTRO_DATA",
-        message: missingTime
-          ? "점성술 PDF는 상승궁과 하우스 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요."
-          : missingLocation
-            ? "점성술 PDF는 상승궁·하우스·천정점 계산을 위해 출생지와 좌표가 필요합니다. 프로필 카드에서 태어난 지역을 먼저 선택해주세요."
-            : missingTimezone
-              ? "점성술 PDF는 정확한 하우스 계산을 위해 출생지 시간대가 필요합니다. 프로필 카드에서 태어난 지역을 다시 선택해주세요."
-          : "점성술 계산 데이터가 부족합니다. 생년월일/출생정보를 먼저 확인해 주세요.",
-        missing: validation.missing,
-      }, { status: 422 });
-    }
-
-    console.info("[AstroPremiumPDF][BirthInputValidated]", toSafeBirthLog(birthInput, ASTRO_PREMIUM_CHAPTERS.length));
-    console.info("[AstroPremiumPDF][LocalCalculationStart]", toSafeBirthLog(birthInput));
 
     const access = await requirePremiumReportAccess(pdfDbEnv, auth.userId, "westernAstrologyPremium", {
       ...body,
@@ -1327,6 +1313,64 @@ async function handleAstroPremiumPrepare(request, env) {
       timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
     });
     await startPremiumPdfExecution(pdfDbEnv, auth.userId, executionCtx);
+
+    const validation = validateAstroPayloadForApi({ birthInput });
+    if (!validation.ok) {
+      const missingTime = validation.missing.includes("birthHour");
+      const missingLocation = ["birthPlace", "latitude", "longitude"].some((key) => validation.missing.includes(key));
+      const missingTimezone = ["timezone", "timezoneOffsetHours"].some((key) => validation.missing.includes(key));
+      const message = missingTime
+        ? "점성술 PDF는 상승궁과 하우스 계산을 위해 태어난 시간이 필요합니다. 프로필 카드에서 태어난 시간을 먼저 입력해주세요."
+        : missingLocation
+          ? "점성술 PDF는 상승궁·하우스·천정점 계산을 위해 출생지와 좌표가 필요합니다. 프로필 카드에서 태어난 지역을 먼저 선택해주세요."
+          : missingTimezone
+            ? "점성술 PDF는 정확한 하우스 계산을 위해 출생지 시간대가 필요합니다. 프로필 카드에서 태어난 지역을 다시 선택해주세요."
+          : "점성술 계산 데이터가 부족합니다. 생년월일/출생정보를 먼저 확인해 주세요.";
+      const invalidInputError = {
+        code: "MISSING_ASTRO_DATA",
+        message,
+        missing: validation.missing,
+      };
+      try {
+        await failPremiumPdfExecution(
+          pdfDbEnv,
+          auth.userId,
+          executionCtx,
+          "astro_birth_input_invalid",
+          message,
+          "birth-input-invalid",
+        );
+      } catch (failErr) {
+        console.error("[AstroPremiumPDF][InvalidInputFailExecution]", {
+          reason: clean(failErr?.message || failErr),
+        });
+      }
+      astroPremiumGenerationLocks.set(sessionId, {
+        sessionId,
+        reportId,
+        userId: auth.userId,
+        status: "failed",
+        startedAt: new Date().toISOString(),
+        startedAtMs: Date.now(),
+        failedAt: new Date().toISOString(),
+        stage: "birth-input-invalid",
+        progress: {
+          stateKey: "failed",
+          currentChapterNo: 0,
+          totalChapters: ASTRO_PREMIUM_CHAPTERS.length,
+          currentChapterTitle: "출생 정보 확인 실패",
+          updatedAt: new Date().toISOString(),
+        },
+        error: invalidInputError,
+      });
+      return json({
+        ok: false,
+        ...invalidInputError,
+      }, { status: 422 });
+    }
+
+    console.info("[AstroPremiumPDF][BirthInputValidated]", toSafeBirthLog(birthInput, ASTRO_PREMIUM_CHAPTERS.length));
+    console.info("[AstroPremiumPDF][LocalCalculationStart]", toSafeBirthLog(birthInput));
     updateAstroSessionProgress(sessionId, {
       stateKey: "local_calculation",
       currentChapterNo: 0,
@@ -1510,6 +1554,10 @@ async function handleAstroPremiumPrepare(request, env) {
 
     return json(responsePayload);
   } catch (error) {
+    const originalCode = clean(error?.details?.originalCode || error?.code || "ASTRO_PREMIUM_GENERATION_FAILED");
+    const failureReasonCode = originalCode
+      ? originalCode.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "")
+      : "astro_generation_failed";
     try {
       await failPremiumPdfExecution(
         pdfDbEnv,
@@ -1520,12 +1568,12 @@ async function handleAstroPremiumPrepare(request, env) {
           userId: auth?.userId,
           featureKey: String(body?.featureKey || ASTRO_PREMIUM_FEATURE_KEY),
           sessionId,
-          reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+          reportId: clean(reportId || body?.reportId || body?.accessGrant?.reportId),
           access: null,
           body,
           timeoutSeconds: Number(env?.PREMIUM_PDF_GRACE_TIMEOUT_SECONDS || 1800),
         }),
-        "astro_generation_failed",
+        failureReasonCode || "astro_generation_failed",
         clean(error?.message || "점성술 프리미엄 PDF 생성에 실패했습니다."),
         "astro-generation",
       );
@@ -1557,28 +1605,34 @@ async function handleAstroPremiumPrepare(request, env) {
         },
       });
     }
-    console.error("[AstroPremiumPDF][FailureTrace]", toAstroFailureTrace(error, body, normalizeAstroPremiumBirthInput(body)));
+    console.error("[AstroPremiumPDF][FailureTrace]", toAstroFailureTrace(error, body, normalizeAstroPremiumBirthInput(birthInputSource || getAstroBirthInputSource(body))));
     console.error("[AstroPremiumPDF][Error]", {
       ...toAstroErrorMeta(error),
       details: normalizeAstroError(error),
     });
     const rawMessage = clean(error?.message || "점성술 프리미엄 PDF 생성에 실패했습니다.");
-    const originalCode = clean(error?.details?.originalCode || error?.code);
-    const userFacingMessage = rawMessage.includes("태어난 시간") || rawMessage.includes("birth")
+    const userFacingMessage = originalCode === "ASTRO_SWISS_ENGINE_UNAVAILABLE" || rawMessage.includes("Swiss")
+      ? "점성술 차트 계산 엔진을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
+      : originalCode === "ASTRO_TRANSIT_INSIGHTS_INVALID"
+        ? "점성술 시기 흐름 계산이 완성되지 않았습니다. 잠시 후 다시 시도해 주세요."
+        : originalCode === "ASTRO_REPORT_COMPLETION_INVALID" || originalCode === "ASTRO_PDF_COMPLETION_VALIDATION_FAILED"
+          ? "점성술 PDF 완성 검증이 통과되지 않았습니다. 잠시 후 다시 시도해 주세요."
+      : rawMessage.includes("태어난 시간") || rawMessage.includes("birth")
       ? "점성술 PDF 생성에 필요한 출생시 정보가 부족합니다. 프로필 카드에서 태어난 시간을 확인해 주세요."
       : rawMessage.includes("원고") || rawMessage.includes("검증")
         ? "생성된 점성술 원고가 품질 기준을 통과하지 못했습니다. 잠시 후 다시 시도해 주세요."
-        : rawMessage.includes("Swiss") || rawMessage.includes("차트")
+        : rawMessage.includes("차트")
           ? "점성술 차트 계산 중 일시적 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
           : "점성술 PDF 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
     return json({
       ok: false,
       code: error?.code || "ASTRO_PREMIUM_GENERATION_FAILED",
+      originalCode: originalCode || null,
       message: userFacingMessage,
       debugSafe: {
         stage: "local-assembly",
         sessionId,
-        reportId: clean(body?.reportId || body?.accessGrant?.reportId),
+        reportId: clean(reportId || body?.reportId || body?.accessGrant?.reportId),
         originalCode: originalCode || null,
       },
     }, { status: Number(error?.status || 500) });
