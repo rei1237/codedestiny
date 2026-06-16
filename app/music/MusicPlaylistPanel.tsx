@@ -20,6 +20,7 @@ const PLAYLIST_TABS: Array<{ key: PlaylistTab; label: string }> = [
   { key: "yeoni", label: "Yeoni" },
   { key: "neo", label: "Neo" },
   { key: "dest1nova", label: "DEST1NOVA" },
+  { key: "lunabloom", label: "Luna Bloom" },
   { key: "all", label: "All" },
 ];
 
@@ -37,6 +38,7 @@ function normalizeSearchText(value: string) {
 
 function getTrackCollectionLabel(track: Track) {
   if (track.artistKey === "dest1nova") return "DEST1NOVA";
+  if (track.artistKey === "lunabloom") return "Luna Bloom";
   if (track.audioKey.startsWith("neosongmini1/") || track.audioKey.startsWith("yeonisongmini1/")) return "Mini Album";
   return "Moon Cut";
 }
@@ -88,7 +90,7 @@ export default function MusicPlaylistPanel({
         ? tracks.length
         : tracks.filter((track) => track.artistKey === tab.key).length;
       return counts;
-    }, { all: 0, neo: 0, yeoni: 0, dest1nova: 0 });
+    }, { all: 0, neo: 0, yeoni: 0, dest1nova: 0, lunabloom: 0 });
   }, [tracks]);
 
   const filteredTracks = useMemo(() => {

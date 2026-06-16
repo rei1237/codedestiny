@@ -6,6 +6,9 @@
   --moon-glass: rgba(8, 13, 30, 0.46);
   --moon-cyan: rgba(126, 224, 255, 0.3);
   --moon-rose: rgba(255, 177, 213, 0.2);
+  --moon-pearl: rgba(246, 251, 255, 0.9);
+  --moon-gold: rgba(245, 227, 174, 0.78);
+  --moon-progress: 0%;
   --album-frame-width: min(94%, 372px);
   --album-frame-aspect: 16 / 9;
   --album-frame-padding: 10px;
@@ -21,6 +24,7 @@
   place-items: center;
   padding: 48px 20px;
   color: var(--moon-ink);
+  font-family: var(--font-body);
   background:
     radial-gradient(circle at 18% 16%, rgba(248, 242, 206, 0.22), transparent 15rem),
     radial-gradient(circle at 80% 20%, rgba(133, 228, 255, 0.16), transparent 18rem),
@@ -309,8 +313,11 @@
   background:
     linear-gradient(118deg, transparent 0 18%, rgba(238, 248, 255, 0.13) 28%, transparent 46%),
     linear-gradient(132deg, transparent 0 48%, rgba(245, 227, 174, 0.08) 57%, transparent 70%);
+  background-size: 260% 100%, 220% 100%;
+  background-position: 0% 50%, 100% 50%;
   filter: blur(10px);
   transform: translate3d(0, 0, 0);
+  will-change: opacity, background-position, filter;
 }
 
 .yeoniMode .moonbeam {
@@ -318,6 +325,20 @@
   background:
     linear-gradient(118deg, transparent 0 18%, rgba(255, 223, 239, 0.18) 28%, transparent 46%),
     linear-gradient(132deg, transparent 0 48%, rgba(255, 151, 205, 0.12) 57%, transparent 70%);
+}
+
+.isPlaying .coverAmbient {
+  animation: coverMoonCurrent 12s ease-in-out infinite;
+}
+
+.isPlaying .moonbeam {
+  opacity: 0.68;
+  animation: moonbeamFlow 8.8s ease-in-out infinite;
+}
+
+.isPaused .moonbeam {
+  opacity: 0.4;
+  animation: moonbeamRest 720ms ease-out both;
 }
 
 .moon::before {
@@ -395,6 +416,7 @@
 }
 
 .playerFrame {
+  position: relative;
   width: min(100%, 1080px);
   display: grid;
   grid-template-columns: minmax(0, 560px) minmax(310px, 360px);
@@ -403,6 +425,7 @@
   padding: 26px;
   border: 1px solid var(--moon-line);
   border-radius: 8px;
+  overflow: hidden;
   background:
     radial-gradient(circle at 16% 18%, rgba(245, 227, 174, 0.1), transparent 18rem),
     radial-gradient(circle at 72% 8%, var(--moon-rose), transparent 20rem),
@@ -412,6 +435,29 @@
     0 24px 90px rgba(0, 0, 0, 0.44),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(20px);
+}
+
+.playerFrame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(112deg, transparent 0 22%, rgba(246, 251, 255, 0.12) 36%, transparent 52%),
+    radial-gradient(circle at 28% 0%, rgba(245, 227, 174, 0.12), transparent 24rem);
+  background-size: 240% 100%, 100% 100%;
+  opacity: 0.6;
+}
+
+.playerFrame > * {
+  position: relative;
+  z-index: 1;
+}
+
+.isPlaying .playerFrame::before {
+  animation: frameMoonGlide 9s ease-in-out infinite;
 }
 
 .playerMain {
@@ -635,6 +681,7 @@
 }
 
 .albumStatusBadge {
+  position: relative;
   max-width: min(100%, 360px);
   min-height: 34px;
   display: inline-flex;
@@ -645,6 +692,7 @@
   border: 1px solid rgba(245, 227, 174, 0.24);
   border-radius: 999px;
   color: rgba(255, 249, 220, 0.86);
+  font-family: var(--font-premium);
   background:
     linear-gradient(135deg, rgba(245, 227, 174, 0.13), rgba(255, 255, 255, 0.055)),
     rgba(6, 10, 22, 0.4);
@@ -653,16 +701,54 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   font-size: 0.76rem;
   font-weight: 850;
+  overflow: hidden;
+  transition: border-color 280ms ease, color 280ms ease, box-shadow 280ms ease, background 280ms ease;
 }
 
 .albumStatusBadge::before {
   content: "";
+  position: relative;
+  z-index: 1;
   width: 7px;
   height: 7px;
   flex: 0 0 auto;
   border-radius: 50%;
   background: #fff4c2;
   box-shadow: 0 0 14px rgba(245, 227, 174, 0.72);
+}
+
+.albumStatusBadge::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  background: linear-gradient(102deg, transparent 0 28%, rgba(246, 251, 255, 0.42) 44%, rgba(126, 224, 255, 0.18) 52%, transparent 68%);
+  opacity: 0;
+  transform: translateX(-120%);
+}
+
+.albumStatusBadge[data-playing="true"] {
+  border-color: rgba(246, 251, 255, 0.42);
+  color: #fffef3;
+  background:
+    linear-gradient(135deg, rgba(246, 251, 255, 0.16), rgba(126, 224, 255, 0.09), rgba(245, 227, 174, 0.1)),
+    rgba(6, 10, 22, 0.48);
+  box-shadow:
+    0 0 28px rgba(246, 251, 255, 0.18),
+    0 0 42px rgba(126, 224, 255, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.albumStatusBadge[data-playing="true"]::before {
+  animation: statusPearlPulse 1.8s ease-in-out infinite;
+}
+
+.albumStatusBadge[data-playing="true"]::after {
+  animation: statusMoonSweep 2.7s ease-in-out infinite;
+}
+
+.albumStatusBadge[data-playing="false"] {
+  animation: statusMoonRest 720ms ease-out both;
 }
 
 .nowPlayingPanel {
@@ -693,6 +779,7 @@
 
 .artistName {
   color: rgba(245, 227, 174, 0.84);
+  font-family: var(--font-decorative);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0;
@@ -703,10 +790,12 @@
   margin: 0;
   max-width: 100%;
   color: var(--moon-ink);
+  font-family: var(--font-display);
   font-size: clamp(1.45rem, 4vw, 2.1rem);
   line-height: 1.08;
   letter-spacing: 0;
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 .nowPlayingPanel p {
@@ -925,6 +1014,7 @@
 }
 
 .playButton {
+  position: relative;
   width: 70px;
   height: 70px;
   display: inline-grid;
@@ -936,6 +1026,50 @@
   box-shadow:
     0 0 34px rgba(232, 244, 255, 0.22),
     0 0 44px rgba(245, 227, 174, 0.1);
+  overflow: hidden;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 220ms ease;
+}
+
+.playButton::before,
+.playButton::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.playButton::before {
+  border: 1px solid rgba(246, 251, 255, 0.2);
+  box-shadow: inset 0 0 20px rgba(246, 251, 255, 0.14);
+}
+
+.playButton::after {
+  background: linear-gradient(120deg, transparent 0 30%, rgba(255, 255, 255, 0.44) 46%, transparent 62%);
+  opacity: 0;
+  transform: translateX(-120%);
+}
+
+.playButton svg {
+  position: relative;
+  z-index: 1;
+}
+
+.isPlaying .playButton {
+  border-color: rgba(246, 251, 255, 0.56);
+  box-shadow:
+    0 0 38px rgba(246, 251, 255, 0.26),
+    0 0 58px rgba(126, 224, 255, 0.16),
+    0 0 48px rgba(245, 227, 174, 0.12);
+}
+
+.isPlaying .playButton::before {
+  animation: controlMoonPulse 2s ease-in-out infinite;
+}
+
+.isPlaying .playButton::after,
+.isPaused .playButton::after {
+  animation: controlMoonGleam 1.15s ease-out both;
 }
 
 .smallButton[data-active="true"] {
@@ -975,6 +1109,8 @@
 }
 
 .progressArea {
+  --moon-progress: 0%;
+  position: relative;
   width: 100%;
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr) 44px;
@@ -983,6 +1119,24 @@
   color: var(--moon-muted);
   font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
+}
+
+.progressArea::before {
+  content: "";
+  position: absolute;
+  left: 54px;
+  right: 54px;
+  top: 50%;
+  height: 24px;
+  border-radius: 999px;
+  background: radial-gradient(ellipse at var(--moon-progress) 50%, rgba(246, 251, 255, 0.28), transparent 36%);
+  opacity: 0.42;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.progressArea[data-playing="true"]::before {
+  animation: progressGlowBreath 2.8s ease-in-out infinite;
 }
 
 .progressInput,
@@ -1008,6 +1162,17 @@
   box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
+.progressInput::-webkit-slider-runnable-track {
+  background:
+    linear-gradient(90deg, rgba(245, 227, 174, 0.82), rgba(246, 251, 255, 0.94), rgba(126, 224, 255, 0.62)) 0 0 / var(--moon-progress) 100% no-repeat,
+    linear-gradient(102deg, transparent 0 26%, rgba(255, 255, 255, 0.32) 42%, transparent 58%) 0 0 / 180% 100% no-repeat,
+    rgba(255, 255, 255, 0.08);
+}
+
+.progressArea[data-playing="true"] .progressInput::-webkit-slider-runnable-track {
+  animation: progressMoonDrift 3.2s linear infinite;
+}
+
 .progressInput::-webkit-slider-thumb,
 .volumeInput::-webkit-slider-thumb {
   appearance: none;
@@ -1030,6 +1195,12 @@
   border-radius: 999px;
   background:
     linear-gradient(90deg, rgba(245, 227, 174, 0.7), rgba(234, 246, 255, 0.88), rgba(255, 177, 213, 0.58)),
+    rgba(255, 255, 255, 0.08);
+}
+
+.progressInput::-moz-range-track {
+  background:
+    linear-gradient(90deg, rgba(245, 227, 174, 0.82), rgba(246, 251, 255, 0.94), rgba(126, 224, 255, 0.62)) 0 0 / var(--moon-progress) 100% no-repeat,
     rgba(255, 255, 255, 0.08);
 }
 
@@ -1742,6 +1913,143 @@
   50% {
     transform: scaleY(1.25);
     opacity: 1;
+  }
+}
+
+@keyframes coverMoonCurrent {
+  0%,
+  100% {
+    opacity: 0.52;
+    filter: blur(42px) saturate(1.18);
+    transform: scale(1.2);
+  }
+  50% {
+    opacity: 0.68;
+    filter: blur(38px) saturate(1.32);
+    transform: scale(1.26);
+  }
+}
+
+@keyframes moonbeamFlow {
+  0%,
+  100% {
+    background-position: 0% 50%, 100% 50%;
+    filter: blur(11px);
+  }
+  50% {
+    background-position: 100% 50%, 0% 50%;
+    filter: blur(7px);
+  }
+}
+
+@keyframes moonbeamRest {
+  0% {
+    opacity: 0.68;
+    filter: blur(7px);
+  }
+  100% {
+    opacity: 0.4;
+    filter: blur(12px);
+  }
+}
+
+@keyframes frameMoonGlide {
+  0%,
+  100% {
+    background-position: 0% 50%, 50% 0%;
+    opacity: 0.52;
+  }
+  50% {
+    background-position: 100% 50%, 50% 0%;
+    opacity: 0.78;
+  }
+}
+
+@keyframes statusPearlPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 14px rgba(245, 227, 174, 0.72);
+  }
+  50% {
+    transform: scale(1.28);
+    box-shadow: 0 0 22px rgba(246, 251, 255, 0.9), 0 0 34px rgba(126, 224, 255, 0.32);
+  }
+}
+
+@keyframes statusMoonSweep {
+  0% {
+    opacity: 0;
+    transform: translateX(-120%);
+  }
+  35%,
+  65% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+}
+
+@keyframes statusMoonRest {
+  0% {
+    box-shadow:
+      0 0 28px rgba(246, 251, 255, 0.18),
+      0 0 42px rgba(126, 224, 255, 0.13),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+  100% {
+    box-shadow:
+      0 0 24px rgba(245, 227, 174, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+}
+
+@keyframes controlMoonPulse {
+  0%,
+  100% {
+    transform: scale(0.94);
+    opacity: 0.58;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.94;
+  }
+}
+
+@keyframes controlMoonGleam {
+  0% {
+    opacity: 0;
+    transform: translateX(-120%);
+  }
+  42% {
+    opacity: 0.72;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+}
+
+@keyframes progressGlowBreath {
+  0%,
+  100% {
+    opacity: 0.34;
+    filter: blur(0);
+  }
+  50% {
+    opacity: 0.62;
+    filter: blur(2px);
+  }
+}
+
+@keyframes progressMoonDrift {
+  0% {
+    background-position: 0 0, 0% 0, 0 0;
+  }
+  100% {
+    background-position: 0 0, 180% 0, 0 0;
   }
 }
 
@@ -2469,6 +2777,18 @@
   .isPlaying .albumMoonRing,
   .isPlaying .albumAura,
   .isPlaying .albumReflection,
+  .isPlaying .coverAmbient,
+  .isPlaying .moonbeam,
+  .isPlaying .playerFrame::before,
+  .isPlaying .albumStatusBadge::before,
+  .isPlaying .albumStatusBadge::after,
+  .isPlaying .playButton::before,
+  .isPlaying .playButton::after,
+  .isPaused .moonbeam,
+  .isPaused .albumStatusBadge,
+  .isPaused .playButton::after,
+  .progressArea[data-playing="true"]::before,
+  .progressArea[data-playing="true"] .progressInput::-webkit-slider-runnable-track,
   .isPaused .albumStage,
   .miniPlayerShell::before {
     animation: none;

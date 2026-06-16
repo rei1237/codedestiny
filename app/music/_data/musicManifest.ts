@@ -1,7 +1,7 @@
 import { buildMusicPublicUrl } from "@/lib/r2-public-url";
 
-export type ArtistKey = "neo" | "yeoni" | "dest1nova";
-export type ArtistName = "Neo" | "Yeoni" | "DEST1NOVA";
+export type ArtistKey = "neo" | "yeoni" | "dest1nova" | "lunabloom";
+export type ArtistName = "Neo" | "Yeoni" | "DEST1NOVA" | "Luna bloom";
 
 export type Track = {
   id: string;
@@ -18,7 +18,7 @@ export type Track = {
   lyrics?: string;
 };
 
-type MusicFolder = "neosong" | "yeonisong" | "neosongmini1" | "yeonisongmini1" | "DEST1NOVA";
+type MusicFolder = "neosong" | "yeonisong" | "neosongmini1" | "yeonisongmini1" | "DEST1NOVA" | "lunabloom";
 
 type ArtistConfig = {
   artistKey: ArtistKey;
@@ -61,6 +61,14 @@ const ARTISTS = {
     folder: "DEST1NOVA",
     fallbackCoverFileName: "DEST1NOVA.webp",
     coverFileNames: ["DEST1NOVA.webp"],
+    displayCoverUrl: undefined,
+  },
+  lunabloom: {
+    artistKey: "lunabloom",
+    artistName: "Luna bloom",
+    folder: "lunabloom",
+    fallbackCoverFileName: "LUNA BLOOM.webp",
+    coverFileNames: ["LUNA BLOOM.webp"],
     displayCoverUrl: undefined,
   },
 } as const satisfies Record<ArtistKey, ArtistConfig>;
@@ -150,6 +158,27 @@ const artistAudioManifests = [
       "편관의 궤도.wav",
     ],
   },
+  {
+    artistKey: "lunabloom",
+    audioFileNames: [
+      "Devil’s draw.mp3",
+      "Fate couture.mp3",
+      "Month by month.mp3",
+      "Reverse Card.mp3",
+      "Star line.mp3",
+      "Starline Destiny.mp3",
+      "Velvet Tarot.mp3",
+      "Welcome to Code Destiny.mp3",
+      "귀인 NPC Key.mp3",
+      "꽃과 칼 사이.mp3",
+      "달의 궤도선.mp3",
+      "럭키 컬러.mp3",
+      "삼재 Escape.mp3",
+      "원진 귀문 Gate.mp3",
+      "포카 달빛코드.mp3",
+      "형충파해 break.mp3",
+    ],
+  },
 ] as const satisfies readonly ArtistAudioManifest[];
 
 function keyFromFileName(folder: ArtistConfig["folder"], fileName: string) {
@@ -172,6 +201,3265 @@ function lyricsFromAudioFileName(audioFileName: string) {
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .replace(/\s+/gu, " ")
     .trim();
+
+  if (normalizedSongKey === "gisin out yongsin in") {
+    return `[Verse 1]
+I checked my face today
+No more weird little weight
+That old vibe missed its train
+I’m not carrying that
+
+Salt on the sleeve, fresh tea
+I pick the seed I need
+One glance, then I’m free
+That’s my kind of magic
+
+[Pre-Chorus]
+Switch it, switch it, watch me glow
+Low-key storm? I say no
+I know what I’m made for
+Step by step, I choose more
+
+[Chorus]
+Gisin out, yongsin in
+Gisin out, yongsin in
+Cute cut clean, let the good start
+Gisin out, yongsin in
+
+(Out, in)
+(Out, in)
+I bless my lane, I win
+Gisin out, yongsin in
+
+[Verse 2]
+My eyes got a sharper shine
+My smile says, "I’m just fine"
+No dark cloud on my mind
+I keep it soft, keep it prime
+
+Good luck in my tote bag
+Fresh fate in a pink tag
+I don’t chase what drags back
+I just turn and snap back
+
+[Pre-Chorus]
+Switch it, switch it, watch me glow
+Low-key storm? I say no
+I know what I’m made for
+Step by step, I choose more
+
+[Chorus]
+Gisin out, yongsin in
+Gisin out, yongsin in
+Cute cut clean, let the good start
+Gisin out, yongsin in
+
+(Out, in)
+(Out, in)
+I bless my lane, I win
+Gisin out, yongsin in
+
+[Bridge]
+If it feels heavy, I release
+If it feels noisy, I leave
+I’m not scared to be seen
+I’m the calm in my scene
+
+[Final Chorus]
+Gisin out, yongsin in
+Gisin out, yongsin in
+Cute cut clean, let the good start
+Gisin out, yongsin in
+
+(Out, in)
+(Out, in)
+I bless my lane, I win
+Gisin out, yongsin in`;
+  }
+
+  if (normalizedSongKey === "devil s draw") {
+    return `[Intro - BLOOM, seductive whisper]
+Pick one
+Don’t look away
+The card is watching you
+
+[LUNA - low rap talk]
+Black deck
+Red heart
+위험한 sign
+Devil’s draw
+
+[YEONI - main vocal]
+손끝에 닿은 순간
+내 밤이 너로 물들어
+
+[Verse 1 - YEONI]
+검은 카드 위에 번진
+짙은 rose perfume
+The Lovers마저 숨을 죽인
+낯선 midnight room
+
+The Moon은 비밀을 감추고
+The Star는 길을 잃어
+내가 피하려던 이름이
+너의 눈빛에 떠올라
+
+[BLOOM - airy vocal]
+조심하라 말할수록
+더 가까워지는 걸
+운명은 달콤한 얼굴로
+금지된 문을 열어
+
+[LUNA - chic rap]
+Shuffle slow, 심장은 tempo
+너를 보면 흐려져 my halo
+The Devil card, 위험한 angle
+But I like that, 아슬한 shadow
+
+High Priestess도 읽지 못해
+내가 어디까지 갈지
+철벽은 Tower처럼 무너져
+네 앞에서 tragic
+
+[Pre-Chorus - YEONI]
+도망치려 할수록
+더 깊이 끌려가
+끝을 알면서도 난
+다시 너를 골라
+
+[BLOOM - harmony]
+Don’t save me tonight
+나를 흔들어
+
+[LUNA - low ad-lib]
+Too late, too close
+I’m under your spell
+
+[Chorus - ALL]
+Devil’s draw
+나를 당겨와
+붉은 카드처럼
+심장을 태워놔
+
+Devil’s draw
+눈을 뗄 수 없어
+위험할수록 더
+아름다워져
+
+[YEONI - main hook]
+You’re my forbidden tarot
+끝없이 falling narrow
+
+[BLOOM - high hook]
+Love me dark, love me slow
+
+[LUNA - rap tag]
+The Devil, The Lovers
+둘 다 너로 보여
+
+[Verse 2 - LUNA, charismatic rap]
+Velvet black, candle light
+입술 끝에 warning sign
+착한 척은 그만둘래
+오늘 밤은 borderline
+
+Wheel of Fortune 돌아가
+멈춘 곳은 네 silhouette
+내 이성은 fold
+감정들은 all in bet
+
+The Magician 손짓처럼
+날 바꾸는 illusion
+네가 웃는 그 순간
+시작되는 revolution
+
+No angel, no escape
+그래서 더 끌리네
+나를 망칠지도 몰라
+근데 너무 빛나네
+
+[BLOOM - smooth vocal]
+달콤한 속삭임에
+내 이름이 녹아내려
+겁이 나는 이 떨림도
+이상하게 아름다워
+
+[Pre-Chorus 2 - YEONI]
+이 사랑이 독이라면
+한 모금 더 마실래
+상처가 될 걸 알아도
+너를 놓지 못해
+
+[BLOOM - harmony]
+Don’t save me tonight
+나를 데려가
+
+[LUNA - low talk]
+No more question
+I choose obsession
+
+[Chorus - ALL]
+Devil’s draw
+나를 당겨와
+붉은 카드처럼
+심장을 태워놔
+
+Devil’s draw
+눈을 뗄 수 없어
+위험할수록 더
+아름다워져
+
+[YEONI - main hook]
+You’re my forbidden tarot
+끝없이 falling narrow
+
+[BLOOM - high hook]
+Love me dark, love me slow
+
+[LUNA - rap tag]
+The Devil, The Lovers
+둘 다 너로 보여
+
+[Dance Break - LUNA, rap chant]
+Flip it, flip it
+Devil card
+Kiss it, burn it
+Leave a scar
+
+Love me, curse me
+Make it art
+검은 밤에 피는 heart
+
+[BLOOM - chant]
+La-la-la, dangerous
+La-la-la, beautiful
+
+[YEONI - ad-lib]
+너라는 운명 속에 falling
+
+[Bridge - YEONI, emotional vocal]
+가장 깊은 어둠에서
+가장 선명한 널 봐
+빛이라 부를 수 없어도
+난 너를 따라가
+
+[BLOOM - soft harmony]
+사라질 듯 빛나는
+검은 별의 romance
+
+[LUNA - soft rap]
+나를 잃는 게 아니라
+새로운 나를 만난 night
+
+[Final Chorus - ALL, grand and fatal]
+Devil’s draw
+나를 당겨와
+붉은 카드처럼
+심장을 태워놔
+
+[YEONI - powerful main vocal]
+Devil’s draw
+눈을 뗄 수 없어
+위험할수록 더
+아름다워져
+
+[BLOOM - high ad-lib]
+Love me dark, love me slow
+You’re my fatal miracle
+
+[LUNA - final rap tag]
+The Devil, The Lovers
+결국 답은 너야
+
+[YEONI - ending vocal]
+Devil’s draw
+너를 뽑았어`;
+  }
+
+  if (normalizedSongKey === "fate couture") {
+    return `[Intro - LUNA, low whisper rap]
+운명은 조용히 문을 열어
+Black diamond night
+We don’t chase
+We choose
+
+[BLOOM - elegant whisper]
+Destiny loading
+달빛이 켜져
+
+[YEONI - main vocal]
+오늘 밤 내가 나를 깨워
+Fate couture
+
+[Verse 1 - YEONI]
+검은 하늘 위로 번진 silver light
+내 이름을 부르는 sign
+흔들리던 어제는 burn it out
+새로운 내가 올라와
+
+[BLOOM - soft vocal]
+거울 속의 눈빛이 달라
+더는 숨지 않아
+반짝이는 예감이 말해
+이 밤은 나의 것
+
+[LUNA - chic rap]
+운명선 위를 걸어 runway
+발끝마다 바뀌는 scene
+누가 정해준 답은 no thanks
+내가 고른 길이 main
+
+[Pre-Chorus - YEONI]
+조용히 숨죽인 별들이
+내 심장에 불을 켜
+피할 수 없는 순간이면
+더 아름답게 맞서
+
+[BLOOM - airy harmony]
+Moonlight on my skin
+빛이 나, dangerous
+
+[LUNA - low ad-lib]
+No fear, no doubt
+I own my fate
+
+[Chorus - ALL]
+Fate couture
+눈부시게 걸어가
+Fate couture
+내 운명을 입어 난
+
+Black card, gold heart
+빛나는 내 aura
+Fate couture
+세상이 날 기억해
+
+[YEONI - main hook]
+I choose my destiny
+I choose my fantasy
+
+[BLOOM - high hook]
+Shine, shine, royal sign
+
+[LUNA - rap tag]
+운명 위에 올라
+My fate, my crown
+
+[Verse 2 - LUNA, charismatic rap]
+Tick tick, 시간마저 bow down
+내 등장에 바뀌는 countdown
+차가운 city, 뜨거운 spotlight
+난 어둠 속에서도 top line
+
+Diamond step, velvet pace
+시선 위를 걷는 grace
+운이 나를 시험해도
+나는 웃고 판을 reset
+
+No lucky, I make it
+No maybe, I take it
+운명은 내 손끝에서
+Signature로 새겨
+
+[BLOOM - chic vocal]
+시선들이 멈춰 서
+누구보다 선명해
+가장 깊은 밤일수록
+나는 더 빛나네
+
+[Pre-Chorus 2 - YEONI]
+정해진 길이라 해도
+난 그대로 걷지 않아
+별들이 짜놓은 무대 위
+내 방식대로 춤춰
+
+[BLOOM - harmony]
+Moonlight in my eyes
+눈부셔, glamorous
+
+[LUNA - low talk]
+This is not luck
+This is destiny
+
+[Chorus - ALL]
+Fate couture
+눈부시게 걸어가
+Fate couture
+내 운명을 입어 난
+
+Black card, gold heart
+빛나는 내 aura
+Fate couture
+세상이 날 기억해
+
+[YEONI - main hook]
+I choose my destiny
+I choose my fantasy
+
+[BLOOM - high hook]
+Shine, shine, royal sign
+
+[LUNA - rap tag]
+운명 위에 올라
+My fate, my crown
+
+[Dance Break - LUNA, rap chant]
+Black, black diamond
+Gold, gold timing
+Step, step higher
+Fate on fire
+
+[BLOOM - chant]
+La-la-luxury
+La-la-destiny
+
+[YEONI - ad-lib]
+운명이 나를 깨워
+
+[LUNA - chant]
+Crown up
+Lights up
+We don’t stop
+
+[Bridge - YEONI, grand vocal]
+넘어졌던 밤들도
+나를 위해 빛났어
+상처마저 보석처럼
+내 왕관에 박혔어
+
+[BLOOM - soft harmony]
+눈 감아도 보여
+내가 갈 길이
+
+[LUNA - soft rap]
+끝이라고 적힌 문 앞에
+나는 시작이라 써
+
+[Final Chorus - ALL, grand and powerful]
+Fate couture
+눈부시게 걸어가
+Fate couture
+내 운명을 입어 난
+
+[YEONI - powerful main vocal]
+Black card, gold heart
+빛나는 내 aura
+Fate couture
+세상이 날 기억해
+
+[BLOOM - high ad-lib]
+Shine, shine, royal sign
+I’m the one, I’m the light
+
+[LUNA - final rap tag]
+운명 위에 올라서
+My fate, my crown
+
+[YEONI - ending vocal]
+Fate couture
+내가 고른 운명`;
+  }
+
+  if (normalizedSongKey === "velvet tarot") {
+    return `[Intro - BLOOM, elegant whisper]
+Shuffle the night
+Pick your fate
+Velvet tarot
+Love is awake
+
+[LUNA - low rap talk]
+Black card, moonlight
+운명은 highlight
+뒤집는 순간
+You’re my sign
+
+[YEONI - main vocal]
+달빛이 내려앉은 밤
+내 마음이 너를 불러
+
+[Verse 1 - YEONI, smooth main vocal]
+검은 테이블 위로
+은빛 별이 번져
+조용히 섞인 카드가
+내 비밀을 먼저 열어
+
+The Moon은 날 감추고
+The Star는 널 비춰
+The Lovers 한 장 끝에서
+우리 이름이 빛나
+
+[BLOOM - soft high vocal]
+숨길수록 더 선명해
+반짝이는 lucky trace
+손끝에 닿은 예감이
+너에게 날 데려가
+
+[Pre-Chorus - YEONI, emotional lift]
+운명은 말없이
+내 곁에 앉아
+한 장의 카드처럼
+너를 보여줘
+
+[BLOOM - airy harmony]
+깊은 밤의 sign
+놓칠 수 없어
+
+[LUNA - low ad-lib]
+Flip it slow
+We already know
+
+[Chorus - ALL, luxurious dance hook]
+Velvet tarot
+Flip my heart, let it glow
+오늘 밤의 love fortune
+답은 너라고
+
+Velvet tarot
+Moonlight, make it flow
+운명이 고른 card
+너를 향해 show
+
+[YEONI - main hook]
+Love me like a star
+나를 비춘 너니까
+
+[BLOOM - high hook]
+Shine on me, shine on me
+
+[LUNA - rap tag]
+카드 끝에 너와 나
+Perfect arcana
+
+[Verse 2 - LUNA, refined rap]
+Major arcana
+Scene은 panorama
+The Empress처럼 glow
+분위기는 drama
+
+Wheel of Fortune 돌아
+멈춘 곳은 your eyes
+차갑던 내 마음도
+너 앞에선 sunrise
+
+High Priestess whisper
+다 알고 있대
+내가 숨긴 문장까지
+전부 읽어냈대
+
+Tower 무너져도
+겁낼 필요 없어
+너와 나의 spread 위엔
+별빛만 남았어
+
+[Post-Rap - BLOOM, cute but classy]
+살짝 웃어도 들켜
+눈빛만 봐도 알죠
+카드보다 정확한 건
+두근대는 heart code
+
+[Pre-Chorus 2 - YEONI]
+마지막 한 장에
+네 이름이 떠
+이건 우연보다
+더 깊은 answer
+
+[BLOOM - harmony]
+운명 같은 night
+나를 데려가
+
+[LUNA - low talk]
+No more question
+You’re my direction
+
+[Chorus - ALL]
+Velvet tarot
+Flip my heart, let it glow
+오늘 밤의 love fortune
+답은 너라고
+
+Velvet tarot
+Moonlight, make it flow
+운명이 고른 card
+너를 향해 show
+
+[YEONI - main hook]
+Love me like a star
+나를 비춘 너니까
+
+[BLOOM - high hook]
+Shine on me, shine on me
+
+[LUNA - rap tag]
+카드 끝에 너와 나
+Perfect arcana
+
+[Dance Break - LUNA, stylish rap chant]
+Shuffle, shuffle
+Silk and sparkle
+Flip it, flip it
+Heart unlock it
+
+Moon card, star card
+Love card, my card
+운세는 luxury
+너로 된 fantasy
+
+[BLOOM - chant]
+La-la-la, velvet sign
+La-la-la, you are mine
+
+[YEONI - ad-lib]
+달빛 속에 falling
+
+[Bridge - YEONI, dreamy premium vocal]
+수많은 카드 사이
+나를 찾은 한 사람
+가장 어두운 밤에도
+너는 빛이 돼
+
+[BLOOM - soft harmony]
+The Star is blooming
+내 맘이 피어나
+
+[LUNA - soft rap]
+운명은 조용히 말해
+이 사랑은 rare design
+
+[Final Chorus - ALL, grand and polished]
+Velvet tarot
+Flip my heart, let it glow
+오늘 밤의 love fortune
+답은 너라고
+
+[YEONI - powerful main vocal]
+Velvet tarot
+Moonlight, make it flow
+운명이 고른 card
+너를 향해 show
+
+[BLOOM - high ad-lib]
+Shine on me, shine on me
+You’re my lucky fantasy
+
+[LUNA - final rap tag]
+The Lovers, The Star
+결국 answer is you
+
+[YEONI - ending vocal]
+Velvet tarot
+너를 뽑았어`;
+  }
+
+  if (normalizedSongKey === "달의 궤도선") {
+    return `[Intro - BLOOM, soft whisper]
+Twenty-seven nights
+달이 우리를 읽어
+어떤 이름의 사랑일까
+
+[LUNA - low rap talk]
+안괴처럼 위험해도
+영친처럼 깊게 남아
+Check the moon
+We’re already in sync
+
+[YEONI - main vocal]
+너를 본 순간
+밤의 궤도가 바뀌어
+
+[Verse 1 - YEONI]
+조용히 번진 달빛 아래
+낯선 예감이 깨어나
+처음 본 눈빛인데 왜
+오래전부터 알던 것 같아
+
+말하지 않아도 가까워
+숨결 사이로 이어져
+우연이라 부르기엔
+너무 정확한 timing
+
+[BLOOM - airy vocal]
+스물일곱 개의 밤 중에
+우린 같은 빛을 골라
+내 마음 가장 깊은 곳에
+네 이름이 떠올라
+
+[LUNA - chic rap]
+안괴면 dangerous
+그래도 끌려가
+영친이면 effortless
+말없이 스며와
+
+우쇠처럼 아프게
+기억에 남아도
+업태처럼 다시 만나
+끝내 못 지나쳐
+
+[Pre-Chorus - YEONI]
+도망치려 할수록
+더 선명해지는 sign
+달은 이미 알고 있어
+우리의 hidden line
+
+[BLOOM - harmony]
+Hold me in the moon phase
+놓치지 않게
+
+[LUNA - low ad-lib]
+No more maybe
+This is chemistry
+
+[Chorus - ALL]
+Twenty-seven nights
+달이 정한 love type
+위험해도 아름다워
+너와 나의 moon sign
+
+Twenty-seven nights
+끌림은 satellite
+멀어져도 다시 돌아
+너에게로 fall inside
+
+[YEONI - main hook]
+You’re my lunar chemistry
+끝나지 않을 mystery
+
+[BLOOM - high hook]
+Shine on me, quietly
+
+[LUNA - rap tag]
+안괴든 영친이든
+답은 너와 나의 gravity
+
+[Verse 2 - LUNA, refined rap]
+위성처럼 서로 다른 길
+근데 자꾸 마주쳐
+명처럼 닮은 그림자
+내 안쪽을 건드려
+
+성숙한 척해도 freeze
+네 한마디에 release
+차가운 밤의 rhythm 위
+내 심장은 on repeat
+
+궁합이란 말보다
+더 깊은 건 vibe
+설명 못 해도 알아
+너는 나의 moonlight
+
+끌림은 계산 밖
+마음은 이미 locked
+스물일곱 별자리 위
+우린 같은 spot
+
+[BLOOM - smooth vocal]
+살짝 스친 손끝에도
+계절이 달라져
+나도 모른 내 마음이
+너를 따라 움직여
+
+[Pre-Chorus 2 - YEONI]
+아무리 아닌 척해도
+감출 수 없는 sign
+달빛 속에 새겨지는
+너와 나의 hidden line
+
+[BLOOM - harmony]
+Meet me in the moon phase
+더 가까워지게
+
+[LUNA - low talk]
+This is not luck
+This is our orbit
+
+[Chorus - ALL]
+Twenty-seven nights
+달이 정한 love type
+위험해도 아름다워
+너와 나의 moon sign
+
+Twenty-seven nights
+끌림은 satellite
+멀어져도 다시 돌아
+너에게로 fall inside
+
+[YEONI - main hook]
+You’re my lunar chemistry
+끝나지 않을 mystery
+
+[BLOOM - high hook]
+Shine on me, quietly
+
+[LUNA - rap tag]
+안괴든 영친이든
+답은 너와 나의 gravity
+
+[Dance Break - LUNA, stylish chant]
+An-gwe, pull me closer
+Young-chin, stay forever
+Woo-soe, hurt but deeper
+Up-tae, déjà vu lover
+
+[BLOOM - chant]
+Moon, moon, move me
+Love, love, choose me
+
+[YEONI - ad-lib]
+달이 나를 너에게로
+
+[LUNA - chant]
+Round and round
+We don’t stop
+운명 위에 make it pop
+
+[Bridge - YEONI, emotional vocal]
+만약 우리 사이가
+쉬운 이름은 아니어도
+복잡한 달의 문장 끝에
+나는 너를 읽을래
+
+[BLOOM - soft harmony]
+어두운 밤일수록
+선명해지는 heart
+
+[LUNA - soft rap]
+상처까지 별이 되면
+우린 더 빛날 테니까
+
+[Final Chorus - ALL, grand and polished]
+Twenty-seven nights
+달이 정한 love type
+위험해도 아름다워
+너와 나의 moon sign
+
+[YEONI - powerful main vocal]
+Twenty-seven nights
+끌림은 satellite
+멀어져도 다시 돌아
+너에게로 fall inside
+
+[BLOOM - high ad-lib]
+You’re my lunar chemistry
+Shine on me, quietly
+
+[LUNA - final rap tag]
+스물일곱 밤을 지나
+결국 너는 my gravity
+
+[YEONI - ending vocal]
+Twenty-seven nights
+너는 나의 moon sign`;
+  }
+
+  if (normalizedSongKey === "starline destiny" || normalizedSongKey === "star line") {
+    return `[Intro - BLOOM, soft whisper]
+별들이 선을 그어
+너와 나를 잇는 밤
+Starline
+
+[LUNA - low rap talk]
+눈 감아도 보여
+우린 같은 하늘 위
+
+[YEONI - main vocal]
+길을 잃은 마음 끝에
+네 빛이 떠올라
+
+[Verse 1 - YEONI]
+조용한 밤이 내려앉으면
+숨겨둔 마음이 선명해져
+아무도 모르게 흔들린 날
+별빛은 먼저 알아봐
+
+손끝에 닿을 듯 먼 거리
+그래도 이상하게 가까워
+우연이라 부르기엔
+너무 오래 빛났어
+
+[BLOOM - airy vocal]
+흩어진 점들 사이로
+작은 길이 생겨나
+내 이름 옆에 네 빛이
+천천히 머물러
+
+[LUNA - refined rap]
+City lights fade out
+하늘은 더 깊어져
+말보다 정확한 sign
+너는 나의 answer
+
+물병처럼 자유롭게
+사자처럼 뜨겁게
+쌍둥이처럼 다른 마음도
+하나의 선이 돼
+
+[Pre-Chorus - YEONI]
+별자리는 말없이
+밤을 건너 이어져
+멀리 있는 마음들도
+빛으로 닿을 수 있어
+
+[BLOOM - harmony]
+Call me through the starlight
+나를 찾아와
+
+[LUNA - low ad-lib]
+No map, no fear
+I know you’re near
+
+[Chorus - ALL]
+Starline
+우릴 이어줘
+어둠 속에서도
+서로를 알아봐
+
+Starline
+빛을 따라가
+길을 잃어도
+너에게 닿을 거야
+
+[YEONI - main hook]
+You are my constellation
+끝나지 않을 direction
+
+[BLOOM - high hook]
+Shine on me, quietly
+
+[LUNA - rap tag]
+하늘 위에 새긴 sign
+너와 나의 starline
+
+[Verse 2 - LUNA, elegant rap]
+밤은 black velvet
+별은 diamond trace
+차가운 공기 위로
+번져가는 grace
+
+처녀처럼 섬세하게
+전갈처럼 깊게
+양자리 불꽃처럼
+망설임을 지워내
+
+기다림은 orbit
+돌고 돌아 found it
+수많은 별 사이
+너 하나만 focus
+
+운명이란 말보다
+더 조용한 확신
+네가 뜨는 순간
+내 밤은 다시 시작돼
+
+[BLOOM - smooth vocal]
+달빛에 기대어
+말하지 못한 마음
+가장 낮은 목소리로
+너를 불러봐
+
+[Pre-Chorus 2 - YEONI]
+계절이 바뀌어도
+별의 자리는 남아
+멀어진 줄 알았던 우리
+다시 같은 선 위에
+
+[BLOOM - harmony]
+Meet me in the moonlight
+나를 기억해
+
+[LUNA - low talk]
+This is our sky
+This is our sign
+
+[Chorus - ALL]
+Starline
+우릴 이어줘
+어둠 속에서도
+서로를 알아봐
+
+Starline
+빛을 따라가
+길을 잃어도
+너에게 닿을 거야
+
+[YEONI - main hook]
+You are my constellation
+끝나지 않을 direction
+
+[BLOOM - high hook]
+Shine on me, quietly
+
+[LUNA - rap tag]
+하늘 위에 새긴 sign
+너와 나의 starline
+
+[Dance Break - LUNA, stylish chant]
+One star, two hearts
+Draw it, draw it
+Moon rise, night spark
+Follow, follow
+
+[BLOOM - chant]
+빛나, 더 빛나
+멀리 있어도 닿아
+
+[YEONI - ad-lib]
+너를 향해 falling
+
+[LUNA - chant]
+No more lonely sky
+We make it alive
+
+[Bridge - YEONI, emotional vocal]
+가끔은 내가
+사라질 것 같던 밤
+네가 남긴 작은 빛이
+나를 다시 불러
+
+[BLOOM - soft harmony]
+흩어진 나의 계절도
+너를 만나 별이 돼
+
+[LUNA - soft rap]
+끝없이 먼 우주라도
+네가 있으면 home
+
+[Final Chorus - ALL, grand and beautiful]
+Starline
+우릴 이어줘
+어둠 속에서도
+서로를 알아봐
+
+[YEONI - powerful main vocal]
+Starline
+빛을 따라가
+길을 잃어도
+너에게 닿을 거야
+
+[BLOOM - high ad-lib]
+You are my constellation
+Shine on me, quietly
+
+[LUNA - final rap tag]
+하늘 끝에 남긴 line
+영원히 our starline
+
+[YEONI - ending vocal]
+Starline
+너는 나의 별자리`;
+  }
+
+  if (normalizedSongKey === "포카 달빛코드") {
+    return `[Intro - BLOOM, soft whisper]
+One frame
+Two signs
+Four lights
+I’m ready
+
+[LUNA - low rap talk]
+운명은 조용히 flash
+눈 감아도 남는 trace
+
+[YEONI - main vocal]
+달빛 아래 선명해져
+내 안의 hidden face
+
+[Verse 1 - YEONI]
+거울보다 먼저 알아본
+낯선 나의 silhouette
+태어난 순간 적힌 code
+밤이 되면 깨어나
+
+말하지 않아도 번져와
+은근한 나의 atmosphere
+한 장씩 나를 넘길 때
+비밀은 빛이 돼
+
+[BLOOM - airy vocal]
+작은 표정 하나까지
+별빛처럼 살아나
+숨겨둔 나의 색깔이
+천천히 피어나
+
+[LUNA - chic rap]
+First frame, calm face
+Second frame, wild taste
+세 번째 컷에 드러난
+내 안의 hidden flame
+
+낮에는 soft, 밤에는 bold
+분위기는 switch mode
+누가 나를 정해도
+나는 다시 reload
+
+[Pre-Chorus - YEONI]
+흐릿했던 내 마음이
+초점 안에 들어와
+도망치던 나의 이름을
+오늘은 불러봐
+
+[BLOOM - harmony]
+Hold me in the moonlight
+더 선명하게
+
+[LUNA - low ad-lib]
+No more blur
+I’m in focus now
+
+[Chorus - ALL]
+Fourth frame
+나를 새로 찍어
+Flash on
+운명이 눈떠
+
+Four signs
+빛이 번져가
+낯선 내가
+가장 나다워져
+
+[YEONI - main hook]
+I’m in my destiny
+I’m in my fantasy
+
+[BLOOM - high hook]
+Shine on me, quietly
+
+[LUNA - rap tag]
+네 컷 안의 gravity
+나를 끌어당겨
+
+[Verse 2 - LUNA, refined rap]
+Born time, deep line
+숨겨진 내 design
+오행처럼 섞여가는
+색의 temperature
+
+차가운 blue, 뜨거운 red
+모든 결이 make a set
+흔들리던 yesterday
+오늘 밤엔 silhouette
+
+도화처럼 시선이 와
+역마처럼 마음은 fly
+불안까지 styling해
+내 장면에 넣어놔
+
+No filter, but I glow
+Slow shutter, make it gold
+운명은 예고 없이
+가장 예쁜 컷을 줘
+
+[BLOOM - smooth vocal]
+말로는 다 못 하던
+나의 작은 떨림도
+프레임 속에 닿으면
+이상하게 빛나죠
+
+[Pre-Chorus 2 - YEONI]
+누가 봐도 완벽한
+표정은 아니어도
+흔들린 순간마저
+나의 별자리가 돼
+
+[BLOOM - harmony]
+Hold me in the moonlight
+더 아름답게
+
+[LUNA - low talk]
+This is my scene
+This is my sign
+
+[Chorus - ALL]
+Fourth frame
+나를 새로 찍어
+Flash on
+운명이 눈떠
+
+Four signs
+빛이 번져가
+낯선 내가
+가장 나다워져
+
+[YEONI - main hook]
+I’m in my destiny
+I’m in my fantasy
+
+[BLOOM - high hook]
+Shine on me, quietly
+
+[LUNA - rap tag]
+네 컷 안의 gravity
+나를 끌어당겨
+
+[Dance Break - LUNA, stylish chant]
+Frame one, 숨을 고르고
+Frame two, 눈을 뜨고
+Frame three, 선을 넘고
+Frame four, I own it
+
+[BLOOM - chant]
+Flash, flash
+Glow, glow
+
+[YEONI - ad-lib]
+달빛이 나를 깨워
+
+[LUNA - chant]
+Cut it
+Save it
+Make it iconic
+
+[Bridge - YEONI, emotional vocal]
+가끔 나도 나를 몰라
+흔들리는 밤이면
+가장 어두운 장면에
+내 별이 숨어 있어
+
+[BLOOM - soft harmony]
+천천히 피어난
+나만의 highlight
+
+[LUNA - soft rap]
+끝내 지우지 못한 마음
+그게 나의 sign
+
+[Final Chorus - ALL, grand and polished]
+Fourth frame
+나를 새로 찍어
+Flash on
+운명이 눈떠
+
+[YEONI - powerful main vocal]
+Four signs
+빛이 번져가
+낯선 내가
+가장 나다워져
+
+[BLOOM - high ad-lib]
+Shine on me, quietly
+I become my destiny
+
+[LUNA - final rap tag]
+마지막 컷에 남긴 이름
+내가 고른 destiny
+
+[YEONI - ending vocal]
+Fourth frame
+나를 기억해`;
+  }
+
+  if (normalizedSongKey === "귀인 npc key") {
+    return `[Intro - BLOOM, cute whisper]
+Quest started
+길을 잃은 밤
+누가 내 이름을 불러
+
+[LUNA - playful rap talk]
+Map is broken
+Heart is loading
+Wait
+누가 나타났어
+
+[YEONI - main vocal]
+어둠 속에 반짝인
+너라는 작은 sign
+
+[Verse 1 - YEONI]
+혼자라고 믿은 stage
+불빛 하나 없던 maze
+멈춰 선 내 발끝에
+네 목소리가 닿아
+
+괜찮다고 말해준
+그 한마디 때문에
+꺼져가던 마음 위로
+다시 별이 켜져
+
+[BLOOM - bright vocal]
+작은 아이템처럼
+내 하루에 들어와
+아무것도 아닌 듯
+나를 살려내잖아
+
+[LUNA - fresh rap]
+길 잃은 player
+흔들린 radar
+네가 나타난 순간
+바뀌어 my data
+
+숨겨진 route
+열리는 door
+너의 말 한 줄이
+나를 heal해 more
+
+[Pre-Chorus - YEONI]
+운명이 막힌 줄 알았던
+그 장면 끝에서
+네가 웃으며 말해
+“다음 길은 여기야”
+
+[BLOOM - harmony]
+Take my hand
+We go higher
+
+[LUNA - low ad-lib]
+No more lonely
+You’re my guide
+
+[Chorus - ALL]
+You’re my 귀인 NPC
+길 잃은 날 깨운 key
+운명 퀘스트 속에서
+너를 만나 level up
+
+NPC, NPC
+너는 나의 lucky key
+닫힌 맵을 열어줘
+너와 함께 level up
+
+[YEONI - main hook]
+Level, level up with you
+내 하루가 빛나 blue
+
+[BLOOM - high hook]
+Lucky, lucky, stay with me
+
+[LUNA - rap tag]
+Game over? No, 다시 start
+네가 켜준 my heart
+
+[Verse 2 - LUNA, rhythmic rap]
+첫 번째 mission
+눈물은 pass
+두 번째 danger
+가볍게 dash
+
+세 번째 boss
+겁나도 okay
+네가 옆에 있으면
+I can play all day
+
+귀인처럼 timing perfect
+나를 알아본 secret contact
+무심한 듯 던진 sentence
+내 인생의 healing magic
+
+혼자서는 못 본 길
+너는 쉽게 찾아내
+우연처럼 왔지만
+운명처럼 남아 왜
+
+[BLOOM - sweet vocal]
+말 한마디가 potion
+웃음 하나가 shield
+너를 만난 그때부터
+내 세상이 healed
+
+[Pre-Chorus 2 - YEONI]
+넘어진 나를 일으킨 건
+거창한 기적이 아냐
+내 편처럼 서 있던
+너의 작은 온기야
+
+[BLOOM - harmony]
+Take my hand
+We go brighter
+
+[LUNA - low talk]
+You’re my helper
+You’re my answer
+
+[Chorus - ALL]
+You’re my 귀인 NPC
+길 잃은 날 깨운 key
+운명 퀘스트 속에서
+너를 만나 level up
+
+NPC, NPC
+너는 나의 lucky key
+닫힌 맵을 열어줘
+너와 함께 level up
+
+[YEONI - main hook]
+Level, level up with you
+내 하루가 빛나 blue
+
+[BLOOM - high hook]
+Lucky, lucky, stay with me
+
+[LUNA - rap tag]
+Game over? No, 다시 start
+네가 켜준 my heart
+
+[Dance Break - LUNA, chant rap]
+Quest, quest
+Open the gate
+Step, step
+Change my fate
+
+Map, map
+Follow the light
+너와 나의 party
+We shine tonight
+
+[BLOOM - chant]
+Up, up
+Level up
+
+[YEONI - ad-lib]
+나를 깨워, lucky sign
+
+[Bridge - YEONI, emotional vocal]
+만약 네가 없었다면
+나는 아직 몰랐을 거야
+가장 힘든 순간에도
+누군가는 빛이 된단 걸
+
+[BLOOM - soft harmony]
+작은 도움 하나가
+별처럼 번져가
+
+[LUNA - soft rap]
+네가 열어준 길 위에
+이제 내가 달려가
+
+[Final Chorus - ALL, bright and addictive]
+You’re my 귀인 NPC
+길 잃은 날 깨운 key
+운명 퀘스트 속에서
+너를 만나 level up
+
+[YEONI - powerful main vocal]
+NPC, NPC
+너는 나의 lucky key
+닫힌 맵을 열어줘
+너와 함께 level up
+
+[BLOOM - high ad-lib]
+Level, level up with you
+Lucky, lucky, stay with me
+
+[LUNA - final rap tag]
+혼자였던 stage 위에
+네가 나타난 그때 change
+
+[YEONI - ending vocal]
+You’re my lucky NPC`;
+  }
+
+  if (normalizedSongKey === "reverse card") {
+    return `[Intro - BLOOM, soft whisper]
+Reverse
+카드가 뒤집힌 밤
+끝인 줄 알았지?
+아니, 시작이야
+
+[LUNA - low rap talk]
+Bad sign, good timing
+Black card, new shining
+뒤집힌 운명 위로
+We rise
+
+[YEONI - main vocal]
+무너진 자리에서
+새벽빛이 들어와
+
+[Verse 1 - YEONI]
+처음엔 두려웠어
+내 앞에 놓인 card
+웃고 있던 미래가
+갑자기 멀어져
+
+The Tower 무너진 뒤
+먼지만 남은 밤
+근데 그 틈 사이로
+작은 빛이 번져와
+
+[BLOOM - airy vocal]
+울고 난 눈가에도
+별빛은 남아 있어
+잃어버린 줄 알았던
+내가 나를 불러
+
+[LUNA - chic rap]
+Reverse 뜬다고
+끝난 건 아니지
+흔들린 방향이
+새로운 길이지
+
+The Moon은 날 숨겨
+The Star는 다시 켜
+무너진 장면 끝에
+내 이름을 써
+
+[Pre-Chorus - YEONI]
+불안이 날 밀어도
+나는 뒤로 가지 않아
+나쁜 예감조차
+내 편으로 바꿔놔
+
+[BLOOM - harmony]
+Turn it over
+더 선명하게
+
+[LUNA - low ad-lib]
+No bad fate
+I rewrite it
+
+[Chorus - ALL]
+Reverse, reverse
+뒤집혀도 universe
+나쁜 카드 같아도
+결말은 내가 써
+
+Reverse, reverse
+눈물 끝에 blooming first
+무너진 밤을 넘어
+새벽으로 dance
+
+[YEONI - main hook]
+Flip my fate
+I’m not afraid
+
+[BLOOM - high hook]
+Light, light, light on me
+
+[LUNA - rap tag]
+끝이라고 적힌 card
+내가 바꿔 lucky start
+
+[Verse 2 - LUNA, rhythmic rap]
+The Fool처럼 jump
+겁 없이 다음 scene
+Wheel of Fortune 돌아
+내 차례가 오지
+
+이별은 comma
+실패는 drama
+근데 난 그 위에 써
+New panorama
+
+카드가 뒤집혀
+세상이 흔들려
+그래서 더 보여
+내 안의 miracle
+
+Bad luck? No thanks
+I make my own chance
+검은 deck 속에서도
+I find my romance
+
+[BLOOM - smooth vocal]
+잃어버린 사랑도
+나를 만든 조각
+상처 위에 피어난
+가장 예쁜 color
+
+[Pre-Chorus 2 - YEONI]
+끝이라고 믿었던
+장면이 열리고
+다시 숨을 쉬는 나
+더 높이 올라가
+
+[BLOOM - harmony]
+Turn it over
+더 아름답게
+
+[LUNA - low talk]
+This is my reversal
+This is my rise
+
+[Chorus - ALL]
+Reverse, reverse
+뒤집혀도 universe
+나쁜 카드 같아도
+결말은 내가 써
+
+Reverse, reverse
+눈물 끝에 blooming first
+무너진 밤을 넘어
+새벽으로 dance
+
+[YEONI - main hook]
+Flip my fate
+I’m not afraid
+
+[BLOOM - high hook]
+Light, light, light on me
+
+[LUNA - rap tag]
+끝이라고 적힌 card
+내가 바꿔 lucky start
+
+[Dance Break - LUNA, chant rap]
+Flip it, flip it
+Turn it around
+Break it, break it
+Build from the ground
+
+Tower down
+Star is up
+Reverse card
+Lucky jump
+
+[BLOOM - chant]
+Light up
+Rise up
+
+[YEONI - ad-lib]
+새벽이 나를 깨워
+
+[Bridge - YEONI, emotional vocal]
+무너진 줄 알았던
+내 마음 한가운데
+가장 밝은 별 하나가
+아직 살아 있었어
+
+[BLOOM - soft harmony]
+뒤집힌 운명 속에
+숨은 문이 열려
+
+[LUNA - soft rap]
+끝이라고 부른 밤이
+내 첫 장이 됐어
+
+[Final Chorus - ALL, bright and powerful]
+Reverse, reverse
+뒤집혀도 universe
+나쁜 카드 같아도
+결말은 내가 써
+
+[YEONI - powerful main vocal]
+Reverse, reverse
+눈물 끝에 blooming first
+무너진 밤을 넘어
+새벽으로 dance
+
+[BLOOM - high ad-lib]
+Flip my fate
+Light on me
+
+[LUNA - final rap tag]
+The Tower fell
+But I rose higher
+
+[YEONI - ending vocal]
+Reverse universe
+내가 다시 써`;
+  }
+
+  if (normalizedSongKey === "month by month") {
+    return `[Intro - BLOOM, soft whisper]
+달력이 넘어가
+운명이 깨어나
+Month by month
+I’m changing
+
+[LUNA - playful rap talk]
+January to December
+내 운세는 getting better
+Page by page
+Let’s go
+
+[YEONI - main vocal]
+새로운 달이 떠오르면
+또 다른 내가 시작돼
+
+[Verse 1 - YEONI]
+1월의 찬 공기 속에
+작은 소원을 적어
+아직은 서툰 마음도
+빛을 기다려
+
+2월엔 두근대는 예감
+괜히 네 생각이 나
+3월의 바람이 불면
+내 안에 봄이 와
+
+[BLOOM - sweet vocal]
+꽃잎처럼 살짝
+마음이 열려
+어제보다 조금 더
+나답게 웃어
+
+[LUNA - fresh rap]
+April rain, 씻겨가 worry
+May day, 빛나 my story
+June night, 심장은 hurry
+여름 앞에 I feel lucky
+
+[Pre-Chorus - YEONI]
+계절은 나를 지나
+조금씩 색을 바꿔
+흐린 날도 지나가면
+별빛이 남아
+
+[BLOOM - harmony]
+Turn the page
+더 선명하게
+
+[LUNA - low ad-lib]
+No more fear
+I’m ready now
+
+[Chorus - ALL]
+Page by page
+달이 넘어가
+Month by month
+나는 달라져
+
+봄엔 사랑이 피고
+여름엔 내가 타올라
+가을엔 답을 찾고
+겨울엔 별이 돼
+
+[YEONI - main hook]
+One more page
+One more chance
+내일의 나를 만나
+
+[BLOOM - high hook]
+Lucky, lucky, light on me
+
+[LUNA - rap tag]
+열두 번의 운세 끝에
+I become my destiny
+
+[Verse 2 - LUNA, rhythmic rap]
+July heat, 뜨거운 spotlight
+August dream, 밤하늘 highlight
+September, 생각이 깊어져
+October, 답들이 보여져
+
+November wind, 조금 외로워도
+December star, 끝내 빛나고
+넘어진 날도 calendar 속에
+나를 만든 memory로 남아
+
+운이 좋은 날만
+나인 건 아니잖아
+느린 달도 내 편이야
+결국 나를 데려가
+
+[BLOOM - smooth vocal]
+빨갛게 표시해둔
+작은 나의 wish list
+하나씩 이뤄지는
+기분 좋은 magic
+
+[Pre-Chorus 2 - YEONI]
+멀리 있던 미래가
+조금 가까워져
+한 달씩 나를 지나
+내가 나를 알아가
+
+[BLOOM - harmony]
+Turn the page
+더 아름답게
+
+[LUNA - low talk]
+This is my year
+This is my sign
+
+[Chorus - ALL]
+Page by page
+달이 넘어가
+Month by month
+나는 달라져
+
+봄엔 사랑이 피고
+여름엔 내가 타올라
+가을엔 답을 찾고
+겨울엔 별이 돼
+
+[YEONI - main hook]
+One more page
+One more chance
+내일의 나를 만나
+
+[BLOOM - high hook]
+Lucky, lucky, light on me
+
+[LUNA - rap tag]
+열두 번의 운세 끝에
+I become my destiny
+
+[Dance Break - LUNA, chant rap]
+One, two, turn it
+Three, four, burn it
+Five, six, love it
+Seven, eight, own it
+
+Nine, ten, find it
+Eleven, shine it
+Twelve, twelve, save it
+내 운명을 make it
+
+[BLOOM - chant]
+Page, page
+Glow, glow
+
+[YEONI - ad-lib]
+계절이 나를 깨워
+
+[Bridge - YEONI, emotional vocal]
+가끔은 어떤 달이
+나를 울게 해도
+지나고 보면 전부
+나를 위한 별이었어
+
+[BLOOM - soft harmony]
+작은 하루들이 모여
+빛나는 내가 돼
+
+[LUNA - soft rap]
+끝이 아닌 다음 장으로
+나는 다시 걸어가
+
+[Final Chorus - ALL, bright and grand]
+Page by page
+달이 넘어가
+Month by month
+나는 달라져
+
+[YEONI - powerful main vocal]
+봄엔 사랑이 피고
+여름엔 내가 타올라
+가을엔 답을 찾고
+겨울엔 별이 돼
+
+[BLOOM - high ad-lib]
+One more page
+One more chance
+Lucky light is calling me
+
+[LUNA - final rap tag]
+달력 끝에 적어놔
+I choose my destiny
+
+[YEONI - ending vocal]
+Month by month
+나는 빛나`;
+  }
+
+  if (normalizedSongKey === "삼재 escape") {
+    return `[Intro - BLOOM, cute whisper]
+Stage one
+Stage two
+Stage three
+Ready?
+
+[LUNA - rap talk]
+삼재 warning
+운명 loading
+But I’m not scared
+Escape mode on
+
+[YEONI - main vocal]
+어둔 밤을 넘어
+빛나는 나를 찾아
+
+[Verse 1 - YEONI]
+갑자기 꼬인 하루
+길이 막힌 듯해
+괜히 작은 일에도
+마음이 흔들려
+
+하지만 알고 있어
+이건 끝이 아니야
+잠깐 느려진 운도
+다시 달릴 테니까
+
+[BLOOM - bright vocal]
+불안이 knock knock
+문을 두드려도
+웃으면서 bye bye
+나는 나를 믿어
+
+[LUNA - playful rap]
+첫 번째 wave
+가볍게 pass
+넘어져도 다시
+Run it back fast
+
+두 번째 trap
+발끝으로 dash
+운이 나를 막아도
+I make it flash
+
+[Pre-Chorus - YEONI]
+겁이 나도 괜찮아
+심장은 더 커져가
+어두운 stage 끝에서
+새로운 내가 보여
+
+[BLOOM - harmony]
+Hold my hand
+We go higher
+
+[LUNA - low ad-lib]
+No bad luck
+I’m the player
+
+[Chorus - ALL]
+삼재 삼재
+I don’t care
+뛰어넘어
+Higher stair
+
+불운이 와도
+Make it rare
+나는 나를
+Save해
+
+삼재 삼재
+I don’t stop
+넘어져도
+Level up
+
+세 번째 밤이
+지나가면
+내 운명은
+Diamond flash
+
+[YEONI - main hook]
+Escape, escape
+I’m on my way
+
+[BLOOM - high hook]
+Lucky, lucky, light my way
+
+[LUNA - rap tag]
+Game over? No way
+내가 바꿔 my fate
+
+[Verse 2 - LUNA, energetic rap]
+Black cat, bad sign
+그래도 I’m fine
+불길한 예감도
+내 무대의 highlight
+
+삐끗한 timing
+엉켜버린 route
+다시 reset 누르고
+Turn up my mood
+
+삼재가 뭐래도
+난 쉽게 안 져
+운명이 막으면
+더 높이 점프해
+
+Lose one, get two
+난 더 강해져
+불운도 내 손에 오면
+Lucky booster
+
+[BLOOM - cute vocal]
+세상이 살짝 삐끗해도
+내 리듬은 안 놓쳐
+넘어진 그 자리에서
+별빛처럼 터져
+
+[Pre-Chorus 2 - YEONI]
+느린 운도 괜찮아
+결국 나를 데려가
+긴 터널의 끝에서
+더 반짝일 테니까
+
+[BLOOM - harmony]
+Hold my hand
+We go brighter
+
+[LUNA - low talk]
+Bad luck out
+I’m the fighter
+
+[Chorus - ALL]
+삼재 삼재
+I don’t care
+뛰어넘어
+Higher stair
+
+불운이 와도
+Make it rare
+나는 나를
+Save해
+
+삼재 삼재
+I don’t stop
+넘어져도
+Level up
+
+세 번째 밤이
+지나가면
+내 운명은
+Diamond flash
+
+[YEONI - main hook]
+Escape, escape
+I’m on my way
+
+[BLOOM - high hook]
+Lucky, lucky, light my way
+
+[LUNA - rap tag]
+Game over? No way
+내가 바꿔 my fate
+
+[Dance Break - LUNA, chant rap]
+One wave, pass it
+Two trap, dash it
+Three night, break it
+Bad luck, shake it
+
+[BLOOM - chant]
+Jump, jump
+Light it up
+
+[YEONI - ad-lib]
+나를 깨워, destiny
+
+[LUNA - chant]
+Run, run
+Never stop
+삼재 위로 level up
+
+[Bridge - YEONI, emotional vocal]
+가끔은 운명이
+나를 시험해도
+나는 알고 있어
+내 빛은 사라지지 않아
+
+[BLOOM - soft harmony]
+비가 그친 뒤에는
+더 선명한 rainbow
+
+[LUNA - soft rap]
+불운이라 적힌 길도
+내가 걸으면 new road
+
+[Final Chorus - ALL, bigger and brighter]
+삼재 삼재
+I don’t care
+뛰어넘어
+Higher stair
+
+[YEONI - powerful main vocal]
+불운이 와도
+Make it rare
+나는 나를
+Save해
+
+삼재 삼재
+I don’t stop
+넘어져도
+Level up
+
+[BLOOM - high ad-lib]
+Lucky, lucky, light my way
+I’m shining every day
+
+[LUNA - final rap tag]
+삼재 escape
+내 운명은 diamond flash
+
+[YEONI - ending vocal]
+Escape, escape
+I saved my fate`;
+  }
+
+  if (normalizedSongKey === "럭키 컬러") {
+    return `[Intro - BLOOM, bright whisper]
+오늘의 color
+오늘의 luck
+입는 순간
+I glow up
+
+[LUNA - rap talk]
+Pink, gold, blue
+Pick my mood
+Lucky color
+Runway move
+
+[YEONI - main vocal]
+거울 앞에 선 순간
+운명이 빛나
+
+[Verse 1 - YEONI]
+아침 햇살 사이로
+작은 예감이 와
+왠지 오늘은 달라
+나를 부르는 sign
+
+옷장 속에 잠든 색들이
+하나둘 깨어나
+내 하루를 바꿀 주문처럼
+손끝에서 반짝여
+
+[BLOOM - sweet vocal]
+Rose on my lips
+Gold on my eyes
+Blue moon perfume
+밤까지 shining
+
+[LUNA - chic rap]
+오늘의 luck은 fit check
+불안은 뒤로 skip that
+어제의 나는 fade out
+새로운 나로 step out
+
+[Pre-Chorus - YEONI]
+무채색 같던 마음도
+색을 입으면 달라져
+내가 고른 이 빛으로
+세상이 나를 봐
+
+[BLOOM - harmony]
+Light me up
+더 선명하게
+
+[LUNA - low ad-lib]
+No more hiding
+I’m the sign
+
+[Chorus - ALL]
+Pink for love
+Gold for luck
+Blue moon night
+I dress my fate up
+
+Lucky color
+Light me up
+검은 밤도 나를 보면
+Runway처럼 glow
+
+[YEONI - main hook]
+Color, color, lucky color
+오늘의 나를 골라
+
+[BLOOM - high hook]
+Shine, shine, light on me
+
+[LUNA - rap tag]
+입는 순간 바뀌어
+My destiny
+
+[Verse 2 - LUNA, stylish rap]
+Red는 bold, 심장은 hot
+Silver line, 시선은 locked
+Green은 fresh, 마음은 bloom
+Black dress 위에 moonlight mood
+
+색 하나로 바뀌는 attitude
+운세보다 빠른 my move
+누가 뭐라 해도 I choose
+내가 나를 만드는 rule
+
+Lucky vibe, lucky timing
+걸음마다 flash like lightning
+오늘 밤의 spotlight
+전부 내 쪽으로 sliding
+
+[BLOOM - smooth vocal]
+작은 리본 하나에도
+기분이 달라져
+운명은 멀리 있는 게 아냐
+내 선택에 있어
+
+[Pre-Chorus 2 - YEONI]
+흔들렸던 마음까지
+반짝임으로 바꿔놔
+내가 입은 이 순간이
+가장 나다운 aura
+
+[BLOOM - harmony]
+Light me up
+더 자유롭게
+
+[LUNA - low talk]
+Pick my color
+Pick my fate
+
+[Chorus - ALL]
+Pink for love
+Gold for luck
+Blue moon night
+I dress my fate up
+
+Lucky color
+Light me up
+검은 밤도 나를 보면
+Runway처럼 glow
+
+[YEONI - main hook]
+Color, color, lucky color
+오늘의 나를 골라
+
+[BLOOM - high hook]
+Shine, shine, light on me
+
+[LUNA - rap tag]
+입는 순간 바뀌어
+My destiny
+
+[Dance Break - LUNA, chant rap]
+Pink, pink, love sign
+Gold, gold, good time
+Blue, blue, moonlight
+Black, black, spotlight
+
+[BLOOM - chant]
+Color up
+Glow it up
+
+[YEONI - ad-lib]
+나를 깨워, lucky light
+
+[LUNA - chant]
+Step, pose
+Turn, glow
+오늘 밤은 fashion fate
+
+[Bridge - YEONI, dreamy vocal]
+가끔은 내가 흐릿해져도
+괜찮아, 다시 고르면 돼
+내 안에 숨은 수많은 색이
+나를 기다리고 있어
+
+[BLOOM - soft harmony]
+빛을 입은 마음이
+천천히 피어나
+
+[LUNA - soft rap]
+운명은 정해진 답보다
+내가 고른 shade
+
+[Final Chorus - ALL, bright and addictive]
+Pink for love
+Gold for luck
+Blue moon night
+I dress my fate up
+
+[YEONI - powerful main vocal]
+Lucky color
+Light me up
+검은 밤도 나를 보면
+Runway처럼 glow
+
+[BLOOM - high ad-lib]
+Color, color, lucky color
+Shine, shine, light on me
+
+[LUNA - final rap tag]
+오늘의 색을 입고
+I make my destiny
+
+[YEONI - ending vocal]
+Lucky color
+나를 빛내줘`;
+  }
+
+  if (normalizedSongKey === "welcome to code destiny") {
+    return `[Intro - BLOOM, bright whisper]
+문을 열어
+달빛이 켜져
+Welcome to
+Code Destiny
+
+[LUNA - playful rap talk]
+Profile check
+Lucky map
+오늘의 나는 어디로 갈까?
+
+[YEONI - main vocal]
+반짝이는 밤 속으로
+내 운명이 날 불러
+
+[Verse 1 - YEONI]
+처음 보는 하늘 아래
+익숙한 별이 떠올라
+내 이름과 태어난 시간이
+비밀처럼 빛나
+
+사주 속에 숨은 계절
+조용히 나를 깨우고
+작은 예감 하나까지
+나답게 피어나
+
+[BLOOM - sweet vocal]
+타로 카드 한 장 위에
+두근대는 질문 하나
+뒤집는 순간 알 것 같아
+오늘은 뭔가 달라
+
+[LUNA - fresh rap]
+Swipe left, swipe right
+운세 맵을 따라가
+별자리 sign, 숙요의 night
+새로운 내가 보여 난
+
+럭키 컬러 입고 go
+불안은 뒤에 두고
+달빛 아래 로그인
+내 하루가 시작돼
+
+[Pre-Chorus - YEONI]
+어제의 나는 몰랐던
+내 안의 hidden light
+길을 잃은 마음에도
+별은 방향을 줘
+
+[BLOOM - harmony]
+Shine on me
+더 선명하게
+
+[LUNA - ad-lib]
+Find my code
+I’m ready now
+
+[Chorus - ALL]
+Destiny world
+들어와, 눈부신 sign
+오늘의 운명이
+나를 깨워 tonight
+
+Destiny world
+펼쳐봐, 나만의 sky
+사주도 타로도 별도
+내 이야기가 돼
+
+[YEONI - main hook]
+Code, code, destiny
+나를 찾아가는 key
+
+[BLOOM - high hook]
+Lucky, lucky, light on me
+
+[LUNA - rap tag]
+문을 열면 시작돼
+My fate is loading
+
+[Verse 2 - LUNA, lively rap]
+자미두수 palace
+달빛 속의 balance
+내 마음의 좌표들이
+반짝이며 guidance
+
+연애운은 pink wave
+재물운은 gold flame
+오늘의 lucky item
+작은 용기 한 스푼
+
+숙요처럼 끌리고
+별자리처럼 이어져
+알 수 없는 내일도
+지금만큼은 즐겨봐
+
+운명은 정답보다
+나를 여는 password
+Code Destiny 안에서
+I become my own world
+
+[BLOOM - cute vocal]
+사주 네컷 frame 속에
+낯선 내가 웃고 있어
+어제보다 조금 더
+반짝이는 표정으로
+
+[Pre-Chorus 2 - YEONI]
+미래가 멀게 느껴져도
+괜찮아, take my time
+작은 선택 하나에도
+우주는 반응해
+
+[BLOOM - harmony]
+Shine on me
+더 자유롭게
+
+[LUNA - low talk]
+No more doubt
+I choose my route
+
+[Chorus - ALL]
+Destiny world
+들어와, 눈부신 sign
+오늘의 운명이
+나를 깨워 tonight
+
+Destiny world
+펼쳐봐, 나만의 sky
+사주도 타로도 별도
+내 이야기가 돼
+
+[YEONI - main hook]
+Code, code, destiny
+나를 찾아가는 key
+
+[BLOOM - high hook]
+Lucky, lucky, light on me
+
+[LUNA - rap tag]
+문을 열면 시작돼
+My fate is loading
+
+[Dance Break - LUNA, chant rap]
+Saju, tarot
+Star sign, moon road
+Lucky item
+Let it glow
+
+Profile, diary
+Love code, fantasy
+오늘의 나를 저장해
+Code Destiny
+
+[BLOOM - chant]
+Light up, light up
+꿈이 켜져
+
+[YEONI - ad-lib]
+운명이 나를 비춰
+
+[Bridge - YEONI, dreamy vocal]
+가끔은 내가 누구인지
+흐릿해지는 밤에도
+이 세계는 말해줘
+너는 이미 빛나고 있다고
+
+[BLOOM - soft harmony]
+작은 별 하나가
+나의 길이 돼
+
+[LUNA - soft rap]
+운명은 멀리 있지 않아
+내 선택 안에 살아
+
+[Final Chorus - ALL, bright and grand]
+Destiny world
+들어와, 눈부신 sign
+오늘의 운명이
+나를 깨워 tonight
+
+[YEONI - powerful main vocal]
+Destiny world
+펼쳐봐, 나만의 sky
+사주도 타로도 별도
+내 이야기가 돼
+
+[BLOOM - high ad-lib]
+Code, code, destiny
+Lucky light is calling me
+
+[LUNA - final rap tag]
+오늘의 문을 열어
+My fate is glowing
+
+[YEONI - ending vocal]
+Code Destiny
+나를 만나는 world`;
+  }
+
+  if (normalizedSongKey === "꽃과 칼 사이") {
+    return `[Intro - BLOOM, soft whisper]
+꽃은 칼끝에서도 피어나
+Bloom and blade
+Love in my saju
+
+[LUNA - low rap talk]
+을목처럼 휘어져도
+신금처럼 빛나
+목, 화, 토, 금, 수
+우리 둘의 sign
+
+[YEONI - main vocal]
+너를 본 순간
+내 계절이 바뀌어
+
+[Verse 1 - YEONI]
+나는 작은 을목처럼
+바람 앞에 흔들려
+상처 난 마음 틈으로도
+다시 꽃을 피워내
+
+너는 차가운 신금처럼
+고요하게 빛나서
+다가갈수록 위험한데
+눈을 뗄 수가 없어
+
+[BLOOM - airy vocal]
+계수 같은 비가 내려
+내 맘을 적시면
+굳어 있던 밤도 어느새
+푸른 잎이 돼
+
+[LUNA - chic rap]
+너는 jewel, 너는 blade
+날 비추고 날 깨워
+내가 숨긴 감정까지
+한 번에 다 베어
+
+병화처럼 뜨거운 spotlight
+정화처럼 깊은 candlelight
+너와 마주친 순간
+내 운명은 highlight
+
+[Pre-Chorus - YEONI]
+서로 다른 물상들이
+한 장의 그림이 돼
+꽃은 빛을 따라가고
+칼은 별을 새겨
+
+[BLOOM - harmony]
+Hold me in your silver light
+더 가까이 와
+
+[LUNA - low ad-lib]
+Soft like bloom
+Sharp like fate
+
+[Chorus - ALL]
+Bloom and blade
+꽃과 칼 사이
+위험할수록 더
+아름답게 shine
+
+Bloom and blade
+사주 속의 sign
+서로 다른 우리라서
+더 완벽한 love line
+
+[YEONI - main hook]
+나는 피어나
+너의 빛 아래
+
+[BLOOM - high hook]
+Bloom on me, quietly
+
+[LUNA - rap tag]
+차가운 보석 끝에
+내 이름이 새겨져
+
+[Verse 2 - LUNA, stylish rap]
+갑목처럼 straight up
+무토처럼 hold up
+흔들리는 세상에도
+너는 나의 center
+
+임수처럼 deep해
+경금처럼 chic해
+겉은 차가운데
+속은 자꾸 heat해
+
+기토 같은 garden
+네가 오면 bloom in
+내 마음의 사계절이
+너 하나로 tuning
+
+오행이 엇갈려도
+이 끌림은 perfect
+상극처럼 보여도
+우린 서로를 make it
+
+[BLOOM - smooth vocal]
+네 눈빛은 보석 같아
+차갑지만 투명해
+내 향기는 너를 따라
+조용히 번져가
+
+[Pre-Chorus 2 - YEONI]
+닮지 않아서 끌려
+달라서 더 선명해
+운명이란 말보다 더
+너는 나를 깨워
+
+[BLOOM - harmony]
+Hold me in your silver light
+나를 피워줘
+
+[LUNA - low talk]
+This is not luck
+This is our element
+
+[Chorus - ALL]
+Bloom and blade
+꽃과 칼 사이
+위험할수록 더
+아름답게 shine
+
+Bloom and blade
+사주 속의 sign
+서로 다른 우리라서
+더 완벽한 love line
+
+[YEONI - main hook]
+나는 피어나
+너의 빛 아래
+
+[BLOOM - high hook]
+Bloom on me, quietly
+
+[LUNA - rap tag]
+차가운 보석 끝에
+내 이름이 새겨져
+
+[Dance Break - LUNA, chant rap]
+목은 bloom
+화는 burn
+토는 hold
+금은 turn
+수는 flow
+Let it go
+우리 둘의 사주 위로
+
+[BLOOM - chant]
+Bloom, bloom
+Blade, blade
+
+[YEONI - ad-lib]
+사랑이 나를 깨워
+
+[LUNA - chant]
+Soft and sharp
+Light and dark
+We make art
+
+[Bridge - YEONI, emotional vocal]
+가끔은 네가 너무 차가워
+나를 아프게 해도
+그 빛이 없었다면
+나는 피지 못했을 거야
+
+[BLOOM - soft harmony]
+꽃잎처럼 떨리는
+나의 작은 고백
+
+[LUNA - soft rap]
+칼날 같은 운명도
+너라면 아름다워
+
+[Final Chorus - ALL, grand and polished]
+Bloom and blade
+꽃과 칼 사이
+위험할수록 더
+아름답게 shine
+
+[YEONI - powerful main vocal]
+Bloom and blade
+사주 속의 sign
+서로 다른 우리라서
+더 완벽한 love line
+
+[BLOOM - high ad-lib]
+나는 피어나
+너의 빛 아래
+
+[LUNA - final rap tag]
+을목의 꽃, 신금의 jewel
+우리 사랑은 rare rule
+
+[YEONI - ending vocal]
+Bloom and blade
+너로 피어나`;
+  }
+
+  if (normalizedSongKey === "도화살 홍염꽃") {
+    return `[Intro - BLOOM, soft whisper]
+도화가 번져
+홍염이 타올라
+화개 속에 숨은 나
+Red bloom sign
+
+[LUNA - low rap talk]
+사주 위에 새긴 aura
+피할수록 더 선명해
+
+[YEONI - main vocal]
+나를 보는 그 순간
+네 밤이 흔들려
+
+[Verse 1 - YEONI]
+조용히 걷는 발끝에
+꽃잎이 따라와
+말하지 않아도 공기가
+내 쪽으로 기울어
+
+웃음 하나 남겼을 뿐인데
+시선은 오래 머물러
+내가 숨긴 빛까지
+너는 자꾸 읽어내
+
+[BLOOM - airy vocal]
+도화살처럼 피어나
+무심한 듯 더 깊게
+가까이 오면 알 거야
+향기는 도망 못 가
+
+[LUNA - chic rap]
+화려한 척 안 해도
+room 안의 focus
+내 명식 깊은 곳에
+잠든 red lotus
+
+화개는 나를 감춰
+더 신비롭게 만들어
+혼자인 밤마저
+무대처럼 바꿔
+
+[Pre-Chorus - YEONI]
+나는 알아
+나의 고요가 더 위험한 걸
+차가운 달빛 아래
+뜨겁게 피는 걸
+
+[BLOOM - harmony]
+Don’t look away
+이미 늦었어
+
+[LUNA - low ad-lib]
+One glance
+You’re under my sign
+
+[Chorus - ALL]
+Red bloom sign
+도화처럼 피어
+말없이 널 끌어당겨
+You can’t deny
+
+Red bloom sign
+홍염처럼 번져
+눈빛 하나로 타올라
+You feel my fire
+
+[YEONI - main hook]
+I’m not lucky
+I’m born to shine
+
+[BLOOM - high hook]
+Bloom on me, bloom on me
+
+[LUNA - rap tag]
+화개 속에 숨은 queen
+더 깊을수록 fantasy
+
+[Verse 2 - LUNA, charismatic rap]
+도화는 soft touch
+홍염은 red spark
+둘이 섞인 순간
+흔들리는 your heart
+
+예쁜 말은 필요 없어
+눈빛 하나면 enough
+내가 지나간 뒤엔
+분위기만 남아 love
+
+화개살의 silence
+고독마저 priceless
+혼자 빛나는 법을 알아
+That’s my private diamonds
+
+겁내지 마, 가까이 와
+난 쉽게 읽히지 않아
+사주 속의 매력선이
+너를 나로 이끌잖아
+
+[BLOOM - smooth vocal]
+꽃잎처럼 가벼운 척
+마음 깊이 내려앉아
+한 번 스친 향기에도
+계절이 바뀌잖아
+
+[Pre-Chorus 2 - YEONI]
+나를 알고 싶다면
+밤의 문을 열어봐
+가장 조용한 빛이
+가장 오래 남을 테니까
+
+[BLOOM - harmony]
+Don’t run away
+이미 시작돼
+
+[LUNA - low talk]
+This is not a charm
+This is my fate
+
+[Chorus - ALL]
+Red bloom sign
+도화처럼 피어
+말없이 널 끌어당겨
+You can’t deny
+
+Red bloom sign
+홍염처럼 번져
+눈빛 하나로 타올라
+You feel my fire
+
+[YEONI - main hook]
+I’m not lucky
+I’m born to shine
+
+[BLOOM - high hook]
+Bloom on me, bloom on me
+
+[LUNA - rap tag]
+화개 속에 숨은 queen
+더 깊을수록 fantasy
+
+[Dance Break - LUNA, stylish chant]
+도화, bloom
+홍염, burn
+화개, hide
+Now watch me turn
+
+꽃처럼 와
+불처럼 남아
+고요한 밤 위에
+내 이름을 새겨
+
+[BLOOM - chant]
+Bloom, bloom
+Burn, burn
+
+[YEONI - ad-lib]
+나를 보면 잊지 못해
+
+[Bridge - YEONI, emotional vocal]
+아무도 모르는 나의 밤
+그 안에 핀 붉은 별
+외로움도 아름다워
+내가 나를 비출 때
+
+[BLOOM - soft harmony]
+화개 속에 잠든 꿈이
+무대 위로 피어나
+
+[LUNA - soft rap]
+도화는 나의 문장
+홍염은 나의 온도
+운명이 준 이름을
+난 왕관처럼 써
+
+[Final Chorus - ALL, grand and polished]
+Red bloom sign
+도화처럼 피어
+말없이 널 끌어당겨
+You can’t deny
+
+[YEONI - powerful main vocal]
+Red bloom sign
+홍염처럼 번져
+눈빛 하나로 타올라
+You feel my fire
+
+[BLOOM - high ad-lib]
+I’m not lucky
+I’m born to shine
+
+[LUNA - final rap tag]
+사주 위에 피어난
+My red bloom sign
+
+[YEONI - ending vocal]
+Red bloom sign
+나를 기억해`;
+  }
+
+  if (normalizedSongKey === "원진 귀문 gate") {
+    return `[Intro - BLOOM, eerie whisper]
+문이 열려
+생각이 뒤집혀
+원진, 귀문
+I can’t look away
+
+[LUNA - low rap talk]
+사주 속 forbidden line
+엇갈린 마음의 sign
+도망칠수록 더 가까워져
+Ghost gate
+
+[YEONI - main vocal]
+너를 본 순간
+내 밤이 흔들려
+
+[Verse 1 - YEONI]
+조용했던 내 마음에
+검은 물결이 번져
+아닌 척 고개 돌려도
+눈빛은 너를 찾아
+
+좋아하는 건지 미워하는지
+경계가 흐려져
+멀어지고 싶은데 왜
+더 깊이 끌려가
+
+[BLOOM - airy vocal]
+달빛이 어긋나
+그림자가 춤을 춰
+내 안의 낯선 목소리
+네 이름만 불러
+
+[LUNA - sharp rap]
+원진처럼 꼬인 감정
+웃다가도 cold reaction
+귀문이 열린 밤엔
+생각들이 chain reaction
+
+앞은 mirror, 뒤는 maze
+너는 poison, 너는 grace
+밀어내는 손끝마저
+결국 너를 향해
+
+[Pre-Chorus - YEONI]
+심장이 반대로 뛰어
+숨이 조금씩 엉켜
+이건 사랑인지 경고인지
+아직도 모르겠어
+
+[BLOOM - harmony]
+Close the door
+But I hear you
+
+[LUNA - low ad-lib]
+No escape
+You’re in my head
+
+[Chorus - ALL]
+Ghost gate
+나를 흔들어
+원진의 밤처럼
+엉켜버린 heart
+
+Ghost gate
+너를 밀어내도
+귀문처럼 다시
+열려버린 door
+
+[YEONI - main hook]
+I’m lost in your orbit
+벗어나도 falling
+
+[BLOOM - high hook]
+Love me, haunt me, slowly
+
+[LUNA - rap tag]
+밀고 당겨도 결국
+You control my gravity
+
+[Verse 2 - LUNA, chaotic rap]
+Step left, mind right
+박자가 어긋난 night
+너를 보면 내 이성은
+갑자기 glitch, rewrite
+
+분명 싫다 했는데
+시선은 너를 scan
+마음은 왜 자꾸
+네 쪽으로 crash land
+
+귀문관살처럼 deep
+생각은 spiral trip
+네 말 한마디에
+내 하루가 flip
+
+원진의 sharp tension
+달콤한 obsession
+상처인 걸 알면서도
+계속되는 attraction
+
+[BLOOM - smooth vocal]
+어지러운 이 끌림도
+이상하게 아름다워
+닫아둔 마음의 문이
+너만 보면 열려
+
+[Pre-Chorus 2 - YEONI]
+멀어질수록 더 선명해
+너라는 이상한 꿈
+끝을 알 수 없는 미로에
+또 나를 던져
+
+[BLOOM - harmony]
+Close the door
+But I feel you
+
+[LUNA - low talk]
+This is not love
+Maybe it’s fate
+
+[Chorus - ALL]
+Ghost gate
+나를 흔들어
+원진의 밤처럼
+엉켜버린 heart
+
+Ghost gate
+너를 밀어내도
+귀문처럼 다시
+열려버린 door
+
+[YEONI - main hook]
+I’m lost in your orbit
+벗어나도 falling
+
+[BLOOM - high hook]
+Love me, haunt me, slowly
+
+[LUNA - rap tag]
+밀고 당겨도 결국
+You control my gravity
+
+[Dance Break - LUNA, grand chant rap]
+원진, twist it
+귀문, open
+Mind maze, break it
+Fate wave, frozen
+
+Push me, pull me
+Love me, lose me
+문이 닫혀도
+너는 내 안에
+
+[BLOOM - chant]
+Round and round
+Deeper now
+
+[YEONI - ad-lib]
+운명이 나를 삼켜
+
+[Bridge - YEONI, dramatic vocal]
+나를 망칠 것 같던 밤이
+나를 깨우는 빛이 돼
+어지러운 마음 끝에서
+가장 선명한 널 봐
+
+[BLOOM - soft harmony]
+검은 문틈 사이로
+피어난 silver flower
+
+[LUNA - soft rap]
+도망치던 나의 그림자
+네 앞에서 나를 마주해
+
+[Final Chorus - ALL, grand and intense]
+Ghost gate
+나를 흔들어
+원진의 밤처럼
+엉켜버린 heart
+
+[YEONI - powerful main vocal]
+Ghost gate
+너를 밀어내도
+귀문처럼 다시
+열려버린 door
+
+[BLOOM - high ad-lib]
+I’m lost in your orbit
+Love me, haunt me, slowly
+
+[LUNA - final rap tag]
+사주 속에 새긴 chaos
+결국 너는 my gravity
+
+[YEONI - ending vocal]
+Ghost gate
+너를 닫을 수 없어`;
+  }
+
+  if (normalizedSongKey === "형충파해 break") {
+    return `[Intro - LUNA, low whisper rap]
+사주팔자 위에 새겨진 sign
+형, 충, 파, 해
+운명이 흔들릴 때
+진짜 내가 깨어나
+
+[BLOOM - cold whisper]
+My birth chart burns
+My fate turns sharp
+
+[YEONI - main vocal]
+명식 속에 잠든 불꽃
+오늘 밤 나를 깨워
+
+[Verse 1 - YEONI]
+태어난 시간에 숨겨진 code
+조용히 나를 불러
+원국 깊은 곳에 잠긴
+날카로운 예감 하나
+
+평온한 길만 걸었다면
+몰랐을 나의 빛
+흔들린 별의 틈 사이로
+새로운 내가 피어
+
+[BLOOM - airy vocal]
+십이지가 맞부딪힌 밤
+달빛이 금을 그어
+깨진 줄 알았던 마음이
+더 선명하게 빛나
+
+[LUNA - charismatic rap]
+지지 위에 충이 와
+판을 뒤집어놔
+형은 나를 다듬고
+파는 껍질을 깨
+
+해가 지나간 자리엔
+가짜들이 사라져
+사주가 날 시험할수록
+내 눈빛은 더 차가워
+
+[Pre-Chorus - YEONI]
+불안이 나를 밀어도
+나는 뒤로 가지 않아
+깨진 운의 조각마저
+내 발밑에 별이 돼
+
+[BLOOM - harmony]
+In my chart, I bloom
+더는 숨지 않아
+
+[LUNA - low ad-lib]
+No fear
+I rule my fate
+
+[Chorus - ALL]
+Clash crown
+사주 위로 rise
+Clash crown
+흔들려도 I’m alive
+
+형충파해
+나를 깨운 destiny
+형충파해
+부딪힐수록 더 queen
+
+[YEONI - main hook]
+I was born from the storm
+I become my own throne
+
+[BLOOM - high hook]
+Shine, shine, dangerous
+
+[LUNA - rap tag]
+명식 속의 파동 위에
+I wear the crown
+
+[Verse 2 - LUNA, powerful rap]
+합은 달콤하게 묶고
+충은 과감하게 break
+형은 칼날처럼 와도
+나를 만든 upgrade
+
+파는 오래된 나를
+조용히 벗겨내
+해는 숨은 균열까지
+빛 앞에 드러내
+
+Birth time, four signs
+내 운명의 outline
+흔들리는 사주 안에
+숨겨져 있던 high line
+
+읽을수록 dangerous
+알수록 glamorous
+혼란 속에 태어난
+Unbreakable charisma
+
+[BLOOM - sleek vocal]
+아픈 말도 지나가면
+하나의 문장이 돼
+나를 찢던 모든 밤이
+왕관처럼 남아
+
+[Pre-Chorus 2 - YEONI]
+정해진 사주라 해도
+그대로 살진 않아
+부딪힌 운의 끝에서
+내 선택이 빛나
+
+[BLOOM - harmony]
+In the chaos, I bloom
+더 높이 올라가
+
+[LUNA - low talk]
+This is not damage
+This is my power
+
+[Chorus - ALL]
+Clash crown
+사주 위로 rise
+Clash crown
+흔들려도 I’m alive
+
+형충파해
+나를 깨운 destiny
+형충파해
+부딪힐수록 더 queen
+
+[YEONI - main hook]
+I was born from the storm
+I become my own throne
+
+[BLOOM - high hook]
+Shine, shine, dangerous
+
+[LUNA - rap tag]
+명식 속의 파동 위에
+I wear the crown
+
+[Dance Break - LUNA, chant rap]
+형은 sharpen
+충은 motion
+파는 break it
+해는 open
+
+사주 속의 hidden line
+이제 나의 design
+흔들려도 무너지지 않아
+I define my sign
+
+[BLOOM - chant]
+Glow, glow
+더 차갑게 glow
+
+[YEONI - ad-lib]
+운명이 나를 깨워
+
+[Bridge - YEONI, grand vocal]
+내 사주에 적힌 밤이
+나를 막는 줄 알았어
+하지만 가장 깊은 균열에
+나의 빛이 숨어 있었어
+
+[BLOOM - soft harmony]
+흩어진 모든 내가
+하나의 별이 돼
+
+[LUNA - soft rap]
+불길하다 말한 운도
+내 손에선 무기가 돼
+
+[Final Chorus - ALL, grand and fierce]
+Clash crown
+사주 위로 rise
+Clash crown
+흔들려도 I’m alive
+
+[YEONI - powerful main vocal]
+형충파해
+나를 깨운 destiny
+형충파해
+부딪힐수록 더 queen
+
+[BLOOM - high ad-lib]
+I was born from the storm
+I become my own throne
+
+[LUNA - final rap tag]
+사주팔자 위에 서서
+I wear the crown
+
+[YEONI - ending vocal]
+Clash crown
+내 운명은 내가 써`;
+  }
 
   if (normalizedSongKey === "karma karma") {
     return `[Intro]
@@ -5840,7 +9128,7 @@ function buildTrack(manifest: ArtistAudioManifest, audioFileName: string, index:
   };
 }
 
-const artistTrackCounts: Record<ArtistKey, number> = { neo: 0, yeoni: 0, dest1nova: 0 };
+const artistTrackCounts: Record<ArtistKey, number> = { neo: 0, yeoni: 0, dest1nova: 0, lunabloom: 0 };
 
 export const tracks = artistAudioManifests.flatMap((manifest) => (
   manifest.audioFileNames.map((audioFileName) => {
@@ -5852,4 +9140,5 @@ export const tracks = artistAudioManifests.flatMap((manifest) => (
 export const neoTracks = tracks.filter((track) => track.artistKey === "neo");
 export const yeoniTracks = tracks.filter((track) => track.artistKey === "yeoni");
 export const dest1novaTracks = tracks.filter((track) => track.artistKey === "dest1nova");
-export const allTracks = [...yeoniTracks, ...neoTracks, ...dest1novaTracks];
+export const lunaBloomTracks = tracks.filter((track) => track.artistKey === "lunabloom");
+export const allTracks = [...yeoniTracks, ...neoTracks, ...dest1novaTracks, ...lunaBloomTracks];

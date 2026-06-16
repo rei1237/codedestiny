@@ -202,6 +202,9 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   };
   const lyricsText = player.currentTrack?.lyrics?.trim() || "";
   const listeningStatusLabel = getListeningStatusLabel(player.isLoading, player.canPlay, player.isPlaying);
+  const progressPercent = progressMax > 0
+    ? Math.min(100, Math.max(0, (player.currentTime / progressMax) * 100))
+    : 0;
 
   async function handleShareNowPlaying() {
     if (!player.currentTrack) return;
@@ -236,7 +239,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   if (isCompact && !isListeningModeOpen && player.currentTrack) {
     return (
       <section
-        className={`${styles.miniPlayerShell} ${artistThemeClass} ${coverFailed ? styles.coverFallback : ""}`}
+        className={`${styles.miniPlayerShell} ${artistThemeClass} ${coverFailed ? styles.coverFallback : ""} font-body`}
         data-artist-mode={player.currentTrack.artistKey}
         style={playerStyle}
         aria-label="Code Destiny music player"
@@ -286,7 +289,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
 
   return (
     <section
-      className={`${styles.playerShell} ${isCompact ? styles.listeningOverlay : ""} ${artistThemeClass} ${player.isPlaying ? styles.isPlaying : styles.isPaused} ${coverFailed ? styles.coverFallback : ""}`}
+      className={`${styles.playerShell} ${isCompact ? styles.listeningOverlay : ""} ${artistThemeClass} ${player.isPlaying ? styles.isPlaying : styles.isPaused} ${coverFailed ? styles.coverFallback : ""} font-body`}
       data-artist-mode={player.currentTrack?.artistKey || "neo"}
       style={playerStyle}
     >
@@ -329,14 +332,14 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       <div className={styles.mist} aria-hidden />
 
       {player.currentTrack ? (
-        <div className={styles.playerFrame}>
-          <div className={styles.playerHero}>
-            <span className={styles.playerHeroKicker}>MOON LIBRARY</span>
-            <h1 className={styles.playerHeroTitle}>달빛 플레이리스트</h1>
-            <p className={styles.playerHeroText}>네오와 연이의 감성 무드로 이어지는 플레이 리스트.</p>
+        <div className={`${styles.playerFrame} mx-auto animate-fade-in-up`}>
+          <div className={`${styles.playerHero} font-display`}>
+            <span className={`${styles.playerHeroKicker} font-decorative`}>MOON LIBRARY</span>
+            <h1 className={`${styles.playerHeroTitle} font-display`}>달빛 플레이리스트</h1>
+            <p className={`${styles.playerHeroText} font-premium`}>네오와 연이의 감성 무드로 이어지는 플레이 리스트.</p>
           </div>
-          <div className={styles.playerMain}>
-            <div className={styles.albumChamber}>
+          <div className={`${styles.playerMain} rounded-[8px]`}>
+            <div className={`${styles.albumChamber} relative`}>
               <MoonAlbumArtwork
                 coverUrl={player.currentTrack.coverUrl}
                 title={player.currentTrack.title}
@@ -346,12 +349,18 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
                 onCoverLoad={markCoverLoaded}
                 onCoverError={markCoverFailed}
               />
-              <span className={styles.albumStatusBadge}>{listeningStatusLabel}</span>
+              <span
+                className={`${styles.albumStatusBadge} font-premium`}
+                data-playing={player.isPlaying ? "true" : "false"}
+                aria-live="polite"
+              >
+                {listeningStatusLabel}
+              </span>
             </div>
 
-            <div className={styles.nowPlayingPanel}>
+            <div className={`${styles.nowPlayingPanel} shadow-violet-neon`}>
               <div className={styles.nowPlayingHeader}>
-                <span className={styles.artistName}>{player.currentTrack.artistName}</span>
+                <span className={`${styles.artistName} font-decorative`}>{player.currentTrack.artistName}</span>
                 <button
                   className={styles.nowPlayingShareButton}
                   type="button"
@@ -363,17 +372,17 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
                   <span>{nowPlayingShared ? "Copied" : "Share"}</span>
                 </button>
               </div>
-              <h2>{player.currentTrack.title}</h2>
+              <h2 className="font-display">{player.currentTrack.title}</h2>
               <p>{player.currentTrack.mood || "moonlight session"}</p>
             </div>
 
-            <div className={styles.controlDeck}>
+            <div className={`${styles.controlDeck} shadow-violet-neon`}>
               <div className={styles.controlRow}>
                 <button className={styles.iconButton} type="button" onClick={player.previous} aria-label="Previous track">
                   <SkipBack size={18} />
                 </button>
                 <button
-                  className={styles.playButton}
+                  className={`${styles.playButton} shadow-violet-neon-focus`}
                   type="button"
                   onClick={player.isPlaying ? player.pause : player.play}
                   aria-label={player.isPlaying ? "Pause" : "Play"}
@@ -385,7 +394,11 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
                 </button>
               </div>
 
-              <label className={styles.progressArea}>
+              <label
+                className={styles.progressArea}
+                data-playing={player.isPlaying ? "true" : "false"}
+                style={{ "--moon-progress": `${progressPercent}%` } as CSSProperties}
+              >
                 <span>{formatTime(player.currentTime)}</span>
                 <input
                   className={styles.progressInput}
