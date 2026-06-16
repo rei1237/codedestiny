@@ -167,8 +167,13 @@ function titleFromAudioFileName(fileName: string) {
 
 function lyricsFromAudioFileName(audioFileName: string) {
   const normalized = basenameFromFileName(audioFileName).toLowerCase();
+  const normalizedSongKey = normalized
+    .normalize("NFKC")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
 
-  if (normalized === "karma, karma") {
+  if (normalizedSongKey === "karma karma") {
     return `[Intro]
 Karma, karma
 다시 너를 찾아
