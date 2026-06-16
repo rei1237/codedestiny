@@ -494,15 +494,29 @@ function resolvePaymentMethodLabel(payment) {
 function formatPaymentResponse(payment) {
   if (!payment) return null;
 
+  const rawPortOne = payment?.rawPortOne && typeof payment.rawPortOne === "object" ? payment.rawPortOne : {};
+  const rawV2 = rawPortOne?.rawV2 && typeof rawPortOne.rawV2 === "object" ? rawPortOne.rawV2 : {};
+  const rawPaidAt = rawPortOne?.paid_at
+    ? toDateFromUnixSeconds(rawPortOne.paid_at)
+    : (rawPortOne?.paidAt || rawPortOne?.transaction?.paidAt || rawPortOne?.statusChangedAt || rawV2?.paidAt || rawV2?.transaction?.paidAt || rawV2?.statusChangedAt);
   const approvalNumber = String(
-    payment?.rawPortOne?.apply_num
-      || payment?.rawPortOne?.apply_num_vbank
+    rawPortOne?.apply_num
+      || rawPortOne?.apply_num_vbank
+      || rawPortOne?.applyNum
+      || rawPortOne?.approvalNumber
+      || rawPortOne?.transaction?.approvalNumber
+      || rawPortOne?.card?.approvalNumber
+      || rawPortOne?.card?.approval_number
+      || rawV2?.approvalNumber
+      || rawV2?.transaction?.approvalNumber
+      || rawV2?.card?.approvalNumber
+      || rawV2?.card?.approval_number
       || "",
   ).trim() || null;
-  const receiptUrl = String(payment?.rawPortOne?.receipt_url || "").trim() || null;
-  const cancelAmount = Number(payment?.rawPortOne?.cancel_amount || 0);
-  const cancelledAt = payment?.rawPortOne?.cancelled_at
-    ? toDateFromUnixSeconds(payment.rawPortOne.cancelled_at)
+  const receiptUrl = String(rawPortOne?.receipt_url || rawPortOne?.receiptUrl || rawPortOne?.receipt?.url || rawPortOne?.transaction?.receiptUrl || rawV2?.receiptUrl || rawV2?.receipt?.url || rawV2?.transaction?.receiptUrl || "").trim() || null;
+  const cancelAmount = Number(rawPortOne?.cancel_amount || 0);
+  const cancelledAt = rawPortOne?.cancelled_at
+    ? toDateFromUnixSeconds(rawPortOne.cancelled_at)
     : null;
 
   return {
@@ -525,15 +539,17 @@ function formatPaymentResponse(payment) {
     subscriptionTier: payment.subscriptionTier || "",
     status: payment.status,
     orderState: String(payment.orderState || ""),
-    paidAt: payment.paidAt,
+    createdAt: toIsoOrNull(payment.createdAt),
+    updatedAt: toIsoOrNull(payment.updatedAt),
+    paidAt: toIsoOrNull(payment.paidAt || rawPaidAt),
     failureCode: payment.failureCode,
     failureMessage: payment.failureMessage,
     failureStage: payment.failureStage,
-    lastErrorAt: payment.lastErrorAt,
+    lastErrorAt: toIsoOrNull(payment.lastErrorAt),
     approvalNumber,
     receiptUrl,
     cancelAmount,
-    cancelledAt,
+    cancelledAt: toIsoOrNull(cancelledAt),
   };
 }
 

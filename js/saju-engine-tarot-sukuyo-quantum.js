@@ -12113,9 +12113,39 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             return idx === 0 || idx === 2 || idx === 3;
           });
           const compactScripts = ((enhanced.relationshipPrescriptions && enhanced.relationshipPrescriptions.scripts) || []).slice(0, 2);
-          const relationMiniMapReading = (window._syRelationMiniMapReading && Array.isArray(window._syRelationMiniMapReading.relationMiniMap))
-            ? window._syRelationMiniMapReading
-            : { relationMiniMap: [] };
+          const relationMiniMapReading = (function() {
+            if (window._syRelationMiniMapReading && Array.isArray(window._syRelationMiniMapReading.relationMiniMap) && window._syRelationMiniMapReading.relationMiniMap.length) {
+              return window._syRelationMiniMapReading;
+            }
+            try {
+              var baseResult = window._syLastSukuyoBasicResult || {};
+              var selfData = {
+                mansion: baseResult.mansion || myMansionName || '',
+                mansionIdx: Number.isFinite(Number(baseResult.mansionIdx)) ? Number(baseResult.mansionIdx) : myIdx,
+                icon: baseResult.icon || '',
+                talent: baseResult.talent || 80,
+                traits: baseResult.traits || {}
+              };
+              var selfDaily = baseResult.daily || {
+                moon: { emoji: '', label: '', desc: '' },
+                ritual: { color: '#c0a060', food: '', action: '' },
+                insight: '',
+                overall: 70,
+                relations: 70,
+                love: 70,
+                wealth: 70
+              };
+              var selfGuardian = (typeof syResolveMansionGuardian === 'function')
+                ? syResolveMansionGuardian(selfData.mansion, selfData.mansionIdx)
+                : null;
+              var selfReading = syBuildBasicReading({}, selfData, selfDaily, selfGuardian);
+              return selfReading && Array.isArray(selfReading.relationMiniMap)
+                ? { relationMiniMap: selfReading.relationMiniMap }
+                : { relationMiniMap: [] };
+            } catch (_miniMapErr) {
+              return { relationMiniMap: [] };
+            }
+          })();
           const compactAdvantages = (rel.advantages || []).slice(0, 2).map(function(a) {
             return '<article style="background:' + th.bg + ';border:1px solid ' + th.border + ';border-radius:11px;padding:11px 12px;">'
               + '<strong style="display:block;color:' + th.color1 + ';font-size:0.8rem;margin-bottom:5px;">' + syCanonicalEsc(a.label || '인연의 빛') + '</strong>'

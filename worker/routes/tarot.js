@@ -2,6 +2,11 @@ import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed
 import { requireAuth } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { buildImageCandidates, getTarotCardByAnyId, TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
+import {
+  getWarningCardGuard,
+  guardWarningTarotSection,
+  guardWarningTarotText,
+} from "../../lib/tarot/warning-card-guard.mjs";
 import { buildMindscanReadingPayload } from "../../lib/tarot/mindscan-reading.mjs";
 import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
 import { expectedCardCount, listSpreadIds, normalizeSpreadType, getSpreadDefinition } from "../../lib/tarot/spreads.mjs";
@@ -62,6 +67,50 @@ function reinforceNumerologyInterpretation(interpretation, fallback) {
       summary: `${fallback?.conclusion?.summary || ""} ${interpretation?.conclusion?.summary || ""}`.trim(),
       finalWord: `${fallback?.conclusion?.finalWord || ""} ${interpretation?.conclusion?.finalWord || ""}`.trim(),
     },
+  };
+}
+
+function guardNumerologyWarningInterpretation(interpretation, cards = []) {
+  if (!interpretation || typeof interpretation !== "object") return interpretation;
+  const cardReadings = Array.isArray(interpretation.cardReadings)
+    ? interpretation.cardReadings.map((section, idx) => {
+      const entry = cards[idx] || {};
+      const cardLike = {
+        nameKo: section?.cardNameKr || entry?.card?.nameKr || entry?.nameKr,
+        nameEn: section?.cardNameEn || entry?.card?.name || entry?.name,
+        name: section?.cardNameEn || section?.cardNameKr || entry?.card?.name || entry?.name,
+      };
+      return guardWarningTarotSection(section, cardLike);
+    })
+    : interpretation.cardReadings;
+
+  return {
+    ...interpretation,
+    cardReadings,
+  };
+}
+
+function getWarningGuardFromSections(sections = []) {
+  if (!Array.isArray(sections)) return null;
+  for (const section of sections) {
+    const guard = getWarningCardGuard(section);
+    if (guard) return guard;
+  }
+  return null;
+}
+
+function guardCrystalSoulReadingData(readingData) {
+  const warningGuard = getWarningGuardFromSections(readingData?.sections);
+  if (!warningGuard || !readingData || typeof readingData !== "object") return readingData;
+  return {
+    ...readingData,
+    sections: Array.isArray(readingData.sections)
+      ? readingData.sections.map((section) => guardWarningTarotSection(section, section))
+      : readingData.sections,
+    summary: guardWarningTarotSection(readingData.summary, warningGuard),
+    masterChapters: Array.isArray(readingData.masterChapters)
+      ? readingData.masterChapters.map((chapter) => guardWarningTarotSection(chapter, warningGuard))
+      : readingData.masterChapters,
   };
 }
 
@@ -459,7 +508,7 @@ const CRYSTAL_POSITION_LENSES = {
   },
   5: {
     role: "흐름이 향하는 마지막 문",
-    reading: "마지막 자리는 결과를 단정하기보다 지금 선택이 어떤 방향으로 굳어지는지를 보여 줍니다.",
+    reading: "마지막 자리는 결과를 단정하기보다 지금 선택이 어떤 방향으로 굳어지는지를 비춥니다.",
     action: "7일 뒤 다시 확인할 결과 기준 1개를 정합니다.",
   },
 };
@@ -473,6 +522,10 @@ function getCrystalPositionLens(order) {
 }
 
 const CARD_MEANING_OVERRIDES = {
+  "The Tower": "갑작스러운 붕괴, 숨은 문제 노출, 구조 재점검, 예상 밖의 충격",
+  "The Devil": "집착, 유혹, 중독, 계약, 욕망, 벗어나기 어려운 구조",
+  "The Moon": "불안, 착각, 숨은 감정, 모호함, 직감",
+  "Ten of Swords": "종결, 소진, 배신감, 최악의 생각, 더 버틸 수 없는 한계",
   "Five of Pentacles": "결핍감, 재정 압박, 소외감, 부족함에 대한 두려움",
   "Five of Wands": "경쟁, 충돌, 실력 겨루기, 시장의 소란, 의견 차이",
   "Page of Cups": "순수한 감정, 상상력, 미숙한 제안, 감정적 기대",
@@ -518,13 +571,13 @@ function orientationMeaning(orientation) {
   if (orientation === "reversed") {
     return "역방향이므로 에너지가 막히거나 지연되며, 같은 문제가 반복될 가능성을 경고합니다.";
   }
-  return "정방향이므로 흐름은 비교적 열려 있으며, 행동을 붙이면 현실 변화로 이어질 가능성이 큽니다.";
+  return "정방향이므로 움직일 여지는 살아 있지만, 현실 조건을 확인한 뒤 속도를 붙여야 합니다.";
 }
 
 function buildCardMeaning(cardName, orientation, tarotKeywords = []) {
-  const base = CARD_MEANING_OVERRIDES[cardName] || `${cardSuite(cardName)} 계열의 핵심 주제를 드러내는 카드로, 상황의 본질을 선명하게 보여줍니다.`;
+  const base = CARD_MEANING_OVERRIDES[cardName] || `${cardSuite(cardName)} 계열의 핵심 주제가 상황의 본질을 선명하게 드러냅니다.`;
   const keywordLine = tarotKeywords.length ? `핵심 키워드는 ${tarotKeywords.slice(0, 4).join(", ")}입니다.` : "";
-  return `${base}. ${orientationMeaning(orientation)} ${keywordLine}`.trim();
+  return guardWarningTarotText(`${base}. ${orientationMeaning(orientation)} ${keywordLine}`.trim(), { nameEn: cardName, name: cardName }, { field: "cardMeaning", orientation });
 }
 
 const CRYSTAL_MASTER_CHAPTER_TITLES = [
@@ -659,7 +712,7 @@ function buildVariedReadingLead(position, cardNameKo, orientation, categoryName,
     `${cardNameKo} ${orientationLabel}은 ${position.title}에서 지금 당장 손대야 할 우선순위를 드러냅니다.`,
     `${position.title}에 놓인 ${cardNameKo}는 ${crystalName}과 만나 감정과 현실의 접점을 다시 맞춥니다.`,
     `${categoryName} 전체에서 ${position.title} 자리는 흐름의 방향을 바꾸는 관문처럼 작동합니다.`,
-    `${cardNameKo} ${orientationLabel}이 보여 주는 핵심은 ${position.title}에 맞는 행동 속도를 찾는 일입니다.`,
+    `${cardNameKo} ${orientationLabel}이 비추는 핵심은 ${position.title}에 맞는 행동 속도를 찾는 일입니다.`,
   ];
   return templates[(position.order - 1) % templates.length];
 }
@@ -668,6 +721,7 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
   const card = getTarotCardByAnyId(cardName);
   const cardNameKo = asText(card?.nameKo) || asText(cardName) || `카드 ${idx + 1}`;
   const cardNameEn = asText(card?.nameEn) || asText(cardName) || `Card ${idx + 1}`;
+  const warningGuard = getWarningCardGuard({ code: card?.code, nameKo: cardNameKo, nameEn: cardNameEn, name: cardName });
   const imageCandidates = card ? buildImageCandidates(card.code) : [];
   const tarotKeywords = Array.isArray(card?.keywords) && card.keywords.length
     ? card.keywords.slice(0, 5)
@@ -679,18 +733,18 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
   const cardMeaning = buildCardMeaning(cardNameEn, orientation, tarotKeywords);
   const cardLean = buildVariedReadingLead(position, cardNameKo, orientation, category.name, crystal.nameKo);
   const crystalMeaning = `${crystal.nameKo}는 ${crystal.meaning.replace(/입니다\.?$/, "")}. ${crystal.adviceTone} 쪽이 살고, ${crystal.cautionTone}는 잠시 낮춰야 합니다.`;
-  const orientationPulse = orientation === "reversed"
+  const orientationPulse = warningGuard ? warningGuard.pulse : orientation === "reversed"
     ? `에너지가 안쪽으로 말려 있어 ${lens.risk}이 커질 수 있습니다.`
     : `에너지가 밖으로 열리고 있어 ${lens.opportunity}가 현실로 드러나기 쉽습니다.`;
   const positionInterpretation = `${position.title}의 질문은 "${position.question}"입니다. 이 자리는 ${positionLens.role}이며, ${cardNameKo}가 들어온 것은 ${category.focus}를 ${lens.axis}으로 다시 읽으라는 신호입니다.`;
   const oneLineSummary = `${cardLean} ${lens.axis}에서 ${voice.crystalHook}이 핵심입니다.`;
   const crystalEnergy = `${crystal.nameKo}의 ${crystal.keywords.slice(0, 3).join(" · ")} 파동은 ${category.name}의 흐름을 부드럽게 정리합니다. ${crystalMeaning} 이 원석은 ${lens.choice}가 흐려질 때 감정의 결을 낮추고 판단의 손잡이를 다시 잡게 합니다.`;
-  const cardFlow = `${cardMeaning} ${positionLens.reading} ${position.title}의 ${cardNameKo}는 ${lens.axis}을 중심에 두고, 지금 더해야 할 것과 덜어낼 것을 나누라고 말합니다.`;
+  const cardFlow = `${cardMeaning} ${positionLens.reading} ${position.title}의 ${cardNameKo}는 ${lens.axis}을 중심에 두고, 지금 더해야 할 것과 덜어낼 것을 가리킵니다.`;
   const currentPulse = `${orientationPulse} 핵심 키워드 ${tarotKeywords.slice(0, 2).join(" · ")}를 기준으로 오늘의 감정과 현실 조건을 한 문장으로 분리해 보세요.`;
-  const caution = `${orientation === "reversed" ? "같은 실수를 설명만으로 넘기지 말고 중단 지점을 먼저 세워야 합니다." : "속도를 올리기보다 기준을 먼저 맞춰야 결과가 오래 갑니다."} 특히 ${lens.risk}은 이 카드의 빛을 흐리게 만들 수 있습니다.`;
-  const uplift = `${crystal.nameKo}의 기운은 ${category.name}에서 기준과 순서를 회복시키는 편입니다. ${voice.uplift} ${position.title}의 결론은 ${lens.action}부터 시작할 때 가장 맑아집니다.`;
-  const practicalActions = uniqueSentenceList([...(Array.isArray(voice.action) ? voice.action : []), positionLens.action, `${crystal.nameKo}를 떠올리며 ${lens.axis}을 1줄로 적습니다.`]).slice(0, 4);
-  const opportunity = `${tarotKeywords.slice(0, 2).join(" · ")} 신호는 ${position.title}에서 ${lens.opportunity}로 바뀝니다. 이번 주에는 기대를 키우기보다 ${lens.action}에 맞는 단서 하나를 조용히 확인해 보세요.`;
+  const caution = guardWarningTarotText(`${orientation === "reversed" ? "같은 실수를 설명만으로 넘기지 말고 중단 지점을 먼저 세워야 합니다." : "속도를 올리기보다 기준을 먼저 맞춰야 결과가 오래 갑니다."} 특히 ${lens.risk}은 이 카드의 빛을 흐리게 만들 수 있습니다.`, warningGuard || { code: card?.code, nameKo: cardNameKo, nameEn: cardNameEn }, { field: "caution", orientation });
+  const uplift = guardWarningTarotText(`${crystal.nameKo}의 기운은 ${category.name}에서 기준과 순서를 회복시키는 편입니다. ${voice.uplift} ${position.title}의 결론은 ${lens.action}부터 시작할 때 가장 맑아집니다.`, warningGuard || { code: card?.code, nameKo: cardNameKo, nameEn: cardNameEn }, { field: "uplift", orientation });
+  const practicalActions = uniqueSentenceList([...(warningGuard?.actions || []), ...(Array.isArray(voice.action) ? voice.action : []), positionLens.action, `${crystal.nameKo}를 떠올리며 ${lens.axis}을 1줄로 적습니다.`]).slice(0, 4);
+  const opportunity = guardWarningTarotText(`${tarotKeywords.slice(0, 2).join(" · ")} 신호는 ${position.title}에서 ${lens.opportunity}로 바뀝니다. 이번 주에는 기대를 키우기보다 ${lens.action}에 맞는 단서 하나를 조용히 확인해 보세요.`, warningGuard || { code: card?.code, nameKo: cardNameKo, nameEn: cardNameEn }, { field: "opportunity", orientation });
   const action = practicalActions.join(" / ");
   const neoLine = `네오: ${voice.neo}`;
   const younLine = `연이: ${voice.youn}`;
@@ -706,7 +760,7 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
     younLine,
   ]).join(" ");
 
-  return {
+  return guardWarningTarotSection({
     order: position.order,
     positionTitle: position.title,
     question: position.question,
@@ -733,7 +787,7 @@ function buildCrystalSoulSection(cardName, crystal, position, category, orientat
     action,
     neoLine,
     younLine,
-  };
+  }, warningGuard || { code: card?.code, nameKo: cardNameKo, nameEn: cardNameEn });
 }
 
 function buildCrystalSoulSummary(category, sections, coreCrystal) {
@@ -831,19 +885,19 @@ function buildCrystalSoulMasterChaptersFallback(readingData) {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[0],
       openingKeywords: ["오라", "현재 파동", "상담 오프닝"],
       keywordVisual: buildKeywordVisual((s1.tarotKeywords || []).concat(s2.tarotKeywords || [])),
-      content: `내담자님, 오늘 무의식이 선택한 첫 번째 진입점은 ${summary.coreCrystal || readingData.coreCrystal}의 파동입니다. ${summary.overallFlow || "현재 흐름은 즉흥보다 기준을 세우는 쪽에 힘이 실립니다."} 지금의 장면은 좋은 운과 나쁜 운을 이분법으로 판정하는 구간이 아니라, ${lens.axis}을 통해 현재 감정과 현실 행동의 간격을 섬세하게 맞추는 구간입니다. ${s1.oneLineSummary || "첫 번째 카드가 핵심 기운을 보여 줍니다."} 이 문장을 첫 문턱의 중심으로 붙잡아 두시면, 뒤따르는 작은 의식들이 더 안정적으로 마음에 내려앉습니다.`,
+      content: `내담자님, 오늘 무의식이 선택한 첫 번째 진입점은 ${summary.coreCrystal || readingData.coreCrystal}의 파동입니다. ${summary.overallFlow || "현재 흐름은 즉흥보다 기준을 세우는 쪽에 힘이 실립니다."} 지금의 장면은 좋은 운과 나쁜 운을 이분법으로 판정하는 구간이 아니라, ${lens.axis}을 통해 현재 감정과 현실 행동의 간격을 섬세하게 맞추는 구간입니다. ${s1.oneLineSummary || "첫 번째 카드의 핵심 기운이 드러납니다."} 이 문장을 첫 문턱의 중심으로 붙잡아 두시면, 뒤따르는 작은 의식들이 더 안정적으로 마음에 내려앉습니다.`,
     },
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[1],
       openingKeywords: ["핵심 키워드", "상징", "무의식"],
       keywordVisual: buildKeywordVisual(s2.tarotKeywords || []),
-      content: `카드 키워드는 단어 목록이 아니라 마음이 흔들리는 방향을 비추는 지도입니다. ${s2.keywordVisual || buildKeywordVisual(s2.tarotKeywords || [])} 이 조합은 지금 내담자님의 선택 기준이 어디에서 흐려지고 어디에서 회복되는지를 조용히 보여 줍니다. ${s2.cardFlow || "카드 흐름은 현재 선택의 우선순위를 명확히 합니다."} 또한 ${s3.keywordVisual || buildKeywordVisual(s3.tarotKeywords || [])}는 반복 습관의 그림자를 가리키는 경향이 있어, 같은 자극에 같은 반응을 하지 않도록 호흡 간격을 의식적으로 늘릴 필요가 있습니다. 빛의 단서마다 오늘의 작은 의식을 하나씩 붙이면 오라클 문장이 하루의 선택으로 내려앉습니다.`,
+      content: `카드 키워드는 단어 목록이 아니라 마음이 흔들리는 방향을 비추는 지도입니다. ${s2.keywordVisual || buildKeywordVisual(s2.tarotKeywords || [])} 이 조합에는 지금 내담자님의 선택 기준이 어디에서 흐려지고 어디에서 회복되는지가 조용히 드러납니다. ${s2.cardFlow || "카드 흐름은 현재 선택의 우선순위를 명확히 합니다."} 또한 ${s3.keywordVisual || buildKeywordVisual(s3.tarotKeywords || [])}는 반복 습관의 그림자를 가리키는 경향이 있어, 같은 자극에 같은 반응을 하지 않도록 호흡 간격을 의식적으로 늘릴 필요가 있습니다. 빛의 단서마다 오늘의 작은 의식을 하나씩 붙이면 오라클 문장이 하루의 선택으로 내려앉습니다.`,
     },
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[2],
       openingKeywords: ["메이저", "마이너", "수비학"],
       keywordVisual: buildKeywordVisual([s1.cardNameKo, s3.cardNameKo, s5.cardNameKo]),
-      content: `${s1.cardNameKo || "첫 번째 카드"}는 ${tarotNumerologyInsight(s1.cardNameEn)} ${s3.cardNameKo || "세 번째 카드"}는 ${tarotNumerologyInsight(s3.cardNameEn)} ${s5.cardNameKo || "다섯 번째 카드"}는 ${tarotNumerologyInsight(s5.cardNameEn)} 메이저 아르카나는 인생 축의 전환과 신념 프레임을, 마이너 아르카나는 일상 루틴과 관계 언어를 조정하라고 말합니다. 따라서 이번 리딩의 결론은 거대한 결심보다, 14일 단위의 실행 체크포인트를 세팅해 수비학적 리듬을 현실 캘린더에 반영하는 것입니다.`,
+      content: `${s1.cardNameKo || "첫 번째 카드"}는 ${tarotNumerologyInsight(s1.cardNameEn)} ${s3.cardNameKo || "세 번째 카드"}는 ${tarotNumerologyInsight(s3.cardNameEn)} ${s5.cardNameKo || "다섯 번째 카드"}는 ${tarotNumerologyInsight(s5.cardNameEn)} 메이저 아르카나는 인생 축의 전환과 신념 프레임에, 마이너 아르카나는 일상 루틴과 관계 언어에 닿아 있습니다. 따라서 이번 리딩의 결론은 거대한 결심보다, 14일 단위의 실행 체크포인트를 세팅해 수비학적 리듬을 현실 캘린더에 반영하는 것입니다.`,
     },
     {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[3],
@@ -867,7 +921,7 @@ function buildCrystalSoulMasterChaptersFallback(readingData) {
       title: CRYSTAL_MASTER_CHAPTER_TITLES[6],
       openingKeywords: ["봉인 조언", "통합", "마무리"],
       keywordVisual: buildKeywordVisual(["통합", "결단", "회복", "전환"]),
-      content: `마지막으로 내담자님께 봉인 조언을 남깁니다. ${summary.oracleMessage || `${readingData.coreCrystal}의 오라클: "${lens.oracle}."`} 오늘의 리딩은 불안을 없애 주는 마법이 아니라, 불안을 다루는 구조를 선물합니다. ${summary.risk || "반복 습관을 방치하면 카드 잠재력이 줄어듭니다."} 그러므로 결론은 단순합니다. 지금 즉시 시작할 행동 1개, 즉시 중단할 행동 1개를 정하고 7일 동안만 지켜 보세요. 그 7일 동안 ${lens.risk}을 알아차리는 힘이 커지면, 파동이 달라지는 체감도 훨씬 선명해질 가능성이 큽니다.`,
+      content: `마지막으로 내담자님께 봉인 조언을 남깁니다. ${summary.oracleMessage || `${readingData.coreCrystal}의 오라클: "${lens.oracle}."`} 오늘의 리딩은 불안을 없애 주는 마법이 아니라, 불안을 다루는 구조를 선물합니다. ${summary.risk || "반복 습관을 방치하면 카드 잠재력이 줄어듭니다."} 그러므로 결론은 단순합니다. 지금 즉시 시작할 행동 1개, 즉시 중단할 행동 1개를 정하고 7일 동안만 지켜 보세요. 그 7일 동안 ${lens.risk}을 알아차리는 힘이 커지면, 파동의 변화를 더 선명하게 느낄 수 있습니다.`,
     },
   ];
 
@@ -908,7 +962,7 @@ function buildCrystalSoulMasterPrompt(readingData, intake = {}) {
     "- 카드와 원석의 치유 파동을 결합해 오늘 실천할 작은 회복 의식을 제시합니다.",
     "- 모든 문장은 카테고리의 현실 문맥에 맞춰 씁니다. 연애는 감정과 표현, 재물은 조건과 손실 방어, 재회는 감정과 재접근 조건, 건강은 생활 리듬 중심으로 해석합니다.",
     "- 건강/재물/관계 결과는 단정하거나 공포를 주지 말고, 관찰 가능한 신호와 선택 가능한 행동으로 번역합니다.",
-    "- 각 섹션 도입부에 반드시 [키워드: ...] 형식 문자열을 제공합니다.",
+    "- 각 섹션 도입부에 반드시 [키워드: ...] 형식 문자열을 남깁니다.",
     "- 분량 축소 금지: 카드 5섹션 + 깊은 7개의 문을 모두 작성합니다.",
     "",
     "출력 규칙:",
@@ -958,7 +1012,7 @@ function normalizeCrystalSoulAiSections(baseSections, aiSections) {
     const caution = ensureTextLength(ai.caution, 80) || base.caution;
     const uplift = ensureTextLength(ai.uplift, 80) || base.uplift;
 
-    merged.push({
+    merged.push(guardWarningTarotSection({
       ...base,
       keywordVisual: asText(ai.keywordVisual) || base.keywordVisual || buildKeywordVisual(base.tarotKeywords),
       categoryReading,
@@ -969,7 +1023,7 @@ function normalizeCrystalSoulAiSections(baseSections, aiSections) {
       uplift,
       practicalActions,
       action: practicalActions.join(" / "),
-    });
+    }, base));
   }
   return merged;
 }
@@ -1071,6 +1125,8 @@ async function buildCrystalSoulReading(body = {}, env = {}) {
       console.warn("[tarot] crystal-soul ai enhancement fallback", asText(error?.message));
     }
   }
+
+  readingData = guardCrystalSoulReadingData(readingData);
 
   const validation = validateCrystalSoulReading(readingData);
   return {
@@ -1302,7 +1358,7 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
       topic,
       numerology,
       cards,
-      interpretation: fallback,
+      interpretation: guardNumerologyWarningInterpretation(fallback, cards),
       model: asText(aiResult?.model),
       warning: asText(aiResult?.message) || "gemini_unavailable",
     };
@@ -1327,6 +1383,8 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
       warnings: quality.warnings,
     };
   }
+
+  normalizedInterpretation = guardNumerologyWarningInterpretation(normalizedInterpretation, cards);
 
   return {
     ok: true,

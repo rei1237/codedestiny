@@ -215,10 +215,14 @@ type BillingCoinGateInput = {
 
 const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
 const BILLING_BALANCE_RECENT_TTL_MS = 5000;
+const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 9000;
+const BILLING_FETCH_MUTATION_TIMEOUT_MS = 14000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
 const PAYMENT_CHOICE_RECENT_TTL_MS = 1800;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-ddb9d94bea3a";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-812f651f51c9";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
+const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
+const SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
 const SUBSCRIPTION_SNAPSHOT_ACTIVE_STATUSES = new Set(["active", "subscribed", "paid", "success", "succeeded", "complete", "completed", "confirmed", "approved"]);
 const SUBSCRIPTION_SNAPSHOT_INACTIVE_STATUSES = new Set(["none", "free", "inactive", "expired", "canceled", "cancelled", "refunded", "failed", "paused"]);
 
@@ -427,6 +431,14 @@ export function readSubscriptionSnapshotForUser(userId?: string): SubscriptionSn
     const checkedAt = Number(parsed.checkedAt);
     const expiresAt = normalizeSubscriptionSnapshotDate(parsed.expiresAt);
     if (snapshotUserId !== resolvedUserId || !state || !Number.isFinite(checkedAt) || (state === "active" && tier === "free")) {
+      removeSubscriptionSnapshotByUserId(resolvedUserId);
+      return null;
+    }
+    if (state === "none" && Date.now() - checkedAt > SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS) {
+      removeSubscriptionSnapshotByUserId(resolvedUserId);
+      return null;
+    }
+    if (state === "active" && Date.now() - checkedAt > SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS) {
       removeSubscriptionSnapshotByUserId(resolvedUserId);
       return null;
     }
@@ -859,9 +871,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     coverageProfileSubscription?.monthlyCredits,
     coverageProfileSubscription?.membershipCreditBalance,
   );
-  let latestBalance = await fetchFreshBillingBalanceForPayment();
-  let latestBalanceData = latestBalance?.ok ? latestBalance.data : null;
-  let monthlyBalanceConfirmed = Boolean(latestBalanceData);
+  let latestBalance: BillingResult<BillingBalanceData> | null = null;
+  let latestBalanceData: BillingBalanceData | null = null;
+  let monthlyBalanceConfirmed = false;
   const directCoinPrice = coinPrice;
   const rawDirectAmount = Math.max(0, Math.floor(toNumber(opts.amountKrw ?? opts.amountKRW, directCoinPrice * 100)));
   const directAmount = rawDirectAmount;
@@ -959,12 +971,16 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       if (balanceStatus) balanceStatus.dataset.state = monthlyBalanceConfirmed ? "fresh" : "error";
       if (balanceText) balanceText.textContent = resolveMonthlyBalanceText();
     };
-    const refreshMonthlyBalance = async () => {
+    const refreshMonthlyBalance = async (refreshOptions: { silent?: boolean } = {}) => {
       if (settled) return;
+      const silent = refreshOptions.silent === true;
       const refreshButton = modal.querySelector<HTMLButtonElement>("[data-refresh-monthly-balance]");
       if (refreshButton) refreshButton.disabled = true;
+      if (!silent) {
       setStatus("결제 권한을 다시 확인하고 있습니다.");
+      }
       latestBalance = await fetchFreshBillingBalanceForPayment();
+      if (settled) return;
       latestBalanceData = latestBalance?.ok ? latestBalance.data : null;
       monthlyBalanceConfirmed = Boolean(latestBalanceData);
       monthlyBalance = monthlyBalanceConfirmed
@@ -972,12 +988,14 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         : Math.max(0, Math.floor(Number(knownMonthlyBalance || 0)));
       canUseMonthly = false;
       applyMonthlyBalanceUi();
+      if (!silent) {
       setStatus(
         monthlyBalanceConfirmed
           ? `결제 권한을 다시 확인했습니다. 현재 기준 ${formatMonthlyCreditValueWon(monthlyBalance)}입니다.`
           : "결제 권한 확인에 실패했습니다. 다시 시도해 주세요.",
         !monthlyBalanceConfirmed,
       );
+      }
       if (refreshButton) refreshButton.disabled = false;
     };
     const showWaitOverlay = (mode: PaymentChoiceMode) => {
@@ -1030,6 +1048,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       });
     });
     document.body.appendChild(modal);
+    globalThis.setTimeout(() => {
+      void refreshMonthlyBalance({ silent: true });
+    }, 0);
     modal.querySelector<HTMLButtonElement>('[data-mode="direct"]')?.focus();
   });
 }
@@ -1118,18 +1139,61 @@ function collectBillingFallbackBases(): string[] {
 }
 
 async function authFetchBilling(path: string, init: RequestInit): Promise<Response> {
-  const primary = await authFetch(path, init);
+  const primary = await authFetchBillingOnce(path, init);
   if (primary.ok || primary.status !== 404) return primary;
 
   const fallbackBases = collectBillingFallbackBases();
   if (!fallbackBases.length) return primary;
 
   for (const apiBase of fallbackBases) {
-    const retried = await authFetch(path, init, { apiBase });
+    const retried = await authFetchBillingOnce(path, init, { apiBase });
     if (retried.ok || retried.status !== 404) return retried;
   }
 
   return primary;
+}
+
+function resolveBillingFetchTimeoutMs(path: string, init: RequestInit) {
+  const method = String(init.method || "GET").toUpperCase();
+  const normalizedPath = String(path || "");
+  if (method !== "GET" && normalizedPath.startsWith("/api/billing/coin-gate")) return BILLING_FETCH_MUTATION_TIMEOUT_MS;
+  if (method !== "GET" && normalizedPath.startsWith("/api/billing/checkout")) return BILLING_FETCH_MUTATION_TIMEOUT_MS;
+  if (method !== "GET" && normalizedPath.startsWith("/api/billing/confirm")) return BILLING_FETCH_MUTATION_TIMEOUT_MS;
+  return BILLING_FETCH_DEFAULT_TIMEOUT_MS;
+}
+
+function buildBillingFetchFailureResponse(code: string, message: string, status = 503) {
+  return new Response(JSON.stringify({
+    ok: false,
+    code,
+    message,
+    error: { code, message },
+  }), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+async function authFetchBillingOnce(path: string, init: RequestInit, options: { apiBase?: string } = {}): Promise<Response> {
+  if (typeof AbortController === "undefined" || init.signal) {
+    return authFetch(path, init, options);
+  }
+
+  const controller = new AbortController();
+  const timeoutId = globalThis.setTimeout(() => controller.abort(), resolveBillingFetchTimeoutMs(path, init));
+  try {
+    return await authFetch(path, { ...init, signal: controller.signal }, options);
+  } catch (error) {
+    if (controller.signal.aborted) {
+      return buildBillingFetchFailureResponse("BILLING_REQUEST_TIMEOUT", "결제 요청 시간이 초과되었습니다. 다시 시도해 주세요.");
+    }
+    throw error;
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
 }
 
 function getPaidServiceRuntimeGate(): PaidServiceRuntimeGate | null {
@@ -1235,6 +1299,24 @@ function buildRuntimeMembershipCoverage(eligibility: PaymentEligibility | null) 
   };
 }
 
+function isSubscriptionSnapshotEligibility(eligibility: PaymentEligibility | null) {
+  if (!eligibility) return false;
+  const reason = toText(eligibility.access.reason);
+  if (reason === "subscription_snapshot_active" || reason === "subscription_snapshot_none") return true;
+  const raw = asRecord(eligibility.raw);
+  return Boolean(asRecord(raw?.subscriptionSnapshot));
+}
+
+function shouldInvalidateSubscriptionSnapshot(status: number, code?: string) {
+  const normalizedCode = toText(code).toUpperCase();
+  return status === 401
+    || status === 403
+    || status === 402
+    || normalizedCode === "AUTH_REQUIRED"
+    || normalizedCode === "PAYMENT_REQUIRED"
+    || normalizedCode === "MEMBERSHIP_PASS_NOT_COVERED";
+}
+
 function resolveKnownCoinCost(input: BillingCoinGateInput, eligibility: PaymentEligibility | null) {
   return Math.max(0, Math.floor(toNumber(
     eligibility?.coinCost
@@ -1305,7 +1387,7 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
   const featureKey = toText(input.featureKey || input.subFeatureKey || context.featureId);
   const reason = toText(input.reason || featureKey);
   const membershipCoverage = buildRuntimeMembershipCoverage(context.eligibility);
-  const passAlreadyChecked = Boolean(context.eligibility);
+  const passAlreadyChecked = Boolean(context.eligibility && !isSubscriptionSnapshotEligibility(context.eligibility));
 
   let runtimeResult: RuntimePaidServiceGateResult | null = null;
   try {
@@ -1853,6 +1935,8 @@ export async function fetchPaymentEligibility(input: {
   const parsed = await parseBillingResponse<Record<string, unknown>>(response);
 
   if (!parsed.ok || !parsed.data) {
+    const failureCode = toText(parsed.error?.code || (asRecord(parsed.raw)?.code));
+    if (shouldInvalidateSubscriptionSnapshot(parsed.status, failureCode)) clearSubscriptionSnapshotForUser();
     return {
       ...parsed,
       data: null,
@@ -2220,6 +2304,21 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     } else {
       const code = String(parsed.error?.code || "").toUpperCase();
       const status = parsed.status === 402 || code === "INSUFFICIENT_COINS" ? "readyToPay" : "error";
+      if (shouldInvalidateSubscriptionSnapshot(parsed.status, code)) {
+        clearSubscriptionSnapshotForUser();
+        void fetchPaymentEligibility({
+          categoryKey: input.categoryKey,
+          subFeatureKey: input.subFeatureKey,
+          featureKey: input.featureKey,
+          reason: input.reason,
+          productId: input.productId,
+          serviceType: input.serviceType || input.productType,
+          coinCost: input.cost,
+          coinPrice: input.coinPrice,
+          priceKRW: input.priceKRW,
+          amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
+        }).catch(() => null);
+      }
       markPaidAttemptFailed(parsed.error?.code || "single_purchase_required");
       emitPaidFeatureGate("update", {
         featureId,
