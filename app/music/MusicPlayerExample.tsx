@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
 
@@ -45,6 +45,16 @@ const BANNER_STARS = [
   { cx: 57, cy: 72, r: 1.3, opacity: 0.19, duration: "5.6s", delay: "0.5s" },
   { cx: 86, cy: 70, r: 1.1, opacity: 0.3, duration: "6.4s", delay: "1.8s" },
 ];
+
+let musicLyricsModulePromise: Promise<{ lyricsFromAudioFileName: (audioFileName: string) => string | undefined }>|null = null;
+const lyricsTextCache = new Map<string, string>();
+
+function getMusicLyricsModule() {
+  if (!musicLyricsModulePromise) {
+    musicLyricsModulePromise = import("./_data/musicLyrics");
+  }
+  return musicLyricsModulePromise;
+}
 
 function ListenModeHeadphonesIcon({ className }: { className?: string }) {
   return (
@@ -113,6 +123,42 @@ function getListeningStatusLabel(isLoading: boolean, canPlay: boolean, isPlaying
   if (!canPlay) return "달빛이 열리기를 기다리는 중";
   return isPlaying ? "지금 흐르는 달빛" : "달빛이 잠시 머무는 중";
 }
+
+type LyricsPanelProps = {
+  isOpen: boolean;
+  isLoading: boolean;
+  lyricsText: string;
+  onToggle: () => void;
+};
+
+const LyricsPanel = memo(function LyricsPanel({ isOpen, isLoading, lyricsText, onToggle }: LyricsPanelProps) {
+  return (
+    <section className={styles.lyricsPanel} aria-label="Current track lyrics">
+      <button
+        className={styles.lyricsToggle}
+        type="button"
+        aria-expanded={isOpen}
+        onClick={onToggle}
+      >
+        <span>가사</span>
+        <ChevronDown
+          className={`${styles.lyricsToggleIcon} ${isOpen ? styles.lyricsToggleIconOpen : ""}`}
+          size={16}
+          aria-hidden
+        />
+      </button>
+      <div className={`${styles.lyricsBody} ${isOpen ? styles.lyricsBodyOpen : ""}`} aria-hidden={!isOpen}>
+        {isLoading ? (
+          <p className={styles.lyricsEmpty}>가사 로딩 중...</p>
+        ) : lyricsText ? (
+          <pre className={styles.lyricsText}>{lyricsText}</pre>
+        ) : (
+          <p className={styles.lyricsEmpty}>가사 데이터가 아직 준비되지 않았습니다.</p>
+        )}
+      </div>
+    </section>
+  );
+});
 
 export default function MusicPlayerExample({ ambientAssetKey, presentation = "full" }: MusicPlayerExampleProps) {
   const searchParams = useSearchParams();
@@ -191,21 +237,121 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     playerStyle["--asset-ambient-image"] = `url("${ambientAssetUrl}")`;
   }
 
-  const markCoverLoaded = () => {
+  const markCoverLoaded = useCallback(() => {
+    const trackId = player.currentTrack?.id || "";
     setFailedCoverIds((current) => {
-      const trackId = player.currentTrack?.id || "";
       if (!trackId || !current[trackId]) return current;
 
       const next = { ...current };
       delete next[trackId];
       return next;
     });
-  };
+  }, [player.currentTrack?.id]);
 
-  const markCoverFailed = () => {
-    setFailedCoverIds((current) => ({ ...current, [player.currentTrack?.id || ""]: true }));
-  };
-  const lyricsText = player.currentTrack?.lyrics?.trim() || "";
+  const markCoverFailed = useCallback(() => {
+    const trackId = player.currentTrack?.id || "";
+    if (!trackId) return;
+
+    setFailedCoverIds((current) => ({ ...current, [trackId]: true }));
+  }, [player.currentTrack?.id]);
+
+  const toggleLyricsOpen = useCallback(() => {
+    setIsLyricsOpen((current) => !current);
+  }, []);
+
+  const [lyricsText, setLyricsText] = useState("");
+  const [isLyricsLoading, setIsLyricsLoading] = useState(false);
+  useEffect(() => {
+    const track = player.currentTrack;
+    if (!track?.lyricsLookupKey) {
+      setLyricsText("");
+      setIsLyricsLoading(false);
+      return;
+    }
+
+    if (lyricsTextCache.has(track.lyricsLookupKey)) {
+      setLyricsText(lyricsTextCache.get(track.lyricsLookupKey) || "");
+      setIsLyricsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLyricsLoading(true);
+    setLyricsText("");
+
+    void getMusicLyricsModule()
+      .then((module) => {
+        if (cancelled) return;
+        const nextLyrics = module.lyricsFromAudioFileName(track.lyricsLookupKey || "");
+        const nextLyricsText = typeof nextLyrics === "string" ? nextLyrics.trim() : "";
+        lyricsTextCache.set(track.lyricsLookupKey, nextLyricsText);
+        setLyricsText(nextLyricsText);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          lyricsTextCache.set(track.lyricsLookupKey, "");
+          setLyricsText("");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLyricsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [player.currentTrack?.id, player.currentTrack?.lyricsLookupKey]);
+
+  useEffect(() => {
+    if (!player.currentTrack || !player.tracks.length) return;
+
+    const cacheKeys = new Set<string>();
+    const collectKey = (index: number) => {
+      const candidate = player.tracks[index];
+      if (candidate?.lyricsLookupKey) {
+        cacheKeys.add(candidate.lyricsLookupKey);
+      }
+    };
+
+    const currentIndex = player.currentIndex;
+    collectKey(currentIndex);
+    if (player.tracks.length > 1) {
+      collectKey((currentIndex + 1) % player.tracks.length);
+      collectKey((currentIndex - 1 + player.tracks.length) % player.tracks.length);
+    }
+
+    const remainingKeys = Array.from(cacheKeys).filter((lyricsLookupKey) => !lyricsTextCache.has(lyricsLookupKey));
+    if (!remainingKeys.length) return;
+
+    let cancelled = false;
+    const preloadIdleId = window.setTimeout(() => {
+      void getMusicLyricsModule()
+        .then((module) => {
+          if (cancelled) return;
+
+          for (const lyricsLookupKey of remainingKeys) {
+            const nextLyrics = module.lyricsFromAudioFileName(lyricsLookupKey);
+            lyricsTextCache.set(lyricsLookupKey, typeof nextLyrics === "string" ? nextLyrics.trim() : "");
+          }
+        })
+        .catch(() => {
+          if (cancelled) return;
+
+          for (const lyricsLookupKey of remainingKeys) {
+            if (!lyricsTextCache.has(lyricsLookupKey)) {
+              lyricsTextCache.set(lyricsLookupKey, "");
+            }
+          }
+        });
+    }, 80);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(preloadIdleId);
+    };
+  }, [player.currentIndex, player.tracks]);
   const listeningStatusLabel = getListeningStatusLabel(player.isLoading, player.canPlay, player.isPlaying);
   const progressPercent = progressMax > 0
     ? Math.min(100, Math.max(0, (player.currentTime / progressMax) * 100))
@@ -240,6 +386,14 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     } catch {
     }
   }
+
+  const handlePlaylistCoverError = useCallback((trackId: string) => {
+    setFailedCoverIds((current) => ({ ...current, [trackId]: true }));
+  }, []);
+
+  const handlePlaylistTrackSelect = useCallback((trackId: string) => {
+    player.selectTrack(trackId, { play: true });
+  }, [player.selectTrack]);
 
   if (isCompact && !isListeningModeOpen && player.currentTrack) {
     return (
@@ -472,24 +626,12 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
               <pre className={styles.errorText}>{player.audioDebugHelperText}</pre>
             ) : null}
 
-            <section className={styles.lyricsPanel} aria-label="Current track lyrics">
-              <button
-                className={styles.lyricsToggle}
-                type="button"
-                aria-expanded={isLyricsOpen}
-                onClick={() => setIsLyricsOpen((current) => !current)}
-              >
-                <span>가사</span>
-                <ChevronDown
-                  className={`${styles.lyricsToggleIcon} ${isLyricsOpen ? styles.lyricsToggleIconOpen : ""}`}
-                  size={16}
-                  aria-hidden
-                />
-              </button>
-              <div className={`${styles.lyricsBody} ${isLyricsOpen ? styles.lyricsBodyOpen : ""}`} aria-hidden={!isLyricsOpen}>
-                {lyricsText ? <pre className={styles.lyricsText}>{lyricsText}</pre> : <p className={styles.lyricsEmpty}>가사 데이터가 아직 준비되지 않았습니다.</p>}
-              </div>
-            </section>
+            <LyricsPanel
+              isOpen={isLyricsOpen}
+              isLoading={isLyricsLoading}
+              lyricsText={lyricsText}
+              onToggle={toggleLyricsOpen}
+            />
           </div>
 
           <MusicPlaylistPanel
@@ -497,15 +639,12 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
             currentTrackId={player.currentTrack?.id}
             isPlaying={player.isPlaying}
             failedCoverIds={failedCoverIds}
-            onCoverError={(trackId) => {
-              setFailedCoverIds((current) => ({ ...current, [trackId]: true }));
-            }}
-            onSelectTrack={(trackId) => {
-              player.selectTrack(trackId, { play: true });
-            }}
+            onCoverError={handlePlaylistCoverError}
+            onSelectTrack={handlePlaylistTrackSelect}
           />
         </div>
       ) : null}
     </section>
   );
 }
+

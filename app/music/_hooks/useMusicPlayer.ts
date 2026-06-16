@@ -457,6 +457,8 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
 
     const handleTimeUpdate = () => {
       const now = performance.now();
+      if (audio.paused) return;
+      if (typeof document !== "undefined" && document.hidden) return;
       if (timeUpdateRafRef.current !== null || now - lastTimeUpdateRef.current < TIME_UPDATE_INTERVAL_MS) return;
 
       timeUpdateRafRef.current = window.requestAnimationFrame(() => {

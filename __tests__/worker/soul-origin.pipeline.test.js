@@ -42,6 +42,17 @@ describe("soul-origin pipeline source contracts", () => {
     expect(source.includes("seed.sukyo = calculateSukyoLocal(birthInput);")).toBe(true);
   });
 
+  test("운명의 업은 프로필 카드 location.label 출생지를 PDF payload까지 유지해야 한다", () => {
+    const front = read("js/soul-origin-book.js");
+    const worker = read("worker/routes/soul-origin.js");
+    expect(front.includes("function resolveSoulOriginBirthPlace(profile, fallbackProfile)")).toBe(true);
+    expect(front.includes("resolveSoulOriginBirthPlace(profile, storageProfile)")).toBe(true);
+    expect(front.includes("resolveSoulOriginBirthPlace(src) || '대한민국'")).toBe(true);
+    expect(worker.includes("const location = src.location && typeof src.location === \"object\" ? src.location : {};")).toBe(true);
+    expect(worker.includes("|| location.label")).toBe(true);
+    expect(worker.includes("birthPlace,")).toBe(true);
+  });
+
   test("서버 응답과 archive는 열람 URL 필드를 포함해야 한다", () => {
     const source = read("worker/routes/soul-origin.js");
     expect(source.includes("pdfReady")).toBe(true);

@@ -75,6 +75,10 @@ const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
 
 const ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   ziwei_decade_luck: "ziwei.decadeLuck",
+  ziwei_love_deep: "ziwei.loveDeep",
+  ziwei_twelve_palaces: "ziwei.twelvePalaces",
+  ziwei_symbolic_layer: "ziwei.symbolicLayer",
+  ziwei_life_yearly_flow: "ziwei.lifeYearlyFlow",
 });
 
 const PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({

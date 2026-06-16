@@ -1,4 +1,4 @@
-/* saju-engine middle chunk — TAROT_DATA · 숙요/타로 플로우 · 퀀텀 명리 UI
+﻿/* saju-engine middle chunk — TAROT_DATA · 숙요/타로 플로우 · 퀀텀 명리 UI
  * 로드 순서: js/saju-engine.js → (본 파일) → js/core/saju/reportDashboard.js → js/saju-engine-continuation.js
  * 알고리즘/데이터는 원본과 동일하게 유지 (이동만). */
 var TAROT_DATA = [
@@ -7143,14 +7143,14 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
     + '<div class="sy-canon-hero">'
     + '<div class="sy-canon-hero-copy">'
     + '<div class="sy-canon-overline">기본 숙요점 · 27숙 기준</div>'
-    + '<h4>무료 기본 숙요점</h4>'
+    + '<h4>월하의 기본 숙요점</h4>'
     + '<p>' + syCanonicalEsc(integratedHeroSubtitle) + '</p>'
     + '<div class="sy-canon-hero-row">'
     + '<span class="sy-canon-pill">본명숙 ' + syCanonicalEsc(mansionLabel) + '</span>'
     + '<span class="sy-canon-pill">27숙 순번 ' + syCanonicalEsc(indexText) + '/27</span>'
     + '<span class="sy-canon-pill">오늘 참고 리듬 ' + syCanonicalEsc(phaseLabel) + '</span>'
     + '<span class="sy-canon-pill">' + syCanonicalEsc(integratedMoonLabel) + '</span>'
-    + '<span class="sy-canon-pill">달빛 보조 상징 ' + syCanonicalEsc(integratedGuardianLabel) + '</span>'
+    + '<span class="sy-canon-pill">월하의 숙요 동물 ' + syCanonicalEsc(integratedGuardianLabel) + '</span>'
     + '</div>'
     + '</div>'
     + '<div class="sy-canon-moon-stage" aria-hidden="true">'
@@ -7161,7 +7161,7 @@ function syRenderCanonicalDashboard(canonicalPayload, reading) {
     + '</div>'
     + '</div>'
     + validationMsg
-    + '<p class="sy-canon-footnote">확정 계산값은 본명숙과 27숙 순번입니다. 관계·돈·오늘 리듬은 기본 성향을 풀어낸 참고 해석입니다.</p>'
+    + '<p class="sy-canon-footnote">달빛 위에 굳어진 본명숙의 골격은 27숙으로 흐릅니다. 관계와 금전, 오늘의 리듬은 흐름의 신호로 이어지는 참조 해석입니다.</p>'
     + '<div class="sy-canon-tabs" role="tablist" aria-label="기본 숙요점 결과 보기">'
     + '<button type="button" class="sy-canon-tab active" id="syCanonTabOverview" role="tab" aria-selected="true" aria-controls="syCanonPanelOverview" data-sycanon="overview">기본 요약</button>'
     + '<button type="button" class="sy-canon-tab" id="syCanonTabRhythm" role="tab" aria-selected="false" aria-controls="syCanonPanelRhythm" data-sycanon="rhythm">성향·생활 패턴</button>'
@@ -7316,27 +7316,39 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-wheel-meta-label { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8; margin-bottom:4px; }
         .sy-wheel-meta-value { font-size:0.9rem; color:#f8fafc; font-weight:700; line-height:1.45; }
         @keyframes syMoonBob { 0%,100% { transform:translateY(0px) scale(1); } 50% { transform:translateY(-3px) scale(1.04); } }
+        @keyframes syMoonVeil { 0%,100% { transform:translate(-50%, -50%) scale(1); opacity:0.24; } 50% { transform:translate(-52%, -54%) scale(1.08); opacity:0.45; } }
+        @keyframes syGuardianGleam { 0%,100% { filter:brightness(1); opacity:0.88; } 50% { filter:brightness(1.25); opacity:1; } }
+        @keyframes syGuardianPulse { 0%,100% { box-shadow:0 0 26px rgba(196,181,253,0.26), inset 0 0 30px rgba(196,181,253,0.14); } 50% { box-shadow:0 0 40px rgba(196,181,253,0.42), inset 0 0 40px rgba(196,181,253,0.22); } }
         @keyframes syTinyTwinkle { 0%,100% { opacity:0.35; transform:scale(0.75); } 50% { opacity:0.95; transform:scale(1.15); } }
-        .sy-guardian-card { margin-top:14px; border-left-color:#93c5fd; position:relative; overflow:hidden; background: radial-gradient(circle at 16% 10%, rgba(125,211,252,0.17) 0%, rgba(30,32,55,0.9) 45%, rgba(18,20,40,0.95) 100%); }
-        .sy-guardian-card::before { content:''; position:absolute; right:-48px; top:-56px; width:180px; height:180px; background:radial-gradient(circle, rgba(147,197,253,0.22) 0%, transparent 70%); pointer-events:none; }
-        .sy-guardian-head { font-size:0.74rem; text-transform:uppercase; letter-spacing:0.14em; color:#bfdbfe; font-weight:800; margin-bottom:10px; }
-        .sy-guardian-stage { border:1px solid rgba(196,181,253,0.28); border-radius:12px; padding:14px 12px; background:rgba(15,23,42,0.6); text-align:center; position:relative; }
+        .sy-guardian-card { margin-top:14px; border-left-color:#c4b5fd; position:relative; overflow:hidden; border-radius:18px; border:1px solid rgba(196,181,253,0.45); background: radial-gradient(circle at 16% 10%, rgba(199,210,254,0.2) 0%, rgba(30,32,55,0.92) 44%, rgba(18,20,40,0.95) 100%); box-shadow:0 18px 52px rgba(2,6,23,0.55), inset 0 0 24px rgba(196,181,253,0.16); }
+        .sy-guardian-card::before { content:''; position:absolute; right:-48px; top:-56px; width:190px; height:190px; background:radial-gradient(circle, rgba(196,181,253,0.26) 0%, transparent 72%); pointer-events:none; animation:syMoonVeil 7.8s ease-in-out infinite; }
+        .sy-guardian-card::after { content:''; position:absolute; left:-26px; bottom:-24px; width:150px; height:150px; border-radius:999px; background:radial-gradient(circle at 40% 38%, rgba(147,197,253,0.22) 0%, transparent 68%); pointer-events:none; }
+        .sy-guardian-head { font-size:0.88rem; text-transform:uppercase; letter-spacing:0.11em; color:#f5d0fe; font-weight:800; margin-bottom:10px; text-shadow:0 0 12px rgba(196,181,253,0.44); }
+        .sy-guardian-stage { border:1px solid rgba(196,181,253,0.4); border-radius:16px; padding:15px 13px; background:linear-gradient(165deg, rgba(15,23,42,0.84), rgba(27,34,57,0.72)); text-align:center; position:relative; overflow:hidden; animation:syGuardianPulse 8s ease-in-out infinite; }
+        .sy-guardian-stage::before { content:''; position:absolute; left:50%; top:50%; width:160px; height:160px; transform:translate(-50%, -50%); border-radius:999px; border:1px solid rgba(196,181,253,0.32); opacity:0.5; background:radial-gradient(circle at 50% 50%, rgba(255,255,255,0.14), transparent 62%); pointer-events:none; }
+        .sy-guardian-stage::after { content:''; position:absolute; inset:-34% auto auto -8%; width:240px; height:240px; background:radial-gradient(circle, rgba(251,191,36,0.1) 0%, transparent 58%); pointer-events:none; }
         .sy-guardian-stage-stars { position:absolute; inset:0; pointer-events:none; }
         .sy-guardian-stage-stars i { position:absolute; font-style:normal; color:#e2e8f0; font-size:0.82rem; animation:syTinyTwinkle 2.4s ease-in-out infinite; }
         .sy-guardian-stage-stars i:nth-child(1) { left:14%; top:18%; }
         .sy-guardian-stage-stars i:nth-child(2) { right:15%; top:22%; animation-delay:0.8s; }
         .sy-guardian-stage-stars i:nth-child(3) { left:21%; bottom:14%; animation-delay:1.4s; }
         .sy-guardian-stage-stars i:nth-child(4) { right:22%; bottom:17%; animation-delay:0.4s; }
-        .sy-guardian-main-emoji { font-size:2.2rem; line-height:1; margin-bottom:6px; filter:drop-shadow(0 0 12px rgba(250,204,21,0.35)); animation:syMoonBob 2.6s ease-in-out infinite; }
-        .sy-guardian-main-name { font-size:1.02rem; font-weight:900; color:#fef3c7; margin-bottom:5px; text-shadow:0 0 10px rgba(251,191,36,0.3); }
-        .sy-guardian-main-desc { margin:0; font-size:0.9rem; line-height:1.82; color:#dbeafe; }
-        .sy-guardian-detail-list { margin-top:11px; display:grid; grid-template-columns:1fr; gap:8px; }
-        .sy-guardian-detail-item { padding:10px 11px; border-radius:10px; border:1px solid rgba(147,197,253,0.2); background:rgba(11,18,32,0.58); }
-        .sy-guardian-detail-item h5 { margin:0 0 5px 0; font-size:0.74rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; }
-        .sy-guardian-detail-item p { margin:0; font-size:0.88rem; line-height:1.8; color:#dbeafe; }
+        .sy-guardian-main-emoji { font-size:2.8rem; line-height:1; margin-bottom:9px; filter:drop-shadow(0 0 14px rgba(196,181,253,0.36)); animation:syMoonBob 2.8s ease-in-out infinite, syGuardianGleam 5.4s ease-in-out infinite; }
+        .sy-guardian-main-name { font-size:1.26rem; letter-spacing:0.015em; font-weight:900; color:#fef3c7; margin-bottom:6px; text-shadow:0 0 10px rgba(251,191,36,0.35); }
+        .sy-guardian-main-desc { margin:0 0 12px; font-size:0.96rem; line-height:1.84; color:#dbeafe; }
+        .sy-guardian-detail-list { margin-top:10px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+        .sy-guardian-detail-item { padding:10px 12px; border-radius:12px; border:1px solid rgba(147,197,253,0.24); background:linear-gradient(170deg, rgba(15,23,42,0.84), rgba(11,18,32,0.66)); }
+        .sy-guardian-detail-item h5 { margin:0 0 5px 0; font-size:0.7rem; letter-spacing:0.07em; text-transform:uppercase; color:#93c5fd; }
+        .sy-guardian-detail-item p { margin:0; font-size:0.84rem; line-height:1.87; color:#dbeafe; }
         .sy-guardian-meta { margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 11px; border-radius:999px; background:rgba(15,23,42,0.72); border:1px solid rgba(148,163,184,0.35); }
         .sy-guardian-meta span { font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:#93c5fd; font-weight:700; }
         .sy-guardian-meta strong { color:#f8fafc; font-size:0.9rem; }
+        .sy-guardian-art-board { margin-top:12px; text-align:left; border:1px dashed rgba(196,181,253,0.48); border-radius:12px; padding:11px 11px; background:linear-gradient(155deg, rgba(30,41,59,0.72), rgba(17,24,39,0.34)); }
+        .sy-guardian-art-board h5 { margin:0 0 6px 0; font-size:0.74rem; letter-spacing:0.08em; text-transform:uppercase; color:#ddd6fe; }
+        .sy-guardian-art-board p { margin:0 0 8px 0; font-size:0.84rem; line-height:1.78; color:#dbeafe; }
+        .sy-guardian-art-prompt { width:100%; min-height:120px; border-radius:12px; border:1px solid rgba(196,181,253,0.35); background:rgba(3,7,18,0.64); color:#eef2ff; padding:11px 12px; font-size:0.79rem; line-height:1.68; resize:vertical; box-sizing:border-box; font-family:"Pretendard","Noto Sans KR",sans-serif; }
+        .sy-guardian-art-copy-btn { width:100%; cursor:pointer; border:none; border-radius:10px; padding:9px 10px; font-size:0.79rem; font-weight:800; color:#0f172a; background:linear-gradient(140deg, #fde68a, #fbcfe8); border:1px solid rgba(251,191,36,0.42); transition:transform .2s ease, box-shadow .2s ease; }
+        .sy-guardian-art-copy-btn:hover { transform:translateY(-1px); box-shadow:0 10px 18px rgba(251,191,36,.28); }
         .sy-canon-card { border-left-color:#f8e7b7; border-color:rgba(248,231,183,0.26); background:radial-gradient(circle at 86% 10%, rgba(248,250,252,0.18), transparent 24%), radial-gradient(circle at 13% 88%, rgba(153,246,228,0.1), transparent 30%), linear-gradient(155deg, rgba(20,19,44,0.98) 0%, rgba(10,23,45,0.98) 48%, rgba(5,8,25,0.99) 100%); box-shadow:0 20px 50px rgba(0,0,0,0.46), 0 0 32px rgba(219,234,254,0.1), inset 0 0 0 1px rgba(250,232,183,0.12), inset 0 1px 0 rgba(255,255,255,0.06); position:relative; overflow:hidden; }
         .sy-canon-card::before { content:''; position:absolute; inset:-24% auto auto -12%; width:280px; height:280px; pointer-events:none; background:radial-gradient(circle, rgba(251,191,36,0.17) 0%, rgba(251,191,36,0.04) 42%, rgba(251,191,36,0) 72%); }
         .sy-canon-card::after { content:''; position:absolute; inset:auto -122px -126px auto; width:300px; height:300px; pointer-events:none; background:radial-gradient(circle, rgba(99,102,241,0.24) 0%, rgba(99,102,241,0.07) 40%, rgba(99,102,241,0) 74%); }
@@ -7622,6 +7634,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-wheel-meta-grid { grid-template-columns:1fr; }
           .sy-canon-hero { grid-template-columns:1fr; }
           .sy-canon-moon-stage { min-height:128px; }
+          .sy-guardian-head { font-size:0.82rem; }
+          .sy-guardian-main-name { font-size:1.11rem; }
+          .sy-guardian-main-emoji { font-size:2.42rem; }
+          .sy-guardian-main-desc { font-size:0.92rem; line-height:1.78; }
+          .sy-guardian-detail-list { grid-template-columns:1fr; }
+          .sy-guardian-detail-item { padding:11px 12px; }
+          .sy-guardian-detail-item p { font-size:0.83rem; line-height:1.78; }
+          .sy-guardian-art-prompt { min-height:112px; }
           .sy-lunar-year-head { grid-template-columns:1fr; }
           .sy-lunar-year-grid { grid-template-columns:1fr 1fr; }
           .sy-lunar-month-grid { grid-template-columns:1fr; }
@@ -7647,6 +7667,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           .sy-lunar-score-orb { min-height:116px; }
           .sy-mini-grid { grid-template-columns:1fr; }
           .sy-narr-grid { grid-template-columns:1fr; }
+          .sy-guardian-main-name { font-size:1rem; }
+          .sy-guardian-main-emoji { font-size:2.05rem; }
+          .sy-guardian-detail-item h5 { font-size:0.68rem; }
+          .sy-guardian-art-copy-btn { font-size:0.75rem; padding:8px 10px; }
           .sy-ntab, .sy-rel-tab, .sy-canon-tab { min-height:44px; }
         }
         `;
@@ -7657,7 +7681,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     html += `<div class="sy-container" id="lunarNexusApp" data-sy-moon-ui="20260615-sukuyo-lunar-nexus-premium">`;
     html += `<div class="sy-lunar-rim" aria-hidden="true"><span></span><i></i><b></b></div>`;
-    html += `<div class="sy-header"><h3>☽ 달빛 숙요점 · Lunar Nexus ☾</h3><p style="font-size: 0.82rem; opacity: 0.72; margin-top:6px; letter-spacing:0;">본명숙과 27숙 순번을 달빛 명반 위에 올려 성향과 관계 리듬을 정리합니다.</p></div>`;
+    html += `<div class="sy-header"><h3>☽ 월하의 숙요점 · Lunar Nexus ☾</h3><p style="font-size: 0.82rem; opacity: 0.72; margin-top:6px; letter-spacing:0;">본명숙의 결을 27숙 리듬으로 정리해, 달빛 아래에서 성향과 관계 흐름을 한 번 더 조용히 열어봅니다.</p></div>`;
 
     if (!lunarObj) {
         try {
@@ -8097,7 +8121,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       const _guardianStory = (function() {
         if (typeof syBuildGuardianStory !== 'function') {
           return {
-            overview: '달빛의 결 사이에서 오늘의 보조 상징이 떠올랐습니다. 이 상징은 본명숙의 기질을 부드럽게 보완하고, 선택의 호흡을 정돈하는 안내 표지로 읽습니다.',
+          overview: '월하의 숙요 동물은 본명숙의 기질을 부드럽게 보완하고, 선택의 호흡을 정돈하는 안내 표지로 읽힙니다.',
             reason: '숙요 해석의 핵심은 본명숙이며, 이 상징은 오늘의 정서 흐름을 덧붙인 참고 안내입니다. 지금의 상징은 감정과 판단의 균형을 회복하라는 신호에 가깝습니다.',
             traits: '이 상징은 마음의 소란을 가라앉히고, 중요한 갈림길에서 본능과 이성을 같은 방향으로 정렬시키는 역할을 합니다. 조용한 장면에서 더 선명하게 작동합니다.',
             spirit: '영적인 기운은 꿈의 상징, 갑작스러운 예감, 반복되는 장면처럼 은근한 신호로 도착합니다. 조급함을 내려놓을수록 그 신호는 더 선명하고 따뜻해집니다.',
@@ -8106,8 +8130,16 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         }
         return syBuildGuardianStory(_selfGuardian, sData ? sData.mansion : '');
       })();
+      const _guardianIllustrationPrompt = [
+        '월하의 숙요 동물을 2D 귀여운 토이 스타일 일러스트로 그려줘.',
+        '컨셉: 신비로운 새벽빛, 부드러운 포근함, 둥글고 다정한 형태.',
+        '주인공: ' + _selfGuardian.name + ' / 이모지: ' + _selfGuardian.emoji,
+        '상징 키워드: ' + _selfGuardian.color + ', ' + _selfGuardian.place + ', ' + _selfGuardian.action,
+        '반드시 장면 안쪽에 "숙요점"과 "코드 데스티니" 문구를 섬세한 타이포로 노출.',
+        '배경은 달빛 아래 은하수와 은은한 별무리 모티브로 마무리.'
+      ].join('\\n');
       html += `<div class="sy-card sy-guardian-card">
-        <div class="sy-guardian-head">달빛 보조 상징</div>
+        <div class="sy-guardian-head">월하의 숙요 동물</div>
         <div class="sy-guardian-stage">
           <div class="sy-guardian-stage-stars"><i>✦</i><i>✧</i><i>✦</i><i>✧</i></div>
           <div class="sy-guardian-main-emoji">${_guardianView.emoji}</div>
@@ -8131,15 +8163,21 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <p>${_guardianStory.ritual}</p>
             </div>
             <div class="sy-guardian-detail-item">
-              <h5>나의 달빛 보조 상징</h5>
+              <h5>나의 월하의 숙요 동물</h5>
               <p>상징 색: ${_guardianView.color} · 상징 장소: ${_guardianView.place}<br>오늘의 행동: ${_guardianView.action}<br>정렬 문장: ${_guardianView.mantra}</p>
             </div>
+          </div>
+          <div class="sy-guardian-art-board">
+            <h5>나의 월하의 숙요 동물 2D 드로잉 프롬프트</h5>
+            <p>아래 프롬프트를 복사해 AI에 넣으면 월하의 숙요 동물을 2D 토이 스타일로 아주 귀엽게 그려낼 수 있습니다.</p>
+            <textarea class="sy-guardian-art-prompt" data-sy-guardian-art-prompt>${_guardianIllustrationPrompt}</textarea>
+            <button type="button" class="sy-guardian-art-copy-btn" data-sy-guardian-art-copy>월하의 숙요 동물 프롬프트 복사</button>
           </div>
         </div>
         <div class="sy-guardian-meta"><span>연결된 숙요</span><strong>${sData ? sData.mansion : '미상'}</strong></div>
       </div>`;
 
-      html += `<div class="sy-card" id="syAiPromptCard" data-sy-ai-prompt-marker="sukuyo-moon-prompt-v20260615" style="position:relative;overflow:hidden;border-left-color:rgba(250,204,21,0.5);background:radial-gradient(circle at 92% 0%, rgba(250,230,160,0.18), transparent 28%), radial-gradient(circle at 12% 8%, rgba(147,197,253,0.14), transparent 30%), linear-gradient(145deg, rgba(9,13,33,0.92), rgba(24,18,52,0.9)); border:1px solid rgba(250,204,21,0.22); box-shadow:0 18px 42px rgba(2,6,23,0.38),0 0 26px rgba(250,204,21,0.08), inset 0 1px 0 rgba(255,255,255,0.06);">
+      html += `<div class="sy-card sy-guardian-prompt-card" id="syAiPromptCard" data-sy-ai-prompt-marker="sukuyo-moon-prompt-v20260615" style="position:relative;overflow:hidden;border-left-color:rgba(250,204,21,0.5);background:radial-gradient(circle at 92% 0%, rgba(250,230,160,0.18), transparent 28%), radial-gradient(circle at 12% 8%, rgba(147,197,253,0.14), transparent 30%), linear-gradient(145deg, rgba(9,13,33,0.92), rgba(24,18,52,0.9)); border:1px solid rgba(250,204,21,0.22); box-shadow:0 18px 42px rgba(2,6,23,0.38),0 0 26px rgba(250,204,21,0.08), inset 0 1px 0 rgba(255,255,255,0.06);">
         <div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;margin-bottom:10px;">
           <span aria-hidden="true" style="display:inline-flex;width:54px;height:54px;align-items:center;justify-content:center;border-radius:999px;background:radial-gradient(circle,rgba(250,230,160,0.12),rgba(147,197,253,0.06) 62%,transparent 74%);border:1px solid rgba(250,204,21,0.22);box-shadow:0 0 22px rgba(250,204,21,0.16),inset 0 1px 0 rgba(255,255,255,0.1);">
             <svg viewBox="0 0 64 64" width="42" height="42" focusable="false" style="display:block;filter:drop-shadow(0 0 10px rgba(250,230,160,0.32));">
@@ -8158,22 +8196,22 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           </span>
           <div style="min-width:0;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
-              <h4 style="margin:0;color:#fef3c7;letter-spacing:0;font-size:1rem;line-height:1.35;">달빛 숙요점 프롬프트</h4>
+              <h4 style="margin:0;color:#fef3c7;letter-spacing:0;font-size:1.06rem;line-height:1.35;">월하의 숙요 동물 드로잉 프롬프트</h4>
               <span style="font-size:0.7rem;color:#dbeafe;border:1px solid rgba(147,197,253,0.32);background:rgba(30,58,138,0.14);padding:3px 8px;border-radius:999px;">본명숙 리딩 기반</span>
             </div>
-            <div style="font-size:0.73rem;color:#c4b5fd;line-height:1.5;">숙요 27수와 달의 결을 질문에 맞는 상담 문장으로 엽니다.</div>
+            <div style="font-size:0.78rem;color:#c4b5fd;line-height:1.55;">월하의 숙요 동물 리듬을 바탕으로, 질문에 맞는 2D 일러스트 감각의 상담 프롬프트를 생성합니다.</div>
           </div>
         </div>
-        <p style="font-size:0.84rem;color:#e9d5ff;margin:0 0 10px 0;line-height:1.72;word-break:keep-all;">
-          본명숙과 달빛 보조 상징을 바탕으로, 지금 묻고 싶은 질문을 상담용 프롬프트로 정리합니다. 궁합을 먼저 확인했다면 두 사람의 숙요 거리와 관계 리듬까지 함께 담깁니다. 생성 시 10,000원 결제가 확인됩니다.
+        <p style="font-size:0.86rem;color:#e9d5ff;margin:0 0 10px 0;line-height:1.82;word-break:keep-all;">
+          본명숙과 월하의 숙요 동물을 바탕으로, 지금 묻고 싶은 질문을 상담용 프롬프트로 정리합니다. 궁합을 먼저 확인했다면 두 사람의 숙요 거리와 관계 리듬까지 함께 담깁니다. 월하의 숙요 동물 드로잉용 문장도 함께 제공되어 2D 생성 AI에서 바로 사용할 수 있습니다. 생성 시 10,000원 결제가 확인됩니다.
         </p>
-        <textarea data-sy-ai-question maxlength="1000" placeholder="예: 내 본명숙 흐름에서 지금 연애의 반복 패턴을 어떻게 풀어야 할까?" style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(250,204,21,0.34);background:rgba(8,13,30,0.76);color:#f5f3ff;padding:11px;font-size:0.84rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
+        <textarea data-sy-ai-question maxlength="1000" placeholder="예: 월하의 숙요 동물을 2D 귀여운 스타일로 묘사해 오늘 관계의 리듬을 읽어줘. 화면에 '숙요점', '코드 데스티니' 문구가 보이게 해줘." style="width:100%;min-height:116px;border-radius:12px;border:1px solid rgba(250,204,21,0.34);background:rgba(8,13,30,0.76);color:#f5f3ff;padding:11px;font-size:0.86rem;line-height:1.72;resize:vertical;box-sizing:border-box;"></textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
           <span data-sy-ai-count style="font-size:0.72rem;color:#fde68a;">0 / 1000</span>
           <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
-          <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#facc15,#c084fc);color:#111827;border:1px solid rgba(254,243,199,0.56);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(250,204,21,0.16);">달빛 프롬프트 생성 · 10,000원</button>
+          <button data-sy-ai-generate type="button" style="background:linear-gradient(135deg,#facc15,#c084fc);color:#111827;border:1px solid rgba(254,243,199,0.56);padding:9px 13px;border-radius:10px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(250,204,21,0.16);">월하의 숙요 동물 프롬프트 생성 · 10,000원</button>
           <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:9px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 생성</button>
           <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:9px 12px;border-radius:10px;font-size:0.78rem;font-weight:800;cursor:pointer;">프롬프트 복사</button>
         </div>
@@ -8274,7 +8312,25 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         }
         const syAiPromptCard = document.getElementById('syAiPromptCard');
         if (syAiPromptCard && typeof syBindSukuyoPromptComposer === 'function') {
-          syBindSukuyoPromptComposer(syAiPromptCard, { preferCompatibility: false, generateLabel: '달빛 프롬프트 생성 · 10,000원', loadingLabel: '달빛 프롬프트 여는 중...' });
+          syBindSukuyoPromptComposer(syAiPromptCard, { preferCompatibility: false, generateLabel: '월하의 숙요 동물 프롬프트 생성 · 10,000원', loadingLabel: '월하의 숙요 동물 프롬프트 작성 중...' });
+        }
+        const guardianArtCopyBtn = syAiPromptCard && syAiPromptCard.querySelector('[data-sy-guardian-art-copy]');
+        const guardianArtPromptEl = syAiPromptCard && syAiPromptCard.querySelector('[data-sy-guardian-art-prompt]');
+        const guardianArtStatusEl = syAiPromptCard && syAiPromptCard.querySelector('[data-sy-ai-status]');
+        if (guardianArtCopyBtn && guardianArtPromptEl) {
+          guardianArtCopyBtn.addEventListener('click', function() {
+            syCopyText(guardianArtPromptEl.value || '').then(function() {
+              if (guardianArtStatusEl) {
+                guardianArtStatusEl.style.color = '#86efac';
+                guardianArtStatusEl.textContent = '월하의 숙요 동물 프롬프트가 복사되었습니다. AI에 붙여넣어 사용하세요.';
+              }
+            }).catch(function() {
+              if (guardianArtStatusEl) {
+                guardianArtStatusEl.style.color = '#fda4af';
+                guardianArtStatusEl.textContent = '복사에 실패했습니다. 텍스트를 직접 선택해 복사해 주세요.';
+              }
+            });
+          });
         }
         if (typeof syBindSukuyoRadar === 'function') syBindSukuyoRadar(_renderMIdx, sData ? sData.mansion : '');
         if (typeof syBindSukuyoPastLife === 'function') syBindSukuyoPastLife(_renderMIdx, sData ? sData.mansion : '');
@@ -11204,6 +11260,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     return '<div style="height:7px;background:rgba(255,255,255,0.08);border-radius:999px;overflow:hidden;"><div style="height:100%;width:' + n + '%;background:' + color + ';border-radius:999px;"></div></div>';
   }
 
+  function syResolveSukuyoYearlyTargetYear(reading) {
+    var input = document.querySelector('[data-sy-yearly-input]');
+    var raw = input ? String(input.value || '').trim() : String((reading && reading.targetYear) || new Date().getFullYear()).trim();
+    var year = Number(raw);
+    if (!/^\d{4}$/.test(raw) || !Number.isInteger(year) || year < 1900 || year > 2100) {
+      window.alert('숙요점 1년운은 1900년부터 2100년까지의 연도만 입력할 수 있습니다.');
+      return null;
+    }
+    return year;
+  }
+
   function syRenderSukuyoMonthlyGrid(reading) {
     var months = reading && Array.isArray(reading.monthlyFlow) ? reading.monthlyFlow : [];
     if (!months.length) return '';
@@ -11294,6 +11361,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         return '<article><strong>' + syCanonicalEsc(pair[0]) + '</strong><span>' + syCanonicalEsc(item.score) + '점</span><p>' + syCanonicalEsc(item.text) + '</p><p>' + syCanonicalEsc(item.advice) + '</p></article>';
       }).join('')
       + '<article><strong>귀인/주의 인연</strong><span>인연의 결</span><p>귀인 · ' + syCanonicalEsc(result.noblePersonAndCaution && result.noblePersonAndCaution.noblePerson) + '</p><p>주의 · ' + syCanonicalEsc(result.noblePersonAndCaution && result.noblePersonAndCaution.cautionPerson) + '</p><p>' + syCanonicalEsc(result.noblePersonAndCaution && result.noblePersonAndCaution.relationshipAdvice) + '</p></article>'
+      + '<article><strong>숙요 고수의 달빛 처방</strong><span>올해의 문</span><p>' + syCanonicalEsc(result.sukuyoMasterFocus && result.sukuyoMasterFocus.yearlyGate) + '</p><p>' + syCanonicalEsc(result.sukuyoMasterFocus && result.sukuyoMasterFocus.moonPacing) + '</p><p>금기 · ' + syCanonicalEsc(result.sukuyoMasterFocus && result.sukuyoMasterFocus.taboo) + '</p><p>회복 열쇠 · ' + syCanonicalEsc(result.sukuyoMasterFocus && result.sukuyoMasterFocus.repairKey) + '</p></article>'
       + '<article><strong>숙요점식 한 줄 처방</strong><span>올해의 처방</span><p>' + syCanonicalEsc(result.finalPrescription && result.finalPrescription.oneLine) + '</p><p>잡을 것 · ' + syCanonicalEsc((result.finalPrescription && result.finalPrescription.doThis || []).join(' · ')) + '</p><p>피할 것 · ' + syCanonicalEsc((result.finalPrescription && result.finalPrescription.avoidThis || []).join(' · ')) + '</p></article>'
       + '</div>'
       + '<div style="margin-top:14px;"><div class="sy-lunar-overline" style="color:#99f6e4;">Monthly Sukuyo Rhythm</div><h4 style="margin:0 0 10px;color:#ccfbf1;">월별 12개월 흐름</h4>' + syRenderSukuyoMonthlyGrid(result) + '</div>';
@@ -11317,8 +11385,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var target = document.getElementById('syYearlyFortuneContent');
     var status = document.querySelector('[data-sy-monthly-status]');
     if (!target) return;
-    var yearSelect = document.querySelector('[data-sy-yearly-select]');
-    var targetYear = Number((yearSelect && yearSelect.value) || state.targetYear || new Date().getFullYear());
+    var targetYear = syResolveSukuyoYearlyTargetYear(state);
+    if (!targetYear) return;
     var profileId = state.profileId || syResolveCurrentProfileIdForPaidGate();
     window._sySukuyoYearlyHydrateKey = String(profileId || '') + ':' + String(targetYear || '');
     target.innerHTML = '<div style="padding:18px;color:#fef3c7;line-height:1.8;">숙요점 1년운을 열고 있어요. 결제 승인과 잠금 해제를 확인하는 중입니다.</div>';
@@ -11339,14 +11407,24 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
   function syBindSukuyoMonthlyUnlock(reading) {
     if (reading) window._sySukuyoYearlyReading = reading;
-    var select = document.querySelector('[data-sy-yearly-select]');
-    if (select && !select._syYearlySelectBound) {
-      select._syYearlySelectBound = true;
-      select.addEventListener('change', function() {
+    var input = document.querySelector('[data-sy-yearly-input]');
+    var viewBtn = document.querySelector('[data-sy-yearly-view]');
+    if (input && !input._syYearlyInputBound) {
+      input._syYearlyInputBound = true;
+      input.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading);
+        }
+      });
+    }
+    if (viewBtn && !viewBtn._syYearlyViewBound) {
+      viewBtn._syYearlyViewBound = true;
+      viewBtn.addEventListener('click', function() {
         syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading);
       });
     }
-    var hydrateKey = String((window._sySukuyoYearlyReading && window._sySukuyoYearlyReading.profileId) || reading.profileId || '') + ':' + String((document.querySelector('[data-sy-yearly-select]') || {}).value || reading.targetYear || '');
+    var hydrateKey = String((window._sySukuyoYearlyReading && window._sySukuyoYearlyReading.profileId) || reading.profileId || '') + ':' + String((document.querySelector('[data-sy-yearly-input]') || {}).value || reading.targetYear || '');
     if (hydrateKey && window._sySukuyoYearlyHydrateKey !== hydrateKey) {
       window._sySukuyoYearlyHydrateKey = hydrateKey;
       syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading);
@@ -11356,7 +11434,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     btn._syYearlyUnlockBound = true;
     btn.addEventListener('click', function() {
       var state = window._sySukuyoYearlyReading || reading || {};
-      var targetYear = Number((document.querySelector('[data-sy-yearly-select]') || {}).value || state.targetYear || new Date().getFullYear());
+      var targetYear = syResolveSukuyoYearlyTargetYear(state);
+      if (!targetYear) return;
       var profileId = state.profileId || syResolveCurrentProfileIdForPaidGate();
       btn.disabled = true;
       btn.textContent = '숙요점 1년운을 열고 있어요.';
@@ -11407,18 +11486,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     if (!reading) return '';
     if (typeof window !== 'undefined') window._sySukuyoYearlyReading = reading;
     var year = Number(reading.targetYear || new Date().getFullYear());
-    var yearOptions = [year, year + 1].map(function(y) {
-      return '<option value="' + syCanonicalEsc(y) + '">' + syCanonicalEsc(y) + '년</option>';
-    }).join('');
     return ''
       + '<div class="sy-card sy-lunar-year-card is-locked" data-sy-yearly-fortune-card data-sy-year-fortune="20260616-sukuyo-yearly-premium" data-sy-year-moon-ui="20260606-sukuyo-year-moon">'
       + '<div class="sy-lunar-overline">Annual Sukuyo Fortune</div>'
       + '<div class="sy-lunar-month-titlebar">'
         + '<div>'
           + '<h4>숙요점 1년운</h4>'
-          + '<p class="sy-lunar-month-copy">서버 기준 프로필과 본명숙으로 여는 프리미엄 12개월 달빛 흐름입니다.</p>'
+          + '<p class="sy-lunar-month-copy">원하는 연도를 직접 열어 본명숙의 12개월 달빛 흐름을 비춥니다.</p>'
         + '</div>'
-        + '<div style="display:grid;gap:7px;justify-items:end;"><select data-sy-yearly-select style="min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(2,6,23,.62);color:#fef3c7;padding:4px 10px;font-weight:900;">' + yearOptions + '</select><span class="sy-paid-status" data-sy-monthly-status>잠금 콘텐츠 · 10,000원</span></div>'
+        + '<div style="display:grid;gap:7px;justify-items:end;"><div style="display:flex;gap:6px;align-items:center;"><input data-sy-yearly-input type="number" inputmode="numeric" min="1900" max="2100" step="1" value="' + syCanonicalEsc(year) + '" aria-label="숙요점 1년운 조회 연도" style="width:98px;min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(2,6,23,.62);color:#fef3c7;padding:4px 10px;font-weight:900;"><button type="button" data-sy-yearly-view style="min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(248,231,183,.12);color:#fef3c7;padding:4px 11px;font-weight:900;">보기</button></div><span class="sy-paid-status" data-sy-monthly-status>잠금 콘텐츠 · 10,000원</span></div>'
       + '</div>'
       + '<div id="syYearlyFortuneContent"><div style="padding:18px;color:#fef3c7;line-height:1.8;">숙요점 1년운을 열고 있어요.</div></div>'
       + '</div>';
@@ -11920,7 +11996,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     return {
       overview: guardianName + ' 상징은 달의 결 속에서 본명숙의 기질을 보완하는 안내 표지입니다. 지금 시기에는 특히 ' + baseCore + '의 힘을 끌어올려 감정의 물결을 가라앉히고 선택의 타이밍을 바로잡아 줍니다.',
-      reason: '숙요 해석의 핵심은 본명숙이며, 달빛 보조 상징은 오늘의 참고 리듬을 덧붙여 읽는 안내입니다. ' + mansionLabel + '의 흐름에서는 ' + guardianName + ' 상징이 감정과 판단의 균형을 회복하라는 신호로 읽힙니다. ' + resonance,
+      reason: '숙요 해석의 핵심은 본명숙이며, 월하의 숙요 동물은 오늘의 참고 리듬을 덧붙여 읽는 안내입니다. ' + mansionLabel + '의 흐름에서는 ' + guardianName + ' 상징이 감정과 판단의 균형을 회복하라는 신호로 읽힙니다. ' + resonance,
       traits: guardianName + ' 상징의 본성은 화려함보다 정확함에 있습니다. ' + traits + ' 평소에는 잔잔하게 머물지만, 중요한 인연과 결정의 갈림길에서는 감지력이 먼저 반응해 선택의 방향을 좁혀 줍니다.',
       spirit: '이 상징의 기운은 큰 목소리보다 미세한 결로 다가옵니다. ' + spirit + ' 특히 새벽 직전의 꿈, 반복해서 마주치는 상징, 이유 없는 직감의 끌림은 내면이 보내는 안내 신호일 가능성이 큽니다.',
       ritual: '상징의 흐름을 일상에 잇고 싶다면 작은 의식을 꾸준히 반복하는 것이 좋습니다. ' + ritual + ' 같은 시간대에 짧게라도 이어가면 마음의 결이 안정되고 선택 신호가 더 빠르고 선명해집니다.'

@@ -859,6 +859,7 @@ function hasForbiddenText(text = "") {
 
 function normalizeBirthInput(raw = {}) {
   const src = raw && typeof raw === "object" ? raw : {};
+  const location = src.location && typeof src.location === "object" ? src.location : {};
 
   const birthDateRaw = clean(src.birthDate || src.date || src.birthday || "");
   const dateMatch = birthDateRaw.match(/(\d{4})[-./\s년](\d{1,2})[-./\s월](\d{1,2})/);
@@ -890,8 +891,8 @@ function normalizeBirthInput(raw = {}) {
   const birthDate = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   const birthTime = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 
-  const latitude = safeNumber(src.latitude, 37.5665);
-  const longitude = safeNumber(src.longitude ?? src.lng, 126.978);
+  const latitude = safeNumber(src.latitude ?? location.lat ?? location.latitude, 37.5665);
+  const longitude = safeNumber(src.longitude ?? src.lng ?? src.lon ?? location.lng ?? location.lon ?? location.longitude, 126.978);
   const calendarRaw = clean(src.calendarType || src.calendar || src.calType || "solar").toLowerCase();
   const calendarType = calendarRaw.includes("lunar")
     ? (calendarRaw.includes("leap") || calendarRaw.includes("윤") ? "lunar_leap" : "lunar")
@@ -901,6 +902,17 @@ function normalizeBirthInput(raw = {}) {
     return { ok: false, code: "BIRTH_INPUT_INVALID", message: "생년월일시 형식을 확인해 주세요." };
   }
 
+  const birthPlace = clean(
+    src.birthPlace
+    || src.birthplace
+    || src.place
+    || src.locationName
+    || location.label
+    || location.name
+    || location.city
+    || "대한민국"
+  ) || "대한민국";
+
   return {
     ok: true,
     input: {
@@ -908,10 +920,10 @@ function normalizeBirthInput(raw = {}) {
       gender: clean(src.gender || src.sex || "unknown") || "unknown",
       birthDate,
       birthTime,
-      birthPlace: clean(src.birthPlace || src.place || "대한민국") || "대한민국",
+      birthPlace,
       calendarType,
-      timezone: clean(src.timezone || "Asia/Seoul") || "Asia/Seoul",
-      timezoneOffset: safeNumber(src.timezoneOffset, 9),
+      timezone: clean(src.timezone || location.tz || "Asia/Seoul") || "Asia/Seoul",
+      timezoneOffset: safeNumber(src.timezoneOffset ?? location.tzOffset, 9),
       latitude,
       longitude,
       year,

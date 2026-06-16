@@ -1,7 +1,18 @@
 "use client";
 
 import { ChevronDown, Moon, Search, Share2, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  type ChangeEvent,
+  type MouseEvent as ReactMouseEvent,
+  memo,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import type { ArtistKey, Track } from "./_data/musicManifest";
 import styles from "./moon-music-player.module.css";
 
@@ -23,6 +34,21 @@ const PLAYLIST_TABS: Array<{ key: PlaylistTab; label: string }> = [
   { key: "lunabloom", label: "Luna Bloom" },
   { key: "all", label: "All" },
 ];
+
+const PLAYLIST_PAGE_SIZE = 40;
+type PlaylistTrackEntry = {
+  track: Track;
+  searchableText: string;
+  collectionLabel: string;
+  durationLabel: string;
+  isPlayable: boolean;
+};
+type PlaylistTrackDisplay = {
+  track: Track;
+  collectionLabel: string;
+  durationLabel: string;
+  isPlayable: boolean;
+};
 
 function formatDuration(seconds?: number) {
   if (!Number.isFinite(seconds) || !seconds || seconds <= 0) return "";
@@ -72,7 +98,143 @@ async function copyShareText(text: string) {
   document.body.removeChild(textarea);
 }
 
-export default function MusicPlaylistPanel({
+type PlaylistTrackItemProps = {
+  track: Track;
+  collectionLabel: string;
+  durationLabel: string;
+  isPlayable: boolean;
+  isCurrentTrack: boolean;
+  isCurrentTrackPlaying: boolean;
+  isSharedTrack: boolean;
+  hasCoverError: boolean;
+  onCoverError: (trackId: string) => void;
+  onSelectTrack: (trackId: string) => void;
+  onShareTrack: (trackId: string) => void;
+};
+
+const PlaylistTrackItem = memo(function PlaylistTrackItem({
+  track,
+  collectionLabel,
+  durationLabel,
+  isPlayable,
+  isCurrentTrack,
+  isCurrentTrackPlaying,
+  isSharedTrack,
+  hasCoverError,
+  onCoverError,
+  onSelectTrack,
+  onShareTrack,
+}: PlaylistTrackItemProps) {
+  const isCurrent = isCurrentTrack;
+  const coverUnavailable = !track.coverUrl || hasCoverError;
+  const handleTrackSelect = useCallback(() => {
+    onSelectTrack(track.id);
+  }, [onSelectTrack, track.id]);
+  const handleTrackCoverError = useCallback(() => {
+    onCoverError(track.id);
+  }, [onCoverError, track.id]);
+  const handleTrackShare = useCallback((event: ReactMouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onShareTrack(track.id);
+  }, [onShareTrack, track.id]);
+
+  return (
+    <div
+      className={styles.playlistTrack}
+      role="group"
+      aria-current={isCurrent ? "true" : undefined}
+      data-disabled={!isPlayable ? "true" : "false"}
+      data-playing={isCurrentTrackPlaying ? "true" : "false"}
+      data-artist={track.artistKey}
+      data-collection={collectionLabel}
+    >
+      <button
+        className={styles.playlistTrackButton}
+        type="button"
+        onClick={handleTrackSelect}
+        disabled={!isPlayable}
+      >
+        <span className={styles.playlistThumb} data-fallback={coverUnavailable ? "true" : "false"}>
+          {track.coverUrl ? (
+            <img
+              src={track.coverUrl}
+              alt=""
+              width={72}
+              height={72}
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+              onError={handleTrackCoverError}
+            />
+          ) : null}
+        </span>
+
+        <span className={styles.playlistTrackText}>
+          <span className={styles.playlistTrackTitle}>{track.title || "Untitled track"}</span>
+          <span className={styles.playlistTrackSubline}>
+            <span className={styles.playlistTrackArtist}>{track.artistName || "Unknown artist"}</span>
+            <span className={styles.playlistTrackMood}>{collectionLabel}</span>
+          </span>
+        </span>
+
+        <span className={styles.playlistTrackMeta}>
+          {isCurrent ? (
+            <span className={styles.equalizerIcon} aria-label={isCurrentTrackPlaying ? "Playing" : "Selected"}>
+              <i />
+              <i />
+              <i />
+            </span>
+          ) : null}
+          {durationLabel ? <span>{durationLabel}</span> : null}
+          {isSharedTrack ? <span className={styles.playlistShareStatus}>Copied</span> : null}
+        </span>
+      </button>
+
+      <button
+        className={styles.playlistShareButton}
+        type="button"
+        onClick={handleTrackShare}
+        aria-label={`Share ${track.title || "track"}`}
+        data-shared={isSharedTrack ? "true" : "false"}
+      >
+        <Share2 size={16} aria-hidden />
+      </button>
+    </div>
+  );
+});
+
+type PlaylistTabButtonProps = {
+  tab: (typeof PLAYLIST_TABS)[number];
+  isActive: boolean;
+  count: number;
+  onSelectTab: (tabKey: PlaylistTab) => void;
+};
+
+const PlaylistTabButton = memo(function PlaylistTabButton({
+  tab,
+  isActive,
+  count,
+  onSelectTab,
+}: PlaylistTabButtonProps) {
+  const handleClick = useCallback(() => {
+    onSelectTab(tab.key);
+  }, [onSelectTab, tab.key]);
+
+  return (
+    <button
+      className={styles.playlistTab}
+      type="button"
+      role="tab"
+      aria-selected={isActive}
+      onClick={handleClick}
+    >
+      <span>{tab.label}</span>
+      <span className={styles.playlistTabCount}>{count}</span>
+    </button>
+  );
+});
+
+const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
   tracks,
   currentTrackId,
   isPlaying,
@@ -82,30 +244,101 @@ export default function MusicPlaylistPanel({
 }: MusicPlaylistPanelProps) {
   const [activeTab, setActiveTab] = useState<PlaylistTab>("all");
   const [query, setQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [sharedTrackId, setSharedTrackId] = useState("");
+  const [visibleTrackCount, setVisibleTrackCount] = useState(PLAYLIST_PAGE_SIZE);
+  const sharedTrackResetTimerRef = useRef<number | null>(null);
+  const playlistScrollRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const loadMoreObserverRef = useRef<IntersectionObserver | null>(null);
   const normalizedQuery = normalizeSearchText(query);
+  const deferredQuery = useDeferredValue(normalizedQuery);
+  const [, startSearchTransition] = useTransition();
+
   const playlistCounts = useMemo(() => {
-    return PLAYLIST_TABS.reduce<Record<PlaylistTab, number>>((counts, tab) => {
-      counts[tab.key] = tab.key === "all"
-        ? tracks.length
-        : tracks.filter((track) => track.artistKey === tab.key).length;
-      return counts;
-    }, { all: 0, neo: 0, yeoni: 0, dest1nova: 0, lunabloom: 0 });
+    const baseCounts = {
+      all: tracks.length,
+      neo: 0,
+      yeoni: 0,
+      dest1nova: 0,
+      lunabloom: 0,
+    } as Record<PlaylistTab, number>;
+
+    tracks.forEach((track) => {
+      if (track.artistKey === "neo") baseCounts.neo += 1;
+      else if (track.artistKey === "yeoni") baseCounts.yeoni += 1;
+      else if (track.artistKey === "dest1nova") baseCounts.dest1nova += 1;
+      else if (track.artistKey === "lunabloom") baseCounts.lunabloom += 1;
+    });
+
+    return baseCounts;
   }, [tracks]);
 
-  const filteredTracks = useMemo(() => {
-    return tracks.filter((track) => {
-      if (!track || !track.id) return false;
-      if (activeTab !== "all" && track.artistKey !== activeTab) return false;
-      if (!normalizedQuery) return true;
+  const searchableTracks = useMemo<PlaylistTrackEntry[]>(() => {
+    return tracks.map((track) => ({
+      track,
+      searchableText: `${track.title} ${track.artistName} ${track.mood || ""} ${track.audioKey}`.toLowerCase(),
+      collectionLabel: getTrackCollectionLabel(track),
+      durationLabel: formatDuration(track.durationSeconds),
+      isPlayable: Boolean(track.audioUrl),
+    }));
+  }, [tracks]);
 
-      return `${track.title} ${track.artistName} ${track.mood || ""} ${track.audioKey}`
-        .toLowerCase()
-        .includes(normalizedQuery);
+  const filteredTracks = useMemo<PlaylistTrackDisplay[]>(() => {
+    return searchableTracks
+      .filter((entry) => {
+        const track = entry.track;
+        if (!track || !track.id) return false;
+        if (activeTab !== "all" && track.artistKey !== activeTab) return false;
+        if (!deferredQuery) return true;
+
+        return entry.searchableText.includes(deferredQuery);
+      })
+      .map((entry) => ({
+        track: entry.track,
+        collectionLabel: entry.collectionLabel,
+        durationLabel: entry.durationLabel,
+        isPlayable: entry.isPlayable,
+      }));
+  }, [activeTab, deferredQuery, searchableTracks]);
+
+  const visibleTracks = useMemo(() => {
+    return filteredTracks.slice(0, visibleTrackCount);
+  }, [filteredTracks, visibleTrackCount]);
+
+  const hasMoreTracks = visibleTrackCount < filteredTracks.length;
+
+  const handleTrackSelect = useCallback((trackId: string) => {
+    onSelectTrack(trackId);
+  }, [onSelectTrack]);
+
+  const handleTrackCoverError = useCallback((trackId: string) => {
+    onCoverError(trackId);
+  }, [onCoverError]);
+
+  const handleTabSelect = useCallback((tabKey: PlaylistTab) => {
+    setActiveTab(tabKey);
+  }, []);
+
+  const trackById = useMemo(() => {
+    const map = new Map<string, Track>();
+    tracks.forEach((track) => {
+      map.set(track.id, track);
     });
-  }, [activeTab, normalizedQuery, tracks]);
+    return map;
+  }, [tracks]);
 
-  async function handleShareTrack(track: Track) {
+  const clearSharedTrackResetTimer = useCallback(() => {
+    if (sharedTrackResetTimerRef.current !== null) {
+      window.clearTimeout(sharedTrackResetTimerRef.current);
+      sharedTrackResetTimerRef.current = null;
+    }
+  }, []);
+
+  const handleTrackShare = useCallback((trackId: string) => {
+    const track = trackById.get(trackId);
+    if (!track) return;
+
     const trackTitle = track.title || "Untitled track";
     const artistName = track.artistName || "Code Destiny";
     const trackUrl = buildTrackShareUrl(track.id);
@@ -117,24 +350,94 @@ export default function MusicPlaylistPanel({
     ].join("\n");
     const copiedText = `${text}\n${trackUrl}`;
 
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `Code Destiny Music - ${trackTitle}`,
-          text,
-          url: trackUrl,
-        });
-      } else {
-        await copyShareText(copiedText);
-      }
+    void (async () => {
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title: `Code Destiny Music - ${trackTitle}`,
+            text,
+            url: trackUrl,
+          });
+        } else {
+          await copyShareText(copiedText);
+        }
 
-      setSharedTrackId(track.id);
-      window.setTimeout(() => {
-        setSharedTrackId((current) => current === track.id ? "" : current);
-      }, 1800);
-    } catch {
+        setSharedTrackId(track.id);
+        clearSharedTrackResetTimer();
+        sharedTrackResetTimerRef.current = window.setTimeout(() => {
+          setSharedTrackId((current) => current === track.id ? "" : current);
+        }, 1800);
+      } catch {
+      }
+    })();
+  }, [clearSharedTrackResetTimer, trackById]);
+
+  const loadMoreTracks = useCallback(() => {
+    startSearchTransition(() => {
+      setVisibleTrackCount((current) => Math.min(current + PLAYLIST_PAGE_SIZE, filteredTracks.length));
+    });
+  }, [filteredTracks.length, startSearchTransition]);
+
+  useEffect(() => {
+    startSearchTransition(() => {
+      setVisibleTrackCount(PLAYLIST_PAGE_SIZE);
+    });
+  }, [activeTab, deferredQuery, tracks, startSearchTransition]);
+
+  useEffect(() => {
+    return () => {
+      clearSharedTrackResetTimer();
+    };
+  }, [clearSharedTrackResetTimer]);
+
+  const handleQueryChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(event.currentTarget.value);
+  }, []);
+
+  useEffect(() => {
+    const timerId = window.setTimeout(() => {
+      startSearchTransition(() => {
+        setQuery(normalizeSearchText(searchInput));
+      });
+    }, 130);
+
+    return () => {
+      window.clearTimeout(timerId);
+    };
+  }, [searchInput, startSearchTransition]);
+
+  useEffect(() => {
+    const listElement = playlistScrollRef.current;
+    const trigger = loadMoreTriggerRef.current;
+    if (!listElement || !trigger || !hasMoreTracks || typeof IntersectionObserver === "undefined") return;
+
+    if (loadMoreObserverRef.current) {
+      loadMoreObserverRef.current.disconnect();
     }
-  }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!hasMoreTracks) return;
+        if (entries.some((entry) => entry.isIntersecting)) {
+          loadMoreTracks();
+        }
+      },
+      {
+        root: listElement,
+        rootMargin: "200px 0px 0px 0px",
+        threshold: 0.01,
+      }
+    );
+    observer.observe(trigger);
+    loadMoreObserverRef.current = observer;
+
+    return () => {
+      observer.disconnect();
+      if (loadMoreObserverRef.current === observer) {
+        loadMoreObserverRef.current = null;
+      }
+    };
+  }, [hasMoreTracks, loadMoreTracks]);
 
   return (
     <aside className={styles.playlistPanel} data-playlist-mode={activeTab} aria-label="Music playlist">
@@ -158,17 +461,13 @@ export default function MusicPlaylistPanel({
         <div className={styles.playlistBody}>
           <div className={styles.playlistTabs} role="tablist" aria-label="Filter playlist">
             {PLAYLIST_TABS.map((tab) => (
-              <button
+              <PlaylistTabButton
                 key={tab.key}
-                className={styles.playlistTab}
-                type="button"
-                role="tab"
-                aria-selected={activeTab === tab.key}
-                onClick={() => setActiveTab(tab.key)}
-              >
-                <span>{tab.label}</span>
-                <span className={styles.playlistTabCount}>{playlistCounts[tab.key]}</span>
-              </button>
+                tab={tab}
+                isActive={activeTab === tab.key}
+                count={playlistCounts[tab.key]}
+                onSelectTab={handleTabSelect}
+              />
             ))}
           </div>
 
@@ -176,86 +475,42 @@ export default function MusicPlaylistPanel({
             <Search size={16} aria-hidden />
             <input
               type="search"
-              value={query}
+              value={searchInput}
               placeholder="Search tracks"
-              onChange={(event) => setQuery(event.currentTarget.value)}
+              onChange={handleQueryChange}
             />
           </label>
 
-          <div className={styles.playlistScroll}>
-            {filteredTracks.length ? (
-              filteredTracks.map((track) => {
-                const isCurrent = track.id === currentTrackId;
-                const coverUnavailable = !track.coverUrl || Boolean(failedCoverIds[track.id]);
-                const durationLabel = formatDuration(track.durationSeconds);
-                const isPlayable = Boolean(track.audioUrl);
-                const collectionLabel = getTrackCollectionLabel(track);
-
-                return (
-                  <div
-                    key={track.id}
-                    className={styles.playlistTrack}
-                    role="group"
-                    aria-current={isCurrent ? "true" : undefined}
-                    data-disabled={!isPlayable ? "true" : "false"}
-                    data-playing={isCurrent && isPlaying ? "true" : "false"}
-                    data-artist={track.artistKey}
-                    data-collection={collectionLabel}
+          <div className={styles.playlistScroll} ref={playlistScrollRef}>
+            {visibleTracks.length ? (
+              <>
+                {visibleTracks.map((track) => (
+                  <PlaylistTrackItem
+                    key={track.track.id}
+                    track={track.track}
+                    collectionLabel={track.collectionLabel}
+                    durationLabel={track.durationLabel}
+                    isPlayable={track.isPlayable}
+                    isCurrentTrack={track.track.id === currentTrackId}
+                    isCurrentTrackPlaying={track.track.id === currentTrackId && isPlaying}
+                    isSharedTrack={track.track.id === sharedTrackId}
+                    hasCoverError={Boolean(failedCoverIds[track.track.id])}
+                    onCoverError={handleTrackCoverError}
+                    onSelectTrack={handleTrackSelect}
+                    onShareTrack={handleTrackShare}
+                  />
+                ))}
+                {hasMoreTracks ? (
+                  <button
+                    ref={loadMoreTriggerRef}
+                    type="button"
+                    onClick={loadMoreTracks}
+                    className={`${styles.playlistTab} ${styles.playlistLoadMore}`}
                   >
-                    <button
-                      className={styles.playlistTrackButton}
-                      type="button"
-                      onClick={() => onSelectTrack(track.id)}
-                      disabled={!isPlayable}
-                    >
-                      <span className={styles.playlistThumb} data-fallback={coverUnavailable ? "true" : "false"}>
-                        {track.coverUrl ? (
-                          <img
-                            src={track.coverUrl}
-                            alt=""
-                            loading="lazy"
-                            decoding="async"
-                            onError={() => onCoverError(track.id)}
-                          />
-                        ) : null}
-                      </span>
-
-                      <span className={styles.playlistTrackText}>
-                        <span className={styles.playlistTrackTitle}>{track.title || "Untitled track"}</span>
-                        <span className={styles.playlistTrackSubline}>
-                          <span className={styles.playlistTrackArtist}>{track.artistName || "Unknown artist"}</span>
-                          <span className={styles.playlistTrackMood}>{collectionLabel}</span>
-                        </span>
-                      </span>
-
-                      <span className={styles.playlistTrackMeta}>
-                        {isCurrent ? (
-                          <span className={styles.equalizerIcon} aria-label={isPlaying ? "Playing" : "Selected"}>
-                            <i />
-                            <i />
-                            <i />
-                          </span>
-                        ) : null}
-                        {durationLabel ? <span>{durationLabel}</span> : null}
-                        {sharedTrackId === track.id ? <span className={styles.playlistShareStatus}>Copied</span> : null}
-                      </span>
-                    </button>
-
-                    <button
-                      className={styles.playlistShareButton}
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        void handleShareTrack(track);
-                      }}
-                      aria-label={`Share ${track.title || "track"}`}
-                      data-shared={sharedTrackId === track.id ? "true" : "false"}
-                    >
-                      <Share2 size={16} aria-hidden />
-                    </button>
-                  </div>
-                );
-              })
+                    Load more ({visibleTracks.length}/{filteredTracks.length})
+                  </button>
+                ) : null}
+              </>
             ) : (
               <div className={styles.playlistEmpty}>
                 <strong>No tracks found</strong>
@@ -267,4 +522,7 @@ export default function MusicPlaylistPanel({
       </details>
     </aside>
   );
-}
+});
+
+export default MusicPlaylistPanel;
+

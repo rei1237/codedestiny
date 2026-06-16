@@ -334,7 +334,8 @@
       text(context.premiumAccessToken)
       || text(context.transactionId)
       || text(context.purchaseId)
-      || text(grant && (grant.evidenceId || grant.paymentId || grant.purchaseId || grant.transactionId || grant.merchantUid))
+      || text(context.requestId)
+      || text(grant && (grant.evidenceId || grant.paymentId || grant.purchaseId || grant.transactionId || grant.merchantUid || grant.requestId))
     );
   }
 
@@ -352,7 +353,7 @@
       saved
       && isReusablePaidStatus(saved.status)
       && text(saved.sessionId)
-      && (text(saved.premiumAccessToken) || text(saved.transactionId) || text(saved.purchaseId))
+      && hasPaymentEvidence(saved, saved.birthHash)
     );
   }
 
@@ -1266,7 +1267,7 @@
     var reuseOnly = Boolean(options && options.reuseOnly);
     var birthHash = makeBirthHash(birthInput || {});
     var saved = readPaidSession();
-    if(reuseOnly && isSamePaidSessionTarget(saved, birthHash)){
+    if(isSamePaidSessionTarget(saved, birthHash)){
       var verified = await verifyPaidSessionAccess(saved);
       if(verified){
         logFlow('PaymentReuse', {

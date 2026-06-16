@@ -4596,12 +4596,9 @@ body.neo-mode #lib-msg{color:#FFD700!important}
 body.neo-mode .dot{background:#FFD700!important}
 body.neo-mode .logo-area h1{color:#FFD700!important;text-shadow:0 0 16px rgba(255,215,0,.4)}
 body.neo-mode .logo-area p{color:#444!important}
-/* 네오 로고 전환 */
-body.neo-mode .normal-logo{display:none!important}
-body.neo-mode .neo-logo{display:flex!important}
-/* 백사자 모드: 로고 위 별·네뷸라 제거 */
-body.neo-mode .logo-cosmos{display:none}
-/* 백사자 모드: 원 크기에 맞게 백사자 이미지만 표시 */
+body.neo-mode .normal-logo{display:grid!important}
+body.neo-mode .neo-logo{display:none!important}
+body.neo-mode .logo-cosmos{display:block}
 body.neo-mode .pig-svg-wrap {
   position: relative;
   width: 160px;

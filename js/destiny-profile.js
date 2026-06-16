@@ -2538,6 +2538,13 @@
       return;
     }
 
+    var gateGrantedDelivered = false;
+    function deliverGateGrant(transactionId, payload) {
+      if (typeof cb !== 'function') return;
+      gateGrantedDelivered = true;
+      cb(String(transactionId || requestId), payload || {});
+    }
+
     if (typeof window._cdOpenPaidServiceGate === 'function') {
       return window._cdOpenPaidServiceGate({
         title: reason,
@@ -2567,9 +2574,16 @@
         disablePassFirst: optionBag.disablePassFirst,
         disablePassChoice: optionBag.disablePassChoice,
         onGranted: function(transactionId, payload) {
-          if (typeof cb === 'function') cb(String(transactionId || requestId), payload || {});
+          deliverGateGrant(transactionId, payload);
         },
         onCancel: onCancel
+      }).then(function(result) {
+        if (result && result.status === 'granted' && !gateGrantedDelivered) {
+          deliverGateGrant(result.transactionId, result.payload || result);
+        } else if (result && result.status === 'cancelled' && result.reason === 'pass_applied_in_modal' && !gateGrantedDelivered) {
+          deliverGateGrant(requestId, { __cdPassGateResolved: true, requestId: requestId, featureKey: normalizedFeatureKey });
+        }
+        return result;
       }).catch(function(error) {
         console.error('[legacy-main-paid-service-gate]', error);
         var gateMessage = String(error && error.message || '\uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');
@@ -6501,6 +6515,13 @@
     }
     dedupeMap[dedupeKey] = now;
 
+    var gateGrantedDelivered = false;
+    function deliverGateGrant(transactionId, payload) {
+      if (typeof cb !== 'function') return;
+      gateGrantedDelivered = true;
+      cb(String(transactionId || requestId), payload || {});
+    }
+
     if (typeof window._cdOpenPaidServiceGate === 'function') {
       return window._cdOpenPaidServiceGate({
         title: reason,
@@ -6530,9 +6551,16 @@
         disablePassFirst: optionBag.disablePassFirst,
         disablePassChoice: optionBag.disablePassChoice,
         onGranted: function(transactionId, payload) {
-          if (typeof cb === 'function') cb(String(transactionId || requestId), payload || {});
+          deliverGateGrant(transactionId, payload);
         },
         onCancel: onCancel
+      }).then(function(result) {
+        if (result && result.status === 'granted' && !gateGrantedDelivered) {
+          deliverGateGrant(result.transactionId, result.payload || result);
+        } else if (result && result.status === 'cancelled' && result.reason === 'pass_applied_in_modal' && !gateGrantedDelivered) {
+          deliverGateGrant(requestId, { __cdPassGateResolved: true, requestId: requestId, featureKey: normalizedFeatureKey });
+        }
+        return result;
       }).catch(function(error) {
         console.error('[main-paid-service-gate]', error);
         var gateMessage = String(error && error.message || '\uACB0\uC81C\uB97C \uC644\uB8CC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');

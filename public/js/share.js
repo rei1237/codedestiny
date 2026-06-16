@@ -1088,12 +1088,10 @@ function enforceThemeToggleSticky() {
 window.addEventListener('load',function(){
   installLogoMutationDebug();
   ensureThemeToggleCriticalStyles();
-  var bootThemeNeo;
+  var bootThemeNeo = readThemeModeState();
   var bootThemeCheckbox = document.getElementById('themeCheckbox');
-  if (bootThemeCheckbox) {
+  if (bootThemeNeo !== true && bootThemeCheckbox) {
     bootThemeNeo = !!bootThemeCheckbox.checked;
-  } else {
-    bootThemeNeo = readThemeModeState();
   }
   NEO_MODE = !!bootThemeNeo;
 

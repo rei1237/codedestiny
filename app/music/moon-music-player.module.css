@@ -1594,6 +1594,13 @@
   background: rgba(245, 227, 174, 0.86);
 }
 
+.playlistLoadMore {
+  margin-top: 12px;
+  width: 100%;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
 .playlistPanel[data-playlist-mode="dest1nova"] {
   border-color: rgba(111, 238, 255, 0.28);
   background:
@@ -1683,12 +1690,19 @@
   min-height: 0;
   max-height: 516px;
   overflow: auto;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  contain: content;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 516px;
   display: grid;
   align-content: start;
   gap: 8px;
   padding-right: 4px;
   scrollbar-width: thin;
   scrollbar-color: rgba(238, 247, 255, 0.26) rgba(255, 255, 255, 0.045);
+  touch-action: pan-y;
 }
 
 .playlistScroll::-webkit-scrollbar {
@@ -1710,6 +1724,9 @@
   position: relative;
   min-width: 0;
   min-height: 84px;
+  contain: layout paint;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 84px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 42px;
   align-items: center;
@@ -2429,6 +2446,7 @@
     max-height: 520px;
     gap: 10px;
     padding-right: 8px;
+    contain-intrinsic-size: 0 520px;
   }
 
   .playlistTrack {
@@ -2718,10 +2736,12 @@
     max-height: 480px;
     gap: 10px;
     padding-right: 6px;
+    contain-intrinsic-size: 0 480px;
   }
 
   .playlistTrack {
     min-height: 90px;
+    contain-intrinsic-size: 0 90px;
     grid-template-columns: minmax(0, 1fr) 44px;
     border-color: rgba(238, 247, 255, 0.12);
   }
@@ -2905,11 +2925,13 @@
 
   .playlistScroll {
     max-height: 360px;
+    contain-intrinsic-size: 0 360px;
   }
 
   .playlistTrack {
     grid-template-columns: minmax(0, 1fr) 38px;
     min-height: 76px;
+    contain-intrinsic-size: 0 76px;
   }
 
   .playlistTrackButton {

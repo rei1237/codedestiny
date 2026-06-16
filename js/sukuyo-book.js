@@ -27,6 +27,8 @@
   var _resultPayload = null;
   var _generating = false;
   var _activeSessionId = '';
+  var _activeReportId = '';
+  var _activePaymentRequestId = '';
   var _lastPremiumPayment = null;
   var _activeChapterIndex = 0;
   var _premiumAccessVerifiedUntil = 0;
@@ -241,12 +243,15 @@
   function _getSukuyoGenerationScope() {
     var sessionId = _clean(_activeSessionId) || _newSessionId();
     _activeSessionId = sessionId;
-    var reportId = 'sukyo-premium-' + sessionId;
+    var reportId = _clean(_activeReportId) || ('sukyo-premium-' + sessionId);
+    _activeReportId = reportId;
+    var requestId = _clean(_activePaymentRequestId) || (reportId + '-pay');
+    _activePaymentRequestId = requestId;
     return {
       sessionId: sessionId,
       reportSessionId: sessionId,
       reportId: reportId,
-      requestId: reportId + '-' + Date.now().toString(36),
+      requestId: requestId,
     };
   }
 
@@ -306,6 +311,33 @@
     };
     if (grant) context.accessGrant = grant;
     return context;
+  }
+
+  function _bindPaymentToCurrentGeneration(payment) {
+    var scope = _getSukuyoGenerationScope();
+    var next = payment && typeof payment === 'object' ? payment : {};
+    next.sessionId = _clean(next.sessionId || scope.sessionId) || undefined;
+    next.reportSessionId = _clean(next.reportSessionId || next.sessionId || scope.reportSessionId) || undefined;
+    next.reportId = _clean(next.reportId || scope.reportId) || undefined;
+    next.requestId = _clean(next.requestId || scope.requestId) || undefined;
+    next.purchaseId = _clean(next.purchaseId || (next.accessGrant && next.accessGrant.purchaseId) || next.transactionId || next.requestId) || undefined;
+    next.transactionId = _clean(next.transactionId || next.purchaseId || next.requestId) || undefined;
+    next.featureKey = SUKYO_FEATURE_KEY;
+    next.aliasFeatureKey = SUKYO_ALIAS_FEATURE_KEY;
+    next.reportType = 'sookyoPremium';
+    next.mode = 'compatibility';
+    next.reportMode = 'compatibility';
+    if (next.accessGrant && typeof next.accessGrant === 'object') {
+      next.accessGrant.sessionId = _clean(next.accessGrant.sessionId || next.sessionId) || undefined;
+      next.accessGrant.reportSessionId = _clean(next.accessGrant.reportSessionId || next.reportSessionId) || undefined;
+      next.accessGrant.reportId = _clean(next.accessGrant.reportId || next.reportId) || undefined;
+      next.accessGrant.requestId = _clean(next.accessGrant.requestId || next.requestId) || undefined;
+      next.accessGrant.purchaseId = _clean(next.accessGrant.purchaseId || next.purchaseId) || undefined;
+      next.accessGrant.transactionId = _clean(next.accessGrant.transactionId || next.transactionId || next.purchaseId) || undefined;
+      next.accessGrant.featureKey = _clean(next.accessGrant.featureKey || SUKYO_FEATURE_KEY) || SUKYO_FEATURE_KEY;
+      next.accessGrant.reportType = _clean(next.accessGrant.reportType || 'sookyoPremium') || 'sookyoPremium';
+    }
+    return next;
   }
 
   function _persistPremiumAccessToken(token) {
@@ -370,6 +402,26 @@
       return true;
     }
     return false;
+  }
+
+  function _setGenerationWindowVisible(visible) {
+    var element = _qs('skGenerationWindow');
+    if (!element) return;
+    element.style.display = visible ? 'flex' : 'none';
+    try { element.setAttribute('aria-hidden', visible ? 'false' : 'true'); } catch (_) {}
+  }
+
+  function _syncGenerationWindowProgress(step, total, title) {
+    var normalizedStep = Math.max(0, Math.min(total, Number(step) || 0));
+    var pct = Math.max(0, Math.min(100, Math.round((normalizedStep / Math.max(total, 1)) * 100)));
+    var bar = _qs('skGenerationProgressBar');
+    var text = _qs('skGenerationProgressText');
+    var number = _qs('skGenerationChapterNum');
+    var chapter = _qs('skGenerationChapter');
+    if (bar) bar.style.width = pct + '%';
+    if (text) text.textContent = normalizedStep <= 0 ? ('0 / ' + total) : (normalizedStep + ' / ' + total);
+    if (number) number.textContent = normalizedStep <= 0 ? '준비 중' : ('제' + normalizedStep + '장');
+    if (chapter) chapter.textContent = _sanitizeText(title || '');
   }
 
   function _buildApiCandidates(pathname) {
@@ -1404,6 +1456,8 @@
     if (number) number.textContent = normalizedStep <= 0 ? '준비 중' : ('제' + normalizedStep + '장');
     if (chapter) chapter.textContent = _sanitizeText(title || (normalizedStep <= 0 ? '숙요점 궁합 리포트를 준비하고 있습니다.' : '숙요점 챕터를 생성하는 중입니다'));
 
+    _syncGenerationWindowProgress(normalizedStep, total, title);
+
     Array.prototype.forEach.call(document.querySelectorAll('.sk-ch-dot'), function (dot) {
       var dotNo = Number(dot.getAttribute('data-skch'));
       dot.classList.toggle('lb-ch-dot--active', normalizedStep > 0 && dotNo === normalizedStep);
@@ -1424,6 +1478,9 @@
     _resultPayload = null;
     _lastPremiumPayment = null;
     _activeSessionId = _clean(sessionId) || _newSessionId();
+    _activeReportId = '';
+    _activePaymentRequestId = '';
+    _getSukuyoGenerationScope();
     _persistGenerationState({
       isOpen: true,
       status: 'preparing',
@@ -1471,14 +1528,32 @@
   function _setLoadingStage(message) {
     var title = _qs('skLoadingTitle');
     if (title) title.textContent = _sanitizeText(message);
+    var windowTitle = _qs('skGenerationTitle');
+    if (windowTitle) windowTitle.textContent = _sanitizeText(message);
   }
 
   function _setLoadingNotice(message) {
     var quote = _qs('skMysticQuote');
     if (quote) quote.textContent = _sanitizeText(message);
+    var windowNotice = _qs('skGenerationNotice');
+    if (windowNotice) windowNotice.textContent = _sanitizeText(message);
   }
 
   function _startSukuyoAssemblyProgress() {
+    var source = Array.isArray(_canonicalChapters) && _canonicalChapters.length ? _canonicalChapters : [];
+    var total = Math.max(SUKYO_TOTAL_CHAPTERS, 1);
+    var index15 = 0;
+    var apply15 = function () {
+      var step = Math.min(index15 + 1, total);
+      var chapter = source[step - 1] || {};
+      _setLoadingProgress(step, total, '제' + step + '장 ' + _sanitizeText(chapter.title || '숙요 궁합 원고') + ' 작성 중...');
+      _setLoadingStage('숙요점 프리미엄 궁합 PDF 생성 중');
+      _setLoadingNotice('두 사람의 본명숙과 관계 거리를 따라 PDF 원고가 열리고 있습니다.');
+      if (index15 < total - 1) index15 += 1;
+    };
+    apply15();
+    return setInterval(apply15, 2600);
+
     var frames = [
       { step: 1, title: '제1장 핵심 궁합 지도를 여는 중...', notice: '두 사람의 본명숙과 관계 축을 맞추는 중입니다' },
       { step: 2, title: '제2장 마음의 결을 정리하는 중...', notice: '끌림과 거리감이 생기는 지점을 읽고 있습니다' },
@@ -1710,7 +1785,7 @@
   function _buildPrepareBody(normalizedInput) {
     var scope = _getSukuyoGenerationScope();
     var sessionId = scope.sessionId;
-    var paymentContext = _lastPremiumPayment && typeof _lastPremiumPayment === 'object' ? Object.assign({}, _lastPremiumPayment) : null;
+    var paymentContext = _lastPremiumPayment && typeof _lastPremiumPayment === 'object' ? _bindPaymentToCurrentGeneration(Object.assign({}, _lastPremiumPayment)) : null;
     var token = _readPremiumAccessToken() || _extractPremiumToken(paymentContext);
     if (!paymentContext && token) {
       paymentContext = {
@@ -1741,8 +1816,21 @@
       premiumAccessToken: token || undefined,
       requestId: paymentContext && paymentContext.requestId || undefined,
       purchaseId: paymentContext && paymentContext.purchaseId || undefined,
+      transactionId: paymentContext && paymentContext.transactionId || undefined,
+      sourceTransactionId: paymentContext && paymentContext.transactionId || paymentContext && paymentContext.purchaseId || undefined,
       reportId: reportId || undefined,
       accessGrant: accessGrant || undefined,
+      consume: paymentContext ? {
+        featureKey: SUKYO_FEATURE_KEY,
+        transactionId: paymentContext.transactionId || paymentContext.purchaseId || undefined,
+        purchaseId: paymentContext.purchaseId || paymentContext.transactionId || undefined,
+        requestId: paymentContext.requestId || undefined,
+        reportId: reportId || undefined,
+        sessionId: sessionId,
+        reportSessionId: paymentContext.reportSessionId || sessionId,
+        premiumAccessToken: token || undefined,
+        accessGrant: accessGrant || undefined,
+      } : undefined,
       payment: paymentContext || undefined,
       _paymentContext: paymentContext || undefined,
       mode: 'compatibility',
@@ -1929,7 +2017,10 @@
     return new Promise(function (resolve, reject) {
       var coinCost = _resolveSukuyoCoinCost();
       window._cdCoinGatePerUse(coinCost, '숙요점 프리미엄 궁합 PDF 생성 · ' + _sukuyoCoinLabel(), function (_transactionId, data) {
-        _lastPremiumPayment = _normalizePremiumPayment(_transactionId, data);
+        _lastPremiumPayment = _bindPaymentToCurrentGeneration(_normalizePremiumPayment(_transactionId, data));
+        if (!_lastPremiumPayment.transactionId && !_lastPremiumPayment.purchaseId && !_lastPremiumPayment.premiumAccessToken && !_lastPremiumPayment.accessGrant) {
+          _lastPremiumPayment.adminTestMode = true;
+        }
         _lastPremiumPayment.featureKey = SUKYO_FEATURE_KEY;
         _lastPremiumPayment.aliasFeatureKey = SUKYO_ALIAS_FEATURE_KEY;
         _lastPremiumPayment.reportType = 'sookyoPremium';
@@ -1939,6 +2030,7 @@
         _lastPremiumPayment.reportSessionId = _clean(_lastPremiumPayment.reportSessionId || paymentScope.reportSessionId) || paymentScope.reportSessionId;
         _lastPremiumPayment.reportId = _clean(_lastPremiumPayment.reportId || paymentScope.reportId) || paymentScope.reportId;
         _lastPremiumPayment.requestId = _clean(_lastPremiumPayment.requestId || paymentScope.requestId) || paymentScope.requestId;
+        _lastPremiumPayment.purchaseId = _clean(_lastPremiumPayment.purchaseId || _lastPremiumPayment.transactionId || _lastPremiumPayment.requestId) || undefined;
         _persistPremiumAccessToken(_lastPremiumPayment.premiumAccessToken || _extractPremiumToken(data));
         _markPremiumAccessVerified(25 * 60 * 1000);
         _log('[SukuyoBook][PaymentGateSuccess]', { featureKey: SUKYO_FEATURE_KEY, reportId: _lastPremiumPayment.reportId });
@@ -2056,6 +2148,7 @@
       });
 
       _setLoadingNotice('숙요점 프리미엄 궁합 PDF를 완성하는 중입니다');
+      _setGenerationWindowVisible(false);
       _showScreen('skResultScreen');
     });
   }
@@ -2116,6 +2209,7 @@
     var modal = _qs('sukuyoBookModal');
     if (!modal) return;
     modal.style.display = 'none';
+    _setGenerationWindowVisible(false);
     document.body.style.overflow = '';
     try { modal.setAttribute('aria-hidden', 'true'); } catch (_) {}
   };
@@ -2176,6 +2270,7 @@
     _resetGenerationState(_newSessionId());
     _setStartBusy(true);
     _showScreen('skLoadingScreen');
+    _setGenerationWindowVisible(true);
     _setLoadingProgress(0, SUKYO_TOTAL_CHAPTERS, '숙요점 궁합 리포트를 준비하고 있습니다.');
     _setLoadingStage('숙요점 궁합 PDF 생성 중');
     _setLoadingNotice('두 사람의 본명숙을 정리하는 중입니다');
@@ -2221,6 +2316,7 @@
         _stopSukuyoAssemblyProgress(assemblyProgressTimer);
         assemblyProgressTimer = null;
         _logError(error, 'generate');
+        _setGenerationWindowVisible(false);
         _persistGenerationState({
           isOpen: true,
           status: 'failed',
@@ -2239,6 +2335,7 @@
         _generating = false;
         _setStartBusy(false);
         if (_resultPayload && _clean(_resultPayload.serverStatus) === 'completed') {
+          _setGenerationWindowVisible(false);
           _clearGenerationState();
         }
       });

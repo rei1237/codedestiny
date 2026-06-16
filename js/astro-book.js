@@ -320,13 +320,13 @@
       var d = Number(p[2]);
       if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null;
       var isFemale = !!(femaleEl && femaleEl.checked);
-      var opt = countryEl && countryEl.options ? countryEl.options[countryEl.selectedIndex] : null;
-      var locationData = {
-        label: opt ? (opt.textContent || '대한민국 (서울)') : '대한민국 (서울)',
-        lat: parseFloat(opt && opt.getAttribute('data-lat') || '37.5665'),
-        lon: parseFloat(opt && opt.getAttribute('data-lon') || '126.9780'),
-        tzOffset: parseFloat(opt && opt.getAttribute('data-tz') || '9'),
-        tz: (opt && opt.value) || 'Asia/Seoul',
+      var locationData = _readAstroDomLocation() || {
+        label: '대한민국 (서울)',
+        lat: 37.5665,
+        lon: 126.9780,
+        lng: 126.9780,
+        tzOffset: 9,
+        tz: 'Asia/Seoul',
       };
       return {
         name: (nameEl && nameEl.value && nameEl.value.trim()) || '사용자',
@@ -345,20 +345,65 @@
     }
   }
 
-  function _getActiveBirthProfile() {
-    var p = window.__cdActiveBirthProfile;
-    if (p && p.birth && p.birth.year) return p;
-    var snap = window.__destinyFlowerSajuSnapshot;
-    if (snap && snap.birth && snap.birth.year) return snap;
-    var fromDom = _recoverBirthFromDOM();
-    if (fromDom) return fromDom;
+  function _readAstroDomLocation() {
     try {
-      var match = (typeof window.__cdGetCurrentDestinyProfile === 'function' && window.__cdGetCurrentDestinyProfile())
-        || window.__cdCurrentDestinyProfile
-        || null;
-      if (match && match.birth && match.birth.year) return match;
+      var countryEl = document.getElementById('birthCountry');
+      var opt = countryEl && countryEl.options ? countryEl.options[countryEl.selectedIndex] : null;
+      if (!opt) return null;
+      var lon = parseFloat(opt.getAttribute('data-long') || opt.getAttribute('data-lon') || opt.getAttribute('data-lng') || '126.9780');
+      var lat = parseFloat(opt.getAttribute('data-lat') || '37.5665');
+      var tzOffset = parseFloat(opt.getAttribute('data-tz') || opt.getAttribute('data-base-tz') || '9');
+      return {
+        label: _clean(opt.textContent || opt.getAttribute('data-label') || '') || '대한민국 (서울)',
+        lat: Number.isFinite(lat) ? lat : 37.5665,
+        lon: Number.isFinite(lon) ? lon : 126.9780,
+        lng: Number.isFinite(lon) ? lon : 126.9780,
+        tzOffset: Number.isFinite(tzOffset) ? tzOffset : 9,
+        baseTzOffset: Number.isFinite(tzOffset) ? tzOffset : 9,
+        tz: (opt && opt.value) || 'Asia/Seoul',
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function _hasAstroBirth(candidate) {
+    return !!(candidate && candidate.birth && Number.isFinite(Number(candidate.birth.year)));
+  }
+
+  function _scoreAstroProfileCandidate(candidate) {
+    if (!_hasAstroBirth(candidate)) return -1;
+    var birth = candidate.birth || {};
+    var location = candidate.location || {};
+    var score = 1;
+    if (Number.isFinite(Number(birth.hour))) score += 2;
+    if (_clean(location.label || candidate.birthPlace || candidate.locationName || candidate.place)) score += 2;
+    if (Number.isFinite(Number(location.lat || candidate.latitude || candidate.lat))) score += 2;
+    if (Number.isFinite(Number(location.lon != null ? location.lon : (location.lng != null ? location.lng : (candidate.longitude != null ? candidate.longitude : candidate.lng))))) score += 2;
+    if (_clean(location.tz || location.timezone || candidate.timezone) || Number.isFinite(Number(location.tzOffset || candidate.tzOffset || candidate.timezoneOffsetHours))) score += 2;
+    if (candidate === window.__cdCurrentDestinyProfile) score += 1;
+    return score;
+  }
+
+  function _getActiveBirthProfile() {
+    var candidates = [];
+    try {
+      if (typeof window.__cdGetCurrentDestinyProfile === 'function') candidates.push(window.__cdGetCurrentDestinyProfile());
     } catch (_) {}
-    return null;
+    try { candidates.push(window.__cdCurrentDestinyProfile || null); } catch (_) {}
+    candidates.push(_recoverBirthFromDOM());
+    try { candidates.push(window.__cdActiveBirthProfile || null); } catch (_) {}
+    try { candidates.push(window.__destinyFlowerSajuSnapshot || null); } catch (_) {}
+    var best = null;
+    var bestScore = -1;
+    for (var i = 0; i < candidates.length; i += 1) {
+      var score = _scoreAstroProfileCandidate(candidates[i]);
+      if (score > bestScore) {
+        best = candidates[i];
+        bestScore = score;
+      }
+    }
+    return bestScore >= 0 ? best : null;
   }
 
   function _showScreen(screenId) {
@@ -629,11 +674,16 @@
   function _normalizeAstroBirthInput(profile) {
     var p = profile || {};
     var b = p.birth || {};
-    var l = p.location || {};
-    var year = Number(b.year || 0);
-    var month = Number(b.month || 0);
-    var day = Number(b.day || 0);
-    var parsedTime = _parseBirthTimeInput(b.time || b.birthTime || '', b.hour, b.minute);
+    var domLocation = _readAstroDomLocation() || {};
+    var l = Object.assign({}, domLocation, p.location || {});
+    var year = Number(b.year || p.birthYear || 0);
+    var month = Number(b.month || p.birthMonth || 0);
+    var day = Number(b.day || p.birthDay || 0);
+    var parsedTime = _parseBirthTimeInput(
+      b.time || b.birthTime || p.birthTime || '',
+      b.hour != null ? b.hour : p.birthHour,
+      b.minute != null ? b.minute : p.birthMinute
+    );
     var tz = _clean(l.tz || l.timezone || p.timezone || '');
     var rawTzOffset = _pickAstroTimezoneOffset(p, l);
     var tzOffset = Number(rawTzOffset);
@@ -664,9 +714,9 @@
       timezone: tz,
       timezoneOffsetHours: Number.isFinite(tzOffset) ? tzOffset : null,
       baseTzOffset: Number.isFinite(tzOffset) ? tzOffset : null,
-      birthPlace: _clean(l.label || p.birthPlace || ''),
-      latitude: Number.isFinite(Number(l.lat)) ? Number(l.lat) : null,
-      longitude: Number.isFinite(Number(l.lon != null ? l.lon : l.lng)) ? Number(l.lon != null ? l.lon : l.lng) : null,
+      birthPlace: _clean(l.label || l.name || p.birthPlace || p.place || p.locationName || ''),
+      latitude: Number.isFinite(Number(l.lat != null ? l.lat : (l.latitude != null ? l.latitude : p.latitude))) ? Number(l.lat != null ? l.lat : (l.latitude != null ? l.latitude : p.latitude)) : null,
+      longitude: Number.isFinite(Number(l.lon != null ? l.lon : (l.lng != null ? l.lng : (l.longitude != null ? l.longitude : (p.longitude != null ? p.longitude : (p.lng != null ? p.lng : p.lon)))))) ? Number(l.lon != null ? l.lon : (l.lng != null ? l.lng : (l.longitude != null ? l.longitude : (p.longitude != null ? p.longitude : (p.lng != null ? p.lng : p.lon))))) : null,
       isTimeUnknown: !!parsedTime.isTimeUnknown,
     };
   }

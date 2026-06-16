@@ -368,12 +368,22 @@
         || null;
       if (!selected) return null;
       var birth = selected.birth || {};
+      var storageBirthDate = clean(selected.birthDate || selected.birthday || birth.birthDate || '');
+      var hasStorageBirthDateParts = birth.year && birth.month && birth.day;
+      if (!storageBirthDate && hasStorageBirthDateParts) {
+        storageBirthDate = [String(birth.year).padStart(4, '0'), String(birth.month).padStart(2, '0'), String(birth.day).padStart(2, '0')].join('-');
+      }
+      var storageBirthTime = clean(selected.birthTime || selected.time || '');
+      var hasStorageBirthHour = Number.isFinite(Number(birth.hour));
+      if (!storageBirthTime && hasStorageBirthHour) {
+        storageBirthTime = [String(Number(birth.hour)).padStart(2, '0'), String(Number.isFinite(Number(birth.minute)) ? Number(birth.minute) : 0).padStart(2, '0')].join(':');
+      }
       return {
         name: clean(selected.name || selected.profileName || '사용자') || '사용자',
         gender: clean(selected.gender || selected.sex || 'unknown') || 'unknown',
-        birthDate: clean(selected.birthDate || selected.birthday || birth.birthDate || ''),
-        birthTime: clean(selected.birthTime || selected.time || ''),
-        birthPlace: clean(selected.birthPlace || selected.birthplace || (selected.location && selected.location.label) || ''),
+        birthDate: storageBirthDate,
+        birthTime: storageBirthTime,
+        birthPlace: resolveSoulOriginBirthPlace(selected),
         calendarType: clean(selected.calendarType || selected.calendar || selected.calType || birth.calendarType || birth.calendar || birth.calType || 'solar') || 'solar',
         timezone: clean(selected.timezone || (selected.location && selected.location.tz) || 'Asia/Seoul') || 'Asia/Seoul',
         latitude: Number(selected.latitude != null ? selected.latitude : (selected.location && selected.location.lat)),
@@ -384,9 +394,34 @@
     }
   }
 
+  function resolveSoulOriginBirthPlace(profile, fallbackProfile) {
+    var src = profile || {};
+    var loc = src.location && typeof src.location === 'object' ? src.location : {};
+    var fallback = fallbackProfile || {};
+    var fallbackLoc = fallback.location && typeof fallback.location === 'object' ? fallback.location : {};
+    return clean(
+      src.birthPlace
+      || src.birthplace
+      || src.place
+      || src.locationName
+      || loc.label
+      || loc.name
+      || loc.city
+      || fallback.birthPlace
+      || fallback.birthplace
+      || fallback.place
+      || fallback.locationName
+      || fallbackLoc.label
+      || fallbackLoc.name
+      || fallbackLoc.city
+      || ''
+    );
+  }
+
   function readActiveProfile() {
     var profile = window.__cdActiveBirthProfile || {};
     var birth = profile.birth || {};
+    var storageProfile = readStorageProfile();
     if (birth.year && birth.month && birth.day) {
       var hasHour = Number.isFinite(Number(birth.hour));
       var hour = hasHour ? Number(birth.hour) : null;
@@ -394,19 +429,19 @@
       var date = [String(birth.year).padStart(4, '0'), String(birth.month).padStart(2, '0'), String(birth.day).padStart(2, '0')].join('-');
       var time = hasHour ? [String(hour).padStart(2, '0'), String(minute).padStart(2, '0')].join(':') : '';
       return {
-        name: clean(profile.name || '사용자') || '사용자',
-        gender: clean(profile.gender || 'unknown') || 'unknown',
+        name: clean(profile.name || (storageProfile && storageProfile.name) || '사용자') || '사용자',
+        gender: clean(profile.gender || (storageProfile && storageProfile.gender) || 'unknown') || 'unknown',
         birthDate: date,
         birthTime: time,
-        birthPlace: clean(profile.birthPlace || (profile.location && profile.location.label) || ''),
-        calendarType: clean(profile.calendarType || profile.calendar || profile.calType || birth.calendarType || birth.calendar || birth.calType || 'solar') || 'solar',
-        timezone: clean(profile.timezone || (profile.location && profile.location.tz) || 'Asia/Seoul') || 'Asia/Seoul',
-        latitude: Number(profile.latitude != null ? profile.latitude : (profile.location && profile.location.lat)),
-        longitude: Number(profile.longitude != null ? profile.longitude : (profile.location && (profile.location.lon != null ? profile.location.lon : profile.location.lng))),
+        birthPlace: resolveSoulOriginBirthPlace(profile, storageProfile),
+        calendarType: clean(profile.calendarType || profile.calendar || profile.calType || birth.calendarType || birth.calendar || birth.calType || (storageProfile && storageProfile.calendarType) || 'solar') || 'solar',
+        timezone: clean(profile.timezone || (profile.location && profile.location.tz) || (storageProfile && storageProfile.timezone) || 'Asia/Seoul') || 'Asia/Seoul',
+        latitude: Number(profile.latitude != null ? profile.latitude : (profile.location && profile.location.lat) != null ? profile.location.lat : storageProfile && storageProfile.latitude),
+        longitude: Number(profile.longitude != null ? profile.longitude : (profile.location && (profile.location.lon != null ? profile.location.lon : profile.location.lng)) != null ? (profile.location.lon != null ? profile.location.lon : profile.location.lng) : storageProfile && storageProfile.longitude),
       };
     }
 
-    return readStorageProfile();
+    return storageProfile;
   }
 
   function normalizeInput(raw) {
@@ -440,7 +475,7 @@
       gender: clean(src.gender || 'unknown') || 'unknown',
       birthDate: [String(date.year).padStart(4, '0'), String(date.month).padStart(2, '0'), String(date.day).padStart(2, '0')].join('-'),
       birthTime: [String(time.hour).padStart(2, '0'), String(time.minute).padStart(2, '0')].join(':'),
-      birthPlace: clean(src.birthPlace || '출생지 미상') || '출생지 미상',
+      birthPlace: resolveSoulOriginBirthPlace(src) || '대한민국',
       calendarType: calendarType,
       timezone: timezone,
       timezoneOffset: inferTimezoneOffsetHours(timezone),
@@ -1709,7 +1744,7 @@
           clean(rawProfile.name || '사용자'),
           clean(rawProfile.birthDate),
           birthTimeText,
-          clean(rawProfile.birthPlace || '출생지 미상'),
+          resolveSoulOriginBirthPlace(rawProfile) || '대한민국',
         ].filter(Boolean).join(' · ');
       } else {
         summaryEl.textContent = '프로필 카드의 생년월일시를 확인해주세요.';

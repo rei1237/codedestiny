@@ -433,7 +433,7 @@
     }
     for (var i = 0; i < sources.length; i++) {
       var src = sources[i];
-      var value = Number(src.cost || src.coinCost || src.priceCoin || src.requiredCoins || src.requiredCoin || src.coins || 0);
+      var value = Number(src.coinPrice || src.cost || src.coinCost || src.priceCoin || src.requiredCoins || src.requiredCoin || src.coins || 0);
       if (Number.isFinite(value) && value > 0) return Math.floor(value);
     }
     return 0;
@@ -509,60 +509,8 @@
   }
 
   function _ensureLoveSecretContextPanel() {
-    if (_qs('lsLoveContextPanel')) return;
-    var startScreen = _qs('lsStartScreen');
-    var generateBtn = _qs('lsGenerateBtn');
-    if (!startScreen || !generateBtn) return;
-    if (!_qs('lsLoveContextStyle')) {
-      var style = document.createElement('style');
-      style.id = 'lsLoveContextStyle';
-      style.textContent = [
-        '.ls-context-panel{width:min(100%,680px);margin:18px auto 16px;padding:16px;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(20,16,35,.52);box-shadow:0 16px 44px rgba(0,0,0,.18)}',
-        '.ls-context-panel__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}',
-        '.ls-context-panel__field{display:flex;flex-direction:column;gap:7px;text-align:left}',
-        '.ls-context-panel__field--wide{grid-column:1/-1}',
-        '.ls-context-panel__label{font-size:12px;font-weight:700;color:rgba(255,255,255,.82);letter-spacing:0}',
-        '.ls-context-panel__select,.ls-context-panel__input,.ls-context-panel__textarea{width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:rgba(255,255,255,.08);color:#fff;padding:11px 12px;font-size:14px;line-height:1.45;outline:none}',
-        '.ls-context-panel__textarea{min-height:72px;resize:vertical}',
-        '.ls-context-panel__select:focus,.ls-context-panel__input:focus,.ls-context-panel__textarea:focus{border-color:rgba(242,190,255,.72);box-shadow:0 0 0 3px rgba(242,190,255,.14)}',
-        '@media(max-width:640px){.ls-context-panel{padding:14px}.ls-context-panel__grid{grid-template-columns:1fr}.ls-context-panel__field--wide{grid-column:auto}}'
-      ].join('\n');
-      document.head.appendChild(style);
-    }
-    var panel = document.createElement('div');
-    panel.id = 'lsLoveContextPanel';
-    panel.className = 'ls-context-panel';
-    panel.innerHTML =
-      '<div class="ls-context-panel__grid">' +
-        '<label class="ls-context-panel__field" for="lsLoveStatus">' +
-          '<span class="ls-context-panel__label">\ud604\uc7ac \ub9c8\uc74c\uc758 \uc790\ub9ac</span>' +
-          '<select id="lsLoveStatus" class="ls-context-panel__select">' +
-            '<option value="flow" data-context="\ud604\uc7ac \uc5f0\uc560 \ud750\ub984, \uc778\uc5f0\uc758 \uc2dc\uae30, \uad00\uacc4 \uc120\ud0dd\uc744 \ud568\uaed8 \ubcf4\uace0 \uc2f6\uc740 \uc0c1\ud0dc">\uc778\uc5f0\uc758 \ud750\ub984\uc744 \ubcf4\uace0 \uc2f6\uc5b4\uc694</option>' +
-            '<option value="single" data-context="\uc0c8\ub85c\uc6b4 \uc778\uc5f0\uacfc \uc5f0\uc560 \uc2dc\uae30\ub97c \uc900\ube44\ud558\ub294 \uc0c1\ud0dc">\uc0c8\ub85c\uc6b4 \uc778\uc5f0\uc744 \uae30\ub2e4\ub824\uc694</option>' +
-            '<option value="relationship" data-context="\ud604\uc7ac \uad00\uacc4\uc758 \uc9c0\uc18d \uac00\ub2a5\uc131\uacfc \uac10\uc815 \uc628\ub3c4\ub97c \ud655\uc778\ud558\uace0 \uc2f6\uc740 \uc0c1\ud0dc">\ud604\uc7ac \uad00\uacc4\ub97c \uc810\uac80\ud558\uace0 \uc2f6\uc5b4\uc694</option>' +
-            '<option value="reunion" data-context="\uc774\ubcc4 \ud6c4 \ub0a8\uc740 \ub9c8\uc74c\uacfc \uc7ac\ud68c \uac00\ub2a5\uc131\uc744 \uc870\uc2ec\uc2a4\ub7fd\uac8c \ubcf4\uace0 \uc2f6\uc740 \uc0c1\ud0dc">\uc7ac\ud68c\uc758 \uac00\ub2a5\uc131\uc774 \uad81\uae08\ud574\uc694</option>' +
-          '</select>' +
-        '</label>' +
-        '<label class="ls-context-panel__field" for="lsLoveDesiredOutcome">' +
-          '<span class="ls-context-panel__label">\ubc14\ub77c\ub294 \uad00\uacc4\uc758 \uacb0</span>' +
-          '<select id="lsLoveDesiredOutcome" class="ls-context-panel__select">' +
-            '<option value="strategy" data-context="\ub098\uc5d0\uac8c \ub9de\ub294 \uc0ac\ub791\uc758 \ubc29\ud5a5\uacfc \ud604\uc2e4\uc801\uc778 \uad00\uacc4 \uc804\ub7b5\uc744 \uc54c\uace0 \uc2f6\ub2e4">\ud604\uc2e4\uc801\uc778 \uc804\ub7b5</option>' +
-            '<option value="marriage" data-context="\uc624\ub798 \uac08 \uc778\uc5f0, \uacb0\ud63c\uc6b4, \uc548\uc815\uc801\uc778 \ud30c\ud2b8\ub108\uc2ed\uc744 \uc54c\uace0 \uc2f6\ub2e4">\uc624\ub798 \uac00\ub294 \uc778\uc5f0</option>' +
-            '<option value="reunion" data-context="\uc774\ubcc4\uacfc \uc7ac\ud68c\uc758 \uc870\uac74, \ub2e4\uc2dc \uc774\uc5b4\uc9c8 \uc218 \uc788\ub294 \ud0c0\uc774\ubc0d\uc744 \uc54c\uace0 \uc2f6\ub2e4">\uc7ac\ud68c\uc758 \uc870\uac74</option>' +
-            '<option value="choice" data-context="\uc9c0\uae08\uc758 \uad00\uacc4\ub97c \uc774\uc5b4\uac08\uc9c0, \uc815\ub9ac\ud560\uc9c0, \ub354 \uc9c0\ucf1c\ubcfc\uc9c0\uc758 \uae30\uc900\uc744 \uc54c\uace0 \uc2f6\ub2e4">\uc120\ud0dd\uc758 \uae30\uc900</option>' +
-          '</select>' +
-        '</label>' +
-        '<label class="ls-context-panel__field ls-context-panel__field--wide" for="lsLoveConcern">' +
-          '<span class="ls-context-panel__label">\uac00\uc7a5 \uad81\uae08\ud55c \ud750\ub984</span>' +
-          '<textarea id="lsLoveConcern" class="ls-context-panel__textarea" maxlength="220" placeholder="\uc608: \uc65c \ubc18\ubcf5\ud574\uc11c \uac19\uc740 \uad00\uacc4 \ud328\ud134\uc5d0 \uba48\ubb34\ub294\uc9c0, \uc62c\ud574 \uc0ac\ub791\uc758 \ud0c0\uc774\ubc0d\uc774 \uad81\uae08\ud574\uc694."></textarea>' +
-        '</label>' +
-        '<label class="ls-context-panel__field ls-context-panel__field--wide" for="lsLoveIdealType">' +
-          '<span class="ls-context-panel__label">\ub04c\ub9ac\ub294 \uc778\uc5f0\uc758 \uacb0</span>' +
-          '<input id="lsLoveIdealType" class="ls-context-panel__input" maxlength="120" placeholder="\uc608: \ub530\ub73b\ud558\uace0 \uc9c4\uc2ec\uc744 \uc548\uc815\uc801\uc73c\ub85c \ud45c\ud604\ud558\ub294 \uc0ac\ub78c">' +
-        '</label>' +
-      '</div>';
-    var host = generateBtn.parentElement || startScreen;
-    host.insertBefore(panel, generateBtn);
+    var existingPanel = _qs('lsLoveContextPanel');
+    if (existingPanel && existingPanel.parentNode) existingPanel.parentNode.removeChild(existingPanel);
   }
 
   function _collectLoveSecretUserContext(mode, partnerBirthInput) {
@@ -798,10 +746,15 @@
         featureKey: featureKey,
         payload: {
           featureKey: featureKey,
+          subFeatureKey: featureKey,
+          categoryKey: 'premium-report',
           mode: normalizedMode,
           reason: reason,
+          coinPrice: _getLoveSecretRequiredCoins(normalizedMode),
+          cost: _getLoveSecretRequiredCoins(normalizedMode),
           reportId: reportId,
           sessionId: 'love-book:' + String(reportId || '').trim(),
+          reportSessionId: 'love-book:' + String(reportId || '').trim(),
           requestId: 'love-secret:' + normalizedMode + ':' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8),
           forceDeduct: true,
         },

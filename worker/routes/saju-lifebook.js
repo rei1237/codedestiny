@@ -7620,6 +7620,17 @@ async function handleStatus(request, env) {
 
   const metadata = doc && typeof doc.metadata === "object" ? doc.metadata : {};
   const archive = metadata?.archive && typeof metadata.archive === "object" ? metadata.archive : {};
+  const payload = archive?.payload && typeof archive.payload === "object" ? archive.payload : {};
+  const pdfReady = archive.pdfReady || metadata.pdfReady || payload.pdfReady || null;
+  const chapters = Array.isArray(archive.chapters)
+    ? archive.chapters
+    : Array.isArray(payload.chapters)
+      ? payload.chapters
+      : Array.isArray(pdfReady?.chapters)
+        ? pdfReady.chapters
+        : [];
+  const pdfUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || archive.downloadUrl || archive.pdfUrl || payload.downloadUrl || payload.pdfUrl);
+  const htmlUrl = clean(pdfReady?.htmlUrl || archive.htmlUrl || payload.htmlUrl);
   const status = clean(doc.status) === "success" && clean(doc.premiumStatus) === "completed"
     ? "done"
     : isLifeBookTerminalFailedExecution(doc)
@@ -7640,8 +7651,20 @@ async function handleStatus(request, env) {
       data: {
         reportId: clean(doc.reportId || reportId),
         sessionId: clean(doc.sessionId || sessionId),
-        pdfReady: archive.pdfReady || metadata.pdfReady || null,
-        canDownload: Boolean(archive?.pdfReady?.downloadUrl || archive?.pdfReady?.pdfUrl || archive?.pdfUrl),
+        reportType: "lifeBook",
+        serviceKey: LIFEBOOK_SERVICE_KEY,
+        featureKey: clean(doc.featureKey || metadata.featureKey),
+        lifeBookPdfRecord: archive.lifeBookPdfRecord || metadata.lifeBookPdfRecord || null,
+        chapters,
+        pdfReady,
+        pdfUrl,
+        htmlUrl,
+        downloadUrl: pdfUrl,
+        localAssembly: archive.localAssembly || pdfReady?.localAssembly || metadata.localAssembly || null,
+        manuscriptSource: clean(archive.manuscriptSource || pdfReady?.manuscriptSource || metadata.manuscriptSource),
+        finalManuscriptSource: clean(archive.finalManuscriptSource || pdfReady?.finalManuscriptSource || metadata.finalManuscriptSource),
+        canReopen: Boolean(pdfUrl || htmlUrl || chapters.length),
+        canDownload: Boolean(pdfUrl || htmlUrl),
       },
     },
   }, {

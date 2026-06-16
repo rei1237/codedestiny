@@ -981,6 +981,64 @@ function resolveSukuyoReportId(body = {}, sessionId = "") {
   );
 }
 
+function hasSukuyoButtonPaymentEvidence(body = {}, sessionId = "", reportId = "") {
+  const payment = body?.payment && typeof body.payment === "object" ? body.payment : {};
+  const paymentContext = body?._paymentContext && typeof body._paymentContext === "object" ? body._paymentContext : {};
+  const accessGrant = body?.accessGrant && typeof body.accessGrant === "object"
+    ? body.accessGrant
+    : payment.accessGrant && typeof payment.accessGrant === "object"
+      ? payment.accessGrant
+      : paymentContext.accessGrant && typeof paymentContext.accessGrant === "object"
+        ? paymentContext.accessGrant
+        : {};
+  const consume = body?.consume && typeof body.consume === "object" ? body.consume : {};
+  const tx = clean(
+    body?.transactionId
+    || body?.sourceTransactionId
+    || body?.purchaseId
+    || body?.requestId
+    || payment.transactionId
+    || payment.purchaseId
+    || payment.requestId
+    || paymentContext.transactionId
+    || paymentContext.purchaseId
+    || paymentContext.requestId
+    || consume.transactionId
+    || consume.purchaseId
+    || consume.requestId
+    || accessGrant.evidenceId
+    || accessGrant.transactionId
+    || accessGrant.purchaseId
+    || accessGrant.requestId,
+  );
+  const boundSessionId = clean(
+    body?.sessionId
+    || body?.reportSessionId
+    || payment.sessionId
+    || payment.reportSessionId
+    || paymentContext.sessionId
+    || paymentContext.reportSessionId
+    || consume.sessionId
+    || consume.reportSessionId
+    || accessGrant.sessionId
+    || accessGrant.reportSessionId,
+  );
+  const boundReportId = clean(
+    body?.reportId
+    || payment.reportId
+    || paymentContext.reportId
+    || consume.reportId
+    || accessGrant.reportId,
+  );
+  const featureKey = clean(body?.featureKey || payment.featureKey || paymentContext.featureKey || consume.featureKey || accessGrant.featureKey);
+  return Boolean(
+    tx
+    && (!sessionId || boundSessionId === sessionId)
+    && (!reportId || boundReportId === reportId)
+    && (!featureKey || isSukuyoCompatibilityFeatureKey(featureKey)),
+  );
+}
+
 function buildSukuyoRunningLinks(request, sessionId, reportId) {
   const origin = new URL(request.url).origin;
   const resolvedReportId = clean(reportId);
@@ -1372,20 +1430,68 @@ async function handleSukuyoPremiumPrepare(request, env) {
 
   try {
     const signedTokenAccess = await resolveSukuyoSignedTokenAccess(env, auth.userId, premiumAccessToken);
-    const access = signedTokenAccess || await requirePremiumReportAccess(
-      pdfDbEnv,
-      auth.userId,
-      "sookyoPremium",
-      {
-        ...body,
+    let access = signedTokenAccess;
+    if (!access) {
+      try {
+        access = await requirePremiumReportAccess(
+          pdfDbEnv,
+          auth.userId,
+          "sookyoPremium",
+          {
+            ...body,
+            reportType: "sookyoPremium",
+            mode: "compatibility",
+            reportMode: "compatibility",
+            featureKey,
+            premiumAccessToken: premiumAccessToken || undefined,
+            _accessRoute: "/api/sukuyo/premium/prepare",
+          },
+        );
+      } catch (accessError) {
+        const status = Number(accessError?.status || 0);
+        if (status >= 500 && hasSukuyoButtonPaymentEvidence(body, sessionId, reportId)) {
+          console.warn("[SukuyoPremiumPDF][AccessCheckDegradedToButtonEvidence]", {
+            reportId,
+            sessionId,
+            status,
+            code: clean(accessError?.code || ""),
+          });
+          access = {
+            ok: true,
+            accessType: "button-payment-evidence",
+            accessMethod: "BUTTON_PAYMENT_EVIDENCE",
+            paymentMode: "single_purchase",
+            reportType: "sookyoPremium",
+            featureKey,
+            matchedTransactionId: clean(body?.transactionId || body?.sourceTransactionId || body?.purchaseId || body?.requestId),
+            reportId,
+            sessionId,
+          };
+        } else {
+          throw accessError;
+        }
+      }
+    }
+
+    if (!access?.ok && Number(access?.status || 0) >= 500 && hasSukuyoButtonPaymentEvidence(body, sessionId, reportId)) {
+      console.warn("[SukuyoPremiumPDF][AccessResultDegradedToButtonEvidence]", {
+        reportId,
+        sessionId,
+        status: Number(access?.status || 0),
+        code: clean(access?.code || ""),
+      });
+      access = {
+        ok: true,
+        accessType: "button-payment-evidence",
+        accessMethod: "BUTTON_PAYMENT_EVIDENCE",
+        paymentMode: "single_purchase",
         reportType: "sookyoPremium",
-        mode: "compatibility",
-        reportMode: "compatibility",
         featureKey,
-        premiumAccessToken: premiumAccessToken || undefined,
-        _accessRoute: "/api/sukuyo/premium/prepare",
-      },
-    );
+        matchedTransactionId: clean(body?.transactionId || body?.sourceTransactionId || body?.purchaseId || body?.requestId),
+        reportId,
+        sessionId,
+      };
+    }
 
     if (!access?.ok) {
       sukuyoPdfGenerationLocks.set(sessionId, {
@@ -1660,9 +1766,16 @@ async function handleSukuyoPremiumPrepare(request, env) {
 
 function normalizeSukuyoTargetYear(value) {
   const nowYear = new Date().getFullYear();
-  const year = Math.floor(Number(value || nowYear));
-  if (!Number.isFinite(year)) return nowYear;
-  return Math.max(nowYear - 1, Math.min(nowYear + 10, year));
+  const raw = clean(value);
+  if (!raw) return nowYear;
+  const year = Number(raw);
+  if (!Number.isInteger(year) || year < 1900 || year > 2100) {
+    const error = new Error("숙요점 1년운은 1900년부터 2100년까지의 정수 연도만 열 수 있습니다.");
+    error.status = 400;
+    error.code = "INVALID_TARGET_YEAR";
+    throw error;
+  }
+  return year;
 }
 
 function sukuyoYearlyContentKey(targetYear) {
@@ -1873,6 +1986,12 @@ function buildSukuyoYearlyFortuneResult({ auth, profile, targetYear }) {
       noblePerson: `${pickSukuyoYearly(["영친", "우쇠", "성위"], seed, 71)}의 기운을 가진 사람, 약속을 숫자와 일정으로 맞춰 주는 사람`,
       cautionPerson: `${pickSukuyoYearly(["안괴", "명", "우쇠"], seed, 72)}의 그림자가 강한 사람, 감정으로 결정을 재촉하는 사람`,
       relationshipAdvice: "올해의 인연은 오래 붙드는 힘보다 서로의 경계를 존중할 때 깊어집니다.",
+    },
+    sukuyoMasterFocus: {
+      yearlyGate: `${targetYear}년의 문은 ${pickSukuyoYearly(["관계의 이름을 다시 세우는 자리", "오래 미룬 약속이 형태를 얻는 자리", "돈과 마음의 경계를 함께 정돈하는 자리", "몸의 리듬을 지켜야 운이 열리는 자리"], seed, 81)}로 열립니다.`,
+      moonPacing: `${natalName}에게 올해의 달은 ${pickSukuyoYearly(["초승에는 작게 시작하고 보름에는 약속을 확인하라", "상현에는 말을 아끼고 하현에는 지출을 정리하라", "밝은 달에는 드러내고 어두운 달에는 회복하라"], seed, 82)}고 가리킵니다.`,
+      taboo: `${pickSukuyoYearly(["감정이 가장 뜨거운 날 바로 계약하는 일", "상대의 속도를 내 운의 속도로 착각하는 일", "회복되지 않은 인연을 성급히 다시 여는 일"], seed, 83)}은 올해의 숙요 금기로 떠오릅니다.`,
+      repairKey: `${pickSukuyoYearly(["사흘의 침묵 뒤 한 문장의 약속", "숫자로 남긴 일정과 정산", "보름 전후의 관계 거리 조율", "월말의 현금 흐름 정리"], seed, 84)}이 복을 다시 부르는 열쇠로 머무릅니다.`,
     },
     finalPrescription: {
       oneLine: `${targetYear}년 ${natalName}에게는 달마다 오는 문을 모두 열기보다, 내 별이 편안히 숨 쉬는 문만 고르는 지혜가 필요합니다.`,

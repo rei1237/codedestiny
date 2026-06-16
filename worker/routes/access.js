@@ -20,6 +20,10 @@ import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed
 const ZIWEI_SERVICE_KEY = "ziwei";
 const ZIWEI_LOCKED_CONTENT_KEYS = Object.freeze({
   DECADE_LUCK: "ziwei.decadeLuck",
+  LOVE_DEEP: "ziwei.loveDeep",
+  TWELVE_PALACES: "ziwei.twelvePalaces",
+  SYMBOLIC_LAYER: "ziwei.symbolicLayer",
+  LIFE_YEARLY_FLOW: "ziwei.lifeYearlyFlow",
 });
 
 const KNOWN_CONTENT_KEYS_BY_SERVICE = {
@@ -35,6 +39,10 @@ const SAJU_FEATURE_KEY_BY_CONTENT_KEY = {
 
 const ZIWEI_FEATURE_KEY_BY_CONTENT_KEY = {
   [ZIWEI_LOCKED_CONTENT_KEYS.DECADE_LUCK]: "ziwei_decade_luck",
+  [ZIWEI_LOCKED_CONTENT_KEYS.LOVE_DEEP]: "ziwei_love_deep",
+  [ZIWEI_LOCKED_CONTENT_KEYS.TWELVE_PALACES]: "ziwei_twelve_palaces",
+  [ZIWEI_LOCKED_CONTENT_KEYS.SYMBOLIC_LAYER]: "ziwei_symbolic_layer",
+  [ZIWEI_LOCKED_CONTENT_KEYS.LIFE_YEARLY_FLOW]: "ziwei_life_yearly_flow",
 };
 
 const PROFILE_FEATURE_KEY_BY_CONTENT_KEY = {
