@@ -291,6 +291,8 @@ export function useCoinGate() {
       const chargePassGranted = Boolean(
         chargeData.freeBySubscription === true
           || chargeAccessMethod === "PASS"
+          || chargeAccessMethod === "FAMILY"
+          || chargeAccessSignal.includes("family")
           || chargeAccessSignal.includes("membership_pass")
           || chargeAccessSignal.includes("usage_pass")
       );

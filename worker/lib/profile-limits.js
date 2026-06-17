@@ -118,14 +118,17 @@ function firstFiniteNonNegativeNumber(values = []) {
 
 function tierFromValue(value) {
   const text = toText(value).toLowerCase();
+  const compact = text.replace(/[\s_-]+/g, "");
   if (!text || text === "free" || text === "none") return "";
   if (PASS_TIER_TO_LEGACY_TIER[text]) return PASS_TIER_TO_LEGACY_TIER[text];
+  if (compact === "familypass" || compact === "familyplan") return "family";
   if (text.includes("code destiny family") || text.includes("code-destiny-family")) return "family";
+  if (compact === "vipplus") return "vvip";
   if (text === "vvip" || text.includes("vvip") || text.includes("꿀단지")) return "vvip";
   if (text.includes("\uBE0C\uC774\uBE0C\uC774\uC544\uC774\uD53C") || text.includes("\uACE8\uB4DC")) return "vvip";
   if (text === "premium" || text.includes("premium") || text.includes("프리미엄")) return "premium";
   if (text.includes("\uD504\uB9AC\uBBF8\uC5C4") || text.includes("\uC2E4\uBC84")) return "premium";
-  if (text === "standard" || text.includes("standard") || text.includes("스탠다드")) return "standard";
+  if (text === "standard" || compact === "basic" || text.includes("standard") || text.includes("스탠다드")) return "standard";
   if (text.includes("\uC2A4\uD0E0\uB2E4\uB4DC") || text.includes("\uBE0C\uB860\uC988")) return "standard";
   return "";
 }

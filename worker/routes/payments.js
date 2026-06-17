@@ -28,7 +28,7 @@ import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed,
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { normalizeHoneyPassEntitlement, PASS_LIMITS, PASS_TOTAL_USES } from "../lib/profile-limits.js";
+import { normalizeHoneyPassEntitlement, normalizePassTier, PASS_LIMITS, PASS_TIERS, PASS_TOTAL_USES } from "../lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 
 const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
@@ -334,10 +334,10 @@ async function grantUsagePassToUser({ userId, product, paymentId, paidAt, sessio
 }
 
 const SUBSCRIPTION_BASE_PLANS = {
-  standard: { tier: "standard", name: "스탠다드 꿀 30일", monthlyWonPrice: 9900, profileLimit: 3, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.standard, maxCoveredCoin: PASS_LIMITS.standard },
-  premium: { tier: "premium", name: "프리미엄 꿀 30일", monthlyWonPrice: 29900, profileLimit: 7, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.premium, maxCoveredCoin: PASS_LIMITS.premium },
-  vvip: { tier: "vvip", name: "VVIP 꿀단지 30일", monthlyWonPrice: 59000, profileLimit: 15, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.vvip, maxCoveredCoin: PASS_LIMITS.vvip },
-  family: { tier: "family", name: "Code Destiny Family 30일", monthlyWonPrice: 300000, profileLimit: 0, membershipCreditGrant: 0, passTotalUses: 0, maxCoveredCoin: PASS_LIMITS.family },
+  [PASS_TIERS.STANDARD]: { tier: PASS_TIERS.STANDARD, name: "스탠다드 꿀 30일", monthlyWonPrice: 9900, profileLimit: 3, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.standard, maxCoveredCoin: PASS_LIMITS.standard },
+  [PASS_TIERS.PREMIUM]: { tier: PASS_TIERS.PREMIUM, name: "프리미엄 꿀 30일", monthlyWonPrice: 29900, profileLimit: 7, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.premium, maxCoveredCoin: PASS_LIMITS.premium },
+  [PASS_TIERS.VVIP]: { tier: PASS_TIERS.VVIP, name: "VVIP 꿀단지 30일", monthlyWonPrice: 59000, profileLimit: 15, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.vvip, maxCoveredCoin: PASS_LIMITS.vvip },
+  [PASS_TIERS.FAMILY]: { tier: PASS_TIERS.FAMILY, name: "Code Destiny Family 30일", monthlyWonPrice: 300000, profileLimit: 0, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.family, maxCoveredCoin: PASS_LIMITS.family },
 };
 
 const SUBSCRIPTION_DURATION_DISCOUNTS = Object.freeze({
@@ -346,14 +346,14 @@ const SUBSCRIPTION_DURATION_DISCOUNTS = Object.freeze({
 
 const SUBSCRIPTION_TIER_RANK = Object.freeze({
   free: 0,
-  standard: 1,
-  premium: 2,
-  vvip: 3,
-  family: 4,
+  [PASS_TIERS.STANDARD]: 1,
+  [PASS_TIERS.PREMIUM]: 2,
+  [PASS_TIERS.VVIP]: 3,
+  [PASS_TIERS.FAMILY]: 4,
 });
 
 function resolveSubscriptionPlan(tierRaw, durationMonthsRaw = 1) {
-  const tier = String(tierRaw || "").trim().toLowerCase();
+  const tier = normalizePassTier(tierRaw);
   const base = SUBSCRIPTION_BASE_PLANS[tier];
   if (!base) return null;
   const durationMonths = Number(durationMonthsRaw || 1);
@@ -367,6 +367,11 @@ function resolveSubscriptionPlan(tierRaw, durationMonthsRaw = 1) {
     wonPrice: Math.round(base.monthlyWonPrice * durationMonths * (1 - discount)),
     productType: "membership_pass",
   };
+}
+
+function resolveSubscriptionPlanPassUses(plan) {
+  if (plan?.tier === PASS_TIERS.FAMILY) return null;
+  return Number(plan?.passTotalUses || 0);
 }
 
 function validateNewSubscriptionDuration(durationMonthsRaw, durationDaysRaw) {
@@ -425,25 +430,25 @@ async function findRecentPaymentsForUser(userId, limit = 20) {
 }
 
 function hasActiveSubscriptionConflict(sub) {
-  const tier = String(sub?.tier || "free").toLowerCase();
+  const tier = normalizePassTier(sub?.tier || sub?.passTier || sub?.subscriptionTier || sub?.plan) || "free";
   const expAt = toValidDate(sub?.expiresAt);
   return tier !== "free" && !!expAt && expAt.getTime() > Date.now();
 }
 
 function getTierRank(tierRaw) {
-  const tier = String(tierRaw || "free").trim().toLowerCase();
+  const tier = normalizePassTier(tierRaw) || "free";
   return Number(SUBSCRIPTION_TIER_RANK[tier] || 0);
 }
 
 function evaluateSubscriptionTierTransition(currentSub, requestedTierRaw) {
-  const requestedTier = String(requestedTierRaw || "").trim().toLowerCase();
+  const requestedTier = normalizePassTier(requestedTierRaw) || "";
   const requestedRank = getTierRank(requestedTier);
   const active = hasActiveSubscriptionConflict(currentSub);
   if (!active) {
     return { allow: true, code: "OK", isUpgrade: false, activeTier: "free" };
   }
 
-  const activeTier = String(currentSub?.tier || "free").trim().toLowerCase();
+  const activeTier = normalizePassTier(currentSub?.tier || currentSub?.passTier || currentSub?.subscriptionTier || currentSub?.plan) || "free";
   const activeRank = getTierRank(activeTier);
 
   if (requestedRank >= activeRank) {
@@ -3198,7 +3203,7 @@ async function handlePrepare(request, env, auth) {
 
 async function handleSubscriptionPrepare(request, auth) {
   const body = await readJson(request);
-  const tier = String(body?.tier || "").trim().toLowerCase();
+  const tier = normalizePassTier(body?.tier || body?.passTier || body?.subscriptionTier) || "";
   const durationMonths = Number(body?.durationMonths || 1);
   const planId = String(body?.planId || "").trim().toLowerCase();
   const productType = String(body?.productType || "membership_pass").trim().toLowerCase();
@@ -3248,7 +3253,7 @@ async function handleSubscriptionPrepare(request, auth) {
 
     if (existing) {
       const existingAmount = Number(existing.paymentAmount || 0);
-      const existingTier = String(existing.subscriptionTier || "").trim().toLowerCase();
+      const existingTier = normalizePassTier(existing.subscriptionTier) || "";
       if (existingAmount !== plan.wonPrice || existingTier !== tier) {
         return json({
           message: "Idempotency key conflict. Request payload does not match existing subscription preparation.",
@@ -3317,7 +3322,7 @@ async function handleSubscriptionPrepare(request, auth) {
     if (!existing) throw error;
 
     const existingAmount = Number(existing.paymentAmount || 0);
-    const existingTier = String(existing.subscriptionTier || "").trim().toLowerCase();
+    const existingTier = normalizePassTier(existing.subscriptionTier) || "";
     if (existingAmount !== plan.wonPrice || existingTier !== tier) {
       return json({
         message: "Idempotency key conflict. Request payload does not match existing subscription preparation.",
@@ -3514,8 +3519,8 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
         "profileSubscription.durationMonths": plan.durationMonths,
         "profileSubscription.productType": plan.productType,
         "profileSubscription.profileLimit": plan.profileLimit,
-        "profileSubscription.passTotalUses": Number(plan.passTotalUses || 0),
-        "profileSubscription.passRemainingUses": Number(plan.passTotalUses || 0),
+        "profileSubscription.passTotalUses": resolveSubscriptionPlanPassUses(plan),
+        "profileSubscription.passRemainingUses": resolveSubscriptionPlanPassUses(plan),
         "profileSubscription.passUsedCount": 0,
         "profileSubscription.maxCoveredCoin": Number(plan.maxCoveredCoin || 0),
         "profileSubscription.freeLimit": Number(plan.maxCoveredCoin || 0),
@@ -3758,7 +3763,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
 async function handleSubscriptionConfirm(request, env, auth) {
   const body = await readJson(request);
   const impUid = String(body?.impUid || body?.paymentId || "").trim();
-  const tier = String(body?.tier || "").trim().toLowerCase();
+  const tier = normalizePassTier(body?.tier || body?.passTier || body?.subscriptionTier) || "";
   const durationMonths = Number(body?.durationMonths || 1);
   const planId = String(body?.planId || "").trim().toLowerCase();
   const productType = String(body?.productType || "membership_pass").trim().toLowerCase();
@@ -3958,8 +3963,8 @@ async function handleSubscriptionConfirm(request, env, auth) {
         "profileSubscription.durationMonths": plan.durationMonths,
         "profileSubscription.productType": plan.productType,
         "profileSubscription.profileLimit": plan.profileLimit,
-        "profileSubscription.passTotalUses": Number(plan.passTotalUses || 0),
-        "profileSubscription.passRemainingUses": Number(plan.passTotalUses || 0),
+        "profileSubscription.passTotalUses": resolveSubscriptionPlanPassUses(plan),
+        "profileSubscription.passRemainingUses": resolveSubscriptionPlanPassUses(plan),
         "profileSubscription.passUsedCount": 0,
         "profileSubscription.maxCoveredCoin": Number(plan.maxCoveredCoin || 0),
         "profileSubscription.freeLimit": Number(plan.maxCoveredCoin || 0),

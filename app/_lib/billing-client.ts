@@ -95,6 +95,39 @@ export type SubscriptionSnapshot = {
   source: string;
 };
 
+export type EntitlementPlan = "NONE" | "STANDARD" | "PREMIUM" | "VVIP" | "FAMILY";
+
+export type EntitlementStatus = {
+  isActive: boolean;
+  plan: EntitlementPlan;
+  expiresAt?: string | null;
+  remainingUses?: number | null;
+  maxCoinCovered?: number | null;
+  source?: "server" | "local-cache";
+};
+
+export type PaidFeatureContext = {
+  featureId: string;
+  featureName?: string;
+  coinPrice: number;
+  category?: string;
+  paymentType?: "single" | "unlock" | "report" | "subscriptionOnly";
+};
+
+export type AccessDecision = {
+  allowed: boolean;
+  reason:
+    | "FAMILY_ALL_ACCESS"
+    | "PLAN_COVERS_FEATURE"
+    | "NO_ACTIVE_PLAN"
+    | "PLAN_LIMIT_EXCEEDED"
+    | "PLAN_PRICE_NOT_COVERED"
+    | "SERVER_ERROR"
+    | "UNKNOWN";
+  shouldOpenPaymentModal: boolean;
+  shouldConsumePass: boolean;
+};
+
 type RuntimePaidServiceGateResult = {
   status?: string;
   reason?: string;
@@ -107,7 +140,7 @@ type RuntimePaidServiceGateResult = {
 };
 
 type PaidServiceRuntimeGate = (options: Record<string, unknown>) => Promise<RuntimePaidServiceGateResult> | RuntimePaidServiceGateResult;
-type PaymentChoiceMode = "direct" | "monthly" | "pass" | "pass-store" | "cancel";
+type PaymentChoiceMode = "direct" | "monthly" | "pass" | "pass-store" | "refresh" | "cancel";
 type PaymentChoiceFunction = ((options: Record<string, unknown>) => Promise<PaymentChoiceMode> | PaymentChoiceMode) & {
   __cdSupportsPassChoice?: boolean;
   __cdReactFallback?: boolean;
@@ -292,6 +325,81 @@ function invalidateBillingBalanceCache() {
   billingBalanceCacheVersion += 1;
   billingBalanceRecent = null;
   billingBalanceInFlight = null;
+}
+
+function debugEntitlement(...args: unknown[]) {
+  if (process.env.NODE_ENV !== "production") {
+    console.debug(...args);
+  }
+}
+
+export function normalizeEntitlementPlan(value: unknown): EntitlementPlan {
+  const text = toText(value).toUpperCase().replace(/[\s_-]+/g, "");
+  if (!text || text === "NONE" || text === "FREE") return "NONE";
+  if (text.includes("FAMILY")) return "FAMILY";
+  if (text === "VVIP" || text === "VIPPLUS" || text.includes("VVIP")) return "VVIP";
+  if (text.includes("PREMIUM") || text === "SILVER") return "PREMIUM";
+  if (text.includes("STANDARD") || text === "BASIC" || text === "BRONZE") return "STANDARD";
+  return "NONE";
+}
+
+function maxCoinCoveredForPlan(plan: EntitlementPlan): number | null {
+  if (plan === "FAMILY") return null;
+  if (plan === "VVIP") return 100;
+  if (plan === "PREMIUM") return 50;
+  if (plan === "STANDARD") return 30;
+  return 0;
+}
+
+export function decidePaidFeatureAccess(entitlement: EntitlementStatus, feature: PaidFeatureContext): AccessDecision {
+  const plan = normalizeEntitlementPlan(entitlement?.plan);
+  if (entitlement?.isActive && plan === "FAMILY") {
+    return {
+      allowed: true,
+      reason: "FAMILY_ALL_ACCESS",
+      shouldOpenPaymentModal: false,
+      shouldConsumePass: false,
+    };
+  }
+
+  if (!entitlement?.isActive || plan === "NONE") {
+    return {
+      allowed: false,
+      reason: "NO_ACTIVE_PLAN",
+      shouldOpenPaymentModal: true,
+      shouldConsumePass: false,
+    };
+  }
+
+  const remainingUses = entitlement.remainingUses;
+  if (typeof remainingUses === "number" && remainingUses <= 0) {
+    return {
+      allowed: false,
+      reason: "PLAN_LIMIT_EXCEEDED",
+      shouldOpenPaymentModal: true,
+      shouldConsumePass: false,
+    };
+  }
+
+  const maxCoinCovered = typeof entitlement.maxCoinCovered === "number"
+    ? entitlement.maxCoinCovered
+    : maxCoinCoveredForPlan(plan);
+  const coinPrice = Math.max(0, Math.floor(Number(feature?.coinPrice || 0)));
+  if (typeof maxCoinCovered === "number" && coinPrice > maxCoinCovered) {
+    return {
+      allowed: false,
+      reason: "PLAN_PRICE_NOT_COVERED",
+      shouldOpenPaymentModal: true,
+      shouldConsumePass: false,
+    };
+  }
+
+  return {
+    allowed: true,
+    reason: "PLAN_COVERS_FEATURE",
+    shouldOpenPaymentModal: false,
+    shouldConsumePass: true,
+  };
 }
 
 export type ServiceExecutionStatus = "pending" | "success" | "failed" | "refunded" | "cancelled";
@@ -861,6 +969,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         </div>
         <div class="cd-react-payment-choice-status" data-payment-status></div>
         <div class="cd-react-payment-choice-actions">
+          <button type="button" class="cd-react-payment-choice-cancel" data-mode="refresh">월정석 재조회</button>
           <button type="button" class="cd-react-payment-choice-cancel" data-mode="cancel">취소</button>
         </div>
       </div>
@@ -895,6 +1004,50 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         const mode = toText(button.dataset.mode) as PaymentChoiceMode;
         if (mode === "cancel") {
           close("cancel");
+          return;
+        }
+        if (mode === "refresh") {
+          button.disabled = true;
+          setStatus("월정석/이용권 상태를 다시 조회하고 있습니다.");
+          clearSubscriptionSnapshotForUser();
+          invalidateBillingBalanceCache();
+          fetchPaymentEligibility({
+            productId: toText(opts.productId),
+            serviceType: toText(opts.serviceType || opts.productType),
+            categoryKey: toText(opts.categoryKey),
+            subFeatureKey: toText(opts.subFeatureKey),
+            featureKey: toText(opts.featureKey),
+            reason: toText(opts.reason || title),
+            coinCost: coinPrice,
+            coinPrice,
+            priceKRW: directAmount,
+            amountKRW: directAmount,
+          }, { force: true }).then((latest) => {
+            const entitlementStatus: EntitlementStatus = {
+              isActive: latest.data?.pass.hasActivePass === true,
+              plan: normalizeEntitlementPlan(latest.data?.pass.tier),
+              remainingUses: latest.data?.pass.remainingUses ?? null,
+              maxCoinCovered: latest.data?.pass.tier === "family" ? null : latest.data?.pass.limit ?? null,
+              source: "server",
+            };
+            const decision = decidePaidFeatureAccess(entitlementStatus, {
+              featureId: normalizeBillingFeatureKey(opts.featureKey || opts.subFeatureKey || opts.categoryKey || opts.reason || title),
+              coinPrice,
+            });
+            debugEntitlement("[PaymentModal] refresh clicked");
+            debugEntitlement("[PaymentModal] pending feature", opts);
+            debugEntitlement("[Entitlement] latest server status", entitlementStatus);
+            debugEntitlement("[Entitlement] access decision", decision);
+            if (latest.ok && latest.data && (latest.data.access.canAccess || latest.data.pass.canUse || decision.allowed)) {
+              close("pass");
+              return;
+            }
+            setStatus("아직 활성화된 월정석/이용권을 확인하지 못했습니다. 결제 완료 후 다시 재조회해주세요.", true);
+            button.disabled = false;
+          }).catch(() => {
+            setStatus("월정석 상태 재조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", true);
+            button.disabled = false;
+          });
           return;
         }
         if (mode === "pass-store") {
@@ -966,7 +1119,13 @@ function hasVerifiedBillingAccess(data: unknown, expectedFeatureKey: unknown): b
     );
     const consumeFeature = normalizeBillingFeatureKey(consume.featureKey);
     if (transactionId && (!expectedFeature || !consumeFeature || consumeFeature === expectedFeature)) return true;
-    if ((consume.accessType === "membership_pass" || consume.accessType === "already_unlocked") && (!expectedFeature || !consumeFeature || consumeFeature === expectedFeature)) return true;
+    if (
+      (consume.accessType === "membership_pass"
+        || consume.accessType === "family"
+        || consume.accessType === "family_pass"
+        || consume.accessType === "already_unlocked")
+      && (!expectedFeature || !consumeFeature || consumeFeature === expectedFeature)
+    ) return true;
   }
   const unlockMap = asRecord(record.unlockMap);
   if (expectedFeature && unlockMap) {
@@ -1783,12 +1942,18 @@ export async function fetchPaymentEligibility(input: {
   coinPrice?: number;
   priceKRW?: number;
   amountKRW?: number;
-}): Promise<BillingResult<PaymentEligibility>> {
+}, fetchOptions: { force?: boolean } = {}): Promise<BillingResult<PaymentEligibility>> {
   const knownPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
   const knownCoinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, knownPriceKRW > 0 ? Math.ceil(knownPriceKRW / 100) : 0)));
   const hasServerLookupKey = Boolean(input.productId || input.serviceType || input.categoryKey || input.subFeatureKey || input.featureKey || input.reason);
-  const snapshot = readSubscriptionSnapshotForUser();
-  if (snapshot && (snapshot.state !== "none" || !hasServerLookupKey)) {
+  if (fetchOptions.force === true) {
+    clearSubscriptionSnapshotForUser();
+    invalidateBillingBalanceCache();
+  }
+  const snapshot = fetchOptions.force === true ? null : readSubscriptionSnapshotForUser();
+  const snapshotAllowsLocalPass = Boolean(snapshot && (snapshot.state !== "none" || !hasServerLookupKey));
+  const canUseLocalSubscriptionSnapshot = Boolean(snapshot && snapshot.state !== "none" && snapshotAllowsLocalPass && !hasServerLookupKey);
+  if (snapshot && canUseLocalSubscriptionSnapshot) {
     if (knownCoinCost > 0 || knownPriceKRW > 0) {
       return buildSnapshotPaymentEligibility(input, snapshot);
     }
@@ -1812,7 +1977,7 @@ export async function fetchPaymentEligibility(input: {
     featureKey: input.featureKey,
     reason: input.reason,
   });
-  const response = await authFetchBilling(query ? `/api/billing/unlock-status?${query}` : "/api/billing/unlock-status", { method: "GET" });
+  const response = await authFetchBilling(query ? `/api/billing/unlock-status?${query}` : "/api/billing/unlock-status", { method: "GET", cache: "no-store" });
   const parsed = await parseBillingResponse<Record<string, unknown>>(response);
 
   if (!parsed.ok || !parsed.data) {
@@ -1844,6 +2009,7 @@ export async function fetchPaymentEligibility(input: {
       ?? membershipPass?.passTier
       ?? membershipPass?.tier,
   );
+  const hasActivePass = Boolean(options.hasActivePass ?? data.hasActivePass);
   const passLimit = toNumber(
     options.passLimit
       ?? data.passLimit
@@ -1873,17 +2039,23 @@ export async function fetchPaymentEligibility(input: {
   );
   const accessDecision = asRecord(data.accessDecision);
   const accessReason = toText(accessDecision?.reason || data.accessReason || data.decisionReason);
-  const passCovered = data.freeBySubscription === true
+  const familyAllAccess = hasActivePass && passTier === "family";
+  const passCovered = familyAllAccess
+    || data.freeBySubscription === true
     || accessReason === "pass_covered"
+    || accessReason === "family_all_access"
     || toText(accessDecision?.status) === "license_passed";
   const canAccess = Boolean(data.canAccess === true || data.unlocked === true || accessDecision?.accessGranted === true || passCovered);
+  const normalizedPassLimit = passTier === "family"
+    ? 999999999
+    : (Number.isFinite(passLimit) && passLimit > 0 ? Math.floor(passLimit) : null);
   saveSubscriptionSnapshotForUser(undefined, {
     ...data,
     ...options,
     tier: data.subscriptionTier ?? options.subscriptionTier ?? options.passTier ?? data.passTier ?? membershipPass?.tier,
     passTier: options.passTier ?? data.passTier ?? membershipPass?.passTier,
-    isActive: Boolean(options.hasActivePass ?? data.hasActivePass),
-    hasActivePass: Boolean(options.hasActivePass ?? data.hasActivePass),
+    isActive: hasActivePass,
+    hasActivePass,
     expiresAt: data.expiresAt ?? options.expiresAt,
   }, "unlock-status");
   const eligibility: PaymentEligibility = {
@@ -1896,13 +2068,13 @@ export async function fetchPaymentEligibility(input: {
       reason: accessReason,
     },
     pass: {
-      hasActivePass: Boolean(options.hasActivePass ?? data.hasActivePass),
+      hasActivePass,
       tier: passTier,
       label: labelForPassTier(passTier),
-      limit: Number.isFinite(passLimit) && passLimit > 0 ? Math.floor(passLimit) : null,
+      limit: normalizedPassLimit,
       totalUses: Number.isFinite(passTotalUses) ? Math.floor(passTotalUses) : null,
       remainingUses: Number.isFinite(passRemainingUses) ? Math.floor(passRemainingUses) : null,
-      canUse: Boolean(options.canUseByPass ?? data.canUseByPass ?? passCovered),
+      canUse: Boolean(familyAllAccess || (options.canUseByPass ?? data.canUseByPass ?? passCovered)),
     },
     monthly: {
       balance: monthlyBalance,
@@ -1915,6 +2087,20 @@ export async function fetchPaymentEligibility(input: {
     },
     raw: data,
   };
+  const entitlementStatus: EntitlementStatus = {
+    isActive: eligibility.pass.hasActivePass,
+    plan: normalizeEntitlementPlan(eligibility.pass.tier),
+    remainingUses: eligibility.pass.remainingUses ?? null,
+    maxCoinCovered: eligibility.pass.tier === "family" ? null : eligibility.pass.limit,
+    source: "server",
+  };
+  const debugAccessDecision = decidePaidFeatureAccess(entitlementStatus, {
+    featureId: normalizeBillingFeatureKey(input.featureKey || input.subFeatureKey || input.categoryKey || input.reason || "billing-feature"),
+    coinPrice: eligibility.coinCost,
+    category: input.categoryKey,
+  });
+  debugEntitlement("[Entitlement] latest server status", entitlementStatus);
+  debugEntitlement("[Entitlement] access decision", debugAccessDecision);
 
   return {
     ...parsed,
@@ -2073,6 +2259,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           const usagePassApplied = accessType === "usage_pass";
           const passApplied = runtimeData.freeBySubscription === true
             || accessType === "membership_pass"
+            || accessType === "family"
+            || accessType === "family_pass"
             || accessType === "already_unlocked";
           const entitlementApplied = passApplied || usagePassApplied;
           const entitlementPaymentMode = usagePassApplied ? "USAGE_PASS" : (passApplied ? "MEMBERSHIP_PASS" : "DIRECT_KRW");
@@ -2203,6 +2391,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       const passApplied = runtimeData.freeBySubscription === true
         || passFirstEligible
         || accessType === "membership_pass"
+        || accessType === "family"
+        || accessType === "family_pass"
         || accessType === "already_unlocked";
       const successOverlay = resolvePaymentWaitOverlay(passApplied ? "hasEntitlement" : "paymentSuccess", licenseMessage || undefined, {
         paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
