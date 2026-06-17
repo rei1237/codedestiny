@@ -554,7 +554,7 @@ function buildSnapshotPaymentEligibility(input: {
   const passTier = snapshot.state === "active" && snapshot.tier !== "free"
     ? snapshot.tier as PaymentEligibility["pass"]["tier"]
     : null;
-  const canUseByPass = snapshot.state === "active" && passLimit > 0 && coinCost > 0 && coinCost <= passLimit;
+  const canUseByPass = snapshot.state === "active" && passLimit > 0 && coinCost > 0 && (snapshot.tier === "family" || coinCost <= passLimit);
   const paymentOptions = {
     hasActivePass: snapshot.state === "active",
     passTier,
@@ -1963,16 +1963,34 @@ export async function fetchPaymentEligibility(input: {
   const priceKRW = Math.max(0, Math.floor(toNumber(pricing.amountKRW ?? pricing.cashPrice ?? input.priceKRW ?? input.amountKRW ?? coinCost * 100, 0)));
   const monthlyBalance = Math.max(0, Math.floor(toNumber(options.monthlyBalance ?? data.monthlyBalance ?? data.membershipCreditBalance, 0)));
   const monthlyCost = Math.max(0, Math.floor(toNumber(options.membershipCreditCost ?? data.membershipCreditCost ?? pricing.membershipCreditCost, coinCost * 10)));
-  const passTier = normalizePassTier(options.passTier ?? data.passTier ?? data.subscriptionTier);
-  const passLimit = toNumber(options.passLimit ?? data.passLimit ?? data.freeLimit, NaN);
+  const membershipPass = asRecord(data.membershipPass);
+  const passTier = normalizePassTier(
+    options.passTier
+      ?? data.passTier
+      ?? data.subscriptionTier
+      ?? membershipPass?.passTier
+      ?? membershipPass?.tier,
+  );
+  const passLimit = toNumber(
+    options.passLimit
+      ?? data.passLimit
+      ?? data.freeLimit
+      ?? membershipPass?.passLimit
+      ?? membershipPass?.freeLimit
+      ?? membershipPass?.maxCoveredCoin,
+    NaN,
+  );
   const accessDecision = asRecord(data.accessDecision);
   const accessReason = toText(accessDecision?.reason || data.accessReason || data.decisionReason);
-  const canAccess = Boolean(data.canAccess === true || data.unlocked === true || accessDecision?.accessGranted === true);
+  const passCovered = data.freeBySubscription === true
+    || accessReason === "pass_covered"
+    || toText(accessDecision?.status) === "license_passed";
+  const canAccess = Boolean(data.canAccess === true || data.unlocked === true || accessDecision?.accessGranted === true || passCovered);
   saveSubscriptionSnapshotForUser(undefined, {
     ...data,
     ...options,
-    tier: data.subscriptionTier ?? options.subscriptionTier ?? options.passTier ?? data.passTier,
-    passTier: options.passTier ?? data.passTier,
+    tier: data.subscriptionTier ?? options.subscriptionTier ?? options.passTier ?? data.passTier ?? membershipPass?.tier,
+    passTier: options.passTier ?? data.passTier ?? membershipPass?.passTier,
     isActive: Boolean(options.hasActivePass ?? data.hasActivePass),
     hasActivePass: Boolean(options.hasActivePass ?? data.hasActivePass),
     expiresAt: data.expiresAt ?? options.expiresAt,
@@ -1991,7 +2009,7 @@ export async function fetchPaymentEligibility(input: {
       tier: passTier,
       label: labelForPassTier(passTier),
       limit: Number.isFinite(passLimit) && passLimit > 0 ? Math.floor(passLimit) : null,
-      canUse: Boolean(options.canUseByPass ?? data.canUseByPass),
+      canUse: Boolean(options.canUseByPass ?? data.canUseByPass ?? passCovered),
     },
     monthly: {
       balance: monthlyBalance,
