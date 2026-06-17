@@ -95,6 +95,11 @@ function isDynamicCostFallbackEnabled(env) {
   return !isProductionRuntime(env) && isTruthyFlag(env?.ALLOW_DYNAMIC_PIG_COIN_COST_FALLBACK);
 }
 
+function isAdminPigCoinBypassEnabled(env) {
+  if (isProductionRuntime(env)) return false;
+  return isTruthyFlag(env?.ALLOW_ADMIN_PIG_COIN_BYPASS);
+}
+
 function getForcePaidTestAccountEmails(env) {
   if (isProductionRuntime(env)) return new Set();
 
@@ -908,7 +913,10 @@ async function resolvePigCoinConsumeAuth(request, env) {
     throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
   }
 
-  return { auth };
+  return {
+    auth,
+    adminMode: Boolean(isAdminPigCoinBypassEnabled(env) && String(auth?.role || "").toLowerCase() === "admin"),
+  };
 }
 
 function userPayload(auth, points, unlockedFeatures) {
@@ -3420,4 +3428,5 @@ export const __fortuneAccessTestUtils = {
   resolveServerCoinPricing,
   getForcePaidTestAccountEmails,
   resolvePigCoinConsumeAuth,
+  isAdminPigCoinBypassEnabled,
 };
