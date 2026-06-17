@@ -1584,6 +1584,36 @@
     if (timer) clearInterval(timer);
   }
 
+  function _applySukuyoServerProgress(source, attempts) {
+    var payload = source && typeof source === 'object' ? source : {};
+    var progress = payload.progress || (payload.running && payload.running.progress) || {};
+    var total = Math.max(1, Number(progress.totalChapters || progress.expectedChapterCount || SUKYO_TOTAL_CHAPTERS) || SUKYO_TOTAL_CHAPTERS);
+    var rawStep = Number(progress.currentChapterNo || progress.chapterNo || progress.step || 0);
+    var fallbackStep = Math.min(total - 1, Math.max(1, Math.floor((Number(attempts) || 1) / 2) + 1));
+    var step = Math.max(1, Math.min(total, rawStep || fallbackStep));
+    var stage = _clean(progress.stage || payload.status || '');
+    var chapter = _canonicalChapters[step - 1] || {};
+    var title = '제' + step + '장. ' + _sanitizeText(_chapterTitleOnly(chapter.title || '숙요 궁합 원고', step)) + ' 작성 중...';
+    if (stage === 'pdf-rendering') title = '숙요점 프리미엄 궁합 PDF를 완성하는 중입니다';
+    if (stage === 'archive-completing') title = '완성된 PDF를 저장하고 다운로드를 준비하는 중입니다';
+    _setLoadingStage('숙요점 프리미엄 궁합 PDF 생성 중');
+    _setLoadingProgress(step, total, title);
+    _setLoadingNotice(payload.message || '숙요점 궁합 PDF가 생성 중입니다. 완료 상태를 확인하고 있습니다.');
+    _persistGenerationState({
+      isOpen: true,
+      status: 'generating',
+      currentChapterIndex: Math.max(0, step - 1),
+      currentChapterNo: step,
+      totalChapters: total,
+      completedChapters: [],
+      failedChapters: [],
+      reportId: _clean(payload.reportId || _activeReportId || (_resultPayload && _resultPayload.reportId)),
+      sessionId: _clean(payload.sessionId || _activeSessionId),
+      serverStatus: 'running',
+      updatedAt: Date.now(),
+    });
+  }
+
   function _fetchCanonicalChapters() {
     var endpoints = _buildApiCandidates(SUKYO_CHAPTERS_API);
     var endpointIndex = 0;
@@ -1968,6 +1998,7 @@
 
     return new Promise(function (resolve, reject) {
       var attempts = 0;
+      var pollingProgressTimer = _startSukuyoAssemblyProgress();
       function tick() {
         attempts += 1;
         _getJson(_buildExecutionStatusPath(sessionId, reportId))
@@ -1975,6 +2006,8 @@
             var execution = data && data.execution || {};
             var nextReportId = _clean(execution.reportId || reportId);
             if (_isSukuyoExecutionCompleted(execution)) {
+              _stopSukuyoAssemblyProgress(pollingProgressTimer);
+              pollingProgressTimer = null;
               if (data && data.report && _isSukyoReportReady(data.report)) {
                 resolve(_normalizeArchivedSukuyoReport(data.report));
                 return;
@@ -1984,6 +2017,8 @@
               return;
             }
             if (_isSukuyoExecutionFailed(execution)) {
+              _stopSukuyoAssemblyProgress(pollingProgressTimer);
+              pollingProgressTimer = null;
               reject(_createSukuyoError(_clean(execution.reasonMessage) || '숙요점 궁합 PDF 생성이 완료되지 않았습니다. 다시 시도해 주세요.', {
                 stage: 'execution-status-failed',
                 reportId: nextReportId,
@@ -1993,6 +2028,8 @@
               return;
             }
             if (attempts >= SUKYO_RUNNING_POLL_MAX_ATTEMPTS) {
+              _stopSukuyoAssemblyProgress(pollingProgressTimer);
+              pollingProgressTimer = null;
               reject(_createSukuyoError('숙요점 궁합 PDF 생성 상태 확인 시간이 초과되었습니다. 잠시 후 다시 확인해 주세요.', {
                 stage: 'execution-status-timeout',
                 reportId: nextReportId,
@@ -2002,16 +2039,19 @@
               }));
               return;
             }
-            _setLoadingNotice('같은 세션의 숙요점 궁합 PDF가 생성 중입니다. 완료 상태를 확인하고 있습니다.');
-            setTimeout(tick, SUKYO_RUNNING_POLL_INTERVAL_MS);
+            _applySukuyoServerProgress(data && data.running || running, attempts);
+            setTimeout(tick, Number((data && data.running && data.running.pollAfterMs) || running.pollAfterMs || SUKYO_RUNNING_POLL_INTERVAL_MS) || SUKYO_RUNNING_POLL_INTERVAL_MS);
           })
           .catch(function (error) {
             if (attempts >= SUKYO_RUNNING_POLL_MAX_ATTEMPTS) {
+              _stopSukuyoAssemblyProgress(pollingProgressTimer);
+              pollingProgressTimer = null;
               reject(error);
               return;
             }
             _setLoadingNotice('숙요점 궁합 PDF 생성 상태를 다시 확인하는 중입니다.');
-            setTimeout(tick, SUKYO_RUNNING_POLL_INTERVAL_MS);
+            _applySukuyoServerProgress(running, attempts);
+            setTimeout(tick, Number(running.pollAfterMs || SUKYO_RUNNING_POLL_INTERVAL_MS) || SUKYO_RUNNING_POLL_INTERVAL_MS);
           });
       }
       tick();

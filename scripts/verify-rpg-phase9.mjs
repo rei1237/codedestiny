@@ -15,6 +15,15 @@ function expectContains(source, marker, label) {
   assert.ok(source.includes(marker), `${label}: missing marker -> ${marker}`);
 }
 
+function expectNotContains(source, marker, label) {
+  assert.ok(!source.includes(marker), `${label}: unexpected marker -> ${marker}`);
+}
+
+function expectCount(source, marker, expected, label) {
+  const count = source.split(marker).length - 1;
+  assert.equal(count, expected, `${label}: expected ${expected}, received ${count} -> ${marker}`);
+}
+
 function expectOneOf(source, markers, label) {
   const found = markers.some((marker) => source.includes(marker));
   assert.ok(found, `${label}: missing markers -> ${markers.join(" | ")}`);
@@ -48,8 +57,11 @@ expectContains(workerRpgSource, "UserDailyQuestLog.create", "quest completion lo
 expectContains(workerRpgSource, "UserRpgRewardLog.create", "reward log write");
 
 console.log("[4] Frontend RPG rendering");
-expectContains(rpgUiSource, "/api/rpg/status", "status fetch");
-expectContains(rpgUiSource, "/api/rpg/complete", "complete fetch");
+expectNotContains(rpgUiSource, "/api/rpg/status", "status fetch removed from RPG UI");
+expectNotContains(rpgUiSource, "/api/rpg/complete", "complete fetch removed from RPG UI");
+expectContains(rpgUiSource, "RPG_LOCAL_STORAGE_MARKER", "local RPG storage marker");
+expectContains(rpgUiSource, "rpg-local-progress-v20260617", "local RPG storage version");
+expectContains(rpgUiSource, "completeRpgLocalQuest", "local quest completion flow");
 expectContains(rpgUiSource, "resolveRpgProfileId", "profile resolve helper");
 expectContains(rpgUiSource, "buildRpgTemplate", "RPG template builder");
 expectContains(rpgUiSource, "ent-rpg-quest-after", "after-complete UI block");
@@ -59,6 +71,7 @@ expectContains(rpgUiSource, "renderSkillTree", "skill tree hook");
 expectContains(rpgUiSource, "rpg-character-sheet-stable-bottom-v20260617", "stable bottom render marker");
 expectContains(rpgUiSource, "buildRpgCrashFallbackTemplate", "render fallback template");
 expectContains(rpgUiSource, "syncRpgLayoutHeight", "RPG height sync guard");
+expectCount(rpgUiSource, "오늘의 일일 퀘스트", 1, "single daily quest heading");
 
 console.log("[5] Main shell entry point");
 expectContains(mainShellSource, 'id="skillTreeSection"', "skill tree section in main shell");
@@ -71,7 +84,7 @@ expectContains(workerRpgSource, "requireAuth", "login required on RPG routes");
 console.log("\nAll static regression checks passed.\n");
 console.log("Manual browser checklist:");
 console.log("  1. Log out and open the RPG section. Clicking 완료 should surface the login prompt.");
-console.log("  2. Log in and confirm today's quests render from the server.");
+console.log("  2. Confirm today's quests render from localStorage without a server request.");
 console.log("  3. Complete one quest and verify EXP, level, and today's EXP update once.");
 console.log("  4. Click the same quest twice and confirm no duplicate EXP is granted.");
 console.log("  5. Refresh and confirm completion state persists.");

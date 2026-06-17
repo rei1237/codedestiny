@@ -675,7 +675,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-9310b301914d').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-a9c07ba50f46').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -757,23 +757,23 @@
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-9310b301914d'
+      'js/animal-totem-experience.js?v=build-a9c07ba50f46'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-9310b301914d'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-9310b301914d'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-9310b301914d'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-a9c07ba50f46'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-a9c07ba50f46'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-a9c07ba50f46'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-9310b301914d'],
-    openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js?v=build-9310b301914d'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-a9c07ba50f46'],
+    openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js?v=build-a9c07ba50f46'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-9310b301914d']
+    openSibylModal: ['js/sibyl-system.js?v=build-a9c07ba50f46']
   };
 
   function normalizeScriptSrc(src) {
@@ -1079,7 +1079,7 @@
       '.tarot-tile--olympus-oracle .tarot-tile__img-wrap, .tarot-tile--olympus-oracle .tarot-tile__img, .tarot-tile--olympus-oracle .tarot-tile__badge, .tarot-tile--olympus-oracle .tarot-tile__body, .tarot-tile--olympus-oracle .tarot-tile__title, .tarot-tile--olympus-oracle .tarot-tile__desc,',
       '.tarot-tile--geomancy-fc .tarot-tile__img-wrap, .tarot-tile--geomancy-fc .tarot-tile__img, .tarot-tile--geomancy-fc .tarot-tile__badge, .tarot-tile--geomancy-fc .tarot-tile__body, .tarot-tile--geomancy-fc .tarot-tile__title, .tarot-tile--geomancy-fc .tarot-tile__desc,',
       '.tarot-tile--animal-totem .tarot-tile__img-wrap, .tarot-tile--animal-totem .tarot-tile__img, .tarot-tile--animal-totem .tarot-tile__badge, .tarot-tile--animal-totem .tarot-tile__body, .tarot-tile--animal-totem .tarot-tile__title, .tarot-tile--animal-totem .tarot-tile__desc,',
-      '.tarot-tile--saju-picture .tarot-tile__img-wrap, .tarot-tile--saju-picture .tarot-tile__img, .tarot-tile--saju-picture .tarot-tile__badge, .tarot-tile--saju-picture .tarot-tile__body, .tarot-tile--saju-picture .tarot-tile__title, .tarot-tile--saju-picture .tarot-tile__desc,',
+      '.tarot-tile--saju-guardian .tarot-tile__img-wrap, .tarot-tile--saju-guardian .tarot-tile__img, .tarot-tile--saju-guardian .tarot-tile__badge, .tarot-tile--saju-guardian .tarot-tile__body, .tarot-tile--saju-guardian .tarot-tile__title, .tarot-tile--saju-guardian .tarot-tile__desc,',
       '.tarot-tile--bloom .tarot-tile__img-wrap, .tarot-tile--bloom .tarot-tile__img, .tarot-tile--bloom .tarot-tile__badge, .tarot-tile--bloom .tarot-tile__body, .tarot-tile--bloom .tarot-tile__title, .tarot-tile--bloom .tarot-tile__desc,',
       '.tarot-tile--astro-flower .tarot-tile__img-wrap, .tarot-tile--astro-flower .tarot-tile__img, .tarot-tile--astro-flower .tarot-tile__badge, .tarot-tile--astro-flower .tarot-tile__body, .tarot-tile--astro-flower .tarot-tile__title, .tarot-tile--astro-flower .tarot-tile__desc,',
       '.tarot-tile--jami-flower .tarot-tile__img-wrap, .tarot-tile--jami-flower .tarot-tile__img, .tarot-tile--jami-flower .tarot-tile__badge, .tarot-tile--jami-flower .tarot-tile__body, .tarot-tile--jami-flower .tarot-tile__title, .tarot-tile--jami-flower .tarot-tile__desc,',

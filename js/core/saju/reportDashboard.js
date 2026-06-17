@@ -8,7 +8,7 @@ var SAJU_ANIMAL_TEST_FEATURE = {
   id: 'saju-animal-test',
   title: '사주 십이운성 동물 테스트',
   shortTitle: '사주 동물 테스트',
-  description: '내 사주의 십이운성 에너지를 동물 아키타입으로 해석해 성격 핵심·연애 패턴·직업 성향·관계 궁합·오늘의 행동 미션까지 한 번에 보여줍니다.',
+  description: '내 사주의 십이운성 에너지가 동물 아키타입으로 열리며 성격 핵심·연애 패턴·직업 성향·관계 궁합·오늘의 행동 미션까지 한 번에 비춥니다.',
   category: 'fun-saju',
   group: '재미있는 사주 콘텐츠',
   href: '/saju/animal-test',
@@ -71,7 +71,7 @@ var LOVE_CODE_FEATURE = {
 
 var REPORT_CARDS = [
   { id:'meryok',     label:'나의 매력 클래스',      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:'✨ 매력 분석 자세히 보기', thumb:'meryok-new.webp', accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:30  },
-  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:'퀀텀 명리 엔진',        desc:'합화 우선 분석으로 나만의 천기 지도를 제공합니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체를 계속 확인할 수 있습니다.', cta:'⚡ 퀀텀 명리 전체 열기',          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'10,000원 · 영구 해금'  },
+  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:'퀀텀 명리 엔진',        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체가 계속 머뭅니다.', cta:'⚡ 퀀텀 명리 전체 열기',          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'10,000원 · 영구 해금'  },
   { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:'명리 헬스 리포트',      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:'💚 건강 리포트 확인하기',      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:50  },
   { id:'sajuprompt', thumb:'사주 프롬프트.webp', label:'사주 AI 프롬프트',      desc:'물상·아바타·이상형 얼굴 등 무료 AI 이미지 프롬프트를 받아보세요.', note:'내 사주의 분위기를 다양한 컨셉의 이미지 프롬프트로 바로 가져갈 수 있습니다.', cta:'🤖 무료 프롬프트 보기',    accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard',       coinCost:0 },
   { id:'sajurpg',    thumb:'RPG 인생 스킬트리.webp', label:'인생 스킬 트리',        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:'🎮 스킬 트리 펼쳐보기',        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard',      coinCost:30  },
@@ -79,7 +79,7 @@ var REPORT_CARDS = [
   { id:'tetoegen',   thumb:'테토VS에겐.webp', label:'테토 vs 에겐',          desc:'사주 기반으로 나의 매력 에너지 결을 분석합니다.',       note:'강하게 끌어당기는 타입인지, 부드럽게 스며드는 타입인지 매력 결을 보여드립니다.', cta:'❤️ 테토/에겐 분석 보기',      accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section',coinCost:0  },
   { id:'trip',       thumb:'사주로 보는 여행지.webp', label:'사주로 보는 여행지',     desc:'사주 오행 균형 기준으로 지금 맞는 여행지를 안내합니다.', note:'국내/해외 추천 좌표와 방향 포인트를 함께 확인해 이동 운을 끌어올려보세요.', cta:'🗺️ 여행지 리포트 보기',         accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard',    coinCost:50  },
   { id:'vilun',      label:'빌런 블랙리스트',        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:'⚠️ 빌런 리포트 열기',          accent:'#f87171', thumb:'vilun-new.webp', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
-  { id:'lotto',      thumb:'사주 로또.webp', label:'퀀텀 로또 리포트',       desc:'사주 오행과 수리 상징으로 만든 재미용 번호를 제공합니다.',          note:'오늘 운의 파동과 맞는 상징 번호와 행운 루틴을 가볍게 확인합니다.', cta:'퀀텀 로또 리포트 보기',          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard',          coinCost:0   },
+  { id:'lotto',      thumb:'사주 로또.webp', label:'퀀텀 로또 리포트',       desc:'사주 오행과 수리 상징으로 만든 재미용 번호가 떠오릅니다.',          note:'오늘 운의 파동과 맞는 상징 번호와 행운 루틴이 가볍게 머뭅니다.', cta:'퀀텀 로또 리포트 보기',          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard',          coinCost:0   },
   { id:'godlife',    thumb:'사주 다이어리.webp', label:'사주 다이어리',          desc:'갓생 지수 · 럭키 비키 아이템 · 야간회고를 한 번에 관리해보세요.', note:'오늘 운세 실천부터 내일 일진 대비 포인트까지 이어서 기록하면, 운의 패턴이 더 선명해집니다.', cta:'📔 사주 다이어리 열기',       accent:'#818cf8', glow:'rgba(129,140,248,.55)', target:'luckSyncDiaryEntryCard', action:'openLuckSyncDiary', coinCost:100 },
   { id:'4CUT',       thumb:'사주 네컷.webp', label:'사주네컷 : 운명 필터',   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:'📸 사주네컷 열기',            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
   { id:'secretHouse', thumb:'시크릿 하우스.webp', label:'시크릿 하우스 : 연애 시뮬', desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:'🏠 시크릿 하우스 입장', accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
@@ -274,6 +274,141 @@ window.openLoveSimulationRoute = function() {
 var S4C_TAG_TEXT = '#사주네컷 #코드데스티니 #꿀꿀 만세력 #무료 사주 #무료 운세 #대박 운세 #신년운세 #성격테스트 #2026운세';
 var _s4cCanvasLoader = null;
 var S4C_TAG_LIST = ['#사주네컷', '#코드데스티니', '#꿀꿀만세력', '#무료사주', '#무료운세', '#대박운세', '#신년운세', '#성격테스트', '#2026운세'];
+var S4C_VARIANT_STORAGE_KEY = 'cd_saju_fourcut_variant_v20260617_mz';
+
+function _s4cGetVariantDefs() {
+  return [
+    { id: 'vibe', label: '운명필터', title: 'MZ 운명 필터 ON', badge: '오늘 폼 체크', accent: '#ec4899', glow: 'rgba(236,72,153,.30)', icons: ['🪩', '🎭', '🧠', '🍀'] },
+    { id: 'love', label: '러브DM', title: '러브 시그널 네컷', badge: '답장 온도', accent: '#f43f5e', glow: 'rgba(244,63,94,.28)', icons: ['💌', '💘', '🫧', '🌙'] },
+    { id: 'routine', label: '갓생루틴', title: '오늘의 갓생 체크인', badge: '루틴 저장', accent: '#0ea5e9', glow: 'rgba(14,165,233,.28)', icons: ['📌', '⚡', '🧃', '🎧'] },
+    { id: 'anti', label: '흑역사방지', title: '흑역사 방지 필터', badge: '급발진 잠금', accent: '#7c3aed', glow: 'rgba(124,58,237,.30)', icons: ['🚧', '🫠', '🧯', '🪬'] }
+  ];
+}
+
+function _s4cGetActiveVariantId() {
+  var fallback = 'vibe';
+  var saved = '';
+  try { saved = window.localStorage ? window.localStorage.getItem(S4C_VARIANT_STORAGE_KEY) : ''; } catch (e) {}
+  var id = window.__sajuFourCutVariant || saved || fallback;
+  var found = _s4cGetVariantDefs().some(function(v) { return v.id === id; });
+  return found ? id : fallback;
+}
+
+function _s4cFindVariant(id) {
+  var defs = _s4cGetVariantDefs();
+  for (var i = 0; i < defs.length; i += 1) {
+    if (defs[i].id === id) return defs[i];
+  }
+  return defs[0];
+}
+
+function _s4cEnsureExperienceStyles() {
+  if (document.getElementById('s4c-experience-v20260617')) return;
+  var style = document.createElement('style');
+  style.id = 's4c-experience-v20260617';
+  style.textContent = [
+    '#reportDashboardCard .s4c-v2{--s4c-accent:#ec4899;--s4c-glow:rgba(236,72,153,.30);padding:0;border:0;background:linear-gradient(145deg,#0b1026 0%,#251548 42%,#fff6fb 42.2%,#f8fbff 100%);box-shadow:0 24px 54px rgba(12,16,40,.24),inset 0 1px 0 rgba(255,255,255,.70)}',
+    '#reportDashboardCard .s4c-v2::before{opacity:.42;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.36) 1px,transparent 1.4px),radial-gradient(circle at 2px 2px,rgba(255,255,255,.16) .8px,transparent 1.2px);background-size:18px 18px,31px 31px}',
+    '#reportDashboardCard .s4c-v2-shell{position:relative;z-index:1;padding:16px;display:grid;gap:14px}',
+    '#reportDashboardCard .s4c-v2-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end;color:#fff}',
+    '#reportDashboardCard .s4c-v2-kicker{display:inline-flex;width:max-content;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(255,255,255,.12);padding:6px 10px;font-size:.68rem;font-weight:950;letter-spacing:.12em;color:#ffeafd;box-shadow:0 10px 24px rgba(0,0,0,.16)}',
+    '#reportDashboardCard .s4c-v2-title{margin:8px 0 0;font-family:"NeoDunggeunmo","Galmuri9","Pretendard Variable",sans-serif;font-size:clamp(1.45rem,4.8vw,2.72rem);line-height:1.02;letter-spacing:0;color:#fff;text-shadow:0 2px 0 rgba(15,23,42,.72),0 0 24px var(--s4c-glow)}',
+    '#reportDashboardCard .s4c-v2-sub{max-width:620px;margin:8px 0 0;color:rgba(255,255,255,.82);font-size:.9rem;line-height:1.55;font-weight:800}',
+    '#reportDashboardCard .s4c-v2-sticker{width:78px;aspect-ratio:1;border-radius:24px;display:grid;place-items:center;background:linear-gradient(145deg,#fff,#ffe4f3);border:2px solid rgba(255,255,255,.8);box-shadow:0 18px 34px rgba(0,0,0,.24),0 0 0 6px rgba(255,255,255,.12);font-size:2.2rem;transform:rotate(7deg)}',
+    '#reportDashboardCard .s4c-variant-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}',
+    '#reportDashboardCard .s4c-variant-btn{appearance:none;border:1px solid rgba(255,255,255,.72);border-radius:16px;background:rgba(255,255,255,.74);padding:10px 8px;text-align:left;color:#334155;font-size:.72rem;font-weight:950;line-height:1.25;box-shadow:0 10px 20px rgba(15,23,42,.08);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,background .18s ease,color .18s ease}',
+    '#reportDashboardCard .s4c-variant-btn:hover{transform:translateY(-1px);box-shadow:0 14px 24px rgba(15,23,42,.12)}',
+    '#reportDashboardCard .s4c-variant-btn.is-active{background:#0f172a;color:#fff;border-color:#0f172a;box-shadow:0 14px 28px var(--s4c-glow)}',
+    '#reportDashboardCard .s4c-variant-btn span{display:block;margin-top:4px;color:inherit;opacity:.68;font-size:.62rem;font-weight:900}',
+    '#reportDashboardCard .s4c-v2 .s4c-capture{padding:12px;border-radius:28px;border:2px solid rgba(15,23,42,.92);background:linear-gradient(180deg,#ffffff 0%,#fff8fb 100%);box-shadow:0 20px 40px rgba(15,23,42,.18)}',
+    '#reportDashboardCard .s4c-capture-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}',
+    '#reportDashboardCard .s4c-brand{position:static;display:inline-flex;align-items:center;gap:6px;border-radius:999px;background:#0f172a;color:#fff;padding:7px 10px;font-size:.68rem;font-weight:950;letter-spacing:.12em}',
+    '#reportDashboardCard .s4c-live-badge{display:inline-flex;align-items:center;border-radius:999px;background:color-mix(in srgb,var(--s4c-accent) 18%,#fff);border:1px solid color-mix(in srgb,var(--s4c-accent) 38%,#fff);color:color-mix(in srgb,var(--s4c-accent) 82%,#111827);padding:7px 10px;font-size:.68rem;font-weight:950}',
+    '#reportDashboardCard .s4c-stage{display:grid;grid-template-columns:108px minmax(0,1fr);gap:10px;align-items:stretch}',
+    '#reportDashboardCard .s4c-photo-strip{position:relative;overflow:hidden;border-radius:22px;background:#0f172a;border:2px solid #0f172a;padding:8px;display:grid;grid-template-rows:repeat(4,1fr);gap:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}',
+    '#reportDashboardCard .s4c-photo-cell{border-radius:14px;background:linear-gradient(145deg,#fff,#ffe9f5);display:grid;place-items:center;color:#111827;font-size:1.45rem;box-shadow:inset 0 0 0 1px rgba(255,255,255,.72)}',
+    '#reportDashboardCard .s4c-photo-ticket{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);border-radius:999px;background:rgba(255,255,255,.92);padding:4px 8px;color:#0f172a;font-size:.58rem;font-weight:950;letter-spacing:.08em;white-space:nowrap}',
+    '#reportDashboardCard .s4c-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}',
+    '#reportDashboardCard .s4c-v2 .s4c-frame{min-height:190px;border-radius:24px;border:2px solid rgba(15,23,42,.92);padding:13px;background:radial-gradient(circle at 88% 0%,color-mix(in srgb,var(--s4c-accent) 17%,transparent),transparent 34%),linear-gradient(180deg,#fff 0%,#fff9fd 100%);box-shadow:0 10px 20px rgba(15,23,42,.10)}',
+    '#reportDashboardCard .s4c-v2 .s4c-frame::after{content:"";position:absolute;inset:8px;border-radius:18px;border:1px dashed color-mix(in srgb,var(--s4c-accent) 35%,transparent);pointer-events:none;opacity:.55}',
+    '#reportDashboardCard .s4c-frame-head h4{font-family:"NeoDunggeunmo","Galmuri9","Pretendard Variable",sans-serif;font-size:.82rem;letter-spacing:0;color:#111827}',
+    '#reportDashboardCard .s4c-v2 .s4c-frame-head span{display:inline-flex;width:34px;height:34px;margin:0;align-items:center;justify-content:center;border-radius:13px;background:#0f172a;color:#fff;font-size:1rem;box-shadow:0 8px 16px rgba(15,23,42,.20)}',
+    '#reportDashboardCard .s4c-v2 .s4c-frame p{font-size:.98rem;line-height:1.42;font-weight:950;color:#0f172a}',
+    '#reportDashboardCard .s4c-v2 .s4c-frame em{font-size:.76rem;line-height:1.55;color:rgba(15,23,42,.70);font-weight:800}',
+    '#reportDashboardCard .s4c-mini-note{display:inline-flex;width:max-content;max-width:100%;margin-top:9px;border-radius:999px;background:#0f172a;color:#fff!important;padding:6px 9px;font-size:.64rem!important;font-weight:950}',
+    '#reportDashboardCard .s4c-sticker-dock{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-radius:22px;background:rgba(255,255,255,.82);border:1px solid rgba(15,23,42,.10);padding:10px 12px;box-shadow:0 12px 24px rgba(15,23,42,.08)}',
+    '#reportDashboardCard .s4c-sticker-next{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:16px;background:#fff;box-shadow:0 8px 18px rgba(15,23,42,.12);font-size:1.2rem}',
+    '#reportDashboardCard .s4c-v2 .s4c-btn{border-radius:16px;height:44px;background:linear-gradient(135deg,var(--s4c-accent),#0ea5e9);font-weight:950;box-shadow:0 12px 24px var(--s4c-glow)}',
+    '#reportDashboardCard .s4c-v2 .s4c-btn--kakao{background:linear-gradient(135deg,#111827,#334155)}',
+    '@media (max-width:760px){#reportDashboardCard .s4c-v2-hero{grid-template-columns:1fr}#reportDashboardCard .s4c-v2-sticker{display:none}#reportDashboardCard .s4c-variant-row{grid-template-columns:repeat(2,minmax(0,1fr))}#reportDashboardCard .s4c-stage{grid-template-columns:1fr}#reportDashboardCard .s4c-photo-strip{grid-template-columns:repeat(4,1fr);grid-template-rows:1fr;min-height:76px}#reportDashboardCard .s4c-grid{grid-template-columns:1fr}#reportDashboardCard .s4c-v2 .s4c-frame{min-height:0}}'
+  ].join('\n');
+  document.head.appendChild(style);
+}
+
+function _s4cBuildVariantPanels(id, data) {
+  var common = {
+    vibe: [
+      { icon: '🪩', title: '1. 본캐 Vibe 능력치', main: data.frame1, detail: data.frame1Detail, extra: 'radar', note: data.dayPillar + ' · ' + data.theme.name + ' 무드' },
+      { icon: '🎭', title: '2. 첫인상 vs 현인상', main: data.frame2, detail: data.frame2Detail, extra: 'compare', note: data.monthPillar + ' 분위기 리딩' },
+      { icon: '🧠', title: '3. 머릿속 브레인맵', main: data.frame3[0].name + ' ' + data.frame3[0].pct + '% · ' + data.frame3[1].name + ' ' + data.frame3[1].pct + '%', detail: data.frame3Detail, extra: 'brain', note: '생각이 많을수록 기준 하나가 빛납니다' },
+      { icon: '🍀', title: '4. 오늘의 럭키비키', main: data.frame4, detail: data.frame4Detail, extra: 'lucky', note: '한 줄 미션으로 갓생 스타트' }
+    ],
+    love: [
+      { icon: '💌', title: '1. 호감 첫 컷', main: data.firstNow.first + ' → ' + data.firstNow.now, detail: data.firstNow.mood + '. 마음은 천천히 열릴수록 더 오래 머무릅니다.', extra: 'compare', note: '답장 텐션 과몰입 금지' },
+      { icon: '💘', title: '2. 플러팅 온도', main: data.frame2, detail: '가벼운 농담보다 정확한 타이밍이 호감을 살립니다. 오늘은 한 번 덜 말하고 한 번 더 들어주는 쪽으로 운이 흐릅니다.', extra: '', note: data.monthPillar + ' 관계 무드' },
+      { icon: '🫧', title: '3. 마음 브레인맵', main: data.brain.biggest + ' ' + data.brain.biggestPct + '%', detail: '상대의 반응을 해석하기보다 내 리듬을 먼저 안정시키면 매력이 선명하게 남습니다.', extra: 'brain', note: data.brain.keyword },
+      { icon: '🌙', title: '4. 오늘의 러브 액션', main: '짧고 다정한 한 문장', detail: '긴 설명 대신 "오늘 이거 보고 네 생각났어"처럼 부드러운 신호가 좋습니다. 과한 확인은 잠시 접어두세요.', extra: '', note: data.stickerName + ' 감성 보호막' }
+    ],
+    routine: [
+      { icon: '📌', title: '1. 오늘의 시작 버튼', main: data.frame1, detail: '가장 작은 일 하나를 먼저 닫으면 하루 전체의 흐름이 가볍게 열립니다.', extra: 'radar', note: '첫 25분이 운을 엽니다' },
+      { icon: '⚡', title: '2. 일잘러 모드', main: data.frame2, detail: data.frame2Detail, extra: '', note: '작업 순서 고정' },
+      { icon: '🧃', title: '3. 집중력 충전팩', main: data.frame3[0].name + ' 에너지', detail: '알림을 줄이고, 물 한 잔과 함께 할 일 2개만 남기면 산만한 기운이 가라앉습니다.', extra: 'brain', note: data.brain.keyword },
+      { icon: '🎧', title: '4. 퇴근 전 럭키팩', main: data.luckyPack.bgm, detail: data.frame4Detail, extra: 'lucky', note: data.luckyPack.spot }
+    ],
+    anti: [
+      { icon: '🚧', title: '1. 급발진 경보', main: data.brain.keyword, detail: '오늘은 바로 답하기보다 한 박자 늦게 보내는 쪽에 운이 머뭅니다. 속도보다 품격이 먼저입니다.', extra: 'brain', note: '보내기 전 3초 멈춤' },
+      { icon: '🫠', title: '2. 말실수 방지컷', main: data.firstNow.first + ' 오해 주의', detail: data.firstNow.mood + '. 장난처럼 던진 말도 깊게 남을 수 있으니 톤을 부드럽게 낮추세요.', extra: 'compare', note: '팩폭은 순화해서' },
+      { icon: '🧯', title: '3. 지출 잠금컷', main: data.luckyPack.item + '만 허용', detail: '충동 결제는 운의 구멍이 되기 쉽습니다. 필요한 것 하나만 고르면 재물 흐름이 단정해집니다.', extra: '', note: '장바구니 24시간 보류' },
+      { icon: '🪬', title: '4. 보호 주문', main: data.frame4, detail: '오늘의 작은 의식은 나를 지키는 경계가 됩니다. 마음이 급할수록 더 천천히 움직이세요.', extra: 'lucky', note: data.theme.name + ' 수호 모드' }
+    ]
+  };
+  return common[id] || common.vibe;
+}
+
+function _s4cRenderPanelExtra(panel, data) {
+  if (panel.extra === 'radar') {
+    return '<div class="s4c-radar-wrap">' + data.radarSvg + '<ul class="s4c-radar-legend">' + _s4cRenderVibeStatsLegend(data.vibeStats) + '</ul></div>';
+  }
+  if (panel.extra === 'compare') {
+    return '<div class="s4c-compare"><div class="s4c-compare-item"><strong>첫 컷</strong><span>' + _s4cEscapeHtml(data.firstNow.first) + '</span></div><div class="s4c-compare-item"><strong>지금 컷</strong><span>' + _s4cEscapeHtml(data.firstNow.now) + '</span></div></div><div class="s4c-compare-mood">💬 ' + _s4cEscapeHtml(data.firstNow.mood) + '</div>';
+  }
+  if (panel.extra === 'brain') {
+    return '<div class="s4c-brainmap"><div class="s4c-brain-core"><strong>' + _s4cEscapeHtml(data.brain.biggest) + '</strong><span>' + _s4cEscapeHtml(String(data.brain.biggestPct)) + '%</span></div>' + _s4cRenderBrainBubbles(data.brain) + '</div><div class="s4c-brain-note">🧩 지금 가장 큰 고민: ' + _s4cEscapeHtml(data.brain.keyword) + '</div>';
+  }
+  if (panel.extra === 'lucky') {
+    return '<div class="s4c-lucky-pack"><div><strong>🧷 오늘의 행운 템</strong><span>' + _s4cEscapeHtml(data.luckyPack.item) + '</span></div><div><strong>🎵 오늘의 BGM</strong><span>' + _s4cEscapeHtml(data.luckyPack.bgm) + '</span></div><div><strong>📍 오늘의 에너지 스팟</strong><span>' + _s4cEscapeHtml(data.luckyPack.spot) + '</span></div></div>';
+  }
+  return '';
+}
+
+function _s4cRenderVariantButtons(activeId) {
+  return _s4cGetVariantDefs().map(function(v) {
+    return '<button type="button" class="s4c-variant-btn' + (v.id === activeId ? ' is-active' : '') + '" onclick="changeSajuFourCutVariant(this,\'' + _s4cEscapeHtml(v.id) + '\')" aria-pressed="' + (v.id === activeId ? 'true' : 'false') + '">' + _s4cEscapeHtml(v.label) + '<span>' + _s4cEscapeHtml(v.badge) + '</span></button>';
+  }).join('');
+}
+
+function _s4cRenderFourPanels(panels, data) {
+  return panels.map(function(panel) {
+    return '<article class="s4c-frame"><div class="s4c-frame-head"><h4>' + _s4cEscapeHtml(panel.title) + '</h4><span>' + _s4cEscapeHtml(panel.icon) + '</span></div><p>' + _s4cEscapeHtml(panel.main) + '</p><em>' + _s4cEscapeHtml(panel.detail) + '</em>' + _s4cRenderPanelExtra(panel, data) + '<span class="s4c-mini-note">' + _s4cEscapeHtml(panel.note) + '</span></article>';
+  }).join('');
+}
+
+window.changeSajuFourCutVariant = function(btn, variantId) {
+  var id = String(variantId || 'vibe');
+  window.__sajuFourCutVariant = id;
+  try { if (window.localStorage) window.localStorage.setItem(S4C_VARIANT_STORAGE_KEY, id); } catch (e) {}
+  renderSajuFourCutContent();
+};
 
 function _s4cEscapeHtml(raw) {
   return String(raw == null ? '' : raw)
@@ -792,41 +927,33 @@ window.handleS4CCoverError = function(imgEl) {
 function renderSajuFourCutContent() {
   var host = document.getElementById('sajuFourCutResult');
   if (!host) return;
+  _s4cEnsureExperienceStyles();
   var data = _s4cBuildFrameData();
-  var frameEmoji = ['🪩', '🎭', '🧠', '🍀'];
+  var activeId = _s4cGetActiveVariantId();
+  var variant = _s4cFindVariant(activeId);
+  var panels = _s4cBuildVariantPanels(activeId, data);
 
   host.innerHTML = ''
-    + '<div class="s4c-wrap s4c-tw" style="--s4c-bg:' + _s4cEscapeHtml(data.theme.bg) + ';--s4c-card:' + _s4cEscapeHtml(data.theme.card) + ';--s4c-line:' + _s4cEscapeHtml(data.theme.line) + ';">'
+    + '<div class="s4c-wrap s4c-tw s4c-v2 s4c-v2--' + _s4cEscapeHtml(activeId) + '" style="--s4c-bg:' + _s4cEscapeHtml(data.theme.bg) + ';--s4c-card:' + _s4cEscapeHtml(data.theme.card) + ';--s4c-line:' + _s4cEscapeHtml(data.theme.line) + ';--s4c-accent:' + _s4cEscapeHtml(variant.accent) + ';--s4c-glow:' + _s4cEscapeHtml(variant.glow) + ';">'
     + '  <div class="s4c-aurora s4c-aurora-a" aria-hidden="true"></div>'
     + '  <div class="s4c-aurora s4c-aurora-b" aria-hidden="true"></div>'
-    + '  <div class="s4c-head">'
-    + '    <img class="s4c-cover" src="/fuctionassets/사주 네컷.webp" alt="사주 네컷 프레임" loading="lazy" decoding="async" onerror="handleS4CCoverError(this)">'
-    + '    <div class="s4c-head-copy">'
-    + '      <span class="s4c-chip">MZ 운명 필터 ON</span>'
-    + '      <h4 class="s4c-main-title">사주네컷 찍고 바로 스토리 각</h4>'
-    + '      <p class="s4c-sub">킹받게 정확한 팩폭 + 하찮고 귀여운 감성으로 오늘 분위기 박제. 공유 안 하면 손해인 텐션으로 뽑았어.</p>'
+    + '  <div class="s4c-v2-shell">'
+    + '    <div class="s4c-v2-hero">'
+    + '      <div><span class="s4c-v2-kicker">✦ ' + _s4cEscapeHtml(variant.badge) + ' · ' + _s4cEscapeHtml(data.dayPillar) + '</span><h4 class="s4c-v2-title">' + _s4cEscapeHtml(variant.title) + '</h4><p class="s4c-v2-sub">' + _s4cEscapeHtml(data.stickerEmoji + ' ' + data.stickerName + ' 무드와 ' + data.theme.name + ' 기운이 오늘의 네 컷 위로 떠오릅니다. 원하는 버전을 눌러 스토리 감성으로 바로 갈아입혀 보세요.') + '</p></div>'
+    + '      <div class="s4c-v2-sticker" aria-hidden="true">' + _s4cEscapeHtml(data.stickerEmoji) + '</div>'
     + '    </div>'
-    + '  </div>'
-    + '  <div class="s4c-capture' + (data.rare ? ' s4c-capture--rare' : '') + '" data-s4c-capture="1">'
-    + '    <div class="s4c-brand">CODE DESTINY · SAJU 4CUT</div>'
+    + '    <div class="s4c-variant-row" aria-label="사주네컷 버전 선택">' + _s4cRenderVariantButtons(activeId) + '</div>'
+    + '    <div class="s4c-capture' + (data.rare ? ' s4c-capture--rare' : '') + '" data-s4c-capture="1" data-s4c-variant="' + _s4cEscapeHtml(activeId) + '">'
+    + '      <div class="s4c-capture-head"><div class="s4c-brand">CODE DESTINY · SAJU 4CUT</div><div class="s4c-live-badge">' + _s4cEscapeHtml(variant.label) + '</div></div>'
     + (data.rare ? '<div class="s4c-rare-card">✨ 대운 프리패스 카드 등장! 오늘 폼 미쳤다 ✨</div>' : '')
-    + '    <div class="s4c-grid">'
-    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>1. 본캐 Vibe 능력치</h4><span>' + frameEmoji[0] + '</span></div><p>' + _s4cEscapeHtml(data.frame1) + '</p><em>' + _s4cEscapeHtml(data.frame1Detail) + '</em><div class="s4c-radar-wrap">' + data.radarSvg + '<ul class="s4c-radar-legend">' + _s4cRenderVibeStatsLegend(data.vibeStats) + '</ul></div><span>' + _s4cEscapeHtml(data.dayPillar) + ' · ' + _s4cEscapeHtml(data.theme.name) + ' 무드</span>' + _s4cFrameDecorMarkup(1) + '</article>'
-    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>2. 첫인상 vs 현인상</h4><span>' + frameEmoji[1] + '</span></div><p>' + _s4cEscapeHtml(data.frame2) + '</p><em>' + _s4cEscapeHtml(data.frame2Detail) + '</em><div class="s4c-compare"><div class="s4c-compare-item"><strong>첫인상</strong><span>' + _s4cEscapeHtml(data.firstNow.first) + '</span></div><div class="s4c-compare-item"><strong>현인상</strong><span>' + _s4cEscapeHtml(data.firstNow.now) + '</span></div></div><div class="s4c-compare-mood">💬 ' + _s4cEscapeHtml(data.firstNow.mood) + '</div><span>' + _s4cEscapeHtml(data.monthPillar) + ' 분위기 리딩</span>' + _s4cFrameDecorMarkup(2) + '</article>'
-    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>3. 머릿속 브레인맵</h4><span>' + frameEmoji[2] + '</span></div><p>'
-    + _s4cEscapeHtml(data.frame3[0].name) + ' ' + _s4cEscapeHtml(String(data.frame3[0].pct)) + '% (' + _s4cEscapeHtml(data.frame3[0].mz) + ') · '
-    + _s4cEscapeHtml(data.frame3[1].name) + ' ' + _s4cEscapeHtml(String(data.frame3[1].pct)) + '% (' + _s4cEscapeHtml(data.frame3[1].mz) + ')</p>'
-    + '      <em>' + _s4cEscapeHtml(data.frame3Detail) + '</em><div class="s4c-brainmap"><div class="s4c-brain-core"><strong>' + _s4cEscapeHtml(data.brain.biggest) + '</strong><span>' + _s4cEscapeHtml(String(data.brain.biggestPct)) + '%</span></div>' + _s4cRenderBrainBubbles(data.brain) + '</div><div class="s4c-brain-note">🧩 지금 가장 큰 고민: ' + _s4cEscapeHtml(data.brain.keyword) + '</div><span>기절 포인트: 생각이 너무 많아서 웃김</span>' + _s4cFrameDecorMarkup(3) + '</article>'
-    + '    <article class="s4c-frame"><div class="s4c-frame-head"><h4>4. 오늘의 럭키비키</h4><span>' + frameEmoji[3] + '</span></div><p>' + _s4cEscapeHtml(data.frame4) + '</p><em>' + _s4cEscapeHtml(data.frame4Detail) + '</em><div class="s4c-lucky-pack"><div><strong>🧷 오늘의 행운 템</strong><span>' + _s4cEscapeHtml(data.luckyPack.item) + '</span></div><div><strong>🎵 오늘의 BGM</strong><span>' + _s4cEscapeHtml(data.luckyPack.bgm) + '</span></div><div><strong>📍 오늘의 에너지 스팟</strong><span>' + _s4cEscapeHtml(data.luckyPack.spot) + '</span></div></div><span>한 줄 미션으로 갓생 스타트</span>' + _s4cFrameDecorMarkup(4) + '</article>'
+    + '      <div class="s4c-stage">'
+    + '        <aside class="s4c-photo-strip" aria-hidden="true"><div class="s4c-photo-cell">' + _s4cEscapeHtml(variant.icons[0]) + '</div><div class="s4c-photo-cell">' + _s4cEscapeHtml(variant.icons[1]) + '</div><div class="s4c-photo-cell">' + _s4cEscapeHtml(variant.icons[2]) + '</div><div class="s4c-photo-cell">' + _s4cEscapeHtml(variant.icons[3]) + '</div><span class="s4c-photo-ticket">' + _s4cEscapeHtml(data.theme.name) + ' FILTER</span></aside>'
+    + '        <div class="s4c-grid">' + _s4cRenderFourPanels(panels, data) + '</div>'
+    + '      </div>'
     + '    </div>'
-    + '  </div>'
-    + '  <div class="s4c-sticker-dock" data-s4c-sticker-dock="1" data-next-sticker="💘"><span class="s4c-sticker-next">💘</span><button type="button" class="s4c-btn s4c-btn--sticker" onclick="addS4CSticker(this)">🧷 스티커 붙이기</button><small>클릭 후 캡처 영역에서 스티커를 드래그해 위치를 조정해줘.</small></div>'
-    + '  <div class="s4c-tags" aria-label="share hashtags">'
-    + S4C_TAG_LIST.map(function(tag){ return '<span class="s4c-tag-chip">' + _s4cEscapeHtml(tag) + '</span>'; }).join('')
-    + '  </div>'
-    + '  <div class="s4c-actions">'
-    + '    <button type="button" class="s4c-btn" onclick="saveSajuFourCutImage(this)">📥 네컷 이미지 저장</button>'
-    + '    <button type="button" class="s4c-btn s4c-btn--kakao" onclick="shareSajuFourCutKakao(this)">💬 카카오톡 공유</button>'
+    + '    <div class="s4c-sticker-dock" data-s4c-sticker-dock="1" data-next-sticker="💘"><span class="s4c-sticker-next">💘</span><button type="button" class="s4c-btn s4c-btn--sticker" onclick="addS4CSticker(this)">스티커 붙이기</button><small>스티커를 붙인 뒤 캡처 영역에서 드래그하면 내 네컷으로 완성됩니다.</small></div>'
+    + '    <div class="s4c-tags" aria-label="share hashtags">' + S4C_TAG_LIST.map(function(tag){ return '<span class="s4c-tag-chip">' + _s4cEscapeHtml(tag) + '</span>'; }).join('') + '</div>'
+    + '    <div class="s4c-actions"><button type="button" class="s4c-btn" onclick="saveSajuFourCutImage(this)">네컷 이미지 저장</button><button type="button" class="s4c-btn s4c-btn--kakao" onclick="shareSajuFourCutKakao(this)">공유 문구 보내기</button></div>'
     + '  </div>'
     + '</div>';
 

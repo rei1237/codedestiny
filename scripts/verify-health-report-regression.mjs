@@ -143,7 +143,7 @@ for (const testCase of cases) {
   const html = renderCase(testCase);
   assertCommonHealthReport(html, testCase.label);
   assert(html.includes('명리학자 소견'), `${testCase.label}: master reading missing`);
-  assert(html.includes('오행 건강운 보드'), `${testCase.label}: element board missing`);
+  assert(html.includes('오행 균형 체크'), `${testCase.label}: element board missing`);
   assert(html.includes('시기별 건강운'), `${testCase.label}: period health fortune missing`);
   assert(html.includes('오늘의 오행 조율'), `${testCase.label}: daily balance missing`);
   assert(html.includes('오행 개운법'), `${testCase.label}: remedy section missing`);
@@ -167,7 +167,7 @@ for (const testCase of cases) {
   assertCommonHealthReport(html, '일진 데이터 없음');
   assert(html.includes('선천 체질 기준 안내'), '일진 데이터 없음: innate fallback notice missing');
   assert(html.includes('선천 체질 베이스'), '일진 데이터 없음: innate section missing');
-  assert(html.includes('오행 건강운 보드'), '일진 데이터 없음: element board missing');
+  assert(html.includes('오행 균형 체크'), '일진 데이터 없음: element board missing');
   assert(html.includes('시기별 건강운'), '일진 데이터 없음: period health fortune missing');
   assert(html.includes('오행 개운법'), '일진 데이터 없음: remedy section missing');
   assert(!html.includes('오늘의 오행 조율'), '일진 데이터 없음: daily section should be hidden');
