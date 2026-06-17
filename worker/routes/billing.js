@@ -46,7 +46,6 @@ import {
 } from "../lib/content-unlocks.js";
 import {
   canUseByPass,
-  normalizeHoneyPassEntitlement,
   normalizePassTier,
   resolveActivePassPolicy,
 } from "../lib/profile-limits.js";
@@ -1319,6 +1318,16 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
         accessDecision: data?.accessDecision || {},
       })
       : null);
+  const normalizedAccessDecision = data?.accessDecision || (membershipPassApplied
+    ? buildPaidContentAccessDecision({
+      accessGranted: true,
+      reason: "pass_covered",
+      shouldOpenPaymentSelector: false,
+      priceCoin: Number(pricing?.coinPrice || pricing?.cost || 0),
+      paymentOptions: data?.paymentOptions || data,
+      accessGateResult,
+    })
+    : undefined);
   const hasResponseHeaders = Array.from(responseHeaders.keys()).length > 0;
   return success({
     ...data,
@@ -1335,6 +1344,7 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
     profileId: profileId || undefined,
     unlockedFeatures,
     unlockMap,
+    ...(normalizedAccessDecision ? { accessDecision: normalizedAccessDecision } : {}),
     ...(accessGateResult ? { accessGateResult, licensePass: accessGateResult } : {}),
   }, message, hasResponseHeaders ? { ...init, headers: responseHeaders } : init);
 }
@@ -3809,7 +3819,7 @@ function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
     ? resolveActivePassPolicy({ profileSubscription, ...subscription.entitlement })
     : resolveActivePassPolicy({ profileSubscription });
   return {
-    isActive: Boolean(subscription.isActive),
+    isActive: Boolean(subscription.isActive || entitlement.isActive),
     tier: String(subscription.tier || entitlement.tier || "free"),
     passTier: subscription.passTier || entitlement.passTier || null,
     freeLimit: Number(subscription.freeLimit || entitlement.maxCoveredCoin || 0),
