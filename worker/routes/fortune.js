@@ -50,7 +50,6 @@ import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
-const ADMIN_TEST_USER_ID = "flower-admin";
 
 let __swissWesternChartLoader = null;
 
@@ -90,10 +89,6 @@ function buildJsonWithPremiumAccessCookie(body, init = {}, premiumAccessToken = 
   const secure = isProductionRuntime(env);
   headers.append("Set-Cookie", buildPremiumAccessCookie(token, secure));
   return json(body, { ...init, headers });
-}
-
-function isAdminPigCoinBypassEnabled(env) {
-  return !isProductionRuntime(env) && isTruthyFlag(env?.ALLOW_ADMIN_PIG_COIN_BYPASS);
 }
 
 function isDynamicCostFallbackEnabled(env) {
@@ -318,13 +313,6 @@ function readAIPromptAccessContext(body = {}) {
   return { accessGrant, consume, payment, paymentContext, accessType, accessMethod, paymentMode };
 }
 
-function isAIPromptAdminAccessPayload(body = {}) {
-  const ctx = readAIPromptAccessContext(body);
-  return ctx.accessType === "admin_test"
-    || ctx.accessMethod === "ADMIN_TEST"
-    || ctx.paymentMode === "ADMIN_BYPASS";
-}
-
 function isAIPromptDirectAccessPayload(body = {}) {
   const ctx = readAIPromptAccessContext(body);
   return ctx.accessType === "single_purchase"
@@ -388,10 +376,6 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
     if (payment) return { source: "payment", record: payment };
   }
 
-  if (isAIPromptAdminAccessPayload(body) && String(auth?.userId || "") === ADMIN_TEST_USER_ID) {
-    return { source: "admin_test", record: { _id: requestId || `admin:${featureKey}` } };
-  }
-
   return null;
 }
 
@@ -399,10 +383,10 @@ function buildAIPromptVerifiedConsumePayload({ auth, featureKey, reason, request
   const ctx = readAIPromptAccessContext(body);
   const record = evidence?.record || {};
   const metadata = record?.metadata && typeof record.metadata === "object" ? record.metadata : {};
-  const isPass = isAIPromptPassAccessPayload(body) || evidence?.source === "admin_test";
+  const isPass = isAIPromptPassAccessPayload(body);
   const isDirect = evidence?.source === "payment" || isAIPromptDirectAccessPayload(body);
   const accessType = isPass
-    ? (ctx.accessType || (evidence?.source === "admin_test" ? "admin_test" : "membership_pass"))
+    ? (ctx.accessType || "membership_pass")
     : (ctx.accessType || (isDirect ? "single_purchase" : "membership_credit"));
   const accessMethod = ctx.accessMethod || (isPass ? "PASS" : (isDirect ? "CARD" : "MONTHLY"));
   const paymentMode = ctx.paymentMode || (isPass ? "MEMBERSHIP_PASS" : (isDirect ? "DIRECT_KRW" : "MOONLIGHT_STONE"));
@@ -726,7 +710,6 @@ function getSubscriptionTierRank(tierRaw) {
 
 const SHARE_REWARD_AMOUNT = 10;
 const SHARE_REWARD_DAILY_LIMIT = 3;
-const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const PERSISTENT_UNLOCK_ALIAS_MAP = Object.freeze({
   "olympus-profile-fc": ["olympus-fc"],
   "olympus-fc": ["olympus-profile-fc"],
@@ -909,106 +892,6 @@ async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId 
   return inferred;
 }
 
-function getFlowerAdminSecret(env) {
-  return String(env?.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000");
-}
-
-function extractAdminTokenFromRequest(request) {
-  const xat = String(request.headers.get("x-admin-token") || "").trim();
-  if (FLOWER_ADMIN_TOKEN_RE.test(xat)) return xat;
-
-  const auth = String(request.headers.get("authorization") || "");
-  if (auth.startsWith("Bearer ")) {
-    const bearer = auth.slice(7).trim();
-    if (FLOWER_ADMIN_TOKEN_RE.test(bearer)) return bearer;
-  }
-
-  const cookieHeader = String(request.headers.get("cookie") || "");
-  const flowerMatch = cookieHeader.match(/(?:^|;\s*)flower_admin_token=([^;]+)/);
-  if (flowerMatch) {
-    try {
-      const decoded = decodeURIComponent(flowerMatch[1]);
-      if (FLOWER_ADMIN_TOKEN_RE.test(decoded)) return decoded;
-    } catch (_) {
-      if (FLOWER_ADMIN_TOKEN_RE.test(flowerMatch[1])) return flowerMatch[1];
-    }
-  }
-
-  const legacyMatch = cookieHeader.match(/(?:^|;\s*)fortune_auth_token=([^;]+)/);
-  if (legacyMatch) {
-    try {
-      const decoded = decodeURIComponent(legacyMatch[1]);
-      if (FLOWER_ADMIN_TOKEN_RE.test(decoded)) return decoded;
-    } catch (_) {
-      if (FLOWER_ADMIN_TOKEN_RE.test(legacyMatch[1])) return legacyMatch[1];
-    }
-  }
-
-  return "";
-}
-
-function _b64uToJson(payloadB64) {
-  const base64 = payloadB64.replace(/-/g, "+").replace(/_/g, "/");
-  const padLen = (4 - (base64.length % 4)) % 4;
-  const withPad = base64 + "=".repeat(padLen);
-  return JSON.parse(atob(withPad));
-}
-
-async function hmacSha256Hex(data, secret) {
-  const subtle = globalThis?.crypto?.subtle;
-  if (!subtle) return "";
-  const key = await subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await subtle.sign("HMAC", key, new TextEncoder().encode(data));
-  return Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-async function sha256Hex(text) {
-  try {
-    const subtle = globalThis?.crypto?.subtle;
-    if (!subtle) return "";
-    const digest = await subtle.digest("SHA-256", new TextEncoder().encode(String(text || "")));
-    return Array.from(new Uint8Array(digest))
-      .map((byte) => byte.toString(16).padStart(2, "0"))
-      .join("");
-  } catch (e) {
-    return "";
-  }
-}
-
-async function verifyFlowerAdminToken(token, env) {
-  try {
-    if (!FLOWER_ADMIN_TOKEN_RE.test(String(token || ""))) return false;
-    const dotIdx = token.lastIndexOf(".");
-    if (dotIdx < 1) return false;
-
-    const payloadB64 = token.slice(0, dotIdx);
-    const sig = token.slice(dotIdx + 1);
-    const expected = await hmacSha256Hex(payloadB64, getFlowerAdminSecret(env));
-    if (!expected || expected.length !== sig.length) return false;
-
-    let diff = 0;
-    for (let i = 0; i < expected.length; i += 1) {
-      diff |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
-    }
-    if (diff !== 0) return false;
-
-    const payload = _b64uToJson(payloadB64);
-    const exp = Number(payload?.exp || 0);
-    const now = Math.floor(Date.now() / 1000);
-    return payload?.v === 1 && Number.isFinite(exp) && now <= exp;
-  } catch (_) {
-    return false;
-  }
-}
-
 async function resolvePigCoinConsumeAuth(request, env) {
   let auth = null;
   try {
@@ -1021,16 +904,11 @@ async function resolvePigCoinConsumeAuth(request, env) {
     }
   }
 
-  const adminToken = extractAdminTokenFromRequest(request);
-  const adminMode = (adminToken && isAdminPigCoinBypassEnabled(env))
-    ? await verifyFlowerAdminToken(adminToken, env)
-    : false;
-
-  if (!auth && !adminMode) {
+  if (!auth) {
     throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
   }
 
-  return { auth, adminMode };
+  return { auth };
 }
 
 function userPayload(auth, points, unlockedFeatures) {
@@ -1363,7 +1241,6 @@ async function handleChargeSimulate(request, env, auth) {
 
 async function handlePigCoinConsume(request, auth, options = {}) {
   const env = options?.env || {};
-  const adminMode = Boolean(options?.adminMode);
   const body = await readJson(request);
   const productId = String(body?.productId || options?.productId || "").trim().toLowerCase();
   const productSpec = productId ? resolveUnlockProductSpec(productId) : null;
@@ -1454,80 +1331,6 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const forceDeduct = body?.forceDeduct === true || String(body?.forceDeduct || "").trim().toLowerCase() === "true";
   const requireExistingPaidAccess = body?.requireExistingPaidAccess === true
     || String(body?.requireExistingPaidAccess || "").trim().toLowerCase() === "true";
-  const isAdminTestAccess = adminMode || String(auth?.userId || "") === ADMIN_TEST_USER_ID;
-  if (isAdminTestAccess) {
-    const adminUserId = String(auth?.userId || ADMIN_TEST_USER_ID);
-    const transactionId = requestId || `admin:${featureKey || "paid-service"}:${Date.now().toString(36)}`;
-    const premiumAccessToken = reportTypeForPremiumAccess
-      ? await createPremiumAccessToken(env, {
-        userId: adminUserId,
-        reportType: reportTypeForPremiumAccess,
-        featureKey,
-        reason,
-        transactionId,
-        chargedCoins: 0,
-        freeBySubscription: false,
-      })
-      : "";
-    const accessGrant = {
-      ok: true,
-      accessType: "admin_test",
-      accessMethod: "ADMIN_TEST",
-      paymentMode: "admin_bypass",
-      adminTestMode: true,
-      adminBypass: true,
-      featureKey,
-      requestId,
-      purchaseId: transactionId,
-      evidenceId: transactionId,
-      paidAt: new Date().toISOString(),
-    };
-
-    return buildJsonWithPremiumAccessCookie({
-      ok: true,
-      code: "ADMIN_TEST_PAYMENT_BYPASS",
-      productId: productId || null,
-      featureKey,
-      reason,
-      requiredCoins: cost,
-      chargedCoins: 0,
-      membershipCreditCost: 0,
-      accessType: "admin_test",
-      accessMethod: "ADMIN_TEST",
-      paymentMode: "admin_bypass",
-      adminTestMode: true,
-      adminBypass: true,
-      forceDeductApplied: false,
-      transactionId,
-      premiumAccessToken: premiumAccessToken || "",
-      accessGrant,
-      consume: {
-        ok: true,
-        transactionId,
-        transactionType: "admin_paid_service",
-        accessType: "admin_test",
-        accessMethod: "ADMIN_TEST",
-        paymentMethod: "ADMIN_TEST",
-        paymentMode: "admin_bypass",
-        adminTestMode: true,
-        adminBypass: true,
-        requestId,
-        featureKey,
-        coinPrice: cost,
-        chargedCoins: 0,
-        membershipCreditCost: 0,
-      },
-      user: {
-        id: adminUserId,
-        role: "admin",
-        adminMode: true,
-        points: 0,
-      },
-      unlockedFeatures: unlockKeysToPersist,
-      unlockMap: toUnlockMap(unlockKeysToPersist),
-    }, {}, premiumAccessToken, env);
-  }
-
   const subscriptionUser = await User.findById(auth.userId)
     .select("points profileSubscription unlockedFeatures")
     .lean();
@@ -3057,9 +2860,6 @@ async function handleSubscriptionStatus(request, env, auth) {
       cancelRequestedAt: null,
       hasStartedPaidService: false,
       firstServiceAccessDate: null,
-      adminMode: false,
-      simulated: false,
-      adminTestTier: null,
       freeLimit: policy.freeLimit,
       recommendedCoins: policy.recommendedCoins,
     });
@@ -3144,49 +2944,6 @@ async function handleSubscriptionStatus(request, env, auth) {
     : Number(policy.freeLimit || 0);
   const membershipCreditBalance = Math.max(0, Math.floor(Number(sub.membershipCreditBalance || 0)));
 
-  const adminToken = extractAdminTokenFromRequest(request);
-  const adminMode = adminToken ? await verifyFlowerAdminToken(adminToken, env) : false;
-  const adminTestTier = adminMode ? normalizeSubscriptionTier(request.headers.get("x-admin-subscription-tier")) : null;
-
-  if (adminMode && adminTestTier) {
-    const simulatedPolicy = getPlanPolicy(adminTestTier);
-    return json({
-      ok: true,
-      authenticated: true,
-      subscription: {
-        isSubscribed: true,
-        plan: adminTestTier,
-        tier: adminTestTier,
-        status: "active",
-        expiresAt: toIsoOrNull(effectiveExpAt),
-        freeLimit: simulatedPolicy.freeLimit,
-        passLimit: simulatedPolicy.freeLimit,
-        maxCoveredCoin: simulatedPolicy.freeLimit,
-      },
-      isSubscribed: true,
-      plan: adminTestTier,
-      tier: adminTestTier,
-      passTier: adminTestTier,
-      isActive: true,
-      expiresAt: toIsoOrNull(effectiveExpAt),
-      profileLimit: simulatedPolicy.profileLimit,
-      points,
-      lowBalanceWarning: Boolean(points <= simulatedPolicy.freeLimit),
-      autoRenewed: false,
-      cancelAtPeriodEnd: false,
-      cancelRequestedAt: null,
-      hasStartedPaidService: Boolean(user.has_started_paid_service),
-      firstServiceAccessDate: toIsoOrNull(user.first_service_access_date),
-      adminMode: true,
-      simulated: true,
-      adminTestTier,
-      freeLimit: simulatedPolicy.freeLimit,
-      passLimit: simulatedPolicy.freeLimit,
-      maxCoveredCoin: simulatedPolicy.freeLimit,
-      recommendedCoins: simulatedPolicy.recommendedCoins,
-    });
-  }
-
   return json({
     ok: true,
     authenticated: true,
@@ -3219,9 +2976,6 @@ async function handleSubscriptionStatus(request, env, auth) {
     cancelRequestedAt: toIsoOrNull(cancelRequestedAt),
     hasStartedPaidService: Boolean(user.has_started_paid_service),
     firstServiceAccessDate: toIsoOrNull(user.first_service_access_date),
-    adminMode,
-    simulated: false,
-    adminTestTier: null,
     freeLimit: passLimit,
     passLimit,
     maxCoveredCoin: passLimit,
@@ -3265,9 +3019,6 @@ function buildDbFallbackSubscriptionStatus(auth, error) {
     cancelRequestedAt: null,
     hasStartedPaidService: false,
     firstServiceAccessDate: null,
-    adminMode: false,
-    simulated: false,
-    adminTestTier: null,
     freeLimit: policy.freeLimit,
     recommendedCoins: policy.recommendedCoins,
     code: "DB_FALLBACK",
@@ -3567,7 +3318,7 @@ export async function handleFortuneRoutes(request, env) {
       trace.authVerified = true;
       await connectDb(env);
       trace.dbConnected = true;
-      return await handlePigCoinUnlock(request, authCtx.auth, { adminMode: authCtx.adminMode, env });
+      return await handlePigCoinUnlock(request, authCtx.auth, { env });
     }
 
     if (method === "POST" && path === "/pig-coin/consume") {
@@ -3575,7 +3326,7 @@ export async function handleFortuneRoutes(request, env) {
       trace.authVerified = true;
       await connectDb(env);
       trace.dbConnected = true;
-      return await handlePigCoinConsume(request, authCtx.auth, { adminMode: authCtx.adminMode, env });
+      return await handlePigCoinConsume(request, authCtx.auth, { env });
     }
 
     if (method === "POST" && path === "/ziwei/ai-prompt") {
@@ -3667,7 +3418,6 @@ export async function handleFortuneRoutes(request, env) {
 
 export const __fortuneAccessTestUtils = {
   resolveServerCoinPricing,
-  isAdminPigCoinBypassEnabled,
   getForcePaidTestAccountEmails,
   resolvePigCoinConsumeAuth,
 };
