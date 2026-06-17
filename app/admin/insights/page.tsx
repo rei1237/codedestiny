@@ -59,6 +59,75 @@ type ContentDiag = {
   dynamicFeeds?: Record<string, { ok?: boolean; status?: number; merged?: boolean; error?: string; url?: string }>;
 };
 
+type PromptLabService = "saju" | "tarot" | "sukuyo" | "astrology" | "ziwei" | "vedic";
+type PromptLabDomain = "general" | "love" | "compatibility" | "career" | "money" | "health" | "life_direction" | "personality";
+
+type PromptLabForm = {
+  service: PromptLabService;
+  domain: PromptLabDomain;
+  name: string;
+  gender: "" | "M" | "F";
+  birthDate: string;
+  birthTime: string;
+  birthTimeUnknown: boolean;
+  birthPlace: string;
+  latitude: string;
+  longitude: string;
+  timezone: string;
+  question: string;
+};
+
+type PromptLabResult = {
+  ok?: boolean;
+  service?: PromptLabService;
+  serviceLabel?: string;
+  domain?: string;
+  domainLabel?: string;
+  title?: string;
+  prompt?: string;
+  generatedPrompt?: string;
+  summaryIntent?: string;
+  analysisAngles?: string[];
+  recommendedFollowUpQuestions?: string[];
+  adminFreeExecution?: boolean;
+  generatedAt?: string;
+};
+
+const PROMPT_LAB_SERVICES: Array<{ key: PromptLabService; label: string }> = [
+  { key: "saju", label: "사주" },
+  { key: "tarot", label: "타로" },
+  { key: "sukuyo", label: "숙요" },
+  { key: "astrology", label: "점성술" },
+  { key: "ziwei", label: "자미두수" },
+  { key: "vedic", label: "베다점" },
+];
+
+const PROMPT_LAB_DOMAINS: Array<{ key: PromptLabDomain; label: string }> = [
+  { key: "general", label: "전체 흐름" },
+  { key: "love", label: "연애/관계" },
+  { key: "compatibility", label: "궁합" },
+  { key: "career", label: "직업/진로" },
+  { key: "money", label: "재물/사업" },
+  { key: "health", label: "건강/리듬" },
+  { key: "life_direction", label: "인생 흐름" },
+  { key: "personality", label: "기질/성향" },
+];
+
+const DEFAULT_PROMPT_LAB_FORM: PromptLabForm = {
+  service: "saju",
+  domain: "general",
+  name: "",
+  gender: "",
+  birthDate: "",
+  birthTime: "",
+  birthTimeUnknown: true,
+  birthPlace: "",
+  latitude: "",
+  longitude: "",
+  timezone: "Asia/Seoul",
+  question: "올해 제 운의 흐름에서 가장 강하게 열리는 문과 조심해야 할 기운은 무엇인가요?",
+};
+
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 
 function getFlowerAdminTokenClient(): string {
@@ -169,6 +238,7 @@ export default function AdminInsightsPage() {
   const router = useRouter();
   const apiBase = useMemo(() => getApiBaseUrl(), []);
   const endpointBase = `${apiBase || ""}/api/admin/content`;
+  const promptLabEndpoint = `${apiBase || ""}/api/admin/prompt-lab/generate`;
   const requestCredentials = useMemo(() => resolveAdminRequestCredentials(apiBase), [apiBase]);
 
   const [filter, setFilter] = useState<FilterKey>("all");
@@ -183,6 +253,10 @@ export default function AdminInsightsPage() {
   const [busyId, setBusyId] = useState("");
   const [publicationChecks, setPublicationChecks] = useState<Record<string, PublicationCheck>>({});
   const [diag, setDiag] = useState<ContentDiag | null>(null);
+  const [promptLabForm, setPromptLabForm] = useState<PromptLabForm>(DEFAULT_PROMPT_LAB_FORM);
+  const [promptLabLoading, setPromptLabLoading] = useState(false);
+  const [promptLabError, setPromptLabError] = useState("");
+  const [promptLabResult, setPromptLabResult] = useState<PromptLabResult | null>(null);
 
   async function loadDiag() {
     try {
@@ -339,6 +413,61 @@ export default function AdminInsightsPage() {
     }
   }
 
+  function updatePromptLabField<K extends keyof PromptLabForm>(key: K, value: PromptLabForm[K]) {
+    setPromptLabForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function generatePromptLab() {
+    setPromptLabError("");
+    setPromptLabResult(null);
+
+    if (!promptLabForm.birthDate) {
+      setPromptLabError("생년월일을 입력해 주세요.");
+      return;
+    }
+
+    if (promptLabForm.question.trim().length < 5) {
+      setPromptLabError("질문을 조금 더 구체적으로 입력해 주세요.");
+      return;
+    }
+
+    setPromptLabLoading(true);
+    try {
+      const res = await fetch(promptLabEndpoint, {
+        method: "POST",
+        credentials: requestCredentials,
+        headers: buildAdminHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(promptLabForm),
+        cache: "no-store",
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 401 || res.status === 403) {
+        setForbidden(true);
+        setPromptLabError("관리자 로그인이 필요합니다.");
+        return;
+      }
+
+      if (!res.ok) {
+        setPromptLabError(String(data?.message || "프롬프트 생성에 실패했습니다."));
+        return;
+      }
+
+      setForbidden(false);
+      setPromptLabResult(data as PromptLabResult);
+    } catch {
+      setPromptLabError("네트워크 오류로 프롬프트를 만들지 못했습니다.");
+    } finally {
+      setPromptLabLoading(false);
+    }
+  }
+
+  async function copyPromptLabPrompt() {
+    const promptText = promptLabResult?.prompt || promptLabResult?.generatedPrompt || "";
+    if (!promptText || typeof navigator === "undefined" || !navigator.clipboard) return;
+    await navigator.clipboard.writeText(promptText);
+  }
+
   return (
     <main className="min-h-screen bg-[#0d0d1a] text-slate-100 px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto max-w-7xl space-y-4">
@@ -414,6 +543,197 @@ export default function AdminInsightsPage() {
           </section>
         ) : null}
 
+        <section id="adminPromptLab" className="rounded-2xl border border-amber-900/60 bg-[#15110d] p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-amber-100">프롬프트 실험실</h2>
+              <p className="mt-1 text-xs text-amber-100/60">푸터 꽃 관리자 진입 전용 · 결제 없이 생년월일 기반 프롬프트 생성</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => { void generatePromptLab(); }}
+                disabled={promptLabLoading}
+                className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-[#1b1205] hover:bg-amber-500 disabled:opacity-50"
+              >
+                {promptLabLoading ? "생성 중" : "프롬프트 생성"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { void copyPromptLabPrompt(); }}
+                disabled={!promptLabResult?.prompt && !promptLabResult?.generatedPrompt}
+                className="rounded-lg border border-amber-700 bg-amber-950/40 px-4 py-2 text-sm text-amber-100 hover:bg-amber-900/50 disabled:opacity-50"
+              >
+                복사
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-12">
+            <div className="space-y-3 lg:col-span-5">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <label className="block text-xs text-amber-100/70">
+                  점술
+                  <select
+                    value={promptLabForm.service}
+                    onChange={(e) => updatePromptLabField("service", e.target.value as PromptLabService)}
+                    className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                  >
+                    {PROMPT_LAB_SERVICES.map((option) => (
+                      <option key={option.key} value={option.key}>{option.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block text-xs text-amber-100/70">
+                  질문 성격
+                  <select
+                    value={promptLabForm.domain}
+                    onChange={(e) => updatePromptLabField("domain", e.target.value as PromptLabDomain)}
+                    className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                  >
+                    {PROMPT_LAB_DOMAINS.map((option) => (
+                      <option key={option.key} value={option.key}>{option.label}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <label className="block text-xs text-amber-100/70">
+                  이름
+                  <input
+                    type="text"
+                    value={promptLabForm.name}
+                    onChange={(e) => updatePromptLabField("name", e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                    placeholder="선택"
+                  />
+                </label>
+                <label className="block text-xs text-amber-100/70">
+                  성별
+                  <select
+                    value={promptLabForm.gender}
+                    onChange={(e) => updatePromptLabField("gender", e.target.value as PromptLabForm["gender"])}
+                    className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                  >
+                    <option value="">선택 안 함</option>
+                    <option value="F">여성</option>
+                    <option value="M">남성</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <label className="block text-xs text-amber-100/70">
+                  생년월일
+                  <input
+                    type="date"
+                    value={promptLabForm.birthDate}
+                    onChange={(e) => updatePromptLabField("birthDate", e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                  />
+                </label>
+                <label className="block text-xs text-amber-100/70">
+                  출생시간
+                  <input
+                    type="time"
+                    value={promptLabForm.birthTime}
+                    onChange={(e) => {
+                      updatePromptLabField("birthTime", e.target.value);
+                      updatePromptLabField("birthTimeUnknown", false);
+                    }}
+                    disabled={promptLabForm.birthTimeUnknown}
+                    className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50 disabled:opacity-50"
+                  />
+                </label>
+              </div>
+
+              <label className="inline-flex items-center gap-2 text-xs text-amber-100/70">
+                <input
+                  type="checkbox"
+                  checked={promptLabForm.birthTimeUnknown}
+                  onChange={(e) => updatePromptLabField("birthTimeUnknown", e.target.checked)}
+                  className="h-4 w-4 rounded border-amber-800 bg-[#201811]"
+                />
+                출생시간 미상
+              </label>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <label className="block text-xs text-amber-100/70 sm:col-span-3">
+                  출생지
+                  <input
+                    type="text"
+                    value={promptLabForm.birthPlace}
+                    onChange={(e) => updatePromptLabField("birthPlace", e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                    placeholder="예: 서울"
+                  />
+                </label>
+                <input
+                  type="text"
+                  value={promptLabForm.latitude}
+                  onChange={(e) => updatePromptLabField("latitude", e.target.value)}
+                  className="rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                  placeholder="위도"
+                />
+                <input
+                  type="text"
+                  value={promptLabForm.longitude}
+                  onChange={(e) => updatePromptLabField("longitude", e.target.value)}
+                  className="rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                  placeholder="경도"
+                />
+                <input
+                  type="text"
+                  value={promptLabForm.timezone}
+                  onChange={(e) => updatePromptLabField("timezone", e.target.value)}
+                  className="rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                  placeholder="Asia/Seoul"
+                />
+              </div>
+
+              <label className="block text-xs text-amber-100/70">
+                질문
+                <textarea
+                  value={promptLabForm.question}
+                  onChange={(e) => updatePromptLabField("question", e.target.value)}
+                  className="mt-1 min-h-[126px] w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                />
+              </label>
+              {promptLabError ? (
+                <p className="rounded-lg border border-rose-700/70 bg-rose-950/30 px-3 py-2 text-xs text-rose-200">{promptLabError}</p>
+              ) : null}
+            </div>
+
+            <div className="space-y-3 lg:col-span-7">
+              {promptLabResult ? (
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                  <p className="rounded-lg border border-amber-900/60 bg-[#201811] px-3 py-2 text-xs text-amber-100/80">점술<br /><span className="text-sm font-semibold text-amber-50">{promptLabResult.serviceLabel || promptLabResult.service || "-"}</span></p>
+                  <p className="rounded-lg border border-amber-900/60 bg-[#201811] px-3 py-2 text-xs text-amber-100/80">질문 성격<br /><span className="text-sm font-semibold text-amber-50">{promptLabResult.domainLabel || promptLabResult.domain || "-"}</span></p>
+                  <p className="rounded-lg border border-amber-900/60 bg-[#201811] px-3 py-2 text-xs text-amber-100/80">참조 축<br /><span className="text-sm font-semibold text-amber-50">{promptLabResult.analysisAngles?.length || 0}</span></p>
+                  <p className="rounded-lg border border-amber-900/60 bg-[#201811] px-3 py-2 text-xs text-amber-100/80">결제<br /><span className="text-sm font-semibold text-emerald-300">{promptLabResult.adminFreeExecution ? "없음" : "-"}</span></p>
+                </div>
+              ) : null}
+              <textarea
+                readOnly
+                value={promptLabResult?.prompt || promptLabResult?.generatedPrompt || ""}
+                className="min-h-[432px] w-full rounded-lg border border-amber-900/70 bg-[#0f0c09] px-3 py-3 font-mono text-xs leading-5 text-amber-50"
+                placeholder="생성된 프롬프트가 여기에 머무릅니다."
+              />
+              {promptLabResult?.recommendedFollowUpQuestions?.length ? (
+                <div className="rounded-lg border border-amber-900/60 bg-[#201811] px-3 py-2">
+                  <p className="text-xs font-semibold text-amber-100">후속 질문</p>
+                  <ul className="mt-2 space-y-1 text-xs text-amber-100/75">
+                    {promptLabResult.recommendedFollowUpQuestions.slice(0, 4).map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </section>
+
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <aside className="lg:col-span-3 rounded-2xl border border-[#2a2a3e] bg-[#13131f] p-3">
             <p className="text-xs uppercase tracking-wider text-slate-500 px-2 py-1">관리자 메뉴</p>
@@ -430,6 +750,12 @@ export default function AdminInsightsPage() {
               >
                 인사이트 전용 보기
               </Link>
+              <a
+                href="#adminPromptLab"
+                className="block rounded-lg px-3 py-2 text-sm bg-amber-950/40 border border-amber-800 text-amber-100"
+              >
+                프롬프트 실험실
+              </a>
             </nav>
           </aside>
 
