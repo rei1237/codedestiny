@@ -4859,17 +4859,19 @@ function _cdAIPromptGate(input) {
       subFeatureKey: String(opts.subFeatureKey || '').trim() || undefined,
       coinPrice: cost,
       cost: cost,
+      membershipCreditCost: Math.max(0, Math.floor(Number(opts.membershipCreditCost || (cost * 10)))),
       requestId: requestId
     })).then(function(openResult) {
       if (openResult && openResult.status === 'granted') {
         return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
       }
+      var openMessage = String(openResult && (openResult.message || openResult.reason) || '').trim();
       return normalize({
         ok: false,
         status: 402,
         payload: {
           code: 'PAYMENT_REQUIRED',
-          message: '이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.',
+          message: openMessage || '\uC774\uC6A9\uAD8C \uB610\uB294 \uB2E8\uAC74\uACB0\uC81C \uD655\uC778 \uD6C4 \uD504\uB86C\uD504\uD2B8\uB97C \uC0DD\uC131\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.',
           requiredCoins: cost
         }
       });

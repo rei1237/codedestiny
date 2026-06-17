@@ -48,6 +48,7 @@ import {
   canUseByPass,
   normalizeHoneyPassEntitlement,
   normalizePassTier,
+  resolveActivePassPolicy,
 } from "../lib/profile-limits.js";
 import {
   getProfileCardMutationPolicy,
@@ -378,22 +379,23 @@ async function consumeUsagePassIfAvailable(env, authUserId, pricing, requestId) 
 }
 
 function isActiveMembership(profileSubscription = {}) {
-  return normalizeHoneyPassEntitlement({ profileSubscription }).isActive;
+  return resolveActivePassPolicy({ profileSubscription }).isActive;
 }
 
 function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscription = {}, overrides = {}) {
+  const activeEntitlement = resolveActivePassPolicy({ profileSubscription, ...(entitlement || {}) });
   const coinCost = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
-  const passLimitValue = Number(entitlement?.maxCoveredCoin || 0);
+  const passLimitValue = Number(activeEntitlement?.maxCoveredCoin || 0);
   const monthlyBalance = Math.max(0, Math.floor(Number(
     overrides.monthlyBalance ?? profileSubscription?.membershipCreditBalance ?? 0,
   )));
   const membershipCreditCost = Math.max(0, Math.floor(Number(
     pricing?.membershipCreditCost || calculateMembershipCreditCost(coinCost),
   )));
-  const hasActivePass = entitlement?.isActive === true;
-  const passTier = hasActivePass ? normalizePassTier(entitlement?.passTier || entitlement?.tier) : null;
+  const hasActivePass = activeEntitlement?.isActive === true;
+  const passTier = hasActivePass ? normalizePassTier(activeEntitlement?.passTier || activeEntitlement?.tier) : null;
   const pdfDiscountRequiresPayment = pricing?.passDiscount && Number(pricing.passDiscount.finalCoinPrice || coinCost || 0) > 0;
-  const passCovered = !pdfDiscountRequiresPayment && canUseByPass(entitlement, coinCost);
+  const passCovered = !pdfDiscountRequiresPayment && canUseByPass(activeEntitlement, coinCost);
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
 
   return {
@@ -658,7 +660,7 @@ async function getActiveMembershipPassForUser(env, authUserId) {
   const user = await User.findById(authUserId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
     .lean();
-  const entitlement = normalizeHoneyPassEntitlement(user || {});
+  const entitlement = resolveActivePassPolicy(user || {});
   return {
     isActive: entitlement.isActive,
     tier: entitlement.isActive ? entitlement.tier : "free",
@@ -748,13 +750,15 @@ function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
     freeLimit: Number(snapshot?.freeLimit || subscription?.freeLimit || 0),
     source: snapshot?.source || subscription?.source || "subscription_status_snapshot",
   };
-  const entitlement = normalizeHoneyPassEntitlement({ profileSubscription });
+  const entitlement = resolveActivePassPolicy({ profileSubscription });
   if (!entitlement.isActive) return null;
   return {
     isActive: true,
     tier: entitlement.tier,
     passTier: entitlement.passTier,
     freeLimit: Number(entitlement.maxCoveredCoin || 0),
+    passLimit: Number(entitlement.maxCoveredCoin || 0),
+    maxCoveredCoin: Number(entitlement.maxCoveredCoin || 0),
     profileSubscription,
     entitlement,
   };
@@ -3680,7 +3684,7 @@ async function readSubscriptionStatusSnapshot(request, env) {
       const user = await User.findById(auth.userId)
         .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
         .lean();
-      const entitlement = normalizeHoneyPassEntitlement(user || {});
+      const entitlement = resolveActivePassPolicy(user || {});
       if (entitlement.isActive) {
         return {
           isActive: true,
@@ -3689,6 +3693,8 @@ async function readSubscriptionStatusSnapshot(request, env) {
           passLabel: entitlement.passLabel || entitlement.label,
           passColorTone: entitlement.passColorTone || null,
           freeLimit: Number(entitlement.maxCoveredCoin || 0),
+          passLimit: Number(entitlement.maxCoveredCoin || 0),
+          maxCoveredCoin: Number(entitlement.maxCoveredCoin || 0),
           entitlement,
         };
       }
@@ -3708,7 +3714,23 @@ async function readSubscriptionStatusSnapshot(request, env) {
       enabled: payload?.enabled,
       valid: payload?.valid,
       registered: payload?.registered,
-      tier: String(payload?.tier || subscription?.tier || payload?.plan || subscription?.plan || payload?.passTier || subscription?.passTier || "free"),
+      tier: String(
+        payload?.tier
+        || payload?.plan
+        || payload?.planId
+        || payload?.productId
+        || payload?.subscriptionTier
+        || payload?.membershipTier
+        || payload?.passTier
+        || subscription?.tier
+        || subscription?.plan
+        || subscription?.planId
+        || subscription?.productId
+        || subscription?.subscriptionTier
+        || subscription?.membershipTier
+        || subscription?.passTier
+        || "free",
+      ),
       plan: payload?.plan || subscription?.plan || null,
       passTier: payload?.passTier || subscription?.passTier || null,
       status: payload?.status || subscription?.status || null,
@@ -3716,6 +3738,8 @@ async function readSubscriptionStatusSnapshot(request, env) {
       membershipStatus: payload?.membershipStatus || subscription?.membershipStatus || null,
       expiresAt: payload?.expiresAt || subscription?.expiresAt || null,
       freeLimit: Number(payload?.freeLimit || subscription?.freeLimit || 0),
+      passLimit: Number(payload?.passLimit || payload?.freeLimit || subscription?.passLimit || subscription?.freeLimit || 0),
+      maxCoveredCoin: Number(payload?.maxCoveredCoin || payload?.passLimit || payload?.freeLimit || subscription?.maxCoveredCoin || subscription?.passLimit || subscription?.freeLimit || 0),
       source: payload?.source || subscription?.source || "profile_subscription_status",
       subscription,
     };
@@ -3726,7 +3750,7 @@ async function readSubscriptionStatusSnapshot(request, env) {
 
 function buildBillingSubscriptionSnapshot(user = {}) {
   const sub = user?.profileSubscription || {};
-  const entitlement = normalizeHoneyPassEntitlement(user || {});
+  const entitlement = resolveActivePassPolicy(user || {});
   return {
     isActive: entitlement.isActive,
     isSubscribed: Boolean(user?.isSubscribed || sub?.isSubscribed || entitlement.isActive),
@@ -3742,6 +3766,8 @@ function buildBillingSubscriptionSnapshot(user = {}) {
     membershipStatus: user?.membershipStatus || sub?.membershipStatus || null,
     expiresAt: entitlement.expiresAt || sub?.expiresAt || user?.expiresAt || null,
     freeLimit: Number(entitlement.maxCoveredCoin || 0),
+    passLimit: Number(entitlement.maxCoveredCoin || 0),
+    maxCoveredCoin: Number(entitlement.maxCoveredCoin || 0),
     source: entitlement.source || "billing_snapshot",
     subscription: sub,
     entitlement,
@@ -3772,13 +3798,15 @@ function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
     membershipCreditBalance: Math.max(0, Math.floor(Number(snapshot.membershipCreditBalance || 0))),
   };
   const entitlement = subscription.entitlement && typeof subscription.entitlement === "object"
-    ? subscription.entitlement
-    : normalizeHoneyPassEntitlement({ profileSubscription });
+    ? resolveActivePassPolicy({ profileSubscription, ...subscription.entitlement })
+    : resolveActivePassPolicy({ profileSubscription });
   return {
     isActive: Boolean(subscription.isActive),
     tier: String(subscription.tier || entitlement.tier || "free"),
     passTier: subscription.passTier || entitlement.passTier || null,
     freeLimit: Number(subscription.freeLimit || entitlement.maxCoveredCoin || 0),
+    passLimit: Number(subscription.passLimit || subscription.freeLimit || entitlement.maxCoveredCoin || 0),
+    maxCoveredCoin: Number(subscription.maxCoveredCoin || subscription.passLimit || subscription.freeLimit || entitlement.maxCoveredCoin || 0),
     profileSubscription,
     entitlement,
   };

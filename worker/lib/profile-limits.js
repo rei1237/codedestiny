@@ -179,22 +179,22 @@ function resolveSourceName(source = {}, fallback = "none") {
 export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
   const user = userOrSubscription || {};
   const sources = [];
+  const pushSource = (value, source) => {
+    if (value && typeof value === "object") {
+      sources.push({ value, source: resolveSourceName(value, source) });
+    }
+  };
 
-  if (user.profileSubscription && typeof user.profileSubscription === "object") {
-    sources.push({ value: user.profileSubscription, source: resolveSourceName(user.profileSubscription, "current_pass") });
-  }
-  if (user.subscription && typeof user.subscription === "object") {
-    sources.push({ value: user.subscription, source: "legacy_subscription" });
-  }
-  if (user.membership && typeof user.membership === "object") {
-    sources.push({ value: user.membership, source: "membership" });
-  }
-  if (user.pass && typeof user.pass === "object") {
-    sources.push({ value: user.pass, source: "current_pass" });
-  }
-  if (user.entitlement && typeof user.entitlement === "object") {
-    sources.push({ value: user.entitlement, source: "current_pass" });
-  }
+  pushSource(user.profileSubscription, "current_pass");
+  pushSource(user.subscription, "legacy_subscription");
+  pushSource(user.subscription?.subscription, "legacy_subscription");
+  pushSource(user.membership, "membership");
+  pushSource(user.membership?.subscription, "membership");
+  pushSource(user.membershipPass, "current_pass");
+  pushSource(user.pass, "current_pass");
+  pushSource(user.entitlement, "current_pass");
+  pushSource(user.licensePass, "current_pass");
+  pushSource(user.accessGateResult, "current_pass");
 
   sources.push({ value: user, source: "legacy_subscription" });
 
@@ -253,6 +253,10 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
     startedAt: null,
     expiresAt: null,
   };
+}
+
+export function resolveActivePassPolicy(userOrSubscription = {}) {
+  return normalizeHoneyPassEntitlement(userOrSubscription);
 }
 
 export function resolveProfileLimitForClient(subscription, options = {}) {

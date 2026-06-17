@@ -7,6 +7,7 @@ import { FEATURE_KEY_PRICE_TABLE } from "../worker/lib/paid-feature-registry.js"
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const coinGateSource = readFileSync(resolve(root, "app/hooks/useCoinGate.ts"), "utf8");
+const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const sajuEngineSource = readFileSync(resolve(root, "js/saju-engine.js"), "utf8");
 const sukuyoEngineSource = readFileSync(resolve(root, "js/saju-engine-tarot-sukuyo-quantum.js"), "utf8");
 
@@ -54,6 +55,8 @@ assert.equal(
   "all AI prompt routes must require pre-verified paid access",
 );
 assert.match(sajuEngineSource, /window\._cdOpenPaidServiceGate/, "saju/ziwei/astrology prompt clients must use the standard paid service gate");
+assert.match(sajuEngineSource, /membershipCreditCost:\s*Math\.max\(0,\s*Math\.floor\(Number\(opts\.membershipCreditCost \|\| \(cost \* 10\)\)\)\)/, "saju prompt gate must pass monthly credit cost into the standard paid gate");
+assert.match(sajuEngineSource, /message:\s*openMessage \|\|/, "saju prompt gate must preserve the standard paid gate failure reason");
 assert.match(sajuEngineSource, /paymentMode:\s*'MEMBERSHIP_PASS'/, "saju prompt fallback may only probe membership pass access");
 assert.match(sajuEngineSource, /function _sajuPromptPostWithPaidEvidence/, "saju prompt must separate paid gate from generation request");
 assert.match(sajuEngineSource, /_sajuPromptShouldRetryPaidGeneration/, "saju prompt must retry generation with the same paid evidence after transient DB verification failure");
@@ -70,5 +73,6 @@ assert.match(sukuyoEngineSource, /window\._cdOpenPaidServiceGate/, "sukuyo promp
 assert.match(sukuyoEngineSource, /paymentMode:\s*'MEMBERSHIP_PASS'/, "sukuyo prompt fallback may only probe membership pass access");
 assert.match(sukuyoEngineSource, /sukuyo_ai_prompt_generator/, "sukuyo prompt must use canonical server feature key");
 assert.match(coinGateSource, /consume\.chargedCoins \?\? consume\.cost/, "client must prefer server chargedCoins");
+assert.doesNotMatch(indexSource, /status:\s*'cancelled',\s*reason:\s*'pass_applied_in_modal'/, "paid service gate must not convert applied membership pass into cancellation");
 
 console.log("[verify-ai-prompt-billing-policy] PASS");

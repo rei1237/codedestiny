@@ -101,6 +101,7 @@ assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBe
 
 assertContains(indexSource, "passButtonHtml", "canonical payment modal pass option");
 assertContains(indexSource, "_cdResolvePassBeforePaymentChoice(Object.assign({}, opts, {", "canonical pass lookup on pass click");
+assertNotContains(indexSource, "reason: 'pass_applied_in_modal'", "membership pass choice must grant instead of cancelling");
 assertContains(destinyProfileSource, "if (choice === 'pass')", "destiny pass choice grant path");
 assertContains(destinyProfileSource, "__cdRestoreCanonicalPaymentMode", "destiny fallback restores canonical selector");
 assertContains(destinyProfileSource, "__cdSupportsPassChoice", "destiny fallback requires pass-capable selector");
