@@ -2748,7 +2748,7 @@ async function handleSajuAIPrompt(request, auth, env) {
       errorName: "MISSING_PROFILE_ID",
       errorMessage: "profileId is required for per-use saju question prompt generation.",
     });
-    return buildSajuAIPromptError("MISSING_PROFILE_ID", "프로필을 먼저 선택한 뒤 질문문을 생성해 주세요.", 403);
+    return buildSajuAIPromptError("MISSING_PROFILE_ID", "프로필을 먼저 선택한 뒤 질문문을 생성해 주세요.", 400);
   }
 
   await connectDb(env);

@@ -86,6 +86,8 @@ assert.match(fortuneSource, /SAJU_AI_PROMPT_ACCESS_MODE = "per_use"/, "saju ques
 assert.match(fortuneSource, /PaidExecutionRecord\.findOne\(\{[\s\S]*featureId: SAJU_AI_PROMPT_FEATURE_KEY,[\s\S]*profileId,[\s\S]*requestId/, "saju question prompt must check request-scoped paid execution records");
 assert.match(fortuneSource, /PaidExecutionRecord\.create\(executionDocument\)/, "saju question prompt must claim a request-scoped paid execution record");
 assert.match(fortuneSource, /status: "generating"/, "saju question prompt must mark the claimed execution as generating before returning a result");
+assert.match(sajuEngineSource, /code === 'MISSING_PROFILE_ID'[\s\S]{0,180}_sajuPromptSetStatus/, "saju prompt profile errors must not open the login flow");
+assert.match(fortuneSource, /buildSajuAIPromptError\("MISSING_PROFILE_ID",[\s\S]*?, 400\)/, "saju prompt missing profile errors must not be returned as auth failures");
 assert.equal(
   (fortuneSource.match(/freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
   promptFeatures.length,

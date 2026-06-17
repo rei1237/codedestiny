@@ -4881,12 +4881,15 @@ function _cdAIPromptIsPassPayload(payload, access) {
 function _cdAIPromptRecordedMembershipPass(opts, requestId, passPayload) {
   var source = passPayload && typeof passPayload === 'object' ? passPayload : {};
   var data = source.data && typeof source.data === 'object' ? source.data : source;
+  var profileId = String(opts.profileId || opts.selectedProfileId || '').trim();
   return _cdAIPromptRequestJson('/api/billing/coin-gate', {
     method: 'POST',
     body: JSON.stringify({
       featureKey: String(opts.featureKey || '').trim(),
       reason: String(opts.reason || 'AI 질문 프롬프트 생성').trim(),
       requestId: requestId,
+      profileId: profileId || undefined,
+      selectedProfileId: profileId || undefined,
       categoryKey: String(opts.categoryKey || 'ai-prompt').trim(),
       subFeatureKey: String(opts.subFeatureKey || '').trim() || undefined,
       paymentMode: 'MEMBERSHIP_PASS',
@@ -4903,6 +4906,7 @@ function _cdAIPromptGate(input) {
   var featureKey = String(opts.featureKey || '').trim();
   var reason = String(opts.reason || 'AI 질문 프롬프트 생성').trim();
   var requestId = String(opts.requestId || featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)).trim();
+  var profileId = String(opts.profileId || opts.selectedProfileId || '').trim();
   var cost = Number(opts.cost || 100);
   if (!Number.isFinite(cost) || cost <= 0) cost = 100;
   function normalize(result) {
@@ -4930,7 +4934,9 @@ function _cdAIPromptGate(input) {
       cost: cost,
       membershipCreditCost: Math.max(0, Math.floor(Number(opts.membershipCreditCost || (cost * 10)))),
       forcePassFirst: true,
-      requestId: requestId
+      requestId: requestId,
+      profileId: profileId || undefined,
+      selectedProfileId: profileId || undefined
     })).then(function(openResult) {
       if (openResult && openResult.status === 'granted') {
         if (_cdAIPromptIsPassPayload(openResult.payload || {}, openResult.access || null)) {
@@ -4977,6 +4983,8 @@ function _cdAIPromptGate(input) {
       featureKey: featureKey,
       reason: reason,
       requestId: requestId,
+      profileId: profileId || undefined,
+      selectedProfileId: profileId || undefined,
       categoryKey: String(opts.categoryKey || 'ai-prompt').trim(),
       paymentMode: 'MEMBERSHIP_PASS',
       forceDeduct: true
@@ -5029,8 +5037,9 @@ function _cdAIPromptGateEvidence(gateResult) {
 
 function _cdAIPromptFailureResult(gateResult) {
   var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
-  var code = String(gate.code || '').trim();
-  if (gate.status === 401 || gate.status === 403) code = 'AUTH_REQUIRED';
+  var payload = gate.payload && typeof gate.payload === 'object' ? gate.payload : {};
+  var code = String(gate.code || payload.code || (payload.error && payload.error.code) || '').trim();
+  if ((gate.status === 401 || gate.status === 403) && !code) code = 'AUTH_REQUIRED';
   if (gate.status === 402 && !code) code = 'PAYMENT_REQUIRED';
   return {
     ok: false,
@@ -5038,7 +5047,7 @@ function _cdAIPromptFailureResult(gateResult) {
     payload: {
       ok: false,
       code: code || 'PAYMENT_REQUIRED',
-      message: gate.message || '이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.',
+      message: gate.message || payload.message || (payload.error && payload.error.message) || '이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.',
       requiredCoins: gate.requiredCoins || 0
     }
   };
@@ -5408,9 +5417,32 @@ function _sajuPromptResolveProfileId() {
     }
   } catch (_) {}
   try {
+    var currentProfile = window.__cdCurrentDestinyProfile
+      || window.__cdCurrentProfile
+      || window.currentDestinyProfile
+      || window.selectedDestinyProfile
+      || null;
+    if (!currentProfile && window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function') {
+      currentProfile = window.DestinyProfileManager.storage.current();
+    }
+    var currentId = String((currentProfile && (currentProfile.profileId || currentProfile.id)) || '').trim();
+    if (currentId) return currentId.slice(0, 80).replace(/\s+/g, '_');
+  } catch (_) {}
+  try {
     var profile = window.__cdActiveBirthProfile || window.__destinyFlowerSajuSnapshot || null;
     var profileId = String((profile && (profile.profileId || profile.id)) || '').trim();
     if (profileId) return profileId.slice(0, 80).replace(/\s+/g, '_');
+  } catch (_) {}
+  try {
+    if (typeof window._cdGetCurrentProfileFromStorage === 'function') {
+      var stored = window._cdGetCurrentProfileFromStorage();
+      var storedId = String((stored && (stored.profileId || stored.id)) || '').trim();
+      if (storedId) return storedId.slice(0, 80).replace(/\s+/g, '_');
+    }
+  } catch (_) {}
+  try {
+    var directId = String(window.__cdCurrentProfileId || window.currentProfileId || window.selectedProfileId || '').trim();
+    if (directId) return directId.slice(0, 80).replace(/\s+/g, '_');
   } catch (_) {}
   return '';
 }
@@ -5421,7 +5453,7 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
   if (!profileId) {
     return Promise.resolve({
       ok: false,
-      status: 403,
+      status: 400,
       payload: {
         ok: false,
         code: 'MISSING_PROFILE_ID',
@@ -5598,7 +5630,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
 
       var code = String(payload.code || '').trim();
       var message = String(payload.message || '').trim() || '프롬프트 생성 중 오류가 발생했습니다.';
-      if (code === 'AUTH_REQUIRED' || result.status === 401 || result.status === 403) {
+      if (code === 'MISSING_PROFILE_ID') {
+        _sajuPromptSetStatus(statusEl, message, 'error');
+        return;
+      }
+      if (code === 'AUTH_REQUIRED' || result.status === 401 || (result.status === 403 && !code)) {
         _sajuPromptSetStatus(statusEl, '로그인이 필요합니다. 로그인 페이지로 이동합니다.', 'error');
         setTimeout(function() { redirectToLoginForFortune(); }, 700);
         return;
