@@ -10,6 +10,12 @@ import {
   PASS_TIERS,
 } from "../worker/lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../worker/lib/pdf-pass-discount.js";
+import {
+  FEATURE_KEY_PRICE_TABLE,
+  PAID_FEATURE_BILLING_TYPES,
+  getPaidFeatureBillingType,
+  listServerPricedFeatureKeys,
+} from "../worker/lib/paid-feature-registry.js";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
@@ -201,6 +207,35 @@ assert.equal(
   true,
   "family status snapshot covers paid services",
 );
+
+for (const featureKey of listServerPricedFeatureKeys()) {
+  const pricing = FEATURE_KEY_PRICE_TABLE[featureKey];
+  if (!pricing) continue;
+  const coinCost = Math.max(0, Math.floor(Number(pricing.coinPrice || pricing.cost || 0)));
+  if (!(coinCost > 0)) continue;
+  const billingType = getPaidFeatureBillingType(featureKey);
+  const pricingInput = {
+    ...pricing,
+    featureKey,
+    coinPrice: coinCost,
+    cost: coinCost,
+    membershipCreditCost: coinCost * 10,
+  };
+  const standardDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.STANDARD), pricingInput, { membershipCreditBalance: coinCost * 10 });
+  const premiumDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.PREMIUM), pricingInput, { membershipCreditBalance: coinCost * 10 });
+  const vvipDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.VVIP), pricingInput, { membershipCreditBalance: coinCost * 10 });
+  const familyDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.FAMILY), pricingInput, { membershipCreditBalance: 0 });
+  assert.equal(familyDecision.canUseByPass, true, `${featureKey}: family must cover every paid service`);
+  if (billingType === PAID_FEATURE_BILLING_TYPES.PDF) {
+    assert.equal(standardDecision.canUseByPass, false, `${featureKey}: standard PDF remains product payment`);
+    assert.equal(premiumDecision.canUseByPass, false, `${featureKey}: premium PDF remains product payment`);
+    assert.equal(vvipDecision.canUseByPass, false, `${featureKey}: vvip PDF remains product payment`);
+  } else {
+    assert.equal(standardDecision.canUseByPass, coinCost <= PASS_LIMITS.standard, `${featureKey}: standard pass limit`);
+    assert.equal(premiumDecision.canUseByPass, coinCost <= PASS_LIMITS.premium, `${featureKey}: premium pass limit`);
+    assert.equal(vvipDecision.canUseByPass, coinCost <= PASS_LIMITS.vvip, `${featureKey}: vvip pass limit`);
+  }
+}
 
 const unchangedPdf = applyPdfPassDiscountToPricing({
   featureKey: "premium_pdf_ziwei",
