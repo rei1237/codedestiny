@@ -91,6 +91,10 @@ function countMatches(source, re) {
   return (source.match(re) || []).length;
 }
 
+function extractNativeMarkerTags(source) {
+  return source.match(/<(?=\/?[A-Za-z])[^>]*(?:\bdata-cd-trans\b|\bcustom-trans\b)[^>]*>/g) || [];
+}
+
 function valueAtPath(source, path) {
   return String(path || "").replace(/\[(\d+)\]/g, ".$1").split(".").reduce((acc, key) => {
     if (!acc || !key) return acc;
@@ -99,7 +103,7 @@ function valueAtPath(source, path) {
 }
 
 function extractNativeMarkerKeys(html) {
-  const tags = html.match(/<[^>]*(?:\bdata-cd-trans\b|\bcustom-trans\b)[^>]*>/g) || [];
+  const tags = extractNativeMarkerTags(html);
 
   return tags.map((tag) => {
     const dataKey = tag.match(/\bdata-key=["']([^"']+)["']/);
@@ -175,7 +179,7 @@ const rootNativePath = resolve(rootDir, "js", "cd-lang-native.js");
 const publicNativePath = resolve(rootDir, "public", "js", "cd-lang-native.js");
 const rootNativeExists = existsSync(rootNativePath);
 const publicNativeExists = existsSync(publicNativePath);
-const nativeMarkerCount = countMatches(indexHtml, /data-cd-trans\b/g) + countMatches(indexHtml, /\bcustom-trans\b/g);
+const nativeMarkerCount = extractNativeMarkerTags(indexHtml).length;
 const nativeMarkerKeys = extractNativeMarkerKeys(indexHtml);
 const rootNativeScriptSrc = extractNativeScriptSrc(indexHtml);
 
@@ -254,7 +258,7 @@ for (const mirrorPath of staticMirrorFiles) {
 
   const mirrorHtml = readText(filePath);
   const mirrorNativeScriptSrc = extractNativeScriptSrc(mirrorHtml);
-  const mirrorMarkerCount = countMatches(mirrorHtml, /data-cd-trans\b/g) + countMatches(mirrorHtml, /\bcustom-trans\b/g);
+  const mirrorMarkerCount = extractNativeMarkerTags(mirrorHtml).length;
 
   if (mirrorNativeScriptSrc !== rootNativeScriptSrc) {
     failures.push(`${mirrorPath} cd-lang-native script mismatch: ${mirrorNativeScriptSrc || "missing"} !== ${rootNativeScriptSrc || "missing"}`);
