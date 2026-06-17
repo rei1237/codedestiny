@@ -57,6 +57,8 @@ assertContains(indexSource, "window.__cdChooseServicePaymentModeCanonical = _cdC
 assertContains(indexSource, "window.__cdRestoreCanonicalPaymentMode", "canonical payment selector restore guard");
 assertContains(indexSource, "window._cdRunDirectKrwCheckout = _cdRunDirectKrwCheckout", "direct checkout exported");
 assertContains(indexSource, "window._cdHasVerifiedServerAccess = _cdHasVerifiedServerAccess", "server access guard exported");
+assertContains(indexSource, "window.__cdDirectPaymentChoiceActive", "direct payment choice active modal lock");
+assertContains(indexSource, "_cdHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight'", "global paid gate duplicate lock");
 assertContains(indexSource, "fallbackCoverage.source = 'cache_unverified';", "payment modal immediate cache fallback");
 const perUseGateSource = section(indexSource, "function _cdRunPerUseCoinGate(", "window.__cdRunPerUseCoinGateFromTile", "per-use gate");
 assertBefore(perUseGateSource, "_cdBeginPaidFeatureInFlight(action, paidGateFeatureKey", "await _cdChooseServicePaymentMode({", "paid gate opens before eligibility wait");
@@ -105,6 +107,7 @@ assertContains(destinyProfileSource, "__cdSupportsPassChoice", "destiny fallback
 assertNotContains(destinyProfileSource, "달빛 결제 방식 선택", "legacy two-option moon payment modal removed");
 assertNotContains(destinyProfileSource, "openServicePaymentChoiceModal", "legacy destiny payment selector renderer removed");
 assertContains(destinyProfileSource, "__cdChooseServicePaymentModeCanonical", "destiny fallback delegates to canonical pass selector");
+assertContains(destinyProfileSource, "_dpHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight'", "destiny fallback global paid gate duplicate lock");
 assertNotContains(destinyProfileSource, "opts.internalMainGate !== true && opts.__cdPaymentGateAuthorized !== true && typeof window.__cdApplyMembershipPassBeforePayment", "destiny no pre-modal pass bottleneck");
 
 assertContains(paymentsRouteSource, "fetchPortOnePayment", "server PortOne verification");

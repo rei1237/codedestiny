@@ -381,7 +381,10 @@ function runClientStaticTests() {
   assertContains(clientPaymentSource, "window._cdCoinGatePerUseInFlight", "duplicate click guard");
   assertContains(indexSource, "__cdDirectKrwCheckoutInFlight", "main shell direct checkout single-flight guard");
   assertContains(indexSource, "__cdPaidServiceGateInFlight", "main shell paid service gate single-flight guard");
+  assertContains(indexSource, "window.__cdDirectPaymentChoiceActive", "main shell payment choice modal lock");
+  assertContains(indexSource, "_cdHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight'", "main shell global paid gate duplicate lock");
   assertContains(destinyProfileSource, "__cdDirectKrwCheckoutInFlight", "runtime direct checkout single-flight guard");
+  assertContains(destinyProfileSource, "_dpHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight'", "runtime global paid gate duplicate lock");
   assertContains(destinyProfileSource, "__cdSinglePaymentGuard", "runtime payment guard marker");
   assertContains(clientPaymentSource, "window.PortOne.requestPayment(requestData)", "PortOne payment window call");
   assertContains(indexSource, "function _cdNormalizeKoreanPhoneNumber", "Inicis checkout phone normalizer");

@@ -2067,6 +2067,13 @@
     return promise;
   }
 
+  function _dpHasActivePaidServiceSingleFlight(slotName, key, ttlMs) {
+    var active = window[slotName];
+    if (!active || !active.promise) return false;
+    if (active.key === key) return false;
+    return Date.now() - Number(active.startedAt || 0) < ttlMs;
+  }
+
   function _dpIsGenericPaidGateFeatureKey(value) {
     var key = String(value || '').trim().toLowerCase();
     return !key || key === 'coin-gate-per-use' || key === 'paid-service' || key === 'paid_service' || key === 'default' || key === 'service';
@@ -2206,7 +2213,7 @@
             window._cdSetCoinGateOverlay(true, '이용권이 적용되었습니다.\n이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.\n추가 결제 없이 바로 열어드릴게요.', 'pass-applied');
             window.setTimeout(function() { window._cdSetCoinGateOverlay(false); }, 1600);
           }
-          else if (typeof window._cdShowSubscriptionShieldNotice === 'function') window._cdShowSubscriptionShieldNotice({ message: '\uC774\uC6A9\uAD8C\uC73C\uB85C \uCF54\uC778 \uCC28\uAC10 \uC5C6\uC774 \uC774\uC6A9\uD569\uB2C8\uB2E4.', requiredCoins: coinPrice });
+          else if (typeof window._cdShowSubscriptionShieldNotice === 'function') window._cdShowSubscriptionShieldNotice({ message: '이용권으로 추가 결제 없이 이용합니다.', requiredCoins: coinPrice });
         }
       } catch (_) {}
       return result;
@@ -2490,6 +2497,9 @@
       var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
       var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || opts.amount || (coinPrice * 100))));
       var key = _dpBuildPaidServiceSingleFlightKey(opts, title, coinPrice, amountKrw);
+      if (_dpHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight', key, 45000)) {
+        return Promise.resolve({ status: 'cancelled', reason: 'payment_already_open' });
+      }
       return _dpJoinPaidServiceSingleFlight('__cdPaidServiceGateInFlight', key, 45000, function() {
         return _dpOpenPaidServiceGateCore(opts);
       });

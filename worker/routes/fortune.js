@@ -1,5 +1,5 @@
 import { connectDb, mongoose } from "../lib/db.js";
-import { User, PointHistory, Payment } from "../lib/models.js";
+import { User, PointHistory, Payment, MonthlyCreditLedger } from "../lib/models.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
@@ -281,6 +281,54 @@ async function findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, 
     .lean();
 }
 
+function isAIPromptMonthlyCreditAccessPayload(body = {}) {
+  const ctx = readAIPromptAccessContext(body);
+  return ctx.accessType === "membership_credit"
+    || ctx.accessMethod === "MONTHLY"
+    || ctx.paymentMode === "MOONLIGHT_STONE"
+    || ctx.paymentMode === "MONTHLY_CREDIT"
+    || ctx.paymentMode === "MONTHLY";
+}
+
+function buildAIPromptMonthlyCreditLedgerClauses(tokens) {
+  const clauses = [];
+  for (const token of tokens) {
+    clauses.push({ sourceId: token });
+    clauses.push({ "metadata.requestId": token });
+    clauses.push({ "metadata.purchaseId": token });
+    clauses.push({ "metadata.idempotencyKey": token });
+    clauses.push({ "metadata.orderId": token });
+    clauses.push({ "metadata.pointHistoryId": token });
+    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: token });
+  }
+  return clauses;
+}
+
+async function findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId }) {
+  if (!isAIPromptMonthlyCreditAccessPayload(body)) return null;
+  const userId = String(auth?.userId || "").trim();
+  const normalizedFeatureKey = normalizeFeatureKey(featureKey);
+  const featureKeys = uniqueStrings([featureKey, normalizedFeatureKey]);
+  const tokens = collectAIPromptPaymentTokens(body, requestId);
+  const clauses = buildAIPromptMonthlyCreditLedgerClauses(tokens);
+  if (!userId || !featureKeys.length || !clauses.length) return null;
+
+  return MonthlyCreditLedger.findOne({
+    userId,
+    type: "MONTHLY_CREDIT_SPEND",
+    serviceKey: featureKeys.length > 1 ? { $in: featureKeys } : featureKeys[0],
+    amount: { $gt: 0 },
+    "metadata.refundedForUnlockFailure": { $ne: true },
+    "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
+    "metadata.monthlyCreditRefundedForLedgerFailure": { $ne: true },
+    "metadata.monthlyCreditRefundedForServiceExecution": { $ne: true },
+    $or: clauses,
+  })
+    .select("_id amount afterBalance serviceKey reason sourceId metadata")
+    .sort({ createdAt: -1 })
+    .lean();
+}
+
 function readAIPromptAccessContext(body = {}) {
   const accessGrant = body?.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
   const consume = body?.consume && typeof body.consume === "object" ? body.consume : {};
@@ -381,6 +429,9 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
     if (payment) return { source: "payment", record: payment };
   }
 
+  const monthlyCredit = await findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId });
+  if (monthlyCredit) return { source: "monthly_credit_ledger", record: monthlyCredit };
+
   return null;
 }
 
@@ -390,6 +441,7 @@ function buildAIPromptVerifiedConsumePayload({ auth, featureKey, reason, request
   const metadata = record?.metadata && typeof record.metadata === "object" ? record.metadata : {};
   const isPass = isAIPromptPassAccessPayload(body);
   const isDirect = evidence?.source === "payment" || isAIPromptDirectAccessPayload(body);
+  const isMonthlyCredit = evidence?.source === "monthly_credit_ledger";
   const accessType = isPass
     ? (ctx.accessType || "membership_pass")
     : (ctx.accessType || (isDirect ? "single_purchase" : "membership_credit"));
@@ -399,6 +451,7 @@ function buildAIPromptVerifiedConsumePayload({ auth, featureKey, reason, request
     ? 0
     : Math.max(0, Math.floor(Number(
       ctx.consume.chargedCoins
+        || metadata.coinPrice
         || record.coinPrice
         || record.expectedChargedPoints
         || Math.abs(Number(record.delta || 0))
@@ -406,10 +459,11 @@ function buildAIPromptVerifiedConsumePayload({ auth, featureKey, reason, request
         || 0,
     )));
   const membershipCreditCost = String(accessType || "").toLowerCase() === "membership_credit"
-    ? Math.max(0, Math.floor(Number(ctx.consume.membershipCreditCost || metadata.membershipCreditCost || metadata.requiredMonthlyCredits || 0)))
+    ? Math.max(0, Math.floor(Number(ctx.consume.membershipCreditCost || metadata.membershipCreditCost || metadata.requiredMonthlyCredits || record.amount || 0)))
     : 0;
   const transactionId = String(
-    record._id
+    metadata.pointHistoryId
+      || record._id
       || ctx.consume.transactionId
       || ctx.accessGrant.evidenceId
       || ctx.accessGrant.purchaseId
@@ -420,8 +474,10 @@ function buildAIPromptVerifiedConsumePayload({ auth, featureKey, reason, request
       || requestId
       || "",
   ).trim();
-  const balanceAfterRaw = Number(record.balanceAfter ?? subscriptionUser?.points);
+  const balanceAfterRaw = Number(isMonthlyCredit ? subscriptionUser?.points : (record.balanceAfter ?? subscriptionUser?.points));
   const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : 0;
+  const monthlyCreditsRaw = Number(ctx.consume.remainingMembershipCredit ?? ctx.consume.monthlyStoneBalance ?? metadata.remainingMembershipCredit ?? metadata.monthlyStoneBalance ?? record.afterBalance ?? subscriptionUser?.profileSubscription?.membershipCreditBalance);
+  const monthlyCredits = Number.isFinite(monthlyCreditsRaw) ? Math.max(0, Math.floor(monthlyCreditsRaw)) : 0;
   const unlockedFeatures = normalizePersistentUnlockKeys(subscriptionUser?.unlockedFeatures);
 
   return {
@@ -450,6 +506,10 @@ function buildAIPromptVerifiedConsumePayload({ auth, featureKey, reason, request
       coinPrice: cost,
       chargedCoins,
       membershipCreditCost,
+      requiredMonthlyCredits: membershipCreditCost,
+      remainingMembershipCredit: monthlyCredits,
+      monthlyStoneBalance: monthlyCredits,
+      monthlyCredits,
       idempotent: true,
     },
     user: userPayload(auth, balanceAfter, unlockedFeatures),

@@ -5373,7 +5373,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
         regenerateBtn.style.display = 'inline-flex';
         if (payload.balanceAfter != null) _applySajuAIPromptBalance(payload.balanceAfter);
         var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
-        _sajuPromptSetStatus(statusEl, (chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : '') + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 사주 전용 AI 질문문이 열렸습니다.', 'success');
+        var monthlyCreditCost = Math.max(0, Number(payload.membershipCreditCost || (payload.consume && payload.consume.membershipCreditCost) || 0));
+        var paymentConfirmText = monthlyCreditCost > 0
+          ? '월정석 ' + Math.floor(monthlyCreditCost).toLocaleString('ko-KR') + '개 결제 확인 완료. '
+          : (chargedCoins > 0 ? '결제 확인 완료. ' : '');
+        _sajuPromptSetStatus(statusEl, paymentConfirmText + _sajuPromptDomainLabel(String(payload.domain || domain || '').trim()) + ' 주제의 사주 전용 AI 질문문이 열렸습니다.', 'success');
         return;
       }
 
@@ -5386,7 +5390,6 @@ function _bindSajuQuestionPromptCard(rootEl) {
       }
       if (code === 'PAYMENT_REQUIRED' || code === 'INSUFFICIENT_COINS' || result.status === 402) {
         _sajuPromptSetStatus(statusEl, message, 'error');
-        _openSajuPaidPaymentMode(100, '사주 AI 질문문 생성', 'saju_ai_prompt_generator');
         return;
       }
       _sajuPromptSetStatus(statusEl, message, 'error');
