@@ -57,6 +57,8 @@ assert.equal(
 assert.match(sajuEngineSource, /window\._cdOpenPaidServiceGate/, "saju/ziwei/astrology prompt clients must use the standard paid service gate");
 assert.match(sajuEngineSource, /membershipCreditCost:\s*Math\.max\(0,\s*Math\.floor\(Number\(opts\.membershipCreditCost \|\| \(cost \* 10\)\)\)\)/, "saju prompt gate must pass monthly credit cost into the standard paid gate");
 assert.match(sajuEngineSource, /forcePassFirst:\s*true/, "saju prompt gate must force a server pass-first entitlement check");
+assert.match(sajuEngineSource, /function _cdAIPromptRecordedMembershipPass/, "saju prompt pass gate must create server-recorded pass evidence");
+assert.match(sajuEngineSource, /_cdAIPromptRecordedMembershipPass\(opts,\s*requestId,\s*openResult\.payload \|\| \{\}\)/, "saju prompt pass grant must be converted into recorded coin-gate evidence");
 assert.match(sajuEngineSource, /message:\s*openMessage \|\|/, "saju prompt gate must preserve the standard paid gate failure reason");
 assert.match(sajuEngineSource, /paymentMode:\s*'MEMBERSHIP_PASS'/, "saju prompt fallback may only probe membership pass access");
 assert.match(sajuEngineSource, /function _sajuPromptPostWithPaidEvidence/, "saju prompt must separate paid gate from generation request");
@@ -65,6 +67,16 @@ assert.match(sajuEngineSource, /freeBySubscription:\s*evidence\.freeBySubscripti
 assert.match(sajuEngineSource, /_cdAIPromptPayloadLayers/, "saju prompt gate evidence must flatten nested paid-gate payload layers");
 assert.match(fortuneSource, /accessDecision\.requestId/, "AI prompt token collection must include accessDecision request evidence");
 assert.match(fortuneSource, /accessDecision\.accessGranted === true/, "AI prompt pass payload must honor granted accessDecision evidence");
+assert.equal(
+  (fortuneSource.match(/accessDecision: body\?\.accessDecision/g) || []).length,
+  promptFeatures.length,
+  "all AI prompt generation routes must forward accessDecision into paid-access verification",
+);
+assert.equal(
+  (fortuneSource.match(/freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
+  promptFeatures.length,
+  "all AI prompt generation routes must forward subscription pass evidence into paid-access verification",
+);
 assert.match(sajuEngineSource, /_sajuPromptShouldRetryPaidGeneration/, "saju prompt must retry generation with the same paid evidence after transient DB verification failure");
 assert.match(sajuEngineSource, /onRetry:\s*function/, "saju prompt must surface paid generation retry state to the user");
 assert.match(sajuEngineSource, /getFortuneApiBaseUrl/, "saju prompt generation must support the worker API base fallback");

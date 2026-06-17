@@ -4858,6 +4858,43 @@ function _cdAIPromptRequestJson(path, init) {
     return res.json().catch(function() { return {}; }).then(function(payload) {
       return { ok: res.ok, status: res.status, payload: payload || {} };
     });
+    });
+}
+
+function _cdAIPromptIsPassPayload(payload, access) {
+  var layers = _cdAIPromptPayloadLayers(payload);
+  var accessType = String(_cdAIPromptFirstString(layers, ['accessType', 'transactionType']) || '').trim().toLowerCase();
+  var accessMethod = String(_cdAIPromptFirstString(layers, ['accessMethod', 'paymentMethod']) || '').trim().toUpperCase();
+  var accessDecision = _cdAIPromptFirstObject(layers, 'accessDecision');
+  var accessStatus = String(access && access.status || '').trim().toLowerCase();
+  var accessReason = String(accessDecision.reason || accessDecision.status || '').trim().toLowerCase();
+  return layers.some(function(layer) { return layer && layer.freeBySubscription === true; })
+    || accessDecision.accessGranted === true && accessReason === 'pass_covered'
+    || accessStatus === 'pass_applied'
+    || accessStatus === 'already_unlocked'
+    || accessType === 'membership_pass'
+    || accessType === 'usage_pass'
+    || accessType === 'subscription_pass'
+    || accessMethod === 'PASS';
+}
+
+function _cdAIPromptRecordedMembershipPass(opts, requestId, passPayload) {
+  var source = passPayload && typeof passPayload === 'object' ? passPayload : {};
+  var data = source.data && typeof source.data === 'object' ? source.data : source;
+  return _cdAIPromptRequestJson('/api/billing/coin-gate', {
+    method: 'POST',
+    body: JSON.stringify({
+      featureKey: String(opts.featureKey || '').trim(),
+      reason: String(opts.reason || 'AI 질문 프롬프트 생성').trim(),
+      requestId: requestId,
+      categoryKey: String(opts.categoryKey || 'ai-prompt').trim(),
+      subFeatureKey: String(opts.subFeatureKey || '').trim() || undefined,
+      paymentMode: 'MEMBERSHIP_PASS',
+      forceDeduct: true,
+      freeBySubscription: source.freeBySubscription === true || data.freeBySubscription === true,
+      accessDecision: data.accessDecision && typeof data.accessDecision === 'object' ? data.accessDecision : undefined,
+      accessGrant: data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : undefined
+    })
   });
 }
 
@@ -4896,6 +4933,20 @@ function _cdAIPromptGate(input) {
       requestId: requestId
     })).then(function(openResult) {
       if (openResult && openResult.status === 'granted') {
+        if (_cdAIPromptIsPassPayload(openResult.payload || {}, openResult.access || null)) {
+          return _cdAIPromptRecordedMembershipPass(opts, requestId, openResult.payload || {}).then(function(recordedResult) {
+            if (recordedResult && recordedResult.ok) return normalize(recordedResult);
+            return normalize({
+              ok: false,
+              status: Number((recordedResult && recordedResult.status) || 402),
+              payload: (recordedResult && recordedResult.payload) || {
+                code: 'PAYMENT_REQUIRED',
+                message: '\uC774\uC6A9\uAD8C \uC801\uC6A9 \uC99D\uAC70\uB97C \uC800\uC7A5\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.',
+                requiredCoins: cost
+              }
+            });
+          });
+        }
         return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
       }
       var openMessage = String(openResult && (openResult.message || openResult.reason) || '').trim();
