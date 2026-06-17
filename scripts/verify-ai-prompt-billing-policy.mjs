@@ -37,6 +37,10 @@ assert.match(fortuneSource, /const forceDeduct = body\?\.forceDeduct === true/, 
 assert.match(fortuneSource, /findAIPromptPaymentEvidence\(\{[\s\S]*requestId: coinRequestId/, "coin consume must accept verified payment evidence");
 assert.match(fortuneSource, /findAIPromptDirectPaymentEvidence/, "AI prompt consume must verify direct single-payment evidence");
 assert.match(fortuneSource, /findAIPromptMonthlyCreditEvidence/, "AI prompt consume must verify monthly-credit payment evidence");
+assert.match(fortuneSource, /hasAIPromptDirectPaymentEvidenceToken/, "AI prompt direct evidence must fall back to direct payment tokens");
+assert.match(fortuneSource, /isAIPromptDirectAccessPayload\(body\) \|\| hasAIPromptDirectPaymentEvidenceToken\(body\)/, "AI prompt direct evidence lookup must not require paymentMode when payment ids are present");
+assert.match(fortuneSource, /hasAIPromptMonthlyCreditEvidenceToken/, "AI prompt monthly-credit evidence must fall back to ledger tokens");
+assert.match(fortuneSource, /!isAIPromptMonthlyCreditAccessPayload\(body\) && !hasAIPromptMonthlyCreditEvidenceToken\(body\)/, "AI prompt monthly-credit evidence lookup must not require paymentMode when ledger ids are present");
 assert.match(fortuneSource, /MonthlyCreditLedger\.findOne/, "AI prompt monthly-credit evidence must use the monthly credit ledger");
 assert.match(fortuneSource, /body\?\.ledgerId/, "AI prompt token collection must preserve monthly-credit ledger id");
 assert.match(fortuneSource, /metadata\.monthlyCreditLedgerId/, "AI prompt monthly-credit lookup must search ledger metadata ids");

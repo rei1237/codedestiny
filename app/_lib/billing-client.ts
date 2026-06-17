@@ -67,6 +67,8 @@ export type PaymentEligibility = {
     tier: "standard" | "premium" | "vvip" | "family" | null;
     label: string | null;
     limit: number | null;
+    totalUses?: number | null;
+    remainingUses?: number | null;
     canUse: boolean;
   };
   monthly: {
@@ -550,7 +552,8 @@ function buildSnapshotPaymentEligibility(input: {
   priceKRW?: number;
   amountKRW?: number;
 }, snapshot: SubscriptionSnapshot): BillingResult<PaymentEligibility> {
-  const coinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, 0)));
+  const inputPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
+  const coinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, inputPriceKRW > 0 ? Math.ceil(inputPriceKRW / 100) : 0)));
   const priceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW ?? coinCost * 100, 0)));
   const monthlyBalance = readSubscriptionSnapshotMonthlyBalance();
   const passLimit = snapshot.state === "active" ? subscriptionSnapshotPassLimit(snapshot.tier) : 0;
@@ -591,6 +594,8 @@ function buildSnapshotPaymentEligibility(input: {
         tier: passTier,
         label: labelForPassTier(passTier),
         limit: passLimit > 0 ? passLimit : null,
+        totalUses: null,
+        remainingUses: null,
         canUse: canUseByPass,
       },
       monthly: {
@@ -1330,11 +1335,19 @@ function shouldInvalidateSubscriptionSnapshot(status: number, code?: string) {
 }
 
 function resolveKnownCoinCost(input: BillingCoinGateInput, eligibility: PaymentEligibility | null) {
+  const amountKRW = Math.max(0, Math.floor(toNumber(
+    eligibility?.priceKRW
+    ?? input.amountKRW
+    ?? input.amountKrw
+    ?? input.cashPrice
+    ?? input.paymentAmount,
+    0,
+  )));
   return Math.max(0, Math.floor(toNumber(
     eligibility?.coinCost
     ?? input.coinPrice
     ?? input.cost,
-    0,
+    amountKRW > 0 ? Math.ceil(amountKRW / 100) : 0,
   )));
 }
 
@@ -1357,8 +1370,12 @@ function resolveRuntimeBillingPricing(input: BillingCoinGateInput, eligibility: 
   const rawPricing = Object.keys(dataPricing).length ? dataPricing : payloadPricing;
   const featureKey = toText(rawPricing.featureKey || input.featureKey || input.subFeatureKey || featureId);
   const fallbackCost = resolveKnownCoinCost(input, eligibility);
-  const cost = Math.max(0, Math.floor(toNumber(rawPricing.coinPrice ?? rawPricing.cost ?? fallbackCost, 0)));
-  const amountKRW = Math.max(0, Math.floor(toNumber(rawPricing.amountKRW ?? rawPricing.cashPrice ?? resolveKnownAmountKRW(input, eligibility, cost), 0)));
+  const rawAmountKRW = Math.max(0, Math.floor(toNumber(rawPricing.amountKRW ?? rawPricing.cashPrice, 0)));
+  const cost = Math.max(0, Math.floor(toNumber(
+    rawPricing.coinPrice ?? rawPricing.cost ?? fallbackCost,
+    rawAmountKRW > 0 ? Math.ceil(rawAmountKRW / 100) : 0,
+  )));
+  const amountKRW = Math.max(0, Math.floor(toNumber(rawAmountKRW > 0 ? rawAmountKRW : resolveKnownAmountKRW(input, eligibility, cost), 0)));
 
   return {
     categoryKey: toText(rawPricing.categoryKey || input.categoryKey || "legacy-feature"),
@@ -1620,7 +1637,14 @@ function extractLicenseGateResult(data: BillingCoinGateData & Record<string, unk
   return {
     status: "license_passed",
     licenseTier,
-    coveredCoinPrice: Math.max(0, Math.floor(toNumber(explicit?.coveredCoinPrice ?? pricing.coinPrice ?? pricing.cost, 0))),
+    coveredCoinPrice: Math.max(0, Math.floor(toNumber(
+      explicit?.coveredCoinPrice
+        ?? pricing.coinPrice
+        ?? pricing.cost,
+      toNumber(pricing.amountKRW ?? pricing.cashPrice, 0) > 0
+        ? Math.ceil(toNumber(pricing.amountKRW ?? pricing.cashPrice, 0) / 100)
+        : 0,
+    ))),
     contentTitle: toText(explicit?.contentTitle || pricing.reason || pricing.categoryLabel || pricing.featureKey),
     reason: toText(explicit?.reason) || (licenseTier === "FAMILY" ? "family_all_access" : "license_coin_limit"),
   };
@@ -1916,8 +1940,8 @@ export async function fetchPaymentEligibility(input: {
   priceKRW?: number;
   amountKRW?: number;
 }): Promise<BillingResult<PaymentEligibility>> {
-  const knownCoinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, 0)));
   const knownPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
+  const knownCoinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, knownPriceKRW > 0 ? Math.ceil(knownPriceKRW / 100) : 0)));
   const hasServerLookupKey = Boolean(input.productId || input.serviceType || input.categoryKey || input.subFeatureKey || input.featureKey || input.reason);
   const snapshot = readSubscriptionSnapshotForUser();
   if (snapshot && (snapshot.state !== "none" || !hasServerLookupKey)) {
@@ -1926,12 +1950,12 @@ export async function fetchPaymentEligibility(input: {
     }
     const pricing = await fetchPricingForSubscriptionSnapshot(input).catch(() => null);
     if (pricing) {
-      const pricingCoinCost = Math.max(0, Math.floor(toNumber(pricing.coinPrice ?? pricing.cost, 0)));
-      const pricingAmountKRW = Math.max(0, Math.floor(toNumber(pricing.amountKRW ?? pricing.cashPrice, pricingCoinCost * 100)));
+      const pricingAmountKRW = Math.max(0, Math.floor(toNumber(pricing.amountKRW ?? pricing.cashPrice, 0)));
+      const pricingCoinCost = Math.max(0, Math.floor(toNumber(pricing.coinPrice ?? pricing.cost, pricingAmountKRW > 0 ? Math.ceil(pricingAmountKRW / 100) : 0)));
       return buildSnapshotPaymentEligibility({
         ...input,
         coinCost: pricingCoinCost,
-        priceKRW: pricingAmountKRW,
+        priceKRW: pricingAmountKRW > 0 ? pricingAmountKRW : pricingCoinCost * 100,
       }, snapshot);
     }
     return buildSnapshotPaymentEligibility(input, snapshot);
@@ -1963,8 +1987,9 @@ export async function fetchPaymentEligibility(input: {
   const pricing = data.pricing && typeof data.pricing === "object"
     ? data.pricing as Record<string, unknown>
     : {};
-  const coinCost = Math.max(0, Math.floor(toNumber(options.coinCost ?? data.coinCost ?? pricing.coinPrice ?? pricing.cost ?? input.coinCost ?? input.coinPrice, 0)));
-  const priceKRW = Math.max(0, Math.floor(toNumber(pricing.amountKRW ?? pricing.cashPrice ?? input.priceKRW ?? input.amountKRW ?? coinCost * 100, 0)));
+  const explicitPriceKRW = Math.max(0, Math.floor(toNumber(pricing.amountKRW ?? pricing.cashPrice ?? input.priceKRW ?? input.amountKRW, 0)));
+  const coinCost = Math.max(0, Math.floor(toNumber(options.coinCost ?? data.coinCost ?? pricing.coinPrice ?? pricing.cost ?? input.coinCost ?? input.coinPrice, explicitPriceKRW > 0 ? Math.ceil(explicitPriceKRW / 100) : 0)));
+  const priceKRW = Math.max(0, Math.floor(toNumber(explicitPriceKRW > 0 ? explicitPriceKRW : coinCost * 100, 0)));
   const monthlyBalance = Math.max(0, Math.floor(toNumber(options.monthlyBalance ?? data.monthlyBalance ?? data.membershipCreditBalance, 0)));
   const monthlyCost = Math.max(0, Math.floor(toNumber(options.membershipCreditCost ?? data.membershipCreditCost ?? pricing.membershipCreditCost, coinCost * 10)));
   const membershipPass = asRecord(data.membershipPass);
@@ -1982,6 +2007,24 @@ export async function fetchPaymentEligibility(input: {
       ?? membershipPass?.passLimit
       ?? membershipPass?.freeLimit
       ?? membershipPass?.maxCoveredCoin,
+    NaN,
+  );
+  const passTotalUses = toNumber(
+    options.totalUses
+      ?? options.passTotalUses
+      ?? data.totalUses
+      ?? data.passTotalUses
+      ?? membershipPass?.totalUses
+      ?? membershipPass?.passTotalUses,
+    NaN,
+  );
+  const passRemainingUses = toNumber(
+    options.remainingUses
+      ?? options.passRemainingUses
+      ?? data.remainingUses
+      ?? data.passRemainingUses
+      ?? membershipPass?.remainingUses
+      ?? membershipPass?.passRemainingUses,
     NaN,
   );
   const accessDecision = asRecord(data.accessDecision);
@@ -2013,6 +2056,8 @@ export async function fetchPaymentEligibility(input: {
       tier: passTier,
       label: labelForPassTier(passTier),
       limit: Number.isFinite(passLimit) && passLimit > 0 ? Math.floor(passLimit) : null,
+      totalUses: Number.isFinite(passTotalUses) ? Math.floor(passTotalUses) : null,
+      remainingUses: Number.isFinite(passRemainingUses) ? Math.floor(passRemainingUses) : null,
       canUse: Boolean(options.canUseByPass ?? data.canUseByPass ?? passCovered),
     },
     monthly: {
@@ -2039,25 +2084,25 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
   const now = Date.now();
   const existing = billingCoinGateInFlight.get(inFlightKey);
   if (existing) {
-    emitPaidFeatureGate("open", {
+    const existingFlow = existing;
+    console.info("[paid-flow]", {
+      stage: "DUPLICATE_CLIENT_FLOW_BLOCKED",
       featureId,
-      featureKey: featureId,
-      requestId: existing.requestId,
-      status: "loadingProducts",
-      message: "이미 결제 요청을 처리하고 있습니다.",
+      requestId: existingFlow.requestId,
+      duplicateBlocked: true,
     });
-    return existing.promise;
+    return existingFlow.promise;
   }
   const recent = billingCoinGateRecent.get(inFlightKey);
   if (recent && recent.expiresAt > now) {
-    emitPaidFeatureGate("open", {
+    const recentFlow = recent;
+    console.info("[paid-flow]", {
+      stage: "DUPLICATE_CLIENT_FLOW_BLOCKED",
       featureId,
-      featureKey: featureId,
-      requestId: recent.requestId,
-      status: "loadingProducts",
-      message: "최근 결제 요청을 안전하게 이어가고 있습니다.",
+      requestId: recentFlow.requestId,
+      duplicateBlocked: true,
     });
-    return recent.promise;
+    return recentFlow.promise;
   }
   if (recent) billingCoinGateRecent.delete(inFlightKey);
 

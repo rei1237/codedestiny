@@ -35,7 +35,7 @@ import {
   ServiceExecutionTransaction,
   User,
 } from "../lib/models.js";
-import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
+import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, KRW_PER_COIN, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
 import {
   applyPdfPassDiscountToPricing,
   isPdfFeaturePricing,
@@ -47,6 +47,8 @@ import {
 import {
   canUseByPass,
   normalizePassTier,
+  PASS_LIMITS,
+  PASS_TOTAL_USES,
   resolveActivePassPolicy,
 } from "../lib/profile-limits.js";
 import {
@@ -301,6 +303,327 @@ function resolveUsagePassCategories(pricing = {}) {
   return Array.from(new Set(categories));
 }
 
+const PASS_EXCLUDED_FEATURE_KEYS = new Set([
+  PROFILE_CARD_MANAGE_FEATURE_KEY,
+]);
+
+function firstFiniteNonNegativeNumber(values = []) {
+  for (const value of values) {
+    if (value === null || value === undefined || value === "") continue;
+    const number = Number(value);
+    if (Number.isFinite(number) && number >= 0) return Math.floor(number);
+  }
+  return null;
+}
+
+function resolvePricingCoinCost(pricing = {}, fallback = 0) {
+  const directCoins = firstFiniteNonNegativeNumber([
+    pricing?.coinPrice,
+    pricing?.cost,
+    pricing?.amountCoins,
+    pricing?.priceCoins,
+    pricing?.coinCost,
+    fallback,
+  ]);
+  if (directCoins && directCoins > 0) return directCoins;
+  const amountKRW = firstFiniteNonNegativeNumber([
+    pricing?.amountKRW,
+    pricing?.krwAmount,
+    pricing?.cashPrice,
+    pricing?.paymentAmount,
+    pricing?.priceKRW,
+  ]);
+  if (amountKRW && amountKRW > 0) return Math.ceil(amountKRW / KRW_PER_COIN);
+  return 0;
+}
+
+function resolvePricingAmountKRW(pricing = {}, coinCost = 0) {
+  const amountKRW = firstFiniteNonNegativeNumber([
+    pricing?.amountKRW,
+    pricing?.krwAmount,
+    pricing?.cashPrice,
+    pricing?.paymentAmount,
+    pricing?.priceKRW,
+  ]);
+  if (amountKRW && amountKRW > 0) return amountKRW;
+  return calculateKrwAmountFromCoins(coinCost);
+}
+
+function isPassExcludedPricing(pricing = {}) {
+  const featureKey = String(pricing?.featureKey || "").trim();
+  return PASS_EXCLUDED_FEATURE_KEYS.has(featureKey);
+}
+
+function resolvePassPolicyForTier(tierRaw) {
+  const tier = normalizePassTier(tierRaw);
+  if (!tier) return null;
+  return {
+    tier,
+    maxCoinLimit: tier === "family" ? null : Number(PASS_LIMITS[tier] || 0),
+    totalUses: tier === "family" ? null : Number(PASS_TOTAL_USES[tier] || 0),
+  };
+}
+
+function resolveTierPassUsageSnapshot(profileSubscription = {}, entitlement = {}) {
+  const tier = normalizePassTier(
+    entitlement?.passTier
+      || entitlement?.tier
+      || profileSubscription?.passTier
+      || profileSubscription?.tier,
+  );
+  const policy = resolvePassPolicyForTier(tier);
+  if (!policy) return null;
+  if (policy.tier === "family") {
+    return {
+      tier: policy.tier,
+      passTier: policy.tier,
+      maxCoinLimit: null,
+      totalUses: null,
+      remainingUses: null,
+    };
+  }
+  const totalUses = firstFiniteNonNegativeNumber([
+    profileSubscription.passTotalUses,
+    profileSubscription.totalUses,
+    entitlement.totalUses,
+    policy.totalUses,
+  ]) ?? policy.totalUses;
+  const remainingUses = firstFiniteNonNegativeNumber([
+    profileSubscription.passRemainingUses,
+    profileSubscription.remainingUses,
+    profileSubscription.usesRemaining,
+    entitlement.remainingUses,
+    totalUses,
+  ]) ?? totalUses;
+  return {
+    tier: policy.tier,
+    passTier: policy.tier,
+    maxCoinLimit: policy.maxCoinLimit,
+    totalUses,
+    remainingUses,
+  };
+}
+
+async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, body = {}, options = {}) {
+  const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
+  const normalizedRequestId = String(requestId || "").trim();
+  const coinCost = resolvePricingCoinCost(pricing);
+  const amountKRW = resolvePricingAmountKRW(pricing, coinCost);
+  const profileId = cleanProfileId(options?.profileId || body?.profileId || body?.selectedProfileId);
+  const idempotencyMarker = normalizedRequestId && featureKey ? `tier-pass:${featureKey}:${normalizedRequestId}` : "";
+  if (!authUserId || !featureKey || !coinCost) return { ok: false, reason: "invalid_pass_request" };
+  if (isPassExcludedPricing(pricing)) {
+    return { ok: false, reason: "pass_excluded_feature", featureKey, coinCost, amountKRW };
+  }
+
+  await connectDb(env);
+
+  if (idempotencyMarker) {
+    const idempotentUser = await User.findOne({
+      _id: authUserId,
+      recentConsumeRequestIds: idempotencyMarker,
+    })
+      .select("points profileSubscription")
+      .lean();
+    if (idempotentUser) {
+      const entitlement = resolveActivePassPolicy(idempotentUser || {});
+      const usage = resolveTierPassUsageSnapshot(idempotentUser?.profileSubscription || {}, entitlement);
+      if (usage?.tier) {
+        return {
+          ok: true,
+          idempotent: true,
+          tier: usage.tier,
+          passTier: usage.passTier,
+          accessMethod: usage.tier === "family" ? "family" : "pass",
+          transactionType: usage.tier === "family" ? "family_pass" : "membership_pass",
+          accessType: usage.tier === "family" ? "family" : "membership_pass",
+          requestId: normalizedRequestId,
+          idempotencyKey: idempotencyMarker,
+          featureKey,
+          profileId,
+          coinCost,
+          amountKRW,
+          remainingUses: usage.remainingUses,
+          totalUses: usage.totalUses,
+          remainingUsesBefore: usage.remainingUses,
+          remainingUsesAfter: usage.remainingUses,
+          user: {
+            id: String(authUserId || ""),
+            points: Number(idempotentUser?.points || 0),
+            profileSubscription: idempotentUser?.profileSubscription || null,
+          },
+        };
+      }
+    }
+  }
+
+  const user = await User.findById(authUserId)
+    .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+    .lean();
+  const entitlement = resolveActivePassPolicy(user || {});
+  const usage = resolveTierPassUsageSnapshot(user?.profileSubscription || {}, entitlement);
+  const policy = resolvePassPolicyForTier(usage?.tier);
+  if (!entitlement?.isActive || !usage || !policy) {
+    return { ok: false, reason: "no_active_pass", featureKey, coinCost, amountKRW };
+  }
+  if (usage.tier !== "family" && (!Number.isFinite(coinCost) || coinCost <= 0 || coinCost > Number(policy.maxCoinLimit || 0))) {
+    return {
+      ok: false,
+      reason: "price_exceeds_pass_limit",
+      featureKey,
+      coinCost,
+      amountKRW,
+      passTier: usage.tier,
+      passLimit: policy.maxCoinLimit,
+      remainingUses: usage.remainingUses,
+    };
+  }
+  if (usage.tier !== "family" && Number(usage.remainingUses || 0) <= 0) {
+    return {
+      ok: false,
+      reason: "pass_used_up",
+      featureKey,
+      coinCost,
+      amountKRW,
+      passTier: usage.tier,
+      passLimit: policy.maxCoinLimit,
+      remainingUses: 0,
+    };
+  }
+
+  if (usage.tier === "family") {
+    return {
+      ok: true,
+      tier: "family",
+      passTier: "family",
+      accessMethod: "family",
+      transactionType: "family_pass",
+      accessType: "family",
+      requestId: normalizedRequestId,
+      idempotencyKey: idempotencyMarker || normalizedRequestId,
+      featureKey,
+      profileId,
+      coinCost,
+      amountKRW,
+      remainingUses: null,
+      totalUses: null,
+      remainingUsesBefore: null,
+      remainingUsesAfter: null,
+      user: {
+        id: String(authUserId || ""),
+        points: Number(user?.points || 0),
+        profileSubscription: user?.profileSubscription || null,
+      },
+    };
+  }
+
+  const totalUses = Math.max(0, Math.floor(Number(usage.totalUses || policy.totalUses || 0)));
+  const remainingBefore = Math.max(0, Math.floor(Number(usage.remainingUses || 0)));
+  const now = new Date();
+  const updateQuery = {
+    _id: authUserId,
+    ...(idempotencyMarker ? { recentConsumeRequestIds: { $ne: idempotencyMarker } } : {}),
+    $expr: {
+      $gt: [
+        { $ifNull: ["$profileSubscription.passRemainingUses", totalUses] },
+        0,
+      ],
+    },
+    $and: [
+      {
+        $or: [
+          { "profileSubscription.tier": usage.tier },
+          { "profileSubscription.passTier": usage.tier },
+          { passTier: usage.tier },
+          { subscriptionTier: usage.tier },
+          { membershipTier: usage.tier },
+          { tier: usage.tier },
+        ],
+      },
+      {
+        $or: [
+          { "profileSubscription.expiresAt": { $gt: now } },
+          { "profileSubscription.expiresAt": null },
+          { "profileSubscription.expiresAt": { $exists: false } },
+          { expiresAt: { $gt: now } },
+          { expiresAt: null },
+          { expiresAt: { $exists: false } },
+        ],
+      },
+    ],
+  };
+  const updatedUser = await User.findOneAndUpdate(
+    updateQuery,
+    [
+      {
+        $set: {
+          "profileSubscription.passTier": usage.tier,
+          "profileSubscription.passTotalUses": {
+            $ifNull: ["$profileSubscription.passTotalUses", totalUses],
+          },
+          "profileSubscription.passRemainingUses": {
+            $subtract: [
+              { $ifNull: ["$profileSubscription.passRemainingUses", totalUses] },
+              1,
+            ],
+          },
+          "profileSubscription.passUsedCount": {
+            $add: [
+              { $ifNull: ["$profileSubscription.passUsedCount", 0] },
+              1,
+            ],
+          },
+          "profileSubscription.maxCoveredCoin": Number(policy.maxCoinLimit || 0),
+          "profileSubscription.freeLimit": Number(policy.maxCoinLimit || 0),
+          "profileSubscription.passLimit": Number(policy.maxCoinLimit || 0),
+          "profileSubscription.updatedAt": now,
+          ...(idempotencyMarker ? {
+            recentConsumeRequestIds: {
+              $setUnion: [
+                { $ifNull: ["$recentConsumeRequestIds", []] },
+                [idempotencyMarker],
+              ],
+            },
+          } : {}),
+        },
+      },
+    ],
+    {
+      returnDocument: "after",
+      projection: { points: 1, profileSubscription: 1 },
+    },
+  ).lean();
+
+  if (!updatedUser) {
+    return { ok: false, reason: "pass_deduct_conflict", featureKey, coinCost, amountKRW, passTier: usage.tier };
+  }
+
+  const remainingAfter = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.passRemainingUses || 0)));
+  return {
+    ok: true,
+    tier: usage.tier,
+    passTier: usage.tier,
+    accessMethod: "pass",
+    transactionType: "membership_pass",
+    accessType: "membership_pass",
+    requestId: normalizedRequestId,
+    idempotencyKey: idempotencyMarker || normalizedRequestId,
+    featureKey,
+    profileId,
+    coinCost,
+    amountKRW,
+    remainingUses: remainingAfter,
+    totalUses,
+    remainingUsesBefore: remainingBefore,
+    remainingUsesAfter: remainingAfter,
+    user: {
+      id: String(authUserId || ""),
+      points: Number(updatedUser?.points || 0),
+      profileSubscription: updatedUser?.profileSubscription || null,
+    },
+  };
+}
+
 async function consumeUsagePassIfAvailable(env, authUserId, pricing, requestId) {
   const featureKey = String(pricing?.featureKey || "").trim();
   const normalizedRequestId = String(requestId || "").trim();
@@ -388,7 +711,7 @@ function isActiveMembership(profileSubscription = {}) {
 
 function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscription = {}, overrides = {}) {
   const activeEntitlement = resolveActivePassPolicy({ profileSubscription, ...(entitlement || {}) });
-  const coinCost = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
+  const coinCost = resolvePricingCoinCost(pricing);
   const passLimitValue = Number(activeEntitlement?.maxCoveredCoin || 0);
   const monthlyBalance = Math.max(0, Math.floor(Number(
     overrides.monthlyBalance ?? profileSubscription?.membershipCreditBalance ?? 0,
@@ -409,7 +732,7 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     passTier,
     passLimit: hasActivePass && passLimitValue > 0 ? passLimitValue : null,
     passLimitKRW: hasActivePass && passLimitValue > 0 ? calculateKrwAmountFromCoins(passLimitValue) : null,
-    amountKRW: calculateKrwAmountFromCoins(coinCost),
+    amountKRW: resolvePricingAmountKRW(pricing, coinCost),
     canUseByPass: passCovered,
     monthlyBalance,
     canUseByMonthly: monthlyCovered,
@@ -444,13 +767,7 @@ function buildLicensePassAccessGateResult({
   );
   if (!licenseTier) return null;
   if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== "FAMILY") return null;
-  const coveredCoinPrice = Math.max(0, Math.floor(Number(
-    pricing?.coinPrice
-      || pricing?.cost
-      || paymentOptions?.coinCost
-      || accessDecision?.priceCoin
-      || 0,
-  )));
+  const coveredCoinPrice = resolvePricingCoinCost(pricing, paymentOptions?.coinCost || accessDecision?.priceCoin || 0);
   return {
     status: "license_passed",
     licenseTier,
@@ -513,7 +830,7 @@ function buildProfileCardMutationMetadata(body = {}) {
 }
 
 function resolveMonthlyCreditCostForBilling(pricing, body = {}) {
-  const coinPrice = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
+  const coinPrice = resolvePricingCoinCost(pricing, resolvePricingCoinCost(body));
   const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
   const actionType = resolveProfileCardActionType(body?.actionType || body?.profileAction || body?.action);
   if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && actionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE) {
@@ -546,7 +863,7 @@ async function resolvePaidContentAccess(env, {
   subscriptionPass = null,
   body = {},
 } = {}) {
-  const priceCoin = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
+  const priceCoin = resolvePricingCoinCost(pricing);
   const featureKey = String(pricing?.featureKey || "").trim();
   const cacheKey = buildPaidAccessDecisionCacheKey({
     userId,
@@ -623,19 +940,10 @@ async function resolvePaidContentAccess(env, {
           },
         }), priceCoin);
       }
-      const unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
-        userId,
-        profileId,
-        featureKey,
-        contentKey: body?.contentKey,
-        source: CONTENT_ENTITLEMENT_SOURCES.PASS,
-        passId: `membership:${activePass.tier || "pass"}:${requestId || Date.now().toString(36)}`,
-        coinAmount: 0,
-      });
       return writePaidAccessDecisionToCache(cacheKey, buildPaidContentAccessDecision({
-        accessGranted: true,
-        reason: "pass_covered",
-        unlockId: unlockEntitlement?._id,
+        accessGranted: false,
+        reason: "payment_required",
+        shouldOpenPaymentSelector: false,
         priceCoin,
         paymentOptions,
         accessGateResult: buildLicensePassAccessGateResult({
@@ -833,7 +1141,7 @@ async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
 }
 
 async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requestId, body = {}) {
-  const coinPrice = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
+  const coinPrice = resolvePricingCoinCost(pricing, resolvePricingCoinCost(body));
   const requiredCredit = resolveMonthlyCreditCostForBilling(pricing, body);
   if (!Number.isInteger(requiredCredit) || requiredCredit <= 0) return null;
   const profileMutationMetadata = buildProfileCardMutationMetadata(body);
@@ -1074,6 +1382,8 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
   const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
   const normalizedRequestId = String(requestId || "").trim();
   if (!authUserId || !featureKey || !normalizedRequestId) return null;
+  const normalizedAccessMethod = String(body?.accessMethod || "").trim().toUpperCase() === "FAMILY" ? "FAMILY" : "PASS";
+  const normalizedAccessType = normalizedAccessMethod === "FAMILY" ? "family" : "membership_pass";
 
   await connectDb(env);
   const existing = await PointHistory.findOne({
@@ -1081,7 +1391,7 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
     kind: "deduct",
     featureKey,
     "metadata.requestId": normalizedRequestId,
-    "metadata.accessMethod": "PASS",
+    "metadata.accessMethod": normalizedAccessMethod,
   }).select("_id createdAt delta featureKey reason metadata").lean();
   if (existing) return existing;
 
@@ -1089,7 +1399,7 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const sessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || "").trim();
   const profileId = cleanProfileId(body?.profileId || body?.selectedProfileId);
-  const coinCost = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
+  const coinCost = resolvePricingCoinCost(pricing);
 
   return PointHistory.create({
     userId: authUserId,
@@ -1099,9 +1409,9 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
     reason: String(pricing?.reason || "pass_access"),
     featureKey,
     metadata: {
-      accessType: "membership_pass",
-      accessMethod: "PASS",
-      paymentMethod: "PASS",
+      accessType: normalizedAccessType,
+      accessMethod: normalizedAccessMethod,
+      paymentMethod: normalizedAccessMethod,
       requestId: normalizedRequestId,
       purchaseId: normalizedRequestId,
       reportId,
@@ -1114,6 +1424,7 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
       coinPrice: coinCost,
       passTier: entitlement?.passTier || null,
       passLimit: Number(entitlement?.maxCoveredCoin || 0),
+      passRemainingUses: entitlement?.remainingUses ?? body?.passRemainingUses ?? null,
     },
   });
 }
@@ -1126,6 +1437,31 @@ function buildBillingErrorDetails(stage, error, extras = {}) {
     message: String(error?.message || "Unknown error"),
     ...(extras && typeof extras === "object" ? extras : {}),
   };
+}
+
+function passEvidenceFailure(error, { pricing, requestId, profileId, stage = "pass-access-record" } = {}) {
+  return failure(
+    503,
+    "PAID_ACCESS_VERIFY_RETRYABLE",
+    "이용권 확인 기록이 잠시 지연되고 있습니다. 잠시 후 다시 시도해 주세요.",
+    String(error?.message || ""),
+    {
+      pricing,
+      pendingPassEvidence: true,
+      retryable: true,
+      reason: "DB_UNAVAILABLE",
+      accessGrant: {
+        featureKey: String(pricing?.featureKey || ""),
+        requestId,
+        profileId: profileId || undefined,
+      },
+    },
+    buildBillingErrorDetails(stage, error, {
+      featureKey: String(pricing?.featureKey || ""),
+      requestId,
+      profileId: profileId || undefined,
+    }),
+  );
 }
 
 function logBillingRouteError(stage, error, request, extras = {}) {
@@ -1345,12 +1681,25 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
       accessGranted: true,
       reason: "pass_covered",
       shouldOpenPaymentSelector: false,
-      priceCoin: Number(pricing?.coinPrice || pricing?.cost || 0),
+      priceCoin: resolvePricingCoinCost(pricing),
       paymentOptions: data?.paymentOptions || data,
       accessGateResult,
     })
     : undefined);
   const hasResponseHeaders = Array.from(responseHeaders.keys()).length > 0;
+  logPaidAccessStage("PAID_FLOW_DONE", {
+    requestId: consume?.requestId || data?.requestId || data?.accessGrant?.requestId || "",
+    userId: authUserId,
+    featureKey,
+    profileId,
+    accessMethod: consume?.accessMethod || data?.accessGrant?.accessMethod || "",
+    paymentMethod: consume?.paymentMethod || data?.accessGrant?.paymentMethod || "",
+    amountCoins: resolvePricingCoinCost(pricing),
+    amountKRW: resolvePricingAmountKRW(pricing, resolvePricingCoinCost(pricing)),
+    paymentId: consume?.transactionId || data?.transactionId || "",
+    orderId: consume?.purchaseId || data?.accessGrant?.purchaseId || "",
+    idempotencyKey: consume?.purchaseId || consume?.requestId || data?.requestId || "",
+  });
   return success({
     ...data,
     status: accessStatus,
@@ -2457,6 +2806,27 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
   const requestId = resolveRequestId(request, body);
   let pricing = pricingResult.pricing;
+  const initialCoinCost = resolvePricingCoinCost(pricing);
+  const initialAmountKRW = resolvePricingAmountKRW(pricing, initialCoinCost);
+  logPaidAccessStage("REQUEST_ID_CREATED", {
+    requestId,
+    userId: authCheck.auth?.userId,
+    featureKey: pricing?.featureKey,
+    productId: body?.productId,
+    amountCoins: initialCoinCost,
+    amountKRW: initialAmountKRW,
+    idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
+  });
+  logPaidAccessStage("PAID_FLOW_START", {
+    requestId,
+    userId: authCheck.auth?.userId,
+    featureKey: pricing?.featureKey,
+    productId: body?.productId,
+    paymentMode: String(body?.paymentMode || body?.accessMode || "").trim().toLowerCase(),
+    amountCoins: initialCoinCost,
+    amountKRW: initialAmountKRW,
+    idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
+  });
   const forceDeductRaw = body?.forceDeduct;
   const forceDeduct = forceDeductRaw === undefined
     ? true
@@ -2819,7 +3189,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         ok: true,
         transactionType: "usage_pass",
         accessType: "usage_pass",
-        accessMethod: "PASS",
+        accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
         paymentMethod: "PASS",
         requestId,
         featureKey: String(pricing.featureKey || ""),
@@ -2833,7 +3203,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       accessGrant: {
         ok: true,
         accessType: "usage_pass",
-        accessMethod: "PASS",
+        accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
         featureKey: String(pricing.featureKey || ""),
         sessionId: reportSessionId || undefined,
         requestId,
@@ -2858,7 +3228,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       passTier: null,
       freeLimit: 0,
     };
-    const coinPrice = Number(pricing?.coinPrice || pricing?.cost || 0);
+    const coinPrice = resolvePricingCoinCost(pricing);
     paymentDecision = buildPassPaymentDecision(
       subscriptionPass.entitlement,
       pricing,
@@ -2879,12 +3249,63 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         passLimit: paymentDecision.passLimit,
         idempotencyKey: requestId,
       });
-      const passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
-        ...scopedBody,
-        reportId,
-        sessionId: reportSessionId,
-        reportSessionId,
-      }, subscriptionPass.entitlement);
+      const tierPassConsume = await consumeTierPassIfAvailable(env, authCheck.auth.userId, pricing, requestId, scopedBody, { profileId });
+      if (!tierPassConsume?.ok) {
+        logPaidAccessStage("PASS_DENIED", {
+          requestId,
+          userId: authCheck.auth.userId,
+          featureKey: pricing?.featureKey,
+          profileId,
+          accessMethod: "pass",
+          paymentMethod: "PASS",
+          amountCoins: resolvePricingCoinCost(pricing),
+          amountKRW: resolvePricingAmountKRW(pricing, resolvePricingCoinCost(pricing)),
+          passEligible: false,
+          passTier: paymentDecision.passTier,
+          passLimit: paymentDecision.passLimit,
+          passRemainingUses: Number(tierPassConsume?.remainingUses || 0),
+          idempotencyKey: requestId,
+        });
+      } else {
+        logPaidAccessStage(tierPassConsume.idempotent ? "PASS_DEDUCT_DUPLICATE_RETURNED" : "PASS_DEDUCT_SUCCESS", {
+          requestId,
+          userId: authCheck.auth.userId,
+          featureKey: pricing?.featureKey,
+          profileId,
+          accessMethod: tierPassConsume.accessMethod,
+          paymentMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
+          amountCoins: tierPassConsume.coinCost,
+          amountKRW: tierPassConsume.amountKRW,
+          passEligible: true,
+          passTier: tierPassConsume.passTier,
+          passLimit: paymentDecision.passLimit,
+          passRemainingUsesBefore: tierPassConsume.remainingUsesBefore,
+          passRemainingUsesAfter: tierPassConsume.remainingUsesAfter,
+          passRemainingUses: tierPassConsume.remainingUsesAfter,
+          idempotencyKey: tierPassConsume.idempotencyKey || requestId,
+        });
+      let passEvidence = null;
+      try {
+        passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
+          ...scopedBody,
+          reportId,
+          sessionId: reportSessionId,
+          reportSessionId,
+          accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
+          passRemainingUses: tierPassConsume.remainingUsesAfter,
+        }, {
+          ...subscriptionPass.entitlement,
+          passTier: tierPassConsume.passTier,
+          remainingUses: tierPassConsume.remainingUsesAfter,
+        });
+      } catch (error) {
+        logBillingRouteError("pass-access-record", error, request, {
+          featureKey: String(pricing?.featureKey || ""),
+          requestId,
+          profileId: profileId || undefined,
+        });
+        return passEvidenceFailure(error, { pricing, requestId, profileId });
+      }
       let unlockEntitlement = null;
       if (persistProfileUnlockEntitlement) {
         try {
@@ -2953,20 +3374,25 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         charged: 0,
         consume: {
           ok: true,
-          transactionType: "membership_pass",
-          accessType: "membership_pass",
-          accessMethod: "PASS",
-          paymentMethod: "PASS",
+          transactionType: tierPassConsume.transactionType || "membership_pass",
+          accessType: tierPassConsume.accessType || "membership_pass",
+          accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
+          paymentMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
           requestId,
           featureKey: String(pricing.featureKey || ""),
-          coinPrice,
+          coinPrice: tierPassConsume.coinCost,
+          amountCoins: tierPassConsume.coinCost,
+          amountKRW: tierPassConsume.amountKRW,
+          passTier: tierPassConsume.passTier,
+          remainingUses: tierPassConsume.remainingUsesAfter,
+          idempotent: Boolean(tierPassConsume.idempotent),
           chargedCoins: 0,
           membershipCreditCost: 0,
         },
         premiumAccessToken: null,
         accessGrant: {
           ok: true,
-          accessType: "membership_pass",
+          accessType: tierPassConsume.accessType || "membership_pass",
           featureKey: String(pricing.featureKey || ""),
           sessionId: reportSessionId || undefined,
           requestId,
@@ -2975,7 +3401,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           reportId: reportId || undefined,
           profileId: profileId || undefined,
           paidAt: new Date().toISOString(),
-          accessMethod: "PASS",
+          accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
         },
         balance: null,
         membershipPass: {
@@ -2984,6 +3410,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           freeLimit: subscriptionPass.freeLimit,
           passLimit: subscriptionPass.passLimit || subscriptionPass.freeLimit,
           maxCoveredCoin: subscriptionPass.maxCoveredCoin || subscriptionPass.passLimit || subscriptionPass.freeLimit,
+          totalUses: tierPassConsume.totalUses,
+          remainingUses: tierPassConsume.remainingUsesAfter,
         },
         user: {
           id: String(authCheck.auth.userId || ""),
@@ -2991,6 +3419,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         },
         freeBySubscription: true,
       }, "이용권 무료 한도 조건으로 서비스를 열었습니다.");
+      }
     }
 
     if (membershipPassOnly) {
@@ -3052,6 +3481,18 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         accessMethod: "monthly",
         paymentMethod: requestedPaymentMode || "monthly",
         monthlyRequiredAmount: calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0)),
+        idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
+      });
+      logPaidAccessStage("MONTHLY_PROCESSING_START", {
+        requestId,
+        userId: authCheck.auth.userId,
+        featureKey: pricing?.featureKey,
+        profileId,
+        accessMethod: "monthly",
+        paymentMethod: requestedPaymentMode || "monthly",
+        amountCoins: resolvePricingCoinCost(pricing),
+        amountKRW: resolvePricingAmountKRW(pricing, resolvePricingCoinCost(pricing)),
+        monthlyRequiredAmount: resolveMonthlyCreditCostForBilling(pricing, scopedBody),
         idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
       });
       const membershipConsume = await consumeMembershipCreditIfAvailable(env, authCheck.auth.userId, pricing, requestId, {
@@ -3251,7 +3692,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         monthlyCredits = Number(currentUser?.profileSubscription?.membershipCreditBalance || 0);
       }
       monthlyCredits = Math.max(0, Math.floor(monthlyCredits));
-      const requiredMonthlyCredits = calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0));
+      const requiredMonthlyCredits = resolveMonthlyCreditCostForBilling(pricing, scopedBody);
+      const normalizedCoinCost = resolvePricingCoinCost(pricing, resolvePricingCoinCost(scopedBody));
+      const normalizedAmountKRW = resolvePricingAmountKRW(pricing, normalizedCoinCost);
       logPaidAccessStage("MONTHLY_DEDUCT_FAILED", {
         requestId,
         userId: authCheck.auth.userId,
@@ -3259,8 +3702,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         profileId,
         accessMethod: "monthly",
         paymentMethod: requestedPaymentMode || "monthly",
-        amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
-        amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+        amountCoins: normalizedCoinCost,
+        amountKRW: normalizedAmountKRW,
         monthlyRequiredAmount: requiredMonthlyCredits,
         monthlyBalanceBefore: monthlyCredits,
         monthlyBalanceAfter: monthlyCredits,
@@ -3377,9 +3820,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         reason: String(pricing.reason || ""),
         categoryKey: pricing.categoryKey,
         subFeatureKey: pricing.subFeatureKey,
-        paymentAmount: Number(pricing.amountKRW || pricing.cashPrice || 0),
-        coinPrice: Number(pricing.coinPrice || pricing.cost || 0),
-        membershipCreditCost: Number(pricing.membershipCreditCost || calculateMembershipCreditCost(pricing.coinPrice || pricing.cost || 0)),
+        paymentAmount: resolvePricingAmountKRW(pricing, resolvePricingCoinCost(pricing)),
+        coinPrice: resolvePricingCoinCost(pricing),
+        membershipCreditCost: Number(pricing.membershipCreditCost || calculateMembershipCreditCost(resolvePricingCoinCost(pricing))),
         requestId,
         reportId: reportId || undefined,
         sessionId: reportSessionId || undefined,
@@ -3390,7 +3833,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
   if (coinPaymentRequested) {
     await connectDb(env);
-    const requiredCoins = Math.max(0, Math.floor(Number(pricing?.coinPrice || pricing?.cost || 0)));
+    const requiredCoins = resolvePricingCoinCost(pricing);
     const coinPurchaseId = String(body?.purchaseId || body?.idempotencyKey || body?.orderId || requestId || "").trim();
     const coinFeatureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
 
@@ -3653,10 +4096,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
     const isPdfGenerationService = canGeneratePaidPdf(pricing);
     if (isPdfGenerationService || isUnlockPaidFeatureKey(coinFeatureKey)) {
-      return await successWithPremiumAccess(env, authCheck.auth.userId, coinSuccessPayload, `${calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)).toLocaleString("ko-KR")}원 결제로 콘텐츠 이용 권한을 발급했습니다.`);
+      return await successWithPremiumAccess(env, authCheck.auth.userId, coinSuccessPayload, `${resolvePricingAmountKRW(pricing, requiredCoins).toLocaleString("ko-KR")}원 결제로 콘텐츠 이용 권한을 발급했습니다.`);
     }
 
-    return success(coinSuccessPayload, `${calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)).toLocaleString("ko-KR")}원 결제로 콘텐츠 이용 권한을 발급했습니다.`);
+    return success(coinSuccessPayload, `${resolvePricingAmountKRW(pricing, requiredCoins).toLocaleString("ko-KR")}원 결제로 콘텐츠 이용 권한을 발급했습니다.`);
   }
 
   const delegatedBody = {
@@ -4038,6 +4481,8 @@ async function readSubscriptionStatusSnapshot(request, env) {
           freeLimit: Number(entitlement.maxCoveredCoin || 0),
           passLimit: Number(entitlement.maxCoveredCoin || 0),
           maxCoveredCoin: Number(entitlement.maxCoveredCoin || 0),
+          totalUses: entitlement.totalUses ?? null,
+          remainingUses: entitlement.remainingUses ?? null,
           entitlement,
         };
       }
@@ -4083,6 +4528,8 @@ async function readSubscriptionStatusSnapshot(request, env) {
       freeLimit: Number(payload?.freeLimit || subscription?.freeLimit || 0),
       passLimit: Number(payload?.passLimit || payload?.freeLimit || subscription?.passLimit || subscription?.freeLimit || 0),
       maxCoveredCoin: Number(payload?.maxCoveredCoin || payload?.passLimit || payload?.freeLimit || subscription?.maxCoveredCoin || subscription?.passLimit || subscription?.freeLimit || 0),
+      totalUses: payload?.totalUses ?? payload?.passTotalUses ?? subscription?.totalUses ?? subscription?.passTotalUses ?? null,
+      remainingUses: payload?.remainingUses ?? payload?.passRemainingUses ?? subscription?.remainingUses ?? subscription?.passRemainingUses ?? null,
       source: payload?.source || subscription?.source || "profile_subscription_status",
       subscription,
     };
@@ -4111,6 +4558,8 @@ function buildBillingSubscriptionSnapshot(user = {}) {
     freeLimit: Number(entitlement.maxCoveredCoin || 0),
     passLimit: Number(entitlement.maxCoveredCoin || 0),
     maxCoveredCoin: Number(entitlement.maxCoveredCoin || 0),
+    totalUses: entitlement.totalUses ?? null,
+    remainingUses: entitlement.remainingUses ?? null,
     source: entitlement.source || "billing_snapshot",
     subscription: sub,
     entitlement,
@@ -4150,6 +4599,8 @@ function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
     freeLimit: Number(subscription.freeLimit || entitlement.maxCoveredCoin || 0),
     passLimit: Number(subscription.passLimit || subscription.freeLimit || entitlement.maxCoveredCoin || 0),
     maxCoveredCoin: Number(subscription.maxCoveredCoin || subscription.passLimit || subscription.freeLimit || entitlement.maxCoveredCoin || 0),
+    totalUses: subscription.totalUses ?? entitlement.totalUses ?? null,
+    remainingUses: subscription.remainingUses ?? entitlement.remainingUses ?? null,
     profileSubscription,
     entitlement,
   };
@@ -4217,6 +4668,8 @@ async function readBillingSnapshot(request, env, options = {}) {
       freeLimit: entitlement.maxCoveredCoin,
       passLimit: entitlement.maxCoveredCoin,
       maxCoveredCoin: entitlement.maxCoveredCoin,
+      totalUses: entitlement.totalUses ?? null,
+      remainingUses: entitlement.remainingUses ?? null,
       profileLimit: entitlement.maxProfiles,
       source: entitlement.source,
       expiresAt: entitlement.expiresAt || sub?.expiresAt || null,
@@ -4336,15 +4789,14 @@ async function handleUnlockStatus(request, env) {
     profileId: accessProfileId,
     pricing,
     requestId: String(url.searchParams.get("requestId") || "").trim(),
-    allowPassAutoUnlock: shouldPersistProfileUnlockEntitlement(pricing),
+    allowPassAutoUnlock: false,
     subscriptionPass,
     body: {
       actionType: String(url.searchParams.get("actionType") || "").trim(),
     },
   });
   if (accessDecision.paymentOptions) paymentDecision = accessDecision.paymentOptions;
-  const passStatusCovered = accessDecision.reason === "pass_covered"
-    || (!shouldPersistProfileUnlockEntitlement(pricing) && paymentDecision.canUseByPass === true);
+  const passStatusCovered = paymentDecision.canUseByPass === true;
   const responseAccessDecision = passStatusCovered && !accessDecision.accessGranted
     ? {
       ...accessDecision,
@@ -4618,12 +5070,65 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
     );
   }
 
-  const passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
-    ...scopedBody,
-    reportId,
-    sessionId: reportSessionId,
-    reportSessionId,
-  }, subscriptionPass.entitlement);
+  const tierPassConsume = await consumeTierPassIfAvailable(env, authCheck.auth.userId, pricing, requestId, scopedBody, { profileId });
+  if (!tierPassConsume?.ok) {
+    logPaidAccessStage("PASS_DENIED", {
+      requestId,
+      userId: authCheck.auth.userId,
+      featureKey: pricing?.featureKey,
+      profileId,
+      accessMethod: "pass",
+      paymentMethod: "PASS",
+      amountCoins: resolvePricingCoinCost(pricing),
+      amountKRW: resolvePricingAmountKRW(pricing, resolvePricingCoinCost(pricing)),
+      passEligible: false,
+      passTier: paymentDecision.passTier,
+      passLimit: paymentDecision.passLimit,
+      passRemainingUses: Number(tierPassConsume?.remainingUses || 0),
+      idempotencyKey: requestId,
+    });
+    return null;
+  }
+  logPaidAccessStage(tierPassConsume.idempotent ? "PASS_DEDUCT_DUPLICATE_RETURNED" : "PASS_DEDUCT_SUCCESS", {
+    requestId,
+    userId: authCheck.auth.userId,
+    featureKey: pricing?.featureKey,
+    profileId,
+    accessMethod: tierPassConsume.accessMethod,
+    paymentMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
+    amountCoins: tierPassConsume.coinCost,
+    amountKRW: tierPassConsume.amountKRW,
+    passEligible: true,
+    passTier: tierPassConsume.passTier,
+    passLimit: paymentDecision.passLimit,
+    passRemainingUsesBefore: tierPassConsume.remainingUsesBefore,
+    passRemainingUsesAfter: tierPassConsume.remainingUsesAfter,
+    passRemainingUses: tierPassConsume.remainingUsesAfter,
+    idempotencyKey: tierPassConsume.idempotencyKey || requestId,
+  });
+
+  let passEvidence = null;
+  try {
+    passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
+      ...scopedBody,
+      reportId,
+      sessionId: reportSessionId,
+      reportSessionId,
+      accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
+      passRemainingUses: tierPassConsume.remainingUsesAfter,
+    }, {
+      ...subscriptionPass.entitlement,
+      passTier: tierPassConsume.passTier,
+      remainingUses: tierPassConsume.remainingUsesAfter,
+    });
+  } catch (error) {
+    logBillingRouteError("pass-access-record", error, request, {
+      featureKey: String(pricing?.featureKey || ""),
+      requestId,
+      profileId: profileId || undefined,
+    });
+    return passEvidenceFailure(error, { pricing, requestId, profileId });
+  }
   let unlockEntitlement = null;
   if (persistProfileUnlockEntitlement) {
     try {
@@ -4660,7 +5165,7 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
     pricing,
     ...paymentDecision,
     paymentOptions: paymentDecision,
-    accessMethod: "PASS",
+    accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
     checkout: {
       bypassed: true,
       bypassReason: "PASS_FREE",
@@ -4670,21 +5175,26 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
     charged: 0,
     consume: {
       ok: true,
-      transactionType: "membership_pass",
-      accessType: "membership_pass",
-      accessMethod: "PASS",
-      paymentMethod: "PASS",
+      transactionType: tierPassConsume.transactionType || "membership_pass",
+      accessType: tierPassConsume.accessType || "membership_pass",
+      accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
+      paymentMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
       requestId,
       featureKey: String(pricing.featureKey || ""),
-      coinPrice: Number(pricing.coinPrice || pricing.cost || 0),
+      coinPrice: tierPassConsume.coinCost,
+      amountCoins: tierPassConsume.coinCost,
+      amountKRW: tierPassConsume.amountKRW,
+      passTier: tierPassConsume.passTier,
+      remainingUses: tierPassConsume.remainingUsesAfter,
+      idempotent: Boolean(tierPassConsume.idempotent),
       chargedCoins: 0,
       membershipCreditCost: 0,
     },
     premiumAccessToken: null,
     accessGrant: {
       ok: true,
-      accessType: "membership_pass",
-      accessMethod: "PASS",
+      accessType: tierPassConsume.accessType || "membership_pass",
+      accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
       featureKey: String(pricing.featureKey || ""),
       sessionId: reportSessionId || undefined,
       requestId,
@@ -4701,6 +5211,8 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
       freeLimit: subscriptionPass.freeLimit,
       passLimit: subscriptionPass.passLimit || subscriptionPass.freeLimit,
       maxCoveredCoin: subscriptionPass.maxCoveredCoin || subscriptionPass.passLimit || subscriptionPass.freeLimit,
+      totalUses: tierPassConsume.totalUses,
+      remainingUses: tierPassConsume.remainingUsesAfter,
     },
     user: {
       id: String(authCheck.auth.userId || ""),

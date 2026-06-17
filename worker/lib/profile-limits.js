@@ -15,6 +15,13 @@ export const PASS_LIMITS = Object.freeze({
   [PASS_TIERS.FAMILY]: FAMILY_PASS_MAX_COVERED_COIN,
 });
 
+export const PASS_TOTAL_USES = Object.freeze({
+  [PASS_TIERS.STANDARD]: 3,
+  [PASS_TIERS.PREMIUM]: 7,
+  [PASS_TIERS.VVIP]: 15,
+  [PASS_TIERS.FAMILY]: null,
+});
+
 export const PASS_LIMITS_KRW = Object.freeze({
   [PASS_TIERS.STANDARD]: PASS_LIMITS[PASS_TIERS.STANDARD] * KRW_PER_COIN,
   [PASS_TIERS.PREMIUM]: PASS_LIMITS[PASS_TIERS.PREMIUM] * KRW_PER_COIN,
@@ -56,24 +63,28 @@ export const HONEY_PASS_POLICY = Object.freeze({
     passTier: PASS_TIERS.STANDARD,
     label: "스탠다드",
     maxCoveredCoin: PASS_LIMITS.standard,
+    totalUses: PASS_TOTAL_USES.standard,
     maxProfiles: 3,
   },
   premium: {
     passTier: PASS_TIERS.PREMIUM,
     label: "프리미엄",
     maxCoveredCoin: PASS_LIMITS.premium,
+    totalUses: PASS_TOTAL_USES.premium,
     maxProfiles: 7,
   },
   vvip: {
     passTier: PASS_TIERS.VVIP,
     label: "VVIP",
     maxCoveredCoin: PASS_LIMITS.vvip,
+    totalUses: PASS_TOTAL_USES.vvip,
     maxProfiles: 15,
   },
   family: {
     passTier: PASS_TIERS.FAMILY,
     label: "Code Destiny Family",
     maxCoveredCoin: PASS_LIMITS.family,
+    totalUses: PASS_TOTAL_USES.family,
     maxProfiles: 0,
   },
 });
@@ -94,6 +105,15 @@ export const HONEY_PASS_FREE_LIMIT_BY_TIER = Object.freeze({
 
 function toText(value) {
   return String(value || "").trim();
+}
+
+function firstFiniteNonNegativeNumber(values = []) {
+  for (const value of values) {
+    if (value === null || value === undefined || value === "") continue;
+    const number = Number(value);
+    if (Number.isFinite(number) && number >= 0) return Math.floor(number);
+  }
+  return null;
 }
 
 function tierFromValue(value) {
@@ -231,15 +251,36 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
     const isActive = !explicitInactive && (expiresAt ? dateActive : explicitActive);
     if (!isActive) continue;
 
+    const policy = HONEY_PASS_POLICY[tier];
+    const policyTotalUses = policy.totalUses === null ? null : Number(policy.totalUses || 0);
+    const totalUses = tier === PASS_TIERS.FAMILY
+      ? null
+      : (firstFiniteNonNegativeNumber([
+        source.passTotalUses,
+        source.totalUses,
+        source.totalUseLimit,
+        source.usageLimit,
+      ]) ?? policyTotalUses);
+    const remainingUses = tier === PASS_TIERS.FAMILY
+      ? null
+      : (firstFiniteNonNegativeNumber([
+        source.passRemainingUses,
+        source.remainingUses,
+        source.remainingUseCount,
+        source.usesRemaining,
+      ]) ?? totalUses);
+
     const candidate = {
       tier,
-      passTier: HONEY_PASS_POLICY[tier].passTier,
-      passLabel: HONEY_PASS_POLICY[tier].label,
-      passColorTone: PASS_TIER_UI[HONEY_PASS_POLICY[tier].passTier] || null,
-      label: HONEY_PASS_POLICY[tier].label,
+      passTier: policy.passTier,
+      passLabel: policy.label,
+      passColorTone: PASS_TIER_UI[policy.passTier] || null,
+      label: policy.label,
       isActive: true,
-      maxCoveredCoin: HONEY_PASS_POLICY[tier].maxCoveredCoin,
-      maxProfiles: HONEY_PASS_POLICY[tier].maxProfiles,
+      maxCoveredCoin: policy.maxCoveredCoin,
+      maxProfiles: policy.maxProfiles,
+      totalUses,
+      remainingUses,
       source: entry.source,
       startedAt: startedAt ? startedAt.toISOString() : null,
       expiresAt: expiresAt ? expiresAt.toISOString() : null,
@@ -257,6 +298,8 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
     isActive: false,
     maxCoveredCoin: 0,
     maxProfiles: 1,
+    totalUses: 0,
+    remainingUses: 0,
     source: "none",
     startedAt: null,
     expiresAt: null,
@@ -366,6 +409,12 @@ export function canUseByPass(activePass, coinCost) {
   if (expiresAt && Number.isFinite(expiresAt.getTime()) && expiresAt.getTime() < Date.now()) return false;
   const passTier = normalizePassTier(activePass.passTier || activePass.tier);
   if (passTier === PASS_TIERS.FAMILY) return Number.isFinite(price) && price >= 0;
+  const remainingUses = firstFiniteNonNegativeNumber([
+    activePass.remainingUses,
+    activePass.passRemainingUses,
+    activePass.usesRemaining,
+  ]) ?? PASS_TOTAL_USES[passTier];
+  if (!Number.isFinite(Number(remainingUses)) || Number(remainingUses) <= 0) return false;
   const limit = PASS_LIMITS[passTier] || Number(activePass.maxCoveredCoin || 0);
   return Boolean(
     Number.isFinite(price)

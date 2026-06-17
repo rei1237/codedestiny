@@ -7058,6 +7058,7 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
 function syNormalizeRelationMiniMapLabel(label) {
   var raw = String(label == null ? '' : label).replace(/\s+/g, '');
   if (!raw) return '';
+  if (raw.indexOf('중화') >= 0 || raw.indexOf('中和') >= 0) return '중화';
   if (raw.indexOf('영친') >= 0 || raw.indexOf('榮親') >= 0 || raw.indexOf('栄親') >= 0) return '영친';
   if (raw.indexOf('업태') >= 0 || raw.indexOf('業胎') >= 0) return '업태';
   if (raw.indexOf('우쇠') >= 0 || raw.indexOf('友衰') >= 0) return '우쇠';
@@ -7067,16 +7068,27 @@ function syNormalizeRelationMiniMapLabel(label) {
   return raw;
 }
 
+function syDisplayRelationMiniMapLabel(label, normalized) {
+  var raw = String(label == null ? '' : label).trim();
+  return raw.replace(/\s+/g, '').indexOf('中和') >= 0 ? '중화' : (normalized || raw);
+}
+
 function syRenderRelationMiniMapCard(reading, options) {
   var nodes = reading && Array.isArray(reading.relationMiniMap) ? reading.relationMiniMap : [];
   if (!nodes.length) return '';
   var opts = options || {};
   var activeLabel = syNormalizeRelationMiniMapLabel(opts.activeLabel || '');
+  var activeDisplayLabel = syDisplayRelationMiniMapLabel(opts.activeLabel || '', activeLabel);
+  var hasActiveNode = activeLabel && nodes.some(function(node) {
+    return syNormalizeRelationMiniMapLabel(node.label) === activeLabel;
+  });
   var embedded = !!opts.embedded;
   var inline = !!opts.inline;
   var title = activeLabel ? '계산된 관계 유형 해설' : '관계 유형 사전';
   var desc = activeLabel
-    ? '이번 궁합에서 확인된 관계 유형을 밝게 표시했습니다. 나머지 유형은 숙요 관계 구조를 비교해 보는 참고 사전입니다.'
+    ? (hasActiveNode
+      ? '이번 궁합에서 확인된 관계 유형을 밝게 표시했습니다. 나머지 유형은 숙요 관계 구조를 비교해 보는 참고 사전입니다.'
+      : '이번 궁합의 관계 유형은 ' + activeDisplayLabel + '입니다. 어느 한쪽으로 치우치지 않는 조율의 결로 비춥니다.')
     : '상대 입력 전에는 관계 유형의 의미를 미리 보는 안내입니다. 궁합 결과가 나오면 해당 유형이 강조됩니다.';
   var wrapperOpen = embedded
     ? '<section class="sy-relation-guide-card sy-relation-guide-card--embedded" data-sy-relation-guide-map="result" data-active-relation="' + syCanonicalEsc(activeLabel) + '">'
@@ -7089,7 +7101,7 @@ function syRenderRelationMiniMapCard(reading, options) {
     + '<div class="sy-relation-guide-head">'
     + '<div><div class="sy-relation-guide-eyebrow">관계 유형 안내</div>'
     + '<h4>' + syCanonicalEsc(title) + '</h4></div>'
-    + '<span class="sy-relation-guide-badge">' + syCanonicalEsc(activeLabel || '관계 유형 사전') + '</span>'
+    + '<span class="sy-relation-guide-badge">' + syCanonicalEsc(activeDisplayLabel || '관계 유형 사전') + '</span>'
     + '</div>'
     + '<p class="sy-relation-guide-desc" data-sy-relation-guide-copy>' + syCanonicalEsc(desc) + '</p>'
     + '<div class="sy-mini-grid sy-relation-guide-grid">'
@@ -7113,17 +7125,23 @@ function syRenderRelationMiniMapCard(reading, options) {
 function syHighlightRelationMiniMap(relationLabel) {
   var activeLabel = syNormalizeRelationMiniMapLabel(relationLabel || '');
   if (!activeLabel || typeof document === 'undefined') return;
+  var activeDisplayLabel = syDisplayRelationMiniMapLabel(relationLabel || '', activeLabel);
   document.querySelectorAll('[data-sy-relation-guide-map]').forEach(function(map) {
     map.setAttribute('data-active-relation', activeLabel);
     var badge = map.querySelector('.sy-relation-guide-badge');
-    if (badge) badge.textContent = activeLabel;
+    if (badge) badge.textContent = activeDisplayLabel;
     var copy = map.querySelector('[data-sy-relation-guide-copy]');
-    if (copy) {
-      copy.textContent = '방금 계산된 궁합의 관계 유형은 ' + activeLabel + '입니다. 밝게 표시된 항목에서 이 관계가 어떤 방식으로 작동하는지 확인하세요.';
-    }
+    var hasActiveNode = false;
     map.querySelectorAll('[data-sy-relation-node]').forEach(function(node) {
-      node.classList.toggle('is-active', node.getAttribute('data-sy-relation-node') === activeLabel);
+      var isActive = node.getAttribute('data-sy-relation-node') === activeLabel;
+      node.classList.toggle('is-active', isActive);
+      if (isActive) hasActiveNode = true;
     });
+    if (copy) {
+      copy.textContent = hasActiveNode
+        ? '방금 계산된 궁합의 관계 유형은 ' + activeDisplayLabel + '입니다. 밝게 표시된 항목에서 이 관계가 어떤 방식으로 작동하는지 확인하세요.'
+        : '방금 계산된 궁합의 관계 유형은 ' + activeDisplayLabel + '입니다. 어느 한쪽으로 치우치지 않는 조율의 결로 비춥니다.';
+    }
   });
 }
 
@@ -7656,7 +7674,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         .sy-relation-guide-badge { display:inline-flex; align-items:center; justify-content:center; min-height:28px; padding:4px 11px; border-radius:999px; border:1px solid rgba(250,204,21,0.42); background:rgba(250,204,21,0.1); color:#fef3c7; font-size:0.74rem; font-weight:900; white-space:normal; text-align:center; line-height:1.35; max-width:100%; }
         .sy-relation-guide-desc { margin:0 0 12px; color:#bfdbfe; font-size:0.84rem; line-height:1.72; word-break:keep-all; }
         .sy-relation-guide-grid .sy-mini-node { transition:transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease; }
-        .sy-relation-guide-grid .sy-mini-node.is-active { border-color:rgba(250,204,21,0.88); box-shadow:0 0 0 1px rgba(250,204,21,0.24), 0 16px 32px rgba(250,204,21,0.12); transform:translateY(-2px); }
+        .sy-relation-guide-grid .sy-mini-node.is-active { border-color:rgba(250,204,21,0.95); background:radial-gradient(circle at 88% 8%,rgba(254,243,199,0.22),transparent 34%),linear-gradient(145deg,rgba(56,43,18,0.78),rgba(17,24,39,0.96)); box-shadow:0 0 0 1px rgba(250,204,21,0.38), 0 16px 34px rgba(250,204,21,0.18), inset 0 1px 0 rgba(255,255,255,0.16); transform:translateY(-2px); filter:brightness(1.08); }
         .sy-relation-guide-grid .sy-mini-node.is-active .sy-mini-head strong { color:#fef3c7; }
         .sy-relation-guide-grid .sy-mini-node.is-active .sy-mini-essence { color:#fff7ed; }
         .sy-dual-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
@@ -8550,9 +8568,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         base = 62;
       }
 
-      var typeText = String(relationType || '');
-      if (typeText.indexOf('안·괴') !== -1 || typeText.indexOf('안괴') !== -1) base -= 7;
-      if (typeText.indexOf('영친') !== -1) base += 5;
+      var relationKey = syRelationKeyFromType(relationType);
+      if (relationKey === 'ankai') base -= 7;
+      if (relationKey === 'yeongchin') base += 5;
 
       var harmonyScore = clampCompat(base, 38, 96);
       return {
@@ -8580,7 +8598,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
 
     function buildRoleActionGuide(rel, distInfo, D) {
-      var typeText = String((rel && (rel.typeLabel || rel.type)) || '');
+      var typeText = syRelationTextFromRel(rel);
+      var relationKey = syRelationKeyFromType(typeText);
       var nearHint = (distInfo && (distInfo.tier === 'near' || distInfo.tier === 'same'))
         ? '속도보다 회복 루틴을 먼저 합의하세요.'
         : '정기 점검 대화로 리듬 편차를 줄이세요.';
@@ -8588,20 +8607,20 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var otherAction = '상대 반응을 요약 확인한 뒤 결론을 내리세요.';
       var resetLine = '갈등 직후 24시간 내 감정-사실-합의 순으로 재접속하세요.';
 
-      if (typeText.indexOf('안·괴') !== -1 || typeText.indexOf('안괴') !== -1) {
+      if (relationKey === 'ankai') {
         var role = rel && rel.ankaiRole;
         var meRole = role && role.me ? role.me : '포지션';
         var otherRole = role && role.other ? role.other : '포지션';
         meAction = '나(' + meRole + ')는 감정 급등 시 결론 유예를 선언하세요.';
         otherAction = '상대(' + otherRole + ')는 경계선 요청을 즉시 수용하세요.';
         resetLine = '강한 파동 구간에서는 비난 대신 규칙 문장을 먼저 읽고 대화를 시작하세요.';
-      } else if (typeText.indexOf('영친') !== -1) {
+      } else if (relationKey === 'yeongchin') {
         meAction = '편안함 속에서도 주간 성장 주제를 하나 고정하세요.';
         otherAction = '감사 표현을 구체 행동으로 환원해 신뢰를 누적하세요.';
-      } else if (typeText.indexOf('우쇠') !== -1) {
+      } else if (relationKey === 'usei') {
         meAction = '불편을 미루지 말고 짧은 체크인으로 풀어내세요.';
         otherAction = '정서 안정 신호를 자주 보내 관계 피로를 낮추세요.';
-      } else if (typeText.indexOf('성위') !== -1) {
+      } else if (relationKey === 'seongwi') {
         meAction = '역할과 감정 시간을 분리해 피로 누적을 막으세요.';
         otherAction = '목표 진행률보다 감정 온도를 먼저 확인하세요.';
       }
@@ -8624,10 +8643,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var meShadow = (me.shadows && me.shadows[0]) || '과잉 해석';
       var otherStrength = (other.strengths && other.strengths[0]) || '감정 회복력';
       var otherShadow = (other.shadows && other.shadows[0]) || '회피 반응';
-      var typeText = String(relationType || '');
+      var relationKey = syRelationKeyFromType(relationType);
       var complementSummary = '나의 ' + meStrength + '이 상대의 ' + otherShadow + '를 완충하고, 상대의 ' + otherStrength + '이 나의 ' + meShadow + '를 정리합니다.';
 
-      if (typeText.indexOf('안·괴') !== -1 || typeText.indexOf('안괴') !== -1) {
+      if (relationKey === 'ankai') {
         complementSummary = '강점은 빠른 변화에 유리하지만, 그림자 버튼이 눌리면 소모가 커집니다. 강점 사용 시점을 합의하면 보완 효과가 커집니다.';
       }
 
@@ -8653,11 +8672,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var shortest = Number(distInfo && distInfo.raw);
       if (!Number.isFinite(shortest)) shortest = Math.min(((Number(D) % 27) + 27) % 27, (27 - (((Number(D) % 27) + 27) % 27)) % 27);
 
-      var typeText = String((rel && (rel.typeLabel || rel.type)) || '');
+      var relationKey = syRelationKeyFromType(syRelationTextFromRel(rel));
       var volatility = 0;
-      if (typeText.indexOf('안·괴') !== -1 || typeText.indexOf('안괴') !== -1) volatility = 8;
-      else if (typeText.indexOf('업') !== -1 || typeText.indexOf('태') !== -1) volatility = 5;
-      else if (typeText.indexOf('영친') !== -1) volatility = -3;
+      if (relationKey === 'ankai') volatility = 8;
+      else if (relationKey === 'taegeuk') volatility = 5;
+      else if (relationKey === 'yeongchin') volatility = -3;
 
       var distancePenalty = shortest * 1.6;
       var seedAdjust = ((Number(D) * 13 + 7) % 9) - 4;
@@ -8667,9 +8686,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     function buildAdvancedCompatMetrics(myIdx, partnerIdx, rel, distInfo, D) {
       var distanceMetrics = buildDistanceMetrics(D, distInfo);
-      var elementHarmony = buildElementHarmony(myIdx, partnerIdx, rel && (rel.typeLabel || rel.type));
+      var elementHarmony = buildElementHarmony(myIdx, partnerIdx, syRelationTextFromRel(rel));
       var roleActionGuide = buildRoleActionGuide(rel, distInfo, D);
-      var strengthShadowMap = buildStrengthShadowMap(myIdx, partnerIdx, rel && (rel.typeLabel || rel.type));
+      var strengthShadowMap = buildStrengthShadowMap(myIdx, partnerIdx, syRelationTextFromRel(rel));
       var compatibilityIndex = buildCompatibilityIndex(rel, distInfo, elementHarmony, D);
       var relationVariant = buildRelationVariant(D, distInfo, rel);
 
@@ -10576,19 +10595,24 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
   };
 
+  function syRelationTextFromRel(rel) {
+    if (!rel) return '';
+    return [rel.typeLabel, rel.type, rel.stamp].filter(Boolean).join(' ');
+  }
+
   function syRelationKeyFromType(typeText) {
     var t = String(typeText || '');
-    if (t.indexOf('영친') !== -1) return 'yeongchin';
-    if (t.indexOf('안·괴') !== -1 || t.indexOf('안괴') !== -1) return 'ankai';
-    if (t.indexOf('우쇠') !== -1) return 'usei';
-    if (t.indexOf('성위') !== -1) return 'seongwi';
-    if (t.indexOf('명(') !== -1 || t.indexOf('명)') !== -1 || t.indexOf('영혼의 거울') !== -1) return 'life';
-    if (t.indexOf('업(') !== -1 || t.indexOf('태(') !== -1 || t.indexOf('채무') !== -1 || t.indexOf('채권') !== -1) return 'taegeuk';
+    if (t.indexOf('영친') !== -1 || t.indexOf('榮親') !== -1 || t.indexOf('栄親') !== -1) return 'yeongchin';
+    if (t.indexOf('안·괴') !== -1 || t.indexOf('안괴') !== -1 || t.indexOf('安壞') !== -1 || t.indexOf('安壊') !== -1) return 'ankai';
+    if (t.indexOf('우쇠') !== -1 || t.indexOf('友衰') !== -1) return 'usei';
+    if (t.indexOf('성위') !== -1 || t.indexOf('위성') !== -1 || t.indexOf('危成') !== -1 || t.indexOf('드라이브 · 成') !== -1) return 'seongwi';
+    if (t.indexOf('명(') !== -1 || t.indexOf('명)') !== -1 || t.indexOf('命') !== -1 || t.indexOf('영혼의 거울') !== -1) return 'life';
+    if (t.indexOf('업(') !== -1 || t.indexOf('태(') !== -1 || t.indexOf('業') !== -1 || t.indexOf('胎') !== -1 || t.indexOf('채무') !== -1 || t.indexOf('채권') !== -1) return 'taegeuk';
     return 'default';
   }
 
   function buildSukuyoRelationStory(rel, distInfo) {
-    var relKey = syRelationKeyFromType(rel && (rel.typeLabel || rel.type));
+    var relKey = syRelationKeyFromType(syRelationTextFromRel(rel));
     var relCopy = SY_RELATION_STORY_COPY[relKey] || SY_RELATION_STORY_COPY.default;
     var distCopy = SY_DISTANCE_STORY_COPY[(distInfo && distInfo.tier) || 'default'] || SY_DISTANCE_STORY_COPY.default;
     var roleLine = '';
@@ -10617,7 +10641,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   }
 
   function syBuildRelationStructure(rel, distInfo) {
-    var relKey = syRelationKeyFromType(rel && (rel.typeLabel || rel.type));
+    var relKey = syRelationKeyFromType(syRelationTextFromRel(rel));
     var relCopy = SY_RELATION_STRUCTURE_COPY[relKey] || SY_RELATION_STRUCTURE_COPY.default;
     var distKey = (distInfo && distInfo.tier) || 'default';
     var distInsight = SY_DISTANCE_STRUCTURE_COPY[distKey] || SY_DISTANCE_STRUCTURE_COPY.default;
@@ -11648,14 +11672,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   }
 
   function syCompatRelationKo(rel) {
-    var t = String((rel && (rel.typeLabel || rel.type)) || '');
-    if (t.indexOf('안·괴') !== -1 || t.indexOf('안괴') !== -1) return '安壞';
-    if (t.indexOf('우쇠') !== -1 || t.indexOf('우·쇠') !== -1) return '友衰';
-    if (t.indexOf('성위') !== -1 || t.indexOf('성·위') !== -1 || t.indexOf('위성') !== -1 || t.indexOf('위·성') !== -1) return '危成';
-    if (t.indexOf('영친') !== -1 || t.indexOf('영·친') !== -1) return '榮親';
-    if (t.indexOf('명') !== -1 || t.indexOf('영혼의 거울') !== -1) return '命';
-    if (t.indexOf('업') !== -1 || t.indexOf('태') !== -1) return '業胎';
-    return '中和';
+    var relationKey = syRelationKeyFromType(syRelationTextFromRel(rel));
+    if (relationKey === 'ankai') return '安壞';
+    if (relationKey === 'usei') return '友衰';
+    if (relationKey === 'seongwi') return '危成';
+    if (relationKey === 'yeongchin') return '榮親';
+    if (relationKey === 'life') return '命';
+    if (relationKey === 'taegeuk') return '業胎';
+    return '중화';
   }
 
   function syCompatDistanceKo(distInfo) {
@@ -11745,7 +11769,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   }
 
   function syBuildEnhancedSukuyoResult(ctx) {
-    var relationKey = syRelationKeyFromType(ctx.rel && (ctx.rel.typeLabel || ctx.rel.type));
+    var relationKey = syRelationKeyFromType(syRelationTextFromRel(ctx.rel));
     var relationKo = syCompatRelationKo(ctx.rel);
     var distanceKo = syCompatDistanceKo(ctx.distInfo);
     var relationTypeRaw = String((ctx.rel && (ctx.rel.typeLabel || ctx.rel.type)) || '숙요 인연');

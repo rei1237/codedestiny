@@ -494,7 +494,7 @@ function buildAIPromptMonthlyCreditLedgerClauses(tokens) {
 }
 
 async function findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId }) {
-  if (!isAIPromptMonthlyCreditAccessPayload(body)) return null;
+  if (!isAIPromptMonthlyCreditAccessPayload(body) && !hasAIPromptMonthlyCreditEvidenceToken(body)) return null;
   const userId = String(auth?.userId || "").trim();
   const normalizedFeatureKey = normalizeFeatureKey(featureKey);
   const featureKeys = uniqueStrings([featureKey, normalizedFeatureKey]);
@@ -555,6 +555,22 @@ function readAIPromptAccessContext(body = {}) {
   return { accessGrant, consume, payment, paymentContext, accessType, accessMethod, paymentMode };
 }
 
+function hasAIPromptMonthlyCreditEvidenceToken(body = {}) {
+  const ctx = readAIPromptAccessContext(body);
+  return uniqueStrings([
+    body?.ledgerId,
+    body?.monthlyCreditLedgerId,
+    ctx.accessGrant.ledgerId,
+    ctx.accessGrant.monthlyCreditLedgerId,
+    ctx.consume.ledgerId,
+    ctx.consume.monthlyCreditLedgerId,
+    ctx.payment.ledgerId,
+    ctx.payment.monthlyCreditLedgerId,
+    ctx.paymentContext.ledgerId,
+    ctx.paymentContext.monthlyCreditLedgerId,
+  ]).length > 0;
+}
+
 function isAIPromptDirectAccessPayload(body = {}) {
   const ctx = readAIPromptAccessContext(body);
   return ctx.accessType === "single_purchase"
@@ -563,6 +579,28 @@ function isAIPromptDirectAccessPayload(body = {}) {
     || ctx.accessMethod === "DIRECT_KRW"
     || ctx.paymentMode === "DIRECT_KRW"
     || ctx.paymentMode === "SINGLE_PURCHASE";
+}
+
+function hasAIPromptDirectPaymentEvidenceToken(body = {}) {
+  const ctx = readAIPromptAccessContext(body);
+  return uniqueStrings([
+    body?.merchantUid,
+    body?.merchant_uid,
+    body?.impUid,
+    body?.imp_uid,
+    body?.paymentId,
+    ctx.accessGrant.merchantUid,
+    ctx.accessGrant.impUid,
+    ctx.accessGrant.paymentId,
+    ctx.payment.merchantUid,
+    ctx.payment.impUid,
+    ctx.payment.paymentId,
+    ctx.payment._id,
+    ctx.payment.id,
+    ctx.paymentContext.merchantUid,
+    ctx.paymentContext.impUid,
+    ctx.paymentContext.paymentId,
+  ]).length > 0;
 }
 
 function buildAIPromptPaymentClauses(tokens) {
@@ -613,7 +651,7 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
   const pointHistory = await findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, cost });
   if (pointHistory) return { source: "point_history", record: pointHistory };
 
-  if (isAIPromptDirectAccessPayload(body)) {
+  if (isAIPromptDirectAccessPayload(body) || hasAIPromptDirectPaymentEvidenceToken(body)) {
     const payment = await findAIPromptDirectPaymentEvidence({ auth, featureKey, body, requestId, cost });
     if (payment) return { source: "payment", record: payment };
   }

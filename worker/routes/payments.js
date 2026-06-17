@@ -28,7 +28,7 @@ import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed,
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { normalizeHoneyPassEntitlement, PASS_LIMITS, PASS_TOTAL_USES } from "../lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 
 const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
@@ -334,10 +334,10 @@ async function grantUsagePassToUser({ userId, product, paymentId, paidAt, sessio
 }
 
 const SUBSCRIPTION_BASE_PLANS = {
-  standard: { tier: "standard", name: "스탠다드 꿀 30일", monthlyWonPrice: 9900, profileLimit: 3, membershipCreditGrant: 0 },
-  premium: { tier: "premium", name: "프리미엄 꿀 30일", monthlyWonPrice: 29900, profileLimit: 7, membershipCreditGrant: 0 },
-  vvip: { tier: "vvip", name: "VVIP 꿀단지 30일", monthlyWonPrice: 59000, profileLimit: 15, membershipCreditGrant: 0 },
-  family: { tier: "family", name: "Code Destiny Family 30일", monthlyWonPrice: 300000, profileLimit: 0, membershipCreditGrant: 0 },
+  standard: { tier: "standard", name: "스탠다드 꿀 30일", monthlyWonPrice: 9900, profileLimit: 3, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.standard, maxCoveredCoin: PASS_LIMITS.standard },
+  premium: { tier: "premium", name: "프리미엄 꿀 30일", monthlyWonPrice: 29900, profileLimit: 7, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.premium, maxCoveredCoin: PASS_LIMITS.premium },
+  vvip: { tier: "vvip", name: "VVIP 꿀단지 30일", monthlyWonPrice: 59000, profileLimit: 15, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.vvip, maxCoveredCoin: PASS_LIMITS.vvip },
+  family: { tier: "family", name: "Code Destiny Family 30일", monthlyWonPrice: 300000, profileLimit: 0, membershipCreditGrant: 0, passTotalUses: 0, maxCoveredCoin: PASS_LIMITS.family },
 };
 
 const SUBSCRIPTION_DURATION_DISCOUNTS = Object.freeze({
@@ -3509,10 +3509,17 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
     {
       $set: {
         "profileSubscription.tier": tier,
+        "profileSubscription.passTier": tier,
         "profileSubscription.planId": plan.planId,
         "profileSubscription.durationMonths": plan.durationMonths,
         "profileSubscription.productType": plan.productType,
         "profileSubscription.profileLimit": plan.profileLimit,
+        "profileSubscription.passTotalUses": Number(plan.passTotalUses || 0),
+        "profileSubscription.passRemainingUses": Number(plan.passTotalUses || 0),
+        "profileSubscription.passUsedCount": 0,
+        "profileSubscription.maxCoveredCoin": Number(plan.maxCoveredCoin || 0),
+        "profileSubscription.freeLimit": Number(plan.maxCoveredCoin || 0),
+        "profileSubscription.passLimit": Number(plan.maxCoveredCoin || 0),
         "profileSubscription.source": "pass",
         "profileSubscription.startedAt": now,
         "profileSubscription.expiresAt": expiresAt,
@@ -3946,9 +3953,17 @@ async function handleSubscriptionConfirm(request, env, auth) {
     {
       $set: {
         "profileSubscription.tier": tier,
+        "profileSubscription.passTier": tier,
         "profileSubscription.planId": plan.planId,
         "profileSubscription.durationMonths": plan.durationMonths,
         "profileSubscription.productType": plan.productType,
+        "profileSubscription.profileLimit": plan.profileLimit,
+        "profileSubscription.passTotalUses": Number(plan.passTotalUses || 0),
+        "profileSubscription.passRemainingUses": Number(plan.passTotalUses || 0),
+        "profileSubscription.passUsedCount": 0,
+        "profileSubscription.maxCoveredCoin": Number(plan.maxCoveredCoin || 0),
+        "profileSubscription.freeLimit": Number(plan.maxCoveredCoin || 0),
+        "profileSubscription.passLimit": Number(plan.maxCoveredCoin || 0),
         "profileSubscription.source": "pass",
         "profileSubscription.startedAt": paidAt,
         "profileSubscription.expiresAt": expiresAt,
