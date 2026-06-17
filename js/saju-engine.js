@@ -5234,8 +5234,9 @@ function _sajuPromptShouldRetryPaidGeneration(result) {
     || /database is temporarily unavailable/i.test(message);
 }
 
-function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence) {
+function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence, options) {
   var urls = _sajuPromptApiUrls('/api/fortune/saju/ai-prompt');
+  var opts = options && typeof options === 'object' ? options : {};
   var body = {
     question: question,
     domain: String(domain || '').trim(),
@@ -5254,6 +5255,9 @@ function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions,
     }).then(function(result) {
       if (result && result.ok) return result;
       if (_sajuPromptShouldRetryPaidGeneration(result) && attempt < 1) {
+        if (typeof opts.onRetry === 'function') {
+          try { opts.onRetry(result); } catch (_) {}
+        }
         return new Promise(function(resolve) {
           setTimeout(resolve, 750);
         }).then(function() {
@@ -5265,6 +5269,9 @@ function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions,
     }).catch(function(error) {
       if (index + 1 < urls.length) return runAt(index + 1, attempt);
       if (attempt < 1) {
+        if (typeof opts.onRetry === 'function') {
+          try { opts.onRetry(null); } catch (_) {}
+        }
         return new Promise(function(resolve) {
           setTimeout(resolve, 750);
         }).then(function() {
@@ -5277,7 +5284,7 @@ function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions,
   return runAt(0, 0);
 }
 
-function _requestSajuQuestionPrompt(question, privacyOptions, domain) {
+function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
   var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   return _cdAIPromptGate({
     featureKey: 'saju_ai_prompt_generator',
@@ -5288,7 +5295,7 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain) {
   }).then(function(gateResult) {
     if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
     var evidence = _cdAIPromptGateEvidence(gateResult);
-    return _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence);
+    return _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence, options);
   });
 }
 
@@ -5420,7 +5427,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
     }
     setLoading(true);
     _sajuPromptSetStatus(statusEl, '결제 권한을 확인하고 ' + _sajuPromptDomainLabel(domain) + ' 주제의 사주 전용 AI 질문문을 엽니다.', 'info');
-    _requestSajuQuestionPrompt(question, privacyOptions, domain).then(function(result) {
+    _requestSajuQuestionPrompt(question, privacyOptions, domain, {
+      onRetry: function() {
+        _sajuPromptSetStatus(statusEl, '결제의 흔적은 남아 있고, 명식의 문을 다시 여는 중입니다.', 'info');
+      }
+    }).then(function(result) {
       var payload = result && result.payload ? result.payload : {};
       var promptText = String(payload.prompt || payload.generatedPrompt || '').trim();
       if (result && result.ok && payload.ok === true && promptText) {

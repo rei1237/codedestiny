@@ -50,6 +50,20 @@ import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
+const SAJU_AI_PROMPT_DB_ERROR_SIGNATURES = [
+  "temporarily unavailable",
+  "database is temporarily unavailable",
+  "connection",
+  "connect",
+  "server selection",
+  "timed out",
+  "timeout",
+  "econnrefused",
+  "enotfound",
+  "econnreset",
+  "mongo",
+  "mongoose",
+];
 
 let __swissWesternChartLoader = null;
 
@@ -1866,6 +1880,19 @@ function buildSajuAIPromptError(code, message, status = 400) {
   return json({ ok: false, code, message }, { status });
 }
 
+function isSajuAIPromptDbUnavailableError(error) {
+  const haystack = `${String(error?.message || "")} ${String(error?.code || "")} ${String(error?.name || "")}`.toLowerCase();
+  return SAJU_AI_PROMPT_DB_ERROR_SIGNATURES.some((needle) => haystack.includes(needle));
+}
+
+function buildSajuAIPromptPaidAccessRetryableError() {
+  return buildSajuAIPromptError(
+    "PAID_ACCESS_VERIFY_RETRYABLE",
+    "결제는 확인되었고 생성 권한을 다시 맞추고 있습니다. 잠시 후 자동으로 다시 시도합니다.",
+    503,
+  );
+}
+
 function mapSajuConsumeFailure(response, payload) {
   const status = Number(response?.status || 500);
   const code = String(payload?.code || "").trim();
@@ -1885,11 +1912,7 @@ function mapSajuConsumeFailure(response, payload) {
   }
 
   if (status === 503 || code === "SERVICE_UNAVAILABLE" || detailReason === "DB_UNAVAILABLE") {
-    return buildSajuAIPromptError(
-      "PAID_ACCESS_VERIFY_RETRYABLE",
-      "결제는 확인되었고 생성 권한을 다시 맞추고 있습니다. 잠시 후 자동으로 다시 시도합니다.",
-      503,
-    );
+    return buildSajuAIPromptPaidAccessRetryableError();
   }
 
   return buildSajuAIPromptError(
@@ -2579,6 +2602,9 @@ async function handleSajuAIPrompt(request, auth, env) {
     }
 
     console.error("[fortune][saju-ai-prompt] request failed:", error);
+    if (isSajuAIPromptDbUnavailableError(error)) {
+      return buildSajuAIPromptPaidAccessRetryableError();
+    }
     return buildSajuAIPromptError(
       "PROMPT_GENERATION_FAILED",
       "프롬프트 생성 중 오류가 발생했습니다. 결제 권한이 생성되었다면 자동 복구를 시도했습니다.",
@@ -3440,8 +3466,6 @@ export async function handleFortuneRoutes(request, env) {
         return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      await connectDb(env);
-      trace.dbConnected = true;
       return await handleSajuAIPrompt(request, auth, env);
     }
 

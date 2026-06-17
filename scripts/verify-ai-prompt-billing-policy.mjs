@@ -38,6 +38,12 @@ assert.match(fortuneSource, /findAIPromptMonthlyCreditEvidence/, "AI prompt cons
 assert.match(fortuneSource, /MonthlyCreditLedger\.findOne/, "AI prompt monthly-credit evidence must use the monthly credit ledger");
 assert.match(fortuneSource, /requireExistingPaidAccess/, "AI prompt consume must support existing-paid-access enforcement");
 assert.match(fortuneSource, /PAID_ACCESS_VERIFY_RETRYABLE/, "saju prompt must expose retryable paid-access DB verification failures");
+assert.match(fortuneSource, /isSajuAIPromptDbUnavailableError/, "saju prompt must classify DB verification failures inside the prompt route");
+assert.doesNotMatch(
+  fortuneSource,
+  /path === "\/saju\/ai-prompt"[\s\S]{0,520}await connectDb\(env\);[\s\S]{0,180}handleSajuAIPrompt/,
+  "saju prompt route must not fail on a pre-generation connectDb before paid evidence handling",
+);
 assert.match(fortuneSource, /points: \{ \$gte: cost \}/, "coin consume must check balance before deduction");
 assert.match(fortuneSource, /kind: "deduct"/, "coin consume must write deduct history");
 assert.match(fortuneSource, /metadata:\s*\{[\s\S]*requestId: coinRequestId/, "deduct history must bind requestId");
@@ -51,6 +57,7 @@ assert.match(sajuEngineSource, /window\._cdOpenPaidServiceGate/, "saju/ziwei/ast
 assert.match(sajuEngineSource, /paymentMode:\s*'MEMBERSHIP_PASS'/, "saju prompt fallback may only probe membership pass access");
 assert.match(sajuEngineSource, /function _sajuPromptPostWithPaidEvidence/, "saju prompt must separate paid gate from generation request");
 assert.match(sajuEngineSource, /_sajuPromptShouldRetryPaidGeneration/, "saju prompt must retry generation with the same paid evidence after transient DB verification failure");
+assert.match(sajuEngineSource, /onRetry:\s*function/, "saju prompt must surface paid generation retry state to the user");
 assert.match(sajuEngineSource, /getFortuneApiBaseUrl/, "saju prompt generation must support the worker API base fallback");
 assert.doesNotMatch(
   sajuEngineSource,
