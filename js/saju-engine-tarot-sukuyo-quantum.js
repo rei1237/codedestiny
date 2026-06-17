@@ -2067,6 +2067,7 @@ function analyzeFortuneGZ(gz, p, label){
 
   // ── 퀀텀 명리 엔진: 종격/가종격 우선, 아니면 억부+조후 ──────────────
   var isYong, isGi;
+  var allowInseongGiOverride = false;
   if(jg && jg.isJong) {
     // 종격 사주: 지배 오행 or 상생 오행 = 용, 克지배오행 = 기
     isYong = (gEl===jg.dominant||gEl===jg.parEl||jEl===jg.dominant||jEl===jg.parEl);
@@ -2074,7 +2075,14 @@ function analyzeFortuneGZ(gz, p, label){
     // 종재격/가종재격: 인성 오행(일간을 生)도 기신
     if(jg.name && jg.name.indexOf('종재격') >= 0 && jg.dayEl) {
       var _inseong = parentOf(jg.dayEl);
-      if(gEl === _inseong || jEl === _inseong) isGi = true;
+      allowInseongGiOverride = !!(
+        pw &&
+        pw.isStrong &&
+        _inseong &&
+        pw.yongshin &&
+        pw.yongshin.indexOf(_inseong) >= 0
+      );
+      if(!allowInseongGiOverride && (gEl === _inseong || jEl === _inseong)) isGi = true;
     }
   } else {
     isYong = pw&&(pw.yongshin.indexOf(gEl)>=0||pw.yongshin.indexOf(jEl)>=0);
@@ -2168,7 +2176,7 @@ function analyzeFortuneGZ(gz, p, label){
     if(_ctrl) baseGiEls.push(_ctrl);
     if(jg.name && jg.name.indexOf('종재격') >= 0 && jg.dayEl) {
       var _inseongEl = parentOf(jg.dayEl);
-      if(_inseongEl) baseGiEls.push(_inseongEl);
+      if(_inseongEl && !allowInseongGiOverride) baseGiEls.push(_inseongEl);
     }
   } else if(pw && pw.kijishin && pw.kijishin.length){
     baseGiEls = pw.kijishin.slice();
@@ -8076,6 +8084,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     const _radarProfileName = syCanonicalEsc((sourceProfile && (sourceProfile.name || sourceProfile.nickname || sourceProfile.profileName)) || (window._ziweiBirth && window._ziweiBirth.name) || '나');
     const _radarBirth = syCanonicalEsc((sourceProfile && (sourceProfile.birthDate || sourceProfile.date)) || (window._ziweiBirth && window._ziweiBirth.birthDate) || '');
+    const _radarBirthDigits = _radarBirth.replace(/\D/g, '').slice(0, 8);
     const _radarHasSelf = !!sData;
     html += `<div class="sy-card sy-radar-card" data-sy-radar-card="20260616-sukyo-relationship-radar" data-sy-paid-feature="${SY_PAID_FEATURES.relationshipRadar.key}">
         <div class="sy-paid-card-head">
@@ -8094,14 +8103,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             <div class="sy-radar-grid">
               <label class="sy-radar-field"><span>내 이름</span><input type="text" data-sy-radar-user-name value="${_radarProfileName}" autocomplete="name"></label>
               <label class="sy-radar-field"><span>내 성별</span><select data-sy-radar-user-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
-              <label class="sy-radar-field"><span>내 생년월일</span><input type="date" data-sy-radar-user-date value="${_radarBirth}"></label>
+              <label class="sy-radar-field"><span>내 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-radar-user-date value="${_radarBirthDigits}"></label>
               <label class="sy-radar-field"><span>내 달력</span><select data-sy-radar-user-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
             </div>
           </div>
           <div class="sy-radar-grid">
             <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-radar-partner-name placeholder="예: 민서" maxlength="40" autocomplete="off"></label>
             <label class="sy-radar-field"><span>상대 성별</span><select data-sy-radar-partner-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
-            <label class="sy-radar-field"><span>상대 생년월일</span><input type="date" data-sy-radar-partner-date required></label>
+            <label class="sy-radar-field"><span>상대 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-radar-partner-date required></label>
             <label class="sy-radar-field"><span>상대 달력</span><select data-sy-radar-partner-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
             <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-radar-partner-time placeholder="선택 입력"></label>
             <label class="sy-radar-field"><span>관계 목적</span><select data-sy-radar-purpose><option value="general">전체 분석</option><option value="love">연애</option><option value="reunion">재회</option><option value="marriage">결혼</option><option value="friend">친구</option><option value="family">가족</option><option value="business">동업/비즈니스</option><option value="work">직장/상사/동료</option></select></label>
@@ -8129,14 +8138,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             <div class="sy-radar-grid">
               <label class="sy-radar-field"><span>내 이름</span><input type="text" data-sy-past-life-user-name value="${_radarProfileName}" autocomplete="name"></label>
               <label class="sy-radar-field"><span>내 성별</span><select data-sy-past-life-user-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
-              <label class="sy-radar-field"><span>내 생년월일</span><input type="date" data-sy-past-life-user-date value="${_radarBirth}"></label>
+              <label class="sy-radar-field"><span>내 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-past-life-user-date value="${_radarBirthDigits}"></label>
               <label class="sy-radar-field"><span>내 달력</span><select data-sy-past-life-user-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
             </div>
           </div>
           <div class="sy-radar-grid">
             <label class="sy-radar-field"><span>상대 이름 또는 별명</span><input type="text" data-sy-past-life-partner-name placeholder="예: 민서" maxlength="40" autocomplete="off"></label>
             <label class="sy-radar-field"><span>상대 성별</span><select data-sy-past-life-partner-gender><option value="unknown">선택 안 함</option><option value="female">여성</option><option value="male">남성</option></select></label>
-            <label class="sy-radar-field"><span>상대 생년월일</span><input type="date" data-sy-past-life-partner-date required></label>
+            <label class="sy-radar-field"><span>상대 생년월일</span><input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-sy-past-life-partner-date required></label>
             <label class="sy-radar-field"><span>상대 달력</span><select data-sy-past-life-partner-calendar><option value="solar">양력</option><option value="lunar">음력</option><option value="lunar_leap">음력(윤달)</option></select></label>
             <label class="sy-radar-field"><span>태어난 시간</span><input type="time" data-sy-past-life-partner-time placeholder="선택 입력"></label>
             <label class="sy-radar-field"><span>관계 목적</span><select data-sy-past-life-purpose><option value="general">전체 분석</option><option value="love">연애</option><option value="reunion">재회</option><option value="marriage">결혼</option><option value="crush">짝사랑</option><option value="friend">친구</option><option value="family">가족</option><option value="business">동업/비즈니스</option><option value="work">직장/상사/동료</option></select></label>
@@ -9303,6 +9312,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
   function syRadarParseDate(value) {
     var text = String(value || '').trim();
+    var digits = text.replace(/\D/g, '');
+    if (digits.length === 8) {
+      text = digits.slice(0, 4) + '-' + digits.slice(4, 6) + '-' + digits.slice(6, 8);
+    }
     var match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
     if (!match) return null;
     return { year: parseInt(match[1], 10), month: parseInt(match[2], 10), day: parseInt(match[3], 10), text: text };

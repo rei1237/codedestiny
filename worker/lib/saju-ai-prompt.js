@@ -354,7 +354,11 @@ export function buildSajuAIPromptWithDomain({
     throw new Error(`UNKNOWN_SAJU_DOMAIN:${resolvedDomain}`);
   }
 
-  const normalizedProfile = normalizeBirthInfo(profileOverride || sajuResult.profile, sajuResult.snapshot);
+  const analysisProfile =
+    sajuResult && typeof sajuResult.analysisProfile === "object" && sajuResult.analysisProfile !== null
+      ? sajuResult.analysisProfile
+      : null;
+  const normalizedProfile = normalizeBirthInfo(profileOverride || analysisProfile || sajuResult.profile, sajuResult.snapshot);
   const pillars = normalizePillars(sajuResult.pillars);
   const weights = normalizeElementWeights(sajuResult, sajuResult.snapshot);
   const johu = sajuResult.johu && typeof sajuResult.johu === "object" ? sajuResult.johu : {};
