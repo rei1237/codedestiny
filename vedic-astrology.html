@@ -3005,6 +3005,119 @@ function vedicAiEnsureState(){
   return G.vedicAi;
 }
 
+const VEDIC_AI_PROMPT_FEATURE_KEY='vedic_ai_prompt_generator';
+const VEDIC_AI_PROMPT_AMOUNT_KRW=10000;
+
+function vedicAiCreateRequestId(){
+  return 'vedic-ai-prompt:'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9);
+}
+
+function vedicAiPayloadLayers(payload){
+  var layers=[];
+  var cursor=payload&&typeof payload==='object'?payload:{};
+  for(var i=0;i<4&&cursor&&typeof cursor==='object';i+=1){
+    if(layers.indexOf(cursor)>=0)break;
+    layers.push(cursor);
+    if(cursor.data&&typeof cursor.data==='object')cursor=cursor.data;
+    else if(cursor.payload&&typeof cursor.payload==='object')cursor=cursor.payload;
+    else break;
+  }
+  return layers.length?layers:[{}];
+}
+
+function vedicAiFirstObject(layers,key){
+  for(var i=0;i<layers.length;i+=1){
+    var value=layers[i]&&layers[i][key];
+    if(value&&typeof value==='object')return value;
+  }
+  return {};
+}
+
+function vedicAiFirstString(layers,keys){
+  for(var i=0;i<layers.length;i+=1){
+    for(var j=0;j<keys.length;j+=1){
+      var text=String((layers[i]&&layers[i][keys[j]])||'').trim();
+      if(text)return text;
+    }
+  }
+  return '';
+}
+
+function vedicAiGateEvidence(gateResult,requestId){
+  var gate=gateResult&&typeof gateResult==='object'?gateResult:{};
+  var payload=gate.payload&&typeof gate.payload==='object'?gate.payload:gate;
+  var layers=vedicAiPayloadLayers(payload);
+  var consume=vedicAiFirstObject(layers,'consume');
+  var accessGrant=vedicAiFirstObject(layers,'accessGrant');
+  var accessDecision=vedicAiFirstObject(layers,'accessDecision');
+  var payment=vedicAiFirstObject(layers,'payment');
+  var evidenceRequestId=String(
+    requestId
+    || accessGrant.requestId
+    || accessDecision.requestId
+    || consume.requestId
+    || vedicAiFirstString(layers,['requestId','purchaseId'])
+    || ''
+  ).trim();
+  var accessType=vedicAiFirstString(layers,['accessType','transactionType'])||String(accessGrant.accessType||accessDecision.accessType||consume.accessType||'').trim();
+  var accessMethod=vedicAiFirstString(layers,['accessMethod','paymentMethod'])||String(accessGrant.accessMethod||accessDecision.accessMethod||accessDecision.paymentMethod||consume.accessMethod||consume.paymentMethod||'').trim();
+  var paymentMode=vedicAiFirstString(layers,['paymentMode','accessMode'])||String(accessGrant.paymentMode||accessDecision.paymentMode||consume.paymentMode||'').trim();
+  var ledgerId=vedicAiFirstString(layers,['ledgerId','monthlyCreditLedgerId']);
+  var transactionId=vedicAiFirstString(layers,['transactionId','ledgerId','paymentId','purchaseId'])
+    || String(consume.transactionId||accessGrant.evidenceId||accessGrant.purchaseId||accessDecision.transactionId||accessDecision.evidenceId||accessDecision.purchaseId||'').trim();
+  return {
+    requestId:evidenceRequestId,
+    accessGrant:accessGrant,
+    accessDecision:accessDecision,
+    freeBySubscription:layers.some(function(layer){return layer&&layer.freeBySubscription===true;}),
+    consume:consume,
+    payment:payment&&Object.keys(payment).length?payment:undefined,
+    _paymentContext:{
+      requestId:evidenceRequestId,
+      featureKey:vedicAiFirstString(layers,['featureKey','serviceKey','contentId'])||String(accessGrant.featureKey||accessDecision.featureKey||consume.featureKey||VEDIC_AI_PROMPT_FEATURE_KEY).trim(),
+      transactionId:transactionId,
+      ledgerId:ledgerId||String(consume.ledgerId||accessGrant.ledgerId||accessDecision.ledgerId||'').trim(),
+      purchaseId:vedicAiFirstString(layers,['purchaseId'])||String(accessGrant.purchaseId||consume.purchaseId||evidenceRequestId).trim(),
+      idempotencyKey:vedicAiFirstString(layers,['idempotencyKey'])||evidenceRequestId,
+      accessType:accessType,
+      accessMethod:accessMethod,
+      paymentMode:paymentMode
+    }
+  };
+}
+
+async function vedicAiPaidGate(requestId){
+  if(typeof window._cdOpenPaidServiceGate!=='function'){
+    return {ok:false,status:402,code:'PAYMENT_REQUIRED',message:'결제 선택창을 열 수 없습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'};
+  }
+  var result=await window._cdOpenPaidServiceGate({
+    title:'베다 점성술 AI 질문 프롬프트 생성',
+    reason:'베다 점성술 AI 질문 프롬프트 생성',
+    featureKey:VEDIC_AI_PROMPT_FEATURE_KEY,
+    categoryKey:'vedic',
+    subFeatureKey:'ai-question-prompt',
+    serviceKey:'vedic-ai-prompt',
+    action:'generateVedicAIPrompt',
+    coinPrice:VEDIC_AI_PROMPT_COST,
+    cost:VEDIC_AI_PROMPT_COST,
+    amountKrw:VEDIC_AI_PROMPT_AMOUNT_KRW,
+    amountKRW:VEDIC_AI_PROMPT_AMOUNT_KRW,
+    paymentAmount:VEDIC_AI_PROMPT_AMOUNT_KRW,
+    membershipCreditCost:VEDIC_AI_PROMPT_COST*10,
+    forcePassFirst:true,
+    requestId:requestId
+  });
+  if(result&&result.status==='granted'){
+    return Object.assign({ok:true,status:200},vedicAiGateEvidence(result,requestId));
+  }
+  return {
+    ok:false,
+    status:402,
+    code:'PAYMENT_REQUIRED',
+    message:String((result&&(result.message||result.reason))||'결제 또는 이용권 확인이 필요합니다.').trim()
+  };
+}
+
 function vedicAiResetForChart(chart){
   const key=vedicAiBuildChartKey(chart);
   const state=vedicAiEnsureState();
@@ -3173,14 +3286,41 @@ async function vedicAiGeneratePrompt(){
     try{ token=localStorage.getItem('fortune_auth_token')||''; }catch(_){ }
     const headers={ 'Content-Type':'application/json' };
     if(token) headers.Authorization='Bearer '+token;
+    const requestId=vedicAiCreateRequestId();
+    const gate=await vedicAiPaidGate(requestId);
+
+    if(!gate||gate.ok!==true){
+      const code=String(gate&&gate.code||'PAYMENT_REQUIRED').trim();
+      state.statusError=true;
+      state.statusMessage=vedicAiStatusText(code, gate&&gate.message);
+      if((gate&&gate.status)===401||code==='AUTH_REQUIRED'){
+        if(window.confirm('로그인이 필요합니다. 로그인 화면으로 이동할까요?')){
+          window.location.href='/login?next='+encodeURIComponent(location.pathname+location.search);
+        }
+      }
+      vedicAiRefreshUi();
+      return;
+    }
+
+    headers['idempotency-key']=gate.requestId||requestId;
+    state.statusError=false;
+    state.statusMessage='결제 권한이 확인되었습니다. 질문 프롬프트를 정리하고 있습니다.';
+    vedicAiRefreshUi();
 
     const resp=await fetch('/api/fortune/vedic/ai-prompt',{
       method:'POST',
       headers:headers,
       body:JSON.stringify({
+        requestId:gate.requestId||requestId,
         question:question,
         vedicResult:snapshot,
-        compatibilityResult:G.vedicCompatibilityResult||null
+        compatibilityResult:G.vedicCompatibilityResult||null,
+        accessGrant:gate.accessGrant,
+        accessDecision:gate.accessDecision,
+        freeBySubscription:gate.freeBySubscription===true,
+        consume:gate.consume,
+        payment:gate.payment,
+        _paymentContext:gate._paymentContext
       })
     });
     const data=await resp.json().catch(function(){ return {}; });
@@ -3191,9 +3331,6 @@ async function vedicAiGeneratePrompt(){
       state.statusMessage=vedicAiStatusText(code, data&&data.message);
       if(code==='AUTH_REQUIRED'&&window.confirm('로그인이 필요합니다. 로그인 화면으로 이동할까요?')){
         window.location.href='/login?next='+encodeURIComponent(location.pathname+location.search);
-      }
-      if(code==='INSUFFICIENT_COINS'&&window.confirm('결제 권한이 부족합니다. 결제 페이지로 이동할까요?')){
-        window.location.href='/points';
       }
       vedicAiRefreshUi();
       return;

@@ -11,6 +11,7 @@ const coinGateSource = readFileSync(resolve(root, "app/hooks/useCoinGate.ts"), "
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const sajuEngineSource = readFileSync(resolve(root, "js/saju-engine.js"), "utf8");
 const sukuyoEngineSource = readFileSync(resolve(root, "js/saju-engine-tarot-sukuyo-quantum.js"), "utf8");
+const vedicSource = readFileSync(resolve(root, "vedic-astrology.html"), "utf8");
 
 const promptFeatures = [
   "saju_ai_prompt_generator",
@@ -66,6 +67,8 @@ assert.equal(
 );
 assert.match(sajuEngineSource, /window\._cdOpenPaidServiceGate/, "saju/ziwei/astrology prompt clients must use the standard paid service gate");
 assert.match(sajuEngineSource, /membershipCreditCost:\s*Math\.max\(0,\s*Math\.floor\(Number\(opts\.membershipCreditCost \|\| \(cost \* 10\)\)\)\)/, "saju prompt gate must pass monthly credit cost into the standard paid gate");
+assert.match(sajuEngineSource, /amountKrw:\s*Math\.max\(0,\s*Math\.floor\(Number\(opts\.amountKrw \|\| opts\.amountKRW \|\| opts\.paymentAmount \|\| \(cost \* 100\)\)\)\)/, "saju prompt gate must pass KRW amount into the standard paid gate");
+assert.match(sajuEngineSource, /paymentAmount:\s*Math\.max\(0,\s*Math\.floor\(Number\(opts\.amountKrw \|\| opts\.amountKRW \|\| opts\.paymentAmount \|\| \(cost \* 100\)\)\)\)/, "saju prompt gate must keep KRW payment amount aligned");
 assert.match(sajuEngineSource, /forcePassFirst:\s*true/, "saju prompt gate must force a server pass-first entitlement check");
 assert.match(indexSource, /forceRefreshMembershipCoverage:\s*opts\.forcePassFirst === true/, "standard paid gate must server-check membership pass before opening payment choices");
 assert.match(indexSource, /var fastPassOnly = !forceRefreshMembershipCoverage/, "standard paid gate must not skip network pass checks when forcePassFirst is set");
@@ -80,16 +83,29 @@ assert.match(sajuEngineSource, /_cdAIPromptPayloadLayers/, "saju prompt gate evi
 assert.match(sajuEngineSource, /ledgerId:\s*evidence\._paymentContext && evidence\._paymentContext\.ledgerId/, "saju prompt generation must forward monthly-credit ledger id");
 assert.match(fortuneSource, /accessDecision\.requestId/, "AI prompt token collection must include accessDecision request evidence");
 assert.match(fortuneSource, /accessDecision\.accessGranted === true/, "AI prompt pass payload must honor granted accessDecision evidence");
+assert.match(fortuneSource, /function readAIPromptRequestId/, "AI prompt routes must share request-id resolution");
+assert.match(fortuneSource, /body\?\.idempotencyKey[\s\S]*paymentContext\.idempotencyKey[\s\S]*body\?\.requestId[\s\S]*paymentContext\.requestId[\s\S]*fallbackRequestId/, "AI prompt request-id resolution must prefer client payment flow ids");
+assert.equal(
+  (fortuneSource.match(/const requestId = readAIPromptRequestId\(body, fallbackRequestId\);/g) || []).length,
+  4,
+  "astrology, vedic, ziwei, and sukuyo prompt routes must use payment-flow request ids",
+);
 assert.equal(
   (fortuneSource.match(/accessGrant: body\?\.accessGrant,\s*\n\s*accessDecision: body\?\.accessDecision,\s*\n\s*freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
   promptFeatures.length,
   "all AI prompt generation routes must forward accessDecision into paid-access verification",
 );
 assert.match(sajuEngineSource, /featureKey:\s*'saju_ai_question_prompt'/, "saju question prompt must use the per-use feature id");
+assert.match(indexSource, /function _cdIsPerUseAIPromptFeatureKey\(featureKey\) \{[\s\S]*saju_ai_question_prompt/, "saju question prompt must be treated as per-use by the static paid gate");
 assert.match(fortuneSource, /SAJU_AI_PROMPT_ACCESS_MODE = "per_use"/, "saju question prompt must be handled as per-use access");
 assert.match(fortuneSource, /PaidExecutionRecord\.findOne\(\{[\s\S]*featureId: SAJU_AI_PROMPT_FEATURE_KEY,[\s\S]*profileId,[\s\S]*requestId/, "saju question prompt must check request-scoped paid execution records");
 assert.match(fortuneSource, /PaidExecutionRecord\.create\(executionDocument\)/, "saju question prompt must claim a request-scoped paid execution record");
 assert.match(fortuneSource, /status: "generating"/, "saju question prompt must mark the claimed execution as generating before returning a result");
+assert.match(fortuneSource, /SAJU_AI_PROMPT_STALE_GENERATING_MS/, "saju question prompt must expire stale generating execution records");
+assert.match(fortuneSource, /markSajuAIPromptStaleExecutionFailed/, "saju question prompt must recover stuck generating execution records");
+assert.match(fortuneSource, /findSajuAIPromptDuplicateExecution/, "saju question prompt must recover duplicate execution records by payment evidence");
+assert.match(fortuneSource, /paymentId:\s*executionPaymentId/, "saju question prompt duplicate lookup must include payment id evidence");
+assert.match(fortuneSource, /orderId:\s*executionOrderId/, "saju question prompt duplicate lookup must include order id evidence");
 assert.match(sajuEngineSource, /code === 'MISSING_PROFILE_ID'[\s\S]{0,180}_sajuPromptSetStatus/, "saju prompt profile errors must not open the login flow");
 assert.match(fortuneSource, /buildSajuAIPromptError\("MISSING_PROFILE_ID",[\s\S]*?, 400\)/, "saju prompt missing profile errors must not be returned as auth failures");
 assert.equal(
@@ -105,11 +121,37 @@ assert.doesNotMatch(
   /if \(code === 'PAYMENT_REQUIRED' \|\| code === 'INSUFFICIENT_COINS' \|\| result\.status === 402\) \{[\s\S]*?_openSajuPaidPaymentMode\(100, '사주 AI 질문문 생성', 'saju_ai_prompt_generator'\)/,
   "saju prompt must not reopen the payment modal after a paid gate attempt fails verification",
 );
+assert.doesNotMatch(sajuEngineSource, /_openSajuPaidPaymentMode\(ASTROLOGY_AI_PROMPT_COST,[\s\S]*?astrology_ai_prompt_generator/, "astrology prompt must not reopen legacy payment after the standard paid gate");
+assert.doesNotMatch(sajuEngineSource, /_openSajuPaidPaymentMode\(_ZW_AI_PROMPT_COST,[\s\S]*?_ZW_AI_PROMPT_FEATURE_KEY/, "ziwei prompt must not reopen legacy payment after the standard paid gate");
 assert.match(sajuEngineSource, /ziwei_ai_prompt_generator/, "ziwei prompt must use canonical server feature key");
 assert.match(sajuEngineSource, /astrology_ai_prompt_generator/, "astrology prompt must use canonical server feature key");
+assert.match(sajuEngineSource, /headers:\s*Object\.assign\(_astroBuildPromptHeaders\(\),\s*finalBody && finalBody\.requestId/, "astrology prompt must send payment-flow idempotency header");
+assert.match(sajuEngineSource, /headers:\s*Object\.assign\(buildHeaders\(\),\s*\{\s*'idempotency-key':\s*evidence\.requestId/, "ziwei prompt must send payment-flow idempotency header");
+assert.match(sajuEngineSource, /accessDecision:\s*evidence\.accessDecision/, "ziwei prompt generation must forward accessDecision evidence");
+assert.match(sajuEngineSource, /freeBySubscription:\s*evidence\.freeBySubscription/, "ziwei prompt generation must forward pass evidence");
 assert.match(sukuyoEngineSource, /window\._cdOpenPaidServiceGate/, "sukuyo prompt client must use the standard paid service gate");
 assert.match(sukuyoEngineSource, /paymentMode:\s*'MEMBERSHIP_PASS'/, "sukuyo prompt fallback may only probe membership pass access");
 assert.match(sukuyoEngineSource, /sukuyo_ai_prompt_generator/, "sukuyo prompt must use canonical server feature key");
+assert.match(sukuyoEngineSource, /amountKrw:\s*Math\.max\(0,\s*Math\.floor\(Number\(opts\.amountKrw \|\| opts\.amountKRW \|\| opts\.paymentAmount \|\| \(cost \* 100\)\)\)\)/, "sukuyo prompt gate must pass KRW amount into the standard paid gate");
+assert.match(sukuyoEngineSource, /membershipCreditCost:\s*Math\.max\(0,\s*Math\.floor\(Number\(opts\.membershipCreditCost \|\| \(cost \* 10\)\)\)\)/, "sukuyo prompt gate must pass monthly credit cost");
+assert.match(sukuyoEngineSource, /forcePassFirst:\s*true/, "sukuyo prompt gate must force a server pass-first entitlement check");
+assert.doesNotMatch(sukuyoEngineSource, /window\.openChargeModal\(\)/, "sukuyo prompt must not reopen the charge modal after the standard paid gate");
+assert.match(sukuyoEngineSource, /'idempotency-key':\s*evidence\.requestId/, "sukuyo prompt must send payment-flow idempotency header");
+assert.match(sukuyoEngineSource, /accessDecision:\s*evidence\.accessDecision/, "sukuyo prompt generation must forward accessDecision evidence");
+assert.match(sukuyoEngineSource, /freeBySubscription:\s*evidence\.freeBySubscription/, "sukuyo prompt generation must forward pass evidence");
+assert.match(vedicSource, /function vedicAiGeneratePrompt/, "vedic prompt client must expose the AI prompt generator handler");
+assert.match(vedicSource, /vedic_ai_prompt_generator/, "vedic prompt must use canonical server feature key");
+assert.match(vedicSource, /window\._cdOpenPaidServiceGate/, "vedic prompt client must use the standard paid service gate");
+assert.match(vedicSource, /forcePassFirst:\s*true/, "vedic prompt gate must check membership pass before payment choices");
+assert.match(vedicSource, /membershipCreditCost:\s*VEDIC_AI_PROMPT_COST\s*\*\s*10/, "vedic prompt gate must pass monthly credit cost");
+assert.match(vedicSource, /amountKrw:\s*VEDIC_AI_PROMPT_AMOUNT_KRW/, "vedic prompt gate must pass KRW amount into the standard paid gate");
+assert.match(vedicSource, /paymentAmount:\s*VEDIC_AI_PROMPT_AMOUNT_KRW/, "vedic prompt gate must keep KRW payment amount aligned");
+assert.match(vedicSource, /headers\['idempotency-key'\]\s*=\s*gate\.requestId\|\|requestId/, "vedic prompt generation must send an idempotency header");
+assert.match(vedicSource, /accessGrant:\s*gate\.accessGrant/, "vedic prompt generation must forward accessGrant evidence");
+assert.match(vedicSource, /accessDecision:\s*gate\.accessDecision/, "vedic prompt generation must forward accessDecision evidence");
+assert.match(vedicSource, /freeBySubscription:\s*gate\.freeBySubscription===true/, "vedic prompt generation must forward pass evidence");
+assert.match(vedicSource, /_paymentContext:\s*gate\._paymentContext/, "vedic prompt generation must forward payment context evidence");
+assert.doesNotMatch(vedicSource, /window\.location\.href='\/points'/, "vedic prompt must not reopen the legacy points page after the paid gate");
 assert.match(coinGateSource, /consume\.chargedCoins \?\? consume\.cost/, "client must prefer server chargedCoins");
 assert.doesNotMatch(indexSource, /status:\s*'cancelled',\s*reason:\s*'pass_applied_in_modal'/, "paid service gate must not convert applied membership pass into cancellation");
 

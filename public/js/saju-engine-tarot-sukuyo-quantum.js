@@ -12264,6 +12264,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         subFeatureKey: String(opts.subFeatureKey || '').trim() || undefined,
         coinPrice: cost,
         cost: cost,
+        amountKrw: Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || (cost * 100)))),
+        amountKRW: Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || (cost * 100)))),
+        paymentAmount: Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || (cost * 100)))),
+        membershipCreditCost: Math.max(0, Math.floor(Number(opts.membershipCreditCost || (cost * 10)))),
+        forcePassFirst: true,
         requestId: requestId
       }).then(function(openResult) {
         if (openResult && openResult.status === 'granted') {
@@ -12399,7 +12404,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         method: 'POST',
         credentials: 'include',
         cache: 'no-store',
-        headers: syBuildFortuneAuthHeaders({ 'idempotency-key': 'sy-ai:' + requestNonce }),
+        headers: syBuildFortuneAuthHeaders({ 'idempotency-key': evidence.requestId || ('sukuyo-ai-prompt:' + requestNonce) }),
         body: JSON.stringify({
           question: question,
           domain: domain,
@@ -12407,6 +12412,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           compatibilityResult: compatibilityResult,
           requestId: evidence.requestId || ('sukuyo-ai-prompt:' + requestNonce),
           accessGrant: evidence.accessGrant,
+          accessDecision: evidence.accessDecision,
+          freeBySubscription: evidence.freeBySubscription,
           consume: evidence.consume,
           payment: evidence.payment,
           _paymentContext: evidence._paymentContext
@@ -12543,11 +12550,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         }
         if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
           setStatus(message, 'error');
-          try {
-            if (typeof window.openChargeModal === 'function') {
-              window.openChargeModal();
-            }
-          } catch (_) {}
           return;
         }
         setStatus(message, 'error');

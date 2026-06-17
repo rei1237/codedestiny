@@ -58,6 +58,11 @@ type InsightEditorPageProps = {
 };
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+const LOCAL_ADMIN_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+function isLocalAdminHost(hostname: string): boolean {
+  return LOCAL_ADMIN_HOSTS.has(String(hostname || "").trim().toLowerCase());
+}
 
 function getFlowerAdminTokenClient(): string {
   if (typeof window === "undefined") return "";
@@ -89,10 +94,32 @@ function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
   if (!base) return "include";
 
   try {
-    return new URL(base).origin === window.location.origin ? "include" : "omit";
+    const target = new URL(base);
+    const current = new URL(window.location.origin);
+    if (target.origin === current.origin) return "include";
+    if (isLocalAdminHost(target.hostname) && isLocalAdminHost(current.hostname)) return "include";
+    return "omit";
   } catch {
     return "include";
   }
+}
+
+function getAdminAccessMessage(status: number): string {
+  if (status === 401) return "관리자 로그인이 필요합니다. 다시 로그인해 주세요.";
+  return "관리자 권한이 확인되지 않았습니다. 관리자 계정으로 다시 로그인해 주세요.";
+}
+
+function getAdminLoginRedirectPath(): string {
+  if (typeof window === "undefined") return "/admin/login";
+  return `/admin/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+}
+
+function clearFlowerAdminTokenClient(): void {
+  if (typeof window === "undefined") return;
+  try { sessionStorage.removeItem("flower_admin_token"); } catch {}
+  try { sessionStorage.removeItem("flower_admin_password_ok"); } catch {}
+  try { localStorage.removeItem("flower_admin_token"); } catch {}
+  try { localStorage.removeItem("flower_admin_password_ok"); } catch {}
 }
 
 function slugify(input: string): string {
@@ -682,7 +709,9 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
           if (res.status === 401 || res.status === 403) {
-            router.replace("/admin/login");
+            if (res.status === 401) clearFlowerAdminTokenClient();
+            if (!cancelled) setError(getAdminAccessMessage(res.status));
+            router.replace(getAdminLoginRedirectPath());
             return;
           }
           if (!cancelled) setError(String(data?.message || "글 정보를 불러오지 못했습니다."));
@@ -863,7 +892,9 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
-          router.replace("/admin/login");
+          if (res.status === 401) clearFlowerAdminTokenClient();
+          if (!options.silent) setError(getAdminAccessMessage(res.status));
+          router.replace(getAdminLoginRedirectPath());
           return;
         }
         if (options.auto) {

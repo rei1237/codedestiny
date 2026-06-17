@@ -102,7 +102,7 @@ function buildConsumeCases() {
   }
 
   for (const [featureKey, reasonTable] of Object.entries(FEATURE_KEY_REASON_COSTS)) {
-    for (const [reason, cost] of Object.entries(reasonTable || {})) {
+    for (const [reason, pricing] of Object.entries(reasonTable || {})) {
       const dedupeKey = `${featureKey}::${reason}`;
       if (seenKeyReason.has(dedupeKey)) continue;
       seenKeyReason.add(dedupeKey);
@@ -110,7 +110,7 @@ function buildConsumeCases() {
         id: `feature-reason:${featureKey}:${reason}`,
         featureKey,
         reason,
-        expectedCost: Number(cost),
+        expectedCost: Number(pricing?.cost ?? pricing),
       });
     }
   }

@@ -1,3 +1,30 @@
+import { normalizePaidFeaturePricingShape } from "./billing-policy.js";
+
+function normalizeRegistryPricingEntry(entry = {}) {
+  return Object.freeze(normalizePaidFeaturePricingShape(entry));
+}
+
+function normalizeRegistryPricingTable(table = {}) {
+  return Object.freeze(
+    Object.fromEntries(
+      Object.entries(table).map(([key, entry]) => [key, normalizeRegistryPricingEntry(entry)]),
+    ),
+  );
+}
+
+function normalizeRegistryReasonCostTable(table = {}) {
+  return Object.freeze(
+    Object.fromEntries(
+      Object.entries(table).map(([reason, value]) => {
+        const entry = value && typeof value === "object"
+          ? { ...value, reason: value.reason || reason }
+          : { cost: value, reason };
+        return [reason, normalizeRegistryPricingEntry(entry)];
+      }),
+    ),
+  );
+}
+
 const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "coin-gate-per-use",
   "openGeomancyOracle",
@@ -120,7 +147,7 @@ export const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
   "운명의 업 생성": 690,
 });
 
-export const FEATURE_KEY_REASON_COSTS = Object.freeze({
+const RAW_FEATURE_KEY_REASON_COSTS = Object.freeze({
   "neville-meditation": Object.freeze({
     "openNevilleMeditationPage 30분 코스": 30,
     "openNevilleMeditationPage 60분 코스": 50,
@@ -135,7 +162,16 @@ export const FEATURE_KEY_REASON_COSTS = Object.freeze({
   }),
 });
 
-export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
+export const FEATURE_KEY_REASON_COSTS = Object.freeze(
+  Object.fromEntries(
+    Object.entries(RAW_FEATURE_KEY_REASON_COSTS).map(([featureKey, table]) => [
+      featureKey,
+      normalizeRegistryReasonCostTable(table),
+    ]),
+  ),
+);
+
+const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "physiognomy-compatibility": { cost: 50, reason: "관상 궁합 분석" },
   "physiognomy-pastlife-compatibility": { cost: 50, reason: "전생 관상 궁합 분석" },
   "tarot-year-fortune": { cost: 30, reason: "십이지신 천운 타로" },
@@ -264,7 +300,9 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "fun.quantumLotto.ritualReport": { cost: 50, reason: "달빛 럭키 리추얼 리포트" },
 });
 
-export const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
+export const FEATURE_KEY_PRICE_TABLE = normalizeRegistryPricingTable(RAW_FEATURE_KEY_PRICE_TABLE);
+
+const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock", forceDeduct: true },
   "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock", forceDeduct: true },
   "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock", forceDeduct: true },
@@ -293,6 +331,8 @@ export const PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.destiny_bias_collection_save": { featureKey: "destiny-bias-collection-save", cost: 150, reason: "Destiny bias collection save unlock", forceDeduct: true },
   "unlock.destiny_bias_deep_profile": { featureKey: "destiny-bias-deep-profile", cost: 90, reason: "Destiny bias deep profile unlock", forceDeduct: true },
 });
+
+export const PIG_COIN_UNLOCK_PRODUCTS = normalizeRegistryPricingTable(RAW_PIG_COIN_UNLOCK_PRODUCTS);
 
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock", forceDeduct: true },
@@ -603,9 +643,9 @@ export function resolveFeatureReasonCost(featureKey, reason) {
   const table = FEATURE_KEY_REASON_COSTS[key] || null;
   if (!table) return null;
 
-  const matched = Number(table[reasonText]);
-  if (!Number.isFinite(matched) || matched <= 0) return null;
-  return matched;
+  const matched = normalizePaidFeaturePricingShape(table[reasonText] || {});
+  if (!Number.isFinite(matched.cost) || matched.cost <= 0) return null;
+  return matched.cost;
 }
 
 export function listLegacyUnlockBaselineMismatches() {

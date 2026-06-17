@@ -97,6 +97,7 @@ function logSajuAIPromptStage(stage, details = {}) {
 }
 
 const SAJU_AI_PROMPT_ACCESS_MODE = "per_use";
+const SAJU_AI_PROMPT_STALE_GENERATING_MS = 2 * 60 * 1000;
 const SAJU_AI_PROMPT_TITLE = "최고의 명리학자처럼 AI에게 물어볼 사주 질문문";
 
 function readSajuAIPromptProfileId(body = {}, sajuResult = {}) {
@@ -214,6 +215,63 @@ function buildSajuAIPromptExecutionId({ userId, profileId, requestId }) {
   return `saju-ai-question:${String(userId || "")}:${String(profileId || "")}:${String(requestId || "")}`.slice(0, 160);
 }
 
+function isSajuAIPromptStaleGeneratingExecution(execution, now = new Date()) {
+  if (!execution || execution.status !== "generating") return false;
+  const updatedAtMs = Date.parse(
+    execution.updatedAt
+      || execution.consumedAt
+      || execution.createdAt
+      || "",
+  );
+  if (!Number.isFinite(updatedAtMs) || updatedAtMs <= 0) return false;
+  return now.getTime() - updatedAtMs > SAJU_AI_PROMPT_STALE_GENERATING_MS;
+}
+
+async function markSajuAIPromptStaleExecutionFailed(execution, details = {}) {
+  if (!execution?.executionId) return null;
+  await PaidExecutionRecord.updateOne(
+    { executionId: execution.executionId, status: "generating" },
+    {
+      $set: {
+        status: "generation_failed",
+        error: {
+          name: "STALE_GENERATING_RECOVERY",
+          message: "Previous saju AI prompt generation lease expired before completion.",
+        },
+        updatedAt: new Date(),
+      },
+    },
+  );
+  logSajuAIPromptStage("STALE_GENERATING_EXECUTION_RECOVERED", {
+    ...details,
+    executionId: execution.executionId,
+    executionStatus: "generation_failed",
+  });
+  return { ...execution, status: "generation_failed" };
+}
+
+async function findSajuAIPromptDuplicateExecution({ auth, profileId, requestId, paymentId, orderId }) {
+  const userId = String(auth?.userId || "").trim();
+  const normalizedProfileId = String(profileId || "").trim();
+  const normalizedRequestId = String(requestId || "").trim();
+  const normalizedPaymentId = String(paymentId || "").trim();
+  const normalizedOrderId = String(orderId || "").trim();
+  const identityClauses = [];
+  if (normalizedRequestId) identityClauses.push({ requestId: normalizedRequestId });
+  if (normalizedPaymentId) identityClauses.push({ paymentId: normalizedPaymentId });
+  if (normalizedOrderId) identityClauses.push({ orderId: normalizedOrderId });
+  if (!userId || !normalizedProfileId || !identityClauses.length) return null;
+
+  return PaidExecutionRecord.findOne({
+    userId,
+    featureId: SAJU_AI_PROMPT_FEATURE_KEY,
+    profileId: normalizedProfileId,
+    $or: identityClauses,
+  })
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .lean();
+}
+
 let __swissWesternChartLoader = null;
 
 async function loadSwissWesternChart() {
@@ -285,6 +343,17 @@ function uniqueStrings(values) {
       .map((value) => String(value || "").trim())
       .filter(Boolean),
   ));
+}
+
+function readAIPromptRequestId(body = {}, fallbackRequestId = "") {
+  const paymentContext = body?._paymentContext && typeof body._paymentContext === "object" ? body._paymentContext : {};
+  return String(
+    body?.idempotencyKey
+      || paymentContext.idempotencyKey
+      || body?.requestId
+      || paymentContext.requestId
+      || fallbackRequestId,
+  ).trim().slice(0, 120) || String(fallbackRequestId || "").trim().slice(0, 120);
 }
 
 function collectAIPromptPaymentTokens(body = {}, requestId = "") {
@@ -2479,7 +2548,8 @@ async function handleAstrologyAIPrompt(request, auth, env) {
   const digestBase = `${String(auth?.userId || "").trim()}:${ASTROLOGY_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
   const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
   const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
-  const requestId = `${String(auth?.userId || "").trim()}:${ASTROLOGY_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+  const fallbackRequestId = `${String(auth?.userId || "").trim()}:${ASTROLOGY_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+  const requestId = readAIPromptRequestId(body, fallbackRequestId);
 
   let chargedCoins = 0;
   let sourceTransactionId = "";
@@ -2610,7 +2680,8 @@ async function handleVedicAIPrompt(request, auth, env) {
   const digestBase = `${String(auth?.userId || "").trim()}:${VEDIC_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
   const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
   const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
-  const requestId = `${String(auth?.userId || "").trim()}:${VEDIC_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+  const fallbackRequestId = `${String(auth?.userId || "").trim()}:${VEDIC_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+  const requestId = readAIPromptRequestId(body, fallbackRequestId);
 
   let chargedCoins = 0;
   let sourceTransactionId = "";
@@ -2796,7 +2867,7 @@ async function handleSajuAIPrompt(request, auth, env) {
     profileId,
     idempotencyKey,
   });
-  const existingExecution = await PaidExecutionRecord.findOne({
+  let existingExecution = await PaidExecutionRecord.findOne({
     userId: String(auth?.userId || ""),
     featureId: SAJU_AI_PROMPT_FEATURE_KEY,
     profileId,
@@ -2825,6 +2896,18 @@ async function handleSajuAIPrompt(request, auth, env) {
         accessMode: SAJU_AI_PROMPT_ACCESS_MODE,
         executionId: existingExecution.executionId,
         requestId,
+      });
+    }
+    if (existingExecution.status === "generating" && isSajuAIPromptStaleGeneratingExecution(existingExecution)) {
+      existingExecution = await markSajuAIPromptStaleExecutionFailed(existingExecution, {
+        requestId,
+        userId: auth?.userId,
+        profileId,
+        accessMethod: existingExecution.accessMethod,
+        amountCoins: existingExecution.amountCoins,
+        paymentId: existingExecution.paymentId,
+        orderId: existingExecution.orderId,
+        idempotencyKey,
       });
     }
     if (existingExecution.status === "generating") {
@@ -3069,12 +3152,25 @@ async function handleSajuAIPrompt(request, auth, env) {
       paidExecution = await PaidExecutionRecord.create(executionDocument);
     } catch (executionError) {
       if (Number(executionError?.code || 0) !== 11000) throw executionError;
-      const duplicateExecution = await PaidExecutionRecord.findOne({
-        userId: String(auth?.userId || ""),
-        featureId: SAJU_AI_PROMPT_FEATURE_KEY,
+      let duplicateExecution = await findSajuAIPromptDuplicateExecution({
+        auth,
         profileId,
         requestId,
-      }).lean();
+        paymentId: executionPaymentId,
+        orderId: executionOrderId,
+      });
+      if (duplicateExecution?.status === "generating" && isSajuAIPromptStaleGeneratingExecution(duplicateExecution)) {
+        duplicateExecution = await markSajuAIPromptStaleExecutionFailed(duplicateExecution, {
+          requestId,
+          userId: auth?.userId,
+          profileId,
+          accessMethod: duplicateExecution.accessMethod,
+          amountCoins: duplicateExecution.amountCoins,
+          paymentId: duplicateExecution.paymentId,
+          orderId: duplicateExecution.orderId,
+          idempotencyKey,
+        });
+      }
       if (duplicateExecution?.status === "completed" && duplicateExecution.result) {
         return json({
           ...duplicateExecution.result,
@@ -3313,7 +3409,8 @@ async function handleZiweiAIPrompt(request, auth, env) {
   const digestBase = `${String(auth?.userId || "").trim()}:${ZIWEI_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
   const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
   const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
-  const requestId = `${String(auth?.userId || "").trim()}:${ZIWEI_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+  const fallbackRequestId = `${String(auth?.userId || "").trim()}:${ZIWEI_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+  const requestId = readAIPromptRequestId(body, fallbackRequestId);
 
   let chargedCoins = 0;
   let sourceTransactionId = "";
@@ -3478,7 +3575,8 @@ async function handleSukuyoAIPrompt(request, auth, env) {
   const digestBase = `${String(auth?.userId || "").trim()}:${SUKUYO_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
   const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
   const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
-  const requestId = `${String(auth?.userId || "").trim()}:${SUKUYO_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+  const fallbackRequestId = `${String(auth?.userId || "").trim()}:${SUKUYO_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+  const requestId = readAIPromptRequestId(body, fallbackRequestId);
 
   let chargedCoins = 0;
   let sourceTransactionId = "";

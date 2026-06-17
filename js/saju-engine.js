@@ -4932,6 +4932,9 @@ function _cdAIPromptGate(input) {
       subFeatureKey: String(opts.subFeatureKey || '').trim() || undefined,
       coinPrice: cost,
       cost: cost,
+      amountKrw: Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || (cost * 100)))),
+      amountKRW: Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || (cost * 100)))),
+      paymentAmount: Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || (cost * 100)))),
       membershipCreditCost: Math.max(0, Math.floor(Number(opts.membershipCreditCost || (cost * 10)))),
       forcePassFirst: true,
       requestId: requestId,
@@ -11019,7 +11022,7 @@ function renderAstroInsightLegacyNeon() {
           method: 'POST',
           credentials: 'include',
           cache: 'no-store',
-          headers: _astroBuildPromptHeaders(),
+          headers: Object.assign(_astroBuildPromptHeaders(), finalBody && finalBody.requestId ? { 'idempotency-key': finalBody.requestId } : {}),
           body: JSON.stringify(finalBody || body)
         }).then(function(res) {
           return res.json().catch(function() { return {}; }).then(function(payload) {
@@ -11131,8 +11134,7 @@ function renderAstroInsightLegacyNeon() {
           }
 
           if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
-            _astroSetPromptStatus(statusEl, '이용권, 단건결제, 월정석 보너스 중 하나로 결제 확인이 필요합니다.', 'error');
-            _openSajuPaidPaymentMode(ASTROLOGY_AI_PROMPT_COST, '점성술 질문 프롬프트', 'astrology_ai_prompt_generator');
+            _astroSetPromptStatus(statusEl, message, 'error');
             return;
           }
 
@@ -17152,13 +17154,15 @@ function renderZiwei(p, natal, targetId) {
         return fetch('/api/fortune/ziwei/ai-prompt', {
           method: 'POST',
           credentials: 'include',
-          headers: buildHeaders(),
+          headers: Object.assign(buildHeaders(), { 'idempotency-key': evidence.requestId || (_ZW_AI_PROMPT_REQUEST_PREFIX + requestNonce) }),
           cache: 'no-store',
           body: JSON.stringify({
             question: question,
             chartResult: chartResult,
             requestId: evidence.requestId || (_ZW_AI_PROMPT_REQUEST_PREFIX + requestNonce),
             accessGrant: evidence.accessGrant,
+            accessDecision: evidence.accessDecision,
+            freeBySubscription: evidence.freeBySubscription,
             consume: evidence.consume,
             payment: evidence.payment,
             _paymentContext: evidence._paymentContext
@@ -17227,15 +17231,7 @@ function renderZiwei(p, natal, targetId) {
         }
         if (code === 'INSUFFICIENT_COINS' || result.status === 402) {
           setStatus(message || '유료 결제가 필요합니다. 결제 페이지에서 상품을 선택해 주세요.', 'error');
-          if (paidPayload) return;
-          return Promise.resolve(_openSajuPaidPaymentMode(_ZW_AI_PROMPT_COST, _ZW_AI_PROMPT_REASON, _ZW_AI_PROMPT_FEATURE_KEY))
-            .then(function(paymentPayload) {
-              if (!paymentPayload || typeof paymentPayload !== 'object') return;
-              setStatus('결제 확인이 완료되었습니다. 프롬프트 생성을 이어갑니다.', 'info');
-              setTimeout(function() {
-                handleGenerate({ paymentPayload: paymentPayload });
-              }, 240);
-            });
+          return;
         }
         setStatus(message, 'error');
       }).catch(function() {

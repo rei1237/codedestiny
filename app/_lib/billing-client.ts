@@ -1065,9 +1065,6 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       });
     });
     document.body.appendChild(modal);
-    globalThis.setTimeout(() => {
-      void refreshMonthlyBalance({ silent: true });
-    }, 0);
     modal.querySelector<HTMLButtonElement>('[data-mode="direct"]')?.focus();
   });
 }

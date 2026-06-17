@@ -7,10 +7,10 @@ import {
   normalizePaidFeatureKey,
 } from "./paid-feature-registry.js";
 import {
-  calculateKrwAmountFromCoins,
   calculateMembershipCreditCost,
   KRW_PER_COIN,
   MEMBERSHIP_CREDIT_PER_COIN,
+  normalizePaidFeaturePricingShape,
 } from "./billing-policy.js";
 
 const BILLING_FEATURE_CATEGORIES = Object.freeze({
@@ -75,12 +75,6 @@ const LEGACY_FEATURE_ALIAS_MAP = Object.freeze({
   openanimaltotem: Object.freeze({ categoryKey: "animal-totem", subFeatureKey: "basic" }),
 });
 
-function toSinglePurchaseAmountKRW(cost) {
-  const coinPrice = Number(cost);
-  if (!Number.isFinite(coinPrice) || coinPrice <= 0) return 0;
-  return calculateKrwAmountFromCoins(coinPrice);
-}
-
 function normalizeKey(value) {
   return String(value || "").trim().toLowerCase();
 }
@@ -104,9 +98,10 @@ function buildReasonPricingMap(pricingEntries) {
   for (let i = 0; i < pricingEntries.length; i += 1) {
     const item = pricingEntries[i] || null;
     const reason = String(item?.reason || "").trim();
-    const cost = Number(item?.cost);
+    const pricing = normalizePaidFeaturePricingShape(item || {});
+    const cost = Number(pricing.cost);
     if (!reason || !Number.isFinite(cost) || cost <= 0) continue;
-    if (!table[reason]) table[reason] = { ...item, reason, cost };
+    if (!table[reason]) table[reason] = { ...item, ...pricing, reason, cost };
   }
 
   return Object.freeze(table);
@@ -117,6 +112,7 @@ const FEATURE_REASON_PRICING_MAP = buildReasonPricingMap(
     featureKey,
     reason: spec?.reason,
     cost: spec?.cost,
+    amountKRW: spec?.amountKRW,
   })),
 );
 
@@ -125,12 +121,14 @@ const UNLOCK_REASON_PRICING_MAP = buildReasonPricingMap(
     featureKey: spec?.featureKey,
     reason: spec?.reason,
     cost: spec?.cost,
+    amountKRW: spec?.amountKRW,
   })),
 );
 
-function toPricingShape({ categoryKey, categoryLabel, subFeatureKey, featureKey, cost, reason }) {
-  const coinPrice = Number(cost);
-  const amountKRW = toSinglePurchaseAmountKRW(coinPrice);
+function toPricingShape({ categoryKey, categoryLabel, subFeatureKey, featureKey, cost, amountKRW, reason }) {
+  const pricing = normalizePaidFeaturePricingShape({ cost, amountKRW });
+  const coinPrice = pricing.coinPrice;
+  const resolvedAmountKRW = pricing.amountKRW;
   const membershipCreditCost = calculateMembershipCreditCost(coinPrice);
   const billingType = getPaidFeatureBillingType(featureKey);
   return {
@@ -141,19 +139,21 @@ function toPricingShape({ categoryKey, categoryLabel, subFeatureKey, featureKey,
     cost: coinPrice,
     coinPrice,
     displayUnit: "KRW",
-    displayPrice: `${amountKRW.toLocaleString("ko-KR")}원`,
+    displayPrice: `${resolvedAmountKRW.toLocaleString("ko-KR")}원`,
     reason: String(reason || "").trim(),
     currency: "KRW",
-    amountKRW,
-    cashPrice: amountKRW,
-    krwAmount: amountKRW,
+    amountKRW: resolvedAmountKRW,
+    cashPrice: resolvedAmountKRW,
+    krwAmount: resolvedAmountKRW,
+    paymentAmount: resolvedAmountKRW,
     membershipCreditCost,
     pricingPolicy: {
       krwPerCoin: KRW_PER_COIN,
       membershipCreditPerCoin: MEMBERSHIP_CREDIT_PER_COIN,
     },
     paymentMode: "single_purchase",
-    coinDisplayOnly: true,
+    coinDisplayOnly: false,
+    pricingBasis: "KRW",
     billingType,
     accessKind: billingType,
   };
@@ -205,6 +205,7 @@ function resolveByFeatureKey(featureKey) {
       subFeatureKey: normalizeKey(normalizedFeatureKey) || "default",
       featureKey: normalizedFeatureKey,
       cost: Number(featureSpec.cost),
+      amountKRW: Number(featureSpec.amountKRW),
       reason: String(featureSpec.reason || "Paid feature unlock"),
     });
   }
@@ -218,6 +219,7 @@ function resolveByFeatureKey(featureKey) {
     subFeatureKey: normalizeKey(normalizedFeatureKey) || "default",
     featureKey: normalizedFeatureKey,
     cost: Number(unlockSpec.cost),
+    amountKRW: Number(unlockSpec.amountKRW),
     reason: String(unlockSpec.reason || "Paid feature unlock"),
   });
 }
@@ -229,7 +231,8 @@ function resolveByFeatureReason(featureKey, reason) {
   if (!normalizedFeatureKey || !normalizedReason) return null;
 
   const reasonTable = FEATURE_KEY_REASON_COSTS[normalizedFeatureKey] || null;
-  const cost = Number(reasonTable?.[normalizedReason]);
+  const reasonPricing = normalizePaidFeaturePricingShape(reasonTable?.[normalizedReason] || {});
+  const cost = Number(reasonPricing.cost);
   if (!Number.isFinite(cost) || cost <= 0) return null;
 
   return toPricingShape({
@@ -238,6 +241,7 @@ function resolveByFeatureReason(featureKey, reason) {
     subFeatureKey: normalizeKey(normalizedFeatureKey) || "default",
     featureKey: normalizedFeatureKey,
     cost,
+    amountKRW: reasonPricing.amountKRW,
     reason: normalizedReason,
   });
 }
@@ -254,6 +258,7 @@ function resolveByReason(reason) {
       subFeatureKey: normalizeKey(featureReasonPricing.featureKey) || "default",
       featureKey: String(featureReasonPricing.featureKey),
       cost: Number(featureReasonPricing.cost),
+      amountKRW: Number(featureReasonPricing.amountKRW),
       reason: normalizedReason,
     });
   }
@@ -266,6 +271,7 @@ function resolveByReason(reason) {
       subFeatureKey: normalizeKey(unlockReasonPricing.featureKey) || "default",
       featureKey: String(unlockReasonPricing.featureKey),
       cost: Number(unlockReasonPricing.cost),
+      amountKRW: Number(unlockReasonPricing.amountKRW),
       reason: normalizedReason,
     });
   }
@@ -387,14 +393,22 @@ export function assertFeatureEnabled(pricing) {
 }
 
 function toCategoryResponse(category) {
-  const subFeatures = Object.entries(category.subFeatures).map(([subFeatureKey, subFeature]) => ({
-    subFeatureKey,
-    featureKey: subFeature.featureKey,
-    cost: Number(subFeature.cost),
-    reason: String(subFeature.reason || ""),
-    currency: "KRW",
-    cashPrice: null,
-  }));
+  const subFeatures = Object.entries(category.subFeatures).map(([subFeatureKey, subFeature]) => {
+    const pricing = normalizePaidFeaturePricingShape(subFeature);
+    return {
+      subFeatureKey,
+      featureKey: subFeature.featureKey,
+      cost: pricing.cost,
+      coinPrice: pricing.coinPrice,
+      amountKRW: pricing.amountKRW,
+      cashPrice: pricing.amountKRW,
+      krwAmount: pricing.amountKRW,
+      paymentAmount: pricing.amountKRW,
+      reason: String(subFeature.reason || ""),
+      currency: "KRW",
+      pricingBasis: "KRW",
+    };
+  });
 
   return {
     categoryKey: category.categoryKey,
@@ -407,13 +421,21 @@ function toCategoryResponse(category) {
 export function listBillingFeatures() {
   const categories = Object.values(BILLING_FEATURE_CATEGORIES).map((category) => toCategoryResponse(category));
   const legacyFeatureTable = Object.entries(FEATURE_KEY_PRICE_TABLE)
-    .map(([featureKey, featureSpec]) => ({
-      featureKey,
-      cost: Number(featureSpec?.cost || 0),
-      reason: String(featureSpec?.reason || "Paid feature unlock"),
-      currency: "KRW",
-      cashPrice: null,
-    }))
+    .map(([featureKey, featureSpec]) => {
+      const pricing = normalizePaidFeaturePricingShape(featureSpec || {});
+      return {
+        featureKey,
+        cost: pricing.cost,
+        coinPrice: pricing.coinPrice,
+        amountKRW: pricing.amountKRW,
+        cashPrice: pricing.amountKRW,
+        krwAmount: pricing.amountKRW,
+        paymentAmount: pricing.amountKRW,
+        reason: String(featureSpec?.reason || "Paid feature unlock"),
+        currency: "KRW",
+        pricingBasis: "KRW",
+      };
+    })
     .filter((entry) => Number.isFinite(entry.cost) && entry.cost > 0)
     .sort((a, b) => a.featureKey.localeCompare(b.featureKey));
 

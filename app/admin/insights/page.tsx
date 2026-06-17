@@ -193,6 +193,11 @@ const PROMPT_LAB_DAY_CHANGE_OPTIONS: Array<{ key: PromptLabDayChangePolicy; labe
 ];
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+const LOCAL_ADMIN_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+function isLocalAdminHost(hostname: string): boolean {
+  return LOCAL_ADMIN_HOSTS.has(String(hostname || "").trim().toLowerCase());
+}
 
 function getFlowerAdminTokenClient(): string {
   if (typeof window === "undefined") return "";
@@ -224,10 +229,27 @@ function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
   if (!base) return "include";
 
   try {
-    return new URL(base).origin === window.location.origin ? "include" : "omit";
+    const target = new URL(base);
+    const current = new URL(window.location.origin);
+    if (target.origin === current.origin) return "include";
+    if (isLocalAdminHost(target.hostname) && isLocalAdminHost(current.hostname)) return "include";
+    return "omit";
   } catch {
     return "include";
   }
+}
+
+function getAdminAccessMessage(status: number): string {
+  if (status === 401) return "관리자 로그인이 필요합니다. 다시 로그인해 주세요.";
+  return "관리자 권한이 확인되지 않았습니다. 관리자 계정으로 다시 로그인해 주세요.";
+}
+
+function clearFlowerAdminTokenClient(): void {
+  if (typeof window === "undefined") return;
+  try { sessionStorage.removeItem("flower_admin_token"); } catch {}
+  try { sessionStorage.removeItem("flower_admin_password_ok"); } catch {}
+  try { localStorage.removeItem("flower_admin_token"); } catch {}
+  try { localStorage.removeItem("flower_admin_password_ok"); } catch {}
 }
 
 const FILTER_OPTIONS: Array<{ key: FilterKey; label: string }> = [
@@ -315,6 +337,7 @@ export default function AdminInsightsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [forbidden, setForbidden] = useState(false);
+  const [forbiddenMessage, setForbiddenMessage] = useState("");
   const [busyId, setBusyId] = useState("");
   const [publicationChecks, setPublicationChecks] = useState<Record<string, PublicationCheck>>({});
   const [diag, setDiag] = useState<ContentDiag | null>(null);
@@ -358,7 +381,10 @@ export default function AdminInsightsPage() {
       const data = await res.json().catch(() => ({}));
 
       if (res.status === 401 || res.status === 403) {
+        if (res.status === 401) clearFlowerAdminTokenClient();
         setForbidden(true);
+        setForbiddenMessage(getAdminAccessMessage(res.status));
+        setError("");
         setItems([]);
         return;
       }
@@ -370,6 +396,7 @@ export default function AdminInsightsPage() {
       }
 
       setForbidden(false);
+      setForbiddenMessage("");
       setItems(Array.isArray(data?.items) ? data.items : []);
       void loadDiag();
     } catch {
@@ -516,8 +543,11 @@ export default function AdminInsightsPage() {
       const data = await res.json().catch(() => ({}));
 
       if (res.status === 401 || res.status === 403) {
+        if (res.status === 401) clearFlowerAdminTokenClient();
         setForbidden(true);
-        setPromptLabError("관리자 로그인이 필요합니다.");
+        const message = getAdminAccessMessage(res.status);
+        setForbiddenMessage(message);
+        setPromptLabError(message);
         return;
       }
 
@@ -527,6 +557,7 @@ export default function AdminInsightsPage() {
       }
 
       setForbidden(false);
+      setForbiddenMessage("");
       setPromptLabForm((prev) => ({
         ...prev,
         birthPlace: String(data?.label || data?.query || prev.birthPlace),
@@ -577,8 +608,11 @@ export default function AdminInsightsPage() {
       const data = await res.json().catch(() => ({}));
 
       if (res.status === 401 || res.status === 403) {
+        if (res.status === 401) clearFlowerAdminTokenClient();
         setForbidden(true);
-        setPromptLabError("관리자 로그인이 필요합니다.");
+        const message = getAdminAccessMessage(res.status);
+        setForbiddenMessage(message);
+        setPromptLabError(message);
         return;
       }
 
@@ -588,6 +622,7 @@ export default function AdminInsightsPage() {
       }
 
       setForbidden(false);
+      setForbiddenMessage("");
       setPromptLabResult(data as PromptLabResult);
     } catch {
       setPromptLabError("네트워크 오류로 프롬프트를 만들지 못했습니다.");
@@ -994,11 +1029,11 @@ export default function AdminInsightsPage() {
 
             {forbidden ? (
               <div className="rounded-xl border border-rose-700/60 bg-rose-900/20 p-5">
-                <p className="text-rose-200 font-semibold">관리자 권한이 없어서 접근할 수 없습니다.</p>
-                <p className="text-sm text-rose-200/80 mt-1">관리자 로그인 후 다시 시도해 주세요.</p>
+                <p className="text-rose-200 font-semibold">{forbiddenMessage || "관리자 로그인이 필요합니다."}</p>
+                <p className="text-sm text-rose-200/80 mt-1">로그인 토큰을 새로 발급받으면 콘텐츠 목록과 편집 기능을 사용할 수 있습니다.</p>
                 <button
                   type="button"
-                  onClick={() => router.push("/admin/login")}
+                  onClick={() => router.push(`/admin/login?next=${encodeURIComponent("/admin/content")}`)}
                   className="mt-3 rounded-lg bg-rose-700 hover:bg-rose-600 px-3 py-2 text-sm"
                 >
                   관리자 로그인으로 이동

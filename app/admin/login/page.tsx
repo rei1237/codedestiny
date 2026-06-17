@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
+
 export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,14 +47,19 @@ export default function AdminLoginPage() {
         setError("비밀번호가 올바르지 않습니다.");
         return;
       }
-      // API가 Set-Cookie로 flower_admin_token을 이미 세팅; sessionStorage에만 저장 (localStorage 금지 — 자동 관리자 모드 방지)
-      if (data?.adminToken) {
-        try { sessionStorage.setItem("flower_admin_token", String(data.adminToken)); } catch (e) {}
-        try { sessionStorage.setItem("flower_admin_password_ok", "1"); } catch (e) {}
-        // 혹시 이전 세션에서 남아있던 localStorage 토큰 제거
-        try { localStorage.removeItem("flower_admin_token"); } catch (e) {}
+      const adminToken = String(data?.adminToken || "").trim();
+      if (!FLOWER_ADMIN_TOKEN_RE.test(adminToken)) {
+        setError("관리자 토큰을 받지 못했습니다. 다시 로그인해 주세요.");
+        return;
       }
-      window.location.assign("/admin/content");
+
+      try { sessionStorage.setItem("flower_admin_token", adminToken); } catch (e) {}
+      try { sessionStorage.setItem("flower_admin_password_ok", "1"); } catch (e) {}
+      try { localStorage.setItem("flower_admin_token", adminToken); } catch (e) {}
+      try { localStorage.setItem("flower_admin_password_ok", "1"); } catch (e) {}
+
+      const nextUrl = new URLSearchParams(window.location.search).get("next") || "/admin/content";
+      window.location.assign(nextUrl.startsWith("/admin/") ? nextUrl : "/admin/content");
     } catch (e) {
       setError("네트워크 오류가 발생했습니다.");
     } finally {

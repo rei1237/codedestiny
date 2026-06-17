@@ -660,6 +660,47 @@ function buildAdminSajuPillarFromEngine(pillar) {
   };
 }
 
+function toAdminElementList(value) {
+  const items = Array.isArray(value) ? value : [value];
+  return items.map((item) => adminElementLabel(item)).filter(Boolean).join(", ") || "-";
+}
+
+function buildAdminSajuHiddenStemDigest(enginePillars) {
+  return ["year", "month", "day", "hour"].map((key) => {
+    const pillar = enginePillars?.[key] || {};
+    const ganji = String(pillar.ganji || `${pillar.stem || ""}${pillar.branch || ""}`);
+    const hidden = Array.isArray(pillar.hiddenStems) ? pillar.hiddenStems.filter(Boolean).join("/") : "";
+    return ganji ? `${key}:${ganji}${hidden ? `(${hidden})` : ""}` : "";
+  }).filter(Boolean).join(", ");
+}
+
+function buildAdminSajuTenGodDigest(tenGods) {
+  const ranked = Array.isArray(tenGods?.ranked) ? tenGods.ranked : [];
+  return ranked
+    .filter((item) => item && item.name)
+    .slice(0, 5)
+    .map((item) => `${item.name} ${Number(item.score || 0).toFixed(1)}`)
+    .join(", ");
+}
+
+function buildAdminSajuAnnualFlowDigest(pillars) {
+  const currentYear = new Date().getUTCFullYear();
+  const yearStem = ADMIN_GAN[positiveModulo(currentYear - 4, ADMIN_GAN.length)];
+  const yearBranch = ADMIN_JI[positiveModulo(currentYear - 4, ADMIN_JI.length)];
+  const dayStem = pillars?.d?.g || "";
+  const branchSet = [pillars?.y?.j, pillars?.m?.j, pillars?.d?.j, pillars?.h?.j].filter(Boolean);
+  const branchEcho = branchSet.includes(yearBranch) ? "원국의 지지 하나를 다시 울립니다" : "원국 밖에서 새 기운을 비춥니다";
+  return `${currentYear}년 ${yearStem}${yearBranch} 세운은 일간 ${dayStem || "-"} 위로 들어오며, ${branchEcho}.`;
+}
+
+function buildAdminSajuConsultationDigest(profile, question, domain) {
+  const domainLabel = ADMIN_PROMPT_DOMAIN_LABELS[domain] || ADMIN_PROMPT_DOMAIN_LABELS.general;
+  const questionText = normalizeAdminText(question, 180);
+  const birthTime = profile.timeUnknown ? "생시 미상" : profile.birthTimeText;
+  const place = profile.birthPlace || "출생지 미지정";
+  return `${domainLabel} 질문의 문이 ${profile.birthDateText} ${birthTime}, ${place} 명식 위에 놓입니다. 상담자는 "${questionText || "내담자의 질문"}"을 첫 등불로 삼고 원국, 조후, 용신과 기신, 대운, 세운 중 먼저 열릴 문을 가립니다.`;
+}
+
 function cloneAdminPromptJson(value) {
   try {
     return JSON.parse(JSON.stringify(value));
@@ -718,7 +759,7 @@ function applyAdminSajuPromptPrivacy(payload, options = {}) {
   return out;
 }
 
-function buildAdminSajuResultFromEngine(profile) {
+function buildAdminSajuResultFromEngine(profile, options = {}) {
   const engineProfile = buildSajuProfile({
     name: profile.name,
     gender: profile.gender,
@@ -769,6 +810,15 @@ function buildAdminSajuResultFromEngine(profile) {
   const useful = engineProfile?.usefulGods && typeof engineProfile.usefulGods === "object" ? engineProfile.usefulGods : {};
   const daewoon = Array.isArray(engineProfile?.daewoon) ? engineProfile.daewoon : [];
   const age = Math.max(0, new Date().getUTCFullYear() - profile.year);
+  const hiddenStemDigest = buildAdminSajuHiddenStemDigest(enginePillars);
+  const tenGodDigest = buildAdminSajuTenGodDigest(engineProfile?.tenGods);
+  const currentDaewoon = daewoon.find((row) => {
+    const start = Number(row?.startAge || row?.startAgeYears || row?.startAgeDecimal || 0);
+    const end = Number(row?.endAge || row?.endAgeYears || row?.endAgeDecimal || start + 9);
+    return Number.isFinite(start) && Number.isFinite(end) && age >= start && age <= end;
+  }) || daewoon[0] || null;
+  const consultationDigest = buildAdminSajuConsultationDigest(profile, options.question, options.domain);
+  const annualFlowDigest = buildAdminSajuAnnualFlowDigest(pillars);
   const baziSnapshot = {
     daewunBridge: engineProfile?.sajuCoreResult?.daewoon || engineProfile?.daewoon || null,
     yearGan: pillars.y.g,
@@ -869,14 +919,34 @@ function buildAdminSajuResultFromEngine(profile) {
       },
       renderedFeatureDigests: [
         {
-          id: "real-saju-core",
-          label: "출생지와 절기의 문",
-          text: `출생지 ${profile.birthPlace || "-"} ${profile.latitude},${profile.longitude} 위에서 태양시와 자시의 경계가 ${profile.timeCorrectionPolicy}/${profile.dayChangePolicy} 흐름으로 가라앉습니다.`,
+          id: "custom-consultation-context",
+          label: "질문 맞춤 상담",
+          text: consultationDigest,
         },
         {
-          id: "engine-profile",
-          label: "퀀텀 명리 엔진",
-          text: "원국과 절기, 오행의 강약, 십신과 용신의 후보, 대운의 물결이 한 흐름 안에서 맞물립니다.",
+          id: "hidden-stems",
+          label: "지장간의 속결",
+          text: hiddenStemDigest || "겉으로 드러난 천간 아래의 지장간을 함께 붙잡고 말문을 엽니다.",
+        },
+        {
+          id: "ten-god-field",
+          label: "십신의 중심 기류",
+          text: tenGodDigest ? `강하게 떠오르는 십신은 ${tenGodDigest} 순서로 고개를 듭니다.` : "비겁, 식상, 재성, 관성, 인성의 기류를 원국 안에서 다시 헤아립니다.",
+        },
+        {
+          id: "useful-god-current",
+          label: "용신과 기신의 문턱",
+          text: `용신 ${toAdminElementList(useful.yong || weakKeys)}, 기신 ${toAdminElementList(useful.gi || strongKeys)} 사이에서 질문의 길흉이 갈라집니다.`,
+        },
+        {
+          id: "daewoon-current-bridge",
+          label: "대운의 현재 다리",
+          text: currentDaewoon ? `현재 나이는 ${age}세이며 ${currentDaewoon.ganji || currentDaewoon.pillar || ""} 대운의 물결 위에 머무릅니다.` : `현재 나이 ${age}세의 운로를 대운의 문턱과 함께 비춥니다.`,
+        },
+        {
+          id: "annual-flow-lens",
+          label: "세운의 올해 문",
+          text: annualFlowDigest,
         },
       ],
     },
@@ -1611,7 +1681,7 @@ async function buildAdminPromptByService({ service, question, profile, domain, e
   if (service === "saju") {
     return buildSajuAIPromptWithDomain({
       question,
-      sajuResult: buildAdminSajuResultFromEngine(profile),
+      sajuResult: buildAdminSajuResultFromEngine(profile, { question, domain }),
       domain,
     });
   }
