@@ -721,9 +721,7 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   )));
   const hasActivePass = activeEntitlement?.isActive === true;
   const passTier = hasActivePass ? normalizePassTier(activeEntitlement?.passTier || activeEntitlement?.tier) : null;
-  const pdfDiscountRequiresPayment = pricing?.passDiscount && Number(pricing.passDiscount.finalCoinPrice || coinCost || 0) > 0;
-  const pdfProductRequiresPayment = isPdfFeaturePricing(pricing) && passTier !== "family";
-  const passCovered = !pdfDiscountRequiresPayment && !pdfProductRequiresPayment && canUseByPass(activeEntitlement, coinCost);
+  const passCovered = canUseByPass(activeEntitlement, coinCost);
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
 
   return {
@@ -741,7 +739,7 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : [],
     decisionReason: passCovered
       ? "PASS_COVERED"
-      : (pdfDiscountRequiresPayment || pdfProductRequiresPayment ? "PDF_PRODUCT_PAYMENT_REQUIRED" : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED")),
+      : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED"),
     ...(pricing?.passDiscount ? { passDiscount: pricing.passDiscount } : {}),
   };
 }
@@ -941,8 +939,8 @@ async function resolvePaidContentAccess(env, {
         }), priceCoin);
       }
       return writePaidAccessDecisionToCache(cacheKey, buildPaidContentAccessDecision({
-        accessGranted: false,
-        reason: "payment_required",
+        accessGranted: true,
+        reason: "pass_covered",
         shouldOpenPaymentSelector: false,
         priceCoin,
         paymentOptions,
@@ -3189,7 +3187,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         ok: true,
         transactionType: "usage_pass",
         accessType: "usage_pass",
-        accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
+        accessMethod: "PASS",
         paymentMethod: "PASS",
         requestId,
         featureKey: String(pricing.featureKey || ""),
@@ -3203,7 +3201,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       accessGrant: {
         ok: true,
         accessType: "usage_pass",
-        accessMethod: tierPassConsume.accessMethod === "family" ? "FAMILY" : "PASS",
+        accessMethod: "PASS",
         featureKey: String(pricing.featureKey || ""),
         sessionId: reportSessionId || undefined,
         requestId,

@@ -294,10 +294,6 @@ function invalidateBillingBalanceCache() {
   billingBalanceInFlight = null;
 }
 
-function waitForBillingRetry(ms: number) {
-  return new Promise((resolve) => globalThis.setTimeout(resolve, ms));
-}
-
 export type ServiceExecutionStatus = "pending" | "success" | "failed" | "refunded" | "cancelled";
 
 export type ServiceExecutionPayload = {
@@ -645,10 +641,6 @@ function formatCoinValueWon(amount: number): string {
   return formatPaymentWon(Math.max(0, Math.floor(Number(amount || 0))) * 100);
 }
 
-function formatMonthlyCreditValueWon(amount: number): string {
-  return `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString("ko-KR")}개`;
-}
-
 function escapePaymentText(value: unknown): string {
   return toText(value)
     .replace(/&/g, "&amp;")
@@ -656,32 +648,6 @@ function escapePaymentText(value: unknown): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-}
-
-function firstFiniteMonthlyBalance(...sources: Array<Record<string, unknown> | null | undefined>): number {
-  for (const source of sources) {
-    if (!source) continue;
-    const monthlyStoneBalance = resolveMonthlyStoneBalance(source);
-    if (monthlyStoneBalance !== null) return monthlyStoneBalance;
-    const membership = asRecord(source.membership);
-    const profileSubscription = asRecord(source.profileSubscription);
-    const candidates = [
-      source.monthlyBalance,
-      source.monthlyCredits,
-      source.membershipCreditBalance,
-      membership?.monthlyBalance,
-      membership?.monthlyCredits,
-      membership?.membershipCreditBalance,
-      profileSubscription?.monthlyBalance,
-      profileSubscription?.monthlyCredits,
-      profileSubscription?.membershipCreditBalance,
-    ];
-    for (const candidate of candidates) {
-      const value = Number(candidate);
-      if (Number.isFinite(value) && value >= 0) return Math.floor(value);
-    }
-  }
-  return 0;
 }
 
 function firstFiniteNonNegativeNumber(...candidates: unknown[]): number | null {
@@ -715,21 +681,6 @@ function readBillingMonthlyBalance(source: Record<string, unknown> | null | unde
     user?.monthlyCredits,
     profileSubscription?.membershipCreditBalance,
   );
-}
-
-async function fetchFreshBillingBalanceForPayment(): Promise<BillingResult<BillingBalanceData> | null> {
-  const retryDelays = [0, 180, 420];
-  for (let index = 0; index < retryDelays.length; index += 1) {
-    if (retryDelays[index] > 0) await waitForBillingRetry(retryDelays[index]);
-    const result = await fetchBillingBalance({ force: true, emit: false }).catch(() => null);
-    const data = result?.ok ? result.data : null;
-    const monthlyBalance = readBillingMonthlyBalance(data as Record<string, unknown> | null);
-    if (result?.ok && data && data.authenticated !== false && data.degraded !== true && monthlyBalance !== null) {
-      emitBillingBalanceUpdated(data as BillingBalanceData & Record<string, unknown>, "payment-balance-fresh");
-      return result;
-    }
-  }
-  return null;
 }
 
 function normalizeBillingBalanceFields(source: Record<string, unknown> | null | undefined) {
@@ -810,11 +761,6 @@ function ensureReactPaymentChoiceStyles() {
     .cd-react-payment-choice-title{position:relative;margin:0;font-size:22px;line-height:1.25;font-weight:900;letter-spacing:0;color:#fff7db;text-shadow:0 0 22px rgba(243,221,154,.24)}
     .cd-react-payment-choice-sub{position:relative;margin:8px 0 16px;color:rgba(219,234,254,.78);font-size:14px;line-height:1.6}
     .cd-react-payment-choice-note{position:relative;margin:0 0 14px;border:1px solid rgba(219,234,254,.22);border-radius:16px;background:linear-gradient(135deg,rgba(10,17,42,.76),rgba(20,28,66,.6));padding:12px 13px;font-size:13px;line-height:1.55;color:#dbeafe;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 22px rgba(147,197,253,.06)}
-    .cd-react-payment-choice-balance{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;border:1px solid rgba(147,197,253,.26);border-radius:14px;background:linear-gradient(135deg,rgba(8,47,73,.42),rgba(30,27,75,.34));padding:10px 11px;color:#dbeafe;font-size:12.5px;font-weight:800;line-height:1.45}
-    .cd-react-payment-choice-balance[data-state="fresh"]{border-color:rgba(110,231,183,.36);color:#d1fae5;background:linear-gradient(135deg,rgba(6,78,59,.34),rgba(30,41,59,.32))}
-    .cd-react-payment-choice-balance[data-state="error"]{border-color:rgba(248,113,113,.36);color:#fee2e2;background:linear-gradient(135deg,rgba(127,29,29,.34),rgba(30,41,59,.34))}
-    .cd-react-payment-choice-refresh{flex:0 0 auto;border:1px solid rgba(255,242,184,.38);border-radius:999px;background:rgba(255,255,255,.1);padding:7px 10px;color:#fff7db;font-size:12px;font-weight:900;cursor:pointer}
-    .cd-react-payment-choice-refresh:disabled{cursor:wait;opacity:.62}
     .cd-react-payment-choice-grid{display:grid;gap:10px}
     .cd-react-payment-choice-option{position:relative;width:100%;border:1px solid rgba(219,234,254,.22);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.03));padding:13px 14px;color:#f8fafc;text-align:left;cursor:pointer;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 12px 28px rgba(2,6,23,.24);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
     .cd-react-payment-choice-option::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 92% 16%,rgba(255,242,184,.1),transparent 30%),linear-gradient(135deg,rgba(255,255,255,.06),transparent 42%);pointer-events:none}
@@ -864,49 +810,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const title = toText(opts.title || opts.reason || "유료 서비스") || "유료 서비스";
   const coinPrice = Math.max(0, Math.floor(toNumber(opts.coinPrice ?? opts.cost, 0)));
   const membershipCoverage = asRecord(opts.membershipCoverage);
-  const optsMembership = asRecord(opts.membership);
-  const optsProfileSubscription = asRecord(opts.profileSubscription);
-  const coverageMembership = asRecord(membershipCoverage?.membership);
-  const coverageProfileSubscription = asRecord(membershipCoverage?.profileSubscription);
-  const knownMonthlyBalance = firstFiniteNonNegativeNumber(
-    opts.monthlyBalance,
-    opts.monthlyCredits,
-    opts.membershipCreditBalance,
-    optsMembership?.monthlyBalance,
-    optsMembership?.monthlyCredits,
-    optsMembership?.membershipCreditBalance,
-    optsProfileSubscription?.monthlyBalance,
-    optsProfileSubscription?.monthlyCredits,
-    optsProfileSubscription?.membershipCreditBalance,
-    membershipCoverage?.monthlyBalance,
-    membershipCoverage?.monthlyCredits,
-    membershipCoverage?.membershipCreditBalance,
-    coverageMembership?.monthlyBalance,
-    coverageMembership?.monthlyCredits,
-    coverageMembership?.membershipCreditBalance,
-    coverageProfileSubscription?.monthlyBalance,
-    coverageProfileSubscription?.monthlyCredits,
-    coverageProfileSubscription?.membershipCreditBalance,
-  );
-  let latestBalance: BillingResult<BillingBalanceData> | null = null;
-  let latestBalanceData: BillingBalanceData | null = null;
-  let monthlyBalanceConfirmed = false;
   const directCoinPrice = coinPrice;
   const rawDirectAmount = Math.max(0, Math.floor(toNumber(opts.amountKrw ?? opts.amountKRW, directCoinPrice * 100)));
   const directAmount = rawDirectAmount;
-  let monthlyBalance = monthlyBalanceConfirmed
-    ? firstFiniteMonthlyBalance(latestBalanceData)
-    : Math.max(0, Math.floor(Number(knownMonthlyBalance || 0)));
-  let canUseMonthly = false;
-  const resolveMonthlyOptionHint = () => monthlyBalanceConfirmed
-    ? (canUseMonthly
-      ? "이용 권한을 저장합니다."
-      : `원화 단건결제를 선택해 주세요. 현재 기준 ${formatMonthlyCreditValueWon(monthlyBalance)}`)
-    : "원화 결제 기준으로 이용 권한을 확인합니다.";
-  const resolveMonthlyBalanceText = () => monthlyBalanceConfirmed
-    ? `원화 결제 기준 확인 완료 · 현재 기준 ${formatMonthlyCreditValueWon(monthlyBalance)}`
-    : "원화 결제 기준 확인이 필요합니다.";
-  let monthlyOptionHint = resolveMonthlyOptionHint();
   const passTier = toText(membershipCoverage?.tier || membershipCoverage?.passTier || "");
   const passLimit = Math.max(0, Math.floor(toNumber(membershipCoverage?.passLimit ?? membershipCoverage?.freeLimit, 0)));
   const passLabel = passTier
@@ -973,53 +879,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       statusNode.textContent = message;
       statusNode.style.color = error ? "#fca5a5" : "#fde68a";
     };
-    const applyMonthlyBalanceUi = () => {
-      monthlyOptionHint = resolveMonthlyOptionHint();
-      const monthlyButton = modal.querySelector<HTMLButtonElement>("[data-monthly-option]");
-      const monthlyHint = modal.querySelector<HTMLElement>("[data-monthly-hint]");
-      const balanceStatus = modal.querySelector<HTMLElement>("[data-monthly-balance-status]");
-      const balanceText = modal.querySelector<HTMLElement>("[data-monthly-balance-text]");
-      if (monthlyButton) {
-        monthlyButton.disabled = !canUseMonthly;
-        if (canUseMonthly) monthlyButton.removeAttribute("aria-disabled");
-        else monthlyButton.setAttribute("aria-disabled", "true");
-      }
-      if (monthlyHint) monthlyHint.textContent = monthlyOptionHint;
-      if (balanceStatus) balanceStatus.dataset.state = monthlyBalanceConfirmed ? "fresh" : "error";
-      if (balanceText) balanceText.textContent = resolveMonthlyBalanceText();
-    };
-    const refreshMonthlyBalance = async (refreshOptions: { silent?: boolean } = {}) => {
-      if (settled) return;
-      const silent = refreshOptions.silent === true;
-      const refreshButton = modal.querySelector<HTMLButtonElement>("[data-refresh-monthly-balance]");
-      if (refreshButton) refreshButton.disabled = true;
-      if (!silent) {
-      setStatus("결제 권한을 다시 확인하고 있습니다.");
-      }
-      latestBalance = await fetchFreshBillingBalanceForPayment();
-      if (settled) return;
-      latestBalanceData = latestBalance?.ok ? latestBalance.data : null;
-      monthlyBalanceConfirmed = Boolean(latestBalanceData);
-      monthlyBalance = monthlyBalanceConfirmed
-        ? firstFiniteMonthlyBalance(latestBalanceData)
-        : Math.max(0, Math.floor(Number(knownMonthlyBalance || 0)));
-      canUseMonthly = false;
-      applyMonthlyBalanceUi();
-      if (!silent) {
-      setStatus(
-        monthlyBalanceConfirmed
-          ? `결제 권한을 다시 확인했습니다. 현재 기준 ${formatMonthlyCreditValueWon(monthlyBalance)}입니다.`
-          : "결제 권한 확인에 실패했습니다. 다시 시도해 주세요.",
-        !monthlyBalanceConfirmed,
-      );
-      }
-      if (refreshButton) refreshButton.disabled = false;
-    };
     const showWaitOverlay = (mode: PaymentChoiceMode) => {
       const runtimeWindow = window as RuntimeApiWindow;
-      if (mode === "monthly") {
-        runtimeWindow._cdSetCoinGateOverlay?.(true, "결제 권한을 확인하고 있습니다.", "monthly");
-      } else if (mode === "direct") {
+      if (mode === "direct") {
         runtimeWindow._cdSetCoinGateOverlay?.(false);
       }
     };
@@ -1027,11 +889,6 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     document.body.style.overflow = "hidden";
     modal.addEventListener("click", (event) => {
       if (event.target === modal) close("cancel");
-    });
-    modal.querySelector<HTMLButtonElement>("[data-refresh-monthly-balance]")?.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      void refreshMonthlyBalance();
     });
     modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -1045,21 +902,11 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           openMembershipPassStore(coinPrice, passTier);
           return;
         }
-        if (button.disabled) {
-          if (mode === "monthly") {
-            setStatus(
-              monthlyBalanceConfirmed
-                ? "원화 단건결제를 선택해 주세요."
-                : "결제 권한을 확인하지 못했습니다. 다시 열어 주세요.",
-              true,
-            );
-          }
-          return;
-        }
+        if (button.disabled) return;
         modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((node) => {
           node.disabled = true;
         });
-        setStatus(mode === "monthly" ? "결제 권한을 확인하고 있습니다." : "단건 결제를 진행하고 있습니다.");
+        setStatus("단건 결제를 진행하고 있습니다.");
         showWaitOverlay(mode);
         close(mode);
       });

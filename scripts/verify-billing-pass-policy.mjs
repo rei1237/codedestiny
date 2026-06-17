@@ -259,7 +259,7 @@ const unchangedPdfDecision = decision({
   coinCost: unchangedPdf.coinPrice,
   monthlyBalance: 5900,
 });
-assert.equal(unchangedPdfDecision.canUseByPass, false, "PDF remains outside normal pass free coverage");
+assert.equal(unchangedPdfDecision.canUseByPass, false, "PDF over premium pass limit requires payment");
 
 const smallPdfUnchanged = applyPdfPassDiscountToPricing({
   featureKey: "premium_pdf_saju_love_secret",
@@ -277,8 +277,16 @@ const smallPdfDecision = __billingTestUtils.buildPassPaymentDecision(
 );
 assert.equal(smallPdfUnchanged.coinPrice, 50, "standard pass leaves small PDF price unchanged");
 assert.equal(smallPdfUnchanged.passDiscount, undefined, "standard pass does not attach small PDF pass discount");
-assert.equal(smallPdfDecision.canUseByPass, false, "small PDF still requires product payment");
+assert.equal(smallPdfDecision.canUseByPass, false, "small PDF over standard pass limit requires payment");
 assert.equal(smallPdfDecision.canUseByMonthly, true, "small PDF can still use internal entitlement fallback");
+
+const premiumSmallPdfDecision = __billingTestUtils.buildPassPaymentDecision(
+  activePass(PASS_TIERS.PREMIUM),
+  smallPdfUnchanged,
+  { membershipCreditBalance: 0 },
+);
+assert.equal(premiumSmallPdfDecision.canUseByPass, true, "small PDF within premium pass limit bypasses payment");
+assert.equal(premiumSmallPdfDecision.decisionReason, "PASS_COVERED", "small PDF premium pass returns covered decision");
 
 const expiredPass = activePass(PASS_TIERS.VVIP, pastDate());
 const expiredVvip50 = decision({
