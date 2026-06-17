@@ -143,6 +143,7 @@ function collectAIPromptPaymentTokens(body = {}, requestId = "") {
   const consume = body?.consume && typeof body.consume === "object" ? body.consume : {};
   const payment = body?.payment && typeof body.payment === "object" ? body.payment : {};
   const paymentContext = body?._paymentContext && typeof body._paymentContext === "object" ? body._paymentContext : {};
+  const accessDecision = body?.accessDecision && typeof body.accessDecision === "object" ? body.accessDecision : {};
   return uniqueStrings([
     requestId,
     body?.transactionId,
@@ -158,6 +159,12 @@ function collectAIPromptPaymentTokens(body = {}, requestId = "") {
     accessGrant.paymentId,
     accessGrant.merchantUid,
     accessGrant.requestId,
+    accessDecision.evidenceId,
+    accessDecision.transactionId,
+    accessDecision.purchaseId,
+    accessDecision.paymentId,
+    accessDecision.merchantUid,
+    accessDecision.requestId,
     consume.transactionId,
     consume.purchaseId,
     consume.receiptId,
@@ -255,6 +262,19 @@ function isAIPromptPassAccessPayload(body = {}) {
   ).trim().toLowerCase();
 
   return body?.freeBySubscription === true
+    || (
+      accessDecision.accessGranted === true
+      && (
+        accessReason === "pass_applied"
+        || accessReason === "pass_covered"
+        || accessReason === "pass_free"
+        || accessType === "membership_pass"
+        || accessType === "usage_pass"
+        || accessType === "subscription_pass"
+        || paymentMode === "membership_pass"
+        || accessMethod === "PASS"
+      )
+    )
     || accessType === "membership_pass"
     || accessType === "usage_pass"
     || accessType === "already_unlocked"

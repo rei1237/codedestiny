@@ -4804,9 +4804,41 @@ function _openSajuPaidPaymentMode(cost, reason, featureKey) {
   return Promise.resolve(null);
 }
 
+function _cdAIPromptPayloadLayers(payload) {
+  var layers = [];
+  var cursor = payload && typeof payload === 'object' ? payload : {};
+  for (var i = 0; i < 4 && cursor && typeof cursor === 'object'; i += 1) {
+    if (layers.indexOf(cursor) >= 0) break;
+    layers.push(cursor);
+    if (cursor.data && typeof cursor.data === 'object') cursor = cursor.data;
+    else if (cursor.payload && typeof cursor.payload === 'object') cursor = cursor.payload;
+    else break;
+  }
+  return layers.length ? layers : [{}];
+}
+
 function _cdAIPromptPayloadData(payload) {
-  var source = payload && typeof payload === 'object' ? payload : {};
-  return source.data && typeof source.data === 'object' ? source.data : source;
+  var layers = _cdAIPromptPayloadLayers(payload);
+  return layers[1] || layers[0] || {};
+}
+
+function _cdAIPromptFirstObject(layers, key) {
+  for (var i = 0; i < layers.length; i += 1) {
+    var value = layers[i] && layers[i][key];
+    if (value && typeof value === 'object') return value;
+  }
+  return {};
+}
+
+function _cdAIPromptFirstString(layers, keys) {
+  for (var i = 0; i < layers.length; i += 1) {
+    for (var j = 0; j < keys.length; j += 1) {
+      var value = layers[i] && layers[i][keys[j]];
+      var text = String(value || '').trim();
+      if (text) return text;
+    }
+  }
+  return '';
 }
 
 function _cdAIPromptRequestJson(path, init) {
@@ -4860,6 +4892,7 @@ function _cdAIPromptGate(input) {
       coinPrice: cost,
       cost: cost,
       membershipCreditCost: Math.max(0, Math.floor(Number(opts.membershipCreditCost || (cost * 10)))),
+      forcePassFirst: true,
       requestId: requestId
     })).then(function(openResult) {
       if (openResult && openResult.status === 'granted') {
@@ -4909,20 +4942,32 @@ function _cdAIPromptGate(input) {
 function _cdAIPromptGateEvidence(gateResult) {
   var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
   var data = gate.data && typeof gate.data === 'object' ? gate.data : {};
-  var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
-  var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+  var layers = _cdAIPromptPayloadLayers(gate.payload || data);
+  var consume = _cdAIPromptFirstObject(layers, 'consume');
+  var accessGrant = _cdAIPromptFirstObject(layers, 'accessGrant');
+  var accessDecision = _cdAIPromptFirstObject(layers, 'accessDecision');
+  var payment = _cdAIPromptFirstObject(layers, 'payment');
+  var requestId = String(gate.requestId || accessGrant.requestId || accessDecision.requestId || consume.requestId || _cdAIPromptFirstString(layers, ['requestId', 'purchaseId']) || '').trim();
+  var accessType = _cdAIPromptFirstString(layers, ['accessType', 'transactionType']) || String(accessGrant.accessType || accessDecision.accessType || accessDecision.transactionType || consume.accessType || '').trim();
+  var accessMethod = _cdAIPromptFirstString(layers, ['accessMethod', 'paymentMethod']) || String(accessGrant.accessMethod || accessDecision.accessMethod || accessDecision.paymentMethod || consume.accessMethod || consume.paymentMethod || '').trim();
+  var paymentMode = _cdAIPromptFirstString(layers, ['paymentMode', 'accessMode']) || String(accessGrant.paymentMode || accessDecision.paymentMode || consume.paymentMode || '').trim();
+  var transactionId = _cdAIPromptFirstString(layers, ['transactionId', 'ledgerId', 'paymentId', 'purchaseId'])
+    || String(consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || accessDecision.transactionId || accessDecision.evidenceId || accessDecision.purchaseId || '').trim();
   return {
-    requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
+    requestId: requestId,
     accessGrant: accessGrant,
+    accessDecision: accessDecision,
+    freeBySubscription: layers.some(function(layer) { return layer && layer.freeBySubscription === true; }),
     consume: consume,
-    payment: data.payment && typeof data.payment === 'object' ? data.payment : undefined,
+    payment: payment && Object.keys(payment).length ? payment : undefined,
     _paymentContext: {
-      requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
-      featureKey: String(data.featureKey || accessGrant.featureKey || consume.featureKey || '').trim(),
-      transactionId: String(data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
-      accessType: String(data.accessType || accessGrant.accessType || consume.accessType || '').trim(),
-      accessMethod: String(data.accessMethod || accessGrant.accessMethod || consume.accessMethod || consume.paymentMethod || '').trim(),
-      paymentMode: String(data.paymentMode || accessGrant.paymentMode || consume.paymentMode || '').trim()
+      requestId: requestId,
+      featureKey: _cdAIPromptFirstString(layers, ['featureKey', 'serviceKey', 'contentId']) || String(accessGrant.featureKey || accessDecision.featureKey || consume.featureKey || '').trim(),
+      transactionId: transactionId,
+      purchaseId: _cdAIPromptFirstString(layers, ['purchaseId']) || String(accessGrant.purchaseId || consume.purchaseId || requestId).trim(),
+      accessType: accessType,
+      accessMethod: accessMethod,
+      paymentMode: paymentMode
     }
   };
 }
@@ -5244,7 +5289,14 @@ function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions,
     domain: String(domain || '').trim(),
     sajuResult: _buildSajuAIPromptPayload(privacyOptions),
     requestId: evidence.requestId || ('saju-ai-prompt:' + requestNonce),
+    transactionId: evidence._paymentContext && evidence._paymentContext.transactionId,
+    purchaseId: evidence._paymentContext && evidence._paymentContext.purchaseId,
+    accessType: evidence._paymentContext && evidence._paymentContext.accessType,
+    accessMethod: evidence._paymentContext && evidence._paymentContext.accessMethod,
+    paymentMode: evidence._paymentContext && evidence._paymentContext.paymentMode,
     accessGrant: evidence.accessGrant,
+    accessDecision: evidence.accessDecision,
+    freeBySubscription: evidence.freeBySubscription,
     consume: evidence.consume,
     payment: evidence.payment,
     _paymentContext: evidence._paymentContext
