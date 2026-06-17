@@ -943,23 +943,23 @@
     if (partnerEl) partnerEl.textContent = _readinessPersonLine(safeInput.partner, '상대방');
     if (qualityEl) {
       qualityEl.textContent = verified
-        ? '본명숙 산출 완료 · 프리미엄 PDF 상담 가능'
+        ? '본명숙 산출 완료 · 49,000원 PDF 상담 가능'
         : safeCheck.ok
-          ? '입력값 확인 완료 · 결제 전 산출 대기'
+          ? '달별 기준 정렬 완료 · 결제 문 대기'
           : '생년월일·성별 보완 필요';
     }
     if (statusEl) {
       statusEl.textContent = state === 'verified'
-        ? '상대방 입력 검증이 완료되었습니다. ' + _sukuyoCoinLabel() + ' 결제 확인 뒤 PDF 생성을 시작합니다.'
+        ? '두 사람의 달별 기준이 맞춰졌습니다. ' + _sukuyoCoinLabel() + ' 결제 뒤 PDF 문이 열립니다.'
         : safeCheck.ok
-          ? '상대방의 입력 기준이 준비되었습니다. 결제 전 산출 검증을 진행합니다.'
-          : '상대방 생년월일과 성별을 먼저 확인해 주세요.';
+          ? '상대방의 달빛 정보가 준비되었습니다. 결제 전에 27숙 산출 문이 먼저 열립니다.'
+          : '상대방 생년월일과 성별을 먼저 채워 주세요.';
       statusEl.classList.toggle('sk-inline-error', !safeCheck.ok);
     }
     if (noticeEl) {
       noticeEl.textContent = hasUnknownTime
-        ? '태어난 시간을 모르는 항목은 날짜 중심 궁합으로 계산하고, 시간 세부 문장은 보수적으로 작성합니다.'
-        : '숙요점 PDF 서비스 안에서만 열리는 전용 궁합입니다. 결제 후 본명숙, 관계 유형, 거리감, 갈등 회복 루틴이 하나의 상담 흐름으로 이어집니다.';
+        ? '태어난 시간을 모르는 항목은 날짜 중심 궁합으로 흐르고, 시간 세부 문장은 보수적으로 머무릅니다.'
+        : '49,000원 숙요점 PDF 전용 궁합입니다. 결제 후 본명숙, 관계 유형, 거리감, 갈등 회복 루틴이 하나의 상담 흐름으로 이어집니다.';
     }
   }
 
@@ -1412,12 +1412,12 @@
 
     var hint = _qs('skModeHint');
     if (hint) {
-      hint.textContent = '저장된 나의 운명 카드 위로 상대방의 달빛 정보가 더해지면 두 사람의 인연 지도가 열립니다.';
+      hint.textContent = '저장된 나의 운명 카드 위로 상대방의 달빛 정보가 겹치면 49,000원 전용 인연 지도가 열립니다.';
       hint.classList.remove('sk-inline-error');
     }
 
     var startDesc = _qs('skStartDesc');
-    if (startDesc) startDesc.innerHTML = '저장된 나의 운명 카드에 상대방의 본명숙과 관계 거리가 겹쳐져 <strong>15챕터 궁합 PDF</strong>가 열립니다.';
+    if (startDesc) startDesc.innerHTML = '두 사람의 본명숙, 관계 거리, 갈등 회복 흐름이 <strong>15챕터 숙요점 PDF</strong> 안에서 차분히 드러납니다.';
 
     var title = _qs('skModalTitle');
     if (title) title.textContent = '💫 숙요점 프리미엄 궁합 PDF';
@@ -1426,7 +1426,7 @@
     if (subtitle) subtitle.textContent = '27개의 달별로 읽는 두 사람의 인연 지도 · 15챕터 리포트';
 
     var startBtn = _qs('skStartBtn');
-    if (startBtn) startBtn.textContent = '입력 확인 후 ' + _sukuyoCoinLabel() + ' 결제하고 PDF 생성';
+    if (startBtn) startBtn.textContent = '달별 기준 맞추고 ' + _sukuyoCoinLabel() + ' 결제 후 PDF 열기';
 
     var coinMsg = _qs('skCompatNeedMsg');
     if (coinMsg) coinMsg.textContent = '궁합 PDF는 상대방의 생년월일이 들어와야 열립니다.';

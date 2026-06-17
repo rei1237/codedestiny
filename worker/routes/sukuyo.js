@@ -1152,13 +1152,14 @@ async function resolveSukuyoSignedTokenAccess(env, userId, premiumAccessToken) {
   const chargedCoins = Math.max(0, Math.abs(Number(payload.chargedCoins || 0)));
   const transactionId = clean(payload.transactionId);
   const isCompatFeature = isSukuyoCompatibilityFeatureKey(tokenFeatureKey);
+  const hasCompatMinimumCharge = chargedCoins >= SUKYO_COMPAT_TOKEN_MIN_COINS;
   const isCoinGateCompat = normalizedFeatureKey === "coin-gate-per-use"
-    && chargedCoins >= SUKYO_COMPAT_TOKEN_MIN_COINS
+    && hasCompatMinimumCharge
     && reason.includes("숙요점")
     && reason.includes("궁합");
 
   if (!isSukuyoReportType(payload.reportType) || (!isCompatFeature && !isCoinGateCompat)) return null;
-  if (payload.freeBySubscription !== true && chargedCoins < SUKYO_COMPAT_TOKEN_MIN_COINS && !transactionId) return null;
+  if (payload.freeBySubscription !== true && !hasCompatMinimumCharge) return null;
 
   return {
     ok: true,

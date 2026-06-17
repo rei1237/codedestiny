@@ -352,29 +352,30 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
       },
     ];
 
-    if (!isCompat) return baseRules;
+    if (isCompat) {
+      return [
+        {
+          featureKey: "premium_pdf_sukyo_compat",
+          reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
+          minCost: 490,
+          windowMinutes: 240,
+        },
+        {
+          featureKey: "premium-sukuyo-report-compat",
+          reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
+          minCost: 490,
+          windowMinutes: 240,
+        },
+        {
+          featureKey: "coin-gate-per-use",
+          reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
+          minCost: 490,
+          windowMinutes: 240,
+        },
+      ];
+    }
 
-    return [
-      ...baseRules,
-      {
-        featureKey: "premium_pdf_sukyo_compat",
-        reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
-        minCost: 490,
-        windowMinutes: 240,
-      },
-      {
-        featureKey: "premium-sukuyo-report-compat",
-        reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
-        minCost: 490,
-        windowMinutes: 240,
-      },
-      {
-        featureKey: "coin-gate-per-use",
-        reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
-        minCost: 490,
-        windowMinutes: 240,
-      },
-    ];
+    return baseRules;
   }
 
   if (reportType === "sukuyoPastLifeReading") {
