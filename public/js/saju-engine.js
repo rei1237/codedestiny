@@ -16,6 +16,66 @@ var __libLoading = false;
 var __pendingAutoCalculation = false;
 var __pendingAutoBirthSnapshot = null;
 
+function _cdNormalizeBirthDateInput(value) {
+  var raw = String(value || '').trim();
+  if (!raw) return '';
+  var digits = raw.replace(/\D/g, '');
+  if (digits.length === 8) {
+    var y = parseInt(digits.slice(0, 4), 10);
+    var m = parseInt(digits.slice(4, 6), 10);
+    var d = parseInt(digits.slice(6, 8), 10);
+    var check = new Date(Date.UTC(y, m - 1, d));
+    if (
+      check.getUTCFullYear() === y &&
+      check.getUTCMonth() === m - 1 &&
+      check.getUTCDate() === d
+    ) {
+      return String(y).padStart(4, '0') + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    }
+    return '';
+  }
+  var match = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (!match) return '';
+  return _cdNormalizeBirthDateInput(match[1] + String(match[2]).padStart(2, '0') + String(match[3]).padStart(2, '0'));
+}
+
+function _cdBirthDateInputDigits(value) {
+  var iso = _cdNormalizeBirthDateInput(value);
+  return iso ? iso.replace(/\D/g, '') : String(value || '').replace(/\D/g, '').slice(0, 8);
+}
+
+function _cdReadBirthDateInput(id) {
+  var el = document.getElementById(id);
+  return el ? _cdNormalizeBirthDateInput(el.value) : '';
+}
+
+function _cdInstallBirthDateDigitInputs(root) {
+  try {
+    var scope = root || document;
+    var nodes = scope.querySelectorAll('[data-cd-birthdate-digits]');
+    Array.prototype.forEach.call(nodes, function(el) {
+      if (!el || el.__cdBirthDateDigitsBound) return;
+      el.__cdBirthDateDigitsBound = true;
+      el.setAttribute('inputmode', 'numeric');
+      el.setAttribute('maxlength', '8');
+      el.addEventListener('input', function() {
+        var next = String(el.value || '').replace(/\D/g, '').slice(0, 8);
+        if (el.value !== next) el.value = next;
+      });
+      el.addEventListener('blur', function() {
+        el.value = _cdBirthDateInputDigits(el.value);
+      });
+      el.value = _cdBirthDateInputDigits(el.value);
+    });
+  } catch (_) {}
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() { _cdInstallBirthDateDigitInputs(document); });
+} else {
+  _cdInstallBirthDateDigitInputs(document);
+}
+
 function _captureBirthFormSnapshot() {
   try {
     var dateEl = document.getElementById('birthDate');
@@ -41,7 +101,7 @@ function _captureBirthFormSnapshot() {
     if (minuteVal === '' && profileBirth && profileBirth.minute != null) minuteVal = String(profileBirth.minute);
 
     return {
-      birthDate: dateEl ? String(dateEl.value || '') : '',
+      birthDate: dateEl ? _cdBirthDateInputDigits(dateEl.value || '') : '',
       birthHour: hourVal,
       birthMinute: minuteVal,
       birthCountry: countryEl ? String(countryEl.value || '') : '',
@@ -59,7 +119,7 @@ function _applyBirthFormSnapshot(snapshot) {
     var hourEl = document.getElementById('birthHour');
     var minuteEl = document.getElementById('birthMinute');
     var countryEl = document.getElementById('birthCountry');
-    if (dateEl && snapshot.birthDate) dateEl.value = snapshot.birthDate;
+    if (dateEl && snapshot.birthDate) dateEl.value = _cdBirthDateInputDigits(snapshot.birthDate);
     if (hourEl && snapshot.birthHour !== '') hourEl.value = snapshot.birthHour;
     if (minuteEl && snapshot.birthMinute !== '') minuteEl.value = snapshot.birthMinute;
     if (countryEl && snapshot.birthCountry) countryEl.value = snapshot.birthCountry;
@@ -352,11 +412,12 @@ const KasiEngine = {
     try { window.KasiEngine = KasiEngine; } catch (e) {}
 
 function getActualSolarDate(dateStr, typeStr) {
-    if(!dateStr) return null;
-    var parts = dateStr.split('-').map(Number);
+    var normalizedDate = _cdNormalizeBirthDateInput(dateStr);
+    if(!normalizedDate) return null;
+    var parts = normalizedDate.split('-').map(Number);
     if(parts.length < 3) return null;
     var y = parts[0], m = parts[1], d = parts[2];
-    if(typeStr === 'solar') return { y: y, m: m, d: d, dateStr: dateStr };
+    if(typeStr === 'solar') return { y: y, m: m, d: d, dateStr: normalizedDate };
     try {
         var isLeap = (typeStr === 'lunar_leap');
         var converted = KasiEngine.lunarToSolar(y, m, d, isLeap);
@@ -901,8 +962,9 @@ async function resolvePrimaryCalendarContext(input, options) {
 }
 
 async function getActualSolarDateWithContext(dateStr, typeStr, options) {
-  if (!dateStr) return null;
-  var parts = String(dateStr).split('-').map(function(v) { return parseInt(v, 10); });
+  var normalizedDate = _cdNormalizeBirthDateInput(dateStr);
+  if (!normalizedDate) return null;
+  var parts = normalizedDate.split('-').map(function(v) { return parseInt(v, 10); });
   if (parts.length < 3 || isNaN(parts[0]) || isNaN(parts[1]) || isNaN(parts[2])) return null;
   var opts = options || {};
   var ctx = await resolvePrimaryCalendarContext({
@@ -929,7 +991,7 @@ async function getActualSolarDateWithContext(dateStr, typeStr, options) {
     };
   }
 
-  return getActualSolarDate(dateStr, normalizeCalendarTypeInput(typeStr || 'solar'));
+  return getActualSolarDate(normalizedDate, normalizeCalendarTypeInput(typeStr || 'solar'));
 }
 
 function _zwCompatPalSnapshotLite(zwData, palaceName) {
@@ -1131,7 +1193,7 @@ window.updateLunarPreview = function(dateId, radioName, previewId) {
     var pEl = document.getElementById(previewId);
     if(!dateEl || !pEl) return;
 
-    var dVal = dateEl.value;
+    var dVal = _cdNormalizeBirthDateInput(dateEl.value);
     var rBtns = document.getElementsByName(radioName);
     var typeVal = 'solar';
     for(var i=0; i<rBtns.length; i++) { if(rBtns[i].checked) { typeVal = rBtns[i].value; break; } }
@@ -1146,9 +1208,10 @@ window.updateLunarPreview = function(dateId, radioName, previewId) {
       if (reqSeq !== _lunarPreviewRequestSeq) return;
       if(actualDates) {
         var isLeapStr = typeVal === 'lunar_leap' ? '(윤달)' : '(평달)';
+        var inputParts = dVal.split('-');
         pEl.classList.add('form-lunar-preview--active');
         pEl.style.display = 'block';
-        pEl.innerHTML = `➡ 변환 완료: 양력 <strong>${actualDates.y}년 ${actualDates.m}월 ${actualDates.d}일</strong> / 음력${isLeapStr} <strong>${dVal.split('-')[0]}년 ${dVal.split('-')[1]}월 ${dVal.split('-')[2]}일</strong>`;
+        pEl.innerHTML = `➡ 변환 완료: 양력 <strong>${actualDates.y}년 ${actualDates.m}월 ${actualDates.d}일</strong> / 음력${isLeapStr} <strong>${inputParts[0]}년 ${inputParts[1]}월 ${inputParts[2]}일</strong>`;
       } else {
         pEl.classList.remove('form-lunar-preview--active');
         pEl.style.display = 'none';
@@ -2892,8 +2955,9 @@ function updateCorrectedTimePreview(){
   var birthMinute = parseInt((document.getElementById('birthMinute') || {}).value || '0', 10);
 
   var y = 2000, m = 1, d = 1;
-  if (birthDate) {
-    var parts = birthDate.split('-');
+  var normalizedBirthDate = _cdNormalizeBirthDateInput(birthDate);
+  if (normalizedBirthDate) {
+    var parts = normalizedBirthDate.split('-');
     y = parseInt(parts[0], 10) || y;
     m = parseInt(parts[1], 10) || m;
     d = parseInt(parts[2], 10) || d;
@@ -3962,9 +4026,9 @@ function clearSajuFormStatus() {
 
 function validateSajuFormBeforeLogin() {
   var birthDateEl = document.getElementById('birthDate');
-  var birthDateValue = birthDateEl ? String(birthDateEl.value || '').trim() : '';
+  var birthDateValue = birthDateEl ? _cdNormalizeBirthDateInput(birthDateEl.value) : '';
   if (!birthDateValue) {
-    setSajuFormStatus('생년월일을 입력해 주세요.', 'error', 'birthDate');
+    setSajuFormStatus('생년월일을 YYYYMMDD 숫자 8자리로 입력해 주세요.', 'error', 'birthDate');
     return false;
   }
   return true;
@@ -4006,8 +4070,8 @@ async function startSajuCalculationFlow() {
     return;
   }
   __pendingAutoCalculation = false;
-  var bd=String((document.getElementById('birthDate') || {}).value || '').trim();
-  if(!bd){setSajuFormStatus('생년월일을 입력해 주세요.', 'error', 'birthDate');return;}
+  var bd=_cdReadBirthDateInput('birthDate');
+  if(!bd){setSajuFormStatus('생년월일을 YYYYMMDD 숫자 8자리로 입력해 주세요.', 'error', 'birthDate');return;}
   var selectedGender = String(GENDER || window._gender || '').trim().toUpperCase();
   if (selectedGender !== 'M' && selectedGender !== 'F') {
     setSajuFormStatus('성별을 선택해 주세요.', 'error', 'btnF');
@@ -4127,8 +4191,8 @@ async function calculate(){
   })();
 
   USER_NAME=document.getElementById('nameInput').value.trim()||'사용자';
-  var bd=document.getElementById('birthDate').value;
-  if(!bd){setSajuFormStatus('생년월일을 입력해 주세요.', 'error', 'birthDate');return;}
+  var bd=_cdReadBirthDateInput('birthDate');
+  if(!bd){setSajuFormStatus('생년월일을 YYYYMMDD 숫자 8자리로 입력해 주세요.', 'error', 'birthDate');return;}
 
   var calTypeBtns = document.getElementsByName('calType');
   var calType = 'solar';
@@ -4922,13 +4986,119 @@ function _applySajuAIPromptPrivacy(payload, opts) {
   return out;
 }
 
+function _sajuPromptToNumber(value) {
+  var n = Number.parseInt(String(value || '').trim(), 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+function _sajuPromptPickBirthDate(profile, birth, snapshot) {
+  var candidates = [
+    profile && profile.birthDate,
+    snapshot && snapshot.birthDate,
+    profile && profile.birthDateLabel,
+    birth && birth.birthDate,
+    birth && birth.date,
+    snapshot && snapshot.birth && snapshot.birth.birthDate,
+    snapshot && snapshot.birth && snapshot.birth.date
+  ];
+  for (var i = 0; i < candidates.length; i += 1) {
+    var value = String(candidates[i] || '').trim();
+    if (value) return value;
+  }
+  var year = _sajuPromptToNumber(profile && profile.year) || _sajuPromptToNumber((birth || {}).year) || _sajuPromptToNumber(snapshot && snapshot.year) || _sajuPromptToNumber(snapshot && snapshot.birth && snapshot.birth.year);
+  var month = _sajuPromptToNumber(profile && profile.month) || _sajuPromptToNumber((birth || {}).month) || _sajuPromptToNumber(snapshot && snapshot.month) || _sajuPromptToNumber(snapshot && snapshot.birth && snapshot.birth.month);
+  var day = _sajuPromptToNumber(profile && profile.day) || _sajuPromptToNumber((birth || {}).day) || _sajuPromptToNumber(snapshot && snapshot.day) || _sajuPromptToNumber(snapshot && snapshot.birth && snapshot.birth.day);
+  if ([year, month, day].every(Number.isFinite)) {
+    return String(year) + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+  }
+  return '';
+}
+
+function _sajuPromptPickBirthTime(profile, birth, snapshot) {
+  var candidates = [
+    profile && profile.birthTime,
+    profile && profile.time,
+    birth && birth.birthTime,
+    birth && birth.time,
+    snapshot && snapshot.birth && snapshot.birth.birthTime,
+    snapshot && snapshot.birth && snapshot.birth.time
+  ];
+  for (var i = 0; i < candidates.length; i += 1) {
+    var value = String(candidates[i] || '').trim();
+    if (value) return value;
+  }
+
+  var hour =
+    _sajuPromptToNumber(profile && profile.hour) ||
+    _sajuPromptToNumber(profile && profile.birth && profile.birth.hour) ||
+    _sajuPromptToNumber(profile && (profile.birthHour || (snapshot && snapshot.birthHour))) ||
+    _sajuPromptToNumber((snapshot && snapshot.hour)) ||
+    _sajuPromptToNumber(snapshot && snapshot.birth && snapshot.birth.hour);
+
+  var minute =
+    _sajuPromptToNumber(profile && profile.minute) ||
+    _sajuPromptToNumber(profile && profile.birth && profile.birth.minute) ||
+    _sajuPromptToNumber(profile && (profile.birthMinute || (snapshot && snapshot.birthMinute))) ||
+    _sajuPromptToNumber((snapshot && snapshot.minute)) ||
+    _sajuPromptToNumber(snapshot && snapshot.birth && snapshot.birth.minute);
+
+  if (Number.isFinite(hour) && Number.isFinite(minute)) {
+    var safeHour = Math.max(0, Math.min(23, hour));
+    var safeMinute = Math.max(0, Math.min(59, minute));
+    return String(Math.trunc(safeHour)).padStart(2, '0') + ':' + String(Math.trunc(safeMinute)).padStart(2, '0');
+  }
+  return '';
+}
+
+function _sajuPromptBuildAnalysisProfile(profile, snapshot) {
+  var birth = profile && typeof profile.birth === 'object' && profile.birth ? profile.birth : null;
+  var birthDate = _sajuPromptPickBirthDate(profile, birth, snapshot);
+  var birthTime = _sajuPromptPickBirthTime(profile, birth, snapshot);
+  var gender = String(profile && (profile.gender || profile.sex) || snapshot && (snapshot.gender || snapshot.sex) || '').trim() || 'unknown';
+
+  var year =
+    _sajuPromptToNumber(profile && profile.year) || _sajuPromptToNumber((birth || {}).year) || _sajuPromptToNumber(snapshot && snapshot.year) || _sajuPromptToNumber(snapshot && snapshot.birth && snapshot.birth.year);
+  var month =
+    _sajuPromptToNumber(profile && profile.month) || _sajuPromptToNumber((birth || {}).month) || _sajuPromptToNumber(snapshot && snapshot.month) || _sajuPromptToNumber(snapshot && snapshot.birth && snapshot.birth.month);
+  var day =
+    _sajuPromptToNumber(profile && profile.day) || _sajuPromptToNumber((birth || {}).day) || _sajuPromptToNumber(snapshot && snapshot.day) || _sajuPromptToNumber(snapshot && snapshot.birth && snapshot.birth.day);
+  var hour =
+    _sajuPromptToNumber(profile && profile.hour) || _sajuPromptToNumber((birth || {}).hour) || _sajuPromptToNumber(snapshot && snapshot.hour) || _sajuPromptToNumber(snapshot && snapshot.birth && snapshot.birth.hour);
+  var minute =
+    _sajuPromptToNumber(profile && profile.minute) || _sajuPromptToNumber((birth || {}).minute) || _sajuPromptToNumber(snapshot && snapshot.minute) || _sajuPromptToNumber(snapshot && snapshot.birth && snapshot.birth.minute);
+
+  return {
+    name: profile && profile.name || snapshot && snapshot.name || '',
+    gender: gender,
+    birthDate: birthDate,
+    birthTime: birthTime,
+    year: year,
+    month: month,
+    day: day,
+    hour: hour,
+    minute: minute,
+    birth: {
+      year: year,
+      month: month,
+      day: day,
+      hour: hour,
+      minute: minute,
+      date: birthDate,
+      time: birthTime,
+      birthDate: birthDate,
+      birthTime: birthTime,
+      gender: gender
+    }
+  };
+}
+
 function _buildSajuAIPromptPayload(opts) {
   var profile = null;
   var snapshot = null;
   try { profile = window.__cdActiveBirthProfile || null; } catch (_) {}
   try { snapshot = window.__destinyFlowerSajuSnapshot || null; } catch (_) {}
 
-  return _applySajuAIPromptPrivacy({
+  var payload = _applySajuAIPromptPrivacy({
     profile: _sajuPromptClone(profile),
     snapshot: _sajuPromptClone(snapshot),
     pillars: _sajuPromptClone(G_PILLARS || null),
@@ -4937,6 +5107,10 @@ function _buildSajuAIPromptPayload(opts) {
     power: _sajuPromptClone(G_POWER || null),
     jong: _sajuPromptClone(G_JONG || null)
   }, opts);
+
+  payload.analysisProfile = _sajuPromptBuildAnalysisProfile(profile, snapshot);
+
+  return payload;
 }
 
 function _applySajuAIPromptBalance(points) {
@@ -9773,7 +9947,7 @@ function renderAstroInsightLegacyNeon() {
         +'</div>'
         +'<div style="flex:1;min-width:130px;">'
         +'<label class="astro-label">생년월일</label>'
-        +'<input type="date" class="astro-neon-input" id="asDirect_date" required>'
+        +'<input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-cd-birthdate-digits class="astro-neon-input" id="asDirect_date" required>'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
         +'<label class="astro-label">태어난 시각</label>'
@@ -10579,7 +10753,7 @@ function renderAstroInsightLegacyNeon() {
           if (!o || !o.getAttribute('data-lat')) return;
           var tzName = o.getAttribute('data-tz-name') || 'Asia/Seoul';
           var baseTz = parseFloat(o.getAttribute('data-base-tz') || '9');
-          var bDate = (document.getElementById('asDirect_date') || {}).value || '';
+          var bDate = _cdReadBirthDateInput('asDirect_date');
           var bTime = (document.getElementById('asDirect_time') || {}).value || '12:00';
           var y = 2000, m = 1, d = 1, hh = 12, mm = 0;
           if (bDate) {
@@ -10598,6 +10772,7 @@ function renderAstroInsightLegacyNeon() {
         };
 
         var directDateEl = document.getElementById('asDirect_date');
+        _cdInstallBirthDateDigitInputs(document);
         var directTimeEl = document.getElementById('asDirect_time');
         var refreshByCity = function() {
           if (citySel.selectedIndex > 0 && typeof citySel.onchange === 'function') citySel.onchange();
@@ -11227,7 +11402,7 @@ function renderAstroInsightLegacyNeon() {
       astroLatestCompatibilityResult = null;
 
         var nameVal = (document.getElementById('asDirect_name') || {}).value || '상대방';
-        var dateVal = (document.getElementById('asDirect_date') || {}).value;
+        var dateVal = _cdReadBirthDateInput('asDirect_date');
         var timeVal = (document.getElementById('asDirect_time') || {}).value || '12:00';
         var genderVal = (document.getElementById('asDirect_gender') || {}).value || 'OTHER';
         var cityEl  = document.getElementById('asDirect_city');
@@ -17160,7 +17335,7 @@ function renderZiwei(p, natal, targetId) {
         return n < 10 ? ('0' + n) : String(n);
       };
 
-      var bDate = (dateEl.value || '').trim();
+      var bDate = _cdNormalizeBirthDateInput(dateEl.value);
       var bTime = (timeEl.value || '').trim();
       var triggerBtn = null;
       var cardEl = dateEl.closest ? dateEl.closest('.zw-cosmic-card') : null;
@@ -19346,7 +19521,7 @@ function renderZiwei(p, natal, targetId) {
           +'<div class="card-content love-text" style="position:relative;z-index:1;background:rgba(35,24,56,0.46);border:1px solid rgba(216,180,254,0.24);border-radius:10px;padding:11px 12px;margin-bottom:10px;">'
             +'<div style="margin-bottom:8px;">상대 정보를 입력할 때만 별도로 계산되는 선택 확장 기능입니다. 기본 명반 해석과 구분해 확인하세요.</div>'
             +'<div class="zw-cosmic-input-grid">'
-              +'<label class="zw-cosmic-field"><span>상대 생년월일</span><input id="zwCompatBirthDate" type="date" class="zw-cosmic-control"></label>'
+              +'<label class="zw-cosmic-field"><span>상대 생년월일</span><input id="zwCompatBirthDate" type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-cd-birthdate-digits class="zw-cosmic-control"></label>'
               +'<label class="zw-cosmic-field"><span>상대 태어난 시간</span><input id="zwCompatBirthTime" type="time" value="12:00" class="zw-cosmic-control"></label>'
               +'<label class="zw-cosmic-field"><span>상대 성별</span><select id="zwCompatGender" class="zw-cosmic-control"><option value="F">여성</option><option value="M">남성</option><option value="OTHER">기타</option></select></label>'
               +'<label class="zw-cosmic-field"><span>상대 태어난 도시</span><select id="zwCompatBirthCity" class="zw-cosmic-control">'+compatCityOptions+'</select></label>'
@@ -21474,7 +21649,8 @@ function _resolveMonthCommandBirthDate() {
     }
     var dEl = document.getElementById('birthDate');
     if (dEl && dEl.value) {
-      var p = String(dEl.value).split('-').map(function(v){ return parseInt(v, 10); });
+      var normalizedDate = _cdNormalizeBirthDateInput(dEl.value);
+      var p = normalizedDate ? normalizedDate.split('-').map(function(v){ return parseInt(v, 10); }) : [];
       if (p.length >= 3 && !isNaN(p[0]) && !isNaN(p[1]) && !isNaN(p[2])) {
         var hEl = document.getElementById('birthHour');
         var mEl = document.getElementById('birthMinute');
@@ -22819,7 +22995,7 @@ function setCeleb(c){
     return;
   }
   document.getElementById('compatName').value=profile.name;
-  document.getElementById('compatBirthDate').value=profile.birth;
+  document.getElementById('compatBirthDate').value=_cdBirthDateInputDigits(profile.birth);
   document.getElementById('compatBirthHour').value=profile.hour;
   document.getElementById('compatBirthMinute').value=profile.minute;
   /* 양/음력 라디오 프리뷰도 업데이트 */
@@ -22864,10 +23040,10 @@ async function runCompat(){
     compatRunBtn.style.opacity = '0.7';
   }
   var name=(document.getElementById('compatName').value||'상대방').trim();
-  var bd=document.getElementById('compatBirthDate').value;
+  var bd=_cdReadBirthDateInput('compatBirthDate');
   var type=document.getElementById('compatType').value||'love';
   if(!bd){
-    alert('상대의 생년월일을 입력해주세요');
+    alert('상대의 생년월일을 YYYYMMDD 숫자 8자리로 입력해주세요');
     if (compatRunBtn) {
       compatRunBtn.disabled = false;
       compatRunBtn.style.opacity = '';

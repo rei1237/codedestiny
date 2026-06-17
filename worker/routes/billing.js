@@ -102,8 +102,6 @@ const PROFILE_UNLOCK_SERVICE_KEYS = Object.freeze([
 const ACCESS_METHOD_ORDER = Object.freeze(["pass", "one_time", "monthly"]);
 const LOTTO_RITUAL_REPORT_FEATURE_KEY = "fun.quantumLotto.ritualReport";
 const PROFILE_CARD_MANAGE_FEATURE_KEY = "profile-card-manage";
-const ADMIN_TEST_USER_ID = "flower-admin";
-const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const PAID_ACCESS_DECISION_CACHE_TTL_MS = 4000;
 const PAID_ACCESS_DECISION_CACHE_MAX_ENTRIES = 2500;
 const PAID_ACCESS_DECISION_DB_TIMEOUT_MS = 1400;
@@ -1265,8 +1263,7 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
   }
   let unlockedFeatures = Array.isArray(data?.unlockedFeatures) ? [...data.unlockedFeatures] : [];
   let unlockMap = data?.unlockMap && typeof data.unlockMap === "object" ? { ...data.unlockMap } : {};
-  const isAdminTestAccess = data?.adminBypass === true || data?.adminTestMode === true || consume?.adminBypass === true || consume?.adminTestMode === true;
-  const isPermanentUnlock = !isAdminTestAccess && isUnlockPaidFeatureKey(featureKey);
+  const isPermanentUnlock = isUnlockPaidFeatureKey(featureKey);
   const isUserScopedPermanentUnlock = isPermanentUnlock
     && !resolveSajuProfileUnlockContentKey(featureKey)
     && featureKey !== LOTTO_RITUAL_REPORT_FEATURE_KEY;
@@ -2118,19 +2115,7 @@ function shouldCreateDirectPortOneOrder(body = {}) {
     || paymentMode === "single_payment"
     || paymentMode === "single"
     || isTruthyFlag(body?.forceDirectPayment)
-    || isTruthyFlag(body?.disableAdminTestPaymentBypass)
-    || isTruthyFlag(body?.skipAdminTestPaymentBypass)
     || (provider === "portone_v2" && (pg === "kg_inicis" || pg === "kg-inicis" || pg === "inicis"));
-}
-
-function isAdminPaidServiceBypassEnabled() {
-  return true;
-}
-
-function isPaidServiceFeaturePricing(pricing = {}) {
-  const featureKey = String(pricing?.featureKey || "").trim();
-  const cost = Number(pricing?.coinPrice || pricing?.cost || 0);
-  return Boolean(featureKey) && Number.isFinite(cost) && cost > 0;
 }
 
 function isSajuPdfGenerationFeatureKey(featureKey) {
@@ -2154,98 +2139,6 @@ function resolvePaidReportSessionFallback(pricing = {}, reportId = "", requestId
 
 function shouldPersistProfileUnlockEntitlement(pricing = {}) {
   return !canGeneratePaidPdf(pricing) && isProfileScopedUnlockKey(pricing?.featureKey);
-}
-
-function decodeCookieValue(rawValue) {
-  try {
-    return decodeURIComponent(String(rawValue || ""));
-  } catch (e) {
-    return String(rawValue || "");
-  }
-}
-
-function extractFlowerAdminToken(request) {
-  const headerToken = String(request.headers.get("x-admin-token") || "").trim();
-  if (FLOWER_ADMIN_TOKEN_RE.test(headerToken)) return headerToken;
-
-  const auth = String(request.headers.get("authorization") || "").trim();
-  if (auth.toLowerCase().startsWith("bearer ")) {
-    const bearer = auth.slice(7).trim();
-    if (FLOWER_ADMIN_TOKEN_RE.test(bearer)) return bearer;
-  }
-
-  const cookie = String(request.headers.get("cookie") || "");
-  const match = cookie.match(/(?:^|;\s*)flower_admin_token=([^;]+)/i);
-  if (!match) return "";
-  const token = decodeCookieValue(match[1]);
-  return FLOWER_ADMIN_TOKEN_RE.test(token) ? token : "";
-}
-
-function timingSafeEqualText(a, b) {
-  const lhs = String(a || "");
-  const rhs = String(b || "");
-  if (lhs.length !== rhs.length) return false;
-
-  let diff = 0;
-  for (let index = 0; index < lhs.length; index += 1) {
-    diff |= lhs.charCodeAt(index) ^ rhs.charCodeAt(index);
-  }
-  return diff === 0;
-}
-
-function bytesToHex(bytes) {
-  return Array.from(bytes)
-    .map((value) => value.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-function base64urlDecode(value) {
-  const base64 = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
-  const pad = (4 - (base64.length % 4)) % 4;
-  return atob(base64 + "=".repeat(pad));
-}
-
-async function hmacSha256Hex(text, secret) {
-  const subtle = globalThis?.crypto?.subtle;
-  if (!subtle) return "";
-  const key = await subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await subtle.sign("HMAC", key, new TextEncoder().encode(text));
-  return bytesToHex(new Uint8Array(signature));
-}
-
-async function verifyFlowerAdminToken(request, env) {
-  const token = extractFlowerAdminToken(request);
-  if (!token) return false;
-
-  const dotIdx = token.lastIndexOf(".");
-  if (dotIdx < 1) return false;
-
-  const payloadB64 = token.slice(0, dotIdx);
-  const signatureHex = token.slice(dotIdx + 1);
-  if (!/^[a-f0-9]{64}$/i.test(signatureHex)) return false;
-
-  const expectedHex = await hmacSha256Hex(
-    payloadB64,
-    String(env?.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000"),
-  );
-  if (!timingSafeEqualText(expectedHex, signatureHex.toLowerCase())) return false;
-
-  let payload = null;
-  try {
-    payload = JSON.parse(base64urlDecode(payloadB64));
-  } catch (e) {
-    return false;
-  }
-
-  const exp = Number(payload?.exp || 0);
-  const nowSec = Math.floor(Date.now() / 1000);
-  return payload?.v === 1 && Number.isFinite(exp) && nowSec <= exp;
 }
 
 function logCoinGateResult(payload) {
@@ -2440,27 +2333,9 @@ async function requireBillingAuth(request, env, pricing = {}) {
     return { ok: true, auth: null };
   }
 
-  const shouldCheckAdminMode = isPaidServiceFeaturePricing(pricing)
-    && isAdminPaidServiceBypassEnabled(env)
-    && Boolean(extractFlowerAdminToken(request));
-  const [auth, adminMode] = await Promise.all([
-    getOptionalUserFromRequest(request, env),
-    shouldCheckAdminMode ? verifyFlowerAdminToken(request, env) : Promise.resolve(false),
-  ]);
+  const auth = await getOptionalUserFromRequest(request, env);
   if (auth) {
-    return { ok: true, auth, adminMode };
-  }
-
-  if (adminMode) {
-    return {
-      ok: true,
-      auth: {
-        userId: ADMIN_TEST_USER_ID,
-        role: "admin",
-        isAdmin: true,
-      },
-      adminMode: true,
-    };
+    return { ok: true, auth };
   }
 
   return {
@@ -2535,66 +2410,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || resolvePaidReportSessionFallback(pricing, reportId, requestId)).trim();
-  const isPdfGenerationService = canGeneratePaidPdf(pricing);
   const persistProfileUnlockEntitlement = shouldPersistProfileUnlockEntitlement(pricing);
-  if (authCheck.adminMode) {
-    const adminAuthUserId = String(authCheck?.auth?.userId || ADMIN_TEST_USER_ID);
-    const adminFeatureKey = String(pricing?.featureKey || "").trim();
-    const adminPurchaseId = String(requestId || `admin:${adminFeatureKey || "paid-service"}:${Date.now().toString(36)}`).trim();
-    const adminProfileId = cleanProfileId(body?.profileId || body?.selectedProfileId || body?.profile?.profileId || body?.profile?.id);
-    const adminPaymentDecision = buildPassPaymentDecision(null, pricing, null);
-    return await successWithPremiumAccess(env, adminAuthUserId, {
-      pricing,
-      ...adminPaymentDecision,
-      paymentOptions: adminPaymentDecision,
-      adminBypass: true,
-      adminTestMode: true,
-      paymentMode: "admin_bypass",
-      accessMethod: "ADMIN_TEST",
-      charged: 0,
-      consume: {
-        ok: true,
-        transactionId: adminPurchaseId,
-        transactionType: isPdfGenerationService ? "admin_pdf_generation" : "admin_paid_service",
-        accessType: "admin_test",
-        accessMethod: "ADMIN_TEST",
-        paymentMethod: "ADMIN_TEST",
-        requestId,
-        featureKey: adminFeatureKey,
-        coinPrice: Number(pricing.coinPrice || pricing.cost || 0),
-        chargedCoins: 0,
-        membershipCreditCost: 0,
-        adminBypass: true,
-        adminTestMode: true,
-        paymentMode: "admin_bypass",
-      },
-      accessGrant: {
-        ok: true,
-        accessType: "admin_test",
-        accessMethod: "ADMIN_TEST",
-        paymentMode: "admin_bypass",
-        adminTestMode: true,
-        adminBypass: true,
-        featureKey: adminFeatureKey,
-        sessionId: reportSessionId || undefined,
-        requestId,
-        purchaseId: adminPurchaseId,
-        evidenceId: adminPurchaseId,
-        reportId: reportId || undefined,
-        profileId: adminProfileId || undefined,
-        paidAt: new Date().toISOString(),
-      },
-      balance: null,
-      user: {
-        id: adminAuthUserId,
-        role: "admin",
-        adminMode: true,
-      },
-      unlockedFeatures: adminFeatureKey && persistProfileUnlockEntitlement ? [adminFeatureKey] : [],
-      unlockMap: adminFeatureKey && persistProfileUnlockEntitlement ? { [adminFeatureKey]: true } : {},
-      freeBySubscription: false,
-    }, "ADMIN_TEST_PAYMENT_BYPASS");
-  }
   const profileResolvePromise = authCheck?.auth?.userId ? withDbAccessTimeout(
     resolveBillingProfileId(authCheck.auth.userId, body, env),
     PAID_ACCESS_DECISION_DB_TIMEOUT_MS,
@@ -2814,7 +2630,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       pricing,
       subscriptionPass.profileSubscription,
     );
-    if (paymentDecision.canUseByPass && !passBlockedByAccessDecision) {
+    if (!directPaymentRequested && paymentDecision.canUseByPass && !passBlockedByAccessDecision) {
       const passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
         ...scopedBody,
         reportId,
@@ -3470,6 +3286,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       },
     };
 
+    const isPdfGenerationService = canGeneratePaidPdf(pricing);
     if (isPdfGenerationService || isUnlockPaidFeatureKey(coinFeatureKey)) {
       return await successWithPremiumAccess(env, authCheck.auth.userId, coinSuccessPayload, `${calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)).toLocaleString("ko-KR")}원 결제로 콘텐츠 이용 권한을 발급했습니다.`);
     }
@@ -4314,76 +4131,17 @@ async function delegateToPayments(request, env, targetPath, body, options = {}) 
 async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {}) {
   const pricingResult = resolvePricingFromBody(body);
   if (!pricingResult?.ok) return null;
+  if (shouldCreateDirectPortOneOrder(body)) return null;
 
   const authCheck = await requireBillingAuth(request, env, pricingResult.pricing);
   if (!authCheck.ok || !authCheck?.auth?.userId) return null;
 
   let pricing = pricingResult.pricing;
-  const isPdfGenerationService = canGeneratePaidPdf(pricing);
   const requestId = resolveRequestId(request, body);
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(
     body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || resolvePaidReportSessionFallback(pricing, reportId, requestId),
   ).trim();
-  if (authCheck.adminMode) {
-    const adminAuthUserId = String(authCheck?.auth?.userId || ADMIN_TEST_USER_ID);
-    const adminFeatureKey = String(pricing?.featureKey || "").trim();
-    const persistProfileUnlockEntitlement = shouldPersistProfileUnlockEntitlement(pricing);
-    const adminPurchaseId = String(requestId || `admin:${adminFeatureKey || "paid-service"}:${Date.now().toString(36)}`).trim();
-    const adminProfileId = cleanProfileId(body?.profileId || body?.selectedProfileId || body?.profile?.profileId || body?.profile?.id);
-    const adminPaymentDecision = buildPassPaymentDecision(null, pricing, null);
-    return successWithPremiumAccess(env, adminAuthUserId, {
-      pricing,
-      ...adminPaymentDecision,
-      paymentOptions: adminPaymentDecision,
-      adminBypass: true,
-      adminTestMode: true,
-      paymentMode: "admin_bypass",
-      accessMethod: "ADMIN_TEST",
-      charged: 0,
-      consume: {
-        ok: true,
-        transactionId: adminPurchaseId,
-        transactionType: isPdfGenerationService ? "admin_pdf_generation" : "admin_paid_service",
-        accessType: "admin_test",
-        accessMethod: "ADMIN_TEST",
-        paymentMethod: "ADMIN_TEST",
-        requestId,
-        featureKey: adminFeatureKey,
-        coinPrice: Number(pricing.coinPrice || pricing.cost || 0),
-        chargedCoins: 0,
-        membershipCreditCost: 0,
-        adminBypass: true,
-        adminTestMode: true,
-        paymentMode: "admin_bypass",
-      },
-      accessGrant: {
-        ok: true,
-        accessType: "admin_test",
-        accessMethod: "ADMIN_TEST",
-        paymentMode: "admin_bypass",
-        adminTestMode: true,
-        adminBypass: true,
-        featureKey: adminFeatureKey,
-        sessionId: reportSessionId || undefined,
-        requestId,
-        purchaseId: adminPurchaseId,
-        evidenceId: adminPurchaseId,
-        reportId: reportId || undefined,
-        profileId: adminProfileId || undefined,
-        paidAt: new Date().toISOString(),
-      },
-      balance: null,
-      user: {
-        id: adminAuthUserId,
-        role: "admin",
-        adminMode: true,
-      },
-      unlockedFeatures: adminFeatureKey && persistProfileUnlockEntitlement ? [adminFeatureKey] : [],
-      unlockMap: adminFeatureKey && persistProfileUnlockEntitlement ? { [adminFeatureKey]: true } : {},
-      freeBySubscription: false,
-    }, "ADMIN_TEST_PAYMENT_BYPASS");
-  }
   const profileId = await resolveBillingProfileId(authCheck.auth.userId, body, env);
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
   const persistProfileUnlockEntitlement = shouldPersistProfileUnlockEntitlement(pricing);
@@ -4587,10 +4345,13 @@ async function buildDiscountedPdfPaymentDelegation(request, env, body = {}, pric
 async function handleCheckout(request, env) {
   const body = await readJson(request);
   const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
+  const directPaymentRequested = !isSubscription && shouldCreateDirectPortOneOrder(body);
   let delegatedBody = body;
   if (!isSubscription) {
-    const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
-    if (passAccess) return passAccess;
+    if (!directPaymentRequested) {
+      const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
+      if (passAccess) return passAccess;
+    }
     const discounted = await buildDiscountedPdfPaymentDelegation(request, env, body);
     if (discounted.response) return discounted.response;
     delegatedBody = discounted.body;
@@ -4603,10 +4364,11 @@ async function handleConfirm(request, env) {
   const body = await readJson(request);
   const isSubscription = Boolean(body?.subscriptionTier) || String(body?.paymentType || "").toLowerCase() === "subscription";
   const hasPaymentVerificationPayload = Boolean(body?.impUid || body?.paymentId || body?.merchantUid || body?.merchant_uid);
+  const directPaymentRequested = !isSubscription && shouldCreateDirectPortOneOrder(body);
   const pricingResult = !isSubscription ? resolvePricingFromBody(body) : null;
   let delegatedBody = body;
   let delegatedPricing = pricingResult?.pricing || null;
-  if (!isSubscription && !hasPaymentVerificationPayload) {
+  if (!isSubscription && !hasPaymentVerificationPayload && !directPaymentRequested) {
     const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);
     if (passAccess) return passAccess;
   }

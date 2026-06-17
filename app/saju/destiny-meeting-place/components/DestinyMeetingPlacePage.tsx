@@ -6,6 +6,7 @@ import { Toaster, toast } from "sonner";
 import { fetchBillingBalance, openPaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 import { resolveAnimalTwelveResult } from "@/app/saju/animal-destiny/lib/sajuAdapter";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
+import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import DestinyMeetingPlaceLoading from "@/components/fortune/destiny-meeting-place/DestinyMeetingPlaceLoading";
 import DestinyMeetingPlaceResult from "@/components/fortune/destiny-meeting-place/DestinyMeetingPlaceResult";
 import { generateDestinyMeetingPlaceResult } from "@/components/fortune/destiny-meeting-place/destinyMeetingPlaceEngine";
@@ -372,9 +373,13 @@ export default function DestinyMeetingPlacePage() {
             <label className="space-y-2 text-sm font-bold text-[#f6ecff]">
               출생일 <span className="text-rose-300">*</span>
               <input
-                type="date"
-                value={input.birthDate}
-                onChange={(event) => setPatch({ birthDate: event.target.value })}
+                type="text"
+                inputMode="numeric"
+                maxLength={8}
+                pattern="[0-9]{8}"
+                placeholder="YYYYMMDD"
+                value={formatBirthDateDigits(input.birthDate)}
+                onChange={(event) => setPatch({ birthDate: normalizeBirthDateFromDigits(event.target.value) })}
                 className="w-full rounded-2xl border border-white/28 bg-[#ffffff12] px-4 py-3 text-base text-[#fefcff] focus:border-[#ffd88a] focus:outline-none focus:ring-2 focus:ring-[#ffd88a]/35"
               />
               <span className="block text-[11px] font-medium text-[#d7d1ee]">가장 정확한 장소 추천을 위해 반드시 입력해 주세요.</span>

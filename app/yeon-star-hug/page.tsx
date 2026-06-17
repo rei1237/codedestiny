@@ -1942,21 +1942,21 @@ export default function YeonStarHugPage() {
               </button>
             </div>
 
-            <div className="grid gap-2 rounded-2xl border border-pink-100 bg-pink-50/45 p-3 sm:grid-cols-2">
+            <div className="grid gap-3 rounded-2xl border border-pink-200 bg-white/92 p-4 shadow-[0_10px_26px_rgba(236,72,153,0.12)] sm:grid-cols-2">
               <label htmlFor="yeon-profile-name" className="grid gap-1">
-                <span className="text-[11px] font-semibold text-pink-500">이름 (프로필 카드 자동 입력)</span>
+                <span className="text-xs font-bold text-pink-600">이름 (프로필 카드 자동 입력)</span>
                 <input
                   id="yeon-profile-name"
                   type="text"
                   value={profileNameInput}
                   onChange={(event) => setProfileNameInput(event.target.value.slice(0, 30))}
                   placeholder="예: 연이"
-                  className="min-h-10 rounded-xl border border-pink-100 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
+                  className="min-h-12 rounded-xl border border-pink-200 bg-white px-4 py-3 text-base font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus-visible:ring-2 focus-visible:ring-pink-200"
                 />
               </label>
 
               <label htmlFor="yeon-birth-date" className="grid gap-1">
-                <span className="text-[11px] font-semibold text-pink-500">생년월일 (YYYYMMDD)</span>
+                <span className="text-xs font-bold text-pink-600">생년월일 (YYYYMMDD)</span>
                 <input
                   id="yeon-birth-date"
                   type="text"
@@ -1965,12 +1965,12 @@ export default function YeonStarHugPage() {
                   value={birthDateInput}
                   onChange={(event) => handleBirthDateInputChange(event.target.value)}
                   placeholder="19990125"
-                  className="min-h-10 rounded-xl border border-pink-100 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
+                  className="min-h-12 rounded-xl border border-pink-200 bg-white px-4 py-3 text-base font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus-visible:ring-2 focus-visible:ring-pink-200"
                 />
               </label>
 
               <label htmlFor="yeon-birth-time" className="grid gap-1 sm:col-span-2">
-                <span className="text-[11px] font-semibold text-pink-500">출생시간 (HHMM, 선택)</span>
+                <span className="text-xs font-bold text-pink-600">출생시간 (HHMM, 선택)</span>
                 <input
                   id="yeon-birth-time"
                   type="text"
@@ -1979,7 +1979,7 @@ export default function YeonStarHugPage() {
                   value={birthTimeInput}
                   onChange={(event) => handleBirthTimeInputChange(event.target.value)}
                   placeholder="0730"
-                  className="min-h-10 rounded-xl border border-pink-100 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
+                  className="min-h-12 rounded-xl border border-pink-200 bg-white px-4 py-3 text-base font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus-visible:ring-2 focus-visible:ring-pink-200"
                 />
               </label>
             </div>

@@ -3,6 +3,10 @@ import { Insight } from "../lib/models.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
 
 const CONTENT_PUBLIC_STATUS = "published";
+const CONTENT_SCHEDULED_STATUS = "scheduled";
+const DEFAULT_SITE_ORIGIN = "https://code-destiny.com";
+const FEED_MAX_ITEMS = 60;
+const SITEMAP_MAX_ITEMS = 500;
 const CONTENT_TYPE_SET = new Set([
   "fortune_insight",
   "saju",
@@ -84,14 +88,61 @@ function resolveSort(sort) {
   return { publishedAt: -1, updatedAt: -1, createdAt: -1 };
 }
 
+function escapeXml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function resolveSiteOrigin(env) {
+  const raw = String(
+    env?.SITE_BASE_URL
+    || env?.PUBLIC_SITE_URL
+    || env?.NEXT_PUBLIC_SITE_URL
+    || env?.AUTH_FRONTEND_BASE_URL
+    || DEFAULT_SITE_ORIGIN,
+  ).trim().replace(/\/+$/, "");
+
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol === "https:" || parsed.protocol === "http:") return parsed.origin;
+  } catch (e) {
+    return DEFAULT_SITE_ORIGIN;
+  }
+
+  return DEFAULT_SITE_ORIGIN;
+}
+
+function toIsoDate(value, fallback = new Date()) {
+  const date = value ? new Date(value) : fallback;
+  return Number.isNaN(date.getTime()) ? fallback.toISOString() : date.toISOString();
+}
+
+function toRssDate(value, fallback = new Date()) {
+  const date = value ? new Date(value) : fallback;
+  return Number.isNaN(date.getTime()) ? fallback.toUTCString() : date.toUTCString();
+}
+
+function buildPublicStatusQuery(now = new Date()) {
+  return {
+    $or: [
+      { status: CONTENT_PUBLIC_STATUS },
+      { status: CONTENT_SCHEDULED_STATUS, publishedAt: { $lte: now } },
+    ],
+  };
+}
+
 function buildListQuery(filters) {
   const query = {
-    status: CONTENT_PUBLIC_STATUS,
+    $and: [buildPublicStatusQuery()],
   };
 
   if (filters.type) {
     if (filters.type === "fortune_insight") {
-      query.$or = [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }];
+      query.$and.push({ $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }] });
     } else {
       query.type = filters.type;
     }
@@ -102,6 +153,7 @@ function buildListQuery(filters) {
   if (filters.keyword) {
     const escaped = filters.keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     query.$and = [
+      ...(Array.isArray(query.$and) ? query.$and : []),
       {
         $or: [
           { title: { $regex: escaped, $options: "i" } },
@@ -196,7 +248,7 @@ async function handleContentDetail(path, request, env) {
 
   const query = {
     slug,
-    status: CONTENT_PUBLIC_STATUS,
+    ...buildPublicStatusQuery(),
   };
 
   const item = await Insight.findOneAndUpdate(
@@ -209,6 +261,111 @@ async function handleContentDetail(path, request, env) {
 
   const serialized = toContentItem(item);
   return json({ ok: true, item: serialized });
+}
+
+async function listPublicFeedItems(env, limit) {
+  await connectDb(env);
+
+  const items = await Insight.find(buildPublicStatusQuery())
+    .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1 })
+    .limit(limit)
+    .lean();
+
+  return items
+    .map((item) => toContentItem(item))
+    .filter((item) => item.slug && item.title);
+}
+
+function xmlResponse(xml, status = 200) {
+  return new Response(xml, {
+    status,
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+      "Cache-Control": "public, max-age=300, stale-while-revalidate=86400",
+    },
+  });
+}
+
+function buildContentSitemapXml(items, env) {
+  const origin = resolveSiteOrigin(env);
+  const urls = items.map((item) => {
+    const loc = `${origin}/insights/${encodeURIComponent(item.slug)}`;
+    const lastmod = toIsoDate(item.updatedAt || item.publishedAt || item.createdAt);
+    return [
+      "  <url>",
+      `    <loc>${escapeXml(loc)}</loc>`,
+      `    <lastmod>${escapeXml(lastmod)}</lastmod>`,
+      "    <changefreq>monthly</changefreq>",
+      "    <priority>0.74</priority>",
+      "  </url>",
+    ].join("\n");
+  });
+
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...urls,
+    "</urlset>",
+    "",
+  ].join("\n");
+}
+
+function buildContentRssXml(items, env, requestPath = "/rss.xml") {
+  const origin = resolveSiteOrigin(env);
+  const feedUrl = `${origin}${requestPath === "/insights/rss.xml" ? "/insights/rss.xml" : "/rss.xml"}`;
+  const now = new Date();
+  const rssItems = items.slice(0, FEED_MAX_ITEMS).map((item) => {
+    const link = `${origin}/insights/${encodeURIComponent(item.slug)}`;
+    return [
+      "    <item>",
+      `      <title>${escapeXml(item.title || "Untitled")}</title>`,
+      `      <link>${escapeXml(link)}</link>`,
+      `      <guid isPermaLink="true">${escapeXml(link)}</guid>`,
+      `      <description>${escapeXml(item.summary || item.seo?.metaDescription || "")}</description>`,
+      `      <category>${escapeXml(item.category || "Insights")}</category>`,
+      `      <pubDate>${escapeXml(toRssDate(item.publishedAt || item.updatedAt || item.createdAt, now))}</pubDate>`,
+      "    </item>",
+    ].join("\n");
+  });
+
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
+    "  <channel>",
+    "    <title>Code Destiny Insights RSS</title>",
+    `    <link>${escapeXml(`${origin}/insights`)}</link>`,
+    "    <description>Code Destiny insights</description>",
+    "    <language>ko</language>",
+    `    <lastBuildDate>${escapeXml(now.toUTCString())}</lastBuildDate>`,
+    `    <atom:link href="${escapeXml(feedUrl)}" rel="self" type="application/rss+xml" />`,
+    ...rssItems,
+    "  </channel>",
+    "</rss>",
+    "",
+  ].join("\n");
+}
+
+async function handleContentFeed(path, request, env) {
+  const method = request.method.toUpperCase();
+  if (method !== "GET" && method !== "HEAD") return methodNotAllowed();
+
+  const normalizedPath = path.replace(/\/+/g, "/");
+  const isSitemap = normalizedPath === "/sitemap.xml";
+  const isRootRss = normalizedPath === "/rss.xml";
+  const isInsightsRss = normalizedPath === "/insights/rss.xml";
+  if (!isSitemap && !isRootRss && !isInsightsRss) return notFound();
+
+  const items = await listPublicFeedItems(env, isSitemap ? SITEMAP_MAX_ITEMS : FEED_MAX_ITEMS);
+  const xml = isSitemap
+    ? buildContentSitemapXml(items, env)
+    : buildContentRssXml(items, env, isInsightsRss ? "/insights/rss.xml" : "/rss.xml");
+
+  if (method === "HEAD") {
+    const response = xmlResponse("");
+    return new Response(null, { status: response.status, headers: response.headers });
+  }
+
+  return xmlResponse(xml);
 }
 
 export async function handleContentRoutes(request, env) {
@@ -235,6 +392,15 @@ export async function handleContentRoutes(request, env) {
       }, { status: 400 });
     }
 
+    return handleRouteError(error);
+  }
+}
+
+export async function handleContentFeedRoutes(request, env) {
+  try {
+    const path = getRoutePath(request, "/api/content-feed");
+    return handleContentFeed(path, request, env);
+  } catch (error) {
     return handleRouteError(error);
   }
 }

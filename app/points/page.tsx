@@ -156,7 +156,6 @@ type PaymentHistoryItem = {
 
 /* ── 프로필 이용권 타입 ───────────────────────────────────────── */
 type SubscriptionTier = "free" | "standard" | "premium" | "vvip" | "family";
-type AdminTestTier = "off" | "standard" | "premium" | "vvip" | "family";
 
 type SubscriptionStatus = {
   tier:               SubscriptionTier;
@@ -503,20 +502,6 @@ function getFlowerAdminTokenClient(): string {
   return "";
 }
 
-function readAdminTestTierClient(): AdminTestTier {
-  if (typeof window === "undefined") return "off";
-  try {
-    const raw = String(localStorage.getItem("flower_admin_test_tier") || "off").toLowerCase();
-    if (raw === "standard" || raw === "premium" || raw === "vvip" || raw === "family") return raw;
-  } catch {}
-  return "off";
-}
-
-function saveAdminTestTierClient(tier: AdminTestTier) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("flower_admin_test_tier", tier);
-}
-
 const PAYMENT_METHODS: PaymentMethodOption[] = [
   { id: "card_general", label: "KG이니시스 카드", logo: "CARD", desc: "포트원 V2 인증 결제", group: "domestic" },
 ];
@@ -560,10 +545,6 @@ function formatSubscriptionDurationLabel(months: unknown) {
   if (!normalized) return "30일";
   if (normalized === 1) return "30일";
   return "보유 이용권";
-}
-
-function formatSubscriptionPlanProfileLimit(plan: Pick<SubscriptionPlan, "profileLimit">) {
-  return plan.profileLimit === null ? "무제한" : `${plan.profileLimit}개`;
 }
 
 function formatSubscriptionPlanPolicy(plan: Pick<SubscriptionPlan, "freeUpTo">) {
@@ -1033,18 +1014,12 @@ function SubscriptionSection({
   onSubscribe,
   onCancelSubscription,
   isProcessing,
-  isFlowerAdminMode,
-  adminTestTier,
-  onChangeAdminTestTier,
   highlightedPlan,
 }: {
   subscription:  SubscriptionStatus;
   onSubscribe:   (plan: SubscriptionPlan) => void;
   onCancelSubscription: (resume: boolean) => void;
   isProcessing:  boolean;
-  isFlowerAdminMode: boolean;
-  adminTestTier: AdminTestTier;
-  onChangeAdminTestTier: (tier: AdminTestTier) => void;
   highlightedPlan: "standard" | "premium" | "vvip" | "family" | null;
 }) {
   type PlanThemeKey = "amber" | "rose" | "purple";
@@ -1052,26 +1027,26 @@ function SubscriptionSection({
     card: string; label: string; badge: string; freeTag: string; btn: string; icon: string;
   }> = {
     amber: {
-      card:    "border-[#e9d18a]/38 bg-[#0d1430]/78",
-      label:   "text-[#f3dd9a]",
+      card:    "border-[#e9d18a]/55 bg-[#0b1028]/95",
+      label:   "text-[#ffe8a3]",
       badge:   "from-[#d8bd72] to-[#f5df9d]",
-      freeTag: "bg-[#f3dd9a]/15 text-[#f3dd9a] ring-1 ring-[#f3dd9a]/45",
+      freeTag: "bg-[#f3dd9a]/22 text-[#ffe8a3] ring-1 ring-[#f3dd9a]/60",
       btn:     "from-[#d8bd72] to-[#f5df9d] text-[#151832] shadow-[0_8px_18px_rgba(243,221,154,0.24)]",
       icon:    "🌔",
     },
     rose: {
-      card:    "border-[#cab8ff]/38 bg-[#101438]/78",
-      label:   "text-[#cab8ff]",
+      card:    "border-[#cab8ff]/55 bg-[#0d1230]/95",
+      label:   "text-[#ded4ff]",
       badge:   "from-[#cab8ff] to-[#f3dd9a]",
-      freeTag: "bg-[#cab8ff]/15 text-[#cab8ff] ring-1 ring-[#cab8ff]/45",
+      freeTag: "bg-[#cab8ff]/22 text-[#ded4ff] ring-1 ring-[#cab8ff]/60",
       btn:     "from-[#cab8ff] to-[#f3dd9a] text-[#151832] shadow-[0_8px_18px_rgba(202,184,255,0.24)]",
       icon:    "🌕",
     },
     purple: {
-      card:    "border-[#8cb8ff]/38 bg-[#111638]/78",
-      label:   "text-[#8cb8ff]",
+      card:    "border-[#8cb8ff]/55 bg-[#0d1433]/95",
+      label:   "text-[#cfe1ff]",
       badge:   "from-[#f3dd9a] via-[#cab8ff] to-[#8cb8ff]",
-      freeTag: "bg-[#8cb8ff]/15 text-[#dbe8ff] ring-1 ring-[#8cb8ff]/45",
+      freeTag: "bg-[#8cb8ff]/22 text-[#e8f1ff] ring-1 ring-[#8cb8ff]/60",
       btn:     "from-[#f3dd9a] via-[#cab8ff] to-[#8cb8ff] text-[#151832] shadow-[0_8px_18px_rgba(140,184,255,0.24)]",
       icon:    "🌌",
     },
@@ -1081,45 +1056,36 @@ function SubscriptionSection({
     ? new Date(subscription.expiresAt).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })
     : null;
 
-  const adminTierPlan = adminTestTier !== "off"
-    ? SUBSCRIPTION_PLANS.find((plan) => plan.tier === adminTestTier && plan.durationMonths === 1)
-    : null;
-  const adminTierPlanSummary = adminTierPlan ? {
-    title: adminTierPlan.title,
-    profileLimit: formatSubscriptionPlanProfileLimit(adminTierPlan),
-    policy: formatSubscriptionPlanPolicy(adminTierPlan),
-    coins: adminTierPlan.coins,
-  } : null;
   const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
   return (
     <section
       aria-label="달빛 30일 이용권"
-      className="overflow-hidden rounded-[24px] border border-[#d9c77c]/24 bg-[#070b1c] text-slate-100 shadow-[0_24px_70px_rgba(4,7,26,0.48)] ring-1 ring-white/10 backdrop-blur"
+      className="overflow-hidden rounded-[24px] border border-[#f3dd9a]/32 bg-[#050817] text-slate-50 shadow-[0_24px_70px_rgba(4,7,26,0.56)] ring-1 ring-white/12 backdrop-blur"
     >
       {/* 섹션 헤더 */}
       <div
-        className="px-5 pt-5 pb-4"
-        style={{ background: "linear-gradient(145deg, rgba(7,11,28,0.98) 0%, rgba(18,25,73,0.94) 42%, rgba(42,27,85,0.9) 72%, rgba(70,48,111,0.82) 100%)" }}
+        className="px-5 pt-5 pb-5"
+        style={{ background: "linear-gradient(145deg, rgba(5,8,23,0.99) 0%, rgba(12,18,48,0.98) 48%, rgba(24,29,72,0.96) 100%)" }}
       >
         {/* 제목 */}
         <div className="mb-4">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-[#cab8ff]">연이의 달빛 이용권 상점</p>
-          <h2 className="mt-0.5 text-xl font-bold text-white">연이의 달빛 이용권 상점</h2>
-          <p className="mt-1 text-sm text-slate-200">
+          <p className="text-xs font-black uppercase tracking-widest text-[#ded4ff]">연이의 달빛 이용권 상점</p>
+          <h2 className="mt-1 text-2xl font-black leading-tight text-white">연이의 달빛 이용권 상점</h2>
+          <p className="mt-2 text-[15px] leading-relaxed text-slate-100">
             30일 이용권 상품과 원화 결제 조건을 확인하세요.
           </p>
         </div>
 
         {/* 핵심 혜택 callout */}
-        <div className="mb-4 rounded-lg border border-[#cab8ff]/30 bg-white/[0.07] px-4 py-3 shadow-[inset_0_1px_3px_rgba(255,255,255,0.05)]">
-          <p className="mb-1.5 flex items-center gap-1.5 text-[11.5px] font-extrabold uppercase tracking-wide text-[#f3dd9a]">
+        <div className="mb-4 rounded-[16px] border border-[#cab8ff]/45 bg-[#11183a]/85 px-4 py-3.5 shadow-[inset_0_1px_3px_rgba(255,255,255,0.08)]">
+          <p className="mb-2 flex items-center gap-1.5 text-[12.5px] font-black uppercase tracking-wide text-[#ffe8a3]">
             <span aria-hidden="true">🌙</span> 달빛 이용권의 특별한 이유
           </p>
-          <p className="text-[12.5px] leading-relaxed text-slate-200">
+          <p className="text-[13.5px] leading-6 text-slate-100">
             <span className="font-bold text-white">가족·연인·자녀 등 다른 생년월일</span>로 프로필을 추가해도,
             30일 이용권 하나로 <span className="font-bold text-white">모든 프로필에서 이용권 혜택을 그대로 이용</span>할 수 있습니다.
           </p>
-          <p className="mt-1 text-[11.5px] text-[#cab8ff]">
+          <p className="mt-2 text-[12.5px] font-semibold text-[#ded4ff]">
             이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.
           </p>
         </div>
@@ -1138,11 +1104,11 @@ function SubscriptionSection({
         )}
 
         {/* 공통 운영 정책 안내 */}
-        <div className="mb-4 rounded-lg border border-[#8cb8ff]/28 bg-[#8cb8ff]/10 px-4 py-3">
-          <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-[#dbe8ff]">
+        <div className="mb-4 rounded-[16px] border border-[#8cb8ff]/42 bg-[#0f2348]/80 px-4 py-3.5">
+          <p className="flex items-center gap-1.5 text-[12.5px] font-black text-[#e8f1ff]">
             <span aria-hidden="true">ℹ️</span> 이용권 운영 정책
           </p>
-          <ul className="mt-1.5 space-y-1 text-[11.5px] text-slate-200">
+          <ul className="mt-2 space-y-1.5 text-[12.5px] leading-5 text-slate-100">
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">모든 신규 판매 이용권은 <strong>결제 검증 성공 시점부터 30일 동안 유효</strong>합니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 3,000원/5,000원/10,000원 이하일 때 이용권으로 이용할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Code Destiny Family는 프로필 카드 제한 없이 모든 유료 기능을 이용할 수 있습니다.</span></li>
@@ -1153,55 +1119,6 @@ function SubscriptionSection({
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.</span></li>
           </ul>
         </div>
-
-        {isFlowerAdminMode && (
-          <div className="mb-4 rounded-[14px] border border-violet-300 bg-violet-50 px-4 py-3">
-            <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-violet-800">
-              <span aria-hidden="true">🧪</span> 관리자 이용권 티어 테스트 모드
-            </p>
-            <p className="mt-1 text-[11.5px] text-violet-700">
-              관리자 모드는 항상 프리패스로 동작하며, 아래 티어를 선택하면 이용권 상품 기준(프로필 한도/무료 한도/콘텐츠 기준)이 해당 티어로 시뮬레이션됩니다.
-            </p>
-            <div className="mt-2.5 flex flex-wrap gap-2">
-              {([
-                { id: "off", label: "해제" },
-                { id: "standard", label: "스탠다드 꿀" },
-                { id: "premium", label: "프리미엄 꿀" },
-                { id: "vvip", label: "VVIP 꿀단지" },
-                { id: "family", label: "Code Destiny Family" },
-              ] as Array<{ id: AdminTestTier; label: string }>).map((mode) => {
-                const active = adminTestTier === mode.id;
-                return (
-                  <button
-                    key={mode.id}
-                    type="button"
-                    onClick={() => onChangeAdminTestTier(mode.id)}
-                    className={[
-                      "rounded-full px-3 py-1.5 text-[11.5px] font-bold transition",
-                      active
-                        ? "bg-violet-600 text-white shadow-[0_4px_12px_rgba(124,58,237,0.35)]"
-                        : "bg-white text-violet-700 ring-1 ring-violet-300 hover:bg-violet-100",
-                    ].join(" ")}
-                  >
-                    {mode.label}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-2.5 rounded-[12px] border border-violet-200 bg-white/85 px-3 py-2 text-[11.5px] text-violet-800">
-              {adminTierPlanSummary ? (
-                <p>
-                  현재 시뮬레이션: <strong>{adminTierPlanSummary?.title || ""}</strong>
-                  <span className="mx-1">·</span>프로필 <strong>{adminTierPlanSummary?.profileLimit || ""}</strong>
-                  <span className="mx-1">·</span><strong>{adminTierPlanSummary?.policy || ""}</strong>
-                  <span className="mx-1">·</span>이용 기준 <strong>{adminTierPlanSummary?.coins || ""}</strong>
-                </p>
-              ) : (
-                <p>현재 시뮬레이션: 해제 (관리자 프리패스만 적용)</p>
-              )}
-            </div>
-          </div>
-        )}
 
         {highlightedPlan && (
           <div className="mb-4 rounded-[14px] border border-rose-300 bg-rose-50/70 px-4 py-3">
@@ -1218,12 +1135,12 @@ function SubscriptionSection({
       {/* 무료 플랜 안내 + 이용권 훅                          */}
       {/* ────────────────────────────────────────────────── */}
       {(!subscription.isActive || subscription.tier === "free") && (
-      <div className="mx-5 mb-4 rounded-[20px] border border-white/12 bg-white/[0.07] p-4 shadow-[0_12px_28px_rgba(7,10,28,0.22)]">
+      <div className="mx-5 mb-5 rounded-[20px] border border-[#cab8ff]/24 bg-[#0b1028]/92 p-4 shadow-[0_14px_32px_rgba(7,10,28,0.34)]">
         {/* 제목 행 */}
         <div className="flex items-center gap-2 mb-3">
           <span className="text-2xl leading-none">🆓</span>
           <div className="flex-1 min-w-0">
-            <p className="text-[10.5px] font-black uppercase tracking-widest text-slate-400">Free Plan</p>
+            <p className="text-[11.5px] font-black uppercase tracking-widest text-slate-300">Free Plan</p>
             <p className="text-[15px] font-black text-white leading-tight">무료 플랜</p>
           </div>
           {subscription.tier === "free" && (
@@ -1233,7 +1150,7 @@ function SubscriptionSection({
 
         {/* 무료 제공 항목 */}
         <div className="mb-3 rounded-[14px] border border-emerald-300/30 bg-emerald-300/10 px-3.5 py-3">
-          <p className="mb-2 text-[11px] font-extrabold text-emerald-100">✅ 무료로 지금 바로 즐길 수 있어요</p>
+          <p className="mb-2 text-[12px] font-extrabold text-emerald-100">✅ 무료로 지금 바로 즐길 수 있어요</p>
           <ul className="space-y-1.5">
             {[
               { icon: "☀️", text: "일일 운세 · 오늘/이달 운세 키워드", sub: "매일 갱신, 무제한 무료" },
@@ -1244,9 +1161,9 @@ function SubscriptionSection({
             ].map(({ icon, text, sub }) => (
               <li key={text} className="flex items-start gap-2">
                 <span className="flex-shrink-0 text-sm leading-4 mt-0.5">{icon}</span>
-                <span className="text-[11.5px] text-slate-200">
+                <span className="text-[12.5px] leading-5 text-slate-100">
                   <span className="font-semibold">{text}</span>
-                  <span className="ml-1 text-[10.5px] text-slate-400">{sub}</span>
+                  <span className="ml-1 text-[11.5px] text-slate-300">{sub}</span>
                 </span>
               </li>
             ))}
@@ -1254,8 +1171,8 @@ function SubscriptionSection({
         </div>
 
         {/* 잠긴 콘텐츠 — 이용권 훅 */}
-        <div className="mb-3 rounded-[14px] border border-white/12 bg-white/[0.06] px-3.5 py-3">
-          <p className="mb-2 text-[11px] font-extrabold text-slate-300">🔒 이용권 선택 후 잠금이 해제돼요</p>
+        <div className="mb-3 rounded-[14px] border border-white/18 bg-white/[0.09] px-3.5 py-3">
+          <p className="mb-2 text-[12px] font-extrabold text-slate-100">🔒 이용권 선택 후 잠금이 해제돼요</p>
           <ul className="space-y-1.5">
             {[
               "상세 사주 분석 — 연애·재물·직업·건강 심층 리포트",
@@ -1266,7 +1183,7 @@ function SubscriptionSection({
             ].map((text) => (
               <li key={text} className="flex items-start gap-2 opacity-60 blur-[0.3px]">
                 <span className="flex-shrink-0 text-[11px] text-neutral-400 mt-0.5">🔒</span>
-                <span className="text-[11.5px] text-slate-400 line-through decoration-slate-500">{text}</span>
+                <span className="text-[12.5px] text-slate-300 line-through decoration-slate-500">{text}</span>
               </li>
             ))}
           </ul>
@@ -1274,11 +1191,11 @@ function SubscriptionSection({
 
         {/* 마케팅 훅 CTA 블록 */}
         <div className="rounded-[14px] border border-[#f3dd9a]/40 bg-[#f3dd9a]/10 px-4 py-3.5">
-          <p className="text-[12.5px] font-black text-[#f3dd9a] leading-snug mb-1.5">
+          <p className="mb-2 text-[13.5px] font-black leading-snug text-[#ffe8a3]">
             맛보기만으로도 이 정도인데,<br />
             <span className="text-white">30일 이용권으로 얼마나 깊이 볼 수 있을까요?</span> 🌙
           </p>
-          <p className="text-[11.5px] text-slate-200 leading-relaxed mb-2.5">
+          <p className="mb-3 text-[12.5px] leading-6 text-slate-100">
             오늘 운세가 마음에 걸렸다면, 그건 당신의 직감이 맞는 거예요.
             <br />Honey 이용권 하나로 <strong>사주·타로·점성술의 진짜 깊이</strong>를 경험해 보세요.
             가족과 연인의 운명까지, <strong>30일 동안 모든 프로필</strong>에 혜택이 적용됩니다.
@@ -1296,19 +1213,19 @@ function SubscriptionSection({
       )}
 
       {/* 플랜 카드 */}
-      <div className="grid gap-3 p-5 pt-0 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 p-5 pt-0 sm:grid-cols-2 xl:grid-cols-4">
         {SUBSCRIPTION_PLANS.map((plan) => {
           const theme = planThemeMap[plan.theme];
           const isCurrentActive = subscription.isActive && subscription.tier === plan.tier;
           const isHighlighted = highlightedPlan === plan.tier;
           const planTierRank = getSubscriptionTierRank(plan.tier);
-          const lowerTierBlocked = !isFlowerAdminMode && activeTierRank > 0 && planTierRank < activeTierRank;
+          const lowerTierBlocked = activeTierRank > 0 && planTierRank < activeTierRank;
           const ctaDisabled = isProcessing || lowerTierBlocked;
           return (
             <div
               key={plan.id}
               className={[
-                "relative flex flex-col rounded-lg border p-3.5 transition-shadow",
+                "relative flex flex-col rounded-[18px] border p-4 transition-shadow",
                 isCurrentActive
                   ? "border-emerald-300/60 bg-emerald-300/10 shadow-[0_4px_20px_rgba(16,185,129,0.20)]"
                   : isHighlighted
@@ -1331,32 +1248,32 @@ function SubscriptionSection({
 
               {/* 플랜 아이콘 & 이름 */}
               <p className="text-xl leading-none">{theme.icon}</p>
-              <p className={`mt-2 text-[10.5px] font-black uppercase tracking-wider ${theme.label}`}>{plan.title}</p>
+              <p className={`mt-2 text-[12px] font-black uppercase tracking-wider ${theme.label}`}>{plan.title}</p>
 
               {/* 가격 */}
-              <p className="mt-2 flex flex-wrap items-center gap-1 text-base font-black text-white">
+              <p className="mt-2 flex flex-wrap items-center gap-1 text-[17px] font-black leading-snug text-white">
                 <CoinIcon size="md" />
                 {formatSubscriptionPlanValueLine(plan)}
               </p>
-              <p className="text-[11px] text-slate-300">
+              <p className="mt-1 text-[12.5px] font-semibold text-slate-200">
                 이용 기간 30일 · 결제 금액 {formatWon(plan.wonPrice)}
               </p>
 
               {/* 커피 한 잔 뱃지 — freeUpTo 50 이하 플랜(스탠다드)에만 */}
               {plan.freeUpTo !== null && plan.freeUpTo <= 50 && plan.tier === "standard" && plan.durationMonths === 1 && (
-                <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#f3dd9a]/18 px-2.5 py-1 text-[11px] font-bold text-[#f3dd9a]">
+                <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#f3dd9a]/22 px-2.5 py-1 text-[12px] font-bold text-[#ffe8a3]">
                   ☕ 커피 2잔 값으로 30일
                 </div>
               )}
 
               {/* 무료 이용 범위 태그 */}
-              <div className={`mt-2 inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${theme.freeTag}`}>
+              <div className={`mt-2 inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-bold ${theme.freeTag}`}>
                 🆓{" "}
                 {formatSubscriptionPlanPolicy(plan)}
               </div>
 
               {/* 기능 목록 */}
-              <ul className="mt-3 flex-1 space-y-1">
+              <ul className="mt-3 flex-1 space-y-1.5">
                 {plan.features.map((f) => {
                   const isBonus = f.startsWith("🎁");
                   const isKey   = !isBonus && (f.includes("무료") || f.includes("해금"));
@@ -1364,10 +1281,10 @@ function SubscriptionSection({
                     <li
                       key={f}
                       className={[
-                        "flex items-start gap-1.5 text-[11px]",
+                        "flex items-start gap-1.5 text-[12.5px] leading-5",
                         isBonus ? "font-semibold text-emerald-700"
                           : isKey  ? `font-semibold ${theme.label}`
-                          : "text-slate-200",
+                          : "text-slate-100",
                       ].join(" ")}
                     >
                       {!isBonus && (
@@ -1387,7 +1304,7 @@ function SubscriptionSection({
                 onClick={() => onSubscribe(plan)}
                 disabled={ctaDisabled}
                 className={[
-                  "mt-4 w-full rounded-lg px-3 py-2.5 text-[13px] font-black shadow transition-all",
+                  "mt-4 w-full rounded-xl px-3 py-3 text-sm font-black shadow transition-all",
                   "hover:-translate-y-0.5 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50",
                   isCurrentActive
                     ? "bg-gradient-to-r from-emerald-500 to-teal-500 shadow-[0_5px_14px_rgba(16,185,129,0.35)]"
@@ -1441,9 +1358,9 @@ function SubscriptionSection({
         </div>
       )}
 
-      <div className="px-5 pb-5 space-y-1">
-        <p className="text-[11px] text-[#9B7040]">✅ 결제 즉시 이용권 혜택이 활성화되며 <strong>30일 동안 유효</strong>합니다.</p>
-        <p className="text-[11px] text-rose-600 font-bold">이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.</p>
+      <div className="space-y-1.5 px-5 pb-5">
+        <p className="text-[12.5px] font-semibold text-[#ffe8a3]">✅ 결제 즉시 이용권 혜택이 활성화되며 <strong>30일 동안 유효</strong>합니다.</p>
+        <p className="text-[12.5px] font-bold text-rose-100">이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.</p>
       </div>
     </section>
   );
@@ -1534,24 +1451,24 @@ function MonthlyCreditBonusCard({
   return (
     <section
       aria-label="월정석 보너스 잔량과 사용 내역"
-      className="rounded-[24px] border border-[#cab8ff]/28 bg-white/[0.08] p-5 text-slate-100 shadow-[0_18px_46px_rgba(7,10,28,0.28)]"
+      className="rounded-[24px] border border-[#cab8ff]/36 bg-[#0b1028]/92 p-5 text-slate-50 shadow-[0_18px_46px_rgba(7,10,28,0.36)]"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#cab8ff]">보너스 월정석</p>
+          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ded4ff]">보너스 월정석</p>
           <h3 className="mt-1 text-lg font-black text-white">월정석 잔량</h3>
           <p className="mt-1 text-sm text-slate-200">
             월정석은 달빛 이용권과 이벤트로 지급되는 보너스 혜택이며, 월정석 자체는 별도로 구매하거나 충전할 수 없습니다.
           </p>
         </div>
-        <div className="rounded-[18px] border border-[#f3dd9a]/36 bg-[#f3dd9a]/12 px-4 py-3 text-left sm:text-right">
-          <p className="text-[11px] font-bold text-[#f3dd9a]">현재 사용 가능</p>
+        <div className="rounded-[18px] border border-[#f3dd9a]/48 bg-[#f3dd9a]/18 px-4 py-3 text-left sm:text-right">
+          <p className="text-xs font-bold text-[#ffe8a3]">현재 사용 가능</p>
           <p className="mt-1 text-2xl font-black text-white">{formatMonthlyCreditValue(balance)}</p>
           <p className="mt-1 text-[11px] font-bold text-rose-100">구매·충전 불가</p>
         </div>
       </div>
 
-      <div className="mt-4 rounded-[18px] border border-white/12 bg-[#070b1c]/42 p-3.5">
+      <div className="mt-4 rounded-[18px] border border-white/16 bg-[#050817]/72 p-3.5">
         <div className="mb-2 flex items-center justify-between gap-3">
           <h4 className="text-sm font-bold text-white">월정석 사용 내역</h4>
           <span className="text-[11px] font-semibold text-slate-300">최근 {Math.min(ledgers.length, 8)}건</span>
@@ -1565,7 +1482,7 @@ function MonthlyCreditBonusCard({
               return (
                 <div
                   key={entry.id}
-                  className="grid gap-2 rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2.5 text-[12px] text-slate-200 sm:grid-cols-[88px_1fr_auto]"
+                  className="grid gap-2 rounded-[14px] border border-white/14 bg-white/[0.09] px-3 py-2.5 text-[12.5px] text-slate-100 sm:grid-cols-[88px_1fr_auto]"
                 >
                   <span className={`w-fit rounded-full border px-2 py-0.5 text-[11px] font-bold ${isSpend ? "border-rose-200/50 text-rose-100" : "border-emerald-200/50 text-emerald-100"}`}>
                     {formatMonthlyCreditLedgerType(entry.type)}
@@ -1598,7 +1515,7 @@ function WalletCard({ name }: { name: string }) {
   return (
     <section
       aria-label="이용권 상점 안내"
-      className="overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.08] text-slate-100 shadow-[0_18px_46px_rgba(7,10,28,0.35)] backdrop-blur"
+      className="overflow-hidden rounded-[24px] border border-white/16 bg-[#0b1028]/92 text-slate-50 shadow-[0_18px_46px_rgba(7,10,28,0.42)] backdrop-blur"
     >
       <div
         className="h-[3px] w-full"
@@ -1622,15 +1539,15 @@ function WalletCard({ name }: { name: string }) {
               🌙
             </div>
             <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#cab8ff]">
+              <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ded4ff]">
                 연이의 달빛 이용권 상점
               </p>
-              <p className="mt-0.5 text-[15px] font-bold text-white">{name} 님의 달빛 이용권 상점</p>
+              <p className="mt-1 text-[17px] font-black leading-tight text-white">{name} 님의 달빛 이용권 상점</p>
             </div>
           </div>
 
           <div className="flex flex-col items-start gap-1 sm:items-end">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-[#f3dd9a]">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#ffe8a3]">
               원화 결제 기준
             </p>
             <div className="flex flex-wrap items-center gap-2">
@@ -1638,10 +1555,10 @@ function WalletCard({ name }: { name: string }) {
                 30일 이용권
               </span>
             </div>
-            <p className="max-w-[280px] text-[11px] text-slate-200 sm:text-right">
+            <p className="max-w-[300px] text-[12.5px] leading-5 text-slate-100 sm:text-right">
               자동결제가 아닌 30일 이용권이며, 한도 초과 서비스와 PDF는 상품별 원화 단건 결제로 진행됩니다.
             </p>
-            <p className="max-w-[280px] text-[11px] font-bold text-[#f3dd9a] sm:text-right">
+            <p className="max-w-[300px] text-[12.5px] font-bold leading-5 text-[#ffe8a3] sm:text-right">
               월정석은 보너스 혜택으로만 지급되며 월정석 자체는 구매·충전할 수 없습니다.
             </p>
           </div>
@@ -1763,8 +1680,6 @@ export default function PointsPage() {
   const [monthlyStoneBalance, setMonthlyStoneBalance] = useState(0);
   const [monthlyCreditLedgers, setMonthlyCreditLedgers] = useState<MonthlyCreditLedgerItem[]>([]);
   const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
-  const [adminTestTier, setAdminTestTier] = useState<AdminTestTier>("off");
-  const isFlowerAdminMode = authUser?.role === "admin" && isFlowerAdminSessionClient();
   const [landingPlanPreset, setLandingPlanPreset] = useState<"standard" | "premium" | "vvip" | "family" | null>(null);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [pendingSubscriptionPaymentPlan, setPendingSubscriptionPaymentPlan] = useState<SubscriptionPlan | null>(null);
@@ -1991,16 +1906,8 @@ export default function PointsPage() {
       }
     }
 
-    const isAdminSession = parsedUser?.role === "admin" && isFlowerAdminSessionClient();
-    setAdminTestTier(isAdminSession ? readAdminTestTierClient() : "off");
-
     setIsBooting(false);
   }, [router]);
-
-  useEffect(() => {
-    if (authUser?.role !== "admin" || !isFlowerAdminSessionClient()) return;
-    saveAdminTestTierClient(adminTestTier);
-  }, [adminTestTier, authUser]);
 
   /* ── 부팅 후 결제/주문 정보 로드 ─────────────────────────────── */
   useEffect(() => {
@@ -2043,9 +1950,8 @@ export default function PointsPage() {
       }
     }
     const flowerAdminToken = isAdminSession ? getFlowerAdminTokenClient() : "";
-    const adminHeaders = flowerAdminToken ? {
+    const adminHeaders: Record<string, string> = flowerAdminToken ? {
       "x-admin-token": flowerAdminToken,
-      ...(adminTestTier !== "off" ? { "x-admin-subscription-tier": adminTestTier } : {}),
     } : {};
     if (fetchSubscriptionStatusInFlightRef.current) return;
     const requestPromise = authFetch(`${apiBase}/api/subscription/status`, {
@@ -2093,7 +1999,7 @@ export default function PointsPage() {
         fetchSubscriptionStatusInFlightRef.current = null;
       }
     });
-  }, [isBooting, apiBase, adminTestTier, authUser, persistSubscriptionCache]);
+  }, [isBooting, apiBase, authUser, persistSubscriptionCache]);
 
   /* ── 서버 결제 검증 ────────────────────────────────────────────── */
   const confirmPaymentWithServer = useCallback(
@@ -2624,7 +2530,6 @@ export default function PointsPage() {
 
   /* ── 갤럭시아 결제 성공 핸들러 ─────────────────────────────────── */
   const handleSubscribe = async (plan: SubscriptionPlan) => {
-    const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = getFlowerAdminTokenClient();
     const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
     const requestedTierRank = getSubscriptionTierRank(plan.tier);
@@ -2639,7 +2544,7 @@ export default function PointsPage() {
       return;
     }
 
-    if (!isFlowerAdmin && activeTierRank > requestedTierRank) {
+    if (activeTierRank > requestedTierRank) {
       pushToast("info", "현재 상위 티어 이용권이 활성화되어 하위 플랜은 신청할 수 없습니다.");
       return;
     }
@@ -2820,7 +2725,6 @@ export default function PointsPage() {
   };
 
   const handleSubscribeWithMonthlyCredit = async (plan: SubscriptionPlan) => {
-    const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
     const requestedTierRank = getSubscriptionTierRank(plan.tier);
     const requiredMonthlyCredits = calculateSubscriptionMonthlyCreditCost(plan);
@@ -2835,7 +2739,7 @@ export default function PointsPage() {
       return;
     }
 
-    if (!isFlowerAdmin && activeTierRank > requestedTierRank) {
+    if (activeTierRank > requestedTierRank) {
       pushToast("info", "현재 상위 티어 이용권이 활성화되어 하위 플랜은 신청할 수 없습니다.");
       return;
     }
@@ -2907,7 +2811,6 @@ export default function PointsPage() {
   };
 
   const handleSubscriptionCancel = async (resume: boolean) => {
-    const isFlowerAdmin = authUser?.role === "admin" && isFlowerAdminSessionClient();
     const flowerAdminToken = getFlowerAdminTokenClient();
     if (!authUser) {
       router.replace("/login?next=%2Fpoints");
@@ -2930,7 +2833,6 @@ export default function PointsPage() {
         headers: {
           "Content-Type": "application/json",
           ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
-          ...(isFlowerAdmin && adminTestTier !== "off" ? { "x-admin-subscription-tier": adminTestTier } : {}),
         },
         credentials: "include",
         body: JSON.stringify({ resume }),
@@ -3119,7 +3021,7 @@ export default function PointsPage() {
       <div className="relative mx-auto w-full max-w-6xl space-y-5">
 
         {/* ① 헤더 카드 */}
-        <header className="overflow-hidden rounded-[24px] border border-white/12 bg-white/[0.08] shadow-[0_18px_46px_rgba(7,10,28,0.35)] backdrop-blur">
+        <header className="overflow-hidden rounded-[24px] border border-white/16 bg-[#0b1028]/92 shadow-[0_18px_46px_rgba(7,10,28,0.42)] backdrop-blur">
           {/* 헤더 탐색 프리리엄 바 */}
           <div
             className="h-[3px] w-full"
@@ -3142,16 +3044,16 @@ export default function PointsPage() {
                   priority
                 />
                 <div>
-                  <p className="text-[11px] font-extrabold tracking-[0.22em] text-[#cab8ff] uppercase">
+                  <p className="text-xs font-extrabold tracking-[0.22em] text-[#ded4ff] uppercase">
                     연이의 달빛 이용권 상점
                   </p>
                   <h1 className="mt-0.5 text-[22px] font-black text-white sm:text-3xl leading-tight">
                     연이의 달빛 이용권 상점
                   </h1>
-                  <p className="mt-1 text-sm text-slate-200">
+                  <p className="mt-2 text-[15px] leading-relaxed text-slate-100">
                     달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
                   </p>
-                  <p className="mt-1 text-[12px] text-[#f3dd9a]">
+                  <p className="mt-1 text-[13px] font-semibold text-[#ffe8a3]">
                     모든 신규 판매 이용권은 자동결제가 아닌 30일 이용권입니다.
                   </p>
                 </div>
@@ -3159,14 +3061,14 @@ export default function PointsPage() {
               <div className="flex flex-col gap-2">
                 <Link
                   href="/points/history"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#cab8ff]/45 bg-[#cab8ff]/12 px-4 py-2.5 text-sm font-bold text-[#f3dd9a] shadow-[0_2px_12px_rgba(202,184,255,0.16)] transition-all hover:bg-[#cab8ff]/18 hover:-translate-y-0.5 active:scale-[0.97]"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#cab8ff]/55 bg-[#cab8ff]/18 px-4 py-2.5 text-sm font-bold text-[#ffe8a3] shadow-[0_2px_12px_rgba(202,184,255,0.18)] transition-all hover:bg-[#cab8ff]/24 hover:-translate-y-0.5 active:scale-[0.97]"
                 >
                   📋 이용권 주문 내역
                 </Link>
                 <Link
                   href="/"
                   prefetch={false}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-bold text-slate-100 shadow-[0_2px_12px_rgba(7,10,28,0.18)] transition-all hover:bg-white/15 hover:-translate-y-0.5 active:scale-[0.97]"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/[0.14] px-4 py-2.5 text-sm font-bold text-slate-50 shadow-[0_2px_12px_rgba(7,10,28,0.18)] transition-all hover:bg-white/20 hover:-translate-y-0.5 active:scale-[0.97]"
                 >
                   ← 서비스 화면으로
                 </Link>
@@ -3201,24 +3103,21 @@ export default function PointsPage() {
           onSubscribe={setPendingSubscriptionPaymentPlan}
           onCancelSubscription={handleSubscriptionCancel}
           isProcessing={isProcessing}
-          isFlowerAdminMode={isFlowerAdminMode}
-          adminTestTier={adminTestTier}
-          onChangeAdminTestTier={setAdminTestTier}
           highlightedPlan={landingPlanPreset}
         />
 
         {/* ③ 섹션 구분선 */}
         <section
           aria-label="원화 단건 결제 안내"
-          className="rounded-[20px] border border-white/12 bg-white/[0.06] px-5 py-4 text-sm leading-6 text-slate-200"
+          className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 px-5 py-4 text-[15px] leading-7 text-slate-100"
         >
           일반 유료 서비스는 이용권 한도 이하일 때만 이용권으로 열립니다. 한도 초과 서비스와 PDF 서비스는 상품별 원화 단건 결제로 이용할 수 있습니다.
         </section>
 
-        <section className="rounded-[20px] border border-white/12 bg-white/[0.08] p-5">
+        <section className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h3 className="font-bold text-white">최근 주문 내역</h3>
-            <span className="text-[11px] font-semibold text-slate-300">주문시각 / 결제시각 / 승인번호 / 영수증</span>
+            <span className="text-xs font-semibold text-slate-200">주문시각 / 결제시각 / 승인번호 / 영수증</span>
           </div>
 
           {paymentHistory.length === 0 ? (

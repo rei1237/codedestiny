@@ -309,13 +309,6 @@ function getFlowerAdminTokenClient(): string {
   return '';
 }
 
-function getFlowerAdminTestTierClient(): '' | 'standard' | 'premium' | 'vvip' {
-  if (typeof window === 'undefined') return '';
-  const raw = String(localStorage.getItem('flower_admin_test_tier') || '').toLowerCase();
-  if (raw === 'standard' || raw === 'premium' || raw === 'vvip') return raw;
-  return '';
-}
-
 function getClientAuthToken(): string {
   if (typeof window === 'undefined') return '';
   try {
@@ -384,11 +377,9 @@ function hasClientAuthSessionHint(): boolean {
 function buildClientAuthHeaders(): Record<string, string> {
   const token = getUsableClientAuthToken();
   const adminToken = getFlowerAdminTokenClient();
-  const adminTestTier = getFlowerAdminTestTierClient();
   return {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(adminToken ? { 'x-admin-token': adminToken } : {}),
-    ...(adminToken && adminTestTier ? { 'x-admin-subscription-tier': adminTestTier } : {}),
   };
 }
 

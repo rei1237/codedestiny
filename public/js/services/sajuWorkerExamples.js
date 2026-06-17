@@ -209,7 +209,7 @@ async function calculateDaewoonLifeChart(birthDate, gender) {
 
 /*
 <form id="sajuForm">
-  <input id="birthDate" type="date" />
+  <input id="birthDate" type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" />
   <input id="birthTime" type="time" value="12:00" />
   <select id="gender">
     <option value="M">남</option>

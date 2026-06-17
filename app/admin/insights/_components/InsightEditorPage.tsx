@@ -6,16 +6,44 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import LinkExtension from "@tiptap/extension-link";
 import ImageExtension from "@tiptap/extension-image";
 import StarterKit from "@tiptap/starter-kit";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getApiBaseUrl } from "../../../_lib/api-config";
 import { uploadInsightImage } from "../_lib/imageUpload";
 import { sanitizeInsightHtml } from "../_lib/sanitizeContent";
 
 type EditorMode = "create" | "edit";
-type SaveStatus = "draft" | "published" | "archived" | "private";
+type SaveStatus = "draft" | "scheduled" | "published" | "archived" | "private";
 type ContentType = "fortune_insight" | "saju" | "tarot" | "astrology" | "jamidusu" | "sookyo" | "vedic" | "palmistry" | "physiognomy" | "notice" | "landing" | "seo_page" | "general";
 type ContentFormat = "html" | "markdown" | "blocks";
 type SeoCheckLevel = "pass" | "warn" | "error";
+type PublicationCheck = {
+  ok: boolean;
+  dbReady: boolean;
+  publicUrl: string;
+  apiStatus?: { ok?: boolean; status?: number; error?: string };
+  pageStatus?: { ok?: boolean; status?: number; error?: string };
+  pageMeta?: {
+    hasTitle?: boolean;
+    hasDescription?: boolean;
+    hasCanonical?: boolean;
+    canonicalMatches?: boolean;
+    hasOgTitle?: boolean;
+    hasOgImage?: boolean;
+    noIndex?: boolean;
+  } | null;
+  feedCoverage?: Record<string, { ok?: boolean; status?: number; containsSlug?: boolean; url?: string }> | null;
+  purgeStatus?: string;
+  checkedAt?: string;
+};
+type ContentRevision = {
+  id: string;
+  revision: number;
+  reason?: string;
+  savedAt?: string | null;
+  savedBy?: string;
+  title?: string;
+  status?: string;
+};
 
 type SeoCheckItem = {
   key: string;
@@ -37,12 +65,12 @@ function getFlowerAdminTokenClient(): string {
   try {
     const fromSession = String(sessionStorage.getItem("flower_admin_token") || "").trim();
     if (FLOWER_ADMIN_TOKEN_RE.test(fromSession)) return fromSession;
-  } catch (e) {}
+  } catch {}
 
   try {
     const fromLocal = String(localStorage.getItem("flower_admin_token") || "").trim();
     if (FLOWER_ADMIN_TOKEN_RE.test(fromLocal)) return fromLocal;
-  } catch (e) {}
+  } catch {}
 
   return "";
 }
@@ -62,7 +90,7 @@ function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
 
   try {
     return new URL(base).origin === window.location.origin ? "include" : "omit";
-  } catch (e) {
+  } catch {
     return "include";
   }
 }
@@ -104,6 +132,18 @@ function getLevelText(level: SeoCheckLevel): string {
   if (level === "error") return "치명";
   if (level === "warn") return "경고";
   return "양호";
+}
+
+function toDateTimeLocalValue(value: unknown): string {
+  const date = new Date(String(value || ""));
+  if (Number.isNaN(date.getTime())) return "";
+  const shifted = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return shifted.toISOString().slice(0, 16);
+}
+
+function fromDateTimeLocalValue(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString();
 }
 
 function extractHeadingAndImageStats(node: unknown, stats = { h1: 0, h2: 0, imageCount: 0, imageMissingAlt: 0 }) {
@@ -170,6 +210,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
 
   const [contentType, setContentType] = useState<ContentType>("fortune_insight");
   const [contentFormat, setContentFormat] = useState<ContentFormat>("html");
+  const [contentStatus, setContentStatus] = useState<SaveStatus>("draft");
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -200,12 +241,21 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [savingStatus, setSavingStatus] = useState<SaveStatus | "">("");
+  const [scheduledAt, setScheduledAt] = useState("");
   const [contentLoaded, setContentLoaded] = useState(false);
   const [uploadingFeatured, setUploadingFeatured] = useState(false);
   const [uploadingBody, setUploadingBody] = useState(false);
   const [seoOpen, setSeoOpen] = useState(false);
   const [seoChecking, setSeoChecking] = useState(false);
   const [seoChecks, setSeoChecks] = useState<SeoCheckItem[]>([]);
+  const [publicationCheck, setPublicationCheck] = useState<PublicationCheck | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [revisions, setRevisions] = useState<ContentRevision[]>([]);
+  const [revisionsOpen, setRevisionsOpen] = useState(false);
+  const [restoringRevisionId, setRestoringRevisionId] = useState("");
+  const [editorVersion, setEditorVersion] = useState(0);
+  const [autoSaveStatus, setAutoSaveStatus] = useState("");
+  const lastAutoSaveSignatureRef = useRef("");
 
   const featuredInputRef = useRef<HTMLInputElement | null>(null);
   const bodyInputRef = useRef<HTMLInputElement | null>(null);
@@ -227,6 +277,9 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         class:
           "min-h-[420px] md:min-h-[520px] rounded-b-2xl border border-t-0 border-[#2f2f45] bg-[#10101a] px-5 py-5 text-[17px] leading-8 text-slate-100 focus:outline-none [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-5 [&_h1]:mb-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-5 [&_h2]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-violet-500 [&_blockquote]:pl-4 [&_blockquote]:text-slate-300 [&_hr]:my-6 [&_hr]:border-t [&_hr]:border-slate-700 [&_a]:text-violet-300 [&_a]:underline [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:border [&_img]:border-slate-700",
       },
+    },
+    onUpdate: () => {
+      setEditorVersion(Date.now());
     },
   });
 
@@ -381,7 +434,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
       });
 
       return { duplicated, checkFailed: false };
-    } catch (e) {
+    } catch {
       return { duplicated: false, checkFailed: true };
     }
   }
@@ -504,6 +557,104 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
     }
   }
 
+  async function runPublishFinalization(contentId: string): Promise<PublicationCheck | null> {
+    if (!contentId) return null;
+
+    let purgeStatus = "not_requested";
+    try {
+      const purgeRes = await fetch(`${endpointBase}/${encodeURIComponent(contentId)}/cache-purge`, {
+        method: "POST",
+        credentials: requestCredentials,
+        headers: buildAdminHeaders({ "Content-Type": "application/json" }),
+        cache: "no-store",
+      });
+      const purgeData = await purgeRes.json().catch(() => ({}));
+      purgeStatus = String(purgeData?.purge?.status || (purgeRes.ok ? "requested" : "failed"));
+    } catch {
+      purgeStatus = "failed";
+    }
+
+    try {
+      const statusRes = await fetch(`${endpointBase}/${encodeURIComponent(contentId)}/publish-status`, {
+        method: "GET",
+        credentials: requestCredentials,
+        headers: buildAdminHeaders(),
+        cache: "no-store",
+      });
+      const statusData = await statusRes.json().catch(() => ({}));
+      const publication = statusData?.publication || {};
+      const nextCheck: PublicationCheck = {
+        ok: Boolean(publication?.ok),
+        dbReady: Boolean(publication?.dbReady),
+        publicUrl: String(publication?.publicUrl || ""),
+        apiStatus: publication?.apiStatus || undefined,
+        pageStatus: publication?.pageStatus || undefined,
+        pageMeta: publication?.pageMeta || null,
+        feedCoverage: publication?.feedCoverage || null,
+        purgeStatus,
+        checkedAt: String(publication?.checkedAt || new Date().toISOString()),
+      };
+      setPublicationCheck(nextCheck);
+      return nextCheck;
+    } catch {
+      const failedCheck: PublicationCheck = {
+        ok: false,
+        dbReady: false,
+        publicUrl: "",
+        purgeStatus,
+        checkedAt: new Date().toISOString(),
+      };
+      setPublicationCheck(failedCheck);
+      return failedCheck;
+    }
+  }
+
+  const loadRevisions = useCallback(async (contentId = insightId) => {
+    if (!contentId) return;
+    try {
+      const res = await fetch(`${endpointBase}/${encodeURIComponent(contentId)}/revisions`, {
+        method: "GET",
+        credentials: requestCredentials,
+        headers: buildAdminHeaders(),
+        cache: "no-store",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+      setRevisions(Array.isArray(data?.revisions) ? data.revisions : []);
+    } catch {}
+  }, [endpointBase, insightId, requestCredentials]);
+
+  async function restoreRevision(revisionId: string) {
+    if (!insightId || !revisionId) return;
+    const proceed = window.confirm("선택한 이전 버전으로 복구할까요? 현재 상태는 복구 전 버전으로 보관됩니다.");
+    if (!proceed) return;
+
+    setRestoringRevisionId(revisionId);
+    setError("");
+    setMessage("");
+    try {
+      const res = await fetch(`${endpointBase}/${encodeURIComponent(insightId)}/restore`, {
+        method: "POST",
+        credentials: requestCredentials,
+        headers: buildAdminHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ revisionId }),
+        cache: "no-store",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(String(data?.message || "버전 복구에 실패했습니다."));
+        return;
+      }
+      setMessage("이전 버전으로 복구했습니다.");
+      await loadRevisions(insightId);
+      window.location.reload();
+    } catch {
+      setError("네트워크 오류로 버전을 복구하지 못했습니다.");
+    } finally {
+      setRestoringRevisionId("");
+    }
+  }
+
   useEffect(() => {
     if (!isEditMode) {
       setLoading(false);
@@ -543,6 +694,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
 
         setContentType((String(item.type || "fortune_insight").trim().toLowerCase() as ContentType) || "fortune_insight");
         setContentFormat((String(item.contentFormat || "html").trim().toLowerCase() as ContentFormat) || "html");
+        setContentStatus((String(item.status || "draft").trim().toLowerCase() as SaveStatus) || "draft");
 
         setTitle(String(item.title || ""));
         setSubtitle(String(item.subtitle || ""));
@@ -563,6 +715,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         setTwitterImage(String(item.twitterImage || ""));
         setNoIndex(Boolean(item.noIndex));
         setIsFeatured(Boolean(item.isFeatured));
+        setScheduledAt(toDateTimeLocalValue(item.publishedAt));
         setFeaturedImageUrl(String(item?.thumbnailUrl || item?.featuredImage?.url || ""));
         setFeaturedImageAlt(String(item?.featuredImage?.alt || ""));
         setFeaturedImageWidth(Math.max(0, Number(item?.featuredImage?.width || 0) || 0));
@@ -577,7 +730,8 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
         }
 
         setContentLoaded(true);
-      } catch (e) {
+        await loadRevisions(insightId);
+      } catch {
         if (!cancelled) setError("네트워크 오류로 글 정보를 불러오지 못했습니다.");
       } finally {
         if (!cancelled) setLoading(false);
@@ -588,7 +742,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
     return () => {
       cancelled = true;
     };
-  }, [editor, endpointBase, insightId, isEditMode, requestCredentials, router]);
+  }, [editor, endpointBase, insightId, isEditMode, loadRevisions, requestCredentials, router]);
 
   useEffect(() => {
     if (isEditMode) return;
@@ -599,35 +753,55 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
     setContentLoaded(true);
   }, [contentLoaded, editor, isEditMode]);
 
-  async function saveWithStatus(status: SaveStatus) {
-    setError("");
-    setMessage("");
+  async function saveWithStatus(status: SaveStatus, options: { silent?: boolean; auto?: boolean } = {}) {
+    if (!options.silent) {
+      setError("");
+      setMessage("");
+    }
 
     if (!title.trim()) {
-      setError("제목을 입력해 주세요.");
+      if (!options.silent) setError("제목을 입력해 주세요.");
       return;
     }
 
     if (!editor) {
-      setError("에디터가 아직 준비되지 않았습니다.");
+      if (!options.silent) setError("에디터가 아직 준비되지 않았습니다.");
       return;
     }
 
-    if (status === "published") {
+    if (status === "scheduled" && !fromDateTimeLocalValue(scheduledAt)) {
+      if (!options.silent) setError("예약 발행 시간을 선택해 주세요.");
+      return;
+    }
+
+    if (status === "scheduled") {
+      const scheduledDate = fromDateTimeLocalValue(scheduledAt);
+      if (scheduledDate && new Date(scheduledDate).getTime() <= Date.now()) {
+        if (!options.silent) setError("예약 발행 시간은 현재 시각 이후로 설정해 주세요.");
+        return;
+      }
+    }
+
+    if (status === "published" || status === "scheduled") {
       const checkResult = await runSeoChecks();
       if (checkResult.hasError) {
         setSeoOpen(true);
-        setError("SEO 치명적 오류가 있어 발행할 수 없습니다. 점검 항목을 수정해 주세요.");
+        if (!options.silent) setError("SEO 치명적 오류가 있어 발행할 수 없습니다. 점검 항목을 수정해 주세요.");
         return;
       }
 
       if (checkResult.hasWarn) {
-        const proceed = window.confirm("SEO 경고가 있습니다. 확인 후 발행하시겠습니까?");
+        const proceed = window.confirm("SEO 경고가 있습니다. 확인 후 진행하시겠습니까?");
         if (!proceed) return;
       }
     }
 
-    setSavingStatus(status);
+    if (options.auto) {
+      setAutoSaveStatus("자동저장 중...");
+    } else {
+      setSavingStatus(status);
+      setPublicationCheck(null);
+    }
     try {
       const html = sanitizeInsightHtml(editor.getHTML());
       const seo = resolveSeoFields();
@@ -670,6 +844,7 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
           height: Math.max(0, Number(featuredImageHeight || 0) || 0),
         },
         status,
+        publishedAt: status === "scheduled" ? fromDateTimeLocalValue(scheduledAt) : undefined,
         contentHtml: html,
         contentJson: editor.getJSON(),
       };
@@ -691,25 +866,73 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
           router.replace("/admin/login");
           return;
         }
-        setError(String(data?.message || "저장에 실패했습니다."));
+        if (options.auto) {
+          setAutoSaveStatus("자동저장 실패");
+        } else {
+          setError(String(data?.message || "저장에 실패했습니다."));
+        }
         return;
       }
 
+      const savedItem = data?.item || {};
+      const savedId = String(savedItem?._id || savedItem?.id || insightId || "");
+      let publishCheck: PublicationCheck | null = null;
+      if (status === "published" && savedId) {
+        publishCheck = await runPublishFinalization(savedId);
+      }
+      if (savedId) await loadRevisions(savedId);
+      setContentStatus(status);
+
       if (!isEditMode) {
-        const newId = String(data?.item?._id || "");
+        const newId = savedId;
         if (newId) {
           router.replace(`/admin/insights/edit?id=${encodeURIComponent(newId)}`);
           return;
         }
       }
 
-      setMessage(status === "published" ? "발행 저장 완료" : status === "archived" ? "보관 저장 완료" : status === "private" ? "비공개 저장 완료" : "임시저장 완료");
-    } catch (e) {
-      setError("네트워크 오류로 저장하지 못했습니다.");
+      if (options.auto) {
+        setAutoSaveStatus(`자동저장 완료 ${new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}`);
+      } else {
+        setMessage(status === "published"
+          ? (publishCheck?.ok ? "발행 저장 완료 · 공개 URL 확인 완료" : "발행 저장 완료 · 공개 확인 결과를 확인해 주세요")
+          : status === "scheduled" ? "예약 발행 저장 완료"
+          : status === "archived" ? "보관 저장 완료" : status === "private" ? "비공개 저장 완료" : "임시저장 완료");
+      }
+    } catch {
+      if (options.auto) {
+        setAutoSaveStatus("자동저장 실패");
+      } else {
+        setError("네트워크 오류로 저장하지 못했습니다.");
+      }
     } finally {
-      setSavingStatus("");
+      if (!options.auto) setSavingStatus("");
     }
   }
+
+  useEffect(() => {
+    if (!isEditMode || contentStatus !== "draft" || !contentLoaded || !editor || !title.trim() || savingStatus) return;
+    const html = editor.getHTML();
+    const signature = JSON.stringify({
+      title,
+      subtitle,
+      slug,
+      excerpt,
+      category,
+      tagsText,
+      html,
+      editorVersion,
+    });
+    if (signature === lastAutoSaveSignatureRef.current) return;
+
+    const timer = window.setTimeout(() => {
+      lastAutoSaveSignatureRef.current = signature;
+      void saveWithStatus("draft", { silent: true, auto: true });
+    }, 30000);
+
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, contentLoaded, contentStatus, editor, editorVersion, excerpt, isEditMode, savingStatus, slug, subtitle, tagsText, title]);
 
   return (
     <main className="min-h-screen bg-[#0d0d1a] text-slate-100 px-3 py-4 md:px-8 md:py-8">
@@ -721,6 +944,20 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
               <p className="text-xs text-slate-400 mt-0.5">대표/본문 이미지 업로드 + 기본 SEO 이미지 메타</p>
             </div>
             <div className="flex flex-wrap gap-2">
+              <input
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(event) => setScheduledAt(event.target.value)}
+                className="rounded-lg border border-[#313145] bg-[#1e1e2e] px-3 py-2 text-sm text-slate-100"
+                aria-label="예약 발행 시간"
+              />
+              <button
+                type="button"
+                onClick={() => setPreviewOpen((open) => !open)}
+                className="rounded-lg bg-blue-700 hover:bg-blue-600 px-3 py-2 text-sm"
+              >
+                {previewOpen ? "미리보기 닫기" : "미리보기"}
+              </button>
               <button
                 type="button"
                 onClick={() => saveWithStatus("draft")}
@@ -745,11 +982,43 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
               >
                 {savingStatus === "published" ? "저장 중..." : "발행"}
               </button>
+              <button
+                type="button"
+                onClick={() => saveWithStatus("scheduled")}
+                disabled={Boolean(savingStatus)}
+                className="rounded-lg bg-blue-700 hover:bg-blue-600 disabled:opacity-60 px-3 py-2 text-sm font-medium"
+              >
+                {savingStatus === "scheduled" ? "예약 중..." : "예약 발행"}
+              </button>
             </div>
           </div>
 
           {error ? <p className="mt-2 text-sm text-rose-300">{error}</p> : null}
           {message ? <p className="mt-2 text-sm text-emerald-300">{message}</p> : null}
+          {autoSaveStatus ? <p className="mt-2 text-xs text-slate-400">{autoSaveStatus}</p> : null}
+          {publicationCheck ? (
+            <div className={`mt-3 rounded-xl border px-3 py-2 text-xs ${publicationCheck.ok ? "border-emerald-700 bg-emerald-900/25 text-emerald-100" : "border-amber-700 bg-amber-900/25 text-amber-100"}`}>
+              <p className="font-semibold">{publicationCheck.ok ? "공개 반영 확인 완료" : "공개 반영 확인 필요"}</p>
+              <p className="mt-1">
+                DB {publicationCheck.dbReady ? "OK" : "확인 필요"} · API {publicationCheck.apiStatus?.status || "-"} · 페이지 {publicationCheck.pageStatus?.status || "-"} · 캐시 {publicationCheck.purgeStatus || "-"}
+              </p>
+              {publicationCheck.pageMeta ? (
+                <p className="mt-1">
+                  메타 title {publicationCheck.pageMeta.hasTitle ? "OK" : "확인 필요"} · description {publicationCheck.pageMeta.hasDescription ? "OK" : "확인 필요"} · canonical {publicationCheck.pageMeta.canonicalMatches ? "OK" : "확인 필요"} · robots {publicationCheck.pageMeta.noIndex ? "noindex" : "index"}
+                </p>
+              ) : null}
+              {publicationCheck.feedCoverage ? (
+                <p className="mt-1">
+                  sitemap {publicationCheck.feedCoverage.sitemap?.containsSlug ? "포함" : "미포함"} · RSS {publicationCheck.feedCoverage.rss?.containsSlug ? "포함" : "미포함"} · insights RSS {publicationCheck.feedCoverage.insightsRss?.containsSlug ? "포함" : "미포함"}
+                </p>
+              ) : null}
+              {publicationCheck.publicUrl ? (
+                <a className="mt-1 inline-flex text-violet-200 underline" href={publicationCheck.publicUrl} target="_blank" rel="noreferrer">
+                  공개 URL 열기
+                </a>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         <div className="rounded-2xl border border-[#2a2a3e] bg-[#13131f] p-4 md:p-6 space-y-4">
@@ -971,6 +1240,48 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
           ) : null}
         </section>
 
+        {isEditMode ? (
+          <section className="rounded-2xl border border-[#2a2a3e] bg-[#13131f] p-4 md:p-6 space-y-3">
+            <button
+              type="button"
+              onClick={() => {
+                setRevisionsOpen((open) => !open);
+                void loadRevisions();
+              }}
+              className="w-full flex items-center justify-between rounded-xl border border-[#313145] bg-[#1a1a2b] px-4 py-3 text-left"
+            >
+              <div>
+                <h2 className="text-base font-semibold">버전 이력</h2>
+                <p className="mt-1 text-xs text-slate-400">저장 전 상태를 최대 20개까지 보관합니다.</p>
+              </div>
+              <span className="text-sm text-slate-300">{revisionsOpen ? "접기" : "펼치기"}</span>
+            </button>
+
+            {revisionsOpen ? (
+              <div className="space-y-2">
+                {revisions.length === 0 ? (
+                  <p className="rounded-lg border border-slate-700 bg-slate-900/40 px-3 py-2 text-xs text-slate-400">아직 복구 가능한 이전 버전이 없습니다.</p>
+                ) : revisions.map((revision) => (
+                  <div key={revision.id || revision.revision} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-700 bg-slate-900/40 px-3 py-2">
+                    <div>
+                      <p className="text-sm text-slate-100">v{revision.revision} · {revision.title || "제목 없음"}</p>
+                      <p className="mt-0.5 text-xs text-slate-400">{revision.status || "draft"} · {revision.savedAt ? new Date(revision.savedAt).toLocaleString("ko-KR") : "-"}</p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={restoringRevisionId === revision.id}
+                      onClick={() => restoreRevision(revision.id)}
+                      className="rounded-lg bg-amber-700 px-3 py-1.5 text-xs hover:bg-amber-600 disabled:opacity-60"
+                    >
+                      {restoringRevisionId === revision.id ? "복구 중..." : "이 버전 복구"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+
         <div className="rounded-2xl border border-[#2a2a3e] bg-[#13131f] overflow-hidden">
           <div className="border-b border-[#2f2f45] bg-[#171727] px-3 py-2">
             <div className="flex flex-wrap gap-2">
@@ -1014,6 +1325,28 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
             <EditorContent editor={editor} />
           )}
         </div>
+
+        {previewOpen ? (
+          <section className="rounded-2xl border border-blue-800/70 bg-[#101827] p-4 md:p-6">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="text-base font-semibold text-blue-100">편집 내용 미리보기</h2>
+                <p className="mt-1 text-xs text-slate-400">현재 에디터 HTML 기준으로 렌더링됩니다.</p>
+              </div>
+              <button
+                type="button"
+                className="rounded-lg bg-slate-700 px-3 py-2 text-sm hover:bg-slate-600"
+                onClick={() => setPreviewOpen(false)}
+              >
+                닫기
+              </button>
+            </div>
+            <article
+              className="prose prose-invert max-w-none rounded-xl border border-slate-700 bg-[#0d0d1a] px-5 py-5 prose-headings:text-white prose-a:text-violet-300 prose-img:rounded-lg"
+              dangerouslySetInnerHTML={{ __html: sanitizeInsightHtml(editor?.getHTML?.() || "<p></p>") }}
+            />
+          </section>
+        ) : null}
 
         <div className="flex flex-wrap gap-2 justify-between items-center pb-6">
           <Link href="/admin/insights" className="text-sm text-slate-300 hover:text-white underline underline-offset-2">

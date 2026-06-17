@@ -1252,7 +1252,7 @@ analysisPayload=${promptContext}`;
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [
-          { role: "user", parts: [{ text: `${systemPrompt}\n\n${userPrompt}\n\n${reportSection}`] },
+          { role: "user", parts: [{ text: `${systemPrompt}\n\n${userPrompt}\n\n${reportSection}` }] },
         ],
       }),
     });

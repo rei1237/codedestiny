@@ -216,7 +216,6 @@ async function verifyFlowerAdminTokenForPaidService(request, env) {
     gender: "OTHER",
     points: 0,
     joinedAt: null,
-    adminTestMode: true,
   };
 }
 

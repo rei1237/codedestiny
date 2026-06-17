@@ -10,6 +10,7 @@ import { persistSanitizedAuthUser, readSanitizedAuthUser } from "../_lib/auth-st
 import { resolveMonthlyStoneBalance } from "../_lib/monthly-stone";
 import { clearActiveDestinyProfileCache, publishDestinyProfileList } from "../_lib/profile-card-storage";
 import WithdrawModal from "../components/WithdrawModal";
+import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 
 type AuthUser = {
   id?: string;
@@ -423,12 +424,10 @@ export default function MePage() {
   const profileLimitLabel = isUnlimitedProfilePlan ? "무제한" : String(profileLimit);
   const slotPercent = isUnlimitedProfilePlan ? 100 : Math.min(100, Math.round((profiles.length / profileLimit) * 100));
   const monthlyStoneBalanceLabel = formatMonthlyStoneBalance(monthlyStoneBalance);
-  const profileActionFreeLabel = subscription.isActive && subscription.tier === "family"
-    ? "FAMILY"
-    : "";
+  const profileActionFreeLabel = "";
   const isProfileActionPaymentBypass = Boolean(profileActionFreeLabel);
   const hasEnoughMonthlyStonesForProfileAction = monthlyStoneBalance >= PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST;
-  const canCreateWithinProfileLimit = isUnlimitedProfilePlan || profiles.length < profileLimit;
+  const canCreateWithinProfileLimit = subscription.isActive && (isUnlimitedProfilePlan || profiles.length < profileLimit);
   const createRequiresProfileActionPayment = !canCreateWithinProfileLimit && !isProfileActionPaymentBypass;
   const profileActionPolicyNotice = "프로필 카드 삭제에는 5,000원 결제가 필요합니다.";
   const subscriptionStartedAtLabel = formatProfileSubscriptionDate(subscription.startedAt);
@@ -1417,8 +1416,8 @@ export default function MePage() {
             <h3 className="text-lg font-bold text-amber-100">새 프로필 추가</h3>
             <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
               {createRequiresProfileActionPayment
-                ? "무료 프로필 카드 한도를 모두 사용했어요. 새 프로필 카드를 추가하려면 5,000원 가치가 필요합니다. 일반 이용권 혜택은 적용되지 않으며, 단건결제 또는 별도 이용권 혜택으로만 진행할 수 있어요."
-                : "현재 프로필 카드 보유 한도 내에서 새 프로필을 추가할 수 있습니다."}
+                ? "새 프로필 카드를 추가하려면 5,000원 단건결제 또는 이용권 혜택 사용이 필요합니다."
+                : "이용권 슬롯 안에서 새 프로필 카드를 추가할 수 있습니다."}
             </p>
             {busyAction === "create" ? (
               <div className="mt-3 rounded-lg border border-amber-300/35 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
@@ -1469,9 +1468,13 @@ export default function MePage() {
                 <label className="grid gap-1 text-xs font-semibold text-slate-300">
                   생년월일
                   <input
-                    type="date"
-                    value={createDraft.birthDate}
-                    onChange={(event) => setCreateDraft((prev) => ({ ...prev, birthDate: event.target.value }))}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={8}
+                    pattern="[0-9]{8}"
+                    placeholder="YYYYMMDD"
+                    value={formatBirthDateDigits(createDraft.birthDate)}
+                    onChange={(event) => setCreateDraft((prev) => ({ ...prev, birthDate: normalizeBirthDateFromDigits(event.target.value) }))}
                     className="rounded-md border border-white/15 bg-black/25 px-3 py-2 text-sm text-white outline-none focus:border-amber-300/70"
                   />
                 </label>

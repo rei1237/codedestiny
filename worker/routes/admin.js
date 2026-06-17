@@ -19,8 +19,8 @@ const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
 ];
 
 const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60;
-const INSIGHT_STATUS_SET = new Set(["draft", "published", "archived", "private", "trash"]);
-const CONTENT_STATUS_SET = new Set(["draft", "published", "archived", "private", "trash"]);
+const INSIGHT_STATUS_SET = new Set(["draft", "scheduled", "published", "archived", "private", "trash"]);
+const CONTENT_STATUS_SET = new Set(["draft", "scheduled", "published", "archived", "private", "trash"]);
 const CONTENT_PUBLIC_STATUS = "published";
 const CONTENT_FORMAT_SET = new Set(["html", "markdown", "blocks"]);
 const CONTENT_TYPE_SET = new Set([
@@ -90,6 +90,14 @@ function bytesToHex(bytes) {
 
 function normalizeText(value, maxLen = 5000) {
   return String(value || "").trim().slice(0, maxLen);
+}
+
+function firstRuntimeValue(env, keys = []) {
+  for (const key of keys) {
+    const value = String(env?.[key] || "").trim();
+    if (value) return value;
+  }
+  return "";
 }
 
 function normalizeStringArray(values, maxItemLen = 120, maxItems = 50) {
@@ -312,6 +320,7 @@ function parseContentPublishedAt(value, status, existingPublishedAt = null) {
     if (existingPublishedAt) return existingPublishedAt;
     return new Date();
   }
+  if (status === "scheduled") return existingPublishedAt || null;
   return null;
 }
 
@@ -343,6 +352,8 @@ function toContentItem(item) {
     contentFormat,
     contentHtml,
     contentJson: isObjectLike(item?.contentJson) ? item.contentJson : {},
+    revision: Math.max(1, Number(item?.revision || 1) || 1),
+    revisionHistory: Array.isArray(item?.revisionHistory) ? item.revisionHistory.slice(-20) : [],
     thumbnailUrl,
     featuredImage: {
       url: thumbnailUrl,
@@ -422,6 +433,9 @@ function normalizeContentPayload(body = {}, mode = "create", existing = null) {
     status,
     existing?.publishedAt || null,
   );
+  if (status === "scheduled" && !nextPublishedAt) {
+    throw createHttpError(400, "scheduled publish time is required.", { code: "SCHEDULED_AT_REQUIRED" });
+  }
 
   const payload = {
     type,
@@ -554,6 +568,45 @@ function normalizeInsightPayload(body = {}, mode = "create") {
   }
 
   return { payload, title, providedSlug };
+}
+
+function buildContentRevisionSnapshot(item, adminContext, reason = "manual_save") {
+  const revision = Math.max(1, Number(item?.revision || 1) || 1);
+  return {
+    id: `rev_${Date.now().toString(36)}_${revision}`,
+    revision,
+    reason,
+    savedAt: new Date(),
+    savedBy: String(adminContext?.userId || "admin"),
+    title: String(item?.title || ""),
+    slug: String(item?.slug || ""),
+    summary: String(item?.summary || ""),
+    subtitle: String(item?.subtitle || ""),
+    excerpt: String(item?.excerpt || ""),
+    content: String(item?.content || ""),
+    contentFormat: String(item?.contentFormat || "html"),
+    contentHtml: String(item?.contentHtml || ""),
+    contentJson: isObjectLike(item?.contentJson) ? item.contentJson : {},
+    category: String(item?.category || ""),
+    tags: Array.isArray(item?.tags) ? item.tags.slice(0, 80) : [],
+    status: String(item?.status || "draft"),
+    seo: isObjectLike(item?.seo) ? item.seo : {},
+    metaTitle: String(item?.metaTitle || ""),
+    metaDescription: String(item?.metaDescription || ""),
+    keywords: Array.isArray(item?.keywords) ? item.keywords.slice(0, 80) : [],
+    canonicalUrl: String(item?.canonicalUrl || ""),
+    ogTitle: String(item?.ogTitle || ""),
+    ogDescription: String(item?.ogDescription || ""),
+    ogImage: String(item?.ogImage || ""),
+    twitterTitle: String(item?.twitterTitle || ""),
+    twitterDescription: String(item?.twitterDescription || ""),
+    twitterImage: String(item?.twitterImage || ""),
+    featuredImage: isObjectLike(item?.featuredImage) ? item.featuredImage : {},
+    thumbnailUrl: String(item?.thumbnailUrl || ""),
+    isFeatured: Boolean(item?.isFeatured),
+    noIndex: Boolean(item?.noIndex),
+    publishedAt: item?.publishedAt || null,
+  };
 }
 
 async function findDuplicateSlug(slug, excludeId = "") {
@@ -1340,7 +1393,23 @@ async function handleContentPatch(path, request, env) {
     }
   }
 
-  const updateResult = await Insight.updateOne({ _id: id }, { $set: payload });
+  const nextRevision = Math.max(1, Number(existing?.revision || 1) || 1) + 1;
+  const revisionSnapshot = buildContentRevisionSnapshot(existing, adminContext, "before_update");
+  const updateResult = await Insight.updateOne(
+    { _id: id },
+    {
+      $set: {
+        ...payload,
+        revision: nextRevision,
+      },
+      $push: {
+        revisionHistory: {
+          $each: [revisionSnapshot],
+          $slice: -20,
+        },
+      },
+    },
+  );
   if (!Number(updateResult.matchedCount || 0)) {
     throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
   }
@@ -1414,21 +1483,589 @@ async function handleContentDelete(path, request, env) {
   });
 }
 
+function parseRevisionContentId(path, suffix) {
+  return parseAdminContentId(String(path || "").replace(new RegExp(`${suffix}$`, "i"), ""));
+}
+
+function findContentRevision(item, body = {}) {
+  const history = Array.isArray(item?.revisionHistory) ? item.revisionHistory : [];
+  const revisionId = String(body?.revisionId || "").trim();
+  const revisionNumber = Number(body?.revision || 0);
+  if (revisionId) return history.find((entry) => String(entry?.id || "") === revisionId) || null;
+  if (Number.isFinite(revisionNumber) && revisionNumber > 0) {
+    return history.find((entry) => Number(entry?.revision || 0) === revisionNumber) || null;
+  }
+  return history[history.length - 1] || null;
+}
+
+function buildRestorePayloadFromRevision(revision) {
+  return {
+    title: String(revision?.title || ""),
+    slug: slugify(revision?.slug || revision?.title || ""),
+    summary: String(revision?.summary || ""),
+    subtitle: String(revision?.subtitle || ""),
+    excerpt: String(revision?.excerpt || ""),
+    content: String(revision?.content || revision?.contentHtml || ""),
+    contentFormat: normalizeContentFormat(revision?.contentFormat, "html"),
+    contentHtml: sanitizeInsightHtml(String(revision?.contentHtml || revision?.content || "")),
+    contentJson: isObjectLike(revision?.contentJson) ? revision.contentJson : {},
+    category: String(revision?.category || ""),
+    tags: Array.isArray(revision?.tags) ? revision.tags.slice(0, 80) : [],
+    status: normalizeContentStatus(revision?.status, "draft"),
+    seo: isObjectLike(revision?.seo) ? revision.seo : {},
+    metaTitle: String(revision?.metaTitle || ""),
+    metaDescription: String(revision?.metaDescription || ""),
+    keywords: Array.isArray(revision?.keywords) ? revision.keywords.slice(0, 80) : [],
+    canonicalUrl: String(revision?.canonicalUrl || ""),
+    ogTitle: String(revision?.ogTitle || ""),
+    ogDescription: String(revision?.ogDescription || ""),
+    ogImage: String(revision?.ogImage || ""),
+    twitterTitle: String(revision?.twitterTitle || ""),
+    twitterDescription: String(revision?.twitterDescription || ""),
+    twitterImage: String(revision?.twitterImage || ""),
+    featuredImage: isObjectLike(revision?.featuredImage) ? revision.featuredImage : {},
+    thumbnailUrl: String(revision?.thumbnailUrl || revision?.featuredImage?.url || ""),
+    isFeatured: Boolean(revision?.isFeatured),
+    noIndex: Boolean(revision?.noIndex),
+    isPublished: normalizeContentStatus(revision?.status, "draft") === CONTENT_PUBLIC_STATUS,
+    publishedAt: revision?.publishedAt || null,
+  };
+}
+
+async function handleContentRevisions(path, request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const id = parseRevisionContentId(path, "/revisions");
+  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const found = await Insight.findById(id).lean();
+  if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const revisions = (Array.isArray(found.revisionHistory) ? found.revisionHistory : [])
+    .slice()
+    .reverse()
+    .map((entry) => ({
+      id: String(entry?.id || ""),
+      revision: Math.max(1, Number(entry?.revision || 1) || 1),
+      reason: String(entry?.reason || ""),
+      savedAt: entry?.savedAt || null,
+      savedBy: String(entry?.savedBy || ""),
+      title: String(entry?.title || ""),
+      status: String(entry?.status || "draft"),
+    }));
+
+  logAdminContent("revisions_list", {
+    endpoint: "/api/admin/content/:id/revisions",
+    method: request.method,
+    userId: adminContext.userId,
+    isAdmin: adminContext.isAdmin,
+    contentId: id,
+    count: revisions.length,
+  });
+
+  return json({
+    ok: true,
+    currentRevision: Math.max(1, Number(found?.revision || 1) || 1),
+    revisions,
+  });
+}
+
+async function handleContentRestore(path, request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const id = parseRevisionContentId(path, "/restore");
+  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const existing = await Insight.findById(id).lean();
+  if (!existing) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const body = await readJson(request);
+  const targetRevision = findContentRevision(existing, body);
+  if (!targetRevision) throw createHttpError(404, "revision not found.", { code: "REVISION_NOT_FOUND" });
+
+  const currentSnapshot = buildContentRevisionSnapshot(existing, adminContext, "before_restore");
+  const nextRevision = Math.max(1, Number(existing?.revision || 1) || 1) + 1;
+  const restorePayload = buildRestorePayloadFromRevision(targetRevision);
+
+  const duplicate = restorePayload.slug
+    ? await findDuplicateContentSlug(restorePayload.slug, id)
+    : null;
+  if (duplicate) {
+    restorePayload.slug = await buildUniqueContentSlug(restorePayload.slug || restorePayload.title || `content-${Date.now()}`, id);
+  }
+
+  await Insight.updateOne(
+    { _id: id },
+    {
+      $set: {
+        ...restorePayload,
+        revision: nextRevision,
+      },
+      $push: {
+        revisionHistory: {
+          $each: [currentSnapshot],
+          $slice: -20,
+        },
+      },
+    },
+  );
+
+  const updated = await Insight.findById(id).lean();
+  const item = toContentItem(updated);
+
+  logAdminContent("restore_success", {
+    endpoint: "/api/admin/content/:id/restore",
+    method: request.method,
+    userId: adminContext.userId,
+    isAdmin: adminContext.isAdmin,
+    contentId: id,
+    restoredRevision: Number(targetRevision?.revision || 0),
+  });
+
+  return json({ ok: true, item, restoredRevision: targetRevision });
+}
+
+function resolvePublicOrigin(request, env) {
+  const configured = firstRuntimeValue(env, [
+    "PUBLIC_SITE_URL",
+    "NEXT_PUBLIC_SITE_URL",
+    "SITE_URL",
+    "APP_URL",
+    "BASE_URL",
+  ]);
+  if (configured) return configured.replace(/\/+$/, "");
+  return new URL(request.url).origin.replace(/\/+$/, "");
+}
+
+function buildContentPublicUrls(request, env, item) {
+  const origin = resolvePublicOrigin(request, env);
+  const slug = String(item?.slug || "").trim();
+  if (!slug) return { origin, pageUrl: "", apiUrl: "" };
+  const encodedSlug = encodeURIComponent(slug);
+  return {
+    origin,
+    pageUrl: `${origin}/insights/${encodedSlug}`,
+    apiUrl: `${origin}/api/content/${encodedSlug}`,
+  };
+}
+
+async function fetchContentUrlStatus(url, timeoutMs = 4500) {
+  if (!url) return { ok: false, status: 0, checked: false, error: "missing_url" };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort("timeout"), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { "Cache-Control": "no-cache" },
+      signal: controller.signal,
+    });
+    return {
+      ok: response.ok,
+      status: response.status,
+      checked: true,
+      error: "",
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      checked: true,
+      error: String(error?.message || error || "fetch_failed").slice(0, 180),
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchContentUrlTextStatus(url, timeoutMs = 4500) {
+  if (!url) return { ok: false, status: 0, checked: false, error: "missing_url", text: "" };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort("timeout"), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { "Cache-Control": "no-cache" },
+      signal: controller.signal,
+    });
+    const text = await response.text().catch(() => "");
+    return {
+      ok: response.ok,
+      status: response.status,
+      checked: true,
+      error: "",
+      text: text.slice(0, 350000),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      checked: true,
+      error: String(error?.message || error || "fetch_failed").slice(0, 180),
+      text: "",
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchContentFeedHeaderStatus(url, timeoutMs = 3500) {
+  if (!url) return { ok: false, status: 0, checked: false, merged: false, error: "missing_url" };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort("timeout"), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      method: "HEAD",
+      headers: { "Cache-Control": "no-cache" },
+      signal: controller.signal,
+    });
+    return {
+      ok: response.ok,
+      status: response.status,
+      checked: true,
+      merged: response.headers.get("X-Code-Destiny-Feed") === "merged",
+      error: "",
+      url,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      checked: true,
+      merged: false,
+      error: String(error?.message || error || "fetch_failed").slice(0, 180),
+      url,
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function extractHtmlTagContent(html, pattern) {
+  const matched = String(html || "").match(pattern);
+  return String(matched?.[1] || "").trim();
+}
+
+function buildPageMetaCheck(html, expectedUrl, item) {
+  const title = extractHtmlTagContent(html, /<title[^>]*>([\s\S]*?)<\/title>/i);
+  const description = extractHtmlTagContent(html, /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["'][^>]*>/i)
+    || extractHtmlTagContent(html, /<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["'][^>]*>/i);
+  const canonical = extractHtmlTagContent(html, /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']*)["'][^>]*>/i)
+    || extractHtmlTagContent(html, /<link[^>]+href=["']([^"']*)["'][^>]+rel=["']canonical["'][^>]*>/i);
+  const ogTitle = extractHtmlTagContent(html, /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']*)["'][^>]*>/i)
+    || extractHtmlTagContent(html, /<meta[^>]+content=["']([^"']*)["'][^>]+property=["']og:title["'][^>]*>/i);
+  const ogImage = extractHtmlTagContent(html, /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']*)["'][^>]*>/i)
+    || extractHtmlTagContent(html, /<meta[^>]+content=["']([^"']*)["'][^>]+property=["']og:image["'][^>]*>/i);
+  const robots = extractHtmlTagContent(html, /<meta[^>]+name=["']robots["'][^>]+content=["']([^"']*)["'][^>]*>/i)
+    || extractHtmlTagContent(html, /<meta[^>]+content=["']([^"']*)["'][^>]+name=["']robots["'][^>]*>/i);
+  const expectedTitle = String(item?.seo?.metaTitle || item?.metaTitle || item?.title || "").trim();
+  const expectedDescription = String(item?.seo?.metaDescription || item?.metaDescription || item?.summary || item?.excerpt || "").trim();
+
+  return {
+    hasTitle: Boolean(title),
+    hasDescription: Boolean(description),
+    hasCanonical: Boolean(canonical),
+    canonicalMatches: canonical ? canonical.replace(/\/+$/, "") === String(expectedUrl || "").replace(/\/+$/, "") : false,
+    hasOgTitle: Boolean(ogTitle),
+    hasOgImage: Boolean(ogImage),
+    noIndex: /noindex/i.test(robots),
+    titleMatches: expectedTitle ? title.includes(expectedTitle.slice(0, 80)) : Boolean(title),
+    descriptionMatches: expectedDescription ? description.includes(expectedDescription.slice(0, 80)) : Boolean(description),
+    title: title.slice(0, 180),
+    description: description.slice(0, 220),
+    canonical: canonical.slice(0, 400),
+    ogImage: ogImage.slice(0, 400),
+    robots: robots.slice(0, 120),
+  };
+}
+
+async function buildFeedCoverageCheck(origin, slug) {
+  const encodedSlug = encodeURIComponent(String(slug || ""));
+  const targets = [
+    { key: "sitemap", url: `${origin}/sitemap.xml` },
+    { key: "rss", url: `${origin}/rss.xml` },
+    { key: "insightsRss", url: `${origin}/insights/rss.xml` },
+  ];
+  const results = {};
+  for (const target of targets) {
+    const status = await fetchContentUrlTextStatus(target.url, 3500);
+    results[target.key] = {
+      ok: status.ok,
+      status: status.status,
+      containsSlug: Boolean(status.text && (status.text.includes(`/insights/${encodedSlug}`) || status.text.includes(`/insights/${slug}`))),
+      error: status.error || "",
+      url: target.url,
+    };
+  }
+  return results;
+}
+
+async function buildContentPublicationStatus(request, env, item) {
+  const urls = buildContentPublicUrls(request, env, item);
+  const status = String(item?.status || "").toLowerCase();
+  const publishedAtMs = new Date(item?.publishedAt || 0).getTime();
+  const isScheduledReady = status === "scheduled" && Number.isFinite(publishedAtMs) && publishedAtMs <= Date.now();
+  const isPublished = status === CONTENT_PUBLIC_STATUS || isScheduledReady;
+  const hasSlug = Boolean(String(item?.slug || "").trim());
+  const dbReady = isPublished && hasSlug && Boolean(item?.publishedAt || item?.isPublished);
+  const apiStatus = isPublished ? await fetchContentUrlStatus(urls.apiUrl) : { ok: false, status: 0, checked: false, error: "not_published" };
+  const pageTextStatus = isPublished ? await fetchContentUrlTextStatus(urls.pageUrl) : { ok: false, status: 0, checked: false, error: "not_published", text: "" };
+  const pageStatus = {
+    ok: pageTextStatus.ok,
+    status: pageTextStatus.status,
+    checked: pageTextStatus.checked,
+    error: pageTextStatus.error,
+  };
+  const pageMeta = pageTextStatus.ok ? buildPageMetaCheck(pageTextStatus.text, urls.pageUrl, item) : null;
+  const feedCoverage = isPublished ? await buildFeedCoverageCheck(urls.origin, item?.slug) : null;
+
+  return {
+    ok: Boolean(dbReady && apiStatus.ok && pageStatus.ok && (!pageMeta || !pageMeta.noIndex)),
+    dbReady,
+    isPublished,
+    slug: String(item?.slug || ""),
+    publicUrl: urls.pageUrl,
+    apiUrl: urls.apiUrl,
+    apiStatus,
+    pageStatus,
+    pageMeta,
+    feedCoverage,
+    checkedAt: new Date().toISOString(),
+  };
+}
+
+function resolveCloudflareZoneIdFromEnv(env) {
+  return firstRuntimeValue(env, [
+    "CLOUDFLARE_ZONE_ID",
+    "CLOUDFLARE_ZONEID",
+    "CF_ZONE_ID",
+    "CF_ZONEID",
+    "ZONE_ID",
+    "ZONEID",
+    "ZoneID",
+  ]);
+}
+
+function resolveCloudflareApiToken(env) {
+  return firstRuntimeValue(env, [
+    "Edit_zone",
+    "EDIT_ZONE",
+    "EDIT_ZONE_TOKEN",
+    "CLOUDFLARE_CACHE_PURGE_TOKEN",
+    "CLOUDFLARE_API_TOKEN",
+    "CF_API_TOKEN",
+    "CLOUDFLARE_APITOKEN",
+  ]);
+}
+
+function candidateZoneNamesFromUrl(url) {
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./i, "").toLowerCase();
+    if (!hostname) return [];
+    const parts = hostname.split(".").filter(Boolean);
+    const candidates = [hostname];
+    if (parts.length >= 2) candidates.push(parts.slice(-2).join("."));
+    return Array.from(new Set(candidates));
+  } catch (e) {
+    return [];
+  }
+}
+
+async function resolveCloudflareZoneId(env, sampleUrl, token) {
+  const configured = resolveCloudflareZoneIdFromEnv(env);
+  if (configured) return configured;
+
+  const candidates = candidateZoneNamesFromUrl(sampleUrl);
+  for (const zoneName of candidates) {
+    try {
+      const response = await fetch(`https://api.cloudflare.com/client/v4/zones?name=${encodeURIComponent(zoneName)}&status=active&per_page=1`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = await response.json().catch(() => ({}));
+      const zoneId = String(payload?.result?.[0]?.id || "").trim();
+      if (response.ok && zoneId) return zoneId;
+    } catch (e) {
+      continue;
+    }
+  }
+
+  return "";
+}
+
+async function purgeCloudflareContentCache(env, urls = []) {
+  const files = Array.from(new Set(urls.map((url) => String(url || "").trim()).filter(Boolean))).slice(0, 30);
+  if (!files.length) return { ok: false, status: "skipped", reason: "missing_urls", files: [] };
+
+  const token = resolveCloudflareApiToken(env);
+  if (!token) {
+    return {
+      ok: false,
+      status: "skipped",
+      reason: "missing_api_token",
+      files,
+    };
+  }
+
+  const zoneId = await resolveCloudflareZoneId(env, files[0], token);
+  if (!zoneId) {
+    return {
+      ok: false,
+      status: "skipped",
+      reason: "missing_zone_id",
+      files,
+    };
+  }
+
+  try {
+    const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zoneId)}/purge_cache`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ files }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    return {
+      ok: response.ok && payload?.success !== false,
+      status: response.ok ? "requested" : "failed",
+      httpStatus: response.status,
+      files,
+      errors: Array.isArray(payload?.errors) ? payload.errors.slice(0, 3) : [],
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: "failed",
+      reason: String(error?.message || error || "purge_failed").slice(0, 180),
+      files,
+    };
+  }
+}
+
+async function handleContentPublishStatus(path, request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const id = parseAdminContentId(path.replace(/\/publish-status$/i, ""));
+  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const found = await Insight.findById(id).lean();
+  if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const item = toContentItem(found);
+  const publication = await buildContentPublicationStatus(request, env, item);
+
+  logAdminContent("publish_status", {
+    endpoint: "/api/admin/content/:id/publish-status",
+    method: request.method,
+    userId: adminContext.userId,
+    isAdmin: adminContext.isAdmin,
+    contentId: item.id,
+    slug: item.slug,
+    ok: publication.ok,
+  });
+
+  return json({ ok: true, item, publication });
+}
+
+async function handleContentCachePurge(path, request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const id = parseAdminContentId(path.replace(/\/cache-purge$/i, ""));
+  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const found = await Insight.findById(id).lean();
+  if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const item = toContentItem(found);
+  const urls = buildContentPublicUrls(request, env, item);
+  const purge = await purgeCloudflareContentCache(env, [
+    urls.pageUrl,
+    urls.apiUrl,
+    `${urls.origin}/insights`,
+    `${urls.origin}/api/content`,
+    `${urls.origin}/sitemap.xml`,
+    `${urls.origin}/rss.xml`,
+    `${urls.origin}/insights/rss.xml`,
+  ]);
+
+  logAdminContent("cache_purge", {
+    endpoint: "/api/admin/content/:id/cache-purge",
+    method: request.method,
+    userId: adminContext.userId,
+    isAdmin: adminContext.isAdmin,
+    contentId: item.id,
+    slug: item.slug,
+    status: purge.status,
+    ok: purge.ok,
+  });
+
+  return json({ ok: true, item, purge });
+}
+
 async function handleContentDiag(request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
   const dbConn = await connectDb(env);
 
   const collections = await dbConn.db.listCollections({}, { nameOnly: true }).toArray();
   const names = new Set(collections.map((item) => String(item?.name || "")));
+  const origin = resolvePublicOrigin(request, env);
+  const now = new Date();
 
-  const [allContent, fortuneInsights, published, draft, archived] = await Promise.all([
+  const [
+    allContent,
+    fortuneInsights,
+    published,
+    draft,
+    scheduled,
+    scheduledReady,
+    archived,
+    missingSlug,
+    publishedMissingMetaDescription,
+    publishedMissingFeaturedImage,
+    publishedNoIndex,
+    dynamicSitemap,
+    dynamicRss,
+    dynamicInsightsRss,
+  ] = await Promise.all([
     Insight.countDocuments({}),
     Insight.countDocuments({
       $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
     }),
     Insight.countDocuments({ status: "published" }),
     Insight.countDocuments({ status: "draft" }),
+    Insight.countDocuments({ status: "scheduled" }),
+    Insight.countDocuments({ status: "scheduled", publishedAt: { $lte: now } }),
     Insight.countDocuments({ status: { $in: ["archived", "private", "trash"] } }),
+    Insight.countDocuments({ $or: [{ slug: "" }, { slug: { $exists: false } }] }),
+    Insight.countDocuments({
+      status: "published",
+      $and: [
+        { $or: [{ "seo.metaDescription": "" }, { "seo.metaDescription": { $exists: false } }] },
+        { $or: [{ metaDescription: "" }, { metaDescription: { $exists: false } }] },
+      ],
+    }),
+    Insight.countDocuments({
+      status: "published",
+      $and: [
+        { $or: [{ "featuredImage.url": "" }, { "featuredImage.url": { $exists: false } }] },
+        { $or: [{ thumbnailUrl: "" }, { thumbnailUrl: { $exists: false } }] },
+      ],
+    }),
+    Insight.countDocuments({
+      status: "published",
+      $or: [
+        { noIndex: true },
+        { "seo.noIndex": true },
+      ],
+    }),
+    fetchContentFeedHeaderStatus(`${origin}/sitemap.xml`),
+    fetchContentFeedHeaderStatus(`${origin}/rss.xml`),
+    fetchContentFeedHeaderStatus(`${origin}/insights/rss.xml`),
   ]);
 
   logAdminContent("diag_success", {
@@ -1452,7 +2089,18 @@ async function handleContentDiag(request, env) {
       fortuneInsights,
       published,
       draft,
+      scheduled,
+      scheduledReady,
       archived,
+      missingSlug,
+      publishedMissingMetaDescription,
+      publishedMissingFeaturedImage,
+      publishedNoIndex,
+    },
+    dynamicFeeds: {
+      sitemap: dynamicSitemap,
+      rss: dynamicRss,
+      insightsRss: dynamicInsightsRss,
     },
   });
 }
@@ -1781,6 +2429,26 @@ export async function handleAdminRoutes(request, env) {
 
     if (/^\/content\/by-slug\/[^/]+$/i.test(path)) {
       if (method === "GET") return await handleContentGetBySlug(path, request, env);
+      return methodNotAllowed();
+    }
+
+    if (/^\/content\/[^/]+\/publish-status$/i.test(path)) {
+      if (method === "GET" || method === "POST") return await handleContentPublishStatus(path, request, env);
+      return methodNotAllowed();
+    }
+
+    if (/^\/content\/[^/]+\/cache-purge$/i.test(path)) {
+      if (method === "POST") return await handleContentCachePurge(path, request, env);
+      return methodNotAllowed();
+    }
+
+    if (/^\/content\/[^/]+\/revisions$/i.test(path)) {
+      if (method === "GET") return await handleContentRevisions(path, request, env);
+      return methodNotAllowed();
+    }
+
+    if (/^\/content\/[^/]+\/restore$/i.test(path)) {
+      if (method === "POST") return await handleContentRestore(path, request, env);
       return methodNotAllowed();
     }
 

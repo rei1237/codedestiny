@@ -278,11 +278,9 @@ async function consumeAnalyzeCoins(request, env) {
   const authHeader = pickHeader(request.headers, "Authorization");
   const cookieHeader = pickHeader(request.headers, "Cookie");
   const adminHeader = pickHeader(request.headers, "x-admin-token");
-  const adminTierHeader = pickHeader(request.headers, "x-admin-subscription-tier");
   if (authHeader) headers.set("Authorization", authHeader);
   if (cookieHeader) headers.set("Cookie", cookieHeader);
   if (adminHeader) headers.set("x-admin-token", adminHeader);
-  if (adminTierHeader) headers.set("x-admin-subscription-tier", adminTierHeader);
 
   const delegatedRequest = new Request(consumeUrl, {
     method: "POST",

@@ -46,14 +46,15 @@ const cases = [
     ],
   },
   {
-    name: "extra profile add uses slot limit, not content pass coin limit",
+    name: "profile create follows active subscription slot policy",
     includes: [
       ["policy", "resolveProfileCardActionAccess"],
+      ["policy", "PROFILE_SUBSCRIPTION_INACTIVE"],
       ["policy", "PROFILE_CARD_SLOT_AVAILABLE"],
-      ["policy", "PROFILE_CARD_ADD_EXTRA_PAYMENT_REQUIRED"],
+      ["policy", "PROFILE_CARD_CREATE_PAYMENT_REQUIRED"],
       ["profileRoute", "const createPolicy = await resolveProfileCardActionAccess"],
-      ["mePage", "const canCreateWithinProfileLimit"],
-      ["mePage", "const createRequiresProfileActionPayment"],
+      ["mePage", "const canCreateWithinProfileLimit = subscription.isActive &&"],
+      ["mePage", "const createRequiresProfileActionPayment = !canCreateWithinProfileLimit && !isProfileActionPaymentBypass"],
     ],
     excludes: [
       ["mePage", "runProfileActionPassGate"],

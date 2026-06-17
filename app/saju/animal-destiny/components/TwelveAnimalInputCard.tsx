@@ -1,6 +1,7 @@
 "use client";
 
 import type { AnimalDestinyInput } from "../lib/types";
+import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 
 type Props = {
   input: AnimalDestinyInput;
@@ -66,9 +67,13 @@ export default function TwelveAnimalInputCard({ input, onChange, onSubmit, isBus
         <label className="space-y-2 text-sm font-bold text-[#2b5376]">
           출생일 <span className="text-rose-600">*</span>
           <input
-            type="date"
-            value={input.birthDate}
-            onChange={(e) => onChange({ birthDate: e.target.value })}
+            type="text"
+            inputMode="numeric"
+            maxLength={8}
+            pattern="[0-9]{8}"
+            placeholder="YYYYMMDD"
+            value={formatBirthDateDigits(input.birthDate)}
+            onChange={(e) => onChange({ birthDate: normalizeBirthDateFromDigits(e.target.value) })}
             className="min-h-[46px] w-full rounded-2xl border border-[#bfd8eb] bg-white px-4 py-3 text-base text-[#315c7f] focus:border-[#4f8fbe] focus:outline-none"
           />
         </label>

@@ -21,72 +21,12 @@ export const PREMIUM_UNLOCK_POLICY = Object.freeze({
   fptiPremium: ["premium-fpti-report"],
 });
 
-const ADMIN_TEST_USER_ID = "flower-admin";
-
 function uniqueStrings(values) {
   return Array.from(new Set(
     (Array.isArray(values) ? values : [])
       .map((value) => String(value || "").trim())
       .filter(Boolean),
   ));
-}
-
-function isAdminTestAccessValue(value) {
-  const normalized = String(value || "").trim().toLowerCase();
-  return normalized === "admin_test"
-    || normalized === "admin_bypass"
-    || normalized === "admin-test"
-    || normalized === "admin-bypass";
-}
-
-function hasAdminTestAccessContext(requestBody = {}) {
-  const payment = requestBody && typeof requestBody.payment === "object" ? requestBody.payment : {};
-  const paymentContext = requestBody && typeof requestBody._paymentContext === "object" ? requestBody._paymentContext : {};
-  const legacyPaymentContext = requestBody && typeof requestBody.paymentContext === "object" ? requestBody.paymentContext : {};
-  const consume = requestBody && typeof requestBody.consume === "object" ? requestBody.consume : {};
-  const grant = requestBody && typeof requestBody.accessGrant === "object"
-    ? requestBody.accessGrant
-    : (payment.accessGrant && typeof payment.accessGrant === "object"
-      ? payment.accessGrant
-      : (paymentContext.accessGrant && typeof paymentContext.accessGrant === "object"
-        ? paymentContext.accessGrant
-        : (legacyPaymentContext.accessGrant && typeof legacyPaymentContext.accessGrant === "object"
-          ? legacyPaymentContext.accessGrant
-          : (consume.accessGrant && typeof consume.accessGrant === "object" ? consume.accessGrant : {}))));
-
-  if (
-    requestBody.adminTestMode === true
-    || requestBody.adminBypass === true
-    || payment.adminTestMode === true
-    || payment.adminBypass === true
-    || paymentContext.adminTestMode === true
-    || paymentContext.adminBypass === true
-    || legacyPaymentContext.adminTestMode === true
-    || legacyPaymentContext.adminBypass === true
-    || consume.adminTestMode === true
-    || consume.adminBypass === true
-    || grant.adminTestMode === true
-    || grant.adminBypass === true
-  ) {
-    return true;
-  }
-
-  return [
-    requestBody.paymentMode,
-    requestBody.accessMode,
-    payment.paymentMode,
-    payment.accessMode,
-    paymentContext.paymentMode,
-    paymentContext.accessMode,
-    legacyPaymentContext.paymentMode,
-    legacyPaymentContext.accessMode,
-    consume.paymentMode,
-    consume.accessMode,
-    grant.paymentMode,
-    grant.accessMode,
-    grant.accessType,
-    grant.accessMethod,
-  ].some(isAdminTestAccessValue);
 }
 
 function extractPaidContentProfileId(source = {}) {
@@ -1116,55 +1056,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     || consume?._premiumAccessToken
     || "",
   ).trim();
-  const isAdminTestUser = String(userId || "").trim() === ADMIN_TEST_USER_ID;
-  const hasRequestedAdminBypass = hasAdminTestAccessContext(requestBody);
-  const hasAccessPolicy = Boolean(normalizedReportType && (unlockPolicy.length || alternativeRules.length || requiredRules.length));
   const requiresContextBoundPaymentEvidence = requiresContextBoundPremiumPaymentEvidence(normalizedReportType);
-
-  if (isAdminTestUser && hasAccessPolicy) {
-    const allowed = {
-      ok: true,
-      accessType: hasRequestedAdminBypass ? "admin_test" : "admin_test_auth",
-      accessMethod: "ADMIN_TEST",
-      paymentMode: "admin_bypass",
-      reportType: normalizedReportType,
-      featureKey: receivedFeatureKey,
-      chargedCoins: 0,
-      adminTestMode: true,
-      adminBypass: true,
-    };
-    logPremiumAccessDecision({
-      route: requestBody?._accessRoute,
-      userId,
-      reportType: normalizedReportType,
-      featureKey: receivedFeatureKey,
-      accessSource: "admin_test",
-    });
-    logSajuAccessResolved(allowed);
-    return allowed;
-  }
-
-  if (hasRequestedAdminBypass) {
-    const denied = {
-      ok: false,
-      status: 403,
-      code: "ADMIN_VERIFICATION_FAILED",
-      message: "관리자 테스트 권한을 확인할 수 없습니다.",
-      reportType: normalizedReportType,
-      featureKey: receivedFeatureKey,
-      reason: "ADMIN_BYPASS_REQUIRES_SERVER_VERIFIED_ADMIN",
-    };
-    logPremiumAccessDecision({
-      route: requestBody?._accessRoute,
-      userId,
-      reportType: normalizedReportType,
-      featureKey: receivedFeatureKey,
-      accessSource: "admin_test_denied",
-      deniedReason: denied.reason,
-    });
-    logSajuAccessResolved(denied);
-    return denied;
-  }
 
   if (normalizedReportType === "sajuNewYear") {
     const expectedFeatureKey = String((requiredRules[0] && requiredRules[0].featureKey) || (alternativeRules[0] && alternativeRules[0].featureKey) || "saju_new_year_pdf");
@@ -1187,31 +1079,6 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
       userId: String(userId || ""),
       reportType: normalizedReportType,
     });
-    if (isAdminTestUser && hasAccessPolicy && tokenCheck.ok) {
-      const tokenPayload = tokenCheck.payload || {};
-      const allowed = {
-        ok: true,
-        accessType: "admin_test_token",
-        accessMethod: "ADMIN_TEST",
-        paymentMode: "admin_bypass",
-        reportType: normalizedReportType,
-        matchedTransactionId: String(tokenPayload.transactionId || requestBody?.sourceTransactionId || requestBody?.transactionId || "").trim(),
-        featureKey: String(tokenPayload.featureKey || receivedFeatureKey || "").trim(),
-        chargedCoins: 0,
-        adminTestMode: true,
-        adminBypass: true,
-      };
-      logPremiumAccessDecision({
-        route: requestBody?._accessRoute,
-        userId,
-        reportType: normalizedReportType,
-        featureKey: allowed.featureKey,
-        accessSource: "admin_test_token",
-        matchedTransactionId: allowed.matchedTransactionId,
-      });
-      logSajuAccessResolved(allowed);
-      return allowed;
-    }
     const tokenBindingOk = requiresContextBoundPaymentEvidence
       ? premiumTokenMatchesRequestBinding(tokenCheck.payload, accessBinding)
       : true;

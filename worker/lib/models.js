@@ -562,6 +562,8 @@ const insightSchema = new mongoose.Schema({
   contentFormat: { type: String, default: "html", trim: true },
   contentHtml: { type: String, default: "" },
   contentJson: { type: mongoose.Schema.Types.Mixed, default: {} },
+  revision: { type: Number, default: 1, min: 1 },
+  revisionHistory: { type: [mongoose.Schema.Types.Mixed], default: [] },
 
   featuredImage: { type: insightFeaturedImageSchema, default: () => ({}) },
   thumbnailUrl: { type: String, default: "", trim: true },
@@ -590,7 +592,7 @@ const insightSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["draft", "published", "archived", "private", "trash"],
+    enum: ["draft", "scheduled", "published", "archived", "private", "trash"],
     default: "draft",
     required: true,
   },

@@ -1,6 +1,7 @@
 "use client";
 
 import type { FptiFormInput } from "@/lib/fpti/fpti-types";
+import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import styles from "./FptiCosmic.module.css";
 
 type Props = {
@@ -73,9 +74,13 @@ export default function FptiInputForm({ value, onChange, onSubmit, busy, autoRea
         <label className="text-sm">
           <span className="mb-1 block text-[#dbe5ff]">생년월일</span>
           <input
-            type="date"
-            value={value.birthDate}
-            onChange={(e) => update("birthDate", e.target.value)}
+            type="text"
+            inputMode="numeric"
+            maxLength={8}
+            pattern="[0-9]{8}"
+            placeholder="YYYYMMDD"
+            value={formatBirthDateDigits(value.birthDate)}
+            onChange={(e) => update("birthDate", normalizeBirthDateFromDigits(e.target.value))}
             className={fieldClass}
           />
         </label>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getApiBaseUrl } from "../../_lib/api-config";
 
-type InsightStatus = "draft" | "published" | "archived" | "private" | "trash";
+type InsightStatus = "draft" | "scheduled" | "published" | "archived" | "private" | "trash";
 type FilterKey = "all" | InsightStatus;
 type SortKey = "latest" | "updated" | "views";
 type ContentType = "all" | "fortune_insight" | "saju" | "tarot" | "astrology" | "jamidusu" | "sookyo" | "vedic" | "palmistry" | "physiognomy" | "notice" | "landing" | "seo_page" | "general";
@@ -25,6 +25,40 @@ type InsightItem = {
   publishedAt?: string | null;
 };
 
+type PublicationCheck = {
+  ok: boolean;
+  dbReady?: boolean;
+  publicUrl?: string;
+  apiStatus?: { status?: number; ok?: boolean };
+  pageStatus?: { status?: number; ok?: boolean };
+  pageMeta?: {
+    hasTitle?: boolean;
+    hasDescription?: boolean;
+    canonicalMatches?: boolean;
+    noIndex?: boolean;
+  } | null;
+  feedCoverage?: Record<string, { containsSlug?: boolean; status?: number; url?: string }> | null;
+  purgeStatus?: string;
+};
+
+type ContentDiag = {
+  dbConnected?: boolean;
+  counts?: {
+    allContent?: number;
+    fortuneInsights?: number;
+    published?: number;
+    draft?: number;
+    scheduled?: number;
+    scheduledReady?: number;
+    archived?: number;
+    missingSlug?: number;
+    publishedMissingMetaDescription?: number;
+    publishedMissingFeaturedImage?: number;
+    publishedNoIndex?: number;
+  };
+  dynamicFeeds?: Record<string, { ok?: boolean; status?: number; merged?: boolean; error?: string; url?: string }>;
+};
+
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 
 function getFlowerAdminTokenClient(): string {
@@ -33,12 +67,12 @@ function getFlowerAdminTokenClient(): string {
   try {
     const fromSession = String(sessionStorage.getItem("flower_admin_token") || "").trim();
     if (FLOWER_ADMIN_TOKEN_RE.test(fromSession)) return fromSession;
-  } catch (e) {}
+  } catch {}
 
   try {
     const fromLocal = String(localStorage.getItem("flower_admin_token") || "").trim();
     if (FLOWER_ADMIN_TOKEN_RE.test(fromLocal)) return fromLocal;
-  } catch (e) {}
+  } catch {}
 
   return "";
 }
@@ -58,7 +92,7 @@ function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
 
   try {
     return new URL(base).origin === window.location.origin ? "include" : "omit";
-  } catch (e) {
+  } catch {
     return "include";
   }
 }
@@ -66,6 +100,7 @@ function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
 const FILTER_OPTIONS: Array<{ key: FilterKey; label: string }> = [
   { key: "all", label: "전체" },
   { key: "draft", label: "임시저장" },
+  { key: "scheduled", label: "예약됨" },
   { key: "published", label: "발행됨" },
   { key: "archived", label: "보관" },
   { key: "private", label: "비공개(레거시)" },
@@ -104,6 +139,7 @@ function formatDate(value?: string | null) {
 
 function statusLabel(status: InsightStatus) {
   if (status === "draft") return "임시저장";
+  if (status === "scheduled") return "예약됨";
   if (status === "published") return "발행됨";
   if (status === "archived") return "보관됨";
   if (status === "private") return "비공개";
@@ -112,10 +148,21 @@ function statusLabel(status: InsightStatus) {
 
 function statusBadgeClass(status: InsightStatus) {
   if (status === "published") return "bg-emerald-900/50 text-emerald-200 border-emerald-700";
+  if (status === "scheduled") return "bg-blue-900/50 text-blue-200 border-blue-700";
   if (status === "archived") return "bg-orange-900/40 text-orange-200 border-orange-700";
   if (status === "private") return "bg-amber-900/40 text-amber-200 border-amber-700";
   if (status === "trash") return "bg-rose-900/40 text-rose-200 border-rose-700";
   return "bg-slate-800 text-slate-200 border-slate-700";
+}
+
+function countText(value?: number) {
+  return Number(value || 0).toLocaleString("ko-KR");
+}
+
+function feedStatusText(feed?: { ok?: boolean; status?: number; merged?: boolean }) {
+  if (!feed) return "미확인";
+  if (!feed.ok) return `오류 ${feed.status || "-"}`;
+  return feed.merged ? "동적 반영" : "정적 응답";
 }
 
 export default function AdminInsightsPage() {
@@ -134,6 +181,21 @@ export default function AdminInsightsPage() {
   const [error, setError] = useState("");
   const [forbidden, setForbidden] = useState(false);
   const [busyId, setBusyId] = useState("");
+  const [publicationChecks, setPublicationChecks] = useState<Record<string, PublicationCheck>>({});
+  const [diag, setDiag] = useState<ContentDiag | null>(null);
+
+  async function loadDiag() {
+    try {
+      const res = await fetch(`${endpointBase}/diag`, {
+        method: "GET",
+        credentials: requestCredentials,
+        headers: buildAdminHeaders(),
+        cache: "no-store",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) setDiag(data as ContentDiag);
+    } catch {}
+  }
 
   async function loadList() {
     setLoading(true);
@@ -168,7 +230,8 @@ export default function AdminInsightsPage() {
 
       setForbidden(false);
       setItems(Array.isArray(data?.items) ? data.items : []);
-    } catch (e) {
+      void loadDiag();
+    } catch {
       setError("네트워크 오류로 목록을 불러오지 못했습니다.");
       setItems([]);
     } finally {
@@ -224,6 +287,58 @@ export default function AdminInsightsPage() {
     }
   }
 
+  async function checkPublication(id: string) {
+    setBusyId(id);
+    setError("");
+    try {
+      const res = await fetch(`${endpointBase}/${encodeURIComponent(id)}/publish-status`, {
+        method: "GET",
+        credentials: requestCredentials,
+        headers: buildAdminHeaders(),
+        cache: "no-store",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(String(data?.message || "공개 상태 확인에 실패했습니다."));
+        return;
+      }
+      setPublicationChecks((prev) => ({
+        ...prev,
+        [id]: data?.publication || { ok: false },
+      }));
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function purgeContentCache(id: string) {
+    setBusyId(id);
+    setError("");
+    try {
+      const res = await fetch(`${endpointBase}/${encodeURIComponent(id)}/cache-purge`, {
+        method: "POST",
+        credentials: requestCredentials,
+        headers: buildAdminHeaders({ "Content-Type": "application/json" }),
+        cache: "no-store",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(String(data?.message || "캐시 갱신 요청에 실패했습니다."));
+        return;
+      }
+      setPublicationChecks((prev) => ({
+        ...prev,
+        [id]: {
+          ...(prev[id] || { ok: false }),
+          publicUrl: data?.purge?.files?.[0] || prev[id]?.publicUrl || "",
+          purgeStatus: String(data?.purge?.status || "requested"),
+        },
+      }));
+    } finally {
+      setBusyId("");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#0d0d1a] text-slate-100 px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto max-w-7xl space-y-4">
@@ -240,6 +355,64 @@ export default function AdminInsightsPage() {
             새 글 작성
           </button>
         </header>
+
+        {diag ? (
+          <section className="rounded-2xl border border-[#2a2a3e] bg-[#13131f] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="text-base font-semibold">콘텐츠 운영 상태</h2>
+                <p className="mt-1 text-xs text-slate-400">발행, 예약, SEO, sitemap/RSS 반영 상태</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { void loadDiag(); }}
+                className="rounded-lg bg-slate-700 px-3 py-2 text-xs hover:bg-slate-600"
+              >
+                상태 새로고침
+              </button>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8">
+              <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+                <p className="text-xs text-slate-400">DB</p>
+                <p className={diag.dbConnected ? "mt-1 text-sm font-semibold text-emerald-300" : "mt-1 text-sm font-semibold text-rose-300"}>{diag.dbConnected ? "연결됨" : "확인 필요"}</p>
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+                <p className="text-xs text-slate-400">전체</p>
+                <p className="mt-1 text-lg font-semibold">{countText(diag.counts?.allContent)}</p>
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+                <p className="text-xs text-slate-400">발행</p>
+                <p className="mt-1 text-lg font-semibold text-emerald-300">{countText(diag.counts?.published)}</p>
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+                <p className="text-xs text-slate-400">임시저장</p>
+                <p className="mt-1 text-lg font-semibold">{countText(diag.counts?.draft)}</p>
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+                <p className="text-xs text-slate-400">예약</p>
+                <p className="mt-1 text-lg font-semibold text-blue-300">{countText(diag.counts?.scheduled)}</p>
+                {Number(diag.counts?.scheduledReady || 0) > 0 ? <p className="mt-1 text-[11px] text-amber-300">발행 시각 도달 {countText(diag.counts?.scheduledReady)}</p> : null}
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+                <p className="text-xs text-slate-400">메타 누락</p>
+                <p className={Number(diag.counts?.publishedMissingMetaDescription || 0) > 0 ? "mt-1 text-lg font-semibold text-amber-300" : "mt-1 text-lg font-semibold text-emerald-300"}>{countText(diag.counts?.publishedMissingMetaDescription)}</p>
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+                <p className="text-xs text-slate-400">이미지 누락</p>
+                <p className={Number(diag.counts?.publishedMissingFeaturedImage || 0) > 0 ? "mt-1 text-lg font-semibold text-amber-300" : "mt-1 text-lg font-semibold text-emerald-300"}>{countText(diag.counts?.publishedMissingFeaturedImage)}</p>
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+                <p className="text-xs text-slate-400">noindex 발행</p>
+                <p className={Number(diag.counts?.publishedNoIndex || 0) > 0 ? "mt-1 text-lg font-semibold text-rose-300" : "mt-1 text-lg font-semibold text-emerald-300"}>{countText(diag.counts?.publishedNoIndex)}</p>
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-3">
+              <p className="rounded-lg border border-slate-800 bg-slate-900/50 px-3 py-2 text-xs">sitemap: {feedStatusText(diag.dynamicFeeds?.sitemap)}</p>
+              <p className="rounded-lg border border-slate-800 bg-slate-900/50 px-3 py-2 text-xs">RSS: {feedStatusText(diag.dynamicFeeds?.rss)}</p>
+              <p className="rounded-lg border border-slate-800 bg-slate-900/50 px-3 py-2 text-xs">insights RSS: {feedStatusText(diag.dynamicFeeds?.insightsRss)}</p>
+            </div>
+          </section>
+        ) : null}
 
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <aside className="lg:col-span-3 rounded-2xl border border-[#2a2a3e] bg-[#13131f] p-3">
@@ -389,7 +562,16 @@ export default function AdminInsightsPage() {
                               <button type="button" disabled={busyId === item._id || item.status === "draft"} className="rounded bg-slate-700 hover:bg-slate-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "draft")}>임시저장</button>
                               <button type="button" disabled={busyId === item._id || item.status === "published"} className="rounded bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "published")}>발행</button>
                               <button type="button" disabled={busyId === item._id || item.status === "trash"} className="rounded bg-rose-700 hover:bg-rose-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => moveToTrash(item._id)}>보관</button>
+                              <button type="button" disabled={busyId === item._id} className="rounded bg-blue-700 hover:bg-blue-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => checkPublication(item._id)}>공개확인</button>
+                              <button type="button" disabled={busyId === item._id} className="rounded bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => purgeContentCache(item._id)}>캐시갱신</button>
                             </div>
+                            {publicationChecks[item._id] ? (
+                              <p className={`mt-1 text-[11px] ${publicationChecks[item._id].ok ? "text-emerald-300" : "text-amber-300"}`}>
+                                공개 {publicationChecks[item._id].ok ? "OK" : "확인 필요"} · API {publicationChecks[item._id].apiStatus?.status || "-"} · 페이지 {publicationChecks[item._id].pageStatus?.status || "-"} · 캐시 {publicationChecks[item._id].purgeStatus || "-"}
+                                <br />
+                                메타 {publicationChecks[item._id].pageMeta?.hasTitle && publicationChecks[item._id].pageMeta?.hasDescription ? "OK" : "확인 필요"} · canonical {publicationChecks[item._id].pageMeta?.canonicalMatches ? "OK" : "확인 필요"} · sitemap {publicationChecks[item._id].feedCoverage?.sitemap?.containsSlug ? "포함" : "미포함"} · RSS {publicationChecks[item._id].feedCoverage?.rss?.containsSlug ? "포함" : "미포함"}
+                              </p>
+                            ) : null}
                           </td>
                         </tr>
                       ))}
@@ -421,7 +603,16 @@ export default function AdminInsightsPage() {
                         <button type="button" disabled={busyId === item._id || item.status === "draft"} className="rounded bg-slate-700 hover:bg-slate-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "draft")}>임시저장</button>
                         <button type="button" disabled={busyId === item._id || item.status === "published"} className="rounded bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "published")}>발행</button>
                         <button type="button" disabled={busyId === item._id || item.status === "trash"} className="rounded bg-rose-700 hover:bg-rose-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => moveToTrash(item._id)}>보관</button>
+                        <button type="button" disabled={busyId === item._id} className="rounded bg-blue-700 hover:bg-blue-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => checkPublication(item._id)}>공개확인</button>
+                        <button type="button" disabled={busyId === item._id} className="rounded bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => purgeContentCache(item._id)}>캐시갱신</button>
                       </div>
+                      {publicationChecks[item._id] ? (
+                        <p className={`text-[11px] ${publicationChecks[item._id].ok ? "text-emerald-300" : "text-amber-300"}`}>
+                          공개 {publicationChecks[item._id].ok ? "OK" : "확인 필요"} · API {publicationChecks[item._id].apiStatus?.status || "-"} · 페이지 {publicationChecks[item._id].pageStatus?.status || "-"} · 캐시 {publicationChecks[item._id].purgeStatus || "-"}
+                          <br />
+                          메타 {publicationChecks[item._id].pageMeta?.hasTitle && publicationChecks[item._id].pageMeta?.hasDescription ? "OK" : "확인 필요"} · canonical {publicationChecks[item._id].pageMeta?.canonicalMatches ? "OK" : "확인 필요"} · sitemap {publicationChecks[item._id].feedCoverage?.sitemap?.containsSlug ? "포함" : "미포함"} · RSS {publicationChecks[item._id].feedCoverage?.rss?.containsSlug ? "포함" : "미포함"}
+                        </p>
+                      ) : null}
                     </article>
                   ))}
                 </div>

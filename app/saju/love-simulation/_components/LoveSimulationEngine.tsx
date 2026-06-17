@@ -7,6 +7,7 @@ import { INITIAL_STATS, LOVE_CHARACTERS, LOVE_SCENES, type CharacterId, type Cho
 import { fetchSajuPillar } from "../_services/sajuApi";
 import { applyEffects, getRelationshipMetrics, resolveResult } from "../_utils/loveCodeScoring";
 import { buildSajuCoupleCompatibility, matchLoveCharactersFromSaju, type LoveCharacterMatchResult, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
+import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 
 const LoveCharacterStorySection = lazy(() => import("./LoveCharacterStorySection"));
 
@@ -1563,15 +1564,18 @@ export const LoveSimulationEngine: React.FC = () => {
                   <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerBirthDate">생년월일</label>
                   <input
                     className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-5 text-sm font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
-                    type="date"
+                    type="text"
                     id="lovePartnerBirthDate"
                     name="partnerBirthDate"
                     aria-label="생년월일"
                     autoComplete="bday"
                     inputMode="numeric"
+                    maxLength={8}
+                    pattern="[0-9]{8}"
+                    placeholder="YYYYMMDD"
                     required
-                    value={partnerBirthDate}
-                    onChange={(event) => setPartnerBirthDate(event.target.value)}
+                    value={formatBirthDateDigits(partnerBirthDate)}
+                    onChange={(event) => setPartnerBirthDate(normalizeBirthDateFromDigits(event.target.value))}
                   />
                   <div className="mt-3 grid gap-2 text-sm font-bold text-white/82 sm:grid-cols-3">
                     {[

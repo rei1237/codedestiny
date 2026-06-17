@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { AnimalDestinyData, AnimalDestinyInput, PartnerResult } from "@/app/saju/animal-destiny/lib/types";
+import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 
 type Props = {
   animal: AnimalDestinyData;
@@ -91,9 +92,13 @@ export default function AnimalCompatibilityPanel({
         <label className="space-y-1">
           <span className="text-xs font-bold text-[#6b3f1d]">생년월일</span>
           <input
-            type="date"
-            value={input.birthDate}
-            onChange={(e) => setInput((prev) => ({ ...prev, birthDate: e.target.value }))}
+            type="text"
+            inputMode="numeric"
+            maxLength={8}
+            pattern="[0-9]{8}"
+            placeholder="YYYYMMDD"
+            value={formatBirthDateDigits(input.birthDate)}
+            onChange={(e) => setInput((prev) => ({ ...prev, birthDate: normalizeBirthDateFromDigits(e.target.value) }))}
             className="min-h-[44px] w-full rounded-xl border border-[#dcc39b] bg-white px-3 py-2 text-sm outline-none focus:border-[#8a5a2b]"
           />
         </label>

@@ -37,6 +37,56 @@
 
   function _qs(id) { return document.getElementById(id); }
   function _clean(value) { return String(value || '').trim(); }
+  function _normalizeBirthDateInput(value) {
+    var raw = _clean(value);
+    if (!raw) return '';
+    var digits = raw.replace(/\D/g, '');
+    if (digits.length === 8) {
+      var y = Number(digits.slice(0, 4));
+      var m = Number(digits.slice(4, 6));
+      var d = Number(digits.slice(6, 8));
+      var check = new Date(Date.UTC(y, m - 1, d));
+      if (
+        check.getUTCFullYear() === y &&
+        check.getUTCMonth() === m - 1 &&
+        check.getUTCDate() === d
+      ) {
+        return String(y).padStart(4, '0') + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      }
+      return '';
+    }
+    var match = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (!match) return '';
+    return _normalizeBirthDateInput(match[1] + String(match[2]).padStart(2, '0') + String(match[3]).padStart(2, '0'));
+  }
+  function _birthDateDigits(value) {
+    var iso = _normalizeBirthDateInput(value);
+    return iso ? iso.replace(/\D/g, '') : _clean(value).replace(/\D/g, '').slice(0, 8);
+  }
+  function _installBirthDateDigitInputs(root) {
+    try {
+      var scope = root || document;
+      Array.prototype.forEach.call(scope.querySelectorAll('#skSelfBirthDate, #skPartnerBirthDate'), function (el) {
+        if (!el || el.__skBirthDateDigitsBound) return;
+        el.__skBirthDateDigitsBound = true;
+        el.setAttribute('inputmode', 'numeric');
+        el.setAttribute('maxlength', '8');
+        el.addEventListener('input', function () {
+          var next = _clean(el.value).replace(/\D/g, '').slice(0, 8);
+          if (el.value !== next) el.value = next;
+        });
+        el.addEventListener('blur', function () {
+          el.value = _birthDateDigits(el.value);
+        });
+        el.value = _birthDateDigits(el.value);
+      });
+    } catch (_) {}
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { _installBirthDateDigitInputs(document); });
+  } else {
+    _installBirthDateDigitInputs(document);
+  }
   function _num(value, fallback) { var n = Number(value); return Number.isFinite(n) ? n : fallback; }
   function _resolveSukuyoCoinCost() {
     var card = document.querySelector('[data-action="gotoSukuyoPremium"][data-coin-cost]');
@@ -475,7 +525,8 @@
       var femaleEl = _qs('genderFemale');
       var maleEl = _qs('genderMale');
       if (!birthDateEl || !birthDateEl.value) return null;
-      var parts = birthDateEl.value.split('-');
+      var normalizedDate = _normalizeBirthDateInput(birthDateEl.value);
+      var parts = normalizedDate ? normalizedDate.split('-') : [];
       var year = _num(parts[0], NaN);
       var month = _num(parts[1], NaN);
       var day = _num(parts[2], NaN);
@@ -511,7 +562,8 @@
       var birthDateEl = _qs('skSelfBirthDate');
       if (!birthDateEl || !birthDateEl.value) return null;
 
-      var parts = birthDateEl.value.split('-');
+      var normalizedDate = _normalizeBirthDateInput(birthDateEl.value);
+      var parts = normalizedDate ? normalizedDate.split('-') : [];
       var year = _num(parts[0], NaN);
       var month = _num(parts[1], NaN);
       var day = _num(parts[2], NaN);
@@ -617,7 +669,7 @@
     var minute = _num(birth.minute, 0);
     if (nameEl && !_clean(nameEl.value)) nameEl.value = _clean(profile.name) || '사용자';
     if (dateEl && Number.isFinite(y) && Number.isFinite(m) && Number.isFinite(d)) {
-      dateEl.value = [String(y).padStart(4, '0'), String(m).padStart(2, '0'), String(d).padStart(2, '0')].join('-');
+      dateEl.value = [String(y).padStart(4, '0'), String(m).padStart(2, '0'), String(d).padStart(2, '0')].join('');
     }
     Array.prototype.forEach.call(document.querySelectorAll('input[name="skSelfCalType"]'), function (input) {
       input.checked = _normalizeCalendarType(input.value) === calendarType;
@@ -647,7 +699,7 @@
   }
 
   function _parseDateParts(raw) {
-    var value = _clean(raw);
+    var value = _normalizeBirthDateInput(raw);
     var match = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
     if (!match) return null;
     var y = Number(match[1]);
@@ -751,7 +803,7 @@
     var birthTimeTextEl = _qs('skPartnerBirthTimeText');
     var timeUnknownEl = _qs('skPartnerTimeUnknown');
 
-    var birthDate = _clean(birthDateEl && birthDateEl.value);
+    var birthDate = _normalizeBirthDateInput(birthDateEl && birthDateEl.value);
     var isTimeUnknownChecked = !!(timeUnknownEl && timeUnknownEl.checked);
 
     var freeText = _clean(birthTimeTextEl && birthTimeTextEl.value);

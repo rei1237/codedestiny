@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { formatBirthDateDigits, normalizeBirthDateFromDigits, normalizeBirthDateInput } from "@/lib/birthDateInput";
 import MobileStepFortuneForm from "./MobileStepFortuneForm";
 
 type FormState = {
@@ -56,7 +57,7 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
   const queryString = useMemo(() => {
     const q = new URLSearchParams();
     q.set("name", state.name || "사용자");
-    q.set("birthDate", state.birthDate);
+    q.set("birthDate", normalizeBirthDateInput(state.birthDate));
     q.set("calType", state.calType);
     q.set("birthHour", state.birthHour);
     q.set("birthMinute", state.birthMinute);
@@ -68,7 +69,8 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
   }, [state]);
 
   const handleSubmit = () => {
-    if (!state.name || !state.birthDate) {
+    const normalizedBirthDate = normalizeBirthDateInput(state.birthDate);
+    if (!state.name || !normalizedBirthDate) {
       setError("이름과 생년월일을 먼저 입력해 주세요.");
       return;
     }
@@ -78,7 +80,7 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
     }
 
     setError("");
-    onProfileReady(state);
+    onProfileReady({ ...state, birthDate: normalizedBirthDate });
     router.push(`/?${queryString}`);
   };
 
@@ -114,9 +116,13 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
           <label className="text-xs font-semibold text-violet-900">
             생년월일
             <input
-              type="date"
-              value={state.birthDate}
-              onChange={(e) => setField("birthDate", e.target.value)}
+              type="text"
+              inputMode="numeric"
+              maxLength={8}
+              pattern="[0-9]{8}"
+              placeholder="YYYYMMDD"
+              value={formatBirthDateDigits(state.birthDate)}
+              onChange={(e) => setField("birthDate", normalizeBirthDateFromDigits(e.target.value))}
               className="mt-1.5 w-full rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
             />
           </label>

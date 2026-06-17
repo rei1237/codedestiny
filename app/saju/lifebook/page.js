@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
 import { calculateLocalSaju } from "@/app/saju/animal-destiny/engine/localSajuCalculator";
+import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import LifeFortuneGraph, {
   resolveLifeFortuneCurrentAge,
   resolveLifeFortuneGraphData,
@@ -799,7 +800,7 @@ export default function SajuLifebookPage() {
             </label>
             <label style={{ display: "grid", gap: 6 }}>
               <span>생년월일</span>
-              <input type="date" value={form.birthDate} onChange={(e) => updateField("birthDate", e.target.value)} style={{ borderRadius: 10, border: "1px solid #896744", background: "#16100b", color: "#fff4e5", padding: "10px 12px" }} />
+              <input type="text" inputMode="numeric" maxLength={8} pattern="[0-9]{8}" placeholder="YYYYMMDD" value={formatBirthDateDigits(form.birthDate)} onChange={(e) => updateField("birthDate", normalizeBirthDateFromDigits(e.target.value))} style={{ borderRadius: 10, border: "1px solid #896744", background: "#16100b", color: "#fff4e5", padding: "10px 12px" }} />
             </label>
             <label style={{ display: "grid", gap: 6 }}>
               <span>양력/음력</span>

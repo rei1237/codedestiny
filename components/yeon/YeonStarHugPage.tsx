@@ -13,6 +13,7 @@ import { getTimeThemeByLocalHour, timeThemeMap } from "@/lib/yeon/timeTheme";
 import { generateYeonMessageFromAstrology } from "@/lib/yeon/generateYeonPrompt";
 import type { AstrologyEngineInput, YeonMood, YeonMessageOutput, ZodiacSign } from "@/lib/yeon/types";
 import { readYeonProfileSeed, type YeonProfileSeed } from "@/lib/yeon/profileSeed";
+import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 
 const zodiacElementMap: Record<ZodiacSign, "fire" | "earth" | "air" | "water"> = {
   양자리: "fire",
@@ -240,14 +241,18 @@ export default function YeonStarHugPage() {
             <p className="mb-4 text-xs text-white/80">프로필 카드 생년월일을 우선 사용하고, 필요하면 직접 수정할 수 있어요.</p>
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <input
-                type="date"
-                value={birthDate}
+                type="text"
+                inputMode="numeric"
+                maxLength={8}
+                pattern="[0-9]{8}"
+                placeholder="YYYYMMDD"
+                value={formatBirthDateDigits(birthDate)}
                 onChange={(e) => {
-                  const next = e.target.value;
+                  const next = normalizeBirthDateFromDigits(e.target.value);
                   setBirthDate(next);
                   setBirthDateEdited(true);
                 }}
-                className="min-h-11 flex-1 rounded-xl border border-white/40 bg-white/12 px-3 text-sm text-white outline-none [color-scheme:dark]"
+                className="min-h-11 flex-1 rounded-xl border border-white/40 bg-white/12 px-3 text-sm text-white outline-none"
               />
               <button
                 type="button"

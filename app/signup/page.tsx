@@ -7,6 +7,7 @@ import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
+import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 
 declare global {
   interface Window {
@@ -679,11 +680,15 @@ export default function SignupPage() {
                   <label htmlFor="signup-birth-date" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">BIRTH DATE</label>
                   <input
                     id="signup-birth-date"
-                    type="date"
-                    value={birthDate}
-                    onChange={(event) => setBirthDate(event.target.value)}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={8}
+                    pattern="[0-9]{8}"
+                    placeholder="YYYYMMDD"
+                    value={formatBirthDateDigits(birthDate)}
+                    onChange={(event) => setBirthDate(normalizeBirthDateFromDigits(event.target.value))}
                     disabled={loading || socialLoading !== null}
-                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 [color-scheme:dark] outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
 

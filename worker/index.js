@@ -344,6 +344,7 @@ const handleSukuyoRoutes = createLazyRouteHandler("./routes/sukuyo.js", () => im
 const handleSoulOriginRoutes = createLazyRouteHandler("./routes/soul-origin.js", () => import("./routes/soul-origin.js"), "handleSoulOriginRoutes");
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
 const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
+const handleContentFeedRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentFeedRoutes", "api/content-feed");
 const handlePalmRoutes = createLazyRouteHandler("./routes/palm.js", () => import("./routes/palm.js"), "handlePalmRoutes");
 const handleDestinyBiasRoutes = createLazyRouteHandler("./routes/destiny-bias.js", () => import("./routes/destiny-bias.js"), "handleDestinyBiasRoutes");
 const handleBillingRoutes = createLazyRouteHandler("./routes/billing.js", () => import("./routes/billing.js"), "handleBillingRoutes");
@@ -954,6 +955,10 @@ export default {
 
       if (url.pathname === "/api/content" || url.pathname.startsWith("/api/content/")) {
         return withCorsHeaders(request, env, await handleContentRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/content-feed" || url.pathname.startsWith("/api/content-feed/")) {
+        return withCorsHeaders(request, env, await handleContentFeedRoutes(request, env));
       }
 
       if (url.pathname === "/api/palm" || url.pathname.startsWith("/api/palm/")) {

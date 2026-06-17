@@ -6,6 +6,30 @@
 (function () {
   'use strict';
 
+  function normalizeLsdBirthDate(value) {
+    var raw = String(value || '').trim();
+    if (!raw) return '';
+    var digits = raw.replace(/\D/g, '');
+    if (digits.length === 8) {
+      var y = Number(digits.slice(0, 4));
+      var m = Number(digits.slice(4, 6));
+      var d = Number(digits.slice(6, 8));
+      var check = new Date(Date.UTC(y, m - 1, d));
+      if (check.getUTCFullYear() === y && check.getUTCMonth() === m - 1 && check.getUTCDate() === d) {
+        return String(y).padStart(4, '0') + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      }
+      return '';
+    }
+    var match = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (!match) return '';
+    return normalizeLsdBirthDate(match[1] + String(match[2]).padStart(2, '0') + String(match[3]).padStart(2, '0'));
+  }
+
+  function formatLsdBirthDateDigits(value) {
+    var normalized = normalizeLsdBirthDate(value);
+    return normalized ? normalized.replace(/\D/g, '') : String(value || '').replace(/\D/g, '').slice(0, 8);
+  }
+
   /* ─── 오행 메타 ─────────────────────────────────────────────── */
   var ELEM = {
     wood:  { cn: '목(木)', ko: '木', short: '목', color: '#4ade80', neon: '#22d876', badge: '🌱', lotto: '민트', bg: 'rgba(16,185,129,0.10)' },
@@ -700,7 +724,7 @@
         + '<p class="lsd-mz-title" style="margin-top:0">관계 흐름 메모</p>'
         + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
         + '  <input id="lsdPartnerName" type="text" placeholder="상대 이름" style="flex:1;min-width:120px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
-        + '  <input id="lsdPartnerBirthDate" type="date" style="width:150px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
+        + '  <input id="lsdPartnerBirthDate" type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" style="width:150px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
         + '  <input id="lsdPartnerBirthTime" type="time" value="12:00" style="width:120px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
         + '</div>'
         + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'
@@ -1262,7 +1286,7 @@
     var compatType = document.getElementById('lsdCompatType');
     var partnerYear = document.getElementById('lsdPartnerYear');
     if (partnerName) partnerName.value = entry.partnerName || '';
-    if (partnerDate) partnerDate.value = entry.partnerBirthDate || '';
+    if (partnerDate) partnerDate.value = formatLsdBirthDateDigits(entry.partnerBirthDate || '');
     if (partnerTime) partnerTime.value = entry.partnerBirthTime || '12:00';
     if (partnerCity) partnerCity.value = entry.partnerBirthCity || '서울';
     if (compatType) compatType.value = entry.compatType || 'love';
@@ -4225,7 +4249,7 @@
       var typeEl = document.getElementById('lsdCompatType');
       var yearEl = document.getElementById('lsdPartnerYear');
       e.partnerName = nameEl ? nameEl.value : '';
-      e.partnerBirthDate = birthDateEl ? birthDateEl.value : '';
+      e.partnerBirthDate = birthDateEl ? normalizeLsdBirthDate(birthDateEl.value) : '';
       e.partnerBirthTime = birthTimeEl ? birthTimeEl.value : '12:00';
       e.partnerBirthCity = cityEl ? cityEl.value : '서울';
       e.compatType = typeEl ? typeEl.value : 'love';

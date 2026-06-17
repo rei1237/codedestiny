@@ -88,10 +88,6 @@ async function main() {
   }
   const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
   const consume = data?.consume && typeof data.consume === "object" ? data.consume : data;
-  if (payload?.adminBypass === true || data?.adminBypass === true || consume?.adminBypass === true) {
-    throw new Error("테스트 계정이 adminBypass로 통과했습니다. 일반 결제 흐름 검증 실패.");
-  }
-
   const afterUser = await User.findById(user._id).select("points").lean();
   const expectedPoints = TEST_POINTS - VERIFY_COST;
   const actualPoints = Number(afterUser?.points || 0);

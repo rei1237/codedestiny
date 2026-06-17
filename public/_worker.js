@@ -6,6 +6,7 @@
  */
 
 const DEFAULT_API_WORKER_ORIGIN = "https://code-destiny-web.bulegyung.workers.dev";
+const DYNAMIC_FEED_PATHS = new Set(["/sitemap.xml", "/rss.xml", "/insights/rss.xml"]);
 
 function ensureUtf8Charset(contentType, fallbackType) {
   const value = String(contentType || "").trim();
@@ -85,7 +86,7 @@ function copyRequestHeaders(request) {
   return headers;
 }
 
-async function proxyApiRequest(request, env) {
+async function proxyApiRequest(request, env, pathOverride) {
   const origin = resolveApiWorkerOrigin(env);
   if (!origin) {
     return new Response(
@@ -106,7 +107,7 @@ async function proxyApiRequest(request, env) {
 
   const incomingUrl = new URL(request.url);
   const targetUrl = new URL(origin);
-  targetUrl.pathname = incomingUrl.pathname;
+  targetUrl.pathname = pathOverride || incomingUrl.pathname;
   targetUrl.search = incomingUrl.search;
 
   const method = request.method.toUpperCase();
@@ -130,12 +131,110 @@ async function proxyApiRequest(request, env) {
   });
 }
 
+function extractXmlBlocks(xml, blockName) {
+  const re = new RegExp(`<${blockName}\\b[\\s\\S]*?<\\/${blockName}>`, "gi");
+  return String(xml || "").match(re) || [];
+}
+
+function extractFirstTagText(xml, tagName) {
+  const re = new RegExp(`<${tagName}\\b[^>]*>([\\s\\S]*?)<\\/${tagName}>`, "i");
+  const match = re.exec(String(xml || ""));
+  return match ? String(match[1] || "").trim() : "";
+}
+
+function mergeSitemapXml(staticXml, dynamicXml) {
+  const base = String(staticXml || "");
+  if (!/<\/urlset>/i.test(base)) return dynamicXml;
+
+  const seen = new Set(
+    extractXmlBlocks(base, "url")
+      .map((block) => extractFirstTagText(block, "loc"))
+      .filter(Boolean),
+  );
+  const extraBlocks = extractXmlBlocks(dynamicXml, "url").filter((block) => {
+    const loc = extractFirstTagText(block, "loc");
+    if (!loc || seen.has(loc)) return false;
+    seen.add(loc);
+    return true;
+  });
+
+  if (extraBlocks.length === 0) return base;
+  return base.replace(/<\/urlset>/i, `${extraBlocks.join("\n")}\n</urlset>`);
+}
+
+function mergeRssXml(staticXml, dynamicXml) {
+  const base = String(staticXml || "");
+  if (!/<\/channel>/i.test(base)) return dynamicXml;
+
+  const seen = new Set(
+    extractXmlBlocks(base, "item")
+      .map((block) => extractFirstTagText(block, "guid") || extractFirstTagText(block, "link"))
+      .filter(Boolean),
+  );
+  const extraItems = extractXmlBlocks(dynamicXml, "item").filter((block) => {
+    const key = extractFirstTagText(block, "guid") || extractFirstTagText(block, "link");
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  if (extraItems.length === 0) return base;
+  return base.replace(/<\/channel>/i, `${extraItems.join("\n")}\n  </channel>`);
+}
+
+async function serveDynamicFeed(request, env) {
+  const url = new URL(request.url);
+  const assetResponse = await env.ASSETS.fetch(request);
+  if (request.method.toUpperCase() === "HEAD") {
+    return new Response(null, {
+      status: assetResponse.ok ? assetResponse.status : 200,
+      headers: {
+        "Content-Type": "application/xml; charset=utf-8",
+        "Cache-Control": "public, max-age=300, stale-while-revalidate=86400",
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "X-Code-Destiny-Feed": "merged",
+      },
+    });
+  }
+
+  const apiPath = `/api/content-feed${url.pathname}`;
+  const apiResponse = await proxyApiRequest(request, env, apiPath);
+
+  if (!apiResponse.ok) {
+    return hardenResponse(request.url, assetResponse);
+  }
+
+  const [staticXml, dynamicXml] = await Promise.all([
+    assetResponse.text().catch(() => ""),
+    apiResponse.text().catch(() => ""),
+  ]);
+  const mergedXml = url.pathname === "/sitemap.xml"
+    ? mergeSitemapXml(staticXml, dynamicXml)
+    : mergeRssXml(staticXml, dynamicXml);
+
+  return new Response(mergedXml, {
+    status: assetResponse.ok ? assetResponse.status : 200,
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+      "Cache-Control": "public, max-age=300, stale-while-revalidate=86400",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "X-Code-Destiny-Feed": "merged",
+    },
+  });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/api" || url.pathname.startsWith("/api/")) {
       const apiResponse = await proxyApiRequest(request, env);
       return hardenResponse(request.url, apiResponse, { api: true });
+    }
+
+    if (DYNAMIC_FEED_PATHS.has(url.pathname)) {
+      return serveDynamicFeed(request, env);
     }
 
     const assetResponse = await env.ASSETS.fetch(request);

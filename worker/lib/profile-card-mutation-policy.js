@@ -18,6 +18,7 @@ export const PROFILE_CARD_PAID_ACTIONS = Object.freeze({
 });
 
 const VALID_PROFILE_CARD_MUTATION_ACTIONS = new Set([
+  PROFILE_CARD_MUTATION_ACTIONS.CREATE,
   PROFILE_CARD_MUTATION_ACTIONS.DELETE,
 ]);
 
@@ -68,7 +69,15 @@ export function canAddProfile(userMembership, currentProfileCount) {
   }
 
   const entitlement = normalizeHoneyPassEntitlement(userMembership || {});
+  if (entitlement?.isActive !== true) {
+    return { allowed: false, reason: "PROFILE_SUBSCRIPTION_INACTIVE", limit: 1 };
+  }
+
   const limit = resolveProfileCardSlotLimit(entitlement);
+  if (limit === 0) {
+    return { allowed: true, reason: "PROFILE_LIMIT_AVAILABLE", limit: 0 };
+  }
+
   const safeLimit = Number.isInteger(limit) && limit > 0 ? limit : 1;
   const count = Math.max(0, Math.floor(Number(currentProfileCount || 0)));
   return {
@@ -125,7 +134,15 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
     });
   }
 
-  if (!profileCard) {
+  if (normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE && profileCard) {
+    return buildProfileCardMutationPolicyResult({
+      requiresPayment: false,
+      reason: "PROFILE_CARD_ALREADY_EXISTS",
+      currentProfileCardCount,
+    });
+  }
+
+  if (normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE && !profileCard) {
     return buildProfileCardMutationPolicyResult({
       requiresPayment: false,
       reason: "PROFILE_CARD_NOT_FOUND_OR_NOT_OWNED",
@@ -136,7 +153,24 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
   const entitlement = normalizeHoneyPassEntitlement(user);
   const slotLimit = resolveProfileCardSlotLimit(entitlement);
 
-  if (FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && isFamilyOrAbove(user)) {
+  if (normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE && !paymentSettled) {
+    const slot = canAddProfile(user, currentProfileCardCount);
+    if (slot.allowed) {
+      return buildProfileCardMutationPolicyResult({
+        allowed: true,
+        requiresPayment: false,
+        costCoins: 0,
+        costKrw: 0,
+        monthlyStones: 0,
+        reason: "PROFILE_CARD_SLOT_AVAILABLE",
+        passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
+        limit: slot.limit,
+        currentProfileCardCount,
+      });
+    }
+  }
+
+  if (normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE && FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && isFamilyOrAbove(user)) {
     return buildProfileCardMutationPolicyResult({
       allowed: true,
       requiresPayment: false,
@@ -164,7 +198,9 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
   return buildProfileCardMutationPolicyResult({
     allowed: false,
     requiresPayment: true,
-    reason: "PROFILE_CARD_DELETE_PAYMENT_REQUIRED",
+    reason: normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE
+      ? "PROFILE_CARD_CREATE_PAYMENT_REQUIRED"
+      : "PROFILE_CARD_DELETE_PAYMENT_REQUIRED",
     passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
     limit: slotLimit,
     currentProfileCardCount,
@@ -247,16 +283,30 @@ export async function resolveProfileCardActionAccess({
 
   if (normalizedAction === PROFILE_CARD_MUTATION_ACTIONS.CREATE) {
     const slot = canAddProfile(user, count);
+    if (slot.allowed) {
+      return buildProfileCardMutationPolicyResult({
+        allowed: true,
+        requiresPayment: false,
+        costCoins: 0,
+        costKrw: 0,
+        monthlyStones: 0,
+        reason: "PROFILE_CARD_SLOT_AVAILABLE",
+        passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
+        limit: slot.limit,
+        currentProfileCardCount: count,
+      });
+    }
+
     return buildProfileCardMutationPolicyResult({
-      allowed: slot.allowed,
-      requiresPayment: !slot.allowed,
-      reason: slot.allowed ? "PROFILE_CARD_SLOT_AVAILABLE" : "PROFILE_CARD_ADD_EXTRA_PAYMENT_REQUIRED",
+      allowed: false,
+      requiresPayment: true,
+      reason: "PROFILE_CARD_CREATE_PAYMENT_REQUIRED",
       passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
       limit: slot.limit,
       currentProfileCardCount: count,
-      costCoins: slot.allowed ? 0 : PROFILE_CARD_DELETE_COST_COINS,
-      costKrw: slot.allowed ? 0 : PROFILE_CARD_DELETE_COST_KRW,
-      monthlyStones: slot.allowed ? 0 : PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
+      costCoins: PROFILE_CARD_DELETE_COST_COINS,
+      costKrw: PROFILE_CARD_DELETE_COST_KRW,
+      monthlyStones: PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
     });
   }
 

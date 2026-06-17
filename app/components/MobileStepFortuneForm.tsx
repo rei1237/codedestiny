@@ -1,5 +1,7 @@
 "use client";
 
+import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
+
 type FormState = {
   name: string;
   birthDate: string;
@@ -61,9 +63,13 @@ export default function MobileStepFortuneForm({ step, setStep, state, setField, 
           <label className="block text-xs font-semibold text-violet-900">
             생년월일
             <input
-              type="date"
-              value={state.birthDate}
-              onChange={(e) => setField("birthDate", e.target.value)}
+              type="text"
+              inputMode="numeric"
+              maxLength={8}
+              pattern="[0-9]{8}"
+              placeholder="YYYYMMDD"
+              value={formatBirthDateDigits(state.birthDate)}
+              onChange={(e) => setField("birthDate", normalizeBirthDateFromDigits(e.target.value))}
               className="mt-1.5 w-full rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
             />
           </label>

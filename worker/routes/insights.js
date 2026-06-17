@@ -269,8 +269,21 @@ function normalizeInsightPost(item) {
 
 function isPublicInsight(item) {
   const status = String(item?.status || "").trim().toLowerCase();
+  if (status === "scheduled") {
+    const publishedAtMs = new Date(item?.publishedAt || 0).getTime();
+    return Number.isFinite(publishedAtMs) && publishedAtMs <= Date.now();
+  }
   if (status) return status === "published";
   return normalizeBool(item?.isPublished, true);
+}
+
+function buildPublicInsightStatusQuery(now = new Date()) {
+  return {
+    $or: [
+      { status: "published" },
+      { status: "scheduled", publishedAt: { $lte: now } },
+    ],
+  };
 }
 
 function normalizeSearchText(value) {
@@ -481,8 +494,10 @@ function serializeLinkItem(item) {
 
 async function findPrevNextInsight(currentId) {
   const ordered = await Insight.find({
-    status: "published",
-    $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
+    $and: [
+      buildPublicInsightStatusQuery(),
+      { $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }] },
+    ],
   })
     .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1 })
     .select("_id slug title category publishedAt featuredImage thumbnailUrl")
@@ -523,9 +538,9 @@ async function handleInsightDetail(path, request, env) {
 
   const [related, prevNext] = await Promise.all([
     Insight.find({
-      status: "published",
       _id: { $ne: rawItem._id },
       $and: [
+        buildPublicInsightStatusQuery(),
         { $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }] },
         { $or: relatedConditions.length ? relatedConditions : [{ _id: rawItem._id }] },
       ],

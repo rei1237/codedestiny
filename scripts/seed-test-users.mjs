@@ -140,7 +140,7 @@ async function ensureUserAndBalance({ email, inputPassword, forcePasswordReset }
       featureKey: SEED_FEATURE_KEY,
       metadata: {
         source: "seed-test-users",
-        type: "ADMIN_TEST_CREDIT",
+        type: "TEST_ACCOUNT_CREDIT",
         amount: balanceDelta,
         targetBalance: TARGET_POINTS,
         email: emailNorm,
@@ -186,7 +186,7 @@ async function ensureUserAndBalance({ email, inputPassword, forcePasswordReset }
         featureKey: SEED_FEATURE_KEY,
         metadata: {
           source: "seed-test-users",
-          type: balanceDelta >= 0 ? "ADMIN_TEST_CREDIT" : "ADMIN_TEST_DEBIT",
+          type: balanceDelta >= 0 ? "TEST_ACCOUNT_CREDIT" : "TEST_ACCOUNT_DEBIT",
           amount: balanceDelta,
           targetBalance: TARGET_POINTS,
           email: emailNorm,
