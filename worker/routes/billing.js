@@ -394,7 +394,8 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   const hasActivePass = activeEntitlement?.isActive === true;
   const passTier = hasActivePass ? normalizePassTier(activeEntitlement?.passTier || activeEntitlement?.tier) : null;
   const pdfDiscountRequiresPayment = pricing?.passDiscount && Number(pricing.passDiscount.finalCoinPrice || coinCost || 0) > 0;
-  const passCovered = !pdfDiscountRequiresPayment && canUseByPass(activeEntitlement, coinCost);
+  const pdfProductRequiresPayment = isPdfFeaturePricing(pricing) && passTier !== "family";
+  const passCovered = !pdfDiscountRequiresPayment && !pdfProductRequiresPayment && canUseByPass(activeEntitlement, coinCost);
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
 
   return {
@@ -410,7 +411,7 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : [],
     decisionReason: passCovered
       ? "PASS_COVERED"
-      : (pdfDiscountRequiresPayment ? "PDF_PASS_DISCOUNT_APPLIED" : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED")),
+      : (pdfDiscountRequiresPayment || pdfProductRequiresPayment ? "PDF_PRODUCT_PAYMENT_REQUIRED" : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED")),
     ...(pricing?.passDiscount ? { passDiscount: pricing.passDiscount } : {}),
   };
 }

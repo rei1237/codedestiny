@@ -133,10 +133,10 @@ function validateRequiredBirth(rawProfile) {
   const hasTimeParts = birth.hour !== undefined && birth.minute !== undefined;
 
   if (!hasDateParts && !parsedDate) {
-    return { ok: false, message: "?앸뀈?붿씪? ?꾩닔?낅땲?? (YYYY-MM-DD)" };
+    return { ok: false, message: "생년월일을 YYYYMMDD 숫자 8자리로 입력해 주세요." };
   }
   if (!hasTimeParts && !parsedTime) {
-    return { ok: false, message: "?쒖뼱???쒓컙? ?꾩닔?낅땲?? (HH:mm)" };
+    return { ok: false, message: "출생 시간을 HH:mm 형식으로 입력해 주세요." };
   }
 
   const year = Number(hasDateParts ? birth.year : parsedDate?.year);
@@ -144,13 +144,13 @@ function validateRequiredBirth(rawProfile) {
   const day = Number(hasDateParts ? birth.day : parsedDate?.day);
 
   if (!isValidBirthDateParts(year, month, day)) {
-    return { ok: false, message: "?앸뀈?붿씪 ?뺤떇???щ컮瑜댁? ?딆뒿?덈떎. (YYYY-MM-DD)" };
+    return { ok: false, message: "생년월일을 YYYYMMDD 숫자 8자리로 입력해 주세요." };
   }
 
   const hour = Number(hasTimeParts ? birth.hour : parsedTime?.hour);
   const minute = Number(hasTimeParts ? birth.minute : parsedTime?.minute);
   if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) {
-    return { ok: false, message: "?쒖뼱???쒓컙 ?뺤떇???щ컮瑜댁? ?딆뒿?덈떎. (HH:mm)" };
+    return { ok: false, message: "출생 시간을 HH:mm 형식으로 입력해 주세요." };
   }
 
   return {
@@ -1289,4 +1289,3 @@ export async function handleProfileRoutes(request, env) {
     });
   }
 }
-

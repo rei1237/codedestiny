@@ -466,8 +466,9 @@ export function readSubscriptionSnapshotForUser(userId?: string): SubscriptionSn
 
 function buildSubscriptionSnapshotPayload(userId: string, value: unknown, source: string): SubscriptionSnapshot {
   const record = asRecord(value) || {};
-  const nested = asRecord(record.subscription) || asRecord(record.membership) || {};
+  const nested = asRecord(record.subscription) || asRecord(record.membership) || asRecord(record.membershipPass) || {};
   const options = asRecord(record.paymentOptions) || {};
+  const membershipPass = asRecord(record.membershipPass) || {};
   const tier = normalizeSubscriptionSnapshotTier(
     record.tier
       ?? record.plan
@@ -477,6 +478,8 @@ function buildSubscriptionSnapshotPayload(userId: string, value: unknown, source
       ?? options.tier
       ?? options.passTier
       ?? options.subscriptionTier
+      ?? membershipPass.tier
+      ?? membershipPass.passTier
       ?? nested.tier
       ?? nested.plan
       ?? nested.passTier,

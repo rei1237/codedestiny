@@ -3685,8 +3685,12 @@
 
     if (!name || !bd) return null;
 
-    var parts  = bd.split('-');
-    var year   = parseInt(parts[0]), month = parseInt(parts[1]), day = parseInt(parts[2]);
+    var bdDigits = String(bd || '').replace(/\D/g, '');
+    if (bdDigits.length !== 8) return null;
+    var year = parseInt(bdDigits.slice(0, 4), 10);
+    var month = parseInt(bdDigits.slice(4, 6), 10);
+    var day = parseInt(bdDigits.slice(6, 8), 10);
+    if (!_dpHasValidProfileDate(year, month, day)) return null;
 
     var resolvedTz = resolveTimezoneOffset(
       { year: year, month: month, day: day, hour: hour, minute: minute },
