@@ -12,6 +12,8 @@ const files = {
   billingRoute: "worker/routes/billing.js",
   paymentsRoute: "worker/routes/payments.js",
   mePage: "app/me/page.tsx",
+  destinyProfile: "js/destiny-profile.js",
+  mainRuntime: "js/core/index-inline-runtime.js",
 };
 
 const texts = Object.fromEntries(
@@ -117,6 +119,35 @@ const cases = [
       ["profileRoute", "const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || \"\""],
       ["profileRoute", "destinyProfilesCurrentId: nextCurrentId"],
       ["mePage", "emitDestinyProfileChanged(nextProfiles, nextCurrentId)"],
+    ],
+  },
+  {
+    name: "profile card birth date rehydrates into YYYYMMDD input",
+    includes: [
+      ["destinyProfile", "bdEl.value = String(b.year || '').padStart(4, '0') + String(b.month || '').padStart(2,'0') + String(b.day || '').padStart(2,'0');"],
+    ],
+    excludes: [
+      ["destinyProfile", "bdEl.value = b.year + '-' + String(b.month).padStart(2,'0') + '-' + String(b.day).padStart(2,'0');"],
+    ],
+  },
+  {
+    name: "profile card result bridges normalize digit birth dates",
+    includes: [
+      ["mainRuntime", "function _dpParseBirthPartsForFeature(profile)"],
+      ["mainRuntime", "datePart.replace(/\\D/g, '').slice(0, 4)"],
+      ["mainRuntime", "var profiles = _dpNormalizeProfileListForFeature(s ? s.list() : []);"],
+      ["mainRuntime", "profile = _dpNormalizeProfileForFeature(profile) || profile;"],
+      ["mainRuntime", "row = _dpNormalizeProfileForFeature(row) || row;"],
+    ],
+  },
+  {
+    name: "vedic main form fallback accepts YYYYMMDD birth date input",
+    includes: [
+      ["mainRuntime", "var digits = bd.replace(/\\D/g, '');"],
+      ["mainRuntime", "[digits.slice(0, 4), digits.slice(4, 6), digits.slice(6, 8)]"],
+    ],
+    excludes: [
+      ["mainRuntime", "var parts = bd.split('-');"],
     ],
   },
   {

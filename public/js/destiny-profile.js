@@ -4655,7 +4655,7 @@
     if (nameEl) nameEl.value = profile.name || '';
 
     var bdEl = document.getElementById('birthDate');
-    if (bdEl) bdEl.value = b.year + '-' + String(b.month).padStart(2,'0') + '-' + String(b.day).padStart(2,'0');
+    if (bdEl) bdEl.value = String(b.year || '').padStart(4, '0') + String(b.month || '').padStart(2,'0') + String(b.day || '').padStart(2,'0');
 
     var calBtns = document.querySelectorAll('input[name="calType"]');
     calBtns.forEach(function(btn) { btn.checked = btn.value === (b.calType || 'solar'); });
@@ -4871,7 +4871,7 @@
     }
     var bdEl = document.getElementById('birthDate');
     if (bdEl) {
-      bdEl.value = b.year + '-' + String(b.month).padStart(2,'0') + '-' + String(b.day).padStart(2,'0');
+      bdEl.value = String(b.year || '').padStart(4, '0') + String(b.month || '').padStart(2,'0') + String(b.day || '').padStart(2,'0');
       try { bdEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
     }
     var calBtns = document.querySelectorAll('input[name="calType"]');
@@ -5656,7 +5656,7 @@
     if (nameEl) nameEl.value = p.name || '';
     var bdEl = document.getElementById('birthDate');
     if (bdEl) {
-      bdEl.value = b.year + '-' + String(b.month).padStart(2,'0') + '-' + String(b.day).padStart(2,'0');
+      bdEl.value = String(b.year || '').padStart(4, '0') + String(b.month || '').padStart(2,'0') + String(b.day || '').padStart(2,'0');
       try { bdEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
     }
     var calBtns = document.querySelectorAll('input[name="calType"]');
