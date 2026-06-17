@@ -190,29 +190,72 @@ function buildAIPromptPaymentTokenClauses(tokens) {
 function isAIPromptPassAccessPayload(body = {}) {
   const accessGrant = body?.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
   const consume = body?.consume && typeof body.consume === "object" ? body.consume : {};
+  const payment = body?.payment && typeof body.payment === "object" ? body.payment : {};
   const paymentContext = body?._paymentContext && typeof body._paymentContext === "object" ? body._paymentContext : {};
+  const accessDecision = body?.accessDecision && typeof body.accessDecision === "object" ? body.accessDecision : {};
   const accessType = String(
     accessGrant.accessType
       || consume.accessType
+      || payment.accessType
       || consume.transactionType
       || paymentContext.accessType
+      || accessDecision.accessType
+      || accessDecision.transactionType
+      || body?.accessType
       || "",
   ).trim().toLowerCase();
   const accessMethod = String(
     accessGrant.accessMethod
       || consume.accessMethod
       || consume.paymentMethod
+      || payment.paymentMethod
+      || paymentContext.paymentMethod
+      || accessDecision.accessMethod
+      || accessDecision.paymentMethod
+      || accessDecision.accessType
       || paymentContext.accessMethod
       || "",
   ).trim().toUpperCase();
+  const accessReason = String(
+    accessGrant.reason
+      || consume.reason
+      || payment.reason
+      || accessDecision.reason
+      || body?.accessReason
+      || body?.reason
+      || "",
+  ).trim().toLowerCase();
+  const accessStatus = String(
+    accessDecision.status
+      || body?.status
+      || "",
+  ).trim().toLowerCase();
+  const paymentMode = String(
+    body?.paymentMode
+      || accessGrant.paymentMode
+      || consume.paymentMode
+      || payment.paymentMode
+      || paymentContext.paymentMode
+      || accessDecision.paymentMode
+      || "",
+  ).trim().toLowerCase();
 
   return body?.freeBySubscription === true
     || accessType === "membership_pass"
     || accessType === "usage_pass"
     || accessType === "already_unlocked"
-    || accessType === "admin_test"
-    || accessMethod === "PASS"
-    || accessMethod === "ADMIN_TEST";
+    || accessType === "pass"
+    || accessType === "membership"
+    || accessType === "subscription_pass"
+    || paymentMode === "membership_pass"
+    || paymentMode === "membership"
+    || accessStatus === "pass_applied"
+    || accessStatus === "pass_free"
+    || accessReason === "pass_applied"
+    || accessReason === "pass_covered"
+    || accessReason === "pass_free"
+    || accessReason === "already_unlocked"
+    || accessMethod === "PASS";
 }
 
 async function findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, cost }) {
