@@ -5199,9 +5199,10 @@ function _buildSajuAIPromptPayload(opts) {
   var snapshot = null;
   try { profile = window.__cdActiveBirthProfile || null; } catch (_) {}
   try { snapshot = window.__destinyFlowerSajuSnapshot || null; } catch (_) {}
+  var profileId = _sajuPromptResolveProfileId();
 
   var payload = _applySajuAIPromptPrivacy({
-    profile: _sajuPromptClone(profile),
+    profile: Object.assign({}, _sajuPromptClone(profile) || {}, profileId ? { profileId: profileId } : {}),
     snapshot: _sajuPromptClone(snapshot),
     pillars: _sajuPromptClone(G_PILLARS || null),
     natal: _sajuPromptClone(G_NATAL || null),
@@ -5211,6 +5212,7 @@ function _buildSajuAIPromptPayload(opts) {
   }, opts);
 
   payload.analysisProfile = _sajuPromptBuildAnalysisProfile(profile, snapshot);
+  if (profileId) payload.analysisProfile.profileId = profileId;
 
   return payload;
 }
@@ -5339,11 +5341,14 @@ function _sajuPromptShouldRetryPaidGeneration(result) {
 function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence, options) {
   var urls = _sajuPromptApiUrls('/api/fortune/saju/ai-prompt');
   var opts = options && typeof options === 'object' ? options : {};
+  var profileId = String(opts.profileId || _sajuPromptResolveProfileId() || '').trim();
   var body = {
     question: question,
     domain: String(domain || '').trim(),
     sajuResult: _buildSajuAIPromptPayload(privacyOptions),
     requestId: evidence.requestId || ('saju-ai-prompt:' + requestNonce),
+    profileId: profileId || undefined,
+    selectedProfileId: profileId || undefined,
     transactionId: evidence._paymentContext && evidence._paymentContext.transactionId,
     ledgerId: evidence._paymentContext && evidence._paymentContext.ledgerId,
     purchaseId: evidence._paymentContext && evidence._paymentContext.purchaseId,
@@ -5395,18 +5400,47 @@ function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions,
   return runAt(0, 0);
 }
 
+function _sajuPromptResolveProfileId() {
+  try {
+    if (typeof window._cdResolveCurrentProfileIdForAccess === 'function') {
+      var resolved = String(window._cdResolveCurrentProfileIdForAccess() || '').trim();
+      if (resolved) return resolved;
+    }
+  } catch (_) {}
+  try {
+    var profile = window.__cdActiveBirthProfile || window.__destinyFlowerSajuSnapshot || null;
+    var profileId = String((profile && (profile.profileId || profile.id)) || '').trim();
+    if (profileId) return profileId.slice(0, 80).replace(/\s+/g, '_');
+  } catch (_) {}
+  return '';
+}
+
 function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
   var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+  var profileId = _sajuPromptResolveProfileId();
+  if (!profileId) {
+    return Promise.resolve({
+      ok: false,
+      status: 403,
+      payload: {
+        ok: false,
+        code: 'MISSING_PROFILE_ID',
+        message: '프로필을 먼저 선택한 뒤 질문문을 생성해 주세요.'
+      }
+    });
+  }
   return _cdAIPromptGate({
-    featureKey: 'saju_ai_prompt_generator',
-    reason: '사주 질문문 생성',
+    featureKey: 'saju_ai_question_prompt',
+    reason: '최고의 명리학자처럼 AI에게 물어볼 사주 질문문',
     cost: 100,
     requestId: 'saju-ai-prompt:' + requestNonce,
-    categoryKey: 'saju'
+    categoryKey: 'saju',
+    profileId: profileId,
+    selectedProfileId: profileId
   }).then(function(gateResult) {
     if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
     var evidence = _cdAIPromptGateEvidence(gateResult);
-    return _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence, options);
+    return _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence, Object.assign({}, options || {}, { profileId: profileId }));
   });
 }
 

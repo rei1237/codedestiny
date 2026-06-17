@@ -63,10 +63,13 @@ assertContains(indexSource, "fallbackCoverage.source = 'cache_unverified';", "pa
 const perUseGateSource = section(indexSource, "function _cdRunPerUseCoinGate(", "window.__cdRunPerUseCoinGateFromTile", "per-use gate");
 assertBefore(perUseGateSource, "_cdBeginPaidFeatureInFlight(action, paidGateFeatureKey", "await _cdChooseServicePaymentMode({", "paid gate opens before eligibility wait");
 
-assertBefore(indexSource, 'data-mode="pass"', 'data-mode="direct"', "pass option appears before direct card");
+assertBefore(indexSource, 'data-mode="pass-store"', 'data-mode="direct"', "pass store option appears before direct card");
 assertContains(indexSource, 'data-mode="monthly" data-monthly-option', "monthly payment option restored");
-assertContains(indexSource, "var passDisabledAttr = passEligible ? '' : ' disabled aria-disabled=\"true\"';", "pass disabled state");
-assertContains(indexSource, "var passBusy = false;", "pass lookup click lock");
+assertContains(indexSource, "var passMode = 'pass-store';", "pass store mode");
+assertContains(indexSource, "var passDisabledClass = ' is-store';", "pass store visual state");
+assertContains(indexSource, "direct-payment-pass-store-v20260607", "pass store modal marker");
+assertContains(indexSource, "if (mode === 'pass-store' || mode === 'pass')", "pass store choice bypasses payment processing");
+assertContains(indexSource, "window.location.assign('/points?source=direct-payment-pass-store');", "pass store redirect");
 assertContains(indexSource, 'data-payment-status', "payment choice status state");
 assertContains(indexSource, "var allowMonthlyChoice = !isProfileDeletePayment", "monthly option excludes profile deletion");
 
@@ -100,7 +103,7 @@ assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBe
 assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable", '"/api/payments/confirm"', "pass checked before card confirm");
 
 assertContains(indexSource, "passButtonHtml", "canonical payment modal pass option");
-assertContains(indexSource, "_cdResolvePassBeforePaymentChoice(Object.assign({}, opts, {", "canonical pass lookup on pass click");
+assertContains(indexSource, "window.location.assign('/points?source=direct-payment-pass-store');", "canonical pass choice opens pass store");
 assertNotContains(indexSource, "reason: 'pass_applied_in_modal'", "membership pass choice must grant instead of cancelling");
 assertContains(destinyProfileSource, "if (choice === 'pass')", "destiny pass choice grant path");
 assertContains(destinyProfileSource, "__cdRestoreCanonicalPaymentMode", "destiny fallback restores canonical selector");

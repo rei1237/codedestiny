@@ -194,6 +194,7 @@ export const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "premium-love-secret-couple": { cost: 400, reason: "사주 프리미엄 궁합 리포트 생성" },
   "saju_love_book_pdf": { cost: 300, reason: "사주 프리미엄 연애운 리포트 생성" },
   "saju_life_book_pdf": { cost: 500, reason: "사주 인생의 책 PDF 생성" },
+  "saju_ai_question_prompt": { cost: 100, reason: "최고의 명리학자처럼 AI에게 물어볼 사주 질문문" },
   "saju_ai_prompt_generator": { cost: 100, reason: "사주 AI 질문 프롬프트 생성" },
   "ziwei_ai_prompt_generator": { cost: 100, reason: "자미두수 AI 질문 프롬프트 생성" },
   "sukuyo_ai_prompt_generator": { cost: 100, reason: "숙요점 AI 질문 프롬프트 생성" },
@@ -379,6 +380,7 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "palm-reading-personality",
   "palm-reading-relationship",
   "palm-reading-ai-consult",
+  "saju_ai_question_prompt",
   "saju_ai_prompt_generator",
   "ziwei_ai_prompt_generator",
   "sukuyo_ai_prompt_generator",
@@ -488,6 +490,7 @@ export function isUnlockPaidFeatureKey(featureKey) {
 }
 
 export const PAID_FEATURE_KEY_ALIASES = Object.freeze({
+  "saju_ai_prompt_generator": "saju_ai_question_prompt",
   "premium-sukyo": "premium-sukuyo",
   "openjuyuk": "openJuyukModal",
   "openkemet": "openKemetModal",

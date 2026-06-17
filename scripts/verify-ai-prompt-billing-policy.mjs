@@ -77,10 +77,15 @@ assert.match(sajuEngineSource, /ledgerId:\s*evidence\._paymentContext && evidenc
 assert.match(fortuneSource, /accessDecision\.requestId/, "AI prompt token collection must include accessDecision request evidence");
 assert.match(fortuneSource, /accessDecision\.accessGranted === true/, "AI prompt pass payload must honor granted accessDecision evidence");
 assert.equal(
-  (fortuneSource.match(/accessDecision: body\?\.accessDecision/g) || []).length,
+  (fortuneSource.match(/accessGrant: body\?\.accessGrant,\s*\n\s*accessDecision: body\?\.accessDecision,\s*\n\s*freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
   promptFeatures.length,
   "all AI prompt generation routes must forward accessDecision into paid-access verification",
 );
+assert.match(sajuEngineSource, /featureKey:\s*'saju_ai_question_prompt'/, "saju question prompt must use the per-use feature id");
+assert.match(fortuneSource, /SAJU_AI_PROMPT_ACCESS_MODE = "per_use"/, "saju question prompt must be handled as per-use access");
+assert.match(fortuneSource, /PaidExecutionRecord\.findOne\(\{[\s\S]*featureId: SAJU_AI_PROMPT_FEATURE_KEY,[\s\S]*profileId,[\s\S]*requestId/, "saju question prompt must check request-scoped paid execution records");
+assert.match(fortuneSource, /PaidExecutionRecord\.create\(executionDocument\)/, "saju question prompt must claim a request-scoped paid execution record");
+assert.match(fortuneSource, /status: "generating"/, "saju question prompt must mark the claimed execution as generating before returning a result");
 assert.equal(
   (fortuneSource.match(/freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
   promptFeatures.length,

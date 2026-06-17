@@ -1,5 +1,5 @@
 import { connectDb, mongoose } from "../lib/db.js";
-import { User, PointHistory, Payment, MonthlyCreditLedger } from "../lib/models.js";
+import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord } from "../lib/models.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
@@ -69,8 +69,10 @@ function logSajuAIPromptStage(stage, details = {}) {
   const payload = {
     stage,
     requestId: String(details.requestId || ""),
+    executionId: String(details.executionId || ""),
     userId: String(details.userId || ""),
     featureId: SAJU_AI_PROMPT_FEATURE_KEY,
+    accessMode: String(details.accessMode || "per_use"),
     productId: String(details.productId || ""),
     profileId: String(details.profileId || ""),
     accessMethod: String(details.accessMethod || ""),
@@ -92,6 +94,124 @@ function logSajuAIPromptStage(stage, details = {}) {
   } catch (e) {
     console.log("[worker-saju-ai-prompt]", payload);
   }
+}
+
+const SAJU_AI_PROMPT_ACCESS_MODE = "per_use";
+const SAJU_AI_PROMPT_TITLE = "최고의 명리학자처럼 AI에게 물어볼 사주 질문문";
+
+function readSajuAIPromptProfileId(body = {}, sajuResult = {}) {
+  const accessGrant = body?.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
+  const consume = body?.consume && typeof body.consume === "object" ? body.consume : {};
+  const payment = body?.payment && typeof body.payment === "object" ? body.payment : {};
+  const paymentContext = body?._paymentContext && typeof body._paymentContext === "object" ? body._paymentContext : {};
+  const profile = sajuResult?.profile && typeof sajuResult.profile === "object" ? sajuResult.profile : {};
+  const snapshot = sajuResult?.snapshot && typeof sajuResult.snapshot === "object" ? sajuResult.snapshot : {};
+  const analysisProfile = sajuResult?.analysisProfile && typeof sajuResult.analysisProfile === "object" ? sajuResult.analysisProfile : {};
+  return String(
+    body?.profileId
+      || body?.selectedProfileId
+      || accessGrant.profileId
+      || consume.profileId
+      || payment.profileId
+      || paymentContext.profileId
+      || profile.profileId
+      || profile.id
+      || snapshot.profileId
+      || snapshot.id
+      || analysisProfile.profileId
+      || analysisProfile.id
+      || "",
+  ).trim().slice(0, 120);
+}
+
+function normalizeSajuAIPromptAccessMethod(consumePayload = {}, body = {}) {
+  const consume = consumePayload?.consume && typeof consumePayload.consume === "object" ? consumePayload.consume : {};
+  const accessGrant = consumePayload?.accessGrant && typeof consumePayload.accessGrant === "object" ? consumePayload.accessGrant : {};
+  const accessDecision = consumePayload?.accessDecision && typeof consumePayload.accessDecision === "object" ? consumePayload.accessDecision : {};
+  const bodyAccessGrant = body?.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
+  const bodyAccessDecision = body?.accessDecision && typeof body.accessDecision === "object" ? body.accessDecision : {};
+  const accessType = String(
+    consumePayload.accessType
+      || consume.accessType
+      || accessGrant.accessType
+      || accessDecision.accessType
+      || body.accessType
+      || bodyAccessGrant.accessType
+      || bodyAccessDecision.accessType
+      || "",
+  ).trim().toLowerCase();
+  const accessMethod = String(
+    consumePayload.accessMethod
+      || consume.accessMethod
+      || consume.paymentMethod
+      || accessGrant.accessMethod
+      || accessDecision.accessMethod
+      || accessDecision.paymentMethod
+      || body.accessMethod
+      || bodyAccessGrant.accessMethod
+      || bodyAccessDecision.accessMethod
+      || bodyAccessDecision.paymentMethod
+      || "",
+  ).trim().toUpperCase();
+  const paymentMode = String(
+    consumePayload.paymentMode
+      || consume.paymentMode
+      || accessGrant.paymentMode
+      || accessDecision.paymentMode
+      || body.paymentMode
+      || bodyAccessGrant.paymentMode
+      || bodyAccessDecision.paymentMode
+      || "",
+  ).trim().toUpperCase();
+  const passTier = String(
+    consumePayload.subscriptionTier
+      || consumePayload?.membershipPass?.passTier
+      || consumePayload?.membershipPass?.tier
+      || consumePayload?.user?.profileSubscription?.tier
+      || accessDecision.passTier
+      || bodyAccessDecision.passTier
+      || "",
+  ).trim().toLowerCase();
+
+  if (accessType === "membership_pass" || accessType === "usage_pass" || accessMethod === "PASS" || paymentMode === "MEMBERSHIP_PASS") {
+    return passTier === "family" ? "family" : "pass";
+  }
+  if (accessType === "membership_credit" || accessMethod === "MONTHLY" || paymentMode === "MOONLIGHT_STONE" || paymentMode === "MONTHLY_CREDIT") {
+    return "monthly";
+  }
+  return "single";
+}
+
+function buildSajuAIPromptResultPayload({ builtPrompt, consumePayload, chargedCoins, balanceAfter, requestId, execution }) {
+  return {
+    ok: true,
+    prompt: builtPrompt.prompt,
+    generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
+    title: builtPrompt.title || SAJU_AI_PROMPT_TITLE,
+    summaryIntent: builtPrompt.summaryIntent || "",
+    analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
+    recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
+      ? builtPrompt.recommendedFollowUpQuestions
+      : [],
+    caution: String(builtPrompt.caution || "").trim() || undefined,
+    questionType: builtPrompt.questionType,
+    chargedCoins,
+    membershipCreditCost: Math.max(0, Number(consumePayload?.membershipCreditCost || consumePayload?.consume?.membershipCreditCost || 0)),
+    accessType: String(consumePayload?.accessType || consumePayload?.consume?.accessType || consumePayload?.accessGrant?.accessType || "").trim() || undefined,
+    accessMethod: String(consumePayload?.accessMethod || consumePayload?.consume?.accessMethod || consumePayload?.accessGrant?.accessMethod || "").trim() || undefined,
+    paymentMode: String(consumePayload?.paymentMode || consumePayload?.consume?.paymentMode || consumePayload?.accessGrant?.paymentMode || "").trim() || undefined,
+    requestId,
+    executionId: execution?.executionId || undefined,
+    accessMode: SAJU_AI_PROMPT_ACCESS_MODE,
+    consume: consumePayload?.consume && typeof consumePayload.consume === "object" ? consumePayload.consume : undefined,
+    featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+    featureId: SAJU_AI_PROMPT_FEATURE_KEY,
+    balanceAfter,
+  };
+}
+
+function buildSajuAIPromptExecutionId({ userId, profileId, requestId }) {
+  return `saju-ai-question:${String(userId || "")}:${String(profileId || "")}:${String(requestId || "")}`.slice(0, 160);
 }
 
 let __swissWesternChartLoader = null;
@@ -2586,25 +2706,176 @@ async function handleSajuAIPrompt(request, auth, env) {
       || body?._paymentContext?.requestId
       || fallbackRequestId,
   ).trim().slice(0, 120) || fallbackRequestId;
-  logSajuAIPromptStage("REQUEST_START", {
+  const profileId = readSajuAIPromptProfileId(body, sajuResult);
+  const idempotencyKey = String(body?.idempotencyKey || body?.requestId || requestId).trim().slice(0, 180) || requestId;
+
+  logSajuAIPromptStage("SAJU_AI_QUESTION_PER_USE_REQUEST_START", {
     requestId,
     userId: auth?.userId,
+    profileId,
     amountCoins: SAJU_AI_PROMPT_PRICE,
     amountKRW: calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE),
-    idempotencyKey: body?.idempotencyKey || body?.requestId || requestId,
+    idempotencyKey,
   });
-  logSajuAIPromptStage("AUTH_CHECK_SUCCESS", {
+  logSajuAIPromptStage("FEATURE_POLICY_LOADED", {
     requestId,
     userId: auth?.userId,
+    profileId,
+    amountCoins: SAJU_AI_PROMPT_PRICE,
+    amountKRW: calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE),
+    idempotencyKey,
   });
+  logSajuAIPromptStage("ACCESS_MODE_CONFIRMED_PER_USE", {
+    requestId,
+    userId: auth?.userId,
+    profileId,
+    accessMode: SAJU_AI_PROMPT_ACCESS_MODE,
+    idempotencyKey,
+  });
+  logSajuAIPromptStage("REQUEST_ID_CREATED_OR_RECEIVED", {
+    requestId,
+    userId: auth?.userId,
+    profileId,
+    idempotencyKey,
+  });
+
+  if (!profileId) {
+    logSajuAIPromptStage("REQUEST_ERROR", {
+      requestId,
+      userId: auth?.userId,
+      profileId,
+      idempotencyKey,
+      errorName: "MISSING_PROFILE_ID",
+      errorMessage: "profileId is required for per-use saju question prompt generation.",
+    });
+    return buildSajuAIPromptError("MISSING_PROFILE_ID", "프로필을 먼저 선택한 뒤 질문문을 생성해 주세요.", 403);
+  }
+
+  await connectDb(env);
+  logSajuAIPromptStage("EXISTING_EXECUTION_CHECK_START", {
+    requestId,
+    userId: auth?.userId,
+    profileId,
+    idempotencyKey,
+  });
+  const existingExecution = await PaidExecutionRecord.findOne({
+    userId: String(auth?.userId || ""),
+    featureId: SAJU_AI_PROMPT_FEATURE_KEY,
+    profileId,
+    requestId,
+  }).lean();
+  if (existingExecution) {
+    logSajuAIPromptStage("EXISTING_EXECUTION_FOUND", {
+      requestId,
+      executionId: existingExecution.executionId,
+      userId: auth?.userId,
+      profileId,
+      accessMethod: existingExecution.accessMethod,
+      amountCoins: existingExecution.amountCoins,
+      paymentId: existingExecution.paymentId,
+      orderId: existingExecution.orderId,
+      passTier: existingExecution.passTier,
+      monthlyDeductedAmount: existingExecution.monthlyDeductedAmount,
+      executionStatus: existingExecution.status,
+      idempotencyKey,
+    });
+    if (existingExecution.status === "completed" && existingExecution.result) {
+      return json({
+        ...existingExecution.result,
+        alreadyCompletedForSameRequest: true,
+        status: "completed_for_same_request",
+        accessMode: SAJU_AI_PROMPT_ACCESS_MODE,
+        executionId: existingExecution.executionId,
+        requestId,
+      });
+    }
+    if (existingExecution.status === "generating") {
+      return buildSajuAIPromptError("REQUEST_IN_PROGRESS", "같은 요청의 질문문이 생성 중입니다. 잠시 뒤 다시 확인해 주세요.", 409);
+    }
+    if (existingExecution.status === "paid_pending_generation" || existingExecution.status === "generation_failed") {
+      await PaidExecutionRecord.updateOne(
+        { executionId: existingExecution.executionId },
+        { $set: { status: "generating", updatedAt: new Date(), error: null } },
+      );
+      logSajuAIPromptStage("GENERATION_START", {
+        requestId,
+        executionId: existingExecution.executionId,
+        userId: auth?.userId,
+        profileId,
+        accessMethod: existingExecution.accessMethod,
+        amountCoins: existingExecution.amountCoins,
+        paymentId: existingExecution.paymentId,
+        orderId: existingExecution.orderId,
+        passTier: existingExecution.passTier,
+        monthlyDeductedAmount: existingExecution.monthlyDeductedAmount,
+        executionStatus: "generating",
+        idempotencyKey,
+      });
+      const retryPayload = buildSajuAIPromptResultPayload({
+        builtPrompt,
+        consumePayload: {
+          accessMethod: existingExecution.accessMethod,
+          paymentMode: existingExecution.accessMethod === "monthly" ? "MOONLIGHT_STONE" : (existingExecution.accessMethod === "single" ? "DIRECT_KRW" : "MEMBERSHIP_PASS"),
+          membershipCreditCost: existingExecution.monthlyDeductedAmount,
+          transactionId: existingExecution.paymentId,
+        },
+        chargedCoins: Math.max(0, Number(existingExecution.amountCoins || 0)),
+        balanceAfter: undefined,
+        requestId,
+        execution: existingExecution,
+      });
+      await PaidExecutionRecord.updateOne(
+        { executionId: existingExecution.executionId },
+        {
+          $set: {
+            status: "completed",
+            completedAt: new Date(),
+            resultId: existingExecution.executionId,
+            result: retryPayload,
+            updatedAt: new Date(),
+          },
+        },
+      );
+      logSajuAIPromptStage("GENERATION_SUCCESS", {
+        requestId,
+        executionId: existingExecution.executionId,
+        userId: auth?.userId,
+        profileId,
+        accessMethod: existingExecution.accessMethod,
+        amountCoins: existingExecution.amountCoins,
+        paymentId: existingExecution.paymentId,
+        orderId: existingExecution.orderId,
+        passTier: existingExecution.passTier,
+        monthlyDeductedAmount: existingExecution.monthlyDeductedAmount,
+        executionStatus: "completed",
+        idempotencyKey,
+      });
+      return json({
+        ...retryPayload,
+        status: "generation_retry_available",
+        retryWithoutPayment: true,
+      });
+    }
+  } else {
+    logSajuAIPromptStage("NEW_EXECUTION_PAYMENT_REQUIRED", {
+      requestId,
+      userId: auth?.userId,
+      profileId,
+      amountCoins: SAJU_AI_PROMPT_PRICE,
+      amountKRW: calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE),
+      idempotencyKey,
+    });
+  }
 
   let chargedCoins = 0;
   let sourceTransactionId = "";
+  let paidExecution = existingExecution || null;
 
   try {
     logSajuAIPromptStage("ACCESS_CHECK_START", {
       requestId,
       userId: auth?.userId,
+      profileId,
       accessMethod: body?.accessMethod || body?.accessGrant?.accessMethod || body?.consume?.accessMethod,
       paymentMethod: body?.paymentMode || body?.consume?.paymentMode,
       amountCoins: SAJU_AI_PROMPT_PRICE,
@@ -2614,6 +2885,30 @@ async function handleSajuAIPrompt(request, auth, env) {
       orderId: body?.orderId || body?.purchaseId || body?.accessGrant?.purchaseId,
       idempotencyKey: body?.idempotencyKey || body?.requestId || requestId,
     });
+    const requestedAccessMethod = normalizeSajuAIPromptAccessMethod(
+      {
+        accessDecision: body?.accessDecision,
+        accessGrant: body?.accessGrant,
+        consume: body?.consume,
+        paymentMode: body?.paymentMode,
+        accessMethod: body?.accessMethod,
+      },
+      body,
+    );
+    const accessStartStage = requestedAccessMethod === "monthly"
+      ? "MONTHLY_DEDUCT_START"
+      : (requestedAccessMethod === "single" ? "SINGLE_PAYMENT_VERIFY_START" : "PASS_USE_START");
+    logSajuAIPromptStage(accessStartStage, {
+      requestId,
+      userId: auth?.userId,
+      profileId,
+      accessMethod: requestedAccessMethod,
+      amountCoins: SAJU_AI_PROMPT_PRICE,
+      amountKRW: calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE),
+      paymentId: body?.paymentId || body?.payment?.paymentId || body?.accessGrant?.paymentId,
+      orderId: body?.orderId || body?.purchaseId || body?.accessGrant?.purchaseId,
+      idempotencyKey,
+    });
     const delegatedRequest = new Request(request.url, {
       method: "POST",
       headers: new Headers({
@@ -2622,11 +2917,13 @@ async function handleSajuAIPrompt(request, auth, env) {
       }),
       body: JSON.stringify({
         featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
-        reason: "사주 AI 질문 프롬프트 생성",
+        reason: SAJU_AI_PROMPT_TITLE,
         forceDeduct: true,
         requireExistingPaidAccess: true,
         requestId,
         idempotencyKey: requestId,
+        profileId,
+        selectedProfileId: profileId,
         categoryKey: "saju",
         subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
         payloadHash,
@@ -2661,9 +2958,141 @@ async function handleSajuAIPrompt(request, auth, env) {
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
+    const executionAccessMethod = normalizeSajuAIPromptAccessMethod(consumePayload, body);
+    const executionMonthlyAmount = Math.max(0, Number(consumePayload?.membershipCreditCost || consumePayload?.consume?.membershipCreditCost || 0));
+    const executionPassTier = String(
+      consumePayload?.subscriptionTier
+        || consumePayload?.membershipPass?.passTier
+        || consumePayload?.membershipPass?.tier
+        || consumePayload?.user?.profileSubscription?.tier
+        || "",
+    ).trim().toLowerCase();
+    const executionPaymentId = String(
+      consumePayload?.transactionId
+        || consumePayload?.consume?.transactionId
+        || consumePayload?.accessGrant?.evidenceId
+        || consumePayload?.accessGrant?.purchaseId
+        || "",
+    ).trim();
+    const executionOrderId = String(
+      consumePayload?.consume?.purchaseId
+        || consumePayload?.purchaseId
+        || consumePayload?.accessGrant?.purchaseId
+        || requestId,
+    ).trim();
+    const executionId = buildSajuAIPromptExecutionId({ userId: auth?.userId, profileId, requestId });
+    const executionStage = executionAccessMethod === "monthly"
+      ? "MONTHLY_DEDUCT_SUCCESS"
+      : (executionAccessMethod === "single" ? "SINGLE_PAYMENT_VERIFY_SUCCESS" : "PASS_USE_SUCCESS");
+    logSajuAIPromptStage(executionStage, {
+      requestId,
+      executionId,
+      userId: auth?.userId,
+      profileId,
+      accessMethod: executionAccessMethod,
+      amountCoins: SAJU_AI_PROMPT_PRICE,
+      amountKRW: calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE),
+      monthlyDeductedAmount: executionMonthlyAmount,
+      paymentId: executionPaymentId,
+      orderId: executionOrderId,
+      passTier: executionPassTier,
+      idempotencyKey,
+    });
+    logSajuAIPromptStage("PAID_EXECUTION_CREATE_START", {
+      requestId,
+      executionId,
+      userId: auth?.userId,
+      profileId,
+      accessMethod: executionAccessMethod,
+      amountCoins: SAJU_AI_PROMPT_PRICE,
+      paymentId: executionPaymentId,
+      orderId: executionOrderId,
+      idempotencyKey,
+    });
+    const executionDocument = {
+      executionId,
+      userId: String(auth?.userId || ""),
+      featureId: SAJU_AI_PROMPT_FEATURE_KEY,
+      profileId,
+      requestId,
+      accessMode: SAJU_AI_PROMPT_ACCESS_MODE,
+      accessMethod: executionAccessMethod,
+      amountCoins: SAJU_AI_PROMPT_PRICE,
+      amountKRW: calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE),
+      monthlyDeductedAmount: executionMonthlyAmount,
+      passTier: executionAccessMethod === "family" ? "family" : (["standard", "premium", "vvip", "family"].includes(executionPassTier) ? executionPassTier : ""),
+      paymentId: executionPaymentId,
+      orderId: executionOrderId,
+      status: "paid_pending_generation",
+      consumedAt: new Date(),
+      idempotencyKey,
+    };
+    try {
+      paidExecution = await PaidExecutionRecord.create(executionDocument);
+    } catch (executionError) {
+      if (Number(executionError?.code || 0) !== 11000) throw executionError;
+      const duplicateExecution = await PaidExecutionRecord.findOne({
+        userId: String(auth?.userId || ""),
+        featureId: SAJU_AI_PROMPT_FEATURE_KEY,
+        profileId,
+        requestId,
+      }).lean();
+      if (duplicateExecution?.status === "completed" && duplicateExecution.result) {
+        return json({
+          ...duplicateExecution.result,
+          alreadyCompletedForSameRequest: true,
+          status: "completed_for_same_request",
+          accessMode: SAJU_AI_PROMPT_ACCESS_MODE,
+          executionId: duplicateExecution.executionId,
+          requestId,
+        });
+      }
+      if (duplicateExecution?.status === "generation_failed" || duplicateExecution?.status === "paid_pending_generation") {
+        paidExecution = await PaidExecutionRecord.findOneAndUpdate(
+          {
+            _id: duplicateExecution._id,
+            status: { $in: ["generation_failed", "paid_pending_generation"] },
+          },
+          {
+            $set: {
+              ...executionDocument,
+              status: "paid_pending_generation",
+              error: null,
+              updatedAt: new Date(),
+            },
+          },
+          { new: true },
+        ).lean();
+        if (!paidExecution) {
+          return buildSajuAIPromptError("REQUEST_IN_PROGRESS", "같은 요청의 질문문이 생성 중입니다. 잠시 뒤 다시 확인해 주세요.", 409);
+        }
+      } else {
+        return buildSajuAIPromptError("REQUEST_IN_PROGRESS", "같은 요청의 질문문이 생성 중입니다. 잠시 뒤 다시 확인해 주세요.", 409);
+      }
+    }
+    logSajuAIPromptStage("PAID_EXECUTION_CREATE_SUCCESS", {
+      requestId,
+      executionId: paidExecution?.executionId || executionId,
+      userId: auth?.userId,
+      profileId,
+      accessMethod: executionAccessMethod,
+      amountCoins: SAJU_AI_PROMPT_PRICE,
+      paymentId: executionPaymentId,
+      orderId: executionOrderId,
+      passTier: executionPassTier,
+      monthlyDeductedAmount: executionMonthlyAmount,
+      executionStatus: paidExecution?.status || "paid_pending_generation",
+      idempotencyKey,
+    });
+    await PaidExecutionRecord.updateOne(
+      { executionId: paidExecution?.executionId || executionId },
+      { $set: { status: "generating", updatedAt: new Date(), error: null } },
+    );
     logSajuAIPromptStage("GENERATION_START", {
       requestId,
+      executionId: paidExecution?.executionId || executionId,
       userId: auth?.userId,
+      profileId,
       accessMethod: consumePayload?.accessMethod || consumePayload?.consume?.accessMethod,
       paymentMethod: consumePayload?.paymentMode || consumePayload?.consume?.paymentMode,
       amountCoins: chargedCoins || SAJU_AI_PROMPT_PRICE,
@@ -2672,55 +3101,92 @@ async function handleSajuAIPrompt(request, auth, env) {
       monthlyBalanceAfter: Number(consumePayload?.consume?.remainingMembershipCredit || consumePayload?.consume?.monthlyCredits || 0),
       paymentId: consumePayload?.transactionId || consumePayload?.consume?.transactionId || "",
       orderId: consumePayload?.consume?.purchaseId || consumePayload?.purchaseId || requestId,
-      idempotencyKey: body?.idempotencyKey || body?.requestId || requestId,
+      executionStatus: "generating",
+      idempotencyKey,
     });
     logSajuAIPromptStage("GENERATION_SUCCESS", {
       requestId,
+      executionId: paidExecution?.executionId || executionId,
       userId: auth?.userId,
+      profileId,
       accessMethod: consumePayload?.accessMethod || consumePayload?.consume?.accessMethod,
       paymentMethod: consumePayload?.paymentMode || consumePayload?.consume?.paymentMode,
       amountCoins: chargedCoins || SAJU_AI_PROMPT_PRICE,
       amountKRW: calculateKrwAmountFromCoins(chargedCoins || SAJU_AI_PROMPT_PRICE),
       paymentId: consumePayload?.transactionId || consumePayload?.consume?.transactionId || "",
       orderId: consumePayload?.consume?.purchaseId || consumePayload?.purchaseId || requestId,
-      idempotencyKey: body?.idempotencyKey || body?.requestId || requestId,
+      executionStatus: "completed",
+      idempotencyKey,
     });
 
-    return json({
-      ok: true,
-      prompt: builtPrompt.prompt,
-      generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
-      title: builtPrompt.title || "사주 심층 질문 프롬프트",
-      summaryIntent: builtPrompt.summaryIntent || "",
-      analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
-      recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
-        ? builtPrompt.recommendedFollowUpQuestions
-        : [],
-      caution: String(builtPrompt.caution || "").trim() || undefined,
-      questionType: builtPrompt.questionType,
+    const resultPayload = buildSajuAIPromptResultPayload({
+      builtPrompt,
+      consumePayload,
       chargedCoins,
-      membershipCreditCost: Math.max(0, Number(consumePayload?.membershipCreditCost || consumePayload?.consume?.membershipCreditCost || 0)),
-      accessType: String(consumePayload?.accessType || consumePayload?.consume?.accessType || consumePayload?.accessGrant?.accessType || "").trim() || undefined,
-      accessMethod: String(consumePayload?.accessMethod || consumePayload?.consume?.accessMethod || consumePayload?.accessGrant?.accessMethod || "").trim() || undefined,
-      paymentMode: String(consumePayload?.paymentMode || consumePayload?.consume?.paymentMode || consumePayload?.accessGrant?.paymentMode || "").trim() || undefined,
-      requestId,
-      consume: consumePayload?.consume && typeof consumePayload.consume === "object" ? consumePayload.consume : undefined,
-      featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
       balanceAfter,
+      requestId,
+      execution: paidExecution,
     });
+    await PaidExecutionRecord.updateOne(
+      { executionId: paidExecution.executionId },
+      {
+        $set: {
+          status: "completed",
+          completedAt: new Date(),
+          resultId: paidExecution.executionId,
+          result: resultPayload,
+          updatedAt: new Date(),
+        },
+      },
+    );
+
+    logSajuAIPromptStage("REQUEST_DONE", {
+      requestId,
+      executionId: paidExecution?.executionId || executionId,
+      userId: auth?.userId,
+      profileId,
+      accessMethod: resultPayload.accessMethod,
+      paymentMethod: resultPayload.paymentMode,
+      amountCoins: SAJU_AI_PROMPT_PRICE,
+      amountKRW: calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE),
+      monthlyRequiredAmount: resultPayload.membershipCreditCost,
+      paymentId: executionPaymentId,
+      orderId: executionOrderId,
+      idempotencyKey,
+    });
+
+    return json(resultPayload);
   } catch (error) {
+    if (paidExecution?.executionId) {
+      await PaidExecutionRecord.updateOne(
+        { executionId: paidExecution.executionId },
+        {
+          $set: {
+            status: "generation_failed",
+            error: {
+              name: String(error?.name || "Error"),
+              message: String(error?.message || ""),
+            },
+            updatedAt: new Date(),
+          },
+        },
+      ).catch(() => {});
+    }
     logSajuAIPromptStage("GENERATION_FAILED", {
       requestId,
+      executionId: paidExecution?.executionId || "",
       userId: auth?.userId,
+      profileId,
       amountCoins: chargedCoins || SAJU_AI_PROMPT_PRICE,
       amountKRW: calculateKrwAmountFromCoins(chargedCoins || SAJU_AI_PROMPT_PRICE),
       paymentId: sourceTransactionId,
-      idempotencyKey: body?.idempotencyKey || body?.requestId || requestId,
+      executionStatus: paidExecution?.executionId ? "generation_failed" : "",
+      idempotencyKey,
       errorName: error?.name || "Error",
       errorMessage: error?.message || "",
       stack: error?.stack || "",
     });
-    if (chargedCoins > 0 && sourceTransactionId) {
+    if (!paidExecution?.executionId && chargedCoins > 0 && sourceTransactionId) {
       try {
         const refundRequest = new Request(request.url, {
           method: "POST",

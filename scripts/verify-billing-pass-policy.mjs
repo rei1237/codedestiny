@@ -7,6 +7,7 @@ import { __billingTestUtils } from "../worker/routes/billing.js";
 import {
   canUseByPass,
   PASS_LIMITS,
+  PASS_LIMITS_KRW,
   PASS_TIERS,
 } from "../worker/lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../worker/lib/pdf-pass-discount.js";
@@ -136,7 +137,12 @@ const standard30 = decision({
   coinCost: 30,
   monthlyBalance: 300,
 });
+assert.equal(PASS_LIMITS_KRW[PASS_TIERS.STANDARD], 3000, "standard pass limit is 3,000 KRW");
+assert.equal(PASS_LIMITS_KRW[PASS_TIERS.PREMIUM], 5000, "premium pass limit is 5,000 KRW");
+assert.equal(PASS_LIMITS_KRW[PASS_TIERS.VVIP], 10000, "vvip pass limit is 10,000 KRW");
 assert.equal(canUseByPass(activePass(PASS_TIERS.STANDARD), 30), true, "standard covers 30 coins");
+assert.equal(standard30.amountKRW, 3000, "standard 30 amountKRW");
+assert.equal(standard30.passLimitKRW, 3000, "standard 30 passLimitKRW");
 assertPassFree(standard30, "standard 30");
 assertFinalPass(standard30, "monthly", "standard 30 requested monthly");
 assertFinalPass(standard30, "card", "standard 30 requested card");

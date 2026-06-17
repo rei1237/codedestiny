@@ -408,6 +408,8 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     hasActivePass,
     passTier,
     passLimit: hasActivePass && passLimitValue > 0 ? passLimitValue : null,
+    passLimitKRW: hasActivePass && passLimitValue > 0 ? calculateKrwAmountFromCoins(passLimitValue) : null,
+    amountKRW: calculateKrwAmountFromCoins(coinCost),
     canUseByPass: passCovered,
     monthlyBalance,
     canUseByMonthly: monthlyCovered,
@@ -2215,6 +2217,12 @@ function logPaidAccessStage(stage, details = {}) {
     paymentMethod: String(details.paymentMethod || details.paymentMode || ""),
     amountCoins: Number(details.amountCoins || 0),
     amountKRW: Number(details.amountKRW || 0),
+    passEligible: details.passEligible === true,
+    passTier: String(details.passTier || ""),
+    passLimit: Number(details.passLimit || 0),
+    passLimitKRW: Number(details.passLimitKRW || details.passLimitWon || (details.passLimit ? calculateKrwAmountFromCoins(details.passLimit) : 0)),
+    passRemainingUses: Number(details.passRemainingUses || 0),
+    unlockId: String(details.unlockId || ""),
     monthlyRequiredAmount: Number(details.monthlyRequiredAmount || 0),
     monthlyBalanceBefore: Number(details.monthlyBalanceBefore || 0),
     monthlyBalanceAfter: Number(details.monthlyBalanceAfter || 0),
@@ -2492,6 +2500,16 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
     idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
   });
+  logPaidAccessStage("PAID_ACCESS_REQUEST_START", {
+    requestId,
+    userId: authCheck.auth?.userId,
+    featureKey: pricing?.featureKey,
+    productId: body?.productId,
+    paymentMode: requestedPaymentMode,
+    amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+    amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+    idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
+  });
   logPaidAccessStage("AUTH_CHECK_SUCCESS", {
     requestId,
     userId: authCheck.auth?.userId,
@@ -2539,6 +2557,23 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     subscriptionPassPromise,
   ]);
   pricing = applyPdfPassDiscountToPricing(pricing, subscriptionPassForDecision?.entitlement || {});
+  const featurePolicyDecision = buildPassPaymentDecision(
+    subscriptionPassForDecision?.entitlement,
+    pricing,
+    subscriptionPassForDecision?.profileSubscription,
+  );
+  logPaidAccessStage("FEATURE_POLICY_LOADED", {
+    requestId,
+    userId: authCheck.auth.userId,
+    featureKey: pricing?.featureKey,
+    productId: body?.productId,
+    amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+    amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+    passEligible: featurePolicyDecision.canUseByPass,
+    passTier: featurePolicyDecision.passTier,
+    passLimit: featurePolicyDecision.passLimit,
+    idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
+  });
   const scopedBody = profileId ? { ...body, profileId, selectedProfileId: profileId } : body;
   if (persistProfileUnlockEntitlement && !profileId) {
     return failure(403, "MISSING_PROFILE_ID", "Profile selection is required before unlocking this paid section.", undefined, {
@@ -2570,6 +2605,19 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
       amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
     });
+    logPaidAccessStage("PASS_CHECK_START", {
+      requestId,
+      userId: authCheck.auth.userId,
+      featureKey: pricing?.featureKey,
+      profileId,
+      paymentMode: requestedPaymentMode,
+      amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+      amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+      passEligible: featurePolicyDecision.canUseByPass,
+      passTier: featurePolicyDecision.passTier,
+      passLimit: featurePolicyDecision.passLimit,
+      idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
+    });
     accessDecision = await resolvePaidContentAccess(env, {
       userId: authCheck.auth.userId,
       profileId,
@@ -2584,6 +2632,21 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
   if (accessDecision.paymentOptions) paymentDecision = accessDecision.paymentOptions;
   if (accessDecision.reason === "already_unlocked" || accessDecision.reason === "pass_covered") {
+    logPaidAccessStage(accessDecision.reason === "already_unlocked" ? "EXISTING_UNLOCK_FOUND" : "PASS_FEATURE_ELIGIBLE", {
+      requestId,
+      userId: authCheck.auth.userId,
+      featureKey: pricing?.featureKey,
+      profileId,
+      accessMethod: accessDecision.reason === "pass_covered" ? "pass" : "already_unlocked",
+      amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+      amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+      passEligible: accessDecision.reason === "pass_covered",
+      passTier: paymentDecision.passTier,
+      passLimit: paymentDecision.passLimit,
+      unlockId: String(accessDecision.unlockId || ""),
+      orderId: String(accessDecision.unlockId || requestId),
+      idempotencyKey: requestId,
+    });
     logPaidAccessStage(accessDecision.reason === "already_unlocked" ? "ACCESS_ALREADY_UNLOCKED" : "PASS_GRANTED", {
       requestId,
       userId: authCheck.auth.userId,
@@ -2592,6 +2655,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       accessMethod: accessDecision.reason === "pass_covered" ? "pass" : "already_unlocked",
       amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
       amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+      passEligible: accessDecision.reason === "pass_covered",
+      passTier: paymentDecision.passTier,
+      passLimit: paymentDecision.passLimit,
+      unlockId: String(accessDecision.unlockId || ""),
       orderId: String(accessDecision.unlockId || requestId),
       idempotencyKey: requestId,
     });
@@ -2664,11 +2731,45 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const tryUsagePassAccess = async () => {
     if (!shouldAutoConsumeUsagePass) return null;
     usagePassChecked = true;
+    logPaidAccessStage("PASS_USAGE_DEDUCT_START", {
+      requestId,
+      userId: authCheck.auth.userId,
+      featureKey: pricing?.featureKey,
+      profileId,
+      accessMethod: "pass",
+      paymentMethod: "PASS",
+      amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+      amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+      idempotencyKey: requestId,
+    });
     const usagePassConsume = await consumeUsagePassIfAvailable(env, authCheck.auth.userId, pricing, requestId);
     if (!usagePassConsume) return null;
+    logPaidAccessStage("PASS_USAGE_DEDUCT_SUCCESS", {
+      requestId,
+      userId: authCheck.auth.userId,
+      featureKey: pricing?.featureKey,
+      profileId,
+      accessMethod: "pass",
+      paymentMethod: "PASS",
+      amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+      amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+      passRemainingUses: Number(usagePassConsume.remainingUses || 0),
+      idempotencyKey: requestId,
+    });
     let unlockEntitlement = null;
     if (persistProfileUnlockEntitlement) {
       try {
+        logPaidAccessStage("UNLOCK_SAVE_START", {
+          requestId,
+          userId: authCheck.auth.userId,
+          featureKey: pricing?.featureKey,
+          profileId,
+          accessMethod: "pass",
+          paymentMethod: "PASS",
+          amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+          passRemainingUses: Number(usagePassConsume.remainingUses || 0),
+          idempotencyKey: requestId,
+        });
         unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
           userId: authCheck.auth.userId,
           profileId,
@@ -2677,6 +2778,18 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           source: CONTENT_ENTITLEMENT_SOURCES.PASS,
           passId: `${usagePassConsume.category}:${requestId}`,
           coinAmount: 0,
+        });
+        logPaidAccessStage("UNLOCK_SAVE_SUCCESS", {
+          requestId,
+          userId: authCheck.auth.userId,
+          featureKey: pricing?.featureKey,
+          profileId,
+          accessMethod: "pass",
+          paymentMethod: "PASS",
+          amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+          passRemainingUses: Number(usagePassConsume.remainingUses || 0),
+          unlockId: String(unlockEntitlement?._id || ""),
+          idempotencyKey: requestId,
         });
       } catch (error) {
         return failure(
@@ -2752,6 +2865,20 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       subscriptionPass.profileSubscription,
     );
     if (!directPaymentRequested && paymentDecision.canUseByPass && !passBlockedByAccessDecision) {
+      logPaidAccessStage("PASS_ACTIVE_FOUND", {
+        requestId,
+        userId: authCheck.auth.userId,
+        featureKey: pricing?.featureKey,
+        profileId,
+        accessMethod: "pass",
+        paymentMethod: "PASS",
+        amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+        amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+        passEligible: true,
+        passTier: paymentDecision.passTier,
+        passLimit: paymentDecision.passLimit,
+        idempotencyKey: requestId,
+      });
       const passEvidence = await recordPassAccessIfNeeded(env, authCheck.auth.userId, pricing, requestId, {
         ...scopedBody,
         reportId,
@@ -2761,6 +2888,20 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       let unlockEntitlement = null;
       if (persistProfileUnlockEntitlement) {
         try {
+          logPaidAccessStage("UNLOCK_SAVE_START", {
+            requestId,
+            userId: authCheck.auth.userId,
+            featureKey: pricing?.featureKey,
+            profileId,
+            accessMethod: "pass",
+            paymentMethod: "PASS",
+            amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+            passEligible: true,
+            passTier: paymentDecision.passTier,
+            passLimit: paymentDecision.passLimit,
+            orderId: String(passEvidence?._id || requestId),
+            idempotencyKey: requestId,
+          });
           unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
             userId: authCheck.auth.userId,
             profileId,
@@ -2769,6 +2910,21 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             source: CONTENT_ENTITLEMENT_SOURCES.PASS,
             passId: `membership:${subscriptionPass.tier}:${requestId}`,
             coinAmount: 0,
+          });
+          logPaidAccessStage("UNLOCK_SAVE_SUCCESS", {
+            requestId,
+            userId: authCheck.auth.userId,
+            featureKey: pricing?.featureKey,
+            profileId,
+            accessMethod: "pass",
+            paymentMethod: "PASS",
+            amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+            passEligible: true,
+            passTier: paymentDecision.passTier,
+            passLimit: paymentDecision.passLimit,
+            unlockId: String(unlockEntitlement?._id || ""),
+            orderId: String(passEvidence?._id || requestId),
+            idempotencyKey: requestId,
           });
         } catch (error) {
           return failure(

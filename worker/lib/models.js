@@ -63,7 +63,7 @@ const userSchema = new mongoose.Schema({
   adminRefreshTokenHash: { type: String, default: "" },
   adminLastActivityAt: { type: Date, default: null },
   profileSubscription: {
-    tier: { type: String, enum: ["free", "standard", "premium", "vvip"], default: "free" },
+    tier: { type: String, enum: ["free", "standard", "premium", "vvip", "family"], default: "free" },
     source: { type: String, enum: ["coin", "card", "pass", "event"], default: "coin" },
     membershipCreditBalance: { type: Number, default: 0, min: 0 },
     membershipCreditGranted: { type: Number, default: 0, min: 0 },
@@ -425,6 +425,49 @@ serviceExecutionTransactionSchema.index({ userId: 1, executionKey: 1 }, { unique
 serviceExecutionTransactionSchema.index({ status: 1, timeoutAt: 1, nextRetryAt: 1 });
 serviceExecutionTransactionSchema.index({ retentionUntil: 1 }, { expireAfterSeconds: 0 });
 
+const paidExecutionRecordSchema = new mongoose.Schema({
+  executionId: { type: String, required: true, trim: true, maxlength: 160, unique: true, index: true },
+  requestId: { type: String, required: true, trim: true, maxlength: 160, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  featureId: { type: String, required: true, trim: true, maxlength: 120, index: true },
+  profileId: { type: String, required: true, trim: true, maxlength: 120, index: true },
+  accessMode: { type: String, enum: ["per_use"], default: "per_use", index: true },
+  accessMethod: { type: String, enum: ["pass", "family", "monthly", "single"], required: true, index: true },
+  amountCoins: { type: Number, default: 0, min: 0 },
+  amountKRW: { type: Number, default: 0, min: 0 },
+  monthlyDeductedAmount: { type: Number, default: 0, min: 0 },
+  passTier: { type: String, enum: ["", "standard", "premium", "vvip", "family"], default: "" },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  orderId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  status: {
+    type: String,
+    enum: ["paid_pending_generation", "generating", "completed", "generation_failed", "refunded", "cancelled"],
+    default: "paid_pending_generation",
+    index: true,
+  },
+  consumedAt: { type: Date, default: null },
+  completedAt: { type: Date, default: null },
+  resultId: { type: String, default: "", trim: true, maxlength: 160 },
+  result: { type: mongoose.Schema.Types.Mixed, default: null },
+  error: { type: mongoose.Schema.Types.Mixed, default: null },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+}, { timestamps: true, collection: "paid_execution_records" });
+
+paidExecutionRecordSchema.index(
+  { userId: 1, featureId: 1, profileId: 1, requestId: 1 },
+  { unique: true },
+);
+paidExecutionRecordSchema.index(
+  { paymentId: 1 },
+  {
+    unique: true,
+    sparse: true,
+    partialFilterExpression: {
+      paymentId: { $exists: true, $type: "string", $gt: "" },
+    },
+  },
+);
+
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const ProfileCard = mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema);
 export const Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
@@ -437,6 +480,8 @@ export const PaymentFailureLog = mongoose.models.PaymentFailureLog || mongoose.m
 export const RefreshTokenSession = mongoose.models.RefreshTokenSession || mongoose.model("RefreshTokenSession", refreshTokenSessionSchema);
 export const ServiceExecutionTransaction = mongoose.models.ServiceExecutionTransaction
   || mongoose.model("ServiceExecutionTransaction", serviceExecutionTransactionSchema);
+export const PaidExecutionRecord = mongoose.models.PaidExecutionRecord
+  || mongoose.model("PaidExecutionRecord", paidExecutionRecordSchema);
 
 const userRpgProgressSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
