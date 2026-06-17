@@ -1388,6 +1388,20 @@ function _isLifeBookGenerationBusy() {
     _showScreen('lbErrorScreen');
   }
 
+  function _parseLifeBookBirthDateInput(value) {
+    var raw = String(value || '').trim();
+    if (!raw) return null;
+    var datePart = raw.split(/[T\s]/)[0] || raw;
+    var parts = datePart.indexOf('-') >= 0 || datePart.indexOf('/') >= 0 || datePart.indexOf('.') >= 0
+      ? datePart.split(/[-/.]/)
+      : [datePart.replace(/\D/g, '').slice(0, 4), datePart.replace(/\D/g, '').slice(4, 6), datePart.replace(/\D/g, '').slice(6, 8)];
+    if (parts.length < 3 || String(parts[0] || '').length < 4) return null;
+    var y = Number(parts[0]);
+    var m = Number(parts[1]);
+    var d = Number(parts[2]);
+    return y && m && d ? { year: y, month: m, day: d } : null;
+  }
+
   /** DOM 입력값에서 생년월일 복구 */
   function _recoverBirthFromDOM() {
     try {
@@ -1395,9 +1409,9 @@ function _isLifeBookGenerationBusy() {
       var nameEl = document.getElementById('nameInput');
       var isFemale = document.querySelector('#btnF.on') !== null;
       if (!dateEl || !dateEl.value) return null;
-      var parts = dateEl.value.split('-');
-      if (parts.length < 3) return null;
-      var y = Number(parts[0]), m = Number(parts[1]), d = Number(parts[2]);
+      var parts = _parseLifeBookBirthDateInput(dateEl.value);
+      if (!parts) return null;
+      var y = Number(parts.year), m = Number(parts.month), d = Number(parts.day);
       if (!y || !m || !d) return null;
       var hourEl = document.getElementById('birthHour');
       var minEl = document.getElementById('birthMinute');

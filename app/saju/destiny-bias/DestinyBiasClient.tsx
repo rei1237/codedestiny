@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { fetchBillingBalance, openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
+import { readCurrentDestinyProfile, resolveDestinyProfileBirthParts } from "@/app/_lib/profile-card-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import BiasDestinyHero from "./components/BiasDestinyHero";
@@ -87,6 +88,16 @@ function normalizeBirthTimeText(value: unknown) {
   return digits;
 }
 
+function normalizeProfileBirthTimeInput(profile: ReturnType<typeof readCurrentDestinyProfile>) {
+  const birth = profile?.birth || {};
+  const hour = Number(birth.hour ?? profile?.birthHour);
+  const minute = Number(birth.minute ?? profile?.birthMinute ?? 0);
+  if (Number.isFinite(hour) && hour >= 0 && hour <= 23 && Number.isFinite(minute) && minute >= 0 && minute <= 59) {
+    return `${String(Math.trunc(hour)).padStart(2, "0")}${String(Math.trunc(minute)).padStart(2, "0")}`;
+  }
+  return normalizeBirthTimeText(profile?.birthTime || profile?.birthIso);
+}
+
 function normalizeGenderOption(value: unknown): (typeof GENDER_OPTIONS)[number] | "" {
   const raw = String(value || "").trim();
   if (!raw) return "";
@@ -121,16 +132,23 @@ function readCurrentProfileSeed(): ProfileSeed {
   }
   try {
     const user = readSanitizedAuthUser() as StoredAuthUser | null;
+    const profile = readCurrentDestinyProfile();
+    const profileBirth = resolveDestinyProfileBirthParts(profile);
+    const profileBirthDateInput = profileBirth
+      ? `${String(profileBirth.year).padStart(4, "0")}${String(profileBirth.month).padStart(2, "0")}${String(profileBirth.day).padStart(2, "0")}`
+      : "";
+    const profileBirthTimeInput = normalizeProfileBirthTimeInput(profile);
+    const profileGender = normalizeGenderOption(profile?.gender);
     const fallbackName = String(user?.name || "").trim();
     const fallbackBirthDateInput = normalizeBirthDateText(user?.birthDate);
     const fallbackBirthTimeInput = normalizeBirthTimeText(user?.birthTime);
     const fallbackGender = normalizeGenderOption(user?.gender);
 
     return {
-      name: fallbackName,
-      birthDateInput: fallbackBirthDateInput,
-      birthTimeInput: fallbackBirthTimeInput,
-      gender: fallbackGender,
+      name: String(profile?.name || "").trim() || fallbackName,
+      birthDateInput: profileBirthDateInput || fallbackBirthDateInput,
+      birthTimeInput: profileBirthTimeInput || fallbackBirthTimeInput,
+      gender: profileGender || fallbackGender,
     };
   } catch {
     return {

@@ -7,6 +7,7 @@ export type DestinyProfileCard = {
   name?: string;
   gender?: string;
   birthDate?: string;
+  birthDateDigits?: string;
   birthTime?: string;
   birthIso?: string;
   birthYear?: number | string;
@@ -61,12 +62,77 @@ const LEGACY_PROFILE_KEYS = [
   "sampleProfile",
 ];
 
-function hasAnyBirthDate(profile: DestinyProfileCard): boolean {
+function toProfileInt(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.trunc(n) : null;
+}
+
+function isValidBirthDateParts(year: number, month: number, day: number): boolean {
+  if (year < 1 || month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const check = new Date(Date.UTC(year, month - 1, day));
+  return check.getUTCFullYear() === year
+    && check.getUTCMonth() === month - 1
+    && check.getUTCDate() === day;
+}
+
+function parseProfileBirthDateText(value: unknown): { year: number; month: number; day: number } | null {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  const datePart = raw.split(/[T\s]/)[0] || raw;
+  if (!/[-./]/.test(datePart) && datePart.replace(/\D/g, "").length !== 8) return null;
+  const matched = datePart.match(/^(\d{4})[-./]?(\d{1,2})[-./]?(\d{1,2})$/);
+  if (!matched) return null;
+  const year = Number(matched[1]);
+  const month = Number(matched[2]);
+  const day = Number(matched[3]);
+  return isValidBirthDateParts(year, month, day) ? { year, month, day } : null;
+}
+
+export function resolveDestinyProfileBirthParts(profile: DestinyProfileCard | null | undefined): { year: number; month: number; day: number } | null {
+  if (!profile) return null;
   const birth = profile.birth || {};
+  const year = toProfileInt(birth.year ?? profile.birthYear);
+  const month = toProfileInt(birth.month ?? profile.birthMonth);
+  const day = toProfileInt(birth.day ?? profile.birthDay);
+  if (year !== null && month !== null && day !== null && isValidBirthDateParts(year, month, day)) {
+    return { year, month, day };
+  }
+  return parseProfileBirthDateText(profile.birthDate)
+    || parseProfileBirthDateText(profile.birthIso)
+    || parseProfileBirthDateText((profile as DestinyProfileCard & { birthday?: string }).birthday)
+    || parseProfileBirthDateText((profile as DestinyProfileCard & { date?: string }).date);
+}
+
+export function normalizeDestinyProfileCard(profile: DestinyProfileCard | null | undefined): DestinyProfileCard | null {
+  if (!profile || typeof profile !== "object") return null;
+  const parts = resolveDestinyProfileBirthParts(profile);
+  if (!parts) return { ...profile };
+  const birth = profile.birth || {};
+  const birthDate = `${String(parts.year).padStart(4, "0")}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}`;
+  return {
+    ...profile,
+    birthDate,
+    birthDateDigits: birthDate.replace(/\D/g, ""),
+    birthYear: parts.year,
+    birthMonth: parts.month,
+    birthDay: parts.day,
+    birth: {
+      ...birth,
+      year: parts.year,
+      month: parts.month,
+      day: parts.day,
+    },
+  };
+}
+
+function hasAnyBirthDate(profile: DestinyProfileCard): boolean {
+  const normalized = normalizeDestinyProfileCard(profile) || profile;
+  const birth = normalized.birth || {};
   return Boolean(
-    profile.birthDate
-    || profile.birthIso
-    || profile.birthYear
+    normalized.birthDate
+    || normalized.birthIso
+    || normalized.birthYear
     || (birth.year && birth.month && birth.day),
   );
 }
@@ -102,7 +168,9 @@ function getStoredAuthToken(): string {
 }
 
 function pickProfileFromArray(payload: unknown[], currentId: string, predicate: ProfilePredicate): DestinyProfileCard | null {
-  const profiles = payload.filter((item): item is DestinyProfileCard => Boolean(item && typeof item === "object"));
+  const profiles = payload
+    .map((item) => normalizeDestinyProfileCard(item as DestinyProfileCard))
+    .filter((item): item is DestinyProfileCard => Boolean(item && typeof item === "object"));
   const requested = currentId.trim();
   if (requested) {
     const matched = profiles.find((item) => String(item.id || item.profileId || "").trim() === requested);
@@ -139,8 +207,8 @@ export function pickDestinyProfileFromPayload(
     : null;
   if (nestedProfile) return nestedProfile;
 
-  const profile = payload as DestinyProfileCard;
-  return predicate(profile) ? profile : null;
+  const profile = normalizeDestinyProfileCard(payload as DestinyProfileCard);
+  return profile && predicate(profile) ? profile : null;
 }
 
 export function readCurrentDestinyProfile(
@@ -205,9 +273,10 @@ export function clearLegacyProfileSelectionKeys(deletedProfileId = "") {
 export function publishDestinyProfileBridge(profile: DestinyProfileCard) {
   if (typeof window === "undefined") return;
   try {
-    (window as unknown as { __cdCurrentDestinyProfile?: DestinyProfileCard }).__cdCurrentDestinyProfile = profile;
-    const payload = JSON.stringify(profile);
-    const profileId = String(profile.id || profile.profileId || "").trim();
+    const normalized = normalizeDestinyProfileCard(profile) || profile;
+    (window as unknown as { __cdCurrentDestinyProfile?: DestinyProfileCard }).__cdCurrentDestinyProfile = normalized;
+    const payload = JSON.stringify(normalized);
+    const profileId = String(normalized.id || normalized.profileId || "").trim();
     window.localStorage.setItem(ACTIVE_PROFILE_ID_KEY, profileId);
     window.localStorage.setItem(ACTIVE_PROFILE_CACHE_KEY, payload);
     window.sessionStorage.setItem("FORTUNE_APP_USER_PROFILE", payload);
@@ -218,7 +287,9 @@ export function publishDestinyProfileBridge(profile: DestinyProfileCard) {
 export function publishDestinyProfileList(profiles: DestinyProfileCard[], currentId = "") {
   if (typeof window === "undefined") return;
   const scope = readProfileScope();
-  const safeProfiles = profiles.filter((profile) => Boolean(profile && (profile.id || profile.profileId)));
+  const safeProfiles = profiles
+    .map((profile) => normalizeDestinyProfileCard(profile))
+    .filter((profile): profile is DestinyProfileCard => Boolean(profile && (profile.id || profile.profileId)));
   const nextCurrentId = String(currentId || safeProfiles[0]?.id || safeProfiles[0]?.profileId || "").trim();
   const active = safeProfiles.find((profile) => String(profile.id || profile.profileId || "").trim() === nextCurrentId)
     || safeProfiles[0]

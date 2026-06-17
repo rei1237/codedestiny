@@ -1293,9 +1293,10 @@ function getBirthSubscriptionData(profile) {
   var birthMinute = birthMinuteEl && birthMinuteEl.value !== '' ? parseInt(birthMinuteEl.value, 10) : (profileBirth ? parseInt(profileBirth.minute, 10) : 0);
   var calendarType = hasFormBirthDate ? getCheckedFormValue('calType', profileBirth ? profileBirth.calType : 'solar') : (profileBirth && profileBirth.calType) || getCheckedFormValue('calType', 'solar');
   var timezone = profile && profile.location && profile.location.tz ? profile.location.tz : 'Asia/Seoul';
+  var birthDateDigits = String(birthDate || '').replace(/\D/g, '');
   return {
     birthDate: birthDate,
-    birthYear: birthDate ? parseInt(birthDate.split('-')[0], 10) || undefined : undefined,
+    birthYear: birthDateDigits.length >= 4 ? parseInt(birthDateDigits.slice(0, 4), 10) || undefined : undefined,
     birthHour: Number.isFinite(birthHour) ? birthHour : 12,
     birthMinute: Number.isFinite(birthMinute) ? birthMinute : 0,
     calendarType: calendarType || 'solar',

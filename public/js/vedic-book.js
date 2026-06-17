@@ -347,10 +347,10 @@
       var femaleEl = document.getElementById('genderFemale');
       var countryEl = document.getElementById('birthCountry');
       if (!birthDateEl || !birthDateEl.value) return null;
-      var parts = birthDateEl.value.split('-');
-      var year = Number(parts[0]);
-      var month = Number(parts[1]);
-      var day = Number(parts[2]);
+      var dateParts = _parseBirthDateParts(birthDateEl.value);
+      var year = Number(dateParts && dateParts.year);
+      var month = Number(dateParts && dateParts.month);
+      var day = Number(dateParts && dateParts.day);
       if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
       var option = countryEl && countryEl.options ? countryEl.options[countryEl.selectedIndex] : null;
       var h = hourEl ? Number(hourEl.value) : NaN;

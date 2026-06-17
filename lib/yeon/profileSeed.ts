@@ -1,4 +1,5 @@
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
+import { readCurrentDestinyProfile, resolveDestinyProfileBirthParts, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
 
 type StoredProfile = {
   id?: string;
@@ -46,7 +47,12 @@ function normalizeBirthDateText(value: unknown) {
   return `${year}-${month}-${day}`;
 }
 
-function buildBirthDateFromProfileBirth(birth: StoredProfile["birth"]) {
+function buildBirthDateFromProfile(profile: StoredProfile | DestinyProfileCard | null | undefined) {
+  const parts = resolveDestinyProfileBirthParts(profile as DestinyProfileCard | null | undefined);
+  if (parts) {
+    return `${String(parts.year).padStart(4, "0")}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}`;
+  }
+  const birth = profile?.birth;
   const year = pad(birth?.year, 4);
   const month = pad(birth?.month, 2);
   const day = pad(birth?.day, 2);
@@ -63,6 +69,7 @@ export function readYeonProfileSeed(): YeonProfileSeed {
     const user = readSanitizedAuthUser() as StoredAuthUser | null;
     const scope = resolveAuthScopeFromUser(user) || "guest";
 
+    const activeProfile = readCurrentDestinyProfile();
     const listRaw =
       localStorage.getItem(`${PROFILE_NS}.list::${scope}`) ||
       localStorage.getItem(`${PROFILE_NS}.list`) ||
@@ -78,9 +85,9 @@ export function readYeonProfileSeed(): YeonProfileSeed {
         ? (currentId ? list.find((item) => item?.id === currentId) : undefined) || list[0]
         : null;
 
-    const profileBirthDate = buildBirthDateFromProfileBirth(profile?.birth);
+    const profileBirthDate = buildBirthDateFromProfile(activeProfile || profile);
     const authBirthDate = normalizeBirthDateText(user?.birthDate);
-    const profileName = String(profile?.name || "").trim();
+    const profileName = String((activeProfile || profile)?.name || "").trim();
     const authName = String(user?.name || "").trim();
 
     if (profileBirthDate) {
@@ -107,7 +114,7 @@ export function readYeonProfileSeed(): YeonProfileSeed {
       source: "none",
       scope,
     };
-  } catch (e) {
+  } catch {
     return { name: "", birthDate: "", source: "none", scope: "guest" };
   }
 }

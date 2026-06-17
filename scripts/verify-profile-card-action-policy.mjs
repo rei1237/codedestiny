@@ -12,8 +12,19 @@ const files = {
   billingRoute: "worker/routes/billing.js",
   paymentsRoute: "worker/routes/payments.js",
   mePage: "app/me/page.tsx",
+  profileStorage: "app/_lib/profile-card-storage.ts",
+  yeonSeed: "lib/yeon/profileSeed.ts",
+  fptiExperience: "components/fpti/FptiExperience.tsx",
+  destinyBias: "app/saju/destiny-bias/DestinyBiasClient.tsx",
+  loveSimulation: "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
   destinyProfile: "js/destiny-profile.js",
   mainRuntime: "js/core/index-inline-runtime.js",
+  vedicBook: "js/vedic-book.js",
+  astroBook: "js/astro-book.js",
+  sajuNewYear: "js/saju-new-year.js",
+  lifeBook: "js/life-book.js",
+  olympusOracle: "js/olympus-oracle.js",
+  shareRuntime: "js/share.js",
 };
 
 const texts = Object.fromEntries(
@@ -141,6 +152,45 @@ const cases = [
     ],
   },
   {
+    name: "shared profile storage normalizes profile birth date shapes",
+    includes: [
+      ["profileStorage", "export function resolveDestinyProfileBirthParts"],
+      ["profileStorage", "export function normalizeDestinyProfileCard"],
+      ["profileStorage", "birthDateDigits: birthDate.replace(/\\D/g, \"\")"],
+      ["profileStorage", ".map((profile) => normalizeDestinyProfileCard(profile))"],
+    ],
+  },
+  {
+    name: "yeon and fpti use normalized profile-card birth dates",
+    includes: [
+      ["yeonSeed", "readCurrentDestinyProfile()"],
+      ["yeonSeed", "resolveDestinyProfileBirthParts"],
+      ["fptiExperience", "parseDatePartsFromText(profile.birthDate)"],
+      ["fptiExperience", "const compact = source.match(/^(\\d{4})(\\d{2})(\\d{2})$/)"],
+    ],
+  },
+  {
+    name: "destiny bias reads current profile card before auth fallback",
+    includes: [
+      ["destinyBias", "readCurrentDestinyProfile"],
+      ["destinyBias", "resolveDestinyProfileBirthParts"],
+      ["destinyBias", "birthDateInput: profileBirthDateInput || fallbackBirthDateInput"],
+    ],
+  },
+  {
+    name: "love simulation reads current profile card and avoids fixed-date slicing",
+    includes: [
+      ["loveSimulation", "readCurrentDestinyProfile"],
+      ["loveSimulation", "function parseProfileSeedBirthDate"],
+      ["loveSimulation", "const currentProfile = readCurrentDestinyProfile() as StoredProfile | null"],
+    ],
+    excludes: [
+      ["loveSimulation", "profileSeed.birthDate.split(\"-\")"],
+      ["loveSimulation", "profileSeed.birthDate.slice(5, 7)"],
+      ["loveSimulation", "profileSeed.birthDate.slice(8, 10)"],
+    ],
+  },
+  {
     name: "vedic main form fallback accepts YYYYMMDD birth date input",
     includes: [
       ["mainRuntime", "var digits = bd.replace(/\\D/g, '');"],
@@ -148,6 +198,25 @@ const cases = [
     ],
     excludes: [
       ["mainRuntime", "var parts = bd.split('-');"],
+    ],
+  },
+  {
+    name: "static premium runtimes accept YYYYMMDD birth date fallback",
+    includes: [
+      ["vedicBook", "var dateParts = _parseBirthDateParts(birthDateEl.value);"],
+      ["astroBook", "function _parseAstroBirthDateInput(value)"],
+      ["sajuNewYear", "function _parseSajuNewYearDateInput(value)"],
+      ["lifeBook", "function _parseLifeBookBirthDateInput(value)"],
+      ["olympusOracle", "var digits = birthDate.replace(/\\D/g, '');"],
+      ["shareRuntime", "var birthDateDigits = String(birthDate || '').replace(/\\D/g, '');"],
+    ],
+    excludes: [
+      ["vedicBook", "birthDateEl.value.split('-')"],
+      ["astroBook", "birthDateEl.value.split('-')"],
+      ["sajuNewYear", "birthDateEl.value.split('-')"],
+      ["lifeBook", "dateEl.value.split('-')"],
+      ["olympusOracle", "birthDate.split('-')"],
+      ["shareRuntime", "birthDate.split('-')[0]"],
     ],
   },
   {

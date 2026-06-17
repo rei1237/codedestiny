@@ -8,6 +8,7 @@ import { fetchSajuPillar } from "../_services/sajuApi";
 import { applyEffects, getRelationshipMetrics, resolveResult } from "../_utils/loveCodeScoring";
 import { buildSajuCoupleCompatibility, matchLoveCharactersFromSaju, type LoveCharacterMatchResult, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
+import { readCurrentDestinyProfile } from "@/app/_lib/profile-card-storage";
 
 const LoveCharacterStorySection = lazy(() => import("./LoveCharacterStorySection"));
 
@@ -46,6 +47,9 @@ type StoredProfile = {
     calType?: string;
     calendarType?: string;
     timezone?: string;
+  };
+  location?: {
+    tz?: string;
   };
 };
 
@@ -270,6 +274,17 @@ function normalizeBirthDateFromProfile(profile: StoredProfile | null | undefined
   return normalizeBirthDate(profile?.birthDate) || normalizeBirthDate(profile?.birthIso);
 }
 
+function parseProfileSeedBirthDate(birthDate: string) {
+  const normalized = normalizeBirthDate(birthDate);
+  if (!normalized) return null;
+  const digits = normalized.replace(/\D/g, "");
+  return {
+    year: Number(digits.slice(0, 4)),
+    month: Number(digits.slice(4, 6)),
+    day: Number(digits.slice(6, 8)),
+  };
+}
+
 function parseBirthTimeParts(...values: unknown[]) {
   for (const value of values) {
     const raw = String(value || "").trim();
@@ -328,35 +343,36 @@ function normalizeProfileGender(value: unknown): "남" | "여" {
 function readCurrentProfileSeed(): ProfileSeed | null {
   if (typeof window === "undefined") return null;
   const authUser = readJsonObject<StoredAuthUser>("fortune_auth_user");
+  const currentProfile = readCurrentDestinyProfile() as StoredProfile | null;
 
   try {
-    const birthDate = normalizeBirthDate(authUser?.birthDate);
+    const birthDate = normalizeBirthDateFromProfile(currentProfile) || normalizeBirthDate(authUser?.birthDate);
     if (!birthDate) return null;
-    const profileCalendarType = authUser?.calendarType || authUser?.calType;
+    const profileCalendarType = currentProfile?.birth?.calType || currentProfile?.birth?.calendarType || currentProfile?.calendarType || currentProfile?.calType || authUser?.calendarType || authUser?.calType;
 
     return {
       birthDate,
-      gender: normalizeProfileGender(authUser?.gender),
-      hour: normalizeBirthHourFromProfile(null, authUser),
-      minute: normalizeBirthMinuteFromProfile(null, authUser),
-      hasTime: hasKnownBirthTime(null, authUser),
+      gender: normalizeProfileGender(currentProfile?.gender || authUser?.gender),
+      hour: normalizeBirthHourFromProfile(currentProfile, authUser),
+      minute: normalizeBirthMinuteFromProfile(currentProfile, authUser),
+      hasTime: hasKnownBirthTime(currentProfile, authUser),
       calendarType: normalizeProfileCalendarType(profileCalendarType),
-      timezone: String(authUser?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
-      name: String(authUser?.name || "나").trim(),
+      timezone: String(currentProfile?.timezone || currentProfile?.birth?.timezone || currentProfile?.location?.tz || authUser?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
+      name: String(currentProfile?.name || authUser?.name || "나").trim(),
     };
   } catch {
-    const birthDate = normalizeBirthDate(authUser?.birthDate);
+    const birthDate = normalizeBirthDateFromProfile(currentProfile) || normalizeBirthDate(authUser?.birthDate);
     if (!birthDate) return null;
 
     return {
       birthDate,
-      gender: normalizeProfileGender(authUser?.gender),
+      gender: normalizeProfileGender(currentProfile?.gender || authUser?.gender),
       hour: 12,
       minute: 0,
-      hasTime: Boolean(parseBirthTimeParts(authUser?.birthTime)),
-      calendarType: normalizeProfileCalendarType(authUser?.calendarType || authUser?.calType),
-      timezone: String(authUser?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
-      name: String(authUser?.name || "나").trim(),
+      hasTime: Boolean(parseBirthTimeParts(currentProfile?.birthTime, authUser?.birthTime, currentProfile?.birthIso)),
+      calendarType: normalizeProfileCalendarType(currentProfile?.calendarType || currentProfile?.calType || authUser?.calendarType || authUser?.calType),
+      timezone: String(currentProfile?.timezone || currentProfile?.birth?.timezone || currentProfile?.location?.tz || authUser?.timezone || "Asia/Seoul").trim() || "Asia/Seoul",
+      name: String(currentProfile?.name || authUser?.name || "나").trim(),
     };
   }
 }
@@ -1282,8 +1298,8 @@ export const LoveSimulationEngine: React.FC = () => {
       return;
     }
 
-    const [year, month, day] = profileSeed.birthDate.split("-").map((value) => Number(value));
-    if (!year || !month || !day) {
+    const profileBirth = parseProfileSeedBirthDate(profileSeed.birthDate);
+    if (!profileBirth) {
       setInitialCompatibilityNote("프로필 카드 생년월일을 연결하면 초반 궁합 흐름에 반영됩니다.");
       return;
     }
@@ -1293,9 +1309,9 @@ export const LoveSimulationEngine: React.FC = () => {
         const userSaju = await fetchSajuPillar({
           name: profileSeed.name || "나",
           gender: profileSeed.gender,
-          year,
-          month,
-          day,
+          year: profileBirth.year,
+          month: profileBirth.month,
+          day: profileBirth.day,
           hour: profileSeed.hour,
           minute: profileSeed.minute,
           hasTime: profileSeed.hasTime,
@@ -1385,6 +1401,7 @@ export const LoveSimulationEngine: React.FC = () => {
 
     try {
       const profileSeed = readCurrentProfileSeed();
+      const profileBirth = profileSeed ? parseProfileSeedBirthDate(profileSeed.birthDate) : null;
       const [partnerSaju, selfSaju] = await Promise.all([
         fetchSajuPillar({
           name: targetInput.name.trim() || "상대",
@@ -1398,13 +1415,13 @@ export const LoveSimulationEngine: React.FC = () => {
           calendarType: targetInput.calType,
           timezone: targetInput.country,
         }),
-        profileSeed
+        profileSeed && profileBirth
           ? fetchSajuPillar({
               name: profileSeed.name || "나",
               gender: profileSeed.gender,
-              year: Number(profileSeed.birthDate.slice(0, 4)),
-              month: Number(profileSeed.birthDate.slice(5, 7)),
-              day: Number(profileSeed.birthDate.slice(8, 10)),
+              year: profileBirth.year,
+              month: profileBirth.month,
+              day: profileBirth.day,
               hour: profileSeed.hour,
               minute: profileSeed.minute,
               hasTime: profileSeed.hasTime,

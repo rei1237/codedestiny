@@ -305,6 +305,22 @@
     return false;
   }
 
+  function _parseAstroBirthDateInput(value) {
+    var raw = _clean(value);
+    if (!raw) return null;
+    var datePart = raw.split(/[T\s]/)[0] || raw;
+    var parts = datePart.indexOf('-') >= 0 || datePart.indexOf('/') >= 0 || datePart.indexOf('.') >= 0
+      ? datePart.split(/[-/.]/)
+      : [datePart.replace(/\D/g, '').slice(0, 4), datePart.replace(/\D/g, '').slice(4, 6), datePart.replace(/\D/g, '').slice(6, 8)];
+    if (parts.length < 3 || String(parts[0] || '').length < 4) return null;
+    var year = Number(parts[0]);
+    var month = Number(parts[1]);
+    var day = Number(parts[2]);
+    return Number.isFinite(year) && Number.isFinite(month) && Number.isFinite(day)
+      ? { year: year, month: month, day: day }
+      : null;
+  }
+
   function _recoverBirthFromDOM() {
     try {
       var birthDateEl = document.getElementById('birthDate');
@@ -314,10 +330,10 @@
       var femaleEl = document.getElementById('genderFemale');
       var countryEl = document.getElementById('birthCountry');
       if (!birthDateEl || !birthDateEl.value) return null;
-      var p = birthDateEl.value.split('-');
-      var y = Number(p[0]);
-      var m = Number(p[1]);
-      var d = Number(p[2]);
+      var dateParts = _parseAstroBirthDateInput(birthDateEl.value);
+      var y = Number(dateParts && dateParts.year);
+      var m = Number(dateParts && dateParts.month);
+      var d = Number(dateParts && dateParts.day);
       if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null;
       var isFemale = !!(femaleEl && femaleEl.checked);
       var locationData = _readAstroDomLocation() || {

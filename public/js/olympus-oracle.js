@@ -109,7 +109,10 @@
       var birthDate = birthDateEl ? String(birthDateEl.value || '').trim() : '';
       if (!birthDate) return null;
 
-      var parts = birthDate.split('-');
+      var digits = birthDate.replace(/\D/g, '');
+      var parts = birthDate.indexOf('-') >= 0 || birthDate.indexOf('/') >= 0 || birthDate.indexOf('.') >= 0
+        ? birthDate.split(/[-/.]/)
+        : [digits.slice(0, 4), digits.slice(4, 6), digits.slice(6, 8)];
       if (parts.length < 3) return null;
       var year = Number(parts[0]);
       var month = Number(parts[1]);
