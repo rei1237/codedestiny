@@ -61,6 +61,8 @@ type ContentDiag = {
 
 type PromptLabService = "saju" | "tarot" | "sukuyo" | "astrology" | "ziwei" | "vedic";
 type PromptLabDomain = "general" | "love" | "compatibility" | "career" | "money" | "health" | "life_direction" | "personality";
+type PromptLabTimeCorrectionPolicy = "auto" | "clock" | "local_mean" | "true_solar";
+type PromptLabDayChangePolicy = "auto" | "midnight" | "late_zi_next_day" | "true_solar_zi_next_day";
 
 type PromptLabForm = {
   service: PromptLabService;
@@ -74,6 +76,8 @@ type PromptLabForm = {
   latitude: string;
   longitude: string;
   timezone: string;
+  timeCorrectionPolicy: PromptLabTimeCorrectionPolicy;
+  dayChangePolicy: PromptLabDayChangePolicy;
   question: string;
 };
 
@@ -125,8 +129,68 @@ const DEFAULT_PROMPT_LAB_FORM: PromptLabForm = {
   latitude: "",
   longitude: "",
   timezone: "Asia/Seoul",
+  timeCorrectionPolicy: "auto",
+  dayChangePolicy: "auto",
   question: "올해 제 운의 흐름에서 가장 강하게 열리는 문과 조심해야 할 기운은 무엇인가요?",
 };
+
+const PROMPT_LAB_SERVICE_REQUIREMENTS: Record<PromptLabService, {
+  needsCoordinates: boolean;
+  needsExactTime: boolean;
+  supportsTimeCorrection: boolean;
+  note: string;
+}> = {
+  saju: {
+    needsCoordinates: true,
+    needsExactTime: false,
+    supportsTimeCorrection: true,
+    note: "사주는 지역 좌표가 있으면 실제 사주 분석과 같은 진태양시/야자시 보정으로 명식이 열립니다.",
+  },
+  tarot: {
+    needsCoordinates: false,
+    needsExactTime: false,
+    supportsTimeCorrection: false,
+    note: "타로는 질문의 결을 중심으로 펼쳐집니다.",
+  },
+  sukuyo: {
+    needsCoordinates: false,
+    needsExactTime: false,
+    supportsTimeCorrection: false,
+    note: "숙요는 생년월일의 달빛 결을 중심으로 살핍니다.",
+  },
+  astrology: {
+    needsCoordinates: true,
+    needsExactTime: true,
+    supportsTimeCorrection: false,
+    note: "점성술은 ASC, 하우스, MC가 위도·경도와 정확한 생시에 기대어 솟아납니다.",
+  },
+  ziwei: {
+    needsCoordinates: false,
+    needsExactTime: true,
+    supportsTimeCorrection: false,
+    note: "자미두수는 명궁과 신궁을 위해 생시가 필요합니다.",
+  },
+  vedic: {
+    needsCoordinates: true,
+    needsExactTime: true,
+    supportsTimeCorrection: false,
+    note: "베다점은 라그나와 나크샤트라가 위도·경도와 정확한 생시에 기대어 떠오릅니다.",
+  },
+};
+
+const PROMPT_LAB_TIME_CORRECTION_OPTIONS: Array<{ key: PromptLabTimeCorrectionPolicy; label: string }> = [
+  { key: "auto", label: "자동 보정" },
+  { key: "clock", label: "표준시" },
+  { key: "local_mean", label: "평균태양시" },
+  { key: "true_solar", label: "진태양시" },
+];
+
+const PROMPT_LAB_DAY_CHANGE_OPTIONS: Array<{ key: PromptLabDayChangePolicy; label: string }> = [
+  { key: "auto", label: "자동 야자시" },
+  { key: "midnight", label: "자정 기준" },
+  { key: "late_zi_next_day", label: "야자시 다음날" },
+  { key: "true_solar_zi_next_day", label: "진태양시 야자시" },
+];
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 
@@ -239,6 +303,7 @@ export default function AdminInsightsPage() {
   const apiBase = useMemo(() => getApiBaseUrl(), []);
   const endpointBase = `${apiBase || ""}/api/admin/content`;
   const promptLabEndpoint = `${apiBase || ""}/api/admin/prompt-lab/generate`;
+  const promptLabGeocodeEndpoint = `${apiBase || ""}/api/admin/prompt-lab/geocode`;
   const requestCredentials = useMemo(() => resolveAdminRequestCredentials(apiBase), [apiBase]);
 
   const [filter, setFilter] = useState<FilterKey>("all");
@@ -255,8 +320,10 @@ export default function AdminInsightsPage() {
   const [diag, setDiag] = useState<ContentDiag | null>(null);
   const [promptLabForm, setPromptLabForm] = useState<PromptLabForm>(DEFAULT_PROMPT_LAB_FORM);
   const [promptLabLoading, setPromptLabLoading] = useState(false);
+  const [promptLabGeocoding, setPromptLabGeocoding] = useState(false);
   const [promptLabError, setPromptLabError] = useState("");
   const [promptLabResult, setPromptLabResult] = useState<PromptLabResult | null>(null);
+  const promptLabRequirement = PROMPT_LAB_SERVICE_REQUIREMENTS[promptLabForm.service];
 
   async function loadDiag() {
     try {
@@ -414,7 +481,64 @@ export default function AdminInsightsPage() {
   }
 
   function updatePromptLabField<K extends keyof PromptLabForm>(key: K, value: PromptLabForm[K]) {
-    setPromptLabForm((prev) => ({ ...prev, [key]: value }));
+    setPromptLabForm((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === "service") {
+        const requirement = PROMPT_LAB_SERVICE_REQUIREMENTS[value as PromptLabService];
+        if (requirement?.needsExactTime) next.birthTimeUnknown = false;
+        if (!requirement?.supportsTimeCorrection) {
+          next.timeCorrectionPolicy = "auto";
+          next.dayChangePolicy = "auto";
+        }
+      }
+      return next;
+    });
+  }
+
+  async function geocodePromptLabBirthPlace() {
+    const queryText = promptLabForm.birthPlace.trim();
+    if (!queryText) {
+      setPromptLabError("출생지를 먼저 입력해 주세요.");
+      return;
+    }
+
+    setPromptLabGeocoding(true);
+    setPromptLabError("");
+    try {
+      const url = new URL(promptLabGeocodeEndpoint, window.location.origin);
+      url.searchParams.set("q", queryText);
+      const res = await fetch(url.toString(), {
+        method: "GET",
+        credentials: requestCredentials,
+        headers: buildAdminHeaders(),
+        cache: "no-store",
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 401 || res.status === 403) {
+        setForbidden(true);
+        setPromptLabError("관리자 로그인이 필요합니다.");
+        return;
+      }
+
+      if (!res.ok || !data?.ok) {
+        setPromptLabError(String(data?.message || "지역 좌표를 찾지 못했습니다."));
+        return;
+      }
+
+      setForbidden(false);
+      setPromptLabForm((prev) => ({
+        ...prev,
+        birthPlace: String(data?.label || data?.query || prev.birthPlace),
+        latitude: Number.isFinite(Number(data?.latitude)) ? String(Number(data.latitude).toFixed(6)) : prev.latitude,
+        longitude: Number.isFinite(Number(data?.longitude)) ? String(Number(data.longitude).toFixed(6)) : prev.longitude,
+        timezone: String(data?.timezone || prev.timezone || "Asia/Seoul"),
+      }));
+    } catch {
+      setPromptLabError("지역 좌표를 불러오지 못했습니다.");
+    } finally {
+      setPromptLabGeocoding(false);
+    }
   }
 
   async function generatePromptLab() {
@@ -423,6 +547,16 @@ export default function AdminInsightsPage() {
 
     if (!promptLabForm.birthDate) {
       setPromptLabError("생년월일을 입력해 주세요.");
+      return;
+    }
+
+    if (promptLabRequirement.needsExactTime && (promptLabForm.birthTimeUnknown || !promptLabForm.birthTime)) {
+      setPromptLabError("선택한 기능은 정확한 생시가 필요합니다.");
+      return;
+    }
+
+    if (promptLabRequirement.needsCoordinates && (!promptLabForm.latitude || !promptLabForm.longitude)) {
+      setPromptLabError("선택한 기능은 출생지 좌표가 필요합니다. 지역을 입력한 뒤 좌표를 자동 입력해 주세요.");
       return;
     }
 
@@ -598,6 +732,12 @@ export default function AdminInsightsPage() {
                 </label>
               </div>
 
+              <p className="rounded-lg border border-amber-900/60 bg-amber-950/25 px-3 py-2 text-xs leading-5 text-amber-100/75">
+                {promptLabRequirement.note}
+                {promptLabRequirement.needsCoordinates ? " 위도·경도 필요." : " 위도·경도 선택."}
+                {promptLabRequirement.needsExactTime ? " 정확한 생시 필요." : " 생시 미상 허용."}
+              </p>
+
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <label className="block text-xs text-amber-100/70">
                   이름
@@ -642,7 +782,7 @@ export default function AdminInsightsPage() {
                       updatePromptLabField("birthTime", e.target.value);
                       updatePromptLabField("birthTimeUnknown", false);
                     }}
-                    disabled={promptLabForm.birthTimeUnknown}
+                    disabled={promptLabForm.birthTimeUnknown && !promptLabRequirement.needsExactTime}
                     className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50 disabled:opacity-50"
                   />
                 </label>
@@ -653,10 +793,40 @@ export default function AdminInsightsPage() {
                   type="checkbox"
                   checked={promptLabForm.birthTimeUnknown}
                   onChange={(e) => updatePromptLabField("birthTimeUnknown", e.target.checked)}
+                  disabled={promptLabRequirement.needsExactTime}
                   className="h-4 w-4 rounded border-amber-800 bg-[#201811]"
                 />
                 출생시간 미상
               </label>
+
+              {promptLabRequirement.supportsTimeCorrection ? (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <label className="block text-xs text-amber-100/70">
+                    생시 보정
+                    <select
+                      value={promptLabForm.timeCorrectionPolicy}
+                      onChange={(e) => updatePromptLabField("timeCorrectionPolicy", e.target.value as PromptLabTimeCorrectionPolicy)}
+                      className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                    >
+                      {PROMPT_LAB_TIME_CORRECTION_OPTIONS.map((option) => (
+                        <option key={option.key} value={option.key}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block text-xs text-amber-100/70">
+                    일진 기준
+                    <select
+                      value={promptLabForm.dayChangePolicy}
+                      onChange={(e) => updatePromptLabField("dayChangePolicy", e.target.value as PromptLabDayChangePolicy)}
+                      className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                    >
+                      {PROMPT_LAB_DAY_CHANGE_OPTIONS.map((option) => (
+                        <option key={option.key} value={option.key}>{option.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              ) : null}
 
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <label className="block text-xs text-amber-100/70 sm:col-span-3">
@@ -669,6 +839,14 @@ export default function AdminInsightsPage() {
                     placeholder="예: 서울"
                   />
                 </label>
+                <button
+                  type="button"
+                  onClick={() => { void geocodePromptLabBirthPlace(); }}
+                  disabled={promptLabGeocoding || !promptLabForm.birthPlace.trim()}
+                  className="rounded-lg border border-amber-700 bg-amber-950/40 px-3 py-2 text-sm text-amber-100 hover:bg-amber-900/50 disabled:opacity-50 sm:col-span-3"
+                >
+                  {promptLabGeocoding ? "좌표 찾는 중" : "지역으로 위도·경도 자동 입력"}
+                </button>
                 <input
                   type="text"
                   value={promptLabForm.latitude}

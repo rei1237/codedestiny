@@ -18,6 +18,10 @@ import { buildSukuyoAIPromptWithDomain } from "../lib/sukuyo-ai-prompt.js";
 import { buildAstrologyAIPromptWithDomain } from "../lib/astrology-ai-prompt.js";
 import { buildZiweiAIPromptWithDomain } from "../lib/ziwei-ai-prompt.js";
 import { buildVedicAIPromptWithDomain } from "../lib/vedic-ai-prompt.js";
+import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
+import { getSwissWesternChart, getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
+import { buildAstroLocalChartJson, normalizeAstroPremiumBirthInput } from "../lib/astro-premium-generator.js";
+import { buildVedicLocalChartJson } from "../lib/vedic-premium-generator.js";
 
 const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
   // current admin entry password: kangta!7989
@@ -139,6 +143,30 @@ const ADMIN_ZIWEI_PALACES = [
 ];
 const ADMIN_ZIWEI_STARS = ["자미", "천기", "태양", "무곡", "천동", "염정", "천부", "태음", "탐랑", "거문", "천상", "천량", "칠살", "파군"];
 
+const ADMIN_GEOCODE_PRESETS = [
+  { keys: ["서울", "seoul"], label: "서울", latitude: 37.5665, longitude: 126.9780, timezone: "Asia/Seoul" },
+  { keys: ["부산", "busan"], label: "부산", latitude: 35.1796, longitude: 129.0756, timezone: "Asia/Seoul" },
+  { keys: ["대구", "daegu"], label: "대구", latitude: 35.8714, longitude: 128.6014, timezone: "Asia/Seoul" },
+  { keys: ["인천", "incheon"], label: "인천", latitude: 37.4563, longitude: 126.7052, timezone: "Asia/Seoul" },
+  { keys: ["광주", "gwangju"], label: "광주", latitude: 35.1595, longitude: 126.8526, timezone: "Asia/Seoul" },
+  { keys: ["대전", "daejeon"], label: "대전", latitude: 36.3504, longitude: 127.3845, timezone: "Asia/Seoul" },
+  { keys: ["울산", "ulsan"], label: "울산", latitude: 35.5384, longitude: 129.3114, timezone: "Asia/Seoul" },
+  { keys: ["세종", "sejong"], label: "세종", latitude: 36.4800, longitude: 127.2890, timezone: "Asia/Seoul" },
+  { keys: ["제주", "jeju"], label: "제주", latitude: 33.4996, longitude: 126.5312, timezone: "Asia/Seoul" },
+  { keys: ["도쿄", "tokyo"], label: "도쿄", latitude: 35.6762, longitude: 139.6503, timezone: "Asia/Tokyo" },
+  { keys: ["오사카", "osaka"], label: "오사카", latitude: 34.6937, longitude: 135.5023, timezone: "Asia/Tokyo" },
+  { keys: ["베이징", "beijing"], label: "베이징", latitude: 39.9042, longitude: 116.4074, timezone: "Asia/Shanghai" },
+  { keys: ["상하이", "shanghai"], label: "상하이", latitude: 31.2304, longitude: 121.4737, timezone: "Asia/Shanghai" },
+  { keys: ["타이베이", "taipei"], label: "타이베이", latitude: 25.0330, longitude: 121.5654, timezone: "Asia/Taipei" },
+  { keys: ["홍콩", "hong kong", "hongkong"], label: "홍콩", latitude: 22.3193, longitude: 114.1694, timezone: "Asia/Hong_Kong" },
+  { keys: ["싱가포르", "singapore"], label: "싱가포르", latitude: 1.3521, longitude: 103.8198, timezone: "Asia/Singapore" },
+  { keys: ["뉴욕", "new york", "nyc"], label: "뉴욕", latitude: 40.7128, longitude: -74.0060, timezone: "America/New_York" },
+  { keys: ["로스앤젤레스", "la", "los angeles"], label: "로스앤젤레스", latitude: 34.0522, longitude: -118.2437, timezone: "America/Los_Angeles" },
+  { keys: ["런던", "london"], label: "런던", latitude: 51.5072, longitude: -0.1276, timezone: "Europe/London" },
+  { keys: ["파리", "paris"], label: "파리", latitude: 48.8566, longitude: 2.3522, timezone: "Europe/Paris" },
+  { keys: ["시드니", "sydney"], label: "시드니", latitude: -33.8688, longitude: 151.2093, timezone: "Australia/Sydney" },
+];
+
 function positiveModulo(value, size) {
   const number = Number(value) || 0;
   return ((Math.trunc(number) % size) + size) % size;
@@ -164,6 +192,61 @@ function toAdminNumber(value, fallback = null) {
   if (value === "" || value == null) return fallback;
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
+}
+
+function adminTimezoneOffsetHours(value) {
+  const text = normalizeAdminText(value, 64);
+  if (!text) return 9;
+  const direct = Number(text);
+  if (Number.isFinite(direct)) return direct;
+  const match = /^(?:UTC|GMT)?\s*([+-])\s*(\d{1,2})(?::?(\d{2}))?$/i.exec(text);
+  if (match) {
+    const sign = match[1] === "-" ? -1 : 1;
+    const hour = Number(match[2]);
+    const minute = Number(match[3] || 0);
+    if (Number.isFinite(hour) && Number.isFinite(minute)) return sign * (hour + (minute / 60));
+  }
+  const normalized = text.toLowerCase();
+  const map = {
+    "asia/seoul": 9,
+    "asia/tokyo": 9,
+    "asia/shanghai": 8,
+    "asia/hong_kong": 8,
+    "asia/taipei": 8,
+    "asia/singapore": 8,
+    "asia/bangkok": 7,
+    "asia/kolkata": 5.5,
+    "europe/london": 0,
+    "europe/paris": 1,
+    "america/new_york": -5,
+    "america/chicago": -6,
+    "america/denver": -7,
+    "america/los_angeles": -8,
+    "australia/sydney": 10,
+  };
+  return Object.prototype.hasOwnProperty.call(map, normalized) ? map[normalized] : 9;
+}
+
+function normalizeAdminTimeCorrectionPolicy(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (text === "clock" || text === "kst_clock_time") return "KST_CLOCK_TIME";
+  if (text === "local_mean" || text === "local_mean_time") return "LOCAL_MEAN_TIME";
+  return "TRUE_SOLAR_TIME";
+}
+
+function normalizeAdminDayChangePolicy(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (text === "midnight") return "MIDNIGHT";
+  if (text === "late_zi_next_day") return "LATE_ZI_NEXT_DAY";
+  return "TRUE_SOLAR_ZI_NEXT_DAY";
+}
+
+function adminPromptNeedsCoordinates(service) {
+  return service === "saju" || service === "astrology" || service === "vedic";
+}
+
+function adminPromptNeedsExactTime(service) {
+  return service === "astrology" || service === "vedic" || service === "ziwei";
 }
 
 function adminHashText(...parts) {
@@ -194,6 +277,11 @@ function normalizeAdminPromptDomain(service, value) {
     if (domain === "love") return "romance";
     if (domain === "money") return "wealth";
     if (domain === "life_direction" || domain === "personality" || domain === "general") return "spirituality";
+    return domain;
+  }
+  if (service === "astrology") {
+    if (domain === "general" || domain === "personality") return "life_direction";
+    if (domain === "compatibility") return "love";
     return domain;
   }
   if (domain === "personality") return service === "sukuyo" ? "personality" : "general";
@@ -275,6 +363,9 @@ function buildAdminPromptProfile(body) {
   const latitude = toAdminNumber(body?.latitude, null);
   const longitude = toAdminNumber(body?.longitude, null);
   const name = normalizeAdminText(body?.name || "", 80) || "관리자 대상";
+  const timezoneOffsetHours = adminTimezoneOffsetHours(timezone);
+  const timeCorrectionPolicy = normalizeAdminTimeCorrectionPolicy(body?.timeCorrectionPolicy || body?.hourPillarTimePolicy);
+  const dayChangePolicy = normalizeAdminDayChangePolicy(body?.dayChangePolicy);
   const seed = adminHashText(
     birthDate.text,
     birthTime.text,
@@ -298,9 +389,12 @@ function buildAdminPromptProfile(body) {
     birthTimeText: birthTime.text,
     timeUnknown: birthTime.timeUnknown,
     timezone,
+    timezoneOffsetHours,
     birthPlace,
     latitude,
     longitude,
+    timeCorrectionPolicy,
+    dayChangePolicy,
     seed,
   };
 }
@@ -319,6 +413,79 @@ function buildAdminBirthObject(profile) {
     lat: profile.latitude,
     lon: profile.longitude,
   };
+}
+
+function assertAdminPromptProfileReady(service, profile) {
+  if (adminPromptNeedsExactTime(service) && profile.timeUnknown) {
+    throw createHttpError(400, "선택한 기능은 정확한 생시가 필요합니다.", { code: "BIRTH_TIME_REQUIRED" });
+  }
+  if (adminPromptNeedsCoordinates(service) && (!Number.isFinite(profile.latitude) || !Number.isFinite(profile.longitude))) {
+    throw createHttpError(400, "선택한 기능은 출생지 위도와 경도가 필요합니다.", { code: "BIRTH_COORDINATES_REQUIRED" });
+  }
+}
+
+function normalizeAdminGeocodeKey(value) {
+  return normalizeAdminText(value, 120).toLowerCase();
+}
+
+function findAdminGeocodePreset(query) {
+  const key = normalizeAdminGeocodeKey(query);
+  if (!key) return null;
+  return ADMIN_GEOCODE_PRESETS.find((preset) => (
+    preset.keys.some((item) => key === normalizeAdminGeocodeKey(item) || key.includes(normalizeAdminGeocodeKey(item)))
+  )) || null;
+}
+
+async function handleAdminPromptLabGeocode(request, env) {
+  await authorizeAdminRequest(request, env);
+  const url = new URL(request.url);
+  const query = normalizeAdminText(url.searchParams.get("q") || "", 120);
+  if (!query) {
+    throw createHttpError(400, "지역명을 입력해 주세요.", { code: "GEOCODE_QUERY_REQUIRED" });
+  }
+
+  const preset = findAdminGeocodePreset(query);
+  if (preset) {
+    return json({
+      ok: true,
+      source: "admin-preset",
+      query,
+      label: preset.label,
+      latitude: preset.latitude,
+      longitude: preset.longitude,
+      timezone: preset.timezone,
+    });
+  }
+
+  const geocodeUrl = new URL("https://nominatim.openstreetmap.org/search");
+  geocodeUrl.searchParams.set("format", "jsonv2");
+  geocodeUrl.searchParams.set("limit", "1");
+  geocodeUrl.searchParams.set("accept-language", "ko,en");
+  geocodeUrl.searchParams.set("q", query);
+
+  const res = await fetch(geocodeUrl.toString(), {
+    headers: {
+      "User-Agent": "CodeDestinyAdminPromptLab/1.0",
+      "Accept": "application/json",
+    },
+  });
+  const rows = await res.json().catch(() => []);
+  const first = Array.isArray(rows) ? rows[0] : null;
+  const latitude = Number(first?.lat);
+  const longitude = Number(first?.lon);
+  if (!res.ok || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    throw createHttpError(404, "지역 좌표를 찾지 못했습니다.", { code: "GEOCODE_NOT_FOUND" });
+  }
+
+  return json({
+    ok: true,
+    source: "nominatim",
+    query,
+    label: normalizeAdminText(first?.display_name || query, 120),
+    latitude,
+    longitude,
+    timezone: "Asia/Seoul",
+  });
 }
 
 function buildAdminLocationObject(profile) {
@@ -471,6 +638,250 @@ function buildAdminSajuResult(profile) {
       ],
     },
   };
+}
+
+function adminElementLabel(key) {
+  return ADMIN_ELEMENT_META[key]?.label || key || "";
+}
+
+function adminElementKo(key) {
+  return ADMIN_ELEMENT_META[key]?.ko || key || "";
+}
+
+function buildAdminSajuPillarFromEngine(pillar) {
+  const p = pillar && typeof pillar === "object" ? pillar : {};
+  return {
+    g: String(p.stem || ""),
+    j: String(p.branch || ""),
+    gE: adminElementKo(p.stemElement),
+    jE: adminElementKo(p.branchElement),
+    gEKey: String(p.stemElement || ""),
+    jEKey: String(p.branchElement || ""),
+  };
+}
+
+function cloneAdminPromptJson(value) {
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch (error) {
+    return value && typeof value === "object" ? { ...value } : value;
+  }
+}
+
+function maskAdminSajuBirthObject(birth, hideBirth, hideTime) {
+  const out = birth && typeof birth === "object" ? cloneAdminPromptJson(birth) : {};
+  if (hideBirth) {
+    out.year = null;
+    out.month = null;
+    out.day = null;
+    out.date = "";
+    out.birthDate = "";
+  }
+  if (hideTime) {
+    out.hour = null;
+    out.minute = null;
+    out.time = "";
+    out.birthTime = "";
+  }
+  return out;
+}
+
+function applyAdminSajuPromptPrivacy(payload, options = {}) {
+  const out = cloneAdminPromptJson(payload) || {};
+  const hideName = options.hideName !== false;
+  const hideBirth = options.hideBirth !== false;
+  const hideTime = options.hideTime !== false;
+
+  if (out.profile && typeof out.profile === "object") {
+    if (hideName) out.profile.name = "사용자";
+    out.profile.birth = maskAdminSajuBirthObject(out.profile.birth, hideBirth, hideTime);
+  }
+  if (out.snapshot && typeof out.snapshot === "object") {
+    if (hideName) out.snapshot.name = "사용자";
+    out.snapshot.birth = maskAdminSajuBirthObject(out.snapshot.birth, hideBirth, hideTime);
+  }
+  if (out.analysisProfile && typeof out.analysisProfile === "object") {
+    if (hideName) out.analysisProfile.name = "사용자";
+    out.analysisProfile.birth = maskAdminSajuBirthObject(out.analysisProfile.birth, hideBirth, hideTime);
+    if (hideBirth) {
+      out.analysisProfile.year = null;
+      out.analysisProfile.month = null;
+      out.analysisProfile.day = null;
+      out.analysisProfile.birthDate = "";
+    }
+    if (hideTime) {
+      out.analysisProfile.hour = null;
+      out.analysisProfile.minute = null;
+      out.analysisProfile.birthTime = "";
+    }
+  }
+  return out;
+}
+
+function buildAdminSajuResultFromEngine(profile) {
+  const engineProfile = buildSajuProfile({
+    name: profile.name,
+    gender: profile.gender,
+    birth: {
+      year: profile.year,
+      month: profile.month,
+      day: profile.day,
+      hour: profile.hour,
+      minute: profile.minute,
+      calendarType: "solar",
+      unknownTime: profile.timeUnknown,
+      timezone: profile.timezone,
+      birthPlace: profile.birthPlace,
+      latitude: profile.latitude,
+      longitude: profile.longitude,
+    },
+    location: {
+      name: profile.birthPlace,
+      latitude: profile.latitude,
+      longitude: profile.longitude,
+      timezone: profile.timezone,
+    },
+    hourPillarTimePolicy: profile.timeCorrectionPolicy,
+    dayChangePolicy: profile.dayChangePolicy,
+  });
+
+  const enginePillars = engineProfile?.pillars || {};
+  const pillars = {
+    y: buildAdminSajuPillarFromEngine(enginePillars.year),
+    m: buildAdminSajuPillarFromEngine(enginePillars.month),
+    d: buildAdminSajuPillarFromEngine(enginePillars.day),
+    h: profile.timeUnknown ? { g: "", j: "", gE: "", jE: "", gEKey: "", jEKey: "" } : buildAdminSajuPillarFromEngine(enginePillars.hour),
+  };
+  const scores = engineProfile?.fiveElements?.scores && typeof engineProfile.fiveElements.scores === "object"
+    ? engineProfile.fiveElements.scores
+    : {};
+  const counts = ADMIN_ELEMENT_KEYS.reduce((acc, key) => {
+    acc[key] = Number(scores[key] || 0);
+    return acc;
+  }, {});
+  const dominantKey = rankAdminElements(counts)[0];
+  const weakKeys = Array.isArray(engineProfile?.fiveElements?.lacking) && engineProfile.fiveElements.lacking.length
+    ? engineProfile.fiveElements.lacking.slice(0, 2)
+    : rankAdminElements(counts, "asc").slice(0, 2);
+  const strongKeys = Array.isArray(engineProfile?.fiveElements?.strong) && engineProfile.fiveElements.strong.length
+    ? engineProfile.fiveElements.strong.slice(0, 2)
+    : rankAdminElements(counts).slice(0, 2);
+  const useful = engineProfile?.usefulGods && typeof engineProfile.usefulGods === "object" ? engineProfile.usefulGods : {};
+  const daewoon = Array.isArray(engineProfile?.daewoon) ? engineProfile.daewoon : [];
+  const age = Math.max(0, new Date().getUTCFullYear() - profile.year);
+  const baziSnapshot = {
+    daewunBridge: engineProfile?.sajuCoreResult?.daewoon || engineProfile?.daewoon || null,
+    yearGan: pillars.y.g,
+    yearZhi: pillars.y.j,
+    monthGan: pillars.m.g,
+    monthZhi: pillars.m.j,
+    dayGan: pillars.d.g,
+    dayZhi: pillars.d.j,
+    timeGan: pillars.h.g,
+    timeZhi: pillars.h.j,
+  };
+
+  return applyAdminSajuPromptPrivacy({
+    profile: {
+      name: profile.name,
+      gender: profile.gender,
+      birth: buildAdminBirthObject(profile),
+      location: buildAdminLocationObject(profile),
+    },
+    analysisProfile: {
+      name: profile.name,
+      gender: profile.gender,
+      birth: buildAdminBirthObject(profile),
+      location: buildAdminLocationObject(profile),
+    },
+    snapshot: {
+      updatedAt: new Date().toISOString(),
+      reason: "admin-prompt-lab",
+      name: profile.name,
+      gender: profile.gender,
+      birth: buildAdminBirthObject(profile),
+      elementWeights: counts,
+      dayStem: pillars.d.g,
+      dayStemElement: pillars.d.gE,
+      analysis: {
+        elementWeights: counts,
+        dayStem: pillars.d.g,
+        dayStemElement: adminElementLabel(engineProfile?.dayMaster?.element || dominantKey),
+      },
+    },
+    pillars,
+    natal: {
+      counts,
+      dominant: adminElementLabel(dominantKey),
+    },
+    johu: {
+      type: String(engineProfile?.solarTerms?.monthBoundaryTerm?.name || engineProfile?.solarTerms?.previousMajorTerm?.name || "절기 조후"),
+      score: Number(useful.strength?.score || useful.score || 0) || null,
+    },
+    power: {
+      isStrong: String(useful.strength?.level || "").toLowerCase().includes("strong"),
+      yongshin: (Array.isArray(useful.yong) ? useful.yong : weakKeys).map(adminElementLabel),
+      kijishin: (Array.isArray(useful.gi) ? useful.gi : strongKeys).map(adminElementLabel),
+    },
+    jong: {
+      isJong: false,
+      name: "일반격",
+    },
+    bazi: baziSnapshot,
+    engineContext: {
+      marker: "saju-ai-question-prompt-context-v20260617",
+      sourceLayers: [
+        "pillars",
+        "natal-elements",
+        "johu",
+        "power-yongshin-kijishin",
+        "jong-pattern",
+        "quantum-element-map",
+        "daewun-quantum-flow",
+        "analysis-card-digests",
+      ],
+      bazi: baziSnapshot,
+      quantumMyeongli: {
+        dayStem: pillars.d.g,
+        monthBranch: pillars.m.j,
+        currentAge: age,
+        timeCorrection: engineProfile?.timeCorrection || null,
+        policies: {
+          hourPillarTimePolicy: profile.timeCorrectionPolicy,
+          dayChangePolicy: profile.dayChangePolicy,
+        },
+        elementMap: ADMIN_ELEMENT_KEYS.map((key) => ({
+          element: key,
+          label: adminElementLabel(key),
+          score: counts[key],
+          verdict: key === dominantKey ? "강함" : (weakKeys.includes(key) ? "보완 필요" : "중간"),
+        })),
+        daewun: daewoon.slice(0, 8).map((row) => ({
+          age: row.startAge || row.startAgeYears || row.startAgeDecimal || row.startYear || null,
+          gan: String(row.ganji || row.pillar || "").slice(0, 1),
+          zhi: String(row.ganji || row.pillar || "").slice(1),
+          ganElement: "",
+          zhiElement: "",
+          score: null,
+          label: String(row.ganji || row.pillar || ""),
+          jongStrength: "",
+        })),
+      },
+      renderedFeatureDigests: [
+        {
+          id: "real-saju-core",
+          label: "출생지와 절기의 문",
+          text: `출생지 ${profile.birthPlace || "-"} ${profile.latitude},${profile.longitude} 위에서 태양시와 자시의 경계가 ${profile.timeCorrectionPolicy}/${profile.dayChangePolicy} 흐름으로 가라앉습니다.`,
+        },
+        {
+          id: "engine-profile",
+          label: "퀀텀 명리 엔진",
+          text: "원국과 절기, 오행의 강약, 십신과 용신의 후보, 대운의 물결이 한 흐름 안에서 맞물립니다.",
+        },
+      ],
+    },
+    sajuCoreResult: engineProfile?.sajuCoreResult || null,
+  }, { hideName: true, hideBirth: true, hideTime: true });
 }
 
 function buildAdminSukuyoContext(profile) {
@@ -667,6 +1078,186 @@ function buildAdminAstrologyContext(profile) {
         partnerMarsInMyHouse: "1하우스",
       },
       accuracyNotes: profile.timeUnknown ? ["출생시간 미상으로 ASC/하우스는 정오 보정"] : [],
+    },
+  };
+}
+
+const ADMIN_ASTRO_SIGN_ELEMENTS = {
+  "양자리": "fire",
+  "황소자리": "earth",
+  "쌍둥이자리": "air",
+  "게자리": "water",
+  "사자자리": "fire",
+  "처녀자리": "earth",
+  "천칭자리": "air",
+  "전갈자리": "water",
+  "사수자리": "fire",
+  "염소자리": "earth",
+  "물병자리": "air",
+  "물고기자리": "water",
+};
+const ADMIN_ASTRO_SIGN_MODES = {
+  "양자리": "cardinal",
+  "황소자리": "fixed",
+  "쌍둥이자리": "mutable",
+  "게자리": "cardinal",
+  "사자자리": "fixed",
+  "처녀자리": "mutable",
+  "천칭자리": "cardinal",
+  "전갈자리": "fixed",
+  "사수자리": "mutable",
+  "염소자리": "cardinal",
+  "물병자리": "fixed",
+  "물고기자리": "mutable",
+};
+const ADMIN_ASTRO_PLANET_LABELS = {
+  Sun: "태양",
+  Moon: "달",
+  Mercury: "수성",
+  Venus: "금성",
+  Mars: "화성",
+  Jupiter: "목성",
+  Saturn: "토성",
+  Uranus: "천왕성",
+  Neptune: "해왕성",
+  Pluto: "명왕성",
+};
+
+function buildAdminChartInput(profile) {
+  return {
+    year: profile.year,
+    month: profile.month,
+    day: profile.day,
+    hour: profile.hour,
+    minute: profile.minute,
+    timezone: profile.timezoneOffsetHours,
+    lat: profile.latitude,
+    lon: profile.longitude,
+  };
+}
+
+function buildAdminPremiumBirthInput(profile) {
+  return {
+    name: profile.name,
+    gender: profile.gender,
+    birthDate: profile.birthDateText,
+    birthTime: profile.birthTimeText,
+    birthYear: profile.year,
+    birthMonth: profile.month,
+    birthDay: profile.day,
+    birthHour: profile.hour,
+    birthMinute: profile.minute,
+    timezone: profile.timezone,
+    birthPlace: profile.birthPlace,
+    latitude: profile.latitude,
+    longitude: profile.longitude,
+    isTimeUnknown: profile.timeUnknown,
+  };
+}
+
+function topAdminCountKey(counts) {
+  return Object.keys(counts).sort((a, b) => Number(counts[b] || 0) - Number(counts[a] || 0))[0] || "";
+}
+
+function buildAdminAstroDistribution(planets, lookup, keys) {
+  const counts = keys.reduce((acc, key) => {
+    acc[key] = 0;
+    return acc;
+  }, {});
+  planets.forEach((planet) => {
+    const key = lookup[String(planet?.sign || "").trim()];
+    if (key && Object.prototype.hasOwnProperty.call(counts, key)) counts[key] += 1;
+  });
+  const total = Math.max(1, planets.length);
+  return {
+    dominant: topAdminCountKey(counts),
+    weakest: keys.slice().sort((a, b) => Number(counts[a] || 0) - Number(counts[b] || 0))[0] || "",
+    counts,
+    percentages: keys.reduce((acc, key) => {
+      acc[key] = Math.round((Number(counts[key] || 0) / total) * 100);
+      return acc;
+    }, {}),
+  };
+}
+
+async function buildAdminAstrologyContextFromEngine(profile, env, requestUrl) {
+  const chartInput = buildAdminChartInput(profile);
+  const swissChart = await getSwissWesternChart(env, chartInput, { requestUrl });
+  const localChart = buildAstroLocalChartJson(
+    normalizeAstroPremiumBirthInput(buildAdminPremiumBirthInput(profile)),
+    swissChart,
+    null,
+    { strictPremium: false },
+  );
+  const chart = localChart?.chart || {};
+  const planets = Array.isArray(chart.planets) ? chart.planets : [];
+  const aspects = Array.isArray(chart.aspects) ? chart.aspects : [];
+  const sun = planets.find((planet) => planet.name === "Sun") || {};
+  const moon = planets.find((planet) => planet.name === "Moon") || {};
+  const jupiter = planets.find((planet) => planet.name === "Jupiter") || {};
+  const houseCounts = planets.reduce((acc, planet) => {
+    const house = Number(planet?.house);
+    if (Number.isFinite(house)) acc[house] = Number(acc[house] || 0) + 1;
+    return acc;
+  }, {});
+  const topHouse = Number(topAdminCountKey(houseCounts)) || null;
+
+  return {
+    astrologyResult: {
+      birth: {
+        year: profile.year,
+        month: profile.month,
+        day: profile.day,
+        hour: profile.hour,
+        minute: profile.minute,
+        timezone: profile.timezone,
+        latitude: profile.latitude,
+        longitude: profile.longitude,
+      },
+      coreSigns: {
+        sun: chart.sunSign || sun.sign || "",
+        moon: chart.moonSign || moon.sign || "",
+        asc: chart.ascendantSign || "",
+        mc: chart.midheavenSign || "",
+        desc: chart.descendantSign || "",
+      },
+      elements: buildAdminAstroDistribution(planets, ADMIN_ASTRO_SIGN_ELEMENTS, ["fire", "earth", "air", "water"]),
+      modalities: {
+        ...buildAdminAstroDistribution(planets, ADMIN_ASTRO_SIGN_MODES, ["cardinal", "fixed", "mutable"]),
+        advice: "가장 강하게 모인 양식을 먼저 붙잡고, 부족한 양식은 실행 리듬으로 보완합니다.",
+      },
+      focus: {
+        topHouse: topHouse ? `${topHouse}하우스` : "",
+        topHouseTopic: topHouse ? `${topHouse}하우스 집중` : "",
+        focusCount: topHouse ? Number(houseCounts[topHouse] || 0) : 0,
+      },
+      transits: {
+        jupiterTransit: jupiter.sign ? `목성 ${jupiter.sign}` : "",
+        jupiterIndex: Number(jupiter.house || 0),
+        message: "현재 질문은 네이탈 차트의 핵심 배치 위에서 먼저 열립니다.",
+      },
+      timelord: {
+        firdaria: { main: sun.sign || "태양", sub: moon.sign || "달", yearsLeft: 0 },
+        profection: {
+          house: topHouse ? `${topHouse}하우스` : "",
+          sign: chart.ascendantSign || "",
+          ruler: chart.chartRuler?.label || "",
+          theme: "연령과 하우스의 문턱",
+        },
+      },
+      placements: planets.slice(0, 12).map((planet) => ({
+        planet: ADMIN_ASTRO_PLANET_LABELS[planet.name] || planet.name,
+        sign: planet.sign,
+        house: Number.isFinite(Number(planet.house)) ? `${planet.house}하우스` : "",
+        degree: Number.isFinite(Number(planet.degree)) ? Number(planet.degree).toFixed(2) : "",
+      })),
+      majorAspects: aspects.slice(0, 12).map((aspect) => ({
+        pair: `${ADMIN_ASTRO_PLANET_LABELS[aspect.planetA] || aspect.planetA}-${ADMIN_ASTRO_PLANET_LABELS[aspect.planetB] || aspect.planetB}`,
+        aspect: aspect.type,
+        orb: Number.isFinite(Number(aspect.orb)) ? Number(aspect.orb).toFixed(2) : "",
+      })),
+      calculationSource: localChart?.calculationSource || swissChart?.source || "swiss",
+      localAstroChartJson: localChart,
     },
   };
 }
@@ -931,11 +1522,96 @@ function buildAdminVedicContext(profile) {
   };
 }
 
-function buildAdminPromptByService({ service, question, profile, domain }) {
+async function buildAdminVedicContextFromEngine(profile, env, requestUrl) {
+  const chartInput = buildAdminChartInput(profile);
+  const swissVedic = await getSwissVedicPlanets(env, chartInput, { requestUrl });
+  const localVedic = buildVedicLocalChartJson({
+    ...buildAdminPremiumBirthInput(profile),
+    chart: swissVedic,
+  }, { strictPremium: false });
+  const chart = localVedic?.chart || {};
+  const planets = Array.isArray(chart.planets) ? chart.planets : [];
+  const houses = Array.isArray(chart.houses) ? chart.houses : [];
+  const dashas = chart.dashas && typeof chart.dashas === "object" ? chart.dashas : {};
+  const dashaPeriods = Array.isArray(dashas.periods) ? dashas.periods : [];
+
+  return {
+    vedicResult: {
+      profile: {
+        name: profile.name,
+        birth: {
+          year: profile.year,
+          month: profile.month,
+          day: profile.day,
+          hour: profile.hour,
+          minute: profile.minute,
+          gender: profile.gender,
+          timezone: profile.timezone,
+          lat: profile.latitude,
+          lon: profile.longitude,
+          timeUnknown: profile.timeUnknown,
+        },
+      },
+      lagna: {
+        signKo: chart.lagnaSign || "",
+        sign: chart.lagnaSignEn || chart.lagnaSign || "",
+        degree: Number.isFinite(Number(swissVedic?.ascendantSidereal)) ? Number((Number(swissVedic.ascendantSidereal) % 30).toFixed(2)) : null,
+        lord: chart.chartRuler?.label || "",
+      },
+      moonNakshatra: {
+        name: chart.nakshatra?.name || "",
+        pada: Number(chart.nakshatra?.pada || 0) || null,
+        lord: chart.nakshatra?.lord || "",
+        deity: chart.nakshatra?.deity || "",
+        motive: chart.nakshatra?.motive || "",
+      },
+      karakas: {
+        atmakaraka: chart.karakas?.atmakaraka || chart.atmakaraka || "",
+        amatyakaraka: chart.karakas?.amatyakaraka || "",
+        darakaraka: chart.karakas?.darakaraka || "",
+      },
+      yogas: Array.isArray(localVedic?.insights)
+        ? localVedic.insights.map((item) => item?.title || item?.label || "").filter(Boolean).slice(0, 8)
+        : [],
+      planets: planets.map((planet) => ({
+        grahaKo: planet.nameKo || planet.name,
+        graha: planet.name,
+        rashiKo: planet.sign || "",
+        rashi: planet.signEn || planet.sign || "",
+        bhava: Number(planet.house || 0) || null,
+        nakshatra: planet.nakshatra || "",
+        pada: Number(planet.pada || 0) || null,
+        dignity: planet.dignity || "",
+        retrograde: Boolean(planet.retrograde),
+      })),
+      bhavas: houses.map((house) => ({
+        number: Number(house.house || house.number || 0) || null,
+        rashiKo: house.sign || house.rashi || "",
+        rashi: house.signEn || house.sign || house.rashi || "",
+        lord: house.lord || "",
+        planets: Array.isArray(house.planets) ? house.planets : [],
+      })),
+      dasha: dashaPeriods.slice(0, 12).map((row, index) => ({
+        planet: row.lord || row.planet || row.name || "",
+        start: row.start || row.startYear || "",
+        end: row.end || row.endYear || "",
+        years: Number(row.years || row.duration || 0) || null,
+        active: Boolean(row.active) || row.lord === dashas.currentMahaDasha || index === 0,
+      })),
+      romance: { primary: [chart.lagnaSign, chart.moonSign].filter(Boolean), best: chart.nakshatra?.name || "" },
+      career: { primary: houses.filter((house) => Number(house.house || house.number) === 10).map((house) => house.sign).filter(Boolean), best: dashas.currentMahaDasha || "" },
+      wealth: { primary: houses.filter((house) => [2, 11].includes(Number(house.house || house.number))).map((house) => house.sign).filter(Boolean), best: chart.lagnaSign || "" },
+      calculationSource: localVedic?.chartSource || swissVedic?.source || "swiss-vedic",
+      localVedicChartJson: localVedic,
+    },
+  };
+}
+
+async function buildAdminPromptByService({ service, question, profile, domain, env, requestUrl }) {
   if (service === "saju") {
     return buildSajuAIPromptWithDomain({
       question,
-      sajuResult: buildAdminSajuResult(profile),
+      sajuResult: buildAdminSajuResultFromEngine(profile),
       domain,
     });
   }
@@ -955,7 +1631,7 @@ function buildAdminPromptByService({ service, question, profile, domain }) {
   }
 
   if (service === "astrology") {
-    const context = buildAdminAstrologyContext(profile);
+    const context = await buildAdminAstrologyContextFromEngine(profile, env, requestUrl);
     return buildAstrologyAIPromptWithDomain({
       question,
       astrologyResult: context.astrologyResult,
@@ -973,7 +1649,7 @@ function buildAdminPromptByService({ service, question, profile, domain }) {
   }
 
   if (service === "vedic") {
-    const context = buildAdminVedicContext(profile);
+    const context = await buildAdminVedicContextFromEngine(profile, env, requestUrl);
     return buildVedicAIPromptWithDomain({
       question,
       vedicResult: context.vedicResult,
@@ -1046,12 +1722,15 @@ async function handleAdminPromptLabGenerate(request, env) {
   }
 
   const profile = buildAdminPromptProfile(body);
+  assertAdminPromptProfileReady(service, profile);
   const domain = normalizeAdminPromptDomain(service, body.domain) || "";
-  const built = buildAdminPromptByService({
+  const built = await buildAdminPromptByService({
     service,
     question,
     profile,
     domain,
+    env,
+    requestUrl: request.url,
   });
 
   return json(normalizeAdminPromptLabResult({
@@ -3420,6 +4099,11 @@ export async function handleAdminRoutes(request, env) {
 
     if (path === "/prompt-lab/generate") {
       if (method === "POST") return await handleAdminPromptLabGenerate(request, env);
+      return methodNotAllowed();
+    }
+
+    if (path === "/prompt-lab/geocode") {
+      if (method === "GET") return await handleAdminPromptLabGeocode(request, env);
       return methodNotAllowed();
     }
 
