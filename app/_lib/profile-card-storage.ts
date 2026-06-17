@@ -230,6 +230,10 @@ export function readCurrentDestinyProfile(
   const globalResolved = pickDestinyProfileFromPayload(globalProfile, "", predicate);
   if (globalResolved) return globalResolved;
 
+  const activeCached = pickDestinyProfileFromPayload(readStoredJson<unknown>(window.localStorage, ACTIVE_PROFILE_CACHE_KEY), "", predicate)
+    || pickDestinyProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, ACTIVE_PROFILE_CACHE_KEY), "", predicate);
+  if (activeCached) return activeCached;
+
   for (const key of PROFILE_BRIDGE_KEYS) {
     const bridged = pickDestinyProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, key), "", predicate)
       || pickDestinyProfileFromPayload(readStoredJson<unknown>(window.localStorage, key), "", predicate);
@@ -332,6 +336,7 @@ export async function fetchCurrentDestinyProfile(
   predicate: ProfilePredicate = hasAnyBirthDate,
 ): Promise<DestinyProfileCard | null> {
   if (typeof window === "undefined") return null;
+  const localFallback = () => readCurrentDestinyProfile(undefined, predicate);
 
   try {
     const headers = new Headers({ Accept: "application/json" });
@@ -344,7 +349,7 @@ export async function fetchCurrentDestinyProfile(
       cache: "no-store",
       headers,
     });
-    if (!response.ok) return null;
+    if (!response.ok) return localFallback();
 
     const payload = await response.json();
     const currentId = String(payload?.currentId || "").trim();
@@ -359,9 +364,9 @@ export async function fetchCurrentDestinyProfile(
     if (Array.isArray(payload?.profiles)) publishDestinyProfileList(payload.profiles, currentId);
     const profile = pickDestinyProfileFromPayload(payload, currentId, predicate);
     if (profile) publishDestinyProfileBridge(profile);
-    return profile;
+    return profile || localFallback();
   } catch {
-    return null;
+    return localFallback();
   }
 }
 

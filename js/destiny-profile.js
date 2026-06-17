@@ -22,9 +22,11 @@
   var _dpCurrentId = '';
   var PROFILE_CARD_MANAGE_FEATURE_KEY = 'profile-card-manage';
   var PROFILE_CARD_MANAGE_COST = 50;
-  var PROFILE_CARD_MANAGE_MONTHLY_COST = 50;
-  var DP_PROFILE_DELETE_GATE_MARKER = 'profile-delete-dedicated-gate-v20260613';
+  var PROFILE_CARD_MANAGE_MONTHLY_COST = PROFILE_CARD_MANAGE_COST * 10;
+  var DP_PROFILE_DELETE_GATE_MARKER = 'profile-delete-dedicated-gate-v20260618-monthly';
   var DP_PROFILE_DELETE_GATE_SPRITE_URL = '/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp';
+  var ACTIVE_PROFILE_CACHE_KEY = 'code-destiny.activeProfileCache.v1';
+  var ACTIVE_PROFILE_ID_KEY = 'code-destiny.activeProfileId';
   var _dpProfileMenuLastTouchAt = 0;
   var _dpProfileMenuPointerHandledAt = 0;
   var _dpProfileMenuSyntheticEvent = false;
@@ -239,6 +241,22 @@
     return dt.getUTCFullYear() === year && dt.getUTCMonth() + 1 === month && dt.getUTCDate() === day;
   }
 
+  function _dpBuildProfileBirthDateValue(year, month, day) {
+    year = _dpToProfileInt(year, NaN);
+    month = _dpToProfileInt(month, NaN);
+    day = _dpToProfileInt(day, NaN);
+    if (!_dpHasValidProfileDate(year, month, day)) return '';
+    return String(year).padStart(4, '0') + '-' + _dpPad2(month) + '-' + _dpPad2(day);
+  }
+
+  function _dpNormalizeBirthDateInputValue(value) {
+    var raw = String(value || '').trim();
+    if (!raw) return '';
+    var digits = raw.replace(/\D/g, '');
+    if (digits.length !== 8) return raw;
+    return _dpBuildProfileBirthDateValue(digits.slice(0, 4), digits.slice(4, 6), digits.slice(6, 8)) || raw;
+  }
+
   function _dpNormalizeProfile(profile) {
     if (!profile || typeof profile !== 'object') return null;
     var next = Object.assign({}, profile);
@@ -320,6 +338,71 @@
     return profiles.map(_dpNormalizeProfile).filter(function(profile) {
       return profile && typeof profile === 'object';
     });
+  }
+
+  function _dpReadJsonStore(store, key) {
+    try {
+      var raw = store && store.getItem ? store.getItem(key) : '';
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function _dpPickProfileFromPayload(payload, requestedId) {
+    if (!payload) return null;
+    var targetId = String(requestedId || '').trim();
+    if (Array.isArray(payload)) {
+      var normalizedList = _dpNormalizeProfiles(payload);
+      if (targetId) {
+        for (var i = 0; i < normalizedList.length; i += 1) {
+          if (_dpGetProfileId(normalizedList[i]) === targetId) return normalizedList[i];
+        }
+      }
+      return normalizedList[0] || null;
+    }
+    if (typeof payload !== 'object') return null;
+    var nested = payload.profile || payload.currentProfile || payload.destinyProfile || payload.payload;
+    if (nested && nested !== payload) {
+      var nestedProfile = _dpPickProfileFromPayload(nested, targetId);
+      if (nestedProfile) return nestedProfile;
+    }
+    var normalized = _dpNormalizeProfile(payload);
+    return normalized && (normalized.birth || normalized.birthDate || normalized.birthYear) ? normalized : null;
+  }
+
+  function _dpResolveCurrentProfileForSaju(profileId) {
+    var requestedId = String(profileId || '').trim();
+    var current = DPStorage.current();
+    if (current && (!requestedId || _dpGetProfileId(current) === requestedId)) return current;
+
+    var list = DPStorage.list();
+    var listed = _dpPickProfileFromPayload(list, requestedId);
+    if (listed) return listed;
+
+    var cacheId = requestedId;
+    try {
+      cacheId = cacheId || String(localStorage.getItem(ACTIVE_PROFILE_ID_KEY) || '').trim();
+    } catch (e) {}
+
+    var globalProfile = null;
+    try {
+      globalProfile = window.__cdCurrentDestinyProfile || window.__cdActiveBirthProfile || null;
+    } catch (e2) {}
+    var fromGlobal = _dpPickProfileFromPayload(globalProfile, cacheId);
+    if (fromGlobal) return fromGlobal;
+
+    var stores = [];
+    try { stores.push(localStorage); } catch (e3) {}
+    try { stores.push(sessionStorage); } catch (e4) {}
+    var keys = [ACTIVE_PROFILE_CACHE_KEY, 'FORTUNE_APP_USER_PROFILE', 'FORTUNE_APP_VEDIC_PAYLOAD', 'OLYMPUS_ORACLE_PROFILE'];
+    for (var si = 0; si < stores.length; si += 1) {
+      for (var ki = 0; ki < keys.length; ki += 1) {
+        var cached = _dpPickProfileFromPayload(_dpReadJsonStore(stores[si], keys[ki]), cacheId);
+        if (cached) return cached;
+      }
+    }
+    return null;
   }
 
   function _dpResolveCurrentIdFromProfiles(profiles, currentId) {
@@ -3647,7 +3730,7 @@
   function readFormData() {
     var name    = (document.getElementById('nameInput') || {}).value || '';
     var bdEl    = document.getElementById('birthDate');
-    var bd      = bdEl ? bdEl.value : '';
+    var bd      = bdEl ? _dpNormalizeBirthDateInputValue(bdEl.value) : '';
     var hourRaw = parseInt((document.getElementById('birthHour') || {}).value, 10);
     var minuteRaw = parseInt((document.getElementById('birthMinute') || {}).value, 10);
     var hour = (Number.isFinite(hourRaw) && hourRaw >= 0 && hourRaw <= 23) ? hourRaw : 12;
@@ -3684,6 +3767,7 @@
     var locationLabel = opt ? opt.text : '대한민국 (서울)';
 
     if (!name || !bd) return null;
+    if (bdEl && bd !== bdEl.value) bdEl.value = bd;
 
     var parts = String(bd || '').split('-');
     if (parts.length < 3) return null;
@@ -4018,7 +4102,7 @@
       body.className = 'dp-delete-gate__body';
       var copy = document.createElement('p');
       copy.className = 'dp-delete-gate__copy';
-      copy.textContent = '\uC0AD\uC81C \uD6C4 \uBCF5\uAD6C\uAC00 \uC5B4\uB835\uC2B5\uB2C8\uB2E4. \uBB34\uB8CC \uD1B5\uACFC \uC5C6\uC774 \uB2E8\uAC74\uACB0\uC81C\uB9CC \uC0AC\uC6A9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.';
+      copy.textContent = '\uC0AD\uC81C \uD6C4 \uBCF5\uAD6C\uAC00 \uC5B4\uB835\uC2B5\uB2C8\uB2E4. \uB2E8\uAC74\uACB0\uC81C \uB610\uB294 \uC6D4\uC815\uC11D\uC73C\uB85C \uC0AD\uC81C\uB97C \uC9C4\uD589\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.';
       var options = document.createElement('div');
       options.className = 'dp-delete-gate__options';
 
@@ -4038,6 +4122,8 @@
 
       var directBtn = buildOption('direct', '\uB2E8\uAC74\uACB0\uC81C ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '\uC6D0', '\uC0AD\uC81C \uC804\uC6A9 1\uD68C \uACB0\uC81C');
       options.appendChild(directBtn);
+      var monthlyBtn = buildOption('monthly', '\uC6D4\uC815\uC11D \uC0AC\uC6A9', '\uBCF4\uC720 \uC6D4\uC815\uC11D ' + (PROFILE_CARD_MANAGE_MONTHLY_COST * 10).toLocaleString('ko-KR') + '\uC6D0 \uC0C1\uB2F9 \uC0AC\uC6A9');
+      options.appendChild(monthlyBtn);
 
       var foot = document.createElement('div');
       foot.className = 'dp-delete-gate__foot';
@@ -4083,6 +4169,7 @@
       function pick(mode) {
         status.textContent = '\uACB0\uC81C \uC120\uD0DD\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.';
         directBtn.disabled = true;
+        monthlyBtn.disabled = true;
         cancel.disabled = true;
         done(mode);
       }
@@ -4091,6 +4178,7 @@
         if (event && event.target === overlay) done(null);
       });
       directBtn.addEventListener('click', function() { pick('direct'); });
+      monthlyBtn.addEventListener('click', function() { pick('monthly'); });
       cancel.addEventListener('click', function() { done(null); });
       document.addEventListener('keydown', onKey);
       document.body.appendChild(overlay);
@@ -4655,7 +4743,7 @@
     if (nameEl) nameEl.value = profile.name || '';
 
     var bdEl = document.getElementById('birthDate');
-    if (bdEl) bdEl.value = String(b.year || '').padStart(4, '0') + String(b.month || '').padStart(2,'0') + String(b.day || '').padStart(2,'0');
+    if (bdEl) bdEl.value = _dpBuildProfileBirthDateValue(b.year, b.month, b.day);
 
     var calBtns = document.querySelectorAll('input[name="calType"]');
     calBtns.forEach(function(btn) { btn.checked = btn.value === (b.calType || 'solar'); });
@@ -4871,7 +4959,7 @@
     }
     var bdEl = document.getElementById('birthDate');
     if (bdEl) {
-      bdEl.value = String(b.year || '').padStart(4, '0') + String(b.month || '').padStart(2,'0') + String(b.day || '').padStart(2,'0');
+      bdEl.value = _dpBuildProfileBirthDateValue(b.year, b.month, b.day);
       try { bdEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
     }
     var calBtns = document.querySelectorAll('input[name="calType"]');
@@ -5311,7 +5399,7 @@
     var deletedBirthTime = deletedBirth.hour != null && deletedBirth.minute != null
       ? String(deletedBirth.hour).padStart(2, '0') + ':' + String(deletedBirth.minute).padStart(2, '0')
       : '';
-    var formBirthDate = String((document.getElementById('birthDate') || {}).value || '').trim();
+    var formBirthDate = _dpNormalizeBirthDateInputValue((document.getElementById('birthDate') || {}).value || '');
     var rawFormHour = String((document.getElementById('birthHour') || {}).value || '').trim();
     var rawFormMinute = String((document.getElementById('birthMinute') || {}).value || '').trim();
     var formBirthTime = rawFormHour !== '' && rawFormMinute !== ''
@@ -5575,7 +5663,7 @@
   }
 
   window.dpGenerateGuardianAvatar = async function() {
-    var p = DPStorage.current();
+    var p = _dpResolveCurrentProfileForSaju();
     if (!p || !p.birth) {
       _toast('⚠️ 프로필을 먼저 저장해 주세요.', 'warn');
       return;
@@ -5656,7 +5744,7 @@
     if (nameEl) nameEl.value = p.name || '';
     var bdEl = document.getElementById('birthDate');
     if (bdEl) {
-      bdEl.value = String(b.year || '').padStart(4, '0') + String(b.month || '').padStart(2,'0') + String(b.day || '').padStart(2,'0');
+      bdEl.value = _dpBuildProfileBirthDateValue(b.year, b.month, b.day);
       try { bdEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
     }
     var calBtns = document.querySelectorAll('input[name="calType"]');
@@ -5843,8 +5931,9 @@
       }
 
       if (type === 'saju') {
-        var p = DPStorage.current();
+        var p = _dpResolveCurrentProfileForSaju();
         if (p) _injectAndRun(p, 'saju');
+        else _toast('⚠️ 프로필 카드의 생년월일·출생시간을 불러오지 못했습니다.', 'warn');
       } else if (type === 'sukuyo') {
         var pSukuyo = DPStorage.current();
         if (pSukuyo) _toast(_fortuneStartMessage(pSukuyo.name, 'sukuyo'), 'success');
@@ -6016,8 +6105,12 @@
     var list = DPStorage.list();
     var p = null;
     for (var i = 0; i < list.length; i++) { if (list[i].id === profileId) { p = list[i]; break; } }
-    if (!p) return;
-    DPStorage.setCurrent(profileId);
+    if (!p) p = _dpResolveCurrentProfileForSaju(profileId);
+    if (!p) {
+      _toast('⚠️ 프로필 카드의 생년월일·출생시간을 불러오지 못했습니다.', 'warn');
+      return;
+    }
+    if (_dpFindProfileById(list, profileId)) DPStorage.setCurrent(profileId);
     _injectAndRun(p, 'saju');
   };
 

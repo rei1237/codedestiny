@@ -50,7 +50,7 @@ const cases = [
       ["policy", "PROFILE_CARD_DELETE_PAYMENT_REQUIRED"],
       ["policy", "PROFILE_CARD_PAYMENT_BYPASS"],
       ["profileRoute", "ensureProfileDeleteAuthorized(auth, {"],
-      ["profileRoute", "profileCardActionPaymentRequiredResponse(action, requestId, profileId, policy)"],
+      ["profileRoute", "ensureProfileMutationPayment(auth, { action, profileId, requestId })"],
       ["profileLimits", "if (profiles.length <= 1)"],
     ],
     excludes: [
@@ -133,12 +133,13 @@ const cases = [
     ],
   },
   {
-    name: "profile card birth date rehydrates into YYYYMMDD input",
+    name: "profile card birth date rehydrates into date input",
     includes: [
-      ["destinyProfile", "bdEl.value = String(b.year || '').padStart(4, '0') + String(b.month || '').padStart(2,'0') + String(b.day || '').padStart(2,'0');"],
+      ["destinyProfile", "bdEl.value = _dpBuildProfileBirthDateValue(b.year, b.month, b.day);"],
+      ["profileRoute", "ensureProfileMutationPayment(auth, { action, profileId, requestId })"],
     ],
     excludes: [
-      ["destinyProfile", "bdEl.value = b.year + '-' + String(b.month).padStart(2,'0') + '-' + String(b.day).padStart(2,'0');"],
+      ["destinyProfile", "bdEl.value = String(b.year || '').padStart(4, '0') + String(b.month || '').padStart(2,'0') + String(b.day || '').padStart(2,'0');"],
     ],
   },
   {

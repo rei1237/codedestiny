@@ -388,7 +388,7 @@ assertNotContains(paymentsSource, '"profileSubscription.membershipCreditBalance"
 
 assertContains(indexSource, 'class="cd-direct-payment-option" data-mode="direct"', "single payment CTA");
 assertContains(indexSource, 'data-mode="monthly" data-monthly-option', "monthly payment CTA restored");
-assertContains(indexSource, "var allowMonthlyChoice = !isProfileDeletePayment", "monthly payment excludes profile deletion");
+assertContains(indexSource, "var allowMonthlyChoice = paymentModeAllowed(['monthly', 'monthly_credit', 'moonlight_stone', 'membership_credit'])", "monthly payment includes profile add/delete");
 assertContains(indexSource, 'data-mode="pass"', "payment modal shows pass apply option");
 assertContains(indexSource, "\\uC774\\uC6A9\\uAD8C \\uC801\\uC6A9", "payment modal pass apply label");
 assertContains(indexSource, "FAMILY 이용권이 적용되었습니다.", "static family license pass success copy");

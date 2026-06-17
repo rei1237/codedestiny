@@ -71,7 +71,7 @@ assertContains(indexSource, "direct-payment-pass-store-v20260607", "pass store m
 assertContains(indexSource, "if (mode === 'pass-store' || mode === 'pass')", "pass store choice bypasses payment processing");
 assertContains(indexSource, "window.location.assign('/points?source=direct-payment-pass-store');", "pass store redirect");
 assertContains(indexSource, 'data-payment-status', "payment choice status state");
-assertContains(indexSource, "var allowMonthlyChoice = !isProfileDeletePayment", "monthly option excludes profile deletion");
+assertContains(indexSource, "var allowMonthlyChoice = paymentModeAllowed(['monthly', 'monthly_credit', 'moonlight_stone', 'membership_credit'])", "monthly option includes profile add/delete");
 
 assertBefore(indexSource, "if (!order.merchantUid && _cdIsCheckoutAccessBypass", "await _cdLoadPortOneV2Sdk()", "pass access returns before PortOne SDK");
 assertContains(indexSource, "provider: 'PORTONE_V2'", "PortOne provider in checkout payload");

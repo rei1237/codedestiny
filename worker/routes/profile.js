@@ -629,10 +629,9 @@ async function ensureProfileDeleteAuthorized(auth, { action, profileId, body }) 
 
   let evidence = evidenceResult.evidence || null;
   if (!evidence) {
-    return {
-      ok: false,
-      response: profileCardActionPaymentRequiredResponse(action, requestId, profileId, policy),
-    };
+    const payment = await ensureProfileMutationPayment(auth, { action, profileId, requestId });
+    if (!payment.ok) return payment;
+    evidence = payment.evidence || null;
   }
 
   const paidPolicy = await getProfileCardMutationPolicy(auth.userId, profileId, action, { paymentSettled: true });

@@ -261,7 +261,9 @@ async function ensureSyncProfileMutationPayment(auth, requestId) {
   }).lean();
   if (existing) return { ok: true };
 
-  const seedUser = await User.findById(auth.userId).select("points profileSubscription").lean();
+  const seedUser = await User.findById(auth.userId)
+    .select("points profileSubscription subscription membership membershipPass pass entitlement licensePass accessGateResult plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+    .lean();
   const entitlement = normalizeHoneyPassEntitlement(seedUser || {});
   if (entitlement.isActive && entitlement.tier === "family") {
     return { ok: true, freeBySubscription: true };
