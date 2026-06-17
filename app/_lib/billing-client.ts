@@ -1,6 +1,7 @@
 import { authFetch } from "@/app/_lib/auth-client";
 import { normalizeBaseUrl } from "@/app/_lib/api-config";
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
+import { assignMonthlyStoneBalance, resolveMonthlyStoneBalance } from "@/app/_lib/monthly-stone";
 import {
   beginPaidAttempt,
   markPaidAttemptCallbackReturned,
@@ -160,6 +161,7 @@ type BillingCoinGateData = {
   membershipPass?: Record<string, unknown> | null;
   freeBySubscription?: boolean;
   balance: number | null;
+  monthlyStoneBalance?: number;
   membershipCreditBalance?: number;
   monthlyCredits?: number;
   monthlyCreditsAsCoins?: number;
@@ -171,6 +173,7 @@ type BillingBalanceData = {
   degraded?: boolean;
   balance: number;
   legacyCoinBalance?: number;
+  monthlyStoneBalance?: number;
   membershipCreditBalance?: number;
   monthlyCredits?: number;
   monthlyCreditsAsCoins?: number;
@@ -534,7 +537,7 @@ export function saveSubscriptionSnapshotForUser(userId: string | undefined, valu
 
 function readSubscriptionSnapshotMonthlyBalance(): number {
   const user = typeof window !== "undefined" ? readSanitizedAuthUser() : null;
-  const balance = Number(user?.monthlyCredits ?? user?.profileSubscription?.membershipCreditBalance ?? 0);
+  const balance = resolveMonthlyStoneBalance(user, user?.profileSubscription) ?? 0;
   return Number.isFinite(balance) && balance > 0 ? Math.floor(balance) : 0;
 }
 
@@ -650,6 +653,8 @@ function escapePaymentText(value: unknown): string {
 function firstFiniteMonthlyBalance(...sources: Array<Record<string, unknown> | null | undefined>): number {
   for (const source of sources) {
     if (!source) continue;
+    const monthlyStoneBalance = resolveMonthlyStoneBalance(source);
+    if (monthlyStoneBalance !== null) return monthlyStoneBalance;
     const membership = asRecord(source.membership);
     const profileSubscription = asRecord(source.profileSubscription);
     const candidates = [
@@ -682,6 +687,8 @@ function firstFiniteNonNegativeNumber(...candidates: unknown[]): number | null {
 
 function readBillingMonthlyBalance(source: Record<string, unknown> | null | undefined): number | null {
   if (!source) return null;
+  const monthlyStoneBalance = resolveMonthlyStoneBalance(source);
+  if (monthlyStoneBalance !== null) return monthlyStoneBalance;
   const consume = asRecord(source.consume);
   const membership = asRecord(source.membership);
   const user = asRecord(source.user);
@@ -724,6 +731,7 @@ function normalizeBillingBalanceFields(source: Record<string, unknown> | null | 
   const monthlyBalance = readBillingMonthlyBalance(source);
   if (balance !== null) source.balance = balance;
   if (monthlyBalance !== null) {
+    source.monthlyStoneBalance = monthlyBalance;
     source.membershipCreditBalance = monthlyBalance;
     source.monthlyCredits = monthlyBalance;
   }
@@ -737,6 +745,7 @@ function emitBillingBalanceUpdated(source: Record<string, unknown> | null | unde
   const detail: Record<string, unknown> = { source: eventSource };
   if (balance !== null) detail.balance = balance;
   if (monthlyBalance !== null) {
+    assignMonthlyStoneBalance(detail, monthlyBalance);
     detail.membershipCreditBalance = monthlyBalance;
     detail.monthlyCredits = monthlyBalance;
   }
@@ -2375,6 +2384,7 @@ export async function fetchBillingBalance(options: { force?: boolean; emit?: boo
   authenticated: boolean;
   degraded?: boolean;
   balance: number;
+  monthlyStoneBalance?: number;
   membershipCreditBalance?: number;
   monthlyCredits?: number;
   user: Record<string, unknown> | null;
@@ -2401,6 +2411,7 @@ export async function fetchBillingBalance(options: { force?: boolean; emit?: boo
         parsed.data.unlockMap = {};
       }
       normalizeBillingBalanceFields(parsed.data as BillingBalanceData & Record<string, unknown>);
+      parsed.data.monthlyStoneBalance = toNumber(parsed.data.monthlyStoneBalance ?? parsed.data.membershipCreditBalance, 0);
       parsed.data.membershipCreditBalance = toNumber(parsed.data.membershipCreditBalance, 0);
       parsed.data.monthlyCredits = toNumber(parsed.data.monthlyCredits ?? parsed.data.membershipCreditBalance, 0);
       const cacheableBalance = parsed.data.authenticated !== false && parsed.data.degraded !== true;

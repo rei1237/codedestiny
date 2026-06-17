@@ -67,6 +67,12 @@ type PalmImageQualityFeedback = {
   };
 };
 
+type PalmAiPromptState = {
+  prompt: string;
+  isLoading: boolean;
+  error: string;
+};
+
 type PalmVisionPoint = {
   x: number;
   y: number;
@@ -222,6 +228,7 @@ const PALM_BILLING_SUB_FEATURE_BY_PURPOSE: Record<AnalysisPurpose, string> = {
   personality: "personality",
   relationship: "relationship",
 };
+const PALM_AI_CONSULT_SUB_FEATURE_KEY = "palm-reading-ai-consult";
 
 const DOMINANT_HAND_OPTIONS: Array<{ value: DominantHand; label: string }> = [
   { value: "right", label: "오른손" },
@@ -1451,6 +1458,11 @@ export default function PalmDestinyMain() {
   const [submitMessage, setSubmitMessage] = useState("");
   const [loadingPhaseIndex, setLoadingPhaseIndex] = useState(0);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResultState | null>(null);
+  const [palmAiPrompt, setPalmAiPrompt] = useState<PalmAiPromptState>({
+    prompt: "",
+    isLoading: false,
+    error: "",
+  });
   const [activeCardKey, setActiveCardKey] = useState<PalmCardKey>("lifeLine");
   const [overlaySide, setOverlaySide] = useState<HandSide>("right");
   const [selectedCaptureSide, setSelectedCaptureSide] = useState<HandSide>("right");
@@ -1602,6 +1614,7 @@ export default function PalmDestinyMain() {
   const resetAnalysisState = () => {
     setAnalysisResult(null);
     setSubmitMessage("");
+    setPalmAiPrompt({ prompt: "", isLoading: false, error: "" });
     setIsSubmitting(false);
     submitLockedRef.current = false;
     setLoadingPhaseIndex(0);
@@ -2136,6 +2149,7 @@ export default function PalmDestinyMain() {
         overlayPathsBySide,
         raw: payloadRoot,
       });
+      setPalmAiPrompt({ prompt: "", isLoading: false, error: "" });
 
       const firstKey = interpretation?.cards?.[0]?.key;
       if (firstKey && firstKey in CARD_KEY_TO_LABEL) {
@@ -2210,6 +2224,271 @@ export default function PalmDestinyMain() {
     }
   };
 
+  const handleGeneratePalmAiConsult = async () => {
+    if (!analysisResult || submitLockedRef.current) return;
+
+    const dominantHandForPrompt =
+      toDominantHand(analysisResult.canonical.profile.dominantHand) || dominantHand || "right";
+    const analysisPurposeForPrompt =
+      toAnalysisPurpose(analysisResult.canonical.profile.analysisPurpose) || activeAnalysisPurpose;
+    const promptSeed = analysisResult.raw;
+
+    if (!promptSeed || typeof promptSeed !== "object") {
+      setPalmAiPrompt({
+        prompt: "",
+        isLoading: false,
+        error: "분석 결과 데이터가 준비되지 않았습니다.",
+      });
+      return;
+    }
+
+    const requestSignature = [
+      analysisResult.canonical.profile.analysisPurpose || "general",
+      dominantHandForPrompt || "right",
+      String(analysisResult.qualityScore || 0),
+      analysisResult.missingData.join("|"),
+      String(analysisResult.report ? "report" : "no-report"),
+    ].join("::");
+
+    if (inFlightSignatureRef.current === requestSignature) {
+      setSubmitMessage("동일 분석 결과 기준으로 AI 상담이 이미 진행 중입니다.");
+      return;
+    }
+
+    const billingRequestId = `palm-reading:ai-consult:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    const billingCheckRequestId = `${billingRequestId}:check`;
+    const billingChargeRequestId = `${billingRequestId}:charge`;
+    let activeBillingGateRequestId = billingCheckRequestId;
+
+    const handleCoinGateFailure = (
+      coinGateResult: Awaited<ReturnType<typeof runBillingCoinGate>>,
+      requestIdForGate: string,
+    ) => {
+      const coinGateCode = String(coinGateResult.error?.code || "").toUpperCase();
+      const serverCost = Number(coinGateResult.data?.pricing?.cost || 0);
+      const message =
+        coinGateCode === "AUTH_REQUIRED"
+          ? "로그인이 필요합니다. 로그인 후 다시 이용해 주세요."
+          : coinGateCode === "INSUFFICIENT_COINS"
+          ? `현재 보유 코인이 부족합니다. 현재 사용 비용은 ${serverCost}포인트입니다.`
+          : coinGateCode === "PRICE_NOT_FOUND"
+          ? "현재 이용 가능한 결제 가격을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요."
+          : coinGateResult.error?.message || "결제 상태 확인 중 문제가 발생했습니다.";
+
+      updatePaidFeatureGate({
+        featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
+        requestId: requestIdForGate,
+        status: "error",
+        message,
+      });
+      setPalmAiPrompt((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: message,
+      }));
+      setSubmitMessage(message);
+
+      if (coinGateCode === "AUTH_REQUIRED" && typeof window !== "undefined") {
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
+        window.setTimeout(() => {
+          window.location.href = `/login?next=${next}`;
+        }, 600);
+      }
+    };
+
+    cancelInFlightRequest();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
+
+    submitLockedRef.current = true;
+    inFlightSignatureRef.current = requestSignature;
+
+    try {
+      setPalmAiPrompt({ prompt: "", isLoading: true, error: "" });
+      setSubmitMessage("AI 상담을 생성하고 있습니다.");
+
+      openPaidFeatureGate({
+        featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
+        requestId: billingCheckRequestId,
+        message: "손금 AI 상담 가격을 확인하고 있습니다.",
+      });
+
+      const entitlementCheckResult = await runBillingCoinGate({
+        featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
+        requestId: billingCheckRequestId,
+        payloadHash: `${requestSignature}:check`,
+        forceDeduct: false,
+      });
+
+      if (!entitlementCheckResult.ok) {
+        handleCoinGateFailure(entitlementCheckResult, billingCheckRequestId);
+        return;
+      }
+
+      const serverCost = Number(entitlementCheckResult.data?.pricing?.cost || 0);
+      setSubmitMessage(`AI 상담 가격은 ${Math.max(0, serverCost * 100).toLocaleString("ko-KR")}원입니다.`);
+
+      const requestBody = JSON.stringify({
+        action: "ai_prompt",
+        dominantHand: dominantHandForPrompt,
+        analysisPurpose: analysisPurposeForPrompt || "general",
+        analysisResult: promptSeed,
+      });
+
+      let response = await fetch("/api/palm/analyze", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: requestBody,
+      });
+
+      if (response.status === 401) {
+        const authToken = getClientAuthToken();
+        if (authToken) {
+          response = await fetch("/api/palm/analyze", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+            signal: controller.signal,
+            body: requestBody,
+          });
+        }
+      }
+
+      if (requestIdRef.current !== requestId) {
+        return;
+      }
+
+      const data = await response.json().catch(() => ({}));
+      const payloadRoot =
+        data?.data && typeof data.data === "object"
+          ? (data.data as Record<string, unknown>)
+          : (data as Record<string, unknown>);
+
+      if (!response.ok) {
+        const code =
+          typeof data?.code === "string"
+            ? data.code
+            : typeof data?.error === "string"
+            ? data.error
+            : "UNKNOWN_ERROR";
+        const reasonCode =
+          typeof data?.reasonCode === "string"
+            ? data.reasonCode
+            : typeof data?.data?.reasonCode === "string"
+            ? data.data.reasonCode
+            : "";
+        const message =
+          typeof data?.message === "string"
+            ? data.message
+            : typeof data?.error === "string"
+            ? data.error
+            : "AI 상담 응답을 불러오는 중 문제가 발생했습니다.";
+        const mappedMessage = mapPalmAnalyzeError({ status: response.status, code, reasonCode, message });
+        updatePaidFeatureGate({
+          featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
+          requestId: activeBillingGateRequestId,
+          status: "error",
+          message: mappedMessage,
+        });
+        setPalmAiPrompt((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: mappedMessage,
+        }));
+        setSubmitMessage(mappedMessage);
+        return;
+      }
+
+      activeBillingGateRequestId = billingChargeRequestId;
+      const coinGateResult = await runBillingCoinGate({
+        featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
+        requestId: billingChargeRequestId,
+        payloadHash: `${requestSignature}:charge`,
+        forceDeduct: true,
+      });
+
+      if (!coinGateResult.ok) {
+        handleCoinGateFailure(coinGateResult, billingChargeRequestId);
+        return;
+      }
+
+      try {
+        const nextPoints = Number(
+          coinGateResult.data?.balance
+            ?? (coinGateResult.data?.user && (coinGateResult.data.user as Record<string, unknown>).points)
+            ?? NaN,
+        );
+        if (typeof window !== "undefined" && Number.isFinite(nextPoints)) {
+          window.localStorage.setItem("fortune_user_points", String(nextPoints));
+          const rawUser = window.localStorage.getItem("fortune_auth_user") || "";
+          const parsedUser = rawUser ? JSON.parse(rawUser) : {};
+          parsedUser.points = nextPoints;
+          window.localStorage.setItem("fortune_auth_user", JSON.stringify(parsedUser));
+        }
+      } catch (err) {
+        // ignore client-side storage failures
+      }
+
+      const promptText = typeof payloadRoot?.prompt === "string" ? payloadRoot.prompt.trim() : "";
+      if (!promptText) {
+        setPalmAiPrompt({
+          prompt: "",
+          isLoading: false,
+          error: "AI 상담 생성 결과가 비어 있습니다. 잠시 후 다시 시도해 주세요.",
+        });
+        setSubmitMessage("AI 상담 생성 결과가 비어 있습니다.");
+        return;
+      }
+
+      setPalmAiPrompt({
+        prompt: promptText,
+        isLoading: false,
+        error: "",
+      });
+      setSubmitMessage("AI 상담이 준비되었습니다.");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+
+      if (error instanceof TypeError) {
+        setPalmAiPrompt((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: "AI 상담 API 연결이 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.",
+        }));
+        setSubmitMessage("AI 상담 API 연결이 일시적으로 불안정합니다.");
+        return;
+      }
+
+      const message = `AI 상담 처리 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "unknown"}`;
+      setPalmAiPrompt((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: message,
+      }));
+      setSubmitMessage(message);
+    } finally {
+      if (requestIdRef.current === requestId) {
+        submitLockedRef.current = false;
+        lastCompletedSignatureRef.current = requestSignature;
+        lastCompletedAtRef.current = Date.now();
+      }
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
+      if (inFlightSignatureRef.current === requestSignature) {
+        inFlightSignatureRef.current = null;
+      }
+    }
+  };
   const handlePhotoReselect = () => {
     resetSessionForReanalysis({
       clearImages: true,
@@ -2263,7 +2542,7 @@ export default function PalmDestinyMain() {
         }}
       >
         <header className="flex items-center justify-between gap-2 border-b border-[#c8a84b]/20 pb-3">
-          <h4 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>{card.title}</h4>
+          <h4 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{card.title}</h4>
           <button
             type="button"
             onClick={() => setActiveCardKey(card.key)}
@@ -2367,7 +2646,7 @@ export default function PalmDestinyMain() {
     return (
       <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/45 bg-[linear-gradient(145deg,rgba(8,4,4,0.97),rgba(18,8,8,0.97))] p-4 md:p-5" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.14)" }}>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-extrabold text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>{title}</h2>
+          <h2 className="text-base font-extrabold text-[#f5d987] md:text-lg cd-oriental-headline">{title}</h2>
           <span className="rounded-sm border border-[#9b1a1a]/75 bg-[#4a0808]/80 px-2 py-1 text-[11px] font-bold tracking-[0.1em] text-[#ffc8c8]">
             손바닥 입력
           </span>
@@ -2598,7 +2877,7 @@ export default function PalmDestinyMain() {
             <h1
               className="cd-title mt-6 text-center text-5xl font-black leading-tight md:text-6xl"
               style={{
-                fontFamily: "'Noto Serif KR', 'Nanum Myeongjo', serif",
+                fontFamily: "var(--font-display), 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
                 background: "linear-gradient(175deg, #fff5d0 0%, #f5d987 35%, #c8a84b 65%, #8b6914 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
@@ -2609,7 +2888,7 @@ export default function PalmDestinyMain() {
             >
               손금 지도
             </h1>
-            <p className="mt-3 text-center text-sm font-semibold tracking-[0.22em] text-[#d4b45c] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>
+            <p className="mt-3 text-center text-sm font-semibold tracking-[0.22em] text-[#d4b45c] md:text-base cd-oriental-kicker">
               先天의 結 · 後天의 流
             </p>
             <div aria-hidden className="mx-auto mt-4 h-px max-w-xs" style={{ background: "linear-gradient(90deg, transparent, #c8a84b 30%, #f5d987 50%, #c8a84b 70%, transparent)" }} />
@@ -2628,7 +2907,7 @@ export default function PalmDestinyMain() {
             <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(22,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
               <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
                 <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                <h2 className="text-base font-black text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>손바닥 촬영/업로드</h2>
+              <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">손바닥 촬영/업로드</h2>
               </div>
               <p className="mt-3 text-sm leading-7 text-[#f0dfc0]/90">손바닥이 화면 중앙에 오도록 촬영해 주세요. 밝은 곳에서 손 전체가 보이면 분석 정확도가 높아집니다.</p>
 
@@ -2770,7 +3049,7 @@ export default function PalmDestinyMain() {
             <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(20,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
               <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
                 <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                <h2 className="text-base font-black text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>선천 · 후천 설명</h2>
+                <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">선천 · 후천 설명</h2>
               </div>
               <div className="mt-3 rounded-xl border border-[#9b1a1a]/60 bg-[#1e0808]/80 p-4 text-sm leading-7 text-[#ffe5c8]" style={{ boxShadow: "inset 0 0 20px rgba(100,10,10,0.3)" }}>
                 <p>손금에서는 자주 쓰는 손을 <span className="font-bold text-[#f5d987]">후천적 손</span>, 자주 쓰지 않는 손을 <span className="font-bold text-[#f5d987]">선천적 손</span>으로 읽습니다.</p>
@@ -2783,7 +3062,7 @@ export default function PalmDestinyMain() {
               <fieldset>
                 <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
                   <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                  <legend className="text-base font-black text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>주로 쓰는 손 선택</legend>
+                  <legend className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">주로 쓰는 손 선택</legend>
                 </div>
                 <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {DOMINANT_HAND_OPTIONS.map((option) => {
@@ -2813,7 +3092,7 @@ export default function PalmDestinyMain() {
               </fieldset>
 
               <fieldset className="mt-6 rounded-lg border border-[#b8871f]/25 bg-[#0d0808]/80 p-4">
-                <p className="text-sm font-black text-[#f5d987]" style={{ fontFamily: "'Noto Serif KR', serif" }}>
+                <p className="text-sm font-black text-[#f5d987] cd-oriental-kicker">
                   분석 목적은 전체 운세로 고정되어 있으며, 연애/재물/직업/성격/관계 카테고리를 한 번에 표시합니다.
                 </p>
               </fieldset>
@@ -2822,7 +3101,7 @@ export default function PalmDestinyMain() {
             <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(18,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
               <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
                 <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                <h2 className="text-base font-black text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>촬영 가이드</h2>
+                <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">촬영 가이드</h2>
               </div>
               <ul className="mt-3 space-y-2 text-sm leading-7 text-[#f0dfc0]/90">
                 {SHOOTING_GUIDES.map((guide) => (
@@ -2913,7 +3192,7 @@ export default function PalmDestinyMain() {
                   <div>
                     <div className="flex items-center gap-3">
                       <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                      <h2 className="text-base font-black text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>손금 결과 오버레이</h2>
+                      <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">손금 결과 오버레이</h2>
                     </div>
                     <p className="mt-1 text-xs text-[#d4b45c]/85">선천의 결, 후천의 흐름을 한 화면에서 비교합니다.</p>
                   </div>
@@ -2997,7 +3276,7 @@ export default function PalmDestinyMain() {
                       </div>
 
                       <div className="mt-3 border-b border-[#c8a84b]/18 pb-3">
-                        <h3 className="text-base font-black leading-7 text-[#f5d987] md:text-lg" style={{ fontFamily: "'Noto Serif KR', serif" }}>
+                        <h3 className="text-base font-black leading-7 text-[#f5d987] md:text-lg cd-oriental-headline">
                           한눈에 보는 손금 리딩
                         </h3>
                         <p className="mt-2 text-sm font-semibold leading-7 text-[#ffe1d6] md:text-base">
@@ -3073,7 +3352,7 @@ export default function PalmDestinyMain() {
 
                     {analysisResult.interpretation?.focusSummary ? (
                       <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 px-4 py-3">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>해석 중심</h3>
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">해석 중심</h3>
                         <p className="mt-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
                           {analysisResult.interpretation.focusSummary}
                         </p>
@@ -3082,7 +3361,7 @@ export default function PalmDestinyMain() {
 
                     {bothHandsComparison ? (
                       <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>선천 · 후천 비교 요약</h3>
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">선천 · 후천 비교 요약</h3>
                         <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">타고난 손과 살아온 손을 함께 읽습니다.</p>
                         <div className="mt-3 space-y-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
                           <p className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2">{bothHandsComparison.innateSummary}</p>
@@ -3096,14 +3375,14 @@ export default function PalmDestinyMain() {
                     {categoryConsultations.length > 0 ? (
                       <section className="space-y-3">
                         <div className="border-b border-[#c8a84b]/20 pb-2">
-                          <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>카테고리 리포트 전체</h3>
+                          <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">카테고리 리포트 전체</h3>
                           <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">사랑, 재물, 직업, 성격, 관계의 흐름을 한 번에 펼쳐 읽습니다.</p>
                         </div>
 
                         <div className="grid gap-3 lg:grid-cols-2">
                           {categoryConsultations.map((item) => (
                             <article key={`consult-${item.key}`} className="cd-oriental-card rounded-xl border border-[#c8a84b]/26 bg-[#0d0808]/82 p-4">
-                              <h4 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>{item.title}</h4>
+                              <h4 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{item.title}</h4>
                               <p className="mt-2 rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2 text-xs leading-6 text-[#e8d8b0]/92 md:text-sm">{item.summary}</p>
 
                               <div className="mt-3 grid gap-3 xl:grid-cols-2">
@@ -3132,7 +3411,7 @@ export default function PalmDestinyMain() {
 
                     {analysisResult.report ? (
                       <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base" style={{ fontFamily: "'Noto Serif KR', serif" }}>🌙 한눈에 보는 손금 리딩</h3>
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">🌙 한눈에 보는 손금 리딩</h3>
                         <div className="mt-3 grid gap-2 text-xs leading-6 text-[#e8d8b0]/90 md:grid-cols-2 md:text-sm">
                           {[
                             ["🌙 한 줄 요약", String(analysisResult.report.oneLiner || "이번 손금 흐름을 쉽고 재밌게 정리해 드렸어요.")],
@@ -3153,6 +3432,41 @@ export default function PalmDestinyMain() {
                         </div>
                       </section>
                     ) : null}
+
+                    <section className="space-y-3 rounded-xl border border-[#f5d987]/30 bg-[linear-gradient(145deg,rgba(22,8,8,0.95),rgba(30,12,12,0.94))] p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[#c8a84b]/30 pb-3">
+                        <div>
+                          <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">손금 AI 상담</h3>
+                          <p className="mt-1 text-xs text-[#d4b45c]/85">분석 결과를 바탕으로 AI가 한 번 더 정리해 드립니다.</p>
+                        </div>
+                        <span className="rounded-full border border-[#f5d987]/45 bg-[#120909] px-2 py-1 text-[11px] font-bold text-[#f5d987]">5,000원</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleGeneratePalmAiConsult}
+                        disabled={!analysisResult || palmAiPrompt.isLoading}
+                        className={`cd-gold-btn cd-oriental-premium-btn min-h-[44px] rounded-lg border px-4 py-2 text-xs font-black tracking-[0.02em] md:text-sm ${
+                          !analysisResult || palmAiPrompt.isLoading
+                            ? "cursor-not-allowed border-[#7a6020]/30 bg-[#2b1d0d] text-[#b39a5f]"
+                            : "border-[#f5d987]/70 bg-[linear-gradient(140deg,#8b0000,#6b1a0a_35%,#5a1200_65%,#7a1800)] text-[#fff8e0] shadow-[0_0_0_1px_rgba(212,176,92,0.25),0_12px_24px_rgba(0,0,0,0.5),0_0_24px_rgba(139,0,0,0.4)]"
+                        }`}
+                      >
+                        {palmAiPrompt.isLoading ? "AI 상담 작성 중..." : "AI 상담 보기 (5,000원)"}
+                      </button>
+
+                      {palmAiPrompt.error ? (
+                        <p className="rounded-lg border border-[#9b1a1a]/60 bg-[#1e0808]/80 px-3 py-2 text-xs leading-6 text-[#ffd8d8]">
+                          {palmAiPrompt.error}
+                        </p>
+                      ) : null}
+
+                      {palmAiPrompt.prompt ? (
+                        <div className="rounded-lg border border-[#c8a84b]/35 bg-[#0d0606]/75 px-3 py-3">
+                          <p className="whitespace-pre-wrap text-xs leading-7 text-[#e8d090] md:text-sm">{palmAiPrompt.prompt}</p>
+                        </div>
+                      ) : null}
+                    </section>
 
                     <section className="space-y-4">
                       <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1">
@@ -3229,6 +3543,16 @@ export default function PalmDestinyMain() {
         .cd-oriental-card {
           backdrop-filter: blur(4px);
           position: relative;
+        }
+
+        .cd-oriental-headline {
+          font-family: var(--font-display), "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+          letter-spacing: 0.005em;
+        }
+
+        .cd-oriental-kicker,
+        .cd-oriental-premium-btn {
+          font-family: var(--font-premium), "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
         }
 
         @media (max-width: 767px) {

@@ -12,6 +12,7 @@ import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { readSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "../_lib/billing-client";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
+import { resolveMonthlyStoneBalance } from "../_lib/monthly-stone";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 
@@ -29,6 +30,7 @@ type AuthUser = {
   phone?: string;
   phoneNumber?: string;
   role?: "user" | "admin";
+  monthlyStoneBalance?: number;
   monthlyCredits?: number;
   profileSubscription?: {
     tier?: string;
@@ -825,12 +827,7 @@ function normalizeMePayload(payload: MeResponse) {
   const payments = Array.isArray(node.payments)
     ? node.payments
     : (Array.isArray(payload?.payments) ? payload.payments : []);
-  const monthlyCredits = Number(
-    (typeof node.monthlyCredits === "number" ? node.monthlyCredits : undefined)
-    ?? (typeof node.membershipCreditBalance === "number" ? node.membershipCreditBalance : undefined)
-    ?? (typeof payload?.user?.monthlyCredits === "number" ? payload.user.monthlyCredits : undefined)
-    ?? 0,
-  );
+  const monthlyStoneBalance = resolveMonthlyStoneBalance(node, payload?.user) ?? 0;
   const monthlyCreditLedgers = Array.isArray(node.monthlyCreditLedgers)
     ? node.monthlyCreditLedgers
     : (Array.isArray(payload?.monthlyCreditLedgers) ? payload.monthlyCreditLedgers : []);
@@ -842,7 +839,7 @@ function normalizeMePayload(payload: MeResponse) {
   return {
     user,
     balance: Number.isFinite(balance) ? balance : 0,
-    monthlyCredits: Number.isFinite(monthlyCredits) ? monthlyCredits : 0,
+    monthlyStoneBalance,
     payments,
     monthlyCreditLedgers,
     subscription,
@@ -1763,7 +1760,7 @@ export default function PointsPage() {
   } = usePaymentProcessing();
   const [showStarBurst, setShowStarBurst] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
-  const [monthlyCredits, setMonthlyCredits] = useState(0);
+  const [monthlyStoneBalance, setMonthlyStoneBalance] = useState(0);
   const [monthlyCreditLedgers, setMonthlyCreditLedgers] = useState<MonthlyCreditLedgerItem[]>([]);
   const [cancelingPaymentId, setCancelingPaymentId] = useState<string | null>(null);
   const [adminTestTier, setAdminTestTier] = useState<AdminTestTier>("off");
@@ -1947,7 +1944,7 @@ export default function PointsPage() {
             .slice(0, 10)
         : [];
       setPaymentHistory(normalizedPayments);
-      setMonthlyCredits(normalized.monthlyCredits);
+      setMonthlyStoneBalance(normalized.monthlyStoneBalance);
       setMonthlyCreditLedgers(
         Array.isArray(normalized.monthlyCreditLedgers)
           ? normalized.monthlyCreditLedgers.filter((entry) => entry && typeof entry === "object").slice(0, 8)
@@ -2843,8 +2840,8 @@ export default function PointsPage() {
       return;
     }
 
-    if (monthlyCredits < requiredMonthlyCredits) {
-      pushToast("error", `월정석 잔량이 부족합니다. 필요 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, 현재 ${formatMonthlyCreditValue(monthlyCredits)}입니다.`);
+    if (monthlyStoneBalance < requiredMonthlyCredits) {
+      pushToast("error", `월정석 잔량이 부족합니다. 필요 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, 현재 ${formatMonthlyCreditValue(monthlyStoneBalance)}입니다.`);
       return;
     }
 
@@ -2897,7 +2894,7 @@ export default function PointsPage() {
     } catch (error: unknown) {
       const message = getErrorMessage(error, "월정석으로 이용권을 활성화하지 못했습니다.");
       if (message.includes("INSUFFICIENT_MONTHLY_CREDITS") || message.includes("부족")) {
-        pushToast("error", `월정석 잔량이 부족합니다. 필요 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, 현재 ${formatMonthlyCreditValue(monthlyCredits)}입니다.`);
+        pushToast("error", `월정석 잔량이 부족합니다. 필요 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, 현재 ${formatMonthlyCreditValue(monthlyStoneBalance)}입니다.`);
       } else if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("중복 이용권") || message.includes("중복 구매")) {
         pushToast("error", "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
       } else {
@@ -2996,7 +2993,7 @@ export default function PointsPage() {
   const pendingSubscriptionMonthlyCreditCost = pendingSubscriptionPaymentPlan
     ? calculateSubscriptionMonthlyCreditCost(pendingSubscriptionPaymentPlan)
     : 0;
-  const canUseMonthlyCreditForPendingSubscription = pendingSubscriptionMonthlyCreditCost > 0 && monthlyCredits >= pendingSubscriptionMonthlyCreditCost;
+  const canUseMonthlyCreditForPendingSubscription = pendingSubscriptionMonthlyCreditCost > 0 && monthlyStoneBalance >= pendingSubscriptionMonthlyCreditCost;
 
   /* ── 메인 렌더 ─────────────────────────────────────────────────── */
   return (
@@ -3051,7 +3048,7 @@ export default function PointsPage() {
               {pendingSubscriptionPaymentPlan.title} · {formatSubscriptionPlanValueLine(pendingSubscriptionPaymentPlan)} · {formatWon(pendingSubscriptionPaymentPlan.wonPrice)}
             </p>
             <p className="mt-1 text-[12px] font-bold text-[#f3dd9a]">
-              월정석 사용 시 {formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost)} · 현재 {formatMonthlyCreditValue(monthlyCredits)}
+              월정석 사용 시 {formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost)} · 현재 {formatMonthlyCreditValue(monthlyStoneBalance)}
             </p>
             <div className="mt-4 rounded-[14px] border border-white/12 bg-white/[0.07] px-3.5 py-3 text-[12px] leading-relaxed text-slate-200">
               <p className="font-black text-white">30일 이용권 조건</p>
@@ -3185,7 +3182,7 @@ export default function PointsPage() {
         <SubscriptionStatusCard subscription={subscription} />
 
         <MonthlyCreditBonusCard
-          balance={monthlyCredits}
+          balance={monthlyStoneBalance}
           ledgers={monthlyCreditLedgers}
         />
 

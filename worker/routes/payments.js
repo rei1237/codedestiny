@@ -3394,6 +3394,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
         planId: String(sub?.planId || plan.planId),
         durationMonths: Number(sub?.durationMonths || plan.durationMonths),
         productType: String(sub?.productType || plan.productType),
+        monthlyStoneBalance: Number(sub?.membershipCreditBalance || 0),
         membershipCreditBalance: Number(sub?.membershipCreditBalance || 0),
         membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
         membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
@@ -3405,6 +3406,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
         nextBillingAt: null,
         lastBillingStatus: "success",
       },
+      monthlyStoneBalance: Number(sub?.membershipCreditBalance || 0),
       monthlyCredits: Number(sub?.membershipCreditBalance || 0),
       user: {
         id: String(auth.userId),
@@ -3435,6 +3437,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
       code: "INSUFFICIENT_MONTHLY_CREDITS",
       requiredMonthlyCredits,
       currentMonthlyCredits,
+      monthlyStoneBalance: currentMonthlyCredits,
       membershipCreditBalance: currentMonthlyCredits,
     }, { status: 402 });
   }
@@ -3707,6 +3710,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
       planId: plan.planId,
       durationMonths: plan.durationMonths,
       productType: plan.productType,
+      monthlyStoneBalance: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
       membershipCreditBalance: Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0),
       membershipCreditGranted: Number(updatedUser?.profileSubscription?.membershipCreditGranted || 0),
       membershipCreditUsed: Number(updatedUser?.profileSubscription?.membershipCreditUsed || 0),
@@ -3718,6 +3722,7 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
       nextBillingAt: null,
       lastBillingStatus: "success",
     },
+    monthlyStoneBalance: updatedMonthlyCredits,
     monthlyCredits: updatedMonthlyCredits,
     membershipCreditBalance: updatedMonthlyCredits,
     passBalance: {
@@ -4768,6 +4773,7 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
       payments: mappedPayments,
       subscriptions,
       usagePasses,
+      monthlyStoneBalance: monthlyCredits,
       monthlyCredits,
       membershipCreditBalance: monthlyCredits,
       monthlyCreditLedgers: mappedMonthlyCreditLedgers,
@@ -4777,6 +4783,7 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
       name: safeUser.name || "",
       email: safeUser.email || "",
       points: balance,
+      monthlyStoneBalance: monthlyCredits,
       monthlyCredits,
       unlockedFeatures,
       usagePasses,

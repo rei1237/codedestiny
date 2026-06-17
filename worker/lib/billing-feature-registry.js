@@ -25,6 +25,7 @@ const BILLING_FEATURE_CATEGORIES = Object.freeze({
       career: Object.freeze({ featureKey: "palm-reading-career", cost: 30, reason: "손금 직업운 분석" }),
       personality: Object.freeze({ featureKey: "palm-reading-personality", cost: 30, reason: "손금 성격 분석" }),
       relationship: Object.freeze({ featureKey: "palm-reading-relationship", cost: 30, reason: "손금 관계 패턴 분석" }),
+      aiConsult: Object.freeze({ featureKey: "palm-reading-ai-consult", cost: 50, reason: "손금 AI 상담 생성" }),
     }),
   }),
   "stonehenge-runes": Object.freeze({
@@ -57,6 +58,7 @@ const LEGACY_FEATURE_ALIAS_MAP = Object.freeze({
   "palm-reading-career": Object.freeze({ categoryKey: "palm-reading", subFeatureKey: "career" }),
   "palm-reading-personality": Object.freeze({ categoryKey: "palm-reading", subFeatureKey: "personality" }),
   "palm-reading-relationship": Object.freeze({ categoryKey: "palm-reading", subFeatureKey: "relationship" }),
+  "palm-reading-ai-consult": Object.freeze({ categoryKey: "palm-reading", subFeatureKey: "aiConsult" }),
 
   // Rune
   stonehengerunes: Object.freeze({ categoryKey: "stonehenge-runes", subFeatureKey: "spread-3" }),

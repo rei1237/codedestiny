@@ -5,12 +5,14 @@ import { getApiBaseUrl } from "./api-config";
 import { authFetch, clearClientAuthState, logoutWithServer } from "./auth-client";
 import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, type ClientAuthUser } from "./auth-storage";
+import { resolveMonthlyStoneBalance } from "./monthly-stone";
 
 export type AuthUser = ClientAuthUser & {
   id?: string;
   name?: string;
   email?: string;
   role?: string;
+  monthlyStoneBalance?: number;
   monthlyCredits?: number;
 };
 
@@ -44,9 +46,11 @@ type LoginApiPayload = {
 type BillingBalanceData = {
   authenticated?: boolean;
   degraded?: boolean;
+  monthlyStoneBalance?: number;
   monthlyCredits?: number;
   membershipCreditBalance?: number;
   membership?: {
+    monthlyStoneBalance?: number;
     membershipCreditBalance?: number;
     membershipCreditGranted?: number;
     membershipCreditUsed?: number;
@@ -143,12 +147,12 @@ function publishAuthSync(event: "login" | "logout") {
   }
 }
 
-function publishMonthlyCreditsSync(monthlyCredits: number) {
+function publishMonthlyStoneBalanceSync(monthlyStoneBalance: number) {
   if (typeof window === "undefined") return;
   const payload = {
     source: "auth-store",
-    event: "monthlyCredits",
-    monthlyCredits,
+    event: "monthlyStoneBalance",
+    monthlyStoneBalance,
     at: Date.now(),
   };
   try {
@@ -195,8 +199,10 @@ function mergeAuthUsers(base: AuthUser | null, patch: AuthUser | null): AuthUser
     merged.hasLocalAuth = patch.hasLocalAuth;
   }
 
-  if (Number.isFinite(Number(patch.monthlyCredits)) && Number(patch.monthlyCredits) >= 0) {
-    merged.monthlyCredits = Number(patch.monthlyCredits);
+  if (Number.isFinite(Number(patch.monthlyStoneBalance)) && Number(patch.monthlyStoneBalance) >= 0) {
+    merged.monthlyStoneBalance = Number(patch.monthlyStoneBalance);
+  } else if (Number.isFinite(Number(patch.monthlyCredits)) && Number(patch.monthlyCredits) >= 0) {
+    merged.monthlyStoneBalance = Number(patch.monthlyCredits);
   }
 
   if (patch.profileSubscription && typeof patch.profileSubscription === "object") {
@@ -209,9 +215,14 @@ function mergeAuthUsers(base: AuthUser | null, patch: AuthUser | null): AuthUser
       profileLimit: Number.isFinite(Number(next.profileLimit))
         ? Number(next.profileLimit)
         : (Number.isFinite(Number(current.profileLimit)) ? Number(current.profileLimit) : undefined),
-      membershipCreditBalance: Number.isFinite(Number(next.membershipCreditBalance))
-        ? Number(next.membershipCreditBalance)
-        : (Number.isFinite(Number(current.membershipCreditBalance)) ? Number(current.membershipCreditBalance) : undefined),
+      monthlyStoneBalance: Number.isFinite(Number(next.monthlyStoneBalance))
+        ? Number(next.monthlyStoneBalance)
+        : (Number.isFinite(Number(current.monthlyStoneBalance)) ? Number(current.monthlyStoneBalance) : undefined),
+      membershipCreditBalance: Number.isFinite(Number(next.monthlyStoneBalance))
+        ? Number(next.monthlyStoneBalance)
+        : (Number.isFinite(Number(next.membershipCreditBalance))
+          ? Number(next.membershipCreditBalance)
+          : (Number.isFinite(Number(current.membershipCreditBalance)) ? Number(current.membershipCreditBalance) : undefined)),
       membershipCreditGranted: Number.isFinite(Number(next.membershipCreditGranted))
         ? Number(next.membershipCreditGranted)
         : (Number.isFinite(Number(current.membershipCreditGranted)) ? Number(current.membershipCreditGranted) : undefined),
@@ -318,13 +329,9 @@ export async function refreshBillingBalance() {
     const balanceData = payload.data && typeof payload.data === "object" ? payload.data : payload;
     if (balanceData.authenticated === false || balanceData.degraded === true) return null;
 
-    const monthlyCredits = Number(
-      balanceData.monthlyCredits
-      ?? balanceData.membershipCreditBalance
-      ?? balanceData.membership?.membershipCreditBalance,
-    );
-    const normalizedMonthlyCredits = Number.isFinite(monthlyCredits)
-      ? Math.max(0, Math.floor(monthlyCredits))
+    const monthlyStoneBalance = resolveMonthlyStoneBalance(balanceData, balanceData.membership);
+    const normalizedMonthlyStoneBalance = monthlyStoneBalance !== null
+      ? monthlyStoneBalance
       : undefined;
     const base = readSanitizedAuthUser() as AuthUser | null;
     const membershipPatch = balanceData.membership && typeof balanceData.membership === "object"
@@ -335,7 +342,8 @@ export async function refreshBillingBalance() {
           profileLimit: Number.isFinite(Number(balanceData.membership.profileLimit))
             ? Number(balanceData.membership.profileLimit)
             : undefined,
-          membershipCreditBalance: normalizedMonthlyCredits,
+          monthlyStoneBalance: normalizedMonthlyStoneBalance,
+          membershipCreditBalance: normalizedMonthlyStoneBalance,
           membershipCreditGranted: Number.isFinite(Number(balanceData.membership.membershipCreditGranted))
             ? Number(balanceData.membership.membershipCreditGranted)
             : undefined,
@@ -344,17 +352,18 @@ export async function refreshBillingBalance() {
             : undefined,
         }
       : {
-          membershipCreditBalance: normalizedMonthlyCredits,
+          monthlyStoneBalance: normalizedMonthlyStoneBalance,
+          membershipCreditBalance: normalizedMonthlyStoneBalance,
         };
     const merged = mergeAuthUsers(base, {
-      monthlyCredits: normalizedMonthlyCredits,
+      monthlyStoneBalance: normalizedMonthlyStoneBalance,
       profileSubscription: membershipPatch,
     });
     const safe = resolveSafeUser(merged);
     if (safe) applyResolvedUser(safe);
-    if (typeof normalizedMonthlyCredits === "number") {
-      publishMonthlyCreditsSync(normalizedMonthlyCredits);
-      return normalizedMonthlyCredits;
+    if (typeof normalizedMonthlyStoneBalance === "number") {
+      publishMonthlyStoneBalanceSync(normalizedMonthlyStoneBalance);
+      return normalizedMonthlyStoneBalance;
     }
     return null;
   })();

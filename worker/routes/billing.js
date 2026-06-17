@@ -834,6 +834,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
         membershipCreditCost: Math.max(0, Math.floor(Number(existingLedger?.amount || requiredCredit))),
         requiredMonthlyCredits: Math.max(0, Math.floor(Number(existingLedger?.amount || requiredCredit))),
         remainingMembershipCredit: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) : 0,
+        monthlyStoneBalance: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) : 0,
         monthlyCredits: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) : 0,
         monthlyCreditsAsCoins: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) / MEMBERSHIP_CREDIT_PER_COIN : 0,
         idempotent: true,
@@ -876,6 +877,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
         membershipCreditCost: requiredCredit,
         requiredMonthlyCredits: requiredCredit,
         remainingMembershipCredit: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) : 0,
+        monthlyStoneBalance: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) : 0,
         monthlyCredits: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) : 0,
         monthlyCreditsAsCoins: Number.isFinite(currentCredit) ? Math.max(0, Math.floor(currentCredit)) / MEMBERSHIP_CREDIT_PER_COIN : 0,
         idempotent: true,
@@ -939,6 +941,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       membershipCreditCost: requiredCredit,
       requiredMonthlyCredits: requiredCredit,
       remainingMembershipCredit: monthlyCredits,
+      monthlyStoneBalance: monthlyCredits,
       monthlyCredits,
       monthlyCreditsAsCoins: monthlyCredits / MEMBERSHIP_CREDIT_PER_COIN,
       balanceAfter: Number(updatedUser?.points || 0),
@@ -1013,6 +1016,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     membershipCreditCost: requiredCredit,
     requiredMonthlyCredits: requiredCredit,
     remainingMembershipCredit: monthlyCredits,
+    monthlyStoneBalance: monthlyCredits,
     monthlyCredits,
     monthlyCreditsAsCoins: monthlyCredits / MEMBERSHIP_CREDIT_PER_COIN,
     user: {
@@ -1349,6 +1353,8 @@ function toArchiveBase(doc) {
   const completedAt = toIso(doc?.completedAt || archive.completedAt || doc?.updatedAt || doc?.createdAt);
   const updatedAt = toIso(doc?.updatedAt || completedAt || createdAt);
   const pdfUrl = cleanText(archive.pdfUrl || archive?.pdfReady?.pdfUrl, 500);
+  const htmlUrl = cleanText(archive.htmlUrl || archive?.pdfReady?.htmlUrl, 500);
+  const downloadUrl = cleanText(archive.downloadUrl || archive?.pdfReady?.downloadUrl || pdfUrl, 500);
   const chapters = Array.isArray(archive.chapters) ? archive.chapters : [];
   const canReopen = Boolean(pdfUrl || chapters.length > 0 || (archive.payload && typeof archive.payload === "object"));
 
@@ -1364,15 +1370,28 @@ function toArchiveBase(doc) {
     updatedAt,
     birthName: cleanText(archive.birthName || "", 120),
     targetName: cleanText(archive.targetName || "", 120),
+    serverStatus: cleanText(archive.serverStatus || "completed", 40),
+    qualityStatus: cleanText(archive.qualityStatus || "", 40),
     pdfUrl,
+    htmlUrl,
+    downloadUrl,
     pdfStorageKey: cleanText(archive.pdfStorageKey || "", 200),
     summary: cleanText(archive.summary || "", 1000),
+    chapterCount: Number(archive.chapterCount || chapters.length || 0),
+    expectedChapterCount: Number(archive.expectedChapterCount || 0),
+    localDraftChapterCount: Number(archive.localDraftChapterCount || archive?.pdfReady?.localDraftChapterCount || chapters.length || 0),
+    manuscriptSource: cleanText(archive.manuscriptSource || archive?.pdfReady?.manuscriptSource || "", 80),
+    localAssemblyOnly: archive.localAssemblyOnly !== false && archive?.pdfReady?.localAssemblyOnly !== false,
+    externalCallsAllowed: archive.externalCallsAllowed === true || archive?.pdfReady?.externalCallsAllowed === true,
+    localAssembly: archive.localAssembly && typeof archive.localAssembly === "object" ? archive.localAssembly : archive?.pdfReady?.localAssembly,
+    pdfCompletionValidation: archive.pdfCompletionValidation || archive?.pdfReady?.pdfCompletionValidation || null,
+    pdfReady: archive.pdfReady && typeof archive.pdfReady === "object" ? archive.pdfReady : null,
     chapters,
     payload: archive.payload && typeof archive.payload === "object" ? archive.payload : null,
     paymentSessionId: cleanText(doc?.paymentSessionId || metadata.purchaseId || "", 160),
     coinAmount: Number(doc?.coinAmount || 0),
     canReopen,
-    canDownload: Boolean(pdfUrl),
+    canDownload: Boolean(downloadUrl || pdfUrl),
   };
 }
 
@@ -2495,6 +2514,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     || requestedPaymentMode === "pig-coin"
     || (!requestedPaymentMode && forceDeductRequested && !directPaymentRequested);
   const knownPaymentMode = !requestedPaymentMode
+    || requestedPaymentMode === "single_purchase"
     || membershipPassOnly
     || monthlyBalanceRequested
     || directPaymentRequested
@@ -3014,6 +3034,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             membershipCreditCost: membershipConsume.membershipCreditCost,
             requiredMonthlyCredits: membershipConsume.requiredMonthlyCredits,
             remainingMembershipCredit: membershipConsume.remainingMembershipCredit,
+            monthlyStoneBalance: membershipConsume.monthlyStoneBalance ?? membershipConsume.remainingMembershipCredit,
             monthlyCredits: membershipConsume.monthlyCredits,
             monthlyCreditsAsCoins: membershipConsume.monthlyCreditsAsCoins,
             idempotent: Boolean(membershipConsume.idempotent),
@@ -3033,6 +3054,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             accessMethod: "MONTHLY",
           },
           balance: Number(membershipConsume?.user?.points || 0),
+          monthlyStoneBalance: membershipConsume.monthlyStoneBalance ?? membershipConsume.remainingMembershipCredit,
           membershipCreditBalance: membershipConsume.remainingMembershipCredit,
           monthlyCredits: membershipConsume.monthlyCredits,
           monthlyCreditsAsCoins: membershipConsume.monthlyCreditsAsCoins,
@@ -3074,6 +3096,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         accessGrant: null,
         requiredMonthlyCredits,
         currentMonthlyCredits: monthlyCredits,
+        currentMonthlyStoneBalance: monthlyCredits,
+        monthlyStoneBalance: monthlyCredits,
         membershipCreditCost: requiredMonthlyCredits,
         membershipCreditBalance: monthlyCredits,
         monthlyCredits,
@@ -3435,6 +3459,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       premiumAccessToken: null,
       accessGrant,
       balance: coinBalance,
+      monthlyStoneBalance: monthlyCredits,
       membershipCreditBalance: monthlyCredits,
       monthlyCredits,
       monthlyCreditsAsCoins: monthlyCredits / MEMBERSHIP_CREDIT_PER_COIN,
@@ -3890,6 +3915,7 @@ function buildBillingSnapshotUser(auth, user, balance, unlockedFeatures, monthly
   return {
     id: String(auth?.userId || user?._id || ""),
     points: Number(balance || 0),
+    monthlyStoneBalance: monthlyCredits,
     monthlyCredits,
     membershipCreditBalance: monthlyCredits,
     profileSubscriptionTier: membership?.tier || "free",
@@ -3905,6 +3931,7 @@ function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
   const subscriptionRecord = subscription.subscription && typeof subscription.subscription === "object" ? subscription.subscription : {};
   const profileSubscription = {
     ...subscriptionRecord,
+    monthlyStoneBalance: Math.max(0, Math.floor(Number(snapshot.monthlyStoneBalance ?? snapshot.membershipCreditBalance ?? 0))),
     membershipCreditBalance: Math.max(0, Math.floor(Number(snapshot.membershipCreditBalance || 0))),
   };
   const entitlement = subscription.entitlement && typeof subscription.entitlement === "object"
@@ -3928,6 +3955,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       authUserId: "",
       balance: 0,
       membershipCreditBalance: 0,
+      monthlyStoneBalance: 0,
       monthlyCredits: 0,
       monthlyCreditsAsCoins: 0,
       membership: null,
@@ -3982,6 +4010,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       profileLimit: entitlement.maxProfiles,
       source: entitlement.source,
       expiresAt: entitlement.expiresAt || sub?.expiresAt || null,
+      monthlyStoneBalance: membershipCreditBalance,
       membershipCreditBalance,
       membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
       membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
@@ -3998,6 +4027,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       legacyCoinBalance: Number.isFinite(balance) ? balance : 0,
       coins: Number.isFinite(balance) ? balance : 0,
       membershipCreditBalance,
+      monthlyStoneBalance: membershipCreditBalance,
       monthlyCredits: membershipCreditBalance,
       monthlyCreditsAsCoins: membershipCreditBalance / MEMBERSHIP_CREDIT_PER_COIN,
       membership,
@@ -4026,6 +4056,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       user: {
         id: String(auth.userId || ""),
         points: fallbackBalance,
+        monthlyStoneBalance: 0,
         monthlyCredits: 0,
         membershipCreditBalance: 0,
         unlockedFeatures: [],

@@ -1104,6 +1104,7 @@ export const runtime = "nodejs";
 export const maxDuration = 45;
 
 type RawImageInput = File | string | Record<string, unknown> | null | undefined;
+type PalmAnalyzeAction = "analyze" | "ai_prompt";
 
 type ParsedPayload = {
   uploadedHandSide: string;
@@ -1111,6 +1112,8 @@ type ParsedPayload = {
   rightPalmImage: RawImageInput;
   dominantHand: string;
   analysisPurpose: string;
+  action: PalmAnalyzeAction;
+  analysisResult: Record<string, unknown> | null;
   leftImageQuality: Record<string, unknown> | null;
   rightImageQuality: Record<string, unknown> | null;
 };
@@ -1140,6 +1143,136 @@ function normalizeAnalysisPurpose(value: string): PalmAnalysisPurpose | null {
   return null;
 }
 
+function normalizePalmAnalyzeAction(value: string): PalmAnalyzeAction {
+  const lowered = value.trim().toLowerCase();
+  return lowered === "ai_prompt" ? "ai_prompt" : "analyze";
+}
+
+function sanitizeAiPromptSource(raw: unknown): {
+  mode: string;
+  qualityScore: number;
+  report: Record<string, unknown>;
+  missingData: string[];
+  warnings: string[];
+  canonical: CanonicalPalmReading;
+} | null {
+  if (!raw || typeof raw !== "object") return null;
+  const source = raw as Record<string, unknown>;
+  const canonicalRaw = source.canonical;
+  const reportRaw = source.report;
+
+  if (!canonicalRaw || typeof canonicalRaw !== "object" || !reportRaw) return null;
+
+  const asObjFromRecord = asObj(canonicalRaw) as Record<string, unknown>;
+  const canonical = asObjFromRecord as CanonicalPalmReading;
+  const report = asObj(reportRaw) as Record<string, unknown>;
+
+  return {
+    mode: String(source.mode || "estimated"),
+    qualityScore: Number(source.qualityScore || 0) || 0,
+    report,
+    missingData: Array.isArray(source.missingData) ? source.missingData.map((item) => String(item)) : [],
+    warnings: Array.isArray(source.warnings) ? source.warnings.map((item) => String(item)) : [],
+    canonical,
+  };
+}
+
+async function generatePalmAiPrompt(input: {
+  canonical: CanonicalPalmReading;
+  report: Record<string, unknown>;
+  mode: string;
+  qualityScore: number;
+  missingData: string[];
+  warnings: string[];
+  analysisPurpose: PalmAnalysisPurpose;
+  dominantHand: PalmDominantHand;
+}): Promise<string | null> {
+  const key = pickVisionKey();
+  if (!key) return null;
+
+  const purposeLabel =
+    input.analysisPurpose === "general"
+      ? "전체 운세"
+      : input.analysisPurpose === "love"
+        ? "연애운"
+        : input.analysisPurpose === "wealth"
+          ? "재물운"
+          : input.analysisPurpose === "career"
+            ? "직업운"
+            : input.analysisPurpose === "personality"
+              ? "성격"
+              : "관계운";
+
+  const reportSection = JSON.stringify(
+    {
+      mode: input.mode,
+      qualityScore: input.qualityScore,
+      dominantHand: input.dominantHand,
+      purpose: purposeLabel,
+      report: input.report,
+      missingData: input.missingData,
+      warnings: input.warnings,
+    },
+    null,
+    2,
+  );
+
+  const promptContext = JSON.stringify(
+    {
+      mode: input.mode,
+      qualityScore: input.qualityScore,
+      analysisPurpose: input.analysisPurpose,
+      dominantHand: input.dominantHand,
+      report: input.report,
+      missingData: input.missingData,
+      warnings: input.warnings,
+      handSummary: ((input.canonical.validation as Record<string, unknown> | undefined) || {}) as Record<string, unknown>,
+    },
+    null,
+    2,
+  );
+
+  const endpoint = GEMINI_VISION_ENDPOINT.replace("{model}", "gemini-2.0-flash");
+  const systemPrompt = `당신은 수많은 손금 판독에서 핵심 메시지를 정제하는 고급 손금 AI 상담자입니다.
+결과 텍스트는 사용자의 분석 결과만 기반으로 작성하고, 이미지 내용 자체를 추측하지 않습니다.
+문장 톤은 신비롭지만 단정하고, 비난적이거나 단정적 판단보다 흐름의 기운 중심으로 해석합니다.
+출력은 상담문 3단락으로 제한합니다:
+1) 관통 결(핵심) 요약,
+2) 오늘의 흐름 조정 가이드,
+3) 다음 행운을 여는 한마디.`;
+  const userPrompt = `아래 손금 분석 결과를 기반으로 AI 상담 메시지를 생성해 주세요.
+각 문단은 길지 않되 실천 포인트를 담아주세요.
+tone: 오라클 상담/수도림 풍의 신비로운 어조.
+analysisPayload=${promptContext}`;
+
+  let payload: unknown;
+  try {
+    const res = await fetch(`${endpoint}?key=${key}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          { role: "user", parts: [{ text: `${systemPrompt}\n\n${userPrompt}\n\n${reportSection}`] },
+        ],
+      }),
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    payload = await res.json();
+  } catch (error) {
+    return null;
+  }
+
+  const rawText = extractGeminiText(payload);
+  if (!rawText) return null;
+
+  const normalized = String(rawText).trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
 async function parsePayload(req: NextRequest): Promise<ParsedPayload> {
   const readFirst = (source: FormData | Record<string, unknown>, keys: string[]): unknown => {
     for (const key of keys) {
@@ -1161,6 +1294,8 @@ async function parsePayload(req: NextRequest): Promise<ParsedPayload> {
     const uploadedHandSide = toNonEmptyString(readFirst(form, ["uploadedHandSide", "uploadedSide", "handSide", "side"]));
     const dominantHand = toNonEmptyString(readFirst(form, ["dominantHand", "handType", "handedness"]));
     const analysisPurpose = toNonEmptyString(readFirst(form, ["analysisPurpose", "purpose", "reportType"]));
+    const action = normalizePalmAnalyzeAction(toNonEmptyString(readFirst(form, ["action", "type", "mode"])));
+    const analysisResult = parseJsonObjectFromUnknown(readFirst(form, ["analysisResult", "palmResult", "result"]));
 
     let leftPalmImage = (readFirst(form, ["leftPalmImage", "leftImage", "leftFile", "leftPhoto"]) as RawImageInput) ?? null;
     let rightPalmImage = (readFirst(form, ["rightPalmImage", "rightImage", "rightFile", "rightPhoto"]) as RawImageInput) ?? null;
@@ -1188,6 +1323,8 @@ async function parsePayload(req: NextRequest): Promise<ParsedPayload> {
       rightPalmImage,
       dominantHand,
       analysisPurpose,
+      action,
+      analysisResult,
       leftImageQuality,
       rightImageQuality,
     };
@@ -1199,6 +1336,8 @@ async function parsePayload(req: NextRequest): Promise<ParsedPayload> {
   );
   const dominantHand = toNonEmptyString(readFirst(body, ["dominantHand", "handType", "handedness"]));
   const analysisPurpose = toNonEmptyString(readFirst(body, ["analysisPurpose", "purpose", "reportType"]));
+  const action = normalizePalmAnalyzeAction(toNonEmptyString(readFirst(body, ["action", "type", "mode"])));
+  const analysisResult = parseJsonObjectFromUnknown(readFirst(body, ["analysisResult", "palmResult", "result"]));
 
   let leftPalmImage = (readFirst(body, ["leftPalmImage", "leftImage", "leftFile", "leftPhoto"]) as RawImageInput) ?? null;
   let rightPalmImage = (readFirst(body, ["rightPalmImage", "rightImage", "rightFile", "rightPhoto"]) as RawImageInput) ?? null;
@@ -1219,6 +1358,8 @@ async function parsePayload(req: NextRequest): Promise<ParsedPayload> {
     rightPalmImage,
     dominantHand,
     analysisPurpose,
+    action,
+    analysisResult,
     leftImageQuality: parseJsonObjectFromUnknown(readFirst(body, ["leftImageQuality", "leftQuality", "imageQualityLeft", "qualityLeft"])),
     rightImageQuality: parseJsonObjectFromUnknown(readFirst(body, ["rightImageQuality", "rightQuality", "imageQualityRight", "qualityRight"])),
   };
@@ -1581,6 +1722,7 @@ export async function POST(req: NextRequest) {
     const payload = await parsePayload(req);
     const dominantHand = normalizeDominantHand(payload.dominantHand);
     const analysisPurpose = normalizeAnalysisPurpose(payload.analysisPurpose);
+    const action = payload.action || "analyze";
 
     if (!dominantHand) {
       return errorResponse({
@@ -1596,6 +1738,33 @@ export async function POST(req: NextRequest) {
         code: "MISSING_ANALYSIS_PURPOSE",
         reasonCode: "MISSING_ANALYSIS_PURPOSE",
         message: "분석 목적 정보가 필요합니다.",
+      });
+    }
+
+    if (action === "ai_prompt") {
+      const aiSeed = sanitizeAiPromptSource(payload.analysisResult);
+      if (!aiSeed) {
+        return errorResponse({
+          status: 400,
+          code: "MISSING_ANALYSIS_RESULT",
+          reasonCode: "MISSING_ANALYSIS_RESULT",
+          message: "?먮컮?μ? ?먭툑 遺꾩꽍 由쎌굹?뵒 ?섎룄 ?덈떎.",
+        });
+      }
+
+      const prompt = await generatePalmAiPrompt({
+        ...aiSeed,
+        analysisPurpose,
+        dominantHand,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        data: {
+          prompt:
+            prompt ||
+            "손금은 겉의 선보다 깊은 흐름을 먼저 들려줍니다. 지금은 단 하나의 선택을 정리해 기운을 지키는 리듬으로 조정하는 날입니다.",
+        },
       });
     }
 

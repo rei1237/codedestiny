@@ -213,21 +213,21 @@
 
   // 타임라인 건강 예보 텍스트
   var TIMELINE_TEXT = {
-    wood:  { today: '목(木) 기운이 시신경과 근육에 영향을 줍니다. 눈의 피로감과 뒷목 긴장을 확인하세요.', month: '이달 목 기운의 흐름이 간 기능에 영향을 줍니다. 음주·지방간·눈 건강에 주의하세요.', year: '올해 목 기운이 근골격계에 누적 영향을 줄 수 있습니다. 스트레칭 루틴이 필수입니다.' },
-    fire:  { today: '화기(火氣)가 심박 리듬을 예민하게 만들 수 있습니다. 과로와 흥분 상태를 피하고 차분한 휴식이 필요합니다.', month: '이달 화 기운은 수면과 열감 리듬을 예민하게 만들 수 있습니다. 취침 전 화면과 자극을 줄여보세요.', year: '올해 화기 흐름은 순환 리듬 관리가 중요합니다. 정기검진에서 관련 지표를 참고할 수 있습니다.' },
-    earth: { today: '토기(土氣) 정체가 소화계를 둔하게 만듭니다. 과식·야식·밀가루를 피하세요.', month: '이달 습토(濕土) 기운이 비위에 영향을 줍니다. 단백질 중심 식단과 걷기를 권합니다.', year: '올해 토 기운의 누적으로 체중 관리와 혈당에 신경 쓸 필요가 있습니다.' },
-    metal: { today: '금기(金氣)가 호흡기를 건드립니다. 미세먼지와 건조한 공기에 주의하고 보습해주세요.', month: '이달 금 기운이 폐·피부·대장에 영향을 줄 수 있습니다. 환기와 수분 섭취가 중요합니다.', year: '올해 금 기운이 대장 건강에 영향을 줄 수 있습니다. 식이섬유 섭취를 늘려보세요.' },
-    water: { today: '수기(水氣) 부족으로 신장·방광이 피로합니다. 충분한 수분(2L 이상)을 보충하세요.', month: '이달 수 기운이 냉증·부종·허리 통증을 유발할 수 있습니다. 온열 케어가 도움이 됩니다.', year: '올해 수기 파동이 내분비·호르몬계에 영향을 줄 수 있습니다. 스트레스 관리가 핵심입니다.' }
+    wood:  { today: '목(木) 기운이 눈의 피로감과 뒷목 긴장으로 드러날 수 있습니다. 화면 간격과 가벼운 스트레칭을 챙기세요.', month: '이달 목 기운의 흐름은 계획과 회복 시작점에 머뭅니다. 음주와 늦은 야식을 줄이고 눈 휴식을 넣어주세요.', year: '올해 목 기운은 움직임과 유연성 루틴에 오래 머뭅니다. 가벼운 스트레칭이 회복운을 살립니다.' },
+    fire:  { today: '화기(火氣)가 활력 리듬을 예민하게 만들 수 있습니다. 과로와 흥분 상태를 피하고 차분한 휴식이 필요합니다.', month: '이달 화 기운은 수면과 열감 리듬을 예민하게 만들 수 있습니다. 취침 전 화면과 자극을 줄여보세요.', year: '올해 화기 흐름은 활력과 순환 리듬의 균형을 가리킵니다. 활동 후 쉬는 간격을 함께 두세요.' },
+    earth: { today: '토기(土氣) 정체가 식사와 중심 리듬을 둔하게 만들 수 있습니다. 과식·야식·밀가루를 줄이세요.', month: '이달 습토(濕土) 기운은 비위 리듬과 생활 중심에 머뭅니다. 단백질 중심 식단과 걷기를 권합니다.', year: '올해 토 기운의 누적은 생활 중심과 식사 리듬을 살피라는 징조로 떠오릅니다.' },
+    metal: { today: '금기(金氣)가 호흡과 정리 리듬을 건드립니다. 미세먼지와 건조한 공기에 주의하고 보습해주세요.', month: '이달 금 기운은 호흡·피부 컨디션·정리 리듬에 머뭅니다. 환기와 수분 섭취가 중요합니다.', year: '올해 금 기운은 정돈된 생활과 촉촉한 환경을 가리킵니다. 식이섬유와 수분을 부드럽게 늘려보세요.' },
+    water: { today: '수기(水氣)가 부족하면 수면과 회복 리듬이 쉽게 흔들릴 수 있습니다. 따뜻한 물을 천천히 마시세요.', month: '이달 수 기운은 하체 온기와 밤 시간 안정에 머뭅니다. 온열 케어가 도움이 됩니다.', year: '올해 수기 파동은 깊은 휴식과 불안 관리의 필요성을 비춥니다. 스트레스 관리가 핵심입니다.' }
   };
 
-  // 오행 임상형 분석 데이터 (전문 처방 문체)
+  // 오행 웰니스 해석 데이터
   var EL_CLINICAL_DB = {
     wood: {
-      strength: '간담 해독 축과 근막·인대 회복력이 비교적 우수한 체질입니다.',
-      deficientSymptoms: '눈 건조, 안구 피로, 근육 뻣뻣함, 새벽 각성, 감정 억눌림 패턴이 나타날 수 있습니다.',
-      excessSymptoms: '편두통, 목·어깨 과긴장, 예민성 상승, 혈압 변동성이 증가할 수 있습니다.',
-      dietDef: '짙은 녹색 채소·오메가3·충분한 수분으로 간 대사를 보조하세요.',
-      dietEx: '자극적인 술·야식·카페인 과다를 줄여 간열(肝熱) 과흥분을 진정시키세요.',
+      strength: '간담 리듬과 근육 유연성이 비교적 선명한 체질 흐름입니다.',
+      deficientSymptoms: '눈의 피로감, 몸의 뻣뻣함, 새벽의 얕은 각성, 감정 억눌림 패턴이 나타날 수 있습니다.',
+      excessSymptoms: '목·어깨 과긴장, 예민성 상승, 조급함이 생활 신호로 커질 수 있습니다.',
+      dietDef: '짙은 녹색 채소·충분한 수분으로 목(木)의 생장 리듬을 보조하세요.',
+      dietEx: '자극적인 술·야식·카페인 과다를 줄여 목(木)의 과흥분을 진정시키세요.',
       exerciseDef: '저강도 유산소 + 고관절·흉곽 가동성 스트레칭을 매일 15분.',
       exerciseEx: '고강도 운동 빈도를 줄이고 호흡 교정·이완성 운동 비중을 늘리세요.',
       lifeDef: '밤 11시 이전 수면 루틴으로 간 회복 시간을 확보하세요.',
@@ -235,52 +235,52 @@
       monitor: '피로가 오래 누적될 때는 정기검진에서 관련 피로·순환 지표를 참고할 수 있습니다.'
     },
     fire: {
-      strength: '심혈관 반응성과 대사 점화력이 좋아 추진력·활력 회복이 빠른 편입니다.',
-      deficientSymptoms: '무기력, 저체온감, 순환 저하, 집중력 저하, 우울한 정서가 동반될 수 있습니다.',
-      excessSymptoms: '심박 상승, 불면, 초조, 안면 홍조, 염증성 반응이 잦아질 수 있습니다.',
+      strength: '활력과 따뜻한 움직임의 리듬이 살아나 추진력 회복이 빠른 편입니다.',
+      deficientSymptoms: '무기력, 차분함의 과다, 순환감 저하, 집중력 저하, 가라앉는 정서가 동반될 수 있습니다.',
+      excessSymptoms: '열감, 수면 얕아짐, 초조함, 얼굴빛의 달아오름이 생활 신호로 잦아질 수 있습니다.',
       dietDef: '따뜻한 단백질 식사(계란·살코기·생강)로 순환 점화를 도우세요.',
       dietEx: '매운 음식·알코올·당분 과다를 줄이고 냉각 식품(수분 과일, 채소)을 보강하세요.',
       exerciseDef: '아침 햇빛 노출 + 중강도 인터벌로 순환 리듬을 깨우세요.',
-      exerciseEx: '취침 전 격렬 운동을 피하고 심박 안정형 운동(걷기·요가) 위주로 조정하세요.',
-      lifeDef: '기상·식사·수면 시간을 고정해 자율신경 리듬을 재정렬하세요.',
+      exerciseEx: '취침 전 격렬 운동을 피하고 안정형 움직임(걷기·요가) 위주로 조정하세요.',
+      lifeDef: '기상·식사·수면 시간을 고정해 하루 리듬을 재정렬하세요.',
       lifeEx: '카페인 커트오프(오후 2시 이전)와 디지털 야간 차단이 필요합니다.',
-      monitor: '안정시 심박수, 수면 잠복기, 심계항진 빈도를 기록해 추적하세요.'
+      monitor: '열감, 수면까지 걸리는 시간, 밤 시간 각성도를 기록해 살피세요.'
     },
     earth: {
       strength: '비위(소화) 축의 흡수력과 체력 유지력이 좋아 회복 기반이 탄탄한 체질입니다.',
-      deficientSymptoms: '복부 팽만, 소화 지연, 식후 졸림, 만성 피로, 무거운 부종이 생길 수 있습니다.',
-      excessSymptoms: '체중 정체·증가, 점액성 염증, 대사 둔화, 당 조절 불안정이 나타날 수 있습니다.',
-      dietDef: '소화가 쉬운 단백질·따뜻한 곡물·발효식품으로 위장 기능을 복구하세요.',
+      deficientSymptoms: '복부 무거움, 소화 리듬 지연, 식후 졸림, 오래 머무는 피로감이 생길 수 있습니다.',
+      excessSymptoms: '몸의 무거움, 움직임 둔화, 단 음식 당김, 식사 리듬 불안정이 나타날 수 있습니다.',
+      dietDef: '소화가 쉬운 단백질·따뜻한 곡물·발효식품으로 비위 리듬을 보듬으세요.',
       dietEx: '정제 탄수·야식·과식 빈도를 줄이고 식사량 분할 전략을 적용하세요.',
       exerciseDef: '식후 15분 걷기와 코어 안정화 운동으로 순환을 돕습니다.',
       exerciseEx: '장시간 좌식을 피하고 하루 총 보행량(7~9천 보)을 확보하세요.',
       lifeDef: '규칙적인 식사 시각과 수면 루틴이 최우선 처방입니다.',
       lifeEx: '감정성 섭식 트리거를 기록해 저녁 과식 패턴을 차단하세요.',
-      monitor: '체중, 허리둘레, 공복 혈당, 식후 졸림 강도를 주 1회 기록하세요.'
+      monitor: '식사 시간, 식후 졸림, 몸의 무거움, 걱정 반복 정도를 주 1회 기록하세요.'
     },
     metal: {
-      strength: '폐·피부 방어 축과 판단 집중력이 좋아 회복 프로토콜 준수율이 높은 체질입니다.',
-      deficientSymptoms: '피부 건조, 호흡 얕음, 변비 경향, 슬럼프 시 면역 저하가 동반될 수 있습니다.',
+      strength: '호흡과 피부 컨디션, 판단 집중력이 좋아 회복 루틴을 지키는 힘이 높은 체질입니다.',
+      deficientSymptoms: '건조감, 호흡 얕음, 정리 리듬의 흐림, 슬럼프 때의 피로감이 동반될 수 있습니다.',
       excessSymptoms: '호흡 과긴장, 어깨·흉곽 경직, 완벽주의성 스트레스 반응이 커질 수 있습니다.',
-      dietDef: '수분·식이섬유·적정 지방을 늘려 호흡기·대장 축을 안정시키세요.',
+      dietDef: '수분·식이섬유·적정 지방을 늘려 호흡과 정리 리듬을 안정시키세요.',
       dietEx: '건조·짜고 자극적인 음식 비중을 낮추고 수분 많은 식단으로 균형을 맞추세요.',
-      exerciseDef: '복식호흡 + 흉곽 가동 운동으로 산소 교환 효율을 높이세요.',
+      exerciseDef: '복식호흡 + 흉곽 가동 운동으로 호흡의 폭을 넓히세요.',
       exerciseEx: '강박적 운동 스케줄 대신 회복일과 스트레칭 비중을 의도적으로 포함하세요.',
       lifeDef: '실내 습도 관리(40~60%)와 수면 전 호흡 훈련을 루틴화하세요.',
       lifeEx: '결과 통제 욕구를 줄이고 완료 기준을 80%로 설정하는 훈련이 필요합니다.',
-      monitor: '호흡 깊이, 피부 상태, 배변 리듬, 스트레스 점수를 추적하세요.'
+      monitor: '호흡 깊이, 피부 컨디션, 정리 리듬, 스트레스 점수를 살피세요.'
     },
     water: {
-      strength: '신장·내분비 축과 회복 보존력이 좋아 장기전에서 버티는 체질적 장점이 있습니다.',
-      deficientSymptoms: '냉감, 요통, 부종, 만성 피로, 집중력 저하, 불안 민감성이 증가할 수 있습니다.',
-      excessSymptoms: '무기력, 우울감, 활동 저하, 체액 정체형 피로가 심해질 수 있습니다.',
-      dietDef: '온열성 단백질·미네랄·수분 보충으로 신장 축 회복을 지원하세요.',
+      strength: '수면과 회복 보존력이 좋아 장기전에서 버티는 체질적 장점이 있습니다.',
+      deficientSymptoms: '차가운 느낌, 허리 주변 피로감, 오래 머무는 피로, 집중력 저하, 불안 민감성이 증가할 수 있습니다.',
+      excessSymptoms: '무기력, 가라앉는 정서, 활동 저하, 무거운 피로감이 심해질 수 있습니다.',
+      dietDef: '온열성 단백질·미네랄·수분 보충으로 수(水)의 회복 축을 지원하세요.',
       dietEx: '과도한 염분·야간 수분 폭식을 줄이고 낮 시간 균등 수분 섭취로 전환하세요.',
       exerciseDef: '허리·둔근 강화 + 저충격 유산소로 순환과 체온을 올리세요.',
       exerciseEx: '완전 비활동 상태를 피하고 짧고 잦은 움직임(NEAT)으로 대사를 유지하세요.',
-      lifeDef: '수면 시간 확보와 보온(복부·요부) 관리가 1차 처방입니다.',
+      lifeDef: '수면 시간 확보와 보온(복부·허리 주변) 관리가 먼저 떠오릅니다.',
       lifeEx: '고립 시간이 길어지지 않도록 외부 활동 스케줄을 고정하세요.',
-      monitor: '체온, 부종, 요통 강도, 기상 피로감을 주간 단위로 관찰하세요.'
+      monitor: '몸의 온기, 허리 주변 피로감, 기상 피로감을 주간 단위로 살피세요.'
     }
   };
 
@@ -418,7 +418,7 @@
       +   '</div>'
       + '</div>'
 
-      + '<div style="margin-top:8px; font-size:.67rem; color:rgba(255,255,255,.42); line-height:1.45;">본 리포트는 사주 기반 웰니스 참고용이며 의료적 진단을 대체하지 않습니다. 증상이 지속되면 전문의 진료를 권장합니다.</div>'
+      + '<div style="margin-top:8px; font-size:.67rem; color:rgba(255,255,255,.42); line-height:1.45;">사주 기반 웰니스 참고용이며 의료적 진단을 대체하지 않습니다. 지속적인 통증이나 불편감이 있다면 전문 의료진과 상담하세요.</div>'
       + '</div>';
   }
 
@@ -2638,7 +2638,7 @@
       stable: ['확장성과 회복 탄력이 비교적 안정적으로 작동합니다.', '가벼운 움직임과 정리된 일정으로 좋은 리듬을 유지하세요.']
     },
     fire: {
-      excess: ['심박이 빨라지거나 초조함, 불면성 피로가 느껴지기 쉽습니다.', '매운 음식, 늦은 운동, 오후 카페인을 줄이고 저녁에는 걷기와 호흡으로 진정하세요.'],
+      excess: ['열감, 초조함, 수면 얕아짐이 생활 신호로 느껴지기 쉽습니다.', '매운 음식, 늦은 운동, 오후 카페인을 줄이고 저녁에는 걷기와 호흡으로 진정하세요.'],
       deficient: ['순환이 둔하고 손발이 차거나 동기가 낮아질 수 있습니다.', '아침 햇빛, 따뜻한 단백질 식사, 짧은 유산소로 체온 리듬을 깨우세요.'],
       pressure: ['열감과 긴장이 다른 축을 압박해 집중력과 회복감이 흔들릴 수 있습니다.', '일정을 압축하지 말고 중간 휴식과 수분 보충을 넣어주세요.'],
       stable: ['활력과 표현 리듬이 비교적 무리 없이 이어집니다.', '활동 후 바로 쉬는 시간을 붙이면 컨디션이 오래 갑니다.']
@@ -2750,27 +2750,493 @@
     { name: '시금치 두부무침', element: 'wood', reason: '푸른 잎채소와 담백한 단백질이 긴장을 낮추고 회복감을 보완합니다.', tip: '차갑게 먹기보다 상온에 잠시 두었다가 가볍게 드세요.' }
   ];
 
+  var HEALTH_ELEMENT_KNOWLEDGE = {
+    wood: {
+      hanja: '木',
+      koreanName: '목',
+      title: '성장과 회복 리듬',
+      symbolicOrganRhythm: '간담 리듬',
+      bodyKeywords: ['눈의 피로감', '목·어깨 긴장', '근육 긴장', '활동 리듬', '회복 시작점'],
+      mindKeywords: ['계획', '성장 욕구', '답답함', '분노 조절', '시작 에너지'],
+      lifestyleKeywords: ['산책', '스트레칭', '초록색 환경', '작은 시작', '루틴 재정렬'],
+      balancedMessage: '목(木)이 균형을 이루면 몸과 마음이 자연스럽게 움직이고, 회복 루틴을 다시 시작하기 좋은 흐름이 열립니다.',
+      excessiveMessage: '목(木)이 과하면 계획은 많지만 몸이 따라오지 않아 목과 어깨의 긴장, 조급함, 답답함이 생활 신호로 나타나기 쉽습니다.',
+      weakMessage: '목(木)이 약하면 시작 에너지가 부족하거나 회복 루틴을 잡기 어려울 수 있습니다. 작은 산책이나 가벼운 스트레칭처럼 부담 없는 움직임이 좋습니다.',
+      excessSignals: ['해야 할 일이 많아 머릿속이 바쁩니다', '목과 어깨가 쉽게 굳는 느낌이 듭니다', '계획이 어긋나면 짜증이 빨리 올라옵니다', '눈이 피로하거나 화면 사용 시간이 길어집니다'],
+      weakSignals: ['시작이 늦어지고 미루는 일이 많아집니다', '몸을 움직이기 전까지 기운이 잘 올라오지 않습니다', '회복 루틴을 알아도 실천이 어렵습니다', '결정이 느려지고 방향감이 흐려집니다'],
+      recoveryFocus: ['오늘 할 일을 하나만 줄이기', '목·어깨 이완 스트레칭', '짧은 산책으로 생장 리듬 살리기', '초록색 음식이나 자연 이미지 가까이 두기'],
+      recommendedFoods: ['푸른 잎채소', '현미밥', '부드러운 나물', '따뜻한 국물 음식'],
+      recommendedTea: ['보리차', '따뜻한 허브티', '연한 녹차'],
+      recommendedMovement: ['가벼운 산책', '목·어깨 스트레칭', '등 펴기 운동'],
+      recommendedRest: ['화면 밝기 낮추기', '눈 휴식', '이완 호흡'],
+      avoidPatterns: ['과한 일정', '완벽주의', '밤늦은 화면 사용', '감정 억누르기'],
+      premium: '명리학에서 목(木)은 봄의 생장성, 계획, 근육의 긴장과 회복 시작점을 상징합니다. 균형이면 몸과 마음이 앞으로 나아가지만, 과하면 압박이 몸보다 앞서가고 약하면 시작 에너지가 떨어지기 쉽습니다.'
+    },
+    fire: {
+      hanja: '火',
+      koreanName: '화',
+      title: '활력과 순환 리듬',
+      symbolicOrganRhythm: '심장·소장 리듬',
+      bodyKeywords: ['활력', '순환감', '열감', '얼굴빛', '수면 리듬'],
+      mindKeywords: ['기쁨', '표현력', '흥분', '집중력', '사회적 에너지'],
+      lifestyleKeywords: ['햇빛', '리듬 있는 운동', '수면 정리', '감정 표현', '열기 조절'],
+      balancedMessage: '화(火)가 균형을 이루면 활력과 표현력이 살아나고, 교류 속에서 좋은 에너지를 얻기 쉽습니다.',
+      excessiveMessage: '화(火)가 과하면 몸과 마음이 쉽게 달아오르고, 늦은 시간까지 흥분이 가라앉지 않는 생활 신호가 나타나기 쉽습니다.',
+      weakMessage: '화(火)가 약하면 의욕과 표현력이 줄어들고 몸이 차분하다 못해 무기력하게 느껴질 수 있습니다. 부드러운 햇빛과 따뜻한 움직임이 도움이 됩니다.',
+      excessSignals: ['마음이 들떠 쉽게 가라앉지 않습니다', '잠들기 전까지 생각과 감정이 활발합니다', '사람을 많이 만나면 에너지가 빨리 소모됩니다', '카페인이나 자극적인 콘텐츠에 예민해집니다'],
+      weakSignals: ['의욕이 잘 올라오지 않습니다', '표현하고 싶은 마음은 있지만 행동이 늦습니다', '몸이 차분하고 축 처지는 느낌이 있습니다', '즐거운 일에도 반응이 약합니다'],
+      recoveryFocus: ['낮 시간 햇빛 보기', '가벼운 리듬 운동', '자기 전 조명 낮추기', '카페인과 자극적인 콘텐츠 줄이기'],
+      recommendedFoods: ['따뜻한 죽', '부드러운 단백질 식사', '수분감 있는 과일', '가벼운 채소 요리'],
+      recommendedTea: ['대추차', '캐모마일', '따뜻한 물'],
+      recommendedMovement: ['가벼운 유산소', '리듬감 있는 걷기', '햇빛 산책'],
+      recommendedRest: ['취침 전 조명 줄이기', '휴대폰 멀리두기', '감정 일기'],
+      avoidPatterns: ['늦은 밤 카페인', '과한 SNS', '감정 과열', '무리한 약속'],
+      premium: '명리학에서 화(火)는 여름의 밝음, 심리적 활력, 표현력, 순환감을 상징합니다. 균형이면 생기가 돌고 매력이 살아나지만, 과하면 감정과 일정이 과열되고 약하면 의욕과 온기가 줄어든 듯 느껴질 수 있습니다.'
+    },
+    earth: {
+      hanja: '土',
+      koreanName: '토',
+      title: '소화와 안정 리듬',
+      symbolicOrganRhythm: '비위 리듬',
+      bodyKeywords: ['소화 리듬', '복부 안정감', '무거움', '식사 시간', '생활 중심'],
+      mindKeywords: ['걱정', '생각 과다', '안정 욕구', '책임감', '현실 감각'],
+      lifestyleKeywords: ['규칙적 식사', '따뜻한 음식', '정리정돈', '느린 산책', '루틴 고정'],
+      balancedMessage: '토(土)가 균형을 이루면 몸의 중심이 안정되고, 식사·수면·일정의 리듬이 편안하게 잡히기 쉽습니다.',
+      excessiveMessage: '토(土)가 과하면 몸과 마음이 무겁고 생각이 많아져 움직임이 둔해질 수 있습니다. 단순한 식사와 가벼운 움직임이 필요합니다.',
+      weakMessage: '토(土)가 약하면 생활 중심이 흔들리고 식사나 휴식 시간이 불규칙해지기 쉽습니다. 오늘은 기본 루틴을 먼저 세우는 것이 좋습니다.',
+      excessSignals: ['몸이 무겁고 움직임이 둔합니다', '생각이 많아져 결정을 미룹니다', '식사 후 편안하지 않은 느낌이 있습니다', '정리되지 않은 환경에서 피로감이 커집니다'],
+      weakSignals: ['식사 시간이 불규칙합니다', '생활의 중심이 잡히지 않습니다', '작은 변화에도 쉽게 흔들립니다', '몸을 돌보는 기본 루틴이 무너집니다'],
+      recoveryFocus: ['따뜻하고 단순한 식사', '식사 시간을 일정하게 맞추기', '방이나 책상 한 구역만 정리하기', '느린 산책으로 몸의 중심 되찾기'],
+      recommendedFoods: ['따뜻한 밥', '죽', '익힌 채소', '단순한 한식', '부드러운 뿌리채소'],
+      recommendedTea: ['생강차', '보리차', '따뜻한 물'],
+      recommendedMovement: ['식후 가벼운 걷기', '골반 이완', '느린 스트레칭'],
+      recommendedRest: ['방 정리', '식사 시간 고정', '한 가지 일만 하기'],
+      avoidPatterns: ['식사 거르기', '차가운 음식 과다', '폭식', '걱정 반복'],
+      premium: '명리학에서 토(土)는 계절의 전환점, 중심, 소화와 안정 리듬을 상징합니다. 균형이면 생활이 안정되고 몸이 편안해지지만, 과하면 무거움과 생각 과다로 이어지고 약하면 식사·휴식·일정의 중심이 흔들릴 수 있습니다.'
+    },
+    metal: {
+      hanja: '金',
+      koreanName: '금',
+      title: '호흡과 정리 리듬',
+      symbolicOrganRhythm: '폐·대장 리듬',
+      bodyKeywords: ['호흡', '피부 컨디션', '목·어깨 압박', '정리 리듬', '건조감'],
+      mindKeywords: ['기준', '완벽주의', '절제', '거리감', '판단력'],
+      lifestyleKeywords: ['호흡', '공간 정리', '습도 관리', '기준 낮추기', '여백 만들기'],
+      balancedMessage: '금(金)이 균형을 이루면 호흡이 차분해지고, 정리력과 판단력이 맑아져 하루의 질서가 잡히기 쉽습니다.',
+      excessiveMessage: '금(金)이 과하면 기준이 높아지고 몸이 경직되기 쉽습니다. 완벽하게 해내려는 마음보다 여백을 만드는 것이 중요합니다.',
+      weakMessage: '금(金)이 약하면 생활의 경계와 정리 리듬이 흐려질 수 있습니다. 작은 정리와 호흡 루틴이 컨디션을 회복하는 데 도움이 됩니다.',
+      excessSignals: ['기준을 낮추기 어렵습니다', '목·어깨·가슴 주변이 답답하게 느껴집니다', '사소한 실수에도 예민해집니다', '쉬는 중에도 머릿속 검열이 계속됩니다'],
+      weakSignals: ['생활 공간이 쉽게 흐트러집니다', '해야 할 일과 쉬어야 할 일의 경계가 흐려집니다', '호흡이 얕아진 듯한 느낌이 있습니다', '정리하고 싶은데 시작이 어렵습니다'],
+      recoveryFocus: ['깊은 호흡 3분', '책상 위 한 구역 정리', '완벽주의 기준 낮추기', '실내 환기와 습도 관리'],
+      recommendedFoods: ['배', '무', '맑은 국물', '부드러운 흰색 식재료'],
+      recommendedTea: ['도라지차', '배차', '따뜻한 물'],
+      recommendedMovement: ['흉곽 열기 스트레칭', '어깨 돌리기', '천천히 걷기'],
+      recommendedRest: ['환기', '습도 조절', '공간 정리', '조용한 호흡'],
+      avoidPatterns: ['완벽주의', '건조한 환경 방치', '무리한 기준', '감정 억제'],
+      premium: '명리학에서 금(金)은 가을의 수렴성, 호흡, 정리, 기준, 절제를 상징합니다. 균형이면 판단력이 또렷하고 생활이 정돈되지만, 과하면 완벽주의와 긴장이 커지고 약하면 경계와 루틴이 흐려질 수 있습니다.'
+    },
+    water: {
+      hanja: '水',
+      koreanName: '수',
+      title: '수면과 회복 리듬',
+      symbolicOrganRhythm: '신장·방광 리듬',
+      bodyKeywords: ['수면', '회복력', '하체 온기', '휴식', '저장 에너지'],
+      mindKeywords: ['불안', '깊은 생각', '직감', '두려움', '내면 안정'],
+      lifestyleKeywords: ['수면 루틴', '따뜻한 하체', '조용한 휴식', '수분', '밤 시간 관리'],
+      balancedMessage: '수(水)가 균형을 이루면 수면과 회복 리듬이 안정되고, 몸의 에너지를 차분하게 저장하기 쉽습니다.',
+      excessiveMessage: '수(水)가 과하면 생각이 깊어지고 몸이 차분하다 못해 무겁게 느껴질 수 있습니다. 따뜻한 움직임과 햇빛이 균형을 잡아줍니다.',
+      weakMessage: '수(水)가 약하면 회복감이 부족하고 수면 리듬이 흔들리기 쉽습니다. 오늘은 무리한 활동보다 깊은 휴식과 따뜻한 루틴이 필요합니다.',
+      excessSignals: ['생각이 깊어져 쉽게 빠져나오기 어렵습니다', '몸이 차분하지만 무겁게 느껴집니다', '혼자 있고 싶은 마음이 강해집니다', '늦은 밤 걱정이 길어집니다'],
+      weakSignals: ['잠을 자도 회복감이 부족합니다', '밤 시간이 불규칙해집니다', '하체가 차갑게 느껴지기 쉽습니다', '미래 걱정이 자주 떠오릅니다'],
+      recoveryFocus: ['취침 시간 앞당기기', '하체 따뜻하게 하기', '밤 시간 정보 과다 줄이기', '따뜻한 물 천천히 마시기'],
+      recommendedFoods: ['따뜻한 국물', '검은콩', '미역국', '부드러운 단백질 식사'],
+      recommendedTea: ['따뜻한 물', '대추차', '생강차'],
+      recommendedMovement: ['느린 요가', '하체 이완', '가벼운 걷기'],
+      recommendedRest: ['수면 루틴', '하체 보온', '밤 화면 줄이기', '명상'],
+      avoidPatterns: ['밤샘', '찬 음식 과다', '늦은 밤 고민', '무리한 일정'],
+      premium: '명리학에서 수(水)는 겨울의 저장성, 수면, 회복력, 내면 안정, 깊은 생각을 상징합니다. 균형이면 휴식 후 다시 힘을 얻지만, 과하면 침잠하고 약하면 회복감이 부족해질 수 있습니다.'
+    }
+  };
+
+  var HEALTH_STATUS_LABEL = {
+    veryWeak: '매우 약함',
+    weak: '보완 필요',
+    balanced: '균형',
+    strong: '강함',
+    excessive: '과다'
+  };
+
+  var HEALTH_STATUS_UI = {
+    veryWeak: '기운이 부족하게 해석됩니다. 무리한 관리보다 작고 반복 가능한 회복 루틴이 좋습니다.',
+    weak: '보완이 필요한 흐름입니다. 해당 오행을 살리는 생활 습관을 가볍게 더해보세요.',
+    balanced: '비교적 균형이 잡힌 상태입니다. 지금의 리듬을 과하게 흔들지 않는 것이 좋습니다.',
+    strong: '기운이 강하게 쓰입니다. 장점으로 활용하되 과열되지 않도록 휴식을 함께 배치하세요.',
+    excessive: '기운이 과하게 몰린 흐름입니다. 바로 더 밀어붙이기보다 긴장을 덜어내는 루틴이 필요합니다.'
+  };
+
+  var HEALTH_GENERATES = { wood: 'fire', fire: 'earth', earth: 'metal', metal: 'water', water: 'wood' };
+  var HEALTH_GANJI_ELEMENT = {
+    '甲': 'wood', '乙': 'wood', '寅': 'wood', '卯': 'wood', '갑': 'wood', '을': 'wood', '인': 'wood', '묘': 'wood',
+    '丙': 'fire', '丁': 'fire', '巳': 'fire', '午': 'fire', '병': 'fire', '정': 'fire', '사': 'fire', '오': 'fire',
+    '戊': 'earth', '己': 'earth', '辰': 'earth', '戌': 'earth', '丑': 'earth', '未': 'earth', '무': 'earth', '기': 'earth', '진': 'earth', '술': 'earth', '축': 'earth', '미': 'earth',
+    '庚': 'metal', '辛': 'metal', '申': 'metal', '酉': 'metal', '경': 'metal', '신': 'metal', '유': 'metal',
+    '壬': 'water', '癸': 'water', '亥': 'water', '子': 'water', '임': 'water', '계': 'water', '해': 'water', '자': 'water'
+  };
+  var HEALTH_TENSION_RULES = [
+    { controller: 'metal', target: 'wood', title: '금(金)이 목(木)을 압박하는 흐름', bodySignal: '목·어깨 긴장, 눈 피로, 몸의 유연성 저하로 느껴질 수 있습니다.', mindSignal: '완벽주의와 기준이 강해져 시작 에너지가 위축될 수 있습니다.', carePoint: '기준을 낮추고 가벼운 산책과 스트레칭으로 목(木)의 생장 리듬을 살려주세요.' },
+    { controller: 'wood', target: 'earth', title: '목(木)이 토(土)를 압박하는 흐름', bodySignal: '계획과 압박이 커지면서 소화 리듬과 생활 중심이 흔들리기 쉽습니다.', mindSignal: '해야 할 일이 많아지고 조급함이 안정감을 밀어낼 수 있습니다.', carePoint: '일정을 줄이고 따뜻하고 단순한 식사로 토(土)의 중심을 먼저 세워주세요.' },
+    { controller: 'earth', target: 'water', title: '토(土)가 수(水)를 압박하는 흐름', bodySignal: '몸이 무겁고 회복감이 늦게 올라오는 생활 신호가 나타날 수 있습니다.', mindSignal: '걱정과 책임감이 깊은 휴식을 방해할 수 있습니다.', carePoint: '잠들기 전 고민을 정리하고 하체를 따뜻하게 해 수(水)의 회복 리듬을 도와주세요.' },
+    { controller: 'water', target: 'fire', title: '수(水)가 화(火)를 압박하는 흐름', bodySignal: '활력이 낮아지고 몸이 차분하다 못해 무기력하게 느껴질 수 있습니다.', mindSignal: '생각이 깊어지면서 표현력과 추진력이 줄어들 수 있습니다.', carePoint: '햇빛, 따뜻한 차, 가벼운 리듬 운동으로 화(火)의 온기를 살려주세요.' },
+    { controller: 'fire', target: 'metal', title: '화(火)가 금(金)을 압박하는 흐름', bodySignal: '열기와 흥분이 올라와 호흡과 정리 리듬이 흐트러지기 쉽습니다.', mindSignal: '감정과 일정이 과열되어 판단이 급해질 수 있습니다.', carePoint: '자극을 줄이고 깊은 호흡과 공간 정리로 금(金)의 차분한 질서를 회복하세요.' }
+  ];
+
+  var TEN_GOD_HEALTH_MAP = {
+    bigeop: { label: '비겁', title: '자기 에너지와 경쟁 리듬', coreTheme: '나 자신, 독립성, 경쟁심, 버티는 힘', stressPattern: '비겁이 강하게 작동하면 혼자 버티려는 마음이 강해지고, 몸의 긴장을 늦게 알아차리기 쉽습니다.', bodySignal: '어깨와 턱 주변의 힘, 무리한 활동 후 피로 누적, 휴식 타이밍 지연으로 나타날 수 있습니다.', mindSignal: '도움을 요청하기보다 혼자 해결하려는 마음이 커질 수 있습니다.', carePoint: '오늘은 모든 것을 혼자 처리하려 하지 말고, 역할을 나누는 것이 회복운을 살립니다.', routine: ['도움 요청하기', '어깨 힘 빼기', '혼자만의 부담 줄이기', '이완 중심'] },
+    siksang: { label: '식상', title: '표현과 배출 리듬', coreTheme: '표현, 창작, 말, 결과물, 배출', stressPattern: '식상이 강하게 작동하면 말과 생각이 많아지고, 에너지가 밖으로 계속 빠져나가기 쉽습니다.', bodySignal: '목의 피로감, 말이 많아진 뒤의 소모감, 식사 리듬의 흔들림으로 느껴질 수 있습니다.', mindSignal: '표현하고 싶은 욕구가 커지지만 동시에 쉽게 지칠 수 있습니다.', carePoint: '오늘은 표현도 좋지만, 말과 콘텐츠 소비량을 줄여 에너지를 회수하는 시간이 필요합니다.', routine: ['말수 줄이는 시간', '콘텐츠 디톡스', '따뜻한 식사', '짧은 기록 후 휴식'] },
+    jaeseong: { label: '재성', title: '현실 관리와 소모 리듬', coreTheme: '돈, 일, 관리, 책임, 현실 감각', stressPattern: '재성이 강하게 작동하면 처리해야 할 현실 문제가 많아지고, 몸보다 책임감이 앞서기 쉽습니다.', bodySignal: '식사 지연, 복부 긴장, 피로가 쌓였는데도 계속 움직이는 패턴으로 나타날 수 있습니다.', mindSignal: '돈, 일정, 성과, 관리 문제에 마음이 빼앗기기 쉽습니다.', carePoint: '오늘은 현실 문제를 모두 해결하려 하기보다 우선순위를 줄이고 식사 시간을 지키는 것이 좋습니다.', routine: ['우선순위 3개만 정하기', '식사 시간 고정', '돈 걱정 메모 후 닫기', '가벼운 산책'] },
+    gwanseong: { label: '관성', title: '압박과 질서 리듬', coreTheme: '규칙, 책임, 평가, 직장, 사회적 압박', stressPattern: '관성이 강하게 작동하면 기준과 책임감이 커져 몸이 경직되고 긴장 상태가 이어질 수 있습니다.', bodySignal: '목·어깨 긴장, 얕은 호흡, 일정 압박에 따른 피로감으로 느껴질 수 있습니다.', mindSignal: '실수하면 안 된다는 마음, 평가에 대한 부담이 커질 수 있습니다.', carePoint: '오늘은 완벽한 수행보다 중간 휴식과 호흡을 일정에 넣는 것이 중요합니다.', routine: ['업무 사이 호흡', '일정 사이 여백', '완벽주의 낮추기', '퇴근 후 긴장 이완'] },
+    inseong: { label: '인성', title: '생각과 보호 리듬', coreTheme: '학습, 생각, 보호, 회복, 내면 안정', stressPattern: '인성이 강하게 작동하면 생각이 많아지고 몸보다 머리가 먼저 피로해지기 쉽습니다.', bodySignal: '오래 앉아 있는 패턴, 수면 전 생각 과다, 몸의 순환감 저하로 느껴질 수 있습니다.', mindSignal: '정보를 더 모아야 안심되는 마음이 커질 수 있습니다.', carePoint: '오늘은 더 알아보는 것보다 몸을 움직여 생각을 순환시키는 것이 회복에 좋습니다.', routine: ['정보 섭취 줄이기', '산책', '잠들기 전 화면 끄기', '생각을 글로 비우기'] }
+  };
+
+  var DAY_MASTER_HEALTH_VIEW = {
+    '갑': { element: 'wood', title: '큰 나무형 회복 리듬', tendency: '갑목 일간은 앞으로 뻗어나가려는 힘이 강해 목표와 방향성이 컨디션에 큰 영향을 줍니다.', stressSignal: '막힘이 생기면 목·어깨 긴장, 답답함, 조급함으로 생활 신호가 나타나기 쉽습니다.', recoveryKey: '큰 목표를 한 번에 밀어붙이기보다 오늘 할 수 있는 작은 성장 루틴 하나를 정하는 것이 좋습니다.' },
+    '을': { element: 'wood', title: '덩굴형 유연 회복 리듬', tendency: '을목 일간은 환경의 영향을 섬세하게 받으며, 부드럽게 적응할 때 컨디션이 살아납니다.', stressSignal: '관계나 환경의 압박이 커지면 몸이 쉽게 굳고 마음이 예민해질 수 있습니다.', recoveryKey: '부드러운 스트레칭, 자연 이미지, 작은 공간 정리가 회복 리듬을 도와줍니다.' },
+    '병': { element: 'fire', title: '태양형 활력 리듬', tendency: '병화 일간은 밝은 에너지와 표현력이 강해 사람과 활동 속에서 기운을 얻기 쉽습니다.', stressSignal: '과열되면 수면 리듬이 흐트러지고 감정이 쉽게 달아오를 수 있습니다.', recoveryKey: '낮에는 햇빛과 활동을 살리고, 밤에는 조명과 자극을 줄이는 균형이 중요합니다.' },
+    '정': { element: 'fire', title: '촛불형 감성 리듬', tendency: '정화 일간은 감정의 온도와 집중력이 컨디션에 큰 영향을 줍니다.', stressSignal: '마음이 오래 타오르면 피로가 누적되고, 작은 말에도 예민해질 수 있습니다.', recoveryKey: '감정을 억누르기보다 짧게 기록하고 따뜻한 휴식으로 마음의 불빛을 안정시키는 것이 좋습니다.' },
+    '무': { element: 'earth', title: '산형 안정 리듬', tendency: '무토 일간은 버티는 힘이 강하지만, 한 번 무거워지면 회복 속도가 늦어질 수 있습니다.', stressSignal: '책임이 쌓이면 몸이 무겁고 움직임이 둔해지는 생활 신호가 나타날 수 있습니다.', recoveryKey: '일을 더 쌓기보다 한 구역 정리, 따뜻한 식사, 느린 산책으로 중심을 회복하세요.' },
+    '기': { element: 'earth', title: '밭형 돌봄 리듬', tendency: '기토 일간은 섬세하게 돌보고 정리하는 힘이 있지만 걱정이 많아지면 몸의 중심이 흔들리기 쉽습니다.', stressSignal: '생각 과다, 식사 불규칙, 복부 불편감 같은 생활 신호로 나타날 수 있습니다.', recoveryKey: '오늘은 복잡한 고민보다 규칙적인 식사와 단순한 루틴을 먼저 챙기는 것이 좋습니다.' },
+    '경': { element: 'metal', title: '큰 쇠형 정리 리듬', tendency: '경금 일간은 기준과 결단력이 강해 목표를 향해 밀고 가는 힘이 좋습니다.', stressSignal: '기준이 과해지면 몸이 경직되고 호흡이 얕아지는 느낌이 생길 수 있습니다.', recoveryKey: '완벽하게 자르기보다 부드럽게 내려놓는 연습, 어깨 이완과 깊은 호흡이 필요합니다.' },
+    '신': { element: 'metal', title: '보석형 섬세 리듬', tendency: '신금 일간은 감각과 기준이 섬세해 작은 변화에도 민감하게 반응할 수 있습니다.', stressSignal: '예민함, 완벽주의, 건조한 환경에 대한 피로감이 생활 신호로 나타날 수 있습니다.', recoveryKey: '공간을 정돈하되 기준을 낮추고, 호흡과 습도 관리로 몸의 여백을 만들어주세요.' },
+    '임': { element: 'water', title: '큰 물형 회복 리듬', tendency: '임수 일간은 생각의 폭이 넓고 흐름을 읽는 힘이 좋지만, 과하면 깊은 생각에 잠기기 쉽습니다.', stressSignal: '밤 시간 고민, 수면 리듬 흔들림, 몸이 무겁게 가라앉는 느낌이 나타날 수 있습니다.', recoveryKey: '생각을 계속 확장하기보다 따뜻한 루틴과 일정한 수면 시간으로 회복감을 채우는 것이 좋습니다.' },
+    '계': { element: 'water', title: '비와 안개형 섬세 회복 리듬', tendency: '계수 일간은 감수성과 직감이 섬세해 주변 분위기의 영향을 많이 받을 수 있습니다.', stressSignal: '불안, 차가운 느낌, 작은 변화에 대한 피로감이 생활 신호로 나타날 수 있습니다.', recoveryKey: '하체를 따뜻하게 하고, 조용한 음악과 수면 루틴으로 내면의 물결을 안정시키는 것이 좋습니다.' }
+  };
+
+  var SEASONAL_HEALTH_VIEW = {
+    spring: { label: '봄', mainElement: 'wood', title: '목(木)이 살아나는 계절', tendency: '봄은 목(木)의 생장성이 강해지는 시기입니다. 시작, 계획, 움직임이 늘어나지만 조급함도 함께 올라오기 쉽습니다.', riskWhenExcessive: '계획이 과해지면 목·어깨 긴장, 눈 피로, 감정적 답답함으로 생활 신호가 나타날 수 있습니다.', careElement: ['earth', 'water'], careRoutine: ['계획 줄이기', '따뜻한 식사', '눈 휴식', '가벼운 산책'] },
+    summer: { label: '여름', mainElement: 'fire', title: '화(火)가 왕성한 계절', tendency: '여름은 화(火)의 활력과 표현력이 강해지는 시기입니다. 활동성과 교류가 늘지만 과열 관리가 필요합니다.', riskWhenExcessive: '흥분과 일정이 과하면 수면 리듬이 흔들리고 피로가 빠르게 누적될 수 있습니다.', careElement: ['water', 'metal'], careRoutine: ['수면 시간 확보', '카페인 줄이기', '호흡', '자극적인 일정 줄이기'] },
+    lateSummer: { label: '환절기·토왕절', mainElement: 'earth', title: '토(土)가 중심을 잡는 시기', tendency: '환절기는 토(土)의 중심성이 중요해지는 시기입니다. 식사, 수면, 생활 루틴의 안정이 컨디션을 좌우합니다.', riskWhenExcessive: '생각이 많고 몸이 무거워지기 쉬우며, 생활 리듬이 흐트러지면 피로가 커질 수 있습니다.', careElement: ['wood', 'water'], careRoutine: ['규칙적 식사', '방 정리', '느린 산책', '걱정 메모 후 내려놓기'] },
+    autumn: { label: '가을', mainElement: 'metal', title: '금(金)이 정리되는 계절', tendency: '가을은 금(金)의 수렴성과 정리력이 강해지는 시기입니다. 기준과 판단이 선명해지지만 경직되기 쉽습니다.', riskWhenExcessive: '완벽주의, 건조감, 호흡의 답답함, 목·어깨 긴장이 생활 신호로 나타날 수 있습니다.', careElement: ['water', 'wood'], careRoutine: ['환기와 습도 관리', '호흡', '기준 낮추기', '부드러운 스트레칭'] },
+    winter: { label: '겨울', mainElement: 'water', title: '수(水)가 저장되는 계절', tendency: '겨울은 수(水)의 저장성과 회복력이 중요해지는 시기입니다. 깊은 휴식이 필요하지만 침잠도 쉬워집니다.', riskWhenExcessive: '생각이 깊어지고 몸이 무겁게 느껴질 수 있으며, 수면 리듬이 흔들리면 회복감이 줄어들 수 있습니다.', careElement: ['fire', 'earth'], careRoutine: ['하체 보온', '따뜻한 식사', '햇빛 보기', '수면 루틴 고정'] }
+  };
+
+  var HEALTH_REPORT_DISCLAIMER = '명리학적 관점에서 오행 균형, 생활 리듬, 컨디션 흐름을 살핀 운세 콘텐츠입니다. 의학적 진단이나 치료를 대체하지 않으며, 실제 건강 문제가 있거나 지속적인 통증·불편감이 있다면 반드시 전문 의료진과 상담하세요.';
+
   function escapeHealthHtml(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
     });
   }
 
-  function getHealthRatios(natal) {
-    var src = (natal && natal.ratios) || {};
+  function getElementStatus(score) {
+    score = Number(score);
+    if (!isFinite(score)) score = 20;
+    if (score < 30) return 'veryWeak';
+    if (score < 45) return 'weak';
+    if (score <= 70) return 'balanced';
+    if (score <= 85) return 'strong';
+    return 'excessive';
+  }
+
+  function getHealthKnowledge(el) {
+    return HEALTH_ELEMENT_KNOWLEDGE[el] || HEALTH_ELEMENT_KNOWLEDGE.earth;
+  }
+
+  function getHealthKnowledgeMessage(el, status) {
+    var knowledge = getHealthKnowledge(el);
+    if (status === 'veryWeak' || status === 'weak') return knowledge.weakMessage;
+    if (status === 'strong' || status === 'excessive') return knowledge.excessiveMessage;
+    return knowledge.balancedMessage;
+  }
+
+  function getHealthKnowledgeSignals(el, status) {
+    var knowledge = getHealthKnowledge(el);
+    if (status === 'veryWeak' || status === 'weak') return knowledge.weakSignals || [];
+    if (status === 'strong' || status === 'excessive') return knowledge.excessSignals || [];
+    return (knowledge.excessSignals || []).slice(0, 2).concat((knowledge.weakSignals || []).slice(0, 1));
+  }
+
+  function renderHealthMiniList(items, limit) {
+    return '<ul class="cd-health-mini-list">'
+      + (items || []).filter(Boolean).slice(0, limit || 3).map(function (item) {
+        return '<li>' + escapeHealthHtml(item) + '</li>';
+      }).join('')
+      + '</ul>';
+  }
+
+  function renderHealthChipList(items, limit) {
+    return '<div class="cd-health-chip-row">'
+      + (items || []).filter(Boolean).slice(0, limit || 4).map(function (item) {
+        return '<span>' + escapeHealthHtml(item) + '</span>';
+      }).join('')
+      + '</div>';
+  }
+
+  function findHealthTensionRule(controller, target) {
+    return (HEALTH_TENSION_RULES || []).filter(function (rule) {
+      return rule.controller === controller && rule.target === target;
+    })[0] || null;
+  }
+
+  function getHealthDayStem(p, natal) {
+    var sources = [p || {}, natal || {}];
+    var candidates = [
+      sources[0].dayStem,
+      sources[0].dayGan,
+      sources[0].dayMaster,
+      sources[0].d && sources[0].d.g,
+      sources[0].d && sources[0].d.gan,
+      sources[0].day && sources[0].day.gan,
+      sources[0].day && sources[0].day.stem,
+      sources[0].pillars && sources[0].pillars.day && sources[0].pillars.day.stem,
+      sources[0].saju && sources[0].saju.day && sources[0].saju.day.stem,
+      sources[0].bazi && sources[0].bazi.day && sources[0].bazi.day.stem,
+      sources[1].dayStem,
+      sources[1].dayGan,
+      sources[1].dayMaster,
+      sources[1].d && sources[1].d.g,
+      sources[1].d && sources[1].d.gan,
+      sources[1].day && sources[1].day.gan,
+      sources[1].day && sources[1].day.stem,
+      sources[1].pillars && sources[1].pillars.day && sources[1].pillars.day.stem,
+      sources[1].saju && sources[1].saju.day && sources[1].saju.day.stem,
+      sources[1].bazi && sources[1].bazi.day && sources[1].bazi.day.stem
+    ];
+    try {
+      if (w.G_BAZI && typeof w.G_BAZI.getDayGan === 'function') candidates.push(w.G_BAZI.getDayGan());
+    } catch (_) {}
+    var stemAlias = { '甲': '갑', '乙': '을', '丙': '병', '丁': '정', '戊': '무', '己': '기', '庚': '경', '辛': '신', '壬': '임', '癸': '계' };
+    for (var i = 0; i < candidates.length; i++) {
+      var raw = candidates[i];
+      if (!raw) continue;
+      if (typeof raw === 'object') raw = raw.ko || raw.name || raw.stem || raw.gan || raw.label;
+      raw = String(raw);
+      var keys = Object.keys(DAY_MASTER_HEALTH_VIEW);
+      for (var k = 0; k < keys.length; k++) {
+        if (raw.indexOf(keys[k]) !== -1) return keys[k];
+      }
+      var aliasKeys = Object.keys(stemAlias);
+      for (var a = 0; a < aliasKeys.length; a++) {
+        if (raw.indexOf(aliasKeys[a]) !== -1) return stemAlias[aliasKeys[a]];
+      }
+    }
+    return '';
+  }
+
+  function getHealthDayMasterElement(p, natal, fallbackEl) {
+    var stem = getHealthDayStem(p, natal);
+    var view = stem ? DAY_MASTER_HEALTH_VIEW[stem] : null;
+    return {
+      stem: stem,
+      element: (view && view.element) || fallbackEl || 'earth',
+      label: stem ? stem + ' 일간' : '일간 리듬'
+    };
+  }
+
+  function getHealthDayMasterHeroCopy(dayMaster) {
+    dayMaster = dayMaster || {};
+    var view = dayMaster.stem ? DAY_MASTER_HEALTH_VIEW[dayMaster.stem] : null;
+    var knowledge = getHealthKnowledge(dayMaster.element || 'earth');
+    return {
+      title: (view && view.title) || ((EL_NAME[dayMaster.element] || '토(土)') + ' 회복 리듬'),
+      body: (view && view.tendency) || ((EL_NAME[dayMaster.element] || '토(土)') + '의 기운이 몸의 회복 결에 은은하게 머무릅니다.'),
+      key: (view && view.recoveryKey) || ((knowledge.recoveryFocus || [])[0] || '몸의 속도를 먼저 살피는 루틴이 좋습니다.')
+    };
+  }
+
+  function normalizeTenGodKey(key) {
+    key = String(key || '').toLowerCase();
+    if (key.indexOf('비겁') !== -1 || key.indexOf('big') !== -1 || key.indexOf('bigeop') !== -1 || key.indexOf('bijian') !== -1) return 'bigeop';
+    if (key.indexOf('식상') !== -1 || key.indexOf('식신') !== -1 || key.indexOf('상관') !== -1 || key.indexOf('sik') !== -1) return 'siksang';
+    if (key.indexOf('재성') !== -1 || key.indexOf('재') !== -1 || key.indexOf('jae') !== -1 || key.indexOf('wealth') !== -1) return 'jaeseong';
+    if (key.indexOf('관성') !== -1 || key.indexOf('관') !== -1 || key.indexOf('gwan') !== -1 || key.indexOf('officer') !== -1) return 'gwanseong';
+    if (key.indexOf('인성') !== -1 || key.indexOf('인') !== -1 || key.indexOf('in') !== -1 || key.indexOf('resource') !== -1) return 'inseong';
+    return '';
+  }
+
+  function collectTenGodScores(source, scores) {
+    if (!source || typeof source !== 'object') return;
+    Object.keys(source).forEach(function (key) {
+      var group = normalizeTenGodKey(key);
+      if (!group) return;
+      var value = source[key];
+      if (value && typeof value === 'object') value = value.score || value.count || value.value || value.total;
+      value = Number(value);
+      if (!isFinite(value)) value = 1;
+      scores[group] = (scores[group] || 0) + value;
+    });
+  }
+
+  function getHealthTenGodGroups(p, natal, ratios, controlImpacts) {
+    var scores = {};
+    [p && p.tenGods, p && p.tenGod, p && p.tengods, p && p.vibe, natal && natal.tenGods, natal && natal.tenGod, natal && natal.tengods, natal && natal.vibe].forEach(function (src) {
+      collectTenGodScores(src, scores);
+    });
+    var groups = Object.keys(scores).filter(function (key) { return TEN_GOD_HEALTH_MAP[key]; })
+      .sort(function (a, b) { return scores[b] - scores[a]; });
+    if (!groups.length) {
+      if (controlImpacts && controlImpacts.length) groups.push('gwanseong');
+      var strongest = HEALTH_ELEMENT_ORDER.slice().sort(function (a, b) { return Number(ratios[b] || 0) - Number(ratios[a] || 0); })[0] || 'earth';
+      groups.push(({ wood: 'siksang', fire: 'jaeseong', earth: 'jaeseong', metal: 'gwanseong', water: 'inseong' })[strongest] || 'inseong');
+    }
+    if (groups.indexOf('inseong') === -1) groups.push('inseong');
+    return groups.filter(function (group, idx, arr) { return arr.indexOf(group) === idx; }).slice(0, 3);
+  }
+
+  function getSeasonHealthKey(johu) {
+    if (johu && (johu.type === 'hot' || johu.type === 'warm')) return 'summer';
+    if (johu && (johu.type === 'cold' || johu.type === 'cool')) return 'winter';
+    var month = new Date().getMonth() + 1;
+    if (month >= 3 && month <= 5) return 'spring';
+    if (month >= 6 && month <= 8) return 'summer';
+    if (month === 9) return 'lateSummer';
+    if (month >= 10 && month <= 11) return 'autumn';
+    return 'winter';
+  }
+
+  function getHealthElementFromToken(value) {
+    if (value == null) return '';
+    if (typeof value === 'object') value = value.element || value.e || value.ko || value.name || value.stem || value.branch || value.gan || value.zhi || value.label || '';
+    value = String(value).trim();
+    if (!value) return '';
+    var lower = value.toLowerCase();
+    if (HEALTH_ELEMENT_ORDER.indexOf(lower) !== -1) return lower;
+    if (lower.indexOf('wood') !== -1) return 'wood';
+    if (lower.indexOf('fire') !== -1) return 'fire';
+    if (lower.indexOf('earth') !== -1 || lower.indexOf('soil') !== -1) return 'earth';
+    if (lower.indexOf('metal') !== -1 || lower.indexOf('gold') !== -1) return 'metal';
+    if (lower.indexOf('water') !== -1) return 'water';
+    for (var key in HEALTH_GANJI_ELEMENT) {
+      if (Object.prototype.hasOwnProperty.call(HEALTH_GANJI_ELEMENT, key) && value.indexOf(key) !== -1) return HEALTH_GANJI_ELEMENT[key];
+    }
+    return '';
+  }
+
+  function collectHealthElementList(source, out, depth) {
+    out = out || [];
+    if (source == null || depth > 4) return out;
+    if (typeof source === 'string' || typeof source === 'number' || typeof source === 'boolean') {
+      var directEl = getHealthElementFromToken(source);
+      if (directEl && out.indexOf(directEl) === -1) out.push(directEl);
+      return out;
+    }
+    if (Array.isArray(source)) {
+      source.forEach(function (item) { collectHealthElementList(item, out, depth + 1); });
+      return out;
+    }
+    if (typeof source !== 'object') return out;
+    var picked = getHealthElementFromToken(source.element || source.e || source.el || source.name || source.label || source.value || source.gan || source.stem || source.target || '');
+    if (picked && out.indexOf(picked) === -1) out.push(picked);
+    Object.keys(source).forEach(function (key) {
+      var keyEl = getHealthElementFromToken(key);
+      if (keyEl && source[key] && out.indexOf(keyEl) === -1) out.push(keyEl);
+      if (/yong|use|support|need|favor|target|kiji|avoid|unfavor|excess|dominant|par|element|johu|choyong|weak|strong|control|drain/i.test(key)) {
+        collectHealthElementList(source[key], out, depth + 1);
+      }
+    });
+    return out;
+  }
+
+  function addHealthElementCount(counts, el, amount) {
+    if (!el || HEALTH_ELEMENT_ORDER.indexOf(el) === -1) return;
+    amount = Number(amount);
+    if (!isFinite(amount) || amount <= 0) amount = 1;
+    counts[el] = (counts[el] || 0) + amount;
+  }
+
+  function collectHealthElementCounts(source, counts, depth) {
+    if (!source || depth > 5) return;
+    if (typeof source === 'string') {
+      addHealthElementCount(counts, getHealthElementFromToken(source), 1);
+      return;
+    }
+    if (Array.isArray(source)) {
+      source.forEach(function (item) { collectHealthElementCounts(item, counts, depth + 1); });
+      return;
+    }
+    if (typeof source !== 'object') return;
+    Object.keys(source).forEach(function (key) {
+      var value = source[key];
+      var keyEl = getHealthElementFromToken(key);
+      if (keyEl && typeof value === 'number') {
+        addHealthElementCount(counts, keyEl, value);
+        return;
+      }
+      if (/^(element|e|stem|branch|gan|zhi|g|z|dayStem|dayGan|dayMaster|monthBranch|monthStem|yearStem|yearBranch|hourStem|hourBranch)$/i.test(key)) {
+        addHealthElementCount(counts, getHealthElementFromToken(value), 1);
+        return;
+      }
+      if (/pillar|pillars|saju|bazi|year|month|day|hour|birth|four/i.test(key)) {
+        collectHealthElementCounts(value, counts, depth + 1);
+      }
+    });
+  }
+
+  function getHealthRatios(natal, profile) {
+    var src = (natal && (natal.ratios || natal.fiveElementRatios || natal.elementRatios)) || {};
     var ratios = {};
+    var hasRatio = false;
     HEALTH_ELEMENT_ORDER.forEach(function (el) {
       var value = Number(src[el]);
-      ratios[el] = isFinite(value) ? value : 20;
+      if (isFinite(value) && value > 0) hasRatio = true;
+      ratios[el] = isFinite(value) ? value : 0;
     });
+    if (hasRatio) {
+      var ratioTotal = HEALTH_ELEMENT_ORDER.reduce(function (sum, el) { return sum + Number(ratios[el] || 0); }, 0);
+      if (ratioTotal > 0 && Math.abs(ratioTotal - 100) > 1) {
+        HEALTH_ELEMENT_ORDER.forEach(function (el) {
+          ratios[el] = Math.round((Number(ratios[el] || 0) / ratioTotal) * 1000) / 10;
+        });
+      }
+      return ratios;
+    }
+    var counts = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+    [
+      natal && natal.elements,
+      natal && natal.fiveElements,
+      natal && natal.elementCounts,
+      natal && natal.pillars,
+      natal && natal.saju,
+      natal && natal.bazi,
+      profile && profile.pillars,
+      profile && profile.saju,
+      profile && profile.bazi,
+      profile
+    ].forEach(function (source) { collectHealthElementCounts(source, counts, 0); });
+    var total = HEALTH_ELEMENT_ORDER.reduce(function (sum, el) { return sum + Number(counts[el] || 0); }, 0);
+    if (total > 0) {
+      HEALTH_ELEMENT_ORDER.forEach(function (el) {
+        ratios[el] = Math.max(4, Math.round((Number(counts[el] || 0) / total) * 1000) / 10);
+      });
+      var adjustedTotal = HEALTH_ELEMENT_ORDER.reduce(function (sum, el) { return sum + Number(ratios[el] || 0); }, 0);
+      if (adjustedTotal > 0) {
+        HEALTH_ELEMENT_ORDER.forEach(function (el) {
+          ratios[el] = Math.round((Number(ratios[el] || 0) / adjustedTotal) * 1000) / 10;
+        });
+      }
+      return ratios;
+    }
+    HEALTH_ELEMENT_ORDER.forEach(function (el) { ratios[el] = 20; });
     return ratios;
+  }
+
+  function getHealthFallbackTodayElement() {
+    try {
+      var now = new Date();
+      var todayUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+      var refUtc = Date.UTC(2000, 0, 1);
+      var days = Math.floor((todayUtc - refUtc) / 86400000);
+      var stemIndex = ((6 + days) % 10 + 10) % 10;
+      return ['wood', 'wood', 'fire', 'fire', 'earth', 'earth', 'metal', 'metal', 'water', 'water'][stemIndex] || '';
+    } catch (_) {
+      return '';
+    }
   }
 
   function getTodayHealthElement() {
     try {
-      if (w.G_BAZI && typeof w.G_BAZI.getDayGan === 'function' && w.GAN) {
+      if (w.G_BAZI && typeof w.G_BAZI.getDayGan === 'function') {
         var gan = w.G_BAZI.getDayGan();
-        return (w.GAN[gan] && w.GAN[gan].e) || null;
+        return (w.GAN && w.GAN[gan] && w.GAN[gan].e) || getHealthElementFromToken(gan) || null;
       }
     } catch (_) {}
     return null;
@@ -2802,12 +3268,14 @@
     var yongshinList = [];
     var kijishinList = [];
     if (jg && jg.isJong) {
-      yongshinList = [jg.dominant, jg.parEl].filter(Boolean);
-      kijishinList = [HEALTH_CONTROL_REL[jg.dominant], (w.SHENG && w.SHENG[jg.dominant])].filter(Boolean);
+      yongshinList = collectHealthElementList([jg.dominant, jg.parEl, jg.element, jg.targetElement, jg.yongshin, jg.support]);
+      kijishinList = collectHealthElementList([HEALTH_CONTROL_REL[jg.dominant], (w.SHENG && w.SHENG[jg.dominant]), jg.kijishin, jg.avoid, jg.control]);
     } else if (pw) {
-      yongshinList = Array.isArray(pw.yongshin) ? pw.yongshin.slice() : [];
-      kijishinList = Array.isArray(pw.kijishin) ? pw.kijishin.slice() : [];
+      yongshinList = collectHealthElementList([pw.yongshin, pw.yongsin, pw.useful, pw.support, pw.need, pw.favorable, pw.target, pw.targetEl, pw.targetElement]);
+      kijishinList = collectHealthElementList([pw.kijishin, pw.avoid, pw.unfavorable, pw.excess, pw.bad, pw.caution, pw.avoidEl, pw.avoidElement]);
     }
+    yongshinList = yongshinList.filter(function (el, idx, arr) { return HEALTH_ELEMENT_ORDER.indexOf(el) !== -1 && arr.indexOf(el) === idx; });
+    kijishinList = kijishinList.filter(function (el, idx, arr) { return HEALTH_ELEMENT_ORDER.indexOf(el) !== -1 && arr.indexOf(el) === idx; });
 
     var johuNeed = [];
     var johuAvoid = [];
@@ -2908,6 +3376,18 @@
     return themes[el] || themes.earth;
   }
 
+  var HEALTH_HEALING_ELEMENT_UI = {
+    wood: { color: '#5B8A5B', soft: 'rgba(91,138,91,.10)', border: 'rgba(91,138,91,.34)' },
+    fire: { color: '#D4603A', soft: 'rgba(212,96,58,.10)', border: 'rgba(212,96,58,.34)' },
+    earth: { color: '#C4956A', soft: 'rgba(196,149,106,.12)', border: 'rgba(196,149,106,.34)' },
+    metal: { color: '#8A9BAF', soft: 'rgba(138,155,175,.12)', border: 'rgba(138,155,175,.36)' },
+    water: { color: '#4A7BA8', soft: 'rgba(74,123,168,.10)', border: 'rgba(74,123,168,.34)' }
+  };
+
+  function getHealthHealingElementUi(el) {
+    return HEALTH_HEALING_ELEMENT_UI[el] || HEALTH_HEALING_ELEMENT_UI.earth;
+  }
+
   function getHealthRoutineFocus(el) {
     return ({
       wood: '긴장 이완',
@@ -2929,18 +3409,36 @@
   function renderHealthPill(label, value, el) {
     var theme = getHealthElementTheme(el);
     return '<span class="cd-health-pill inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-black leading-none shadow-sm ring-1 ' + theme.badge + '">'
-      + '<span class="text-sm leading-none">' + (EL_ICON[el] || '✦') + '</span>'
-      + '<span>' + escapeHealthHtml(label) + ': ' + escapeHealthHtml(value) + '</span>'
+      + '<span class="cd-health-pill-dot" data-health-el="' + escapeHealthHtml(el || '') + '" aria-hidden="true">' + escapeHealthHtml(EL_ICON[el] || '✨') + '</span>'
+      + '<span class="cd-health-pill-text"><b>' + escapeHealthHtml(label) + '</b><em>' + escapeHealthHtml(value) + '</em></span>'
       + '</span>';
   }
 
+  function getHealthUiIcon(icon) {
+    return ({
+      today: '🌙',
+      balance: '🌿',
+      insight: '🔮',
+      johu: '🌤️',
+      weakness: '🫧',
+      constitution: '🪷',
+      period: '🗓️',
+      tune: '⚖️',
+      signal: '💗',
+      routine: '🍵',
+      tea: '🍯',
+      remedy: '✨',
+      mission: '🫶'
+    })[icon] || icon || '✨';
+  }
+
   function renderHealthSection(icon, title, summary, bodyHtml) {
-    return '<section class="cd-health-section rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_48px_rgba(2,6,23,0.28)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
-      + '<div class="mb-3 flex items-start gap-3">'
-      + '<span class="cd-health-section-icon grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/10 text-lg shadow-inner">' + icon + '</span>'
+    return '<section class="cd-health-section rounded-[28px] border border-stone-100 bg-stone-50/95 p-6 shadow-sm shadow-stone-100/80 ring-1 ring-white/80 backdrop-blur-xl sm:p-7">'
+      + '<div class="cd-health-section-head mb-5 flex items-start gap-3.5">'
+      + '<span class="cd-health-section-rule" aria-hidden="true"></span>'
       + '<div class="min-w-0">'
-      + '<h4 class="m-0 text-base font-black leading-snug text-white sm:text-lg">' + title + '</h4>'
-      + '<p class="m-0 mt-1 text-sm leading-6 text-indigo-100/75">' + summary + '</p>'
+      + '<h4 class="m-0 text-xl font-bold leading-snug tracking-tight text-stone-800 sm:text-2xl">' + title + '</h4>'
+      + '<p class="m-0 mt-1.5 text-base font-normal leading-relaxed tracking-tight text-stone-600">' + summary + '</p>'
       + '</div>'
       + '</div>'
       + bodyHtml
@@ -2956,7 +3454,7 @@
         stable: ['확장성과 회복 탄력이 비교적 안정적으로 작동합니다.', '좋은 리듬이 흐트러지지 않도록 과한 속도만 경계하면 됩니다.']
       },
       fire: {
-        excess: ['심박이 빨라지거나 초조함, 불면성 피로가 느껴지기 쉽습니다.', '열감과 자극이 커지지 않도록 흥분도를 낮추는 쪽으로 균형을 잡으세요.'],
+        excess: ['열감, 초조함, 수면 얕아짐이 생활 신호로 느껴지기 쉽습니다.', '열감과 자극이 커지지 않도록 흥분도를 낮추는 쪽으로 균형을 잡으세요.'],
         deficient: ['순환이 둔하고 손발이 차거나 동기가 낮아질 수 있습니다.', '작은 활력을 안전하게 깨우는 방향이 오늘의 회복 포인트입니다.'],
         pressure: ['열감과 긴장이 다른 축을 압박해 집중력과 회복감이 흔들릴 수 있습니다.', '일정을 압축하기보다 중간 완충 구간을 만드는 것이 좋습니다.'],
         stable: ['활력과 표현 리듬이 비교적 무리 없이 이어집니다.', '활동과 회복의 간격을 지키면 안정감이 오래 갑니다.']
@@ -2985,11 +3483,11 @@
 
   function getHealthElementPositiveCopy(el) {
     return ({
-      wood: '회복력, 성장성, 추진력, 해독 리듬, 근육과 인대의 탄력이 강점으로 쓰이는 축입니다.',
-      fire: '활력, 순환감, 표현력, 대사 점화가 살아나기 쉬운 축입니다.',
+      wood: '회복력, 성장성, 추진력, 근육 긴장 완화와 시작 에너지가 강점으로 쓰이는 축입니다.',
+      fire: '활력, 순환감, 표현력, 따뜻한 움직임의 리듬이 살아나기 쉬운 축입니다.',
       earth: '소화 리듬, 중심감, 안정성, 회복 기반을 받쳐주는 축입니다.',
-      metal: '호흡, 피부 컨디션, 면역 리듬, 정리력이 선명해지기 쉬운 축입니다.',
-      water: '수면, 회복, 신장·방광 리듬, 깊은 휴식감을 담당하는 축입니다.'
+      metal: '호흡, 피부 컨디션, 정리력과 여백의 감각이 선명해지기 쉬운 축입니다.',
+      water: '수면, 회복, 저장 에너지, 깊은 휴식감을 담당하는 축입니다.'
     })[el] || '생활 리듬의 균형을 받쳐주는 축입니다.';
   }
 
@@ -2998,7 +3496,7 @@
       wood: '목(木)이 약해지면 회복 방향을 잡기 어렵고 긴장이 쌓이기 쉽습니다. 가벼운 산책과 호흡으로 생장 리듬을 부드럽게 열어주세요.',
       fire: '화(火)가 약해지면 활력과 순환감이 둔해질 수 있습니다. 무리한 자극보다 따뜻한 휴식과 일정한 수면 리듬이 어울립니다.',
       earth: '토(土)가 약해지면 식후 피로, 소화 부담, 복부 냉감, 기력 저하가 생활 신호로 나타나기 쉽습니다. 따뜻한 식사와 규칙적인 식사 시간이 중심입니다.',
-      metal: '금(金)이 약해지면 건조감, 얕은 호흡, 변비 경향, 집중력 저하가 생활 신호로 나타나기 쉽습니다. 습도, 수분, 식이섬유, 정돈된 환경을 챙기세요.',
+      metal: '금(金)이 약해지면 건조감, 얕은 호흡, 정리 리듬의 흐림이 생활 신호로 나타나기 쉽습니다. 습도, 수분, 호흡, 정돈된 환경을 챙기세요.',
       water: '수(水)가 약해지면 피로 누적, 수면 질 저하, 긴장성 건조감이 생활 신호로 나타나기 쉽습니다. 밤 시간 자극을 줄이고 깊은 휴식 여백을 확보하세요.'
     })[el] || '부족한 축은 강하게 밀어붙이기보다 반복 가능한 생활 균형으로 보완하는 편이 좋습니다.';
   }
@@ -3006,34 +3504,34 @@
   function getHealthSignalGuideV2(el, state) {
     var guide = {
       wood: {
-        excess: ['목(木)이 과열되면 예민함, 분노 누적, 목·어깨 긴장, 두통성 피로, 눈 피로가 생활 신호로 먼저 나타날 수 있습니다.', '카페인·음주·늦은 야식을 줄이고, 목·어깨 이완과 산책, 긴 호흡으로 스트레스를 밖으로 흘려보내는 관리가 어울립니다.'],
-        deficient: ['목(木)의 성장성이 약해지면 회복 방향이 흐려지고 몸이 뻣뻣하게 느껴지는 경향이 있습니다.', '무리한 추진보다 가벼운 움직임, 푸른 채소, 짧은 스트레칭으로 생장 리듬을 천천히 되살려주세요.'],
-        pressure: ['목(木)이 압박을 받으면 계획은 많지만 몸이 따라오지 않아 긴장과 피로가 함께 쌓이는 경향이 있습니다.', '오늘은 속도를 낮추고 감정 반응을 바로 폭발시키기보다 호흡과 산책으로 긴장을 배출하는 편이 좋습니다.'],
-        stable: ['목(木)의 회복력과 성장성이 비교적 안정적으로 흐르는 날입니다.', '추진력은 살리되 카페인, 음주, 늦은 야식처럼 긴장을 키우는 패턴만 가볍게 줄여주세요.']
+        excess: ['목(木)이 강하게 쓰이면 생각과 계획이 먼저 달리고, 몸은 목·어깨 긴장이나 눈 피로로 따라오기 쉽습니다.', '오늘은 일을 더 벌리기보다 이미 잡은 계획을 덜어내세요. 산책, 목·어깨 이완, 화면 쉬는 시간이 목의 답답함을 풀어줍니다.'],
+        deficient: ['목(木)이 약하면 시작은 해야 하는데 몸이 잘 움직이지 않고, 회복 루틴도 자꾸 미뤄질 수 있습니다.', '큰 운동보다 10분 산책, 가벼운 스트레칭, 푸른 채소 한 접시처럼 시작이 쉬운 방법이 잘 맞습니다.'],
+        pressure: ['목(木)이 눌리는 날에는 기준이나 일정 압박 때문에 몸의 유연성이 먼저 떨어집니다.', '완벽하게 하려는 마음을 낮추고, 오늘 해야 할 일을 하나 줄이세요. 몸을 풀어야 마음도 따라 풀립니다.'],
+        stable: ['목(木)이 크게 흔들리지 않아 움직임을 시작하기 좋은 날입니다.', '다만 무리하게 속도를 올리면 긴장이 쌓이니, 할 일을 작게 나누고 중간에 몸을 풀어주세요.']
       },
       fire: {
-        excess: ['화(火)가 과열되면 심박 예민, 열감, 수면 얕아짐, 조급함이 생활 신호로 올라오기 쉽습니다.', '과열되는 운동과 늦은 시간의 강한 화면을 줄이고, 몸과 마음을 식히는 차분한 휴식 루틴을 먼저 두세요.'],
-        deficient: ['화(火)가 약해지면 활력과 순환감, 표현력이 둔해지는 경향이 있습니다.', '강한 자극보다 햇빛, 따뜻한 식사, 짧은 움직임으로 대사 점화를 부드럽게 깨우는 흐름이 좋습니다.'],
-        pressure: ['화(火)가 압박되면 마음은 급한데 회복감이 따라오지 않아 집중과 수면 리듬이 흔들릴 수 있습니다.', '오늘은 경쟁적인 속도보다 잠깐 멈추는 시간을 넣어 열감이 쌓이지 않게 조율하세요.'],
-        stable: ['화(火)의 활력, 순환, 표현력이 비교적 안정적으로 쓰이는 날입니다.', '활동 후 바로 쉬는 간격을 붙이면 대사 리듬과 수면 리듬이 더 편안하게 이어집니다.']
+        excess: ['화(火)가 강하면 집중과 표현력은 살아나지만, 열감과 조급함이 빨리 올라올 수 있습니다.', '오후 이후 카페인, 늦은 운동, 강한 화면 자극을 줄이세요. 오늘은 잘 타오르는 만큼 잘 식히는 것이 중요합니다.'],
+        deficient: ['화(火)가 약하면 의욕은 있어도 몸의 온기와 활력이 늦게 올라옵니다.', '아침 햇빛, 따뜻한 식사, 가벼운 유산소가 좋습니다. 억지로 끌어올리기보다 몸에 온기를 먼저 넣어주세요.'],
+        pressure: ['화(火)가 눌리면 마음은 바쁜데 집중력이 오래 가지 않고, 밤에는 오히려 피곤한데 잠이 얕아질 수 있습니다.', '일정 사이에 숨 쉴 간격을 두고, 저녁에는 조명과 소리를 낮춰 몸이 식을 시간을 주세요.'],
+        stable: ['화(火)가 무난하면 활력과 표현력이 자연스럽게 살아납니다.', '활동량을 잘 쓰되, 약속이 많은 날에는 귀가 후 바로 쉬는 시간을 붙이면 좋습니다.']
       },
       earth: {
-        excess: ['토(土)가 무겁게 쌓이면 몸이 둔하고 식후 졸림, 복부 더부룩함이 생활 신호로 나타나기 쉽습니다.', '과식과 오래 앉아있기를 줄이고, 식사량을 가볍게 조절해 중심감을 회복하는 흐름이 좋습니다.'],
-        deficient: ['토(土)가 부족하면 식후 피로, 소화 부담, 복부 냉감, 기력 저하가 생활 신호로 나타나기 쉽습니다.', '따뜻한 식사, 규칙적인 식사 시간, 식후 걷기, 과식 금지가 오늘의 관리 포인트입니다.'],
-        pressure: ['토(土)가 압박받으면 외부 일정이나 감정 긴장이 소화 리듬과 중심감을 흔드는 경향이 있습니다.', '식사 시간을 미루지 말고 따뜻하고 단순한 식사로 몸의 중심을 먼저 세워주세요.'],
-        stable: ['토(土)의 소화, 중심감, 안정성, 회복 기반이 비교적 안정적으로 받쳐주는 날입니다.', '정해진 시간에 먹고 가볍게 움직이는 기본 리듬을 유지하면 컨디션이 무난하게 이어집니다.']
+        excess: ['토(土)가 과하면 몸과 생각이 함께 무거워지고, 식후 졸림이나 더부룩함이 쉽게 느껴집니다.', '오늘은 많이 챙겨 먹는 것보다 단순하게 먹는 것이 낫습니다. 오래 앉아 있었다면 식후 10분만 걸어도 도움이 됩니다.'],
+        deficient: ['토(土)가 약하면 식사 시간이 밀리고, 먹어도 기운이 바로 차오르지 않는 느낌이 올 수 있습니다.', '따뜻한 밥, 죽, 익힌 채소처럼 속이 편한 음식을 먼저 두세요. 오늘은 식사 시간을 지키는 것이 가장 큰 보완입니다.'],
+        pressure: ['토(土)가 눌리면 해야 할 일과 걱정이 소화 리듬을 흔들 수 있습니다.', '식사를 미루지 말고 한 끼는 단순하게 드세요. 책상이나 방 한 구역을 정리하면 마음의 무게도 조금 내려갑니다.'],
+        stable: ['토(土)가 안정되면 하루의 중심이 잘 잡힙니다.', '같은 시간에 먹고, 식후에 가볍게 움직이고, 잠들기 전 걱정을 적어두면 안정감이 오래 갑니다.']
       },
       metal: {
-        excess: ['금(金)이 강하게 굳으면 흉곽과 어깨가 조여 들고 완벽주의성 긴장이 올라오는 경향이 있습니다.', '기준을 조금 낮추고 복식호흡과 정돈된 환경으로 몸과 마음의 여백을 만들어주세요.'],
-        deficient: ['금(金)이 부족하면 건조감, 호흡 얕음, 변비 경향, 집중력 저하가 생활 신호로 나타나기 쉽습니다.', '습도 관리, 수분, 식이섬유, 복식호흡, 정돈된 환경이 오늘의 관리 포인트입니다.'],
-        pressure: ['금(金)이 압박받으면 과로와 열감이 호흡, 피부 컨디션, 집중 리듬을 건드리는 경향이 있습니다.', '자극적인 환경을 줄이고 환기, 가벼운 정리, 긴 호흡으로 금(金)의 맑은 리듬을 회복하세요.'],
-        stable: ['금(金)의 호흡, 피부 컨디션, 면역 리듬, 정리력이 비교적 선명한 날입니다.', '건조함만 방치하지 않으면 집중력과 안정감이 부드럽게 이어집니다.']
+        excess: ['금(金)이 강하면 판단력은 또렷하지만, 기준이 높아져 어깨와 흉곽에 힘이 들어가기 쉽습니다.', '오늘은 100점 기준을 내려놓는 것이 보완입니다. 깊은 호흡, 환기, 책상 위 한 구역 정리가 금의 긴장을 낮춥니다.'],
+        deficient: ['금(金)이 약하면 호흡이 얕아지고, 공간과 일정의 경계가 흐려질 수 있습니다.', '물을 조금씩 마시고 실내를 환기하세요. 작게 정리한 공간 하나가 몸의 여백을 만들어줍니다.'],
+        pressure: ['금(金)이 눌리면 과로와 열감 때문에 호흡, 피부 컨디션, 집중력이 예민해질 수 있습니다.', '말을 줄이고 숨을 길게 쉬세요. 오늘은 판단을 서두르기보다 몸의 긴장을 먼저 풀어야 합니다.'],
+        stable: ['금(金)이 안정되면 정리력과 호흡이 비교적 편안합니다.', '건조함만 방치하지 말고, 수분과 습도, 환기를 챙기면 집중력이 차분히 유지됩니다.']
       },
       water: {
-        excess: ['수(水)가 무겁게 흐르면 몸이 축 처지거나 활동 리듬이 늦어지는 경향이 있습니다.', '완전한 비활동보다 짧은 움직임과 일정한 수면 시간을 유지해 회복 리듬을 흐르게 해주세요.'],
-        deficient: ['수(水)가 부족하면 피로 누적, 수면 질 저하, 긴장성 건조감이 생활 신호로 나타나기 쉽습니다.', '수분, 수면, 과로 제한, 밤 시간 자극 줄이기가 오늘의 관리 포인트입니다.'],
-        pressure: ['수(水)가 압박받으면 회복 저장고가 눌려 피로가 오래 머무는 경향이 있습니다.', '늦은 밤 자극을 줄이고, 무리한 일정 대신 깊게 쉬는 시간을 먼저 확보하세요.'],
-        stable: ['수(水)의 수면, 회복, 깊은 휴식 리듬이 비교적 안정적으로 흐르는 날입니다.', '밤 시간의 화면, 소음, 감정 소모를 줄이면 회복감이 더 오래 이어집니다.']
+        excess: ['수(水)가 과하면 생각이 깊어지고 몸의 속도가 느려져, 시작까지 시간이 걸릴 수 있습니다.', '완전히 누워 있기보다 짧게 걷고 따뜻한 물을 마시세요. 몸을 조금 데우면 무거움이 덜합니다.'],
+        deficient: ['수(水)가 약하면 잠을 자도 개운함이 부족하고, 밤 시간에 걱정이 길어질 수 있습니다.', '오늘은 과로를 줄이고 수면 시간을 먼저 잡으세요. 하체를 따뜻하게 하고 늦은 화면 사용을 끊는 것이 좋습니다.'],
+        pressure: ['수(水)가 눌리면 회복감이 늦게 올라오고, 피로가 몸 안에 오래 머무는 느낌이 날 수 있습니다.', '무리한 일정을 더 넣지 마세요. 오늘은 쉬는 시간을 일정표 안에 먼저 넣어야 합니다.'],
+        stable: ['수(水)가 안정되면 깊게 쉬고 다시 채우는 힘이 좋습니다.', '밤 시간의 화면, 소음, 감정 소모만 줄여도 다음 날 회복감이 훨씬 좋습니다.']
       }
     };
     return ((guide[el] || guide.earth)[state]) || guide.earth.stable;
@@ -3041,20 +3539,20 @@
 
   function getTodayConditionCopyV2(todayEl, targetEl, avoidEl, strongestEl) {
     var lead = {
-      wood: '오늘은 목(木)의 긴장과 추진력이 함께 올라오기 쉬운 날입니다.',
-      fire: '오늘은 화(火)의 열감과 속도가 빨라지기 쉬운 날입니다.',
-      earth: '오늘은 토(土)의 중심감과 소화 리듬을 살피기 좋은 날입니다.',
-      metal: '오늘은 금(金)의 호흡과 정리 리듬이 컨디션을 좌우하기 쉽습니다.',
-      water: '오늘은 수(水)의 수면과 회복 리듬이 중요하게 작동하는 날입니다.'
-    }[todayEl] || '오늘은 생활 리듬의 균형을 차분히 살피기 좋은 날입니다.';
+      wood: '오늘은 마음이 먼저 움직이고 몸이 뒤따라오는 날입니다. 일정은 조금 줄이고, 목과 어깨를 자주 풀어주는 편이 좋습니다.',
+      fire: '오늘은 에너지가 빨리 올라오지만 그만큼 쉽게 지칠 수 있습니다. 낮에는 햇빛을 받고, 밤에는 자극을 덜어내세요.',
+      earth: '오늘은 식사와 휴식 시간이 컨디션을 크게 좌우합니다. 따뜻하고 단순한 한 끼를 제때 먹는 것이 가장 좋습니다.',
+      metal: '오늘은 기준이 높아지면서 호흡이 얕아지기 쉽습니다. 완벽하게 정리하려 하기보다 숨을 깊게 쉬는 쪽이 먼저입니다.',
+      water: '오늘은 무리해서 버티기보다 회복 시간을 확보해야 합니다. 밤 시간을 차분하게 정리하면 내일 몸이 훨씬 가볍습니다.'
+    }[todayEl] || '오늘은 크게 무리하기보다 식사, 수면, 움직임의 기본을 차분히 맞추는 편이 좋습니다.';
 
-    var second = '오늘 보완할 축은 ' + EL_NAME[targetEl] + ', 줄이면 좋은 자극은 ' + EL_NAME[avoidEl] + '입니다.';
+    var second = '오늘의 억부는 ' + EL_NAME[targetEl] + '을 먼저 챙기고, ' + EL_NAME[avoidEl] + '의 자극은 저녁부터 낮추라고 가리킵니다.';
     if (todayEl === strongestEl) {
-      second = '타고난 강점 축과 오늘의 기운이 겹치므로 속도를 더 올리기보다 생활 신호를 살피며 회복 루틴을 단순하게 잡는 것이 좋습니다.';
+      second = '타고난 강점과 오늘의 일진이 겹칩니다. 익숙한 방식으로 계속 밀어붙이기 쉬우니, 일정 사이에 쉬는 칸을 먼저 남겨두세요.';
     } else if (todayEl === targetEl) {
-      second = '오늘의 기운이 보완축과 맞물리므로 작은 루틴 하나만 실행해도 균형감이 붙기 쉽습니다.';
+      second = '오늘 필요한 오행과 일진이 맞물립니다. 거창한 관리보다 물, 식사, 산책처럼 바로 손이 가는 루틴 하나가 몸에 잘 맞습니다.';
     } else if (todayEl === avoidEl) {
-      second = '오늘은 줄여야 할 자극이 함께 올라올 수 있어, 밤 시간 자극과 무리한 일정을 낮추는 쪽이 좋습니다.';
+      second = '오늘은 과해지기 쉬운 오행이 일진과 함께 올라옵니다. 약속을 줄이고 밤 시간 화면, 카페인, 감정 소모를 낮추세요.';
     }
     return { lead: lead, second: second };
   }
@@ -3070,9 +3568,9 @@
 
     var second = '오늘 필요한 기운은 ' + EL_NAME[targetEl] + '이고, 줄이면 좋은 기운은 ' + EL_NAME[avoidEl] + '입니다.';
     if (todayEl === strongestEl) {
-      second = '타고난 강점 축과 오늘의 기운이 겹치므로 속도를 높이기보다 회복 루틴의 우선순위를 낮고 단순하게 잡는 것이 핵심입니다.';
+      second = '타고난 강점 축과 일진의 흐름이 겹치므로 속도를 높이기보다 회복 루틴의 우선순위를 낮고 단순하게 잡는 것이 핵심입니다.';
     } else if (todayEl === targetEl) {
-      second = '오늘의 기운이 보완축과 맞물리므로 작은 루틴을 바로 실행하면 회복감이 빠르게 붙습니다.';
+      second = '일진의 흐름이 보완축과 맞물리므로 작은 루틴을 바로 실행하면 회복감이 빠르게 붙습니다.';
     } else if (todayEl === avoidEl) {
       second = '오늘은 줄여야 할 기운이 함께 올라오므로 자극을 덜고 회복 루틴을 먼저 배치하세요.';
     }
@@ -3111,55 +3609,350 @@
   function getHealthElementConsultation(el, state) {
     var byElement = {
       wood: {
-        excess: '목(木)이 지나치게 솟으면 간담의 결이 예민해지고, 마음속 분노와 눈의 피로가 함께 떠오릅니다. 오늘은 뻗는 힘을 누르기보다 부드럽게 흘려보내는 조율이 길합니다.',
-        deficient: '목(木)이 약하면 새벽의 생장성이 희미해져 몸의 탄력과 결심이 늦게 깨어납니다. 작은 움직임과 푸른 식재료가 막힌 기운을 조용히 열어줍니다.',
-        pressure: '목(木)이 눌리면 계획은 많아도 몸의 가지가 자유롭게 펴지지 않습니다. 목과 어깨, 눈의 긴장에 먼저 귀를 기울이면 회복의 문이 열립니다.',
-        stable: '목(木)의 생장 기운이 안정권에 머무릅니다. 추진력은 살리되 과한 경쟁심만 내려놓으면 몸의 탄력이 맑게 이어집니다.'
+        excess: '목(木)이 강하게 쓰이는 날에는 계획과 추진력이 먼저 앞섭니다. 다만 몸은 목·어깨 긴장, 눈 피로, 예민함으로 신호를 보낼 수 있으니 오늘은 일을 늘리기보다 덜어내는 쪽이 맞습니다.',
+        deficient: '목(木)이 약하면 시작 에너지가 늦게 올라오고 회복 루틴도 쉽게 미뤄집니다. 이럴 때는 강한 결심보다 산책, 스트레칭, 초록 식재료처럼 몸이 바로 받아들이는 방법이 좋습니다.',
+        pressure: '목(木)이 눌리면 계획은 많은데 몸이 굳고 답답함이 먼저 옵니다. 기준을 낮추고 목·어깨를 풀어야 마음의 조급함도 함께 내려갑니다.',
+        stable: '목(木)이 안정권에 있으면 움직임을 시작하기 좋습니다. 다만 추진력이 과해지지 않도록 중간 휴식과 눈 쉬는 시간을 넣어주세요.'
       },
       fire: {
-        excess: '화(火)가 높게 타오르면 심장의 박동, 열감, 수면의 얕아짐이 먼저 드러납니다. 밝은 기운을 잃지 않되 밤의 자극을 낮추면 열이 고요히 가라앉습니다.',
-        deficient: '화(火)가 약하면 몸 안의 불씨가 늦게 살아나 활력과 순환감이 흐려집니다. 햇빛, 따뜻한 식사, 짧은 움직임이 불씨를 부드럽게 되살립니다.',
-        pressure: '화(火)가 압박되면 마음은 급한데 회복의 불씨가 따라오지 못합니다. 잠깐 멈추는 간격이 열을 흩고 정신의 중심을 비춥니다.',
-        stable: '화(火)의 온기가 편안하게 흐릅니다. 활동 후 바로 쉬는 간격을 붙이면 심신의 불빛이 오래 안정됩니다.'
+        excess: '화(火)가 강하면 활력과 표현력은 좋지만, 열감과 조급함이 쉽게 올라옵니다. 낮의 활동은 살리되 저녁에는 조명, 화면, 카페인 같은 자극을 줄여야 수면이 편해집니다.',
+        deficient: '화(火)가 약하면 의욕과 온기가 늦게 살아납니다. 햇빛을 보고, 따뜻하게 먹고, 짧게 움직이는 식으로 몸의 불씨를 천천히 살리는 편이 좋습니다.',
+        pressure: '화(火)가 눌리는 날에는 마음만 바쁘고 몸은 쉽게 지칩니다. 일정 사이에 쉬는 시간을 넣어야 열감과 피로가 한꺼번에 쌓이지 않습니다.',
+        stable: '화(火)가 무난하면 활동성과 표현력이 자연스럽게 살아납니다. 다만 활동 뒤 바로 쉬는 간격을 붙여야 활력이 오래 갑니다.'
       },
       earth: {
-        excess: '토(土)가 두텁게 쌓이면 위장의 중심이 무거워지고 식후 졸림이 떠오릅니다. 덜어내는 식사와 느린 걸음이 막힌 흙을 고르게 풀어줍니다.',
-        deficient: '토(土)가 허하면 몸의 중심이 쉽게 흔들리고 식사 뒤 피로가 머무릅니다. 따뜻하고 규칙적인 한 끼가 비위의 그릇을 단단히 받칩니다.',
-        pressure: '토(土)가 눌리면 외부 일정과 감정의 파동이 소화의 중심을 흔듭니다. 식사 시간을 지키고 단순한 온기를 들이면 몸의 축이 다시 섭니다.',
-        stable: '토(土)의 중심이 무난하게 자리합니다. 같은 시간에 먹고 가볍게 걷는 기본 리듬이 하루의 뿌리를 지켜줍니다.'
+        excess: '토(土)가 과하면 몸이 무겁고 생각도 오래 머뭅니다. 식후 졸림이나 더부룩함이 있다면 음식 양을 줄이고 식후에 천천히 걷는 편이 좋습니다.',
+        deficient: '토(土)가 약하면 식사 시간이 흔들리고 먹어도 기운이 잘 차지 않습니다. 따뜻하고 규칙적인 한 끼가 오늘의 중심을 잡아줍니다.',
+        pressure: '토(土)가 눌리면 일정 압박과 걱정이 소화 리듬을 흔듭니다. 식사를 미루지 말고 단순하고 따뜻한 음식으로 몸의 중심을 먼저 세워주세요.',
+        stable: '토(土)가 안정되면 생활의 중심이 잘 잡힙니다. 같은 시간에 먹고 가볍게 움직이는 기본만 지켜도 컨디션이 무난하게 이어집니다.'
       },
       metal: {
-        excess: '금(金)이 강하게 굳으면 흉곽과 어깨가 조여 들고 완벽주의의 날이 섭니다. 기준을 낮추고 긴 숨을 열면 금의 맑음만 남습니다.',
-        deficient: '금(金)이 약하면 호흡이 얕아지고 피부와 장의 건조 신호가 떠오릅니다. 촉촉한 환경, 맑은 물, 정돈된 공간이 금의 결을 살립니다.',
-        pressure: '금(金)이 압박되면 과로와 열감이 폐와 피부의 리듬을 건드립니다. 환기와 복식호흡이 흐린 금기를 다시 맑게 비춥니다.',
-        stable: '금(金)의 정리력과 호흡 리듬이 선명합니다. 건조함만 방치하지 않으면 집중의 칼날이 부드럽게 유지됩니다.'
+        excess: '금(金)이 강하면 기준과 판단은 또렷하지만 몸은 쉽게 경직됩니다. 흉곽과 어깨가 조이는 느낌이 있다면 오늘은 기준을 낮추고 호흡부터 여는 편이 좋습니다.',
+        deficient: '금(金)이 약하면 호흡이 얕고 공간의 질서도 흐트러지기 쉽습니다. 물, 습도, 환기, 작은 정리가 금의 부족함을 잘 보완합니다.',
+        pressure: '금(金)이 눌리면 과로와 열감이 호흡, 피부 컨디션, 집중력을 건드립니다. 판단을 서두르지 말고 먼저 숨을 길게 쉬어주세요.',
+        stable: '금(金)이 안정되면 정리력과 집중력이 살아납니다. 건조함만 방치하지 않으면 차분한 컨디션을 유지하기 좋습니다.'
       },
       water: {
-        excess: '수(水)가 무겁게 고이면 몸이 축 처지고 활동의 물길이 늦어집니다. 짧은 움직임으로 물길을 열면 회복의 깊이가 탁해지지 않습니다.',
-        deficient: '수(水)가 마르면 피로가 깊게 머물고 잠의 문이 얕아집니다. 수분, 수면, 밤의 고요가 신장과 방광의 저장력을 보듬습니다.',
-        pressure: '수(水)가 눌리면 회복 저장고가 좁아져 피로가 오래 남습니다. 무리한 일정 대신 깊게 쉬는 시간을 먼저 세우면 물의 뿌리가 살아납니다.',
-        stable: '수(水)의 회복 기운이 안정적으로 흐릅니다. 밤의 화면과 소음을 낮추면 깊은 휴식감이 오래 머무릅니다.'
+        excess: '수(水)가 과하면 생각이 깊어지고 몸의 속도가 늦어집니다. 완전히 가라앉기보다 짧게 걷고 따뜻하게 데우면 무거움이 덜합니다.',
+        deficient: '수(水)가 약하면 잠을 자도 회복감이 부족하고 밤 시간 걱정이 길어지기 쉽습니다. 수면, 수분, 하체 보온을 오늘의 우선순위로 두세요.',
+        pressure: '수(水)가 눌리면 피로가 오래 남고 회복감이 늦게 올라옵니다. 일정을 더 넣기보다 쉬는 시간을 먼저 확보하는 편이 맞습니다.',
+        stable: '수(水)가 안정되면 깊게 쉬고 다시 채우는 힘이 좋습니다. 밤 시간의 화면과 소음만 줄여도 다음 날 몸이 가볍습니다.'
       }
     };
     return ((byElement[el] || byElement.earth)[state]) || byElement.earth.stable;
   }
 
+  function renderHealthTensionAxis(controlImpacts, ratios, axes) {
+    var selected = (controlImpacts || []).slice(0, 2);
+    if (!selected.length && axes && axes.avoidEl) {
+      selected.push({ controller: axes.avoidEl, target: HEALTH_CONTROL_REL[axes.avoidEl] || axes.targetEl, score: 0 });
+    }
+    if (!selected.length) selected.push({ controller: 'metal', target: 'wood', score: 0 });
+    return '<div class="cd-health-knowledge-grid">'
+      + selected.map(function (impact, idx) {
+        var rule = findHealthTensionRule(impact.controller, impact.target) || findHealthTensionRule('metal', 'wood');
+        var controller = getHealthKnowledge(rule.controller);
+        var target = getHealthKnowledge(rule.target);
+        var targetScore = Math.round(Number(ratios[rule.target] || 0));
+        return '<article class="cd-health-knowledge-card" data-health-el="' + escapeHealthHtml(rule.target) + '">'
+          + '<div class="cd-health-card-top">'
+          + '<span class="cd-health-card-icon">' + escapeHealthHtml(EL_ICON[rule.target] || '🌿') + '</span>'
+          + '<div><small>압박 흐름 ' + (idx + 1) + '</small><b>' + escapeHealthHtml(rule.title) + '</b></div>'
+          + '</div>'
+          + '<p class="cd-health-card-lead">' + escapeHealthHtml(getHealthElementWithParticle(rule.controller, 'subject') + ' ' + getHealthElementWithParticle(rule.target, 'object') + ' 누르는 생극 구도입니다. 균형이면 질서가 되지만, 한쪽이 강하면 ' + target.symbolicOrganRhythm + ' 쪽 생활 신호가 먼저 올라올 수 있습니다.') + '</p>'
+          + renderHealthMiniList([rule.bodySignal, rule.mindSignal, rule.carePoint], 3)
+          + renderHealthChipList([EL_NAME[rule.controller] + ' 절제', EL_NAME[rule.target] + ' 보완', '생활 신호 ' + targetScore + '%', '회복 루틴'], 4)
+          + '</article>';
+      }).join('')
+      + '</div>';
+  }
+
+  function renderDayMasterHealthInsight(p, natal, fallbackEl) {
+    var stem = getHealthDayStem(p, natal);
+    var view = stem ? DAY_MASTER_HEALTH_VIEW[stem] : null;
+    var knowledge = getHealthKnowledge((view && view.element) || fallbackEl || 'earth');
+    if (!view) {
+      view = {
+        element: fallbackEl || 'earth',
+        title: knowledge.title,
+        tendency: knowledge.premium,
+        stressSignal: getHealthKnowledgeSignals(fallbackEl || 'earth', 'balanced')[0] || knowledge.balancedMessage,
+        recoveryKey: (knowledge.recoveryFocus || [])[0] || '반복 가능한 회복 루틴 하나를 부드럽게 세워주세요.'
+      };
+    }
+    return '<div class="cd-health-knowledge-grid cd-health-knowledge-grid--single">'
+      + '<article class="cd-health-knowledge-card" data-health-el="' + escapeHealthHtml(view.element) + '">'
+      + '<div class="cd-health-card-top">'
+      + '<span class="cd-health-card-icon">' + escapeHealthHtml(EL_ICON[view.element] || '✨') + '</span>'
+      + '<div><small>' + escapeHealthHtml(stem ? stem + ' 일간' : '일간 리듬') + '</small><b>' + escapeHealthHtml(view.title) + '</b></div>'
+      + '</div>'
+      + '<p class="cd-health-card-lead">' + escapeHealthHtml(view.tendency) + '</p>'
+      + renderHealthMiniList([view.stressSignal, view.recoveryKey], 2)
+      + renderHealthChipList((knowledge.lifestyleKeywords || []).concat(knowledge.recoveryFocus || []), 5)
+      + '</article>'
+      + '</div>';
+  }
+
+  function renderTenGodHealthInsights(p, natal, ratios, controlImpacts) {
+    var groups = getHealthTenGodGroups(p, natal, ratios, controlImpacts);
+    return '<div class="cd-health-knowledge-grid">'
+      + groups.map(function (group) {
+        var info = TEN_GOD_HEALTH_MAP[group] || TEN_GOD_HEALTH_MAP.inseong;
+        return '<article class="cd-health-knowledge-card cd-health-knowledge-card--ten">'
+          + '<div class="cd-health-card-top">'
+          + '<span class="cd-health-card-icon">🔮</span>'
+          + '<div><small>' + escapeHealthHtml(info.label) + '</small><b>' + escapeHealthHtml(info.title) + '</b></div>'
+          + '</div>'
+          + '<p class="cd-health-card-lead">' + escapeHealthHtml(info.stressPattern) + '</p>'
+          + renderHealthMiniList([info.bodySignal, info.mindSignal, info.carePoint], 3)
+          + renderHealthChipList(info.routine, 4)
+          + '</article>';
+      }).join('')
+      + '</div>';
+  }
+
+  function renderSeasonalHealthInsight(johu, targetEl) {
+    var key = getSeasonHealthKey(johu);
+    var season = SEASONAL_HEALTH_VIEW[key] || SEASONAL_HEALTH_VIEW.lateSummer;
+    var care = (season.careElement || [targetEl]).map(function (el) { return EL_NAME[el] || el; });
+    return '<div class="cd-health-knowledge-grid cd-health-knowledge-grid--single">'
+      + '<article class="cd-health-knowledge-card" data-health-el="' + escapeHealthHtml(season.mainElement) + '">'
+      + '<div class="cd-health-card-top">'
+      + '<span class="cd-health-card-icon">' + escapeHealthHtml(EL_ICON[season.mainElement] || '🌙') + '</span>'
+      + '<div><small>' + escapeHealthHtml(season.label) + ' · 조후</small><b>' + escapeHealthHtml(season.title) + '</b></div>'
+      + '</div>'
+      + '<p class="cd-health-card-lead">' + escapeHealthHtml(season.tendency) + '</p>'
+      + renderHealthMiniList([season.riskWhenExcessive, '보완 오행은 ' + care.join(', ') + ' 쪽으로 떠오릅니다.'], 2)
+      + renderHealthChipList(season.careRoutine || [], 4)
+      + '</article>'
+      + '</div>';
+  }
+
+  function getHealthGeneratingElement(el) {
+    var found = 'water';
+    Object.keys(HEALTH_GENERATES || {}).forEach(function (key) {
+      if (HEALTH_GENERATES[key] === el) found = key;
+    });
+    return found;
+  }
+
+  function getHealthJohuProfile(johu, ratios) {
+    johu = johu || {};
+    ratios = ratios || {};
+    var raw = String(johu.type || johu.johuType || johu.badgeTxt || johu.summary || '').toLowerCase();
+    var dryWet = String(johu.dryWet || johu.moisture || johu.humidity || johu.wetDry || '').toLowerCase();
+    var fireWood = Number(ratios.fire || 0) + Number(ratios.wood || 0);
+    var waterMetal = Number(ratios.water || 0) + Number(ratios.metal || 0);
+    var fireMetal = Number(ratios.fire || 0) + Number(ratios.metal || 0);
+    var waterEarth = Number(ratios.water || 0) + Number(ratios.earth || 0);
+    var tempKind = 'neutral';
+    if (raw.indexOf('hot') !== -1 || raw.indexOf('warm') !== -1 || raw.indexOf('열') !== -1) tempKind = 'hot';
+    else if (raw.indexOf('cold') !== -1 || raw.indexOf('cool') !== -1 || raw.indexOf('한') !== -1 || raw.indexOf('냉') !== -1) tempKind = 'cold';
+    else if (fireWood - waterMetal >= 18) tempKind = 'hot';
+    else if (waterMetal - fireWood >= 18) tempKind = 'cold';
+
+    var moistureKind = 'balanced';
+    if (raw.indexOf('dry') !== -1 || dryWet.indexOf('dry') !== -1 || raw.indexOf('건') !== -1 || dryWet.indexOf('건') !== -1) moistureKind = 'dry';
+    else if (raw.indexOf('wet') !== -1 || raw.indexOf('damp') !== -1 || dryWet.indexOf('wet') !== -1 || dryWet.indexOf('damp') !== -1 || raw.indexOf('습') !== -1 || dryWet.indexOf('습') !== -1) moistureKind = 'damp';
+    else if (fireMetal - waterEarth >= 20) moistureKind = 'dry';
+    else if (waterEarth - fireMetal >= 20) moistureKind = 'damp';
+
+    var tempMap = {
+      hot: {
+        label: '열기 조율형',
+        shortLabel: '열기 조율',
+        title: '위로 솟는 기운을 차분히 식히는 결',
+        summary: '화(火)와 목(木)의 상승성이 빨라져 몸과 마음이 쉽게 달아오르는 흐름입니다.',
+        bodySignal: '늦은 시간까지 생각과 감정이 활발해지고, 수면 리듬이 얕아지는 생활 신호가 떠오를 수 있습니다.',
+        mindSignal: '빨리 해내고 싶은 마음이 앞서며 판단과 말의 속도가 함께 빨라지기 쉽습니다.',
+        carePoint: '수(水)의 휴식과 금(金)의 호흡을 먼저 세우면 과열된 기운이 부드럽게 가라앉습니다.',
+        support: ['water', 'metal'],
+        caution: ['fire', 'wood'],
+        routine: ['카페인 줄이기', '조명 낮추기', '깊은 호흡', '밤 화면 쉬기']
+      },
+      cold: {
+        label: '한기 보온형',
+        shortLabel: '한기 보온',
+        title: '가라앉은 기운에 온기와 움직임을 더하는 결',
+        summary: '수(水)와 금(金)의 수렴성이 깊어져 몸의 속도가 느려지고 회복감이 늦게 올라오는 흐름입니다.',
+        bodySignal: '몸이 무겁고 차분하다 못해 처지는 느낌, 시작이 늦어지는 생활 신호가 드러날 수 있습니다.',
+        mindSignal: '생각이 깊어지며 표현과 추진이 늦어지고, 혼자 머무르려는 마음이 커지기 쉽습니다.',
+        carePoint: '화(火)의 온기와 목(木)의 가벼운 움직임을 더하면 닫힌 리듬이 천천히 열립니다.',
+        support: ['fire', 'wood'],
+        caution: ['water', 'metal'],
+        routine: ['따뜻한 차', '햇빛 보기', '하체 보온', '가벼운 산책']
+      },
+      neutral: {
+        label: '중화 조율형',
+        shortLabel: '중화 조율',
+        title: '큰 치우침보다 강약의 순서를 살피는 결',
+        summary: '조후의 온도는 극단으로 치우치지 않고, 원국의 강약과 오늘의 일진이 회복 순서를 비춥니다.',
+        bodySignal: '특정 신호 하나보다 식사, 수면, 움직임의 기본 리듬이 컨디션의 중심으로 떠오릅니다.',
+        mindSignal: '새로운 관리를 크게 늘리기보다 이미 흐트러진 습관 하나를 바로잡는 쪽이 편안합니다.',
+        carePoint: '가장 비어 있거나 압박받는 오행을 작은 루틴으로 채우면 전체 균형이 부드럽게 살아납니다.',
+        support: [],
+        caution: [],
+        routine: ['같은 시간 식사', '수면 시간 고정', '짧은 산책', '자극 하나 줄이기']
+      }
+    };
+    var moistureMap = {
+      dry: {
+        label: '건조 완화',
+        title: '마른 기운에 수분과 여백을 더하는 결',
+        summary: '금(金)의 수렴성과 화(火)의 열감이 겹치면 호흡, 피부 컨디션, 목·어깨의 긴장이 쉽게 굳어질 수 있습니다.',
+        carePoint: '수분, 습도, 호흡, 부드러운 스트레칭이 마른 기운을 촉촉하게 풀어줍니다.',
+        support: ['water', 'wood'],
+        caution: ['metal', 'fire'],
+        routine: ['따뜻한 물', '실내 습도', '어깨 이완', '기준 낮추기']
+      },
+      damp: {
+        label: '습기 순환',
+        title: '머무는 기운을 가볍게 흐르게 하는 결',
+        summary: '수(水)와 토(土)의 머무름이 깊어지면 몸이 무겁고 생각이 오래 고이는 생활 신호가 떠오를 수 있습니다.',
+        carePoint: '가벼운 걷기, 단순한 식사, 공간 정리가 정체된 기운을 천천히 움직입니다.',
+        support: ['wood', 'fire'],
+        caution: ['water', 'earth'],
+        routine: ['식후 걷기', '단순한 식사', '책상 정리', '햇빛 보기']
+      },
+      balanced: {
+        label: '건습 안정',
+        title: '수분과 온도가 크게 흔들리지 않는 결',
+        summary: '건조와 습기가 크게 치우치지 않아 오늘은 취약 오행의 보완 순서가 더 선명하게 떠오릅니다.',
+        carePoint: '과한 보정 대신 지금 필요한 오행 하나를 정해 반복 가능한 루틴으로 이어가면 좋습니다.',
+        support: [],
+        caution: [],
+        routine: ['물 천천히 마시기', '환기', '기본 식사', '짧은 휴식']
+      }
+    };
+    var temp = tempMap[tempKind] || tempMap.neutral;
+    var moisture = moistureMap[moistureKind] || moistureMap.balanced;
+    function unique(list) {
+      var out = [];
+      (list || []).forEach(function (el) {
+        if (el && out.indexOf(el) === -1) out.push(el);
+      });
+      return out;
+    }
+    var support = unique((temp.support || []).concat(moisture.support || []));
+    var caution = unique((temp.caution || []).concat(moisture.caution || []));
+    return {
+      tempKind: tempKind,
+      moistureKind: moistureKind,
+      label: temp.label + ' · ' + moisture.label,
+      shortLabel: temp.shortLabel,
+      heroCare: (support[0] && getHealthRoutineFocus(support[0])) || temp.routine[0],
+      temp: temp,
+      moisture: moisture,
+      supportElements: support,
+      cautionElements: caution,
+      routine: unique((temp.routine || []).concat(moisture.routine || [])).slice(0, 6)
+    };
+  }
+
+  function renderJohuDeepDive(johu, ratios, targetEl, avoidEl) {
+    var profile = getHealthJohuProfile(johu, ratios);
+    var support = profile.supportElements.length ? profile.supportElements : [targetEl].filter(Boolean);
+    var caution = profile.cautionElements.length ? profile.cautionElements : [avoidEl].filter(Boolean);
+    var supportText = support.map(function (el) { return EL_NAME[el] || el; }).join(', ') || EL_NAME[targetEl] || '토(土)';
+    var cautionText = caution.map(function (el) { return EL_NAME[el] || el; }).join(', ') || EL_NAME[avoidEl] || '화(火)';
+    return '<div class="cd-health-knowledge-grid">'
+      + '<article class="cd-health-knowledge-card" data-health-el="' + escapeHealthHtml(support[0] || targetEl || 'earth') + '">'
+      + '<div class="cd-health-card-top">'
+      + '<span class="cd-health-card-icon">🌤️</span>'
+      + '<div><small>조후 온도</small><b>' + escapeHealthHtml(profile.temp.title) + '</b></div>'
+      + '</div>'
+      + '<p class="cd-health-card-lead">' + escapeHealthHtml(profile.temp.summary) + '</p>'
+      + renderHealthMiniList([profile.temp.bodySignal, profile.temp.mindSignal, profile.temp.carePoint], 3)
+      + renderHealthChipList(profile.temp.routine, 4)
+      + '</article>'
+      + '<article class="cd-health-knowledge-card" data-health-el="' + escapeHealthHtml((profile.moisture.support || [targetEl])[0] || targetEl || 'earth') + '">'
+      + '<div class="cd-health-card-top">'
+      + '<span class="cd-health-card-icon">💧</span>'
+      + '<div><small>건습 리듬</small><b>' + escapeHealthHtml(profile.moisture.title) + '</b></div>'
+      + '</div>'
+      + '<p class="cd-health-card-lead">' + escapeHealthHtml(profile.moisture.summary) + '</p>'
+      + renderHealthMiniList([profile.moisture.carePoint, '오늘은 ' + supportText + '을 먼저 보완하고, ' + cautionText + ' 쪽 자극은 오후부터 줄이는 편이 좋습니다.'], 2)
+      + renderHealthChipList(profile.moisture.routine, 4)
+      + '</article>'
+      + '<article class="cd-health-knowledge-card" data-health-el="' + escapeHealthHtml(targetEl || support[0] || 'earth') + '">'
+      + '<div class="cd-health-card-top">'
+      + '<span class="cd-health-card-icon">🧭</span>'
+      + '<div><small>조후 보완 순서</small><b>' + escapeHealthHtml(profile.label) + '</b></div>'
+      + '</div>'
+      + '<p class="cd-health-card-lead">' + escapeHealthHtml('조후상 먼저 챙길 자리는 ' + supportText + '입니다. 여기에 억부에서 잡힌 보완 오행 ' + getHealthElementWithParticle(targetEl, 'object') + ' 함께 보면, 오늘은 무리한 관리보다 몸을 편하게 만드는 순서가 더 중요합니다.') + '</p>'
+      + renderHealthMiniList(['줄이면 좋은 자극은 ' + cautionText + '의 과열과 과한 반복입니다.', '오늘은 ' + profile.routine.slice(0, 3).join(', ') + '을 먼저 두는 편이 몸에 편안합니다.'], 2)
+      + renderHealthChipList(profile.routine, 6)
+      + '</article>'
+      + '</div>';
+  }
+
+  function renderHealthWeaknessDeepDive(weakestEls, axes, ratios, controlImpacts, johu) {
+    var profile = getHealthJohuProfile(johu, ratios);
+    var selected = [];
+    function add(el) {
+      if (el && selected.indexOf(el) === -1) selected.push(el);
+    }
+    (controlImpacts || []).slice(0, 2).forEach(function (impact) { add(impact.target); });
+    (weakestEls || []).forEach(add);
+    if (axes) add(axes.targetEl);
+    selected = selected.slice(0, 3);
+    if (!selected.length) selected = ['earth'];
+    return '<div class="cd-health-knowledge-grid">'
+      + selected.map(function (el, idx) {
+        var value = Math.max(0, Math.min(100, Math.round(Number(ratios[el] || 0))));
+        var state = getHealthState(el, ratios, controlImpacts || []);
+        var status = getElementStatus(value);
+        var knowledge = getHealthKnowledge(el);
+        var pressure = (controlImpacts || []).filter(function (impact) { return impact.target === el; })[0] || null;
+        var rule = pressure ? findHealthTensionRule(pressure.controller, pressure.target) : null;
+        var supportEl = getHealthGeneratingElement(el);
+        var drainEl = HEALTH_GENERATES[el] || 'fire';
+        var weaknessType = state === 'pressure' ? '압박형 취약' : ((status === 'veryWeak' || status === 'weak') ? '결핍형 취약' : ((status === 'strong' || status === 'excessive') ? '과다형 취약' : '리듬형 취약'));
+        var reason = rule
+          ? rule.title + '입니다. 이때 ' + EL_NAME[el] + '의 ' + knowledge.title + '이 약하게 눌리며 생활 신호가 먼저 올라올 수 있습니다.'
+          : (status === 'veryWeak' || status === 'weak'
+            ? EL_NAME[el] + '의 비율이 낮아 ' + knowledge.symbolicOrganRhythm + '을 천천히 보완해야 합니다.'
+            : EL_NAME[el] + '의 기운이 빠르게 쓰이니 장점과 피로 신호를 함께 봐야 합니다.');
+        var johuLine = profile.supportElements.indexOf(el) !== -1
+          ? '조후도 ' + EL_NAME[el] + ' 보완을 함께 잡고 있으니, 오늘은 이 오행을 가장 부드럽게 챙기면 좋습니다.'
+          : '조후상 보완 오행인 ' + (profile.supportElements.map(function (item) { return EL_NAME[item]; }).join(', ') || EL_NAME[axes && axes.targetEl] || '토(土)') + '을 함께 두면 ' + EL_NAME[el] + '의 부담이 줄어듭니다.';
+        var signals = getHealthKnowledgeSignals(el, status).slice(0, 2);
+        var guide = getHealthSignalGuideV2(el, state);
+        return '<article class="cd-health-knowledge-card" data-health-el="' + escapeHealthHtml(el) + '">'
+          + '<div class="cd-health-card-top">'
+          + '<span class="cd-health-card-icon">' + escapeHealthHtml(EL_ICON[el] || '🫧') + '</span>'
+          + '<div><small>취약 축 ' + (idx + 1) + ' · ' + value + '%</small><b>' + escapeHealthHtml(EL_NAME[el] + ' · ' + weaknessType) + '</b></div>'
+          + '</div>'
+          + '<p class="cd-health-card-lead">' + escapeHealthHtml(reason) + '</p>'
+          + renderHealthMiniList([guide[0], guide[1], johuLine].concat(signals), 4)
+          + renderHealthChipList([EL_NAME[supportEl] + ' 생조', EL_NAME[drainEl] + ' 설기', getHealthRoutineFocus(el), (knowledge.recoveryFocus || [])[0] || '작은 루틴'], 4)
+          + '</article>';
+      }).join('')
+      + '</div>';
+  }
+
   function renderHealthBalanceBars(ratios, targetEl, avoidEl, controlImpacts) {
     return HEALTH_ELEMENT_ORDER.map(function (el) {
       var value = Math.max(0, Math.min(100, Math.round(Number(ratios[el] || 0))));
-      var theme = getHealthElementTheme(el);
       var state = getHealthState(el, ratios, controlImpacts || []);
+      var status = getElementStatus(value);
+      var knowledge = getHealthKnowledge(el);
+      var ui = getHealthHealingElementUi(el);
       var tags = [];
       if (el === targetEl) tags.push('보완');
       if (el === avoidEl) tags.push('주의');
-      return '<div class="cd-health-balance-row">'
+      var focusClass = tags.length ? ' cd-health-balance-row--focus' : '';
+      return '<div class="cd-health-balance-row' + focusClass + '" data-health-el="' + escapeHealthHtml(el) + '" style="--health-el-color:' + ui.color + ';--health-el-soft:' + ui.soft + ';--health-el-border:' + ui.border + ';">'
         + '<div class="cd-health-balance-head">'
-        + '<span class="cd-health-balance-name">' + (EL_ICON[el] || '✦') + ' ' + escapeHealthHtml(EL_NAME[el]) + '</span>'
+        + '<span class="cd-health-balance-name"><em aria-hidden="true">' + escapeHealthHtml(EL_ICON[el] || '✦') + '</em><span>' + escapeHealthHtml(EL_NAME[el]) + '</span></span>'
         + '<span class="cd-health-balance-tags">' + tags.map(function (tag) { return '<b>' + tag + '</b>'; }).join('') + '</span>'
         + '</div>'
-        + '<p class="cd-health-balance-keyword">' + escapeHealthHtml(getHealthElementKeyword(el)) + '</p>'
-        + '<div class="cd-health-balance-track" aria-hidden="true"><span class="' + theme.soft + '" style="width:' + value + '%"></span></div>'
-        + '<div class="cd-health-balance-foot"><span>' + escapeHealthHtml(getHealthStateLabel(state)) + ' · ' + escapeHealthHtml(EL_ORGAN[el]) + '</span><strong>' + value + '%</strong></div>'
+        + '<p class="cd-health-balance-keyword">' + escapeHealthHtml(knowledge.title + ' · ' + knowledge.symbolicOrganRhythm) + '</p>'
+        + '<div class="cd-health-balance-track" aria-hidden="true"><span style="width:' + value + '%"></span></div>'
+        + '<div class="cd-health-balance-foot"><span>' + escapeHealthHtml(HEALTH_STATUS_LABEL[status] || getHealthStateLabel(state)) + ' · ' + escapeHealthHtml(EL_ORGAN[el]) + ' 리듬</span><strong>' + value + '%</strong></div>'
+        + '<p class="cd-health-balance-summary">' + escapeHealthHtml(getHealthKnowledgeMessage(el, status)) + '</p>'
+        + renderHealthMiniList(getHealthKnowledgeSignals(el, status), 2)
+        + renderHealthChipList((knowledge.recoveryFocus || []).concat(HEALTH_STATUS_UI[status]), 3)
         + '</div>';
     }).join('');
   }
@@ -3169,27 +3962,27 @@
     var targetState = getHealthState(axes.targetEl, ratios, controlImpacts);
     var weakText = weakestEls.map(function (el) { return EL_NAME[el]; }).join(', ');
     var seasonTone = johu && johu.type ? ({
-      hot: '조후는 열 쪽으로 기울어 있어 수(水)와 금(金)의 서늘한 조율이 몸의 과열을 눌러줍니다.',
-      warm: '조후는 따뜻한 쪽으로 흐르니 수(水)와 금(金)의 맑은 기운이 균형의 열쇠로 떠오릅니다.',
-      cold: '조후는 차가운 쪽에 머물러 화(火)와 목(木)의 온기, 움직임, 생장성이 회복의 문을 엽니다.',
-      cool: '조후는 서늘한 결을 띠어 화(火)와 목(木)의 따뜻한 활력이 몸의 리듬을 밝힙니다.'
+      hot: '조후가 열 쪽으로 기울면 몸은 쉽게 달아오르고 밤에는 긴장이 남기 쉽습니다. 수(水)와 금(金)을 보완해 열을 식히는 쪽이 좋습니다.',
+      warm: '조후가 따뜻한 편이면 활동성은 좋지만 과열로 흐르기 쉽습니다. 수(水)와 금(金)의 서늘한 관리가 균형을 잡아줍니다.',
+      cold: '조후가 차가운 편이면 회복은 느리고 몸의 시작이 늦을 수 있습니다. 화(火)와 목(木)의 온기, 움직임, 햇빛이 필요합니다.',
+      cool: '조후가 서늘하면 몸의 속도가 느려지기 쉽습니다. 화(火)의 온기와 목(木)의 가벼운 움직임을 더해 주세요.'
     })[johu.type] : '';
-    if (!seasonTone) seasonTone = '조후의 온도는 극단으로 치우치지 않아, 원국의 강약과 오늘의 일진이 회복 순서를 가리킵니다.';
+    if (!seasonTone) seasonTone = '조후가 크게 치우치지 않으므로 오늘은 원국의 강약과 억부 보완 오행을 기준으로 몸을 살피는 편이 좋습니다.';
 
     return '<div class="cd-health-master grid gap-3 lg:grid-cols-3">'
-      + '<div class="cd-health-info rounded-2xl border border-white/10 bg-slate-950/24 p-4 ring-1 ring-white/5 backdrop-blur-xl">'
-      + '<div class="mb-2 text-[11px] font-black leading-5 text-indigo-100/60">일간 관점</div>'
+      + '<div class="cd-health-info cd-health-insight-card cd-health-insight-card--day rounded-2xl border p-5">'
+      + '<div class="cd-health-insight-label"><span aria-hidden="true">👁</span> 일간 관점</div>'
       + '<p class="m-0 text-sm font-black leading-7 text-white">' + getHealthElementConsultation(strongestEl, strongestState) + '</p>'
       + '</div>'
-      + '<div class="cd-health-info rounded-2xl border border-white/10 bg-slate-950/24 p-4 ring-1 ring-white/5 backdrop-blur-xl">'
-      + '<div class="mb-2 text-[11px] font-black leading-5 text-indigo-100/60">오늘의 긴장 포인트</div>'
-      + '<p class="m-0 text-sm font-black leading-7 text-white">비어 있는 축은 ' + escapeHealthHtml(weakText) + '로 드러납니다.</p>'
+      + '<div class="cd-health-info cd-health-insight-card cd-health-insight-card--tension rounded-2xl border p-5">'
+      + '<div class="cd-health-insight-label"><span aria-hidden="true">⚡</span> 오늘의 긴장 포인트</div>'
+      + '<p class="m-0 text-sm font-black leading-7 text-white">' + escapeHealthHtml(weakText) + ' 쪽은 오늘 컨디션이 먼저 흔들리기 쉬운 자리입니다.</p>'
       + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">' + escapeHealthHtml(seasonTone) + '</p>'
       + '</div>'
-      + '<div class="cd-health-info rounded-2xl border border-white/10 bg-slate-950/24 p-4 ring-1 ring-white/5 backdrop-blur-xl">'
-      + '<div class="mb-2 text-[11px] font-black leading-5 text-indigo-100/60">회복 방향</div>'
+      + '<div class="cd-health-info cd-health-insight-card cd-health-insight-card--recovery rounded-2xl border p-5">'
+      + '<div class="cd-health-insight-label"><span aria-hidden="true">🌙</span> 회복 방향</div>'
       + '<p class="m-0 text-sm font-black leading-7 text-white">' + getHealthElementConsultation(axes.targetEl, targetState) + '</p>'
-      + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">오늘은 ' + escapeHealthHtml(EL_NAME[axes.targetEl]) + '을 살리고 ' + escapeHealthHtml(EL_NAME[axes.avoidEl]) + '의 자극을 낮출 때 몸의 중심이 가장 빠르게 돌아옵니다.</p>'
+      + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">오늘은 ' + escapeHealthHtml(getHealthElementWithParticle(axes.targetEl, 'object')) + ' 살리는 루틴을 먼저 두고, ' + escapeHealthHtml(EL_NAME[axes.avoidEl]) + ' 쪽 자극은 저녁부터 줄이는 편이 좋습니다.</p>'
       + '</div>'
       + '</div>';
   }
@@ -3199,31 +3992,56 @@
     var avoidName = EL_NAME[avoidEl] || '토';
     var strongName = EL_NAME[strongestEl] || '토';
     var todayName = EL_NAME[todayEl] || strongName;
+    var targetObject = getHealthElementWithParticle(targetEl, 'object');
     var routine = getHealthRoutineFocus(targetEl);
+    var targetInfo = getHealthKnowledge(targetEl);
+    var avoidInfo = getHealthKnowledge(avoidEl);
+    var todayInfo = getHealthKnowledge(todayEl);
+    var strongInfo = getHealthKnowledge(strongestEl);
     return [
       {
         title: '오늘',
         value: todayName + ' 기운',
-        body: '오늘은 ' + todayName + '의 결이 몸의 반응을 먼저 비춥니다. 짧은 회복 간격을 사이사이에 넣을수록 운의 흐름이 편안해집니다.',
-        routine: routine
+        body: '오늘은 ' + todayName + ' 쪽 반응이 먼저 올라옵니다. 컨디션을 몰아붙이기보다 일하는 중간에 물 한 잔, 3분 스트레칭처럼 작게 끊어 쉬는 편이 좋습니다.',
+        routine: routine,
+        details: [
+          todayInfo.symbolicOrganRhythm + '에 해당하는 생활 신호를 가볍게 살피세요.',
+          (todayInfo.bodyKeywords || []).slice(0, 3).join(' · ') + ' 신호가 반복되면 쉬는 시간을 먼저 넣으세요.',
+          ((todayInfo.recommendedRest || [])[0] || '짧은 휴식') + '이 오늘 몸에 잘 맞습니다.'
+        ]
       },
       {
         title: '이번 주',
         value: targetName + ' 보완',
-        body: '이번 주 건강운은 ' + targetName + '을 살릴 때 열립니다. 매일 같은 시간에 하나의 생활 의식을 붙이면 축이 차분히 돌아옵니다.',
-        routine: '같은 시간 루틴'
+        body: '이번 주는 억부상 비어 있는 ' + targetObject + ' 생활 속에서 천천히 채우는 때입니다. 식사와 잠드는 시간을 크게 흔들지 않으면 몸의 중심이 훨씬 편해집니다.',
+        routine: '식사·수면 시간 맞추기',
+        details: [
+          (targetInfo.recommendedFoods || []).slice(0, 2).join(' · ') + '처럼 부담 없는 음식을 우선하세요.',
+          (targetInfo.recommendedMovement || []).slice(0, 2).join(' · ') + ' 정도면 충분합니다.',
+          '컨디션이 흔들리는 날에는 ' + ((targetInfo.recommendedTea || [])[0] || '따뜻한 물') + '로 속도를 낮추세요.'
+        ]
       },
       {
         title: '이번 달',
         value: avoidName + ' 절제',
-        body: '이번 달은 ' + avoidName + '의 자극이 과해지지 않도록 살피는 때입니다. 작은 신호를 넘기지 않으면 큰 소모를 미리 피할 수 있습니다.',
-        routine: '자극 낮추기'
+        body: '이번 달은 ' + avoidName + ' 쪽 자극이 쉽게 커집니다. 늦은 밤까지 버티는 습관, 한 번에 몰아치는 일정을 줄이면 피로가 덜 쌓입니다.',
+        routine: '밤 시간 자극 줄이기',
+        details: [
+          (avoidInfo.avoidPatterns || []).slice(0, 2).join(' · ') + ' 패턴은 줄이는 편이 좋습니다.',
+          (avoidInfo.recommendedRest || []).slice(0, 2).join(' · ') + '을 저녁 루틴에 붙이세요.',
+          '몸이 예민해지는 날에는 약속보다 회복 시간을 먼저 잡으세요.'
+        ]
       },
       {
         title: '계절 전환기',
         value: strongName + ' 조율',
-        body: '계절이 바뀔 때는 타고난 강점인 ' + strongName + '이 빠르게 앞서갑니다. 비어 있는 축을 먼저 채우면 건강운의 바닥이 단단해집니다.',
-        routine: '수면과 보온'
+        body: '계절이 바뀔 때는 원국에서 강한 ' + strongName + '이 먼저 반응합니다. 늘 해오던 방식만 고집하기보다 부족한 오행을 조금씩 채워야 몸이 덜 흔들립니다.',
+        routine: '부족한 리듬 보완',
+        details: [
+          strongInfo.symbolicOrganRhythm + '이 강점으로 쓰이되 과로 신호를 함께 살피세요.',
+          (targetInfo.recoveryFocus || []).slice(0, 2).join(' · ') + '을 계절 전환기 기본 루틴으로 두세요.',
+          '수면, 식사, 움직임 중 하나만 무너져도 컨디션이 크게 흔들릴 수 있습니다.'
+        ]
       }
     ];
   }
@@ -3236,29 +4054,79 @@
           + '<div class="cd-health-period-title">' + escapeHealthHtml(item.title) + '</div>'
           + '<b>' + escapeHealthHtml(item.value) + '</b>'
           + '<p>' + escapeHealthHtml(item.body) + '</p>'
+          + (item.details && item.details.length ? '<ul class="cd-health-period-detail">' + item.details.map(function (detail) { return '<li>' + escapeHealthHtml(detail) + '</li>'; }).join('') + '</ul>' : '')
           + '<em>' + escapeHealthHtml(item.routine) + '</em>'
           + '</article>';
       }).join('')
       + '</div>';
   }
 
+  function getHealthElementParticle(el, kind) {
+    var name = (getHealthKnowledge(el).koreanName || '').slice(-1);
+    var hasBatchim = name === '목' || name === '금';
+    if (kind === 'subject') return hasBatchim ? '이' : '가';
+    if (kind === 'object') return hasBatchim ? '을' : '를';
+    return hasBatchim ? '은' : '는';
+  }
+
+  function getHealthElementWithParticle(el, kind) {
+    return (EL_NAME[el] || '토(土)') + getHealthElementParticle(el, kind);
+  }
+
   function getHealthRemedyItems(targetEl, avoidEl) {
     var targetName = EL_NAME[targetEl] || '토';
     var avoidName = EL_NAME[avoidEl] || '토';
-    var remedy = {
-      wood: ['초록빛 식재료', '아침 산책', '목과 어깨 이완', '분노를 글로 흘려보내기'],
-      fire: ['햇빛 10분', '따뜻한 차', '저녁 조명 낮추기', '기쁨을 작게 표현하기'],
-      earth: ['따뜻한 한 끼', '식후 걷기', '공간 정돈', '걱정을 한 장에 적고 접기'],
-      metal: ['환기', '복식호흡', '흰색 식재료', '책상 위 세 물건 비우기'],
-      water: ['따뜻한 물', '하복부 보온', '밤 화면 줄이기', '잠들기 전 고요한 음악']
-    };
-    var targetList = remedy[targetEl] || remedy.earth;
-    var avoidList = remedy[avoidEl] || remedy.earth;
+    var targetInfo = getHealthKnowledge(targetEl);
+    var avoidInfo = getHealthKnowledge(avoidEl);
+    var supportEl = getHealthGeneratingElement(targetEl);
+    var supportName = EL_NAME[supportEl] || '수(水)';
+    var supportInfo = getHealthKnowledge(supportEl);
+    var drainEl = HEALTH_GENERATES[avoidEl] || targetEl;
+    var drainName = EL_NAME[drainEl] || targetName;
+    var drainInfo = getHealthKnowledge(drainEl);
+    var pressureTargetEl = HEALTH_CONTROL_REL[avoidEl] || targetEl;
+    var pressureTargetName = EL_NAME[pressureTargetEl] || targetName;
+    var tensionRule = findHealthTensionRule(avoidEl, pressureTargetEl) || findHealthTensionRule(avoidEl, targetEl);
+    var targetFood = ((targetInfo.recommendedFoods || [])[0] || '따뜻한 식사');
+    var supportRest = ((supportInfo.recommendedRest || [])[0] || '짧은 휴식');
+    var targetMove = ((targetInfo.recommendedMovement || [])[0] || getHealthRoutineFocus(targetEl));
+    var drainMove = ((drainInfo.recommendedMovement || [])[0] || getHealthRoutineFocus(drainEl));
+    var avoidPattern = ((avoidInfo.avoidPatterns || [])[0] || (HEALTH_AVOID_PLAN[avoidEl] || '과한 자극'));
+    var targetRest = ((targetInfo.recommendedRest || [])[0] || '조용한 휴식');
+    var pressureBody = tensionRule
+      ? tensionRule.carePoint
+      : avoidName + '의 힘이 강하면 ' + pressureTargetName + ' 쪽 생활 리듬이 눌릴 수 있습니다. 오늘은 자극을 키우기보다 기준을 낮추고 회복 시간을 먼저 두세요.';
     return [
-      { label: targetName + ' 개운', body: targetList.slice(0, 3).join(' · ') },
-      { label: avoidName + ' 절제', body: avoidList.slice(1, 4).join(' · ') },
-      { label: '공간 개운', body: '침대 주변을 비우고, 물 한 잔과 은은한 빛을 곁에 두면 회복운이 부드럽게 머무릅니다.' },
-      { label: '마음 개운', body: '오늘 몸이 거절하는 약속 하나를 줄이면 기운의 새 길이 열립니다.' }
+      {
+        label: '생조 보완',
+        body: supportName + '는 ' + getHealthElementWithParticle(targetEl, 'object') + ' 생합니다. ' + getHealthElementWithParticle(targetEl, 'subject') + ' 약하거나 눌릴 때는 먼저 ' + supportName + '의 바탕을 세워야 회복이 부드럽게 이어집니다.',
+        details: [supportRest, ((supportInfo.recommendedTea || [])[0] || '따뜻한 물') + '를 천천히 마시기', targetName + ' 루틴은 한 번에 늘리지 말고 작게 시작하기'],
+        tags: [supportName + ' 생조', targetName + ' 보완', targetInfo.symbolicOrganRhythm]
+      },
+      {
+        label: targetName + ' 본기 보완',
+        body: targetInfo.weakMessage || (targetName + '이 부족하면 생활 리듬이 쉽게 흔들립니다. 오늘은 몸이 바로 받아들이는 행동 하나가 가장 좋습니다.'),
+        details: [targetFood, targetMove, ((targetInfo.recoveryFocus || [])[0] || '반복 가능한 작은 루틴')],
+        tags: [targetName, targetInfo.title, '오늘 보완']
+      },
+      {
+        label: '설기 절제',
+        body: avoidName + '의 자극은 억누르기보다 ' + drainName + ' 쪽으로 가볍게 흘려보내면 과열이 덜합니다. 강한 기운을 무리하게 막지 말고 안전한 출구를 만들어주세요.',
+        details: [drainMove, avoidPattern + ' 줄이기', ((drainInfo.recommendedRest || [])[0] || '짧은 휴식') + '로 마무리하기'],
+        tags: [avoidName + ' 절제', drainName + ' 설기', '과열 낮추기']
+      },
+      {
+        label: '극 완화',
+        body: getHealthElementWithParticle(avoidEl, 'subject') + ' ' + getHealthElementWithParticle(pressureTargetEl, 'object') + ' 누르는 자리까지 함께 봅니다. 균형이면 질서가 되지만 오늘처럼 피로가 있으면 압박으로 느껴질 수 있습니다.',
+        details: [pressureBody, ((getHealthKnowledge(pressureTargetEl).recoveryFocus || [])[0] || targetRest), '해야 할 일을 하나 줄이고 몸의 반응을 먼저 보기'],
+        tags: [avoidName + ' 극', pressureTargetName + ' 보호', '긴장 완화']
+      },
+      {
+        label: '공간·마음 개운',
+        body: '개운은 큰 의식보다 몸이 편해지는 환경에서 먼저 살아납니다. 오늘은 ' + getHealthElementWithParticle(targetEl, 'object') + ' 살리는 공간을 만들고, ' + getHealthElementWithParticle(avoidEl, 'object') + ' 키우는 자극을 눈앞에서 치우세요.',
+        details: [HEALTH_ENV_PLAN[targetEl] || HEALTH_ENV_PLAN.earth, HEALTH_AVOID_PLAN[avoidEl] || HEALTH_AVOID_PLAN.earth, '침대 주변을 단순하게 비우고 잠들기 전 시야를 낮추기'],
+        tags: ['공간 정돈', '자극 낮추기', '회복 여백']
+      }
     ];
   }
 
@@ -3268,89 +4136,105 @@
         return '<article class="cd-health-remedy-card">'
           + '<div>' + escapeHealthHtml(item.label) + '</div>'
           + '<p>' + escapeHealthHtml(item.body) + '</p>'
+          + renderHealthMiniList(item.details, 3)
+          + renderHealthChipList(item.tags, 3)
           + '</article>';
       }).join('')
       + '</div>';
   }
 
-  function renderTodayHealthSummaryCard(condition, grade, axes, routineFocus, strongestEl, controlImpacts) {
+  function renderTodayHealthSummaryCard(condition, grade, axes, routineFocus, strongestEl, controlImpacts, dayMaster) {
+    dayMaster = dayMaster || { element: strongestEl, label: '일간 리듬' };
     var pressureText = controlImpacts && controlImpacts.length
       ? EL_NAME[controlImpacts[0].target] + ' 압박 / ' + EL_NAME[controlImpacts[0].controller] + ' 과열'
-      : EL_NAME[strongestEl] + ' 강점 축';
+      : EL_NAME[strongestEl] + ' 강점 오행';
     var tags = [
       EL_NAME[axes.targetEl] + ' 보완',
       EL_NAME[axes.avoidEl] + ' 자극 낮추기',
       routineFocus,
       '회복 여백'
     ];
-    return '<article class="cd-health-today-card">'
+    return '<div class="cd-health-today-card cd-health-today-card--flat">'
       + '<div class="cd-health-today-badge">TODAY</div>'
-      + '<h4>오늘의 건강운 카드</h4>'
       + '<p class="cd-health-today-lead">' + escapeHealthHtml(condition.lead) + '</p>'
       + '<div class="cd-health-today-grid">'
-      + '<span><b>오늘의 기운</b>' + escapeHealthHtml(EL_NAME[strongestEl]) + '</span>'
+      + '<span><b>일간 리듬</b>' + escapeHealthHtml(dayMaster.label + ' · ' + EL_NAME[dayMaster.element]) + '</span>'
       + '<span><b>컨디션 등급</b>' + escapeHealthHtml(grade.label) + '</span>'
-      + '<span><b>압박받는 축</b>' + escapeHealthHtml(pressureText) + '</span>'
+      + '<span><b>압박 오행</b>' + escapeHealthHtml(pressureText) + '</span>'
       + '<span><b>오늘 보완</b>' + escapeHealthHtml(EL_NAME[axes.targetEl]) + '</span>'
-      + '<span><b>안정 루틴</b>' + escapeHealthHtml(routineFocus) + '</span>'
       + '</div>'
       + '<p class="cd-health-today-sub">' + escapeHealthHtml(condition.second) + '</p>'
       + '<div class="cd-health-tag-row">' + tags.map(function (tag) { return '<i>' + escapeHealthHtml(tag) + '</i>'; }).join('') + '</div>'
-      + '</article>';
+      + '</div>';
   }
 
   function renderConstitutionCards(strongestEl, weakestEls) {
     var weakText = weakestEls.map(function (el) { return EL_NAME[el]; }).join(', ');
     var weakBody = weakestEls.map(getHealthElementSupportCopy).join(' ');
     return '<div class="cd-health-constitution-grid">'
-      + '<article><span>1</span><b>강하게 쓰이는 축</b><strong>' + escapeHealthHtml(EL_NAME[strongestEl]) + '</strong><p>' + escapeHealthHtml(getHealthElementPositiveCopy(strongestEl)) + '</p><em>강점이지만 과해지면 피로 신호가 먼저 떠오를 수 있습니다.</em></article>'
-      + '<article><span>2</span><b>쉽게 피로해지는 축</b><strong>' + escapeHealthHtml(weakText) + '</strong><p>' + escapeHealthHtml(weakBody) + '</p><em>생활 신호가 약하게 반복될 때 먼저 살피면 좋습니다.</em></article>'
-      + '<article><span>3</span><b>보완이 필요한 축</b><strong>' + escapeHealthHtml(weakText) + '</strong><p>비어 보이는 축은 강하게 밀어붙이기보다 반복 가능한 생활 균형으로 채울 때 편안하게 살아납니다.</p><em>관리 포인트: 같은 시간 식사, 수면, 가벼운 움직임</em></article>'
+      + '<article><span>1</span><b>강하게 쓰이는 오행</b><strong>' + escapeHealthHtml(EL_NAME[strongestEl]) + '</strong><p>' + escapeHealthHtml(getHealthElementPositiveCopy(strongestEl)) + '</p><em>장점으로 쓰이지만 과해지면 같은 자리에서 피로 신호가 먼저 올라옵니다.</em></article>'
+      + '<article><span>2</span><b>쉽게 피로해지는 오행</b><strong>' + escapeHealthHtml(weakText) + '</strong><p>' + escapeHealthHtml(weakBody) + '</p><em>반복되는 생활 신호가 있다면 이 오행부터 살피는 편이 좋습니다.</em></article>'
+      + '<article><span>3</span><b>보완이 필요한 오행</b><strong>' + escapeHealthHtml(weakText) + '</strong><p>비어 보이는 오행은 강하게 밀어붙이기보다 식사, 수면, 움직임처럼 반복 가능한 습관으로 채울 때 안정됩니다.</p><em>관리 포인트: 같은 시간 식사, 수면, 가벼운 움직임</em></article>'
       + '</div>';
   }
 
   function renderRecoveryRoutineBoard(targetEl, avoidEl) {
     var foods = (HEALTH_FOOD_PLAN[targetEl] || HEALTH_DEFAULT_FOOD_PLAN || []).filter(Boolean);
     var food = foods[0] || HEALTH_DEFAULT_FOOD_PLAN[0];
+    var targetKnowledge = getHealthKnowledge(targetEl);
+    var avoidKnowledge = getHealthKnowledge(avoidEl);
     return '<div class="cd-health-routine-board">'
-      + '<article><b>추천 음식/차</b><strong>' + escapeHealthHtml(food.name) + '</strong><p>' + escapeHealthHtml(food.tip || food.reason || '따뜻하고 담백한 한 끼가 몸의 중심을 부드럽게 세웁니다.') + '</p></article>'
-      + '<article><b>추천 움직임</b><strong>' + escapeHealthHtml(getHealthRoutineFocus(targetEl)) + '</strong><p>' + escapeHealthHtml(HEALTH_MOVEMENT_PLAN[targetEl] || HEALTH_MOVEMENT_PLAN.earth) + '</p></article>'
-      + '<article><b>추천 휴식</b><strong>자극 낮추기</strong><p>취침 전 30분은 강한 화면과 감정 소모 대화를 줄이세요.</p></article>'
-      + '<article><b>피하면 좋은 패턴</b><strong>' + escapeHealthHtml(EL_NAME[avoidEl]) + ' 과열</strong><p>' + escapeHealthHtml(HEALTH_AVOID_PLAN[avoidEl] || HEALTH_AVOID_PLAN.earth) + '</p></article>'
-      + '<article class="cd-health-routine-wide"><b>오늘의 한 문장</b><p>오늘은 몸의 속도를 마음보다 먼저 챙기는 날입니다.</p></article>'
+      + '<article><b>추천 음식/차</b><strong>' + escapeHealthHtml(food.name) + '</strong><p>' + escapeHealthHtml((targetKnowledge.recommendedFoods || []).slice(0, 3).join(' · ') + ' / ' + (targetKnowledge.recommendedTea || []).slice(0, 2).join(' · ')) + '</p><em>' + escapeHealthHtml(food.tip || food.reason || '따뜻하고 담백한 한 끼가 몸의 중심을 부드럽게 세웁니다.') + '</em></article>'
+      + '<article><b>추천 움직임</b><strong>' + escapeHealthHtml(getHealthRoutineFocus(targetEl)) + '</strong><p>' + escapeHealthHtml((targetKnowledge.recommendedMovement || []).join(' · ') || HEALTH_MOVEMENT_PLAN[targetEl] || HEALTH_MOVEMENT_PLAN.earth) + '</p><em>' + escapeHealthHtml(HEALTH_MOVEMENT_PLAN[targetEl] || HEALTH_MOVEMENT_PLAN.earth) + '</em></article>'
+      + '<article><b>추천 휴식</b><strong>자극 낮추기</strong><p>' + escapeHealthHtml((targetKnowledge.recommendedRest || []).join(' · ') || '취침 전 30분은 강한 화면과 감정 소모 대화를 줄이세요.') + '</p><em>회복은 크게 밀어붙일수록 멀어지고, 작게 반복할수록 가까워집니다.</em></article>'
+      + '<article><b>피하면 좋은 패턴</b><strong>' + escapeHealthHtml(EL_NAME[avoidEl]) + ' 과열</strong><p>' + escapeHealthHtml((avoidKnowledge.avoidPatterns || []).join(' · ') || HEALTH_AVOID_PLAN[avoidEl] || HEALTH_AVOID_PLAN.earth) + '</p><em>' + escapeHealthHtml(HEALTH_AVOID_PLAN[avoidEl] || HEALTH_AVOID_PLAN.earth) + '</em></article>'
+      + '<article class="cd-health-routine-wide"><b>오늘의 한 문장</b><p>오늘은 마음이 앞서도 몸은 천천히 따라옵니다. ' + escapeHealthHtml(targetKnowledge.title) + '은 한 끼를 따뜻하게 먹고, 숨을 길게 쉬고, 짧게 걷는 일부터 살아납니다.</p></article>'
       + '</div>';
   }
 
+  function ensureHealthFontStyle() {
+    try {
+      if (!w.document || document.getElementById('cd-health-r2-fonts')) return;
+      var style = document.createElement('style');
+      style.id = 'cd-health-r2-fonts';
+      style.textContent = '@font-face{font-family:"CDHealthReadable";src:url("https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf") format("opentype");font-weight:500;font-style:normal;font-display:swap}'
+        + '@font-face{font-family:"CDHealthDisplay";src:url("https://assets.code-destiny.com/Mulmaru.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}';
+      document.head.appendChild(style);
+    } catch (_) {}
+  }
+
   function renderHealthWellnessStyle() {
-    return '<style data-cd-health-ui="health-wellness-cream-v20260617">'
+    ensureHealthFontStyle();
+    return '<style data-cd-health-ui="health-wellness-knowledge-v20260617">'
       + '#healthReportCard{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))!important}'
-      + '.cd-health-wellness-v20260607{font-family:var(--font-body,"Pretendard","Noto Sans KR",system-ui,sans-serif);background:radial-gradient(circle at 14% 0%,rgba(251,207,232,.62),transparent 26%),radial-gradient(circle at 92% 4%,rgba(186,230,253,.48),transparent 27%),linear-gradient(135deg,#fffaf1 0%,#fbf7ef 42%,#edf8f2 100%)!important;border:1px solid rgba(218,198,156,.72)!important;border-radius:26px!important;color:#243b36!important;box-shadow:0 26px 70px rgba(103,75,48,.16),0 8px 22px rgba(20,83,45,.08),inset 0 1px 0 rgba(255,255,255,.92)!important}'
-      + '.cd-health-wellness-v20260607:before{content:"";position:absolute;inset:8px;border:1px solid rgba(255,255,255,.72);border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 34%);pointer-events:none}'
-      + '.cd-health-wellness-v20260607:after{content:"";position:absolute;inset:auto 18px 18px 18px;height:1px;background:linear-gradient(90deg,transparent,rgba(190,150,79,.54),transparent);pointer-events:none}'
+      + '.cd-health-wellness-v20260607{font-family:"CDHealthReadable",var(--font-body,"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif);font-synthesis-weight:auto;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;isolation:isolate;background:radial-gradient(circle at 14% 0%,rgba(251,207,232,.62),transparent 26%),radial-gradient(circle at 92% 4%,rgba(186,230,253,.48),transparent 27%),linear-gradient(135deg,#fffaf1 0%,#fbf7ef 42%,#edf8f2 100%)!important;border:1px solid rgba(218,198,156,.72)!important;border-radius:26px!important;color:#243b36!important;box-shadow:0 26px 70px rgba(103,75,48,.16),0 8px 22px rgba(20,83,45,.08),inset 0 1px 0 rgba(255,255,255,.92)!important}'
+      + '.cd-health-wellness-v20260607:before{content:"";position:absolute;inset:8px;z-index:0;border:1px solid rgba(255,255,255,.72);border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.16),transparent 34%);pointer-events:none}'
+      + '.cd-health-wellness-v20260607:after{content:"";position:absolute;z-index:0;inset:auto 18px 18px 18px;height:1px;background:linear-gradient(90deg,transparent,rgba(190,150,79,.54),transparent);pointer-events:none}'
       + '.cd-health-wellness-v20260607 *{letter-spacing:0!important;box-sizing:border-box}'
-      + '.cd-health-wellness-v20260607 h3,.cd-health-wellness-v20260607 h4{font-family:var(--font-display,"Gowun Dodum","Noto Sans KR",serif);color:#263149!important;text-shadow:none!important}'
+      + '.cd-health-wellness-v20260607 h3,.cd-health-wellness-v20260607 h4{font-family:"CDHealthReadable","CDHealthDisplay",var(--font-display,"Gowun Dodum","Noto Sans KR",serif);color:#263149!important;text-shadow:none!important}'
       + '.cd-health-wellness-v20260607 b,.cd-health-wellness-v20260607 strong{color:#173b33!important}'
       + '.cd-health-wellness-v20260607 p,.cd-health-wellness-v20260607 div,.cd-health-wellness-v20260607 span,.cd-health-wellness-v20260607 li{color:#314e46!important}'
-      + '.cd-health-wellness-v20260607 .relative.z-10{gap:16px!important}'
-      + '.cd-health-wellness-v20260607 .cd-health-hero,.cd-health-wellness-v20260607 .cd-health-section,.cd-health-wellness-v20260607 .cd-health-info,.cd-health-wellness-v20260607 .cd-health-food,.cd-health-wellness-v20260607 .cd-health-risk,.cd-health-wellness-v20260607 .cd-health-mission{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,252,244,.92))!important;border:1px solid rgba(218,198,156,.56)!important;border-radius:22px!important;box-shadow:0 16px 34px rgba(82,63,38,.10),inset 0 1px 0 rgba(255,255,255,.98)!important}'
+      + '.cd-health-wellness-v20260607 .relative.z-10{position:relative!important;z-index:1!important;gap:16px!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero,.cd-health-wellness-v20260607 .cd-health-section,.cd-health-wellness-v20260607 .cd-health-info,.cd-health-wellness-v20260607 .cd-health-food,.cd-health-wellness-v20260607 .cd-health-risk,.cd-health-wellness-v20260607 .cd-health-mission{background:linear-gradient(180deg,rgba(255,253,248,.98),rgba(255,247,237,.95))!important;border:1px solid rgba(214,184,128,.58)!important;border-radius:24px!important;box-shadow:0 18px 44px rgba(87,64,103,.10),0 8px 18px rgba(33,92,76,.07),inset 0 1px 0 rgba(255,255,255,.98)!important}'
       + '.cd-health-wellness-v20260607 .cd-health-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(255,247,233,.96) 48%,rgba(237,247,242,.94))!important}'
-      + '.cd-health-wellness-v20260607 .cd-health-hero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 10% 12%,rgba(255,228,181,.42),transparent 24%),linear-gradient(90deg,rgba(255,255,255,.34),transparent 52%);pointer-events:none}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero:before{content:"";position:absolute;inset:0;z-index:0;background:radial-gradient(circle at 10% 12%,rgba(255,228,181,.42),transparent 24%),linear-gradient(90deg,rgba(255,255,255,.34),transparent 52%);pointer-events:none}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero>*{position:relative;z-index:1}'
       + '.cd-health-wellness-v20260607 .cd-health-hero-visual{position:relative;min-height:206px;overflow:hidden;border-radius:20px;border:1px solid rgba(200,171,105,.50);background:linear-gradient(180deg,#fff5df 0%,#efe4ff 45%,#cfeee6 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.88),0 18px 34px rgba(89,65,38,.12)}'
-      + '.cd-health-wellness-v20260607 .cd-health-hero-visual:before{content:"";position:absolute;left:18px;top:16px;width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 36% 35%,#fff 0 26%,#fde68a 27% 48%,rgba(253,230,138,.30) 49% 70%,transparent 71%);box-shadow:0 0 34px rgba(250,204,21,.34)}'
-      + '.cd-health-wellness-v20260607 .cd-health-hero-visual:after{content:"";position:absolute;right:-28px;top:-32px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.58),rgba(196,181,253,.18) 52%,transparent 70%)}'
-      + '.cd-health-wellness-v20260607 .cd-health-figure{position:absolute;left:22px;right:22px;bottom:18px;height:72px;border-radius:18px 18px 24px 24px;background:linear-gradient(135deg,#fffdfa,#f9ead0);border:1px solid rgba(177,142,78,.36);box-shadow:0 18px 34px rgba(80,56,31,.15)}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero-visual:before{content:"";position:absolute;z-index:0;left:18px;top:16px;width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 36% 35%,#fff 0 26%,#fde68a 27% 48%,rgba(253,230,138,.30) 49% 70%,transparent 71%);box-shadow:0 0 34px rgba(250,204,21,.34);pointer-events:none}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero-visual:after{content:"";position:absolute;z-index:0;right:-28px;top:-32px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.58),rgba(196,181,253,.18) 52%,transparent 70%);pointer-events:none}'
+      + '.cd-health-wellness-v20260607 .cd-health-figure{position:absolute;z-index:1;left:22px;right:22px;bottom:18px;height:72px;border-radius:18px 18px 24px 24px;background:linear-gradient(135deg,#fffdfa,#f9ead0);border:1px solid rgba(177,142,78,.36);box-shadow:0 18px 34px rgba(80,56,31,.15);pointer-events:none}'
       + '.cd-health-wellness-v20260607 .cd-health-figure:before{content:"";position:absolute;left:22px;top:16px;width:68px;height:38px;border-radius:10px;background:linear-gradient(90deg,#fff,#fff7e6);border:1px solid rgba(177,142,78,.24);box-shadow:88px 2px 0 -3px rgba(255,255,255,.72),88px 2px 0 -2px rgba(177,142,78,.20)}'
       + '.cd-health-wellness-v20260607 .cd-health-figure:after{content:"";position:absolute;right:28px;bottom:15px;width:36px;height:28px;border-radius:0 0 18px 18px;background:linear-gradient(180deg,#fff7ed,#f0fdfa);border:1px solid rgba(20,184,166,.24);box-shadow:11px -4px 0 -7px transparent,0 12px 20px rgba(20,83,45,.10)}'
-      + '.cd-health-wellness-v20260607 .cd-health-visual-note{position:absolute;right:14px;bottom:106px;max-width:162px;border:1px solid rgba(222,196,135,.52);border-radius:16px;background:rgba(255,253,247,.88);padding:10px 11px;font-size:12px;font-weight:900;line-height:1.56;color:#5b3d59!important;box-shadow:0 14px 28px rgba(103,75,48,.12);backdrop-filter:blur(10px)}'
+      + '.cd-health-wellness-v20260607 .cd-health-visual-note{position:absolute;z-index:3;right:14px;bottom:106px;max-width:162px;border:1px solid rgba(222,196,135,.52);border-radius:16px;background:rgba(255,253,247,.92);padding:10px 11px;font-size:12px;font-weight:650;line-height:1.68;color:#5b3d59!important;box-shadow:0 14px 28px rgba(103,75,48,.12);backdrop-filter:blur(10px)}'
       + '.cd-health-wellness-v20260607 .cd-health-kicker{background:#eefcf5!important;border-color:rgba(22,163,74,.26)!important;color:#086046!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.9)!important}'
       + '.cd-health-wellness-v20260607 .cd-health-grade{background:linear-gradient(180deg,#fff7ed,#fffaf3)!important;border-color:rgba(216,180,92,.44)!important;color:#7c3f16!important}'
       + '.cd-health-wellness-v20260607 .cd-health-callout{background:linear-gradient(135deg,#f0fdf4,#fffaf0)!important;border-color:rgba(34,197,94,.26)!important;color:#14532d!important}'
-      + '.cd-health-wellness-v20260607 .cd-health-section-icon{background:linear-gradient(135deg,#fff7ed,#ecfdf5)!important;border-color:rgba(216,180,92,.34)!important;color:#0f766e!important;box-shadow:0 8px 18px rgba(120,90,40,.08)!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-section-icon{background:linear-gradient(135deg,#fff7ed,#f5f0ff 54%,#ecfdf5)!important;border-color:rgba(216,180,92,.34)!important;color:#4b315f!important;box-shadow:0 10px 22px rgba(120,90,40,.10)!important}'
       + '.cd-health-wellness-v20260607 .cd-health-pill{background:#fffdf7!important;border-color:rgba(20,184,166,.24)!important;color:#0f766e!important;box-shadow:0 8px 18px rgba(20,83,45,.06)!important}'
       + '.cd-health-wellness-v20260607 .cd-health-avoid{background:#fff7ed!important;border-color:rgba(251,146,60,.30)!important;color:#8a3412!important}'
-      + '.cd-health-wellness-v20260607 .cd-health-balance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(154px,1fr));gap:12px}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}'
       + '.cd-health-wellness-v20260607 .cd-health-balance-row{display:grid;gap:8px;min-height:132px;border:1px solid rgba(218,198,156,.50);border-radius:18px;background:linear-gradient(180deg,#fffefa,#fff7ec);padding:13px;box-shadow:0 12px 24px rgba(80,60,28,.08);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}'
-      + '.cd-health-wellness-v20260607 .cd-health-balance-row:hover,.cd-health-wellness-v20260607 .cd-health-period-card:hover,.cd-health-wellness-v20260607 .cd-health-remedy-card:hover,.cd-health-wellness-v20260607 .cd-health-risk:hover{transform:translateY(-2px);border-color:rgba(20,184,166,.36)!important;box-shadow:0 18px 34px rgba(80,60,28,.12)!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-row:hover,.cd-health-wellness-v20260607 .cd-health-period-card:hover,.cd-health-wellness-v20260607 .cd-health-remedy-card:hover,.cd-health-wellness-v20260607 .cd-health-risk:hover,.cd-health-wellness-v20260607 .cd-health-knowledge-card:hover{transform:translateY(-2px);border-color:rgba(20,184,166,.36)!important;box-shadow:0 18px 34px rgba(80,60,28,.12)!important}'
       + '.cd-health-wellness-v20260607 .cd-health-balance-head,.cd-health-wellness-v20260607 .cd-health-balance-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}'
       + '.cd-health-wellness-v20260607 .cd-health-balance-name{font-size:14px;font-weight:950;line-height:1.35;color:#213f37!important}'
       + '.cd-health-wellness-v20260607 .cd-health-balance-keyword{margin:0;font-size:12px;line-height:1.55;font-weight:800;color:#725a6a!important}'
@@ -3360,11 +4244,12 @@
       + '.cd-health-wellness-v20260607 .cd-health-balance-track span{display:block;height:100%;min-width:8%;border-radius:999px;background:linear-gradient(90deg,#16a34a,#14b8a6,#f0c66d)!important;box-shadow:0 0 18px rgba(20,184,166,.28)}'
       + '.cd-health-wellness-v20260607 .cd-health-balance-foot span{font-size:11px;font-weight:800;color:#5f776f!important}.cd-health-wellness-v20260607 .cd-health-balance-foot strong{font-size:12px;color:#0f766e!important}'
       + '.cd-health-wellness-v20260607 .cd-health-period-grid,.cd-health-wellness-v20260607 .cd-health-remedy-grid{display:grid;gap:12px}.cd-health-wellness-v20260607 .cd-health-period-grid{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}.cd-health-wellness-v20260607 .cd-health-remedy-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}'
-      + '.cd-health-wellness-v20260607 .cd-health-period-card,.cd-health-wellness-v20260607 .cd-health-remedy-card{position:relative;overflow:hidden;border:1px solid rgba(218,198,156,.52);border-radius:18px;background:linear-gradient(180deg,#fffefa,#f8fff9);padding:14px;box-shadow:0 14px 28px rgba(80,60,28,.08);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}'
-      + '.cd-health-wellness-v20260607 .cd-health-period-card:after,.cd-health-wellness-v20260607 .cd-health-remedy-card:after{content:"";position:absolute;right:-30px;top:-30px;width:76px;height:76px;border-radius:50%;background:rgba(251,207,232,.30)}'
+      + '.cd-health-wellness-v20260607 .cd-health-period-card,.cd-health-wellness-v20260607 .cd-health-remedy-card{position:relative;isolation:isolate;overflow:hidden;border:1px solid rgba(218,198,156,.52);border-radius:18px;background:linear-gradient(180deg,#fffefa,#f8fff9);padding:14px;box-shadow:0 14px 28px rgba(80,60,28,.08);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}'
+      + '.cd-health-wellness-v20260607 .cd-health-period-card:after,.cd-health-wellness-v20260607 .cd-health-remedy-card:after{content:"";position:absolute;z-index:-1;right:-30px;top:-30px;width:76px;height:76px;border-radius:50%;background:rgba(251,207,232,.30);pointer-events:none}'
+      + '.cd-health-wellness-v20260607 .cd-health-period-card>*,.cd-health-wellness-v20260607 .cd-health-remedy-card>*{position:relative;z-index:1}'
       + '.cd-health-wellness-v20260607 .cd-health-period-num{display:grid;width:28px;height:28px;place-items:center;border-radius:999px;background:linear-gradient(135deg,#fef3c7,#d9f99d);border:1px solid rgba(216,180,92,.36);color:#7c3f16!important;font-size:12px;font-weight:950}'
       + '.cd-health-wellness-v20260607 .cd-health-period-title,.cd-health-wellness-v20260607 .cd-health-remedy-card div{margin-top:8px;font-size:12px;font-weight:950;color:#7c3f16!important}.cd-health-wellness-v20260607 .cd-health-period-card b{display:block;margin-top:2px;font-size:15px;color:#213f37!important}'
-      + '.cd-health-wellness-v20260607 .cd-health-period-card p,.cd-health-wellness-v20260607 .cd-health-remedy-card p{margin:8px 0 0;font-size:13px;line-height:1.72;color:#405c55!important}.cd-health-wellness-v20260607 .cd-health-period-card em{display:inline-flex;margin-top:10px;border-radius:999px;background:#fff7ed;border:1px solid rgba(216,180,92,.34);padding:5px 10px;font-size:11px;font-style:normal;font-weight:950;color:#8a3412!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-period-card p,.cd-health-wellness-v20260607 .cd-health-remedy-card p{margin:8px 0 0;font-size:13px;line-height:1.86;color:#405c55!important}.cd-health-wellness-v20260607 .cd-health-period-card em{display:inline-flex;margin-top:10px;border-radius:999px;background:#fff7ed;border:1px solid rgba(216,180,92,.34);padding:5px 10px;font-size:11px;font-style:normal;font-weight:650;color:#8a3412!important}'
       + '.cd-health-wellness-v20260607 .cd-health-today-card{border:1px solid rgba(218,198,156,.58);border-radius:22px;background:linear-gradient(135deg,#ffffff,#fff7ed 58%,#f5f3ff);padding:17px;box-shadow:0 18px 38px rgba(103,75,48,.11),inset 0 1px 0 rgba(255,255,255,.95)}'
       + '.cd-health-wellness-v20260607 .cd-health-today-badge{display:inline-flex;border-radius:999px;background:#ecfdf5;border:1px solid rgba(20,184,166,.28);padding:5px 11px;font-size:11px;font-weight:950;color:#047857!important}.cd-health-wellness-v20260607 .cd-health-today-card h4{margin:11px 0 0;font-size:19px;line-height:1.34;color:#263149!important}.cd-health-wellness-v20260607 .cd-health-today-lead{margin:10px 0 0;font-size:15px;line-height:1.78;font-weight:900;color:#243b36!important}.cd-health-wellness-v20260607 .cd-health-today-sub{margin:10px 0 0;font-size:13px;line-height:1.74;color:#4f635d!important}'
       + '.cd-health-wellness-v20260607 .cd-health-today-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:9px;margin-top:13px}.cd-health-wellness-v20260607 .cd-health-today-grid span{border-radius:15px;background:#fffdf7;border:1px solid rgba(218,198,156,.46);padding:10px;font-size:12px;font-weight:900;color:#4b3f35!important}.cd-health-wellness-v20260607 .cd-health-today-grid b{display:block;margin-bottom:3px;font-size:10px;color:#8a3412!important}'
@@ -3372,30 +4257,236 @@
       + '.cd-health-wellness-v20260607 .cd-health-constitution-grid,.cd-health-wellness-v20260607 .cd-health-routine-board{display:grid;gap:12px}.cd-health-wellness-v20260607 .cd-health-constitution-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.cd-health-wellness-v20260607 .cd-health-routine-board{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}.cd-health-wellness-v20260607 .cd-health-constitution-grid article,.cd-health-wellness-v20260607 .cd-health-routine-board article{border-radius:19px;border:1px solid rgba(218,198,156,.52);background:linear-gradient(180deg,#fffefa,#f7fbf6);padding:15px;box-shadow:0 14px 28px rgba(80,60,28,.08)}'
       + '.cd-health-wellness-v20260607 .cd-health-constitution-grid span{display:grid;width:26px;height:26px;place-items:center;border-radius:50%;background:linear-gradient(135deg,#fde68a,#bbf7d0);border:1px solid rgba(216,180,92,.28);color:#7c3f16!important;font-size:11px;font-weight:950}.cd-health-wellness-v20260607 .cd-health-constitution-grid b,.cd-health-wellness-v20260607 .cd-health-routine-board b{display:block;margin-top:9px;font-size:12px;color:#6d4c84!important}.cd-health-wellness-v20260607 .cd-health-constitution-grid strong,.cd-health-wellness-v20260607 .cd-health-routine-board strong{display:block;margin-top:5px;font-size:15px;color:#173f36!important}.cd-health-wellness-v20260607 .cd-health-constitution-grid p,.cd-health-wellness-v20260607 .cd-health-routine-board p{margin:8px 0 0;font-size:13px;line-height:1.74;color:#405c55!important}.cd-health-wellness-v20260607 .cd-health-constitution-grid em{display:block;margin-top:9px;font-size:12px;line-height:1.6;font-style:normal;font-weight:850;color:#8a5a1f!important}.cd-health-wellness-v20260607 .cd-health-routine-wide{grid-column:1/-1;background:#fff7ed!important}'
       + '.cd-health-wellness-v20260607 .cd-health-risk details{border-radius:16px}.cd-health-wellness-v20260607 .cd-health-risk summary{cursor:pointer;list-style:none}.cd-health-wellness-v20260607 .cd-health-risk summary::-webkit-details-marker{display:none}.cd-health-wellness-v20260607 .cd-health-risk-more{margin-top:11px;border-top:1px solid rgba(218,198,156,.42);padding-top:11px}.cd-health-wellness-v20260607 .cd-health-risk[open],.cd-health-wellness-v20260607 details[open]{background:linear-gradient(180deg,#fffefa,#f1fbf7)!important}'
+      + '.cd-health-wellness-v20260607{background:radial-gradient(circle at 8% 0%,rgba(252,231,243,.46),transparent 30%),radial-gradient(circle at 92% 8%,rgba(221,214,254,.46),transparent 28%),linear-gradient(135deg,#fffaf4 0%,#fbf0f7 42%,#eef8f2 100%)!important;border-color:rgba(198,169,113,.58)!important;box-shadow:0 34px 86px rgba(83,60,35,.14),0 14px 30px rgba(37,99,80,.08),inset 0 1px 0 rgba(255,255,255,.94)!important}'
+      + '.cd-health-wellness-v20260607 .relative.z-10{gap:18px!important}'
+      + '.cd-health-wellness-v20260607 h3{font-size:38px!important;font-weight:760!important;line-height:1.2!important;letter-spacing:0!important;color:#2b2440!important}'
+      + '.cd-health-wellness-v20260607 h4{font-size:21px!important;font-weight:720!important;line-height:1.46!important;letter-spacing:0!important;color:#2b2440!important}'
+      + '.cd-health-wellness-v20260607 p,.cd-health-wellness-v20260607 li{font-size:15.5px!important;line-height:1.96!important;font-weight:500!important;letter-spacing:0!important;color:#3f5a52!important;word-break:keep-all;overflow-wrap:anywhere}'
+      + '.cd-health-wellness-v20260607 b,.cd-health-wellness-v20260607 strong{font-weight:760!important;color:#244139!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero,.cd-health-wellness-v20260607 .cd-health-section{padding:22px!important;border-radius:24px!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero{background:linear-gradient(135deg,rgba(255,253,248,.99),rgba(251,239,247,.97) 45%,rgba(238,248,242,.96))!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero-visual{min-height:230px;border-radius:24px;background:radial-gradient(circle at 18% 14%,rgba(255,248,220,.95),transparent 20%),linear-gradient(180deg,#f6efff 0%,#fff4df 52%,#d9f0e7 100%)!important;border-color:rgba(190,154,89,.46)!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero-visual:before{left:22px;top:20px;width:68px;height:68px;background:radial-gradient(circle at 38% 36%,#fff 0 24%,#fde8a6 25% 47%,rgba(253,232,166,.28) 48% 66%,transparent 67%)!important;box-shadow:0 0 42px rgba(246,204,97,.30)!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero-visual:after{right:18px;top:20px;width:86px;height:112px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,250,241,.18))!important;border:1px solid rgba(255,255,255,.44);box-shadow:0 18px 34px rgba(90,63,35,.09)!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-figure{left:20px;right:20px;bottom:18px;height:86px;border-radius:24px;background:linear-gradient(135deg,#fffdfa,#f7ead4)!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-figure:before{left:24px;top:18px;width:94px;height:48px;border-radius:14px;background:linear-gradient(90deg,#fffefb,#fff3d8)!important;box-shadow:112px 4px 0 -5px rgba(255,255,255,.74),112px 4px 0 -4px rgba(177,142,78,.20),176px 18px 0 -17px #92b7a7,200px 16px 0 -17px #d3a8b8,224px 18px 0 -17px #d5b268,248px 16px 0 -17px #b6bcc4,272px 18px 0 -17px #8db7cf!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-figure:after{right:34px;bottom:19px;width:40px;height:30px;border-radius:0 0 20px 20px;background:linear-gradient(180deg,#fff,#edf8f0)!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-visual-note{bottom:116px;padding:12px 13px;font-size:13px!important;font-weight:680!important;line-height:1.72!important;color:#59475f!important;background:rgba(255,253,248,.88)!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-kicker{padding:7px 13px!important;font-size:12px!important;font-weight:780!important;color:#73551f!important;background:linear-gradient(135deg,#fff7e4,#f5f0ff)!important;border-color:rgba(198,169,113,.40)!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-callout,.cd-health-wellness-v20260607 .cd-health-grade{padding:14px!important;border-radius:20px!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-section-sigil{position:relative;overflow:hidden;width:42px!important;height:42px!important;border-radius:18px!important;background:linear-gradient(145deg,#fff8e9,#f5f0ff 48%,#edf8f0)!important;color:#513763!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-section-sigil i{position:relative;z-index:1;display:grid;width:28px;height:28px;place-items:center;border-radius:999px;background:rgba(255,255,255,.72);font-size:18px;line-height:1;box-shadow:0 0 0 1px rgba(255,255,255,.82),0 8px 14px rgba(87,64,103,.10)}'
+      + '.cd-health-wellness-v20260607 .cd-health-section-sigil:after{content:"";position:absolute;inset:auto 8px 7px;height:1px;background:rgba(171,138,78,.32)}'
+      + '.cd-health-wellness-v20260607 .cd-health-pill-dot{display:grid;width:20px;height:20px;place-items:center;border-radius:999px;background:rgba(255,255,255,.72);box-shadow:0 0 0 1px rgba(214,184,128,.24);font-size:12px;line-height:1}'
+      + '.cd-health-wellness-v20260607 .cd-health-pill-dot[data-health-el="wood"]{background:#8fb79d}.cd-health-wellness-v20260607 .cd-health-pill-dot[data-health-el="fire"]{background:#d99a92}.cd-health-wellness-v20260607 .cd-health-pill-dot[data-health-el="earth"]{background:#d6b36e}.cd-health-wellness-v20260607 .cd-health-pill-dot[data-health-el="metal"]{background:#b8bec6}.cd-health-wellness-v20260607 .cd-health-pill-dot[data-health-el="water"]{background:#86abc3}'
+      + '.cd-health-wellness-v20260607 .cd-health-section h4 + p{margin-top:6px!important;font-size:14px!important;line-height:1.76!important;color:#667a72!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-row{position:relative;isolation:isolate;min-height:142px;padding:16px!important;border-radius:20px!important;background:linear-gradient(180deg,#fffefa,#fbf5ea)!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-row:before{content:"";width:18px;height:18px;border-radius:999px;background:#9db9a9;box-shadow:0 0 0 6px rgba(157,185,169,.14);position:absolute;z-index:-1;right:16px;top:16px;pointer-events:none}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-row[data-health-el="wood"]:before,.cd-health-wellness-v20260607 .cd-health-organ-sigil[data-health-el="wood"]:before{background:#8fb79d}.cd-health-wellness-v20260607 .cd-health-balance-row[data-health-el="fire"]:before,.cd-health-wellness-v20260607 .cd-health-organ-sigil[data-health-el="fire"]:before{background:#d99a92}.cd-health-wellness-v20260607 .cd-health-balance-row[data-health-el="earth"]:before,.cd-health-wellness-v20260607 .cd-health-organ-sigil[data-health-el="earth"]:before{background:#d6b36e}.cd-health-wellness-v20260607 .cd-health-balance-row[data-health-el="metal"]:before,.cd-health-wellness-v20260607 .cd-health-organ-sigil[data-health-el="metal"]:before{background:#b8bec6}.cd-health-wellness-v20260607 .cd-health-balance-row[data-health-el="water"]:before,.cd-health-wellness-v20260607 .cd-health-organ-sigil[data-health-el="water"]:before{background:#86abc3}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-name{display:flex;align-items:center;gap:7px;padding-right:26px;font-size:15px!important;font-weight:780!important;color:#2f463f!important}.cd-health-wellness-v20260607 .cd-health-balance-name em{display:grid;width:24px;height:24px;place-items:center;border-radius:999px;background:rgba(255,255,255,.72);font-style:normal;font-size:14px;box-shadow:0 0 0 1px rgba(214,184,128,.22)}.cd-health-wellness-v20260607 .cd-health-balance-keyword{font-size:13px!important;line-height:1.78!important;font-weight:560!important;color:#63766f!important}.cd-health-wellness-v20260607 .cd-health-balance-foot span{font-size:12px!important;font-weight:600!important;color:#657970!important}.cd-health-wellness-v20260607 .cd-health-balance-foot strong{font-weight:780!important;color:#7a5b21!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-tags b,.cd-health-wellness-v20260607 .cd-health-tag-row i,.cd-health-wellness-v20260607 .cd-health-period-card em{font-weight:720!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-organ-sigil{position:relative;isolation:isolate;background:linear-gradient(145deg,#fff9ed,#f5f0ff 45%,#f1faf5)!important;border-color:rgba(198,169,113,.34)!important;border-radius:15px!important;color:#4b315f!important;font-size:18px!important;box-shadow:0 8px 18px rgba(87,64,103,.08)!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-organ-sigil:before{content:"";position:absolute;inset:5px;border-radius:999px;background:rgba(255,255,255,.62);z-index:-1;pointer-events:none}'
+      + '.cd-health-wellness-v20260607 .cd-health-risk{padding:15px!important}.cd-health-wellness-v20260607 .cd-health-risk p{font-size:14px!important;line-height:1.82!important}.cd-health-wellness-v20260607 .cd-health-risk .block.text-\\[11px\\]{font-size:12px!important;line-height:1.62!important;color:#6d7f77!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-today-card{padding:20px!important}.cd-health-wellness-v20260607 .cd-health-today-card h4{font-size:22px!important;font-weight:740!important}.cd-health-wellness-v20260607 .cd-health-today-lead{font-size:16px!important;line-height:1.86!important;font-weight:680!important}.cd-health-wellness-v20260607 .cd-health-today-sub{font-size:14px!important;line-height:1.82!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-constitution-grid article,.cd-health-wellness-v20260607 .cd-health-routine-board article,.cd-health-wellness-v20260607 .cd-health-period-card,.cd-health-wellness-v20260607 .cd-health-remedy-card{padding:17px!important;border-radius:20px!important}.cd-health-wellness-v20260607 .cd-health-constitution-grid p,.cd-health-wellness-v20260607 .cd-health-routine-board p,.cd-health-wellness-v20260607 .cd-health-period-card p,.cd-health-wellness-v20260607 .cd-health-remedy-card p{font-size:14px!important;line-height:1.84!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-mission-dot{border-radius:999px!important;background:#edf8f0!important;color:#0f766e!important}.cd-health-wellness-v20260607 .cd-health-mission-dot:before{content:none}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-summary{margin:2px 0 0!important;font-size:13.5px!important;line-height:1.82!important;color:#405c55!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-mini-list{display:grid;gap:7px;margin:10px 0 0!important;padding:0!important;list-style:none!important}.cd-health-wellness-v20260607 .cd-health-mini-list li{position:relative;margin:0!important;border-radius:14px;background:rgba(255,253,247,.74);border:1px solid rgba(214,184,128,.32);padding:8px 10px 8px 28px!important;font-size:13px!important;line-height:1.68!important;color:#405c55!important}.cd-health-wellness-v20260607 .cd-health-mini-list li:before{content:"✦";position:absolute;left:10px;top:8px;color:#a9772a;font-size:11px;line-height:1.6}'
+      + '.cd-health-wellness-v20260607 .cd-health-chip-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}.cd-health-wellness-v20260607 .cd-health-chip-row span{display:inline-flex;align-items:center;min-height:27px;border-radius:999px;background:#f0fdf4;border:1px solid rgba(20,184,166,.24);padding:5px 10px;font-size:11px!important;line-height:1.35!important;font-weight:720!important;color:#047857!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-knowledge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.cd-health-wellness-v20260607 .cd-health-knowledge-grid--single{grid-template-columns:1fr}.cd-health-wellness-v20260607 .cd-health-knowledge-card{position:relative;isolation:isolate;overflow:hidden;border:1px solid rgba(214,184,128,.52);border-radius:21px;background:linear-gradient(180deg,#fffefa,#f7fbf6);padding:17px;box-shadow:0 15px 31px rgba(80,60,28,.08);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}.cd-health-wellness-v20260607 .cd-health-knowledge-card:after{content:"";position:absolute;z-index:-1;right:-34px;top:-34px;width:94px;height:94px;border-radius:50%;background:rgba(221,214,254,.32);pointer-events:none}.cd-health-wellness-v20260607 .cd-health-knowledge-card[data-health-el="wood"]:after{background:rgba(187,247,208,.34)}.cd-health-wellness-v20260607 .cd-health-knowledge-card[data-health-el="fire"]:after{background:rgba(254,202,202,.36)}.cd-health-wellness-v20260607 .cd-health-knowledge-card[data-health-el="earth"]:after{background:rgba(253,230,138,.34)}.cd-health-wellness-v20260607 .cd-health-knowledge-card[data-health-el="metal"]:after{background:rgba(226,232,240,.42)}.cd-health-wellness-v20260607 .cd-health-knowledge-card[data-health-el="water"]:after{background:rgba(186,230,253,.38)}'
+      + '.cd-health-wellness-v20260607 .cd-health-card-top{display:flex;align-items:flex-start;gap:11px}.cd-health-wellness-v20260607 .cd-health-card-icon{display:grid;flex:0 0 auto;width:40px;height:40px;place-items:center;border-radius:16px;background:linear-gradient(145deg,#fff9ed,#f5f0ff 48%,#edf8f0);border:1px solid rgba(198,169,113,.34);font-size:20px;box-shadow:0 8px 18px rgba(87,64,103,.08)}.cd-health-wellness-v20260607 .cd-health-card-top small{display:block;margin-bottom:4px;font-size:11px!important;line-height:1.25!important;font-weight:780!important;color:#8a5a1f!important}.cd-health-wellness-v20260607 .cd-health-card-top b{display:block;font-size:16px!important;line-height:1.48!important;color:#263149!important}.cd-health-wellness-v20260607 .cd-health-card-lead{margin:12px 0 0!important;font-size:14.5px!important;line-height:1.9!important;font-weight:540!important;color:#314e46!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-routine-board em{display:block;margin-top:9px;border-top:1px solid rgba(214,184,128,.28);padding-top:8px;font-style:normal;font-size:12.5px!important;line-height:1.68!important;font-weight:620!important;color:#8a5a1f!important}'
       + '.cd-health-wellness-v20260607 section,.cd-health-wellness-v20260607 article{animation:cdHealthFadeUp .42s ease both}.cd-health-wellness-v20260607 section:nth-of-type(2){animation-delay:.03s}.cd-health-wellness-v20260607 section:nth-of-type(3){animation-delay:.06s}@keyframes cdHealthFadeUp{from{opacity:.001;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}'
-      + '@media(max-width:640px){.cd-health-wellness-v20260607{padding:14px!important;border-radius:22px!important}.cd-health-wellness-v20260607 .cd-health-section{padding:16px!important}.cd-health-wellness-v20260607 .cd-health-hero-visual{min-height:170px}.cd-health-wellness-v20260607 p,.cd-health-wellness-v20260607 li{font-size:16px!important;line-height:1.76!important}.cd-health-wellness-v20260607 .cd-health-period-grid,.cd-health-wellness-v20260607 .cd-health-balance-grid{grid-template-columns:1fr}.cd-health-wellness-v20260607 .cd-health-today-grid{grid-template-columns:1fr}.cd-health-wellness-v20260607 .cd-health-visual-note{left:14px;right:14px;bottom:100px;max-width:none}}'
+      + '@media(max-width:640px){.cd-health-wellness-v20260607{padding:14px!important;border-radius:22px!important}.cd-health-wellness-v20260607 .cd-health-hero,.cd-health-wellness-v20260607 .cd-health-section{padding:17px!important}.cd-health-wellness-v20260607 .cd-health-hero-visual{min-height:210px}.cd-health-wellness-v20260607 h3{font-size:30px!important;line-height:1.24!important}.cd-health-wellness-v20260607 h4{font-size:19px!important;line-height:1.5!important}.cd-health-wellness-v20260607 p,.cd-health-wellness-v20260607 li{font-size:16px!important;line-height:1.94!important}.cd-health-wellness-v20260607 .cd-health-period-grid,.cd-health-wellness-v20260607 .cd-health-balance-grid,.cd-health-wellness-v20260607 .cd-health-knowledge-grid{grid-template-columns:1fr}.cd-health-wellness-v20260607 .cd-health-today-grid{grid-template-columns:1fr}.cd-health-wellness-v20260607 .cd-health-visual-note{left:14px;right:14px;bottom:126px;max-width:none}.cd-health-wellness-v20260607 .cd-health-figure{height:78px!important}.cd-health-wellness-v20260607 .cd-health-figure:before{box-shadow:86px 4px 0 -5px rgba(255,255,255,.74),86px 4px 0 -4px rgba(177,142,78,.20),132px 18px 0 -17px #92b7a7,154px 16px 0 -17px #d3a8b8,176px 18px 0 -17px #d5b268!important}.cd-health-wellness-v20260607 .cd-health-card-top b{font-size:16px!important}.cd-health-wellness-v20260607 .cd-health-mini-list li{font-size:14px!important;line-height:1.72!important}}'
       + '@media(prefers-reduced-motion:reduce){.cd-health-wellness-v20260607 section,.cd-health-wellness-v20260607 article{animation:none!important;transition:none!important}}'
       + '.cd-health-wellness-v20260607 .text-white,.cd-health-wellness-v20260607 [class*="text-indigo"],.cd-health-wellness-v20260607 [class*="text-amber"],.cd-health-wellness-v20260607 [class*="text-orange"],.cd-health-wellness-v20260607 [class*="text-emerald"],.cd-health-wellness-v20260607 [class*="text-sky"],.cd-health-wellness-v20260607 [class*="text-zinc"],.cd-health-wellness-v20260607 [class*="text-slate"]{color:#314e46!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"]{font-family:"CDHealthReadable",var(--font-body,"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif)!important;background:radial-gradient(circle at 8% 0%,rgba(236,253,245,.78),transparent 30%),radial-gradient(circle at 92% 4%,rgba(254,243,199,.58),transparent 26%),linear-gradient(135deg,#fafaf8 0%,#f8f3ea 48%,#eef7f0 100%)!important;border-color:#efe7d8!important;border-radius:32px!important;padding:28px!important;color:#253b35!important;box-shadow:0 28px 80px rgba(92,72,45,.12),0 10px 28px rgba(22,101,52,.08),inset 0 1px 0 rgba(255,255,255,.96)!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"]:before{inset:12px;border-color:rgba(255,255,255,.82);border-radius:28px;background:linear-gradient(180deg,rgba(255,255,255,.36),transparent 36%)}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] *{letter-spacing:-.01em!important;text-shadow:none!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .relative.z-10{gap:32px!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] h3{font-size:clamp(30px,4vw,44px)!important;line-height:1.18!important;font-weight:760!important;color:#292524!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] h4{font-size:clamp(22px,2.3vw,28px)!important;line-height:1.36!important;font-weight:720!important;color:#292524!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] p,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] li{font-size:16px!important;line-height:1.88!important;font-weight:500!important;color:#43544d!important;word-break:keep-all;overflow-wrap:anywhere}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] small,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] em{line-height:1.68!important;word-break:keep-all}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] b,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] strong{font-weight:740!important;color:#263b35!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-section{background:rgba(255,255,252,.92)!important;border:1px solid #eee5d6!important;border-radius:30px!important;padding:30px!important;box-shadow:0 18px 46px rgba(92,72,45,.09),0 1px 0 rgba(255,255,255,.98) inset!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero{background:linear-gradient(135deg,rgba(255,255,252,.96),rgba(248,250,244,.94) 52%,rgba(240,253,244,.88))!important;overflow:hidden}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual{min-height:260px!important;border-radius:28px!important;border-color:#eadfcf!important;background:radial-gradient(circle at 20% 16%,rgba(254,240,138,.58),transparent 18%),radial-gradient(circle at 82% 18%,rgba(186,230,253,.42),transparent 22%),linear-gradient(180deg,#f6f3ff 0%,#fff7ed 48%,#dcfce7 100%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 18px 40px rgba(92,72,45,.10)!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual:before{width:72px!important;height:72px!important;left:24px!important;top:24px!important;background:radial-gradient(circle at 38% 35%,#fff 0 24%,#fde68a 25% 46%,rgba(253,230,138,.28) 47% 70%,transparent 71%)!important;box-shadow:0 0 42px rgba(245,158,11,.22)!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual:after{right:22px!important;top:28px!important;width:98px!important;height:132px!important;border-radius:28px!important;background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,.18))!important;border:1px solid rgba(255,255,255,.62)!important;box-shadow:0 20px 42px rgba(92,72,45,.08)!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-figure{height:96px!important;left:22px!important;right:22px!important;bottom:22px!important;border-radius:28px!important;background:linear-gradient(135deg,#fffefa,#f4ead7)!important;border-color:rgba(214,184,128,.42)!important;box-shadow:0 18px 36px rgba(92,72,45,.12)!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-visual-note{right:18px!important;bottom:130px!important;max-width:190px!important;border-radius:22px!important;border-color:#eadfcf!important;background:rgba(255,255,252,.88)!important;padding:14px!important;font-size:13px!important;line-height:1.74!important;font-weight:620!important;color:#5f5148!important;box-shadow:0 14px 30px rgba(92,72,45,.10)!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-kicker{border-color:#e6d6b8!important;background:#fff7ed!important;color:#8a5a1f!important;font-weight:720!important}'
+      + '.cd-health-hero-board{align-items:stretch}.cd-health-hero-stat{min-height:112px;border:1px solid #e9dfcf;border-radius:24px;background:rgba(255,255,255,.72);padding:16px;box-shadow:0 12px 26px rgba(92,72,45,.07),inset 0 1px 0 rgba(255,255,255,.9)}.cd-health-hero-stat span{display:block;margin-bottom:7px;font-size:12px!important;line-height:1.45!important;font-weight:700!important;color:#6b6259!important}.cd-health-hero-stat strong{display:inline-block;font-size:28px!important;line-height:1.1!important;font-weight:780!important;color:#064e3b!important}.cd-health-hero-stat em{display:block;margin-top:7px;font-size:12px!important;line-height:1.55!important;font-style:normal!important;font-weight:620!important;color:#8a5a1f!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-callout,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-grade,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-info,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-food,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-risk,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-mission{background:rgba(255,255,255,.78)!important;border:1px solid #eee5d6!important;border-radius:24px!important;box-shadow:0 12px 28px rgba(92,72,45,.07),inset 0 1px 0 rgba(255,255,255,.95)!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-section-icon,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-card-icon,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-organ-sigil{background:linear-gradient(145deg,#fff7ed,#f0fdf4)!important;border-color:#eadfcf!important;color:#5b4636!important;box-shadow:0 10px 22px rgba(92,72,45,.08)!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-pill{min-height:34px;background:rgba(255,255,255,.82)!important;border-color:#e9dfcf!important;color:#34544a!important;font-size:12px!important;font-weight:720!important;padding:7px 12px!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-grid,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-period-grid,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-remedy-grid,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-knowledge-grid{gap:18px!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-grid{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-row,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-knowledge-card,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-period-card,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-remedy-card,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-constitution-grid article,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-routine-board article{border-color:#eee5d6!important;border-radius:24px!important;background:rgba(255,255,255,.78)!important;padding:20px!important;box-shadow:0 13px 30px rgba(92,72,45,.07),inset 0 1px 0 rgba(255,255,255,.95)!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-row[data-health-el="wood"]{background:linear-gradient(180deg,#ffffff,#ecfdf5)!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-row[data-health-el="fire"]{background:linear-gradient(180deg,#ffffff,#fff7ed)!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-row[data-health-el="earth"]{background:linear-gradient(180deg,#ffffff,#fffbeb)!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-row[data-health-el="metal"]{background:linear-gradient(180deg,#ffffff,#f4f4f5)!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-row[data-health-el="water"]{background:linear-gradient(180deg,#ffffff,#f0f9ff)!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-track{height:11px!important;background:#ede8df!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-track span{background:linear-gradient(90deg,#a7c7aa,#c8b37a,#8fb6c7)!important;box-shadow:none!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-summary,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-card-lead{font-size:15px!important;line-height:1.86!important;color:#445b52!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-mini-list li{background:#fffdf8!important;border-color:#eee5d6!important;border-radius:18px!important;padding:10px 12px 10px 32px!important;font-size:14px!important;line-height:1.74!important;color:#475b53!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-mini-list li:before{content:"•";left:14px;top:10px;color:#7f9d85;font-size:16px}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-chip-row span,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-tag-row i{background:#ecfdf5!important;border-color:#bbf7d0!important;color:#166534!important;font-weight:680!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-today-card{background:linear-gradient(135deg,#fffefa,#f0fdf4)!important;border-color:#e9dfcf!important;border-radius:28px!important;padding:24px!important;box-shadow:0 16px 36px rgba(92,72,45,.08)!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-today-card h4{font-size:26px!important;line-height:1.32!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-today-lead{font-size:17px!important;line-height:1.88!important;font-weight:620!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-today-grid{gap:12px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-today-grid span{background:rgba(255,255,255,.84)!important;border-color:#eee5d6!important;border-radius:20px!important;padding:14px!important;font-size:14px!important;line-height:1.62!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-today-grid b{font-size:12px!important;color:#7c5f35!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .text-white,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] [class*="text-indigo"],.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] [class*="text-slate"],.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] [class*="text-zinc"]{color:#34544a!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-info [class*="text-"],.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-risk [class*="text-"],.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-food [class*="text-"]{color:#36554c!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-knowledge-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))!important;gap:20px!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-knowledge-grid--single{grid-template-columns:minmax(0,1fr)!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-master{gap:18px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-master .cd-health-info{padding:22px!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-card-top{display:flex!important;align-items:flex-start!important;gap:14px!important;margin-bottom:14px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-card-top small{display:block!important;margin-bottom:4px!important;font-size:12px!important;font-weight:760!important;line-height:1.45!important;color:#7c5f35!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-card-top b{display:block!important;font-size:18px!important;line-height:1.44!important;color:#263b35!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-card-lead{font-size:16px!important;line-height:1.9!important;font-weight:560!important;color:#314e46!important;margin:0 0 14px!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-board{gap:14px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-stat{min-height:124px!important;background:linear-gradient(180deg,#ffffff,#fff9ed)!important;border-color:#eadfcf!important;border-radius:26px!important;padding:18px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-stat strong{font-size:clamp(24px,3vw,32px)!important;line-height:1.18!important;word-break:keep-all;color:#07503f!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-stat em{color:#7c5f35!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] details summary{list-style:none!important;cursor:pointer!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] details summary::-webkit-details-marker{display:none!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-risk-more{margin-top:14px!important;border-top:1px solid #eee5d6!important;padding-top:14px!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-food b,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-risk b,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-info b{color:#263b35!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-food p,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-risk p,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-info p{font-size:15px!important;line-height:1.86!important;color:#455f56!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-period-card b,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-remedy-card div,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-routine-board strong{color:#20483e!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-period-card p,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-remedy-card p,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-routine-board p{color:#455f56!important;line-height:1.84!important}'
+      + '.cd-health-quote{position:relative;font-weight:560!important;color:#23443b!important}.cd-health-quote:before{content:"❝";display:block;margin-bottom:8px;color:#7f9d85;font-size:26px;line-height:1}.cd-health-quote:after{content:"";position:absolute;left:24px;right:24px;bottom:0;height:1px;background:linear-gradient(90deg,transparent,#bbd4bf,transparent)}'
+      + '@media(max-width:640px){.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"]{padding:16px!important;border-radius:26px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .relative.z-10{gap:24px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-section{padding:20px!important;border-radius:26px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual{min-height:220px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] h3{font-size:30px!important;line-height:1.24!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] h4{font-size:22px!important;line-height:1.38!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] p,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] li{font-size:16px!important;line-height:1.92!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-board{grid-template-columns:1fr!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-grid,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-period-grid,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-remedy-grid,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-knowledge-grid{grid-template-columns:1fr!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-visual-note{left:14px!important;right:14px!important;bottom:126px!important;max-width:none!important}}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"]{background:#F5F0EB!important;border-color:#E8DDD0!important;border-radius:28px!important;padding:24px!important;color:#2C2418!important;box-shadow:0 18px 44px rgba(44,36,24,.08),inset 0 1px 0 rgba(255,255,255,.72)!important;font-family:"CDHealthReadable","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"]:before{inset:10px!important;border-color:rgba(232,221,208,.72)!important;background:none!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"]:after{background:#E8DDD0!important;opacity:.72!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] *{letter-spacing:-.01em!important;text-shadow:none!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .relative.z-10{gap:20px!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] h3,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] h4{font-family:"Noto Serif KR","CDHealthReadable","Apple SD Gothic Neo",serif!important;color:#2C2418!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] h3{font-size:clamp(28px,3.4vw,38px)!important;line-height:1.24!important;font-weight:650!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] h4{font-size:20px!important;line-height:1.42!important;font-weight:650!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] p,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] li{font-size:15px!important;line-height:1.82!important;font-weight:500!important;color:#7A6A5A!important;word-break:keep-all;overflow-wrap:anywhere}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] b,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] strong{font-weight:700!important;color:#2C2418!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-section{background:#FDFAF6!important;border:1px solid #E8DDD0!important;border-radius:24px!important;padding:24px!important;box-shadow:0 8px 22px rgba(44,36,24,.055)!important;backdrop-filter:none!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero:before,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual:before,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual:after,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-figure,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-visual-note{display:none!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual{min-height:248px!important;border-radius:20px!important;border:1px solid var(--health-el-border,#E8DDD0)!important;background:#F5F0EB!important;box-shadow:none!important;padding:18px!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important;gap:18px!important}.cd-health-hero-date{display:flex;align-items:center;justify-content:space-between;gap:12px}.cd-health-hero-date span{font-size:11px!important;font-weight:700!important;letter-spacing:.12em!important;text-transform:uppercase!important;color:#C4956A!important}.cd-health-hero-date em{font-size:12px!important;font-style:normal!important;font-weight:500!important;color:#7A6A5A!important}'
+      + '.cd-health-daymark{display:grid!important;width:86px!important;height:86px!important;place-items:center!important;border-radius:18px!important;background:var(--health-el-soft,rgba(124,154,126,.12))!important;border:1px solid var(--health-el-border,#E8DDD0)!important}.cd-health-daymark span{font-family:"Noto Serif KR","CDHealthReadable",serif!important;font-size:46px!important;line-height:1!important;font-weight:800!important;color:var(--health-el-color,#7C9A7E)!important}.cd-health-hero-note{margin:0!important;max-width:260px!important;font-size:14px!important;line-height:1.78!important;color:#2C2418!important;font-weight:560!important}'
+      + '.cd-health-report-label,.cd-health-kicker{font-size:11px!important;line-height:1.5!important;font-weight:700!important;letter-spacing:.12em!important;text-transform:uppercase!important;color:#C4956A!important;background:transparent!important;border:0!important;padding:0!important;box-shadow:none!important}.cd-health-kicker{margin-bottom:10px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-pill{background:rgba(124,154,126,.10)!important;border-color:rgba(124,154,126,.24)!important;border-radius:999px!important;color:#496E4D!important;box-shadow:none!important}'
+      + '.cd-health-hero-board{gap:10px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-stat{min-height:94px!important;background:#F5F0EB!important;border:1px solid #E8DDD0!important;border-radius:18px!important;padding:14px!important;box-shadow:none!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-stat span{font-size:11px!important;font-weight:600!important;color:#7A6A5A!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-stat strong{font-size:24px!important;font-weight:800!important;color:#2C2418!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-stat em{font-size:12px!important;color:#7A6A5A!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-callout,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-grade,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-info,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-food,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-risk,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-mission{background:#FDFAF6!important;border:1px solid #E8DDD0!important;border-radius:18px!important;box-shadow:0 6px 16px rgba(44,36,24,.045)!important}'
+      + '.cd-health-section-head{margin-bottom:16px!important;align-items:flex-start!important}.cd-health-section-rule{display:block!important;width:4px!important;height:24px!important;margin-top:3px!important;border-radius:999px!important;background:#7C9A7E!important;flex:0 0 4px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-section h4{font-size:20px!important;font-weight:650!important;color:#2C2418!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-section h4 + p{margin-top:4px!important;font-size:14px!important;line-height:1.74!important;color:#7A6A5A!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-today-card{background:#FDFAF6!important;border:1px solid #E8DDD0!important;border-radius:22px!important;padding:20px!important;box-shadow:none!important}.cd-health-today-badge{background:#7C9A7E!important;border:0!important;color:#FDFAF6!important;border-radius:999px!important;padding:5px 11px!important;font-size:11px!important;font-weight:700!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-today-card h4{font-size:19px!important;font-weight:650!important;margin-top:12px!important;color:#2C2418!important}.cd-health-today-lead{font-size:15px!important;line-height:1.82!important;font-weight:650!important;color:#2C2418!important}.cd-health-today-sub{font-size:14px!important;line-height:1.76!important;color:#7A6A5A!important}.cd-health-today-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}.cd-health-today-grid span{background:#F5F0EB!important;border:1px solid #E8DDD0!important;border-radius:14px!important;padding:12px!important;font-size:14px!important;line-height:1.52!important;font-weight:700!important;color:#2C2418!important;min-width:0!important}.cd-health-today-grid b{display:block!important;margin-bottom:4px!important;font-size:11px!important;font-weight:500!important;color:#7A6A5A!important}.cd-health-tag-row i,.cd-health-chip-row span{background:rgba(124,154,126,.10)!important;border:1px solid rgba(124,154,126,.24)!important;color:#496E4D!important;font-size:12px!important;font-weight:600!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-today-card--flat{background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;box-shadow:none!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-today-card--flat .cd-health-today-lead{margin-top:12px!important}'
+      + '.cd-health-balance-grid{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))!important;gap:12px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-row{background:#FDFAF6!important;border:1px solid #E8DDD0!important;border-radius:18px!important;padding:16px!important;box-shadow:none!important;min-height:auto!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-row--focus{border-color:var(--health-el-border,#E8DDD0)!important;box-shadow:0 0 0 1px var(--health-el-border,#E8DDD0)!important;background:var(--health-el-soft,#FDFAF6)!important}.cd-health-balance-name{display:flex!important;align-items:center!important;gap:8px!important;font-size:15px!important;font-weight:700!important;color:#2C2418!important}.cd-health-balance-name em{font-size:17px!important;line-height:1!important}.cd-health-balance-keyword{font-size:12px!important;line-height:1.62!important;color:#7A6A5A!important;font-weight:500!important}.cd-health-balance-tags b{background:var(--health-el-soft,rgba(124,154,126,.10))!important;border:1px solid var(--health-el-border,#E8DDD0)!important;color:var(--health-el-color,#7C9A7E)!important;font-size:11px!important;font-weight:600!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-track{height:6px!important;background:#E8DDD0!important;border-radius:999px!important;box-shadow:none!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-balance-track span{min-width:0!important;background:var(--health-el-color,#7C9A7E)!important;background-color:var(--health-el-color,#7C9A7E)!important;box-shadow:none!important}.cd-health-balance-foot span{font-size:12px!important;font-weight:500!important;color:#7A6A5A!important}.cd-health-balance-foot strong{font-family:"Noto Sans KR",monospace!important;font-size:17px!important;font-weight:800!important;color:var(--health-el-color,#7C9A7E)!important}.cd-health-balance-summary{font-size:13px!important;line-height:1.74!important;color:#7A6A5A!important}'
+      + '.cd-health-mini-list li{background:#F5F0EB!important;border:1px solid #E8DDD0!important;border-radius:13px!important;padding:9px 11px 9px 28px!important;font-size:13px!important;line-height:1.62!important;color:#7A6A5A!important}.cd-health-mini-list li:before{color:#7C9A7E!important}.cd-health-knowledge-card,.cd-health-period-card,.cd-health-remedy-card,.cd-health-constitution-grid article,.cd-health-routine-board article{background:#FDFAF6!important;border:1px solid #E8DDD0!important;border-radius:18px!important;padding:18px!important;box-shadow:none!important}.cd-health-period-card:after,.cd-health-remedy-card:after{display:none!important}'
+      + '.cd-health-insight-card{box-shadow:none!important}.cd-health-insight-card--day{background:#F7F8FA!important;border-color:rgba(138,155,175,.28)!important}.cd-health-insight-card--tension{background:#FDF6F3!important;border-color:rgba(212,96,58,.22)!important}.cd-health-insight-card--recovery{background:#F7F4FA!important;border-color:rgba(139,123,168,.24)!important}.cd-health-insight-label{display:flex!important;align-items:center!important;gap:8px!important;margin-bottom:12px!important;font-size:11px!important;font-weight:700!important;letter-spacing:.12em!important;text-transform:uppercase!important;color:#8B7BA8!important}.cd-health-insight-card--tension .cd-health-insight-label{color:#D4603A!important}.cd-health-insight-card p{font-size:14px!important;line-height:1.82!important;font-weight:560!important;color:#2C2418!important}'
+      + '.cd-health-period-num{background:#F5F0EB!important;border:1px solid #E8DDD0!important;color:#C4956A!important}.cd-health-period-title,.cd-health-remedy-card div,.cd-health-constitution-grid b,.cd-health-routine-board b{font-size:11px!important;font-weight:700!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#C4956A!important}.cd-health-period-card b,.cd-health-routine-board strong,.cd-health-constitution-grid strong{font-size:15px!important;font-weight:700!important;color:#2C2418!important}.cd-health-period-card p,.cd-health-remedy-card p,.cd-health-routine-board p,.cd-health-constitution-grid p{font-size:14px!important;line-height:1.76!important;color:#7A6A5A!important}.cd-health-period-card em,.cd-health-constitution-grid em,.cd-health-routine-board em{color:#7A6A5A!important;background:transparent!important;border-color:#E8DDD0!important}'
+      + '.cd-health-quote{background:#F7F4FA!important;border:1px solid rgba(139,123,168,.24)!important;color:#2C2418!important;border-radius:22px!important;box-shadow:none!important}.cd-health-quote:before{color:#8B7BA8!important}.cd-health-quote:after{display:none!important}'
+      + '@media(max-width:640px){.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"]{padding:14px!important;border-radius:22px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .relative.z-10{gap:18px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-section{padding:18px!important;border-radius:20px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] h3{font-size:26px!important;line-height:1.28!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] h4{font-size:18px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] p,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] li{font-size:15px!important;line-height:1.86!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual{min-height:210px!important}.cd-health-daymark{width:76px!important;height:76px!important}.cd-health-daymark span{font-size:40px!important}.cd-health-today-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.cd-health-balance-grid,.cd-health-period-grid,.cd-health-remedy-grid,.cd-health-knowledge-grid,.cd-health-master{grid-template-columns:1fr!important}}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"]{background:linear-gradient(180deg,#F7F2E8 0%,#F5F0EB 48%,#EEF5EA 100%)!important;font-family:"CDHealthReadable","Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif!important;font-kerning:normal!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] *{text-wrap:pretty}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] h3,.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] h4{font-family:"CDHealthReadable","Noto Serif KR","Apple SD Gothic Neo",serif!important;letter-spacing:-.02em!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual{position:relative!important;overflow:hidden!important;min-height:312px!important;justify-content:flex-start!important;gap:14px!important;background:linear-gradient(180deg,#FFF4D6 0%,#F8F1E5 46%,#EAF4E6 100%)!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual>*{position:relative!important;z-index:1!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual:before{content:""!important;display:block!important;position:absolute!important;z-index:0!important;right:-22px!important;top:-24px!important;width:132px!important;height:132px!important;border-radius:999px!important;background:radial-gradient(circle,#FFFDF2 0 28%,#F6D98B 29% 48%,rgba(246,217,139,.26) 49% 68%,transparent 69%)!important;box-shadow:0 0 46px rgba(196,149,106,.26)!important;pointer-events:none!important}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual:after{content:""!important;display:block!important;position:absolute!important;z-index:0!important;left:-18px!important;bottom:-28px!important;width:150px!important;height:116px!important;border-radius:70% 70% 18px 18px!important;background:radial-gradient(ellipse at 42% 74%,rgba(91,138,91,.26) 0 19%,transparent 20%),radial-gradient(ellipse at 28% 68%,rgba(124,154,126,.24) 0 17%,transparent 18%),radial-gradient(ellipse at 58% 62%,rgba(91,138,91,.20) 0 16%,transparent 17%)!important;pointer-events:none!important}'
+      + '.cd-health-daymaster-copy{display:grid!important;gap:7px!important;max-width:100%!important;border:1px solid rgba(232,221,208,.86)!important;border-radius:18px!important;background:rgba(253,250,246,.84)!important;padding:13px!important;box-shadow:0 8px 18px rgba(44,36,24,.045)!important}.cd-health-daymaster-copy b{display:block!important;font-size:14px!important;line-height:1.45!important;font-weight:760!important;color:#2C2418!important}.cd-health-daymaster-copy em{display:block!important;font-size:12px!important;line-height:1.66!important;font-style:normal!important;font-weight:620!important;color:#5B8A5B!important}.cd-health-hero-note{max-width:none!important;font-size:13px!important;line-height:1.72!important;font-weight:540!important;color:#4F604F!important}'
+      + '.cd-health-pill-row{display:flex!important;flex-wrap:wrap!important;gap:8px!important;max-width:100%!important;min-width:0!important}.cd-health-pill{display:inline-grid!important;grid-template-columns:auto minmax(0,1fr)!important;align-items:center!important;max-width:100%!important;min-width:0!important;white-space:normal!important;line-height:1.4!important;padding:7px 10px!important;border-radius:999px!important}.cd-health-pill-dot{flex:0 0 auto!important}.cd-health-pill-text{display:grid!important;min-width:0!important;gap:2px!important}.cd-health-pill-text b{display:block!important;font-size:10px!important;line-height:1.2!important;font-weight:760!important;color:#7A6A5A!important}.cd-health-pill-text em{display:block!important;font-size:12px!important;line-height:1.36!important;font-style:normal!important;font-weight:760!important;color:#2C2418!important;word-break:keep-all!important;overflow-wrap:anywhere!important}'
+      + '.cd-health-period-detail{display:grid!important;gap:7px!important;margin:12px 0 0!important;padding:0!important;list-style:none!important;max-width:100%!important}.cd-health-period-detail li{position:relative!important;margin:0!important;padding:8px 10px 8px 24px!important;border-radius:12px!important;background:#F5F0EB!important;border:1px solid #E8DDD0!important;font-size:13px!important;line-height:1.68!important;color:#5E6B55!important;word-break:keep-all!important;overflow-wrap:anywhere!important}.cd-health-period-detail li:before{content:"";position:absolute;left:11px;top:17px;width:5px;height:5px;border-radius:999px;background:#7C9A7E}'
+      + '.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-quote{display:block!important;width:100%!important;max-width:100%!important;margin:0!important;box-sizing:border-box!important;overflow:hidden!important;padding:18px!important;font-size:15px!important;line-height:1.82!important;word-break:keep-all!important;overflow-wrap:anywhere!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-section .cd-health-quote{margin-top:20px!important}.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-quote:before{font-size:20px!important;margin-bottom:6px!important}'
+      + '@media(max-width:640px){.cd-health-wellness-v20260607[data-marker="health-wellness-healing-v20260617"] .cd-health-hero-visual{min-height:auto!important;padding:16px!important;gap:12px!important}.cd-health-daymaster-copy{padding:12px!important}.cd-health-pill{width:100%!important;border-radius:16px!important}.cd-health-hero-date{align-items:flex-start!important;flex-direction:column!important;gap:4px!important}}@media(max-width:380px){.cd-health-today-grid{grid-template-columns:1fr!important}}'
       + '</style>';
+  }
+
+  function isHealthPlainObject(value) {
+    return !!value && typeof value === 'object' && !Array.isArray(value);
+  }
+
+  function hasHealthPlainObjectData(value) {
+    return isHealthPlainObject(value) && Object.keys(value).length > 0;
+  }
+
+  function readHealthGlobalPath(path) {
+    try {
+      return String(path).split('.').reduce(function (obj, key) {
+        return obj && obj[key];
+      }, w);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function pickHealthGlobalObject(paths) {
+    for (var i = 0; i < paths.length; i++) {
+      var value = readHealthGlobalPath(paths[i]);
+      if (hasHealthPlainObjectData(value)) return value;
+    }
+    return null;
+  }
+
+  function mergeHealthInput(primary, fallback) {
+    if (!hasHealthPlainObjectData(primary)) return hasHealthPlainObjectData(fallback) ? fallback : (primary || {});
+    if (!hasHealthPlainObjectData(fallback)) return primary;
+    return Object.assign({}, fallback, primary);
+  }
+
+  function resolveHealthReportInputs(p, natal, johu, pw, jg) {
+    var profileFallback = pickHealthGlobalObject([
+      '__cdCurrentDestinyProfile',
+      '__cdCurrentDestinyProfile.profile',
+      '__CURRENT_SAJU_PROFILE__',
+      'CURRENT_SAJU_PROFILE',
+      'CURRENT_PROFILE',
+      'currentProfile',
+      'sajuProfile',
+      'profileData',
+      'USER_PROFILE'
+    ]);
+    var natalFallback = pickHealthGlobalObject([
+      '__cdCurrentDestinyProfile.natal',
+      '__cdCurrentDestinyProfile.saju',
+      '__cdCurrentDestinyProfile.bazi',
+      '__CURRENT_NATAL__',
+      'CURRENT_NATAL',
+      'currentNatal',
+      'sajuNatal',
+      'natalData',
+      'sajuData',
+      'baziData',
+      'birthSaju'
+    ]);
+    var johuFallback = pickHealthGlobalObject([
+      '__cdCurrentDestinyProfile.johu',
+      '__CURRENT_JOHU__',
+      'CURRENT_JOHU',
+      'johuResult',
+      'johuData',
+      'currentJohu'
+    ]);
+    var powerFallback = pickHealthGlobalObject([
+      '__cdCurrentDestinyProfile.power',
+      '__cdCurrentDestinyProfile.eokbu',
+      '__CURRENT_POWER__',
+      'CURRENT_POWER',
+      'powerResult',
+      'eokbuResult',
+      'pwResult',
+      'currentPower'
+    ]);
+    var jongFallback = pickHealthGlobalObject([
+      '__cdCurrentDestinyProfile.jong',
+      '__cdCurrentDestinyProfile.jonggyeok',
+      '__CURRENT_JONGGYEOK__',
+      'CURRENT_JONGGYEOK',
+      'jongResult',
+      'jonggyeokResult',
+      'jgResult'
+    ]);
+    return {
+      p: mergeHealthInput(p, profileFallback),
+      natal: mergeHealthInput(natal, natalFallback || (profileFallback && (profileFallback.natal || profileFallback.saju || profileFallback.bazi))),
+      johu: mergeHealthInput(johu, johuFallback),
+      pw: mergeHealthInput(pw, powerFallback),
+      jg: mergeHealthInput(jg, jongFallback)
+    };
   }
 
   function buildWellnessHealthReport(p, natal, johu, pw, jg) {
     natal = natal || {};
     johu = johu || {};
-    var ratios = getHealthRatios(natal);
+    var ratios = getHealthRatios(natal, p);
     var sorted = HEALTH_ELEMENT_ORDER.slice().sort(function (a, b) { return ratios[b] - ratios[a]; });
     var strongestEl = sorted[0] || 'earth';
     var weakestEls = sorted.slice(-2).reverse();
     var controlImpacts = getHealthControlImpacts(ratios);
     var axes = getHealthTargetAxes(pw, jg, johu, controlImpacts);
     var rawTodayEl = getTodayHealthElement();
+    var computedTodayEl = rawTodayEl || getHealthFallbackTodayElement();
     var hasTodayElement = !!rawTodayEl;
-    var todayEl = rawTodayEl || strongestEl;
+    var todayEl = computedTodayEl || strongestEl;
     var condition = getTodayConditionCopyV2(todayEl, axes.targetEl, axes.avoidEl, strongestEl);
     if (!hasTodayElement) {
       condition = {
-        lead: '오늘의 일진 데이터가 확인되지 않아 선천 체질 베이스만 안전하게 표시합니다.',
-        second: '사주 원국의 장기적 경향을 기준으로 강점 축과 보완 축만 차분히 읽어주세요.'
+        lead: '오늘은 타고난 체질의 강약을 먼저 보는 편이 좋습니다. 몸이 익숙하게 쓰는 힘과 쉽게 지치는 자리를 나누어 살피겠습니다.',
+        second: '조후와 억부를 함께 놓으면, 강한 오행을 더 쓰기보다 비어 있는 오행을 생활 속에서 천천히 채우는 쪽이 좋습니다.'
       };
     }
     var riskKeys = [];
@@ -3418,7 +4509,7 @@
         + '<summary>'
         + '<div class="mb-3 flex items-start justify-between gap-3">'
         + '<div class="flex min-w-0 items-center gap-2">'
-        + '<span class="grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/10 text-base">' + EL_ICON[el] + '</span>'
+      + '<span class="cd-health-organ-sigil grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/10 text-base" data-health-el="' + escapeHealthHtml(el) + '" aria-hidden="true">' + escapeHealthHtml(EL_ICON[el] || '✨') + '</span>'
         + '<div class="min-w-0">'
         + '<b class="block text-sm font-black leading-5 text-white">' + EL_NAME[el] + '</b>'
         + '<span class="block text-[11px] font-bold leading-4 text-indigo-100/55">' + EL_ORGAN[el] + ' 리듬 · ' + getHealthStateBrief(state) + '</span>'
@@ -3442,117 +4533,180 @@
     ];
     var grade = getHealthConditionGrade(riskKeys, ratios, controlImpacts);
     var routineFocus = getHealthRoutineFocus(axes.targetEl);
+    var dayMaster = getHealthDayMasterElement(p, natal, strongestEl);
+    var dayMasterHero = getHealthDayMasterHeroCopy(dayMaster);
     var masterReadingHtml = renderHealthMasterReading(strongestEl, weakestEls, axes, ratios, controlImpacts, johu);
     var balanceHtml = '<div class="cd-health-balance-grid">' + renderHealthBalanceBars(ratios, axes.targetEl, axes.avoidEl, controlImpacts) + '</div>';
-    var todaySummaryHtml = renderTodayHealthSummaryCard(condition, grade, axes, routineFocus, strongestEl, controlImpacts);
+    var todaySummaryHtml = renderTodayHealthSummaryCard(condition, grade, axes, routineFocus, strongestEl, controlImpacts, dayMaster);
     var constitutionHtml = renderConstitutionCards(strongestEl, weakestEls);
     var periodHtml = renderHealthPeriodTimeline(axes.targetEl, axes.avoidEl, strongestEl, todayEl);
     var remedyHtml = renderHealthRemedyBoard(axes.targetEl, axes.avoidEl);
     var routineHtml = renderRecoveryRoutineBoard(axes.targetEl, axes.avoidEl);
+    var tensionHtml = renderHealthTensionAxis(controlImpacts, ratios, axes);
+    var dayMasterHtml = renderDayMasterHealthInsight(p, natal, dayMaster.element || todayEl || strongestEl);
+    var tenGodHtml = renderTenGodHealthInsights(p, natal, ratios, controlImpacts);
+    var seasonalHtml = renderSeasonalHealthInsight(johu, axes.targetEl);
+    var johuProfile = getHealthJohuProfile(johu, ratios);
+    var johuDeepHtml = renderJohuDeepDive(johu, ratios, axes.targetEl, axes.avoidEl);
+    var weaknessHtml = renderHealthWeaknessDeepDive(weakestEls, axes, ratios, controlImpacts, johu);
+    var profileName = String((p && (p.name || p.profileName || p.userName || p.nickname || p.birthName || p.displayName)) || '').trim();
+    var heroName = profileName ? profileName + '님' : '당신';
+    var targetRatio = Number(ratios[axes.targetEl] || 0);
+    var avoidRatio = Number(ratios[axes.avoidEl] || 0);
+    var rawRhythmScore = 88 - (controlImpacts.length * 5) - Math.abs(avoidRatio - targetRatio) * 0.18;
+    var rhythmScore = Math.max(54, Math.min(96, Math.round(Number.isFinite(rawRhythmScore) ? rawRhythmScore : 72)));
+    var heroHeadline = escapeHealthHtml(heroName + '의 일간으로 살피는 오늘의 건강운');
+    var healingQuote = '오늘은 몸을 설득하려 애쓰지 않아도 됩니다. 물 한 잔, 어깨 한 번, 잠드는 시간 십 분만으로도 회복의 문은 조금씩 열립니다.';
+    var heroEl = dayMaster.element || strongestEl;
+    var heroUi = getHealthHealingElementUi(heroEl);
+    var heroKnowledge = getHealthKnowledge(heroEl);
+    var heroHanja = heroKnowledge.hanja || (EL_NAME[heroEl] || '').replace(/^[^(]*\(|\)$/g, '') || '土';
+    var nowForHealth = new Date();
+    var weekLabels = ['일', '월', '화', '수', '목', '금', '토'];
+    var todayDateLabel = nowForHealth.getFullYear() + '년 ' + (nowForHealth.getMonth() + 1) + '월 ' + nowForHealth.getDate() + '일 (' + weekLabels[nowForHealth.getDay()] + ')';
 
     if (!hasTodayElement) {
       return renderHealthWellnessStyle()
-        + '<div class="ec-card ent-reveal cd-health-wellness-v20260607 relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-950 via-slate-950 to-violet-950 p-4 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-2xl sm:p-5" data-marker="health-wellness-sunrise-v20260607" data-legacy-marker="달빛 웰니스 클리닉">'
-        + '<div class="relative z-10 grid gap-4">'
-        + '<header class="cd-health-hero rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_54px_rgba(2,6,23,0.36)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
-        + '<div class="grid gap-4 lg:grid-cols-[minmax(180px,.72fr)_minmax(0,1.28fr)] lg:items-stretch">'
-        + '<div class="cd-health-hero-visual">'
-        + '<span class="cd-health-figure"></span>'
-        + '<span class="cd-health-visual-note">선천 기운이 먼저 열리고, 몸의 회복 축이 은은하게 드러납니다.</span>'
+        + '<div class="ec-card ent-reveal cd-health-wellness-v20260607 relative overflow-hidden rounded-[32px] border border-stone-100 bg-stone-50 p-5 text-stone-800 shadow-xl shadow-stone-200/60 ring-1 ring-white/80 backdrop-blur-xl sm:p-7" data-marker="health-wellness-healing-v20260617" data-legacy-marker="달빛 웰니스 클리닉">'
+        + '<div class="relative z-10 grid gap-8">'
+        + '<header class="cd-health-hero rounded-[32px] border border-stone-100 bg-stone-50/95 p-6 shadow-md shadow-stone-100/80 ring-1 ring-white/90 backdrop-blur-xl sm:p-8">'
+        + '<div class="grid gap-6 lg:grid-cols-[minmax(220px,.72fr)_minmax(0,1.28fr)] lg:items-stretch">'
+        + '<div class="cd-health-hero-visual" data-health-el="' + escapeHealthHtml(heroEl) + '" style="--health-el-color:' + heroUi.color + ';--health-el-soft:' + heroUi.soft + ';--health-el-border:' + heroUi.border + ';">'
+        + '<div class="cd-health-hero-date"><span>나의 일간</span><em>' + escapeHealthHtml(dayMaster.label + ' · ' + todayDateLabel) + '</em></div>'
+        + '<div class="cd-health-daymark"><span>' + escapeHealthHtml(heroHanja) + '</span></div>'
+        + '<div class="cd-health-daymaster-copy"><b>' + escapeHealthHtml(dayMasterHero.title) + '</b><p class="cd-health-hero-note">' + escapeHealthHtml(dayMasterHero.body) + '</p><em>' + escapeHealthHtml(dayMasterHero.key) + '</em></div>'
         + '</div>'
         + '<div class="min-w-0">'
-        + '<div class="cd-health-kicker mb-2 inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-200/10 px-3 py-1 text-[11px] font-black text-amber-100">☀ 햇살 웰니스 리포트</div>'
-        + '<h3 class="m-0 text-xl font-black leading-tight text-white sm:text-2xl">명리 헬스 리포트</h3>'
-        + '<p class="m-0 mt-2 max-w-2xl text-sm leading-6 text-indigo-100/78">오행 균형과 건강운의 작은 신호를 달빛 아래에서 차분히 살핍니다.</p>'
-        + '<div class="mt-4 flex flex-wrap gap-2">'
-        + renderHealthPill('선천 강점', EL_NAME[strongestEl], strongestEl)
-        + renderHealthPill('보완 축', weakestEls.map(function (el) { return EL_NAME[el]; }).join(', '), weakestEls[0] || strongestEl)
+        + '<div class="cd-health-kicker mb-3 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold tracking-tight text-amber-800">🌙 Mindful Health Flow</div>'
+        + '<div class="cd-health-report-label mb-2 text-sm font-bold leading-6 tracking-tight text-emerald-800">명리 헬스 리포트</div>'
+        + '<h3 class="m-0 text-3xl font-bold leading-tight tracking-tight text-stone-800 sm:text-4xl">' + heroHeadline + '</h3>'
+        + '<p class="m-0 mt-3 max-w-2xl text-base leading-relaxed tracking-tight text-stone-600">' + escapeHealthHtml(dayMasterHero.body + ' ' + dayMasterHero.key) + '</p>'
+        + '<div class="cd-health-hero-board mt-5 grid gap-3 sm:grid-cols-3">'
+        + '<div class="cd-health-hero-stat"><span>종합 리듬 점수</span><strong>' + rhythmScore + '</strong><em>점</em></div>'
+        + '<div class="cd-health-hero-stat"><span>보완 오행</span><strong>' + escapeHealthHtml(EL_NAME[axes.targetEl]) + '</strong><em>' + escapeHealthHtml(getHealthRoutineFocus(axes.targetEl)) + '</em></div>'
+        + '<div class="cd-health-hero-stat"><span>조후 리듬</span><strong>' + escapeHealthHtml(johuProfile.shortLabel) + '</strong><em>' + escapeHealthHtml(johuProfile.heroCare) + '</em></div>'
         + '</div>'
-        + '<div class="cd-health-callout mt-4 rounded-2xl border border-emerald-200/20 bg-emerald-300/10 p-3">'
-        + '<div class="mb-1 text-[11px] font-black text-emerald-100/80">선천 체질 기준 안내</div>'
-        + '<p class="m-0 text-sm font-black leading-6 text-white sm:text-base">' + condition.lead + '</p>'
-        + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">' + condition.second + '</p>'
+        + '<div class="cd-health-pill-row mt-5">'
+        + renderHealthPill('선천 강점', EL_NAME[strongestEl], strongestEl)
+        + renderHealthPill('보완 오행', weakestEls.map(function (el) { return EL_NAME[el]; }).join(', '), weakestEls[0] || strongestEl)
+        + '</div>'
+        + '<div class="cd-health-callout mt-5 rounded-3xl border border-emerald-100 bg-emerald-50/70 p-5 shadow-sm shadow-emerald-100/50">'
+        + '<div class="mb-1 text-xs font-bold tracking-tight text-emerald-800">🌿 선천 체질 기준 안내</div>'
+        + '<p class="m-0 text-base font-medium leading-relaxed tracking-tight text-stone-800">' + condition.lead + '</p>'
+        + '<p class="m-0 mt-2 text-sm leading-relaxed tracking-tight text-stone-600">' + condition.second + '</p>'
         + '</div>'
         + '</div>'
         + '</div>'
         + '</header>'
-        + renderHealthSection('☾', '오늘의 건강운 카드', '선천 기운 기준의 핵심 흐름만 먼저 머무릅니다.', todaySummaryHtml)
-        + renderHealthSection('⚖️', '오행 균형 체크', '강한 축과 비어 있는 축이 회복 순서를 가리킵니다.', balanceHtml)
-        + renderHealthSection('✦', '명리학자 소견', '일간, 조후, 오행 강약이 겹치는 몸의 결을 세 갈래로 나눕니다.', masterReadingHtml)
-        + renderHealthSection('🌙', '선천 체질 베이스', '사주 원국의 장기 체질 결이 먼저 드러납니다.',
+        + renderHealthSection('today', '오늘의 건강운 카드', '오늘 몸이 먼저 반응하기 쉬운 자리부터 차분히 짚습니다.', todaySummaryHtml)
+        + renderHealthSection('balance', '오행 균형 체크', '강한 오행과 비어 있는 오행을 함께 보며 생활관리 우선순위를 잡습니다.', balanceHtml)
+        + renderHealthSection('johu', '조후 심층 리듬', '몸의 열감, 차가움, 건조함, 무거움을 조후 관점에서 함께 살핍니다.', johuDeepHtml)
+        + renderHealthSection('weakness', '취약 오행 심층 소견', '약한 오행이 어떤 생활 신호로 나타나기 쉬운지 구체적으로 짚습니다.', weaknessHtml)
+        + renderHealthSection('signal', '오늘의 압박 축', '오행의 생극 관계에서 긴장이 걸리는 자리를 살핍니다.', tensionHtml)
+        + renderHealthSection('insight', '명리학자 소견', '일간, 조후, 오행 강약을 겹쳐 오늘 낮출 긴장과 살릴 리듬을 짚습니다.', masterReadingHtml)
+        + renderHealthSection('constitution', '일간별 체질 리듬', '태어난 날의 천간을 기준으로 몸이 회복되는 방식을 살핍니다.', dayMasterHtml)
+        + renderHealthSection('constitution', '선천 체질 베이스', '원국에서 강하게 쓰이는 기운과 쉽게 피로해지는 기운을 나눠봅니다.',
           constitutionHtml)
-        + renderHealthSection('🗓', '시기별 건강운', '오늘부터 계절 전환기까지의 관리 운이 펼쳐집니다.', periodHtml)
-        + renderHealthSection('🪷', '오행 개운법', '몸과 공간의 기운을 함께 여는 작은 의식입니다.', remedyHtml)
-        + '<p class="m-0 rounded-2xl border border-white/10 bg-white/[0.78] p-3 text-[12px] leading-6 text-indigo-100/55">본 리포트는 명리학적 관점에서 생활 리듬과 컨디션 흐름을 해석한 콘텐츠입니다. 의학적 진단이나 치료를 대체하지 않으며, 실제 건강 문제가 있다면 전문 의료진과 상담하세요.</p>'
+        + renderHealthSection('insight', '십성별 스트레스 패턴', '십성이 강하게 움직일 때 몸이 소모되는 습관을 짚습니다.', tenGodHtml)
+        + renderHealthSection('period', '계절·조후 건강운', '계절의 온도와 습도에 맞춰 보완할 오행을 고릅니다.', seasonalHtml)
+        + renderHealthSection('period', '시기별 건강운', '오늘, 이번 주, 이번 달, 계절 전환기에 챙길 생활 리듬입니다.', periodHtml)
+        + renderHealthSection('remedy', '오행 개운법', '몸과 공간을 가볍게 정돈하는 현실적인 보완법을 권합니다.', remedyHtml)
+        + '<blockquote class="cd-health-quote rounded-[28px] border border-emerald-100 bg-emerald-50/70 p-6 text-base leading-relaxed tracking-tight text-emerald-950 shadow-sm shadow-emerald-100/70">“' + escapeHealthHtml(healingQuote) + '”</blockquote>'
+        + '<p class="m-0 rounded-2xl border border-stone-100 bg-white/80 p-4 text-xs leading-relaxed tracking-tight text-stone-500">' + escapeHealthHtml(HEALTH_REPORT_DISCLAIMER) + '</p>'
         + '</div>'
         + '</div>';
     }
 
     return renderHealthWellnessStyle()
-      + '<div class="ec-card ent-reveal cd-health-wellness-v20260607 relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-950 via-slate-950 to-violet-950 p-4 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-2xl sm:p-5" data-marker="health-wellness-sunrise-v20260607" data-legacy-marker="달빛 웰니스 클리닉">'
+      + '<div class="ec-card ent-reveal cd-health-wellness-v20260607 relative overflow-hidden rounded-[32px] border border-stone-100 bg-stone-50 p-5 text-stone-800 shadow-xl shadow-stone-200/60 ring-1 ring-white/80 backdrop-blur-xl sm:p-7" data-marker="health-wellness-healing-v20260617" data-legacy-marker="달빛 웰니스 클리닉">'
       + '<div class="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>'
-      + '<div class="relative z-10 grid gap-4">'
+      + '<div class="relative z-10 grid gap-8">'
 
-      + '<header class="cd-health-hero rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_54px_rgba(2,6,23,0.36)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
-      + '<div class="grid gap-4 lg:grid-cols-[minmax(190px,.72fr)_minmax(0,1.28fr)] lg:items-stretch">'
-      + '<div class="cd-health-hero-visual">'
-      + '<span class="cd-health-figure"></span>'
-      + '<span class="cd-health-visual-note">오행 균형과 건강운의 작은 신호가 이곳에 모입니다.</span>'
+      + '<header class="cd-health-hero rounded-[32px] border border-stone-100 bg-stone-50/95 p-6 shadow-md shadow-stone-100/80 ring-1 ring-white/90 backdrop-blur-xl sm:p-8">'
+      + '<div class="grid gap-6 lg:grid-cols-[minmax(220px,.72fr)_minmax(0,1.28fr)] lg:items-stretch">'
+      + '<div class="cd-health-hero-visual" data-health-el="' + escapeHealthHtml(heroEl) + '" style="--health-el-color:' + heroUi.color + ';--health-el-soft:' + heroUi.soft + ';--health-el-border:' + heroUi.border + ';">'
+      + '<div class="cd-health-hero-date"><span>나의 일간</span><em>' + escapeHealthHtml(dayMaster.label + ' · ' + todayDateLabel) + '</em></div>'
+      + '<div class="cd-health-daymark"><span>' + escapeHealthHtml(heroHanja) + '</span></div>'
+      + '<div class="cd-health-daymaster-copy"><b>' + escapeHealthHtml(dayMasterHero.title) + '</b><p class="cd-health-hero-note">' + escapeHealthHtml(dayMasterHero.body) + '</p><em>' + escapeHealthHtml(dayMasterHero.key) + '</em></div>'
       + '</div>'
       + '<div class="min-w-0">'
-      + '<div class="cd-health-kicker mb-2 inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-200/10 px-3 py-1 text-[11px] font-black text-amber-100">☀ 햇살 웰니스 리포트</div>'
-      + '<h3 class="m-0 text-xl font-black leading-tight text-white sm:text-2xl">명리 헬스 리포트</h3>'
-      + '<p class="m-0 mt-2 max-w-2xl text-sm leading-6 text-indigo-100/78">오행 균형과 건강운의 작은 신호가 몸의 회복 순서를 비춥니다.</p>'
-      + '<div class="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(170px,.55fr)]">'
-      + '<div class="cd-health-callout rounded-2xl border border-emerald-200/20 bg-emerald-300/10 p-3">'
-      + '<div class="mb-1 text-[11px] font-black text-emerald-100/80">오늘의 한 줄 컨디션</div>'
-      + '<p class="m-0 text-sm font-black leading-6 text-white sm:text-base">' + condition.lead + '</p>'
-      + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">' + condition.second + '</p>'
+      + '<div class="cd-health-kicker mb-3 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold tracking-tight text-amber-800">🌙 Mindful Health Flow</div>'
+      + '<div class="cd-health-report-label mb-2 text-sm font-bold leading-6 tracking-tight text-emerald-800">명리 헬스 리포트</div>'
+      + '<h3 class="m-0 text-3xl font-bold leading-tight tracking-tight text-stone-800 sm:text-4xl">' + heroHeadline + '</h3>'
+      + '<p class="m-0 mt-3 max-w-2xl text-base leading-relaxed tracking-tight text-stone-600">' + escapeHealthHtml(dayMasterHero.body + ' ' + dayMasterHero.key) + '</p>'
+      + '<div class="cd-health-hero-board mt-5 grid gap-3 sm:grid-cols-3">'
+      + '<div class="cd-health-hero-stat"><span>종합 리듬 점수</span><strong>' + rhythmScore + '</strong><em>점</em></div>'
+      + '<div class="cd-health-hero-stat"><span>보완 오행</span><strong>' + escapeHealthHtml(EL_NAME[axes.targetEl]) + '</strong><em>' + escapeHealthHtml(routineFocus) + '</em></div>'
+      + '<div class="cd-health-hero-stat"><span>조후 리듬</span><strong>' + escapeHealthHtml(johuProfile.shortLabel) + '</strong><em>' + escapeHealthHtml(johuProfile.heroCare) + '</em></div>'
       + '</div>'
-      + '<div class="cd-health-grade rounded-2xl border border-white/10 bg-slate-950/32 p-3 text-left shadow-inner">'
-      + '<div class="text-[11px] font-black text-indigo-100/55">오늘의 컨디션 등급</div>'
-      + '<div class="mt-1 text-lg font-black text-amber-100">' + escapeHealthHtml(grade.label) + '</div>'
-      + '<p class="m-0 mt-1 text-[12px] leading-5 text-indigo-50/70">' + escapeHealthHtml(grade.body) + '</p>'
+      + '<div class="mt-5 grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(180px,.55fr)]">'
+      + '<div class="cd-health-callout rounded-3xl border border-emerald-100 bg-emerald-50/70 p-5 shadow-sm shadow-emerald-100/50">'
+      + '<div class="mb-1 text-xs font-bold tracking-tight text-emerald-800">🌿 오늘의 한 줄 컨디션</div>'
+      + '<p class="m-0 text-base font-medium leading-relaxed tracking-tight text-stone-800">' + condition.lead + '</p>'
+      + '<p class="m-0 mt-2 text-sm leading-relaxed tracking-tight text-stone-600">' + condition.second + '</p>'
+      + '</div>'
+      + '<div class="cd-health-grade rounded-3xl border border-amber-100 bg-amber-50/70 p-5 text-left shadow-sm shadow-amber-100/60">'
+      + '<div class="text-xs font-bold tracking-tight text-amber-800">💫 오늘의 컨디션 등급</div>'
+      + '<div class="mt-1 text-2xl font-bold tracking-tight text-stone-800">' + escapeHealthHtml(grade.label) + '</div>'
+      + '<p class="m-0 mt-2 text-sm leading-relaxed tracking-tight text-stone-600">' + escapeHealthHtml(grade.body) + '</p>'
       + '</div>'
       + '</div>'
       + '</div>'
       + '</div>'
-      + '<div class="mt-4 flex flex-wrap gap-2">'
+      + '<div class="cd-health-pill-row mt-4">'
       + renderHealthPill('오늘 보완', EL_NAME[axes.targetEl], axes.targetEl)
       + renderHealthPill('오늘 주의', EL_NAME[axes.avoidEl], axes.avoidEl)
       + renderHealthPill('안정 루틴', routineFocus, axes.targetEl)
       + '</div>'
       + '</header>'
 
-      + renderHealthSection('☾', '2. 오늘의 건강운 카드', '오늘의 기운, 등급, 보완 오행, 안정 루틴이 한눈에 들어옵니다.',
+      + renderHealthSection('today', '오늘의 건강운 카드', '오늘 몸이 먼저 반응하기 쉬운 자리부터 차분히 짚습니다.',
         todaySummaryHtml)
 
-      + renderHealthSection('⚖️', '3. 오행 균형 체크', '목·화·토·금·수의 강약과 생활 리듬을 카드형 보드로 정리합니다.',
+      + renderHealthSection('balance', '오행 균형 체크', '목·화·토·금·수의 강약을 보며 생활관리 우선순위를 잡습니다.',
         balanceHtml)
 
-      + renderHealthSection('✦', '4. 명리학자 소견', '일간 관점, 긴장 포인트, 회복 방향을 세 카드로 나눕니다.',
+      + renderHealthSection('johu', '조후 심층 리듬', '몸의 열감, 차가움, 건조함, 무거움을 조후 관점에서 함께 살핍니다.',
+        johuDeepHtml)
+
+      + renderHealthSection('weakness', '취약 오행 심층 소견', '약한 오행이 어떤 생활 신호로 나타나기 쉬운지 구체적으로 짚습니다.',
+        weaknessHtml)
+
+      + renderHealthSection('signal', '오늘의 압박 축', '오행의 생극 관계에서 긴장이 걸리는 자리를 살핍니다.',
+        tensionHtml)
+
+      + renderHealthSection('insight', '명리학자 소견', '일간, 조후, 오행 강약을 겹쳐 오늘 낮출 긴장과 살릴 리듬을 짚습니다.',
         masterReadingHtml)
 
-      + renderHealthSection('🌙', '5. 선천 체질 베이스', '강점 축, 피로 축, 보완 축이 분명하게 드러납니다.',
+      + renderHealthSection('constitution', '일간별 체질 리듬', '태어난 날의 천간을 기준으로 몸이 회복되는 방식을 살핍니다.',
+        dayMasterHtml)
+
+      + renderHealthSection('constitution', '선천 체질 베이스', '원국에서 강하게 쓰이는 기운과 쉽게 피로해지는 기운을 나눠봅니다.',
         constitutionHtml)
 
-      + renderHealthSection('🗓', '6. 시기별 건강운', '오늘, 이번 주, 이번 달, 계절 전환기의 운이 차례로 열립니다.',
+      + renderHealthSection('insight', '십성별 스트레스 패턴', '십성이 강하게 움직일 때 몸이 소모되는 습관을 짚습니다.',
+        tenGodHtml)
+
+      + renderHealthSection('period', '계절·조후 건강운', '계절의 온도와 습도에 맞춰 보완할 오행을 고릅니다.',
+        seasonalHtml)
+
+      + renderHealthSection('period', '시기별 건강운', '오늘, 이번 주, 이번 달, 계절 전환기에 챙길 생활 리듬입니다.',
         periodHtml)
 
-      + renderHealthSection('⚖️', '7. 오늘의 오행 조율', '오늘의 기운과 원국이 만나는 지점에서 실행 순서가 떠오릅니다.',
+      + renderHealthSection('tune', '오늘의 오행 조율', '일진과 원국을 함께 놓고 오늘 먼저 챙길 일을 좁힙니다.',
         '<div class="grid gap-3 sm:grid-cols-3">'
         + renderHealthInfoCard('오늘 필요한 오행', EL_NAME[axes.targetEl], '부족하거나 압박받는 축을 먼저 보완해 컨디션의 중심을 잡습니다.', EL_NEON[axes.targetEl])
         + renderHealthInfoCard('오늘 줄여야 할 오행', EL_NAME[axes.avoidEl], '과열되기 쉬운 자극을 줄이면 다른 장부 리듬의 부담이 낮아집니다.', EL_NEON[axes.avoidEl])
         + renderHealthInfoCard('오늘 머무르면 좋은 습관', '리듬 안정 · 자극 낮추기 · 회복 여백', '작은 회복 행동 하나가 몸의 균형을 다시 불러옵니다.', '#14b8a6')
         + '</div>')
 
-      + renderHealthSection('🫧', '8. 장부/생활 신호', '오늘 강하게 떠오르는 상위 신호만 남기고, 자세한 관리는 접어두었습니다.',
+      + renderHealthSection('signal', '장부/생활 신호', '오늘 민감해지기 쉬운 생활 신호와 관리 포인트를 나눕니다.',
         '<div class="grid gap-3">' + riskHtml + '</div>')
 
-      + renderHealthSection('🍽️', '9. 오늘의 회복 루틴', '실천 가능한 음식, 움직임, 휴식, 피할 패턴만 남겼습니다.',
+      + renderHealthSection('routine', '오늘의 회복 루틴', '오늘 몸이 바로 받아들이기 쉬운 음식, 움직임, 휴식입니다.',
         routineHtml)
 
-      + renderHealthSection('🍵', '10. 추천 음식과 차', '보완 오행에 어울리는 음식은 필요한 만큼만 펼쳐봅니다.',
+      + renderHealthSection('tea', '추천 음식과 차', '보완 오행에 맞춰 부담 적은 음식과 차를 권합니다.',
         '<div class="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(240px,.85fr)]">'
         + '<div class="cd-health-info rounded-2xl border border-white/10 bg-slate-950/24 p-3 ring-1 ring-white/5 backdrop-blur-xl">'
         + '<div class="mb-3 flex items-center justify-between gap-3">'
@@ -3568,27 +4722,28 @@
         + '</div>'
         + '</div>')
 
-      + renderHealthSection('🪷', '11. 오행 개운법', '몸과 공간의 기운을 함께 여는 작은 의식입니다.',
+      + renderHealthSection('remedy', '오행 개운법', '몸과 공간을 가볍게 정돈하는 현실적인 보완법을 권합니다.',
         remedyHtml)
 
-      + '<section class="cd-health-section rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_48px_rgba(2,6,23,0.28)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
-      + '<div class="mb-3 flex items-start gap-3">'
-      + '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/10 text-lg shadow-inner">✓</span>'
+      + '<section class="cd-health-section rounded-[28px] border border-stone-100 bg-stone-50/95 p-6 shadow-sm shadow-stone-100/80 ring-1 ring-white/80 backdrop-blur-xl sm:p-7">'
+      + '<div class="mb-5 flex items-start gap-3.5">'
+      + '<span class="cd-health-section-icon cd-health-section-sigil grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-stone-100 bg-white/80 text-lg shadow-sm shadow-stone-100" aria-hidden="true" data-health-icon="mission"><i>' + escapeHealthHtml(getHealthUiIcon('mission')) + '</i></span>'
       + '<div class="min-w-0">'
-      + '<h4 class="m-0 text-base font-black leading-snug text-white sm:text-lg">12. 오늘의 헬스 미션</h4>'
-      + '<p class="m-0 mt-1 text-sm leading-6 text-indigo-100/75">오늘 몸이 편안히 받아들일 세 가지 약속입니다.</p>'
+      + '<h4 class="m-0 text-xl font-bold leading-snug tracking-tight text-stone-800 sm:text-2xl">오늘의 헬스 미션</h4>'
+      + '<p class="m-0 mt-1.5 text-base font-normal leading-relaxed tracking-tight text-stone-600">오늘 몸이 편안히 받아들일 세 가지 약속입니다.</p>'
       + '</div>'
       + '</div>'
       + '<ol class="m-0 grid list-none gap-2 p-0">'
       + missionList.map(function (mission) {
-        return '<li class="cd-health-mission flex items-start gap-3 rounded-2xl border border-white/10 bg-slate-950/24 p-3 ring-1 ring-white/5">'
-          + '<span class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg border border-emerald-200/30 bg-emerald-300/15 text-[12px] font-black text-emerald-100">✓</span>'
-          + '<span class="text-sm font-bold leading-6 text-indigo-50/82">' + escapeHealthHtml(mission) + '</span>'
+        return '<li class="cd-health-mission flex items-start gap-3 rounded-2xl border border-stone-100 bg-white/80 p-4 shadow-sm shadow-stone-100 ring-1 ring-white/80">'
+          + '<span class="cd-health-mission-dot mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full border border-emerald-100 bg-emerald-50 text-sm font-bold text-emerald-800" aria-hidden="true">✓</span>'
+          + '<span class="text-base font-medium leading-relaxed tracking-tight text-stone-700">' + escapeHealthHtml(mission) + '</span>'
           + '</li>';
       }).join('')
       + '</ol>'
-      + '<div class="cd-health-avoid mt-3 rounded-2xl border border-orange-200/20 bg-orange-400/10 p-3 text-[13px] leading-6 text-orange-100"><b>오늘 피해야 할 패턴:</b> ' + escapeHealthHtml(HEALTH_AVOID_PLAN[axes.avoidEl] || HEALTH_AVOID_PLAN.earth) + '</div>'
-      + '<p class="m-0 mt-4 border-t border-white/10 pt-3 text-[12px] leading-6 text-indigo-100/55">본 리포트는 명리학적 관점에서 생활 리듬과 컨디션 흐름을 해석한 콘텐츠입니다. 의학적 진단이나 치료를 대체하지 않으며, 실제 건강 문제가 있다면 전문 의료진과 상담하세요.</p>'
+      + '<div class="cd-health-avoid mt-4 rounded-2xl border border-orange-100 bg-orange-50/80 p-4 text-sm leading-relaxed tracking-tight text-orange-900"><b>오늘 피해야 할 패턴:</b> ' + escapeHealthHtml(HEALTH_AVOID_PLAN[axes.avoidEl] || HEALTH_AVOID_PLAN.earth) + '</div>'
+      + '<blockquote class="cd-health-quote mt-5 rounded-[28px] border border-emerald-100 bg-emerald-50/70 p-6 text-base leading-relaxed tracking-tight text-emerald-950 shadow-sm shadow-emerald-100/70">“' + escapeHealthHtml(healingQuote) + '”</blockquote>'
+      + '<p class="m-0 mt-4 border-t border-stone-100 pt-4 text-xs leading-relaxed tracking-tight text-stone-500">' + escapeHealthHtml(HEALTH_REPORT_DISCLAIMER) + '</p>'
       + '</section>'
       + '</div>'
       + '</div>';
@@ -3608,7 +4763,8 @@
     if (!area || !card) return;
 
     try {
-      area.innerHTML = buildWellnessHealthReport(p, natal, johu || {}, pw, jg);
+      var resolved = resolveHealthReportInputs(p, natal, johu || {}, pw, jg);
+      area.innerHTML = buildWellnessHealthReport(resolved.p, resolved.natal, resolved.johu || {}, resolved.pw, resolved.jg);
       card.style.display = 'block';
       _scheduleReveal(area);
     } catch (err) {

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authFetch, clearClientAuthState } from "../../_lib/auth-client";
 import { getApiBaseUrl } from "../../_lib/api-config";
+import { resolveMonthlyStoneBalance } from "../../_lib/monthly-stone";
 
 /* ══════════════════════════════════════════════════════════════════
    타입 정의
@@ -36,8 +37,10 @@ type MeResponse = {
   success?: boolean;
   data?: {
     balance?: number;
+    monthlyStoneBalance?: number;
     monthlyCredits?: number;
-    membershipCreditBalance?: number;    payments?: PaymentHistoryItem[];
+    membershipCreditBalance?: number;
+    payments?: PaymentHistoryItem[];
     monthlyCreditLedgers?: MonthlyCreditLedgerItem[];
     subscriptions?: SubscriptionStatusResponse[];
   };
@@ -45,6 +48,7 @@ type MeResponse = {
   user?: {
     id: string;
     name: string;
+    monthlyStoneBalance?: number;
     monthlyCredits?: number;
   };
   payments?: PaymentHistoryItem[];  monthlyCreditLedgers?: MonthlyCreditLedgerItem[];
@@ -103,16 +107,14 @@ function paymentStatusView(status: PaymentHistoryItem["status"]) {
 
 function normalizePointPayload(payload: MeResponse) {
   const dataNode = payload?.data && typeof payload.data === "object" ? payload.data : {};
-  const balanceRaw =
-    (typeof dataNode.monthlyCredits === "number" ? dataNode.monthlyCredits : undefined)
-    ?? (typeof dataNode.membershipCreditBalance === "number" ? dataNode.membershipCreditBalance : 0);
+  const monthlyStoneBalance = resolveMonthlyStoneBalance(dataNode, payload?.user) ?? 0;
   const monthlyCreditLedgers = Array.isArray(dataNode.monthlyCreditLedgers)
     ? dataNode.monthlyCreditLedgers
     : (Array.isArray(payload?.monthlyCreditLedgers) ? payload.monthlyCreditLedgers : []);
 
   return {
     userName: payload?.user?.name || "사용자",
-    balance: Number.isFinite(Number(balanceRaw)) ? Number(balanceRaw) : 0,
+    balance: monthlyStoneBalance,
     pointHistories: monthlyCreditLedgers,
     message: payload?.message || "",
   };
@@ -189,7 +191,7 @@ export default function PointHistoryPage() {
   const [subscriptionSummary, setSubscriptionSummary] = useState("구독 상태 확인 중");
 
   const [userName, setUserName] = useState("사용자");
-  const [currentMonthlyCredits, setCurrentMonthlyCredits] = useState(0);
+  const [currentMonthlyStoneBalance, setCurrentMonthlyStoneBalance] = useState(0);
   const [histories, setHistories] = useState<MonthlyCreditLedgerItem[]>([]);
   const [payments, setPayments] = useState<PaymentHistoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>("all");
@@ -224,7 +226,7 @@ export default function PointHistoryPage() {
       }
       const normalized = normalizePointPayload(data);
       setUserName(normalized.userName);
-      setCurrentMonthlyCredits(normalized.balance);
+      setCurrentMonthlyStoneBalance(normalized.balance);
       setHistories(
         Array.isArray(normalized.pointHistories)
           ? normalized.pointHistories.filter(Boolean)
@@ -488,7 +490,7 @@ export default function PointHistoryPage() {
           className="grid grid-cols-2 gap-3"
         >
             {[
-              { label: "현재 이용권 혜택", value: currentMonthlyCredits, icon: "잔여", showCoin: false, cls: "border-amber-200 bg-amber-50/80", valcls: "text-amber-700" },
+              { label: "현재 이용권 혜택", value: currentMonthlyStoneBalance, icon: "잔여", showCoin: false, cls: "border-amber-200 bg-amber-50/80", valcls: "text-amber-700" },
               { label: "총 사용 이용권 혜택", value: totalSpentMonthlyCredits, icon: "사용", showCoin: false, cls: "border-rose-200 bg-rose-50/80", valcls: "text-rose-700" },
             ].map((item) => (
             <div

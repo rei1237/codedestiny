@@ -1,3 +1,5 @@
+import { resolveMonthlyStoneBalance } from "./monthly-stone";
+
 export type ClientAuthUser = {
   id?: string;
   userId?: string;
@@ -7,6 +9,7 @@ export type ClientAuthUser = {
   email?: string;
   image?: string;
   role?: string;
+  monthlyStoneBalance?: number;
   monthlyCredits?: number;
   plan?: string;
   hasLocalAuth?: boolean;
@@ -15,6 +18,7 @@ export type ClientAuthUser = {
     isActive?: boolean;
     expiresAt?: string | null;
     profileLimit?: number;
+    monthlyStoneBalance?: number;
     membershipCreditBalance?: number;
     membershipCreditGranted?: number;
     membershipCreditUsed?: number;
@@ -51,14 +55,9 @@ export function sanitizeClientAuthUser(input: unknown): ClientAuthUser | null {
     safe.hasLocalAuth = source.hasLocalAuth;
   }
 
-  const monthlyCredits = Number(
-    source.monthlyCredits
-    ?? (source.profileSubscription && typeof source.profileSubscription === "object"
-      ? (source.profileSubscription as Record<string, unknown>).membershipCreditBalance
-      : NaN),
-  );
-  if (Number.isFinite(monthlyCredits) && monthlyCredits >= 0) {
-    safe.monthlyCredits = monthlyCredits;
+  const monthlyStoneBalance = resolveMonthlyStoneBalance(source);
+  if (monthlyStoneBalance !== null) {
+    safe.monthlyStoneBalance = monthlyStoneBalance;
   }
 
   const profileSubscription = source.profileSubscription;
@@ -69,6 +68,7 @@ export function sanitizeClientAuthUser(input: unknown): ClientAuthUser | null {
       isActive: !!sub.isActive,
       expiresAt: typeof sub.expiresAt === "string" ? sub.expiresAt : null,
       profileLimit: Number.isFinite(Number(sub.profileLimit)) ? Number(sub.profileLimit) : undefined,
+      monthlyStoneBalance: resolveMonthlyStoneBalance(sub) ?? undefined,
       membershipCreditBalance: Number.isFinite(Number(sub.membershipCreditBalance)) ? Number(sub.membershipCreditBalance) : undefined,
       membershipCreditGranted: Number.isFinite(Number(sub.membershipCreditGranted)) ? Number(sub.membershipCreditGranted) : undefined,
       membershipCreditUsed: Number.isFinite(Number(sub.membershipCreditUsed)) ? Number(sub.membershipCreditUsed) : undefined,

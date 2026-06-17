@@ -8,6 +8,7 @@ import { usePayment } from "../hooks/usePayment";
 import { persistSanitizedAuthUser } from "../_lib/auth-storage";
 import { authFetch } from "../_lib/auth-client";
 import { openPaidFeatureGate, purchaseFeature } from "../_lib/billing-client";
+import { resolveMonthlyStoneBalance } from "../_lib/monthly-stone";
 import EmailSubscriptionSection from "./EmailSubscriptionSection";
 
 type LockedSectionProps = {
@@ -449,19 +450,10 @@ function extractBillingSnapshot(payload: any) {
   const membership = readRecord(normalized?.membership);
   const profileSubscription = readRecord(user?.profileSubscription);
   const balance = firstFiniteNonNegative(normalized?.balance, consume?.balance, user?.points);
-  const monthlyCredits = normalized?.authenticated === false ? 0 : firstFiniteNonNegative(
-    consume?.remainingMembershipCredit,
-    consume?.monthlyCredits,
-    consume?.membershipCreditBalance,
-    normalized?.membershipCreditBalance,
-    normalized?.monthlyCredits,
-    normalized?.monthlyBalance,
-    membership?.membershipCreditBalance,
-    membership?.monthlyCredits,
-    user?.monthlyCredits,
-    profileSubscription?.membershipCreditBalance,
-  );
-  return { normalized, balance, monthlyCredits };
+  const monthlyStoneBalance = normalized?.authenticated === false
+    ? 0
+    : resolveMonthlyStoneBalance(normalized, consume, membership, user, profileSubscription);
+  return { normalized, balance, monthlyStoneBalance };
 }
 
 function isCoinSpendPayload(payload: any): boolean {
@@ -483,18 +475,19 @@ function isMonthlyCreditPayload(payload: any): boolean {
   return accessType === "membership_credit" || accessMethod === "MONTHLY" || paymentMethod === "MONTHLY";
 }
 
-function saveUserBillingSnapshot(points: number | null | undefined, monthlyCredits: number | null | undefined) {
+function saveUserBillingSnapshot(points: number | null | undefined, monthlyStoneBalance: number | null | undefined) {
   try {
     const raw = localStorage.getItem('fortune_auth_user');
     const user = raw ? JSON.parse(raw) : {};
     if (points !== null && points !== undefined && Number.isFinite(Number(points)) && Number(points) >= 0) {
       user.points = Math.floor(Number(points));
     }
-    if (monthlyCredits !== null && monthlyCredits !== undefined && Number.isFinite(Number(monthlyCredits)) && Number(monthlyCredits) >= 0) {
-      const credits = Math.floor(Number(monthlyCredits));
-      user.monthlyCredits = credits;
+    if (monthlyStoneBalance !== null && monthlyStoneBalance !== undefined && Number.isFinite(Number(monthlyStoneBalance)) && Number(monthlyStoneBalance) >= 0) {
+      const credits = Math.floor(Number(monthlyStoneBalance));
+      user.monthlyStoneBalance = credits;
       user.profileSubscription = {
         ...(user.profileSubscription && typeof user.profileSubscription === "object" ? user.profileSubscription : {}),
+        monthlyStoneBalance: credits,
         membershipCreditBalance: credits,
       };
     }
@@ -574,7 +567,7 @@ function notifyCoinResult(data: any, fallbackCost: number, points: number, label
     const usedCredits = firstFiniteNonNegative(normalized?.membershipCreditCost, normalized?.requiredMonthlyCredits);
     const details = [
       usedCredits !== null ? `${formatMonthlyCreditValue(usedCredits)} 사용` : "",
-      snapshot.monthlyCredits !== null ? `남은 이용권 혜택: ${formatMonthlyCreditValue(snapshot.monthlyCredits)}` : "",
+      snapshot.monthlyStoneBalance !== null ? `남은 이용권 혜택: ${formatMonthlyCreditValue(snapshot.monthlyStoneBalance)}` : "",
     ].filter(Boolean);
     showToast(`${label} 이용권 혜택으로 열렸습니다.${details.length ? ` ${details.join(" · ")}` : ""}`, "info");
     return;
@@ -600,7 +593,7 @@ function redirectPerUseFeature(key: PerUseKey) {
 export default function KkulkkulManseryukMain() {
   const { isPaymentLoading, startPayment, endPayment, setPaymentMessage } = usePayment();
   const [currentCoins, setCurrentCoins] = useState(0);
-  const [currentMonthlyCredits, setCurrentMonthlyCredits] = useState(0);
+  const [currentMonthlyStoneBalance, setCurrentMonthlyStoneBalance] = useState(0);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [globalRuntimeError, setGlobalRuntimeError] = useState("");
   const [showRechargeModal, setShowRechargeModal] = useState(false);
@@ -636,12 +629,12 @@ export default function KkulkkulManseryukMain() {
       : (Number.isFinite(fallbackCoins) && fallbackCoins >= 0 ? Math.floor(fallbackCoins) : null);
     if (nextCoins !== null) {
       setCurrentCoins(nextCoins);
-      saveUserBillingSnapshot(nextCoins, snapshot.monthlyCredits);
-    } else if (snapshot.monthlyCredits !== null) {
-      saveUserBillingSnapshot(null, snapshot.monthlyCredits);
+      saveUserBillingSnapshot(nextCoins, snapshot.monthlyStoneBalance);
+    } else if (snapshot.monthlyStoneBalance !== null) {
+      saveUserBillingSnapshot(null, snapshot.monthlyStoneBalance);
     }
-    if (snapshot.monthlyCredits !== null) {
-      setCurrentMonthlyCredits(snapshot.monthlyCredits);
+    if (snapshot.monthlyStoneBalance !== null) {
+      setCurrentMonthlyStoneBalance(snapshot.monthlyStoneBalance);
     }
     if (options.updateUnlocks === true) {
       const restored = buildUnlockStateFromPayload(snapshot.normalized);
@@ -694,6 +687,7 @@ export default function KkulkkulManseryukMain() {
         ...(purchaseResult.data?.consume && typeof purchaseResult.data.consume === 'object' ? purchaseResult.data.consume : {}),
         user: purchaseResult.data?.user || null,
         balance: purchaseResult.data?.balance,
+        monthlyStoneBalance: purchaseResult.data?.monthlyStoneBalance,
         membershipCreditBalance: purchaseResult.data?.membershipCreditBalance,
         monthlyCredits: purchaseResult.data?.monthlyCredits,
       };
@@ -763,6 +757,7 @@ export default function KkulkkulManseryukMain() {
         ...(purchaseResult.data?.consume && typeof purchaseResult.data.consume === 'object' ? purchaseResult.data.consume : {}),
         user: purchaseResult.data?.user || null,
         balance: purchaseResult.data?.balance,
+        monthlyStoneBalance: purchaseResult.data?.monthlyStoneBalance,
         membershipCreditBalance: purchaseResult.data?.membershipCreditBalance,
         monthlyCredits: purchaseResult.data?.monthlyCredits,
       };
@@ -913,6 +908,7 @@ export default function KkulkkulManseryukMain() {
         ...(consumePayload || {}),
         user: purchaseResult.data?.user || null,
         balance: purchaseResult.data?.balance,
+        monthlyStoneBalance: purchaseResult.data?.monthlyStoneBalance,
         membershipCreditBalance: purchaseResult.data?.membershipCreditBalance,
         monthlyCredits: purchaseResult.data?.monthlyCredits,
       };
@@ -1124,7 +1120,7 @@ export default function KkulkkulManseryukMain() {
               </p>
               <div className="mt-2 grid gap-1 text-xs font-bold text-amber-900/80">
                 <span>보유 원화 가치: {formatCoinValue(currentCoins)}</span>
-                <span>이용권 혜택: {formatMonthlyCreditValue(currentMonthlyCredits)}</span>
+                <span>이용권 혜택: {formatMonthlyCreditValue(currentMonthlyStoneBalance)}</span>
               </div>
             </div>
           </div>
@@ -1184,9 +1180,9 @@ export default function KkulkkulManseryukMain() {
           <LockedSection
             title="명리 헬스 리포트"
             description="오행 균형과 생활 패턴을 바탕으로 건강 리스크와 관리 루틴을 안내합니다."
-            cost={50}
+            cost={100}
             isUnlocked={unlockedFeatures.healthReport || unlockedFeatures.allPaidSaju}
-            onUnlock={() => unlockByCoins("healthReport", 50)}
+            onUnlock={() => unlockByCoins("healthReport", 100)}
           >
             <p className="text-sm text-neutral-700">체질 관리 포인트와 일상 루틴 추천이 활성화되었습니다.</p>
           </LockedSection>

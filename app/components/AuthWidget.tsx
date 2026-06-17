@@ -13,10 +13,12 @@ type AuthUser = {
   email?: string;
   image?: string;
   role: "user" | "admin";
+  monthlyStoneBalance?: number;
   monthlyCredits?: number;
   profileSubscription?: {
     tier?: string;
     isActive?: boolean;
+    monthlyStoneBalance?: number;
     membershipCreditBalance?: number;
   };
 };
