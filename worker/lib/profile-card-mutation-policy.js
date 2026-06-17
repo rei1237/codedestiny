@@ -158,11 +158,11 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
     if (slot.allowed) {
       return buildProfileCardMutationPolicyResult({
         allowed: true,
-        requiresPayment: false,
-        costCoins: 0,
-        costKrw: 0,
-        monthlyStones: 0,
-        reason: "PROFILE_CARD_SLOT_AVAILABLE",
+        requiresPayment: true,
+        costCoins: PROFILE_CARD_DELETE_COST_COINS,
+        costKrw: PROFILE_CARD_DELETE_COST_KRW,
+        monthlyStones: PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
+        reason: "PROFILE_CARD_CREATE_PAYMENT_REQUIRED",
         passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
         limit: slot.limit,
         currentProfileCardCount,
@@ -286,11 +286,11 @@ export async function resolveProfileCardActionAccess({
     if (slot.allowed) {
       return buildProfileCardMutationPolicyResult({
         allowed: true,
-        requiresPayment: false,
-        costCoins: 0,
-        costKrw: 0,
-        monthlyStones: 0,
-        reason: "PROFILE_CARD_SLOT_AVAILABLE",
+        requiresPayment: true,
+        costCoins: PROFILE_CARD_DELETE_COST_COINS,
+        costKrw: PROFILE_CARD_DELETE_COST_KRW,
+        monthlyStones: PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
+        reason: "PROFILE_CARD_CREATE_PAYMENT_REQUIRED",
         passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
         limit: slot.limit,
         currentProfileCardCount: count,

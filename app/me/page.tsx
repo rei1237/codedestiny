@@ -424,11 +424,8 @@ export default function MePage() {
   const profileLimitLabel = isUnlimitedProfilePlan ? "무제한" : String(profileLimit);
   const slotPercent = isUnlimitedProfilePlan ? 100 : Math.min(100, Math.round((profiles.length / profileLimit) * 100));
   const monthlyStoneBalanceLabel = formatMonthlyStoneBalance(monthlyStoneBalance);
-  const profileActionFreeLabel = "";
-  const isProfileActionPaymentBypass = Boolean(profileActionFreeLabel);
   const hasEnoughMonthlyStonesForProfileAction = monthlyStoneBalance >= PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST;
-  const canCreateWithinProfileLimit = subscription.isActive && (isUnlimitedProfilePlan || profiles.length < profileLimit);
-  const createRequiresProfileActionPayment = !canCreateWithinProfileLimit && !isProfileActionPaymentBypass;
+  const createRequiresProfileActionPayment = true;
   const profileActionPolicyNotice = "프로필 카드 삭제에는 5,000원 결제가 필요합니다.";
   const subscriptionStartedAtLabel = formatProfileSubscriptionDate(subscription.startedAt);
   const subscriptionExpiresAtLabel = formatProfileSubscriptionDate(subscription.expiresAt);
@@ -978,7 +975,7 @@ export default function MePage() {
     const draft = { ...createDraft, name };
     const profileId = buildNewProfileId();
     const requestId = buildProfileActionRequestId("create", profileId);
-    const requiresPayment = !canCreateWithinProfileLimit && !isProfileActionPaymentBypass;
+    const requiresPayment = createRequiresProfileActionPayment;
     const selectedPaymentMethod = paymentMethod || (hasEnoughMonthlyStonesForProfileAction ? "monthly_stones" : "card");
 
     if (requiresPayment && selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
@@ -1014,7 +1011,7 @@ export default function MePage() {
       setBusyAction("");
       setProfileActionStage("");
     }
-  }, [busyAction, canCreateWithinProfileLimit, createDraft, executeProfileCreateAction, hasEnoughMonthlyStonesForProfileAction, isProfileActionPaymentBypass, runProfileActionCardPayment]);
+  }, [busyAction, createDraft, executeProfileCreateAction, hasEnoughMonthlyStonesForProfileAction, runProfileActionCardPayment]);
   const deleteProfile = async (profileId: string) => {
     setActiveProfileMenuId("");
     const profile = profiles.find((item) => item.id === profileId);
