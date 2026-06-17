@@ -147,6 +147,7 @@ function collectAIPromptPaymentTokens(body = {}, requestId = "") {
   return uniqueStrings([
     requestId,
     body?.transactionId,
+    body?.ledgerId,
     body?.purchaseId,
     body?.paymentId,
     body?.merchantUid,
@@ -155,17 +156,20 @@ function collectAIPromptPaymentTokens(body = {}, requestId = "") {
     body?.idempotencyKey,
     body?.requestId,
     accessGrant.evidenceId,
+    accessGrant.ledgerId,
     accessGrant.purchaseId,
     accessGrant.paymentId,
     accessGrant.merchantUid,
     accessGrant.requestId,
     accessDecision.evidenceId,
+    accessDecision.ledgerId,
     accessDecision.transactionId,
     accessDecision.purchaseId,
     accessDecision.paymentId,
     accessDecision.merchantUid,
     accessDecision.requestId,
     consume.transactionId,
+    consume.ledgerId,
     consume.purchaseId,
     consume.receiptId,
     consume.pointHistoryId,
@@ -175,12 +179,14 @@ function collectAIPromptPaymentTokens(body = {}, requestId = "") {
     payment._id,
     payment.id,
     payment.transactionId,
+    payment.ledgerId,
     payment.purchaseId,
     payment.paymentId,
     payment.merchantUid,
     payment.impUid,
     payment.requestId,
     paymentContext.transactionId,
+    paymentContext.ledgerId,
     paymentContext.purchaseId,
     paymentContext.paymentId,
     paymentContext.merchantUid,
@@ -333,6 +339,8 @@ function buildAIPromptMonthlyCreditLedgerClauses(tokens) {
     clauses.push({ "metadata.idempotencyKey": token });
     clauses.push({ "metadata.orderId": token });
     clauses.push({ "metadata.pointHistoryId": token });
+    clauses.push({ "metadata.ledgerId": token });
+    clauses.push({ "metadata.monthlyCreditLedgerId": token });
     if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: token });
   }
   return clauses;

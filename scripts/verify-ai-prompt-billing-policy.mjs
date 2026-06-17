@@ -37,6 +37,8 @@ assert.match(fortuneSource, /findAIPromptPaymentEvidence\(\{[\s\S]*requestId: co
 assert.match(fortuneSource, /findAIPromptDirectPaymentEvidence/, "AI prompt consume must verify direct single-payment evidence");
 assert.match(fortuneSource, /findAIPromptMonthlyCreditEvidence/, "AI prompt consume must verify monthly-credit payment evidence");
 assert.match(fortuneSource, /MonthlyCreditLedger\.findOne/, "AI prompt monthly-credit evidence must use the monthly credit ledger");
+assert.match(fortuneSource, /body\?\.ledgerId/, "AI prompt token collection must preserve monthly-credit ledger id");
+assert.match(fortuneSource, /metadata\.monthlyCreditLedgerId/, "AI prompt monthly-credit lookup must search ledger metadata ids");
 assert.match(fortuneSource, /requireExistingPaidAccess/, "AI prompt consume must support existing-paid-access enforcement");
 assert.match(fortuneSource, /PAID_ACCESS_VERIFY_RETRYABLE/, "saju prompt must expose retryable paid-access DB verification failures");
 assert.match(fortuneSource, /isSajuAIPromptDbUnavailableError/, "saju prompt must classify DB verification failures inside the prompt route");
@@ -65,6 +67,7 @@ assert.match(sajuEngineSource, /function _sajuPromptPostWithPaidEvidence/, "saju
 assert.match(sajuEngineSource, /accessDecision:\s*evidence\.accessDecision/, "saju prompt generation must forward accessDecision evidence");
 assert.match(sajuEngineSource, /freeBySubscription:\s*evidence\.freeBySubscription/, "saju prompt generation must forward subscription pass evidence");
 assert.match(sajuEngineSource, /_cdAIPromptPayloadLayers/, "saju prompt gate evidence must flatten nested paid-gate payload layers");
+assert.match(sajuEngineSource, /ledgerId:\s*evidence\._paymentContext && evidence\._paymentContext\.ledgerId/, "saju prompt generation must forward monthly-credit ledger id");
 assert.match(fortuneSource, /accessDecision\.requestId/, "AI prompt token collection must include accessDecision request evidence");
 assert.match(fortuneSource, /accessDecision\.accessGranted === true/, "AI prompt pass payload must honor granted accessDecision evidence");
 assert.equal(

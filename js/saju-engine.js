@@ -5002,6 +5002,7 @@ function _cdAIPromptGateEvidence(gateResult) {
   var accessType = _cdAIPromptFirstString(layers, ['accessType', 'transactionType']) || String(accessGrant.accessType || accessDecision.accessType || accessDecision.transactionType || consume.accessType || '').trim();
   var accessMethod = _cdAIPromptFirstString(layers, ['accessMethod', 'paymentMethod']) || String(accessGrant.accessMethod || accessDecision.accessMethod || accessDecision.paymentMethod || consume.accessMethod || consume.paymentMethod || '').trim();
   var paymentMode = _cdAIPromptFirstString(layers, ['paymentMode', 'accessMode']) || String(accessGrant.paymentMode || accessDecision.paymentMode || consume.paymentMode || '').trim();
+  var ledgerId = _cdAIPromptFirstString(layers, ['ledgerId', 'monthlyCreditLedgerId']);
   var transactionId = _cdAIPromptFirstString(layers, ['transactionId', 'ledgerId', 'paymentId', 'purchaseId'])
     || String(consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || accessDecision.transactionId || accessDecision.evidenceId || accessDecision.purchaseId || '').trim();
   return {
@@ -5015,6 +5016,7 @@ function _cdAIPromptGateEvidence(gateResult) {
       requestId: requestId,
       featureKey: _cdAIPromptFirstString(layers, ['featureKey', 'serviceKey', 'contentId']) || String(accessGrant.featureKey || accessDecision.featureKey || consume.featureKey || '').trim(),
       transactionId: transactionId,
+      ledgerId: ledgerId || String(consume.ledgerId || accessGrant.ledgerId || accessDecision.ledgerId || '').trim(),
       purchaseId: _cdAIPromptFirstString(layers, ['purchaseId']) || String(accessGrant.purchaseId || consume.purchaseId || requestId).trim(),
       accessType: accessType,
       accessMethod: accessMethod,
@@ -5341,6 +5343,7 @@ function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions,
     sajuResult: _buildSajuAIPromptPayload(privacyOptions),
     requestId: evidence.requestId || ('saju-ai-prompt:' + requestNonce),
     transactionId: evidence._paymentContext && evidence._paymentContext.transactionId,
+    ledgerId: evidence._paymentContext && evidence._paymentContext.ledgerId,
     purchaseId: evidence._paymentContext && evidence._paymentContext.purchaseId,
     accessType: evidence._paymentContext && evidence._paymentContext.accessType,
     accessMethod: evidence._paymentContext && evidence._paymentContext.accessMethod,
