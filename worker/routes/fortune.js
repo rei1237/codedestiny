@@ -65,6 +65,35 @@ const SAJU_AI_PROMPT_DB_ERROR_SIGNATURES = [
   "mongoose",
 ];
 
+function logSajuAIPromptStage(stage, details = {}) {
+  const payload = {
+    stage,
+    requestId: String(details.requestId || ""),
+    userId: String(details.userId || ""),
+    featureId: SAJU_AI_PROMPT_FEATURE_KEY,
+    productId: String(details.productId || ""),
+    profileId: String(details.profileId || ""),
+    accessMethod: String(details.accessMethod || ""),
+    paymentMethod: String(details.paymentMethod || details.paymentMode || ""),
+    amountCoins: Number(details.amountCoins || 0),
+    amountKRW: Number(details.amountKRW || 0),
+    monthlyRequiredAmount: Number(details.monthlyRequiredAmount || 0),
+    monthlyBalanceBefore: Number(details.monthlyBalanceBefore || 0),
+    monthlyBalanceAfter: Number(details.monthlyBalanceAfter || 0),
+    paymentId: String(details.paymentId || ""),
+    orderId: String(details.orderId || ""),
+    idempotencyKey: String(details.idempotencyKey || ""),
+    errorName: String(details.errorName || ""),
+    errorMessage: String(details.errorMessage || ""),
+    stack: String(details.stack || ""),
+  };
+  try {
+    console.log("[worker-saju-ai-prompt]", JSON.stringify(payload));
+  } catch (e) {
+    console.log("[worker-saju-ai-prompt]", payload);
+  }
+}
+
 let __swissWesternChartLoader = null;
 
 async function loadSwissWesternChart() {
@@ -283,7 +312,6 @@ function isAIPromptPassAccessPayload(body = {}) {
     )
     || accessType === "membership_pass"
     || accessType === "usage_pass"
-    || accessType === "already_unlocked"
     || accessType === "pass"
     || accessType === "membership"
     || accessType === "subscription_pass"
@@ -294,7 +322,6 @@ function isAIPromptPassAccessPayload(body = {}) {
     || accessReason === "pass_applied"
     || accessReason === "pass_covered"
     || accessReason === "pass_free"
-    || accessReason === "already_unlocked"
     || accessMethod === "PASS";
 }
 
@@ -2551,12 +2578,42 @@ async function handleSajuAIPrompt(request, auth, env) {
   const digestBase = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
   const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
   const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
-  const requestId = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+  const fallbackRequestId = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+  const requestId = String(
+    body?.idempotencyKey
+      || body?._paymentContext?.idempotencyKey
+      || body?.requestId
+      || body?._paymentContext?.requestId
+      || fallbackRequestId,
+  ).trim().slice(0, 120) || fallbackRequestId;
+  logSajuAIPromptStage("REQUEST_START", {
+    requestId,
+    userId: auth?.userId,
+    amountCoins: SAJU_AI_PROMPT_PRICE,
+    amountKRW: calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE),
+    idempotencyKey: body?.idempotencyKey || body?.requestId || requestId,
+  });
+  logSajuAIPromptStage("AUTH_CHECK_SUCCESS", {
+    requestId,
+    userId: auth?.userId,
+  });
 
   let chargedCoins = 0;
   let sourceTransactionId = "";
 
   try {
+    logSajuAIPromptStage("ACCESS_CHECK_START", {
+      requestId,
+      userId: auth?.userId,
+      accessMethod: body?.accessMethod || body?.accessGrant?.accessMethod || body?.consume?.accessMethod,
+      paymentMethod: body?.paymentMode || body?.consume?.paymentMode,
+      amountCoins: SAJU_AI_PROMPT_PRICE,
+      amountKRW: calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE),
+      monthlyRequiredAmount: Number(body?.consume?.requiredMonthlyCredits || body?.consume?.membershipCreditCost || 0),
+      paymentId: body?.paymentId || body?.payment?.paymentId || body?.accessGrant?.paymentId,
+      orderId: body?.orderId || body?.purchaseId || body?.accessGrant?.purchaseId,
+      idempotencyKey: body?.idempotencyKey || body?.requestId || requestId,
+    });
     const delegatedRequest = new Request(request.url, {
       method: "POST",
       headers: new Headers({
@@ -2569,6 +2626,7 @@ async function handleSajuAIPrompt(request, auth, env) {
         forceDeduct: true,
         requireExistingPaidAccess: true,
         requestId,
+        idempotencyKey: requestId,
         categoryKey: "saju",
         subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
         payloadHash,
@@ -2585,6 +2643,17 @@ async function handleSajuAIPrompt(request, auth, env) {
     const consumePayload = await consumeResponse.json().catch(() => ({}));
 
     if (!consumeResponse.ok) {
+      logSajuAIPromptStage("REQUEST_ERROR", {
+        requestId,
+        userId: auth?.userId,
+        accessMethod: body?.accessMethod || consumePayload?.accessMethod || consumePayload?.consume?.accessMethod,
+        paymentMethod: body?.paymentMode || consumePayload?.paymentMode || consumePayload?.consume?.paymentMode,
+        amountCoins: SAJU_AI_PROMPT_PRICE,
+        amountKRW: calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE),
+        errorName: String(consumePayload?.code || consumePayload?.error?.code || "PAID_ACCESS_CHECK_FAILED"),
+        errorMessage: String(consumePayload?.message || consumePayload?.error?.message || ""),
+        idempotencyKey: body?.idempotencyKey || body?.requestId || requestId,
+      });
       return mapSajuConsumeFailure(consumeResponse, consumePayload);
     }
 
@@ -2592,6 +2661,30 @@ async function handleSajuAIPrompt(request, auth, env) {
     sourceTransactionId = String(consumePayload?.transactionId || "").trim();
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
+    logSajuAIPromptStage("GENERATION_START", {
+      requestId,
+      userId: auth?.userId,
+      accessMethod: consumePayload?.accessMethod || consumePayload?.consume?.accessMethod,
+      paymentMethod: consumePayload?.paymentMode || consumePayload?.consume?.paymentMode,
+      amountCoins: chargedCoins || SAJU_AI_PROMPT_PRICE,
+      amountKRW: calculateKrwAmountFromCoins(chargedCoins || SAJU_AI_PROMPT_PRICE),
+      monthlyRequiredAmount: Number(consumePayload?.membershipCreditCost || consumePayload?.consume?.membershipCreditCost || 0),
+      monthlyBalanceAfter: Number(consumePayload?.consume?.remainingMembershipCredit || consumePayload?.consume?.monthlyCredits || 0),
+      paymentId: consumePayload?.transactionId || consumePayload?.consume?.transactionId || "",
+      orderId: consumePayload?.consume?.purchaseId || consumePayload?.purchaseId || requestId,
+      idempotencyKey: body?.idempotencyKey || body?.requestId || requestId,
+    });
+    logSajuAIPromptStage("GENERATION_SUCCESS", {
+      requestId,
+      userId: auth?.userId,
+      accessMethod: consumePayload?.accessMethod || consumePayload?.consume?.accessMethod,
+      paymentMethod: consumePayload?.paymentMode || consumePayload?.consume?.paymentMode,
+      amountCoins: chargedCoins || SAJU_AI_PROMPT_PRICE,
+      amountKRW: calculateKrwAmountFromCoins(chargedCoins || SAJU_AI_PROMPT_PRICE),
+      paymentId: consumePayload?.transactionId || consumePayload?.consume?.transactionId || "",
+      orderId: consumePayload?.consume?.purchaseId || consumePayload?.purchaseId || requestId,
+      idempotencyKey: body?.idempotencyKey || body?.requestId || requestId,
+    });
 
     return json({
       ok: true,
@@ -2616,6 +2709,17 @@ async function handleSajuAIPrompt(request, auth, env) {
       balanceAfter,
     });
   } catch (error) {
+    logSajuAIPromptStage("GENERATION_FAILED", {
+      requestId,
+      userId: auth?.userId,
+      amountCoins: chargedCoins || SAJU_AI_PROMPT_PRICE,
+      amountKRW: calculateKrwAmountFromCoins(chargedCoins || SAJU_AI_PROMPT_PRICE),
+      paymentId: sourceTransactionId,
+      idempotencyKey: body?.idempotencyKey || body?.requestId || requestId,
+      errorName: error?.name || "Error",
+      errorMessage: error?.message || "",
+      stack: error?.stack || "",
+    });
     if (chargedCoins > 0 && sourceTransactionId) {
       try {
         const refundRequest = new Request(request.url, {

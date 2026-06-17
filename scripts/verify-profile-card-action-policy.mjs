@@ -9,6 +9,7 @@ const files = {
   policy: "worker/lib/profile-card-mutation-policy.js",
   profileLimits: "worker/lib/profile-limits.js",
   profileRoute: "worker/routes/profile.js",
+  billingRoute: "worker/routes/billing.js",
   paymentsRoute: "worker/routes/payments.js",
   mePage: "app/me/page.tsx",
 };
@@ -46,19 +47,35 @@ const cases = [
     ],
   },
   {
-    name: "profile create follows active subscription slot policy",
+    name: "profile create follows family bypass and paid fallback policy",
     includes: [
       ["policy", "resolveProfileCardActionAccess"],
       ["policy", "PROFILE_SUBSCRIPTION_INACTIVE"],
-      ["policy", "PROFILE_CARD_SLOT_AVAILABLE"],
+      ["policy", "FAMILY_OR_ABOVE_CAN_ADD_PROFILE = true"],
+      ["policy", "buildFamilyProfileCardBypassPolicy"],
+      ["policy", "if (isFamilyOrAbove(user))"],
+      ["policy", "PROFILE_CARD_PAYMENT_BYPASS"],
       ["policy", "PROFILE_CARD_CREATE_PAYMENT_REQUIRED"],
       ["profileRoute", "const createPolicy = await resolveProfileCardActionAccess"],
-      ["mePage", "const canCreateWithinProfileLimit = subscription.isActive &&"],
-      ["mePage", "const createRequiresProfileActionPayment = !canCreateWithinProfileLimit && !isProfileActionPaymentBypass"],
+      ["mePage", "const isFamilyProfilePlan = subscription.isActive && subscription.tier === \"family\""],
+      ["mePage", "const createRequiresProfileActionPayment = !isFamilyProfilePlan"],
+      ["mePage", "Code Destiny Family 이용권으로 새 프로필 카드를 제한 없이 추가할 수 있습니다."],
     ],
     excludes: [
       ["mePage", "runProfileActionPassGate"],
       ["mePage", "/api/billing/coin-gate"],
+    ],
+  },
+  {
+    name: "family profile manage bypass is visible to billing gate",
+    includes: [
+      ["policy", "FAMILY_OR_ABOVE_FREE_PROFILE_DELETE = true"],
+      ["policy", "buildFamilyProfileCardBypassPolicy"],
+      ["mePage", "const deleteRequiresProfileActionPayment = !isFamilyProfilePlan"],
+      ["mePage", "Code Destiny Family 이용권으로 프로필 카드를 결제 없이 삭제할 수 있습니다."],
+      ["billingRoute", "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\""],
+      ["billingRoute", "text.includes(\"profile_card_add_extra\")"],
+      ["billingRoute", "actionType: \"profile_card_add_extra\""],
     ],
   },
   {

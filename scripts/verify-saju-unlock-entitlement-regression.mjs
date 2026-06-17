@@ -184,7 +184,16 @@ function createHarness() {
     };
   }
 
-  return { unlocks, setUser, hasUnlockedContent, getUnlockedContentKeys, purchase, passUnlock, accessCheck, monthlyCreditConsume, monthlyUnlock, paymentConfirm, backfill, accessApiFailureState, paymentVerificationFailure };
+  function stalePaymentRequiredDecision({ userId, profileId, contentKey }) {
+    return {
+      reason: "payment_required",
+      accessStillGranted: hasUnlockedContent({ userId, profileId, serviceKey: "saju", contentKey }),
+      shouldRemoveExistingUnlock: false,
+      shouldOpenPaymentSelector: false,
+    };
+  }
+
+  return { unlocks, setUser, hasUnlockedContent, getUnlockedContentKeys, purchase, passUnlock, accessCheck, monthlyCreditConsume, monthlyUnlock, paymentConfirm, backfill, accessApiFailureState, paymentVerificationFailure, stalePaymentRequiredDecision };
 }
 
 const h = createHarness();
@@ -269,6 +278,11 @@ const refreshRegression = h.accessCheck({ userId: "u-monthly", profileId: "profi
 assert.equal(refreshRegression.accessGranted, true, "phase10 refresh uses server access");
 assert.equal(refreshRegression.shouldOpenPaymentSelector, false, "phase10 refresh does not auto-open payment selector");
 
+const stalePaymentRequired = h.stalePaymentRequiredDecision({ userId: "u-monthly", profileId: "profile-monthly", contentKey: SAJU_KEYS.FULL });
+assert.equal(stalePaymentRequired.accessStillGranted, true, "phase10 stale payment_required keeps existing unlock");
+assert.equal(stalePaymentRequired.shouldRemoveExistingUnlock, false, "phase10 stale payment_required does not remove unlock");
+assert.equal(stalePaymentRequired.shouldOpenPaymentSelector, false, "phase10 stale payment_required does not auto-open selector");
+
 const failureUi = h.accessApiFailureState();
 assert.equal(failureUi.bodyVisible, false, "access API 실패 시 본문 비노출");
 assert.equal(failureUi.uiState, "error", "access API 실패 시 오류 상태 표시");
@@ -283,8 +297,23 @@ for (const marker of [
   "/api/access/unlocks?",
   "requireAccessApi",
   "cd-section-gate--checking",
+  "__cdDirectPaymentChoiceConfirmed",
+  "단건결제는 결제 방식 선택창에서 단건결제를 선택한 뒤에만 열 수 있습니다.",
+  "var passMode = 'pass-store'",
+  "달빛 이용권 상점으로 이동해 필요한 이용권을 구매합니다.",
+  "pass_store_opened",
 ]) {
   assert.ok(indexHtml.includes(marker), `UI/access marker exists: ${marker}`);
+}
+assert.ok(!indexHtml.includes("이용권으로 사용"), "payment selector must not offer pass usage inside modal");
+
+const billingSource = fs.readFileSync(path.join(root, "worker/routes/billing.js"), "utf8");
+for (const marker of [
+  "MISSING_PROFILE_ID",
+  "const accessProfileId = cleanProfileId",
+  "profileId: accessProfileId",
+]) {
+  assert.ok(billingSource.includes(marker), `billing/access marker exists: ${marker}`);
 }
 
 console.log("[saju-unlock-entitlement-regression] OK");

@@ -325,7 +325,7 @@ assertContains(billingSource, 'paymentMethod: "PASS"', "PASS usage log marker");
 assertContains(billingSource, "recordPassAccessIfNeeded", "PASS usage evidence");
 assertContains(billingSource, 'status: "license_passed"', "server returns license_passed access gate result");
 assertContains(billingSource, '"family_all_access" : "license_coin_limit"', "family all-access gate reason");
-assertContains(billingSource, "if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY) return null;", "profile card actions do not emit license pass UI result");
+assertContains(billingSource, "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\"", "profile card actions emit license pass UI result only for family");
 assertNotContains(billingSource, "if (!singleOrMonthlyOnly)", "monthly choice must not block PASS coverage");
 assertContains(billingSource, "consumeMembershipCreditIfAvailable", "monthly deduction path remains");
 assertContains(billingSource, 'accessMethod: "MONTHLY"', "monthly access method remains");

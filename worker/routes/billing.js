@@ -242,13 +242,18 @@ async function upsertSajuProfileUnlockEntitlement(env, {
   unlockedAt = null,
 }) {
   if (!userId) {
-    const error = new Error("Profile id is required for profile-scoped unlock entitlement.");
+    const error = new Error("User id is required for profile-scoped unlock entitlement.");
     error.code = "INVALID_UNLOCK_TARGET";
     throw error;
   }
 
   await connectDb(env);
   const normalizedContentKey = resolveSajuProfileUnlockContentKey(featureKey, contentKey);
+  if (normalizedContentKey && !profileId) {
+    const error = new Error("Profile id is required for profile-scoped unlock entitlement.");
+    error.code = "MISSING_PROFILE_ID";
+    throw error;
+  }
   return upsertPaidContentUnlock({
     userId,
     profileId,
@@ -428,7 +433,6 @@ function buildLicensePassAccessGateResult({
   accessDecision = {},
 } = {}) {
   const featureKey = String(pricing?.featureKey || "").trim();
-  if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY) return null;
   const licenseTier = toAccessGateLicenseTier(
     paymentOptions?.passTier
       || membershipPass?.passTier
@@ -437,6 +441,7 @@ function buildLicensePassAccessGateResult({
       || accessDecision?.membershipPass?.tier,
   );
   if (!licenseTier) return null;
+  if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== "FAMILY") return null;
   const coveredCoinPrice = Math.max(0, Math.floor(Number(
     pricing?.coinPrice
       || pricing?.cost
@@ -478,11 +483,25 @@ function buildPaidContentAccessDecision({
 function resolveProfileCardActionType(value) {
   const text = String(value || "").trim().toLowerCase();
   if (text.includes("delete") || text.includes("remove")) return PROFILE_CARD_MUTATION_ACTIONS.DELETE;
+  if (
+    text === PROFILE_CARD_MUTATION_ACTIONS.CREATE
+    || text.includes("create")
+    || text.includes("add")
+    || text.includes("extra")
+    || text.includes("profile_card_add_extra")
+  ) return PROFILE_CARD_MUTATION_ACTIONS.CREATE;
   return "";
 }
 
 function buildProfileCardMutationMetadata(body = {}) {
   const actionType = resolveProfileCardActionType(body?.actionType || body?.profileAction || body?.action);
+  if (actionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE) {
+    return {
+      actionType: "profile_card_add_extra",
+      profileAction: PROFILE_CARD_MUTATION_ACTIONS.CREATE,
+      action: PROFILE_CARD_MUTATION_ACTIONS.CREATE,
+    };
+  }
   if (actionType !== PROFILE_CARD_MUTATION_ACTIONS.DELETE) return {};
   return {
     actionType: "profile_card_delete",
@@ -2184,6 +2203,35 @@ function logCoinGateResult(payload) {
   }
 }
 
+function logPaidAccessStage(stage, details = {}) {
+  const payload = {
+    stage,
+    requestId: String(details.requestId || ""),
+    userId: String(details.userId || ""),
+    featureId: String(details.featureId || details.featureKey || ""),
+    productId: String(details.productId || ""),
+    profileId: String(details.profileId || ""),
+    accessMethod: String(details.accessMethod || ""),
+    paymentMethod: String(details.paymentMethod || details.paymentMode || ""),
+    amountCoins: Number(details.amountCoins || 0),
+    amountKRW: Number(details.amountKRW || 0),
+    monthlyRequiredAmount: Number(details.monthlyRequiredAmount || 0),
+    monthlyBalanceBefore: Number(details.monthlyBalanceBefore || 0),
+    monthlyBalanceAfter: Number(details.monthlyBalanceAfter || 0),
+    paymentId: String(details.paymentId || ""),
+    orderId: String(details.orderId || ""),
+    idempotencyKey: String(details.idempotencyKey || ""),
+    errorName: String(details.errorName || ""),
+    errorMessage: String(details.errorMessage || ""),
+    stack: String(details.stack || ""),
+  };
+  try {
+    console.log("[worker-paid-access]", JSON.stringify(payload));
+  } catch (e) {
+    console.log("[worker-paid-access]", payload);
+  }
+}
+
 async function consumeCoinWithRetry(request, env, delegatedBody) {
   const maxAttempts = 2;
   const consumeTimeoutMs = Math.max(2000, Number(env?.BILLING_COIN_GATE_TIMEOUT_MS || env?.COIN_GATE_TIMEOUT_MS || 15000));
@@ -2434,6 +2482,22 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       paymentMode: requestedPaymentMode,
     });
   }
+  logPaidAccessStage("REQUEST_START", {
+    requestId,
+    userId: authCheck.auth?.userId,
+    featureKey: pricing?.featureKey,
+    productId: body?.productId,
+    paymentMode: requestedPaymentMode,
+    amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+    amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+    idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
+  });
+  logPaidAccessStage("AUTH_CHECK_SUCCESS", {
+    requestId,
+    userId: authCheck.auth?.userId,
+    featureKey: pricing?.featureKey,
+    paymentMode: requestedPaymentMode,
+  });
   const singleOrMonthlyOnly = monthlyBalanceRequested;
   const shouldAutoConsumeUsagePass = !membershipPassOnly
     && !monthlyBalanceRequested
@@ -2497,6 +2561,15 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     paymentOptions: paymentDecision,
   });
   if (persistProfileUnlockEntitlement) {
+    logPaidAccessStage("ACCESS_CHECK_START", {
+      requestId,
+      userId: authCheck.auth.userId,
+      featureKey: pricing?.featureKey,
+      profileId,
+      paymentMode: requestedPaymentMode,
+      amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+      amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+    });
     accessDecision = await resolvePaidContentAccess(env, {
       userId: authCheck.auth.userId,
       profileId,
@@ -2511,6 +2584,17 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
   if (accessDecision.paymentOptions) paymentDecision = accessDecision.paymentOptions;
   if (accessDecision.reason === "already_unlocked" || accessDecision.reason === "pass_covered") {
+    logPaidAccessStage(accessDecision.reason === "already_unlocked" ? "ACCESS_ALREADY_UNLOCKED" : "PASS_GRANTED", {
+      requestId,
+      userId: authCheck.auth.userId,
+      featureKey: pricing?.featureKey,
+      profileId,
+      accessMethod: accessDecision.reason === "pass_covered" ? "pass" : "already_unlocked",
+      amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+      amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+      orderId: String(accessDecision.unlockId || requestId),
+      idempotencyKey: requestId,
+    });
     const accessType = accessDecision.reason === "already_unlocked" ? "already_unlocked" : "membership_pass";
     return await successWithPremiumAccess(env, authCheck.auth.userId, {
       pricing,
@@ -2792,6 +2876,28 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
     if (monthlyBalanceRequested) {
       try {
+      logPaidAccessStage("PAYMENT_METHOD_SELECTED", {
+        requestId,
+        userId: authCheck.auth.userId,
+        featureKey: pricing?.featureKey,
+        profileId,
+        accessMethod: "monthly",
+        paymentMethod: requestedPaymentMode || "monthly",
+        amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+        amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+        monthlyRequiredAmount: calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0)),
+        idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
+      });
+      logPaidAccessStage("MONTHLY_BALANCE_CHECK_START", {
+        requestId,
+        userId: authCheck.auth.userId,
+        featureKey: pricing?.featureKey,
+        profileId,
+        accessMethod: "monthly",
+        paymentMethod: requestedPaymentMode || "monthly",
+        monthlyRequiredAmount: calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0)),
+        idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
+      });
       const membershipConsume = await consumeMembershipCreditIfAvailable(env, authCheck.auth.userId, pricing, requestId, {
         ...scopedBody,
         reportId,
@@ -2799,9 +2905,37 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         reportSessionId,
       });
       if (membershipConsume) {
+        logPaidAccessStage("MONTHLY_DEDUCT_SUCCESS", {
+          requestId,
+          userId: authCheck.auth.userId,
+          featureKey: pricing?.featureKey,
+          profileId,
+          accessMethod: "monthly",
+          paymentMethod: "MONTHLY",
+          amountCoins: Number(membershipConsume.coinPrice || 0),
+          amountKRW: calculateKrwAmountFromCoins(Number(membershipConsume.coinPrice || 0)),
+          monthlyRequiredAmount: Number(membershipConsume.requiredMonthlyCredits || membershipConsume.membershipCreditCost || 0),
+          monthlyBalanceAfter: Number(membershipConsume.remainingMembershipCredit || 0),
+          paymentId: membershipConsume.transactionId || "",
+          orderId: membershipConsume.purchaseId || requestId,
+          idempotencyKey: body?.idempotencyKey || membershipConsume.purchaseId || requestId,
+        });
         let unlockEntitlement = null;
         if (persistProfileUnlockEntitlement) {
           try {
+            logPaidAccessStage("UNLOCK_SAVE_START", {
+              requestId,
+              userId: authCheck.auth.userId,
+              featureKey: pricing?.featureKey,
+              profileId,
+              accessMethod: "monthly",
+              paymentMethod: "MONTHLY",
+              amountCoins: Number(membershipConsume.coinPrice || 0),
+              monthlyRequiredAmount: Number(membershipConsume.requiredMonthlyCredits || membershipConsume.membershipCreditCost || 0),
+              paymentId: membershipConsume.transactionId || "",
+              orderId: membershipConsume.purchaseId || requestId,
+              idempotencyKey: body?.idempotencyKey || membershipConsume.purchaseId || requestId,
+            });
             unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
               userId: authCheck.auth.userId,
               profileId,
@@ -2811,6 +2945,19 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
               orderId: membershipConsume.purchaseId || requestId,
               paymentId: membershipConsume.transactionId || requestId,
               coinAmount: Number(membershipConsume.coinPrice || 0),
+            });
+            logPaidAccessStage("UNLOCK_SAVE_SUCCESS", {
+              requestId,
+              userId: authCheck.auth.userId,
+              featureKey: pricing?.featureKey,
+              profileId,
+              accessMethod: "monthly",
+              paymentMethod: "MONTHLY",
+              amountCoins: Number(membershipConsume.coinPrice || 0),
+              monthlyRequiredAmount: Number(membershipConsume.requiredMonthlyCredits || membershipConsume.membershipCreditCost || 0),
+              paymentId: membershipConsume.transactionId || "",
+              orderId: membershipConsume.purchaseId || requestId,
+              idempotencyKey: body?.idempotencyKey || membershipConsume.purchaseId || requestId,
             });
           } catch (error) {
             if (!membershipConsume.idempotent) {
@@ -2923,7 +3070,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           transactionId: membershipConsume.transactionId || "",
           ledgerId: membershipConsume.ledgerId || "",
           user: membershipConsume.user,
-        }, "이용권 혜택으로 콘텐츠 이용 권한을 발급했습니다.");
+        }, "월정석으로 이번 생성 권한이 저장되었습니다.");
       }
     } catch (error) {
       logBillingRouteError("membership-credit-consume", error, request, {
@@ -2949,6 +3096,20 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       }
       monthlyCredits = Math.max(0, Math.floor(monthlyCredits));
       const requiredMonthlyCredits = calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0));
+      logPaidAccessStage("MONTHLY_DEDUCT_FAILED", {
+        requestId,
+        userId: authCheck.auth.userId,
+        featureKey: pricing?.featureKey,
+        profileId,
+        accessMethod: "monthly",
+        paymentMethod: requestedPaymentMode || "monthly",
+        amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
+        amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
+        monthlyRequiredAmount: requiredMonthlyCredits,
+        monthlyBalanceBefore: monthlyCredits,
+        monthlyBalanceAfter: monthlyCredits,
+        idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
+      });
       return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "이용권 혜택이 부족합니다.", undefined, {
         pricing,
         ...paymentDecision,
@@ -4013,9 +4174,10 @@ async function handleUnlockStatus(request, env) {
   });
 
   const subscriptionPass = buildMembershipPassFromBillingSnapshot(data);
+  const accessProfileId = cleanProfileId(url.searchParams.get("profileId") || data.currentProfileId || "");
   const accessDecision = await resolvePaidContentAccess(env, {
     userId: String(data.authUserId || ""),
-    profileId: cleanProfileId(url.searchParams.get("profileId") || data.currentProfileId || ""),
+    profileId: accessProfileId,
     pricing,
     requestId: String(url.searchParams.get("requestId") || "").trim(),
     allowPassAutoUnlock: shouldPersistProfileUnlockEntitlement(pricing),
@@ -4050,6 +4212,7 @@ async function handleUnlockStatus(request, env) {
 
   return success({
     pricing,
+    profileId: accessProfileId,
     ...paymentDecision,
     paymentOptions: paymentDecision,
     unlocked,

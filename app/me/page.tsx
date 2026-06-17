@@ -419,14 +419,18 @@ export default function MePage() {
   const activeProfileCardRef = useRef<HTMLElement | null>(null);
 
   const currentProfile = profiles.find((profile) => profile.id === currentId) || profiles[0] || null;
-  const isUnlimitedProfilePlan = subscription.isActive && subscription.profileLimit === 0;
+  const isFamilyProfilePlan = subscription.isActive && subscription.tier === "family";
+  const isUnlimitedProfilePlan = isFamilyProfilePlan || (subscription.isActive && subscription.profileLimit === 0);
   const profileLimit = isUnlimitedProfilePlan ? Math.max(profiles.length, 1) : (subscription.profileLimit > 0 ? subscription.profileLimit : 1);
   const profileLimitLabel = isUnlimitedProfilePlan ? "무제한" : String(profileLimit);
   const slotPercent = isUnlimitedProfilePlan ? 100 : Math.min(100, Math.round((profiles.length / profileLimit) * 100));
   const monthlyStoneBalanceLabel = formatMonthlyStoneBalance(monthlyStoneBalance);
   const hasEnoughMonthlyStonesForProfileAction = monthlyStoneBalance >= PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST;
-  const createRequiresProfileActionPayment = true;
-  const profileActionPolicyNotice = "프로필 카드 삭제에는 5,000원 결제가 필요합니다.";
+  const createRequiresProfileActionPayment = !isFamilyProfilePlan;
+  const deleteRequiresProfileActionPayment = !isFamilyProfilePlan;
+  const profileActionPolicyNotice = isFamilyProfilePlan
+    ? "Code Destiny Family 이용권으로 프로필 생성과 삭제를 제한 없이 진행할 수 있습니다."
+    : "프로필 카드 삭제에는 5,000원 결제가 필요합니다.";
   const subscriptionStartedAtLabel = formatProfileSubscriptionDate(subscription.startedAt);
   const subscriptionExpiresAtLabel = formatProfileSubscriptionDate(subscription.expiresAt);
   const subscriptionDaysLeftLabel = formatProfileSubscriptionDaysLeft(subscription.expiresAt);
@@ -925,15 +929,16 @@ export default function MePage() {
   const runProfileActionFlow = useCallback(async (action: "delete", profile: DestinyProfile, paymentMethod?: ProfileActionPaymentMethod) => {
     if (busyAction) return;
     const requestId = buildProfileActionRequestId(action, profile.id);
-    const selectedPaymentMethod = paymentMethod || "card";
-    if (selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
+    const requiresPayment = deleteRequiresProfileActionPayment;
+    const selectedPaymentMethod = paymentMethod || (requiresPayment ? "card" : undefined);
+    if (requiresPayment && selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
       setAuthNotice(`이용권 혜택이 부족합니다. 프로필 카드 삭제에는 이용권 혜택 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)}이 필요합니다. 단건결제로 진행하거나 이용권 혜택을 확보한 뒤 다시 시도해주세요.`);
       return;
     }
     setBusyAction(`${action}:${profile.id}`);
     try {
       let paymentContext: Record<string, unknown> | null = null;
-      if (selectedPaymentMethod === "card") {
+      if (requiresPayment && selectedPaymentMethod === "card") {
         setProfileActionStage("payment");
         const payment = await runProfileActionCardPayment(action, profile, requestId);
         paymentContext = {
@@ -942,7 +947,7 @@ export default function MePage() {
           merchantUid: payment.merchantUid,
           paymentId: payment.paymentId,
         };
-      } else {
+      } else if (requiresPayment) {
         setProfileActionStage("coin");
       }
       setProfileActionStage(action === "delete" ? "deleting" : "saving");
@@ -955,7 +960,7 @@ export default function MePage() {
       setBusyAction("");
       setProfileActionStage("");
     }
-  }, [busyAction, executeProfileAction, hasEnoughMonthlyStonesForProfileAction, profiles.length, runProfileActionCardPayment]);
+  }, [busyAction, deleteRequiresProfileActionPayment, executeProfileAction, hasEnoughMonthlyStonesForProfileAction, profiles.length, runProfileActionCardPayment]);
 
   const openCreateProfile = () => {
     setActiveProfileMenuId("");
@@ -1011,7 +1016,7 @@ export default function MePage() {
       setBusyAction("");
       setProfileActionStage("");
     }
-  }, [busyAction, createDraft, executeProfileCreateAction, hasEnoughMonthlyStonesForProfileAction, runProfileActionCardPayment]);
+  }, [busyAction, createDraft, createRequiresProfileActionPayment, executeProfileCreateAction, hasEnoughMonthlyStonesForProfileAction, runProfileActionCardPayment]);
   const deleteProfile = async (profileId: string) => {
     setActiveProfileMenuId("");
     const profile = profiles.find((item) => item.id === profileId);
@@ -1412,7 +1417,9 @@ export default function MePage() {
           <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-amber-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
             <h3 className="text-lg font-bold text-amber-100">새 프로필 추가</h3>
             <p className="mt-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-sm font-semibold text-amber-100">
-              {createRequiresProfileActionPayment
+              {isFamilyProfilePlan
+                ? "Code Destiny Family 이용권으로 새 프로필 카드를 제한 없이 추가할 수 있습니다."
+                : createRequiresProfileActionPayment
                 ? "새 프로필 카드를 추가하려면 5,000원 단건결제 또는 이용권 혜택 사용이 필요합니다."
                 : "이용권 슬롯 안에서 새 프로필 카드를 추가할 수 있습니다."}
             </p>
@@ -1571,14 +1578,22 @@ export default function MePage() {
           <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-rose-300/35 bg-[#171a34]/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-xl sm:rounded-xl">
             <h3 className="text-lg font-bold text-rose-100">프로필 삭제 확인</h3>
             <p className="mt-2 rounded-lg border border-rose-300/25 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-100">
-              프로필 카드 삭제는 5,000원 기준 결제로 진행됩니다.
+              {isFamilyProfilePlan
+                ? "Code Destiny Family 이용권으로 프로필 카드를 결제 없이 삭제할 수 있습니다."
+                : "프로필 카드 삭제는 5,000원 기준 결제로 진행됩니다."}
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-200">
               프로필 카드를 삭제할까요?
               <br />
-              단건결제 또는 이용권 혜택 {formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용 중 하나를 선택해 주세요.
-              <br />
-              삭제 후에는 해당 프로필 카드의 저장 정보가 사라집니다.
+              {isFamilyProfilePlan ? (
+                "삭제하면 해당 프로필 카드의 저장 정보가 사라집니다."
+              ) : (
+                <>
+                  단건결제 또는 이용권 혜택 {formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용 중 하나를 선택해 주세요.
+                  <br />
+                  삭제 후에는 해당 프로필 카드의 저장 정보가 사라집니다.
+                </>
+              )}
             </p>
             <div className="mt-4 rounded-lg border border-rose-300/20 bg-rose-500/10 px-3 py-3">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-rose-200">삭제 대상</p>
@@ -1604,6 +1619,7 @@ export default function MePage() {
               >
                 취소
               </button>
+              {deleteRequiresProfileActionPayment ? (
               <>
                 <button
                   type="button"
@@ -1622,6 +1638,16 @@ export default function MePage() {
                   {busyAction === `delete:${deleteTarget.id}` && profileActionStage === "payment" ? profileActionProgressLabel("delete", profileActionStage) : profileActionPrimaryLabel("delete", "card")}
                 </button>
               </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => void runProfileActionFlow("delete", deleteTarget)}
+                  disabled={!!busyAction}
+                  className="min-h-[44px] rounded-md bg-rose-400 px-3 py-2 text-sm font-bold text-slate-950 shadow-lg shadow-rose-950/30 disabled:opacity-45"
+                >
+                  {busyAction === `delete:${deleteTarget.id}` ? "삭제 중" : "프로필 삭제"}
+                </button>
+              )}
             </div>
           </div>
         </div>

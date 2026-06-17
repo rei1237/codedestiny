@@ -4784,7 +4784,8 @@ function _openSajuPaidPaymentMode(cost, reason, featureKey) {
           reason: reason,
           featureKey: featureKey,
           requestId: requestId,
-          checkoutPayload: { paymentMode: 'DIRECT_KRW' }
+          checkoutPayload: { paymentMode: 'DIRECT_KRW' },
+          __cdDirectPaymentChoiceConfirmed: true
         });
       }
       if (choice === 'monthly' && typeof window.openChargeModal === 'function') window.openChargeModal();
@@ -4869,9 +4870,8 @@ function _cdAIPromptIsPassPayload(payload, access) {
   var accessStatus = String(access && access.status || '').trim().toLowerCase();
   var accessReason = String(accessDecision.reason || accessDecision.status || '').trim().toLowerCase();
   return layers.some(function(layer) { return layer && layer.freeBySubscription === true; })
-    || accessDecision.accessGranted === true && accessReason === 'pass_covered'
+    || (accessDecision.accessGranted === true && accessReason === 'pass_covered')
     || accessStatus === 'pass_applied'
-    || accessStatus === 'already_unlocked'
     || accessType === 'membership_pass'
     || accessType === 'usage_pass'
     || accessType === 'subscription_pass'
@@ -5003,6 +5003,7 @@ function _cdAIPromptGateEvidence(gateResult) {
   var accessMethod = _cdAIPromptFirstString(layers, ['accessMethod', 'paymentMethod']) || String(accessGrant.accessMethod || accessDecision.accessMethod || accessDecision.paymentMethod || consume.accessMethod || consume.paymentMethod || '').trim();
   var paymentMode = _cdAIPromptFirstString(layers, ['paymentMode', 'accessMode']) || String(accessGrant.paymentMode || accessDecision.paymentMode || consume.paymentMode || '').trim();
   var ledgerId = _cdAIPromptFirstString(layers, ['ledgerId', 'monthlyCreditLedgerId']);
+  var idempotencyKey = _cdAIPromptFirstString(layers, ['idempotencyKey']);
   var transactionId = _cdAIPromptFirstString(layers, ['transactionId', 'ledgerId', 'paymentId', 'purchaseId'])
     || String(consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || accessDecision.transactionId || accessDecision.evidenceId || accessDecision.purchaseId || '').trim();
   return {
@@ -5018,6 +5019,7 @@ function _cdAIPromptGateEvidence(gateResult) {
       transactionId: transactionId,
       ledgerId: ledgerId || String(consume.ledgerId || accessGrant.ledgerId || accessDecision.ledgerId || '').trim(),
       purchaseId: _cdAIPromptFirstString(layers, ['purchaseId']) || String(accessGrant.purchaseId || consume.purchaseId || requestId).trim(),
+      idempotencyKey: idempotencyKey || requestId,
       accessType: accessType,
       accessMethod: accessMethod,
       paymentMode: paymentMode
@@ -5345,6 +5347,7 @@ function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions,
     transactionId: evidence._paymentContext && evidence._paymentContext.transactionId,
     ledgerId: evidence._paymentContext && evidence._paymentContext.ledgerId,
     purchaseId: evidence._paymentContext && evidence._paymentContext.purchaseId,
+    idempotencyKey: evidence._paymentContext && evidence._paymentContext.idempotencyKey,
     accessType: evidence._paymentContext && evidence._paymentContext.accessType,
     accessMethod: evidence._paymentContext && evidence._paymentContext.accessMethod,
     paymentMode: evidence._paymentContext && evidence._paymentContext.paymentMode,
@@ -5521,6 +5524,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     updateCount();
   }
   function handleGenerate() {
+    if (isLoading) return;
     var question = String(inputEl.value || '').trim();
     if (question.length < 5) {
       _sajuPromptSetStatus(statusEl, '질문은 최소 5자 이상 입력해 주세요.', 'error');
