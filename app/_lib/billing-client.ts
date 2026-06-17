@@ -1918,8 +1918,9 @@ export async function fetchPaymentEligibility(input: {
 }): Promise<BillingResult<PaymentEligibility>> {
   const knownCoinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, 0)));
   const knownPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
+  const hasServerLookupKey = Boolean(input.productId || input.serviceType || input.categoryKey || input.subFeatureKey || input.featureKey || input.reason);
   const snapshot = readSubscriptionSnapshotForUser();
-  if (snapshot) {
+  if (snapshot && (snapshot.state !== "none" || !hasServerLookupKey)) {
     if (knownCoinCost > 0 || knownPriceKRW > 0) {
       return buildSnapshotPaymentEligibility(input, snapshot);
     }
@@ -2309,7 +2310,11 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       const accessType = toText(consume?.accessType);
       const licenseGate = extractLicenseGateResult(parsed.data as BillingCoinGateData & Record<string, unknown>);
       const licenseMessage = buildLicensePassOverlayMessage(parsed.data as BillingCoinGateData & Record<string, unknown>);
-      const passApplied = passFirstEligible || accessType === "membership_pass" || accessType === "already_unlocked";
+      const runtimeData = parsed.data as BillingCoinGateData & Record<string, unknown>;
+      const passApplied = runtimeData.freeBySubscription === true
+        || passFirstEligible
+        || accessType === "membership_pass"
+        || accessType === "already_unlocked";
       const successOverlay = resolvePaymentWaitOverlay(passApplied ? "hasEntitlement" : "paymentSuccess", licenseMessage || undefined, {
         paymentMode: passApplied ? "MEMBERSHIP_PASS" : requestedMode,
         featureKey: featureId,

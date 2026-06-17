@@ -5061,6 +5061,35 @@ function _sajuPromptClone(value) {
   }
 }
 
+function _sajuPromptEscapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function _sajuPromptScrubPrivacyText(value, names, depth) {
+  if (depth > 6) return value;
+  if (typeof value === 'string') {
+    var out = value;
+    (names || []).forEach(function(name) {
+      var safe = String(name || '').trim();
+      if (safe && safe !== '사용자') {
+        out = out.replace(new RegExp(_sajuPromptEscapeRegExp(safe), 'g'), '사용자');
+      }
+    });
+    return out;
+  }
+  if (Array.isArray(value)) {
+    return value.map(function(item) { return _sajuPromptScrubPrivacyText(item, names, depth + 1); });
+  }
+  if (value && typeof value === 'object') {
+    var outObj = {};
+    Object.keys(value).forEach(function(key) {
+      outObj[key] = _sajuPromptScrubPrivacyText(value[key], names, depth + 1);
+    });
+    return outObj;
+  }
+  return value;
+}
+
 function _sajuPromptMaskBirthObject(birth, hideBirth, hideTime) {
   var out = birth && typeof birth === 'object' ? _sajuPromptClone(birth) : {};
   if (hideBirth) {
@@ -5085,6 +5114,12 @@ function _applySajuAIPromptPrivacy(payload, opts) {
   var hideName = privacy.hideName !== false;
   var hideBirth = privacy.hideBirth !== false;
   var hideTime = privacy.hideTime !== false;
+  var names = [
+    out.profile && out.profile.name,
+    out.snapshot && out.snapshot.name,
+    out.analysisProfile && out.analysisProfile.name,
+    (typeof USER_NAME !== 'undefined' ? USER_NAME : '')
+  ].map(function(name) { return String(name || '').trim(); }).filter(Boolean);
 
   if (out.profile && typeof out.profile === 'object') {
     if (hideName) out.profile.name = '사용자';
@@ -5093,6 +5128,24 @@ function _applySajuAIPromptPrivacy(payload, opts) {
   if (out.snapshot && typeof out.snapshot === 'object') {
     if (hideName) out.snapshot.name = '사용자';
     out.snapshot.birth = _sajuPromptMaskBirthObject(out.snapshot.birth, hideBirth, hideTime);
+  }
+  if (out.analysisProfile && typeof out.analysisProfile === 'object') {
+    if (hideName) out.analysisProfile.name = '사용자';
+    out.analysisProfile.birth = _sajuPromptMaskBirthObject(out.analysisProfile.birth, hideBirth, hideTime);
+    if (hideBirth) {
+      out.analysisProfile.year = null;
+      out.analysisProfile.month = null;
+      out.analysisProfile.day = null;
+      out.analysisProfile.birthDate = '';
+    }
+    if (hideTime) {
+      out.analysisProfile.hour = null;
+      out.analysisProfile.minute = null;
+      out.analysisProfile.birthTime = '';
+    }
+  }
+  if (hideName && out.engineContext) {
+    out.engineContext = _sajuPromptScrubPrivacyText(out.engineContext, names, 0);
   }
   return out;
 }
@@ -5203,6 +5256,143 @@ function _sajuPromptBuildAnalysisProfile(profile, snapshot) {
   };
 }
 
+function _sajuPromptHashText(value) {
+  var text = String(value == null ? '' : value);
+  var hash = 2166136261;
+  for (var i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+function _sajuPromptBuildRequestNonce(profileId, domain, question) {
+  var normalizedQuestion = String(question || '').trim().replace(/\s+/g, ' ');
+  var seed = [String(profileId || '').trim(), String(domain || 'general').trim(), normalizedQuestion].join('|');
+  return 'v20260617-' + _sajuPromptHashText(seed);
+}
+
+function _sajuPromptTextSnippet(value, limit) {
+  var text = String(value == null ? '' : value).replace(/\s+/g, ' ').trim();
+  var max = Math.max(80, Number(limit || 0) || 420);
+  return text.length > max ? text.slice(0, max - 1) + '…' : text;
+}
+
+function _sajuPromptReadRenderedFeatureText(id, label, limit) {
+  try {
+    var el = document.getElementById(id);
+    if (!el) return null;
+    var text = _sajuPromptTextSnippet(el.innerText || el.textContent || '', limit || 420);
+    if (!text) return null;
+    return { id: id, label: label, text: text };
+  } catch (_) {
+    return null;
+  }
+}
+
+function _sajuPromptBuildFeatureDigests() {
+  var specs = [
+    ['destinySection', '퀀텀 명리 오늘 카드', 360],
+    ['quantumCard', '퀀텀 명리 엔진', 520],
+    ['daewunCard', '대운 흐름', 520],
+    ['healthReportCard', '건강 리듬', 420],
+    ['skillTreeCard', '재능/직업 스킬트리', 420],
+    ['villainCard', '관계 경계 신호', 420],
+    ['lottoCard', '확률/재물 보조 신호', 320]
+  ];
+  return specs.map(function(spec) {
+    return _sajuPromptReadRenderedFeatureText(spec[0], spec[1], spec[2]);
+  }).filter(Boolean);
+}
+
+function _sajuPromptBuildBaziSnapshot() {
+  var bazi = G_BAZI || null;
+  var out = {
+    daewunBridge: _sajuPromptClone((bazi && bazi.__daewunBridge) || (typeof window !== 'undefined' && window.__cdDaewunBridge) || null)
+  };
+  var getters = [
+    ['yearGan', 'getYearGan'],
+    ['yearZhi', 'getYearZhi'],
+    ['monthGan', 'getMonthGan'],
+    ['monthZhi', 'getMonthZhi'],
+    ['dayGan', 'getDayGan'],
+    ['dayZhi', 'getDayZhi'],
+    ['timeGan', 'getTimeGan'],
+    ['timeZhi', 'getTimeZhi']
+  ];
+  getters.forEach(function(pair) {
+    try {
+      if (bazi && typeof bazi[pair[1]] === 'function') out[pair[0]] = bazi[pair[1]]();
+    } catch (_) {}
+  });
+  return out;
+}
+
+function _sajuPromptBuildQuantumElementMap() {
+  var names = { wood: '목', fire: '화', earth: '토', metal: '금', water: '수' };
+  return ['wood', 'fire', 'earth', 'metal', 'water'].map(function(element) {
+    var verdict = 'neutral';
+    try {
+      if (typeof getQuantumElType === 'function') {
+        verdict = getQuantumElType(element, G_PILLARS, G_JONG, G_POWER, G_JOHU);
+      }
+    } catch (_) {}
+    return { element: element, label: names[element], verdict: verdict };
+  });
+}
+
+function _sajuPromptBuildDaewunQuantumRows() {
+  var rows = [];
+  try {
+    rows = Array.isArray(window.G_DAEWUN) ? window.G_DAEWUN : [];
+  } catch (_) {}
+  return rows.slice(0, 12).map(function(row) {
+    if (!row || !row.g || !row.j) return null;
+    var ev = null;
+    try {
+      if (typeof evalDaewun === 'function') ev = evalDaewun(row.g, row.j);
+    } catch (_) {}
+    return {
+      age: row.age,
+      gan: row.g,
+      zhi: row.j,
+      ganElement: row.gE || '',
+      zhiElement: row.jE || '',
+      score: ev && Number.isFinite(Number(ev.score)) ? Number(ev.score) : null,
+      label: ev && ev.label ? String(ev.label) : '',
+      className: ev && ev.cls ? String(ev.cls) : '',
+      jongStrength: ev && ev.jongStrength ? String(ev.jongStrength) : '',
+      hasChungBonus: !!(ev && ev.hasChungBonus),
+      hasChungPenalty: !!(ev && ev.hasChungPenalty)
+    };
+  }).filter(Boolean);
+}
+
+function _sajuPromptBuildEngineContext() {
+  return {
+    marker: 'saju-ai-question-prompt-context-v20260617',
+    sourceLayers: [
+      'pillars',
+      'natal-elements',
+      'johu',
+      'power-yongshin-kijishin',
+      'jong-pattern',
+      'quantum-element-map',
+      'daewun-quantum-flow',
+      'analysis-card-digests'
+    ],
+    bazi: _sajuPromptBuildBaziSnapshot(),
+    quantumMyeongli: {
+      elementMap: _sajuPromptBuildQuantumElementMap(),
+      daewun: _sajuPromptBuildDaewunQuantumRows(),
+      currentAge: (typeof CURRENT_AGE !== 'undefined' ? CURRENT_AGE : null),
+      dayStem: (G_PILLARS && G_PILLARS.d && G_PILLARS.d.g) || '',
+      monthBranch: (G_PILLARS && G_PILLARS.m && G_PILLARS.m.j) || ''
+    },
+    renderedFeatureDigests: _sajuPromptBuildFeatureDigests()
+  };
+}
+
 function _buildSajuAIPromptPayload(opts) {
   var profile = null;
   var snapshot = null;
@@ -5217,10 +5407,12 @@ function _buildSajuAIPromptPayload(opts) {
     natal: _sajuPromptClone(G_NATAL || null),
     johu: _sajuPromptClone(G_JOHU || null),
     power: _sajuPromptClone(G_POWER || null),
-    jong: _sajuPromptClone(G_JONG || null)
+    jong: _sajuPromptClone(G_JONG || null),
+    bazi: _sajuPromptBuildBaziSnapshot(),
+    engineContext: _sajuPromptBuildEngineContext(),
+    analysisProfile: _sajuPromptBuildAnalysisProfile(profile, snapshot)
   }, opts);
 
-  payload.analysisProfile = _sajuPromptBuildAnalysisProfile(profile, snapshot);
   if (profileId) payload.analysisProfile.profileId = profileId;
 
   return payload;
@@ -5448,7 +5640,6 @@ function _sajuPromptResolveProfileId() {
 }
 
 function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
-  var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   var profileId = _sajuPromptResolveProfileId();
   if (!profileId) {
     return Promise.resolve({
@@ -5461,6 +5652,7 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
       }
     });
   }
+  var requestNonce = _sajuPromptBuildRequestNonce(profileId, domain, question);
   return _cdAIPromptGate({
     featureKey: 'saju_ai_question_prompt',
     reason: '최고의 명리학자처럼 AI에게 물어볼 사주 질문문',
@@ -5478,7 +5670,7 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
 
 function _buildSajuQuestionPromptHtml() {
   return ''
-    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-question-prompt-v20260616-taegeuk-ai" style="margin:18px 0 0" data-saju-analysis-only="true">'
+    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-question-prompt-v20260617-context-quantum" style="margin:18px 0 0" data-saju-analysis-only="true">'
     + '<div class="prem-box" style="position:relative;overflow:hidden;border-radius:8px;border:1px solid rgba(230,196,112,.62);background:radial-gradient(circle at 86% 12%,rgba(226,52,52,.22),transparent 22%),radial-gradient(circle at 92% 76%,rgba(28,75,150,.22),transparent 24%),linear-gradient(135deg,rgba(12,13,18,.98),rgba(42,28,22,.97) 52%,rgba(243,236,218,.96));box-shadow:0 24px 58px rgba(12,13,18,.3),inset 0 1px 0 rgba(255,255,255,.22);padding:18px;">'
     +   '<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(230,196,112,.18),transparent 30%,rgba(255,255,255,.14) 100%);"></div>'
     +   '<div style="position:absolute;right:18px;bottom:-34px;width:132px;height:132px;border-radius:50%;opacity:.2;border:1px solid rgba(255,231,164,.42);background:radial-gradient(circle at 50% 26%,#cf2e2e 0 16%,transparent 17%),radial-gradient(circle at 50% 74%,#133e7c 0 16%,transparent 17%),linear-gradient(180deg,#cf2e2e 0 50%,#133e7c 50% 100%);filter:saturate(1.08);"></div>'

@@ -64,6 +64,59 @@ const SAJU_AI_PROMPT_MASTERY_ANGLES = Object.freeze([
   "AI 답변이 사주 전용 상담 흐름으로 열리도록 금지할 단정과 원하는 답변 구조를 분명히 남기기",
 ]);
 
+const SAJU_AI_PROMPT_ENGINE_CONTEXT_MARKER = "saju-ai-question-prompt-context-v20260617";
+
+const SAJU_QUESTION_FOCUS_GUIDE = Object.freeze({
+  career: [
+    "관성으로 직함·조직 압력·평판 운을 먼저 가늠하기",
+    "식상으로 기획력·표현력·성과 생산성을 나누기",
+    "인성으로 학습력·자격·문서 운의 받침을 살피기",
+    "대운의 용신/기신 흐름으로 이직·승진·독립 타이밍을 가르기",
+  ],
+  money: [
+    "재성의 위치와 투출 여부로 돈이 머무는 그릇을 살피기",
+    "식상생재 흐름으로 매출화·현금화 통로를 가르기",
+    "비겁 과다/약세로 동업·경쟁·분산 지출의 흔들림을 짚기",
+    "대운에서 재성·식상이 열리는 구간과 기신 충돌 구간을 분리하기",
+  ],
+  love: [
+    "일지와 배우자성으로 끌림·안정·거리감의 결을 살피기",
+    "관성/재성의 맑음과 탁함으로 장기 관계의 압력선을 가르기",
+    "합·충·형·파·해로 만남과 갈등의 반복 리듬을 짚기",
+    "대운에서 관계성이 강해지는 시기와 피로가 쌓이는 시기를 나누기",
+  ],
+  relationship: [
+    "비겁·관성·식상으로 주도권, 경계선, 말의 날을 나누기",
+    "월지와 일지의 긴장으로 가족·동료·고객 관계의 압력선을 살피기",
+    "합충형파해로 가까워지는 사람과 소모되는 사람의 신호를 가르기",
+    "대운 변화가 관계 선택에 어떤 거리를 여는지 짚기",
+  ],
+  health: [
+    "오행 편중과 조후로 몸의 열·냉·습·건 리듬을 먼저 살피기",
+    "인성·식상 흐름으로 회복력, 수면, 소화, 긴장 방식을 나누기",
+    "기신이 강해지는 대운에서 과로와 생활 리듬 붕괴 신호를 짚기",
+    "의료 판단은 배제하고 컨디션 관리와 생활 루틴으로만 돌리기",
+  ],
+  life_direction: [
+    "일간과 월령으로 타고난 기질의 중심축을 세우기",
+    "격국·용신·십성 배치로 삶의 무대와 성장 방식을 가르기",
+    "대운의 상승/조정 구간으로 지금 붙잡을 일과 내려놓을 일을 나누기",
+    "퀀텀 오행 판정으로 현재 운의 문이 어느 원소에 열리는지 짚기",
+  ],
+  general: [
+    "질문 속 핵심 욕구를 십성으로 옮긴 뒤 원국에서 먼저 확인하기",
+    "일간·월지·조후·용신·대운을 한 줄로 묶어 상담 초점을 세우기",
+    "확정 문장보다 선택지, 확인 질문, 실행 순서로 흐름을 열기",
+  ],
+});
+
+const SAJU_DOMAIN_FOCUS_GUIDE = Object.freeze({
+  litigation: [
+    "관성·칠살·상관의 긴장으로 문서, 규칙, 충돌의 압력선을 살피기",
+    "합충형파해가 강한 구간은 감정 대응보다 증거·기록·절차로 돌리기",
+  ],
+});
+
 function toText(value, fallback = DEFAULT_TEXT) {
   const text = String(value == null ? "" : value).trim();
   return text || fallback;
@@ -265,6 +318,125 @@ function buildSajuFollowUps(questionType) {
   return common;
 }
 
+function uniqueStringArray(values) {
+  const seen = new Set();
+  const out = [];
+  for (const value of Array.isArray(values) ? values : []) {
+    const text = String(value == null ? "" : value).trim();
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    out.push(text);
+  }
+  return out;
+}
+
+function compactSajuPromptText(value, maxLength = 260) {
+  const text = String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+  const max = Math.max(80, Number(maxLength || 0) || 260);
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+function buildSajuQuestionFocusAngles(questionType, domain) {
+  const typeKey = SAJU_QUESTION_FOCUS_GUIDE[questionType] ? questionType : "general";
+  return uniqueStringArray([
+    ...(SAJU_QUESTION_FOCUS_GUIDE[typeKey] || []),
+    ...(SAJU_DOMAIN_FOCUS_GUIDE[domain] || []),
+  ]);
+}
+
+function normalizeSajuEngineContext(sajuResult) {
+  const context = sajuResult?.engineContext && typeof sajuResult.engineContext === "object"
+    ? sajuResult.engineContext
+    : {};
+  const quantum = context.quantumMyeongli && typeof context.quantumMyeongli === "object"
+    ? context.quantumMyeongli
+    : {};
+  const bazi = context.bazi && typeof context.bazi === "object" ? context.bazi : {};
+  const elementMap = Array.isArray(quantum.elementMap)
+    ? quantum.elementMap.map((item) => ({
+      element: toText(item?.element, ""),
+      label: toText(item?.label, ""),
+      verdict: toText(item?.verdict, ""),
+    })).filter((item) => item.element || item.label || item.verdict)
+    : [];
+  const daewun = Array.isArray(quantum.daewun)
+    ? quantum.daewun.map((row) => ({
+      age: Number(row?.age || 0) || null,
+      gan: toText(row?.gan, ""),
+      zhi: toText(row?.zhi, ""),
+      ganElement: toText(row?.ganElement, ""),
+      zhiElement: toText(row?.zhiElement, ""),
+      score: Number.isFinite(Number(row?.score)) ? Number(row.score) : null,
+      label: toText(row?.label, ""),
+      className: toText(row?.className, ""),
+      jongStrength: toText(row?.jongStrength, ""),
+      hasChungBonus: row?.hasChungBonus === true,
+      hasChungPenalty: row?.hasChungPenalty === true,
+    })).filter((row) => row.gan || row.zhi || row.age)
+    : [];
+  const featureDigests = Array.isArray(context.renderedFeatureDigests)
+    ? context.renderedFeatureDigests.map((item) => ({
+      id: toText(item?.id, ""),
+      label: toText(item?.label, ""),
+      text: compactSajuPromptText(item?.text, 420),
+    })).filter((item) => item.text)
+    : [];
+
+  return {
+    marker: toText(context.marker, ""),
+    sourceLayers: Array.isArray(context.sourceLayers) ? context.sourceLayers.map((item) => toText(item, "")).filter(Boolean) : [],
+    bazi,
+    quantum: {
+      dayStem: toText(quantum.dayStem, ""),
+      monthBranch: toText(quantum.monthBranch, ""),
+      currentAge: Number(quantum.currentAge || 0) || null,
+      elementMap,
+      daewun,
+    },
+    featureDigests,
+  };
+}
+
+function buildSajuEngineContextLines(engineContext) {
+  const lines = [];
+  const layers = engineContext.sourceLayers.length ? engineContext.sourceLayers.join(", ") : DEFAULT_TEXT;
+  lines.push(`엔진 참조층: ${layers}`);
+
+  const elementText = engineContext.quantum.elementMap.length
+    ? engineContext.quantum.elementMap.map((item) => `${item.label || item.element}:${item.verdict}`).join(" | ")
+    : DEFAULT_TEXT;
+  lines.push(`퀀텀 오행 판정: ${elementText}`);
+
+  const daewunText = engineContext.quantum.daewun.length
+    ? engineContext.quantum.daewun.slice(0, 8).map((row) => {
+      const age = row.age ? `${row.age}세` : "나이 미상";
+      const gz = `${row.gan}${row.zhi}`.trim() || "간지 미상";
+      const score = row.score == null ? "점수 미상" : `${row.score}점`;
+      const flags = [row.label, row.jongStrength, row.hasChungBonus ? "충 보너스" : "", row.hasChungPenalty ? "충 경계" : ""].filter(Boolean).join("/");
+      return `${age} ${gz} ${score}${flags ? ` ${flags}` : ""}`;
+    }).join(" | ")
+    : DEFAULT_TEXT;
+  lines.push(`대운 퀀텀 흐름: ${daewunText}`);
+
+  if (engineContext.featureDigests.length) {
+    engineContext.featureDigests.slice(0, 6).forEach((item) => {
+      lines.push(`${item.label || item.id}: ${item.text}`);
+    });
+  }
+
+  return lines;
+}
+
+function buildSajuPromptBindingLines({ pillars, weights, johu, power, jong, engineContext }) {
+  const marker = engineContext.marker || SAJU_AI_PROMPT_ENGINE_CONTEXT_MARKER;
+  return [
+    `명식 고정선: 이 질문문은 연주 ${pillars.yearPillar}, 월주 ${pillars.monthPillar}, 일주 ${pillars.dayPillar}, 시주 ${pillars.hourPillar}와 일간 ${pillars.dayStem}에 묶입니다.`,
+    `재사용 경계: 다른 명식에는 그대로 옮기지 말고 일간·월지·조후·용신·기신·대운 퀀텀 흐름을 새로 맞춘 뒤 다시 세우세요.`,
+    `핵심 결속값: 오행 목${weights.wood}/화${weights.fire}/토${weights.earth}/금${weights.metal}/수${weights.water}, 조후 ${toText(johu.type)}, 용신 ${toArrayText(power.yongshin)}, 기신 ${toArrayText(power.kijishin)}, 종격 ${jong.isJong ? toText(jong.name, "종격") : "일반격"}.`,
+    `엔진 표식: ${marker}`,
+  ];
+}
+
 function buildKeywordWeightLines(template) {
   const keywordWeights = template && typeof template.keywordWeights === "object"
     ? template.keywordWeights
@@ -364,6 +536,15 @@ export function buildSajuAIPromptWithDomain({
   const johu = sajuResult.johu && typeof sajuResult.johu === "object" ? sajuResult.johu : {};
   const power = sajuResult.power && typeof sajuResult.power === "object" ? sajuResult.power : {};
   const jong = sajuResult.jong && typeof sajuResult.jong === "object" ? sajuResult.jong : {};
+  const engineContext = normalizeSajuEngineContext(sajuResult);
+  const questionFocusAngles = buildSajuQuestionFocusAngles(questionType, resolvedDomain);
+  const engineContextLines = buildSajuEngineContextLines(engineContext);
+  const bindingLines = buildSajuPromptBindingLines({ pillars, weights, johu, power, jong, engineContext });
+  const analysisAngles = uniqueStringArray((template.analysisAngles || []).concat(
+    SAJU_AI_PROMPT_MASTERY_ANGLES,
+    buildSajuAnalysisAngles(questionType, normalizedQuestion),
+    questionFocusAngles,
+  ));
 
   const keywordWeightLines = buildKeywordWeightLines(template);
 
@@ -381,6 +562,9 @@ export function buildSajuAIPromptWithDomain({
     `용신/기신 후보: ${toArrayText(power.yongshin)} / ${toArrayText(power.kijishin)}`,
     `종격 여부: ${jong.isJong ? `예 (${toText(jong.name, "종격")})` : "아니오"}`,
     `핵심 키워드 가중치: ${keywordWeightLines.join(" | ")}`,
+    `질문별 명리 관문: ${questionFocusAngles.join(" | ") || DEFAULT_TEXT}`,
+    ...engineContextLines,
+    ...bindingLines,
   ];
 
   const followUps = (Array.isArray(template.questionPatterns) ? template.questionPatterns : []).map((pattern) => fillPatternVariables(pattern, {
@@ -398,7 +582,7 @@ export function buildSajuAIPromptWithDomain({
     compatibilityTarget,
     mode: mode || resolvedDomain,
     questionTypeLabel: `${template.domainKo}/${questionTypeLabel}`,
-    analysisAngles: (template.analysisAngles || []).concat(SAJU_AI_PROMPT_MASTERY_ANGLES, buildSajuAnalysisAngles(questionType, normalizedQuestion)),
+    analysisAngles,
     recommendedFollowUpQuestions: followUps.length ? followUps : buildSajuFollowUps(questionType),
     caution: "사주는 확률적 경향 해석이며 법률/의료/투자 결정을 대체하지 않습니다.",
     domainDataLines,
@@ -435,6 +619,10 @@ export function buildSajuAIPromptWithDomain({
     toArrayText(power.kijishin, ""),
     jong.isJong ? "jong" : "normal",
     toText(jong.name, ""),
+    questionFocusAngles.join("|"),
+    engineContextLines.join("|"),
+    bindingLines.join("|"),
+    JSON.stringify(engineContext),
     promptPackage.summaryIntent,
     promptPackage.analysisAngles.join("|"),
     generatedPrompt,
@@ -452,6 +640,14 @@ export function buildSajuAIPromptWithDomain({
     domain: resolvedDomain,
     domainLabel: template.domainKo,
     keywordWeights: template.keywordWeights,
+    questionFocusGuide: questionFocusAngles,
+    engineContextSummary: {
+      marker: engineContext.marker || SAJU_AI_PROMPT_ENGINE_CONTEXT_MARKER,
+      sourceLayers: engineContext.sourceLayers,
+      quantumElementCount: engineContext.quantum.elementMap.length,
+      daewunCount: engineContext.quantum.daewun.length,
+      featureDigestCount: engineContext.featureDigests.length,
+    },
     qualityChecks: qualityResult.checks,
     digestSource,
   };

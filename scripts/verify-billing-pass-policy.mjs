@@ -386,6 +386,9 @@ assertContains(indexSource, "\\uC774\\uC6A9\\uAD8C \\uC801\\uC6A9", "payment mod
 assertContains(indexSource, "FAMILY 이용권이 적용되었습니다.", "static family license pass success copy");
 assertContains(indexSource, "membership-honey-kkulkkul.webp", "static license pass reuses honey pig asset");
 assertContains(indexSource, "forceDeduct: false", "static membership pass probe never deducts coins");
+assertContains(indexSource, "opts.__cdPaymentGateAuthorized !== true", "static paid service gate checks pass before payment choice");
+assertContains(indexSource, "requireServerPassCheck: true", "static paid services verify pass coverage with server before payment choice");
+assertNotContains(indexSource, "fastPassOnly: true", "static paid services must not rely on cache-only pass checks");
 assertContains(indexSource, "_subTier === 'family' ? 999999999", "main shell family policy pass limit");
 assertContains(indexSource, "Code Destiny Family 30일", "main shell family payment modal copy");
 assertContains(indexSource, "\\uC0C1\\uD488\\uBCC4 \\uC6D0\\uD654 \\uB2E8\\uAC74 \\uACB0\\uC81C", "main shell PDF single-payment modal copy");
@@ -418,6 +421,8 @@ assertContains(billingSource, "&& !coinPaymentRequested", "usage pass auto consu
 assertContains(billingSource, "accessType: \"usage_pass\"", "usage pass responses carry explicit access type");
 assertContains(billingSource, "freeBySubscription: false", "usage pass responses are not reported as subscription free");
 assertContains(billingClientSource, "buildLicensePassOverlayMessage", "React billing client builds license pass overlay copy");
+assertContains(billingClientSource, 'snapshot.state !== "none" || !hasServerLookupKey', "React billing client does not let inactive snapshots skip server pass checks");
+assertContains(billingClientSource, "runtimeData.freeBySubscription === true", "React billing client treats server pass responses as entitlement success");
 assertContains(billingClientSource, "FAMILY 이용권이 적용되었습니다.", "React family license pass success copy");
 assertContains(billingClientSource, "deniedStatuses.has(status)", "runtime gate rejects failure statuses");
 assertContains(billingClientSource, "isPositiveObject(payload.consume)", "runtime gate validates consume object");
