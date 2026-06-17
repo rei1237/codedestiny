@@ -175,6 +175,33 @@ assert.equal(family690.canUseByPass, true, "family 690: canUseByPass");
 assert.equal(family690.canUseByMonthly, false, "family 690: monthly fallback is unnecessary without balance");
 assertFinalPass(family690, "card", "family 690 requested card");
 
+const familyStatusSnapshotPass = __billingTestUtils.buildMembershipPassFromStatusSnapshot({
+  isActive: true,
+  subscriptionTier: "family",
+  subscriptionStatus: "active",
+  freeLimit: 999999999,
+  subscription: {
+    membershipCreditBalance: 0,
+  },
+});
+assert.equal(familyStatusSnapshotPass?.isActive, true, "family status snapshot restores active pass");
+assert.equal(familyStatusSnapshotPass?.tier, "family", "family status snapshot tier");
+assert.equal(familyStatusSnapshotPass?.freeLimit, 999999999, "family status snapshot free limit");
+assert.equal(
+  __billingTestUtils.buildPassPaymentDecision(
+    familyStatusSnapshotPass?.entitlement,
+    {
+      coinPrice: 690,
+      cost: 690,
+      membershipCreditCost: 6900,
+      featureKey: "family-status-snapshot-service",
+    },
+    familyStatusSnapshotPass?.profileSubscription,
+  ).canUseByPass,
+  true,
+  "family status snapshot covers paid services",
+);
+
 const unchangedPdf = applyPdfPassDiscountToPricing({
   featureKey: "premium_pdf_ziwei",
   billingType: "pdf",
@@ -253,7 +280,7 @@ assert.deepEqual(finalAccess(noPassCard, "card"), {
 
 assertBefore(
   billingSource,
-  "if (paymentDecision.canUseByPass && !passBlockedByAccessDecision)",
+  "if (!directPaymentRequested && paymentDecision.canUseByPass && !passBlockedByAccessDecision)",
   "if (monthlyBalanceRequested)",
   "PASS is evaluated before monthly deduction",
 );
@@ -292,7 +319,7 @@ assertContains(paymentsSource, "handleSubscriptionMonthlyCreditConfirm", "subscr
 assertContains(paymentsSource, 'paymentMethodHint === "monthly_credit"', "subscription pass monthly credit routing");
 assertContains(paymentsSource, 'type: "MONTHLY_CREDIT_SPEND"', "subscription pass monthly credit ledger");
 assertNotContains(pointsSource, "onSubscribeWithMonthlyCredit", "subscription pass monthly credit UI handler removed");
-assertNotContains(pointsSource, 'paymentMethod: "monthly_credit"', "subscription pass monthly credit request removed from UI");
+assertContains(pointsSource, 'paymentMethod: "monthly_credit"', "subscription pass monthly credit request remains explicit");
 assertContains(pointsSource, "PDF 서비스는 상품별 원화 단건 결제", "standard pass PDF single-payment UI");
 assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "points page reads payments/me subscriptions");
 assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points page normalizes subscription payloads");
@@ -321,7 +348,7 @@ assertContains(indexSource, "forceDeduct: false", "static membership pass probe 
 assertContains(indexSource, "_subTier === 'family' ? 999999999", "main shell family policy pass limit");
 assertContains(indexSource, "Code Destiny Family 30일", "main shell family payment modal copy");
 assertContains(indexSource, "\\uC0C1\\uD488\\uBCC4 \\uC6D0\\uD654 \\uB2E8\\uAC74 \\uACB0\\uC81C", "main shell PDF single-payment modal copy");
-assertContains(indexSource, "directCoinLabel", "payment modal displays original value basis");
+assertContains(indexSource, "directPaymentBasisLabel", "payment modal displays original value basis");
 assertContains(indexSource, "membershipCoverage: (passFirstAccess && passFirstAccess.membershipCoverage)", "pass-first coverage feeds payment modal");
 assertContains(indexSource, "passButtonHtml", "payment modal includes pass card HTML");
 assertContains(indexSource, "monthlyBalance >= requiredMonthlyCredits", "simple frontend monthly balance check");

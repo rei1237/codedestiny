@@ -670,12 +670,15 @@ async function getActiveMembershipPassForUser(env, authUserId) {
 }
 
 function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
+  const subscription = snapshot?.subscription && typeof snapshot.subscription === "object" ? snapshot.subscription : {};
   const rawStatus = String(
     snapshot?.status
-      || snapshot?.subscriptionStatus
-      || snapshot?.membershipStatus
-      || snapshot?.subscription?.status
-      || "",
+    || snapshot?.subscriptionStatus
+    || snapshot?.membershipStatus
+    || subscription?.status
+    || subscription?.subscriptionStatus
+    || subscription?.membershipStatus
+    || "",
   ).trim().toLowerCase();
   const inactiveStatus = rawStatus === "expired"
     || rawStatus === "canceled"
@@ -716,17 +719,34 @@ function buildMembershipPassFromStatusSnapshot(snapshot = {}) {
       || activeStatus
   );
   if (!isSnapshotActive) return null;
-  const tier = String(snapshot?.tier || snapshot?.plan || snapshot?.passTier || "free").trim().toLowerCase();
+  const tier = String(
+    snapshot?.tier
+    || snapshot?.plan
+    || snapshot?.planId
+    || snapshot?.productId
+    || snapshot?.subscriptionTier
+    || snapshot?.membershipTier
+    || snapshot?.passTier
+    || subscription?.tier
+    || subscription?.plan
+    || subscription?.planId
+    || subscription?.productId
+    || subscription?.subscriptionTier
+    || subscription?.membershipTier
+    || subscription?.passTier
+    || "free",
+  ).trim().toLowerCase();
   if (!tier || tier === "free") return null;
   const profileSubscription = {
+    ...subscription,
     tier,
-    passTier: snapshot?.passTier || tier,
+    passTier: snapshot?.passTier || subscription?.passTier || tier,
     isActive: true,
     isSubscribed: true,
     status: rawStatus || "active",
-    expiresAt: snapshot?.expiresAt || snapshot?.subscription?.expiresAt || null,
-    freeLimit: Number(snapshot?.freeLimit || 0),
-    source: snapshot?.source || "subscription_status_snapshot",
+    expiresAt: snapshot?.expiresAt || subscription?.expiresAt || null,
+    freeLimit: Number(snapshot?.freeLimit || subscription?.freeLimit || 0),
+    source: snapshot?.source || subscription?.source || "subscription_status_snapshot",
   };
   const entitlement = normalizeHoneyPassEntitlement({ profileSubscription });
   if (!entitlement.isActive) return null;
@@ -4495,6 +4515,7 @@ export const __billingTestUtils = {
   buildAccessDecision,
   buildPaidContentAccessDecision,
   buildPassPaymentDecision,
+  buildMembershipPassFromStatusSnapshot,
   buildNativeArchivePdfBytes,
   requireBillingAuth,
   resolvePaidContentAccess,
