@@ -5206,6 +5206,77 @@ function _sajuPromptCopyText(text) {
   }
 }
 
+function _sajuPromptApiUrls(path) {
+  var urls = [path];
+  try {
+    var base = typeof getFortuneApiBaseUrl === 'function' ? getFortuneApiBaseUrl() : '';
+    if (base) {
+      var full = String(base).replace(/\/+$/, '') + path;
+      if (urls.indexOf(full) < 0) urls.push(full);
+    }
+  } catch (_) {}
+  return urls;
+}
+
+function _sajuPromptShouldRetryPaidGeneration(result) {
+  var payload = result && result.payload ? result.payload : {};
+  var details = payload.errorDetails && typeof payload.errorDetails === 'object' ? payload.errorDetails : {};
+  var code = String(payload.code || details.code || '').trim().toUpperCase();
+  var reason = String(details.reason || payload.reason || '').trim().toUpperCase();
+  var message = String(payload.message || details.message || '').trim();
+  var status = Number(result && result.status);
+  return status === 503
+    || status === 502
+    || status === 504
+    || code === 'SERVICE_UNAVAILABLE'
+    || code === 'PAID_ACCESS_VERIFY_RETRYABLE'
+    || reason === 'DB_UNAVAILABLE'
+    || /database is temporarily unavailable/i.test(message);
+}
+
+function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence) {
+  var urls = _sajuPromptApiUrls('/api/fortune/saju/ai-prompt');
+  var body = {
+    question: question,
+    domain: String(domain || '').trim(),
+    sajuResult: _buildSajuAIPromptPayload(privacyOptions),
+    requestId: evidence.requestId || ('saju-ai-prompt:' + requestNonce),
+    accessGrant: evidence.accessGrant,
+    consume: evidence.consume,
+    payment: evidence.payment,
+    _paymentContext: evidence._paymentContext
+  };
+  function runAt(index, attempt) {
+    return _cdAIPromptRequestJson(urls[index], {
+      method: 'POST',
+      headers: { 'idempotency-key': 'saju-ai:' + requestNonce },
+      body: JSON.stringify(body)
+    }).then(function(result) {
+      if (result && result.ok) return result;
+      if (_sajuPromptShouldRetryPaidGeneration(result) && attempt < 1) {
+        return new Promise(function(resolve) {
+          setTimeout(resolve, 750);
+        }).then(function() {
+          return runAt(index, attempt + 1);
+        });
+      }
+      if (index + 1 < urls.length) return runAt(index + 1, attempt);
+      return result;
+    }).catch(function(error) {
+      if (index + 1 < urls.length) return runAt(index + 1, attempt);
+      if (attempt < 1) {
+        return new Promise(function(resolve) {
+          setTimeout(resolve, 750);
+        }).then(function() {
+          return runAt(index, attempt + 1);
+        });
+      }
+      throw error;
+    });
+  }
+  return runAt(0, 0);
+}
+
 function _requestSajuQuestionPrompt(question, privacyOptions, domain) {
   var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   return _cdAIPromptGate({
@@ -5217,20 +5288,7 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain) {
   }).then(function(gateResult) {
     if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
     var evidence = _cdAIPromptGateEvidence(gateResult);
-    return _cdAIPromptRequestJson('/api/fortune/saju/ai-prompt', {
-      method: 'POST',
-      headers: { 'idempotency-key': 'saju-ai:' + requestNonce },
-      body: JSON.stringify({
-        question: question,
-        domain: String(domain || '').trim(),
-        sajuResult: _buildSajuAIPromptPayload(privacyOptions),
-        requestId: evidence.requestId || ('saju-ai-prompt:' + requestNonce),
-        accessGrant: evidence.accessGrant,
-        consume: evidence.consume,
-        payment: evidence.payment,
-        _paymentContext: evidence._paymentContext
-      })
-    });
+    return _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence);
   });
 }
 

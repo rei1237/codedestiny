@@ -1870,16 +1870,25 @@ function mapSajuConsumeFailure(response, payload) {
   const status = Number(response?.status || 500);
   const code = String(payload?.code || "").trim();
   const message = String(payload?.message || "").trim();
+  const detailReason = String(payload?.errorDetails?.reason || payload?.reason || "").trim();
 
   if (status === 401 || status === 403 || code === "AUTH_REQUIRED" || code === "UNAUTHORIZED") {
     return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
   }
 
-  if (status === 402 || code === "INSUFFICIENT_BALANCE") {
+  if (status === 402 || code === "INSUFFICIENT_BALANCE" || code === "INSUFFICIENT_COINS" || code === "PAYMENT_REQUIRED") {
     return buildSajuAIPromptError(
       "PAYMENT_REQUIRED",
       `단건 결제가 필요합니다. ${calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE).toLocaleString("ko-KR")}원 가치의 상품입니다.`,
       402,
+    );
+  }
+
+  if (status === 503 || code === "SERVICE_UNAVAILABLE" || detailReason === "DB_UNAVAILABLE") {
+    return buildSajuAIPromptError(
+      "PAID_ACCESS_VERIFY_RETRYABLE",
+      "결제는 확인되었고 생성 권한을 다시 맞추고 있습니다. 잠시 후 자동으로 다시 시도합니다.",
+      503,
     );
   }
 
@@ -2540,6 +2549,12 @@ async function handleSajuAIPrompt(request, auth, env) {
       caution: String(builtPrompt.caution || "").trim() || undefined,
       questionType: builtPrompt.questionType,
       chargedCoins,
+      membershipCreditCost: Math.max(0, Number(consumePayload?.membershipCreditCost || consumePayload?.consume?.membershipCreditCost || 0)),
+      accessType: String(consumePayload?.accessType || consumePayload?.consume?.accessType || consumePayload?.accessGrant?.accessType || "").trim() || undefined,
+      accessMethod: String(consumePayload?.accessMethod || consumePayload?.consume?.accessMethod || consumePayload?.accessGrant?.accessMethod || "").trim() || undefined,
+      paymentMode: String(consumePayload?.paymentMode || consumePayload?.consume?.paymentMode || consumePayload?.accessGrant?.paymentMode || "").trim() || undefined,
+      requestId,
+      consume: consumePayload?.consume && typeof consumePayload.consume === "object" ? consumePayload.consume : undefined,
       featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
       balanceAfter,
     });
