@@ -2884,6 +2884,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             accessMethod: "MONTHLY",
             paymentMethod: "MONTHLY",
             requestId,
+            transactionId: membershipConsume.transactionId || "",
+            ledgerId: membershipConsume.ledgerId || "",
+            purchaseId: membershipConsume.purchaseId || requestId,
             featureKey: String(pricing.featureKey || ""),
             profileId: profileId || undefined,
             coinPrice: membershipConsume.coinPrice,
@@ -2903,6 +2906,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
             featureKey: String(pricing.featureKey || ""),
             sessionId: reportSessionId || undefined,
             requestId,
+            transactionId: membershipConsume.transactionId || "",
+            ledgerId: membershipConsume.ledgerId || "",
             purchaseId: membershipConsume.purchaseId || requestId,
             evidenceId: String(unlockEntitlement?._id || membershipConsume.transactionId || ""),
             reportId: reportId || undefined,
@@ -2915,6 +2920,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           membershipCreditBalance: membershipConsume.remainingMembershipCredit,
           monthlyCredits: membershipConsume.monthlyCredits,
           monthlyCreditsAsCoins: membershipConsume.monthlyCreditsAsCoins,
+          transactionId: membershipConsume.transactionId || "",
+          ledgerId: membershipConsume.ledgerId || "",
           user: membershipConsume.user,
         }, "이용권 혜택으로 콘텐츠 이용 권한을 발급했습니다.");
       }
