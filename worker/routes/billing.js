@@ -2540,6 +2540,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         tier: subscriptionPassForDecision.tier,
         passTier: subscriptionPassForDecision.passTier,
         freeLimit: subscriptionPassForDecision.freeLimit,
+        passLimit: subscriptionPassForDecision.passLimit || subscriptionPassForDecision.freeLimit,
+        maxCoveredCoin: subscriptionPassForDecision.maxCoveredCoin || subscriptionPassForDecision.passLimit || subscriptionPassForDecision.freeLimit,
       } : undefined,
       user: {
         id: String(authCheck.auth.userId || ""),
@@ -2729,6 +2731,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           tier: subscriptionPass.tier,
           passTier: subscriptionPass.passTier,
           freeLimit: subscriptionPass.freeLimit,
+          passLimit: subscriptionPass.passLimit || subscriptionPass.freeLimit,
+          maxCoveredCoin: subscriptionPass.maxCoveredCoin || subscriptionPass.passLimit || subscriptionPass.freeLimit,
         },
         user: {
           id: String(authCheck.auth.userId || ""),
@@ -2752,6 +2756,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           tier: subscriptionPass.tier,
           passTier: subscriptionPass.passTier,
           freeLimit: subscriptionPass.freeLimit,
+          passLimit: subscriptionPass.passLimit || subscriptionPass.freeLimit,
+          maxCoveredCoin: subscriptionPass.maxCoveredCoin || subscriptionPass.passLimit || subscriptionPass.freeLimit,
         },
         membershipPassDebug: {
           detectedTier: subscriptionPass.tier,
@@ -3584,7 +3590,7 @@ async function handleBalance(request, env) {
         .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId unlockedFeatures")
         .lean();
       const sub = user?.profileSubscription || {};
-      const entitlement = normalizeHoneyPassEntitlement(user || {});
+      const entitlement = resolveActivePassPolicy(user || {});
       scopedProfileId = cleanProfileId(user?.destinyProfilesCurrentId);
       scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId);
       userScopedUnlockedFeatures = Array.isArray(user?.unlockedFeatures)
@@ -3605,6 +3611,8 @@ async function handleBalance(request, env) {
         label: entitlement.label,
         isActive: entitlement.isActive,
         freeLimit: entitlement.maxCoveredCoin,
+        passLimit: entitlement.maxCoveredCoin,
+        maxCoveredCoin: entitlement.maxCoveredCoin,
         profileLimit: entitlement.maxProfiles,
         source: entitlement.source,
         expiresAt: entitlement.expiresAt || sub?.expiresAt || null,
@@ -3843,7 +3851,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       .lean();
     const effectiveUser = seededUser ? { ...(user || {}), ...seededUser } : user;
     const sub = effectiveUser?.profileSubscription || {};
-    const entitlement = normalizeHoneyPassEntitlement(effectiveUser || {});
+    const entitlement = resolveActivePassPolicy(effectiveUser || {});
     const scopedProfileId = cleanProfileId(effectiveUser?.destinyProfilesCurrentId);
     const scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId);
     const userScopedUnlockedFeatures = Array.isArray(effectiveUser?.unlockedFeatures)
@@ -3872,6 +3880,8 @@ async function readBillingSnapshot(request, env, options = {}) {
       label: entitlement.label,
       isActive: entitlement.isActive,
       freeLimit: entitlement.maxCoveredCoin,
+      passLimit: entitlement.maxCoveredCoin,
+      maxCoveredCoin: entitlement.maxCoveredCoin,
       profileLimit: entitlement.maxProfiles,
       source: entitlement.source,
       expiresAt: entitlement.expiresAt || sub?.expiresAt || null,
@@ -4352,6 +4362,8 @@ async function grantPassFreeAccessBeforeCardIfAvailable(request, env, body = {})
       tier: subscriptionPass.tier,
       passTier: subscriptionPass.passTier,
       freeLimit: subscriptionPass.freeLimit,
+      passLimit: subscriptionPass.passLimit || subscriptionPass.freeLimit,
+      maxCoveredCoin: subscriptionPass.maxCoveredCoin || subscriptionPass.passLimit || subscriptionPass.freeLimit,
     },
     user: {
       id: String(authCheck.auth.userId || ""),
