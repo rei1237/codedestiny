@@ -56,6 +56,9 @@ expectContains(rpgUiSource, "ent-rpg-quest-after", "after-complete UI block");
 expectContains(rpgUiSource, "quest.afterCompleteMessage", "after-complete message render");
 expectContains(rpgUiSource, "data-rpg-complete", "quest completion button");
 expectContains(rpgUiSource, "renderSkillTree", "skill tree hook");
+expectContains(rpgUiSource, "rpg-character-sheet-stable-bottom-v20260617", "stable bottom render marker");
+expectContains(rpgUiSource, "buildRpgCrashFallbackTemplate", "render fallback template");
+expectContains(rpgUiSource, "syncRpgLayoutHeight", "RPG height sync guard");
 
 console.log("[5] Main shell entry point");
 expectContains(mainShellSource, 'id="skillTreeSection"', "skill tree section in main shell");

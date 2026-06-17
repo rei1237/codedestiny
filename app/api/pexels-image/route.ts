@@ -3,8 +3,9 @@ import type { NextRequest } from "next/server";
 
 import { getPexelsSectionImage, type PexelsImageSectionKey } from "../../../lib/server/pexels";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 export const runtime = "nodejs";
+export const revalidate = false;
 
 const PEXELS_SECTIONS = new Set<PexelsImageSectionKey>([
   "saju",
@@ -41,4 +42,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: false, message }, { status: 500 });
   }
 }
-

@@ -2823,6 +2823,26 @@ function renderEnergyCoord(natal){
   var playbookHtml = playbookItems.slice(0,3).map(function(item){
     return '<li style="margin:2px 0;">'+item+'</li>';
   }).join('');
+  var monthlyTravelPlans=[
+    {month:1,el:'water',label:'깊은 회복의 달',tone:'차가운 물기운이 마음을 낮추고, 긴 호흡의 휴식 좌표가 잘 열립니다.',styles:['retreat','slow_trip'],time:'해 질 무렵, 조용한 물가나 실내 온기 사이를 천천히 오가는 일정',mission:'물가나 창가에서 올해 놓을 짐 하나를 적고 접어두세요.'},
+    {month:2,el:'wood',label:'새싹이 트는 달',tone:'목(木)의 첫 숨이 올라오며, 산책과 정원 동선에서 다시 시작할 힘이 돋아납니다.',styles:['day_trip','slow_trip','creative'],time:'오전 9~11시, 빛이 부드러운 숲길과 수목원',mission:'여행 노트 첫 장에 새로 키울 계획 한 줄을 남기세요.'},
+    {month:3,el:'wood',label:'성장문이 열리는 달',tone:'초록의 결이 강해져 관계, 공부, 창작의 방향이 또렷하게 자랍니다.',styles:['slow_trip','creative'],time:'오전 산책 뒤 오후 카페나 서점으로 이어지는 동선',mission:'새로 만나고 싶은 사람, 배우고 싶은 주제, 키우고 싶은 습관을 하나씩 적으세요.'},
+    {month:4,el:'earth',label:'중심을 고르는 달',tone:'흙의 기운이 몸의 리듬을 붙들어 생활과 마음의 중심을 다시 세웁니다.',styles:['one_night','slow_trip'],time:'식사와 산책 시간이 흔들리지 않는 1박 2일 일정',mission:'걷는 속도를 늦추고, 이번 달 반드시 지킬 루틴 하나를 정하세요.'},
+    {month:5,el:'fire',label:'빛이 번지는 달',tone:'화(火)의 온기가 자신감과 표현력을 데우니, 밝은 전망과 활기 있는 풍경이 운을 깨웁니다.',styles:['romantic','creative','day_trip'],time:'일출 직후 또는 해 질 무렵, 빛의 방향이 선명한 자리',mission:'하고 싶은 말을 한 문장으로 정리하고 마음속으로 또렷하게 읽으세요.'},
+    {month:6,el:'fire',label:'활력이 솟는 달',tone:'뜨거운 기운이 강해지는 만큼, 빛과 물 휴식을 함께 둔 여행이 가장 맑게 흐릅니다.',styles:['romantic','adventure','day_trip'],time:'낮 일정은 짧게, 저녁 풍경은 선명하게 여는 코스',mission:'즐거운 일정 하나를 고르고, 그 뒤에는 반드시 조용한 회복 시간을 붙이세요.'},
+    {month:7,el:'earth',label:'숨을 고르는 달',tone:'여름의 열이 흙으로 내려앉으며, 온천·한옥·오래된 골목에서 안정감이 차오릅니다.',styles:['retreat','one_night','slow_trip'],time:'오전 10시~오후 2시, 식사와 산책을 안정적으로 묶는 일정',mission:'휴식 시간을 일정표에 먼저 넣고 나머지 동선을 맞추세요.'},
+    {month:8,el:'metal',label:'정리의 문이 서는 달',tone:'금(金)의 선명함이 올라와 미술관, 건축, 전망 좌표에서 판단의 칼날이 맑아집니다.',styles:['creative','day_trip','slow_trip'],time:'오후 2~5시, 감각과 기준이 또렷한 시간',mission:'여행 사진은 9장만 남기고, 이번 달 덜어낼 일 하나를 고르세요.'},
+    {month:9,el:'metal',label:'결실을 고르는 달',tone:'차분한 정리 기운이 짙어져, 복잡한 마음을 단순한 기준으로 되돌리기 좋습니다.',styles:['creative','retreat','day_trip'],time:'사람이 적은 평일 오후, 조용한 전시와 전망 동선',mission:'나에게 남길 것과 보낼 것을 각각 한 가지씩 적으세요.'},
+    {month:10,el:'water',label:'깊이가 돌아오는 달',tone:'수(水)의 기운이 차오르며, 강과 바다와 호수에서 마음의 파동이 낮아집니다.',styles:['retreat','slow_trip'],time:'해 질 무렵부터 초저녁, 말수를 줄이고 오래 머무는 일정',mission:'감정 한 줄과 사실 한 줄을 나누어 기록하세요.'},
+    {month:11,el:'water',label:'내면이 깊어지는 달',tone:'저장과 통찰의 흐름이 짙어져, 조용한 체류와 물가 산책이 직관을 비춥니다.',styles:['retreat','slow_trip','romantic'],time:'초저녁 물가 산책 뒤 따뜻한 차로 마무리하는 코스',mission:'결론을 서두르지 말고 마음이 가라앉는 시간을 먼저 주세요.'},
+    {month:12,el:'earth',label:'한 해를 봉하는 달',tone:'흩어진 기운을 흙으로 다시 모으며, 오래된 장소와 따뜻한 체류가 운의 바닥을 다집니다.',styles:['one_night','retreat','slow_trip'],time:'짧은 이동, 따뜻한 식사, 충분한 수면이 이어지는 일정',mission:'올해 고마웠던 장소나 사람을 하나 떠올리고 조용히 감사의 마음을 남기세요.'}
+  ];
+  function getMonthlyTravelPlan(month){
+    var m=parseInt(month,10);
+    if(!isFinite(m)||m<1||m>12)m=today.getMonth()+1;
+    return monthlyTravelPlans[m-1]||monthlyTravelPlans[today.getMonth()];
+  }
+  var currentMonthlyTravelPlan=getMonthlyTravelPlan(today.getMonth()+1);
 
   function escapeHtml(value){
     return String(value==null?'':value).replace(/[&<>"']/g,function(ch){
@@ -2885,9 +2905,24 @@ function renderEnergyCoord(natal){
       rouletteReason:reason
     });
   }
+  function scoreMonthlyTravelDestination(dest, offset, rouletteRecentIds){
+    var scored=scoreRouletteDestination(dest,offset,rouletteRecentIds);
+    var plan=currentMonthlyTravelPlan;
+    var monthlyWeight=scored.rouletteWeight||1;
+    if(scored.element===plan.el)monthlyWeight*=1.52;
+    if((plan.styles||[]).indexOf(scored.tripStyle)>=0)monthlyWeight*=1.28;
+    if(scored.element===target)monthlyWeight*=1.18;
+    if(kijishinList.indexOf(scored.element)>=0)monthlyWeight*=0.42;
+    return Object.assign({},scored,{
+      monthlyPlan:plan,
+      rouletteWeight:Math.max(1,Math.round(monthlyWeight)),
+      rouletteReason:plan.month+'월의 '+(EL_E[plan.el]||'')+(EL_K[plan.el]||plan.el)+' 기운과 '+(scored.matchLabel||'장소의 결')+'이 맞물려 이달의 이동 좌표로 떠오릅니다.'
+    });
+  }
   function getRouletteRows(mode){
     if(mode==='domestic')return allDestinations('domestic');
     if(mode==='global')return allDestinations('global');
+    if(mode==='monthly')return allDestinations('domestic').concat(allDestinations('global'));
     return allDestinations('domestic').concat(allDestinations('global'));
   }
   function pickRouletteDestination(mode){
@@ -2895,7 +2930,10 @@ function renderEnergyCoord(natal){
     if(!rows.length)rows=domList.concat(globList);
     var rouletteRecentIds=readRouletteRecentIds();
     var scored=rows.map(function(dest,idx){
-      return scoreRouletteDestination(dest,idx+(mode==='global'?700:mode==='mixed'?1200:300),rouletteRecentIds);
+      var offset=idx+(mode==='global'?700:mode==='monthly'?1500:mode==='mixed'?1200:300);
+      return mode==='monthly'
+        ? scoreMonthlyTravelDestination(dest,offset,rouletteRecentIds)
+        : scoreRouletteDestination(dest,offset,rouletteRecentIds);
     });
     if(!scored.length)return null;
     var hasFresh=scored.some(function(dest){return rouletteRecentIds.indexOf(destinationKey(dest))<0;});
@@ -2929,12 +2967,19 @@ function renderEnergyCoord(natal){
     var result=document.getElementById('energyRouletteResult');
     if(!result||!dest)return;
     var countryLabel=dest.countryType==='global'?'해외':'국내';
-    var modeLabel=mode==='domestic'?'국내 좌표':mode==='global'?'해외 좌표':'완전 랜덤 원정';
+    var plan=mode==='monthly'?(dest.monthlyPlan||currentMonthlyTravelPlan):null;
+    var modeLabel=mode==='domestic'?'국내 좌표':mode==='global'?'해외 좌표':mode==='monthly'?'월별 여행 좌표':'완전 랜덤 원정';
+    var monthlyFields=plan
+      ? rouletteResultField('이달의 기운',plan.month+'월 · '+plan.label+' · '+(EL_E[plan.el]||'')+(EL_K[plan.el]||plan.el))+
+        rouletteResultField('추천 시기',plan.time)+
+        rouletteResultField('월별 미션',plan.mission)
+      : '';
     result.innerHTML=
-      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px;">'+
+      '<div class="energy-roulette-result-head" style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px;">'+
         '<div style="min-width:0;flex:1 1 220px;">'+
           '<div style="font-size:.74rem;font-weight:800;letter-spacing:.1em;color:#c4b5fd;text-transform:uppercase;">'+escapeHtml(modeLabel)+'</div>'+
           '<div style="font-size:1.08rem;font-weight:900;color:#fff;margin-top:3px;line-height:1.35;">'+escapeHtml((dest.emoji||dest.icon||'📍')+' '+dest.name)+'</div>'+
+          (plan?'<div style="margin-top:4px;color:#bfdbfe;font-size:.78rem;line-height:1.55;">'+escapeHtml(plan.tone)+'</div>':'')+
         '</div>'+
         '<span style="border:1px solid rgba(251,191,36,.34);background:rgba(251,191,36,.12);color:#fde68a;border-radius:999px;padding:6px 10px;font-size:.74rem;font-weight:800;white-space:nowrap;">'+escapeHtml(countryLabel+' · '+(EL_E[dest.element]||'')+(EL_K[dest.element]||dest.element))+'</span>'+
       '</div>'+
@@ -2944,6 +2989,7 @@ function renderEnergyCoord(natal){
         rouletteResultField('여행 방식',tripStyleLabels[dest.tripStyle]||dest.tripStyle||'느린 회복 여행')+
         rouletteResultField('1일 미션',dest.ritualTip||'도착 후 첫 10분은 말수를 줄이고 장소의 기운을 천천히 받아들이세요.')+
         rouletteResultField('피하면 좋은 행동',rouletteAvoidAction(dest))+
+        monthlyFields+
       '</div>'+
       '<button type="button" data-energy-roulette-reroll="'+escapeHtml(mode||'mixed')+'" class="mt-3 rounded-full bg-white/10 px-3 py-2 text-xs font-bold text-slate-50 ring-1 ring-white/20" style="appearance:none;margin-top:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#f8fafc;border-radius:999px;padding:8px 12px;font-size:.74rem;font-weight:800;cursor:pointer;">다시 뽑기</button>';
   }
@@ -2954,24 +3000,34 @@ function renderEnergyCoord(natal){
       style.id='energyRouletteStyles';
       style.textContent=[
         '.energy-expedition-root{position:relative;overflow:hidden;border-radius:22px;background:radial-gradient(circle at 12% 4%,rgba(255,255,255,.16),transparent 24%),radial-gradient(circle at 86% 10%,rgba(186,230,253,.16),transparent 22%),linear-gradient(145deg,rgba(8,13,31,.96),rgba(18,27,54,.92) 48%,rgba(8,13,31,.96));border:1px solid rgba(226,232,240,.16);box-shadow:0 24px 70px rgba(2,6,23,.36),inset 0 1px 0 rgba(255,255,255,.12)}',
-        '.energy-expedition-hero{position:relative;display:grid;gap:12px;padding:18px;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.04));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);margin-bottom:14px}',
+        '.energy-expedition-hero{position:relative;display:grid;gap:12px;padding:18px;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,.055));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);margin-bottom:14px}',
+        '.energy-expedition-root *{letter-spacing:0!important;word-break:keep-all}',
+        '.energy-expedition-root p,.energy-expedition-root div,.energy-expedition-root li{overflow-wrap:anywhere}',
         '.energy-dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:8px}',
         '.energy-section-card{border-radius:16px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}',
+        '.energy-section-card b{font-weight:900}',
         '.ec-loc-grid{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}',
-        '.ec-loc-item{border-radius:16px!important;border:1px solid rgba(226,232,240,.22)!important;box-shadow:0 12px 28px rgba(15,23,42,.08)!important;overflow:hidden}',
+        '.ec-loc-item{border-radius:16px!important;border:1px solid rgba(226,232,240,.22)!important;box-shadow:0 12px 28px rgba(15,23,42,.08)!important;overflow:hidden;color:#1e293b!important}',
         '.ec-loc-item:hover{transform:translateY(-2px)!important}',
+        '.ec-loc-name{font-size:1rem!important;color:#0f172a!important;line-height:1.35!important}',
+        '.ec-loc-desc{font-size:.86rem!important;color:#334155!important;line-height:1.78!important}',
+        '.ec-loc-coord{color:#64748b!important}',
         '.energy-mission-row{display:flex;align-items:flex-start;gap:9px;border:1px solid rgba(148,163,184,.22);border-radius:12px;background:rgba(255,255,255,.82);padding:10px 11px;color:#1e293b}',
         '.energy-mission-check{flex:0 0 auto;width:18px;height:18px;border-radius:6px;border:1px solid rgba(14,165,233,.36);background:linear-gradient(135deg,rgba(186,230,253,.68),rgba(255,255,255,.82));box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}',
         '.energy-roulette-layout{display:grid;grid-template-columns:minmax(132px,178px) minmax(0,1fr);gap:14px;align-items:center}',
+        '.energy-roulette-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}',
+        '.energy-roulette-btn{appearance:none;border-radius:12px;padding:10px 12px;min-height:42px;font-size:.78rem;font-weight:900;line-height:1.25;cursor:pointer;text-align:center;transition:transform .18s ease,filter .18s ease,opacity .18s ease}',
+        '.energy-roulette-btn:hover{transform:translateY(-1px);filter:brightness(1.06)}',
         '.energy-roulette-wheel{transition:transform .72s cubic-bezier(.16,1,.3,1),filter .2s ease;will-change:transform}',
         '.energy-roulette-wheel.is-spinning{filter:drop-shadow(0 0 18px rgba(186,230,253,.42))}',
         '.energy-roulette-deck.is-shuffling .energy-roulette-chip:nth-child(1){transform:translate3d(7px,-5px,0) rotate(-3deg)}',
         '.energy-roulette-deck.is-shuffling .energy-roulette-chip:nth-child(2){transform:translate3d(-6px,6px,0) rotate(2deg)}',
         '.energy-roulette-deck.is-shuffling .energy-roulette-chip:nth-child(3){transform:translate3d(5px,5px,0) rotate(4deg)}',
         '.energy-roulette-result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}',
+        '#energyRouletteResult{min-height:96px}',
         '@media(min-width:720px){.ec-loc-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}',
         '@media(min-width:1080px){.ec-loc-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}',
-        '@media(max-width:560px){.energy-expedition-hero{padding:15px}.energy-roulette-layout{grid-template-columns:1fr}.energy-roulette-wheel-wrap{margin:0 auto}.energy-roulette-result-grid{grid-template-columns:1fr}}',
+        '@media(max-width:560px){.energy-expedition-hero{padding:15px}.energy-roulette-layout{grid-template-columns:1fr}.energy-roulette-wheel-wrap{margin:0 auto}.energy-roulette-actions,.energy-roulette-result-grid{grid-template-columns:1fr}.energy-roulette-btn{width:100%}}',
         '@media(prefers-reduced-motion:reduce){.energy-roulette-wheel,.energy-roulette-chip{transition:none!important}}'
       ].join('\n');
       document.head.appendChild(style);
@@ -3000,10 +3056,11 @@ function renderEnergyCoord(natal){
         '</div>'+
         '<div style="min-width:0;">'+
           '<div id="energyRouletteDeck" class="energy-roulette-deck flex flex-wrap gap-2" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px;">'+chipHtml+'</div>'+
-          '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+
-            '<button type="button" data-energy-roulette-mode="domestic" class="rounded-full bg-sky-400/15 px-3 py-2 text-xs font-bold text-sky-50 ring-1 ring-sky-200/25" style="appearance:none;border:1px solid rgba(125,211,252,.32);background:rgba(14,165,233,.16);color:#f0f9ff;border-radius:999px;padding:9px 12px;font-size:.76rem;font-weight:800;cursor:pointer;">오늘의 국내 좌표 뽑기</button>'+
-            '<button type="button" data-energy-roulette-mode="global" class="rounded-full bg-violet-400/15 px-3 py-2 text-xs font-bold text-violet-50 ring-1 ring-violet-200/25" style="appearance:none;border:1px solid rgba(196,181,253,.34);background:rgba(124,58,237,.17);color:#f5f3ff;border-radius:999px;padding:9px 12px;font-size:.76rem;font-weight:800;cursor:pointer;">오늘의 해외 좌표 뽑기</button>'+
-            '<button type="button" data-energy-roulette-mode="mixed" class="rounded-full bg-amber-300/15 px-3 py-2 text-xs font-bold text-amber-50 ring-1 ring-amber-200/25" style="appearance:none;border:1px solid rgba(253,230,138,.34);background:rgba(245,158,11,.16);color:#fffbeb;border-radius:999px;padding:9px 12px;font-size:.76rem;font-weight:800;cursor:pointer;">완전 랜덤 원정 뽑기</button>'+
+          '<div class="energy-roulette-actions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">'+
+            '<button type="button" data-energy-roulette-mode="domestic" class="energy-roulette-btn" style="border:1px solid rgba(125,211,252,.32);background:rgba(14,165,233,.16);color:#f0f9ff;">국내 좌표</button>'+
+            '<button type="button" data-energy-roulette-mode="global" class="energy-roulette-btn" style="border:1px solid rgba(196,181,253,.34);background:rgba(124,58,237,.17);color:#f5f3ff;">해외 좌표</button>'+
+            '<button type="button" data-energy-roulette-mode="monthly" class="energy-roulette-btn" style="border:1px solid rgba(52,211,153,.34);background:rgba(16,185,129,.17);color:#ecfdf5;">월별 여행지</button>'+
+            '<button type="button" data-energy-roulette-mode="mixed" class="energy-roulette-btn" style="border:1px solid rgba(253,230,138,.34);background:rgba(245,158,11,.16);color:#fffbeb;">랜덤 원정</button>'+
           '</div>'+
         '</div>'+
       '</div>'+
@@ -13880,6 +13937,37 @@ function renderQuantumStrategy(p, natal, bazi){
     var t=type||elType(el);
     return '<span class="qm-el-chip '+qTypeClass(t)+'">'+qEsc(qElLabel(el))+' · '+qEsc(qTypeLabel(t))+'</span>';
   }
+  function qTenGodOf(target){
+    if(!target||!p.d.g||typeof getTenGod!=='function')return '';
+    try{
+      var tg=getTenGod(p.d.g,target);
+      return tg&&tg!=='?'?tg:'';
+    }catch(_){return '';}
+  }
+  function qTenGodGroup(tenGod){
+    if(!tenGod)return '관찰';
+    if(tenGod==='비견'||tenGod==='겁재')return '자아·동료';
+    if(tenGod==='식신'||tenGod==='상관')return '표현·창조';
+    if(tenGod==='편재'||tenGod==='정재')return '재물·현실';
+    if(tenGod==='편관'||tenGod==='정관')return '명예·책임';
+    if(tenGod==='편인'||tenGod==='정인')return '학습·보호';
+    return '관찰';
+  }
+  function qTenGodTone(tenGod){
+    var map={
+      '비견':'자기 의지가 먼저 서고, 같은 결의 사람들과 판을 키우는 기운이 드러납니다.',
+      '겁재':'경쟁과 쟁취의 불꽃이 강하게 떠오르니, 돈과 관계의 경계선을 분명히 세워야 합니다.',
+      '식신':'타고난 재능이 부드럽게 흘러나와 말, 창작, 돌봄에서 복의 문이 열립니다.',
+      '상관':'틀을 깨는 언어와 감각이 강하게 일어나며, 예리함을 품격 있게 다스릴 때 빛납니다.',
+      '편재':'움직이는 돈과 넓은 인맥의 별이 떠오르니, 기회는 밖으로 뻗는 손끝에 머무릅니다.',
+      '정재':'꾸준히 쌓는 재물과 신뢰의 결이 깊어지며, 안정된 약속이 운을 붙잡습니다.',
+      '편관':'압박과 승부의 별이 날카롭게 서 있으니, 위기를 훈련장으로 삼을 때 권위가 생깁니다.',
+      '정관':'질서와 명예의 기운이 바르게 자리하니, 책임을 정돈할수록 사회적 문이 열립니다.',
+      '편인':'고독한 직관과 비밀스러운 공부의 별이 떠오르며, 남다른 감각이 길을 비춥니다.',
+      '정인':'보호와 문서, 배움의 기운이 안정적으로 감싸며, 귀인의 도움과 자격의 문이 열립니다.'
+    };
+    return map[tenGod]||'십성의 결은 아직 옅게 머물러 있어 오행의 균형을 먼저 살핍니다.';
+  }
   function qSourceText(el,type){
     var sources=[];
     if(jg&&jg.isJong){
@@ -13941,7 +14029,7 @@ function renderQuantumStrategy(p, natal, bazi){
     var item=p[meta.key]||{};
     var g=item.g||'', j=item.j||'';
     var gEl=(GAN[g]&&GAN[g].e)||'', jEl=(JI[j]&&JI[j].e)||'';
-    return {label:meta.label,gan:g,zhi:j,ganEl:gEl,zhiEl:jEl,ganRole:elType(gEl),zhiRole:elType(jEl)};
+    return {label:meta.label,gan:g,zhi:j,ganEl:gEl,zhiEl:jEl,ganRole:elType(gEl),zhiRole:elType(jEl),ganTenGod:qTenGodOf(g),zhiTenGod:qTenGodOf(j)};
   });
   var pillarMatrixHtml=pillarMatrix.map(function(item){
     return '<div class="qm-pillar-card">'+
@@ -13951,6 +14039,7 @@ function renderQuantumStrategy(p, natal, bazi){
         (item.ganEl?qElementChip(item.ganEl,item.ganRole):'<span class="qm-el-chip qm-chip-neutral">천간 없음</span>')+
         (item.zhiEl?qElementChip(item.zhiEl,item.zhiRole):'<span class="qm-el-chip qm-chip-neutral">지지 없음</span>')+
       '</div>'+
+      '<div class="qm-oracle-meta" style="margin-top:8px">'+qEsc((item.ganTenGod||'십성 미정')+' · '+(item.zhiTenGod||'지장간 관찰'))+'</div>'+
     '</div>';
   }).join('');
   function qLuckRow(label,gan,zhi,results){
@@ -14026,17 +14115,36 @@ function renderQuantumStrategy(p, natal, bazi){
   var favorableElements=qUnique(elementMatrix.filter(function(item){return item.type==='good';}).map(function(item){return item.element;}));
   var cautionElements=qUnique(elementMatrix.filter(function(item){return item.type==='bad';}).map(function(item){return item.element;}));
   var neutralElements=qUnique(elementMatrix.filter(function(item){return item.type==='neutral';}).map(function(item){return item.element;}));
+  var tenGodCounts={};
+  pillarMatrix.forEach(function(item){
+    [item.ganTenGod,item.zhiTenGod].forEach(function(tg){
+      if(!tg)return;
+      tenGodCounts[tg]=(tenGodCounts[tg]||0)+1;
+    });
+  });
+  var tenGodRanking=Object.keys(tenGodCounts).sort(function(a,b){return tenGodCounts[b]-tenGodCounts[a];});
+  var mainTenGod=tenGodRanking[0]||'미정';
+  var mainTenGodCount=tenGodCounts[mainTenGod]||0;
+  var tenGodAxisHtml=tenGodRanking.length
+    ? tenGodRanking.slice(0,5).map(function(tg){
+        return '<div class="qm-action-item"><div class="qm-action-num">'+qEsc(String(tenGodCounts[tg]))+'</div><div class="qm-action-text"><b>'+qEsc(tg)+'</b> · '+qEsc(qTenGodGroup(tg))+'<br><span style="color:#b6c9d8">'+qEsc(qTenGodTone(tg))+'</span></div></div>';
+      }).join('')
+    : '<div class="qm-action-item"><div class="qm-action-num">—</div><div class="qm-action-text">십성의 결은 옅게 머물러 오행과 조후의 균형이 먼저 떠오릅니다.</div></div>';
   var qGoodShiftCount=keyEvents.filter(function(r){return r.isSpecialChung || r.orgType==='bad' || r.newType==='good';}).length;
   var qRiskShiftCount=keyEvents.filter(function(r){return r.isSinDing || (r.orgType==='good' && (r.isChung || r.newType==='bad'));}).length;
   var qHapCount=keyEvents.filter(function(r){return !r.isChung;}).length;
   var qChungCount=keyEvents.filter(function(r){return r.isChung;}).length;
   var qDecision=qRiskShiftCount>qGoodShiftCount?'수성 우선':(qGoodShiftCount>0?'확장 가능':'균형 관찰');
   var qDecisionTone=qDecision==='수성 우선'
-    ? '운의 겉모양보다 흔들리는 기반을 먼저 지키는 흐름입니다.'
+    ? '운의 겉모양보다 흔들리는 기반을 먼저 지키는 기운이 강하게 떠오릅니다.'
     : (qDecision==='확장 가능'
-      ? '합화와 충의 변이가 막힌 기운을 열어 실전 기회로 바꾸는 흐름입니다.'
-      : '큰 변환보다 원국의 중심을 안정적으로 다듬는 흐름입니다.');
-  var qProfessionalSummary='이 명식은 '+structType+'을 바탕으로 '+qElementNames(favorableElements.concat(qUnique(yongList)))+' 기운을 살리고, '+qElementNames(cautionElements.concat(qUnique(kiList)))+' 기운은 조절해야 합니다. '+qDecisionTone;
+      ? '합화와 충의 변이가 막힌 기운을 열어 실전 기회로 바꾸는 흐름으로 열립니다.'
+      : '큰 변환보다 원국의 중심을 안정적으로 다듬는 빛이 머무릅니다.');
+  var qProfessionalSummary=structType+'의 그릇 위로 '+qElementNames(favorableElements.concat(qUnique(yongList)))+' 기운이 살아나고, '+qElementNames(cautionElements.concat(qUnique(kiList)))+' 기운은 조용히 눌러야 할 자리로 비칩니다. 주도 십성은 '+mainTenGod+(mainTenGodCount?' '+mainTenGodCount+'회':'')+'로 떠오르며, '+qTenGodTone(mainTenGod)+' '+qDecisionTone;
+  var qCounselHtml=
+    '<div class="qm-action-item"><div class="qm-action-num">命</div><div class="qm-action-text"><b>격국의 중심</b><br>'+qEsc(structType+' · '+powerLabel+'의 골격 위에 '+johuLabel+'의 온습이 깔립니다. 일간 '+(p.d.g||'-')+' '+dayMasterName+'은 '+qElLabel(dayEl)+'의 결로 서 있고, 월령 '+(p.m.j||'-')+'은 '+qElLabel(monthEl)+'의 계절문을 엽니다.')+'</div></div>'+
+    '<div class="qm-action-item"><div class="qm-action-num">神</div><div class="qm-action-text"><b>십성의 초점</b><br>'+qEsc(mainTenGod+'('+qTenGodGroup(mainTenGod)+')이 가장 선명하게 떠오릅니다. '+qTenGodTone(mainTenGod))+'</div></div>'+
+    '<div class="qm-action-item"><div class="qm-action-num">運</div><div class="qm-action-text"><b>대운·세운의 문</b><br>'+qEsc(dwLabel+'과 '+seLabel+'이 원국의 용신·기신을 건드리는 자리에서 '+qDecision+'의 결론이 맺힙니다. '+qDecisionTone)+'</div></div>';
   var qEvidenceHtml=
     '<div class="qm-summary-grid">'+
       '<div class="qm-oracle-card"><div class="qm-oracle-label">최종 판정</div><div class="qm-oracle-value">'+qEsc(qDecision)+'</div><div class="qm-oracle-meta">합화 '+qHapCount+'건 · 충 '+qChungCount+'건 · 핵심 변이 '+keyEvents.length+'건</div></div>'+
@@ -14044,11 +14152,12 @@ function renderQuantumStrategy(p, natal, bazi){
       '<div class="qm-oracle-card"><div class="qm-oracle-label">주의 오행</div><div class="qm-yong-list">'+qElementChipList(cautionElements.concat(qUnique(kiList)),'bad','주의 오행 중립')+'</div></div>'+
     '</div>'+
     '<div class="qm-dual-grid">'+
-      '<div class="qm-mini-panel"><div class="qm-mini-title">반영된 v.2 판단축</div><div class="qm-yong-list">'+
+      '<div class="qm-mini-panel"><div class="qm-mini-title">반영된 v3 판단축</div><div class="qm-yong-list">'+
         '<span class="qm-el-chip qm-chip-good">합화 우선</span>'+
         '<span class="qm-el-chip qm-chip-good">충 변이</span>'+
         '<span class="qm-el-chip qm-chip-good">억부·조후 통합</span>'+
         '<span class="qm-el-chip qm-chip-good">종격 보정</span>'+
+        '<span class="qm-el-chip qm-chip-good">십성 축</span>'+
         '<span class="qm-el-chip qm-chip-good">신살 신호</span>'+
       '</div></div>'+
       '<div class="qm-mini-panel"><div class="qm-mini-title">전문 요약</div><div class="qm-oracle-meta" style="font-size:.82rem;line-height:1.75;color:#d0e8d0">'+qEsc(qProfessionalSummary)+'</div></div>'+
@@ -14056,6 +14165,8 @@ function renderQuantumStrategy(p, natal, bazi){
   var quantumDetails={
     decision:qDecision,
     professionalSummary:qProfessionalSummary,
+    mainTenGod:mainTenGod,
+    tenGodCounts:tenGodCounts,
     favorableElements:favorableElements,
     cautionElements:cautionElements,
     neutralElements:neutralElements,
@@ -14066,7 +14177,7 @@ function renderQuantumStrategy(p, natal, bazi){
     sinsalItems:_qSS_items.slice()
   };
   window.G_QUANTUM={
-    version:'QUANTUM_MYEONGRI_ENGINE_V2',
+    version:'QUANTUM_MYEONGRI_ENGINE_V3',
     decision:qDecision,
     professionalSummary:qProfessionalSummary,
     favorableElements:favorableElements,
@@ -14079,8 +14190,9 @@ function renderQuantumStrategy(p, natal, bazi){
     details:quantumDetails
   };
   window.__cdQuantumMyeongriReportV2=window.G_QUANTUM;
+  window.__cdQuantumMyeongriReportV3=window.G_QUANTUM;
 
-  var quantumEngineVersion = 'v.2';
+  var quantumEngineVersion = 'v.3';
   window.__cdQuantumMyeongriEngineVersion = quantumEngineVersion;
 
   var html=
@@ -14089,14 +14201,21 @@ function renderQuantumStrategy(p, natal, bazi){
         '<span class="qm-icon">⚡</span>'+
         '<div class="qm-title-wrap">'+
           '<h3>QUANTUM MYEONGRI Engine '+quantumEngineVersion+'</h3>'+
-          '<p>// 현재 대운·세운 합화 및 충(沖) 변이 분석 · 억부+조후+종격 통합 엔진</p>'+
+          '<p>대운·세운의 합화, 충(沖), 십성, 조후가 한 자리에서 드러납니다.</p>'+
         '</div>'+
       '</div>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">✧</span><span class="qm-sec-title s2">퀀텀 v.2 전문 판정</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">✧</span><span class="qm-sec-title s2">퀀텀 v3 전문 판정</span></div>'+
         '<div class="qm-panel">'+
           qEvidenceHtml+
+        '</div>'+
+      '</div>'+
+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">✦</span><span class="qm-sec-title s1">명리 상담 핵심</span></div>'+
+        '<div class="qm-panel">'+
+          qCounselHtml+
         '</div>'+
       '</div>'+
 
@@ -14112,6 +14231,13 @@ function renderQuantumStrategy(p, natal, bazi){
         '<div class="qm-panel"><div class="qm-pillar-grid">'+
           pillarMatrixHtml+
         '</div></div>'+
+      '</div>'+
+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">◇</span><span class="qm-sec-title s4">십성 작동 축</span></div>'+
+        '<div class="qm-panel">'+
+          tenGodAxisHtml+
+        '</div>'+
       '</div>'+
 
       '<div class="qm-section">'+

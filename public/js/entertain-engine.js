@@ -502,7 +502,7 @@
     return tip;
   }
 
-  var RPG_STYLE_ID = 'cd-rpg-ui-style-v20260604';
+  var RPG_STYLE_ID = 'cd-rpg-ui-style-v20260617';
   var RPG_ELEMENT_ORDER = ['wood', 'fire', 'earth', 'metal', 'water'];
   var RPG_ELEMENT_META = {
     wood:  { icon: '🌿', label: '목', short: '성장' },
@@ -525,13 +525,16 @@
     var style = document.createElement('style');
     style.id = RPG_STYLE_ID;
     style.textContent = [
-      '.ent-rpg-shell{display:flex;flex-direction:column;gap:14px;margin-top:18px}',
+      '#skillTreeSection{display:block;min-height:320px;background:linear-gradient(180deg,rgba(15,10,34,.96),rgba(6,4,18,.98));border-radius:22px;padding:1px}',
+      '.ent-rpg-shell,.ent-rpg-shell *{box-sizing:border-box}',
+      '.ent-rpg-shell{position:relative;display:flex;flex-direction:column;gap:14px;margin-top:18px;min-height:420px;padding:14px;border-radius:24px;background:linear-gradient(180deg,rgba(24,13,52,.98),rgba(7,5,20,.99));font-family:var(--font-body,"Pretendard","Noto Sans KR",system-ui,sans-serif);color:#f8f2ff;isolation:isolate;overflow:hidden}',
+      '.ent-rpg-shell::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 18% 0%,rgba(247,216,120,.16),transparent 34%),radial-gradient(circle at 88% 8%,rgba(56,189,248,.11),transparent 32%),linear-gradient(180deg,rgba(255,255,255,.04),transparent 38%);pointer-events:none;z-index:-1}',
       '.ent-rpg-topline{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}',
       '.ent-rpg-kst{padding:9px 12px;border-radius:999px;background:linear-gradient(135deg,rgba(34,20,70,.92),rgba(13,11,34,.94));border:1px solid rgba(247,214,120,.24);color:#fae8b4;font-size:.7rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 10px 24px rgba(0,0,0,.24)}',
       '.ent-rpg-status{display:inline-flex;align-items:center;gap:8px;min-height:28px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(236,224,255,.9);font-size:.72rem;line-height:1.4}',
       '.ent-rpg-status.is-error{border-color:rgba(248,113,113,.28);background:rgba(127,29,29,.28);color:#fecaca}',
       '.ent-rpg-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}',
-      '.ent-rpg-card{grid-column:span 12;position:relative;overflow:hidden;border-radius:22px;padding:16px 15px 15px;background:radial-gradient(125% 120% at 50% 0%,rgba(122,76,224,.22) 0%,rgba(25,12,52,.95) 42%,rgba(7,4,20,.98) 100%);border:1px solid rgba(201,160,255,.18);box-shadow:0 18px 42px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.05)}',
+      '.ent-rpg-card{grid-column:span 12;position:relative;overflow:hidden;border-radius:18px;padding:16px 15px 15px;background:radial-gradient(125% 120% at 50% 0%,rgba(122,76,224,.22) 0%,rgba(25,12,52,.95) 42%,rgba(7,4,20,.98) 100%);border:1px solid rgba(201,160,255,.18);box-shadow:0 18px 42px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.05)}',
       '.ent-rpg-card::before{content:"";position:absolute;inset:-1px;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 18%,transparent 78%,rgba(255,255,255,.02));pointer-events:none;opacity:.75}',
       '.ent-rpg-card--quests{overflow:visible}',
       '.ent-rpg-card__eyebrow{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(224,197,255,.72);font-weight:900}',
@@ -607,6 +610,11 @@
       '.ent-rpg-secret-copy{margin-top:6px;font-size:.78rem;line-height:1.7;color:rgba(235,225,255,.84)}',
       '.ent-rpg-secret-message{margin-top:10px;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:#fff7cf;font-size:.8rem;line-height:1.7}',
       '.ent-rpg-secret-note{margin-top:10px;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(246,205,121,.75);font-weight:900}',
+      '.ent-rpg-route-grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:10px;margin-top:13px}',
+      '.ent-rpg-route-card{min-height:96px;padding:12px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.075)}',
+      '.ent-rpg-route-card b{display:block;color:#fff4bd;font-size:.82rem;line-height:1.45}',
+      '.ent-rpg-route-card span{display:block;margin-top:7px;color:rgba(235,225,255,.82);font-size:.73rem;line-height:1.65}',
+      '.ent-rpg-crash{padding:16px;border-radius:18px;background:linear-gradient(135deg,rgba(127,29,29,.30),rgba(30,12,46,.92));border:1px solid rgba(248,113,113,.26);color:#fecaca;font-size:.82rem;line-height:1.7}',
       '.ent-rpg-preview-note{margin-top:10px;padding:10px 11px;border-radius:14px;background:rgba(56,189,248,.08);border:1px solid rgba(125,211,252,.16);color:#dff7ff;font-size:.74rem;line-height:1.65}',
       '.ent-rpg-modal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,4,12,.7);backdrop-filter:blur(10px)}',
       '.ent-rpg-modal.is-open{display:flex}',
@@ -620,7 +628,7 @@
       '.ent-rpg-empty,.ent-rpg-loading{padding:14px;border-radius:18px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.12);color:rgba(230,220,255,.74);font-size:.8rem;line-height:1.7}',
       '.cd-rpg-spark{position:absolute;right:10px;top:10px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;animation:cdRpgSpark 1s ease forwards;pointer-events:none}',
       '@keyframes cdRpgSpark{0%{opacity:0;transform:translateY(6px) scale(.96)}20%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-10px) scale(1.02)}}',
-      '@media (min-width: 768px){.ent-rpg-card--hero{grid-column:span 5}.ent-rpg-card--elements{grid-column:span 4}.ent-rpg-card--abilities{grid-column:span 3}.ent-rpg-quest-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}',
+      '@media (min-width: 768px){.ent-rpg-card--hero{grid-column:span 5}.ent-rpg-card--elements{grid-column:span 4}.ent-rpg-card--abilities{grid-column:span 3}.ent-rpg-quest-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ent-rpg-route-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}',
       '@media (min-width: 1100px){.ent-rpg-card--hero{grid-column:span 4}.ent-rpg-card--elements{grid-column:span 4}.ent-rpg-card--abilities{grid-column:span 4}}',
       '@media (max-width: 767px){.ent-rpg-shell{gap:12px}.ent-rpg-card{padding:14px 13px}.ent-rpg-quest-footer{flex-direction:column;align-items:stretch}.ent-rpg-complete-btn{width:100%}.ent-rpg-modal{padding:12px}}'
     ].join('');
@@ -868,6 +876,33 @@
     ];
   }
 
+  function buildRpgCrashFallbackTemplate(message) {
+    var safeMessage = String(message || '오늘의 클래스 시트를 다시 여는 중입니다.').trim();
+    return '<section class="ent-rpg-shell ent-reveal" id="entRpgSection" data-marker="rpg-character-sheet-stable-bottom-v20260617" data-state="error">'
+      + '<div class="ent-rpg-topline">'
+      +   '<div>'
+      +     '<div class="ent-quest-tag">⚡ DAILY QUEST SYSTEM</div>'
+      +     '<div class="ent-quest-title">運命 클래스 시트</div>'
+      +     '<div class="ent-quest-sub">잠시 흔들린 기운을 다시 정렬합니다</div>'
+      +   '</div>'
+      +   '<div class="ent-rpg-kst">KST · ' + getKstDateString() + '</div>'
+      + '</div>'
+      + '<div class="ent-rpg-crash">' + escapeRpgHtml(safeMessage) + '</div>'
+      + '<div class="ent-rpg-grid">'
+      +   '<section class="ent-rpg-card ent-rpg-card--hero">'
+      +     '<div class="ent-rpg-card__eyebrow">CORE CLASS</div>'
+      +     '<div class="ent-rpg-card__title">운명 코어 재정렬</div>'
+      +     '<div class="ent-rpg-card__sub">프로필 기운이 다시 닿는 순간, 클래스 시트의 아래 영역까지 차분히 열립니다.</div>'
+      +   '</section>'
+      +   '<section class="ent-rpg-card ent-rpg-card--secret">'
+      +     '<div class="ent-rpg-card__eyebrow">BOTTOM GUARD</div>'
+      +     '<div class="ent-rpg-card__title">하단 수호 영역</div>'
+      +     '<div class="ent-rpg-card__sub">기운의 흐름이 흔들려도 어두운 결계와 수호 문장이 먼저 머무릅니다.</div>'
+      +   '</section>'
+      + '</div>'
+      + '</section>';
+  }
+
   function buildRpgTemplate(state, p, options) {
     state = state || {};
     options = options || {};
@@ -1042,7 +1077,7 @@
     var loadingBlock = isLoading
       ? '<div class="ent-rpg-loading">오늘의 사주 기반 퀘스트를 불러오는 중입니다.</div>'
       : (errText && state.errorState ? '<div class="ent-rpg-empty">오늘의 성장 기록을 열지 못했습니다.<br>' + escapeRpgHtml(errText) + '</div>' : '');
-    return '<section class="ent-rpg-shell ent-reveal" id="entRpgSection" data-marker="rpg-character-sheet-today-skill-v20260613" data-dayel="' + escapeRpgHtml(profileDayEl) + '" data-state="' + escapeRpgHtml(state.errorState ? 'error' : (isLoading ? 'loading' : 'ready')) + '" data-profile-id="' + escapeRpgHtml(state.profileId || '') + '" data-quest-date="' + escapeRpgHtml(state.questDateKst || '') + '">'
+    return '<section class="ent-rpg-shell ent-reveal" id="entRpgSection" data-marker="rpg-character-sheet-stable-bottom-v20260617" data-dayel="' + escapeRpgHtml(profileDayEl) + '" data-state="' + escapeRpgHtml(state.errorState ? 'error' : (isLoading ? 'loading' : 'ready')) + '" data-profile-id="' + escapeRpgHtml(state.profileId || '') + '" data-quest-date="' + escapeRpgHtml(state.questDateKst || '') + '">'
       + '<div class="ent-rpg-topline">'
       +   '<div>'
       +     '<div class="ent-quest-tag">⚡ DAILY QUEST SYSTEM</div>'
@@ -1112,19 +1147,62 @@
       +     '<div class="ent-rpg-card__sub">모든 미션을 완료하면 오늘의 성장 메시지가 해금되고 운명 기록에 새겨집니다.</div>'
       +     secretHtml
       +   '</section>'
+      +   '<section class="ent-rpg-card ent-rpg-card--closing">'
+      +     '<div class="ent-rpg-card__eyebrow">GROWTH ROUTE</div>'
+      +     '<div class="ent-rpg-card__title">다음 운명 루트</div>'
+      +     '<div class="ent-rpg-card__sub">오늘의 EXP, 오행 균형, 비밀 운세가 하나의 성장 길로 이어집니다.</div>'
+      +     '<div class="ent-rpg-route-grid">'
+      +       '<div class="ent-rpg-route-card"><b>1. 기운 각성</b><span>' + escapeRpgHtml((RPG_ELEMENT_META[profileDayEl] && RPG_ELEMENT_META[profileDayEl].label) || profileDayEl) + '의 중심이 오늘의 판단을 비춥니다.</span></div>'
+      +       '<div class="ent-rpg-route-card"><b>2. 미션 각인</b><span>완료한 행동은 작은 경험치가 되어 다음 레벨의 문턱에 머무릅니다.</span></div>'
+      +       '<div class="ent-rpg-route-card"><b>3. 밤의 보상</b><span>하루가 닫힐 때 비밀 운세의 결이 더 선명하게 드러납니다.</span></div>'
+      +     '</div>'
+      +   '</section>'
       + '</div>'
       + modalHtml
       + '</section>';
   }
 
+  function syncRpgLayoutHeight(root) {
+    if (!root) return;
+    var card = document.getElementById('skillTreeCard');
+    var target = card || root;
+    if (typeof w.syncReportHeightFromNode !== 'function') return;
+    try {
+      w.syncReportHeightFromNode(target);
+      setTimeout(function () { w.syncReportHeightFromNode(target); }, 120);
+      setTimeout(function () { w.syncReportHeightFromNode(target); }, 420);
+    } catch (e) {}
+  }
+
   function renderRpgSection(root, state, p) {
     if (!root) return;
     ensureRpgUiStyles();
-    root.innerHTML = buildRpgTemplate(state || {}, p || {});
+    var html = '';
+    try {
+      html = buildRpgTemplate(state || {}, p || {});
+    } catch (error) {
+      html = buildRpgCrashFallbackTemplate('클래스 시트의 하단 기운을 다시 정렬하고 있습니다.');
+    }
+    var holder = document.createElement('div');
+    holder.innerHTML = html;
+    var shell = holder.firstElementChild;
+    if (shell && shell.id === 'entRpgSection') {
+      root.className = shell.className;
+      root.innerHTML = shell.innerHTML;
+      root.setAttribute('data-marker', shell.getAttribute('data-marker') || 'rpg-character-sheet-stable-bottom-v20260617');
+      root.setAttribute('data-dayel', shell.getAttribute('data-dayel') || '');
+      root.setAttribute('data-state', shell.getAttribute('data-state') || '');
+      root.setAttribute('data-profile-id', shell.getAttribute('data-profile-id') || '');
+      root.setAttribute('data-quest-date', shell.getAttribute('data-quest-date') || '');
+    } else {
+      root.innerHTML = html;
+    }
     root.dataset.profileId = String((state && state.profileId) || root.dataset.profileId || '');
     root.dataset.state = String((state && state.errorState) ? 'error' : ((state && state.loading) ? 'loading' : 'ready'));
     root.dataset.questDate = String((state && state.questDateKst) || root.dataset.questDate || '');
     bindRpgInteractions(root, p || {});
+    syncRpgLayoutHeight(root);
+    return root;
   }
 
   function bindRpgInteractions(root, p) {
@@ -1763,7 +1841,7 @@
   }
 
   function getEgenEnergyCopy(score) {
-    if (score >= 70) return '분위기와 감정 흐름을 빠르게 읽습니다. 다정함이 장점이지만, 과몰입 경계선을 세우면 훨씬 편해집니다.';
+    if (score >= 70) return '분위기와 감정 흐름이 빠르게 들어옵니다. 다정함이 장점이지만, 과몰입 경계선을 세우면 훨씬 편해집니다.';
     if (score >= 45) return '부드럽게 맞추는 능력이 살아 있습니다. 다만 무조건 순한 타입이라기보다 필요한 순간에는 기준도 세웁니다.';
     return '감정에 크게 휩쓸리기보다 한 발 떨어져 관찰하는 편입니다. 표현을 조금 더하면 관계 신호가 선명해집니다.';
   }
@@ -2191,6 +2269,39 @@
       + '</section>';
   }
 
+  function getTetogenHeroCopy(key) {
+    var copy = {
+      teto: '테토의 불이 먼저 솟아 판을 정리하고, 에겐의 빛은 관계의 온도를 보완합니다. 빠른 결단 속에 부드러운 여백을 남길수록 매력이 깊어집니다.',
+      egen: '에겐의 빛이 먼저 번져 관계의 결을 살리고, 테토의 불은 필요한 순간 기준을 세웁니다. 다정함 속에 선명한 선택을 더할수록 존재감이 또렷해집니다.',
+      observer: '두 에너지가 낮은 온도로 머무르며 오래 볼수록 결이 드러납니다. 서두르지 않는 관찰력 속에서 조용한 흡인력이 피어납니다.',
+      transformer: '말맛과 반응성이 살아 있어 특정 순간에 에너지가 크게 솟습니다. 몰입의 불꽃을 짧고 선명하게 쓰면 분위기를 바꾸는 힘이 열립니다.',
+      neutral: '테토와 에겐의 기운이 한쪽으로만 기울지 않고 교차합니다. 밀어붙일 때와 스며들 때를 고르는 감각이 매력의 중심으로 떠오릅니다.'
+    };
+    return copy[key] || copy.neutral;
+  }
+
+  function renderTetogenHeroSide(kind, percent, title, subtitle, tags) {
+    var isTeto = kind === 'teto';
+    var items = (tags || []).map(function (tag) {
+      return '<span class="tetogen-luxe-side__chip">' + escapeRpgHtml(tag) + '</span>';
+    }).join('');
+    return '<article class="tetogen-luxe-side tetogen-luxe-side--' + kind + '">'
+      + '<div class="tetogen-luxe-side__kicker">' + escapeRpgHtml(isTeto ? 'TETO' : 'EGEN') + '</div>'
+      + '<h5 class="tetogen-luxe-side__title">' + escapeRpgHtml(title) + '</h5>'
+      + '<p class="tetogen-luxe-side__copy">' + escapeRpgHtml(subtitle) + '</p>'
+      + '<div class="tetogen-luxe-side__score"><b>' + percent + '%</b><span>' + escapeRpgHtml(isTeto ? '강한 끌림' : '부드러운 스며듦') + '</span></div>'
+      + '<div class="tetogen-luxe-side__chips">' + items + '</div>'
+      + '</article>';
+  }
+
+  function renderTetogenFeatureCard(label, value, copy, tone) {
+    return '<article class="tetogen-luxe-feature tetogen-luxe-feature--' + (tone || 'violet') + '">'
+      + '<span>' + escapeRpgHtml(label) + '</span>'
+      + '<b>' + escapeRpgHtml(value) + '</b>'
+      + '<p>' + escapeRpgHtml(copy) + '</p>'
+      + '</article>';
+  }
+
   function renderTetogenResultCard(vibe) {
     var data = normalizeTetogenVibe(vibe);
     var profile = resolveTetoEgenProfile(data);
@@ -2199,26 +2310,34 @@
     var topStarText = getTetogenTopStarText(data);
     var scoreGap = Math.abs(data.tetoScore - data.egenScore);
     var badgeHtml = (profile.badges || []).map(renderTetogenBadge).join('');
+    var heroCopy = getTetogenHeroCopy(profile.key);
+    var balanceLabel = scoreGap <= 10 ? '균형형' : (data.tetoScore > data.egenScore ? '테토 우세' : '에겐 우세');
+    var featureHtml = [
+      renderTetogenFeatureCard('매력 균형', balanceLabel + ' · ' + scoreGap + '점 차', topStarText, 'gold'),
+      renderTetogenFeatureCard('에너지 타입', profile.title.replace(/[🔥✨🌙⚡🌀]/g, '').trim(), profile.sub, 'violet'),
+      renderTetogenFeatureCard('오늘의 활용', profile.key === 'teto' ? '속도에 온도 더하기' : (profile.key === 'egen' ? '배려에 기준 더하기' : '상황별 모드 전환'), '연애, 관계, 커리어 흐름에서 테토와 에겐을 나눠 쓰면 결이 더 선명해집니다.', 'rose')
+    ].join('');
 
-    return '<section class="ent-reveal min-h-screen bg-gradient-to-b from-slate-950 via-violet-950 to-slate-950 text-white px-4 py-6 rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl shadow-2xl shadow-violet-950/30" style="position:relative;overflow:hidden;min-height:min(100vh,920px);border:1px solid rgba(255,255,255,.12);border-radius:28px;background:radial-gradient(110% 70% at 14% 0%,rgba(196,181,253,.20),transparent 58%),radial-gradient(80% 55% at 86% 14%,rgba(244,114,182,.14),transparent 54%),linear-gradient(180deg,#020617 0%,#2e1065 48%,#020617 100%);box-shadow:0 28px 86px rgba(15,23,42,.56),0 0 38px rgba(124,58,237,.18);padding:18px;color:#fff;backdrop-filter:blur(18px);">'
-      + '<div class="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" style="position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.44),transparent);"></div>'
-      + '<div class="relative z-10 grid gap-4" style="position:relative;z-index:1;display:grid;gap:16px;">'
-      + '<header class="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl shadow-2xl shadow-violet-950/30" style="border:1px solid rgba(255,255,255,.14);background:linear-gradient(145deg,rgba(255,255,255,.105),rgba(255,255,255,.045));border-radius:24px;padding:17px;box-shadow:0 20px 54px rgba(15,23,42,.34);backdrop-filter:blur(18px);">'
-      + '<div class="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(220px,.65fr)]" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;align-items:start;">'
-      + '<div class="min-w-0">'
-      + '<div class="mb-2 text-xs font-black uppercase tracking-[0.18em] text-violet-200" style="margin-bottom:8px;color:#ddd6fe;font-size:.72rem;font-weight:950;letter-spacing:.18em;">SAJU TETO · EGEN RESULT</div>'
-      + '<h4 class="m-0 text-3xl font-black tracking-tight text-white sm:text-4xl" style="margin:0;color:#fff;font-size:clamp(1.72rem,5vw,2.8rem);line-height:1.08;font-weight:950;letter-spacing:0;">' + escapeRpgHtml(profile.title) + '</h4>'
-      + '<p class="mt-3 text-sm leading-7 text-white/75" style="margin:10px 0 0;color:rgba(219,234,254,.88);font-size:.96rem;line-height:1.72;font-weight:750;">' + escapeRpgHtml(profile.sub) + '</p>'
-      + '<p class="mt-4 rounded-3xl border border-white/10 bg-white/10 p-4 text-sm leading-7 text-white/75" style="margin:14px 0 0;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.075);border-radius:20px;padding:13px;color:rgba(226,232,240,.90);font-size:.9rem;line-height:1.76;">' + escapeRpgHtml(profile.summary) + '</p>'
-      + '<div class="mt-4 flex flex-wrap gap-2" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;">' + badgeHtml + '</div>'
+    return '<section class="ent-reveal tetogen-luxe" data-tetogen-result="' + escapeRpgHtml(profile.key || 'neutral') + '">'
+      + '<div class="tetogen-luxe__glow tetogen-luxe__glow--teto" aria-hidden="true"></div>'
+      + '<div class="tetogen-luxe__glow tetogen-luxe__glow--egen" aria-hidden="true"></div>'
+      + '<div class="tetogen-luxe__inner">'
+      + '<header class="tetogen-luxe-hero">'
+      + renderTetogenHeroSide('teto', tPct, '강한 끌림', '실행, 결단, 현실 감각이 먼저 솟는 에너지', ['추진력', '목표감', '리드'])
+      + '<div class="tetogen-luxe-center">'
+      + '<div class="tetogen-luxe-center__badge">사주로 알아보는 나의 매력 에너지</div>'
+      + '<h4>테토 <span>VS</span> 에겐 테스트</h4>'
+      + '<p>' + escapeRpgHtml(heroCopy) + '</p>'
+      + '<div class="tetogen-luxe-orb" aria-hidden="true"><span></span></div>'
+      + '<div class="tetogen-luxe-result">'
+      + '<small>오늘 가장 선명한 타입</small>'
+      + '<b>' + escapeRpgHtml(profile.title) + '</b>'
       + '</div>'
-      + '<aside class="rounded-3xl border border-white/10 bg-slate-950/40 p-4 text-center backdrop-blur-xl" style="border:1px solid rgba(255,255,255,.13);background:rgba(2,6,23,.42);border-radius:22px;padding:15px;text-align:center;">'
-      + '<div class="text-xs font-black text-white/50" style="color:rgba(255,255,255,.55);font-size:.74rem;font-weight:950;">점수차</div>'
-      + '<div class="mt-1 text-3xl font-black tracking-tight text-white" style="margin-top:4px;color:#fff;font-size:2rem;font-weight:950;letter-spacing:0;">' + scoreGap + '</div>'
-      + '<div class="mt-2 text-xs font-black leading-5 text-violet-200" style="margin-top:8px;color:#c4b5fd;font-size:.76rem;font-weight:900;line-height:1.55;">' + escapeRpgHtml(topStarText) + '</div>'
-      + '</aside>'
+      + '<div class="tetogen-luxe-badges">' + badgeHtml + '</div>'
       + '</div>'
+      + renderTetogenHeroSide('egen', ePct, '부드러운 스며듦', '공감, 조율, 관계 감각이 은은히 번지는 에너지', ['공감력', '분위기', '섬세함'])
       + '</header>'
+      + '<section class="tetogen-luxe-features">' + featureHtml + '</section>'
       + '<section class="grid gap-3 lg:grid-cols-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;">'
       + renderTetogenBalanceMeter('teto', '🔥 테토 밸런스', tPct, 'hvBarTeto')
       + renderTetogenBalanceMeter('egen', '✨ 에겐 밸런스', ePct, 'hvBarEgen')
@@ -2227,12 +2346,162 @@
       + renderTetogenEnergyCard('teto', tPct, data.tetoScore, data.hasTetoScore)
       + renderTetogenEnergyCard('egen', ePct, data.egenScore, data.hasEgenScore)
       + '</section>'
+      + '</div>'
+      + '</section>';
+  }
+
+  var TETOGEN_DEEP_REPORT_FEATURE_KEY = 'tetogen_deep_report';
+  var TETOGEN_DEEP_REPORT_COST = 100;
+  var TETOGEN_DEEP_REPORT_KRW = 10000;
+
+  function isTetogenDeepReportUnlocked() {
+    try {
+      if (typeof w.isTileKeyUnlocked === 'function' && w.isTileKeyUnlocked(TETOGEN_DEEP_REPORT_FEATURE_KEY)) return true;
+    } catch (_) {}
+    try {
+      return w.localStorage && w.localStorage.getItem('cd_tetogen_deep_report_unlocked') === '1';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function markTetogenDeepReportUnlocked(payload) {
+    try {
+      if (typeof w._cdFinalizeUnlockState === 'function') w._cdFinalizeUnlockState(TETOGEN_DEEP_REPORT_FEATURE_KEY, payload || null);
+    } catch (_) {}
+    try {
+      if (w.localStorage) w.localStorage.setItem('cd_tetogen_deep_report_unlocked', '1');
+    } catch (_) {}
+  }
+
+  function buildTetogenDeepReportBody(vibe, p, power, hapData) {
+    var data = normalizeTetogenVibe(vibe);
+    var profile = resolveTetoEgenProfile(data);
+    return '<div class="tetogen-premium-report ent-reveal" data-tetogen-premium-report="1">'
+      + '<div class="tetogen-premium-report__head">'
+      + '<span>DEEP REPORT</span>'
+      + '<strong>숨은 매력의 결이 더 깊게 열립니다</strong>'
+      + '<p>십성의 분포, 관계의 온도, 오늘의 사용법이 한 화면 안에서 이어집니다.</p>'
+      + '</div>'
       + renderTetogenTenGodMatrix(data)
       + renderTetogenModeCards(profile)
       + renderTetogenQuestList()
-      + '<blockquote class="rounded-3xl border border-white/10 bg-white/10 p-4 text-center text-sm font-black leading-7 text-sky-100 backdrop-blur-xl shadow-2xl shadow-violet-950/30" style="margin:0;border:1px solid rgba(147,197,253,.22);background:rgba(15,23,42,.48);border-radius:22px;padding:15px;text-align:center;color:#dbeafe;font-size:.92rem;line-height:1.72;font-weight:900;box-shadow:0 18px 44px rgba(15,23,42,.26);">' + escapeRpgHtml(profile.save) + '</blockquote>'
+      + buildTetoEgeDeepSection(p || {}, power || {}, hapData)
+      + '<blockquote class="tetogen-premium-report__save">' + escapeRpgHtml(profile.save) + '</blockquote>'
+      + '</div>';
+  }
+
+  function buildTetogenDeepReportGate(vibe, p, power, hapData) {
+    var unlocked = isTetogenDeepReportUnlocked();
+    var data = normalizeTetogenVibe(vibe);
+    var profile = resolveTetoEgenProfile(data);
+    var teaserItems = [
+      '십성 기반 매력 매트릭스',
+      '테토/에겐 전환 모드',
+      '관계·커리어 활용 의식',
+      '합화와 오늘의 조언'
+    ].map(function (label) {
+      return '<li>' + escapeRpgHtml(label) + '</li>';
+    }).join('');
+
+    return '<section class="tetogen-premium-shell' + (unlocked ? ' is-unlocked' : '') + '" data-tetogen-deep-shell="1" data-feature-key="' + TETOGEN_DEEP_REPORT_FEATURE_KEY + '">'
+      + '<div class="tetogen-premium-gate" data-tetogen-deep-gate="1">'
+      + '<div class="tetogen-premium-gate__copy">'
+      + '<span>PREMIUM</span>'
+      + '<h4>' + escapeRpgHtml(profile.title.replace(/[🔥✨🌙⚡🌀]/g, '').trim() || '테토 에겐') + ' 상세 리포트</h4>'
+      + '<p>무료 결과에 드러난 첫 결 뒤로, 매력의 근원과 관계에서 빛나는 방식이 더 깊게 열립니다.</p>'
       + '</div>'
+      + '<ul class="tetogen-premium-gate__list">' + teaserItems + '</ul>'
+      + '<div class="tetogen-premium-gate__action">'
+      + '<strong>10,000원</strong>'
+      + '<button type="button" class="tetogen-premium-gate__cta" data-tetogen-unlock="1">' + (unlocked ? '상세 리포트 열림' : '상세 리포트 열기') + '</button>'
+      + '<small data-tetogen-status>' + (unlocked ? '이미 열린 흐름입니다.' : '결제 후 남은 해석이 펼쳐집니다.') + '</small>'
+      + '</div>'
+      + '</div>'
+      + (unlocked ? buildTetogenDeepReportBody(vibe, p, power, hapData) : '')
       + '</section>';
+  }
+
+  function bindTetogenDeepReportGate(root, vibe, p, power, hapData) {
+    if (!root) return;
+    var shell = root.querySelector('[data-tetogen-deep-shell]');
+    if (!shell) return;
+    var button = shell.querySelector('[data-tetogen-unlock]');
+    var status = shell.querySelector('[data-tetogen-status]');
+
+    function reveal(payload) {
+      markTetogenDeepReportUnlocked(payload || null);
+      shell.classList.add('is-unlocked');
+      var existing = shell.querySelector('[data-tetogen-premium-report]');
+      if (!existing) {
+        shell.insertAdjacentHTML('beforeend', buildTetogenDeepReportBody(vibe, p || {}, power || {}, hapData));
+        _scheduleReveal(shell);
+      }
+      if (button) {
+        button.disabled = true;
+        button.textContent = '상세 리포트 열림';
+      }
+      if (status) status.textContent = '숨은 흐름이 열렸습니다.';
+      if (typeof w.syncReportHeightFromNode === 'function') {
+        w.syncReportHeightFromNode(root);
+        setTimeout(function () { w.syncReportHeightFromNode(root); }, 220);
+      }
+    }
+
+    if (isTetogenDeepReportUnlocked()) {
+      reveal(null);
+      return;
+    }
+
+    if (!button) return;
+    button.addEventListener('click', function () {
+      var settled = false;
+      function settle(payload) {
+        if (settled) return;
+        settled = true;
+        reveal(payload || null);
+      }
+
+      button.disabled = true;
+      if (status) status.textContent = '결제창을 준비하고 있습니다.';
+
+      if (typeof w._cdOpenPaidServiceGate !== 'function') {
+        button.disabled = false;
+        if (status) status.textContent = '결제 모듈을 불러오지 못했습니다.';
+        return;
+      }
+
+      var requestId = 'tetogen-deep-report-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+      Promise.resolve(w._cdOpenPaidServiceGate({
+        title: '테토 에겐 상세 리포트',
+        reason: '테토 에겐 상세 리포트 해금',
+        featureKey: TETOGEN_DEEP_REPORT_FEATURE_KEY,
+        serviceKey: TETOGEN_DEEP_REPORT_FEATURE_KEY,
+        contentKey: TETOGEN_DEEP_REPORT_FEATURE_KEY,
+        requestId: requestId,
+        coinPrice: TETOGEN_DEEP_REPORT_COST,
+        cost: TETOGEN_DEEP_REPORT_COST,
+        amountKrw: TETOGEN_DEEP_REPORT_KRW,
+        onGranted: function (_txId, payload) {
+          settle(payload || null);
+        },
+        onCancel: function () {
+          if (settled) return;
+          button.disabled = false;
+          if (status) status.textContent = '아직 잠겨 있습니다.';
+        }
+      })).then(function (result) {
+        if (result && result.status === 'granted') settle(result.payload || result);
+        else if (!settled) {
+          button.disabled = false;
+          if (status) status.textContent = '아직 잠겨 있습니다.';
+        }
+      }).catch(function (error) {
+        console.warn('[tetogen-deep-report] gate failed:', error);
+        button.disabled = false;
+        if (status) status.textContent = '결제 확인에 실패했습니다.';
+      });
+    });
   }
 
 
@@ -2699,20 +2968,195 @@
     }).join('');
   }
 
+  function getHealthElementConsultation(el, state) {
+    var byElement = {
+      wood: {
+        excess: '목(木)이 지나치게 솟으면 간담의 결이 예민해지고, 마음속 분노와 눈의 피로가 함께 떠오릅니다. 오늘은 뻗는 힘을 누르기보다 부드럽게 흘려보내는 조율이 길합니다.',
+        deficient: '목(木)이 약하면 새벽의 생장성이 희미해져 몸의 탄력과 결심이 늦게 깨어납니다. 작은 움직임과 푸른 식재료가 막힌 기운을 조용히 열어줍니다.',
+        pressure: '목(木)이 눌리면 계획은 많아도 몸의 가지가 자유롭게 펴지지 않습니다. 목과 어깨, 눈의 긴장에 먼저 귀를 기울이면 회복의 문이 열립니다.',
+        stable: '목(木)의 생장 기운이 안정권에 머무릅니다. 추진력은 살리되 과한 경쟁심만 내려놓으면 몸의 탄력이 맑게 이어집니다.'
+      },
+      fire: {
+        excess: '화(火)가 높게 타오르면 심장의 박동, 열감, 수면의 얕아짐이 먼저 드러납니다. 밝은 기운을 잃지 않되 밤의 자극을 낮추면 열이 고요히 가라앉습니다.',
+        deficient: '화(火)가 약하면 몸 안의 불씨가 늦게 살아나 활력과 순환감이 흐려집니다. 햇빛, 따뜻한 식사, 짧은 움직임이 불씨를 부드럽게 되살립니다.',
+        pressure: '화(火)가 압박되면 마음은 급한데 회복의 불씨가 따라오지 못합니다. 잠깐 멈추는 간격이 열을 흩고 정신의 중심을 비춥니다.',
+        stable: '화(火)의 온기가 편안하게 흐릅니다. 활동 후 바로 쉬는 간격을 붙이면 심신의 불빛이 오래 안정됩니다.'
+      },
+      earth: {
+        excess: '토(土)가 두텁게 쌓이면 위장의 중심이 무거워지고 식후 졸림이 떠오릅니다. 덜어내는 식사와 느린 걸음이 막힌 흙을 고르게 풀어줍니다.',
+        deficient: '토(土)가 허하면 몸의 중심이 쉽게 흔들리고 식사 뒤 피로가 머무릅니다. 따뜻하고 규칙적인 한 끼가 비위의 그릇을 단단히 받칩니다.',
+        pressure: '토(土)가 눌리면 외부 일정과 감정의 파동이 소화의 중심을 흔듭니다. 식사 시간을 지키고 단순한 온기를 들이면 몸의 축이 다시 섭니다.',
+        stable: '토(土)의 중심이 무난하게 자리합니다. 같은 시간에 먹고 가볍게 걷는 기본 리듬이 하루의 뿌리를 지켜줍니다.'
+      },
+      metal: {
+        excess: '금(金)이 강하게 굳으면 흉곽과 어깨가 조여 들고 완벽주의의 날이 섭니다. 기준을 낮추고 긴 숨을 열면 금의 맑음만 남습니다.',
+        deficient: '금(金)이 약하면 호흡이 얕아지고 피부와 장의 건조 신호가 떠오릅니다. 촉촉한 환경, 맑은 물, 정돈된 공간이 금의 결을 살립니다.',
+        pressure: '금(金)이 압박되면 과로와 열감이 폐와 피부의 리듬을 건드립니다. 환기와 복식호흡이 흐린 금기를 다시 맑게 비춥니다.',
+        stable: '금(金)의 정리력과 호흡 리듬이 선명합니다. 건조함만 방치하지 않으면 집중의 칼날이 부드럽게 유지됩니다.'
+      },
+      water: {
+        excess: '수(水)가 무겁게 고이면 몸이 축 처지고 활동의 물길이 늦어집니다. 짧은 움직임으로 물길을 열면 회복의 깊이가 탁해지지 않습니다.',
+        deficient: '수(水)가 마르면 피로가 깊게 머물고 잠의 문이 얕아집니다. 수분, 수면, 밤의 고요가 신장과 방광의 저장력을 보듬습니다.',
+        pressure: '수(水)가 눌리면 회복 저장고가 좁아져 피로가 오래 남습니다. 무리한 일정 대신 깊게 쉬는 시간을 먼저 세우면 물의 뿌리가 살아납니다.',
+        stable: '수(水)의 회복 기운이 안정적으로 흐릅니다. 밤의 화면과 소음을 낮추면 깊은 휴식감이 오래 머무릅니다.'
+      }
+    };
+    return ((byElement[el] || byElement.earth)[state]) || byElement.earth.stable;
+  }
+
+  function renderHealthBalanceBars(ratios, targetEl, avoidEl) {
+    return HEALTH_ELEMENT_ORDER.map(function (el) {
+      var value = Math.max(0, Math.min(100, Math.round(Number(ratios[el] || 0))));
+      var theme = getHealthElementTheme(el);
+      var tags = [];
+      if (el === targetEl) tags.push('보완');
+      if (el === avoidEl) tags.push('주의');
+      return '<div class="cd-health-balance-row">'
+        + '<div class="cd-health-balance-head">'
+        + '<span class="cd-health-balance-name">' + (EL_ICON[el] || '✦') + ' ' + escapeHealthHtml(EL_NAME[el]) + '</span>'
+        + '<span class="cd-health-balance-tags">' + tags.map(function (tag) { return '<b>' + tag + '</b>'; }).join('') + '</span>'
+        + '</div>'
+        + '<div class="cd-health-balance-track" aria-hidden="true"><span class="' + theme.soft + '" style="width:' + value + '%"></span></div>'
+        + '<div class="cd-health-balance-foot"><span>' + escapeHealthHtml(EL_ORGAN[el]) + '</span><strong>' + value + '%</strong></div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function renderHealthMasterReading(strongestEl, weakestEls, axes, ratios, controlImpacts, johu) {
+    var strongestState = getHealthState(strongestEl, ratios, controlImpacts);
+    var targetState = getHealthState(axes.targetEl, ratios, controlImpacts);
+    var weakText = weakestEls.map(function (el) { return EL_NAME[el]; }).join(', ');
+    var seasonTone = johu && johu.type ? ({
+      hot: '조후는 열 쪽으로 기울어 있어 수(水)와 금(金)의 서늘한 조율이 몸의 과열을 눌러줍니다.',
+      warm: '조후는 따뜻한 쪽으로 흐르니 수(水)와 금(金)의 맑은 기운이 균형의 열쇠로 떠오릅니다.',
+      cold: '조후는 차가운 쪽에 머물러 화(火)와 목(木)의 온기, 움직임, 생장성이 회복의 문을 엽니다.',
+      cool: '조후는 서늘한 결을 띠어 화(火)와 목(木)의 따뜻한 활력이 몸의 리듬을 밝힙니다.'
+    })[johu.type] : '';
+    if (!seasonTone) seasonTone = '조후의 온도는 극단으로 치우치지 않아, 원국의 강약과 오늘의 일진이 회복 순서를 가리킵니다.';
+
+    return '<div class="cd-health-master grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,.9fr)]">'
+      + '<div class="cd-health-info rounded-2xl border border-white/10 bg-slate-950/24 p-4 ring-1 ring-white/5 backdrop-blur-xl">'
+      + '<div class="mb-2 text-[11px] font-black leading-5 text-indigo-100/60">명리학자 소견</div>'
+      + '<p class="m-0 text-sm font-black leading-7 text-white">' + getHealthElementConsultation(strongestEl, strongestState) + '</p>'
+      + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">비어 있는 축은 ' + escapeHealthHtml(weakText) + '로 드러납니다. 이 기운은 억지로 끌어올리기보다 반복 가능한 생활 의식으로 천천히 채울수록 몸의 그릇이 편안해집니다.</p>'
+      + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">' + escapeHealthHtml(seasonTone) + '</p>'
+      + '</div>'
+      + '<div class="cd-health-info rounded-2xl border border-white/10 bg-slate-950/24 p-4 ring-1 ring-white/5 backdrop-blur-xl">'
+      + '<div class="mb-2 text-[11px] font-black leading-5 text-indigo-100/60">오늘의 처방 축</div>'
+      + '<p class="m-0 text-sm font-black leading-7 text-white">' + getHealthElementConsultation(axes.targetEl, targetState) + '</p>'
+      + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">오늘은 ' + escapeHealthHtml(EL_NAME[axes.targetEl]) + '을 살리고 ' + escapeHealthHtml(EL_NAME[axes.avoidEl]) + '의 자극을 낮출 때 몸의 중심이 가장 빠르게 돌아옵니다.</p>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function getHealthPeriodItems(targetEl, avoidEl, strongestEl, todayEl) {
+    var targetName = EL_NAME[targetEl] || '토';
+    var avoidName = EL_NAME[avoidEl] || '토';
+    var strongName = EL_NAME[strongestEl] || '토';
+    var todayName = EL_NAME[todayEl] || strongName;
+    return [
+      {
+        title: '오늘',
+        value: todayName + ' 기운',
+        body: '오늘은 ' + todayName + '의 결이 몸의 반응을 먼저 비춥니다. 과한 일정은 낮추고, 짧은 회복 간격을 사이사이에 넣을수록 운의 흐름이 편안해집니다.'
+      },
+      {
+        title: '이번 주',
+        value: targetName + ' 보완',
+        body: '이번 주 건강운은 ' + targetName + '을 살릴 때 열립니다. 식사, 수면, 움직임 중 하나만 매일 같은 시간에 붙이면 흐트러진 축이 차분히 돌아옵니다.'
+      },
+      {
+        title: '이번 달',
+        value: avoidName + ' 절제',
+        body: '이번 달은 ' + avoidName + '의 자극이 과해지지 않도록 살피는 때입니다. 몸이 보내는 작은 신호를 넘기지 않으면 큰 소모를 미리 피할 수 있습니다.'
+      },
+      {
+        title: '계절 전환기',
+        value: strongName + ' 조율',
+        body: '계절이 바뀔 때는 타고난 강점인 ' + strongName + '이 빠르게 앞서갑니다. 강점을 더 쓰기보다 비어 있는 축을 먼저 채우면 건강운의 바닥이 단단해집니다.'
+      }
+    ];
+  }
+
+  function renderHealthPeriodTimeline(targetEl, avoidEl, strongestEl, todayEl) {
+    return '<div class="cd-health-period-grid">'
+      + getHealthPeriodItems(targetEl, avoidEl, strongestEl, todayEl).map(function (item, idx) {
+        return '<article class="cd-health-period-card">'
+          + '<span class="cd-health-period-num">' + (idx + 1) + '</span>'
+          + '<div class="cd-health-period-title">' + escapeHealthHtml(item.title) + '</div>'
+          + '<b>' + escapeHealthHtml(item.value) + '</b>'
+          + '<p>' + escapeHealthHtml(item.body) + '</p>'
+          + '</article>';
+      }).join('')
+      + '</div>';
+  }
+
+  function getHealthRemedyItems(targetEl, avoidEl) {
+    var targetName = EL_NAME[targetEl] || '토';
+    var avoidName = EL_NAME[avoidEl] || '토';
+    var remedy = {
+      wood: ['초록빛 식재료', '아침 산책', '목과 어깨 이완', '분노를 글로 흘려보내기'],
+      fire: ['햇빛 10분', '따뜻한 차', '저녁 조명 낮추기', '기쁨을 작게 표현하기'],
+      earth: ['따뜻한 한 끼', '식후 걷기', '공간 정돈', '걱정을 한 장에 적고 접기'],
+      metal: ['환기', '복식호흡', '흰색 식재료', '책상 위 세 물건 비우기'],
+      water: ['따뜻한 물', '하복부 보온', '밤 화면 줄이기', '잠들기 전 고요한 음악']
+    };
+    var targetList = remedy[targetEl] || remedy.earth;
+    var avoidList = remedy[avoidEl] || remedy.earth;
+    return [
+      { label: targetName + ' 개운', body: targetList.slice(0, 3).join(' · ') },
+      { label: avoidName + ' 절제', body: avoidList.slice(1, 4).join(' · ') },
+      { label: '공간 개운', body: '침대 주변을 비우고, 물 한 잔과 은은한 빛을 곁에 두면 회복운이 부드럽게 머무릅니다.' },
+      { label: '마음 개운', body: '오늘 몸이 거절하는 약속 하나를 줄이면 기운의 새 길이 열립니다.' }
+    ];
+  }
+
+  function renderHealthRemedyBoard(targetEl, avoidEl) {
+    return '<div class="cd-health-remedy-grid">'
+      + getHealthRemedyItems(targetEl, avoidEl).map(function (item) {
+        return '<article class="cd-health-remedy-card">'
+          + '<div>' + escapeHealthHtml(item.label) + '</div>'
+          + '<p>' + escapeHealthHtml(item.body) + '</p>'
+          + '</article>';
+      }).join('')
+      + '</div>';
+  }
+
   function renderHealthWellnessStyle() {
     return '<style data-cd-health-ui="health-wellness-sunrise-v20260607">'
       + '.cd-health-wellness-v20260607{background:linear-gradient(135deg,#fffdf4 0%,#f0fff7 42%,#e7f8ff 100%)!important;border:1px solid rgba(20,184,166,.28)!important;color:#12352d!important;box-shadow:0 24px 70px rgba(13,148,136,.18),inset 0 1px 0 rgba(255,255,255,.88)!important}'
+      + '.cd-health-wellness-v20260607:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 10% 10%,rgba(251,207,232,.45),transparent 32%),radial-gradient(circle at 88% 4%,rgba(191,219,254,.48),transparent 28%),linear-gradient(180deg,rgba(255,255,255,.18),transparent);pointer-events:none}'
       + '.cd-health-wellness-v20260607 *{letter-spacing:0!important}'
       + '.cd-health-wellness-v20260607 h3,.cd-health-wellness-v20260607 h4,.cd-health-wellness-v20260607 b{color:#103d34!important}'
       + '.cd-health-wellness-v20260607 p,.cd-health-wellness-v20260607 div,.cd-health-wellness-v20260607 span,.cd-health-wellness-v20260607 li{color:#255247!important}'
       + '.cd-health-wellness-v20260607 .cd-health-hero,.cd-health-wellness-v20260607 .cd-health-section,.cd-health-wellness-v20260607 .cd-health-info,.cd-health-wellness-v20260607 .cd-health-food,.cd-health-wellness-v20260607 .cd-health-risk,.cd-health-wellness-v20260607 .cd-health-mission{background:rgba(255,255,255,.82)!important;border-color:rgba(20,184,166,.20)!important;box-shadow:0 14px 36px rgba(15,118,110,.10),inset 0 1px 0 rgba(255,255,255,.90)!important}'
-      + '.cd-health-wellness-v20260607 .cd-health-hero{background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(236,253,245,.90) 52%,rgba(224,242,254,.86))!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero{background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(255,247,237,.90) 45%,rgba(237,233,254,.86))!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero-visual{position:relative;min-height:180px;overflow:hidden;border-radius:18px;border:1px solid rgba(168,85,247,.18);background:linear-gradient(160deg,rgba(253,186,116,.28),rgba(196,181,253,.34) 52%,rgba(125,211,252,.22));box-shadow:inset 0 1px 0 rgba(255,255,255,.86)}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero-visual:before{content:"☾";position:absolute;left:16px;top:10px;font-size:42px;color:rgba(126,34,206,.32)}'
+      + '.cd-health-wellness-v20260607 .cd-health-hero-visual:after{content:"✦ ✧ ✦";position:absolute;right:18px;top:16px;font-size:18px;color:rgba(14,116,144,.42)}'
+      + '.cd-health-wellness-v20260607 .cd-health-figure{position:absolute;left:22px;bottom:18px;width:82px;height:112px;border-radius:44px 44px 28px 28px;background:linear-gradient(180deg,#fde68a,#f9a8d4);box-shadow:0 18px 36px rgba(147,51,234,.16)}'
+      + '.cd-health-wellness-v20260607 .cd-health-figure:before{content:"";position:absolute;left:22px;top:-24px;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#fff7ed,#f9a8d4);box-shadow:0 0 0 8px rgba(255,255,255,.34)}'
+      + '.cd-health-wellness-v20260607 .cd-health-visual-note{position:absolute;right:14px;bottom:14px;max-width:150px;border:1px solid rgba(255,255,255,.76);border-radius:16px;background:rgba(255,255,255,.72);padding:10px;font-size:12px;font-weight:900;line-height:1.55;color:#5b3b68!important;box-shadow:0 12px 26px rgba(107,33,168,.13)}'
       + '.cd-health-wellness-v20260607 .cd-health-kicker{background:#ecfdf5!important;border-color:rgba(16,185,129,.32)!important;color:#047857!important}'
       + '.cd-health-wellness-v20260607 .cd-health-grade{background:#fff7ed!important;border-color:rgba(251,146,60,.32)!important;color:#7c2d12!important}'
       + '.cd-health-wellness-v20260607 .cd-health-callout{background:#dcfce7!important;border-color:rgba(34,197,94,.30)!important;color:#14532d!important}'
       + '.cd-health-wellness-v20260607 .cd-health-section-icon{background:#f0fdfa!important;border-color:rgba(20,184,166,.24)!important;color:#0f766e!important}'
       + '.cd-health-wellness-v20260607 .cd-health-pill{background:#ffffff!important;border-color:rgba(20,184,166,.24)!important;color:#0f766e!important}'
       + '.cd-health-wellness-v20260607 .cd-health-avoid{background:#fff7ed!important;border-color:rgba(251,146,60,.30)!important;color:#9a3412!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-grid{display:grid;gap:10px}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-row{display:grid;gap:6px;border:1px solid rgba(20,184,166,.18);border-radius:14px;background:rgba(255,255,255,.62);padding:10px}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-head,.cd-health-wellness-v20260607 .cd-health-balance-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-name{font-size:13px;font-weight:900;line-height:1.35;color:#103d34!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-tags{display:flex;gap:4px;min-height:18px}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-tags b{border:1px solid rgba(20,184,166,.24);border-radius:999px;background:#ecfdf5;padding:2px 7px;font-size:10px;line-height:1.2;color:#047857!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-track{height:9px;overflow:hidden;border-radius:999px;background:rgba(15,118,110,.10)}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-track span{display:block;height:100%;min-width:8%;border-radius:999px;background:linear-gradient(90deg,rgba(20,184,166,.82),rgba(14,165,233,.72))!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-balance-foot span{font-size:11px;font-weight:800;color:#477168!important}.cd-health-wellness-v20260607 .cd-health-balance-foot strong{font-size:11px;color:#0f766e!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-period-grid,.cd-health-wellness-v20260607 .cd-health-remedy-grid{display:grid;gap:10px}.cd-health-wellness-v20260607 .cd-health-period-grid{grid-template-columns:repeat(auto-fit,minmax(155px,1fr))}.cd-health-wellness-v20260607 .cd-health-remedy-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}'
+      + '.cd-health-wellness-v20260607 .cd-health-period-card,.cd-health-wellness-v20260607 .cd-health-remedy-card{position:relative;border:1px solid rgba(168,85,247,.16);border-radius:16px;background:rgba(255,255,255,.72);padding:12px;box-shadow:0 14px 30px rgba(107,33,168,.08)}'
+      + '.cd-health-wellness-v20260607 .cd-health-period-num{display:grid;width:26px;height:26px;place-items:center;border-radius:999px;background:#f5d0fe;color:#6b21a8!important;font-size:12px;font-weight:900}'
+      + '.cd-health-wellness-v20260607 .cd-health-period-title,.cd-health-wellness-v20260607 .cd-health-remedy-card div{margin-top:8px;font-size:12px;font-weight:900;color:#7c2d12!important}.cd-health-wellness-v20260607 .cd-health-period-card b{display:block;margin-top:2px;font-size:14px;color:#103d34!important}'
+      + '.cd-health-wellness-v20260607 .cd-health-period-card p,.cd-health-wellness-v20260607 .cd-health-remedy-card p{margin:7px 0 0;font-size:12px;line-height:1.65;color:#47645d!important}'
       + '.cd-health-wellness-v20260607 .text-white,.cd-health-wellness-v20260607 [class*="text-indigo"],.cd-health-wellness-v20260607 [class*="text-amber"],.cd-health-wellness-v20260607 [class*="text-orange"],.cd-health-wellness-v20260607 [class*="text-emerald"],.cd-health-wellness-v20260607 [class*="text-sky"],.cd-health-wellness-v20260607 [class*="text-zinc"],.cd-health-wellness-v20260607 [class*="text-slate"]{color:#255247!important}'
       + '</style>';
   }
@@ -2774,15 +3218,25 @@
     ];
     var grade = getHealthConditionGrade(riskKeys, ratios, controlImpacts);
     var routineFocus = getHealthRoutineFocus(axes.targetEl);
+    var masterReadingHtml = renderHealthMasterReading(strongestEl, weakestEls, axes, ratios, controlImpacts, johu);
+    var balanceHtml = '<div class="cd-health-balance-grid">' + renderHealthBalanceBars(ratios, axes.targetEl, axes.avoidEl) + '</div>';
+    var periodHtml = renderHealthPeriodTimeline(axes.targetEl, axes.avoidEl, strongestEl, todayEl);
+    var remedyHtml = renderHealthRemedyBoard(axes.targetEl, axes.avoidEl);
 
     if (!hasTodayElement) {
       return renderHealthWellnessStyle()
         + '<div class="ec-card ent-reveal cd-health-wellness-v20260607 relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-950 via-slate-950 to-violet-950 p-4 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-2xl sm:p-5" data-marker="health-wellness-sunrise-v20260607" data-legacy-marker="달빛 웰니스 클리닉">'
         + '<div class="relative z-10 grid gap-4">'
         + '<header class="cd-health-hero rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_54px_rgba(2,6,23,0.36)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
+        + '<div class="grid gap-4 lg:grid-cols-[minmax(180px,.72fr)_minmax(0,1.28fr)] lg:items-stretch">'
+        + '<div class="cd-health-hero-visual">'
+        + '<span class="cd-health-figure"></span>'
+        + '<span class="cd-health-visual-note">선천 기운이 먼저 열리고, 몸의 회복 축이 은은하게 드러납니다.</span>'
+        + '</div>'
+        + '<div class="min-w-0">'
         + '<div class="cd-health-kicker mb-2 inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-200/10 px-3 py-1 text-[11px] font-black text-amber-100">☀ 햇살 웰니스 리포트</div>'
         + '<h3 class="m-0 text-xl font-black leading-tight text-white sm:text-2xl">명리 헬스 리포트</h3>'
-        + '<p class="m-0 mt-2 max-w-2xl text-sm leading-6 text-indigo-100/78">선천 체질 기준으로 몸의 균형과 회복 리듬을 맑게 정리합니다.</p>'
+        + '<p class="m-0 mt-2 max-w-2xl text-sm leading-6 text-indigo-100/78">선천 체질의 강약과 회복 리듬이 한눈에 머무릅니다.</p>'
         + '<div class="mt-4 flex flex-wrap gap-2">'
         + renderHealthPill('선천 강점', EL_NAME[strongestEl], strongestEl)
         + renderHealthPill('보완 축', weakestEls.map(function (el) { return EL_NAME[el]; }).join(', '), weakestEls[0] || strongestEl)
@@ -2792,13 +3246,19 @@
         + '<p class="m-0 text-sm font-black leading-6 text-white sm:text-base">' + condition.lead + '</p>'
         + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">' + condition.second + '</p>'
         + '</div>'
+        + '</div>'
+        + '</div>'
         + '</header>'
-        + renderHealthSection('🌙', '선천 체질 베이스', '사주 원국 기준의 장기 체질 경향만 따로 읽습니다.',
+        + renderHealthSection('🌙', '선천 체질 베이스', '사주 원국의 장기 체질 결이 먼저 드러납니다.',
           '<div class="grid gap-3 sm:grid-cols-3">'
           + renderHealthInfoCard('강하게 쓰이는 축', EL_NAME[strongestEl], getHealthElementPositiveCopy(strongestEl) + ' 강한 오행은 장점이지만, 과열되면 오히려 피로 신호가 먼저 나타날 수 있습니다.', EL_NEON[strongestEl])
           + renderHealthInfoCard('쉽게 피로해지는 축', weakestEls.map(function (el) { return EL_NAME[el]; }).join(', '), weakestEls.map(getHealthElementSupportCopy).join(' '), '#f59e0b')
           + renderHealthInfoCard('보완이 필요한 축', weakestEls.map(function (el) { return EL_NAME[el]; }).join(', '), '장기적으로 비어 보이는 축은 강하게 밀어붙이기보다 반복 가능한 생활 균형으로 보완하는 편이 좋습니다.', '#14b8a6')
           + '</div>')
+        + renderHealthSection('✦', '명리학자 소견', '일간, 조후, 오행 강약이 겹치는 몸의 결을 살핍니다.', masterReadingHtml)
+        + renderHealthSection('⚖️', '오행 건강운 보드', '강한 축과 비어 있는 축이 회복 순서를 가리킵니다.', balanceHtml)
+        + renderHealthSection('🗓', '시기별 건강운', '오늘부터 계절 전환기까지의 관리 운이 펼쳐집니다.', periodHtml)
+        + renderHealthSection('🪷', '오행 개운법', '몸과 공간의 기운을 함께 여는 작은 의식입니다.', remedyHtml)
         + '<p class="m-0 rounded-2xl border border-white/10 bg-white/[0.06] p-3 text-[11px] leading-5 text-indigo-100/55">의료 진단이 아닌 사주 기반 웰니스 참고용 가이드입니다. 증상이 지속되면 전문의 상담을 권장합니다.</p>'
         + '</div>'
         + '</div>';
@@ -2810,16 +3270,27 @@
       + '<div class="relative z-10 grid gap-4">'
 
       + '<header class="cd-health-hero rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_54px_rgba(2,6,23,0.36)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
-      + '<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">'
+      + '<div class="grid gap-4 lg:grid-cols-[minmax(190px,.72fr)_minmax(0,1.28fr)] lg:items-stretch">'
+      + '<div class="cd-health-hero-visual">'
+      + '<span class="cd-health-figure"></span>'
+      + '<span class="cd-health-visual-note">오행 균형과 건강운의 작은 신호가 이곳에 모입니다.</span>'
+      + '</div>'
       + '<div class="min-w-0">'
       + '<div class="cd-health-kicker mb-2 inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-200/10 px-3 py-1 text-[11px] font-black text-amber-100">☀ 햇살 웰니스 리포트</div>'
       + '<h3 class="m-0 text-xl font-black leading-tight text-white sm:text-2xl">명리 헬스 리포트</h3>'
-      + '<p class="m-0 mt-2 max-w-2xl text-sm leading-6 text-indigo-100/78">사주 원국과 오늘의 기운을 함께 읽어 컨디션, 식사, 움직임의 균형을 밝게 정리합니다.</p>'
+      + '<p class="m-0 mt-2 max-w-2xl text-sm leading-6 text-indigo-100/78">오행 균형과 건강 운세 신호가 몸의 회복 순서를 비춥니다.</p>'
+      + '<div class="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(170px,.55fr)]">'
+      + '<div class="cd-health-callout rounded-2xl border border-emerald-200/20 bg-emerald-300/10 p-3">'
+      + '<div class="mb-1 text-[11px] font-black text-emerald-100/80">오늘의 한 줄 컨디션</div>'
+      + '<p class="m-0 text-sm font-black leading-6 text-white sm:text-base">' + condition.lead + '</p>'
+      + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">' + condition.second + '</p>'
       + '</div>'
-      + '<div class="cd-health-grade rounded-2xl border border-white/10 bg-slate-950/32 p-3 text-left shadow-inner sm:min-w-[12rem]">'
+      + '<div class="cd-health-grade rounded-2xl border border-white/10 bg-slate-950/32 p-3 text-left shadow-inner">'
       + '<div class="text-[11px] font-black text-indigo-100/55">오늘의 컨디션 등급</div>'
       + '<div class="mt-1 text-lg font-black text-amber-100">' + escapeHealthHtml(grade.label) + '</div>'
       + '<p class="m-0 mt-1 text-[12px] leading-5 text-indigo-50/70">' + escapeHealthHtml(grade.body) + '</p>'
+      + '</div>'
+      + '</div>'
       + '</div>'
       + '</div>'
       + '<div class="mt-4 flex flex-wrap gap-2">'
@@ -2827,31 +3298,35 @@
       + renderHealthPill('오늘 주의', EL_NAME[axes.avoidEl], axes.avoidEl)
       + renderHealthPill('안정 루틴', routineFocus, axes.targetEl)
       + '</div>'
-      + '<div class="cd-health-callout mt-4 rounded-2xl border border-emerald-200/20 bg-emerald-300/10 p-3">'
-      + '<div class="mb-1 text-[11px] font-black text-emerald-100/80">1. 오늘의 한 줄 컨디션</div>'
-      + '<p class="m-0 text-sm font-black leading-6 text-white sm:text-base">' + condition.lead + '</p>'
-      + '<p class="m-0 mt-2 text-[13px] leading-6 text-indigo-50/76">' + condition.second + '</p>'
-      + '</div>'
       + '</header>'
 
-      + renderHealthSection('🌙', '2. 선천 체질 베이스', '사주 원국 기준의 장기 체질 경향만 따로 읽습니다.',
+      + renderHealthSection('✦', '2. 명리학자 소견', '일간, 조후, 오행 강약이 겹치는 몸의 결을 살핍니다.',
+        masterReadingHtml)
+
+      + renderHealthSection('⚖️', '3. 오행 건강운 보드', '강한 축과 비어 있는 축이 오늘의 회복 순서를 가리킵니다.',
+        balanceHtml)
+
+      + renderHealthSection('🌙', '4. 선천 체질 베이스', '사주 원국의 장기 체질 결이 먼저 드러납니다.',
         '<div class="grid gap-3 sm:grid-cols-3">'
         + renderHealthInfoCard('강하게 쓰이는 축', EL_NAME[strongestEl], getHealthElementPositiveCopy(strongestEl) + ' 강한 오행은 장점이지만, 과열되면 오히려 피로 신호가 먼저 나타날 수 있습니다.', EL_NEON[strongestEl])
         + renderHealthInfoCard('쉽게 피로해지는 축', weakestEls.map(function (el) { return EL_NAME[el]; }).join(', '), weakestEls.map(getHealthElementSupportCopy).join(' '), '#f59e0b')
         + renderHealthInfoCard('보완이 필요한 축', weakestEls.map(function (el) { return EL_NAME[el]; }).join(', '), '장기적으로 비어 보이는 축은 강하게 밀어붙이기보다 반복 가능한 생활 균형으로 보완하는 편이 좋습니다.', '#14b8a6')
         + '</div>')
 
-      + renderHealthSection('⚖️', '3. 오늘의 오행 밸런스', '오늘의 기운과 원국이 만나는 지점을 실행 우선순위로 정리합니다.',
+      + renderHealthSection('🗓', '5. 시기별 건강운', '오늘, 이번 주, 이번 달, 계절 전환기의 운이 차례로 열립니다.',
+        periodHtml)
+
+      + renderHealthSection('⚖️', '6. 오늘의 오행 조율', '오늘의 기운과 원국이 만나는 지점에서 실행 순서가 떠오릅니다.',
         '<div class="grid gap-3 sm:grid-cols-3">'
         + renderHealthInfoCard('오늘 필요한 오행', EL_NAME[axes.targetEl], '부족하거나 압박받는 축을 먼저 보완해 컨디션의 중심을 잡습니다.', EL_NEON[axes.targetEl])
         + renderHealthInfoCard('오늘 줄여야 할 오행', EL_NAME[axes.avoidEl], '과열되기 쉬운 자극을 줄이면 다른 장부 리듬의 부담이 낮아집니다.', EL_NEON[axes.avoidEl])
-        + renderHealthInfoCard('오늘 유지하면 좋은 습관', '리듬 안정 · 자극 낮추기 · 회복 여백', '세부 실행은 아래 회복 루틴 한 곳에서만 확인하도록 정리했습니다.', '#14b8a6')
+        + renderHealthInfoCard('오늘 머무르면 좋은 습관', '리듬 안정 · 자극 낮추기 · 회복 여백', '작은 회복 행동 하나가 몸의 균형을 다시 불러옵니다.', '#14b8a6')
         + '</div>')
 
-      + renderHealthSection('🫧', '4. 장부/생활 리스크 가이드', '오늘 실제로 중요한 상위 신호만 2~3개로 압축했습니다.',
+      + renderHealthSection('🫧', '7. 장부/생활 신호', '오늘 강하게 떠오르는 상위 신호만 남겼습니다.',
         '<div class="grid gap-3">' + riskHtml + '</div>')
 
-      + renderHealthSection('🍽️', '5. 오늘의 회복 루틴', '식단, 움직임, 휴식, 환경을 한 곳에 모은 오늘의 웰니스 처방입니다.',
+      + renderHealthSection('🍽️', '8. 오늘의 회복 루틴', '식단, 움직임, 휴식, 환경의 기운이 한곳에 모입니다.',
         '<div class="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(240px,.85fr)]">'
         + '<div class="cd-health-info rounded-2xl border border-white/10 bg-slate-950/24 p-3 ring-1 ring-white/5 backdrop-blur-xl">'
         + '<div class="mb-3 flex items-center justify-between gap-3">'
@@ -2867,12 +3342,15 @@
         + '</div>'
         + '</div>')
 
+      + renderHealthSection('🪷', '9. 오행 개운법', '몸과 공간의 기운을 함께 여는 작은 의식입니다.',
+        remedyHtml)
+
       + '<section class="cd-health-section rounded-2xl border border-white/10 bg-white/[0.075] p-4 shadow-[0_18px_48px_rgba(2,6,23,0.28)] ring-1 ring-white/10 backdrop-blur-2xl sm:p-5">'
       + '<div class="mb-3 flex items-start gap-3">'
       + '<span class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/10 text-lg shadow-inner">✓</span>'
       + '<div class="min-w-0">'
-      + '<h4 class="m-0 text-base font-black leading-snug text-white sm:text-lg">6. 오늘의 헬스 미션</h4>'
-      + '<p class="m-0 mt-1 text-sm leading-6 text-indigo-100/75">바로 실행할 3개만 남긴 체크리스트입니다.</p>'
+      + '<h4 class="m-0 text-base font-black leading-snug text-white sm:text-lg">10. 오늘의 헬스 미션</h4>'
+      + '<p class="m-0 mt-1 text-sm leading-6 text-indigo-100/75">오늘 몸이 편안히 받아들일 세 가지 약속입니다.</p>'
       + '</div>'
       + '</div>'
       + '<ol class="m-0 grid list-none gap-2 p-0">'
@@ -2926,16 +3404,30 @@
   // ② RPG 스킬 트리 — 퀘스트 시스템 추가 (원본은 유지)
   var _origSkillTree = w.renderSkillTree;
   w.renderSkillTree = function (p, natal) {
-    _origSkillTree && _origSkillTree(p, natal);
     var area = document.getElementById('skillTreeSection');
     if (!area) return;
+    var card = document.getElementById('skillTreeCard');
+    try {
+      _origSkillTree && _origSkillTree(p, natal);
+    } catch (originalError) {
+      console.warn('[entertain-rpg] original skill tree failed:', originalError);
+    }
     var oldRoot = document.getElementById('entRpgSection');
     if (oldRoot && oldRoot.parentNode) oldRoot.parentNode.removeChild(oldRoot);
     var questEl = document.createElement('div');
-    questEl.innerHTML = buildRpgTemplate({ loading: true }, p);
+    try {
+      questEl.innerHTML = buildRpgTemplate({ loading: true }, p);
+    } catch (error) {
+      questEl.innerHTML = buildRpgCrashFallbackTemplate('클래스 시트의 하단 기운을 다시 정렬하고 있습니다.');
+    }
     var questNode = questEl.firstElementChild || questEl;
     area.appendChild(questNode);
+    if (card) {
+      card.style.display = 'block';
+      card.style.visibility = 'visible';
+    }
     _scheduleReveal(area);
+    syncRpgLayoutHeight(questNode);
     loadRpgStatus(questNode, p);
   };
 
@@ -2974,7 +3466,8 @@
     }
 
     var hapData = getSafeTetogenHapData(p);
-    target.innerHTML = buildTetoEgenResultSection(vibe) + buildTetoEgeDeepSection(p || {}, power || {}, hapData);
+    target.innerHTML = buildTetoEgenResultSection(vibe) + buildTetogenDeepReportGate(vibe, p || {}, power || {}, hapData);
+    bindTetogenDeepReportGate(target, vibe, p || {}, power || {}, hapData);
     _scheduleReveal(target);
 
     requestAnimationFrame(function () {

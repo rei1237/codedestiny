@@ -544,7 +544,7 @@ const SAJU_GUARDIAN_VALUE_SECTIONS = [
   {
     title: "1. 일주를 중심으로 수호 인장의 뿌리를 세웁니다",
     body:
-      "나를 대표하는 일주를 먼저 세우고, 그 안의 천간과 지지가 어떤 방식으로 나의 중심을 지키는지 읽습니다. 이 축이 수호 인장의 이름과 첫 문장을 결정합니다.",
+      "나를 대표하는 일주를 먼저 세우면, 그 안의 천간과 지지가 중심을 지키는 결로 드러납니다. 이 축에서 수호 인장의 이름과 첫 문장이 열립니다.",
   },
   {
     title: "2. 오행의 생극으로 수호력과 약점을 함께 봅니다",
@@ -557,9 +557,9 @@ const SAJU_GUARDIAN_VALUE_SECTIONS = [
       "60갑자는 같은 오행이라도 결이 다릅니다. 갑자와 을축이 다르고, 병오와 정미가 다르듯이 같은 불·같은 나무라도 드러나는 방식이 달라집니다. 이 차이를 수호 인장의 이름과 문장으로 정리합니다.",
   },
   {
-    title: "4. 관계·일·재물의 운용 문장까지 제공합니다",
+    title: "4. 관계·일·재물의 운용 문장까지 엽니다",
     body:
-      "재미있는 캐릭터에서 끝나지 않도록, 내가 어떤 말투로 관계를 살리는지, 어떤 방식으로 일과 돈의 흐름을 잡는지까지 연결합니다. 오늘 바로 쓸 수 있는 행동 언어로 풀어냅니다.",
+      "재미있는 캐릭터 너머로, 내가 어떤 말투로 관계를 살리는지, 어떤 방식으로 일과 돈의 흐름을 잡는지까지 이어집니다. 오늘 바로 쓸 수 있는 행동 언어로 맺힙니다.",
   },
   {
     title: "5. 오늘의 개운 의식으로 리딩을 닫습니다",
@@ -611,7 +611,7 @@ const HOUR_BRANCH_READING: Record<string, string> = {
   오: "오시는 한낮의 중심입니다. 존재감이 강해지는 만큼 선택을 단순하게 만드는 일이 수호가 됩니다.",
   미: "미시는 열기를 정리하는 시간입니다. 돌봄과 책임을 잘 쓰되, 지나친 부담은 나누어야 합니다.",
   신: "신시는 금기의 판단이 들어오는 시간입니다. 정리, 분석, 계약처럼 선을 긋는 일에 힘이 붙습니다.",
-  유: "유시는 완성의 빛이 맑아지는 시간입니다. 결과물을 다듬고 보여주는 일에서 운이 살아납니다.",
+  유: "유시는 완성의 빛이 맑아지는 시간입니다. 결과물을 다듬고 선명히 드러내는 일에서 운이 살아납니다.",
   술: "술시는 하루의 불씨를 저장하는 시간입니다. 지켜야 할 약속과 내려놓을 걱정을 구분하면 마음이 단단해집니다.",
   해: "해시는 밤의 물길이 열리는 시간입니다. 회복과 영감이 깊어지니 휴식 속에서 다음 답이 옵니다.",
 };
@@ -801,6 +801,7 @@ function ResultCard({
   onReset: () => void;
 }) {
   const [activePanel, setActivePanel] = useState("seal");
+  const [activeFrameId, setActiveFrameId] = useState("stargram");
 
   if (!data.result) {
     return (
@@ -859,7 +860,7 @@ function ResultCard({
     {
       title: "명리 좌표",
       body: resolvedGanji
-        ? `당신의 중심축은 ${resolvedGanji}일주입니다. 겉으로 드러나는 천간은 ${dayStem || "일간"}의 ${stemPolarity}${result.dominantElement} 기운이고, 안쪽의 지지는 ${dayBranch || "일지"}의 뿌리로 작동합니다. 이 조합은 ${guardianArchetype}이 어떤 방식으로 중심을 지켜야 하는지 보여주는 첫 번째 인장입니다.`
+        ? `당신의 중심축은 ${resolvedGanji}일주입니다. 겉으로 드러나는 천간은 ${dayStem || "일간"}의 ${stemPolarity}${result.dominantElement} 기운이고, 안쪽의 지지는 ${dayBranch || "일지"}의 뿌리로 작동합니다. 이 조합에서 ${guardianArchetype}이 중심을 지키는 첫 번째 인장이 열립니다.`
         : result.personalitySummaryKo || personalityLines[0],
     },
     {
@@ -877,7 +878,7 @@ function ResultCard({
     {
       title: "시간의 보조 수호",
       body: hasBirthTime
-        ? `${hourBranch}시지와 ${hourElement} 기운은 하루 중 당신의 수호력이 살아나는 방식을 보여줍니다. ${hourReading}`
+        ? `${hourBranch}시지와 ${hourElement} 기운에서 하루 중 당신의 수호력이 살아나는 방식이 드러납니다. ${hourReading}`
         : hourReading,
     },
     {
@@ -1001,20 +1002,91 @@ function ResultCard({
     { icon: "📮", label: "작은 실행", value: elementReading.ritual },
     { icon: "🕯️", label: "시간 열쇠", value: hasBirthTime ? hourReading : "생시를 추가하면 시간대별 수호 리듬이 더 선명해집니다." },
   ];
+  const sajuSeed = `${resolvedGanji || ""}${monthBranch}${hourBranch}${result.dominantElement}${result.mainAnimal}`
+    .split("")
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const vibeScores = [
+    { label: "본캐력", value: 72 + (sajuSeed % 19), color: "from-pink-400 to-fuchsia-400" },
+    { label: "럭키력", value: 68 + (sajuSeed % 23), color: "from-amber-300 to-orange-400" },
+    { label: "멘탈핏", value: 64 + (sajuSeed % 21), color: "from-sky-300 to-cyan-400" },
+  ];
+  const fourCutFrames = [
+    {
+      id: "stargram",
+      badge: "MZ 운명 필터",
+      title: "사주네컷 Stargram",
+      subtitle: `${guardianSeal}이 오늘의 피드 위로 반짝 떠오릅니다.`,
+      shellClass: "border-fuchsia-200/80 bg-[radial-gradient(circle_at_20%_12%,rgba(244,114,182,.22),transparent_32%),radial-gradient(circle_at_82%_18%,rgba(125,211,252,.22),transparent_30%),linear-gradient(135deg,#fff7fd,#eef7ff_55%,#fff8e8)]",
+      stripClass: "border-white/90 bg-white/85 shadow-pink-200/80",
+      chipClass: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-600",
+      panels: [
+        { icon: "💿", kicker: "1컷 본캐 Vibe", title: guardianArchetype, body: `${guardianCopy?.short || result.headlineKo} ${result.expressionKo}의 결이 선명하게 드러납니다.` },
+        { icon: "🎭", kicker: "2컷 겉텐션 vs 속리듬", title: `${dayStem || "일간"}의 표정 · ${dayBranch || "일지"}의 심장`, body: `${stemPolarity}${result.dominantElement} 기운은 겉으로 빠르게 빛나고, ${monthBranch || "월지"} 배경은 선택의 온도를 천천히 맞춥니다.` },
+        { icon: "🧠", kicker: "3컷 브레인맵", title: "오늘의 운명 게이지", body: "끌리는 쪽보다 오래 남는 쪽에 운이 머무릅니다.", meters: vibeScores },
+        { icon: "🍀", kicker: "4컷 럭키버튼", title: result.colorKo || "맑은 빛", body: `${elementReading.ritual} 이 작은 의식에서 오늘의 문이 부드럽게 열립니다.` },
+      ],
+    },
+    {
+      id: "idol",
+      badge: "포토카드 컷",
+      title: "최애 운명 포카",
+      subtitle: `${guardianEmblem}이 당신의 오늘 운세 포지션을 비춥니다.`,
+      shellClass: "border-sky-200/80 bg-[radial-gradient(circle_at_18%_18%,rgba(56,189,248,.22),transparent_30%),radial-gradient(circle_at_86%_22%,rgba(251,191,36,.22),transparent_28%),linear-gradient(135deg,#f0fdff,#fff7ed_54%,#fdf2f8)]",
+      stripClass: "border-sky-100 bg-white/90 shadow-sky-100/80",
+      chipClass: "border-sky-200 bg-sky-50 text-sky-600",
+      panels: [
+        { icon: "📸", kicker: "센터컷", title: `${result.mainAnimal} 포지션`, body: `${animalEmoji} ${result.mainAnimal} 상징이 첫인상에 머물고, ${guardianArchetype}의 존재감이 뒤에서 밀어 올립니다.` },
+        { icon: "✨", kicker: "팬싸운", title: "관계 시그널", body: elementReading.relation },
+        { icon: "🎤", kicker: "무대운", title: "일과 재물 텐션", body: elementReading.work },
+        { icon: "💌", kicker: "엔딩요정", title: "오늘 남길 한 문장", body: guardianCopy?.subtitle || `${guardianSeal}의 기준이 밤까지 은은하게 남습니다.` },
+      ],
+    },
+    {
+      id: "receipt",
+      badge: "운명 영수증",
+      title: "럭키 편의점 컷",
+      subtitle: `${result.colorKo || "맑은"}빛 행운이 오늘의 장바구니에 담깁니다.`,
+      shellClass: "border-emerald-200/80 bg-[radial-gradient(circle_at_12%_20%,rgba(52,211,153,.22),transparent_30%),radial-gradient(circle_at_80%_10%,rgba(251,113,133,.2),transparent_28%),linear-gradient(135deg,#f0fdf4,#fff7ed_50%,#eef2ff)]",
+      stripClass: "border-emerald-100 bg-white/90 shadow-emerald-100/80",
+      chipClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      panels: [
+        { icon: "🧾", kicker: "오늘의 구매운", title: "사면 좋은 것", body: `${result.colorKo || "맑은"}빛 소품, 작은 정리함, 오래 미뤘던 필수품 쪽으로 운이 기울어 있습니다.` },
+        { icon: "🥤", kicker: "당충전운", title: `${result.dominantElement} 회복 루틴`, body: elementReading.protection },
+        { icon: "🛒", kicker: "장바구니 경고", title: "충동 결제 잠깐 멈춤", body: elementReading.shadow },
+        { icon: "🎟️", kicker: "럭키 쿠폰", title: "오늘 바로 쓰는 한 장", body: sevenDayMissions[0].body },
+      ],
+    },
+    {
+      id: "night",
+      badge: "밤샘 감성 컷",
+      title: "달빛 DM 네컷",
+      subtitle: `${hourBranch || "오늘의 시간"} 위로 숨은 마음의 답장이 열립니다.`,
+      shellClass: "border-indigo-200/80 bg-[radial-gradient(circle_at_18%_14%,rgba(129,140,248,.24),transparent_30%),radial-gradient(circle_at_84%_20%,rgba(244,114,182,.18),transparent_28%),linear-gradient(135deg,#eef2ff,#fdf2f8_52%,#f8fafc)]",
+      stripClass: "border-indigo-100 bg-white/90 shadow-indigo-100/80",
+      chipClass: "border-indigo-200 bg-indigo-50 text-indigo-600",
+      panels: [
+        { icon: "🌙", kicker: "읽씹 금지", title: "마음의 답장", body: `${guardianArchetype}은 감정을 밀어내기보다 정돈된 문장으로 남길 때 더 깊게 빛납니다.` },
+        { icon: "💬", kicker: "DM 온도", title: "관계의 간격", body: elementReading.relation },
+        { icon: "🕯️", kicker: "새벽 루틴", title: hasBirthTime ? `${hourBranch}시지 리듬` : "정오 기준 리듬", body: hourReading },
+        { icon: "🪐", kicker: "잠들기 전", title: "내일로 넘길 기운", body: sevenDayMissions[6].body },
+      ],
+    },
+  ];
+  const activeFrame = fourCutFrames.find((frame) => frame.id === activeFrameId) || fourCutFrames[0];
 
   const handleCopy = async () => {
     const headline = guardianCopy?.title || result.headlineKo;
-    const text = `${guardianSeal}\n${headline}\n\n${interpretationCards.map((item) => `${item.title}: ${item.body}`).join("\n\n")}`;
+    const text = `${activeFrame.title}\n${guardianSeal}\n${headline}\n\n${activeFrame.panels.map((item) => `${item.kicker} · ${item.title}: ${item.body}`).join("\n\n")}`;
     await navigator.clipboard.writeText(text).catch(() => {});
-    alert("가디언 리딩 문구를 복사했어요 📋");
+    alert("사주네컷 캡션을 복사했어요 📋");
   };
 
   const handleShare = async () => {
     const headline = guardianCopy?.title || result.headlineKo;
-    const text = `${guardianSeal}\n\n${headline}\n\n🔮 Code Destiny 사주 가디언 소환진에서 확인하기\nhttps://code-destiny.com/saju-picture`;
+    const text = `${activeFrame.title}\n${guardianSeal}\n\n${headline}\n\n🔮 Code Destiny 사주네컷 열기\nhttps://code-destiny.com/saju-picture`;
     if (navigator.share) {
       try {
-        await navigator.share({ title: "사주 가디언 소환진", text });
+        await navigator.share({ title: activeFrame.title, text });
       } catch (e) {
         /* 취소 */
       }
@@ -1074,6 +1146,99 @@ function ResultCard({
               </span>
             </div>
           ))}
+        </section>
+
+        <section className={`relative overflow-hidden rounded-[2rem] border p-4 shadow-xl backdrop-blur-xl sm:p-5 ${activeFrame.shellClass}`} aria-label="사주네컷 운명 필터">
+          <div className="pointer-events-none absolute inset-0 opacity-70" aria-hidden="true">
+            <div className="absolute left-5 top-5 text-xl">✦</div>
+            <div className="absolute right-8 top-10 text-lg">♡</div>
+            <div className="absolute bottom-8 left-1/3 text-sm">✧</div>
+          </div>
+          <div className="relative flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-black tracking-[0.18em] text-slate-500">{activeFrame.badge}</p>
+              <h2 className="mt-1 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">사주네컷 운명 필터 ON</h2>
+              <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-600">{activeFrame.subtitle}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {fourCutFrames.map((frame) => (
+                <button
+                  key={frame.id}
+                  type="button"
+                  onClick={() => setActiveFrameId(frame.id)}
+                  className={`rounded-2xl border px-3 py-2 text-left text-[11px] font-black leading-tight transition ${
+                    activeFrame.id === frame.id
+                      ? "border-slate-900 bg-slate-900 text-white shadow-lg"
+                      : `${frame.chipClass} hover:scale-[1.02]`
+                  }`}
+                  aria-pressed={activeFrame.id === frame.id}
+                >
+                  {frame.title}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative mt-5 grid gap-4 lg:grid-cols-[1.05fr,0.95fr] lg:items-stretch">
+            <div className={`rounded-[1.8rem] border-4 p-3 ${activeFrame.stripClass}`}>
+              <div className="mb-3 flex items-center justify-between gap-3 px-1">
+                <span className="rounded-full bg-slate-950 px-3 py-1 text-[11px] font-black tracking-[0.16em] text-white">SAJU 4CUT</span>
+                <span className="rounded-full bg-white px-3 py-1 text-[11px] font-black text-slate-500 shadow-sm">{resolvedGanji || guardianSeal}</span>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {activeFrame.panels.map((panel, index) => (
+                  <article key={panel.kicker} className="min-h-[12rem] rounded-[1.35rem] border border-white/90 bg-white/80 p-3 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-xl shadow-sm">{panel.icon}</span>
+                      <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black text-slate-400 shadow-sm">#{index + 1}</span>
+                    </div>
+                    <p className="mt-3 text-[11px] font-black tracking-[0.14em] text-pink-500">{panel.kicker}</p>
+                    <h3 className="mt-1 text-base font-black leading-tight text-slate-900">{panel.title}</h3>
+                    <p className="mt-2 text-xs font-semibold leading-relaxed text-slate-600">{panel.body}</p>
+                    {"meters" in panel && panel.meters ? (
+                      <div className="mt-3 space-y-1.5">
+                        {panel.meters.map((meter) => (
+                          <div key={meter.label} className="grid grid-cols-[3.4rem,1fr,2.2rem] items-center gap-2">
+                            <span className="text-[10px] font-black text-slate-500">{meter.label}</span>
+                            <span className="h-2 overflow-hidden rounded-full bg-slate-100">
+                              <span className={`block h-full rounded-full bg-gradient-to-r ${meter.color}`} style={{ width: `${Math.min(meter.value, 98)}%` }} />
+                            </span>
+                            <span className="text-right text-[10px] font-black text-slate-500">{Math.min(meter.value, 98)}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col justify-between rounded-[1.8rem] border border-white/80 bg-white/70 p-4 shadow-sm">
+              <div>
+                <p className="text-xs font-black tracking-[0.16em] text-slate-400">바로 스토리 각</p>
+                <h3 className="mt-2 text-2xl font-black leading-tight text-slate-900">{activeFrame.title}</h3>
+                <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-600">
+                  {guardianSeal}의 네 장면이 오늘의 표정, 관계 온도, 실행 리듬, 럭키 버튼으로 나뉘어 떠오릅니다.
+                </p>
+              </div>
+              <div className="mt-5 grid gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="rounded-2xl bg-gradient-to-r from-pink-400 via-fuchsia-400 to-sky-400 px-4 py-3 text-sm font-black text-white shadow-lg shadow-pink-200/70 transition-transform active:scale-[0.98]"
+                >
+                  캡처용 캡션 복사
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 shadow-sm transition-transform active:scale-[0.98]"
+                >
+                  바로 공유하기
+                </button>
+              </div>
+            </div>
+          </div>
         </section>
 
         <div className="grid gap-6 lg:grid-cols-[0.95fr,1.05fr]">
@@ -1155,7 +1320,7 @@ function ResultCard({
                 <p className="text-xs font-black tracking-[0.16em] text-rose-500">정밀 리포트</p>
                 <h2 className="mt-1 text-2xl font-black text-slate-800">가디언 리포트</h2>
               </div>
-              <div className="grid grid-cols-4 rounded-2xl border border-white/80 bg-white/75 p-1 shadow-sm">
+              <div className="grid grid-cols-5 rounded-2xl border border-white/80 bg-white/75 p-1 shadow-sm">
                 {Object.entries(reportPanels).map(([key, panel]) => (
                   <button
                     key={key}
@@ -1199,7 +1364,7 @@ function ResultCard({
               onClick={handleCopy}
               className="rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 px-4 py-3 text-sm font-black text-white shadow-lg shadow-rose-200/70 transition-transform active:scale-[0.98]"
             >
-              해석 문구 복사하기
+              네컷 캡션 복사하기
             </button>
             <button
               onClick={onReset}
@@ -1389,9 +1554,9 @@ export default function SajuPicturePage() {
             </section>
             <section className="space-y-3">
               {[
-                { title: "명리 근거", body: "일간·일지·월지·시지를 함께 읽어 수호 인장이 왜 이 모양으로 열리는지 보여줍니다." },
+                { title: "명리 근거", body: "일간·일지·월지·시지가 겹치는 자리에서 수호 인장의 모양이 또렷하게 열립니다." },
                 { title: "수호력과 그림자", body: "타고난 힘만 말하지 않고, 운을 새게 만드는 습관과 지켜야 할 기준을 함께 짚습니다." },
-                { title: "실전 운용", body: "관계, 일, 재물, 오늘의 개운 의식, 7일 미션까지 바로 쓸 수 있는 문장으로 정리합니다." },
+                { title: "실전 운용", body: "관계, 일, 재물, 오늘의 개운 의식, 7일 미션까지 바로 쓸 수 있는 문장으로 맺힙니다." },
               ].map((item) => (
                 <article key={item.title} className="rounded-[1.5rem] border border-white/70 bg-white/75 p-4 shadow-sm">
                   <h2 className="text-sm font-black text-slate-800">{item.title}</h2>
