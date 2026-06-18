@@ -29,6 +29,21 @@ const CSRF_COOKIE_NAME = "cd_csrf_token";
 const CSRF_HEADER_NAME = "x-csrf-token";
 const REFRESH_COOKIE_PRIMARY_PATH = "/";
 const REFRESH_COOKIE_LEGACY_PATH = "/api/auth/refresh";
+const EXTRA_AUTH_CLEAR_COOKIE_NAMES = [
+  "fortune_auth_role",
+  "next-auth.session-token",
+  "__Secure-next-auth.session-token",
+  "next-auth.csrf-token",
+  "__Host-next-auth.csrf-token",
+  "next-auth.callback-url",
+  "__Secure-next-auth.callback-url",
+  "authjs.session-token",
+  "__Secure-authjs.session-token",
+  "authjs.csrf-token",
+  "__Host-authjs.csrf-token",
+  "authjs.callback-url",
+  "__Secure-authjs.callback-url",
+];
 const CSRF_TOKEN_TTL_MS = 2 * 60 * 60 * 1000;
 const WITHDRAW_RATE_LIMIT_MAX = 3;
 const WITHDRAW_RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -622,6 +637,15 @@ function appendClearAuthCookies(response, request, env) {
     secure: cookieOptions.secure,
     sameSite: cookieOptions.sameSite,
   }));
+  for (const cookieName of EXTRA_AUTH_CLEAR_COOKIE_NAMES) {
+    response.headers.append("Set-Cookie", buildCookieValue(cookieName, "", {
+      path: "/",
+      maxAge: 0,
+      httpOnly: true,
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
+    }));
+  }
 }
 
 function hashRefreshToken(rawToken, env) {
@@ -640,6 +664,14 @@ function buildRefreshSessionFromRequest(request, env, userId) {
     ip: String(meta.ip || ""),
     expiresAt,
   };
+}
+
+function refreshSessionMatchesRequest(session, request) {
+  const storedUserAgent = String(session?.userAgent || "").trim();
+  if (!storedUserAgent) return true;
+  const currentUserAgent = String(getRequestMeta(request).userAgent || "").trim();
+  if (!currentUserAgent) return true;
+  return storedUserAgent === currentUserAgent;
 }
 
 async function issueRefreshTokenForUser(userId, env) {
@@ -714,6 +746,10 @@ function getAuthEnvPresence(env) {
     hasAuthTrustHost: Boolean(getEnv(env, "AUTH_TRUST_HOST") || getEnv(env, "NEXTAUTH_TRUST_HOST")),
     hasGoogleClientId: Boolean(getEnv(env, "GOOGLE_OAUTH_CLIENT_ID") || getEnv(env, "GOOGLE_CLIENT_ID")),
     hasGoogleClientSecret: Boolean(getEnv(env, "GOOGLE_OAUTH_CLIENT_SECRET") || getEnv(env, "GOOGLE_CLIENT_SECRET")),
+    hasNaverClientId: Boolean(getEnv(env, "NAVER_OAUTH_CLIENT_ID") || getEnv(env, "NAVER_CLIENT_ID")),
+    hasNaverClientSecret: Boolean(getEnv(env, "NAVER_OAUTH_CLIENT_SECRET") || getEnv(env, "NAVER_CLIENT_SECRET")),
+    hasKakaoClientId: Boolean(getEnv(env, "KAKAO_OAUTH_CLIENT_ID") || getEnv(env, "KAKAO_CLIENT_ID")),
+    hasKakaoClientSecret: Boolean(getEnv(env, "KAKAO_OAUTH_CLIENT_SECRET") || getEnv(env, "KAKAO_CLIENT_SECRET")),
     hasMongoUri: Boolean(getEnv(env, "MONGO_URI") || getEnv(env, "MONGODB_URI")),
   };
 }
@@ -876,6 +912,40 @@ function getRequestOrigin(request) {
   }
 }
 
+function getAllowedAuthOrigins(request, env) {
+  return new Set([
+    getRequestOrigin(request),
+    getFrontendBaseUrl(env),
+    getApiBaseUrl(request, env),
+    normalizeOriginOnly(getEnv(env, "AUTH_URL") || getEnv(env, "NEXTAUTH_URL")),
+    normalizeOriginOnly(getEnv(env, "AUTH_FRONTEND_BASE_URL")),
+    normalizeOriginOnly(getEnv(env, "AUTH_API_BASE_URL")),
+    normalizeOriginOnly(getEnv(env, "SITE_BASE_URL")),
+  ].filter(Boolean));
+}
+
+function requiresSameOriginAuthGuard(method, path) {
+  const normalizedMethod = String(method || "").toUpperCase();
+  if (!["POST", "PATCH", "DELETE"].includes(normalizedMethod)) return false;
+  return path === "/refresh"
+    || path === "/logout"
+    || path === "/withdraw"
+    || path === "/oauth/complete"
+    || path === "/referral/kakao-share"
+    || path === "/me/phone-number"
+    || path === "/me/payment-phone";
+}
+
+function isAllowedSameOriginAuthRequest(request, env) {
+  const secFetchSite = String(request.headers.get("sec-fetch-site") || "").trim().toLowerCase();
+  if (secFetchSite === "cross-site") return false;
+
+  const origin = normalizeOriginOnly(request.headers.get("origin"));
+  if (!origin) return true;
+
+  return getAllowedAuthOrigins(request, env).has(origin);
+}
+
 function resolveProviderCallbackUrl(provider, request, env) {
   const key = `${provider.toUpperCase()}_OAUTH_CALLBACK`;
   const configured = String(getEnv(env, key) || "").trim();
@@ -904,6 +974,7 @@ async function signSocialState(payload, env) {
   return signJwt(
     {
       purpose: "social-oauth-state",
+      jti: randomBytes(16).toString("hex"),
       ...payload,
     },
     getAccessTokenSecret(env),
@@ -956,8 +1027,8 @@ function buildProviderConfig(provider, request, env) {
 
   if (provider === "naver") {
     return {
-      clientId: getEnv(env, "NAVER_OAUTH_CLIENT_ID"),
-      clientSecret: getEnv(env, "NAVER_OAUTH_CLIENT_SECRET"),
+      clientId: getEnv(env, "NAVER_OAUTH_CLIENT_ID") || getEnv(env, "NAVER_CLIENT_ID"),
+      clientSecret: getEnv(env, "NAVER_OAUTH_CLIENT_SECRET") || getEnv(env, "NAVER_CLIENT_SECRET"),
       authorizationEndpoint: "https://nid.naver.com/oauth2.0/authorize",
       tokenEndpoint: "https://nid.naver.com/oauth2.0/token",
       userInfoEndpoint: "https://openapi.naver.com/v1/nid/me",
@@ -968,8 +1039,8 @@ function buildProviderConfig(provider, request, env) {
 
   if (provider === "kakao") {
     return {
-      clientId: getEnv(env, "KAKAO_OAUTH_CLIENT_ID"),
-      clientSecret: getEnv(env, "KAKAO_OAUTH_CLIENT_SECRET"),
+      clientId: getEnv(env, "KAKAO_OAUTH_CLIENT_ID") || getEnv(env, "KAKAO_CLIENT_ID"),
+      clientSecret: getEnv(env, "KAKAO_OAUTH_CLIENT_SECRET") || getEnv(env, "KAKAO_CLIENT_SECRET"),
       authorizationEndpoint: "https://kauth.kakao.com/oauth/authorize",
       tokenEndpoint: "https://kauth.kakao.com/oauth/token",
       userInfoEndpoint: "https://kapi.kakao.com/v2/user/me",
@@ -986,6 +1057,7 @@ function mapSocialProfile(provider, payload) {
     return {
       providerId: String(payload?.sub || ""),
       email: payload?.email ? String(payload.email).toLowerCase() : "",
+      emailVerified: payload?.email_verified === false ? false : (payload?.email_verified === true ? true : null),
       name: String(payload?.name || payload?.given_name || "Google user"),
       image: String(payload?.picture || ""),
       phoneNumber: normalizeKoreanPhoneNumber(payload?.phone_number || payload?.phoneNumber || ""),
@@ -997,6 +1069,7 @@ function mapSocialProfile(provider, payload) {
     return {
       providerId: String(profile?.id || ""),
       email: profile?.email ? String(profile.email).toLowerCase() : "",
+      emailVerified: profile?.email_verified === false ? false : (profile?.email_verified === true ? true : null),
       name: String(profile?.name || profile?.nickname || "Naver user"),
       image: String(profile?.profile_image || ""),
       phoneNumber: normalizeKoreanPhoneNumber(profile?.mobile || profile?.mobile_e164 || profile?.phone || profile?.phoneNumber || ""),
@@ -1009,13 +1082,18 @@ function mapSocialProfile(provider, payload) {
     return {
       providerId: String(payload?.id || ""),
       email: account?.email ? String(account.email).toLowerCase() : "",
+      emailVerified: account?.is_email_verified === false ? false : (account?.is_email_verified === true ? true : null),
       name: String(profile?.nickname || "Kakao user"),
       image: String(profile?.profile_image_url || profile?.thumbnail_image_url || ""),
       phoneNumber: normalizeKoreanPhoneNumber(account?.phone_number || account?.phoneNumber || account?.phone || ""),
     };
   }
 
-  return { providerId: "", email: "", name: "", image: "" };
+  return { providerId: "", email: "", emailVerified: null, name: "", image: "" };
+}
+
+function hasExplicitlyUnverifiedSocialEmail(profile) {
+  return Boolean(profile?.email) && profile?.emailVerified === false;
 }
 
 async function exchangeCodeForAccessToken(provider, code, request, env, stateToken, redirectUriOverride) {
@@ -1092,6 +1170,9 @@ async function findOrCreateSocialUser(provider, profile, env) {
   if (profile.email) {
     user = await User.findOne({ email: profile.email });
     if (user) {
+      if (hasExplicitlyUnverifiedSocialEmail(profile)) {
+        throw new Error(`${provider}_email_unverified`);
+      }
       user.set(socialField, profile.providerId);
       user.set(`socialAccounts.${provider}.connectedAt`, new Date());
       if (!String(user.profileImage || "").trim() && String(profile.image || "").trim()) {
@@ -1616,12 +1697,22 @@ async function handleRegister(request, env) {
         );
       }
 
+      if (!isLocalAuthEnabled(existing) || !existing.passwordHash) {
+        return signupErrorResponse(
+          request,
+          env,
+          409,
+          "social_account",
+          "소셜 로그인으로 가입된 계정이에요. 구글/카카오/네이버로 로그인해 주세요.",
+        );
+      }
+
       return signupErrorResponse(
         request,
         env,
         409,
         "duplicate_email",
-        "This email is already registered.",
+        "이미 사용 중인 이메일이에요.",
       );
     }
   } catch (error) {
@@ -1681,7 +1772,7 @@ async function handleRegister(request, env) {
         env,
         409,
         "duplicate_email",
-        "This email is already registered.",
+        "이미 사용 중인 이메일이에요.",
       );
     }
 
@@ -1778,6 +1869,7 @@ async function handleLogin(request, env) {
               joinedAt: 1,
               passwordHash: 1,
               localAuth: 1,
+              socialAccounts: 1,
             },
             maxTimeMS: dbMaxTimeMs,
           },
@@ -1785,11 +1877,19 @@ async function handleLogin(request, env) {
         timeoutMs,
         "auth_login_find_user",
       );
-      if (!user || !isLocalAuthEnabled(user) || !user.passwordHash) {
+      if (!user) {
         return json({
           ok: false,
-          code: "invalid_credentials",
-          message: "Email or password is incorrect.",
+          code: "email_not_found",
+          message: "가입되지 않은 이메일이에요.",
+        }, { status: 404 });
+      }
+
+      if (!isLocalAuthEnabled(user) || !user.passwordHash) {
+        return json({
+          ok: false,
+          code: "social_account",
+          message: "소셜 로그인으로 가입된 계정이에요. 구글/카카오/네이버로 로그인해 주세요.",
         }, { status: 401 });
       }
 
@@ -1801,8 +1901,8 @@ async function handleLogin(request, env) {
       if (!passwordOk) {
         return json({
           ok: false,
-          code: "invalid_credentials",
-          message: "Email or password is incorrect.",
+          code: "password_mismatch",
+          message: "비밀번호가 올바르지 않아요.",
         }, { status: 401 });
       }
 
@@ -1837,8 +1937,8 @@ async function handleLogin(request, env) {
       console.error("[auth/login] normalized auth failure:", error);
       return json({
         ok: false,
-        code: "invalid_credentials",
-        message: "Email or password is incorrect.",
+        code: "password_mismatch",
+        message: "비밀번호가 올바르지 않아요.",
       }, { status: 401 });
     }
   }
@@ -2107,6 +2207,13 @@ async function handleRefresh(request, env) {
     return response;
   }
 
+  if (!refreshSessionMatchesRequest(session, request)) {
+    await revokeAllUserRefreshSessions(userId);
+    const response = json({ ok: false, message: "Session changed. Please sign in again." }, { status: 401 });
+    clearAuthCookies(response, request, env);
+    return response;
+  }
+
   if (session.revokedAt) {
     await revokeAllUserRefreshSessions(userId);
     const response = json({ ok: false, message: "Session expired. Please sign in again." }, { status: 401 });
@@ -2177,9 +2284,45 @@ async function handleRefresh(request, env) {
 
 async function handleLogout(request, env) {
   const refreshToken = readRefreshTokenFromRequest(request);
-  if (refreshToken) {
-    const tokenHash = hashRefreshToken(refreshToken, env);
-    await markSessionRevoked(tokenHash, { revokedAt: new Date() });
+  const timeoutMs = getAuthOpTimeoutMs(env);
+
+  try {
+    await withAuthOpTimeout(connectDb(env), getAuthConnectTimeoutMs(env), "auth_logout_connect_db");
+
+    let logoutUserId = "";
+    if (refreshToken) {
+      const tokenHash = hashRefreshToken(refreshToken, env);
+      await markSessionRevoked(tokenHash, { revokedAt: new Date() });
+
+      try {
+        const payload = await verifyJwt(refreshToken, getRefreshTokenSecret(env), {
+          issuer: getJwtIssuer(env),
+          audience: getJwtAudience(env),
+        });
+        logoutUserId = extractRefreshUserId(payload);
+      } catch (e) {
+        logoutUserId = "";
+      }
+    }
+
+    if (!logoutUserId) {
+      try {
+        const auth = await requireAuth(request, env);
+        logoutUserId = String(auth?.userId || "");
+      } catch (e) {
+        logoutUserId = "";
+      }
+    }
+
+    if (logoutUserId) {
+      await withAuthOpTimeout(
+        revokeAllUserRefreshSessions(logoutUserId),
+        timeoutMs,
+        "auth_logout_revoke_user_sessions",
+      );
+    }
+  } catch (error) {
+    logAuthDiagnostic(request, env, "/api/auth/logout", "", "logout_revoke_failed", error);
   }
 
   const response = json({ ok: true, message: "Logged out." });
@@ -2454,6 +2597,8 @@ async function handleOAuthStart(request, env, provider) {
       scope: cfg.scope,
       state: stateToken,
     });
+    if (provider === "google") params.set("prompt", "select_account");
+    if (provider === "kakao") params.set("prompt", "login");
 
     return redirect(`${cfg.authorizationEndpoint}?${params.toString()}`);
   } catch (error) {
@@ -2696,6 +2841,13 @@ export async function handleAuthRoutes(request, env) {
       }
     }
 
+    if (
+      requiresSameOriginAuthGuard(method, path)
+      && !isAllowedSameOriginAuthRequest(request, env)
+    ) {
+      return json({ ok: false, code: "csrf_origin_mismatch", message: "Invalid auth request origin." }, { status: 403 });
+    }
+
     const oauthPathMatch = path.match(/^\/oauth\/([^/]+)\/(start|callback)$/);
     if (oauthPathMatch) {
       const feature = toOAuthFeature(String(oauthPathMatch[1] || "").toLowerCase());
@@ -2735,7 +2887,7 @@ export async function handleAuthRoutes(request, env) {
     logAuthDiagnostic(request, env, `/api/auth${path || ""}`, provider, "auth_route_failed", error);
     if (error && error.code === 11000) {
       return json({
-        message: "This email is already registered.",
+        message: "이미 사용 중인 이메일이에요.",
         code: "duplicate_email",
         error: "duplicate_email",
       }, { status: 409 });

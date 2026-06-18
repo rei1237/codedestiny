@@ -1,5 +1,5 @@
 import { getEnv } from "./env.js";
-import { cookieValue, createHttpError } from "./http.js";
+import { cookieValue, createHttpError, getRequestMeta } from "./http.js";
 import { signJwt, verifyJwt } from "./jwt.js";
 import { createHash } from "node:crypto";
 import { connectDb, mongoose } from "./db.js";
@@ -268,6 +268,7 @@ async function verifyRefreshSessionToAuth(request, env) {
     const tokenHash = hashRefreshToken(refreshToken, env);
     const session = await RefreshTokenSession.findOne({ tokenHash }).lean();
     if (!session || session.revokedAt) return null;
+    if (!refreshSessionMatchesRequest(session, request)) return null;
 
     const expiresAt = new Date(session.expiresAt || 0).getTime();
     if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return null;
@@ -297,6 +298,14 @@ async function verifyRefreshSessionToAuth(request, env) {
     logAuthError("verify-refresh-session", error, { hasRefreshToken: true });
     return null;
   }
+}
+
+function refreshSessionMatchesRequest(session, request) {
+  const storedUserAgent = String(session?.userAgent || "").trim();
+  if (!storedUserAgent) return true;
+  const currentUserAgent = String(getRequestMeta(request).userAgent || "").trim();
+  if (!currentUserAgent) return true;
+  return storedUserAgent === currentUserAgent;
 }
 
 function extractTokenUserId(payload) {

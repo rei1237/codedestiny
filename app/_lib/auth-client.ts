@@ -9,6 +9,32 @@ type RefreshSessionState = "success" | "invalid" | "transient";
 let refreshInFlight: Promise<RefreshSessionState> | null = null;
 let meRequestInFlight: Promise<Response> | null = null;
 
+const AUTH_LOCAL_STORAGE_KEYS = [
+  "fortune_auth_token",
+  "fortune_auth_user",
+  "fortune_auth_role",
+  "user",
+  "cdToken",
+];
+
+const AUTH_COOKIE_NAMES = [
+  "fortune_auth_token",
+  "fortune_auth_refresh",
+  "fortune_auth_role",
+  "next-auth.session-token",
+  "__Secure-next-auth.session-token",
+  "next-auth.csrf-token",
+  "__Host-next-auth.csrf-token",
+  "next-auth.callback-url",
+  "__Secure-next-auth.callback-url",
+  "authjs.session-token",
+  "__Secure-authjs.session-token",
+  "authjs.csrf-token",
+  "__Host-authjs.csrf-token",
+  "authjs.callback-url",
+  "__Secure-authjs.callback-url",
+];
+
 function buildRefreshTransientResponse(originalStatus: number) {
   return new Response(
     JSON.stringify({
@@ -27,21 +53,10 @@ function buildRefreshTransientResponse(originalStatus: number) {
   );
 }
 
-function readClientAccessToken() {
-  if (typeof window === "undefined") return "";
-  try {
-    return String(localStorage.getItem("fortune_auth_token") || "").trim();
-  } catch (e) {
-    return "";
-  }
-}
-
-function persistClientAccessToken(token: unknown) {
+function clearLegacyClientAccessToken() {
   if (typeof window === "undefined") return;
-  const normalized = String(token || "").trim();
-  if (!normalized) return;
   try {
-    localStorage.setItem("fortune_auth_token", normalized);
+    localStorage.removeItem("fortune_auth_token");
   } catch (e) {
     // ignore storage failures
   }
@@ -49,10 +64,6 @@ function persistClientAccessToken(token: unknown) {
 
 function buildAuthRequest(targetUrl: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers || {});
-  const token = readClientAccessToken();
-  if (token && !headers.has("Authorization")) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
 
   return new Request(targetUrl, {
     ...init,
@@ -100,15 +111,29 @@ function publishAuthSync(event: "login" | "logout") {
 
 export function clearClientAuthState() {
   if (typeof window === "undefined") return;
+  refreshInFlight = null;
+  meRequestInFlight = null;
   try {
-    localStorage.removeItem("fortune_auth_token");
-    localStorage.removeItem("fortune_auth_user");
+    AUTH_LOCAL_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
   } catch (e) {
     // ignore storage failures
   }
-  document.cookie = "fortune_auth_token=; path=/; max-age=0; samesite=lax";
-  document.cookie = "fortune_auth_refresh=; path=/; max-age=0; samesite=lax";
-  document.cookie = "fortune_auth_role=; path=/; max-age=0; samesite=lax";
+  try {
+    sessionStorage.clear();
+  } catch (e) {
+    // ignore storage failures
+  }
+  try {
+    const Kakao = (window as unknown as { Kakao?: { Auth?: { logout?: () => void } } }).Kakao;
+    Kakao?.Auth?.logout?.();
+  } catch (e) {
+    // ignore SDK logout failures
+  }
+  AUTH_COOKIE_NAMES.forEach((name) => {
+    document.cookie = `${name}=; path=/; max-age=0; samesite=lax`;
+    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=lax`;
+    document.cookie = `${name}=; path=/; max-age=0; samesite=lax; secure`;
+  });
 }
 
 async function refreshSession(apiBase: string) {
@@ -133,7 +158,7 @@ async function refreshSession(apiBase: string) {
 
         try {
           const payload = (await response.json()) as { user?: unknown; accessToken?: string };
-          persistClientAccessToken(payload?.accessToken);
+          clearLegacyClientAccessToken();
           if (payload?.user) {
             persistSanitizedAuthUser(payload.user);
             publishAuthSync("login");
@@ -205,6 +230,7 @@ export async function authFetch(input: string, init: RequestInit = {}, options: 
 
 export async function logoutWithServer(apiBase?: string) {
   const resolvedBase = String(apiBase || getApiBaseUrl() || "").trim();
+  clearClientAuthState();
   try {
     await fetch(toAbsoluteApiUrl("/api/auth/logout", resolvedBase), {
       method: "POST",

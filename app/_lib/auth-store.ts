@@ -87,6 +87,7 @@ let billingBalanceInFlight: Promise<number | null> | null = null;
 let meRequestSeq = 0;
 let latestAppliedMeSeq = 0;
 let lastRefreshCompletedAt = 0;
+let authMutationSeq = 0;
 
 function debugAuth(...args: unknown[]) {
   if (!IS_DEV) return;
@@ -242,7 +243,16 @@ function normalizeAuthApiError(payload: LoginApiPayload, fallbackMessage: string
 
   const code = String(payload.code || payload.error || "").trim().toUpperCase();
   if (code === "EMAIL_ALREADY_REGISTERED" || code === "DUPLICATE_EMAIL") {
-    return "이미 가입된 이메일입니다. 로그인 페이지에서 로그인해 주세요.";
+    return "이미 사용 중인 이메일이에요.";
+  }
+  if (code === "EMAIL_NOT_FOUND" || code === "USER_NOT_FOUND") {
+    return "가입되지 않은 이메일이에요.";
+  }
+  if (code === "PASSWORD_MISMATCH" || code === "INVALID_PASSWORD") {
+    return "비밀번호가 올바르지 않아요.";
+  }
+  if (code === "SOCIAL_ACCOUNT") {
+    return "소셜 로그인으로 가입된 계정이에요. 구글/카카오/네이버로 로그인해 주세요.";
   }
   if (code === "INVALID_CREDENTIALS") {
     return "이메일 또는 비밀번호를 다시 확인해 주세요.";
@@ -402,6 +412,8 @@ function applyResolvedUser(user: AuthUser | null) {
 }
 
 function clearAuthStateHard() {
+  authMutationSeq += 1;
+  refreshInFlight = null;
   clearClientAuthState();
   setState({
     user: null,
@@ -411,10 +423,15 @@ function clearAuthStateHard() {
 
 async function loadMeFromServer() {
   const requestSeq = ++meRequestSeq;
+  const requestAuthMutationSeq = authMutationSeq;
   const response = await authFetch("/api/auth/me", {
     method: "GET",
     cache: "no-store",
   }, { retryOn401: true });
+
+  if (requestAuthMutationSeq !== authMutationSeq) {
+    return state.user;
+  }
 
   if (requestSeq < latestAppliedMeSeq) {
     return state.user;
@@ -431,6 +448,10 @@ async function loadMeFromServer() {
   }
 
   const payload = (await response.json()) as { user?: AuthUser };
+  if (requestAuthMutationSeq !== authMutationSeq) {
+    return state.user;
+  }
+
   const cachedUser = readSanitizedAuthUser() as AuthUser | null;
   const user = resolveSafeUser(mergeAuthUsers(cachedUser, payload?.user || null)) as AuthUser | null;
   latestAppliedMeSeq = requestSeq;
@@ -487,16 +508,17 @@ export async function refreshAuth(options: { force?: boolean; silent?: boolean }
 
 export async function login(credentials: LoginCredentials) {
   if (state.isLoggingIn) {
-    throw new Error("로그인이 이미 진행 중입니다. 잠시만 기다려 주세요.");
+    throw new Error("로그인이 이미 진행 중이에요. 잠시만 기다려 주세요.");
   }
 
+  authMutationSeq += 1;
   const apiBase = String(credentials.apiBase || getApiBaseUrl() || "").trim();
   const email = String(credentials.email || "").trim();
   const password = String(credentials.password || "");
   const nextPath = String(credentials.nextPath || "/");
 
   if (!email || password.length < 8) {
-    throw new Error("아이디(이메일)와 비밀번호를 확인해 주세요.");
+    throw new Error("이메일과 비밀번호를 확인해 주세요.");
   }
 
   setState({
@@ -534,9 +556,9 @@ export async function login(credentials: LoginCredentials) {
         break;
       } catch (error) {
         const timeoutError = isAbortError(error)
-          ? new Error("로그인 요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.")
+          ? new Error("로그인 요청 시간이 초과됐어요. 잠시 후 다시 시도해 주세요.")
           : null;
-        lastError = timeoutError || (error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다."));
+        lastError = timeoutError || (error instanceof Error ? error : new Error("네트워크 오류가 발생했어요."));
         if (attempt < LOGIN_MAX_ATTEMPTS - 1) {
           await sleep(LOGIN_RETRY_BASE_DELAY_MS * (attempt + 1));
           continue;
@@ -545,20 +567,18 @@ export async function login(credentials: LoginCredentials) {
     }
 
     if (!response) {
-      throw (lastError || new Error("로그인 처리 중 오류가 발생했습니다."));
+      throw (lastError || new Error("로그인 처리 중 오류가 발생했어요."));
     }
 
     const payload = await parseJsonResponse<LoginApiPayload>(response);
     if (!response.ok) {
-      throw new Error(normalizeAuthApiError(payload, "로그인에 실패했습니다."));
+      throw new Error(normalizeAuthApiError(payload, "로그인에 실패했어요."));
     }
 
-    if (payload.accessToken) {
-      try {
-        localStorage.setItem("fortune_auth_token", String(payload.accessToken));
-      } catch (e) {
-        // ignore storage failures
-      }
+    try {
+      localStorage.removeItem("fortune_auth_token");
+    } catch (e) {
+      // ignore storage failures
     }
 
     debugAuth("[auth] login api success");
@@ -575,7 +595,7 @@ export async function login(credentials: LoginCredentials) {
     }
 
     if (!resolvedUser) {
-      throw new Error("로그인은 완료되었지만 사용자 정보를 불러오지 못했습니다.");
+      throw new Error("로그인은 완료됐지만 사용자 정보를 불러오지 못했어요.");
     }
 
     debugAuth("[auth] user ready", resolvedUser.id || resolvedUser.userId || resolvedUser._id || resolvedUser.uid || "");
@@ -597,7 +617,7 @@ export async function login(credentials: LoginCredentials) {
       nextPath: String(payload.nextPath || nextPath || "/"),
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "로그인 처리 중 오류가 발생했습니다.";
+    const message = error instanceof Error ? error.message : "로그인 처리 중 오류가 발생했어요.";
     setState({ error: message });
     throw error;
   } finally {

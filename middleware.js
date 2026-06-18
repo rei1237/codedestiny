@@ -102,6 +102,13 @@ const LANDING_ONLY_ROUTES = new Set([
   "/landing",
 ]);
 
+const PROTECTED_AUTH_ROUTE_PREFIXES = [
+  "/dashboard",
+  "/mypage",
+  "/me",
+  "/points",
+];
+
 function isStaticAssetPath(pathname) {
   if (!pathname) return false;
   for (const prefix of STATIC_PREFIXES) {
@@ -359,6 +366,12 @@ export function middleware(request) {
   }
 
   const routePath = stripLocaleSlug(normalizedPath);
+
+  if (PROTECTED_AUTH_ROUTE_PREFIXES.some((prefix) => routePath === prefix || routePath.startsWith(`${prefix}/`))) {
+    if (!hasAuthSessionCookie(request)) {
+      return NextResponse.redirect(buildLoginRedirectUrl(request), 307);
+    }
+  }
 
   const actionForRoute = SERVICE_ROUTE_ACTIONS.get(routePath);
   if (actionForRoute) {

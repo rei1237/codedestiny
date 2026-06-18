@@ -5,6 +5,7 @@ const PBKDF2_PREFIX = "pbkdf2-sha256";
 const PBKDF2_LEGACY_PREFIX = "pbkdf2$sha256";
 const PBKDF2_SALT_BYTES = 16;
 const PBKDF2_KEY_BYTES = 32;
+const BCRYPT_ROUNDS = 12;
 
 function toBase64Url(uint8Array) {
   if (typeof btoa !== "function" && typeof Buffer !== "undefined") {
@@ -83,14 +84,7 @@ async function signPasswordHmac(password, salt) {
 }
 
 export async function hashPassword(password) {
-  const salt = crypto.getRandomValues(new Uint8Array(PBKDF2_SALT_BYTES));
-  const hash = await signPasswordHmac(password, salt);
-
-  return [
-    HMAC_PREFIX,
-    toBase64Url(salt),
-    toBase64Url(hash),
-  ].join("$");
+  return bcrypt.hash(String(password || ""), BCRYPT_ROUNDS);
 }
 
 async function verifyHmac(password, encodedHash) {

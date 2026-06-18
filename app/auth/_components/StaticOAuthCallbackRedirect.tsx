@@ -188,11 +188,9 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
     }
 
     function persistAuthFromCallback(payload) {
-      if (payload && payload.accessToken) {
-        try {
-          localStorage.setItem("fortune_auth_token", String(payload.accessToken));
-        } catch (e) {}
-      }
+      try {
+        localStorage.removeItem("fortune_auth_token");
+      } catch (e) {}
 
       if (payload && payload.user) {
         const safeUser = sanitizeAndPersistAuthUser(payload.user);

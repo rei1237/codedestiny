@@ -5,6 +5,7 @@ import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
 import { Suspense } from "react";
 import DeferredAdsense from "./components/DeferredAdsense";
+import LegacyAuthTokenCleanup from "./components/LegacyAuthTokenCleanup";
 import NavigationProvider from "./providers/NavigationProvider";
 import AppChrome from "./components/AppChrome";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
@@ -133,6 +134,7 @@ export default function RootLayout({ children }) {
           <Suspense>
             <NavigationProvider>
               <DeferredAdsense />
+              <LegacyAuthTokenCleanup />
               <BuildInfoLogger />
               <AppVersionGuard />
               <ToastProvider />

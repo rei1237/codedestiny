@@ -143,7 +143,10 @@ function normalizeAuthApiError(payload: SignupResult & { errors?: string[] }, fa
 
   const code = String(payload.code || payload.error || "").trim().toUpperCase();
   if (code === "EMAIL_ALREADY_REGISTERED" || code === "DUPLICATE_EMAIL") {
-    return "이미 가입된 이메일입니다. 로그인 페이지에서 로그인해 주세요.";
+    return "이미 사용 중인 이메일이에요.";
+  }
+  if (code === "SOCIAL_ACCOUNT") {
+    return "소셜 로그인으로 가입된 계정이에요. 구글/카카오/네이버로 로그인해 주세요.";
   }
 
   return payload.message || fallbackMessage;
@@ -261,12 +264,10 @@ export default function SignupPage() {
     if (user || accessToken) {
       authCommittedRef.current = true;
     }
-    if (accessToken) {
-      try {
-        localStorage.setItem("fortune_auth_token", String(accessToken));
-      } catch (e) {
-        // ignore storage failures
-      }
+    try {
+      localStorage.removeItem("fortune_auth_token");
+    } catch (e) {
+      // ignore storage failures
     }
     if (user) {
       const safeUser = persistSanitizedAuthUser(user);

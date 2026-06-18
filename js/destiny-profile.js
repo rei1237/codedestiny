@@ -529,23 +529,11 @@
   ────────────────────────────────────────── */
   function _dpReadStoredAuthToken() {
     try {
-      var primary = String(localStorage.getItem('fortune_auth_token') || '').trim();
-      if (primary) return primary;
-
-      var sessionToken = String(sessionStorage.getItem('fortune_auth_token') || '').trim();
-      if (sessionToken) {
-        try { localStorage.setItem('fortune_auth_token', sessionToken); } catch (_) {}
-        return sessionToken;
-      }
-
-      var legacy = String(localStorage.getItem('cdToken') || '').trim();
-      if (!legacy) return '';
-
-      try { localStorage.setItem('fortune_auth_token', legacy); } catch (_) {}
-      return legacy;
+      localStorage.removeItem('fortune_auth_token');
+      sessionStorage.removeItem('fortune_auth_token');
     } catch (e) {
-      return '';
     }
+    return '';
   }
 
   function _dpGetAuthToken() {
@@ -554,8 +542,6 @@
 
   function _dpBuildAuthHeaders(baseHeaders) {
     var headers = Object.assign({}, baseHeaders || {});
-    var token = _dpGetAuthToken();
-    if (token) headers.Authorization = 'Bearer ' + token;
     return headers;
   }
 
@@ -796,10 +782,7 @@
 
             return response.json().catch(function() { return null; }).then(function(payload) {
               if (!payload || payload.ok !== true) return false;
-              var accessToken = String((payload && payload.accessToken) || '').trim();
-              if (accessToken) {
-                try { localStorage.setItem('fortune_auth_token', accessToken); } catch (_) {}
-              }
+              try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
               if (payload && payload.user) _dpPersistSessionUser(payload.user);
               return true;
             });
@@ -1154,9 +1137,7 @@
       var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
       var ok = !!userId;
       if (ok) {
-        if (payload && payload.accessToken) {
-          try { localStorage.setItem('fortune_auth_token', String(payload.accessToken)); } catch (_) {}
-        }
+        try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
         _dpPersistSessionUser(user);
       }
       _dpMarkSessionVerify(ok, userId);
