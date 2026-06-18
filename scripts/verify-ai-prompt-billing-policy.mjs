@@ -94,24 +94,26 @@ assert.match(sajuPromptLibSource, /buildSajuAdvancedFactors/, "saju prompt libra
 assert.match(sajuPromptLibSource, /hiddenStemExposures/, "saju prompt library must retain hidden-stem exposure updates");
 assert.match(sajuPromptLibSource, /earthStorageOpenings/, "saju prompt library must retain earth storage opening updates");
 assert.match(sajuEngineSource, /engineContext:\s*_sajuPromptBuildEngineContext\(\)/, "saju prompt payload must retain the current hidden-stem engine context");
+assert.match(sajuPromptRequestSource, /accessDecision:\s*evidence\.accessDecision/, "saju prompt generation must forward accessDecision evidence");
+assert.match(sajuPromptRequestSource, /freeBySubscription:\s*evidence\.freeBySubscription/, "saju prompt generation must forward pass evidence");
 assert.match(fortuneSource, /accessDecision\.requestId/, "AI prompt token collection must include accessDecision request evidence");
 assert.match(fortuneSource, /accessDecision\.accessGranted === true/, "AI prompt pass payload must honor granted accessDecision evidence");
 assert.match(fortuneSource, /function readAIPromptRequestId/, "AI prompt routes must share request-id resolution");
 assert.match(fortuneSource, /body\?\.idempotencyKey[\s\S]*paymentContext\.idempotencyKey[\s\S]*body\?\.requestId[\s\S]*paymentContext\.requestId[\s\S]*fallbackRequestId/, "AI prompt request-id resolution must prefer client payment flow ids");
 assert.equal(
   (fortuneSource.match(/const requestId = readAIPromptRequestId\(body, fallbackRequestId\);/g) || []).length,
-  4,
-  "astrology, vedic, ziwei, and sukuyo prompt routes must use payment-flow request ids",
+  promptFeatures.length,
+  "all AI prompt routes must use payment-flow request ids",
 );
 assert.equal(
   (fortuneSource.match(/accessGrant: body\?\.accessGrant,\s*\n\s*accessDecision: body\?\.accessDecision,\s*\n\s*freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
-  promptFeatures.length - 1,
-  "non-saju AI prompt generation routes must forward accessDecision into paid-access verification",
+  promptFeatures.length,
+  "AI prompt generation routes must forward accessDecision into paid-access verification",
 );
 assert.equal(
   (fortuneSource.match(/freeBySubscription: body\?\.freeBySubscription === true/g) || []).length,
-  promptFeatures.length - 1,
-  "non-saju AI prompt generation routes must forward subscription pass evidence into paid-access verification",
+  promptFeatures.length,
+  "AI prompt generation routes must forward subscription pass evidence into paid-access verification",
 );
 assert.doesNotMatch(
   sajuEngineSource,

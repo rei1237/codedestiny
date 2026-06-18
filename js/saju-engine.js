@@ -4981,18 +4981,27 @@ function _cdAIPromptGateEvidence(gateResult) {
   var data = gate.data && typeof gate.data === 'object' ? gate.data : {};
   var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
   var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
+  var accessDecision = data.accessDecision && typeof data.accessDecision === 'object' ? data.accessDecision : {};
+  var payment = data.payment && typeof data.payment === 'object' ? data.payment : undefined;
   return {
-    requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
+    requestId: String(gate.requestId || data.requestId || accessDecision.requestId || accessGrant.requestId || consume.requestId || '').trim(),
     accessGrant: accessGrant,
+    accessDecision: accessDecision,
+    freeBySubscription: data.freeBySubscription === true,
     consume: consume,
-    payment: data.payment && typeof data.payment === 'object' ? data.payment : undefined,
+    payment: payment,
     _paymentContext: {
-      requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
+      requestId: String(gate.requestId || data.requestId || accessDecision.requestId || accessGrant.requestId || consume.requestId || '').trim(),
       featureKey: String(data.featureKey || accessGrant.featureKey || consume.featureKey || '').trim(),
-      transactionId: String(data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
-      accessType: String(data.accessType || accessGrant.accessType || consume.accessType || '').trim(),
-      accessMethod: String(data.accessMethod || accessGrant.accessMethod || consume.accessMethod || consume.paymentMethod || '').trim(),
-      paymentMode: String(data.paymentMode || accessGrant.paymentMode || consume.paymentMode || '').trim()
+      transactionId: String(data.transactionId || consume.transactionId || accessDecision.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
+      ledgerId: String(data.ledgerId || data.monthlyCreditLedgerId || consume.ledgerId || consume.monthlyCreditLedgerId || accessDecision.ledgerId || accessDecision.monthlyCreditLedgerId || '').trim(),
+      monthlyCreditLedgerId: String(data.monthlyCreditLedgerId || data.ledgerId || consume.monthlyCreditLedgerId || consume.ledgerId || accessDecision.monthlyCreditLedgerId || accessDecision.ledgerId || '').trim(),
+      purchaseId: String(data.purchaseId || consume.purchaseId || accessDecision.purchaseId || accessGrant.purchaseId || '').trim(),
+      paymentId: String(data.paymentId || (payment && payment.paymentId) || accessDecision.paymentId || accessGrant.paymentId || consume.paymentId || '').trim(),
+      idempotencyKey: String(data.idempotencyKey || accessDecision.idempotencyKey || consume.idempotencyKey || '').trim(),
+      accessType: String(data.accessType || accessDecision.accessType || accessGrant.accessType || consume.accessType || '').trim(),
+      accessMethod: String(data.accessMethod || accessDecision.accessMethod || accessGrant.accessMethod || consume.accessMethod || consume.paymentMethod || '').trim(),
+      paymentMode: String(data.paymentMode || accessDecision.paymentMode || accessGrant.paymentMode || consume.paymentMode || '').trim()
     }
   };
 }
@@ -5620,6 +5629,8 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain) {
         sajuResult: _buildSajuAIPromptPayload(privacyOptions),
         requestId: evidence.requestId || ('saju-ai-prompt:' + requestNonce),
         accessGrant: evidence.accessGrant,
+        accessDecision: evidence.accessDecision,
+        freeBySubscription: evidence.freeBySubscription,
         consume: evidence.consume,
         payment: evidence.payment,
         _paymentContext: evidence._paymentContext

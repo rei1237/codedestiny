@@ -2807,7 +2807,8 @@ async function handleSajuAIPrompt(request, auth, env) {
   const digestBase = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
   const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
   const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
-  const requestId = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+  const fallbackRequestId = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
+  const requestId = readAIPromptRequestId(body, fallbackRequestId);
 
   let chargedCoins = 0;
   let sourceTransactionId = "";
@@ -2829,6 +2830,8 @@ async function handleSajuAIPrompt(request, auth, env) {
         subFeatureKey: String(builtPrompt.domain || builtPrompt.questionType || "general").slice(0, 60),
         payloadHash,
         accessGrant: body?.accessGrant,
+        accessDecision: body?.accessDecision,
+        freeBySubscription: body?.freeBySubscription === true,
         consume: body?.consume,
         payment: body?.payment,
         _paymentContext: body?._paymentContext,
