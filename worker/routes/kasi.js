@@ -432,6 +432,10 @@ async function requestLegacyMethod(env, methodRaw, paramsRaw) {
   });
 }
 
+export async function requestKasiLegacyCalendarMethod(env, methodRaw, paramsRaw) {
+  return requestLegacyMethod(env, methodRaw, paramsRaw);
+}
+
 async function requestCalendarSummary(env, inputRaw) {
   const input = normalizeCalendarInput(inputRaw);
   const dateKey = buildCalendarDateKey(input);

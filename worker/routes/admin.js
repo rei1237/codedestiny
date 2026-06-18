@@ -24,6 +24,7 @@ import { buildCompatibilityFromIndices, buildSukuyoFromLunar } from "../lib/suku
 import { getSwissWesternChart, getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
 import { buildAstroLocalChartJson, normalizeAstroPremiumBirthInput } from "../lib/astro-premium-generator.js";
 import { buildVedicLocalChartJson } from "../lib/vedic-premium-generator.js";
+import { requestKasiLegacyCalendarMethod } from "./kasi.js";
 import { Lunar, Solar } from "lunar-javascript";
 
 const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
@@ -408,6 +409,11 @@ function parseAdminBirthTime(value, unknown) {
 function assertAdminCalendarBirthDate(birthDate, calendarType) {
   if (calendarType === "solar") return;
 
+  if (birthDate.month < 1 || birthDate.month > 12 || birthDate.day < 1 || birthDate.day > 30) {
+    throw createHttpError(400, "\uc74c\ub825 \uc0dd\ub144\uc6d4\uc77c \uac12\uc774 \uc62c\ubc14\ub974\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.", { code: "INVALID_LUNAR_DATE" });
+  }
+  return;
+
   const lunarMonth = calendarType === "lunar_leap" ? -Math.abs(birthDate.month) : Math.abs(birthDate.month);
   try {
     Lunar.fromYmd(birthDate.year, lunarMonth, birthDate.day);
@@ -419,7 +425,7 @@ function assertAdminCalendarBirthDate(birthDate, calendarType) {
   }
 }
 
-function buildAdminPromptProfile(body) {
+export function buildAdminPromptProfile(body) {
   const birthDate = parseAdminBirthDate(body?.birthDate || body?.birth_date);
   const birthTime = parseAdminBirthTime(body?.birthTime || body?.birth_time, body?.birthTimeUnknown === true);
   const gender = normalizeAdminGender(body?.gender);
@@ -469,6 +475,7 @@ function buildAdminPromptProfile(body) {
 }
 
 function buildAdminBirthObject(profile) {
+  const promptCalendarType = profile.promptCalendarType || profile.inputCalendarType || profile.calendarType;
   return {
     year: profile.year,
     month: profile.month,
@@ -476,14 +483,110 @@ function buildAdminBirthObject(profile) {
     hour: profile.hour,
     minute: profile.minute,
     gender: profile.gender,
-    calType: profile.calendarType,
-    calendarType: profile.calendarType,
-    isLeapMonth: profile.calendarType === "lunar_leap",
+    calType: promptCalendarType,
+    calendarType: promptCalendarType,
+    isLeapMonth: promptCalendarType === "lunar_leap",
     timeUnknown: profile.timeUnknown,
     timezone: profile.timezone,
     lat: profile.latitude,
     lon: profile.longitude,
   };
+}
+
+function formatAdminDateText(year, month, day) {
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function parseAdminKasiSolarRow(row) {
+  const year = toAdminNumber(row?.solYear ?? row?.year ?? row?.solarYear, null);
+  const month = toAdminNumber(row?.solMonth ?? row?.month ?? row?.solarMonth, null);
+  const day = toAdminNumber(row?.solDay ?? row?.day ?? row?.solarDay, null);
+  if (!year || !month || !day) return null;
+  return {
+    year: Math.trunc(year),
+    month: Math.trunc(month),
+    day: Math.trunc(day),
+    raw: row,
+  };
+}
+
+export function buildAdminSajuEngineProfileFromKasiSolar(profile, solar, source = "kasi") {
+  const year = Math.trunc(Number(solar?.year || 0));
+  const month = Math.trunc(Number(solar?.month || 0));
+  const day = Math.trunc(Number(solar?.day || 0));
+  if (!year || !month || !day) {
+    throw createHttpError(400, "KASI lunar conversion returned an invalid solar date.", { code: "KASI_LUNAR_CONVERSION_INVALID" });
+  }
+
+  const inputCalendarType = profile.inputCalendarType || profile.calendarType;
+  const inputBirthDateText = profile.inputBirthDateText || profile.birthDateText;
+  const resolvedSolarDateText = formatAdminDateText(year, month, day);
+  return {
+    ...profile,
+    year,
+    month,
+    day,
+    birthDateText: resolvedSolarDateText,
+    calendarType: "solar",
+    inputCalendarType,
+    promptCalendarType: inputCalendarType,
+    inputBirthDateText,
+    resolvedSolarDateText,
+    kasiCalendarContext: {
+      source,
+      inputCalendarType,
+      inputBirthDateText,
+      lunar: {
+        year: profile.year,
+        month: profile.month,
+        day: profile.day,
+        isLeap: inputCalendarType === "lunar_leap",
+      },
+      solar: {
+        year,
+        month,
+        day,
+        date: resolvedSolarDateText,
+      },
+    },
+  };
+}
+
+export async function resolveAdminSajuEngineProfile(profile, env) {
+  if (profile.calendarType === "solar") {
+    return {
+      ...profile,
+      inputCalendarType: "solar",
+      promptCalendarType: "solar",
+      inputBirthDateText: profile.birthDateText,
+      resolvedSolarDateText: profile.birthDateText,
+      kasiCalendarContext: {
+        source: "input-solar",
+        inputCalendarType: "solar",
+        inputBirthDateText: profile.birthDateText,
+        solar: {
+          year: profile.year,
+          month: profile.month,
+          day: profile.day,
+          date: profile.birthDateText,
+        },
+      },
+    };
+  }
+
+  const response = await requestKasiLegacyCalendarMethod(env, "getSolCalInfo", {
+    lunYear: String(profile.year),
+    lunMonth: String(profile.month).padStart(2, "0"),
+    lunDay: String(profile.day).padStart(2, "0"),
+    lunLeapmonth: profile.calendarType === "lunar_leap" ? "\uc724" : "\ud3c9",
+  });
+  const solar = (Array.isArray(response?.rows) ? response.rows : [])
+    .map(parseAdminKasiSolarRow)
+    .find(Boolean);
+  if (!solar) {
+    throw createHttpError(400, "KASI could not resolve the lunar birth date.", { code: "KASI_LUNAR_CONVERSION_EMPTY" });
+  }
+  return buildAdminSajuEngineProfileFromKasiSolar(profile, solar, response?.source || "kasi");
 }
 
 function assertAdminPromptProfileReady(service, profile) {
@@ -908,7 +1011,7 @@ function applyAdminSajuPromptPrivacy(payload, options = {}) {
   return out;
 }
 
-function buildAdminSajuResultFromEngine(profile, options = {}) {
+export function buildAdminSajuResultFromEngine(profile, options = {}) {
   const engineProfile = buildSajuProfile({
     name: profile.name,
     gender: profile.gender,
@@ -1070,6 +1173,7 @@ function buildAdminSajuResultFromEngine(profile, options = {}) {
         monthBranch: pillars.m.j,
         currentAge: age,
         timeCorrection: engineProfile?.timeCorrection || null,
+        kasiCalendarContext: profile.kasiCalendarContext || null,
         policies: {
           hourPillarTimePolicy: profile.timeCorrectionPolicy,
           dayChangePolicy: profile.dayChangePolicy,
@@ -1942,8 +2046,10 @@ function normalizeAdminPromptLabResult({ built, service, domain, profile, questi
       name: profile.name,
       gender: profile.gender,
       genderLabel: profile.genderLabel,
-      birthDate: profile.birthDateText,
-      calendarType: profile.calendarType,
+      birthDate: profile.inputBirthDateText || profile.birthDateText,
+      calendarType: profile.inputCalendarType || profile.calendarType,
+      resolvedSolarBirthDate: profile.resolvedSolarDateText || profile.birthDateText,
+      calendarSource: profile.kasiCalendarContext?.source || (profile.calendarType === "solar" ? "input-solar" : ""),
       birthTime: profile.birthTimeText,
       birthTimeUnknown: profile.timeUnknown,
       birthPlace: profile.birthPlace || "",
@@ -1979,10 +2085,13 @@ async function handleAdminPromptLabGenerate(request, env) {
   assertAdminPromptProfileReady(service, profile);
   const domain = normalizeAdminPromptDomain(service, body.domain) || "";
   const promptConfig = service === "saju" ? buildAdminSajuPromptConfig(body) : null;
+  const engineProfile = service === "saju"
+    ? await resolveAdminSajuEngineProfile(profile, env)
+    : profile;
   const built = await buildAdminPromptByService({
     service,
     question,
-    profile,
+    profile: engineProfile,
     domain,
     promptConfig,
     env,
@@ -1993,7 +2102,7 @@ async function handleAdminPromptLabGenerate(request, env) {
     built,
     service,
     domain,
-    profile,
+    profile: engineProfile,
     question,
     adminContext,
     requestId,
