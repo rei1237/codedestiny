@@ -7,7 +7,7 @@ import {
 
 const DEFAULT_TEXT = "제공되지 않음";
 
-export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_question_prompt";
+export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = 100;
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 

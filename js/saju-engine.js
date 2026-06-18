@@ -4906,7 +4906,6 @@ function _cdAIPromptGate(input) {
   var featureKey = String(opts.featureKey || '').trim();
   var reason = String(opts.reason || 'AI 질문 프롬프트 생성').trim();
   var requestId = String(opts.requestId || featureKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)).trim();
-  var profileId = String(opts.profileId || opts.selectedProfileId || '').trim();
   var cost = Number(opts.cost || 100);
   if (!Number.isFinite(cost) || cost <= 0) cost = 100;
   function normalize(result) {
@@ -4932,39 +4931,17 @@ function _cdAIPromptGate(input) {
       subFeatureKey: String(opts.subFeatureKey || '').trim() || undefined,
       coinPrice: cost,
       cost: cost,
-      amountKrw: Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || (cost * 100)))),
-      amountKRW: Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || (cost * 100)))),
-      paymentAmount: Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || (cost * 100)))),
-      membershipCreditCost: Math.max(0, Math.floor(Number(opts.membershipCreditCost || (cost * 10)))),
-      forcePassFirst: true,
-      requestId: requestId,
-      profileId: profileId || undefined,
-      selectedProfileId: profileId || undefined
+      requestId: requestId
     })).then(function(openResult) {
       if (openResult && openResult.status === 'granted') {
-        if (_cdAIPromptIsPassPayload(openResult.payload || {}, openResult.access || null)) {
-          return _cdAIPromptRecordedMembershipPass(opts, requestId, openResult.payload || {}).then(function(recordedResult) {
-            if (recordedResult && recordedResult.ok) return normalize(recordedResult);
-            return normalize({
-              ok: false,
-              status: Number((recordedResult && recordedResult.status) || 402),
-              payload: (recordedResult && recordedResult.payload) || {
-                code: 'PAYMENT_REQUIRED',
-                message: '\uC774\uC6A9\uAD8C \uC801\uC6A9 \uC99D\uAC70\uB97C \uC800\uC7A5\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.',
-                requiredCoins: cost
-              }
-            });
-          });
-        }
         return normalize({ ok: true, status: 200, payload: openResult.payload || {} });
       }
-      var openMessage = String(openResult && (openResult.message || openResult.reason) || '').trim();
       return normalize({
         ok: false,
         status: 402,
         payload: {
           code: 'PAYMENT_REQUIRED',
-          message: openMessage || '\uC774\uC6A9\uAD8C \uB610\uB294 \uB2E8\uAC74\uACB0\uC81C \uD655\uC778 \uD6C4 \uD504\uB86C\uD504\uD2B8\uB97C \uC0DD\uC131\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.',
+          message: '이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.',
           requiredCoins: cost
         }
       });
@@ -4986,8 +4963,6 @@ function _cdAIPromptGate(input) {
       featureKey: featureKey,
       reason: reason,
       requestId: requestId,
-      profileId: profileId || undefined,
-      selectedProfileId: profileId || undefined,
       categoryKey: String(opts.categoryKey || 'ai-prompt').trim(),
       paymentMode: 'MEMBERSHIP_PASS',
       forceDeduct: true
@@ -5004,45 +4979,28 @@ function _cdAIPromptGate(input) {
 function _cdAIPromptGateEvidence(gateResult) {
   var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
   var data = gate.data && typeof gate.data === 'object' ? gate.data : {};
-  var layers = _cdAIPromptPayloadLayers(gate.payload || data);
-  var consume = _cdAIPromptFirstObject(layers, 'consume');
-  var accessGrant = _cdAIPromptFirstObject(layers, 'accessGrant');
-  var accessDecision = _cdAIPromptFirstObject(layers, 'accessDecision');
-  var payment = _cdAIPromptFirstObject(layers, 'payment');
-  var requestId = String(gate.requestId || accessGrant.requestId || accessDecision.requestId || consume.requestId || _cdAIPromptFirstString(layers, ['requestId', 'purchaseId']) || '').trim();
-  var accessType = _cdAIPromptFirstString(layers, ['accessType', 'transactionType']) || String(accessGrant.accessType || accessDecision.accessType || accessDecision.transactionType || consume.accessType || '').trim();
-  var accessMethod = _cdAIPromptFirstString(layers, ['accessMethod', 'paymentMethod']) || String(accessGrant.accessMethod || accessDecision.accessMethod || accessDecision.paymentMethod || consume.accessMethod || consume.paymentMethod || '').trim();
-  var paymentMode = _cdAIPromptFirstString(layers, ['paymentMode', 'accessMode']) || String(accessGrant.paymentMode || accessDecision.paymentMode || consume.paymentMode || '').trim();
-  var ledgerId = _cdAIPromptFirstString(layers, ['ledgerId', 'monthlyCreditLedgerId']);
-  var idempotencyKey = _cdAIPromptFirstString(layers, ['idempotencyKey']);
-  var transactionId = _cdAIPromptFirstString(layers, ['transactionId', 'ledgerId', 'paymentId', 'purchaseId'])
-    || String(consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || accessDecision.transactionId || accessDecision.evidenceId || accessDecision.purchaseId || '').trim();
+  var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
+  var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
   return {
-    requestId: requestId,
+    requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
     accessGrant: accessGrant,
-    accessDecision: accessDecision,
-    freeBySubscription: layers.some(function(layer) { return layer && layer.freeBySubscription === true; }),
     consume: consume,
-    payment: payment && Object.keys(payment).length ? payment : undefined,
+    payment: data.payment && typeof data.payment === 'object' ? data.payment : undefined,
     _paymentContext: {
-      requestId: requestId,
-      featureKey: _cdAIPromptFirstString(layers, ['featureKey', 'serviceKey', 'contentId']) || String(accessGrant.featureKey || accessDecision.featureKey || consume.featureKey || '').trim(),
-      transactionId: transactionId,
-      ledgerId: ledgerId || String(consume.ledgerId || accessGrant.ledgerId || accessDecision.ledgerId || '').trim(),
-      purchaseId: _cdAIPromptFirstString(layers, ['purchaseId']) || String(accessGrant.purchaseId || consume.purchaseId || requestId).trim(),
-      idempotencyKey: idempotencyKey || requestId,
-      accessType: accessType,
-      accessMethod: accessMethod,
-      paymentMode: paymentMode
+      requestId: String(gate.requestId || accessGrant.requestId || consume.requestId || '').trim(),
+      featureKey: String(data.featureKey || accessGrant.featureKey || consume.featureKey || '').trim(),
+      transactionId: String(data.transactionId || consume.transactionId || accessGrant.evidenceId || accessGrant.purchaseId || '').trim(),
+      accessType: String(data.accessType || accessGrant.accessType || consume.accessType || '').trim(),
+      accessMethod: String(data.accessMethod || accessGrant.accessMethod || consume.accessMethod || consume.paymentMethod || '').trim(),
+      paymentMode: String(data.paymentMode || accessGrant.paymentMode || consume.paymentMode || '').trim()
     }
   };
 }
 
 function _cdAIPromptFailureResult(gateResult) {
   var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
-  var payload = gate.payload && typeof gate.payload === 'object' ? gate.payload : {};
-  var code = String(gate.code || payload.code || (payload.error && payload.error.code) || '').trim();
-  if ((gate.status === 401 || gate.status === 403) && !code) code = 'AUTH_REQUIRED';
+  var code = String(gate.code || '').trim();
+  if (gate.status === 401 || gate.status === 403) code = 'AUTH_REQUIRED';
   if (gate.status === 402 && !code) code = 'PAYMENT_REQUIRED';
   return {
     ok: false,
@@ -5050,7 +5008,7 @@ function _cdAIPromptFailureResult(gateResult) {
     payload: {
       ok: false,
       code: code || 'PAYMENT_REQUIRED',
-      message: gate.message || payload.message || (payload.error && payload.error.message) || '이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.',
+      message: gate.message || '이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.',
       requiredCoins: gate.requiredCoins || 0
     }
   };
@@ -5642,32 +5600,31 @@ function _sajuPromptResolveProfileId() {
   return '';
 }
 
-function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
-  var profileId = _sajuPromptResolveProfileId();
-  if (!profileId) {
-    return Promise.resolve({
-      ok: false,
-      status: 400,
-      payload: {
-        ok: false,
-        code: 'MISSING_PROFILE_ID',
-        message: '프로필을 먼저 선택한 뒤 질문문을 생성해 주세요.'
-      }
-    });
-  }
-  var requestNonce = _sajuPromptBuildRequestNonce(profileId, domain, question);
+function _requestSajuQuestionPrompt(question, privacyOptions, domain) {
+  var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   return _cdAIPromptGate({
-    featureKey: 'saju_ai_question_prompt',
-    reason: '최고의 명리학자처럼 AI에게 물어볼 사주 질문문',
+    featureKey: 'saju_ai_prompt_generator',
+    reason: '사주 질문문 생성',
     cost: 100,
     requestId: 'saju-ai-prompt:' + requestNonce,
-    categoryKey: 'saju',
-    profileId: profileId,
-    selectedProfileId: profileId
+    categoryKey: 'saju'
   }).then(function(gateResult) {
     if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
     var evidence = _cdAIPromptGateEvidence(gateResult);
-    return _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions, domain, evidence, Object.assign({}, options || {}, { profileId: profileId }));
+    return _cdAIPromptRequestJson('/api/fortune/saju/ai-prompt', {
+      method: 'POST',
+      headers: { 'idempotency-key': 'saju-ai:' + requestNonce },
+      body: JSON.stringify({
+        question: question,
+        domain: String(domain || '').trim(),
+        sajuResult: _buildSajuAIPromptPayload(privacyOptions),
+        requestId: evidence.requestId || ('saju-ai-prompt:' + requestNonce),
+        accessGrant: evidence.accessGrant,
+        consume: evidence.consume,
+        payment: evidence.payment,
+        _paymentContext: evidence._paymentContext
+      })
+    });
   });
 }
 
