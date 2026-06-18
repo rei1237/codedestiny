@@ -364,7 +364,8 @@ assertNotContains(billingSource, "pass_used_up", "tier pass is not blocked by se
 assertNotContains(billingSource, '"profileSubscription.passRemainingUses"', "tier pass updates do not store service-use counters");
 assertContains(billingSource, 'status: "license_passed"', "server returns license_passed access gate result");
 assertContains(billingSource, '"family_all_access" : "license_coin_limit"', "family all-access gate reason");
-assertContains(billingSource, "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\"", "profile card actions emit license pass UI result only for family");
+assertNotContains(billingSource, "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\"", "profile card actions emit license pass UI result for all active pass tiers");
+assertContains(billingSource, "policy?.allowed === true && actionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE", "profile card create within pass slot limit bypasses extra payment");
 assertNotContains(billingSource, "if (!singleOrMonthlyOnly)", "monthly choice must not block PASS coverage");
 assertContains(billingSource, "consumeMembershipCreditIfAvailable", "monthly deduction path remains");
 assertContains(billingSource, 'accessMethod: "MONTHLY"', "monthly access method remains");
@@ -432,6 +433,9 @@ assertContains(indexSource, "MONTHLY_CREDIT_SYNC_FRESH_TTL_MS = 15000", "monthly
 assertContains(indexSource, "monthlyCreditSyncPromise", "monthly credit sync in-flight dedupe");
 assertNotContains(indexSource, "retry=1&reason=", "monthly credit sync avoids third retry request");
 assertNotContains(indexSource, "_cdCanUseMonthlyFromPrecheck", "monthly precheck must not bypass equal-priority payment choice");
+assertContains(indexSource, "CD_PASS_CHECK_MIN_OVERLAY_MS = 900", "membership pass check overlay has minimum visible duration");
+assertContains(indexSource, "_cdWaitForPaidPassCheckMinimum(passOverlayStartedAt)", "membership pass check waits before closing or switching result UI");
+assertContains(indexSource, "closePassCheckOverlay", "membership pass check close path is centralized");
 assertNotContains(indexSource, "function showChoiceWait", "payment choice does not open duplicate wait overlay before checkout handler");
 assertNotContains(indexSource, "showChoiceWait(mode)", "payment choice click does not flash a duplicate wait overlay");
 assertContains(indexSource, "window.__cdPortOneV2PreloadPromise", "payment choice modal preloads PortOne SDK for direct payment");

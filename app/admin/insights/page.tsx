@@ -59,6 +59,13 @@ type ContentDiag = {
   dynamicFeeds?: Record<string, { ok?: boolean; status?: number; merged?: boolean; error?: string; url?: string }>;
 };
 
+type ContentPagination = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
 type PromptLabService = "saju" | "tarot" | "sukuyo" | "astrology" | "ziwei" | "vedic";
 type PromptLabDomain = "general" | "love" | "compatibility" | "career" | "money" | "health" | "life_direction" | "personality";
 type PromptLabTimeCorrectionPolicy = "auto" | "clock" | "local_mean" | "true_solar";
@@ -353,6 +360,15 @@ const TYPE_OPTIONS: Array<{ key: ContentType; label: string }> = [
   { key: "general", label: "일반" },
 ];
 
+const ADMIN_CONTENT_LIST_PAGE_SIZE = 100;
+const ADMIN_CONTENT_LIST_MAX_PAGES = 200;
+const EMPTY_CONTENT_PAGINATION: ContentPagination = {
+  page: 1,
+  limit: ADMIN_CONTENT_LIST_PAGE_SIZE,
+  total: 0,
+  totalPages: 1,
+};
+
 function formatDate(value?: string | null) {
   if (!value) return "-";
   const date = new Date(value);
@@ -408,6 +424,7 @@ export default function AdminInsightsPage() {
   const [searchInput, setSearchInput] = useState("");
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<InsightItem[]>([]);
+  const [pagination, setPagination] = useState<ContentPagination>(EMPTY_CONTENT_PAGINATION);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [forbidden, setForbidden] = useState(false);
@@ -440,42 +457,67 @@ export default function AdminInsightsPage() {
     setError("");
 
     try {
-      const url = new URL(endpointBase, window.location.origin);
-      if (filter !== "all") url.searchParams.set("status", filter);
-      if (typeFilter !== "all") url.searchParams.set("type", typeFilter);
-      if (query.trim()) url.searchParams.set("keyword", query.trim());
-      url.searchParams.set("sort", sort);
+      const collectedItems: InsightItem[] = [];
+      let page = 1;
+      let nextPagination: ContentPagination = EMPTY_CONTENT_PAGINATION;
 
-      const res = await fetch(url.toString(), {
-        method: "GET",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders(),
-        cache: "no-store",
-      });
-      const data = await res.json().catch(() => ({}));
+      while (page <= ADMIN_CONTENT_LIST_MAX_PAGES) {
+        const url = new URL(endpointBase, window.location.origin);
+        if (filter !== "all") url.searchParams.set("status", filter);
+        if (typeFilter !== "all") url.searchParams.set("type", typeFilter);
+        if (query.trim()) url.searchParams.set("keyword", query.trim());
+        url.searchParams.set("sort", sort);
+        url.searchParams.set("page", String(page));
+        url.searchParams.set("limit", String(ADMIN_CONTENT_LIST_PAGE_SIZE));
 
-      if (res.status === 401 || res.status === 403) {
-        if (res.status === 401) clearFlowerAdminTokenClient();
-        setForbidden(true);
-        setForbiddenMessage(getAdminAccessMessage(res.status));
-        setError("");
-        setItems([]);
-        return;
-      }
+        const res = await fetch(url.toString(), {
+          method: "GET",
+          credentials: requestCredentials,
+          headers: buildAdminHeaders(),
+          cache: "no-store",
+        });
+        const data = await res.json().catch(() => ({}));
 
-      if (!res.ok) {
-        setError(String(data?.message || "목록을 불러오지 못했습니다."));
-        setItems([]);
-        return;
+        if (res.status === 401 || res.status === 403) {
+          if (res.status === 401) clearFlowerAdminTokenClient();
+          setForbidden(true);
+          setForbiddenMessage(getAdminAccessMessage(res.status));
+          setError("");
+          setItems([]);
+          setPagination(EMPTY_CONTENT_PAGINATION);
+          return;
+        }
+
+        if (!res.ok) {
+          setError(String(data?.message || "목록을 불러오지 못했습니다."));
+          setItems([]);
+          setPagination(EMPTY_CONTENT_PAGINATION);
+          return;
+        }
+
+        const pageItems = Array.isArray(data?.items) ? data.items : [];
+        const rawPagination = data?.pagination || {};
+        const total = Math.max(0, Number(rawPagination.total || pageItems.length || 0) || 0);
+        const limit = Math.max(1, Number(rawPagination.limit || ADMIN_CONTENT_LIST_PAGE_SIZE) || ADMIN_CONTENT_LIST_PAGE_SIZE);
+        const totalPages = Math.max(1, Number(rawPagination.totalPages || Math.ceil(total / limit) || 1) || 1);
+        const currentPage = Math.max(1, Number(rawPagination.page || page) || page);
+
+        collectedItems.push(...pageItems);
+        nextPagination = { page: currentPage, limit, total, totalPages };
+
+        if (currentPage >= totalPages || pageItems.length === 0) break;
+        page = currentPage + 1;
       }
 
       setForbidden(false);
       setForbiddenMessage("");
-      setItems(Array.isArray(data?.items) ? data.items : []);
+      setItems(collectedItems);
+      setPagination(nextPagination);
       void loadDiag();
     } catch {
       setError("네트워크 오류로 목록을 불러오지 못했습니다.");
       setItems([]);
+      setPagination(EMPTY_CONTENT_PAGINATION);
     } finally {
       setLoading(false);
     }
@@ -1212,6 +1254,15 @@ export default function AdminInsightsPage() {
 
             {!loading && !forbidden && items.length > 0 ? (
               <>
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                  <p>
+                    목록 {items.length.toLocaleString("ko-KR")} / {pagination.total.toLocaleString("ko-KR")}개
+                  </p>
+                  {pagination.total > items.length ? (
+                    <p>최대 {ADMIN_CONTENT_LIST_MAX_PAGES * ADMIN_CONTENT_LIST_PAGE_SIZE}개까지 표시</p>
+                  ) : null}
+                </div>
+
                 <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-800">
                   <table className="min-w-full text-sm">
                     <thead className="bg-slate-900 text-slate-300">

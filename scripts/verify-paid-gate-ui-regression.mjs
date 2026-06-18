@@ -85,6 +85,16 @@ assertBefore(indexSource, "_cdHasVerifiedServerAccess(confirmRes.payload", "retu
 assertAllBefore(indexSource, "_cdHasVerifiedServerAccess", "sessionStorage.setItem('cd_pa_' + action, '1')", "local paid marker guarded by server access");
 assertContains(indexSource, "paymentFailed", "payment failed state");
 assertContains(indexSource, "결제 검증에 실패했습니다.", "main shell payment verification failure message");
+assertContains(indexSource, "honey-fortune-logo-payment-ux-v20260618", "honey fortune logo payment ux marker");
+assertContains(indexSource, "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp", "payment/pass overlay uses honey fortune logo");
+assertContains(indexSource, "sajuLoaderHoneyLogoFloat", "payment/pass waiting logo float animation");
+assertContains(indexSource, "HONEY FORTUNE PASS", "pass applied success copy");
+assertContains(indexSource, "HONEY FORTUNE PAID", "payment complete success copy");
+assertContains(indexSource, "position: absolute !important", "payment/pass waiting copy is visually hidden");
+assertContains(indexSource, ".cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url(\"/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp", "paid gate sprite uses honey fortune logo");
+assertNotContains(indexSource, "window.alert('단건 결제가 완료되어 열람되었습니다.');", "single payment success uses designed overlay instead of alert");
+assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(result.payload) ? '이용권으로 열람되었습니다.' : '월정석 결제가 완료되었습니다.');", "unlock monthly/pass success uses designed overlay instead of alert");
+assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(r.payload) ? '이용권으로 열람되었습니다.' : '월정석 결제가 완료되었습니다.');", "tile monthly/pass success uses designed overlay instead of alert");
 
 assertContains(billingClientSource, "hasVerifiedBillingAccess", "React billing access guard");
 assertBefore(billingClientSource, "if (!hasVerifiedBillingAccess(parsed.data", "markPaidAttemptPaymentSucceeded()", "React billing verifies before success");

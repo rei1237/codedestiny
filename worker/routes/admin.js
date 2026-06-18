@@ -3529,6 +3529,8 @@ async function handleContentRestore(path, request, env) {
 
 function resolvePublicOrigin(request, env) {
   const configured = firstRuntimeValue(env, [
+    "SITE_BASE_URL",
+    "AUTH_FRONTEND_BASE_URL",
     "PUBLIC_SITE_URL",
     "NEXT_PUBLIC_SITE_URL",
     "SITE_URL",

@@ -692,7 +692,6 @@ function buildLicensePassAccessGateResult({
       || accessDecision?.membershipPass?.tier,
   );
   if (!licenseTier) return null;
-  if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== "FAMILY") return null;
   const coveredCoinPrice = resolvePricingCoinCost(pricing, paymentOptions?.coinCost || accessDecision?.priceCoin || 0);
   return {
     status: "license_passed",
@@ -771,6 +770,7 @@ async function assertProfileCardPassPolicyIfNeeded({ userId, profileId, pricing,
   const actionType = resolveProfileCardActionType(body?.actionType || body?.profileAction || body?.action);
   const policy = await getProfileCardMutationPolicy(userId, profileId, actionType);
   if (policy?.allowed === true && policy?.requiresPayment !== true) return { ok: true, policy };
+  if (policy?.allowed === true && actionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE) return { ok: true, policy };
   const reason = String(policy?.reason || "").trim() || "PROFILE_LIMIT_EXCEEDED";
   return {
     ok: false,

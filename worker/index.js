@@ -945,6 +945,14 @@ export default {
         return withCorsHeaders(request, env, await handleAuthRoutes(rewrittenRequest, env));
       }
 
+      if (url.pathname === "/sitemap.xml" || url.pathname === "/rss.xml" || url.pathname === "/insights/rss.xml") {
+        const rewrittenRequest = rewriteRequestPath(request, `/api/content-feed${url.pathname}`);
+        const routedResponse = await handleContentFeedRoutes(rewrittenRequest, env);
+        const response = new Response(routedResponse.body, routedResponse);
+        response.headers.set("X-Code-Destiny-Feed", "merged");
+        return response;
+      }
+
       if (url.pathname === "/api/admin" || url.pathname.startsWith("/api/admin/")) {
         return withCorsHeaders(request, env, await handleAdminRoutes(request, env));
       }
