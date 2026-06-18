@@ -675,7 +675,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-285876508574').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-1bcb12c9e742').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -757,23 +757,23 @@
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-285876508574'
+      'js/animal-totem-experience.js?v=build-1bcb12c9e742'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-285876508574'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-285876508574'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-285876508574'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-1bcb12c9e742'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-1bcb12c9e742'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-1bcb12c9e742'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-285876508574'],
-    openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js?v=build-285876508574'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-1bcb12c9e742'],
+    openDreamModal: ['lib/ai-engine.js', 'js/dream-ledger.js?v=build-1bcb12c9e742'],
     openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-285876508574']
+    openSibylModal: ['js/sibyl-system.js?v=build-1bcb12c9e742']
   };
 
   function normalizeScriptSrc(src) {

@@ -2316,6 +2316,14 @@
     return res.payload || res;
   }
 
+  function _dpBuildPaidGateGrantedResult(access, requestId, onGranted) {
+    var granted = access && typeof access === 'object' ? access : {};
+    var payload = granted.payload || granted.rawPayload || {};
+    var txId = _dpPaidPassPayloadTransactionId(payload, requestId);
+    if (typeof onGranted === 'function') onGranted(txId, payload || {}, granted);
+    return { status: 'granted', transactionId: txId, payload: payload || {}, access: granted };
+  }
+
   window.__cdApplyMembershipPassBeforePayment = window.__cdApplyMembershipPassBeforePayment || _dpApplyMembershipPassBeforePayment;
 
   if (typeof window._cdOpenPaidServiceGate !== 'function') {
@@ -2333,9 +2341,7 @@
           requestId: requestId
         }));
         if (passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked')) {
-          var passFirstTx = _dpPaidPassPayloadTransactionId(passFirst.payload, requestId);
-          if (typeof opts.onGranted === 'function') opts.onGranted(passFirstTx, passFirst.payload || {}, passFirst);
-          return { status: 'granted', transactionId: passFirstTx, payload: passFirst.payload || {}, access: passFirst };
+          return _dpBuildPaidGateGrantedResult(passFirst, requestId, opts.onGranted);
         }
       }
       var choice = await window._cdChooseServicePaymentMode(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, internalMainGate: true, skipPassProbe: true }));
@@ -2347,13 +2353,21 @@
       if (choice === 'pass_applied') {
         var passCacheKey = _dpPaidPassCacheKey(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId }), title, coinPrice);
         var passResult = _dpTakePaidPassGateResult(passCacheKey);
-        if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) {
-          var passTx = _dpPaidPassPayloadTransactionId(passResult.payload, requestId);
-          if (typeof opts.onGranted === 'function') opts.onGranted(passTx, passResult.payload || {}, passResult);
-          return { status: 'granted', transactionId: passTx, payload: passResult.payload || {}, access: passResult };
+        if ((!passResult || (passResult.status !== 'pass_applied' && passResult.status !== 'already_unlocked')) && typeof window.__cdApplyMembershipPassBeforePayment === 'function') {
+          passResult = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
+            title: title,
+            coinPrice: coinPrice,
+            cost: coinPrice,
+            requestId: requestId
+          }));
         }
-        return { status: 'cancelled', reason: 'pass_applied_in_modal' };
+        if (passResult && (passResult.status === 'pass_applied' || passResult.status === 'already_unlocked')) {
+          return _dpBuildPaidGateGrantedResult(passResult, requestId, opts.onGranted);
+        }
+        return { status: 'payment_required', reason: 'membership_pass_not_covered', payload: passResult && passResult.payload ? passResult.payload : null };
       }
+      if (choice === 'monthly') _dpSetPaymentPending(true, '월정석 잔량으로 콘텐츠 이용 권한을 확인하고 있습니다.', 'monthly');
+      else _dpSetPaymentPending(true, title + ' 단건 결제창을 여는 중입니다.', 'card');
       var payload = choice === 'monthly' ? await _dpRunMonthlyCreditFromMainGate(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId })) : await window._cdRunDirectKrwCheckout(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, forceDirectPayment: true, internalMainGate: true }));
       var txId = _dpPaidPassPayloadTransactionId(payload, requestId);
       if (typeof opts.onGranted === 'function') opts.onGranted(txId, payload || {}, { status: choice === 'monthly' ? 'monthly_paid' : 'direct_paid' });

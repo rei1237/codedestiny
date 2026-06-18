@@ -398,6 +398,34 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
   const idempotencyMarker = normalizedRequestId && featureKey ? `tier-pass:${featureKey}:${normalizedRequestId}` : "";
   if (!authUserId || !featureKey || !coinCost) return { ok: false, reason: "invalid_pass_request" };
   if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY) {
+    await connectDb(env);
+    const actionType = resolveProfileCardActionType(body?.actionType || body?.profileAction || body?.action);
+    const profilePolicy = await getProfileCardMutationPolicy(authUserId, profileId, actionType);
+    if (profilePolicy?.allowed === true && profilePolicy?.requiresPayment !== true) {
+      const user = await User.findById(authUserId).select("points profileSubscription").lean();
+      return {
+        ok: true,
+        tier: "family",
+        passTier: "family",
+        accessMethod: "family",
+        transactionType: "family_pass",
+        accessType: "family",
+        requestId: normalizedRequestId,
+        idempotencyKey: idempotencyMarker || normalizedRequestId,
+        featureKey,
+        profileId,
+        coinCost,
+        amountKRW,
+        remainingUses: null,
+        totalUses: null,
+        profilePolicy,
+        user: {
+          id: String(authUserId || ""),
+          points: Number(user?.points || 0),
+          profileSubscription: user?.profileSubscription || null,
+        },
+      };
+    }
     return { ok: false, reason: "profile_card_pass_excluded", featureKey, coinCost, amountKRW };
   }
   if (isPassExcludedPricing(pricing)) {
@@ -693,6 +721,7 @@ function buildLicensePassAccessGateResult({
       || accessDecision?.membershipPass?.tier,
   );
   if (!licenseTier) return null;
+  if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== "FAMILY") return null;
   const coveredCoinPrice = resolvePricingCoinCost(pricing, paymentOptions?.coinCost || accessDecision?.priceCoin || 0);
   return {
     status: "license_passed",
@@ -771,7 +800,6 @@ async function assertProfileCardPassPolicyIfNeeded({ userId, profileId, pricing,
   const actionType = resolveProfileCardActionType(body?.actionType || body?.profileAction || body?.action);
   const policy = await getProfileCardMutationPolicy(userId, profileId, actionType);
   if (policy?.allowed === true && policy?.requiresPayment !== true) return { ok: true, policy };
-  if (policy?.allowed === true && actionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE) return { ok: true, policy };
   const reason = String(policy?.reason || "").trim() || "PROFILE_LIMIT_EXCEEDED";
   return {
     ok: false,

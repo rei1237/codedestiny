@@ -257,7 +257,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 9000;
 const BILLING_FETCH_MUTATION_TIMEOUT_MS = 14000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
 const PAYMENT_CHOICE_RECENT_TTL_MS = 1800;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-285876508574";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-1bcb12c9e742";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
 const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
 const SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
@@ -918,6 +918,14 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const directCoinPrice = coinPrice;
   const rawDirectAmount = Math.max(0, Math.floor(toNumber(opts.amountKrw ?? opts.amountKRW, directCoinPrice * 100)));
   const directAmount = rawDirectAmount;
+  const allowedPaymentModes = Array.isArray(opts.allowedPaymentModes)
+    ? opts.allowedPaymentModes.map((mode) => toText(mode).toLowerCase())
+    : null;
+  const canShowMonthly = !allowedPaymentModes || allowedPaymentModes.includes("monthly");
+  const canShowPassStore = opts.disablePassChoice !== true && (!allowedPaymentModes || allowedPaymentModes.includes("pass") || allowedPaymentModes.includes("membership_pass"));
+  const monthlyCost = Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, coinPrice * 10)));
+  const monthlyBalance = Math.max(0, Math.floor(toNumber(opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance, 0)));
+  const monthlyAfterBalance = Math.max(0, monthlyBalance - monthlyCost);
   const passTier = toText(membershipCoverage?.tier || membershipCoverage?.passTier || "");
   const passLimit = Math.max(0, Math.floor(toNumber(membershipCoverage?.passLimit ?? membershipCoverage?.freeLimit, 0)));
   const passLabel = passTier
@@ -956,15 +964,22 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             <strong>단건 결제 · ${formatPaymentWon(directAmount)}</strong>
             <span>카드 또는 간편결제로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.</span>
           </button>
+          ${canShowMonthly ? `
+          <button type="button" class="cd-react-payment-choice-option" data-mode="monthly">
+            <span class="cd-react-payment-choice-badge">월정석 결제</span>
+            <strong>월정석 사용 · ${monthlyCost.toLocaleString("ko-KR")} 잔량</strong>
+            <span>보유 잔량 ${monthlyBalance.toLocaleString("ko-KR")}에서 차감 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다.</span>
+          </button>` : ""}
+          ${canShowPassStore ? `
           <button type="button" class="cd-react-payment-choice-option" data-mode="pass-store">
             <span class="cd-react-payment-choice-badge">${escapePaymentText(passLabel)}</span>
             <strong>${escapePaymentText(passStoreTitle)}</strong>
             <span>${escapePaymentText(passStoreHint)} ${escapePaymentText(passHint)}</span>
-          </button>
+          </button>` : ""}
         </div>
         <div class="cd-react-payment-choice-status" data-payment-status></div>
         <div class="cd-react-payment-choice-actions">
-          <button type="button" class="cd-react-payment-choice-cancel" data-mode="refresh">월정석 재조회</button>
+          <button type="button" class="cd-react-payment-choice-cancel" data-mode="refresh">이용권 다시 확인</button>
           <button type="button" class="cd-react-payment-choice-cancel" data-mode="cancel">취소</button>
         </div>
       </div>
@@ -986,7 +1001,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     const showWaitOverlay = (mode: PaymentChoiceMode) => {
       const runtimeWindow = window as RuntimeApiWindow;
       if (mode === "direct") {
-        runtimeWindow._cdSetCoinGateOverlay?.(false);
+        runtimeWindow._cdSetCoinGateOverlay?.(true, "단건 결제창을 여는 중입니다. 결제가 완료되면 이용 권한을 확인합니다.", "card");
+      } else if (mode === "monthly") {
+        runtimeWindow._cdSetCoinGateOverlay?.(true, "월정석 잔량으로 콘텐츠 이용 권한을 확인하고 있습니다.", "monthly");
       }
     };
 
@@ -1003,7 +1020,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         }
         if (mode === "refresh") {
           button.disabled = true;
-          setStatus("월정석/이용권 상태를 다시 조회하고 있습니다.");
+          setStatus("이용권으로 바로 열 수 있는지 다시 확인하고 있습니다.");
           clearSubscriptionSnapshotForUser();
           invalidateBillingBalanceCache();
           fetchPaymentEligibility({
@@ -1037,10 +1054,13 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
               close("pass");
               return;
             }
-            setStatus("아직 활성화된 월정석/이용권을 확인하지 못했습니다. 결제 완료 후 다시 재조회해주세요.", true);
-            button.disabled = false;
+            setStatus("활성 이용권이 확인되지 않아 이용권 상점으로 이동합니다.", true);
+            globalThis.setTimeout(() => {
+              close("cancel");
+              openMembershipPassStore(coinPrice, passTier);
+            }, 450);
           }).catch(() => {
-            setStatus("월정석 상태 재조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", true);
+            setStatus("이용권 재확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", true);
             button.disabled = false;
           });
           return;
@@ -1054,7 +1074,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((node) => {
           node.disabled = true;
         });
-        setStatus("단건 결제를 진행하고 있습니다.");
+        setStatus(mode === "monthly" ? "월정석 잔량으로 결제 권한을 확인하고 있습니다." : "단건 결제창을 여는 중입니다.");
         showWaitOverlay(mode);
         close(mode);
       });

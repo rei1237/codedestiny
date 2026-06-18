@@ -364,8 +364,9 @@ assertNotContains(billingSource, "pass_used_up", "tier pass is not blocked by se
 assertNotContains(billingSource, '"profileSubscription.passRemainingUses"', "tier pass updates do not store service-use counters");
 assertContains(billingSource, 'status: "license_passed"', "server returns license_passed access gate result");
 assertContains(billingSource, '"family_all_access" : "license_coin_limit"', "family all-access gate reason");
-assertNotContains(billingSource, "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\"", "profile card actions emit license pass UI result for all active pass tiers");
-assertContains(billingSource, "policy?.allowed === true && actionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE", "profile card create within pass slot limit bypasses extra payment");
+assertContains(billingSource, "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\"", "profile card actions emit license pass UI only for FAMILY tier");
+assertContains(billingSource, "profile_card_pass_excluded", "non-FAMILY pass cannot bypass profile card actions");
+assertNotContains(billingSource, "policy?.allowed === true && actionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE", "profile card create does not bypass payment for non-FAMILY pass tiers");
 assertNotContains(billingSource, "if (!singleOrMonthlyOnly)", "monthly choice must not block PASS coverage");
 assertContains(billingSource, "consumeMembershipCreditIfAvailable", "monthly deduction path remains");
 assertContains(billingSource, 'accessMethod: "MONTHLY"', "monthly access method remains");

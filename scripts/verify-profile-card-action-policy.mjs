@@ -80,15 +80,19 @@ const cases = [
     ],
   },
   {
-    name: "family profile manage bypass is visible to billing gate",
+    name: "family-only profile create/delete bypass is visible to billing gate",
     includes: [
       ["policy", "FAMILY_OR_ABOVE_FREE_PROFILE_DELETE = true"],
-      ["policy", "buildFamilyProfileCardBypassPolicy"],
+      ["policy", "FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE"],
       ["mePage", "const deleteRequiresProfileActionPayment = !isFamilyProfilePlan"],
       ["mePage", "Code Destiny Family 이용권으로 프로필 카드를 결제 없이 삭제할 수 있습니다."],
       ["billingRoute", "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\""],
-      ["billingRoute", "text.includes(\"profile_card_add_extra\")"],
+      ["billingRoute", "profile_card_pass_excluded"],
+      ["billingRoute", "transactionType: \"family_pass\""],
       ["billingRoute", "actionType: \"profile_card_add_extra\""],
+    ],
+    excludes: [
+      ["mePage", "const deleteRequiresProfileActionPayment = true"],
     ],
   },
   {

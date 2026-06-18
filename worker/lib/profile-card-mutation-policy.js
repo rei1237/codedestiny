@@ -167,7 +167,10 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
   const entitlement = normalizeHoneyPassEntitlement(user);
   const slotLimit = resolveProfileCardSlotLimit(entitlement);
 
-  if (isFamilyOrAbove(user)) {
+  if (isFamilyOrAbove(user) && (
+    normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE
+    || (FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE)
+  )) {
     return buildFamilyProfileCardBypassPolicy(entitlement, currentProfileCardCount);
   }
 
@@ -262,7 +265,7 @@ export async function resolveProfileCardActionAccess({
       });
     }
 
-    if (isFamilyOrAbove(user)) {
+    if (FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && isFamilyOrAbove(user)) {
       return buildFamilyProfileCardBypassPolicy(entitlement, count);
     }
 

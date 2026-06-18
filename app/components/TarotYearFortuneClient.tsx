@@ -54,7 +54,7 @@ export default function TarotYearFortuneClient() {
 
   return (
     <>
-      <Script src="/js/tarot-year-fortune-experience.js?v=build-285876508574" strategy="afterInteractive" onLoad={openYearExperienceWhenReady} />
+      <Script src="/js/tarot-year-fortune-experience.js?v=build-1bcb12c9e742" strategy="afterInteractive" onLoad={openYearExperienceWhenReady} />
 
       <div
         id="tarotYearFortuneOverlay"
