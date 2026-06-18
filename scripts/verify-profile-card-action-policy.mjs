@@ -109,7 +109,8 @@ const cases = [
       ["profileRoute", "PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
       ["profileRoute", "\"profileSubscription.membershipCreditBalance\": -PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
       ["profileRoute", "\"profileSubscription.membershipCreditUsed\": PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
-      ["mePage", "이용권 혜택 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용"],
+      ["profileRoute", "paymentMode: \"membership_credit\""],
+      ["mePage", "월정석 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용"],
     ],
   },
   {
@@ -120,8 +121,13 @@ const cases = [
       ["profileRoute", "evidenceCostMatches"],
       ["profileRoute", "metadata.profileMutationCompleted"],
       ["profileRoute", "metadata.profileMutationInProgress"],
+      ["profileRoute", "resolveProfileMutationPaymentMethod"],
+      ["profileRoute", "evidencePaymentMethodMatches"],
       ["profileRoute", "claimProfileMutationEvidence"],
       ["profileRoute", "recordProfileMutationCompleted"],
+      ["billingRoute", "profile_card_pass_excluded"],
+      ["mePage", "paymentMethod: \"single_purchase\""],
+      ["mePage", "paymentMethod: \"membership_credit\""],
     ],
   },
   {
@@ -227,7 +233,7 @@ const cases = [
       ["mePage", "rounded-t-2xl"],
       ["mePage", "min-h-[44px]"],
       ["mePage", "결제창을 여는 중입니다."],
-      ["mePage", "이용권 혜택을 적용하는 중입니다."],
+      ["mePage", "월정석을 적용하는 중입니다."],
     ],
   },
 ];

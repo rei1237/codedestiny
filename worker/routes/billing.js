@@ -412,6 +412,9 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
   const profileId = cleanProfileId(options?.profileId || body?.profileId || body?.selectedProfileId);
   const idempotencyMarker = normalizedRequestId && featureKey ? `tier-pass:${featureKey}:${normalizedRequestId}` : "";
   if (!authUserId || !featureKey || !coinCost) return { ok: false, reason: "invalid_pass_request" };
+  if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY) {
+    return { ok: false, reason: "profile_card_pass_excluded", featureKey, coinCost, amountKRW };
+  }
   if (isPassExcludedPricing(pricing)) {
     return { ok: false, reason: "pass_excluded_feature", featureKey, coinCost, amountKRW };
   }
@@ -723,6 +726,7 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   const passTier = hasActivePass ? normalizePassTier(activeEntitlement?.passTier || activeEntitlement?.tier) : null;
   const passCovered = canUseByPass(activeEntitlement, coinCost);
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
+  const equalPriorityPaidMethods = ["DIRECT_KRW", ...(monthlyCovered ? ["MOONLIGHT_STONE"] : [])];
 
   return {
     coinCost,
@@ -735,7 +739,10 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     monthlyBalance,
     canUseByMonthly: monthlyCovered,
     canUseByCard: true,
-    recommendedMethod: passCovered ? "PASS" : (monthlyCovered ? "MOONLIGHT_STONE" : "DIRECT_KRW"),
+    recommendedMethod: passCovered ? "PASS" : "PAYMENT_CHOICE",
+    recommendedMethods: passCovered ? ["PASS"] : equalPriorityPaidMethods,
+    equalPriorityMethods: passCovered ? [] : equalPriorityPaidMethods,
+    paymentPriority: passCovered ? "PASS_FIRST" : "USER_CHOICE_EQUAL",
     hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : [],
     decisionReason: passCovered
       ? "PASS_COVERED"
@@ -1664,6 +1671,17 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
   const normalizedAccessType = String(consume?.accessType || data?.accessGrant?.accessType || "").toLowerCase();
   const normalizedTransactionType = String(consume?.transactionType || data?.accessGrant?.transactionType || "").toLowerCase();
   const membershipPassApplied = normalizedAccessType === "membership_pass" || normalizedTransactionType === "membership_pass";
+  const normalizedAccessMethod = String(consume?.accessMethod || consume?.paymentMethod || data?.accessGrant?.accessMethod || data?.accessGrant?.paymentMethod || "").toUpperCase();
+  const resolvedAccessSource = String(data?.accessSource || data?.accessGrant?.accessSource || "").trim()
+    || (membershipPassApplied || normalizedAccessType === "subscription_pass" ? "license_pass"
+      : (normalizedAccessType === "usage_pass" ? "ticket"
+      : (normalizedAccessType === "family" || normalizedAccessType === "family_pass" || normalizedAccessMethod === "FAMILY" ? "family_pass"
+        : (normalizedAccessType === "membership_credit" || normalizedAccessMethod === "MONTHLY" ? "monthly_subscription"
+          : (normalizedAccessType === "single_purchase" || normalizedAccessType === "single_payment" || normalizedAccessMethod === "CARD" || normalizedAccessMethod === "DIRECT_KRW" ? "single_payment"
+            : (normalizedAccessType === "coin" || normalizedAccessMethod === "COIN" ? "coin_payment" : ""))))));
+  const resolvedPaymentIntentType = String(data?.paymentIntentType || "").trim()
+    || (resolvedAccessSource === "single_payment" ? "single_payment"
+      : (resolvedAccessSource === "monthly_subscription" ? "monthly_subscription" : "none"));
   const accessGateResult = data?.accessGateResult
     || data?.accessDecision?.accessGateResult
     || (membershipPassApplied
@@ -1706,6 +1724,9 @@ async function successWithPremiumAccess(env, authUserId, data, message = "요청
     coinCharged,
     monthlyStoneCharged,
     featureKey,
+    accessSource: resolvedAccessSource || undefined,
+    paymentIntentType: resolvedPaymentIntentType,
+    ...(resolvedPaymentIntentType !== "none" ? { paymentType: resolvedPaymentIntentType } : {}),
     chargedCoins: Number(consume?.chargedCoins || 0),
     transactionId,
     freeBySubscription: data?.freeBySubscription === true || consume?.accessType === "membership_pass",
@@ -3232,7 +3253,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       pricing,
       subscriptionPass.profileSubscription,
     );
-    if (!directPaymentRequested && paymentDecision.canUseByPass && !passBlockedByAccessDecision) {
+    if (!directPaymentRequested && !monthlyBalanceRequested && paymentDecision.canUseByPass && !passBlockedByAccessDecision) {
       logPaidAccessStage("PASS_ACTIVE_FOUND", {
         requestId,
         userId: authCheck.auth.userId,

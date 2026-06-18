@@ -323,7 +323,7 @@ function profilePaymentRequiredResponse(action, requestId) {
     ok: false,
     success: false,
     code: "PAYMENT_REQUIRED",
-    message: "프로필 카드 추가/삭제는 5,000원 단건 결제 또는 이용권 혜택으로 진행할 수 있습니다.",
+    message: "프로필 카드 추가/삭제는 5,000원 단건 결제 또는 월정석으로 진행할 수 있습니다.",
     pricing: {
       featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
       reason,
@@ -376,6 +376,44 @@ function readProfileMutationRequestId(body, action, profileId) {
   return buildProfilePaymentRequestId(action, profileId);
 }
 
+function resolveProfileMutationPaymentMethod(body = {}) {
+  const accessGrant = body?.accessGrant && typeof body.accessGrant === "object" ? body.accessGrant : {};
+  const payment = body?.payment && typeof body.payment === "object" ? body.payment : {};
+  const text = String(
+    body?.paymentMethod
+      || body?.paymentMode
+      || body?.accessMethod
+      || body?.accessMode
+      || accessGrant.paymentMethod
+      || accessGrant.accessMethod
+      || accessGrant.accessType
+      || payment.paymentMethod
+      || payment.accessMethod
+      || payment.accessType
+      || "",
+  ).trim().toLowerCase();
+
+  if (
+    text === "membership_credit"
+    || text === "monthly_credit"
+    || text === "monthly"
+    || text === "monthly_stones"
+    || text === "moonlight_stone"
+    || text === "moonlightstone"
+    || text === "moonlight stone"
+  ) return "membership_credit";
+
+  if (
+    text === "single_purchase"
+    || text === "card"
+    || text === "credit_card"
+    || text === "portone"
+    || text === "payment"
+  ) return "single_purchase";
+
+  return "";
+}
+
 function profileDeletePaymentRequiredResponse(action, requestId, profileId, policy = {}) {
   const reason = resolveProfileMutationReason(action);
   const actionType = resolveProfileMutationActionType(action);
@@ -383,7 +421,7 @@ function profileDeletePaymentRequiredResponse(action, requestId, profileId, poli
     ok: false,
     success: false,
     code: "PAYMENT_REQUIRED",
-    message: `${reason}는 5,000원 단건 결제 또는 이용권 혜택으로 진행할 수 있습니다.`,
+    message: `${reason}는 5,000원 단건 결제 또는 월정석으로 진행할 수 있습니다.`,
     policy,
     pricing: {
       featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
@@ -421,7 +459,7 @@ function profileCardActionPaymentRequiredResponse(action, requestId, profileId =
     ok: false,
     success: false,
     code: "PAYMENT_REQUIRED",
-    message: `${reason}는 이용권 무료 통과 없이 오직 단건 결제 ${PROFILE_CARD_MANAGE_AMOUNT_KRW.toLocaleString("ko-KR")}원 또는 이용권 혜택 ${(PROFILE_CARD_MANAGE_MEMBERSHIP_COST * 10).toLocaleString("ko-KR")}원 상당으로만 진행할 수 있습니다.`,
+    message: `${reason}는 이용권 무료 통과 없이 오직 단건 결제 ${PROFILE_CARD_MANAGE_AMOUNT_KRW.toLocaleString("ko-KR")}원 또는 월정석 ${(PROFILE_CARD_MANAGE_MEMBERSHIP_COST * 10).toLocaleString("ko-KR")}원 상당으로만 진행할 수 있습니다.`,
     policy,
     pricing: {
       featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
@@ -538,6 +576,31 @@ function evidenceCostMatches(evidence) {
   return false;
 }
 
+function evidencePaymentMethodMatches(evidence, paymentMethod) {
+  if (!paymentMethod) return true;
+  const metadata = evidence?.metadata || {};
+  const values = [
+    metadata.accessType,
+    metadata.accessMethod,
+    metadata.paymentMethod,
+  ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean);
+
+  if (paymentMethod === "membership_credit") {
+    return values.includes("membership_credit")
+      || values.includes("monthly_credit")
+      || values.includes("monthly");
+  }
+
+  if (paymentMethod === "single_purchase") {
+    return values.includes("single_purchase")
+      || values.includes("card")
+      || values.includes("credit_card")
+      || values.includes("portone");
+  }
+
+  return true;
+}
+
 async function findProfileMutationPaymentEvidence(auth, { action, profileId, requestId, body }) {
   const actionType = resolveProfileMutationActionType(action);
   const clauses = buildProfileMutationEvidenceClauses({ requestId, body, profileId });
@@ -605,6 +668,7 @@ function policyFailureStatus(reason) {
 
 async function ensureProfileDeleteAuthorized(auth, { action, profileId, body }) {
   const requestId = readProfileMutationRequestId(body, action, profileId);
+  const paymentMethod = resolveProfileMutationPaymentMethod(body);
   const policy = await getProfileCardMutationPolicy(auth.userId, profileId, action);
 
   if (policy.allowed && !policy.requiresPayment) {
@@ -628,10 +692,31 @@ async function ensureProfileDeleteAuthorized(auth, { action, profileId, body }) 
   if (!evidenceResult.ok) return evidenceResult;
 
   let evidence = evidenceResult.evidence || null;
+  if (evidence && !evidencePaymentMethodMatches(evidence, paymentMethod)) {
+    return {
+      ok: false,
+      response: profileMutationConflictResponse("프로필 카드 결제 방식이 현재 요청과 일치하지 않습니다.", {
+        actionType: resolveProfileMutationActionType(action),
+        requestId,
+      }),
+    };
+  }
   if (!evidence) {
+    if (paymentMethod === "single_purchase") {
+      return { ok: false, response: profileCardActionPaymentRequiredResponse(action, requestId, profileId, policy) };
+    }
     const payment = await ensureProfileMutationPayment(auth, { action, profileId, requestId });
     if (!payment.ok) return payment;
     evidence = payment.evidence || null;
+    if (evidence && !evidencePaymentMethodMatches(evidence, "membership_credit")) {
+      return {
+        ok: false,
+        response: profileMutationConflictResponse("프로필 카드 결제 방식이 현재 요청과 일치하지 않습니다.", {
+          actionType: resolveProfileMutationActionType(action),
+          requestId,
+        }),
+      };
+    }
   }
 
   const paidPolicy = await getProfileCardMutationPolicy(auth.userId, profileId, action, { paymentSettled: true });
@@ -654,14 +739,36 @@ async function ensureProfileDeleteAuthorized(auth, { action, profileId, body }) 
 async function ensureProfileCreatePaymentAuthorized(auth, { profileId, body }) {
   const action = "create";
   const requestId = readProfileMutationRequestId(body, action, profileId);
+  const paymentMethod = resolveProfileMutationPaymentMethod(body);
   const evidenceResult = await findProfileMutationPaymentEvidence(auth, { action, profileId, requestId, body });
   if (!evidenceResult.ok) return evidenceResult;
 
   let evidence = evidenceResult.evidence || null;
+  if (evidence && !evidencePaymentMethodMatches(evidence, paymentMethod)) {
+    return {
+      ok: false,
+      response: profileMutationConflictResponse("프로필 카드 결제 방식이 현재 요청과 일치하지 않습니다.", {
+        actionType: resolveProfileMutationActionType(action),
+        requestId,
+      }),
+    };
+  }
   if (!evidence) {
+    if (paymentMethod === "single_purchase") {
+      return { ok: false, response: profileCardActionPaymentRequiredResponse(action, requestId, profileId) };
+    }
     const payment = await ensureProfileMutationPayment(auth, { action, profileId, requestId });
     if (!payment.ok) return payment;
     evidence = payment.evidence || null;
+    if (evidence && !evidencePaymentMethodMatches(evidence, "membership_credit")) {
+      return {
+        ok: false,
+        response: profileMutationConflictResponse("프로필 카드 결제 방식이 현재 요청과 일치하지 않습니다.", {
+          actionType: resolveProfileMutationActionType(action),
+          requestId,
+        }),
+      };
+    }
   }
 
   const claim = await claimProfileMutationEvidence(auth, { action, profileId, requestId, evidence });
@@ -859,6 +966,7 @@ async function ensureProfileMutationPayment(auth, { action, profileId, requestId
     userId: auth.userId,
     kind: "deduct",
     featureKey: PROFILE_CARD_MANAGE_FEATURE_KEY,
+    "metadata.accessType": "membership_credit",
     $or: [
       { "metadata.requestId": paymentRequestId },
       { "metadata.profilePaymentKey": paymentRequestId },
@@ -896,6 +1004,7 @@ async function ensureProfileMutationPayment(auth, { action, profileId, requestId
       accessType: "membership_credit",
       accessMethod: "MONTHLY",
       paymentMethod: "MONTHLY",
+      paymentMode: "membership_credit",
       purpose: "profile_card_manage",
       forceDeduct: true,
       requestId: paymentRequestId,

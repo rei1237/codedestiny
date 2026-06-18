@@ -28,7 +28,7 @@ import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed,
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { normalizeHoneyPassEntitlement, normalizePassTier, PASS_LIMITS, PASS_TIERS, PASS_TOTAL_USES } from "../lib/profile-limits.js";
+import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS } from "../lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 
 const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
@@ -334,10 +334,10 @@ async function grantUsagePassToUser({ userId, product, paymentId, paidAt, sessio
 }
 
 const SUBSCRIPTION_BASE_PLANS = {
-  [PASS_TIERS.STANDARD]: { tier: PASS_TIERS.STANDARD, name: "스탠다드 꿀 30일", monthlyWonPrice: 9900, profileLimit: 3, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.standard, maxCoveredCoin: PASS_LIMITS.standard },
-  [PASS_TIERS.PREMIUM]: { tier: PASS_TIERS.PREMIUM, name: "프리미엄 꿀 30일", monthlyWonPrice: 29900, profileLimit: 7, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.premium, maxCoveredCoin: PASS_LIMITS.premium },
-  [PASS_TIERS.VVIP]: { tier: PASS_TIERS.VVIP, name: "VVIP 꿀단지 30일", monthlyWonPrice: 59000, profileLimit: 15, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.vvip, maxCoveredCoin: PASS_LIMITS.vvip },
-  [PASS_TIERS.FAMILY]: { tier: PASS_TIERS.FAMILY, name: "Code Destiny Family 30일", monthlyWonPrice: 300000, profileLimit: 0, membershipCreditGrant: 0, passTotalUses: PASS_TOTAL_USES.family, maxCoveredCoin: PASS_LIMITS.family },
+  [PASS_TIERS.STANDARD]: { tier: PASS_TIERS.STANDARD, name: "스탠다드 꿀 30일", monthlyWonPrice: 9900, membershipCreditGrant: 0, profileLimit: HONEY_PASS_POLICY.standard.maxProfiles, passTotalUses: HONEY_PASS_POLICY.standard.totalUses, maxCoveredCoin: HONEY_PASS_POLICY.standard.maxCoveredCoin },
+  [PASS_TIERS.PREMIUM]: { tier: PASS_TIERS.PREMIUM, name: "프리미엄 꿀 30일", monthlyWonPrice: 29900, membershipCreditGrant: 0, profileLimit: HONEY_PASS_POLICY.premium.maxProfiles, passTotalUses: HONEY_PASS_POLICY.premium.totalUses, maxCoveredCoin: HONEY_PASS_POLICY.premium.maxCoveredCoin },
+  [PASS_TIERS.VVIP]: { tier: PASS_TIERS.VVIP, name: "VVIP 꿀단지 30일", monthlyWonPrice: 59000, membershipCreditGrant: 0, profileLimit: HONEY_PASS_POLICY.vvip.maxProfiles, passTotalUses: HONEY_PASS_POLICY.vvip.totalUses, maxCoveredCoin: HONEY_PASS_POLICY.vvip.maxCoveredCoin },
+  [PASS_TIERS.FAMILY]: { tier: PASS_TIERS.FAMILY, name: "Code Destiny Family 30일", monthlyWonPrice: 300000, membershipCreditGrant: 0, profileLimit: HONEY_PASS_POLICY.family.maxProfiles, passTotalUses: HONEY_PASS_POLICY.family.totalUses, maxCoveredCoin: HONEY_PASS_POLICY.family.maxCoveredCoin },
 };
 
 const SUBSCRIPTION_DURATION_DISCOUNTS = Object.freeze({

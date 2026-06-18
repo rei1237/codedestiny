@@ -204,14 +204,14 @@ function formatMonthlyStoneValue(monthlyStoneBalance?: number) {
 }
 
 function profileActionPrimaryLabel(action: ProfileActionType, method?: ProfileActionPaymentMethod) {
-  if (method === "monthly_stones") return `이용권 혜택 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용`;
+  if (method === "monthly_stones") return `월정석 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용`;
   if (method === "card") return `${PROFILE_CARD_ACTION_COST_KRW.toLocaleString("ko-KR")}원 결제`;
   return profileActionButtonLabel(action);
 }
 
 function profileActionProgressLabel(action: ProfileActionType, stage: ProfileActionStage) {
   if (stage === "payment") return "결제창을 여는 중입니다.";
-  if (stage === "coin") return "이용권 혜택을 적용하는 중입니다.";
+  if (stage === "coin") return "월정석을 적용하는 중입니다.";
   if (stage === "saving") return action === "delete" ? "\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4." : `${profileActionLabel(action)} \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.`;
   if (stage === "deleting") return "\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uC0AD\uC81C\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.";
   return action === "create" ? "\uCD94\uAC00 \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4." : "\uC0AD\uC81C \uCC98\uB9AC \uC911\uC785\uB2C8\uB2E4.";
@@ -932,7 +932,7 @@ export default function MePage() {
     const requiresPayment = deleteRequiresProfileActionPayment;
     const selectedPaymentMethod = paymentMethod || (requiresPayment ? "card" : undefined);
     if (requiresPayment && selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
-      setAuthNotice(`이용권 혜택이 부족합니다. 프로필 카드 삭제에는 이용권 혜택 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)}이 필요합니다. 단건결제로 진행하거나 이용권 혜택을 확보한 뒤 다시 시도해주세요.`);
+      setAuthNotice(`월정석이 부족합니다. 프로필 카드 삭제에는 월정석 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)}이 필요합니다. 단건결제로 진행하거나 월정석을 확보한 뒤 다시 시도해주세요.`);
       return;
     }
     setBusyAction(`${action}:${profile.id}`);
@@ -946,9 +946,17 @@ export default function MePage() {
           payment: payment.payment || undefined,
           merchantUid: payment.merchantUid,
           paymentId: payment.paymentId,
+          paymentMethod: "single_purchase",
+          paymentMode: "single_purchase",
+          accessMethod: "single_purchase",
         };
       } else if (requiresPayment) {
         setProfileActionStage("coin");
+        paymentContext = {
+          paymentMethod: "membership_credit",
+          paymentMode: "membership_credit",
+          accessMethod: "membership_credit",
+        };
       }
       setProfileActionStage(action === "delete" ? "deleting" : "saving");
       await executeProfileAction(action, profile, requestId, paymentContext);
@@ -984,7 +992,7 @@ export default function MePage() {
     const selectedPaymentMethod = paymentMethod || (hasEnoughMonthlyStonesForProfileAction ? "monthly_stones" : "card");
 
     if (requiresPayment && selectedPaymentMethod === "monthly_stones" && !hasEnoughMonthlyStonesForProfileAction) {
-      setAuthNotice(`이용권 혜택이 부족합니다. 프로필 카드 작업에는 이용권 혜택 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)}이 필요합니다. 단건결제로 진행하거나 이용권 혜택을 확보한 뒤 다시 시도해주세요.`);
+      setAuthNotice(`월정석이 부족합니다. 프로필 카드 작업에는 월정석 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)}이 필요합니다. 단건결제로 진행하거나 월정석을 확보한 뒤 다시 시도해주세요.`);
       return;
     }
 
@@ -1001,9 +1009,17 @@ export default function MePage() {
           payment: payment.payment || undefined,
           merchantUid: payment.merchantUid,
           paymentId: payment.paymentId,
+          paymentMethod: "single_purchase",
+          paymentMode: "single_purchase",
+          accessMethod: "single_purchase",
         };
       } else if (requiresPayment) {
         setProfileActionStage("coin");
+        paymentContext = {
+          paymentMethod: "membership_credit",
+          paymentMode: "membership_credit",
+          accessMethod: "membership_credit",
+        };
       }
 
       setProfileActionStage("saving");
@@ -1420,7 +1436,7 @@ export default function MePage() {
               {isFamilyProfilePlan
                 ? "Code Destiny Family 이용권으로 새 프로필 카드를 제한 없이 추가할 수 있습니다."
                 : createRequiresProfileActionPayment
-                ? "새 프로필 카드를 추가하려면 5,000원 단건결제 또는 이용권 혜택 사용이 필요합니다."
+                ? "새 프로필 카드를 추가하려면 5,000원 단건결제 또는 월정석 사용이 필요합니다."
                 : "이용권 슬롯 안에서 새 프로필 카드를 추가할 수 있습니다."}
             </p>
             {busyAction === "create" ? (
@@ -1589,7 +1605,7 @@ export default function MePage() {
                 "삭제하면 해당 프로필 카드의 저장 정보가 사라집니다."
               ) : (
                 <>
-                  단건결제 또는 이용권 혜택 {formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용 중 하나를 선택해 주세요.
+                  단건결제 또는 월정석 {formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용 중 하나를 선택해 주세요.
                   <br />
                   삭제 후에는 해당 프로필 카드의 저장 정보가 사라집니다.
                 </>

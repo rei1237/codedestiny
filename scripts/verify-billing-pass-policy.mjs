@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 import { __billingTestUtils } from "../worker/routes/billing.js";
 import {
   canUseByPass,
+  HONEY_PASS_POLICY,
   PASS_LIMITS,
   PASS_LIMITS_KRW,
   PASS_TIERS,
@@ -140,6 +141,8 @@ const standard30 = decision({
 assert.equal(PASS_LIMITS_KRW[PASS_TIERS.STANDARD], 3000, "standard pass limit is 3,000 KRW");
 assert.equal(PASS_LIMITS_KRW[PASS_TIERS.PREMIUM], 5000, "premium pass limit is 5,000 KRW");
 assert.equal(PASS_LIMITS_KRW[PASS_TIERS.VVIP], 10000, "vvip pass limit is 10,000 KRW");
+assert.equal(HONEY_PASS_POLICY.standard.maxProfiles, 3, "standard profile limit comes from shared policy");
+assert.equal(HONEY_PASS_POLICY.premium.totalUses, 7, "premium pass use count comes from shared policy");
 assert.equal(canUseByPass(activePass(PASS_TIERS.STANDARD), 30), true, "standard covers 30 coins");
 assert.equal(standard30.amountKRW, 3000, "standard 30 amountKRW");
 assert.equal(standard30.passLimitKRW, 3000, "standard 30 passLimitKRW");
@@ -304,6 +307,10 @@ const noPassMonthly = decision({
 assert.equal(noPassMonthly.canUseByPass, false, "no pass monthly regression: pass unavailable");
 assert.equal(noPassMonthly.canUseByMonthly, true, "no pass monthly regression: monthly usable");
 assert.equal(noPassMonthly.canUseByCard, true, "no pass monthly regression: card still usable");
+assert.equal(noPassMonthly.recommendedMethod, "PAYMENT_CHOICE", "no pass monthly regression: no single paid method is preferred");
+assert.deepEqual(noPassMonthly.recommendedMethods, ["DIRECT_KRW", "MOONLIGHT_STONE"], "no pass monthly regression: card and monthly are equal paid choices");
+assert.deepEqual(noPassMonthly.equalPriorityMethods, ["DIRECT_KRW", "MOONLIGHT_STONE"], "no pass monthly regression: card and monthly keep equal priority");
+assert.equal(noPassMonthly.paymentPriority, "USER_CHOICE_EQUAL", "no pass monthly regression: user choice remains equal priority");
 assert.deepEqual(finalAccess(noPassMonthly, "monthly"), {
   ok: true,
   accessMethod: "MONTHLY",
@@ -319,6 +326,9 @@ const noPassCard = decision({
 assert.equal(noPassCard.canUseByPass, false, "no pass card regression: pass unavailable");
 assert.equal(noPassCard.canUseByMonthly, false, "no pass card regression: monthly insufficient");
 assert.equal(noPassCard.canUseByCard, true, "no pass card regression: card usable");
+assert.equal(noPassCard.recommendedMethod, "PAYMENT_CHOICE", "no pass card regression: paid choice shell remains neutral");
+assert.deepEqual(noPassCard.recommendedMethods, ["DIRECT_KRW"], "no pass card regression: only available paid method is card");
+assert.deepEqual(noPassCard.equalPriorityMethods, ["DIRECT_KRW"], "no pass card regression: unavailable monthly is not promoted");
 assert.deepEqual(finalAccess(noPassCard, "card"), {
   ok: true,
   accessMethod: "CARD",
@@ -329,9 +339,9 @@ assert.deepEqual(finalAccess(noPassCard, "card"), {
 
 assertBefore(
   billingSource,
-  "if (!directPaymentRequested && paymentDecision.canUseByPass && !passBlockedByAccessDecision)",
+  "if (!directPaymentRequested && !monthlyBalanceRequested && paymentDecision.canUseByPass && !passBlockedByAccessDecision)",
   "if (monthlyBalanceRequested)",
-  "PASS is evaluated before monthly deduction",
+  "PASS is evaluated before monthly deduction only outside monthly mode",
 );
 assertContains(billingSource, 'accessMethod: "PASS"', "PASS access method response");
 assertContains(billingSource, "charged: 0", "PASS charged zero response");
@@ -344,8 +354,12 @@ assertNotContains(billingSource, "if (!singleOrMonthlyOnly)", "monthly choice mu
 assertContains(billingSource, "consumeMembershipCreditIfAvailable", "monthly deduction path remains");
 assertContains(billingSource, 'accessMethod: "MONTHLY"', "monthly access method remains");
 assertContains(billingSource, 'charged: Number(membershipConsume.coinPrice || 0)', "monthly charged amount remains");
-assertContains(billingSource, "source: CONTENT_ENTITLEMENT_SOURCES.COIN", "monthly unlock is not recorded as pass");
+assertContains(billingSource, "source: CONTENT_ENTITLEMENT_SOURCES.MONTHLY", "monthly unlock is not recorded as pass");
 assertContains(billingSource, "paymentId: membershipConsume.transactionId || requestId", "monthly unlock keeps transaction evidence");
+assertContains(billingSource, "accessSource: resolvedAccessSource", "billing responses return explicit access source");
+assertContains(billingSource, 'resolvedAccessSource === "single_payment" ? "single_payment"', "single payment response intent remains explicit");
+assertContains(billingSource, 'resolvedAccessSource === "monthly_subscription" ? "monthly_subscription"', "monthly response intent remains explicit");
+assertContains(billingSource, 'paymentType: resolvedPaymentIntentType', "payment verify response includes explicit payment type");
 assertBefore(
   billingSource,
   "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable(request, env, body);",
@@ -389,8 +403,24 @@ assertNotContains(paymentsSource, '"profileSubscription.membershipCreditBalance"
 assertContains(indexSource, 'class="cd-direct-payment-option" data-mode="direct"', "single payment CTA");
 assertContains(indexSource, 'data-mode="monthly" data-monthly-option', "monthly payment CTA restored");
 assertContains(indexSource, "var allowMonthlyChoice = paymentModeAllowed(['monthly', 'monthly_credit', 'moonlight_stone', 'membership_credit'])", "monthly payment includes profile add/delete");
-assertContains(indexSource, 'data-mode="pass"', "payment modal shows pass apply option");
-assertContains(indexSource, "\\uC774\\uC6A9\\uAD8C \\uC801\\uC6A9", "payment modal pass apply label");
+assertContains(indexSource, "var allowPassChoice = opts.allowPassChoice === true", "payment modal pass option is disabled by default");
+assertNotContains(indexSource, "var passMode = 'pass';", "payment modal does not offer pass apply option");
+assertNotContains(indexSource, "entitlementGranted = await refreshDirectEntitlementStatus", "payment modal does not re-run pass entitlement check");
+assertContains(indexSource, "passChoiceMessage = '이용권은 결제창을 열기 전에만 확인됩니다.", "post-modal pass choice is blocked");
+assertNotContains(indexSource, "paymentChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "unlock modal never routes monthly choice through membership pass");
+assertNotContains(indexSource, "perUseChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "per-use modal never routes monthly choice through membership pass");
+assertNotContains(indexSource, "tilePaymentChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "tile lock modal never routes monthly choice through membership pass");
+assertContains(indexSource, "_cdPaidPrecheckCache", "paid feature precheck cache exists");
+assertContains(indexSource, "_cdPaidPrecheckInFlight", "paid feature precheck in-flight dedupe exists");
+assertContains(indexSource, "CD_PAID_PRECHECK_TTL_MS = 30000", "paid feature precheck cache TTL");
+assertContains(indexSource, "MONTHLY_CREDIT_SYNC_FRESH_TTL_MS = 15000", "monthly credit sync fresh TTL");
+assertContains(indexSource, "monthlyCreditSyncPromise", "monthly credit sync in-flight dedupe");
+assertNotContains(indexSource, "retry=1&reason=", "monthly credit sync avoids third retry request");
+assertContains(indexSource, "_cdCanUseMonthlyFromPrecheck", "monthly precheck can bypass modal");
+assertContains(indexSource, "__cdMonthlyCreditGateInFlight", "monthly payment request has single-flight guard");
+assertContains(indexSource, "단건 결제가 완료되어 열람되었습니다.", "single payment success copy");
+assertContains(indexSource, "월정석 결제가 완료되었습니다.", "monthly payment success copy");
+assertContains(indexSource, "월정석 혜택으로 열람되었습니다.", "monthly benefit success copy");
 assertContains(indexSource, "FAMILY 이용권이 적용되었습니다.", "static family license pass success copy");
 assertContains(indexSource, "membership-honey-kkulkkul.webp", "static license pass reuses honey pig asset");
 assertContains(indexSource, "forceDeduct: false", "static membership pass probe never deducts coins");
@@ -402,8 +432,11 @@ assertContains(indexSource, "Code Destiny Family 30일", "main shell family paym
 assertContains(indexSource, "\\uC0C1\\uD488\\uBCC4 \\uC6D0\\uD654 \\uB2E8\\uAC74 \\uACB0\\uC81C", "main shell PDF single-payment modal copy");
 assertContains(indexSource, "directPaymentBasisLabel", "payment modal displays original value basis");
 assertContains(indexSource, "membershipCoverage: (passFirstAccess && passFirstAccess.membershipCoverage)", "pass-first coverage feeds payment modal");
-assertContains(indexSource, "passButtonHtml", "payment modal includes pass card HTML");
+assertContains(indexSource, "passButtonHtml", "pass store card remains behind explicit allowPassChoice");
 assertContains(indexSource, "monthlyBalance >= requiredMonthlyCredits", "simple frontend monthly balance check");
+assertContains(paymentsSource, "profileLimit: HONEY_PASS_POLICY.standard.maxProfiles", "subscription plan uses shared standard profile policy");
+assertContains(paymentsSource, "passTotalUses: HONEY_PASS_POLICY.premium.totalUses", "subscription plan uses shared premium pass use policy");
+assertContains(paymentsSource, "maxCoveredCoin: HONEY_PASS_POLICY.vvip.maxCoveredCoin", "subscription plan uses shared vvip coin policy");
 assertContains(indexSource, "cd-direct-payment-dialog", "legacy direct payment dialog");
 assertContains(indexSource, "width:min(520px,100%)", "legacy modal width");
 assertContains(indexSource, "min-height:auto", "legacy option height");

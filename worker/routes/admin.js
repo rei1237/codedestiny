@@ -19,9 +19,12 @@ import { buildAstrologyAIPromptWithDomain } from "../lib/astrology-ai-prompt.js"
 import { buildZiweiAIPromptWithDomain } from "../lib/ziwei-ai-prompt.js";
 import { buildVedicAIPromptWithDomain } from "../lib/vedic-ai-prompt.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
+import { buildSajuQuantumDaewunRows, buildSajuQuantumElementMap, normalizeElementKeys } from "../lib/saju-quantum-myeongri.js";
+import { buildCompatibilityFromIndices, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
 import { getSwissWesternChart, getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
 import { buildAstroLocalChartJson, normalizeAstroPremiumBirthInput } from "../lib/astro-premium-generator.js";
 import { buildVedicLocalChartJson } from "../lib/vedic-premium-generator.js";
+import { Solar } from "lunar-javascript";
 
 const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
   // current admin entry password: kangta!7989
@@ -665,6 +668,84 @@ function toAdminElementList(value) {
   return items.map((item) => adminElementLabel(item)).filter(Boolean).join(", ") || "-";
 }
 
+function buildAdminElementKeyList(value, fallback = []) {
+  return normalizeElementKeys(value, fallback);
+}
+
+function buildAdminSajuJohuProfile(pillars) {
+  const seasonMap = { 寅: "봄", 卯: "봄", 辰: "봄", 巳: "여름", 午: "여름", 未: "여름", 申: "가을", 酉: "가을", 戌: "가을", 亥: "겨울", 子: "겨울", 丑: "겨울" };
+  const monthBranch = pillars?.m?.j || "";
+  const season = seasonMap[monthBranch] || "봄";
+  let score = 0;
+  if (season === "여름") score += 4;
+  else if (season === "봄") score += 2;
+  else if (season === "가을") score -= 2;
+  else score -= 4;
+
+  let fireCount = 0;
+  let waterCount = 0;
+  let woodCount = 0;
+  let metalCount = 0;
+  let moistCount = 0;
+  let dryCount = 0;
+  [pillars?.y, pillars?.m, pillars?.d, pillars?.h].forEach((pillar) => {
+    if (!pillar) return;
+    [pillar.gEKey, pillar.jEKey].forEach((element) => {
+      if (element === "fire") {
+        score += 1.5;
+        fireCount += 1;
+        dryCount += 1;
+      } else if (element === "water") {
+        score -= 1.5;
+        waterCount += 1;
+        moistCount += 1;
+      } else if (element === "wood") {
+        score += 0.5;
+        woodCount += 1;
+        moistCount += 1;
+      } else if (element === "metal") {
+        score -= 0.5;
+        metalCount += 1;
+        dryCount += 1;
+      }
+    });
+    if (["辰", "丑"].includes(pillar.j)) moistCount += 1;
+    if (["戌", "未"].includes(pillar.j)) dryCount += 1;
+  });
+
+  let type = "neutral";
+  let badgeTxt = "🌤️ 시원한 사주";
+  if (score >= 5) {
+    type = "hot";
+    badgeTxt = "🔥 뜨거운 사주";
+  } else if (score >= 2) {
+    type = "warm";
+    badgeTxt = "🌞 따뜻한 사주";
+  } else if (score < -5) {
+    type = "cold";
+    badgeTxt = "❄️ 차가운 사주";
+  } else if (score < -2) {
+    type = "cool";
+    badgeTxt = "🍃 서늘한 사주";
+  }
+
+  const moistDiff = moistCount - dryCount;
+  const moistType = moistDiff >= 3 ? "wet" : (moistDiff <= -3 ? "dry" : "balanced");
+  return {
+    type,
+    score,
+    badgeTxt,
+    season,
+    fc: fireCount,
+    wc: waterCount,
+    wdc: woodCount,
+    mc: metalCount,
+    moistType,
+    moistCnt: moistCount,
+    dryCnt: dryCount,
+  };
+}
+
 function buildAdminSajuHiddenStemDigest(enginePillars) {
   return ["year", "month", "day", "hour"].map((key) => {
     const pillar = enginePillars?.[key] || {};
@@ -808,7 +889,30 @@ function buildAdminSajuResultFromEngine(profile, options = {}) {
     ? engineProfile.fiveElements.strong.slice(0, 2)
     : rankAdminElements(counts).slice(0, 2);
   const useful = engineProfile?.usefulGods && typeof engineProfile.usefulGods === "object" ? engineProfile.usefulGods : {};
+  const yongshinKeys = buildAdminElementKeyList(useful.yong, weakKeys);
+  const kijishinKeys = buildAdminElementKeyList(useful.gi, strongKeys);
+  const strengthLabel = typeof useful.strength === "string"
+    ? useful.strength
+    : String(useful.strength?.level || "");
+  const johuProfile = buildAdminSajuJohuProfile(pillars);
+  const quantumContext = {
+    pillars,
+    power: {
+      yongshin: yongshinKeys,
+      kijishin: kijishinKeys,
+    },
+    jong: {
+      isJong: false,
+      name: "일반격",
+    },
+    johu: johuProfile,
+  };
+  const quantumElementMap = buildSajuQuantumElementMap(quantumContext).map((item) => ({
+    ...item,
+    score: counts[item.element] || 0,
+  }));
   const daewoon = Array.isArray(engineProfile?.daewoon) ? engineProfile.daewoon : [];
+  const quantumDaewunRows = buildSajuQuantumDaewunRows(daewoon.slice(0, 8), quantumContext);
   const age = Math.max(0, new Date().getUTCFullYear() - profile.year);
   const hiddenStemDigest = buildAdminSajuHiddenStemDigest(enginePillars);
   const tenGodDigest = buildAdminSajuTenGodDigest(engineProfile?.tenGods);
@@ -865,13 +969,13 @@ function buildAdminSajuResultFromEngine(profile, options = {}) {
       dominant: adminElementLabel(dominantKey),
     },
     johu: {
-      type: String(engineProfile?.solarTerms?.monthBoundaryTerm?.name || engineProfile?.solarTerms?.previousMajorTerm?.name || "절기 조후"),
-      score: Number(useful.strength?.score || useful.score || 0) || null,
+      ...johuProfile,
+      solarTerm: String(engineProfile?.solarTerms?.monthBoundaryTerm?.name || engineProfile?.solarTerms?.previousMajorTerm?.name || ""),
     },
     power: {
-      isStrong: String(useful.strength?.level || "").toLowerCase().includes("strong"),
-      yongshin: (Array.isArray(useful.yong) ? useful.yong : weakKeys).map(adminElementLabel),
-      kijishin: (Array.isArray(useful.gi) ? useful.gi : strongKeys).map(adminElementLabel),
+      isStrong: strengthLabel.toLowerCase().includes("strong"),
+      yongshin: yongshinKeys.map(adminElementLabel),
+      kijishin: kijishinKeys.map(adminElementLabel),
     },
     jong: {
       isJong: false,
@@ -900,22 +1004,8 @@ function buildAdminSajuResultFromEngine(profile, options = {}) {
           hourPillarTimePolicy: profile.timeCorrectionPolicy,
           dayChangePolicy: profile.dayChangePolicy,
         },
-        elementMap: ADMIN_ELEMENT_KEYS.map((key) => ({
-          element: key,
-          label: adminElementLabel(key),
-          score: counts[key],
-          verdict: key === dominantKey ? "강함" : (weakKeys.includes(key) ? "보완 필요" : "중간"),
-        })),
-        daewun: daewoon.slice(0, 8).map((row) => ({
-          age: row.startAge || row.startAgeYears || row.startAgeDecimal || row.startYear || null,
-          gan: String(row.ganji || row.pillar || "").slice(0, 1),
-          zhi: String(row.ganji || row.pillar || "").slice(1),
-          ganElement: "",
-          zhiElement: "",
-          score: null,
-          label: String(row.ganji || row.pillar || ""),
-          jongStrength: "",
-        })),
+        elementMap: quantumElementMap,
+        daewun: quantumDaewunRows,
       },
       renderedFeatureDigests: [
         {
@@ -936,7 +1026,7 @@ function buildAdminSajuResultFromEngine(profile, options = {}) {
         {
           id: "useful-god-current",
           label: "용신과 기신의 문턱",
-          text: `용신 ${toAdminElementList(useful.yong || weakKeys)}, 기신 ${toAdminElementList(useful.gi || strongKeys)} 사이에서 질문의 길흉이 갈라집니다.`,
+          text: `용신 ${toAdminElementList(yongshinKeys)}, 기신 ${toAdminElementList(kijishinKeys)} 사이에서 질문의 길흉이 갈라집니다.`,
         },
         {
           id: "daewoon-current-bridge",
@@ -955,14 +1045,29 @@ function buildAdminSajuResultFromEngine(profile, options = {}) {
 }
 
 function buildAdminSukuyoContext(profile) {
-  const mansionIdx = positiveModulo(profile.seed + profile.month * 3 + profile.day, ADMIN_SUKUYO_MANSIONS.length);
+  const solar = Solar.fromYmdHms(profile.year, profile.month, profile.day, profile.timeUnknown ? 12 : profile.hour, profile.minute || 0, 0);
+  const lunar = solar.getLunar();
+  const lunarMonthRaw = Number(lunar?.getMonth?.() || profile.month);
+  const lunarMonth = Math.max(1, Math.abs(lunarMonthRaw));
+  const lunarDay = Math.max(1, Number(lunar?.getDay?.() || profile.day));
+  const sukuyo = buildSukuyoFromLunar(lunarMonth, lunarDay, {
+    isLeapMonth: typeof lunar?.isLeap === "function" ? lunar.isLeap() : lunarMonthRaw < 0,
+    source: "admin-prompt-lab-lunar",
+  });
+  const mansionIdx = Number.isFinite(Number(sukuyo?.index))
+    ? Number(sukuyo.index)
+    : positiveModulo(profile.seed + profile.month * 3 + profile.day, ADMIN_SUKUYO_MANSIONS.length);
   const partnerIdx = positiveModulo(mansionIdx + 7, ADMIN_SUKUYO_MANSIONS.length);
-  const mansion = ADMIN_SUKUYO_MANSIONS[mansionIdx];
+  const mansion = sukuyo?.nameKo ? `${sukuyo.nameKo}숙` : ADMIN_SUKUYO_MANSIONS[mansionIdx];
   const partnerMansion = ADMIN_SUKUYO_MANSIONS[partnerIdx];
+  const compatibility = buildCompatibilityFromIndices(mansionIdx, partnerIdx) || {};
   const distance = Math.min(
     positiveModulo(partnerIdx - mansionIdx, ADMIN_SUKUYO_MANSIONS.length),
     positiveModulo(mansionIdx - partnerIdx, ADMIN_SUKUYO_MANSIONS.length),
   );
+  const strengths = Array.isArray(sukuyo?.strengths) ? sukuyo.strengths : [];
+  const shadows = Array.isArray(sukuyo?.shadows) ? sukuyo.shadows : [];
+  const keywords = Array.isArray(sukuyo?.keywords) ? sukuyo.keywords : [];
 
   return {
     basicResult: {
@@ -970,22 +1075,28 @@ function buildAdminSukuyoContext(profile) {
       mansionIdx,
       displayIndex: mansionIdx + 1,
       icon: "moon",
-      talent: positiveModulo(profile.seed, 100),
+      talent: Math.max(35, Math.min(96, 62 + strengths.length * 6 - shadows.length * 2)),
       traits: {
-        core: `${mansion}의 결은 첫 인상보다 깊은 집중력과 회복력을 품습니다.`,
-        hidden: "감정의 물결이 빨라질수록 거리를 두고 관찰할 때 중심이 살아납니다.",
-        love: "정서적 안전감과 오래 쌓이는 신뢰에 마음이 열립니다.",
-        work: "흐름을 읽고 빈틈을 메우는 자리에서 재능이 살아납니다.",
-        wealth: "작은 축적을 반복할수록 재물의 그릇이 단단해집니다.",
-        karma: "관계 안에서 반복되는 역할을 알아차릴 때 운의 매듭이 풀립니다.",
+        core: `${mansion}의 원형에는 ${keywords.join("·") || "달의 감응"} 기운이 먼저 드러납니다.`,
+        hidden: shadows.length ? `${shadows.join("·")}의 그림자가 강해질 때 거리를 조율해야 합니다.` : "감정의 물결이 빨라질수록 거리를 두고 관찰할 때 중심이 살아납니다.",
+        love: strengths.length ? `${strengths.join("·")}의 강점으로 마음의 문이 열립니다.` : "정서적 안전감과 오래 쌓이는 신뢰에 마음이 열립니다.",
+        work: `${sukuyo?.archetypeTitle || "달의 원형"}이 일과 역할의 리듬에 스며듭니다.`,
+        wealth: `${sukuyo?.element || "달"} 속성이 축적과 순환의 방식을 비춥니다.`,
+        karma: `${sukuyo?.direction || "달의 자리"}에서 반복되는 인연의 매듭이 떠오릅니다.`,
         mantra: "서두르지 않고 달빛이 차오르는 속도에 맞춥니다.",
       },
       daily: {
         moon: { label: "차오르는 달" },
         moonLabel: "차오르는 달",
-        insight: "오늘의 감응은 관계의 거리와 마음의 밀도를 함께 비춥니다.",
+        insight: `${mansion}의 달빛이 관계의 거리와 마음의 밀도를 함께 비춥니다.`,
       },
-      summaryTone: "차분한 집중과 회복의 리듬",
+      summaryTone: sukuyo?.archetypeTitle || "차분한 집중과 회복의 리듬",
+      lunarBasis: {
+        lunarMonth,
+        lunarDay,
+        isLeapMonth: Boolean(sukuyo?.isLeapMonth),
+        source: sukuyo?.source || "admin-prompt-lab-lunar",
+      },
     },
     compatibilityResult: {
       myIdx: mansionIdx,
@@ -994,26 +1105,26 @@ function buildAdminSukuyoContext(profile) {
       partnerMansion,
       partnerName: "관리자 상대",
       partnerGender: "미지정",
-      relationType: distance <= 3 ? "영친" : distance <= 9 ? "안괴" : "성위",
-      relationTypeHan: distance <= 3 ? "榮親" : distance <= 9 ? "安壞" : "成危",
+      relationType: compatibility.relationType || (distance <= 3 ? "영친" : distance <= 9 ? "안괴" : "성위"),
+      relationTypeHan: compatibility.relationTypeHan || (distance <= 3 ? "榮親" : distance <= 9 ? "安壞" : "成危"),
       distanceLabel: `${distance}보 거리`,
       shortestDistance: distance,
-      myRole: "받아들이는 쪽",
-      partnerRole: "자극을 여는 쪽",
+      myRole: compatibility.aRole || "받아들이는 쪽",
+      partnerRole: compatibility.bRole || "자극을 여는 쪽",
       directionFromAToB: "감정의 문이 먼저 열림",
       directionFromBToA: "현실의 속도를 맞춤",
-      score: positiveModulo(profile.seed, 31) + 62,
-      temperature: positiveModulo(profile.seed + 11, 36) + 58,
-      magnetism: positiveModulo(profile.seed + 23, 38) + 55,
-      communicationScore: positiveModulo(profile.seed + 31, 32) + 60,
-      stabilityScore: positiveModulo(profile.seed + 41, 30) + 58,
-      growthScore: positiveModulo(profile.seed + 53, 34) + 57,
-      conflictScore: positiveModulo(profile.seed + 61, 28) + 24,
+      score: Number(compatibility.compatibilityIndex || compatibility.chemistryScore || 0) || positiveModulo(profile.seed, 31) + 62,
+      temperature: Number(compatibility.chemistryScore || 0) || positiveModulo(profile.seed + 11, 36) + 58,
+      magnetism: Number(compatibility.growthScore || 0) || positiveModulo(profile.seed + 23, 38) + 55,
+      communicationScore: Number(compatibility.communicationScore || 0) || positiveModulo(profile.seed + 31, 32) + 60,
+      stabilityScore: Number(compatibility.stabilityScore || 0) || positiveModulo(profile.seed + 41, 30) + 58,
+      growthScore: Number(compatibility.growthScore || 0) || positiveModulo(profile.seed + 53, 34) + 57,
+      conflictScore: Number(compatibility.conflictScore || 0) || positiveModulo(profile.seed + 61, 28) + 24,
       emotionalPattern: "가까워질수록 말보다 분위기의 결이 먼저 움직입니다.",
       conflictPattern: "속도 차이가 생기면 잠시 간격을 두고 다시 손을 맞춥니다.",
       longTermPotential: "꾸준한 약속이 쌓일수록 인연의 뿌리가 깊어집니다.",
-      summary: `${mansion}과 ${partnerMansion} 사이에 서로 다른 달빛의 속도가 머무릅니다.`,
-      stamp: "관리자 기본 궁합 컨텍스트",
+      summary: compatibility.summary || `${mansion}과 ${partnerMansion} 사이에 서로 다른 달빛의 속도가 머무릅니다.`,
+      stamp: "관리자 숙요 계산 컨텍스트",
       partnerTraits: {
         core: "반응이 빠르고 관계의 신호를 민감하게 받습니다.",
         hidden: "불안이 올라오면 확인 욕구가 강해집니다.",

@@ -369,9 +369,12 @@ function normalizeSajuEngineContext(sajuResult) {
       score: Number.isFinite(Number(row?.score)) ? Number(row.score) : null,
       label: toText(row?.label, ""),
       className: toText(row?.className, ""),
+      evalSummary: toText(row?.evalSummary, ""),
       jongStrength: toText(row?.jongStrength, ""),
       hasChungBonus: row?.hasChungBonus === true,
       hasChungPenalty: row?.hasChungPenalty === true,
+      hasJiheBonus: row?.hasJiheBonus === true,
+      hasSamhapBonus: row?.hasSamhapBonus === true,
     })).filter((row) => row.gan || row.zhi || row.age)
     : [];
   const featureDigests = Array.isArray(context.renderedFeatureDigests)
@@ -412,7 +415,15 @@ function buildSajuEngineContextLines(engineContext) {
       const age = row.age ? `${row.age}세` : "나이 미상";
       const gz = `${row.gan}${row.zhi}`.trim() || "간지 미상";
       const score = row.score == null ? "점수 미상" : `${row.score}점`;
-      const flags = [row.label, row.jongStrength, row.hasChungBonus ? "충 보너스" : "", row.hasChungPenalty ? "충 경계" : ""].filter(Boolean).join("/");
+      const flags = [
+        row.label,
+        row.evalSummary,
+        row.jongStrength,
+        row.hasChungBonus ? "충 보너스" : "",
+        row.hasChungPenalty ? "충 경계" : "",
+        row.hasJiheBonus ? "육합 보정" : "",
+        row.hasSamhapBonus ? "삼합 보정" : "",
+      ].filter(Boolean).join("/");
       return `${age} ${gz} ${score}${flags ? ` ${flags}` : ""}`;
     }).join(" | ")
     : DEFAULT_TEXT;

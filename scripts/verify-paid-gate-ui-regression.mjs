@@ -96,13 +96,18 @@ assertContains(billingRouteSource, "consumeUsagePassIfAvailable", "pass consume 
 assertContains(billingRouteSource, 'accessMethod: "PASS"', "pass access method");
 assertContains(billingRouteSource, 'requestedPaymentMode === "monthly_credit"', "monthly mode stays separate");
 assertContains(indexSource, "paymentMode: 'DIRECT_KRW'", "direct mode stays separate");
-assertContains(indexSource, "paymentMode: perUseChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "internal membership entitlement route remains explicit");
+assertContains(indexSource, "paymentMode: 'MOONLIGHT_STONE'", "post-modal monthly route remains explicit");
+assertNotContains(indexSource, "perUseChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "post-modal per-use route cannot fall back to membership pass");
+assertNotContains(indexSource, "paymentChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "post-modal unlock route cannot fall back to membership pass");
+assertNotContains(indexSource, "tilePaymentChoice === 'membership' ? 'MEMBERSHIP_PASS' : 'MOONLIGHT_STONE'", "post-modal tile route cannot fall back to membership pass");
 assertContains(billingRouteSource, '"/api/payments/prepare"', "direct payment prepare path");
 assertContains(billingRouteSource, '"/api/payments/confirm"', "direct payment confirm path");
 assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable", '"/api/payments/prepare"', "pass checked before card prepare");
 assertBefore(billingRouteSource, "const passAccess = await grantPassFreeAccessBeforeCardIfAvailable", '"/api/payments/confirm"', "pass checked before card confirm");
 
-assertContains(indexSource, "passButtonHtml", "canonical payment modal pass option");
+assertContains(indexSource, "passButtonHtml", "canonical payment modal pass store option");
+assertContains(indexSource, "var allowPassChoice = opts.allowPassChoice === true", "pass option is explicit precheck-only policy");
+assertContains(indexSource, "passChoiceMessage = '이용권은 결제창을 열기 전에만 확인됩니다.", "post-modal pass choice is blocked");
 assertContains(indexSource, "window.location.assign('/points?source=direct-payment-pass-store');", "canonical pass choice opens pass store");
 assertNotContains(indexSource, "reason: 'pass_applied_in_modal'", "membership pass choice must grant instead of cancelling");
 assertContains(destinyProfileSource, "if (choice === 'pass')", "destiny pass choice grant path");
