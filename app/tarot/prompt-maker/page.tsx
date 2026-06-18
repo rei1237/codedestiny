@@ -90,7 +90,7 @@ const QUESTION_CATEGORY_OPTIONS: TarotSpreadCategory[] = [
 
 const SENSITIVE_CATEGORY_NOTICE: Partial<Record<TarotSpreadCategory, string>> = {
   crisis: "위기 질문은 공포를 키우지 않고, 멈출 선택과 지금 도움을 청할 지점을 먼저 분리합니다.",
-  money: "금전 질문은 수익이나 투자 판단을 단정하지 않고, 위험 신호와 관리 기준을 중심으로 읽습니다.",
+  money: "금전 질문에는 수익이나 투자 판단의 단정 대신, 위험 신호와 관리 기준이 먼저 떠오릅니다.",
   self: "마음 질문은 진단이 아니라 감정의 이름과 회복 행동을 찾는 참고 리딩으로 다룹니다.",
   legal: "법률·송사 질문은 승패나 판결을 단정하지 않고, 기록 정리와 전문가 상담을 돕는 참고용 상징 해석으로만 다룹니다.",
 };
@@ -133,7 +133,7 @@ function buildFlowLines(cards: DrawnTarotCard[]) {
   const reversedCount = cards.length - uprightCount;
   return [
     `${first.cardNameKo} ${first.orientationLabel}에서 열린 첫빛이 ${middle.cardNameKo} ${middle.orientationLabel}을 지나며 질문의 중심을 비춥니다.`,
-    `현재 조합은 정방향 ${uprightCount}장, 역방향 ${reversedCount}장으로 열리는 힘과 머무는 힘의 균형을 보여줍니다.`,
+    `현재 조합에는 정방향 ${uprightCount}장, 역방향 ${reversedCount}장의 흐름 속에서 열리는 힘과 머무는 힘의 균형이 드러납니다.`,
     `${last.positionLabel}에 놓인 ${last.cardNameKo}가 이 프롬프트의 마지막 문장과 행동 톤을 정합니다.`,
   ];
 }
@@ -266,11 +266,11 @@ export default function TarotPromptMakerPage() {
     : "";
 
   const billingCoinLabel = billingSnapshot
-    ? (billingPassIncluded ? `${billingSubscriptionLabel} 월정석` : billingSnapshot.requiredCoins > 0 ? formatCoinValue(billingSnapshot.requiredCoins) : "무료")
+    ? (billingPassIncluded ? `${billingSubscriptionLabel} 이용권` : billingSnapshot.requiredCoins > 0 ? formatCoinValue(billingSnapshot.requiredCoins) : "무료")
     : "1회 5,000원";
 
   const billingStateLabel = billingSnapshot
-    ? (billingPassIncluded ? "월정석 포함" : billingSnapshot.canAccess ? "즉시 이용" : "결제 필요")
+    ? (billingPassIncluded ? "이용권 적용 가능" : billingSnapshot.canAccess ? "즉시 이용" : "결제 필요")
     : (billingLoading ? "확인 중" : "미연동");
   const sensitiveCategoryNotice = SENSITIVE_CATEGORY_NOTICE[selectedQuestionCategory];
   const questionQualityNotice = buildQuestionQualityNotice(question, selectedQuestionCategory);
@@ -437,7 +437,7 @@ export default function TarotPromptMakerPage() {
           generate();
           if (accessSource === "subscription" || (chargedCoins <= 0 && requiredCoins > 0 && billingPassIncluded)) {
             showSubscriptionIncludedNotice({
-              message: "월정석 혜택으로 타로 프롬프트 라이브러리가 열렸습니다. 달빛의 흐름 안에서 AI 오라클 프롬프트가 완성되었습니다.",
+              message: "이용권 혜택이 적용되어 타로 프롬프트 라이브러리가 열렸습니다. 달빛의 흐름 안에서 AI 오라클 프롬프트가 완성되었습니다.",
               reason: "타로 프롬프트 라이브러리",
               tier: subscriptionTier || billingSnapshot?.subscriptionTier,
             });

@@ -35,7 +35,7 @@ export function showSubscriptionIncludedNotice(options: SubscriptionNoticeOption
 
   const message = String(
     options.message
-      || "월정석 혜택이 적용되어 이번 이용이 달빛 흐름 안에서 열렸습니다. 별빛 혜택으로 고객님의 리딩이 보호되고 있습니다."
+      || "이용권 혜택이 적용되어 이번 리딩이 달빛의 흐름 안에서 열렸습니다. 별빛의 가호가 이 여정을 부드럽게 비춥니다."
   );
   const reason = String(options.reason || "프리미엄 리딩");
   const tier = String(options.tier || "");
@@ -127,8 +127,8 @@ export function showSubscriptionIncludedNotice(options: SubscriptionNoticeOption
   title.style.zIndex = "1";
   title.innerHTML = ""
     + '<div style="display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:rgba(56,189,248,0.14);border:1px solid rgba(125,211,252,0.36);font-size:11px;font-weight:800;letter-spacing:.1em;color:#bae6fd;">'
-    + "<span>✦</span><span>COSMIC MEMBERSHIP ACTIVE</span></div>"
-    + '<h3 style="margin:14px 0 8px;font-size:26px;line-height:1.28;color:#f8fafc;letter-spacing:-.02em;">월정석 혜택 적용 완료</h3>'
+    + "<span>✦</span><span>COSMIC PASS ACTIVE</span></div>"
+    + '<h3 style="margin:14px 0 8px;font-size:26px;line-height:1.28;color:#f8fafc;letter-spacing:-.02em;">이용권 혜택 적용 완료</h3>'
     + `<p style="margin:0;color:rgba(226,232,240,.95);font-size:14px;line-height:1.65;">${message}</p>`;
 
   const meta = document.createElement("div");
@@ -142,8 +142,8 @@ export function showSubscriptionIncludedNotice(options: SubscriptionNoticeOption
   meta.style.fontSize = "13px";
   meta.style.lineHeight = "1.7";
   meta.innerHTML = ""
-    + `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#93c5fd;">구독 플랜</span><strong style="color:#f8fafc;">${tierLabel}</strong></div>`
-    + '<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#93c5fd;">적용 혜택</span><strong style="color:#86efac;">월정석 포함</strong></div>'
+    + `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#93c5fd;">이용권 등급</span><strong style="color:#f8fafc;">${tierLabel}</strong></div>`
+    + '<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#93c5fd;">적용 혜택</span><strong style="color:#86efac;">이용권 혜택 적용</strong></div>'
     + `<div style="display:flex;justify-content:space-between;gap:12px;"><span style="color:#93c5fd;">서비스</span><strong style="color:#f8fafc;">${reason}</strong></div>`;
 
   const btn = document.createElement("button");
